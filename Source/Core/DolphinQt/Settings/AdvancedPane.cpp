@@ -89,6 +89,18 @@ void AdvancedPane::CreateLayout()
          "needed.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
   cpu_options_group_layout->addWidget(m_accurate_cpu_cache_checkbox);
 
+  auto* const timing_group = new QGroupBox(tr("Timing"));
+  main_layout->addWidget(timing_group);
+  auto* timing_group_layout = new QVBoxLayout{timing_group};
+  auto* const correct_time_drift =
+      new ConfigBool{tr("Correct Time Drift"), Config::MAIN_CORRECT_TIME_DRIFT};
+  correct_time_drift->SetDescription(
+      tr("Allow the emulated console to run fast after stutters,"
+         "<br>pursuing accurate overall elapsed time unless paused or speed-adjusted."
+         "<br><br>This may be useful for internet play."
+         "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
+  timing_group_layout->addWidget(correct_time_drift);
+
   auto* clock_override = new QGroupBox(tr("Clock Override"));
   auto* clock_override_layout = new QVBoxLayout();
   clock_override->setLayout(clock_override_layout);
