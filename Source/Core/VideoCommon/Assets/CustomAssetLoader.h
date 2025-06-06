@@ -4,6 +4,7 @@
 #pragma once
 
 #include <chrono>
+#include <concepts>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -53,8 +54,8 @@ public:
                                       std::shared_ptr<CustomAssetLibrary> library);
 
 private:
-  // TODO C++20: use a 'derived_from' concept against 'CustomAsset' when available
   template <typename AssetType>
+  requires std::derived_from<AssetType, CustomAsset>
   std::shared_ptr<AssetType>
   LoadOrCreateAsset(const CustomAssetLibrary::AssetID& asset_id,
                     std::map<CustomAssetLibrary::AssetID, std::weak_ptr<AssetType>>& asset_map,

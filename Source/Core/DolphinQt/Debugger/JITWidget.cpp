@@ -220,19 +220,19 @@ static void DisassembleCodeBuffer(const JitBlock& block, PPCSymbolDB& ppc_symbol
 
 void JITWidget::CrossDisassemble(const JitBlock& block)
 {
-  // TODO C++20: std::ostringstream::view() + QtUtils::FromStdString + std::ostream::seekp(0) would
-  // save a lot of wasted allocation here, but compiler support for the first thing isn't here yet.
   std::ostringstream stream;
   DisassembleCodeBuffer(block, m_system.GetPPCSymbolDB(), stream);
-  m_ppc_asm_widget->setPlainText(QString::fromStdString(std::move(stream).str()));
+  m_ppc_asm_widget->setPlainText(QString::fromStdString(std::string{stream.view()}));
+  stream.seekp(0);
 
   auto& jit_interface = m_system.GetJitInterface();
 
   const auto host_near_instruction_count = jit_interface.DisassembleNearCode(block, stream);
-  m_host_near_asm_widget->setPlainText(QString::fromStdString(std::move(stream).str()));
+  m_host_near_asm_widget->setPlainText(QString::fromStdString(std::string{stream.view()}));
+  stream.seekp(0);
 
   const auto host_far_instruction_count = jit_interface.DisassembleFarCode(block, stream);
-  m_host_far_asm_widget->setPlainText(QString::fromStdString(std::move(stream).str()));
+  m_host_far_asm_widget->setPlainText(QString::fromStdString(std::string{stream.view()}));
 
   // i18n: "near" and "far" refer to the near code cache and far code cache of Dolphin's JITs.
   // %1 and %2 are instruction counts from the near and far code caches, respectively. %3 is a

@@ -23,20 +23,6 @@ namespace VideoCommon
 {
 namespace
 {
-std::chrono::system_clock::time_point FileTimeToSysTime(std::filesystem::file_time_type file_time)
-{
-#ifdef _WIN32
-  return std::chrono::clock_cast<std::chrono::system_clock>(file_time);
-#else
-  // Note: all compilers should switch to chrono::clock_cast
-  // once it is available for use
-  const auto system_time_now = std::chrono::system_clock::now();
-  const auto file_time_now = decltype(file_time)::clock::now();
-  return std::chrono::time_point_cast<std::chrono::system_clock::duration>(
-      file_time - file_time_now + system_time_now);
-#endif
-}
-
 std::size_t GetAssetSize(const CustomTextureData& data)
 {
   std::size_t total = 0;
@@ -65,7 +51,7 @@ DirectFilesystemAssetLibrary::GetLastAssetWriteTime(const AssetID& asset_id) con
       const auto tp = std::filesystem::last_write_time(value, ec);
       if (ec)
         continue;
-      auto tp_sys = FileTimeToSysTime(tp);
+      auto tp_sys = std::chrono::clock_cast<std::chrono::system_clock>(tp);
       if (tp_sys > max_entry)
         max_entry = tp_sys;
     }
