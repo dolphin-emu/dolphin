@@ -62,6 +62,7 @@
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/NANDRepairDialog.h"
+#include "DolphinQt/QtUtils/ApplicationShortcutControl.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonAutodismissibleMenu.h"
@@ -594,10 +595,13 @@ void MenuBar::AddViewMenu()
           [purge_action] { purge_action->setEnabled(true); });
   view_menu->addSeparator();
 #if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  view_menu->addAction(tr("Search"), QKeySequence::Find, this, &MenuBar::ShowSearch);
+  QAction* search =
+      view_menu->addAction(tr("Search"), QKeySequence::Find, this, &MenuBar::ShowSearch);
 #else
-  view_menu->addAction(tr("Search"), this, &MenuBar::ShowSearch, QKeySequence::Find);
+  QAction* search =
+      view_menu->addAction(tr("Search"), this, &MenuBar::ShowSearch, QKeySequence::Find);
 #endif
+  ApplicationShortcutControl::Instance()->AddAction(search);
 }
 
 void MenuBar::AddOptionsMenu()
@@ -651,13 +655,13 @@ void MenuBar::AddHelpMenu()
 {
   QMenu* help_menu = addMenu(tr("&Help"));
 
-  QAction* website = help_menu->addAction(tr("&Website"));
-  connect(website, &QAction::triggered, this,
-          []() { QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/"))); });
   QAction* documentation = help_menu->addAction(tr("Online &Documentation"));
   connect(documentation, &QAction::triggered, this, []() {
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/docs/guides")));
   });
+  QAction* website = help_menu->addAction(tr("&Website"));
+  connect(website, &QAction::triggered, this,
+          []() { QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/"))); });
   QAction* github = help_menu->addAction(tr("&GitHub Repository"));
   connect(github, &QAction::triggered, this, []() {
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/dolphin-emu/dolphin")));
@@ -680,6 +684,9 @@ void MenuBar::AddHelpMenu()
 #endif
 
   help_menu->addAction(tr("&About"), this, &MenuBar::ShowAboutDialog);
+
+  documentation->setShortcut(Qt::Key_F1);
+  ApplicationShortcutControl::Instance()->AddAction(documentation);
 }
 
 void MenuBar::AddGameListTypeSection(QMenu* view_menu)
