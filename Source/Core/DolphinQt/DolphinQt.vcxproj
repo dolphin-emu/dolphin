@@ -68,7 +68,7 @@
     <ClCompile Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.cpp" />
     <ClCompile Include="Config\ControllerInterface\DualShockUDPClientWidget.cpp" />
     <ClCompile Include="Config\ControllerInterface\ServerStringValidator.cpp" />
-    <ClCompile Include="Config\ControllersWindow.cpp" />
+    <ClCompile Include="Config\ControllersPane.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />
     <ClCompile Include="Config\FreeLookWidget.cpp" />
     <ClCompile Include="Config\FreeLookWindow.cpp" />
@@ -293,7 +293,7 @@
     <QtMoc Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.h" />
     <QtMoc Include="Config\ControllerInterface\DualShockUDPClientWidget.h" />
     <QtMoc Include="Config\ControllerInterface\ServerStringValidator.h" />
-    <QtMoc Include="Config\ControllersWindow.h" />
+    <QtMoc Include="Config\ControllersPane.h" />
     <QtMoc Include="Config\FilesystemWidget.h" />
     <QtMoc Include="Config\FreeLookWidget.h" />
     <QtMoc Include="Config\FreeLookWindow.h" />
