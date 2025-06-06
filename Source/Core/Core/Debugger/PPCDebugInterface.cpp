@@ -437,6 +437,21 @@ u32 PPCDebugInterface::GetColor(const Core::CPUThreadGuard* guard, u32 address) 
   };
   return colors[symbol->index % colors.size()];
 }
+
+u32 PPCDebugInterface::GetNoteColor(const Core::CPUThreadGuard* guard, u32 address) const
+{
+  if (!IsAlive())
+    return 0xFFFFFF;
+  if (!PowerPC::MMU::HostIsRAMAddress(*guard, address))
+    return 0xeeeeee;
+  static const int colors[3] = {
+      0xcedeee,  // light blue
+      0xcceecc,  // light green
+      0xeeeece,  // light yellow
+  };
+  const Common::Note* note = m_ppc_symbol_db.GetNoteFromAddr(address);
+  return colors[note->layer % 3];
+}
 // =============
 
 std::string_view PPCDebugInterface::GetDescription(u32 address) const

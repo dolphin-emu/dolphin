@@ -102,6 +102,7 @@ public:
   void Step() override {}
   void RunTo(u32 address) override;
   u32 GetColor(const Core::CPUThreadGuard* guard, u32 address) const override;
+  u32 GetNoteColor(const Core::CPUThreadGuard* guard, u32 address) const override;
   std::string_view GetDescription(u32 address) const override;
 
   std::shared_ptr<Core::NetworkCaptureLogger> NetworkLogger();
