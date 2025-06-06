@@ -422,6 +422,7 @@ const Info<bool> MAIN_USE_BUILT_IN_TITLE_DATABASE{
     {System::Main, "Interface", "UseBuiltinTitleDatabase"}, true};
 const Info<std::string> MAIN_THEME_NAME{{System::Main, "Interface", "ThemeName"},
                                         DEFAULT_THEME_DIR};
+const Info<int> MAIN_IMGUI_FONT_SIZE{{System::Main, "Interface", "ImguiFontSize"}, 16};
 const Info<bool> MAIN_PAUSE_ON_FOCUS_LOST{{System::Main, "Interface", "PauseOnFocusLost"}, false};
 const Info<bool> MAIN_ENABLE_DEBUGGING{{System::Main, "Interface", "DebugModeEnabled"}, false};
 
