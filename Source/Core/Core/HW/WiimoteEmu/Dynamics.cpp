@@ -311,7 +311,7 @@ void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_gr
   const auto ang_vel = imu_gyroscope_group->GetState();
 
   // Reset if pointing is disabled or we have no gyro data.
-  if (!imu_ir_group->enabled || !ang_vel.has_value())
+  if (!imu_ir_group->enabled.GetValue() || !ang_vel.has_value())
   {
     *state = {};
     return;
