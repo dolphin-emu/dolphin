@@ -17,7 +17,6 @@
 #include "Common/Version.h"
 
 #include "DolphinQt/QtUtils/RunOnObject.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
@@ -101,7 +100,6 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
     connect(buttons, &QDialogButtonBox::accepted, dialog, &QDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, dialog, &QDialog::reject);
 
-    SetQWidgetWindowDecorations(dialog);
     return dialog->exec();
   });
 

@@ -5,8 +5,6 @@
 
 #include <QApplication>
 
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
-
 ModalMessageBox::ModalMessageBox(QWidget* parent, Qt::WindowModality modality)
     : QMessageBox(parent != nullptr ? parent->window() : nullptr)
 {
@@ -31,7 +29,6 @@ static inline int ExecMessageBox(ModalMessageBox::Icon icon, QWidget* parent, co
   msg.setDefaultButton(default_button);
   msg.setDetailedText(detailed_text);
 
-  SetQWidgetWindowDecorations(&msg);
   return msg.exec();
 }
 

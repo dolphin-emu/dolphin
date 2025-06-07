@@ -112,7 +112,6 @@
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt/RenderWidget.h"
 #include "DolphinQt/ResourcePackManager.h"
@@ -243,7 +242,6 @@ MainWindow::MainWindow(Core::System& system, std::unique_ptr<BootParameters> boo
   restoreGeometry(settings.value(QStringLiteral("mainwindow/geometry")).toByteArray());
   if (!Settings::Instance().IsBatchModeEnabled())
   {
-    SetQWidgetWindowDecorations(this);
     show();
   }
 
@@ -1299,7 +1297,6 @@ void MainWindow::ShowFreeLookWindow()
 #endif  // USE_RETRO_ACHIEVEMENTS
   }
 
-  SetQWidgetWindowDecorations(m_freelook_window);
   m_freelook_window->show();
   m_freelook_window->raise();
   m_freelook_window->activateWindow();
@@ -1313,7 +1310,6 @@ void MainWindow::ShowSettingsWindow()
     InstallHotkeyFilter(m_settings_window);
   }
 
-  SetQWidgetWindowDecorations(m_settings_window);
   m_settings_window->show();
   m_settings_window->raise();
   m_settings_window->activateWindow();
@@ -1334,7 +1330,6 @@ void MainWindow::ShowGeneralWindow()
 void MainWindow::ShowAboutDialog()
 {
   AboutDialog about{this};
-  SetQWidgetWindowDecorations(&about);
   about.exec();
 }
 
@@ -1346,7 +1341,6 @@ void MainWindow::ShowHotkeyDialog()
     InstallHotkeyFilter(m_hotkey_window);
   }
 
-  SetQWidgetWindowDecorations(m_hotkey_window);
   m_hotkey_window->show();
   m_hotkey_window->raise();
   m_hotkey_window->activateWindow();
@@ -1369,7 +1363,6 @@ void MainWindow::ShowGraphicsWindow()
     InstallHotkeyFilter(m_graphics_window);
   }
 
-  SetQWidgetWindowDecorations(m_graphics_window);
   m_graphics_window->show();
   m_graphics_window->raise();
   m_graphics_window->activateWindow();
@@ -1377,7 +1370,6 @@ void MainWindow::ShowGraphicsWindow()
 
 void MainWindow::ShowNetPlaySetupDialog()
 {
-  SetQWidgetWindowDecorations(m_netplay_setup_dialog);
   m_netplay_setup_dialog->show();
   m_netplay_setup_dialog->raise();
   m_netplay_setup_dialog->activateWindow();
@@ -1388,7 +1380,6 @@ void MainWindow::ShowNetPlayBrowser()
   auto* browser = new NetPlayBrowser(this);
   browser->setAttribute(Qt::WA_DeleteOnClose, true);
   connect(browser, &NetPlayBrowser::Join, this, &MainWindow::NetPlayJoin);
-  SetQWidgetWindowDecorations(browser);
   browser->exec();
 }
 
@@ -1401,7 +1392,6 @@ void MainWindow::ShowFIFOPlayer()
             [this](const QString& path) { StartGame(path, ScanForSecondDisc::No); });
   }
 
-  SetQWidgetWindowDecorations(m_fifo_window);
   m_fifo_window->show();
   m_fifo_window->raise();
   m_fifo_window->activateWindow();
@@ -1414,7 +1404,6 @@ void MainWindow::ShowSkylanderPortal()
     m_skylander_window = new SkylanderPortalWindow();
   }
 
-  SetQWidgetWindowDecorations(m_skylander_window);
   m_skylander_window->show();
   m_skylander_window->raise();
   m_skylander_window->activateWindow();
@@ -1427,7 +1416,6 @@ void MainWindow::ShowInfinityBase()
     m_infinity_window = new InfinityBaseWindow();
   }
 
-  SetQWidgetWindowDecorations(m_infinity_window);
   m_infinity_window->show();
   m_infinity_window->raise();
   m_infinity_window->activateWindow();
@@ -1852,7 +1840,6 @@ void MainWindow::OnImportNANDBackup()
     dialog.Reset();
   });
 
-  SetQWidgetWindowDecorations(dialog.GetRaw());
   dialog.GetRaw()->exec();
 
   result.wait();
@@ -1966,7 +1953,6 @@ void MainWindow::ShowTASInput()
     const auto si_device = Config::Get(Config::GetInfoForSIDevice(i));
     if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
     {
-      SetQWidgetWindowDecorations(m_gba_tas_input_windows[i]);
       m_gba_tas_input_windows[i]->show();
       m_gba_tas_input_windows[i]->raise();
       m_gba_tas_input_windows[i]->activateWindow();
@@ -1974,7 +1960,6 @@ void MainWindow::ShowTASInput()
     else if (si_device != SerialInterface::SIDEVICE_NONE &&
              si_device != SerialInterface::SIDEVICE_GC_GBA)
     {
-      SetQWidgetWindowDecorations(m_gc_tas_input_windows[i]);
       m_gc_tas_input_windows[i]->show();
       m_gc_tas_input_windows[i]->raise();
       m_gc_tas_input_windows[i]->activateWindow();
@@ -1986,7 +1971,6 @@ void MainWindow::ShowTASInput()
     if (Config::Get(Config::GetInfoForWiimoteSource(i)) == WiimoteSource::Emulated &&
         (!Core::IsRunning(m_system) || m_system.IsWii()))
     {
-      SetQWidgetWindowDecorations(m_wii_tas_input_windows[i]);
       m_wii_tas_input_windows[i]->show();
       m_wii_tas_input_windows[i]->raise();
       m_wii_tas_input_windows[i]->activateWindow();
@@ -2012,7 +1996,6 @@ void MainWindow::ShowAchievementsWindow()
     m_achievements_window = new AchievementsWindow(this);
   }
 
-  SetQWidgetWindowDecorations(m_achievements_window);
   m_achievements_window->show();
   m_achievements_window->raise();
   m_achievements_window->activateWindow();
@@ -2037,7 +2020,6 @@ void MainWindow::ShowMemcardManager()
 {
   GCMemcardManager manager(this);
 
-  SetQWidgetWindowDecorations(&manager);
   manager.exec();
 }
 
@@ -2045,13 +2027,11 @@ void MainWindow::ShowResourcePackManager()
 {
   ResourcePackManager manager(this);
 
-  SetQWidgetWindowDecorations(&manager);
   manager.exec();
 }
 
 void MainWindow::ShowCheatsManager()
 {
-  SetQWidgetWindowDecorations(m_cheats_manager);
   m_cheats_manager->show();
 }
 
@@ -2070,7 +2050,6 @@ void MainWindow::ShowRiivolutionBootWidget(const UICommon::GameFile& game)
   auto& disc = std::get<BootParameters::Disc>(boot_params->parameters);
   RiivolutionBootWidget w(disc.volume->GetGameID(), disc.volume->GetRevision(),
                           disc.volume->GetDiscNumber(), game.GetFilePath(), this);
-  SetQWidgetWindowDecorations(&w);
 
 #ifdef USE_RETRO_ACHIEVEMENTS
   connect(&w, &RiivolutionBootWidget::OpenAchievementSettings, this,

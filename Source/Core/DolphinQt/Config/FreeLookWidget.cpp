@@ -19,7 +19,6 @@
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 FreeLookWidget::FreeLookWidget(QWidget* parent) : QWidget(parent)
@@ -104,7 +103,6 @@ void FreeLookWidget::OnFreeLookControllerConfigured()
   MappingWindow* window = new MappingWindow(this, MappingWindow::Type::MAPPING_FREELOOK, index);
   window->setAttribute(Qt::WA_DeleteOnClose, true);
   window->setWindowModality(Qt::WindowModality::WindowModal);
-  SetQWidgetWindowDecorations(window);
   window->show();
 }
 

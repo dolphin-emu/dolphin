@@ -25,7 +25,6 @@
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 
 #include "UICommon/UICommon.h"
@@ -367,7 +366,6 @@ void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, cons
     dialog.Reset();
   });
 
-  SetQWidgetWindowDecorations(dialog.GetRaw());
   dialog.GetRaw()->exec();
   future.get();
 }

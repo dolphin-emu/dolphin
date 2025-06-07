@@ -14,7 +14,6 @@
 
 #include "Common/Config/Config.h"
 #include "Core/Config/MainSettings.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 
 bool NKitWarningDialog::ShowUnlessDisabled(QWidget* parent)
@@ -23,7 +22,6 @@ bool NKitWarningDialog::ShowUnlessDisabled(QWidget* parent)
     return true;
 
   NKitWarningDialog dialog(parent);
-  SetQWidgetWindowDecorations(&dialog);
   return dialog.exec() == QDialog::Accepted;
 }
 
