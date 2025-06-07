@@ -3,6 +3,7 @@
 
 #include "DolphinQt/Config/Mapping/IOWindow.h"
 
+#include <array>
 #include <optional>
 
 #include <QBrush>
@@ -532,7 +533,7 @@ void IOWindow::ConnectWidgets()
     m_detect_button->setText(tr("[ Press Now ]"));
     m_input_detector = std::make_unique<ciface::Core::InputDetector>();
     const auto lock = m_controller->GetStateLock();
-    m_input_detector->Start(g_controller_interface, {m_devq.ToString()});
+    m_input_detector->Start(g_controller_interface, std::array{m_devq.ToString()});
     QtUtils::InstallKeyboardBlocker(m_detect_button, this, &IOWindow::DetectInputComplete);
   });
   connect(this, &IOWindow::DetectInputComplete,
