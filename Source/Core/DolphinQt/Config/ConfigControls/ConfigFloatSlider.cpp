@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/ConfigControls/ConfigFloatSlider.h"
+#include "QTimer"
 
 ConfigFloatSlider::ConfigFloatSlider(float minimum, float maximum,
                                      const Config::Info<float>& setting, float step,
@@ -20,13 +21,26 @@ ConfigFloatSlider::ConfigFloatSlider(float minimum, float maximum,
   setValue(current_value);
 
   connect(this, &ConfigFloatSlider::valueChanged, this, &ConfigFloatSlider::Update);
+
+  m_timer = new QTimer(this);
+  m_timer->setSingleShot(true);
+  connect(m_timer, &QTimer::timeout, this, [this]() {
+    if (m_last_value != this->value())
+      Update(this->value());
+  });
 }
 
 void ConfigFloatSlider::Update(int value)
 {
+  if (m_timer->isActive())
+    return;
+
+  m_last_value = value;
   const float current_value = (m_step * value) + m_minimum;
 
   SaveValue(m_setting, current_value);
+
+  m_timer->start(100);
 }
 
 float ConfigFloatSlider::GetValue() const

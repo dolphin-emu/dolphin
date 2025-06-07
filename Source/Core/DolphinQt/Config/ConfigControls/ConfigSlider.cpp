@@ -4,6 +4,7 @@
 #include <cassert>
 
 #include <QFont>
+#include <QTimer>
 
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Settings.h"
@@ -24,6 +25,13 @@ ConfigSlider::ConfigSlider(int minimum, int maximum, const Config::Info<int>& se
   setValue(ReadValue(setting));
 
   connect(this, &ConfigSlider::valueChanged, this, &ConfigSlider::Update);
+
+  m_timer = new QTimer(this);
+  m_timer->setSingleShot(true);
+  connect(m_timer, &QTimer::timeout, this, [this]() {
+    if (m_last_value != this->value())
+      Update(this->value());
+  });
 }
 
 ConfigSlider::ConfigSlider(std::vector<int> tick_values, const Config::Info<int>& setting,
@@ -39,10 +47,22 @@ ConfigSlider::ConfigSlider(std::vector<int> tick_values, const Config::Info<int>
   OnConfigChanged();
 
   connect(this, &ConfigSlider::valueChanged, this, &ConfigSlider::Update);
+
+  m_timer = new QTimer(this);
+  m_timer->setSingleShot(true);
+  connect(m_timer, &QTimer::timeout, this, [this]() {
+    if (m_last_value != this->value())
+      Update(this->value());
+  });
 }
 
 void ConfigSlider::Update(int value)
 {
+  if (m_timer->isActive())
+    return;
+
+  m_last_value = value;
+
   if (!m_tick_values.empty())
   {
     if (value >= 0 && static_cast<size_t>(value) < m_tick_values.size())
@@ -52,6 +72,8 @@ void ConfigSlider::Update(int value)
   {
     SaveValue(m_setting, value);
   }
+
+  m_timer->start(100);
 }
 
 void ConfigSlider::OnConfigChanged()
@@ -97,12 +119,23 @@ ConfigSliderU32::ConfigSliderU32(u32 minimum, u32 maximum, const Config::Info<u3
   setValue(ReadValue(setting));
   OnConfigChanged();
 
+  m_timer = new QTimer(this);
   connect(this, &ConfigSliderU32::valueChanged, this, &ConfigSliderU32::Update);
+  connect(m_timer, &QTimer::timeout, this, [this]() {
+    if (m_last_value != this->value())
+      Update(this->value());
+  });
 }
 
-void ConfigSliderU32::Update(u32 value)
+void ConfigSliderU32::Update(int value)
 {
-  SaveValue(m_setting, value * m_scale);
+  if (m_timer->isActive())
+    return;
+
+  m_last_value = value;
+  SaveValue(m_setting, static_cast<u32>(value) * m_scale);
+
+  m_timer->start(100);
 }
 
 void ConfigSliderU32::OnConfigChanged()

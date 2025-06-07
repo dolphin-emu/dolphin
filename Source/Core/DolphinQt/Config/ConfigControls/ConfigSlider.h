@@ -14,6 +14,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/Config/ConfigInfo.h"
 
+class QTimer;
+
 class ConfigSlider final : public ConfigControl<ToolTipSlider>
 {
   Q_OBJECT
@@ -37,6 +39,9 @@ private:
 
   // Mappings for slider ticks to config values. Identity mapping is assumed if this is empty.
   std::vector<int> m_tick_values;
+
+  QTimer* m_timer;
+  int m_last_value;
 };
 
 class ConfigSliderU32 final : public ConfigControl<ToolTipSlider>
@@ -47,15 +52,17 @@ public:
   ConfigSliderU32(u32 minimum, u32 maximum, const Config::Info<u32>& setting, Config ::Layer* layer,
                   u32 scale = 1);
 
-  void Update(u32 value);
+  void Update(int value);
 
 protected:
   void OnConfigChanged() override;
 
 private:
   const Config::Info<u32> m_setting;
-
   u32 m_scale = 1;
+
+  QTimer* m_timer;
+  int m_last_value;
 };
 
 class ConfigSliderLabel final : public QLabel

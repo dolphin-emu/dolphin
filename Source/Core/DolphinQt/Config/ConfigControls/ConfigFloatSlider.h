@@ -8,6 +8,8 @@
 
 #include "Common/Config/ConfigInfo.h"
 
+class QTimer;
+
 // Automatically converts an int slider into a float one.
 // Do not read the int values or ranges directly from it.
 class ConfigFloatSlider final : public ConfigControl<ToolTipSlider>
@@ -28,4 +30,7 @@ private:
   float m_minimum;
   float m_step;
   const Config::Info<float> m_setting;
+
+  QTimer* m_timer;
+  int m_last_value;
 };
