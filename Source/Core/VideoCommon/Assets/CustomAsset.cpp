@@ -19,10 +19,10 @@ std::size_t CustomAsset::Load()
   const auto load_time = ClockType::now();
 
   const auto load_information = LoadImpl(m_asset_id);
-  if (load_information.m_bytes_loaded > 0)
+  if (load_information.bytes_loaded > 0)
   {
     std::lock_guard lk(m_info_lock);
-    m_bytes_loaded = load_information.m_bytes_loaded;
+    m_bytes_loaded = load_information.bytes_loaded;
     m_last_loaded_time = load_time;
     return m_bytes_loaded;
   }
