@@ -76,7 +76,7 @@ MappingBool::MappingBool(MappingWidget* parent, ControllerEmu::NumericSetting<bo
   if (const auto ui_description = m_setting.GetUIDescription())
     setToolTip(tr(ui_description));
 
-  connect(this, &QCheckBox::stateChanged, this, [this, parent](int value) {
+  connect(this, &QCheckBox::checkStateChanged, this, [this, parent](Qt::CheckState value) {
     m_setting.SetValue(value != 0);
     ConfigChanged();
     parent->SaveSettings();
