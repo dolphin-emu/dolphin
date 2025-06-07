@@ -160,7 +160,6 @@ public:
   const Badge& GetPlayerBadge() const;
   std::string_view GetGameDisplayName() const;
   rc_client_t* GetClient();
-  rc_api_fetch_game_data_response_t* GetGameData();
   const Badge& GetGameBadge() const;
   const Badge& GetAchievementBadge(AchievementId id, bool locked) const;
   const LeaderboardStatus* GetLeaderboardInfo(AchievementId leaderboard_id);
@@ -278,9 +277,6 @@ private:
   std::atomic_bool m_background_execution_allowed = true;
   Badge m_player_badge;
   Hash m_game_hash{};
-  u32 m_game_id = 0;
-  rc_api_fetch_game_data_response_t m_game_data{};
-  bool m_is_game_loaded = false;
   Badge m_game_badge;
   bool m_display_welcome_message = false;
   std::unordered_map<AchievementId, Badge> m_unlocked_badges;
