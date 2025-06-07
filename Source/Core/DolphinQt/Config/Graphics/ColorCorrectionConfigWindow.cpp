@@ -22,7 +22,6 @@
 ColorCorrectionConfigWindow::ColorCorrectionConfigWindow(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("Color Correction Configuration"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   Create();
   ConnectWidgets();

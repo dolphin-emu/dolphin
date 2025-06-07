@@ -24,8 +24,6 @@
 
 StackedSettingsWindow::StackedSettingsWindow(QWidget* parent) : QDialog{parent}
 {
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
-
   // This eliminates the ugly line between the title bar and window contents with KDE Plasma.
   setStyleSheet(QStringLiteral("QDialog { border: none; }"));
 

@@ -60,7 +60,6 @@ GCMemcardCreateNewDialog::GCMemcardCreateNewDialog(QWidget* parent) : QDialog(pa
   });
 
   setWindowTitle(tr("Create New Memory Card"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 GCMemcardCreateNewDialog::~GCMemcardCreateNewDialog() = default;
