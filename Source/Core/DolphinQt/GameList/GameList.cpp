@@ -566,6 +566,15 @@ void GameList::OpenProperties()
   if (!game)
     return;
 
+  auto property_windows = this->findChildren<PropertiesDialog*>();
+  auto it =
+      std::ranges::find(property_windows, game->GetFilePath(), &PropertiesDialog::GetFilePath);
+  if (it != property_windows.end())
+  {
+    (*it)->raise();
+    return;
+  }
+
   PropertiesDialog* properties = new PropertiesDialog(this, *game);
 
   connect(properties, &PropertiesDialog::OpenGeneralSettings, this, &GameList::OpenGeneralSettings);
