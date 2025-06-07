@@ -65,7 +65,7 @@ void AchievementManager::Init(void* hwnd)
   {
     {
       std::lock_guard lg{m_lock};
-      m_client = rc_client_create(MemoryVerifier, Request);
+      m_client = rc_client_create(MemoryPeeker, Request);
     }
     std::string host_url = Config::Get(Config::RA_HOST_URL);
     if (!host_url.empty())
@@ -211,7 +211,6 @@ void AchievementManager::LoadGame(const DiscIO::Volume* volume)
   else
   {
     u32 console_id = FindConsoleID(volume->GetVolumeType());
-    rc_client_set_read_memory_function(m_client, MemoryVerifier);
     rc_client_begin_identify_and_load_game(m_client, console_id, "", NULL, 0, LoadGameCallback,
                                            NULL);
   }
@@ -321,21 +320,6 @@ void AchievementManager::DoFrame()
   if (!(IsGameLoaded() || m_dll_found) || !Core::IsCPUThread())
     return;
   {
-#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
-    if (m_dll_found)
-    {
-      std::lock_guard lg{m_memory_lock};
-      Core::System* system = m_system.load(std::memory_order_acquire);
-      if (!system)
-        return;
-      Core::CPUThreadGuard thread_guard(*system);
-      u32 mem2_size = system->GetMemory().GetExRamSizeReal();
-      if (m_cloned_memory.size() != MEM1_SIZE + mem2_size)
-        m_cloned_memory.resize(MEM1_SIZE + mem2_size);
-      system->GetMemory().CopyFromEmu(m_cloned_memory.data(), 0, MEM1_SIZE);
-      system->GetMemory().CopyFromEmu(m_cloned_memory.data() + MEM1_SIZE, MEM2_START, mem2_size);
-    }
-#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
     std::lock_guard lg{m_lock};
     rc_client_do_frame(m_client);
   }
@@ -1023,7 +1007,6 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
   }
   INFO_LOG_FMT(ACHIEVEMENTS, "Loaded data for game ID {}.", game->id);
 
-  rc_client_set_read_memory_function(instance.m_client, MemoryPeeker);
   instance.m_display_welcome_message = true;
   instance.FetchGameBadges();
   instance.m_system.store(&Core::System::GetInstance(), std::memory_order_release);
@@ -1302,53 +1285,11 @@ void AchievementManager::Request(const rc_api_request_t* request,
       });
 }
 
-// Currently, when rc_client calls the memory peek method provided in its constructor (or in
-// rc_client_set_read_memory_function) it will do so on the thread that calls DoFrame, which is
-// currently the host thread, with one exception: an asynchronous callback in the load game process.
-// This is done to validate/invalidate each memory reference in the downloaded assets, mark assets
-// as unsupported, and notify the player upon startup that there are unsupported assets and how
-// many. As such, all that call needs to do is return the number of bytes that can be read with this
-// call. As only the CPU and host threads are allowed to read from memory, I provide a separate
-// method for this verification. In lieu of a more convenient set of steps, I provide MemoryVerifier
-// to rc_client at construction, and in the Load Game callback, after the verification has been
-// complete, I call rc_client_set_read_memory_function to switch to the usual MemoryPeeker for all
-// future synchronous calls.
-u32 AchievementManager::MemoryVerifier(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client)
-{
-  auto& system = Core::System::GetInstance();
-  u32 mem2_size = system.GetMemory().GetExRamSizeReal();
-  if (address < MEM1_SIZE + mem2_size)
-    return std::min(MEM1_SIZE + mem2_size - address, num_bytes);
-  return 0;
-}
-
 u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client)
 {
   if (buffer == nullptr)
     return 0u;
-#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
-  auto& instance = AchievementManager::GetInstance();
-  if (instance.m_dll_found)
-  {
-    std::lock_guard lg{instance.m_memory_lock};
-    if (u64(address) + num_bytes > instance.m_cloned_memory.size())
-    {
-      ERROR_LOG_FMT(ACHIEVEMENTS,
-                    "Attempt to read past memory size: size {} address {} write length {}",
-                    instance.m_cloned_memory.size(), address, num_bytes);
-      return 0;
-    }
-    std::copy(instance.m_cloned_memory.begin() + address,
-              instance.m_cloned_memory.begin() + address + num_bytes, buffer);
-    return num_bytes;
-  }
-#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
   auto& system = Core::System::GetInstance();
-  if (!(Core::IsHostThread() || Core::IsCPUThread()))
-  {
-    ASSERT_MSG(ACHIEVEMENTS, false, "MemoryPeeker called from wrong thread");
-    return 0;
-  }
   Core::CPUThreadGuard thread_guard(system);
   if (address > MEM1_SIZE)
     address += (MEM2_START - MEM1_SIZE);
@@ -1572,32 +1513,17 @@ void AchievementManager::MemoryPoker(u32 address, u8* buffer, u32 num_bytes, rc_
 {
   if (buffer == nullptr)
     return;
-  if (!(Core::IsHostThread() || Core::IsCPUThread()))
-  {
-    Core::QueueHostJob([address, buffer, num_bytes, client](Core::System& system) {
-      MemoryPoker(address, buffer, num_bytes, client);
-    });
-    return;
-  }
   auto& instance = AchievementManager::GetInstance();
-  if (u64(address) + num_bytes >= instance.m_cloned_memory.size())
-  {
-    ERROR_LOG_FMT(ACHIEVEMENTS,
-                  "Attempt to write past memory size: size {} address {} write length {}",
-                  instance.m_cloned_memory.size(), address, num_bytes);
-    return;
-  }
   Core::System* system = instance.m_system.load(std::memory_order_acquire);
   if (!system)
     return;
   Core::CPUThreadGuard thread_guard(*system);
-  std::lock_guard lg{instance.m_memory_lock};
   if (address < MEM1_SIZE)
     system->GetMemory().CopyToEmu(address, buffer, num_bytes);
   else
     system->GetMemory().CopyToEmu(address - MEM1_SIZE + MEM2_START, buffer, num_bytes);
-  std::copy(buffer, buffer + num_bytes, instance.m_cloned_memory.begin() + address);
 }
+
 void AchievementManager::GameTitleEstimateHandler(char* buffer, u32 buffer_size,
                                                   rc_client_t* client)
 {
