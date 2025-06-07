@@ -25,8 +25,8 @@ public:
   CustomAsset& operator=(const CustomAsset&) = delete;
   CustomAsset& operator=(CustomAsset&&) = delete;
 
-  // Loads the asset from the library returning a pass/fail result
-  bool Load();
+  // Loads the asset from the library returning the number of bytes loaded
+  std::size_t Load();
 
   // Unloads the asset data, resets the bytes loaded and
   // returns the number of bytes unloaded
