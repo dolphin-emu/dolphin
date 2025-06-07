@@ -13,6 +13,7 @@ CustomAsset::CustomAsset(std::shared_ptr<CustomAssetLibrary> library,
 
 std::size_t CustomAsset::Load()
 {
+  std::lock_guard lk(m_info_lock);
   // The load time needs to come from before the data is actually read.
   // Using a time point from after the read marks the asset as more up-to-date than it actually is,
   //  and has potential to race (and not be updated) if a change happens immediately after load.
@@ -21,7 +22,6 @@ std::size_t CustomAsset::Load()
   const auto load_information = LoadImpl(m_asset_id);
   if (load_information.bytes_loaded > 0)
   {
-    std::lock_guard lk(m_info_lock);
     m_bytes_loaded = load_information.bytes_loaded;
     m_last_loaded_time = load_time;
     return m_bytes_loaded;
@@ -31,19 +31,13 @@ std::size_t CustomAsset::Load()
 
 std::size_t CustomAsset::Unload()
 {
+  std::lock_guard lk(m_info_lock);
   UnloadImpl();
-  std::size_t bytes_loaded = 0;
-  {
-    std::lock_guard lk(m_info_lock);
-    bytes_loaded = m_bytes_loaded;
-    m_bytes_loaded = 0;
-  }
-  return bytes_loaded;
+  return m_bytes_loaded.exchange(0);
 }
 
-const CustomAsset::TimeType& CustomAsset::GetLastLoadedTime() const
+CustomAsset::TimeType CustomAsset::GetLastLoadedTime() const
 {
-  std::lock_guard lk(m_info_lock);
   return m_last_loaded_time;
 }
 
@@ -59,7 +53,6 @@ const CustomAssetLibrary::AssetID& CustomAsset::GetAssetId() const
 
 std::size_t CustomAsset::GetByteSizeInMemory() const
 {
-  std::lock_guard lk(m_info_lock);
   return m_bytes_loaded;
 }
 
