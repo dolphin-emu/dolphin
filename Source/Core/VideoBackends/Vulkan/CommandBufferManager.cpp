@@ -440,7 +440,6 @@ void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
                                      nullptr};
 
     m_last_present_result = vkQueuePresentKHR(g_vulkan_context->GetPresentQueue(), &present_info);
-    m_last_present_done.Set();
     if (m_last_present_result != VK_SUCCESS)
     {
       // VK_ERROR_OUT_OF_DATE_KHR is not fatal, just means we need to recreate our swap chain.
