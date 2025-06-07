@@ -1,22 +1,8 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.10)
 
 project(miniupnpc C)
 set(MINIUPNPC_VERSION 1.9)
 set(MINIUPNPC_API_VERSION 14)
-
-if(UNIX)
-	add_definitions(-DMINIUPNPC_SET_SOCKET_TIMEOUT)
-	add_definitions(-D_BSD_SOURCE -D_POSIX_C_SOURCE=1)
-elseif(WIN32)
-	add_definitions(-D_WIN32_WINNT=0x0501)
-	find_library(WINSOCK2_LIBRARY NAMES ws2_32 WS2_32 Ws2_32)
-	find_library(IPHLPAPI_LIBRARY NAMES iphlpapi)
-	set(LDLIBS ${WINSOCK2_LIBRARY} ${IPHLPAPI_LIBRARY} ${LDLIBS})
-endif()
-
-if(APPLE)
-	add_definitions(-DMACOSX -D_DARWIN_C_SOURCE)
-endif()
 
 set(SRCS	src/igd_desc_parse.c
 			src/miniupnpc.c
@@ -35,5 +21,17 @@ set(SRCS	src/igd_desc_parse.c
 add_library(miniupnpc STATIC ${SRCS})
 dolphin_disable_warnings(miniupnpc)
 target_include_directories(miniupnpc PUBLIC src)
+
+if(UNIX)
+	target_compile_definitions(miniupnpc PRIVATE MINIUPNPC_SET_SOCKET_TIMEOUT)
+	target_compile_definitions(miniupnpc PRIVATE _BSD_SOURCE _POSIX_C_SOURCE=1)
+elseif(WIN32)
+	target_compile_definitions(miniupnpc PRIVATE -D_WIN32_WINNT=0x0501)
+	target_link_libraries(miniupnpc PUBLIC ws2_32 iphlpapi)
+endif()
+
+if(APPLE)
+	target_compile_definitions(miniupnpc PRIVATE MACOSX _DARWIN_C_SOURCE)
+endif()
 
 add_library(Miniupnpc::miniupnpc ALIAS miniupnpc)
