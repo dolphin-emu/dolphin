@@ -384,7 +384,7 @@ CustomAssetLibrary::LoadInfo MaterialAsset::LoadImpl(const CustomAssetLibrary::A
 {
   auto potential_data = std::make_shared<MaterialData>();
   const auto loaded_info = m_owning_library->LoadMaterial(asset_id, potential_data.get());
-  if (loaded_info.m_bytes_loaded == 0)
+  if (loaded_info.bytes_loaded == 0)
     return {};
   {
     std::lock_guard lk(m_data_lock);
