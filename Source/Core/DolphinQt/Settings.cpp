@@ -112,9 +112,8 @@ Settings& Settings::Instance()
 
 QSettings& Settings::GetQSettings()
 {
-  static QSettings settings(
-      QStringLiteral("%1/Qt.ini").arg(QString::fromStdString(File::GetUserPath(D_CONFIG_IDX))),
-      QSettings::IniFormat);
+  const QString filename = QString::fromStdString(File::GetUserPath(F_QSETTINGSCONFIG_IDX));
+  static QSettings settings(filename, QSettings::IniFormat);
   return settings;
 }
 
