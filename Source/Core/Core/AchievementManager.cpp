@@ -329,11 +329,12 @@ void AchievementManager::DoFrame()
       if (!system)
         return;
       Core::CPUThreadGuard thread_guard(*system);
-      u32 mem2_size = system->GetMemory().GetExRamSizeReal();
+      u32 mem2_size = (system->IsWii()) ? system->GetMemory().GetExRamSizeReal() : 0;
       if (m_cloned_memory.size() != MEM1_SIZE + mem2_size)
         m_cloned_memory.resize(MEM1_SIZE + mem2_size);
       system->GetMemory().CopyFromEmu(m_cloned_memory.data(), 0, MEM1_SIZE);
-      system->GetMemory().CopyFromEmu(m_cloned_memory.data() + MEM1_SIZE, MEM2_START, mem2_size);
+      if (mem2_size > 0)
+        system->GetMemory().CopyFromEmu(m_cloned_memory.data() + MEM1_SIZE, MEM2_START, mem2_size);
     }
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
     std::lock_guard lg{m_lock};
