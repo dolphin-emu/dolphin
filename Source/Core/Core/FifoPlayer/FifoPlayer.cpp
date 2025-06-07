@@ -650,7 +650,7 @@ void FifoPlayer::LoadMemory()
     HID4(ppc_state).SBE = 1;
   }
 
-  PowerPC::MSRUpdated(ppc_state);
+  m_system.GetPowerPC().MSRUpdated();
 
   auto& mmu = m_system.GetMMU();
   mmu.DBATUpdated();
