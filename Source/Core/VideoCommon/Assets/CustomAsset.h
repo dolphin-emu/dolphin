@@ -46,10 +46,6 @@ public:
   // as an index
   std::size_t GetHandle() const;
 
-  // A rough estimate of how much space this asset
-  // will take in memroy
-  std::size_t GetByteSizeInMemory() const;
-
 protected:
   const std::shared_ptr<CustomAssetLibrary> m_owning_library;
 
@@ -60,7 +56,7 @@ private:
   std::size_t m_handle;
 
   mutable std::mutex m_info_lock;
-  std::atomic<std::size_t> m_bytes_loaded = 0;
+  std::size_t m_bytes_loaded = 0;
   std::atomic<TimeType> m_last_loaded_time = {};
 };
 
