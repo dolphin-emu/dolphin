@@ -126,11 +126,12 @@ private:
     std::array<Granule, MAX_GRANULE_QUEUE_SIZE> m_queue;
     std::atomic<std::size_t> m_queue_head{0};
     std::atomic<std::size_t> m_queue_tail{0};
+    std::atomic<bool> m_queue_fading{false};
     std::atomic<bool> m_queue_looping{false};
     float m_fade_volume = 1.0;
 
     void Enqueue();
-    void Dequeue(Granule* granule);
+    bool Dequeue(Granule* granule);
 
     // Volume ranges from 0-256
     std::atomic<s32> m_LVolume{256};
