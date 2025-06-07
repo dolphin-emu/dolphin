@@ -23,7 +23,7 @@ constexpr u32 BUFFER_SAMPLES = 512;
 long CubebStream::DataCallback(cubeb_stream* stream, void* user_data, const void* /*input_buffer*/,
                                void* output_buffer, long num_frames)
 {
-  auto* self = static_cast<CubebStream*>(user_data);
+  const auto* const self = static_cast<CubebStream*>(user_data);
 
   if (self->m_stereo)
     self->m_mixer->Mix(static_cast<short*>(output_buffer), num_frames);
@@ -44,7 +44,7 @@ CubebStream::CubebStream()
   Common::Event sync_event;
   m_work_queue.Push([this, &sync_event] {
     Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
-    auto result = ::CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
+    auto const result = CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
     m_coinit_success = result == S_OK;
     m_should_couninit = result == S_OK || result == S_FALSE;
   });
