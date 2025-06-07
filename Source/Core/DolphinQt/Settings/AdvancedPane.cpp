@@ -12,7 +12,6 @@
 #include <QLabel>
 #include <QRadioButton>
 #include <QSignalBlocker>
-#include <QSlider>
 #include <QVBoxLayout>
 #include <cmath>
 
@@ -25,6 +24,8 @@
 #include "Core/System.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigFloatSlider.h"
+#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
@@ -115,12 +116,24 @@ void AdvancedPane::CreateLayout()
   cpu_clock_override_slider_layout->setContentsMargins(0, 0, 0, 0);
   clock_override_layout->addLayout(cpu_clock_override_slider_layout);
 
-  m_cpu_clock_override_slider = new QSlider(Qt::Horizontal);
-  m_cpu_clock_override_slider->setRange(1, 400);
+  m_cpu_clock_override_slider = new ConfigFloatSlider(0.01f, 4.0f, Config::MAIN_OVERCLOCK, 0.01f);
   cpu_clock_override_slider_layout->addWidget(m_cpu_clock_override_slider);
 
-  m_cpu_clock_override_slider_label = new QLabel();
-  cpu_clock_override_slider_layout->addWidget(m_cpu_clock_override_slider_label);
+  m_cpu_label = new QLabel();
+  cpu_clock_override_slider_layout->addWidget(m_cpu_label);
+
+  std::function<void()> cpu_text = [this]() {
+    const float multi = Config::Get(Config::MAIN_OVERCLOCK);
+    const int percent = static_cast<int>(std::round(multi * 100.f));
+    const int core_clock =
+        Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond() / std::pow(10, 6);
+    const int clock = static_cast<int>(std::round(multi * core_clock));
+    m_cpu_label->setText(tr("%1% (%2 MHz)").arg(QString::number(percent), QString::number(clock)));
+  };
+
+  cpu_text();
+  connect(m_cpu_clock_override_slider, &QSlider::valueChanged, this,
+          [this, cpu_text]() { cpu_text(); });
 
   m_cpu_clock_override_checkbox->SetDescription(
       tr("Adjusts the emulated CPU's clock rate.<br><br>"
@@ -147,12 +160,25 @@ void AdvancedPane::CreateLayout()
   vi_rate_override_slider_layout->setContentsMargins(0, 0, 0, 0);
   vi_rate_override_layout->addLayout(vi_rate_override_slider_layout);
 
-  m_vi_rate_override_slider = new QSlider(Qt::Horizontal);
-  m_vi_rate_override_slider->setRange(1, 500);
+  m_vi_rate_override_slider = new ConfigFloatSlider(0.01f, 5.0f, Config::MAIN_VI_OVERCLOCK, 0.01f);
   vi_rate_override_slider_layout->addWidget(m_vi_rate_override_slider);
 
-  m_vi_rate_override_slider_label = new QLabel();
-  vi_rate_override_slider_layout->addWidget(m_vi_rate_override_slider_label);
+  m_vi_label = new QLabel();
+  vi_rate_override_slider_layout->addWidget(m_vi_label);
+  std::function<void()> vi_text = [this]() {
+    const int percent =
+        static_cast<int>(std::round(Config::Get(Config::MAIN_VI_OVERCLOCK) * 100.f));
+    float vps =
+        static_cast<float>(Core::System::GetInstance().GetVideoInterface().GetTargetRefreshRate());
+    if (vps == 0.0f || !Config::Get(Config::MAIN_VI_OVERCLOCK_ENABLE))
+      vps = 59.94f * Config::Get(Config::MAIN_VI_OVERCLOCK);
+    m_vi_label->setText(
+        tr("%1% (%2 VPS)").arg(QString::number(percent), QString::number(vps, 'f', 2)));
+  };
+
+  vi_text();
+  connect(m_vi_rate_override_slider, &QSlider::valueChanged, this,
+          [this, vi_text]() { vi_text(); });
 
   m_vi_rate_override_checkbox->SetDescription(
       tr("Adjusts the VBI frequency. Also adjusts the emulated CPU's "
@@ -179,27 +205,34 @@ void AdvancedPane::CreateLayout()
   mem1_override_slider_layout->setContentsMargins(0, 0, 0, 0);
   ram_override_layout->addLayout(mem1_override_slider_layout);
 
-  m_mem1_override_slider = new QSlider(Qt::Horizontal);
-  m_mem1_override_slider->setRange(24, 64);
+  m_mem1_override_slider = new ConfigSliderU32(24, 64, Config::MAIN_MEM1_SIZE, 0x100000);
   mem1_override_slider_layout->addWidget(m_mem1_override_slider);
 
-  m_mem1_override_slider_label = new QLabel();
-  mem1_override_slider_layout->addWidget(m_mem1_override_slider_label);
+  m_mem1_label =
+      new QLabel(tr("%1 MB (MEM1)").arg(QString::number(m_mem1_override_slider->value())));
+  mem1_override_slider_layout->addWidget(m_mem1_label);
+  connect(m_mem1_override_slider, &QSlider::valueChanged, this, [this](int value) {
+    m_mem1_label->setText(tr("%1 MB (MEM1)").arg(QString::number(value)));
+  });
 
   auto* mem2_override_slider_layout = new QHBoxLayout();
   mem2_override_slider_layout->setContentsMargins(0, 0, 0, 0);
   ram_override_layout->addLayout(mem2_override_slider_layout);
 
-  m_mem2_override_slider = new QSlider(Qt::Horizontal);
-  m_mem2_override_slider->setRange(64, 128);
+  m_mem2_override_slider = new ConfigSliderU32(64, 128, Config::MAIN_MEM2_SIZE, 0x100000);
   mem2_override_slider_layout->addWidget(m_mem2_override_slider);
 
-  m_mem2_override_slider_label = new QLabel();
-  mem2_override_slider_layout->addWidget(m_mem2_override_slider_label);
+  m_mem2_label =
+      new QLabel(tr("%1 MB (MEM2)").arg(QString::number(m_mem2_override_slider->value())));
+  mem2_override_slider_layout->addWidget(m_mem2_label);
+  connect(m_mem2_override_slider, &QSlider::valueChanged, this, [this](int value) {
+    m_mem2_label->setText(tr("%1 MB (MEM2)").arg(QString::number(value)));
+  });
 
   m_ram_override_checkbox->SetDescription(
       tr("Adjusts the amount of RAM in the emulated console.<br><br>"
-         "<b>WARNING</b>: Enabling this will completely break many games.<br>Only a small number "
+         "<b>WARNING</b>: Enabling this will completely break many games.<br>Only a small "
+         "number "
          "of games can benefit from this."
          "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
 
@@ -239,33 +272,9 @@ void AdvancedPane::ConnectLayout()
       Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, cpu_cores[index]);
   });
 
-  connect(m_cpu_clock_override_slider, &QSlider::valueChanged, [this](int oc_factor) {
-    const float factor = m_cpu_clock_override_slider->value() / 100.f;
-    Config::SetBaseOrCurrent(Config::MAIN_OVERCLOCK, factor);
-    Update();
-  });
-
-  connect(m_vi_rate_override_slider, &QSlider::valueChanged, [this](int oc_factor) {
-    const float factor = m_vi_rate_override_slider->value() / 100.f;
-    Config::SetBaseOrCurrent(Config::MAIN_VI_OVERCLOCK, factor);
-    Update();
-  });
-
   m_ram_override_checkbox->setChecked(Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE));
   connect(m_ram_override_checkbox, &QCheckBox::toggled, [this](bool enable_ram_override) {
     Config::SetBaseOrCurrent(Config::MAIN_RAM_OVERRIDE_ENABLE, enable_ram_override);
-    Update();
-  });
-
-  connect(m_mem1_override_slider, &QSlider::valueChanged, [this](int slider_value) {
-    const u32 mem1_size = m_mem1_override_slider->value() * 0x100000;
-    Config::SetBaseOrCurrent(Config::MAIN_MEM1_SIZE, mem1_size);
-    Update();
-  });
-
-  connect(m_mem2_override_slider, &QSlider::valueChanged, [this](int slider_value) {
-    const u32 mem2_size = m_mem2_override_slider->value() * 0x100000;
-    Config::SetBaseOrCurrent(Config::MAIN_MEM2_SIZE, mem2_size);
     Update();
   });
 
@@ -307,21 +316,7 @@ void AdvancedPane::Update()
   }
 
   m_cpu_clock_override_slider->setEnabled(enable_cpu_clock_override_widgets);
-  m_cpu_clock_override_slider_label->setEnabled(enable_cpu_clock_override_widgets);
-
-  {
-    const QSignalBlocker blocker(m_cpu_clock_override_slider);
-    m_cpu_clock_override_slider->setValue(
-        static_cast<int>(std::round(Config::Get(Config::MAIN_OVERCLOCK) * 100.f)));
-  }
-
-  m_cpu_clock_override_slider_label->setText([] {
-    int core_clock =
-        Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond() / std::pow(10, 6);
-    int percent = static_cast<int>(std::round(Config::Get(Config::MAIN_OVERCLOCK) * 100.f));
-    int clock = static_cast<int>(std::round(Config::Get(Config::MAIN_OVERCLOCK) * core_clock));
-    return tr("%1% (%2 MHz)").arg(QString::number(percent), QString::number(clock));
-  }());
+  m_cpu_label->setEnabled(enable_cpu_clock_override_widgets);
 
   QFont vi_bf = font();
   vi_bf.setBold(Config::GetActiveLayerForConfig(Config::MAIN_VI_OVERCLOCK_ENABLE) !=
@@ -330,53 +325,16 @@ void AdvancedPane::Update()
   m_vi_rate_override_checkbox->setChecked(enable_vi_rate_override_widgets);
 
   m_vi_rate_override_slider->setEnabled(enable_vi_rate_override_widgets);
-  m_vi_rate_override_slider_label->setEnabled(enable_vi_rate_override_widgets);
-
-  {
-    const QSignalBlocker blocker(m_vi_rate_override_slider);
-    m_vi_rate_override_slider->setValue(
-        static_cast<int>(std::round(Config::Get(Config::MAIN_VI_OVERCLOCK) * 100.f)));
-  }
-
-  m_vi_rate_override_slider_label->setText([] {
-    int percent = static_cast<int>(std::round(Config::Get(Config::MAIN_VI_OVERCLOCK) * 100.f));
-    float vps =
-        static_cast<float>(Core::System::GetInstance().GetVideoInterface().GetTargetRefreshRate());
-    if (vps == 0.0f || !Config::Get(Config::MAIN_VI_OVERCLOCK_ENABLE))
-      vps = 59.94f * Config::Get(Config::MAIN_VI_OVERCLOCK);
-    return tr("%1% (%2 VPS)").arg(QString::number(percent), QString::number(vps, 'f', 2));
-  }());
+  m_vi_label->setEnabled(enable_vi_rate_override_widgets);
 
   m_ram_override_checkbox->setEnabled(is_uninitialized);
   SignalBlocking(m_ram_override_checkbox)->setChecked(enable_ram_override_widgets);
 
   m_mem1_override_slider->setEnabled(enable_ram_override_widgets && is_uninitialized);
-  m_mem1_override_slider_label->setEnabled(enable_ram_override_widgets && is_uninitialized);
-
-  {
-    const QSignalBlocker blocker(m_mem1_override_slider);
-    const u32 mem1_size = Config::Get(Config::MAIN_MEM1_SIZE) / 0x100000;
-    m_mem1_override_slider->setValue(mem1_size);
-  }
-
-  m_mem1_override_slider_label->setText([] {
-    const u32 mem1_size = Config::Get(Config::MAIN_MEM1_SIZE) / 0x100000;
-    return tr("%1 MB (MEM1)").arg(QString::number(mem1_size));
-  }());
+  m_mem1_label->setEnabled(enable_ram_override_widgets && is_uninitialized);
 
   m_mem2_override_slider->setEnabled(enable_ram_override_widgets && is_uninitialized);
-  m_mem2_override_slider_label->setEnabled(enable_ram_override_widgets && is_uninitialized);
-
-  {
-    const QSignalBlocker blocker(m_mem2_override_slider);
-    const u32 mem2_size = Config::Get(Config::MAIN_MEM2_SIZE) / 0x100000;
-    m_mem2_override_slider->setValue(mem2_size);
-  }
-
-  m_mem2_override_slider_label->setText([] {
-    const u32 mem2_size = Config::Get(Config::MAIN_MEM2_SIZE) / 0x100000;
-    return tr("%1 MB (MEM2)").arg(QString::number(mem2_size));
-  }());
+  m_mem2_label->setEnabled(enable_ram_override_widgets && is_uninitialized);
 
   m_custom_rtc_checkbox->setEnabled(is_uninitialized);
   SignalBlocking(m_custom_rtc_checkbox)->setChecked(Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE));
