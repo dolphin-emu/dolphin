@@ -494,11 +494,8 @@ void Mixer::MixerFifo::Enqueue()
       0.0002984010f, 0.0002102045f, 0.0001443499f, 0.0000961509f, 0.0000616906f, 0.0000377350f,
       0.0000216492f, 0.0000113187f, 0.0000050749f, 0.0000016272f};
 
-  const std::size_t head = m_queue_head.load(std::memory_order_acquire);
-
   // Check if we run out of space in the circular queue. (rare)
-  std::size_t next_head = (head + 1) & GRANULE_QUEUE_MASK;
-  if (next_head == m_queue_tail.load(std::memory_order_acquire))
+  if (m_queue.Writable() == 0)
   {
     WARN_LOG_FMT(AUDIO,
                  "Granule Queue has completely filled and audio samples are being dropped. "
@@ -509,30 +506,29 @@ void Mixer::MixerFifo::Enqueue()
   // By preconstructing the granule window, we have the best chance of
   // the compiler optimizing this loop using SIMD instructions.
   const std::size_t start_index = m_next_buffer_index;
-  for (std::size_t i = 0; i < GRANULE_SIZE; ++i)
-    m_queue[head][i] = m_next_buffer[(i + start_index) & GRANULE_MASK] * GRANULE_WINDOW[i];
+  auto& write_head = m_queue.GetWriteHead();
 
-  m_queue_head.store(next_head, std::memory_order_release);
+  for (std::size_t i = 0; i < GRANULE_SIZE; ++i)
+    write_head[i] = m_next_buffer[(i + start_index) & GRANULE_MASK] * GRANULE_WINDOW[i];
+
+  m_queue.AdvanceWriteHead(1);
   m_queue_looping.store(false, std::memory_order_relaxed);
 }
 
 void Mixer::MixerFifo::Dequeue(Granule* granule)
 {
   const std::size_t granule_queue_size = m_granule_queue_size.load(std::memory_order_relaxed);
-  const std::size_t head = m_queue_head.load(std::memory_order_acquire);
-  std::size_t tail = m_queue_tail.load(std::memory_order_acquire);
 
   // Checks to see if the queue has gotten too long.
-  if (granule_queue_size < ((head - tail) & GRANULE_QUEUE_MASK))
+  const auto size = m_queue.Size();
+  if (size > granule_queue_size)
   {
     // Jump the playhead to half the queue size behind the head.
-    const std::size_t gap = (granule_queue_size >> 1) + 1;
-    tail = (head - gap) & GRANULE_QUEUE_MASK;
+    const std::size_t desired_size = granule_queue_size / 2;
+    m_queue.AdvanceReadHead(size - desired_size);
   }
-
   // Checks to see if the queue is empty.
-  std::size_t next_tail = (tail + 1) & GRANULE_QUEUE_MASK;
-  if (next_tail == head)
+  else if (size == 0)
   {
     // Only fill gaps when running to prevent stutter on pause.
     const bool is_running = Core::GetState(Core::System::GetInstance()) == Core::State::Running;
@@ -540,18 +536,17 @@ void Mixer::MixerFifo::Dequeue(Granule* granule)
     {
       // Jump the playhead to half the queue size behind the head.
       // This provides smoother audio playback than suddenly stopping.
-      const std::size_t gap = std::max<std::size_t>(2, granule_queue_size >> 1) - 1;
-      next_tail = (head - gap) & GRANULE_QUEUE_MASK;
+      const std::size_t desired_size = std::max<std::size_t>(1, granule_queue_size / 2);
+      m_queue.RewindReadHead(desired_size);
       m_queue_looping.store(true, std::memory_order_relaxed);
     }
     else
     {
-      std::fill(granule->begin(), granule->end(), StereoPair{0.0f, 0.0f});
+      std::ranges::fill(*granule, StereoPair{0.0f, 0.0f});
       m_queue_looping.store(false, std::memory_order_relaxed);
       return;
     }
   }
 
-  *granule = m_queue[tail];
-  m_queue_tail.store(next_tail, std::memory_order_release);
+  *granule = m_queue.Pop();
 }
