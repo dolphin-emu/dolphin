@@ -78,9 +78,9 @@ std::string USBHost::GetDeviceNameFromVIDPID(u16 vid, u16 pid)
             libusb_get_string_descriptor_ascii(handle, desc.iProduct, buffer, sizeof(buffer)) > 0)
         {
           device_name = reinterpret_cast<char*>(buffer);
-          libusb_close(handle);
         }
       }
+      libusb_close(handle);
       return false;
     }
     return true;
