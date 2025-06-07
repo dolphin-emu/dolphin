@@ -17,15 +17,9 @@
 #include "VideoCommon/Assets/TextureAsset.h"
 #include "VideoCommon/ShaderGenCommon.h"
 
-namespace VideoCommon
-{
-class CustomAssetLoader;
-}
-
 struct CustomPipeline
 {
-  void UpdatePixelData(VideoCommon::CustomAssetLoader& loader,
-                       std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
+  void UpdatePixelData(std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
                        std::span<const u32> texture_units,
                        const VideoCommon::CustomAssetLibrary::AssetID& material_to_load);
 
@@ -34,7 +28,7 @@ struct CustomPipeline
 
   struct CachedTextureAsset
   {
-    VideoCommon::CachedAsset<VideoCommon::GameTextureAsset> m_cached_asset;
+    VideoCommon::CachedAsset<VideoCommon::TextureAsset> m_cached_asset;
     std::unique_ptr<AbstractTexture> m_texture;
     std::string m_sampler_code;
     std::string m_define_code;
