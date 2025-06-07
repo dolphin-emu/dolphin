@@ -41,18 +41,18 @@ public:
     mbedtls_sha1_init(&ctx);
     ASSERT(!mbedtls_sha1_starts_ret(&ctx));
   }
-  ~ContextMbed() { mbedtls_sha1_free(&ctx); }
-  virtual void Update(const u8* msg, size_t len) override
+  ~ContextMbed() override { mbedtls_sha1_free(&ctx); }
+  void Update(const u8* msg, size_t len) override
   {
     ASSERT(!mbedtls_sha1_update_ret(&ctx, msg, len));
   }
-  virtual Digest Finish() override
+  Digest Finish() override
   {
     Digest digest;
     ASSERT(!mbedtls_sha1_finish_ret(&ctx, digest.data()));
     return digest;
   }
-  virtual bool HwAccelerated() const override { return false; }
+  bool HwAccelerated() const override { return false; }
 
 private:
   mbedtls_sha1_context ctx{};
@@ -204,7 +204,7 @@ private:
   }
 
   ATTRIBUTE_TARGET("sha")
-  virtual void ProcessBlock(const u8* msg) override
+  void ProcessBlock(const u8* msg) override
   {
     // There are 80 rounds with 4 bytes per round, giving 0x140 byte work space, but we can keep
     // active state in just 0x40 bytes.
@@ -248,7 +248,7 @@ private:
     // clang-format on
   }
 
-  virtual Digest GetDigest() override
+  Digest GetDigest() override
   {
     Digest digest;
     _mm_storeu_si128((__m128i*)&digest[0], byterev_16B(state[0]));
@@ -257,7 +257,7 @@ private:
     return digest;
   }
 
-  virtual bool HwAccelerated() const override { return true; }
+  bool HwAccelerated() const override { return true; }
 
   std::array<XmmReg, 2> state{};
 };

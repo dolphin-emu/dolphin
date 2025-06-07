@@ -137,7 +137,7 @@ public:
   static constexpr const char* SIDEWAYS_OPTION = "Sideways Wiimote";
 
   explicit Wiimote(unsigned int index);
-  ~Wiimote();
+  ~Wiimote() override;
 
   std::string GetName() const override;
 

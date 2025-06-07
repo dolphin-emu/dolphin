@@ -30,7 +30,7 @@ public:
   Interpreter(Interpreter&&) = delete;
   Interpreter& operator=(const Interpreter&) = delete;
   Interpreter& operator=(Interpreter&&) = delete;
-  ~Interpreter();
+  ~Interpreter() override;
 
   void Init() override;
   void Shutdown() override;

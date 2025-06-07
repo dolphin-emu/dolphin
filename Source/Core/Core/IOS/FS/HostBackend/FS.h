@@ -23,7 +23,7 @@ class HostFileSystem final : public FileSystem
 {
 public:
   HostFileSystem(const std::string& root_path, std::vector<NandRedirect> nand_redirects = {});
-  ~HostFileSystem();
+  ~HostFileSystem() override;
 
   void DoState(PointerWrap& p) override;
 

@@ -24,7 +24,7 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
 
-  bool eventFilter(QObject* object, QEvent* event) final override;
+  bool eventFilter(QObject* object, QEvent* event) final;
 
   QLineEdit* m_search_edit;
   QPushButton* m_close_button;

@@ -233,7 +233,7 @@ class HotkeyManager : public ControllerEmu::EmulatedController
 {
 public:
   HotkeyManager();
-  ~HotkeyManager();
+  ~HotkeyManager() override;
 
   void GetInput(HotkeyStatus* hk, bool ignore_focus);
   std::string GetName() const override;

@@ -34,7 +34,7 @@ class WiimoteScannerHidapi final : public WiimoteScannerBackend
 {
 public:
   WiimoteScannerHidapi();
-  ~WiimoteScannerHidapi();
+  ~WiimoteScannerHidapi() override;
   bool IsReady() const override;
   void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
   void Update() override {}                // not needed for hidapi

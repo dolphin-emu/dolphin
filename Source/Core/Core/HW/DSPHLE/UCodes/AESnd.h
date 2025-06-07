@@ -27,7 +27,7 @@ public:
   AESndAccelerator(AESndAccelerator&&) = delete;
   AESndAccelerator& operator=(const AESndAccelerator&) = delete;
   AESndAccelerator& operator=(AESndAccelerator&&) = delete;
-  ~AESndAccelerator();
+  ~AESndAccelerator() override;
 
 protected:
   void OnRawReadEndException() override {}

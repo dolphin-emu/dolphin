@@ -33,7 +33,7 @@ public:
   VKTexture(const TextureConfig& tex_config, VmaAllocation alloc, VkImage image,
             std::string_view name, VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED,
             ComputeImageLayout compute_layout = ComputeImageLayout::Undefined);
-  ~VKTexture();
+  ~VKTexture() override;
 
   static VkFormat GetLinearFormat(VkFormat format);
   static VkFormat GetVkFormatForHostTextureFormat(AbstractTextureFormat format);
@@ -93,7 +93,7 @@ public:
                    std::unique_ptr<StagingBuffer> buffer, VkImage linear_image,
                    VmaAllocation linear_image_alloc);
 
-  ~VKStagingTexture();
+  ~VKStagingTexture() override;
 
   void CopyFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& src_rect,
                        u32 src_layer, u32 src_level,

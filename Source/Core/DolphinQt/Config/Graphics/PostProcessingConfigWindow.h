@@ -27,7 +27,7 @@ class PostProcessingConfigWindow final : public QDialog
   Q_OBJECT
 public:
   explicit PostProcessingConfigWindow(EnhancementsWidget* parent, const std::string& shader);
-  ~PostProcessingConfigWindow();
+  ~PostProcessingConfigWindow() override;
 
 private:
   class ConfigGroup final

@@ -18,7 +18,7 @@ class CEXIMic : public IEXIDevice
 {
 public:
   CEXIMic(Core::System& system, const int index);
-  virtual ~CEXIMic();
+  ~CEXIMic() override;
   void SetCS(int cs) override;
   bool IsInterruptSet() override;
   bool IsPresent() const override;

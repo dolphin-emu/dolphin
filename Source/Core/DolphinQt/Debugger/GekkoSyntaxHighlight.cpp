@@ -16,7 +16,7 @@ using namespace Common::GekkoAssembler::detail;
 class HighlightParsePlugin : public ParsePlugin
 {
 public:
-  virtual ~HighlightParsePlugin() = default;
+  ~HighlightParsePlugin() override = default;
 
   std::vector<std::pair<int, int>>&& MoveParens() { return std::move(m_matched_parens); }
   std::vector<std::tuple<int, int, HighlightFormat>>&& MoveFormatting()

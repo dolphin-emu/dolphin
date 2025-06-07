@@ -73,7 +73,7 @@ class SkylanderUSB final : public Device
 {
 public:
   SkylanderUSB();
-  ~SkylanderUSB();
+  ~SkylanderUSB() override;
   DeviceDescriptor GetDeviceDescriptor() const override;
   std::vector<ConfigDescriptor> GetConfigurations() const override;
   std::vector<InterfaceDescriptor> GetInterfaces(u8 config) const override;
