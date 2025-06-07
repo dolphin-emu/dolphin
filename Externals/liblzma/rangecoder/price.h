@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       price.h
 /// \brief      Probability price calculation
 //
 //  Author:     Igor Pavlov
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -22,6 +21,7 @@
 
 
 /// Lookup table for the inline functions defined in this file.
+lzma_attr_visibility_hidden
 extern const uint8_t lzma_rc_prices[RC_PRICE_TABLE_SIZE];
 
 

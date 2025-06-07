@@ -1,18 +1,18 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
-/// \file       tuklib_mstr_width.c
+/// \file       tuklib_mbstr_width.c
 /// \brief      Calculate width of a multibyte string
 //
 //  Author:     Lasse Collin
 //
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
-//
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "tuklib_mbstr.h"
+#include <string.h>
 
-#if defined(HAVE_MBRTOWC) && defined(HAVE_WCWIDTH)
+#ifdef HAVE_MBRTOWC
 #	include <wchar.h>
 #endif
 
@@ -24,7 +24,7 @@ tuklib_mbstr_width(const char *str, size_t *bytes)
 	if (bytes != NULL)
 		*bytes = len;
 
-#if !(defined(HAVE_MBRTOWC) && defined(HAVE_WCWIDTH))
+#ifndef HAVE_MBRTOWC
 	// In single-byte mode, the width of the string is the same
 	// as its length.
 	return len;
@@ -46,11 +46,20 @@ tuklib_mbstr_width(const char *str, size_t *bytes)
 
 		i += ret;
 
+#ifdef HAVE_WCWIDTH
 		const int wc_width = wcwidth(wc);
 		if (wc_width < 0)
 			return (size_t)-1;
 
-		width += wc_width;
+		width += (size_t)wc_width;
+#else
+		// Without wcwidth() (like in a native Windows build),
+		// assume that one multibyte char == one column. With
+		// UTF-8, this is less bad than one byte == one column.
+		// This way quite a few languages will be handled correctly
+		// in practice; CJK chars will be very wrong though.
+		++width;
+#endif
 	}
 
 	// Require that the string ends in the initial shift state.

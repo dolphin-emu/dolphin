@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       sysdefs.h
@@ -7,9 +9,6 @@
 /// file is separate from common.h.
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -24,9 +23,29 @@
 #	include <config.h>
 #endif
 
-// Get standard-compliant stdio functions under MinGW and MinGW-w64.
-#ifdef __MINGW32__
+// Choose if MinGW-w64's stdio replacement functions should be used.
+// The default has varied slightly in the past so it's clearest to always
+// set it explicitly.
+//
+// Modern MinGW-w64 enables the replacement functions even with UCRT
+// when _GNU_SOURCE is defined. That's good because UCRT doesn't support
+// the POSIX thousand separator flag in printf (like "%'u"). Otherwise
+// XZ Utils works with the UCRT stdio functions.
+//
+// The replacement functions add over 20 KiB to each executable. For
+// size-optimized builds (HAVE_SMALL), disable the replacements.
+// Then thousand separators aren't shown in xz's messages but this is
+// a minor downside compare to the slower speed of the HAVE_SMALL builds.
+//
+// The legacy MSVCRT is pre-C99 and it's best to always use the stdio
+// replacements functions from MinGW-w64.
+#if defined(__MINGW32__) && !defined(__USE_MINGW_ANSI_STDIO)
 #	define __USE_MINGW_ANSI_STDIO 1
+#	include <_mingw.h>
+#	if defined(_UCRT) && defined(HAVE_SMALL)
+#		undef __USE_MINGW_ANSI_STDIO
+#		define __USE_MINGW_ANSI_STDIO 0
+#	endif
 #endif
 
 // size_t and NULL
@@ -44,9 +63,7 @@
 
 // Some pre-C99 systems have SIZE_MAX in limits.h instead of stdint.h. The
 // limits are also used to figure out some macros missing from pre-C99 systems.
-#ifdef HAVE_LIMITS_H
-#	include <limits.h>
-#endif
+#include <limits.h>
 
 // Be more compatible with systems that have non-conforming inttypes.h.
 // We assume that int is 32-bit and that long is either 32-bit or 64-bit.
@@ -129,7 +146,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-// Pre-C99 systems lack stdbool.h. All the code in LZMA Utils must be written
+// Pre-C99 systems lack stdbool.h. All the code in XZ Utils must be written
 // so that it works with fake bool type, for example:
 //
 //    bool foo = (flags & 0x100) != 0;
@@ -151,27 +168,18 @@ typedef unsigned char _Bool;
 #	define __bool_true_false_are_defined 1
 #endif
 
-// string.h should be enough but let's include strings.h and memory.h too if
-// they exists, since that shouldn't do any harm, but may improve portability.
-#ifdef HAVE_STRING_H
-#	include <string.h>
-#endif
+#include <string.h>
 
-#ifdef HAVE_STRINGS_H
-#	include <strings.h>
-#endif
-
-#ifdef HAVE_MEMORY_H
-#	include <memory.h>
-#endif
-
-// As of MSVC 2013, inline and restrict are supported with
-// non-standard keywords.
-#if defined(_WIN32) && defined(_MSC_VER)
-#	ifndef inline
+// Visual Studio 2013 update 2 supports only __inline, not inline.
+// MSVC v19.0 / VS 2015 and newer support both.
+//
+// MSVC v19.27 (VS 2019 version 16.7) added support for restrict.
+// Older ones support only __restrict.
+#ifdef _MSC_VER
+#	if _MSC_VER < 1900 && !defined(inline)
 #		define inline __inline
 #	endif
-#	ifndef restrict
+#	if _MSC_VER < 1927 && !defined(restrict)
 #		define restrict __restrict
 #	endif
 #endif
@@ -193,7 +201,8 @@ typedef unsigned char _Bool;
 #	define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
 #endif
 
-#if (__GNUC__ == 4 && __GNUC_MINOR__ >= 3) || __GNUC__ > 4
+#if defined(__GNUC__) \
+		&& ((__GNUC__ == 4 && __GNUC_MINOR__ >= 3) || __GNUC__ > 4)
 #	define lzma_attr_alloc_size(x) __attribute__((__alloc_size__(x)))
 #else
 #	define lzma_attr_alloc_size(x)
