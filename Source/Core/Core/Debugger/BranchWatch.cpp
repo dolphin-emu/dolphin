@@ -119,9 +119,7 @@ void BranchWatch::Load(const CPUThreadGuard& guard, std::FILE* file)
 
     if (snapshot_metadata.is_selected)
     {
-      // TODO C++20: Parenthesized initialization of aggregates has bad compiler support.
-      m_selection.emplace_back(BranchWatchSelectionValueType{&*kv_iter, is_virtual, condition,
-                                                             snapshot_metadata.inspection});
+      m_selection.emplace_back(&*kv_iter, is_virtual, condition, snapshot_metadata.inspection);
     }
     else if (hits_snapshot != 0)
     {
@@ -145,9 +143,7 @@ void BranchWatch::IsolateHasExecuted(const CPUThreadGuard&)
       {
         if (kv.second.hits_snapshot == 0)
         {
-          // TODO C++20: Parenthesized initialization of aggregates has bad compiler support.
-          m_selection.emplace_back(
-              BranchWatchSelectionValueType{&kv, is_virtual, condition, SelectionInspection{}});
+          m_selection.emplace_back(&kv, is_virtual, condition, SelectionInspection{});
           kv.second.hits_snapshot = kv.second.total_hits;
         }
       }

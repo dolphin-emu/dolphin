@@ -460,6 +460,5 @@ void CachedInterpreter::LogGeneratedCode() const
   stream << "\nHost Code:\n";
   Disassemble(*js.curBlock, stream);
 
-  // TODO C++20: std::ostringstream::view()
-  DEBUG_LOG_FMT(DYNA_REC, "{}", std::move(stream).str());
+  DEBUG_LOG_FMT(DYNA_REC, "{}", stream.view());
 }

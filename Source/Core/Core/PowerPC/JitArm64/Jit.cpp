@@ -1410,6 +1410,5 @@ void JitArm64::LogGeneratedCode() const
   stream << "\nHost Far Code:\n";
   m_disassembler->Disassemble(block->far_begin, block->far_end, stream);
 
-  // TODO C++20: std::ostringstream::view()
-  DEBUG_LOG_FMT(DYNA_REC, "{}", std::move(stream).str());
+  DEBUG_LOG_FMT(DYNA_REC, "{}", stream.view());
 }
