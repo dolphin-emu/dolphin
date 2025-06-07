@@ -59,6 +59,9 @@ struct System::Impl
   {
   }
 
+  // Built first since other constructors may register hooks right away.
+  VideoEvents m_video_events;
+
   std::unique_ptr<SoundStream> m_sound_stream;
   bool m_sound_stream_running = false;
   bool m_audio_dump_started = false;
@@ -339,4 +342,14 @@ VideoCommon::CustomAssetLoader& System::GetCustomAssetLoader() const
 {
   return m_impl->m_custom_asset_loader;
 }
+
+VideoEvents& System::GetVideoEvents() const
+{
+  return m_impl->m_video_events;
+}
 }  // namespace Core
+
+VideoEvents& GetVideoEvents()
+{
+  return Core::System::GetInstance().GetVideoEvents();
+}
