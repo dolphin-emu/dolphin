@@ -73,6 +73,7 @@ private:
   void GenerateARCodes();
   int GetVisibleRowsBeginIndex() const;
   int GetVisibleRowsEndIndex() const;
+  size_t GetTableRowCount() const;
 
   Core::System& m_system;
 

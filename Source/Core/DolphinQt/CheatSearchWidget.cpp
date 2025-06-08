@@ -352,9 +352,8 @@ void CheatSearchWidget::OnNextScanClicked()
 
     m_address_table_current_values.clear();
     const bool show_in_hex = m_display_values_in_hex_checkbox->isChecked();
-    const bool too_many_results = new_count > TABLE_MAX_ROWS;
-    const size_t result_count_to_display = too_many_results ? TABLE_MAX_ROWS : new_count;
-    for (size_t i = 0; i < result_count_to_display; ++i)
+    const size_t row_count = GetTableRowCount();
+    for (size_t i = 0; i < row_count; ++i)
     {
       m_address_table_current_values[m_session->GetResultAddress(i)] =
           m_session->GetResultValueAsString(i, show_in_hex);
@@ -585,6 +584,11 @@ void CheatSearchWidget::GenerateARCodes()
   }
 }
 
+size_t CheatSearchWidget::GetTableRowCount() const
+{
+  return std::min(TABLE_MAX_ROWS, m_session->GetResultCount());
+}
+
 void CheatSearchWidget::RefreshCurrentValueTableItem(
     QTableWidgetItem* const current_value_table_item)
 {
@@ -615,12 +619,10 @@ void CheatSearchWidget::RecreateGUITable()
   m_address_table->setHorizontalHeaderLabels(
       {tr("Description"), tr("Address"), tr("Last Value"), tr("Current Value")});
 
-  const size_t result_count = m_session->GetResultCount();
-  const bool too_many_results = result_count > TABLE_MAX_ROWS;
-  const int result_count_to_display = int(too_many_results ? TABLE_MAX_ROWS : result_count);
-  m_address_table->setRowCount(result_count_to_display);
+  const int row_count = static_cast<int>(GetTableRowCount());
+  m_address_table->setRowCount(row_count);
 
-  for (int i = 0; i < result_count_to_display; ++i)
+  for (int i = 0; i < row_count; ++i)
   {
     const u32 address = m_session->GetResultAddress(i);
     const auto user_data_it = m_address_table_user_data.find(address);
