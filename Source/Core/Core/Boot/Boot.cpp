@@ -603,6 +603,8 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
         return false;
       }
 
+      AchievementManager::GetInstance().LoadGame(nullptr);
+
       SConfig::OnTitleDirectlyBooted(guard);
 
       ppc_state.pc = executable.reader->GetEntryPoint();
@@ -635,6 +637,8 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       if (!BootNANDTitle(system, nand_title.id))
         return false;
 
+      AchievementManager::GetInstance().LoadGame(nullptr);
+
       SConfig::OnTitleDirectlyBooted(guard);
       return true;
     }
@@ -661,6 +665,8 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
                 ipl.disc->auto_disc_change_paths);
       }
 
+      AchievementManager::GetInstance().LoadGame(nullptr);
+
       SConfig::OnTitleDirectlyBooted(guard);
       return true;
     }
@@ -668,6 +674,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
     bool operator()(const BootParameters::DFF& dff) const
     {
       NOTICE_LOG_FMT(BOOT, "Booting DFF: {}", dff.dff_path);
+      AchievementManager::GetInstance().LoadGame(nullptr);
       return system.GetFifoPlayer().Open(dff.dff_path);
     }
 
