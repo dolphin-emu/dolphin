@@ -281,7 +281,7 @@ static std::string SystemTimeAsDoubleToString(double time)
 {
   // revert adjustments from GetSystemTimeAsDouble() to get a normal Unix timestamp again
   const time_t seconds = static_cast<time_t>(time) + DOUBLE_TIME_OFFSET;
-  const auto local_time = Common::Localtime(seconds);
+  const auto local_time = Common::LocalTime(seconds);
   if (!local_time)
     return "";
 

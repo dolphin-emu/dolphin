@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/FrameDumpFFMpeg.h"
+#include "Common/TimeUtil.h"
 
 #if defined(__FreeBSD__)
 #define __STDC_CONSTANT_MACROS 1
@@ -124,11 +125,15 @@ std::string GetDumpPath(const std::string& extension, std::time_t time, u32 inde
   if (!dump_path.empty())
     return dump_path;
 
+  const auto local_time = Common::LocalTime(time);
+  if (!local_time)
+    return "";
+
   const std::string path_prefix =
       File::GetUserPath(D_DUMPFRAMES_IDX) + SConfig::GetInstance().GetGameID();
 
   const std::string base_name =
-      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}_{}", path_prefix, fmt::localtime(time), index);
+      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}_{}", path_prefix, *local_time, index);
 
   const std::string path = fmt::format("{}.{}", base_name, extension);
 

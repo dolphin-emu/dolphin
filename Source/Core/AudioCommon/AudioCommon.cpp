@@ -16,6 +16,7 @@
 #include "AudioCommon/WASAPIStream.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/TimeUtil.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/System.h"
@@ -219,8 +220,11 @@ void StartAudioDump(Core::System& system)
 
   std::string path_prefix = File::GetUserPath(D_DUMPAUDIO_IDX) + SConfig::GetInstance().GetGameID();
 
-  std::string base_name =
-      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}", path_prefix, fmt::localtime(start_time));
+  const auto local_time = Common::LocalTime(start_time);
+  if (!local_time)
+    return;
+
+  std::string base_name = fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}", path_prefix, *local_time);
 
   const std::string audio_file_name_dtk = fmt::format("{}_dtkdump.wav", base_name);
   const std::string audio_file_name_dsp = fmt::format("{}_dspdump.wav", base_name);

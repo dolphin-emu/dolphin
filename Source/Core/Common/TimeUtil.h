@@ -9,5 +9,5 @@
 namespace Common
 {
 // Threadsafe and error-checking variant of std::localtime()
-std::optional<std::tm> Localtime(std::time_t time);
+std::optional<std::tm> LocalTime(std::time_t time);
 }  // Namespace Common
