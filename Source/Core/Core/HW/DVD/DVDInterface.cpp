@@ -127,7 +127,7 @@ void DVDInterface::DoState(PointerWrap& p)
 }
 
 size_t DVDInterface::ProcessDTKSamples(s16* target_samples, size_t target_block_count,
-                                       const std::vector<u8>& audio_data)
+                                       std::span<const u8> audio_data)
 {
   const size_t block_count_to_process =
       std::min(target_block_count, audio_data.size() / StreamADPCM::ONE_BLOCK_SIZE);
@@ -186,7 +186,7 @@ u32 DVDInterface::AdvanceDTK(u32 maximum_blocks, u32* blocks_to_process)
 }
 
 void DVDInterface::DTKStreamingCallback(DIInterruptType interrupt_type,
-                                        const std::vector<u8>& audio_data, s64 cycles_late)
+                                        std::span<const u8> audio_data, s64 cycles_late)
 {
   auto& ai = m_system.GetAudioInterface();
 
@@ -1266,7 +1266,7 @@ void DVDInterface::SetDriveError(DriveError error)
 }
 
 void DVDInterface::FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type,
-                                          s64 cycles_late, const std::vector<u8>& data)
+                                          s64 cycles_late, std::span<const u8> data)
 {
   // The data parameter contains the requested data iff this was called from DVDThread, and is
   // empty otherwise. DVDThread is the only source of ReplyType::NoReply and ReplyType::DTK.
