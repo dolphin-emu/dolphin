@@ -3,14 +3,9 @@
 
 #include "VideoBackends/Vulkan/VKGfx.h"
 
-#include <algorithm>
 #include <cstddef>
 #include <cstdio>
-#include <limits>
-#include <string>
-#include <tuple>
 
-#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumUtils.h"
 #include "Common/Logging/Log.h"
@@ -225,8 +220,7 @@ bool VKGfx::BindBackbuffer(const ClearColor& clear_color)
 {
   StateTracker::GetInstance()->EndRenderPass();
 
-  if (!g_command_buffer_mgr->CheckLastPresentDone())
-    g_command_buffer_mgr->WaitForWorkerThreadIdle();
+  g_command_buffer_mgr->WaitForWorkerThreadIdle();
 
   // Handle host window resizes.
   CheckForSurfaceChange();
