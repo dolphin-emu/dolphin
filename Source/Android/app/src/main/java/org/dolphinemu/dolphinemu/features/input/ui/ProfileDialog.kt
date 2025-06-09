@@ -46,10 +46,8 @@ class ProfileDialog : BottomSheetDialogFragment() {
         binding.profileList.addItemDecoration(divider)
 
         // You can't expand a bottom sheet with a controller/remote/other non-touch devices
-        val behavior: BottomSheetBehavior<View> = BottomSheetBehavior.from(view.parent as View)
-        if (!resources.getBoolean(R.bool.hasTouch)) {
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        }
+        BottomSheetBehavior.from<View>(view.parent as View).state =
+            BottomSheetBehavior.STATE_EXPANDED
     }
 
     override fun onDestroyView() {
