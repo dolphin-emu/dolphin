@@ -267,6 +267,7 @@ private:
 #ifdef USE_RETRO_ACHIEVEMENTS
   AchievementsWindow* m_achievements_window = nullptr;
   Config::ConfigChangedCallbackID m_config_changed_callback_id;
+  bool m_former_hardcore_setting = false;
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   AssemblerWidget* m_assembler_widget;
