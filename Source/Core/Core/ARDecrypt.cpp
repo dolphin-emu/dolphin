@@ -459,7 +459,7 @@ static int alphatobin(u32* dst, const std::vector<std::string>& alpha, int size)
 
 void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
 {
-  std::array<u32, 1200> uCodes;
+  std::array<u32, 1200> uCodes{};
 
   for (std::string& s : vCodes)
   {
