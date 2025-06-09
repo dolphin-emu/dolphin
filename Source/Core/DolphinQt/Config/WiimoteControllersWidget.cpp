@@ -314,8 +314,16 @@ void WiimoteControllersWidget::OnBluetoothPassthroughDeviceChanged(int index)
     return;
   }
 
-  auto device_info = m_bluetooth_adapters->itemData(index)
-                         .value<IOS::HLE::BluetoothRealDevice::BluetoothDeviceInfo>();
+  const QVariant item_data = m_bluetooth_adapters->itemData(index);
+
+  if (!item_data.isValid() ||
+      !item_data.canConvert<IOS::HLE::BluetoothRealDevice::BluetoothDeviceInfo>())
+  {
+    ERROR_LOG_FMT(COMMON, "Invalid Bluetooth device info selected in WiimoteControllersWidget");
+    return;
+  }
+
+  const auto& device_info = item_data.value<IOS::HLE::BluetoothRealDevice::BluetoothDeviceInfo>();
 
   Config::SetBaseOrCurrent(Config::MAIN_BLUETOOTH_PASSTHROUGH_PID, device_info.pid);
   Config::SetBaseOrCurrent(Config::MAIN_BLUETOOTH_PASSTHROUGH_VID, device_info.vid);
