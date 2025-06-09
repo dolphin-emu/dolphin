@@ -293,7 +293,7 @@ void Interpreter::unknown_instruction(Interpreter& interpreter, UGeckoInstructio
   Core::CPUThreadGuard guard(system);
 
   const u32 last_pc = interpreter.m_last_pc;
-  const u32 opcode = PowerPC::MMU::HostRead_U32(guard, last_pc);
+  const u32 opcode = PowerPC::MMU::HostRead<u32>(guard, last_pc);
   const std::string disasm = Common::GekkoDisassembler::Disassemble(opcode, last_pc);
   NOTICE_LOG_FMT(POWERPC, "Last PC = {:08x} : {}", last_pc, disasm);
   Dolphin_Debugger::PrintCallstack(guard, Common::Log::LogType::POWERPC,
