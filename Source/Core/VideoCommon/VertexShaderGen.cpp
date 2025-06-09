@@ -77,7 +77,10 @@ VertexShaderUid GetVertexShaderUid()
 static void WriteTransformMatrices(APIType api_type, const ShaderHostConfig& host_config,
                                    const vertex_shader_uid_data* uid_data, ShaderCode& out)
 {
-  out.Write("mat3x4 dolphin_position_matrix()\n");
+  if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
+    out.Write("mat3x4 dolphin_position_matrix(uint4 posmtx)\n");
+  else
+    out.Write("mat3x4 dolphin_position_matrix()\n");  
   out.Write("{{\n");
   out.Write("\tmat3x4 result;\n");
   if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
@@ -103,7 +106,10 @@ static void WriteTransformMatrices(APIType api_type, const ShaderHostConfig& hos
   // By normalising the first transformed normal (which is used by lighting calculations and needs
   // to be unit length), the same transform matrix can do double duty, scaling for emboss mapping,
   // and not scaling for lighting.
-  out.Write("mat3 dolphin_normal_matrix()\n");
+  if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
+    out.Write("mat3 dolphin_normal_matrix(uint4 posmtx)\n");
+  else
+    out.Write("mat3 dolphin_normal_matrix()\n");
   out.Write("{{\n");
   out.Write("\tmat3 result;\n");
   if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
@@ -206,6 +212,8 @@ static void WriteVertexStructs(APIType api_type, const ShaderHostConfig& host_co
 {
   out.Write("struct DolphinVertexInput\n");
   out.Write("{{\n");
+  if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
+    out.Write("\tuint4 posmtx;\n");
   out.Write("\tvec4 color_0;\n");
   out.Write("\tvec4 color_1;\n");
   out.Write("\tvec4 position;\n");
@@ -578,6 +586,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   out.Write("\tvertex_input.color_1 = vertex_color_1;\n");
   out.Write("\tvertex_input.position = rawpos;\n");
 
+  if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
+    out.Write("\tvertex_input.posmtx = posmtx;\n");
+
   if ((uid_data->components & VB_HAS_NORMAL) != 0)
   {
     out.Write("\tvertex_input.normal = rawnormal;\n");
@@ -851,10 +862,17 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 void WriteVertexBody(APIType api_type, const ShaderHostConfig& host_config,
                      const vertex_shader_uid_data* uid_data, ShaderCode& out)
 {
-  out.Write(
-      "\tvertex_output.position = vec4(vertex_input.position * dolphin_position_matrix(), 1.0);\n");
 
-  out.Write("\tvertex_output.normal = normalize(vertex_input.normal * dolphin_normal_matrix());\n");
+  if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
+  {
+    out.Write("\tvertex_output.position = vec4(vertex_input.position * dolphin_position_matrix(vertex_input.posmtx), 1.0);\n");
+    out.Write("\tvertex_output.normal = normalize(vertex_input.normal * dolphin_normal_matrix(vertex_input.posmtx));\n");
+  }
+  else
+  {
+    out.Write("\tvertex_output.position = vec4(vertex_input.position * dolphin_position_matrix(), 1.0);\n");
+    out.Write("\tvertex_output.normal = normalize(vertex_input.normal * dolphin_normal_matrix());\n");
+  }
 
   for (u32 chan = 0; chan < NUM_XF_COLOR_CHANNELS; chan++)
   {
@@ -895,8 +913,17 @@ void WriteVertexBody(APIType api_type, const ShaderHostConfig& host_config,
       out.Write("\t\tvec3 ldir = normalize(" LIGHT_POS ".xyz - vertex_output.position.xyz);\n",
                 LIGHT_POS_PARAMS(texinfo.embosslightshift));
 
-      out.Write("\t\tvec3 tangent = vertex_input.tangent * dolphin_normal_matrix();\n");
-      out.Write("\t\tvec3 binormal = vertex_input.binormal * dolphin_normal_matrix();\n");
+      if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
+      {         
+        out.Write("\t\tvec3 tangent = vertex_input.tangent * dolphin_normal_matrix(vertex_input.posmtx);\n");
+        out.Write("\t\tvec3 binormal = vertex_input.binormal * dolphin_normal_matrix(vertex_input.posmtx);\n");
+      }
+      else
+      {
+        out.Write("\t\tvec3 tangent = vertex_input.tangent * dolphin_normal_matrix();\n");
+        out.Write("\t\tvec3 binormal = vertex_input.binormal * dolphin_normal_matrix();\n");
+      }
+
       out.Write("\t\tvertex_output.texture_coord_{}.xyz = vertex_output.texture_coord_{}.xyz + "
                 "vec3(dot(ldir, tangent), "
                 "dot(ldir, binormal), 0.0);\n",
