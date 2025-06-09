@@ -176,7 +176,10 @@ Arm64GPRCache::GuestRegInfo Arm64GPRCache::GetGuestCR(size_t preg)
 
 Arm64GPRCache::GuestRegInfo Arm64GPRCache::GetGuestByIndex(size_t index)
 {
-  if (index >= GUEST_GPR_OFFSET && index < GUEST_GPR_OFFSET + GUEST_GPR_COUNT)
+  // We do not need to test for `index >= GUEST_GPR_OFFSET` because
+  // GUEST_GPR_OFFSET is always 0. This otherwise raises a warning.
+  static_assert(GUEST_GPR_OFFSET == 0);
+  if (index < GUEST_GPR_OFFSET + GUEST_GPR_COUNT)
     return GetGuestGPR(index - GUEST_GPR_OFFSET);
   if (index >= GUEST_CR_OFFSET && index < GUEST_CR_OFFSET + GUEST_CR_COUNT)
     return GetGuestCR(index - GUEST_CR_OFFSET);
