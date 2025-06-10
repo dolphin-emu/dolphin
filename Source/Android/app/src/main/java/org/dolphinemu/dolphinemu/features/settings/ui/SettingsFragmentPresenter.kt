@@ -101,7 +101,7 @@ class SettingsFragmentPresenter(
             }
         }
 
-    private fun loadSettingsList() {
+    fun loadSettingsList() {
         val sl = ArrayList<SettingsItem>()
         when (menuTag) {
             MenuTag.SETTINGS -> addTopLevelSettings(sl)
@@ -964,7 +964,7 @@ class SettingsFragmentPresenter(
                         0,
                         false
                     ) {
-                      fragmentView.showDialogFragment(LoginDialog())
+                      fragmentView.showDialogFragment(LoginDialog(this))
                       loadSettingsList()
                     })
             } else {
