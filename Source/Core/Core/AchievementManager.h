@@ -121,6 +121,9 @@ public:
     int failed_login_code = 0;
   };
   using UpdateEvent = Common::HookableEvent<"AchievementManagerUpdate", const UpdatedItems&>;
+#ifdef ANDROID
+  using LoginEvent = Common::HookableEvent<"AchievementManagerLogin", const int&>;
+#endif  // ANDROID
 
   static AchievementManager& GetInstance();
   void Init(void* hwnd);
