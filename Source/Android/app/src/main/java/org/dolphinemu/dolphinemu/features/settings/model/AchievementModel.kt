@@ -2,12 +2,21 @@
 
 package org.dolphinemu.dolphinemu.features.settings.model
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 object AchievementModel {
     @JvmStatic
     external fun init()
 
+    suspend fun asyncLogin(password: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            login(password)
+        }
+    }
+
     @JvmStatic
-    external fun login(password: String)
+    private external fun login(password: String): Boolean
 
     @JvmStatic
     external fun logout()

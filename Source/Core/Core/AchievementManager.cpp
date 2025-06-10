@@ -934,6 +934,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
                  Config::Get(Config::RA_USERNAME));
     Config::SetBaseOrCurrent(Config::RA_API_TOKEN, "");
     instance.update_event.Trigger({.failed_login_code = result});
+    instance.login_event.Trigger(result);
     return;
   }
 
@@ -946,6 +947,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to retrieve user information from client.");
     instance.update_event.Trigger({.failed_login_code = RC_INVALID_STATE});
+    instance.login_event.Trigger(RC_INVALID_STATE);
     return;
   }
 
@@ -965,9 +967,12 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
                    user->username, Config::Get(Config::RA_USERNAME));
       rc_client_logout(client);
       instance.update_event.Trigger({.failed_login_code = RC_INVALID_STATE});
+      instance.login_event.Trigger(RC_INVALID_STATE);
       return;
     }
   }
+  instance.login_event.Trigger(RC_OK);
+
   INFO_LOG_FMT(ACHIEVEMENTS, "Successfully logged in {} to RetroAchievements server.",
                user->username);
   std::lock_guard lg{instance.GetLock()};

@@ -966,4 +966,6 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="achievements_password">Password</string>
     <string name="achievements_login">Log In</string>
     <string name="achievements_logout">Log Out</string>
+    <string name="achievements_login_in_progress">Logging In</string>
+    <string name="achievements_login_failed">Login Failed</string>
 </resources>

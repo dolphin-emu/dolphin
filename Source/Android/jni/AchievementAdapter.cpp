@@ -3,8 +3,12 @@
 
 #include <jni.h>
 
+#include <latch>
+#include "Common/Event.h"
+#include "Common/HookableEvent.h"
 #include "Core/AchievementManager.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
+#include "jni/AndroidCommon/IDCache.h"
 
 extern "C" {
 
@@ -14,11 +18,21 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_AchievementModel_init(JNI
   AchievementManager::GetInstance().Init(nullptr);
 }
 
-JNIEXPORT void JNICALL
+JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_features_settings_model_AchievementModel_login(JNIEnv* env, jclass,
                                                                               jstring password)
 {
-  AchievementManager::GetInstance().Login(GetJString(env, password));
+  auto& instance = AchievementManager::GetInstance();
+  bool success;
+  std::latch login_complete_event{1};
+  Common::EventHook login_hook =
+      instance.login_event.Register([&login_complete_event, &success](int result) {
+        success = (result == RC_OK);
+        login_complete_event.count_down();
+      });
+  instance.Login(GetJString(env, password));
+  login_complete_event.wait();
+  return success;
 }
 
 JNIEXPORT void JNICALL
