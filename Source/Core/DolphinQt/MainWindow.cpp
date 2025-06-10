@@ -2010,9 +2010,14 @@ void MainWindow::ShowAchievementSettings()
 
 void MainWindow::OnHardcoreChanged()
 {
-  if (AchievementManager::GetInstance().IsHardcoreModeActive())
+  bool hardcore_active = AchievementManager::GetInstance().IsHardcoreModeActive();
+  if (hardcore_active)
     Settings::Instance().SetDebugModeEnabled(false);
-  emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+  // EmulationStateChanged causes several dialogs to redraw, including anything affected by hardcore
+  // mode. Every dialog that depends on hardcore mode is redrawn by EmulationStateChanged.
+  if (hardcore_active != m_former_hardcore_setting)
+    emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+  m_former_hardcore_setting = hardcore_active;
 }
 #endif  // USE_RETRO_ACHIEVEMENTS
 
