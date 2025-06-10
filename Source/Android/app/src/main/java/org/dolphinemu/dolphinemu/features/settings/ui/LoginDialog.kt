@@ -7,12 +7,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import org.dolphinemu.dolphinemu.databinding.DialogLoginBinding
-import org.dolphinemu.dolphinemu.features.settings.model.AchievementModel.login
+import org.dolphinemu.dolphinemu.dialogs.AlertMessage
+import org.dolphinemu.dolphinemu.features.settings.model.AchievementModel.asyncLogin
 import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
 
-class LoginDialog : DialogFragment() {
+class LoginDialog(val parent: SettingsFragmentPresenter) : DialogFragment() {
     private var _binding: DialogLoginBinding? = null
     private val binding get() = _binding!!
 
@@ -45,7 +48,13 @@ class LoginDialog : DialogFragment() {
     private fun onLoginClicked() {
         StringSetting.ACHIEVEMENTS_USERNAME.setString(NativeConfig.LAYER_BASE_OR_CURRENT,
             binding.usernameInput.text.toString())
-        login(binding.passwordInput.text.toString())
-        dismiss()
+        lifecycleScope.launch {
+            if (asyncLogin(binding.passwordInput.text.toString())) {
+              parent.loadSettingsList()
+              dismiss()
+            }
+            else
+              binding.loginFailed.visibility = View.VISIBLE
+        }
     }
 }
