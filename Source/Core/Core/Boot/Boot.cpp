@@ -378,13 +378,20 @@ bool CBoot::LoadMapFromFilename(const Core::CPUThreadGuard& guard, PPCSymbolDB& 
 {
   std::string strMapFilename;
   bool found = FindMapFile(&strMapFilename, nullptr);
-  if (found && ppc_symbol_db.LoadMap(guard, strMapFilename))
+  if (found && ppc_symbol_db.IsMapLoaded(strMapFilename) && !ppc_symbol_db.IsEmpty())
+    return false;
+
+  bool clear = false;
+  if (!ppc_symbol_db.IsEmpty())
   {
-    Host_PPCSymbolsChanged();
-    return true;
+    ppc_symbol_db.Clear();
+    clear = true;
   }
 
-  return false;
+  if (found && ppc_symbol_db.LoadMap(guard, strMapFilename))
+    return true;
+
+  return clear;
 }
 
 // If ipl.bin is not found, this function does *some* of what BS1 does:
@@ -526,8 +533,13 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
 
   if (auto& ppc_symbol_db = system.GetPPCSymbolDB(); !ppc_symbol_db.IsEmpty())
   {
-    ppc_symbol_db.Clear();
-    Host_PPCSymbolsChanged();
+    std::string filename;
+    FindMapFile(&filename, nullptr);
+    if (!ppc_symbol_db.IsMapLoaded(filename))
+    {
+      ppc_symbol_db.Clear();
+      Host_PPCSymbolsChanged();
+    }
   }
 
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
