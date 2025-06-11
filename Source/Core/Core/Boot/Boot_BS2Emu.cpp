@@ -24,6 +24,7 @@
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
+#include "Core/Host.h"
 #include "Core/IOS/DI/DI.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
@@ -32,6 +33,7 @@
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
 #include "Core/PowerPC/MMU.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
@@ -55,18 +57,6 @@ void PresetTimeBaseTicks(Core::System& system, const Core::CPUThreadGuard& guard
   PowerPC::MMU::HostWrite_U64(guard, time_base_ticks, 0x800030D8);
 }
 }  // Anonymous namespace
-
-void CBoot::RunFunction(Core::System& system, u32 address)
-{
-  auto& power_pc = system.GetPowerPC();
-  auto& ppc_state = power_pc.GetPPCState();
-
-  ppc_state.pc = address;
-  LR(ppc_state) = 0x00;
-
-  while (ppc_state.pc != 0x00)
-    power_pc.SingleStep();
-}
 
 void CBoot::SetupMSR(PowerPC::PowerPCState& ppc_state)
 {
@@ -136,6 +126,135 @@ void CBoot::SetupBAT(Core::System& system, bool is_wii)
   mmu.IBATUpdated();
 }
 
+/*
+#include <ogc/machine/asm.h>
+
+  .globl AppLoaderRunnerBase
+AppLoaderRunnerBase:
+  b RunAppLoader
+
+// Variables that iAppLoaderMain stores into
+AppLoaderMainRamAddress:
+.4byte 0x00dead04
+AppLoaderMainLength:
+.4byte 0x00dead08
+AppLoaderMainDiscOffset:
+.4byte 0x00dead0c
+
+// Function pointers returned by iAppLoaderEntry
+AppLoaderInitPointer:  // pointer to: void iAppLoaderInit(void (*OSReport)(char *fmt, ...))
+.4byte 0x00dead10
+AppLoaderMainPointer:  // pointer to: bool iAppLoaderMain(u32* ram_addr, u32* len, u32* disc_offset)
+.4byte 0x00dead14
+AppLoaderClosePointer:  // pointer to: void* iAppLoaderClose(void);
+.4byte 0x00dead18
+
+HLEAppLoaderAfterEntry:  // void HLEAppLoaderAfterEntry(void), logging
+  blr
+HLEAppLoaderAfterInit:  // void HLEAppLoaderAfterInit(void), logging
+  blr
+HLEAppLoaderAfterMain:  // void HLEAppLoaderAfterMain(void), reads disc at AppLoaderMain* variables
+  blr
+HLEAppLoaderAfterClose:  // void HLEAppLoaderAfterClose(void), cleans up HLE state
+  blr
+HLEAppLoaderReport:  // void HLEAppLoaderReport(char *fmt, ...), passed to iAppLoaderInit
+  blr
+
+RunAppLoader:
+  // Entry point; call iAppLoaderEntry
+  // r31 is AppLoaderRunnerBase
+  // r30 is iAppLoaderEntry (later used as a scratch register for other mtctr + bctrl sequences)
+  // Note that the above registers are specific to Dolphin's apploader HLE.
+  addi r3, r31, (AppLoaderInitPointer - AppLoaderRunnerBase)
+  addi r4, r31, (AppLoaderMainPointer - AppLoaderRunnerBase)
+  addi r5, r31, (AppLoaderClosePointer - AppLoaderRunnerBase)
+  mtctr r30
+  bctrl  // Call iAppLoaderEntry, which looks like this:
+  // void iAppLoaderEntry(void** init, void** main, void** close)
+  // {
+  //   *init = &iAppLoaderInit;
+  //   *main = &iAppLoaderMain;
+  //   *close = &iAppLoaderClose;
+  // }
+  bl HLEAppLoaderAfterEntry  // Logging only
+
+  // Call iAppLoaderInit, which sets up logging and any internal state.
+  addi r3, r31, (HLEAppLoaderReport - AppLoaderRunnerBase)
+  lwz r30, (AppLoaderInitPointer - AppLoaderRunnerBase)(r31)
+  mtctr r30
+  bctrl  // Call iAppLoaderInit
+  bl HLEAppLoaderAfterInit  // Logging only
+
+  // iAppLoaderMain - Here we load the apploader, the DOL (the exe) and the FST (filesystem).
+  // To give you an idea about where the stuff is located on the disc take a look at yagcd
+  // ch 13.
+  // iAppLoaderMain returns 1 if the pointers in R3/R4/R5 were filled with values for DVD copy
+  // Typical behaviour is doing it once for each section defined in the DOL header. Some unlicensed
+  // titles don't have a properly constructed DOL and maintain a table of these values in apploader.
+  // iAppLoaderMain returns 0 when there are no more sections to copy.
+LoopMain:
+  addi r3, r31, (AppLoaderMainRamAddress - AppLoaderRunnerBase)
+  addi r4, r31, (AppLoaderMainLength - AppLoaderRunnerBase)
+  addi r5, r31, (AppLoaderMainDiscOffset - AppLoaderRunnerBase)
+  lwz r30, (AppLoaderMainPointer - AppLoaderRunnerBase)(r31)
+  mtctr r30
+  bctrl  // Call iAppLoaderMain
+  cmpwi r3,0
+  beq LoopMainDone
+  bl HLEAppLoaderAfterMain  // Reads the disc (and logs)
+  b LoopMain
+
+  // Call iAppLoaderClose, which returns (in r3) the game's entry point
+LoopMainDone:
+  lwz r30, (AppLoaderClosePointer - AppLoaderRunnerBase)(r31)
+  mtctr r30
+  bctrl  // Call iAppLoaderClose
+  mr r30, r3
+  bl HLEAppLoaderAfterClose  // Unpatches the HLE functions
+  mtlr r30
+  blr  // "Return" to the game's entry point; this allows using "step out" to skip the apploader
+*/
+static constexpr u32 APPLOADER_RUNNER_BASE = 0x81300000;
+static constexpr u32 APPLOADER_RUNNER_MAIN_RAM_ADDR = APPLOADER_RUNNER_BASE + 0x04;
+static constexpr u32 APPLOADER_RUNNER_MAIN_LENGTH = APPLOADER_RUNNER_BASE + 0x08;
+static constexpr u32 APPLOADER_RUNNER_MAIN_DISC_OFFSET = APPLOADER_RUNNER_BASE + 0x0c;
+static constexpr u32 APPLOADER_RUNNER_INIT_POINTER = APPLOADER_RUNNER_BASE + 0x10;
+static constexpr u32 APPLOADER_RUNNER_MAIN_POINTER = APPLOADER_RUNNER_BASE + 0x14;
+static constexpr u32 APPLOADER_RUNNER_CLOSE_POINTER = APPLOADER_RUNNER_BASE + 0x18;
+static constexpr u32 APPLOADER_RUNNER_HLE_AFTER_ENTRY = APPLOADER_RUNNER_BASE + 0x1c;
+static constexpr u32 APPLOADER_RUNNER_HLE_AFTER_INIT = APPLOADER_RUNNER_BASE + 0x20;
+static constexpr u32 APPLOADER_RUNNER_HLE_AFTER_MAIN = APPLOADER_RUNNER_BASE + 0x24;
+static constexpr u32 APPLOADER_RUNNER_HLE_AFTER_CLOSE = APPLOADER_RUNNER_BASE + 0x28;
+static constexpr u32 APPLOADER_RUNNER_HLE_REPORT = APPLOADER_RUNNER_BASE + 0x2c;
+static constexpr u32 APPLOADER_RUNNER_RUN_ADDR = APPLOADER_RUNNER_BASE + 0x30;
+
+static constexpr std::array<u32, 40> APPLOADER_RUNNER_ASM{
+    0x48000030,  // Starting thunk
+    // Variables
+    0x00dead04, 0x00dead08, 0x00dead0c, 0x00dead10, 0x00dead14, 0x00dead18,
+    // HLE'd functions
+    0x4e800020, 0x4e800020, 0x4e800020, 0x4e800020, 0x4e800020,
+    // Actual code
+    0x387f0010, 0x389f0014, 0x38bf0018, 0x7fc903a6, 0x4e800421, 0x4bffffd9, 0x387f002c, 0x83df0010,
+    0x7fc903a6, 0x4e800421, 0x4bffffc9, 0x387f0004, 0x389f0008, 0x38bf000c, 0x83df0014, 0x7fc903a6,
+    0x4e800421, 0x2c030000, 0x4182000c, 0x4bffffa9, 0x4bffffdc, 0x83df0018, 0x7fc903a6, 0x4e800421,
+    0x7c7e1b78, 0x4bffff95, 0x7fc803a6, 0x4e800020};
+
+struct ApploaderRunnerState
+{
+  constexpr ApploaderRunnerState(
+      bool is_wii_, const DiscIO::VolumeDisc& volume_,
+      const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches_)
+      : is_wii(is_wii_), volume(volume_), riivolution_patches(riivolution_patches_)
+  {
+  }
+
+  bool is_wii;
+  const DiscIO::VolumeDisc& volume;
+  const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches;
+};
+static std::unique_ptr<ApploaderRunnerState> s_apploader_runner_state;
+
 bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard, bool is_wii,
                          const DiscIO::VolumeDisc& volume,
                          const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
@@ -153,11 +272,13 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
     INFO_LOG_FMT(BOOT, "Invalid apploader. Your disc image is probably corrupted.");
     return false;
   }
+  INFO_LOG_FMT(BOOT,
+               "Loading apploader ({}) from disc offset {:08x} to {:08x}, "
+               "size {:#x} ({:#x} + {:#x}), entry point {:08x}",
+               volume.GetApploaderDate(partition), offset + 0x20, 0x81200000, *size + *trailer,
+               *size, *trailer, *entry);
   DVDRead(system, volume, offset + 0x20, 0x01200000, *size + *trailer, partition);
 
-  // TODO - Make Apploader(or just RunFunction()) debuggable!!!
-
-  auto& ppc_state = system.GetPPCState();
   auto& mmu = system.GetMMU();
   auto& branch_watch = system.GetPowerPC().GetBranchWatch();
 
@@ -165,66 +286,66 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
   if (system.IsBranchWatchIgnoreApploader())
     branch_watch.SetRecordingActive(guard, false);
 
-  // Call iAppLoaderEntry.
-  DEBUG_LOG_FMT(BOOT, "Call iAppLoaderEntry");
-  const u32 iAppLoaderFuncAddr = is_wii ? 0x80004000 : 0x80003100;
-  ppc_state.gpr[3] = iAppLoaderFuncAddr + 0;
-  ppc_state.gpr[4] = iAppLoaderFuncAddr + 4;
-  ppc_state.gpr[5] = iAppLoaderFuncAddr + 8;
-  RunFunction(system, *entry);
-  const u32 iAppLoaderInit = mmu.Read_U32(iAppLoaderFuncAddr + 0);
-  const u32 iAppLoaderMain = mmu.Read_U32(iAppLoaderFuncAddr + 4);
-  const u32 iAppLoaderClose = mmu.Read_U32(iAppLoaderFuncAddr + 8);
-
-  // iAppLoaderInit
-  DEBUG_LOG_FMT(BOOT, "Call iAppLoaderInit");
-  PowerPC::MMU::HostWrite_U32(guard, 0x4E800020, 0x81300000);  // Write BLR
-  HLE::Patch(system, 0x81300000, "AppLoaderReport");           // HLE OSReport for Apploader
-  ppc_state.gpr[3] = 0x81300000;
-  RunFunction(system, iAppLoaderInit);
-
-  // iAppLoaderMain - Here we load the apploader, the DOL (the exe) and the FST (filesystem).
-  // To give you an idea about where the stuff is located on the disc take a look at yagcd
-  // ch 13.
-  DEBUG_LOG_FMT(BOOT, "Call iAppLoaderMain");
-
-  ppc_state.gpr[3] = 0x81300004;
-  ppc_state.gpr[4] = 0x81300008;
-  ppc_state.gpr[5] = 0x8130000c;
-
-  RunFunction(system, iAppLoaderMain);
-
-  // iAppLoaderMain returns 1 if the pointers in R3/R4/R5 were filled with values for DVD copy
-  // Typical behaviour is doing it once for each section defined in the DOL header. Some unlicensed
-  // titles don't have a properly constructed DOL and maintain a table of these values in apploader.
-  // iAppLoaderMain returns 0 when there are no more sections to copy.
-  while (ppc_state.gpr[3] != 0x00)
+  for (u32 i = 0; i < APPLOADER_RUNNER_ASM.size(); i++)
   {
-    const u32 ram_address = mmu.Read_U32(0x81300004);
-    const u32 length = mmu.Read_U32(0x81300008);
-    const u32 dvd_offset = mmu.Read_U32(0x8130000c) << (is_wii ? 2 : 0);
-
-    INFO_LOG_FMT(BOOT, "DVDRead: offset: {:08x}   memOffset: {:08x}   length: {}", dvd_offset,
-                 ram_address, length);
-    DVDRead(system, volume, dvd_offset, ram_address, length, partition);
-
-    DiscIO::Riivolution::ApplyApploaderMemoryPatches(guard, riivolution_patches, ram_address,
-                                                     length);
-
-    ppc_state.gpr[3] = 0x81300004;
-    ppc_state.gpr[4] = 0x81300008;
-    ppc_state.gpr[5] = 0x8130000c;
-
-    RunFunction(system, iAppLoaderMain);
+    mmu.HostWrite_U32(guard, APPLOADER_RUNNER_ASM[i], APPLOADER_RUNNER_BASE + i * sizeof(u32));
   }
 
-  // iAppLoaderClose
-  DEBUG_LOG_FMT(BOOT, "call iAppLoaderClose");
-  RunFunction(system, iAppLoaderClose);
-  HLE::UnPatch(system, "AppLoaderReport");
+  HLE::Patch(system, APPLOADER_RUNNER_HLE_AFTER_ENTRY, "HLEAppLoaderAfterEntry");
+  HLE::Patch(system, APPLOADER_RUNNER_HLE_AFTER_INIT, "HLEAppLoaderAfterInit");
+  HLE::Patch(system, APPLOADER_RUNNER_HLE_AFTER_MAIN, "HLEAppLoaderAfterMain");
+  HLE::Patch(system, APPLOADER_RUNNER_HLE_AFTER_CLOSE, "HLEAppLoaderAfterClose");
+  HLE::Patch(system, APPLOADER_RUNNER_HLE_REPORT, "HLEAppLoaderReport");
+  s_apploader_runner_state =
+      std::make_unique<ApploaderRunnerState>(is_wii, volume, riivolution_patches);
 
-  // return
-  ppc_state.pc = ppc_state.gpr[3];
+  system.GetPPCSymbolDB().AddKnownSymbol(guard, *entry, 0, "iAppLoaderEntry", "Apploader");
+
+  system.GetPPCSymbolDB().AddKnownSymbol(guard, APPLOADER_RUNNER_MAIN_RAM_ADDR, 4,
+                                         "AppLoaderMainRamAddress", "Apploader",
+                                         Common::Symbol::Type::Data);
+  system.GetPPCSymbolDB().AddKnownSymbol(guard, APPLOADER_RUNNER_MAIN_LENGTH, 4,
+                                         "AppLoaderMainLength", "Apploader",
+                                         Common::Symbol::Type::Data);
+  system.GetPPCSymbolDB().AddKnownSymbol(guard, APPLOADER_RUNNER_MAIN_DISC_OFFSET, 4,
+                                         "AppLoaderMainDiscOffset", "Apploader",
+                                         Common::Symbol::Type::Data);
+  system.GetPPCSymbolDB().AddKnownSymbol(guard, APPLOADER_RUNNER_INIT_POINTER, 4,
+                                         "AppLoaderInitPointer", "Apploader",
+                                         Common::Symbol::Type::Data);
+  system.GetPPCSymbolDB().AddKnownSymbol(guard, APPLOADER_RUNNER_MAIN_POINTER, 4,
+                                         "AppLoaderMainPointer", "Apploader",
+                                         Common::Symbol::Type::Data);
+  system.GetPPCSymbolDB().AddKnownSymbol(guard, APPLOADER_RUNNER_CLOSE_POINTER, 4,
+                                         "AppLoaderClosePointer", "Apploader",
+                                         Common::Symbol::Type::Data);
+
+  system.GetPPCSymbolDB().AddKnownSymbol(guard, APPLOADER_RUNNER_HLE_AFTER_ENTRY, 4,
+                                         "HLEAppLoaderAfterEntry", "Dolphin BS2 HLE");
+  system.GetPPCSymbolDB().AddKnownSymbol(guard, APPLOADER_RUNNER_HLE_AFTER_INIT, 4,
+                                         "HLEAppLoaderAfterInit", "Dolphin BS2 HLE");
+  system.GetPPCSymbolDB().AddKnownSymbol(guard, APPLOADER_RUNNER_HLE_AFTER_MAIN, 4,
+                                         "HLEAppLoaderAfterMain", "Dolphin BS2 HLE");
+  system.GetPPCSymbolDB().AddKnownSymbol(guard, APPLOADER_RUNNER_HLE_AFTER_CLOSE, 4,
+                                         "HLEAppLoaderAfterClose", "Dolphin BS2 HLE");
+  system.GetPPCSymbolDB().AddKnownSymbol(guard, APPLOADER_RUNNER_HLE_REPORT, 4,
+                                         "HLEAppLoaderReport", "Dolphin BS2 HLE");
+
+  system.GetPPCSymbolDB().AddKnownSymbol(guard, APPLOADER_RUNNER_BASE, 4, "DolphinApploaderRunner",
+                                         "Dolphin BS2 HLE");
+  const u32 remainder_size = u32(APPLOADER_RUNNER_ASM.size() * sizeof(u32)) -
+                             (APPLOADER_RUNNER_RUN_ADDR - APPLOADER_RUNNER_BASE);
+  system.GetPPCSymbolDB().AddKnownSymbol(guard, APPLOADER_RUNNER_RUN_ADDR, remainder_size,
+                                         "DolphinApploaderRunner", "Dolphin BS2 HLE");
+  system.GetPPCSymbolDB().Index();
+  Host_PPCSymbolsChanged();
+
+  auto& ppc_state = system.GetPPCState();
+  ppc_state.gpr[31] = APPLOADER_RUNNER_BASE;
+  ppc_state.gpr[30] = *entry;
+
+  // Run our apploader runner code
+  ppc_state.pc = APPLOADER_RUNNER_BASE;
 
   branch_watch.SetRecordingActive(guard, resume_branch_watch);
   // Blank out session key (https://debugmo.de/2008/05/part-2-dumping-the-media-board/)
@@ -236,6 +357,69 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
   }
 
   return true;
+}
+
+void CBoot::HLEAppLoaderAfterEntry(const Core::CPUThreadGuard& guard)
+{
+  auto& system = Core::System::GetInstance();
+  auto& mmu = system.GetMMU();
+
+  const u32 init = mmu.HostRead_U32(guard, APPLOADER_RUNNER_INIT_POINTER);
+  const u32 main = mmu.HostRead_U32(guard, APPLOADER_RUNNER_MAIN_POINTER);
+  const u32 close = mmu.HostRead_U32(guard, APPLOADER_RUNNER_CLOSE_POINTER);
+
+  system.GetPPCSymbolDB().AddKnownSymbol(guard, init, 0, "iAppLoaderInit", "Apploader");
+  system.GetPPCSymbolDB().AddKnownSymbol(guard, main, 0, "iAppLoaderMain", "Apploader");
+  system.GetPPCSymbolDB().AddKnownSymbol(guard, close, 0, "iAppLoaderClose", "Apploader");
+  system.GetPPCSymbolDB().Index();
+  Host_PPCSymbolsChanged();
+
+  INFO_LOG_FMT(BOOT, "Called iAppLoaderEntry; init at {:08x}, main at {:08x}, close at {:08x}",
+               init, main, close);
+}
+
+void CBoot::HLEAppLoaderAfterInit(const Core::CPUThreadGuard& guard)
+{
+  INFO_LOG_FMT(BOOT, "Called iAppLoaderInit");
+}
+
+void CBoot::HLEAppLoaderAfterMain(const Core::CPUThreadGuard& guard)
+{
+  ASSERT(s_apploader_runner_state);
+  if (!s_apploader_runner_state)
+    return;
+
+  auto& system = Core::System::GetInstance();
+  auto& mmu = system.GetMMU();
+
+  const u32 ram_address = mmu.HostRead_U32(guard, APPLOADER_RUNNER_MAIN_RAM_ADDR);
+  const u32 length = mmu.HostRead_U32(guard, APPLOADER_RUNNER_MAIN_LENGTH);
+  const u32 dvd_shift = s_apploader_runner_state->is_wii ? 2 : 0;
+  const u32 dvd_offset = mmu.HostRead_U32(guard, APPLOADER_RUNNER_MAIN_DISC_OFFSET) << dvd_shift;
+
+  INFO_LOG_FMT(BOOT, "Called iAppLoaderMain; reading {:#x} bytes from disc offset {:08x} to {:08x}",
+               length, dvd_offset, ram_address);
+  DVDRead(system, s_apploader_runner_state->volume, dvd_offset, ram_address, length,
+          s_apploader_runner_state->volume.GetGamePartition());
+  DiscIO::Riivolution::ApplyApploaderMemoryPatches(
+      guard, s_apploader_runner_state->riivolution_patches, ram_address, length);
+}
+
+void CBoot::HLEAppLoaderAfterClose(const Core::CPUThreadGuard& guard)
+{
+  auto& system = Core::System::GetInstance();
+  auto& ppc_state = system.GetPPCState();
+
+  INFO_LOG_FMT(BOOT, "Called iAppLoaderClose; game entry point is {:08x}", ppc_state.gpr[30]);
+  SConfig::OnTitleDirectlyBooted(guard);  // Clears the temporary patches and symbols
+}
+
+void CBoot::HLEAppLoaderReport(std::string_view message)
+{
+  auto& system = Core::System::GetInstance();
+  auto& ppc_state = system.GetPPCState();
+
+  INFO_LOG_FMT(BOOT, "AppLoader {:08x}->{:08x}| {}", LR(ppc_state), ppc_state.pc, message);
 }
 
 void CBoot::SetupGCMemory(Core::System& system, const Core::CPUThreadGuard& guard)
