@@ -15,9 +15,6 @@
 #include <QVBoxLayout>
 #include <QVariant>
 
-#include <map>
-#include <optional>
-
 #include "Common/Config/Config.h"
 #include "Common/WorkQueueThread.h"
 
@@ -28,7 +25,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/IOS.h"
-#include "Core/IOS/USB/Bluetooth/BTReal.h"
+#include "Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.h"
 #include "Core/NetPlayProto.h"
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
@@ -39,8 +36,6 @@
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
-
-#include "UICommon/UICommon.h"
 
 WiimoteControllersWidget::WiimoteControllersWidget(QWidget* parent) : QWidget(parent)
 {
@@ -80,7 +75,7 @@ void WiimoteControllersWidget::StartBluetoothAdapterRefresh()
 
   const auto scan_func = [this]() {
     INFO_LOG_FMT(COMMON, "Refreshing Bluetooth adapter list...");
-    auto device_list = IOS::HLE::BluetoothRealDevice::ListDevices();
+    auto device_list = LibUSBBluetoothAdapter::ListDevices();
     INFO_LOG_FMT(COMMON, "{} Bluetooth adapters available.", device_list.size());
     const auto refresh_complete_func = [this, devices = std::move(device_list)]() {
       OnBluetoothAdapterRefreshComplete(devices);
@@ -92,7 +87,7 @@ void WiimoteControllersWidget::StartBluetoothAdapterRefresh()
 }
 
 void WiimoteControllersWidget::OnBluetoothAdapterRefreshComplete(
-    const std::vector<IOS::HLE::BluetoothRealDevice::BluetoothDeviceInfo>& devices)
+    const std::vector<LibUSBBluetoothAdapter::BluetoothDeviceInfo>& devices)
 {
   const int configured_vid = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_VID);
   const int configured_pid = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_PID);
@@ -114,7 +109,7 @@ void WiimoteControllersWidget::OnBluetoothAdapterRefreshComplete(
     m_bluetooth_adapters->addItem(device_info, QVariant::fromValue(device));
 
     if (!found_configured_device &&
-        IOS::HLE::BluetoothRealDevice::IsConfiguredBluetoothDevice(device.vid, device.pid))
+        LibUSBBluetoothAdapter::IsConfiguredBluetoothDevice(device.vid, device.pid))
     {
       found_configured_device = true;
       m_bluetooth_adapters->setCurrentIndex(m_bluetooth_adapters->count() - 1);
@@ -126,7 +121,7 @@ void WiimoteControllersWidget::OnBluetoothAdapterRefreshComplete(
     const QString name = QLatin1Char{'['} + tr("disconnected") + QLatin1Char(']');
     const std::string name_str = name.toStdString();
 
-    IOS::HLE::BluetoothRealDevice::BluetoothDeviceInfo disconnected_device;
+    LibUSBBluetoothAdapter::BluetoothDeviceInfo disconnected_device;
     disconnected_device.vid = configured_vid;
     disconnected_device.pid = configured_pid;
     disconnected_device.name = name_str;
@@ -314,8 +309,8 @@ void WiimoteControllersWidget::OnBluetoothPassthroughDeviceChanged(int index)
     return;
   }
 
-  auto device_info = m_bluetooth_adapters->itemData(index)
-                         .value<IOS::HLE::BluetoothRealDevice::BluetoothDeviceInfo>();
+  auto device_info =
+      m_bluetooth_adapters->itemData(index).value<LibUSBBluetoothAdapter::BluetoothDeviceInfo>();
 
   Config::SetBaseOrCurrent(Config::MAIN_BLUETOOTH_PASSTHROUGH_PID, device_info.pid);
   Config::SetBaseOrCurrent(Config::MAIN_BLUETOOTH_PASSTHROUGH_VID, device_info.vid);
