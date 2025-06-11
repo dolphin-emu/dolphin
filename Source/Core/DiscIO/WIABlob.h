@@ -60,7 +60,7 @@ public:
   std::string GetCompressionMethod() const override;
   std::optional<int> GetCompressionLevel() const override
   {
-    return static_cast<int>(static_cast<s32>(Common::swap32(m_header_2.compression_level)));
+    return static_cast<int>(Common::swap32(m_header_2.compression_level));
   }
 
   bool Read(u64 offset, u64 size, u8* out_ptr) override;
