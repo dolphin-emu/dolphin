@@ -8,6 +8,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -217,6 +218,8 @@ public:
     Clock::time_point press_time;
     std::optional<Clock::time_point> release_time;
     ControlState smoothness = 0;
+
+    bool IsAnalogPress() const { return smoothness > 1.00001; }
   };
 
   Device::Input* FindInput(std::string_view name, const Device* def_dev) const;
@@ -253,7 +256,7 @@ public:
   InputDetector();
   ~InputDetector();
 
-  void Start(const DeviceContainer& container, const std::vector<std::string>& device_strings);
+  void Start(const DeviceContainer& container, std::span<const std::string> device_strings);
   void Update(std::chrono::milliseconds initial_wait, std::chrono::milliseconds confirmation_wait,
               std::chrono::milliseconds maximum_wait);
   bool IsComplete() const;
