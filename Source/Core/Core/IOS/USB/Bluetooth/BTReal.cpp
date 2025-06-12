@@ -251,6 +251,37 @@ auto BluetoothRealDevice::ProcessHCIEvent(BufferType buffer) -> BufferType
       SendHCIStoreLinkKeyCommand();
     }
   }
+  else if (event == HCI_EVENT_CON_COMPL)
+  {
+    // Some devices (e.g. Sena UD100 0a12:0001) default to HCI_SERVICE_TYPE_BEST_EFFORT.
+    // This can cause less than 200hz input and drop-outs in some games (e.g. Brawl).
+
+    // We configure HCI_SERVICE_TYPE_GUARANTEED for each new connection.
+    // This solves dropped input issues at least for the mentioned Sena adapter.
+
+    INFO_LOG_FMT(IOS_WIIMOTE, "Sending HCI_CMD_QOS_SETUP");
+
+    HCICommandPayload<HCI_CMD_QOS_SETUP, hci_qos_setup_cp> payload;
+
+    // Copy the connection handle.
+    std::memcpy(&payload.command.con_handle, buffer.data() + 3, sizeof(payload.command.con_handle));
+
+    payload.command.service_type = HCI_SERVICE_TYPE_GUARANTEED;
+    payload.command.token_rate = 0xffffffff;
+    payload.command.peak_bandwidth = 0xffffffff;
+    payload.command.latency = 10000;
+    payload.command.delay_variation = 0xffffffff;
+
+    m_lib_usb_bt_adapter->SendControlTransfer(AsU8Span(payload));
+  }
+  else if (event == HCI_EVENT_QOS_SETUP_COMPL)
+  {
+    const auto service_type = buffer[6];
+    if (service_type != HCI_SERVICE_TYPE_GUARANTEED)
+      WARN_LOG_FMT(IOS_WIIMOTE, "Got HCI_EVENT_QOS_SETUP_COMPL service_type: {}", service_type);
+    else
+      INFO_LOG_FMT(IOS_WIIMOTE, "Got HCI_EVENT_QOS_SETUP_COMPL HCI_SERVICE_TYPE_GUARANTEED");
+  }
 
   return buffer;
 }
