@@ -4,16 +4,16 @@
 #include "InputCommon/ControllerInterface/Xlib/XInput2.h"
 
 #include <X11/XKBlib.h>
-
 #include <X11/extensions/XInput2.h>
-#include <cmath>
+
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
+#include <map>
 
 #include <fmt/format.h>
 
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 
 #include "Core/Host.h"
 
@@ -210,16 +210,24 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
     XISelectEvents(m_display, DefaultRootWindow(m_display), &mask, 1);
   }
 
+  // Temporary map to combine keycodes with the same name.
+  std::map<std::string, Key*> keys;
+
   // Keyboard Keys
-  int min_keycode, max_keycode;
+  int min_keycode = 0;
+  int max_keycode = 0;
   XDisplayKeycodes(m_display, &min_keycode, &max_keycode);
-  for (int i = min_keycode; i <= max_keycode; ++i)
+  for (int keycode = min_keycode; keycode <= max_keycode; ++keycode)
   {
-    Key* const temp_key = new Key(m_display, i, m_state.keyboard.data());
-    if (temp_key->m_keyname.length())
-      AddInput(temp_key);
+    const auto* const keycode_name = Key::GetNameForKeyCode(m_display, keycode);
+    if (keycode_name == nullptr)
+      continue;
+
+    auto& key_input = keys[keycode_name];
+    if (key_input == nullptr)
+      AddInput(key_input = new Key(keycode_name, keycode, m_state.keyboard.data()));
     else
-      delete temp_key;
+      key_input->AddKeyCode(keycode);
   }
 
   // Add combined left/right modifiers with consistent naming across platforms.
@@ -426,14 +434,18 @@ int KeyboardMouse::GetSortPriority() const
   return DEFAULT_DEVICE_SORT_PRIORITY;
 }
 
-KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* keyboard)
-    : m_display(display), m_keyboard(keyboard), m_keycode(keycode)
+KeyboardMouse::Key::Key(std::string key_name, KeyCode keycode, const char* keyboard)
+    : m_keyname{std::move(key_name)}, m_keyboard(keyboard), m_keycodes{keycode}
+{
+}
+
+const char* KeyboardMouse::Key::GetNameForKeyCode(Display* const display, KeyCode keycode)
 {
   int i = 0;
   KeySym keysym = 0;
   do
   {
-    keysym = XkbKeycodeToKeysym(m_display, keycode, i, 0);
+    keysym = XkbKeycodeToKeysym(display, keycode, i, 0);
     i++;
   } while (keysym == NoSymbol && i < 8);
 
@@ -444,14 +456,25 @@ KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* key
   // 0x0110ffff is the top of the unicode character range according
   // to keysymdef.h although it is probably more than we need.
   if (keysym == NoSymbol || keysym > 0x0110ffff || XKeysymToString(keysym) == nullptr)
-    m_keyname = std::string();
-  else
-    m_keyname = std::string(XKeysymToString(keysym));
+    return nullptr;
+
+  return XKeysymToString(keysym);
 }
 
 ControlState KeyboardMouse::Key::GetState() const
 {
-  return (m_keyboard[m_keycode / 8] & (1 << (m_keycode % 8))) != 0;
+  return ControlState(
+      std::ranges::any_of(m_keycodes, std::bind_front(&Key::IsKeyCodePressed, this)));
+}
+
+void KeyboardMouse::Key::AddKeyCode(KeyCode keycode)
+{
+  m_keycodes.emplace_back(keycode);
+}
+
+bool KeyboardMouse::Key::IsKeyCodePressed(KeyCode keycode) const
+{
+  return (m_keyboard[keycode / 8] & (1 << (keycode % 8))) != 0;
 }
 
 KeyboardMouse::Button::Button(unsigned int index, u32* buttons) : m_buttons(buttons), m_index(index)
