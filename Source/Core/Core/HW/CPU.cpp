@@ -244,7 +244,7 @@ void CPUManager::Stop()
   m_state = State::PowerDown;
   m_state_cpu_cvar.notify_one();
 
-  while (m_state_cpu_thread_active)
+  if (m_state_cpu_thread_active)
   {
     m_state_cpu_idle_cvar.wait(state_lock);
   }
@@ -312,7 +312,7 @@ void CPUManager::SetStepping(bool stepping)
   {
     SetStateLocked(State::Stepping);
 
-    while (m_state_cpu_thread_active)
+    if (m_state_cpu_thread_active)
     {
       m_state_cpu_idle_cvar.wait(state_lock);
     }
@@ -367,7 +367,7 @@ bool CPUManager::PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control
     was_unpaused = m_state == State::Running;
     SetStateLocked(State::Stepping);
 
-    while (m_state_cpu_thread_active)
+    if (m_state_cpu_thread_active)
     {
       m_state_cpu_idle_cvar.wait(state_lock);
     }
