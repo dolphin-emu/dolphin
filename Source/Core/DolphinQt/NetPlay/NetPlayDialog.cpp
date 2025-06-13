@@ -48,6 +48,7 @@
 #include "Core/System.h"
 
 #include "DolphinQt/NetPlay/ChunkedProgressDialog.h"
+#include "DolphinQt/NetPlay/ClickBlurLabel.h"
 #include "DolphinQt/NetPlay/GameDigestDialog.h"
 #include "DolphinQt/NetPlay/GameListDialog.h"
 #include "DolphinQt/NetPlay/PadMappingDialog.h"
@@ -287,7 +288,7 @@ void NetPlayDialog::CreatePlayersLayout()
 {
   m_players_box = new QGroupBox(tr("Players"));
   m_room_box = new QComboBox;
-  m_hostcode_label = new QLabel;
+  m_hostcode_label = new ClickBlurLabel;
   m_hostcode_action_button = new QPushButton(tr("Copy"));
   m_players_list = new QTableWidget;
   m_kick_button = new QPushButton(tr("Kick Player"));
