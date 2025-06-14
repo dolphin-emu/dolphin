@@ -85,7 +85,7 @@ std::optional<IPCReply> USB_VEN::IOCtlV(const IOCtlVRequest& request)
     else
       host_device->AttachAndChangeInterface(device->interface_number);
     return HandleTransfer(host_device, request.request,
-                          [&, this]() { return SubmitTransfer(*host_device, request); });
+                          [&, this] { return SubmitTransfer(*host_device, request); });
   }
   default:
     return IPCReply(IPC_EINVAL);

@@ -990,15 +990,15 @@ void CalibrationWidget::SetupActions()
   const auto center_action = new QAction(tr("Center and Calibrate"), this);
   const auto reset_action = new QAction(tr("Reset"), this);
 
-  connect(calibrate_action, &QAction::triggered, [this]() {
+  connect(calibrate_action, &QAction::triggered, [this] {
     StartCalibration();
     m_new_center = Common::DVec2{};
   });
-  connect(center_action, &QAction::triggered, [this]() {
+  connect(center_action, &QAction::triggered, [this] {
     StartCalibration();
     m_new_center = std::nullopt;
   });
-  connect(reset_action, &QAction::triggered, [this]() {
+  connect(reset_action, &QAction::triggered, [this] {
     m_input.SetCalibrationToDefault();
     m_input.SetCenter({0, 0});
   });
@@ -1012,7 +1012,7 @@ void CalibrationWidget::SetupActions()
   setDefaultAction(calibrate_action);
 
   m_completion_action = new QAction(tr("Finish Calibration"), this);
-  connect(m_completion_action, &QAction::triggered, [this]() {
+  connect(m_completion_action, &QAction::triggered, [this] {
     m_input.SetCenter(GetCenter());
     m_input.SetCalibrationData(std::move(m_calibration_data));
     m_informative_timer->stop();
@@ -1027,7 +1027,7 @@ void CalibrationWidget::StartCalibration()
 
   // Cancel calibration.
   const auto cancel_action = new QAction(tr("Cancel Calibration"), this);
-  connect(cancel_action, &QAction::triggered, [this]() {
+  connect(cancel_action, &QAction::triggered, [this] {
     m_calibration_data.clear();
     m_informative_timer->stop();
     SetupActions();

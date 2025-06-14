@@ -37,7 +37,7 @@ static void RestartCore(const std::weak_ptr<HW::GBA::Core>& core, std::string_vi
 {
   Core::RunOnCPUThread(
       Core::System::GetInstance(),
-      [core, rom_path = std::string(rom_path)]() {
+      [core, rom_path = std::string(rom_path)] {
         if (auto core_ptr = core.lock())
         {
           auto& info = Config::MAIN_GBA_ROM_PATHS[core_ptr->GetCoreInfo().device_number];
@@ -58,7 +58,7 @@ static void QueueEReaderCard(const std::weak_ptr<HW::GBA::Core>& core, std::stri
 {
   Core::RunOnCPUThread(
       Core::System::GetInstance(),
-      [core, card_path = std::string(card_path)]() {
+      [core, card_path = std::string(card_path)] {
         if (auto core_ptr = core.lock())
           core_ptr->EReaderQueueCard(card_path);
       },
@@ -161,7 +161,7 @@ void GBAWidget::ToggleDisconnect()
 
   Core::RunOnCPUThread(
       Core::System::GetInstance(),
-      [core = m_core, force_disconnect = m_force_disconnect]() {
+      [core = m_core, force_disconnect = m_force_disconnect] {
         if (auto core_ptr = core.lock())
           core_ptr->SetForceDisconnect(force_disconnect);
       },
@@ -224,7 +224,7 @@ void GBAWidget::DoState(bool export_state)
 
   Core::RunOnCPUThread(
       Core::System::GetInstance(),
-      [export_state, core = m_core, state_path = state_path.toStdString()]() {
+      [export_state, core = m_core, state_path = state_path.toStdString()] {
         if (auto core_ptr = core.lock())
         {
           if (export_state)
@@ -255,7 +255,7 @@ void GBAWidget::ImportExportSave(bool export_save)
 
   Core::RunOnCPUThread(
       Core::System::GetInstance(),
-      [export_save, core = m_core, save_path = save_path.toStdString()]() {
+      [export_save, core = m_core, save_path = save_path.toStdString()] {
         if (auto core_ptr = core.lock())
         {
           if (export_save)

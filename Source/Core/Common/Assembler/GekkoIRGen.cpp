@@ -504,16 +504,15 @@ void GekkoIRPlugin::AddBinaryEvaluator(u32 (*evaluator)(u32, u32))
   m_fixup_stack.pop();
   std::function<u32()> lhs = std::move(m_fixup_stack.top());
   m_fixup_stack.pop();
-  m_fixup_stack.emplace([evaluator, lhs = std::move(lhs), rhs = std::move(rhs)]() {
-    return evaluator(lhs(), rhs());
-  });
+  m_fixup_stack.emplace(
+      [evaluator, lhs = std::move(lhs), rhs = std::move(rhs)] { return evaluator(lhs(), rhs()); });
 }
 
 void GekkoIRPlugin::AddUnaryEvaluator(u32 (*evaluator)(u32))
 {
   std::function<u32()> sub = std::move(m_fixup_stack.top());
   m_fixup_stack.pop();
-  m_fixup_stack.emplace([evaluator, sub = std::move(sub)]() { return evaluator(sub()); });
+  m_fixup_stack.emplace([evaluator, sub = std::move(sub)] { return evaluator(sub()); });
 }
 
 void GekkoIRPlugin::AddAbsoluteAddressConv()
@@ -579,7 +578,7 @@ void GekkoIRPlugin::AddNumLabelSymResolve(std::string_view sym, u32 num)
   // Searching forward only
   size_t search_start_idx = static_cast<size_t>(m_numlabs.size());
   m_fixup_stack.emplace(
-      [this, num, source_address, search_start_idx, err_on_fail = std::move(err_on_fail)]() {
+      [this, num, source_address, search_start_idx, err_on_fail = std::move(err_on_fail)] {
         for (size_t i = search_start_idx; i < m_numlabs.size(); i++)
         {
           if (num == m_numlabs[i].first)

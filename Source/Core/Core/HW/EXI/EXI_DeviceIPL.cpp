@@ -296,7 +296,7 @@ void CEXIIPL::TransferByte(u8& data)
     DEBUG_LOG_FMT(EXPANSIONINTERFACE, "IPL-DEV data {} {:08x} {:02x}",
                   m_command.is_write() ? "write" : "read", address, data);
 
-    auto UartFifoAccess = [&]() {
+    auto UartFifoAccess = [&] {
       if (m_command.is_write())
       {
         if (data != '\0')

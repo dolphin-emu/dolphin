@@ -580,7 +580,7 @@ void GameList::OpenProperties()
   connect(properties, &PropertiesDialog::OpenGraphicsSettings, this,
           &GameList::OpenGraphicsSettings);
   connect(properties, &PropertiesDialog::finished, this,
-          [properties]() { properties->deleteLater(); });
+          [properties] { properties->deleteLater(); });
 
 #ifdef USE_RETRO_ACHIEVEMENTS
   connect(properties, &PropertiesDialog::OpenAchievementSettings, this,

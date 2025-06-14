@@ -127,7 +127,7 @@ BreakpointWidget::BreakpointWidget(QWidget* parent)
     setHidden(!enabled || !Settings::Instance().IsBreakpointsVisible());
   });
 
-  connect(&Settings::Instance(), &Settings::ThemeChanged, this, [this]() {
+  connect(&Settings::Instance(), &Settings::ThemeChanged, this, [this] {
     UpdateIcons();
     Update();
   });
@@ -525,7 +525,7 @@ void BreakpointWidget::OnContextMenu(const QPoint& pos)
 
     menu->addAction(tr("Show in Code"), [this, bp_address] { emit ShowCode(bp_address); });
     menu->addAction(tr("Edit..."), [this, bp_address] { OnEditBreakpoint(bp_address, true); });
-    menu->addAction(tr("Delete"), [this, &bp_address]() {
+    menu->addAction(tr("Delete"), [this, &bp_address] {
       m_system.GetPowerPC().GetBreakPoints().Remove(bp_address);
       emit Host::GetInstance()->PPCBreakpointsChanged();
     });
@@ -538,7 +538,7 @@ void BreakpointWidget::OnContextMenu(const QPoint& pos)
 
     menu->addAction(tr("Show in Memory"), [this, bp_address] { emit ShowMemory(bp_address); });
     menu->addAction(tr("Edit..."), [this, bp_address] { OnEditBreakpoint(bp_address, false); });
-    menu->addAction(tr("Delete"), [this, &bp_address]() {
+    menu->addAction(tr("Delete"), [this, &bp_address] {
       const QSignalBlocker blocker(Settings::Instance());
       m_system.GetPowerPC().GetMemChecks().Remove(bp_address);
       emit Host::GetInstance()->PPCBreakpointsChanged();

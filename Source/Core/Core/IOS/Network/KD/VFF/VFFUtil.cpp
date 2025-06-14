@@ -305,7 +305,7 @@ ErrorCode WriteToVFF(const std::string& path, const std::string& filename,
 {
   VffFatFsCallbacks callbacks;
   ErrorCode return_value;
-  Common::RunInFatFsContext(callbacks, [&]() {
+  Common::RunInFatFsContext(callbacks, [&] {
     auto temp = fs->OpenFile(PID_KD, PID_KD, path, FS::Mode::ReadWrite);
     if (!temp)
     {
@@ -360,7 +360,7 @@ ErrorCode ReadFromVFF(const std::string& path, const std::string& filename,
 {
   VffFatFsCallbacks callbacks;
   ErrorCode return_value;
-  Common::RunInFatFsContext(callbacks, [&]() {
+  Common::RunInFatFsContext(callbacks, [&] {
     auto temp = fs->OpenFile(PID_KD, PID_KD, path, FS::Mode::ReadWrite);
     if (!temp)
     {
@@ -411,7 +411,7 @@ ErrorCode DeleteFileFromVFF(const std::string& path, const std::string& filename
 {
   VffFatFsCallbacks callbacks;
   ErrorCode return_value;
-  Common::RunInFatFsContext(callbacks, [&]() {
+  Common::RunInFatFsContext(callbacks, [&] {
     auto temp = fs->OpenFile(PID_KD, PID_KD, path, FS::Mode::ReadWrite);
     if (!temp)
     {

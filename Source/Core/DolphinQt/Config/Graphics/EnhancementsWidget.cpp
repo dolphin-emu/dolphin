@@ -41,10 +41,10 @@ EnhancementsWidget::EnhancementsWidget(GraphicsWindow* parent)
 
   // BackendChanged is called by parent on window creation.
   connect(parent, &GraphicsWindow::BackendChanged, this, &EnhancementsWidget::OnBackendChanged);
-  connect(parent, &GraphicsWindow::UseFastTextureSamplingChanged, this, [this]() {
+  connect(parent, &GraphicsWindow::UseFastTextureSamplingChanged, this, [this] {
     m_texture_filtering_combo->setEnabled(ReadSetting(Config::GFX_HACK_FAST_TEXTURE_SAMPLING));
   });
-  connect(parent, &GraphicsWindow::UseGPUTextureDecodingChanged, this, [this]() {
+  connect(parent, &GraphicsWindow::UseGPUTextureDecodingChanged, this, [this] {
     m_arbitrary_mipmap_detection->setEnabled(!ReadSetting(Config::GFX_ENABLE_GPU_TEXTURE_DECODING));
   });
 }

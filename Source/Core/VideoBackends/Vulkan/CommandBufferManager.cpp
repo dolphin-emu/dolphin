@@ -504,36 +504,35 @@ void CommandBufferManager::DeferBufferViewDestruction(VkBufferView object)
 {
   CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
   cmd_buffer_resources.cleanup_resources.push_back(
-      [object]() { vkDestroyBufferView(g_vulkan_context->GetDevice(), object, nullptr); });
+      [object] { vkDestroyBufferView(g_vulkan_context->GetDevice(), object, nullptr); });
 }
 
 void CommandBufferManager::DeferBufferDestruction(VkBuffer buffer, VmaAllocation alloc)
 {
   CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
-  cmd_buffer_resources.cleanup_resources.push_back([buffer, alloc]() {
-    vmaDestroyBuffer(g_vulkan_context->GetMemoryAllocator(), buffer, alloc);
-  });
+  cmd_buffer_resources.cleanup_resources.push_back(
+      [buffer, alloc] { vmaDestroyBuffer(g_vulkan_context->GetMemoryAllocator(), buffer, alloc); });
 }
 
 void CommandBufferManager::DeferFramebufferDestruction(VkFramebuffer object)
 {
   CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
   cmd_buffer_resources.cleanup_resources.push_back(
-      [object]() { vkDestroyFramebuffer(g_vulkan_context->GetDevice(), object, nullptr); });
+      [object] { vkDestroyFramebuffer(g_vulkan_context->GetDevice(), object, nullptr); });
 }
 
 void CommandBufferManager::DeferImageDestruction(VkImage image, VmaAllocation alloc)
 {
   CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
   cmd_buffer_resources.cleanup_resources.push_back(
-      [image, alloc]() { vmaDestroyImage(g_vulkan_context->GetMemoryAllocator(), image, alloc); });
+      [image, alloc] { vmaDestroyImage(g_vulkan_context->GetMemoryAllocator(), image, alloc); });
 }
 
 void CommandBufferManager::DeferImageViewDestruction(VkImageView object)
 {
   CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
   cmd_buffer_resources.cleanup_resources.push_back(
-      [object]() { vkDestroyImageView(g_vulkan_context->GetDevice(), object, nullptr); });
+      [object] { vkDestroyImageView(g_vulkan_context->GetDevice(), object, nullptr); });
 }
 
 std::unique_ptr<CommandBufferManager> g_command_buffer_mgr;

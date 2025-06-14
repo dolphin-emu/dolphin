@@ -506,14 +506,13 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
                         Config::Get(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC);
   if (sync_sd_folder)
   {
-    sync_sd_folder =
-        Common::SyncSDFolderToSDImage([]() { return false; }, Core::WantsDeterminism());
+    sync_sd_folder = Common::SyncSDFolderToSDImage([] { return false; }, Core::WantsDeterminism());
   }
 
   Common::ScopeGuard sd_folder_sync_guard{[sync_sd_folder] {
     if (sync_sd_folder && Config::Get(Config::MAIN_ALLOW_SD_WRITES))
     {
-      const bool sync_ok = Common::SyncSDImageToSDFolder([]() { return false; });
+      const bool sync_ok = Common::SyncSDImageToSDFolder([] { return false; });
       if (!sync_ok)
       {
         PanicAlertFmtT(
@@ -829,7 +828,7 @@ void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> funct
   {
     // Trigger the event after executing the function.
     s_cpu_thread_job_finished.Reset();
-    system.GetCPU().AddCPUThreadJob([&function]() {
+    system.GetCPU().AddCPUThreadJob([&function] {
       function();
       s_cpu_thread_job_finished.Set();
     });

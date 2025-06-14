@@ -85,7 +85,7 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
     return false;
   }
 
-  const bool contents_imported = [&]() {
+  const bool contents_imported = [&] {
     const u64 title_id = tmd.GetTitleId();
     for (const IOS::ES::Content& content : tmd.GetContents())
     {
@@ -584,7 +584,7 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
 
   // Now download and install contents listed in the TMD.
   const std::vector<IOS::ES::Content> stored_contents = es.GetStoredContentsFromTMD(tmd.first);
-  const UpdateResult import_result = [&]() {
+  const UpdateResult import_result = [&] {
     for (const IOS::ES::Content& content : tmd.first.GetContents())
     {
       const bool is_already_installed =
