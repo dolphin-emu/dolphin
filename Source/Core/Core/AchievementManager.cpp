@@ -49,8 +49,13 @@
 #include <shlwapi.h>
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
+#ifdef ANDROID
+static const Common::HttpRequest::Headers USER_AGENT_HEADER = {
+    {"User-Agent", Common::GetUserAgentStr() + " (Android)"}};
+#else   // ANDROID
 static const Common::HttpRequest::Headers USER_AGENT_HEADER = {
     {"User-Agent", Common::GetUserAgentStr()}};
+#endif  // ANDROID
 
 AchievementManager& AchievementManager::GetInstance()
 {
