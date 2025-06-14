@@ -12,6 +12,9 @@ target_link_libraries(winupdater PRIVATE
   Comctl32
 )
 
+target_compile_definitions(winupdater PRIVATE _UNICODE UNICODE)
+target_link_options(winupdater PRIVATE -municode)
+
 set_target_properties(winupdater PROPERTIES OUTPUT_NAME "Updater")
 
 if(MSVC)
