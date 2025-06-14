@@ -85,7 +85,7 @@ public:
     for (const SaveFile& file : m_files_list)
     {
       // files in subdirs are deleted automatically when the subdir is deleted
-      if (file.path.find('/') != std::string::npos)
+      if (file.path.contains('/'))
         continue;
 
       const auto result =
