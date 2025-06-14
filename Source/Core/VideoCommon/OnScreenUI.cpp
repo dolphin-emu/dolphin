@@ -3,7 +3,9 @@
 
 #include "VideoCommon/OnScreenUI.h"
 
+#include "Common/CommonPaths.h"
 #include "Common/EnumMap.h"
+#include "Common/FileUtil.h"
 #include "Common/Profiler.h"
 #include "Common/Timer.h"
 
@@ -57,6 +59,7 @@ bool OnScreenUI::Initialize(u32 width, u32 height, float scale)
 
   // Don't create an ini file. TODO: Do we want this in the future?
   ImGui::GetIO().IniFilename = nullptr;
+  SetFont();
   SetScale(scale);
 
   PortableVertexDeclaration vdecl = {};
@@ -69,31 +72,6 @@ bool OnScreenUI::Initialize(u32 width, u32 height, float scale)
   {
     PanicAlertFmt("Failed to create ImGui vertex format");
     return false;
-  }
-
-  // Font texture(s).
-  {
-    ImGuiIO& io = ImGui::GetIO();
-    u8* font_tex_pixels;
-    int font_tex_width, font_tex_height;
-    io.Fonts->GetTexDataAsRGBA32(&font_tex_pixels, &font_tex_width, &font_tex_height);
-
-    TextureConfig font_tex_config(font_tex_width, font_tex_height, 1, 1, 1,
-                                  AbstractTextureFormat::RGBA8, 0,
-                                  AbstractTextureType::Texture_2DArray);
-    std::unique_ptr<AbstractTexture> font_tex =
-        g_gfx->CreateTexture(font_tex_config, "ImGui font texture");
-    if (!font_tex)
-    {
-      PanicAlertFmt("Failed to create ImGui texture");
-      return false;
-    }
-    font_tex->Load(0, font_tex_width, font_tex_height, font_tex_width, font_tex_pixels,
-                   sizeof(u32) * font_tex_width * font_tex_height);
-
-    io.Fonts->TexID = *font_tex.get();
-
-    m_imgui_textures.push_back(std::move(font_tex));
   }
 
   if (!RecompileImGuiPipeline())
@@ -183,6 +161,9 @@ bool OnScreenUI::RecompileImGuiPipeline()
 
 void OnScreenUI::BeginImGuiFrame(u32 width, u32 height)
 {
+  // Check for font changes
+  if (Config::Get(Config::MAIN_IMGUI_FONT_SIZE) != m_custom_font_size)
+    SetFont();
   std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
   BeginImGuiFrameUnlocked(width, height);
 }
@@ -279,11 +260,12 @@ void OnScreenUI::DrawDebugText()
   {
     // Position under the FPS display.
     ImGui::SetNextWindowPos(
-        ImVec2(ImGui::GetIO().DisplaySize.x - 10.f * m_backbuffer_scale, 80.f * m_backbuffer_scale),
+        ImVec2(ImGui::GetIO().DisplaySize.x - ImGui::GetFontSize() * m_backbuffer_scale,
+               80.f * m_backbuffer_scale),
         ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f));
-    ImGui::SetNextWindowSizeConstraints(
-        ImVec2(150.0f * m_backbuffer_scale, 20.0f * m_backbuffer_scale),
-        ImGui::GetIO().DisplaySize);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(5.0f * ImGui::GetFontSize() * m_backbuffer_scale,
+                                               2.1f * ImGui::GetFontSize() * m_backbuffer_scale),
+                                        ImGui::GetIO().DisplaySize);
     if (ImGui::Begin("Movie", nullptr, ImGuiWindowFlags_NoFocusOnAppearing))
     {
       auto& movie = Core::System::GetInstance().GetMovie();
@@ -415,6 +397,53 @@ void OnScreenUI::Finalize()
 std::unique_lock<std::mutex> OnScreenUI::GetImGuiLock()
 {
   return std::unique_lock<std::mutex>(m_imgui_mutex);
+}
+
+void OnScreenUI::SetFont()
+{
+  ImGuiIO& io = ImGui::GetIO();
+
+  // If imgui has already been loaded and is running.
+  if (ImGui::GetFrameCount() != 0)
+    io.Fonts->Clear();
+
+  m_custom_font_size = Config::Get(Config::MAIN_IMGUI_FONT_SIZE);
+  const std::string file =
+      File::GetSysDirectory() + DIR_SEP + RESOURCES_DIR + DIR_SEP + "VeraMono.ttf";
+
+  if (File::Exists(file))
+  {
+    // Small font for things like graph labels. Called with FONTS[0].
+    io.Fonts->AddFontFromFileTTF(file.c_str(), 14.0f);
+    auto* user_font = io.Fonts->AddFontFromFileTTF(file.c_str(), m_custom_font_size);
+
+    io.Fonts->Build();
+    io.FontDefault = user_font;
+  }
+
+  // This always runs once on loading a game. Only runs again if changing fonts.
+  m_imgui_textures.clear();
+
+  u8* font_tex_pixels;
+  int font_tex_width, font_tex_height;
+  io.Fonts->GetTexDataAsRGBA32(&font_tex_pixels, &font_tex_width, &font_tex_height);
+
+  TextureConfig font_tex_config(font_tex_width, font_tex_height, 1, 1, 1,
+                                AbstractTextureFormat::RGBA8, 0,
+                                AbstractTextureType::Texture_2DArray);
+  std::unique_ptr<AbstractTexture> font_tex =
+      g_gfx->CreateTexture(font_tex_config, "ImGui font texture");
+  if (!font_tex)
+  {
+    PanicAlertFmt("Failed to create ImGui texture");
+    return;
+  }
+  font_tex->Load(0, font_tex_width, font_tex_height, font_tex_width, font_tex_pixels,
+                 sizeof(u32) * font_tex_width * font_tex_height);
+
+  io.Fonts->TexID = *font_tex.get();
+
+  m_imgui_textures.push_back(std::move(font_tex));
 }
 
 void OnScreenUI::SetScale(float backbuffer_scale)
