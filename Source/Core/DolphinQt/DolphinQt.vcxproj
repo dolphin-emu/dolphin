@@ -246,7 +246,7 @@
     <ClInclude Include="Config\ConfigControls\ConfigControl.h" />
     <ClInclude Include="Config\GameConfigEdit.h" />
     <ClInclude Include="Config\Mapping\MappingCommon.h" />
-    <ClInclude Include="Config\Mapping\MappingIndicator.h" />
+    <QtMoc Include="Config\Mapping\MappingIndicator.h" />
     <ClInclude Include="Config\Mapping\MappingNumeric.h" />
     <ClInclude Include="Config\NewPatchDialog.h" />
     <QtMoc Include="Config\PatchesWidget.h" />

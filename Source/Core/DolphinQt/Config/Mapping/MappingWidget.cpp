@@ -152,7 +152,7 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     if (need_calibration)
     {
       const auto calibrate =
-          new CalibrationWidget(*static_cast<ControllerEmu::ReshapableInput*>(group),
+          new CalibrationWidget(*this, *static_cast<ControllerEmu::ReshapableInput*>(group),
                                 *static_cast<ReshapableInputIndicator*>(indicator));
 
       form_layout->addRow(calibrate);

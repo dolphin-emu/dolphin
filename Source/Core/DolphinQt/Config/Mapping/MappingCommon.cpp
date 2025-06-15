@@ -3,6 +3,7 @@
 
 #include "DolphinQt/Config/Mapping/MappingCommon.h"
 
+#include <algorithm>
 #include <deque>
 #include <memory>
 
@@ -25,11 +26,6 @@ constexpr auto INPUT_DETECT_CONFIRMATION_TIME = std::chrono::milliseconds(750);
 constexpr auto INPUT_DETECT_MAXIMUM_TIME = std::chrono::seconds(5);
 // Ignore the mouse-click when queuing more buttons with "alternate mappings" enabled.
 constexpr auto INPUT_DETECT_ENDING_IGNORE_TIME = std::chrono::milliseconds(50);
-
-bool ContainsAnalogInput(const ciface::Core::InputDetector::Results& results)
-{
-  return std::ranges::any_of(results, [](auto& detection) { return detection.smoothness > 1; });
-}
 
 class MappingProcessor : public QObject
 {
@@ -102,7 +98,7 @@ public:
       // Skip "Modifier" mappings when using analog inputs.
       auto* next_button = m_clicked_mapping_buttons.front();
       if (next_button->GetControlType() == MappingButton::ControlType::ModifierInput &&
-          ContainsAnalogInput(results))
+          std::ranges::any_of(results, &ciface::Core::InputDetector::Detection::IsAnalogPress))
       {
         // Clear "Modifier" mapping and queue the next button.
         SetButtonExpression(next_button, "");
