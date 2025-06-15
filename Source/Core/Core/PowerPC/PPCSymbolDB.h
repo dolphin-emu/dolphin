@@ -32,6 +32,7 @@ public:
 
   void FillInCallers();
 
+  bool IsMapLoaded(std::string& filename);
   bool LoadMap(const Core::CPUThreadGuard& guard, const std::string& filename, bool bad = false);
   bool SaveSymbolMap(const std::string& filename) const;
   bool SaveCodeMap(const Core::CPUThreadGuard& guard, const std::string& filename) const;
@@ -39,4 +40,8 @@ public:
   void PrintCalls(u32 funcAddr) const;
   void PrintCallers(u32 funcAddr) const;
   void LogFunctionCall(u32 addr);
+
+private:
+  bool m_map_ready;
+  std::string m_map_filename;
 };

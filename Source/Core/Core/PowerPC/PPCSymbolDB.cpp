@@ -93,6 +93,9 @@ void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAdd
 
 Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
+  if (!m_map_ready)
+    return nullptr;
+
   auto it = m_functions.lower_bound(addr);
 
   if (it != m_functions.end())
@@ -152,6 +155,9 @@ void PPCSymbolDB::FillInCallers()
 
 void PPCSymbolDB::PrintCalls(u32 funcAddr) const
 {
+  if (!m_map_ready)
+    return;
+
   const auto iter = m_functions.find(funcAddr);
   if (iter == m_functions.end())
   {
@@ -173,6 +179,9 @@ void PPCSymbolDB::PrintCalls(u32 funcAddr) const
 
 void PPCSymbolDB::PrintCallers(u32 funcAddr) const
 {
+  if (!m_map_ready)
+    return;
+
   const auto iter = m_functions.find(funcAddr);
   if (iter == m_functions.end())
     return;
@@ -191,12 +200,20 @@ void PPCSymbolDB::PrintCallers(u32 funcAddr) const
 
 void PPCSymbolDB::LogFunctionCall(u32 addr)
 {
+  if (!m_map_ready)
+    return;
+
   auto iter = m_functions.find(addr);
   if (iter == m_functions.end())
     return;
 
   Common::Symbol& f = iter->second;
   f.num_calls++;
+}
+
+bool PPCSymbolDB::IsMapLoaded(std::string& filename)
+{
+  return m_map_filename == filename;
 }
 
 // The use case for handling bad map files is when you have a game with a map file on the disc,
@@ -226,6 +243,7 @@ void PPCSymbolDB::LogFunctionCall(u32 addr)
 // bad=true means carefully load map files that might not be from exactly the right version
 bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& filename, bool bad)
 {
+  m_map_ready = false;
   File::IOFile f(filename, "r");
   if (!f)
     return false;
@@ -446,6 +464,9 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
       }
     }
   }
+
+  m_map_ready = true;
+  m_map_filename = filename;
 
   Index();
   NOTICE_LOG_FMT(SYMBOLS, "{} symbols loaded, {} symbols ignored.", good_count, bad_count);
