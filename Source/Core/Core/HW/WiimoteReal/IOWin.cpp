@@ -210,28 +210,6 @@ bool ForgetWiimote(BLUETOOTH_DEVICE_INFO_STRUCT&);
 
 namespace
 {
-std::wstring GetDeviceProperty(const HDEVINFO& device_info, const PSP_DEVINFO_DATA device_data,
-                               const DEVPROPKEY* requested_property)
-{
-  DWORD required_size = 0;
-  DEVPROPTYPE device_property_type;
-
-  SetupDiGetDeviceProperty(device_info, device_data, requested_property, &device_property_type,
-                           nullptr, 0, &required_size, 0);
-
-  std::vector<BYTE> unicode_buffer(required_size, 0);
-
-  BOOL result =
-      SetupDiGetDeviceProperty(device_info, device_data, requested_property, &device_property_type,
-                               unicode_buffer.data(), required_size, nullptr, 0);
-  if (!result)
-  {
-    return std::wstring();
-  }
-
-  return std::wstring((PWCHAR)unicode_buffer.data());
-}
-
 int IOWritePerSetOutputReport(HANDLE& dev_handle, const u8* buf, size_t len, DWORD* written)
 {
   const BOOLEAN result =
@@ -403,8 +381,8 @@ bool CheckForToshibaStack(const DEVINST& hid_interface_device_instance)
 
   if (GetParentDevice(hid_interface_device_instance, &parent_device_info, &parent_device_data))
   {
-    std::wstring class_driver_provider =
-        GetDeviceProperty(parent_device_info, &parent_device_data, &DEVPKEY_Device_DriverProvider);
+    std::wstring class_driver_provider = Common::GetDeviceProperty(
+        parent_device_info, &parent_device_data, &DEVPKEY_Device_DriverProvider);
 
     SetupDiDestroyDeviceInfoList(parent_device_info);
 
