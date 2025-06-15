@@ -599,10 +599,15 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
   }
 
+  out.Write("// Multiply the position vector by the custom transform matrix\n"
+            "float4 transformed_pos = float4(dot(rawpos, custom_transform[0]), dot(rawpos, "
+            "custom_transform[1]), "
+            "dot(rawpos, custom_transform[2]), dot(rawpos, custom_transform[3]));\n");
+
   out.Write("\tDolphinVertexInput vertex_input;\n");
   out.Write("\tvertex_input.color_0 = vertex_color_0;\n");
   out.Write("\tvertex_input.color_1 = vertex_color_1;\n");
-  out.Write("\tvertex_input.position = rawpos;\n");
+  out.Write("\tvertex_input.position = transformed_pos;\n");
 
   if ((uid_data->components & VB_HAS_NORMAL) != 0)
   {
@@ -944,6 +949,11 @@ void WriteVertexBody(APIType api_type, const ShaderHostConfig& host_config,
     case TexGenType::Color1:
       out.Write("\tvertex_output.texture_coord_{}.xyz = vec3(vertex_lighting_1.x, "
                 "vertex_lighting_1.y, 1);\n",
+                i);
+      break;
+    case TexGenType::Passthrough:
+      out.Write("\tvertex_output.texture_coord_{0}.xyz = vec3(vertex_input.texture_coord_{0}.x, "
+                "vertex_input.texture_coord_{0}.y, 1);\n",
                 i);
       break;
     case TexGenType::Regular:
