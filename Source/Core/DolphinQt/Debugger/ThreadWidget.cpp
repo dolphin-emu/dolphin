@@ -274,7 +274,7 @@ void ThreadWidget::Update()
   };
   const auto format_hex_from = [&format_hex](const Core::CPUThreadGuard& guard, u32 addr) {
     addr =
-        PowerPC::MMU::HostIsRAMAddress(guard, addr) ? PowerPC::MMU::HostRead_U32(guard, addr) : 0;
+        PowerPC::MMU::HostIsRAMAddress(guard, addr) ? PowerPC::MMU::HostRead<u32>(guard, addr) : 0;
     return format_hex(addr);
   };
   const auto get_state = [](u16 thread_state) {
@@ -460,7 +460,7 @@ void ThreadWidget::UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
     m_callstack_table->setItem(i, 0, new QTableWidgetItem(format_hex(sp)));
     if (PowerPC::MMU::HostIsRAMAddress(guard, sp + 4))
     {
-      const u32 lr_save = PowerPC::MMU::HostRead_U32(guard, sp + 4);
+      const u32 lr_save = PowerPC::MMU::HostRead<u32>(guard, sp + 4);
       m_callstack_table->setItem(i, 2, new QTableWidgetItem(format_hex(lr_save)));
       m_callstack_table->setItem(
           i, 3,
@@ -471,7 +471,7 @@ void ThreadWidget::UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
     {
       m_callstack_table->setItem(i, 2, new QTableWidgetItem(QStringLiteral("--------")));
     }
-    sp = PowerPC::MMU::HostRead_U32(guard, sp);
+    sp = PowerPC::MMU::HostRead<u32>(guard, sp);
     m_callstack_table->setItem(i, 1, new QTableWidgetItem(format_hex(sp)));
   }
 }
