@@ -44,7 +44,7 @@ public:
 
   NetPlayServer(u16 port, bool forward_port, NetPlayUI* dialog,
                 const NetTraversalConfig& traversal_config);
-  ~NetPlayServer();
+  ~NetPlayServer() override;
 
   bool ChangeGame(const SyncIdentifier& sync_identifier, const std::string& netplay_name);
   bool ComputeGameDigest(const SyncIdentifier& sync_identifier);

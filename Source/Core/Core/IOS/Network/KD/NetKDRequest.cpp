@@ -169,8 +169,7 @@ NetKDRequestDevice::NetKDRequestDevice(EmulationKernel& ios, const std::string& 
   });
 
   m_handle_mail = !ios.GetIOSC().IsUsingDefaultId() && !m_send_list.IsDisabled();
-  m_scheduler_work_queue.Reset("WiiConnect24 Scheduler Worker",
-                               [](std::function<void()> task) { task(); });
+  m_scheduler_work_queue.Reset("WiiConnect24 Scheduler Worker");
 
   m_scheduler_timer_thread = std::thread([this] { SchedulerTimer(); });
 }
@@ -218,7 +217,7 @@ void NetKDRequestDevice::SchedulerTimer()
       std::lock_guard lg(m_scheduler_lock);
       if (m_mail_span <= mail_time_state && m_handle_mail)
       {
-        m_scheduler_work_queue.EmplaceItem([this] { SchedulerWorker(SchedulerEvent::Mail); });
+        m_scheduler_work_queue.Push([this] { SchedulerWorker(SchedulerEvent::Mail); });
         INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: Dispatching Mail Task from Scheduler");
         mail_time_state = 0;
       }
@@ -226,7 +225,7 @@ void NetKDRequestDevice::SchedulerTimer()
       if (m_download_span <= download_time_state && !m_dl_list.IsDisabled())
       {
         INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: Dispatching Download Task from Scheduler");
-        m_scheduler_work_queue.EmplaceItem([this] { SchedulerWorker(SchedulerEvent::Download); });
+        m_scheduler_work_queue.Push([this] { SchedulerWorker(SchedulerEvent::Download); });
         download_time_state = 0;
       }
     }
@@ -889,6 +888,7 @@ IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRe
     // to be registered. Due to the high likelihood of multiple users having the same Wii Number,
     // Nintendo's register endpoint will most likely return a duplicate registration error.
     m_config.SetCreationStage(NWC24::NWC24CreationStage::Registered);
+    m_config.SetChecksum(m_config.CalculateNwc24ConfigChecksum());
     m_config.WriteConfig();
     m_config.WriteCBK();
 
@@ -985,6 +985,7 @@ IPCReply NetKDRequestDevice::HandleRequestRegisterUserId(const IOS::HLE::IOCtlRe
   m_config.SetCreationStage(NWC24::NWC24CreationStage::Registered);
   m_config.SetPassword(password);
   m_config.SetMailCheckID(mail_check_id);
+  m_config.SetChecksum(m_config.CalculateNwc24ConfigChecksum());
   m_config.WriteConfig();
   m_config.WriteCBK();
 

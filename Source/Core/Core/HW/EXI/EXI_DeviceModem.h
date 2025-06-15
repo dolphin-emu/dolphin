@@ -33,7 +33,7 @@ class CEXIModem : public IEXIDevice
 {
 public:
   CEXIModem(Core::System& system, ModemDeviceType type);
-  virtual ~CEXIModem();
+  ~CEXIModem() override;
   void SetCS(int cs) override;
   bool IsPresent() const override;
   bool IsInterruptSet() override;
@@ -93,27 +93,21 @@ private:
   void RunAllPendingATCommands();
   void AddATReply(const std::string& data);
 
-  static inline bool TransferIsResetCommand(u32 transfer_descriptor)
+  static bool TransferIsResetCommand(u32 transfer_descriptor)
   {
     return transfer_descriptor == 0x80000000;
   }
 
-  static inline bool IsWriteTransfer(u32 transfer_descriptor)
-  {
-    return transfer_descriptor & 0x40000000;
-  }
+  static bool IsWriteTransfer(u32 transfer_descriptor) { return transfer_descriptor & 0x40000000; }
 
-  static inline bool IsModemTransfer(u32 transfer_descriptor)
-  {
-    return transfer_descriptor & 0x20000000;
-  }
+  static bool IsModemTransfer(u32 transfer_descriptor) { return transfer_descriptor & 0x20000000; }
 
-  static inline u16 GetModemTransferSize(u32 transfer_descriptor)
+  static u16 GetModemTransferSize(u32 transfer_descriptor)
   {
     return (transfer_descriptor >> 8) & 0xFFFF;
   }
 
-  static inline u32 SetModemTransferSize(u32 transfer_descriptor, u16 new_size)
+  static u32 SetModemTransferSize(u32 transfer_descriptor, u16 new_size)
   {
     return (transfer_descriptor & 0xFF000000) | (new_size << 8);
   }
@@ -142,13 +136,13 @@ private:
     TAPServerNetworkInterface(CEXIModem* modem_ref, const std::string& destination);
 
   public:
-    virtual bool Activate() override;
-    virtual void Deactivate() override;
-    virtual bool IsActivated() override;
-    virtual bool SendAndRemoveAllHDLCFrames(std::string* send_buffer) override;
-    virtual bool RecvInit() override;
-    virtual void RecvStart() override;
-    virtual void RecvStop() override;
+    bool Activate() override;
+    void Deactivate() override;
+    bool IsActivated() override;
+    bool SendAndRemoveAllHDLCFrames(std::string* send_buffer) override;
+    bool RecvInit() override;
+    void RecvStart() override;
+    void RecvStop() override;
 
   private:
     TAPServerConnection m_tapserver_if;

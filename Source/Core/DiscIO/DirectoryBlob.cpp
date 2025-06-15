@@ -240,13 +240,13 @@ static bool PathCharactersEqual(char a, char b)
   return a == b || (IsDirectorySeparator(a) && IsDirectorySeparator(b));
 }
 
-static bool PathEndsWith(const std::string& path, const std::string& suffix)
+static bool PathEndsWith(const std::string& path, const std::string_view suffix)
 {
   if (suffix.size() > path.size())
     return false;
 
   std::string::const_iterator path_iterator = path.cend() - suffix.size();
-  std::string::const_iterator suffix_iterator = suffix.cbegin();
+  std::string_view::const_iterator suffix_iterator = suffix.cbegin();
   while (path_iterator != path.cend())
   {
     if (!PathCharactersEqual(*path_iterator, *suffix_iterator))
@@ -264,7 +264,7 @@ static bool IsValidDirectoryBlob(const std::string& dol_path, std::string* parti
   if (!PathEndsWith(dol_path, "/sys/main.dol"))
     return false;
 
-  const size_t chars_to_remove = std::string("sys/main.dol").size();
+  static constexpr size_t chars_to_remove = std::string_view("sys/main.dol").size();
   *partition_root = dol_path.substr(0, dol_path.size() - chars_to_remove);
 
   if (File::GetSize(*partition_root + "sys/boot.bin") < 0x20)
@@ -339,9 +339,30 @@ static bool IsMainDolForNonGamePartition(const std::string& path)
   return false;  // volume_path is the game partition's /sys/main.dol
 }
 
+static bool IsBootBin(const std::string& path)
+{
+  static constexpr std::string_view boot_bin = "/sys/boot.bin";
+  if (!PathEndsWith(path, boot_bin))
+    return false;
+
+  const std::string partition_root = path.substr(0, path.size() - boot_bin.size());
+  return File::Exists(partition_root + "/sys/main.dol");
+}
+
+static bool IsHeaderBin(const std::string& path)
+{
+  static constexpr std::string_view header_bin = "/disc/header.bin";
+  if (!PathEndsWith(path, header_bin))
+    return false;
+
+  const std::string partition_root = path.substr(0, path.size() - header_bin.size());
+  return File::Exists(partition_root + "/sys/main.dol");
+}
+
 bool ShouldHideFromGameList(const std::string& volume_path)
 {
-  return IsInFilesDirectory(volume_path) || IsMainDolForNonGamePartition(volume_path);
+  return IsInFilesDirectory(volume_path) || IsMainDolForNonGamePartition(volume_path) ||
+         IsBootBin(volume_path) || IsHeaderBin(volume_path);
 }
 
 std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::string& dol_path)
@@ -1166,7 +1187,7 @@ void DirectoryBlobPartition::WriteEntryData(std::vector<u8>* fst_data, u32* entr
 
   (*fst_data)[(*entry_offset)++] = (name_offset >> 16) & 0xff;
   (*fst_data)[(*entry_offset)++] = (name_offset >> 8) & 0xff;
-  (*fst_data)[(*entry_offset)++] = (name_offset)&0xff;
+  (*fst_data)[(*entry_offset)++] = (name_offset) & 0xff;
 
   Write32((u32)(data_offset >> address_shift), *entry_offset, fst_data);
   *entry_offset += 4;

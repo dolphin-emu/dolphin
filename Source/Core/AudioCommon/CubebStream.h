@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <cstddef>
-#include <functional>
 #include <memory>
 #include <vector>
 
@@ -39,7 +37,7 @@ private:
   std::vector<float> m_floatstereo_buffer;
 
 #ifdef _WIN32
-  Common::WorkQueueThread<std::function<void()>> m_work_queue;
+  Common::AsyncWorkThread m_work_queue;
   bool m_coinit_success = false;
   bool m_should_couninit = false;
 #endif

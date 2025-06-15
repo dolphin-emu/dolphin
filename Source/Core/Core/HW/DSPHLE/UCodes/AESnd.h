@@ -27,10 +27,12 @@ public:
   AESndAccelerator(AESndAccelerator&&) = delete;
   AESndAccelerator& operator=(const AESndAccelerator&) = delete;
   AESndAccelerator& operator=(AESndAccelerator&&) = delete;
-  ~AESndAccelerator();
+  ~AESndAccelerator() override;
 
 protected:
-  void OnEndException() override;
+  void OnRawReadEndException() override {}
+  void OnRawWriteEndException() override {}
+  void OnSampleReadEndException() override;
   u8 ReadMemory(u32 address) override;
   void WriteMemory(u32 address, u8 value) override;
 

@@ -307,7 +307,7 @@ private:
   void SetPartitions(std::vector<PartitionWithType>&& partitions);
   void SetPartitionHeader(DirectoryBlobPartition* partition, u64 partition_address);
 
-  VolumeDisc* GetWrappedVolume() { return m_wrapped_volume.get(); }
+  const VolumeDisc* GetWrappedVolume() const { return m_wrapped_volume.get(); }
 
   // For GameCube:
   DirectoryBlobPartition m_gamecube_pseudopartition;

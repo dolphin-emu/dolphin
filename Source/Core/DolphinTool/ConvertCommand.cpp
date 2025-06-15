@@ -156,7 +156,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   const bool scrub = static_cast<bool>(options.get("scrub"));
 
   // Open the volume
-  std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateDisc(input_file_path);
+  const std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateDisc(input_file_path);
   if (!volume)
   {
     if (scrub)
@@ -249,7 +249,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   }
 
   // --compress, --compress_level
-  std::optional<DiscIO::WIARVZCompressionType> compression_o =
+  const std::optional<DiscIO::WIARVZCompressionType> compression_o =
       ParseCompressionTypeString(options["compression"]);
 
   std::optional<int> compression_level_o;

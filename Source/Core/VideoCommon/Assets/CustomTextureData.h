@@ -3,9 +3,10 @@
 
 #pragma once
 
+#include <span>
 #include <string>
-#include <vector>
 
+#include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/TextureConfig.h"
 
@@ -18,7 +19,7 @@ public:
   {
     struct Level
     {
-      std::vector<u8> data;
+      Common::UniqueBuffer<u8> data;
       AbstractTextureFormat format = AbstractTextureFormat::RGBA8;
       u32 width = 0;
       u32 height = 0;
@@ -33,5 +34,5 @@ bool LoadDDSTexture(CustomTextureData* texture, const std::string& filename);
 bool LoadDDSTexture(CustomTextureData::ArraySlice::Level* level, const std::string& filename,
                     u32 mip_level);
 bool LoadPNGTexture(CustomTextureData::ArraySlice::Level* level, const std::string& filename);
-bool LoadPNGTexture(CustomTextureData::ArraySlice::Level* level, const std::vector<u8>& buffer);
+bool LoadPNGTexture(CustomTextureData::ArraySlice::Level* level, std::span<const u8> buffer);
 }  // namespace VideoCommon

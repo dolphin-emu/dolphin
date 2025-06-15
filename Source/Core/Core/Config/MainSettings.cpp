@@ -45,6 +45,7 @@ const Info<bool> MAIN_ACCURATE_CPU_CACHE{{System::Main, "Core", "AccurateCPUCach
 const Info<bool> MAIN_DSP_HLE{{System::Main, "Core", "DSPHLE"}, true};
 const Info<int> MAIN_MAX_FALLBACK{{System::Main, "Core", "MaxFallback"}, 100};
 const Info<int> MAIN_TIMING_VARIANCE{{System::Main, "Core", "TimingVariance"}, 40};
+const Info<bool> MAIN_CORRECT_TIME_DRIFT{{System::Main, "Core", "CorrectTimeDrift"}, false};
 const Info<bool> MAIN_CPU_THREAD{{System::Main, "Core", "CPUThread"}, true};
 const Info<bool> MAIN_SYNC_ON_SKIP_IDLE{{System::Main, "Core", "SyncOnSkipIdle"}, true};
 const Info<std::string> MAIN_DEFAULT_ISO{{System::Main, "Core", "DefaultISO"}, ""};
@@ -222,6 +223,8 @@ const Info<bool> MAIN_PRECISION_FRAME_TIMING{{System::Main, "Core", "PrecisionFr
                                              DEFAULT_PRECISION_FRAME_TIMING};
 const Info<float> MAIN_OVERCLOCK{{System::Main, "Core", "Overclock"}, 1.0f};
 const Info<bool> MAIN_OVERCLOCK_ENABLE{{System::Main, "Core", "OverclockEnable"}, false};
+const Info<float> MAIN_VI_OVERCLOCK{{System::Main, "Core", "VIOverclock"}, 1.0f};
+const Info<bool> MAIN_VI_OVERCLOCK_ENABLE{{System::Main, "Core", "VIOverclockEnable"}, false};
 const Info<bool> MAIN_RAM_OVERRIDE_ENABLE{{System::Main, "Core", "RAMOverrideEnable"}, false};
 const Info<u32> MAIN_MEM1_SIZE{{System::Main, "Core", "MEM1Size"}, Memory::MEM1_SIZE_RETAIL};
 const Info<u32> MAIN_MEM2_SIZE{{System::Main, "Core", "MEM2Size"}, Memory::MEM2_SIZE_RETAIL};
@@ -593,6 +596,16 @@ const Info<bool> MAIN_EMULATE_SKYLANDER_PORTAL{
 
 const Info<bool> MAIN_EMULATE_INFINITY_BASE{
     {System::Main, "EmulatedUSBDevices", "EmulateInfinityBase"}, false};
+
+const Info<bool> MAIN_EMULATE_WII_SPEAK{{System::Main, "EmulatedUSBDevices", "EmulateWiiSpeak"},
+                                        false};
+
+const Info<std::string> MAIN_WII_SPEAK_MICROPHONE{
+    {System::Main, "EmulatedUSBDevices", "WiiSpeakMicrophone"}, ""};
+
+const Info<bool> MAIN_WII_SPEAK_MUTED{{System::Main, "EmulatedUSBDevices", "WiiSpeakMuted"}, true};
+const Info<s16> MAIN_WII_SPEAK_VOLUME_MODIFIER{
+    {System::Main, "EmulatedUSBDevices", "WiiSpeakVolumeModifier"}, 0};
 
 // The reason we need this function is because some memory card code
 // expects to get a non-NTSC-K region even if we're emulating an NTSC-K Wii.

@@ -16,7 +16,6 @@
 #include "Core/System.h"
 
 #include "VideoCommon/AbstractGfx.h"
-#include "VideoCommon/Assets/CustomAssetLoader.h"
 #include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/TextureCacheBase.h"
@@ -98,28 +97,6 @@ CustomPipelineAction::CustomPipelineAction(
   m_pipeline_passes.resize(m_passes_config.size());
 }
 
-void CustomPipelineAction::OnDrawStarted(GraphicsModActionData::DrawStarted* draw_started)
+void CustomPipelineAction::OnDrawStarted(GraphicsModActionData::DrawStarted*)
 {
-  if (!draw_started) [[unlikely]]
-    return;
-
-  if (!draw_started->custom_pixel_shader) [[unlikely]]
-    return;
-
-  if (m_pipeline_passes.empty()) [[unlikely]]
-    return;
-
-  auto& loader = Core::System::GetInstance().GetCustomAssetLoader();
-
-  // For now assume a single pass
-  const auto& pass_config = m_passes_config[0];
-  auto& pass = m_pipeline_passes[0];
-
-  pass.UpdatePixelData(loader, m_library, draw_started->texture_units,
-                       pass_config.m_pixel_material_asset);
-  CustomPixelShader custom_pixel_shader;
-  custom_pixel_shader.custom_shader = pass.m_last_generated_shader_code.GetBuffer();
-  custom_pixel_shader.material_uniform_block = pass.m_last_generated_material_code.GetBuffer();
-  *draw_started->custom_pixel_shader = custom_pixel_shader;
-  *draw_started->material_uniform_buffer = pass.m_material_data;
 }

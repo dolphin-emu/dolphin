@@ -31,8 +31,7 @@ private:
                  2>,
       VertexComponentFormat::Index16>;
 
-  static constexpr SizeTable s_table_size = []() consteval
-  {
+  static constexpr SizeTable s_table_size = []() consteval {
     SizeTable table{};
 
     using VCF = VertexComponentFormat;
@@ -145,6 +144,5 @@ private:
     table[VCF::Index16][true][NCC::NTB][FMT::InvalidFloat7] = 6;
 
     return table;
-  }
-  ();
+  }();
 };

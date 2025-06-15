@@ -1730,7 +1730,7 @@ TEST(Assembler, RelocateDirective)
   auto res = Assemble(assembly, 0);
   ASSERT_TRUE(!IsFailure(res));
   auto&& code_blocks = GetT(res);
-  ASSERT_EQ(code_blocks.size(), sizeof(expect_size) / sizeof(expect_size[0]));
+  ASSERT_EQ(code_blocks.size(), std::size(expect_size));
   for (size_t i = 0; i < code_blocks.size(); i++)
   {
     EXPECT_EQ(code_blocks[i].instructions.size(), expect_size[i]) << " -> i=" << i;
@@ -1769,7 +1769,7 @@ TEST(Assembler, AlignmentDirectives)
   auto res = Assemble(assembly_align, 0);
   ASSERT_TRUE(!IsFailure(res));
   auto&& code_blocks = GetT(res);
-  ASSERT_EQ(code_blocks.size(), sizeof(expect_addr) / sizeof(expect_addr[0]));
+  ASSERT_EQ(code_blocks.size(), std::size(expect_addr));
   for (size_t i = 0; i < code_blocks.size(); i++)
   {
     EXPECT_EQ(code_blocks[i].block_address, expect_addr[i]) << " -> i=" << i;
@@ -1813,7 +1813,7 @@ TEST(Assembler, SkipDirective)
   auto res = Assemble(assembly_align, 0);
   ASSERT_TRUE(!IsFailure(res));
   auto&& code_blocks = GetT(res);
-  ASSERT_EQ(code_blocks.size(), sizeof(expect_addr) / sizeof(expect_addr[0]));
+  ASSERT_EQ(code_blocks.size(), std::size(expect_addr));
 
   EXPECT_EQ(code_blocks[0].block_address, expect_addr[0]) << " -> i=0";
   ASSERT_EQ(code_blocks[0].instructions.size(), 2);

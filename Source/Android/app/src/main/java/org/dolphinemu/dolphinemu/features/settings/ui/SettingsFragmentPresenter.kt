@@ -100,10 +100,6 @@ class SettingsFragmentPresenter(
             }
         }
 
-    fun loadDefaultSettings() {
-        loadSettingsList()
-    }
-
     private fun loadSettingsList() {
         val sl = ArrayList<SettingsItem>()
         when (menuTag) {
@@ -900,6 +896,22 @@ class SettingsFragmentPresenter(
                 0
             )
         )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_EMULATE_WII_SPEAK,
+                R.string.emulate_wii_speak,
+                0
+            )
+        )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_WII_SPEAK_MUTED,
+                R.string.mute_wii_speak,
+                0
+            )
+        )
     }
 
     private fun addAdvancedSettings(sl: ArrayList<SettingsItem>) {
@@ -1026,6 +1038,27 @@ class SettingsFragmentPresenter(
                 R.string.overclock_title_description,
                 0f,
                 400f,
+                "%",
+                1f,
+                false
+            )
+        )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_VI_OVERCLOCK_ENABLE,
+                R.string.vi_overclock_enable,
+                R.string.vi_overclock_enable_description
+            )
+        )
+        sl.add(
+            PercentSliderSetting(
+                context,
+                FloatSetting.MAIN_VI_OVERCLOCK,
+                R.string.vi_overclock_title,
+                R.string.vi_overclock_title_description,
+                0f,
+                500f,
                 "%",
                 1f,
                 false
@@ -1961,7 +1994,7 @@ class SettingsFragmentPresenter(
                 IntSetting.LOGGER_VERBOSITY,
                 R.string.log_verbosity,
                 0,
-                logVerbosityEntries, logVerbosityValues
+                getLogVerbosityEntries(), getLogVerbosityValues()
             )
         )
         sl.add(
@@ -1993,7 +2026,7 @@ class SettingsFragmentPresenter(
             ) { SettingsAdapter.clearLog() })
 
         sl.add(HeaderSetting(context, R.string.log_types, 0))
-        for (logType in LOG_TYPE_NAMES) {
+        for (logType in NativeLibrary.GetLogTypeNames()) {
             sl.add(LogSwitchSetting(logType.first, logType.second, ""))
         }
     }
@@ -2543,7 +2576,7 @@ class SettingsFragmentPresenter(
     fun setAllLogTypes(value: Boolean) {
         val settings = fragmentView.settings
 
-        for (logType in LOG_TYPE_NAMES) {
+        for (logType in NativeLibrary.GetLogTypeNames()) {
             AdHocBooleanSetting(
                 Settings.FILE_LOGGER,
                 Settings.SECTION_LOGGER_LOGS,
@@ -2604,26 +2637,29 @@ class SettingsFragmentPresenter(
     }
 
     companion object {
-        private val LOG_TYPE_NAMES = NativeLibrary.GetLogTypeNames()
         const val ARG_CONTROLLER_TYPE = "controller_type"
         const val ARG_SERIALPORT1_TYPE = "serialport1_type"
 
         // Value obtained from LogLevel in Common/Logging/Log.h
-        private val logVerbosityEntries: Int
-            get() =
-                if (NativeLibrary.GetMaxLogLevel() == 5) {
-                    R.array.logVerbosityEntriesMaxLevelDebug
-                } else {
-                    R.array.logVerbosityEntriesMaxLevelInfo
-                }
+        private fun getLogVerbosityEntries(): Int {
+            // GetMaxLogLevel is effectively a constant, but we can't call it before loading
+            // the native library
+            return if (NativeLibrary.GetMaxLogLevel() == 5) {
+                R.array.logVerbosityEntriesMaxLevelDebug
+            } else {
+                R.array.logVerbosityEntriesMaxLevelInfo
+            }
+        }
 
         // Value obtained from LogLevel in Common/Logging/Log.h
-        private val logVerbosityValues: Int
-            get() =
-                if (NativeLibrary.GetMaxLogLevel() == 5) {
-                    R.array.logVerbosityValuesMaxLevelDebug
-                } else {
-                    R.array.logVerbosityValuesMaxLevelInfo
-                }
+        private fun getLogVerbosityValues(): Int {
+            // GetMaxLogLevel is effectively a constant, but we can't call it before loading
+            // the native library
+            return if (NativeLibrary.GetMaxLogLevel() == 5) {
+                R.array.logVerbosityValuesMaxLevelDebug
+            } else {
+                R.array.logVerbosityValuesMaxLevelInfo
+            }
+        }
     }
 }

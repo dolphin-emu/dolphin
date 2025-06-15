@@ -35,7 +35,6 @@
 #include "Core/System.h"
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "SkylanderModifyDialog.h"
@@ -116,7 +115,7 @@ void SkylanderPortalWindow::CreateMainWindow()
   auto* modify_btn = new QPushButton(tr("Modify Slot"));
   connect(create_btn, &QAbstractButton::clicked, this,
           &SkylanderPortalWindow::CreateSkylanderAdvanced);
-  connect(clear_btn, &QAbstractButton::clicked, this, [this]() { ClearSlot(GetCurrentSlot()); });
+  connect(clear_btn, &QAbstractButton::clicked, this, [this] { ClearSlot(GetCurrentSlot()); });
   connect(load_btn, &QAbstractButton::clicked, this, &SkylanderPortalWindow::LoadSelected);
   connect(load_file_btn, &QAbstractButton::clicked, this, &SkylanderPortalWindow::LoadFromFile);
   connect(modify_btn, &QAbstractButton::clicked, this, &SkylanderPortalWindow::ModifySkylander);
@@ -592,7 +591,7 @@ void SkylanderPortalWindow::CreateSkylanderAdvanced()
 
   create_window->setLayout(layout);
 
-  connect(buttons, &QDialogButtonBox::accepted, this, [=, this]() {
+  connect(buttons, &QDialogButtonBox::accepted, this, [=, this] {
     bool ok_id = false, ok_var = false;
     m_sky_id = edit_id->text().toUShort(&ok_id);
     if (!ok_id)
@@ -635,7 +634,6 @@ void SkylanderPortalWindow::CreateSkylanderAdvanced()
 
   connect(buttons, &QDialogButtonBox::rejected, create_window, &QDialog::reject);
 
-  SetQWidgetWindowDecorations(create_window);
   create_window->show();
   create_window->raise();
 }

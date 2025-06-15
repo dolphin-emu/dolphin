@@ -18,7 +18,6 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "DolphinQt/Host.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 RegisterWidget::RegisterWidget(QWidget* parent)
@@ -177,7 +176,7 @@ void RegisterWidget::ShowContextMenu()
       const std::string type_string =
           fmt::format("{}{}", type == RegisterType::gpr ? "r" : "f", m_table->currentItem()->row());
       menu->addAction(tr("Run until hit (ignoring breakpoints)"),
-                      [this, type_string]() { AutoStep(type_string); });
+                      [this, type_string] { AutoStep(type_string); });
     }
 
     for (auto* action : {view_hex, view_int, view_uint, view_float, view_double})
@@ -309,7 +308,6 @@ void RegisterWidget::AutoStep(const std::string& reg) const
       break;
 
     // Can keep running and try again after a time out.
-    SetQWidgetWindowDecorations(&msgbox);
     msgbox.exec();
     if (msgbox.clickedButton() != (QAbstractButton*)run_button)
       break;

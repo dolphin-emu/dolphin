@@ -9,25 +9,27 @@ class ActivityTracker : ActivityLifecycleCallbacks {
     private val resumedActivities = HashSet<Activity>()
     private var backgroundExecutionAllowed = false
     private var firstStart = true
+    var currentActivity : Activity? = null
+        private set
 
     private fun isMainActivity(activity: Activity): Boolean {
-      return activity is MainView
+        return activity is MainView
     }
 
     override fun onActivityCreated(activity: Activity, bundle: Bundle?) {
-      if (isMainActivity(activity)) {
-        firstStart = bundle == null
-      }
+        currentActivity = activity
+        if (isMainActivity(activity)) {
+            firstStart = bundle == null
+        }
     }
 
     override fun onActivityStarted(activity: Activity) {
-      if (isMainActivity(activity)) {
         StartupHandler.reportStartToAnalytics(activity.applicationContext, firstStart)
         firstStart = false
-      }
     }
 
     override fun onActivityResumed(activity: Activity) {
+        currentActivity = activity
         resumedActivities.add(activity)
         if (!backgroundExecutionAllowed && !resumedActivities.isEmpty()) {
             backgroundExecutionAllowed = true
@@ -36,6 +38,9 @@ class ActivityTracker : ActivityLifecycleCallbacks {
     }
 
     override fun onActivityPaused(activity: Activity) {
+        if (currentActivity === activity) {
+            currentActivity = null
+        }
         resumedActivities.remove(activity)
         if (backgroundExecutionAllowed && resumedActivities.isEmpty()) {
             backgroundExecutionAllowed = false
@@ -44,9 +49,9 @@ class ActivityTracker : ActivityLifecycleCallbacks {
     }
 
     override fun onActivityStopped(activity: Activity) {
-      if (isMainActivity(activity)) {
-        StartupHandler.updateSessionTimestamp(activity.applicationContext)
-      }
+        if (isMainActivity(activity)) {
+            StartupHandler.updateSessionTimestamp(activity.applicationContext)
+        }
     }
 
     override fun onActivitySaveInstanceState(activity: Activity, bundle: Bundle) {}

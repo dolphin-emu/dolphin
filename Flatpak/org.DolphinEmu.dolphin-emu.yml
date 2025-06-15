@@ -44,6 +44,12 @@ modules:
   - name: dolphin-emu
     buildsystem: cmake-ninja
     builddir: true
+    build-options:
+      # don't use any default flags provided by the SDK
+      cflags: ""
+      cflags-override: true
+      cxxflags: ""
+      cxxflags-override: true
     config-opts:
       - -DCMAKE_BUILD_TYPE=Release
       - -DENABLE_ALSA=OFF

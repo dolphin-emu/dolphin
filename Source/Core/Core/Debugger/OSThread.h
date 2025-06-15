@@ -132,7 +132,7 @@ class OSThreadView : public Common::Debug::ThreadView
 {
 public:
   explicit OSThreadView(const Core::CPUThreadGuard& guard, u32 addr);
-  ~OSThreadView() = default;
+  ~OSThreadView() override = default;
 
   const OSThread& Data() const;
 

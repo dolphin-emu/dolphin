@@ -157,7 +157,7 @@ class VAListStruct : public VAList
 {
 public:
   explicit VAListStruct(const Core::CPUThreadGuard& guard, u32 address);
-  ~VAListStruct() = default;
+  ~VAListStruct() override = default;
 
 private:
   struct svr4_va_list

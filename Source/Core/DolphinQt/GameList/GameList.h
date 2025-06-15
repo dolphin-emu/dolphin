@@ -26,7 +26,7 @@ class GameList final : public QStackedWidget
 
 public:
   explicit GameList(QWidget* parent = nullptr);
-  ~GameList();
+  ~GameList() override;
 
   std::shared_ptr<const UICommon::GameFile> GetSelectedGame() const;
   QList<std::shared_ptr<const UICommon::GameFile>> GetSelectedGames() const;

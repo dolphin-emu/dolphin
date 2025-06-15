@@ -19,7 +19,7 @@ class MemoryCard : public MemoryCardBase
 public:
   MemoryCard(const std::string& filename, ExpansionInterface::Slot card_slot,
              u16 size_mbits = Memcard::MBIT_SIZE_MEMORY_CARD_2043);
-  ~MemoryCard();
+  ~MemoryCard() override;
   void FlushThread();
   void MakeDirty();
 
@@ -32,7 +32,7 @@ public:
 private:
   bool IsAddressInBounds(u32 address, u32 length) const
   {
-    u64 end_address = static_cast<u64>(address) + static_cast<u64>(length);
+    const u64 end_address = static_cast<u64>(address) + static_cast<u64>(length);
     return end_address <= static_cast<u64>(m_memory_card_size);
   }
 

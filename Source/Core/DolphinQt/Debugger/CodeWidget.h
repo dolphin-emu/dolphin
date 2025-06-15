@@ -33,7 +33,7 @@ class CodeWidget : public QDockWidget
   Q_OBJECT
 public:
   explicit CodeWidget(QWidget* parent = nullptr);
-  ~CodeWidget();
+  ~CodeWidget() override;
 
   void Step();
   void StepOver();

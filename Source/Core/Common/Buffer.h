@@ -40,6 +40,10 @@ public:
 
   void assign(PtrType ptr, size_type new_size) { BufferBase{std::move(ptr), new_size}.swap(*this); }
   void reset(size_type new_size = 0) { BufferBase{new_size}.swap(*this); }
+  void clear() { reset(); }
+
+  // Resize is purposely not provided as it often unnecessarily copies data about to be overwritten.
+  void resize(std::size_t) = delete;
 
   std::pair<PtrType, size_type> extract()
   {

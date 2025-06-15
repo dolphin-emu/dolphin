@@ -47,6 +47,8 @@ struct NetSettings
   bool allow_sd_writes = false;
   bool oc_enable = false;
   float oc_factor = 0;
+  bool vi_oc_enable = false;
+  float vi_oc_factor = 0;
   Common::EnumMap<ExpansionInterface::EXIDeviceType, ExpansionInterface::MAX_SLOT> exi_device{};
   int memcard_size_override = -1;
 

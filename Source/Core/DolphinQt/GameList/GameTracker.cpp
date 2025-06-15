@@ -37,7 +37,7 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
 
   connect(qApp, &QApplication::aboutToQuit, this, [this] {
     m_processing_halted = true;
-    m_load_thread.Shutdown(true);
+    m_load_thread.StopAndCancel();
   });
   connect(this, &QFileSystemWatcher::directoryChanged, this, &GameTracker::UpdateDirectory);
   connect(this, &QFileSystemWatcher::fileChanged, this, &GameTracker::UpdateFile);
@@ -51,9 +51,8 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
     }
   });
 
-  connect(&Settings::Instance(), &Settings::MetadataRefreshRequested, this, [this] {
-    m_load_thread.EmplaceItem(Command{CommandType::UpdateMetadata, {}});
-  });
+  connect(&Settings::Instance(), &Settings::MetadataRefreshRequested, this,
+          [this] { m_load_thread.EmplaceItem(Command{CommandType::UpdateMetadata, {}}); });
 
   m_load_thread.Reset("GameList Tracker", [this](Command command) {
     switch (command.type)

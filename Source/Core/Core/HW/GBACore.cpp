@@ -12,6 +12,10 @@
 #include <mgba/core/timing.h>
 #include <mgba/internal/gb/gb.h>
 #include <mgba/internal/gba/gba.h>
+#include <mz.h>
+#include <mz_strm.h>
+#include <mz_zip.h>
+#include <mz_zip_rw.h>
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/ChunkFile.h"
@@ -88,21 +92,26 @@ static VFile* OpenROM_Archive(const char* path)
 static VFile* OpenROM_Zip(const char* path)
 {
   VFile* vf{};
-  unzFile zip = unzOpen(path);
-  if (!zip)
+  void* zip_reader = mz_zip_reader_create();
+  if (!zip_reader)
+    return {};
+
+  Common::ScopeGuard file_guard{[&] { mz_zip_reader_delete(&zip_reader); }};
+
+  if (mz_zip_reader_open_file(zip_reader, path) != MZ_OK)
     return nullptr;
+
   do
   {
-    unz_file_info info{};
-    if (unzGetCurrentFileInfo(zip, &info, nullptr, 0, nullptr, 0, nullptr, 0) != UNZ_OK ||
-        !info.uncompressed_size)
+    mz_zip_file* info;
+    if (mz_zip_reader_entry_get_info(zip_reader, &info) != MZ_OK || !info->uncompressed_size)
       continue;
 
-    std::vector<u8> buffer(info.uncompressed_size);
-    if (!Common::ReadFileFromZip(zip, &buffer))
+    std::vector<u8> buffer(info->uncompressed_size);
+    if (!Common::ReadFileFromZip(zip_reader, &buffer))
       continue;
 
-    vf = VFileMemChunk(buffer.data(), info.uncompressed_size);
+    vf = VFileMemChunk(buffer.data(), info->uncompressed_size);
     if (mCoreIsCompatible(vf) == mPLATFORM_GBA)
     {
       vf->seek(vf, 0, SEEK_SET);
@@ -111,8 +120,7 @@ static VFile* OpenROM_Zip(const char* path)
 
     vf->close(vf);
     vf = nullptr;
-  } while (unzGoToNextFile(zip) == UNZ_OK);
-  unzClose(zip);
+  } while (mz_zip_reader_goto_next_entry(zip_reader) != MZ_END_OF_LIST);
   return vf;
 }
 

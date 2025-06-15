@@ -14,7 +14,6 @@
 
 #include "Common/Config/Config.h"
 #include "Core/Config/MainSettings.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 
 bool NKitWarningDialog::ShowUnlessDisabled(QWidget* parent)
@@ -23,14 +22,12 @@ bool NKitWarningDialog::ShowUnlessDisabled(QWidget* parent)
     return true;
 
   NKitWarningDialog dialog(parent);
-  SetQWidgetWindowDecorations(&dialog);
   return dialog.exec() == QDialog::Accepted;
 }
 
 NKitWarningDialog::NKitWarningDialog(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("NKit Warning"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
   setWindowIcon(Resources::GetAppIcon());
 
   QVBoxLayout* main_layout = new QVBoxLayout;

@@ -8,6 +8,7 @@
 #include <cstring>
 #include <functional>
 #include <mutex>
+#include <optional>
 #include <queue>
 #include <utility>
 #include <variant>
@@ -34,6 +35,7 @@
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
+#include "Common/TimeUtil.h"
 #include "Common/Version.h"
 
 #include "Core/AchievementManager.h"
@@ -82,7 +84,6 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
 
-#include "VideoCommon/Assets/CustomAssetLoader.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/FrameDumper.h"
@@ -278,7 +279,7 @@ void Stop(Core::System& system)  // - Hammertime!
 
   s_state.store(State::Stopping);
 
-  CallOnStateChangedCallbacks(State::Stopping);
+  NotifyStateChanged(State::Stopping);
 
   // Dump left over jobs
   HostDispatchJobs(system);
@@ -467,11 +468,11 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
 static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot,
                       WindowSystemInfo wsi)
 {
-  CallOnStateChangedCallbacks(State::Starting);
+  NotifyStateChanged(State::Starting);
   Common::ScopeGuard flag_guard{[] {
     s_state.store(State::Uninitialized);
 
-    CallOnStateChangedCallbacks(State::Uninitialized);
+    NotifyStateChanged(State::Uninitialized);
 
     INFO_LOG_FMT(CONSOLE, "Stop\t\t---- Shutdown complete ----");
   }};
@@ -505,14 +506,13 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
                         Config::Get(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC);
   if (sync_sd_folder)
   {
-    sync_sd_folder =
-        Common::SyncSDFolderToSDImage([]() { return false; }, Core::WantsDeterminism());
+    sync_sd_folder = Common::SyncSDFolderToSDImage([] { return false; }, Core::WantsDeterminism());
   }
 
   Common::ScopeGuard sd_folder_sync_guard{[sync_sd_folder] {
     if (sync_sd_folder && Config::Get(Config::MAIN_ALLOW_SD_WRITES))
     {
-      const bool sync_ok = Common::SyncSDImageToSDFolder([]() { return false; });
+      const bool sync_ok = Common::SyncSDImageToSDFolder([] { return false; });
       if (!sync_ok)
       {
         PanicAlertFmtT(
@@ -527,9 +527,6 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   // Wiimote input config is loaded in OnESTitleChanged
 
   FreeLook::LoadInputConfig();
-
-  system.GetCustomAssetLoader().Init();
-  Common::ScopeGuard asset_loader_guard([&system] { system.GetCustomAssetLoader().Shutdown(); });
 
   system.GetMovie().Init(*boot);
   Common::ScopeGuard movie_guard([&system] { system.GetMovie().Shutdown(); });
@@ -589,7 +586,7 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   system.GetPowerPC().SetMode(PowerPC::CoreMode::Interpreter);
 
   // Determine the CPU thread function
-  void (*cpuThreadFunc)(Core::System & system, const std::optional<std::string>& savestate_path,
+  void (*cpuThreadFunc)(Core::System& system, const std::optional<std::string>& savestate_path,
                         bool delete_savestate);
   if (std::holds_alternative<BootParameters::DFF>(boot->parameters))
     cpuThreadFunc = FifoPlayerThread;
@@ -711,7 +708,7 @@ void SetState(Core::System& system, State state, bool report_state_change,
   // Certain callers only change the state momentarily. Sending a callback for them causes
   // unwanted updates, such as the Pause/Play button flickering between states on frame advance.
   if (report_state_change)
-    CallOnStateChangedCallbacks(GetState(system));
+    NotifyStateChanged(GetState(system));
 }
 
 State GetState(Core::System& system)
@@ -737,15 +734,17 @@ static std::string GenerateScreenshotFolderPath()
   return path;
 }
 
-static std::string GenerateScreenshotName()
+static std::optional<std::string> GenerateScreenshotName()
 {
   // append gameId, path only contains the folder here.
   const std::string path_prefix =
       GenerateScreenshotFolderPath() + SConfig::GetInstance().GetGameID();
 
   const std::time_t cur_time = std::time(nullptr);
-  const std::string base_name =
-      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}", path_prefix, fmt::localtime(cur_time));
+  const auto local_time = Common::LocalTime(cur_time);
+  if (!local_time)
+    return std::nullopt;
+  const std::string base_name = fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}", path_prefix, *local_time);
 
   // First try a filename without any suffixes, if already exists then append increasing numbers
   std::string name = fmt::format("{}.png", base_name);
@@ -761,7 +760,9 @@ static std::string GenerateScreenshotName()
 void SaveScreenShot()
 {
   const Core::CPUThreadGuard guard(Core::System::GetInstance());
-  g_frame_dumper->SaveScreenshot(GenerateScreenshotName());
+  std::optional<std::string> name = GenerateScreenshotName();
+  if (name)
+    g_frame_dumper->SaveScreenshot(*name);
 }
 
 void SaveScreenShot(std::string_view name)
@@ -809,7 +810,8 @@ static bool PauseAndLock(Core::System& system, bool do_lock, bool unpause_on_unl
   return was_unpaused;
 }
 
-void RunOnCPUThread(Core::System& system, std::function<void()> function, bool wait_for_completion)
+void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> function,
+                    bool wait_for_completion)
 {
   // If the CPU thread is not running, assume there is no active CPU thread we can race against.
   if (!IsRunning(system) || IsCPUThread())
@@ -826,7 +828,7 @@ void RunOnCPUThread(Core::System& system, std::function<void()> function, bool w
   {
     // Trigger the event after executing the function.
     s_cpu_thread_job_finished.Reset();
-    system.GetCPU().AddCPUThreadJob([&function]() {
+    system.GetCPU().AddCPUThreadJob([&function] {
       function();
       s_cpu_thread_job_finished.Set();
     });
@@ -877,7 +879,7 @@ void Callback_NewField(Core::System& system)
     {
       s_frame_step = false;
       system.GetCPU().Break();
-      CallOnStateChangedCallbacks(Core::GetState(system));
+      NotifyStateChanged(Core::GetState(system));
     }
   }
 
@@ -942,13 +944,14 @@ bool RemoveOnStateChangedCallback(int* handle)
   return false;
 }
 
-void CallOnStateChangedCallbacks(Core::State state)
+void NotifyStateChanged(Core::State state)
 {
   for (const StateChangedCallbackFunc& on_state_changed_callback : s_on_state_changed_callbacks)
   {
     if (on_state_changed_callback)
       on_state_changed_callback(state);
   }
+  g_perf_metrics.OnEmulationStateChanged(state);
 }
 
 void UpdateWantDeterminism(Core::System& system, bool initial)

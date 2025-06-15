@@ -31,7 +31,7 @@ public:
   CachedInterpreter(CachedInterpreter&&) = delete;
   CachedInterpreter& operator=(const CachedInterpreter&) = delete;
   CachedInterpreter& operator=(CachedInterpreter&&) = delete;
-  ~CachedInterpreter();
+  ~CachedInterpreter() override;
 
   void Init() override;
   void Shutdown() override;

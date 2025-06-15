@@ -310,7 +310,8 @@ private:
   template <XCheckTLBFlag flag, bool never_translate = false>
   void WriteToHardware(u32 em_address, const u32 data, const u32 size);
   template <XCheckTLBFlag flag>
-  bool IsRAMAddress(u32 address, bool translate);
+  bool IsEffectiveRAMAddress(u32 address);
+  bool IsPhysicalRAMAddress(u32 address) const;
 
   template <typename T>
   static std::optional<ReadResult<T>> HostTryReadUX(const Core::CPUThreadGuard& guard,

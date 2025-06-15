@@ -42,7 +42,6 @@
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 
 using namespace ExpansionInterface;
 
@@ -98,7 +97,6 @@ GCMemcardManager::GCMemcardManager(QWidget* parent) : QDialog(parent)
   resize(650, 500);
 
   setWindowTitle(tr("GameCube Memory Card Manager"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 GCMemcardManager::~GCMemcardManager() = default;
@@ -696,7 +694,6 @@ void GCMemcardManager::FixChecksums()
 void GCMemcardManager::CreateNewCard(Slot slot)
 {
   GCMemcardCreateNewDialog dialog(this);
-  SetQWidgetWindowDecorations(&dialog);
   if (dialog.exec() == QDialog::Accepted)
     m_slot_file_edit[slot]->setText(QString::fromStdString(dialog.GetMemoryCardPath()));
 }

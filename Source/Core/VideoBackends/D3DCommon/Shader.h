@@ -13,7 +13,7 @@ namespace D3DCommon
 class Shader : public AbstractShader
 {
 public:
-  virtual ~Shader() override;
+  ~Shader() override;
 
   const BinaryData& GetByteCode() const { return m_bytecode; }
 

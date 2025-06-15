@@ -12,26 +12,26 @@
 
 #include "Common/Config/Config.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 
 #include "DolphinQt/Config/Graphics/AdvancedWidget.h"
 #include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
 #include "DolphinQt/Config/Graphics/GeneralWidget.h"
 #include "DolphinQt/Config/Graphics/HacksWidget.h"
 #include "DolphinQt/MainWindow.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 #include "VideoCommon/VideoBackendBase.h"
-#include "VideoCommon/VideoConfig.h"
 
 GraphicsWindow::GraphicsWindow(MainWindow* parent) : QDialog(parent), m_main_window(parent)
 {
   CreateMainLayout();
 
   setWindowTitle(tr("Graphics"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
+
+  QtUtils::AdjustSizeWithinScreen(this);
 }
 
 void GraphicsWindow::CreateMainLayout()
@@ -52,10 +52,10 @@ void GraphicsWindow::CreateMainLayout()
 
   connect(general_widget, &GeneralWidget::BackendChanged, this, &GraphicsWindow::OnBackendChanged);
 
-  QWidget* const wrapped_general = GetWrappedWidget(general_widget, this, 50, 100);
-  QWidget* const wrapped_enhancements = GetWrappedWidget(enhancements_widget, this, 50, 100);
-  QWidget* const wrapped_hacks = GetWrappedWidget(hacks_widget, this, 50, 100);
-  QWidget* const wrapped_advanced = GetWrappedWidget(advanced_widget, this, 50, 100);
+  QWidget* const wrapped_general = GetWrappedWidget(general_widget);
+  QWidget* const wrapped_enhancements = GetWrappedWidget(enhancements_widget);
+  QWidget* const wrapped_hacks = GetWrappedWidget(hacks_widget);
+  QWidget* const wrapped_advanced = GetWrappedWidget(advanced_widget);
 
   tab_widget->addTab(wrapped_general, tr("General"));
   tab_widget->addTab(wrapped_enhancements, tr("Enhancements"));

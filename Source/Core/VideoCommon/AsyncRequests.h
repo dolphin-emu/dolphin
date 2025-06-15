@@ -10,6 +10,7 @@
 #include <queue>
 
 #include "Common/Flag.h"
+#include "Common/Functional.h"
 
 struct EfbPokeData;
 class PointerWrap;
@@ -60,7 +61,7 @@ public:
   static AsyncRequests* GetInstance() { return &s_singleton; }
 
 private:
-  using Event = std::function<void()>;
+  using Event = Common::MoveOnlyFunction<void()>;
 
   void QueueEvent(Event&& event);
 

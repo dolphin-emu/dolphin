@@ -19,7 +19,7 @@ class ThreadWidget : public QDockWidget
   Q_OBJECT
 public:
   explicit ThreadWidget(QWidget* parent = nullptr);
-  ~ThreadWidget();
+  ~ThreadWidget() override;
 
 signals:
   void RequestBreakpoint(u32 addr);

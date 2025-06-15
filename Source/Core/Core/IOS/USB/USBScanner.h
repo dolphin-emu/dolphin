@@ -41,6 +41,7 @@ private:
 
   bool UpdateDevices();
   bool AddNewDevices(DeviceMap* new_devices) const;
+  static void WakeupSantrollerDevice(libusb_device* device);
   static void AddEmulatedDevices(DeviceMap* new_devices);
   static void AddDevice(std::unique_ptr<USB::Device> device, DeviceMap* new_devices);
 

@@ -31,7 +31,7 @@ bool InitializeGlslang()
     return false;
   }
 
-  std::atexit([]() { glslang::FinalizeProcess(); });
+  std::atexit([] { glslang::FinalizeProcess(); });
 
   glslang_initialized = true;
   return true;

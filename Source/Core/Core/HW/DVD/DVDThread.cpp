@@ -5,20 +5,15 @@
 
 #include <map>
 #include <memory>
-#include <mutex>
 #include <optional>
-#include <thread>
 #include <utility>
 #include <vector>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Event.h"
-#include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/SPSCQueue.h"
-#include "Common/Thread.h"
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
@@ -46,59 +41,36 @@ void DVDThread::Start()
 {
   m_finish_read = m_system.GetCoreTiming().RegisterEvent("FinishReadDVDThread", GlobalFinishRead);
 
-  m_request_queue_expanded.Reset();
-  m_result_queue_expanded.Reset();
-  m_request_queue.Clear();
-  m_result_queue.Clear();
-
   // This is reset on every launch for determinism, but it doesn't matter
   // much, because this will never get exposed to the emulated game.
   m_next_id = 0;
 
-  StartDVDThread();
-}
-
-void DVDThread::StartDVDThread()
-{
-  ASSERT(!m_dvd_thread.joinable());
-  m_dvd_thread_exiting.Clear();
-  m_dvd_thread = std::thread(&DVDThread::DVDThreadMain, this);
+  m_dvd_thread.Reset("DVD thread", std::bind_front(&DVDThread::ProcessReadRequest, this));
 }
 
 void DVDThread::Stop()
 {
-  StopDVDThread();
+  m_dvd_thread.Cancel();
+  m_dvd_thread.Shutdown();
+
+  m_result_queue.Clear();
+  m_result_map.clear();
+
   m_disc.reset();
-}
-
-void DVDThread::StopDVDThread()
-{
-  ASSERT(m_dvd_thread.joinable());
-
-  // By setting dvd_thread_exiting, we ask the DVD thread to cleanly exit.
-  // In case the request queue is empty, we need to set request_queue_expanded
-  // so that the DVD thread will wake up and check dvd_thread_exiting.
-  m_dvd_thread_exiting.Set();
-  m_request_queue_expanded.Set();
-
-  m_dvd_thread.join();
 }
 
 void DVDThread::DoState(PointerWrap& p)
 {
-  // By waiting for the DVD thread to be done working, we ensure
-  // that request_queue will be empty and that the DVD thread
-  // won't be touching anything while this function runs.
+  // Ensure all requests are completed with results Push'd to m_result_queue.
   WaitUntilIdle();
 
   // Move all results from result_queue to result_map because
-  // PointerWrap::Do supports std::map but not Common::SPSCQueue.
+  // PointerWrap::Do supports std::map but not Common::WaitableSPSCQueue.
   // This won't affect the behavior of FinishRead.
   ReadResult result;
   while (m_result_queue.Pop(result))
     m_result_map.emplace(result.first.id, std::move(result));
 
-  // Both queues are now empty, so we don't need to savestate them.
   p.Do(m_result_map);
   p.Do(m_next_id);
 
@@ -202,11 +174,7 @@ void DVDThread::WaitUntilIdle()
 {
   ASSERT(Core::IsCPUThread());
 
-  while (!m_request_queue.Empty())
-    m_result_queue_expanded.Wait();
-
-  StopDVDThread();
-  StartDVDThread();
+  m_dvd_thread.WaitForCompletion();
 }
 
 void DVDThread::StartRead(u64 dvd_offset, u32 length, const DiscIO::Partition& partition,
@@ -246,9 +214,7 @@ void DVDThread::StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_
   request.time_started_ticks = core_timing.GetTicks();
   request.realtime_started_us = Common::Timer::NowUs();
 
-  m_request_queue.Push(std::move(request));
-  m_request_queue_expanded.Set();
-
+  m_dvd_thread.Push(std::move(request));
   core_timing.ScheduleEvent(ticks_until_completion, m_finish_read, id);
 }
 
@@ -280,13 +246,12 @@ void DVDThread::FinishRead(u64 id, s64 cycles_late)
   {
     while (true)
     {
-      while (!m_result_queue.Pop(result))
-        m_result_queue_expanded.Wait();
-
+      m_result_queue.WaitForData();
+      m_result_queue.Pop(result);
       if (result.first.id == id)
         break;
-      else
-        m_result_map.emplace(result.first.id, std::move(result));
+
+      m_result_map.emplace(result.first.id, std::move(result));
     }
   }
   // We have now obtained the right ReadResult.
@@ -328,34 +293,16 @@ void DVDThread::FinishRead(u64 id, s64 cycles_late)
   dvd_interface.FinishExecutingCommand(request.reply_type, interrupt, cycles_late, buffer);
 }
 
-void DVDThread::DVDThreadMain()
+void DVDThread::ProcessReadRequest(ReadRequest&& request)
 {
-  Common::SetCurrentThreadName("DVD thread");
+  m_file_logger.Log(*m_disc, request.partition, request.dvd_offset);
 
-  while (true)
-  {
-    m_request_queue_expanded.Wait();
+  std::vector<u8> buffer(request.length);
+  if (!m_disc->Read(request.dvd_offset, request.length, buffer.data(), request.partition))
+    buffer.resize(0);
 
-    if (m_dvd_thread_exiting.IsSet())
-      return;
+  request.realtime_done_us = Common::Timer::NowUs();
 
-    ReadRequest request;
-    while (m_request_queue.Pop(request))
-    {
-      m_file_logger.Log(*m_disc, request.partition, request.dvd_offset);
-
-      std::vector<u8> buffer(request.length);
-      if (!m_disc->Read(request.dvd_offset, request.length, buffer.data(), request.partition))
-        buffer.resize(0);
-
-      request.realtime_done_us = Common::Timer::NowUs();
-
-      m_result_queue.Push(ReadResult(std::move(request), std::move(buffer)));
-      m_result_queue_expanded.Set();
-
-      if (m_dvd_thread_exiting.IsSet())
-        return;
-    }
-  }
+  m_result_queue.Push(ReadResult(std::move(request), std::move(buffer)));
 }
 }  // namespace DVD

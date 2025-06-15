@@ -40,7 +40,7 @@ public:
 
   explicit NetPlayDialog(const GameListModel& game_list_model,
                          StartGameCallback start_game_callback, QWidget* parent = nullptr);
-  ~NetPlayDialog();
+  ~NetPlayDialog() override;
 
   void show(std::string nickname, bool use_traversal);
   void reject() override;

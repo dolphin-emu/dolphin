@@ -26,13 +26,11 @@
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 NetPlayBrowser::NetPlayBrowser(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("NetPlay Session Browser"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   CreateWidgets();
   RestoreSettings();
@@ -289,7 +287,7 @@ void NetPlayBrowser::accept()
 
   const int index = m_table_widget->selectedItems()[0]->row();
 
-  NetPlaySession& session = m_sessions[index];
+  const NetPlaySession& session = m_sessions[index];
 
   std::string server_id = session.server_id;
 
@@ -297,19 +295,17 @@ void NetPlayBrowser::accept()
   {
     QInputDialog dialog(this);
 
-    dialog.setWindowFlags(dialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
     dialog.setWindowTitle(tr("Enter password"));
     dialog.setLabelText(tr("This session requires a password:"));
     dialog.setWindowModality(Qt::WindowModal);
     dialog.setTextEchoMode(QLineEdit::Password);
 
-    SetQWidgetWindowDecorations(&dialog);
     if (dialog.exec() != QDialog::Accepted)
       return;
 
     const std::string password = dialog.textValue().toStdString();
 
-    auto decrypted_id = session.DecryptID(password);
+    const auto decrypted_id = session.DecryptID(password);
 
     if (!decrypted_id)
     {

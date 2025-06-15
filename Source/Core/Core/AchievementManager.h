@@ -23,6 +23,7 @@
 #include <rcheevos/include/rc_api_runtime.h>
 #include <rcheevos/include/rc_api_user.h>
 #include <rcheevos/include/rc_client.h>
+#include <rcheevos/include/rc_hash.h>
 #include <rcheevos/include/rc_runtime.h>
 
 #include "Common/CommonTypes.h"
@@ -75,6 +76,9 @@ public:
   using RichPresence = std::array<char, RP_SIZE>;
   using Badge = VideoCommon::CustomTextureData::ArraySlice::Level;
   static constexpr size_t MAX_DISPLAYED_LBOARDS = 4;
+  // This is hardcoded to 24MiB because rcheevos currently hardcodes it to 24MiB.
+  static constexpr u32 MEM1_SIZE = 0x01800000;
+  static constexpr u32 MEM2_START = 0x10000000;
 
   static constexpr std::string_view DEFAULT_PLAYER_BADGE_FILENAME = "achievements_player.png";
   static constexpr std::string_view DEFAULT_GAME_BADGE_FILENAME = "achievements_game.png";
@@ -85,8 +89,8 @@ public:
   static constexpr std::string_view BLUE = "#0B71C1";
   static constexpr std::string_view APPROVED_LIST_FILENAME = "ApprovedInis.json";
   static const inline Common::SHA1::Digest APPROVED_LIST_HASH = {
-      0xE1, 0x29, 0xD1, 0x33, 0x4D, 0xF2, 0xF8, 0xA8, 0x4E, 0xCA,
-      0xF6, 0x87, 0xE6, 0xEC, 0xEC, 0xB3, 0x18, 0x69, 0x34, 0x45};
+      0x6D, 0x91, 0xF5, 0xC1, 0xE2, 0x4C, 0xC3, 0x39, 0xF5, 0x7F,
+      0xEC, 0xA9, 0x8C, 0xA9, 0xBD, 0x61, 0x28, 0x54, 0x11, 0x62};
 
   struct LeaderboardEntry
   {
@@ -122,7 +126,7 @@ public:
   void SetUpdateCallback(UpdateCallback callback);
   void Login(const std::string& password);
   bool HasAPIToken() const;
-  void LoadGame(const std::string& file_path, const DiscIO::Volume* volume);
+  void LoadGame(const DiscIO::Volume* volume);
   bool IsGameLoaded() const;
   void SetBackgroundExecutionAllowed(bool allowed);
 
@@ -156,7 +160,6 @@ public:
   const Badge& GetPlayerBadge() const;
   std::string_view GetGameDisplayName() const;
   rc_client_t* GetClient();
-  rc_api_fetch_game_data_response_t* GetGameData();
   const Badge& GetGameBadge() const;
   const Badge& GetAchievementBadge(AchievementId id, bool locked) const;
   const LeaderboardStatus* GetLeaderboardInfo(AchievementId leaderboard_id);
@@ -172,8 +175,8 @@ public:
   void SetDevMenuUpdateCallback(std::function<void(void)> callback)
   {
     m_dev_menu_callback = callback;
-  };
-  bool CheckForModifications() { return rc_client_raintegration_has_modifications(m_client); };
+  }
+  bool CheckForModifications() { return rc_client_raintegration_has_modifications(m_client); }
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
   void DoState(PointerWrap& p);
@@ -193,12 +196,13 @@ private:
 
   static picojson::value LoadApprovedList();
 
-  static void* FilereaderOpenByFilepath(const char* path_utf8);
-  static void* FilereaderOpenByVolume(const char* path_utf8);
+  static void* FilereaderOpen(const char* path_utf8);
   static void FilereaderSeek(void* file_handle, int64_t offset, int origin);
   static int64_t FilereaderTell(void* file_handle);
   static size_t FilereaderRead(void* file_handle, void* buffer, size_t requested_bytes);
   static void FilereaderClose(void* file_handle);
+
+  static u32 FindConsoleID(const DiscIO::Platform& platform);
 
   void LoadDefaultBadges();
   static void LoginCallback(int result, const char* error_message, rc_client_t* client,
@@ -273,9 +277,6 @@ private:
   std::atomic_bool m_background_execution_allowed = true;
   Badge m_player_badge;
   Hash m_game_hash{};
-  u32 m_game_id = 0;
-  rc_api_fetch_game_data_response_t m_game_data{};
-  bool m_is_game_loaded = false;
   Badge m_game_badge;
   bool m_display_welcome_message = false;
   std::unordered_map<AchievementId, Badge> m_unlocked_badges;
@@ -299,8 +300,8 @@ private:
   std::string m_title_estimate;
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
-  Common::WorkQueueThread<std::function<void()>> m_queue;
-  Common::WorkQueueThread<std::function<void()>> m_image_queue;
+  Common::AsyncWorkThread m_queue;
+  Common::AsyncWorkThread m_image_queue;
   mutable std::recursive_mutex m_lock;
   std::recursive_mutex m_filereader_lock;
 };  // class AchievementManager
@@ -341,15 +342,15 @@ public:
                                         u16 revision)
   {
     return true;
-  };
+  }
 
   constexpr bool CheckApprovedARCode(const ActionReplay::ARCode& code, const std::string& game_id,
                                      u16 revision)
   {
     return true;
-  };
+  }
 
-  constexpr void LoadGame(const std::string&, const DiscIO::Volume*) {}
+  constexpr void LoadGame(const DiscIO::Volume*) {}
 
   constexpr void SetBackgroundExecutionAllowed(bool allowed) {}
 

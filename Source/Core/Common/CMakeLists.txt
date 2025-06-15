@@ -64,12 +64,15 @@ add_library(common
   FatFsUtil.h
   FileSearch.cpp
   FileSearch.h
+  FilesystemWatcher.cpp
+  FilesystemWatcher.h
   FileUtil.cpp
   FileUtil.h
   FixedSizeQueue.h
   Flag.h
   FloatUtils.cpp
   FloatUtils.h
+  Functional.h
   FormatUtil.h
   FPURoundMode.h
   GekkoDisassembler.cpp
@@ -175,7 +178,7 @@ PUBLIC
   enet::enet
   fmt::fmt
   MbedTLS::mbedtls
-  minizip::minizip
+  minizip-ng::minizip-ng
   sfml-network
 
 PRIVATE
@@ -183,6 +186,7 @@ PRIVATE
   FatFs
   Iconv::Iconv
   spng::spng
+  watcher
   ${VTUNE_LIBRARIES}
 )
 

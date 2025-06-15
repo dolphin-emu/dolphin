@@ -41,7 +41,7 @@ class GCMemcardManager : public QDialog
   Q_OBJECT
 public:
   explicit GCMemcardManager(QWidget* parent = nullptr);
-  ~GCMemcardManager();
+  ~GCMemcardManager() override;
 
   static QString GetErrorMessagesForErrorCode(const Memcard::GCMemcardErrorCode& code);
   static QString GetErrorMessageForErrorCode(Memcard::ReadSavefileErrorCode code);

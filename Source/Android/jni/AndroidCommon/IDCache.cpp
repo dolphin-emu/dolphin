@@ -116,7 +116,15 @@ static jmethodID s_core_device_control_constructor;
 static jclass s_input_detector_class;
 static jfieldID s_input_detector_pointer;
 
+static jclass s_permission_handler_class;
+static jmethodID s_permission_handler_has_record_audio_permission;
+static jmethodID s_permission_handler_request_record_audio_permission;
+
 static jmethodID s_runnable_run;
+
+static jclass s_audio_utils_class;
+static jmethodID s_audio_utils_get_sample_rate;
+static jmethodID s_audio_utils_get_frames_per_buffer;
 
 namespace IDCache
 {
@@ -538,9 +546,39 @@ jfieldID GetInputDetectorPointer()
   return s_input_detector_pointer;
 }
 
+jclass GetPermissionHandlerClass()
+{
+  return s_permission_handler_class;
+}
+
+jmethodID GetPermissionHandlerHasRecordAudioPermission()
+{
+  return s_permission_handler_has_record_audio_permission;
+}
+
+jmethodID GetPermissionHandlerRequestRecordAudioPermission()
+{
+  return s_permission_handler_request_record_audio_permission;
+}
+
 jmethodID GetRunnableRun()
 {
   return s_runnable_run;
+}
+
+jclass GetAudioUtilsClass()
+{
+  return s_audio_utils_class;
+}
+
+jmethodID GetAudioUtilsGetSampleRate()
+{
+  return s_audio_utils_get_sample_rate;
+}
+
+jmethodID GetAudioUtilsGetFramesPerBuffer()
+{
+  return s_audio_utils_get_frames_per_buffer;
 }
 
 }  // namespace IDCache
@@ -765,9 +803,26 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_input_detector_pointer = env->GetFieldID(input_detector_class, "pointer", "J");
   env->DeleteLocalRef(input_detector_class);
 
+  const jclass permission_handler_class =
+      env->FindClass("org/dolphinemu/dolphinemu/utils/PermissionsHandler");
+  s_permission_handler_class =
+      reinterpret_cast<jclass>(env->NewGlobalRef(permission_handler_class));
+  s_permission_handler_has_record_audio_permission = env->GetStaticMethodID(
+      permission_handler_class, "hasRecordAudioPermission", "(Landroid/content/Context;)Z");
+  s_permission_handler_request_record_audio_permission = env->GetStaticMethodID(
+      permission_handler_class, "requestRecordAudioPermission", "(Landroid/app/Activity;)V");
+  env->DeleteLocalRef(permission_handler_class);
+
   const jclass runnable_class = env->FindClass("java/lang/Runnable");
   s_runnable_run = env->GetMethodID(runnable_class, "run", "()V");
   env->DeleteLocalRef(runnable_class);
+
+  const jclass audio_utils_class = env->FindClass("org/dolphinemu/dolphinemu/utils/AudioUtils");
+  s_audio_utils_class = reinterpret_cast<jclass>(env->NewGlobalRef(audio_utils_class));
+  s_audio_utils_get_sample_rate = env->GetStaticMethodID(audio_utils_class, "getSampleRate", "()I");
+  s_audio_utils_get_frames_per_buffer =
+      env->GetStaticMethodID(audio_utils_class, "getFramesPerBuffer", "()I");
+  env->DeleteLocalRef(audio_utils_class);
 
   return JNI_VERSION;
 }
@@ -804,5 +859,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_core_device_class);
   env->DeleteGlobalRef(s_core_device_control_class);
   env->DeleteGlobalRef(s_input_detector_class);
+  env->DeleteGlobalRef(s_permission_handler_class);
+  env->DeleteGlobalRef(s_audio_utils_class);
 }
 }

@@ -217,7 +217,7 @@ void Interpreter::SingleStep()
   }
 }
 
-//#define SHOW_HISTORY
+// #define SHOW_HISTORY
 #ifdef SHOW_HISTORY
 static std::vector<u32> s_pc_vec;
 static std::vector<u32> s_pc_block_vec;

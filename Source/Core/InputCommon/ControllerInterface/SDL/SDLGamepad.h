@@ -362,11 +362,15 @@ public:
     const int touchpad_index = 0;
     const int finger_index = 0;
 
-    Uint8 state = 0;
-    SDL_GameControllerGetTouchpadFinger(m_gamecontroller, touchpad_index, finger_index, &state,
-                                        &m_touchpad_x, &m_touchpad_y, &m_touchpad_pressure);
-    m_touchpad_x = m_touchpad_x * 2 - 1;
-    m_touchpad_y = m_touchpad_y * 2 - 1;
+    if (SDL_GameControllerGetNumTouchpads(m_gamecontroller) > touchpad_index &&
+        SDL_GameControllerGetNumTouchpadFingers(m_gamecontroller, touchpad_index) > finger_index)
+    {
+      Uint8 state = 0;
+      SDL_GameControllerGetTouchpadFinger(m_gamecontroller, touchpad_index, finger_index, &state,
+                                          &m_touchpad_x, &m_touchpad_y, &m_touchpad_pressure);
+      m_touchpad_x = m_touchpad_x * 2 - 1;
+      m_touchpad_y = m_touchpad_y * 2 - 1;
+    }
 
     return Core::DeviceRemoval::Keep;
   }

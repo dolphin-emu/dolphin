@@ -32,6 +32,7 @@
 #include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
 #include "DolphinQt/Config/Graphics/GeneralWidget.h"
 #include "DolphinQt/Config/Graphics/HacksWidget.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 #include "UICommon/GameFile.h"
@@ -87,7 +88,7 @@ GameConfigWidget::GameConfigWidget(const UICommon::GameFile& game) : m_game(game
   }
 
   // Fails to change font if it's directly called at this time. Is there a better workaround?
-  QTimer::singleShot(100, this, [this]() {
+  QTimer::singleShot(100, this, [this] {
     SetItalics();
     Config::OnConfigChanged();
   });
@@ -204,14 +205,11 @@ void GameConfigWidget::CreateWidgets()
 
   auto* gfx_tabs = new QTabWidget;
 
-  gfx_tabs->addTab(GetWrappedWidget(new GeneralWidget(this, m_layer.get()), this, 125, 100),
-                   tr("General"));
-  gfx_tabs->addTab(GetWrappedWidget(new EnhancementsWidget(this, m_layer.get()), this, 125, 100),
+  gfx_tabs->addTab(GetWrappedWidget(new GeneralWidget(this, m_layer.get())), tr("General"));
+  gfx_tabs->addTab(GetWrappedWidget(new EnhancementsWidget(this, m_layer.get())),
                    tr("Enhancements"));
-  gfx_tabs->addTab(GetWrappedWidget(new HacksWidget(this, m_layer.get()), this, 125, 100),
-                   tr("Hacks"));
-  gfx_tabs->addTab(GetWrappedWidget(new AdvancedWidget(this, m_layer.get()), this, 125, 100),
-                   tr("Advanced"));
+  gfx_tabs->addTab(GetWrappedWidget(new HacksWidget(this, m_layer.get())), tr("Hacks"));
+  gfx_tabs->addTab(GetWrappedWidget(new AdvancedWidget(this, m_layer.get())), tr("Advanced"));
   const int editor_index = tab_widget->addTab(advanced_widget, tr("Editor"));
   gfx_layout->addWidget(gfx_tabs);
 
@@ -259,18 +257,14 @@ void GameConfigWidget::CreateWidgets()
       "settings are disabled when the global graphics backend doesn't "
       "match the game setting.");
 
-  auto help_icon = style()->standardIcon(QStyle::SP_MessageBoxQuestion);
-  auto* help_label = new QLabel(tr("These settings override core Dolphin settings."));
-  help_label->setToolTip(help_msg);
-  auto help_label_icon = new QLabel();
-  help_label_icon->setPixmap(help_icon.pixmap(12, 12));
-  help_label_icon->setToolTip(help_msg);
-  auto* help_layout = new QHBoxLayout();
-  help_layout->addWidget(help_label);
-  help_layout->addWidget(help_label_icon);
-  help_layout->addStretch();
+  auto* const help_label = new QLabel(tr("These settings override core Dolphin settings."));
 
-  layout->addLayout(help_layout);
+  auto* const help_widget =
+      QtUtils::CreateIconWarning(this, QStyle::SP_MessageBoxQuestion, help_label);
+
+  help_widget->setToolTip(help_msg);
+
+  layout->addWidget(help_widget);
   layout->addWidget(tab_widget);
   setLayout(layout);
 }

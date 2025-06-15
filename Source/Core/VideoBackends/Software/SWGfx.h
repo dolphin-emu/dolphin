@@ -16,7 +16,7 @@ public:
   ~SWGfx() override;
 
   bool IsHeadless() const override;
-  virtual bool SupportsUtilityDrawing() const override;
+  bool SupportsUtilityDrawing() const override;
 
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config,
                                                  std::string_view name) override;

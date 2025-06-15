@@ -795,6 +795,20 @@ void Settings::SetUSBKeyboardConnected(bool connected)
   }
 }
 
+bool Settings::IsWiiSpeakMuted() const
+{
+  return Config::Get(Config::MAIN_WII_SPEAK_MUTED);
+}
+
+void Settings::SetWiiSpeakMuted(bool muted)
+{
+  if (IsWiiSpeakMuted() == muted)
+    return;
+
+  Config::SetBaseOrCurrent(Config::MAIN_WII_SPEAK_MUTED, muted);
+  emit WiiSpeakMuteChanged(muted);
+}
+
 void Settings::SetIsContinuouslyFrameStepping(bool is_stepping)
 {
   m_continuously_frame_stepping = is_stepping;

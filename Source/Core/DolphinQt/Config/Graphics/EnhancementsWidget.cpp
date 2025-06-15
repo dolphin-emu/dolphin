@@ -25,7 +25,6 @@
 #include "DolphinQt/Config/Graphics/PostProcessingConfigWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipPushButton.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 #include "VideoCommon/PostProcessing.h"
@@ -42,10 +41,10 @@ EnhancementsWidget::EnhancementsWidget(GraphicsWindow* parent)
 
   // BackendChanged is called by parent on window creation.
   connect(parent, &GraphicsWindow::BackendChanged, this, &EnhancementsWidget::OnBackendChanged);
-  connect(parent, &GraphicsWindow::UseFastTextureSamplingChanged, this, [this]() {
+  connect(parent, &GraphicsWindow::UseFastTextureSamplingChanged, this, [this] {
     m_texture_filtering_combo->setEnabled(ReadSetting(Config::GFX_HACK_FAST_TEXTURE_SAMPLING));
   });
-  connect(parent, &GraphicsWindow::UseGPUTextureDecodingChanged, this, [this]() {
+  connect(parent, &GraphicsWindow::UseGPUTextureDecodingChanged, this, [this] {
     m_arbitrary_mipmap_detection->setEnabled(!ReadSetting(Config::GFX_ENABLE_GPU_TEXTURE_DECODING));
   });
 }
@@ -629,7 +628,6 @@ void EnhancementsWidget::AddDescriptions()
 void EnhancementsWidget::ConfigureColorCorrection()
 {
   ColorCorrectionConfigWindow dialog(this);
-  SetQWidgetWindowDecorations(&dialog);
   dialog.exec();
 }
 
@@ -637,6 +635,5 @@ void EnhancementsWidget::ConfigurePostProcessingShader()
 {
   const std::string shader = ReadSetting(Config::GFX_ENHANCE_POST_SHADER);
   PostProcessingConfigWindow dialog(this, shader);
-  SetQWidgetWindowDecorations(&dialog);
   dialog.exec();
 }

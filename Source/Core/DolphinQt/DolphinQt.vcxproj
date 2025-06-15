@@ -68,7 +68,7 @@
     <ClCompile Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.cpp" />
     <ClCompile Include="Config\ControllerInterface\DualShockUDPClientWidget.cpp" />
     <ClCompile Include="Config\ControllerInterface\ServerStringValidator.cpp" />
-    <ClCompile Include="Config\ControllersWindow.cpp" />
+    <ClCompile Include="Config\ControllersPane.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />
     <ClCompile Include="Config\FreeLookWidget.cpp" />
     <ClCompile Include="Config\FreeLookWindow.cpp" />
@@ -157,6 +157,7 @@
     <ClCompile Include="Debugger\WatchWidget.cpp" />
     <ClCompile Include="DiscordHandler.cpp" />
     <ClCompile Include="DiscordJoinRequestDialog.cpp" />
+    <ClCompile Include="EmulatedUSB\WiiSpeakWindow.cpp" />
     <ClCompile Include="FIFO\FIFOAnalyzer.cpp" />
     <ClCompile Include="FIFO\FIFOPlayerWindow.cpp" />
     <ClCompile Include="GameList\GameList.cpp" />
@@ -195,6 +196,7 @@
     <ClCompile Include="QtUtils\FileOpenEventFilter.cpp" />
     <ClCompile Include="QtUtils\ImageConverter.cpp" />
     <ClCompile Include="QtUtils\ModalMessageBox.cpp" />
+    <ClCompile Include="QtUtils\NonAutodismissibleMenu.cpp" />
     <ClCompile Include="QtUtils\NonDefaultQPushButton.cpp" />
     <ClCompile Include="QtUtils\PartiallyClosableTabWidget.cpp" />
     <ClCompile Include="QtUtils\QtUtils.cpp" />
@@ -291,7 +293,7 @@
     <QtMoc Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.h" />
     <QtMoc Include="Config\ControllerInterface\DualShockUDPClientWidget.h" />
     <QtMoc Include="Config\ControllerInterface\ServerStringValidator.h" />
-    <QtMoc Include="Config\ControllersWindow.h" />
+    <QtMoc Include="Config\ControllersPane.h" />
     <QtMoc Include="Config\FilesystemWidget.h" />
     <QtMoc Include="Config\FreeLookWidget.h" />
     <QtMoc Include="Config\FreeLookWindow.h" />
@@ -374,6 +376,7 @@
     <QtMoc Include="Debugger\WatchWidget.h" />
     <QtMoc Include="DiscordHandler.h" />
     <QtMoc Include="DiscordJoinRequestDialog.h" />
+    <QtMoc Include="EmulatedUSB\WiiSpeakWindow.h" />
     <QtMoc Include="FIFO\FIFOAnalyzer.h" />
     <QtMoc Include="FIFO\FIFOPlayerWindow.h" />
     <QtMoc Include="GameList\GameList.h" />

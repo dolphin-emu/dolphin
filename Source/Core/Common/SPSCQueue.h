@@ -8,7 +8,8 @@
 
 #include <atomic>
 #include <cassert>
-#include <memory>
+
+#include "Common/TypeUtils.h"
 
 namespace Common
 {
@@ -38,7 +39,7 @@ public:
   template <typename... Args>
   void Emplace(Args&&... args)
   {
-    std::construct_at(&m_write_ptr->value.data, std::forward<Args>(args)...);
+    m_write_ptr->value.Construct(std::forward<Args>(args)...);
 
     Node* const new_ptr = new Node;
     m_write_ptr->next = new_ptr;
@@ -54,14 +55,14 @@ public:
   }
 
   // The following are only safe from the "consumer thread":
-  T& Front() { return m_read_ptr->value.data; }
-  const T& Front() const { return m_read_ptr->value.data; }
+  T& Front() { return m_read_ptr->value.Ref(); }
+  const T& Front() const { return m_read_ptr->value.Ref(); }
 
   void Pop()
   {
     assert(!Empty());
 
-    std::destroy_at(&Front());
+    m_read_ptr->value.Destroy();
 
     Node* const old_node = m_read_ptr;
     m_read_ptr = old_node->next;
@@ -94,14 +95,7 @@ public:
 private:
   struct Node
   {
-    // union allows value construction to be deferred until Push.
-    union Value
-    {
-      T data;
-      Value() {}
-      ~Value() {}
-    } value;
-
+    ManuallyConstructedValue<T> value;
     Node* next;
   };
 

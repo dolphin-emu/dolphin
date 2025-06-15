@@ -188,7 +188,8 @@ static bool HandleExtractPartition(const std::string& output, const std::string&
     return true;
   }
 
-  if (auto file_info = GetFileInfo(disc_volume, partition, single_file_path); file_info != nullptr)
+  const auto file_info = GetFileInfo(disc_volume, partition, single_file_path);
+  if (file_info != nullptr)
   {
     file.append("files/").append(single_file_path);
     File::CreateFullPath(file);

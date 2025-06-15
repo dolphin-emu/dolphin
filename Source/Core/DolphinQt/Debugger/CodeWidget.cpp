@@ -29,7 +29,6 @@
 #include "Core/System.h"
 #include "DolphinQt/Debugger/BranchWatchDialog.h"
 #include "DolphinQt/Host.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 static const QString BOX_SPLITTER_STYLESHEET = QStringLiteral(
@@ -187,11 +186,11 @@ void CodeWidget::ConnectWidgets()
   connect(m_search_address, &QLineEdit::textChanged, this, &CodeWidget::OnSearchAddress);
   connect(m_search_address, &QLineEdit::returnPressed, this, &CodeWidget::OnSearchAddress);
   connect(m_search_symbols, &QLineEdit::textChanged, this, &CodeWidget::OnSearchSymbols);
-  connect(m_search_calls, &QLineEdit::textChanged, this, [this]() {
+  connect(m_search_calls, &QLineEdit::textChanged, this, [this] {
     if (const Common::Symbol* symbol = m_ppc_symbol_db.GetSymbolFromAddr(m_code_view->GetAddress()))
       UpdateFunctionCalls(symbol);
   });
-  connect(m_search_callers, &QLineEdit::textChanged, this, [this]() {
+  connect(m_search_callers, &QLineEdit::textChanged, this, [this] {
     if (const Common::Symbol* symbol = m_ppc_symbol_db.GetSymbolFromAddr(m_code_view->GetAddress()))
       UpdateFunctionCallers(symbol);
   });
@@ -222,7 +221,6 @@ void CodeWidget::OnBranchWatchDialog()
     m_branch_watch_dialog = new BranchWatchDialog(m_system, m_system.GetPowerPC().GetBranchWatch(),
                                                   m_ppc_symbol_db, this, this);
   }
-  SetQWidgetWindowDecorations(m_branch_watch_dialog);
   m_branch_watch_dialog->show();
   m_branch_watch_dialog->raise();
   m_branch_watch_dialog->activateWindow();
@@ -567,8 +565,8 @@ void CodeWidget::StepOut()
   clock::time_point timeout = clock::now() + std::chrono::seconds(5);
 
   auto& power_pc = m_system.GetPowerPC();
-  auto& ppc_state = power_pc.GetPPCState();
   {
+    auto& ppc_state = power_pc.GetPPCState();
     Core::CPUThreadGuard guard(m_system);
 
     PowerPC::CoreMode old_mode = power_pc.GetMode();

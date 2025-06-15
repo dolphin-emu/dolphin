@@ -438,7 +438,7 @@ bool GameFile::ReadPNGBanner(const std::string& path)
     return false;
 
   GameBanner& banner = m_pending.custom_banner;
-  std::vector<u8> data_out;
+  Common::UniqueBuffer<u8> data_out;
   if (!Common::LoadPNG(png_data, &data_out, &banner.width, &banner.height))
     return false;
 

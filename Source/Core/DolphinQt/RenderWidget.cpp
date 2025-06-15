@@ -384,6 +384,10 @@ bool RenderWidget::event(QEvent* event)
     SetCursorLocked(false);
     break;
   case QEvent::MouseButtonPress:
+
+    // Grab focus to stop unwanted keyboard input UI interaction.
+    setFocus();
+
     if (isActiveWindow())
     {
       // Lock the cursor with any mouse button click (behave the same as window focus change).

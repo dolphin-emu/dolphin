@@ -597,13 +597,13 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
         SetupGCMemory(system, guard);
       }
 
-      AchievementManager::GetInstance().LoadGame(executable.path, nullptr);
-
       if (!executable.reader->LoadIntoMemory(system))
       {
         PanicAlertFmtT("Failed to load the executable to memory.");
         return false;
       }
+
+      AchievementManager::GetInstance().LoadGame(nullptr);
 
       SConfig::OnTitleDirectlyBooted(guard);
 
@@ -625,6 +625,8 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       if (!Boot_WiiWAD(system, wad))
         return false;
 
+      AchievementManager::GetInstance().LoadGame(&wad);
+
       SConfig::OnTitleDirectlyBooted(guard);
       return true;
     }
@@ -634,6 +636,8 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       SetDefaultDisc(system.GetDVDInterface());
       if (!BootNANDTitle(system, nand_title.id))
         return false;
+
+      AchievementManager::GetInstance().LoadGame(nullptr);
 
       SConfig::OnTitleDirectlyBooted(guard);
       return true;
@@ -661,6 +665,8 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
                 ipl.disc->auto_disc_change_paths);
       }
 
+      AchievementManager::GetInstance().LoadGame(nullptr);
+
       SConfig::OnTitleDirectlyBooted(guard);
       return true;
     }
@@ -668,6 +674,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
     bool operator()(const BootParameters::DFF& dff) const
     {
       NOTICE_LOG_FMT(BOOT, "Booting DFF: {}", dff.dff_path);
+      AchievementManager::GetInstance().LoadGame(nullptr);
       return system.GetFifoPlayer().Open(dff.dff_path);
     }
 

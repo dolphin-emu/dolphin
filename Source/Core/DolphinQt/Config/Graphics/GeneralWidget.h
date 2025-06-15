@@ -40,6 +40,7 @@ private:
   void BackendWarning();
 
   void CreateWidgets();
+  void ToggleCustomAspectRatio(int index);
   void ConnectWidgets();
   void AddDescriptions();
 

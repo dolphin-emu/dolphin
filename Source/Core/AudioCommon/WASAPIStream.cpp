@@ -8,7 +8,6 @@
 // clang-format off
 #include <Audioclient.h>
 #include <mmdeviceapi.h>
-#include <devpkey.h>
 #include <functiondiscoverykeys_devpkey.h>
 #include <wil/resource.h>
 // clang-format on
@@ -159,8 +158,9 @@ ComPtr<IMMDevice> WASAPIStream::GetDeviceByName(std::string_view name)
 bool WASAPIStream::Init()
 {
   ASSERT(m_enumerator == nullptr);
-  HRESULT result = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
-                                    IID_PPV_ARGS(m_enumerator.GetAddressOf()));
+  HRESULT const result =
+      CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
+                       IID_PPV_ARGS(m_enumerator.GetAddressOf()));
 
   if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
     return false;

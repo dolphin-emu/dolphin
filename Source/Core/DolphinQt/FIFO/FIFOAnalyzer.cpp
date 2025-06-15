@@ -20,6 +20,7 @@
 #include <QTreeWidgetItem>
 
 #include "Common/Assert.h"
+#include "Common/EnumUtils.h"
 #include "Common/Swap.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 
@@ -46,7 +47,7 @@ FIFOAnalyzer::FIFOAnalyzer(FifoPlayer& fifo_player) : m_fifo_player(fifo_player)
 
   UpdateTree();
 
-  auto& settings = Settings::GetQSettings();
+  const auto& settings = Settings::GetQSettings();
 
   m_object_splitter->restoreState(
       settings.value(QStringLiteral("fifoanalyzer/objectsplitter")).toByteArray());
@@ -146,7 +147,7 @@ void FIFOAnalyzer::UpdateTree()
 
   m_tree_widget->addTopLevelItem(recording_item);
 
-  auto* file = m_fifo_player.GetFile();
+  const auto* const file = m_fifo_player.GetFile();
 
   const u32 frame_count = file->GetFrameCount();
 
@@ -201,9 +202,9 @@ namespace
 class DetailCallback : public OpcodeDecoder::Callback
 {
 public:
-  explicit DetailCallback(CPState cpmem) : m_cpmem(cpmem) {}
+  explicit DetailCallback(const CPState& cpmem) : m_cpmem(cpmem) {}
 
-  OPCODE_CALLBACK(void OnCP(u8 command, u32 value))
+  OPCODE_CALLBACK(void OnCP(const u8 command, const u32 value))
   {
     // Note: No need to update m_cpmem as it already has the final value for this object
 
@@ -216,7 +217,7 @@ public:
                .arg(QString::fromStdString(name));
   }
 
-  OPCODE_CALLBACK(void OnXF(u16 address, u8 count, const u8* data))
+  OPCODE_CALLBACK(void OnXF(const u16 address, const u8 count, const u8* data))
   {
     const auto [name, desc] = GetXFTransferInfo(address, count, data);
     ASSERT(!name.empty());
@@ -235,7 +236,7 @@ public:
     text += QStringLiteral("  ") + QString::fromStdString(name);
   }
 
-  OPCODE_CALLBACK(void OnBP(u8 command, u32 value))
+  OPCODE_CALLBACK(void OnBP(const u8 command, const u32 value))
   {
     const auto [name, desc] = GetBPRegInfo(command, value);
     ASSERT(!name.empty());
@@ -245,15 +246,17 @@ public:
                .arg(value, 6, 16, QLatin1Char('0'))
                .arg(QString::fromStdString(name));
   }
-  OPCODE_CALLBACK(void OnIndexedLoad(CPArray array, u32 index, u16 address, u8 size))
+  OPCODE_CALLBACK(void OnIndexedLoad(const CPArray array, const u32 index, const u16 address,
+                                     const u8 size))
   {
     const auto [desc, written] = GetXFIndexedLoadInfo(array, index, address, size);
     text = QStringLiteral("LOAD INDX %1   %2")
                .arg(QString::fromStdString(fmt::to_string(array)))
                .arg(QString::fromStdString(desc));
   }
-  OPCODE_CALLBACK(void OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat,
-                                          u32 vertex_size, u16 num_vertices, const u8* vertex_data))
+  OPCODE_CALLBACK(void OnPrimitiveCommand(const OpcodeDecoder::Primitive primitive, const u8 vat,
+                                          const u32 vertex_size, const u16 num_vertices,
+                                          const u8* vertex_data))
   {
     const auto name = fmt::to_string(primitive);
 
@@ -262,7 +265,7 @@ public:
     const u32 object_prim_size = num_vertices * vertex_size;
 
     const u8 opcode =
-        0x80 | (static_cast<u8>(primitive) << OpcodeDecoder::GX_PRIMITIVE_SHIFT) | vat;
+        0x80 | Common::ToUnderlying(primitive) << OpcodeDecoder::GX_PRIMITIVE_SHIFT | vat;
     text = QStringLiteral("PRIMITIVE %1 (%2)  %3 vertices %4 bytes/vertex %5 total bytes")
                .arg(QString::fromStdString(name))
                .arg(opcode, 2, 16, QLatin1Char('0'))
@@ -283,14 +286,14 @@ public:
 #endif
   }
 
-  OPCODE_CALLBACK(void OnDisplayList(u32 address, u32 size))
+  OPCODE_CALLBACK(void OnDisplayList(const u32 address, const u32 size))
   {
     text = QObject::tr("Call display list at %1 with size %2")
                .arg(address, 8, 16, QLatin1Char('0'))
                .arg(size, 8, 16, QLatin1Char('0'));
   }
 
-  OPCODE_CALLBACK(void OnNop(u32 count))
+  OPCODE_CALLBACK(void OnNop(const u32 count))
   {
     if (count > 1)
       text = QStringLiteral("NOP (%1x)").arg(count);
@@ -313,7 +316,7 @@ public:
 
   OPCODE_CALLBACK(CPState& GetCPState()) { return m_cpmem; }
 
-  OPCODE_CALLBACK(u32 GetVertexSize(u8 vat))
+  OPCODE_CALLBACK(u32 GetVertexSize(const u8 vat))
   {
     return VertexLoaderBase::GetVertexSize(GetCPState().vtx_desc, GetCPState().vtx_attr[vat]);
   }
@@ -472,7 +475,7 @@ void FIFOAnalyzer::FindNext()
   const int index = m_detail_list->currentRow();
   ASSERT(index >= 0);
 
-  auto next_result = std::ranges::find_if(
+  const auto next_result = std::ranges::find_if(
       m_search_results, [index](auto& result) { return result.m_cmd > static_cast<u32>(index); });
   if (next_result != m_search_results.end())
   {
@@ -485,7 +488,7 @@ void FIFOAnalyzer::FindPrevious()
   const int index = m_detail_list->currentRow();
   ASSERT(index >= 0);
 
-  auto prev_result =
+  const auto prev_result =
       std::ranges::find_if(m_search_results | std::views::reverse, [index](auto& result) {
         return result.m_cmd < static_cast<u32>(index);
       });
@@ -495,7 +498,7 @@ void FIFOAnalyzer::FindPrevious()
   }
 }
 
-void FIFOAnalyzer::ShowSearchResult(size_t index)
+void FIFOAnalyzer::ShowSearchResult(const size_t index)
 {
   if (m_search_results.empty())
     return;
@@ -526,7 +529,7 @@ class DescriptionCallback : public OpcodeDecoder::Callback
 public:
   explicit DescriptionCallback(const CPState& cpmem) : m_cpmem(cpmem) {}
 
-  OPCODE_CALLBACK(void OnBP(u8 command, u32 value))
+  OPCODE_CALLBACK(void OnBP(const u8 command, const u32 value))
   {
     const auto [name, desc] = GetBPRegInfo(command, value);
     ASSERT(!name.empty());
@@ -541,7 +544,7 @@ public:
       text += QString::fromStdString(desc);
   }
 
-  OPCODE_CALLBACK(void OnCP(u8 command, u32 value))
+  OPCODE_CALLBACK(void OnCP(const u8 command, const u32 value))
   {
     // Note: No need to update m_cpmem as it already has the final value for this object
 
@@ -558,7 +561,7 @@ public:
       text += QString::fromStdString(desc);
   }
 
-  OPCODE_CALLBACK(void OnXF(u16 address, u8 count, const u8* data))
+  OPCODE_CALLBACK(void OnXF(const u16 address, const u8 count, const u8* data))
   {
     const auto [name, desc] = GetXFTransferInfo(address, count, data);
     ASSERT(!name.empty());
@@ -573,7 +576,8 @@ public:
       text += QString::fromStdString(desc);
   }
 
-  OPCODE_CALLBACK(void OnIndexedLoad(CPArray array, u32 index, u16 address, u8 size))
+  OPCODE_CALLBACK(void OnIndexedLoad(const CPArray array, const u32 index, const u16 address,
+                                     const u8 size))
   {
     const auto [desc, written] = GetXFIndexedLoadInfo(array, index, address, size);
 
@@ -605,7 +609,8 @@ public:
   }
 
   OPCODE_CALLBACK(void OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat,
-                                          u32 vertex_size, u16 num_vertices, const u8* vertex_data))
+                                          const u32 vertex_size, const u16 num_vertices,
+                                          const u8* vertex_data))
   {
     const auto name = fmt::format("{} VAT {}", primitive, vat);
 
@@ -618,8 +623,8 @@ public:
     const auto& vtx_attr = m_cpmem.vtx_attr[vat];
 
     u32 i = 0;
-    const auto process_component = [&](VertexComponentFormat cformat, ComponentFormat format,
-                                       u32 non_indexed_count, u32 indexed_count = 1) {
+    const auto process_component = [&](const VertexComponentFormat cformat, ComponentFormat format,
+                                       const u32 non_indexed_count, const u32 indexed_count = 1) {
       u32 count;
       if (cformat == VertexComponentFormat::NotPresent)
         return;
@@ -655,7 +660,7 @@ public:
       }
       text += QLatin1Char{' '};
     };
-    const auto process_simple_component = [&](u32 size) {
+    const auto process_simple_component = [&](const u32 size) {
       for (u32 component_off = 0; component_off < size; component_off++)
       {
         text += QStringLiteral("%1").arg(vertex_data[i + component_off], 2, 16, QLatin1Char('0'));
@@ -733,7 +738,7 @@ public:
 
   OPCODE_CALLBACK(CPState& GetCPState()) { return m_cpmem; }
 
-  OPCODE_CALLBACK(u32 GetVertexSize(u8 vat))
+  OPCODE_CALLBACK(u32 GetVertexSize(const u8 vat))
   {
     return VertexLoaderBase::GetVertexSize(GetCPState().vtx_desc, GetCPState().vtx_attr[vat]);
   }

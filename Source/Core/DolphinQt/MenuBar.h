@@ -94,6 +94,7 @@ signals:
   void ShowResourcePackManager();
   void ShowSkylanderPortal();
   void ShowInfinityBase();
+  void ShowWiiSpeakWindow();
   void ConnectWiiRemote(int id);
 
 #ifdef USE_RETRO_ACHIEVEMENTS
@@ -156,6 +157,7 @@ private:
 
   void InstallWAD();
   void ImportWiiSave();
+  void ImportWiiSaves();
   void ExportWiiSaves();
   void CheckNAND();
   void NANDExtractCertificates();
@@ -221,6 +223,7 @@ private:
   QAction* m_extract_certificates;
   std::array<QAction*, 5> m_wii_remotes;
   QAction* m_import_wii_save;
+  QAction* m_import_wii_saves;
   QAction* m_export_wii_saves;
 
   // Emulation

@@ -1,27 +1,24 @@
-// Copyright 2023 Dolphin Emulator Project
+// Copyright 2025 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
-#include <chrono>
-#include <map>
-#include <memory>
+#include <atomic>
+#include <condition_variable>
+#include <list>
 #include <mutex>
+#include <set>
 #include <thread>
+#include <vector>
 
 #include "Common/Flag.h"
-#include "Common/Logging/Log.h"
-#include "Common/WorkQueueThread.h"
 #include "VideoCommon/Assets/CustomAsset.h"
-#include "VideoCommon/Assets/MaterialAsset.h"
-#include "VideoCommon/Assets/MeshAsset.h"
-#include "VideoCommon/Assets/ShaderAsset.h"
-#include "VideoCommon/Assets/TextureAsset.h"
 
 namespace VideoCommon
 {
-// This class is responsible for loading data asynchronously when requested
-// and watches that data asynchronously reloading it if it changes
+// This class takes any number of assets
+// and loads them across a configurable
+// thread pool
 class CustomAssetLoader
 {
 public:
@@ -32,77 +29,54 @@ public:
   CustomAssetLoader& operator=(const CustomAssetLoader&) = delete;
   CustomAssetLoader& operator=(CustomAssetLoader&&) = delete;
 
-  void Init();
+  void Initialize();
   void Shutdown();
 
-  // The following Load* functions will load or create an asset associated
-  // with the given asset id
-  // Loads happen asynchronously where the data will be set now or in the future
-  // Callees are expected to query the underlying data with 'GetData()'
-  // from the 'CustomLoadableAsset' class to determine if the data is ready for use
-  std::shared_ptr<GameTextureAsset> LoadGameTexture(const CustomAssetLibrary::AssetID& asset_id,
-                                                    std::shared_ptr<CustomAssetLibrary> library);
+  using AssetHandle = std::pair<std::size_t, bool>;
+  struct LoadResults
 
-  std::shared_ptr<PixelShaderAsset> LoadPixelShader(const CustomAssetLibrary::AssetID& asset_id,
-                                                    std::shared_ptr<CustomAssetLibrary> library);
+  {
+    std::vector<AssetHandle> asset_handles;
+    s64 change_in_memory;
+  };
 
-  std::shared_ptr<MaterialAsset> LoadMaterial(const CustomAssetLibrary::AssetID& asset_id,
-                                              std::shared_ptr<CustomAssetLibrary> library);
+  // Returns a vector of loaded asset handle / loaded result pairs
+  //  and the change in memory.
+  LoadResults TakeLoadResults();
 
-  std::shared_ptr<MeshAsset> LoadMesh(const CustomAssetLibrary::AssetID& asset_id,
-                                      std::shared_ptr<CustomAssetLibrary> library);
+  // Schedule assets to load on the worker threads
+  //  and set how much memory is available for loading these additional assets.
+  void ScheduleAssetsToLoad(std::list<CustomAsset*> assets_to_load, u64 allowed_memory);
+
+  void Reset(bool restart_worker_threads = true);
 
 private:
-  // TODO C++20: use a 'derived_from' concept against 'CustomAsset' when available
-  template <typename AssetType>
-  std::shared_ptr<AssetType>
-  LoadOrCreateAsset(const CustomAssetLibrary::AssetID& asset_id,
-                    std::map<CustomAssetLibrary::AssetID, std::weak_ptr<AssetType>>& asset_map,
-                    std::shared_ptr<CustomAssetLibrary> library)
-  {
-    auto [it, inserted] = asset_map.try_emplace(asset_id);
-    if (!inserted)
-    {
-      auto shared = it->second.lock();
-      if (shared)
-        return shared;
-    }
-    std::shared_ptr<AssetType> ptr(new AssetType(std::move(library), asset_id), [&](AssetType* a) {
-      {
-        std::lock_guard lk(m_asset_load_lock);
-        m_total_bytes_loaded -= a->GetByteSizeInMemory();
-        m_assets_to_monitor.erase(a->GetAssetId());
-        if (m_max_memory_available >= m_total_bytes_loaded && m_memory_exceeded)
-        {
-          INFO_LOG_FMT(VIDEO, "Asset memory went below limit, new assets can begin loading.");
-          m_memory_exceeded = false;
-        }
-      }
-      delete a;
-    });
-    it->second = ptr;
-    m_asset_load_thread.Push(it->second);
-    return ptr;
-  }
+  bool StartWorkerThreads(u32 num_worker_threads);
+  bool ResizeWorkerThreads(u32 num_worker_threads);
+  bool HasWorkerThreads() const;
+  void StopWorkerThreads();
 
-  static constexpr auto TIME_BETWEEN_ASSET_MONITOR_CHECKS = std::chrono::milliseconds{500};
+  void WorkerThreadRun(u32 thread_index);
 
-  std::map<CustomAssetLibrary::AssetID, std::weak_ptr<GameTextureAsset>> m_game_textures;
-  std::map<CustomAssetLibrary::AssetID, std::weak_ptr<PixelShaderAsset>> m_pixel_shaders;
-  std::map<CustomAssetLibrary::AssetID, std::weak_ptr<MaterialAsset>> m_materials;
-  std::map<CustomAssetLibrary::AssetID, std::weak_ptr<MeshAsset>> m_meshes;
-  std::thread m_asset_monitor_thread;
-  Common::Flag m_asset_monitor_thread_shutdown;
+  Common::Flag m_exit_flag;
 
-  std::size_t m_total_bytes_loaded = 0;
-  std::size_t m_max_memory_available = 0;
-  std::atomic_bool m_memory_exceeded = false;
+  std::vector<std::thread> m_worker_threads;
 
-  std::map<CustomAssetLibrary::AssetID, std::weak_ptr<CustomAsset>> m_assets_to_monitor;
+  std::mutex m_assets_to_load_lock;
+  std::list<CustomAsset*> m_assets_to_load;
 
-  // Use a recursive mutex to handle the scenario where an asset goes out of scope while
-  // iterating over the assets to monitor which calls the lock above in 'LoadOrCreateAsset'
-  std::recursive_mutex m_asset_load_lock;
-  Common::WorkQueueThread<std::weak_ptr<CustomAsset>> m_asset_load_thread;
+  std::condition_variable m_worker_thread_wake;
+
+  std::vector<AssetHandle> m_asset_handles_loaded;
+
+  // Memory available to load new assets.
+  s64 m_allowed_memory = 0;
+
+  // Change in memory from just-loaded/unloaded asset results yet to be taken by the Manager.
+  std::atomic<s64> m_change_in_memory = 0;
+
+  std::mutex m_assets_loaded_lock;
+
+  std::set<std::size_t> m_handles_in_progress;
 };
 }  // namespace VideoCommon

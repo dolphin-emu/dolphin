@@ -5,6 +5,7 @@
 
 #include <array>
 #include <cstdarg>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -31,7 +32,7 @@ public:
   };
 };
 
-class LogManager
+class LogManager final
 {
 public:
   struct LogContainer
@@ -40,6 +41,8 @@ public:
     const char* m_full_name;
     bool m_enable = false;
   };
+
+  ~LogManager();
 
   static LogManager* GetInstance();
   static void Init();
@@ -60,7 +63,7 @@ public:
   const char* GetShortName(LogType type) const;
   const char* GetFullName(LogType type) const;
 
-  void RegisterListener(LogListener::LISTENER id, LogListener* listener);
+  void RegisterListener(LogListener::LISTENER id, std::unique_ptr<LogListener> listener);
   void EnableListener(LogListener::LISTENER id, bool enable);
   bool IsListenerEnabled(LogListener::LISTENER id) const;
 
@@ -68,7 +71,6 @@ public:
 
 private:
   LogManager();
-  ~LogManager();
 
   LogManager(const LogManager&) = delete;
   LogManager& operator=(const LogManager&) = delete;
@@ -79,7 +81,7 @@ private:
 
   LogLevel m_level;
   EnumMap<LogContainer, LAST_LOG_TYPE> m_log{};
-  std::array<LogListener*, LogListener::NUMBER_OF_LISTENERS> m_listeners{};
+  std::array<std::unique_ptr<LogListener>, LogListener::NUMBER_OF_LISTENERS> m_listeners{};
   BitSet32 m_listener_ids;
   size_t m_path_cutoff_point = 0;
 };

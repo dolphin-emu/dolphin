@@ -4,6 +4,9 @@
 #include "DolphinQt/QtUtils/QtUtils.h"
 
 #include <QDateTimeEdit>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QScreen>
 
 namespace QtUtils
 {
@@ -17,6 +20,29 @@ void ShowFourDigitYear(QDateTimeEdit* widget)
     widget->setDisplayFormat(
         widget->displayFormat().replace(QStringLiteral("yy"), QStringLiteral("yyyy")));
   }
+}
+
+QWidget* CreateIconWarning(QWidget* parent, QStyle::StandardPixmap standard_pixmap, QLabel* label)
+{
+  const auto size = QFontMetrics(parent->font()).height() * 5 / 4;
+
+  auto* const icon = new QLabel{};
+  icon->setPixmap(parent->style()->standardIcon(standard_pixmap).pixmap(size, size));
+
+  auto* const widget = new QWidget;
+  auto* const layout = new QHBoxLayout{widget};
+  layout->addWidget(icon);
+  layout->addWidget(label, 1);
+  return widget;
+}
+
+void AdjustSizeWithinScreen(QWidget* widget)
+{
+  const auto screen_size = widget->screen()->availableSize();
+
+  const auto adj_screen_size = screen_size * 9 / 10;
+
+  widget->resize(widget->sizeHint().boundedTo(adj_screen_size));
 }
 
 }  // namespace QtUtils

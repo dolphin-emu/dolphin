@@ -1007,6 +1007,12 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     out.Write("\tfrag_input.tex{0} = tex{0};\n", i);
   }
 
+  // Initialize other texture coordinates that are unused
+  for (u32 i = uid_data->genMode_numtexgens; i < 8; i++)
+  {
+    out.Write("\tfrag_input.tex{0} = vec3(0, 0, 0);\n", i);
+  }
+
   if (!custom_contents.shader.empty())
     GenerateCustomLighting(&out, uid_data->lighting);
 
@@ -2061,11 +2067,7 @@ static void WriteFragmentDefinitions(APIType api_type, const ShaderHostConfig& h
   out.Write("\tint layer;\n");
   out.Write("\tvec3 normal;\n");
   out.Write("\tvec3 position;\n");
-  for (u32 i = 0; i < uid_data->genMode_numtexgens; i++)
-  {
-    out.Write("\tvec3 tex{};\n", i);
-  }
-  for (u32 i = uid_data->genMode_numtexgens; i < 8; i++)
+  for (u32 i = 0; i < 8; i++)
   {
     out.Write("\tvec3 tex{};\n", i);
   }

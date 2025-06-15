@@ -117,7 +117,7 @@ public:
   class Output : public Control
   {
   public:
-    virtual ~Output() = default;
+    ~Output() override = default;
     virtual void SetState(ControlState state) = 0;
     Output* ToOutput() override { return this; }
   };

@@ -15,6 +15,7 @@
 
 #include "Common/IniFile.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 
 namespace ControllerEmu
@@ -62,7 +63,7 @@ public:
     Disabled,
   };
 
-  explicit ControlGroup(std::string name, GroupType type = GroupType::Other,
+  explicit ControlGroup(const std::string& name, GroupType type = GroupType::Other,
                         DefaultValue default_value = DefaultValue::AlwaysEnabled);
   ControlGroup(std::string name, std::string ui_name, GroupType type = GroupType::Other,
                DefaultValue default_value = DefaultValue::AlwaysEnabled);
@@ -98,12 +99,17 @@ public:
     return std::copysign(std::max(T{0}, std::abs(input) - deadzone) / (T{1} - deadzone), input);
   }
 
+  bool HasEnabledSetting() const;
+
   const std::string name;
   const std::string ui_name;
   const GroupType type;
-  const DefaultValue default_value;
 
-  bool enabled = true;
+  // The default "enabled" state.
+  const DefaultValue default_value;
+  SettingValue<bool> enabled;
+  std::unique_ptr<NumericSetting<bool>> enabled_setting;
+
   std::vector<std::unique_ptr<Control>> controls;
   std::vector<std::unique_ptr<NumericSettingBase>> numeric_settings;
 };

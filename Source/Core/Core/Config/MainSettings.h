@@ -63,6 +63,7 @@ extern const Info<bool> MAIN_ACCURATE_CPU_CACHE;
 extern const Info<bool> MAIN_DSP_HLE;
 extern const Info<int> MAIN_MAX_FALLBACK;
 extern const Info<int> MAIN_TIMING_VARIANCE;
+extern const Info<bool> MAIN_CORRECT_TIME_DRIFT;
 extern const Info<bool> MAIN_CPU_THREAD;
 extern const Info<bool> MAIN_SYNC_ON_SKIP_IDLE;
 extern const Info<std::string> MAIN_DEFAULT_ISO;
@@ -128,6 +129,8 @@ extern const Info<float> MAIN_EMULATION_SPEED;
 extern const Info<bool> MAIN_PRECISION_FRAME_TIMING;
 extern const Info<float> MAIN_OVERCLOCK;
 extern const Info<bool> MAIN_OVERCLOCK_ENABLE;
+extern const Info<float> MAIN_VI_OVERCLOCK;
+extern const Info<bool> MAIN_VI_OVERCLOCK_ENABLE;
 extern const Info<bool> MAIN_RAM_OVERRIDE_ENABLE;
 extern const Info<u32> MAIN_MEM1_SIZE;
 extern const Info<u32> MAIN_MEM2_SIZE;
@@ -362,6 +365,10 @@ void SetUSBDeviceWhitelist(const std::set<std::pair<u16, u16>>& devices);
 
 extern const Info<bool> MAIN_EMULATE_SKYLANDER_PORTAL;
 extern const Info<bool> MAIN_EMULATE_INFINITY_BASE;
+extern const Info<bool> MAIN_EMULATE_WII_SPEAK;
+extern const Info<std::string> MAIN_WII_SPEAK_MICROPHONE;
+extern const Info<bool> MAIN_WII_SPEAK_MUTED;
+extern const Info<s16> MAIN_WII_SPEAK_VOLUME_MODIFIER;
 
 // GameCube path utility functions
 

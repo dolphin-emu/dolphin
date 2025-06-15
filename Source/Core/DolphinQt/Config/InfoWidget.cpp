@@ -37,6 +37,8 @@ InfoWidget::InfoWidget(const UICommon::GameFile& game) : m_game(game)
   if (!game.GetLanguages().empty())
     layout->addWidget(CreateBannerDetails());
 
+  layout->addStretch(1);
+
   setLayout(layout);
 }
 
@@ -106,13 +108,11 @@ QGroupBox* InfoWidget::CreateGameDetails()
                                              .arg(m_game.GetRevision()));
 
   QString game_id_string = QString::fromStdString(m_game.GetGameID());
-  QString triforce_id_string = QString::fromStdString(m_game.GetTriforceID());
 
   if (const u64 title_id = m_game.GetTitleID())
     game_id_string += QStringLiteral(" (%1)").arg(title_id, 16, 16, QLatin1Char('0'));
 
   QLineEdit* game_id = CreateValueDisplay(game_id_string);
-  QLineEdit* triforce_id = CreateValueDisplay(triforce_id_string);
 
   QLineEdit* country = CreateValueDisplay(DiscIO::GetName(m_game.GetCountry(), true));
 
@@ -124,7 +124,11 @@ QGroupBox* InfoWidget::CreateGameDetails()
 
   layout->addRow(tr("Name:"), internal_name);
   if (m_game.GetPlatform() == DiscIO::Platform::Triforce)
+  {
+    const auto triforce_id_string = QString::fromStdString(m_game.GetTriforceID());
+    auto* const triforce_id = CreateValueDisplay(triforce_id_string);
     layout->addRow(tr("Triforce ID:"), triforce_id);
+  }
   layout->addRow(tr("Game ID:"), game_id);
   layout->addRow(tr("Country:"), country);
   layout->addRow(tr("Maker:"), maker);
