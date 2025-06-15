@@ -5,6 +5,12 @@
 
 #include <optional>
 #include <string>
+#ifdef _WIN32
+#include <SetupAPI.h>
+#include <cfgmgr32.h>
+#include <devpropdef.h>
+#endif
+
 #include "Common/CommonTypes.h"
 
 #ifndef _WIN32
@@ -58,5 +64,9 @@ std::string GetWin32ErrorString(unsigned long error_code);
 
 // Obtains a full path to the specified module.
 std::optional<std::wstring> GetModuleName(void* hInstance);
+
+// Obtains a device property and returns it as a wide string.
+std::wstring GetDeviceProperty(const HANDLE& device_info, const PSP_DEVINFO_DATA device_data,
+                               const DEVPROPKEY* requested_property);
 #endif
 }  // namespace Common

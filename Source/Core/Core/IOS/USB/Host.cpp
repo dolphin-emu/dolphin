@@ -11,12 +11,20 @@
 #include <string>
 #include <utility>
 
+#include <fmt/format.h>
+#include <fmt/xchar.h>
+#ifdef HAVE_LIBUDEV
+#include <libudev.h>
+#endif
 #ifdef __LIBUSB__
 #include <libusb.h>
 #endif
+#ifdef _WIN32
+#include <SetupAPI.h>
+#include <cfgmgr32.h>
+#include <devpkey.h>
 
-#ifdef HAVE_LIBUDEV
-#include <libudev.h>
+#include "Common/CommonFuncs.h"
 #endif
 
 #include "Common/ChunkFile.h"
@@ -56,7 +64,50 @@ std::optional<IPCReply> USBHost::Open(const OpenRequest& request)
 std::string USBHost::GetDeviceNameFromVIDPID(u16 vid, u16 pid)
 {
   std::string device_name;
-#ifdef __LIBUSB__
+#ifdef _WIN32
+  const std::wstring filter = fmt::format(L"VID_{:04X}&PID_{:04X}", vid, pid);
+
+  HDEVINFO dev_info =
+      SetupDiGetClassDevs(nullptr, nullptr, nullptr, DIGCF_PRESENT | DIGCF_ALLCLASSES);
+  if (dev_info == INVALID_HANDLE_VALUE)
+    return device_name;
+
+  SP_DEVINFO_DATA dev_info_data;
+  dev_info_data.cbSize = sizeof(SP_DEVINFO_DATA);
+
+  for (DWORD i = 0; SetupDiEnumDeviceInfo(dev_info, i, &dev_info_data); ++i)
+  {
+    TCHAR instance_id[MAX_DEVICE_ID_LEN];
+    if (CM_Get_Device_ID(dev_info_data.DevInst, instance_id, MAX_DEVICE_ID_LEN, 0) != CR_SUCCESS)
+      continue;
+
+    const std::wstring_view id_wstr(instance_id);
+    if (id_wstr.find(filter) == std::wstring::npos)
+      continue;
+
+    std::wstring property_value =
+        Common::GetDeviceProperty(dev_info, &dev_info_data, &DEVPKEY_Device_FriendlyName);
+    if (property_value.empty())
+    {
+      property_value =
+          Common::GetDeviceProperty(dev_info, &dev_info_data, &DEVPKEY_Device_DeviceDesc);
+    }
+
+    device_name = WStringToUTF8(property_value);
+    break;
+  }
+
+  SetupDiDestroyDeviceInfoList(dev_info);
+  if (!device_name.empty())
+    return device_name;
+#endif
+  // libusb can cause BSODs with certain bad OEM drivers on Windows when opening a device.
+  // All offending drivers are known to depend on the BthUsb.sys driver, which is a Miniport Driver
+  // for Bluetooth.
+  // Known offenders:
+  // - btfilter.sys from Qualcomm Atheros Communications
+  // - ibtusb.sys from Intel Corporation
+#if defined(__LIBUSB__) && !defined(_WIN32)
   LibusbUtils::Context context;
 
   if (!context.IsValid())
