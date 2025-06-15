@@ -31,13 +31,13 @@ void FilesystemWatcher::Watch(const std::string& path)
 
       if (e.effect_type == wtr::event::effect_type::create)
       {
-        const auto path = WithUnifiedPathSeparators(watched_path);
-        PathAdded(path);
+        const auto unified_path = WithUnifiedPathSeparators(watched_path);
+        PathAdded(unified_path);
       }
       else if (e.effect_type == wtr::event::effect_type::modify)
       {
-        const auto path = WithUnifiedPathSeparators(watched_path);
-        PathModified(path);
+        const auto unified_path = WithUnifiedPathSeparators(watched_path);
+        PathModified(unified_path);
       }
       else if (e.effect_type == wtr::event::effect_type::rename)
       {
@@ -53,8 +53,8 @@ void FilesystemWatcher::Watch(const std::string& path)
       }
       else if (e.effect_type == wtr::event::effect_type::destroy)
       {
-        const auto path = WithUnifiedPathSeparators(watched_path);
-        PathDeleted(path);
+        const auto unified_path = WithUnifiedPathSeparators(watched_path);
+        PathDeleted(unified_path);
       }
     });
   }
