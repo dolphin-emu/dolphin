@@ -10,10 +10,6 @@
 #include "Common/Event.h"
 #include "Common/Functional.h"
 
-namespace Common
-{
-class Event;
-}
 namespace Core
 {
 class System;
@@ -61,7 +57,7 @@ public:
   void Reset();
 
   // StepOpcode (Steps one Opcode)
-  void StepOpcode(Common::Event* event = nullptr);
+  void StepOpcode(Common::TimedEvent* event = nullptr);
 
   // Enable or Disable Stepping. [Will deadlock if called from a system thread]
   void SetStepping(bool stepping);
@@ -134,9 +130,9 @@ private:
   bool m_state_paused_and_locked = false;
   bool m_state_system_request_stepping = false;
   bool m_state_cpu_step_instruction = false;
-  Common::Event* m_state_cpu_step_instruction_sync = nullptr;
+  Common::TimedEvent* m_state_cpu_step_instruction_sync = nullptr;
   std::queue<Common::MoveOnlyFunction<void()>> m_pending_jobs;
-  Common::Event m_time_played_finish_sync;
+  Common::TimedEvent m_time_played_finish_sync;
 
   Core::System& m_system;
 };

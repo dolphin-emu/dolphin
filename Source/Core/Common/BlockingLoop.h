@@ -239,8 +239,8 @@ private:
   Flag m_stopped;   // If this is set, Wait() shall not block.
   Flag m_shutdown;  // If this is set, the loop shall end.
 
-  Event m_new_work_event;
-  Event m_done_event;
+  TimedEvent m_new_work_event;
+  TimedEvent m_done_event;
 
   enum RUNNING_TYPE
   {
