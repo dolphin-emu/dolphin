@@ -352,22 +352,22 @@ void MenuBar::AddToolsMenu()
   m_export_wii_saves =
       tools_menu->addAction(tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
 
-  QMenu* menu = new QMenu(tr("Connect Wii Remotes"), tools_menu);
+  QMenu* connect_wii_remotes_menu = new QMenu(tr("Connect Wii Remotes"), tools_menu);
 
   tools_menu->addSeparator();
-  tools_menu->addMenu(menu);
+  tools_menu->addMenu(connect_wii_remotes_menu);
 
   for (int i = 0; i < 4; i++)
   {
-    m_wii_remotes[i] = menu->addAction(tr("Connect Wii Remote %1").arg(i + 1), this,
-                                       [this, i] { emit ConnectWiiRemote(i); });
+    m_wii_remotes[i] = connect_wii_remotes_menu->addAction(
+        tr("Connect Wii Remote %1").arg(i + 1), this, [this, i] { emit ConnectWiiRemote(i); });
     m_wii_remotes[i]->setCheckable(true);
   }
 
-  menu->addSeparator();
+  connect_wii_remotes_menu->addSeparator();
 
-  m_wii_remotes[4] =
-      menu->addAction(tr("Connect Balance Board"), this, [this] { emit ConnectWiiRemote(4); });
+  m_wii_remotes[4] = connect_wii_remotes_menu->addAction(tr("Connect Balance Board"), this,
+                                                         [this] { emit ConnectWiiRemote(4); });
   m_wii_remotes[4]->setCheckable(true);
 }
 
