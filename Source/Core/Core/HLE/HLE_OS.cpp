@@ -16,6 +16,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Core/Boot/Boot.h"
 #include "Core/Core.h"
 #include "Core/HLE/HLE_VarArgs.h"
 #include "Core/PowerPC/MMU.h"
@@ -206,6 +207,14 @@ void HLE_LogFPrint(const Core::CPUThreadGuard& guard)
 void HLE_LogVFPrint(const Core::CPUThreadGuard& guard)
 {
   HLE_LogFPrint(guard, ParameterType::VariableArgumentList);
+}
+
+// Version of OSReport used by Dolphin for running apploaders from BS2 HLE
+void HLE_AppLoaderReport(const Core::CPUThreadGuard& guard)
+{
+  auto& system = Core::System::GetInstance();
+  CBoot::HLEAppLoaderReport(
+      SHIFTJISToUTF8(GetStringVA(system, guard, 3, ParameterType::ParameterList)));
 }
 
 namespace
