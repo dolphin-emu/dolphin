@@ -18,41 +18,26 @@
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/ConfigControls/ConfigInteger.h"
 #include "DolphinQt/Config/GameConfigWidget.h"
-#include "DolphinQt/Config/Graphics/GraphicsWindow.h"
-#include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
-#include "DolphinQt/QtUtils/SignalBlocking.h"
+#include "DolphinQt/Config/Graphics/GraphicsPane.h"
 #include "DolphinQt/Settings.h"
 
 #include "VideoCommon/VideoConfig.h"
 
-AdvancedWidget::AdvancedWidget(GraphicsWindow* parent)
+AdvancedWidget::AdvancedWidget(GraphicsPane* gfx_pane) : m_game_layer{gfx_pane->GetConfigLayer()}
 {
   CreateWidgets();
   ConnectWidgets();
   AddDescriptions();
 
-  connect(parent, &GraphicsWindow::BackendChanged, this, &AdvancedWidget::OnBackendChanged);
+  connect(gfx_pane, &GraphicsPane::BackendChanged, this, &AdvancedWidget::OnBackendChanged);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
   connect(m_manual_texture_sampling, &QCheckBox::toggled,
-          [parent] { emit parent->UseFastTextureSamplingChanged(); });
+          [gfx_pane] { emit gfx_pane->UseFastTextureSamplingChanged(); });
 
   OnBackendChanged();
   OnEmulationStateChanged(!Core::IsUninitialized(Core::System::GetInstance()));
-}
-
-AdvancedWidget::AdvancedWidget(GameConfigWidget* parent, Config::Layer* layer) : m_game_layer(layer)
-{
-  CreateWidgets();
-  ConnectWidgets();
-  AddDescriptions();
-
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
-    OnEmulationStateChanged(state != Core::State::Uninitialized);
-  });
-  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()) !=
-                          Core::State::Uninitialized);
 }
 
 void AdvancedWidget::CreateWidgets()
