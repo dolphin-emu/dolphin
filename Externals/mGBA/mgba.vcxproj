@@ -18,7 +18,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalIncludeDirectories>mgba\include;mgba\src;mgba\src\third-party\lzma;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>BUILD_STATIC;M_CORE_GB;M_CORE_GBA;USE_LZMA;_7ZIP_PPMD_SUPPPORT;HAVE_STRDUP;HAVE_SETLOCALE;HAVE_CHMOD;HAVE_UMASK;HAVE_CRC32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BUILD_STATIC;M_CORE_GB;M_CORE_GBA;USE_LZMA;_7ZIP_PPMD_SUPPPORT;HAVE_STRDUP;HAVE_SETLOCALE;HAVE_CHMOD;HAVE_UMASK;HAVE_CRC32;ENABLE_VFS;ENABLE_VFS_FD;ENABLE_DIRECTORIES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <PreBuildEvent>
       <Command>"$(CScript)" /nologo /E:JScript "make_version.c.js"</Command>
@@ -67,7 +67,9 @@
     </ClCompile>
     <ClCompile Include="mgba\src\gb\mbc\pocket-cam.c" />
     <ClCompile Include="mgba\src\gb\mbc\tama5.c" />
-    <ClCompile Include="mgba\src\gb\mbc\unlicensed.c" />
+    <ClCompile Include="mgba\src\gb\mbc\unlicensed.c" >
+      <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="mgba\src\gb\memory.c" />
     <ClCompile Include="mgba\src\gb\overrides.c" />
     <ClCompile Include="mgba\src\gb\serialize.c">
@@ -95,6 +97,7 @@
     <ClCompile Include="mgba\src\gba\cart\ereader.c" />
     <ClCompile Include="mgba\src\gba\cart\gpio.c" />
     <ClCompile Include="mgba\src\gba\cart\matrix.c" />
+    <ClCompile Include="mgba\src\gba\cart\unlicensed.c" />
     <ClCompile Include="mgba\src\gba\cart\vfame.c" />
     <ClCompile Include="mgba\src\gba\cheats.c">
       <ObjectFileName>$(IntDir)obj3\</ObjectFileName>
@@ -138,13 +141,14 @@
       <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gba\sio\gbp.c" />
-    <ClCompile Include="mgba\src\gba\sio\joybus.c" />
     <ClCompile Include="mgba\src\gba\timer.c">
       <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gba\video.c">
       <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
     </ClCompile>
+    <ClCompile Include="mgba\src\util\audio-buffer.c" />
+    <ClCompile Include="mgba\src\util\audio-resampler.c" />
     <ClCompile Include="mgba\src\util\circle-buffer.c" />
     <ClCompile Include="mgba\src\util\configuration.c" />
     <ClCompile Include="mgba\src\util\crc32.c" />
@@ -153,6 +157,9 @@
     <ClCompile Include="mgba\src\util\geometry.c" />
     <ClCompile Include="mgba\src\util\hash.c" />
     <ClCompile Include="mgba\src\util\image.c" />
+    <ClCompile Include="mgba\src\util\interpolator.c" />
+    <ClCompile Include="mgba\src\util\md5.c" />
+    <ClCompile Include="mgba\src\util\sha1.c" />
     <ClCompile Include="mgba\src\util\string.c" />
     <ClCompile Include="mgba\src\util\table.c" />
     <ClCompile Include="mgba\src\util\vector.c" />
@@ -177,7 +184,6 @@
       <ObjectFileName>$(IntDir)obj3\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\third-party\inih\ini.c" />
-    <ClCompile Include="mgba\src\third-party\blip_buf\blip_buf.c" />
     <ClCompile Include="mgba\src\util\vfs\vfs-lzma.c" />
     <ClCompile Include="mgba\src\third-party\lzma\7zAlloc.c" />
     <ClCompile Include="mgba\src\third-party\lzma\7zArcIn.c" />
@@ -206,7 +212,6 @@
       <ObjectFileName>$(IntDir)obj3\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gb\sio\printer.c" />
-    <ClCompile Include="mgba\src\gba\extra\audio-mixer.c" />
     <ClCompile Include="mgba\src\gba\extra\battlechip.c" />
     <ClCompile Include="mgba\src\gba\extra\proxy.c" />
     <ClCompile Include="mgba\src\gb\extra\proxy.c">
