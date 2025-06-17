@@ -277,6 +277,16 @@ bool CalibrationBuilder::IsCalibrationDataSensible() const
   return stats.StandardDeviation() < REASONABLE_DEVIATION;
 }
 
+bool CalibrationBuilder::IsComplete() const
+{
+  if (!IsCalibrationDataSensible())
+    return false;
+
+  const auto half_calibration =
+      0.5 * GetCalibrationRadiusAtAngle(std::atan2(m_prev_point.y, m_prev_point.x) + MathUtil::TAU);
+  return m_prev_point.LengthSquared() < (half_calibration * half_calibration);
+}
+
 ControlState CalibrationBuilder::GetCalibrationRadiusAtAngle(double angle) const
 {
   return ControllerEmu::ReshapableInput::GetCalibrationDataRadiusAtAngle(m_calibration_data, angle);

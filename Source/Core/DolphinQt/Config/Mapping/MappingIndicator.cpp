@@ -980,12 +980,17 @@ void CalibrationWidget::DrawInProgressCalibration(QPainter& p, Common::DVec2 poi
 
   const auto elapsed_seconds = GetAnimationElapsedSeconds();
 
+  const auto stop_spinning_amount =
+      std::max(DT_s{m_stop_spinning_time - Clock::now()} / STOP_SPINNING_DURATION, 0.0);
+
+  const auto stick_pushed_amount =
+      QEasingCurve(QEasingCurve::OutCirc).valueForProgress(std::min(elapsed_seconds * 2, 1.0)) *
+      stop_spinning_amount;
+
   // Clockwise spinning stick starting from center.
   p.save();
   p.rotate(elapsed_seconds * -360.0);
-  DrawPushedStick(
-      p, m_indicator,
-      -QEasingCurve(QEasingCurve::OutCirc).valueForProgress(std::min(elapsed_seconds * 2, 1.0)));
+  DrawPushedStick(p, m_indicator, -stick_pushed_amount);
   p.restore();
 
   const auto center = m_calibrator->GetCenter();
@@ -1030,8 +1035,6 @@ void ReshapableInputIndicator::SetCalibrationWidget(CalibrationWidget* widget)
 {
   m_calibration_widget = widget;
 }
-
-CalibrationWidget::~CalibrationWidget() = default;
 
 CalibrationWidget::CalibrationWidget(MappingWidget& mapping_widget,
                                      ControllerEmu::ReshapableInput& input,
@@ -1132,19 +1135,20 @@ void CalibrationWidget::StartCalibration(std::optional<Common::DVec2> center)
 
   // i18n: A button to finalize a game controller calibration process.
   auto* const finish_action = new QAction(tr("Finish Calibration"), this);
-  connect(finish_action, &QAction::triggered, this, [this]() {
-    const auto lock = m_mapping_widget.GetController()->GetStateLock();
-    m_calibrator->ApplyResults(&m_input);
-    ResetActions();
-  });
-  connect(this, &CalibrationWidget::CalibrationIsSensible, finish_action,
-          [this, finish_action]() { setDefaultAction(finish_action); });
+  connect(finish_action, &QAction::triggered, this, &CalibrationWidget::FinishCalibration);
 
   DeleteAllActions();
 
   addAction(finish_action);
   addAction(cancel_action);
   setDefaultAction(cancel_action);
+}
+
+void CalibrationWidget::FinishCalibration()
+{
+  const auto lock = m_mapping_widget.GetController()->GetStateLock();
+  m_calibrator->ApplyResults(&m_input);
+  ResetActions();
 }
 
 void CalibrationWidget::Update(Common::DVec2 point)
@@ -1194,9 +1198,14 @@ void CalibrationWidget::Update(Common::DVec2 point)
   else if (IsCalibrating())
   {
     m_calibrator->Update(point);
-    if (m_calibrator->IsCalibrationDataSensible())
+
+    if (!m_calibrator->IsCalibrationDataSensible())
     {
-      emit CalibrationIsSensible();
+      m_stop_spinning_time = Clock::now() + STOP_SPINNING_DURATION;
+    }
+    else if (m_calibrator->IsComplete())
+    {
+      FinishCalibration();
     }
   }
   else if (IsPointOutsideCalibration(point, m_input))
