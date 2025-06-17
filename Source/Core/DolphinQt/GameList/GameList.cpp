@@ -66,6 +66,7 @@
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonAutodismissibleMenu.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
@@ -519,7 +520,8 @@ void GameList::ShowContextMenu(const QPoint&)
 
     menu->addSeparator();
 
-    auto* tags_menu = menu->addMenu(tr("Tags"));
+    auto* const tags_menu{new QtUtils::NonAutodismissibleMenu(tr("Tags"), menu)};
+    menu->addMenu(tags_menu);
 
     auto path = game->GetFilePath();
     auto game_tags = m_model.GetGameTags(path);

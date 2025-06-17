@@ -352,7 +352,8 @@ void MenuBar::AddToolsMenu()
   m_export_wii_saves =
       tools_menu->addAction(tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
 
-  QMenu* connect_wii_remotes_menu = new QMenu(tr("Connect Wii Remotes"), tools_menu);
+  auto* const connect_wii_remotes_menu{
+      new QtUtils::NonAutodismissibleMenu(tr("Connect Wii Remotes"), tools_menu)};
 
   tools_menu->addSeparator();
   tools_menu->addMenu(connect_wii_remotes_menu);
@@ -601,7 +602,8 @@ void MenuBar::AddViewMenu()
 
 void MenuBar::AddOptionsMenu()
 {
-  QMenu* options_menu = addMenu(tr("&Options"));
+  auto* const options_menu{new QtUtils::NonAutodismissibleMenu(tr("&Options"), this)};
+  addMenu(options_menu);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
   options_menu->addAction(tr("Co&nfiguration"), QKeySequence::Preferences, this,
                           &MenuBar::Configure);
@@ -892,7 +894,8 @@ void MenuBar::AddMovieMenu()
 
 void MenuBar::AddJITMenu()
 {
-  m_jit = addMenu(tr("JIT"));
+  m_jit = new QtUtils::NonAutodismissibleMenu(tr("JIT"), this);
+  addMenu(m_jit);
 
   m_jit_interpreter_core = m_jit->addAction(tr("Interpreter Core"));
   m_jit_interpreter_core->setCheckable(true);
