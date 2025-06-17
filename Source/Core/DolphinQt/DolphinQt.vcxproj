@@ -258,6 +258,7 @@
     <ClInclude Include="QtUtils\DolphinFileDialog.h" />
     <ClInclude Include="QtUtils\ImageConverter.h" />
     <ClInclude Include="QtUtils\ModalMessageBox.h" />
+    <ClInclude Include="QtUtils\NonAutodismissibleMenu.h" />
     <ClInclude Include="QtUtils\NonDefaultQPushButton.h" />
     <ClInclude Include="QtUtils\QueueOnObject.h" />
     <ClInclude Include="QtUtils\RunOnObject.h" />
