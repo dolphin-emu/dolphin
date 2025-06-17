@@ -470,6 +470,13 @@ void GameListModel::AddGameTag(const std::string& path, const QString& name)
 
   m_game_tags[QString::fromStdString(path)] = tags;
   Settings::GetQSettings().setValue(QStringLiteral("gamelist/game_tags"), m_game_tags);
+
+  const int row = FindGameIndex(path);
+  if (row >= 0)
+  {
+    const QModelIndex index = createIndex(row, static_cast<int>(Column::Tags));
+    emit dataChanged(index, index);
+  }
 }
 
 void GameListModel::RemoveGameTag(const std::string& path, const QString& name)
@@ -481,6 +488,13 @@ void GameListModel::RemoveGameTag(const std::string& path, const QString& name)
   m_game_tags[QString::fromStdString(path)] = tags;
 
   Settings::GetQSettings().setValue(QStringLiteral("gamelist/game_tags"), m_game_tags);
+
+  const int row = FindGameIndex(path);
+  if (row >= 0)
+  {
+    const QModelIndex index = createIndex(row, static_cast<int>(Column::Tags));
+    emit dataChanged(index, index);
+  }
 }
 
 void GameListModel::NewTag(const QString& name)
