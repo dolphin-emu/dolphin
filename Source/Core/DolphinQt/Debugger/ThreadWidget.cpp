@@ -137,8 +137,7 @@ QLineEdit* ThreadWidget::CreateLineEdit() const
 {
   QLineEdit* line_edit = new QLineEdit(QStringLiteral("00000000"));
   line_edit->setReadOnly(true);
-  line_edit->setFixedWidth(
-      line_edit->fontMetrics().boundingRect(QStringLiteral(" 00000000 ")).width());
+  line_edit->setAlignment(Qt::AlignVCenter | Qt::AlignRight);
   return line_edit;
 }
 
@@ -146,6 +145,8 @@ QGroupBox* ThreadWidget::CreateContextGroup()
 {
   QGroupBox* context_group = new QGroupBox(tr("Thread context"));
   QGridLayout* context_layout = new QGridLayout;
+  context_layout->setColumnStretch(0, 1);
+  context_layout->setColumnStretch(1, 1);
   context_group->setLayout(context_layout);
   context_layout->addWidget(new QLabel(tr("Current context")), 0, 0);
   m_current_context = CreateLineEdit();
@@ -164,6 +165,8 @@ QGroupBox* ThreadWidget::CreateActiveThreadQueueGroup()
 {
   QGroupBox* thread_queue_group = new QGroupBox(tr("Active thread queue"));
   auto* thread_queue_layout = new QGridLayout;
+  thread_queue_layout->setColumnStretch(0, 1);
+  thread_queue_layout->setColumnStretch(1, 1);
   thread_queue_group->setLayout(thread_queue_layout);
   thread_queue_layout->addWidget(new QLabel(tr("Head")), 0, 0);
   m_queue_head = CreateLineEdit();
