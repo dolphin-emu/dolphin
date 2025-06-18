@@ -301,6 +301,25 @@ bool PPCSymbolDB::FindMapFile(std::string* existing_map_file, std::string* writa
   return false;
 }
 
+bool PPCSymbolDB::LoadMapOnBoot(const Core::CPUThreadGuard& guard)
+{
+  std::string existing_map_file;
+  if (!PPCSymbolDB::FindMapFile(&existing_map_file, nullptr))
+    return Clear();
+
+  // If the map is already loaded (such as restarting the same game), skip reloading.
+  if (!IsEmpty() && existing_map_file == m_map_name)
+    return false;
+
+  // Load map into cleared m_functions.
+  bool changed = Clear();
+
+  if (!LoadMap(guard, existing_map_file))
+    return changed;
+
+  return true;
+}
+
 // The use case for handling bad map files is when you have a game with a map file on the disc,
 // but you can't tell whether that map file is for the particular release version used in that game,
 // or when you know that the map file is not for that build, but perhaps half the functions in the
@@ -553,6 +572,8 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
       }
     }
   }
+
+  m_map_name = filename;
 
   Index();
   DetermineNoteLayers();
