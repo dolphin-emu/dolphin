@@ -44,4 +44,6 @@ public:
   void PrintCalls(u32 funcAddr) const;
   void PrintCallers(u32 funcAddr) const;
   void LogFunctionCall(u32 addr);
+
+  static bool FindMapFile(std::string* existing_map_file, std::string* writable_map_file);
 };
