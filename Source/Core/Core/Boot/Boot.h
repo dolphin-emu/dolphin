@@ -169,7 +169,6 @@ public:
   // file should be saved.
   //
   // Returns true if a map file exists, false if none could be found.
-  static bool FindMapFile(std::string* existing_map_file, std::string* writable_map_file);
   static bool LoadMapFromFilename(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_symbol_db);
 
 private:

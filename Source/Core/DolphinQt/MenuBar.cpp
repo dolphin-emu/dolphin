@@ -26,7 +26,6 @@
 #include "Common/StringUtil.h"
 
 #include "Core/AchievementManager.h"
-#include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
@@ -1714,7 +1713,7 @@ void MenuBar::LoadSymbolMap()
   auto& ppc_symbol_db = system.GetPPCSymbolDB();
 
   std::string existing_map_file, writable_map_file;
-  bool map_exists = CBoot::FindMapFile(&existing_map_file, &writable_map_file);
+  bool map_exists = PPCSymbolDB::FindMapFile(&existing_map_file, &writable_map_file);
 
   if (!map_exists)
   {
@@ -1752,7 +1751,7 @@ void MenuBar::LoadSymbolMap()
 void MenuBar::SaveSymbolMap()
 {
   std::string existing_map_file, writable_map_file;
-  CBoot::FindMapFile(&existing_map_file, &writable_map_file);
+  PPCSymbolDB::FindMapFile(&existing_map_file, &writable_map_file);
 
   TrySaveSymbolMap(QString::fromStdString(writable_map_file));
 }
@@ -1808,7 +1807,7 @@ void MenuBar::SaveSymbolMapAs()
 void MenuBar::SaveCode()
 {
   std::string existing_map_file, writable_map_file;
-  CBoot::FindMapFile(&existing_map_file, &writable_map_file);
+  PPCSymbolDB::FindMapFile(&existing_map_file, &writable_map_file);
 
   const std::string path =
       writable_map_file.substr(0, writable_map_file.find_last_of('.')) + "_code.map";
