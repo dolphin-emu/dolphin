@@ -108,6 +108,9 @@
 #define FREELOOK_CONFIG "FreeLook.ini"
 #define RETROACHIEVEMENTS_CONFIG "RetroAchievements.ini"
 
+// Files in the directory returned by GetUserPath(D_APPLICATIONSTATE_IDX)
+#define QSETTINGS_CONFIG "Qt.ini"
+
 // Files in the directory returned by GetUserPath(D_LOGS_IDX)
 #define MAIN_LOG "dolphin.log"
 
