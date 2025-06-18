@@ -52,6 +52,7 @@ void SymbolDB::Clear(const char* prefix)
   // TODO: honor prefix
   m_functions.clear();
   m_checksum_to_function.clear();
+  m_map_name.clear();
 }
 
 void SymbolDB::Index()

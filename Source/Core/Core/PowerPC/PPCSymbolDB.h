@@ -32,6 +32,7 @@ public:
 
   void FillInCallers();
 
+  bool LoadMapOnBoot(const Core::CPUThreadGuard& guard);
   bool LoadMap(const Core::CPUThreadGuard& guard, const std::string& filename, bool bad = false);
   bool SaveSymbolMap(const std::string& filename) const;
   bool SaveCodeMap(const Core::CPUThreadGuard& guard, const std::string& filename) const;

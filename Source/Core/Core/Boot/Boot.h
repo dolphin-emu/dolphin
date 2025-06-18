@@ -159,17 +159,6 @@ public:
   static bool BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
                      std::unique_ptr<BootParameters> boot);
 
-  // Tries to find a map file for the current game by looking first in the
-  // local user directory, then in the shared user directory.
-  //
-  // If existing_map_file is not nullptr and a map file exists, it is set to the
-  // path to the existing map file.
-  //
-  // If writable_map_file is not nullptr, it is set to the path to where a map
-  // file should be saved.
-  //
-  // Returns true if a map file exists, false if none could be found.
-  static bool LoadMapFromFilename(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_symbol_db);
 
 private:
   static bool DVDRead(Core::System& system, const DiscIO::VolumeDisc& disc, u64 dvd_offset,

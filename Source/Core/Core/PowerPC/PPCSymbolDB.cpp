@@ -221,6 +221,44 @@ bool PPCSymbolDB::FindMapFile(std::string* existing_map_file, std::string* writa
   return false;
 }
 
+bool PPCSymbolDB::LoadMapOnBoot(const Core::CPUThreadGuard& guard)
+{
+  // Loads from emuthread and can crash with main thread accessing the map. Any other loads will be
+  // done on the main thread and should be safe. Returns true if m_functions was changed.
+  std::lock_guard lock(m_write_lock);
+
+  std::string existing_map_file;
+  if (!PPCSymbolDB::FindMapFile(&existing_map_file, nullptr))
+  {
+    // There is no map file, clear m_functions.
+    if (!IsEmpty())
+    {
+      Clear();
+      return true;
+    }
+
+    return false;
+  }
+
+  // If the map is already loaded (such as restarting the same game), skip reloading.
+  if (!IsEmpty() && existing_map_file == m_map_name)
+    return false;
+
+  // Load map into cleared m_functions.
+  bool changed = false;
+  if (!IsEmpty())
+  {
+    Clear();
+    changed = true;
+  }
+
+  if (!LoadMap(guard, existing_map_file))
+    return changed;
+
+  m_map_name = existing_map_file;
+  return true;
+}
+
 // The use case for handling bad map files is when you have a game with a map file on the disc,
 // but you can't tell whether that map file is for the particular release version used in that game,
 // or when you know that the map file is not for that build, but perhaps half the functions in the
@@ -468,6 +506,8 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
       }
     }
   }
+
+  m_map_name = filename;
 
   Index();
   NOTICE_LOG_FMT(SYMBOLS, "{} symbols loaded, {} symbols ignored.", good_count, bad_count);
