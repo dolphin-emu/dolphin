@@ -28,7 +28,7 @@ constexpr std::size_t BUFFER_SIZE = 1024;
 constexpr auto HCI_COMMAND_TIMEOUT = std::chrono::milliseconds{1000};
 
 constexpr u8 REQUEST_TYPE =
-    u8(u8(LIBUSB_ENDPOINT_OUT) | u8(LIBUSB_REQUEST_TYPE_CLASS)) | u8(LIBUSB_RECIPIENT_INTERFACE);
+    u8(u8(LIBUSB_ENDPOINT_OUT) | u8(LIBUSB_REQUEST_TYPE_CLASS)) | u8(LIBUSB_RECIPIENT_DEVICE);
 
 constexpr u8 HCI_EVENT = 0x81;
 constexpr u8 ACL_DATA_IN = 0x82;
