@@ -159,7 +159,6 @@ public:
   static bool BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
                      std::unique_ptr<BootParameters> boot);
 
-
 private:
   static bool DVDRead(Core::System& system, const DiscIO::VolumeDisc& disc, u64 dvd_offset,
                       u32 output_address, u32 length, const DiscIO::Partition& partition);

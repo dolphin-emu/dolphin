@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstring>
 #include <map>
+#include <mutex>
 #include <ranges>
 #include <sstream>
 #include <string>
@@ -95,6 +96,13 @@ void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAdd
 
 Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
+  // If m_functions is changing, there should be a PPCSymbolsChanged signal afterword. The signal
+  // will re-update persistent symbol displays by calling this function. Only one-off calls to this
+  // function, such as printing the symbol to console, should be affected by leaving early.
+  std::unique_lock<std::mutex> lock(m_write_lock, std::try_to_lock);
+  if (!lock.owns_lock() || IsEmpty())
+    return nullptr;
+
   auto it = m_functions.lower_bound(addr);
 
   if (it != m_functions.end())
@@ -123,6 +131,10 @@ std::string_view PPCSymbolDB::GetDescription(u32 addr)
 
 void PPCSymbolDB::FillInCallers()
 {
+  std::unique_lock<std::mutex> lock(m_write_lock, std::try_to_lock);
+  if (!lock.owns_lock())
+    return;
+
   for (auto& p : m_functions)
   {
     p.second.callers.clear();
