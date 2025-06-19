@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <mutex>
 #include <string>
 #include <string_view>
 
@@ -48,4 +49,7 @@ public:
   void LogFunctionCall(u32 addr);
 
   static bool FindMapFile(std::string* existing_map_file, std::string* writable_map_file);
+
+private:
+  std::mutex m_write_lock;
 };
