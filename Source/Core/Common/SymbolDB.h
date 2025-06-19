@@ -95,5 +95,6 @@ public:
 protected:
   XFuncMap m_functions;
   XFuncPtrMap m_checksum_to_function;
+  std::string m_map_name;
 };
 }  // namespace Common
