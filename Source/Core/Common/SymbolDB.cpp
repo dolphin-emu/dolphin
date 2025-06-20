@@ -51,6 +51,7 @@ void SymbolDB::Clear(const char* prefix)
 {
   // TODO: honor prefix
   m_functions.clear();
+  m_notes.clear();
   m_checksum_to_function.clear();
 }
 
