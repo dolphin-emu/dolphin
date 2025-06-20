@@ -36,6 +36,7 @@ typedef SSIZE_T ssize_t;
 #include "Core/Host.h"
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCCache.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
@@ -648,6 +649,7 @@ static void WriteRegister()
   else if (id >= 71 && id < 87)
   {
     ppc_state.sr[id - 71] = re32hex(bufptr);
+    system.GetMMU().SRUpdated();
   }
   else if (id >= 88 && id < 104)
   {
