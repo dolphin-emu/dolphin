@@ -15,6 +15,7 @@
 #include "Core/Core.h"
 #include "Core/Debugger/CodeTrace.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "DolphinQt/Host.h"
@@ -405,7 +406,10 @@ void RegisterWidget::PopulateTable()
     AddRegister(
         i, 7, RegisterType::sr, "SR" + std::to_string(i),
         [this, i] { return m_system.GetPPCState().sr[i]; },
-        [this, i](u64 value) { m_system.GetPPCState().sr[i] = value; });
+        [this, i](u64 value) {
+          m_system.GetPPCState().sr[i] = value;
+          m_system.GetMMU().SRUpdated();
+        });
   }
 
   // Special registers
