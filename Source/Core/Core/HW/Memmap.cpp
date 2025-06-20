@@ -244,11 +244,7 @@ void MemoryManager::UpdateDBATMappings(const PowerPC::BatTable& dbat_table)
   }
   m_dbat_mapped_entries.clear();
 
-  for (auto& entry : m_page_table_mapped_entries)
-  {
-    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
-  }
-  m_page_table_mapped_entries.clear();
+  ClearPageTableMappings();
 
   m_logical_page_mappings.fill(nullptr);
 
@@ -287,7 +283,7 @@ void MemoryManager::UpdateDBATMappings(const PowerPC::BatTable& dbat_table)
                             intersection_start, mapped_size, logical_address);
               continue;
             }
-            m_dbat_mapped_entries.push_back({mapped_pointer, mapped_size});
+            m_dbat_mapped_entries.push_back({mapped_pointer, mapped_size, logical_address});
           }
 
           m_logical_page_mappings[i] =
@@ -298,18 +294,33 @@ void MemoryManager::UpdateDBATMappings(const PowerPC::BatTable& dbat_table)
   }
 }
 
-void MemoryManager::UpdatePageTableMappings(const std::map<u32, u32>& page_mappings)
+void MemoryManager::ClearPageTableMappings()
 {
-  if (m_page_size > PowerPC::HW_PAGE_SIZE)
-    return;
-
   for (auto& entry : m_page_table_mapped_entries)
   {
     m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
   }
   m_page_table_mapped_entries.clear();
+}
 
-  for (const auto [logical_address, translated_address] : page_mappings)
+void MemoryManager::UpdatePageTableMappings(const std::map<u32, u32>& mappings_to_remove,
+                                            const std::map<u32, u32>& mappings_to_add)
+{
+  if (m_page_size > PowerPC::HW_PAGE_SIZE)
+    return;
+
+  if (!mappings_to_remove.empty())
+  {
+    std::erase_if(m_page_table_mapped_entries,
+                  [this, &mappings_to_remove](const LogicalMemoryView& entry) {
+                    const bool remove = mappings_to_remove.contains(entry.logical_address);
+                    if (remove)
+                      m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
+                    return remove;
+                  });
+  }
+
+  for (const auto [logical_address, translated_address] : mappings_to_add)
   {
     if (logical_address % m_page_alignment != 0)
       continue;
@@ -343,7 +354,7 @@ void MemoryManager::UpdatePageTableMappings(const std::map<u32, u32>& page_mappi
                 intersection_start, mapped_size, logical_address);
             continue;
           }
-          m_page_table_mapped_entries.push_back({mapped_pointer, mapped_size});
+          m_page_table_mapped_entries.push_back({mapped_pointer, mapped_size, logical_address});
         }
       }
     }

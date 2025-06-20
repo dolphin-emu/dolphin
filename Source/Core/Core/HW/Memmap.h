@@ -55,6 +55,7 @@ struct LogicalMemoryView
 {
   void* mapped_pointer;
   u32 mapped_size;
+  u32 logical_address;
 };
 
 class MemoryManager
@@ -101,7 +102,9 @@ public:
   void DoState(PointerWrap& p);
 
   void UpdateDBATMappings(const PowerPC::BatTable& dbat_table);
-  void UpdatePageTableMappings(const std::map<u32, u32>& page_mappings);
+  void ClearPageTableMappings();
+  void UpdatePageTableMappings(const std::map<u32, u32>& mappings_to_remove,
+                               const std::map<u32, u32>& mappings_to_add);
 
   void Clear();
 
