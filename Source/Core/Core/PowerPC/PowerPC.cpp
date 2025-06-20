@@ -672,12 +672,6 @@ void PowerPCManager::MSRUpdated()
   m_system.GetJitInterface().UpdateMembase();
 }
 
-void PowerPCState::SetSR(u32 index, u32 value)
-{
-  DEBUG_LOG_FMT(POWERPC, "{:08x}: MMU: Segment register {} set to {:08x}", pc, index, value);
-  sr[index] = value;
-}
-
 // FPSCR update functions
 
 void PowerPCState::UpdateFPRFDouble(double dvalue)
