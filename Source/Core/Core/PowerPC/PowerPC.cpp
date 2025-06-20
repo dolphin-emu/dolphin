@@ -97,6 +97,7 @@ void PowerPCManager::DoState(PointerWrap& p)
   p.DoArray(m_ppc_state.tlb);
   p.Do(m_ppc_state.pagetable_base);
   p.Do(m_ppc_state.pagetable_hashmask);
+  p.Do(m_ppc_state.pagetable_update_pending);
 
   p.Do(m_ppc_state.reserve);
   p.Do(m_ppc_state.reserve_address);
@@ -283,6 +284,7 @@ void PowerPCManager::Reset()
 {
   m_ppc_state.pagetable_base = 0;
   m_ppc_state.pagetable_hashmask = 0;
+  m_ppc_state.pagetable_update_pending = false;
   m_ppc_state.tlb = {};
 
   ResetRegisters();
@@ -576,7 +578,7 @@ void PowerPCManager::CheckExceptions()
   }
 
   m_system.GetJitInterface().UpdateMembase();
-  MSRUpdated(m_ppc_state);
+  MSRUpdated(m_system);
 }
 
 void PowerPCManager::CheckExternalExceptions()
@@ -629,7 +631,7 @@ void PowerPCManager::CheckExternalExceptions()
       ERROR_LOG_FMT(POWERPC, "Unknown EXTERNAL INTERRUPT exception: Exceptions == {:08x}",
                     exceptions);
     }
-    MSRUpdated(m_ppc_state);
+    MSRUpdated(m_system);
   }
 
   m_system.GetJitInterface().UpdateMembase();
@@ -689,15 +691,20 @@ void RoundingModeUpdated(PowerPCState& ppc_state)
   Common::FPU::SetSIMDMode(ppc_state.fpscr.RN, ppc_state.fpscr.NI);
 }
 
-void MSRUpdated(PowerPCState& ppc_state)
+void MSRUpdated(Core::System& system)
 {
   static_assert(UReg_MSR{}.DR.StartBit() == 4);
   static_assert(UReg_MSR{}.IR.StartBit() == 5);
   static_assert(FEATURE_FLAG_MSR_DR == 1 << 0);
   static_assert(FEATURE_FLAG_MSR_IR == 1 << 1);
 
+  PowerPCState& ppc_state = system.GetPPCState();
+
   ppc_state.feature_flags = static_cast<CPUEmuFeatureFlags>(
       (ppc_state.feature_flags & FEATURE_FLAG_PERFMON) | ((ppc_state.msr.Hex >> 4) & 0x3));
+
+  if (ppc_state.msr.DR && ppc_state.pagetable_update_pending)
+    system.GetMMU().PageTableUpdated();
 }
 
 void MMCRUpdated(PowerPCState& ppc_state)

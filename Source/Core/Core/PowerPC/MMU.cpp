@@ -1346,7 +1346,10 @@ void MMU::SDRUpdated()
 
 void MMU::SRUpdated()
 {
-  PageTableUpdated();
+  if (m_ppc_state.msr.DR)
+    PageTableUpdated();
+  else
+    m_ppc_state.pagetable_update_pending = true;
 }
 
 enum class TLBLookupResult
@@ -1437,11 +1440,15 @@ void MMU::InvalidateTLBEntry(u32 address)
   m_ppc_state.tlb[PowerPC::DATA_TLB_INDEX][entry_index].Invalidate();
   m_ppc_state.tlb[PowerPC::INST_TLB_INDEX][entry_index].Invalidate();
 
-  PageTableUpdated();
+  if (m_ppc_state.msr.DR)
+    PageTableUpdated();
+  else
+    m_ppc_state.pagetable_update_pending = true;
 }
 
 void MMU::PageTableUpdated()
 {
+  m_ppc_state.pagetable_update_pending = false;
 #ifndef _ARCH_32
   m_page_mappings.clear();
 
@@ -1554,6 +1561,11 @@ void MMU::PageTableUpdated()
 
   m_memory.UpdatePageTableMappings(m_page_mappings);
 #endif
+}
+
+void MMU::PageTableUpdatedFromJit(MMU* mmu)
+{
+  mmu->PageTableUpdated();
 }
 
 // Page Address Translation

@@ -453,7 +453,7 @@ void RegisterWidget::PopulateTable()
       23, 5, RegisterType::msr, "MSR", [this] { return m_system.GetPPCState().msr.Hex; },
       [this](u64 value) {
         m_system.GetPPCState().msr.Hex = value;
-        PowerPC::MSRUpdated(m_system.GetPPCState());
+        PowerPC::MSRUpdated(m_system);
       });
 
   // SRR 0-1
