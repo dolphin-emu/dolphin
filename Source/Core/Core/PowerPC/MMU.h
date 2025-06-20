@@ -7,7 +7,9 @@
 #include <cstddef>
 #include <map>
 #include <optional>
+#include <span>
 #include <string>
+#include <vector>
 
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
@@ -120,7 +122,7 @@ public:
   ~MMU();
 
   void Reset();
-  void DoState(PointerWrap& p);
+  void DoState(PointerWrap& p, bool sr_changed);
 
   // Routines for debugger UI, cheats, etc. to access emulated memory from the
   // perspective of the CPU.  Not for use by core emulation routines.
@@ -311,6 +313,11 @@ private:
 
   void Memcheck(u32 address, u64 var, bool write, size_t size);
 
+#ifndef _ARCH_32
+  void ReloadPageTable();
+  void PageTableUpdated(std::span<u8> page_table);
+#endif
+
   void UpdateBATs(BatTable& bat_table, u32 base_spr);
   void UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr);
 
@@ -334,8 +341,17 @@ private:
   PowerPC::PowerPCState& m_ppc_state;
 
   // STATE_TO_SAVE
-  std::map<u32, u32> m_page_mappings;
+  std::vector<u8> m_page_table;
   // END STATE_TO_SAVE
+
+  // These two reflect what mappings m_memory currently has.
+  std::map<u32, u32> m_primary_page_mappings;
+  std::map<u32, u32> m_secondary_page_mappings;
+
+  // These are kept around just for their memory allocations. They are always cleared before use.
+  std::vector<u8> m_temp_page_table;
+  std::map<u32, u32> m_removed_mappings;
+  std::map<u32, u32> m_added_mappings;
 
   BatTable m_ibat_table;
   BatTable m_dbat_table;

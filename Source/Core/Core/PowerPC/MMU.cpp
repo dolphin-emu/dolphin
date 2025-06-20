@@ -25,10 +25,17 @@
 
 #include "Core/PowerPC/MMU.h"
 
+#include <algorithm>
 #include <bit>
 #include <cstddef>
 #include <cstring>
+#include <memory>
 #include <string>
+#include <utility>
+
+#ifdef _M_X86_64
+#include <emmintrin.h>
+#endif
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
@@ -61,18 +68,38 @@ MMU::~MMU() = default;
 
 void MMU::Reset()
 {
-  m_page_mappings.clear();
+  m_page_table.clear();
+  m_primary_page_mappings.clear();
+  m_secondary_page_mappings.clear();
 #ifndef _ARCH_32
-  m_memory.UpdatePageTableMappings(m_page_mappings);
+  m_memory.ClearPageTableMappings();
 #endif
 }
 
-void MMU::DoState(PointerWrap& p)
+void MMU::DoState(PointerWrap& p, bool sr_changed)
 {
-  // Instead of storing m_page_mappings in savestates, we *could* recalculate it based on memory
+  // Instead of storing m_page_table in savestates, we *could* refetch it from memory
   // here in DoState, but this could lead to us getting a more up-to-date set of page mappings
   // than we had when the savestate was created, which could be a problem for TAS determinism.
-  p.Do(m_page_mappings);
+  if (p.IsReadMode())
+  {
+    if (sr_changed)
+    {
+      // Non-incremental update of page table mappings.
+      p.Do(m_page_table);
+      SRUpdated();
+    }
+    else
+    {
+      // Incremental update of page table mappings.
+      p.Do(m_temp_page_table);
+      PageTableUpdated(m_temp_page_table);
+    }
+  }
+  else
+  {
+    p.Do(m_page_table);
+  }
 }
 
 // Overloaded byteswap functions, for use within the templated functions below.
@@ -1347,10 +1374,12 @@ void MMU::SDRUpdated()
 
 void MMU::SRUpdated()
 {
-  if (m_ppc_state.msr.DR)
-    PageTableUpdated();
-  else
-    m_ppc_state.pagetable_update_pending = true;
+#ifndef _ARCH_32
+  // Our incremental handling of page table updates can't handle SR changing, so throw away all
+  // existing mappings and then reparse the whole page table.
+  m_memory.ClearPageTableMappings();
+  ReloadPageTable();
+#endif
 }
 
 enum class TLBLookupResult
@@ -1450,9 +1479,13 @@ void MMU::InvalidateTLBEntry(u32 address)
 void MMU::PageTableUpdated()
 {
   m_ppc_state.pagetable_update_pending = false;
-#ifndef _ARCH_32
-  m_page_mappings.clear();
 
+#ifdef _ARCH_32
+  // If a savestate is brought from a 64-bit system to a 32-bit system, clear m_page_table.
+  // Not doing this means a stale m_page_table would stick around, which could be a problem
+  // if the savestate is then brought to a 64-bit system again.
+  m_page_table.clear();
+#else
   if (m_ppc_state.m_enable_dcache)
   {
     // Because fastmem isn't in use when accurate dcache emulation is enabled, setting up mappings
@@ -1461,9 +1494,8 @@ void MMU::PageTableUpdated()
     return;
   }
 
-  const u32 page_table_mask = m_ppc_state.pagetable_hashmask;
   const u32 page_table_base = m_ppc_state.pagetable_base;
-  const u32 page_table_end = (page_table_base | (page_table_mask << 6)) + (1 << 6);
+  const u32 page_table_end = (page_table_base | (m_ppc_state.pagetable_hashmask << 6)) + (1 << 6);
   const u32 page_table_size = page_table_end - page_table_base;
 
   u8* page_table_view = m_system.GetMemory().GetPointerForRange(page_table_base, page_table_size);
@@ -1471,98 +1503,253 @@ void MMU::PageTableUpdated()
   {
     WARN_LOG_FMT(POWERPC, "Failed to read page table at {:#010x}-{:#010x}", page_table_base,
                  page_table_end);
-    m_memory.UpdatePageTableMappings(m_page_mappings);
+    m_primary_page_mappings.clear();
+    m_secondary_page_mappings.clear();
+    m_memory.ClearPageTableMappings();
     return;
   }
 
-  const auto read_page_table = [&](u32 H) {
-    for (u32 i = 0; i <= page_table_mask; ++i)
+  PageTableUpdated(std::span(page_table_view, page_table_size));
+#endif
+}
+
+#ifndef _ARCH_32
+void MMU::ReloadPageTable()
+{
+  m_primary_page_mappings.clear();
+  m_secondary_page_mappings.clear();
+
+  m_temp_page_table.clear();
+  std::swap(m_page_table, m_temp_page_table);
+  PageTableUpdated(m_temp_page_table);
+}
+
+void MMU::PageTableUpdated(std::span<u8> page_table)
+{
+  // PowerPC's priority order for PTEs that have the same logical adress is as follows:
+  //
+  // * Primary PTEs (H=0) take priority over secondary PTEs (H=1).
+  // * If two PTEs have equal H values, they must be in the same PTEG due to how the hash
+  //   incorporates the logical address and H. The PTE located first in the PTEG takes priority.
+
+  m_removed_mappings.clear();
+  m_added_mappings.clear();
+
+  if (m_page_table.size() != page_table.size())
+  {
+    m_page_table.clear();
+    m_page_table.resize(page_table.size());
+  }
+
+  constexpr auto compare_64_bytes = [](const u8* a, const u8* b) -> bool {
+#ifdef _M_X86_64
+    // MSVC (x64) doesn't want to optimize the memcmp call. This 64-byte compare is performance
+    // critical in certain games like Spider-Man 2, so let's use our own vectorized version
+    // instead.
+    const __m128i a1 = _mm_load_si128(reinterpret_cast<const __m128i*>(a));
+    const __m128i b1 = _mm_load_si128(reinterpret_cast<const __m128i*>(b));
+    const __m128i cmp1 = _mm_cmpeq_epi8(a1, b1);
+    const __m128i a2 = _mm_load_si128(reinterpret_cast<const __m128i*>(a + 0x10));
+    const __m128i b2 = _mm_load_si128(reinterpret_cast<const __m128i*>(b + 0x10));
+    const __m128i cmp2 = _mm_cmpeq_epi8(a2, b2);
+    const __m128i cmp12 = _mm_and_si128(cmp1, cmp2);
+    const __m128i a3 = _mm_load_si128(reinterpret_cast<const __m128i*>(a + 0x20));
+    const __m128i b3 = _mm_load_si128(reinterpret_cast<const __m128i*>(b + 0x20));
+    const __m128i cmp3 = _mm_cmpeq_epi8(a3, b3);
+    const __m128i a4 = _mm_load_si128(reinterpret_cast<const __m128i*>(a + 0x30));
+    const __m128i b4 = _mm_load_si128(reinterpret_cast<const __m128i*>(b + 0x30));
+    const __m128i cmp4 = _mm_cmpeq_epi8(a4, b4);
+    const __m128i cmp34 = _mm_and_si128(cmp3, cmp4);
+    const __m128i cmp1234 = _mm_and_si128(cmp12, cmp34);
+    return _mm_movemask_epi8(cmp1234) == 0xFFFF;
+#else
+    return std::memcmp(std::assume_aligned<16>(a), std::assume_aligned<16>(b), 64) == 0;
+#endif
+  };
+
+  constexpr auto get_page_index = [](UPTE_Lo pte1, u32 hash) {
+    u32 page_index_from_hash = hash ^ pte1.VSID;
+    if (pte1.H)
+      page_index_from_hash = ~page_index_from_hash;
+
+    // Due to hash masking, the upper bits of page_index_from_hash might not match the actual
+    // page index. But these bits fully overlap with the API (abbreviated page index), so we can
+    // overwrite these bits with the API from pte1 and thereby get the correct page index.
+    //
+    // In other words: logical_address.API must be written to after logical_address.page_index!
+
+    EffectiveAddress logical_address;
+    logical_address.offset = 0;
+    logical_address.page_index = page_index_from_hash;
+    logical_address.API = pte1.API;
+    return logical_address;
+  };
+
+  const auto try_add_mapping = [this, &get_page_index, page_table](UPTE_Lo pte1, UPTE_Hi pte2,
+                                                                   u32 page_table_offset,
+                                                                   std::map<u32, u32>* mappings) {
+    // There are quirks related to uncached memory that can't be correctly emulated by fast
+    // accesses, so we don't map uncached memory. (However, no software at all is known to trigger
+    // these quirks through page address translation, only through block address translation.)
+    const bool wi = (pte2.WIMG & 0b1100) != 0;
+    if (wi)
+      return;
+
+    const u32 physical_address = pte2.RPN << 12;
+    EffectiveAddress logical_address = get_page_index(pte1, page_table_offset / 64);
+
+    for (u32 k = 0; k < std::size(m_ppc_state.sr); ++k)
     {
-      for (u32 j = 0; j < 8; ++j)
+      const auto sr = UReg_SR{m_ppc_state.sr[k]};
+      if (sr.VSID != pte1.VSID || sr.T != 0)
+        continue;
+
+      logical_address.SR = k;
+
+      // Block address translation takes priority over page address translation.
+      if (m_dbat_table[logical_address.Hex >> PowerPC::BAT_INDEX_SHIFT] & PowerPC::BAT_MAPPED_BIT)
+        continue;
+
+      // Fast accesses don't support memchecks, so force slow accesses by removing fastmem
+      // mappings for all overlapping virtual pages.
+      constexpr u32 logical_size = PowerPC::HW_PAGE_SIZE;
+      if (m_power_pc.GetMemChecks().OverlapsMemcheck(logical_address.Hex, logical_size))
+        continue;
+
+      // If this logical address is already in m_primary_page_mappings, the existing mapping takes
+      // priority.
+      if (m_primary_page_mappings.contains(logical_address.Hex))
+        continue;
+
+      // If this logical address is already in m_secondary_page_mappings, there are two different
+      // scenarios.
+      if (auto it = m_secondary_page_mappings.find(logical_address.Hex);
+          it != m_secondary_page_mappings.end())
       {
-        const u32 pte_addr = (page_table_base | ((i & page_table_mask) << 6)) + j * 8;
-
-        UPTE_Lo pte1(Common::swap32(page_table_view + pte_addr - page_table_base));
-        UPTE_Hi pte2(Common::swap32(page_table_view + pte_addr - page_table_base + 4));
-
-        if (!pte1.V)
-          continue;
-
-        if (pte1.H != H)
-          continue;
-
-        // There are quirks related to uncached memory that can't be correctly emulated by fast
-        // accesses, so we don't map uncached memory. (However, no software at all is known to
-        // trigger these quirks through page address translation, only through block address
-        // translation.)
-        const bool wi = (pte2.WIMG & 0b1100) != 0;
-        if (wi)
-          continue;
-
-        // Due to hash masking, the upper bits of page_index_from_hash might not match the actual
-        // page index. But these bits fully overlap with the API (abbreviated page index), so we can
-        // overwrite these bits with the API from pte1 and thereby get the correct page index.
-        //
-        // In other words: logical_address.API must be written to after logical_address.page_index!
-        u32 page_index_from_hash = i ^ pte1.VSID;
         if (pte1.H)
-          page_index_from_hash = ~page_index_from_hash;
-        EffectiveAddress logical_address;
-        logical_address.offset = 0;
-        logical_address.page_index = page_index_from_hash;
-        logical_address.API = pte1.API;
-
-        for (u32 k = 0; k < std::size(m_ppc_state.sr); ++k)
         {
-          const auto sr = UReg_SR{m_ppc_state.sr[k]};
-          if (sr.VSID != pte1.VSID || sr.T != 0)
-            continue;
-
-          logical_address.SR = k;
-
-          // Block address translation takes priority over page address translation.
-          if (m_dbat_table[logical_address.Hex >> PowerPC::BAT_INDEX_SHIFT] &
-              PowerPC::BAT_MAPPED_BIT)
-          {
-            continue;
-          }
-
-          // Fast accesses don't support memchecks, so force slow accesses by removing fastmem
-          // mappings for all overlapping virtual pages.
-          constexpr u32 logical_size = PowerPC::HW_PAGE_SIZE;
-          if (m_power_pc.GetMemChecks().OverlapsMemcheck(logical_address.Hex, logical_size))
-            continue;
-
-          const u32 physical_address = pte2.RPN << 12;
-
-          // Important: This doesn't overwrite anything already present in m_page_mappings.
-          m_page_mappings.emplace(logical_address.Hex, physical_address);
-
-          // HACK: We set R and C, which indicate whether a page have been read from and written to
-          // respectively, when a page is mapped rather than when it's actually accessed. The latter
-          // is probably possible using some fault handling logic, but for now it seems like more
-          // work than it's worth.
-          if (!pte2.R || !pte2.C)
-          {
-            pte2.R = 1;
-            pte2.C = 1;
-
-            const u32 pte2_swapped = Common::swap32(pte2.Hex);
-            std::memcpy(page_table_view + pte_addr - page_table_base + 4, &pte2_swapped,
-                        sizeof(pte2_swapped));
-          }
+          // The existing mapping has priority.
+          continue;
         }
+        else
+        {
+          // The new mapping has priority. Remove the existing mapping.
+          m_removed_mappings.emplace(*it);
+          m_secondary_page_mappings.erase(it);
+        }
+      }
+
+      // Add the new mapping.
+      m_added_mappings.emplace(logical_address.Hex, physical_address);
+      mappings->emplace(logical_address.Hex, physical_address);
+
+      // HACK: We set R and C, which indicate whether a page have been read from and written to
+      // respectively, when a page is mapped rather than when it's actually accessed. The latter
+      // is probably possible using some fault handling logic, but for now it seems like more
+      // work than it's worth.
+      if (!pte2.R || !pte2.C)
+      {
+        pte2.R = 1;
+        pte2.C = 1;
+
+        const u32 pte2_swapped = Common::swap32(pte2.Hex);
+        std::memcpy(page_table.data() + page_table_offset + 4, &pte2_swapped, sizeof(pte2_swapped));
       }
     }
   };
 
-  // We need to read all H=0 PTEs first, because H=0 takes priority over H=1.
-  read_page_table(0);
-  read_page_table(1);
+  u8* old_page_table = m_page_table.data();
+  u8* new_page_table = page_table.data();
+  bool run_pass_2 = false;
 
-  m_memory.UpdatePageTableMappings(m_page_mappings);
-#endif
+  // Pass 1: Remove old mappings and add new primary (H=0) mappings.
+  for (u32 i = 0; i < page_table.size(); i += 64)
+  {
+    if (compare_64_bytes(old_page_table + i, new_page_table + i)) [[likely]]
+      continue;
+
+    // Subpass 1a: Remove old mappings. We must remove all old mappings within each PTEG before
+    // adding new mappings from the same PTEG, so that we don't accidentally skip adding a new
+    // mapping because it has the same logical address as an old mapping.
+    for (u32 j = 0; j < 64; j += 8)
+    {
+      if (std::memcmp(old_page_table + i + j, new_page_table + i + j, 8) == 0) [[likely]]
+        continue;
+
+      UPTE_Lo old_pte1(Common::swap32(old_page_table + i));
+      UPTE_Hi old_pte2(Common::swap32(old_page_table + i + 4));
+
+      if (old_pte1.V)
+      {
+        auto& mappings = old_pte1.H ? m_secondary_page_mappings : m_primary_page_mappings;
+        const u32 physical_address = old_pte2.RPN << 12;
+        EffectiveAddress logical_address = get_page_index(old_pte1, i / 64);
+
+        for (u32 k = 0; k < std::size(m_ppc_state.sr); ++k)
+        {
+          const auto sr = UReg_SR{m_ppc_state.sr[k]};
+          if (sr.VSID != old_pte1.VSID || sr.T != 0)
+            continue;
+
+          logical_address.SR = k;
+
+          const auto it = mappings.find(logical_address.Hex);
+          if (it != mappings.end())
+          {
+            mappings.erase(it);
+            m_removed_mappings.emplace(logical_address.Hex, physical_address);
+          }
+        }
+      }
+    }
+
+    // Subpass 1b: Add new primary (H=0) mappings.
+    for (u32 j = 0; j < 64; j += 8)
+    {
+      if (std::memcmp(old_page_table + i + j, new_page_table + i + j, 8) == 0) [[likely]]
+        continue;
+
+      UPTE_Lo new_pte1(Common::swap32(new_page_table + i));
+      UPTE_Hi new_pte2(Common::swap32(new_page_table + i + 4));
+
+      if (new_pte1.V)
+      {
+        if (new_pte1.H)
+        {
+          run_pass_2 = true;
+          continue;
+        }
+
+        try_add_mapping(new_pte1, new_pte2, i + j, &m_primary_page_mappings);
+      }
+
+      std::memcpy(old_page_table + i + j, new_page_table + i + j, 8);
+    }
+  }
+
+  // Pass 2: Add new secondary (H=1) mappings. This is a separate pass because primary mappings
+  // must take priority over secondary mappings.
+  if (run_pass_2)
+  {
+    for (u32 i = 0; i < page_table.size(); i += 8)
+    {
+      if (std::memcmp(old_page_table + i, new_page_table + i, 8) == 0) [[likely]]
+        continue;
+
+      UPTE_Lo new_pte1(Common::swap32(new_page_table + i));
+      UPTE_Hi new_pte2(Common::swap32(new_page_table + i + 4));
+
+      // We don't need to check new_pte1.V and new_pte1.H. If the memcmp above returned nonzero,
+      // subpass 1b must have skipped running memcpy, which only happens if V and H are both set.
+      try_add_mapping(new_pte1, new_pte2, i, &m_secondary_page_mappings);
+
+      std::memcpy(old_page_table + i, new_page_table + i, 8);
+    }
+  }
+
+  m_memory.UpdatePageTableMappings(m_removed_mappings, m_added_mappings);
 }
+#endif
 
 void MMU::PageTableUpdatedFromJit(MMU* mmu)
 {
@@ -1795,7 +1982,11 @@ void MMU::DBATUpdated()
 
 #ifndef _ARCH_32
   m_memory.UpdateDBATMappings(m_dbat_table);
-  m_memory.UpdatePageTableMappings(m_page_mappings);
+
+  // Calling UpdateDBATMappings removes all fastmem page table mappings,
+  // so we have to recreate them.
+  if (!m_page_table.empty())
+    ReloadPageTable();
 #endif
 
   // IsOptimizable*Address and dcbz depends on the BAT mapping, so we need a flush here.
