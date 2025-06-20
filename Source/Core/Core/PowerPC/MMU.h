@@ -237,6 +237,7 @@ public:
 
   // TLB functions
   void SDRUpdated();
+  void SRUpdated();
   void InvalidateTLBEntry(u32 address);
   void DBATUpdated();
   void IBATUpdated();

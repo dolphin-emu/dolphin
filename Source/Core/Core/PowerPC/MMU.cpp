@@ -1219,6 +1219,10 @@ void MMU::SDRUpdated()
   m_ppc_state.pagetable_hashmask = ((htabmask << 10) | 0x3ff);
 }
 
+void MMU::SRUpdated()
+{
+}
+
 enum class TLBLookupResult
 {
   Found,
