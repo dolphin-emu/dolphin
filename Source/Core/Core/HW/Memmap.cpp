@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <array>
 #include <cstring>
+#include <map>
 #include <memory>
 #include <span>
 #include <tuple>
@@ -41,7 +42,8 @@
 
 namespace Memory
 {
-MemoryManager::MemoryManager(Core::System& system) : m_system(system)
+MemoryManager::MemoryManager(Core::System& system)
+    : m_page_size(m_arena.GetPageSize()), m_system(system)
 {
 }
 
@@ -233,13 +235,19 @@ bool MemoryManager::InitFastmemArena()
   return true;
 }
 
-void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
+void MemoryManager::UpdateDBATMappings(const PowerPC::BatTable& dbat_table)
 {
-  for (auto& entry : m_logical_mapped_entries)
+  for (auto& entry : m_dbat_mapped_entries)
   {
     m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
   }
-  m_logical_mapped_entries.clear();
+  m_dbat_mapped_entries.clear();
+
+  for (auto& entry : m_page_table_mapped_entries)
+  {
+    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
+  }
+  m_page_table_mapped_entries.clear();
 
   m_logical_page_mappings.fill(nullptr);
 
@@ -288,17 +296,64 @@ void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
             void* mapped_pointer = m_arena.MapInMemoryRegion(position, mapped_size, base);
             if (!mapped_pointer)
             {
-              PanicAlertFmt(
-                  "Memory::UpdateLogicalMemory(): Failed to map memory region at 0x{:08X} "
-                  "(size 0x{:08X}) into logical fastmem region at 0x{:08X}.",
-                  intersection_start, mapped_size, logical_address);
-              exit(0);
+              PanicAlertFmt("Memory::UpdateDBATMappings(): Failed to map memory region at 0x{:08X} "
+                            "(size 0x{:08X}) into logical fastmem region at 0x{:08X}.",
+                            intersection_start, mapped_size, logical_address);
+              continue;
             }
-            m_logical_mapped_entries.push_back({mapped_pointer, mapped_size});
+            m_dbat_mapped_entries.push_back({mapped_pointer, mapped_size});
           }
 
           m_logical_page_mappings[i] =
               *physical_region.out_pointer + intersection_start - mapping_address;
+        }
+      }
+    }
+  }
+}
+
+void MemoryManager::UpdatePageTableMappings(const std::map<u32, u32>& page_mappings)
+{
+  if (m_page_size > PowerPC::HW_PAGE_SIZE)
+    return;
+
+  for (auto& entry : m_page_table_mapped_entries)
+  {
+    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
+  }
+  m_page_table_mapped_entries.clear();
+
+  for (const auto [logical_address, translated_address] : page_mappings)
+  {
+    constexpr u32 logical_size = PowerPC::HW_PAGE_SIZE;
+    for (const auto& physical_region : m_physical_regions)
+    {
+      if (!physical_region.active)
+        continue;
+
+      u32 mapping_address = physical_region.physical_address;
+      u32 mapping_end = mapping_address + physical_region.size;
+      u32 intersection_start = std::max(mapping_address, translated_address);
+      u32 intersection_end = std::min(mapping_end, translated_address + logical_size);
+      if (intersection_start < intersection_end)
+      {
+        // Found an overlapping region; map it.
+        if (m_is_fastmem_arena_initialized)
+        {
+          u32 position = physical_region.shm_position + intersection_start - mapping_address;
+          u8* base = m_logical_base + logical_address + intersection_start - translated_address;
+          u32 mapped_size = intersection_end - intersection_start;
+
+          void* mapped_pointer = m_arena.MapInMemoryRegion(position, mapped_size, base);
+          if (!mapped_pointer)
+          {
+            PanicAlertFmt(
+                "Memory::UpdatePageTableMappings(): Failed to map memory region at 0x{:08X} "
+                "(size 0x{:08X}) into logical fastmem region at 0x{:08X}.",
+                intersection_start, mapped_size, logical_address);
+            continue;
+          }
+          m_page_table_mapped_entries.push_back({mapped_pointer, mapped_size});
         }
       }
     }
@@ -386,11 +441,17 @@ void MemoryManager::ShutdownFastmemArena()
     m_arena.UnmapFromMemoryRegion(base, region.size);
   }
 
-  for (auto& entry : m_logical_mapped_entries)
+  for (auto& entry : m_dbat_mapped_entries)
   {
     m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
   }
-  m_logical_mapped_entries.clear();
+  m_dbat_mapped_entries.clear();
+
+  for (auto& entry : m_page_table_mapped_entries)
+  {
+    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
+  }
+  m_page_table_mapped_entries.clear();
 
   m_arena.ReleaseMemoryRegion();
 
