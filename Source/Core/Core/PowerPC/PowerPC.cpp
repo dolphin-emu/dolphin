@@ -103,6 +103,9 @@ void PowerPCManager::DoState(PointerWrap& p)
   m_ppc_state.iCache.DoState(memory, p);
   m_ppc_state.dCache.DoState(memory, p);
 
+  auto& mmu = m_system.GetMMU();
+  mmu.DoState(p);
+
   if (p.IsReadMode())
   {
     if (!m_ppc_state.m_enable_dcache)
@@ -114,7 +117,6 @@ void PowerPCManager::DoState(PointerWrap& p)
     RoundingModeUpdated(m_ppc_state);
     RecalculateAllFeatureFlags(m_ppc_state);
 
-    auto& mmu = m_system.GetMMU();
     mmu.IBATUpdated();
     mmu.DBATUpdated();
   }
@@ -280,6 +282,7 @@ void PowerPCManager::Reset()
   ResetRegisters();
   m_ppc_state.iCache.Reset(m_system.GetJitInterface());
   m_ppc_state.dCache.Reset();
+  m_system.GetMMU().Reset();
 }
 
 void PowerPCManager::ScheduleInvalidateCacheThreadSafe(u32 address)
