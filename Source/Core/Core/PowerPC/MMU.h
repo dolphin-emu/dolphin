@@ -5,12 +5,15 @@
 
 #include <array>
 #include <cstddef>
+#include <map>
 #include <optional>
 #include <string>
 
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 #include "Common/TypeUtils.h"
+
+class PointerWrap;
 
 namespace Core
 {
@@ -116,6 +119,9 @@ public:
   MMU& operator=(const MMU& other) = delete;
   MMU& operator=(MMU&& other) = delete;
   ~MMU();
+
+  void Reset();
+  void DoState(PointerWrap& p);
 
   // Routines for debugger UI, cheats, etc. to access emulated memory from the
   // perspective of the CPU.  Not for use by core emulation routines.
@@ -239,6 +245,7 @@ public:
   void SDRUpdated();
   void SRUpdated();
   void InvalidateTLBEntry(u32 address);
+  void PageTableUpdated();
   void DBATUpdated();
   void IBATUpdated();
 
@@ -317,6 +324,10 @@ private:
   Memory::MemoryManager& m_memory;
   PowerPC::PowerPCManager& m_power_pc;
   PowerPC::PowerPCState& m_ppc_state;
+
+  // STATE_TO_SAVE
+  std::map<u32, u32> m_page_mappings;
+  // END STATE_TO_SAVE
 
   BatTable m_ibat_table;
   BatTable m_dbat_table;

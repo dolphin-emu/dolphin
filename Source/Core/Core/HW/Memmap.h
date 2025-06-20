@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <map>
 #include <memory>
 #include <span>
 #include <string>
@@ -99,7 +100,8 @@ public:
   void ShutdownFastmemArena();
   void DoState(PointerWrap& p);
 
-  void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table);
+  void UpdateDBATMappings(const PowerPC::BatTable& dbat_table);
+  void UpdatePageTableMappings(const std::map<u32, u32>& page_mappings);
 
   void Clear();
 
@@ -207,6 +209,8 @@ private:
   // The MemArena class
   Common::MemArena m_arena;
 
+  const size_t m_page_size;
+
   // Dolphin allocates memory to represent four regions:
   // - 32MB RAM (actually 24MB on hardware), available on GameCube and Wii
   // - 64MB "EXRAM", RAM only available on Wii
@@ -247,7 +251,8 @@ private:
   // TODO: Do we want to handle the mirrors of the GC RAM?
   std::array<PhysicalMemoryRegion, 4> m_physical_regions{};
 
-  std::vector<LogicalMemoryView> m_logical_mapped_entries;
+  std::vector<LogicalMemoryView> m_dbat_mapped_entries;
+  std::vector<LogicalMemoryView> m_page_table_mapped_entries;
 
   std::array<void*, PowerPC::BAT_PAGE_COUNT> m_physical_page_mappings{};
   std::array<void*, PowerPC::BAT_PAGE_COUNT> m_logical_page_mappings{};
