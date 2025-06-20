@@ -684,6 +684,7 @@ static void WriteRegister()
       break;
     case 104:
       ppc_state.spr[SPR_SDR] = re32hex(bufptr);
+      system.GetMMU().SDRUpdated();
       break;
     case 105:
       ppc_state.spr[SPR_ASR] = re64hex(bufptr);
