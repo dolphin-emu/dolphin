@@ -4,6 +4,7 @@
 #include "Core/PowerPC/PowerPC.h"
 
 #include <algorithm>
+#include <array>
 #include <bit>
 #include <cstring>
 #include <type_traits>
@@ -80,6 +81,8 @@ void PowerPCManager::DoState(PointerWrap& p)
   // *((u64 *)&TL(m_ppc_state)) = SystemTimers::GetFakeTimeBase(); //works since we are little
   // endian and TL comes first :)
 
+  const std::array<u32, 16> old_sr = m_ppc_state.sr;
+
   p.DoArray(m_ppc_state.gpr);
   p.Do(m_ppc_state.pc);
   p.Do(m_ppc_state.npc);
@@ -107,10 +110,10 @@ void PowerPCManager::DoState(PointerWrap& p)
   m_ppc_state.dCache.DoState(memory, p);
 
   auto& mmu = m_system.GetMMU();
-  mmu.DoState(p);
-
   if (p.IsReadMode())
   {
+    mmu.DoState(p, old_sr != m_ppc_state.sr);
+
     if (!m_ppc_state.m_enable_dcache)
     {
       INFO_LOG_FMT(POWERPC, "Flushing data cache");
@@ -122,6 +125,10 @@ void PowerPCManager::DoState(PointerWrap& p)
 
     mmu.IBATUpdated();
     mmu.DBATUpdated();
+  }
+  else
+  {
+    mmu.DoState(p, false);
   }
 
   // SystemTimers::DecrementerSet();
