@@ -664,7 +664,7 @@ static void WriteRegister()
       break;
     case 65:
       ppc_state.msr.Hex = re32hex(bufptr);
-      PowerPC::MSRUpdated(ppc_state);
+      PowerPC::MSRUpdated(system);
       break;
     case 66:
       ppc_state.cr.Set(re32hex(bufptr));
