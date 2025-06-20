@@ -181,7 +181,7 @@ void Interpreter::mtmsr(Interpreter& interpreter, UGeckoInstruction inst)
 
   ppc_state.msr.Hex = ppc_state.gpr[inst.RS];
 
-  PowerPC::MSRUpdated(ppc_state);
+  PowerPC::MSRUpdated(interpreter.m_system);
 
   // FE0/FE1 may have been set
   CheckFPExceptions(ppc_state);

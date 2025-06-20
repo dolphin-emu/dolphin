@@ -246,6 +246,7 @@ public:
   void SRUpdated();
   void InvalidateTLBEntry(u32 address);
   void PageTableUpdated();
+  static void PageTableUpdatedFromJit(MMU* mmu);
   void DBATUpdated();
   void IBATUpdated();
 
