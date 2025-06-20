@@ -95,6 +95,7 @@ void PowerPCManager::DoState(PointerWrap& p)
   p.DoArray(m_ppc_state.tlb);
   p.Do(m_ppc_state.pagetable_base);
   p.Do(m_ppc_state.pagetable_mask);
+  p.Do(m_ppc_state.pagetable_update_pending);
 
   p.Do(m_ppc_state.reserve);
   p.Do(m_ppc_state.reserve_address);
@@ -277,6 +278,7 @@ void PowerPCManager::Reset()
 {
   m_ppc_state.pagetable_base = 0;
   m_ppc_state.pagetable_mask = 0;
+  m_ppc_state.pagetable_update_pending = false;
   m_ppc_state.tlb = {};
 
   ResetRegisters();
@@ -669,6 +671,9 @@ void PowerPCManager::MSRUpdated()
 
   m_ppc_state.feature_flags = static_cast<CPUEmuFeatureFlags>(
       (m_ppc_state.feature_flags & FEATURE_FLAG_PERFMON) | ((m_ppc_state.msr.Hex >> 4) & 0x3));
+
+  if (m_ppc_state.msr.DR && m_ppc_state.pagetable_update_pending)
+    m_system.GetMMU().PageTableUpdated();
 
   m_system.GetJitInterface().UpdateMembase();
 }

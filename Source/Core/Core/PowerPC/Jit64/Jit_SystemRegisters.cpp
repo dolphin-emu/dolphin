@@ -436,11 +436,14 @@ void Jit64::mtmsr(UGeckoInstruction inst)
   FALLBACK_IF(jo.fp_exceptions);
 
   {
-    RCOpArg Rs = gpr.BindOrImm(inst.RS, RCMode::Read);
-    RegCache::Realize(Rs);
-    MOV(32, PPCSTATE(msr), Rs);
-
-    MSRUpdated(Rs, RSCRATCH2);
+    OpArg Rs_op_arg;
+    {
+      RCOpArg Rs = gpr.BindOrImm(inst.RS, RCMode::Read);
+      RegCache::Realize(Rs);
+      MOV(32, PPCSTATE(msr), Rs);
+      Rs_op_arg = Rs;
+    }
+    MSRUpdated(Rs_op_arg, RSCRATCH2);
   }
 
   gpr.Flush();
