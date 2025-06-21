@@ -248,9 +248,24 @@ void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
     if (dbat_table[i] & PowerPC::BAT_PHYSICAL_BIT)
     {
       u32 logical_address = i << PowerPC::BAT_INDEX_SHIFT;
-      // TODO: Merge adjacent mappings to make this faster.
       u32 logical_size = PowerPC::BAT_PAGE_SIZE;
       u32 translated_address = dbat_table[i] & PowerPC::BAT_RESULT_MASK;
+
+      while (i + 1 < dbat_table.size())
+      {
+        if (!(dbat_table[i + 1] & PowerPC::BAT_PHYSICAL_BIT))
+        {
+          ++i;
+          break;
+        }
+
+        if ((dbat_table[i + 1] & PowerPC::BAT_RESULT_MASK) != translated_address + logical_size)
+          break;
+
+        ++i;
+        logical_size += PowerPC::BAT_PAGE_SIZE;
+      }
+
       for (const auto& physical_region : m_physical_regions)
       {
         if (!physical_region.active)
