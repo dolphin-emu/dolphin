@@ -5,11 +5,16 @@
 
 #include <array>
 #include <cstddef>
+#include <map>
 #include <optional>
+#include <span>
 #include <string>
+#include <vector>
 
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
+
+class PointerWrap;
 
 namespace Core
 {
@@ -115,6 +120,9 @@ public:
   MMU& operator=(const MMU& other) = delete;
   MMU& operator=(MMU&& other) = delete;
   ~MMU();
+
+  void Reset();
+  void DoState(PointerWrap& p, bool sr_changed);
 
   // Routines for debugger UI, cheats, etc. to access emulated memory from the
   // perspective of the CPU.  Not for use by core emulation routines.
@@ -238,7 +246,10 @@ public:
 
   // TLB functions
   void SDRUpdated();
+  void SRUpdated();
   void InvalidateTLBEntry(u32 address);
+  void PageTableUpdated();
+  static void PageTableUpdatedFromJit(MMU* mmu);
   void DBATUpdated();
   void IBATUpdated();
 
@@ -302,6 +313,10 @@ private:
 
   void Memcheck(u32 address, u64 var, bool write, size_t size);
 
+#ifndef _ARCH_32
+  void PageTableUpdated(std::span<u8> page_table);
+#endif
+
   void UpdateBATs(BatTable& bat_table, u32 base_spr);
   void UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr);
 
@@ -324,6 +339,19 @@ private:
   Memory::MemoryManager& m_memory;
   PowerPC::PowerPCManager& m_power_pc;
   PowerPC::PowerPCState& m_ppc_state;
+
+  // STATE_TO_SAVE
+  std::vector<u8> m_page_table;
+  // END STATE_TO_SAVE
+
+  // These two reflect what mappings m_memory currently has.
+  std::map<u32, u32> m_primary_page_mappings;
+  std::map<u32, u32> m_secondary_page_mappings;
+
+  // These are kept around just for their memory allocations. They are always cleared before use.
+  std::vector<u8> m_old_page_table;
+  std::map<u32, u32> m_removed_mappings;
+  std::map<u32, u32> m_added_mappings;
 
   BatTable m_ibat_table;
   BatTable m_dbat_table;
