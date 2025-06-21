@@ -245,46 +245,60 @@ void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
 
   for (u32 i = 0; i < dbat_table.size(); ++i)
   {
-    if (dbat_table[i] & PowerPC::BAT_PHYSICAL_BIT)
+    const u32 logical_address = i << PowerPC::BAT_INDEX_SHIFT;
+    const u32 translated_address = dbat_table[i] & PowerPC::BAT_RESULT_MASK;
+    u32 logical_size = PowerPC::BAT_PAGE_SIZE;
+
+    if (!(dbat_table[i] & PowerPC::BAT_PHYSICAL_BIT))
+      continue;
+
+    while (i + 1 < dbat_table.size())
     {
-      u32 logical_address = i << PowerPC::BAT_INDEX_SHIFT;
-      // TODO: Merge adjacent mappings to make this faster.
-      u32 logical_size = PowerPC::BAT_PAGE_SIZE;
-      u32 translated_address = dbat_table[i] & PowerPC::BAT_RESULT_MASK;
-      for (const auto& physical_region : m_physical_regions)
+      if (!(dbat_table[i + 1] & PowerPC::BAT_PHYSICAL_BIT))
       {
-        if (!physical_region.active)
-          continue;
+        ++i;
+        break;
+      }
 
-        u32 mapping_address = physical_region.physical_address;
-        u32 mapping_end = mapping_address + physical_region.size;
-        u32 intersection_start = std::max(mapping_address, translated_address);
-        u32 intersection_end = std::min(mapping_end, translated_address + logical_size);
-        if (intersection_start < intersection_end)
+      if ((dbat_table[i + 1] & PowerPC::BAT_RESULT_MASK) != translated_address + logical_size)
+        break;
+
+      ++i;
+      logical_size += PowerPC::BAT_PAGE_SIZE;
+    }
+
+    for (const auto& physical_region : m_physical_regions)
+    {
+      if (!physical_region.active)
+        continue;
+
+      u32 mapping_address = physical_region.physical_address;
+      u32 mapping_end = mapping_address + physical_region.size;
+      u32 intersection_start = std::max(mapping_address, translated_address);
+      u32 intersection_end = std::min(mapping_end, translated_address + logical_size);
+      if (intersection_start < intersection_end)
+      {
+        // Found an overlapping region; map it.
+
+        if (m_is_fastmem_arena_initialized)
         {
-          // Found an overlapping region; map it.
+          u32 position = physical_region.shm_position + intersection_start - mapping_address;
+          u8* base = m_logical_base + logical_address + intersection_start - translated_address;
+          u32 mapped_size = intersection_end - intersection_start;
 
-          if (m_is_fastmem_arena_initialized)
+          void* mapped_pointer = m_arena.MapInMemoryRegion(position, mapped_size, base);
+          if (!mapped_pointer)
           {
-            u32 position = physical_region.shm_position + intersection_start - mapping_address;
-            u8* base = m_logical_base + logical_address + intersection_start - translated_address;
-            u32 mapped_size = intersection_end - intersection_start;
-
-            void* mapped_pointer = m_arena.MapInMemoryRegion(position, mapped_size, base);
-            if (!mapped_pointer)
-            {
-              PanicAlertFmt(
-                  "Memory::UpdateLogicalMemory(): Failed to map memory region at 0x{:08X} "
-                  "(size 0x{:08X}) into logical fastmem region at 0x{:08X}.",
-                  intersection_start, mapped_size, logical_address);
-              exit(0);
-            }
-            m_logical_mapped_entries.push_back({mapped_pointer, mapped_size});
+            PanicAlertFmt("Memory::UpdateLogicalMemory(): Failed to map memory region at 0x{:08X} "
+                          "(size 0x{:08X}) into logical fastmem region at 0x{:08X}.",
+                          intersection_start, mapped_size, logical_address);
+            exit(0);
           }
-
-          m_logical_page_mappings[i] =
-              *physical_region.out_pointer + intersection_start - mapping_address;
+          m_logical_mapped_entries.push_back({mapped_pointer, mapped_size});
         }
+
+        m_logical_page_mappings[i] =
+            *physical_region.out_pointer + intersection_start - mapping_address;
       }
     }
   }
