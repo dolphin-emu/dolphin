@@ -242,11 +242,10 @@ void CodeWidget::OnPPCSymbolsChanged()
   UpdateSymbols();
   UpdateNotes();
   UpdateCallstack();
-  if (const Common::Symbol* symbol = m_ppc_symbol_db.GetSymbolFromAddr(m_code_view->GetAddress()))
-  {
-    UpdateFunctionCalls(symbol);
-    UpdateFunctionCallers(symbol);
-  }
+
+  const Common::Symbol* symbol = m_ppc_symbol_db.GetSymbolFromAddr(m_code_view->GetAddress());
+  UpdateFunctionCalls(symbol);
+  UpdateFunctionCallers(symbol);
 }
 
 void CodeWidget::ActivateSearchAddress()
@@ -373,9 +372,6 @@ void CodeWidget::Update()
   m_code_view->Update();
   m_code_view->setFocus();
 
-  if (!symbol)
-    return;
-
   UpdateFunctionCalls(symbol);
   UpdateFunctionCallers(symbol);
 }
@@ -470,6 +466,9 @@ void CodeWidget::UpdateNotes()
 void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
 {
   m_function_calls_list->clear();
+  if (symbol == nullptr)
+    return;
+
   const QString filter = m_search_calls->text();
 
   for (const auto& call : symbol->calls)
@@ -504,6 +503,9 @@ void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
 void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol)
 {
   m_function_callers_list->clear();
+  if (symbol == nullptr)
+    return;
+
   const QString filter = m_search_callers->text();
 
   for (const auto& caller : symbol->callers)
