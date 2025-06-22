@@ -1,23 +1,59 @@
 {
-    "version": 2,
-    "configurePresets": [
-        {
-            "name": "gcc-debug",
-            "binaryDir": "build-gcc-debug",
-            "generator": "Ninja",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
-              }
-        },
-        {
-            "name": "clang-debug",
-            "binaryDir": "build-clang-debug",
-            "generator": "Ninja",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
-              }
-        }
-    ]
+  "version": 2,
+  "configurePresets": [
+    {
+      "name": "Release",
+      "generator": "Ninja",
+      "binaryDir": "Build\\${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "Debug",
+      "generator": "Ninja",
+      "binaryDir": "Build\\${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Release (arm64)",
+      "generator": "Ninja",
+      "binaryDir": "Build\\${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+          "CMAKE_SYSTEM_NAME": "Windows",
+          "CMAKE_SYSTEM_PROCESSOR": "aarch64"
+      }
+    },
+    {
+      "name": "Debug (arm64)",
+      "generator": "Ninja",
+      "binaryDir": "Build\\${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+          "CMAKE_SYSTEM_NAME": "Windows",
+          "CMAKE_SYSTEM_PROCESSOR": "aarch64"
+      }
+    },
+    {
+      "name": "gcc-debug",
+      "binaryDir": "build-gcc-debug",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "clang-debug",
+      "binaryDir": "build-clang-debug",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    }
+  ]
 }
