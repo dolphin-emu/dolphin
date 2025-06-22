@@ -32,7 +32,6 @@ public:
   void DoState(PointerWrap& p) override;
 
   void OnDevicesChanged(const USBScanner::DeviceMap& new_devices);
-  static std::string GetDeviceNameFromVIDPID(u16 vid, u16 pid);
 
 protected:
   enum class ChangeEvent

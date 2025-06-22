@@ -41,11 +41,19 @@ if ((DEFINED CMAKE_ANDROID_ARCH_ABI AND CMAKE_ANDROID_ARCH_ABI MATCHES "x86|x86_
   target_link_libraries(uicommon PRIVATE bdisasm)
 endif()
 
-if(UNIX AND NOT APPLE AND NOT ANDROID AND ENABLE_QT)
-  find_package(Qt6 REQUIRED COMPONENTS DBus)
-  target_sources(uicommon PRIVATE DBusUtils.cpp)
-  target_compile_definitions(uicommon PRIVATE -DHAVE_QTDBUS=1)
-  target_link_libraries(uicommon PUBLIC Qt6::DBus)
+if(ENABLE_QT)
+  find_package(Qt6 REQUIRED COMPONENTS Core)
+  target_compile_definitions(uicommon PRIVATE -DHAVE_QT=1)
+  target_link_libraries(uicommon PUBLIC Qt6::Core)
+
+  if(UNIX AND NOT APPLE AND NOT ANDROID)
+    find_package(Qt6 REQUIRED COMPONENTS DBus)
+    target_sources(uicommon PRIVATE DBusUtils.cpp)
+    target_compile_definitions(uicommon PRIVATE -DHAVE_QTDBUS=1)
+    target_link_libraries(uicommon PUBLIC Qt6::DBus)
+  endif()
+else()
+
 endif()
 
 if(X11_FOUND)
@@ -54,7 +62,7 @@ if(X11_FOUND)
 endif()
 
 if(TARGET LibUSB::LibUSB)
-  target_link_libraries(uicommon PRIVATE LibUSB::LibUSB)
+  target_link_libraries(uicommon PUBLIC LibUSB::LibUSB)
 endif()
 
 if(USE_DISCORD_PRESENCE)

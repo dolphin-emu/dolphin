@@ -59,15 +59,7 @@ public:
   void HandleBulkOrIntrTransfer(libusb_transfer* finished_transfer);
 
   static bool IsConfiguredBluetoothDevice(u16 vid, u16 pid);
-
-  struct BluetoothDeviceInfo
-  {
-    u16 vid;
-    u16 pid;
-    std::string name;
-  };
-
-  static std::vector<BluetoothDeviceInfo> ListDevices();
+  static bool IsBluetoothDevice(const libusb_device_descriptor& descriptor);
 
 private:
   static constexpr u8 INTERFACE = 0x00;

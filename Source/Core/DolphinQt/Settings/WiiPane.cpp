@@ -5,6 +5,7 @@
 
 #include <array>
 #include <future>
+#include <optional>
 #include <utility>
 
 #include <QCheckBox>
@@ -469,14 +470,17 @@ void WiiPane::OnUSBWhitelistAddButton()
 
 void WiiPane::OnUSBWhitelistRemoveButton()
 {
-  QString device = m_whitelist_usb_list->currentItem()->text().left(9);
-  QStringList split = device.split(QString::fromStdString(":"));
-  QString vid = QString(split[0]);
-  QString pid = QString(split[1]);
-  const u16 vid_u16 = static_cast<u16>(std::stoul(vid.toStdString(), nullptr, 16));
-  const u16 pid_u16 = static_cast<u16>(std::stoul(pid.toStdString(), nullptr, 16));
+  auto* current_item = m_whitelist_usb_list->currentItem();
+  if (!current_item)
+    return;
+
+  QVariant item_data = current_item->data(Qt::UserRole);
+  USBUtils::DeviceInfo device = item_data.value<USBUtils::DeviceInfo>();
+
   auto whitelist = Config::GetUSBDeviceWhitelist();
-  whitelist.erase({vid_u16, pid_u16});
+  std::erase_if(whitelist, [device](const USBUtils::DeviceInfo& whitelist_device) {
+    return whitelist_device == device;
+  });
   Config::SetUSBDeviceWhitelist(whitelist);
   PopulateUSBPassthroughListWidget();
 }
@@ -485,11 +489,13 @@ void WiiPane::PopulateUSBPassthroughListWidget()
 {
   m_whitelist_usb_list->clear();
   auto whitelist = Config::GetUSBDeviceWhitelist();
-  for (const auto& device : whitelist)
+  for (auto& device : whitelist)
   {
-    QListWidgetItem* usb_lwi =
-        new QListWidgetItem(QString::fromStdString(USBUtils::GetDeviceName(device)));
-    m_whitelist_usb_list->addItem(usb_lwi);
+    device.name = USBUtils::GetDeviceNameFromVIDPID(device.vid, device.pid);
+    auto* item =
+        new QListWidgetItem(QString::fromStdString(device.ToString()), m_whitelist_usb_list);
+    QVariant device_data = QVariant::fromValue(device);
+    item->setData(Qt::UserRole, device_data);
   }
   ValidateSelectionState();
 }

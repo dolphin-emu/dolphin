@@ -28,6 +28,7 @@
 #include "Core/IOS/USB/LibusbDevice.h"
 #include "Core/NetPlayProto.h"
 #include "Core/System.h"
+#include "UICommon/USBUtils.h"
 
 namespace IOS::HLE
 {
@@ -142,7 +143,7 @@ bool USBScanner::AddNewDevices(DeviceMap* new_devices) const
 #ifdef __LIBUSB__
   if (!Core::WantsDeterminism())
   {
-    auto whitelist = Config::GetUSBDeviceWhitelist();
+    const auto whitelist = Config::GetUSBDeviceWhitelist();
     if (whitelist.empty())
       return true;
 
@@ -155,7 +156,9 @@ bool USBScanner::AddNewDevices(DeviceMap* new_devices) const
         {
           WakeupSantrollerDevice(device);
         }
-        if (!whitelist.contains({descriptor.idVendor, descriptor.idProduct}))
+        const USBUtils::DeviceInfo device_info{descriptor.idVendor, descriptor.idProduct};
+        const bool not_whitelisted = std::ranges::find(whitelist, device_info) == whitelist.end();
+        if (not_whitelisted)
           return true;
 
         auto usb_device = std::make_unique<USB::LibusbDevice>(device, descriptor);

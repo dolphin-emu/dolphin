@@ -342,6 +342,10 @@ if(WIN32)
   target_sources(common PRIVATE HRWrap.h HRWrap.cpp)
 endif()
 
+if(TARGET LibUSB::LibUSB)
+  target_link_libraries(common PUBLIC LibUSB::LibUSB)
+endif()
+
 if(USE_UPNP)
   target_link_libraries(common PRIVATE Miniupnpc::miniupnpc)
 endif()
