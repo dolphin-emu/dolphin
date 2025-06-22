@@ -37,8 +37,13 @@ void EditSymbolDialog::CreateWidgets()
   m_name_edit->setPlaceholderText(tr("%1 name").arg(m_type));
 
   auto* size_layout = new QHBoxLayout;
+  // i18n: The address where a symbol ends
   QLabel* address_end_label = new QLabel(tr("End Address"));
+  // i18n: The number of lines of code
   QLabel* size_lines_label = new QLabel(tr("Lines"));
+  // i18n: There's a text field immediately to the right of this label where 8 hexadecimal digits
+  // can be entered. The "0x" in this string acts as a prefix to the digits to indicate that they
+  // are hexadecimal.
   QLabel* size_hex_label = new QLabel(tr("Size: 0x"));
   m_address_end_edit = new QLineEdit();
   m_size_lines_spin = new QSpinBox();
