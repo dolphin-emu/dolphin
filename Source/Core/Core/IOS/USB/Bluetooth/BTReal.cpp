@@ -229,17 +229,34 @@ auto BluetoothRealDevice::ProcessHCIEvent(BufferType buffer) -> BufferType
 
     if (ev.opcode == HCI_CMD_READ_BUFFER_SIZE)
     {
-      // Due to how the widcomm stack which Nintendo uses is coded, we must never
-      // let the stack think the controller is buffering more than 10 data packets
-      // - it will cause a u8 underflow and royally screw things up.
-      // Therefore, the reply to this command has to be faked to avoid random, weird issues
-      // (including Wiimote disconnects and "event mismatch" warning messages).
-      DEBUG_LOG_FMT(IOS_WIIMOTE, "Adjusting HCI_CMD_READ_BUFFER_SIZE results.");
-
       hci_read_buffer_size_rp reply;
-      reply.status = 0x00;
+      std::memcpy(&reply, buffer.data() + sizeof(hci_event_hdr_t) + sizeof(ev), sizeof(reply));
+
+      if (reply.status != 0x00)
+      {
+        ERROR_LOG_FMT(IOS_WIIMOTE, "HCI_CMD_READ_BUFFER_SIZE status: 0x{:02x}.", reply.status);
+
+        reply.status = 0x00;
+        reply.num_acl_pkts = ACL_PKT_NUM;
+      }
+      else if (reply.num_acl_pkts > ACL_PKT_NUM)
+      {
+        // Due to how the widcomm stack which Nintendo uses is coded, we must never
+        // let the stack think the controller is buffering more than 10 data packets
+        // - it will cause a u8 underflow and royally screw things up.
+        // Therefore, the reply to this command has to be faked to avoid random, weird issues
+        // (including Wiimote disconnects and "event mismatch" warning messages).
+        reply.num_acl_pkts = ACL_PKT_NUM;
+      }
+      else if (reply.num_acl_pkts < ACL_PKT_NUM)
+      {
+        // The controller buffers fewer ACL packets than the original BT module.
+        WARN_LOG_FMT(IOS_WIIMOTE, "HCI_CMD_READ_BUFFER_SIZE num_acl_pkts({}) < ACL_PKT_NUM({})",
+                     reply.num_acl_pkts, ACL_PKT_NUM);
+      }
+
+      // Force the other the parameters to match that of the original BT module.
       reply.max_acl_size = ACL_PKT_SIZE;
-      reply.num_acl_pkts = ACL_PKT_NUM;
       reply.max_sco_size = SCO_PKT_SIZE;
       reply.num_sco_pkts = SCO_PKT_NUM;
 
