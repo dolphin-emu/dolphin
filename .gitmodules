@@ -93,3 +93,6 @@
 [submodule "Externals/zstd/zstd"]
 	path = Externals/zstd/zstd
 	url = https://github.com/facebook/zstd.git
+[submodule "Externals/pugixml/pugixml"]
+	path = Externals/pugixml/pugixml
+	url = https://github.com/zeux/pugixml.git
