@@ -6,6 +6,7 @@
 #include <QToolButton>
 #include <QWidget>
 
+#include <chrono>
 #include <deque>
 
 #include "Core/HW/WiimoteEmu/Dynamics.h"
@@ -238,20 +239,15 @@ private:
 
 class CalibrationWidget : public QToolButton
 {
-  Q_OBJECT
 public:
   CalibrationWidget(MappingWidget& mapping_widget, ControllerEmu::ReshapableInput& input,
                     ReshapableInputIndicator& indicator);
-  ~CalibrationWidget() override;
 
   void Update(Common::DVec2 point);
 
   void Draw(QPainter& p, Common::DVec2 point);
 
   bool IsActive() const;
-
-signals:
-  void CalibrationIsSensible();
 
 private:
   void DrawInProgressMapping(QPainter& p);
@@ -262,6 +258,8 @@ private:
 
   void StartMappingAndCalibration();
   void StartCalibration(std::optional<Common::DVec2> center = Common::DVec2{});
+
+  void FinishCalibration();
 
   void ResetActions();
   void DeleteAllActions();
@@ -277,4 +275,8 @@ private:
   void RestartAnimation();
 
   Clock::time_point m_animation_start_time{};
+
+  static constexpr auto STOP_SPINNING_DURATION = std::chrono::seconds{2};
+
+  Clock::time_point m_stop_spinning_time{};
 };

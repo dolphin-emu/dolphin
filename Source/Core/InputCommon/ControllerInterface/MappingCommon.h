@@ -85,6 +85,10 @@ public:
   // Used to update the UI to encourage the user to click the "Finish" button.
   bool IsCalibrationDataSensible() const;
 
+  // Returns true when the calibration data seems sensible,
+  //  and the input then approaches the center position.
+  bool IsComplete() const;
+
   // Grabs the calibration value at the provided angle.
   // Used to render the calibration in the UI while it's in progress.
   ControlState GetCalibrationRadiusAtAngle(double angle) const;
