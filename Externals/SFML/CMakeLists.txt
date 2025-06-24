@@ -24,8 +24,8 @@ set(SRC_SYSTEM
 
 add_library(sfml-network STATIC ${SRC_NETWORK})
 add_library(sfml-system STATIC ${SRC_SYSTEM})
-target_compile_features(sfml-network PUBLIC cxx_std_17)
-target_compile_features(sfml-system PUBLIC cxx_std_17)
+target_compile_features(sfml-network PUBLIC cxx_std_20)
+target_compile_features(sfml-system PUBLIC cxx_std_20)
 target_compile_definitions(sfml-system PUBLIC SFML_STATIC)
 target_include_directories(sfml-system PUBLIC SFML/include PRIVATE SFML/src)
 target_include_directories(sfml-network PUBLIC SFML/include PRIVATE SFML/src)
