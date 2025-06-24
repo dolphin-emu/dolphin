@@ -200,12 +200,6 @@ private:
   u16 m_perf_select = 0;
   u16 m_unk_0a_reg = 0;
 
-  u16 m_bbox_left = 0;
-  u16 m_bbox_top = 0;
-  u16 m_bbox_right = 0;
-  u16 m_bbox_bottom = 0;
-  u16 m_token_reg = 0;
-
   Common::Flag m_interrupt_set;
   Common::Flag m_interrupt_waiting;
 
