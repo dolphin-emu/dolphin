@@ -3,6 +3,7 @@
 
 #include "InputCommon/ControllerInterface/SDL/SDL.h"
 
+#include <span>
 #include <thread>
 #include <vector>
 
@@ -10,7 +11,7 @@
 #include <Windows.h>
 #endif
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
@@ -31,7 +32,7 @@ public:
   void UpdateInput(std::vector<std::weak_ptr<ciface::Core::Device>>& devices_to_remove) override;
 
 private:
-  void OpenAndAddDevice(int index);
+  void OpenAndAddDevice(SDL_JoystickID instance_id);
 
   bool HandleEventAndContinue(const SDL_Event& e);
 
@@ -48,10 +49,10 @@ std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* co
 
 static void EnableSDLLogging()
 {
-  SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
-  SDL_LogSetOutputFunction(
+  SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE);
+  SDL_SetLogOutputFunction(
       [](void*, int category, SDL_LogPriority priority, const char* message) {
-        std::string category_name;
+        std::string_view category_name{};
         switch (category)
         {
         case SDL_LOG_CATEGORY_APPLICATION:
@@ -81,8 +82,10 @@ static void EnableSDLLogging()
         case SDL_LOG_CATEGORY_TEST:
           category_name = "test";
           break;
+        case SDL_LOG_CATEGORY_GPU:
+          category_name = "gpu";
+          break;
         default:
-          category_name = fmt::format("unknown({})", category);
           break;
         }
 
@@ -108,8 +111,16 @@ static void EnableSDLLogging()
           break;
         }
 
-        GENERIC_LOG_FMT(Common::Log::LogType::CONTROLLERINTERFACE, log_level, "{}: {}",
-                        category_name, message);
+        if (category_name.empty())
+        {
+          GENERIC_LOG_FMT(Common::Log::LogType::CONTROLLERINTERFACE, log_level, "unknown({}): {}",
+                          category, message);
+        }
+        else
+        {
+          GENERIC_LOG_FMT(Common::Log::LogType::CONTROLLERINTERFACE, log_level, "{}: {}",
+                          category_name, message);
+        }
       },
       nullptr);
 }
@@ -122,9 +133,8 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
   // This is required on windows so that SDL's joystick code properly pumps window messages
   SDL_SetHint(SDL_HINT_JOYSTICK_THREAD, "1");
 
-  SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1");
-  // We want buttons to come in as positions, not labels
-  SDL_SetHint(SDL_HINT_GAMECONTROLLER_USE_BUTTON_LABELS, "0");
+  SDL_SetHint(SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "1");
+
   // We have our own WGI backend. Enabling SDL's WGI handling creates even more redundant devices.
   SDL_SetHint(SDL_HINT_JOYSTICK_WGI, "0");
 
@@ -139,7 +149,7 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
     {
       Common::ScopeGuard init_guard([this] { m_init_event.Set(); });
 
-      if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER) != 0)
+      if (!SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMEPAD))
       {
         ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL failed to initialize");
         return;
@@ -160,7 +170,7 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
       // duplicate devices. Adding devices will actually "fail" here, as the ControllerInterface
       // hasn't finished initializing yet.
       SDL_Event e;
-      while (SDL_PollEvent(&e) != 0)
+      while (SDL_PollEvent(&e))
       {
         if (!HandleEventAndContinue(e))
           return;
@@ -179,7 +189,7 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
 #endif
 
     SDL_Event e;
-    while (SDL_WaitEvent(&e) != 0)
+    while (SDL_WaitEvent(&e))
     {
       if (!HandleEventAndContinue(e))
         return;
@@ -221,20 +231,20 @@ void InputBackend::PopulateDevices()
   SDL_PushEvent(&populate_event);
 }
 
-void InputBackend::UpdateInput(std::vector<std::weak_ptr<ciface::Core::Device>>& devices_to_remove)
+void InputBackend::UpdateInput(std::vector<std::weak_ptr<ciface::Core::Device>>&)
 {
-  SDL_GameControllerUpdate();
+  SDL_UpdateGamepads();
 }
 
-void InputBackend::OpenAndAddDevice(int index)
+void InputBackend::OpenAndAddDevice(SDL_JoystickID instance_id)
 {
-  SDL_GameController* gc = SDL_GameControllerOpen(index);
-  SDL_Joystick* js = SDL_JoystickOpen(index);
+  SDL_Gamepad* gc = SDL_OpenGamepad(instance_id);
+  SDL_Joystick* js = SDL_OpenJoystick(instance_id);
 
-  if (js)
+  if (js != nullptr)
   {
-    if (SDL_JoystickNumButtons(js) > 255 || SDL_JoystickNumAxes(js) > 255 ||
-        SDL_JoystickNumHats(js) > 255 || SDL_JoystickNumBalls(js) > 255)
+    if (SDL_GetNumJoystickButtons(js) > 255 || SDL_GetNumJoystickAxes(js) > 255 ||
+        SDL_GetNumJoystickHats(js) > 255 || SDL_GetNumJoystickBalls(js) > 255)
     {
       // This device is invalid, don't use it
       // Some crazy devices (HP webcam 2100) end up as HID devices
@@ -249,17 +259,12 @@ void InputBackend::OpenAndAddDevice(int index)
 
 bool InputBackend::HandleEventAndContinue(const SDL_Event& e)
 {
-  if (e.type == SDL_JOYDEVICEADDED)
+  if (e.type == SDL_EVENT_JOYSTICK_ADDED)
   {
-    // NOTE: SDL_JOYDEVICEADDED's `jdevice.which` is a device index in SDL2.
-    // It will change to an "instance ID" in SDL3.
-    // OpenAndAddDevice impl and calls will need refactoring when changing to SDL3.
-    static_assert(!SDL_VERSION_ATLEAST(3, 0, 0), "Refactoring is needed for SDL3.");
     OpenAndAddDevice(e.jdevice.which);
   }
-  else if (e.type == SDL_JOYDEVICEREMOVED)
+  else if (e.type == SDL_EVENT_JOYSTICK_REMOVED)
   {
-    // NOTE: SDL_JOYDEVICEREMOVED's `jdevice.which` is an "instance ID".
     GetControllerInterface().RemoveDevice([&e](const auto* device) {
       return device->GetSource() == "SDL" &&
              static_cast<const GameController*>(device)->GetSDLInstanceID() == e.jdevice.which;
@@ -268,8 +273,12 @@ bool InputBackend::HandleEventAndContinue(const SDL_Event& e)
   else if (e.type == m_populate_event_type)
   {
     GetControllerInterface().PlatformPopulateDevices([this] {
-      for (int i = 0; i < SDL_NumJoysticks(); ++i)
-        OpenAndAddDevice(i);
+      int joystick_count = 0;
+      auto* const joystick_ids = SDL_GetJoysticks(&joystick_count);
+      for (auto instance_id : std::span(joystick_ids, joystick_count))
+        OpenAndAddDevice(instance_id);
+
+      SDL_free(joystick_ids);
     });
   }
   else if (e.type == m_stop_event_type)

@@ -45,7 +45,7 @@
       <PreprocessorDefinitions>HAS_VULKAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>HAS_LIBMGBA;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(AutoUpdate)'!='false'">AUTOUPDATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessorDefinitions>HAVE_SDL2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HAVE_SDL3;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>USE_RETRO_ACHIEVEMENTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>RC_CLIENT_SUPPORTS_HASH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>RC_CLIENT_SUPPORTS_RAINTEGRATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
