@@ -73,6 +73,13 @@ BluetoothRealDevice::~BluetoothRealDevice()
   SaveLinkKeys();
 }
 
+bool BluetoothRealDevice::HasConfiguredBluetoothDevice()
+{
+  const int configured_vid = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_VID);
+  const int configured_pid = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_PID);
+  return configured_vid != -1 && configured_pid != -1;
+}
+
 bool BluetoothRealDevice::IsConfiguredBluetoothDevice(u16 vid, u16 pid)
 {
   const int configured_vid = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_VID);
@@ -99,6 +106,11 @@ std::optional<IPCReply> BluetoothRealDevice::Open(const OpenRequest& request)
       return true;
     }
 
+    if (HasConfiguredBluetoothDevice() &&
+        !IsConfiguredBluetoothDevice(device_descriptor.idVendor, device_descriptor.idProduct))
+    {
+      return true;
+    }
     if (IsBluetoothDevice(device_descriptor) && OpenDevice(device_descriptor, device))
     {
       unsigned char manufacturer[50] = {}, product[50] = {}, serial_number[50] = {};
