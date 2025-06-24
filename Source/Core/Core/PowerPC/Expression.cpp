@@ -447,9 +447,15 @@ void Expression::SynchronizeBindings(Core::System& system, SynchronizeDirection 
       break;
     case VarBindingType::SPR:
       if (dir == SynchronizeDirection::From)
+      {
         v->value = static_cast<double>(ppc_state.spr[bind->index]);
+      }
       else
+      {
         ppc_state.spr[bind->index] = static_cast<u32>(static_cast<s64>(v->value));
+        if (bind->index == SPR_SDR)
+          system.GetMMU().SDRUpdated();
+      }
       break;
     case VarBindingType::PCtr:
       if (dir == SynchronizeDirection::From)
@@ -457,9 +463,14 @@ void Expression::SynchronizeBindings(Core::System& system, SynchronizeDirection 
       break;
     case VarBindingType::MSR:
       if (dir == SynchronizeDirection::From)
+      {
         v->value = static_cast<double>(ppc_state.msr.Hex);
+      }
       else
+      {
         ppc_state.msr.Hex = static_cast<u32>(static_cast<s64>(v->value));
+        PowerPC::MSRUpdated(ppc_state);
+      }
       break;
     }
   }
