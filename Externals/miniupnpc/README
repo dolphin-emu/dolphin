@@ -1,16 +1,10 @@
 Project: miniupnp
-Project web page: http://miniupnp.free.fr/ or http://miniupnp.tuxfamily.org/
+Project web page: http://miniupnp.free.fr/ or https://miniupnp.tuxfamily.org/
 github: https://github.com/miniupnp/miniupnp
-freecode: http://freecode.com/projects/miniupnp
 Author: Thomas Bernard
-Copyright (c) 2005-2012 Thomas Bernard
+Copyright (c) 2005-2025 Thomas Bernard
 This software is subject to the conditions detailed in the
 LICENSE file provided within this distribution.
-
-
-For the comfort of Win32 users, bsdqueue.h is included in the distribution.
-Its licence is included in the header of the file.
-bsdqueue.h is a copy of the sys/queue.h of an OpenBSD system.
 
 
 * miniUPnP Client - miniUPnPc *
@@ -18,6 +12,8 @@ bsdqueue.h is a copy of the sys/queue.h of an OpenBSD system.
 To compile, simply run 'gmake' (could be 'make' on your system).
 Under win32, to compile with MinGW, type "mingw32make.bat".
 MS Visual C solution and project files are supplied in the msvc/ subdirectory.
+The miniupnpc library is available as a static library or as a DLL :
+define MINIUPNP_STATICLIB if you want to link against the static library.
 
 The compilation is known to work under linux, FreeBSD,
 OpenBSD, MacOS X, AmigaOS and cygwin.
@@ -37,6 +33,7 @@ To use the libminiupnpc in your application, link it with
 libminiupnpc.a (or .so) and use the following functions found in miniupnpc.h,
 upnpcommands.h and miniwget.h :
 - upnpDiscover()
+- UPNP_GetValidIGD()
 - miniwget()
 - parserootdesc()
 - GetUPNPUrls()
@@ -62,5 +59,34 @@ If you are using libminiupnpc in your application, please
 send me an email !
 
 For any question, you can use the web forum :
-http://miniupnp.tuxfamily.org/forum/
+https://miniupnp.tuxfamily.org/forum/
 
+Bugs should be reported on GitHub :
+https://github.com/miniupnp/miniupnp/issues
+
+* Linux firewall configuration for UPnP clients *
+
+Due to how UPnP protocol is designed, unicast responses to UPnP multicast client
+requests are not tracked by Linux netfilter. And therefore netfilter executes
+default action for them (which is in most cases DROP response packet).
+
+To workaround this limitation, custom ipset hash table can be used. It is
+supported since Linux kernel >= 2.6.39.
+
+Rules for IPv4:
+$ ipset create upnp hash:ip,port timeout 3
+$ iptables -A OUTPUT -d 239.255.255.250/32 -p udp -m udp --dport 1900 -j SET --add-set upnp src,src --exist
+$ iptables -A INPUT -p udp -m set --match-set upnp dst,dst -j ACCEPT
+$ iptables -A INPUT -d 239.255.255.250/32 -p udp -m udp --dport 1900 -j ACCEPT
+
+Rules for IPv6:
+$ ipset create upnp6 hash:ip,port timeout 3 family inet6
+$ ip6tables -A OUTPUT -d ff02::c/128 -p udp -m udp --dport 1900 -j SET --add-set upnp6 src,src --exist
+$ ip6tables -A OUTPUT -d ff05::c/128 -p udp -m udp --dport 1900 -j SET --add-set upnp6 src,src --exist
+$ ip6tables -A INPUT -p udp -m set --match-set upnp6 dst,dst -j ACCEPT
+$ ip6tables -A INPUT -d ff02::c/128 -p udp -m udp --dport 1900 -j ACCEPT
+$ ip6tables -A INPUT -d ff05::c/128 -p udp -m udp --dport 1900 -j ACCEPT
+
+Detailed description is available on:
+https://serverfault.com/a/911286
+https://unix.stackexchange.com/a/444804
