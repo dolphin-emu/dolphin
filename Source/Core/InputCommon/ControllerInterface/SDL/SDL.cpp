@@ -251,9 +251,9 @@ void InputBackend::OpenAndAddDevice(SDL_JoystickID instance_id)
       // SDL tries parsing these as Joysticks
       return;
     }
-    auto gamecontroller = std::make_shared<GameController>(gc, js);
-    if (!gamecontroller->Inputs().empty() || !gamecontroller->Outputs().empty())
-      GetControllerInterface().AddDevice(std::move(gamecontroller));
+    auto gamepad = std::make_shared<Gamepad>(gc, js);
+    if (!gamepad->Inputs().empty() || !gamepad->Outputs().empty())
+      GetControllerInterface().AddDevice(std::move(gamepad));
   }
 }
 
@@ -267,7 +267,7 @@ bool InputBackend::HandleEventAndContinue(const SDL_Event& e)
   {
     GetControllerInterface().RemoveDevice([&e](const auto* device) {
       return device->GetSource() == "SDL" &&
-             static_cast<const GameController*>(device)->GetSDLInstanceID() == e.jdevice.which;
+             static_cast<const Gamepad*>(device)->GetSDLInstanceID() == e.jdevice.which;
     });
   }
   else if (e.type == m_populate_event_type)
