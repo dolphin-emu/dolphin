@@ -3,14 +3,40 @@
 
 #pragma once
 
-#include <map>
+#include <functional>
+#include <optional>
 #include <string>
-#include <utility>
+#include <vector>
 
+#ifdef __LIBUSB__
+#include <libusb.h>
+#endif
+
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
 namespace USBUtils
 {
-std::map<std::pair<u16, u16>, std::string> GetInsertedDevices();
-std::string GetDeviceName(std::pair<u16, u16> vid_pid);
+
+struct DeviceInfo
+{
+  u16 vid;
+  u16 pid;
+  std::optional<std::string> name;
+
+  static constexpr const char* UNKNOWN_DEVICE_NAME = _trans("Unknown Device");
+
+  bool operator==(const DeviceInfo& other) const { return vid == other.vid && pid == other.pid; }
+
+  // Extracts DeviceInfo from a string in the format "VID:PID"
+  static std::optional<DeviceInfo> FromString(const std::string& str);
+  std::string ToString() const;
+};
+
+std::optional<std::string> GetDeviceNameFromVIDPID(u16 vid, u16 pid);
+#ifdef __LIBUSB__
+std::vector<DeviceInfo>
+ListDevices(const std::function<bool(const struct libusb_device_descriptor&)>& filter =
+                [](const struct libusb_device_descriptor&) { return true; });
+#endif
 }  // namespace USBUtils
