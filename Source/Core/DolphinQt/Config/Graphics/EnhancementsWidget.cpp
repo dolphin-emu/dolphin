@@ -378,7 +378,7 @@ void EnhancementsWidget::ShaderChanged()
 {
   auto shader = ReadSetting(Config::GFX_ENHANCE_POST_SHADER);
 
-  if (shader == "(off)" || shader == "")
+  if (shader == tr("(off)").toStdString() || shader == "")
   {
     shader = "";
 
