@@ -59,6 +59,7 @@ public:
   void HandleBulkOrIntrTransfer(libusb_transfer* finished_transfer);
 
   static bool IsConfiguredBluetoothDevice(u16 vid, u16 pid);
+  static bool HasConfiguredBluetoothDevice();
 
   struct BluetoothDeviceInfo
   {
