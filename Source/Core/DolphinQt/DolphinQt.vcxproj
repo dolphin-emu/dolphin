@@ -80,7 +80,7 @@
     <ClCompile Include="Config\Graphics\AdvancedWidget.cpp" />
     <ClCompile Include="Config\Graphics\EnhancementsWidget.cpp" />
     <ClCompile Include="Config\Graphics\GeneralWidget.cpp" />
-    <ClCompile Include="Config\Graphics\GraphicsWindow.cpp" />
+    <ClCompile Include="Config\Graphics\GraphicsPane.cpp" />
     <ClCompile Include="Config\Graphics\HacksWidget.cpp" />
     <ClCompile Include="Config\Graphics\ColorCorrectionConfigWindow.cpp" />
     <ClCompile Include="Config\Graphics\PostProcessingConfigWindow.cpp" />
@@ -306,7 +306,7 @@
     <QtMoc Include="Config\Graphics\AdvancedWidget.h" />
     <QtMoc Include="Config\Graphics\EnhancementsWidget.h" />
     <QtMoc Include="Config\Graphics\GeneralWidget.h" />
-    <QtMoc Include="Config\Graphics\GraphicsWindow.h" />
+    <QtMoc Include="Config\Graphics\GraphicsPane.h" />
     <QtMoc Include="Config\Graphics\HacksWidget.h" />
     <QtMoc Include="Config\Graphics\ColorCorrectionConfigWindow.h" />
     <QtMoc Include="Config\Graphics\PostProcessingConfigWindow.h" />
