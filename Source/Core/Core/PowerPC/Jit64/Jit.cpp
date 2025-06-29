@@ -1294,6 +1294,32 @@ void Jit64::IntializeSpeculativeConstants()
   }
 }
 
+void Jit64::FlushPCBeforeSlowAccess()
+{
+  // PC is used by memory watchpoints (if enabled), profiling where to insert gather pipe
+  // interrupt checks, and printing accurate PC locations in debug logs.
+  MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
+}
+
+void Jit64::FlushRegistersBeforeSlowAccess()
+{
+  // Register values can be used by memory watchpoint conditions.
+  MemChecks& mem_checks = m_system.GetPowerPC().GetMemChecks();
+  if (mem_checks.HasAny())
+  {
+    BitSet32 gprs = mem_checks.GetGPRsUsedInConditions();
+    BitSet32 fprs = mem_checks.GetFPRsUsedInConditions();
+    if (gprs || fprs)
+    {
+      RCForkGuard gpr_guard = gpr.Fork();
+      RCForkGuard fpr_guard = fpr.Fork();
+
+      gpr.Flush(gprs);
+      fpr.Flush(fprs);
+    }
+  }
+}
+
 bool Jit64::HandleFunctionHooking(u32 address)
 {
   const auto result = HLE::TryReplaceFunction(m_ppc_symbol_db, address, PowerPC::CoreMode::JIT);
