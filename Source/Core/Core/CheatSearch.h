@@ -165,6 +165,8 @@ public:
   virtual SearchResultValueState GetResultValueState(size_t index) const = 0;
   virtual bool WasFirstSearchDone() const = 0;
 
+  virtual bool WriteValue(const Core::CPUThreadGuard&, std::span<u32>) const = 0;
+
   // Create a complete copy of this search session.
   virtual std::unique_ptr<CheatSearchSessionBase> Clone() const = 0;
 
@@ -211,6 +213,8 @@ public:
   std::string GetResultValueAsString(size_t index, bool hex) const override;
   SearchResultValueState GetResultValueState(size_t index) const override;
   bool WasFirstSearchDone() const override;
+
+  bool WriteValue(const Core::CPUThreadGuard&, std::span<u32>) const override;
 
   std::unique_ptr<CheatSearchSessionBase> Clone() const override;
   std::unique_ptr<CheatSearchSessionBase> ClonePartial(size_t begin_index,

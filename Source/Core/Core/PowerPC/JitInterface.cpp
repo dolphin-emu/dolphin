@@ -330,7 +330,8 @@ void JitInterface::CompileExceptionCheck(ExceptionType type)
 
       // Check in case the code has been replaced since: do we need to do this?
       const OpType optype =
-          PPCTables::GetOpInfo(PowerPC::MMU::HostRead_U32(guard, ppc_state.pc), ppc_state.pc)->type;
+          PPCTables::GetOpInfo(PowerPC::MMU::HostRead<u32>(guard, ppc_state.pc), ppc_state.pc)
+              ->type;
       if (optype != OpType::Store && optype != OpType::StoreFP && optype != OpType::StorePS)
         return;
     }
