@@ -100,7 +100,7 @@ public:
   const XNoteMap& Notes() const { return m_notes; }
   XFuncMap& AccessSymbols() { return m_functions; }
   bool IsEmpty() const;
-  void Clear(const char* prefix = "");
+  bool Clear(const char* prefix = "");
   void List();
   void Index();
 
@@ -108,5 +108,6 @@ protected:
   XFuncMap m_functions;
   XNoteMap m_notes;
   XFuncPtrMap m_checksum_to_function;
+  std::string m_map_name;
 };
 }  // namespace Common

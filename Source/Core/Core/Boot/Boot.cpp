@@ -354,39 +354,6 @@ bool CBoot::DVDReadDiscID(Core::System& system, const DiscIO::VolumeDisc& disc, 
   return true;
 }
 
-// Get map file paths for the active title.
-bool CBoot::FindMapFile(std::string* existing_map_file, std::string* writable_map_file)
-{
-  const std::string& game_id = SConfig::GetInstance().m_debugger_game_id;
-  std::string path = File::GetUserPath(D_MAPS_IDX) + game_id + ".map";
-
-  if (writable_map_file)
-    *writable_map_file = path;
-
-  if (File::Exists(path))
-  {
-    if (existing_map_file)
-      *existing_map_file = std::move(path);
-
-    return true;
-  }
-
-  return false;
-}
-
-bool CBoot::LoadMapFromFilename(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_symbol_db)
-{
-  std::string strMapFilename;
-  bool found = FindMapFile(&strMapFilename, nullptr);
-  if (found && ppc_symbol_db.LoadMap(guard, strMapFilename))
-  {
-    Host_PPCSymbolsChanged();
-    return true;
-  }
-
-  return false;
-}
-
 // If ipl.bin is not found, this function does *some* of what BS1 does:
 // loading IPL(BS2) and jumping to it.
 // It does not initialize the hardware or anything else like BS1 does.
@@ -524,12 +491,6 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
 {
   SConfig& config = SConfig::GetInstance();
 
-  if (auto& ppc_symbol_db = system.GetPPCSymbolDB(); !ppc_symbol_db.IsEmpty())
-  {
-    ppc_symbol_db.Clear();
-    Host_PPCSymbolsChanged();
-  }
-
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
   system.GetVideoInterface().Preset(DiscIO::IsNTSC(config.m_region) ||
                                     (system.IsWii() && Config::Get(Config::SYSCONF_PAL60)));
@@ -611,11 +572,18 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
 
       const std::string filename = PathToFileName(executable.path);
 
-      if (executable.reader->LoadSymbols(guard, system.GetPPCSymbolDB(), filename))
+      auto& ppc_symbol_db = system.GetPPCSymbolDB();
+      bool symbols_changed = ppc_symbol_db.Clear();
+
+      if (executable.reader->LoadSymbols(guard, ppc_symbol_db, filename))
       {
-        Host_PPCSymbolsChanged();
+        symbols_changed = true;
         HLE::PatchFunctions(system);
       }
+
+      if (symbols_changed)
+        Host_PPCSymbolsChanged();
+
       return true;
     }
 
