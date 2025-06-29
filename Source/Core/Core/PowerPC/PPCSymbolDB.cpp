@@ -136,11 +136,8 @@ void PPCSymbolDB::DetermineNoteLayers()
 
 Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
-  // If m_functions is changing, there should be a PPCSymbolsChanged signal afterward. The signal
-  // will re-update persistent symbol displays by calling this function. Only one-off calls to this
-  // function, such as printing the symbol to console, should be affected by leaving early.
-  std::unique_lock<std::mutex> lock(m_write_lock, std::try_to_lock);
-  if (!lock.owns_lock() || m_functions.empty())
+  std::unique_lock<std::mutex> lock(m_write_lock);
+  if (m_functions.empty())
     return nullptr;
 
   auto it = m_functions.lower_bound(addr);
@@ -164,8 +161,8 @@ Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 
 Common::Note* PPCSymbolDB::GetNoteFromAddr(u32 addr)
 {
-  std::unique_lock<std::mutex> lock(m_write_lock, std::try_to_lock);
-  if (!lock.owns_lock() || m_notes.empty())
+  std::unique_lock<std::mutex> lock(m_write_lock);
+  if (m_notes.empty())
     return nullptr;
 
   auto itn = m_notes.lower_bound(addr);
@@ -212,9 +209,7 @@ std::string_view PPCSymbolDB::GetDescription(u32 addr)
 
 void PPCSymbolDB::FillInCallers()
 {
-  std::unique_lock<std::mutex> lock(m_write_lock, std::try_to_lock);
-  if (!lock.owns_lock())
-    return;
+  std::unique_lock<std::mutex> lock(m_write_lock);
 
   for (auto& p : m_functions)
   {
@@ -314,10 +309,9 @@ bool PPCSymbolDB::FindMapFile(std::string* existing_map_file, std::string* writa
   return false;
 }
 
+// Returns true if m_functions was changed.
 bool PPCSymbolDB::LoadMapOnBoot(const Core::CPUThreadGuard& guard)
 {
-  // Loads from emuthread and can crash with main thread accessing the map. Any other loads will be
-  // done on the main thread and should be safe. Returns true if m_functions was changed.
   std::lock_guard lock(m_write_lock);
 
   std::string existing_map_file;
