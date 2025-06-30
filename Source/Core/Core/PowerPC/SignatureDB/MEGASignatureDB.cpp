@@ -160,20 +160,18 @@ bool MEGASignatureDB::Save(const std::string& file_path) const
 
 void MEGASignatureDB::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symbol_db) const
 {
-  for (auto& it : symbol_db->AccessSymbols())
-  {
-    auto& symbol = it.second;
+  symbol_db->ForEachSymbol([&](const Common::Symbol& symbol) {
     for (const auto& sig : m_signatures)
     {
       if (Compare(guard, symbol.address, symbol.size, sig))
       {
-        symbol.name = sig.name;
+        symbol_db->RenameSymbol(symbol, sig.name);
         INFO_LOG_FMT(SYMBOLS, "Found {} at {:08x} (size: {:08x})!", sig.name, symbol.address,
                      symbol.size);
         break;
       }
     }
-  }
+  });
   symbol_db->Index();
 }
 

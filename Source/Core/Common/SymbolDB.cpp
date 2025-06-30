@@ -80,7 +80,7 @@ void SymbolDB::Index(XFuncMap* functions)
   }
 }
 
-Symbol* SymbolDB::GetSymbolFromName(std::string_view name)
+const Symbol* SymbolDB::GetSymbolFromName(std::string_view name) const
 {
   std::lock_guard lock(m_mutex);
 
@@ -93,10 +93,10 @@ Symbol* SymbolDB::GetSymbolFromName(std::string_view name)
   return nullptr;
 }
 
-std::vector<Symbol*> SymbolDB::GetSymbolsFromName(std::string_view name)
+std::vector<const Symbol*> SymbolDB::GetSymbolsFromName(std::string_view name) const
 {
   std::lock_guard lock(m_mutex);
-  std::vector<Symbol*> symbols;
+  std::vector<const Symbol*> symbols;
 
   for (auto& func : m_functions)
   {
@@ -107,7 +107,7 @@ std::vector<Symbol*> SymbolDB::GetSymbolsFromName(std::string_view name)
   return symbols;
 }
 
-Symbol* SymbolDB::GetSymbolFromHash(u32 hash)
+const Symbol* SymbolDB::GetSymbolFromHash(u32 hash) const
 {
   std::lock_guard lock(m_mutex);
 
@@ -118,7 +118,7 @@ Symbol* SymbolDB::GetSymbolFromHash(u32 hash)
   return *iter->second.begin();
 }
 
-std::vector<Symbol*> SymbolDB::GetSymbolsFromHash(u32 hash)
+std::vector<const Symbol*> SymbolDB::GetSymbolsFromHash(u32 hash) const
 {
   std::lock_guard lock(m_mutex);
 
@@ -133,6 +133,33 @@ std::vector<Symbol*> SymbolDB::GetSymbolsFromHash(u32 hash)
 void SymbolDB::AddCompleteSymbol(const Symbol& symbol)
 {
   std::lock_guard lock(m_mutex);
-  m_functions.emplace(symbol.address, symbol);
+  m_functions[symbol.address] = symbol;
 }
+
+bool SymbolDB::RenameSymbol(const Symbol& symbol, const std::string& symbol_name)
+{
+  std::lock_guard lock(m_mutex);
+
+  auto it = m_functions.find(symbol.address);
+  if (it == m_functions.end())
+    return false;
+
+  it->second.Rename(symbol_name);
+  return true;
+}
+
+bool SymbolDB::RenameSymbol(const Symbol& symbol, const std::string& symbol_name,
+                            const std::string& object_name)
+{
+  std::lock_guard lock(m_mutex);
+
+  auto it = m_functions.find(symbol.address);
+  if (it == m_functions.end())
+    return false;
+
+  it->second.Rename(symbol_name);
+  it->second.object_name = object_name;
+  return true;
+}
+
 }  // namespace Common

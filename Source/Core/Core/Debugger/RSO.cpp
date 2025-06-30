@@ -381,7 +381,7 @@ void RSOView::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symbol_db) c
     u32 address = GetExportAddress(rso_export);
     if (address != 0)
     {
-      Common::Symbol* symbol = symbol_db->AddFunction(guard, address);
+      const Common::Symbol* symbol = symbol_db->AddFunction(guard, address);
       if (!symbol)
         symbol = symbol_db->GetSymbolFromAddr(address);
 
@@ -389,8 +389,7 @@ void RSOView::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symbol_db) c
       if (symbol)
       {
         // Function symbol
-        symbol->Rename(export_name);
-        symbol->object_name = rso_name;
+        symbol_db->RenameSymbol(*symbol, export_name, rso_name);
       }
       else
       {
