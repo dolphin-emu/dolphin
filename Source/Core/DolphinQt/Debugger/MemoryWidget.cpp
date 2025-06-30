@@ -620,10 +620,17 @@ void MemoryWidget::ValidateAndPreviewInputValue()
 
   if (m_base_check->isChecked())
   {
+    // Add 0x to the front of the input (after the '-', if present), but only if the user didn't
+    // already do so.
     if (input_text.startsWith(QLatin1Char('-')))
-      input_text.insert(1, QStringLiteral("0x"));
-    else
+    {
+      if (!input_text.startsWith(QStringLiteral("-0x"), Qt::CaseInsensitive))
+        input_text.insert(1, QStringLiteral("0x"));
+    }
+    else if (!input_text.startsWith(QStringLiteral("0x"), Qt::CaseInsensitive))
+    {
       input_text.prepend(QStringLiteral("0x"));
+    }
   }
 
   QFont font;
