@@ -74,7 +74,7 @@ private:
   void ValidateAndPreviewInputValue();
   QByteArray GetInputData() const;
   TargetAddress GetTargetAddress() const;
-  void FindValue(bool next);
+  bool FindValue(bool next);
 
   void closeEvent(QCloseEvent*) override;
   void hideEvent(QHideEvent* event) override;
@@ -102,6 +102,9 @@ private:
   // Search
   QPushButton* m_find_next;
   QPushButton* m_find_previous;
+  QComboBox* m_find_align;
+  QCheckBox* m_find_auto_mem_bp;
+  QCheckBox* m_find_auto_code_bp;
   QComboBox* m_input_combo;
   QLabel* m_result_label;
 
