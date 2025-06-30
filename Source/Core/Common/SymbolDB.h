@@ -7,6 +7,7 @@
 #pragma once
 
 #include <map>
+#include <mutex>
 #include <set>
 #include <string>
 #include <string_view>
@@ -105,9 +106,12 @@ public:
   void Index();
 
 protected:
+  static void Index(XFuncMap* functions);
+
   XFuncMap m_functions;
   XNoteMap m_notes;
   XFuncPtrMap m_checksum_to_function;
   std::string m_map_name;
+  std::mutex m_mutex;
 };
 }  // namespace Common

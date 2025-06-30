@@ -5,6 +5,7 @@
 
 #include <cstring>
 #include <map>
+#include <mutex>
 #include <string>
 #include <utility>
 
@@ -49,6 +50,8 @@ bool SymbolDB::IsEmpty() const
 
 bool SymbolDB::Clear(const char* prefix)
 {
+  std::lock_guard lock(m_mutex);
+
   // TODO: honor prefix
   m_map_name.clear();
   if (IsEmpty())
@@ -62,8 +65,13 @@ bool SymbolDB::Clear(const char* prefix)
 
 void SymbolDB::Index()
 {
+  Index(&m_functions);
+}
+
+void SymbolDB::Index(XFuncMap* functions)
+{
   int i = 0;
-  for (auto& func : m_functions)
+  for (auto& func : *functions)
   {
     func.second.index = i++;
   }
