@@ -112,6 +112,6 @@ protected:
   XNoteMap m_notes;
   XFuncPtrMap m_checksum_to_function;
   std::string m_map_name;
-  std::mutex m_mutex;
+  std::recursive_mutex m_mutex;
 };
 }  // namespace Common
