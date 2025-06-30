@@ -35,6 +35,7 @@ void Symbol::Rename(const std::string& symbol_name)
 
 void SymbolDB::List()
 {
+  std::lock_guard lock(m_mutex);
   for (const auto& func : m_functions)
   {
     DEBUG_LOG_FMT(OSHLE, "{} @ {:08x}: {} bytes (hash {:08x}) : {} calls", func.second.name,
@@ -45,6 +46,7 @@ void SymbolDB::List()
 
 bool SymbolDB::IsEmpty() const
 {
+  std::lock_guard lock(m_mutex);
   return m_functions.empty() && m_notes.empty();
 }
 
@@ -65,6 +67,7 @@ bool SymbolDB::Clear(const char* prefix)
 
 void SymbolDB::Index()
 {
+  std::lock_guard lock(m_mutex);
   Index(&m_functions);
 }
 
@@ -79,6 +82,8 @@ void SymbolDB::Index(XFuncMap* functions)
 
 Symbol* SymbolDB::GetSymbolFromName(std::string_view name)
 {
+  std::lock_guard lock(m_mutex);
+
   for (auto& func : m_functions)
   {
     if (func.second.function_name == name)
@@ -90,6 +95,7 @@ Symbol* SymbolDB::GetSymbolFromName(std::string_view name)
 
 std::vector<Symbol*> SymbolDB::GetSymbolsFromName(std::string_view name)
 {
+  std::lock_guard lock(m_mutex);
   std::vector<Symbol*> symbols;
 
   for (auto& func : m_functions)
@@ -103,6 +109,8 @@ std::vector<Symbol*> SymbolDB::GetSymbolsFromName(std::string_view name)
 
 Symbol* SymbolDB::GetSymbolFromHash(u32 hash)
 {
+  std::lock_guard lock(m_mutex);
+
   auto iter = m_checksum_to_function.find(hash);
   if (iter == m_checksum_to_function.end())
     return nullptr;
@@ -112,6 +120,8 @@ Symbol* SymbolDB::GetSymbolFromHash(u32 hash)
 
 std::vector<Symbol*> SymbolDB::GetSymbolsFromHash(u32 hash)
 {
+  std::lock_guard lock(m_mutex);
+
   const auto iter = m_checksum_to_function.find(hash);
 
   if (iter == m_checksum_to_function.cend())
@@ -122,6 +132,7 @@ std::vector<Symbol*> SymbolDB::GetSymbolsFromHash(u32 hash)
 
 void SymbolDB::AddCompleteSymbol(const Symbol& symbol)
 {
+  std::lock_guard lock(m_mutex);
   m_functions.emplace(symbol.address, symbol);
 }
 }  // namespace Common
