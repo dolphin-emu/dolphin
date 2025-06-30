@@ -423,14 +423,13 @@ void CodeWidget::UpdateSymbols()
                                 m_symbols_list->selectedItems()[0]->text();
   m_symbols_list->clear();
 
-  for (const auto& symbol : m_ppc_symbol_db.Symbols())
-  {
-    QString name = QString::fromStdString(symbol.second.name);
+  m_ppc_symbol_db.ForEachSymbol([&](const Common::Symbol& symbol) {
+    QString name = QString::fromStdString(symbol.name);
 
     // If the symbol has an object name, add it to the entry name.
-    if (!symbol.second.object_name.empty())
+    if (!symbol.object_name.empty())
     {
-      name += QString::fromStdString(fmt::format(" ({})", symbol.second.object_name));
+      name += QString::fromStdString(fmt::format(" ({})", symbol.object_name));
     }
 
     auto* item = new QListWidgetItem(name);
@@ -438,14 +437,14 @@ void CodeWidget::UpdateSymbols()
       item->setSelected(true);
 
     // Disable non-function symbols as you can't do anything with them.
-    if (symbol.second.type != Common::Symbol::Type::Function)
+    if (symbol.type != Common::Symbol::Type::Function)
       item->setFlags(Qt::NoItemFlags);
 
-    item->setData(Qt::UserRole, symbol.second.address);
+    item->setData(Qt::UserRole, symbol.address);
 
     if (name.contains(m_symbol_filter, Qt::CaseInsensitive))
       m_symbols_list->addItem(item);
-  }
+  });
 
   m_symbols_list->sortItems();
 }
@@ -457,19 +456,18 @@ void CodeWidget::UpdateNotes()
                                 m_note_list->selectedItems()[0]->text();
   m_note_list->clear();
 
-  for (const auto& note : m_ppc_symbol_db.Notes())
-  {
-    const QString name = QString::fromStdString(note.second.name);
+  m_ppc_symbol_db.ForEachNote([&](const Common::Note& note) {
+    const QString name = QString::fromStdString(note.name);
 
     auto* item = new QListWidgetItem(name);
     if (name == selection)
       item->setSelected(true);
 
-    item->setData(Qt::UserRole, note.second.address);
+    item->setData(Qt::UserRole, note.address);
 
     if (name.toUpper().indexOf(m_symbol_filter.toUpper()) != -1)
       m_note_list->addItem(item);
-  }
+  });
 
   m_note_list->sortItems();
 }

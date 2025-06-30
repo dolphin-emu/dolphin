@@ -35,7 +35,7 @@ PPCSymbolDB::PPCSymbolDB() = default;
 PPCSymbolDB::~PPCSymbolDB() = default;
 
 // Adds the function to the list, unless it's already there
-Common::Symbol* PPCSymbolDB::AddFunction(const Core::CPUThreadGuard& guard, u32 start_addr)
+const Common::Symbol* PPCSymbolDB::AddFunction(const Core::CPUThreadGuard& guard, u32 start_addr)
 {
   std::lock_guard lock(m_mutex);
 
@@ -158,7 +158,7 @@ void PPCSymbolDB::DetermineNoteLayers(XNoteMap* notes)
   }
 }
 
-Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
+const Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr) const
 {
   std::lock_guard lock(m_mutex);
   if (m_functions.empty())
@@ -183,7 +183,7 @@ Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
   return nullptr;
 }
 
-Common::Note* PPCSymbolDB::GetNoteFromAddr(u32 addr)
+const Common::Note* PPCSymbolDB::GetNoteFromAddr(u32 addr) const
 {
   std::lock_guard lock(m_mutex);
   if (m_notes.empty())
@@ -226,7 +226,7 @@ void PPCSymbolDB::DeleteNote(u32 start_address)
   m_notes.erase(start_address);
 }
 
-std::string_view PPCSymbolDB::GetDescription(u32 addr)
+std::string PPCSymbolDB::GetDescription(u32 addr) const
 {
   if (const Common::Symbol* const symbol = GetSymbolFromAddr(addr))
     return symbol->name;

@@ -14,6 +14,7 @@
 #include <utility>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 
 namespace Core
@@ -88,18 +89,59 @@ public:
   SymbolDB();
   virtual ~SymbolDB();
 
-  virtual Symbol* GetSymbolFromAddr(u32 addr) { return nullptr; }
-  virtual Symbol* AddFunction(const Core::CPUThreadGuard& guard, u32 start_addr) { return nullptr; }
+  virtual const Symbol* GetSymbolFromAddr(u32 addr) const { return nullptr; }
+  virtual const Symbol* AddFunction(const Core::CPUThreadGuard& guard, u32 start_addr)
+  {
+    return nullptr;
+  }
   void AddCompleteSymbol(const Symbol& symbol);
+  bool RenameSymbol(const Symbol& symbol, const std::string& symbol_name);
+  bool RenameSymbol(const Symbol& symbol, const std::string& symbol_name,
+                    const std::string& object_name);
 
-  Symbol* GetSymbolFromName(std::string_view name);
-  std::vector<Symbol*> GetSymbolsFromName(std::string_view name);
-  Symbol* GetSymbolFromHash(u32 hash);
-  std::vector<Symbol*> GetSymbolsFromHash(u32 hash);
+  const Symbol* GetSymbolFromName(std::string_view name) const;
+  std::vector<const Symbol*> GetSymbolsFromName(std::string_view name) const;
+  const Symbol* GetSymbolFromHash(u32 hash) const;
+  std::vector<const Symbol*> GetSymbolsFromHash(u32 hash) const;
 
-  const XFuncMap& Symbols() const { return m_functions; }
-  const XNoteMap& Notes() const { return m_notes; }
-  XFuncMap& AccessSymbols() { return m_functions; }
+  template <typename F>
+  void ForEachSymbol(F f) const
+  {
+    std::lock_guard lock(m_mutex);
+    for (const auto& [addr, symbol] : m_functions)
+      f(symbol);
+  }
+
+  template <typename F>
+  void ForEachSymbolWithMutation(F f)
+  {
+    std::lock_guard lock(m_mutex);
+    for (auto& [addr, symbol] : m_functions)
+    {
+      f(symbol);
+      ASSERT_MSG(COMMON, addr == symbol.address, "Symbol address was unexpectedly changed");
+    }
+  }
+
+  template <typename F>
+  void ForEachNote(F f) const
+  {
+    std::lock_guard lock(m_mutex);
+    for (const auto& [addr, note] : m_notes)
+      f(note);
+  }
+
+  template <typename F>
+  void ForEachNoteWithMutation(F f)
+  {
+    std::lock_guard lock(m_mutex);
+    for (auto& [addr, note] : m_notes)
+    {
+      f(note);
+      ASSERT_MSG(COMMON, addr == note.address, "Note address was unexpectedly changed");
+    }
+  }
+
   bool IsEmpty() const;
   bool Clear(const char* prefix = "");
   void List();
@@ -112,6 +154,6 @@ protected:
   XNoteMap m_notes;
   XFuncPtrMap m_checksum_to_function;
   std::string m_map_name;
-  std::recursive_mutex m_mutex;
+  mutable std::recursive_mutex m_mutex;
 };
 }  // namespace Common
