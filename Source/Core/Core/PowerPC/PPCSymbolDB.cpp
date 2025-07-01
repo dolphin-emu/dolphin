@@ -136,7 +136,7 @@ void PPCSymbolDB::DetermineNoteLayers()
 
 Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
-  std::unique_lock<std::mutex> lock(m_write_lock);
+  std::lock_guard lock(m_mutex);
   if (m_functions.empty())
     return nullptr;
 
@@ -161,7 +161,7 @@ Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 
 Common::Note* PPCSymbolDB::GetNoteFromAddr(u32 addr)
 {
-  std::unique_lock<std::mutex> lock(m_write_lock);
+  std::lock_guard lock(m_mutex);
   if (m_notes.empty())
     return nullptr;
 
@@ -209,7 +209,7 @@ std::string_view PPCSymbolDB::GetDescription(u32 addr)
 
 void PPCSymbolDB::FillInCallers()
 {
-  std::unique_lock<std::mutex> lock(m_write_lock);
+  std::lock_guard lock(m_mutex);
 
   for (auto& p : m_functions)
   {
@@ -312,7 +312,7 @@ bool PPCSymbolDB::FindMapFile(std::string* existing_map_file, std::string* writa
 // Returns true if m_functions was changed.
 bool PPCSymbolDB::LoadMapOnBoot(const Core::CPUThreadGuard& guard)
 {
-  std::lock_guard lock(m_write_lock);
+  std::lock_guard lock(m_mutex);
 
   std::string existing_map_file;
   if (!PPCSymbolDB::FindMapFile(&existing_map_file, nullptr))
