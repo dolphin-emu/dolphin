@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       tuklib_physmem.c
 /// \brief      Get the amount of physical memory
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -79,16 +78,31 @@ tuklib_physmem(void)
 	uint64_t ret = 0;
 
 #if defined(_WIN32) || defined(__CYGWIN__)
+	// This requires Windows 2000 or later.
+	MEMORYSTATUSEX meminfo;
+	meminfo.dwLength = sizeof(meminfo);
+	if (GlobalMemoryStatusEx(&meminfo))
+		ret = meminfo.ullTotalPhys;
+
+/*
+	// Old version that is compatible with even Win95:
 	if ((GetVersion() & 0xFF) >= 5) {
 		// Windows 2000 and later have GlobalMemoryStatusEx() which
 		// supports reporting values greater than 4 GiB. To keep the
 		// code working also on older Windows versions, use
 		// GlobalMemoryStatusEx() conditionally.
-		HMODULE kernel32 = GetModuleHandle("kernel32.dll");
+		HMODULE kernel32 = GetModuleHandle(TEXT("kernel32.dll"));
 		if (kernel32 != NULL) {
 			typedef BOOL (WINAPI *gmse_type)(LPMEMORYSTATUSEX);
+#ifdef CAN_DISABLE_WCAST_FUNCTION_TYPE
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
 			gmse_type gmse = (gmse_type)GetProcAddress(
 					kernel32, "GlobalMemoryStatusEx");
+#ifdef CAN_DISABLE_WCAST_FUNCTION_TYPE
+#	pragma GCC diagnostic pop
+#endif
 			if (gmse != NULL) {
 				MEMORYSTATUSEX meminfo;
 				meminfo.dwLength = sizeof(meminfo);
@@ -107,6 +121,7 @@ tuklib_physmem(void)
 		GlobalMemoryStatus(&meminfo);
 		ret = meminfo.dwTotalPhys;
 	}
+*/
 
 #elif defined(__OS2__)
 	unsigned long mem;

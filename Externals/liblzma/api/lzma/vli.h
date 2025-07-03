@@ -1,6 +1,9 @@
+/* SPDX-License-Identifier: 0BSD */
+
 /**
  * \file        lzma/vli.h
  * \brief       Variable-length integer handling
+ * \note        Never include this file directly. Use <lzma.h> instead.
  *
  * In the .xz format, most integers are encoded in a variable-length
  * representation, which is sometimes called little endian base-128 encoding.
@@ -16,11 +19,6 @@
 
 /*
  * Author: Lasse Collin
- *
- * This file has been put into the public domain.
- * You can do whatever you want with this file.
- *
- * See ../lzma.h for information about liblzma as a whole.
  */
 
 #ifndef LZMA_H_INTERNAL
@@ -54,7 +52,7 @@
  *
  * Valid VLI values are in the range [0, LZMA_VLI_MAX]. Unknown value is
  * indicated with LZMA_VLI_UNKNOWN, which is the maximum value of the
- * underlaying integer type.
+ * underlying integer type.
  *
  * lzma_vli will be uint64_t for the foreseeable future. If a bigger size
  * is needed in the future, it is guaranteed that 2 * LZMA_VLI_MAX will
@@ -69,8 +67,8 @@ typedef uint64_t lzma_vli;
  * This is useful to test that application has given acceptable values
  * for example in the uncompressed_size and compressed_size variables.
  *
- * \return      True if the integer is representable as VLI or if it
- *              indicates unknown value.
+ * \return      True if the integer is representable as a VLI or if it
+ *              indicates an unknown value. False otherwise.
  */
 #define lzma_vli_is_valid(vli) \
 	((vli) <= LZMA_VLI_MAX || (vli) == LZMA_VLI_UNKNOWN)
@@ -86,12 +84,12 @@ typedef uint64_t lzma_vli;
  * integer has been encoded.
  *
  * \param       vli       Integer to be encoded
- * \param       vli_pos   How many VLI-encoded bytes have already been written
+ * \param[out]  vli_pos   How many VLI-encoded bytes have already been written
  *                        out. When starting to encode a new integer in
  *                        multi-call mode, *vli_pos must be set to zero.
  *                        To use single-call encoding, set vli_pos to NULL.
- * \param       out       Beginning of the output buffer
- * \param       out_pos   The next byte will be written to out[*out_pos].
+ * \param[out]  out       Beginning of the output buffer
+ * \param[out]  out_pos   The next byte will be written to out[*out_pos].
  * \param       out_size  Size of the out buffer; the first byte into
  *                        which no data is written to is out[out_size].
  *
@@ -121,15 +119,15 @@ extern LZMA_API(lzma_ret) lzma_vli_encode(lzma_vli vli, size_t *vli_pos,
  *
  * Like lzma_vli_encode(), this function has single-call and multi-call modes.
  *
- * \param       vli       Pointer to decoded integer. The decoder will
+ * \param[out]  vli       Pointer to decoded integer. The decoder will
  *                        initialize it to zero when *vli_pos == 0, so
  *                        application isn't required to initialize *vli.
- * \param       vli_pos   How many bytes have already been decoded. When
+ * \param[out]  vli_pos   How many bytes have already been decoded. When
  *                        starting to decode a new integer in multi-call
  *                        mode, *vli_pos must be initialized to zero. To
  *                        use single-call decoding, set vli_pos to NULL.
  * \param       in        Beginning of the input buffer
- * \param       in_pos    The next byte will be read from in[*in_pos].
+ * \param[out]  in_pos    The next byte will be read from in[*in_pos].
  * \param       in_size   Size of the input buffer; the first byte that
  *                        won't be read is in[in_size].
  *
@@ -158,6 +156,8 @@ extern LZMA_API(lzma_ret) lzma_vli_decode(lzma_vli *vli, size_t *vli_pos,
 
 /**
  * \brief       Get the number of bytes required to encode a VLI
+ *
+ * \param       vli       Integer whose encoded size is to be determined
  *
  * \return      Number of bytes on success (1-9). If vli isn't valid,
  *              zero is returned.
