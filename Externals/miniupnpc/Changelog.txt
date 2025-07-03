@@ -1,5 +1,196 @@
-$Id: Changelog.txt,v 1.215 2015/10/01 09:26:11 nanard Exp $
+$Id: Changelog.txt,v 1.276 2025/03/05 10:29:50 nanard Exp $
 miniUPnP client Changelog.
+
+VERSION 2.3.2 : released 2025/03/05
+
+2025/02/24:
+  remove STRTOUI from public headers
+  remove parseURL() from public headers
+  remove struct NameValue from upnpreplyparse.h and use flexible array member
+  Increments API_VERSION to 20
+
+VERSION 2.3.1 : released 2025/02/23
+
+2025/02/23:
+  allocate argument arrays on stack instead of heap in upnpcommand.c
+
+2025/02/09:
+  doxygen documentation of the public headers
+
+VERSION 2.3.0 : released 2025/01/11
+
+2025/01/10:
+  Change simpleUPnPcommand() prototype to remove unused first argument
+  Increments API_VERSION to 19
+
+2024/07/27:
+  Add #define for UPNP_GetValidIGD() return values
+
+VERSION 2.2.8 : released 2024/06/09
+
+2024/05/16:
+  IPv6: try site-local before link-local
+
+2024/05/08:
+  upnpc.c: Add -f option to upnpc program (delete multiple port redirections)
+  UPNP_GetValidIGD(): distinguish between not connected and connected to a
+    "private" network (with a reserved IP address).
+  Increments API_VERSION to 18
+
+VERSION 2.2.7 : released 2024/03/20
+
+2024/01/15:
+  listdevices.c: exit with status code 1 if no UPNP device is found
+
+2024/01/07:
+  upnpc.c: reformat Usage
+
+VERSION 2.2.6 : released 2024/01/04
+
+2024/01/04:
+  includes charset="utf-8" in Content-Type
+  fix memory allocation error in minissdpc.c
+
+2023/06/15:
+  Make User-Agent compliant.
+  listdevices => upnp-listdevices
+
+VERSION 2.2.5 : released 2023/06/12
+
+2023/06/05:
+  GetListOfPortMappings NewStartPort 0 => 1
+
+2023/05/30:
+  CheckPinholeWorking is optional
+  add 60x errors from UPnP Device Architecture
+
+2023/01/04:
+  cmake: install binaries, man pages and external-ip.sh
+
+VERSION 2.2.4 : released 2022/10/21
+
+2022/02/20:
+  upnpc: use of @ to replace local lan address
+
+2021/11/09:
+  python module : Allow to specify the root description url
+
+VERSION 2.2.3 : released 2021/09/28
+
+2021/08/13:
+  Change directory structure : include/ and src/ directories.
+
+VERSION 2.2.2 : released 2021/03/03
+
+2021/01/15:
+  miniupnpcmodule.c: throw an exception in UPnP_discover()
+
+2020/12/30:
+  Fix usage of IP_MULTICAST_IF with struct ip_mreqn
+
+VERSION 2.2.1 : released 2020/12/20
+
+2020/11/30:
+  Add miniupnpc.rc for .dll description
+
+VERSION 2.2.0 : released 2020/11/09
+
+2020/09/24:
+  Check properly for reserved IP addresses
+
+2020/09/23:
+  prevent infinite loop in upnpDiscover()
+
+2020/02/16:
+  Add Haiku support
+
+2019/10/22:
+  testminiwget.sh can use either "ip addr" or "ifconfig -a
+
+2019/10/13:
+  fix UPNP_GetValidIGD() when several devices are found
+  which are reachable from != local address
+
+2019/08/24:
+  Allow Remote Host on upnpc command line
+  fix error 708 description in strupnperror()
+
+2019/04/05:
+  Fix memory leak in upnpreplyparse.c with NewPortListing element
+
+2019/03/10:
+  connecthostport.c: Code simplification, error trace fix
+
+2019/01/23:
+  set timeout for select() in connecthostport()
+
+2018/10/31:
+  miniupnpcmodule.c: check return of WSAStartup()
+
+2018/07/14:
+  Fix and improve MSVC project :
+    Add Dll configurations
+    improve genminiupnpcstrings.vbs
+
+2018/06/18:
+  Fixes for windows 64-bits.
+
+VERSION 2.1 : released 2018/05/07
+
+2018/05/07:
+  CMake Modernize and cleanup CMakeLists.txt
+  Update MS Visual Studio projects
+
+2018/04/30:
+  listdevices: show devices sorted by XML desc URL
+
+2018/04/26:
+  Small fix in miniupnpcmodule.c (python module)
+  Support cross compiling in Makefile.mingw
+
+2018/04/06:
+  Use SOCKET type instead of int (for Win64 compilation)
+  Increments API_VERSION to 17
+
+2018/02/22:
+  Disable usage of MiniSSDPd when using -m option
+
+2017/12/11:
+  Fix buffer over run in minixml.c
+  Fix uninitialized variable access in upnpreplyparse.c
+
+2017/05/05:
+  Fix CVE-2017-8798   Thanks to tin/Team OSTStrom
+
+2016/11/11:
+  check strlen before memcmp in XML parsing portlistingparse.c
+  fix build under SOLARIS and CYGWIN
+
+2016/10/11:
+  Add python 3 compatibility to IGD test
+
+VERSION 2.0 : released 2016/04/19
+
+2016/01/24:
+  change miniwget to return HTTP status code
+  increments API_VERSION to 16
+
+2016/01/22:
+  Improve UPNPIGD_IsConnected() to check if WAN address is not private.
+  parse HTTP response status line in miniwget.c
+
+2015/10/26:
+  snprintf() overflow check. check overflow in simpleUPnPcommand2()
+
+2015/10/25:
+  fix compilation with old macs
+  fix compilation with mingw32 (for Appveyor)
+  fix python module for python <= 2.3
+
+2015/10/08:
+  Change sameport to localport
+    see https://github.com/miniupnp/miniupnp/pull/120
+  increments API_VERSION to 15
 
 2015/09/15:
   Fix buffer overflow in igd_desc_parse.c/IGDstartelt()
@@ -565,7 +756,7 @@ VERSION 1.0 :
   upnpc now displays external ip address with -s or -l
 
 2007/04/11:
-  changed MINIUPNPC_URL_MAXSIZE to 128 to accomodate the "BT Voyager 210"
+  changed MINIUPNPC_URL_MAXSIZE to 128 to accommodate the "BT Voyager 210"
 
 2007/03/19:
   cleanup in miniwget.c

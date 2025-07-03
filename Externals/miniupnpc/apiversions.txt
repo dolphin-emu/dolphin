@@ -1,6 +1,44 @@
-$Id: apiversions.txt,v 1.7 2015/07/23 20:40:08 nanard Exp $
+$Id: apiversions.txt,v 1.14 2025/03/05 10:29:51 nanard Exp $
 
 Differences in API between miniUPnPc versions
+
+API version 20
+  cleanup : remove STRTOUI and parseURL() from public headers
+  remove struct NameValue from upnpreplyparse.h
+  updated macro :
+    #define MINIUPNPC_API_VERSION 20
+  This more a cleanup than a real API change. Things that were removed
+  from public headers were not supposed to be used and/or not
+  exposed in the dll export list.
+
+API version 19
+  change simpleUPnPcommand() prototype
+  updated macro :
+    #define MINIUPNPC_API_VERSION 19
+
+API version 18
+  change UPNP_GetValidIGD() prototype and return values
+  updated macro :
+    #define MINIUPNPC_API_VERSION 18
+
+API version 17
+  change struct UPNPDev
+  move getHTTPResponse() to miniwget_private.h
+  updated macro :
+    #define MINIUPNPC_API_VERSION 17
+
+API version 16
+  added "status_code" argument to getHTTPResponse(), miniwget() and miniwget_getaddr()
+  updated macro :
+    #define MINIUPNPC_API_VERSION 16
+
+API version 15
+  changed "sameport" argument of upnpDiscover() upnpDiscoverAll() upnpDiscoverDevice()
+    to "localport". When 0 or 1, behaviour is not changed, but it can take
+    any other value between 2 and 65535
+    Existing programs should be compatible
+  updated macro :
+    #define MINIUPNPC_API_VERSION  15
 
 API version 14
 miniupnpc.h
@@ -9,6 +47,8 @@ miniupnpc.h
   getDevicesFromMiniSSDPD() :
     connectToMiniSSDPD() / disconnectFromMiniSSDPD()
     requestDevicesFromMiniSSDPD() / receiveDevicesFromMiniSSDPD()
+  updated macro :
+    #define MINIUPNPC_API_VERSION  14
 
 API version 13
 miniupnpc.h:

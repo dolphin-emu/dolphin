@@ -1,16 +1,21 @@
-/* $Id: miniupnpcmodule.c,v 1.24 2014/06/10 09:48:11 nanard Exp $*/
-/* Project : miniupnp
+/* $Id: miniupnpcmodule.c,v 1.40 2024/05/09 15:10:29 nanard Exp $*/
+/* vim: tabstop=4 shiftwidth=4 noexpandtab
+ * Project : miniupnp
  * Author : Thomas BERNARD
- * website : http://miniupnp.tuxfamily.org/
- * copyright (c) 2007-2014 Thomas Bernard
+ * website : https://miniupnp.tuxfamily.org/
+ * copyright (c) 2007-2024 Thomas Bernard
  * This software is subjet to the conditions detailed in the
  * provided LICENCE file. */
 #include <Python.h>
 #define MINIUPNP_STATICLIB
-#include "structmember.h"
+#include <structmember.h>
 #include "miniupnpc.h"
 #include "upnpcommands.h"
 #include "upnperrors.h"
+
+#ifdef _WIN32
+#include <winsock2.h>
+#endif
 
 /* for compatibility with Python < 2.4 */
 #ifndef Py_RETURN_NONE
@@ -42,7 +47,9 @@ typedef struct {
 	struct UPNPUrls urls;
 	struct IGDdatas data;
 	unsigned int discoverdelay;	/* value passed to upnpDiscover() */
+	unsigned int localport;		/* value passed to upnpDiscover() */
 	char lanaddr[40];	/* our ip address on the LAN */
+	char wanaddr[40];	/* the ExternalIPAddress returned by the IGD */
 	char * multicastif;
 	char * minissdpdsocket;
 } UPnPObject;
@@ -51,10 +58,22 @@ static PyMemberDef UPnP_members[] = {
 	{"lanaddr", T_STRING_INPLACE, offsetof(UPnPObject, lanaddr),
 	 READONLY, "ip address on the LAN"
 	},
+	{"wanaddr", T_STRING_INPLACE, offsetof(UPnPObject, wanaddr),
+	 READONLY, "public ip address on the WAN"
+	},
 	{"discoverdelay", T_UINT, offsetof(UPnPObject, discoverdelay),
 	 0/*READWRITE*/, "value in ms used to wait for SSDP responses"
 	},
-	/* T_STRING is allways readonly :( */
+	{"localport", T_UINT, offsetof(UPnPObject, localport),
+	 0/*READWRITE*/,
+	    "If localport is set to UPNP_LOCAL_PORT_SAME(1) "
+	    "SSDP packets will be sent from the source port "
+	    "1900 (same as destination port), if set to "
+	    "UPNP_LOCAL_PORT_ANY(0) system assign a source "
+	    "port, any other value will be attempted as the "
+	    "source port"
+	},
+	/* T_STRING is always readonly :( */
 	{"multicastif", T_STRING, offsetof(UPnPObject, multicastif),
 	 0, "IP of the network interface to be used for multicast operations"
 	},
@@ -70,15 +89,22 @@ static int UPnP_init(UPnPObject *self, PyObject *args, PyObject *kwds)
 	char* multicastif = NULL;
 	char* minissdpdsocket = NULL;
 	static char *kwlist[] = {
-		"multicastif", "minissdpdsocket", "discoverdelay", NULL
+		"multicastif", "minissdpdsocket", "discoverdelay",
+		"localport", NULL
 	};
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|zzI", kwlist, 
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|zzII", kwlist,
 					&multicastif,
 					&minissdpdsocket,
-					&self->discoverdelay))
-		return -1; 
+					&self->discoverdelay,
+					&self->localport))
+		return -1;
 
+	if(self->localport>1 &&
+	   (self->localport>65534||self->localport<1024)) {
+	    PyErr_SetString(PyExc_Exception, "Invalid localport value");
+	    return -1;
+	}
 	if(multicastif)
 		self->multicastif = strdup(multicastif);
 	if(minissdpdsocket)
@@ -100,9 +126,9 @@ UPnPObject_dealloc(UPnPObject *self)
 static PyObject *
 UPnP_discover(UPnPObject *self)
 {
-	struct UPNPDev * dev;
-	int i;
+	int error = 0;
 	PyObject *res = NULL;
+
 	if(self->devlist)
 	{
 		freeUPNPDevlist(self->devlist);
@@ -112,25 +138,42 @@ UPnP_discover(UPnPObject *self)
 	self->devlist = upnpDiscover((int)self->discoverdelay/*timeout in ms*/,
 	                             self->multicastif,
 	                             self->minissdpdsocket,
-	                             0/*sameport flag*/,
+	                             (int)self->localport,
 	                             0/*ip v6*/,
 	                             2/* TTL */,
-	                             0/*error */);
+	                             &error);
 	Py_END_ALLOW_THREADS
 	/* Py_RETURN_NONE ??? */
-	for(dev = self->devlist, i = 0; dev; dev = dev->pNext)
-		i++;
-	res = Py_BuildValue("i", i);
-	return res;
+	if (self->devlist != NULL) {
+		struct UPNPDev * dev;
+		int i = 0;
+
+		for(dev = self->devlist; dev; dev = dev->pNext)
+			i++;
+		res = Py_BuildValue("i", i);
+		return res;
+	} else {
+		PyErr_SetString(PyExc_Exception, strupnperror(error));
+		return NULL;
+	}
 }
 
 static PyObject *
-UPnP_selectigd(UPnPObject *self)
+UPnP_selectigd(UPnPObject *self, PyObject *args)
 {
+	const char * rootDescUrl = NULL;
 	int r;
+	if(!PyArg_ParseTuple(args, "|z", &rootDescUrl))
+		return NULL;
 Py_BEGIN_ALLOW_THREADS
-	r = UPNP_GetValidIGD(self->devlist, &self->urls, &self->data,
-	                     self->lanaddr, sizeof(self->lanaddr));
+	if (rootDescUrl == NULL) {
+		r = UPNP_GetValidIGD(self->devlist, &self->urls, &self->data,
+		                     self->lanaddr, sizeof(self->lanaddr),
+		                     self->wanaddr, sizeof(self->wanaddr));
+	} else {
+		r = UPNP_GetIGDFromUrl(rootDescUrl, &self->urls, &self->data,
+		                       self->lanaddr, sizeof(self->lanaddr));
+	}
 Py_END_ALLOW_THREADS
 	if(r)
 	{
@@ -152,7 +195,11 @@ Py_BEGIN_ALLOW_THREADS
 	i = UPNP_GetTotalBytesSent(self->urls.controlURL_CIF,
 	                           self->data.CIF.servicetype);
 Py_END_ALLOW_THREADS
+#if (PY_MAJOR_VERSION >= 3) || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION > 3)
 	return Py_BuildValue("I", i);
+#else
+	return Py_BuildValue("i", (int)i);
+#endif
 }
 
 static PyObject *
@@ -163,7 +210,11 @@ Py_BEGIN_ALLOW_THREADS
 	i = UPNP_GetTotalBytesReceived(self->urls.controlURL_CIF,
 		                           self->data.CIF.servicetype);
 Py_END_ALLOW_THREADS
+#if (PY_MAJOR_VERSION >= 3) || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION > 3)
 	return Py_BuildValue("I", i);
+#else
+	return Py_BuildValue("i", (int)i);
+#endif
 }
 
 static PyObject *
@@ -174,7 +225,11 @@ Py_BEGIN_ALLOW_THREADS
 	i = UPNP_GetTotalPacketsSent(self->urls.controlURL_CIF,
 		                         self->data.CIF.servicetype);
 Py_END_ALLOW_THREADS
+#if (PY_MAJOR_VERSION >= 3) || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION > 3)
 	return Py_BuildValue("I", i);
+#else
+	return Py_BuildValue("i", (int)i);
+#endif
 }
 
 static PyObject *
@@ -185,7 +240,11 @@ Py_BEGIN_ALLOW_THREADS
 	i = UPNP_GetTotalPacketsReceived(self->urls.controlURL_CIF,
 		                          self->data.CIF.servicetype);
 Py_END_ALLOW_THREADS
+#if (PY_MAJOR_VERSION >= 3) || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION > 3)
 	return Py_BuildValue("I", i);
+#else
+	return Py_BuildValue("i", (int)i);
+#endif
 }
 
 static PyObject *
@@ -202,7 +261,11 @@ Py_BEGIN_ALLOW_THREADS
 	                   status, &uptime, lastconnerror);
 Py_END_ALLOW_THREADS
 	if(r==UPNPCOMMAND_SUCCESS) {
+#if (PY_MAJOR_VERSION >= 3) || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION > 3)
 		return Py_BuildValue("(s,I,s)", status, uptime, lastconnerror);
+#else
+		return Py_BuildValue("(s,i,s)", status, (int)uptime, lastconnerror);
+#endif
 	} else {
 		/* TODO: have our own exception type ! */
 		PyErr_SetString(PyExc_Exception, strupnperror(r));
@@ -251,7 +314,7 @@ Py_END_ALLOW_THREADS
 }
 
 /* AddPortMapping(externalPort, protocol, internalHost, internalPort, desc,
- *                remoteHost)
+ *                remoteHost, leaseDuration)
  * protocol is 'UDP' or 'TCP' */
 static PyObject *
 UPnP_addportmapping(UPnPObject *self, PyObject *args)
@@ -264,17 +327,24 @@ UPnP_addportmapping(UPnPObject *self, PyObject *args)
 	const char * host;
 	const char * desc;
 	const char * remoteHost;
-	const char * leaseDuration = "0";
+	unsigned int intLeaseDuration = 0;
+	char strLeaseDuration[12];
 	int r;
-	if (!PyArg_ParseTuple(args, "HssHss", &ePort, &proto,
-	                                     &host, &iPort, &desc, &remoteHost))
+#if (PY_MAJOR_VERSION >= 3) || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION > 3)
+	if (!PyArg_ParseTuple(args, "HssHzz|I", &ePort, &proto,
+	                                     &host, &iPort, &desc, &remoteHost, &intLeaseDuration))
+#else
+	if (!PyArg_ParseTuple(args, "HssHzz|i", &ePort, &proto,
+	                                     &host, &iPort, &desc, &remoteHost, (int *)&intLeaseDuration))
+#endif
         return NULL;
 Py_BEGIN_ALLOW_THREADS
 	sprintf(extPort, "%hu", ePort);
 	sprintf(inPort, "%hu", iPort);
+	sprintf(strLeaseDuration, "%u", intLeaseDuration);
 	r = UPNP_AddPortMapping(self->urls.controlURL, self->data.first.servicetype,
 	                        extPort, inPort, host, desc, proto,
-	                        remoteHost, leaseDuration);
+	                        remoteHost, strLeaseDuration);
 Py_END_ALLOW_THREADS
 	if(r==UPNPCOMMAND_SUCCESS)
 	{
@@ -308,7 +378,7 @@ UPnP_addanyportmapping(UPnPObject *self, PyObject *args)
 	const char * remoteHost;
 	const char * leaseDuration = "0";
 	int r;
-	if (!PyArg_ParseTuple(args, "HssHss", &ePort, &proto, &host, &iPort, &desc, &remoteHost))
+	if (!PyArg_ParseTuple(args, "HssHzz", &ePort, &proto, &host, &iPort, &desc, &remoteHost))
         return NULL;
 Py_BEGIN_ALLOW_THREADS
 	sprintf(extPort, "%hu", ePort);
@@ -364,14 +434,14 @@ UPnP_deleteportmappingrange(UPnPObject *self, PyObject *args)
 	unsigned short ePortEnd;
 	const char * proto;
 	unsigned char manage;
-	char manageStr[1];
+	char manageStr[6];
 	int r;
 	if(!PyArg_ParseTuple(args, "HHsb", &ePortStart, &ePortEnd, &proto, &manage))
 		return NULL;
 Py_BEGIN_ALLOW_THREADS
 	sprintf(extPortStart, "%hu", ePortStart);
 	sprintf(extPortEnd, "%hu", ePortEnd);
-	sprintf(manageStr, "%hhu", manage);
+	sprintf(manageStr, "%hu", (unsigned short)manage);
 	r = UPNP_DeletePortMappingRange(self->urls.controlURL, self->data.first.servicetype,
 					extPortStart, extPortEnd, proto, manageStr);
 Py_END_ALLOW_THREADS
@@ -395,7 +465,11 @@ Py_BEGIN_ALLOW_THREADS
 									   &n);
 Py_END_ALLOW_THREADS
 	if(r==UPNPCOMMAND_SUCCESS) {
+#if (PY_MAJOR_VERSION >= 3) || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION > 3)
 		return Py_BuildValue("I", n);
+#else
+		return Py_BuildValue("i", (int)n);
+#endif
 	} else {
 		/* TODO: have our own exception type ! */
 		PyErr_SetString(PyExc_Exception, strupnperror(r));
@@ -480,9 +554,15 @@ Py_END_ALLOW_THREADS
 		ePort = (unsigned short)atoi(extPort);
 		iPort = (unsigned short)atoi(intPort);
 		dur = (unsigned int)strtoul(duration, 0, 0);
+#if (PY_MAJOR_VERSION >= 3) || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION > 3)
 		return Py_BuildValue("(H,s,(s,H),s,s,s,I)",
 		                     ePort, protocol, intClient, iPort,
 		                     desc, enabled, rHost, dur);
+#else
+		return Py_BuildValue("(i,s,(s,i),s,s,s,i)",
+		                     (int)ePort, protocol, intClient, (int)iPort,
+		                     desc, enabled, rHost, (int)dur);
+#endif
 	}
 	else
 	{
@@ -495,7 +575,7 @@ static PyMethodDef UPnP_methods[] = {
     {"discover", (PyCFunction)UPnP_discover, METH_NOARGS,
      "discover UPnP IGD devices on the network"
     },
-	{"selectigd", (PyCFunction)UPnP_selectigd, METH_NOARGS,
+	{"selectigd", (PyCFunction)UPnP_selectigd, METH_VARARGS,
 	 "select a valid UPnP IGD among discovered devices"
 	},
 	{"totalbytesent", (PyCFunction)UPnP_totalbytesent, METH_NOARGS,
@@ -585,8 +665,9 @@ static PyTypeObject UPnPType = {
 #ifndef _WIN32
     PyType_GenericNew,/*UPnP_new,*/      /* tp_new */
 #else
-    0,
+    0,                         /* tp_new */
 #endif
+    0,                         /* tp_free */
 };
 
 /* module methods */
@@ -622,6 +703,20 @@ initminiupnpc(void)
     PyObject* m;
 
 #ifdef _WIN32
+    /* initialize Winsock. */
+    WSADATA wsaData;
+    int nResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+	if (nResult != 0)
+	{
+		/* error code could be WSASYSNOTREADY WSASYSNOTREADY
+		 * WSASYSNOTREADY WSASYSNOTREADY WSASYSNOTREADY */
+#if PY_MAJOR_VERSION >= 3
+        return 0;
+#else
+        return;
+#endif
+	}
+
     UPnPType.tp_new = PyType_GenericNew;
 #endif
     if (PyType_Ready(&UPnPType) < 0)
