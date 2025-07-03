@@ -278,7 +278,7 @@ bool PixelShaderData::FromJson(const VideoCommon::CustomAssetLibrary::AssetID& a
 
   for (const auto& [name, property] : data->m_properties)
   {
-    if (data->m_shader_source.find(name) == std::string::npos)
+    if (!data->m_shader_source.contains(name))
     {
       ERROR_LOG_FMT(
           VIDEO,

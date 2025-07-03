@@ -515,7 +515,7 @@ void VulkanContext::PopulateBackendInfoFeatures(BackendInfo* backend_info, VkPhy
 
   // Only Apple family GPUs support framebuffer fetch.
   // We currently use a hacked MoltenVK to implement this, so don't attempt outside of MVK
-  if (is_moltenvk && (vendor_id == 0x106B || device_name.find("Apple") != std::string::npos))
+  if (is_moltenvk && (vendor_id == 0x106B || device_name.contains("Apple")))
   {
     backend_info->bSupportsFramebufferFetch = true;
   }
@@ -980,12 +980,11 @@ void VulkanContext::InitDriverDetails()
     vendor = DriverDetails::VENDOR_NVIDIA;
     driver = DriverDetails::DRIVER_NVIDIA;
   }
-  else if (vendor_id == 0x1002 || vendor_id == 0x1022 ||
-           device_name.find("AMD") != std::string::npos)
+  else if (vendor_id == 0x1002 || vendor_id == 0x1022 || device_name.contains("AMD"))
   {
     // RADV always advertises its name in the device string.
     // If not RADV, assume the AMD binary driver.
-    if (device_name.find("RADV") != std::string::npos)
+    if (device_name.contains("RADV"))
     {
       vendor = DriverDetails::VENDOR_MESA;
       driver = DriverDetails::DRIVER_R600;
@@ -996,8 +995,7 @@ void VulkanContext::InitDriverDetails()
       driver = DriverDetails::DRIVER_ATI;
     }
   }
-  else if (vendor_id == 0x8086 || vendor_id == 0x8087 ||
-           device_name.find("Intel") != std::string::npos)
+  else if (vendor_id == 0x8086 || vendor_id == 0x8087 || device_name.contains("Intel"))
   {
 // Apart from the driver version, Intel does not appear to provide a way to
 // differentiate between anv and the binary driver (Skylake+). Assume to be
@@ -1010,25 +1008,25 @@ void VulkanContext::InitDriverDetails()
     driver = DriverDetails::DRIVER_I965;
 #endif
   }
-  else if (vendor_id == 0x5143 || device_name.find("Adreno") != std::string::npos)
+  else if (vendor_id == 0x5143 || device_name.contains("Adreno"))
   {
     // Currently only the Qualcomm binary driver exists for Adreno.
     vendor = DriverDetails::VENDOR_QUALCOMM;
     driver = DriverDetails::DRIVER_QUALCOMM;
   }
-  else if (vendor_id == 0x13B6 || device_name.find("Mali") != std::string::npos)
+  else if (vendor_id == 0x13B6 || device_name.contains("Mali"))
   {
     // Currently only the ARM binary driver exists for Mali.
     vendor = DriverDetails::VENDOR_ARM;
     driver = DriverDetails::DRIVER_ARM;
   }
-  else if (vendor_id == 0x1010 || device_name.find("PowerVR") != std::string::npos)
+  else if (vendor_id == 0x1010 || device_name.contains("PowerVR"))
   {
     // Currently only the binary driver exists for PowerVR.
     vendor = DriverDetails::VENDOR_IMGTEC;
     driver = DriverDetails::DRIVER_IMGTEC;
   }
-  else if (device_name.find("Apple") != std::string::npos)
+  else if (device_name.contains("Apple"))
   {
     vendor = DriverDetails::VENDOR_APPLE;
     driver = DriverDetails::DRIVER_PORTABILITY;
