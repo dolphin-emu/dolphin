@@ -28,10 +28,7 @@
 #include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/GameConfigEdit.h"
-#include "DolphinQt/Config/Graphics/AdvancedWidget.h"
-#include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
-#include "DolphinQt/Config/Graphics/GeneralWidget.h"
-#include "DolphinQt/Config/Graphics/HacksWidget.h"
+#include "DolphinQt/Config/Graphics/GraphicsPane.h"
 #include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
@@ -197,21 +194,10 @@ void GameConfigWidget::CreateWidgets()
   auto* tab_widget = new QTabWidget;
   tab_widget->addTab(general_widget, tr("General"));
 
-  // GFX settings tabs. Placed in a QWidget for consistent margins.
-  auto* gfx_tab_holder = new QWidget;
-  auto* gfx_layout = new QVBoxLayout;
-  gfx_tab_holder->setLayout(gfx_layout);
-  tab_widget->addTab(gfx_tab_holder, tr("Graphics"));
+  auto* const gfx_widget = new GraphicsPane{nullptr, m_layer.get()};
+  tab_widget->addTab(gfx_widget, tr("Graphics"));
 
-  auto* gfx_tabs = new QTabWidget;
-
-  gfx_tabs->addTab(GetWrappedWidget(new GeneralWidget(this, m_layer.get())), tr("General"));
-  gfx_tabs->addTab(GetWrappedWidget(new EnhancementsWidget(this, m_layer.get())),
-                   tr("Enhancements"));
-  gfx_tabs->addTab(GetWrappedWidget(new HacksWidget(this, m_layer.get())), tr("Hacks"));
-  gfx_tabs->addTab(GetWrappedWidget(new AdvancedWidget(this, m_layer.get())), tr("Advanced"));
   const int editor_index = tab_widget->addTab(advanced_widget, tr("Editor"));
-  gfx_layout->addWidget(gfx_tabs);
 
   connect(tab_widget, &QTabWidget::currentChanged, this, [this, editor_index](int index) {
     // Update the ini editor after editing other tabs.
