@@ -61,8 +61,7 @@ static void MultipleVec3Perspective(const Vec3& vec, const Projection::Raw& proj
 {
   result.x = proj[0] * vec.x + proj[1] * vec.z;
   result.y = proj[2] * vec.y + proj[3] * vec.z;
-  // result.z = (proj[4] * vec.z + proj[5]);
-  result.z = (proj[4] * vec.z + proj[5]) * (1.0f - (float)1e-7);
+  result.z = proj[4] * vec.z + proj[5];
   result.w = -vec.z;
 }
 
