@@ -127,7 +127,7 @@ void CPUManager::Run()
     ExecutePendingJobs(state_lock);
     CPUThreadConfigCallback::CheckForConfigChanges();
 
-    Common::Event gdb_step_sync_event;
+    Common::TimedEvent gdb_step_sync_event;
     switch (m_state)
     {
     case State::Running:
@@ -272,7 +272,7 @@ void CPUManager::Reset()
 {
 }
 
-void CPUManager::StepOpcode(Common::Event* event)
+void CPUManager::StepOpcode(Common::TimedEvent* event)
 {
   std::lock_guard state_lock(m_state_change_lock);
   // If we're not stepping then this is pointless
