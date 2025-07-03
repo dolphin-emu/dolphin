@@ -42,10 +42,10 @@ static_assert(GetDirectionFromHatMask(SDL_HAT_LEFT) == 3);
 namespace ciface::SDL
 {
 
-class GameController : public Core::Device
+class Gamepad : public Core::Device
 {
 private:
-  // GameController inputs
+  // Gamepad inputs
   class Button : public Core::Device::Input
   {
   public:
@@ -139,9 +139,9 @@ private:
   class Rumble : public Output
   {
   public:
-    using UpdateCallback = void (GameController::*)(void);
+    using UpdateCallback = void (Gamepad::*)(void);
 
-    Rumble(const char* name, GameController& gc, Uint16* state, UpdateCallback update_callback)
+    Rumble(const char* name, Gamepad& gc, Uint16* state, UpdateCallback update_callback)
         : m_name{name}, m_gc{gc}, m_state{*state}, m_update_callback{update_callback}
     {
     }
@@ -158,7 +158,7 @@ private:
 
   private:
     const char* const m_name;
-    GameController& m_gc;
+    Gamepad& m_gc;
     Uint16& m_state;
     UpdateCallback const m_update_callback;
   };
@@ -166,7 +166,7 @@ private:
   class CombinedMotor : public Output
   {
   public:
-    CombinedMotor(GameController& gc, Uint16* low_state, Uint16* high_state)
+    CombinedMotor(Gamepad& gc, Uint16* low_state, Uint16* high_state)
         : m_gc{gc}, m_low_state{*low_state}, m_high_state{*high_state}
     {
     }
@@ -183,7 +183,7 @@ private:
     }
 
   private:
-    GameController& m_gc;
+    Gamepad& m_gc;
     Uint16& m_low_state;
     Uint16& m_high_state;
   };
@@ -316,8 +316,8 @@ private:
   };
 
 public:
-  GameController(SDL_Gamepad* gamecontroller, SDL_Joystick* joystick);
-  ~GameController() override;
+  Gamepad(SDL_Gamepad* gamepad, SDL_Joystick* joystick);
+  ~Gamepad() override;
 
   std::string GetName() const override;
   std::string GetSource() const override;
@@ -330,11 +330,11 @@ public:
     const int touchpad_index = 0;
     const int finger_index = 0;
 
-    if (SDL_GetNumGamepadTouchpads(m_gamecontroller) > touchpad_index &&
-        SDL_GetNumGamepadTouchpadFingers(m_gamecontroller, touchpad_index) > finger_index)
+    if (SDL_GetNumGamepadTouchpads(m_gamepad) > touchpad_index &&
+        SDL_GetNumGamepadTouchpadFingers(m_gamepad, touchpad_index) > finger_index)
     {
-      SDL_GetGamepadTouchpadFinger(m_gamecontroller, touchpad_index, finger_index, nullptr,
-                                   &m_touchpad_x, &m_touchpad_y, &m_touchpad_pressure);
+      SDL_GetGamepadTouchpadFinger(m_gamepad, touchpad_index, finger_index, nullptr, &m_touchpad_x,
+                                   &m_touchpad_y, &m_touchpad_pressure);
       m_touchpad_x = m_touchpad_x * 2 - 1;
       m_touchpad_y = m_touchpad_y * 2 - 1;
     }
@@ -345,13 +345,12 @@ public:
 private:
   void UpdateRumble()
   {
-    SDL_RumbleGamepad(m_gamecontroller, m_low_freq_rumble, m_high_freq_rumble, RUMBLE_LENGTH_MS);
+    SDL_RumbleGamepad(m_gamepad, m_low_freq_rumble, m_high_freq_rumble, RUMBLE_LENGTH_MS);
   }
 
   void UpdateRumbleTriggers()
   {
-    SDL_RumbleGamepadTriggers(m_gamecontroller, m_trigger_l_rumble, m_trigger_r_rumble,
-                              RUMBLE_LENGTH_MS);
+    SDL_RumbleGamepadTriggers(m_gamepad, m_trigger_l_rumble, m_trigger_r_rumble, RUMBLE_LENGTH_MS);
   }
 
   bool UpdateBatteryLevel();
@@ -362,7 +361,7 @@ private:
   Uint16 m_trigger_l_rumble = 0;
   Uint16 m_trigger_r_rumble = 0;
 
-  SDL_Gamepad* const m_gamecontroller;
+  SDL_Gamepad* const m_gamepad;
   std::string m_name;
   SDL_Joystick* const m_joystick;
   SDL_Haptic* m_haptic = nullptr;
