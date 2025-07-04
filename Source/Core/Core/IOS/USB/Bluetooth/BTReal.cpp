@@ -27,24 +27,6 @@
 
 #include "VideoCommon/OnScreenDisplay.h"
 
-namespace
-{
-template <u16 Opcode, typename CommandType>
-struct HCICommandPayload
-{
-  hci_cmd_hdr_t header{Opcode, sizeof(CommandType)};
-  CommandType command{};
-};
-
-template <typename T>
-requires(std::is_trivially_copyable_v<T>)
-constexpr auto AsU8Span(const T& obj)
-{
-  return std::span{reinterpret_cast<const u8*>(std::addressof(obj)), sizeof(obj)};
-}
-
-}  // namespace
-
 namespace IOS::HLE
 {
 

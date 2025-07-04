@@ -53,6 +53,7 @@ public:
   void SendControlTransfer(std::span<const u8> data);
 
   bool IsWiiBTModule() const;
+  bool AreCommandsComplete() const;
 
 private:
   // Inputs will be dropped when queue is full.
@@ -98,8 +99,8 @@ private:
   bool m_showed_failed_transfer = false;
   bool m_showed_long_queue_drop = false;
 
-  // Some responses need to be fabricated if we aren't using the Nintendo BT module.
-  bool m_is_wii_bt_module = false;
+  u16 m_device_vid = 0;
+  u16 m_device_pid = 0;
 
   // Bluetooth spec's Num_HCI_Command_Packets.
   // This is the number of hci commands that the host is allowed to send.

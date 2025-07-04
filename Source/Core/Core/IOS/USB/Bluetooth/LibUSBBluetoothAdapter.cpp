@@ -18,6 +18,7 @@
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#include "Core/IOS/USB/Bluetooth/RealtekFirmwareLoader.h"
 #include "Core/IOS/USB/Bluetooth/hci.h"
 #include "Core/IOS/USB/Host.h"
 
@@ -52,15 +53,22 @@ bool IsBluetoothDevice(const libusb_device_descriptor& descriptor)
 
   // Some devices misreport their class, so we avoid relying solely on descriptor checks and allow
   // users to specify their own VID/PID.
-  return is_bluetooth_protocol || LibUSBBluetoothAdapter::IsConfiguredBluetoothDevice(
-                                      descriptor.idVendor, descriptor.idProduct);
+  return is_bluetooth_protocol ||
+         LibUSBBluetoothAdapter::IsConfiguredBluetoothDevice(descriptor.idVendor,
+                                                             descriptor.idProduct) ||
+         IsKnownRealtekBluetoothDevice(descriptor.idVendor, descriptor.idProduct);
 }
 
 }  // namespace
 
 bool LibUSBBluetoothAdapter::IsWiiBTModule() const
 {
-  return m_is_wii_bt_module;
+  return m_device_vid == 0x57e && m_device_pid == 0x305;
+}
+
+bool LibUSBBluetoothAdapter::AreCommandsComplete() const
+{
+  return m_pending_hci_transfers.empty() && m_unacknowledged_commands.empty();
 }
 
 bool LibUSBBluetoothAdapter::HasConfiguredBluetoothDevice()
@@ -151,8 +159,8 @@ LibUSBBluetoothAdapter::LibUSBBluetoothAdapter()
                      device_descriptor.idVendor, device_descriptor.idProduct,
                      device_descriptor.bcdDevice, reinterpret_cast<char*>(manufacturer),
                      reinterpret_cast<char*>(product), reinterpret_cast<char*>(serial_number));
-      m_is_wii_bt_module =
-          device_descriptor.idVendor == 0x57e && device_descriptor.idProduct == 0x305;
+      m_device_vid = device_descriptor.idVendor;
+      m_device_pid = device_descriptor.idProduct;
       return false;
     }
     return true;
@@ -187,6 +195,13 @@ LibUSBBluetoothAdapter::LibUSBBluetoothAdapter()
 
   m_output_worker.Reset("Bluetooth Output",
                         std::bind_front(&LibUSBBluetoothAdapter::SubmitTimedTransfer, this));
+
+  if (IsRealtekVID(m_device_vid) || IsKnownRealtekBluetoothDevice(m_device_vid, m_device_pid))
+  {
+    INFO_LOG_FMT(IOS_WIIMOTE, "Initializing Realtek Bluetooth device: {:04x}:{:04x}", m_device_vid,
+                 m_device_pid);
+    InitializeRealtekBluetoothDevice(*this);
+  }
 }
 
 LibUSBBluetoothAdapter::~LibUSBBluetoothAdapter()
@@ -195,7 +210,7 @@ LibUSBBluetoothAdapter::~LibUSBBluetoothAdapter()
     return;
 
   // Wait for completion (or time out) of all HCI commands.
-  while (!m_pending_hci_transfers.empty() && !m_unacknowledged_commands.empty())
+  while (!AreCommandsComplete())
   {
     (void)ReceiveHCIEvent();
     Common::YieldCPU();
