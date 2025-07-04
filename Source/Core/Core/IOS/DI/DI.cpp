@@ -261,7 +261,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
   case DIIoctl::DVDLowMaskCoverInterrupt:
     INFO_LOG_FMT(IOS_DI, "DVDLowMaskCoverInterrupt");
     system.GetDVDInterface().SetInterruptEnabled(DVD::DIInterruptType::CVRINT, false);
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DI_INTERRUPT_MASK_COMMAND);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDIInterruptMaskCommand);
     return DIResult::Success;
   case DIIoctl::DVDLowClearCoverInterrupt:
     DEBUG_LOG_FMT(IOS_DI, "DVDLowClearCoverInterrupt");
@@ -269,7 +269,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
     return DIResult::Success;
   case DIIoctl::DVDLowUnmaskStatusInterrupts:
     INFO_LOG_FMT(IOS_DI, "DVDLowUnmaskStatusInterrupts");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DI_INTERRUPT_MASK_COMMAND);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDIInterruptMaskCommand);
     // Dummied out
     return DIResult::Success;
   case DIIoctl::DVDLowGetCoverStatus:
@@ -282,7 +282,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
   case DIIoctl::DVDLowUnmaskCoverInterrupt:
     INFO_LOG_FMT(IOS_DI, "DVDLowUnmaskCoverInterrupt");
     system.GetDVDInterface().SetInterruptEnabled(DVD::DIInterruptType::CVRINT, true);
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DI_INTERRUPT_MASK_COMMAND);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDIInterruptMaskCommand);
     return DIResult::Success;
   case DIIoctl::DVDLowReset:
   {
@@ -319,7 +319,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
   }
   case DIIoctl::DVDLowOpenPartition:
     ERROR_LOG_FMT(IOS_DI, "DVDLowOpenPartition as an ioctl - rejecting");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DIFFERENT_PARTITION_COMMAND);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDifferentPartitionCommand);
     return DIResult::SecurityError;
   case DIIoctl::DVDLowClosePartition:
     INFO_LOG_FMT(IOS_DI, "DVDLowClosePartition");
@@ -372,23 +372,23 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
   // Dolphin as games are unlikely to use them.
   case DIIoctl::DVDLowGetNoDiscOpenPartitionParams:
     ERROR_LOG_FMT(IOS_DI, "DVDLowGetNoDiscOpenPartitionParams as an ioctl - rejecting");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DIFFERENT_PARTITION_COMMAND);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDifferentPartitionCommand);
     return DIResult::SecurityError;
   case DIIoctl::DVDLowNoDiscOpenPartition:
     ERROR_LOG_FMT(IOS_DI, "DVDLowNoDiscOpenPartition as an ioctl - rejecting");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DIFFERENT_PARTITION_COMMAND);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDifferentPartitionCommand);
     return DIResult::SecurityError;
   case DIIoctl::DVDLowGetNoDiscBufferSizes:
     ERROR_LOG_FMT(IOS_DI, "DVDLowGetNoDiscBufferSizes as an ioctl - rejecting");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DIFFERENT_PARTITION_COMMAND);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDifferentPartitionCommand);
     return DIResult::SecurityError;
   case DIIoctl::DVDLowOpenPartitionWithTmdAndTicket:
     ERROR_LOG_FMT(IOS_DI, "DVDLowOpenPartitionWithTmdAndTicket as an ioctl - rejecting");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DIFFERENT_PARTITION_COMMAND);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDifferentPartitionCommand);
     return DIResult::SecurityError;
   case DIIoctl::DVDLowOpenPartitionWithTmdAndTicketView:
     ERROR_LOG_FMT(IOS_DI, "DVDLowOpenPartitionWithTmdAndTicketView as an ioctl - rejecting");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DIFFERENT_PARTITION_COMMAND);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDifferentPartitionCommand);
     return DIResult::SecurityError;
   case DIIoctl::DVDLowGetStatusRegister:
   {
@@ -721,14 +721,14 @@ std::optional<IPCReply> DIDevice::IOCtlV(const IOCtlVRequest& request)
     {
       ERROR_LOG_FMT(IOS_DI,
                     "DVDLowOpenPartition with ticket - not implemented, ignoring ticket parameter");
-      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DIFFERENT_PARTITION_COMMAND);
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDifferentPartitionCommand);
     }
     if (request.in_vectors[2].address != 0)
     {
       ERROR_LOG_FMT(
           IOS_DI,
           "DVDLowOpenPartition with cert chain - not implemented, ignoring certs parameter");
-      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DIFFERENT_PARTITION_COMMAND);
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDifferentPartitionCommand);
     }
 
     const u64 partition_offset =
@@ -752,26 +752,26 @@ std::optional<IPCReply> DIDevice::IOCtlV(const IOCtlVRequest& request)
   }
   case DIIoctl::DVDLowGetNoDiscOpenPartitionParams:
     ERROR_LOG_FMT(IOS_DI, "DVDLowGetNoDiscOpenPartitionParams - dummied out");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DIFFERENT_PARTITION_COMMAND);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDifferentPartitionCommand);
     request.DumpUnknown(system, GetDeviceName(), Common::Log::LogType::IOS_DI);
     break;
   case DIIoctl::DVDLowNoDiscOpenPartition:
     ERROR_LOG_FMT(IOS_DI, "DVDLowNoDiscOpenPartition - dummied out");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DIFFERENT_PARTITION_COMMAND);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDifferentPartitionCommand);
     request.DumpUnknown(system, GetDeviceName(), Common::Log::LogType::IOS_DI);
     break;
   case DIIoctl::DVDLowGetNoDiscBufferSizes:
     ERROR_LOG_FMT(IOS_DI, "DVDLowGetNoDiscBufferSizes - dummied out");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DIFFERENT_PARTITION_COMMAND);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDifferentPartitionCommand);
     request.DumpUnknown(system, GetDeviceName(), Common::Log::LogType::IOS_DI);
     break;
   case DIIoctl::DVDLowOpenPartitionWithTmdAndTicket:
     ERROR_LOG_FMT(IOS_DI, "DVDLowOpenPartitionWithTmdAndTicket - not implemented");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DIFFERENT_PARTITION_COMMAND);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDifferentPartitionCommand);
     break;
   case DIIoctl::DVDLowOpenPartitionWithTmdAndTicketView:
     ERROR_LOG_FMT(IOS_DI, "DVDLowOpenPartitionWithTmdAndTicketView - not implemented");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DIFFERENT_PARTITION_COMMAND);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDifferentPartitionCommand);
     break;
   default:
     ERROR_LOG_FMT(IOS_DI, "Unknown ioctlv {:#04x}", request.request);
