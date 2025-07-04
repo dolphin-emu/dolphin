@@ -49,6 +49,7 @@ public:
   // Recompiles ImGui pipeline - call when stereo mode changes.
   bool RecompileImGuiPipeline();
 
+  void SetFont();
   void SetScale(float backbuffer_scale);
 
   void Finalize();
@@ -79,6 +80,7 @@ private:
   std::map<int, std::unique_ptr<AbstractTexture>, std::less<>> m_challenge_texture_map;
 #endif  // USE_RETRO_ACHIEVEMENTS
 
+  int m_custom_font_size;
   bool m_ready = false;
 };
 }  // namespace VideoCommon
