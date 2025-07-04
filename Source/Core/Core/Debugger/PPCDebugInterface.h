@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <span>
 #include <string>
 
 #include "Common/Debug/MemoryPatches.h"
@@ -19,7 +20,13 @@ class System;
 }  // namespace Core
 class PPCSymbolDB;
 
-void ApplyMemoryPatch(const Core::CPUThreadGuard&, Common::Debug::MemoryPatch& patch,
+void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, std::span<u8> value, const u32 address,
+                      bool store_existing_value = true);
+void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, u8 value, const u32 address,
+                      bool store_existing_value = true);
+void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, u16 value, const u32 address,
+                      bool store_existing_value = true);
+void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, u32 value, const u32 address,
                       bool store_existing_value = true);
 
 class PPCPatches final : public Common::Debug::MemoryPatches
