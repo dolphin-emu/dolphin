@@ -346,14 +346,39 @@ void MemChecks::Update()
 {
   const Core::CPUThreadGuard guard(m_system);
 
-  // Clear the JIT cache so it can switch the watchpoint-compatible mode.
-  if (m_mem_breakpoints_set != HasAny())
+  const bool registers_changed = UpdateRegistersUsedInConditions();
+
+  // If we've added a first memcheck, clear the JIT cache so it can switch to watchpoint-compatible
+  // code. Or, if we've added a memcheck whose condition wants to read from a new register,
+  // clear the JIT cache to make the slow memory access code flush that register.
+  if (registers_changed || m_mem_breakpoints_set != HasAny())
   {
     m_system.GetJitInterface().ClearCache(guard);
     m_mem_breakpoints_set = HasAny();
   }
 
   m_system.GetMMU().DBATUpdated();
+}
+
+bool MemChecks::UpdateRegistersUsedInConditions()
+{
+  BitSet32 gprs_used, fprs_used;
+  for (TMemCheck& mem_check : m_mem_checks)
+  {
+    if (mem_check.condition)
+    {
+      gprs_used |= mem_check.condition->GetGPRsUsed();
+      fprs_used |= mem_check.condition->GetFPRsUsed();
+    }
+  }
+
+  const bool registers_changed =
+      gprs_used != m_gprs_used_in_conditions || fprs_used != m_fprs_used_in_conditions;
+
+  m_gprs_used_in_conditions = gprs_used;
+  m_fprs_used_in_conditions = fprs_used;
+
+  return registers_changed;
 }
 
 TMemCheck* MemChecks::GetMemCheck(u32 address, size_t size)
