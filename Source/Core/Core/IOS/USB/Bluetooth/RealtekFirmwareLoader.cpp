@@ -14,6 +14,7 @@
 
 #include "Common/BitUtils.h"
 #include "Common/FileUtil.h"
+#include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
@@ -414,6 +415,62 @@ static std::string GetFirmwareLoadPath()
   return File::GetUserPath(D_FIRMWARE_IDX) + "rtl_bt/";
 }
 
+static void DownloadFirmwareFilesFromInternet(const std::string& fw_filename,
+                                              const std::string& config_filename)
+{
+  // Gitlab seems to be an appropriate source.
+  // An alternative could be kernel.org
+  // https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/rtl_bt/
+  constexpr auto base_url = "https://gitlab.com/kernel-firmware/linux-firmware/-/raw/main/rtl_bt/";
+
+  Common::HttpRequest request;
+  request.FollowRedirects(1);
+
+  const auto firmware_load_path = GetFirmwareLoadPath();
+  File::CreateFullPath(firmware_load_path);
+
+  // _fw.bin
+  {
+    const auto fw_url = base_url + fw_filename;
+    const auto response = request.Get(fw_url);
+    if (!response)
+    {
+      PanicAlertFmtT("HTTP GET {0}\n\nError: {1}", fw_url, request.GetLastResponseCode());
+      return;
+    }
+
+    File::WriteStringToFile(
+        firmware_load_path + fw_filename,
+        std::string_view{reinterpret_cast<const char*>(response->data()), response->size()});
+  }
+
+  // _config.bin
+  {
+    const auto config_url = base_url + config_filename;
+    const auto response = request.Get(config_url);
+    if (!response)
+    {
+      if (request.GetLastResponseCode() == 404)
+      {
+        // Some devices don't have this _config.bin.
+        // But the very popular 8761B does, so I suppose it makes sense to show this error.
+        PanicAlertFmtT("File {0} was not found on the server.\n\nThis might be normal.\n\n"
+                       "Not all devices expect this file.",
+                       config_filename);
+      }
+      else
+      {
+        PanicAlertFmtT("HTTP GET {0}\n\nError: {1}", config_url, request.GetLastResponseCode());
+      }
+      return;
+    }
+
+    File::WriteStringToFile(
+        firmware_load_path + config_filename,
+        std::string_view{reinterpret_cast<const char*>(response->data()), response->size()});
+  }
+}
+
 static void ShowFirmwareReadError(std::string_view fw_path)
 {
   PanicAlertFmtT("Bluetooth passthrough failed to read firmware file from:\n"
@@ -447,13 +504,30 @@ bool InitializeRealtekBluetoothDevice(LibUSBBluetoothAdapter& adapter)
   }
 
   // A name like "8761bu" is turned into "rtl8761bu_fw.bin"
-  const auto firmware_base_path = GetFirmwareLoadPath() + "rtl" + firmware_name;
+  const auto base_filename = "rtl" + firmware_name;
+  const auto fw_filename = base_filename + "_fw.bin";
+  const auto config_filename = base_filename + "_config.bin";
 
-  NOTICE_LOG_FMT(IOS_WIIMOTE, "Loading firmware: {}", firmware_name);
+  const auto firmware_load_path = GetFirmwareLoadPath();
+
+  const auto fw_path = firmware_load_path + fw_filename;
+  const auto config_path = firmware_load_path + config_filename;
+
+  NOTICE_LOG_FMT(IOS_WIIMOTE, "Loading firmware: {}", base_filename);
+
+  if (!File::Exists(fw_path))
+  {
+    const bool should_download =
+        AskYesNoFmtT("Bluetooth passthrough requires missing firmware: {0}\n\n"
+                     "Automatically download from gitlab.com now?",
+                     base_filename);
+
+    if (should_download)
+      DownloadFirmwareFilesFromInternet(fw_filename, config_filename);
+  }
 
   std::string fw_data;
-  if (const auto fw_path = firmware_base_path + "_fw.bin";
-      !File::ReadFileToString(fw_path, fw_data))
+  if (!File::ReadFileToString(fw_path, fw_data))
   {
     ShowFirmwareReadError(fw_path);
     return false;
@@ -489,9 +563,9 @@ bool InitializeRealtekBluetoothDevice(LibUSBBluetoothAdapter& adapter)
   INFO_LOG_FMT(IOS_WIIMOTE, "ROM version: 0x{:02x}", rom_version);
 
   // Apparently only certain devices require the config binary. We load it whenever present.
-  std::string cfg_data;
-  File::ReadFileToString(firmware_base_path + "_config.bin", cfg_data);
+  std::string config_data;
+  File::ReadFileToString(config_path, config_data);
 
-  const auto firmware = ParseFirmware(fw_data, cfg_data, local_ver, rom_version);
+  const auto firmware = ParseFirmware(fw_data, config_data, local_ver, rom_version);
   return LoadFirmware(adapter, firmware);
 }
