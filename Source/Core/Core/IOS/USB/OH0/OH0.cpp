@@ -176,9 +176,9 @@ std::optional<IPCReply> OH0::RegisterRemovalHook(const u64 device_id, const IOCt
 {
   std::lock_guard lock{m_hooks_mutex};
   // IOS only allows a single device removal hook.
-  if (m_removal_hooks.contains(device_id))
+  const bool inserted = m_removal_hooks.try_emplace(device_id, request.address).second;
+  if (!inserted)
     return IPCReply(IPC_EEXIST);
-  m_removal_hooks.insert({device_id, request.address});
   return std::nullopt;
 }
 

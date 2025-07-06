@@ -964,8 +964,9 @@ s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
 
 s32 WiiSockMan::GetHostSocket(s32 wii_fd) const
 {
-  if (WiiSockets.contains(wii_fd))
-    return WiiSockets.at(wii_fd).fd;
+  auto socket_entry = WiiSockets.find(wii_fd);
+  if (socket_entry != WiiSockets.end())
+    return socket_entry->second.fd;
   return -EBADF;
 }
 

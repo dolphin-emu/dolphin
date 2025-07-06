@@ -2392,8 +2392,8 @@ void NetPlayClient::RequestGolfControl()
 std::string NetPlayClient::GetCurrentGolfer()
 {
   std::lock_guard lkp(m_crit.players);
-  if (m_players.contains(m_current_golfer))
-    return m_players[m_current_golfer].name;
+  if (const auto it = m_players.find(m_current_golfer); it != m_players.end())
+    return it->second.name;
   return "";
 }
 
