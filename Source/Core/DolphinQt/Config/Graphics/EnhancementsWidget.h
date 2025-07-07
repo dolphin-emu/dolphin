@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <array>
+
 #include <QWidget>
 
 class ConfigBool;
@@ -10,9 +12,11 @@ class ConfigChoice;
 class ConfigComplexChoice;
 class ConfigStringChoice;
 class ConfigSlider;
-class GraphicsPane;
+class GameConfigWidget;
+class GraphicsWindow;
 class QPushButton;
 class ToolTipPushButton;
+enum class StereoMode : int;
 
 namespace Config
 {
@@ -25,7 +29,8 @@ class EnhancementsWidget final : public QWidget
 {
   Q_OBJECT
 public:
-  explicit EnhancementsWidget(GraphicsPane* gfx_pane);
+  explicit EnhancementsWidget(GraphicsWindow* parent);
+  EnhancementsWidget(GameConfigWidget* parent, Config::Layer* layer);
 
 private:
   template <typename T>

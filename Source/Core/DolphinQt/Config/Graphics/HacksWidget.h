@@ -8,7 +8,10 @@
 class ConfigBool;
 class ConfigSlider;
 class ConfigSliderLabel;
-class GraphicsPane;
+class GameConfigWidget;
+class GraphicsWindow;
+class QLabel;
+class ToolTipSlider;
 
 namespace Config
 {
@@ -19,7 +22,8 @@ class HacksWidget final : public QWidget
 {
   Q_OBJECT
 public:
-  explicit HacksWidget(GraphicsPane* gfx_pane);
+  explicit HacksWidget(GraphicsWindow* parent);
+  HacksWidget(GameConfigWidget* parent, Config::Layer* layer);
 
 private:
   void OnBackendChanged(const QString& backend_name);

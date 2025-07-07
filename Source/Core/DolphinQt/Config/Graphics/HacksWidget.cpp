@@ -15,20 +15,27 @@
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/GameConfigWidget.h"
-#include "DolphinQt/Config/Graphics/GraphicsPane.h"
+#include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 
 #include "VideoCommon/VideoConfig.h"
 
-HacksWidget::HacksWidget(GraphicsPane* gfx_pane) : m_game_layer{gfx_pane->GetConfigLayer()}
+HacksWidget::HacksWidget(GraphicsWindow* parent)
 {
   CreateWidgets();
   ConnectWidgets();
   AddDescriptions();
 
-  connect(gfx_pane, &GraphicsPane::BackendChanged, this, &HacksWidget::OnBackendChanged);
+  connect(parent, &GraphicsWindow::BackendChanged, this, &HacksWidget::OnBackendChanged);
   OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   connect(m_gpu_texture_decoding, &QCheckBox::toggled,
-          [gfx_pane] { emit gfx_pane->UseGPUTextureDecodingChanged(); });
+          [parent] { emit parent->UseGPUTextureDecodingChanged(); });
+}
+
+HacksWidget::HacksWidget(GameConfigWidget* parent, Config::Layer* layer) : m_game_layer(layer)
+{
+  CreateWidgets();
+  ConnectWidgets();
+  AddDescriptions();
 }
 
 void HacksWidget::CreateWidgets()

@@ -32,5 +32,4 @@ void ControllersPane::CreateMainLayout()
   layout->addWidget(gamecube_controllers);
   layout->addWidget(m_wiimote_controllers);
   layout->addWidget(common);
-  layout->addStretch(1);
 }

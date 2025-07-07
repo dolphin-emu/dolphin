@@ -46,8 +46,6 @@ PostProcessingConfigWindow::PostProcessingConfigWindow(EnhancementsWidget* paren
   PopulateGroups();
   Create();
   ConnectWidgets();
-
-  adjustSize();
 }
 
 PostProcessingConfigWindow::~PostProcessingConfigWindow()

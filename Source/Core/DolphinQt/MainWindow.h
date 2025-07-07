@@ -34,6 +34,7 @@ class FreeLookWindow;
 class GameList;
 class GBATASInputWindow;
 class GCTASInputWindow;
+class GraphicsWindow;
 class HotkeyScheduler;
 class InfinityBaseWindow;
 class JITWidget;
@@ -245,6 +246,7 @@ private:
   std::unique_ptr<BootParameters> m_pending_boot;
 
   SettingsWindow* m_settings_window = nullptr;
+  GraphicsWindow* m_graphics_window = nullptr;
   FIFOPlayerWindow* m_fifo_window = nullptr;
   SkylanderPortalWindow* m_skylander_window = nullptr;
   InfinityBaseWindow* m_infinity_window = nullptr;

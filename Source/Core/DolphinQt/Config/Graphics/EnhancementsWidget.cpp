@@ -3,6 +3,8 @@
 
 #include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
 
+#include <cmath>
+
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -19,18 +21,18 @@
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/GameConfigWidget.h"
 #include "DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.h"
-#include "DolphinQt/Config/Graphics/GraphicsPane.h"
+#include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/Graphics/PostProcessingConfigWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipPushButton.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/Settings.h"
 
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
-EnhancementsWidget::EnhancementsWidget(GraphicsPane* gfx_pane)
-    : m_game_layer{gfx_pane->GetConfigLayer()}
+EnhancementsWidget::EnhancementsWidget(GraphicsWindow* parent)
 {
   CreateWidgets();
   LoadPPShaders();
@@ -38,13 +40,25 @@ EnhancementsWidget::EnhancementsWidget(GraphicsPane* gfx_pane)
   AddDescriptions();
 
   // BackendChanged is called by parent on window creation.
-  connect(gfx_pane, &GraphicsPane::BackendChanged, this, &EnhancementsWidget::OnBackendChanged);
-  connect(gfx_pane, &GraphicsPane::UseFastTextureSamplingChanged, this, [this] {
+  connect(parent, &GraphicsWindow::BackendChanged, this, &EnhancementsWidget::OnBackendChanged);
+  connect(parent, &GraphicsWindow::UseFastTextureSamplingChanged, this, [this] {
     m_texture_filtering_combo->setEnabled(ReadSetting(Config::GFX_HACK_FAST_TEXTURE_SAMPLING));
   });
-  connect(gfx_pane, &GraphicsPane::UseGPUTextureDecodingChanged, this, [this] {
+  connect(parent, &GraphicsWindow::UseGPUTextureDecodingChanged, this, [this] {
     m_arbitrary_mipmap_detection->setEnabled(!ReadSetting(Config::GFX_ENABLE_GPU_TEXTURE_DECODING));
   });
+}
+
+EnhancementsWidget::EnhancementsWidget(GameConfigWidget* parent, Config::Layer* layer)
+    : m_game_layer(layer)
+{
+  CreateWidgets();
+  LoadPPShaders();
+  ConnectWidgets();
+  AddDescriptions();
+
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this,
+          &EnhancementsWidget::OnConfigChanged);
 }
 
 constexpr int ANISO_1x = Common::ToUnderlying(AnisotropicFilteringMode::Force1x);

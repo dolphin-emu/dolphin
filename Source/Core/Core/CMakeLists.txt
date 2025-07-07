@@ -695,8 +695,6 @@ if(TARGET LibUSB::LibUSB)
     IOS/USB/LibusbDevice.h
     IOS/USB/Bluetooth/BTReal.cpp
     IOS/USB/Bluetooth/BTReal.h
-    IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp
-    IOS/USB/Bluetooth/LibUSBBluetoothAdapter.h
   )
 endif()
 

@@ -1,7 +1,7 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "DolphinQt/Config/Graphics/GraphicsPane.h"
+#include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 
 #include <QDialogButtonBox>
 #include <QEvent>
@@ -23,32 +23,34 @@
 
 #include "VideoCommon/VideoBackendBase.h"
 
-GraphicsPane::GraphicsPane(MainWindow* main_window, Config::Layer* config_layer)
-    : m_main_window(main_window), m_config_layer{config_layer}
+GraphicsWindow::GraphicsWindow(MainWindow* parent) : QDialog(parent), m_main_window(parent)
 {
   CreateMainLayout();
 
+  setWindowTitle(tr("Graphics"));
+
   OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
+
+  QtUtils::AdjustSizeWithinScreen(this);
 }
 
-Config::Layer* GraphicsPane::GetConfigLayer()
+void GraphicsWindow::CreateMainLayout()
 {
-  return m_config_layer;
-}
+  auto* const main_layout = new QVBoxLayout();
+  auto* const tab_widget = new QTabWidget();
+  auto* const button_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
-void GraphicsPane::CreateMainLayout()
-{
-  auto* const main_layout = new QVBoxLayout{this};
-  auto* const tab_widget = new QTabWidget;
+  connect(button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
   main_layout->addWidget(tab_widget);
+  main_layout->addWidget(button_box);
 
   auto* const general_widget = new GeneralWidget(this);
   auto* const enhancements_widget = new EnhancementsWidget(this);
   auto* const hacks_widget = new HacksWidget(this);
   auto* const advanced_widget = new AdvancedWidget(this);
 
-  connect(general_widget, &GeneralWidget::BackendChanged, this, &GraphicsPane::OnBackendChanged);
+  connect(general_widget, &GeneralWidget::BackendChanged, this, &GraphicsWindow::OnBackendChanged);
 
   QWidget* const wrapped_general = GetWrappedWidget(general_widget);
   QWidget* const wrapped_enhancements = GetWrappedWidget(enhancements_widget);
@@ -59,13 +61,16 @@ void GraphicsPane::CreateMainLayout()
   tab_widget->addTab(wrapped_enhancements, tr("Enhancements"));
   tab_widget->addTab(wrapped_hacks, tr("Hacks"));
   tab_widget->addTab(wrapped_advanced, tr("Advanced"));
+
+  setLayout(main_layout);
 }
 
-void GraphicsPane::OnBackendChanged(const QString& backend_name)
+void GraphicsWindow::OnBackendChanged(const QString& backend_name)
 {
-  // TODO: Game properties graphics config does not properly handle backend info.
-  if (m_main_window != nullptr)
-    VideoBackendBase::PopulateBackendInfo(m_main_window->GetWindowSystemInfo());
+  VideoBackendBase::PopulateBackendInfo(m_main_window->GetWindowSystemInfo());
+
+  setWindowTitle(
+      tr("%1 Graphics Configuration").arg(tr(g_video_backend->GetDisplayName().c_str())));
 
   emit BackendChanged(backend_name);
 }

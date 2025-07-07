@@ -44,20 +44,15 @@ void SymbolDB::List()
 
 bool SymbolDB::IsEmpty() const
 {
-  return m_functions.empty() && m_notes.empty();
+  return m_functions.empty();
 }
 
-bool SymbolDB::Clear(const char* prefix)
+void SymbolDB::Clear(const char* prefix)
 {
   // TODO: honor prefix
-  m_map_name.clear();
-  if (IsEmpty())
-    return false;
-
   m_functions.clear();
   m_notes.clear();
   m_checksum_to_function.clear();
-  return true;
 }
 
 void SymbolDB::Index()

@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <mutex>
 #include <string>
 #include <string_view>
 
@@ -38,8 +37,6 @@ public:
   std::string_view GetDescription(u32 addr);
 
   void FillInCallers();
-
-  bool LoadMapOnBoot(const Core::CPUThreadGuard& guard);
   bool LoadMap(const Core::CPUThreadGuard& guard, const std::string& filename, bool bad = false);
   bool SaveSymbolMap(const std::string& filename) const;
   bool SaveCodeMap(const Core::CPUThreadGuard& guard, const std::string& filename) const;
@@ -47,9 +44,4 @@ public:
   void PrintCalls(u32 funcAddr) const;
   void PrintCallers(u32 funcAddr) const;
   void LogFunctionCall(u32 addr);
-
-  static bool FindMapFile(std::string* existing_map_file, std::string* writable_map_file);
-
-private:
-  std::mutex m_write_lock;
 };

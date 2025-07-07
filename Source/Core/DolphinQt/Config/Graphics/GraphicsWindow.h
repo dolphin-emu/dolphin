@@ -3,22 +3,24 @@
 
 #pragma once
 
-#include <QWidget>
+#include <QDialog>
+#include <QHash>
 
+class AdvancedWidget;
+class EnhancementsWidget;
+class HacksWidget;
+class GeneralWidget;
 class MainWindow;
+class QLabel;
+class QTabWidget;
+class QDialogButtonBox;
+class SoftwareRendererWidget;
 
-namespace Config
-{
-class Layer;
-}  // namespace Config
-
-class GraphicsPane final : public QWidget
+class GraphicsWindow final : public QDialog
 {
   Q_OBJECT
 public:
-  explicit GraphicsPane(MainWindow* main_window, Config::Layer* config_layer);
-
-  Config::Layer* GetConfigLayer();
+  explicit GraphicsWindow(MainWindow* parent);
 
 signals:
   void BackendChanged(const QString& backend);
@@ -30,5 +32,4 @@ private:
   void OnBackendChanged(const QString& backend);
 
   MainWindow* const m_main_window;
-  Config::Layer* const m_config_layer;
 };
