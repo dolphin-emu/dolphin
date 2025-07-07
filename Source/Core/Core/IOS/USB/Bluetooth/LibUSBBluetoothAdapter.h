@@ -12,11 +12,19 @@
 #include "Common/Timer.h"
 #include "Common/WorkQueueThread.h"
 
+#include "Core/IOS/USB/Bluetooth/hci.h"
 #include "Core/LibusbUtils.h"
 
 struct libusb_device_handle;
 struct libusb_device_descriptor;
 struct libusb_transfer;
+
+template <u16 Opcode, typename CommandType>
+struct HCICommandPayload
+{
+  hci_cmd_hdr_t header{Opcode, sizeof(CommandType)};
+  CommandType command{};
+};
 
 class LibUSBBluetoothAdapter
 {
