@@ -14,6 +14,7 @@
 #include <fmt/format.h>
 #include <libusb.h>
 
+#include "Common/BitUtils.h"
 #include "Common/MsgHandler.h"
 
 #include "Core/Config/MainSettings.h"
@@ -60,6 +61,11 @@ bool LibUSBBluetoothAdapter::IsBluetoothDevice(const libusb_device_descriptor& d
 bool LibUSBBluetoothAdapter::IsWiiBTModule() const
 {
   return m_is_wii_bt_module;
+}
+
+bool LibUSBBluetoothAdapter::AreCommandsPendingResponse() const
+{
+  return !m_pending_hci_transfers.empty() || !m_unacknowledged_commands.empty();
 }
 
 bool LibUSBBluetoothAdapter::HasConfiguredBluetoothDevice()
@@ -159,7 +165,7 @@ LibUSBBluetoothAdapter::~LibUSBBluetoothAdapter()
     return;
 
   // Wait for completion (or time out) of all HCI commands.
-  while (!m_pending_hci_transfers.empty() && !m_unacknowledged_commands.empty())
+  while (AreCommandsPendingResponse())
   {
     (void)ReceiveHCIEvent();
     Common::YieldCPU();
@@ -392,6 +398,50 @@ void LibUSBBluetoothAdapter::ScheduleControlTransfer(u8 type, u8 request, u8 val
 void LibUSBBluetoothAdapter::SendControlTransfer(std::span<const u8> data)
 {
   ScheduleControlTransfer(REQUEST_TYPE, 0, 0, 0, data, Clock::now());
+}
+
+bool LibUSBBluetoothAdapter::SendBlockingCommand(std::span<const u8> data, std::span<u8> response)
+{
+  SendControlTransfer(data);
+
+  const hci_cmd_hdr_t cmd = Common::BitCastPtr<hci_cmd_hdr_t>(data.data());
+
+  while (AreCommandsPendingResponse())
+  {
+    const auto event = ReceiveHCIEvent();
+
+    if (event.empty())
+    {
+      Common::YieldCPU();
+      continue;
+    }
+
+    if (event[0] != HCI_EVENT_COMMAND_COMPL)
+      continue;
+
+    if (event.size() < sizeof(hci_event_hdr_t) + sizeof(hci_command_compl_ep))
+    {
+      ERROR_LOG_FMT(IOS_WIIMOTE, "Undersized hci_command_compl_ep");
+      continue;
+    }
+
+    const hci_command_compl_ep compl_event =
+        Common::BitCastPtr<hci_command_compl_ep>(event.data() + sizeof(hci_event_hdr_t));
+    if (compl_event.opcode != cmd.opcode)
+      continue;
+
+    if (event.size() < sizeof(hci_event_hdr_t) + sizeof(hci_command_compl_ep) + response.size())
+    {
+      ERROR_LOG_FMT(IOS_WIIMOTE, "Undersized command result");
+      break;
+    }
+
+    std::copy_n(event.data() + sizeof(hci_event_hdr_t) + sizeof(hci_command_compl_ep),
+                response.size(), response.data());
+    return true;
+  }
+
+  return false;
 }
 
 void LibUSBBluetoothAdapter::StartInputTransfers()

@@ -53,6 +53,11 @@ public:
   // Schedule a transfer to be submitted as soon as possible.
   void SendControlTransfer(std::span<const u8> data);
 
+  // Blocks and eats events until a command complete event of the correct opcode is received.
+  // Returns true on success or false on error or timeout.
+  // The written response does not include the event header or command complete data.
+  bool SendBlockingCommand(std::span<const u8> data, std::span<u8> response);
+
   bool IsWiiBTModule() const;
 
 private:
@@ -122,6 +127,7 @@ private:
   std::deque<OutstandingCommand> m_unacknowledged_commands;
 
   bool IsControllerReadyForCommand() const;
+  bool AreCommandsPendingResponse() const;
 
   // Give the transfer to the worker and track the command appropriately.
   // This should only be used when IsControllerReadyForCommand is true.
