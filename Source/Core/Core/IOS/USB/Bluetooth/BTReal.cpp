@@ -13,6 +13,7 @@
 
 #include <fmt/format.h>
 
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/Network.h"
 #include "Common/StringUtil.h"
@@ -35,14 +36,6 @@ struct HCICommandPayload
   hci_cmd_hdr_t header{Opcode, sizeof(CommandType)};
   CommandType command{};
 };
-
-template <typename T>
-requires(std::is_trivially_copyable_v<T>)
-constexpr auto AsU8Span(const T& obj)
-{
-  return std::span{reinterpret_cast<const u8*>(std::addressof(obj)), sizeof(obj)};
-}
-
 }  // namespace
 
 namespace IOS::HLE
@@ -295,7 +288,7 @@ auto BluetoothRealDevice::ProcessHCIEvent(BufferType buffer) -> BufferType
     payload.command.latency = 10000;
     payload.command.delay_variation = 0xffffffff;
 
-    m_lib_usb_bt_adapter->SendControlTransfer(AsU8Span(payload));
+    m_lib_usb_bt_adapter->SendControlTransfer(Common::AsU8Span(payload));
   }
   else if (event == HCI_EVENT_QOS_SETUP_COMPL)
   {
@@ -402,7 +395,7 @@ void BluetoothRealDevice::TriggerSyncButtonHeldEvent()
 void BluetoothRealDevice::SendHCIResetCommand()
 {
   INFO_LOG_FMT(IOS_WIIMOTE, "SendHCIResetCommand");
-  m_lib_usb_bt_adapter->SendControlTransfer(AsU8Span(hci_cmd_hdr_t{HCI_CMD_RESET, 0}));
+  m_lib_usb_bt_adapter->SendControlTransfer(Common::AsU8Span(hci_cmd_hdr_t{HCI_CMD_RESET, 0}));
 }
 
 void BluetoothRealDevice::SendHCIDeleteLinkKeyCommand()
@@ -413,7 +406,7 @@ void BluetoothRealDevice::SendHCIDeleteLinkKeyCommand()
   payload.command.bdaddr = {};
   payload.command.delete_all = 0x01;
 
-  m_lib_usb_bt_adapter->SendControlTransfer(AsU8Span(payload));
+  m_lib_usb_bt_adapter->SendControlTransfer(Common::AsU8Span(payload));
 }
 
 bool BluetoothRealDevice::SendHCIStoreLinkKeyCommand()
@@ -450,7 +443,7 @@ bool BluetoothRealDevice::SendHCIStoreLinkKeyCommand()
   for (auto& [bdaddr, linkkey] : m_link_keys | std::views::take(num_link_keys))
     payload.link_keys[index++] = {bdaddr, linkkey};
 
-  m_lib_usb_bt_adapter->SendControlTransfer(AsU8Span(payload).first(payload_size));
+  m_lib_usb_bt_adapter->SendControlTransfer(Common::AsU8Span(payload).first(payload_size));
   return true;
 }
 
