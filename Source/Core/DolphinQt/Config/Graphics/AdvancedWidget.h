@@ -8,8 +8,7 @@
 class ConfigBool;
 class ConfigChoice;
 class ConfigInteger;
-class GameConfigWidget;
-class GraphicsWindow;
+class GraphicsPane;
 
 namespace Config
 {
@@ -20,8 +19,7 @@ class AdvancedWidget final : public QWidget
 {
   Q_OBJECT
 public:
-  explicit AdvancedWidget(GraphicsWindow* parent);
-  AdvancedWidget(GameConfigWidget* parent, Config::Layer* layer);
+  explicit AdvancedWidget(GraphicsPane* gfx_pane);
 
 private:
   void CreateWidgets();

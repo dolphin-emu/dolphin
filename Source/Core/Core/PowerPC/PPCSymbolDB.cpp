@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstring>
 #include <map>
+#include <mutex>
 #include <ranges>
 #include <sstream>
 #include <string>
@@ -15,10 +16,12 @@
 #include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Unreachable.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/DebugInterface.h"
 #include "Core/PowerPC/MMU.h"
@@ -133,6 +136,13 @@ void PPCSymbolDB::DetermineNoteLayers()
 
 Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
+  // If m_functions is changing, there should be a PPCSymbolsChanged signal afterward. The signal
+  // will re-update persistent symbol displays by calling this function. Only one-off calls to this
+  // function, such as printing the symbol to console, should be affected by leaving early.
+  std::unique_lock<std::mutex> lock(m_write_lock, std::try_to_lock);
+  if (!lock.owns_lock() || m_functions.empty())
+    return nullptr;
+
   auto it = m_functions.lower_bound(addr);
 
   if (it != m_functions.end())
@@ -154,7 +164,8 @@ Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 
 Common::Note* PPCSymbolDB::GetNoteFromAddr(u32 addr)
 {
-  if (m_notes.empty())
+  std::unique_lock<std::mutex> lock(m_write_lock, std::try_to_lock);
+  if (!lock.owns_lock() || m_notes.empty())
     return nullptr;
 
   auto itn = m_notes.lower_bound(addr);
@@ -201,6 +212,10 @@ std::string_view PPCSymbolDB::GetDescription(u32 addr)
 
 void PPCSymbolDB::FillInCallers()
 {
+  std::unique_lock<std::mutex> lock(m_write_lock, std::try_to_lock);
+  if (!lock.owns_lock())
+    return;
+
   for (auto& p : m_functions)
   {
     p.second.callers.clear();
@@ -277,6 +292,49 @@ void PPCSymbolDB::LogFunctionCall(u32 addr)
 
   Common::Symbol& f = iter->second;
   f.num_calls++;
+}
+
+// Get map file paths for the active title.
+bool PPCSymbolDB::FindMapFile(std::string* existing_map_file, std::string* writable_map_file)
+{
+  const std::string& game_id = SConfig::GetInstance().m_debugger_game_id;
+  std::string path = File::GetUserPath(D_MAPS_IDX) + game_id + ".map";
+
+  if (writable_map_file)
+    *writable_map_file = path;
+
+  if (File::Exists(path))
+  {
+    if (existing_map_file)
+      *existing_map_file = std::move(path);
+
+    return true;
+  }
+
+  return false;
+}
+
+bool PPCSymbolDB::LoadMapOnBoot(const Core::CPUThreadGuard& guard)
+{
+  // Loads from emuthread and can crash with main thread accessing the map. Any other loads will be
+  // done on the main thread and should be safe. Returns true if m_functions was changed.
+  std::lock_guard lock(m_write_lock);
+
+  std::string existing_map_file;
+  if (!PPCSymbolDB::FindMapFile(&existing_map_file, nullptr))
+    return Clear();
+
+  // If the map is already loaded (such as restarting the same game), skip reloading.
+  if (!IsEmpty() && existing_map_file == m_map_name)
+    return false;
+
+  // Load map into cleared m_functions.
+  bool changed = Clear();
+
+  if (!LoadMap(guard, existing_map_file))
+    return changed;
+
+  return true;
 }
 
 // The use case for handling bad map files is when you have a game with a map file on the disc,
@@ -531,6 +589,8 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
       }
     }
   }
+
+  m_map_name = filename;
 
   Index();
   DetermineNoteLayers();

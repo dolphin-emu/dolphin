@@ -12,13 +12,8 @@ class ConfigChoice;
 class ConfigInteger;
 class ConfigRadioInt;
 class ConfigStringChoice;
-class GameConfigWidget;
-class GraphicsWindow;
-class QCheckBox;
-class QComboBox;
+class GraphicsPane;
 class QLabel;
-class QRadioButton;
-class QGridLayout;
 class ToolTipComboBox;
 
 namespace Config
@@ -30,8 +25,7 @@ class GeneralWidget final : public QWidget
 {
   Q_OBJECT
 public:
-  explicit GeneralWidget(GraphicsWindow* parent);
-  GeneralWidget(GameConfigWidget* parent, Config::Layer* layer);
+  explicit GeneralWidget(GraphicsPane* gfx_pane);
 
 signals:
   void BackendChanged(const QString& backend);
