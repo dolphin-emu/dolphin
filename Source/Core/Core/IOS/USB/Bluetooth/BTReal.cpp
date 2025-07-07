@@ -28,16 +28,6 @@
 
 #include "VideoCommon/OnScreenDisplay.h"
 
-namespace
-{
-template <u16 Opcode, typename CommandType>
-struct HCICommandPayload
-{
-  hci_cmd_hdr_t header{Opcode, sizeof(CommandType)};
-  CommandType command{};
-};
-}  // namespace
-
 namespace IOS::HLE
 {
 
