@@ -73,6 +73,51 @@ public:
   CPState m_cpmem;
 };
 
+enum class MemoryUpdateCompareResult
+{
+  // 'a' does not overlap with 'b'
+  NotCovered,
+  // 'a' overlaps with 'b' and all memory matches
+  Subset,
+  // 'a' overlaps with 'b' but memory does not match
+  Mismatch,
+};
+
+// Is memory update 'a' a subset of memory update 'b' (or 'b' a subset of 'a')?
+MemoryUpdateCompareResult Compare(const MemoryUpdate& a, const MemoryUpdate& b)
+{
+  u32 a_start = a.address;
+  u32 a_end = static_cast<u32>(a.address + a.data.size());
+  u32 b_start = b.address;
+  u32 b_end = static_cast<u32>(b.address + b.data.size());
+
+  if (std::max(a_start, b_start) < std::min(a_end, b_end))
+  {
+    if (a_start <= b_start)
+    {
+      u32 offset = b_start - a_start;
+      u32 size = std::min(a_end, b_end) - b_start;
+      ASSERT(a_start + offset + size <= a_end);
+      ASSERT(b_start + size <= b_end);
+      bool matches = std::equal(b.data.begin(), b.data.begin() + size, a.data.begin() + offset);
+      return matches ? MemoryUpdateCompareResult::Subset : MemoryUpdateCompareResult::Mismatch;
+    }
+    else
+    {
+      u32 offset = a_start - b_start;
+      u32 size = std::min(b_end, a_end) - a_start;
+      ASSERT(b_start + offset + size <= b_end);
+      ASSERT(a_start + size <= a_end);
+      bool matches = std::equal(a.data.begin(), a.data.begin() + size, b.data.begin() + offset);
+      return matches ? MemoryUpdateCompareResult::Subset : MemoryUpdateCompareResult::Mismatch;
+    }
+  }
+  else
+  {
+    return MemoryUpdateCompareResult::NotCovered;
+  }
+}
+
 void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
                                          std::vector<AnalyzedFrameInfo>& frame_info)
 {
@@ -126,6 +171,48 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
     // The frame should end with an EFB copy, so part_start should have been updated to the end.
     ASSERT(part_start == frame.fifoData.size());
     ASSERT(offset == frame.fifoData.size());
+
+    {
+      analyzed.memory_updates.reserve(frame.memoryUpdates.size());
+
+      auto itr = frame.memoryUpdates.cbegin();
+      auto end = frame.memoryUpdates.cend();
+      while (itr != end)
+      {
+        const MemoryUpdate& update_a = *itr++;
+        // This is inefficient (creating duplicate updates, and worst-case O(n^2) runtime, not
+        // counting time spent comparing data in each update)... But it might work?
+        const MemoryUpdate* update_to_use = &update_a;
+        auto itr2 = itr;
+        while (itr2 != end)
+        {
+          const MemoryUpdate& update_b = *itr2++;
+
+          ASSERT(update_to_use->fifoPosition <= update_b.fifoPosition);
+
+          // Look for the biggest update that is a superset of update_a.
+          auto result = Compare(*update_to_use, update_b);
+          if (result == MemoryUpdateCompareResult::NotCovered)
+          {
+            continue;
+          }
+          else if (result == MemoryUpdateCompareResult::Mismatch)
+          {
+            break;
+          }
+          else if (result == MemoryUpdateCompareResult::Subset)
+          {
+            if (update_b.address == update_a.address &&
+                update_to_use->data.size() < update_b.data.size())
+            {
+              update_to_use = &update_b;
+            }
+          }
+        }
+        auto& new_update = analyzed.memory_updates.emplace_back(*update_to_use);
+        new_update.fifoPosition = update_a.fifoPosition;
+      }
+    }
   }
 }
 
@@ -414,7 +501,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
   // Skip all memory updates if early memory updates are enabled, as we already wrote them
   if (m_EarlyMemoryUpdates)
   {
-    memory_update = (u32)(frame.memoryUpdates.size());
+    memory_update = (u32)(info.memory_updates.size());
   }
 
   for (const FramePart& part : info.parts)
@@ -434,7 +521,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
     }
 
     if (show_part)
-      WriteFramePart(part, &memory_update, frame);
+      WriteFramePart(part, &memory_update, frame, info);
   }
 
   FlushWGP();
@@ -442,16 +529,16 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
 }
 
 void FifoPlayer::WriteFramePart(const FramePart& part, u32* next_mem_update,
-                                const FifoFrameInfo& frame)
+                                const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)
 {
   const u8* const data = frame.fifoData.data();
 
   u32 data_start = part.m_start;
   const u32 data_end = part.m_end;
 
-  while (*next_mem_update < frame.memoryUpdates.size() && data_start < data_end)
+  while (*next_mem_update < info.memory_updates.size() && data_start < data_end)
   {
-    const MemoryUpdate& memUpdate = frame.memoryUpdates[*next_mem_update];
+    const MemoryUpdate& memUpdate = info.memory_updates[*next_mem_update];
 
     if (memUpdate.fifoPosition < data_end)
     {
@@ -482,8 +569,8 @@ void FifoPlayer::WriteAllMemoryUpdates()
 
   for (u32 frameNum = 0; frameNum < m_File->GetFrameCount(); ++frameNum)
   {
-    const FifoFrameInfo& frame = m_File->GetFrame(frameNum);
-    for (auto& update : frame.memoryUpdates)
+    const AnalyzedFrameInfo& frame = GetAnalyzedFrameInfo(frameNum);
+    for (auto& update : frame.memory_updates)
     {
       WriteMemory(update);
     }
