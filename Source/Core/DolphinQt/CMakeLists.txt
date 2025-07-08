@@ -286,6 +286,8 @@ add_executable(dolphin-emu
   NetPlay/GameDigestDialog.h
   NetPlay/GameListDialog.cpp
   NetPlay/GameListDialog.h
+  NetPlay/ClickBlurLabel.cpp
+  NetPlay/ClickBlurLabel.h
   NetPlay/NetPlayBrowser.cpp
   NetPlay/NetPlayBrowser.h
   NetPlay/NetPlayDialog.cpp
