@@ -369,7 +369,6 @@ void VideoBackendBase::ShutdownShared()
   g_vertex_manager.reset();
   g_efb_interface.reset();
   g_widescreen.reset();
-  g_presenter.reset();
   g_gfx.reset();
 
   m_initialized = false;
