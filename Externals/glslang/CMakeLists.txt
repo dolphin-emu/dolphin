@@ -77,5 +77,5 @@ dolphin_disable_warnings(glslang)
 
 target_include_directories(glslang
 PRIVATE
-	${CMAKE_SOURCE_DIR}/Externals/glslang
+	${CMAKE_CURRENT_SOURCE_DIR}
 )
