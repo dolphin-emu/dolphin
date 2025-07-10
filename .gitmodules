@@ -33,6 +33,7 @@
 [submodule "Externals/VulkanMemoryAllocator"]
 	path = Externals/VulkanMemoryAllocator
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+	shallow = true
 [submodule "Externals/cubeb/cubeb"]
 	path = Externals/cubeb/cubeb
 	url = https://github.com/mozilla/cubeb.git
@@ -40,51 +41,68 @@
 [submodule "Externals/implot/implot"]
 	path = Externals/implot/implot
 	url = https://github.com/epezent/implot.git
+	shallow = true
 [submodule "Externals/gtest"]
 	path = Externals/gtest
 	url = https://github.com/google/googletest.git
+	shallow = true
 [submodule "Externals/rcheevos/rcheevos"]
 	path = Externals/rcheevos/rcheevos
 	url = https://github.com/RetroAchievements/rcheevos.git
+	shallow = true
 [submodule "Externals/libadrenotools"]
 	path = Externals/libadrenotools
 	url = https://github.com/bylaws/libadrenotools.git
+	shallow = true
 [submodule "Externals/curl/curl"]
 	path = Externals/curl/curl
 	url = https://github.com/curl/curl.git
+	shallow = true
 [submodule "Externals/fmt/fmt"]
 	path = Externals/fmt/fmt
 	url = https://github.com/fmtlib/fmt.git
+	shallow = true
 [submodule "Externals/lz4/lz4"]
 	path = Externals/lz4/lz4
 	url = https://github.com/lz4/lz4
+	shallow = true
 [submodule "Externals/xxhash/xxHash"]
 	path = Externals/xxhash/xxHash
 	url = https://github.com/Cyan4973/xxHash.git
+	shallow = true
 [submodule "Externals/enet/enet"]
 	path = Externals/enet/enet
 	url = https://github.com/lsalzman/enet.git
+	shallow = true
 [submodule "hidapi-src"]
 	path = Externals/hidapi/hidapi-src
 	url = https://github.com/libusb/hidapi
+	shallow = true
 [submodule "Externals/tinygltf/tinygltf"]
 	path = Externals/tinygltf/tinygltf
 	url = https://github.com/syoyo/tinygltf.git
+	shallow = true
 [submodule "Externals/minizip-ng/minizip-ng"]
 	path = Externals/minizip-ng/minizip-ng
 	url = https://github.com/zlib-ng/minizip-ng
+	shallow = true
 [submodule "Externals/Vulkan-Headers"]
 	path = Externals/Vulkan-Headers
 	url = https://github.com/KhronosGroup/Vulkan-Headers.git
+	shallow = true
 [submodule "Externals/watcher/watcher"]
 	path = Externals/watcher/watcher
 	url = https://github.com/e-dant/watcher.git
+	shallow = true
 [submodule "Externals/SFML/SFML"]
 	path = Externals/SFML/SFML
 	url = https://github.com/SFML/SFML.git
+	shallow = true
 [submodule "Externals/zstd/zstd"]
 	path = Externals/zstd/zstd
 	url = https://github.com/facebook/zstd.git
+	shallow = true
 [submodule "Externals/miniupnpc/miniupnp"]
 	path = Externals/miniupnpc/miniupnp
 	url = https://github.com/miniupnp/miniupnp.git
+	shallow = true
