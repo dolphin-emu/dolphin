@@ -64,7 +64,7 @@
 	shallow = true
 [submodule "Externals/lz4/lz4"]
 	path = Externals/lz4/lz4
-	url = https://github.com/lz4/lz4
+	url = https://github.com/lz4/lz4.git
 	shallow = true
 [submodule "Externals/xxhash/xxHash"]
 	path = Externals/xxhash/xxHash
@@ -76,7 +76,7 @@
 	shallow = true
 [submodule "hidapi-src"]
 	path = Externals/hidapi/hidapi-src
-	url = https://github.com/libusb/hidapi
+	url = https://github.com/libusb/hidapi.git
 	shallow = true
 [submodule "Externals/tinygltf/tinygltf"]
 	path = Externals/tinygltf/tinygltf
@@ -84,7 +84,7 @@
 	shallow = true
 [submodule "Externals/minizip-ng/minizip-ng"]
 	path = Externals/minizip-ng/minizip-ng
-	url = https://github.com/zlib-ng/minizip-ng
+	url = https://github.com/zlib-ng/minizip-ng.git
 	shallow = true
 [submodule "Externals/Vulkan-Headers"]
 	path = Externals/Vulkan-Headers
