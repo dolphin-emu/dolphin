@@ -24,6 +24,8 @@ class CPUThreadGuard;
 class System;
 }  // namespace Core
 
+class PPCSymbolDB;
+
 // Captures direct editing of the table.
 class TableEditDelegate : public QStyledItemDelegate
 {
@@ -98,6 +100,7 @@ public:
   void SetBPType(BPType type);
   void SetAddress(u32 address);
   void SetFocus() const;
+  void ShowSymbols(bool enable);
 
   void SetBPLoggingEnabled(bool enabled);
 
@@ -119,7 +122,11 @@ private:
   std::optional<QString> ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type);
 
   Core::System& m_system;
+  PPCSymbolDB& m_ppc_symbol_db;
 
+  void OnAddNote(u32 addr);
+  void OnEditNote(u32 addr);
+  void OnDeleteNote(u32 addr);
   MemoryViewTable* m_table;
   QScrollBar* m_scrollbar;
   AddressSpace::Type m_address_space{};
@@ -137,6 +144,7 @@ private:
   int m_alignment = 16;
   int m_data_columns;
   bool m_dual_view = false;
+  bool m_show_symbols = true;
   std::mutex m_updating;
   QColor m_highlight_color = QColor(120, 255, 255, 100);
 

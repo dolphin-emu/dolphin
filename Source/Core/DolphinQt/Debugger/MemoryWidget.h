@@ -14,8 +14,11 @@
 class MemoryViewWidget;
 class QCheckBox;
 class QComboBox;
+class QGroupBox;
+class QHideEvent;
 class QLabel;
 class QLineEdit;
+class QListWidget;
 class QPushButton;
 class QRadioButton;
 class QShowEvent;
@@ -26,6 +29,8 @@ namespace Core
 class System;
 class CPUThreadGuard;
 }  // namespace Core
+
+class PPCSymbolDB;
 
 class MemoryWidget : public QDockWidget
 {
@@ -66,6 +71,10 @@ private:
   void OnSetValue();
   void OnSetValueFromFile();
 
+  void OnSearchNotes();
+  void OnSelectNote();
+  void UpdateNotes();
+
   void OnDumpMRAM();
   void OnDumpExRAM();
   void OnDumpARAM();
@@ -85,6 +94,7 @@ private:
   void ActivateSearchAddress();
 
   Core::System& m_system;
+  PPCSymbolDB& m_ppc_symbol_db;
 
   MemoryViewWidget* m_memory_view;
   QSplitter* m_splitter;
@@ -115,6 +125,13 @@ private:
   QRadioButton* m_bp_read_only;
   QRadioButton* m_bp_write_only;
   QCheckBox* m_bp_log_check;
+
+  QGroupBox* m_note_group;
+  QLineEdit* m_search_notes;
+  QListWidget* m_note_list;
+  QString m_note_filter;
+  bool m_notes_visible = true;
+
   Common::EventHook m_vi_end_field_event;
 
   bool m_auto_update_enabled = true;
