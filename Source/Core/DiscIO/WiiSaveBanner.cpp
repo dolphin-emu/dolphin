@@ -3,12 +3,14 @@
 
 #include "DiscIO/WiiSaveBanner.h"
 
+#include <fmt/format.h>
 #include <iterator>
 #include <string>
 #include <vector>
 
 #include "Common/ColorUtil.h"
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
@@ -20,17 +22,20 @@ constexpr u32 ICON_HEIGHT = 48;
 constexpr u32 ICON_SIZE = ICON_WIDTH * ICON_HEIGHT * 2;
 
 WiiSaveBanner::WiiSaveBanner(u64 title_id)
-    : WiiSaveBanner(Common::GetTitleDataPath(title_id, Common::FromWhichRoot::Configured) +
-                    "/banner.bin")
-{
-}
-
-WiiSaveBanner::WiiSaveBanner(const std::string& path) : m_path(path)
 {
   constexpr u32 BANNER_SIZE = BANNER_WIDTH * BANNER_HEIGHT * 2;
 
   constexpr size_t MINIMUM_SIZE = sizeof(Header) + BANNER_SIZE + ICON_SIZE;
-  File::IOFile file(path, "rb");
+
+  m_path = Common::GetTitleDataPath(title_id, Common::FromWhichRoot::Configured) + "/banner.bin";
+  File::IOFile file(m_path, "rb");
+
+  if (!file)
+  {
+    m_path = Common::GetTitleDataPath(title_id, Common::FromWhichRoot::Banners) + "/banner.bin";
+    file = File::IOFile(m_path, "rb");
+  }
+
   if (!file.ReadArray(&m_header, 1))
   {
     m_header = {};
