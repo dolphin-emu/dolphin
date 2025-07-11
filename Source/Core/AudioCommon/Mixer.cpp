@@ -452,7 +452,7 @@ void Mixer::MixerFifo::Enqueue()
   // elements = ", ".join([f"{x:.10f}f" for x in window])
   // print(f'constexpr std::array<StereoPair, GRANULE_SIZE> GRANULE_WINDOW = {{ {elements}
   // }};')
-  constexpr std::array<StereoPair, GRANULE_SIZE> GRANULE_WINDOW = {
+  static constexpr std::array<StereoPair, GRANULE_SIZE> GRANULE_WINDOW = {
       0.0000016272f, 0.0000050749f, 0.0000113187f, 0.0000216492f, 0.0000377350f, 0.0000616906f,
       0.0000961509f, 0.0001443499f, 0.0002102045f, 0.0002984010f, 0.0004144844f, 0.0005649486f,
       0.0007573262f, 0.0010002765f, 0.0013036694f, 0.0016786636f, 0.0021377783f, 0.0026949534f,
