@@ -122,11 +122,18 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent), m_model(this)
   m_list_proxy->setSortRole(GameListModel::SORT_ROLE);
   m_list_proxy->setSourceModel(&m_model);
   m_grid_proxy = new GridProxyModel(this);
+  m_grid_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
+  m_grid_proxy->setSortRole(GameListModel::SORT_ROLE);
   m_grid_proxy->setSourceModel(&m_model);
 
   MakeListView();
   MakeGridView();
   MakeEmptyView();
+
+  // Use List View's sorting for Grid View too.
+  m_grid_proxy->sort(m_list_proxy->sortColumn(), m_list_proxy->sortOrder());
+  connect(m_list->horizontalHeader(), &QHeaderView::sortIndicatorChanged, m_grid_proxy,
+          &GridProxyModel::sort);
 
   if (Settings::GetQSettings().contains(QStringLiteral("gridview/scale")))
     m_model.SetScale(Settings::GetQSettings().value(QStringLiteral("gridview/scale")).toFloat());
