@@ -41,6 +41,7 @@ public:
   ~CodeViewWidget() override;
 
   u32 GetAddress() const;
+  void OnLockAddress(bool lock);
   u32 GetContextAddress() const;
   void SetAddress(u32 address, SetAddressUpdate update);
 
@@ -111,6 +112,7 @@ private:
   bool m_updating = false;
 
   u32 m_address = 0;
+  bool m_lock_address = false;
   u32 m_context_address = 0;
 
   std::vector<CodeViewBranch> m_branches;

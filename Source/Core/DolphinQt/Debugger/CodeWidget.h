@@ -17,6 +17,7 @@ class QSplitter;
 class QListWidget;
 class QPushButton;
 class QTableWidget;
+class QToolButton;
 
 namespace Common
 {
@@ -80,6 +81,7 @@ private:
 
   BranchWatchDialog* m_branch_watch_dialog = nullptr;
   QLineEdit* m_search_address;
+  QToolButton* m_lock_btn;
   QPushButton* m_branch_watch;
 
   QLineEdit* m_search_callstack;
