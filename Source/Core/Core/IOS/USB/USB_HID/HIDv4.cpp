@@ -171,16 +171,20 @@ void USB_HIDv4::OnDeviceChange(ChangeEvent event, std::shared_ptr<USB::Device> d
     std::lock_guard id_map_lock{m_id_map_mutex};
     if (event == ChangeEvent::Inserted)
     {
+      const auto id = device->GetId();
       s32 new_id = 0;
-      while (m_ios_ids.contains(new_id))
+      while (!m_ios_ids.emplace(new_id, id).second)
         ++new_id;
-      m_ios_ids[new_id] = device->GetId();
-      m_device_ids[device->GetId()] = new_id;
+
+      m_device_ids[id] = new_id;
     }
-    else if (event == ChangeEvent::Removed && m_device_ids.contains(device->GetId()))
+    else if (event == ChangeEvent::Removed)
     {
-      m_ios_ids.erase(m_device_ids.at(device->GetId()));
-      m_device_ids.erase(device->GetId());
+      if (const auto it = m_device_ids.find(device->GetId()); it != m_device_ids.end())
+      {
+        m_ios_ids.erase(it->second);
+        m_device_ids.erase(it);
+      }
     }
   }
 
