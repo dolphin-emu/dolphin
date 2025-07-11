@@ -371,6 +371,17 @@ bool InputBackend::HandleEventAndContinue(const SDL_Event& e)
   }
   else if (e.type == Common::KeyboardContext::s_sdl_init_event_type)
   {
+    const auto wsi = GetControllerInterface().GetWindowSystemInfo();
+    if (wsi.type == WindowSystemType::X11)
+    {
+      // Avoid a crash with Xwayland when the wrong driver is picked
+      if (!SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11"))
+      {
+        WARN_LOG_FMT(IOS_USB, "SDL failed to pick driver to capture keyboard input: {}",
+                     SDL_GetError());
+      }
+    }
+
     if (!SDL_InitSubSystem(SDL_INIT_VIDEO))
     {
       ERROR_LOG_FMT(IOS_USB, "SDL failed to init subsystem to capture keyboard input: {}",
