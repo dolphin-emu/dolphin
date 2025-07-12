@@ -14,6 +14,7 @@
 #include <QComboBox>
 #include <QCursor>
 #include <QHBoxLayout>
+#include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
@@ -491,18 +492,24 @@ void CheatSearchWidget::OnAddressTableContextMenu()
   if (m_address_table->selectedItems().isEmpty())
     return;
 
-  auto* item = m_address_table->selectedItems()[0];
-  const u32 address = item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
-
   QMenu* menu = new QMenu(this);
   menu->setAttribute(Qt::WA_DeleteOnClose, true);
 
-  menu->addAction(tr("Show in memory"), [this, address] { emit ShowMemory(address); });
-  menu->addAction(tr("Add to watch"), this, [this, address] {
-    const QString name = QStringLiteral("mem_%1").arg(address, 8, 16, QLatin1Char('0'));
-    emit RequestWatch(name, address);
+  menu->addAction(tr("Show in memory"), this, [this] {
+    auto* item = m_address_table->selectedItems()[0];
+    const u32 address = item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
+    emit ShowMemory(address);
+  });
+  menu->addAction(tr("Add to watch"), this, [this] {
+    for (auto* const item : m_address_table->selectedItems())
+    {
+      const u32 address = item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
+      const QString name = QStringLiteral("mem_%1").arg(address, 8, 16, QLatin1Char('0'));
+      emit RequestWatch(name, address);
+    }
   });
   menu->addAction(tr("Generate Action Replay Code(s)"), this, &CheatSearchWidget::GenerateARCodes);
+  menu->addAction(tr("Write value"), this, &CheatSearchWidget::WriteValue);
 
   menu->exec(QCursor::pos());
 }
@@ -588,10 +595,40 @@ void CheatSearchWidget::GenerateARCodes()
   }
 }
 
+void CheatSearchWidget::WriteValue()
+{
+  if (m_address_table->selectedItems().isEmpty())
+    return;
+
+  bool ok{};
+  QString text = QInputDialog::getText(this, tr("Write value"), tr("Value:"), QLineEdit::Normal,
+                                       QString{}, &ok);
+
+  if (ok && m_session->SetValueFromString(text.toStdString(),
+                                          m_parse_values_as_hex_checkbox->isChecked()))
+  {
+    auto items = m_address_table->selectedItems();
+    std::vector<u32> addresses(items.size());
+    std::transform(items.begin(), items.end(), addresses.begin(), [](QTableWidgetItem* item) {
+      return item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
+    });
+
+    Core::CPUThreadGuard guard{m_system};
+    if (!m_session->WriteValue(guard, std::span<u32>(addresses)))
+    {
+      m_info_label_1->setText(tr("There was an error writing (some) values."));
+    }
+  }
+  else
+  {
+    m_info_label_1->setText(tr("Invalid value."));
+  }
+}
+
 void CheatSearchWidget::RefreshCurrentValueTableItem(
     QTableWidgetItem* const current_value_table_item)
 {
-  const auto address = current_value_table_item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
+  const u32 address = current_value_table_item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
   const auto curr_val_iter = m_address_table_current_values.find(address);
   if (curr_val_iter != m_address_table_current_values.end())
     current_value_table_item->setText(QString::fromStdString(curr_val_iter->second));
