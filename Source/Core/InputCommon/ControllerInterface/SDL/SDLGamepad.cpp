@@ -13,7 +13,7 @@
 namespace ciface::SDL
 {
 
-bool IsTriggerAxis(int index)
+static bool IsTriggerAxis(int index)
 {
   // First 4 axes are for the analog sticks, the rest are for the triggers
   return index >= 4;

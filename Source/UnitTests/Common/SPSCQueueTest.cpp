@@ -32,7 +32,7 @@ TEST(SPSCQueue, Simple)
   EXPECT_EQ(1000u, q.Size());
   for (u32 i = 0; i < 1000; ++i)
   {
-    u32 v2;
+    u32 v2 = 0;
     q.Pop(v2);
     EXPECT_EQ(i, v2);
   }

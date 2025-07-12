@@ -256,7 +256,7 @@ static std::vector<InterfaceRouting> GetSystemInterfaceRouting()
   }
 
   // read response
-  int msg_len = 0;
+  unsigned int msg_len = 0;
   msg_buffer.fill(0);
 
   do
@@ -270,9 +270,10 @@ static std::vector<InterfaceRouting> GetSystemInterfaceRouting()
     }
 
     nl_msg = reinterpret_cast<nlmsghdr*>(buf_ptr);
-    if (NLMSG_OK(nl_msg, read_len) == 0)
+    if (NLMSG_OK(nl_msg, static_cast<unsigned int>(read_len)) == 0)
     {
-      ERROR_LOG_FMT(IOS_NET, "Received netlink error response ({})", NLMSG_OK(nl_msg, read_len));
+      ERROR_LOG_FMT(IOS_NET, "Received netlink error response ({})",
+                    NLMSG_OK(nl_msg, static_cast<unsigned int>(read_len)));
       return {};
     }
 

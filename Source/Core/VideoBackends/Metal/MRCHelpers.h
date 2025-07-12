@@ -20,7 +20,7 @@ template <typename T>
 class MRCOwned
 {
   T ptr;
-  MRCOwned(T ptr) : ptr(ptr) {}
+  MRCOwned(T raw_ptr) : ptr(raw_ptr) {}
 
 public:
   MRCOwned() : ptr(nullptr) {}

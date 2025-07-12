@@ -67,7 +67,7 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
 
   // Potentially 40 resulting samples.
   std::array<s16, WiimoteCommon::OutputReportSpeakerData::DATA_SIZE * 2> samples;
-  assert(length * 2 <= samples.size());
+  assert(length * 2 <= static_cast<int>(samples.size()));
 
   unsigned int sample_rate_dividend, sample_length;
   u8 volume_divisor;
