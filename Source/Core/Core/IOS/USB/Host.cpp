@@ -114,27 +114,23 @@ std::string USBHost::GetDeviceNameFromVIDPID(u16 vid, u16 pid)
     return device_name;
 
   context.GetDeviceList([&device_name, vid, pid](libusb_device* device) {
-    libusb_device_descriptor desc;
-
+    libusb_device_descriptor desc{};
     if (libusb_get_device_descriptor(device, &desc) != LIBUSB_SUCCESS)
       return true;
 
-    if (desc.idVendor == vid && desc.idProduct == pid)
-    {
-      libusb_device_handle* handle;
-      if (libusb_open(device, &handle) == LIBUSB_SUCCESS)
-      {
-        unsigned char buffer[256];
-        if (desc.iProduct &&
-            libusb_get_string_descriptor_ascii(handle, desc.iProduct, buffer, sizeof(buffer)) > 0)
-        {
-          device_name = reinterpret_cast<char*>(buffer);
-        }
-        libusb_close(handle);
-      }
+    if (desc.idVendor != vid || desc.idProduct != pid)
+      return true;
+
+    if (desc.iProduct == 0)
       return false;
-    }
-    return true;
+
+    libusb_device_handle* handle{};
+    if (libusb_open(device, &handle) != LIBUSB_SUCCESS)
+      return false;
+
+    device_name = LibusbUtils::GetStringDescriptor(handle, desc.iProduct).value_or("");
+    libusb_close(handle);
+    return false;
   });
 
   if (!device_name.empty())
