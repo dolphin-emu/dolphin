@@ -23,15 +23,8 @@ class LibUSBBluetoothAdapter
 public:
   using BufferType = Common::UniqueBuffer<u8>;
 
-  struct BluetoothDeviceInfo
-  {
-    u16 vid;
-    u16 pid;
-    std::string name;
-  };
-
-  static std::vector<BluetoothDeviceInfo> ListDevices();
   static bool IsConfiguredBluetoothDevice(u16 vid, u16 pid);
+  static bool IsBluetoothDevice(const libusb_device_descriptor& descriptor);
   static bool HasConfiguredBluetoothDevice();
 
   // Public interface is intended to be used by a single thread.
