@@ -551,6 +551,8 @@ add_library(core
   TimePlayed.h
   TitleDatabase.cpp
   TitleDatabase.h
+  USBUtils.cpp
+  USBUtils.h
   WC24PatchEngine.cpp
   WC24PatchEngine.h
   WiiRoot.cpp
