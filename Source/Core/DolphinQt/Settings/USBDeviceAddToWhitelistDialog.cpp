@@ -37,6 +37,8 @@ USBDeviceAddToWhitelistDialog::USBDeviceAddToWhitelistDialog(QWidget* parent) : 
 {
   InitControls();
   setLayout(main_layout);
+
+  adjustSize();
 }
 
 void USBDeviceAddToWhitelistDialog::InitControls()
