@@ -96,9 +96,9 @@ void USBDeviceAddToWhitelistDialog::InitControls()
   main_layout->addWidget(m_whitelist_buttonbox);
 
   // i18n: VID means Vendor ID (in the context of a USB device)
-  device_vid_textbox->setPlaceholderText(tr("Device VID (e.g., 057e)"));
+  device_vid_textbox->setPlaceholderText(tr("Device VID"));
   // i18n: PID means Product ID (in the context of a USB device), not Process ID
-  device_pid_textbox->setPlaceholderText(tr("Device PID (e.g., 0305)"));
+  device_pid_textbox->setPlaceholderText(tr("Device PID"));
 }
 
 void USBDeviceAddToWhitelistDialog::RefreshDeviceList()
