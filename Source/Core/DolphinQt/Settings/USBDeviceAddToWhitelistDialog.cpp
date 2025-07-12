@@ -99,6 +99,9 @@ void USBDeviceAddToWhitelistDialog::InitControls()
   device_vid_textbox->setPlaceholderText(tr("Device VID"));
   // i18n: PID means Product ID (in the context of a USB device), not Process ID
   device_pid_textbox->setPlaceholderText(tr("Device PID"));
+
+  device_vid_textbox->setMaxLength(4);
+  device_pid_textbox->setMaxLength(4);
 }
 
 void USBDeviceAddToWhitelistDialog::RefreshDeviceList()
