@@ -27,6 +27,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/USBUtils.h"
 #include "DiscIO/Enums.h"
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -551,40 +552,35 @@ const Info<bool> MAIN_USB_PASSTHROUGH_DISGUISE_PLAYSTATION_AS_WII{
 const Info<std::string> MAIN_USB_PASSTHROUGH_DEVICES{{System::Main, "USBPassthrough", "Devices"},
                                                      ""};
 
-static std::set<std::pair<u16, u16>> LoadUSBWhitelistFromString(const std::string& devices_string)
+static std::set<USBUtils::DeviceInfo> LoadUSBWhitelistFromString(const std::string& devices_string)
 {
-  std::set<std::pair<u16, u16>> devices;
+  std::set<USBUtils::DeviceInfo> devices;
   for (const auto& pair : SplitString(devices_string, ','))
   {
-    const auto index = pair.find(':');
-    if (index == std::string::npos)
-      continue;
-
-    const u16 vid = static_cast<u16>(strtol(pair.substr(0, index).c_str(), nullptr, 16));
-    const u16 pid = static_cast<u16>(strtol(pair.substr(index + 1).c_str(), nullptr, 16));
-    if (vid && pid)
-      devices.emplace(vid, pid);
+    auto device = USBUtils::DeviceInfo::FromString(pair);
+    if (device)
+      devices.emplace(*device);
   }
   return devices;
 }
 
-static std::string SaveUSBWhitelistToString(const std::set<std::pair<u16, u16>>& devices)
+static std::string SaveUSBWhitelistToString(const std::set<USBUtils::DeviceInfo>& devices)
 {
   std::ostringstream oss;
   for (const auto& device : devices)
-    oss << fmt::format("{:04x}:{:04x}", device.first, device.second) << ',';
+    oss << device.ToString() << ',';
   std::string devices_string = oss.str();
   if (!devices_string.empty())
     devices_string.pop_back();
   return devices_string;
 }
 
-std::set<std::pair<u16, u16>> GetUSBDeviceWhitelist()
+std::set<USBUtils::DeviceInfo> GetUSBDeviceWhitelist()
 {
   return LoadUSBWhitelistFromString(Config::Get(Config::MAIN_USB_PASSTHROUGH_DEVICES));
 }
 
-void SetUSBDeviceWhitelist(const std::set<std::pair<u16, u16>>& devices)
+void SetUSBDeviceWhitelist(const std::set<USBUtils::DeviceInfo>& devices)
 {
   Config::SetBase(Config::MAIN_USB_PASSTHROUGH_DEVICES, SaveUSBWhitelistToString(devices));
 }

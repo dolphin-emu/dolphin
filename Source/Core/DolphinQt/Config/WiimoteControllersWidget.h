@@ -8,7 +8,7 @@
 #include <QWidget>
 
 #include "Common/WorkQueueThread.h"
-#include "Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.h"
+#include "Core/USBUtils.h"
 
 class QCheckBox;
 class QComboBox;
@@ -38,8 +38,7 @@ private:
   void OnBluetoothPassthroughDeviceChanged(int index);
   void OnBluetoothPassthroughSyncPressed();
   void OnBluetoothPassthroughResetPressed();
-  void OnBluetoothAdapterRefreshComplete(
-      const std::vector<LibUSBBluetoothAdapter::BluetoothDeviceInfo>& devices);
+  void OnBluetoothAdapterRefreshComplete(const std::vector<USBUtils::DeviceInfo>& devices);
   void OnWiimoteRefreshPressed();
   void OnWiimoteConfigure(size_t index);
   void StartBluetoothAdapterRefresh();

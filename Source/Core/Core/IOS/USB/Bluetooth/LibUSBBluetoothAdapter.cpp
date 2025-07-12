@@ -19,7 +19,6 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/IOS/USB/Bluetooth/hci.h"
-#include "Core/IOS/USB/Host.h"
 
 namespace
 {
@@ -41,7 +40,9 @@ constexpr libusb_transfer_cb_fn LibUSBMemFunCallback()
   };
 }
 
-bool IsBluetoothDevice(const libusb_device_descriptor& descriptor)
+}  // namespace
+
+bool LibUSBBluetoothAdapter::IsBluetoothDevice(const libusb_device_descriptor& descriptor)
 {
   constexpr u8 SUBCLASS = 0x01;
   constexpr u8 PROTOCOL_BLUETOOTH = 0x01;
@@ -55,8 +56,6 @@ bool IsBluetoothDevice(const libusb_device_descriptor& descriptor)
   return is_bluetooth_protocol || LibUSBBluetoothAdapter::IsConfiguredBluetoothDevice(
                                       descriptor.idVendor, descriptor.idProduct);
 }
-
-}  // namespace
 
 bool LibUSBBluetoothAdapter::IsWiiBTModule() const
 {
@@ -452,41 +451,6 @@ bool LibUSBBluetoothAdapter::OpenDevice(const libusb_device_descriptor& device_d
   }
 
   return true;
-}
-
-std::vector<LibUSBBluetoothAdapter::BluetoothDeviceInfo> LibUSBBluetoothAdapter::ListDevices()
-{
-  std::vector<BluetoothDeviceInfo> device_list;
-  LibusbUtils::Context context;
-
-  if (!context.IsValid())
-    return {};
-
-  int result = context.GetDeviceList([&device_list](libusb_device* device) {
-    auto [config_ret, config] = LibusbUtils::MakeConfigDescriptor(device, 0);
-    if (config_ret != LIBUSB_SUCCESS)
-      return true;
-
-    libusb_device_descriptor desc;
-    if (libusb_get_device_descriptor(device, &desc) != LIBUSB_SUCCESS)
-      return true;
-
-    if (IsBluetoothDevice(desc))
-    {
-      const std::string device_name =
-          IOS::HLE::USBHost::GetDeviceNameFromVIDPID(desc.idVendor, desc.idProduct);
-      device_list.push_back({desc.idVendor, desc.idProduct, device_name});
-    }
-    return true;
-  });
-
-  if (result < 0)
-  {
-    ERROR_LOG_FMT(IOS_USB, "Failed to get device list: {}", LibusbUtils::ErrorWrap(result));
-    return device_list;
-  }
-
-  return device_list;
 }
 
 void LibUSBBluetoothAdapter::HandleOutputTransfer(libusb_transfer* tr)

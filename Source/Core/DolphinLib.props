@@ -473,6 +473,7 @@
     <ClInclude Include="Core\System.h" />
     <ClInclude Include="Core\TimePlayed.h" />
     <ClInclude Include="Core\TitleDatabase.h" />
+    <ClInclude Include="Core\USBUtils.h" />
     <ClInclude Include="Core\WC24PatchEngine.h" />
     <ClInclude Include="Core\WiiRoot.h" />
     <ClInclude Include="Core\WiiUtils.h" />
@@ -573,7 +574,6 @@
     <ClInclude Include="UICommon\ResourcePack\Manifest.h" />
     <ClInclude Include="UICommon\ResourcePack\ResourcePack.h" />
     <ClInclude Include="UICommon\UICommon.h" />
-    <ClInclude Include="UICommon\USBUtils.h" />
     <ClInclude Include="UpdaterCommon\UI.h" />
     <ClInclude Include="UpdaterCommon\UpdaterCommon.h" />
     <ClInclude Include="VideoBackends\D3D\D3DBase.h" />
@@ -1152,6 +1152,7 @@
     <ClCompile Include="Core\System.cpp" />
     <ClCompile Include="Core\TimePlayed.cpp" />
     <ClCompile Include="Core\TitleDatabase.cpp" />
+    <ClCompile Include="Core\USBUtils.cpp" />
     <ClCompile Include="Core\WiiRoot.cpp" />
     <ClCompile Include="Core\WiiUtils.cpp" />
     <ClCompile Include="Core\WC24PatchEngine.cpp" />
@@ -1244,7 +1245,6 @@
     <ClCompile Include="UICommon\ResourcePack\Manifest.cpp" />
     <ClCompile Include="UICommon\ResourcePack\ResourcePack.cpp" />
     <ClCompile Include="UICommon\UICommon.cpp" />
-    <ClCompile Include="UICommon\USBUtils.cpp" />
     <ClCompile Include="UpdaterCommon\UpdaterCommon.cpp" />
     <ClCompile Include="VideoBackends\D3D\D3DBase.cpp" />
     <ClCompile Include="VideoBackends\D3D\D3DBoundingBox.cpp" />
