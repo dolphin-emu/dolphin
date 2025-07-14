@@ -54,6 +54,7 @@ public:
   IOFile Duplicate(const char openmode[]) const;
 
   template <typename T>
+  requires(std::is_trivially_copyable_v<T>)
   bool ReadArray(T* elements, size_t count, size_t* num_read = nullptr)
   {
     size_t read_count = 0;
@@ -67,6 +68,7 @@ public:
   }
 
   template <typename T>
+  requires(std::is_trivially_copyable_v<T>)
   bool WriteArray(const T* elements, size_t count)
   {
     if (!IsOpen() || count != std::fwrite(elements, sizeof(T), count, m_file))
