@@ -1,6 +1,8 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
-/// \file       tuklib_mstr.h
+/// \file       tuklib_mbstr.h
 /// \brief      Utility functions for handling multibyte strings
 ///
 /// If not enough multibyte string support is available in the C library,
@@ -9,9 +11,6 @@
 /// US-ASCII or ISO-8859-*.
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 

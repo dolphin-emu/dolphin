@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       lz_encoder.h
@@ -6,15 +8,20 @@
 //  Authors:    Igor Pavlov
 //              Lasse Collin
 //
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
-//
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef LZMA_LZ_ENCODER_H
 #define LZMA_LZ_ENCODER_H
 
 #include "common.h"
+
+
+// For now, the dictionary size is limited to 1.5 GiB. This may grow
+// in the future if needed, but it needs a little more work than just
+// changing this check.
+#define IS_ENC_DICT_SIZE_VALID(size) \
+	((size) >= LZMA_DICT_SIZE_MIN \
+		&& (size) <= (UINT32_C(1) << 30) + (UINT32_C(1) << 29))
 
 
 /// A table of these is used by the LZ-based encoder to hold
@@ -153,9 +160,13 @@ typedef struct {
 	/// Maximum search depth
 	uint32_t depth;
 
-	/// TODO: Comment
+	/// Initial dictionary for the match finder to search.
 	const uint8_t *preset_dict;
 
+	/// If the preset dictionary is NULL, this value is ignored.
+	/// Otherwise this member must indicate the preset dictionary's
+	/// buffer size. If this size is larger than dict_size, then only
+	/// the dict_size sized tail of the preset_dict will be used.
 	uint32_t preset_dict_size;
 
 } lzma_lz_options;
@@ -184,7 +195,7 @@ typedef struct {
 //
 // Algorithms such as LZMA2 first try to compress a chunk, and then check
 // if the encoded result is smaller than the uncompressed one. If the chunk
-// was uncompressible, it is better to store it in uncompressed form in
+// was incompressible, it is better to store it in uncompressed form in
 // the output stream. To do this, the whole uncompressed chunk has to be
 // still available in the history buffer. before_size achieves that.
 
@@ -204,6 +215,10 @@ typedef struct {
 	/// Update the options in the middle of the encoding.
 	lzma_ret (*options_update)(void *coder, const lzma_filter *filter);
 
+	/// Set maximum allowed output size
+	lzma_ret (*set_out_limit)(void *coder, uint64_t *uncomp_size,
+			uint64_t out_limit);
+
 } lzma_lz_encoder;
 
 
@@ -213,7 +228,16 @@ typedef struct {
 //  3. The literals and matches are encoded using e.g. LZMA.
 //
 // The bytes that have been ran through the match finder, but not encoded yet,
-// are called `read ahead'.
+// are called 'read ahead'.
+
+
+/// Get how many bytes the match finder hashes in its initial step.
+/// This is also the minimum nice_len value with the match finder.
+static inline uint32_t
+mf_get_hash_bytes(lzma_match_finder match_finder)
+{
+	return (uint32_t)match_finder & 0x0F;
+}
 
 
 /// Get pointer to the first byte not ran through the match finder
@@ -298,7 +322,8 @@ extern lzma_ret lzma_lz_encoder_init(
 		lzma_next_coder *next, const lzma_allocator *allocator,
 		const lzma_filter_info *filters,
 		lzma_ret (*lz_init)(lzma_lz_encoder *lz,
-			const lzma_allocator *allocator, const void *options,
+			const lzma_allocator *allocator,
+			lzma_vli id, const void *options,
 			lzma_lz_options *lz_options));
 
 
