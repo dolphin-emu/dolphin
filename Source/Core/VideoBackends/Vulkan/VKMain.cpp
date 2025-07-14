@@ -187,15 +187,6 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
   UpdateActiveConfig();
 
-  // Create command buffers. We do this separately because the other classes depend on it.
-  g_command_buffer_mgr = std::make_unique<CommandBufferManager>(g_Config.bBackendMultithreading);
-  if (!g_command_buffer_mgr->Initialize())
-  {
-    PanicAlertFmt("Failed to create Vulkan command buffers");
-    Shutdown();
-    return false;
-  }
-
   // Remaining classes are also dependent on object cache.
   g_object_cache = std::make_unique<ObjectCache>();
   if (!g_object_cache->Initialize())
@@ -216,6 +207,17 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
       Shutdown();
       return false;
     }
+  }
+
+  // Create command buffers. We do this separately because the other classes depend on it.
+  g_command_buffer_mgr = std::make_unique<CommandBufferManager>(g_Config.bBackendMultithreading);
+  size_t swapchain_image_count =
+      surface != VK_NULL_HANDLE ? swap_chain->GetSwapChainImageCount() : 0;
+  if (!g_command_buffer_mgr->Initialize(swapchain_image_count))
+  {
+    PanicAlertFmt("Failed to create Vulkan command buffers");
+    Shutdown();
+    return false;
   }
 
   if (!StateTracker::CreateInstance())
