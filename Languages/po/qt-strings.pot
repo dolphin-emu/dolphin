@@ -2,6 +2,7 @@
 # and may be accessed in applications which use Qt. Extracted from Qt 5.15.1.
 msgid ""
 msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
 
 #: qtbase/src/gui/kernel/qguiapplication.cpp:234
 msgctxt ""
