@@ -16,6 +16,7 @@ import androidx.annotation.ColorInt
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.datepicker.CalendarConstraints
@@ -67,57 +68,48 @@ class SettingsAdapter(
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
             SettingsItem.TYPE_HEADER -> HeaderViewHolder(
-                ListItemHeaderBinding.inflate(inflater),
+                ListItemHeaderBinding.inflate(inflater, parent, false),
                 this
             )
             SettingsItem.TYPE_SWITCH -> SwitchSettingViewHolder(
-                ListItemSettingSwitchBinding.inflate(inflater),
+                ListItemSettingSwitchBinding.inflate(inflater, parent, false),
                 this
             )
             SettingsItem.TYPE_STRING_SINGLE_CHOICE,
             SettingsItem.TYPE_SINGLE_CHOICE_DYNAMIC_DESCRIPTIONS,
             SettingsItem.TYPE_SINGLE_CHOICE -> SingleChoiceViewHolder(
-                ListItemSettingBinding.inflate(inflater),
+                ListItemSettingBinding.inflate(inflater, parent, false),
                 this
             )
             SettingsItem.TYPE_SLIDER -> SliderViewHolder(
-                ListItemSettingBinding.inflate(
-                    inflater
-                ), this, context
+                ListItemSettingBinding.inflate(inflater, parent, false),
+                this,
+                context
             )
             SettingsItem.TYPE_SUBMENU -> SubmenuViewHolder(
-                ListItemSubmenuBinding.inflate(
-                    inflater
-                ), this
+                ListItemSubmenuBinding.inflate(inflater, parent, false),
+                this
             )
             SettingsItem.TYPE_INPUT_MAPPING_CONTROL -> InputMappingControlSettingViewHolder(
-                ListItemMappingBinding.inflate(inflater),
+                ListItemMappingBinding.inflate(inflater, parent, false),
                 this
             )
             SettingsItem.TYPE_FILE_PICKER -> FilePickerViewHolder(
-                ListItemSettingBinding.inflate(
-                    inflater
-                ), this
+                ListItemSettingBinding.inflate(inflater, parent, false),
+                this
             )
             SettingsItem.TYPE_RUN_RUNNABLE -> RunRunnableViewHolder(
-                ListItemSettingBinding.inflate(
-                    inflater
-                ), this, context
+                ListItemSettingBinding.inflate(inflater, parent, false),
+                this, context
             )
             SettingsItem.TYPE_STRING -> InputStringSettingViewHolder(
-                ListItemSettingBinding.inflate(
-                    inflater
-                ), this
+                ListItemSettingBinding.inflate(inflater, parent, false), this
             )
             SettingsItem.TYPE_HYPERLINK_HEADER -> HeaderHyperLinkViewHolder(
-                ListItemHeaderBinding.inflate(
-                    inflater
-                ), this
+                ListItemHeaderBinding.inflate(inflater, parent, false), this
             )
             SettingsItem.TYPE_DATETIME_CHOICE -> DateTimeSettingViewHolder(
-                ListItemSettingBinding.inflate(
-                    inflater
-                ), this
+                ListItemSettingBinding.inflate(inflater, parent, false), this
             )
             else -> throw IllegalArgumentException("Invalid view type: $viewType")
         }
@@ -541,6 +533,25 @@ class SettingsAdapter(
         } else {
             seekbarProgress.toInt().toString()
         }
+    }
+
+    override fun onViewRecycled(holder: SettingViewHolder) {
+        super.onViewRecycled(holder)
+        holder.onViewRecycled()
+    }
+
+    override fun onViewAttachedToWindow(holder: SettingViewHolder) {
+        super.onViewAttachedToWindow(holder)
+        holder.onViewAttachedToWindow()
+    }
+
+    override fun onViewDetachedFromWindow(holder: SettingViewHolder) {
+        super.onViewDetachedFromWindow(holder)
+        holder.onViewDetachedFromWindow()
+    }
+
+    fun getFragmentLifecycle(): Lifecycle {
+        return fragmentView.getFragmentLifecycle()
     }
 
     private fun getValueForSingleChoiceSelection(item: SingleChoiceSetting, which: Int): Int {
