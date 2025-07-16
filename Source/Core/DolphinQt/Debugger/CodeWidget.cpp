@@ -18,6 +18,7 @@
 #include <QStyleHints>
 #include <QTabWidget>
 #include <QTableWidget>
+#include <QToolButton>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -31,6 +32,7 @@
 #include "Core/System.h"
 #include "DolphinQt/Debugger/BranchWatchDialog.h"
 #include "DolphinQt/Host.h"
+#include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
 static const QString BOX_SPLITTER_STYLESHEET = QStringLiteral(
@@ -61,7 +63,7 @@ CodeWidget::CodeWidget(QWidget* parent)
           [this](bool visible) { setHidden(!visible); });
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
-    if (Core::GetState(m_system) == Core::State::Paused)
+    if (!m_lock_btn->isChecked() && Core::GetState(m_system) == Core::State::Paused)
       SetAddress(m_system.GetPPCState().pc, CodeViewWidget::SetAddressUpdate::WithoutUpdate);
     Update();
   });
@@ -109,8 +111,16 @@ void CodeWidget::CreateWidgets()
   auto* top_layout = new QHBoxLayout;
   m_search_address = new QLineEdit;
   m_search_address->setPlaceholderText(tr("Search Address"));
+
+  m_lock_btn = new QToolButton();
+  m_lock_btn->setIcon(Resources::GetThemeIcon("pause"));
+  m_lock_btn->setCheckable(true);
+  m_lock_btn->setMinimumSize(24, 24);
+  m_lock_btn->setToolTip(tr("When enabled, prevents automatic updates to the code view."));
   m_branch_watch = new QPushButton(tr("Branch Watch"));
+
   top_layout->addWidget(m_search_address);
+  top_layout->addWidget(m_lock_btn);
   top_layout->addWidget(m_branch_watch);
 
   auto* right_layout = new QVBoxLayout;
@@ -191,6 +201,7 @@ void CodeWidget::ConnectWidgets()
 
   connect(m_search_address, &QLineEdit::textChanged, this, &CodeWidget::OnSearchAddress);
   connect(m_search_address, &QLineEdit::returnPressed, this, &CodeWidget::OnSearchAddress);
+  connect(m_lock_btn, &QPushButton::toggled, m_code_view, &CodeViewWidget::OnLockAddress);
   connect(m_search_symbols, &QLineEdit::textChanged, this, &CodeWidget::OnSearchSymbols);
   connect(m_search_calls, &QLineEdit::textChanged, this, [this] {
     if (const Common::Symbol* symbol = m_ppc_symbol_db.GetSymbolFromAddr(m_code_view->GetAddress()))
