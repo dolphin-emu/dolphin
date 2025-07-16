@@ -172,11 +172,18 @@ QDockWidget {
 	titlebar-normal-icon: url(:/dolphin_dark_win/dockwidget-undock.svg);
 }
 
-QPushButton, QToolButton {
+QPushButton {
 	background-color: #303030;
 	border: 1px solid #7e7e7e;
 	padding: 2px;
 	min-width: 67px;
+}
+QToolButton {
+	background-color: #303030;
+	border: 1px solid #7e7e7e;
+	padding: 2px;
+	min-width: 24px;
+	min-height: 16px;
 }
 QPushButton:hover, QToolButton:hover {
 	background-color: #404040;
@@ -186,6 +193,9 @@ QPushButton:focus, QToolButton:focus {
 }
 QPushButton:disabled, QToolButton:disabled {
 	background-color: #505050;
+}
+QPushButton:checked, QToolButton:checked {
+	background-color: #101010;
 }
 
 /* the dropdownarrow on the right of the button in menu popup mode */
