@@ -7,10 +7,12 @@
 #include <bit>
 #include <climits>
 #include <cstddef>
-#include <cstdint>
 #include <cstring>
 #include <initializer_list>
+#include <span>
 #include <type_traits>
+
+#include "Common/CommonTypes.h"
 
 namespace Common
 {
@@ -240,4 +242,19 @@ T ExpandValue(T value, size_t left_shift_amount)
   return (value << left_shift_amount) |
          (T(-ExtractBit<0>(value)) >> (BitSize<T>() - left_shift_amount));
 }
+
+template <typename T>
+requires(std::is_trivially_copyable_v<T>)
+constexpr auto AsU8Span(const T& obj)
+{
+  return std::span{reinterpret_cast<const u8*>(std::addressof(obj)), sizeof(obj)};
+}
+
+template <typename T>
+requires(std::is_trivially_copyable_v<T>)
+constexpr auto AsWritableU8Span(T& obj)
+{
+  return std::span{reinterpret_cast<u8*>(std::addressof(obj)), sizeof(obj)};
+}
+
 }  // namespace Common

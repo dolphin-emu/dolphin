@@ -403,6 +403,7 @@
     <ClInclude Include="Core\IOS\USB\Bluetooth\BTReal.h" />
     <ClInclude Include="Core\IOS\USB\Bluetooth\BTStub.h" />
     <ClInclude Include="Core\IOS\USB\Bluetooth\LibUSBBluetoothAdapter.h" />
+    <ClInclude Include="Core\IOS\USB\Bluetooth\RealtekFirmwareLoader.h" />
     <ClInclude Include="Core\IOS\USB\Bluetooth\hci.h" />
     <ClInclude Include="Core\IOS\USB\Bluetooth\l2cap.h" />
     <ClInclude Include="Core\IOS\USB\Bluetooth\WiimoteDevice.h" />
@@ -1081,6 +1082,7 @@
     <ClCompile Include="Core\IOS\USB\Bluetooth\BTReal.cpp" />
     <ClCompile Include="Core\IOS\USB\Bluetooth\BTStub.cpp" />
     <ClCompile Include="Core\IOS\USB\Bluetooth\LibUSBBluetoothAdapter.cpp" />
+    <ClCompile Include="Core\IOS\USB\Bluetooth\RealtekFirmwareLoader.cpp" />
     <ClCompile Include="Core\IOS\USB\Bluetooth\WiimoteDevice.cpp" />
     <ClCompile Include="Core\IOS\USB\Bluetooth\WiimoteHIDAttr.cpp" />
     <ClCompile Include="Core\IOS\USB\Common.cpp" />
