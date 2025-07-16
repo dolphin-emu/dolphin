@@ -146,6 +146,7 @@ void GameCubePane::CreateWidgets()
            EXIDeviceType::EthernetTapServer,
            EXIDeviceType::EthernetBuiltIn,
            EXIDeviceType::ModemTapServer,
+           EXIDeviceType::Baseboard
        })
   {
     m_slot_combos[ExpansionInterface::Slot::SP1]->addItem(tr(fmt::format("{:n}", device).c_str()),
@@ -412,6 +413,10 @@ void GameCubePane::OnConfigPressed(ExpansionInterface::Slot slot)
   {
     BroadbandAdapterSettingsDialog dialog(this, BroadbandAdapterSettingsDialog::Type::BuiltIn);
     dialog.exec();
+    return;
+  }
+  case ExpansionInterface::EXIDeviceType::Baseboard:
+  {
     return;
   }
   default:

@@ -526,6 +526,25 @@ std::span<u8> MemoryManager::GetSpanForAddress(u32 address) const
                 LR(ppc_state));
   return {};
 }
+u8* MemoryManager::GetPointer(u32 address) const
+{
+  // TODO: Should we be masking off more bits here?  Can all devices access
+  // EXRAM?
+  address &= 0x3FFFFFFF;
+  if (address < GetRamSizeReal())
+    return m_ram + address;
+
+  if (m_exram)
+  {
+    if ((address >> 28) == 0x1 && (address & 0x0fffffff) < GetExRamSizeReal())
+      return m_exram + (address & GetExRamMask());
+  }
+
+  auto& ppc_state = m_system.GetPPCState();
+  PanicAlertFmt("Unknown Pointer {:#010x} PC {:#010x} LR {:#010x}", address, ppc_state.pc,
+    LR(ppc_state));
+  return nullptr;
+}
 
 u8 MemoryManager::Read_U8(u32 address) const
 {

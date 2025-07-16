@@ -16,6 +16,7 @@
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
 #include "Core/HW/EXI/EXI_DeviceModem.h"
+#include "Core/HW/EXI/EXI_DeviceBaseboard.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
 

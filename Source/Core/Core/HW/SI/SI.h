@@ -56,6 +56,7 @@ public:
   void RemoveEvent(int device_number);
 
   void UpdateDevices();
+  u32 GetInLength(void) const { return m_com_csr.INLNGTH; }
 
   void RemoveDevice(int device_number);
   void AddDevice(SIDevices device, int device_number);

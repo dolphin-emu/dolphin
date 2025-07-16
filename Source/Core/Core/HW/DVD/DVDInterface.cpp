@@ -28,6 +28,7 @@
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DVD/DVDMath.h"
+#include "Core/HW/DVD/AMMediaboard.h"
 #include "Core/HW/DVD/DVDThread.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/MMIO.h"
@@ -269,6 +270,8 @@ void DVDInterface::Init()
   m_DIIMMBUF = 0;
   m_DICFG.Hex = 0;
   m_DICFG.CONFIG = 1;  // Disable bootrom descrambler
+  m_DICFG.Hex |= 8;    /* The Triforce IPL checks this bit
+                          to set the physical memory to either 50MB(unset) or 24MB(set)  */
 
   ResetDrive(false);
 
@@ -282,6 +285,13 @@ void DVDInterface::Init()
 
   u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::TCINT);
   core_timing.ScheduleEvent(0, m_finish_executing_command, userdata);
+
+  const ExpansionInterface::EXIDeviceType Type = Config::Get(Config::MAIN_SERIAL_PORT_1);
+  m_enable_gcam = (Type == ExpansionInterface::EXIDeviceType::Baseboard) ? 1 : 0;
+  if (m_enable_gcam)
+  {
+    AMMediaboard::Init();
+  }
 }
 
 // Resets state on the MN102 chip in the drive itself, but not the DI registers exposed on the
@@ -752,6 +762,26 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
 {
   DIInterruptType interrupt_type = DIInterruptType::TCINT;
   bool command_handled_by_thread = false;
+
+  if (m_enable_gcam)
+  {
+    u32 ret = AMMediaboard::ExecuteCommand(m_DICMDBUF, m_DIMAR, m_DILENGTH);
+    if (ret != 1)
+    {
+      if (m_DICMDBUF[0] == 0x12000000)
+        m_DIIMMBUF = ret;
+
+      // Transfer is done
+      m_DICR.TSTART = 0;
+      m_DIMAR += m_DILENGTH;
+      m_DILENGTH = 0;
+      GenerateDIInterrupt(DIInterruptType::TCINT);
+      m_error_code = DriveError::None;
+      return;
+    }
+    m_DICMDBUF[1] >>= 2;
+    // Normal read command pass on to normal handling
+  }
 
   // Swaps endian of Triforce DI commands, and zeroes out random bytes to prevent unknown read
   // subcommand errors
