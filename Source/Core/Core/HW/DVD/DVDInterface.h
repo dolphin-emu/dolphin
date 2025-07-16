@@ -279,6 +279,9 @@ private:
   bool m_enable_dtk = false;
   u8 m_dtk_buffer_length = 0;  // TODO: figure out how this affects the regular buffer
 
+  // Triforce
+  bool m_enable_gcam = false;
+
   // Disc drive state
   DriveState m_drive_state = DriveState::Ready;
   DriveError m_error_code = DriveError::None;
