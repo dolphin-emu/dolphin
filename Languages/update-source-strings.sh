@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.."
 
 # Scan the source code for strings and put them in dolphin-emu.pot
 SRCDIR=Source
-find $SRCDIR -name '*.cpp' -o -name '*.h' -o -name '*.c' | \
+find $SRCDIR -name '*.cpp' -o -name '*.h' -o -name '*.c' | sort -fd | \
 	xgettext -s -p ./Languages/po -o dolphin-emu.pot --package-name="Dolphin Emulator" \
 	--keyword=_ \
 	--keyword=AskYesNoFmtT \
