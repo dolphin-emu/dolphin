@@ -89,7 +89,6 @@ public:
 
 private:
   void AddMemoryCard(Slot slot);
-  void AddSP1Device();
 
   static void ChangeDeviceCallback(Core::System& system, u64 userdata, s64 cycles_late);
   static void UpdateInterruptsCallback(Core::System& system, u64 userdata, s64 cycles_late);

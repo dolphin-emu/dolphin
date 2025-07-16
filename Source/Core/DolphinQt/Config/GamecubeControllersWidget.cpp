@@ -42,6 +42,7 @@ static constexpr std::array s_gc_types = {
 #endif
     SIDeviceName{SerialInterface::SIDEVICE_GC_GBA, _trans("GBA (TCP)")},
     SIDeviceName{SerialInterface::SIDEVICE_GC_KEYBOARD, _trans("Keyboard Controller")},
+    SIDeviceName{SerialInterface::SIDEVICE_AM_BASEBOARD, _trans("Triforce Baseboard")},
 };
 
 static std::optional<int> ToGCMenuIndex(const SerialInterface::SIDevices sidevice)
@@ -132,6 +133,7 @@ void GamecubeControllersWidget::OnGCPadConfigure(size_t index)
   case SerialInterface::SIDEVICE_NONE:
   case SerialInterface::SIDEVICE_GC_GBA:
     return;
+  case SerialInterface::SIDEVICE_AM_BASEBOARD:
   case SerialInterface::SIDEVICE_GC_CONTROLLER:
     type = MappingWindow::Type::MAPPING_GCPAD;
     break;

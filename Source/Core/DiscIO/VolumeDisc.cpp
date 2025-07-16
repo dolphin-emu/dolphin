@@ -12,12 +12,62 @@
 #include "DiscIO/DiscUtils.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
+#include "DiscIO/VolumeGC.h"
 
 namespace DiscIO
 {
 std::string VolumeDisc::GetGameID(const Partition& partition) const
 {
   char id[6];
+
+  if (GetVolumeType() == Platform::Triforce)
+  {
+    // Triforce games have their Game ID stored in the boot.id file
+    const BootID* boot_id = static_cast<const VolumeGC*>(this)->GetTriforceBootID();
+
+    // Construct game ID from the BTID
+    id[0] = 'G';
+
+    memcpy(id + 1, boot_id->gameId + 2, 2);
+
+    switch (boot_id->regionFlags)
+    {
+    default:
+    case 0x02:  // JAPAN
+      id[3] = 'J';
+      break;
+    case 0x08:  // ASIA
+      id[3] = 'W';
+      break;
+    case 0x0E:  // USA
+      id[3] = 'E';
+      break;
+    case 0x0C:  // EXPORT
+      id[3] = 'P';
+      break;
+    }
+
+    // There only seem to be three different makers here,
+    // so we can just check the first char to difference between them.
+    //
+    // NAMCO CORPORATION, SEGA CORPORATION and Hitmaker co,ltd.
+
+    switch (boot_id->manufacturer[0])
+    {
+    case 'N':  // NAMCO CORPORATION
+      id[4] = '8';
+      id[5] = '2';
+      break;
+    default:
+    case 'H':  // Hitmaker co,ltd.
+    case 'S':  // SEGA CORPORATION
+      id[4] = '6';
+      id[5] = 'E';
+      break;
+    }
+
+    return DecodeString(id);
+  }
 
   if (!Read(0, sizeof(id), reinterpret_cast<u8*>(id), partition))
     return std::string();
@@ -27,8 +77,35 @@ std::string VolumeDisc::GetGameID(const Partition& partition) const
 
 Country VolumeDisc::GetCountry(const Partition& partition) const
 {
-  // The 0 that we use as a default value is mapped to Country::Unknown and Region::Unknown
-  const u8 country_byte = ReadSwapped<u8>(3, partition).value_or(0);
+  u8 country_byte = 0;
+
+  if (GetVolumeType() == Platform::Triforce)
+  {
+    const BootID* boot_id = static_cast<const VolumeGC*>(this)->GetTriforceBootID();
+
+    switch (boot_id->regionFlags)
+    {
+    default:
+    case 0x02:  // JAPAN
+      country_byte = 'J';
+      break;
+    case 0x08:  // ASIA
+      country_byte = 'W';
+      break;
+    case 0x0E:  // USA
+      country_byte = 'E';
+      break;
+    case 0x0C:  // EXPORT
+      country_byte = 'P';
+      break;
+    }
+  }
+  else
+  {
+    // The 0 that we use as a default value is mapped to Country::Unknown and Region::Unknown
+    country_byte = ReadSwapped<u8>(3, partition).value_or(0);
+  }
+
   const Region region = GetRegion();
   const std::optional<u16> revision = GetRevision();
 
@@ -51,6 +128,24 @@ std::string VolumeDisc::GetMakerID(const Partition& partition) const
 {
   char maker_id[2];
 
+  // Triforce games have their maker stored in the boot.id file as an actual string
+  if (GetVolumeType() == Platform::Triforce)
+  {
+    const BootID* boot_id = static_cast<const VolumeGC*>(this)->GetTriforceBootID();
+
+    switch (boot_id->manufacturer[0])
+    {
+    case 'S':  // SEGA CORPORATION
+    case 'H':  // Hitmaker co,ltd
+      return DecodeString("6E");
+    case 'N':  // NAMCO CORPORATION
+      return DecodeString("82");
+    default:
+      break;
+    }
+    // Fall back to normal maker from header
+  }
+
   if (!Read(0x4, sizeof(maker_id), reinterpret_cast<u8*>(&maker_id), partition))
     return std::string();
 
@@ -66,6 +161,14 @@ std::optional<u16> VolumeDisc::GetRevision(const Partition& partition) const
 std::string VolumeDisc::GetInternalName(const Partition& partition) const
 {
   char name[0x60];
+
+  // Triforce games have their Title stored in the boot.id file
+  if (GetVolumeType() == Platform::Triforce)
+  {
+    const BootID* boot_id = static_cast<const VolumeGC*>(this)->GetTriforceBootID();
+    return DecodeString(boot_id->gameName);
+  }
+
   if (!Read(0x20, sizeof(name), reinterpret_cast<u8*>(&name), partition))
     return std::string();
 

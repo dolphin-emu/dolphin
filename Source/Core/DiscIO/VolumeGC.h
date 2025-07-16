@@ -34,7 +34,6 @@ public:
             const Partition& partition = PARTITION_NONE) const override;
   const FileSystem* GetFileSystem(const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const override;
-  std::string GetTriforceID() const override;
   std::map<Language, std::string> GetShortNames() const override;
   std::map<Language, std::string> GetLongNames() const override;
   std::map<Language, std::string> GetShortMakers() const override;
@@ -50,8 +49,9 @@ public:
   DataSizeType GetDataSizeType() const override;
   u64 GetRawSize() const override;
   const BlobReader& GetBlobReader() const override;
-
   std::array<u8, 20> GetSyncHash() const override;
+
+  const BootID* GetTriforceBootID() const { return &m_triforce_header; }
 
 private:
   static constexpr u32 GC_BANNER_WIDTH = 96;
@@ -75,13 +75,6 @@ private:
     u16 image[GC_BANNER_WIDTH * GC_BANNER_HEIGHT];  // RGB5A3 96x32 image
     GCBannerInformation information[6];             // information comes in six languages
                                                     // (only one for BNR1 type)
-  };
-
-  struct BootID
-  {
-    u32 magic;  // "BTID"
-    u32 padding[11];
-    std::array<char, 4> id;
   };
 
   struct ConvertedGCBanner
@@ -112,8 +105,9 @@ private:
 
   std::unique_ptr<BlobReader> m_reader;
 
+  BootID m_triforce_header;
+
   bool m_is_triforce;
-  std::array<char, 4> m_triforce_id;
 };
 
 }  // namespace DiscIO

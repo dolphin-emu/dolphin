@@ -279,6 +279,7 @@
     <ClInclude Include="Core\HW\DSPLLE\DSPDebugInterface.h" />
     <ClInclude Include="Core\HW\DSPLLE\DSPLLE.h" />
     <ClInclude Include="Core\HW\DSPLLE\DSPSymbols.h" />
+    <ClInclude Include="Core\HW\DVD\AMMediaboard.h" />
     <ClInclude Include="Core\HW\DVD\DVDInterface.h" />
     <ClInclude Include="Core\HW\DVD\DVDMath.h" />
     <ClInclude Include="Core\HW\DVD\DVDThread.h" />
@@ -322,6 +323,7 @@
     <ClInclude Include="Core\HW\MMIOHandlers.h" />
     <ClInclude Include="Core\HW\ProcessorInterface.h" />
     <ClInclude Include="Core\HW\SI\SI_Device.h" />
+    <ClInclude Include="Core\HW\SI\SI_DeviceAMBaseboard.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceDanceMat.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceGBA.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceGBAEmu.h" />
@@ -971,6 +973,7 @@
     <ClCompile Include="Core\HW\DSPLLE\DSPHost.cpp" />
     <ClCompile Include="Core\HW\DSPLLE\DSPLLE.cpp" />
     <ClCompile Include="Core\HW\DSPLLE\DSPSymbols.cpp" />
+    <ClCompile Include="Core\HW\DVD\AMMediaboard.cpp" />
     <ClCompile Include="Core\HW\DVD\DVDInterface.cpp" />
     <ClCompile Include="Core\HW\DVD\DVDMath.cpp" />
     <ClCompile Include="Core\HW\DVD\DVDThread.cpp" />
@@ -1017,6 +1020,7 @@
     <ClCompile Include="Core\HW\MMIO.cpp" />
     <ClCompile Include="Core\HW\ProcessorInterface.cpp" />
     <ClCompile Include="Core\HW\SI\SI_Device.cpp" />
+    <ClCompile Include="Core\HW\SI\SI_DeviceAMBaseboard.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceDanceMat.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceGBA.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceGBAEmu.cpp" />

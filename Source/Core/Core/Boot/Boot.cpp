@@ -36,6 +36,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HLE/HLE.h"
+#include "Core/HW/DVD/AMMediaboard.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
@@ -373,7 +374,8 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
   constexpr u32 PAL_v1_0 = 0x4F319F43;
   // DOL-101(EUR) (PAL Revision 1.2)
   constexpr u32 PAL_v1_2 = 0xAD1B7F16;
-  constexpr u32 Triforce = 0xD1883221;  // The Triforce's special IPL
+  // Triforce Arcade IPL (DEV Revision 1.0)
+  constexpr u32 Triforce = 0xD1883221;
 
   // Load the IPL ROM dump, limited to 2MiB which is the size of the official IPLs.
   constexpr size_t max_ipl_size = 2 * 1024 * 1024;
@@ -407,6 +409,7 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
     break;
   case Triforce:
     known_ipl = true;
+    break;
   default:
     PanicAlertFmtT("The IPL file is not a known good dump. (CRC32: {0:x})", ipl_hash);
     break;
@@ -457,6 +460,14 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
   ppc_state.spr[SPR_DBAT3L] = 0xfff00001;
   SetupBAT(system, /*is_wii*/ false);
 
+  if (ipl_hash == Triforce)
+  {
+    HLE::Patch(system, 0x813048B8, "OSReport");
+    HLE::Patch(system, 0x8130095C, "OSReport");  // Apploader
+
+    AMMediaboard::FirmwareMap(true);
+  }
+
   ppc_state.pc = 0x81200150;
 
   system.GetPowerPC().MSRUpdated();
@@ -489,6 +500,12 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
                    std::unique_ptr<BootParameters> boot)
 {
   SConfig& config = SConfig::GetInstance();
+
+  // Triforce systems are region free and always must use the NTSC video mode
+  if (system.IsTriforce())
+  {
+    config.m_region = DiscIO::Region::NTSC_J;
+  }
 
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
   system.GetVideoInterface().Preset(DiscIO::IsNTSC(config.m_region) ||
