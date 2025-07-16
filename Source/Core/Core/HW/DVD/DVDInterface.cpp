@@ -26,6 +26,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/AudioInterface.h"
+#include "Core/HW/DVD/AMMediaboard.h"
 #include "Core/HW/DVD/DVDMath.h"
 #include "Core/HW/DVD/DVDThread.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
@@ -281,6 +282,16 @@ void DVDInterface::Init()
 
   u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::TCINT);
   core_timing.ScheduleEvent(0, m_finish_executing_command, userdata);
+
+  if (m_system.IsTriforce())
+  {
+    AMMediaboard::Init();
+
+    // The Triforce IPL expects the cover to be closed
+    m_DICVR.Hex = 0;
+    m_DICFG.Hex |= 8; /* The Triforce IPL checks this bit
+                       to set the physical memory to either 50MB(unset) or 24MB(set)  */
+  }
 }
 
 // Resets state on the MN102 chip in the drive itself, but not the DI registers exposed on the
@@ -310,7 +321,7 @@ void DVDInterface::ResetDrive(bool spinup)
   else if (!spinup)
   {
     // Wii hardware tests indicate that this is used when ejecting and inserting a new disc, or
-    // performing a reset without spinup.
+    // performing a reset without spin up.
     SetDriveState(DriveState::DiscChangeDetected);
   }
   else
@@ -697,11 +708,16 @@ bool DVDInterface::CheckReadPreconditions()
     SetDriveError(DriveError::MotorStopped);
     return false;
   }
-  if (m_drive_state == DriveState::DiscIdNotRead)
+
+  // SegaBoot doesn't read the Disc ID
+  if (!m_system.IsTriforce())
   {
-    ERROR_LOG_FMT(DVDINTERFACE, "Disc id not read.");
-    SetDriveError(DriveError::NoDiscID);
-    return false;
+    if (m_drive_state == DriveState::DiscIdNotRead)
+    {
+      ERROR_LOG_FMT(DVDINTERFACE, "Disc id not read.");
+      SetDriveError(DriveError::NoDiscID);
+      return false;
+    }
   }
   return true;
 }
@@ -753,12 +769,19 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
   DIInterruptType interrupt_type = DIInterruptType::TCINT;
   bool command_handled_by_thread = false;
 
-  // Swaps endian of Triforce DI commands, and zeroes out random bytes to prevent unknown read
-  // subcommand errors
-  auto& dvd_thread = m_system.GetDVDThread();
-  if (dvd_thread.HasDisc() && dvd_thread.GetDiscType() == DiscIO::Platform::Triforce)
+  if (m_system.IsTriforce())
   {
-    // TODO(C++23): Use std::byteswap and a bitwise AND for increased clarity
+    if (!AMMediaboard::ExecuteCommand(m_DICMDBUF, &m_DIIMMBUF, m_DIMAR, m_DILENGTH))
+    {
+      // Transfer is done
+      m_DICR.TSTART = 0;
+      m_DIMAR += m_DILENGTH;
+      m_DILENGTH = 0;
+      GenerateDIInterrupt(DIInterruptType::TCINT);
+      m_error_code = DriveError::None;
+      return;
+    }
+    // Normal read command pass on to normal handling
     m_DICMDBUF[0] <<= 24;
   }
 

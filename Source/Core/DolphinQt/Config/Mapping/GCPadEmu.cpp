@@ -8,6 +8,10 @@
 
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
+#include "Core/HW/SI/SI.h"
+#include "Core/HW/SI/SI_DeviceAMBaseboard.h"
+
+#include "Core/Config/MainSettings.h"
 
 #include "InputCommon/InputConfig.h"
 
@@ -22,8 +26,15 @@ void GCPadEmu::CreateMainLayout()
 
   layout->addWidget(CreateGroupBox(tr("Buttons"), Pad::GetGroup(GetPort(), PadGroup::Buttons)), 0,
                     0);
-  layout->addWidget(CreateGroupBox(tr("D-Pad"), Pad::GetGroup(GetPort(), PadGroup::DPad)), 1, 0, -1,
-                    1);
+  layout->addWidget(CreateGroupBox(tr("D-Pad"), Pad::GetGroup(GetPort(), PadGroup::DPad)), 1, 0);
+
+  if (Config::Get(Config::GetInfoForSIDevice(0)) ==
+      SerialInterface::SIDevices::SIDEVICE_AM_BASEBOARD)
+  {
+    layout->addWidget(CreateGroupBox(tr("Triforce"), Pad::GetGroup(GetPort(), PadGroup::Triforce)),
+                      2, 0);
+  }
+
   layout->addWidget(
       CreateGroupBox(tr("Control Stick"), Pad::GetGroup(GetPort(), PadGroup::MainStick)), 0, 1, -1,
       1);

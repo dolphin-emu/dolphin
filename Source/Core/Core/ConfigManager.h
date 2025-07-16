@@ -54,7 +54,6 @@ struct SConfig
   // files
   std::string m_strBootROM;
   std::string m_strSRAM;
-
   std::string m_debugger_game_id;
 
   // TODO: remove this as soon as the ticket view hack in IOS/ES/Views is dropped.
@@ -64,7 +63,6 @@ struct SConfig
   const std::string GetGameTDBID() const;
   const std::string GetTitleName() const;
   const std::string GetTitleDescription() const;
-  std::string GetTriforceID() const;
   u64 GetTitleID() const;
   u16 GetRevision() const;
   void ResetRunningGameMetadata();
@@ -121,15 +119,13 @@ private:
   static void ReloadTextures(Core::System& system);
 
   void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
-                              std::string triforce_id, u64 title_id, u16 revision,
-                              DiscIO::Region region);
+                              u64 title_id, u16 revision, DiscIO::Region region);
 
   static SConfig* m_Instance;
   mutable std::recursive_mutex m_metadata_lock;
 
   std::string m_game_id;
   std::string m_gametdb_id;
-  std::string m_triforce_id;
   std::string m_title_name;
   std::string m_title_description;
   u64 m_title_id;

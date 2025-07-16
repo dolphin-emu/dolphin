@@ -26,6 +26,9 @@
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
+#include "Core/HW/SI/SI.h"
+#include "Core/HW/SI/SI_DeviceAMBaseboard.h"
+
 #include "DolphinQt/Config/Mapping/FreeLookGeneral.h"
 #include "DolphinQt/Config/Mapping/FreeLookRotation.h"
 #include "DolphinQt/Config/Mapping/GBAPadEmu.h"
@@ -458,8 +461,17 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
   case Type::MAPPING_GC_DANCEMAT:
   case Type::MAPPING_GCPAD:
     widget = new GCPadEmu(this);
-    setWindowTitle(tr("GameCube Controller at Port %1").arg(GetPort() + 1));
-    AddWidget(tr("GameCube Controller"), widget);
+    if (Config::Get(Config::GetInfoForSIDevice(GetPort())) ==
+        SerialInterface::SIDevices::SIDEVICE_AM_BASEBOARD)
+    {
+      setWindowTitle(tr("Triforce Baseboard at Port %1").arg(GetPort() + 1));
+      AddWidget(tr("Triforce Baseboard"), widget);
+    }
+    else
+    {
+      setWindowTitle(tr("GameCube Controller at Port %1").arg(GetPort() + 1));
+      AddWidget(tr("GameCube Controller"), widget);
+    }
     break;
   case Type::MAPPING_GC_MICROPHONE:
     widget = new GCMicrophone(this);
