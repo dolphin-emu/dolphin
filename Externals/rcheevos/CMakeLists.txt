@@ -13,7 +13,6 @@ add_library(rcheevos
 	rcheevos/include/rcheevos.h
 	rcheevos/include/rc_runtime.h
 	rcheevos/include/rc_runtime_types.h
-	rcheevos/include/rc_url.h
 	rcheevos/include/rc_util.h
 	rcheevos/src/rapi/rc_api_common.c
 	rcheevos/src/rapi/rc_api_common.h
@@ -41,10 +40,10 @@ add_library(rcheevos
 	rcheevos/src/rhash/aes.h
 	rcheevos/src/rhash/cdreader.c
 	rcheevos/src/rhash/hash.c
+	rcheevos/src/rhash/hash_disc.c
 	rcheevos/src/rhash/md5.c
 	rcheevos/src/rhash/md5.h
 	rcheevos/src/rhash/rc_hash_internal.h
-	rcheevos/src/rurl/url.c
 	rcheevos/src/rc_client.c
 	rcheevos/src/rc_client_external.c
 	rcheevos/src/rc_client_external.h
