@@ -213,8 +213,7 @@ void Init(void)
     PanicAlertFmt("Failed to open/create: {}", base_path + "s_backup.bin");
 
   // This is the firmware for the Triforce
-  const std::string sega_boot_filename =
-      File::GetSysDirectory() + TRI_SYS_DIR + DIR_SEP + "segaboot.gcm";
+  const std::string sega_boot_filename = base_path + "segaboot.gcm";
 
   if (!File::Exists(sega_boot_filename))
   {
@@ -262,7 +261,7 @@ static s32 NetDIMMAccept(int fd, struct sockaddr* addr, int* len)
 
   timeval timeout;
   timeout.tv_sec = 0;
-  timeout.tv_usec = 20000;  // 20 milliseconds
+  timeout.tv_usec = 10000;  // 10 milliseconds
 
   int result = select(0, &readfds, NULL, NULL, &timeout);
   if (result > 0 && FD_ISSET(fd, &readfds))
