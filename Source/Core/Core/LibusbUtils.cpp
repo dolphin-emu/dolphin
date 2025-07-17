@@ -12,6 +12,7 @@
 
 #include "Common/Assert.h"
 #include "Common/Flag.h"
+#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 
 namespace LibusbUtils
@@ -145,4 +146,54 @@ const char* ErrorWrap::GetStrError() const
   return "__LIBUSB__ not defined";
 #endif
 }
+
+std::optional<std::string> GetStringDescriptor(libusb_device_handle* dev_handle, uint8_t desc_index)
+{
+#if defined(__LIBUSB__)
+  struct StringDescriptor
+  {
+    u8 length;
+    u8 descriptor_type;
+    char16_t data[127];
+  };
+
+  StringDescriptor buffer{};
+
+  // Reading lang ID 0 returns a list of lang IDs.
+  const auto lang_id_result = libusb_get_string_descriptor(
+      dev_handle, desc_index, 0, reinterpret_cast<unsigned char*>(&buffer), 4);
+
+  if (lang_id_result != 4 || buffer.length < 4 || buffer.descriptor_type != LIBUSB_DT_STRING)
+  {
+    ERROR_LOG_FMT(IOS_USB, "libusb_get_string_descriptor(desc_index={}, lang_id=0) result:{}",
+                  int(desc_index), lang_id_result);
+    return std::nullopt;
+  }
+
+  const u16 lang_id = buffer.data[0];
+
+  const auto str_result = libusb_get_string_descriptor(
+      dev_handle, desc_index, lang_id, reinterpret_cast<unsigned char*>(&buffer), 255);
+
+  if (str_result < 2 || buffer.length > str_result || buffer.descriptor_type != LIBUSB_DT_STRING)
+  {
+    ERROR_LOG_FMT(IOS_USB, "libusb_get_string_descriptor(desc_index={}, lang_id={}) result:{}",
+                  int(desc_index), lang_id, str_result);
+    return std::nullopt;
+  }
+
+  // The UTF-16 data size should be even and equal to the return value.
+  if ((buffer.length & 1u) != 0 || buffer.length != str_result)
+  {
+    WARN_LOG_FMT(IOS_USB, "GetStringDescriptor: buffer.length:{} result:{}", buffer.length,
+                 str_result);
+  }
+
+  const std::size_t str_length = std::max(0, buffer.length - 2) / 2;
+  return UTF16ToUTF8(std::u16string_view{buffer.data, str_length});
+#else
+  return "__LIBUSB__ not defined";
+#endif
+}
+
 }  // namespace LibusbUtils
