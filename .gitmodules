@@ -93,3 +93,6 @@
 [submodule "Externals/zstd/zstd"]
 	path = Externals/zstd/zstd
 	url = https://github.com/facebook/zstd.git
+[submodule "Externals/miniupnpc/miniupnp"]
+	path = Externals/miniupnpc/miniupnp
+	url = https://github.com/miniupnp/miniupnp.git
