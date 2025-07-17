@@ -55,7 +55,7 @@ enum
 
 namespace KeyboardLayout
 {
-enum
+enum LayoutEnum
 {
   AUTO = 0,
   QWERTY = 1,
