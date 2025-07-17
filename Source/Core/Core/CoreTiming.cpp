@@ -282,7 +282,7 @@ void CoreTimingManager::ScheduleEvent(s64 cycles_into_future, EventType* event_t
     }
 
     std::lock_guard lk(m_ts_write_lock);
-    m_ts_queue.Push(Event{m_globals.global_timer + cycles_into_future, 0, userdata, event_type});
+    m_ts_queue.Push(Event{cycles_into_future, 0, userdata, event_type});
   }
 }
 
@@ -319,10 +319,14 @@ void CoreTimingManager::ForceExceptionCheck(s64 cycles)
 
 void CoreTimingManager::MoveEvents()
 {
-  for (Event ev; m_ts_queue.Pop(ev);)
+  while (!m_ts_queue.Empty())
   {
+    auto& ev = m_event_queue.emplace_back(m_ts_queue.Front());
+    m_ts_queue.Pop();
+
     ev.fifo_order = m_event_fifo_id++;
-    m_event_queue.emplace_back(std::move(ev));
+    ev.time += m_globals.global_timer;
+
     std::ranges::push_heap(m_event_queue, std::ranges::greater{});
   }
 }
