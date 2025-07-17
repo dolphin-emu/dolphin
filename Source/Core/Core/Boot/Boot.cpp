@@ -38,6 +38,7 @@
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/DVD/AMMediaboard.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
@@ -408,6 +409,7 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
     break;
   case Triforce:
     known_ipl = true;
+    break;
   default:
     PanicAlertFmtT("The IPL file is not a known good dump. (CRC32: {0:x})", ipl_hash);
     break;
@@ -457,6 +459,14 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
   ppc_state.spr[SPR_DBAT3U] = 0xfff0001f;
   ppc_state.spr[SPR_DBAT3L] = 0xfff00001;
   SetupBAT(system, /*is_wii*/ false);
+
+  if (ipl_hash == Triforce)
+  {
+    HLE::Patch(system, 0x813048B8, "OSReport");
+    HLE::Patch(system, 0x8130095C, "OSReport");  // Apploader
+
+    AMMediaboard::FirmwareMap(true);
+  }
 
   ppc_state.pc = 0x81200150;
 

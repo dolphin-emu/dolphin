@@ -310,6 +310,9 @@ void MenuBar::AddToolsMenu()
   m_pal_ipl =
       gc_ipl->addAction(tr("PAL"), this, [this] { emit BootGameCubeIPL(DiscIO::Region::PAL); });
 
+  m_dev_ipl =
+    gc_ipl->addAction(tr("Triforce"), this, [this] { emit BootGameCubeIPL(DiscIO::Region::DEV); });
+
   tools_menu->addAction(tr("Memory Card Manager"), this, [this] { emit ShowMemcardManager(); });
 
   tools_menu->addSeparator();

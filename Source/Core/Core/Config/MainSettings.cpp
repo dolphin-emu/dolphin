@@ -640,6 +640,9 @@ const char* GetDirectoryForRegion(DiscIO::Region region, RegionDirectoryStyle st
     ASSERT_MSG(BOOT, false, "NTSC-K is not a valid GameCube region");
     return style == RegionDirectoryStyle::Legacy ? JAP_DIR : JPN_DIR;
 
+  case DiscIO::Region::DEV:
+    return DEV_DIR;
+
   default:
     ASSERT_MSG(BOOT, false, "Default case should not be reached");
     return EUR_DIR;
