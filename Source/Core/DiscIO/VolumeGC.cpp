@@ -29,6 +29,8 @@
 
 namespace DiscIO
 {
+  Region g_triforce_region;
+
 VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader)
     : m_reader(std::move(reader)), m_is_triforce(false)
 {
@@ -40,6 +42,7 @@ VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader)
   };
 
   m_converted_banner = [this] { return LoadBannerFile(); };
+  g_triforce_region = Region::Unknown;
 
   constexpr u32 BTID_MAGIC = 0x44495442;
   auto tmp_fs = GetFileSystem(PARTITION_NONE);
@@ -103,6 +106,9 @@ std::string VolumeGC::GetTriforceID() const
 
 Region VolumeGC::GetRegion() const
 {
+  if (g_triforce_region != Region::Unknown)
+    return g_triforce_region;
+
   return RegionCodeToRegion(m_reader->ReadSwapped<u32>(0x458));
 }
 
@@ -187,6 +193,32 @@ std::array<u8, 20> VolumeGC::GetSyncHash() const
 
 VolumeGC::ConvertedGCBanner VolumeGC::LoadBannerFile() const
 {
+  /*
+   There is at least one Triforce game that has an opening.bnr file but from a different game.
+   Check for boot.id and then just skip loading the banner.
+ */
+  u8 bootid[0x1E0];
+  const u64 bootid_size = ReadFile(*this, PARTITION_NONE, "boot.id", reinterpret_cast<u8*>(&bootid), sizeof(bootid));
+  if (bootid_size)
+  {
+    // Load region from the file
+    switch (bootid[0x38])
+    {
+      default:
+      case 0x02:  // JAPAN
+      case 0x08:  // ASIA
+      g_triforce_region = Region::NTSC_J;
+      break;
+      case 0x0E:  // USA
+      g_triforce_region = Region::NTSC_U;
+      break;
+      case 0x0C:  // EXPORT
+      g_triforce_region = Region::PAL;
+      break;
+    }
+
+    return {};
+  }
   GCBanner banner_file;
   const u64 file_size = ReadFile(*this, PARTITION_NONE, "opening.bnr",
                                  reinterpret_cast<u8*>(&banner_file), sizeof(GCBanner));

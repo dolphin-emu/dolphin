@@ -83,6 +83,7 @@ namespace AMMediaboard
 
 static bool s_firmwaremap = false;
 static bool s_segaboot = false;
+static bool s_test_menu = false;
 static SOCKET s_namco_cam = 0;
 static u32 s_timeouts[3] = {20000, 20000, 20000};
 static u32 s_last_error = SSC_SUCCESS;
@@ -186,6 +187,7 @@ void Init(void)
 
   s_segaboot = false;
   s_firmwaremap = false;
+  s_test_menu = false;
 
   s_last_error = SSC_SUCCESS;
 
@@ -230,6 +232,8 @@ void Init(void)
 
   u64 length = std::min<u64>(sega_boot.GetSize(), sizeof(s_firmware));
   sega_boot.ReadBytes(s_firmware, length);
+
+  s_test_menu = true;
 }
 
 u8* InitDIMM(u32 size)
@@ -305,7 +309,7 @@ static s32 NetDIMMConnect(int fd, struct sockaddr_in* addr, int len)
   {
     addr->sin_addr.s_addr = inet_addr("127.0.0.1");
     /*
-      BUG: An invalid family value is used
+      BUG: An invalid family value is being used
     */
     addr->sin_family = htons(AF_INET);
     s_namco_cam = fd;
@@ -395,50 +399,32 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
-  auto& ppc_state = system.GetPPCState();
-  auto& jit_interface = system.GetJitInterface();
-
-  /*
-    The triforce IPL sends these commands first
-    01010000 00000101 00000000
-    01010000 00000000 0000ffff
-  */
-  if (s_GCAM_key_a == 0)
-  {
-    /*
-      Since it is currently unknown how the seed is created
-      we have to patch out the crypto.
-    */
-    if (memory.Read_U32(0x8131ecf4))
-    {
-      memory.Write_U32(0, 0x8131ecf4);
-      memory.Write_U32(0, 0x8131ecf8);
-      memory.Write_U32(0, 0x8131ecfC);
-      memory.Write_U32(0, 0x8131ebe0);
-      memory.Write_U32(0, 0x8131ed6c);
-      memory.Write_U32(0, 0x8131ed70);
-      memory.Write_U32(0, 0x8131ed74);
-
-      memory.Write_U32(0x4E800020, 0x813025C8);
-      memory.Write_U32(0x4E800020, 0x81302674);
-
-      ppc_state.iCache.Invalidate(memory, jit_interface, 0x813025C8);
-      ppc_state.iCache.Invalidate(memory, jit_interface, 0x81302674);
-
-      HLE::Patch(system, 0x813048B8, "OSReport");
-      HLE::Patch(system, 0x8130095C, "OSReport");  // Apploader
-    }
-  }
 
   DICMDBUF[0] ^= s_GCAM_key_a;
   DICMDBUF[1] ^= s_GCAM_key_b;
-  // length ^= s_GCAM_key_c; // DMA length is always plain
+  DICMDBUF[2] ^= s_GCAM_key_c;
 
   u32 seed = DICMDBUF[0] >> 16;
 
   s_GCAM_key_a *= seed;
   s_GCAM_key_b *= seed;
   s_GCAM_key_c *= seed;
+
+  /*
+     Key setup for Triforce IPL:
+     These RAM offset always hold the keys for the next command and since it sends two dummy
+     commands before a real read we can just use the key from RAM without missing any real commands.
+  */
+  if (s_GCAM_key_a == 0)
+  {
+    if (memory.Read_U32(0))
+    {
+      HLE::Patch(system, 0x813048B8, "OSReport");
+      HLE::Patch(system, 0x8130095C, "OSReport");  // Apploader
+
+      InitKeys(memory.Read_U32(0), memory.Read_U32(4), memory.Read_U32(8));
+    }
+  }
 
   DICMDBUF[0] <<= 24;
   DICMDBUF[1] <<= 2;
@@ -669,7 +655,6 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
       // Empty reply
       case AMMBCommand::Unknown_103:
         break;
-      // Network Commands
       case AMMBCommand::Accept:
       {
         u32 fd = s_sockets[SocketCheck(media_buffer_32[2])];
@@ -710,8 +695,8 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
         *(u32*)(&addr.sin_addr) = Common::swap32(*(u32*)(&addr.sin_addr));
 
         /*
-          Triforce games usually use hardcoded IPs
-          This is replaced to listen to the ANY address instead
+          Triforce titles typically rely on hardcoded IP addresses.
+          This behavior has been modified to bind to the wildcard address instead.
         */
         addr.sin_addr.s_addr = INADDR_ANY;
 
@@ -1825,7 +1810,10 @@ u32 GetGameType(void)
   }
   // never reached
 }
-
+bool GetTestMenu(void)
+{
+  return s_test_menu;
+}
 void Shutdown(void)
 {
   if (s_netcfg)
