@@ -128,7 +128,7 @@ void HashSignatureDB::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symb
     for (const auto& function : symbol_db->GetSymbolsFromHash(entry.first))
     {
       // Found the function. Let's rename it according to the symbol file.
-      function->Rename(entry.second.name);
+      symbol_db->RenameSymbol(*function, entry.second.name);
       if (entry.second.size == static_cast<unsigned int>(function->size))
       {
         INFO_LOG_FMT(SYMBOLS, "Found {} at {:08x} (size: {:08x})!", entry.second.name,
@@ -146,18 +146,17 @@ void HashSignatureDB::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symb
 
 void HashSignatureDB::Populate(const PPCSymbolDB* symbol_db, const std::string& filter)
 {
-  for (const auto& symbol : symbol_db->Symbols())
-  {
-    if ((filter.empty() && (!symbol.second.name.empty()) &&
-         symbol.second.name.substr(0, 3) != "zz_" && symbol.second.name.substr(0, 1) != ".") ||
-        ((!filter.empty()) && symbol.second.name.substr(0, filter.size()) == filter))
+  symbol_db->ForEachSymbol([&](const Common::Symbol& symbol) {
+    if ((filter.empty() && (!symbol.name.empty()) && symbol.name.substr(0, 3) != "zz_" &&
+         symbol.name.substr(0, 1) != ".") ||
+        ((!filter.empty()) && symbol.name.substr(0, filter.size()) == filter))
     {
       DBFunc temp_dbfunc;
-      temp_dbfunc.name = symbol.second.name;
-      temp_dbfunc.size = symbol.second.size;
-      m_database[symbol.second.hash] = temp_dbfunc;
+      temp_dbfunc.name = symbol.name;
+      temp_dbfunc.size = symbol.size;
+      m_database[symbol.hash] = temp_dbfunc;
     }
-  }
+  });
 }
 
 u32 HashSignatureDB::ComputeCodeChecksum(const Core::CPUThreadGuard& guard, u32 offsetStart,

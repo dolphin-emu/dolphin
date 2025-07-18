@@ -35,8 +35,10 @@ PPCSymbolDB::PPCSymbolDB() = default;
 PPCSymbolDB::~PPCSymbolDB() = default;
 
 // Adds the function to the list, unless it's already there
-Common::Symbol* PPCSymbolDB::AddFunction(const Core::CPUThreadGuard& guard, u32 start_addr)
+const Common::Symbol* PPCSymbolDB::AddFunction(const Core::CPUThreadGuard& guard, u32 start_addr)
 {
+  std::lock_guard lock(m_mutex);
+
   // It's already in the list
   if (m_functions.contains(start_addr))
     return nullptr;
@@ -56,8 +58,18 @@ void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAdd
                                  const std::string& name, const std::string& object_name,
                                  Common::Symbol::Type type)
 {
-  auto iter = m_functions.find(startAddr);
-  if (iter != m_functions.end())
+  std::lock_guard lock(m_mutex);
+  AddKnownSymbol(guard, startAddr, size, name, object_name, type, &m_functions,
+                 &m_checksum_to_function);
+}
+
+void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAddr, u32 size,
+                                 const std::string& name, const std::string& object_name,
+                                 Common::Symbol::Type type, XFuncMap* functions,
+                                 XFuncPtrMap* checksum_to_function)
+{
+  auto iter = functions->find(startAddr);
+  if (iter != functions->end())
   {
     // already got it, let's just update name, checksum & size to be sure.
     Common::Symbol* tempfunc = &iter->second;
@@ -70,7 +82,7 @@ void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAdd
   else
   {
     // new symbol. run analyze.
-    auto& new_symbol = m_functions.emplace(startAddr, name).first->second;
+    auto& new_symbol = functions->emplace(startAddr, name).first->second;
     new_symbol.object_name = object_name;
     new_symbol.type = type;
     new_symbol.address = startAddr;
@@ -85,7 +97,7 @@ void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAdd
                      name, size, new_symbol.size);
         new_symbol.size = size;
       }
-      m_checksum_to_function[new_symbol.hash].insert(&new_symbol);
+      (*checksum_to_function)[new_symbol.hash].insert(&new_symbol);
     }
     else
     {
@@ -96,9 +108,15 @@ void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAdd
 
 void PPCSymbolDB::AddKnownNote(u32 start_addr, u32 size, const std::string& name)
 {
-  auto iter = m_notes.find(start_addr);
+  std::lock_guard lock(m_mutex);
+  AddKnownNote(start_addr, size, name, &m_notes);
+}
 
-  if (iter != m_notes.end())
+void PPCSymbolDB::AddKnownNote(u32 start_addr, u32 size, const std::string& name, XNoteMap* notes)
+{
+  auto iter = notes->find(start_addr);
+
+  if (iter != notes->end())
   {
     // Already got it, just update the name and size.
     Common::Note* tempfunc = &iter->second;
@@ -112,35 +130,38 @@ void PPCSymbolDB::AddKnownNote(u32 start_addr, u32 size, const std::string& name
     tf.address = start_addr;
     tf.size = size;
 
-    m_notes[start_addr] = tf;
+    (*notes)[start_addr] = tf;
   }
 }
 
 void PPCSymbolDB::DetermineNoteLayers()
 {
-  if (m_notes.empty())
+  std::lock_guard lock(m_mutex);
+  DetermineNoteLayers(&m_notes);
+}
+
+void PPCSymbolDB::DetermineNoteLayers(XNoteMap* notes)
+{
+  if (notes->empty())
     return;
 
-  for (auto& note : m_notes)
+  for (auto& note : *notes)
     note.second.layer = 0;
 
-  for (auto iter = m_notes.begin(); iter != m_notes.end(); ++iter)
+  for (auto iter = notes->begin(); iter != notes->end(); ++iter)
   {
     const u32 range = iter->second.address + iter->second.size;
-    auto search = m_notes.lower_bound(range);
+    auto search = notes->lower_bound(range);
 
     while (--search != iter)
       search->second.layer += 1;
   }
 }
 
-Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
+const Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr) const
 {
-  // If m_functions is changing, there should be a PPCSymbolsChanged signal afterward. The signal
-  // will re-update persistent symbol displays by calling this function. Only one-off calls to this
-  // function, such as printing the symbol to console, should be affected by leaving early.
-  std::unique_lock<std::mutex> lock(m_write_lock, std::try_to_lock);
-  if (!lock.owns_lock() || m_functions.empty())
+  std::lock_guard lock(m_mutex);
+  if (m_functions.empty())
     return nullptr;
 
   auto it = m_functions.lower_bound(addr);
@@ -162,10 +183,10 @@ Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
   return nullptr;
 }
 
-Common::Note* PPCSymbolDB::GetNoteFromAddr(u32 addr)
+const Common::Note* PPCSymbolDB::GetNoteFromAddr(u32 addr) const
 {
-  std::unique_lock<std::mutex> lock(m_write_lock, std::try_to_lock);
-  if (!lock.owns_lock() || m_notes.empty())
+  std::lock_guard lock(m_mutex);
+  if (m_notes.empty())
     return nullptr;
 
   auto itn = m_notes.lower_bound(addr);
@@ -195,15 +216,17 @@ Common::Note* PPCSymbolDB::GetNoteFromAddr(u32 addr)
 
 void PPCSymbolDB::DeleteFunction(u32 start_address)
 {
+  std::lock_guard lock(m_mutex);
   m_functions.erase(start_address);
 }
 
 void PPCSymbolDB::DeleteNote(u32 start_address)
 {
+  std::lock_guard lock(m_mutex);
   m_notes.erase(start_address);
 }
 
-std::string_view PPCSymbolDB::GetDescription(u32 addr)
+std::string PPCSymbolDB::GetDescription(u32 addr) const
 {
   if (const Common::Symbol* const symbol = GetSymbolFromAddr(addr))
     return symbol->name;
@@ -212,9 +235,7 @@ std::string_view PPCSymbolDB::GetDescription(u32 addr)
 
 void PPCSymbolDB::FillInCallers()
 {
-  std::unique_lock<std::mutex> lock(m_write_lock, std::try_to_lock);
-  if (!lock.owns_lock())
-    return;
+  std::lock_guard lock(m_mutex);
 
   for (auto& p : m_functions)
   {
@@ -247,6 +268,8 @@ void PPCSymbolDB::FillInCallers()
 
 void PPCSymbolDB::PrintCalls(u32 funcAddr) const
 {
+  std::lock_guard lock(m_mutex);
+
   const auto iter = m_functions.find(funcAddr);
   if (iter == m_functions.end())
   {
@@ -268,6 +291,8 @@ void PPCSymbolDB::PrintCalls(u32 funcAddr) const
 
 void PPCSymbolDB::PrintCallers(u32 funcAddr) const
 {
+  std::lock_guard lock(m_mutex);
+
   const auto iter = m_functions.find(funcAddr);
   if (iter == m_functions.end())
     return;
@@ -286,6 +311,8 @@ void PPCSymbolDB::PrintCallers(u32 funcAddr) const
 
 void PPCSymbolDB::LogFunctionCall(u32 addr)
 {
+  std::lock_guard lock(m_mutex);
+
   auto iter = m_functions.find(addr);
   if (iter == m_functions.end())
     return;
@@ -314,25 +341,22 @@ bool PPCSymbolDB::FindMapFile(std::string* existing_map_file, std::string* writa
   return false;
 }
 
+// Returns true if m_functions was changed.
 bool PPCSymbolDB::LoadMapOnBoot(const Core::CPUThreadGuard& guard)
 {
-  // Loads from emuthread and can crash with main thread accessing the map. Any other loads will be
-  // done on the main thread and should be safe. Returns true if m_functions was changed.
-  std::lock_guard lock(m_write_lock);
-
   std::string existing_map_file;
   if (!PPCSymbolDB::FindMapFile(&existing_map_file, nullptr))
     return Clear();
 
-  // If the map is already loaded (such as restarting the same game), skip reloading.
-  if (!IsEmpty() && existing_map_file == m_map_name)
-    return false;
+  {
+    std::lock_guard lock(m_mutex);
+    // If the map is already loaded (such as restarting the same game), skip reloading.
+    if (!IsEmpty() && existing_map_file == m_map_name)
+      return false;
+  }
 
-  // Load map into cleared m_functions.
-  bool changed = Clear();
-
-  if (!LoadMap(guard, existing_map_file))
-    return changed;
+  if (!LoadMap(guard, std::move(existing_map_file)))
+    return Clear();
 
   return true;
 }
@@ -344,14 +368,11 @@ bool PPCSymbolDB::LoadMapOnBoot(const Core::CPUThreadGuard& guard)
 // function names and addresses that have a BLR before the start and at the end, but ignore any that
 // don't, and then tell you how many were good and how many it ignored. That way you either find out
 // it is all good and use it, find out it is partly good and use the good part, or find out that
-// only
-// a handful of functions lined up by coincidence and then you can clear the symbols. In the future
-// I
-// want to make it smarter, so it checks that there are no BLRs in the middle of the function
-// (by checking the code length), and also make it cope with added functions in the middle or work
-// based on the order of the functions and their approximate length. Currently that process has to
-// be
-// done manually and is very tedious.
+// only a handful of functions lined up by coincidence and then you can clear the symbols. In the
+// future I want to make it smarter, so it checks that there are no BLRs in the middle of the
+// function (by checking the code length), and also make it cope with added functions in the middle
+// or work based on the order of the functions and their approximate length. Currently that process
+// has to be done manually and is very tedious.
 // The use case for separate handling of map files that aren't bad is that you usually want to also
 // load names that aren't functions(if included in the map file) without them being rejected as
 // invalid.
@@ -362,11 +383,15 @@ bool PPCSymbolDB::LoadMapOnBoot(const Core::CPUThreadGuard& guard)
 // This one can load both leftover map files on game discs (like Zelda), and mapfiles
 // produced by SaveSymbolMap below.
 // bad=true means carefully load map files that might not be from exactly the right version
-bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& filename, bool bad)
+bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, std::string filename, bool bad)
 {
   File::IOFile f(filename, "r");
   if (!f)
     return false;
+
+  XFuncMap new_functions;
+  XNoteMap new_notes;
+  XFuncPtrMap checksum_to_function;
 
   // Two columns are used by Super Smash Bros. Brawl Korean map file
   // Three columns are commonly used
@@ -579,9 +604,14 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
         ++good_count;
 
         if (section_name == ".note")
-          AddKnownNote(vaddress, size, name);
+        {
+          AddKnownNote(vaddress, size, name, &new_notes);
+        }
         else
-          AddKnownSymbol(guard, vaddress, size, name_string, object_filename_string, type);
+        {
+          AddKnownSymbol(guard, vaddress, size, name_string, object_filename_string, type,
+                         &new_functions, &checksum_to_function);
+        }
       }
       else
       {
@@ -590,10 +620,15 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
     }
   }
 
-  m_map_name = filename;
+  Index(&new_functions);
+  DetermineNoteLayers(&new_notes);
 
-  Index();
-  DetermineNoteLayers();
+  std::lock_guard lock(m_mutex);
+  std::swap(m_functions, new_functions);
+  std::swap(m_notes, new_notes);
+  std::swap(m_checksum_to_function, checksum_to_function);
+  std::swap(m_map_name, filename);
+
   NOTICE_LOG_FMT(SYMBOLS, "{} symbols loaded, {} symbols ignored.", good_count, bad_count);
   return true;
 }
@@ -604,6 +639,8 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
   File::IOFile file(filename, "w");
   if (!file)
     return false;
+
+  std::lock_guard lock(m_mutex);
 
   // Write .text section
   auto function_symbols =
@@ -655,7 +692,7 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
   return true;
 }
 
-// Save code map (won't work if Core is running)
+// Save code map
 //
 // Notes:
 //  - Dolphin doesn't load back code maps
@@ -669,6 +706,8 @@ bool PPCSymbolDB::SaveCodeMap(const Core::CPUThreadGuard& guard, const std::stri
 
   // Write ".text" at the top
   f.WriteString(".text\n");
+
+  std::lock_guard lock(m_mutex);
 
   const auto& ppc_debug_interface = guard.GetSystem().GetPowerPC().GetDebugInterface();
 
