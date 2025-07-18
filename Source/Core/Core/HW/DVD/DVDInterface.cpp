@@ -292,7 +292,7 @@ void DVDInterface::Init()
   {
     AMMediaboard::Init();
 
-    // The Trifoce IPL expects the cover to be closed
+    // The Triforce IPL expects the cover to be closed
     m_DICVR.Hex = 0;
   }
 }
