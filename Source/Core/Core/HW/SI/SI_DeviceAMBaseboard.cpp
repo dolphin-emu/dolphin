@@ -1544,10 +1544,20 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
               GCPadStatus PadStatus;
               PadStatus = Pad::GetStatus(0);
-
+              
               // Test button
               if (PadStatus.button & PAD_TRIGGER_Z)
-                message.addData(0x80);
+              {
+                // Trying to access the test menu without SegaBoot present will cause a crash
+                if (AMMediaboard::GetTestMenu())
+                {
+                  message.addData(0x80);
+                }
+                else
+                {
+                  PanicAlertFmt("Test menu is disabled due missing SegaBoot");
+                }
+              }
               else
                 message.addData((u32)0x00);
 
@@ -1833,11 +1843,11 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               {
                 GCPadStatus PadStatus;
                 PadStatus = Pad::GetStatus(i);
-                if ((PadStatus.button & PAD_TRIGGER_Z) && !m_coin_pressed[i])
+                if ((PadStatus.button & PAD_BUTTON_X) && !m_coin_pressed[i])
                 {
                   m_coin[i]++;
                 }
-                m_coin_pressed[i] = PadStatus.button & PAD_TRIGGER_Z;
+                m_coin_pressed[i] = PadStatus.button & PAD_BUTTON_X;
                 message.addData((m_coin[i] >> 8) & 0x3f);
                 message.addData(m_coin[i] & 0xff);
               }

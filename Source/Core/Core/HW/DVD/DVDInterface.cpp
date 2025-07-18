@@ -291,6 +291,9 @@ void DVDInterface::Init()
   if (m_enable_gcam)
   {
     AMMediaboard::Init();
+
+    // The Trifoce IPL expects the cover to be closed
+    m_DICVR.Hex = 0;
   }
 }
 
