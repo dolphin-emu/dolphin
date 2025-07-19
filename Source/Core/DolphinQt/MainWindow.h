@@ -47,6 +47,7 @@ class NetPlaySetupDialog;
 class NetworkWidget;
 class RegisterWidget;
 class RenderWidget;
+class RenderWindow;
 class SearchBar;
 class SettingsWindow;
 class SkylanderPortalWindow;
@@ -126,7 +127,7 @@ private:
 
   void SetFullScreenResolution(bool fullscreen);
 
-  void FullScreen();
+  void ToggleFullScreen();
   void UnlockCursor();
   void ScreenShot();
 
@@ -160,8 +161,15 @@ private:
   void StartGame(const std::vector<std::string>& paths,
                  std::unique_ptr<BootSessionData> boot_session_data = nullptr);
   void StartGame(std::unique_ptr<BootParameters>&& parameters);
+
+  void ShowRenderWidgetOnMainWindow();
+  void ShowRenderWidgetOnSeparateWindow();
+
+  // Show the render widget either on main or separate window, as configured.
   void ShowRenderWidget();
-  void HideRenderWidget(bool reinit = true, bool is_exit = false);
+
+  void HideRenderWidget();
+  void RecreateRenderWidget();
 
   void ShowSettingsWindow();
   void ShowGeneralWindow();
@@ -236,7 +244,7 @@ private:
   SearchBar* m_search_bar;
   GameList* m_game_list;
   RenderWidget* m_render_widget = nullptr;
-  bool m_rendering_to_main;
+  RenderWindow* m_render_window = nullptr;
   bool m_stop_confirm_showing = false;
   bool m_stop_requested = false;
   bool m_exit_requested = false;
