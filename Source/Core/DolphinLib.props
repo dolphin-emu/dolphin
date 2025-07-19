@@ -178,6 +178,7 @@
     <ClInclude Include="Common\VariantUtil.h" />
     <ClInclude Include="Common\Version.h" />
     <ClInclude Include="Common\WaitableFlag.h" />
+    <ClInclude Include="Common\WindowsDevice.h" />
     <ClInclude Include="Common\WindowsRegistry.h" />
     <ClInclude Include="Common\WindowSystemInfo.h" />
     <ClInclude Include="Common\WorkQueueThread.h" />
@@ -861,6 +862,7 @@
     <ClCompile Include="Common\TimeUtil.cpp" />
     <ClCompile Include="Common\TraversalClient.cpp" />
     <ClCompile Include="Common\UPnP.cpp" />
+    <ClCompile Include="Common\WindowsDevice.cpp" />
     <ClCompile Include="Common\WindowsRegistry.cpp" />
     <ClCompile Include="Common\Version.cpp" />
     <ClCompile Include="Core\AchievementManager.cpp" />
