@@ -100,105 +100,13 @@ std::vector<u8> Cheats::GetValueAsByteVector(const Cheats::SearchValue& value)
   }
 }
 
-namespace
-{
 template <typename T>
 static std::optional<PowerPC::ReadResult<T>>
 TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space);
-
-template <>
-std::optional<PowerPC::ReadResult<u8>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
                                PowerPC::RequestedAddressSpace space)
 {
-  return PowerPC::MMU::HostTryReadU8(guard, addr, space);
+  return PowerPC::MMU::HostTryRead<T>(guard, addr, space);
 }
-
-template <>
-std::optional<PowerPC::ReadResult<u16>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space)
-{
-  return PowerPC::MMU::HostTryReadU16(guard, addr, space);
-}
-
-template <>
-std::optional<PowerPC::ReadResult<u32>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space)
-{
-  return PowerPC::MMU::HostTryReadU32(guard, addr, space);
-}
-
-template <>
-std::optional<PowerPC::ReadResult<u64>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space)
-{
-  return PowerPC::MMU::HostTryReadU64(guard, addr, space);
-}
-
-template <>
-std::optional<PowerPC::ReadResult<s8>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space)
-{
-  auto tmp = PowerPC::MMU::HostTryReadU8(guard, addr, space);
-  if (!tmp)
-    return std::nullopt;
-  return PowerPC::ReadResult<s8>(tmp->translated, std::bit_cast<s8>(tmp->value));
-}
-
-template <>
-std::optional<PowerPC::ReadResult<s16>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space)
-{
-  auto tmp = PowerPC::MMU::HostTryReadU16(guard, addr, space);
-  if (!tmp)
-    return std::nullopt;
-  return PowerPC::ReadResult<s16>(tmp->translated, std::bit_cast<s16>(tmp->value));
-}
-
-template <>
-std::optional<PowerPC::ReadResult<s32>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space)
-{
-  auto tmp = PowerPC::MMU::HostTryReadU32(guard, addr, space);
-  if (!tmp)
-    return std::nullopt;
-  return PowerPC::ReadResult<s32>(tmp->translated, std::bit_cast<s32>(tmp->value));
-}
-
-template <>
-std::optional<PowerPC::ReadResult<s64>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space)
-{
-  auto tmp = PowerPC::MMU::HostTryReadU64(guard, addr, space);
-  if (!tmp)
-    return std::nullopt;
-  return PowerPC::ReadResult<s64>(tmp->translated, std::bit_cast<s64>(tmp->value));
-}
-
-template <>
-std::optional<PowerPC::ReadResult<float>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space)
-{
-  return PowerPC::MMU::HostTryReadF32(guard, addr, space);
-}
-
-template <>
-std::optional<PowerPC::ReadResult<double>>
-TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
-                               PowerPC::RequestedAddressSpace space)
-{
-  return PowerPC::MMU::HostTryReadF64(guard, addr, space);
-}
-}  // namespace
 
 template <typename T>
 Common::Result<Cheats::SearchErrorCode, std::vector<Cheats::SearchResult<T>>>
@@ -595,6 +503,23 @@ template <typename T>
 bool Cheats::CheatSearchSession<T>::WasFirstSearchDone() const
 {
   return m_first_search_done;
+}
+
+template <typename T>
+bool Cheats::CheatSearchSession<T>::WriteValue(const Core::CPUThreadGuard& guard,
+                                               std::span<u32> addresses) const
+{
+  if (!m_value)
+    return false;
+
+  T value = m_value.value();
+  bool result = true;
+  for (auto address : addresses)
+  {
+    if (!PowerPC::MMU::HostTryWrite<T>(guard, value, address, m_address_space).has_value())
+      result = false;
+  }
+  return result;
 }
 
 template <typename T>
