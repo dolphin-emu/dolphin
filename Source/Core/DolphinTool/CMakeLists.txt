@@ -21,6 +21,10 @@ PRIVATE
   fmt::fmt
 )
 
+if(WIN32 AND NOT MSVC)
+  target_link_options(dolphin-tool PRIVATE -municode)
+endif()
+
 if(MSVC)
   # Add precompiled header
   target_link_libraries(dolphin-tool PRIVATE use_pch)

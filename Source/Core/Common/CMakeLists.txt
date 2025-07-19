@@ -205,12 +205,17 @@ if (APPLE)
 elseif(WIN32)
   target_link_libraries(common
   PRIVATE
-    kernel32.lib
-    shlwapi.lib
-    winmm.lib
+    kernel32
+    shlwapi
+    winmm
+    SetupAPI
   )
   if (_M_X86_64)
-    target_link_libraries(common PRIVATE opengl32.lib)
+    target_link_libraries(common PRIVATE opengl32)
+  endif()
+  if(MINGW)
+    target_compile_definitions(common PRIVATE _WIN32_WINNT=0x0602)
+    target_compile_options(common PRIVATE -mxsave)
   endif()
 elseif (ANDROID)
   target_link_libraries(common
@@ -342,6 +347,7 @@ endif()
 
 if(WIN32)
   target_sources(common PRIVATE HRWrap.h HRWrap.cpp)
+  target_link_libraries(common PUBLIC qwave)
 endif()
 
 if(USE_UPNP)
@@ -381,7 +387,7 @@ if(UNIX)
   if(SYSTEMD_FOUND)
     target_link_libraries(traversal_server PRIVATE ${SYSTEMD_LIBRARIES})
   endif()
-elseif(WIN32)
+elseif(MSVC)
   find_package(PowerShell REQUIRED)
   execute_process(
     COMMAND ${POWERSHELL_EXE} -Command "[System.Diagnostics.FileVersionInfo]::GetVersionInfo('$ENV{VCToolsRedistDir}vc_redist.x64.exe').ProductVersion"
