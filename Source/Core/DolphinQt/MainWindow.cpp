@@ -1546,8 +1546,7 @@ void MainWindow::NetPlayInit()
   Discord::InitNetPlayFunctionality(*m_netplay_discord);
   m_netplay_discord->Start();
 #endif
-  connect(&Settings::Instance(), &Settings::ConfigChanged, this,
-          &MainWindow::UpdateScreenSaverInhibition);
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &MainWindow::OnConfigChanged);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           &MainWindow::UpdateScreenSaverInhibition);
 }
@@ -1678,6 +1677,24 @@ void MainWindow::NetPlayQuit()
 #ifdef USE_DISCORD_PRESENCE
   Discord::UpdateDiscordPresence();
 #endif
+}
+
+void MainWindow::OnConfigChanged()
+{
+  UpdateScreenSaverInhibition();
+
+  if (m_render_widget->isVisible())
+  {
+    const bool is_rendering_to_main = m_render_window == nullptr;
+
+    const bool render_to_main_window = Config::Get(Config::MAIN_RENDER_TO_MAIN);
+
+    if (is_rendering_to_main != render_to_main_window)
+    {
+      HideRenderWidget();
+      ShowRenderWidget(render_to_main_window);
+    }
+  }
 }
 
 void MainWindow::UpdateScreenSaverInhibition()
