@@ -19,12 +19,11 @@
 #ifdef __LIBUSB__
 #include <libusb.h>
 #endif
+
 #ifdef _WIN32
 #include <SetupAPI.h>
 #include <cfgmgr32.h>
 #include <devpkey.h>
-
-#include "Common/CommonFuncs.h"
 #endif
 
 #include "Common/ChunkFile.h"
@@ -34,6 +33,10 @@
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/USBScanner.h"
 #include "Core/System.h"
+
+#ifdef _WIN32
+#include "Common/WindowsDevice.h"
+#endif
 
 namespace IOS::HLE
 {

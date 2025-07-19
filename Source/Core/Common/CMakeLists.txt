@@ -309,6 +309,8 @@ if(WIN32)
     CompatPatches.cpp
     GL/GLInterface/WGL.cpp
     GL/GLInterface/WGL.h
+    WindowsDevice.cpp
+    WindowsDevice.h
     WindowsRegistry.cpp
   )
 elseif(APPLE)
