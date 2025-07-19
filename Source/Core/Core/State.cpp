@@ -727,12 +727,12 @@ static bool ValidateHeaders(const StateHeader& header)
   std::string loaded_str = header.version_string;
   const u32 loaded_version = header.version_header.version_cookie - COOKIE_BASE;
 
-  if (s_old_versions.contains(loaded_version))
+  if (const auto it = s_old_versions.find(loaded_version); it != s_old_versions.end())
   {
     // This is a REALLY old version, before we started writing the version string to file
     success = false;
 
-    std::pair<std::string, std::string> version_range = s_old_versions.find(loaded_version)->second;
+    std::pair<std::string, std::string> version_range = it->second;
     std::string oldest_version = version_range.first;
     std::string newest_version = version_range.second;
 

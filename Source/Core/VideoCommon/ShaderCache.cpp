@@ -1535,26 +1535,21 @@ const AbstractPipeline* ShaderCache::GetTextureReinterpretPipeline(TextureFormat
                                                                    TextureFormat to_format)
 {
   const auto key = std::make_pair(from_format, to_format);
-  auto iter = m_texture_reinterpret_pipelines.find(key);
-  if (iter != m_texture_reinterpret_pipelines.end())
+  const auto [iter, inserted] = m_texture_reinterpret_pipelines.emplace(key, nullptr);
+
+  if (!inserted)
     return iter->second.get();
 
   std::string shader_source =
       FramebufferShaderGen::GenerateTextureReinterpretShader(from_format, to_format);
   if (shader_source.empty())
-  {
-    m_texture_reinterpret_pipelines.emplace(key, nullptr);
     return nullptr;
-  }
 
   std::unique_ptr<AbstractShader> shader = g_gfx->CreateShaderFromSource(
       ShaderStage::Pixel, shader_source,
       fmt::format("Texture reinterpret pixel shader: {} to {}", from_format, to_format));
   if (!shader)
-  {
-    m_texture_reinterpret_pipelines.emplace(key, nullptr);
     return nullptr;
-  }
 
   AbstractPipelineConfig config;
   config.vertex_format = nullptr;
@@ -1566,8 +1561,8 @@ const AbstractPipeline* ShaderCache::GetTextureReinterpretPipeline(TextureFormat
   config.blending_state = RenderState::GetNoBlendingBlendState();
   config.framebuffer_state = RenderState::GetRGBA8FramebufferState();
   config.usage = AbstractPipelineUsage::Utility;
-  auto iiter = m_texture_reinterpret_pipelines.emplace(key, g_gfx->CreatePipeline(config));
-  return iiter.first->second.get();
+  iter->second = g_gfx->CreatePipeline(config);
+  return iter->second.get();
 }
 
 const AbstractShader*
@@ -1576,17 +1571,14 @@ ShaderCache::GetTextureDecodingShader(TextureFormat format,
 {
   const auto key = std::make_pair(static_cast<u32>(format),
                                   static_cast<u32>(palette_format.value_or(TLUTFormat::IA8)));
-  const auto iter = m_texture_decoding_shaders.find(key);
-  if (iter != m_texture_decoding_shaders.end())
+  const auto [iter, inserted] = m_texture_decoding_shaders.emplace(key, nullptr);
+  if (!inserted)
     return iter->second.get();
 
   const std::string shader_source =
       TextureConversionShaderTiled::GenerateDecodingShader(format, palette_format, APIType::OpenGL);
   if (shader_source.empty())
-  {
-    m_texture_decoding_shaders.emplace(key, nullptr);
     return nullptr;
-  }
 
   const std::string name =
       palette_format.has_value() ?
@@ -1596,12 +1588,9 @@ ShaderCache::GetTextureDecodingShader(TextureFormat format,
   std::unique_ptr<AbstractShader> shader =
       g_gfx->CreateShaderFromSource(ShaderStage::Compute, shader_source, name);
   if (!shader)
-  {
-    m_texture_decoding_shaders.emplace(key, nullptr);
     return nullptr;
-  }
 
-  const auto iiter = m_texture_decoding_shaders.emplace(key, std::move(shader));
-  return iiter.first->second.get();
+  iter->second = std::move(shader);
+  return iter->second.get();
 }
 }  // namespace VideoCommon

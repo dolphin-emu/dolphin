@@ -197,14 +197,13 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
   {
     for (const GraphicsTargetGroupConfig& group : mod.m_groups)
     {
-      if (m_groups.contains(group.m_name))
+      if (const bool inserted = m_groups.insert(group.m_name).second; !inserted)
       {
         WARN_LOG_FMT(
             VIDEO,
             "Specified graphics mod group '{}' for mod '{}' is already specified by another mod.",
             group.m_name, mod.m_title);
       }
-      m_groups.insert(group.m_name);
 
       const auto internal_group = fmt::format("{}.{}", mod.m_title, group.m_name);
       for (const GraphicsTargetConfig& target : group.m_targets)
