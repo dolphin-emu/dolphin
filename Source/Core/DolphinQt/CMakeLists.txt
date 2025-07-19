@@ -498,11 +498,6 @@ if(WIN32)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf.win" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf"
   )
 
-  # Delegate to Qt's official deployment binary on Windows to copy over the necessary Qt-specific libraries, etc.
-  get_target_property(MOC_EXECUTABLE_LOCATION Qt6::moc IMPORTED_LOCATION)
-  get_filename_component(QT_BINARY_DIRECTORY "${MOC_EXECUTABLE_LOCATION}" DIRECTORY)
-  find_program(WINDEPLOYQT_EXE windeployqt HINTS "${QT_BINARY_DIRECTORY}")
-
   # Note: We set the PATH for the duration of this command so that the
   #       deployment application is able to locate the Qt libraries to copy.
   #       if the necessary paths aren't already set beforehand.
@@ -519,13 +514,14 @@ if(WIN32)
   #
   add_custom_command(TARGET dolphin-emu POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E env PATH="${QT_BINARY_DIRECTORY}"
-            "${WINDEPLOYQT_EXE}" --libdir="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-                                 --plugindir="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/QtPlugins"
-                                 $<IF:$<CONFIG:Debug>,--debug,--release>
+            "${WINDEPLOYQT_EXECUTABLE}" --libdir="$<TARGET_FILE_DIR:dolphin-emu>"
+                                 --plugindir="$<TARGET_FILE_DIR:dolphin-emu>/QtPlugins"
+                                 $<$<CXX_COMPILER_ID:MSVC>:$<IF:$<CONFIG:Debug>,--debug,--release>>
                                  --no-translations
                                  --no-compiler-runtime
                                  --no-system-d3d-compiler
                                  --no-opengl-sw
+                                 --verbose 0
                                  "$<TARGET_FILE:dolphin-emu>"
   )
 endif()
