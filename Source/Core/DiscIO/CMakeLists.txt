@@ -84,3 +84,8 @@ if(MSVC)
   # Add precompiled header
   target_link_libraries(discio PRIVATE use_pch)
 endif()
+
+if(USE_RETRO_ACHIEVEMENTS)
+  target_link_libraries(discio PUBLIC rcheevos)
+  target_compile_definitions(discio PUBLIC -DUSE_RETRO_ACHIEVEMENTS)
+endif()
