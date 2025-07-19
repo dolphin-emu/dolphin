@@ -41,6 +41,8 @@ enum
   ARM_IRQFLAG = 0x38,
   ARM_IRQMASK = 0x3c,
 
+  AHBPROT = 0x64,
+
   GPIOB_OUT = 0xc0,
   GPIOB_DIR = 0xc4,
   GPIOB_IN = 0xc8,
@@ -168,6 +170,9 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    system.GetCoreTiming().ScheduleEvent(0, wii_ipc.m_event_type_update_interrupts,
                                                         0);
                  }));
+
+  // Dolphin currently does not emulate any hardware access restrictions.
+  mmio->Register(base | AHBPROT, MMIO::Constant<u32>(0xFFFFFFFF), MMIO::InvalidWrite<u32>());
 
   mmio->Register(base | GPIOB_OUT, MMIO::DirectRead<u32>(&m_gpio_out.m_hex),
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
