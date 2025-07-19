@@ -121,6 +121,17 @@ std::optional<IPCReply> BluetoothRealDevice::IOCtlV(const IOCtlVRequest& request
       const auto payload = memory.GetSpanForAddress(cmd->data_address).first(cmd->length);
       m_lib_usb_bt_adapter->ScheduleControlTransfer(cmd->request_type, cmd->request, cmd->value,
                                                     cmd->index, payload, GetTargetTime());
+
+      if (opcode == HCI_CMD_RESET)
+      {
+        // After the console issues HCI reset is a good place to restore our link keys.
+        //  We need to do this because:
+        // Some adapters apparently incorrectly delete keys on HCI reset.
+        // The adapter was potentially being controlled by the host OS bluetooth stack
+        //  or a Dolphin instance with different link keys.
+        SendHCIDeleteLinkKeyCommand();
+        SendHCIStoreLinkKeyCommand();
+      }
     }
     return IPCReply{cmd->length};
   }
@@ -261,11 +272,6 @@ auto BluetoothRealDevice::ProcessHCIEvent(BufferType buffer) -> BufferType
       reply.num_sco_pkts = SCO_PKT_NUM;
 
       std::memcpy(buffer.data() + sizeof(hci_event_hdr_t) + sizeof(ev), &reply, sizeof(reply));
-    }
-    else if (ev.opcode == HCI_CMD_RESET)
-    {
-      SendHCIDeleteLinkKeyCommand();
-      SendHCIStoreLinkKeyCommand();
     }
   }
   else if (event == HCI_EVENT_CON_COMPL)
