@@ -1,0 +1,23 @@
+{
+    "version": 2,
+    "configurePresets": [
+        {
+            "name": "gcc-debug",
+            "binaryDir": "build-gcc-debug",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+              }
+        },
+        {
+            "name": "clang-debug",
+            "binaryDir": "build-clang-debug",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+              }
+        }
+    ]
+}
