@@ -8,7 +8,7 @@
 #undef ENABLE_DEBUG_LOGGING
 
 /* Define to 1 to enable message logging. */
-#undef ENABLE_LOGGING
+#cmakedefine ENABLE_LOGGING 1
 
 /* Define to 1 if you have the <asm/types.h> header file. */
 #cmakedefine HAVE_ASM_TYPES_H 1
