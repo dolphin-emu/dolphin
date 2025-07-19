@@ -225,6 +225,7 @@ private:
 
   QStringList PromptFileNames();
 
+  void OnConfigChanged();
   void UpdateScreenSaverInhibition();
 
   void OnStopComplete();
