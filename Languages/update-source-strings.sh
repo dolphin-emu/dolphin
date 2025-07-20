@@ -7,8 +7,8 @@ cd "$(dirname "$0")/.."
 
 # Scan the source code for strings and put them in dolphin-emu.pot
 SRCDIR=Source
-find $SRCDIR -name '*.cpp' -o -name '*.h' -o -name '*.c' | \
-	xgettext -s -p ./Languages/po -o dolphin-emu.pot --package-name="Dolphin Emulator" \
+find $SRCDIR -name '*.cpp' -o -name '*.h' -o -name '*.c' | sort -fd | \
+	xgettext -p ./Languages/po -o dolphin-emu.pot --package-name="Dolphin Emulator" \
 	--keyword=_ \
 	--keyword=AskYesNoFmtT \
 	--keyword=CriticalAlertFmtT \
@@ -24,7 +24,7 @@ find $SRCDIR -name '*.cpp' -o -name '*.h' -o -name '*.c' | \
 	--add-comments=i18n --from-code=utf-8 -f -
 
 # Copy strings from qt-strings.pot to dolphin-emu.pot
-xgettext -s -p ./Languages/po -o dolphin-emu.pot --package-name="Dolphin Emulator" \
+xgettext -p ./Languages/po -o dolphin-emu.pot --package-name="Dolphin Emulator" \
   -j ./Languages/po/qt-strings.pot
 
 sed -i "s/SOME DESCRIPTIVE TITLE\./Translation of dolphin-emu.pot to LANGUAGE/" Languages/po/dolphin-emu.pot
