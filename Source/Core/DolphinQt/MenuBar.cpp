@@ -1108,6 +1108,7 @@ void MenuBar::UpdateToolsMenu(const Core::State state)
   m_ntscj_ipl->setEnabled(is_uninitialized && File::Exists(Config::GetBootROMPath(JAP_DIR)));
   m_ntscu_ipl->setEnabled(is_uninitialized && File::Exists(Config::GetBootROMPath(USA_DIR)));
   m_pal_ipl->setEnabled(is_uninitialized && File::Exists(Config::GetBootROMPath(EUR_DIR)));
+  m_dev_ipl->setEnabled(is_uninitialized && File::Exists(Config::GetBootROMPath(DEV_DIR)));
   m_wad_install_action->setEnabled(is_uninitialized);
   m_import_backup->setEnabled(is_uninitialized);
   m_check_nand->setEnabled(is_uninitialized);
