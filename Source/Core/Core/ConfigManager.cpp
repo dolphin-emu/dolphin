@@ -433,6 +433,12 @@ bool SConfig::SetPathsAndGameMetadata(Core::System& system, const BootParameters
   if (m_region == DiscIO::Region::Unknown)
     m_region = Config::Get(Config::MAIN_FALLBACK_REGION);
 
+  // Triforce IPL
+  if (m_triforce_id.length())
+  {
+    m_region = DiscIO::Region::DEV;
+  }
+
   // Set up paths
   const std::string region_dir = Config::GetDirectoryForRegion(Config::ToGameCubeRegion(m_region));
   m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
