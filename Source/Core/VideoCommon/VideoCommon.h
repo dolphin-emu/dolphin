@@ -15,6 +15,12 @@
 constexpr u32 EFB_WIDTH = 640u;
 constexpr u32 EFB_HEIGHT = 528u;
 
+// The maximum depth that is written to the depth buffer should never exceed this value.
+// This is necessary because we use a 2^24 divisor for all our depth values to prevent
+// floating-point round-trip errors. However the console GPU doesn't ever write a value
+// to the depth buffer that exceeds 2^24 - 1.
+constexpr float MAX_EFB_DEPTH = 16777215.0f / 16777216.0f;
+
 // Max XFB width is 720. You can only copy out 640 wide areas of efb to XFB
 // so you need multiple copies to do the full width.
 // The VI can do horizontal scaling (TODO: emulate).
