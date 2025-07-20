@@ -142,11 +142,11 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
 {
   INFO_LOG_FMT(SLIPPI, "EXI SLIPPI Constructor called.");
 
-  std::string user_file_path = File::GetUserPath(F_USERJSON_IDX);
+  std::string user_config_folder = File::GetUserPath(D_SLIPPI_IDX);
 
   SlippiRustEXIConfig slprs_exi_config;
   slprs_exi_config.iso_path = current_file_name.c_str();
-  slprs_exi_config.user_json_path = user_file_path.c_str();
+  slprs_exi_config.user_config_folder = user_config_folder.c_str();
   slprs_exi_config.scm_slippi_semver_str = Common::GetSemVerStr().c_str();
   slprs_exi_config.osd_add_msg_fn = OSDMessageHandler;
 
@@ -157,8 +157,8 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
   matchmaking = std::make_unique<SlippiMatchmaking>(user.get());
   game_file_loader = std::make_unique<SlippiGameFileLoader>();
   g_replay_comm = std::make_unique<SlippiReplayComm>();
-  direct_codes = std::make_unique<SlippiDirectCodes>("direct-codes.json");
-  teams_codes = std::make_unique<SlippiDirectCodes>("teams-codes.json");
+  direct_codes = std::make_unique<SlippiDirectCodes>(slprs_exi_device_ptr, SlippiDirectCodes::DIRECT);
+  teams_codes = std::make_unique<SlippiDirectCodes>(slprs_exi_device_ptr, SlippiDirectCodes::TEAMS);
 
   // initialize the spectate server so we can connect without starting a game
   SlippiSpectateServer::getInstance();
