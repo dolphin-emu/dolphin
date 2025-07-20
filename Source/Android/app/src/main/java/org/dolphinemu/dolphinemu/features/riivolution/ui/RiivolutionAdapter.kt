@@ -32,7 +32,7 @@ class RiivolutionAdapter(private val context: Context, private val patches: Riiv
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RiivolutionViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val binding = ListItemRiivolutionBinding.inflate(inflater)
+        val binding = ListItemRiivolutionBinding.inflate(inflater, parent, false)
         return RiivolutionViewHolder(binding.root, binding)
     }
 

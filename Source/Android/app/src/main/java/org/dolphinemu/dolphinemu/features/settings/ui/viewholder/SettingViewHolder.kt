@@ -9,15 +9,17 @@ import android.view.View
 import android.view.View.OnLongClickListener
 import android.widget.TextView
 import android.widget.Toast
-import androidx.recyclerview.widget.RecyclerView
+import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.dolphinemu.dolphinemu.DolphinApplication
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter
+import org.dolphinemu.dolphinemu.utils.LifecycleViewHolder
 
 abstract class SettingViewHolder(itemView: View, protected val adapter: SettingsAdapter) :
-    RecyclerView.ViewHolder(itemView), View.OnClickListener, OnLongClickListener {
+    LifecycleViewHolder(itemView, adapter.getFragmentLifecycle()),
+    LifecycleOwner, View.OnClickListener, OnLongClickListener {
 
     init {
         itemView.setOnClickListener(this)
