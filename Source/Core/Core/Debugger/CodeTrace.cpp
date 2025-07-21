@@ -34,16 +34,15 @@ u32 GetMemoryTargetSize(std::string_view instr)
   constexpr char PAIRED_TAG = 'p';
 
   // Actual range is 0 to size - 1;
-  if (op.find(BYTE_TAG) != std::string::npos)
+  if (op.contains(BYTE_TAG))
   {
     return 1;
   }
-  else if (op.find(HALF_TAG) != std::string::npos)
+  else if (op.contains(HALF_TAG))
   {
     return 2;
   }
-  else if (op.find(DOUBLE_WORD_TAG) != std::string::npos ||
-           op.find(PAIRED_TAG) != std::string::npos)
+  else if (op.contains(DOUBLE_WORD_TAG) || op.contains(PAIRED_TAG))
   {
     return 8;
   }
