@@ -87,6 +87,7 @@ public:
 
   u16 stage_id{};
   bool is_stage_selected = false;
+  u8 alt_stage_mode{};
 
   u32 rng_offset{};
 
@@ -101,6 +102,7 @@ public:
     {
       this->stage_id = s.stage_id;
       this->is_stage_selected = true;
+      this->alt_stage_mode = s.alt_stage_mode;
     }
 
     if (s.is_character_selected)

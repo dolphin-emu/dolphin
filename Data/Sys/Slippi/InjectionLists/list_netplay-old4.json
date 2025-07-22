@@ -1,0 +1,60 @@
+{
+  "Details": [
+    {
+      "Annotation": "Common/Preload Stadium Transformations/Core/GetPreloadedTransition.asm",
+      "Codetype": "Auto",
+      "InjectionAddress": "801D460C",
+      "Name": "Required: Slippi Recording",
+      "Tags": "[affects-gameplay]"
+    },
+    {
+      "Annotation": "Common/Preload Stadium Transformations/Core/Init isLoaded Bool.asm",
+      "Codetype": "Auto",
+      "InjectionAddress": "801D14C8",
+      "Name": "Required: Slippi Recording",
+      "Tags": "[affects-gameplay]"
+    },
+    {
+      "Annotation": "Common/Preload Stadium Transformations/Core/Load Transformation.asm",
+      "Codetype": "Auto",
+      "InjectionAddress": "801D45EC",
+      "Name": "Required: Slippi Recording",
+      "Tags": "[affects-gameplay]"
+    },
+    {
+      "Annotation": "Common/Preload Stadium Transformations/Core/Reset isLoaded.asm",
+      "Codetype": "Auto",
+      "InjectionAddress": "801D4F14",
+      "Name": "Required: Slippi Recording",
+      "Tags": "[affects-gameplay]"
+    },
+    {
+      "Annotation": "Common/Preload Stadium Transformations/Core/SkipNormalDecision1.asm",
+      "Codetype": "Auto",
+      "InjectionAddress": "801D4610",
+      "Name": "Required: Slippi Recording",
+      "Tags": "[affects-gameplay]"
+    },
+    {
+      "Annotation": "Common/Preload Stadium Transformations/Core/SkipNormalDecision2.asm",
+      "Codetype": "Auto",
+      "InjectionAddress": "801D4724",
+      "Name": "Required: Slippi Recording",
+      "Tags": "[affects-gameplay]"
+    },
+    {
+      "Annotation": "Common/Preload Stadium Transformations/Toggle/PsPreloadToggleEnable.asm",
+      "Codetype": "Auto",
+      "InjectionAddress": "804DEC18",
+      "Name": "Required: Slippi Recording",
+      "Tags": ""
+    },
+    {
+      "Annotation": "Online/Core/PreventFileAlarms/FreezeStadium.asm",
+      "Codetype": "Auto",
+      "InjectionAddress": "801D4578",
+      "Name": "Required: Slippi Online",
+      "Tags": "[affects-gameplay]"
+    }
+  ]
+}

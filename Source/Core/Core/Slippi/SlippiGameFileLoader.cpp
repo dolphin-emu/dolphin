@@ -37,7 +37,20 @@ u32 SlippiGameFileLoader::LoadFile(Core::System& system, std::string file_name, 
     return static_cast<u32>(data.size());
   }
 
+  if (grpsx_strings.count(file_name) && Core::GetState(system) == Core::State::Running)
+  {
+    std::vector<u8> buf;
+    Core::System::GetInstance().GetDVDThread().ReadFile(file_name, buf);
+    std::string contents(buf.begin(), buf.end());
+
+    file_cache[file_name] = contents;
+    data = file_cache[file_name];
+    INFO_LOG_FMT(SLIPPI, "Preloaded Transformation: {} -> {}", file_name.c_str(), static_cast<u32>(data.size()));
+    return static_cast<u32>(data.size());
+  }
+
   INFO_LOG_FMT(SLIPPI, "Loading file: {}", file_name.c_str());
+
 
   std::string game_file_path = getFilePath(file_name);
   if (game_file_path.empty())
