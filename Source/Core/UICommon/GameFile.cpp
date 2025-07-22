@@ -529,6 +529,15 @@ const std::string& GameFile::GetMaker(Variant variant) const
   if (!maker.empty())
     return maker;
 
+  // Triforce games use a default header, so all have RELSAB as the ID
+  // The actual information is stored within the boot.id file
+
+  // TODO: use maker name to set company IDs
+  if (m_triforce_id[0] == 'S' && m_triforce_id[1] == 'B')
+  {
+    return DiscIO::GetCompanyFromID("6E");  // SEGA
+  }
+
   if (m_game_id.size() >= 6)
     return DiscIO::GetCompanyFromID(m_maker_id);
 
