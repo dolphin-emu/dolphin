@@ -82,6 +82,13 @@ private:
     u32 magic;  // "BTID"
     u32 padding[11];
     std::array<char, 4> id;
+    u32 padding_b;
+    u8 region;
+    u8 padding_c[0x27];
+    std::array<char, 32> maker;
+    std::array<char, 32> name;
+    u32 padding_d[0x10];
+    char credits_text[8][32];
   };
 
   struct ConvertedGCBanner

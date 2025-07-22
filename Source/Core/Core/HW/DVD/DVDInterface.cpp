@@ -286,9 +286,7 @@ void DVDInterface::Init()
   u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::TCINT);
   core_timing.ScheduleEvent(0, m_finish_executing_command, userdata);
 
-  const ExpansionInterface::EXIDeviceType Type = Config::Get(Config::MAIN_SERIAL_PORT_1);
-  m_enable_gcam = (Type == ExpansionInterface::EXIDeviceType::Baseboard) ? 1 : 0;
-  if (m_enable_gcam)
+  if (m_system.IsTriforce())
   {
     AMMediaboard::Init();
 
@@ -324,7 +322,7 @@ void DVDInterface::ResetDrive(bool spinup)
   else if (!spinup)
   {
     // Wii hardware tests indicate that this is used when ejecting and inserting a new disc, or
-    // performing a reset without spinup.
+    // performing a reset without spin up.
     SetDriveState(DriveState::DiscChangeDetected);
   }
   else
@@ -766,7 +764,7 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
   DIInterruptType interrupt_type = DIInterruptType::TCINT;
   bool command_handled_by_thread = false;
 
-  if (m_enable_gcam)
+  if (m_system.IsTriforce())
   {
     u32 ret = AMMediaboard::ExecuteCommand(m_DICMDBUF, m_DIMAR, m_DILENGTH);
     if (ret != 1)

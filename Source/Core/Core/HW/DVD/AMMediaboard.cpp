@@ -660,7 +660,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
         u32 fd = s_sockets[SocketCheck(media_buffer_32[2])];
         int ret = -1;
 
-        // Handle optional paramters
+        // Handle optional parameters
         if (media_buffer_32[3] == 0 || media_buffer_32[4] == 0)
         {
           ret = NetDIMMAccept(fd, nullptr, nullptr);

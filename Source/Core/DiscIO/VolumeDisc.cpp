@@ -67,6 +67,28 @@ std::optional<u16> VolumeDisc::GetRevision(const Partition& partition) const
 std::string VolumeDisc::GetInternalName(const Partition& partition) const
 {
   char name[0x60];
+
+  // Triforce games have their Title stored in the boot.id file
+  const FileSystem* file_system = GetFileSystem(partition);
+  if (file_system)
+  {
+    std::unique_ptr<FileInfo> file_info = file_system->FindFileInfo("boot.id");
+    if (file_info && !file_info->IsDirectory())
+    {
+      u8* bootid_buffer = new u8[file_info->GetTotalSize()];
+      if (Read(file_info->GetOffset(), file_info->GetTotalSize(), bootid_buffer, partition))
+      {
+        memcpy(name, bootid_buffer + 0x80, 0x20);
+
+        delete[] bootid_buffer;
+
+        return DecodeString(name);
+      }
+      // Fall back to normal title from header
+      delete[] bootid_buffer;
+    }
+  }
+
   if (!Read(0x20, sizeof(name), reinterpret_cast<u8*>(&name), partition))
     return std::string();
 

@@ -1448,12 +1448,12 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 Slave features:
 
                 Inputs:
-                0x01: Switchinput:  players,  buttons
-                0x02: Coininput:    slots
-                0x03: Analoginput:  channels, bits
+                0x01: Switch input:  players,  buttons
+                0x02: Coin input:    slots
+                0x03: Analog input:  channels, bits
                 0x04: Rotary input: channels
                 0x05: Keycode input: 0,0,0 ?
-                0x06: Screen position input: Xbits, Ybits, channels
+                0x06: Screen position input: X bits, Y bits, channels
 
                 Outputs:
                 0x10: Card system: slots
