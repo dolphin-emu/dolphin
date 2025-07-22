@@ -35,6 +35,10 @@ public:
   void PushGBASamples(std::size_t device_number, const s16* samples, std::size_t num_samples);
 
   u32 GetSampleRate() const { return m_output_sample_rate; }
+  void SetSampleRate(u32 output_sample_rate) { m_output_sample_rate = output_sample_rate; }
+
+  // Note: NullSoundStream sets the sample rate to 0.
+  bool IsOutputSampleRateValid() const { return m_output_sample_rate != 0; }
 
   void SetDMAInputSampleRateDivisor(u32 rate_divisor);
   void SetStreamInputSampleRateDivisor(u32 rate_divisor);

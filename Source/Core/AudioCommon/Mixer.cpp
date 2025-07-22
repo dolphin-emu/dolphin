@@ -226,7 +226,11 @@ void Mixer::MixerFifo::PushSamples(const s16* samples, std::size_t num_samples)
 
 void Mixer::PushSamples(const s16* samples, std::size_t num_samples)
 {
-  m_dma_mixer.PushSamples(samples, num_samples);
+  if (IsOutputSampleRateValid())
+  {
+    m_dma_mixer.PushSamples(samples, num_samples);
+  }
+
   if (m_log_dsp_audio)
   {
     const s32 sample_rate_divisor = m_dma_mixer.GetInputSampleRateDivisor();
@@ -238,7 +242,11 @@ void Mixer::PushSamples(const s16* samples, std::size_t num_samples)
 
 void Mixer::PushStreamingSamples(const s16* samples, std::size_t num_samples)
 {
-  m_streaming_mixer.PushSamples(samples, num_samples);
+  if (IsOutputSampleRateValid())
+  {
+    m_streaming_mixer.PushSamples(samples, num_samples);
+  }
+
   if (m_log_dtk_audio)
   {
     const s32 sample_rate_divisor = m_streaming_mixer.GetInputSampleRateDivisor();
@@ -251,6 +259,9 @@ void Mixer::PushStreamingSamples(const s16* samples, std::size_t num_samples)
 void Mixer::PushWiimoteSpeakerSamples(const s16* samples, std::size_t num_samples,
                                       u32 sample_rate_divisor)
 {
+  if (!IsOutputSampleRateValid())
+    return;
+
   // Max 20 bytes/speaker report, may be 4-bit ADPCM so multiply by 2
   static constexpr std::size_t MAX_SPEAKER_SAMPLES = 20 * 2;
   std::array<s16, MAX_SPEAKER_SAMPLES * 2> samples_stereo;
@@ -274,6 +285,9 @@ void Mixer::PushWiimoteSpeakerSamples(const s16* samples, std::size_t num_sample
 
 void Mixer::PushSkylanderPortalSamples(const u8* samples, std::size_t num_samples)
 {
+  if (!IsOutputSampleRateValid())
+    return;
+
   // Skylander samples are always supplied as 64 bytes, 32 x 16 bit samples
   // The portal speaker is 1 channel, so duplicate and play as stereo audio
   static constexpr std::size_t MAX_PORTAL_SPEAKER_SAMPLES = 32;
@@ -299,6 +313,9 @@ void Mixer::PushSkylanderPortalSamples(const u8* samples, std::size_t num_sample
 
 void Mixer::PushGBASamples(std::size_t device_number, const s16* samples, std::size_t num_samples)
 {
+  if (!IsOutputSampleRateValid())
+    return;
+
   m_gba_mixers[device_number].PushSamples(samples, num_samples);
 }
 
