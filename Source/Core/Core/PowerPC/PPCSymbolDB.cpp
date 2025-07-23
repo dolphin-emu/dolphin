@@ -622,6 +622,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, std::string filenam
 
   Index(&new_functions);
   DetermineNoteLayers(&new_notes);
+  FillInCallers();
 
   std::lock_guard lock(m_mutex);
   std::swap(m_functions, new_functions);
