@@ -1145,7 +1145,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                       if (m_card_memory_size == 0)
                       {
                         std::string card_filename(File::GetUserPath(D_TRIUSER_IDX) + "tricard_" +
-                                                  SConfig::GetInstance().GetTriforceID().c_str() +
+                                                  SConfig::GetInstance().GetGameID().c_str() +
                                                   ".bin");
 
                         if (File::Exists(card_filename))
@@ -1181,7 +1181,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                       else if (m_card_clean == 2)
                       {
                         std::string card_filename(File::GetUserPath(D_TRIUSER_IDX) + "tricard_" +
-                                                  SConfig::GetInstance().GetTriforceID().c_str() +
+                                                  SConfig::GetInstance().GetGameID().c_str() +
                                                   ".bin");
 
                         if (File::Exists(card_filename))
@@ -1235,7 +1235,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                       u32 packet_offset = 0;
 
                       std::string card_filename(File::GetUserPath(D_TRIUSER_IDX) + "tricard_" +
-                                                SConfig::GetInstance().GetTriforceID().c_str() +
+                                                SConfig::GetInstance().GetGameID().c_str() +
                                                 ".bin");
 
                       if (File::Exists(card_filename))
@@ -1302,7 +1302,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                                      bitmode, track, m_card_memory_size);
 
                       std::string card_filename(File::GetUserPath(D_TRIUSER_IDX) + "tricard_" +
-                                                SConfig::GetInstance().GetTriforceID().c_str() +
+                                                SConfig::GetInstance().GetGameID().c_str() +
                                                 ".bin");
 
                       File::IOFile card = File::IOFile(card_filename, "wb+");

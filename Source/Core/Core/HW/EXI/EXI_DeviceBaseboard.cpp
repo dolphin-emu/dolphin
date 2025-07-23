@@ -74,7 +74,7 @@ void GenerateInterrupt(int flag)
 CEXIBaseboard::CEXIBaseboard(Core::System& system) : IEXIDevice(system), m_position(0)
 {
   std::string backup_Filename(File::GetUserPath(D_TRIUSER_IDX) + "tribackup_" +
-                              SConfig::GetInstance().GetTriforceID().c_str() + ".bin");
+                              SConfig::GetInstance().GetGameID().c_str() + ".bin");
 
   if (File::Exists(backup_Filename))
   {
@@ -93,7 +93,7 @@ CEXIBaseboard::CEXIBaseboard(Core::System& system) : IEXIDevice(system), m_posit
     std::srand(static_cast<u32>(std::time(nullptr)));
 
     backup_Filename = File::GetUserPath(D_TRIUSER_IDX) + "tribackup_tmp_" + std::to_string(rand()) +
-                      SConfig::GetInstance().GetTriforceID().c_str() + ".bin";
+                      SConfig::GetInstance().GetGameID().c_str() + ".bin";
 
     m_backup = new File::IOFile(backup_Filename, "wb+");
   }

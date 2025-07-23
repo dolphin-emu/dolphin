@@ -34,7 +34,6 @@ public:
             const Partition& partition = PARTITION_NONE) const override;
   const FileSystem* GetFileSystem(const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const override;
-  std::string GetTriforceID() const override;
   std::map<Language, std::string> GetShortNames() const override;
   std::map<Language, std::string> GetLongNames() const override;
   std::map<Language, std::string> GetShortMakers() const override;
@@ -120,7 +119,6 @@ private:
   std::unique_ptr<BlobReader> m_reader;
 
   bool m_is_triforce;
-  std::array<char, 4> m_triforce_id;
 };
 
 }  // namespace DiscIO

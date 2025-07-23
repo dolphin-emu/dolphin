@@ -20,6 +20,27 @@ std::string VolumeDisc::GetGameID(const Partition& partition) const
 {
   char id[6];
 
+  // Triforce games have their Game ID stored in the boot.id file
+  const FileSystem* file_system = GetFileSystem(partition);
+  if (file_system)
+  {
+    std::unique_ptr<FileInfo> file_info = file_system->FindFileInfo("boot.id");
+    if (file_info && !file_info->IsDirectory())
+    {
+      u8* bootid_buffer = new u8[file_info->GetTotalSize()];
+      if (Read(file_info->GetOffset(), file_info->GetTotalSize(), bootid_buffer, partition))
+      {
+        memcpy(id, bootid_buffer + 0x30, sizeof(id));
+
+        delete[] bootid_buffer;
+
+        return DecodeString(id);
+      }
+      // Fall back to normal ID from header
+      delete[] bootid_buffer;
+    }
+  }
+
   if (!Read(0, sizeof(id), reinterpret_cast<u8*>(id), partition))
     return std::string();
 
