@@ -130,8 +130,7 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
 
       m_internal_name = volume->GetInternalName();
       m_game_id = volume->GetGameID();
-      m_gametdb_id = volume->GetGameTDBID();
-      m_triforce_id = volume->GetTriforceID();
+      m_gametdb_id = volume->GetGameTDBID(); 
       m_title_id = volume->GetTitleID().value_or(0);
       m_maker_id = volume->GetMakerID();
       m_revision = volume->GetRevision().value_or(0);
@@ -311,8 +310,7 @@ void GameFile::DoState(PointerWrap& p)
   p.Do(m_descriptions);
   p.Do(m_internal_name);
   p.Do(m_game_id);
-  p.Do(m_gametdb_id);
-  p.Do(m_triforce_id);
+  p.Do(m_gametdb_id); 
   p.Do(m_title_id);
   p.Do(m_maker_id);
 
@@ -502,7 +500,7 @@ const std::string& GameFile::GetName(const Core::TitleDatabase& title_database) 
     return GetName(Variant::LongAndPossiblyCustom);
 
   const std::string& database_name =
-      title_database.GetTitleName(m_gametdb_id, m_triforce_id, GetConfigLanguage());
+      title_database.GetTitleName(m_gametdb_id, GetConfigLanguage());
   return database_name.empty() ? GetName(Variant::LongAndPossiblyCustom) : database_name;
 }
 
@@ -533,7 +531,7 @@ const std::string& GameFile::GetMaker(Variant variant) const
   // The actual information is stored within the boot.id file
 
   // TODO: use maker name to set company IDs
-  if (m_triforce_id[0] == 'S' && m_triforce_id[1] == 'B')
+  if (m_game_id[0] == 'S' && m_game_id[1] == 'B')
   {
     return DiscIO::GetCompanyFromID("6E");  // SEGA
   }

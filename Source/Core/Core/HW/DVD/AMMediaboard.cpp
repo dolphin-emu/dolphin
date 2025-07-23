@@ -200,8 +200,8 @@ void Init(void)
   s_netcfg = OpenOrCreateFile(base_path + "trinetcfg.bin");
   s_netctrl = OpenOrCreateFile(base_path + "trinetctrl.bin");
   s_extra = OpenOrCreateFile(base_path + "triextra.bin");
-  s_dimm = OpenOrCreateFile(base_path + "tridimm_" + SConfig::GetInstance().GetTriforceID() + ".bin");
-  s_backup = OpenOrCreateFile(base_path + "backup_" + SConfig::GetInstance().GetTriforceID() + ".bin");
+  s_dimm = OpenOrCreateFile(base_path + "tridimm_" + SConfig::GetInstance().GetGameID() + ".bin");
+  s_backup = OpenOrCreateFile(base_path + "backup_" + SConfig::GetInstance().GetGameID() + ".bin");
 
   if (!s_netcfg)
     PanicAlertFmt("Failed to open/create: {}", base_path + "s_netcfg.bin");
@@ -1746,13 +1746,13 @@ u32 GetGameType(void)
   u64 game_id = 0;
 
   // Convert game ID into hex
-  if (strlen(SConfig::GetInstance().GetTriforceID().c_str()) > 4)
+  if (strlen(SConfig::GetInstance().GetGameID().c_str()) > 4)
   {
     game_id = 0x30303030;
   }
   else
   {
-    sscanf(SConfig::GetInstance().GetTriforceID().c_str(), "%s", (char*)&game_id);
+    sscanf(SConfig::GetInstance().GetGameID().c_str(), "%s", (char*)&game_id);
   }
 
   // This is checking for the real game IDs (See boot.id within the game)
