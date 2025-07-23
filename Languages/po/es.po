@@ -21,20 +21,21 @@
 # 4c43c9cc00e14d20b49d62e9bb65549f_1397d29 <11edc3260155848694f092dcf5b1bcf3_620226>, 2017
 # MELERIX, 2020
 # MS-PC, 2018-2021
-# Puniasterus <puniasterus@gmail.com>, 2013-2016,2020-2021
+# Puniasterus <puniasterus@gmail.com>, 2013-2016,2020-2021,2025
 # Puniasterus <puniasterus@gmail.com>, 2013
 # Puniasterus <puniasterus@gmail.com>, 2013
 # BentoCore <ncardenascota@gmail.com>, 2020
 # Sithdown <afdezmnez@gmail.com>, 2013
-# Swyter <Swyterzone@gmail.com>, 2014-2018,2021
+# Swyter <Swyterzone@gmail.com>, 2014-2018,2021,2025
 # Víctor González, 2021-2025
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-16 23:54+0200\n"
+"POT-Creation-Date: 2025-07-23 18:54+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
-"Last-Translator: Petiso_Carambanal <diegoae@gmail.com>, 2013-2017,2020-2025\n"
+"Last-Translator: Puniasterus <puniasterus@gmail.com>, "
+"2013-2016,2020-2021,2025\n"
 "Language-Team: Spanish (http://app.transifex.com/dolphinemu/dolphin-emu/"
 "language/es/)\n"
 "Language: es\n"
@@ -732,7 +733,7 @@ msgid "Set PC"
 msgstr "Establecer PC"
 
 #: Source/Core/Core/HotkeyManager.cpp:79
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1097
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1101
 msgid "Toggle Breakpoint"
 msgstr "Alternar punto de interrupción"
 
@@ -1850,12 +1851,12 @@ msgstr "Botones de traste"
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:76
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:129
 msgid "Strum"
-msgstr "Barra de toque"
+msgstr "Barra de toque/rasgueo"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:91
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:138
 msgid "Whammy"
-msgstr "Barra de trémolo"
+msgstr "Barra de vibrato"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:92
 msgid "Bar"
@@ -2179,12 +2180,12 @@ msgstr ""
 "Se ha activado el modo de acceso directo a Bluetooth, pero no se puede "
 "utilizar porque Dolphin se ha compilado sin la biblioteca libusb."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:163
+#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:128
 #, c++-format
 msgid "GetDeviceList failed: {0}"
 msgstr "Fallo en GetDeviceList: {0}"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:171
+#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:136
 msgid ""
 "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n"
 "\n"
@@ -2195,7 +2196,7 @@ msgstr ""
 "\n"
 "La consola emulada se detendrá ahora."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:177
+#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:142
 #, c++-format
 msgid ""
 "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n"
@@ -2211,19 +2212,19 @@ msgstr ""
 "\n"
 "La consola emulada se detendrá ahora."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:460
+#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:425
 #, c++-format
 msgid "Failed to open Bluetooth device {:04x}:{:04x}: {}"
 msgstr "No se ha podido abrir el dispositivo Bluetooth {:04x}:{:04x}: {}"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:477
+#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:442
 #, c++-format
 msgid "Failed to detach kernel driver for BT passthrough: {0}"
 msgstr ""
 "No se ha podido desvincular el controlador del kernel para ejecutar el "
 "acceso directo a BT: {0}"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:484
+#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:449
 #, c++-format
 msgid "Failed to claim interface for BT passthrough: {0}"
 msgstr "No se ha podido controlar la interfaz para el acceso directo a BT: {0}"
@@ -2566,7 +2567,7 @@ msgstr "Enet no se inició"
 
 #: Source/Core/Core/NetPlayServer.cpp:1159
 msgid "All players' saves synchronized."
-msgstr "Todos las partidas guardadas de los jugadores sincronizados."
+msgstr "Todas las partidas guardadas de los jugadores han sido sincronizadas."
 
 #: Source/Core/Core/NetPlayServer.cpp:1180
 #, c++-format
@@ -2769,7 +2770,7 @@ msgstr ""
 #: Source/Core/DiscIO/WIABlob.cpp:1709
 #, c++-format
 msgid "{0} of {1} blocks. Compression ratio {2}%"
-msgstr "{0}bloques de {1}. Ratio de compresión {2}%"
+msgstr "{0} bloques de {1}. Ratio de compresión {2} %"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:285 Source/Core/DiscIO/FileBlob.cpp:58
 #: Source/Core/DiscIO/WIABlob.cpp:2049
@@ -3129,9 +3130,9 @@ msgid ""
 "This disc image is too small and lacks some data. If your dumping program "
 "saved the disc image as several parts, you need to merge them into one file."
 msgstr ""
-"Esta imagen de disco es demasiado pequeña y carece de algunos datos. Si su "
+"Esta imagen de disco es demasiado pequeña y carece de algunos datos. Si tu "
 "programa de volcado ha guardado la imagen del disco como varias partes, "
-"deberá fusionarlas en un solo archivo."
+"debes fusionarlas en un solo archivo."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:826
 msgid "This debug disc image has the size of a retail disc image."
@@ -3207,7 +3208,7 @@ msgstr ""
 #. i18n: "Ticket" here is a kind of digital authorization to use a certain title (e.g. a game)
 #: Source/Core/DiscIO/VolumeVerifier.cpp:992
 msgid "The ticket is not correctly signed."
-msgstr "El ticket no está correctamente firmado"
+msgstr "El ticket no está correctamente firmado."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1001
 msgid ""
@@ -4032,7 +4033,7 @@ msgid "Show in memory"
 msgstr "Mostrar en memoria"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:501
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1092
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1096
 msgid "Add to watch"
 msgstr "Añadir a variables vigiladas"
 
@@ -4371,7 +4372,7 @@ msgstr "Puerto del servidor"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:55
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:73
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:47
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:49
 msgid "Add"
 msgstr "Añadir"
 
@@ -4379,7 +4380,7 @@ msgstr "Añadir"
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:158
 #: Source/Core/DolphinQt/MenuBar.cpp:1555
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:59
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:48
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:50
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:277
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:301
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:732
@@ -7391,7 +7392,7 @@ msgstr ""
 #. i18n: A button to start the process of game controller analog stick mapping and calibration.
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:1071
 msgid "Map and Calibrate"
-msgstr ""
+msgstr "Mapear y calibrar"
 
 #. i18n: A button to start the process of game controller analog stick calibration.
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:1074
@@ -7406,12 +7407,12 @@ msgstr "Centrar y calibrar"
 #. i18n: A button to reset game controller analog stick calibration.
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:1080
 msgid "Reset Calibration"
-msgstr ""
+msgstr "Restablecer calibración"
 
 #. i18n: A button to stop a game controller button mapping process.
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:1107
 msgid "Cancel Mapping"
-msgstr ""
+msgstr "Cancelar mapeo"
 
 #. i18n: A button to abort a game controller calibration process.
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:1133
@@ -8014,7 +8015,7 @@ msgid ""
 "Do you wish to replace it?"
 msgstr ""
 "El archivo %1 ya existe.\n"
-"¿Desea reemplazarlo?"
+"¿Deseas reemplazarlo?"
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:422
 msgid ""
@@ -8409,12 +8410,12 @@ msgid "Make &Unconditional"
 msgstr "Convertir en &incondicional"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:432
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:587
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:594
 msgid "&Copy Address"
 msgstr "&Copiar dirección"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:435
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:614
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:621
 msgid "Insert &NOP"
 msgstr "Insertar &NOP"
 
@@ -8539,7 +8540,7 @@ msgstr "Pausar inspección de ramas"
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:613
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:624
 msgid "There is nothing to save!"
-msgstr "No hay nada que guardar"
+msgstr "¡No hay nada que guardar!"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:629
 msgid "Save Branch Watch Snapshot"
@@ -9013,126 +9014,126 @@ msgid "Parameters"
 msgstr "Parámetros"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:164
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:146
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:148
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:156
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:158
 #: Source/Core/DolphinQt/MenuBar.cpp:1065
 msgid "Symbols"
 msgstr "Símbolos"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:165
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:147
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:157
 msgid "Notes"
-msgstr ""
+msgstr "Notas"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:166
 msgid "Branches"
 msgstr "Ramas"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:391
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:393
 msgid "--> %1"
 msgstr "--> %1"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:583
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:590
 msgid "Follow &Branch"
 msgstr "Seguir &rama"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:589
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:596
 msgid "Copy &Function"
 msgstr "Copiar &función"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:591
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:598
 msgid "Copy Code &Line"
 msgstr "Copiar código de &línea"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:592
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:599
 msgid "Copy &Hex"
 msgstr "Copiar código &hexadecimal"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:594
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:601
 msgid "Show in &Memory"
 msgstr "Mostrar en memoria"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:596
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:603
 msgid "Show Target in Memor&y"
 msgstr "Mostrar objetivo en &memoria"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:598
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:605
 msgid "Copy Tar&get Address"
 msgstr "Copiar dirección ob&jetivo"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:602
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:609
 msgid "&Add function symbol"
-msgstr ""
-
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:604
-msgid "&Edit function symbol"
-msgstr ""
-
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:606
-msgid "Add Note"
-msgstr ""
-
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:607
-msgid "Edit Note"
-msgstr ""
+msgstr "&Añadir símbolo de función"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:611
+msgid "&Edit function symbol"
+msgstr "&Editar símbolo de función"
+
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:613
+msgid "Add Note"
+msgstr "Añadir nota"
+
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:614
+msgid "Edit Note"
+msgstr "Editar nota"
+
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:618
 msgid "Run &to Here"
 msgstr "Ejecutar has&ta aquí"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:612
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:619
 msgid "PPC vs Host"
 msgstr "PPC contra anfitrión"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:613
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:620
 msgid "&Insert BLR"
 msgstr "Insertar &BLR"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:616
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:623
 msgid "Re&place Instruction"
 msgstr "Reem&plazar instrucción"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:618
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:625
 msgid "Assemble Instruction"
 msgstr "Ensamblar instrucción"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:620
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:627
 msgid "Restore Instruction"
 msgstr "Restaurar instrucción"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:645
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:652
 msgid "Run Until (Ignoring Breakpoints)"
 msgstr "Ejecutar (ignorando puntos de interrupción) hasta"
 
 #. i18n: One of the options shown below "Run Until (Ignoring Breakpoints)"
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:647
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:654
 msgid "%1's value is hit"
 msgstr "El valor de %1 ha aparecido"
 
 #. i18n: One of the options shown below "Run Until (Ignoring Breakpoints)"
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:650
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:657
 msgid "%1's value is used"
 msgstr "El valor de %1 se ha utilizado"
 
 #. i18n: One of the options shown below "Run Until (Ignoring Breakpoints)"
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:653
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:660
 msgid "%1's value is changed"
 msgstr "El valor de %1 ha cambiado"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:695
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:702
 msgid "Run Until"
 msgstr "Ejecutar hasta"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:696
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:703
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:296
 msgid "Keep Running"
 msgstr "Seguir ejecutando"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:715
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:722
 msgid "Overwritten"
 msgstr "Sobrescrito"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:716
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:723
 msgid ""
 "Target value was overwritten by current instruction.\n"
 "Instructions executed:   %1"
@@ -9140,7 +9141,7 @@ msgstr ""
 "El valor objetivo ha sido sobrescrito por la instrucción actual.\n"
 "Instrucciones ejecutadas:  %1"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:725
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:732
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:294
 msgid ""
 "<font color='#ff0000'>AutoStepping timed out. Current instruction is "
@@ -9149,11 +9150,11 @@ msgstr ""
 "<font color='#ff0000'>Se ha agotado el tiempo de espera del avance "
 "automático. La instrucción actual es irrelevante."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:729
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:736
 msgid "Value tracked to current instruction."
 msgstr "El valor ha sido localizado en la instrucción actual."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:755
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:762
 msgid ""
 "Instructions executed:   %1\n"
 "Value contained in:\n"
@@ -9165,81 +9166,89 @@ msgstr ""
 "Registros:  %2\n"
 "Memoria:  %3"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:901
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:908
 msgid "Add Function Symbol"
-msgstr ""
+msgstr "Añadir símbolo de función"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:902
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:909
 msgid "Force new function symbol to be made at %1?"
-msgstr ""
+msgstr "¿Forzar la creación de un nuevo símbolo de función en %1?"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:989
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:996
 msgid "Delete Function Symbol"
-msgstr ""
+msgstr "Borrar símbolo de función"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:990
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:997
 msgid ""
 "Delete function symbol: %1\n"
 "at %2?"
 msgstr ""
+"¿Borrar símbolo de función: %1\n"
+"en %2?"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:1072
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:1079
 msgid "Delete Note"
-msgstr ""
+msgstr "Borrar nota"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:1073
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:1080
 msgid ""
 "Delete Note: %1\n"
 "at %2?"
 msgstr ""
+"¿Borrar nota: %1\n"
+"en %2?"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:44
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:46
 msgid "Code"
 msgstr "Código"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:111
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:113
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:114
 msgid "Search Address"
 msgstr "Buscar dirección"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:112
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:119
+msgid "When enabled, prevents automatic updates to the code view."
+msgstr ""
+
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:120
 msgid "Branch Watch"
 msgstr "Inspector de ramas"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:140
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:150
 msgid "Callstack"
 msgstr "Pila de llamadas"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:152
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:162
 msgid "Calls"
 msgstr "Llamadas"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:156
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:166
 msgid "Callers"
 msgstr "Llamadores"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:389
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:400
 msgid "Invalid callstack"
 msgstr "La pila de llamadas («callstack») no es válida"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:555
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:566
 msgid "Step successful!"
 msgstr "Se han saltado las instrucciones."
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:580
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:591
 msgid "Step over in progress..."
 msgstr "Saltando instrucciones..."
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:655
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:666
 msgid "Breakpoint encountered! Step out aborted."
 msgstr ""
 "Se ha encontrado un punto de interrupción. Salto de instrucciones cancelado."
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:657
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:668
 msgid "Step out timed out!"
 msgstr "Se ha cancelado el salto de instrucciones por tardar demasiado tiempo."
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:659
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:670
 msgid "Step out successful!"
 msgstr "Se ha saltado la instrucción."
 
@@ -9252,38 +9261,41 @@ msgstr "Símbolo"
 
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:20
 msgid "Note"
-msgstr ""
+msgstr "Nota"
 
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:21
 msgid "Edit %1"
-msgstr ""
+msgstr "Editar %1"
 
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:32
 msgid ""
 "Editing %1 starting at: %2\n"
 "Warning: Must save the symbol map for changes to be kept."
 msgstr ""
+"Editando %1 a partir de: %2\n"
+"Advertencia: Debes guardar el mapa de símbolos para que se conserven los "
+"cambios."
 
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:37
 msgid "%1 name"
-msgstr ""
+msgstr "%1 nombre"
 
 #. i18n: The address where a symbol ends
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:41
 msgid "End Address"
-msgstr ""
+msgstr "Dirección final"
 
 #. i18n: The number of lines of code
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:43
 msgid "Lines"
-msgstr ""
+msgstr "Líneas"
 
 #. i18n: There's a text field immediately to the right of this label where 8 hexadecimal digits
 #. can be entered. The "0x" in this string acts as a prefix to the digits to indicate that they
 #. are hexadecimal.
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:47
 msgid "Size: 0x"
-msgstr ""
+msgstr "Tamaño: 0x"
 
 #. i18n: PPC Feature Flags
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:386
@@ -9491,19 +9503,19 @@ msgstr "Media de tiempo (ns)"
 msgid "Time Percent"
 msgstr "Porcentaje de tiempo"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1076
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1080
 msgid "Copy Address"
 msgstr "Copiar dirección"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1078
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1082
 msgid "Copy Hex"
 msgstr "Copiar en hexadecimal"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1081
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1085
 msgid "Copy Value"
 msgstr "Copiar valor"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1088
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1092
 msgid "Show in code"
 msgstr "Mostrar en código"
 
@@ -11509,6 +11521,8 @@ msgstr "Archivo de claves BootMii (*.bin);;Todos los archivos (*)"
 msgid ""
 "Playback of input recordings is disabled in RetroAchievements hardcore mode."
 msgstr ""
+"La reproducción de grabaciones de pulsación está desactivada en el modo "
+"«hardcore» de RetroAchievements."
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1853
 msgid "Select the Recording File to Play"
@@ -12127,7 +12141,7 @@ msgstr "&Borrar símbolos"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1069
 msgid "&Generate Symbols From"
-msgstr "&Generar el mapa de símbolos a partir de..."
+msgstr "&Generar mapa de símbolos a partir de..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1071
 msgid "Signature Database"
@@ -12171,7 +12185,7 @@ msgstr "Añadir al archivo de firma existente..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1090
 msgid "Combine &Two Signature Files..."
-msgstr "Combinar dos archivos de firmas..."
+msgstr "Combinar &dos archivos de firmas..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1092
 msgid "Appl&y Signature File..."
@@ -12302,7 +12316,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1330
 msgid "Successfully imported %1 save file(s) with %2 failure(s)"
-msgstr "%1 partidas guardadas importadas correctamente, %2 fallos."
+msgstr "Partidas importadas correctamente: %1. Fallos: %2."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1347
 #, c-format
@@ -12890,7 +12904,7 @@ msgstr ""
 "La resolución interna automática no está permitida en el modo de "
 "sincronización estricta, ya que depende del tamaño de la ventana.\n"
 "\n"
-"Por favor seleccione una resolución interna específica."
+"Selecciona una resolución interna específica."
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:497
 msgid "Are you sure you want to quit NetPlay?"
@@ -13140,7 +13154,7 @@ msgstr "Forzar escucha en puerto:"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:140
 msgid "Limit Chunked Upload Speed:"
-msgstr "Limite la velocidad de subida de datos:"
+msgstr "Limitar velocidad de subida de fragmentos:"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:142
 msgid "Show in server browser"
@@ -13160,8 +13174,8 @@ msgid ""
 "This will limit the speed of chunked uploading per client, which is used for "
 "save sync."
 msgstr ""
-"Esto limitará la velocidad de carga por cliente, que se utiliza para guardar "
-"la sincronización."
+"Limitará la velocidad de subida fragmentada de cada cliente, que se utiliza "
+"para guardar la sincronización."
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:162
 msgid "Name of your session shown in the server browser"
@@ -13169,7 +13183,7 @@ msgstr "El nombre de su sesión se muestra en el navegador del servidor"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:164
 msgid "Password for joining your game (leave empty for none)"
-msgstr "Contraseña para unirse a tu juego (dejar vacío para ninguno)"
+msgstr "Contraseña para unirse a tu partida (opcional)"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:192
 msgid "Direct Connection"
@@ -13202,7 +13216,7 @@ msgstr "¡Tienes que elegir un juego para alojar una partida!"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:341
 msgid "You must provide a name for your session!"
-msgstr "¡Debe proporcionar un nombre para su sesión!"
+msgstr "¡Debes proporcionar un nombre para tu sesión!"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:349
 msgid "You must provide a region for your session!"
@@ -13449,11 +13463,11 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:93
 msgid "Timing"
-msgstr ""
+msgstr "Sincronización"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:97
 msgid "Correct Time Drift"
-msgstr ""
+msgstr "Corregir deriva temporal"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:99
 msgid ""
@@ -13462,6 +13476,11 @@ msgid ""
 "useful for internet play.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"Permite que la consola se ejecute de forma más rápida cuando se produzcan "
+"parones <br>para mantener un paso del tiempo más preciso si no se pausa el "
+"juego o se ajusta su velocidad.<br><br>Podría ayudar en partidas a través de "
+"Internet.<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción "
+"desactivada.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:105
 msgid "Clock Override"
@@ -14728,45 +14747,45 @@ msgstr "Ruta de paquetes de recursos:"
 msgid "WFS Path:"
 msgstr "Ruta del WFS:"
 
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:44
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:46
 msgid "Add New USB Device"
 msgstr "Añadir dispositivo USB"
 
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:57
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:59
 msgid "Enter USB device ID"
 msgstr "Introduce un ID de dispositivo USB"
 
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:79
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:81
 msgid "or select a device"
 msgstr "o elige un dispositivo"
 
 #. i18n: VID means Vendor ID (in the context of a USB device)
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:99
-msgid "Device VID (e.g., 057e)"
-msgstr "VID del dispositivo (por ejemplo: 057e)"
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:101
+msgid "Device VID"
+msgstr ""
 
 #. i18n: PID means Product ID (in the context of a USB device), not Process ID
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:101
-msgid "Device PID (e.g., 0305)"
-msgstr "PID del dispositivo (por ejemplo: 0305)"
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:103
+msgid "Device PID"
+msgstr ""
 
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:130
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:137
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:150
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:135
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:142
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:155
 msgid "USB Whitelist Error"
 msgstr "Error en la lista de dispositivos USB permitidos"
 
 #. i18n: Here, VID means Vendor ID (for a USB device).
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:132
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:137
 msgid "The entered VID is invalid."
 msgstr "El VID que has escrito no es correcto."
 
 #. i18n: Here, PID means Product ID (for a USB device).
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:139
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:144
 msgid "The entered PID is invalid."
 msgstr "El PID que has escrito no es correcto."
 
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:151
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:156
 msgid "This USB device is already whitelisted."
 msgstr "Este dispositivo USB ya está en la lista."
 
@@ -15821,7 +15840,7 @@ msgstr "Ajusta el radio efectivo del borde simulado de la palanca."
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:30
 msgid "Enabled"
-msgstr ""
+msgstr "Habilitado"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:38
 msgid "Virtual Notches"
@@ -16166,7 +16185,7 @@ msgstr ""
 
 #: Source/Core/UICommon/AutoUpdate.cpp:226
 msgid "You are running the latest version available on this update track."
-msgstr "No hay actualizaciones disponibles en el canal elegido"
+msgstr "No hay actualizaciones disponibles en el canal elegido."
 
 #: Source/Core/UICommon/AutoUpdate.cpp:280
 msgid "Unable to create updater copy."
@@ -16568,9 +16587,3 @@ msgstr "Aplicar"
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:742
 msgid "Restore Defaults"
 msgstr "Restaurar valores predeterminados"
-
-#~ msgid "%1 Graphics Configuration"
-#~ msgstr "Configuración gráfica para «%1»"
-
-#~ msgid "Multiple errors while generating AR codes."
-#~ msgstr "Se han producido varios errores al generar los códigos AR."

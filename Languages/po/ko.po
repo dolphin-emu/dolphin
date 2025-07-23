@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-16 23:54+0200\n"
+"POT-Creation-Date: 2025-07-23 18:54+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Siegfried, 2013-2025\n"
 "Language-Team: Korean (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -202,7 +202,7 @@ msgid "Action Replay: Conditional Code: Invalid Size {0:08x} ({1})"
 msgstr "액션 리플레이: 조건적 코드: 올바르지 않은 크기 {0:08x} ({1})"
 
 #: Source/Core/Core/ActionReplay.cpp:828
-#, fuzzy, c++-format
+#, c++-format
 msgid "Action Replay: Normal Code {0}: Invalid subtype {1:08x} ({2})"
 msgstr "액션 리플레이: 일반 코드 0: 올바르지 않은 하위 분류 {0:08x} ({2})"
 
@@ -698,7 +698,7 @@ msgid "Set PC"
 msgstr "PC 설정"
 
 #: Source/Core/Core/HotkeyManager.cpp:79
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1097
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1101
 msgid "Toggle Breakpoint"
 msgstr "중단점 토글"
 
@@ -2132,12 +2132,12 @@ msgstr ""
 "블루투스 패스쓰루 모드가 켜졌습니다, 하지만 돌핀이 libusb 없이 빌드되었습니"
 "다. 패스쓰루 모드를 사용할 수 없습니다."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:163
+#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:128
 #, c++-format
 msgid "GetDeviceList failed: {0}"
 msgstr "장치목록얻기 실패했음: {0}"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:171
+#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:136
 msgid ""
 "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n"
 "\n"
@@ -2147,7 +2147,7 @@ msgstr ""
 "\n"
 "에뮬된 콘솔이 지금 멈출 것입니다."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:177
+#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:142
 #, c++-format
 msgid ""
 "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n"
@@ -2162,17 +2162,17 @@ msgstr ""
 "\n"
 "에뮬된 콘솔이 지금 멈출 것입니다."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:460
+#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:425
 #, c++-format
 msgid "Failed to open Bluetooth device {:04x}:{:04x}: {}"
 msgstr "블루투스 장치 열기에 실패했습니다 {:04x}:{:04x}: {}"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:477
+#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:442
 #, c++-format
 msgid "Failed to detach kernel driver for BT passthrough: {0}"
 msgstr "블투 패스쓰루용 커널 드라이버를 분리하는데에 실패했습니다: {0}"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:484
+#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:449
 #, c++-format
 msgid "Failed to claim interface for BT passthrough: {0}"
 msgstr "블투 패스쓰루용 인터페이스 요청에 실패했습니다: {0}"
@@ -3912,7 +3912,7 @@ msgid "Show in memory"
 msgstr "메모리로 보기"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:501
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1092
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1096
 msgid "Add to watch"
 msgstr "관찰에 추가"
 
@@ -4249,7 +4249,7 @@ msgstr "서버 포트"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:55
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:73
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:47
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:49
 msgid "Add"
 msgstr "추가"
 
@@ -4257,7 +4257,7 @@ msgstr "추가"
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:158
 #: Source/Core/DolphinQt/MenuBar.cpp:1555
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:59
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:48
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:50
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:277
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:301
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:732
@@ -8140,12 +8140,12 @@ msgid "Make &Unconditional"
 msgstr "무조건 만들기 (&U)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:432
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:587
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:594
 msgid "&Copy Address"
 msgstr "주소 복사 (&C)"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:435
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:614
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:621
 msgid "Insert &NOP"
 msgstr "NOP 삽입 (&N)"
 
@@ -8722,14 +8722,14 @@ msgid "Parameters"
 msgstr "매개변수들"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:164
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:146
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:148
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:156
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:158
 #: Source/Core/DolphinQt/MenuBar.cpp:1065
 msgid "Symbols"
 msgstr "기호들"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:165
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:147
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:157
 msgid "Notes"
 msgstr ""
 
@@ -8737,111 +8737,111 @@ msgstr ""
 msgid "Branches"
 msgstr "분기들"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:391
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:393
 msgid "--> %1"
 msgstr "--> %1"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:583
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:590
 msgid "Follow &Branch"
 msgstr "분기 따라가기 (&B)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:589
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:596
 msgid "Copy &Function"
 msgstr "함수 복사 (&F)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:591
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:598
 msgid "Copy Code &Line"
 msgstr "코드 줄 복사 (&L)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:592
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:599
 msgid "Copy &Hex"
 msgstr "헥스 복사 (&H)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:594
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:601
 msgid "Show in &Memory"
 msgstr "메모리로 보기 (&M)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:596
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:603
 msgid "Show Target in Memor&y"
 msgstr "메모리에서 대상 보여주기(&y)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:598
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:605
 msgid "Copy Tar&get Address"
 msgstr "대상 주소 복사(&g)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:602
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:609
 msgid "&Add function symbol"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:604
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:611
 msgid "&Edit function symbol"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:606
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:613
 msgid "Add Note"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:607
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:614
 msgid "Edit Note"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:611
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:618
 msgid "Run &to Here"
 msgstr "여기까지 실행 (&t)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:612
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:619
 msgid "PPC vs Host"
 msgstr "PPC 대 호스트"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:613
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:620
 msgid "&Insert BLR"
 msgstr "BLR 삽입 (&I)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:616
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:623
 msgid "Re&place Instruction"
 msgstr "명령 바꾸기 (&p)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:618
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:625
 msgid "Assemble Instruction"
 msgstr "어쎔블 명령"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:620
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:627
 msgid "Restore Instruction"
 msgstr "명령 복구"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:645
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:652
 msgid "Run Until (Ignoring Breakpoints)"
 msgstr "때까지 구동 (중단점들을 무시)"
 
 #. i18n: One of the options shown below "Run Until (Ignoring Breakpoints)"
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:647
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:654
 msgid "%1's value is hit"
 msgstr "%1 의 값이 일치합니다"
 
 #. i18n: One of the options shown below "Run Until (Ignoring Breakpoints)"
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:650
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:657
 msgid "%1's value is used"
 msgstr "%1 의 값이 사용됩니다"
 
 #. i18n: One of the options shown below "Run Until (Ignoring Breakpoints)"
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:653
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:660
 msgid "%1's value is changed"
 msgstr "%1 의 값이 변경되었습니다"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:695
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:702
 msgid "Run Until"
 msgstr "때까지 구동"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:696
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:703
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:296
 msgid "Keep Running"
 msgstr "계속 구동하기"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:715
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:722
 msgid "Overwritten"
 msgstr "덮어 쓰여진"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:716
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:723
 msgid ""
 "Target value was overwritten by current instruction.\n"
 "Instructions executed:   %1"
@@ -8849,7 +8849,7 @@ msgstr ""
 "목표 값이 현재 명령에 의해 덮어 쓰였습니다.\n"
 "실행된 명령들:   %1"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:725
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:732
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:294
 msgid ""
 "<font color='#ff0000'>AutoStepping timed out. Current instruction is "
@@ -8858,11 +8858,11 @@ msgstr ""
 "<font color='#ff0000'>자동스테핑 시간이 지났습니다. 현재 명령은 관련이 없습니"
 "다."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:729
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:736
 msgid "Value tracked to current instruction."
 msgstr "현재 명령으로 추적된 값."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:755
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:762
 msgid ""
 "Instructions executed:   %1\n"
 "Value contained in:\n"
@@ -8874,80 +8874,84 @@ msgstr ""
 "레지스터들:   %2\n"
 "메모리:   %3"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:901
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:908
 msgid "Add Function Symbol"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:902
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:909
 msgid "Force new function symbol to be made at %1?"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:989
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:996
 msgid "Delete Function Symbol"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:990
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:997
 msgid ""
 "Delete function symbol: %1\n"
 "at %2?"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:1072
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:1079
 msgid "Delete Note"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:1073
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:1080
 msgid ""
 "Delete Note: %1\n"
 "at %2?"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:44
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:46
 msgid "Code"
 msgstr "코드"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:111
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:113
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:114
 msgid "Search Address"
 msgstr "주소 검색"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:112
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:119
+msgid "When enabled, prevents automatic updates to the code view."
+msgstr ""
+
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:120
 msgid "Branch Watch"
 msgstr "분기 감시"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:140
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:150
 msgid "Callstack"
 msgstr "콜스텍"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:152
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:162
 msgid "Calls"
 msgstr "호출들"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:156
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:166
 msgid "Callers"
 msgstr "호출자들"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:389
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:400
 msgid "Invalid callstack"
 msgstr "부적합한 스텍호출"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:555
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:566
 msgid "Step successful!"
 msgstr "스텝 성공!"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:580
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:591
 msgid "Step over in progress..."
 msgstr "스텝 넘어가기 진행 중..."
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:655
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:666
 msgid "Breakpoint encountered! Step out aborted."
 msgstr "중단점을 만났습니다! 스텝 나가기가 중단되었습니다."
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:657
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:668
 msgid "Step out timed out!"
 msgstr "스텝 나가기 시간 초과!"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:659
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:670
 msgid "Step out successful!"
 msgstr "스텝 나가기 성공!"
 
@@ -9194,19 +9198,19 @@ msgstr "시간 평균 (ns)"
 msgid "Time Percent"
 msgstr "시간 퍼센트"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1076
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1080
 msgid "Copy Address"
 msgstr "주소 복사"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1078
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1082
 msgid "Copy Hex"
 msgstr "헥스 복사"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1081
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1085
 msgid "Copy Value"
 msgstr "값 복사"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1088
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1092
 msgid "Show in code"
 msgstr "코드로 보기"
 
@@ -14337,45 +14341,45 @@ msgstr "리소스 팩 경로:"
 msgid "WFS Path:"
 msgstr "WFS 경로:"
 
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:44
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:46
 msgid "Add New USB Device"
 msgstr "새로운 USB 장치 추가"
 
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:57
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:59
 msgid "Enter USB device ID"
 msgstr "USB 장치 ID 를 입력하세요"
 
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:79
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:81
 msgid "or select a device"
 msgstr "또는 장치를 선택하세요"
 
 #. i18n: VID means Vendor ID (in the context of a USB device)
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:99
-msgid "Device VID (e.g., 057e)"
-msgstr "장치 VID (예, 057e)"
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:101
+msgid "Device VID"
+msgstr ""
 
 #. i18n: PID means Product ID (in the context of a USB device), not Process ID
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:101
-msgid "Device PID (e.g., 0305)"
-msgstr "장치 PID (예, 0305)"
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:103
+msgid "Device PID"
+msgstr ""
 
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:130
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:137
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:150
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:135
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:142
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:155
 msgid "USB Whitelist Error"
 msgstr "USB 와이트리스트 에러"
 
 #. i18n: Here, VID means Vendor ID (for a USB device).
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:132
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:137
 msgid "The entered VID is invalid."
 msgstr "입력된 VID 가 부적합합니다."
 
 #. i18n: Here, PID means Product ID (for a USB device).
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:139
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:144
 msgid "The entered PID is invalid."
 msgstr "입력된 PID 가 부적합합니다."
 
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:151
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:156
 msgid "This USB device is already whitelisted."
 msgstr "이 USB 장치는 이미 와이트리스트되어 있습니다."
 
@@ -16148,9 +16152,3 @@ msgstr "적용"
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:742
 msgid "Restore Defaults"
 msgstr "기본값 복원"
-
-#~ msgid "%1 Graphics Configuration"
-#~ msgstr "%1 그래픽 환경설정"
-
-#~ msgid "Multiple errors while generating AR codes."
-#~ msgstr "AR 코드를 생성하는 동안 다중 에러들."

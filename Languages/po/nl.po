@@ -16,7 +16,7 @@
 # Marinus Schot <marinus@live.com>, 2013
 # Martin Dierikx, 2022
 # Mike van der Kuijl <kuijlmike@gmail.com>, 2019-2020
-# Mike van der Kuijl <kuijlmike@gmail.com>, 2020-2024
+# Mike van der Kuijl <kuijlmike@gmail.com>, 2020-2025
 # Mike van der Kuijl <kuijlmike@gmail.com>, 2021-2022
 # Appel “Appel Taart” Taart <mauritspullen@gmail.com>, 2014
 # Philip Goto <philip.goto@gmail.com>, 2023
@@ -29,9 +29,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-16 23:54+0200\n"
+"POT-Creation-Date: 2025-07-23 18:54+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
-"Last-Translator: Mike van der Kuijl <kuijlmike@gmail.com>, 2020-2024\n"
+"Last-Translator: Mike van der Kuijl <kuijlmike@gmail.com>, 2020-2025\n"
 "Language-Team: Dutch (http://app.transifex.com/dolphinemu/dolphin-emu/"
 "language/nl/)\n"
 "Language: nl\n"
@@ -110,7 +110,7 @@ msgstr ""
 
 #: Source/Core/Common/FatFsUtil.h:14
 msgid "Unpack SD Card Now"
-msgstr ""
+msgstr "SD-Kaart Nu Uitpakken"
 
 #: Source/Core/Common/MsgHandler.cpp:59
 #: Source/Core/DolphinQt/GameList/GameList.cpp:743
@@ -221,10 +221,10 @@ msgstr "Action Replay: Onjuiste Normal Code Type {0:08x} ({1})"
 #: Source/Core/Core/ActionReplay.cpp:804
 #, c++-format
 msgid "Action Replay: Conditional Code: Invalid Size {0:08x} ({1})"
-msgstr "Action Replay: Conditionele Code: Onjuiste Grootte {0:08x} ({1})"
+msgstr "Action Replay: Voorwaardelijke Code: Onjuiste Grootte {0:08x} ({1})"
 
 #: Source/Core/Core/ActionReplay.cpp:828
-#, fuzzy, c++-format
+#, c++-format
 msgid "Action Replay: Normal Code {0}: Invalid subtype {1:08x} ({2})"
 msgstr "Action Replay: Normal Code {1}: Onjuist Subtype {1:08x} ({2})"
 
@@ -724,17 +724,17 @@ msgid "Set PC"
 msgstr "Stel PC In"
 
 #: Source/Core/Core/HotkeyManager.cpp:79
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1097
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1101
 msgid "Toggle Breakpoint"
 msgstr "Schakel Breekpunt Om"
 
 #: Source/Core/Core/HotkeyManager.cpp:80
 msgid "Add a Breakpoint"
-msgstr "Voeg een Breekpunt Toe"
+msgstr "Breekpunt Toevoegen"
 
 #: Source/Core/Core/HotkeyManager.cpp:81
 msgid "Add a Memory Breakpoint"
-msgstr "Voeg Een Geheugen Breekpunt Toe"
+msgstr "Geheugen Breekpunt Toevoegen"
 
 #: Source/Core/Core/HotkeyManager.cpp:83
 msgid "Press Sync Button"
@@ -770,7 +770,7 @@ msgstr "USB-toetsenbord omschakelen"
 
 #: Source/Core/Core/HotkeyManager.cpp:91
 msgid "Toggle Wii Speak Mute"
-msgstr ""
+msgstr "Wii Speak Dempen Omschakelen"
 
 #: Source/Core/Core/HotkeyManager.cpp:93 Source/Core/Core/HotkeyManager.cpp:97
 #: Source/Core/Core/HotkeyManager.cpp:101
@@ -1292,6 +1292,8 @@ msgid ""
 "Couldn't open port {0}. This might stop the game's LAN mode from working "
 "properly."
 msgstr ""
+"Kon poort {0} niet open. Hierdoor werkt de LAN-modus van het spel mogelijk "
+"niet goed."
 
 #: Source/Core/Core/HW/EXI/BBA/BuiltIn.cpp:518
 #, c++-format
@@ -1328,6 +1330,8 @@ msgstr ""
 msgid ""
 "Dolphin was built with Cubeb disabled. The Microphone device cannot be used."
 msgstr ""
+"Dolphin is gebouwd met Cubeb uitgeschakeld. De microfoon kan niet worden "
+"gebruikt."
 
 #: Source/Core/Core/HW/EXI/EXI_DeviceEthernet.cpp:72
 #, c++-format
@@ -1369,7 +1373,7 @@ msgstr "Breedbandadapter (TAP)"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:99
 msgid "Triforce Baseboard"
-msgstr ""
+msgstr "Triforce Baseboard"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:100
 msgid "USB Gecko"
@@ -2161,12 +2165,12 @@ msgstr ""
 "Bluetooth passthrough modus staat aan, maar Dolphin is gecompileerd zonder "
 "libusb. Passthrough  mode kan niet gebruikt worden."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:163
+#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:128
 #, c++-format
 msgid "GetDeviceList failed: {0}"
 msgstr "GetDeviceList mislukt: {0}"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:171
+#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:136
 msgid ""
 "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n"
 "\n"
@@ -2176,7 +2180,7 @@ msgstr ""
 "\n"
 "De geëmuleerde console stopt nu."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:177
+#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:142
 #, c++-format
 msgid ""
 "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n"
@@ -2191,17 +2195,17 @@ msgstr ""
 "\n"
 "De geëmuleerde console stopt nu."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:460
+#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:425
 #, c++-format
 msgid "Failed to open Bluetooth device {:04x}:{:04x}: {}"
 msgstr ""
 
-#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:477
+#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:442
 #, c++-format
 msgid "Failed to detach kernel driver for BT passthrough: {0}"
 msgstr "Kon kernel driver voor BT passthrough niet ontkoppelen: {0}"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:484
+#: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:449
 #, c++-format
 msgid "Failed to claim interface for BT passthrough: {0}"
 msgstr ""
@@ -2346,6 +2350,7 @@ msgstr "Vroegtijdig opname einde in PlayWiimote. {0} + {1} > {2}"
 #, c++-format
 msgid "Aborting playback. Error in DeserializeDesiredState. byte:{0}{1}"
 msgstr ""
+"Afspelen wordt afgebroken. Fout in DeserializeDesiredState. byte:{0}{1}"
 
 #: Source/Core/Core/NetPlayClient.cpp:145
 msgid "Could not create client."
@@ -3236,7 +3241,7 @@ msgstr ""
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1386
 msgid "Dolphin is currently unable to verify Triforce games."
-msgstr ""
+msgstr "Dolphin is momenteel niet in staat Triforce-spellen te verifiëren."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1396
 msgid ""
@@ -3401,6 +3406,8 @@ msgid ""
 "© 2003-2024+ Dolphin Team. “GameCube” and “Wii” are trademarks of Nintendo. "
 "Dolphin is not affiliated with Nintendo in any way."
 msgstr ""
+"© 2003-2024+ Dolphin Team. \"GameCube\" en \"Wii\" zijn handelsmerken van "
+"Nintendo. Dolphin is op geen enkele manier verbonden met Nintendo."
 
 #: Source/Core/DolphinQt/Achievements/AchievementBox.cpp:40
 #: Source/Core/DolphinQt/Achievements/AchievementHeaderWidget.cpp:146
@@ -3577,23 +3584,23 @@ msgstr "Weergave-instellingen"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:198
 msgid "To log in, stop the current emulation."
-msgstr ""
+msgstr "Stop de huidige emulatie om in te loggen."
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:272
 msgid "Confirm Logout"
-msgstr ""
+msgstr "Bevestig uitloggen"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:272
 msgid "Are you sure you want to log out of RetroAchievements?"
-msgstr ""
+msgstr "Weet u zeker dat u uit wilt loggen bij RetroAchievements?"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:286
 msgid "Confirm Hardcore Off"
-msgstr ""
+msgstr "Bevestig Hardcore Uit "
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:286
 msgid "Are you sure you want to turn hardcore mode off?"
-msgstr ""
+msgstr "Weet u zeker dat u hardcore modus wilt uitschakelen?"
 
 #: Source/Core/DolphinQt/Achievements/AchievementsWindow.cpp:29
 #: Source/Core/DolphinQt/MenuBar.cpp:294
@@ -3936,9 +3943,9 @@ msgid "Show in memory"
 msgstr "In geheugen weergeven"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:501
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1092
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1096
 msgid "Add to watch"
-msgstr "Voeg toe aan watch"
+msgstr "Aan watch toevoegen"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:505
 msgid "Generate Action Replay Code(s)"
@@ -4260,7 +4267,7 @@ msgstr "Niets te configureren"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:31
 msgid "Add New DSU Server"
-msgstr "Voeg Nieuwe DSU Server toe"
+msgstr "Nieuwe DSU Server Toevoegen"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:36
 msgid "BetterJoy, DS4Windows, etc"
@@ -4276,7 +4283,7 @@ msgstr "Server Poort"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:55
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:73
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:47
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:49
 msgid "Add"
 msgstr "Toevoegen"
 
@@ -4284,7 +4291,7 @@ msgstr "Toevoegen"
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:158
 #: Source/Core/DolphinQt/MenuBar.cpp:1555
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:59
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:48
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:50
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:277
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:301
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:732
@@ -4783,7 +4790,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:246
 msgid "These settings override core Dolphin settings."
-msgstr ""
+msgstr "Deze instelling overschrijven kerninstellingen van Dolphin. "
 
 #: Source/Core/DolphinQt/Config/GamecubeControllersWidget.cpp:34
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:110
@@ -5006,7 +5013,7 @@ msgstr "Resolutie Type:"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:174
 msgid "Use Lossless Codec (Ut Video)"
-msgstr ""
+msgstr "Gebruik Lossless Codec (Ut Video)"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:180
 msgid "Bitrate (kbps):"
@@ -5616,7 +5623,7 @@ msgstr "Standaard"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:117
 msgid "1x Anisotropic"
-msgstr ""
+msgstr "1x Anisotropisch"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:118
 msgid "2x Anisotropic"
@@ -5764,7 +5771,7 @@ msgstr "Wissel Ogen"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:221
 msgid "Use Full Resolution Per Eye"
-msgstr ""
+msgstr "Volledige Resolutie Per Oog Gebruiken"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:223
 msgid "Stereoscopic 3D Mode:"
@@ -5834,6 +5841,13 @@ msgid ""
 "setting is disabled when Manual Texture Sampling is enabled."
 "<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>"
 msgstr ""
+"Past de texture-filtering aan. Anisotrope filtering verbetert de visuele "
+"kwaliteit van textures die onder een schuine kijkhoek staan. Forceer Nearest "
+"en Forceer Lineair overschrijven de schaalfilter geselecteerd door het spel."
+"<br><br>Elke optie behalve 'Standaard' zal het uiterlijk van de texturen van "
+"het spel veranderen en kan problemen veroorzaken in een klein aantal spellen."
+"<br><br><dolphin_emphasis>In geval van twijfel, selecteer 'Standaard'.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:460
 msgid ""
@@ -6116,7 +6130,7 @@ msgstr "Beeldverhouding:"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:100
 msgid "Precision Frame Timing"
-msgstr ""
+msgstr "Nauwkeurige Frametiming"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:102
 msgid ""
@@ -6685,7 +6699,7 @@ msgstr "%1 (Revisie %3)"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:130
 msgid "Triforce ID:"
-msgstr ""
+msgstr "Triforce ID:"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:132
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:109
@@ -6821,7 +6835,7 @@ msgid ""
 "Note: motion input may require configuring alternate input sources before "
 "use."
 msgstr ""
-"Waarschuwing: bewegingsinput vereist mogelijk het instellen van alternatieve "
+"Opmerking: bewegingsinput vereist mogelijk het instellen van alternatieve "
 "inputbronnen voor gebruik."
 
 #: Source/Core/DolphinQt/Config/Mapping/FreeLookRotation.cpp:41
@@ -6913,19 +6927,19 @@ msgstr "Configureer Output"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:288
 msgid "Insert Input"
-msgstr ""
+msgstr "Invoer Invoegen"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:288
 msgid "Insert Output"
-msgstr ""
+msgstr "Uitvoer Invoegen"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:289
 msgid "Detect Input"
-msgstr ""
+msgstr "Detecteer invoer"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:290
 msgid "Test Output"
-msgstr ""
+msgstr "Test Uitvoer"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:315
 msgid "Operators"
@@ -6973,7 +6987,7 @@ msgstr "^ Exclusieve Of"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:329
 msgid "? Conditional"
-msgstr ""
+msgstr "? Voorwaardelijk"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:331
 msgid "| Or"
@@ -7016,12 +7030,12 @@ msgstr "Vermenigvuldiger"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:529
 msgid "[ ... ]"
-msgstr ""
+msgstr "[ ... ]"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:533
 #: Source/Core/DolphinQt/Config/Mapping/MappingCommon.cpp:57
 msgid "[ Press Now ]"
-msgstr ""
+msgstr "[ Druk Nu ]"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:649
 msgid "The expression contains a syntax error."
@@ -7063,7 +7077,7 @@ msgstr ""
 #. i18n: A button to start the process of game controller analog stick mapping and calibration.
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:1071
 msgid "Map and Calibrate"
-msgstr ""
+msgstr "Map en Kalibreer"
 
 #. i18n: A button to start the process of game controller analog stick calibration.
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:1074
@@ -7078,12 +7092,12 @@ msgstr "Centreer en Kalibreer"
 #. i18n: A button to reset game controller analog stick calibration.
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:1080
 msgid "Reset Calibration"
-msgstr ""
+msgstr "Kalibratie Resetten"
 
 #. i18n: A button to stop a game controller button mapping process.
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:1107
 msgid "Cancel Mapping"
-msgstr ""
+msgstr "Annuleer Mapping"
 
 #. i18n: A button to abort a game controller calibration process.
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:1133
@@ -7120,7 +7134,7 @@ msgstr "Apparaat"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:115
 msgid "Create Mappings for Other Devices"
-msgstr ""
+msgstr "Maak Mapping voor andere apparaten"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:118
 msgid "Wait for Alternate Input Mappings"
@@ -7128,7 +7142,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:121
 msgid "Enable Iterative Input Mapping"
-msgstr ""
+msgstr "Iteratieve Invoer Mapping Inschakelen"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:142
 msgid "Profile"
@@ -7281,7 +7295,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:65
 msgid "Configure Extension"
-msgstr ""
+msgstr "Configureer Extensie"
 
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControlIMU.cpp:32
 msgid ""
@@ -7463,15 +7477,15 @@ msgstr "Hoog"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:72
 msgid "Scanning for adapters..."
-msgstr ""
+msgstr "Voor Adapters Scannen..."
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:102
 msgid "Automatic"
-msgstr ""
+msgstr "Automatisch"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:106
 msgid "Unknown Device"
-msgstr ""
+msgstr "Onbekend Apparaat"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:181
 msgid "Wii Remotes"
@@ -7666,7 +7680,7 @@ msgstr "RVZ GC/Wii schijfafbeeldingen (*.rvz)"
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:366
 msgid "Save Converted Images"
-msgstr ""
+msgstr "Geconverteerde Afbeelding Opslaan"
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:375
 msgid "Save Converted Image"
@@ -8032,7 +8046,7 @@ msgstr "onwaar"
 #: Source/Core/DolphinQt/Debugger/BreakpointDialog.cpp:275
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:277
 msgid "Condition"
-msgstr "Conditie"
+msgstr "Voorwaarde"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:388
 msgid "Branch Was Overwritten"
@@ -8044,7 +8058,7 @@ msgstr "Branch Niet Overschreven"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:398
 msgid "Wipe Recent Hits"
-msgstr "Wis Recente Hits"
+msgstr "Recente Hits Wissen"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:409
 msgid "Misc. Controls"
@@ -8057,7 +8071,7 @@ msgstr "&Verwijderen"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:420
 msgid "Invert &Condition"
-msgstr ""
+msgstr "&Voorwaarde Omkeren"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:424
 msgid "Invert &Decrement Check"
@@ -8065,15 +8079,15 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:428
 msgid "Make &Unconditional"
-msgstr ""
+msgstr "Maak &Onvoorwaardelijk"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:432
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:587
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:594
 msgid "&Copy Address"
 msgstr "&Kopieer Adres"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:435
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:614
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:621
 msgid "Insert &NOP"
 msgstr "Plaats &NOP"
 
@@ -8119,19 +8133,19 @@ msgstr "Totale Hits"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:501
 msgid "&Branch Type"
-msgstr ""
+msgstr "&Branch Type"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:502
 msgid "&Origin and Destination"
-msgstr ""
+msgstr "&Oorsprong en Bestemming"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:503
 msgid "&Condition"
-msgstr ""
+msgstr "&Voorwaarde"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:504
 msgid "&Misc. Controls"
-msgstr ""
+msgstr "&Overige Bediening"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:511
 #: Source/Core/DolphinQt/MenuBar.cpp:245
@@ -8180,7 +8194,7 @@ msgstr "Kolom &Zichtbaarheid"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:533
 msgid "&Toolbar Visibility"
-msgstr ""
+msgstr "&Werkbalk Zichtbaarheid"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:534
 msgid "Wipe &Inspection Data"
@@ -8547,126 +8561,126 @@ msgid "Parameters"
 msgstr "Parameters"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:164
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:146
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:148
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:156
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:158
 #: Source/Core/DolphinQt/MenuBar.cpp:1065
 msgid "Symbols"
 msgstr "Symbolen"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:165
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:147
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:157
 msgid "Notes"
-msgstr ""
+msgstr "Opmerkingen"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:166
 msgid "Branches"
 msgstr "Branches"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:391
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:393
 msgid "--> %1"
 msgstr "--> %1"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:583
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:590
 msgid "Follow &Branch"
 msgstr "Volg &Branch"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:589
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:596
 msgid "Copy &Function"
 msgstr "Kopieer &Functie"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:591
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:598
 msgid "Copy Code &Line"
 msgstr "Kopieer Code &Lijn"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:592
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:599
 msgid "Copy &Hex"
 msgstr "Kopieer &Hex"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:594
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:601
 msgid "Show in &Memory"
-msgstr ""
+msgstr "Toon in &Geheugen"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:596
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:603
 msgid "Show Target in Memor&y"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:598
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:605
 msgid "Copy Tar&get Address"
-msgstr ""
+msgstr "Kopieer &Doeladres"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:602
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:609
 msgid "&Add function symbol"
-msgstr ""
-
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:604
-msgid "&Edit function symbol"
-msgstr ""
-
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:606
-msgid "Add Note"
-msgstr ""
-
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:607
-msgid "Edit Note"
-msgstr ""
+msgstr "&Functiesymbool toevoegen"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:611
+msgid "&Edit function symbol"
+msgstr "Functiesymbool &bewerken"
+
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:613
+msgid "Add Note"
+msgstr "Opmerking Toevoegen"
+
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:614
+msgid "Edit Note"
+msgstr "Opmerking Bewerken"
+
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:618
 msgid "Run &to Here"
 msgstr "Uitvoeren &tot Hier"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:612
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:619
 msgid "PPC vs Host"
 msgstr "PPC vs Host"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:613
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:620
 msgid "&Insert BLR"
 msgstr "&Voeg BLR in"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:616
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:623
 msgid "Re&place Instruction"
 msgstr "Ver&vang Instructie"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:618
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:625
 msgid "Assemble Instruction"
 msgstr "Assemble Instructie"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:620
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:627
 msgid "Restore Instruction"
 msgstr "Herstel Instructie"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:645
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:652
 msgid "Run Until (Ignoring Breakpoints)"
 msgstr ""
 
 #. i18n: One of the options shown below "Run Until (Ignoring Breakpoints)"
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:647
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:654
 msgid "%1's value is hit"
 msgstr "%1's waarde is geraakt"
 
 #. i18n: One of the options shown below "Run Until (Ignoring Breakpoints)"
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:650
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:657
 msgid "%1's value is used"
 msgstr "%1's waarde is gebruikt"
 
 #. i18n: One of the options shown below "Run Until (Ignoring Breakpoints)"
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:653
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:660
 msgid "%1's value is changed"
 msgstr "%1's waarde is veranderd"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:695
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:702
 msgid "Run Until"
 msgstr "Uitvoeren Tot"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:696
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:703
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:296
 msgid "Keep Running"
 msgstr "Blijf Uitvoeren"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:715
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:722
 msgid "Overwritten"
 msgstr "Overschrijven"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:716
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:723
 msgid ""
 "Target value was overwritten by current instruction.\n"
 "Instructions executed:   %1"
@@ -8674,7 +8688,7 @@ msgstr ""
 "Doelwaarde werd overschreven door huidige instructie.\n"
 "Uitgevoerde instructies: %1"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:725
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:732
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:294
 msgid ""
 "<font color='#ff0000'>AutoStepping timed out. Current instruction is "
@@ -8683,11 +8697,11 @@ msgstr ""
 "<font color='#ff0000'>AutoStepping timed out. Huidige instructie is niet "
 "relevant."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:729
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:736
 msgid "Value tracked to current instruction."
 msgstr "Waarde getraceerd naar huidige instructie."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:755
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:762
 msgid ""
 "Instructions executed:   %1\n"
 "Value contained in:\n"
@@ -8699,80 +8713,88 @@ msgstr ""
 "Registers: %2\n"
 "Geheugen: %3"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:901
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:908
 msgid "Add Function Symbol"
-msgstr ""
+msgstr "Functiesymbool Toevoegen"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:902
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:909
 msgid "Force new function symbol to be made at %1?"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:989
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:996
 msgid "Delete Function Symbol"
-msgstr ""
+msgstr "Functiesymbool Verwijderen"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:990
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:997
 msgid ""
 "Delete function symbol: %1\n"
 "at %2?"
 msgstr ""
+"Functiesymbool verwijderen: %1\n"
+"bij %2?"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:1072
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:1079
 msgid "Delete Note"
-msgstr ""
+msgstr "Opmerking Verwijderen"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:1073
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:1080
 msgid ""
 "Delete Note: %1\n"
 "at %2?"
 msgstr ""
+"Opmerking verwijderen: %1\n"
+"bij %2?"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:44
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:46
 msgid "Code"
 msgstr "Code"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:111
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:113
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:114
 msgid "Search Address"
 msgstr "Zoek Adres"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:112
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:119
+msgid "When enabled, prevents automatic updates to the code view."
+msgstr ""
+
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:120
 msgid "Branch Watch"
 msgstr "Branch Watch"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:140
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:150
 msgid "Callstack"
 msgstr "Callstack"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:152
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:162
 msgid "Calls"
 msgstr "Calls"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:156
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:166
 msgid "Callers"
 msgstr "Callers"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:389
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:400
 msgid "Invalid callstack"
 msgstr "Ongeldige callstack"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:555
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:566
 msgid "Step successful!"
 msgstr "Stap succesvol!"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:580
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:591
 msgid "Step over in progress..."
 msgstr "Overstappen in voortgang..."
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:655
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:666
 msgid "Breakpoint encountered! Step out aborted."
 msgstr "Breekpunt tegengekomen! Uitstappen afgebroken."
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:657
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:668
 msgid "Step out timed out!"
 msgstr "Uitstappen timed out!"
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:659
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:670
 msgid "Step out successful!"
 msgstr "Uitstappen succesvol!"
 
@@ -8785,11 +8807,11 @@ msgstr "Symbool"
 
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:20
 msgid "Note"
-msgstr ""
+msgstr "Opmerking"
 
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:21
 msgid "Edit %1"
-msgstr ""
+msgstr "Bewerk %1"
 
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:32
 msgid ""
@@ -8799,24 +8821,24 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:37
 msgid "%1 name"
-msgstr ""
+msgstr "%1 naam"
 
 #. i18n: The address where a symbol ends
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:41
 msgid "End Address"
-msgstr ""
+msgstr "Eind Adres"
 
 #. i18n: The number of lines of code
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:43
 msgid "Lines"
-msgstr ""
+msgstr "Lijnen"
 
 #. i18n: There's a text field immediately to the right of this label where 8 hexadecimal digits
 #. can be entered. The "0x" in this string acts as a prefix to the digits to indicate that they
 #. are hexadecimal.
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:47
 msgid "Size: 0x"
-msgstr ""
+msgstr "Grootte: 0x"
 
 #. i18n: PPC Feature Flags
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:386
@@ -8826,82 +8848,82 @@ msgstr ""
 #. i18n: Effective Address
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:388
 msgid "Eff. Address"
-msgstr ""
+msgstr "Eff. Adres"
 
 #. i18n: Code Buffer Size
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:390
 msgid "Code Buff. Size"
-msgstr ""
+msgstr "Code Buffergrootte"
 
 #. i18n: Repeat Instructions
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:392
 msgid "Repeat Instr."
-msgstr ""
+msgstr "Herhaal Instr."
 
 #. i18n: Host Near Code Size
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:394
 msgid "Host N. Size"
-msgstr ""
+msgstr "Host N. Grootte"
 
 #. i18n: Host Far Code Size
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:396
 msgid "Host F. Size"
-msgstr ""
+msgstr "Host V. Grootte"
 
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:397
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:643
 msgid "Run Count"
-msgstr ""
+msgstr "Aantal runs"
 
 #. i18n: "Cycles" means instruction cycles.
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:398
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:645
 msgid "Cycles Spent"
-msgstr ""
+msgstr "Cycli Gebruikt"
 
 #. i18n: Cycles Average
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:400
 msgid "Cycles Avg."
-msgstr ""
+msgstr "Cycli Gem."
 
 #. i18n: Cycles Percent
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:402
 msgid "Cycles %"
-msgstr ""
+msgstr "Cycli %"
 
 #. i18n: "ns" is an abbreviation of nanoseconds.
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:403
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:651
 msgid "Time Spent (ns)"
-msgstr ""
+msgstr "Tijd Gespendeerd (ns)"
 
 #. i18n: Time Average (ns)
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:405
 msgid "Time Avg. (ns)"
-msgstr ""
+msgstr "Tijd Gem. (ns)"
 
 #. i18n: Time Percent
 #: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:407
 msgid "Time %"
-msgstr ""
+msgstr "Tijd %"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:153
 msgid "Stop Profiling"
-msgstr ""
+msgstr "Profilering Stoppen"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:153
 msgid "Start Profiling"
-msgstr ""
+msgstr "Profilering Starten"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:183
 msgid "Free memory:"
-msgstr ""
+msgstr "Vrij geheugen:"
 
 #. i18n: Of each memory region, %1 is its remaining size displayed in an appropriate scale
 #. of bytes (e.g. MiB), %2 is its untranslated name, and %3 is its fragmentation percentage.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:189
 msgid " %1 %2 (%3% fragmented)"
-msgstr ""
+msgstr " %1 %2 (%3% gefragmenteerd)"
 
 #. i18n: "near" and "far" refer to the near code cache and far code cache of Dolphin's JITs.
 #. %1 and %2 are instruction counts from the near and far code caches, respectively. %3 is a
@@ -8909,11 +8931,11 @@ msgstr ""
 #. recompilation was when considering the host instruction count vs the PPC instruction count.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:241
 msgid "Host instruction count: %1 near %2 far (%3% blowup)"
-msgstr ""
+msgstr "Host instructie telling: 1% nabij %2 ver (%3% opgeblazen)"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:370
 msgid "Effective address %1 has no physical address translation."
-msgstr ""
+msgstr "Effectief adres %1 heeft geen fysieke adresvertaling."
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:515
 msgid "JIT Blocks"
@@ -8921,23 +8943,24 @@ msgstr "JIT Blokken"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:571
 msgid "Min Effective Address"
-msgstr ""
+msgstr "Min Effectief Adres"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:574
 msgid "Max Effective Address"
-msgstr ""
+msgstr "Max Effectief Adres"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:577
 msgid "Recompiles Physical Address"
-msgstr ""
+msgstr "Hercompileert Fysiek Adres"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:581
 msgid "Symbol Name"
-msgstr ""
+msgstr "Symbool Naam"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:590
 msgid "Toggle software JIT block profiling (will clear the JIT cache)."
 msgstr ""
+"Software JIT blok profilering omschakelen (dit zal de JIT cache wissen)."
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:595
 #: Source/Core/DolphinQt/MenuBar.cpp:947
@@ -8946,11 +8969,11 @@ msgstr "Leeg Cache"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:599
 msgid "Wipe Profiling"
-msgstr ""
+msgstr "Profilering Wissen"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:600
 msgid "Re-initialize software JIT block profiling data."
-msgstr ""
+msgstr "Software JIT blok profilering data opnieuw initialiseren."
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:611
 msgid "PPC Instruction Coverage"
@@ -8962,15 +8985,15 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:614
 msgid "Host Far Code Cache"
-msgstr ""
+msgstr "Host Verre Code Cache"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:625
 msgid "View &Code"
-msgstr ""
+msgstr "&Code Bekijken"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:626
 msgid "&Erase Block(s)"
-msgstr ""
+msgstr "Blok(ken) &Verwijderen"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:633
 msgid "PPC Feature Flags"
@@ -8979,16 +9002,16 @@ msgstr ""
 #. i18n: "Effective" means this memory address might be translated within the MMU.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:635
 msgid "Effective Address"
-msgstr ""
+msgstr "Effectief Adres"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:636
 msgid "Code Buffer Size"
-msgstr ""
+msgstr "Code Buffergrootte"
 
 #. i18n: This means to say it is a count of PPC instructions recompiled more than once.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:638
 msgid "Repeat Instructions"
-msgstr ""
+msgstr "Herhaal Instructies"
 
 #. i18n: "Near Code" refers to the near code cache of Dolphin's JITs.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:640
@@ -8998,40 +9021,40 @@ msgstr ""
 #. i18n: "Far Code" refers to the far code cache of Dolphin's JITs.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:642
 msgid "Host Far Code Size"
-msgstr ""
+msgstr "Host Verre Code Grootte"
 
 #. i18n: "Cycles" means instruction cycles.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:647
 msgid "Cycles Average"
-msgstr ""
+msgstr "Cycli Gemiddelde"
 
 #. i18n: "Cycles" means instruction cycles.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:649
 msgid "Cycles Percent"
-msgstr ""
+msgstr "Cycli Procent"
 
 #. i18n: "ns" is an abbreviation of nanoseconds.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:653
 msgid "Time Average (ns)"
-msgstr ""
+msgstr "Tijd Gemiddelde (ns)"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:654
 msgid "Time Percent"
-msgstr ""
+msgstr "Tijd Percentage"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1076
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1080
 msgid "Copy Address"
 msgstr "Kopieer Adres"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1078
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1082
 msgid "Copy Hex"
 msgstr "Kopieer Hex"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1081
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1085
 msgid "Copy Value"
 msgstr "Kopieer Waarde"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1088
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1092
 msgid "Show in code"
 msgstr "In code tonen"
 
@@ -9227,7 +9250,7 @@ msgstr "&Laad bestand naar huidig adres"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:266
 msgid "Auto update memory values"
-msgstr ""
+msgstr "Automatisch geheugenwaarden bijwerken"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:277
 msgid "Highlight recently changed values"
@@ -9235,7 +9258,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:282
 msgid "Highlight color"
-msgstr ""
+msgstr "Markeer kleur"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:285
 msgid "&Export"
@@ -9456,11 +9479,11 @@ msgstr "Registers"
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:132
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:129
 msgid "Add to &watch"
-msgstr "Toevoegen aan &watchvenster"
+msgstr "Aan &watch toevoegen"
 
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:137
 msgid "Add memory &breakpoint"
-msgstr "Plaats geheugen &breekpunt"
+msgstr "Geheugen &breekpunt toevoegen"
 
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:139
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:131
@@ -9526,11 +9549,11 @@ msgstr "Threads"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:126
 msgid "Add &breakpoint"
-msgstr "Plaats &breekpunt"
+msgstr "&Breekpunt toevoegen"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:127
 msgid "Add memory breakpoint"
-msgstr "Plaats geheugen breekpunt"
+msgstr "Geheugen breekpunt toevoegen"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:146
 msgid "Thread context"
@@ -9686,7 +9709,7 @@ msgstr "&Verwijder Watchvenster"
 
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:362
 msgid "&Add Memory Breakpoint"
-msgstr "&Voeg Geheugen Breekpunt Toe"
+msgstr "&Geheugen Breekpunt Toevoegen"
 
 #: Source/Core/DolphinQt/DiscordJoinRequestDialog.cpp:23
 msgid "Request to Join Your Party"
@@ -9716,7 +9739,7 @@ msgstr ""
 #. i18n: Window for managing the Wii Speak microphone
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:28
 msgid "Wii Speak Manager"
-msgstr ""
+msgstr "Wii Speak Beheer"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:47
 msgid "Some settings cannot be changed when emulation is running."
@@ -9724,15 +9747,15 @@ msgstr ""
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:53
 msgid "Emulate Wii Speak"
-msgstr ""
+msgstr "Emuleer Wii Speak"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:60
 msgid "Microphone Configuration"
-msgstr ""
+msgstr "Microfoon Configuratie"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:63
 msgid "Mute"
-msgstr ""
+msgstr "Dempen"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:78
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:81
@@ -9742,11 +9765,11 @@ msgstr ""
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:99
 msgid "Audio backend unsupported"
-msgstr ""
+msgstr "Audio backend niet ondersteund"
 
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:102
 msgid "Autodetect preferred microphone"
-msgstr ""
+msgstr "Automatische detectie van voorkeursmicrofoon"
 
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:83
 msgid "Search Current Object"
@@ -10061,7 +10084,7 @@ msgstr "Verwijder Bestand..."
 #: Source/Core/DolphinQt/GameList/GameList.cpp:512
 #: Source/Core/DolphinQt/GameList/GameList.cpp:515
 msgid "Add Shortcut to Desktop"
-msgstr "Voeg Snelkoppeling toe aan Bureaublad"
+msgstr "Snelkoppeling Toevoegen aan Bureaublad"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:516
 msgid "There was an issue adding a shortcut to the desktop"
@@ -10237,7 +10260,7 @@ msgstr "Compressie"
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:259
 #: Source/Core/DolphinQt/MenuBar.cpp:721
 msgid "Time Played"
-msgstr ""
+msgstr "Tijd Gespeeld"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1141
 msgid "New tag"
@@ -10261,7 +10284,7 @@ msgstr " (schijf %1)"
 
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:204
 msgid "%1h %2m"
-msgstr ""
+msgstr "%1u %2m"
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:194
 msgid "Select e-Reader Cards"
@@ -10867,6 +10890,10 @@ msgid ""
 "\n"
 "Try again with a different character."
 msgstr ""
+"Het aanmaken van een leeg figuur is mislukt op:\n"
+"%1\n"
+"\n"
+"Probeer opnieuw met een ander karakter."
 
 #: Source/Core/DolphinQt/Main.cpp:77
 msgid "Ignore for this session"
@@ -10944,6 +10971,8 @@ msgid ""
 "Do you want to stop the current emulation? Unsaved achievement modifications "
 "detected."
 msgstr ""
+"Wilt u de huidige emulatie stoppen? Niet opgeslagen prestatie wijzigingen "
+"gedetecteerd."
 
 #: Source/Core/DolphinQt/MainWindow.cpp:990
 msgid "Do you want to stop the current emulation?"
@@ -10998,7 +11027,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1797
 msgid "Select NAND Backup"
-msgstr ""
+msgstr "NAND Backup Selecteren"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1798
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
@@ -11105,7 +11134,7 @@ msgstr "&Infinity Base"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:282
 msgid "&Wii Speak"
-msgstr ""
+msgstr "&Wii Speak"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:287
 msgid "Start &NetPlay..."
@@ -11117,7 +11146,7 @@ msgstr "Blader &NetPlay Sessies...."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:296
 msgid "RetroAchievements Development"
-msgstr ""
+msgstr "RetroAchievements Ontwikkeling"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:304
 msgid "Load GameCube Main Menu"
@@ -11165,7 +11194,7 @@ msgstr "Wii-save importeren…"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:350
 msgid "Import Wii Saves..."
-msgstr ""
+msgstr "Wii-saves Importeren…"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:352
 msgid "Export All Wii Saves"
@@ -11399,7 +11428,7 @@ msgstr "GameCube tonen"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:747
 msgid "Show Triforce"
-msgstr ""
+msgstr "Toon Triforce"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:748
 msgid "Show WAD"
@@ -11579,11 +11608,11 @@ msgstr "Zoek naar Instructie"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:958
 msgid "Enable JIT Block Profiling"
-msgstr "Activeer JIT Blok Profilering"
+msgstr "JIT Blok Profilering Activeren"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:964
 msgid "Wipe JIT Block Profiling Data"
-msgstr ""
+msgstr "JIT Blok Profilering Data Wissen"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:967
 msgid "Write JIT Block Log Dump"
@@ -11719,7 +11748,7 @@ msgstr "WAD bestanden (*.wad)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1205
 msgid "Select Save File"
-msgstr ""
+msgstr "Savebestand Selecteren"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1206
 msgid "Wii save files (*.bin);;All Files (*)"
@@ -11774,7 +11803,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1251
 msgid "Select Save Folder"
-msgstr ""
+msgstr "Save Map Selecteren"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1276
 msgid ""
@@ -11794,6 +11823,8 @@ msgstr ""
 msgid ""
 "%1: Failed to import save file. Please launch the game once, then try again."
 msgstr ""
+"%1: Save bestand importeren mislukt. Start het spel eerst en probeer het dan "
+"opnieuw."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1318
 msgid ""
@@ -11973,7 +12004,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1856
 msgid "Save Signature File"
-msgstr ""
+msgstr "Signatuurbestand Opslaan"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1868
 msgid "Failed to save signature file '%1'"
@@ -12930,11 +12961,11 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:93
 msgid "Timing"
-msgstr ""
+msgstr "Timing"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:97
 msgid "Correct Time Drift"
-msgstr ""
+msgstr "Corrigeer Tijdverschuiving"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:99
 msgid ""
@@ -12970,15 +13001,15 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:149
 msgid "VBI Frequency Override"
-msgstr ""
+msgstr "VBI-Frequentie Overschrijven"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:155
 msgid "Enable VBI Frequency Override"
-msgstr ""
+msgstr "VBI-frequentie overschrijding inschakelen"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:176
 msgid "%1% (%2 VPS)"
-msgstr ""
+msgstr "%1% (%2 VPS)"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:184
 msgid ""
@@ -12994,7 +13025,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:194
 msgid "Memory Override"
-msgstr "Geheugen overschrijven"
+msgstr "Geheugen Overschrijven"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:200
 msgid "Enable Emulated Memory Size Override"
@@ -13039,19 +13070,19 @@ msgstr "%1%"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:58
 msgid "DSP Options"
-msgstr ""
+msgstr "DSP Opties"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:62
 msgid "DSP Emulation Engine:"
-msgstr ""
+msgstr "DSP Emulatie Engine:"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:64
 msgid "HLE (recommended)"
-msgstr ""
+msgstr "HLE (aanbevolen)"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:65
 msgid "LLE Recompiler (slow)"
-msgstr ""
+msgstr "LLE Recompiler (Langzaam)"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:66
 msgid "LLE Interpreter (very slow)"
@@ -13076,19 +13107,19 @@ msgstr "Decoderingskwaliteit:"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:118
 msgid "Lowest (Latency ~10 ms)"
-msgstr ""
+msgstr "Laagste (Latentie ~10 ms)"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:118
 msgid "Low (Latency ~20 ms)"
-msgstr ""
+msgstr "Laag (Latentie ~20 ms)"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:119
 msgid "High (Latency ~40 ms)"
-msgstr ""
+msgstr "Hoog (Latentie ~40ms)"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:119
 msgid "Highest (Latency ~80 ms)"
-msgstr ""
+msgstr "Hoogste (Latentie ~80 ms)"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:130
 msgid "Default Device"
@@ -13096,20 +13127,20 @@ msgstr "Standaardapparaat"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:138
 msgid "Output Device:"
-msgstr ""
+msgstr "Uitvoer Apparaat:"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:147
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:226
 msgid "Latency: %1 ms"
-msgstr ""
+msgstr "Latentie: %1 ms"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:149
 msgid "Latency:  000 ms"
-msgstr ""
+msgstr "Latentie:  000 ms"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:159
 msgid "Audio Playback Settings"
-msgstr ""
+msgstr "Audio Afspeel Instellingen"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:170
 msgid ""
@@ -13126,7 +13157,7 @@ msgstr "%1 ms"
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:184
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:360
 msgid "Fill Audio Gaps"
-msgstr ""
+msgstr "Audio Gaten Vullen"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:186
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:357
@@ -13135,7 +13166,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:191
 msgid "Audio Buffer Size:"
-msgstr ""
+msgstr "Audio Buffergrootte:"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:295
 msgid ""
@@ -13162,6 +13193,10 @@ msgid ""
 "crackling. Certain backends only.<br><br><dolphin_emphasis>If unsure, leave "
 "this at 20 ms.</dolphin_emphasis>"
 msgstr ""
+"Stelt de audio latentie in milliseconden in. Hogere waarden kunnen het "
+"kraken van de audio verminderen. Alleen bij bepaalde backends."
+"<br><br><dolphin_emphasis>In geval van twijfel dit op 20 ms houden.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:311
 msgid ""
@@ -13182,6 +13217,8 @@ msgid ""
 "Adjusts audio output volume.<br><br><dolphin_emphasis>If unsure, leave this "
 "at 100%.</dolphin_emphasis>"
 msgstr ""
+"Pas audio uitvoer volume aan.<br><br><dolphin_emphasis>In geval van twijfel "
+"dit op 100% houden.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:320
 msgid ""
@@ -13202,11 +13239,11 @@ msgstr "DSP Emulatie Engine"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:329
 msgid "Audio Backend"
-msgstr ""
+msgstr "Audio Backend"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:337
 msgid "Decoding Quality"
-msgstr ""
+msgstr "Decodeerkwaliteit"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:342
 msgid ""
@@ -13216,11 +13253,11 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:344
 msgid "Output Device"
-msgstr ""
+msgstr "Uitvoer Apparaat"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:353
 msgid "Latency"
-msgstr ""
+msgstr "Latentie"
 
 #. i18n: MAC stands for Media Access Control. A MAC address uniquely identifies a network
 #. interface (physical) like a serial number. "MAC" should be kept in translations.
@@ -13720,7 +13757,7 @@ msgstr "Schermbeveiliging blokkeren tijdens emulatie"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:178
 msgid "Enable Play Time Tracking"
-msgstr ""
+msgstr "Speeltijdregistratie inschakelen"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:190
 msgid "Render Window"
@@ -13993,45 +14030,45 @@ msgstr "Pad naar Resource Pack:"
 msgid "WFS Path:"
 msgstr "WFS-pad:"
 
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:44
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:46
 msgid "Add New USB Device"
 msgstr "Nieuw USB Apparaat Toevoegen"
 
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:57
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:59
 msgid "Enter USB device ID"
 msgstr "Voer USB apparaat ID in"
 
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:79
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:81
 msgid "or select a device"
 msgstr "of selecteer een apparaat"
 
 #. i18n: VID means Vendor ID (in the context of a USB device)
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:99
-msgid "Device VID (e.g., 057e)"
-msgstr "Apparaat VID (bijv., 057e)"
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:101
+msgid "Device VID"
+msgstr ""
 
 #. i18n: PID means Product ID (in the context of a USB device), not Process ID
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:101
-msgid "Device PID (e.g., 0305)"
-msgstr "Apparaat PID (bijv., 0305)"
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:103
+msgid "Device PID"
+msgstr ""
 
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:130
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:137
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:150
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:135
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:142
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:155
 msgid "USB Whitelist Error"
 msgstr "USB Whitelist Fout"
 
 #. i18n: Here, VID means Vendor ID (for a USB device).
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:132
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:137
 msgid "The entered VID is invalid."
 msgstr "De ingevoerde VID is ongeldig."
 
 #. i18n: Here, PID means Product ID (for a USB device).
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:139
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:144
 msgid "The entered PID is invalid."
 msgstr "De ingevoerde PID is ongeldig."
 
-#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:151
+#: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:156
 msgid "This USB device is already whitelisted."
 msgstr "Dit USB apparaat staat al op de whitelist."
 
@@ -15071,7 +15108,7 @@ msgstr "Stelt het bereik van de gesimuleerde stick in."
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:30
 msgid "Enabled"
-msgstr ""
+msgstr "Ingeschakeld"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:38
 msgid "Virtual Notches"
@@ -15378,7 +15415,7 @@ msgstr "Verwachte start van de uitdrukking."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:1010
 msgid "Expected colon."
-msgstr ""
+msgstr "Verwachte dubbele punt."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:1052
 msgid "Expected opening paren."
@@ -15431,7 +15468,7 @@ msgstr "Kon updater proces niet starten: {0}"
 #: Source/Core/UICommon/DBusUtils.cpp:56 Source/Core/UICommon/DBusUtils.cpp:77
 #: Source/Core/UICommon/DBusUtils.cpp:97 Source/Core/UICommon/DBusUtils.cpp:120
 msgid "Playing a game"
-msgstr ""
+msgstr "Een spel aan het spelen"
 
 #: Source/Core/UICommon/GameFile.cpp:843
 #, c++-format
@@ -15811,6 +15848,3 @@ msgstr "Toepassen"
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:742
 msgid "Restore Defaults"
 msgstr "Herstel Standaardinstellingen"
-
-#~ msgid "%1 Graphics Configuration"
-#~ msgstr "%1 Grafische Configuratie"
