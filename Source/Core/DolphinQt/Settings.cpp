@@ -518,8 +518,6 @@ void Settings::SetDebugModeEnabled(bool enabled)
   {
     Config::SetBaseOrCurrent(Config::MAIN_ENABLE_DEBUGGING, enabled);
     emit DebugModeToggled(enabled);
-    if (enabled)
-      SetCodeVisible(true);
   }
 }
 
@@ -599,7 +597,7 @@ void Settings::SetCodeVisible(bool enabled)
 
 bool Settings::IsCodeVisible() const
 {
-  return GetQSettings().value(QStringLiteral("debugger/showcode")).toBool();
+  return GetQSettings().value(QStringLiteral("debugger/showcode"), true).toBool();
 }
 
 void Settings::SetMemoryVisible(bool enabled)

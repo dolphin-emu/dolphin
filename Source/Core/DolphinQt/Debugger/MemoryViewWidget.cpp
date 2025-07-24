@@ -473,7 +473,7 @@ void MemoryViewWidget::Update()
   const int data_span = m_bytes_per_row / GetTypeSize(m_type);
 
   m_address_range.first = row_address;
-  m_address_range.second = row_address + m_table->rowCount() * m_bytes_per_row - 1;
+  m_address_range.second = row_address + m_table->rowCount() * m_bytes_per_row;
 
   for (int i = 0; i < m_table->rowCount(); i++, row_address += m_bytes_per_row)
   {
@@ -611,9 +611,13 @@ void MemoryViewWidget::GetValues()
   // Grab memory values as QStrings
   Core::CPUThreadGuard guard(m_system);
 
-  for (u32 address = m_address_range.first; address <= m_address_range.second;
-       address += GetTypeSize(m_type))
+  const u32 type_size = static_cast<u32>(GetTypeSize(m_type));
+  const auto& [range_begin, range_end] = m_address_range;
+  const u32 address_count = (range_end - range_begin) / type_size;
+
+  for (u32 i = 0; i < address_count; ++i)
   {
+    const u32 address = range_begin + i * type_size;
     m_values.insert(std::pair(address, ValueToString(guard, address, m_type)));
 
     if (m_dual_view)

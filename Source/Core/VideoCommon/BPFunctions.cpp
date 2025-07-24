@@ -216,17 +216,12 @@ void SetScissorAndViewport()
     height *= -1;
   }
 
-  // The maximum depth that is written to the depth buffer should never exceed this value.
-  // This is necessary because we use a 2^24 divisor for all our depth values to prevent
-  // floating-point round-trip errors. However the console GPU doesn't ever write a value
-  // to the depth buffer that exceeds 2^24 - 1.
-  constexpr float GX_MAX_DEPTH = 16777215.0f / 16777216.0f;
   if (!g_backend_info.bSupportsDepthClamp)
   {
     // There's no way to support oversized depth ranges in this situation. Let's just clamp the
     // range to the maximum value supported by the console GPU and hope for the best.
-    min_depth = std::clamp(min_depth, 0.0f, GX_MAX_DEPTH);
-    max_depth = std::clamp(max_depth, 0.0f, GX_MAX_DEPTH);
+    min_depth = std::clamp(min_depth, 0.0f, MAX_EFB_DEPTH);
+    max_depth = std::clamp(max_depth, 0.0f, MAX_EFB_DEPTH);
   }
 
   if (VertexShaderManager::UseVertexDepthRange())
@@ -235,13 +230,13 @@ void SetScissorAndViewport()
     // Taking into account whether the depth range is inverted or not.
     if (xfmem.viewport.zRange < 0.0f && g_backend_info.bSupportsReversedDepthRange)
     {
-      min_depth = GX_MAX_DEPTH;
+      min_depth = MAX_EFB_DEPTH;
       max_depth = 0.0f;
     }
     else
     {
       min_depth = 0.0f;
-      max_depth = GX_MAX_DEPTH;
+      max_depth = MAX_EFB_DEPTH;
     }
   }
 

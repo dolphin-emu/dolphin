@@ -38,8 +38,8 @@
     <ClCompile Include="rcheevos\src\rhash\aes.c" />
     <ClCompile Include="rcheevos\src\rhash\cdreader.c" />
     <ClCompile Include="rcheevos\src\rhash\hash.c" />
+    <ClCompile Include="rcheevos\src\rhash\hash_disc.c" />
     <ClCompile Include="rcheevos\src\rhash\md5.c" />
-    <ClCompile Include="rcheevos\src\rurl\url.c" />
     <ClCompile Include="rcheevos\src\rc_client.c" />
     <ClCompile Include="rcheevos\src\rc_client_external.c" />
     <ClCompile Include="rcheevos\src\rc_client_raintegration.c" />
@@ -62,7 +62,6 @@
     <ClInclude Include="rcheevos\include\rc_hash.h" />
     <ClInclude Include="rcheevos\include\rc_runtime.h" />
     <ClInclude Include="rcheevos\include\rc_runtime_types.h" />
-    <ClInclude Include="rcheevos\include\rc_url.h" />
     <ClInclude Include="rcheevos\include\rc_util.h" />
     <ClInclude Include="rcheevos\src\rapi\rc_api_common.h" />
     <ClInclude Include="rcheevos\src\rcheevos\rc_internal.h" />

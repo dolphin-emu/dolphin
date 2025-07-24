@@ -58,7 +58,7 @@ MemoryWidget::MemoryWidget(Core::System& system, QWidget* parent)
   // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
   // according to Settings
   setFloating(settings.value(QStringLiteral("memorywidget/floating")).toBool());
-  m_splitter->restoreState(settings.value(QStringLiteral("codewidget/splitter")).toByteArray());
+  m_splitter->restoreState(settings.value(QStringLiteral("memorywidget/splitter")).toByteArray());
 
   connect(&Settings::Instance(), &Settings::MemoryVisibilityChanged, this,
           [this](bool visible) { setHidden(!visible); });

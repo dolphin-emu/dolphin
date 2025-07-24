@@ -19,7 +19,6 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/IOS/USB/Bluetooth/hci.h"
-#include "Core/IOS/USB/Host.h"
 
 namespace
 {
@@ -41,7 +40,9 @@ constexpr libusb_transfer_cb_fn LibUSBMemFunCallback()
   };
 }
 
-bool IsBluetoothDevice(const libusb_device_descriptor& descriptor)
+}  // namespace
+
+bool LibUSBBluetoothAdapter::IsBluetoothDevice(const libusb_device_descriptor& descriptor)
 {
   constexpr u8 SUBCLASS = 0x01;
   constexpr u8 PROTOCOL_BLUETOOTH = 0x01;
@@ -55,8 +56,6 @@ bool IsBluetoothDevice(const libusb_device_descriptor& descriptor)
   return is_bluetooth_protocol || LibUSBBluetoothAdapter::IsConfiguredBluetoothDevice(
                                       descriptor.idVendor, descriptor.idProduct);
 }
-
-}  // namespace
 
 bool LibUSBBluetoothAdapter::IsWiiBTModule() const
 {
@@ -107,50 +106,15 @@ LibUSBBluetoothAdapter::LibUSBBluetoothAdapter()
 
     if (IsBluetoothDevice(device_descriptor) && OpenDevice(device_descriptor, device))
     {
-      unsigned char manufacturer[50] = {}, product[50] = {}, serial_number[50] = {};
-      const int manufacturer_ret = libusb_get_string_descriptor_ascii(
-          m_handle, device_descriptor.iManufacturer, manufacturer, sizeof(manufacturer));
-      if (manufacturer_ret < LIBUSB_SUCCESS)
-      {
-        WARN_LOG_FMT(IOS_WIIMOTE,
-                     "Failed to get string for manufacturer descriptor {:02x} for device "
-                     "{:04x}:{:04x} (rev {:x}): {}",
-                     device_descriptor.iManufacturer, device_descriptor.idVendor,
-                     device_descriptor.idProduct, device_descriptor.bcdDevice,
-                     LibusbUtils::ErrorWrap(manufacturer_ret));
-        manufacturer[0] = '?';
-        manufacturer[1] = '\0';
-      }
-      const int product_ret = libusb_get_string_descriptor_ascii(
-          m_handle, device_descriptor.iProduct, product, sizeof(product));
-      if (product_ret < LIBUSB_SUCCESS)
-      {
-        WARN_LOG_FMT(IOS_WIIMOTE,
-                     "Failed to get string for product descriptor {:02x} for device "
-                     "{:04x}:{:04x} (rev {:x}): {}",
-                     device_descriptor.iProduct, device_descriptor.idVendor,
-                     device_descriptor.idProduct, device_descriptor.bcdDevice,
-                     LibusbUtils::ErrorWrap(product_ret));
-        product[0] = '?';
-        product[1] = '\0';
-      }
-      const int serial_ret = libusb_get_string_descriptor_ascii(
-          m_handle, device_descriptor.iSerialNumber, serial_number, sizeof(serial_number));
-      if (serial_ret < LIBUSB_SUCCESS)
-      {
-        WARN_LOG_FMT(IOS_WIIMOTE,
-                     "Failed to get string for serial number descriptor {:02x} for device "
-                     "{:04x}:{:04x} (rev {:x}): {}",
-                     device_descriptor.iSerialNumber, device_descriptor.idVendor,
-                     device_descriptor.idProduct, device_descriptor.bcdDevice,
-                     LibusbUtils::ErrorWrap(serial_ret));
-        serial_number[0] = '?';
-        serial_number[1] = '\0';
-      }
+      const auto manufacturer =
+          LibusbUtils::GetStringDescriptor(m_handle, device_descriptor.iManufacturer).value_or("?");
+      const auto product =
+          LibusbUtils::GetStringDescriptor(m_handle, device_descriptor.iProduct).value_or("?");
+      const auto serial_number =
+          LibusbUtils::GetStringDescriptor(m_handle, device_descriptor.iSerialNumber).value_or("?");
       NOTICE_LOG_FMT(IOS_WIIMOTE, "Using device {:04x}:{:04x} (rev {:x}) for Bluetooth: {} {} {}",
                      device_descriptor.idVendor, device_descriptor.idProduct,
-                     device_descriptor.bcdDevice, reinterpret_cast<char*>(manufacturer),
-                     reinterpret_cast<char*>(product), reinterpret_cast<char*>(serial_number));
+                     device_descriptor.bcdDevice, manufacturer, product, serial_number);
       m_is_wii_bt_module =
           device_descriptor.idVendor == 0x57e && device_descriptor.idProduct == 0x305;
       return false;
@@ -487,41 +451,6 @@ bool LibUSBBluetoothAdapter::OpenDevice(const libusb_device_descriptor& device_d
   }
 
   return true;
-}
-
-std::vector<LibUSBBluetoothAdapter::BluetoothDeviceInfo> LibUSBBluetoothAdapter::ListDevices()
-{
-  std::vector<BluetoothDeviceInfo> device_list;
-  LibusbUtils::Context context;
-
-  if (!context.IsValid())
-    return {};
-
-  int result = context.GetDeviceList([&device_list](libusb_device* device) {
-    auto [config_ret, config] = LibusbUtils::MakeConfigDescriptor(device, 0);
-    if (config_ret != LIBUSB_SUCCESS)
-      return true;
-
-    libusb_device_descriptor desc;
-    if (libusb_get_device_descriptor(device, &desc) != LIBUSB_SUCCESS)
-      return true;
-
-    if (IsBluetoothDevice(desc))
-    {
-      const std::string device_name =
-          IOS::HLE::USBHost::GetDeviceNameFromVIDPID(desc.idVendor, desc.idProduct);
-      device_list.push_back({desc.idVendor, desc.idProduct, device_name});
-    }
-    return true;
-  });
-
-  if (result < 0)
-  {
-    ERROR_LOG_FMT(IOS_USB, "Failed to get device list: {}", LibusbUtils::ErrorWrap(result));
-    return device_list;
-  }
-
-  return device_list;
 }
 
 void LibUSBBluetoothAdapter::HandleOutputTransfer(libusb_transfer* tr)

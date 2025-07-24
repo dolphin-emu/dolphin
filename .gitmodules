@@ -1,32 +1,26 @@
 [submodule "Externals/Qt"]
 	path = Externals/Qt
 	url = https://github.com/dolphin-emu/ext-win-qt.git
-	branch = master
 	shallow = true
 [submodule "Externals/mGBA/mgba"]
 	path = Externals/mGBA/mgba
 	url = https://github.com/mgba-emu/mgba.git
-	branch = master
 	shallow = true
 [submodule "Externals/FFmpeg-bin"]
 	path = Externals/FFmpeg-bin
 	url = https://github.com/dolphin-emu/ext-win-ffmpeg.git
-	branch = master
 	shallow = true
 [submodule "libusb"]
 	path = Externals/libusb/libusb
 	url = https://github.com/libusb/libusb.git
-	branch = master
 	shallow = true
 [submodule "Externals/spirv_cross/SPIRV-Cross"]
 	path = Externals/spirv_cross/SPIRV-Cross
 	url = https://github.com/KhronosGroup/SPIRV-Cross.git
-	branch = main
 	shallow = true
 [submodule "SDL"]
 	path = Externals/SDL/SDL
 	url = https://github.com/libsdl-org/SDL.git
-	branch = SDL2
 	shallow = true
 [submodule "Externals/zlib-ng/zlib-ng"]
 	path = Externals/zlib-ng/zlib-ng
@@ -35,61 +29,80 @@
 [submodule "Externals/libspng/libspng"]
 	path = Externals/libspng/libspng
 	url = https://github.com/randy408/libspng.git
-	branch = v0.7.2
 	shallow = true
 [submodule "Externals/VulkanMemoryAllocator"]
 	path = Externals/VulkanMemoryAllocator
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+	shallow = true
 [submodule "Externals/cubeb/cubeb"]
 	path = Externals/cubeb/cubeb
 	url = https://github.com/mozilla/cubeb.git
-	branch = master
 	shallow = true
 [submodule "Externals/implot/implot"]
 	path = Externals/implot/implot
 	url = https://github.com/epezent/implot.git
+	shallow = true
 [submodule "Externals/gtest"]
 	path = Externals/gtest
 	url = https://github.com/google/googletest.git
+	shallow = true
 [submodule "Externals/rcheevos/rcheevos"]
 	path = Externals/rcheevos/rcheevos
 	url = https://github.com/RetroAchievements/rcheevos.git
+	shallow = true
 [submodule "Externals/libadrenotools"]
 	path = Externals/libadrenotools
 	url = https://github.com/bylaws/libadrenotools.git
+	shallow = true
 [submodule "Externals/curl/curl"]
 	path = Externals/curl/curl
 	url = https://github.com/curl/curl.git
+	shallow = true
 [submodule "Externals/fmt/fmt"]
 	path = Externals/fmt/fmt
 	url = https://github.com/fmtlib/fmt.git
+	shallow = true
 [submodule "Externals/lz4/lz4"]
 	path = Externals/lz4/lz4
-	url = https://github.com/lz4/lz4
+	url = https://github.com/lz4/lz4.git
+	shallow = true
 [submodule "Externals/xxhash/xxHash"]
 	path = Externals/xxhash/xxHash
 	url = https://github.com/Cyan4973/xxHash.git
+	shallow = true
 [submodule "Externals/enet/enet"]
 	path = Externals/enet/enet
 	url = https://github.com/lsalzman/enet.git
+	shallow = true
 [submodule "hidapi-src"]
 	path = Externals/hidapi/hidapi-src
-	url = https://github.com/libusb/hidapi
+	url = https://github.com/libusb/hidapi.git
+	shallow = true
 [submodule "Externals/tinygltf/tinygltf"]
 	path = Externals/tinygltf/tinygltf
 	url = https://github.com/syoyo/tinygltf.git
+	shallow = true
 [submodule "Externals/minizip-ng/minizip-ng"]
 	path = Externals/minizip-ng/minizip-ng
-	url = https://github.com/zlib-ng/minizip-ng
+	url = https://github.com/zlib-ng/minizip-ng.git
+	shallow = true
 [submodule "Externals/Vulkan-Headers"]
 	path = Externals/Vulkan-Headers
 	url = https://github.com/KhronosGroup/Vulkan-Headers.git
+	shallow = true
 [submodule "Externals/watcher/watcher"]
 	path = Externals/watcher/watcher
 	url = https://github.com/e-dant/watcher.git
+	shallow = true
 [submodule "Externals/SFML/SFML"]
 	path = Externals/SFML/SFML
 	url = https://github.com/SFML/SFML.git
+	shallow = true
 [submodule "Externals/zstd/zstd"]
 	path = Externals/zstd/zstd
 	url = https://github.com/facebook/zstd.git
+	shallow = true
+[submodule "Externals/miniupnpc/miniupnp"]
+	path = Externals/miniupnpc/miniupnp
+	url = https://github.com/miniupnp/miniupnp.git
+	shallow = true

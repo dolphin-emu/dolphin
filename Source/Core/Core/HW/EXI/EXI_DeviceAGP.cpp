@@ -41,7 +41,8 @@ CEXIAgp::~CEXIAgp()
   SplitPath(Config::Get(Config::GetInfoForAGPCartPath(m_slot)), &path, &filename, &ext);
   gbapath = path + filename;
 
-  SaveFileFromEEPROM(gbapath + ".sav");
+  if (!gbapath.empty())
+    SaveFileFromEEPROM(gbapath + ".sav");
 }
 
 void CEXIAgp::CRC8(const u8* data, u32 size)

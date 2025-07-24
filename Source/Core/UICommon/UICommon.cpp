@@ -42,13 +42,13 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
 #include "Core/System.h"
+#include "Core/USBUtils.h"
 #include "Core/WiiRoot.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
 
 #include "UICommon/DiscordPresence.h"
-#include "UICommon/USBUtils.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
