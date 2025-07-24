@@ -10,8 +10,8 @@
 #include <libusb.h>
 #endif
 
-#include "Common/Assert.h"
 #include "Common/Flag.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 
@@ -24,9 +24,11 @@ public:
   Impl()
   {
     const int ret = libusb_init(&m_context);
-    ASSERT_MSG(IOS_USB, ret == LIBUSB_SUCCESS, "Failed to init libusb: {}", ErrorWrap(ret));
     if (ret != LIBUSB_SUCCESS)
+    {
+      ERROR_LOG_FMT(IOS_USB, "Failed to init libusb: {}", ErrorWrap(ret));
       return;
+    }
 
 #ifdef _WIN32
     const int usbdk_ret = libusb_set_option(m_context, LIBUSB_OPTION_USE_USBDK);
