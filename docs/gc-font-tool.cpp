@@ -76,6 +76,7 @@
 // Font data is encoded in 2 bit greyscale and in 8x8 blocks.
 
 #include <cerrno>
+#include <cstdint>
 #include <cstring>
 #include <fstream>
 #include <iostream>
