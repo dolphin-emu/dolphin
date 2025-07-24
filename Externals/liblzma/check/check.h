@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       check.h
 /// \brief      Internal API to different integrity check functions
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -99,19 +98,22 @@ typedef struct {
 /// lzma_crc32_table[0] is needed by LZ encoder so we need to keep
 /// the array two-dimensional.
 #ifdef HAVE_SMALL
+lzma_attr_visibility_hidden
 extern uint32_t lzma_crc32_table[1][256];
+
 extern void lzma_crc32_init(void);
+
 #else
+
+lzma_attr_visibility_hidden
 extern const uint32_t lzma_crc32_table[8][256];
+
+lzma_attr_visibility_hidden
 extern const uint64_t lzma_crc64_table[4][256];
 #endif
 
 
 /// \brief      Initialize *check depending on type
-///
-/// \return     LZMA_OK on success. LZMA_UNSUPPORTED_CHECK if the type is not
-///             supported by the current version or build of liblzma.
-///             LZMA_PROG_ERROR if type > LZMA_CHECK_ID_MAX.
 extern void lzma_check_init(lzma_check_state *check, lzma_check type);
 
 /// Update the check state

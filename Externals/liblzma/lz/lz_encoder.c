@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       lz_encoder.c
@@ -5,9 +7,6 @@
 ///
 //  Authors:    Igor Pavlov
 //              Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -196,9 +195,7 @@ lz_encoder_prepare(lzma_mf *mf, const lzma_allocator *allocator,
 	// For now, the dictionary size is limited to 1.5 GiB. This may grow
 	// in the future if needed, but it needs a little more work than just
 	// changing this check.
-	if (lz_options->dict_size < LZMA_DICT_SIZE_MIN
-			|| lz_options->dict_size
-				> (UINT32_C(1) << 30) + (UINT32_C(1) << 29)
+	if (!IS_ENC_DICT_SIZE_VALID(lz_options->dict_size)
 			|| lz_options->nice_len > lz_options->match_len_max)
 		return true;
 
@@ -293,11 +290,15 @@ lz_encoder_prepare(lzma_mf *mf, const lzma_allocator *allocator,
 		return true;
 	}
 
-	// Calculate the sizes of mf->hash and mf->son and check that
-	// nice_len is big enough for the selected match finder.
-	const uint32_t hash_bytes = lz_options->match_finder & 0x0F;
-	if (hash_bytes > mf->nice_len)
-		return true;
+	// Calculate the sizes of mf->hash and mf->son.
+	//
+	// NOTE: Since 5.3.5beta the LZMA encoder ensures that nice_len
+	// is big enough for the selected match finder. This makes it
+	// easier for applications as nice_len = 2 will always be accepted
+	// even though the effective value can be slightly bigger.
+	const uint32_t hash_bytes
+			= mf_get_hash_bytes(lz_options->match_finder);
+	assert(hash_bytes <= mf->nice_len);
 
 	const bool is_bt = (lz_options->match_finder & 0x10) != 0;
 	uint32_t hs;
@@ -521,15 +522,31 @@ lz_encoder_update(void *coder_ptr, const lzma_allocator *allocator,
 }
 
 
+static lzma_ret
+lz_encoder_set_out_limit(void *coder_ptr, uint64_t *uncomp_size,
+		uint64_t out_limit)
+{
+	lzma_coder *coder = coder_ptr;
+
+	// This is supported only if there are no other filters chained.
+	if (coder->next.code == NULL && coder->lz.set_out_limit != NULL)
+		return coder->lz.set_out_limit(
+				coder->lz.coder, uncomp_size, out_limit);
+
+	return LZMA_OPTIONS_ERROR;
+}
+
+
 extern lzma_ret
 lzma_lz_encoder_init(lzma_next_coder *next, const lzma_allocator *allocator,
 		const lzma_filter_info *filters,
 		lzma_ret (*lz_init)(lzma_lz_encoder *lz,
-			const lzma_allocator *allocator, const void *options,
+			const lzma_allocator *allocator,
+			lzma_vli id, const void *options,
 			lzma_lz_options *lz_options))
 {
-#ifdef HAVE_SMALL
-	// We need that the CRC32 table has been initialized.
+#if defined(HAVE_SMALL) && !defined(HAVE_FUNC_ATTRIBUTE_CONSTRUCTOR)
+	// The CRC32 table must be initialized.
 	lzma_crc32_init();
 #endif
 
@@ -544,10 +561,13 @@ lzma_lz_encoder_init(lzma_next_coder *next, const lzma_allocator *allocator,
 		next->code = &lz_encode;
 		next->end = &lz_encoder_end;
 		next->update = &lz_encoder_update;
+		next->set_out_limit = &lz_encoder_set_out_limit;
 
 		coder->lz.coder = NULL;
 		coder->lz.code = NULL;
 		coder->lz.end = NULL;
+		coder->lz.options_update = NULL;
+		coder->lz.set_out_limit = NULL;
 
 		// mf.size is initialized to silence Valgrind
 		// when used on optimized binaries (GCC may reorder
@@ -565,7 +585,7 @@ lzma_lz_encoder_init(lzma_next_coder *next, const lzma_allocator *allocator,
 	// Initialize the LZ-based encoder.
 	lzma_lz_options lz_options;
 	return_if_error(lz_init(&coder->lz, allocator,
-			filters[0].options, &lz_options));
+			filters[0].id, filters[0].options, &lz_options));
 
 	// Setup the size information into coder->mf and deallocate
 	// old buffers if they have wrong size.
@@ -585,32 +605,28 @@ lzma_lz_encoder_init(lzma_next_coder *next, const lzma_allocator *allocator,
 extern LZMA_API(lzma_bool)
 lzma_mf_is_supported(lzma_match_finder mf)
 {
-	bool ret = false;
-
+	switch (mf) {
 #ifdef HAVE_MF_HC3
-	if (mf == LZMA_MF_HC3)
-		ret = true;
+	case LZMA_MF_HC3:
+		return true;
 #endif
-
 #ifdef HAVE_MF_HC4
-	if (mf == LZMA_MF_HC4)
-		ret = true;
+	case LZMA_MF_HC4:
+		return true;
 #endif
-
 #ifdef HAVE_MF_BT2
-	if (mf == LZMA_MF_BT2)
-		ret = true;
+	case LZMA_MF_BT2:
+		return true;
 #endif
-
 #ifdef HAVE_MF_BT3
-	if (mf == LZMA_MF_BT3)
-		ret = true;
+	case LZMA_MF_BT3:
+		return true;
 #endif
-
 #ifdef HAVE_MF_BT4
-	if (mf == LZMA_MF_BT4)
-		ret = true;
+	case LZMA_MF_BT4:
+		return true;
 #endif
-
-	return ret;
+	default:
+		return false;
+	}
 }

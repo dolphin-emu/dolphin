@@ -1,15 +1,13 @@
+/* SPDX-License-Identifier: 0BSD */
+
 /**
  * \file        lzma/bcj.h
  * \brief       Branch/Call/Jump conversion filters
+ * \note        Never include this file directly. Use <lzma.h> instead.
  */
 
 /*
  * Author: Lasse Collin
- *
- * This file has been put into the public domain.
- * You can do whatever you want with this file.
- *
- * See ../lzma.h for information about liblzma as a whole.
  */
 
 #ifndef LZMA_H_INTERNAL
@@ -19,35 +17,45 @@
 
 /* Filter IDs for lzma_filter.id */
 
+/**
+ * \brief       Filter for x86 binaries
+ */
 #define LZMA_FILTER_X86         LZMA_VLI_C(0x04)
-	/**<
-	 * Filter for x86 binaries
-	 */
 
+/**
+ * \brief       Filter for Big endian PowerPC binaries
+ */
 #define LZMA_FILTER_POWERPC     LZMA_VLI_C(0x05)
-	/**<
-	 * Filter for Big endian PowerPC binaries
-	 */
 
+/**
+ * \brief       Filter for IA-64 (Itanium) binaries
+ */
 #define LZMA_FILTER_IA64        LZMA_VLI_C(0x06)
-	/**<
-	 * Filter for IA-64 (Itanium) binaries.
-	 */
 
+/**
+ * \brief       Filter for ARM binaries
+ */
 #define LZMA_FILTER_ARM         LZMA_VLI_C(0x07)
-	/**<
-	 * Filter for ARM binaries.
-	 */
 
+/**
+ * \brief       Filter for ARM-Thumb binaries
+ */
 #define LZMA_FILTER_ARMTHUMB    LZMA_VLI_C(0x08)
-	/**<
-	 * Filter for ARM-Thumb binaries.
-	 */
 
+/**
+ * \brief       Filter for SPARC binaries
+ */
 #define LZMA_FILTER_SPARC       LZMA_VLI_C(0x09)
-	/**<
-	 * Filter for SPARC binaries.
-	 */
+
+/**
+ * \brief       Filter for ARM64 binaries
+ */
+#define LZMA_FILTER_ARM64       LZMA_VLI_C(0x0A)
+
+/**
+ * \brief       Filter for RISC-V binaries
+ */
+#define LZMA_FILTER_RISCV       LZMA_VLI_C(0x0B)
 
 
 /**
