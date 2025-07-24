@@ -1,7 +1,7 @@
 ########################################
 # General setup
 #
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.18)
 
 cmake_policy(SET CMP0079 NEW) # let target_link_libraries() link to a target defined in a different directory
 cmake_policy(SET CMP0080 OLD) # allow using BundleUtilities at configure time
