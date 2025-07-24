@@ -657,7 +657,11 @@ add_subdirectory(Externals/glslang)
 if(WIN32 OR APPLE)
   add_subdirectory(Externals/spirv_cross)
 endif()
-add_subdirectory(Externals/tinygltf)
+
+dolphin_find_optional_system_library(TinyGLTF Externals/tinygltf)
+if(NOT DEFINED tinygltf)
+  add_library(tinygltf ALIAS tinygltf::tinygltf) # using system library
+endif()
 
 if(ENABLE_VULKAN)
   add_definitions(-DHAS_VULKAN)
