@@ -16,15 +16,16 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include <fmt/format.h>
+
 #include "Common/StringUtil.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/USBUtils.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings/WiiPane.h"
-
-#include "UICommon/USBUtils.h"
 
 static bool IsValidUSBIDString(const std::string& string)
 {
@@ -105,20 +106,23 @@ void USBDeviceAddToWhitelistDialog::InitControls()
   device_vid_textbox->setMaxLength(4);
   device_pid_textbox->setMaxLength(4);
 }
-
 void USBDeviceAddToWhitelistDialog::RefreshDeviceList()
 {
-  const auto& current_devices = USBUtils::GetInsertedDevices();
+  const auto whitelist = Config::GetUSBDeviceWhitelist();
+
+  const auto& current_devices = USBUtils::ListDevices(
+      [&whitelist](const USBUtils::DeviceInfo& device) { return !whitelist.contains(device); });
+
   if (current_devices == m_shown_devices)
     return;
   const auto selection_string = usb_inserted_devices_list->currentItem();
   usb_inserted_devices_list->clear();
-  auto whitelist = Config::GetUSBDeviceWhitelist();
   for (const auto& device : current_devices)
   {
-    if (whitelist.contains({device.first.first, device.first.second}))
-      continue;
-    usb_inserted_devices_list->addItem(QString::fromStdString(device.second));
+    auto* item = new QListWidgetItem(QString::fromStdString(device.ToDisplayString()),
+                                     usb_inserted_devices_list);
+    QVariant device_data = QVariant::fromValue(device);
+    item->setData(Qt::UserRole, device_data);
   }
 
   usb_inserted_devices_list->setCurrentItem(selection_string);
@@ -147,15 +151,16 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
 
   const u16 vid = static_cast<u16>(std::stoul(vid_string, nullptr, 16));
   const u16 pid = static_cast<u16>(std::stoul(pid_string, nullptr, 16));
+  const USBUtils::DeviceInfo new_device{vid, pid};
 
   auto whitelist = Config::GetUSBDeviceWhitelist();
-  auto it = whitelist.emplace(vid, pid);
-  if (!it.second)
+  if (whitelist.contains(new_device))
   {
     ModalMessageBox::critical(this, tr("USB Whitelist Error"),
                               tr("This USB device is already whitelisted."));
     return;
   }
+  whitelist.emplace(new_device);
   Config::SetUSBDeviceWhitelist(whitelist);
   Config::Save();
   accept();
@@ -163,11 +168,13 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
 
 void USBDeviceAddToWhitelistDialog::OnDeviceSelection()
 {
-  // Not the nicest way of doing this but...
-  QString device = usb_inserted_devices_list->currentItem()->text().left(9);
-  QStringList split = device.split(QString::fromStdString(":"));
-  QString* vid = new QString(split[0]);
-  QString* pid = new QString(split[1]);
-  device_vid_textbox->setText(*vid);
-  device_pid_textbox->setText(*pid);
+  auto* current_item = usb_inserted_devices_list->currentItem();
+  if (!current_item)
+    return;
+
+  QVariant item_data = current_item->data(Qt::UserRole);
+  USBUtils::DeviceInfo device = item_data.value<USBUtils::DeviceInfo>();
+
+  device_vid_textbox->setText(QString::fromStdString(fmt::format("{:04x}", device.vid)));
+  device_pid_textbox->setText(QString::fromStdString(fmt::format("{:04x}", device.pid)));
 }

@@ -30,6 +30,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/System.h"
+#include "Core/USBUtils.h"
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -39,8 +40,6 @@
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/USBDeviceAddToWhitelistDialog.h"
-
-#include "UICommon/USBUtils.h"
 
 // SYSCONF uses 0 for bottom and 1 for top, but we place them in
 // the other order in the GUI so that Top will be above Bottom,
@@ -469,14 +468,15 @@ void WiiPane::OnUSBWhitelistAddButton()
 
 void WiiPane::OnUSBWhitelistRemoveButton()
 {
-  QString device = m_whitelist_usb_list->currentItem()->text().left(9);
-  QStringList split = device.split(QString::fromStdString(":"));
-  QString vid = QString(split[0]);
-  QString pid = QString(split[1]);
-  const u16 vid_u16 = static_cast<u16>(std::stoul(vid.toStdString(), nullptr, 16));
-  const u16 pid_u16 = static_cast<u16>(std::stoul(pid.toStdString(), nullptr, 16));
+  auto* current_item = m_whitelist_usb_list->currentItem();
+  if (!current_item)
+    return;
+
+  QVariant item_data = current_item->data(Qt::UserRole);
+  USBUtils::DeviceInfo device = item_data.value<USBUtils::DeviceInfo>();
+
   auto whitelist = Config::GetUSBDeviceWhitelist();
-  whitelist.erase({vid_u16, pid_u16});
+  whitelist.erase(device);
   Config::SetUSBDeviceWhitelist(whitelist);
   PopulateUSBPassthroughListWidget();
 }
@@ -485,11 +485,12 @@ void WiiPane::PopulateUSBPassthroughListWidget()
 {
   m_whitelist_usb_list->clear();
   auto whitelist = Config::GetUSBDeviceWhitelist();
-  for (const auto& device : whitelist)
+  for (auto& device : whitelist)
   {
-    QListWidgetItem* usb_lwi =
-        new QListWidgetItem(QString::fromStdString(USBUtils::GetDeviceName(device)));
-    m_whitelist_usb_list->addItem(usb_lwi);
+    auto* item =
+        new QListWidgetItem(QString::fromStdString(device.ToDisplayString()), m_whitelist_usb_list);
+    QVariant device_data = QVariant::fromValue(device);
+    item->setData(Qt::UserRole, device_data);
   }
   ValidateSelectionState();
 }
