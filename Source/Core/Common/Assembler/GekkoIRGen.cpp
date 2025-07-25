@@ -356,14 +356,13 @@ void GekkoIRPlugin::OnCloseParen(ParenType type)
 void GekkoIRPlugin::OnLabelDecl(std::string_view name)
 {
   const std::string name_str(name);
-  if (m_symset.contains(name_str))
+  if (const bool inserted = m_symset.insert(name_str).second; !inserted)
   {
     m_owner->EmitErrorHere(fmt::format("Label/Constant {} is already defined", name));
     return;
   }
 
   m_labels[name_str] = m_active_block->BlockEndAddress();
-  m_symset.insert(name_str);
 }
 
 void GekkoIRPlugin::OnNumericLabelDecl(std::string_view, u32 num)
@@ -374,14 +373,13 @@ void GekkoIRPlugin::OnNumericLabelDecl(std::string_view, u32 num)
 void GekkoIRPlugin::OnVarDecl(std::string_view name)
 {
   const std::string name_str(name);
-  if (m_symset.contains(name_str))
+  if (const bool inserted = m_symset.insert(name_str).second; !inserted)
   {
     m_owner->EmitErrorHere(fmt::format("Label/Constant {} is already defined", name));
     return;
   }
 
   m_active_var = &m_constants[name_str];
-  m_symset.insert(name_str);
 }
 
 void GekkoIRPlugin::PostParseAction()

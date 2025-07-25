@@ -192,8 +192,8 @@ void AchievementManager::LoadGame(const DiscIO::Volume* volume)
     std::lock_guard lg{m_lock};
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
     const auto& names = volume->GetLongNames();
-    if (names.contains(DiscIO::Language::English))
-      m_title_estimate = names.at(DiscIO::Language::English);
+    if (const auto it = names.find(DiscIO::Language::English); it != names.end())
+      m_title_estimate = it->second;
     else if (!names.empty())
       m_title_estimate = names.begin()->second;
     else

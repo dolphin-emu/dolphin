@@ -652,8 +652,8 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
 
       auto refpair1 = std::make_pair(*id1, *id2);
       auto refpair2 = std::make_pair(*id2, *id1);
-      if (!reference_pairs.contains(refpair1) && !reference_pairs.contains(refpair2))
-        reference_pairs.insert(refpair1);
+      if (!reference_pairs.contains(refpair2))
+        reference_pairs.insert(std::move(refpair1));
     }
   }
 

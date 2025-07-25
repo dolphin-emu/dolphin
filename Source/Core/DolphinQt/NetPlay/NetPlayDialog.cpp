@@ -656,8 +656,9 @@ void NetPlayDialog::UpdateGUI()
 
     auto* name_item = new QTableWidgetItem(QString::fromStdString(p->name));
     name_item->setToolTip(name_item->text());
-    const auto& status_info = player_status.contains(p->game_status) ?
-                                  player_status.at(p->game_status) :
+    const auto it = player_status.find(p->game_status);
+    const auto& status_info = it != player_status.end() ?
+                                  it->second :
                                   std::make_pair(QStringLiteral("?"), QStringLiteral("?"));
     auto* status_item = new QTableWidgetItem(status_info.first);
     status_item->setToolTip(status_info.second);
