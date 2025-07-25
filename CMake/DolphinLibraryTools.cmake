@@ -92,3 +92,30 @@ function(dolphin_find_optional_system_library_pkgconfig library search alias bun
     set(${library}_TYPE "Bundled" PARENT_SCOPE)
   endif()
 endfunction()
+
+# This can be used for header-only libraries that doesn't offer a
+# pkg-config or CMake file. It uses CMake's find_file. LIBRARY is the
+# name of the library providing it, INCLUDE is the header file name
+# without its installation prefix (e.g. "wtr/watcher.hpp") while
+# BUNDLED_PATH is the root directory of the bundled library.
+function(dolphin_find_optional_system_include library include bundled_path)
+  dolphin_optional_system_library(use_system ${library})
+  string(TOUPPER ${library} upperlib)
+  if(use_system)
+    find_file(${library}_INCLUDE ${include})
+    if((NOT ${library}_INCLUDE) AND (NOT ${use_system} STREQUAL "AUTO"))
+      message(FATAL_ERROR "No system ${library} headers found. \
+Please install it or set USE_SYSTEM_${upperlib} to AUTO or OFF.")
+    endif()
+  endif()
+  if(${library}_INCLUDE)
+    message(STATUS "Using system ${library} headers")
+    set(${library}_TYPE "System" PARENT_SCOPE)
+    add_library(${library} INTERFACE IMPORTED GLOBAL)
+    set_target_properties(${library} PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES ${${library}_INCLUDE})
+  else()
+    dolphin_add_bundled_library(${library} ${use_system} ${bundled_path})
+    set(${library}_TYPE "Bundled" PARENT_SCOPE)
+  endif()
+endfunction()
