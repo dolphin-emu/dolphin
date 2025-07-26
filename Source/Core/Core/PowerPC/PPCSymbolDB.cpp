@@ -212,10 +212,6 @@ std::string_view PPCSymbolDB::GetDescription(u32 addr)
 
 void PPCSymbolDB::FillInCallers()
 {
-  std::unique_lock<std::mutex> lock(m_write_lock, std::try_to_lock);
-  if (!lock.owns_lock())
-    return;
-
   for (auto& p : m_functions)
   {
     p.second.callers.clear();
@@ -594,6 +590,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, const std::string& 
 
   Index();
   DetermineNoteLayers();
+  FillInCallers();
   NOTICE_LOG_FMT(SYMBOLS, "{} symbols loaded, {} symbols ignored.", good_count, bad_count);
   return true;
 }
