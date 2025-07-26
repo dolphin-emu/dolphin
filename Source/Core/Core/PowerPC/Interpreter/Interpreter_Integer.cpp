@@ -141,10 +141,10 @@ void Interpreter::oris(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::subfic(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const s32 a = s32(ppc_state.gpr[inst.RA]);
-  const s32 immediate = inst.SIMM_16;
-  ppc_state.gpr[inst.RD] = u32(immediate - a);
-  ppc_state.SetCarry((a == 0) || (Helper_Carry(0 - u32(a), u32(immediate))));
+  const u32 a = ppc_state.gpr[inst.RA];
+  const u32 immediate = u32(s32(inst.SIMM_16));
+  ppc_state.gpr[inst.RD] = immediate - a;
+  ppc_state.SetCarry(immediate >= a);
 }
 
 void Interpreter::twi(Interpreter& interpreter, UGeckoInstruction inst)
@@ -622,15 +622,15 @@ void Interpreter::subfx(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::subfcx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 a = ~ppc_state.gpr[inst.RA];
+  const u32 a = ppc_state.gpr[inst.RA];
   const u32 b = ppc_state.gpr[inst.RB];
-  const u32 result = a + b + 1;
+  const u32 result = b - a;
 
   ppc_state.gpr[inst.RD] = result;
-  ppc_state.SetCarry(a == 0xFFFFFFFF || Helper_Carry(b, a + 1));
+  ppc_state.SetCarry(b >= a);
 
   if (inst.OE)
-    ppc_state.SetXER_OV(HasAddOverflowed(a, b, result));
+    ppc_state.SetXER_OV(HasAddOverflowed(~a, b, result));
 
   if (inst.Rc)
     Helper_UpdateCR0(ppc_state, result);
