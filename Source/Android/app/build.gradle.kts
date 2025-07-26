@@ -7,7 +7,7 @@ plugins {
 
 @Suppress("UnstableApiUsage")
 android {
-    compileSdkVersion = "android-34"
+    compileSdkVersion = "android-36"
     ndkVersion = "27.0.12077973"
 
     buildFeatures {
@@ -40,7 +40,7 @@ android {
     defaultConfig {
         applicationId = "org.dolphinemu.dolphinemu"
         minSdk = 21
-        targetSdk = 34
+        targetSdk = 36
 
         versionCode = getBuildVersionCode()
 
