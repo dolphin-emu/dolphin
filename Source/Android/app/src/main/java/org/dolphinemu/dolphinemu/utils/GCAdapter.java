@@ -142,43 +142,48 @@ public class GCAdapter
     {
       dev = adapterDevice;
     }
-
-    if (dev != null)
+    if (dev == null)
     {
-      usbConnection = manager.openDevice(dev);
-
-      Log.info("GCAdapter: Number of configurations: " + dev.getConfigurationCount());
-      Log.info("GCAdapter: Number of interfaces: " + dev.getInterfaceCount());
-
-      if (dev.getConfigurationCount() > 0 && dev.getInterfaceCount() > 0)
-      {
-        UsbConfiguration conf = dev.getConfiguration(0);
-        usbInterface = conf.getInterface(0);
-        usbConnection.claimInterface(usbInterface, true);
-
-        Log.info("GCAdapter: Number of endpoints: " + usbInterface.getEndpointCount());
-
-        if (usbInterface.getEndpointCount() == 2)
-        {
-          for (int i = 0; i < usbInterface.getEndpointCount(); ++i)
-            if (usbInterface.getEndpoint(i).getDirection() == UsbConstants.USB_DIR_IN)
-              usbIn = usbInterface.getEndpoint(i);
-            else
-              usbOut = usbInterface.getEndpoint(i);
-
-          initAdapter();
-          return true;
-        }
-        else
-        {
-          usbConnection.releaseInterface(usbInterface);
-        }
-      }
-
-      Toast.makeText(DolphinApplication.getAppContext(), R.string.replug_gc_adapter,
-              Toast.LENGTH_LONG).show();
-      usbConnection.close();
+      return false;
     }
+
+    usbConnection = manager.openDevice(dev);
+    if (usbConnection == null)
+    {
+      return false;
+    }
+
+    Log.info("GCAdapter: Number of configurations: " + dev.getConfigurationCount());
+    Log.info("GCAdapter: Number of interfaces: " + dev.getInterfaceCount());
+
+    if (dev.getConfigurationCount() > 0 && dev.getInterfaceCount() > 0)
+    {
+      UsbConfiguration conf = dev.getConfiguration(0);
+      usbInterface = conf.getInterface(0);
+      usbConnection.claimInterface(usbInterface, true);
+
+      Log.info("GCAdapter: Number of endpoints: " + usbInterface.getEndpointCount());
+
+      if (usbInterface.getEndpointCount() == 2)
+      {
+        for (int i = 0; i < usbInterface.getEndpointCount(); ++i)
+          if (usbInterface.getEndpoint(i).getDirection() == UsbConstants.USB_DIR_IN)
+            usbIn = usbInterface.getEndpoint(i);
+          else
+            usbOut = usbInterface.getEndpoint(i);
+
+        initAdapter();
+        return true;
+      }
+      else
+      {
+        usbConnection.releaseInterface(usbInterface);
+      }
+    }
+
+    Toast.makeText(DolphinApplication.getAppContext(), R.string.replug_gc_adapter,
+            Toast.LENGTH_LONG).show();
+    usbConnection.close();
     return false;
   }
 
