@@ -278,7 +278,10 @@ union ClipDisable
 {
   BitField<0, 1, bool, u32> disable_clipping_detection;
   BitField<1, 1, bool, u32> disable_trivial_rejection;
-  BitField<2, 1, bool, u32> disable_cpoly_clipping_acceleration;
+  // Also known as "disable cpoly clipping acceleration".  "cpoly" appears in patents US6639595B1
+  // and US6700586B1, as well as JP4975159B2, but JP4846120B2 gives "copy clipping acceleration".
+  // Since "cpoly" doesn't have any obvious meaning, "copy" is being used here.
+  BitField<2, 1, bool, u32> disable_copy_clipping_acceleration;
   u32 hex;
 };
 template <>
@@ -291,10 +294,10 @@ struct fmt::formatter<ClipDisable>
     return fmt::format_to(ctx.out(),
                           "Disable clipping detection: {}\n"
                           "Disable trivial rejection: {}\n"
-                          "Disable cpoly clipping acceleration: {}",
+                          "Disable copy clipping acceleration: {}",
                           cd.disable_clipping_detection ? "Yes" : "No",
                           cd.disable_trivial_rejection ? "Yes" : "No",
-                          cd.disable_cpoly_clipping_acceleration ? "Yes" : "No");
+                          cd.disable_copy_clipping_acceleration ? "Yes" : "No");
   }
 };
 
