@@ -346,7 +346,7 @@ enum Bug
 
   // BUG: Incorrect implementation of VK_EXT_depth_clamp_control causes incorrect depth values to
   // be written to the depth buffer.
-  // Affected devices: AMD (Windows)
+  // Affected devices: Official AMD (RADV is unaffected)
   // Started Version: -1
   // Ended Version: -1
   BUG_BROKEN_DEPTH_CLAMP_CONTROL
