@@ -22,7 +22,7 @@ namespace Common
 #ifndef IS_PLAYBACK
 #define SLIPPI_REV_STR "4.0.0-mainline-beta.11"  // netplay version
 #else
-#define SLIPPI_REV_STR "3.2.0"  // playback version
+#define SLIPPI_REV_STR "4.0.0-mainline-beta.1"  // playback version
 #endif
 
 const std::string& GetScmRevStr()

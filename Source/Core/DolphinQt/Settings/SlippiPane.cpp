@@ -287,6 +287,7 @@ void SlippiPane::ToggleJukebox(bool checked)
 
   if (Core::GetState(Core::System::GetInstance()) == Core::State::Running)
   {
+#ifndef IS_PLAYBACK
     auto& system = Core::System::GetInstance();
     auto& exi_manager = system.GetExpansionInterface();
     ExpansionInterface::CEXISlippi* slippi_exi = static_cast<ExpansionInterface::CEXISlippi*>(
@@ -294,6 +295,7 @@ void SlippiPane::ToggleJukebox(bool checked)
 
     if (slippi_exi != nullptr)
       slippi_exi->ConfigureJukebox();
+#endif  // IS_PLAYBACK
   }
 }
 
@@ -303,6 +305,7 @@ void SlippiPane::OnMusicVolumeUpdate(int volume)
   m_music_volume_percent->setText(tr(" %1%").arg(volume));
   if (Core::GetState(Core::System::GetInstance()) == Core::State::Running)
   {
+#ifndef IS_PLAYBACK
     auto& system = Core::System::GetInstance();
     auto& exi_manager = system.GetExpansionInterface();
     ExpansionInterface::CEXISlippi* slippi_exi = static_cast<ExpansionInterface::CEXISlippi*>(
@@ -310,6 +313,7 @@ void SlippiPane::OnMusicVolumeUpdate(int volume)
 
     if (slippi_exi != nullptr)
       slippi_exi->UpdateJukeboxDolphinMusicVolume(volume);
+#endif  // IS_PLAYBACK
   }
 }
 

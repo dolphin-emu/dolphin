@@ -615,8 +615,8 @@ add_subdirectory(Externals/corrosion)
 
 if(SLIPPI_PLAYBACK)
   # Slippi Playback build option
-  # message("Enabling Playback build")
-  # add_definitions(-DIS_PLAYBACK=1)
+  message("Enabling Playback build")
+  add_definitions(-DIS_PLAYBACK=1)
 endif()
 
 ########################################

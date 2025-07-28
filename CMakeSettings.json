@@ -93,8 +93,28 @@
       "cmakeCommandArgs": "",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x64_x64" ]
+    },
+    {
+      "name": "ReleasePlayback",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${workspaceRoot}\\Build\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
       "inheritEnvironments": [ "msvc_x64_x64" ],
-      "variables": []
+      "variables": [
+        {
+          "name": "Qt5_DIR",
+          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.15.0\\msvc2019_64\\lib\\cmake\\Qt5",
+          "type": "STRING"
+        },
+        {
+          "name": "SLIPPI_PLAYBACK",
+          "value": "ON",
+          "type": "BOOL"
+        }
+      ]
     }
   ]
 }

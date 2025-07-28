@@ -15,6 +15,11 @@ set(SRCS
 add_library(imgui STATIC ${SRCS})
 dolphin_disable_warnings(imgui)
 target_include_directories(imgui PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+# Tell ImGui to both declare and emit the math operators in THIS target:
+target_compile_definitions(imgui
+  PUBLIC
+    IMGUI_DEFINE_MATH_OPERATORS
+)
 
 target_link_libraries(imgui
 PRIVATE

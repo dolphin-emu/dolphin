@@ -347,7 +347,7 @@ bool SeekBarBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v_max,
   auto hover_bb = ImRect(ImVec2(width * 0.0025f, height - scaled_height * 0.0475f),
                          ImVec2(width * 0.9975f, bb.Min.y));
 
-  const bool hovered = ImGui::ItemHoverable(hover_bb, id);
+  const bool hovered = ImGui::ItemHoverable(hover_bb, id, ImGuiItemFlags_None);
 
   if (!isHeld && isActive)
   {
@@ -510,7 +510,7 @@ bool VolumeBarBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v_ma
   }
 
   const bool isDown = g.IO.MouseDown[0];
-  const bool hovered = ImGui::ItemHoverable(bb, id);
+  const bool hovered = ImGui::ItemHoverable(bb, id, ImGuiItemFlags_None);
   static bool isHeld = false;
   bool value_changed = false;
   bool isActive = g.ActiveId == id;
