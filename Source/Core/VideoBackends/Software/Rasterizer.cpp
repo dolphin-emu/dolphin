@@ -392,11 +392,12 @@ static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertex
 
   for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
   {
-    for (int comp = 0; comp < 3; comp++)
-    {
-      TexSlopes[i][comp] = Slope(v0->texCoords[i][comp] * w[0], v1->texCoords[i][comp] * w[1],
-                                 v2->texCoords[i][comp] * w[2], ctx);
-    }
+    TexSlopes[i][0] =
+        Slope(v0->texCoords[i].x * w[0], v1->texCoords[i].x * w[1], v2->texCoords[i].x * w[2], ctx);
+    TexSlopes[i][1] =
+        Slope(v0->texCoords[i].y * w[0], v1->texCoords[i].y * w[1], v2->texCoords[i].y * w[2], ctx);
+    TexSlopes[i][2] =
+        Slope(v0->texCoords[i].z * w[0], v1->texCoords[i].z * w[1], v2->texCoords[i].z * w[2], ctx);
   }
 
   // Half-edge constants
