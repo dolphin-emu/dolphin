@@ -40,6 +40,14 @@ if (MSVC)
   set(CMAKE_C_STANDARD 99)
   set(CMAKE_CXX_STANDARD 23)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+  add_compile_options(/EHsc)
+endif()
+
+# If the user hasn't already set a branch name on the command line, use slippi
+if(NOT DEFINED DOLPHIN_WC_BRANCH)
+  set(DOLPHIN_WC_BRANCH "slippi" CACHE STRING
+      "Name of the Git branch for dolphin working‑copy (overrides 'master')")
 endif()
 
 set(COMPILER ${CMAKE_CXX_COMPILER_ID})
