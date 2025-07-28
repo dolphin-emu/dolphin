@@ -941,24 +941,23 @@ void CEXISlippi::prepareCharacterFrameData(Slippi::FrameData* frame, u8 port, u8
   // << data.animation
   // << "\n";
 
-  // WARN_LOG_FMT(EXPANSIONINTERFACE, "[Frame {}] [Player {}] Positions: %f | %f", frame_idx, port,
-  // data.locationX, data.locationY);
+  // WARN_LOG_FMT(EXPANSIONINTERFACE, "[Frame {}] [Player {}] Positions: {:.4} | {:.4}", frame->frame, port, data.locationX, data.locationY);
 
   // Add all of the inputs in order
   appendWordToBuffer(&m_read_queue, data.randomSeed);
-  appendWordToBuffer(&m_read_queue, static_cast<u32>(data.joystickX));
-  appendWordToBuffer(&m_read_queue, static_cast<u32>(data.joystickY));
-  appendWordToBuffer(&m_read_queue, static_cast<u32>(data.cstickX));
-  appendWordToBuffer(&m_read_queue, static_cast<u32>(data.cstickY));
-  appendWordToBuffer(&m_read_queue, static_cast<u32>(data.trigger));
+  appendWordToBuffer(&m_read_queue, std::bit_cast<u32>(data.joystickX));
+  appendWordToBuffer(&m_read_queue, std::bit_cast<u32>(data.joystickY));
+  appendWordToBuffer(&m_read_queue, std::bit_cast<u32>(data.cstickX));
+  appendWordToBuffer(&m_read_queue, std::bit_cast<u32>(data.cstickY));
+  appendWordToBuffer(&m_read_queue, std::bit_cast<u32>(data.trigger));
   appendWordToBuffer(&m_read_queue, data.buttons);
-  appendWordToBuffer(&m_read_queue, static_cast<u32>(data.locationX));
-  appendWordToBuffer(&m_read_queue, static_cast<u32>(data.locationY));
-  appendWordToBuffer(&m_read_queue, static_cast<u32>(data.facingDirection));
+  appendWordToBuffer(&m_read_queue, std::bit_cast<u32>(data.locationX));
+  appendWordToBuffer(&m_read_queue, std::bit_cast<u32>(data.locationY));
+  appendWordToBuffer(&m_read_queue, std::bit_cast<u32>(data.facingDirection));
   appendWordToBuffer(&m_read_queue, static_cast<u32>(data.animation));
   m_read_queue.push_back(data.joystickXRaw);
   m_read_queue.push_back(data.joystickYRaw);
-  appendWordToBuffer(&m_read_queue, static_cast<u32>(data.percent));
+  appendWordToBuffer(&m_read_queue, std::bit_cast<u32>(data.percent));
   m_read_queue.push_back(data.cstickXRaw);
   m_read_queue.push_back(data.cstickYRaw);
   // NOTE TO DEV: If you add data here, make sure to increase the size above
