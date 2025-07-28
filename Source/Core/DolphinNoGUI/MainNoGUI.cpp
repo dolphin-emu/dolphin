@@ -290,6 +290,10 @@ int main(int argc, char* argv[])
     slippi_input_path = static_cast<const char*>(options.get("slippi_input"));
     SConfig::GetSlippiConfig().slippi_input = slippi_input_path.value();
   }
+  else
+  {
+    SConfig::GetSlippiConfig().slippi_input = "Slippi/playback.txt";
+  }
 #endif
 
   s_platform = GetPlatform(options);

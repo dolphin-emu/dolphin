@@ -26,6 +26,6 @@ struct Config
   Melee::Version melee_version;
   bool oc_enable = true;
   float oc_factor = 1.0f;
-  std::string slippi_input = "";
+  std::string slippi_input = ""; // Putting the default value here doesn't work for some reason
 };
 }  // namespace Slippi
