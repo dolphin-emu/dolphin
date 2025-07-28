@@ -11,17 +11,21 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/Matrix.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 
 #include "VideoBackends/Software/NativeVertexFormat.h"
-#include "VideoBackends/Software/Vec3.h"
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/XFMemory.h"
 
 namespace TransformUnit
 {
+
+using Vec3 = Common::Vec3;
+using Vec4 = Common::Vec4;
+
 static void MultiplyVec2Mat24(const Vec3& vec, const float* mat, Vec3& result)
 {
   result.x = mat[0] * vec.x + mat[1] * vec.y + mat[2] + mat[3];
@@ -102,7 +106,7 @@ void TransformNormal(const InputVertexData* src, OutputVertexData* dst)
   // By normalising the first transformed normal (which is used by lighting calculations and needs
   // to be unit length), the same transform matrix can do double duty, scaling for emboss mapping,
   // and not scaling for lighting.
-  dst->normal[0].Normalize();
+  dst->normal[0] = dst->normal[0].Normalized();
 }
 
 static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum,
@@ -127,8 +131,8 @@ static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum,
   {
     ASSERT(texinfo.sourcerow >= SourceRow::Tex0 && texinfo.sourcerow <= SourceRow::Tex7);
     u32 texnum = static_cast<u32>(texinfo.sourcerow.Value()) - static_cast<u32>(SourceRow::Tex0);
-    src.x = srcVertex->texCoords[texnum][0];
-    src.y = srcVertex->texCoords[texnum][1];
+    src.x = srcVertex->texCoords[texnum].x;
+    src.y = srcVertex->texCoords[texnum].y;
     src.z = 1.0f;
     break;
   }
@@ -228,22 +232,22 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
   case AttenuationFunc::Spec:
   {
     ldir = ldir.Normalized();
-    attn = (ldir * normal) >= 0.0 ? std::max(0.0f, light->dir * normal) : 0;
+    attn = ldir.Dot(normal) >= 0.0 ? std::max(0.0f, light->dir.Dot(normal)) : 0;
     Vec3 attLen = Vec3(1.0, attn, attn * attn);
     Vec3 cosAttn = light->cosatt;
     Vec3 distAttn = light->distatt;
     if (chan.diffusefunc != DiffuseFunc::None)
       distAttn = distAttn.Normalized();
 
-    attn = SafeDivide(std::max(0.0f, attLen * cosAttn), attLen * distAttn);
+    attn = SafeDivide(std::max(0.0f, attLen.Dot(cosAttn)), attLen.Dot(distAttn));
     break;
   }
   case AttenuationFunc::Spot:
   {
-    float dist2 = ldir.Length2();
+    float dist2 = ldir.LengthSquared();
     float dist = sqrtf(dist2);
     ldir = ldir / dist;
-    attn = std::max(0.0f, ldir * light->dir);
+    attn = std::max(0.0f, ldir.Dot(light->dir));
 
     float cosAtt = light->cosatt.x + (light->cosatt.y * attn) + (light->cosatt.z * attn * attn);
     float distAtt = light->distatt.x + (light->distatt.y * dist) + (light->distatt.z * dist2);
@@ -265,7 +269,7 @@ static void LightColor(const Vec3& pos, const Vec3& normal, u8 lightNum, const L
   Vec3 ldir = light->pos - pos;
   float attn = CalculateLightAttn(light, &ldir, normal, chan);
 
-  float difAttn = ldir * normal;
+  float difAttn = ldir.Dot(normal);
   switch (chan.diffusefunc)
   {
   case DiffuseFunc::None:
@@ -291,7 +295,7 @@ static void LightAlpha(const Vec3& pos, const Vec3& normal, u8 lightNum, const L
   Vec3 ldir = light->pos - pos;
   float attn = CalculateLightAttn(light, &ldir, normal, chan);
 
-  float difAttn = ldir * normal;
+  float difAttn = ldir.Dot(normal);
   switch (chan.diffusefunc)
   {
   case DiffuseFunc::None:
@@ -412,8 +416,8 @@ void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst)
       const LightPointer* light = (const LightPointer*)&xfmem.lights[texinfo.embosslightshift];
 
       Vec3 ldir = (light->pos - dst->mvPosition).Normalized();
-      float d1 = ldir * dst->normal[1];
-      float d2 = ldir * dst->normal[2];
+      float d1 = ldir.Dot(dst->normal[1]);
+      float d2 = ldir.Dot(dst->normal[2]);
 
       dst->texCoords[coordNum].x = dst->texCoords[texinfo.embosssourceshift].x + d1;
       dst->texCoords[coordNum].y = dst->texCoords[texinfo.embosssourceshift].y + d2;
@@ -440,8 +444,8 @@ void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst)
 
   for (u32 coordNum = 0; coordNum < xfmem.numTexGen.numTexGens; coordNum++)
   {
-    dst->texCoords[coordNum][0] *= (bpmem.texcoords[coordNum].s.scale_minus_1 + 1);
-    dst->texCoords[coordNum][1] *= (bpmem.texcoords[coordNum].t.scale_minus_1 + 1);
+    dst->texCoords[coordNum].x *= bpmem.texcoords[coordNum].s.scale_minus_1 + 1;
+    dst->texCoords[coordNum].y *= bpmem.texcoords[coordNum].t.scale_minus_1 + 1;
   }
 }
 }  // namespace TransformUnit
