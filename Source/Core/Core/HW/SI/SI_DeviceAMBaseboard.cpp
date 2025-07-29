@@ -1546,7 +1546,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               PadStatus = Pad::GetStatus(0);
               
               // Test button
-              if (PadStatus.button & PAD_TRIGGER_Z)
+              if (PadStatus.switches&PAD_SWITCH_TEST)
               {
                 // Trying to access the test menu without SegaBoot present will cause a crash
                 if (AMMediaboard::GetTestMenu())
@@ -1581,7 +1581,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                     if (PadStatus.button & PAD_BUTTON_START)
                       player_data[0] |= 0x80;
                     // Service button
-                    if (PadStatus.button & PAD_BUTTON_X)
+                    if (PadStatus.switches&PAD_SWITCH_SERVICE)
                       player_data[0] |= 0x40;
                     // Boost
                     if (PadStatus.button & PAD_BUTTON_Y)
@@ -1639,7 +1639,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                     if (PadStatus.button & PAD_BUTTON_START)
                       player_data[0] |= 0x80;
                     // Service button
-                    if (PadStatus.button & PAD_BUTTON_X)
+                    if (PadStatus.switches&PAD_SWITCH_SERVICE)
                       player_data[0] |= 0x40;
                     // Boost
                     if (PadStatus.button & PAD_BUTTON_Y)
@@ -1689,7 +1689,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   if (PadStatus.button & PAD_BUTTON_START)
                     player_data[0] |= 0x80;
                   // Service button
-                  if (PadStatus.button & PAD_BUTTON_X)
+                  if (PadStatus.switches&PAD_SWITCH_SERVICE)
                     player_data[0] |= 0x40;
                   // Long Pass
                   if (PadStatus.button & PAD_TRIGGER_L)
@@ -1721,7 +1721,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   if (PadStatus.button & PAD_BUTTON_START)
                     player_data[0] |= 0x80;
                   // Service button
-                  if (PadStatus.button & PAD_BUTTON_X)
+                  if (PadStatus.switches&PAD_SWITCH_SERVICE)
                     player_data[0] |= 0x40;
                   // Long Pass
                   if (PadStatus.button & PAD_TRIGGER_L)
@@ -1762,7 +1762,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   if (PadStatus.button & PAD_BUTTON_START)
                     player_data[0] |= 0x80;
                   // Service button
-                  if (PadStatus.button & PAD_BUTTON_X)
+                  if (PadStatus.switches&PAD_SWITCH_SERVICE)
                     player_data[0] |= 0x40;
                   //  A
                   if (PadStatus.button & PAD_BUTTON_B)
@@ -1813,7 +1813,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   if (PadStatus.button & PAD_BUTTON_START)
                     player_data[0] |= 0x80;
                   // Service button
-                  if (PadStatus.button & PAD_BUTTON_X)
+                  if (PadStatus.switches&PAD_SWITCH_SERVICE)
                     player_data[0] |= 0x40;
                   // Switch 1
                   if (PadStatus.button & PAD_BUTTON_A)
@@ -1843,11 +1843,11 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               {
                 GCPadStatus PadStatus;
                 PadStatus = Pad::GetStatus(i);
-                if ((PadStatus.button & PAD_BUTTON_X) && !m_coin_pressed[i])
+                if ((PadStatus.switches&PAD_SWITCH_COIN) && !m_coin_pressed[i])
                 {
                   m_coin[i]++;
                 }
-                m_coin_pressed[i] = PadStatus.button & PAD_BUTTON_X;
+                m_coin_pressed[i] = PadStatus.switches & PAD_SWITCH_COIN;
                 message.addData((m_coin[i] >> 8) & 0x3f);
                 message.addData(m_coin[i] & 0xff);
               }
