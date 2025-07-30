@@ -1339,7 +1339,12 @@ void JitArm64::subfex(UGeckoInstruction inst)
     {
       gpr.BindToRegister(d, false);
       ARM64Reg RD = gpr.R(d);
-      if (is_all_ones)
+      if (is_zero)
+      {
+        // RD = 0 + carry
+        CSET(RD, CC_CS);
+      }
+      else if (is_all_ones)
       {
         // RD = -1 + carry = carry ? 0 : -1
         // CSETM sets the destination to -1 if the condition is true, 0
