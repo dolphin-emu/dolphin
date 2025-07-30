@@ -632,8 +632,10 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
         SetDisc(system.GetDVDInterface(), DiscIO::CreateDisc(ipl.disc->path),
                 ipl.disc->auto_disc_change_paths);
       }
-
-      AchievementManager::GetInstance().LoadGame(nullptr);
+      else
+      {
+        AchievementManager::GetInstance().LoadGame(nullptr);
+      }
 
       SConfig::OnTitleDirectlyBooted(guard);
       return true;
