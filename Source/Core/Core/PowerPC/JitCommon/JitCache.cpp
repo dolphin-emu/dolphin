@@ -187,7 +187,7 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
     LinkBlock(block);
   }
 
-  Common::Symbol* symbol = nullptr;
+  const Common::Symbol* symbol = nullptr;
   if (Common::JitRegister::IsEnabled() &&
       (symbol = m_jit.m_ppc_symbol_db.GetSymbolFromAddr(block.effectiveAddress)) != nullptr)
   {
