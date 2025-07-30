@@ -6,18 +6,14 @@
 #include <bit>
 
 #include "Common/Arm64Emitter.h"
-#include "Common/Assert.h"
-#include "Common/BitUtils.h"
+#include "Common/ArmCommon.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
-#include "Core/Core.h"
-#include "Core/CoreTiming.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitCommon/DivUtils.h"
 #include "Core/PowerPC/PPCTables.h"
-#include "Core/PowerPC/PowerPC.h"
 
 using namespace Arm64Gen;
 using namespace JitCommon;
