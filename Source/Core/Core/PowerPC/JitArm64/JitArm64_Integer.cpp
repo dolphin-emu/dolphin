@@ -1306,13 +1306,10 @@ void JitArm64::subfex(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   FALLBACK_IF(inst.OE);
 
-  bool mex = inst.SUBOP10 & 32;
-  int a = inst.RA, b = inst.RB, d = inst.RD;
+  const bool mex = inst.SUBOP10 & 32;
+  const int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.IsImm(a) && (mex || gpr.IsImm(b)))
-  {
-    const u32 i = gpr.GetImm(a);
-    const u32 j = mex ? -1 : gpr.GetImm(b);
+  const auto handle_imm = [&](const u32 i, const u32 j) {
     const u32 imm = ~i + j;
     const bool is_zero = imm == 0;
     const bool is_all_ones = imm == 0xFFFFFFFF;
@@ -1385,6 +1382,21 @@ void JitArm64::subfex(UGeckoInstruction inst)
     {
       ComputeCarry(false);
     }
+  };
+
+  if (!mex && a == b)
+  {
+    // Special case: subfe A, B, B is a common compiler idiom to copy the carry
+    // flag to a register.
+    // We handle this as-if we're dealing with two identical immediate values.
+    // The exact values used here don't matter. We use zeroes.
+    handle_imm(0, 0);
+  }
+  else if (gpr.IsImm(a) && (mex || gpr.IsImm(b)))
+  {
+    const u32 i = gpr.GetImm(a);
+    const u32 j = mex ? -1 : gpr.GetImm(b);
+    handle_imm(i, j);
   }
   else
   {
