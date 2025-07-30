@@ -280,22 +280,6 @@ int main(int argc, char* argv[])
   if (options.is_set("user"))
     user_directory = static_cast<const char*>(options.get("user"));
 
-  UICommon::SetUserDirectory(user_directory);
-  UICommon::Init();
-
-#ifdef IS_PLAYBACK
-  std::optional<std::string> slippi_input_path;
-  if (options.is_set("slippi_input"))
-  {
-    slippi_input_path = static_cast<const char*>(options.get("slippi_input"));
-    SConfig::GetSlippiConfig().slippi_input = slippi_input_path.value();
-  }
-  else
-  {
-    SConfig::GetSlippiConfig().slippi_input = "Slippi/playback.txt";
-  }
-#endif
-
   s_platform = GetPlatform(options);
   if (!s_platform || !s_platform->Init())
   {
@@ -313,6 +297,19 @@ int main(int argc, char* argv[])
     UICommon::ShutdownControllers();
     UICommon::Shutdown();
   });
+
+#ifdef IS_PLAYBACK
+  std::optional<std::string> slippi_input_path;
+  if (options.is_set("slippi_input"))
+  {
+    slippi_input_path = static_cast<const char*>(options.get("slippi_input"));
+    SConfig::GetSlippiConfig().slippi_input = slippi_input_path.value();
+  }
+  else
+  {
+    SConfig::GetSlippiConfig().slippi_input = "Slippi/playback.txt";
+  }
+#endif
 
   if (save_state_path && !game_specified)
   {
