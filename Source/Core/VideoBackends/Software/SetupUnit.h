@@ -4,6 +4,7 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
+#include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
 
 namespace OpcodeDecoder
@@ -13,13 +14,14 @@ enum class Primitive : u8;
 
 class SetupUnit
 {
-  OpcodeDecoder::Primitive m_PrimType{};
-  int m_VertexCounter = 0;
+public:
+  void Init(OpcodeDecoder::Primitive primitive_type);
 
-  OutputVertexData m_Vertices[3];
-  OutputVertexData* m_VertPointer[3]{};
-  OutputVertexData* m_VertWritePointer{};
+  OutputVertexData* GetVertex();
 
+  void SetupVertex();
+
+private:
   void SetupQuad();
   void SetupTriangle();
   void SetupTriStrip();
@@ -28,10 +30,12 @@ class SetupUnit
   void SetupLineStrip();
   void SetupPoint();
 
-public:
-  void Init(OpcodeDecoder::Primitive primitive_type);
+  OpcodeDecoder::Primitive m_PrimType{};
+  int m_VertexCounter = 0;
 
-  OutputVertexData* GetVertex();
+  OutputVertexData m_Vertices[3];
+  OutputVertexData* m_VertPointer[3]{};
+  OutputVertexData* m_VertWritePointer{};
 
-  void SetupVertex();
+  Clipper::Clipper m_clipper;
 };
