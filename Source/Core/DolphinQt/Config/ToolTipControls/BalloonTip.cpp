@@ -228,7 +228,8 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
   const bool arrow_at_bottom =
       target_arrow_tip_position.y() - size_hint.height() + arrow_height >= 0;
   const bool arrow_at_left =
-      target_arrow_tip_position.x() + size_hint.width() - arrow_tip_x_offset < screen_rect.width();
+      target_arrow_tip_position.x() + size_hint.width() - arrow_tip_x_offset <
+      screen_rect.left() + screen_rect.width();
 
   const float arrow_base_y =
       arrow_at_bottom ? rect_bottom - border_half_width : rect_top + border_half_width;
