@@ -433,8 +433,6 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
 
   CalculateBranchIndentation();
 
-  m_ppc_symbol_db.FillInCallers();
-
   repaint();
   m_updating = false;
 }
