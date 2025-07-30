@@ -154,7 +154,7 @@ CEXISlippi::CEXISlippi(Core::System& system, const std::string current_file_name
 
   user = std::make_unique<SlippiUser>(slprs_exi_device_ptr);
   g_playback_status = std::make_unique<SlippiPlaybackStatus>();
-  matchmaking = std::make_unique<SlippiMatchmaking>(user.get());
+  matchmaking = std::make_unique<SlippiMatchmaking>(slprs_exi_device_ptr, user.get());
   game_file_loader = std::make_unique<SlippiGameFileLoader>();
   g_replay_comm = std::make_unique<SlippiReplayComm>();
   direct_codes = std::make_unique<SlippiDirectCodes>(slprs_exi_device_ptr, SlippiDirectCodes::DIRECT);
@@ -296,7 +296,7 @@ CEXISlippi::~CEXISlippi()
   if (active_match_id.find("mode.ranked") != std::string::npos)
   {
     ERROR_LOG_FMT(SLIPPI_ONLINE, "Exit during in-progress ranked game: {}", active_match_id);
-    slprs_exi_device_report_match_abandonment(slprs_exi_device_ptr, active_match_id.c_str());
+    slprs_exi_device_report_match_status(slprs_exi_device_ptr, active_match_id.c_str(), "abandoned", false);
   }
   handleConnectionCleanup();
 
@@ -323,7 +323,7 @@ void CEXISlippi::configureCommands(u8* payload, u8 length)
     // Go through the receive commands payload and set up other commands
     u8 command_byte = payload[i];
     u32 command_payload_size = payload[i + 1] << 8 | payload[i + 2];
-    payloadSizes[command_byte] = command_payload_size;
+    payload_sizes[command_byte] = command_payload_size;
   }
 }
 
@@ -2848,7 +2848,7 @@ void CEXISlippi::handleConnectionCleanup()
   cleanup.detach();
 
   // Reset matchmaking
-  matchmaking = std::make_unique<SlippiMatchmaking>(user.get());
+  matchmaking = std::make_unique<SlippiMatchmaking>(slprs_exi_device_ptr, user.get());
 
   // Disconnect netplay client
   slippi_netplay = nullptr;
@@ -3064,9 +3064,34 @@ void CEXISlippi::handleCompleteSet(const SlippiExiTypes::ReportSetCompletionQuer
   {
     INFO_LOG_FMT(SLIPPI_ONLINE, "Reporting set completion: {}", last_match_id);
 
-    slprs_exi_device_report_match_completion(slprs_exi_device_ptr, last_match_id.c_str(),
-                                             query.end_mode);
+    auto status = query.end_mode == 0 ? "normal_completion" : "abnormal_completion";
+    slprs_exi_device_report_match_status(slprs_exi_device_ptr, last_match_id.c_str(), status, true);
   }
+}
+
+void CEXISlippi::handleMatchStatusUpdate(const SlippiExiTypes::ReportMatchStatusUpdateQuery& query)
+{
+  auto last_match_id = recent_mm_result.id;
+  if (last_match_id.find("mode.ranked") == std::string::npos)
+  {
+    return;  // Only report match status updates for ranked matches
+  }
+
+  auto statusMapRes = status_idx_map.find(query.status_idx);
+  if (statusMapRes == status_idx_map.end())
+  {
+    ERROR_LOG_FMT(SLIPPI_ONLINE, "Invalid status index: {}", query.status_idx);
+    return;  // Invalid status index
+  }
+
+  auto status_string = statusMapRes->second;
+
+  INFO_LOG_FMT(SLIPPI_ONLINE, "Reporting match status update: {}, Status: {}", last_match_id.c_str(),
+           status_string.c_str());
+
+  // Report asynchronously when called from the game
+  slprs_exi_device_report_match_status(slprs_exi_device_ptr, last_match_id.c_str(),
+                                       status_string.c_str(), true);
 }
 
 void CEXISlippi::handleGetPlayerSettings()
@@ -3163,7 +3188,7 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
   while (buf_loc < _uSize)
   {
     byte = mem_ptr[buf_loc];
-    if (!payloadSizes.count(byte))
+    if (!payload_sizes.count(byte))
     {
       // This should never happen. Do something else if it does?
       ERROR_LOG_FMT(SLIPPI, "EXI SLIPPI: Invalid command byte: {:#x}. Prev command: {:#x}", byte,
@@ -3171,7 +3196,7 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
       return;
     }
 
-    u32 payload_len = payloadSizes[byte];
+    u32 payload_len = payload_sizes[byte];
     switch (byte)
     {
     case CMD_RECEIVE_GAME_END:
@@ -3289,6 +3314,10 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
     case CMD_REPORT_SET_COMPLETE:
       handleCompleteSet(
           SlippiExiTypes::Convert<SlippiExiTypes::ReportSetCompletionQuery>(&mem_ptr[buf_loc]));
+      break;
+    case CMD_REPORT_MATCH_STATUS_UPDATE:
+      handleMatchStatusUpdate(
+        SlippiExiTypes::Convert<SlippiExiTypes::ReportMatchStatusUpdateQuery>(&mem_ptr[buf_loc]));
       break;
     case CMD_GET_PLAYER_SETTINGS:
       handleGetPlayerSettings();

@@ -43,6 +43,12 @@ struct ReportSetCompletionQuery
   u8 end_mode;
 };
 
+struct ReportMatchStatusUpdateQuery
+{
+  u8 command;
+  u8 status_idx;
+};
+
 struct GpCompleteStepQuery
 {
   u8 command;
