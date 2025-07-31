@@ -342,7 +342,14 @@ enum Bug
   // Affected devices: Adreno
   // Started Version: -1
   // Ended Version: -1
-  BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY
+  BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY,
+
+  // BUG: Incorrect implementation of VK_EXT_depth_clamp_control causes incorrect depth values to
+  // be written to the depth buffer.
+  // Affected devices: Official AMD (RADV is unaffected)
+  // Started Version: -1
+  // Ended Version: -1
+  BUG_BROKEN_DEPTH_CLAMP_CONTROL
 };
 
 // Initializes our internal vendor, device family, and driver version

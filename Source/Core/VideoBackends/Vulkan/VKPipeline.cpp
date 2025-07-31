@@ -380,7 +380,7 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   static const VkRect2D scissor = {{0, 0}, {1, 1}};
   static const VkPipelineViewportStateCreateInfo viewport_state = {
       VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-      &depth_clamp_state,
+      g_backend_info.bSupportsUnrestrictedDepthRange ? &depth_clamp_state : nullptr,
       0,          // VkPipelineViewportStateCreateFlags    flags;
       1,          // uint32_t                              viewportCount
       &viewport,  // const VkViewport*                     pViewports
