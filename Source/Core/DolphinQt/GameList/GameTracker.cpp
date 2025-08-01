@@ -338,7 +338,8 @@ QSet<QString> GameTracker::FindMissingFiles(const QString& dir)
   while (it->hasNext())
   {
     QString path = QFileInfo(it->next()).canonicalFilePath();
-    m_tracked_files.remove(path);
+    if (m_tracked_files.contains(path))
+      missing_files.remove(path);
   }
 
   return missing_files;
