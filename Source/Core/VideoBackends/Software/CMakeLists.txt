@@ -30,7 +30,6 @@ add_library(videosoftware
   TextureSampler.h
   TransformUnit.cpp
   TransformUnit.h
-  Vec3.h
   VideoBackend.h
 )
 

@@ -76,7 +76,7 @@ enum
 static inline int CalcClipMask(const OutputVertexData* v)
 {
   int cmask = 0;
-  Vec4 pos = v->projectedPosition;
+  Common::Vec4 pos = v->projectedPosition;
 
   if (pos.w - pos.x < 0)
     cmask |= CLIP_POS_X_BIT;
@@ -546,8 +546,8 @@ bool IsBackface(const OutputVertexData* v0, const OutputVertexData* v1, const Ou
 
 void PerspectiveDivide(OutputVertexData* vertex)
 {
-  Vec4& projected = vertex->projectedPosition;
-  Vec3& screen = vertex->screenPosition;
+  Common::Vec4& projected = vertex->projectedPosition;
+  Common::Vec3& screen = vertex->screenPosition;
 
   float wInverse = 1.0f / projected.w;
   screen.x = projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig;
