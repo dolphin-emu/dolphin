@@ -836,7 +836,7 @@ void MemoryWidget::OnSetValueFromFile()
 
 void MemoryWidget::RefreshLabelBox()
 {
-  if (!m_labels_visible || (m_ppc_symbol_db.Notes().empty() && m_ppc_symbol_db.IsEmpty()))
+  if (!m_labels_visible || m_ppc_symbol_db.IsEmpty())
   {
     m_labels_group->hide();
     return;
@@ -874,30 +874,29 @@ void MemoryWidget::UpdateSymbols()
   m_symbols_list->clear();
   m_data_list->clear();
 
-  for (const auto& symbol : m_ppc_symbol_db.Symbols())
-  {
-    QString name = QString::fromStdString(symbol.second.name);
+  m_ppc_symbol_db.ForEachSymbol([&](const Common::Symbol& symbol) {
+    QString name = QString::fromStdString(symbol.name);
 
     // If the symbol has an object name, add it to the entry name.
-    if (!symbol.second.object_name.empty())
+    if (!symbol.object_name.empty())
     {
-      name += QString::fromStdString(fmt::format(" ({})", symbol.second.object_name));
+      name += QString::fromStdString(fmt::format(" ({})", symbol.object_name));
     }
 
     auto* item = new QListWidgetItem(name);
     if (name == selection)
       item->setSelected(true);
 
-    item->setData(Qt::UserRole, symbol.second.address);
+    item->setData(Qt::UserRole, symbol.address);
 
     if (!name.contains(m_search_labels->text(), Qt::CaseInsensitive))
-      continue;
+      return;
 
-    if (symbol.second.type != Common::Symbol::Type::Function)
+    if (symbol.type != Common::Symbol::Type::Function)
       m_data_list->addItem(item);
     else
       m_symbols_list->addItem(item);
-  }
+  });
 
   m_symbols_list->sortItems();
 }
@@ -910,20 +909,19 @@ void MemoryWidget::UpdateNotes()
                                 m_note_list->selectedItems()[0]->text();
   m_note_list->clear();
 
-  for (const auto& note : m_ppc_symbol_db.Notes())
-  {
-    const QString name = QString::fromStdString(note.second.name);
+  m_ppc_symbol_db.ForEachNote([&](const Common::Note& note) {
+    const QString name = QString::fromStdString(note.name);
 
     auto* item = new QListWidgetItem(name);
     if (name == selection)
       item->setSelected(true);
 
-    item->setData(Qt::UserRole, note.second.address);
+    item->setData(Qt::UserRole, note.address);
 
     // Filter notes based on the search text.
     if (name.contains(m_search_labels->text(), Qt::CaseInsensitive))
       m_note_list->addItem(item);
-  }
+  });
 
   m_note_list->sortItems();
 }
