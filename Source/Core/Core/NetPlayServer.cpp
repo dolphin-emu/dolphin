@@ -290,8 +290,8 @@ void NetPlayServer::ThreadFunc()
         auto& e = m_async_queue.Front();
         if (e.target_mode == TargetMode::Only)
         {
-          if (m_players.contains(e.target_pid))
-            Send(m_players.at(e.target_pid).socket, e.packet, e.channel_id);
+          if (const auto it = m_players.find(e.target_pid); it != m_players.end())
+            Send(it->second.socket, e.packet, e.channel_id);
         }
         else
         {
@@ -794,9 +794,10 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     u32 cid;
     packet >> cid;
 
-    if (m_chunked_data_complete_count.contains(cid))
+    if (const auto it = m_chunked_data_complete_count.find(cid);
+        it != m_chunked_data_complete_count.end())
     {
-      m_chunked_data_complete_count[cid]++;
+      it->second++;
       m_chunked_data_complete_event.Set();
     }
   }
@@ -839,8 +840,11 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     if (m_host_input_authority)
     {
       // Prevent crash before game stop if the golfer disconnects
-      if (m_current_golfer != 0 && m_players.contains(m_current_golfer))
-        Send(m_players.at(m_current_golfer).socket, spac);
+      if (m_current_golfer != 0)
+      {
+        if (const auto it = m_players.find(m_current_golfer); it != m_players.end())
+          Send(it->second.socket, spac);
+      }
     }
     else
     {
