@@ -1565,6 +1565,10 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               {
                 unsigned char player_data[3] = {0, 0, 0};
 
+                // Service button
+                if (PadStatus.switches & PAD_SWITCH_SERVICE)
+                  player_data[0] |= 0x40;
+
                 switch (AMMediaboard::GetGameType())
                 {
                 // Controller configuration for F-Zero AX (DX)
@@ -1580,9 +1584,6 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                     // Start
                     if (PadStatus.button & PAD_BUTTON_START)
                       player_data[0] |= 0x80;
-                    // Service button
-                    if (PadStatus.switches&PAD_SWITCH_SERVICE)
-                      player_data[0] |= 0x40;
                     // Boost
                     if (PadStatus.button & PAD_BUTTON_Y)
                       player_data[0] |= 0x02;
@@ -1637,10 +1638,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
                     // Start
                     if (PadStatus.button & PAD_BUTTON_START)
-                      player_data[0] |= 0x80;
-                    // Service button
-                    if (PadStatus.switches&PAD_SWITCH_SERVICE)
-                      player_data[0] |= 0x40;
+                      player_data[0] |= 0x80; 
                     // Boost
                     if (PadStatus.button & PAD_BUTTON_Y)
                       player_data[0] |= 0x02;
@@ -1687,10 +1685,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   PadStatus = Pad::GetStatus(i);
                   // Start
                   if (PadStatus.button & PAD_BUTTON_START)
-                    player_data[0] |= 0x80;
-                  // Service button
-                  if (PadStatus.switches&PAD_SWITCH_SERVICE)
-                    player_data[0] |= 0x40;
+                    player_data[0] |= 0x80; 
                   // Long Pass
                   if (PadStatus.button & PAD_TRIGGER_L)
                     player_data[0] |= 0x01;
@@ -1719,10 +1714,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   PadStatus = Pad::GetStatus(i);
                   // Start
                   if (PadStatus.button & PAD_BUTTON_START)
-                    player_data[0] |= 0x80;
-                  // Service button
-                  if (PadStatus.switches&PAD_SWITCH_SERVICE)
-                    player_data[0] |= 0x40;
+                    player_data[0] |= 0x80; 
                   // Long Pass
                   if (PadStatus.button & PAD_TRIGGER_L)
                     player_data[0] |= 0x01;
@@ -1760,10 +1752,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   PadStatus = Pad::GetStatus(i);
                   // Start
                   if (PadStatus.button & PAD_BUTTON_START)
-                    player_data[0] |= 0x80;
-                  // Service button
-                  if (PadStatus.switches&PAD_SWITCH_SERVICE)
-                    player_data[0] |= 0x40;
+                    player_data[0] |= 0x80; 
                   //  A
                   if (PadStatus.button & PAD_BUTTON_B)
                     player_data[0] |= 0x01;
@@ -1811,10 +1800,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   PadStatus = Pad::GetStatus(0);
                   // Debug On
                   if (PadStatus.button & PAD_BUTTON_START)
-                    player_data[0] |= 0x80;
-                  // Service button
-                  if (PadStatus.switches&PAD_SWITCH_SERVICE)
-                    player_data[0] |= 0x40;
+                    player_data[0] |= 0x80; 
                   // Switch 1
                   if (PadStatus.button & PAD_BUTTON_A)
                     player_data[0] |= 0x04;
