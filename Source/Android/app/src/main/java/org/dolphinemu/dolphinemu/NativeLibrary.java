@@ -362,7 +362,7 @@ public final class NativeLibrary
   /**
    * Pauses emulation.
    */
-  public static native void PauseEmulation();
+  public static native void PauseEmulation(boolean overrideAchievementRestrictions);
 
   /**
    * Stops emulation.
