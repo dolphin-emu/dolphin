@@ -47,7 +47,13 @@ const Info<bool> MAIN_DSP_HLE{{System::Main, "Core", "DSPHLE"}, true};
 const Info<int> MAIN_MAX_FALLBACK{{System::Main, "Core", "MaxFallback"}, 100};
 const Info<int> MAIN_TIMING_VARIANCE{{System::Main, "Core", "TimingVariance"}, 40};
 const Info<bool> MAIN_CORRECT_TIME_DRIFT{{System::Main, "Core", "CorrectTimeDrift"}, false};
-const Info<bool> MAIN_CPU_THREAD{{System::Main, "Core", "CPUThread"}, true};
+#if defined(ANDROID)
+// Currently enabled by default on Android because the performance boost is really needed.
+constexpr bool DEFAULT_CPU_THREAD = true;
+#else
+constexpr bool DEFAULT_CPU_THREAD = false;
+#endif
+const Info<bool> MAIN_CPU_THREAD{{System::Main, "Core", "CPUThread"}, DEFAULT_CPU_THREAD};
 const Info<bool> MAIN_SYNC_ON_SKIP_IDLE{{System::Main, "Core", "SyncOnSkipIdle"}, true};
 const Info<std::string> MAIN_DEFAULT_ISO{{System::Main, "Core", "DefaultISO"}, ""};
 const Info<bool> MAIN_ENABLE_CHEATS{{System::Main, "Core", "EnableCheats"}, false};
