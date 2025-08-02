@@ -9,7 +9,6 @@
 #include <set>
 #include <span>
 #include <string>
-#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
@@ -56,7 +55,6 @@ struct LogicalMemoryView
 {
   void* mapped_pointer;
   u32 mapped_size;
-  u32 logical_address;
 };
 
 class MemoryManager
@@ -103,7 +101,7 @@ public:
   void DoState(PointerWrap& p);
 
   void UpdateDBATMappings(const PowerPC::BatTable& dbat_table);
-  void AddPageTableMappings(const std::map<u32, u32>& mappings);
+  void AddPageTableMapping(u32 logical_address, u32 translated_address, bool writeable);
   void RemovePageTableMappings(const std::set<u32>& mappings);
   void RemoveAllPageTableMappings();
 
@@ -255,8 +253,9 @@ private:
   // TODO: Do we want to handle the mirrors of the GC RAM?
   std::array<PhysicalMemoryRegion, 4> m_physical_regions{};
 
-  std::vector<LogicalMemoryView> m_dbat_mapped_entries;
-  std::vector<LogicalMemoryView> m_page_table_mapped_entries;
+  // The key is the logical address
+  std::map<u32, LogicalMemoryView> m_dbat_mapped_entries;
+  std::map<u32, LogicalMemoryView> m_page_table_mapped_entries;
 
   std::array<void*, PowerPC::BAT_PAGE_COUNT> m_physical_page_mappings{};
   std::array<void*, PowerPC::BAT_PAGE_COUNT> m_logical_page_mappings{};
