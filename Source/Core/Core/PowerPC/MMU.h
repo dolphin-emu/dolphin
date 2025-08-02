@@ -335,7 +335,7 @@ private:
 
 #ifndef _ARCH_32
   void ReloadPageTable();
-  void PageTableUpdated(std::span<u8> page_table);
+  void PageTableUpdated(std::span<const u8> page_table);
 #endif
 
   void UpdateBATs(BatTable& bat_table, u32 base_spr);
@@ -365,7 +365,8 @@ private:
   // These are kept around just for their memory allocations. They are always cleared before use.
   std::vector<u8> m_temp_page_table;
   std::set<u32> m_removed_mappings;
-  std::map<u32, u32> m_added_mappings;
+  std::map<u32, u32> m_added_readonly_mappings;
+  std::map<u32, u32> m_added_readwrite_mappings;
 
   BatTable m_ibat_table;
   BatTable m_dbat_table;
