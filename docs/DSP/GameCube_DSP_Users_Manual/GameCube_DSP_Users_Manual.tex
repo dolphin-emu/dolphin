@@ -46,7 +46,7 @@
 % Document front page material
 \title{\textbf{\Huge GameCube DSP User's Manual}}
 \author{Reverse-engineered and documented by Duddie \\ \href{mailto:duddie@walla.com}{duddie@walla.com}}
-\date{\today\\v0.1.7}
+\date{\today\\v0.1.8}
 
 % Title formatting commands
 \newcommand{\OpcodeTitle}[1]{\subsection{#1}\label{instruction:#1}}
@@ -265,6 +265,7 @@ The purpose of this documentation is purely academic and it aims at understandin
 0.1.5            & 2022.09.29    & vpelletier      & Fixed \texttt{BLOOP} and \texttt{BLOOPI} suboperation order \\ \hline
 0.1.6            & 2022.06.20    & xperia64        & Accelerator documentation updates, fix register typo in ANDC and ORC descriptions        \\ \hline
 0.1.7            & 2025.04.21    & Tilka           & Fixed typos and complained about GFDL                                                    \\ \hline
+0.1.8            & 2025.07.27    & Tilka           & Fixed some bit pattern inconsistencies in the 'LDAX* opcodes                             \\ \hline
 \end{tabular}
 \end{table}
 
@@ -4615,7 +4616,7 @@ When the main and extension opcodes write to the same register, the register is 
 
 \begin{DSPOpcode}{'LDAXM}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11sr} & \monobitbox{4}{0011}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11sr} & \monobitbox{4}{1011}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
@@ -4642,7 +4643,7 @@ When the main and extension opcodes write to the same register, the register is 
 
 \begin{DSPOpcode}{'LDAXNM}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11sr} & \monobitbox{4}{0011}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11sr} & \monobitbox{4}{1111}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
@@ -4670,7 +4671,7 @@ When the main and extension opcodes write to the same register, the register is 
 
 \begin{DSPOpcode}{'LDAXN}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11sr} & \monobitbox{4}{0011}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11sr} & \monobitbox{4}{0111}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
@@ -5214,7 +5215,7 @@ Instruction & Opcode & Page \\ \hline
 \OpcodeRow{xxxx xxxx 11dr 10ss}{'LDM}
 \OpcodeRow{xxxx xxxx 11sr 1011}{'LDAXM}
 \OpcodeRow{xxxx xxxx 11dr 11ss}{'LDNM}
-\OpcodeRow{xxxx xxxx 11dr 1111}{'LDAXNM}
+\OpcodeRow{xxxx xxxx 11sr 1111}{'LDAXNM}
 \end{longtable}
 \end{center}
 

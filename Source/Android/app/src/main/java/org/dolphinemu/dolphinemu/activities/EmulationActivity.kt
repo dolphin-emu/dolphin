@@ -455,7 +455,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_ACTION_REFRESH_WIIMOTES -> NativeLibrary.RefreshWiimotes()
             MENU_ACTION_PAUSE_EMULATION -> {
                 hasUserPausedEmulation = true
-                NativeLibrary.PauseEmulation()
+                NativeLibrary.PauseEmulation(false)
             }
 
             MENU_ACTION_UNPAUSE_EMULATION -> {

@@ -269,7 +269,7 @@ private:
 
     u8 revision_id = 0;  // 0xf0
     u8 interrupt_mask = 0;
-    u8 interrupt = 0;
+    std::atomic<u8> interrupt = 0;
     u16 device_id = 0xD107;
     u8 acstart = 0x4E;
     u32 hash_challenge = 0;

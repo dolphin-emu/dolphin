@@ -652,8 +652,8 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
 
       auto refpair1 = std::make_pair(*id1, *id2);
       auto refpair2 = std::make_pair(*id2, *id1);
-      if (!reference_pairs.contains(refpair1) && !reference_pairs.contains(refpair2))
-        reference_pairs.insert(refpair1);
+      if (!reference_pairs.contains(refpair2))
+        reference_pairs.insert(std::move(refpair1));
     }
   }
 
@@ -1030,6 +1030,11 @@ SamplerState TextureCacheBase::GetSamplerState(u32 index, float custom_tex_scale
   if (g_ActiveConfig.iMaxAnisotropy != AnisotropicFilteringMode::Default &&
       IsAnisostropicEnhancementSafe(tm0))
   {
+    state.tm0.anisotropic_filtering = Common::ToUnderlying(g_ActiveConfig.iMaxAnisotropy);
+  }
+
+  if (state.tm0.anisotropic_filtering != 0)
+  {
     // https://www.opengl.org/registry/specs/EXT/texture_filter_anisotropic.txt
     // For predictable results on all hardware/drivers, only use one of:
     //	GL_LINEAR + GL_LINEAR (No Mipmaps [Bilinear])
@@ -1041,7 +1046,6 @@ SamplerState TextureCacheBase::GetSamplerState(u32 index, float custom_tex_scale
     state.tm0.mag_filter = FilterMode::Linear;
     if (tm0.mipmap_filter != MipMode::None)
       state.tm0.mipmap_filter = FilterMode::Linear;
-    state.tm0.anisotropic_filtering = Common::ToUnderlying(g_ActiveConfig.iMaxAnisotropy);
   }
 
   if (has_arbitrary_mips && tm0.mipmap_filter != MipMode::None)

@@ -109,7 +109,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     override fun onPause() {
         if (NativeLibrary.IsRunningAndUnpaused() && !NativeLibrary.IsShowingAlertMessage()) {
             Log.debug("[EmulationFragment] Pausing emulation.")
-            NativeLibrary.PauseEmulation()
+            NativeLibrary.PauseEmulation(true)
         }
         super.onPause()
     }

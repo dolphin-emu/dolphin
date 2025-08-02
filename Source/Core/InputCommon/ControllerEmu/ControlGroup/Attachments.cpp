@@ -77,6 +77,8 @@ void Attachments::LoadConfig(Common::IniFile::Section* sec, const std::string& b
 
 void Attachments::SaveConfig(Common::IniFile::Section* sec, const std::string& base)
 {
+  ControlGroup::SaveConfig(sec, base);
+
   if (GetSelectionSetting().IsSimpleValue())
   {
     sec->Set(base + name, GetAttachmentList()[GetSelectedAttachment()]->GetName(), "None");

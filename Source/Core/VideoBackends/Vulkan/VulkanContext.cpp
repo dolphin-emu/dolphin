@@ -664,7 +664,7 @@ bool VulkanContext::SelectDeviceExtensions(bool enable_surface)
   AddExtension(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, false);
   AddExtension(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME, false);
 
-  if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_D32F_CLEAR))
+  if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DEPTH_CLAMP_CONTROL))
   {
     // Unrestricted depth range is one of the few extensions that changes the behavior
     // of Vulkan just by being enabled, so we rely on lazy evaluation to ensure it is

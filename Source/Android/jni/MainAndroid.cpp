@@ -271,10 +271,12 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_UnPauseEmula
   Core::SetState(Core::System::GetInstance(), Core::State::Running);
 }
 
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_PauseEmulation(JNIEnv*, jclass)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_PauseEmulation(
+    JNIEnv*, jclass, bool override_achievement_restrictions)
 {
   HostThreadLock guard;
-  Core::SetState(Core::System::GetInstance(), Core::State::Paused);
+  Core::SetState(Core::System::GetInstance(), Core::State::Paused, true,
+                 override_achievement_restrictions);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulation(JNIEnv*, jclass)
