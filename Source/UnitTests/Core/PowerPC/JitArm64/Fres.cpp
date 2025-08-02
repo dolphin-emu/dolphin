@@ -56,18 +56,36 @@ TEST(JitArm64, Fres)
   Core::DeclareAsCPUThread();
   Common::ScopeGuard cpu_thread_guard([] { Core::UndeclareAsCPUThread(); });
 
-  TestFres test(Core::System::GetInstance());
+  Core::System& system = Core::System::GetInstance();
+  TestFres test(system);
 
   for (const u64 ivalue : double_test_values)
   {
+    SCOPED_TRACE(fmt::format("fres input: {:016x}\n", ivalue));
+
     const double dvalue = std::bit_cast<double>(ivalue);
 
     const u64 expected = std::bit_cast<u64>(Common::ApproximateReciprocal(dvalue));
     const u64 actual = test.fres(ivalue);
 
-    if (expected != actual)
-      fmt::print("{:016x} -> {:016x} == {:016x}\n", ivalue, actual, expected);
-
     EXPECT_EQ(expected, actual);
+
+    for (u32 zx = 0; zx < 2; ++zx)
+    {
+      UReg_FPSCR& fpscr = system.GetPPCState().fpscr;
+      fpscr = {};
+      fpscr.ZX = zx;
+
+      test.fres(ivalue);
+
+      const bool input_is_zero = (ivalue & (Common::DOUBLE_EXP | Common::DOUBLE_FRAC)) == 0;
+
+      const bool zx_expected = input_is_zero || zx;
+      const bool fx_expected = input_is_zero && !zx;
+
+      const u32 fpscr_expected = (zx_expected ? FPSCR_ZX : 0) | (fx_expected ? FPSCR_FX : 0);
+
+      EXPECT_EQ(fpscr_expected, fpscr.Hex);
+    }
   }
 }
