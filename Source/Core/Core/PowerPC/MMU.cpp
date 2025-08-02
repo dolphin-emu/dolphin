@@ -1400,8 +1400,6 @@ void MMU::PageTableUpdated()
   if (!m_system.GetJitInterface().WantsPageTableMappings())
   {
     // If the JIT has no use for page table mappings, setting them up would be a waste of time.
-    // Skipping setting them up also comes with the bonus of skipping the inaccurate behavior of
-    // setting the R and C bits of PTE2 as soon as a page is mapped.
     ClearPageTable();
     return;
   }
@@ -1423,7 +1421,7 @@ void MMU::PageTableUpdated()
   PageTableUpdated(std::span(page_table_view, page_table_size));
 }
 
-void MMU::PageTableUpdated(std::span<u8> page_table)
+void MMU::PageTableUpdated(std::span<const u8> page_table)
 {
   // PowerPC's priority order for PTEs that have the same logical adress is as follows:
   //
@@ -1440,7 +1438,8 @@ void MMU::PageTableUpdated(std::span<u8> page_table)
   }
 
   m_removed_mappings.clear();
-  m_added_mappings.clear();
+  m_added_readonly_mappings.clear();
+  m_added_readwrite_mappings.clear();
 
   if (m_page_table.size() != page_table.size())
   {
@@ -1451,7 +1450,7 @@ void MMU::PageTableUpdated(std::span<u8> page_table)
   }
 
   u8* old_page_table = m_page_table.data();
-  u8* new_page_table = page_table.data();
+  const u8* new_page_table = page_table.data();
 
   constexpr auto compare_64_bytes = [](const u8* a, const u8* b) -> bool {
 #ifdef _M_X86_64
@@ -1555,8 +1554,8 @@ void MMU::PageTableUpdated(std::span<u8> page_table)
     }
   };
 
-  const auto try_add_mapping = [this, &get_page_index, page_table](UPTE_Lo pte1, UPTE_Hi pte2,
-                                                                   u32 page_table_offset) {
+  const auto try_add_mapping = [this, &get_page_index](UPTE_Lo pte1, UPTE_Hi pte2,
+                                                       u32 page_table_offset) {
     std::optional<EffectiveAddress> logical_address = get_page_index(pte1, page_table_offset / 64);
     if (!logical_address)
       return;
@@ -1617,22 +1616,13 @@ void MMU::PageTableUpdated(std::span<u8> page_table)
         it->second.Hex = page_mapping.Hex;
       }
 
-      if (host_mapping)
+      // If the R bit isn't set yet, the actual host mapping will be created once
+      // TranslatePageAddress sets the R bit.
+      if (host_mapping && pte2.R)
       {
         const u32 physical_address = pte2.RPN << 12;
-        m_added_mappings.emplace(logical_address->Hex, physical_address);
-
-        // HACK: We set R and C, which indicate whether a page have been read from and written to
-        // respectively, when a page is mapped rather than when it's actually accessed.
-        if (!pte2.R || !pte2.C)
-        {
-          pte2.R = 1;
-          pte2.C = 1;
-
-          const u32 pte2_swapped = Common::swap32(pte2.Hex);
-          std::memcpy(page_table.data() + page_table_offset + 4, &pte2_swapped,
-                      sizeof(pte2_swapped));
-        }
+        (pte2.C ? m_added_readwrite_mappings : m_added_readonly_mappings)
+            .emplace(logical_address->Hex, physical_address);
       }
     }
   };
@@ -1752,8 +1742,11 @@ void MMU::PageTableUpdated(std::span<u8> page_table)
   if (!m_removed_mappings.empty())
     m_memory.RemovePageTableMappings(m_removed_mappings);
 
-  if (!m_added_mappings.empty())
-    m_memory.AddPageTableMappings(m_added_mappings);
+  for (const auto& [logical_address, physical_address] : m_added_readonly_mappings)
+    m_memory.AddPageTableMapping(logical_address, physical_address, false);
+
+  for (const auto& [logical_address, physical_address] : m_added_readwrite_mappings)
+    m_memory.AddPageTableMapping(logical_address, physical_address, true);
 }
 
 void MMU::PageTableUpdatedFromJit(MMU* mmu)
@@ -1823,6 +1816,7 @@ MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress add
       if (pte1.Hex == pteg)
       {
         UPTE_Hi pte2(ReadFromHardware<pte_read_flag, u32, true>(pteg_addr + 4));
+        const UPTE_Hi old_pte2 = pte2;
 
         // set the access bits
         switch (flag)
@@ -1842,9 +1836,29 @@ MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress add
           break;
         }
 
-        if (!IsNoExceptionFlag(flag))
+        if (!IsNoExceptionFlag(flag) && pte2.Hex != old_pte2.Hex)
         {
           m_memory.Write_U32(pte2.Hex, pteg_addr + 4);
+
+          const u32 page_logical_address = address.Hex & ~HW_PAGE_MASK;
+          const auto it = m_page_mappings.find(page_logical_address);
+          if (it != m_page_mappings.end())
+          {
+            const u32 priority = (pteg_addr % 64 / 8) | (pte1.H << 3);
+            if (it->second.Hex == PageMapping(pte2.RPN, true, priority).Hex)
+            {
+              const u32 swapped_pte1 = Common::swap32(reinterpret_cast<u8*>(&pte1));
+              std::memcpy(m_page_table.data() + pteg_addr - m_ppc_state.pagetable_base,
+                          &swapped_pte1, sizeof(swapped_pte1));
+
+              const u32 swapped_pte2 = Common::swap32(reinterpret_cast<u8*>(&pte2));
+              std::memcpy(m_page_table.data() + pteg_addr + 4 - m_ppc_state.pagetable_base,
+                          &swapped_pte2, sizeof(swapped_pte2));
+
+              const u32 page_translated_address = pte2.RPN << 12;
+              m_memory.AddPageTableMapping(page_logical_address, page_translated_address, pte2.C);
+            }
+          }
         }
 
         // We already updated the TLB entry if this was caused by a C bit.
