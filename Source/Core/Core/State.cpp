@@ -456,8 +456,6 @@ static void CompressAndDumpState(Core::System& system, CompressAndDumpState_args
       Core::DisplayMessage(fmt::format("Saved State to {}", temp_path.filename().string()), 2000);
     }
   }
-
-  Host_UpdateMainFrame();
 }
 
 void SaveAs(Core::System& system, const std::string& filename, bool wait)

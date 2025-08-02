@@ -280,9 +280,6 @@ void Host_PPCBreakpointsChanged()
 // We ignore these, and their purpose should be questioned individually.
 // In particular, RequestRenderWindowSize, RequestFullscreen, and
 // UpdateMainFrame should almost certainly be removed.
-void Host_UpdateMainFrame()
-{
-}
 
 void Host_RequestRenderWindowSize(int w, int h)
 {

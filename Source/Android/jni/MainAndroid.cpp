@@ -163,10 +163,6 @@ void Host_JitProfileDataWiped()
 {
 }
 
-void Host_UpdateMainFrame()
-{
-}
-
 void Host_RequestRenderWindowSize(int width, int height)
 {
   std::thread jnicall(UpdatePointer);

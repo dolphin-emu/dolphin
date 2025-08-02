@@ -242,8 +242,6 @@ bool Init(Core::System& system, std::unique_ptr<BootParameters> boot, const Wind
   INFO_LOG_FMT(BOOT, "Starting core = {} mode", system.IsWii() ? "Wii" : "GameCube");
   INFO_LOG_FMT(BOOT, "CPU Thread separate = {}", system.IsDualCoreMode() ? "Yes" : "No");
 
-  Host_UpdateMainFrame();  // Disable any menus or buttons at boot
-
   // Manually reactivate the video backend in case a GameINI overrides the video backend setting.
   VideoBackendBase::PopulateBackendInfo(wsi);
 
@@ -342,7 +340,6 @@ static void CPUSetInitialExecutionState(bool force_paused = false)
     bool paused = SConfig::GetInstance().bBootToPause || force_paused;
     SetState(system, paused ? State::Paused : State::Running, true, true);
     Host_UpdateDisasmDialog();
-    Host_UpdateMainFrame();
     Host_Message(HostMessageID::WMUserCreate);
   });
 }

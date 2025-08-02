@@ -70,7 +70,6 @@ bool Host_UIBlocksControllerState()
   return false;
 }
 
-static Common::Event s_update_main_frame_event;
 void Host_Message(const HostMessageID id)
 {
   if (id == HostMessageID::WMUserStop)
@@ -92,11 +91,6 @@ void Host_JitCacheInvalidation()
 
 void Host_JitProfileDataWiped()
 {
-}
-
-void Host_UpdateMainFrame()
-{
-  s_update_main_frame_event.Set();
 }
 
 void Host_RequestRenderWindowSize(int width, int height)

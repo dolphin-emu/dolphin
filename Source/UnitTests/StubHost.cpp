@@ -50,9 +50,6 @@ void Host_JitCacheInvalidation()
 void Host_JitProfileDataWiped()
 {
 }
-void Host_UpdateMainFrame()
-{
-}
 void Host_RequestRenderWindowSize(int, int)
 {
 }
