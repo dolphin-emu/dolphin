@@ -293,10 +293,6 @@ bool Host_UIBlocksControllerState()
          Core::GetState(Core::System::GetInstance()) != Core::State::Paused;
 }
 
-void Host_RefreshDSPDebuggerWindow()
-{
-}
-
 void Host_TitleChanged()
 {
 #ifdef USE_DISCORD_PRESENCE

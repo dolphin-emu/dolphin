@@ -161,7 +161,6 @@ bool DSPLLE::Initialize(bool wii, bool dsp_thread)
     m_dsp_thread = std::thread(DSPThread, this);
   }
 
-  Host_RefreshDSPDebuggerWindow();
   return true;
 }
 

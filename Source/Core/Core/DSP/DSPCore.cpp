@@ -482,8 +482,6 @@ int DSPCore::RunCycles(int cycles)
 
       m_dsp_interpreter->Step();
       cycles--;
-
-      Host::UpdateDebugger();
       break;
     case State::Stopped:
       break;
@@ -519,8 +517,6 @@ void DSPCore::SetState(State new_state)
   // kick the event, in case we are waiting
   if (new_state == State::Running)
     m_step_event.Set();
-
-  Host::UpdateDebugger();
 }
 
 State DSPCore::GetState() const

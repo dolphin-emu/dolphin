@@ -96,14 +96,7 @@ void CodeLoaded(DSPCore& dsp, const u8* ptr, size_t size)
   Symbols::AutoDisassembly(state, 0x0, 0x1000);
   Symbols::AutoDisassembly(state, 0x8000, 0x9000);
 
-  UpdateDebugger();
-
   dsp.ClearIRAM();
   state.GetAnalyzer().Analyze(state);
-}
-
-void UpdateDebugger()
-{
-  Host_RefreshDSPDebuggerWindow();
 }
 }  // namespace DSP::Host
