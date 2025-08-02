@@ -44,6 +44,11 @@ void JitArm64::GenerateAsm()
   ABI_PushRegisters(regs_to_save);
   m_float_emit.ABI_PushRegisters(regs_to_save_fpr, ARM64Reg::X8);
 
+  // Generate FPR constants
+  m_float_emit.MOVI(8, EncodeRegToDouble(FPR_CONSTANT_0000_0000_0000_0000), 0);
+  MOVI2R(ARM64Reg::X30, 0xFFF8'0000'3F80'0000ULL);
+  m_float_emit.FMOV(EncodeRegToDouble(FPR_CONSTANT_FFF8_0000_3F80_0000), ARM64Reg::X30);
+
   MOVP2R(PPC_REG, &m_ppc_state);
 
   // Store the stack pointer, so we can reset it if the BLR optimization fails.
