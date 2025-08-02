@@ -338,6 +338,9 @@ alignas(16) static const float m_m128 = -128.0f;
 // Sizes of the various quantized store types
 constexpr std::array<u8, 8> sizes{{32, 0, 0, 0, 8, 16, 8, 16}};
 
+// TODO: Use the actual instruction being emulated (needed for alignment exception emulation)
+static const UGeckoInstruction ps_placeholder_instruction = 0;
+
 void CommonAsmRoutines::GenQuantizedStores()
 {
   // Aligned to 256 bytes as least significant byte needs to be zero (See: Jit64::psq_stXX).
@@ -540,7 +543,8 @@ void QuantizedMemoryRoutines::GenQuantizedStore(bool single, EQuantizeType type,
   if (!single)
     flags |= SAFE_LOADSTORE_NO_SWAP;
 
-  SafeWriteRegToReg(RSCRATCH, RSCRATCH_EXTRA, size, 0, QUANTIZED_REGS_TO_SAVE, flags);
+  SafeWriteRegToReg(RSCRATCH, RSCRATCH_EXTRA, size, 0, ps_placeholder_instruction,
+                    QUANTIZED_REGS_TO_SAVE, flags);
 }
 
 void QuantizedMemoryRoutines::GenQuantizedStoreFloat(bool single, bool isInline)
@@ -595,7 +599,8 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(bool single, EQuantizeType type, 
   int flags = isInline ? 0 :
                          SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG |
                              SAFE_LOADSTORE_DR_ON | SAFE_LOADSTORE_NO_UPDATE_PC;
-  SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), size, 0, regsToSave, extend, flags);
+  SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), size, 0, ps_placeholder_instruction, regsToSave,
+                extend, flags);
   if (!single && (type == QUANTIZE_U8 || type == QUANTIZE_S8))
   {
     // TODO: Support not swapping in safeLoadToReg to avoid bswapping twice
@@ -703,7 +708,8 @@ void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)
   int flags = isInline ? 0 :
                          SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG |
                              SAFE_LOADSTORE_DR_ON | SAFE_LOADSTORE_NO_UPDATE_PC;
-  SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), size, 0, regsToSave, extend, flags);
+  SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), size, 0, ps_placeholder_instruction, regsToSave,
+                extend, flags);
 
   if (single)
   {
