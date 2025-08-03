@@ -66,8 +66,8 @@ bool LoadMips(const std::filesystem::path& asset_path, CustomTextureData::ArrayS
 }
 }  // namespace
 bool LoadTextureDataFromFile(const CustomAssetLibrary::AssetID& asset_id,
-                             const std::filesystem::path& asset_path,
-                             TextureAndSamplerData::Type type, CustomTextureData* data)
+                             const std::filesystem::path& asset_path, AbstractTextureType type,
+                             CustomTextureData* data)
 {
   auto ext = PathToString(asset_path.extension());
   Common::ToLower(&ext);
@@ -92,7 +92,7 @@ bool LoadTextureDataFromFile(const CustomAssetLibrary::AssetID& asset_id,
   {
     // PNG could support more complicated texture types in the future
     // but for now just error
-    if (type != TextureAndSamplerData::Type::Type_Texture2D)
+    if (type != AbstractTextureType::Texture_2D)
     {
       ERROR_LOG_FMT(VIDEO, "Asset '{}' error - PNG is not supported for texture type '{}'!",
                     asset_id, type);
