@@ -17,8 +17,7 @@ class Buttons;
 enum class GBAPadGroup
 {
   DPad,
-  Buttons,
-  Triforce
+  Buttons
 };
 
 class GBAPad : public ControllerEmu::EmulatedController

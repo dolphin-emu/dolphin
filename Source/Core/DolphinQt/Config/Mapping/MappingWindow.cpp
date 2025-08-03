@@ -440,7 +440,8 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
   case Type::MAPPING_GC_DANCEMAT:
   case Type::MAPPING_GCPAD:
     widget = new GCPadEmu(this);
-    if (Config::Get(Config::GetInfoForSIDevice(GetPort())) == SerialInterface::SIDevices::SIDEVICE_AM_BASEBOARD)
+    if (Config::Get(Config::GetInfoForSIDevice(GetPort())) ==
+        SerialInterface::SIDevices::SIDEVICE_AM_BASEBOARD)
     {
       setWindowTitle(tr("Triforce Baseboard at Port %1").arg(GetPort() + 1));
       AddWidget(tr("Triforce Baseboard"), widget);

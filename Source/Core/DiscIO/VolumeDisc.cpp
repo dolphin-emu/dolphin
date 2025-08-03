@@ -27,17 +27,10 @@ std::string VolumeDisc::GetGameID(const Partition& partition) const
     std::unique_ptr<FileInfo> file_info = file_system->FindFileInfo("boot.id");
     if (file_info && !file_info->IsDirectory())
     {
-      u8* bootid_buffer = new u8[file_info->GetTotalSize()];
-      if (Read(file_info->GetOffset(), file_info->GetTotalSize(), bootid_buffer, partition))
+      if (Read(file_info->GetOffset() + 0x30, sizeof(id), reinterpret_cast<u8*>(id), partition))
       {
-        memcpy(id, bootid_buffer + 0x30, sizeof(id));
-
-        delete[] bootid_buffer;
-
         return DecodeString(id);
       }
-      // Fall back to normal ID from header
-      delete[] bootid_buffer;
     }
   }
 

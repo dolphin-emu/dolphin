@@ -61,7 +61,7 @@
 
 typedef int SOCKET;
 
-#define INVALID_SOCKET  (SOCKET)(~0)
+#define INVALID_SOCKET (SOCKET)(~0)
 
 static int WSAGetLastError(void)
 {
@@ -219,7 +219,8 @@ void Init(void)
 
   if (!File::Exists(sega_boot_filename))
   {
-    PanicAlertFmt("Failed to open segaboot.gcm({}), which is required for test menus.", sega_boot_filename.c_str());
+    PanicAlertFmt("Failed to open segaboot.gcm({}), which is required for test menus.",
+                  sega_boot_filename.c_str());
     return;
   }
 
@@ -468,7 +469,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
 
     // Returned value is used to set the protocol version.
     switch (GetGameType())
-    { 
+    {
     default:
       return Version1;
     case KeyOfAvalon:
@@ -482,15 +483,15 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     if ((offset & 0x8FFF0000) == 0x80000000)
     {
       switch (offset)
-      { 
+      {
       case MediaBoardStatus1:
         memory.Write_U16(Common::swap16(0x0100), address);
-        break; 
+        break;
       case MediaBoardStatus2:
-        memset(memory.GetPointer(address), 0, length);
+        memset(memory.GetSpanForAddress(address).data(), 0, length);
         break;
       case MediaBoardStatus3:
-        memset(memory.GetPointer(address), 0xFF, length);
+        memset(memory.GetSpanForAddress(address).data(), 0xFF, length);
         // DIMM size (512MB)
         memory.Write_U32(Common::swap32(0x20000000), address);
         // GCAM signature
@@ -526,7 +527,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     if (offset == 0x00000000 && length == 0x80)
     {
       s_netcfg->Seek(0, File::SeekOrigin::Begin);
-      s_netcfg->ReadBytes(memory.GetPointer(address), length);
+      s_netcfg->ReadBytes(memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
@@ -534,7 +535,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     if (offset == DIMMExtraSettings && length == 0x20)
     {
       s_extra->Seek(0, File::SeekOrigin::Begin);
-      s_extra->ReadBytes(memory.GetPointer(address), length);
+      s_extra->ReadBytes(memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
@@ -543,14 +544,14 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     {
       u32 dimmoffset = offset - DIMMMemory;
       s_dimm->Seek(dimmoffset, File::SeekOrigin::Begin);
-      s_dimm->ReadBytes(memory.GetPointer(address), length);
+      s_dimm->ReadBytes(memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
     if (offset >= DIMMCommandVersion1 && offset < 0x1F900040)
     {
       u32 dimmoffset = offset - DIMMCommandVersion1;
-      memcpy(memory.GetPointer(address), s_media_buffer + dimmoffset, length);
+      memcpy(memory.GetSpanForAddress(address).data(), s_media_buffer + dimmoffset, length);
 
       INFO_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: Read MEDIA BOARD COMM AREA (1) ({:08x},{})", offset,
                    length);
@@ -562,7 +563,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     {
       u32 dimmoffset = offset - NetworkBufferAddress4;
       INFO_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: Read NETWORK BUFFER (4) ({:08x},{})", offset, length);
-      memcpy(memory.GetPointer(address), s_network_buffer + dimmoffset, length);
+      memcpy(memory.GetSpanForAddress(address).data(), s_network_buffer + dimmoffset, length);
       return 0;
     }
 
@@ -570,7 +571,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     {
       u32 dimmoffset = offset - NetworkBufferAddress5;
       INFO_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: Read NETWORK BUFFER (5) ({:08x},{})", offset, length);
-      memcpy(memory.GetPointer(address), s_network_buffer + dimmoffset, length);
+      memcpy(memory.GetSpanForAddress(address).data(), s_network_buffer + dimmoffset, length);
       return 0;
     }
 
@@ -579,7 +580,8 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
       u32 dimmoffset = offset - NetworkCommandAddress;
       INFO_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: Read NETWORK COMMAND BUFFER ({:08x},{})", offset,
                    length);
-      memcpy(memory.GetPointer(address), s_network_command_buffer + dimmoffset, length);
+      memcpy(memory.GetSpanForAddress(address).data(), s_network_command_buffer + dimmoffset,
+             length);
       return 0;
     }
 
@@ -588,7 +590,8 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
       u32 dimmoffset = offset - NetworkCommandAddress2;
       INFO_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: Read NETWORK COMMAND BUFFER (2) ({:08x},{})", offset,
                    length);
-      memcpy(memory.GetPointer(address), s_network_command_buffer + dimmoffset, length);
+      memcpy(memory.GetSpanForAddress(address).data(), s_network_command_buffer + dimmoffset,
+             length);
       return 0;
     }
 
@@ -596,7 +599,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     {
       u32 dimmoffset = offset - NetworkBufferAddress1;
       INFO_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: Read NETWORK BUFFER (1) ({:08x},{})", offset, length);
-      memcpy(memory.GetPointer(address), s_network_buffer + dimmoffset, length);
+      memcpy(memory.GetSpanForAddress(address).data(), s_network_buffer + dimmoffset, length);
       return 0;
     }
 
@@ -604,7 +607,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     {
       u32 dimmoffset = offset - NetworkBufferAddress2;
       INFO_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: Read NETWORK BUFFER (2) ({:08x},{})", offset, length);
-      memcpy(memory.GetPointer(address), s_network_buffer + dimmoffset, length);
+      memcpy(memory.GetSpanForAddress(address).data(), s_network_buffer + dimmoffset, length);
       return 0;
     }
 
@@ -612,14 +615,14 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     {
       u32 dimmoffset = offset - NetworkBufferAddress3;
       INFO_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: Read NETWORK BUFFER (3) ({:08x},{})", offset, length);
-      memcpy(memory.GetPointer(address), s_network_buffer + dimmoffset, length);
+      memcpy(memory.GetSpanForAddress(address).data(), s_network_buffer + dimmoffset, length);
       return 0;
     }
 
     if (offset >= DIMMCommandVersion2 && offset < 0x84000060)
     {
       u32 dimmoffset = offset - DIMMCommandVersion2;
-      memcpy(memory.GetPointer(address), s_media_buffer + dimmoffset, length);
+      memcpy(memory.GetSpanForAddress(address).data(), s_media_buffer + dimmoffset, length);
 
       INFO_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: Read MEDIA BOARD COMM AREA (2) ({:08x},{})", offset,
                    length);
@@ -636,7 +639,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
       s_media_buffer[0x204] = 1;
 
       // Recast for easier access
-      u32* media_buffer_32 = (u32*)(s_media_buffer); 
+      u32* media_buffer_32 = (u32*)(s_media_buffer);
 
       switch (AMMBCommand(*(u16*)(s_media_buffer + 2)))
       {
@@ -1024,7 +1027,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
 
       s_media_buffer[3] |= 0x80;  // Command complete flag
 
-      memset(memory.GetPointer(address), 0, length);
+      memset(memory.GetSpanForAddress(address).data(), 0, length);
 
       ExpansionInterface::GenerateInterrupt(0x10);
       return 0;
@@ -1033,7 +1036,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     if (offset >= DIMMCommandVersion2_2 && offset <= 0x89000200)
     {
       u32 dimmoffset = offset - DIMMCommandVersion2_2;
-      memcpy(memory.GetPointer(address), s_media_buffer + dimmoffset, length);
+      memcpy(memory.GetSpanForAddress(address).data(), s_media_buffer + dimmoffset, length);
 
       INFO_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: Read MEDIA BOARD COMM AREA (3) ({:08x})", dimmoffset);
       PrintMBBuffer(address, length);
@@ -1045,14 +1048,14 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     {
       u32 dimmoffset = offset - DIMMMemory2;
       s_dimm->Seek(dimmoffset, File::SeekOrigin::Begin);
-      s_dimm->ReadBytes(memory.GetPointer(address), length);
+      s_dimm->ReadBytes(memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
     if (offset == NetworkControl && length == 0x20)
     {
       s_netctrl->Seek(0, File::SeekOrigin::Begin);
-      s_netctrl->ReadBytes(memory.GetPointer(address), length);
+      s_netctrl->ReadBytes(memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
@@ -1070,13 +1073,13 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
         DICMDBUF[1] &= ~0x00100000;
         DICMDBUF[1] -= 0x20;
       }
-      memcpy(memory.GetPointer(address), s_firmware + offset, length);
+      memcpy(memory.GetSpanForAddress(address).data(), s_firmware + offset, length);
       return 0;
     }
 
     if (s_dimm_disc)
     {
-      memcpy(memory.GetPointer(address), s_dimm_disc + offset, length);
+      memcpy(memory.GetSpanForAddress(address).data(), s_dimm_disc + offset, length);
       return 0;
     }
 
@@ -1104,7 +1107,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
       if ((offset >= 0x00400000) && (offset <= 0x600000))
       {
         u32 fwoffset = offset - 0x00400000;
-        memcpy(s_firmware + fwoffset, memory.GetPointer(address), length);
+        memcpy(s_firmware + fwoffset, memory.GetSpanForAddress(address).data(), length);
         return 0;
       }
     }
@@ -1112,21 +1115,21 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     // Network configuration
     if ((offset == 0x00000000) && (length == 0x80))
     {
-      FileWriteData(s_netcfg, 0, memory.GetPointer(address), length);
+      FileWriteData(s_netcfg, 0, memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
     // media crc check on/off
     if ((offset == DIMMExtraSettings) && (length == 0x20))
     {
-      FileWriteData(s_extra, 0, memory.GetPointer(address), length);
+      FileWriteData(s_extra, 0, memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
     // Backup memory (8MB)
     if ((offset >= BackupMemory) && (offset <= 0x00800000))
     {
-      FileWriteData(s_backup, 0, memory.GetPointer(address), length);
+      FileWriteData(s_backup, 0, memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
@@ -1134,7 +1137,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     if ((offset >= DIMMMemory) && (offset <= 0x1F800000))
     {
       u32 dimmoffset = offset - DIMMMemory;
-      FileWriteData(s_dimm, dimmoffset, memory.GetPointer(address), length);
+      FileWriteData(s_dimm, dimmoffset, memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
@@ -1142,7 +1145,8 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     {
       u32 dimmoffset = offset - NetworkCommandAddress;
 
-      memcpy(s_network_command_buffer + dimmoffset, memory.GetPointer(address), length);
+      memcpy(s_network_command_buffer + dimmoffset, memory.GetSpanForAddress(address).data(),
+             length);
 
       INFO_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: Write NETWORK COMMAND BUFFER ({:08x},{})", dimmoffset,
                    length);
@@ -1154,7 +1158,8 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     {
       u32 dimmoffset = offset - NetworkCommandAddress2;
 
-      memcpy(s_network_command_buffer + dimmoffset, memory.GetPointer(address), length);
+      memcpy(s_network_command_buffer + dimmoffset, memory.GetSpanForAddress(address).data(),
+             length);
 
       INFO_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: Write NETWORK COMMAND BUFFER (2) ({:08x},{})",
                    dimmoffset, length);
@@ -1166,7 +1171,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     {
       u32 dimmoffset = offset - 0x1FA00000;
 
-      memcpy(s_network_buffer + dimmoffset, memory.GetPointer(address), length);
+      memcpy(s_network_buffer + dimmoffset, memory.GetSpanForAddress(address).data(), length);
 
       INFO_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: Write NETWORK BUFFER (1) ({:08x},{})", dimmoffset,
                    length);
@@ -1178,7 +1183,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     {
       u32 dimmoffset = offset - 0x1FD00000;
 
-      memcpy(s_network_buffer + dimmoffset, memory.GetPointer(address), length);
+      memcpy(s_network_buffer + dimmoffset, memory.GetSpanForAddress(address).data(), length);
 
       INFO_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: Write NETWORK BUFFER (2) ({:08x},{})", dimmoffset,
                    length);
@@ -1190,7 +1195,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     {
       u32 dimmoffset = offset - 0x89100000;
 
-      memcpy(s_network_buffer + dimmoffset, memory.GetPointer(address), length);
+      memcpy(s_network_buffer + dimmoffset, memory.GetSpanForAddress(address).data(), length);
 
       INFO_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: Write NETWORK BUFFER (3) ({:08x},{})", dimmoffset,
                    length);
@@ -1201,7 +1206,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     if ((offset >= DIMMCommandVersion1) && (offset <= 0x1F90003F))
     {
       u32 dimmoffset = offset - 0x1F900000;
-      memcpy(s_media_buffer + dimmoffset, memory.GetPointer(address), length);
+      memcpy(s_media_buffer + dimmoffset, memory.GetSpanForAddress(address).data(), length);
 
       INFO_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: Write MEDIA BOARD COMM AREA (1) ({:08x},{})", offset,
                    length);
@@ -1278,7 +1283,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
           break;
         }
 
-        memcpy(memory.GetPointer(address), s_media_buffer, length);
+        memcpy(memory.GetSpanForAddress(address).data(), s_media_buffer, length);
 
         memset(s_media_buffer + 0x20, 0, 0x20);
 
@@ -1287,7 +1292,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
       }
       else
       {
-        memcpy(s_media_buffer + dimmoffset, memory.GetPointer(address), length);
+        memcpy(s_media_buffer + dimmoffset, memory.GetSpanForAddress(address).data(), length);
       }
       return 0;
     }
@@ -1299,7 +1304,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
                    dimmoffset);
       PrintMBBuffer(address, length);
 
-      memcpy(s_media_buffer + dimmoffset, memory.GetPointer(address), length);
+      memcpy(s_media_buffer + dimmoffset, memory.GetSpanForAddress(address).data(), length);
 
       return 0;
     }
@@ -1318,13 +1323,13 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     if ((offset >= DIMMMemory2) && (offset <= 0xFF800000))
     {
       u32 dimmoffset = offset - 0xFF000000;
-      FileWriteData(s_dimm, dimmoffset, memory.GetPointer(address), length);
+      FileWriteData(s_dimm, dimmoffset, memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
     if ((offset == NetworkControl) && (length == 0x20))
     {
-      FileWriteData(s_netctrl, 0, memory.GetPointer(address), length);
+      FileWriteData(s_netctrl, 0, memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
@@ -1711,8 +1716,8 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
 
     PanicAlertFmtT("Unhandled Media Board Execute:{0:08x}", *(u16*)(s_media_buffer + 0x22));
     break;
-    default:
-    PanicAlertFmtT("Unhandled Media Board Command:{0:02x}", command );
+  default:
+    PanicAlertFmtT("Unhandled Media Board Command:{0:02x}", command);
     break;
   }
 
