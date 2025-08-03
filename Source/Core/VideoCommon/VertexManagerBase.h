@@ -15,6 +15,8 @@
 #include "VideoCommon/CPUCull.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/Resources/MaterialResource.h"
+#include "VideoCommon/Resources/MeshResource.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/VideoEvents.h"
 
@@ -31,14 +33,12 @@ namespace GraphicsModSystem
 enum class DrawCallID : unsigned long long;
 
 struct DrawDataView;
-struct MaterialResource;
-struct MeshResource;
 }  // namespace GraphicsModSystem
 
 namespace VideoCommon
 {
 class CameraManager;
-}
+}  // namespace VideoCommon
 
 struct Slope
 {
@@ -195,14 +195,14 @@ public:
                         const Common::Matrix44& custom_transform = Common::Matrix44::Identity());
 
   // Draws the normal mesh sourced from emulation, with a custom shader and/or transform
-  void DrawEmulatedMesh(GraphicsModSystem::MaterialResource* material_resource,
+  void DrawEmulatedMesh(const VideoCommon::MaterialResource::Data& material_data,
                         const GraphicsModSystem::DrawDataView& draw_data,
                         const Common::Matrix44& custom_transform,
                         VideoCommon::CameraManager& camera_manager);
 
   // Draw a custom mesh sourced from a mod, with a custom shader and custom vertex information
   void DrawCustomMesh(GraphicsModSystem::DrawCallID draw_call,
-                      GraphicsModSystem::MeshResource* mesh_resource,
+                      const VideoCommon::MeshResource::Data& mesh_data,
                       const GraphicsModSystem::DrawDataView& draw_data,
                       const Common::Matrix44& custom_transform, bool ignore_mesh_transform,
                       VideoCommon::CameraManager& camera_manager);
@@ -213,14 +213,14 @@ protected:
   void DrawViewsWithMaterial(u32 base_vertex, u32 base_index, u32 index_size,
                              PrimitiveType primitive_type,
                              const GraphicsModSystem::DrawDataView& draw_data,
-                             GraphicsModSystem::MaterialResource* material_resource,
+                             const VideoCommon::MaterialResource::Data& material_data,
                              VideoCommon::CameraManager& camera_manager);
 
   // Draws the current mesh data with a material
   void DrawWithMaterial(u32 base_vertex, u32 base_index, u32 index_size,
                         PrimitiveType primitive_type,
                         const GraphicsModSystem::DrawDataView& draw_data,
-                        GraphicsModSystem::MaterialResource* material_resource,
+                        const VideoCommon::MaterialResource::Data& material_data,
                         VideoCommon::CameraManager& camera_manager);
   ;
 
