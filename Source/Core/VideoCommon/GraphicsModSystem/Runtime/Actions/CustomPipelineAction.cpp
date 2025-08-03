@@ -15,11 +15,10 @@
 #include "Core/System.h"
 
 #include "VideoCommon/AbstractGfx.h"
-#include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 #include "VideoCommon/GraphicsModEditor/Controls/AssetDisplay.h"
 #include "VideoCommon/GraphicsModEditor/EditorEvents.h"
 #include "VideoCommon/GraphicsModEditor/EditorMain.h"
-#include "VideoCommon/GraphicsModSystem/Runtime/CustomResourceManager.h"
+#include "VideoCommon/Resources/CustomResourceManager.h"
 
 std::unique_ptr<CustomPipelineAction>
 CustomPipelineAction::Create(std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
@@ -55,7 +54,7 @@ CustomPipelineAction::CustomPipelineAction(std::shared_ptr<VideoCommon::CustomAs
 {
 }
 
-void CustomPipelineAction::OnDrawStarted(GraphicsModActionData::DrawStarted*)
+void CustomPipelineAction::OnDrawStarted(GraphicsModActionData::DrawStarted* draw_started)
 {
   if (!draw_started) [[unlikely]]
     return;
@@ -67,8 +66,8 @@ void CustomPipelineAction::OnDrawStarted(GraphicsModActionData::DrawStarted*)
     return;
 
   auto& resource_manager = Core::System::GetInstance().GetCustomResourceManager();
-  *draw_started->material = resource_manager.GetMaterialFromAsset(m_material_asset, m_library,
-                                                                  draw_started->draw_data_view);
+  *draw_started->material = resource_manager.GetMaterialFromAsset(
+      m_material_asset, *draw_started->draw_data_view.uid, m_library);
 }
 
 void CustomPipelineAction::DrawImGui()
