@@ -5,6 +5,7 @@
 
 #include <picojson.h>
 
+#include "Common/CommonTypes.h"
 #include "VideoCommon/Assets/CustomAsset.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/TextureConfig.h"
@@ -16,8 +17,11 @@ struct RenderTargetData
   static bool FromJson(const CustomAssetLibrary::AssetID& asset_id, const picojson::object& json,
                        RenderTargetData* data);
   static void ToJson(picojson::object* obj, const RenderTargetData& data);
-  AbstractTextureFormat m_texture_format;
-  SamplerState m_sampler;
+  AbstractTextureFormat texture_format;
+  SamplerState sampler;
+  u16 width;
+  u16 height;
+  AbstractTextureType type = AbstractTextureType::Texture_2D;
 };
 
 class RenderTargetAsset final : public CustomLoadableAsset<RenderTargetData>

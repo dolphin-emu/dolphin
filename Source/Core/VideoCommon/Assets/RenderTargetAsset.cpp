@@ -12,8 +12,11 @@ namespace VideoCommon
 bool RenderTargetData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
                                 const picojson::object& json, RenderTargetData* data)
 {
-  data->m_texture_format = AbstractTextureFormat::RGBA8;
+  data->texture_format = AbstractTextureFormat::RGBA8;
   // TODO: parse format
+  data->height = ReadNumericFromJson<u16>(json, "height").value_or(0);
+  data->width = ReadNumericFromJson<u16>(json, "width").value_or(0);
+  data->type = static_cast<AbstractTextureType>(ReadNumericFromJson<u64>(json, "type").value_or(0));
   return true;
 }
 
@@ -23,7 +26,11 @@ void RenderTargetData::ToJson(picojson::object* obj, const RenderTargetData& dat
     return;
 
   auto& json_obj = *obj;
-  json_obj.emplace("format", static_cast<double>(data.m_texture_format));
+  json_obj.emplace("format", static_cast<double>(data.texture_format));
+  json_obj.emplace("height", static_cast<double>(data.height));
+  json_obj.emplace("width", static_cast<double>(data.width));
+  json_obj.emplace("type", static_cast<double>(data.type));
+  // TODO: sampler...
 }
 
 CustomAssetLibrary::LoadInfo
@@ -31,7 +38,7 @@ RenderTargetAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
 {
   auto potential_data = std::make_shared<RenderTargetData>();
   const auto loaded_info = m_owning_library->LoadRenderTarget(asset_id, potential_data.get());
-  if (loaded_info.m_bytes_loaded == 0)
+  if (loaded_info.bytes_loaded == 0)
     return {};
   {
     std::lock_guard lk(m_data_lock);
