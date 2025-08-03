@@ -29,7 +29,7 @@
 
 namespace DiscIO
 {
-  Region g_triforce_region;
+Region g_triforce_region;
 
 VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader)
     : m_reader(std::move(reader)), m_is_triforce(false)
@@ -61,15 +61,15 @@ VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader)
       // Load region from the file
       switch (triforce_header.region)
       {
-        default:
-        case 0x02:  // JAPAN
-        case 0x08:  // ASIA
+      default:
+      case 0x02:  // JAPAN
+      case 0x08:  // ASIA
         g_triforce_region = Region::NTSC_J;
         break;
-        case 0x0E:  // USA
+      case 0x0E:  // USA
         g_triforce_region = Region::NTSC_U;
         break;
-        case 0x0C:  // EXPORT
+      case 0x0C:  // EXPORT
         g_triforce_region = Region::PAL;
         break;
       }
@@ -207,7 +207,7 @@ VolumeGC::ConvertedGCBanner VolumeGC::LoadBannerFile() const
   {
     return {};
   }
- 
+
   GCBanner banner_file;
   const u64 file_size = ReadFile(*this, PARTITION_NONE, "opening.bnr",
                                  reinterpret_cast<u8*>(&banner_file), sizeof(GCBanner));

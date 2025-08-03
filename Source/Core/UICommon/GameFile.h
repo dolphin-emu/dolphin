@@ -75,7 +75,7 @@ public:
   std::vector<DiscIO::Language> GetLanguages() const;
   const std::string& GetInternalName() const { return m_internal_name; }
   const std::string& GetGameID() const { return m_game_id; }
-  const std::string& GetGameTDBID() const { return m_gametdb_id; } 
+  const std::string& GetGameTDBID() const { return m_gametdb_id; }
   u64 GetTitleID() const { return m_title_id; }
   const std::string& GetMakerID() const { return m_maker_id; }
   u16 GetRevision() const { return m_revision; }

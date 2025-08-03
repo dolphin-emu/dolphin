@@ -41,7 +41,7 @@
 #define USA_DIR "USA"
 #define JAP_DIR "JAP"
 #define JPN_DIR "JPN"
-#define DEV_DIR "DEV" 
+#define DEV_DIR "DEV"
 
 // Subdirs in the User dir returned by GetUserPath(D_USER_IDX)
 #define GC_USER_DIR "GC"

@@ -152,12 +152,10 @@ void ExpansionInterfaceManager::Init(const Sram* override_sram)
   {
     sp1_device = EXIDeviceType::Baseboard;
   }
- 
-  m_channels[SlotToEXIChannel(Slot::SP1)]->AddDevice(sp1_device, SlotToEXIDevice(Slot::SP1));
 
+  m_channels[SlotToEXIChannel(Slot::SP1)]->AddDevice(sp1_device, SlotToEXIDevice(Slot::SP1));
   m_channels[SlotToEXIChannel(Slot::SP2)]->AddDevice(Config::Get(Config::MAIN_SERIAL_PORT_2),
                                                      SlotToEXIDevice(Slot::SP2));
-   
 
   m_event_type_change_device = core_timing.RegisterEvent("ChangeEXIDevice", ChangeDeviceCallback);
   m_event_type_update_interrupts =

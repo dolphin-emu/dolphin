@@ -27,8 +27,8 @@
 #include "Core/CoreTiming.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/AudioInterface.h"
-#include "Core/HW/DVD/DVDMath.h"
 #include "Core/HW/DVD/AMMediaboard.h"
+#include "Core/HW/DVD/DVDMath.h"
 #include "Core/HW/DVD/DVDThread.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/MMIO.h"
@@ -270,8 +270,6 @@ void DVDInterface::Init()
   m_DIIMMBUF = 0;
   m_DICFG.Hex = 0;
   m_DICFG.CONFIG = 1;  // Disable bootrom descrambler
-  m_DICFG.Hex |= 8;    /* The Triforce IPL checks this bit
-                          to set the physical memory to either 50MB(unset) or 24MB(set)  */
 
   ResetDrive(false);
 
@@ -292,6 +290,8 @@ void DVDInterface::Init()
 
     // The Triforce IPL expects the cover to be closed
     m_DICVR.Hex = 0;
+    m_DICFG.Hex |= 8; /* The Triforce IPL checks this bit
+                       to set the physical memory to either 50MB(unset) or 24MB(set)  */
   }
 }
 

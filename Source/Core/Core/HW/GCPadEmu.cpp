@@ -34,7 +34,7 @@ static const u16 trigger_bitmasks[] = {
 
 static const u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT,
                                     PAD_BUTTON_RIGHT};
-static const u8 triforce_bitmask[] = { PAD_SWITCH_TEST, PAD_SWITCH_SERVICE, PAD_SWITCH_COIN };
+static const u8 triforce_bitmask[] = {PAD_SWITCH_TEST, PAD_SWITCH_SERVICE, PAD_SWITCH_COIN};
 
 GCPad::GCPad(const unsigned int index) : m_index(index)
 {
@@ -71,7 +71,7 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 
   // triforce
   groups.emplace_back(m_triforce = new ControllerEmu::Buttons(TRIFORCE_GROUP));
-  for (const char* named_button : { TEST_BUTTON, SERVICE_BUTTON, COIN_BUTTON })
+  for (const char* named_button : {TEST_BUTTON, SERVICE_BUTTON, COIN_BUTTON})
   {
     m_triforce->AddInput(Translatability::DoNotTranslate, named_button);
   }

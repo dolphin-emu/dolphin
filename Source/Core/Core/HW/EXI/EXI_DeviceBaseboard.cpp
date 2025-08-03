@@ -1,7 +1,7 @@
-// Copyright 2017 Dolphin Emulator Project
+// Copyright 2013 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "Core/HW/EXI/EXI_DeviceBaseboard.h" 
+#include "Core/HW/EXI/EXI_DeviceBaseboard.h"
 #include <algorithm>
 #include <memory>
 #include <optional>
@@ -88,7 +88,7 @@ CEXIBaseboard::CEXIBaseboard(Core::System& system) : IEXIDevice(system), m_posit
   // Some games share the same ID Client/Server
   if (!m_backup->IsGood())
   {
-    PanicAlertFmt("Failed to open {}\nFile might be in use.", backup_Filename.c_str() );
+    PanicAlertFmt("Failed to open {}\nFile might be in use.", backup_Filename.c_str());
 
     std::srand(static_cast<u32>(std::time(nullptr)));
 
@@ -167,7 +167,7 @@ void CEXIBaseboard::DMAWrite(u32 addr, u32 size)
 
   m_backup->Seek(m_backoffset, File::SeekOrigin::Begin);
 
-  m_backup->WriteBytes(memory.GetPointer(addr), size);
+  m_backup->WriteBytes(memory.GetSpanForAddress(addr).data(), size);
 
   m_backup->Flush();
 }
@@ -183,7 +183,7 @@ void CEXIBaseboard::DMARead(u32 addr, u32 size)
 
   m_backup->Flush();
 
-  m_backup->ReadBytes(memory.GetPointer(addr), size);
+  m_backup->ReadBytes(memory.GetSpanForAddress(addr).data(), size);
 }
 
 void CEXIBaseboard::TransferByte(u8& _byte)
@@ -241,8 +241,8 @@ void CEXIBaseboard::TransferByte(u8& _byte)
       case DMAOffsetLengthSet:
         m_backup_dma_offset = (m_command[1] << 8) | m_command[2];
         m_backup_dma_length = m_command[3];
-        NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: DMAOffsetLengthSet :{:04x} {:02x}", m_backup_dma_offset,
-                       m_backup_dma_length);
+        NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: DMAOffsetLengthSet :{:04x} {:02x}",
+                       m_backup_dma_offset, m_backup_dma_length);
         _byte = 0x01;
         break;
       case ReadISR:
