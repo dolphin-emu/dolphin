@@ -12,7 +12,7 @@
 #include "VideoCommon/GraphicsModEditor/Controls/AssetDisplay.h"
 #include "VideoCommon/GraphicsModEditor/EditorEvents.h"
 #include "VideoCommon/GraphicsModEditor/EditorMain.h"
-#include "VideoCommon/GraphicsModSystem/Runtime/CustomResourceManager.h"
+#include "VideoCommon/Resources/CustomResourceManager.h"
 
 std::unique_ptr<CustomMeshAction>
 CustomMeshAction::Create(const picojson::value& json_data,
@@ -133,15 +133,11 @@ void CustomMeshAction::OnDrawStarted(GraphicsModActionData::DrawStarted* draw_st
 
   auto& resource_manager = Core::System::GetInstance().GetCustomResourceManager();
 
-  const auto mesh =
-      resource_manager.GetMeshFromAsset(m_mesh_asset_id, m_library, draw_started->draw_data_view);
+  const auto mesh = resource_manager.GetMeshFromAsset(m_mesh_asset_id,
+                                                      *draw_started->draw_data_view.uid, m_library);
   *draw_started->mesh = mesh;
-
-  if (mesh)
-  {
-    *draw_started->transform = m_calculated_transform;
-    *draw_started->ignore_mesh_transform = m_ignore_mesh_transform;
-  }
+  *draw_started->transform = m_calculated_transform;
+  *draw_started->ignore_mesh_transform = m_ignore_mesh_transform;
 }
 
 void CustomMeshAction::DrawImGui()
