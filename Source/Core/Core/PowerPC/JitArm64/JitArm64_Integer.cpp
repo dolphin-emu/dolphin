@@ -1432,6 +1432,17 @@ void JitArm64::subfcx(UGeckoInstruction inst)
     if (inst.Rc)
       ComputeRC0(gpr.GetImm(d));
   }
+  else if (gpr.IsImm(a, 0))
+  {
+    if (d != b)
+    {
+      gpr.BindToRegister(d, false);
+      MOV(gpr.R(d), gpr.R(b));
+    }
+    ComputeCarry(true);
+    if (inst.Rc)
+      ComputeRC0(gpr.R(d));
+  }
   else
   {
     gpr.BindToRegister(d, d == a || d == b);
