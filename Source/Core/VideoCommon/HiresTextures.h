@@ -8,11 +8,12 @@
 #include <string>
 #include <vector>
 
-#include "Common/CommonTypes.h"
-#include "VideoCommon/Assets/CustomResourceManager.h"
-#include "VideoCommon/Assets/CustomTextureData.h"
-#include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/TextureInfo.h"
+
+namespace VideoCommon
+{
+class TextureDataResource;
+}
 
 enum class TextureFormat;
 
@@ -30,7 +31,7 @@ public:
   HiresTexture(bool has_arbitrary_mipmaps, std::string id);
 
   bool HasArbitraryMipmaps() const { return m_has_arbitrary_mipmaps; }
-  VideoCommon::CustomResourceManager::TextureTimePair LoadTexture() const;
+  VideoCommon::TextureDataResource* LoadTexture() const;
   const std::string& GetId() const { return m_id; }
 
 private:
