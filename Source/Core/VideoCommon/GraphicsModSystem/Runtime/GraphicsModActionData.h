@@ -17,6 +17,8 @@
 #include "VideoCommon/ConstantManager.h"
 #include "VideoCommon/GraphicsModSystem/Types.h"
 #include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/Resources/MaterialResource.h"
+#include "VideoCommon/Resources/MeshResource.h"
 
 namespace GraphicsModActionData
 {
@@ -25,8 +27,8 @@ struct DrawStarted
   const GraphicsModSystem::DrawDataView& draw_data_view;
   u32 current_components_available;
   bool* skip;
-  GraphicsModSystem::MaterialResource** material;
-  GraphicsModSystem::MeshResource** mesh;
+  VideoCommon::MaterialResource** material;
+  VideoCommon::MeshResource** mesh;
   bool* ignore_mesh_transform;
   std::optional<Common::Matrix44>* transform;
   std::optional<GraphicsModSystem::Camera>* camera;
