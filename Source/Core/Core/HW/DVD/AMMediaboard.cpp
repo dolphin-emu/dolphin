@@ -427,18 +427,15 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     }
   }
 
-  DICMDBUF[0] <<= 24;
-  DICMDBUF[1] <<= 2;
+  u32 command = DICMDBUF[0] << 24;
+  u32 offset = DICMDBUF[1] << 2;
 
   // SegaBoot adds bits for some reason to offset/length
   // also adds 0x20 to offset
-  if (DICMDBUF[1] == 0x00100440)
+  if (offset == 0x00100440)
   {
     s_segaboot = true;
   }
-
-  u32 command = DICMDBUF[0];
-  u32 offset = DICMDBUF[1];
 
   INFO_LOG_FMT(DVDINTERFACE_AMMB,
                "GC-AM: {:08x} {:08x} DMA=addr:{:08x},len:{:08x} Keys: {:08x} {:08x} {:08x}",
