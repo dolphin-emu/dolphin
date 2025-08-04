@@ -14,10 +14,12 @@
 #include <fmt/format.h>
 #include <libusb.h>
 
+#include "Common/BitUtils.h"
 #include "Common/MsgHandler.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#include "Core/IOS/USB/Bluetooth/RealtekFirmwareLoader.h"
 #include "Core/IOS/USB/Bluetooth/hci.h"
 
 namespace
@@ -53,13 +55,20 @@ bool LibUSBBluetoothAdapter::IsBluetoothDevice(const libusb_device_descriptor& d
 
   // Some devices misreport their class, so we avoid relying solely on descriptor checks and allow
   // users to specify their own VID/PID.
-  return is_bluetooth_protocol || LibUSBBluetoothAdapter::IsConfiguredBluetoothDevice(
-                                      descriptor.idVendor, descriptor.idProduct);
+  return is_bluetooth_protocol ||
+         LibUSBBluetoothAdapter::IsConfiguredBluetoothDevice(descriptor.idVendor,
+                                                             descriptor.idProduct) ||
+         IsKnownRealtekBluetoothDevice(descriptor.idVendor, descriptor.idProduct);
 }
 
 bool LibUSBBluetoothAdapter::IsWiiBTModule() const
 {
-  return m_is_wii_bt_module;
+  return m_device_vid == 0x57e && m_device_pid == 0x305;
+}
+
+bool LibUSBBluetoothAdapter::AreCommandsPendingResponse() const
+{
+  return !m_pending_hci_transfers.empty() || !m_unacknowledged_commands.empty();
 }
 
 bool LibUSBBluetoothAdapter::HasConfiguredBluetoothDevice()
@@ -115,8 +124,9 @@ LibUSBBluetoothAdapter::LibUSBBluetoothAdapter()
       NOTICE_LOG_FMT(IOS_WIIMOTE, "Using device {:04x}:{:04x} (rev {:x}) for Bluetooth: {} {} {}",
                      device_descriptor.idVendor, device_descriptor.idProduct,
                      device_descriptor.bcdDevice, manufacturer, product, serial_number);
-      m_is_wii_bt_module =
-          device_descriptor.idVendor == 0x57e && device_descriptor.idProduct == 0x305;
+
+      m_device_vid = device_descriptor.idVendor;
+      m_device_pid = device_descriptor.idProduct;
       return false;
     }
     return true;
@@ -151,6 +161,17 @@ LibUSBBluetoothAdapter::LibUSBBluetoothAdapter()
 
   m_output_worker.Reset("Bluetooth Output",
                         std::bind_front(&LibUSBBluetoothAdapter::SubmitTimedTransfer, this));
+
+  if (IsRealtekVID(m_device_vid) || IsKnownRealtekBluetoothDevice(m_device_vid, m_device_pid))
+  {
+    INFO_LOG_FMT(IOS_WIIMOTE, "Initializing Realtek Bluetooth device: {:04x}:{:04x}", m_device_vid,
+                 m_device_pid);
+    if (!InitializeRealtekBluetoothDevice(*this))
+    {
+      PanicAlertFmtT("Failed to initialize Realtek Bluetooth device.\n\n"
+                     "Bluetooth passthrough will probably not work.");
+    }
+  }
 }
 
 LibUSBBluetoothAdapter::~LibUSBBluetoothAdapter()
@@ -159,7 +180,7 @@ LibUSBBluetoothAdapter::~LibUSBBluetoothAdapter()
     return;
 
   // Wait for completion (or time out) of all HCI commands.
-  while (!m_pending_hci_transfers.empty() && !m_unacknowledged_commands.empty())
+  while (AreCommandsPendingResponse())
   {
     (void)ReceiveHCIEvent();
     Common::YieldCPU();
@@ -392,6 +413,50 @@ void LibUSBBluetoothAdapter::ScheduleControlTransfer(u8 type, u8 request, u8 val
 void LibUSBBluetoothAdapter::SendControlTransfer(std::span<const u8> data)
 {
   ScheduleControlTransfer(REQUEST_TYPE, 0, 0, 0, data, Clock::now());
+}
+
+bool LibUSBBluetoothAdapter::SendBlockingCommand(std::span<const u8> data, std::span<u8> response)
+{
+  SendControlTransfer(data);
+
+  const hci_cmd_hdr_t cmd = Common::BitCastPtr<hci_cmd_hdr_t>(data.data());
+
+  while (AreCommandsPendingResponse())
+  {
+    const auto event = ReceiveHCIEvent();
+
+    if (event.empty())
+    {
+      Common::YieldCPU();
+      continue;
+    }
+
+    if (event[0] != HCI_EVENT_COMMAND_COMPL)
+      continue;
+
+    if (event.size() < sizeof(hci_event_hdr_t) + sizeof(hci_command_compl_ep))
+    {
+      ERROR_LOG_FMT(IOS_WIIMOTE, "Undersized hci_command_compl_ep");
+      continue;
+    }
+
+    const hci_command_compl_ep compl_event =
+        Common::BitCastPtr<hci_command_compl_ep>(event.data() + sizeof(hci_event_hdr_t));
+    if (compl_event.opcode != cmd.opcode)
+      continue;
+
+    if (event.size() < sizeof(hci_event_hdr_t) + sizeof(hci_command_compl_ep) + response.size())
+    {
+      ERROR_LOG_FMT(IOS_WIIMOTE, "Undersized command result");
+      break;
+    }
+
+    std::copy_n(event.data() + sizeof(hci_event_hdr_t) + sizeof(hci_command_compl_ep),
+                response.size(), response.data());
+    return true;
+  }
+
+  return false;
 }
 
 void LibUSBBluetoothAdapter::StartInputTransfers()

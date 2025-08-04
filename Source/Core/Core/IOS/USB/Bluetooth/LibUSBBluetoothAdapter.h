@@ -12,11 +12,19 @@
 #include "Common/Timer.h"
 #include "Common/WorkQueueThread.h"
 
+#include "Core/IOS/USB/Bluetooth/hci.h"
 #include "Core/LibusbUtils.h"
 
 struct libusb_device_handle;
 struct libusb_device_descriptor;
 struct libusb_transfer;
+
+template <u16 Opcode, typename CommandType>
+struct HCICommandPayload
+{
+  hci_cmd_hdr_t header{Opcode, sizeof(CommandType)};
+  CommandType command{};
+};
 
 class LibUSBBluetoothAdapter
 {
@@ -44,6 +52,11 @@ public:
 
   // Schedule a transfer to be submitted as soon as possible.
   void SendControlTransfer(std::span<const u8> data);
+
+  // Blocks and eats events until a command complete event of the correct opcode is received.
+  // Returns true on success or false on error or timeout.
+  // The written response does not include the event header or command complete data.
+  bool SendBlockingCommand(std::span<const u8> data, std::span<u8> response);
 
   bool IsWiiBTModule() const;
 
@@ -91,8 +104,8 @@ private:
   bool m_showed_failed_transfer = false;
   bool m_showed_long_queue_drop = false;
 
-  // Some responses need to be fabricated if we aren't using the Nintendo BT module.
-  bool m_is_wii_bt_module = false;
+  u16 m_device_vid = 0;
+  u16 m_device_pid = 0;
 
   // Bluetooth spec's Num_HCI_Command_Packets.
   // This is the number of hci commands that the host is allowed to send.
@@ -114,6 +127,7 @@ private:
   std::deque<OutstandingCommand> m_unacknowledged_commands;
 
   bool IsControllerReadyForCommand() const;
+  bool AreCommandsPendingResponse() const;
 
   // Give the transfer to the worker and track the command appropriately.
   // This should only be used when IsControllerReadyForCommand is true.
