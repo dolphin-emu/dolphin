@@ -110,10 +110,6 @@ void Host_PPCBreakpointsChanged()
 {
 }
 
-void Host_RefreshDSPDebuggerWindow()
-{
-}
-
 bool Host_UIBlocksControllerState()
 {
   return false;
@@ -160,10 +156,6 @@ void Host_JitCacheInvalidation()
 }
 
 void Host_JitProfileDataWiped()
-{
-}
-
-void Host_UpdateMainFrame()
 {
 }
 

@@ -29,5 +29,4 @@ bool IsWiiHost();
 void InterruptRequest();
 void CodeLoaded(DSPCore& dsp, u32 addr, size_t size);
 void CodeLoaded(DSPCore& dsp, const u8* ptr, size_t size);
-void UpdateDebugger();
 }  // namespace DSP::Host

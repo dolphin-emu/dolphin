@@ -262,7 +262,6 @@ public:
 
       case CPU::State::Stepping:
         cpu.Break();
-        Host_UpdateMainFrame();
         break;
 
       case CPU::State::Running:
