@@ -669,6 +669,22 @@ bool CaseInsensitiveEquals(std::string_view a, std::string_view b)
       a, b, [](char ca, char cb) { return Common::ToLower(ca) == Common::ToLower(cb); });
 }
 
+bool CaseInsensitiveContains(std::string_view haystack, std::string_view needle)
+{
+  if (needle.empty())
+    return true;
+
+  for (size_t i = 0; i + needle.size() <= haystack.size(); ++i)
+  {
+    if (std::ranges::equal(needle, haystack.substr(i, needle.size()),
+                           [](char a, char b) { return Common::ToLower(a) == Common::ToLower(b); }))
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool CaseInsensitiveLess::operator()(std::string_view a, std::string_view b) const
 {
   return std::ranges::lexicographical_compare(
