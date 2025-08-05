@@ -5,6 +5,7 @@
 
 #include <array>
 #include <future>
+#include <optional>
 #include <utility>
 
 #include <QCheckBox>
@@ -39,7 +40,7 @@
 #include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
-#include "DolphinQt/Settings/USBDeviceAddToWhitelistDialog.h"
+#include "DolphinQt/Settings/USBDevicePicker.h"
 
 // SYSCONF uses 0 for bottom and 1 for top, but we place them in
 // the other order in the GUI so that Top will be above Bottom,
@@ -460,10 +461,24 @@ void WiiPane::ValidateSelectionState()
 
 void WiiPane::OnUSBWhitelistAddButton()
 {
-  USBDeviceAddToWhitelistDialog usb_whitelist_dialog(this);
-  connect(&usb_whitelist_dialog, &USBDeviceAddToWhitelistDialog::accepted, this,
-          &WiiPane::PopulateUSBPassthroughListWidget);
-  usb_whitelist_dialog.exec();
+  auto whitelist = Config::GetUSBDeviceWhitelist();
+
+  const std::optional<USBUtils::DeviceInfo> usb_device = USBDevicePicker::Run(
+      this, tr("Add New USB Device"),
+      [&whitelist](const USBUtils::DeviceInfo& device) { return !whitelist.contains(device); });
+  if (!usb_device)
+    return;
+
+  if (whitelist.contains(*usb_device))
+  {
+    ModalMessageBox::critical(this, tr("USB Whitelist Error"),
+                              tr("This USB device is already whitelisted."));
+    return;
+  }
+  whitelist.emplace(*usb_device);
+  Config::SetUSBDeviceWhitelist(whitelist);
+  Config::Save();
+  PopulateUSBPassthroughListWidget();
 }
 
 void WiiPane::OnUSBWhitelistRemoveButton()
