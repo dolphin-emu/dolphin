@@ -43,8 +43,9 @@ const u8* TrampolineCache::GenerateReadTrampoline(const TrampolineInfo& info)
 
   const u8* trampoline = GetCodePtr();
 
-  SafeLoadToReg(info.op_reg, info.op_arg, info.accessSize << 3, info.offset, info.registersInUse,
-                info.signExtend, info.flags | SAFE_LOADSTORE_FORCE_SLOW_ACCESS);
+  SafeLoadToReg(info.op_reg, info.op_arg, info.accessSize << 3, info.offset, info.inst,
+                info.registersInUse, info.signExtend,
+                info.flags | SAFE_LOADSTORE_FORCE_SLOW_ACCESS);
 
   JMP(info.start + info.len, Jump::Near);
 
@@ -62,7 +63,7 @@ const u8* TrampolineCache::GenerateWriteTrampoline(const TrampolineInfo& info)
   // Don't treat FIFO writes specially for now because they require a burst
   // check anyway.
 
-  SafeWriteRegToReg(info.op_arg, info.op_reg, info.accessSize << 3, info.offset,
+  SafeWriteRegToReg(info.op_arg, info.op_reg, info.accessSize << 3, info.offset, info.inst,
                     info.registersInUse, info.flags | SAFE_LOADSTORE_FORCE_SLOW_ACCESS);
 
   JMP(info.start + info.len, Jump::Near);
