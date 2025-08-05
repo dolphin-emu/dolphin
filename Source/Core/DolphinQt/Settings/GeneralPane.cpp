@@ -371,7 +371,7 @@ void GeneralPane::AddDescriptions()
                  "burden by spreading Dolphin's heaviest load across two cores, which usually "
                  "improves performance. However, it can result in glitches and crashes."
                  "<br><br>This setting cannot be changed while emulation is active."
-                 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
+                 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static constexpr char TR_CHEATS_DESCRIPTION[] = QT_TR_NOOP(
       "Enables the use of AR and Gecko cheat codes which can be used to modify games' behavior. "
       "These codes can be configured with the Cheats Manager in the Tools menu."
