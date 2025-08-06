@@ -41,4 +41,3 @@ private:
   CustomAssetLibrary::LoadInfo LoadImpl(const CustomAssetLibrary::AssetID& asset_id) override;
 };
 }  // namespace VideoCommon
-
