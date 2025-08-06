@@ -96,7 +96,6 @@ bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)
   if (!window)
     return false;
 
-  Clipper::Init();
   Rasterizer::Init();
 
   return InitializeShared(std::make_unique<SWGfx>(std::move(window)),

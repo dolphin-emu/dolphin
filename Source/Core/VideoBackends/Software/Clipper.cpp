@@ -36,6 +36,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "VideoBackends/Software/Clipper.h"
 
+#include <array>
+
 #include "Common/Assert.h"
 
 #include "VideoBackends/Software/NativeVertexFormat.h"
@@ -49,21 +51,6 @@ namespace Clipper
 {
 enum
 {
-  NUM_CLIPPED_VERTICES = 33,
-  NUM_INDICES = NUM_CLIPPED_VERTICES + 3
-};
-
-static OutputVertexData ClippedVertices[NUM_CLIPPED_VERTICES];
-static OutputVertexData* Vertices[NUM_INDICES];
-
-void Init()
-{
-  for (int i = 0; i < NUM_CLIPPED_VERTICES; ++i)
-    Vertices[i + 3] = &ClippedVertices[i];
-}
-
-enum
-{
   SKIP_FLAG = -1,
   CLIP_POS_X_BIT = 0x01,
   CLIP_NEG_X_BIT = 0x02,
@@ -72,6 +59,17 @@ enum
   CLIP_POS_Z_BIT = 0x10,
   CLIP_NEG_Z_BIT = 0x20
 };
+
+Clipper::Clipper()
+{
+  Init();
+}
+
+void Clipper::Init()
+{
+  for (int i = 0; i < NUM_CLIPPED_VERTICES; ++i)
+    m_vertices[i + 3] = &m_clipped_vertices[i];
+}
 
 static inline int CalcClipMask(const OutputVertexData* v)
 {
@@ -99,16 +97,62 @@ static inline int CalcClipMask(const OutputVertexData* v)
   return cmask;
 }
 
-static inline void AddInterpolatedVertex(float t, int out, int in, int* numVertices)
+static bool IsTriviallyRejected(const OutputVertexData* v0, const OutputVertexData* v1,
+                                const OutputVertexData* v2)
 {
-  Vertices[(*numVertices)++]->Lerp(t, Vertices[out], Vertices[in]);
+  int mask = CalcClipMask(v0);
+  mask &= CalcClipMask(v1);
+  mask &= CalcClipMask(v2);
+
+  return mask != 0;
+}
+
+static bool IsBackface(const OutputVertexData* v0, const OutputVertexData* v1,
+                       const OutputVertexData* v2)
+{
+  float x0 = v0->projectedPosition.x;
+  float x1 = v1->projectedPosition.x;
+  float x2 = v2->projectedPosition.x;
+  float y1 = v1->projectedPosition.y;
+  float y0 = v0->projectedPosition.y;
+  float y2 = v2->projectedPosition.y;
+  float w0 = v0->projectedPosition.w;
+  float w1 = v1->projectedPosition.w;
+  float w2 = v2->projectedPosition.w;
+
+  float normalZDir = (x0 * w2 - x2 * w0) * y1 + (x2 * y0 - x0 * y2) * w1 + (y2 * w0 - y0 * w2) * x1;
+
+  bool backface = normalZDir <= 0.0f;
+  // Jimmie Johnson's Anything with an Engine has a positive viewport, while other games have a
+  // negative viewport.  The positive viewport does not require vertices to be vertically mirrored,
+  // but the backface test does need to be inverted for things to be drawn.
+  if (xfmem.viewport.ht > 0)
+    backface = !backface;
+
+  return backface;
+}
+
+static void PerspectiveDivide(OutputVertexData* vertex)
+{
+  Vec4& projected = vertex->projectedPosition;
+  Vec3& screen = vertex->screenPosition;
+
+  float wInverse = 1.0f / projected.w;
+  screen.x = projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig;
+  screen.y = projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig;
+  screen.z = projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
+}
+
+void Clipper::AddInterpolatedVertex(float t, int out, int in, int* num_vertices)
+{
+  m_vertices[(*num_vertices)++]->Lerp(t, m_vertices[out], m_vertices[in]);
 }
 
 #define DIFFERENT_SIGNS(x, y) ((x <= 0 && y > 0) || (x > 0 && y <= 0))
 
 #define CLIP_DOTPROD(I, A, B, C, D)                                                                \
-  (Vertices[I]->projectedPosition.x * A + Vertices[I]->projectedPosition.y * B +                   \
-   Vertices[I]->projectedPosition.z * C + Vertices[I]->projectedPosition.w * D)
+  (m_vertices[I]->projectedPosition.x * A + m_vertices[I]->projectedPosition.y * B +               \
+   m_vertices[I]->projectedPosition.z * C + m_vertices[I]->projectedPosition.w * D)
 
 #define POLY_CLIP(PLANE_BIT, A, B, C, D)                                                           \
   {                                                                                                \
@@ -186,13 +230,13 @@ static inline void AddInterpolatedVertex(float t, int out, int in, int* numVerti
     }                                                                                              \
   }
 
-static void ClipTriangle(int* indices, int* numIndices)
+void Clipper::ClipTriangle(int* indices, int* num_indices)
 {
   int mask = 0;
 
-  mask |= CalcClipMask(Vertices[0]);
-  mask |= CalcClipMask(Vertices[1]);
-  mask |= CalcClipMask(Vertices[2]);
+  mask |= CalcClipMask(m_vertices[0]);
+  mask |= CalcClipMask(m_vertices[1]);
+  mask |= CalcClipMask(m_vertices[2]);
 
   if (mask != 0)
   {
@@ -228,22 +272,22 @@ static void ClipTriangle(int* indices, int* numIndices)
       indices[2] = inlist[2];
       for (int j = 3; j < n; ++j)
       {
-        indices[(*numIndices)++] = inlist[0];
-        indices[(*numIndices)++] = inlist[j - 1];
-        indices[(*numIndices)++] = inlist[j];
+        indices[(*num_indices)++] = inlist[0];
+        indices[(*num_indices)++] = inlist[j - 1];
+        indices[(*num_indices)++] = inlist[j];
       }
     }
   }
 }
 
-static void ClipLine(int* indices)
+void Clipper::ClipLine(int* indices)
 {
   int mask = 0;
   int clip_mask[2] = {0, 0};
 
   for (int i = 0; i < 2; ++i)
   {
-    clip_mask[i] = CalcClipMask(Vertices[i]);
+    clip_mask[i] = CalcClipMask(m_vertices[i]);
     mask |= clip_mask[i];
   }
 
@@ -285,7 +329,7 @@ static void ClipLine(int* indices)
   }
 }
 
-void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2)
+void Clipper::ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2)
 {
   INCSTAT(g_stats.this_frame.num_triangles_in);
 
@@ -334,15 +378,15 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
 
   if (backface)
   {
-    Vertices[0] = v0;
-    Vertices[1] = v2;
-    Vertices[2] = v1;
+    m_vertices[0] = v0;
+    m_vertices[1] = v2;
+    m_vertices[2] = v1;
   }
   else
   {
-    Vertices[0] = v0;
-    Vertices[1] = v1;
-    Vertices[2] = v2;
+    m_vertices[0] = v0;
+    m_vertices[1] = v1;
+    m_vertices[2] = v2;
   }
 
   // TODO: behavior when disable_clipping_detection is set doesn't quite match actual hardware;
@@ -356,8 +400,8 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
     // If any w coordinate is negative, then the perspective divide will flip coordinates, breaking
     // various assumptions (including backface).  So, we still need to do clipping in that case.
     // This isn't the actual condition hardware uses.
-    if (Vertices[0]->projectedPosition.w >= 0 && Vertices[1]->projectedPosition.w >= 0 &&
-        Vertices[2]->projectedPosition.w >= 0)
+    if (m_vertices[0]->projectedPosition.w >= 0 && m_vertices[1]->projectedPosition.w >= 0 &&
+        m_vertices[2]->projectedPosition.w >= 0)
       skip_clipping = true;
   }
 
@@ -369,12 +413,12 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
     ASSERT(i < NUM_INDICES);
     if (indices[i] != SKIP_FLAG)
     {
-      PerspectiveDivide(Vertices[indices[i]]);
-      PerspectiveDivide(Vertices[indices[i + 1]]);
-      PerspectiveDivide(Vertices[indices[i + 2]]);
+      PerspectiveDivide(m_vertices[indices[i]]);
+      PerspectiveDivide(m_vertices[indices[i + 1]]);
+      PerspectiveDivide(m_vertices[indices[i + 2]]);
 
-      Rasterizer::DrawTriangleFrontFace(Vertices[indices[i]], Vertices[indices[i + 1]],
-                                        Vertices[indices[i + 2]]);
+      Rasterizer::DrawTriangleFrontFace(m_vertices[indices[i]], m_vertices[indices[i + 1]],
+                                        m_vertices[indices[i + 2]]);
     }
   }
 }
@@ -411,22 +455,22 @@ static void CopyLineVertex(OutputVertexData* dst, const OutputVertexData* src, i
   }
 }
 
-void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
+void Clipper::ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
 {
   int indices[4] = {0, 1, SKIP_FLAG, SKIP_FLAG};
 
-  Vertices[0] = lineV0;
-  Vertices[1] = lineV1;
+  m_vertices[0] = lineV0;
+  m_vertices[1] = lineV1;
 
   // point to a valid vertex to store to when clipping
-  Vertices[2] = &ClippedVertices[17];
+  m_vertices[2] = &m_clipped_vertices[17];
 
   ClipLine(indices);
 
   if (indices[0] != SKIP_FLAG)
   {
-    OutputVertexData* v0 = Vertices[indices[0]];
-    OutputVertexData* v1 = Vertices[indices[1]];
+    OutputVertexData* v0 = m_vertices[indices[0]];
+    OutputVertexData* v1 = m_vertices[indices[1]];
 
     PerspectiveDivide(v0);
     PerspectiveDivide(v1);
@@ -494,7 +538,7 @@ static void CopyPointVertex(OutputVertexData* dst, const OutputVertexData* src, 
   }
 }
 
-void ProcessPoint(OutputVertexData* center)
+void Clipper::ProcessPoint(OutputVertexData* center)
 {
   // TODO: This isn't actually doing any clipping
   PerspectiveDivide(center);
@@ -508,50 +552,5 @@ void ProcessPoint(OutputVertexData* center)
 
   Rasterizer::DrawTriangleFrontFace(&ll, &ul, &lr);
   Rasterizer::DrawTriangleFrontFace(&ur, &lr, &ul);
-}
-
-bool IsTriviallyRejected(const OutputVertexData* v0, const OutputVertexData* v1,
-                         const OutputVertexData* v2)
-{
-  int mask = CalcClipMask(v0);
-  mask &= CalcClipMask(v1);
-  mask &= CalcClipMask(v2);
-
-  return mask != 0;
-}
-
-bool IsBackface(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2)
-{
-  float x0 = v0->projectedPosition.x;
-  float x1 = v1->projectedPosition.x;
-  float x2 = v2->projectedPosition.x;
-  float y1 = v1->projectedPosition.y;
-  float y0 = v0->projectedPosition.y;
-  float y2 = v2->projectedPosition.y;
-  float w0 = v0->projectedPosition.w;
-  float w1 = v1->projectedPosition.w;
-  float w2 = v2->projectedPosition.w;
-
-  float normalZDir = (x0 * w2 - x2 * w0) * y1 + (x2 * y0 - x0 * y2) * w1 + (y2 * w0 - y0 * w2) * x1;
-
-  bool backface = normalZDir <= 0.0f;
-  // Jimmie Johnson's Anything with an Engine has a positive viewport, while other games have a
-  // negative viewport.  The positive viewport does not require vertices to be vertically mirrored,
-  // but the backface test does need to be inverted for things to be drawn.
-  if (xfmem.viewport.ht > 0)
-    backface = !backface;
-
-  return backface;
-}
-
-void PerspectiveDivide(OutputVertexData* vertex)
-{
-  Vec4& projected = vertex->projectedPosition;
-  Vec3& screen = vertex->screenPosition;
-
-  float wInverse = 1.0f / projected.w;
-  screen.x = projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig;
-  screen.y = projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig;
-  screen.z = projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
 }
 }  // namespace Clipper
