@@ -148,4 +148,25 @@ GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
 
   return out;
 }
+
+std::size_t PipelineToHash(const GXPipelineUid& in)
+{
+  XXH3_state_t pipeline_hash_state;
+  XXH3_INITSTATE(&pipeline_hash_state);
+  XXH3_64bits_reset_withSeed(&pipeline_hash_state, static_cast<XXH64_hash_t>(1));
+  UpdateHashWithPipeline(in, &pipeline_hash_state);
+  return XXH3_64bits_digest(&pipeline_hash_state);
+}
+
+void UpdateHashWithPipeline(const GXPipelineUid& in, XXH3_state_t* hash_state)
+{
+  XXH3_64bits_update(hash_state, &in.vertex_format->GetVertexDeclaration(),
+                     sizeof(PortableVertexDeclaration));
+  XXH3_64bits_update(hash_state, &in.blending_state, sizeof(BlendingState));
+  XXH3_64bits_update(hash_state, &in.depth_state, sizeof(DepthState));
+  XXH3_64bits_update(hash_state, &in.rasterization_state, sizeof(RasterizationState));
+  XXH3_64bits_update(hash_state, &in.gs_uid, sizeof(GeometryShaderUid));
+  XXH3_64bits_update(hash_state, &in.ps_uid, sizeof(PixelShaderUid));
+  XXH3_64bits_update(hash_state, &in.vs_uid, sizeof(VertexShaderUid));
+}
 }  // namespace VideoCommon
