@@ -11,6 +11,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/Config/GraphicsSettings.h"
+
 #include "VideoBackends/Software/CopyRegion.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/LookUpTables.h"
@@ -494,10 +496,25 @@ static u32 VerticalFilter(const std::array<u32, 3>& colors,
     //   * Coefficients 2, 3 and 4 sample from the current pixel.
     //   * Coefficients 0 and 1 sample from the pixel above this one
     //   * Coefficients 5 and 6 sample from the pixel below this one
-    int sum =
-        in_colors[0][i] * (filterCoefficients[0] + filterCoefficients[1]) +
-        in_colors[1][i] * (filterCoefficients[2] + filterCoefficients[3] + filterCoefficients[4]) +
-        in_colors[2][i] * (filterCoefficients[5] + filterCoefficients[6]);
+    //
+    // We normally don't implement enhancements in the software renderer.
+    // However, disabling the copy filter is useful for debugging.
+    const bool disable_copy_filter = Config::Get(Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
+    int sum;
+    if (disable_copy_filter)
+    {
+      sum =
+          in_colors[1][i] * (filterCoefficients[0] + filterCoefficients[1] + filterCoefficients[2] +
+                             filterCoefficients[3] + filterCoefficients[4] + filterCoefficients[5] +
+                             filterCoefficients[6]);
+    }
+    else
+    {
+      sum = in_colors[0][i] * (filterCoefficients[0] + filterCoefficients[1]) +
+            in_colors[1][i] *
+                (filterCoefficients[2] + filterCoefficients[3] + filterCoefficients[4]) +
+            in_colors[2][i] * (filterCoefficients[5] + filterCoefficients[6]);
+    }
 
     // TODO: this clamping behavior appears to be correct, but isn't confirmed on hardware.
     out_color[i] = std::min(255, sum >> 6);  // clamp larger values to 255
