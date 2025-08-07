@@ -126,12 +126,6 @@ const std::string SConfig::GetTitleDescription() const
   return m_title_description;
 }
 
-std::string SConfig::GetTriforceID() const
-{
-  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
-  return m_triforce_id;
-}
-
 u64 SConfig::GetTitleID() const
 {
   std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
@@ -235,7 +229,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   const Core::TitleDatabase title_database;
   auto& system = Core::System::GetInstance();
   const DiscIO::Language language = GetLanguageAdjustedForRegion(system.IsWii(), region);
-  m_title_name = title_database.GetTitleName(m_gametdb_id, m_triforce_id, language);
+  m_title_name = title_database.GetTitleName(m_gametdb_id, language);
   m_title_description = title_database.Describe(m_gametdb_id, language);
   NOTICE_LOG_FMT(CORE, "Active title: {}", m_title_description);
   Host_TitleChanged();
@@ -432,6 +426,12 @@ bool SConfig::SetPathsAndGameMetadata(Core::System& system, const BootParameters
 
   if (m_region == DiscIO::Region::Unknown)
     m_region = Config::Get(Config::MAIN_FALLBACK_REGION);
+
+  // Triforce IPL
+  if (m_triforce_id.length())
+  {
+    m_region = DiscIO::Region::DEV;
+  }
 
   // Set up paths
   const std::string region_dir = Config::GetDirectoryForRegion(Config::ToGameCubeRegion(m_region));

@@ -52,6 +52,7 @@
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
+#include "Core/HW/DVD/AMMediaboard.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GBAPad.h"
 #include "Core/HW/GCKeyboard.h"
@@ -298,6 +299,13 @@ void Stop(Core::System& system)  // - Hammertime!
     INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Wait for Video Loop to exit ..."));
 
     system.GetFifo().ExitGpuLoop();
+  }
+
+  const ExpansionInterface::EXIDeviceType type = Config::Get(Config::MAIN_SERIAL_PORT_1);
+
+  if ((type == ExpansionInterface::EXIDeviceType::Baseboard))
+  {
+    AMMediaboard::Shutdown();
   }
 }
 

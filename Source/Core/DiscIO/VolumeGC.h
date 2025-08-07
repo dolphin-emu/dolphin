@@ -34,7 +34,6 @@ public:
             const Partition& partition = PARTITION_NONE) const override;
   const FileSystem* GetFileSystem(const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const override;
-  std::string GetTriforceID() const override;
   std::map<Language, std::string> GetShortNames() const override;
   std::map<Language, std::string> GetLongNames() const override;
   std::map<Language, std::string> GetShortMakers() const override;
@@ -82,6 +81,13 @@ private:
     u32 magic;  // "BTID"
     u32 padding[11];
     std::array<char, 4> id;
+    u32 padding_b;
+    u8 region;
+    u8 padding_c[0x27];
+    std::array<char, 32> maker;
+    std::array<char, 32> name;
+    u32 padding_d[0x10];
+    char credits_text[8][32];
   };
 
   struct ConvertedGCBanner
@@ -113,7 +119,6 @@ private:
   std::unique_ptr<BlobReader> m_reader;
 
   bool m_is_triforce;
-  std::array<char, 4> m_triforce_id;
 };
 
 }  // namespace DiscIO

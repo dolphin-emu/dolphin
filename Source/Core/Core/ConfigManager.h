@@ -67,7 +67,6 @@ struct SConfig
   const std::string GetGameTDBID() const;
   const std::string GetTitleName() const;
   const std::string GetTitleDescription() const;
-  std::string GetTriforceID() const;
   u64 GetTitleID() const;
   u16 GetRevision() const;
   void ResetRunningGameMetadata();
