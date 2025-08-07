@@ -12,6 +12,7 @@
 #include <QLabel>
 #include <QRadioButton>
 #include <QSignalBlocker>
+#include <QTimeZone>
 #include <QVBoxLayout>
 #include <cmath>
 
@@ -251,9 +252,18 @@ void AdvancedPane::CreateLayout()
       QStringLiteral("mm"), QStringLiteral("mm:ss")));
 
   QtUtils::ShowFourDigitYear(m_custom_rtc_datetime);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+  m_custom_rtc_datetime->setDateTimeRange(QDateTime({2000, 1, 1}, {0, 0, 0}, QTimeZone::UTC),
+                                          QDateTime({2099, 12, 31}, {23, 59, 59}, QTimeZone::UTC));
+#else
   m_custom_rtc_datetime->setDateTimeRange(QDateTime({2000, 1, 1}, {0, 0, 0}, Qt::UTC),
                                           QDateTime({2099, 12, 31}, {23, 59, 59}, Qt::UTC));
+#endif
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  m_custom_rtc_datetime->setTimeZone(QTimeZone::UTC);
+#else
   m_custom_rtc_datetime->setTimeSpec(Qt::UTC);
+#endif
   rtc_options->layout()->addWidget(m_custom_rtc_datetime);
 
   m_custom_rtc_checkbox->SetDescription(
