@@ -946,6 +946,11 @@ void WriteVertexBody(APIType api_type, const ShaderHostConfig& host_config,
                 "vertex_lighting_1.y, 1);\n",
                 i);
       break;
+    case TexGenType::Passthrough:
+      out.Write("\tvertex_output.texture_coord_{0}.xyz = vec3(vertex_input.texture_coord_{0}.x, "
+                "vertex_input.texture_coord_{0}.y, 1);\n",
+                i);
+      break;
     case TexGenType::Regular:
       out.Write("\tvertex_output.texture_coord_{0} = "
                 "dolphin_transform_texcoord{0}(vertex_input.texture_coord_{0});\n",
