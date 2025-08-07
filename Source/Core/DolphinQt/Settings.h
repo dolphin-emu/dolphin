@@ -121,6 +121,9 @@ public:
 
   bool IsWiiSpeakMuted() const;
   void SetWiiSpeakMuted(bool muted);
+  
+  bool IsLogitechMicMuted() const;
+  void SetLogitechMicMuted(bool muted);
 
   void SetIsContinuouslyFrameStepping(bool is_stepping);
   bool GetIsContinuouslyFrameStepping() const;
@@ -226,6 +229,7 @@ signals:
   void SDCardInsertionChanged(bool inserted);
   void USBKeyboardConnectionChanged(bool connected);
   void WiiSpeakMuteChanged(bool muted);
+  void LogitechMicMuteChanged(bool muted);
   void EnableGfxModsChanged(bool enabled);
 
 private:

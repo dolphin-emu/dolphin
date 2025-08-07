@@ -1,0 +1,2 @@
+/usr/bin/ar qcTP libaudiocommon.a CMakeFiles/audiocommon.dir/AudioCommon.cpp.o CMakeFiles/audiocommon.dir/Mixer.cpp.o CMakeFiles/audiocommon.dir/SurroundDecoder.cpp.o CMakeFiles/audiocommon.dir/NullSoundStream.cpp.o CMakeFiles/audiocommon.dir/WaveFile.cpp.o CMakeFiles/audiocommon.dir/CubebStream.cpp.o CMakeFiles/audiocommon.dir/CubebUtils.cpp.o CMakeFiles/audiocommon.dir/AlsaSoundStream.cpp.o CMakeFiles/audiocommon.dir/PulseAudioStream.cpp.o
+/usr/bin/ranlib libaudiocommon.a

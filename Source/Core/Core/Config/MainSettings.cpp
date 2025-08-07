@@ -608,6 +608,16 @@ const Info<std::string> MAIN_WII_SPEAK_MICROPHONE{
 const Info<bool> MAIN_WII_SPEAK_MUTED{{System::Main, "EmulatedUSBDevices", "WiiSpeakMuted"}, true};
 const Info<s16> MAIN_WII_SPEAK_VOLUME_MODIFIER{
     {System::Main, "EmulatedUSBDevices", "WiiSpeakVolumeModifier"}, 0};
+    
+const Info<bool> MAIN_EMULATE_LOGITECH_MIC{{System::Main, "EmulatedUSBDevices", "EmulateLogitechMic"},
+                                        false};
+
+const Info<std::string> MAIN_LOGITECH_MIC_MICROPHONE{
+    {System::Main, "EmulatedUSBDevices", "LogitechMicMicrophone"}, ""};
+
+const Info<bool> MAIN_LOGITECH_MIC_MUTED{{System::Main, "EmulatedUSBDevices", "LogitechMicMuted"}, true};
+const Info<s16> MAIN_LOGITECH_MIC_VOLUME_MODIFIER{
+    {System::Main, "EmulatedUSBDevices", "LogitechMicVolumeModifier"}, 0};
 
 // The reason we need this function is because some memory card code
 // expects to get a non-NTSC-K region even if we're emulating an NTSC-K Wii.

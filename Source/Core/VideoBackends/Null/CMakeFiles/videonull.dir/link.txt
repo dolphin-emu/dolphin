@@ -1,0 +1,2 @@
+/usr/bin/ar qcTP libvideonull.a CMakeFiles/videonull.dir/NullBackend.cpp.o CMakeFiles/videonull.dir/NullGfx.cpp.o CMakeFiles/videonull.dir/NullTexture.cpp.o CMakeFiles/videonull.dir/NullVertexManager.cpp.o
+/usr/bin/ranlib libvideonull.a

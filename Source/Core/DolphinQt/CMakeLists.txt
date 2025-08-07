@@ -251,6 +251,8 @@ add_executable(dolphin-emu
   DiscordJoinRequestDialog.h
   EmulatedUSB/WiiSpeakWindow.cpp
   EmulatedUSB/WiiSpeakWindow.h
+  EmulatedUSB/LogitechMicWindow.cpp
+  EmulatedUSB/LogitechMicWindow.h
   FIFO/FIFOAnalyzer.cpp
   FIFO/FIFOAnalyzer.h
   FIFO/FIFOPlayerWindow.cpp
