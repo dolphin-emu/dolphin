@@ -57,4 +57,5 @@ private:
   static void AddKnownNote(u32 start_addr, u32 size, const std::string& name, XNoteMap* notes);
 
   static void DetermineNoteLayers(XNoteMap* notes);
+  static void FillInCallers(XFuncMap* functions);
 };

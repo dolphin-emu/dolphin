@@ -236,13 +236,17 @@ std::string PPCSymbolDB::GetDescription(u32 addr) const
 void PPCSymbolDB::FillInCallers()
 {
   std::lock_guard lock(m_mutex);
+  FillInCallers(&m_functions);
+}
 
-  for (auto& p : m_functions)
+void PPCSymbolDB::FillInCallers(XFuncMap* functions)
+{
+  for (auto& p : *functions)
   {
     p.second.callers.clear();
   }
 
-  for (auto& entry : m_functions)
+  for (auto& entry : *functions)
   {
     Common::Symbol& f = entry.second;
     for (const Common::SCall& call : f.calls)
@@ -250,8 +254,8 @@ void PPCSymbolDB::FillInCallers()
       const Common::SCall new_call(entry.first, call.call_address);
       const u32 function_address = call.function;
 
-      auto func_iter = m_functions.find(function_address);
-      if (func_iter != m_functions.end())
+      auto func_iter = functions->find(function_address);
+      if (func_iter != functions->end())
       {
         Common::Symbol& called_function = func_iter->second;
         called_function.callers.push_back(new_call);
@@ -622,7 +626,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, std::string filenam
 
   Index(&new_functions);
   DetermineNoteLayers(&new_notes);
-  FillInCallers();
+  FillInCallers(&new_functions);
 
   std::lock_guard lock(m_mutex);
   std::swap(m_functions, new_functions);
