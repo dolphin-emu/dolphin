@@ -485,7 +485,8 @@ bool AchievementManager::CheckApprovedCode(const T& code, const std::string& gam
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
   {
     auto config = filename.substr(0, filename.length() - 4);
-    if (m_ini_root->contains(config) && m_ini_root->get(config).contains(hash))
+    if (m_ini_root->contains(config) && m_ini_root->get(config).contains(code.name) &&
+        m_ini_root->get(config).get(code.name).get<std::string>() == hash)
       verified = true;
   }
 
