@@ -1266,7 +1266,7 @@ void AchievementManager::HandleGameCompletedEvent(const rc_client_event_t* clien
     return;
   }
   bool hardcore = rc_client_get_hardcore_enabled(client);
-  OSD::AddMessage(fmt::format("Congratulations! {} has {} {}", user_info->display_name,
+  OSD::AddMessage(fmt::format("Congratulations, {}! You have {} {}", user_info->display_name,
                               hardcore ? "mastered" : "completed", game_info->title),
                   OSD::Duration::VERY_LONG, hardcore ? OSD::Color::YELLOW : OSD::Color::CYAN,
                   &AchievementManager::GetInstance().GetGameBadge());
