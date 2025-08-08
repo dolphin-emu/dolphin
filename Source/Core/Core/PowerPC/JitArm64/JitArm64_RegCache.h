@@ -388,14 +388,16 @@ public:
 
   BitSet32 GetDirtyGPRs() const;
 
-  void StoreRegisters(BitSet32 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG)
+  void StoreRegisters(BitSet32 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG,
+                      FlushMode flush_mode = FlushMode::All)
   {
-    FlushRegisters(regs, FlushMode::All, tmp_reg, IgnoreDiscardedRegisters::No);
+    FlushRegisters(regs, flush_mode, tmp_reg, IgnoreDiscardedRegisters::No);
   }
 
-  void StoreCRRegisters(BitSet8 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG)
+  void StoreCRRegisters(BitSet8 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG,
+                        FlushMode flush_mode = FlushMode::All)
   {
-    FlushCRRegisters(regs, FlushMode::All, tmp_reg, IgnoreDiscardedRegisters::No);
+    FlushCRRegisters(regs, flush_mode, tmp_reg, IgnoreDiscardedRegisters::No);
   }
 
   void DiscardCRRegisters(BitSet8 regs);
@@ -459,9 +461,10 @@ public:
 
   void FixSinglePrecision(size_t preg);
 
-  void StoreRegisters(BitSet32 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG)
+  void StoreRegisters(BitSet32 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG,
+                      FlushMode flush_mode = FlushMode::All)
   {
-    FlushRegisters(regs, FlushMode::All, tmp_reg);
+    FlushRegisters(regs, flush_mode, tmp_reg);
   }
 
 protected:

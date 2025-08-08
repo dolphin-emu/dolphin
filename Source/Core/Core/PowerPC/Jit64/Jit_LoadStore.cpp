@@ -110,6 +110,8 @@ void Jit64::lXXx(UGeckoInstruction inst)
     PanicAlertFmt("Invalid instruction");
   }
 
+  FlushRegistersBeforeSlowAccess();
+
   // PowerPC has no 8-bit sign extended load, but x86 does, so merge extsb with the load if we find
   // it.
   if (CanMergeNextInstructions(1) && accessSize == 8 && js.op[1].inst.OPCD == 31 &&
@@ -439,6 +441,8 @@ void Jit64::dcbz(UGeckoInstruction inst)
   int a = inst.RA;
   int b = inst.RB;
 
+  FlushRegistersBeforeSlowAccess();
+
   {
     RCOpArg Ra = a ? gpr.Use(a, RCMode::Read) : RCOpArg::Imm32(0);
     RCOpArg Rb = gpr.Use(b, RCMode::Read);
@@ -477,7 +481,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
     SwitchToFarCode();
     SetJumpTarget(slow);
   }
-  MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
+  FlushPCBeforeSlowAccess();
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
   ABI_CallFunctionPR(PowerPC::ClearDCacheLineFromJit, &m_mmu, RSCRATCH);
@@ -523,6 +527,8 @@ void Jit64::stX(UGeckoInstruction inst)
     ASSERT_MSG(DYNA_REC, 0, "stX: Invalid access size.");
     return;
   }
+
+  FlushRegistersBeforeSlowAccess();
 
   // If we already know the address of the write
   if (!a || gpr.IsImm(a))
@@ -602,6 +608,8 @@ void Jit64::stXx(UGeckoInstruction inst)
     break;
   }
 
+  FlushRegistersBeforeSlowAccess();
+
   const bool does_clobber = WriteClobbersRegValue(accessSize, /* swap */ !byte_reverse);
 
   RCOpArg Ra = update ? gpr.Bind(a, RCMode::ReadWrite) : gpr.Use(a, RCMode::Read);
@@ -634,6 +642,8 @@ void Jit64::lmw(UGeckoInstruction inst)
 
   int a = inst.RA, d = inst.RD;
 
+  FlushRegistersBeforeSlowAccess();
+
   // TODO: This doesn't handle rollback on DSI correctly
   {
     RCOpArg Ra = a ? gpr.Use(a, RCMode::Read) : RCOpArg::Imm32(0);
@@ -656,6 +666,8 @@ void Jit64::stmw(UGeckoInstruction inst)
   JITDISABLE(bJITLoadStoreOff);
 
   int a = inst.RA, d = inst.RD;
+
+  FlushRegistersBeforeSlowAccess();
 
   // TODO: This doesn't handle rollback on DSI correctly
   for (int i = d; i < 32; i++)
