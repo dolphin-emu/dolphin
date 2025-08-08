@@ -1022,6 +1022,16 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
                     OSD::Color::RED);
     return;
   }
+  if (result == RC_LOGIN_REQUIRED || result == RC_INVALID_CREDENTIALS || result == RC_EXPIRED_TOKEN)
+  {
+    WARN_LOG_FMT(ACHIEVEMENTS, "Invalid/expired RetroAchievements API token.");
+    OSD::AddMessage(
+        "You have been logged out from RetroAchievements due to invalid/expired credentials.",
+        OSD::Duration::VERY_LONG, OSD::Color::RED);
+    OSD::AddMessage("Please close the game to log back in before continuing.",
+                    OSD::Duration::VERY_LONG, OSD::Color::RED);
+    return;
+  }
 
   auto* game = rc_client_get_game_info(client);
   if (result == RC_OK)
