@@ -110,3 +110,7 @@
 	path = Externals/glslang/glslang
 	url = https://github.com/KhronosGroup/glslang.git
 	shallow = true
+[submodule "Externals/cpp-ipc/cpp-ipc"]
+	path = Externals/cpp-ipc/cpp-ipc
+	url = https://github.com/mutouyun/cpp-ipc.git
+	shallow = true
