@@ -793,6 +793,10 @@ endif()
 
 add_subdirectory(Externals/watcher)
 
+if(WIN32 OR LINUX)
+  add_subdirectory(Externals/cpp-ipc)
+endif()
+
 ########################################
 # Pre-build events: Define configuration variables and write SCM info header
 #
