@@ -111,6 +111,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             Log.debug("[EmulationFragment] Pausing emulation.")
             NativeLibrary.PauseEmulation(true)
         }
+        // create exitsave here too, in case android kills the paused process
+        emulationActivity?.saveOnExit()
         super.onPause()
     }
 
@@ -161,6 +163,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     fun stopEmulation() {
+        emulationActivity?.saveOnExit()
         Log.debug("[EmulationFragment] Stopping emulation.")
         NativeLibrary.StopEmulation()
     }
@@ -220,6 +223,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 EmulationActivity.stopIgnoringLaunchRequests()
             }, "NativeEmulation")
             emulationThread.start()
+            emulationActivity?.loadExitsaveOnStart()
         } else {
             if (!EmulationActivity.hasUserPausedEmulation && !NativeLibrary.IsShowingAlertMessage()) {
                 Log.debug("[EmulationFragment] Resuming emulation.")

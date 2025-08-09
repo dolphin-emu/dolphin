@@ -60,6 +60,7 @@ import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
+import org.dolphinemu.dolphinemu.utils.Log
 import org.dolphinemu.dolphinemu.utils.ThemeHelper
 import kotlin.math.roundToInt
 
@@ -456,6 +457,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_ACTION_PAUSE_EMULATION -> {
                 hasUserPausedEmulation = true
                 NativeLibrary.PauseEmulation(false)
+                saveOnExit()
             }
 
             MENU_ACTION_UNPAUSE_EMULATION -> {
@@ -1166,5 +1168,27 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             view.getGlobalVisibleRect(viewBounds)
             return !viewBounds.contains(x.roundToInt(), y.roundToInt())
         }
+    }
+
+     fun saveOnExit() {
+      if (BooleanSetting.MAIN_EXIT_SAVE_AND_LOAD.boolean) {
+        Log.error("[EmulationActivity] Exitsave on Pause")
+        NativeLibrary.SaveState(10, true)
+      }
+    }
+
+     fun loadExitsaveOnStart() {
+      if (BooleanSetting.MAIN_EXIT_SAVE_AND_LOAD.boolean) {
+        while (!NativeLibrary.IsRunningAndUnpaused()){
+          Thread.sleep(10)
+        }
+        Log.error("[EmulationActivity] Load Exitsave on start")
+        val creationTime = NativeLibrary.GetUnixTimeOfStateSlot(9)
+        if (creationTime != 0L) {
+          NativeLibrary.LoadState(9)
+        } else {
+          Log.error("[EmulationActivity] Exitsave-Slot not available")
+        }
+      }
     }
 }

@@ -32,6 +32,7 @@
     <string name="wiimote_extensions">Extension</string>
 
     <string name="input_device">Device</string>
+    <string name="input_test">TEST</string>
     <string name="input_device_all_devices">Create Mappings for Other Devices</string>
     <string name="input_device_all_devices_description">Detects inputs from all devices, not just the selected device.</string>
     <string name="input_profile">Profile</string>
@@ -126,6 +127,8 @@
     <string name="fallback_region">Fallback Region</string>
     <string name="enable_save_states">Enable Savestates</string>
     <string name="enable_save_states_description">WARNING: Savestates may not be compatible with future versions of Dolphin and can make it impossible to create normal saves in some cases. Never use savestates as the only way of saving your progress.</string>
+    <string name="enable_exit_save_and_load">Enable Exitsave and Quickload</string>
+    <string name="enable_exit_save_and_load_description">Pick it right up where you left it! This will save your game every time you exit the game, and loads it back when you start it again.</string>
     <string name="analytics">Enable usage statistics reporting</string>
     <string name="analytics_desc">If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system\'s hardware and operating system.\n\nNo private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues. This authorization can be revoked at any time through Dolphin\'s settings.</string>
     <string name="analytics_new_id">Generate a New Statistics Identity</string>

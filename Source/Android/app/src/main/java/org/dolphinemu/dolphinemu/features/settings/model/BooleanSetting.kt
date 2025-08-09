@@ -136,6 +136,12 @@ enum class BooleanSetting(
         "EnableSaveStates",
         false
     ),
+    MAIN_EXIT_SAVE_AND_LOAD(
+      Settings.FILE_DOLPHIN,
+      Settings.SECTION_INI_CORE,
+      "EnableExitSaveAndLoad",
+      false
+    ),
     MAIN_WII_WIILINK_ENABLE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "EnableWiiLink", false),
     MAIN_DSP_JIT(Settings.FILE_DOLPHIN, Settings.SECTION_INI_DSP, "EnableJIT", true),
     MAIN_TIME_TRACKING(

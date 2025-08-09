@@ -291,6 +291,14 @@ class SettingsFragmentPresenter(
                 R.string.enable_save_states_description
             )
         )
+        sl.add(
+          SwitchSetting(
+            context,
+            BooleanSetting.MAIN_EXIT_SAVE_AND_LOAD,
+            R.string.enable_exit_save_and_load,
+            R.string.enable_exit_save_and_load_description
+          )
+        )
     }
 
     private fun addInterfaceSettings(sl: ArrayList<SettingsItem>) {
