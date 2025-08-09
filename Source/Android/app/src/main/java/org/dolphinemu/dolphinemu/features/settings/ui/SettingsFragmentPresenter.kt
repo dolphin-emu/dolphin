@@ -2446,14 +2446,8 @@ class SettingsFragmentPresenter(
           0,
           true
         ) { fragmentView.showDialogFragment(ProfileDialog.create(menuTag)) }
-
-        sl.add(profileSelector)
         profileSelector.updateDescription(context.getString(R.string.input_profiles_descríption, controller.getProfileName()))
-
-      /*var l = ""
-      ProfileDialogPresenter(menuTag).getProfileNames(false).forEach { l+= "$it, " }
-      Log.error("Profile: ${}")
-      Log.error("Profiles: $l")*/
+        sl.add(profileSelector)
 
         updateOldControllerSettingsWarningVisibility(controller)
     }

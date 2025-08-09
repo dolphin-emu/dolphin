@@ -47,7 +47,7 @@ class ProfileDialogPresenter {
             .setMessage(context.getString(R.string.input_profile_confirm_load, profileName))
             .setPositiveButton(R.string.yes) { _: DialogInterface?, _: Int ->
                 menuTag.correspondingEmulatedController
-                    .loadProfile(getProfilePath(profileName, stock), profileName)
+                    .loadProfile(getProfilePath(profileName, stock))
                 (dialog!!.requireActivity() as SettingsActivityView).onControllerSettingsChanged()
                 dialog.dismiss()
 
@@ -69,6 +69,7 @@ class ProfileDialogPresenter {
             MaterialAlertDialogBuilder(context!!)
                 .setMessage(context.getString(R.string.input_profile_confirm_save, profileName))
                 .setPositiveButton(R.string.yes) { _: DialogInterface?, _: Int ->
+                    menuTag.correspondingEmulatedController.setProfileName(profileName)
                     menuTag.correspondingEmulatedController.saveProfile(profilePath)
                     dialog!!.dismiss()
                 }
