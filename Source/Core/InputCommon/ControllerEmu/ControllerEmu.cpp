@@ -118,6 +118,10 @@ void EmulatedController::LoadConfig(Common::IniFile::Section* sec)
   if (sec->Get("Device", &defdev, ""))
     SetDefaultDevice(defdev);
 
+  std::string name;
+  if (sec->Get("ProfileName", &name, ""))
+      SetProfileName(name);
+
   LoadGroupsConfig(sec, "");
 }
 
@@ -132,6 +136,7 @@ void EmulatedController::SaveConfig(Common::IniFile::Section* sec)
   const auto lock = EmulatedController::GetStateLock();
 
   sec->Set("Device", GetDefaultDevice().ToString(), "");
+  sec->Set("ProfileName", GetProfileName(), "");
 
   SaveGroupsConfig(sec, "");
 }

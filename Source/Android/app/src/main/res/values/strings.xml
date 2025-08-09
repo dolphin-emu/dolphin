@@ -37,6 +37,7 @@
     <string name="input_profile">Profile</string>
     <string name="input_profiles_empty">You haven\'t created any profiles yet.</string>
     <string name="input_profiles">Profiles</string>
+    <string name="input_profiles_descríption">Loaded Profile: %1$s</string>
     <string name="input_profile_new">(New Profile)</string>
     <string name="input_profile_load">Load</string>
     <string name="input_profile_save">Save</string>
