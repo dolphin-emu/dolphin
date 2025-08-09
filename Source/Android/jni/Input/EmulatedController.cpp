@@ -121,7 +121,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
 
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_loadProfile(
-    JNIEnv* env, jobject obj, jstring j_path)
+    JNIEnv* env, jobject obj, jstring j_path, jstring j_profileName)
 {
   ControllerEmu::EmulatedController* controller = EmulatedControllerFromJava(env, obj);
 
@@ -129,6 +129,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
   ini.Load(GetJString(env, j_path));
 
   controller->LoadConfig(ini.GetOrCreateSection("Profile"));
+  controller->SetProfileName(GetJString(env, j_profileName));
   controller->UpdateReferences(g_controller_interface);
   controller->GetConfig()->GenerateControllerTextures();
 }
@@ -152,6 +153,14 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
     JNIEnv* env, jobject obj)
 {
   return ToJString(env, EmulatedControllerFromJava(env, obj)->GetConfig()->GetProfileKey());
+}
+
+
+JNIEXPORT jstring JNICALL
+        Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getProfileName(
+        JNIEnv* env, jobject obj)
+{
+  return ToJString(env, EmulatedControllerFromJava(env, obj)->GetProfileName());
 }
 
 JNIEXPORT jstring JNICALL
