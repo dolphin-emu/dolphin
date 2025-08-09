@@ -14,7 +14,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.Settings
  */
 abstract class SettingsItem {
     val name: CharSequence
-    val description: CharSequence
+    var description: CharSequence
 
     /**
      * Base constructor.
@@ -70,6 +70,15 @@ abstract class SettingsItem {
     open fun clear(settings: Settings) {
         setting!!.delete(settings)
     }
+
+    /**
+     * Update Description of this SettingsItem
+     *
+     * @param description New text string to be displayed as this Setting's description.
+     */
+      open fun updateDescription(description: String) {
+        this.description = description
+      }
 
     companion object {
         const val TYPE_HEADER = 0

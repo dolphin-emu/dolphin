@@ -11,7 +11,7 @@ import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.DialogInputStringBinding
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView
-import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
+import org.dolphinemu.dolphinemu.utils.Log
 import java.io.File
 import java.util.Locale
 
@@ -47,9 +47,11 @@ class ProfileDialogPresenter {
             .setMessage(context.getString(R.string.input_profile_confirm_load, profileName))
             .setPositiveButton(R.string.yes) { _: DialogInterface?, _: Int ->
                 menuTag.correspondingEmulatedController
-                    .loadProfile(getProfilePath(profileName, stock))
+                    .loadProfile(getProfilePath(profileName, stock), profileName)
                 (dialog!!.requireActivity() as SettingsActivityView).onControllerSettingsChanged()
                 dialog.dismiss()
+
+              Log.error("Loaded Profile: $profileName, ${menuTag.correspondingEmulatedController.getProfileName()}")
             }
             .setNegativeButton(R.string.no, null)
             .show()
