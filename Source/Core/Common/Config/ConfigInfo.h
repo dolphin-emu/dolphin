@@ -28,7 +28,6 @@ struct Location
   std::string key;
 
   bool operator==(const Location& other) const;
-  bool operator!=(const Location& other) const;
   bool operator<(const Location& other) const;
 };
 

@@ -848,6 +848,7 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     packet >> m_net_settings.cpu_thread;
     packet >> m_net_settings.cpu_core;
     packet >> m_net_settings.enable_cheats;
+    packet >> m_net_settings.enable_hardcore;
     packet >> m_net_settings.selected_language;
     packet >> m_net_settings.override_region_settings;
     packet >> m_net_settings.dsp_enable_jit;

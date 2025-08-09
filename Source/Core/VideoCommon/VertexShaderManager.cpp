@@ -148,8 +148,14 @@ bool VertexShaderManager::UseVertexDepthRange()
     return true;
 
   // If an inverted depth range is unsupported, we also need to check if the range is inverted.
-  if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange && xfmem.viewport.zRange < 0.0f)
-    return true;
+  if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+  {
+    if (xfmem.viewport.zRange < 0.0f)
+      return true;
+
+    if (xfmem.viewport.zRange > xfmem.viewport.farZ)
+      return true;
+  }
 
   // If an oversized depth range or a ztexture is used, we need to calculate the depth range
   // in the vertex shader.

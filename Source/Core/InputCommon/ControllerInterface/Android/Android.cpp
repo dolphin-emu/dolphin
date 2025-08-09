@@ -693,7 +693,7 @@ private:
         negative = new AndroidAxis(source, axis, true);
 
       if (positive && negative)
-        AddAnalogInputs(positive, negative);
+        AddFullAnalogSurfaceInputs(positive, negative);
       else if (positive || negative)
         AddInput(positive ? positive : negative);
     }

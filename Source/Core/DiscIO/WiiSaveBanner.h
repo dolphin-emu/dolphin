@@ -13,6 +13,9 @@ namespace DiscIO
 class WiiSaveBanner
 {
 public:
+  static constexpr u32 BANNER_WIDTH = 192;
+  static constexpr u32 BANNER_HEIGHT = 64;
+
   explicit WiiSaveBanner(u64 title_id);
   explicit WiiSaveBanner(const std::string& path);
 

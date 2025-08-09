@@ -23,12 +23,6 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-#ifdef _DEBUG
-#define ALLOW_TEV_DUMPS 1
-#else
-#define ALLOW_TEV_DUMPS 0
-#endif
-
 static inline s16 Clamp255(s16 in)
 {
   return std::clamp<s16>(in, 0, 255);

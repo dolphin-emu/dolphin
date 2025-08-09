@@ -52,6 +52,7 @@
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/IndexGenerator.h"
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -221,10 +222,16 @@ static VideoBackendBase* GetDefaultVideoBackend()
   return backends.front().get();
 }
 
-std::string VideoBackendBase::GetDefaultBackendName()
+std::string VideoBackendBase::GetDefaultBackendConfigName()
 {
   auto* default_backend = GetDefaultVideoBackend();
   return default_backend ? default_backend->GetName() : "";
+}
+
+std::string VideoBackendBase::GetDefaultBackendDisplayName()
+{
+  auto* const default_backend = GetDefaultVideoBackend();
+  return default_backend ? default_backend->GetDisplayName() : "";
 }
 
 const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvailableBackends()
@@ -287,6 +294,11 @@ void VideoBackendBase::ActivateBackend(const std::string& name)
 
 void VideoBackendBase::PopulateBackendInfo(const WindowSystemInfo& wsi)
 {
+  // If the core has been initialized, the backend info will have been populated already. Doing it
+  // again would be unnecessary and could cause the UI thread to race with the GPU thread.
+  if (!Core::IsUninitialized(Core::System::GetInstance()))
+    return;
+
   g_Config.Refresh();
   // Reset backend_info so if the backend forgets to initialize something it doesn't end up using
   // a value from the previously used renderer
@@ -297,14 +309,6 @@ void VideoBackendBase::PopulateBackendInfo(const WindowSystemInfo& wsi)
   // We validate the config after initializing the backend info, as system-specific settings
   // such as anti-aliasing, or the selected adapter may be invalid, and should be checked.
   g_Config.VerifyValidity();
-}
-
-void VideoBackendBase::PopulateBackendInfoFromUI(const WindowSystemInfo& wsi)
-{
-  // If the core is running, the backend info will have been populated already.
-  // If we did it here, the UI thread can race with the with the GPU thread.
-  if (!Core::IsRunning(Core::System::GetInstance()))
-    PopulateBackendInfo(wsi);
 }
 
 void VideoBackendBase::DoState(PointerWrap& p)
@@ -399,6 +403,12 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
 
   g_Config.VerifyValidity();
   UpdateActiveConfig();
+
+  if (g_Config.bDumpTextures)
+  {
+    OSD::AddMessage(fmt::format("Texture Dumping is enabled. This will reduce performance."),
+                    OSD::Duration::NORMAL);
+  }
 
   g_shader_cache->InitializeShaderCache();
 

@@ -21,7 +21,6 @@ struct Pixel
   u8 a = 0;
 
   bool operator==(const Pixel& o) const { return r == o.r && g == o.g && b == o.b && a == o.a; }
-  bool operator!=(const Pixel& o) const { return !(o == *this); }
 };
 
 using Point = Common::TVec2<u32>;

@@ -16,6 +16,7 @@
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonPaths.h"
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Image.h"
@@ -24,6 +25,8 @@
 #include "Common/Version.h"
 #include "Common/WorkQueueThread.h"
 #include "Core/Config/AchievementSettings.h"
+#include "Core/Config/FreeLookSettings.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
@@ -62,7 +65,8 @@ void AchievementManager::Init()
                              [](const char* message, const rc_client_t* client) {
                                INFO_LOG_FMT(ACHIEVEMENTS, "{}", message);
                              });
-    rc_client_set_hardcore_enabled(m_client, Config::Get(Config::RA_HARDCORE_ENABLED));
+    Config::AddConfigChangedCallback([this] { SetHardcoreMode(); });
+    SetHardcoreMode();
     m_queue.Reset("AchievementManagerQueue", [](const std::function<void()>& func) { func(); });
     m_image_queue.Reset("AchievementManagerImageQueue",
                         [](const std::function<void()>& func) { func(); });
@@ -202,6 +206,22 @@ void AchievementManager::SetBackgroundExecutionAllowed(bool allowed)
 
   if (allowed && Core::GetState(*system) == Core::State::Paused)
     DoIdle();
+}
+
+std::string AchievementManager::CalculateHash(const std::string& file_path)
+{
+  char hash_result[33] = "0";
+  rc_hash_filereader volume_reader{
+      .open = &AchievementManager::FilereaderOpenByFilepath,
+      .seek = &AchievementManager::FilereaderSeek,
+      .tell = &AchievementManager::FilereaderTell,
+      .read = &AchievementManager::FilereaderRead,
+      .close = &AchievementManager::FilereaderClose,
+  };
+  rc_hash_init_custom_filereader(&volume_reader);
+  rc_hash_generate_from_file(hash_result, RC_CONSOLE_GAMECUBE, file_path.c_str());
+
+  return std::string(hash_result);
 }
 
 void AchievementManager::FetchPlayerBadge()
@@ -345,6 +365,13 @@ std::recursive_mutex& AchievementManager::GetLock()
 void AchievementManager::SetHardcoreMode()
 {
   rc_client_set_hardcore_enabled(m_client, Config::Get(Config::RA_HARDCORE_ENABLED));
+  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+  {
+    if (Config::Get(Config::MAIN_EMULATION_SPEED) < 1.0f)
+      Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
+    Config::SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, false);
+    Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, false);
+  }
 }
 
 bool AchievementManager::IsHardcoreModeActive() const
@@ -733,6 +760,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to login {} to RetroAchievements server.",
                  Config::Get(Config::RA_USERNAME));
+    AchievementManager::GetInstance().m_update_callback({.failed_login_code = result});
     return;
   }
 
@@ -744,6 +772,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
   if (!user)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to retrieve user information from client.");
+    AchievementManager::GetInstance().m_update_callback({.failed_login_code = RC_INVALID_STATE});
     return;
   }
 
@@ -762,6 +791,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
       INFO_LOG_FMT(ACHIEVEMENTS, "Attempted to login prior user {}; current user is {}.",
                    user->username, Config::Get(Config::RA_USERNAME));
       rc_client_logout(client);
+      AchievementManager::GetInstance().m_update_callback({.failed_login_code = RC_INVALID_STATE});
       return;
     }
   }
@@ -814,6 +844,15 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
                                           rc_client_t* client, void* userdata)
 {
   AchievementManager::GetInstance().m_loading_volume.reset(nullptr);
+  if (result == RC_API_FAILURE)
+  {
+    WARN_LOG_FMT(ACHIEVEMENTS, "Load data request rejected for old Dolphin version.");
+    OSD::AddMessage("RetroAchievements no longer supports this version of Dolphin.",
+                    OSD::Duration::VERY_LONG, OSD::Color::RED);
+    OSD::AddMessage("Please update Dolphin to a newer version.", OSD::Duration::VERY_LONG,
+                    OSD::Color::RED);
+    return;
+  }
   if (result != RC_OK)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load data for current game.");

@@ -233,7 +233,7 @@ void PipeDevice::AddAxis(const std::string& name, double value)
   ax_lo->SetState(value);
   m_axes[name + " +"] = ax_hi;
   m_axes[name + " -"] = ax_lo;
-  AddAnalogInputs(ax_lo, ax_hi);
+  AddFullAnalogSurfaceInputs(ax_lo, ax_hi);
 }
 
 void PipeDevice::SetAxis(const std::string& entry, double value)

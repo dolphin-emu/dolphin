@@ -15,8 +15,3 @@ bool FBInfo::operator==(const FBInfo& other) const
   return m_height == other.m_height && m_width == other.m_width &&
          m_texture_format == other.m_texture_format;
 }
-
-bool FBInfo::operator!=(const FBInfo& other) const
-{
-  return !(*this == other);
-}

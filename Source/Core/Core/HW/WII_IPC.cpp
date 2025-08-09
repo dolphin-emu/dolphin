@@ -290,8 +290,7 @@ void WiiIPC::GenerateAck(u32 address)
                 m_ctrl.Y1, m_ctrl.Y2, m_ctrl.X1);
   // Based on a hardware test, the IPC interrupt takes approximately 100 TB ticks to fire
   // after Y2 is seen in the control register.
-  m_system.GetCoreTiming().ScheduleEvent(100 * SystemTimers::TIMER_RATIO,
-                                         m_event_type_update_interrupts);
+  m_system.GetCoreTiming().ScheduleEvent(100_tbticks, m_event_type_update_interrupts);
 }
 
 void WiiIPC::GenerateReply(u32 address)
@@ -302,8 +301,7 @@ void WiiIPC::GenerateReply(u32 address)
                 m_ctrl.Y1, m_ctrl.Y2, m_ctrl.X1);
   // Based on a hardware test, the IPC interrupt takes approximately 100 TB ticks to fire
   // after Y1 is seen in the control register.
-  m_system.GetCoreTiming().ScheduleEvent(100 * SystemTimers::TIMER_RATIO,
-                                         m_event_type_update_interrupts);
+  m_system.GetCoreTiming().ScheduleEvent(100_tbticks, m_event_type_update_interrupts);
 }
 
 bool WiiIPC::IsReady() const
