@@ -2446,7 +2446,12 @@ class SettingsFragmentPresenter(
           0,
           true
         ) { fragmentView.showDialogFragment(ProfileDialog.create(menuTag)) }
-        profileSelector.updateDescription(context.getString(R.string.input_profiles_descríption, controller.getProfileName()))
+        val profileDescription = if(controller.getProfileName().isEmpty()) {
+            ""
+          } else {
+            context.getString(R.string.input_profiles_descríption, controller.getProfileName())
+          }
+        profileSelector.updateDescription(profileDescription)
         sl.add(profileSelector)
 
         updateOldControllerSettingsWarningVisibility(controller)
