@@ -609,9 +609,27 @@ if(ENABLE_ANALYTICS)
   add_definitions(-DUSE_ANALYTICS=1)
 endif()
 
-# Slippi Stuff
+# slippi change
 message("Using static Corrosion from Externals for Rust linking support")
 add_subdirectory(Externals/corrosion)
+# Copy Rust DLLs
+if (WIN32)
+  # this custom target will always run during a build and thus copy the rust DLLs to the binary folder if you're making rust only changes
+  string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
+	add_custom_target(copy_rust_dll ALL
+    COMMENT "dummy target for copying rust dlls on windows after every build"
+    # my understanding is that `common` depends on rust so depending on common will ensure that the rust libs fully build before the copy dll target is triggered
+    # using the slippi_rust_extensions target did not work, for reasons i can't explain
+		DEPENDS common
+	)
+	# Copy Rust DLLs
+  add_custom_command(TARGET copy_rust_dll POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_BINARY_DIR}/cargo/build/x86_64-pc-windows-msvc/${CMAKE_BUILD_TYPE_LOWER}/slippi_rust_extensions.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/slippi_rust_extensions.dll"
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_BINARY_DIR}/cargo/build/x86_64-pc-windows-msvc/${CMAKE_BUILD_TYPE_LOWER}/slippi_rust_extensions.dll.lib" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/slippi_rust_extensions.dll.lib"
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_BINARY_DIR}/cargo/build/x86_64-pc-windows-msvc/${CMAKE_BUILD_TYPE_LOWER}/slippi_rust_extensions.pdb" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/slippi_rust_extensions.pdb"
+  )
+endif()
+# end slippi change
 
 if(SLIPPI_PLAYBACK)
   # Slippi Playback build option
