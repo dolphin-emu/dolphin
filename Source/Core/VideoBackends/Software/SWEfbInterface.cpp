@@ -397,7 +397,7 @@ static void SubtractBlend(u8* srcClr, u8* dstClr)
 
 static void Dither(u16 x, u16 y, u8* color)
 {
-  // No blending for RGB8 mode
+  // No dithering for RGB8 mode
   if (!bpmem.blendmode.dither || bpmem.zcontrol.pixel_format != PixelFormat::RGBA6_Z24)
     return;
 
