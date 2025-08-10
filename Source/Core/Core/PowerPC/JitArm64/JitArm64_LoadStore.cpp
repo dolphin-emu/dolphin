@@ -181,7 +181,8 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
   if (!jo.fastmem)
     gpr.Lock(ARM64Reg::W0);
 
-  ARM64Reg RS = gpr.R(value);
+  // Don't materialize zero.
+  ARM64Reg RS = gpr.IsImm(value, 0) ? ARM64Reg::WZR : gpr.R(value);
 
   ARM64Reg reg_dest = ARM64Reg::INVALID_REG;
   ARM64Reg reg_off = ARM64Reg::INVALID_REG;
@@ -816,9 +817,8 @@ void JitArm64::dcbx(UGeckoInstruction inst)
     STR(IndexType::Unsigned, loop_counter, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
 
     // downcount -= (WA * reg_cycle_count)
-    MUL(WB, WA, reg_cycle_count);
+    MSUB(reg_downcount, WA, reg_cycle_count, reg_downcount);
     // ^ Note that this cannot overflow because it's limited by (downcount/cycle_count).
-    SUB(reg_downcount, reg_downcount, WB);
     STR(IndexType::Unsigned, reg_downcount, PPC_REG, PPCSTATE_OFF(downcount));
 
     SetJumpTarget(downcount_is_zero_or_negative);

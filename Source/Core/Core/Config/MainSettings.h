@@ -210,6 +210,7 @@ extern const Info<int> MAIN_RENDER_WINDOW_HEIGHT;
 extern const Info<bool> MAIN_RENDER_WINDOW_AUTOSIZE;
 extern const Info<bool> MAIN_KEEP_WINDOW_ON_TOP;
 extern const Info<bool> MAIN_DISABLE_SCREENSAVER;
+extern const Info<bool> MAIN_TIME_TRACKING;
 
 // Main.General
 
@@ -319,6 +320,7 @@ extern const Info<bool> MAIN_GAMELIST_COLUMN_FILE_SIZE;
 extern const Info<bool> MAIN_GAMELIST_COLUMN_FILE_FORMAT;
 extern const Info<bool> MAIN_GAMELIST_COLUMN_BLOCK_SIZE;
 extern const Info<bool> MAIN_GAMELIST_COLUMN_COMPRESSION;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_TIME_PLAYED;
 extern const Info<bool> MAIN_GAMELIST_COLUMN_TAGS;
 
 // Main.FifoPlayer

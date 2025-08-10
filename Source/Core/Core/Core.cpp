@@ -195,7 +195,7 @@ void DisplayMessage(std::string message, int time_in_ms)
     return;
 
   // Actually displaying non-ASCII could cause things to go pear-shaped
-  if (!std::all_of(message.begin(), message.end(), Common::IsPrintableCharacter))
+  if (!std::ranges::all_of(message, Common::IsPrintableCharacter))
     return;
 
   OSD::AddMessage(std::move(message), time_in_ms);
@@ -538,7 +538,8 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
         PanicAlertFmtT(
             "Failed to sync SD card with folder. All changes made this session will be "
             "discarded on next boot if you do not manually re-issue a resync in Config > "
-            "Wii > SD Card Settings > Convert File to Folder Now!");
+            "Wii > SD Card Settings > {0}!",
+            Common::GetStringT(Common::SD_UNPACK_TEXT));
       }
     }
   }};

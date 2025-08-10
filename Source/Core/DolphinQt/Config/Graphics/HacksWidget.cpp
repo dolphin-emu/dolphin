@@ -15,6 +15,7 @@
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
+#include "DolphinQt/Config/GameConfigWidget.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipSlider.h"
 #include "DolphinQt/Settings.h"
@@ -24,17 +25,20 @@
 HacksWidget::HacksWidget(GraphicsWindow* parent)
 {
   CreateWidgets();
-  LoadSettings();
   ConnectWidgets();
   AddDescriptions();
 
   connect(parent, &GraphicsWindow::BackendChanged, this, &HacksWidget::OnBackendChanged);
   OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
-  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &HacksWidget::LoadSettings);
-  connect(m_gpu_texture_decoding, &QCheckBox::toggled, [this, parent] {
-    SaveSettings();
-    emit parent->UseGPUTextureDecodingChanged();
-  });
+  connect(m_gpu_texture_decoding, &QCheckBox::toggled,
+          [this, parent] { emit parent->UseGPUTextureDecodingChanged(); });
+}
+
+HacksWidget::HacksWidget(GameConfigWidget* parent, Config::Layer* layer) : m_game_layer(layer)
+{
+  CreateWidgets();
+  ConnectWidgets();
+  AddDescriptions();
 }
 
 void HacksWidget::CreateWidgets()
@@ -45,14 +49,14 @@ void HacksWidget::CreateWidgets()
   auto* efb_box = new QGroupBox(tr("Embedded Frame Buffer (EFB)"));
   auto* efb_layout = new QGridLayout();
   efb_box->setLayout(efb_layout);
-  m_skip_efb_cpu =
-      new ConfigBool(tr("Skip EFB Access from CPU"), Config::GFX_HACK_EFB_ACCESS_ENABLE, true);
-  m_ignore_format_changes = new ConfigBool(tr("Ignore Format Changes"),
-                                           Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES, true);
-  m_store_efb_copies =
-      new ConfigBool(tr("Store EFB Copies to Texture Only"), Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
-  m_defer_efb_copies =
-      new ConfigBool(tr("Defer EFB Copies to RAM"), Config::GFX_HACK_DEFER_EFB_COPIES);
+  m_skip_efb_cpu = new ConfigBool(tr("Skip EFB Access from CPU"),
+                                  Config::GFX_HACK_EFB_ACCESS_ENABLE, m_game_layer, true);
+  m_ignore_format_changes = new ConfigBool(
+      tr("Ignore Format Changes"), Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES, m_game_layer, true);
+  m_store_efb_copies = new ConfigBool(tr("Store EFB Copies to Texture Only"),
+                                      Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM, m_game_layer);
+  m_defer_efb_copies = new ConfigBool(tr("Defer EFB Copies to RAM"),
+                                      Config::GFX_HACK_DEFER_EFB_COPIES, m_game_layer);
 
   efb_layout->addWidget(m_skip_efb_cpu, 0, 0);
   efb_layout->addWidget(m_ignore_format_changes, 0, 1);
@@ -64,18 +68,15 @@ void HacksWidget::CreateWidgets()
   auto* texture_cache_layout = new QGridLayout();
   texture_cache_box->setLayout(texture_cache_layout);
 
-  m_accuracy = new ToolTipSlider(Qt::Horizontal);
-  m_accuracy->setMinimum(0);
-  m_accuracy->setMaximum(2);
-  m_accuracy->setPageStep(1);
-  m_accuracy->setTickPosition(QSlider::TicksBelow);
-  m_gpu_texture_decoding =
-      new ConfigBool(tr("GPU Texture Decoding"), Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
+  m_accuracy =
+      new ConfigSlider({0, 512, 128}, Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES, m_game_layer);
+  m_gpu_texture_decoding = new ConfigBool(tr("GPU Texture Decoding"),
+                                          Config::GFX_ENABLE_GPU_TEXTURE_DECODING, m_game_layer);
 
   auto* safe_label = new QLabel(tr("Safe"));
   safe_label->setAlignment(Qt::AlignRight);
 
-  m_accuracy_label = new QLabel(tr("Accuracy:"));
+  m_accuracy_label = new ConfigSliderLabel(tr("Accuracy:"), m_accuracy);
 
   texture_cache_layout->addWidget(m_accuracy_label, 0, 0);
   texture_cache_layout->addWidget(safe_label, 0, 1);
@@ -88,13 +89,13 @@ void HacksWidget::CreateWidgets()
   auto* xfb_layout = new QVBoxLayout();
   xfb_box->setLayout(xfb_layout);
 
-  m_store_xfb_copies =
-      new ConfigBool(tr("Store XFB Copies to Texture Only"), Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
-  // slippi: don't let people touch this!
-  m_immediate_xfb = new ConfigBool(tr("Immediately Present XFB"), Config::GFX_HACK_IMMEDIATE_XFB);
+  m_store_xfb_copies = new ConfigBool(tr("Store XFB Copies to Texture Only"),
+                                      Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM, m_game_layer);
+  m_immediate_xfb =
+      new ConfigBool(tr("Immediately Present XFB"), Config::GFX_HACK_IMMEDIATE_XFB, m_game_layer);
   m_immediate_xfb->setEnabled(false);
-  m_skip_duplicate_xfbs =
-      new ConfigBool(tr("Skip Presenting Duplicate Frames"), Config::GFX_HACK_SKIP_DUPLICATE_XFBS);
+  m_skip_duplicate_xfbs = new ConfigBool(tr("Skip Presenting Duplicate Frames"),
+                                         Config::GFX_HACK_SKIP_DUPLICATE_XFBS, m_game_layer);
 
   xfb_layout->addWidget(m_store_xfb_copies);
   xfb_layout->addWidget(m_immediate_xfb);
@@ -106,13 +107,14 @@ void HacksWidget::CreateWidgets()
   other_box->setLayout(other_layout);
 
   m_fast_depth_calculation =
-      new ConfigBool(tr("Fast Depth Calculation"), Config::GFX_FAST_DEPTH_CALC);
+      new ConfigBool(tr("Fast Depth Calculation"), Config::GFX_FAST_DEPTH_CALC, m_game_layer);
   m_disable_bounding_box =
-      new ConfigBool(tr("Disable Bounding Box"), Config::GFX_HACK_BBOX_ENABLE, true);
-  m_vertex_rounding = new ConfigBool(tr("Vertex Rounding"), Config::GFX_HACK_VERTEX_ROUNDING);
-  m_save_texture_cache_state =
-      new ConfigBool(tr("Save Texture Cache to State"), Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE);
-  m_vi_skip = new ConfigBool(tr("VBI Skip"), Config::GFX_HACK_VI_SKIP);
+      new ConfigBool(tr("Disable Bounding Box"), Config::GFX_HACK_BBOX_ENABLE, m_game_layer, true);
+  m_vertex_rounding =
+      new ConfigBool(tr("Vertex Rounding"), Config::GFX_HACK_VERTEX_ROUNDING, m_game_layer);
+  m_save_texture_cache_state = new ConfigBool(
+      tr("Save Texture Cache to State"), Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE, m_game_layer);
+  m_vi_skip = new ConfigBool(tr("VBI Skip"), Config::GFX_HACK_VI_SKIP, m_game_layer);
 
   other_layout->addWidget(m_fast_depth_calculation, 0, 0);
   other_layout->addWidget(m_disable_bounding_box, 0, 1);
@@ -149,7 +151,6 @@ void HacksWidget::OnBackendChanged(const QString& backend_name)
 
 void HacksWidget::ConnectWidgets()
 {
-  connect(m_accuracy, &QSlider::valueChanged, [this](int) { SaveSettings(); });
   connect(m_store_efb_copies, &QCheckBox::stateChanged,
           [this](int) { UpdateDeferEFBCopiesEnabled(); });
   connect(m_store_xfb_copies, &QCheckBox::stateChanged,
@@ -158,65 +159,6 @@ void HacksWidget::ConnectWidgets()
           [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
   connect(m_vi_skip, &QCheckBox::stateChanged,
           [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
-}
-
-void HacksWidget::LoadSettings()
-{
-  const QSignalBlocker blocker(m_accuracy);
-  auto samples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
-
-  // Re-enable the slider in case it was disabled because of a custom value
-  m_accuracy->setEnabled(true);
-
-  int slider_pos = 0;
-
-  switch (samples)
-  {
-  case 512:
-    slider_pos = 1;
-    break;
-  case 128:
-    slider_pos = 2;
-    break;
-  case 0:
-    slider_pos = 0;
-    break;
-  // Custom values, ought not to be touched
-  default:
-    m_accuracy->setEnabled(false);
-  }
-
-  m_accuracy->setValue(slider_pos);
-
-  QFont bf = m_accuracy_label->font();
-
-  bf.setBold(Config::GetActiveLayerForConfig(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES) !=
-             Config::LayerType::Base);
-
-  m_accuracy_label->setFont(bf);
-}
-
-void HacksWidget::SaveSettings()
-{
-  int slider_pos = m_accuracy->value();
-
-  if (m_accuracy->isEnabled())
-  {
-    int samples = 0;
-    switch (slider_pos)
-    {
-    case 0:
-      samples = 0;
-      break;
-    case 1:
-      samples = 512;
-      break;
-    case 2:
-      samples = 128;
-    }
-
-    Config::SetBaseOrCurrent(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES, samples);
-  }
 }
 
 void HacksWidget::AddDescriptions()

@@ -85,7 +85,8 @@ bool IniFile::Section::Delete(std::string_view key)
     return false;
 
   values.erase(it);
-  keys_order.erase(std::ranges::find(keys_order, key));
+  keys_order.erase(std::ranges::find_if(
+      keys_order, [&](std::string_view v) { return CaseInsensitiveEquals(key, v); }));
   return true;
 }
 

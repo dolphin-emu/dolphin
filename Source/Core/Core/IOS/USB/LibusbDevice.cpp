@@ -439,6 +439,9 @@ static int DoForEachInterface(const Configs& configs, u8 config_num, Function ac
 int LibusbDevice::ClaimAllInterfaces(u8 config_num) const
 {
   const int ret = DoForEachInterface(m_config_descriptors, config_num, [this](u8 i) {
+  // On macos detaching would fail without root or entitlement.
+  // We assume user is using GCAdapterDriver and therefore don't want to detach anything
+#if !defined(__APPLE__)
     const int ret2 = libusb_detach_kernel_driver(m_handle, i);
     if (ret2 < LIBUSB_SUCCESS && ret2 != LIBUSB_ERROR_NOT_FOUND &&
         ret2 != LIBUSB_ERROR_NOT_SUPPORTED)
@@ -447,6 +450,7 @@ int LibusbDevice::ClaimAllInterfaces(u8 config_num) const
                     LibusbUtils::ErrorWrap(ret2));
       return ret2;
     }
+#endif
     return libusb_claim_interface(m_handle, i);
   });
   if (ret < LIBUSB_SUCCESS)

@@ -8,6 +8,7 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
+#include "Common/Contains.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
@@ -176,18 +177,20 @@ bool SwapChain::SelectSurfaceFormat()
     // because we already apply gamma ourselves, and we might not use sRGB gamma.
     // Force using a linear format instead, if this is the case.
     VkFormat format = VKTexture::GetLinearFormat(surface_format.format);
-    if (format == VK_FORMAT_R8G8B8A8_UNORM)
-      surface_format_RGBA8 = &surface_format;
-    else if (format == VK_FORMAT_B8G8R8A8_UNORM)
-      surface_format_BGRA8 = &surface_format;
-    else if (format == VK_FORMAT_A2B10G10R10_UNORM_PACK32 &&
-             surface_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-      surface_format_RGB10_A2 = &surface_format;
+    if (surface_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+    {
+      if (format == VK_FORMAT_R8G8B8A8_UNORM)
+        surface_format_RGBA8 = &surface_format;
+      else if (format == VK_FORMAT_B8G8R8A8_UNORM)
+        surface_format_BGRA8 = &surface_format;
+      else if (format == VK_FORMAT_A2B10G10R10_UNORM_PACK32)
+        surface_format_RGB10_A2 = &surface_format;
+    }
     else if (format == VK_FORMAT_R16G16B16A16_SFLOAT &&
              surface_format.colorSpace == VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT)
+    {
       surface_format_RGBA16F_scRGB = &surface_format;
-    else
-      continue;
+    }
   }
 
   const VkSurfaceFormatKHR* surface_format = nullptr;
@@ -241,31 +244,24 @@ bool SwapChain::SelectPresentMode()
                                                   &mode_count, present_modes.data());
   ASSERT(res == VK_SUCCESS);
 
-  // Checks if a particular mode is supported, if it is, returns that mode.
-  auto CheckForMode = [&present_modes](VkPresentModeKHR check_mode) {
-    auto it = std::find_if(present_modes.begin(), present_modes.end(),
-                           [check_mode](VkPresentModeKHR mode) { return check_mode == mode; });
-    return it != present_modes.end();
-  };
-
   // If vsync is enabled, use VK_PRESENT_MODE_FIFO_KHR.
   // This check should not fail with conforming drivers, as the FIFO present mode is mandated by
   // the specification (VK_KHR_swapchain). In case it isn't though, fall through to any other mode.
-  if (m_vsync_enabled && CheckForMode(VK_PRESENT_MODE_FIFO_KHR))
+  if (m_vsync_enabled && Common::Contains(present_modes, VK_PRESENT_MODE_FIFO_KHR))
   {
     m_present_mode = VK_PRESENT_MODE_FIFO_KHR;
     return true;
   }
 
   // Prefer screen-tearing, if possible, for lowest latency.
-  if (CheckForMode(VK_PRESENT_MODE_IMMEDIATE_KHR))
+  if (Common::Contains(present_modes, VK_PRESENT_MODE_IMMEDIATE_KHR))
   {
     m_present_mode = VK_PRESENT_MODE_IMMEDIATE_KHR;
     return true;
   }
 
   // Use optimized-vsync above vsync.
-  if (CheckForMode(VK_PRESENT_MODE_MAILBOX_KHR))
+  if (Common::Contains(present_modes, VK_PRESENT_MODE_MAILBOX_KHR))
   {
     m_present_mode = VK_PRESENT_MODE_MAILBOX_KHR;
     return true;

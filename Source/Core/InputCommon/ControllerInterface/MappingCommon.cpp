@@ -44,18 +44,17 @@ std::string GetExpressionForControl(const std::string& control_name,
   {
     // If our expression contains any non-alpha characters
     // we should quote it
-    if (!std::all_of(expr.begin(), expr.end(), Common::IsAlpha))
+    if (!std::ranges::all_of(expr, Common::IsAlpha))
       expr = fmt::format("`{}`", expr);
   }
 
   return expr;
 }
 
-std::string
-BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>& detections,
-                const ciface::Core::DeviceQualifier& default_device, Quote quote)
+std::string BuildExpression(const Core::InputDetector::Results& detections,
+                            const ciface::Core::DeviceQualifier& default_device, Quote quote)
 {
-  std::vector<const ciface::Core::DeviceContainer::InputDetection*> pressed_inputs;
+  std::vector<const Core::InputDetector::Detection*> pressed_inputs;
 
   std::vector<std::string> alternations;
 
@@ -129,16 +128,16 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
 
   // Remove duplicates
   std::ranges::sort(alternations);
-  alternations.erase(std::unique(alternations.begin(), alternations.end()), alternations.end());
+  const auto unique_result = std::ranges::unique(alternations);
+  alternations.erase(unique_result.begin(), unique_result.end());
 
   return fmt::to_string(fmt::join(alternations, "|"));
 }
 
-void RemoveSpuriousTriggerCombinations(
-    std::vector<ciface::Core::DeviceContainer::InputDetection>* detections)
+void RemoveSpuriousTriggerCombinations(Core::InputDetector::Results* detections)
 {
-  const auto is_spurious = [&](auto& detection) {
-    return std::any_of(detections->begin(), detections->end(), [&](auto& d) {
+  const auto is_spurious = [&](const auto& detection) {
+    return std::ranges::any_of(*detections, [&](const auto& d) {
       // This is a spurious digital detection if a "smooth" (analog) detection is temporally near.
       return &d != &detection && d.smoothness > 1 && d.smoothness > detection.smoothness &&
              abs(d.press_time - detection.press_time) < SPURIOUS_TRIGGER_COMBO_THRESHOLD;
@@ -146,6 +145,23 @@ void RemoveSpuriousTriggerCombinations(
   };
 
   std::erase_if(*detections, is_spurious);
+}
+
+void RemoveDetectionsAfterTimePoint(Core::InputDetector::Results* results,
+                                    Core::DeviceContainer::Clock::time_point after)
+{
+  const auto is_after_time = [&](const Core::InputDetector::Detection& detection) {
+    return detection.release_time.value_or(after) >= after;
+  };
+
+  std::erase_if(*results, is_after_time);
+}
+
+bool ContainsCompleteDetection(const Core::InputDetector::Results& results)
+{
+  return std::ranges::any_of(results, [](const Core::InputDetector::Detection& detection) {
+    return detection.release_time.has_value();
+  });
 }
 
 }  // namespace ciface::MappingCommon

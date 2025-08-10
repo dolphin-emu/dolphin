@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
 #include "Core/HW/EXI/EXI_DeviceAD16.h"
 #include "Core/HW/EXI/EXI_DeviceAGP.h"
 #include "Core/HW/EXI/EXI_DeviceDummy.h"
@@ -13,11 +14,14 @@
 #include "Core/HW/EXI/EXI_DeviceGecko.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
-#include "Core/HW/EXI/EXI_DeviceMic.h"
 #include "Core/HW/EXI/EXI_DeviceSlippi.h"
 #include "Core/HW/EXI/EXI_DeviceModem.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
+
+#ifdef HAVE_CUBEB
+#include "Core/HW/EXI/EXI_DeviceMic.h"
+#endif
 
 namespace ExpansionInterface
 {
@@ -133,7 +137,12 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, const EXIDevi
     break;
 
   case EXIDeviceType::Microphone:
+#ifdef HAVE_CUBEB
     result = std::make_unique<CEXIMic>(system, channel_num);
+#else
+    PanicAlertFmtT("Dolphin was built with Cubeb disabled. The Microphone device cannot be used.");
+    result = std::make_unique<IEXIDevice>(system);
+#endif
     break;
 
   case EXIDeviceType::Ethernet:

@@ -110,9 +110,9 @@ JitBase::~JitBase()
   CPUThreadConfigCallback::RemoveConfigChangedCallback(m_registered_config_callback_id);
 }
 
-bool JitBase::DoesConfigNeedRefresh()
+bool JitBase::DoesConfigNeedRefresh() const
 {
-  return std::any_of(JIT_SETTINGS.begin(), JIT_SETTINGS.end(), [this](const auto& pair) {
+  return std::ranges::any_of(JIT_SETTINGS, [this](const auto& pair) {
     return this->*pair.first != Config::Get(*pair.second);
   });
 }
@@ -276,7 +276,7 @@ bool JitBase::CanMergeNextInstructions(int count) const
   return true;
 }
 
-bool JitBase::ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op)
+bool JitBase::ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op) const
 {
   if (jo.fp_exceptions)
     return (op->opinfo->flags & FL_FLOAT_EXCEPTION) != 0;

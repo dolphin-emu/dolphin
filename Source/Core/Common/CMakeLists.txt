@@ -36,6 +36,7 @@ add_library(common
   Config/Enums.h
   Config/Layer.cpp
   Config/Layer.h
+  Contains.h
   CPUDetect.h
   Crypto/AES.cpp
   Crypto/AES.h
@@ -229,6 +230,11 @@ elseif(WIN32)
     LdrWatcher.h
     Logging/ConsoleListenerWin.cpp
     MemArenaWin.cpp
+  )
+elseif(APPLE)
+  target_sources(common PRIVATE
+    Logging/ConsoleListenerNix.cpp
+    MemArenaDarwin.cpp
   )
 else()
   target_sources(common PRIVATE

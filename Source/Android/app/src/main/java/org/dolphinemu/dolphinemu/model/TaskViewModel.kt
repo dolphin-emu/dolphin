@@ -38,7 +38,6 @@ class TaskViewModel : ViewModel() {
     }
 
     var cancelled = false
-    var mustRestartApp = false
 
     private val state = MutableLiveData<State>(NotStartedState())
 
@@ -57,7 +56,6 @@ class TaskViewModel : ViewModel() {
     fun clear() {
         state.value = NotStartedState()
         cancelled = false
-        mustRestartApp = false
         onResultDismiss = null
     }
 

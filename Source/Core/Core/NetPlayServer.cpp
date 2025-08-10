@@ -84,6 +84,10 @@
 #include <ifaddrs.h>
 #endif
 #include <arpa/inet.h>
+#else
+#include <iphlpapi.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #endif
 
 namespace NetPlay
@@ -1060,14 +1064,14 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     {
       // we have all records for this frame
 
-      if (!std::all_of(timebases.begin(), timebases.end(), [&](std::pair<PlayerId, u64> pair) {
+      if (!std::ranges::all_of(timebases, [&](std::pair<PlayerId, u64> pair) {
             return pair.second == timebases[0].second;
           }))
       {
         int pid_to_blame = 0;
         for (auto pair : timebases)
         {
-          if (std::all_of(timebases.begin(), timebases.end(), [&](std::pair<PlayerId, u64> other) {
+          if (std::ranges::all_of(timebases, [&](std::pair<PlayerId, u64> other) {
                 return other.first == pair.first || other.second != pair.second;
               }))
           {
@@ -1467,14 +1471,12 @@ bool NetPlayServer::SetupNetSettings()
 
 bool NetPlayServer::DoAllPlayersHaveIPLDump() const
 {
-  return std::all_of(m_players.begin(), m_players.end(),
-                     [](const auto& p) { return p.second.has_ipl_dump; });
+  return std::ranges::all_of(m_players, [](const auto& p) { return p.second.has_ipl_dump; });
 }
 
 bool NetPlayServer::DoAllPlayersHaveHardwareFMA() const
 {
-  return std::all_of(m_players.begin(), m_players.end(),
-                     [](const auto& p) { return p.second.has_hardware_fma; });
+  return std::ranges::all_of(m_players, [](const auto& p) { return p.second.has_hardware_fma; });
 }
 
 struct SaveSyncInfo
@@ -2070,13 +2072,18 @@ bool NetPlayServer::SyncCodes()
   }
   // Sync Gecko Codes
   {
+    std::vector<Gecko::GeckoCode> codes = Gecko::LoadCodes(globalIni, localIni);
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+    AchievementManager::GetInstance().FilterApprovedGeckoCodes(codes, game_id);
+#endif  // USE_RETRO_ACHIEVEMENTS
+
     // Create a Gecko Code Vector with just the active codes
-    std::vector<Gecko::GeckoCode> s_active_codes =
-        Gecko::SetAndReturnActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+    std::vector<Gecko::GeckoCode> active_codes = Gecko::SetAndReturnActiveCodes(codes);
 
     // Determine Codelist Size
     u16 codelines = 0;
-    for (const Gecko::GeckoCode& active_code : s_active_codes)
+    for (const Gecko::GeckoCode& active_code : active_codes)
     {
       INFO_LOG_FMT(NETPLAY, "Indexing {}", active_code.name);
       for (const Gecko::GeckoCode::Code& code : active_code.codes)
@@ -2104,7 +2111,7 @@ bool NetPlayServer::SyncCodes()
       pac << MessageID::SyncCodes;
       pac << SyncCodeID::GeckoData;
       // Iterate through the active code vector and send each codeline
-      for (const Gecko::GeckoCode& active_code : s_active_codes)
+      for (const Gecko::GeckoCode& active_code : active_codes)
       {
         INFO_LOG_FMT(NETPLAY, "Sending {}", active_code.name);
         for (const Gecko::GeckoCode::Code& code : active_code.codes)
@@ -2120,13 +2127,16 @@ bool NetPlayServer::SyncCodes()
 
   // Sync AR Codes
   {
+    std::vector<ActionReplay::ARCode> codes = ActionReplay::LoadCodes(globalIni, localIni);
+#ifdef USE_RETRO_ACHIEVEMENTS
+    AchievementManager::GetInstance().FilterApprovedARCodes(codes, game_id);
+#endif  // USE_RETRO_ACHIEVEMENTS
     // Create an AR Code Vector with just the active codes
-    std::vector<ActionReplay::ARCode> s_active_codes =
-        ActionReplay::ApplyAndReturnCodes(ActionReplay::LoadCodes(globalIni, localIni));
+    std::vector<ActionReplay::ARCode> active_codes = ActionReplay::ApplyAndReturnCodes(codes);
 
     // Determine Codelist Size
     u16 codelines = 0;
-    for (const ActionReplay::ARCode& active_code : s_active_codes)
+    for (const ActionReplay::ARCode& active_code : active_codes)
     {
       INFO_LOG_FMT(NETPLAY, "Indexing {}", active_code.name);
       for (const ActionReplay::AREntry& op : active_code.ops)
@@ -2154,7 +2164,7 @@ bool NetPlayServer::SyncCodes()
       pac << MessageID::SyncCodes;
       pac << SyncCodeID::ARData;
       // Iterate through the active code vector and send each codeline
-      for (const ActionReplay::ARCode& active_code : s_active_codes)
+      for (const ActionReplay::ARCode& active_code : active_codes)
       {
         INFO_LOG_FMT(NETPLAY, "Sending {}", active_code.name);
         for (const ActionReplay::AREntry& op : active_code.ops)
@@ -2226,8 +2236,8 @@ bool NetPlayServer::PlayerHasControllerMapped(const PlayerId pid) const
 {
   const auto mapping_matches_player_id = [pid](const PlayerId& mapping) { return mapping == pid; };
 
-  return std::any_of(m_pad_map.begin(), m_pad_map.end(), mapping_matches_player_id) ||
-         std::any_of(m_wiimote_map.begin(), m_wiimote_map.end(), mapping_matches_player_id);
+  return std::ranges::any_of(m_pad_map, mapping_matches_player_id) ||
+         std::ranges::any_of(m_wiimote_map, mapping_matches_player_id);
 }
 
 void NetPlayServer::AssignNewUserAPad(const Client& player)
@@ -2317,7 +2327,33 @@ std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceList
 {
   std::vector<std::pair<std::string, std::string>> result;
 #if defined(_WIN32)
+  ULONG buffer_size = 0;
+  GetAdaptersAddresses(AF_INET, 0, nullptr, nullptr, &buffer_size);
 
+  std::vector<char> buffer(buffer_size);
+  auto* const adapters = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());
+  const ULONG adapters_result = GetAdaptersAddresses(AF_INET, 0, nullptr, adapters, &buffer_size);
+  if (adapters_result == NO_ERROR)
+  {
+    for (auto* adapter = adapters; adapter != nullptr; adapter = adapter->Next)
+    {
+      if (adapter->IfType == IF_TYPE_SOFTWARE_LOOPBACK)
+        continue;
+
+      auto* const unicast = adapter->FirstUnicastAddress;
+      if (!unicast)
+        continue;
+
+      char addr_str[INET_ADDRSTRLEN] = {};
+      inet_ntop(AF_INET, &reinterpret_cast<sockaddr_in*>(unicast->Address.lpSockaddr)->sin_addr,
+                addr_str, sizeof(addr_str));
+      result.emplace_back(WStringToUTF8(adapter->FriendlyName), addr_str);
+    }
+  }
+  else
+  {
+    WARN_LOG_FMT(NETPLAY, "GetAdaptersAddresses: {}", adapters_result);
+  }
 #elif defined(ANDROID)
 // Android has no getifaddrs for some stupid reason.  If this
 // functionality ends up actually being used on Android, fix this.

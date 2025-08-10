@@ -12,7 +12,6 @@
 #include <mbedtls/config.h>
 #include <mbedtls/md.h>
 #include <mutex>
-#include <sstream>
 #include <thread>
 #include <utility>
 #include <variant>
@@ -32,13 +31,13 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
+#include "Common/VariantUtil.h"
 #include "Common/Version.h"
 
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/Config/SYSCONFSettings.h"
 #include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigLoaders/MovieConfigLoader.h"
 #include "Core/ConfigManager.h"
@@ -54,14 +53,10 @@
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
-
-#include "Core/HW/WiimoteEmu/Encryption.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/ExtensionPort.h"
-
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/NetPlayProto.h"
@@ -69,15 +64,10 @@
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
 
-#include "DiscIO/Enums.h"
-
 #include "InputCommon/GCPadStatus.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
-
-// The chunk to allocate movie data in multiples of.
-#define DTM_BASE_LENGTH (1024)
 
 namespace Movie
 {
@@ -93,7 +83,7 @@ static std::array<u8, 20> ConvertGitRevisionToBytes(const std::string& revision)
 {
   std::array<u8, 20> revision_bytes{};
 
-  if (revision.size() % 2 == 0 && std::all_of(revision.begin(), revision.end(), ::isxdigit))
+  if (revision.size() % 2 == 0 && std::ranges::all_of(revision, Common::IsXDigit))
   {
     // The revision string normally contains a git commit hash,
     // which is 40 hexadecimal digits long. In DTM files, each pair of
@@ -554,7 +544,7 @@ bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
     if (!Core::IsRunning(m_system))
     {
       // This will also reset the Wiimotes for GameCube games, but that shouldn't do anything
-      Wiimote::ResetAllWiimotes();
+      ::Wiimote::ResetAllWiimotes();
     }
 
     m_play_mode = PlayMode::Recording;
@@ -673,16 +663,13 @@ static std::string GenerateInputDisplayString(ControllerState padState, int cont
 }
 
 // NOTE: CPU Thread
-static std::string GenerateWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
-                                                 ExtensionNumber ext, const EncryptionKey& key)
+static std::string GenerateWiiInputDisplayString(int index, const DesiredWiimoteState& state)
 {
-  std::string display_str = fmt::format("R{}:", remoteID + 1);
+  std::string display_str = fmt::format("R{}:", index + 1);
 
-  if (rpt.HasCore())
+  const auto& buttons = state.buttons;
+  if (buttons.hex & WiimoteCommon::ButtonData::BUTTON_MASK)
   {
-    ButtonData buttons;
-    rpt.GetCoreData(&buttons);
-
     if (buttons.left)
       display_str += " LEFT";
     if (buttons.right)
@@ -707,94 +694,83 @@ static std::string GenerateWiiInputDisplayString(int remoteID, const DataReportB
       display_str += " HOME";
   }
 
-  if (rpt.HasAccel())
+  if (state.acceleration != state.DEFAULT_ACCELERATION)
   {
-    AccelData accel_data;
-    rpt.GetAccelData(&accel_data);
-
-    // FYI: This will only print partial data for interleaved reports.
-
+    const AccelData& accel_data = state.acceleration;
     display_str +=
         fmt::format(" ACC:{},{},{}", accel_data.value.x, accel_data.value.y, accel_data.value.z);
   }
 
-  if (rpt.HasIR())
+  if (state.camera_points != state.DEFAULT_CAMERA)
   {
-    const u8* const ir_data = rpt.GetIRDataPtr();
-
-    // TODO: This does not handle the different IR formats.
-
-    const u16 x = ir_data[0] | ((ir_data[2] >> 4 & 0x3) << 8);
-    const u16 y = ir_data[1] | ((ir_data[2] >> 6 & 0x3) << 8);
-    display_str += fmt::format(" IR:{},{}", x, y);
+    display_str += " IR:";
+    for (auto& point : state.camera_points)
+    {
+      if (point.size == 0xff)
+        display_str += "_,";
+      else
+        display_str += fmt::format("{},{},", point.position.x, point.position.y);
+    }
+    display_str.pop_back();
   }
 
-  // Nunchuk
-  if (rpt.HasExt() && ext == ExtensionNumber::NUNCHUK)
+  if (state.extension.data.index() != ExtensionNumber::NONE)
   {
-    const u8* const extData = rpt.GetExtDataPtr();
+    const auto ext_visitor = overloaded{
+        [&](const Nunchuk::DataFormat& nunchuk) {
+          const auto bt = nunchuk.GetButtons();
+          if (bt & Nunchuk::BUTTON_C)
+            display_str += " C";
+          if (bt & Nunchuk::BUTTON_Z)
+            display_str += " Z";
+          display_str += fmt::format(" N-ACC:{},{},{}", nunchuk.GetAccelX(), nunchuk.GetAccelY(),
+                                     nunchuk.GetAccelZ());
+          display_str += Analog2DToString(nunchuk.jx, nunchuk.jy, " ANA");
+        },
+        [&](const Classic::DataFormat& cc) {
+          const auto bt = cc.GetButtons();
+          constexpr std::pair<u16, const char*> named_buttons[] = {
+              {Classic::PAD_LEFT, "LEFT"},    {Classic::PAD_RIGHT, "RIGHT"},
+              {Classic::PAD_DOWN, "DOWN"},    {Classic::PAD_UP, "UP"},
+              {Classic::BUTTON_A, "A"},       {Classic::BUTTON_B, "B"},
+              {Classic::BUTTON_X, "X"},       {Classic::BUTTON_Y, "Y"},
+              {Classic::BUTTON_ZL, "ZL"},     {Classic::BUTTON_ZR, "ZR"},
+              {Classic::BUTTON_PLUS, "+"},    {Classic::BUTTON_MINUS, "-"},
+              {Classic::BUTTON_HOME, "HOME"},
+          };
+          for (auto& [value, name] : named_buttons)
+          {
+            if (bt & value)
+            {
+              display_str += ' ';
+              display_str += name;
+            }
+          }
+          constexpr auto trigger_max = (1 << Classic::TRIGGER_BITS) - 1;
+          display_str += Analog1DToString(cc.GetLeftTrigger().value, " L", trigger_max);
+          display_str += Analog1DToString(cc.GetRightTrigger().value, " R", trigger_max);
 
-    Nunchuk::DataFormat nunchuk;
-    memcpy(&nunchuk, extData, sizeof(nunchuk));
-    key.Decrypt((u8*)&nunchuk, 0, sizeof(nunchuk));
-    nunchuk.bt.hex = nunchuk.bt.hex ^ 0x3;
+          constexpr auto lstick_max = (1 << Classic::LEFT_STICK_BITS) - 1;
+          const auto left_stick = cc.GetLeftStick().value;
+          display_str += Analog2DToString(left_stick.x, left_stick.y, " ANA", lstick_max);
 
-    const std::string accel = fmt::format(" N-ACC:{},{},{}", nunchuk.GetAccelX(),
-                                          nunchuk.GetAccelY(), nunchuk.GetAccelZ());
-
-    if (nunchuk.bt.c)
-      display_str += " C";
-    if (nunchuk.bt.z)
-      display_str += " Z";
-    display_str += accel;
-    display_str += Analog2DToString(nunchuk.jx, nunchuk.jy, " ANA");
-  }
-
-  // Classic controller
-  if (rpt.HasExt() && ext == ExtensionNumber::CLASSIC)
-  {
-    const u8* const extData = rpt.GetExtDataPtr();
-
-    Classic::DataFormat cc;
-    memcpy(&cc, extData, sizeof(cc));
-    key.Decrypt((u8*)&cc, 0, sizeof(cc));
-    cc.bt.hex = cc.bt.hex ^ 0xFFFF;
-
-    if (cc.bt.dpad_left)
-      display_str += " LEFT";
-    if (cc.bt.dpad_right)
-      display_str += " RIGHT";
-    if (cc.bt.dpad_down)
-      display_str += " DOWN";
-    if (cc.bt.dpad_up)
-      display_str += " UP";
-    if (cc.bt.a)
-      display_str += " A";
-    if (cc.bt.b)
-      display_str += " B";
-    if (cc.bt.x)
-      display_str += " X";
-    if (cc.bt.y)
-      display_str += " Y";
-    if (cc.bt.zl)
-      display_str += " ZL";
-    if (cc.bt.zr)
-      display_str += " ZR";
-    if (cc.bt.plus)
-      display_str += " +";
-    if (cc.bt.minus)
-      display_str += " -";
-    if (cc.bt.home)
-      display_str += " HOME";
-
-    display_str += Analog1DToString(cc.GetLeftTrigger().value, " L", 31);
-    display_str += Analog1DToString(cc.GetRightTrigger().value, " R", 31);
-
-    const auto left_stick = cc.GetLeftStick().value;
-    display_str += Analog2DToString(left_stick.x, left_stick.y, " ANA", 63);
-
-    const auto right_stick = cc.GetRightStick().value;
-    display_str += Analog2DToString(right_stick.x, right_stick.y, " R-ANA", 31);
+          constexpr auto rstick_max = (1 << Classic::RIGHT_STICK_BITS) - 1;
+          const auto right_stick = cc.GetRightStick().value;
+          display_str += Analog2DToString(right_stick.x, right_stick.y, " R-ANA", rstick_max);
+        },
+        [&](const Guitar::DataFormat&) { display_str += " Guitar"; },
+        [&](const Drums::DesiredState&) { display_str += " Drums"; },
+        [&](const Turntable::DataFormat&) { display_str += " Turntable"; },
+        [&](const UDrawTablet::DataFormat&) { display_str += " UDraw"; },
+        [&](const DrawsomeTablet::DataFormat&) { display_str += " Drawsome"; },
+        [&](const TaTaCon::DataFormat&) { display_str += " TaTaCon"; },
+        [&](const Shinkansen::DesiredState&) { display_str += " Shinkansen"; },
+        [](const auto& arg) {
+          static_assert(std::is_same_v<std::monostate, std::decay_t<decltype(arg)>>,
+                        "unimplemented extension");
+        },
+    };
+    std::visit(ext_visitor, state.extension.data);
   }
 
   return display_str;
@@ -857,29 +833,32 @@ void MovieManager::RecordInput(const GCPadStatus* PadStatus, int controllerID)
 }
 
 // NOTE: CPU Thread
-void MovieManager::CheckWiimoteStatus(int wiimote, const DataReportBuilder& rpt,
-                                      ExtensionNumber ext, const EncryptionKey& key)
+void MovieManager::CheckWiimoteStatus(int wiimote, const DesiredWiimoteState& desired_state)
 {
+  SetPolledDevice();
+
   {
-    std::string display_str = GenerateWiiInputDisplayString(wiimote, rpt, ext, key);
+    std::string display_str = GenerateWiiInputDisplayString(wiimote, desired_state);
 
     std::lock_guard guard(m_input_display_lock);
     m_input_display[wiimote + 4] = std::move(display_str);
   }
 
   if (IsRecordingInput())
-    RecordWiimote(wiimote, rpt.GetDataPtr(), rpt.GetDataSize());
+    RecordWiimote(wiimote, SerializeDesiredState(desired_state));
 }
 
-void MovieManager::RecordWiimote(int wiimote, const u8* data, u8 size)
+void MovieManager::RecordWiimote(int wiimote, const SerializedWiimoteState& serialized_state)
 {
   if (!IsRecordingInput() || !IsUsingWiimote(wiimote))
     return;
 
   InputUpdate();
+
+  const u8 size = serialized_state.length;
   m_temp_input.resize(m_current_byte + size + 1);
   m_temp_input[m_current_byte++] = size;
-  memcpy(&m_temp_input[m_current_byte], data, size);
+  std::copy_n(serialized_state.data.data(), size, m_temp_input.data() + m_current_byte);
   m_current_byte += size;
 }
 
@@ -955,7 +934,7 @@ bool MovieManager::PlayInput(const std::string& movie_path,
   m_play_mode = PlayMode::Playing;
 
   // Wiimotes cause desync issues if they're not reset before launching the game
-  Wiimote::ResetAllWiimotes();
+  ::Wiimote::ResetAllWiimotes();
 
   Core::UpdateWantDeterminism(m_system);
 
@@ -1081,11 +1060,11 @@ void MovieManager::LoadInput(const std::string& movie_path)
       std::vector<u8> movInput(m_current_byte);
       t_record.ReadArray(movInput.data(), movInput.size());
 
-      const auto result = std::mismatch(movInput.begin(), movInput.end(), m_temp_input.begin());
+      const auto mismatch_result = std::ranges::mismatch(movInput, m_temp_input);
 
-      if (result.first != movInput.end())
+      if (mismatch_result.in1 != movInput.end())
       {
-        const ptrdiff_t mismatch_index = std::distance(movInput.begin(), result.first);
+        const ptrdiff_t mismatch_index = std::distance(movInput.begin(), mismatch_result.in1);
 
         // this is a "you did something wrong" alert for the user's benefit.
         // we'll try to say what's going on in excruciating detail, otherwise the user might not
@@ -1275,50 +1254,54 @@ void MovieManager::PlayController(GCPadStatus* PadStatus, int controllerID)
 }
 
 // NOTE: CPU Thread
-bool MovieManager::PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt,
-                               ExtensionNumber ext, const EncryptionKey& key)
+bool MovieManager::PlayWiimote(int wiimote, DesiredWiimoteState* desired_state)
 {
   if (!IsPlayingInput() || !IsUsingWiimote(wiimote) || m_temp_input.empty())
     return false;
 
-  if (m_current_byte > m_temp_input.size())
+  if (m_current_byte + sizeof(u8) > m_temp_input.size())
   {
-    PanicAlertFmtT("Premature movie end in PlayWiimote. {0} > {1}", m_current_byte,
+    PanicAlertFmtT("Premature movie end in PlayWiimote. {0} + 1 > {1}", m_current_byte,
                    m_temp_input.size());
     EndPlayInput(!m_read_only);
     return false;
   }
 
-  const u8 size = rpt.GetDataSize();
-  const u8 sizeInMovie = m_temp_input[m_current_byte];
+  SerializedWiimoteState serialized;
+  serialized.length = m_temp_input[m_current_byte];
 
-  if (size != sizeInMovie)
+  if (serialized.length > serialized.data.size())
   {
-    PanicAlertFmtT(
-        "Fatal desync. Aborting playback. (Error in PlayWiimote: {0} != {1}, byte {2}.){3}",
-        sizeInMovie, size, m_current_byte,
-        (m_controllers == ControllerTypeArray{}) ?
-            " Try re-creating the recording with all GameCube controllers "
-            "disabled (in Configure > GameCube > Device Settings)." :
-            "");
+    PanicAlertFmtT("Invalid serialized length:{0} in PlayWiimote. byte:{1}", int(serialized.length),
+                   m_current_byte);
     EndPlayInput(!m_read_only);
     return false;
   }
 
-  m_current_byte++;
-
-  if (m_current_byte + size > m_temp_input.size())
+  ++m_current_byte;
+  if (m_current_byte + serialized.length > m_temp_input.size())
   {
-    PanicAlertFmtT("Premature movie end in PlayWiimote. {0} + {1} > {2}", m_current_byte, size,
-                   m_temp_input.size());
+    PanicAlertFmtT("Premature movie end in PlayWiimote. {0} + {1} > {2}", m_current_byte,
+                   int(serialized.length), m_temp_input.size());
     EndPlayInput(!m_read_only);
     return false;
   }
 
-  memcpy(rpt.GetDataPtr(), &m_temp_input[m_current_byte], size);
-  m_current_byte += size;
+  std::copy_n(m_temp_input.data() + m_current_byte, serialized.length, serialized.data.data());
+  if (!WiimoteEmu::DeserializeDesiredState(desired_state, serialized))
+  {
+    PanicAlertFmtT("Aborting playback. Error in DeserializeDesiredState. byte:{0}{1}",
+                   m_current_byte,
+                   (m_controllers == ControllerTypeArray{}) ?
+                       " Try re-creating the recording with all GameCube controllers "
+                       "disabled (in Configure > GameCube > Device Settings)." :
+                       "");
+    EndPlayInput(!m_read_only);
+    return false;
+  }
 
-  m_current_input_count++;
+  m_current_byte += serialized.length;
+  ++m_current_input_count;
 
   CheckInputEnd();
   return true;

@@ -16,6 +16,10 @@ public:
   explicit AbstractTexture(const TextureConfig& c);
   virtual ~AbstractTexture() = default;
 
+  // Support implicit conversion between AbstractTexture and ImTextureId
+  using imgui_texture_id = unsigned long long;
+  operator imgui_texture_id() const { return reinterpret_cast<imgui_texture_id>(this); }
+
   virtual void CopyRectangleFromTexture(const AbstractTexture* src,
                                         const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
                                         u32 src_level, const MathUtil::Rectangle<int>& dst_rect,

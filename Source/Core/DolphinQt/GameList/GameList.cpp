@@ -43,6 +43,7 @@
 #include <QUrl>
 
 #include "Common/CommonPaths.h"
+#include "Common/Contains.h"
 #include "Common/FileUtil.h"
 
 #include "Core/Config/MainSettings.h"
@@ -207,6 +208,7 @@ void GameList::MakeListView()
     SetResizeMode(Column::FileFormat, Mode::Fixed);
     SetResizeMode(Column::BlockSize, Mode::Fixed);
     SetResizeMode(Column::Compression, Mode::Fixed);
+    SetResizeMode(Column::TimePlayed, Mode::Interactive);
     SetResizeMode(Column::Tags, Mode::Interactive);
 
     // Cells have 3 pixels of padding, so the width of these needs to be image width + 6. Banners
@@ -272,6 +274,7 @@ void GameList::UpdateColumnVisibility()
   SetVisiblity(Column::FileFormat, Config::Get(Config::MAIN_GAMELIST_COLUMN_FILE_FORMAT));
   SetVisiblity(Column::BlockSize, Config::Get(Config::MAIN_GAMELIST_COLUMN_BLOCK_SIZE));
   SetVisiblity(Column::Compression, Config::Get(Config::MAIN_GAMELIST_COLUMN_COMPRESSION));
+  SetVisiblity(Column::TimePlayed, Config::Get(Config::MAIN_GAMELIST_COLUMN_TIME_PLAYED));
   SetVisiblity(Column::Tags, Config::Get(Config::MAIN_GAMELIST_COLUMN_TAGS));
 }
 
@@ -377,15 +380,15 @@ void GameList::ShowContextMenu(const QPoint&)
   {
     const auto selected_games = GetSelectedGames();
 
-    if (std::all_of(selected_games.begin(), selected_games.end(),
-                    [](const auto& game) { return game->ShouldAllowConversion(); }))
+    if (std::ranges::all_of(selected_games,
+                            [](const auto& game) { return game->ShouldAllowConversion(); }))
     {
       menu->addAction(tr("Convert Selected Files..."), this, &GameList::ConvertFile);
       menu->addSeparator();
     }
 
-    if (std::all_of(selected_games.begin(), selected_games.end(),
-                    [](const auto& game) { return DiscIO::IsWii(game->GetPlatform()); }))
+    if (std::ranges::all_of(selected_games,
+                            [](const auto& game) { return DiscIO::IsWii(game->GetPlatform()); }))
     {
       menu->addAction(tr("Export Wii Saves"), this, &GameList::ExportWiiSave);
       menu->addSeparator();
@@ -546,13 +549,13 @@ void GameList::OpenProperties()
     return;
 
   PropertiesDialog* properties = new PropertiesDialog(this, *game);
-  // Since the properties dialog locks the game file, it's important to free it as soon as it's
-  // closed so that the file can be moved or deleted.
-  properties->setAttribute(Qt::WA_DeleteOnClose, true);
 
   connect(properties, &PropertiesDialog::OpenGeneralSettings, this, &GameList::OpenGeneralSettings);
   connect(properties, &PropertiesDialog::OpenGraphicsSettings, this,
           &GameList::OpenGraphicsSettings);
+  connect(properties, &PropertiesDialog::finished, this,
+          [properties]() { properties->deleteLater(); });
+
 #ifdef USE_RETRO_ACHIEVEMENTS
   connect(properties, &PropertiesDialog::OpenAchievementSettings, this,
           &GameList::OpenAchievementSettings);
@@ -805,8 +808,7 @@ bool GameList::AddShortcutToDesktop()
   // Sanitize the string by removing all characters that cannot be used in NTFS file names
   std::erase_if(game_name, [](char ch) {
     static constexpr char illegal_characters[] = {'<', '>', ':', '\"', '/', '\\', '|', '?', '*'};
-    return std::find(std::begin(illegal_characters), std::end(illegal_characters), ch) !=
-           std::end(illegal_characters);
+    return Common::Contains(illegal_characters, ch);
   });
 
   std::wstring desktop_path = std::wstring(desktop.get()) + UTF8ToTStr("\\" + game_name + ".lnk");
@@ -1005,6 +1007,7 @@ void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
       {tr("File Format"), Column::FileFormat},
       {tr("Block Size"), Column::BlockSize},
       {tr("Compression"), Column::Compression},
+      {tr("Time Played"), Column::TimePlayed},
       {tr("Tags"), Column::Tags},
   };
 

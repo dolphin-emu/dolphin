@@ -56,6 +56,38 @@ bool IsTriggerAxis(int index)
   return index >= 4;
 }
 
+ControlState GetBatteryValueFromSDLPowerLevel(SDL_JoystickPowerLevel sdl_power_level)
+{
+  // Values come from comments in SDL_joystick.h
+  // A proper percentage will be exposed in SDL3.
+  ControlState result;
+  switch (sdl_power_level)
+  {
+  case SDL_JOYSTICK_POWER_EMPTY:
+    result = 0.025;
+    break;
+  case SDL_JOYSTICK_POWER_LOW:
+    result = 0.125;
+    break;
+  case SDL_JOYSTICK_POWER_MEDIUM:
+    result = 0.45;
+    break;
+  case SDL_JOYSTICK_POWER_FULL:
+    result = 0.85;
+    break;
+  case SDL_JOYSTICK_POWER_WIRED:
+  case SDL_JOYSTICK_POWER_MAX:
+    result = 1.0;
+    break;
+  case SDL_JOYSTICK_POWER_UNKNOWN:
+  default:
+    result = 0.0;
+    break;
+  }
+
+  return result * ciface::BATTERY_INPUT_MAX_VALUE;
+}
+
 }  // namespace
 
 namespace ciface::SDL
@@ -142,31 +174,70 @@ private:
     const u8 m_direction;
   };
 
-  // Rumble
-  template <int LowEnable, int HighEnable, int SuffixIndex>
-  class GenericMotor : public Output
+  class BatteryInput final : public Input
   {
   public:
-    explicit GenericMotor(SDL_GameController* gc) : m_gc(gc) {}
-    std::string GetName() const override
+    explicit BatteryInput(const ControlState* battery_value) : m_battery_value(*battery_value) {}
+    std::string GetName() const override { return "Battery"; }
+    ControlState GetState() const override { return m_battery_value; }
+    bool IsDetectable() const override { return false; }
+
+  private:
+    const ControlState& m_battery_value;
+  };
+
+  // Rumble
+  class Rumble : public Output
+  {
+  public:
+    using UpdateCallback = void (GameController::*)(void);
+
+    Rumble(const char* name, GameController& gc, Uint16* state, UpdateCallback update_callback)
+        : m_name{name}, m_gc{gc}, m_state{*state}, m_update_callback{update_callback}
     {
-      return std::string("Motor") + motor_suffixes[SuffixIndex];
     }
+    std::string GetName() const override { return m_name; }
     void SetState(ControlState state) override
     {
-      Uint16 rumble = state * std::numeric_limits<Uint16>::max();
-      SDL_GameControllerRumble(m_gc, rumble * LowEnable, rumble * HighEnable, RUMBLE_LENGTH_MS);
+      const auto new_state = state * std::numeric_limits<Uint16>::max();
+      if (m_state == new_state)
+        return;
+
+      m_state = new_state;
+      (m_gc.*m_update_callback)();
     }
 
   private:
-    SDL_GameController* const m_gc;
+    const char* const m_name;
+    GameController& m_gc;
+    Uint16& m_state;
+    UpdateCallback const m_update_callback;
   };
 
-  static constexpr const char* motor_suffixes[] = {"", " L", " R"};
+  class CombinedMotor : public Output
+  {
+  public:
+    CombinedMotor(GameController& gc, Uint16* low_state, Uint16* high_state)
+        : m_gc{gc}, m_low_state{*low_state}, m_high_state{*high_state}
+    {
+    }
+    std::string GetName() const override { return "Motor"; }
+    void SetState(ControlState state) override
+    {
+      const auto new_state = state * std::numeric_limits<Uint16>::max();
+      if (m_low_state == new_state && m_high_state == new_state)
+        return;
 
-  using Motor = GenericMotor<1, 1, 0>;
-  using MotorL = GenericMotor<1, 0, 1>;
-  using MotorR = GenericMotor<0, 1, 2>;
+      m_low_state = new_state;
+      m_high_state = new_state;
+      m_gc.UpdateRumble();
+    }
+
+  private:
+    GameController& m_gc;
+    Uint16& m_low_state;
+    Uint16& m_high_state;
+  };
 
   class HapticEffect : public Output
   {
@@ -239,6 +310,39 @@ private:
     const Motor m_motor;
   };
 
+  class NormalizedInput : public Input
+  {
+  public:
+    NormalizedInput(const char* name, const float* state) : m_name{std::move(name)}, m_state{*state}
+    {
+    }
+
+    std::string GetName() const override { return std::string{m_name}; }
+    ControlState GetState() const override { return m_state; }
+
+  private:
+    const char* const m_name;
+    const float& m_state;
+  };
+
+  template <int Scale>
+  class NonDetectableDirectionalInput : public Input
+  {
+  public:
+    NonDetectableDirectionalInput(const char* name, const float* state)
+        : m_name{std::move(name)}, m_state{*state}
+    {
+    }
+
+    std::string GetName() const override { return std::string{m_name} + (Scale > 0 ? '+' : '-'); }
+    bool IsDetectable() const override { return false; }
+    ControlState GetState() const override { return m_state * Scale; }
+
+  private:
+    const char* const m_name;
+    const float& m_state;
+  };
+
   class MotionInput : public Input
   {
   public:
@@ -269,12 +373,50 @@ public:
   std::string GetName() const override;
   std::string GetSource() const override;
   int GetSDLInstanceID() const;
+  Core::DeviceRemoval UpdateInput() override
+  {
+    m_battery_value = GetBatteryValueFromSDLPowerLevel(SDL_JoystickCurrentPowerLevel(m_joystick));
+
+    // We only support one touchpad and one finger.
+    const int touchpad_index = 0;
+    const int finger_index = 0;
+
+    Uint8 state = 0;
+    SDL_GameControllerGetTouchpadFinger(m_gamecontroller, touchpad_index, finger_index, &state,
+                                        &m_touchpad_x, &m_touchpad_y, &m_touchpad_pressure);
+    m_touchpad_x = m_touchpad_x * 2 - 1;
+    m_touchpad_y = m_touchpad_y * 2 - 1;
+
+    return Core::DeviceRemoval::Keep;
+  }
 
 private:
+  void UpdateRumble()
+  {
+    SDL_GameControllerRumble(m_gamecontroller, m_low_freq_rumble, m_high_freq_rumble,
+                             RUMBLE_LENGTH_MS);
+  }
+
+  void UpdateRumbleTriggers()
+  {
+    SDL_GameControllerRumbleTriggers(m_gamecontroller, m_trigger_l_rumble, m_trigger_r_rumble,
+                                     RUMBLE_LENGTH_MS);
+  }
+
+  Uint16 m_low_freq_rumble = 0;
+  Uint16 m_high_freq_rumble = 0;
+
+  Uint16 m_trigger_l_rumble = 0;
+  Uint16 m_trigger_r_rumble = 0;
+
   SDL_GameController* const m_gamecontroller;
   std::string m_name;
   SDL_Joystick* const m_joystick;
   SDL_Haptic* m_haptic = nullptr;
+  ControlState m_battery_value;
+  float m_touchpad_x = 0.f;
+  float m_touchpad_y = 0.f;
+  float m_touchpad_pressure = 0.f;
 };
 
 class InputBackend final : public ciface::InputBackend
@@ -657,9 +799,28 @@ GameController::GameController(SDL_GameController* const gamecontroller,
     // Rumble
     if (SDL_GameControllerHasRumble(m_gamecontroller))
     {
-      AddOutput(new Motor(m_gamecontroller));
-      AddOutput(new MotorL(m_gamecontroller));
-      AddOutput(new MotorR(m_gamecontroller));
+      AddOutput(new CombinedMotor(*this, &m_low_freq_rumble, &m_high_freq_rumble));
+      AddOutput(new Rumble("Motor L", *this, &m_low_freq_rumble, &GameController::UpdateRumble));
+      AddOutput(new Rumble("Motor R", *this, &m_high_freq_rumble, &GameController::UpdateRumble));
+    }
+    if (SDL_GameControllerHasRumbleTriggers(m_gamecontroller))
+    {
+      AddOutput(new Rumble("Trigger L", *this, &m_trigger_l_rumble,
+                           &GameController::UpdateRumbleTriggers));
+      AddOutput(new Rumble("Trigger R", *this, &m_trigger_r_rumble,
+                           &GameController::UpdateRumbleTriggers));
+    }
+
+    // Touchpad
+    if (SDL_GameControllerGetNumTouchpads(m_gamecontroller) > 0)
+    {
+      const char* const name_x = "Touchpad X";
+      AddInput(new NonDetectableDirectionalInput<-1>(name_x, &m_touchpad_x));
+      AddInput(new NonDetectableDirectionalInput<+1>(name_x, &m_touchpad_x));
+      const char* const name_y = "Touchpad Y";
+      AddInput(new NonDetectableDirectionalInput<-1>(name_y, &m_touchpad_y));
+      AddInput(new NonDetectableDirectionalInput<+1>(name_y, &m_touchpad_y));
+      AddInput(new NormalizedInput("Touchpad Pressure", &m_touchpad_pressure));
     }
 
     // Motion
@@ -768,6 +929,17 @@ GameController::GameController(SDL_GameController* const gamecontroller,
         AddOutput(new LeftRightEffect(m_haptic, LeftRightEffect::Motor::Weak));
       }
     }
+  }
+
+  // Needed to make the below power level not "UNKNOWN".
+  SDL_JoystickUpdate();
+
+  // Battery
+  if (SDL_JoystickPowerLevel const power_level = SDL_JoystickCurrentPowerLevel(m_joystick);
+      power_level != SDL_JOYSTICK_POWER_UNKNOWN)
+  {
+    m_battery_value = GetBatteryValueFromSDLPowerLevel(power_level);
+    AddInput(new BatteryInput{&m_battery_value});
   }
 }
 

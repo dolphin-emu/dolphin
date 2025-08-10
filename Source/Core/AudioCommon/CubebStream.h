@@ -11,10 +11,13 @@
 #include "AudioCommon/SoundStream.h"
 #include "Common/WorkQueueThread.h"
 
+#ifdef HAVE_CUBEB
 #include <cubeb/cubeb.h>
+#endif
 
 class CubebStream final : public SoundStream
 {
+#ifdef HAVE_CUBEB
 public:
   CubebStream();
   CubebStream(const CubebStream& other) = delete;
@@ -25,6 +28,7 @@ public:
   bool Init() override;
   bool SetRunning(bool running) override;
   void SetVolume(int) override;
+  static bool IsValid() { return true; }
 
 private:
   bool m_stereo = false;
@@ -43,4 +47,5 @@ private:
   static long DataCallback(cubeb_stream* stream, void* user_data, const void* /*input_buffer*/,
                            void* output_buffer, long num_frames);
   static void StateCallback(cubeb_stream* stream, void* user_data, cubeb_state state);
+#endif
 };

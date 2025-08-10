@@ -45,7 +45,12 @@ CMakeLists.txt.user
 # Ignore Visual Studio Code's working dir
 /.vscode/
 
+# Ignore flatpak-builder's cache dir
+.flatpak-builder
+
+# slippi change
 # Ignore the rust target dir
 Externals/SlippiRustExtensions/target/
 AppDir/
 *.AppImage
+# end slippi change

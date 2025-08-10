@@ -101,7 +101,7 @@ void Drums::BuildDesiredExtensionState(DesiredExtensionState* target_state)
   state.drum_pads = 0;
   m_pads->GetState(&state.drum_pads, drum_pad_bitmasks.data(), m_input_override_function);
 
-  state.softness = u8(7 - std::lround(m_hit_strength_setting.GetValue() * 7 / 100));
+  state.softness = u8(0x7F - std::lround(m_hit_strength_setting.GetValue() * 0x7F / 100));
 }
 
 void Drums::Update(const DesiredExtensionState& target_state)
@@ -118,23 +118,21 @@ void Drums::Update(const DesiredExtensionState& target_state)
     desired_state.stick_y = STICK_CENTER;
     desired_state.buttons = 0;
     desired_state.drum_pads = 0;
-    desired_state.softness = 7;
+    desired_state.softness = 0x7F;
   }
 
   DataFormat drum_data = {};
+  u8 velocity = 0x7F;
 
   // The meaning of these bits are unknown but they are usually set.
   drum_data.unk1 = 0b11;
   drum_data.unk2 = 0b11;
-  drum_data.unk3 = 0b1;
-  drum_data.unk4 = 0b1;
   drum_data.unk5 = 0b11;
 
   // Send no velocity data by default.
   drum_data.velocity_id = u8(VelocityID::None);
   drum_data.no_velocity_data_1 = 1;
   drum_data.no_velocity_data_2 = 1;
-  drum_data.softness = 7;
 
   drum_data.stick_x = desired_state.stick_x;
   drum_data.stick_y = desired_state.stick_y;
@@ -164,7 +162,7 @@ void Drums::Update(const DesiredExtensionState& target_state)
       drum_data.no_velocity_data_1 = 0;
       drum_data.no_velocity_data_2 = 0;
 
-      drum_data.softness = desired_state.softness;
+      velocity = desired_state.softness;
 
       // A drum-pad hit causes the relevent bit to be triggered for the next 10 frames.
       constexpr u8 HIT_FRAME_COUNT = 10;
@@ -174,6 +172,11 @@ void Drums::Update(const DesiredExtensionState& target_state)
       break;
     }
   }
+  drum_data.velocity0 = velocity;
+  drum_data.velocity1 = velocity >> 1;
+  drum_data.velocity2 = velocity >> 2;
+  drum_data.velocity3 = velocity >> 3;
+  drum_data.velocity4 = velocity >> 4;
 
   // Figure out which drum-pad bits to send.
   // Note: Relevent bits are not set until after velocity data has been sent.
@@ -190,7 +193,7 @@ void Drums::Update(const DesiredExtensionState& target_state)
   }
 
   // Flip button and drum-pad bits. (0 == pressed)
-  drum_data.buttons ^= 0xff;
+  drum_data.buttons ^= 0x7e;
   drum_data.drum_pads ^= 0xff;
 
   // Copy data to proper region in the "register".

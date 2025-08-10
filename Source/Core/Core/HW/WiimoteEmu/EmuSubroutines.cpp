@@ -4,22 +4,19 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include <cmath>
-#include <fstream>
 #include <iterator>
 
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumUtils.h"
-#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
+
 #include "Core/Core.h"
-#include "Core/DolphinAnalytics.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
-#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 
 namespace WiimoteEmu
 {
@@ -490,19 +487,6 @@ bool Wiimote::ProcessReadDataRequest()
       break;
     }
 
-    // It is possible to bypass data reporting and directly read extension input.
-    // While I am not aware of any games that actually do this,
-    // our NetPlay and TAS methods are completely unprepared for it.
-    const bool is_reading_ext = EncryptedExtension::I2C_ADDR == m_read_request.slave_address &&
-                                m_read_request.address < EncryptedExtension::CONTROLLER_DATA_BYTES;
-    const bool is_reading_ir =
-        CameraLogic::I2C_ADDR == m_read_request.slave_address &&
-        m_read_request.address < CameraLogic::REPORT_DATA_OFFSET + CameraLogic::CAMERA_DATA_BYTES &&
-        m_read_request.address + m_read_request.size > CameraLogic::REPORT_DATA_OFFSET;
-
-    if (is_reading_ext || is_reading_ir)
-      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::DIRECTLY_READS_WIIMOTE_INPUT);
-
     // Top byte of address is ignored on the bus, but it IS maintained in the read-reply.
     auto const bytes_read = m_i2c_bus.BusRead(
         m_read_request.slave_address, (u8)m_read_request.address, bytes_to_read, reply.data);
@@ -602,9 +586,9 @@ ExtensionNumber Wiimote::GetActiveExtensionNumber() const
   return m_active_extension;
 }
 
-bool Wiimote::IsMotionPlusAttached() const
+ControllerEmu::SubscribableSettingValue<bool>& Wiimote::GetMotionPlusSetting()
 {
-  return m_is_motion_plus_attached;
+  return m_motion_plus_setting;
 }
 
 }  // namespace WiimoteEmu
