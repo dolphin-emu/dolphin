@@ -369,6 +369,9 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
   gpr.Reset(js.op->regsOut);
   fpr.Reset(js.op->GetFregsOut());
 
+  if (js.op->opinfo->flags & FL_SET_MSR)
+    EmitUpdateMembase();
+
   if (js.op->canEndBlock)
   {
     if (js.isLastInstruction)
