@@ -140,6 +140,26 @@ void SlippiPane::CreateLayout()
 
   // online_settings_layout->addRow(netplay_ip_layout);
 
+  // Rank Info Settings
+  auto* ranked_settings = new QGroupBox(tr("Rank Settings"));
+  auto* ranked_settings_layout = new QVBoxLayout();
+  ranked_settings->setLayout(ranked_settings_layout);
+  m_main_layout->addWidget(ranked_settings);
+
+  m_enable_local_rank = new QCheckBox(tr("Show your rank (Character Select and Ranked Setup Screen)"));
+  m_enable_local_rank->setToolTip(
+      tr("Toggle rank information on the CSS (rank icon and rating).")
+    );
+  ranked_settings_layout->addWidget(m_enable_local_rank);
+
+  m_enable_opp_rank = new QCheckBox(tr("Show opponent's rank (Ranked Setup Screen)"));
+  m_enable_opp_rank->setToolTip(
+      tr("Toggle rank information on the ranked game setup screen.")
+    );
+  ranked_settings_layout->addWidget(m_enable_opp_rank);
+
+
+
   // Jukebox Settings
   auto* jukebox_settings = new QGroupBox(tr("Jukebox Settings (Beta)"));
   auto* jukebox_settings_layout = new QVBoxLayout();
@@ -165,7 +185,6 @@ void SlippiPane::CreateLayout()
   sfx_music_slider_layout->addWidget(m_music_volume_percent, 1, 2);
 
   jukebox_settings_layout->addLayout(sfx_music_slider_layout);
-
 #else
   // Playback Settings
   auto* playback_settings = new QGroupBox(tr("Playback Settings"));
@@ -212,6 +231,12 @@ void SlippiPane::LoadConfig()
 
   m_netplay_port->setDisabled(!force_netplay_port);
 
+  // Ranked Settings
+  auto enable_local_rank = Config::Get(Config::SLIPPI_ENABLE_RANK_LOCAL);
+  m_enable_local_rank->setChecked(enable_local_rank);
+  auto enable_opp_rank = Config::Get(Config::SLIPPI_ENABLE_RANK_OPP);
+  m_enable_opp_rank->setChecked(enable_opp_rank);
+
   // Jukebox Settings
   auto enable_jukebox = Config::Get(Config::SLIPPI_ENABLE_JUKEBOX);
   auto jukebox_volume = Config::Get(Config::SLIPPI_JUKEBOX_VOLUME);
@@ -249,6 +274,10 @@ void SlippiPane::ConnectLayout()
   connect(m_enable_jukebox, &QCheckBox::toggled, this, &SlippiPane::ToggleJukebox);
   connect(m_music_volume_slider, qOverload<int>(&QSlider::valueChanged), this,
           &SlippiPane::OnMusicVolumeUpdate);
+
+  // Ranked Settings
+  connect(m_enable_local_rank, &QCheckBox::toggled, this, &SlippiPane::ToggleLocalRankInfo);
+  connect(m_enable_opp_rank, &QCheckBox::toggled, this, &SlippiPane::ToggleOpponentRankInfo);
 #else
   // HOOKUP PLAYBACK STUFF
 #endif
@@ -283,7 +312,6 @@ void SlippiPane::SetForceNetplayPort(bool checked)
 void SlippiPane::ToggleJukebox(bool checked)
 {
   Config::SetBase(Config::SLIPPI_ENABLE_JUKEBOX, checked);
-  m_music_volume_slider->setDisabled(!checked);
 
   if (Core::GetState(Core::System::GetInstance()) == Core::State::Running)
   {
@@ -295,6 +323,16 @@ void SlippiPane::ToggleJukebox(bool checked)
     if (slippi_exi != nullptr)
       slippi_exi->ConfigureJukebox();
   }
+}
+
+void SlippiPane::ToggleLocalRankInfo(bool checked)
+{
+  Config::SetBase(Config::SLIPPI_ENABLE_RANK_LOCAL, checked);
+}
+
+void SlippiPane::ToggleOpponentRankInfo(bool checked)
+{
+  Config::SetBase(Config::SLIPPI_ENABLE_RANK_OPP, checked);
 }
 
 void SlippiPane::OnMusicVolumeUpdate(int volume)

@@ -108,6 +108,9 @@ private:
     CMD_CHANGE_MUSIC_VOLUME = 0xD8,
     CMD_PREMADE_TEXT_LENGTH = 0xE1,
     CMD_PREMADE_TEXT_LOAD = 0xE2,
+    CMD_GET_RANK = 0xE3,
+    CMD_FETCH_RANK = 0xE4,
+    CMD_GET_RANK_VISIBILITY = 0xE5
   };
 
   enum
@@ -187,7 +190,9 @@ private:
        static_cast<u32>(sizeof(SlippiExiTypes::ChangeMusicVolumeQuery) - 1)},
       {CMD_PREMADE_TEXT_LENGTH, 0x2},
       {CMD_PREMADE_TEXT_LOAD, 0x2},
-  };
+      {CMD_GET_RANK, 0x0},
+      {CMD_FETCH_RANK, 0x0},
+      {CMD_GET_RANK_VISIBILITY, 0x0}};
 
   struct WriteMessage
   {
@@ -250,6 +255,7 @@ private:
   void handleCompleteSet(const SlippiExiTypes::ReportSetCompletionQuery& query);
   void handleMatchStatusUpdate(const SlippiExiTypes::ReportMatchStatusUpdateQuery& query);
   void handleGetPlayerSettings();
+  void handleGetRank();
 
   // replay playback stuff
   void prepareGameInfo(u8* payload);

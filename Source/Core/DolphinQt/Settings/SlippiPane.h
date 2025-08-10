@@ -29,6 +29,8 @@ private:
   void SetSaveReplays(bool checked);
   void BrowseReplayFolder();
   void ToggleJukebox(bool checked);
+  void ToggleLocalRankInfo(bool checked);
+  void ToggleOpponentRankInfo(bool checked);
   void SetForceNetplayPort(bool checked);
   void OnMusicVolumeUpdate(int volume);
   void CreateLayout();
@@ -54,4 +56,8 @@ private:
   QCheckBox* m_enable_jukebox;
   QSlider* m_music_volume_slider;
   QLabel* m_music_volume_percent;
+
+  // Ranked Settings
+  QCheckBox* m_enable_local_rank;
+  QCheckBox* m_enable_opp_rank;
 };

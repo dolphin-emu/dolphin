@@ -41,6 +41,30 @@ public:
     ERROR_ENCOUNTERED,
   };
 
+  enum SlippiRank
+  {
+    Unranked,
+    Bronze1,
+    Bronze2,
+    Bronze3,
+    Silver1,
+    Silver2,
+    Silver3,
+    Gold1,
+    Gold2,
+    Gold3,
+    Platinum1,
+    Platinum2,
+    Platinum3,
+    Diamond1,
+    Diamond2,
+    Diamond3,
+    Master1,
+    Master2,
+    Master3,
+    Grandmaster
+  };
+
   struct MatchSearchSettings
   {
     OnlinePlayMode mode = OnlinePlayMode::RANKED;
@@ -63,6 +87,7 @@ public:
   int LocalPlayerIndex();
   std::vector<SlippiUser::UserInfo> GetPlayerInfo();
   std::string GetPlayerName(u8 port);
+  SlippiRank GetPlayerRank(u8 port);
   std::vector<u16> GetStages();
   u8 RemotePlayerCount();
   MatchmakeResult GetMatchmakeResult();

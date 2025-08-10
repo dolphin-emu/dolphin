@@ -55,6 +55,9 @@ const Info<bool> SLIPPI_BLOCKING_PIPES{{System::Main, "Slippi", "BlockingPipes"}
 const Info<bool> SLIPPI_ENABLE_JUKEBOX{{System::Main, "Slippi", "EnableJukebox"}, true};
 const Info<int> SLIPPI_JUKEBOX_VOLUME{{System::Main, "Slippi", "JukeboxVolume"}, 100};
 
+const Info<bool> SLIPPI_ENABLE_RANK_LOCAL{{System::Main, "Slippi", "ShowLocalRankInfo"}, true};
+const Info<bool> SLIPPI_ENABLE_RANK_OPP{{System::Main, "Slippi", "ShowOpponentRankInfo"}, true};
+
 // Playback Settings
 const Info<bool> SLIPPI_ENABLE_SEEK{{System::Main, "Slippi", "EnableSeek"}, true};
 

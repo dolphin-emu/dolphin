@@ -557,6 +557,15 @@ void SlippiMatchmaking::handleMatchmaking()
         player_info.chat_messages = m_user->GetDefaultChatMessages();
       }
 
+      json rank_el = el["rank"];
+      if (rank_el.is_object())
+      {
+        player_info.ranked_rating = rank_el.value("rating", 0.0);
+        player_info.ranked_update_count = rank_el.value("updateCount", 0);
+        player_info.ranked_global_placement = rank_el.value("globalPlacement", 0);
+        player_info.ranked_regional_placement = rank_el.value("regionalPlacement", 0);
+      }
+
       m_player_info.push_back(player_info);
 
       if (is_local)
@@ -635,8 +644,12 @@ void SlippiMatchmaking::handleMatchmaking()
   // Disconnect and destroy enet client to mm server
   terminateMmConnection();
 
-  // Report to backend that we are attempting to connect to this match
-  slprs_exi_device_report_match_status(slprs_exi_device_ptr, match_id.c_str(), "connecting", true);
+  // If ranked, report to backend that we are attempting to connect to this match
+  if (match_id.find("mode.ranked") != std::string::npos)
+  {
+    slprs_exi_device_report_match_status(slprs_exi_device_ptr, match_id.c_str(), "connecting",
+                                         true);
+  }
 
   m_state = ProcessState::OPPONENT_CONNECTING;
   ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Opponent found. is_decider: {}",
@@ -665,6 +678,125 @@ std::string SlippiMatchmaking::GetPlayerName(u8 port)
     return "";
   }
   return m_player_info[port].display_name;
+}
+
+// This is kind of duplicate code from what exists in rust. Maybe eventually it should be remove
+// and exist only on the rust side
+SlippiMatchmaking::SlippiRank SlippiMatchmaking::GetPlayerRank(u8 port)
+{
+  if (port >= m_player_info.size())
+  {
+    return SlippiRank::Unranked;
+  }
+
+  auto info = m_player_info[port];
+
+  float rating = info.ranked_rating;
+  int update_count = info.ranked_update_count;
+  int global = info.ranked_global_placement;
+  int regional = info.ranked_regional_placement;
+
+  if (update_count < 5)
+  {
+    return SlippiRank::Unranked;
+  }
+
+  if (rating <= 765.42f)
+  {
+    return SlippiRank::Bronze1;
+  }
+
+  if (rating > 765.43f && rating <= 913.71f)
+  {
+    return SlippiRank::Bronze2;
+  }
+
+  if (rating > 913.72f && rating <= 1054.86f)
+  {
+    return SlippiRank::Bronze3;
+  }
+
+  if (rating > 1054.87f && rating <= 1188.87f)
+  {
+    return SlippiRank::Silver1;
+  }
+
+  if (rating > 1188.88f && rating <= 1315.74f)
+  {
+    return SlippiRank::Silver2;
+  }
+
+  if (rating > 1315.75f && rating <= 1435.47f)
+  {
+    return SlippiRank::Silver3;
+  }
+
+  if (rating > 1435.48f && rating <= 1548.06f)
+  {
+    return SlippiRank::Gold1;
+  }
+
+  if (rating > 1548.07f && rating <= 1653.51f)
+  {
+    return SlippiRank::Gold2;
+  }
+
+  if (rating > 1653.52f && rating <= 1751.82f)
+  {
+    return SlippiRank::Gold3;
+  }
+
+  if (rating > 1751.83f && rating <= 1842.99f)
+  {
+    return SlippiRank::Platinum1;
+  }
+
+  if (rating > 1843.0f && rating <= 1927.02f)
+  {
+    return SlippiRank::Platinum2;
+  }
+
+  if (rating > 1927.03f && rating <= 2003.91f)
+  {
+    return SlippiRank::Platinum3;
+  }
+
+  if (rating > 2003.92f && rating <= 2073.66f)
+  {
+    return SlippiRank::Diamond1;
+  }
+
+  if (rating > 2073.67f && rating <= 2136.27f)
+  {
+    return SlippiRank::Diamond2;
+  }
+
+  if (rating > 2136.28f && rating <= 2191.74f)
+  {
+    return SlippiRank::Diamond3;
+  }
+
+  if (rating >= 2191.75f && global > 0 && regional > 0)
+  {
+    return SlippiRank::Grandmaster;
+  }
+
+  if (rating > 2191.75f && rating <= 2274.99f)
+  {
+    return SlippiRank::Master1;
+  }
+
+  if (rating > 2275.0f && rating <= 2350.0f)
+  {
+    return SlippiRank::Master2;
+  }
+
+  if (rating > 2350.0f)
+  {
+    return SlippiRank::Master3;
+  }
+
+  return SlippiRank::Unranked;
 }
 
 SlippiMatchmaking::MatchmakeResult SlippiMatchmaking::GetMatchmakeResult()
