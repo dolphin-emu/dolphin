@@ -2,19 +2,20 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/Slippi/SlippiNetplay.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/ENet.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Timer.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/NetPlayProto.h"
-#include "SlippiGame.h"
-#include "SlippiPremadeText.h"
+#include "Core/Slippi/SlippiGame.h"
+#include "Core/Slippi/SlippiNetplay.h"
+#include "Core/Slippi/SlippiPremadeText.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -414,7 +415,7 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
     ack_timers[p_idx].Pop();
 
     ping_us[p_idx] = Common::Timer::NowUs() - send_time;
-    if (g_ActiveConfig.bShowNetPlayPing && frame % SLIPPI_PING_DISPLAY_INTERVAL == 0 && p_idx == 0)
+    if (Config::Get(Config::GFX_SHOW_NETPLAY_PING) && frame % SLIPPI_PING_DISPLAY_INTERVAL == 0 && p_idx == 0)
     {
       std::stringstream ping_display;
       ping_display << "Ping: " << (ping_us[0] / 1000);
