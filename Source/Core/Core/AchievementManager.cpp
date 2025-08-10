@@ -1032,6 +1032,7 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
     OSD::AddMessage("Please close the game to log back in before continuing.",
                     OSD::Duration::VERY_LONG, OSD::Color::RED);
     Config::SetBaseOrCurrent(Config::RA_API_TOKEN, "");
+    instance.update_event.Trigger(UpdatedItems{.failed_login_code = result});
     return;
   }
 
