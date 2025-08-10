@@ -72,7 +72,7 @@ extern const std::map<const std::pair<const u16, const u16>, SkyData> list_skyla
 class SkylanderUSB final : public Device
 {
 public:
-  SkylanderUSB(EmulationKernel& ios, const std::string& device_name);
+  SkylanderUSB(EmulationKernel& ios);
   ~SkylanderUSB();
   DeviceDescriptor GetDeviceDescriptor() const override;
   std::vector<ConfigDescriptor> GetConfigurations() const override;

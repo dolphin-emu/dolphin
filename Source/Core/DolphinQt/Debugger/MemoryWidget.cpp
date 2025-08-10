@@ -66,9 +66,13 @@ MemoryWidget::MemoryWidget(Core::System& system, QWidget* parent)
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this,
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsMemoryVisible()); });
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &MemoryWidget::Update);
-  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &MemoryWidget::Update);
-
+  connect(this, &QDockWidget::visibilityChanged, this, [this](bool visible) {
+    // Stop auto-update if MemoryView is tabbed out.
+    if (visible && m_auto_update_enabled)
+      RegisterAfterFrameEventCallback();
+    else
+      RemoveAfterFrameEventCallback();
+  });
   LoadSettings();
 
   ConnectWidgets();
@@ -250,11 +254,33 @@ void MemoryWidget::CreateWidgets()
   // Sidebar top menu
   QMenuBar* menubar = new QMenuBar(sidebar);
   menubar->setNativeMenuBar(false);
+  QMenu* menu_views = new QMenu(tr("&View"), menubar);
+  menubar->addMenu(menu_views);
 
   QMenu* menu_import = new QMenu(tr("&Import"), menubar);
   menu_import->addAction(tr("&Load file to current address"), this,
                          &MemoryWidget::OnSetValueFromFile);
   menubar->addMenu(menu_import);
+
+  auto* auto_update_action =
+      menu_views->addAction(tr("Auto update memory values"), this, [this](bool checked) {
+        m_auto_update_enabled = checked;
+        if (checked)
+          RegisterAfterFrameEventCallback();
+        else
+          RemoveAfterFrameEventCallback();
+      });
+  auto_update_action->setCheckable(true);
+  auto_update_action->setChecked(true);
+
+  auto* highlight_update_action =
+      menu_views->addAction(tr("Highlight recently changed values"), this,
+                            [this](bool checked) { m_memory_view->ToggleHighlights(checked); });
+  highlight_update_action->setCheckable(true);
+  highlight_update_action->setChecked(true);
+
+  menu_views->addAction(tr("Highlight color"), this,
+                        [this] { m_memory_view->SetHighlightColor(); });
 
   QMenu* menu_export = new QMenu(tr("&Export"), menubar);
   menu_export->addAction(tr("Dump &MRAM"), this, &MemoryWidget::OnDumpMRAM);
@@ -340,11 +366,35 @@ void MemoryWidget::ConnectWidgets()
 void MemoryWidget::closeEvent(QCloseEvent*)
 {
   Settings::Instance().SetMemoryVisible(false);
+  RemoveAfterFrameEventCallback();
 }
 
 void MemoryWidget::showEvent(QShowEvent* event)
 {
+  if (m_auto_update_enabled)
+    RegisterAfterFrameEventCallback();
+
   Update();
+}
+
+void MemoryWidget::hideEvent(QHideEvent* event)
+{
+  RemoveAfterFrameEventCallback();
+}
+
+void MemoryWidget::RegisterAfterFrameEventCallback()
+{
+  m_vi_end_field_event = VIEndFieldEvent::Register([this] { AutoUpdateTable(); }, "MemoryWidget");
+}
+
+void MemoryWidget::RemoveAfterFrameEventCallback()
+{
+  m_vi_end_field_event.reset();
+}
+
+void MemoryWidget::AutoUpdateTable()
+{
+  m_memory_view->UpdateOnFrameEnd();
 }
 
 void MemoryWidget::Update()
@@ -352,7 +402,7 @@ void MemoryWidget::Update()
   if (!isVisible())
     return;
 
-  m_memory_view->Update();
+  m_memory_view->UpdateDispatcher(MemoryViewWidget::UpdateType::Addresses);
   update();
 }
 

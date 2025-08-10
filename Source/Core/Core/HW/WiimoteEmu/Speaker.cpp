@@ -166,7 +166,7 @@ int SpeakerLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
   if (I2C_ADDR != slave_addr)
     return 0;
 
-  if (0x00 == addr)
+  if (addr == SPEAKER_DATA_OFFSET)
   {
     SpeakerData(data_in, count, m_speaker_pan_setting.GetValue() / 100);
     return count;

@@ -348,6 +348,7 @@ const Info<int> MAIN_GDB_PORT{{System::Main, "General", "GDBPort"}, -1};
 const Info<int> MAIN_ISO_PATH_COUNT{{System::Main, "General", "ISOPaths"}, 0};
 const Info<std::string> MAIN_SKYLANDERS_PATH{{System::Main, "General", "SkylandersCollectionPath"},
                                              ""};
+const Info<bool> MAIN_TIME_TRACKING{{System::Main, "General", "EnablePlayTimeTracking"}, true};
 
 static Info<std::string> MakeISOPathConfigInfo(size_t idx)
 {
@@ -499,6 +500,8 @@ const Info<bool> MAIN_GAMELIST_COLUMN_BLOCK_SIZE{{System::Main, "GameList", "Col
                                                  false};
 const Info<bool> MAIN_GAMELIST_COLUMN_COMPRESSION{{System::Main, "GameList", "ColumnCompression"},
                                                   false};
+const Info<bool> MAIN_GAMELIST_COLUMN_TIME_PLAYED{{System::Main, "GameList", "ColumnTimePlayed"},
+                                                  true};
 const Info<bool> MAIN_GAMELIST_COLUMN_TAGS{{System::Main, "GameList", "ColumnTags"}, false};
 
 // Main.FifoPlayer
@@ -791,8 +794,7 @@ bool IsDefaultGCIFolderPathConfigured(ExpansionInterface::Slot slot)
 
 bool AreCheatsEnabled()
 {
-  return Config::Get(::Config::MAIN_ENABLE_CHEATS) &&
-         !AchievementManager::GetInstance().IsHardcoreModeActive();
+  return Config::Get(::Config::MAIN_ENABLE_CHEATS);
 }
 
 bool IsDebuggingEnabled()

@@ -105,10 +105,10 @@
     <string name="wii_sd_card_sync_description">Synchronizes the SD Card with the SD Sync Folder when starting and ending emulation.</string>
     <string name="wii_sd_card_path">SD Card Path</string>
     <string name="wii_sd_sync_folder">SD Sync Folder</string>
-    <string name="wii_sd_card_folder_to_file">Convert Folder to File Now</string>
-    <string name="wii_sd_card_folder_to_file_confirmation">You are about to convert the content of the SD sync folder into the SD card file. All current content of the file will be deleted. Are you sure you want to continue?</string>
-    <string name="wii_sd_card_file_to_folder">Convert File to Folder Now</string>
-    <string name="wii_sd_card_file_to_folder_confirmation">You are about to convert the content of the SD card file into the SD sync folder. All current content of the folder will be deleted. Are you sure you want to continue?</string>
+    <string name="wii_sd_card_folder_to_file">Pack SD Card Now</string>
+    <string name="wii_sd_card_folder_to_file_confirmation">You are about to pack the content of the SD sync folder into the SD card file. All current content of the file will be deleted. Are you sure you want to continue?</string>
+    <string name="wii_sd_card_file_to_folder">Unpack SD Card Now</string>
+    <string name="wii_sd_card_file_to_folder_confirmation">You are about to unpack the content of the SD card file into the SD sync folder. All current content of the folder will be deleted. Are you sure you want to continue?</string>
     <string name="wii_converting">Converting…</string>
     <string name="wii_convert_success">Conversion done.</string>
     <string name="wii_convert_failure">Conversion failed.</string>

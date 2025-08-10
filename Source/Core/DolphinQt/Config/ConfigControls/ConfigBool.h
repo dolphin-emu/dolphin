@@ -3,23 +3,25 @@
 
 #pragma once
 
+#include "DolphinQt/Config/ConfigControls/ConfigControl.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 
-namespace Config
-{
-template <typename T>
-class Info;
-}
+#include "Common/Config/ConfigInfo.h"
 
-class ConfigBool : public ToolTipCheckBox
+class ConfigBool final : public ConfigControl<ToolTipCheckBox>
 {
   Q_OBJECT
 public:
   ConfigBool(const QString& label, const Config::Info<bool>& setting, bool reverse = false);
+  ConfigBool(const QString& label, const Config::Info<bool>& setting, Config::Layer* layer,
+             bool reverse = false);
+
+protected:
+  void OnConfigChanged() override;
 
 private:
   void Update();
 
-  const Config::Info<bool>& m_setting;
+  const Config::Info<bool> m_setting;
   bool m_reverse;
 };

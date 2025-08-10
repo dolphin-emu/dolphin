@@ -34,6 +34,7 @@ private:
   // Extensions
   QComboBox* m_extension_combo;
   QLabel* m_extension_combo_dynamic_indicator;
+  QPushButton* m_configure_ext_button;
 
   WiimoteEmuExtension* m_extension_widget;
 };

@@ -627,7 +627,7 @@ static bool CheckDeviceAccess(libusb_device* device)
   if (ret == 1)  // 1: kernel driver is active
   {
     // On macos detaching would fail without root or entitlement.
-    // We assume user is using GCAdapterDriver and therefor don't want to detach anything
+    // We assume user is using GCAdapterDriver and therefore don't want to detach anything
 #if !defined(__APPLE__)
     ret = libusb_detach_kernel_driver(s_handle, 0);
     detach_failed =
@@ -731,7 +731,7 @@ void Shutdown()
   StopScanThread();
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
 #if LIBUSB_API_HAS_HOTPLUG
-  if (s_libusb_context->IsValid() && s_libusb_hotplug_enabled)
+  if (s_libusb_context && s_libusb_context->IsValid() && s_libusb_hotplug_enabled)
     libusb_hotplug_deregister_callback(*s_libusb_context, s_hotplug_handle);
 #endif
 #endif

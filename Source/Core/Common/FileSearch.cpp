@@ -41,7 +41,7 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
   // N.B. This avoids doing any copies
   auto ext_matches = [&native_exts](const fs::path& path) {
     const std::basic_string_view<fs::path::value_type> native_path = path.native();
-    return std::any_of(native_exts.cbegin(), native_exts.cend(), [&native_path](const auto& ext) {
+    return std::ranges::any_of(native_exts, [&native_path](const auto& ext) {
       const auto compare_len = ext.native().length();
       if (native_path.length() < compare_len)
         return false;
@@ -98,7 +98,8 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
   // not because std::filesystem returns duplicates). Also note that this pathname-based uniqueness
   // isn't as thorough as std::filesystem::equivalent.
   std::ranges::sort(result);
-  result.erase(std::unique(result.begin(), result.end()), result.end());
+  const auto unique_result = std::ranges::unique(result);
+  result.erase(unique_result.begin(), unique_result.end());
 
   // Dolphin expects to be able to use "/" (DIR_SEP) everywhere.
   // std::filesystem uses the OS separator.

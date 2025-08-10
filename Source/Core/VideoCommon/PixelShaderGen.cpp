@@ -1308,9 +1308,9 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   if (uid_data->dither)
   {
     // Flipper uses a standard 2x2 Bayer Matrix for 6 bit dithering
-    // Here the matrix is encoded into the two factor constants
     out.Write("\tint2 dither = int2(rawpos.xy) & 1;\n");
-    out.Write("\tprev.rgb = (prev.rgb - (prev.rgb >> 6)) + abs(dither.y * 3 - dither.x * 2);\n");
+    out.Write(
+        "\tprev.rgb = (prev.rgb - (prev.rgb >> 6)) + (dither.x ^ dither.y) * 2 + dither.y;\n");
   }
 
   WriteFog(out, uid_data);

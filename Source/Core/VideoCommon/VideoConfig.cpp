@@ -7,6 +7,7 @@
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
+#include "Common/Contains.h"
 #include "Common/StringUtil.h"
 
 #include "Core/CPUThreadConfigCallback.h"
@@ -121,7 +122,7 @@ void VideoConfig::Refresh()
   bDumpEFBTarget = Config::Get(Config::GFX_DUMP_EFB_TARGET);
   bDumpXFBTarget = Config::Get(Config::GFX_DUMP_XFB_TARGET);
   bDumpFramesAsImages = Config::Get(Config::GFX_DUMP_FRAMES_AS_IMAGES);
-  bUseFFV1 = Config::Get(Config::GFX_USE_FFV1);
+  bUseLossless = Config::Get(Config::GFX_USE_LOSSLESS);
   sDumpFormat = Config::Get(Config::GFX_DUMP_FORMAT);
   sDumpCodec = Config::Get(Config::GFX_DUMP_CODEC);
   sDumpPixelFormat = Config::Get(Config::GFX_DUMP_PIXEL_FORMAT);
@@ -205,6 +206,8 @@ void VideoConfig::Refresh()
   bGraphicMods = Config::Get(Config::GFX_MODS_ENABLE);
 
   customDriverLibraryName = Config::Get(Config::GFX_DRIVER_LIB_NAME);
+
+  vertex_loader_type = Config::Get(Config::GFX_VERTEX_LOADER_TYPE);
 }
 
 void VideoConfig::VerifyValidity()
@@ -213,8 +216,7 @@ void VideoConfig::VerifyValidity()
   if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1))
     iAdapter = 0;
 
-  if (std::find(backend_info.AAModes.begin(), backend_info.AAModes.end(), iMultisamples) ==
-      backend_info.AAModes.end())
+  if (!Common::Contains(backend_info.AAModes, iMultisamples))
     iMultisamples = 1;
 
   if (stereo_mode != StereoMode::Off)

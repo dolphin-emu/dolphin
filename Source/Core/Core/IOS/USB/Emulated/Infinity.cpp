@@ -137,7 +137,7 @@ static constexpr std::array<u8, 32> SHA1_CONSTANT = {
 static constexpr std::array<u8, 16> BLANK_BLOCK = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-InfinityUSB::InfinityUSB(EmulationKernel& ios, const std::string& device_name) : m_ios(ios)
+InfinityUSB::InfinityUSB(EmulationKernel& ios) : m_ios(ios)
 {
   m_vid = 0x0E6F;
   m_pid = 0x0129;

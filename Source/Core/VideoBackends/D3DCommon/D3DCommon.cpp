@@ -3,9 +3,9 @@
 
 #include "VideoBackends/D3DCommon/D3DCommon.h"
 
-#include <d3d11.h>
+#include <d3d11_4.h>
 #include <d3d12.h>
-#include <dxgi1_3.h>
+#include <dxgi1_6.h>
 #include <wrl/client.h>
 
 #include "Common/Assert.h"

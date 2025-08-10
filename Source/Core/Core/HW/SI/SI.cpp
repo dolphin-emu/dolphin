@@ -59,6 +59,12 @@ SerialInterfaceManager::SerialInterfaceManager(Core::System& system) : m_system(
 
 SerialInterfaceManager::~SerialInterfaceManager() = default;
 
+static constexpr u32 GetRDSTBit(u32 channel)
+{
+  // Returns bit for RDST0,1,2,3
+  return 0x20000000 >> (channel * 8);
+}
+
 void SerialInterfaceManager::SetNoResponse(u32 channel)
 {
   // raise the NO RESPONSE error
@@ -357,27 +363,23 @@ void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   for (u32 i = 0; i < u32(MAX_SI_CHANNELS); ++i)
   {
     // We need to clear the RDST bit for the SI channel when reading.
-    // CH0 -> Bit 24 + 5
-    // CH1 -> Bit 16 + 5
-    // CH2 -> Bit 8 + 5
-    // CH3 -> Bit 0 + 5
-    const u32 rdst_bit = 8 * (3 - i) + 5;
+    const u32 clear_rdst = ~GetRDSTBit(i);
 
     mmio->Register(base | (SI_CHANNEL_0_OUT + 0xC * i),
                    MMIO::DirectRead<u32>(&m_channel[i].out.hex),
                    MMIO::DirectWrite<u32>(&m_channel[i].out.hex));
     mmio->Register(base | (SI_CHANNEL_0_IN_HI + 0xC * i),
-                   MMIO::ComplexRead<u32>([i, rdst_bit](Core::System& system, u32) {
+                   MMIO::ComplexRead<u32>([i, clear_rdst](Core::System& system, u32) {
                      auto& si = system.GetSerialInterface();
-                     si.m_status_reg.hex &= ~(1U << rdst_bit);
+                     si.m_status_reg.hex &= clear_rdst;
                      si.UpdateInterrupts();
                      return si.m_channel[i].in_hi.hex;
                    }),
                    MMIO::DirectWrite<u32>(&m_channel[i].in_hi.hex));
     mmio->Register(base | (SI_CHANNEL_0_IN_LO + 0xC * i),
-                   MMIO::ComplexRead<u32>([i, rdst_bit](Core::System& system, u32) {
+                   MMIO::ComplexRead<u32>([i, clear_rdst](Core::System& system, u32) {
                      auto& si = system.GetSerialInterface();
-                     si.m_status_reg.hex &= ~(1U << rdst_bit);
+                     si.m_status_reg.hex &= clear_rdst;
                      si.UpdateInterrupts();
                      return si.m_channel[i].in_lo.hex;
                    }),
@@ -550,14 +552,26 @@ void SerialInterfaceManager::UpdateDevices()
   g_controller_interface.UpdateInput();
 
   // Update channels and set the status bit if there's new data
-  m_status_reg.RDST0 =
-      !!m_channel[0].device->GetData(m_channel[0].in_hi.hex, m_channel[0].in_lo.hex);
-  m_status_reg.RDST1 =
-      !!m_channel[1].device->GetData(m_channel[1].in_hi.hex, m_channel[1].in_lo.hex);
-  m_status_reg.RDST2 =
-      !!m_channel[2].device->GetData(m_channel[2].in_hi.hex, m_channel[2].in_lo.hex);
-  m_status_reg.RDST3 =
-      !!m_channel[3].device->GetData(m_channel[3].in_hi.hex, m_channel[3].in_lo.hex);
+  for (u32 i = 0; i != MAX_SI_CHANNELS; ++i)
+  {
+    // ERRLATCH bit is maintained.
+    u32 errlatch = m_channel[i].in_hi.ERRLATCH.Value();
+    switch (m_channel[i].device->GetData(m_channel[i].in_hi.hex, m_channel[i].in_lo.hex))
+    {
+    case DataResponse::Success:
+      m_status_reg.hex |= GetRDSTBit(i);
+      break;
+    case DataResponse::ErrorNoResponse:
+      SetNoResponse(i);
+      [[fallthrough]];
+    case DataResponse::NoData:
+      errlatch = 1;
+      m_channel[i].in_hi.ERRSTAT = 1;
+      break;
+    }
+
+    m_channel[i].in_hi.ERRLATCH = errlatch;
+  }
 
   UpdateInterrupts();
 }

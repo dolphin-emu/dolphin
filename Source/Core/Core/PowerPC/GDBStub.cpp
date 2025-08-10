@@ -174,9 +174,10 @@ static void RemoveBreakpoint(BreakpointType type, u32 addr, u32 len)
     auto& memchecks = Core::System::GetInstance().GetPowerPC().GetMemChecks();
     while (memchecks.GetMemCheck(addr, len) != nullptr)
     {
-      memchecks.Remove(addr);
+      memchecks.Remove(addr, false);
       INFO_LOG_FMT(GDB_STUB, "gdb: removed a memcheck: {:08x} bytes at {:08x}", len, addr);
     }
+    memchecks.Update();
   }
   Host_PPCBreakpointsChanged();
 }

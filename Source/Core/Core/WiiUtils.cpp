@@ -21,6 +21,7 @@
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/Contains.h"
 #include "Common/EnumUtils.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
@@ -223,15 +224,14 @@ bool IsTitleInstalled(u64 title_id)
   // Since this isn't IOS and we only need a simple way to figure out if a title is installed,
   // we make the (reasonable) assumption that having more than just the TMD in the content
   // directory means that the title is installed.
-  return std::any_of(entries->begin(), entries->end(),
-                     [](const std::string& file) { return file != "title.tmd"; });
+  return std::ranges::any_of(*entries, [](const std::string& file) { return file != "title.tmd"; });
 }
 
 bool IsTMDImported(IOS::HLE::FS::FileSystem& fs, u64 title_id)
 {
   const auto entries = fs.ReadDirectory(0, 0, Common::GetTitleContentPath(title_id));
-  return entries && std::any_of(entries->begin(), entries->end(),
-                                [](const std::string& file) { return file == "title.tmd"; });
+  return entries &&
+         std::ranges::any_of(*entries, [](const std::string& file) { return file == "title.tmd"; });
 }
 
 IOS::ES::TMDReader FindBackupTMD(IOS::HLE::FS::FileSystem& fs, u64 title_id)
@@ -467,12 +467,7 @@ OnlineSystemUpdater::Response OnlineSystemUpdater::GetSystemTitles()
     // but the backing data CDN is still active and accessible from other URLs. We take advantage
     // of this by hosting our own NetUpdateSOAP endpoint which serves the correct list of titles to
     // install along with URLs for the Wii U CDN.
-#ifdef ANDROID
-    // HTTPS is unsupported on Android (https://bugs.dolphin-emu.org/issues/11772).
-    base_url = "http://fakenus.dolphin-emu.org";
-#else
     base_url = "https://fakenus.dolphin-emu.org";
-#endif
   }
 
   const std::string url = fmt::format("{}/nus/services/NetUpdateSOAP", base_url);
@@ -591,10 +586,8 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   const UpdateResult import_result = [&]() {
     for (const IOS::ES::Content& content : tmd.first.GetContents())
     {
-      const bool is_already_installed = std::find_if(stored_contents.begin(), stored_contents.end(),
-                                                     [&content](const auto& stored_content) {
-                                                       return stored_content.id == content.id;
-                                                     }) != stored_contents.end();
+      const bool is_already_installed =
+          Common::Contains(stored_contents, content.id, &IOS::ES::Content::id);
 
       // Do skip what is already installed on the NAND.
       if (is_already_installed)
@@ -947,8 +940,8 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
     }
 
     const auto installed_contents = es.GetStoredContentsFromTMD(tmd);
-    const bool is_installed = std::any_of(installed_contents.begin(), installed_contents.end(),
-                                          [](const auto& content) { return !content.IsShared(); });
+    const bool is_installed = std::ranges::any_of(
+        installed_contents, [](const auto& content) { return !content.IsShared(); });
 
     if (is_installed && installed_contents != tmd.GetContents() &&
         (tmd.GetTitleFlags() & IOS::ES::TitleFlags::TITLE_TYPE_DATA) == 0)

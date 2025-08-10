@@ -35,6 +35,11 @@ NumericSetting<int>& Attachments::GetSelectionSetting()
   return m_selection_setting;
 }
 
+SubscribableSettingValue<int>& Attachments::GetAttachmentSetting()
+{
+  return m_selection_value;
+}
+
 const std::vector<std::unique_ptr<EmulatedController>>& Attachments::GetAttachmentList() const
 {
   return m_attachments;

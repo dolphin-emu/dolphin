@@ -24,6 +24,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Contains.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -99,7 +100,7 @@ static size_t s_state_writes_in_queue;
 static std::condition_variable s_state_write_queue_is_empty;
 
 // Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 169;  // Last changed in PR 13074
+constexpr u32 STATE_VERSION = 170;  // Last changed in PR 13219
 
 // Increase this if the StateExtendedHeader definition changes
 constexpr u32 EXTENDED_HEADER_VERSION = 1;  // Last changed in PR 12217
@@ -270,9 +271,7 @@ static int GetEmptySlot(const std::vector<SlotWithTimestamp>& used_slots)
 {
   for (int i = 1; i <= (int)NUM_STATES; i++)
   {
-    const auto it = std::find_if(used_slots.begin(), used_slots.end(),
-                                 [i](const SlotWithTimestamp& slot) { return slot.slot == i; });
-    if (it == used_slots.end())
+    if (!Common::Contains(used_slots, i, &SlotWithTimestamp::slot))
       return i;
   }
   return -1;

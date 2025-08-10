@@ -240,11 +240,9 @@ bool NANDImporter::ExtractCertificates()
 
   for (const PEMCertificate& certificate : certificates)
   {
-    const auto search_result =
-        std::search(content_bytes.begin(), content_bytes.end(), certificate.search_bytes.begin(),
-                    certificate.search_bytes.end());
+    const auto search_result = std::ranges::search(content_bytes, certificate.search_bytes);
 
-    if (search_result == content_bytes.end())
+    if (search_result.empty())
     {
       ERROR_LOG_FMT(DISCIO, "ExtractCertificates: Could not find offset for certficate '{}'",
                     certificate.filename);
@@ -252,7 +250,8 @@ bool NANDImporter::ExtractCertificates()
     }
 
     const std::string pem_file_path = m_nand_root + std::string(certificate.filename);
-    const ptrdiff_t certificate_offset = std::distance(content_bytes.begin(), search_result);
+    const ptrdiff_t certificate_offset =
+        std::distance(content_bytes.begin(), search_result.begin());
     constexpr int min_offset = 2;
     if (certificate_offset < min_offset)
     {

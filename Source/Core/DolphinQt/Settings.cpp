@@ -22,6 +22,7 @@
 #include "AudioCommon/AudioCommon.h"
 
 #include "Common/Config/Config.h"
+#include "Common/Contains.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
@@ -296,7 +297,7 @@ void Settings::AddPath(const QString& qpath)
   std::string path = qpath.toStdString();
   std::vector<std::string> paths = Config::GetIsoPaths();
 
-  if (std::find(paths.begin(), paths.end(), path) != paths.end())
+  if (Common::Contains(paths, path))
     return;
 
   paths.emplace_back(path);
@@ -309,11 +310,9 @@ void Settings::RemovePath(const QString& qpath)
   std::string path = qpath.toStdString();
   std::vector<std::string> paths = Config::GetIsoPaths();
 
-  auto new_end = std::remove(paths.begin(), paths.end(), path);
-  if (new_end == paths.end())
+  if (std::erase(paths, path) == 0)
     return;
 
-  paths.erase(new_end, paths.end());
   Config::SetIsoPaths(paths);
   emit PathRemoved(qpath);
 }
@@ -609,14 +608,14 @@ void Settings::SetMemoryVisible(bool enabled)
 {
   if (IsMemoryVisible() == enabled)
     return;
-  QSettings().setValue(QStringLiteral("debugger/showmemory"), enabled);
+  GetQSettings().setValue(QStringLiteral("debugger/showmemory"), enabled);
 
   emit MemoryVisibilityChanged(enabled);
 }
 
 bool Settings::IsMemoryVisible() const
 {
-  return QSettings().value(QStringLiteral("debugger/showmemory")).toBool();
+  return GetQSettings().value(QStringLiteral("debugger/showmemory")).toBool();
 }
 
 void Settings::SetNetworkVisible(bool enabled)
@@ -637,28 +636,28 @@ void Settings::SetJITVisible(bool enabled)
 {
   if (IsJITVisible() == enabled)
     return;
-  QSettings().setValue(QStringLiteral("debugger/showjit"), enabled);
+  GetQSettings().setValue(QStringLiteral("debugger/showjit"), enabled);
 
   emit JITVisibilityChanged(enabled);
 }
 
 bool Settings::IsJITVisible() const
 {
-  return QSettings().value(QStringLiteral("debugger/showjit")).toBool();
+  return GetQSettings().value(QStringLiteral("debugger/showjit")).toBool();
 }
 
 void Settings::SetAssemblerVisible(bool enabled)
 {
   if (IsAssemblerVisible() == enabled)
     return;
-  QSettings().setValue(QStringLiteral("debugger/showassembler"), enabled);
+  GetQSettings().setValue(QStringLiteral("debugger/showassembler"), enabled);
 
   emit AssemblerVisibilityChanged(enabled);
 }
 
 bool Settings::IsAssemblerVisible() const
 {
-  return QSettings().value(QStringLiteral("debugger/showassembler")).toBool();
+  return GetQSettings().value(QStringLiteral("debugger/showassembler")).toBool();
 }
 
 void Settings::RefreshWidgetVisibility()

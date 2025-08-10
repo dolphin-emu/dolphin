@@ -294,6 +294,21 @@ inline bool IsAlpha(char c)
   return std::isalpha(c, std::locale::classic());
 }
 
+inline bool IsAlnum(char c)
+{
+  return std::isalnum(c, std::locale::classic());
+}
+
+inline bool IsUpper(char c)
+{
+  return std::isupper(c, std::locale::classic());
+}
+
+inline bool IsXDigit(char c)
+{
+  return std::isxdigit(c /* no locale needed */) != 0;
+}
+
 inline char ToLower(char ch)
 {
   return std::tolower(ch, std::locale::classic());

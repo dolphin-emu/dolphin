@@ -81,3 +81,147 @@ TEST(StringUtil, GetEscapedHtml)
   EXPECT_EQ(Common::GetEscapedHtml("&<>'\""), "&amp;&lt;&gt;&apos;&quot;");
   EXPECT_EQ(Common::GetEscapedHtml("&&&"), "&amp;&amp;&amp;");
 }
+
+TEST(StringUtil, SplitPath)
+{
+  std::string path;
+  std::string filename;
+  std::string extension;
+  EXPECT_TRUE(SplitPath("/usr/lib/some_file.txt", &path, &filename, &extension));
+  EXPECT_EQ(path, "/usr/lib/");
+  EXPECT_EQ(filename, "some_file");
+  EXPECT_EQ(extension, ".txt");
+}
+
+TEST(StringUtil, SplitPathNullOutputPathAllowed)
+{
+  std::string filename;
+  std::string extension;
+  EXPECT_TRUE(SplitPath("/usr/lib/some_file.txt", /*path=*/nullptr, &filename, &extension));
+  EXPECT_EQ(filename, "some_file");
+  EXPECT_EQ(extension, ".txt");
+}
+
+TEST(StringUtil, SplitPathNullOutputFilenameAllowed)
+{
+  std::string path;
+  std::string extension;
+  EXPECT_TRUE(SplitPath("/usr/lib/some_file.txt", &path, /*filename=*/nullptr, &extension));
+  EXPECT_EQ(path, "/usr/lib/");
+  EXPECT_EQ(extension, ".txt");
+}
+
+TEST(StringUtil, SplitPathNullOutputExtensionAllowed)
+{
+  std::string path;
+  std::string filename;
+  EXPECT_TRUE(SplitPath("/usr/lib/some_file.txt", &path, &filename, /*extension=*/nullptr));
+  EXPECT_EQ(path, "/usr/lib/");
+  EXPECT_EQ(filename, "some_file");
+}
+
+TEST(StringUtil, SplitPathReturnsFalseIfFullPathIsEmpty)
+{
+  std::string path;
+  std::string filename;
+  std::string extension;
+  EXPECT_FALSE(SplitPath(/*full_path=*/"", &path, &filename, &extension));
+  EXPECT_EQ(path, "");
+  EXPECT_EQ(filename, "");
+  EXPECT_EQ(extension, "");
+}
+
+TEST(StringUtil, SplitPathNoPath)
+{
+  std::string path;
+  std::string filename;
+  std::string extension;
+  EXPECT_TRUE(SplitPath("some_file.txt", &path, &filename, &extension));
+  EXPECT_EQ(path, "");
+  EXPECT_EQ(filename, "some_file");
+  EXPECT_EQ(extension, ".txt");
+}
+
+TEST(StringUtil, SplitPathNoFileName)
+{
+  std::string path;
+  std::string filename;
+  std::string extension;
+  EXPECT_TRUE(SplitPath("/usr/lib/.txt", &path, &filename, &extension));
+  EXPECT_EQ(path, "/usr/lib/");
+  EXPECT_EQ(filename, "");
+  EXPECT_EQ(extension, ".txt");
+}
+
+TEST(StringUtil, SplitPathNoExtension)
+{
+  std::string path;
+  std::string filename;
+  std::string extension;
+  EXPECT_TRUE(SplitPath("/usr/lib/some_file", &path, &filename, &extension));
+  EXPECT_EQ(path, "/usr/lib/");
+  EXPECT_EQ(filename, "some_file");
+  EXPECT_EQ(extension, "");
+}
+
+TEST(StringUtil, SplitPathDifferentPathLengths)
+{
+  std::string path;
+  std::string filename;
+  std::string extension;
+  EXPECT_TRUE(SplitPath("/usr/some_file.txt", &path, &filename, &extension));
+  EXPECT_EQ(path, "/usr/");
+  EXPECT_EQ(filename, "some_file");
+  EXPECT_EQ(extension, ".txt");
+
+  EXPECT_TRUE(SplitPath("/usr/lib/foo/some_file.txt", &path, &filename, &extension));
+  EXPECT_EQ(path, "/usr/lib/foo/");
+  EXPECT_EQ(filename, "some_file");
+  EXPECT_EQ(extension, ".txt");
+}
+
+TEST(StringUtil, SplitPathBackslashesNotRecognizedAsSeparators)
+{
+  std::string path;
+  std::string filename;
+  std::string extension;
+  EXPECT_TRUE(SplitPath("\\usr\\some_file.txt", &path, &filename, &extension));
+  EXPECT_EQ(path, "");
+  EXPECT_EQ(filename, "\\usr\\some_file");
+  EXPECT_EQ(extension, ".txt");
+}
+
+#ifdef _WIN32
+TEST(StringUtil, SplitPathWindowsPathWithDriveLetter)
+{
+  // Verify that on Windows, valid paths that include a drive letter and volume separator (e.g.,
+  // "C:") parse correctly.
+  std::string path;
+  std::string filename;
+  std::string extension;
+
+  // Absolute path with drive letter
+  EXPECT_TRUE(SplitPath("C:/dir/some_file.txt", &path, &filename, &extension));
+  EXPECT_EQ(path, "C:/dir/");
+  EXPECT_EQ(filename, "some_file");
+  EXPECT_EQ(extension, ".txt");
+
+  // Relative path with drive letter
+  EXPECT_TRUE(SplitPath("C:dir/some_file.txt", &path, &filename, &extension));
+  EXPECT_EQ(path, "C:dir/");
+  EXPECT_EQ(filename, "some_file");
+  EXPECT_EQ(extension, ".txt");
+
+  // Relative path with drive letter and no directory
+  EXPECT_TRUE(SplitPath("C:some_file.txt", &path, &filename, &extension));
+  EXPECT_EQ(path, "C:");
+  EXPECT_EQ(filename, "some_file");
+  EXPECT_EQ(extension, ".txt");
+
+  // Path that is just the drive letter
+  EXPECT_TRUE(SplitPath("C:", &path, &filename, &extension));
+  EXPECT_EQ(path, "C:");
+  EXPECT_EQ(filename, "");
+  EXPECT_EQ(extension, "");
+}
+#endif

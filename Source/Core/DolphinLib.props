@@ -38,6 +38,7 @@
     <ClInclude Include="Common\Config\ConfigInfo.h" />
     <ClInclude Include="Common\Config\Enums.h" />
     <ClInclude Include="Common\Config\Layer.h" />
+    <ClInclude Include="Common\Contains.h" />
     <ClInclude Include="Common\CPUDetect.h" />
     <ClInclude Include="Common\Crypto\AES.h" />
     <ClInclude Include="Common\Crypto\bn.h" />
@@ -458,6 +459,7 @@
     <ClInclude Include="Core\SyncIdentifier.h" />
     <ClInclude Include="Core\SysConf.h" />
     <ClInclude Include="Core\System.h" />
+    <ClInclude Include="Core\TimePlayed.h" />
     <ClInclude Include="Core\TitleDatabase.h" />
     <ClInclude Include="Core\WC24PatchEngine.h" />
     <ClInclude Include="Core\WiiRoot.h" />
@@ -1124,6 +1126,7 @@
     <ClCompile Include="Core\State.cpp" />
     <ClCompile Include="Core\SysConf.cpp" />
     <ClCompile Include="Core\System.cpp" />
+    <ClCompile Include="Core\TimePlayed.cpp" />
     <ClCompile Include="Core\TitleDatabase.cpp" />
     <ClCompile Include="Core\WiiRoot.cpp" />
     <ClCompile Include="Core\WiiUtils.cpp" />

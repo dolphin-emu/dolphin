@@ -257,6 +257,12 @@ void ByteswapAfterLoad(ARM64XEmitter* emit, ARM64FloatEmitter* float_emit, ARM64
 ARM64Reg ByteswapBeforeStore(ARM64XEmitter* emit, ARM64FloatEmitter* float_emit, ARM64Reg tmp_reg,
                              ARM64Reg src_reg, u32 flags, bool want_reversed)
 {
+  // Byteswapping zero is still zero.
+  // We'd typically expect a writable register to be passed in, but recognize
+  // WZR for optimization purposes.
+  if ((flags & BackPatchInfo::FLAG_FLOAT) == 0 && src_reg == ARM64Reg::WZR)
+    return ARM64Reg::WZR;
+
   ARM64Reg dst_reg = src_reg;
 
   if (want_reversed == !(flags & BackPatchInfo::FLAG_REVERSE))

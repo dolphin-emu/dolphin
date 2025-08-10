@@ -7,6 +7,7 @@
 #include <functional>
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumFormatter.h"
 #include "Common/MathUtil.h"
 
 enum class AbstractTextureFormat : u32
@@ -41,11 +42,11 @@ enum AbstractTextureFlag : u32
   AbstractTextureFlag_ComputeImage = (1 << 1),  // Texture is used as a compute image.
 };
 
-enum class AbstractTextureType
+enum class AbstractTextureType : u8
 {
-  Texture_2DArray,  // Used as a 2D texture array
-  Texture_2D,       // Used as a normal 2D texture
-  Texture_CubeMap,  // Used as a cube map texture
+  Texture_2DArray = 0,  // Used as a 2D texture array
+  Texture_2D = 1,       // Used as a normal 2D texture
+  Texture_CubeMap = 2,  // Used as a cube map texture
 };
 
 struct TextureConfig
@@ -91,4 +92,10 @@ struct std::hash<TextureConfig>
                    static_cast<u64>(c.height) << 16 | static_cast<u64>(c.width);
     return std::hash<u64>{}(id);
   }
+};
+
+template <>
+struct fmt::formatter<AbstractTextureType> : EnumFormatter<AbstractTextureType::Texture_CubeMap>
+{
+  constexpr formatter() : EnumFormatter({"2D Array", "2D", "Cubemap"}) {}
 };

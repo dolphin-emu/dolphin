@@ -26,20 +26,24 @@ enum TokenType
   TOK_BAREWORD,
   TOK_COMMENT,
   TOK_HOTKEY,
+  TOK_QUESTION,
+  TOK_COLON,
   // Binary Ops:
   TOK_BINARY_OPS_BEGIN,
+  TOK_COMPOUND_ASSIGN_OPS_BEGIN = TOK_BINARY_OPS_BEGIN,
   TOK_AND = TOK_BINARY_OPS_BEGIN,
   TOK_OR,
+  TOK_XOR,
   TOK_ADD,
   TOK_SUB,
   TOK_MUL,
   TOK_DIV,
   TOK_MOD,
-  TOK_ASSIGN,
+  TOK_COMPOUND_ASSIGN_OPS_END,
+  TOK_ASSIGN = TOK_COMPOUND_ASSIGN_OPS_END,
   TOK_LTHAN,
   TOK_GTHAN,
   TOK_COMMA,
-  TOK_XOR,
   TOK_BINARY_OPS_END,
 };
 
@@ -91,8 +95,8 @@ private:
     return value;
   }
 
-  std::string FetchDelimString(char delim);
   std::string FetchWordChars();
+  Token GetDelimitedToken(TokenType type, char delimeter);
   Token GetDelimitedLiteral();
   Token GetVariable();
   Token GetFullyQualifiedControl();
@@ -168,10 +172,13 @@ class Expression
 {
 public:
   virtual ~Expression() = default;
-  virtual ControlState GetValue() const = 0;
+  virtual ControlState GetValue() = 0;
   virtual void SetValue(ControlState state) = 0;
   virtual int CountNumControls() const = 0;
   virtual void UpdateReferences(ControlEnvironment& finder) = 0;
+
+  // Perform any side effects and return Expression to be SetValue'd.
+  virtual Expression* GetLValue();
 };
 
 class ParseResult
@@ -195,6 +202,5 @@ private:
 
 ParseResult ParseExpression(const std::string& expr);
 ParseResult ParseTokens(const std::vector<Token>& tokens);
-void RemoveInertTokens(std::vector<Token>* tokens);
 
 }  // namespace ciface::ExpressionParser

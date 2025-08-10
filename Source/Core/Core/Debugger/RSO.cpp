@@ -375,6 +375,7 @@ void RSOView::LoadAll(const Core::CPUThreadGuard& guard, u32 address)
 
 void RSOView::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symbol_db) const
 {
+  const std::string rso_name = GetName();
   for (const RSOExport& rso_export : GetExports())
   {
     u32 address = GetExportAddress(rso_export);
@@ -389,15 +390,17 @@ void RSOView::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symbol_db) c
       {
         // Function symbol
         symbol->Rename(export_name);
+        symbol->object_name = rso_name;
       }
       else
       {
         // Data symbol
-        symbol_db->AddKnownSymbol(guard, address, 0, export_name, Common::Symbol::Type::Data);
+        symbol_db->AddKnownSymbol(guard, address, 0, export_name, rso_name,
+                                  Common::Symbol::Type::Data);
       }
     }
   }
-  DEBUG_LOG_FMT(SYMBOLS, "RSO({}): {} symbols applied", GetName(), GetExportsCount());
+  DEBUG_LOG_FMT(SYMBOLS, "RSO({}): {} symbols applied", rso_name, GetExportsCount());
 }
 
 u32 RSOView::GetNextEntry() const

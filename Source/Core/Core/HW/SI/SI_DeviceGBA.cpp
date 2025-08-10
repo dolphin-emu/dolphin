@@ -348,9 +348,9 @@ int CSIDevice_GBA::TransferInterval()
   return SIDevice_GetGBATransferTime(m_system.GetSystemTimers(), m_last_cmd);
 }
 
-bool CSIDevice_GBA::GetData(u32& hi, u32& low)
+DataResponse CSIDevice_GBA::GetData(u32& hi, u32& low)
 {
-  return false;
+  return DataResponse::NoData;
 }
 
 void CSIDevice_GBA::SendCommand(u32 command, u8 poll)

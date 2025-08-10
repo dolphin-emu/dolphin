@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 
 struct BootParameters;
 
@@ -132,7 +133,8 @@ struct DTMHeader
   bool bUseFMA;
   u8 GBAControllers;                // GBA Controllers plugged in (the bits are ports 1-4)
   bool bWidescreen;                 // true indicates SYSCONF aspect ratio is 16:9, false for 4:3
-  std::array<u8, 6> reserved;       // Padding for any new config options
+  u8 countryCode;                   // SYSCONF country code
+  std::array<u8, 5> reserved;       // Padding for any new config options
   std::array<char, 40> discChange;  // Name of iso file to switch to, for two disc games.
   std::array<u8, 20> revision;      // Git hash
   u32 DSPiromHash;
@@ -205,21 +207,19 @@ public:
   bool BeginRecordingInput(const ControllerTypeArray& controllers,
                            const WiimoteEnabledArray& wiimotes);
   void RecordInput(const GCPadStatus* PadStatus, int controllerID);
-  void RecordWiimote(int wiimote, const u8* data, u8 size);
+  void RecordWiimote(int wiimote, const WiimoteEmu::SerializedWiimoteState& serialized_state);
 
   bool PlayInput(const std::string& movie_path, std::optional<std::string>* savestate_path);
   void LoadInput(const std::string& movie_path);
   void ReadHeader();
   void PlayController(GCPadStatus* PadStatus, int controllerID);
-  bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt,
-                   WiimoteEmu::ExtensionNumber ext, const WiimoteEmu::EncryptionKey& key);
+  bool PlayWiimote(int wiimote, WiimoteEmu::DesiredWiimoteState* desired_state);
   void EndPlayInput(bool cont);
   void SaveRecording(const std::string& filename);
   void DoState(PointerWrap& p);
   void Shutdown();
   void CheckPadStatus(const GCPadStatus* PadStatus, int controllerID);
-  void CheckWiimoteStatus(int wiimote, const WiimoteCommon::DataReportBuilder& rpt,
-                          WiimoteEmu::ExtensionNumber ext, const WiimoteEmu::EncryptionKey& key);
+  void CheckWiimoteStatus(int wiimote, const WiimoteEmu::DesiredWiimoteState& desired_state);
 
   std::string GetInputDisplay();
   std::string GetRTCDisplay() const;

@@ -265,12 +265,12 @@ void WiiPane::CreateSDCard()
   sd_settings_group_layout->addWidget(m_sd_card_size_combo, row, 1);
   ++row;
 
-  m_sd_pack_button = new NonDefaultQPushButton(tr("Convert Folder to File Now"));
-  m_sd_unpack_button = new NonDefaultQPushButton(tr("Convert File to Folder Now"));
+  m_sd_pack_button = new NonDefaultQPushButton(tr(Common::SD_PACK_TEXT));
+  m_sd_unpack_button = new NonDefaultQPushButton(tr(Common::SD_UNPACK_TEXT));
   connect(m_sd_pack_button, &QPushButton::clicked, [this] {
     auto result = ModalMessageBox::warning(
-        this, tr("Convert Folder to File Now"),
-        tr("You are about to convert the content of the folder at %1 into the file at %2. All "
+        this, tr(Common::SD_PACK_TEXT),
+        tr("You are about to pack the content of the folder at %1 into the file at %2. All "
            "current content of the file will be deleted. Are you sure you want to continue?")
             .arg(QString::fromStdString(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX)))
             .arg(QString::fromStdString(File::GetUserPath(F_WIISDCARDIMAGE_IDX))),
@@ -289,13 +289,13 @@ void WiiPane::CreateSDCard()
       SetQWidgetWindowDecorations(progress_dialog.GetRaw());
       progress_dialog.GetRaw()->exec();
       if (!success.get())
-        ModalMessageBox::warning(this, tr("Convert Folder to File Now"), tr("Conversion failed."));
+        ModalMessageBox::warning(this, tr(Common::SD_PACK_TEXT), tr("Conversion failed."));
     }
   });
   connect(m_sd_unpack_button, &QPushButton::clicked, [this] {
     auto result = ModalMessageBox::warning(
-        this, tr("Convert File to Folder Now"),
-        tr("You are about to convert the content of the file at %2 into the folder at %1. All "
+        this, tr(Common::SD_UNPACK_TEXT),
+        tr("You are about to unpack the content of the file at %2 into the folder at %1. All "
            "current content of the folder will be deleted. Are you sure you want to continue?")
             .arg(QString::fromStdString(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX)))
             .arg(QString::fromStdString(File::GetUserPath(F_WIISDCARDIMAGE_IDX))),
@@ -314,7 +314,7 @@ void WiiPane::CreateSDCard()
       SetQWidgetWindowDecorations(progress_dialog.GetRaw());
       progress_dialog.GetRaw()->exec();
       if (!success.get())
-        ModalMessageBox::warning(this, tr("Convert File to Folder Now"), tr("Conversion failed."));
+        ModalMessageBox::warning(this, tr(Common::SD_UNPACK_TEXT), tr("Conversion failed."));
     }
   });
   sd_settings_group_layout->addWidget(m_sd_pack_button, row, 0, 1, 1);

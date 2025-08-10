@@ -7,6 +7,10 @@
 #include <string_view>
 #include <vector>
 
+#ifdef __APPLE__
+#include <mach/mach.h>
+#endif
+
 #include "Common/CommonTypes.h"
 #include "Common/DynamicLibrary.h"
 
@@ -120,6 +124,13 @@ private:
   void* m_reserved_region = nullptr;
   void* m_memory_handle = nullptr;
   WindowsMemoryFunctions m_memory_functions;
+#elif defined(__APPLE__)
+  vm_address_t m_shm_address = 0;
+  vm_size_t m_shm_size = 0;
+  mem_entry_name_port_t m_shm_entry = MACH_PORT_NULL;
+
+  vm_address_t m_region_address = 0;
+  vm_size_t m_region_size = 0;
 #else
   int m_shm_fd = 0;
   void* m_reserved_region = nullptr;

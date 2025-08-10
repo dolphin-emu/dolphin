@@ -686,7 +686,7 @@ bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
   }
 
   default:
-    ERROR_LOG_FMT(SP1, "Unsupported EtherType {#06x}", *ethertype);
+    ERROR_LOG_FMT(SP1, "Unsupported EtherType {:#06x}", *ethertype);
     return false;
   }
 

@@ -5,7 +5,7 @@
 
 #include <algorithm>
 #include <array>
-#include <dxgi1_2.h>
+#include <dxgi1_6.h>
 #include <queue>
 #include <vector>
 
@@ -370,6 +370,9 @@ bool DXContext::CreateGXRootSignature()
   SetRootParamConstant(&params[param_count], 4, 1, D3D12_SHADER_VISIBILITY_VERTEX);
   param_count++;
 
+  SetRootParamCBV(&params[param_count], 2, D3D12_SHADER_VISIBILITY_PIXEL);
+  param_count++;
+
   // Since these must be contiguous, pixel lighting goes to bbox if not enabled.
   if (g_ActiveConfig.bBBoxEnable)
   {
@@ -382,9 +385,6 @@ bool DXContext::CreateGXRootSignature()
     SetRootParamCBV(&params[param_count], 1, D3D12_SHADER_VISIBILITY_PIXEL);
     param_count++;
   }
-
-  SetRootParamCBV(&params[param_count], 2, D3D12_SHADER_VISIBILITY_PIXEL);
-  param_count++;
 
   return BuildRootSignature(m_device.Get(), &m_gx_root_signature, params.data(), param_count);
 }

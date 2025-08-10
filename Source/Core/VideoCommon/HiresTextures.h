@@ -22,7 +22,6 @@ std::set<std::string> GetTextureDirectoriesWithGameId(const std::string& root_di
 class HiresTexture
 {
 public:
-  static void Init();
   static void Update();
   static void Clear();
   static void Shutdown();

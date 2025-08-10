@@ -35,7 +35,7 @@ void HardcoreWarningWidget::CreateWidgets()
   auto* icon = new QLabel;
   icon->setPixmap(warning_icon);
 
-  m_text = new QLabel(tr("This feature is disabled in hardcore mode."));
+  m_text = new QLabel(tr("Only approved codes will be applied in hardcore mode."));
   m_settings_button = new QPushButton(tr("Achievement Settings"));
 
   auto* layout = new QHBoxLayout;

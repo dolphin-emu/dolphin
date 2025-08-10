@@ -32,7 +32,7 @@ struct InfinityFigure final
 class InfinityUSB final : public Device
 {
 public:
-  InfinityUSB(EmulationKernel& ios, const std::string& device_name);
+  InfinityUSB(EmulationKernel& ios);
   ~InfinityUSB() override;
   DeviceDescriptor GetDeviceDescriptor() const override;
   std::vector<ConfigDescriptor> GetConfigurations() const override;
