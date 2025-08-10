@@ -59,7 +59,7 @@ private:
   u32 m_backup_dma_length;
   u8 m_command[4];
   u16 m_backoffset;
-  File::IOFile* m_backup;
+  File::IOFile m_backup;
 
 protected:
   void TransferByte(u8& _uByte) override;

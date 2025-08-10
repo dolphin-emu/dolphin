@@ -229,10 +229,7 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
 
   branch_watch.SetRecordingActive(guard, resume_branch_watch);
 
-  // Check for Triforce board being connected
-  const ExpansionInterface::EXIDeviceType Type = Config::Get(Config::MAIN_SERIAL_PORT_1);
-  bool enable_gcam = (Type == ExpansionInterface::EXIDeviceType::Baseboard) ? 1 : 0;
-  if (enable_gcam)
+  if (system.IsTriforce())
   {
     auto& memory = system.GetMemory();
     u32 dsize = volume.GetDataSize();

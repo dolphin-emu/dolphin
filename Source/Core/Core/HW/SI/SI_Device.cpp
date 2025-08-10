@@ -140,6 +140,7 @@ bool SIDevice_IsGCController(SIDevices type)
   case SIDEVICE_GC_TARUKONGA:
   case SIDEVICE_DANCEMAT:
   case SIDEVICE_GC_STEERING:
+  case SIDEVICE_AM_BASEBOARD:
     return true;
   default:
     return false;

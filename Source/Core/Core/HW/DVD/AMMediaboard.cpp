@@ -81,8 +81,7 @@ static int WSAGetLastError(void)
 namespace AMMediaboard
 {
 
-static bool s_firmwaremap = false;
-static bool s_segaboot = false;
+static bool s_firmware_map = false;
 static bool s_test_menu = false;
 static SOCKET s_namco_cam = 0;
 static u32 s_timeouts[3] = {20000, 20000, 20000};
@@ -92,11 +91,11 @@ static u32 s_GCAM_key_a = 0;
 static u32 s_GCAM_key_b = 0;
 static u32 s_GCAM_key_c = 0;
 
-static File::IOFile* s_netcfg = nullptr;
-static File::IOFile* s_netctrl = nullptr;
-static File::IOFile* s_extra = nullptr;
-static File::IOFile* s_backup = nullptr;
-static File::IOFile* s_dimm = nullptr;
+static File::IOFile s_netcfg = nullptr;
+static File::IOFile s_netctrl = nullptr;
+static File::IOFile s_extra = nullptr;
+static File::IOFile s_backup = nullptr;
+static File::IOFile s_dimm = nullptr;
 
 static u8* s_dimm_disc = nullptr;
 
@@ -157,7 +156,7 @@ static inline void PrintMBBuffer(u32 address, u32 length)
 
 void FirmwareMap(bool on)
 {
-  s_firmwaremap = on;
+  s_firmware_map = on;
 }
 
 void InitKeys(u32 key_a, u32 key_b, u32 key_c)
@@ -167,14 +166,14 @@ void InitKeys(u32 key_a, u32 key_b, u32 key_c)
   s_GCAM_key_c = key_c;
 }
 
-static File::IOFile* OpenOrCreateFile(const std::string& filename)
+static File::IOFile OpenOrCreateFile(const std::string& filename)
 {
   // Try opening for read/write first
   if (File::Exists(filename))
-    return new File::IOFile(filename, "rb+");
+    return File::IOFile(filename, "rb+");
 
   // Create new file
-  return new File::IOFile(filename, "wb+");
+  return File::IOFile(filename, "wb+");
 }
 
 void Init(void)
@@ -185,8 +184,7 @@ void Init(void)
   memset(s_firmware, -1, sizeof(s_firmware));
   memset(s_sockets, SOCKET_ERROR, sizeof(s_sockets));
 
-  s_segaboot = false;
-  s_firmwaremap = false;
+  s_firmware_map = false;
   s_test_menu = false;
 
   s_last_error = SSC_SUCCESS;
@@ -203,15 +201,15 @@ void Init(void)
   s_dimm = OpenOrCreateFile(base_path + "tridimm_" + SConfig::GetInstance().GetGameID() + ".bin");
   s_backup = OpenOrCreateFile(base_path + "backup_" + SConfig::GetInstance().GetGameID() + ".bin");
 
-  if (!s_netcfg)
+  if (!s_netcfg.IsOpen())
     PanicAlertFmt("Failed to open/create: {}", base_path + "s_netcfg.bin");
-  if (!s_netctrl)
+  if (!s_netctrl.IsOpen())
     PanicAlertFmt("Failed to open/create: {}", base_path + "s_netctrl.bin");
-  if (!s_extra)
+  if (!s_extra.IsOpen())
     PanicAlertFmt("Failed to open/create: {}", base_path + "s_extra.bin");
-  if (!s_dimm)
+  if (!s_dimm.IsOpen())
     PanicAlertFmt("Failed to open/create: {}", base_path + "s_dimm.bin");
-  if (!s_backup)
+  if (!s_backup.IsOpen())
     PanicAlertFmt("Failed to open/create: {}", base_path + "s_backup.bin");
 
   // This is the firmware for the Triforce
@@ -252,7 +250,7 @@ u8* InitDIMM(u32 size)
     }
   }
 
-  s_firmwaremap = 0;
+  s_firmware_map = 0;
   return s_dimm_disc;
 }
 
@@ -396,7 +394,7 @@ static void FileWriteData(File::IOFile* file, u32 seek_pos, const u8* data, size
   file->WriteBytes(data, length);
   file->Flush();
 }
-u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
+u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32 length)
 {
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
@@ -413,8 +411,8 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
 
   /*
      Key setup for Triforce IPL:
-     These RAM offset always hold the keys for the next command and since it sends two dummy
-     commands before a real read we can just use the key from RAM without missing any real commands.
+These RAM offsets always hold the key for the next command. Since two dummy commands are sent before
+any real ones, you can just use the key from RAM without missing a real command.
   */
   if (s_GCAM_key_a == 0)
   {
@@ -430,13 +428,6 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
   u32 command = DICMDBUF[0] << 24;
   u32 offset = DICMDBUF[1] << 2;
 
-  // SegaBoot adds bits for some reason to offset/length
-  // also adds 0x20 to offset
-  if (offset == 0x00100440)
-  {
-    s_segaboot = true;
-  }
-
   INFO_LOG_FMT(DVDINTERFACE_AMMB,
                "GC-AM: {:08x} {:08x} DMA=addr:{:08x},len:{:08x} Keys: {:08x} {:08x} {:08x}",
                command, offset, address, length, s_GCAM_key_a, s_GCAM_key_b, s_GCAM_key_c);
@@ -450,33 +441,34 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
       // Don't map firmware while in SegaBoot
       if (memory.Read_U32(0x8006BF70) != 0x0A536567)
       {
-        s_firmwaremap = 1;
+        s_firmware_map = 1;
       }
     }
   }
 
-  switch (AMMBCommand(command >> 24))
+  switch (AMMBDICommand(command >> 24))
   {
-  case AMMBCommand::Inquiry:
-    if (s_firmwaremap)
+  case AMMBDICommand::Inquiry:
+    if (s_firmware_map)
     {
-      s_firmwaremap = false;
-      s_segaboot = false;
+      s_firmware_map = false;
     }
 
     // Returned value is used to set the protocol version.
     switch (GetGameType())
     {
     default:
-      return Version1;
+      *DIIMMBUF = Version1;
+      return 0;
     case KeyOfAvalon:
     case MarioKartGP:
     case MarioKartGP2:
     case FirmwareUpdate:
-      return Version2;
+      *DIIMMBUF = Version2;
+      return 0;
     }
     break;
-  case AMMBCommand::Read:
+  case AMMBDICommand::Read:
     if ((offset & 0x8FFF0000) == 0x80000000)
     {
       switch (offset)
@@ -523,16 +515,16 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     // Network configuration
     if (offset == 0x00000000 && length == 0x80)
     {
-      s_netcfg->Seek(0, File::SeekOrigin::Begin);
-      s_netcfg->ReadBytes(memory.GetSpanForAddress(address).data(), length);
+      s_netcfg.Seek(0, File::SeekOrigin::Begin);
+      s_netcfg.ReadBytes(memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
     // media crc check on/off
     if (offset == DIMMExtraSettings && length == 0x20)
     {
-      s_extra->Seek(0, File::SeekOrigin::Begin);
-      s_extra->ReadBytes(memory.GetSpanForAddress(address).data(), length);
+      s_extra.Seek(0, File::SeekOrigin::Begin);
+      s_extra.ReadBytes(memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
@@ -540,8 +532,8 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     if (offset >= DIMMMemory && offset <= 0x1F800000)
     {
       u32 dimmoffset = offset - DIMMMemory;
-      s_dimm->Seek(dimmoffset, File::SeekOrigin::Begin);
-      s_dimm->ReadBytes(memory.GetSpanForAddress(address).data(), length);
+      s_dimm.Seek(dimmoffset, File::SeekOrigin::Begin);
+      s_dimm.ReadBytes(memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
@@ -1044,15 +1036,15 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     if (offset >= DIMMMemory2 && offset <= 0xFF800000)
     {
       u32 dimmoffset = offset - DIMMMemory2;
-      s_dimm->Seek(dimmoffset, File::SeekOrigin::Begin);
-      s_dimm->ReadBytes(memory.GetSpanForAddress(address).data(), length);
+      s_dimm.Seek(dimmoffset, File::SeekOrigin::Begin);
+      s_dimm.ReadBytes(memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
     if (offset == NetworkControl && length == 0x20)
     {
-      s_netctrl->Seek(0, File::SeekOrigin::Begin);
-      s_netctrl->ReadBytes(memory.GetSpanForAddress(address).data(), length);
+      s_netctrl.Seek(0, File::SeekOrigin::Begin);
+      s_netctrl.ReadBytes(memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
@@ -1063,13 +1055,8 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
       return 0;
     }
 
-    if (s_firmwaremap)
+    if (s_firmware_map)
     {
-      if (s_segaboot)
-      {
-        DICMDBUF[1] &= ~0x00100000;
-        DICMDBUF[1] -= 0x20;
-      }
       memcpy(memory.GetSpanForAddress(address).data(), s_firmware + offset, length);
       return 0;
     }
@@ -1082,23 +1069,23 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
 
     return 1;
     break;
-  case AMMBCommand::Write:
+  case AMMBDICommand::Write:
     /*
       These two magic writes allow a new firmware to be programmed
     */
     if ((offset == FirmwareMagicWrite1) && (length == 0x20))
     {
-      s_firmwaremap = true;
+      s_firmware_map = true;
       return 0;
     }
 
     if ((offset == FirmwareMagicWrite2) && (length == 0x20))
     {
-      s_firmwaremap = true;
+      s_firmware_map = true;
       return 0;
     }
 
-    if (s_firmwaremap)
+    if (s_firmware_map)
     {
       // Firmware memory (2MB)
       if ((offset >= 0x00400000) && (offset <= 0x600000))
@@ -1112,21 +1099,21 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     // Network configuration
     if ((offset == 0x00000000) && (length == 0x80))
     {
-      FileWriteData(s_netcfg, 0, memory.GetSpanForAddress(address).data(), length);
+      FileWriteData(&s_netcfg, 0, memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
     // media crc check on/off
     if ((offset == DIMMExtraSettings) && (length == 0x20))
     {
-      FileWriteData(s_extra, 0, memory.GetSpanForAddress(address).data(), length);
+      FileWriteData(&s_extra, 0, memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
     // Backup memory (8MB)
     if ((offset >= BackupMemory) && (offset <= 0x00800000))
     {
-      FileWriteData(s_backup, 0, memory.GetSpanForAddress(address).data(), length);
+      FileWriteData(&s_backup, 0, memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
@@ -1134,7 +1121,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     if ((offset >= DIMMMemory) && (offset <= 0x1F800000))
     {
       u32 dimmoffset = offset - DIMMMemory;
-      FileWriteData(s_dimm, dimmoffset, memory.GetSpanForAddress(address).data(), length);
+      FileWriteData(&s_dimm, dimmoffset, memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
@@ -1320,13 +1307,13 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
     if ((offset >= DIMMMemory2) && (offset <= 0xFF800000))
     {
       u32 dimmoffset = offset - 0xFF000000;
-      FileWriteData(s_dimm, dimmoffset, memory.GetSpanForAddress(address).data(), length);
+      FileWriteData(&s_dimm, dimmoffset, memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
     if ((offset == NetworkControl) && (length == 0x20))
     {
-      FileWriteData(s_netctrl, 0, memory.GetSpanForAddress(address).data(), length);
+      FileWriteData(&s_netctrl, 0, memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
@@ -1337,7 +1324,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 address, u32 length)
       PanicAlertFmtT("Unhandled Media Board Write:{0:08x}", offset);
     }
     break;
-  case AMMBCommand::Execute:
+  case AMMBDICommand::Execute:
     if ((offset == 0) && (length == 0))
     {
       // Recast for easier access
@@ -1818,20 +1805,11 @@ bool GetTestMenu(void)
 }
 void Shutdown(void)
 {
-  if (s_netcfg)
-    s_netcfg->Close();
-
-  if (s_netctrl)
-    s_netctrl->Close();
-
-  if (s_extra)
-    s_extra->Close();
-
-  if (s_backup)
-    s_backup->Close();
-
-  if (s_dimm)
-    s_dimm->Close();
+  s_netcfg.Close();
+  s_netctrl.Close();
+  s_extra.Close();
+  s_backup.Close();
+  s_dimm.Close();
 
   if (s_dimm_disc)
   {

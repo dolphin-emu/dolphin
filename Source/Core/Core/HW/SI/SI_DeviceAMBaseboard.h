@@ -4,15 +4,18 @@
 #pragma once
 
 #include <SFML/Network.hpp>
-#include <deque>
-#include <memory>
-#include <mutex>
-#include <queue>
-#include <thread>
+#include <array>
 
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
+#include "Core/HW/GCPad.h"
 #include "Core/HW/SI/SI_Device.h"
+#include "InputCommon/GCPadStatus.h"
+
+namespace Movie
+{
+class MovieManager;
+}
 
 namespace SerialInterface
 {
@@ -229,13 +232,51 @@ private:
   u32 m_fzdx_sensor_left;
   u8 m_rx_reply;
 
-  // F-Zero AX (CryCraft)
+  // F-Zero AX (CyCraft)
   u32 m_fzcc_seatbelt;
   u32 m_fzcc_sensor;
   u32 m_fzcc_emergency;
   u32 m_fzcc_service;
 
   void ICCardSendReply(ICCommand* iccommand, u8* buffer, u32* length);
+
+protected:
+  struct SOrigin
+  {
+    u16 button;
+    u8 origin_stick_x;
+    u8 origin_stick_y;
+    u8 substick_x;
+    u8 substick_y;
+    u8 trigger_left;
+    u8 trigger_right;
+    u8 unk_4;
+    u8 unk_5;
+  };
+
+  enum EButtonCombo
+  {
+    COMBO_NONE = 0,
+    COMBO_ORIGIN,
+    COMBO_RESET
+  };
+
+  // struct to compare input against
+  // Set on connection to perfect neutral values
+  // (standard pad only) Set on button combo to current input state
+  SOrigin m_origin = {};
+
+  // PADAnalogMode
+  // Dunno if we need to do this, game/lib should set it?
+  u8 m_mode = 0x3;
+
+  // Timer to track special button combos:
+  // y, X, start for 3 seconds updates origin with current status
+  //   Technically, the above is only on standard pad, wavebird does not support it for example
+  // b, x, start for 3 seconds triggers reset (PI reset button interrupt)
+  u64 m_timer_button_combo_start = 0;
+  // Type of button combo from the last/current poll
+  EButtonCombo m_last_button_combo = COMBO_NONE;
 
 public:
   // constructor
@@ -249,6 +290,20 @@ public:
 
   // send a command directly
   void SendCommand(u32 command, u8 poll) override;
+
+  virtual GCPadStatus GetPadStatus();
+  virtual u32 MapPadStatus(const GCPadStatus& pad_status);
+  virtual EButtonCombo HandleButtonCombos(const GCPadStatus& pad_status);
+
+  static void HandleMoviePadStatus(Movie::MovieManager& movie, int device_number,
+                                   GCPadStatus* pad_status);
+
+  // Send and Receive pad input from network
+  static bool NetPlay_GetInput(int pad_num, GCPadStatus* status);
+  static int NetPlay_InGamePadToLocalPad(int pad_num);
+
+protected:
+  void SetOrigin(const GCPadStatus& pad_status);
 };
 
 }  // namespace SerialInterface
