@@ -81,7 +81,7 @@ bool StreamBuffer::AllocateBuffer()
   // Replace with the new buffer
   m_buffer = buffer;
   m_alloc = alloc;
-  m_host_pointer = reinterpret_cast<u8*>(alloc_info.pMappedData);
+  m_host_pointer = static_cast<u8*>(alloc_info.pMappedData);
   m_current_offset = 0;
   m_current_gpu_position = 0;
   m_tracked_fences.clear();

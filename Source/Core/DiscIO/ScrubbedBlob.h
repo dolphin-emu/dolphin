@@ -13,7 +13,7 @@ namespace DiscIO
 {
 // This class wraps another BlobReader and zeroes out data that has been
 // identified by DiscScrubber as unused.
-class ScrubbedBlob : public BlobReader
+class ScrubbedBlob final : public BlobReader
 {
 public:
   static std::unique_ptr<ScrubbedBlob> Create(const std::string& path);

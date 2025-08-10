@@ -8,7 +8,6 @@
 #endif
 
 #include <array>
-#include <sstream>
 #include <string>
 
 #include <fmt/chrono.h>
@@ -32,15 +31,14 @@ extern "C" {
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/System.h"
 
-#include "VideoCommon/FrameDumper.h"
 #include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/VideoConfig.h"
 
 struct FrameDumpContext
 {
@@ -64,13 +62,13 @@ struct FrameDumpContext
 
 namespace
 {
-AVRational GetTimeBaseForCurrentRefreshRate()
+AVRational GetTimeBaseForCurrentRefreshRate(s64 max_denominator)
 {
   auto& vi = Core::System::GetInstance().GetVideoInterface();
   int num;
   int den;
   av_reduce(&num, &den, int(vi.GetTargetRefreshRateDenominator()),
-            int(vi.GetTargetRefreshRateNumerator()), std::numeric_limits<int>::max());
+            int(vi.GetTargetRefreshRateNumerator()), max_denominator);
   return AVRational{num, den};
 }
 
@@ -122,8 +120,9 @@ void InitAVCodec()
 
 std::string GetDumpPath(const std::string& extension, std::time_t time, u32 index)
 {
-  if (!g_Config.sDumpPath.empty())
-    return g_Config.sDumpPath;
+  const std::string dump_path = Config::Get(Config::GFX_DUMP_PATH);
+  if (!dump_path.empty())
+    return dump_path;
 
   const std::string path_prefix =
       File::GetUserPath(D_DUMPFRAMES_IDX) + SConfig::GetInstance().GetGameID();
@@ -194,7 +193,7 @@ bool FFMpegFrameDump::PrepareEncoding(int w, int h, u64 start_ticks, u32 savesta
 
 bool FFMpegFrameDump::CreateVideoFile()
 {
-  const std::string& format = g_Config.sDumpFormat;
+  const std::string format = Config::Get(Config::GFX_DUMP_FORMAT);
 
   const std::string dump_path = GetDumpPath(format, m_start_time, m_file_index);
 
@@ -217,7 +216,8 @@ bool FFMpegFrameDump::CreateVideoFile()
     return false;
   }
 
-  const std::string& codec_name = g_Config.bUseLossless ? "utvideo" : g_Config.sDumpCodec;
+  const std::string codec_name =
+      Config::Get(Config::GFX_USE_LOSSLESS) ? "utvideo" : Config::Get(Config::GFX_DUMP_CODEC);
 
   AVCodecID codec_id = output_format->video_codec;
 
@@ -231,12 +231,12 @@ bool FFMpegFrameDump::CreateVideoFile()
   }
 
   const AVCodec* codec = nullptr;
-
-  if (!g_Config.sDumpEncoder.empty())
+  const std::string dump_encoder = Config::Get(Config::GFX_DUMP_ENCODER);
+  if (!dump_encoder.empty())
   {
-    codec = avcodec_find_encoder_by_name(g_Config.sDumpEncoder.c_str());
+    codec = avcodec_find_encoder_by_name(dump_encoder.c_str());
     if (!codec)
-      WARN_LOG_FMT(FRAMEDUMP, "Invalid encoder {}", g_Config.sDumpEncoder);
+      WARN_LOG_FMT(FRAMEDUMP, "Invalid encoder {}", dump_encoder);
   }
   if (!codec)
     codec = avcodec_find_encoder(codec_id);
@@ -248,17 +248,22 @@ bool FFMpegFrameDump::CreateVideoFile()
     return false;
   }
 
+  m_max_denominator = std::numeric_limits<s64>::max();
+
   // Force XVID FourCC for better compatibility when using H.263
   if (codec->id == AV_CODEC_ID_MPEG4)
+  {
     m_context->codec->codec_tag = MKTAG('X', 'V', 'I', 'D');
+    m_max_denominator = std::numeric_limits<unsigned short>::max();
+  }
 
-  const auto time_base = GetTimeBaseForCurrentRefreshRate();
+  const auto time_base = GetTimeBaseForCurrentRefreshRate(m_max_denominator);
 
   INFO_LOG_FMT(FRAMEDUMP, "Creating video file: {} x {} @ {}/{} fps", m_context->width,
                m_context->height, time_base.den, time_base.num);
 
   m_context->codec->codec_type = AVMEDIA_TYPE_VIDEO;
-  m_context->codec->bit_rate = static_cast<int64_t>(g_Config.iBitrateKbps) * 1000;
+  m_context->codec->bit_rate = static_cast<int64_t>(Config::Get(Config::GFX_BITRATE_KBPS)) * 1000;
   m_context->codec->width = m_context->width;
   m_context->codec->height = m_context->height;
   m_context->codec->time_base = time_base;
@@ -267,7 +272,7 @@ bool FFMpegFrameDump::CreateVideoFile()
 
   AVPixelFormat pix_fmt = AV_PIX_FMT_NONE;
 
-  const std::string& pixel_format_string = g_Config.sDumpPixelFormat;
+  const std::string pixel_format_string = Config::Get(Config::GFX_DUMP_PIXEL_FORMAT);
   if (!pixel_format_string.empty())
   {
     pix_fmt = av_get_pix_fmt(pixel_format_string.c_str());
@@ -535,7 +540,7 @@ FrameState FFMpegFrameDump::FetchState(u64 ticks, int frame_number) const
   state.frame_number = frame_number;
   state.savestate_index = m_savestate_index;
 
-  const auto time_base = GetTimeBaseForCurrentRefreshRate();
+  const auto time_base = GetTimeBaseForCurrentRefreshRate(m_max_denominator);
   state.refresh_rate_num = time_base.den;
   state.refresh_rate_den = time_base.num;
   return state;

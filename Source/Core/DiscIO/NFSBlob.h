@@ -38,7 +38,7 @@ struct NFSHeader
 };
 static_assert(sizeof(NFSHeader) == 0x200);
 
-class NFSFileReader : public BlobReader
+class NFSFileReader final : public BlobReader
 {
 public:
   static std::unique_ptr<NFSFileReader> Create(File::IOFile first_file,
@@ -73,7 +73,7 @@ private:
   NFSFileReader(std::vector<NFSLBARange> lba_ranges, std::vector<File::IOFile> files, Key key,
                 u64 raw_size);
 
-  u64 ToPhysicalBlockIndex(u64 logical_block_index);
+  u64 ToPhysicalBlockIndex(u64 logical_block_index) const;
   bool ReadEncryptedBlock(u64 physical_block_index);
   void DecryptBlock(u64 logical_block_index);
   bool ReadAndDecryptBlock(u64 logical_block_index);

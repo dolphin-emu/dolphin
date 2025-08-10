@@ -293,7 +293,7 @@ u16 ComputeNetworkChecksum(const void* data, u16 length, u32 initial_value)
 {
   u32 checksum = initial_value;
   std::size_t index = 0;
-  const std::string_view data_view{reinterpret_cast<const char*>(data), length};
+  const std::string_view data_view{static_cast<const char*>(data), length};
   for (u8 b : data_view)
   {
     const bool is_hi = index++ % 2 == 0;

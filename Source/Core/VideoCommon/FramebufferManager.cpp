@@ -217,7 +217,7 @@ std::tuple<u32, u32> FramebufferManager::CalculateTargetSize()
   else
     m_efb_scale = g_ActiveConfig.iEFBScale;
 
-  const u32 max_size = g_ActiveConfig.backend_info.MaxTextureSize;
+  const u32 max_size = g_backend_info.MaxTextureSize;
   if (max_size < EFB_WIDTH * m_efb_scale)
     m_efb_scale = max_size / EFB_WIDTH;
 
@@ -253,7 +253,7 @@ bool FramebufferManager::CreateEFBFramebuffer()
   if (g_ActiveConfig.MultisamplingEnabled())
   {
     u32 flags = 0;
-    if (!g_ActiveConfig.backend_info.bSupportsPartialMultisampleResolve)
+    if (!g_backend_info.bSupportsPartialMultisampleResolve)
       flags |= AbstractTextureFlag_RenderTarget;
     m_efb_resolve_color_texture = g_gfx->CreateTexture(
         TextureConfig(efb_color_texture_config.width, efb_color_texture_config.height, 1,
@@ -263,7 +263,7 @@ bool FramebufferManager::CreateEFBFramebuffer()
     if (!m_efb_resolve_color_texture)
       return false;
 
-    if (!g_ActiveConfig.backend_info.bSupportsPartialMultisampleResolve)
+    if (!g_backend_info.bSupportsPartialMultisampleResolve)
     {
       m_efb_color_resolve_framebuffer =
           g_gfx->CreateFramebuffer(m_efb_resolve_color_texture.get(), nullptr);
@@ -291,8 +291,7 @@ bool FramebufferManager::CreateEFBFramebuffer()
 
   // Clear the renderable textures out.
   g_gfx->SetAndClearFramebuffer(m_efb_framebuffer.get(), {{0.0f, 0.0f, 0.0f, 0.0f}},
-                                g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? 1.0f :
-                                                                                          0.0f);
+                                g_backend_info.bSupportsReversedDepthRange ? 1.0f : 0.0f);
 
   // Pixel Shader uses EFB scale as a constant, dirty that in case it changed
   Core::System::GetInstance().GetPixelShaderManager().Dirty();
@@ -328,7 +327,7 @@ AbstractTexture* FramebufferManager::ResolveEFBColorTexture(const MathUtil::Rect
   clamped_region.ClampUL(0, 0, GetEFBWidth(), GetEFBHeight());
 
   // Resolve to our already-created texture.
-  if (g_ActiveConfig.backend_info.bSupportsPartialMultisampleResolve)
+  if (g_backend_info.bSupportsPartialMultisampleResolve)
   {
     for (u32 layer = 0; layer < GetEFBLayers(); layer++)
     {
@@ -479,7 +478,7 @@ MathUtil::Rectangle<int> FramebufferManager::GetEFBCacheTileRect(u32 tile_index)
 u32 FramebufferManager::PeekEFBColor(u32 x, u32 y)
 {
   // The y coordinate here assumes upper-left origin, but the readback texture is lower-left in GL.
-  if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
+  if (g_backend_info.bUsesLowerLeftOrigin)
     y = EFB_HEIGHT - 1 - y;
 
   u32 tile_index;
@@ -502,7 +501,7 @@ u32 FramebufferManager::PeekEFBColor(u32 x, u32 y)
 float FramebufferManager::PeekEFBDepth(u32 x, u32 y)
 {
   // The y coordinate here assumes upper-left origin, but the readback texture is lower-left in GL.
-  if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
+  if (g_backend_info.bUsesLowerLeftOrigin)
     y = EFB_HEIGHT - 1 - y;
 
   u32 tile_index;
@@ -654,7 +653,7 @@ bool FramebufferManager::CompileReadbackPipelines()
     if (!m_efb_depth_resolve_pipeline)
       return false;
 
-    if (!g_ActiveConfig.backend_info.bSupportsPartialMultisampleResolve)
+    if (!g_backend_info.bSupportsPartialMultisampleResolve)
     {
       config.framebuffer_state.color_texture_format = GetEFBColorFormat();
       auto color_resolve_shader = g_gfx->CreateShaderFromSource(
@@ -717,8 +716,8 @@ bool FramebufferManager::CreateReadbackFramebuffer()
 
   // Since we can't partially copy from a depth buffer directly to the staging texture in D3D, we
   // use an intermediate buffer to avoid copying the whole texture.
-  if (!g_ActiveConfig.backend_info.bSupportsDepthReadback ||
-      (IsUsingTiledEFBCache() && !g_ActiveConfig.backend_info.bSupportsPartialDepthCopies) ||
+  if (!g_backend_info.bSupportsDepthReadback ||
+      (IsUsingTiledEFBCache() && !g_backend_info.bSupportsPartialDepthCopies) ||
       !AbstractTexture::IsCompatibleDepthAndColorFormats(m_efb_depth_texture->GetFormat(),
                                                          GetEFBDepthCopyFormat()) ||
       GetEFBScale() != 1)
@@ -792,11 +791,10 @@ void FramebufferManager::PopulateEFBCache(bool depth, u32 tile_index, bool async
   // Force the path through the intermediate texture, as we can't do an image copy from a depth
   // buffer directly to a staging texture (must be the whole resource).
   const bool force_intermediate_copy =
-      depth &&
-      (!g_ActiveConfig.backend_info.bSupportsDepthReadback ||
-       (!g_ActiveConfig.backend_info.bSupportsPartialDepthCopies && IsUsingTiledEFBCache()) ||
-       !AbstractTexture::IsCompatibleDepthAndColorFormats(m_efb_depth_texture->GetFormat(),
-                                                          GetEFBDepthCopyFormat()));
+      depth && (!g_backend_info.bSupportsDepthReadback ||
+                (!g_backend_info.bSupportsPartialDepthCopies && IsUsingTiledEFBCache()) ||
+                !AbstractTexture::IsCompatibleDepthAndColorFormats(m_efb_depth_texture->GetFormat(),
+                                                                   GetEFBDepthCopyFormat()));
 
   // Issue a copy from framebuffer -> copy texture if we have >1xIR or MSAA on.
   EFBCacheData& data = depth ? m_efb_depth_cache : m_efb_color_cache;
@@ -956,7 +954,7 @@ void FramebufferManager::PokeEFBColor(u32 x, u32 y, u32 color)
   CreatePokeVertices(&m_color_poke_vertices, x, y, 0.0f, color);
 
   // See comment above for reasoning for lower-left coordinates.
-  if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
+  if (g_backend_info.bUsesLowerLeftOrigin)
     y = EFB_HEIGHT - 1 - y;
 
   // Update the peek cache if it's valid, since we know the color of the pixel now.
@@ -974,7 +972,7 @@ void FramebufferManager::PokeEFBDepth(u32 x, u32 y, float depth)
   CreatePokeVertices(&m_depth_poke_vertices, x, y, depth, 0);
 
   // See comment above for reasoning for lower-left coordinates.
-  if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
+  if (g_backend_info.bUsesLowerLeftOrigin)
     y = EFB_HEIGHT - 1 - y;
 
   // Update the peek cache if it's valid, since we know the color of the pixel now.
@@ -988,7 +986,7 @@ void FramebufferManager::CreatePokeVertices(std::vector<EFBPokeVertex>* destinat
 {
   const float cs_pixel_width = 1.0f / EFB_WIDTH * 2.0f;
   const float cs_pixel_height = 1.0f / EFB_HEIGHT * 2.0f;
-  if (g_ActiveConfig.backend_info.bSupportsLargePoints)
+  if (g_backend_info.bSupportsLargePoints)
   {
     // GPU will expand the point to a quad.
     const float cs_x = (static_cast<float>(x) + 0.5f) * cs_pixel_width - 1.0f;
@@ -1076,8 +1074,7 @@ bool FramebufferManager::CompilePokePipelines()
   config.geometry_shader = IsEFBStereo() ? g_shader_cache->GetColorGeometryShader() : nullptr;
   config.pixel_shader = g_shader_cache->GetColorPixelShader();
   config.rasterization_state = RenderState::GetNoCullRasterizationState(
-      g_ActiveConfig.backend_info.bSupportsLargePoints ? PrimitiveType::Points :
-                                                         PrimitiveType::Triangles);
+      g_backend_info.bSupportsLargePoints ? PrimitiveType::Points : PrimitiveType::Triangles);
   config.depth_state = RenderState::GetNoDepthTestingDepthState();
   config.blending_state = RenderState::GetNoBlendingBlendState();
   config.framebuffer_state = GetEFBFramebufferState();
@@ -1155,8 +1152,7 @@ void FramebufferManager::DoLoadState(PointerWrap& p)
   {
     WARN_LOG_FMT(VIDEO, "Failed to deserialize EFB contents. Clearing instead.");
     g_gfx->SetAndClearFramebuffer(m_efb_framebuffer.get(), {{0.0f, 0.0f, 0.0f, 0.0f}},
-                                  g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? 1.0f :
-                                                                                            0.0f);
+                                  g_backend_info.bSupportsReversedDepthRange ? 1.0f : 0.0f);
     return;
   }
 

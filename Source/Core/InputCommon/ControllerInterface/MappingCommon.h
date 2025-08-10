@@ -4,7 +4,6 @@
 #pragma once
 
 #include <string>
-#include <vector>
 
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 
@@ -25,8 +24,7 @@ std::string BuildExpression(const Core::InputDetector::Results&,
                             const Core::DeviceQualifier& default_device, Quote quote);
 
 void RemoveSpuriousTriggerCombinations(Core::InputDetector::Results*);
-void RemoveDetectionsAfterTimePoint(Core::InputDetector::Results*,
-                                    Core::DeviceContainer::Clock::time_point after);
+void RemoveDetectionsAfterTimePoint(Core::InputDetector::Results*, Clock::time_point after);
 bool ContainsCompleteDetection(const Core::InputDetector::Results&);
 
 }  // namespace ciface::MappingCommon

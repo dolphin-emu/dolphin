@@ -433,13 +433,9 @@ void CodeViewWidget::CalculateBranchIndentation()
 
   // process in order of how much vertical space the drawn arrow would take up
   // so shorter arrows go further to the left
-  const auto priority = [](const CodeViewBranch& b) {
+  std::ranges::stable_sort(m_branches, {}, [](const CodeViewBranch& b) {
     return b.is_link ? 0 : (std::max(b.src_addr, b.dst_addr) - std::min(b.src_addr, b.dst_addr));
-  };
-  std::stable_sort(m_branches.begin(), m_branches.end(),
-                   [&priority](const CodeViewBranch& lhs, const CodeViewBranch& rhs) {
-                     return priority(lhs) < priority(rhs);
-                   });
+  });
 
   // build a 2D lookup table representing the columns and rows the arrow could be drawn in
   // and try to place all branch arrows in it as far left as possible
@@ -1089,6 +1085,11 @@ void CodeViewWidget::keyPressEvent(QKeyEvent* event)
     m_address += rowCount() * sizeof(u32);
     Update();
     return;
+  case Qt::Key_G:
+    if (event->modifiers() == Qt::ControlModifier)
+    {
+      emit ActivateSearch();
+    }
   default:
     QWidget::keyPressEvent(event);
     break;

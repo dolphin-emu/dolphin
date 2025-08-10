@@ -84,7 +84,5 @@ private:
   // track changes
   bool m_projection_graphics_mod_change = false;
 
-  Common::Matrix44 m_viewport_correction{};
-
   Common::Matrix44 LoadProjectionMatrix();
 };

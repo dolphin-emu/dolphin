@@ -47,59 +47,59 @@ void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
 
 void VideoBackend::FillBackendInfo()
 {
-  g_Config.backend_info.api_type = APIType::D3D;
-  g_Config.backend_info.bUsesLowerLeftOrigin = false;
-  g_Config.backend_info.bSupportsExclusiveFullscreen = true;
-  g_Config.backend_info.bSupportsDualSourceBlend = true;
-  g_Config.backend_info.bSupportsPrimitiveRestart = true;
-  g_Config.backend_info.bSupportsGeometryShaders = true;
-  g_Config.backend_info.bSupports3DVision = false;
-  g_Config.backend_info.bSupportsEarlyZ = true;
-  g_Config.backend_info.bSupportsBindingLayout = false;
-  g_Config.backend_info.bSupportsBBox = true;
-  g_Config.backend_info.bSupportsGSInstancing = true;
-  g_Config.backend_info.bSupportsPaletteConversion = true;
-  g_Config.backend_info.bSupportsPostProcessing = true;
-  g_Config.backend_info.bSupportsClipControl = true;
-  g_Config.backend_info.bSupportsSSAA = true;
-  g_Config.backend_info.bSupportsFragmentStoresAndAtomics = true;
-  g_Config.backend_info.bSupportsDepthClamp = true;
-  g_Config.backend_info.bSupportsReversedDepthRange = false;
-  g_Config.backend_info.bSupportsComputeShaders = true;
-  g_Config.backend_info.bSupportsLogicOp = true;
-  g_Config.backend_info.bSupportsMultithreading = false;
-  g_Config.backend_info.bSupportsGPUTextureDecoding = true;
-  g_Config.backend_info.bSupportsST3CTextures = false;
-  g_Config.backend_info.bSupportsCopyToVram = true;
-  g_Config.backend_info.bSupportsBitfield = false;
-  g_Config.backend_info.bSupportsDynamicSamplerIndexing = false;
-  g_Config.backend_info.bSupportsBPTCTextures = false;
-  g_Config.backend_info.bSupportsFramebufferFetch = false;
-  g_Config.backend_info.bSupportsBackgroundCompiling = true;
-  g_Config.backend_info.bSupportsLargePoints = false;
-  g_Config.backend_info.bSupportsDepthReadback = true;
-  g_Config.backend_info.bSupportsPartialDepthCopies = false;
-  g_Config.backend_info.Adapters = D3DCommon::GetAdapterNames();
-  g_Config.backend_info.AAModes = DXContext::GetAAModes(g_Config.iAdapter);
-  g_Config.backend_info.bSupportsShaderBinaries = true;
-  g_Config.backend_info.bSupportsPipelineCacheData = true;
-  g_Config.backend_info.bSupportsCoarseDerivatives = true;
-  g_Config.backend_info.bSupportsTextureQueryLevels = true;
-  g_Config.backend_info.bSupportsLodBiasInSampler = true;
-  g_Config.backend_info.bSupportsSettingObjectNames = true;
-  g_Config.backend_info.bSupportsPartialMultisampleResolve = true;
-  g_Config.backend_info.bSupportsDynamicVertexLoader = true;
-  g_Config.backend_info.bSupportsVSLinePointExpand = true;
-  g_Config.backend_info.bSupportsHDROutput = true;
+  g_backend_info.api_type = APIType::D3D;
+  g_backend_info.bUsesLowerLeftOrigin = false;
+  g_backend_info.bSupportsExclusiveFullscreen = true;
+  g_backend_info.bSupportsDualSourceBlend = true;
+  g_backend_info.bSupportsPrimitiveRestart = true;
+  g_backend_info.bSupportsGeometryShaders = true;
+  g_backend_info.bSupports3DVision = false;
+  g_backend_info.bSupportsEarlyZ = true;
+  g_backend_info.bSupportsBindingLayout = false;
+  g_backend_info.bSupportsBBox = true;
+  g_backend_info.bSupportsGSInstancing = true;
+  g_backend_info.bSupportsPaletteConversion = true;
+  g_backend_info.bSupportsPostProcessing = true;
+  g_backend_info.bSupportsClipControl = true;
+  g_backend_info.bSupportsSSAA = true;
+  g_backend_info.bSupportsFragmentStoresAndAtomics = true;
+  g_backend_info.bSupportsDepthClamp = true;
+  g_backend_info.bSupportsReversedDepthRange = false;
+  g_backend_info.bSupportsComputeShaders = true;
+  g_backend_info.bSupportsLogicOp = true;
+  g_backend_info.bSupportsMultithreading = false;
+  g_backend_info.bSupportsGPUTextureDecoding = true;
+  g_backend_info.bSupportsST3CTextures = false;
+  g_backend_info.bSupportsCopyToVram = true;
+  g_backend_info.bSupportsBitfield = false;
+  g_backend_info.bSupportsDynamicSamplerIndexing = false;
+  g_backend_info.bSupportsBPTCTextures = false;
+  g_backend_info.bSupportsFramebufferFetch = false;
+  g_backend_info.bSupportsBackgroundCompiling = true;
+  g_backend_info.bSupportsLargePoints = false;
+  g_backend_info.bSupportsDepthReadback = true;
+  g_backend_info.bSupportsPartialDepthCopies = false;
+  g_backend_info.Adapters = D3DCommon::GetAdapterNames();
+  g_backend_info.AAModes = DXContext::GetAAModes(g_Config.iAdapter);
+  g_backend_info.bSupportsShaderBinaries = true;
+  g_backend_info.bSupportsPipelineCacheData = true;
+  g_backend_info.bSupportsCoarseDerivatives = true;
+  g_backend_info.bSupportsTextureQueryLevels = true;
+  g_backend_info.bSupportsLodBiasInSampler = true;
+  g_backend_info.bSupportsSettingObjectNames = true;
+  g_backend_info.bSupportsPartialMultisampleResolve = true;
+  g_backend_info.bSupportsDynamicVertexLoader = true;
+  g_backend_info.bSupportsVSLinePointExpand = true;
+  g_backend_info.bSupportsHDROutput = true;
 
   // We can only check texture support once we have a device.
   if (g_dx_context)
   {
-    g_Config.backend_info.bSupportsST3CTextures =
+    g_backend_info.bSupportsST3CTextures =
         g_dx_context->SupportsTextureFormat(DXGI_FORMAT_BC1_UNORM) &&
         g_dx_context->SupportsTextureFormat(DXGI_FORMAT_BC2_UNORM) &&
         g_dx_context->SupportsTextureFormat(DXGI_FORMAT_BC3_UNORM);
-    g_Config.backend_info.bSupportsBPTCTextures =
+    g_backend_info.bSupportsBPTCTextures =
         g_dx_context->SupportsTextureFormat(DXGI_FORMAT_BC7_UNORM);
   }
 }

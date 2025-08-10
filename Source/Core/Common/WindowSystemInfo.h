@@ -37,7 +37,7 @@ struct WindowSystemInfo
   void* render_window = nullptr;
 
   // Render surface. Depending on the host platform, this may differ from the window.
-  // This is kept seperate as input may require a different handle to rendering, and
+  // This is kept separate as input may require a different handle to rendering, and
   // during video backend startup the surface pointer may change (MoltenVK).
   void* render_surface = nullptr;
 

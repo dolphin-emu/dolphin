@@ -44,7 +44,7 @@ struct DepthStencilSelector
 
 struct SamplerSelector
 {
-  u8 value;
+  u16 value;
   SamplerSelector() : value(0) {}
   SamplerSelector(SamplerState state)
   {
@@ -54,17 +54,17 @@ struct SamplerSelector
             (static_cast<u32>(state.tm0.anisotropic_filtering) << 3);
     value |= (static_cast<u32>(state.tm0.wrap_u.Value()) +
               3 * static_cast<u32>(state.tm0.wrap_v.Value()))
-             << 4;
+             << 7;
   }
   FilterMode MinFilter() const { return static_cast<FilterMode>(value & 1); }
   FilterMode MagFilter() const { return static_cast<FilterMode>((value >> 1) & 1); }
   FilterMode MipFilter() const { return static_cast<FilterMode>((value >> 2) & 1); }
-  WrapMode WrapU() const { return static_cast<WrapMode>((value >> 4) % 3); }
-  WrapMode WrapV() const { return static_cast<WrapMode>((value >> 4) / 3); }
-  bool AnisotropicFiltering() const { return ((value >> 3) & 1); }
+  WrapMode WrapU() const { return static_cast<WrapMode>((value >> 7) % 3); }
+  WrapMode WrapV() const { return static_cast<WrapMode>((value >> 7) / 3); }
+  u32 AnisotropicFiltering() const { return ((value >> 3) & 0xf); }
 
   bool operator==(const SamplerSelector& other) const { return value == other.value; }
-  static constexpr size_t N_VALUES = (1 << 4) * 9;
+  static constexpr size_t N_VALUES = (1 << 7) * 9;
 };
 
 class ObjectCache

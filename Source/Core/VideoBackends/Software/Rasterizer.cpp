@@ -10,16 +10,14 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 
-#include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
+#include "VideoBackends/Software/SWEfbInterface.h"
 #include "VideoBackends/Software/Tev.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoCommon.h"
-#include "VideoCommon/VideoConfig.h"
-#include "VideoCommon/XFMemory.h"
 
 namespace Rasterizer
 {

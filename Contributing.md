@@ -39,7 +39,7 @@ This guide is for developers who wish to contribute to the Dolphin codebase. It 
 
 Following this guide and formatting your code as detailed will likely get your pull request merged much faster than if you don't (assuming the code itself has no mistakes).
 
-This project uses clang-format 13.0 to check for common style issues. In case of conflicts between this guide and clang-format rules, the latter should be followed instead of this guide.
+This project uses clang-format 19.1 to check for common style issues. In case of conflicts between this guide and clang-format rules, the latter should be followed instead of this guide.
 
 ## <a name="intro-formatting-issues"></a>Checking and fixing formatting issues
 
@@ -49,7 +49,7 @@ In most cases, clang-format can and **should** be used to automatically reformat
 
 - To run clang-format on all staged files:
   ```
-  git diff --cached --name-only | egrep '[.](cpp|h|mm)$' | xargs clang-format -i
+  git diff --cached --name-only | grep -E '[.](cpp|h|mm)$' | xargs -I {} clang-format -i {}
   ```
 
 - Formatting issues can be checked for before committing with a lint script that is included with the codebase. To enable it as a pre-commit hook (assuming you are in the repository root):

@@ -113,53 +113,53 @@ bool VideoBackend::FillBackendInfo(GLContext* context)
   if (!InitializeGLExtensions(context))
     return false;
 
-  g_Config.backend_info.api_type = APIType::OpenGL;
-  g_Config.backend_info.MaxTextureSize = 16384;
-  g_Config.backend_info.bUsesLowerLeftOrigin = true;
-  g_Config.backend_info.bSupportsExclusiveFullscreen = false;
-  g_Config.backend_info.bSupportsGeometryShaders = true;
-  g_Config.backend_info.bSupportsComputeShaders = false;
-  g_Config.backend_info.bSupports3DVision = false;
-  g_Config.backend_info.bSupportsPostProcessing = true;
-  g_Config.backend_info.bSupportsSSAA = true;
-  g_Config.backend_info.bSupportsReversedDepthRange = true;
-  g_Config.backend_info.bSupportsLogicOp = true;
-  g_Config.backend_info.bSupportsMultithreading = false;
-  g_Config.backend_info.bSupportsCopyToVram = true;
-  g_Config.backend_info.bSupportsLargePoints = true;
-  g_Config.backend_info.bSupportsDepthReadback = true;
-  g_Config.backend_info.bSupportsPartialDepthCopies = true;
-  g_Config.backend_info.bSupportsShaderBinaries = false;
-  g_Config.backend_info.bSupportsPipelineCacheData = false;
-  g_Config.backend_info.bSupportsLodBiasInSampler = true;
-  g_Config.backend_info.bSupportsPartialMultisampleResolve = true;
+  g_backend_info.api_type = APIType::OpenGL;
+  g_backend_info.MaxTextureSize = 16384;
+  g_backend_info.bUsesLowerLeftOrigin = true;
+  g_backend_info.bSupportsExclusiveFullscreen = false;
+  g_backend_info.bSupportsGeometryShaders = true;
+  g_backend_info.bSupportsComputeShaders = false;
+  g_backend_info.bSupports3DVision = false;
+  g_backend_info.bSupportsPostProcessing = true;
+  g_backend_info.bSupportsSSAA = true;
+  g_backend_info.bSupportsReversedDepthRange = true;
+  g_backend_info.bSupportsLogicOp = true;
+  g_backend_info.bSupportsMultithreading = false;
+  g_backend_info.bSupportsCopyToVram = true;
+  g_backend_info.bSupportsLargePoints = true;
+  g_backend_info.bSupportsDepthReadback = true;
+  g_backend_info.bSupportsPartialDepthCopies = true;
+  g_backend_info.bSupportsShaderBinaries = false;
+  g_backend_info.bSupportsPipelineCacheData = false;
+  g_backend_info.bSupportsLodBiasInSampler = true;
+  g_backend_info.bSupportsPartialMultisampleResolve = true;
   // Unneccessary since OGL doesn't use pipelines
-  g_Config.backend_info.bSupportsDynamicVertexLoader = false;
+  g_backend_info.bSupportsDynamicVertexLoader = false;
 
   // TODO: There is a bug here, if texel buffers or SSBOs/atomics are not supported the graphics
   // options will show the option when it is not supported. The only way around this would be
   // creating a context when calling this function to determine what is available.
-  g_Config.backend_info.bSupportsGPUTextureDecoding = true;
-  g_Config.backend_info.bSupportsBBox = true;
+  g_backend_info.bSupportsGPUTextureDecoding = true;
+  g_backend_info.bSupportsBBox = true;
 
   // Overwritten in OGLConfig.cpp later
-  g_Config.backend_info.bSupportsDualSourceBlend = true;
-  g_Config.backend_info.bSupportsPrimitiveRestart = true;
-  g_Config.backend_info.bSupportsPaletteConversion = true;
-  g_Config.backend_info.bSupportsClipControl = true;
-  g_Config.backend_info.bSupportsDepthClamp = true;
-  g_Config.backend_info.bSupportsST3CTextures = false;
-  g_Config.backend_info.bSupportsBPTCTextures = false;
-  g_Config.backend_info.bSupportsCoarseDerivatives = false;
-  g_Config.backend_info.bSupportsTextureQueryLevels = false;
-  g_Config.backend_info.bSupportsSettingObjectNames = false;
+  g_backend_info.bSupportsDualSourceBlend = true;
+  g_backend_info.bSupportsPrimitiveRestart = true;
+  g_backend_info.bSupportsPaletteConversion = true;
+  g_backend_info.bSupportsClipControl = true;
+  g_backend_info.bSupportsDepthClamp = true;
+  g_backend_info.bSupportsST3CTextures = false;
+  g_backend_info.bSupportsBPTCTextures = false;
+  g_backend_info.bSupportsCoarseDerivatives = false;
+  g_backend_info.bSupportsTextureQueryLevels = false;
+  g_backend_info.bSupportsSettingObjectNames = false;
 
-  g_Config.backend_info.bUsesExplictQuadBuffering = true;
+  g_backend_info.bUsesExplictQuadBuffering = true;
 
-  g_Config.backend_info.Adapters.clear();
+  g_backend_info.Adapters.clear();
 
   // aamodes - 1 is to stay consistent with D3D (means no AA)
-  g_Config.backend_info.AAModes = {1, 2, 4, 8};
+  g_backend_info.AAModes = {1, 2, 4, 8};
 
   // check for the max vertex attributes
   GLint numvertexattribs = 0;
@@ -175,7 +175,7 @@ bool VideoBackend::FillBackendInfo(GLContext* context)
   // check the max texture width and height
   GLint max_texture_size = 0;
   glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
-  g_Config.backend_info.MaxTextureSize = static_cast<u32>(max_texture_size);
+  g_backend_info.MaxTextureSize = static_cast<u32>(max_texture_size);
   if (max_texture_size < 1024)
   {
     PanicAlertFmtT("GL_MAX_TEXTURE_SIZE is {0} - must be at least 1024.", max_texture_size);

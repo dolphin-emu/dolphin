@@ -71,15 +71,22 @@ struct SConfig
   const std::string GetGameTDBID() const;
   const std::string GetTitleName() const;
   const std::string GetTitleDescription() const;
+  std::string GetTriforceID() const;
   u64 GetTitleID() const;
   u16 GetRevision() const;
   void ResetRunningGameMetadata();
   void SetRunningGameMetadata(const DiscIO::Volume& volume, const DiscIO::Partition& partition);
   void SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Platform platform);
   void SetRunningGameMetadata(const std::string& game_id);
-  // Reloads title-specific map files, patches, custom textures, etc.
-  // This should only be called after the new title has been loaded into memory.
-  static void OnNewTitleLoad(const Core::CPUThreadGuard& guard);
+
+  // Triggered when Dolphin loads a title directly
+  // Reloads title-specific map files, patches, etc.
+  static void OnTitleDirectlyBooted(const Core::CPUThreadGuard& guard);
+
+  // Direct title change from ES (Wii system)
+  // Wii titles will still hit OnTitleDirectlyBooted
+  // but GC titles will never see this call
+  static void OnESTitleChanged();
 
   void LoadDefaults();
   static std::string MakeGameID(std::string_view file_name);
@@ -117,14 +124,18 @@ private:
   SConfig();
   ~SConfig();
 
+  static void ReloadTextures(Core::System& system);
+
   void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
-                              u64 title_id, u16 revision, DiscIO::Region region);
+                              std::string triforce_id, u64 title_id, u16 revision,
+                              DiscIO::Region region);
 
   static SConfig* m_Instance;
   mutable std::recursive_mutex m_metadata_lock;
 
   std::string m_game_id;
   std::string m_gametdb_id;
+  std::string m_triforce_id;
   std::string m_title_name;
   std::string m_title_description;
   u64 m_title_id;

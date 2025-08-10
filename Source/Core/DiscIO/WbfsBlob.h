@@ -15,7 +15,7 @@ namespace DiscIO
 {
 static constexpr u32 WBFS_MAGIC = 0x53464257;  // "WBFS" (byteswapped to little endian)
 
-class WbfsFileReader : public BlobReader
+class WbfsFileReader final : public BlobReader
 {
 public:
   ~WbfsFileReader();
@@ -44,7 +44,7 @@ private:
   bool ReadHeader();
 
   File::IOFile& SeekToCluster(u64 offset, u64* available);
-  bool IsGood() { return m_good; }
+  bool IsGood() const { return m_good; }
   struct FileEntry
   {
     FileEntry(File::IOFile file_, u64 base_address_, u64 size_)

@@ -68,8 +68,6 @@ Dolphin includes or links code of the following third-party software projects:
    [zlib license](http://hg.libsdl.org/SDL/file/tip/COPYING.txt)
 - [SFML](http://www.sfml-dev.org/):
    [zlib license](http://www.sfml-dev.org/license.php)
-- [SoundTouch](http://www.surina.net/soundtouch/):
-   [LGPLv2+](http://www.surina.net/soundtouch/license.html)
 - [TAP-Windows](https://openvpn.net/):
    header only
 - [Windows Implementation Libraries](https://github.com/microsoft/wil):

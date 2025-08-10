@@ -19,7 +19,7 @@ namespace DiscIO
 class VolumeDisc;
 struct Partition;
 
-class FileInfoGCWii : public FileInfo
+class FileInfoGCWii final : public FileInfo
 {
 public:
   // None of the constructors take ownership of FST pointers
@@ -84,7 +84,7 @@ private:
   u32 m_total_file_infos;
 };
 
-class FileSystemGCWii : public FileSystem
+class FileSystemGCWii final : public FileSystem
 {
 public:
   FileSystemGCWii(const VolumeDisc* volume, const Partition& partition);

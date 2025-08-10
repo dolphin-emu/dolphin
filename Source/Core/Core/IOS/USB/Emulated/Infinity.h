@@ -32,7 +32,7 @@ struct InfinityFigure final
 class InfinityUSB final : public Device
 {
 public:
-  InfinityUSB(EmulationKernel& ios);
+  InfinityUSB();
   ~InfinityUSB() override;
   DeviceDescriptor GetDeviceDescriptor() const override;
   std::vector<ConfigDescriptor> GetConfigurations() const override;
@@ -53,7 +53,6 @@ private:
   void ScheduleTransfer(std::unique_ptr<TransferCommand> command, const std::array<u8, 32>& data,
                         u64 expected_time_us);
 
-  EmulationKernel& m_ios;
   u16 m_vid = 0;
   u16 m_pid = 0;
   u8 m_active_interface = 0;

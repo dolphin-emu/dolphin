@@ -57,7 +57,7 @@ TEST(Jit64, ConvertDoubleToSingle)
   Core::DeclareAsCPUThread();
   Common::ScopeGuard cpu_thread_guard([] { Core::UndeclareAsCPUThread(); });
 
-  TestCommonAsmRoutines routines(Core::System::GetInstance());
+  const TestCommonAsmRoutines routines(Core::System::GetInstance());
 
   for (const u64 input : double_test_values)
   {

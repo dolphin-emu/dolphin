@@ -415,7 +415,7 @@ static std::optional<DefaultInterface> GetSystemDefaultInterface()
   };
 
   auto get_addr = [](const sockaddr* addr) {
-    return reinterpret_cast<const sockaddr_in*>(addr)->sin_addr.s_addr;
+    return reinterpret_cast<const sockaddr_in*>(addr)->sin_addr;
   };
 
   const auto default_interface_address = get_default_address();
@@ -430,12 +430,12 @@ static std::optional<DefaultInterface> GetSystemDefaultInterface()
   for (const ifaddrs* iface = iflist; iface; iface = iface->ifa_next)
   {
     if (iface->ifa_addr && iface->ifa_addr->sa_family == AF_INET &&
-        get_addr(iface->ifa_addr) == default_interface_address->s_addr)
+        get_addr(iface->ifa_addr).s_addr == default_interface_address->s_addr)
     {
       // this isnt fully correct, but this will make calls to get the routing table at least return
       // the gateway
       if (routing_table.empty())
-        routing_table = {{0, 0, 0, get_addr(iface->ifa_dstaddr)}};
+        routing_table = {{0, {}, {}, get_addr(iface->ifa_dstaddr)}};
 
       return DefaultInterface{get_addr(iface->ifa_addr), get_addr(iface->ifa_netmask),
                               get_addr(iface->ifa_broadaddr), routing_table};
@@ -1005,7 +1005,6 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
-  const DefaultInterface interface = GetSystemDefaultInterfaceOrFallback();
   const u32 param = memory.Read_U32(request.in_vectors[0].address);
   const u32 param2 = memory.Read_U32(request.in_vectors[0].address + 4);
   const u32 param3 = memory.Read_U32(request.io_vectors[0].address);
@@ -1159,6 +1158,7 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
     // XXX: this isn't exactly right; the buffer can be larger than 12 bytes,
     // in which case, depending on some interface settings, SO can write 12 more bytes
     memory.Write_U32(0xC, request.io_vectors[1].address);
+    const DefaultInterface interface = GetSystemDefaultInterfaceOrFallback();
     memory.Write_U32(ntohl(interface.inet.s_addr), request.io_vectors[0].address);
     memory.Write_U32(ntohl(interface.netmask.s_addr), request.io_vectors[0].address + 4);
     memory.Write_U32(ntohl(interface.broadcast.s_addr), request.io_vectors[0].address + 8);
@@ -1172,6 +1172,8 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
     break;
 
   case 0x4006:  // get routing table
+  {
+    const DefaultInterface interface = GetSystemDefaultInterfaceOrFallback();
     for (InterfaceRouting route : interface.routing_table)
     {
       memory.Write_U32(ntohl(route.destination.s_addr), request.io_vectors[0].address + param5);
@@ -1191,6 +1193,7 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
 
     memory.Write_U32(param5, request.io_vectors[1].address);
     break;
+  }
 
   case 0x6003:  // hardcoded value
     memory.Write_U32(0x80, request.io_vectors[0].address);

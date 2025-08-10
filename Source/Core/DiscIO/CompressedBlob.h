@@ -40,7 +40,7 @@ struct CompressedBlobHeader  // 32 bytes
   u32 num_blocks;
 };
 
-class CompressedBlobReader : public SectorReader
+class CompressedBlobReader final : public SectorReader
 {
 public:
   static std::unique_ptr<CompressedBlobReader> Create(File::IOFile file,

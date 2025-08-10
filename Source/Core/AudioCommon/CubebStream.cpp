@@ -39,10 +39,10 @@ void CubebStream::StateCallback(cubeb_stream* stream, void* user_data, cubeb_sta
 
 CubebStream::CubebStream()
 #ifdef _WIN32
-    : m_work_queue("Cubeb Worker", [](const std::function<void()>& func) { func(); })
+    : m_work_queue("Cubeb Worker")
 {
   Common::Event sync_event;
-  m_work_queue.EmplaceItem([this, &sync_event] {
+  m_work_queue.Push([this, &sync_event] {
     Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
     auto result = ::CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
     m_coinit_success = result == S_OK;
@@ -62,7 +62,7 @@ bool CubebStream::Init()
   if (!m_coinit_success)
     return false;
   Common::Event sync_event;
-  m_work_queue.EmplaceItem([this, &return_value, &sync_event] {
+  m_work_queue.Push([this, &return_value, &sync_event] {
     Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
 #endif
 
@@ -113,7 +113,7 @@ bool CubebStream::SetRunning(bool running)
   if (!m_coinit_success)
     return false;
   Common::Event sync_event;
-  m_work_queue.EmplaceItem([this, running, &return_value, &sync_event] {
+  m_work_queue.Push([this, running, &return_value, &sync_event] {
     Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
 #endif
     if (running)
@@ -132,7 +132,7 @@ CubebStream::~CubebStream()
 {
 #ifdef _WIN32
   Common::Event sync_event;
-  m_work_queue.EmplaceItem([this, &sync_event] {
+  m_work_queue.Push([this, &sync_event] {
     Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
 #endif
     cubeb_stream_stop(m_stream);
@@ -156,7 +156,7 @@ void CubebStream::SetVolume(int volume)
   if (!m_coinit_success)
     return;
   Common::Event sync_event;
-  m_work_queue.EmplaceItem([this, volume, &sync_event] {
+  m_work_queue.Push([this, volume, &sync_event] {
     Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
 #endif
     cubeb_stream_set_volume(m_stream, volume / 100.0f);

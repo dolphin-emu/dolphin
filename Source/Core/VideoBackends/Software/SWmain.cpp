@@ -10,23 +10,16 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLContext.h"
-#include "Common/MsgHandler.h"
 
 #include "VideoBackends/Software/Clipper.h"
-#include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/SWBoundingBox.h"
+#include "VideoBackends/Software/SWEfbInterface.h"
 #include "VideoBackends/Software/SWGfx.h"
 #include "VideoBackends/Software/SWOGLWindow.h"
-#include "VideoBackends/Software/SWRenderer.h"
-#include "VideoBackends/Software/SWTexture.h"
 #include "VideoBackends/Software/SWVertexLoader.h"
 #include "VideoBackends/Software/TextureCache.h"
 
-#include "VideoCommon/FramebufferManager.h"
-#include "VideoCommon/Present.h"
-#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -64,37 +57,37 @@ std::optional<std::string> VideoSoftware::GetWarningMessage() const
 
 void VideoSoftware::InitBackendInfo(const WindowSystemInfo& wsi)
 {
-  g_Config.backend_info.api_type = APIType::Nothing;
-  g_Config.backend_info.MaxTextureSize = 16384;
-  g_Config.backend_info.bUsesLowerLeftOrigin = false;
-  g_Config.backend_info.bSupports3DVision = false;
-  g_Config.backend_info.bSupportsDualSourceBlend = true;
-  g_Config.backend_info.bSupportsEarlyZ = true;
-  g_Config.backend_info.bSupportsPrimitiveRestart = false;
-  g_Config.backend_info.bSupportsMultithreading = false;
-  g_Config.backend_info.bSupportsComputeShaders = false;
-  g_Config.backend_info.bSupportsGPUTextureDecoding = false;
-  g_Config.backend_info.bSupportsST3CTextures = false;
-  g_Config.backend_info.bSupportsBPTCTextures = false;
-  g_Config.backend_info.bSupportsCopyToVram = false;
-  g_Config.backend_info.bSupportsLargePoints = false;
-  g_Config.backend_info.bSupportsDepthReadback = false;
-  g_Config.backend_info.bSupportsPartialDepthCopies = false;
-  g_Config.backend_info.bSupportsFramebufferFetch = false;
-  g_Config.backend_info.bSupportsBackgroundCompiling = false;
-  g_Config.backend_info.bSupportsLogicOp = true;
-  g_Config.backend_info.bSupportsShaderBinaries = false;
-  g_Config.backend_info.bSupportsPipelineCacheData = false;
-  g_Config.backend_info.bSupportsBBox = true;
-  g_Config.backend_info.bSupportsCoarseDerivatives = false;
-  g_Config.backend_info.bSupportsTextureQueryLevels = false;
-  g_Config.backend_info.bSupportsLodBiasInSampler = false;
-  g_Config.backend_info.bSupportsSettingObjectNames = false;
-  g_Config.backend_info.bSupportsPartialMultisampleResolve = true;
-  g_Config.backend_info.bSupportsDynamicVertexLoader = false;
+  g_backend_info.api_type = APIType::Nothing;
+  g_backend_info.MaxTextureSize = 16384;
+  g_backend_info.bUsesLowerLeftOrigin = false;
+  g_backend_info.bSupports3DVision = false;
+  g_backend_info.bSupportsDualSourceBlend = true;
+  g_backend_info.bSupportsEarlyZ = true;
+  g_backend_info.bSupportsPrimitiveRestart = false;
+  g_backend_info.bSupportsMultithreading = false;
+  g_backend_info.bSupportsComputeShaders = false;
+  g_backend_info.bSupportsGPUTextureDecoding = false;
+  g_backend_info.bSupportsST3CTextures = false;
+  g_backend_info.bSupportsBPTCTextures = false;
+  g_backend_info.bSupportsCopyToVram = false;
+  g_backend_info.bSupportsLargePoints = false;
+  g_backend_info.bSupportsDepthReadback = false;
+  g_backend_info.bSupportsPartialDepthCopies = false;
+  g_backend_info.bSupportsFramebufferFetch = false;
+  g_backend_info.bSupportsBackgroundCompiling = false;
+  g_backend_info.bSupportsLogicOp = true;
+  g_backend_info.bSupportsShaderBinaries = false;
+  g_backend_info.bSupportsPipelineCacheData = false;
+  g_backend_info.bSupportsBBox = true;
+  g_backend_info.bSupportsCoarseDerivatives = false;
+  g_backend_info.bSupportsTextureQueryLevels = false;
+  g_backend_info.bSupportsLodBiasInSampler = false;
+  g_backend_info.bSupportsSettingObjectNames = false;
+  g_backend_info.bSupportsPartialMultisampleResolve = true;
+  g_backend_info.bSupportsDynamicVertexLoader = false;
 
   // aamodes
-  g_Config.backend_info.AAModes = {1};
+  g_backend_info.AAModes = {1};
 }
 
 bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)
@@ -108,7 +101,7 @@ bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)
 
   return InitializeShared(std::make_unique<SWGfx>(std::move(window)),
                           std::make_unique<SWVertexLoader>(), std::make_unique<PerfQuery>(),
-                          std::make_unique<SWBoundingBox>(), std::make_unique<SWRenderer>(),
+                          std::make_unique<SWBoundingBox>(), std::make_unique<SWEFBInterface>(),
                           std::make_unique<TextureCache>());
 }
 

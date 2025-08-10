@@ -142,10 +142,10 @@ irq5:
 	si		@DMBL, #0x0000
 	si		@DIRQ, #0x0001
 	lri		$ac0.m, #0xbbbb
-	sr		@0xffda, $ac0.m ; pred scale
-	sr		@0xffdb, $ac0.m ; yn1
-	lr		$ix2, @ARAM
-	sr		@0xffdc, $ac0.m ; yn2
+	sr		@PRED_SCALE, $ac0.m
+	sr		@YN1, $ac0.m
+	lr		$ix2, @ACDSAMP
+	sr		@YN2, $ac0.m
 	rti
 irq6:
 	lri		$ac0.m, #0x0006

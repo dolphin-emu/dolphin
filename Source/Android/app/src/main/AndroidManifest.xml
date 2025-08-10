@@ -28,6 +28,9 @@
     <uses-permission
         android:name="android.permission.VIBRATE"
         android:required="false"/>
+    <uses-permission
+        android:name="android.permission.RECORD_AUDIO"
+        android:required="false"/>
 
     <application
         android:name=".DolphinApplication"

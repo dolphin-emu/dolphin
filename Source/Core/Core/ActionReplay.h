@@ -45,13 +45,13 @@ struct ARCode
 
 void RunAllActive(const Core::CPUThreadGuard& cpu_guard);
 
-void ApplyCodes(std::span<const ARCode> codes, const std::string& game_id);
+void ApplyCodes(std::span<const ARCode> codes, const std::string& game_id, u16 revision);
 void SetSyncedCodesAsActive();
 void UpdateSyncedCodes(std::span<const ARCode> codes);
 std::vector<ARCode> ApplyAndReturnCodes(std::span<const ARCode> codes);
 void AddCode(ARCode new_code);
 void LoadAndApplyCodes(const Common::IniFile& global_ini, const Common::IniFile& local_ini,
-                       const std::string& game_id);
+                       const std::string& game_id, u16 revision);
 
 std::vector<ARCode> LoadCodes(const Common::IniFile& global_ini, const Common::IniFile& local_ini);
 void SaveCodes(Common::IniFile* local_ini, std::span<const ARCode> codes);

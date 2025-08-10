@@ -996,41 +996,23 @@ PFNDOLDISPATCHCOMPUTEPROC dolDispatchCompute;
 PFNDOLDISPATCHCOMPUTEINDIRECTPROC dolDispatchComputeIndirect;
 
 // Creates a GLFunc object that requires a feature
-#define GLFUNC_REQUIRES(x, y)                                                                      \
-  {                                                                                                \
-    (void**)&x, #x, y                                                                              \
-  }
+#define GLFUNC_REQUIRES(x, y) {(void**)&x, #x, y}
 // Creates a GLFunc object with a different function suffix
 // For when we want to use the same function pointer, but different function name
-#define GLFUNC_SUFFIX(x, y, z)                                                                     \
-  {                                                                                                \
-    (void**)&x, #x #y, z                                                                           \
-  }
+#define GLFUNC_SUFFIX(x, y, z) {(void**)&x, #x #y, z}
 // Creates a GLFunc object that should always be able to get grabbed
 // Used for Desktop OpenGL functions that should /always/ be provided.
 // aka GL 1.1/1.2/1.3/1.4
-#define GLFUNC_ALWAYS_REQUIRED(x)                                                                  \
-  {                                                                                                \
-    (void**)&x, #x, "VERSION_GL"                                                                   \
-  }
+#define GLFUNC_ALWAYS_REQUIRED(x) {(void**)&x, #x, "VERSION_GL"}
 // Creates a GLFunc object that should be able to get grabbed
 // on both GL and ES
-#define GL_ES_FUNC_ALWAYS_REQUIRED(x)                                                              \
-  {                                                                                                \
-    (void**)&x, #x, "VERSION_GL |VERSION_GLES_2"                                                   \
-  }
+#define GL_ES_FUNC_ALWAYS_REQUIRED(x) {(void**)&x, #x, "VERSION_GL |VERSION_GLES_2"}
 // Creates a GLFunc object that should be able to get grabbed
 // on both GL and ES 3.0
-#define GL_ES3_FUNC_ALWAYS_REQUIRED(x)                                                             \
-  {                                                                                                \
-    (void**)&x, #x, "VERSION_GL |VERSION_GLES_3"                                                   \
-  }
+#define GL_ES3_FUNC_ALWAYS_REQUIRED(x) {(void**)&x, #x, "VERSION_GL |VERSION_GLES_3"}
 // Creates a GLFunc object that should be able to get grabbed
 // on both GL and ES 3.2
-#define GL_ES32_FUNC_ALWAYS_REQUIRED(x)                                                            \
-  {                                                                                                \
-    (void**)&x, #x, "VERSION_GL |VERSION_GLES_3_2"                                                 \
-  }
+#define GL_ES32_FUNC_ALWAYS_REQUIRED(x) {(void**)&x, #x, "VERSION_GL |VERSION_GLES_3_2"}
 
 struct GLFunc
 {
@@ -2404,7 +2386,7 @@ static void InitExtensionList(GLContext* context)
     case 100:
       break;
     }
-    // So we can easily determine if we are running dekstop GL
+    // So we can easily determine if we are running desktop GL
     s_extension_list["VERSION_GL"] = true;
   }
 

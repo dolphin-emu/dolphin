@@ -46,6 +46,11 @@ void LoadConfig()
   s_config.LoadConfig();
 }
 
+void GenerateDynamicInputTextures()
+{
+  s_config.GenerateControllerTextures();
+}
+
 bool IsInitialized()
 {
   return !s_config.ControllersNeedToBeCreated();

@@ -2,8 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <gtest/gtest.h>
+
+#include <memory>
 #include <thread>
 
+#include "Common/CommonTypes.h"
 #include "Common/SPSCQueue.h"
 
 TEST(SPSCQueue, Simple)
@@ -44,21 +47,36 @@ TEST(SPSCQueue, Simple)
 
 TEST(SPSCQueue, MultiThreaded)
 {
-  Common::SPSCQueue<u32> q;
-
-  auto inserter = [&q]() {
-    for (u32 i = 0; i < 100000; ++i)
-      q.Push(i);
+  struct Foo
+  {
+    std::shared_ptr<int> ptr;
+    u32 i;
   };
 
-  auto popper = [&q]() {
-    for (u32 i = 0; i < 100000; ++i)
+  // A shared_ptr held by every element in the queue.
+  auto sptr = std::make_shared<int>(0);
+
+  auto queue_ptr = std::make_unique<Common::WaitableSPSCQueue<Foo>>();
+  auto& q = *queue_ptr;
+
+  constexpr u32 reps = 100000;
+
+  auto inserter = [&]() {
+    for (u32 i = 0; i != reps; ++i)
+      q.Push({sptr, i});
+
+    q.WaitForEmpty();
+    EXPECT_EQ(sptr.use_count(), 1);
+    q.Push({sptr, 0});
+    EXPECT_EQ(sptr.use_count(), 2);
+  };
+
+  auto popper = [&]() {
+    for (u32 i = 0; i != reps; ++i)
     {
-      while (q.Empty())
-        ;
-      u32 v;
-      q.Pop(v);
-      EXPECT_EQ(i, v);
+      q.WaitForData();
+      EXPECT_EQ(i, q.Front().i);
+      q.Pop();
     }
   };
 
@@ -67,4 +85,7 @@ TEST(SPSCQueue, MultiThreaded)
 
   popper_thread.join();
   inserter_thread.join();
+
+  queue_ptr.reset();
+  EXPECT_EQ(sptr.use_count(), 1);
 }

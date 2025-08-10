@@ -293,7 +293,7 @@ void OpenALStream::SoundLoop()
     if (use_surround)
     {
       std::array<float, OAL_MAX_FRAMES * SURROUND_CHANNELS> dpl2;
-      u32 rendered_frames = m_mixer->MixSurround(dpl2.data(), min_frames);
+      u32 rendered_frames = static_cast<u32>(m_mixer->MixSurround(dpl2.data(), min_frames));
 
       if (rendered_frames < min_frames)
         continue;
@@ -351,7 +351,7 @@ void OpenALStream::SoundLoop()
     }
     else
     {
-      u32 rendered_frames = m_mixer->Mix(m_realtime_buffer.data(), min_frames);
+      u32 rendered_frames = static_cast<u32>(m_mixer->Mix(m_realtime_buffer.data(), min_frames));
 
       if (!rendered_frames)
         continue;

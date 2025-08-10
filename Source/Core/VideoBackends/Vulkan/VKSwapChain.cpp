@@ -47,7 +47,7 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, const WindowSys
         nullptr,                                          // const void*                   pNext
         0,                                                // VkWin32SurfaceCreateFlagsKHR  flags
         nullptr,                                          // HINSTANCE                     hinstance
-        reinterpret_cast<HWND>(wsi.render_surface)        // HWND                          hwnd
+        static_cast<HWND>(wsi.render_surface)             // HWND                          hwnd
     };
 
     VkSurfaceKHR surface;
@@ -377,8 +377,7 @@ bool SwapChain::CreateSwapChain()
       // Try without exclusive fullscreen.
       WARN_LOG_FMT(VIDEO, "Failed to create exclusive fullscreen swapchain, trying without.");
       swap_chain_info.pNext = nullptr;
-      g_Config.backend_info.bSupportsExclusiveFullscreen = false;
-      g_ActiveConfig.backend_info.bSupportsExclusiveFullscreen = false;
+      g_backend_info.bSupportsExclusiveFullscreen = false;
       m_fullscreen_supported = false;
     }
   }
@@ -601,8 +600,7 @@ bool SwapChain::RecreateSurface(void* native_handle)
 
   // Update exclusive fullscreen support (unlikely to change).
   m_fullscreen_supported = g_vulkan_context->SupportsExclusiveFullscreen(m_wsi, m_surface);
-  g_Config.backend_info.bSupportsExclusiveFullscreen = m_fullscreen_supported;
-  g_ActiveConfig.backend_info.bSupportsExclusiveFullscreen = m_fullscreen_supported;
+  g_backend_info.bSupportsExclusiveFullscreen = m_fullscreen_supported;
   m_current_fullscreen_state = false;
   m_next_fullscreen_state = false;
 

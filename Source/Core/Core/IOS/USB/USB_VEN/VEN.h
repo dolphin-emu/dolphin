@@ -25,9 +25,5 @@ private:
 
   s32 SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv);
   bool HasInterfaceNumberInIDs() const override { return false; }
-
-  ScanThread& GetScanThread() override { return m_scan_thread; }
-
-  ScanThread m_scan_thread{this};
 };
 }  // namespace IOS::HLE

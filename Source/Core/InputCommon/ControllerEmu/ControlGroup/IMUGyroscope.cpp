@@ -4,7 +4,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 
 #include <algorithm>
-#include <memory>
 
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
@@ -123,7 +122,7 @@ auto IMUGyroscope::GetRawState() const -> StateData
 
 bool IMUGyroscope::AreInputsBound() const
 {
-  return std::ranges::all_of(
+  return std::ranges::any_of(
       controls, [](const auto& control) { return control->control_ref->BoundCount() > 0; });
 }
 

@@ -9,12 +9,12 @@ using namespace JitCommon;
 
 TEST(DivUtils, Signed)
 {
-  SignedMagic m3 = SignedDivisionConstants(3);
-  SignedMagic m5 = SignedDivisionConstants(5);
-  SignedMagic m7 = SignedDivisionConstants(7);
-  SignedMagic minus3 = SignedDivisionConstants(-3);
-  SignedMagic minus5 = SignedDivisionConstants(-5);
-  SignedMagic minus7 = SignedDivisionConstants(-7);
+  const SignedMagic m3 = SignedDivisionConstants(3);
+  const SignedMagic m5 = SignedDivisionConstants(5);
+  const SignedMagic m7 = SignedDivisionConstants(7);
+  const SignedMagic minus3 = SignedDivisionConstants(-3);
+  const SignedMagic minus5 = SignedDivisionConstants(-5);
+  const SignedMagic minus7 = SignedDivisionConstants(-7);
 
   EXPECT_EQ(0x55555556, m3.multiplier);
   EXPECT_EQ(0, m3.shift);
@@ -33,11 +33,11 @@ TEST(DivUtils, Signed)
 
 TEST(DivUtils, Unsigned)
 {
-  UnsignedMagic m3 = UnsignedDivisionConstants(3);
-  UnsignedMagic m5 = UnsignedDivisionConstants(5);
-  UnsignedMagic m7 = UnsignedDivisionConstants(7);
-  UnsignedMagic m9 = UnsignedDivisionConstants(9);
-  UnsignedMagic m19 = UnsignedDivisionConstants(19);
+  const UnsignedMagic m3 = UnsignedDivisionConstants(3);
+  const UnsignedMagic m5 = UnsignedDivisionConstants(5);
+  const UnsignedMagic m7 = UnsignedDivisionConstants(7);
+  const UnsignedMagic m9 = UnsignedDivisionConstants(9);
+  const UnsignedMagic m19 = UnsignedDivisionConstants(19);
 
   EXPECT_EQ(0xAAAAAAABU, m3.multiplier);
   EXPECT_EQ(1, m3.shift);

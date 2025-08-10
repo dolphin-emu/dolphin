@@ -205,6 +205,7 @@ void TitleContext::Update(const ES::TMDReader& tmd_, const ES::TicketReader& tic
   if (first_change)
   {
     SConfig::GetInstance().SetRunningGameMetadata(tmd, platform);
+    SConfig::GetInstance().OnESTitleChanged();
     first_change = false;
   }
 }

@@ -59,7 +59,7 @@ Settings::Settings()
     });
   });
 
-  Config::AddConfigChangedCallback([this] {
+  m_config_changed_callback_id = Config::AddConfigChangedCallback([this] {
     static std::atomic<bool> do_once{true};
     if (do_once.exchange(false))
     {
@@ -94,7 +94,10 @@ Settings::Settings()
   });
 }
 
-Settings::~Settings() = default;
+Settings::~Settings()
+{
+  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
+}
 
 void Settings::UnregisterDevicesChangedCallback()
 {
@@ -438,22 +441,17 @@ int Settings::GetVolume() const
 void Settings::SetVolume(int volume)
 {
   if (GetVolume() != volume)
-  {
     Config::SetBaseOrCurrent(Config::MAIN_AUDIO_VOLUME, volume);
-    emit VolumeChanged(volume);
-  }
 }
 
 void Settings::IncreaseVolume(int volume)
 {
   AudioCommon::IncreaseVolume(Core::System::GetInstance(), volume);
-  emit VolumeChanged(GetVolume());
 }
 
 void Settings::DecreaseVolume(int volume)
 {
   AudioCommon::DecreaseVolume(Core::System::GetInstance(), volume);
-  emit VolumeChanged(GetVolume());
 }
 
 bool Settings::IsLogVisible() const
@@ -810,6 +808,20 @@ void Settings::SetUSBKeyboardConnected(bool connected)
     Config::SetBaseOrCurrent(Config::MAIN_WII_KEYBOARD, connected);
     emit USBKeyboardConnectionChanged(connected);
   }
+}
+
+bool Settings::IsWiiSpeakMuted() const
+{
+  return Config::Get(Config::MAIN_WII_SPEAK_MUTED);
+}
+
+void Settings::SetWiiSpeakMuted(bool muted)
+{
+  if (IsWiiSpeakMuted() == muted)
+    return;
+
+  Config::SetBaseOrCurrent(Config::MAIN_WII_SPEAK_MUTED, muted);
+  emit WiiSpeakMuteChanged(muted);
 }
 
 void Settings::SetIsContinuouslyFrameStepping(bool is_stepping)

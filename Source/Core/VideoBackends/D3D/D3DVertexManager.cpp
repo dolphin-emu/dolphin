@@ -80,12 +80,12 @@ bool VertexManager::Initialize()
                              D3D11_BIND_INDEX_BUFFER | D3D11_BIND_VERTEX_BUFFER,
                              D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-  for (int i = 0; i < BUFFER_COUNT; i++)
+  for (auto& buffer : m_buffers)
   {
-    HRESULT hr = D3D::device->CreateBuffer(&bufdesc, nullptr, &m_buffers[i]);
+    HRESULT hr = D3D::device->CreateBuffer(&bufdesc, nullptr, &buffer);
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create buffer: {}", DX11HRWrap(hr));
-    if (m_buffers[i])
-      D3DCommon::SetDebugObjectName(m_buffers[i].Get(), "Buffer of VertexManager");
+    if (buffer)
+      D3DCommon::SetDebugObjectName(buffer.Get(), "Buffer of VertexManager");
   }
 
   m_vertex_constant_buffer = AllocateConstantBuffer(sizeof(VertexShaderConstants));
@@ -244,7 +244,7 @@ void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_in
   *out_base_index = (cursor + vertexBufferSize) / sizeof(u16);
 
   D3D::context->Map(m_buffers[m_current_buffer].Get(), 0, MapType, 0, &map);
-  u8* mappedData = reinterpret_cast<u8*>(map.pData);
+  u8* mappedData = static_cast<u8*>(map.pData);
   if (vertexBufferSize > 0)
     std::memcpy(mappedData + cursor, m_base_buffer_pointer, vertexBufferSize);
   if (indexBufferSize > 0)

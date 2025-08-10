@@ -183,14 +183,11 @@ TextureInfo::NameDetails TextureInfo::CalculateTextureName() const
   const u64 tex_hash = XXH64(m_ptr, m_texture_size, 0);
   const u64 tlut_hash = tlut_size ? XXH64(tlut, tlut_size, 0) : 0;
 
-  NameDetails result;
-  result.base_name = fmt::format("{}{}x{}{}", format_prefix, m_raw_width, m_raw_height,
-                                 m_mipmaps_enabled ? "_m" : "");
-  result.texture_name = fmt::format("{:016x}", tex_hash);
-  result.tlut_name = tlut_size ? fmt::format("_{:016x}", tlut_hash) : "";
-  result.format_name = fmt::to_string(static_cast<int>(m_texture_format));
-
-  return result;
+  return {.base_name = fmt::format("{}{}x{}{}", format_prefix, m_raw_width, m_raw_height,
+                                   m_mipmaps_enabled ? "_m" : ""),
+          .texture_name = fmt::format("{:016x}", tex_hash),
+          .tlut_name = tlut_size ? fmt::format("_{:016x}", tlut_hash) : "",
+          .format_name = fmt::to_string(static_cast<int>(m_texture_format))};
 }
 
 bool TextureInfo::IsDataValid() const

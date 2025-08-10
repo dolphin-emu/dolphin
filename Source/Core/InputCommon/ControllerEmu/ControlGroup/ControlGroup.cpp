@@ -3,13 +3,11 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 
-#include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/Control/Output.h"
-#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
@@ -50,8 +48,7 @@ void ControlGroup::AddDeadzoneSetting(SettingValue<double>* value, double maximu
 
 ControlGroup::~ControlGroup() = default;
 
-void ControlGroup::LoadConfig(Common::IniFile::Section* sec, const std::string& defdev,
-                              const std::string& base)
+void ControlGroup::LoadConfig(Common::IniFile::Section* sec, const std::string& base)
 {
   const std::string group(base + name + "/");
 
@@ -75,36 +72,9 @@ void ControlGroup::LoadConfig(Common::IniFile::Section* sec, const std::string& 
     sec->Get(group + c->name + "/Range", &c->control_ref->range, 100.0);
     c->control_ref->range /= 100;
   }
-
-  // extensions
-  if (type == GroupType::Attachments)
-  {
-    auto* const ext = static_cast<Attachments*>(this);
-
-    ext->SetSelectedAttachment(0);
-    u32 n = 0;
-    std::string attachment_text;
-    sec->Get(base + name, &attachment_text, "");
-
-    // First assume attachment string is a valid expression.
-    // If it instead matches one of the names of our attachments it is overridden below.
-    ext->GetSelectionSetting().GetInputReference().SetExpression(attachment_text);
-
-    for (auto& ai : ext->GetAttachmentList())
-    {
-      ai->SetDefaultDevice(defdev);
-      ai->LoadConfig(sec, base + ai->GetName() + "/");
-
-      if (ai->GetName() == attachment_text)
-        ext->SetSelectedAttachment(n);
-
-      n++;
-    }
-  }
 }
 
-void ControlGroup::SaveConfig(Common::IniFile::Section* sec, const std::string& defdev,
-                              const std::string& base)
+void ControlGroup::SaveConfig(Common::IniFile::Section* sec, const std::string& base)
 {
   const std::string group(base + name + "/");
 
@@ -125,27 +95,15 @@ void ControlGroup::SaveConfig(Common::IniFile::Section* sec, const std::string& 
     // range
     sec->Set(group + c->name + "/Range", c->control_ref->range * 100.0, 100.0);
   }
+}
 
-  // extensions
-  if (type == GroupType::Attachments)
-  {
-    auto* const ext = static_cast<Attachments*>(this);
+void ControlGroup::UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env)
+{
+  for (auto& control : controls)
+    control->control_ref->UpdateReference(env);
 
-    if (ext->GetSelectionSetting().IsSimpleValue())
-    {
-      sec->Set(base + name, ext->GetAttachmentList()[ext->GetSelectedAttachment()]->GetName(),
-               "None");
-    }
-    else
-    {
-      std::string expression = ext->GetSelectionSetting().GetInputReference().GetExpression();
-      ReplaceBreaksWithSpaces(expression);
-      sec->Set(base + name, expression, "None");
-    }
-
-    for (auto& ai : ext->GetAttachmentList())
-      ai->SaveConfig(sec, base + ai->GetName() + "/");
-  }
+  for (auto& setting : numeric_settings)
+    setting->GetInputReference().UpdateReference(env);
 }
 
 void ControlGroup::SetControlExpression(int index, const std::string& expression)

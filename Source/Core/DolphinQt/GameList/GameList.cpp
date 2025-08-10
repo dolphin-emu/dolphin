@@ -93,6 +93,25 @@ protected:
     else
       return QTableView::moveCursor(cursorAction, modifiers);
   }
+
+  virtual void mouseDoubleClickEvent(QMouseEvent* const event) override
+  {
+    if (event->button() == Qt::LeftButton)
+      QTableView::mouseDoubleClickEvent(event);
+  }
+};
+
+class GameListListView : public QListView
+{
+public:
+  explicit GameListListView(QWidget* parent = nullptr) : QListView(parent) {}
+
+protected:
+  virtual void mouseDoubleClickEvent(QMouseEvent* const event) override
+  {
+    if (event->button() == Qt::LeftButton)
+      QListView::mouseDoubleClickEvent(event);
+  }
 };
 }  // namespace
 
@@ -187,12 +206,11 @@ void GameList::MakeListView()
 
   if (!Settings::GetQSettings().contains(QStringLiteral("tableheader/state")))
     m_list->sortByColumn(static_cast<int>(GameListModel::Column::Title), Qt::AscendingOrder);
-
-  const auto SetResizeMode = [&hor_header](const GameListModel::Column column,
-                                           const QHeaderView::ResizeMode mode) {
-    hor_header->setSectionResizeMode(static_cast<int>(column), mode);
-  };
   {
+    const auto SetResizeMode = [&hor_header](const GameListModel::Column column,
+                                             const QHeaderView::ResizeMode mode) {
+      hor_header->setSectionResizeMode(static_cast<int>(column), mode);
+    };
     using Column = GameListModel::Column;
     using Mode = QHeaderView::ResizeMode;
     SetResizeMode(Column::Platform, Mode::Fixed);
@@ -319,7 +337,7 @@ void GameList::resizeEvent(QResizeEvent* event)
 
 void GameList::MakeGridView()
 {
-  m_grid = new QListView(this);
+  m_grid = new GameListListView(this);
   m_grid->setModel(m_grid_proxy);
   m_grid->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
@@ -1024,8 +1042,6 @@ void GameList::OnSectionResized(int index, int, int)
 {
   auto* hor_header = m_list->horizontalHeader();
 
-  std::vector<int> sections;
-
   const int vis_index = hor_header->visualIndex(index);
   const int col_count = hor_header->count() - hor_header->hiddenSectionCount();
 
@@ -1043,6 +1059,7 @@ void GameList::OnSectionResized(int index, int, int)
 
   if (!last)
   {
+    std::vector<int> sections;
     for (int i = 0; i < vis_index; i++)
     {
       const int logical_index = hor_header->logicalIndex(i);

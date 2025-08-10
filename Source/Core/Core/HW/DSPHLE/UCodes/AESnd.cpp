@@ -96,7 +96,7 @@ void AESndUCode::Update()
   // This is dubious in general, since we set the interrupt parameter on m_mail_handler.PushMail
   if (m_mail_handler.HasPending())
   {
-    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(INT_DSP);
   }
 }
 
@@ -240,13 +240,13 @@ void AESndUCode::DMAOutParameterBlock()
   HLEMemory_Write_U32(memory, m_parameter_block_addr + 40, m_parameter_block.flags);
 }
 
-AESndAccelerator::AESndAccelerator(DSP::DSPManager& dsp) : m_dsp(dsp)
+AESndAccelerator::AESndAccelerator(DSPManager& dsp) : m_dsp(dsp)
 {
 }
 
 AESndAccelerator::~AESndAccelerator() = default;
 
-void AESndAccelerator::OnEndException()
+void AESndAccelerator::OnSampleReadEndException()
 {
   // exception5 - this updates internal state
   SetYn1(GetYn1());
@@ -266,12 +266,11 @@ void AESndAccelerator::WriteMemory(u32 address, u8 value)
 
 static constexpr std::array<s16, 16> ACCELERATOR_COEFS = {};  // all zeros
 
-void AESndUCode::SetUpAccelerator(u16 format, [[maybe_unused]] u16 gain)
+void AESndUCode::SetUpAccelerator(u16 format, u16 gain)
 {
   // setup_accl
   m_accelerator.SetSampleFormat(format);
-  // not currently implemented, but it doesn't matter since the gain is configured to be a no-op
-  // m_accelerator.SetGain(gain);
+  m_accelerator.SetGain(gain);
   m_accelerator.SetStartAddress(m_parameter_block.buf_start);
   m_accelerator.SetEndAddress(m_parameter_block.buf_end);
   m_accelerator.SetCurrentAddress(m_parameter_block.buf_curr);
@@ -372,7 +371,7 @@ void AESndUCode::DoMixing()
           while (counter_h >= 1)
           {
             counter_h--;
-            new_r = m_accelerator.Read(ACCELERATOR_COEFS.data());
+            new_r = m_accelerator.ReadSample(ACCELERATOR_COEFS.data());
             new_l = new_r;
           }
           break;
@@ -383,8 +382,8 @@ void AESndUCode::DoMixing()
           while (counter_h >= 1)
           {
             counter_h--;
-            new_r = m_accelerator.Read(ACCELERATOR_COEFS.data());
-            new_l = m_accelerator.Read(ACCELERATOR_COEFS.data());
+            new_r = m_accelerator.ReadSample(ACCELERATOR_COEFS.data());
+            new_l = m_accelerator.ReadSample(ACCELERATOR_COEFS.data());
           }
           break;  // falls through to mix_samples normally
 
@@ -394,7 +393,7 @@ void AESndUCode::DoMixing()
           while (counter_h >= 1)
           {
             counter_h--;
-            new_r = m_accelerator.Read(ACCELERATOR_COEFS.data());
+            new_r = m_accelerator.ReadSample(ACCELERATOR_COEFS.data());
             new_l = new_r;
           }
           new_r ^= 0x8000;
@@ -407,8 +406,8 @@ void AESndUCode::DoMixing()
           while (counter_h >= 1)
           {
             counter_h--;
-            new_r = m_accelerator.Read(ACCELERATOR_COEFS.data());
-            new_l = m_accelerator.Read(ACCELERATOR_COEFS.data());
+            new_r = m_accelerator.ReadSample(ACCELERATOR_COEFS.data());
+            new_l = m_accelerator.ReadSample(ACCELERATOR_COEFS.data());
           }
           new_r ^= 0x8000;
           new_l ^= 0x8000;

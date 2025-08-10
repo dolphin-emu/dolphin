@@ -8,17 +8,16 @@ rename-icon: dolphin-emu
 finish-args:
   - --device=all
   - --socket=pulseaudio
-  # dolphin doesn't work on wayland (only the ui does), if a user were to set
-  # this env variable globally to wayland then games wouldn't work. 
-  # we overwrite the setting and force xcb to prevent this from happening.
-  - --env=QT_QPA_PLATFORM=xcb
   - --socket=x11
   - --share=network
   - --share=ipc
   # required for the emulated bluetooth adapter feature to work.
   - --allow=bluetooth
   - --filesystem=xdg-run/app/com.discordapp.Discord:create
+  # required to disable the screensaver in various desktops
   - --talk-name=org.freedesktop.ScreenSaver
+  - --talk-name=org.xfce.ScreenSaver
+  - --talk-name=org.mate.ScreenSaver
   # required for Gamescope on Steam Deck
   - --filesystem=xdg-run/gamescope-0:ro
 modules:
@@ -39,20 +38,18 @@ modules:
           stable-only: true
           url-template: https://www.freedesktop.org/software/libevdev/libevdev-$version.tar.xz
 
-  # needed for screensaver inhibition
-  - name: xdg-screensaver-shim
-    buildsystem: meson
-    sources:
-      - type: archive
-        url: https://github.com/Unrud/xdg-screensaver-shim/archive/0.0.2.tar.gz
-        sha256: 0ed2a69fe6ee6cbffd2fe16f85116db737f17fb1e79bfb812d893cf15c728399
-
   # build the vendored SDL2 from Externals until the runtime gets 2.30.9
   - SDL2/SDL2.json
 
   - name: dolphin-emu
     buildsystem: cmake-ninja
     builddir: true
+    build-options:
+      # don't use any default flags provided by the SDK
+      cflags: ""
+      cflags-override: true
+      cxxflags: ""
+      cxxflags-override: true
     config-opts:
       - -DCMAKE_BUILD_TYPE=Release
       - -DENABLE_ALSA=OFF

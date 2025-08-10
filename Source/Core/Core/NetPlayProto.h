@@ -47,6 +47,8 @@ struct NetSettings
   bool allow_sd_writes = false;
   bool oc_enable = false;
   float oc_factor = 0;
+  bool vi_oc_enable = false;
+  float vi_oc_factor = 0;
   Common::EnumMap<ExpansionInterface::EXIDeviceType, ExpansionInterface::MAX_SLOT> exi_device{};
   int memcard_size_override = -1;
 
@@ -85,7 +87,7 @@ struct NetSettings
   bool enable_pixel_lighting = false;
   bool widescreen_hack = false;
   TextureFilteringMode force_texture_filtering = TextureFilteringMode::Default;
-  int max_anisotropy = 0;
+  AnisotropicFilteringMode max_anisotropy = AnisotropicFilteringMode::Default;
   bool force_true_color = false;
   bool disable_copy_filter = false;
   bool disable_fog = false;

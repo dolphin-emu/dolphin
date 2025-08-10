@@ -11,16 +11,16 @@ namespace Common
 struct ContainsFn
 {
   template <std::input_iterator I, std::sentinel_for<I> S, class T, class Proj = std::identity>
-  requires std::indirect_binary_predicate < std::ranges::equal_to, std::projected<I, Proj>,
-  const T* > constexpr bool operator()(I first, S last, const T& value, Proj proj = {}) const
+  requires std::indirect_binary_predicate<std::ranges::equal_to, std::projected<I, Proj>, const T*>
+  constexpr bool operator()(I first, S last, const T& value, Proj proj = {}) const
   {
     return std::ranges::find(std::move(first), last, value, std::move(proj)) != last;
   }
 
   template <std::ranges::input_range R, class T, class Proj = std::identity>
-  requires std::indirect_binary_predicate < std::ranges::equal_to,
-      std::projected<std::ranges::iterator_t<R>, Proj>,
-  const T* > constexpr bool operator()(R&& r, const T& value, Proj proj = {}) const
+  requires std::indirect_binary_predicate<
+      std::ranges::equal_to, std::projected<std::ranges::iterator_t<R>, Proj>, const T*>
+  constexpr bool operator()(R&& r, const T& value, Proj proj = {}) const
   {
     return (*this)(std::ranges::begin(r), std::ranges::end(r), value, std::move(proj));
   }

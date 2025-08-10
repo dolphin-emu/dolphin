@@ -60,7 +60,6 @@ BuildRequires:  openal-soft-devel
 BuildRequires:  mbedtls-devel
 BuildRequires:  SDL2-devel
 BuildRequires:  SFML-devel
-BuildRequires:  soundtouch-devel
 %endif
 
 %if 0%{?suse_version}
@@ -69,7 +68,6 @@ BuildRequires:  libSDL2-devel
 BuildRequires:  lzo-devel
 BuildRequires:  openal-devel
 BuildRequires:  sfml-devel
-BuildRequires:  soundtouch-devel
 BuildRequires:  update-desktop-files
 %endif
 

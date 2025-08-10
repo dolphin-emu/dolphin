@@ -88,7 +88,7 @@ TEST(BitSet, BitOps)
 
 TEST(BitSet, InitializerListsAndIteration)
 {
-  std::vector<int> bits{1, 10, 15, 17, 20, 30};
+  std::vector bits{1, 10, 15, 17, 20, 30};
   BitSet32 bs{1, 10, 15, 17, 20, 30};
   auto vit = bits.begin();
   for (auto i : bs)

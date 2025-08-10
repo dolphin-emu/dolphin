@@ -12,10 +12,7 @@
 class TimePlayed
 {
 public:
-  // used for QT interface - general access to time played for games
   TimePlayed();
-
-  TimePlayed(std::string game_id);
 
   // not copyable due to the stored section pointer
   TimePlayed(const TimePlayed& other) = delete;
@@ -25,15 +22,13 @@ public:
 
   ~TimePlayed();
 
-  void AddTime(std::chrono::milliseconds time_emulated);
+  void AddTime(const std::string& game_id, std::chrono::milliseconds time_emulated);
 
-  std::chrono::milliseconds GetTimePlayed() const;
-  std::chrono::milliseconds GetTimePlayed(std::string game_id) const;
+  std::chrono::milliseconds GetTimePlayed(const std::string& game_id) const;
 
   void Reload();
 
 private:
-  std::string m_game_id;
   std::string m_ini_path;
   Common::IniFile m_ini;
   Common::IniFile::Section* m_time_list;

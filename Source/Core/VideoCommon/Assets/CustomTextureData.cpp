@@ -13,7 +13,6 @@
 #include "Common/IOFile.h"
 #include "Common/Image.h"
 #include "Common/Logging/Log.h"
-#include "Common/Swap.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace
@@ -235,7 +234,7 @@ static void ConvertTexture_X8R8G8B8(VideoCommon::CustomTextureData::ArraySlice::
 
 static void ConvertTexture_R8G8B8(VideoCommon::CustomTextureData::ArraySlice::Level* level)
 {
-  std::vector<u8> new_data(level->row_length * level->height * sizeof(u32));
+  Common::UniqueBuffer<u8> new_data(level->row_length * level->height * sizeof(u32));
 
   const u8* rgb_data_ptr = level->data.data();
   u8* data_ptr = new_data.data();
@@ -360,7 +359,7 @@ static bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
       info->format = AbstractTextureFormat::BPTC;
       info->block_size = 4;
       info->bytes_per_block = 16;
-      if (!g_ActiveConfig.backend_info.bSupportsBPTCTextures)
+      if (!g_backend_info.bSupportsBPTCTextures)
         return false;
     }
     else
@@ -418,7 +417,7 @@ static bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
 
   // We also need to ensure the backend supports these formats natively before loading them,
   // otherwise, fallback to SOIL, which will decompress them to RGBA.
-  if (needs_s3tc && !g_ActiveConfig.backend_info.bSupportsST3CTextures)
+  if (needs_s3tc && !g_backend_info.bSupportsST3CTextures)
     return false;
 
   // Mip levels smaller than the block size are padded to multiples of the block size.
@@ -479,7 +478,7 @@ static bool ReadMipLevel(VideoCommon::CustomTextureData::ArraySlice::Level* leve
   level->height = height;
   level->format = info.format;
   level->row_length = row_length;
-  level->data.resize(size);
+  level->data.reset(size);
   if (!file.ReadBytes(level->data.data(), level->data.size()))
     return false;
 
@@ -571,13 +570,13 @@ bool LoadPNGTexture(CustomTextureData::ArraySlice::Level* level, const std::stri
 
   File::IOFile file;
   file.Open(filename, "rb");
-  std::vector<u8> buffer(file.GetSize());
+  Common::UniqueBuffer<u8> buffer(file.GetSize());
   file.ReadBytes(buffer.data(), file.GetSize());
 
   return LoadPNGTexture(level, buffer);
 }
 
-bool LoadPNGTexture(CustomTextureData::ArraySlice::Level* level, const std::vector<u8>& buffer)
+bool LoadPNGTexture(CustomTextureData::ArraySlice::Level* level, std::span<const u8> buffer)
 {
   if (!level) [[unlikely]]
     return false;

@@ -125,7 +125,7 @@
 /*      Transport Protocol */
 /* 0x0019 - 0x1000 - reserved for future use */
 
-#define L2CAP_PSM_INVALID(psm) (((psm)&0x0101) != 0x0001)
+#define L2CAP_PSM_INVALID(psm) (((psm) & 0x0101) != 0x0001)
 
 /* L2CAP Connection response command result codes */
 #define L2CAP_SUCCESS 0x0000
@@ -151,9 +151,9 @@
 
 /* L2CAP Configuration options */
 #define L2CAP_OPT_CFLAG_BIT 0x0001
-#define L2CAP_OPT_CFLAG(flags) ((flags)&L2CAP_OPT_CFLAG_BIT)
+#define L2CAP_OPT_CFLAG(flags) ((flags) & L2CAP_OPT_CFLAG_BIT)
 #define L2CAP_OPT_HINT_BIT 0x80
-#define L2CAP_OPT_HINT(type) ((type)&L2CAP_OPT_HINT_BIT)
+#define L2CAP_OPT_HINT(type) ((type) & L2CAP_OPT_HINT_BIT)
 #define L2CAP_OPT_HINT_MASK 0x7f
 #define L2CAP_OPT_MTU 0x01
 #define L2CAP_OPT_MTU_SIZE sizeof(uint16_t)

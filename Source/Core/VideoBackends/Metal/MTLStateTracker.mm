@@ -737,9 +737,8 @@ void Metal::StateTracker::PrepareRender()
       m_current.depth_stencil = pipe->DepthStencil();
       [enc setDepthStencilState:g_object_cache->GetDepthStencil(m_current.depth_stencil)];
     }
-    MTLDepthClipMode clip = is_gx && g_ActiveConfig.backend_info.bSupportsDepthClamp ?
-                                MTLDepthClipModeClamp :
-                                MTLDepthClipModeClip;
+    MTLDepthClipMode clip =
+        is_gx && g_backend_info.bSupportsDepthClamp ? MTLDepthClipModeClamp : MTLDepthClipModeClip;
     if (clip != m_current.depth_clip_mode)
     {
       m_current.depth_clip_mode = clip;
