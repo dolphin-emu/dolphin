@@ -200,42 +200,42 @@ void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, int inde
                  m_cpu_vertex_buffer.data() + m_cpu_vertex_buffer.size());
   src.Skip(index * vdec.stride);
 
-  ReadVertexAttribute<float>(&m_vertex.position[0], src, vdec.position, 0, 3, false);
+  ReadVertexAttribute<float>(&m_vertex.position.x, src, vdec.position, 0, 3, false);
 
   for (std::size_t i = 0; i < m_vertex.normal.size(); i++)
   {
-    ReadVertexAttribute<float>(&m_vertex.normal[i][0], src, vdec.normals[i], 0, 3, false);
+    ReadVertexAttribute<float>(&m_vertex.normal[i].x, src, vdec.normals[i], 0, 3, false);
   }
   if (!vdec.normals[0].enable)
   {
     auto& system = Core::System::GetInstance();
     auto& vertex_shader_manager = system.GetVertexShaderManager();
-    m_vertex.normal[0][0] = vertex_shader_manager.constants.cached_normal[0];
-    m_vertex.normal[0][1] = vertex_shader_manager.constants.cached_normal[1];
-    m_vertex.normal[0][2] = vertex_shader_manager.constants.cached_normal[2];
+    m_vertex.normal[0].x = vertex_shader_manager.constants.cached_normal[0];
+    m_vertex.normal[0].y = vertex_shader_manager.constants.cached_normal[1];
+    m_vertex.normal[0].z = vertex_shader_manager.constants.cached_normal[2];
   }
   if (!vdec.normals[1].enable)
   {
     auto& system = Core::System::GetInstance();
     auto& vertex_shader_manager = system.GetVertexShaderManager();
-    m_vertex.normal[1][0] = vertex_shader_manager.constants.cached_tangent[0];
-    m_vertex.normal[1][1] = vertex_shader_manager.constants.cached_tangent[1];
-    m_vertex.normal[1][2] = vertex_shader_manager.constants.cached_tangent[2];
+    m_vertex.normal[1].x = vertex_shader_manager.constants.cached_tangent[0];
+    m_vertex.normal[1].y = vertex_shader_manager.constants.cached_tangent[1];
+    m_vertex.normal[1].z = vertex_shader_manager.constants.cached_tangent[2];
   }
   if (!vdec.normals[2].enable)
   {
     auto& system = Core::System::GetInstance();
     auto& vertex_shader_manager = system.GetVertexShaderManager();
-    m_vertex.normal[2][0] = vertex_shader_manager.constants.cached_binormal[0];
-    m_vertex.normal[2][1] = vertex_shader_manager.constants.cached_binormal[1];
-    m_vertex.normal[2][2] = vertex_shader_manager.constants.cached_binormal[2];
+    m_vertex.normal[2].x = vertex_shader_manager.constants.cached_binormal[0];
+    m_vertex.normal[2].y = vertex_shader_manager.constants.cached_binormal[1];
+    m_vertex.normal[2].z = vertex_shader_manager.constants.cached_binormal[2];
   }
 
   ParseColorAttributes(&m_vertex, src, vdec);
 
   for (std::size_t i = 0; i < m_vertex.texCoords.size(); i++)
   {
-    ReadVertexAttribute<float>(m_vertex.texCoords[i].data(), src, vdec.texcoords[i], 0, 2, false);
+    ReadVertexAttribute<float>(&m_vertex.texCoords[i].x, src, vdec.texcoords[i], 0, 2, false);
 
     // the texmtr is stored as third component of the texCoord
     if (vdec.texcoords[i].components >= 3)

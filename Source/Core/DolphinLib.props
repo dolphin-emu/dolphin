@@ -643,7 +643,6 @@
     <ClInclude Include="VideoBackends\Software\TextureEncoder.h" />
     <ClInclude Include="VideoBackends\Software\TextureSampler.h" />
     <ClInclude Include="VideoBackends\Software\TransformUnit.h" />
-    <ClInclude Include="VideoBackends\Software\Vec3.h" />
     <ClInclude Include="VideoBackends\Software\VideoBackend.h" />
     <ClInclude Include="VideoBackends\Vulkan\CommandBufferManager.h" />
     <ClInclude Include="VideoBackends\Vulkan\Constants.h" />
