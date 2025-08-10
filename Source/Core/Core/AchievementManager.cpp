@@ -902,6 +902,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to login {} to RetroAchievements server.",
                  Config::Get(Config::RA_USERNAME));
+    Config::SetBaseOrCurrent(Config::RA_API_TOKEN, "");
     AchievementManager::GetInstance().m_update_callback({.failed_login_code = result});
     return;
   }
@@ -1004,6 +1005,7 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
         OSD::Duration::VERY_LONG, OSD::Color::RED);
     OSD::AddMessage("Please close the game to log back in before continuing.",
                     OSD::Duration::VERY_LONG, OSD::Color::RED);
+    Config::SetBaseOrCurrent(Config::RA_API_TOKEN, "");
     return;
   }
 
