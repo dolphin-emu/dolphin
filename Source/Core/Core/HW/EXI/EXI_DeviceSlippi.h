@@ -282,7 +282,7 @@ private:
 
   void FileWriteThread(void);
 
-  Common::SPSCQueue<std::unique_ptr<WriteMessage>, false> file_write_queue;
+  Common::SPSCQueue<std::unique_ptr<WriteMessage>> file_write_queue;
   bool write_thread_running = false;
   std::thread m_file_write_thread;
 
