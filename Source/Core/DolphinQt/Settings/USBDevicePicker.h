@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <optional>
 #include <vector>
 
 #include <QDialog>
@@ -24,16 +25,21 @@ class QPushButton;
 class QErrorMessage;
 class QMessageBox;
 
-class USBDeviceAddToWhitelistDialog final : public QDialog
+class USBDevicePicker final : public QDialog
 {
   Q_OBJECT
 public:
-  explicit USBDeviceAddToWhitelistDialog(QWidget* parent);
+  using FilterFunctionType = std::function<bool(const USBUtils::DeviceInfo&)>;
+  explicit USBDevicePicker(QWidget* parent, FilterFunctionType filter);
+
+  static std::optional<USBUtils::DeviceInfo> Run(
+      QWidget* parent, const QString& title,
+      const FilterFunctionType filter = [](const USBUtils::DeviceInfo&) { return true; });
 
 private:
   static constexpr int DEVICE_REFRESH_INTERVAL_MS = 100;
   QTimer* m_refresh_devices_timer;
-  QDialogButtonBox* m_whitelist_buttonbox;
+  QDialogButtonBox* m_picker_buttonbox;
   QVBoxLayout* main_layout;
   QLabel* enter_device_id_label;
   QHBoxLayout* entry_hbox_layout;
@@ -42,9 +48,12 @@ private:
   QLabel* select_label;
   QListWidget* usb_inserted_devices_list;
 
+  FilterFunctionType m_filter;
+
+  std::optional<USBUtils::DeviceInfo> GetSelectedDevice() const;
+
   void InitControls();
   void RefreshDeviceList();
-  void AddUSBDeviceToWhitelist();
 
   void OnDeviceSelection();
 
