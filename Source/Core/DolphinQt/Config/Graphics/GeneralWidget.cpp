@@ -44,8 +44,7 @@ GeneralWidget::GeneralWidget(GraphicsWindow* parent)
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
-  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()) !=
-                          Core::State::Uninitialized);
+  OnEmulationStateChanged(!Core::IsUninitialized(Core::System::GetInstance()));
 }
 
 void GeneralWidget::CreateWidgets()
@@ -240,7 +239,7 @@ void GeneralWidget::AddDescriptions()
       "recommended. Different games and different GPUs will behave differently on each "
       "backend, so for the best emulation experience it is recommended to try each and "
       "select the backend that is least problematic.<br><br><dolphin_emphasis>If unsure, "
-      "select OpenGL.</dolphin_emphasis>");
+      "select %1.</dolphin_emphasis>");
   static const char TR_FULLSCREEN_DESCRIPTION[] =
       QT_TR_NOOP("Uses the entire screen for rendering.<br><br>If disabled, a "
                  "render window will be created instead.<br><br><dolphin_emphasis>If "
@@ -313,7 +312,9 @@ void GeneralWidget::AddDescriptions()
                  "unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_backend_combo->SetTitle(tr("Backend"));
-  m_backend_combo->SetDescription(tr(TR_BACKEND_DESCRIPTION));
+  m_backend_combo->SetDescription(
+      tr(TR_BACKEND_DESCRIPTION)
+          .arg(QString::fromStdString(VideoBackendBase::GetDefaultBackendDisplayName())));
 
   m_adapter_combo->SetTitle(tr("Adapter"));
 
@@ -362,7 +363,8 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
   const bool supports_adapters = !adapters.empty();
 
   m_adapter_combo->setCurrentIndex(g_Config.iAdapter);
-  m_adapter_combo->setEnabled(supports_adapters && !Core::IsRunning(Core::System::GetInstance()));
+  m_adapter_combo->setEnabled(supports_adapters &&
+                              Core::IsUninitialized(Core::System::GetInstance()));
 
   static constexpr char TR_ADAPTER_AVAILABLE_DESCRIPTION[] =
       QT_TR_NOOP("Selects a hardware adapter to use.<br><br>"

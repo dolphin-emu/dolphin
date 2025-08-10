@@ -15,6 +15,8 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/ranges.h>
+
 #include "Common/Align.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -91,7 +93,7 @@ static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
   if (!nonexistent.empty())
   {
     PanicAlertFmtT("Files specified in the M3U file \"{0}\" were not found:\n{1}", m3u_path,
-                   JoinStrings(nonexistent, "\n"));
+                   fmt::join(nonexistent, "\n"));
     return {};
   }
 
@@ -391,11 +393,19 @@ bool CBoot::LoadMapFromFilename(const Core::CPUThreadGuard& guard, PPCSymbolDB& 
 bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
 {
   // CRC32 hashes of the IPL file, obtained from Redump
+  // DOL-001(USA) / DOL-001(JPN) / DOT-001 / SL-GC10 (NTSC Revision 1.0)
   constexpr u32 NTSC_v1_0 = 0x6DAC1F2A;
+  // DOL-001(USA) / DOL-001(JPN) / DOT-001 (NTSC Revision 1.1)
   constexpr u32 NTSC_v1_1 = 0xD5E6FEEA;
-  constexpr u32 NTSC_v1_2 = 0x86573808;
-  constexpr u32 MPAL_v1_1 = 0x667D0B64;  // Brazil
+  // DOL-001(USA) / DOL-001(JPN) (NTSC Revision 1.2)
+  constexpr u32 NTSC_v1_2_001 = 0xD235E3F9;
+  // DOL-101(USA) / DOL-101(JPN) (NTSC Revision 1.2)
+  constexpr u32 NTSC_v1_2_101 = 0x86573808;
+  // DOL-002(BRA) (MPAL Revision 1.1)
+  constexpr u32 MPAL_v1_1 = 0x667D0B64;
+  // DOL-001(EUR) / DOT-001P (PAL Revision 1.0)
   constexpr u32 PAL_v1_0 = 0x4F319F43;
+  // DOL-101(EUR) (PAL Revision 1.2)
   constexpr u32 PAL_v1_2 = 0xAD1B7F16;
 
   // Load the IPL ROM dump, limited to 2MiB which is the size of the official IPLs.
@@ -418,7 +428,8 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
   {
   case NTSC_v1_0:
   case NTSC_v1_1:
-  case NTSC_v1_2:
+  case NTSC_v1_2_001:
+  case NTSC_v1_2_101:
   case MPAL_v1_1:
     known_ipl = true;
     break;
@@ -570,6 +581,13 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
         // we default to IOS58, which is the version used by the Homebrew Channel.
         SetupWiiMemory(system, IOS::HLE::IOSC::ConsoleType::Retail);
         system.GetIOS()->BootIOS(Titles::IOS(58));
+
+        // The Apploader writes an IOS-like version number into memory.
+        // Older versions of OSInit read it to check IOS compatibility.
+        constexpr u32 ADDR_IOS_VERSION = 0x3140;
+        constexpr u32 ADDR_APPLOADER_VERSION = 0x3188;
+        const u32 ios_version = system.GetMemory().Read_U32(ADDR_IOS_VERSION);
+        system.GetMemory().Write_U32(ios_version, ADDR_APPLOADER_VERSION);
       }
       else
       {

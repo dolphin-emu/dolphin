@@ -252,7 +252,7 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, bool first_hit)
     return HitType::SKIP;
 
   // The reg_itr will be used later for erasing.
-  auto reg_itr = std::find(m_reg_autotrack.begin(), m_reg_autotrack.end(), instr.reg0);
+  auto reg_itr = std::ranges::find(m_reg_autotrack, instr.reg0);
   const bool match_reg123 =
       (!instr.reg1.empty() && std::find(m_reg_autotrack.begin(), m_reg_autotrack.end(),
                                         instr.reg1) != m_reg_autotrack.end()) ||

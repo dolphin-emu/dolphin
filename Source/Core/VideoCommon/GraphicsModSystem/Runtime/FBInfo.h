@@ -13,7 +13,6 @@ struct FBInfo
   TextureFormat m_texture_format = TextureFormat::I4;
   u32 CalculateHash() const;
   bool operator==(const FBInfo& other) const;
-  bool operator!=(const FBInfo& other) const;
 };
 
 struct FBInfoHasher

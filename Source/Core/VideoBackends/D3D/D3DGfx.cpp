@@ -157,10 +157,11 @@ void Gfx::DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x, u
   D3D::context->Dispatch(groups_x, groups_y, groups_z);
 }
 
-void Gfx::BindBackbuffer(const ClearColor& clear_color)
+bool Gfx::BindBackbuffer(const ClearColor& clear_color)
 {
   CheckForSwapChainChanges();
   SetAndClearFramebuffer(m_swap_chain->GetFramebuffer(), clear_color);
+  return true;
 }
 
 void Gfx::PresentBackbuffer()

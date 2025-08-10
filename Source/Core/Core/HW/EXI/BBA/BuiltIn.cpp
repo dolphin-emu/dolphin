@@ -834,7 +834,7 @@ BbaTcpSocket::ConnectingState BbaTcpSocket::Connected(StackRef* ref)
     fd_set read_fds;
     fd_set write_fds;
     fd_set except_fds;
-    struct timeval t = {0, 0};
+    timeval t = {0, 0};
     FD_ZERO(&read_fds);
     FD_ZERO(&write_fds);
     FD_ZERO(&except_fds);
@@ -965,7 +965,7 @@ sf::Socket::Status BbaUdpSocket::Bind(u16 port, u32 net_ip)
 
   // Subscribe to the SSDP multicast group
   // NB: Other groups aren't supported because of HLE
-  struct ip_mreq mreq;
+  ip_mreq mreq;
   mreq.imr_multiaddr.s_addr = std::bit_cast<u32>(Common::IP_ADDR_SSDP);
   mreq.imr_interface.s_addr = net_ip;
   if (setsockopt(getHandle(), IPPROTO_IP, IP_ADD_MEMBERSHIP, reinterpret_cast<const char*>(&mreq),

@@ -32,7 +32,6 @@ struct Partition final
   constexpr Partition() = default;
   constexpr explicit Partition(u64 offset_) : offset(offset_) {}
   constexpr bool operator==(const Partition& other) const { return offset == other.offset; }
-  constexpr bool operator!=(const Partition& other) const { return !(*this == other); }
   constexpr bool operator<(const Partition& other) const { return offset < other.offset; }
   constexpr bool operator>(const Partition& other) const { return other < *this; }
   constexpr bool operator<=(const Partition& other) const { return !(*this < other); }

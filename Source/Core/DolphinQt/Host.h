@@ -45,7 +45,10 @@ signals:
   void RequestExit();
   void RequestSeek();
   void RequestFullscreen();
+  void JitCacheInvalidation();
+  void JitProfileDataWiped();
   void PPCSymbolsChanged();
+  void PPCBreakpointsChanged();
 
 private:
   Host();

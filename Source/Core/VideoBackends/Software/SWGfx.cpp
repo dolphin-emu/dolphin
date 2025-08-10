@@ -55,15 +55,16 @@ SWGfx::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* dep
                                std::move(additional_color_attachments));
 }
 
-void SWGfx::BindBackbuffer(const ClearColor& clear_color)
+bool SWGfx::BindBackbuffer(const ClearColor& clear_color)
 {
   // Look for framebuffer resizes
   if (!g_presenter->SurfaceResizedTestAndClear())
-    return;
+    return true;
 
   GLContext* context = m_window->GetContext();
   context->Update();
   g_presenter->SetBackbuffer(context->GetBackBufferWidth(), context->GetBackBufferHeight());
+  return true;
 }
 
 class SWShader final : public AbstractShader

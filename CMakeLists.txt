@@ -601,7 +601,7 @@ if(UNIX)
 endif()
 
 if(ENABLE_SDL)
-  dolphin_find_optional_system_library(SDL2 Externals/SDL 2.30.6)
+  dolphin_find_optional_system_library(SDL2 Externals/SDL 2.30.9)
 endif()
 
 if(ENABLE_ANALYTICS)
@@ -718,7 +718,7 @@ dolphin_make_imported_target_if_missing(LibLZMA::LibLZMA LIBLZMA)
 
 dolphin_find_optional_system_library_pkgconfig(ZSTD libzstd>=1.4.0 zstd::zstd Externals/zstd)
 
-dolphin_find_optional_system_library_pkgconfig(ZLIB zlib-ng ZLIB::ZLIB Externals/zlib-ng)
+add_subdirectory(Externals/zlib-ng)
 
 dolphin_find_optional_system_library_pkgconfig(MINIZIP
   "minizip>=4.0.4" minizip::minizip Externals/minizip-ng

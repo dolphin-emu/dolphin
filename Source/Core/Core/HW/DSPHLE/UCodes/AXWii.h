@@ -46,11 +46,6 @@ protected:
   u16 m_last_main_volume = 0;
   u16 m_last_aux_volumes[3]{};
 
-  // If needed, extract the updates related fields from a PB. We need to
-  // reinject them afterwards so that the correct PB typs is written to RAM.
-  bool ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* updates, u32* updates_addr);
-  void ReinjectUpdatesFields(AXPBWii& pb, u16* num_updates, u32 updates_addr);
-
   // Convert a mixer_control bitfield to our internal representation for that
   // value. Required because that bitfield has a different meaning in some
   // versions of AX.
@@ -73,6 +68,9 @@ protected:
   void OutputWMSamples(u32* addresses);  // 4 addresses
 
 private:
+  void ReadPB(Memory::MemoryManager& memory, u32 addr, AXPBWii& pb);
+  void WritePB(Memory::MemoryManager& memory, u32 addr, const AXPBWii& pb);
+
   enum CmdType
   {
     CMD_SETUP = 0x00,

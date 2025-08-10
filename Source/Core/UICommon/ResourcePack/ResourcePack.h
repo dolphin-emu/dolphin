@@ -30,7 +30,6 @@ public:
   bool Uninstall(const std::string& path);
 
   bool operator==(const ResourcePack& pack) const;
-  bool operator!=(const ResourcePack& pack) const;
 
 private:
   bool m_valid = true;

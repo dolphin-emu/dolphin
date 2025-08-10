@@ -81,13 +81,6 @@ void Jit64AsmRoutineManager::Generate()
   dispatcher_mispredicted_blr = GetCodePtr();
   AND(32, PPCSTATE(pc), Imm32(0xFFFFFFFC));
 
-#if 0  // debug mispredicts
-  MOV(32, R(ABI_PARAM1), MDisp(RSP, 8)); // guessed_pc
-  ABI_PushRegistersAndAdjustStack(1 << RSCRATCH2, 0);
-  CALL(reinterpret_cast<void *>(&ReportMispredict));
-  ABI_PopRegistersAndAdjustStack(1 << RSCRATCH2, 0);
-#endif
-
   ResetStack(*this);
 
   SUB(32, PPCSTATE(downcount), R(RSCRATCH2));

@@ -35,6 +35,7 @@ struct NetSettings
   bool cpu_thread = false;
   PowerPC::CPUCore cpu_core{};
   bool enable_cheats = false;
+  bool enable_hardcore = false;
   int selected_language = 0;
   bool override_region_settings = false;
   bool dsp_hle = false;

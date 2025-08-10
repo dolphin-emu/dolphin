@@ -54,11 +54,8 @@ void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
             device_index = 0;
 
           VkPhysicalDevice gpu = gpu_list[device_index];
-          VkPhysicalDeviceProperties properties;
-          vkGetPhysicalDeviceProperties(gpu, &properties);
-          VkPhysicalDeviceFeatures features;
-          vkGetPhysicalDeviceFeatures(gpu, &features);
-          VulkanContext::PopulateBackendInfoFeatures(&g_Config, gpu, properties, features);
+          VulkanContext::PhysicalDeviceInfo properties(gpu);
+          VulkanContext::PopulateBackendInfoFeatures(&g_Config, gpu, properties);
           VulkanContext::PopulateBackendInfoMultisampleModes(&g_Config, gpu, properties);
         }
       }
@@ -187,10 +184,9 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   // Since VulkanContext maintains a copy of the device features and properties, we can use this
   // to initialize the backend information, so that we don't need to enumerate everything again.
   VulkanContext::PopulateBackendInfoFeatures(&g_Config, g_vulkan_context->GetPhysicalDevice(),
-                                             g_vulkan_context->GetDeviceProperties(),
-                                             g_vulkan_context->GetDeviceFeatures());
+                                             g_vulkan_context->GetDeviceInfo());
   VulkanContext::PopulateBackendInfoMultisampleModes(
-      &g_Config, g_vulkan_context->GetPhysicalDevice(), g_vulkan_context->GetDeviceProperties());
+      &g_Config, g_vulkan_context->GetPhysicalDevice(), g_vulkan_context->GetDeviceInfo());
   g_Config.backend_info.bSupportsExclusiveFullscreen =
       enable_surface && g_vulkan_context->SupportsExclusiveFullscreen(wsi, surface);
 
