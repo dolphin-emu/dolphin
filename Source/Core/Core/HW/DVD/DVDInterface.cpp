@@ -766,12 +766,8 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
 
   if (m_system.IsTriforce())
   {
-    u32 ret = AMMediaboard::ExecuteCommand(m_DICMDBUF, m_DIMAR, m_DILENGTH);
-    if (ret != 1)
+    if (!AMMediaboard::ExecuteCommand(m_DICMDBUF, &m_DIIMMBUF, m_DIMAR, m_DILENGTH))
     {
-      if (m_DICMDBUF[0] == 0x12000000)
-        m_DIIMMBUF = ret;
-
       // Transfer is done
       m_DICR.TSTART = 0;
       m_DIMAR += m_DILENGTH;
@@ -782,15 +778,6 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
     }
     m_DICMDBUF[1] >>= 2;
     // Normal read command pass on to normal handling
-  }
-
-  // Swaps endian of Triforce DI commands, and zeroes out random bytes to prevent unknown read
-  // subcommand errors
-  auto& dvd_thread = m_system.GetDVDThread();
-  if (dvd_thread.HasDisc() && dvd_thread.GetDiscType() == DiscIO::Platform::Triforce)
-  {
-    // TODO(C++23): Use std::byteswap and a bitwise AND for increased clarity
-    m_DICMDBUF[0] <<= 24;
   }
 
   // DVDLowRequestError needs access to the error code set by the previous command

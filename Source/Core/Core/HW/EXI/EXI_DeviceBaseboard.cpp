@@ -16,6 +16,7 @@
 #include "Common/IOFile.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
+#include "Common/Buffer.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/Config/MainSettings.h"
@@ -76,17 +77,14 @@ CEXIBaseboard::CEXIBaseboard(Core::System& system) : IEXIDevice(system), m_posit
   std::string backup_Filename(File::GetUserPath(D_TRIUSER_IDX) + "tribackup_" +
                               SConfig::GetInstance().GetGameID().c_str() + ".bin");
 
-  if (File::Exists(backup_Filename))
+  m_backup = File::IOFile(backup_Filename, "rb+");
+  if (!m_backup.IsOpen())
   {
-    m_backup = new File::IOFile(backup_Filename, "rb+");
-  }
-  else
-  {
-    m_backup = new File::IOFile(backup_Filename, "wb+");
+    m_backup = File::IOFile(backup_Filename, "wb+");
   }
 
   // Some games share the same ID Client/Server
-  if (!m_backup->IsGood())
+  if (!m_backup.IsGood())
   {
     PanicAlertFmt("Failed to open {}\nFile might be in use.", backup_Filename.c_str());
 
@@ -95,7 +93,7 @@ CEXIBaseboard::CEXIBaseboard(Core::System& system) : IEXIDevice(system), m_posit
     backup_Filename = File::GetUserPath(D_TRIUSER_IDX) + "tribackup_tmp_" + std::to_string(rand()) +
                       SConfig::GetInstance().GetGameID().c_str() + ".bin";
 
-    m_backup = new File::IOFile(backup_Filename, "wb+");
+    m_backup = File::IOFile(backup_Filename, "wb+");
   }
 
   // Virtua Striker 4 and Gekitou Pro Yakyuu need a higher FIRM version
@@ -103,32 +101,28 @@ CEXIBaseboard::CEXIBaseboard(Core::System& system) : IEXIDevice(system), m_posit
   if (AMMediaboard::GetGameType() == VirtuaStriker4 ||
       AMMediaboard::GetGameType() == GekitouProYakyuu)
   {
-    if (m_backup->GetSize() != 0)
+    if (m_backup.GetSize() != 0)
     {
-      u8* data = new u8[m_backup->GetSize()];
-
-      m_backup->ReadBytes(data, m_backup->GetSize());
+      Common::UniqueBuffer<u8> data(m_backup.GetSize());
+      m_backup.ReadBytes(data.data(), data.size());
 
       // Set FIRM version
-      *(u16*)(data + 0x12) = 0x1703;
-      *(u16*)(data + 0x212) = 0x1703;
+      reinterpret_cast<u16&>(data[0x12]) = 0x1703;
+      reinterpret_cast<u16&>(data[0x212]) = 0x1703;
 
       // Update checksum
-      *(u16*)(data + 0x0A) = Common::swap16(CheckSum(data + 0xC, 0x1F4));
-      *(u16*)(data + 0x20A) = Common::swap16(CheckSum(data + 0x20C, 0x1F4));
+      reinterpret_cast<u16&>(data[0x0A]) = Common::swap16(CheckSum(&data[0xC], 0x1F4));
+      reinterpret_cast<u16&>(data[0x20A]) = Common::swap16(CheckSum(&data[0x20C], 0x1F4));
 
-      m_backup->Seek(0, File::SeekOrigin::Begin);
-      m_backup->WriteBytes(data, m_backup->GetSize());
-      m_backup->Flush();
-
-      delete[] data;
+      m_backup.Seek(0, File::SeekOrigin::Begin);
+      m_backup.WriteBytes(data.data(), data.size());
+      m_backup.Flush();
     }
   }
 }
 CEXIBaseboard::~CEXIBaseboard()
 {
-  m_backup->Close();
-  delete m_backup;
+  m_backup.Close();
 }
 
 void CEXIBaseboard::SetCS(int cs)
@@ -165,11 +159,11 @@ void CEXIBaseboard::DMAWrite(u32 addr, u32 size)
 
   NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: Backup DMA Write: {:08x} {:x}", addr, size);
 
-  m_backup->Seek(m_backoffset, File::SeekOrigin::Begin);
+  m_backup.Seek(m_backoffset, File::SeekOrigin::Begin);
 
-  m_backup->WriteBytes(memory.GetSpanForAddress(addr).data(), size);
+  m_backup.WriteBytes(memory.GetSpanForAddress(addr).data(), size);
 
-  m_backup->Flush();
+  m_backup.Flush();
 }
 
 void CEXIBaseboard::DMARead(u32 addr, u32 size)
@@ -179,11 +173,11 @@ void CEXIBaseboard::DMARead(u32 addr, u32 size)
 
   NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: Backup DMA Read: {:08x} {:x}", addr, size);
 
-  m_backup->Seek(m_backoffset, File::SeekOrigin::Begin);
+  m_backup.Seek(m_backoffset, File::SeekOrigin::Begin);
 
-  m_backup->Flush();
+  m_backup.Flush();
 
-  m_backup->ReadBytes(memory.GetSpanForAddress(addr).data(), size);
+  m_backup.ReadBytes(memory.GetSpanForAddress(addr).data(), size);
 }
 
 void CEXIBaseboard::TransferByte(u8& _byte)
@@ -225,13 +219,13 @@ void CEXIBaseboard::TransferByte(u8& _byte)
       case BackupOffsetSet:
         m_backoffset = (m_command[1] << 8) | m_command[2];
         DEBUG_LOG_FMT(SP1, "AM-BB: COMMAND: BackupOffsetSet:{:04x}", m_backoffset);
-        m_backup->Seek(m_backoffset, File::SeekOrigin::Begin);
+        m_backup.Seek(m_backoffset, File::SeekOrigin::Begin);
         _byte = 0x01;
         break;
       case BackupWrite:
         DEBUG_LOG_FMT(SP1, "AM-BB: COMMAND: BackupWrite:{:04x}-{:02x}", m_backoffset, m_command[1]);
-        m_backup->WriteBytes(&m_command[1], 1);
-        m_backup->Flush();
+        m_backup.WriteBytes(&m_command[1], 1);
+        m_backup.Flush();
         _byte = 0x01;
         break;
       case BackupRead:
@@ -292,8 +286,8 @@ void CEXIBaseboard::TransferByte(u8& _byte)
       {
       // 1 byte out
       case BackupRead:
-        m_backup->Flush();
-        m_backup->ReadBytes(&_byte, 1);
+        m_backup.Flush();
+        m_backup.ReadBytes(&_byte, 1);
         break;
       case DMAOffsetLengthSet:
         _byte = 0x01;

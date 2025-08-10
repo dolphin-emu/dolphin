@@ -13,6 +13,8 @@
 
 #include <fmt/format.h>
 
+#include "Common/Buffer.h"
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
@@ -20,6 +22,8 @@
 #include "Common/IOFile.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
+#include "Common/Swap.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/Config/MainSettings.h"
@@ -28,15 +32,19 @@
 #include "Core/ConfigLoaders/NetPlayConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/DVD/AMMediaboard.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI.h"
+#include "Core/HW/GCPad.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/SI/SI_DeviceGCController.h"
 #include "Core/HW/Sram.h"
+#include "Core/HW/SystemTimers.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
@@ -44,6 +52,7 @@
 #include "Core/System.h"
 #include "Core/WiiRoot.h"
 #include "DiscIO/Enums.h"
+#include "InputCommon/GCPadStatus.h"
 
 namespace SerialInterface
 {
@@ -1997,7 +2006,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   break;
                 }
 
-                u8* buf = new u8[bytes];
+                Common::UniqueBuffer<u8> buf(bytes);
 
                 for (u32 i = 0; i < bytes; ++i)
                 {
@@ -2008,32 +2017,12 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                     SERIALINTERFACE_JVSIO,
                     "JVS-IO: Command 0x32, GPO: {:02x} {:02x} {} {:02x}{:02x}{:02x} ({:02x})",
                     delay, m_rx_reply, bytes, buf[0], buf[1], buf[2],
-                    Common::swap16(*(u16*)(buf + 1)) >> 2);
+                    Common::swap16(*reinterpret_cast<u16*>(&buf[1])) >> 2);
 
-                // TODO: figure this out
-
-                u8 trepl[] = {
-                    0x00, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80, 0x90, 0xA0, 0xB0, 0xC0,
-                    0xD0, 0xE0, 0xF0, 0x01, 0x11, 0x21, 0x31, 0x41, 0x51, 0x61, 0x71, 0x81, 0x91,
-                    0xA1, 0xB1, 0xC1, 0xD1, 0xE1, 0xF1, 0x02, 0x12, 0x22, 0x32, 0x42, 0x52, 0x62,
-                    0x72, 0x82, 0x92, 0xA2, 0xB2, 0xC2, 0xD2, 0xE2, 0xF2, 0x04, 0x14, 0x24, 0x34,
-                    0x44, 0x54, 0x64, 0x74, 0x84, 0x94, 0xA4, 0xB4, 0xC4, 0xD4, 0xE4, 0xF4, 0x05,
-                    0x15, 0x25, 0x35, 0x45, 0x55, 0x65, 0x75, 0x85, 0x95, 0xA5, 0xB5, 0xC5, 0xD5,
-                    0xE5, 0xF5, 0x06, 0x16, 0x26, 0x36, 0x46, 0x56, 0x66, 0x76, 0x86, 0x96, 0xA6,
-                    0xB6, 0xC6, 0xD6, 0xE6, 0xF6, 0x08, 0x18, 0x28, 0x38, 0x48, 0x58, 0x68, 0x78,
-                    0x88, 0x98, 0xA8, 0xB8, 0xC8, 0xD8, 0xE8, 0xF8, 0x09, 0x19, 0x29, 0x39, 0x49,
-                    0x59, 0x69, 0x79, 0x89, 0x99, 0xA9, 0xB9, 0xC9, 0xD9, 0xE9, 0xF9, 0x0A, 0x1A,
-                    0x2A, 0x3A, 0x4A, 0x5A, 0x6A, 0x7A, 0x8A, 0x9A, 0xAA, 0xBA, 0xCA, 0xDA, 0xEA,
-                    0xFA, 0x0C, 0x1C, 0x2C, 0x3C, 0x4C, 0x5C, 0x6C, 0x7C, 0x8C, 0x9C, 0xAC, 0xBC,
-                    0xCC, 0xDC, 0xEC, 0xFC, 0x0D, 0x1D, 0x2D, 0x3D, 0x4D, 0x5D, 0x6D, 0x7D, 0x8D,
-                    0x9D, 0xAD, 0xBD, 0xCD, 0xDD, 0xED, 0xFD, 0x0E, 0x1E, 0x2E, 0x3E, 0x4E, 0x5E,
-                    0x6E, 0x7E, 0x8E, 0x9E, 0xAE, 0xBE, 0xCE, 0xDE, 0xEE, 0xFE};
-
-                static u32 off = 0;
-                if (off > sizeof(trepl))
-                  off = 0;
-
-                switch (Common::swap16(*(u16*)(buf + 1)) >> 2)
+                /*
+                  Handling of the motion seat used in F-Zero AXs DX version
+                */
+                switch (Common::swap16(*reinterpret_cast<u16*>(&buf[1])) >> 2)
                 {
                 case 0x70:
                   delay++;
@@ -2050,13 +2039,6 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 case 0x60:
                   break;
                 }
-                ////if( buf[1] == 1 && buf[2] == 0x80 )
-                ////{
-                ////  INFO_LOG_FMT(DVDINTERFACE, "GCAM: PC:{:08x}", PC);
-                ////  PowerPC::breakpoints.Add( PC+8, false );
-                ////}
-
-                delete[] buf;
               }
               break;
             }
@@ -2080,7 +2062,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               else
               {
                 message.addData(StatusOkay);
-                ERROR_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO:Unknown:{:02x}", cmd_);
+                ERROR_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Unknown:{:02x}", cmd_);
               }
               break;
             }
@@ -2170,19 +2152,210 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
   return buffer_position;
 }
 
-// Unused
-DataResponse CSIDevice_AMBaseboard::GetData(u32& _Hi, u32& _Low)
+u32 CSIDevice_AMBaseboard::MapPadStatus(const GCPadStatus& pad_status)
 {
-  _Low = 0;
-  _Hi = 0x00800000;
+  // Thankfully changing mode does not change the high bits ;)
+  u32 hi = 0;
+  hi = pad_status.stickY;
+  hi |= pad_status.stickX << 8;
+  hi |= (pad_status.button | PAD_USE_ORIGIN) << 16;
+  return hi;
+}
+
+CSIDevice_AMBaseboard::EButtonCombo
+CSIDevice_AMBaseboard::HandleButtonCombos(const GCPadStatus& pad_status)
+{
+  // Keep track of the special button combos (embedded in controller hardware... :( )
+  EButtonCombo temp_combo;
+  if ((pad_status.button & 0xff00) == (PAD_BUTTON_Y | PAD_BUTTON_X | PAD_BUTTON_START))
+    temp_combo = COMBO_ORIGIN;
+  else if ((pad_status.button & 0xff00) == (PAD_BUTTON_B | PAD_BUTTON_X | PAD_BUTTON_START))
+    temp_combo = COMBO_RESET;
+  else
+    temp_combo = COMBO_NONE;
+
+  if (temp_combo != m_last_button_combo)
+  {
+    m_last_button_combo = temp_combo;
+    if (m_last_button_combo != COMBO_NONE)
+      m_timer_button_combo_start = m_system.GetCoreTiming().GetTicks();
+  }
+
+  if (m_last_button_combo != COMBO_NONE)
+  {
+    const u64 current_time = m_system.GetCoreTiming().GetTicks();
+    const u32 ticks_per_second = m_system.GetSystemTimers().GetTicksPerSecond();
+    if (u32(current_time - m_timer_button_combo_start) > ticks_per_second * 3)
+    {
+      if (m_last_button_combo == COMBO_RESET)
+      {
+        INFO_LOG_FMT(SERIALINTERFACE, "PAD - COMBO_RESET");
+        m_system.GetProcessorInterface().ResetButton_Tap();
+      }
+      else if (m_last_button_combo == COMBO_ORIGIN)
+      {
+        INFO_LOG_FMT(SERIALINTERFACE, "PAD - COMBO_ORIGIN");
+        SetOrigin(pad_status);
+      }
+
+      m_last_button_combo = COMBO_NONE;
+      return temp_combo;
+    }
+  }
+
+  return COMBO_NONE;
+}
+
+// GetData
+
+// Return true on new data (max 7 Bytes and 6 bits ;)
+// [00?SYXBA] [1LRZUDRL] [x] [y] [cx] [cy] [l] [r]
+//  |\_ ERR_LATCH (error latched - check SISR)
+//  |_ ERR_STATUS (error on last GetData or SendCmd?)
+DataResponse CSIDevice_AMBaseboard::GetData(u32& hi, u32& low)
+{
+  GCPadStatus pad_status = GetPadStatus();
+
+  if (!pad_status.isConnected)
+    return DataResponse::ErrorNoResponse;
+
+  if (HandleButtonCombos(pad_status) == COMBO_ORIGIN)
+    pad_status.button |= PAD_GET_ORIGIN;
+
+  hi = MapPadStatus(pad_status);
+
+  // Low bits are packed differently per mode
+  if (m_mode == 0 || m_mode == 5 || m_mode == 6 || m_mode == 7)
+  {
+    low = (pad_status.analogB >> 4);               // Top 4 bits
+    low |= ((pad_status.analogA >> 4) << 4);       // Top 4 bits
+    low |= ((pad_status.triggerRight >> 4) << 8);  // Top 4 bits
+    low |= ((pad_status.triggerLeft >> 4) << 12);  // Top 4 bits
+    low |= ((pad_status.substickY) << 16);         // All 8 bits
+    low |= ((pad_status.substickX) << 24);         // All 8 bits
+  }
+  else if (m_mode == 1)
+  {
+    low = (pad_status.analogB >> 4);             // Top 4 bits
+    low |= ((pad_status.analogA >> 4) << 4);     // Top 4 bits
+    low |= (pad_status.triggerRight << 8);       // All 8 bits
+    low |= (pad_status.triggerLeft << 16);       // All 8 bits
+    low |= ((pad_status.substickY >> 4) << 24);  // Top 4 bits
+    low |= ((pad_status.substickX >> 4) << 28);  // Top 4 bits
+  }
+  else if (m_mode == 2)
+  {
+    low = pad_status.analogB;                       // All 8 bits
+    low |= pad_status.analogA << 8;                 // All 8 bits
+    low |= ((pad_status.triggerRight >> 4) << 16);  // Top 4 bits
+    low |= ((pad_status.triggerLeft >> 4) << 20);   // Top 4 bits
+    low |= ((pad_status.substickY >> 4) << 24);     // Top 4 bits
+    low |= ((pad_status.substickX >> 4) << 28);     // Top 4 bits
+  }
+  else if (m_mode == 3)
+  {
+    // Analog A/B are always 0
+    low = pad_status.triggerRight;         // All 8 bits
+    low |= (pad_status.triggerLeft << 8);  // All 8 bits
+    low |= (pad_status.substickY << 16);   // All 8 bits
+    low |= (pad_status.substickX << 24);   // All 8 bits
+  }
+  else if (m_mode == 4)
+  {
+    low = pad_status.analogB;        // All 8 bits
+    low |= pad_status.analogA << 8;  // All 8 bits
+    // triggerLeft/Right are always 0
+    low |= pad_status.substickY << 16;  // All 8 bits
+    low |= pad_status.substickX << 24;  // All 8 bits
+  }
 
   return DataResponse::Success;
 }
 
-void CSIDevice_AMBaseboard::SendCommand(u32 _Cmd, u8 _Poll)
+void CSIDevice_AMBaseboard::SendCommand(u32 command, u8 poll)
 {
-  ERROR_LOG_FMT(SERIALINTERFACE, "Unknown direct command     (0x{})", _Cmd);
-  PanicAlertFmt("SI: (GCAM) Unknown direct command");
+  UCommand controller_command(command);
+
+  if (static_cast<EDirectCommands>(controller_command.command) == EDirectCommands::CMD_WRITE)
+  {
+    const u32 type = controller_command.parameter1;  // 0 = stop, 1 = rumble, 2 = stop hard
+
+    // get the correct pad number that should rumble locally when using netplay
+    const int pad_num = NetPlay_InGamePadToLocalPad(m_device_number);
+
+    if (pad_num < 4)
+    {
+      const SIDevices device = m_system.GetSerialInterface().GetDeviceType(pad_num);
+      if (type == 1)
+        CSIDevice_GCController::Rumble(pad_num, 1.0, device);
+      else
+        CSIDevice_GCController::Rumble(pad_num, 0.0, device);
+    }
+
+    if (poll == 0)
+    {
+      m_mode = controller_command.parameter2;
+      INFO_LOG_FMT(SERIALINTERFACE, "PAD {} set to mode {}", m_device_number, m_mode);
+    }
+  }
+  else if (controller_command.command != 0x00)
+  {
+    // Costis sent 0x00 in some demos :)
+    ERROR_LOG_FMT(SERIALINTERFACE, "Unknown direct command     ({:#x})", command);
+    PanicAlertFmt("SI: Unknown direct command");
+  }
+}
+
+void CSIDevice_AMBaseboard::SetOrigin(const GCPadStatus& pad_status)
+{
+  m_origin.origin_stick_x = pad_status.stickX;
+  m_origin.origin_stick_y = pad_status.stickY;
+  m_origin.substick_x = pad_status.substickX;
+  m_origin.substick_y = pad_status.substickY;
+  m_origin.trigger_left = pad_status.triggerLeft;
+  m_origin.trigger_right = pad_status.triggerRight;
+}
+
+void CSIDevice_AMBaseboard::HandleMoviePadStatus(Movie::MovieManager& movie, int device_number,
+                                                 GCPadStatus* pad_status)
+{
+  movie.SetPolledDevice();
+  if (NetPlay_GetInput(device_number, pad_status))
+  {
+  }
+  else if (movie.IsPlayingInput())
+  {
+    movie.PlayController(pad_status, device_number);
+    movie.InputUpdate();
+  }
+  else if (movie.IsRecordingInput())
+  {
+    movie.RecordInput(pad_status, device_number);
+    movie.InputUpdate();
+  }
+  else
+  {
+    movie.CheckPadStatus(pad_status, device_number);
+  }
+}
+
+GCPadStatus CSIDevice_AMBaseboard::GetPadStatus()
+{
+  GCPadStatus pad_status = {};
+
+  // For netplay, the local controllers are polled in GetNetPads(), and
+  // the remote controllers receive their status there as well
+  if (!NetPlay::IsNetPlayRunning())
+  {
+    pad_status = Pad::GetStatus(m_device_number);
+  }
+
+  // Our GCAdapter code sets PAD_GET_ORIGIN when a new device has been connected.
+  // Watch for this to calibrate real controllers on connection.
+  if (pad_status.button & PAD_GET_ORIGIN)
+    SetOrigin(pad_status);
+
+  return pad_status;
 }
 
 }  // namespace SerialInterface

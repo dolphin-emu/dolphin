@@ -30,7 +30,7 @@ enum class PadGroup
   Rumble,
   Mic,
   Options,
-  Triforce
+  Triforce,
 };
 
 class GCPad : public ControllerEmu::EmulatedController

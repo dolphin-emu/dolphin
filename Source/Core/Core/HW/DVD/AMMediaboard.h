@@ -32,7 +32,7 @@ enum GameType
   VirtuaStriker4,
   GekitouProYakyuu,
   KeyOfAvalon,
-  FirmwareUpdate
+  FirmwareUpdate,
 };
 enum MediaType
 {
@@ -54,27 +54,31 @@ enum MediaBoardStatus
   TestingGameProgram = 3,
   LoadingGameProgram = 4,
   LoadedGameProgram = 5,
-  Error = 6
+  Error = 6,
 };
 enum InquiryType
 {
   Version1 = 0x21484100,
-  Version2 = 0x29484100
+  Version2 = 0x29484100,
 };
 
 #define SocketCheck(x) (x <= 0x3F ? x : 0)
 
 namespace AMMediaboard
 {
+
+enum class AMMBDICommand : u16
+{
+  Inquiry = 0x12,
+  Read = 0xA8,
+  Write = 0xAA,
+  Execute = 0xAB,
+};
+
 enum class AMMBCommand : u16
 {
   Unknown_000 = 0x000,
   GetDIMMSize = 0x001,
-
-  Inquiry = 0x12,
-  Read = 0xa8,
-  Write = 0xaa,
-  Execute = 0xab,
 
   GetMediaBoardStatus = 0x100,
   GetSegaBootVersion = 0x101,
@@ -209,7 +213,7 @@ void Init(void);
 void FirmwareMap(bool on);
 u8* InitDIMM(u32 size);
 void InitKeys(u32 KeyA, u32 KeyB, u32 KeyC);
-u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32 Address, u32 Length);
+u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 Address, u32 Length);
 u32 GetGameType(void);
 u32 GetMediaType(void);
 bool GetTestMenu(void);
