@@ -7,6 +7,7 @@
 #include <QCompleter>
 #include <QDesktopServices>
 #include <QFile>
+#include <QKeyEvent>
 #include <QMenu>
 #include <QMenuBar>
 #include <QPushButton>
