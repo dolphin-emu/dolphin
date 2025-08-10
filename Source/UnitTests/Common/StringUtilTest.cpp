@@ -225,3 +225,34 @@ TEST(StringUtil, SplitPathWindowsPathWithDriveLetter)
   EXPECT_EQ(extension, "");
 }
 #endif
+
+TEST(StringUtil, CaseInsensitiveContains_BasicMatches)
+{
+  EXPECT_TRUE(Common::CaseInsensitiveContains("hello world", "hello"));
+  EXPECT_TRUE(Common::CaseInsensitiveContains("hello world", "world"));
+  EXPECT_TRUE(Common::CaseInsensitiveContains("HELLO WORLD", "hello"));
+  EXPECT_TRUE(Common::CaseInsensitiveContains("HeLLo WoRLd", "WORLD"));
+}
+
+TEST(StringUtil, CaseInsensitiveContains_SubstringNotFound)
+{
+  EXPECT_FALSE(Common::CaseInsensitiveContains("hello world", "hey"));
+}
+
+TEST(StringUtil, CaseInsensitiveContains_EmptyStrings)
+{
+  EXPECT_TRUE(Common::CaseInsensitiveContains("", ""));
+  EXPECT_TRUE(Common::CaseInsensitiveContains("hello", ""));
+  EXPECT_FALSE(Common::CaseInsensitiveContains("", "world"));
+}
+
+TEST(StringUtil, CaseInsensitiveContains_EntireStringMatch)
+{
+  EXPECT_TRUE(Common::CaseInsensitiveContains("Test", "TEST"));
+}
+
+TEST(StringUtil, CaseInsensitiveContains_OverlappingMatches)
+{
+  EXPECT_TRUE(Common::CaseInsensitiveContains("aaaaaa", "aa"));
+  EXPECT_TRUE(Common::CaseInsensitiveContains("ababababa", "bABa"));
+}

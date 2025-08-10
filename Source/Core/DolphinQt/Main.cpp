@@ -23,6 +23,7 @@
 #include "Common/Config/Config.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
+#include "Common/StringUtil.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
@@ -152,8 +153,8 @@ int main(int argc, char* argv[])
   // from happening.
   // For more information: https://bugs.dolphin-emu.org/issues/11807
   const char* current_qt_platform = getenv("QT_QPA_PLATFORM");
-  const bool replace_qt_platform =
-      (current_qt_platform && strcasecmp(current_qt_platform, "wayland") == 0);
+  const bool replace_qt_platform = current_qt_platform != nullptr &&
+                                   Common::CaseInsensitiveContains(current_qt_platform, "wayland");
   setenv("QT_QPA_PLATFORM", "xcb", replace_qt_platform);
 #endif
 
