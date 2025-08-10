@@ -505,12 +505,12 @@ float VideoInterfaceManager::GetAspectRatio() const
   int active_width_samples = (m_h_timing_0.HLW + m_h_timing_1.HBS640 - m_h_timing_1.HBE640);
 
   // 2. TVs are analog and don't have pixels. So we convert to seconds.
+  const auto ticks_per_halfline = GetNominalTicksPerHalfLine();
   float tick_length = (1.0f / m_system.GetSystemTimers().GetTicksPerSecond());
-  float vertical_period = tick_length * GetTicksPerField();
-  float horizontal_period = tick_length * GetTicksPerHalfLine() * 2;
+  float vertical_period = tick_length * ticks_per_halfline * GetHalfLinesPerEvenField();
+  float horizontal_period = tick_length * ticks_per_halfline * 2;
   float vertical_active_area = active_lines * horizontal_period;
-  float horizontal_active_area =
-      tick_length * GetTicksPerSample() * active_width_samples / m_config_vi_oc_factor;
+  float horizontal_active_area = tick_length * GetTicksPerSample() * active_width_samples;
 
   // We are approximating the horizontal/vertical flyback transformers that control the
   // position of the electron beam on the screen. Our flyback transformers create a
@@ -760,9 +760,14 @@ u32 VideoInterfaceManager::GetTicksPerSample() const
   return 2 * m_system.GetSystemTimers().GetTicksPerSecond() / CLOCK_FREQUENCIES[m_clock & 1];
 }
 
+u32 VideoInterfaceManager::GetNominalTicksPerHalfLine() const
+{
+  return GetTicksPerSample() * m_h_timing_0.HLW;
+}
+
 u32 VideoInterfaceManager::GetTicksPerHalfLine() const
 {
-  return GetTicksPerSample() * m_h_timing_0.HLW / m_config_vi_oc_factor;
+  return GetNominalTicksPerHalfLine() / m_config_vi_oc_factor;
 }
 
 u32 VideoInterfaceManager::GetTicksPerField() const
