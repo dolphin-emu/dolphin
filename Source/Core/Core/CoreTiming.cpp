@@ -109,11 +109,10 @@ void CoreTimingManager::Init()
 
   m_throttled_since_presentation = false;
   m_frame_hook = AfterPresentEvent::Register(
-    [this](const PresentInfo&) {
-      m_throttled_since_presentation.store(false, std::memory_order_relaxed);
-    },
-    "CoreTiming AfterPresentEvent"
-  );
+      [this](const PresentInfo&) {
+        m_throttled_since_presentation.store(false, std::memory_order_relaxed);
+      },
+      "CoreTiming AfterPresentEvent");
 }
 
 void CoreTimingManager::Shutdown()
@@ -348,12 +347,12 @@ void CoreTimingManager::Advance()
     m_event_queue.pop_back();
 
     // commented out the old setup
-    // Throttle(evt.time);
-    // if (evt.type != nullptr) // slippi change
-    // {
-    //   evt.type->callback(m_system, evt.userdata, m_globals.global_timer - evt.time);
-    // }
-    evt.type->callback(m_system, evt.userdata, m_globals.global_timer - evt.time);
+    Throttle(evt.time);
+    if (evt.type != nullptr)  // slippi change
+    {
+      evt.type->callback(m_system, evt.userdata, m_globals.global_timer - evt.time);
+    }
+    // evt.type->callback(m_system, evt.userdata, m_globals.global_timer - evt.time);
   }
 
   m_is_global_timer_sane = false;

@@ -40,7 +40,8 @@ s32 emod(s32 a, s32 b)
   return r >= 0 ? r : r + std::abs(b);
 }
 
-std::string processDiff(std::vector<u8> initial_state, std::vector<u8> curr_state)
+std::string processDiff(const Common::UniqueBuffer<u8>& initial_state,
+                        Common::UniqueBuffer<u8> curr_state)
 {
   INFO_LOG_FMT(SLIPPI, "Processing diff");
   num_diffs_processing += 1;
@@ -137,7 +138,7 @@ void SlippiPlaybackStatus::processInitialState(Core::System& system)
   {
     Config::SetCurrent(Config::MAIN_SHOW_CURSOR, Config::ShowCursor::Constantly);
   }
-};
+}
 
 void SlippiPlaybackStatus::SavestateThread()
 {
@@ -176,7 +177,18 @@ void SlippiPlaybackStatus::SavestateThread()
       INFO_LOG_FMT(SLIPPI, "saving diff at frame: {}", fixed_frame_num);
       State::SaveToBuffer(system, curr_state);
 
-      future_diffs[fixed_frame_num] = std::async(processDiff, initial_state, curr_state);
+      // Make a snapshot so the async task sees stable bytes
+      Common::UniqueBuffer<u8> curr_snapshot(curr_state.size());
+      std::memcpy(curr_snapshot.data(), curr_state.data(), curr_state.size());
+
+      // Launch async: capture this for initial_state by reference, move the snapshot
+      auto fut = std::async(std::launch::async,
+                            [this, cs = std::move(curr_snapshot)]() mutable -> std::string {
+                              return processDiff(this->initial_state, std::move(cs));
+                            })
+                     .share();
+
+      future_diffs[fixed_frame_num] = std::move(fut);
     }
     Common::SleepCurrentThread(SLEEP_TIME_MS);
   }
@@ -295,7 +307,9 @@ void SlippiPlaybackStatus::loadState(Core::System& system, s32 closest_state_fra
     std::string state_string;
     decoder.Decode((char*)initial_state.data(), initial_state.size(),
                    future_diffs[closest_state_frame].get(), &state_string);
-    std::vector<u8> state_to_load(state_string.begin(), state_string.end());
+    Common::UniqueBuffer<u8> state_to_load(state_string.size());
+    std::memcpy(state_to_load.data(), state_string.data(), state_string.size());
+
     State::LoadFromBuffer(system, state_to_load);
   }
 }
