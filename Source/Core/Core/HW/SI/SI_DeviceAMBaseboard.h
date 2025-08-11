@@ -3,11 +3,6 @@
 
 #pragma once
 
-#include <SFML/Network.hpp>
-#include <array>
-
-#include "Common/CommonTypes.h"
-#include "Common/Flag.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "InputCommon/GCPadStatus.h"
@@ -28,12 +23,12 @@ public:
   u8 m_msg[0x80];
 
   JVSIOMessage();
-  void start(int node);
-  void addData(const u8* dst, size_t len, int sync);
-  void addData(const void* data, size_t len);
-  void addData(const char* data);
-  void addData(u32 n);
-  void end();
+  void Start(int node);
+  void AddData(const u8* dst, size_t len, int sync);
+  void AddData(const void* data, size_t len);
+  void AddData(const char* data);
+  void AddData(u32 n);
+  void End();
 };  // end class JVSIOMessage
 
 // triforce (GC-AM) baseboard

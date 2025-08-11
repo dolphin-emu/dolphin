@@ -30,6 +30,7 @@ enum GameType
   MarioKartGP2,
   VirtuaStriker3,
   VirtuaStriker4,
+  VirtuaStriker4_2006,
   GekitouProYakyuu,
   KeyOfAvalon,
   FirmwareUpdate,
@@ -125,6 +126,14 @@ enum class AMMBCommand : u16
   Unknown_608 = 0x608,
   Unknown_614 = 0x614,
 
+  // All.Net
+  AllNetInit = 0x700,
+  Unknown_701 = 0x701,
+  Unknown_702 = 0x702,
+  Unknown_703 = 0x703,
+  Unknown_704 = 0x704,
+
+
   // NETDIMM Commands
   Unknown_001 = 0x001,
   GetNetworkFirmVersion = 0x101,
@@ -147,6 +156,8 @@ enum MediaBoardAddress : u32
 
   DIMMExtraSettings = 0x1FFEFFE0,
 
+  AllNetSettings = 0x1EFF8000,
+
   NetworkControl = 0xFFFF0000,
 
   DIMMCommandVersion1 = 0x1F900000,
@@ -162,6 +173,8 @@ enum MediaBoardAddress : u32
   NetworkBufferAddress3 = 0x89100000,
   NetworkBufferAddress4 = 0x89180000,
   NetworkBufferAddress5 = 0x1FB00000,
+
+  AllNetBuffer = 0x89010000,
 
   FirmwareAddress = 0x84800000,
 

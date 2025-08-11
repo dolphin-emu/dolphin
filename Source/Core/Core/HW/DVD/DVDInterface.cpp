@@ -708,12 +708,16 @@ bool DVDInterface::CheckReadPreconditions()
     SetDriveError(DriveError::MotorStopped);
     return false;
   }
-  if (m_drive_state == DriveState::DiscIdNotRead)
-  {
-    ERROR_LOG_FMT(DVDINTERFACE, "Disc id not read.");
-    SetDriveError(DriveError::NoDiscID);
-    return false;
-  }
+
+  // SegaBoot doesn't read the Disc ID
+  if (!m_system.IsTriforce())
+    if (m_drive_state == DriveState::DiscIdNotRead)
+    {
+      ERROR_LOG_FMT(DVDINTERFACE, "Disc id not read.");
+      SetDriveError(DriveError::NoDiscID);
+      return false;
+    }
+
   return true;
 }
 
@@ -776,8 +780,8 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
       m_error_code = DriveError::None;
       return;
     }
-    m_DICMDBUF[1] >>= 2;
     // Normal read command pass on to normal handling
+    m_DICMDBUF[0] <<= 24;
   }
 
   // DVDLowRequestError needs access to the error code set by the previous command

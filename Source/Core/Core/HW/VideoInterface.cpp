@@ -164,14 +164,17 @@ void VideoInterfaceManager::Preset(bool _bNTSC)
   // Say component cable is plugged
   m_dtv_status.component_plugged = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
 
-  // Triforce IPL requires this to be set
-  if (region == DiscIO::Region::DEV || region == DiscIO::Region::NTSC_J)
-  {
-    m_dtv_status.ntsc_j = true;
-  }
-  else
+  if (region == DiscIO::Region::NTSC_J)
   {
     m_dtv_status.ntsc_j = false;
+  }
+
+  /*
+     Triforce IPL requires the DTV NTSC-J flag to be set.
+  */
+  if (m_system.IsTriforce())
+  {
+    m_dtv_status.ntsc_j = true;
   }
 
   m_fb_width.Hex = 0;
