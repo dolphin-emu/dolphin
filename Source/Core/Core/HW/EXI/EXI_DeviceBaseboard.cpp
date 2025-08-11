@@ -10,13 +10,13 @@
 
 #include <fmt/format.h>
 
+#include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
-#include "Common/Buffer.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/Config/MainSettings.h"

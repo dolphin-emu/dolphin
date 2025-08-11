@@ -4,26 +4,14 @@
 #include "Core/HW/DVD/AMMediaboard.h"
 
 #include <algorithm>
-#include <memory>
-#include <optional>
-#include <string>
-#include <vector>
-
 #include <fmt/format.h>
-
-#include "Common/CommonPaths.h"
+#include <string>
 #include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
-#include "Core/Config/MainSettings.h"
-#include "Core/Config/SYSCONFSettings.h"
-#include "Core/ConfigLoaders/BaseConfigLoader.h"
-#include "Core/ConfigLoaders/NetPlayConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HLE/HLE.h"
@@ -35,18 +23,10 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
-#include "Core/HW/Sram.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/Network/Socket.h"
 #include "Core/Movie.h"
-#include "Core/NetPlayProto.h"
-#include "Core/PowerPC/PPCSymbolDB.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
-#include "Core/WiiRoot.h"
 #include "DiscIO/DirectoryBlob.h"
-#include "DiscIO/Enums.h"
-#include "DiscIO/VolumeDisc.h"
 
 #if defined(__linux__) or defined(__APPLE__) or defined(__FreeBSD__) or defined(__NetBSD__) or     \
     defined(__HAIKU__)
@@ -91,11 +71,11 @@ static u32 s_GCAM_key_a = 0;
 static u32 s_GCAM_key_b = 0;
 static u32 s_GCAM_key_c = 0;
 
-static File::IOFile s_netcfg = nullptr;
-static File::IOFile s_netctrl = nullptr;
-static File::IOFile s_extra = nullptr;
-static File::IOFile s_backup = nullptr;
-static File::IOFile s_dimm = nullptr;
+static File::IOFile s_netcfg;
+static File::IOFile s_netctrl;
+static File::IOFile s_extra;
+static File::IOFile s_backup;
+static File::IOFile s_dimm;
 
 static u8* s_dimm_disc = nullptr;
 
@@ -103,6 +83,8 @@ static u8 s_firmware[2 * 1024 * 1024];
 static u8 s_media_buffer[0x300];
 static u8 s_network_command_buffer[0x4FFE00];
 static u8 s_network_buffer[256 * 1024];
+static u8 s_allnet_buffer[4096];
+static u8 s_allnet_settings[0x8500];
 
 /* Sockets FDs are required to go from 0 to 63.
    Games use the FD as indexes so we have to workaround it.
@@ -178,11 +160,13 @@ static File::IOFile OpenOrCreateFile(const std::string& filename)
 
 void Init(void)
 {
-  memset(s_media_buffer, 0, sizeof(s_media_buffer));
-  memset(s_network_buffer, 0, sizeof(s_network_buffer));
-  memset(s_network_command_buffer, 0, sizeof(s_network_command_buffer));
-  memset(s_firmware, -1, sizeof(s_firmware));
-  memset(s_sockets, SOCKET_ERROR, sizeof(s_sockets));
+  std::ranges::fill(s_media_buffer, 0);
+  std::ranges::fill(s_network_buffer, 0);
+  std::ranges::fill(s_network_command_buffer, 0);
+  std::ranges::fill(s_firmware, -1);
+  std::ranges::fill(s_sockets, SOCKET_ERROR);
+  std::ranges::fill(s_allnet_buffer, 0);
+  std::ranges::fill(s_allnet_settings, 0);
 
   s_firmware_map = false;
   s_test_menu = false;
@@ -460,6 +444,7 @@ any real ones, you can just use the key from RAM without missing a real command.
     default:
       *DIIMMBUF = Version1;
       return 0;
+    case VirtuaStriker4_2006:
     case KeyOfAvalon:
     case MarioKartGP:
     case MarioKartGP2:
@@ -534,6 +519,14 @@ any real ones, you can just use the key from RAM without missing a real command.
       u32 dimmoffset = offset - DIMMMemory;
       s_dimm.Seek(dimmoffset, File::SeekOrigin::Begin);
       s_dimm.ReadBytes(memory.GetSpanForAddress(address).data(), length);
+      return 0;
+    }
+
+    if (offset >= AllNetBuffer && offset < 0x89011000)
+    {
+      u32 allnet_offset = offset - AllNetBuffer;
+      INFO_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: Read All.Net BUFFER (1) ({:08x},{})", offset, length);
+      memcpy(memory.GetSpanForAddress(address).data(), s_allnet_buffer + allnet_offset, length);
       return 0;
     }
 
@@ -646,6 +639,9 @@ any real ones, you can just use the key from RAM without missing a real command.
         break;
       // Empty reply
       case AMMBCommand::Unknown_103:
+        break;
+      case AMMBCommand::Unknown_104:
+        s_media_buffer[4] = 1;
         break;
       case AMMBCommand::Accept:
       {
@@ -1008,6 +1004,9 @@ any real ones, you can just use the key from RAM without missing a real command.
       case AMMBCommand::InitLink:
         NOTICE_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: InitLink");
         break;
+      case AMMBCommand::AllNetInit:
+        NOTICE_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: AllNetInit");
+        break;
       default:
         ERROR_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: Command:{:03X}", *(u16*)(s_media_buffer + 2));
         ERROR_LOG_FMT(DVDINTERFACE_AMMB, "GC-AM: Command Unhandled!");
@@ -1038,6 +1037,13 @@ any real ones, you can just use the key from RAM without missing a real command.
       u32 dimmoffset = offset - DIMMMemory2;
       s_dimm.Seek(dimmoffset, File::SeekOrigin::Begin);
       s_dimm.ReadBytes(memory.GetSpanForAddress(address).data(), length);
+      return 0;
+    }
+
+    if (offset >= AllNetSettings && offset <= 0x1F000000)
+    {
+      u32 allnet_offset = offset - AllNetSettings;
+      memcpy(memory.GetSpanForAddress(address).data(), s_allnet_settings + allnet_offset, length);
       return 0;
     }
 
@@ -1122,6 +1128,13 @@ any real ones, you can just use the key from RAM without missing a real command.
     {
       u32 dimmoffset = offset - DIMMMemory;
       FileWriteData(&s_dimm, dimmoffset, memory.GetSpanForAddress(address).data(), length);
+      return 0;
+    }
+
+    if ((offset >= AllNetBuffer) && (offset <= 0x89011000))
+    {
+      u32 allnet_offset = offset - AllNetBuffer;
+      memcpy(s_allnet_buffer + allnet_offset, memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
@@ -1769,6 +1782,7 @@ u32 GetGameType(void)
   case 0x53424C4A:
   case 0x53424C4B:
   case 0x53424C4C:
+    return VirtuaStriker4_2006;
   // SBHJ/SBHN/SBHZ - VIRTUA STRIKER 4 VER.A
   case 0x5342484A:
   case 0x5342484E:

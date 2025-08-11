@@ -63,15 +63,15 @@ JVSIOMessage::JVSIOMessage()
   m_last_start = 0;
 }
 
-void JVSIOMessage::start(int node)
+void JVSIOMessage::Start(int node)
 {
   m_last_start = m_ptr;
   u8 hdr[3] = {0xE0, (u8)node, 0};
   m_csum = 0;
-  addData(hdr, 3, 1);
+  AddData(hdr, 3, 1);
 }
 
-void JVSIOMessage::addData(const u8* dst, size_t len, int sync = 0)
+void JVSIOMessage::AddData(const u8* dst, size_t len, int sync = 0)
 {
   while (len--)
   {
@@ -94,27 +94,27 @@ void JVSIOMessage::addData(const u8* dst, size_t len, int sync = 0)
   }
 }
 
-void JVSIOMessage::addData(const void* data, size_t len)
+void JVSIOMessage::AddData(const void* data, size_t len)
 {
-  addData((const u8*)data, len);
+  AddData((const u8*)data, len);
 }
 
-void JVSIOMessage::addData(const char* data)
+void JVSIOMessage::AddData(const char* data)
 {
-  addData(data, strlen(data));
+  AddData(data, strlen(data));
 }
 
-void JVSIOMessage::addData(u32 n)
+void JVSIOMessage::AddData(u32 n)
 {
   u8 cs = n;
-  addData(&cs, 1);
+  AddData(&cs, 1);
 }
 
-void JVSIOMessage::end()
+void JVSIOMessage::End()
 {
   u32 len = m_ptr - m_last_start;
   m_msg[m_last_start + 2] = len - 2;  // assuming len <0xD0
-  addData(m_csum + len - 2);
+  AddData(m_csum + len - 2);
 }
 
 static u8 CheckSumXOR(u8* Data, u32 Length)
@@ -386,8 +386,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                          *data_in++, *data_in++, *data_in++, *data_in++, *data_in++);
           u8 string[] = "\x00\x00\x30\x00"
                         //   "\x01\xfe\x00\x00"  // JAPAN
-                        "\x02\xfd\x00\x00"  // USA
-                        // "\x03\xfc\x00\x00"  // export
+                        //"\x02\xfd\x00\x00"  // USA
+                        "\x03\xfc\x00\x00"  // export
                         "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff";
           data_out[data_offset++] = gcam_command;
           data_out[data_offset++] = 0x14;
@@ -511,6 +511,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
             // Serial IC-CARD / Serial Deck Reader
             if (AMMediaboard::GetGameType() == VirtuaStriker4 ||
+                AMMediaboard::GetGameType() == VirtuaStriker4_2006 ||
                 AMMediaboard::GetGameType() == KeyOfAvalon)
             {
               u32 serial_command = data_in[1];
@@ -1159,7 +1160,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
                         if (File::Exists(card_filename))
                         {
-                          File::IOFile card = File::IOFile(card_filename, "rb+");
+                          File::IOFile card(card_filename, "rb+");
                           m_card_memory_size = (u32)card.GetSize();
 
                           card.ReadBytes(m_card_memory, m_card_memory_size);
@@ -1249,7 +1250,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
                       if (File::Exists(card_filename))
                       {
-                        File::IOFile card = File::IOFile(card_filename, "rb+");
+                        File::IOFile card(card_filename, "rb+");
                         if (m_card_memory_size == 0)
                         {
                           m_card_memory_size = (u32)card.GetSize();
@@ -1314,7 +1315,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                                                 SConfig::GetInstance().GetGameID().c_str() +
                                                 ".bin");
 
-                      File::IOFile card = File::IOFile(card_filename, "wb+");
+                      File::IOFile card(card_filename, "wb+");
                       card.WriteBytes(m_card_memory, m_card_memory_size);
                       card.Close();
 
@@ -1403,8 +1404,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           u8* jvs_io = jvs_buf + 4;           // First payload byte
           u8* jvs_end = jvs_buf + frame_len;  // One byte before checksum
 
-          message.start(0);
-          message.addData(1);
+          message.Start(0);
+          message.AddData(1);
 
           // Now iterate over the payload
           while (jvs_io < jvs_end)
@@ -1416,41 +1417,42 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             switch (JVSIOCommand(jvsio_command))
             {
             case JVSIOCommand::IOID:
-              message.addData(StatusOkay);
+              message.AddData(StatusOkay);
               switch (AMMediaboard::GetGameType())
               {
               case FZeroAX:
                 // Specific version that enables DX mode on AX machines, all this does is enable the
                 // motion of a chair
-                message.addData("SEGA ENTERPRISES,LTD.;837-13844-01 I/O CNTL BD2 ;");
+                message.AddData("SEGA ENTERPRISES,LTD.;837-13844-01 I/O CNTL BD2 ;");
                 break;
               case FZeroAXMonster:
               case MarioKartGP:
               case MarioKartGP2:
               default:
-                message.addData("namco ltd.;FCA-1;Ver1.01;JPN,Multipurpose + Rotary Encoder");
+                message.AddData("namco ltd.;FCA-1;Ver1.01;JPN,Multipurpose + Rotary Encoder");
                 break;
               case VirtuaStriker3:
               case VirtuaStriker4:
-                message.addData("SEGA ENTERPRISES,LTD.;I/O BD JVS;837-13551;Ver1.00");
+              case VirtuaStriker4_2006:
+                message.AddData("SEGA ENTERPRISES,LTD.;I/O BD JVS;837-13551;Ver1.00");
                 break;
               }
               NOTICE_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0x10, BoardID");
-              message.addData((u32)0);
+              message.AddData((u32)0);
               break;
             case JVSIOCommand::CommandRevision:
-              message.addData(StatusOkay);
-              message.addData(0x11);
+              message.AddData(StatusOkay);
+              message.AddData(0x11);
               NOTICE_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0x11, CommandRevision");
               break;
             case JVSIOCommand::JVRevision:
-              message.addData(StatusOkay);
-              message.addData(0x20);
+              message.AddData(StatusOkay);
+              message.AddData(0x20);
               NOTICE_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0x12, JVRevision");
               break;
             case JVSIOCommand::CommunicationVersion:
-              message.addData(StatusOkay);
-              message.addData(0x10);
+              message.AddData(StatusOkay);
+              message.AddData(0x10);
               NOTICE_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0x13, CommunicationVersion");
               break;
               /*
@@ -1473,64 +1475,72 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 0x15: Backup
               */
             case JVSIOCommand::CheckFunctionality:
-              message.addData(StatusOkay);
+              message.AddData(StatusOkay);
               switch (AMMediaboard::GetGameType())
               {
               case FZeroAX:
               case FZeroAXMonster:
                 // 2 Player (12bit) (p2=paddles), 1 Coin slot, 6 Analog-in
-                // message.addData((void *)"\x01\x02\x0C\x00", 4);
-                // message.addData((void *)"\x02\x01\x00\x00", 4);
-                // message.addData((void *)"\x03\x06\x00\x00", 4);
-                // message.addData((void *)"\x00\x00\x00\x00", 4);
+                // message.AddData((void *)"\x01\x02\x0C\x00", 4);
+                // message.AddData((void *)"\x02\x01\x00\x00", 4);
+                // message.AddData((void *)"\x03\x06\x00\x00", 4);
+                // message.AddData((void *)"\x00\x00\x00\x00", 4);
                 //
                 // DX Version: 2 Player (22bit) (p2=paddles), 2 Coin slot, 8 Analog-in,
                 // 22 Driver-out
-                message.addData((void*)"\x01\x02\x12\x00", 4);
-                message.addData((void*)"\x02\x02\x00\x00", 4);
-                message.addData((void*)"\x03\x08\x0A\x00", 4);
-                message.addData((void*)"\x12\x16\x00\x00", 4);
-                message.addData((void*)"\x00\x00\x00\x00", 4);
+                message.AddData((void*)"\x01\x02\x12\x00", 4);
+                message.AddData((void*)"\x02\x02\x00\x00", 4);
+                message.AddData((void*)"\x03\x08\x0A\x00", 4);
+                message.AddData((void*)"\x12\x16\x00\x00", 4);
+                message.AddData((void*)"\x00\x00\x00\x00", 4);
                 break;
               case VirtuaStriker3:
+                // 2 Player (13bit), 2 Coin slot, 4 Analog-in, 1 CARD, 8 Driver-out
+                message.AddData((void*)"\x01\x02\x0D\x00", 4);
+                message.AddData((void*)"\x02\x02\x00\x00", 4);
+                message.AddData((void*)"\x10\x01\x00\x00", 4);
+                message.AddData((void*)"\x12\x08\x00\x00", 4);
+                message.AddData((void*)"\x00\x00\x00\x00", 4);
+                break;
               case GekitouProYakyuu:
                 // 2 Player (13bit), 2 Coin slot, 4 Analog-in, 1 CARD, 8 Driver-out
-                message.addData((void*)"\x01\x02\x0D\x00", 4);
-                message.addData((void*)"\x02\x02\x00\x00", 4);
-                message.addData((void*)"\x03\x04\x00\x00", 4);
-                message.addData((void*)"\x10\x01\x00\x00", 4);
-                message.addData((void*)"\x12\x08\x00\x00", 4);
-                message.addData((void*)"\x00\x00\x00\x00", 4);
+                message.AddData((void*)"\x01\x02\x0D\x00", 4);
+                message.AddData((void*)"\x02\x02\x00\x00", 4);
+                message.AddData((void*)"\x03\x04\x00\x00", 4);
+                message.AddData((void*)"\x10\x01\x00\x00", 4);
+                message.AddData((void*)"\x12\x08\x00\x00", 4);
+                message.AddData((void*)"\x00\x00\x00\x00", 4);
                 break;
               case VirtuaStriker4:
+              case VirtuaStriker4_2006:
                 // 2 Player (13bit), 1 Coin slot, 4 Analog-in, 1 CARD
-                message.addData((void*)"\x01\x02\x0D\x00", 4);
-                message.addData((void*)"\x02\x01\x00\x00", 4);
-                message.addData((void*)"\x03\x04\x00\x00", 4);
-                message.addData((void*)"\x10\x01\x00\x00", 4);
-                message.addData((void*)"\x00\x00\x00\x00", 4);
+                message.AddData((void*)"\x01\x02\x0D\x00", 4);
+                message.AddData((void*)"\x02\x01\x00\x00", 4);
+                message.AddData((void*)"\x03\x04\x00\x00", 4);
+                message.AddData((void*)"\x10\x01\x00\x00", 4);
+                message.AddData((void*)"\x00\x00\x00\x00", 4);
                 break;
               case KeyOfAvalon:
                 // 1 Player (15bit), 1 Coin slot, 3 Analog-in, Touch, 1 CARD, 1 Driver-out
                 // (Unconfirmed)
-                message.addData((void*)"\x01\x01\x0F\x00", 4);
-                message.addData((void*)"\x02\x01\x00\x00", 4);
-                message.addData((void*)"\x03\x03\x00\x00", 4);
-                message.addData((void*)"\x06\x10\x10\x01", 4);
-                message.addData((void*)"\x10\x01\x00\x00", 4);
-                message.addData((void*)"\x12\x01\x00\x00", 4);
-                message.addData((void*)"\x00\x00\x00\x00", 4);
+                message.AddData((void*)"\x01\x01\x0F\x00", 4);
+                message.AddData((void*)"\x02\x01\x00\x00", 4);
+                message.AddData((void*)"\x03\x03\x00\x00", 4);
+                message.AddData((void*)"\x06\x10\x10\x01", 4);
+                message.AddData((void*)"\x10\x01\x00\x00", 4);
+                message.AddData((void*)"\x12\x01\x00\x00", 4);
+                message.AddData((void*)"\x00\x00\x00\x00", 4);
                 break;
               case MarioKartGP:
               case MarioKartGP2:
               default:
                 // 1 Player (15bit), 1 Coin slot, 3 Analog-in, 1 CARD, 1 Driver-out
-                message.addData((void*)"\x01\x01\x0F\x00", 4);
-                message.addData((void*)"\x02\x01\x00\x00", 4);
-                message.addData((void*)"\x03\x03\x00\x00", 4);
-                message.addData((void*)"\x10\x01\x00\x00", 4);
-                message.addData((void*)"\x12\x01\x00\x00", 4);
-                message.addData((void*)"\x00\x00\x00\x00", 4);
+                message.AddData((void*)"\x01\x01\x0F\x00", 4);
+                message.AddData((void*)"\x02\x01\x00\x00", 4);
+                message.AddData((void*)"\x03\x03\x00\x00", 4);
+                message.AddData((void*)"\x10\x01\x00\x00", 4);
+                message.AddData((void*)"\x12\x01\x00\x00", 4);
+                message.AddData((void*)"\x00\x00\x00\x00", 4);
                 break;
               }
               NOTICE_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0x14, CheckFunctionality");
@@ -1539,7 +1549,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               while (*jvs_io++)
               {
               };
-              message.addData(StatusOkay);
+              message.AddData(StatusOkay);
               break;
             case JVSIOCommand::SwitchesInput:
             {
@@ -1549,7 +1559,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               DEBUG_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO:  Command 0x20, SwitchInputs: {} {}",
                             player_count, player_byte_count);
 
-              message.addData(StatusOkay);
+              message.AddData(StatusOkay);
 
               GCPadStatus PadStatus;
               PadStatus = Pad::GetStatus(0);
@@ -1560,7 +1570,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 // Trying to access the test menu without SegaBoot present will cause a crash
                 if (AMMediaboard::GetTestMenu())
                 {
-                  message.addData(0x80);
+                  message.AddData(0x80);
                 }
                 else
                 {
@@ -1568,7 +1578,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 }
               }
               else
-                message.addData((u32)0x00);
+                message.AddData((u32)0x00);
 
               for (int i = 0; i < player_count; ++i)
               {
@@ -1696,10 +1706,10 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   if (PadStatus.button & PAD_BUTTON_START)
                     player_data[0] |= 0x80;
                   // Long Pass
-                  if (PadStatus.button & PAD_TRIGGER_L)
+                  if (PadStatus.button & PAD_BUTTON_X)
                     player_data[0] |= 0x01;
                   // Short Pass
-                  if (PadStatus.button & PAD_TRIGGER_R)
+                  if (PadStatus.button & PAD_BUTTON_B)
                     player_data[1] |= 0x80;
                   // Shoot
                   if (PadStatus.button & PAD_BUTTON_A)
@@ -1719,16 +1729,17 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   break;
                 // Controller configuration for Virtua Striker 4 games
                 case VirtuaStriker4:
+                case VirtuaStriker4_2006:
                 {
                   PadStatus = Pad::GetStatus(i);
                   // Start
                   if (PadStatus.button & PAD_BUTTON_START)
                     player_data[0] |= 0x80;
                   // Long Pass
-                  if (PadStatus.button & PAD_TRIGGER_L)
+                  if (PadStatus.button & PAD_BUTTON_X)
                     player_data[0] |= 0x01;
                   // Short Pass
-                  if (PadStatus.button & PAD_TRIGGER_R)
+                  if (PadStatus.button & PAD_BUTTON_Y)
                     player_data[0] |= 0x02;
                   // Shoot
                   if (PadStatus.button & PAD_BUTTON_A)
@@ -1826,14 +1837,14 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 }
 
                 for (int j = 0; j < player_byte_count; ++j)
-                  message.addData(player_data[j]);
+                  message.AddData(player_data[j]);
               }
               break;
             }
             case JVSIOCommand::CoinInput:
             {
               int slots = *jvs_io++;
-              message.addData(StatusOkay);
+              message.AddData(StatusOkay);
               for (int i = 0; i < slots; i++)
               {
                 GCPadStatus PadStatus;
@@ -1843,15 +1854,15 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   m_coin[i]++;
                 }
                 m_coin_pressed[i] = PadStatus.switches & PAD_SWITCH_COIN;
-                message.addData((m_coin[i] >> 8) & 0x3f);
-                message.addData(m_coin[i] & 0xff);
+                message.AddData((m_coin[i] >> 8) & 0x3f);
+                message.AddData(m_coin[i] & 0xff);
               }
               DEBUG_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0x21, CoinInput: {}", slots);
               break;
             }
             case JVSIOCommand::AnalogInput:
             {
-              message.addData(StatusOkay);
+              message.AddData(StatusOkay);
 
               int analogs = *jvs_io++;
               GCPadStatus PadStatus;
@@ -1870,77 +1881,77 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 {
                   if (m_motorforce_x > 0)
                   {
-                    message.addData(0x80 - (m_motorforce_x >> 8));
+                    message.AddData(0x80 - (m_motorforce_x >> 8));
                   }
                   else
                   {
-                    message.addData((m_motorforce_x >> 8));
+                    message.AddData((m_motorforce_x >> 8));
                   }
-                  message.addData((u8)0);
+                  message.AddData((u8)0);
 
-                  message.addData(PadStatus.stickY);
-                  message.addData((u8)0);
+                  message.AddData(PadStatus.stickY);
+                  message.AddData((u8)0);
                 }
                 else
                 {
-                  message.addData(PadStatus.stickX);
-                  message.addData((u8)0);
+                  message.AddData(PadStatus.stickX);
+                  message.AddData((u8)0);
 
-                  message.addData(PadStatus.stickY);
-                  message.addData((u8)0);
+                  message.AddData(PadStatus.stickY);
+                  message.AddData((u8)0);
                 }
 
                 // Unused
-                message.addData((u8)0);
-                message.addData((u8)0);
-                message.addData((u8)0);
-                message.addData((u8)0);
+                message.AddData((u8)0);
+                message.AddData((u8)0);
+                message.AddData((u8)0);
+                message.AddData((u8)0);
 
                 // Gas
-                message.addData(PadStatus.triggerRight);
-                message.addData((u8)0);
+                message.AddData(PadStatus.triggerRight);
+                message.AddData((u8)0);
 
                 // Brake
-                message.addData(PadStatus.triggerLeft);
-                message.addData((u8)0);
+                message.AddData(PadStatus.triggerLeft);
+                message.AddData((u8)0);
 
-                message.addData((u8)0x80);  // Motion Stop
-                message.addData((u8)0);
+                message.AddData((u8)0x80);  // Motion Stop
+                message.AddData((u8)0);
 
-                message.addData((u8)0);
-                message.addData((u8)0);
+                message.AddData((u8)0);
+                message.AddData((u8)0);
 
                 break;
-              case VirtuaStriker3:
               case VirtuaStriker4:
+              case VirtuaStriker4_2006:
               {
                 PadStatus2 = Pad::GetStatus(1);
 
-                message.addData(PadStatus.stickX);
-                message.addData((u8)0);
-                message.addData(PadStatus.stickY);
-                message.addData((u8)0);
+                message.AddData(PadStatus.stickY);
+                message.AddData((u8)0);
+                message.AddData(PadStatus.stickX);
+                message.AddData((u8)0);
 
-                message.addData(PadStatus2.stickX);
-                message.addData((u8)0);
-                message.addData(PadStatus2.stickY);
-                message.addData((u8)0);
+                message.AddData(PadStatus2.stickY);
+                message.AddData((u8)0);
+                message.AddData(PadStatus2.stickX);
+                message.AddData((u8)0);
               }
               break;
               default:
               case MarioKartGP:
               case MarioKartGP2:
                 // Steering
-                message.addData(PadStatus.stickX);
-                message.addData((u8)0);
+                message.AddData(PadStatus.stickX);
+                message.AddData((u8)0);
 
                 // Gas
-                message.addData(PadStatus.triggerRight);
-                message.addData((u8)0);
+                message.AddData(PadStatus.triggerRight);
+                message.AddData((u8)0);
 
                 // Brake
-                message.addData(PadStatus.triggerLeft);
-                message.addData((u8)0);
+                message.AddData(PadStatus.triggerLeft);
+                message.AddData((u8)0);
                 break;
               }
               break;
@@ -1955,12 +1966,12 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               if (PadStatus.button & PAD_TRIGGER_R)
               {
                 // Tap at center of screen (~320,240)
-                message.addData((void*)"\x01\x00\x8C\x01\x95",
+                message.AddData((void*)"\x01\x00\x8C\x01\x95",
                                 5);  // X=320 (0x0140), Y=240 (0x00F0)
               }
               else
               {
-                message.addData((void*)"\x01\xFF\xFF\xFF\xFF", 5);
+                message.AddData((void*)"\x01\xFF\xFF\xFF\xFF", 5);
               }
 
               DEBUG_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0x25, PositionInput:{}",
@@ -1970,8 +1981,10 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             case JVSIOCommand::CoinSubOutput:
             {
               u32 slot = *jvs_io++;
-              m_coin[slot] -= (*jvs_io++ << 8) | *jvs_io++;
-              message.addData(StatusOkay);
+              u8 coinh = *jvs_io++;
+              u8 coinl = *jvs_io++;
+              m_coin[slot] -= (coinh << 8) | coinl;
+              message.AddData(StatusOkay);
               DEBUG_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0x30, CoinSubOutput: {}", slot);
               break;
             }
@@ -1981,7 +1994,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
               if (bytes)
               {
-                message.addData(StatusOkay);
+                message.AddData(StatusOkay);
 
                 // The lamps are controlled via this
                 if (AMMediaboard::GetGameType() == MarioKartGP)
@@ -2046,7 +2059,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             {
               int slot = *jvs_io++;
               m_coin[slot] += (*jvs_io++ << 8) | *jvs_io++;
-              message.addData(StatusOkay);
+              message.AddData(StatusOkay);
               DEBUG_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0x35, CoinAddOutput: {}", slot);
               break;
             }
@@ -2056,12 +2069,12 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               if (cmd_ == 0x18)
               {  // id check
                 jvs_io += 4;
-                message.addData(StatusOkay);
-                message.addData(0xff);
+                message.AddData(StatusOkay);
+                message.AddData(0xff);
               }
               else
               {
-                message.addData(StatusOkay);
+                message.AddData(StatusOkay);
                 ERROR_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Unknown:{:02x}", cmd_);
               }
               break;
@@ -2074,7 +2087,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 m_wheelinit = 0;
                 m_ic_card_state = 0x20;
               }
-              message.addData(StatusOkay);
+              message.AddData(StatusOkay);
 
               dip_switch_1 |= 1;
               break;
@@ -2082,7 +2095,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               node = *jvs_io++;
               NOTICE_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0xF1, SetAddress: node={}",
                              node);
-              message.addData(node == 1);
+              message.AddData(node == 1);
               dip_switch_1 &= ~1;
               break;
             default:
@@ -2092,7 +2105,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             }
           }
 
-          message.end();
+          message.End();
 
           data_out[data_offset++] = gcam_command;
 

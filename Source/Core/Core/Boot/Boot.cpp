@@ -502,6 +502,12 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
 {
   SConfig& config = SConfig::GetInstance();
 
+  // Triforce systems are region free and always must use the NTSC video mode
+  if (system.IsTriforce())
+  {
+    config.m_region = DiscIO::Region::NTSC_J;
+  }
+
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
   system.GetVideoInterface().Preset(DiscIO::IsNTSC(config.m_region) ||
                                     (system.IsWii() && Config::Get(Config::SYSCONF_PAL60)));
