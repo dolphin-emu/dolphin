@@ -22,6 +22,11 @@ void StopScanThread();
 // Netplay and CSIDevice_GCAdapter make use of this.
 GCPadStatus Input(int chan);
 
+// Retreive the latest input without changing the new connection flag.
+GCPadStatus PeekInput(int chan);
+
+GCPadStatus GetOrigin(int chan);
+
 void Output(int chan, u8 rumble_command);
 bool IsDetected(const char** error_message);
 bool DeviceConnected(int chan);
