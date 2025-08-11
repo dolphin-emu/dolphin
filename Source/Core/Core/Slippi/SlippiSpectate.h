@@ -6,6 +6,7 @@
 #include <thread>
 
 #include <enet/enet.h>
+#include "Common/CommonTypes.h"
 #include "Common/SPSCQueue.h"
 #pragma warning(push, 0)
 #include "nlohmann/json.hpp"
