@@ -81,6 +81,8 @@ public:
 
   void IntializeSpeculativeConstants();
 
+  void FlushRegistersBeforeSlowAccess();
+
   JitBlockCache* GetBlockCache() override { return &blocks; }
   void Trace();
 
