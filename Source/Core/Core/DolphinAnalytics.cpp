@@ -7,7 +7,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <vector>
 
 #include <fmt/format.h>
 
@@ -17,7 +16,6 @@
 #elif defined(__APPLE__)
 #include <objc/message.h>
 #elif defined(ANDROID)
-#include <functional>
 #include "Common/AndroidAnalytics.h"
 #endif
 
@@ -28,23 +26,20 @@
 #include "Common/Crypto/SHA1.h"
 #include "Common/EnumUtils.h"
 #include "Common/Random.h"
-#include "Common/Timer.h"
 #include "Common/Version.h"
+
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/GCPad.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
+
 #include "Core/System.h"
 #include "InputCommon/GCAdapter.h"
 #include "InputCommon/InputConfig.h"
+
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
-
-namespace
-{
-constexpr char ANALYTICS_ENDPOINT[] = "https://analytics.dolphin-emu.org/report";
-}  // namespace
 
 #if defined(ANDROID)
 static std::function<std::string(std::string)> s_get_val_func;
@@ -54,6 +49,100 @@ void DolphinAnalytics::AndroidSetGetValFunc(std::function<std::string(std::strin
 }
 #endif
 
+namespace
+{
+void AddVersionInformationToReportBuilder(Common::AnalyticsReportBuilder* builder)
+{
+  builder->AddData("version-desc", Common::GetScmDescStr());
+  builder->AddData("version-hash", Common::GetScmRevGitStr());
+  builder->AddData("version-branch", Common::GetScmBranchStr());
+  builder->AddData("version-dist", Common::GetScmDistributorStr());
+}
+
+void AddAutoUpdateInformationToReportBuilder(Common::AnalyticsReportBuilder* builder)
+{
+  builder->AddData("update-track", Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
+}
+
+void AddCPUInformationToReportBuilder(Common::AnalyticsReportBuilder* builder)
+{
+  builder->AddData("cpu-summary", cpu_info.Summarize());
+}
+
+#if defined(_WIN32)
+void AddWindowsInformationToReportBuilder(Common::AnalyticsReportBuilder* builder)
+{
+  const auto winver = WindowsRegistry::GetOSVersion();
+  builder->AddData("win-ver-major", static_cast<u32>(winver.dwMajorVersion));
+  builder->AddData("win-ver-minor", static_cast<u32>(winver.dwMinorVersion));
+  builder->AddData("win-ver-build", static_cast<u32>(winver.dwBuildNumber));
+}
+#elif defined(ANDROID)
+void AddAndroidInformationToReportBuilder(Common::AnalyticsReportBuilder* builder)
+{
+  builder->AddData("android-manufacturer", s_get_val_func("DEVICE_MANUFACTURER"));
+  builder->AddData("android-model", s_get_val_func("DEVICE_MODEL"));
+  builder->AddData("android-version", s_get_val_func("DEVICE_OS"));
+}
+#elif defined(__APPLE__)
+void AddMacOSInformationToReportBuilder(Common::AnalyticsReportBuilder* builder)
+{
+  // id processInfo = [NSProcessInfo processInfo]
+  id processInfo = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(
+      objc_getClass("NSProcessInfo"), sel_getUid("processInfo"));
+  if (processInfo)
+  {
+    struct OSVersion  // NSOperatingSystemVersion
+    {
+      s64 major_version;  // NSInteger majorVersion
+      s64 minor_version;  // NSInteger minorVersion
+      s64 patch_version;  // NSInteger patchVersion
+    };
+    // On x86_64, we need to explicitly call objc_msgSend_stret for a struct.
+#ifdef _M_ARM_64
+#define msgSend objc_msgSend
+#else
+#define msgSend objc_msgSend_stret
+#endif
+    // NSOperatingSystemVersion version = [processInfo operatingSystemVersion]
+    OSVersion version = reinterpret_cast<OSVersion (*)(id, SEL)>(msgSend)(
+        processInfo, sel_getUid("operatingSystemVersion"));
+#undef msgSend
+    builder->AddData("osx-ver-major", version.major_version);
+    builder->AddData("osx-ver-minor", version.minor_version);
+    builder->AddData("osx-ver-bugfix", version.patch_version);
+  }
+}
+#endif
+
+void AddPlatformInformationToReportBuilder(Common::AnalyticsReportBuilder* builder)
+{
+#if defined(_WIN32)
+  builder->AddData("os-type", "windows");
+  AddWindowsInformationToReportBuilder(builder);
+#elif defined(ANDROID)
+  builder->AddData("os-type", "android");
+  AddAndroidInformationToReportBuilder(builder);
+#elif defined(__APPLE__)
+  builder->AddData("os-type", "osx");
+  AddMacOSInformationToReportBuilder(builder);
+#elif defined(__linux__)
+  builder->AddData("os-type", "linux");
+#elif defined(__FreeBSD__)
+  builder->AddData("os-type", "freebsd");
+#elif defined(__OpenBSD__)
+  builder->AddData("os-type", "openbsd");
+#elif defined(__NetBSD__)
+  builder->AddData("os-type", "netbsd");
+#elif defined(__HAIKU__)
+  builder->AddData("os-type", "haiku");
+#else
+  builder->AddData("os-type", "unknown");
+#endif
+}
+}  // namespace
+
+// Under arm64, we need to call objc_msgSend to receive a struct.
 DolphinAnalytics::DolphinAnalytics()
 {
   ReloadConfig();
@@ -68,16 +157,17 @@ DolphinAnalytics& DolphinAnalytics::Instance()
 
 void DolphinAnalytics::ReloadConfig()
 {
-  std::lock_guard lk{m_reporter_mutex};
+  const std::lock_guard lk{m_reporter_mutex};
 
   // Install the HTTP backend if analytics support is enabled.
   std::unique_ptr<Common::AnalyticsReportingBackend> new_backend;
   if (Config::Get(Config::MAIN_ANALYTICS_ENABLED))
   {
+    constexpr char analytics_endpoint[] = "https://analytics.dolphin-emu.org/report";
 #if defined(ANDROID)
-    new_backend = std::make_unique<Common::AndroidAnalyticsBackend>(ANALYTICS_ENDPOINT);
+    new_backend = std::make_unique<Common::AndroidAnalyticsBackend>(analytics_endpoint);
 #else
-    new_backend = std::make_unique<Common::HttpAnalyticsBackend>(ANALYTICS_ENDPOINT);
+    new_backend = std::make_unique<Common::HttpAnalyticsBackend>(analytics_endpoint);
 #endif
   }
   m_reporter.SetBackend(std::move(new_backend));
@@ -134,7 +224,7 @@ void DolphinAnalytics::ReportGameStart()
 
   // Reset per-game state.
   m_reported_quirks.fill(false);
-  InitializePerformanceSampling();
+  m_sample_aggregator.InitializePerformanceSampling();
 }
 
 // Keep in sync with enum class GameQuirk definition.
@@ -173,12 +263,12 @@ constexpr std::array GAME_QUIRKS_NAMES{
     "invalid-texture-coordinate-component-format",
     "invalid-color-component-format",
 };
-static_assert(GAME_QUIRKS_NAMES.size() == static_cast<u32>(GameQuirk::COUNT),
+static_assert(GAME_QUIRKS_NAMES.size() == static_cast<u32>(GameQuirk::Count),
               "Game quirks names and enum definition are out of sync.");
 
 void DolphinAnalytics::ReportGameQuirk(GameQuirk quirk)
 {
-  u32 quirk_idx = static_cast<u32>(quirk);
+  const u32 quirk_idx = static_cast<u32>(quirk);
 
   // Only report once per run.
   if (m_reported_quirks[quirk_idx])
@@ -193,140 +283,34 @@ void DolphinAnalytics::ReportGameQuirk(GameQuirk quirk)
 
 void DolphinAnalytics::ReportPerformanceInfo(PerformanceSample&& sample)
 {
-  if (ShouldStartPerformanceSampling())
+  m_sample_aggregator.AddSampleIfSamplingInProgress(std::move(sample));
+  const std::optional<PerformanceSampleAggregator::CompletedReport> report_optional =
+      m_sample_aggregator.PopReportIfComplete();
+  if (!report_optional)
   {
-    m_sampling_performance_info = true;
+    return;
   }
+  const PerformanceSampleAggregator::CompletedReport& report = *report_optional;
 
-  if (m_sampling_performance_info)
-  {
-    m_performance_samples.emplace_back(std::move(sample));
-  }
+  // The per game builder should already exist -- there is no way we can be reporting performance
+  // info without a game start event having been generated.
+  Common::AnalyticsReportBuilder builder(m_per_game_builder);
+  builder.AddData("type", "performance");
+  builder.AddData("speed", report.speed);
+  builder.AddData("prims", report.primitives);
+  builder.AddData("draw-calls", report.draw_calls);
 
-  if (m_performance_samples.size() >= NUM_PERFORMANCE_SAMPLES_PER_REPORT)
-  {
-    std::vector<u32> speed_times_1000(m_performance_samples.size());
-    std::vector<u32> num_prims(m_performance_samples.size());
-    std::vector<u32> num_draw_calls(m_performance_samples.size());
-    for (size_t i = 0; i < m_performance_samples.size(); ++i)
-    {
-      speed_times_1000[i] = static_cast<u32>(m_performance_samples[i].speed_ratio * 1000);
-      num_prims[i] = m_performance_samples[i].num_prims;
-      num_draw_calls[i] = m_performance_samples[i].num_draw_calls;
-    }
-
-    // The per game builder should already exist -- there is no way we can be reporting performance
-    // info without a game start event having been generated.
-    Common::AnalyticsReportBuilder builder(m_per_game_builder);
-    builder.AddData("type", "performance");
-    builder.AddData("speed", speed_times_1000);
-    builder.AddData("prims", num_prims);
-    builder.AddData("draw-calls", num_draw_calls);
-
-    Send(builder);
-
-    // Clear up and stop sampling until next time ShouldStartPerformanceSampling() says so.
-    m_performance_samples.clear();
-    m_sampling_performance_info = false;
-  }
-}
-
-void DolphinAnalytics::InitializePerformanceSampling()
-{
-  m_performance_samples.clear();
-  m_sampling_performance_info = false;
-
-  u64 wait_us =
-      PERFORMANCE_SAMPLING_INITIAL_WAIT_TIME_SECS * 1000000 +
-      Common::Random::GenerateValue<u64>() % (PERFORMANCE_SAMPLING_WAIT_TIME_JITTER_SECS * 1000000);
-  m_sampling_next_start_us = Common::Timer::NowUs() + wait_us;
-}
-
-bool DolphinAnalytics::ShouldStartPerformanceSampling()
-{
-  if (Common::Timer::NowUs() < m_sampling_next_start_us)
-    return false;
-
-  u64 wait_us =
-      PERFORMANCE_SAMPLING_INTERVAL_SECS * 1000000 +
-      Common::Random::GenerateValue<u64>() % (PERFORMANCE_SAMPLING_WAIT_TIME_JITTER_SECS * 1000000);
-  m_sampling_next_start_us = Common::Timer::NowUs() + wait_us;
-  return true;
+  Send(builder);
 }
 
 void DolphinAnalytics::MakeBaseBuilder()
 {
-  Common::AnalyticsReportBuilder builder;
+  m_base_builder = Common::AnalyticsReportBuilder();
 
-  // Version information.
-  builder.AddData("version-desc", Common::GetScmDescStr());
-  builder.AddData("version-hash", Common::GetScmRevGitStr());
-  builder.AddData("version-branch", Common::GetScmBranchStr());
-  builder.AddData("version-dist", Common::GetScmDistributorStr());
-
-  // Auto-Update information.
-  builder.AddData("update-track", Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
-
-  // CPU information.
-  builder.AddData("cpu-summary", cpu_info.Summarize());
-
-// OS information.
-#if defined(_WIN32)
-  builder.AddData("os-type", "windows");
-
-  const auto winver = WindowsRegistry::GetOSVersion();
-  builder.AddData("win-ver-major", static_cast<u32>(winver.dwMajorVersion));
-  builder.AddData("win-ver-minor", static_cast<u32>(winver.dwMinorVersion));
-  builder.AddData("win-ver-build", static_cast<u32>(winver.dwBuildNumber));
-#elif defined(ANDROID)
-  builder.AddData("os-type", "android");
-  builder.AddData("android-manufacturer", s_get_val_func("DEVICE_MANUFACTURER"));
-  builder.AddData("android-model", s_get_val_func("DEVICE_MODEL"));
-  builder.AddData("android-version", s_get_val_func("DEVICE_OS"));
-#elif defined(__APPLE__)
-  builder.AddData("os-type", "osx");
-
-  // id processInfo = [NSProcessInfo processInfo]
-  id processInfo = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(
-      objc_getClass("NSProcessInfo"), sel_getUid("processInfo"));
-  if (processInfo)
-  {
-    struct OSVersion  // NSOperatingSystemVersion
-    {
-      s64 major_version;  // NSInteger majorVersion
-      s64 minor_version;  // NSInteger minorVersion
-      s64 patch_version;  // NSInteger patchVersion
-    };
-    // Under arm64, we need to call objc_msgSend to receive a struct.
-    // On x86_64, we need to explicitly call objc_msgSend_stret for a struct.
-#ifdef _M_ARM_64
-#define msgSend objc_msgSend
-#else
-#define msgSend objc_msgSend_stret
-#endif
-    // NSOperatingSystemVersion version = [processInfo operatingSystemVersion]
-    OSVersion version = reinterpret_cast<OSVersion (*)(id, SEL)>(msgSend)(
-        processInfo, sel_getUid("operatingSystemVersion"));
-#undef msgSend
-    builder.AddData("osx-ver-major", version.major_version);
-    builder.AddData("osx-ver-minor", version.minor_version);
-    builder.AddData("osx-ver-bugfix", version.patch_version);
-  }
-#elif defined(__linux__)
-  builder.AddData("os-type", "linux");
-#elif defined(__FreeBSD__)
-  builder.AddData("os-type", "freebsd");
-#elif defined(__OpenBSD__)
-  builder.AddData("os-type", "openbsd");
-#elif defined(__NetBSD__)
-  builder.AddData("os-type", "netbsd");
-#elif defined(__HAIKU__)
-  builder.AddData("os-type", "haiku");
-#else
-  builder.AddData("os-type", "unknown");
-#endif
-
-  m_base_builder = builder;
+  AddVersionInformationToReportBuilder(&m_base_builder);
+  AddAutoUpdateInformationToReportBuilder(&m_base_builder);
+  AddCPUInformationToReportBuilder(&m_base_builder);
+  AddPlatformInformationToReportBuilder(&m_base_builder);
 }
 
 static const char* GetShaderCompilationMode(const VideoConfig& video_config)
@@ -348,12 +332,13 @@ static const char* GetShaderCompilationMode(const VideoConfig& video_config)
 void DolphinAnalytics::MakePerGameBuilder()
 {
   Common::AnalyticsReportBuilder builder(m_base_builder);
+  const SConfig& config = SConfig::GetInstance();
 
   // Gameid.
-  builder.AddData("gameid", SConfig::GetInstance().GetGameID());
+  builder.AddData("gameid", config.GetGameID());
 
   // Unique id bound to the gameid.
-  builder.AddData("id", MakeUniqueId(SConfig::GetInstance().GetGameID()));
+  builder.AddData("id", MakeUniqueId(config.GetGameID()));
 
   // Configuration.
   builder.AddData("cfg-dsp-hle", Config::Get(Config::MAIN_DSP_HLE));
