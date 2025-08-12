@@ -1273,8 +1273,20 @@ void MMU::GenerateDSIException(u32 effective_address, bool write)
   // DSI exceptions are only supported in MMU mode.
   if (!m_system.IsMMUMode())
   {
-    PanicAlertFmt("Invalid {} {:#010x}, PC = {:#010x}", write ? "write to" : "read from",
-                  effective_address, m_ppc_state.pc);
+    if (write)
+    {
+      PanicAlertFmtT(
+          "Invalid write to {0:#010x}, PC = {1:#010x}; the game probably would have crashed on "
+          "real hardware.\n\nFor accurate emulation, enable MMU in advanced settings.",
+          effective_address, m_ppc_state.pc);
+    }
+    else
+    {
+      PanicAlertFmtT(
+          "Invalid read from {0:#010x}, PC = {1:#010x}; the game probably would have crashed on "
+          "real hardware.\n\nFor accurate emulation, enable MMU in advanced settings.",
+          effective_address, m_ppc_state.pc);
+    }
     if (m_system.IsPauseOnPanicMode())
     {
       m_system.GetCPU().Break();
