@@ -6,12 +6,15 @@
 #include <QPushButton>
 #include <QWidget>
 
+#include "Core/PowerPC/PowerPC.h"
+
 class ConfigBool;
+template <typename T>
+class ConfigChoiceMap;
 class ConfigFloatSlider;
 class ConfigSlider;
 class ConfigSliderU32;
 class QCheckBox;
-class QComboBox;
 class QLabel;
 class QRadioButton;
 class QSlider;
@@ -35,7 +38,7 @@ private:
 
   void OnResetButtonClicked();
 
-  QComboBox* m_cpu_emulation_engine_combobox;
+  ConfigChoiceMap<PowerPC::CPUCore>* m_cpu_emulation_engine_combobox;
   ConfigBool* m_enable_mmu_checkbox;
   ConfigBool* m_pause_on_panic_checkbox;
   ConfigBool* m_accurate_cpu_cache_checkbox;
