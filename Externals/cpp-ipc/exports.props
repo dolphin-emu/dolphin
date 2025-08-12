@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)cpp-ipc\cpp-ipc\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)cpp-ipc\cpp-ipc.vcxproj">
+      <Project>{7299DDD3-BBEC-4027-AF30-8DACC5415F96}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
