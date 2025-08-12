@@ -8,19 +8,14 @@
 #include <optional>
 #include <utility>
 
-#include <QCheckBox>
-#include <QComboBox>
 #include <QDir>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
-#include <QSlider>
 #include <QSpacerItem>
-#include <QStringList>
 
 #include "Common/Config/Config.h"
 #include "Common/FatFsUtil.h"
@@ -33,28 +28,17 @@
 #include "Core/System.h"
 #include "Core/USBUtils.h"
 
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
+#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
+#include "DolphinQt/Config/ConfigControls/ConfigUserPath.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/QtUtils/QtUtils.h"
-#include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/USBDevicePicker.h"
-
-// SYSCONF uses 0 for bottom and 1 for top, but we place them in
-// the other order in the GUI so that Top will be above Bottom,
-// matching the respective physical placements of the sensor bar.
-// This also matches the layout of the settings in the Wii Menu.
-static int TranslateSensorBarPosition(int position)
-{
-  if (position == 0)
-    return 1;
-  if (position == 1)
-    return 0;
-
-  return position;
-}
 
 namespace
 {
@@ -89,7 +73,7 @@ constexpr std::array sd_size_combo_entries{
 WiiPane::WiiPane(QWidget* parent) : QWidget(parent)
 {
   CreateLayout();
-  LoadConfig();
+  PopulateUSBPassthroughListWidget();
   ConnectLayout();
   ValidateSelectionState();
   OnEmulationStateChanged(!Core::IsUninitialized(Core::System::GetInstance()));
@@ -106,38 +90,14 @@ void WiiPane::CreateLayout()
 
 void WiiPane::ConnectLayout()
 {
-  // Misc Settings
-  connect(m_aspect_ratio_choice, &QComboBox::currentIndexChanged, this, &WiiPane::OnSaveConfig);
-  connect(m_system_language_choice, &QComboBox::currentIndexChanged, this, &WiiPane::OnSaveConfig);
-  connect(m_sound_mode_choice, &QComboBox::currentIndexChanged, this, &WiiPane::OnSaveConfig);
-  connect(m_screensaver_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
-  connect(m_pal60_mode_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
-  connect(m_connect_keyboard_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
-  connect(&Settings::Instance(), &Settings::SDCardInsertionChanged, m_sd_card_checkbox,
-          &QCheckBox::setChecked);
-  connect(&Settings::Instance(), &Settings::USBKeyboardConnectionChanged,
-          m_connect_keyboard_checkbox, &QCheckBox::setChecked);
-  connect(m_wiilink_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
-
-  // SD Card Settings
-  connect(m_sd_card_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
-  connect(m_allow_sd_writes_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
-  connect(m_sync_sd_folder_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
-  connect(m_sd_card_size_combo, &QComboBox::currentIndexChanged, this, &WiiPane::OnSaveConfig);
-
   // Whitelisted USB Passthrough Devices
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this,
+          &WiiPane::PopulateUSBPassthroughListWidget);
   connect(m_whitelist_usb_list, &QListWidget::itemClicked, this, &WiiPane::ValidateSelectionState);
   connect(m_whitelist_usb_add_button, &QPushButton::clicked, this,
           &WiiPane::OnUSBWhitelistAddButton);
   connect(m_whitelist_usb_remove_button, &QPushButton::clicked, this,
           &WiiPane::OnUSBWhitelistRemoveButton);
-
-  // Wii Remote Settings
-  connect(m_wiimote_ir_sensor_position, &QComboBox::currentIndexChanged, this,
-          &WiiPane::OnSaveConfig);
-  connect(m_wiimote_ir_sensitivity, &QSlider::valueChanged, this, &WiiPane::OnSaveConfig);
-  connect(m_wiimote_speaker_volume, &QSlider::valueChanged, this, &WiiPane::OnSaveConfig);
-  connect(m_wiimote_motor, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
 
   // Emulation State
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
@@ -151,45 +111,44 @@ void WiiPane::CreateMisc()
   auto* misc_settings_group_layout = new QGridLayout();
   misc_settings_group->setLayout(misc_settings_group_layout);
   m_main_layout->addWidget(misc_settings_group);
-  m_pal60_mode_checkbox = new QCheckBox(tr("Use PAL60 Mode (EuRGB60)"));
-  m_screensaver_checkbox = new QCheckBox(tr("Enable Screen Saver"));
-  m_wiilink_checkbox = new QCheckBox(tr("Enable WiiConnect24 via WiiLink"));
-  m_connect_keyboard_checkbox = new QCheckBox(tr("Connect USB Keyboard"));
+  m_pal60_mode_checkbox = new ConfigBool(tr("Use PAL60 Mode (EuRGB60)"), Config::SYSCONF_PAL60);
+  m_screensaver_checkbox = new ConfigBool(tr("Enable Screen Saver"), Config::SYSCONF_SCREENSAVER);
+  m_wiilink_checkbox =
+      new ConfigBool(tr("Enable WiiConnect24 via WiiLink"), Config::MAIN_WII_WIILINK_ENABLE);
+  m_connect_keyboard_checkbox =
+      new ConfigBool(tr("Connect USB Keyboard"), Config::MAIN_WII_KEYBOARD);
 
   m_aspect_ratio_choice_label = new QLabel(tr("Aspect Ratio:"));
-  m_aspect_ratio_choice = new QComboBox();
-  m_aspect_ratio_choice->addItem(tr("4:3"));
-  m_aspect_ratio_choice->addItem(tr("16:9"));
+  m_aspect_ratio_choice = new ConfigChoiceMap<bool>({{tr("4:3"), false}, {tr("16:9"), true}},
+                                                    Config::SYSCONF_WIDESCREEN);
 
   m_system_language_choice_label = new QLabel(tr("System Language:"));
-  m_system_language_choice = new QComboBox();
-  m_system_language_choice->addItem(tr("Japanese"));
-  m_system_language_choice->addItem(tr("English"));
-  m_system_language_choice->addItem(tr("German"));
-  m_system_language_choice->addItem(tr("French"));
-  m_system_language_choice->addItem(tr("Spanish"));
-  m_system_language_choice->addItem(tr("Italian"));
-  m_system_language_choice->addItem(tr("Dutch"));
-  m_system_language_choice->addItem(tr("Simplified Chinese"));
-  m_system_language_choice->addItem(tr("Traditional Chinese"));
-  m_system_language_choice->addItem(tr("Korean"));
+  m_system_language_choice = new ConfigChoiceU32(
+      {tr("Japanese"), tr("English"), tr("German"), tr("French"), tr("Spanish"), tr("Italian"),
+       tr("Dutch"), tr("Simplified Chinese"), tr("Traditional Chinese"), tr("Korean")},
+      Config::SYSCONF_LANGUAGE);
 
   m_sound_mode_choice_label = new QLabel(tr("Sound:"));
-  m_sound_mode_choice = new QComboBox();
-  m_sound_mode_choice->addItem(tr("Mono"));
-  m_sound_mode_choice->addItem(tr("Stereo"));
-  // i18n: Surround audio (Dolby Pro Logic II)
-  m_sound_mode_choice->addItem(tr("Surround"));
+  m_sound_mode_choice = new ConfigChoiceU32(
+      {// i18n: Mono audio
+       tr("Mono"),
+       // i18n: Stereo audio
+       tr("Stereo"),
+       // i18n: Surround audio (Dolby Pro Logic II)
+       tr("Surround")},
+      Config::SYSCONF_SOUND_MODE);
 
-  m_pal60_mode_checkbox->setToolTip(tr("Sets the Wii display mode to 60Hz (480i) instead of 50Hz "
-                                       "(576i) for PAL games.\nMay not work for all games."));
-  m_screensaver_checkbox->setToolTip(tr("Dims the screen after five minutes of inactivity."));
-  m_wiilink_checkbox->setToolTip(tr(
+  m_pal60_mode_checkbox->SetDescription(
+      tr("Sets the Wii display mode to 60Hz (480i) instead of 50Hz "
+         "(576i) for PAL games.\nMay not work for all games."));
+  m_screensaver_checkbox->SetDescription(tr("Dims the screen after five minutes of inactivity."));
+  m_wiilink_checkbox->SetDescription(tr(
       "Enables the WiiLink service for WiiConnect24 channels.\nWiiLink is an alternate provider "
       "for the discontinued WiiConnect24 Channels such as the Forecast and Nintendo Channels\nRead "
       "the Terms of Service at: https://www.wiilink24.com/tos"));
-  m_system_language_choice->setToolTip(tr("Sets the Wii system language."));
-  m_connect_keyboard_checkbox->setToolTip(tr("May cause slow down in Wii Menu and some games."));
+  m_system_language_choice->SetDescription(tr("Sets the Wii system language."));
+  m_connect_keyboard_checkbox->SetDescription(
+      tr("May cause slow down in Wii Menu and some games."));
 
   misc_settings_group_layout->addWidget(m_pal60_mode_checkbox, 0, 0, 1, 1);
   misc_settings_group_layout->addWidget(m_connect_keyboard_checkbox, 0, 1, 1, 1);
@@ -211,18 +170,17 @@ void WiiPane::CreateSDCard()
   m_main_layout->addWidget(sd_settings_group);
 
   int row = 0;
-  m_sd_card_checkbox = new QCheckBox(tr("Insert SD Card"));
-  m_sd_card_checkbox->setToolTip(tr("Supports SD and SDHC. Default size is 128 MB."));
-  m_allow_sd_writes_checkbox = new QCheckBox(tr("Allow Writes to SD Card"));
+  m_sd_card_checkbox = new ConfigBool(tr("Insert SD Card"), Config::MAIN_WII_SD_CARD);
+  m_sd_card_checkbox->SetDescription(tr("Supports SD and SDHC. Default size is 128 MB."));
+  m_allow_sd_writes_checkbox =
+      new ConfigBool(tr("Allow Writes to SD Card"), Config::MAIN_ALLOW_SD_WRITES);
   sd_settings_group_layout->addWidget(m_sd_card_checkbox, row, 0, 1, 1);
   sd_settings_group_layout->addWidget(m_allow_sd_writes_checkbox, row, 1, 1, 1);
   ++row;
 
   {
     QHBoxLayout* hlayout = new QHBoxLayout;
-    m_sd_raw_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(F_WIISDCARDIMAGE_IDX)));
-    connect(m_sd_raw_edit, &QLineEdit::editingFinished,
-            [this] { SetSDRaw(m_sd_raw_edit->text()); });
+    m_sd_raw_edit = new ConfigUserPath(F_WIISDCARDIMAGE_IDX, Config::MAIN_WII_SD_CARD_IMAGE_PATH);
     QPushButton* sdcard_open = new NonDefaultQPushButton(QStringLiteral("..."));
     connect(sdcard_open, &QPushButton::clicked, this, &WiiPane::BrowseSDRaw);
     hlayout->addWidget(new QLabel(tr("SD Card Path:")));
@@ -233,8 +191,9 @@ void WiiPane::CreateSDCard()
     ++row;
   }
 
-  m_sync_sd_folder_checkbox = new QCheckBox(tr("Automatically Sync with Folder"));
-  m_sync_sd_folder_checkbox->setToolTip(
+  m_sync_sd_folder_checkbox = new ConfigBool(tr("Automatically Sync with Folder"),
+                                             Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC);
+  m_sync_sd_folder_checkbox->SetDescription(
       tr("Synchronizes the SD Card with the SD Sync Folder when starting and ending emulation."));
   sd_settings_group_layout->addWidget(m_sync_sd_folder_checkbox, row, 0, 1, 2);
   ++row;
@@ -242,9 +201,7 @@ void WiiPane::CreateSDCard()
   {
     QHBoxLayout* hlayout = new QHBoxLayout;
     m_sd_sync_folder_edit =
-        new QLineEdit(QString::fromStdString(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX)));
-    connect(m_sd_sync_folder_edit, &QLineEdit::editingFinished,
-            [this] { SetSDSyncFolder(m_sd_sync_folder_edit->text()); });
+        new ConfigUserPath(D_WIISDCARDSYNCFOLDER_IDX, Config::MAIN_WII_SD_CARD_SYNC_FOLDER_PATH);
     QPushButton* sdcard_open = new NonDefaultQPushButton(QStringLiteral("..."));
     connect(sdcard_open, &QPushButton::clicked, this, &WiiPane::BrowseSDSyncFolder);
     hlayout->addWidget(new QLabel(tr("SD Sync Folder:")));
@@ -255,9 +212,11 @@ void WiiPane::CreateSDCard()
     ++row;
   }
 
-  m_sd_card_size_combo = new QComboBox();
-  for (size_t i = 0; i < sd_size_combo_entries.size(); ++i)
-    m_sd_card_size_combo->addItem(tr(sd_size_combo_entries[i].name));
+  std::vector<std::pair<QString, u64>> sd_size_choices;
+  for (const auto& entry : sd_size_combo_entries)
+    sd_size_choices.emplace_back(tr(entry.name), entry.size);
+
+  m_sd_card_size_combo = new ConfigChoiceMap(sd_size_choices, Config::MAIN_WII_SD_CARD_FILESIZE);
   sd_settings_group_layout->addWidget(new QLabel(tr("SD Card File Size:")), row, 0);
   sd_settings_group_layout->addWidget(m_sd_card_size_combo, row, 1);
   ++row;
@@ -346,26 +305,21 @@ void WiiPane::CreateWiiRemoteSettings()
   auto* wii_remote_settings_group_layout = new QGridLayout();
   wii_remote_settings_group->setLayout(wii_remote_settings_group_layout);
   m_main_layout->addWidget(wii_remote_settings_group);
-  m_wiimote_motor = new QCheckBox(tr("Enable Rumble"));
+  m_wiimote_motor = new ConfigBool(tr("Enable Rumble"), Config::SYSCONF_WIIMOTE_MOTOR);
 
   m_wiimote_sensor_position_label = new QLabel(tr("Sensor Bar Position:"));
-  m_wiimote_ir_sensor_position = new QComboBox();
-  m_wiimote_ir_sensor_position->addItem(tr("Top"));
-  m_wiimote_ir_sensor_position->addItem(tr("Bottom"));
+  m_wiimote_ir_sensor_position = new ConfigChoiceMap<u32>({{tr("Top"), 1}, {tr("Bottom"), 0}},
+                                                          Config::SYSCONF_SENSOR_BAR_POSITION);
 
   // IR Sensitivity Slider
   // i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
   m_wiimote_ir_sensitivity_label = new QLabel(tr("IR Sensitivity:"));
-  m_wiimote_ir_sensitivity = new QSlider(Qt::Horizontal);
   // Wii menu saves values from 1 to 5.
-  m_wiimote_ir_sensitivity->setMinimum(1);
-  m_wiimote_ir_sensitivity->setMaximum(5);
+  m_wiimote_ir_sensitivity = new ConfigSliderU32(1, 5, Config::SYSCONF_SENSOR_BAR_SENSITIVITY, 1);
 
   // Speaker Volume Slider
   m_wiimote_speaker_volume_label = new QLabel(tr("Speaker Volume:"));
-  m_wiimote_speaker_volume = new QSlider(Qt::Horizontal);
-  m_wiimote_speaker_volume->setMinimum(0);
-  m_wiimote_speaker_volume->setMaximum(127);
+  m_wiimote_speaker_volume = new ConfigSliderU32(0, 127, Config::SYSCONF_SPEAKER_VOLUME, 1);
 
   wii_remote_settings_group_layout->addWidget(m_wiimote_sensor_position_label, 0, 0);
   wii_remote_settings_group_layout->addWidget(m_wiimote_ir_sensor_position, 0, 1);
@@ -390,68 +344,6 @@ void WiiPane::OnEmulationStateChanged(bool running)
   m_wiimote_ir_sensitivity->setEnabled(!running);
   m_wiimote_ir_sensor_position->setEnabled(!running);
   m_wiilink_checkbox->setEnabled(!running);
-}
-
-void WiiPane::LoadConfig()
-{
-  m_screensaver_checkbox->setChecked(Config::Get(Config::SYSCONF_SCREENSAVER));
-  m_pal60_mode_checkbox->setChecked(Config::Get(Config::SYSCONF_PAL60));
-  m_connect_keyboard_checkbox->setChecked(Settings::Instance().IsUSBKeyboardConnected());
-  m_aspect_ratio_choice->setCurrentIndex(Config::Get(Config::SYSCONF_WIDESCREEN));
-  m_system_language_choice->setCurrentIndex(Config::Get(Config::SYSCONF_LANGUAGE));
-  m_sound_mode_choice->setCurrentIndex(Config::Get(Config::SYSCONF_SOUND_MODE));
-  m_wiilink_checkbox->setChecked(Config::Get(Config::MAIN_WII_WIILINK_ENABLE));
-
-  m_sd_card_checkbox->setChecked(Settings::Instance().IsSDCardInserted());
-  m_allow_sd_writes_checkbox->setChecked(Config::Get(Config::MAIN_ALLOW_SD_WRITES));
-  m_sync_sd_folder_checkbox->setChecked(Config::Get(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC));
-
-  const u64 sd_card_size = Config::Get(Config::MAIN_WII_SD_CARD_FILESIZE);
-  for (size_t i = 0; i < sd_size_combo_entries.size(); ++i)
-  {
-    if (sd_size_combo_entries[i].size == sd_card_size)
-      m_sd_card_size_combo->setCurrentIndex(static_cast<int>(i));
-  }
-
-  PopulateUSBPassthroughListWidget();
-
-  m_wiimote_ir_sensor_position->setCurrentIndex(
-      TranslateSensorBarPosition(Config::Get(Config::SYSCONF_SENSOR_BAR_POSITION)));
-  m_wiimote_ir_sensitivity->setValue(Config::Get(Config::SYSCONF_SENSOR_BAR_SENSITIVITY));
-  m_wiimote_speaker_volume->setValue(Config::Get(Config::SYSCONF_SPEAKER_VOLUME));
-  m_wiimote_motor->setChecked(Config::Get(Config::SYSCONF_WIIMOTE_MOTOR));
-}
-
-void WiiPane::OnSaveConfig()
-{
-  Config::ConfigChangeCallbackGuard config_guard;
-
-  Config::SetBase(Config::SYSCONF_SCREENSAVER, m_screensaver_checkbox->isChecked());
-  Config::SetBase(Config::SYSCONF_PAL60, m_pal60_mode_checkbox->isChecked());
-  Settings::Instance().SetUSBKeyboardConnected(m_connect_keyboard_checkbox->isChecked());
-
-  Config::SetBase<u32>(Config::SYSCONF_SENSOR_BAR_POSITION,
-                       TranslateSensorBarPosition(m_wiimote_ir_sensor_position->currentIndex()));
-  Config::SetBase<u32>(Config::SYSCONF_SENSOR_BAR_SENSITIVITY, m_wiimote_ir_sensitivity->value());
-  Config::SetBase<u32>(Config::SYSCONF_SPEAKER_VOLUME, m_wiimote_speaker_volume->value());
-  Config::SetBase<u32>(Config::SYSCONF_LANGUAGE, m_system_language_choice->currentIndex());
-  Config::SetBase<bool>(Config::SYSCONF_WIDESCREEN, m_aspect_ratio_choice->currentIndex());
-  Config::SetBase<u32>(Config::SYSCONF_SOUND_MODE, m_sound_mode_choice->currentIndex());
-  Config::SetBase(Config::SYSCONF_WIIMOTE_MOTOR, m_wiimote_motor->isChecked());
-  Config::SetBase(Config::MAIN_WII_WIILINK_ENABLE, m_wiilink_checkbox->isChecked());
-
-  Settings::Instance().SetSDCardInserted(m_sd_card_checkbox->isChecked());
-  Config::SetBase(Config::MAIN_ALLOW_SD_WRITES, m_allow_sd_writes_checkbox->isChecked());
-  Config::SetBase(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC,
-                  m_sync_sd_folder_checkbox->isChecked());
-
-  const int sd_card_size_index = m_sd_card_size_combo->currentIndex();
-  if (sd_card_size_index >= 0 &&
-      static_cast<size_t>(sd_card_size_index) < sd_size_combo_entries.size())
-  {
-    Config::SetBase(Config::MAIN_WII_SD_CARD_FILESIZE,
-                    sd_size_combo_entries[sd_card_size_index].size);
-  }
 }
 
 void WiiPane::ValidateSelectionState()
@@ -518,13 +410,7 @@ void WiiPane::BrowseSDRaw()
       tr("SD Card Image (*.raw);;"
          "All Files (*)")));
   if (!file.isEmpty())
-    SetSDRaw(file);
-}
-
-void WiiPane::SetSDRaw(const QString& path)
-{
-  Config::SetBase(Config::MAIN_WII_SD_CARD_IMAGE_PATH, path.toStdString());
-  SignalBlocking(m_sd_raw_edit)->setText(path);
+    m_sd_raw_edit->SetTextAndUpdate(file);
 }
 
 void WiiPane::BrowseSDSyncFolder()
@@ -533,11 +419,5 @@ void WiiPane::BrowseSDSyncFolder()
       this, tr("Select a Folder to Sync with the SD Card Image"),
       QString::fromStdString(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX))));
   if (!file.isEmpty())
-    SetSDSyncFolder(file);
-}
-
-void WiiPane::SetSDSyncFolder(const QString& path)
-{
-  Config::SetBase(Config::MAIN_WII_SD_CARD_SYNC_FOLDER_PATH, path.toStdString());
-  SignalBlocking(m_sd_sync_folder_edit)->setText(path);
+    m_sd_sync_folder_edit->SetTextAndUpdate(file);
 }
