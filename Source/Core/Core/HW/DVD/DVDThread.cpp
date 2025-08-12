@@ -308,6 +308,7 @@ void DVDThread::ProcessReadRequest(ReadRequest&& request)
   m_result_queue.Push(ReadResult(std::move(request), std::move(buffer)));
 }
 
+// slippi change
 void DVDThread::ReadFile(std::string& fileName, std::vector<u8>& buf)
 {
   if (HasDisc())
@@ -324,6 +325,7 @@ void DVDThread::ReadFile(std::string& fileName, std::vector<u8>& buf)
     INFO_LOG_FMT(SLIPPI, "Failed to open file: {}", fileName.c_str());
   }
 }
+// end slippi change
 
 std::string DVDThread::GetFileName(const DiscIO::Partition& partition, u64 offset)
 {
