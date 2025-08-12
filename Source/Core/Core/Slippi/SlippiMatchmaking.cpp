@@ -776,7 +776,7 @@ SlippiMatchmaking::SlippiRank SlippiMatchmaking::GetPlayerRank(u8 port)
     return SlippiRank::Diamond3;
   }
 
-  if (rating >= 2191.75f && global > 0 && regional > 0)
+  if (rating >= 2191.75f && (global > 0 || regional > 0))
   {
     return SlippiRank::Grandmaster;
   }
