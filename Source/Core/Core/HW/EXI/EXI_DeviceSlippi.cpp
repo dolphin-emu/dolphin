@@ -2107,10 +2107,10 @@ void CEXISlippi::prepareOnlineMatchState()
   u32 rng_offset = 0;
   std::string local_player_name = "";
   std::string opp_name = "";
-  std::string p1_ame = "";
+  std::string p1_name = "";
   std::string p2_name = "";
-  u8 local_rank = 0;
-  u8 opp_rank = 0;
+  s8 p1_rank = 0;
+  s8 p2_rank = 0;
   u8 chat_message_id = 0;
   u8 chat_message_player_idx = 0;
   u8 sent_chat_message_id = 0;
@@ -2123,8 +2123,8 @@ void CEXISlippi::prepareOnlineMatchState()
   // in CSS p1 is always current player and p2 is opponent
   local_player_name = p1_ame = user_info.display_name;
   opp_name = p2_name = "Player 2";
-  local_rank = 8;
-  opp_rank = 15;
+  p1_rank = 8;
+  p2_rank = 15;
 #endif
 
   SlippiDesyncRecoveryResp desync_recovery;
@@ -2183,7 +2183,7 @@ void CEXISlippi::prepareOnlineMatchState()
       chat_message_player_idx = sent_chat_message_id > 0 ? m_local_player_idx : m_remote_player_idx;
     }
     // in CSS p1 is always current player and p2 is opponent
-    local_player_name = p1_ame = user_info.display_name;
+    local_player_name = p1_name = user_info.display_name;
   }
 
   std::vector<u8> left_team_players = {};
@@ -2451,13 +2451,22 @@ void CEXISlippi::prepareOnlineMatchState()
   {
     // This has to be outside the player ready block because in game setup 2 the players are not
     // ready at the start
-    local_rank = static_cast<u8>(matchmaking->GetPlayerRank(m_local_player_idx));
-    opp_rank = static_cast<u8>(matchmaking->GetPlayerRank(m_remote_player_idx));
+    bool show_local_rank = Config::Get(Config::SLIPPI_ENABLE_RANK_LOCAL);
+    bool show_opp_rank = Config::Get(Config::SLIPPI_ENABLE_RANK_OPP);
+
+    std::array<s8, 2> ranks = {0, 0};
+    ranks[m_local_player_idx] =
+        show_local_rank ? matchmaking->GetPlayerRank(m_local_player_idx) : -1;
+    ranks[m_remote_player_idx] =
+        show_opp_rank ? matchmaking->GetPlayerRank(m_remote_player_idx) : -1;
+
+    p1_rank = ranks[0];
+    p2_rank = ranks[1];
   }
 
   // Add ranks
-  m_read_queue.push_back(static_cast<u8>(local_rank));
-  m_read_queue.push_back(static_cast<u8>(opp_rank));
+  m_read_queue.push_back(static_cast<u8>(p1_rank));
+  m_read_queue.push_back(static_cast<u8>(p2_rank));
 
   // Add player groupings for VS splash screen
   left_team_players.resize(4, 0);
