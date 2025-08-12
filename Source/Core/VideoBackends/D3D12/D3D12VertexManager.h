@@ -35,6 +35,7 @@ protected:
   void UpdateVertexShaderConstants();
   void UpdateGeometryShaderConstants();
   void UpdatePixelShaderConstants();
+  void UpdateCustomShaderConstants();
 
   // Allocates storage in the uniform buffer of the specified size. If this storage cannot be
   // allocated immediately, the current command buffer will be submitted and all stage's
