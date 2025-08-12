@@ -263,11 +263,12 @@ void OnScreenUI::DrawDebugText()
   {
     // Position under the FPS display.
     ImGui::SetNextWindowPos(
-        ImVec2(ImGui::GetIO().DisplaySize.x - 10.f * m_backbuffer_scale, 80.f * m_backbuffer_scale),
+        ImVec2(ImGui::GetIO().DisplaySize.x - ImGui::GetFontSize() * m_backbuffer_scale,
+               80.f * m_backbuffer_scale),
         ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f));
-    ImGui::SetNextWindowSizeConstraints(
-        ImVec2(150.0f * m_backbuffer_scale, 20.0f * m_backbuffer_scale),
-        ImGui::GetIO().DisplaySize);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(5.0f * ImGui::GetFontSize() * m_backbuffer_scale,
+                                               2.1f * ImGui::GetFontSize() * m_backbuffer_scale),
+                                        ImGui::GetIO().DisplaySize);
     if (ImGui::Begin("Movie", nullptr, ImGuiWindowFlags_NoFocusOnAppearing))
     {
       auto& movie = Core::System::GetInstance().GetMovie();
@@ -280,7 +281,9 @@ void OnScreenUI::DrawDebugText()
       }
       else if (Config::Get(Config::MAIN_SHOW_FRAME_COUNT))
       {
-        ImGui::Text("Frame: %" PRIu64, movie.GetCurrentFrame());
+        ImGuiStyle& style = ImGui::GetStyle();
+        if (ImGui::DragFloat("FontSizeBase", &style.FontSizeBase, 0.2f, 12.0f, 40.0f, "%.0f"))
+          style._NextFrameFontSizeBase = style.FontSizeBase;
         if (movie.IsRecordingInput())
           ImGui::Text("Input: %" PRIu64, movie.GetCurrentInputCount());
       }
