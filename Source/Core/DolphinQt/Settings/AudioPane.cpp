@@ -211,6 +211,7 @@ void AudioPane::ConnectWidgets()
   connect(m_volume_slider, &QSlider::valueChanged, this, [this](int value) {
     m_volume_indicator->setText(tr("%1%").arg(value));
     AudioCommon::UpdateSoundStream(Core::System::GetInstance());
+// slippi change
 #ifndef IS_PLAYBACK
     if (Core::GetState(Core::System::GetInstance()) == Core::State::Running)
     {
@@ -223,6 +224,7 @@ void AudioPane::ConnectWidgets()
         slippi_exi->UpdateJukeboxDolphinSystemVolume(value);
     }
 #endif
+// end slippi change
   });
 
   if (m_latency_control_supported)

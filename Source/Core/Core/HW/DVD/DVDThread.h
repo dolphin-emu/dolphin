@@ -101,6 +101,7 @@ private:
   // used for getting the mex files i think, but also might not be relevant anymore
   std::string GetFileName(const DiscIO::Partition& partition, u64 offset);
   // end slippi change
+
   struct ReadRequest
   {
     bool copy_to_ram = false;
