@@ -240,13 +240,13 @@ static bool PathCharactersEqual(char a, char b)
   return a == b || (IsDirectorySeparator(a) && IsDirectorySeparator(b));
 }
 
-static bool PathEndsWith(const std::string& path, const std::string& suffix)
+static bool PathEndsWith(const std::string& path, const std::string_view suffix)
 {
   if (suffix.size() > path.size())
     return false;
 
   std::string::const_iterator path_iterator = path.cend() - suffix.size();
-  std::string::const_iterator suffix_iterator = suffix.cbegin();
+  std::string_view::const_iterator suffix_iterator = suffix.cbegin();
   while (path_iterator != path.cend())
   {
     if (!PathCharactersEqual(*path_iterator, *suffix_iterator))
@@ -264,7 +264,7 @@ static bool IsValidDirectoryBlob(const std::string& dol_path, std::string* parti
   if (!PathEndsWith(dol_path, "/sys/main.dol"))
     return false;
 
-  const size_t chars_to_remove = std::string("sys/main.dol").size();
+  static constexpr size_t chars_to_remove = std::string_view("sys/main.dol").size();
   *partition_root = dol_path.substr(0, dol_path.size() - chars_to_remove);
 
   if (File::GetSize(*partition_root + "sys/boot.bin") < 0x20)
@@ -339,9 +339,30 @@ static bool IsMainDolForNonGamePartition(const std::string& path)
   return false;  // volume_path is the game partition's /sys/main.dol
 }
 
+static bool IsBootBin(const std::string& path)
+{
+  static constexpr std::string_view boot_bin = "/sys/boot.bin";
+  if (!PathEndsWith(path, boot_bin))
+    return false;
+
+  const std::string partition_root = path.substr(0, path.size() - boot_bin.size());
+  return File::Exists(partition_root + "/sys/main.dol");
+}
+
+static bool IsHeaderBin(const std::string& path)
+{
+  static constexpr std::string_view header_bin = "/disc/header.bin";
+  if (!PathEndsWith(path, header_bin))
+    return false;
+
+  const std::string partition_root = path.substr(0, path.size() - header_bin.size());
+  return File::Exists(partition_root + "/sys/main.dol");
+}
+
 bool ShouldHideFromGameList(const std::string& volume_path)
 {
-  return IsInFilesDirectory(volume_path) || IsMainDolForNonGamePartition(volume_path);
+  return IsInFilesDirectory(volume_path) || IsMainDolForNonGamePartition(volume_path) ||
+         IsBootBin(volume_path) || IsHeaderBin(volume_path);
 }
 
 std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::string& dol_path)
@@ -354,7 +375,7 @@ std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::stri
 }
 
 std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(
-    std::unique_ptr<DiscIO::VolumeDisc> volume,
+    std::unique_ptr<VolumeDisc> volume,
     const std::function<void(std::vector<FSTBuilderNode>* fst_nodes)>& sys_callback,
     const std::function<void(std::vector<FSTBuilderNode>* fst_nodes, FSTBuilderNode* dol_node)>&
         fst_callback)
@@ -414,7 +435,7 @@ DirectoryBlobReader::DirectoryBlobReader(const std::string& game_partition_root,
 }
 
 DirectoryBlobReader::DirectoryBlobReader(
-    std::unique_ptr<DiscIO::VolumeDisc> volume,
+    std::unique_ptr<VolumeDisc> volume,
     const std::function<void(std::vector<FSTBuilderNode>* fst_nodes)>& sys_callback,
     const std::function<void(std::vector<FSTBuilderNode>* fst_nodes, FSTBuilderNode* dol_node)>&
         fst_callback)
@@ -699,7 +720,7 @@ void DirectoryBlobReader::SetPartitionHeader(DirectoryBlobPartition* partition,
   constexpr u32 TMD_OFFSET = 0x2c0;
   constexpr u32 H3_OFFSET = 0x4000;
 
-  const std::optional<DiscIO::Partition>& wrapped_partition = partition->GetWrappedPartition();
+  const std::optional<Partition>& wrapped_partition = partition->GetWrappedPartition();
   const std::string& partition_root = partition->GetRootDirectory();
 
   u64 ticket_size;
@@ -797,8 +818,7 @@ void DirectoryBlobReader::SetPartitionHeader(DirectoryBlobPartition* partition,
     partition->SetKey(ticket.GetTitleKey());
 }
 
-static void GenerateBuilderNodesFromFileSystem(const DiscIO::VolumeDisc& volume,
-                                               const DiscIO::Partition& partition,
+static void GenerateBuilderNodesFromFileSystem(const VolumeDisc& volume, const Partition& partition,
                                                std::vector<FSTBuilderNode>* nodes,
                                                const FileInfo& parent_info)
 {
@@ -862,10 +882,7 @@ static std::vector<u8> ExtractNodeToVector(std::vector<FSTBuilderNode>* nodes, v
                                            DirectoryBlobReader* blob)
 {
   std::vector<u8> data;
-  const auto it =
-      std::find_if(nodes->begin(), nodes->end(), [&userdata](const FSTBuilderNode& node) {
-        return node.m_user_data == userdata;
-      });
+  const auto it = std::ranges::find(*nodes, userdata, &FSTBuilderNode::m_user_data);
   if (it == nodes->end() || !it->IsFile())
     return data;
 
@@ -878,7 +895,7 @@ static std::vector<u8> ExtractNodeToVector(std::vector<FSTBuilderNode>* nodes, v
 }
 
 DirectoryBlobPartition::DirectoryBlobPartition(
-    DiscIO::VolumeDisc* volume, const DiscIO::Partition& partition, std::optional<bool> is_wii,
+    VolumeDisc* volume, const Partition& partition, std::optional<bool> is_wii,
     const std::function<void(std::vector<FSTBuilderNode>* fst_nodes)>& sys_callback,
     const std::function<void(std::vector<FSTBuilderNode>* fst_nodes, FSTBuilderNode* dol_node)>&
         fst_callback,
@@ -1170,7 +1187,7 @@ void DirectoryBlobPartition::WriteEntryData(std::vector<u8>* fst_data, u32* entr
 
   (*fst_data)[(*entry_offset)++] = (name_offset >> 16) & 0xff;
   (*fst_data)[(*entry_offset)++] = (name_offset >> 8) & 0xff;
-  (*fst_data)[(*entry_offset)++] = (name_offset)&0xff;
+  (*fst_data)[(*entry_offset)++] = (name_offset) & 0xff;
 
   Write32((u32)(data_offset >> address_shift), *entry_offset, fst_data);
   *entry_offset += 4;
@@ -1195,15 +1212,13 @@ void DirectoryBlobPartition::WriteDirectory(std::vector<u8>* fst_data,
   std::vector<FSTBuilderNode>& sorted_entries = *parent_entries;
 
   // Sort for determinism
-  std::sort(sorted_entries.begin(), sorted_entries.end(),
-            [](const FSTBuilderNode& one, const FSTBuilderNode& two) {
-              std::string one_upper = one.m_filename;
-              std::string two_upper = two.m_filename;
-              Common::ToUpper(&one_upper);
-              Common::ToUpper(&two_upper);
-              return one_upper == two_upper ? one.m_filename < two.m_filename :
-                                              one_upper < two_upper;
-            });
+  std::ranges::sort(sorted_entries, [](const FSTBuilderNode& one, const FSTBuilderNode& two) {
+    std::string one_upper = one.m_filename;
+    std::string two_upper = two.m_filename;
+    Common::ToUpper(&one_upper);
+    Common::ToUpper(&two_upper);
+    return one_upper == two_upper ? one.m_filename < two.m_filename : one_upper < two_upper;
+  });
 
   for (FSTBuilderNode& entry : sorted_entries)
   {

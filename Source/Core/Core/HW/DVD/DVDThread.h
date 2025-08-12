@@ -11,10 +11,9 @@
 #include <utility>
 #include <vector>
 #include "Common/CommonTypes.h"
-#include "Common/Event.h"
-#include "Common/Flag.h"
 #include "Common/SPSCQueue.h"
 
+#include "Common/WorkQueueThread.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/DVD/FileMonitor.h"
 
@@ -89,8 +88,6 @@ public:
   void ReadFile(std::string& fileName, std::vector<u8>& buf);
 
 private:
-  void StartDVDThread();
-  void StopDVDThread();
   void WaitUntilIdle();
 
   void StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offset, u32 length,
@@ -100,9 +97,10 @@ private:
   static void GlobalFinishRead(Core::System& system, u64 id, s64 cycles_late);
   void FinishRead(u64 id, s64 cycles_late);
 
-  void DVDThreadMain();
+  // slippi change
+  // used for getting the mex files i think, but also might not be relevant anymore
   std::string GetFileName(const DiscIO::Partition& partition, u64 offset);
-
+  // end slippi change
   struct ReadRequest
   {
     bool copy_to_ram = false;
@@ -127,19 +125,17 @@ private:
     u64 realtime_done_us = 0;
   };
 
+  void ProcessReadRequest(ReadRequest&& read_request);
+
   using ReadResult = std::pair<ReadRequest, std::vector<u8>>;
 
   CoreTiming::EventType* m_finish_read = nullptr;
 
   u64 m_next_id = 0;
 
-  std::thread m_dvd_thread;
-  Common::Event m_request_queue_expanded;                   // Is set by CPU thread
-  Common::Event m_result_queue_expanded;                    // Is set by DVD thread
-  Common::Flag m_dvd_thread_exiting = Common::Flag(false);  // Is set by CPU thread
+  Common::WorkQueueThreadSP<ReadRequest> m_dvd_thread;
 
-  Common::SPSCQueue<ReadRequest, false> m_request_queue;
-  Common::SPSCQueue<ReadResult, false> m_result_queue;
+  Common::WaitableSPSCQueue<ReadResult> m_result_queue;
   std::map<u64, ReadResult> m_result_map;
 
   std::unique_ptr<DiscIO::Volume> m_disc;

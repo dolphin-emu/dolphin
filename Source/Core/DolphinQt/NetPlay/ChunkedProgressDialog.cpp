@@ -25,7 +25,7 @@
 static QString GetPlayerNameFromPID(int pid)
 {
   QString player_name = QObject::tr("Invalid Player ID");
-  auto client = Settings::Instance().GetNetPlayClient();
+  const auto client = Settings::Instance().GetNetPlayClient();
   if (!client)
     return player_name;
 
@@ -73,13 +73,13 @@ void ChunkedProgressDialog::show(const QString& title, const u64 data_size,
   m_progress_box->setTitle(title);
   m_data_size = data_size;
 
-  for (auto& pair : m_progress_bars)
+  for (const auto& pair : m_progress_bars)
   {
     m_progress_layout->removeWidget(pair.second);
     pair.second->deleteLater();
   }
 
-  for (auto& pair : m_status_labels)
+  for (const auto& pair : m_status_labels)
   {
     m_progress_layout->removeWidget(pair.second);
     pair.second->deleteLater();
@@ -88,7 +88,7 @@ void ChunkedProgressDialog::show(const QString& title, const u64 data_size,
   m_progress_bars.clear();
   m_status_labels.clear();
 
-  auto client = Settings::Instance().GetNetPlayClient();
+  const auto client = Settings::Instance().GetNetPlayClient();
   if (!client)
     return;
 
@@ -142,7 +142,7 @@ void ChunkedProgressDialog::SetProgress(const int pid, const u64 progress)
 
 void ChunkedProgressDialog::reject()
 {
-  auto server = Settings::Instance().GetNetPlayServer();
+  const auto server = Settings::Instance().GetNetPlayServer();
 
   if (server)
     server->AbortGameStart();

@@ -71,8 +71,8 @@ void PerfQuery::DisableQuery(PerfQueryGroup group)
 void PerfQuery::ResetQuery()
 {
   m_query_count.store(0, std::memory_order_relaxed);
-  for (size_t i = 0; i < m_results.size(); ++i)
-    m_results[i].store(0, std::memory_order_relaxed);
+  for (auto& result : m_results)
+    result.store(0, std::memory_order_relaxed);
 }
 
 u32 PerfQuery::GetQueryResult(PerfQueryType type)

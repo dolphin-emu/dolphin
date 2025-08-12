@@ -22,7 +22,7 @@
         android:layout_marginTop="@dimen/spacing_large"
         android:textSize="16sp"
         android:textAlignment="viewStart"
-        android:layout_toStartOf="@+id/button_more_settings"
+        android:layout_toStartOf="@+id/button_advanced_settings"
         tools:text="Setting Name" />
 
     <TextView

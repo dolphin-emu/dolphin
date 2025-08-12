@@ -52,15 +52,16 @@ LogWidget::LogWidget(QWidget* parent) : QDockWidget(parent), m_timer(new QTimer(
 
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &LogWidget::UpdateFont);
 
-  Common::Log::LogManager::GetInstance()->RegisterListener(LogListener::LOG_WINDOW_LISTENER, this);
+  Common::Log::LogManager::GetInstance()->RegisterListener(
+      Common::Log::LogListener::LOG_WINDOW_LISTENER, std::make_unique<LogListenerImpl>(this));
 }
 
 LogWidget::~LogWidget()
 {
   SaveSettings();
 
-  Common::Log::LogManager::GetInstance()->RegisterListener(LogListener::LOG_WINDOW_LISTENER,
-                                                           nullptr);
+  Common::Log::LogManager::GetInstance()->RegisterListener(
+      Common::Log::LogListener::LOG_WINDOW_LISTENER, nullptr);
 }
 
 void LogWidget::UpdateLog()

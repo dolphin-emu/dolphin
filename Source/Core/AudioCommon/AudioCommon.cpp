@@ -14,7 +14,6 @@
 #include "AudioCommon/OpenSLESStream.h"
 #include "AudioCommon/PulseAudioStream.h"
 #include "AudioCommon/WASAPIStream.h"
-#include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Core/Config/MainSettings.h"
@@ -94,19 +93,19 @@ void ShutdownSoundStream(Core::System& system)
 
 std::string GetDefaultSoundBackend()
 {
-  std::string backend = BACKEND_NULLSOUND;
-#if defined ANDROID
-  backend = BACKEND_OPENSLES;
-#elif defined __linux__
-  if (AlsaSound::IsValid())
-    backend = BACKEND_ALSA;
-  else if (CubebStream::IsValid())
-    backend = BACKEND_CUBEB;
-#elif defined(__APPLE__) || defined(_WIN32) || defined(__OpenBSD__)
+#if defined(ANDROID)
+  return BACKEND_OPENSLES;
+#else
   if (CubebStream::IsValid())
-    backend = BACKEND_CUBEB;
+    return BACKEND_CUBEB;
 #endif
-  return backend;
+
+#if defined(__linux__)
+  if (AlsaSound::IsValid())
+    return BACKEND_ALSA;
+#endif
+
+  return BACKEND_NULLSOUND;
 }
 
 DPL2Quality GetDefaultDPL2Quality()

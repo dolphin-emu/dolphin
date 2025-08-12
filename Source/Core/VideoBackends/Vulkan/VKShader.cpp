@@ -19,7 +19,7 @@ VKShader::VKShader(ShaderStage stage, std::vector<u32> spv, VkShaderModule mod,
     : AbstractShader(stage), m_spv(std::move(spv)), m_module(mod),
       m_compute_pipeline(VK_NULL_HANDLE), m_name(name)
 {
-  if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
+  if (!m_name.empty() && g_backend_info.bSupportsSettingObjectNames)
   {
     VkDebugUtilsObjectNameInfoEXT name_info = {};
     name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
@@ -34,7 +34,7 @@ VKShader::VKShader(std::vector<u32> spv, VkPipeline compute_pipeline, std::strin
     : AbstractShader(ShaderStage::Compute), m_spv(std::move(spv)), m_module(VK_NULL_HANDLE),
       m_compute_pipeline(compute_pipeline), m_name(name)
 {
-  if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
+  if (!m_name.empty() && g_backend_info.bSupportsSettingObjectNames)
   {
     VkDebugUtilsObjectNameInfoEXT name_info = {};
     name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;

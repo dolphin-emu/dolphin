@@ -57,7 +57,7 @@ void AbstractStagingTexture::ReadTexels(const MathUtil::Rectangle<int>& rect, vo
 
   size_t copy_size = std::min(static_cast<size_t>(rect.GetWidth() * m_texel_size), m_map_stride);
   int copy_height = rect.GetHeight();
-  char* dst_ptr = reinterpret_cast<char*>(out_ptr);
+  char* dst_ptr = static_cast<char*>(out_ptr);
   for (int row = 0; row < copy_height; row++)
   {
     std::memcpy(dst_ptr, current_ptr, copy_size);
@@ -101,7 +101,7 @@ void AbstractStagingTexture::WriteTexels(const MathUtil::Rectangle<int>& rect, c
 
   size_t copy_size = std::min(static_cast<size_t>(rect.GetWidth() * m_texel_size), m_map_stride);
   int copy_height = rect.GetHeight();
-  const char* src_ptr = reinterpret_cast<const char*>(in_ptr);
+  const char* src_ptr = static_cast<const char*>(in_ptr);
   for (int row = 0; row < copy_height; row++)
   {
     std::memcpy(current_ptr, src_ptr, copy_size);

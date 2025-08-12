@@ -10,14 +10,17 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <ranges>
 #include <utility>
 #include <vector>
 
 #include <libusb.h>
 
 #include "Common/Assert.h"
+#include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
@@ -25,13 +28,12 @@
 
 namespace IOS::HLE::USB
 {
-LibusbDevice::LibusbDevice(EmulationKernel& ios, libusb_device* device,
-                           const libusb_device_descriptor& descriptor)
-    : m_ios(ios), m_device(device)
+LibusbDevice::LibusbDevice(libusb_device* device, const libusb_device_descriptor& descriptor)
+    : m_device(device)
 {
   libusb_ref_device(m_device);
-  m_vid = descriptor.idVendor;
-  m_pid = descriptor.idProduct;
+  m_vid = m_spoofed_vid = descriptor.idVendor;
+  m_pid = m_spoofed_pid = descriptor.idProduct;
   m_id = (static_cast<u64>(m_vid) << 32 | static_cast<u64>(m_pid) << 16 |
           static_cast<u64>(libusb_get_bus_number(device)) << 8 |
           static_cast<u64>(libusb_get_device_address(device)));
@@ -46,6 +48,9 @@ LibusbDevice::LibusbDevice(EmulationKernel& ios, libusb_device* device,
     }
     m_config_descriptors.emplace_back(std::move(config_descriptor));
   }
+
+  if (Config::Get(Config::MAIN_USB_PASSTHROUGH_DISGUISE_PLAYSTATION_AS_WII))
+    DisguisePlayStationDevice();
 }
 
 LibusbDevice::~LibusbDevice()
@@ -65,6 +70,8 @@ DeviceDescriptor LibusbDevice::GetDeviceDescriptor() const
   DeviceDescriptor descriptor;
   // The libusb_device_descriptor struct is the same as the IOS one, and it's not going to change.
   std::memcpy(&descriptor, &device_descriptor, sizeof(descriptor));
+  descriptor.idVendor = m_spoofed_vid;
+  descriptor.idProduct = m_spoofed_pid;
   return descriptor;
 }
 
@@ -196,6 +203,99 @@ int LibusbDevice::SetAltSetting(const u8 alt_setting)
   return libusb_set_interface_alt_setting(m_handle, m_active_interface, alt_setting);
 }
 
+void LibusbDevice::DisguisePlayStationDevice()
+{
+  // PS3 and Wii Rock Band controllers are very similar to each other, but the VIDs and PIDs differ.
+  // By reporting PS3 Rock Band controllers as having Wii VIDs and PIDs, we can get PS3 controllers
+  // working with Wii games.
+  //
+  // Microphones are already cross-platform and therefore work without us doing anything here.
+  //
+  // The PS3 versions of the controllers that are new for Rock Band 3 - keyboards and pro guitars -
+  // have a feature that isn't present on Wii equivalents. By default, the controller won't send any
+  // data for the keys or frets & strings respectively, presumably to avoid them triggering
+  // unintended actions in the XMB (PS3 system menu). The PS3 version of Rock Band 3 sends a control
+  // transfer to enable these inputs. Because Wii controllers always have these inputs enabled, the
+  // Wii version of Rock Band 3 doesn't send the necessary control transfer, so we have to send it
+  // ourselves. Whether we should do this is controlled by
+  // m_needs_playstation_rock_band_3_instrument_control_transfer.
+
+  if (m_vid != 0x12ba)  // Sony Computer Entertainment America
+    return;
+
+  switch (m_pid)
+  {
+  case 0x0200:  // Rock Band guitar
+    // Unlike the Wii, the PS3 uses the same PID (0x0200) for Rock Band 1 and Rock Band 2 guitars.
+    // The Wii VID here is set to the Rock Band 2 device (0x3010) rather than the Rock Band 1 device
+    // (0x0004) because the Rock Band 2 device has more functionality (automatic latency
+    // calibration).
+    m_spoofed_pid = 0x3010;
+    break;
+  case 0x0210:  // Rock Band drums
+    // Unlike the Wii, the PS3 uses the same PID (0x0210) for Rock Band 1 and Rock Band 2 drums.
+    // The Wii VID here is set to the Rock Band 2 device (0x3110) rather than the Rock Band 1 device
+    // (0x0005) because the Rock Band 2 device has more functionality (cymbals).
+    m_spoofed_pid = 0x3110;
+    break;
+  case 0x0218:  // Rock Band 3 MIDI Pro Adapter with drums
+    m_spoofed_pid = 0x3138;
+    break;
+  case 0x2330:  // Rock Band 3 keyboard
+    m_spoofed_pid = 0x3330;
+    m_needs_playstation_rock_band_3_instrument_control_transfer = true;
+    break;
+  case 0x2338:  // Rock Band 3 MIDI Pro Adapter with keyboard
+    m_spoofed_pid = 0x3338;
+    m_needs_playstation_rock_band_3_instrument_control_transfer = true;
+    break;
+  case 0x2430:  // Rock Band 3 Mustang pro guitar
+    m_spoofed_pid = 0x3430;
+    m_needs_playstation_rock_band_3_instrument_control_transfer = true;
+    break;
+  case 0x2438:  // Rock Band 3 MIDI Pro Adapter with Mustang pro guitar
+    m_spoofed_pid = 0x3438;
+    m_needs_playstation_rock_band_3_instrument_control_transfer = true;
+    break;
+  case 0x2530:  // Rock Band 3 Squier pro guitar (doesn't exist in reality, but game supports it)
+    m_spoofed_pid = 0x3530;
+    m_needs_playstation_rock_band_3_instrument_control_transfer = true;
+    break;
+  case 0x2538:  // Rock Band 3 MIDI Pro Adapter with Squier pro guitar
+    m_spoofed_pid = 0x3538;
+    m_needs_playstation_rock_band_3_instrument_control_transfer = true;
+    break;
+  default:
+    return;
+  }
+
+  m_spoofed_vid = 0x1bad;
+}
+
+int LibusbDevice::SubmitPlayStationRockBand3InstrumentControlTransfer()
+{
+  constexpr size_t length = 40;
+  constexpr std::array<u8, length> enable_instrument_inputs = {
+      0xe9, 0x00, 0x89, 0x1b, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x89, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0xe9, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  const size_t size = length + LIBUSB_CONTROL_SETUP_SIZE;
+  auto buffer = std::make_unique<u8[]>(size);
+  std::ranges::copy(enable_instrument_inputs, buffer.get() + LIBUSB_CONTROL_SETUP_SIZE);
+
+  libusb_fill_control_setup(buffer.get(), 0x21, 0x09, 0x0300, 0x00, length);
+
+  libusb_transfer* transfer = libusb_alloc_transfer(0);
+  transfer->flags |= LIBUSB_TRANSFER_FREE_TRANSFER;
+  libusb_fill_control_transfer(transfer, m_handle, buffer.release(), nullptr, this, 0);
+  return libusb_submit_transfer(transfer);
+}
+
+static bool IsRockBand3LEDControlTransfer(const CtrlMessage& cmd)
+{
+  return cmd.request_type == 0x21 && cmd.request == 0x9 && cmd.length == 8;
+}
+
 int LibusbDevice::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
 {
   if (!m_device_attached)
@@ -226,7 +326,7 @@ int LibusbDevice::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
     }
     const int ret = SetAltSetting(static_cast<u8>(cmd->value));
     if (ret == LIBUSB_SUCCESS)
-      m_ios.EnqueueIPCReply(cmd->ios_request, cmd->length);
+      cmd->GetEmulationKernel().EnqueueIPCReply(cmd->ios_request, cmd->length);
     return ret;
   }
   case USBHDR(DIR_HOST2DEVICE, TYPE_STANDARD, REC_DEVICE, REQUEST_SET_CONFIGURATION):
@@ -238,7 +338,7 @@ int LibusbDevice::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
     if (ret == LIBUSB_SUCCESS)
     {
       ClaimAllInterfaces(cmd->value);
-      m_ios.EnqueueIPCReply(cmd->ios_request, cmd->length);
+      cmd->GetEmulationKernel().EnqueueIPCReply(cmd->ios_request, cmd->length);
     }
     return ret;
   }
@@ -249,15 +349,26 @@ int LibusbDevice::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
   libusb_fill_control_setup(buffer.get(), cmd->request_type, cmd->request, cmd->value, cmd->index,
                             cmd->length);
 
-  auto& system = m_ios.GetSystem();
+  auto& system = cmd->GetEmulationKernel().GetSystem();
   auto& memory = system.GetMemory();
   memory.CopyFromEmu(buffer.get() + LIBUSB_CONTROL_SETUP_SIZE, cmd->data_address, cmd->length);
+
+  // If the game is telling a Rock Band 3 device what player LEDs to turn on, take the opportunity
+  // to also tell the device to enable instrument inputs if necessary
+  const bool submit_rock_band_3_instrument_control_transfer =
+      m_needs_playstation_rock_band_3_instrument_control_transfer &&
+      IsRockBand3LEDControlTransfer(*cmd);
 
   libusb_transfer* transfer = libusb_alloc_transfer(0);
   transfer->flags |= LIBUSB_TRANSFER_FREE_TRANSFER;
   libusb_fill_control_transfer(transfer, m_handle, buffer.release(), CtrlTransferCallback, this, 0);
   m_transfer_endpoints[0].AddTransfer(std::move(cmd), transfer);
-  return libusb_submit_transfer(transfer);
+  int ret = libusb_submit_transfer(transfer);
+
+  if (submit_rock_band_3_instrument_control_transfer)
+    SubmitPlayStationRockBand3InstrumentControlTransfer();
+
+  return ret;
 }
 
 int LibusbDevice::SubmitTransfer(std::unique_ptr<BulkMessage> cmd)

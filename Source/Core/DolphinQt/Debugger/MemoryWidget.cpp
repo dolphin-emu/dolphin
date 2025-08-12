@@ -361,6 +361,8 @@ void MemoryWidget::ConnectWidgets()
   connect(m_bp_log_check, &QCheckBox::toggled, this, &MemoryWidget::OnBPLogChanged);
   connect(m_memory_view, &MemoryViewWidget::ShowCode, this, &MemoryWidget::ShowCode);
   connect(m_memory_view, &MemoryViewWidget::RequestWatch, this, &MemoryWidget::RequestWatch);
+  connect(m_memory_view, &MemoryViewWidget::ActivateSearch, this,
+          &MemoryWidget::ActivateSearchAddress);
 }
 
 void MemoryWidget::closeEvent(QCloseEvent*)
@@ -563,6 +565,12 @@ void MemoryWidget::SetAddress(u32 address)
   raise();
 
   m_memory_view->setFocus();
+}
+
+void MemoryWidget::ActivateSearchAddress()
+{
+  m_search_address->setFocus();
+  m_search_address->lineEdit()->selectAll();
 }
 
 void MemoryWidget::OnSearchAddress()

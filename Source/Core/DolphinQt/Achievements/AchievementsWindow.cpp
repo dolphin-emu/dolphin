@@ -39,8 +39,6 @@ AchievementsWindow::AchievementsWindow(QWidget* parent) : QDialog(parent)
       });
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [this] { m_settings_widget->UpdateData(RC_OK); });
-  connect(&Settings::Instance(), &Settings::HardcoreStateChanged, this,
-          [this] { AchievementsWindow::UpdateData({.all = true}); });
 }
 
 void AchievementsWindow::showEvent(QShowEvent* event)

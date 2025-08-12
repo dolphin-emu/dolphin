@@ -220,9 +220,7 @@ WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, 
   }
 
   // find closest region that is <= the given address by using upper bound and decrementing
-  auto it = std::upper_bound(
-      regions.begin(), regions.end(), address,
-      [](u8* addr, const WindowsMemoryRegion& region) { return addr < region.m_start; });
+  auto it = std::ranges::upper_bound(regions, address, {}, &WindowsMemoryRegion::m_start);
   if (it == regions.begin())
   {
     // this should never happen, implies that the given address is before the start of the
@@ -363,9 +361,7 @@ bool MemArena::JoinRegionsAfterUnmap(void* start_address, size_t size)
   }
 
   // there should be a mapping that matches the request exactly, find it
-  auto it = std::lower_bound(
-      regions.begin(), regions.end(), address,
-      [](const WindowsMemoryRegion& region, u8* addr) { return region.m_start < addr; });
+  auto it = std::ranges::lower_bound(regions, address, {}, &WindowsMemoryRegion::m_start);
   if (it == regions.end() || it->m_start != address || it->m_size != size)
   {
     // didn't find it, we were given bogus input

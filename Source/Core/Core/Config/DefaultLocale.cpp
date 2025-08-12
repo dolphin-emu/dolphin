@@ -90,13 +90,15 @@ static std::string ComputeDefaultCountryCode()
 #ifdef _WIN32
   // Windows codepath: Check the regional information.
   // More likely to match the user's physical location than locales are.
-  // TODO: Can we use GetUserDefaultGeoName? (It was added in a Windows 10 update)
-  GEOID geo = GetUserGeoID(GEOCLASS_NATION);
-  const int buffer_size = GetGeoInfoW(geo, GEO_ISO2, nullptr, 0, 0);
-  std::vector<wchar_t> buffer(buffer_size);
-  const int result = GetGeoInfoW(geo, GEO_ISO2, buffer.data(), buffer_size, 0);
-  if (result != 0)
-    return TStrToUTF8(buffer.data());
+  const int buffer_size = GetUserDefaultGeoName(nullptr, 0);
+  if (buffer_size == 3)
+  {
+    std::wstring buffer(buffer_size, L'\0');
+    const int result = GetUserDefaultGeoName(buffer.data(), buffer_size);
+    buffer.resize(2);
+    if (result > 0)
+      return WStringToUTF8(buffer);
+  }
 #endif
 
   // Generic codepath: Check the locales.

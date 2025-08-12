@@ -35,8 +35,6 @@ bool InputConfig::LoadConfig()
   static constexpr std::array<std::string_view, MAX_BBMOTES> num = {"1", "2", "3", "4", "BB"};
   std::string profile[MAX_BBMOTES];
 
-  m_dynamic_input_tex_config_manager.Load();
-
   if (SConfig::GetInstance().GetGameID() != "00000000")
   {
     const std::string profile_directory = GetUserProfileDirectoryPath();
@@ -102,8 +100,6 @@ bool InputConfig::LoadConfig()
       // Next profile
       n++;
     }
-
-    m_dynamic_input_tex_config_manager.GenerateTextures(inifile, controller_names);
     return true;
   }
   else
@@ -138,8 +134,6 @@ void InputConfig::SaveConfig()
     controller->SaveConfig(inifile.GetOrCreateSection(controller->GetName()));
     controller_names.push_back(controller->GetName());
   }
-
-  m_dynamic_input_tex_config_manager.GenerateTextures(inifile, controller_names);
 
   inifile.Save(ini_filename);
 }
@@ -210,6 +204,8 @@ bool InputConfig::IsControllerControlledByGamepadDevice(int index) const
 
 void InputConfig::GenerateControllerTextures(const Common::IniFile& file)
 {
+  m_dynamic_input_tex_config_manager.Load();
+
   std::vector<std::string> controller_names;
   for (auto& controller : m_controllers)
   {
@@ -217,4 +213,19 @@ void InputConfig::GenerateControllerTextures(const Common::IniFile& file)
   }
 
   m_dynamic_input_tex_config_manager.GenerateTextures(file, controller_names);
+}
+
+void InputConfig::GenerateControllerTextures()
+{
+  const std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini";
+
+  Common::IniFile inifile;
+  inifile.Load(ini_filename);
+
+  for (auto& controller : m_controllers)
+  {
+    controller->SaveConfig(inifile.GetOrCreateSection(controller->GetName()));
+  }
+
+  GenerateControllerTextures(inifile);
 }

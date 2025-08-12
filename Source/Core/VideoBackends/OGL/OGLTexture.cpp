@@ -132,7 +132,7 @@ OGLTexture::OGLTexture(const TextureConfig& tex_config, std::string_view name)
   glActiveTexture(GL_MUTABLE_TEXTURE_INDEX);
   glBindTexture(target, m_texId);
 
-  if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
+  if (!m_name.empty() && g_backend_info.bSupportsSettingObjectNames)
   {
     glObjectLabel(GL_TEXTURE, m_texId, (GLsizei)m_name.size(), m_name.c_str());
   }
@@ -462,7 +462,7 @@ std::unique_ptr<OGLStagingTexture> OGLStagingTexture::Create(StagingTextureType 
     }
 
     glBufferStorage(target, buffer_size, nullptr, buffer_flags);
-    buffer_ptr = reinterpret_cast<char*>(glMapBufferRange(target, 0, buffer_size, map_flags));
+    buffer_ptr = static_cast<char*>(glMapBufferRange(target, 0, buffer_size, map_flags));
     ASSERT(buffer_ptr != nullptr);
   }
   else
@@ -639,7 +639,7 @@ bool OGLStagingTexture::Map()
   else
     flags = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
   glBindBuffer(m_target, m_buffer_name);
-  m_map_pointer = reinterpret_cast<char*>(glMapBufferRange(m_target, 0, m_buffer_size, flags));
+  m_map_pointer = static_cast<char*>(glMapBufferRange(m_target, 0, m_buffer_size, flags));
   glBindBuffer(m_target, 0);
   return m_map_pointer != nullptr;
 }

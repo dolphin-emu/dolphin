@@ -85,8 +85,8 @@ const Info<bool> MAIN_DPL2_DECODER{{System::Main, "Core", "DPL2Decoder"}, false}
 const Info<AudioCommon::DPL2Quality> MAIN_DPL2_QUALITY{{System::Main, "Core", "DPL2Quality"},
                                                        AudioCommon::GetDefaultDPL2Quality()};
 const Info<int> MAIN_AUDIO_LATENCY{{System::Main, "Core", "AudioLatency"}, 20};
-const Info<bool> MAIN_AUDIO_STRETCH{{System::Main, "Core", "AudioStretch"}, false};
-const Info<int> MAIN_AUDIO_STRETCH_LATENCY{{System::Main, "Core", "AudioStretchMaxLatency"}, 80};
+const Info<int> MAIN_AUDIO_BUFFER_SIZE{{System::Main, "Core", "AudioBufferSize"}, 80};
+const Info<bool> MAIN_AUDIO_FILL_GAPS{{System::Main, "Core", "AudioFillGaps"}, true};
 const Info<std::string> MAIN_MEMCARD_A_PATH{{System::Main, "Core", "MemcardAPath"}, ""};
 const Info<std::string> MAIN_MEMCARD_B_PATH{{System::Main, "Core", "MemcardBPath"}, ""};
 const Info<std::string>& GetInfoForMemcardPath(ExpansionInterface::Slot slot)
@@ -146,6 +146,8 @@ const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_B{
     {System::Main, "Core", "SlotB"}, ExpansionInterface::EXIDeviceType::Slippi};
 const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_1{
     {System::Main, "Core", "SerialPort1"}, ExpansionInterface::EXIDeviceType::None};
+const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_2{
+    {System::Main, "Core", "SerialPort2"}, ExpansionInterface::EXIDeviceType::None};
 
 const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(ExpansionInterface::Slot slot)
 {
@@ -155,6 +157,7 @@ const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(ExpansionInte
           &MAIN_SLOT_A,
           &MAIN_SLOT_B,
           &MAIN_SERIAL_PORT_1,
+          &MAIN_SERIAL_PORT_2,
       };
   return *infos[slot];
 }
@@ -225,6 +228,8 @@ const Info<u64> MAIN_WII_SD_CARD_FILESIZE{{System::Main, "Core", "WiiSDCardFiles
 const Info<bool> MAIN_WII_KEYBOARD{{System::Main, "Core", "WiiKeyboard"}, false};
 const Info<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING{
     {System::Main, "Core", "WiimoteContinuousScanning"}, false};
+const Info<std::string> MAIN_WIIMOTE_AUTO_CONNECT_ADDRESSES{
+    {System::Main, "Core", "WiimoteAutoConnectAddresses"}, ""};
 const Info<bool> MAIN_WIIMOTE_ENABLE_SPEAKER{{System::Main, "Core", "WiimoteEnableSpeaker"}, false};
 const Info<bool> MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE{
     {System::Main, "Core", "WiimoteControllerInterface"}, false};
@@ -244,8 +249,19 @@ const Info<bool> MAIN_FPRF{{System::Main, "Core", "FPRF"}, false};
 const Info<bool> MAIN_ACCURATE_NANS{{System::Main, "Core", "AccurateNaNs"}, false};
 const Info<bool> MAIN_DISABLE_ICACHE{{System::Main, "Core", "DisableICache"}, false};
 const Info<float> MAIN_EMULATION_SPEED{{System::Main, "Core", "EmulationSpeed"}, 1.0f};
+#if defined(ANDROID)
+// Currently disabled by default on Android for concern of increased power usage while on battery.
+// It is also not yet exposed in the UI on Android.
+constexpr bool DEFAULT_PRECISION_FRAME_TIMING = false;
+#else
+constexpr bool DEFAULT_PRECISION_FRAME_TIMING = true;
+#endif
+const Info<bool> MAIN_PRECISION_FRAME_TIMING{{System::Main, "Core", "PrecisionFrameTiming"},
+                                             DEFAULT_PRECISION_FRAME_TIMING};
 const Info<float> MAIN_OVERCLOCK{{System::Main, "Core", "Overclock"}, 1.0f};
 const Info<bool> MAIN_OVERCLOCK_ENABLE{{System::Main, "Core", "OverclockEnable"}, false};
+const Info<float> MAIN_VI_OVERCLOCK{{System::Main, "Core", "VIOverclock"}, 1.0f};
+const Info<bool> MAIN_VI_OVERCLOCK_ENABLE{{System::Main, "Core", "VIOverclockEnable"}, false};
 const Info<bool> MAIN_RAM_OVERRIDE_ENABLE{{System::Main, "Core", "RAMOverrideEnable"}, false};
 const Info<u32> MAIN_MEM1_SIZE{{System::Main, "Core", "MEM1Size"}, Memory::MEM1_SIZE_RETAIL};
 const Info<u32> MAIN_MEM2_SIZE{{System::Main, "Core", "MEM2Size"}, Memory::MEM2_SIZE_RETAIL};
@@ -466,6 +482,7 @@ const Info<bool> MAIN_GAMELIST_LIST_WAD{{System::Main, "GameList", "ListWad"}, t
 const Info<bool> MAIN_GAMELIST_LIST_ELF_DOL{{System::Main, "GameList", "ListElfDol"}, true};
 const Info<bool> MAIN_GAMELIST_LIST_WII{{System::Main, "GameList", "ListWii"}, true};
 const Info<bool> MAIN_GAMELIST_LIST_GC{{System::Main, "GameList", "ListGC"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_TRI{{System::Main, "GameList", "ListTriforce"}, true};
 const Info<bool> MAIN_GAMELIST_LIST_JPN{{System::Main, "GameList", "ListJap"}, true};
 const Info<bool> MAIN_GAMELIST_LIST_PAL{{System::Main, "GameList", "ListPal"}, true};
 const Info<bool> MAIN_GAMELIST_LIST_USA{{System::Main, "GameList", "ListUsa"}, true};
@@ -571,6 +588,8 @@ const Info<std::string> MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS{
 
 // Main.USBPassthrough
 
+const Info<bool> MAIN_USB_PASSTHROUGH_DISGUISE_PLAYSTATION_AS_WII{
+    {System::Main, "USBPassthrough", "DisguisePlayStationAsWii"}, true};
 const Info<std::string> MAIN_USB_PASSTHROUGH_DEVICES{{System::Main, "USBPassthrough", "Devices"},
                                                      ""};
 
@@ -619,6 +638,16 @@ const Info<bool> MAIN_EMULATE_SKYLANDER_PORTAL{
 
 const Info<bool> MAIN_EMULATE_INFINITY_BASE{
     {System::Main, "EmulatedUSBDevices", "EmulateInfinityBase"}, false};
+
+const Info<bool> MAIN_EMULATE_WII_SPEAK{{System::Main, "EmulatedUSBDevices", "EmulateWiiSpeak"},
+                                        false};
+
+const Info<std::string> MAIN_WII_SPEAK_MICROPHONE{
+    {System::Main, "EmulatedUSBDevices", "WiiSpeakMicrophone"}, ""};
+
+const Info<bool> MAIN_WII_SPEAK_MUTED{{System::Main, "EmulatedUSBDevices", "WiiSpeakMuted"}, true};
+const Info<s16> MAIN_WII_SPEAK_VOLUME_MODIFIER{
+    {System::Main, "EmulatedUSBDevices", "WiiSpeakVolumeModifier"}, 0};
 
 // The reason we need this function is because some memory card code
 // expects to get a non-NTSC-K region even if we're emulating an NTSC-K Wii.

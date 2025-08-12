@@ -20,7 +20,7 @@ namespace
 {
 APIType GetAPIType()
 {
-  return g_ActiveConfig.backend_info.api_type;
+  return g_backend_info.api_type;
 }
 
 void EmitUniformBufferDeclaration(ShaderCode& code)
@@ -109,7 +109,7 @@ void EmitVertexMainDeclaration(ShaderCode& code, u32 num_tex_inputs, u32 num_col
     if (position_input)
       code.Write("ATTRIBUTE_LOCATION({:s}) in float4 rawpos;\n", ShaderAttrib::Position);
 
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    if (g_backend_info.bSupportsGeometryShaders)
     {
       code.Write("VARYING_LOCATION(0) out VertexData {{\n");
       for (u32 i = 0; i < num_tex_outputs; i++)
@@ -146,7 +146,7 @@ void EmitPixelMainDeclaration(ShaderCode& code, u32 num_tex_inputs, u32 num_colo
   case APIType::OpenGL:
   case APIType::Vulkan:
   {
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    if (g_backend_info.bSupportsGeometryShaders)
     {
       code.Write("VARYING_LOCATION(0) in VertexData {{\n");
       for (u32 i = 0; i < num_tex_inputs; i++)
@@ -406,7 +406,7 @@ std::string GenerateEFBPokeVertexShader()
   code.Write("{{\n"
              "  v_col0 = rawcolor0;\n"
              "  opos = float4(rawpos.xyz, 1.0f);\n");
-  if (g_ActiveConfig.backend_info.bSupportsLargePoints)
+  if (g_backend_info.bSupportsLargePoints)
     code.Write("  gl_PointSize = rawpos.w;\n");
 
   // NDC space is flipped in Vulkan.

@@ -58,6 +58,17 @@ public:
   void HandleCtrlTransfer(libusb_transfer* finished_transfer);
   void HandleBulkOrIntrTransfer(libusb_transfer* finished_transfer);
 
+  static bool IsConfiguredBluetoothDevice(u16 vid, u16 pid);
+
+  struct BluetoothDeviceInfo
+  {
+    u16 vid;
+    u16 pid;
+    std::string name;
+  };
+
+  static std::vector<BluetoothDeviceInfo> ListDevices();
+
 private:
   static constexpr u8 INTERFACE = 0x00;
   // Arbitrarily chosen value that allows emulated software to send commands often enough

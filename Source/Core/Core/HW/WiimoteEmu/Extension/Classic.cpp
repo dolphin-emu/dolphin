@@ -4,17 +4,13 @@
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 
 #include <array>
-#include <string_view>
 
-#include "Common/Assert.h"
-#include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
 #include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
-#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -88,6 +84,8 @@ Classic::Classic() : Extension1stParty("Classic", _trans("Classic Controller"))
 
 void Classic::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
+  using ControllerEmu::MapFloat;
+
   DataFormat classic_data = {};
 
   // left stick

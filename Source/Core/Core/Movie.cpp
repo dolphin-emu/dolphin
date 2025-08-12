@@ -67,7 +67,6 @@
 #include "InputCommon/GCPadStatus.h"
 
 #include "VideoCommon/VideoBackendBase.h"
-#include "VideoCommon/VideoConfig.h"
 
 namespace Movie
 {
@@ -717,7 +716,7 @@ static std::string GenerateWiiInputDisplayString(int index, const DesiredWiimote
   if (state.extension.data.index() != ExtensionNumber::NONE)
   {
     const auto ext_visitor = overloaded{
-        [&](const Nunchuk::DataFormat& nunchuk) {
+        [&](const Nunchuk::DesiredState& nunchuk) {
           const auto bt = nunchuk.GetButtons();
           if (bt & Nunchuk::BUTTON_C)
             display_str += " C";
@@ -727,7 +726,7 @@ static std::string GenerateWiiInputDisplayString(int index, const DesiredWiimote
                                      nunchuk.GetAccelZ());
           display_str += Analog2DToString(nunchuk.jx, nunchuk.jy, " ANA");
         },
-        [&](const Classic::DataFormat& cc) {
+        [&](const Classic::DesiredState& cc) {
           const auto bt = cc.GetButtons();
           constexpr std::pair<u16, const char*> named_buttons[] = {
               {Classic::PAD_LEFT, "LEFT"},    {Classic::PAD_RIGHT, "RIGHT"},
@@ -758,12 +757,12 @@ static std::string GenerateWiiInputDisplayString(int index, const DesiredWiimote
           const auto right_stick = cc.GetRightStick().value;
           display_str += Analog2DToString(right_stick.x, right_stick.y, " R-ANA", rstick_max);
         },
-        [&](const Guitar::DataFormat&) { display_str += " Guitar"; },
+        [&](const Guitar::DesiredState&) { display_str += " Guitar"; },
         [&](const Drums::DesiredState&) { display_str += " Drums"; },
-        [&](const Turntable::DataFormat&) { display_str += " Turntable"; },
-        [&](const UDrawTablet::DataFormat&) { display_str += " UDraw"; },
-        [&](const DrawsomeTablet::DataFormat&) { display_str += " Drawsome"; },
-        [&](const TaTaCon::DataFormat&) { display_str += " TaTaCon"; },
+        [&](const Turntable::DesiredState&) { display_str += " Turntable"; },
+        [&](const UDrawTablet::DesiredState&) { display_str += " UDraw"; },
+        [&](const DrawsomeTablet::DesiredState&) { display_str += " Drawsome"; },
+        [&](const TaTaCon::DesiredState&) { display_str += " TaTaCon"; },
         [&](const Shinkansen::DesiredState&) { display_str += " Shinkansen"; },
         [](const auto& arg) {
           static_assert(std::is_same_v<std::monostate, std::decay_t<decltype(arg)>>,
@@ -1406,16 +1405,6 @@ void MovieManager::SaveRecording(const std::string& filename)
     Core::DisplayMessage(fmt::format("DTM {} saved", filename), 2000);
   else
     Core::DisplayMessage(fmt::format("Failed to save {}", filename), 2000);
-}
-
-// NOTE: GPU Thread
-void MovieManager::SetGraphicsConfig()
-{
-  g_Config.bEFBAccessEnable = m_temp_header.bEFBAccessEnable;
-  g_Config.bSkipEFBCopyToRam = m_temp_header.bSkipEFBCopyToRam;
-  g_Config.bEFBEmulateFormatChanges = m_temp_header.bEFBEmulateFormatChanges;
-  g_Config.bImmediateXFB = m_temp_header.bImmediateXFB;
-  g_Config.bSkipXFBCopyToRam = m_temp_header.bSkipXFBCopyToRam;
 }
 
 // NOTE: EmuThread / Host Thread

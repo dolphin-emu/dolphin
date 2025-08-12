@@ -34,6 +34,7 @@
 #include <qpa/qplatformnativeinterface.h>
 #endif
 
+#include "Common/Config/Config.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Version.h"
 #include "Common/WindowSystemInfo.h"
@@ -43,6 +44,7 @@
 #include "Core/BootManager.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/AchievementSettings.h"
+#include "Core/Config/FreeLookSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/UISettings.h"
@@ -93,6 +95,7 @@
 #include "DolphinQt/Debugger/ThreadWidget.h"
 #include "DolphinQt/Debugger/WatchWidget.h"
 #include "DolphinQt/DiscordHandler.h"
+#include "DolphinQt/EmulatedUSB/WiiSpeakWindow.h"
 #include "DolphinQt/FIFO/FIFOPlayerWindow.h"
 #include "DolphinQt/GCMemcardManager.h"
 #include "DolphinQt/GameList/GameList.h"
@@ -272,9 +275,15 @@ MainWindow::MainWindow(Core::System& system, std::unique_ptr<BootParameters> boo
   NetPlayInit();
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  AchievementManager::GetInstance().Init();
+  AchievementManager::GetInstance().Init(reinterpret_cast<void*>(winId()));
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     Settings::Instance().SetDebugModeEnabled(false);
+  // This needs to trigger on both RA_HARDCORE_ENABLED and RA_ENABLED
+  m_config_changed_callback_id = Config::AddConfigChangedCallback(
+      [this]() { QueueOnObject(this, [this] { this->OnHardcoreChanged(); }); });
+  // If hardcore is enabled when the emulator starts, make sure it turns off what it needs to
+  if (Config::Get(Config::RA_HARDCORE_ENABLED))
+    OnHardcoreChanged();
 #endif  // USE_RETRO_ACHIEVEMENTS
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
@@ -344,6 +353,7 @@ MainWindow::~MainWindow()
   Settings::Instance().ResetNetPlayServer();
 
 #ifdef USE_RETRO_ACHIEVEMENTS
+  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
   AchievementManager::GetInstance().Shutdown();
 #endif  // USE_RETRO_ACHIEVEMENTS
 
@@ -572,6 +582,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ShowFIFOPlayer, this, &MainWindow::ShowFIFOPlayer);
   connect(m_menu_bar, &MenuBar::ShowSkylanderPortal, this, &MainWindow::ShowSkylanderPortal);
   connect(m_menu_bar, &MenuBar::ShowInfinityBase, this, &MainWindow::ShowInfinityBase);
+  connect(m_menu_bar, &MenuBar::ShowWiiSpeakWindow, this, &MainWindow::ShowWiiSpeakWindow);
   connect(m_menu_bar, &MenuBar::ConnectWiiRemote, this, &MainWindow::OnConnectWiiRemote);
 
 #ifdef USE_RETRO_ACHIEVEMENTS
@@ -788,7 +799,7 @@ QStringList MainWindow::PromptFileNames()
   QStringList paths = DolphinFileDialog::getOpenFileNames(
       this, tr("Select a File"),
       settings.value(QStringLiteral("mainwindow/lastdir"), QString{}).toString(),
-      QStringLiteral("%1 (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz "
+      QStringLiteral("%1 (*.elf *.dol *.gcm *.bin *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz "
                      "hif_000000.nfs *.wad *.dff *.m3u *.json);;%2 (*)")
           .arg(tr("All GC/Wii files"))
           .arg(tr("All Files")));
@@ -936,7 +947,11 @@ bool MainWindow::RequestStop()
   else
     FullScreen();
 
-  if (Config::Get(Config::MAIN_CONFIRM_ON_STOP))
+  bool confirm_on_stop = Config::Get(Config::MAIN_CONFIRM_ON_STOP);
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+  confirm_on_stop = confirm_on_stop || AchievementManager::GetInstance().CheckForModifications();
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+  if (confirm_on_stop)
   {
     if (std::exchange(m_stop_confirm_showing, true))
       return true;
@@ -961,13 +976,27 @@ bool MainWindow::RequestStop()
     // This is to avoid any "race conditions" between the "Window Activate" message and the
     // message box returning, which could break cursor locking depending on the order
     m_render_widget->SetWaitingForMessageBox(true);
-    auto confirm = ModalMessageBox::question(
-        confirm_parent, tr("Confirm"),
-        m_stop_requested ? tr("A shutdown is already in progress. Unsaved data "
-                              "may be lost if you stop the current emulation "
-                              "before it completes. Force stop?") :
-                           tr("Do you want to stop the current emulation?"),
-        QMessageBox::Yes | QMessageBox::No, QMessageBox::NoButton, Qt::ApplicationModal);
+    QString message;
+    if (m_stop_requested)
+    {
+      message = tr("A shutdown is already in progress. Unsaved data "
+                   "may be lost if you stop the current emulation "
+                   "before it completes. Force stop?");
+    }
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+    else if (AchievementManager::GetInstance().CheckForModifications())
+    {
+      message = tr(
+          "Do you want to stop the current emulation? Unsaved achievement modifications detected.");
+    }
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+    else
+    {
+      message = tr("Do you want to stop the current emulation?");
+    }
+    auto confirm = ModalMessageBox::question(confirm_parent, tr("Confirm"), message,
+                                             QMessageBox::Yes | QMessageBox::No,
+                                             QMessageBox::NoButton, Qt::ApplicationModal);
 
     // If a user confirmed stopping the emulation, we do not capture the cursor again,
     // even if the render widget will stay alive for a while.
@@ -1412,6 +1441,18 @@ void MainWindow::ShowInfinityBase()
   m_infinity_window->show();
   m_infinity_window->raise();
   m_infinity_window->activateWindow();
+}
+
+void MainWindow::ShowWiiSpeakWindow()
+{
+  if (!m_wii_speak_window)
+  {
+    m_wii_speak_window = new WiiSpeakWindow();
+  }
+
+  m_wii_speak_window->show();
+  m_wii_speak_window->raise();
+  m_wii_speak_window->activateWindow();
 }
 
 void MainWindow::StateLoad()
@@ -1992,6 +2033,13 @@ void MainWindow::ShowAchievementSettings()
 {
   ShowAchievementsWindow();
   m_achievements_window->ForceSettingsTab();
+}
+
+void MainWindow::OnHardcoreChanged()
+{
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
+    Settings::Instance().SetDebugModeEnabled(false);
+  emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
 }
 #endif  // USE_RETRO_ACHIEVEMENTS
 

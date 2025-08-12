@@ -37,6 +37,8 @@ enum class TokenType
   Gt,
   Eq,
   So,
+  NumLabFwd,
+  NumLabBwd,
   // EOL signifies boundaries between instructions, a la ';'
   Eol,
   Eof,

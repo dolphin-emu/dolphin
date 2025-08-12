@@ -194,7 +194,7 @@ protected:
 
   void ExpectBytes(const std::vector<u8> expected_bytes)
   {
-    const std::vector<u8> code_bytes(code_buffer, emitter->GetWritableCodePtr());
+    const std::vector code_bytes(code_buffer, emitter->GetWritableCodePtr());
 
     EXPECT_EQ(expected_bytes, code_bytes);
 

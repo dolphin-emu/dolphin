@@ -368,7 +368,7 @@ void ZeldaUCode::HandleMailLight(u32 mail)
     m_sync_max_voice_id = 0xFFFFFFFF;
     m_sync_voice_skip_flags.fill(0xFFFF);
     RenderAudio();
-    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(INT_DSP);
     break;
 
   case MailState::HALTED:
@@ -672,7 +672,10 @@ void ZeldaUCode::RenderAudio()
 // Utility to define 32 bit accessors/modifiers methods based on two 16 bit
 // fields named _l and _h.
 #define DEFINE_32BIT_ACCESSOR(field_name, name)                                                    \
-  u32 Get##name() const { return (field_name##_h << 16) | field_name##_l; }                        \
+  u32 Get##name() const                                                                            \
+  {                                                                                                \
+    return (field_name##_h << 16) | field_name##_l;                                                \
+  }                                                                                                \
   void Set##name(u32 v)                                                                            \
   {                                                                                                \
     field_name##_h = v >> 16;                                                                      \
@@ -1114,7 +1117,7 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
       for (u16 i = 0; i < 8; ++i)
         (*last8_samples_buffers[rpb_idx])[i] = buffer[0x50 + i];
 
-      auto ApplyFilter = [&]() {
+      auto ApplyFilter = [&] {
         // Filter the buffer using provided coefficients.
         for (u16 i = 0; i < 0x50; ++i)
         {

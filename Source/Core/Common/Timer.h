@@ -32,4 +32,22 @@ private:
   bool m_running{false};
 };
 
+class PrecisionTimer
+{
+public:
+  PrecisionTimer();
+  ~PrecisionTimer();
+
+  PrecisionTimer(const PrecisionTimer&) = delete;
+  PrecisionTimer& operator=(const PrecisionTimer&) = delete;
+
+  void SleepUntil(Clock::time_point);
+
+private:
+#ifdef _WIN32
+  // Using void* to avoid including Windows.h in this header just for HANDLE.
+  void* m_timer_handle;
+#endif
+};
+
 }  // Namespace Common

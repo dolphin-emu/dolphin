@@ -31,25 +31,16 @@ interface SettingsActivityView {
     fun showDialogFragment(fragment: DialogFragment)
 
     /**
-     * Called by a contained Fragment to get access to the Setting HashMap
-     * loaded from disk, so that each Fragment doesn't need to perform its own
-     * read operation.
-     *
-     * @return A possibly null HashMap of Settings.
+     * Identifies which set of settings is to be read from and written to.
      */
     val settings: Settings
 
     /**
-     * Called when an asynchronous load operation completes.
+     * Called when a Settings object becomes available.
      *
-     * @param settings The (possibly null) result of the ini load operation.
+     * @param settings The settings that this Activity should access.
      */
     fun onSettingsFileLoaded(settings: Settings)
-
-    /**
-     * Called when an asynchronous load operation fails.
-     */
-    fun onSettingsFileNotFound()
 
     /**
      * Display a popup text message on screen.

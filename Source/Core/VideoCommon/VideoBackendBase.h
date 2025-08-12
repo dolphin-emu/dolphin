@@ -20,22 +20,14 @@ class PointerWrap;
 
 class AbstractGfx;
 class BoundingBox;
-class Renderer;
 class TextureCacheBase;
 class VertexManagerBase;
+class EFBInterfaceBase;
 
 enum class FieldType
 {
   Odd,
   Even,
-};
-
-enum class EFBAccessType
-{
-  PeekZ,
-  PokeZ,
-  PeekColor,
-  PokeColor
 };
 
 class VideoBackendBase
@@ -56,11 +48,8 @@ public:
 
   static std::string BadShaderFilename(const char* shader_stage, int counter);
 
-  void Video_ExitLoop();
-
   void Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
 
-  u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 data);
   u32 Video_GetQueryResult(PerfQueryType type);
   u16 Video_GetBoundingBox(int index);
 
@@ -82,12 +71,12 @@ protected:
                         std::unique_ptr<PerfQueryBase> perf_query,
                         std::unique_ptr<BoundingBox> bounding_box);
 
-  // For software and null backends. Allows overriding the default Renderer and Texture Cache
+  // For software and null backends. Allows overriding the default EFBInterface and TextureCache
   bool InitializeShared(std::unique_ptr<AbstractGfx> gfx,
                         std::unique_ptr<VertexManagerBase> vertex_manager,
                         std::unique_ptr<PerfQueryBase> perf_query,
                         std::unique_ptr<BoundingBox> bounding_box,
-                        std::unique_ptr<Renderer> renderer,
+                        std::unique_ptr<EFBInterfaceBase> efb_interface,
                         std::unique_ptr<TextureCacheBase> texture_cache);
   void ShutdownShared();
 

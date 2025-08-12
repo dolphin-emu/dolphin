@@ -16,38 +16,37 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
 {
   ShaderHostConfig bits = {};
   bits.msaa = g_ActiveConfig.iMultisamples > 1;
-  bits.ssaa = g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA &&
-              g_ActiveConfig.backend_info.bSupportsSSAA;
+  bits.ssaa =
+      g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA && g_backend_info.bSupportsSSAA;
   bits.stereo = g_ActiveConfig.stereo_mode != StereoMode::Off;
   bits.wireframe = g_ActiveConfig.bWireFrame;
   bits.per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
   bits.vertex_rounding = g_ActiveConfig.UseVertexRounding();
   bits.fast_depth_calc = g_ActiveConfig.bFastDepthCalc;
   bits.bounding_box = g_ActiveConfig.bBBoxEnable;
-  bits.backend_dual_source_blend = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
-  bits.backend_geometry_shaders = g_ActiveConfig.backend_info.bSupportsGeometryShaders;
-  bits.backend_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ;
-  bits.backend_bbox = g_ActiveConfig.backend_info.bSupportsBBox;
-  bits.backend_gs_instancing = g_ActiveConfig.backend_info.bSupportsGSInstancing;
-  bits.backend_clip_control = g_ActiveConfig.backend_info.bSupportsClipControl;
-  bits.backend_ssaa = g_ActiveConfig.backend_info.bSupportsSSAA;
-  bits.backend_atomics = g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics;
-  bits.backend_depth_clamp = g_ActiveConfig.backend_info.bSupportsDepthClamp;
-  bits.backend_reversed_depth_range = g_ActiveConfig.backend_info.bSupportsReversedDepthRange;
-  bits.backend_bitfield = g_ActiveConfig.backend_info.bSupportsBitfield;
-  bits.backend_dynamic_sampler_indexing =
-      g_ActiveConfig.backend_info.bSupportsDynamicSamplerIndexing;
-  bits.backend_shader_framebuffer_fetch = g_ActiveConfig.backend_info.bSupportsFramebufferFetch;
-  bits.backend_logic_op = g_ActiveConfig.backend_info.bSupportsLogicOp;
-  bits.backend_palette_conversion = g_ActiveConfig.backend_info.bSupportsPaletteConversion;
+  bits.backend_dual_source_blend = g_backend_info.bSupportsDualSourceBlend;
+  bits.backend_geometry_shaders = g_backend_info.bSupportsGeometryShaders;
+  bits.backend_early_z = g_backend_info.bSupportsEarlyZ;
+  bits.backend_bbox = g_backend_info.bSupportsBBox;
+  bits.backend_gs_instancing = g_backend_info.bSupportsGSInstancing;
+  bits.backend_clip_control = g_backend_info.bSupportsClipControl;
+  bits.backend_ssaa = g_backend_info.bSupportsSSAA;
+  bits.backend_atomics = g_backend_info.bSupportsFragmentStoresAndAtomics;
+  bits.backend_depth_clamp = g_backend_info.bSupportsDepthClamp;
+  bits.backend_reversed_depth_range = g_backend_info.bSupportsReversedDepthRange;
+  bits.backend_bitfield = g_backend_info.bSupportsBitfield;
+  bits.backend_dynamic_sampler_indexing = g_backend_info.bSupportsDynamicSamplerIndexing;
+  bits.backend_shader_framebuffer_fetch = g_backend_info.bSupportsFramebufferFetch;
+  bits.backend_logic_op = g_backend_info.bSupportsLogicOp;
+  bits.backend_palette_conversion = g_backend_info.bSupportsPaletteConversion;
   bits.enable_validation_layer = g_ActiveConfig.bEnableValidationLayer;
   bits.manual_texture_sampling = !g_ActiveConfig.bFastTextureSampling;
   bits.manual_texture_sampling_custom_texture_sizes =
       g_ActiveConfig.ManualTextureSamplingWithCustomTextureSizes();
-  bits.backend_sampler_lod_bias = g_ActiveConfig.backend_info.bSupportsLodBiasInSampler;
-  bits.backend_dynamic_vertex_loader = g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader;
+  bits.backend_sampler_lod_bias = g_backend_info.bSupportsLodBiasInSampler;
+  bits.backend_dynamic_vertex_loader = g_backend_info.bSupportsDynamicVertexLoader;
   bits.backend_vs_point_line_expand = g_ActiveConfig.UseVSForLinePointExpand();
-  bits.backend_gl_layer_in_fs = g_ActiveConfig.backend_info.bSupportsGLLayerInFS;
+  bits.backend_gl_layer_in_fs = g_backend_info.bSupportsGLLayerInFS;
   return bits;
 }
 
@@ -348,7 +347,7 @@ const char* GetInterpolationQualifier(bool msaa, bool ssaa, bool in_glsl_interfa
 
   // Without GL_ARB_shading_language_420pack support, the interpolation qualifier must be
   // "centroid in" and not "centroid", even within an interface block.
-  if (in_glsl_interface_block && !g_ActiveConfig.backend_info.bSupportsBindingLayout)
+  if (in_glsl_interface_block && !g_backend_info.bSupportsBindingLayout)
   {
     if (!ssaa)
       return in ? "centroid in" : "centroid out";
@@ -362,96 +361,4 @@ const char* GetInterpolationQualifier(bool msaa, bool ssaa, bool in_glsl_interfa
     else
       return "sample";
   }
-}
-
-void WriteCustomShaderStructDef(ShaderCode* out, u32 numtexgens)
-{
-  // Bump this when there are breaking changes to the API
-  out->Write("#define CUSTOM_SHADER_API_VERSION 1;\n");
-
-  // CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE "enum" values
-  out->Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_NONE = {}u;\n",
-             static_cast<u32>(AttenuationFunc::None));
-  out->Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_POINT = {}u;\n",
-             static_cast<u32>(AttenuationFunc::Spec));
-  out->Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_DIR = {}u;\n",
-             static_cast<u32>(AttenuationFunc::Dir));
-  out->Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_SPOT = {}u;\n",
-             static_cast<u32>(AttenuationFunc::Spot));
-
-  out->Write("struct CustomShaderOutput\n");
-  out->Write("{{\n");
-  out->Write("\tfloat4 main_rt;\n");
-  out->Write("}};\n\n");
-
-  out->Write("struct CustomShaderLightData\n");
-  out->Write("{{\n");
-  out->Write("\tfloat3 position;\n");
-  out->Write("\tfloat3 direction;\n");
-  out->Write("\tfloat3 color;\n");
-  out->Write("\tuint attenuation_type;\n");
-  out->Write("\tfloat4 cosatt;\n");
-  out->Write("\tfloat4 distatt;\n");
-  out->Write("}};\n\n");
-
-  // CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE "enum" values
-  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_PREV = 0u;\n");
-  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR = 1u;\n");
-  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_TEX = 2u;\n");
-  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_RAS = 3u;\n");
-  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_KONST = 4u;\n");
-  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_NUMERIC = 5u;\n");
-  out->Write("const uint CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_UNUSED = 6u;\n");
-
-  out->Write("struct CustomShaderTevStageInputColor\n");
-  out->Write("{{\n");
-  out->Write("\tuint input_type;\n");
-  out->Write("\tfloat3 value;\n");
-  out->Write("}};\n\n");
-
-  out->Write("struct CustomShaderTevStageInputAlpha\n");
-  out->Write("{{\n");
-  out->Write("\tuint input_type;\n");
-  out->Write("\tfloat value;\n");
-  out->Write("}};\n\n");
-
-  out->Write("struct CustomShaderTevStage\n");
-  out->Write("{{\n");
-  out->Write("\tCustomShaderTevStageInputColor[4] input_color;\n");
-  out->Write("\tCustomShaderTevStageInputAlpha[4] input_alpha;\n");
-  out->Write("\tuint texmap;\n");
-  out->Write("\tfloat4 output_color;\n");
-  out->Write("}};\n\n");
-
-  // Custom structure for data we pass to custom shader hooks
-  out->Write("struct CustomShaderData\n");
-  out->Write("{{\n");
-  out->Write("\tfloat3 position;\n");
-  out->Write("\tfloat3 normal;\n");
-  if (numtexgens == 0)
-  {
-    // Cheat so shaders compile
-    out->Write("\tfloat3[1] texcoord;\n");
-  }
-  else
-  {
-    out->Write("\tfloat3[{}] texcoord;\n", numtexgens);
-  }
-  out->Write("\tuint texcoord_count;\n");
-  out->Write("\tuint[8] texmap_to_texcoord_index;\n");
-  out->Write("\tCustomShaderLightData[8] lights_chan0_color;\n");
-  out->Write("\tCustomShaderLightData[8] lights_chan0_alpha;\n");
-  out->Write("\tCustomShaderLightData[8] lights_chan1_color;\n");
-  out->Write("\tCustomShaderLightData[8] lights_chan1_alpha;\n");
-  out->Write("\tfloat4[2] ambient_lighting;\n");
-  out->Write("\tfloat4[2] base_material;\n");
-  out->Write("\tuint light_chan0_color_count;\n");
-  out->Write("\tuint light_chan0_alpha_count;\n");
-  out->Write("\tuint light_chan1_color_count;\n");
-  out->Write("\tuint light_chan1_alpha_count;\n");
-  out->Write("\tCustomShaderTevStage[16] tev_stages;\n");
-  out->Write("\tuint tev_stage_count;\n");
-  out->Write("\tfloat4 final_color;\n");
-  out->Write("\tuint time_ms;\n");
-  out->Write("}};\n\n");
 }

@@ -6,13 +6,9 @@
 #include <algorithm>
 
 #include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-#include "Core/HW/Memmap.h"
-#include "VideoBackends/Software/EfbInterface.h"
-#include "VideoBackends/Software/TextureEncoder.h"
+#include "VideoBackends/Software/SWEfbInterface.h"
 
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/Fifo.h"
 #include "VideoCommon/VideoCommon.h"
 
 namespace EfbCopy

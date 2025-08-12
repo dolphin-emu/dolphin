@@ -212,7 +212,7 @@ protected:
   } m_crit;
 
   // SLIPPITODO: consider using AsyncQueueEntry like in NetPlayServer.h
-  Common::SPSCQueue<std::unique_ptr<sf::Packet>, false> m_async_queue;
+  Common::SPSCQueue<std::unique_ptr<sf::Packet>> m_async_queue;
 
   ENetHost* m_client = nullptr;
   std::vector<ENetPeer*> m_server;
@@ -260,7 +260,7 @@ protected:
   int32_t last_frame_acked[SLIPPI_REMOTE_PLAYER_MAX];
   FrameOffsetData frame_offset_data[SLIPPI_REMOTE_PLAYER_MAX];
   FrameTiming last_frame_timing[SLIPPI_REMOTE_PLAYER_MAX];
-  std::array<Common::SPSCQueue<FrameTiming, false>, SLIPPI_REMOTE_PLAYER_MAX> ack_timers;
+  std::array<Common::SPSCQueue<FrameTiming>, SLIPPI_REMOTE_PLAYER_MAX> ack_timers;
 
   SlippiConnectStatus slippi_connect_status = SlippiConnectStatus::NET_CONNECT_STATUS_UNSET;
   std::vector<int> failed_connections;

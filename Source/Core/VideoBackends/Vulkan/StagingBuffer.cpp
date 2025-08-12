@@ -180,7 +180,7 @@ bool StagingBuffer::AllocateBuffer(STAGING_BUFFER_TYPE type, VkDeviceSize size,
     }
   }
 
-  *out_map_ptr = reinterpret_cast<char*>(alloc_info.pMappedData);
+  *out_map_ptr = static_cast<char*>(alloc_info.pMappedData);
 
   if (res != VK_SUCCESS)
   {

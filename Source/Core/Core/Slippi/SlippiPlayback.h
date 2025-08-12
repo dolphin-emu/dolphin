@@ -1,6 +1,7 @@
 #pragma once
 
 #include <climits>
+#include <cstring>
 #include <future>
 #include <unordered_map>
 #include <vector>
@@ -8,6 +9,7 @@
 #include <open-vcdiff/src/google/vcdecoder.h>
 #include <open-vcdiff/src/google/vcencoder.h>
 
+#include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
 #include "SlippiGame.h"
@@ -52,9 +54,9 @@ private:
   void generateLegacyCodelist();
 
   std::unordered_map<int32_t, std::shared_future<std::string>>
-      future_diffs;               // State diffs keyed by frame_idx, processed async
-  std::vector<u8> initial_state;  // The initial state
-  std::vector<u8> curr_state;     // The current (latest) state
+      future_diffs;                        // State diffs keyed by frame_idx, processed async
+  Common::UniqueBuffer<u8> initial_state;  // The initial state
+  Common::UniqueBuffer<u8> curr_state;     // The current (latest) state
 
   std::unordered_map<u32, bool> deny_list;
   std::vector<u8> legacy_code_list;

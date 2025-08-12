@@ -7,14 +7,12 @@
 #include <cstring>
 
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
 #include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
-#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 
 namespace WiimoteEmu
@@ -54,20 +52,24 @@ TaTaCon::TaTaCon() : Extension3rdParty("TaTaCon", _trans("Taiko Drum"))
 
 void TaTaCon::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
-  DataFormat tatacon_data = {};
+  DesiredState tatacon_data = {};
 
   m_center->GetState(&tatacon_data.state, center_bitmasks.data(), m_input_override_function);
   m_rim->GetState(&tatacon_data.state, rim_bitmasks.data(), m_input_override_function);
-
-  // Flip button bits.
-  tatacon_data.state ^= 0xff;
 
   target_state->data = tatacon_data;
 }
 
 void TaTaCon::Update(const DesiredExtensionState& target_state)
 {
-  DefaultExtensionUpdate<DataFormat>(&m_reg, target_state);
+  DesiredState desired_state{};
+  if (std::holds_alternative<DesiredState>(target_state.data))
+    desired_state = std::get<DesiredState>(target_state.data);
+
+  // Flip button bits.
+  desired_state.state ^= 0xff;
+
+  m_reg.controller_data[5] = desired_state.state;
 }
 
 void TaTaCon::Reset()

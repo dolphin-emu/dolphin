@@ -266,7 +266,7 @@ void IndexGenerator::Init()
 {
   using OpcodeDecoder::Primitive;
 
-  if (g_Config.backend_info.bSupportsPrimitiveRestart)
+  if (g_backend_info.bSupportsPrimitiveRestart)
   {
     m_primitive_table[Primitive::GX_DRAW_QUADS] = AddQuads<true>;
     m_primitive_table[Primitive::GX_DRAW_QUADS_2] = AddQuads_nonstandard<true>;
@@ -284,7 +284,7 @@ void IndexGenerator::Init()
   }
   if (g_Config.UseVSForLinePointExpand())
   {
-    if (g_Config.backend_info.bSupportsPrimitiveRestart)
+    if (g_backend_info.bSupportsPrimitiveRestart)
     {
       m_primitive_table[Primitive::GX_DRAW_LINES] = AddLines_VSExpand<true, false>;
       m_primitive_table[Primitive::GX_DRAW_LINE_STRIP] = AddLines_VSExpand<true, true>;

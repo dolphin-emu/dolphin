@@ -300,6 +300,13 @@ void HotkeyScheduler::Run()
           Settings::Instance().SetUSBKeyboardConnected(
               !Settings::Instance().IsUSBKeyboardConnected());
         }
+
+        if (IsHotkey(HK_TOGGLE_WII_SPEAK_MUTE))
+        {
+          const bool muted = !Settings::Instance().IsWiiSpeakMuted();
+          Settings::Instance().SetWiiSpeakMuted(muted);
+          OSD::AddMessage(muted ? "Wii Speak muted" : "Wii Speak unmuted");
+        }
       }
 
       if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_1))

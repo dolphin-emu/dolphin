@@ -325,8 +325,9 @@ InputConfig* GetInputConfig()
 void Shutdown()
 {
   s_config.UnregisterHotplugCallback();
-
   s_config.ClearControllers();
+
+  GetConfig().Shutdown();
 }
 
 void Initialize()
