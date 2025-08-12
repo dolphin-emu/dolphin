@@ -4,7 +4,6 @@
 #include "DolphinQt/Settings/AdvancedPane.h"
 
 #include <QCheckBox>
-#include <QComboBox>
 #include <QDateTimeEdit>
 #include <QFontMetrics>
 #include <QFormLayout>
@@ -29,6 +28,7 @@
 #include "Core/System.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/ConfigControls/ConfigFloatSlider.h"
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/QtUtils/AnalyticsPrompt.h"
@@ -72,12 +72,12 @@ void AdvancedPane::CreateLayout()
   cpu_emulation_engine_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
   cpu_options_group_layout->addLayout(cpu_emulation_engine_layout);
 
-  m_cpu_emulation_engine_combobox = new QComboBox(this);
-  cpu_emulation_engine_layout->addRow(tr("CPU Emulation Engine:"), m_cpu_emulation_engine_combobox);
+  std::vector<std::pair<QString, PowerPC::CPUCore>> emulation_engine_choices;
   for (PowerPC::CPUCore cpu_core : PowerPC::AvailableCPUCores())
-  {
-    m_cpu_emulation_engine_combobox->addItem(tr(CPU_CORE_NAMES.at(cpu_core)));
-  }
+    emulation_engine_choices.emplace_back(tr(CPU_CORE_NAMES.at(cpu_core)), cpu_core);
+  m_cpu_emulation_engine_combobox =
+      new ConfigChoiceMap<PowerPC::CPUCore>(emulation_engine_choices, Config::MAIN_CPU_CORE);
+  cpu_emulation_engine_layout->addRow(tr("CPU Emulation Engine:"), m_cpu_emulation_engine_combobox);
 
   m_enable_mmu_checkbox = new ConfigBool(tr("Enable MMU"), Config::MAIN_MMU);
   m_enable_mmu_checkbox->SetDescription(
@@ -306,12 +306,6 @@ void AdvancedPane::CreateLayout()
 
 void AdvancedPane::ConnectLayout()
 {
-  connect(m_cpu_emulation_engine_combobox, &QComboBox::currentIndexChanged, [](int index) {
-    const auto cpu_cores = PowerPC::AvailableCPUCores();
-    if (index >= 0 && static_cast<size_t>(index) < cpu_cores.size())
-      Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, cpu_cores[index]);
-  });
-
   m_ram_override_checkbox->setChecked(Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE));
   connect(m_ram_override_checkbox, &QCheckBox::toggled, [this](bool enable_ram_override) {
     Config::SetBaseOrCurrent(Config::MAIN_RAM_OVERRIDE_ENABLE, enable_ram_override);
@@ -334,13 +328,6 @@ void AdvancedPane::Update()
   const bool enable_custom_rtc_widgets =
       Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE) && is_uninitialized;
 
-  const auto available_cpu_cores = PowerPC::AvailableCPUCores();
-  const auto cpu_core = Config::Get(Config::MAIN_CPU_CORE);
-  for (size_t i = 0; i < available_cpu_cores.size(); ++i)
-  {
-    if (available_cpu_cores[i] == cpu_core)
-      m_cpu_emulation_engine_combobox->setCurrentIndex(int(i));
-  }
   m_cpu_emulation_engine_combobox->setEnabled(is_uninitialized);
   m_enable_mmu_checkbox->setEnabled(is_uninitialized);
   m_pause_on_panic_checkbox->setEnabled(is_uninitialized);
