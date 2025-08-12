@@ -1229,7 +1229,8 @@ void VertexManagerBase::DrawEmulatedMesh(VideoCommon::CameraManager& camera_mana
 
   DrawCurrentBatch(base_index, m_index_generator.GetIndexLen(), base_vertex);
 
-  AbstractFramebuffer* frame_buffer_to_restore = nullptr;
+  AbstractFramebuffer* frame_buffer_to_restore = g_gfx->GetCurrentFramebuffer();
+  bool reset_framebuffer = false;
 
   // Do we have any other views?  If so we need to redraw with those
   // frame buffers...
@@ -1241,7 +1242,11 @@ void VertexManagerBase::DrawEmulatedMesh(VideoCommon::CameraManager& camera_mana
     {
       continue;
     }
-    frame_buffer_to_restore = g_gfx->GetCurrentFramebuffer();
+
+    if (!additional_camera_view.framebuffer)
+      continue;
+
+    reset_framebuffer = true;
     g_gfx->SetFramebuffer(additional_camera_view.framebuffer);
     if (additional_camera_view.transform)
     {
@@ -1267,7 +1272,7 @@ void VertexManagerBase::DrawEmulatedMesh(VideoCommon::CameraManager& camera_mana
     DrawCurrentBatch(base_index, m_index_generator.GetIndexLen(), base_vertex);
   }
 
-  if (frame_buffer_to_restore)
+  if (reset_framebuffer)
   {
     g_gfx->SetFramebuffer(frame_buffer_to_restore);
   }
@@ -1415,7 +1420,23 @@ void VertexManagerBase::DrawViewsWithMaterial(
     {
       continue;
     }
-    g_gfx->SetFramebuffer(additional_camera_view.framebuffer);
+    if (!additional_camera_view.framebuffer)
+      continue;
+
+    if (additional_camera_view.should_clear)
+    {
+      g_gfx->SetAndClearFramebuffer(
+          additional_camera_view.framebuffer,
+          {{additional_camera_view.clear_color[0], additional_camera_view.clear_color[1],
+            additional_camera_view.clear_color[2], 1.0f}},
+          g_backend_info.bSupportsReversedDepthRange ?
+              1.0 - additional_camera_view.clear_depth_value :
+              additional_camera_view.clear_depth_value);
+    }
+    else
+    {
+      g_gfx->SetFramebuffer(additional_camera_view.framebuffer);
+    }
     if (additional_camera_view.transform)
     {
       const u64 camera_id = Common::ToUnderlying<>(additional_camera_view.id);
@@ -1461,14 +1482,22 @@ void VertexManagerBase::DrawWithMaterial(u32 base_vertex, u32 base_index, u32 in
   auto& system = Core::System::GetInstance();
   auto& geometry_shader_manager = system.GetGeometryShaderManager();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
+  auto& vertex_shader_manager = system.GetVertexShaderManager();
+
+  const double seconds_elapsed =
+      static_cast<double>(m_ticks_elapsed) / system.GetSystemTimers().GetTicksPerSecond();
+  const double milli_elapsed = seconds_elapsed * 1000;
+
+  pixel_shader_manager.constants.time_ms = milli_elapsed;
+  vertex_shader_manager.constants.time_ms = milli_elapsed;
 
   // Now we can upload uniforms, as nothing else will override them.
   geometry_shader_manager.SetConstants(primitive_type);
   pixel_shader_manager.SetConstants();
-  const auto pixel_uniforms = material_data.GetPixelUniforms();
-  if (!pixel_uniforms.empty())
+  const auto uniforms = material_data.GetUniforms();
+  if (!uniforms.empty())
   {
-    pixel_shader_manager.custom_constants = pixel_uniforms;
+    pixel_shader_manager.custom_constants = uniforms;
     pixel_shader_manager.custom_constants_dirty = true;
   }
   UploadUniforms();
