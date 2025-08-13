@@ -469,7 +469,7 @@ void Expression::SynchronizeBindings(Core::System& system, SynchronizeDirection 
       else
       {
         ppc_state.msr.Hex = static_cast<u32>(static_cast<s64>(v->value));
-        PowerPC::MSRUpdated(ppc_state);
+        PowerPC::MSRUpdated(system);
       }
       break;
     }
