@@ -383,19 +383,23 @@ inline FPResult NI_madd_msub(PowerPC::PowerPCState& ppc_state, double a, double 
   //     This can be implemented in the JIT just as easily, though.
   //     Eventually the JITs should hopefully support detecting back to back
   //     single-precision operations, which will lead to no overhead at all.
+  //     In the cases where JITs can't do this, an alternative method is used, as
+  //     is done in the interpreter as well.
+  // - Rounding only once for inputs with single precision mantissas but double precision exponents
+  //   - This is a side effect of how we handle single-precision inputs: By doing
+  //     error calculations rather than checking if every input is a float, we ensure that the
+  //     mantissa, not the exponent, is the primary thing that can cause issues.
   //
   // Currently it does not support:
   // - Handling frC overflowing to an unreachable value
   //   - This is simple enough to check for and handle properly, but the likelihood of it occuring
   //     is so low that it's not worth it to check for it for the rare accuracy improvement.
-  // - Rounding only once for inputs with single precision mantissas but double precision exponents
-  //   - This one is also very simple again is not really something that would happen.
-  //     It's also the most likely one to occur, as paired single move operations similarly only
-  //     round the mantissa, not the exponent, and there are games which which do in fact
-  //     utilize this (for example, any games which use nw4r -- this includes Mario Kart Wii,
-  //     although no ghosts are known which desync on Dolphin because of this or even the
-  //     single -> double -> single precision FMA issue)
   // - Rounding only once for inputs with double precision mantissas
+  // - Dealing with every 64-bit subnormal possibility correctly
+  //   - Double precision subnormals are what cause requiring more precision than double precison
+  //     to be a thing if you want a correct implementation for every possible inputs.
+  //     If a case where this was necessary came up it'd just be more worth it to fall back to
+  //     a software floating point implementation instead.
   //
   // All of these can be resolved in a software float emulation method, or by using things such as
   // error-free float algorithms, but the nature of both of these lead to incredible speed costs,
@@ -409,20 +413,69 @@ inline FPResult NI_madd_msub(PowerPC::PowerPCState& ppc_state, double a, double 
     result.value = std::fma(a, c, sub ? -b : b);
   else
   {
-    // For the single precision case, all we currently do is rounding frC properly,
-    // then check if the single precision case will work,
-    // and if it does, we perform a single precision fma instead.
+    // For single precision inputs, we never actually cast to a float -- we instead compute an
+    // "exact" multiplicaton (it's exact for single precision inputs), then perform an error-free
+    // addition calculation in order to adjust the edge case of rounding to even!
+    // We of course still properly round `c` first, though.
     const double c_round = Force25Bit(c);
 
-    const float a_float = static_cast<float>(a);
-    const float b_float = static_cast<float>(b);
-    const float c_float = static_cast<float>(c_round);
+    // First, we compute the 64-bit FMA forwards
+    // Notably, we're doing a 64-bit FMA so we can preserve any mantissa bits from
+    // multiplication, meaning 64-bit inputs are *not* exact with this implementation.
+    // On the other hand, they weren't exact with the previous one either, so it's not a huge deal.
+    const double b_sign = sub ? -b : b;
+    result.value = std::fma(a, c_round, b_sign);
+    // Then we compute any error via an error-free transformation (Ole Møller's 2Sum algorithm)
+    // s  := a  + b
+    // a' := s  - b
+    // b' := s  - a'
+    // da := a  - a'
+    // db := b  - b'
+    // t  := da + db
+    // But for these calculations, we assume "a" := a * c_round, allowing the usage of FMA
+    // instead of calculating the multiplication beforehand
+    // We also switch up the signs so we don't introduce a negating instruction
+    const double a_prime = b_sign - result.value;
+    const double b_prime = result.value + a_prime;
+    const double delta_a = std::fma(a, c_round, a_prime);
+    const double delta_b = b_sign - b_prime;
+    const double error = delta_a + delta_b;
 
-    if (static_cast<double>(a_float) == a && static_cast<double>(b_float) == b &&
-        static_cast<double>(c_float) == c_round)
-      result.value = static_cast<double>(std::fma(a_float, c_float, sub ? -b_float : b_float));
-    else
-      result.value = std::fma(a, c_round, sub ? -b : b);
+    // This "error" value represents the number such that `result.value - error == exact_result`.
+    // We only want to use it to break any ties to even instead!
+    if (error != 0.0)
+    {
+      // For many operations this will not be the case, but it should be infrequent enough.
+      const u64 result_bits = std::bit_cast<u64>(result.value);
+
+      // The mask of the `d` bits as shown in the above comments
+      const u64 D_MASK = 0x000000001fffffff;
+      // The mask of `d` which would force a tie to even, which is the only case where there
+      // can be potentially be differences compared to just casting to an f32 directly.
+      const u64 EVEN_TIE = 0x0000000010000000;
+
+      if ((result_bits & D_MASK) == EVEN_TIE &&
+          (result_bits & Common::DOUBLE_EXP) != Common::DOUBLE_EXP)
+      {
+        // We've tied to even and now need to adjust the result based on the error!
+        // Notably we also check here that we're not currently dealing with NaN.
+
+        // It should never be possible for the error to be NaN if the result isn't either
+        // infinite or NaN itself? It would require:
+        // da == inf, db == -inf
+        // Which expanded out is:
+        // a - ((a + b) - b) == inf, b - ((a + b) - ((a + b) - b)) == -inf, where
+        // a + b isn't infinite. This means (a + b) - b must be infinite on the left,
+        // but this will end up giving the right hand side the same sign of infinity.
+        // All this to say we don't check for `if (error > 0.0)` for the `else` statement.
+        // Also note that we do not cast to a float here,
+        // as individual instructions using this function will on their own afterwards
+        if (error < 0.0)
+          result.value = std::bit_cast<double>(result_bits + 1); // We were too small, round up
+        else
+          result.value = std::bit_cast<double>(result_bits - 1); // We were too large, round down
+      }
+    }
   }
 
   if (std::isnan(result.value))
