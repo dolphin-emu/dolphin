@@ -291,7 +291,7 @@ void Interpreter::ps_madd(Interpreter& interpreter, UGeckoInstruction inst)
       ppc_state.fpscr,
       NI_madd<true>(ppc_state, a.PS1AsDouble(), c.PS1AsDouble(), b.PS1AsDouble()).value);
 
-ppc_state.ps[inst.FD].SetBoth(ps0, ps1);
+  ppc_state.ps[inst.FD].SetBoth(ps0, ps1);
   ppc_state.UpdateFPRFSingle(ps0);
 
   if (inst.Rc)
@@ -305,12 +305,12 @@ void Interpreter::ps_nmsub(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
-   const float tmp0 = ForceSingle(
-       ppc_state.fpscr,
-       NI_msub<true>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble()).value);
-   const float tmp1 = ForceSingle(
-       ppc_state.fpscr,
-       NI_msub<true>(ppc_state, a.PS1AsDouble(), c.PS1AsDouble(), b.PS1AsDouble()).value);
+  const float tmp0 = ForceSingle(
+      ppc_state.fpscr,
+      NI_msub<true>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble()).value);
+  const float tmp1 = ForceSingle(
+      ppc_state.fpscr,
+      NI_msub<true>(ppc_state, a.PS1AsDouble(), c.PS1AsDouble(), b.PS1AsDouble()).value);
 
   const float ps0 = std::isnan(tmp0) ? tmp0 : -tmp0;
   const float ps1 = std::isnan(tmp1) ? tmp1 : -tmp1;

@@ -374,7 +374,7 @@ inline FPResult NI_madd_msub(PowerPC::PowerPCState& ppc_state, double a, double 
   // Due to being able to choose any value of `c` easily to counter the value of `d`,
   // it's not particularly difficult to make your own examples as well,
   // but of course these happening in practice is going to be absurdly uncommon most of the time.
-  // 
+  //
   // Currently Dolphin supports:
   // - Correct ordering of NaN checking (for both double and single precision)
   // - Rounding frC up
@@ -383,7 +383,7 @@ inline FPResult NI_madd_msub(PowerPC::PowerPCState& ppc_state, double a, double 
   //     This can be implemented in the JIT just as easily, though.
   //     Eventually the JITs should hopefully support detecting back to back
   //     single-precision operations, which will lead to no overhead at all.
-  //     
+  //
   // Currently it does not support:
   // - Handling frC overflowing to an unreachable value
   //   - This is simple enough to check for and handle properly, but the likelihood of it occuring
