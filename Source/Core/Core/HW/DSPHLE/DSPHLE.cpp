@@ -245,4 +245,8 @@ u16 DSPHLE::DSP_ReadControlRegister()
 void DSPHLE::PauseAndLock(bool do_lock)
 {
 }
+
+void DSPHLE::UnpauseAndUnlock()
+{
+}
 }  // namespace DSP::HLE
