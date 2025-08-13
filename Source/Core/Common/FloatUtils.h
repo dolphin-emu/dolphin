@@ -26,7 +26,6 @@ static constexpr u64 DOUBLE_ZERO = 0x0000000000000000ULL;
 static constexpr int DOUBLE_EXP_WIDTH = 11;
 static constexpr int DOUBLE_FRAC_WIDTH = 52;
 
-static constexpr u32 FLOAT_QBIT = 0x00400000;
 static constexpr u32 FLOAT_SIGN = 0x80000000;
 static constexpr u32 FLOAT_EXP = 0x7F800000;
 static constexpr u32 FLOAT_FRAC = 0x007FFFFF;
