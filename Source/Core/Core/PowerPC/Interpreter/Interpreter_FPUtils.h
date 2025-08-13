@@ -351,7 +351,7 @@ inline FPResult NI_madd_msub(PowerPC::PowerPCState& ppc_state, double a, double 
   //    - The backwards counterpart to case 2, this will cause `d` to round back down to 100..00,
   //      where the tie down will cause it to round down instead of up.
   //
-  // The first values found which were shown to definitively cause issues appeared in Super Mario Strikers, where:
+  // The first values found which were shown to definitively cause issues appeared in Mario Strikers Charged, where:
   // a = 0x42480000 (50.0)
   // c = 0xbc88cc38 (-0.01669894158840179443359375)
   // b = 0x1b1c72a0 (0.0000000000000000000001294105489087172032066277841712287344222431784146465361118316650390625)
