@@ -780,7 +780,7 @@ static bool PauseAndLock(Core::System& system)
   const bool was_unpaused = system.GetCPU().PauseAndLock();
 
   // audio has to come after CPU, because CPU thread can wait for audio thread (m_throttle).
-  system.GetDSP().GetDSPEmulator()->PauseAndLock(true);
+  system.GetDSP().GetDSPEmulator()->PauseAndLock();
 
   // video has to come after CPU, because CPU thread can wait for video thread
   // (s_efbAccessRequested).
