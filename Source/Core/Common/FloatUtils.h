@@ -34,10 +34,10 @@ static constexpr u32 FLOAT_ZERO = 0x00000000;
 static constexpr int FLOAT_EXP_WIDTH = 8;
 static constexpr int FLOAT_FRAC_WIDTH = 23;
 
-inline bool IsQNAN(float d)
+inline bool IsQNAN(float f)
 {
-  const u32 i = std::bit_cast<u32>(d);
-  return ((i & FLOAT_EXP) == FLOAT_EXP) && ((i & FLOAT_QBIT) == FLOATQ_BIT);
+  const u32 i = std::bit_cast<u32>(f);
+  return ((i & FLOAT_EXP) == FLOAT_EXP) && ((i & FLOAT_QBIT) == FLOAT_QBIT);
 }
 
 inline bool IsQNAN(double d)

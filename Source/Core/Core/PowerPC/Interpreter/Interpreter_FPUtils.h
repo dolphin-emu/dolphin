@@ -290,10 +290,9 @@ inline FPResult NI_sub(PowerPC::PowerPCState& ppc_state, double a, double b)
 // FMA instructions on PowerPC are weird:
 // They calculate (a * c) + b, but the order in which
 // inputs are checked for NaN is still a, b, c.
-template <typename T>
-inline FPResult NI_madd(PowerPC::PowerPCState& ppc_state, T a, T c, T b)
+inline FPResult NI_madd(PowerPC::PowerPCState& ppc_state, double a, double c, double b)
 {
-  FPResult result{static_cast<double>(std::fma(a, c, b))};
+  FPResult result{std::fma(a, c, b)};
 
   if (std::isnan(result.value))
   {
@@ -329,10 +328,9 @@ inline FPResult NI_madd(PowerPC::PowerPCState& ppc_state, T a, T c, T b)
   return result;
 }
 
-template <typename T>
-inline FPResult NI_msub(PowerPC::PowerPCState& ppc_state, T a, T c, T b)
+inline FPResult NI_msub(PowerPC::PowerPCState& ppc_state, double a, double c, double b)
 {
-  FPResult result{static_cast<double>(std::fma(a, c, -b))};
+  FPResult result{std::fma(a, c, -b)};
 
   if (std::isnan(result.value))
   {
