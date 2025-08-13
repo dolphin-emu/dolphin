@@ -34,6 +34,13 @@
    "Codetype": "Auto",
    "Annotation": "External/Unplugging Closes CSS Door/Unplugging Closes CSS Door.asm",
    "Tags": ""
+  },
+  {
+   "InjectionAddress": "801239A8",
+   "Name": "Stealth tournament codes",
+   "Codetype": "Auto",
+   "Annotation": "External/FreezeGlitchFix/FreezeGlitchFix.asm",
+   "Tags": "[affects-gameplay]"
   }
  ]
 }

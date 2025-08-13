@@ -197,13 +197,6 @@
    "Tags": ""
   },
   {
-   "InjectionAddress": "8021AAE4",
-   "Name": "Required: General Codes",
-   "Codetype": "04",
-   "Annotation": "",
-   "Tags": ""
-  },
-  {
    "InjectionAddress": "8025B8BC",
    "Name": "Required: General Codes",
    "Codetype": "04",
@@ -743,11 +736,25 @@
    "Tags": ""
   },
   {
+   "InjectionAddress": "8021AAE4",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/Hacks/FD/DesyncProofBGTransformations.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
    "InjectionAddress": "801D2D38",
    "Name": "Required: Slippi Online",
    "Codetype": "Auto",
    "Annotation": "Online/Core/Hacks/Stadium/ChangeJumbotronText.asm",
    "Tags": ""
+  },
+  {
+   "InjectionAddress": "801C65C8",
+   "Name": "Required: Slippi Online",
+   "Codetype": "Auto",
+   "Annotation": "Online/Core/Hacks/Stadium/CustomZeroBuffer.asm",
+   "Tags": "[affects-gameplay]"
   },
   {
    "InjectionAddress": "801D4760",
@@ -1979,6 +1986,13 @@
    "Name": "Recommended: Lagless FoD",
    "Codetype": "04",
    "Annotation": "",
+   "Tags": ""
+  },
+  {
+   "InjectionAddress": "8021AAE0",
+   "Name": "Optional: Freeze Final Destination Background",
+   "Codetype": "Auto",
+   "Annotation": "External/FreezeFDSlippi/FreezeFDSlippi.asm",
    "Tags": ""
   },
   {

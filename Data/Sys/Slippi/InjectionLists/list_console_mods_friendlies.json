@@ -36,6 +36,13 @@
    "Tags": ""
   },
   {
+   "InjectionAddress": "801239A8",
+   "Name": "Full friendlies codes",
+   "Codetype": "Auto",
+   "Annotation": "External/FreezeGlitchFix/FreezeGlitchFix.asm",
+   "Tags": "[affects-gameplay]"
+  },
+  {
    "InjectionAddress": "804DC47C",
    "Name": "Full friendlies codes",
    "Codetype": "Auto",

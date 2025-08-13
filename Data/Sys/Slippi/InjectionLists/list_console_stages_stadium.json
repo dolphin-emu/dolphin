@@ -22,11 +22,11 @@
    "Tags": ""
   },
   {
-   "InjectionAddress": "804DEC1C",
+   "InjectionAddress": "801D457C",
    "Name": "Frozen Stadium",
    "Codetype": "Auto",
    "Annotation": "External/Frozen PS/Toggle/FrzPkmToggleEnable.asm",
-   "Tags": ""
+   "Tags": "[affects-gameplay]"
   }
  ]
 }
