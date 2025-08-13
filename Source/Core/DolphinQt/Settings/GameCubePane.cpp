@@ -145,6 +145,9 @@ void GameCubePane::CreateWidgets()
            EXIDeviceType::EthernetXLink,
            EXIDeviceType::EthernetTapServer,
            EXIDeviceType::EthernetBuiltIn,
+#if defined(WIN32) || (defined(__linux__) && !defined(__ANDROID__))
+           EXIDeviceType::EthernetIPC,
+#endif
            EXIDeviceType::ModemTapServer,
        })
   {
