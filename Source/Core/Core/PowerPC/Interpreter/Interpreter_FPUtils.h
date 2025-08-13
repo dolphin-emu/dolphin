@@ -471,9 +471,9 @@ inline FPResult NI_madd_msub(PowerPC::PowerPCState& ppc_state, double a, double 
         // Also note that we do not cast to a float here,
         // as individual instructions using this function will on their own afterwards
         if (error < 0.0)
-          result.value = std::bit_cast<double>(result_bits + 1); // We were too small, round up
+          result.value = std::bit_cast<double>(result_bits + 1);  // We were too small, round up
         else
-          result.value = std::bit_cast<double>(result_bits - 1); // We were too large, round down
+          result.value = std::bit_cast<double>(result_bits - 1);  // We were too large, round down
       }
     }
   }
