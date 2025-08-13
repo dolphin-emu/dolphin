@@ -416,17 +416,17 @@ inline FPResult NI_madd_msub(PowerPC::PowerPCState& ppc_state, double a, double 
 
     if (std::isnan(a))
     {
-      result.value = MakeQuiet(static_cast<float>(a));
+      result.value = MakeQuiet(a);
       return result;
     }
     if (std::isnan(b))
     {
-      result.value = MakeQuiet(static_cast<float>(b));  // !
+      result.value = MakeQuiet(b);  // !
       return result;
     }
     if (std::isnan(c))
     {
-      result.value = MakeQuiet(static_cast<float>(c));
+      result.value = MakeQuiet(c);
       return result;
     }
 
