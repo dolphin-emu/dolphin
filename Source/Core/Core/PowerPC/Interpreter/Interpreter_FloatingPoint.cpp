@@ -393,7 +393,8 @@ void Interpreter::fmaddx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
-  const FPResult product = NI_madd<false>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
+  const FPResult product =
+      NI_madd<false>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
   {
@@ -413,7 +414,8 @@ void Interpreter::fmaddsx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
-  const FPResult product = NI_madd<true>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
+  const FPResult product =
+      NI_madd<true>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
   {
@@ -602,7 +604,8 @@ void Interpreter::fmsubx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
-  const FPResult product = NI_msub<false>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
+  const FPResult product =
+      NI_msub<false>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
   {
@@ -622,7 +625,8 @@ void Interpreter::fmsubsx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
-  const FPResult product = NI_msub<true>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
+  const FPResult product =
+      NI_msub<true>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
   {
@@ -642,7 +646,8 @@ void Interpreter::fnmaddx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
-  const FPResult product = NI_madd<false>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
+  const FPResult product =
+      NI_madd<false>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
   {
@@ -664,7 +669,8 @@ void Interpreter::fnmaddsx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
-  const FPResult product = NI_madd<true>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
+  const FPResult product =
+      NI_madd<true>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
   {
@@ -686,7 +692,8 @@ void Interpreter::fnmsubx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
-  const FPResult product = NI_msub<false>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
+  const FPResult product =
+      NI_msub<false>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
   {
@@ -708,7 +715,8 @@ void Interpreter::fnmsubsx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
-  const FPResult product = NI_msub<true>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
+  const FPResult product =
+      NI_msub<true>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble());
 
   if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
   {
