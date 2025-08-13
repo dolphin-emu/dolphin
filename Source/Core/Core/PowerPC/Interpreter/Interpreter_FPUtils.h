@@ -287,12 +287,125 @@ inline FPResult NI_sub(PowerPC::PowerPCState& ppc_state, double a, double b)
   return result;
 }
 
-// FMA instructions on PowerPC are weird:
-// They calculate (a * c) + b, but the order in which
-// inputs are checked for NaN is still a, b, c.
-inline FPResult NI_madd(PowerPC::PowerPCState& ppc_state, double a, double c, double b)
+// The bulk work for fm(add/sub)(s)x operations
+template <bool sub, bool single>
+inline FPResult NI_madd_msub(PowerPC::PowerPCState& ppc_state, double a, double c, double b)
 {
-  FPResult result{std::fma(a, c, b)};
+  // The FMA instructions on PowerPC are incredibly weird, and the single precision variations are
+  // the only ones with the unfortunate side effect of completely accurately emulating them requiring
+  // either software floats or the manual checking of the individual float operations performed,
+  // down to a precision greater than that of subnormals.
+  // The first oddity to be found is that they calculate (a * c) + b, but in the case of NaNs,
+  // they're still checked in the order a, b, c.
+  // The rest generally come from the single precision variation.
+  // 1. The arguments are *not* forced to 32-bit precision in all ways, meaning you can end
+  //    up with results that rely on a 64-bit precision mantissa.
+  // 2. The only argument which *is* forced to 32-bit precision in a way is frC, and even that
+  //    is only forced to have a 32-bit mantissa.
+  // 3. fC is forced to have a 32-bit mantissa (rounding in the same way no matter what the
+  //    rounding mode is set to), while keeping the exponent at any 64-bit value.
+  //    But rather than the highest values rounding to infinity, because PowerPC internally uses
+  //    a higher precision exponent, it rounds up to a value normally unreachable with even
+  //    double precision floats.
+  // 4. CPUs, unsurprisingly, don't tend to support 64-bit float inputs to an operation with a 32-bit
+  //    result. One quirk of PowerPC is that instead of just not caring about the 32-bit precision
+  //    mantissas, it includes them and *only rounds once* to 32-bit. This means that you can have
+  //    double precision inputs that round differently than if you do a double precision FMA then
+  //    round the result to 32-bit.
+  //    - What makes FMA so special here is that it's the only basic operation which, upon being 
+  //      converted to a 64-bit operation then rounded back to a 32-bit result, does *not* give
+  //      the same result when rounding to nearest!
+  //      Addition, subtraction, multiplication, and division do not have this issue and will give
+  //      the correct result for all inputs!
+  //    - In fact, rounding to nearest is the *only* rounding mode where it ends up having issues!
+  //      The reason being, if the result was to round in one direction, it would
+  //      always direct the double precision output in a way such that rounding to single precision
+  //      would end up having that same transformation (or it would already be exactly representable
+  //      as a single precision value).
+  //
+  // It is relatively easy to find 32-bit values which do not round properly if one performs
+  // f32(fma(f64(a), f64(c), f64(b))), despite the rarity. The requirements can be shown fairly easily as well:
+  // - Final Result = sign * (1.fffffffffffffffffffffffddddddddddddddddddddddddddddd * 2^exponent + c * 2^(exponent - 52))
+  // What we need is some form of discrepency occurs from rounding twice, such that moving `d` over to be part of `c` (and
+  // adjusting the exponent multiplied by the concatenated values)
+  // There are a few ways which a discrepency from rounding twice can be caused:
+  // 1. Tying down to even because `c` is too small
+  //    a. The highest bit of `d` is 1, the rest of the bits of `d` are 0 (this means it ties)
+  //    b. The lowest bit of `f` is 0 (this means it ties to even downwards)
+  //    c. `c` is positive (nonzero) and does not round `d` upwards
+  //    -  This means while a single round would round up, instead this rounds down because of tying to even.
+  // 2. Tying up because `d` rounded up
+  //    a. The highest bit of `d` is 0, the rest of the bits of `d` are 1
+  //    b. The lowest bit of `f` is 1 (this means it ties to even upwards)
+  //    c. `c` is positive, and the highest bit of c is 1
+  //    - This will cause `d` to round to 100...00, meaning it will tie then round upwards.
+  // 3. Tying up to even because `c` is too small
+  //    a. The highest bit of `d` is 1, the rest of the bits of `d` are 0 (this means it ties)
+  //    b. The lowest bit of `f` is 1 (this means it ties to even downwards)
+  //    c. `c` is negative and does not round `d` downwards
+  //    -  This is similar to the first one but in reverse, rounding up instead of down.
+  // 4. Tying down because `d` rounded down
+  //    a. The highest and lowest bits of `d` are 1, the rest of the bits of `d` are 0
+  //    b. The lowest bit of `f` is 0 (this means it ties to even upwards)
+  //    c. `c` is negative, and the highest bit of c is 1 and at least one other bit of c is nonzero
+  //    - The backwards counterpart to case 2, this will cause `d` to round back down to 100..00,
+  //      where the tie down will cause it to round down instead of up.
+  //
+  // The first values found which were shown to definitively cause issues appeared in Super Mario Strikers, where:
+  // a = 0x42480000 (50.0)
+  // c = 0xbc88cc38 (-0.01669894158840179443359375)
+  // b = 0x1b1c72a0 (0.0000000000000000000001294105489087172032066277841712287344222431784146465361118316650390625)
+  // 
+  //   1.fffffffffffffffffffffffddddddddddddddddddddddddddddd * 2^exp +/- c
+  // -(1.1010101101111110001011110000000000000000000000000000 * 2^-1   -  1.001110001110010101 * 2^-73)
+  // This exactly matches case 3 as shown above, so while the result should be 0xbf55bf17, Dolphin was returning 0xbf55bf18!
+  // Due to being able to choose any value of `c` easily to counter the value in the multiplication, it's not particularly difficult
+  // to make your own examples as well, but of course these happening in practice is going to be absurdly uncommon most of the time.
+  // 
+  // Currently Dolphin supports:
+  // - Correct ordering of NaN checking (for both double and single precision)
+  // - Rounding frC up
+  // - Rounding only once for single precision inputs (this will be the large, large majority of cases!)
+  //   - Currently this is interpreter-only. This can be implemented in the JIT just as easily, though.
+  //     Eventually the JITs should hopefully support detecting back to back single-precision operations,
+  //     
+  // Currently it does not support:
+  // - Handling frC overflowing to an unreachable value
+  //   - This is simple enough to check for and handle properly, but the likelihood of it occuring is
+  //     so low that it's not worth it to check for it for the extremely rare accuracy improvement
+  // - Rounding only once for inputs with single precision mantissas but double precision exponents
+  //   - This one is also very simple again is not really something that would happen.
+  //     It's also the most likely one to occur, as paired singles similarly only round the mantissa,
+  //     not the exponent, and there are games which which do in fact utilize this (for example, any
+  //     games which use nw4r -- this includes Mario Kart Wii, although no ghosts are known which
+  //     desync on Dolphin because of this or even the single precision -> double precision FMA issue)
+  // - Rounding only once for inputs with double precision mantissas
+  //
+  // All of these can be resolved in a software float emulation method, or by using things such as
+  // error-free float algorithms, but the nature of both of these lead to incredible speed costs,
+  // and with the extreme rarity of anything beyond what's currently handled mattering, the other
+  // cases don't seem to have any reason to be implemented as of now.
+
+  FPResult result;
+  
+  // In double precision, just doing the normal operation will be exact with no issues.
+  if (!single)
+    result.value = std::fma(a, c, sub ? -b : b);
+  else {
+    // For the single precision case, all we currently do is rounding frC properly,
+    // then check if the single precision case will work,
+    // and if it does, we perform a single precision fma instead.
+    const double c_round = Force25Bit(c);
+
+    const float a_float = static_cast<float>(a);
+    const float b_float = static_cast<float>(b);
+    const float c_float = static_cast<float>(c_round);
+
+    if (static_cast<double>(a_float) == a && static_cast<double>(b_float) == b && static_cast<double>(c_float) == c_round)
+      result.value = static_cast<double>(std::fma(a_float, c_float, sub ? -b_float : b_float));
+    else
+      result.value = std::fma(a, c_round, sub ? -b : b);
+  }
 
   if (std::isnan(result.value))
   {
@@ -328,42 +441,16 @@ inline FPResult NI_madd(PowerPC::PowerPCState& ppc_state, double a, double c, do
   return result;
 }
 
+template <bool single>
+inline FPResult NI_madd(PowerPC::PowerPCState& ppc_state, double a, double c, double b)
+{
+  return NI_madd_msub<false, single>(ppc_state, a, c, b);
+}
+
+template <bool single>
 inline FPResult NI_msub(PowerPC::PowerPCState& ppc_state, double a, double c, double b)
 {
-  FPResult result{std::fma(a, c, -b)};
-
-  if (std::isnan(result.value))
-  {
-    if (Common::IsSNAN(a) || Common::IsSNAN(b) || Common::IsSNAN(c))
-      result.SetException(ppc_state, FPSCR_VXSNAN);
-
-    ppc_state.fpscr.ClearFIFR();
-
-    if (std::isnan(a))
-    {
-      result.value = MakeQuiet(static_cast<float>(a));
-      return result;
-    }
-    if (std::isnan(b))
-    {
-      result.value = MakeQuiet(static_cast<float>(b));  // !
-      return result;
-    }
-    if (std::isnan(c))
-    {
-      result.value = MakeQuiet(static_cast<float>(c));
-      return result;
-    }
-
-    result.SetException(ppc_state, std::isnan(a * c) ? FPSCR_VXIMZ : FPSCR_VXISI);
-    result.value = PPC_NAN;
-    return result;
-  }
-
-  if (std::isinf(a) || std::isinf(b) || std::isinf(c))
-    ppc_state.fpscr.ClearFIFR();
-
-  return result;
+  return NI_madd_msub<true, single>(ppc_state, a, c, b);
 }
 
 // used by stfsXX instructions and ps_rsqrte

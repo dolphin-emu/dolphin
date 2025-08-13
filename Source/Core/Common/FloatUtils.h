@@ -34,23 +34,10 @@ static constexpr u32 FLOAT_ZERO = 0x00000000;
 static constexpr int FLOAT_EXP_WIDTH = 8;
 static constexpr int FLOAT_FRAC_WIDTH = 23;
 
-inline bool IsQNAN(float f)
-{
-  const u32 i = std::bit_cast<u32>(f);
-  return ((i & FLOAT_EXP) == FLOAT_EXP) && ((i & FLOAT_QBIT) == FLOAT_QBIT);
-}
-
 inline bool IsQNAN(double d)
 {
   const u64 i = std::bit_cast<u64>(d);
   return ((i & DOUBLE_EXP) == DOUBLE_EXP) && ((i & DOUBLE_QBIT) == DOUBLE_QBIT);
-}
-
-inline bool IsSNAN(float f)
-{
-  const u32 i = std::bit_cast<u32>(f);
-  return ((i & FLOAT_EXP) == FLOAT_EXP) && ((i & FLOAT_FRAC) != FLOAT_ZERO) &&
-         ((i & FLOAT_QBIT) == FLOAT_ZERO);
 }
 
 inline bool IsSNAN(double d)
