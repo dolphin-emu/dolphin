@@ -593,7 +593,7 @@ void OGLStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect,
   glTexSubImage3D(target, 0, dst_rect.left, dst_rect.top, dst_layer, dst_rect.GetWidth(),
                   dst_rect.GetHeight(), 1, GetGLFormatForTextureFormat(dst->GetFormat()),
                   GetGLTypeForTextureFormat(dst->GetFormat()), reinterpret_cast<void*>(src_offset));
-
+  glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
   // If we support buffer storage, create a fence for synchronization.
