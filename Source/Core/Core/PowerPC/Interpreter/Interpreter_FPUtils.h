@@ -309,10 +309,11 @@ inline FPResult NI_madd_msub(PowerPC::PowerPCState& ppc_state, double a, double 
   //    double precision floats.
   // 4. CPUs, unsurprisingly, don't tend to support 64-bit float inputs to an operation with a
   //    32-bit result.
-  //    One quirk of PowerPC is that instead of just not caring about the 32-bit precision
-  //    mantissas, it includes them and *only rounds once* to 32-bit. This means that you can have
-  //    double precision inputs that round differently than if you do a double precision FMA then
-  //    round the result to 32-bit.
+  //    One quirk of PowerPC is that instead of just not caring about handling the precision
+  //    in the registers of the operands of single precision instructions, it instead
+  //    takes into account that extra precision and *only rounds once* to 32-bit.
+  //    This means that you can have double precision inputs such that the result rounds
+  //    differently than if you did a double precision FMA and rounded the result to 32-bit.
   //    - What makes FMA so special here is that it's the only basic operation which, upon being
   //      converted to a 64-bit operation then rounded back to a 32-bit result, does *not* give
   //      the same result when rounding to nearest!
@@ -329,10 +330,12 @@ inline FPResult NI_madd_msub(PowerPC::PowerPCState& ppc_state, double a, double 
   // The requirements can be shown fairly easily as well:
   // - Final Result = sign * (1.fffffffffffffffffffffffddddddddddddddddddddddddddddd * 2^exponent
   //                          + c * 2^(exponent - 52))
-  // What we need is some form of discrepency occurs from rounding twice,
-  // such that moving `d` over to be part of `c` (and adjusting the exponent multiplied
-  // by the concatenated values)
-  // There are a few ways which this discrepency from rounding twice can be caused:
+  // What we need is some form of discrepency which occurs from rounding twice,
+  // such that rounding from the perspective `d` just being in front of `c` (like in the actual
+  // operation which only rounds once) will give a different result than rounding `d` then
+  // rounding again to single precision.
+  // There are a few ways which this discrepency from rounding twice can be caused, with all
+  // of them relating to rounding to nearest ties even:
   // 1. Tying down to even because `c` is too small
   //    a. The highest bit of `d` is 1, the rest of the bits of `d` are 0 (this means it ties)
   //    b. The lowest bit of `f` is 0 (this means it ties to even downwards)
@@ -410,7 +413,9 @@ inline FPResult NI_madd_msub(PowerPC::PowerPCState& ppc_state, double a, double 
 
   // In double precision, just doing the normal operation will be exact with no issues.
   if (!single)
+  {
     result.value = std::fma(a, c, sub ? -b : b);
+  }
   else
   {
     // For single precision inputs, we never actually cast to a float -- we instead compute an
