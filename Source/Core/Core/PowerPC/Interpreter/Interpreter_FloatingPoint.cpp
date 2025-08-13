@@ -412,15 +412,33 @@ void Interpreter::fmaddsx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
+  const double a_value = a.PS0AsDouble();
+  const double b_value = b.PS0AsDouble();
   const double c_value = Force25Bit(c.PS0AsDouble());
-  const FPResult d_value = NI_madd(ppc_state, a.PS0AsDouble(), c_value, b.PS0AsDouble());
 
-  if (ppc_state.fpscr.VE == 0 || d_value.HasNoInvalidExceptions())
+  const float a_float = static_cast<float>(a_value);
+  const float b_float = static_cast<float>(b_value);
+  const float c_float = static_cast<float>(c_value);
+
+  FPResult product;
+  if (a_float == a_value && b_float == b_value && c_float == c_value)
   {
-    const float result = ForceSingle(ppc_state.fpscr, d_value.value);
+    // In most circumstances, all inputs will be floats, rather than anything outside of the float range
+    // To maintain accuracy in these situations the fma is performed directly on the f32 value
+    product = NI_madd(ppc_state, a_float, c_float, b_float);
+  }
+  else
+  {
+    // If any weirdness occurs then we fall back to the less slightly less accurate double version
+    product = NI_madd(ppc_state, a_value, c_value, b_value);
+  }
+
+  if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
+  {
+    const float result = ForceSingle(ppc_state.fpscr, product.value);
 
     ppc_state.ps[inst.FD].Fill(result);
-    ppc_state.fpscr.FI = d_value.value != result;
+    ppc_state.fpscr.FI = product.value != result;
     ppc_state.fpscr.FR = 0;
     ppc_state.UpdateFPRFSingle(result);
   }
@@ -622,8 +640,19 @@ void Interpreter::fmsubsx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
+  const double a_value = a.PS0AsDouble();
+  const double b_value = b.PS0AsDouble();
   const double c_value = Force25Bit(c.PS0AsDouble());
-  const FPResult product = NI_msub(ppc_state, a.PS0AsDouble(), c_value, b.PS0AsDouble());
+
+  const float a_float = static_cast<float>(a_value);
+  const float b_float = static_cast<float>(b_value);
+  const float c_float = static_cast<float>(c_value);
+
+  FPResult product;
+  if (a_float == a_value && b_float == b_value && c_float == c_value)
+    product = NI_msub(ppc_state, a_float, c_float, b_float);
+  else
+    product = NI_msub(ppc_state, a_value, c_value, b_value);
 
   if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
   {
@@ -665,8 +694,19 @@ void Interpreter::fnmaddsx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
+  const double a_value = a.PS0AsDouble();
+  const double b_value = b.PS0AsDouble();
   const double c_value = Force25Bit(c.PS0AsDouble());
-  const FPResult product = NI_madd(ppc_state, a.PS0AsDouble(), c_value, b.PS0AsDouble());
+
+  const float a_float = static_cast<float>(a_value);
+  const float b_float = static_cast<float>(b_value);
+  const float c_float = static_cast<float>(c_value);
+
+  FPResult product;
+  if (a_float == a_value && b_float == b_value && c_float == c_value)
+    product = NI_madd(ppc_state, a_float, c_float, b_float);
+  else
+    product = NI_madd(ppc_state, a_value, c_value, b_value);
 
   if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
   {
@@ -710,8 +750,19 @@ void Interpreter::fnmsubsx(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
+  const double a_value = a.PS0AsDouble();
+  const double b_value = b.PS0AsDouble();
   const double c_value = Force25Bit(c.PS0AsDouble());
-  const FPResult product = NI_msub(ppc_state, a.PS0AsDouble(), c_value, b.PS0AsDouble());
+
+  const float a_float = static_cast<float>(a_value);
+  const float b_float = static_cast<float>(b_value);
+  const float c_float = static_cast<float>(c_value);
+
+  FPResult product;
+  if (a_float == a_value && b_float == b_value && c_float == c_value)
+    product = NI_msub(ppc_state, a_float, c_float, b_float);
+  else
+    product = NI_msub(ppc_state, a_value, c_value, b_value);
 
   if (ppc_state.fpscr.VE == 0 || product.HasNoInvalidExceptions())
   {

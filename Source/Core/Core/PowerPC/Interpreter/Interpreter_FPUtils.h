@@ -290,9 +290,10 @@ inline FPResult NI_sub(PowerPC::PowerPCState& ppc_state, double a, double b)
 // FMA instructions on PowerPC are weird:
 // They calculate (a * c) + b, but the order in which
 // inputs are checked for NaN is still a, b, c.
-inline FPResult NI_madd(PowerPC::PowerPCState& ppc_state, double a, double c, double b)
+template <typename T>
+inline FPResult NI_madd(PowerPC::PowerPCState& ppc_state, T a, T c, T b)
 {
-  FPResult result{std::fma(a, c, b)};
+  FPResult result{static_cast<double>(std::fma(a, c, b))};
 
   if (std::isnan(result.value))
   {
@@ -303,17 +304,17 @@ inline FPResult NI_madd(PowerPC::PowerPCState& ppc_state, double a, double c, do
 
     if (std::isnan(a))
     {
-      result.value = MakeQuiet(a);
+      result.value = MakeQuiet(static_cast<float>(a));
       return result;
     }
     if (std::isnan(b))
     {
-      result.value = MakeQuiet(b);  // !
+      result.value = MakeQuiet(static_cast<float>(b));  // !
       return result;
     }
     if (std::isnan(c))
     {
-      result.value = MakeQuiet(c);
+      result.value = MakeQuiet(static_cast<float>(c));
       return result;
     }
 
@@ -328,9 +329,10 @@ inline FPResult NI_madd(PowerPC::PowerPCState& ppc_state, double a, double c, do
   return result;
 }
 
-inline FPResult NI_msub(PowerPC::PowerPCState& ppc_state, double a, double c, double b)
+template <typename T>
+inline FPResult NI_msub(PowerPC::PowerPCState& ppc_state, T a, T c, T b)
 {
-  FPResult result{std::fma(a, c, -b)};
+  FPResult result{static_cast<double>(std::fma(a, c, -b))};
 
   if (std::isnan(result.value))
   {
@@ -341,17 +343,17 @@ inline FPResult NI_msub(PowerPC::PowerPCState& ppc_state, double a, double c, do
 
     if (std::isnan(a))
     {
-      result.value = MakeQuiet(a);
+      result.value = MakeQuiet(static_cast<float>(a));
       return result;
     }
     if (std::isnan(b))
     {
-      result.value = MakeQuiet(b);  // !
+      result.value = MakeQuiet(static_cast<float>(b));  // !
       return result;
     }
     if (std::isnan(c))
     {
-      result.value = MakeQuiet(c);
+      result.value = MakeQuiet(static_cast<float>(c));
       return result;
     }
 
