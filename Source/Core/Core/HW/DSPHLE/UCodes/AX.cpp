@@ -180,7 +180,7 @@ void AXUCode::HandleCommandList()
       break;
 
     case CMD_UNK_08:
-      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_UNIMPLEMENTED_AX_COMMAND);
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesUnimplementedAXCommand);
       curr_idx += 10;
       break;  // TODO: check
 

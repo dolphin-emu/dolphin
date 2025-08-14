@@ -173,7 +173,7 @@ constexpr std::array GAME_QUIRKS_NAMES{
     "invalid-texture-coordinate-component-format",
     "invalid-color-component-format",
 };
-static_assert(GAME_QUIRKS_NAMES.size() == static_cast<u32>(GameQuirk::COUNT),
+static_assert(GAME_QUIRKS_NAMES.size() == static_cast<u32>(GameQuirk::Count),
               "Game quirks names and enum definition are out of sync.");
 
 void DolphinAnalytics::ReportGameQuirk(GameQuirk quirk)
