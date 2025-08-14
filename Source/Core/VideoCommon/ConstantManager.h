@@ -105,6 +105,8 @@ struct alignas(16) VertexShaderConstants
   std::array<u32, 8> vertex_offset_texcoords;
   // For custom meshes (TODO: move)
   std::array<float4, 4> custom_transform;
+  // For custom shaders...
+  u32 time_ms;
 };
 
 enum class VSExpand : u32
