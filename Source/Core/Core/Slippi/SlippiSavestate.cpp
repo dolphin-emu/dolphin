@@ -57,9 +57,12 @@ void SlippiSavestate::initBackupLocs()
 
       // Full Unknown Region: [804fec00 - 80BD5C40)
       // https://docs.google.com/spreadsheets/d/16ccNK_qGrtPfx4U25w7OWIDMZ-NxN1WNBmyQhaDxnEg/edit?usp=sharing
-      {0x8065c000, 0x8071b000, nullptr},  // Unknown Region Pt1. Maybe get the low bound pointer at
-                                          // 804d5c10 and the size of the audio heap at 804d5e18
-      {0x0, 0x0, nullptr},                // Unknown Region Pt2, Heap [80bd5c40 - 811AD5A0).
+      {0x8065c000, 0x8071b000, nullptr},  // Unknown Region Pt1
+
+      // Unknown Region Pt2, Heap [80bd5c40 - 811AD5A0)
+      // These values get overwritten on init by heap boundaries read from the game directly.
+      // Look for HostRead_U32 below
+      {0x80bd5c40, 0x811AD5A0, nullptr},
   };
 
   static std::vector<PreserveBlock> exclude_sections = {
@@ -106,12 +109,16 @@ void SlippiSavestate::initBackupLocs()
 
   static std::vector<ssBackupLoc> processed_locs = {};
 
-  // If the processed locations are already computed, just copy them directly
-  if (processed_locs.size())
+  // If the processed locations are already computed, just copy them directly. A re-init
+  // is forced every time a new ISO is loaded, this is done to allow to support ISOs
+  // with different heap boundaries
+  if (processed_locs.size() && !should_force_init)
   {
     backup_locs.insert(backup_locs.end(), processed_locs.begin(), processed_locs.end());
     return;
   }
+
+  should_force_init = false;
 
   ASSERT(Core::IsCPUThread());
   Core::CPUThreadGuard guard(Core::System::GetInstance());
