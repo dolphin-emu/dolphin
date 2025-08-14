@@ -1249,7 +1249,25 @@ void VertexManagerBase::DrawEmulatedMesh(VideoCommon::CameraManager& camera_mana
       continue;
 
     reset_framebuffer = true;
-    g_gfx->SetFramebuffer(additional_camera_view.framebuffer);
+    if (*additional_camera_view.should_clear)
+    {
+      additional_camera_view.framebuffer->GetColorAttachment()->FinishedRendering();
+      if (additional_camera_view.framebuffer->GetDepthAttachment())
+        additional_camera_view.framebuffer->GetDepthAttachment()->FinishedRendering();
+      g_gfx->SetAndClearFramebuffer(
+          additional_camera_view.framebuffer,
+          {{additional_camera_view.clear_color[0], additional_camera_view.clear_color[1],
+            additional_camera_view.clear_color[2], 1.0f}},
+          g_backend_info.bSupportsReversedDepthRange ?
+              1.0 - additional_camera_view.clear_depth_value :
+              additional_camera_view.clear_depth_value);
+
+      *additional_camera_view.should_clear = false;
+    }
+    else
+    {
+      g_gfx->SetFramebuffer(additional_camera_view.framebuffer);
+    }
     if (additional_camera_view.transform)
     {
       const u64 camera_id = Common::ToUnderlying<>(additional_camera_view.id);
