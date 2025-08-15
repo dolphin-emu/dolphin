@@ -44,7 +44,6 @@
 #include "Core/BootManager.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/AchievementSettings.h"
-#include "Core/Config/FreeLookSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/UISettings.h"
@@ -58,10 +57,8 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HotkeyManager.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
-#include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
@@ -126,18 +123,15 @@
 #include "DolphinQt/WiiUpdate.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/GCAdapter.h"
 
 #include "UICommon/DiscordPresence.h"
 #include "UICommon/GameFile.h"
 #include "UICommon/ResourcePack/Manager.h"
-#include "UICommon/ResourcePack/Manifest.h"
 #include "UICommon/ResourcePack/ResourcePack.h"
 
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/NetPlayChatUI.h"
-#include "VideoCommon/VideoConfig.h"
 
 #ifdef HAVE_XRANDR
 #include "UICommon/X11Utils.h"
@@ -435,7 +429,6 @@ void MainWindow::InitCoreCallbacks()
     }
   });
   installEventFilter(this);
-  m_render_widget->installEventFilter(this);
 
   // Handle file open events
   auto* filter = new FileOpenEventFilter(QGuiApplication::instance());
@@ -726,9 +719,6 @@ void MainWindow::ConnectGameList()
 
 void MainWindow::ConnectRenderWidget()
 {
-  m_rendering_to_main = false;
-  m_render_widget->hide();
-  connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
   connect(m_render_widget, &RenderWidget::FocusChanged, this, [this](bool focus) {
     if (m_render_widget->isFullScreen())
       SetFullScreenResolution(focus);
@@ -893,7 +883,10 @@ void MainWindow::TogglePause()
 void MainWindow::OnStopComplete()
 {
   m_stop_requested = false;
-  HideRenderWidget(!m_exit_requested, m_exit_requested);
+  HideRenderWidget();
+  if (!m_exit_requested)
+    RecreateRenderWidget();
+
 #ifdef USE_DISCORD_PRESENCE
   if (!m_netplay_dialog->isVisible())
     Discord::UpdateDiscordPresence();
@@ -932,15 +925,11 @@ bool MainWindow::RequestStop()
   const bool rendered_widget_was_active =
       Settings::Instance().IsKeepWindowOnTopEnabled() ||
       (m_render_widget->isActiveWindow() && !m_render_widget->isFullScreen());
-  QWidget* confirm_parent = (!m_rendering_to_main && rendered_widget_was_active) ?
-                                m_render_widget :
-                                static_cast<QWidget*>(this);
-  const bool was_cursor_locked = m_render_widget->IsCursorLocked();
 
-  if (!m_render_widget->isFullScreen())
-    m_render_widget_geometry = m_render_widget->saveGeometry();
-  else
-    FullScreen();
+  auto* const confirm_parent =
+      m_render_window != nullptr ? m_render_window : static_cast<QWidget*>(this);
+
+  const bool was_cursor_locked = m_render_widget->IsCursorLocked();
 
   bool confirm_on_stop = Config::Get(Config::MAIN_CONFIRM_ON_STOP);
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
@@ -1062,24 +1051,30 @@ void MainWindow::FrameAdvance()
 
 void MainWindow::FullScreen()
 {
-  // If the render widget is fullscreen we want to reset it to whatever is in
-  // settings. If it's set to be fullscreen then it just remakes the window,
-  // which probably isn't ideal.
-  bool was_fullscreen = m_render_widget->isFullScreen();
+  const bool want_fullscreen = m_render_window == nullptr || !m_render_window->isFullScreen();
 
-  if (!was_fullscreen)
-    m_render_widget_geometry = m_render_widget->saveGeometry();
+  SetFullScreenResolution(want_fullscreen);
 
-  HideRenderWidget(false);
-  SetFullScreenResolution(!was_fullscreen);
-
-  if (was_fullscreen)
+  if (Config::Get(Config::MAIN_RENDER_TO_MAIN))
   {
-    ShowRenderWidget();
+    HideRenderWidget();
+    ShowRenderWidget(!want_fullscreen);
+
+    if (want_fullscreen)
+      m_render_window->showFullScreen();
   }
   else
   {
-    m_render_widget->showFullScreen();
+    if (want_fullscreen)
+    {
+      m_render_widget_geometry = m_render_window->saveGeometry();
+      m_render_window->showFullScreen();
+    }
+    else
+    {
+      m_render_window->showNormal();
+      m_render_window->restoreGeometry(m_render_widget_geometry);
+    }
   }
 }
 
@@ -1159,7 +1154,7 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
   }
 
   // We need the render widget before booting.
-  ShowRenderWidget();
+  ShowRenderWidget(Config::Get(Config::MAIN_RENDER_TO_MAIN));
 
   // Boot up, show an error if it fails to load the game.
   if (!BootManager::BootCore(m_system, std::move(parameters),
@@ -1167,6 +1162,7 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
   {
     ModalMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
     HideRenderWidget();
+    RecreateRenderWidget();
     return;
   }
 
@@ -1207,17 +1203,14 @@ void MainWindow::SetFullScreenResolution(bool fullscreen)
 #endif
 }
 
-void MainWindow::ShowRenderWidget()
+void MainWindow::ShowRenderWidget(bool render_to_main_window)
 {
-  SetFullScreenResolution(false);
-  Host::GetInstance()->SetRenderFullscreen(false);
-
-  if (Config::Get(Config::MAIN_RENDER_TO_MAIN))
+  if (render_to_main_window)
   {
     // If we're rendering to main, add it to the stack and update our title when necessary.
-    m_rendering_to_main = true;
-
     m_stack->setCurrentIndex(m_stack->addWidget(m_render_widget));
+
+    // TODO: fix title when showing render widget while in game.
     connect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
     m_stack->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     m_stack->repaint();
@@ -1226,55 +1219,58 @@ void MainWindow::ShowRenderWidget()
   }
   else
   {
-    // Otherwise, just show it.
-    m_rendering_to_main = false;
+    // Embed the render widget in another window.
+    // For some reason this is needed to observe window focus with Wayland + OpenGL.
+    m_render_window = new RenderWindow(nullptr, m_render_widget);
+    m_render_window->installEventFilter(this);
 
-    m_render_widget->showNormal();
-    m_render_widget->restoreGeometry(m_render_widget_geometry);
+    m_render_window->showNormal();
+    m_render_window->restoreGeometry(m_render_widget_geometry);
+
+    m_render_widget->show();
   }
 }
 
-void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
+void MainWindow::HideRenderWidget()
 {
-  if (m_rendering_to_main)
+  m_render_widget->hide();
+
+  if (m_render_window != nullptr)
   {
-    // Remove the widget from the stack and reparent it to nullptr, so that it can draw
-    // itself in a new window if it wants. Disconnect the title updates.
+    if (!m_render_window->isFullScreen())
+      m_render_widget_geometry = m_render_window->saveGeometry();
+  }
+  else
+  {
+    // Remove the widget from the stack and disconnect the title updates.
     m_stack->removeWidget(m_render_widget);
-    m_render_widget->setParent(nullptr);
-    m_rendering_to_main = false;
     m_stack->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     disconnect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
     setWindowTitle(QString::fromStdString(Common::GetScmRevStr()));
   }
 
+  // Re-parent render widget to nullptr, so that it can draw itself in a new window if it wants.
+  m_render_widget->setParent(nullptr);
+
+  // Delete the render window if it exists.
+  delete std::exchange(m_render_window, nullptr);
+}
+
+void MainWindow::RecreateRenderWidget()
+{
   // The following code works around a driver bug that would lead to Dolphin crashing when changing
   // graphics backends (e.g. OpenGL to Vulkan). To avoid this the render widget is (safely)
   // recreated
-  if (reinit)
-  {
-    m_render_widget->hide();
-    disconnect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
+  m_render_widget->deleteLater();
 
-    m_render_widget->removeEventFilter(this);
-    m_render_widget->deleteLater();
+  m_render_widget = new RenderWidget;
+  ConnectRenderWidget();
 
-    m_render_widget = new RenderWidget;
-
-    m_render_widget->installEventFilter(this);
-    connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
-    connect(m_render_widget, &RenderWidget::FocusChanged, this, [this](bool focus) {
-      if (m_render_widget->isFullScreen())
-        SetFullScreenResolution(focus);
-    });
-
-    // The controller interface will still be registered to the old render widget, if the core
-    // has booted. Therefore, we should re-bind it to the main window for now. When the core
-    // is next started, it will be swapped back to the new render widget.
-    g_controller_interface.ChangeWindow(::GetWindowSystemInfo(windowHandle()).render_window,
-                                        is_exit ? ControllerInterface::WindowChangeReason::Exit :
-                                                  ControllerInterface::WindowChangeReason::Other);
-  }
+  // The controller interface will still be registered to the old render widget, if the core
+  // has booted. Therefore, we should re-bind it to the main window for now. When the core
+  // is next started, it will be swapped back to the new render widget.
+  g_controller_interface.ChangeWindow(::GetWindowSystemInfo(windowHandle()).render_window,
+                                      ControllerInterface::WindowChangeReason::Exit);
 }
 
 void MainWindow::ShowControllersWindow()
@@ -1550,8 +1546,7 @@ void MainWindow::NetPlayInit()
   Discord::InitNetPlayFunctionality(*m_netplay_discord);
   m_netplay_discord->Start();
 #endif
-  connect(&Settings::Instance(), &Settings::ConfigChanged, this,
-          &MainWindow::UpdateScreenSaverInhibition);
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &MainWindow::OnConfigChanged);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           &MainWindow::UpdateScreenSaverInhibition);
 }
@@ -1684,6 +1679,24 @@ void MainWindow::NetPlayQuit()
 #endif
 }
 
+void MainWindow::OnConfigChanged()
+{
+  UpdateScreenSaverInhibition();
+
+  if (m_render_widget->isVisible())
+  {
+    const bool is_rendering_to_main = m_render_window == nullptr;
+
+    const bool render_to_main_window = Config::Get(Config::MAIN_RENDER_TO_MAIN);
+
+    if (is_rendering_to_main != render_to_main_window)
+    {
+      HideRenderWidget();
+      ShowRenderWidget(render_to_main_window);
+    }
+  }
+}
+
 void MainWindow::UpdateScreenSaverInhibition()
 {
   const bool inhibit = Config::Get(Config::MAIN_DISABLE_SCREENSAVER) &&
@@ -1714,7 +1727,8 @@ bool MainWindow::eventFilter(QObject* object, QEvent* event)
 QMenu* MainWindow::createPopupMenu()
 {
   // Disable the default popup menu as it exposes the debugger UI even when the debugger UI is
-  // disabled, which can lead to user confusion (see e.g. https://bugs.dolphin-emu.org/issues/13306)
+  // disabled, which can lead to user confusion (see e.g.
+  // https://bugs.dolphin-emu.org/issues/13306)
   return nullptr;
 }
 
@@ -2013,8 +2027,9 @@ void MainWindow::OnHardcoreChanged()
   bool hardcore_active = AchievementManager::GetInstance().IsHardcoreModeActive();
   if (hardcore_active)
     Settings::Instance().SetDebugModeEnabled(false);
-  // EmulationStateChanged causes several dialogs to redraw, including anything affected by hardcore
-  // mode. Every dialog that depends on hardcore mode is redrawn by EmulationStateChanged.
+  // EmulationStateChanged causes several dialogs to redraw, including anything affected by
+  // hardcore mode. Every dialog that depends on hardcore mode is redrawn by
+  // EmulationStateChanged.
   if (hardcore_active != m_former_hardcore_setting)
     emit Settings::Instance().EmulationStateChanged(Core::GetState(Core::System::GetInstance()));
   m_former_hardcore_setting = hardcore_active;
