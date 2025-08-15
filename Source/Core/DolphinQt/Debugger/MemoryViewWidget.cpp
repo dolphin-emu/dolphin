@@ -935,7 +935,11 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView inpu
     // Confirm it is only hex bytes
     const QRegularExpression is_hex(QStringLiteral("^([0-9A-F]{2})*$"),
                                     QRegularExpression::CaseInsensitiveOption);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+    const QRegularExpressionMatch match = is_hex.matchView(input_text);
+#else
     const QRegularExpressionMatch match = is_hex.match(input_text);
+#endif
     good = match.hasMatch();
     if (good)
     {
