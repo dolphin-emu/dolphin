@@ -8,9 +8,9 @@
 
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
-#include "Common/FloatUtils.h"
 #include "Common/Intrinsics.h"
 #include "Common/Swap.h"
+#include "Core/FloatUtils.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Gekko.h"

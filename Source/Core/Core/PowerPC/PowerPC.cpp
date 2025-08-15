@@ -13,13 +13,13 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FPURoundMode.h"
-#include "Common/FloatUtils.h"
 #include "Common/Logging/Log.h"
 
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/FloatUtils.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Host.h"
@@ -40,7 +40,25 @@ double PairedSingle::PS0AsDouble() const
 
 double PairedSingle::PS1AsDouble() const
 {
-  return std::bit_cast<double>(ps1);
+  return Common::TruncateMantissa(std::bit_cast<double>(ps1));
+}
+
+// If ps1 would get truncated to 0 if read as a raw value, set the sign
+// of the input for reciprocal operations
+// It's not exactly clear why this happens, but that's also why PS1 is
+// truncated on read rather than on write
+double PairedSingle::PS1AsReciprocalDouble() const
+{
+  constexpr u64 trunc_bits = Common::DOUBLE_FRAC_WIDTH - Common::FLOAT_FRAC_WIDTH;
+  constexpr u64 trunc_mask = (1 << trunc_bits) - 1;
+
+  u64 bits = ps1;
+  if ((ps1 & ~(trunc_mask | Common::DOUBLE_SIGN)) == 0 && (ps1 & trunc_mask) != 0)
+  {
+    bits |= Common::DOUBLE_SIGN;
+  }
+
+  return std::bit_cast<double>(bits);
 }
 
 void PairedSingle::SetPS0(double value)
