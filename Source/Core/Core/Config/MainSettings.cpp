@@ -20,6 +20,7 @@
 #include "Common/Version.h"
 #include "Core/AchievementManager.h"
 #include "Core/Config/DefaultLocale.h"
+#include "Core/Core.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
@@ -27,6 +28,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "Core/USBUtils.h"
 #include "DiscIO/Enums.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -623,8 +625,16 @@ DiscIO::Region ToGameCubeRegion(DiscIO::Region region)
 
 const char* GetDirectoryForRegion(DiscIO::Region region, RegionDirectoryStyle style)
 {
+  auto& system = Core::System::GetInstance();
+
   if (region == DiscIO::Region::Unknown)
     region = ToGameCubeRegion(Config::Get(Config::MAIN_FALLBACK_REGION));
+
+  // Triforce IPL
+  if (system.IsTriforce())
+  {
+    return DEV_DIR;
+  }
 
   switch (region)
   {
