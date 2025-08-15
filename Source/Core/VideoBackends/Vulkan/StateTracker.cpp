@@ -497,7 +497,7 @@ void StateTracker::UpdateGXDescriptorSet()
       }
 
       // If custom pixel shaders haven't been used, their buffer range is 0
-      if (i == UBO_DESCRIPTOR_SET_BINDING_PS_CUST && m_bindings.gx_ubo_bindings[i].range == 0)
+      if (i == UBO_DESCRIPTOR_SET_BINDING_CUST && m_bindings.gx_ubo_bindings[i].range == 0)
       {
         continue;
       }

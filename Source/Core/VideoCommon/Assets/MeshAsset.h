@@ -15,6 +15,7 @@
 #include "Common/Matrix.h"
 
 #include "VideoCommon/Assets/CustomAsset.h"
+#include "VideoCommon/GraphicsModSystem/Types.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/RenderState.h"
 
@@ -54,6 +55,7 @@ struct MeshData
   static bool FromGLTF(std::string_view gltf_file, MeshData* data);
 
   std::vector<MeshDataChunk> m_mesh_chunks;
+  std::map<GraphicsModSystem::DrawCallID, std::vector<MeshDataChunk>> m_gpu_skinning_chunks;
   std::map<std::string, CustomAssetLibrary::AssetID, std::less<>>
       m_mesh_material_to_material_asset_id;
 };

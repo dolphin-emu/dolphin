@@ -111,6 +111,7 @@ void VertexManager::ResetBuffer(u32 vertex_stride)
   m_end_buffer_pointer = m_vertex_stream_buffer.GetCurrentHostPointer() + MAXVBUFFERSIZE;
   m_cur_buffer_pointer = m_vertex_stream_buffer.GetCurrentHostPointer();
   m_index_generator.Start(reinterpret_cast<u16*>(m_index_stream_buffer.GetCurrentHostPointer()));
+  m_last_reset_pointer = m_cur_buffer_pointer;
 }
 
 void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
@@ -141,6 +142,7 @@ void VertexManager::UploadUniforms()
   UpdateVertexShaderConstants();
   UpdateGeometryShaderConstants();
   UpdatePixelShaderConstants();
+  UpdateCustomShaderConstants();
 }
 
 void VertexManager::UpdateVertexShaderConstants()
@@ -192,6 +194,15 @@ void VertexManager::UpdatePixelShaderConstants()
     ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, sizeof(PixelShaderConstants));
     pixel_shader_manager.dirty = false;
   }
+}
+
+void VertexManager::UpdateCustomShaderConstants()
+{
+  auto& system = Core::System::GetInstance();
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
+
+  if (!ReserveConstantStorage())
+    return;
 
   if (pixel_shader_manager.custom_constants_dirty)
   {
