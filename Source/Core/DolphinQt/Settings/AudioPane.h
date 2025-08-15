@@ -64,6 +64,8 @@ private:
   ConfigStringChoice* m_wasapi_device_combo;
 #endif
 
+  ConfigSlider* m_audio_buffer_size;
+
   // Misc Settings
   ConfigBool* m_audio_fill_gaps;
   ConfigBool* m_speed_up_mute_enable;
