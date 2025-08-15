@@ -478,7 +478,8 @@ inline FPResult NI_madd_msub(PowerPC::PowerPCState& ppc_state, double a, double 
 
       // Because we check this entire mask which includes a 1 bit, we can be sure that
       // if this result passes, the input is not an infinity that would become a NaN.
-      if ((result_bits & D_MASK) == EVEN_TIE) {
+      if ((result_bits & D_MASK) == EVEN_TIE)
+      {
         // We've tied to even and now need to adjust the result based on the error!
         // Notably we also check here that we're not currently dealing with NaN.
 
