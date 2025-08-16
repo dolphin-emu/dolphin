@@ -91,16 +91,13 @@ public:
     m_pending.samplers[index] = sampler;
   }
 
-  void SetPixelConstants(ID3D11Buffer* buffer0, ID3D11Buffer* buffer1 = nullptr,
-                         ID3D11Buffer* buffer2 = nullptr)
+  void SetPixelConstants(ID3D11Buffer* buffer0, ID3D11Buffer* buffer1 = nullptr)
   {
-    if (m_current.pixelConstants[0] != buffer0 || m_current.pixelConstants[1] != buffer1 ||
-        m_current.pixelConstants[2] != buffer2)
+    if (m_current.pixelConstants[0] != buffer0 || m_current.pixelConstants[1] != buffer1)
       m_dirtyFlags.set(DirtyFlag_PixelConstants);
 
     m_pending.pixelConstants[0] = buffer0;
     m_pending.pixelConstants[1] = buffer1;
-    m_pending.pixelConstants[2] = buffer2;
   }
 
   void SetVertexConstants(ID3D11Buffer* buffer)
@@ -109,6 +106,14 @@ public:
       m_dirtyFlags.set(DirtyFlag_VertexConstants);
 
     m_pending.vertexConstants = buffer;
+  }
+
+  void SetCustomConstants(ID3D11Buffer* buffer)
+  {
+    if (m_current.customConstants != buffer)
+      m_dirtyFlags.set(DirtyFlag_CustomConstants);
+
+    m_pending.customConstants = buffer;
   }
 
   void SetGeometryConstants(ID3D11Buffer* buffer)
@@ -232,6 +237,7 @@ private:
     DirtyFlag_Sampler0 = DirtyFlag_Texture0 + VideoCommon::MAX_PIXEL_SHADER_SAMPLERS,
     DirtyFlag_PixelConstants = DirtyFlag_Sampler0 + VideoCommon::MAX_PIXEL_SHADER_SAMPLERS,
     DirtyFlag_VertexConstants,
+    DirtyFlag_CustomConstants,  // Custom shader constants used by both vertex/pixel stages
     DirtyFlag_GeometryConstants,
 
     DirtyFlag_VertexBuffer,
@@ -255,8 +261,9 @@ private:
   {
     std::array<ID3D11ShaderResourceView*, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> textures;
     std::array<ID3D11SamplerState*, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> samplers;
-    std::array<ID3D11Buffer*, 3> pixelConstants;
+    std::array<ID3D11Buffer*, 2> pixelConstants;
     ID3D11Buffer* vertexConstants;
+    ID3D11Buffer* customConstants;
     ID3D11Buffer* geometryConstants;
     ID3D11Buffer* vertexBuffer;
     ID3D11Buffer* indexBuffer;

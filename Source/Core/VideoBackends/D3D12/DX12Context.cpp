@@ -339,7 +339,7 @@ bool DXContext::CreateRootSignatures()
 bool DXContext::CreateGXRootSignature()
 {
   // GX:
-  //  - 4 constant buffers (bindings 0-3), 0/1/2 visible in PS, 2 visible in VS, 1 visible in GS.
+  //  - 4 constant buffers (bindings 0-3), 0/1/2 visible in PS, 3 visible in VS, 1 visible in GS.
   //  - VideoCommon::MAX_PIXEL_SHADER_SAMPLERS textures (visible in PS).
   //  - VideoCommon::MAX_PIXEL_SHADER_SAMPLERS samplers (visible in PS).
   //  - 1 UAV (visible in PS).
@@ -359,8 +359,10 @@ bool DXContext::CreateGXRootSignature()
   param_count++;
   SetRootParamCBV(&params[param_count], 1, D3D12_SHADER_VISIBILITY_VERTEX);
   param_count++;
+  SetRootParamCBV(&params[param_count], 2, D3D12_SHADER_VISIBILITY_VERTEX);
+  param_count++;
   if (g_ActiveConfig.UseVSForLinePointExpand())
-    SetRootParamCBV(&params[param_count], 2, D3D12_SHADER_VISIBILITY_VERTEX);
+    SetRootParamCBV(&params[param_count], 3, D3D12_SHADER_VISIBILITY_VERTEX);
   else
     SetRootParamCBV(&params[param_count], 0, D3D12_SHADER_VISIBILITY_GEOMETRY);
   param_count++;
