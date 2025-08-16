@@ -795,6 +795,8 @@ add_subdirectory(Externals/watcher)
 
 if(WIN32 OR LINUX)
   add_subdirectory(Externals/cpp-ipc)
+elseif(NOT ANDROID)
+  add_subdirectory(Externals/libzmq)
 endif()
 
 ########################################
