@@ -485,8 +485,16 @@ bool AchievementManager::CheckApprovedCode(const T& code, const std::string& gam
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
   {
     auto config = filename.substr(0, filename.length() - 4);
-    if (m_ini_root->contains(config) && m_ini_root->get(config).contains(hash))
-      verified = true;
+    if (m_ini_root->contains(config))
+    {
+      auto ini_config = m_ini_root->get(config);
+      if (ini_config.is<picojson::object>() && ini_config.contains(code.name))
+      {
+        auto ini_code = ini_config.get(code.name);
+        if (ini_code.template is<std::string>())
+          verified = (ini_code.template get<std::string>() == hash);
+      }
+    }
   }
 
   if (!verified)
