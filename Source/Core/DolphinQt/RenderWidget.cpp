@@ -270,6 +270,10 @@ void RenderWidget::SetCursorLocked(bool locked, bool follow_aspect_ratio)
   if (locked)
   {
 #ifdef _WIN32
+    // This will prevent the mouse from interacting with the task bar
+    // while in windowed / borderless fullscreen.
+    SetWindowPos((HWND) winId(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+
     RECT rect;
     rect.left = render_rect.left();
     rect.right = render_rect.right();
@@ -305,6 +309,7 @@ void RenderWidget::SetCursorLocked(bool locked, bool follow_aspect_ratio)
   else
   {
 #ifdef _WIN32
+    SetWindowPos((HWND) winId(), HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     ClipCursor(nullptr);
 #endif
 
