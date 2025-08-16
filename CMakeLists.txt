@@ -765,6 +765,9 @@ add_subdirectory(Externals/watcher)
 if(WIN32 OR LINUX OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "QNX")
   add_subdirectory(Externals/cpp-ipc)
   add_definitions(-DHAVE_CPPIPC)
+elseif(APPLE)
+  add_subdirectory(Externals/libzmq)
+  add_definitions(-DHAVE_ZMQ)
 endif()
 
 ########################################
