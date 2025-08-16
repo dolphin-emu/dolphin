@@ -1913,7 +1913,12 @@ void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
                           (imm << 48) | (imm & 0x0000'FFFF'FFFF'0000) | (imm >> 48)})
       {
         if (LogicalImm(orr_imm, GPRSize::B64))
+        {
           try_base(orr_imm, Approach::ORRBase, false);
+
+          if (instructions_required(best_parts, best_approach) <= 1)
+            break;
+        }
       }
     }
     else
