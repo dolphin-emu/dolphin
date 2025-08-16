@@ -120,39 +120,47 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
     if (round_c)
     {
       ASSERT_MSG(DYNA_REC, !single, "Tried to apply 25-bit precision to single");
-
       V0Q = fpr.GetScopedReg();
       rounded_c_reg = reg_encoder(V0Q);
-      Force25BitPrecision(rounded_c_reg, VC);
-    }
-
-    ARM64Reg inaccurate_fma_reg = VD;
-    if (fma && inaccurate_fma && VD == VB)
-    {
-      if (V0Q == ARM64Reg::INVALID_REG)
-        V0Q = fpr.GetScopedReg();
-      inaccurate_fma_reg = reg_encoder(V0Q);
     }
 
     ARM64Reg result_reg = VD;
+    ARM64Reg inaccurate_fma_reg = VD;
     const bool need_accurate_fma_reg =
         fma && !inaccurate_fma && (msub || VD != VB) && (VD == VA || VD == rounded_c_reg);
     const bool preserve_d =
         m_accurate_nans && (VD == VA || (use_b && VD == VB) || (use_c && VD == VC));
     if (need_accurate_fma_reg || preserve_d)
     {
-      V1Q = fpr.GetScopedReg();
-      result_reg = reg_encoder(V1Q);
+      if (V0Q == ARM64Reg::INVALID_REG)
+        V0Q = fpr.GetScopedReg();
+      result_reg = reg_encoder(V0Q);
+      inaccurate_fma_reg = reg_encoder(V0Q);
+
+      if (need_accurate_fma_reg && round_c)
+      {
+        V1Q = fpr.GetScopedReg();
+        rounded_c_reg = reg_encoder(V1Q);
+      }
+    }
+    else if (fma && inaccurate_fma && VD == VB)
+    {
+      if (V0Q == ARM64Reg::INVALID_REG)
+        V0Q = fpr.GetScopedReg();
+      inaccurate_fma_reg = reg_encoder(V0Q);
     }
 
     if (m_accurate_nans)
     {
-      if (V0Q == ARM64Reg::INVALID_REG)
-        V0Q = fpr.GetScopedReg();
+      if (V1Q == ARM64Reg::INVALID_REG)
+        V1Q = fpr.GetScopedReg();
 
       if (duplicated_c || VD == result_reg)
         V2Q = fpr.GetScopedReg();
     }
+
+    if (round_c)
+      Force25BitPrecision(rounded_c_reg, VC);
 
     switch (op5)
     {
@@ -235,8 +243,8 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
     FixupBranch nan_fixup;
     if (m_accurate_nans)
     {
-      const ARM64Reg nan_temp_reg = single ? EncodeRegToSingle(V0Q) : EncodeRegToDouble(V0Q);
-      const ARM64Reg nan_temp_reg_paired = reg_encoder(V0Q);
+      const ARM64Reg nan_temp_reg = single ? EncodeRegToSingle(V1Q) : EncodeRegToDouble(V1Q);
+      const ARM64Reg nan_temp_reg_paired = reg_encoder(V1Q);
 
       // Check if we need to handle NaNs
 

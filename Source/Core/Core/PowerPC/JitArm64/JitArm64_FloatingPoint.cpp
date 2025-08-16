@@ -103,7 +103,6 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
 
   {
     Arm64FPRCache::ScopedARM64Reg V0Q = ARM64Reg::INVALID_REG;
-    Arm64FPRCache::ScopedARM64Reg V1Q = ARM64Reg::INVALID_REG;
 
     ARM64Reg rounded_c_reg = VC;
     if (round_c)
@@ -115,21 +114,22 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
       Force25BitPrecision(rounded_c_reg, VC);
     }
 
-    ARM64Reg inaccurate_fma_reg = VD;
-    if (fma && inaccurate_fma && VD == VB)
-    {
-      if (V0Q == ARM64Reg::INVALID_REG)
-        V0Q = fpr.GetScopedReg();
-      inaccurate_fma_reg = reg_encoder(V0Q);
-    }
-
     ARM64Reg result_reg = VD;
+    ARM64Reg inaccurate_fma_reg = VD;
     const bool preserve_d =
         m_accurate_nans && (VD == VA || (use_b && VD == VB) || (use_c && VD == VC));
     if (preserve_d)
     {
-      V1Q = fpr.GetScopedReg();
-      result_reg = reg_encoder(V1Q);
+      if (V0Q == ARM64Reg::INVALID_REG)
+        V0Q = fpr.GetScopedReg();
+      result_reg = reg_encoder(V0Q);
+      inaccurate_fma_reg = reg_encoder(V0Q);
+    }
+    else if (fma && inaccurate_fma && VD == VB)
+    {
+      if (V0Q == ARM64Reg::INVALID_REG)
+        V0Q = fpr.GetScopedReg();
+      inaccurate_fma_reg = reg_encoder(V0Q);
     }
 
     switch (op5)
