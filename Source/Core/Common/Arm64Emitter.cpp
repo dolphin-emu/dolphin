@@ -1908,7 +1908,7 @@ void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
   {
     if constexpr (sizeof(T) == 8)
     {
-      for (u64 orr_imm : {(imm << 32) | (imm & 0x0000'0000'FFFF'FFFF),
+      for (u64 orr_imm : {imm, (imm << 32) | (imm & 0x0000'0000'FFFF'FFFF),
                           (imm & 0xFFFF'FFFF'0000'0000) | (imm >> 32),
                           (imm << 48) | (imm & 0x0000'FFFF'FFFF'0000) | (imm >> 48)})
       {
