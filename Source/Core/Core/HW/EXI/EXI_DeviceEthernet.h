@@ -478,12 +478,12 @@ private:
     const Common::MACAddress& ResolveAddress(u32 inet_ip);
   };
 
+#if !defined(__ANDROID__) && !defined(__APPLE__)
+
   class IPCBBAInterface : public NetworkInterface
   {
   public:
     explicit IPCBBAInterface(CEXIETHERNET* const eth_ref) : NetworkInterface(eth_ref) {}
-
-#if !defined(__ANDROID__) && !defined(__APPLE__)
 
     bool Activate() override;
     void Deactivate() override;
@@ -501,8 +501,49 @@ private:
     std::thread m_read_thread;
     Common::Flag m_read_enabled;
     Common::Flag m_read_thread_shutdown;
+  };
+
+#elif defined(__APPLE__)
+
+  class IPCBBAInterface : public NetworkInterface
+  {
+  public:
+    explicit IPCBBAInterface(CEXIETHERNET* eth_ref);
+    ~IPCBBAInterface() override;
+
+    bool Activate() override;
+    void Deactivate() override;
+    bool IsActivated() override;
+    bool SendFrame(const u8* frame, u32 size) override;
+    bool RecvInit() override;
+    void RecvStart() override;
+    void RecvStop() override;
+
+  private:
+    void ReadThreadHandler();
+    void ProxyThreadHandler();
+
+    bool m_active{};
+    void* m_context{};
+    void* m_publisher{};
+    void* m_subscriber{};
+    std::thread m_read_thread;
+    Common::Flag m_read_enabled;
+    Common::Flag m_read_thread_shutdown;
+
+    std::thread m_proxy_thread;
+    Common::Flag m_proxy_thread_shutdown;
+    std::mutex m_proxy_mutex;
+    void* m_proxy_publisher{};
+    void* m_proxy_subscriber{};
+  };
 
 #else
+
+  class IPCBBAInterface : public NetworkInterface
+  {
+  public:
+    explicit IPCBBAInterface(CEXIETHERNET* const eth_ref) : NetworkInterface(eth_ref) {}
 
     bool Activate() override { return false; }
     void Deactivate() override {}
@@ -511,9 +552,9 @@ private:
     bool RecvInit() override { return false; }
     void RecvStart() override {}
     void RecvStop() override {}
+  };
 
 #endif
-  };
 
   std::unique_ptr<NetworkInterface> m_network_interface;
 
