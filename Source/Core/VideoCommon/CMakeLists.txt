@@ -223,7 +223,7 @@ PRIVATE
   imgui
   implot
   glslang
-  tinygltf
+  tinygltf::tinygltf
 )
 
 if(_M_X86_64)

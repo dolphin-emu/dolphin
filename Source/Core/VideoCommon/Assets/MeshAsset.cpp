@@ -7,7 +7,7 @@
 #include <array>
 #include <utility>
 
-#include <tinygltf/tiny_gltf.h>
+#include <tiny_gltf.h>
 
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
