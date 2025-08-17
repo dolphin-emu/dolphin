@@ -72,6 +72,7 @@ public:
     DeviceFeatures(const PhysicalDeviceInfo& info);
     DeviceFeatures(DeviceFeatures&&) = delete;  // Contains internal pointers
     VkPhysicalDeviceFeatures2 features2;
+    VkPhysicalDeviceDepthClampControlFeaturesEXT features_depth_clamp;
   };
 
   VulkanContext(VkInstance instance, VkPhysicalDevice physical_device);

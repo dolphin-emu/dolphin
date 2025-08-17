@@ -114,6 +114,7 @@ VulkanContext::PhysicalDeviceInfo::PhysicalDeviceInfo(VkPhysicalDevice device)
   {
     VkPhysicalDeviceSubgroupProperties properties_subgroup = {};
     VkPhysicalDeviceVulkan12Properties properties_vk12 = {};
+    VkPhysicalDeviceDepthClampControlFeaturesEXT features_depth_clamp = {};
     features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     features2.pNext = nullptr;
     properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
@@ -131,6 +132,13 @@ VulkanContext::PhysicalDeviceInfo::PhysicalDeviceInfo(VkPhysicalDevice device)
       InsertIntoChain(&properties2, &properties_vk12);
     }
 
+    if (extensions[Extension::EXT_depth_clamp_control])
+    {
+      features_depth_clamp.sType =
+          VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_CONTROL_FEATURES_EXT;
+      InsertIntoChain(&features2, &features_depth_clamp);
+    }
+
     auto getProps = vk11 ? vkGetPhysicalDeviceProperties2 : vkGetPhysicalDeviceProperties2KHR;
     getProps(device, &properties2);
     auto getFeatures = vk11 ? vkGetPhysicalDeviceFeatures2 : vkGetPhysicalDeviceFeatures2KHR;
@@ -140,6 +148,10 @@ VulkanContext::PhysicalDeviceInfo::PhysicalDeviceInfo(VkPhysicalDevice device)
     {
       driverID = properties_vk12.driverID;
     }
+
+    // These extensions are useless to us without their associated feature, so use the extension bit
+    // to indicate that both the extension and the features we need from it are supported.
+    extensions[Extension::EXT_depth_clamp_control] = features_depth_clamp.depthClampControl;
 
     subgroupSize = properties_subgroup.subgroupSize;
 
@@ -204,6 +216,13 @@ VulkanContext::DeviceFeatures::DeviceFeatures(const PhysicalDeviceInfo& info)
   features.shaderClipDistance = info.shaderClipDistance ? VK_TRUE : VK_FALSE;
   features.depthClamp = info.depthClamp ? VK_TRUE : VK_FALSE;
   features.textureCompressionBC = info.textureCompressionBC ? VK_TRUE : VK_FALSE;
+
+  if (info.extensions[Extension::EXT_depth_clamp_control])
+  {
+    features_depth_clamp.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_CONTROL_FEATURES_EXT;
+    features_depth_clamp.depthClampControl = VK_TRUE;
+    InsertIntoChain(&features2, &features_depth_clamp);
+  }
 }
 
 VulkanContext::VulkanContext(VkInstance instance, VkPhysicalDevice physical_device)
