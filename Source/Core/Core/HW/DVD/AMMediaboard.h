@@ -35,11 +35,13 @@ enum GameType
   KeyOfAvalon,
   FirmwareUpdate,
 };
+
 enum MediaType
 {
   GDROM = 1,
   NAND,
 };
+
 enum MediaBoardType
 {
   NANDMaskBoardHDD = 0,
@@ -47,6 +49,7 @@ enum MediaBoardType
   NANDMaskBoardNAND = 2,
   DIMMBoardType3 = 4,
 };
+
 enum MediaBoardStatus
 {
   Initializing = 0,
@@ -57,6 +60,7 @@ enum MediaBoardStatus
   LoadedGameProgram = 5,
   Error = 6,
 };
+
 enum InquiryType
 {
   Version1 = 0x21484100,
@@ -126,13 +130,12 @@ enum class AMMBCommand : u16
   Unknown_608 = 0x608,
   Unknown_614 = 0x614,
 
-  // All.Net
+  // All.Net used by Virtua Striker 4 2006 (Japan)
   AllNetInit = 0x700,
   Unknown_701 = 0x701,
   Unknown_702 = 0x702,
   Unknown_703 = 0x703,
   Unknown_704 = 0x704,
-
 
   // NETDIMM Commands
   Unknown_001 = 0x001,
@@ -222,13 +225,13 @@ enum SocketStatusCodes
   SSC_SUCCESS = 70,
 };
 
-void Init(void);
+void Init();
 void FirmwareMap(bool on);
 u8* InitDIMM(u32 size);
 void InitKeys(u32 KeyA, u32 KeyB, u32 KeyC);
 u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 Address, u32 Length);
-u32 GetGameType(void);
-u32 GetMediaType(void);
-bool GetTestMenu(void);
-void Shutdown(void);
+u32 GetGameType();
+u32 GetMediaType();
+bool GetTestMenu();
+void Shutdown();
 };  // namespace AMMediaboard

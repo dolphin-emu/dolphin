@@ -447,19 +447,23 @@ bool GameCubePane::SetMemcard(ExpansionInterface::Slot slot, const QString& file
   const std::string jp_path = Config::GetMemcardPath(raw_path, slot, DiscIO::Region::NTSC_J);
   const std::string us_path = Config::GetMemcardPath(raw_path, slot, DiscIO::Region::NTSC_U);
   const std::string eu_path = Config::GetMemcardPath(raw_path, slot, DiscIO::Region::PAL);
-  const bool raw_path_valid = raw_path == jp_path || raw_path == us_path || raw_path == eu_path;
+  const std::string dv_path = Config::GetMemcardPath(raw_path, slot, DiscIO::Region::NTSC_J);
+  const bool raw_path_valid =
+      raw_path == jp_path || raw_path == us_path || raw_path == eu_path || raw_path == dv_path;
 
   if (!raw_path_valid)
   {
     // TODO: We could try to autodetect the card region here and offer automatic renaming.
-    ModalMessageBox::critical(this, tr("Error"),
-                              tr("The filename %1 does not conform to Dolphin's region code format "
-                                 "for memory cards. Please rename this file to either %2, %3, or "
-                                 "%4, matching the region of the save files that are on it.")
-                                  .arg(QString::fromStdString(PathToFileName(raw_path)))
-                                  .arg(QString::fromStdString(PathToFileName(us_path)))
-                                  .arg(QString::fromStdString(PathToFileName(eu_path)))
-                                  .arg(QString::fromStdString(PathToFileName(jp_path))));
+    ModalMessageBox::critical(
+        this, tr("Error"),
+        tr("The filename %1 does not conform to Dolphin's region code format "
+           "for memory cards. Please rename this file to either %2, %3, %4 or "
+           "%5, matching the region of the save files that are on it.")
+            .arg(QString::fromStdString(PathToFileName(raw_path)))
+            .arg(QString::fromStdString(PathToFileName(us_path)))
+            .arg(QString::fromStdString(PathToFileName(eu_path)))
+            .arg(QString::fromStdString(PathToFileName(jp_path)))
+            .arg(QString::fromStdString(PathToFileName(dv_path))));
     return false;
   }
 

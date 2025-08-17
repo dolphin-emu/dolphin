@@ -620,15 +620,16 @@ DiscIO::Region ToGameCubeRegion(DiscIO::Region region)
 const char* GetDirectoryForRegion(DiscIO::Region region, RegionDirectoryStyle style)
 {
   auto& system = Core::System::GetInstance();
-
-  if (region == DiscIO::Region::Unknown)
-    region = ToGameCubeRegion(Config::Get(Config::MAIN_FALLBACK_REGION));
-
+  
   // Triforce IPL
   if (system.IsTriforce())
   {
     return DEV_DIR;
   }
+
+  if (region == DiscIO::Region::Unknown)
+    region = ToGameCubeRegion(Config::Get(Config::MAIN_FALLBACK_REGION));
+
 
   switch (region)
   {
@@ -699,6 +700,7 @@ std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::
   constexpr std::string_view us_region = "." USA_DIR;
   constexpr std::string_view jp_region = "." JAP_DIR;
   constexpr std::string_view eu_region = "." EUR_DIR;
+  constexpr std::string_view dv_region = "." DEV_DIR;
   std::optional<DiscIO::Region> path_region = std::nullopt;
   if (name.ends_with(us_region))
   {
@@ -714,6 +716,11 @@ std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::
   {
     name = name.substr(0, name.size() - eu_region.size());
     path_region = DiscIO::Region::PAL;
+  }
+  else if (name.ends_with(dv_region))
+  {
+    name = name.substr(0, name.size() - dv_region.size());
+    path_region = DiscIO::Region::NTSC_J;
   }
 
   const DiscIO::Region used_region =

@@ -232,14 +232,14 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
   if (system.IsTriforce())
   {
     auto& memory = system.GetMemory();
-    u32 dsize = volume.GetDataSize();
+    const u32 dsize = volume.GetDataSize();
 
     // Load game into RAM, like on the actual Triforce
     u8* dimm_disc = AMMediaboard::InitDIMM(dsize);
 
     volume.Read(0, dsize, dimm_disc, DiscIO::PARTITION_NONE);
 
-    // Triforce disc register obfucation
+    // Triforce disc register obfuscation
     AMMediaboard::InitKeys(memory.Read_U32(0), memory.Read_U32(4), memory.Read_U32(8));
     AMMediaboard::FirmwareMap(false);
   }

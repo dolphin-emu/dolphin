@@ -42,17 +42,17 @@
 #include "Core/WiiRoot.h"
 #include "DiscIO/Enums.h"
 
-bool g_interrupt_set = false;
-u32 g_irq_timer = 0;
-u32 g_irq_status = 0;
+static bool g_interrupt_set = false;
+static u32 g_irq_timer = 0;
+static u32 g_irq_status = 0;
 
-static u16 CheckSum(u8* Data, u32 Length)
+static u16 CheckSum(u8* data, u32 length)
 {
   u16 check = 0;
 
-  for (u32 i = 0; i < Length; i++)
+  for (u32 i = 0; i < length; i++)
   {
-    check += Data[i];
+    check += data[i];
   }
 
   return check;
@@ -74,26 +74,27 @@ void GenerateInterrupt(int flag)
 
 CEXIBaseboard::CEXIBaseboard(Core::System& system) : IEXIDevice(system), m_position(0)
 {
-  std::string backup_Filename(File::GetUserPath(D_TRIUSER_IDX) + "tribackup_" +
-                              SConfig::GetInstance().GetGameID().c_str() + ".bin");
+  std::string backup_filename(fmt::format("{}tribackup_{}.bin", File::GetUserPath(D_TRIUSER_IDX),
+                                          SConfig::GetInstance().GetGameID()));
 
-  m_backup = File::IOFile(backup_Filename, "rb+");
+  m_backup = File::IOFile(backup_filename, "rb+");
   if (!m_backup.IsOpen())
   {
-    m_backup = File::IOFile(backup_Filename, "wb+");
+    m_backup = File::IOFile(backup_filename, "wb+");
   }
 
   // Some games share the same ID Client/Server
   if (!m_backup.IsGood())
   {
-    PanicAlertFmt("Failed to open {}\nFile might be in use.", backup_Filename.c_str());
+    PanicAlertFmt("Failed to open {}\nFile might be in use.", backup_filename.c_str());
 
     std::srand(static_cast<u32>(std::time(nullptr)));
 
-    backup_Filename = File::GetUserPath(D_TRIUSER_IDX) + "tribackup_tmp_" + std::to_string(rand()) +
-                      SConfig::GetInstance().GetGameID().c_str() + ".bin";
+    std::string backup_Filename =
+        fmt::format("{}tribackup_tmp_{}{}.bin", File::GetUserPath(D_TRIUSER_IDX), rand(),
+                    SConfig::GetInstance().GetGameID());
 
-    m_backup = File::IOFile(backup_Filename, "wb+");
+    m_backup = File::IOFile(backup_filename, "wb+");
   }
 
   // Virtua Striker 4 and Gekitou Pro Yakyuu need a higher FIRM version
@@ -101,7 +102,7 @@ CEXIBaseboard::CEXIBaseboard(Core::System& system) : IEXIDevice(system), m_posit
   if (AMMediaboard::GetGameType() == VirtuaStriker4 ||
       AMMediaboard::GetGameType() == GekitouProYakyuu)
   {
-    if (m_backup.GetSize() != 0)
+    if (m_backup.GetSize())
     {
       Common::UniqueBuffer<u8> data(m_backup.GetSize());
       m_backup.ReadBytes(data.data(), data.size());
@@ -154,12 +155,12 @@ bool CEXIBaseboard::IsInterruptSet()
 
 void CEXIBaseboard::DMAWrite(u32 addr, u32 size)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& system = Core::System::GetInstance();
+  const auto& memory = system.GetMemory();
 
   NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: Backup DMA Write: {:08x} {:x}", addr, size);
 
-  m_backup.Seek(m_backoffset, File::SeekOrigin::Begin);
+  m_backup.Seek(m_backup_offset, File::SeekOrigin::Begin);
 
   m_backup.WriteBytes(memory.GetSpanForAddress(addr).data(), size);
 
@@ -168,31 +169,31 @@ void CEXIBaseboard::DMAWrite(u32 addr, u32 size)
 
 void CEXIBaseboard::DMARead(u32 addr, u32 size)
 {
-  auto& system = Core::System::GetInstance();
-  auto& memory = system.GetMemory();
+  const auto& system = Core::System::GetInstance();
+  const auto& memory = system.GetMemory();
 
   NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: Backup DMA Read: {:08x} {:x}", addr, size);
 
-  m_backup.Seek(m_backoffset, File::SeekOrigin::Begin);
+  m_backup.Seek(m_backup_offset, File::SeekOrigin::Begin);
 
   m_backup.Flush();
 
   m_backup.ReadBytes(memory.GetSpanForAddress(addr).data(), size);
 }
 
-void CEXIBaseboard::TransferByte(u8& _byte)
+void CEXIBaseboard::TransferByte(u8& byte)
 {
-  DEBUG_LOG_FMT(SP1, "AM-BB: > {:02x}", _byte);
+  DEBUG_LOG_FMT(SP1, "AM-BB: > {:02x}", byte);
   if (m_position < 4)
   {
-    m_command[m_position] = _byte;
-    _byte = 0xFF;
+    m_command[m_position] = byte;
+    byte = 0xFF;
   }
 
   if ((m_position >= 2) && (m_command[0] == 0 && m_command[1] == 0))
   {
     // Read serial ID
-    _byte = "\x06\x04\x10\x00"[(m_position - 2) & 3];
+    byte = "\x06\x04\x10\x00"[(m_position - 2) & 3];
   }
   else if (m_position == 3)
   {
@@ -210,118 +211,116 @@ void CEXIBaseboard::TransferByte(u8& _byte)
     if (m_command[3] != (checksum & 0xFF))
       DEBUG_LOG_FMT(SP1, "AM-BB: cs: {:02x}, w: {:02x}", m_command[3], checksum & 0xFF);
   }
-  else
+  else if (m_position == 4)
   {
-    if (m_position == 4)
+    switch (m_command[0])
     {
-      switch (m_command[0])
+    case BackupOffsetSet:
+      m_backup_offset = (m_command[1] << 8) | m_command[2];
+      DEBUG_LOG_FMT(SP1, "AM-BB: COMMAND: BackupOffsetSet:{:04x}", m_backup_offset);
+      m_backup.Seek(m_backup_offset, File::SeekOrigin::Begin);
+      byte = 0x01;
+      break;
+    case BackupWrite:
+      DEBUG_LOG_FMT(SP1, "AM-BB: COMMAND: BackupWrite:{:04x}-{:02x}", m_backup_offset,
+                    m_command[1]);
+      m_backup.WriteBytes(&m_command[1], 1);
+      m_backup.Flush();
+      byte = 0x01;
+      break;
+    case BackupRead:
+      DEBUG_LOG_FMT(SP1, "AM-BB: COMMAND: BackupRead :{:04x}", m_backup_offset);
+      byte = 0x01;
+      break;
+    case DMAOffsetLengthSet:
+      m_backup_dma_offset = (m_command[1] << 8) | m_command[2];
+      m_backup_dma_length = m_command[3];
+      NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: DMAOffsetLengthSet :{:04x} {:02x}", m_backup_dma_offset,
+                     m_backup_dma_length);
+      byte = 0x01;
+      break;
+    case ReadISR:
+      NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: ReadISR  :{:02x} {:02x}:{:02x} {:02x}", m_command[1],
+                     m_command[2], 4, g_irq_status);
+      byte = 0x04;
+      break;
+    case WriteISR:
+      NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: WriteISR :{:02x} {:02x}", m_command[1], m_command[2]);
+      g_irq_status &= ~(m_command[2]);
+      byte = 0x04;
+      break;
+    // 2 byte out
+    case ReadIMR:
+      NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: ReadIMR  :{:02x} {:02x}", m_command[1], m_command[2]);
+      byte = 0x04;
+      break;
+    case WriteIMR:
+      NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: WriteIMR :{:02x} {:02x}", m_command[1], m_command[2]);
+      byte = 0x04;
+      break;
+    case WriteLANCNT:
+      NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: WriteLANCNT :{:02x} {:02x}", m_command[1], m_command[2]);
+      if ((m_command[1] == 0) && (m_command[2] == 0))
       {
-      case BackupOffsetSet:
-        m_backoffset = (m_command[1] << 8) | m_command[2];
-        DEBUG_LOG_FMT(SP1, "AM-BB: COMMAND: BackupOffsetSet:{:04x}", m_backoffset);
-        m_backup.Seek(m_backoffset, File::SeekOrigin::Begin);
-        _byte = 0x01;
-        break;
-      case BackupWrite:
-        DEBUG_LOG_FMT(SP1, "AM-BB: COMMAND: BackupWrite:{:04x}-{:02x}", m_backoffset, m_command[1]);
-        m_backup.WriteBytes(&m_command[1], 1);
-        m_backup.Flush();
-        _byte = 0x01;
-        break;
-      case BackupRead:
-        DEBUG_LOG_FMT(SP1, "AM-BB: COMMAND: BackupRead :{:04x}", m_backoffset);
-        _byte = 0x01;
-        break;
-      case DMAOffsetLengthSet:
-        m_backup_dma_offset = (m_command[1] << 8) | m_command[2];
-        m_backup_dma_length = m_command[3];
-        NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: DMAOffsetLengthSet :{:04x} {:02x}",
-                       m_backup_dma_offset, m_backup_dma_length);
-        _byte = 0x01;
-        break;
-      case ReadISR:
-        NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: ReadISR  :{:02x} {:02x}:{:02x} {:02x}", m_command[1],
-                       m_command[2], 4, g_irq_status);
-        _byte = 0x04;
-        break;
-      case WriteISR:
-        NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: WriteISR :{:02x} {:02x}", m_command[1], m_command[2]);
-        g_irq_status &= ~(m_command[2]);
-        _byte = 0x04;
-        break;
-      // 2 byte out
-      case ReadIMR:
-        NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: ReadIMR  :{:02x} {:02x}", m_command[1], m_command[2]);
-        _byte = 0x04;
-        break;
-      case WriteIMR:
-        NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: WriteIMR :{:02x} {:02x}", m_command[1], m_command[2]);
-        _byte = 0x04;
-        break;
-      case WriteLANCNT:
-        NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: WriteLANCNT :{:02x} {:02x}", m_command[1],
-                       m_command[2]);
-        if ((m_command[1] == 0) && (m_command[2] == 0))
-        {
-          g_interrupt_set = true;
-          g_irq_timer = 0;
-          g_irq_status = 0x02;
-        }
-        if ((m_command[1] == 2) && (m_command[2] == 1))
-        {
-          g_irq_status = 0;
-        }
-        _byte = 0x08;
-        break;
-      default:
-        _byte = 4;
-        ERROR_LOG_FMT(SP1, "AM-BB: COMMAND: {:02x} {:02x} {:02x}", m_command[0], m_command[1],
-                      m_command[2]);
-        break;
+        g_interrupt_set = true;
+        g_irq_timer = 0;
+        g_irq_status = 0x02;
       }
-    }
-    else if (m_position > 4)
-    {
-      switch (m_command[0])
+      if ((m_command[1] == 2) && (m_command[2] == 1))
       {
-      // 1 byte out
-      case BackupRead:
-        m_backup.Flush();
-        m_backup.ReadBytes(&_byte, 1);
-        break;
-      case DMAOffsetLengthSet:
-        _byte = 0x01;
-        break;
-      // 2 byte out
-      case ReadISR:
-        if (m_position == 6)
-        {
-          _byte = g_irq_status;
-          g_interrupt_set = false;
-        }
-        else
-        {
-          _byte = 0x04;
-        }
-        break;
-      // 2 byte out
-      case ReadIMR:
-        if (m_position == 5)
-          _byte = 0xFF;
-        if (m_position == 6)
-          _byte = 0x81;
-        break;
-      default:
-        ERROR_LOG_FMT(SP1, "Unknown AM-BB command: {:02x}", m_command[0]);
-        break;
+        g_irq_status = 0;
       }
-    }
-    else
-    {
-      _byte = 0xFF;
+      byte = 0x08;
+      break;
+    default:
+      byte = 4;
+      ERROR_LOG_FMT(SP1, "AM-BB: COMMAND: {:02x} {:02x} {:02x}", m_command[0], m_command[1],
+                    m_command[2]);
+      break;
     }
   }
-  DEBUG_LOG_FMT(SP1, "AM-BB < {:02x}", _byte);
+  else if (m_position > 4)
+  {
+    switch (m_command[0])
+    {
+    // 1 byte out
+    case BackupRead:
+      m_backup.Flush();
+      m_backup.ReadBytes(&byte, 1);
+      break;
+    case DMAOffsetLengthSet:
+      byte = 0x01;
+      break;
+    // 2 byte out
+    case ReadISR:
+      if (m_position == 6)
+      {
+        byte = g_irq_status;
+        g_interrupt_set = false;
+      }
+      else
+      {
+        byte = 0x04;
+      }
+      break;
+    // 2 byte out
+    case ReadIMR:
+      if (m_position == 5)
+        byte = 0xFF;
+      if (m_position == 6)
+        byte = 0x81;
+      break;
+    default:
+      ERROR_LOG_FMT(SP1, "Unknown AM-BB command: {:02x}", m_command[0]);
+      break;
+    }
+  }
+  else
+  {
+    byte = 0xFF;
+  }
+
+  DEBUG_LOG_FMT(SP1, "AM-BB < {:02x}", byte);
   m_position++;
 }
 

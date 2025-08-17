@@ -30,9 +30,9 @@ enum PadButton
 
 enum SwitchButton
 {
-  PAD_SWITCH_TEST = 0x0001,
-  PAD_SWITCH_SERVICE = 0x0002,
-  PAD_SWITCH_COIN = 0x0004,
+  SWITCH_TEST = 0x0001,
+  SWITCH_SERVICE = 0x0002,
+  SWITCH_COIN = 0x0004,
 };
 
 struct GCPadStatus

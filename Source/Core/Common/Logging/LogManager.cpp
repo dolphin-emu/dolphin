@@ -113,7 +113,8 @@ LogManager::LogManager()
   m_log[LogType::DSP_MAIL] = {"DSPMails", "DSP Mails"};
   m_log[LogType::DSPINTERFACE] = {"DSP", "DSP Interface"};
   m_log[LogType::DVDINTERFACE] = {"DVD", "DVD Interface"};
-  m_log[LogType::DVDINTERFACE_AMMB] = {"DVD_AMMB", "AMMB Interface"};
+  m_log[LogType::AMMEDIABOARD] = {"AMMB", "AMMB Interface"};
+  m_log[LogType::AMMEDIABOARD_NET] = {"AMMB_NET", "AMMB - Network"};
   m_log[LogType::DYNA_REC] = {"JIT", "JIT Dynamic Recompiler"};
   m_log[LogType::EXPANSIONINTERFACE] = {"EXI", "Expansion Interface"};
   m_log[LogType::FILEMON] = {"FileMon", "File Monitor"};

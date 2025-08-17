@@ -19,7 +19,9 @@ namespace SerialInterface
 class JVSIOMessage
 {
 public:
-  u32 m_ptr, m_last_start, m_csum;
+  u32 m_ptr;
+  u32 m_last_start;
+  u32 m_csum;
   u8 m_msg[0x80];
 
   JVSIOMessage();
@@ -31,7 +33,7 @@ public:
   void End();
 };  // end class JVSIOMessage
 
-// triforce (GC-AM) baseboard
+// Triforce (GC-AM) baseboard
 class CSIDevice_AMBaseboard : public ISIDevice
 {
 private:
@@ -143,6 +145,14 @@ private:
     WritePages = 0x35,
   };
 
+  enum ICCARDStatus
+  {
+    Okay = 0,
+    NoCard = 0x8000,
+    Unknown = 0x800E,
+    BadCard = 0xFFFF,
+  };
+
   enum CDReaderCommand
   {
     ShutterAuto = 0x61,
@@ -186,12 +196,7 @@ private:
 
   u8 m_ic_card_data[2048];
   u16 m_ic_card_state;
-  /*
-       0 - OK
-    8000 - no card
-    800E - ???
-    other- bad card
-  */
+
   u16 m_ic_card_status;
   u16 m_ic_card_session;
   u8 m_ic_write_buffer[512];
@@ -202,7 +207,7 @@ private:
   u8 m_card_read_packet[0xDB];
   u8 m_card_buffer[0x100];
   u32 m_card_memory_size;
-  u32 m_card_is_inserted;
+  bool m_card_is_inserted;
   u32 m_card_command;
   u32 m_card_clean;
   u32 m_card_write_length;
@@ -210,7 +215,7 @@ private:
   u32 m_card_read_length;
   u32 m_card_read;
   u32 m_card_bit;
-  u32 m_card_shutter;
+  bool m_card_shutter;
   u32 m_card_state_call_count;
   u8 m_card_offset;
 
@@ -221,17 +226,17 @@ private:
   s16 m_motorforce_x;
 
   // F-Zero AX (DX)
-  u32 m_fzdx_seatbelt;
-  u32 m_fzdx_motion_stop;
-  u32 m_fzdx_sensor_right;
-  u32 m_fzdx_sensor_left;
+  bool m_fzdx_seatbelt;
+  bool m_fzdx_motion_stop;
+  bool m_fzdx_sensor_right;
+  bool m_fzdx_sensor_left;
   u8 m_rx_reply;
 
   // F-Zero AX (CyCraft)
-  u32 m_fzcc_seatbelt;
-  u32 m_fzcc_sensor;
-  u32 m_fzcc_emergency;
-  u32 m_fzcc_service;
+  bool m_fzcc_seatbelt;
+  bool m_fzcc_sensor;
+  bool m_fzcc_emergency;
+  bool m_fzcc_service;
 
   void ICCardSendReply(ICCommand* iccommand, u8* buffer, u32* length);
 
