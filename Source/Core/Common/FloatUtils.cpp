@@ -108,7 +108,7 @@ double ApproximateReciprocalSquareRoot(double val)
       return 0.0;
     }
 
-    return 0.0 + val;
+    return MakeQuiet(val);
   }
 
   // Negative numbers return NaN
@@ -165,7 +165,7 @@ double ApproximateReciprocal(double val)
   {
     if (mantissa == 0)
       return std::copysign(0.0, val);
-    return 0.0 + val;
+    return MakeQuiet(val);
   }
 
   // Special case small inputs
