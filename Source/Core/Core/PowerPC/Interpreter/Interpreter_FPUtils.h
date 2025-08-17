@@ -123,13 +123,6 @@ inline double Force25Bit(double d)
   return std::bit_cast<double>(integral);
 }
 
-inline double MakeQuiet(double d)
-{
-  const u64 integral = std::bit_cast<u64>(d) | Common::DOUBLE_QBIT;
-
-  return std::bit_cast<double>(integral);
-}
-
 // these functions allow globally modify operations behaviour
 // also, these may be used to set flags like FR, FI, OX, UX
 
@@ -162,12 +155,12 @@ inline FPResult NI_mul(PowerPC::PowerPCState& ppc_state, double a, double b)
 
     if (std::isnan(a))
     {
-      result.value = MakeQuiet(a);
+      result.value = Common::MakeQuiet(a);
       return result;
     }
     if (std::isnan(b))
     {
-      result.value = MakeQuiet(b);
+      result.value = Common::MakeQuiet(b);
       return result;
     }
 
@@ -200,12 +193,12 @@ inline FPResult NI_div(PowerPC::PowerPCState& ppc_state, double a, double b)
 
     if (std::isnan(a))
     {
-      result.value = MakeQuiet(a);
+      result.value = Common::MakeQuiet(a);
       return result;
     }
     if (std::isnan(b))
     {
-      result.value = MakeQuiet(b);
+      result.value = Common::MakeQuiet(b);
       return result;
     }
 
@@ -234,12 +227,12 @@ inline FPResult NI_add(PowerPC::PowerPCState& ppc_state, double a, double b)
 
     if (std::isnan(a))
     {
-      result.value = MakeQuiet(a);
+      result.value = Common::MakeQuiet(a);
       return result;
     }
     if (std::isnan(b))
     {
-      result.value = MakeQuiet(b);
+      result.value = Common::MakeQuiet(b);
       return result;
     }
 
@@ -267,12 +260,12 @@ inline FPResult NI_sub(PowerPC::PowerPCState& ppc_state, double a, double b)
 
     if (std::isnan(a))
     {
-      result.value = MakeQuiet(a);
+      result.value = Common::MakeQuiet(a);
       return result;
     }
     if (std::isnan(b))
     {
-      result.value = MakeQuiet(b);
+      result.value = Common::MakeQuiet(b);
       return result;
     }
 
@@ -303,17 +296,17 @@ inline FPResult NI_madd(PowerPC::PowerPCState& ppc_state, double a, double c, do
 
     if (std::isnan(a))
     {
-      result.value = MakeQuiet(a);
+      result.value = Common::MakeQuiet(a);
       return result;
     }
     if (std::isnan(b))
     {
-      result.value = MakeQuiet(b);  // !
+      result.value = Common::MakeQuiet(b);  // !
       return result;
     }
     if (std::isnan(c))
     {
-      result.value = MakeQuiet(c);
+      result.value = Common::MakeQuiet(c);
       return result;
     }
 
@@ -341,17 +334,17 @@ inline FPResult NI_msub(PowerPC::PowerPCState& ppc_state, double a, double c, do
 
     if (std::isnan(a))
     {
-      result.value = MakeQuiet(a);
+      result.value = Common::MakeQuiet(a);
       return result;
     }
     if (std::isnan(b))
     {
-      result.value = MakeQuiet(b);  // !
+      result.value = Common::MakeQuiet(b);  // !
       return result;
     }
     if (std::isnan(c))
     {
-      result.value = MakeQuiet(c);
+      result.value = Common::MakeQuiet(c);
       return result;
     }
 

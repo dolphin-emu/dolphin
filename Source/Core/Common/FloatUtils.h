@@ -68,6 +68,13 @@ inline double FlushToZero(double d)
   return std::bit_cast<double>(i);
 }
 
+inline double MakeQuiet(double d)
+{
+  const u64 integral = std::bit_cast<u64>(d) | Common::DOUBLE_QBIT;
+
+  return std::bit_cast<double>(integral);
+}
+
 enum PPCFpClass
 {
   PPC_FPCLASS_QNAN = 0x11,
