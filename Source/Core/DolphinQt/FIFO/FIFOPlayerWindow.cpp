@@ -168,6 +168,7 @@ void FIFOPlayerWindow::CreateWidgets()
   layout->addWidget(info_group);
   layout->addWidget(playback_group);
   layout->addWidget(recording_group);
+  layout->addStretch();
   layout->addWidget(m_button_box);
 
   m_main_widget = new QWidget(this);
