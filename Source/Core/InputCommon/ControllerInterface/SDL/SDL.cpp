@@ -130,9 +130,6 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
 {
   EnableSDLLogging();
 
-  // This is required on windows so that SDL's joystick code properly pumps window messages
-  SDL_SetHint(SDL_HINT_JOYSTICK_THREAD, "1");
-
   SDL_SetHint(SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "1");
 
   // We have our own WGI backend. Enabling SDL's WGI handling creates even more redundant devices.
