@@ -29,8 +29,6 @@
 
 namespace DiscIO
 {
-Region g_triforce_region;
-
 VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader)
     : m_reader(std::move(reader)), m_is_triforce(false)
 {
@@ -42,7 +40,6 @@ VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader)
   };
 
   m_converted_banner = [this] { return LoadBannerFile(); };
-  g_triforce_region = Region::Unknown;
 
   constexpr u32 BTID_MAGIC = 0x44495442;
   auto tmp_fs = GetFileSystem(PARTITION_NONE);
@@ -51,28 +48,11 @@ VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader)
     std::unique_ptr<FileInfo> file_info = tmp_fs->FindFileInfo("boot.id");
     if (!file_info)
       return;
-    BootID triforce_header;
     const u64 file_size = ReadFile(*this, PARTITION_NONE, file_info.get(),
-                                   reinterpret_cast<u8*>(&triforce_header), sizeof(BootID));
-    if (file_size >= 4 && triforce_header.magic == BTID_MAGIC)
+                                   reinterpret_cast<u8*>(&m_triforce_header), sizeof(BootID));
+    if (file_size >= 4 && m_triforce_header.magic == BTID_MAGIC)
     {
       m_is_triforce = true;
-
-      // Load region from the file
-      switch (triforce_header.region)
-      {
-      default:
-      case 0x02:  // JAPAN
-      case 0x08:  // ASIA
-        g_triforce_region = Region::NTSC_J;
-        break;
-      case 0x0E:  // USA
-        g_triforce_region = Region::NTSC_U;
-        break;
-      case 0x0C:  // EXPORT
-        g_triforce_region = Region::PAL;
-        break;
-      }
     }
   }
 }
@@ -113,8 +93,20 @@ std::string VolumeGC::GetGameTDBID(const Partition& partition) const
 
 Region VolumeGC::GetRegion() const
 {
-  if (g_triforce_region != Region::Unknown)
-    return g_triforce_region;
+  if (m_is_triforce)
+  {
+    switch (m_triforce_header.regionFlags)
+    {
+    default:
+    case 0x02:  // JAPAN
+    case 0x08:  // ASIA
+      return Region::NTSC_J;
+    case 0x0E:  // USA
+      return Region::NTSC_U;
+    case 0x0C:  // EXPORT
+      return Region::PAL;
+    }
+  }
 
   return RegionCodeToRegion(m_reader->ReadSwapped<u32>(0x458));
 }
@@ -200,9 +192,7 @@ std::array<u8, 20> VolumeGC::GetSyncHash() const
 
 VolumeGC::ConvertedGCBanner VolumeGC::LoadBannerFile() const
 {
-  /*
-   There is at least one Triforce game that has an opening.bnr file but from a different game.
- */
+  // There is at least one Triforce game that has an opening.bnr file but from a different game.
   if (m_is_triforce)
   {
     return {};

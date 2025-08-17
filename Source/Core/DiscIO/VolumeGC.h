@@ -49,8 +49,9 @@ public:
   DataSizeType GetDataSizeType() const override;
   u64 GetRawSize() const override;
   const BlobReader& GetBlobReader() const override;
-
   std::array<u8, 20> GetSyncHash() const override;
+
+  const BootID* GetTriforceBootID() const { return &m_triforce_header; }
 
 private:
   static constexpr u32 GC_BANNER_WIDTH = 96;
@@ -74,20 +75,6 @@ private:
     u16 image[GC_BANNER_WIDTH * GC_BANNER_HEIGHT];  // RGB5A3 96x32 image
     GCBannerInformation information[6];             // information comes in six languages
                                                     // (only one for BNR1 type)
-  };
-
-  struct BootID
-  {
-    u32 magic;  // "BTID"
-    u32 padding[11];
-    std::array<char, 4> id;
-    u32 padding_b;
-    u8 region;
-    u8 padding_c[0x27];
-    std::array<char, 32> maker;
-    std::array<char, 32> name;
-    u32 padding_d[0x10];
-    char credits_text[8][32];
   };
 
   struct ConvertedGCBanner
@@ -117,6 +104,8 @@ private:
   Common::Lazy<std::unique_ptr<FileSystem>> m_file_system;
 
   std::unique_ptr<BlobReader> m_reader;
+
+  BootID m_triforce_header;
 
   bool m_is_triforce;
 };

@@ -3,15 +3,7 @@
 
 #pragma once
 
-#include <SFML/Network.hpp>
-#include <deque>
-#include <memory>
-#include <mutex>
-#include <queue>
-#include <thread>
-
 #include "Common/CommonTypes.h"
-#include "Common/Flag.h"
 #include "Common/IOFile.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
@@ -30,7 +22,7 @@ public:
   explicit CEXIBaseboard(Core::System& system);
   virtual ~CEXIBaseboard();
 
-  void SetCS(int _iCS) override;
+  void SetCS(int cs) override;
   bool IsInterruptSet() override;
   bool IsPresent() const override;
   void DoState(PointerWrap& p) override;
@@ -58,7 +50,7 @@ private:
   u32 m_backup_dma_offset;
   u32 m_backup_dma_length;
   u8 m_command[4];
-  u16 m_backoffset;
+  u16 m_backup_offset;
   File::IOFile m_backup;
 
 protected:
