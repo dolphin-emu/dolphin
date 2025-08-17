@@ -20,6 +20,8 @@ static constexpr const char* VALIDATION_LAYER_NAME = "VK_LAYER_KHRONOS_validatio
 
 std::unique_ptr<VulkanContext> g_vulkan_context;
 
+/// Inserts an element into the front of a pNext chain
+/// Element must not be a chain itself
 template <typename Chain, typename Element>
 static void InsertIntoChain(Chain* chain, Element* element)
 {
@@ -27,9 +29,22 @@ static void InsertIntoChain(Chain* chain, Element* element)
   chain->pNext = element;
 }
 
+/// Appends one pNext chain to another
+template <typename Chain1, typename Chain2>
+static void ConcatenateChains(Chain1* chain1, Chain2* chain2)
+{
+  (void)chain1->pNext;  // Make sure Chain1 has a pNext
+  (void)chain2->pNext;  // Make sure Chain2 has a pNext
+  VkBaseOutStructure* next = reinterpret_cast<VkBaseOutStructure*>(chain1);
+  while (next->pNext)
+    next = next->pNext;
+  next->pNext = reinterpret_cast<VkBaseOutStructure*>(chain2);
+}
+
 VulkanContext::PhysicalDeviceInfo::PhysicalDeviceInfo(VkPhysicalDevice device)
 {
-  VkPhysicalDeviceFeatures features;
+  VkPhysicalDeviceFeatures2 features2;
+  VkPhysicalDeviceFeatures& features = features2.features;
   VkPhysicalDeviceProperties2 properties2;
   VkPhysicalDeviceProperties& properties = properties2.properties;
 
@@ -41,6 +56,8 @@ VulkanContext::PhysicalDeviceInfo::PhysicalDeviceInfo(VkPhysicalDevice device)
   {
     VkPhysicalDeviceSubgroupProperties properties_subgroup = {};
     VkPhysicalDeviceVulkan12Properties properties_vk12 = {};
+    features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    features2.pNext = nullptr;
     properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
     properties2.pNext = nullptr;
     properties_subgroup.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_PROPERTIES;
@@ -53,6 +70,7 @@ VulkanContext::PhysicalDeviceInfo::PhysicalDeviceInfo(VkPhysicalDevice device)
     }
 
     vkGetPhysicalDeviceProperties2(device, &properties2);
+    vkGetPhysicalDeviceFeatures2(device, &features2);
 
     if (apiVersion >= VK_API_VERSION_1_2)
     {
@@ -103,25 +121,25 @@ VulkanContext::PhysicalDeviceInfo::PhysicalDeviceInfo(VkPhysicalDevice device)
   textureCompressionBC = features.textureCompressionBC != VK_FALSE;
 }
 
-VkPhysicalDeviceFeatures VulkanContext::PhysicalDeviceInfo::features() const
+VulkanContext::DeviceFeatures::DeviceFeatures(const PhysicalDeviceInfo& info)
 {
-  VkPhysicalDeviceFeatures features;
-  memset(&features, 0, sizeof(features));
-  features.dualSrcBlend = dualSrcBlend ? VK_TRUE : VK_FALSE;
-  features.geometryShader = geometryShader ? VK_TRUE : VK_FALSE;
-  features.samplerAnisotropy = samplerAnisotropy ? VK_TRUE : VK_FALSE;
-  features.logicOp = logicOp ? VK_TRUE : VK_FALSE;
-  features.fragmentStoresAndAtomics = fragmentStoresAndAtomics ? VK_TRUE : VK_FALSE;
-  features.sampleRateShading = sampleRateShading ? VK_TRUE : VK_FALSE;
-  features.largePoints = largePoints ? VK_TRUE : VK_FALSE;
-  features.shaderStorageImageMultisample = shaderStorageImageMultisample ? VK_TRUE : VK_FALSE;
+  memset(this, 0, sizeof(*this));
+  features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+  VkPhysicalDeviceFeatures& features = features2.features;
+  features.dualSrcBlend = info.dualSrcBlend ? VK_TRUE : VK_FALSE;
+  features.geometryShader = info.geometryShader ? VK_TRUE : VK_FALSE;
+  features.samplerAnisotropy = info.samplerAnisotropy ? VK_TRUE : VK_FALSE;
+  features.logicOp = info.logicOp ? VK_TRUE : VK_FALSE;
+  features.fragmentStoresAndAtomics = info.fragmentStoresAndAtomics ? VK_TRUE : VK_FALSE;
+  features.sampleRateShading = info.sampleRateShading ? VK_TRUE : VK_FALSE;
+  features.largePoints = info.largePoints ? VK_TRUE : VK_FALSE;
+  features.shaderStorageImageMultisample = info.shaderStorageImageMultisample ? VK_TRUE : VK_FALSE;
   features.shaderTessellationAndGeometryPointSize =
-      shaderTessellationAndGeometryPointSize ? VK_TRUE : VK_FALSE;
-  features.occlusionQueryPrecise = occlusionQueryPrecise ? VK_TRUE : VK_FALSE;
-  features.shaderClipDistance = shaderClipDistance ? VK_TRUE : VK_FALSE;
-  features.depthClamp = depthClamp ? VK_TRUE : VK_FALSE;
-  features.textureCompressionBC = textureCompressionBC ? VK_TRUE : VK_FALSE;
-  return features;
+      info.shaderTessellationAndGeometryPointSize ? VK_TRUE : VK_FALSE;
+  features.occlusionQueryPrecise = info.occlusionQueryPrecise ? VK_TRUE : VK_FALSE;
+  features.shaderClipDistance = info.shaderClipDistance ? VK_TRUE : VK_FALSE;
+  features.depthClamp = info.depthClamp ? VK_TRUE : VK_FALSE;
+  features.textureCompressionBC = info.textureCompressionBC ? VK_TRUE : VK_FALSE;
 }
 
 VulkanContext::VulkanContext(VkInstance instance, VkPhysicalDevice physical_device)
@@ -803,8 +821,11 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
 
   WarnMissingDeviceFeatures();
 
-  VkPhysicalDeviceFeatures device_features = m_device_info.features();
-  device_info.pEnabledFeatures = &device_features;
+  DeviceFeatures device_features(m_device_info);
+  if (m_device_info.apiVersion >= VK_API_VERSION_1_1)
+    ConcatenateChains(&device_info, &device_features.features2);
+  else
+    device_info.pEnabledFeatures = &device_features.features2.features;
 
   // Enable debug layer on debug builds
   if (enable_validation_layer)

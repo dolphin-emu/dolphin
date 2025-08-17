@@ -22,7 +22,6 @@ public:
   {
     PhysicalDeviceInfo(const PhysicalDeviceInfo&) = default;
     explicit PhysicalDeviceInfo(VkPhysicalDevice device);
-    VkPhysicalDeviceFeatures features() const;
 
     char deviceName[VK_MAX_PHYSICAL_DEVICE_NAME_SIZE];
     u8 pipelineCacheUUID[VK_UUID_SIZE];
@@ -54,6 +53,12 @@ public:
     bool depthClamp;
     bool textureCompressionBC;
     bool shaderSubgroupOperations = false;
+  };
+  struct DeviceFeatures
+  {
+    DeviceFeatures(const PhysicalDeviceInfo& info);
+    DeviceFeatures(DeviceFeatures&&) = delete;  // Contains internal pointers
+    VkPhysicalDeviceFeatures2 features2;
   };
 
   VulkanContext(VkInstance instance, VkPhysicalDevice physical_device);
