@@ -41,6 +41,51 @@ static void ConcatenateChains(Chain1* chain1, Chain2* chain2)
   next->pNext = reinterpret_cast<VkBaseOutStructure*>(chain2);
 }
 
+static const char* ExtensionName(VulkanContext::Extension ext)
+{
+  using Ext = VulkanContext::Extension;
+  // clang-format off
+  switch (ext)
+  {
+    case Ext::KHR_swapchain:                       return VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+    case Ext::KHR_get_physical_device_properties2: return VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME;
+#ifdef SUPPORTS_VULKAN_EXCLUSIVE_FULLSCREEN
+    case Ext::EXT_full_screen_exclusive:           return VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME;
+#endif
+    case Ext::EXT_memory_budget:                   return VK_EXT_MEMORY_BUDGET_EXTENSION_NAME;
+    case Ext::EXT_depth_clamp_control:             return VK_EXT_DEPTH_CLAMP_CONTROL_EXTENSION_NAME;
+    case Ext::EXT_depth_range_unrestricted:        return VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME;
+  }
+  // clang-format on
+  return "UNKNOWN_VULKAN_EXTENSION";
+}
+
+static std::vector<VkExtensionProperties> GetExtensionProperties(VkPhysicalDevice device)
+{
+  uint32_t count = 0;
+  VkResult res = vkEnumerateDeviceExtensionProperties(device, nullptr, &count, nullptr);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkEnumerateDeviceExtensionProperties failed: ");
+    count = 0;
+  }
+  std::vector<VkExtensionProperties> extensions(count);
+  if (count)
+  {
+    res = vkEnumerateDeviceExtensionProperties(device, nullptr, &count, extensions.data());
+    if (res != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(res, "vkEnumerateDeviceExtensionProperties failed: ");
+      extensions.clear();
+    }
+    else if (count < extensions.size())
+    {
+      extensions.resize(count);
+    }
+  }
+  return extensions;
+}
+
 VulkanContext::PhysicalDeviceInfo::PhysicalDeviceInfo(VkPhysicalDevice device)
 {
   VkPhysicalDeviceFeatures2 features2;
@@ -51,6 +96,18 @@ VulkanContext::PhysicalDeviceInfo::PhysicalDeviceInfo(VkPhysicalDevice device)
   vkGetPhysicalDeviceProperties(device, &properties);
   vkGetPhysicalDeviceFeatures(device, &features);
   apiVersion = vkGetPhysicalDeviceProperties2 ? properties.apiVersion : VK_API_VERSION_1_0;
+
+  DEBUG_LOG_FMT(VIDEO, "Vulkan: Dumping extensions for {}...", properties.deviceName);
+  for (const VkExtensionProperties& ext : GetExtensionProperties(device))
+  {
+    DEBUG_LOG_FMT(VIDEO, "  Supports {}", ext.extensionName);
+    for (uint32_t i = 0; i < extensions.size(); i++)
+    {
+      auto check = static_cast<Extension>(i);
+      if (0 == strcmp(ext.extensionName, ExtensionName(check)))
+        extensions[check] = true;
+    }
+  }
 
   if (apiVersion >= VK_API_VERSION_1_1)
   {
@@ -503,6 +560,9 @@ void VulkanContext::PopulateBackendInfoFeatures(BackendInfo* backend_info, VkPhy
       info.fragmentStoresAndAtomics;
   backend_info->bSupportsSSAA = info.sampleRateShading;
   backend_info->bSupportsLogicOp = info.logicOp;
+  backend_info->bSupportsUnrestrictedDepthRange =
+      info.extensions[Extension::EXT_depth_clamp_control] &&
+      info.extensions[Extension::EXT_depth_range_unrestricted];
 
   // Metal doesn't support this.
   backend_info->bSupportsLodBiasInSampler = info.driverID != VK_DRIVER_ID_MOLTENVK;
@@ -552,6 +612,9 @@ void VulkanContext::PopulateBackendInfoFeatures(BackendInfo* backend_info, VkPhy
   // Dynamic sampler indexing locks up Intel GPUs on MoltenVK/Metal
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING))
     backend_info->bSupportsDynamicSamplerIndexing = false;
+
+  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DEPTH_CLAMP_CONTROL))
+    backend_info->bSupportsUnrestrictedDepthRange = false;
 }
 
 void VulkanContext::PopulateBackendInfoMultisampleModes(BackendInfo* backend_info,
@@ -630,68 +693,72 @@ std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhys
   return context;
 }
 
+static bool LogExtension(const VulkanContext::PhysicalDeviceInfo& info,
+                         VulkanContext::Extension extension, bool required, bool ignored)
+{
+  using namespace Common::Log;
+  const char* name = ExtensionName(extension);
+  const char* type = required ? "required" : "optional";
+  const char* action = ignored ? "Ignoring" : "Enabling";
+  LogLevel level = LogLevel::LINFO;
+  bool enabled = info.extensions[extension];
+  if (!enabled)
+  {
+    action = "Missing";
+    if (required)
+      level = LogLevel::LERROR;
+  }
+  GENERIC_LOG_FMT(LogType::VIDEO, level, "Vulkan: {} {} extension {}.", action, type, name);
+  return enabled;
+}
+
+static bool RequiredExtension(const VulkanContext::PhysicalDeviceInfo& info,
+                              VulkanContext::Extension extension)
+{
+  return LogExtension(info, extension, true, false);
+}
+
+static bool OptionalExtension(const VulkanContext::PhysicalDeviceInfo& info,
+                              VulkanContext::Extension extension)
+{
+  return LogExtension(info, extension, false, false);
+}
+
+static void IgnoreExtension(VulkanContext::PhysicalDeviceInfo* info,
+                            VulkanContext::Extension extension)
+{
+  LogExtension(*info, extension, false, true);
+  info->extensions[extension] = false;
+}
+
 bool VulkanContext::SelectDeviceExtensions(bool enable_surface)
 {
-  u32 extension_count = 0;
-  VkResult res =
-      vkEnumerateDeviceExtensionProperties(m_physical_device, nullptr, &extension_count, nullptr);
-  if (res != VK_SUCCESS)
+  if (enable_surface)
   {
-    LOG_VULKAN_ERROR(res, "vkEnumerateDeviceExtensionProperties failed: ");
-    return false;
+    if (!RequiredExtension(m_device_info, Extension::KHR_swapchain))
+      return false;
   }
-
-  if (extension_count == 0)
+  else
   {
-    ERROR_LOG_FMT(VIDEO, "Vulkan: No extensions supported by device.");
-    return false;
+    m_device_info.extensions[Extension::KHR_swapchain] = false;
   }
-
-  std::vector<VkExtensionProperties> available_extension_list(extension_count);
-  res = vkEnumerateDeviceExtensionProperties(m_physical_device, nullptr, &extension_count,
-                                             available_extension_list.data());
-  ASSERT(res == VK_SUCCESS);
-
-  for (const auto& extension_properties : available_extension_list)
-    INFO_LOG_FMT(VIDEO, "Available extension: {}", extension_properties.extensionName);
-
-  auto AddExtension = [&](const char* name, bool required) {
-    if (Common::Contains(available_extension_list, std::string_view{name},
-                         &VkExtensionProperties::extensionName))
-    {
-      INFO_LOG_FMT(VIDEO, "Enabling extension: {}", name);
-      m_device_extensions.push_back(name);
-      return true;
-    }
-
-    if (required)
-      ERROR_LOG_FMT(VIDEO, "Vulkan: Missing required extension {}.", name);
-
-    return false;
-  };
-
-  if (enable_surface && !AddExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME, true))
-    return false;
-
 #ifdef SUPPORTS_VULKAN_EXCLUSIVE_FULLSCREEN
   // VK_EXT_full_screen_exclusive
-  if (AddExtension(VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME, true))
+  if (OptionalExtension(m_device_info, Extension::EXT_full_screen_exclusive))
     INFO_LOG_FMT(VIDEO, "Using VK_EXT_full_screen_exclusive for exclusive fullscreen.");
 #endif
-
-  AddExtension(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, false);
-  AddExtension(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME, false);
-
-  if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DEPTH_CLAMP_CONTROL))
+  OptionalExtension(m_device_info, Extension::KHR_get_physical_device_properties2);
+  OptionalExtension(m_device_info, Extension::EXT_memory_budget);
+  if (g_backend_info.bSupportsUnrestrictedDepthRange)
   {
-    // Unrestricted depth range is one of the few extensions that changes the behavior
-    // of Vulkan just by being enabled, so we rely on lazy evaluation to ensure it is
-    // not enabled unless depth clamp control is supported.
-    g_backend_info.bSupportsUnrestrictedDepthRange =
-        AddExtension(VK_EXT_DEPTH_CLAMP_CONTROL_EXTENSION_NAME, false) &&
-        AddExtension(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME, false);
+    OptionalExtension(m_device_info, Extension::EXT_depth_clamp_control);
+    OptionalExtension(m_device_info, Extension::EXT_depth_range_unrestricted);
   }
-
+  else
+  {
+    IgnoreExtension(&m_device_info, Extension::EXT_depth_clamp_control);
+    IgnoreExtension(&m_device_info, Extension::EXT_depth_range_unrestricted);
+  }
   return true;
 }
 
@@ -811,8 +878,9 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
 
   // convert std::string list to a char pointer list which we can feed in
   std::vector<const char*> extension_name_pointers;
-  for (const std::string& name : m_device_extensions)
-    extension_name_pointers.push_back(name.c_str());
+  for (size_t i = 0; i < m_device_info.extensions.size(); i++)
+    if (m_device_info.extensions[static_cast<Extension>(i)])
+      extension_name_pointers.push_back(ExtensionName(static_cast<Extension>(i)));
 
   device_info.enabledLayerCount = 0;
   device_info.ppEnabledLayerNames = nullptr;
@@ -869,7 +937,7 @@ bool VulkanContext::CreateAllocator(u32 vk_api_version)
   allocator_info.vulkanApiVersion = vk_api_version;
   allocator_info.pTypeExternalMemoryHandleTypes = nullptr;
 
-  if (SupportsDeviceExtension(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME))
+  if (m_device_info.extensions[Extension::EXT_memory_budget])
     allocator_info.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
 
   VkResult res = vmaCreateAllocator(&allocator_info, &m_allocator);
@@ -944,12 +1012,6 @@ void VulkanContext::DisableDebugUtils()
     vkDestroyDebugUtilsMessengerEXT(m_instance, m_debug_utils_messenger, nullptr);
     m_debug_utils_messenger = VK_NULL_HANDLE;
   }
-}
-
-bool VulkanContext::SupportsDeviceExtension(const char* name) const
-{
-  return std::ranges::any_of(m_device_extensions,
-                             [name](const std::string& extension) { return extension == name; });
 }
 
 static bool DriverIsMesa(VkDriverId driver_id)
@@ -1088,7 +1150,7 @@ bool VulkanContext::SupportsExclusiveFullscreen(const WindowSystemInfo& wsi, VkS
 {
 #ifdef SUPPORTS_VULKAN_EXCLUSIVE_FULLSCREEN
   if (!surface || !vkGetPhysicalDeviceSurfaceCapabilities2KHR ||
-      !SupportsDeviceExtension(VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME))
+      !m_device_info.extensions[Extension::EXT_full_screen_exclusive])
   {
     return false;
   }
