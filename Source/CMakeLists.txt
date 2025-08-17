@@ -62,6 +62,13 @@ else()
   endif()
 endif()
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  # By default, LLVM allows all NaNs to be treated as if they were quiet NaNs.
+  # This causes problems in Common::ApproximateReciprocalSquareRoot().
+  # https://llvm.org/docs/LangRef.html#behavior-of-floating-point-nan-values
+  check_and_add_flag(FFP_MODEL -ffp-model=strict)
+endif()
+
 # These aren't actually needed for C11/C++11
 # but some dependencies require them (LLVM, libav).
 add_definitions(-D__STDC_LIMIT_MACROS)
