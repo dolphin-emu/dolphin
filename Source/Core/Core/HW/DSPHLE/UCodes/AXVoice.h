@@ -536,7 +536,7 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
   if (pb.initial_time_delay.on)
   {
     // TODO
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_AX_INITIAL_TIME_DELAY);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesAXInitialTimeDelay);
   }
 
 #ifdef AX_WII
@@ -548,12 +548,12 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
       // Only one filter at most for Wiimotes.
       if (pb.remote_iir.on == 2)
       {
-        DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_AX_WIIMOTE_BIQUAD);
+        DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesAXWiimoteBiquad);
         BiquadFilter(samples, count, pb.remote_iir.biquad);
       }
       else
       {
-        DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_AX_WIIMOTE_LOWPASS);
+        DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesAXWiimoteLowpass);
         LowPassFilter(samples, count, pb.remote_iir.lpf);
       }
     }

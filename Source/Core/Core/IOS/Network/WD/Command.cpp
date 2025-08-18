@@ -198,7 +198,7 @@ std::optional<IPCReply> NetWDCommandDevice::Open(const OpenRequest& request)
     if (mode != WD::Mode::DSCommunications && mode != WD::Mode::AOSSAccessPointScan)
     {
       ERROR_LOG_FMT(IOS_NET, "Unsupported WD operating mode: {}", mode);
-      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_UNCOMMON_WD_MODE);
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesUncommonWDMode);
       return IPCReply(s32(ResultCode::UnavailableCommand));
     }
 
@@ -390,7 +390,7 @@ std::optional<IPCReply> NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_WD_CHANGE_GAMEINFO:
   case IOCTLV_WD_CHANGE_VTSF:
   default:
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_WD_UNIMPLEMENTED_IOCTL);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesWDUnimplementedIoctl);
     request.Dump(GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_NET,
                  Common::Log::LogLevel::LWARNING);
   }
