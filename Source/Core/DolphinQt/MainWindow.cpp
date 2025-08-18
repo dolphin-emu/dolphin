@@ -1379,8 +1379,8 @@ void MainWindow::ShowFIFOPlayer()
 {
   if (!m_fifo_window)
   {
-    m_fifo_window = new FIFOPlayerWindow(m_system.GetFifoPlayer(), m_system.GetFifoRecorder());
-    connect(m_fifo_window, &FIFOPlayerWindow::LoadFIFORequested, this,
+    m_fifo_window.reset(new FIFOPlayerWindow(m_system.GetFifoPlayer(), m_system.GetFifoRecorder()));
+    connect(m_fifo_window.get(), &FIFOPlayerWindow::LoadFIFORequested, this,
             [this](const QString& path) { StartGame(path, ScanForSecondDisc::No); });
   }
 
