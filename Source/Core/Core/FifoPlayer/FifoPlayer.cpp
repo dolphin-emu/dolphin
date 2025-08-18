@@ -57,11 +57,6 @@ public:
 
   OPCODE_CALLBACK(CPState& GetCPState()) { return m_cpmem; }
 
-  OPCODE_CALLBACK(u32 GetVertexSize(u8 vat))
-  {
-    return VertexLoaderBase::GetVertexSize(GetCPState().vtx_desc, GetCPState().vtx_attr[vat]);
-  }
-
   bool m_start_of_primitives = false;
   bool m_end_of_primitives = false;
   bool m_efb_copy = false;

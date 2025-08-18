@@ -50,11 +50,6 @@ public:
 
   OPCODE_CALLBACK(CPState& GetCPState()) { return m_cpmem; }
 
-  OPCODE_CALLBACK(u32 GetVertexSize(u8 vat))
-  {
-    return VertexLoaderBase::GetVertexSize(GetCPState().vtx_desc, GetCPState().vtx_attr[vat]);
-  }
-
 private:
   void ProcessVertexComponent(CPArray array_index, VertexComponentFormat array_type,
                               u32 component_offset, u32 component_size, u32 vertex_size,
