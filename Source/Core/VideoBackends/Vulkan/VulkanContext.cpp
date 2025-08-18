@@ -109,7 +109,8 @@ VulkanContext::PhysicalDeviceInfo::PhysicalDeviceInfo(VkPhysicalDevice device)
     }
   }
 
-  if (apiVersion >= VK_API_VERSION_1_1)
+  const bool vk11 = apiVersion >= VK_API_VERSION_1_1;
+  if (vk11 || vkGetPhysicalDeviceProperties2KHR)
   {
     VkPhysicalDeviceSubgroupProperties properties_subgroup = {};
     VkPhysicalDeviceVulkan12Properties properties_vk12 = {};
@@ -117,8 +118,12 @@ VulkanContext::PhysicalDeviceInfo::PhysicalDeviceInfo(VkPhysicalDevice device)
     features2.pNext = nullptr;
     properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
     properties2.pNext = nullptr;
-    properties_subgroup.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_PROPERTIES;
-    InsertIntoChain(&properties2, &properties_subgroup);
+
+    if (apiVersion >= VK_API_VERSION_1_1)
+    {
+      properties_subgroup.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_PROPERTIES;
+      InsertIntoChain(&properties2, &properties_subgroup);
+    }
 
     if (apiVersion >= VK_API_VERSION_1_2)
     {
@@ -126,8 +131,10 @@ VulkanContext::PhysicalDeviceInfo::PhysicalDeviceInfo(VkPhysicalDevice device)
       InsertIntoChain(&properties2, &properties_vk12);
     }
 
-    vkGetPhysicalDeviceProperties2(device, &properties2);
-    vkGetPhysicalDeviceFeatures2(device, &features2);
+    auto getProps = vk11 ? vkGetPhysicalDeviceProperties2 : vkGetPhysicalDeviceProperties2KHR;
+    getProps(device, &properties2);
+    auto getFeatures = vk11 ? vkGetPhysicalDeviceFeatures2 : vkGetPhysicalDeviceFeatures2KHR;
+    getFeatures(device, &features2);
 
     if (apiVersion >= VK_API_VERSION_1_2)
     {
@@ -890,7 +897,7 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   WarnMissingDeviceFeatures();
 
   DeviceFeatures device_features(m_device_info);
-  if (m_device_info.apiVersion >= VK_API_VERSION_1_1)
+  if (m_device_info.apiVersion >= VK_API_VERSION_1_1 || vkGetPhysicalDeviceProperties2KHR)
     ConcatenateChains(&device_info, &device_features.features2);
   else
     device_info.pEnabledFeatures = &device_features.features2.features;
