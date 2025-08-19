@@ -110,6 +110,7 @@ protected:
   u16 m_compressor_pos = 0;
 
   std::unique_ptr<Accelerator> m_accelerator;
+  CoreTiming::EventType* m_event_type_handle_command_list;
 
   // Constructs without any GC-specific state, so it can be used by the deriving AXWii.
   AXUCode(DSPHLE* dsphle, u32 crc, bool dummy);
@@ -126,6 +127,7 @@ protected:
   // versions of AX.
   AXMixControl ConvertMixerControl(u32 mixer_control);
 
+  static void HandleCommandListEvent(Core::System& system, u64 userdata, s64 cyclesLate);
   virtual void HandleCommandList();
   void SignalWorkEnd();
 
