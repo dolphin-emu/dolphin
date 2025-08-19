@@ -286,9 +286,9 @@ int ConvertCommand(const std::vector<std::string>& args)
         return EXIT_FAILURE;
       }
 
-      const std::pair<int, int> range =
+      const auto [min_level, max_level] =
           DiscIO::GetAllowedCompressionLevels(compression_o.value(), false);
-      if (compression_level_o.value() < range.first || compression_level_o.value() > range.second)
+      if (compression_level_o.value() < min_level || compression_level_o.value() > max_level)
       {
         fmt::print(std::cerr, "Error: Compression level not in acceptable range\n");
         return EXIT_FAILURE;
