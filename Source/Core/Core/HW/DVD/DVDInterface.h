@@ -183,6 +183,7 @@ private:
                            const std::vector<u8>& audio_data);
   u32 AdvanceDTK(u32 maximum_blocks, u32* blocks_to_process);
 
+  bool ShouldLidBeOpen();
   void SetLidOpen();
   void UpdateInterrupts();
   void GenerateDIInterrupt(DIInterruptType dvd_interrupt);
