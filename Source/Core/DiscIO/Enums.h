@@ -49,6 +49,7 @@ enum class Region
   PAL = 2,      // Mainly Europe and Oceania
   Unknown = 3,  // Nintendo uses this to mean region free, but we also use it for unknown regions
   NTSC_K = 4,   // South Korea (Wii only)
+  DEV = 5,      // Triforce has no regions
 };
 
 // Languages 0 - 9 match Nintendo's Wii language numbering.

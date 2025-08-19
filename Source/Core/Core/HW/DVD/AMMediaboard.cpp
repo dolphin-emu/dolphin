@@ -81,9 +81,9 @@ static u8* s_dimm_disc = nullptr;
 
 static u8 s_firmware[2 * 1024 * 1024];
 static u32 s_media_buffer_32[192];
-static u8* s_media_buffer = nullptr;
+static u8* const s_media_buffer = reinterpret_cast<u8*>(s_media_buffer_32);
 static u8 s_network_command_buffer[0x4FFE00];
-static u8 s_network_buffer[256 * 1024];
+static u8 s_network_buffer[512 * 1024];
 static u8 s_allnet_buffer[4096];
 static u8 s_allnet_settings[0x8500];
 
@@ -161,8 +161,6 @@ static File::IOFile OpenOrCreateFile(const std::string& filename)
 
 void Init()
 {
-  s_media_buffer = (u8*)s_media_buffer_32;
-
   std::ranges::fill(s_media_buffer_32, 0);
   std::ranges::fill(s_network_buffer, 0);
   std::ranges::fill(s_network_command_buffer, 0);
@@ -284,6 +282,12 @@ static s32 NetDIMMAccept(int fd, sockaddr* addr, int* len)
 
 static s32 NetDIMMConnect(int fd, sockaddr_in* addr, int len)
 {
+  // All.Net Connect IP
+  if (addr->sin_addr.s_addr == inet_addr("192.168.150.16"))
+  {
+    addr->sin_addr.s_addr = inet_addr("127.0.0.1");
+  }
+
   // CyCraft Connect IP
   if (addr->sin_addr.s_addr == inet_addr("192.168.11.111"))
   {
@@ -307,7 +311,6 @@ static s32 NetDIMMConnect(int fd, sockaddr_in* addr, int len)
   }
 
   addr->sin_family = Common::swap16(addr->sin_family);
-  // *(u32*)(&addr.sin_addr) = Common::swap32(*(u32*)(&addr.sin_addr));
 
   u_long val = 1;
   // Set socket to non-blocking
@@ -529,11 +532,12 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
 
       // Fake reply
       memset(s_allnet_buffer, 0, sizeof(s_allnet_buffer));
-      sprintf((char*)s_allnet_buffer,
-              "uri=http://"
-              "sega.com&host=sega.com&nickname=sega&name=sega&year=2025&month=08&day=16&hour=21&"
-              "minute=10&second=12&place_id=50&settings=123&region0=jap&region_name0=japan&region_"
-              "name1=usa&region_name2=asia&region_name3=export&end");
+      sprintf(
+          (char*)s_allnet_buffer,
+          "uri=http://"
+          "sega.com&host=sega.com&nickname=sega&name=sega&year=2025&month=08&day=16&hour=21&"
+          "minute=10&second=12&place_id=1234&setting=0x123&region0=jap&region_name0=japan&region_"
+          "name1=usa&region_name2=asia&region_name3=export&end");
 
       memcpy(memory.GetSpanForAddress(address).data(), s_allnet_buffer + allnet_offset, length);
       return 0;
@@ -550,7 +554,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
       return 0;
     }
 
-    if (offset >= NetworkBufferAddress4 && offset < 0x891C0000)
+    if (offset >= NetworkBufferAddress4 && offset < 0x89240000)
     {
       const u32 dimm_offset = offset - NetworkBufferAddress4;
       INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Read NETWORK BUFFER (4) ({:08x},{})", offset, length);
@@ -656,6 +660,8 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
       {
         const u32 fd = s_sockets[SocketCheck(s_media_buffer_32[2])];
         int ret = -1;
+        sockaddr addr;
+        int len = 0;
 
         // Handle optional parameters
         if (s_media_buffer_32[3] == 0 || s_media_buffer_32[4] == 0)
@@ -667,10 +673,12 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
           const u32 addr_off = s_media_buffer_32[3] - NetworkCommandAddress2;
           const u32 len_off = s_media_buffer_32[4] - NetworkCommandAddress2;
 
-          sockaddr* addr = (sockaddr*)(s_network_command_buffer + addr_off);
-          int* len = (int*)(s_network_command_buffer + len_off);
-
-          ret = NetDIMMAccept(fd, addr, len);
+          ret = NetDIMMAccept(fd, &addr, &len);
+          if (len)
+          {
+            memcpy((s_network_command_buffer + addr_off), &addr, len);
+            memcpy((s_network_command_buffer + len_off), &len, sizeof(int));
+          }
         }
 
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: accept( {}({}) ):{}\n", fd, s_media_buffer_32[2],
@@ -689,10 +697,11 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
         memcpy((void*)&addr, s_network_command_buffer + off, sizeof(sockaddr_in));
 
         addr.sin_family = Common::swap16(addr.sin_family);
-        *(u32*)(&addr.sin_addr) = Common::swap32(*(u32*)(&addr.sin_addr));
 
         // Triforce titles typically rely on hardcoded IP addresses.
         // This behavior has been modified to bind to the wildcard address instead.
+        //
+        // addr.sin_addr.s_addr = htonl(addr.sin_addr.s_addr);
 
         addr.sin_addr.s_addr = INADDR_ANY;
 
@@ -779,18 +788,18 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
           len = sizeof(s_network_buffer);
         }
 
-        char* buffer = (char*)(s_network_buffer + off);
+        u8* buffer = (u8*)(s_network_buffer + off);
 
         if (off >= NetworkBufferAddress4 && off < NetworkBufferAddress4 + sizeof(s_network_buffer))
         {
-          buffer = (char*)(s_network_buffer + off - NetworkBufferAddress4);
+          buffer = (u8*)(s_network_buffer + off - NetworkBufferAddress4);
         }
         else
         {
           PanicAlertFmt("RECV: Buffer overrun:{0} {1} ", off, len);
         }
 
-        const int ret = recv(fd, buffer, len, 0);
+        const int ret = recv(fd, (char*)buffer, len, 0);
         const int err = WSAGetLastError();
 
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv( {}, 0x{:08x}, {} ):{} {}\n", fd, off, len,
@@ -1006,7 +1015,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: AllNetInit");
         break;
       default:
-        ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Command:{:03X}", *(u16*)(s_media_buffer + 2));
+        ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Command:{0:04x}", static_cast<u16>(ammb_command));
         ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Command Unhandled!");
         break;
       }
@@ -1394,11 +1403,11 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
         // 0x01: Media board
         // 0x04: Network
 
-        // ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: 0x301: ({:08x})", *(u32*)(s_media_buffer+0x24)
+        // DEBUG_LOG_FMT(AMMEDIABOARD, "GC-AM: 0x301: ({:08x})", s_media_buffer_32[9] )
         // );
 
         // Pointer to a memory address that is directly displayed on screen as a string
-        // ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM:        ({:08x})", *(u32*)(s_media_buffer+0x28)
+        // DEBUG_LOG_FMT(AMMEDIABOARD, "GC-AM:        ({:08x})", s_media_buffer_32[10])
         // );
 
         // On real system it shows the status about the DIMM/GD-ROM here
@@ -1647,13 +1656,14 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
       case AMMBCommand::SearchDevices:
       {
         u16 unknown = s_media_buffer[0x25] | s_media_buffer[0x24] << 8;
-        u16 size = s_media_buffer[0x26] | s_media_buffer[0x27] << 8;
+        u16 off = s_media_buffer[0x26] | s_media_buffer[0x27] << 8;
+        u32 addr = s_media_buffer_32[10];
 
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: SearchDevices: ({})", unknown);
-        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM:  Size: ({})", size);
-        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM:        ({:08x})", s_media_buffer_32[10]);
+        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM:        Offset: ({:04x})", off);
+        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM:                ({:08x})", addr);
 
-        const u8* data = (u8*)(s_network_buffer + s_media_buffer_32[10] - NetworkBufferAddress2);
+        const u8* data = (u8*)(s_network_buffer + off + addr - NetworkBufferAddress2);
 
         for (u32 i = 0; i < 0x20; i += 0x10)
         {
@@ -1677,8 +1687,8 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: 0x614");
         break;
       default:
-        ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: execute buffer UNKNOWN:{:03x}",
-                      *(u16*)(s_media_buffer + 0x22));
+        ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: execute buffer UNKNOWN:{0:04x}",
+                      static_cast<u16>(ammb_command));
         break;
       }
 

@@ -619,17 +619,8 @@ DiscIO::Region ToGameCubeRegion(DiscIO::Region region)
 
 const char* GetDirectoryForRegion(DiscIO::Region region, RegionDirectoryStyle style)
 {
-  auto& system = Core::System::GetInstance();
-  
-  // Triforce IPL
-  if (system.IsTriforce())
-  {
-    return DEV_DIR;
-  }
-
   if (region == DiscIO::Region::Unknown)
     region = ToGameCubeRegion(Config::Get(Config::MAIN_FALLBACK_REGION));
-
 
   switch (region)
   {
@@ -646,6 +637,9 @@ const char* GetDirectoryForRegion(DiscIO::Region region, RegionDirectoryStyle st
     // See ToGameCubeRegion
     ASSERT_MSG(BOOT, false, "NTSC-K is not a valid GameCube region");
     return style == RegionDirectoryStyle::Legacy ? JAP_DIR : JPN_DIR;
+
+  case DiscIO::Region::DEV:
+    return DEV_DIR;
 
   default:
     ASSERT_MSG(BOOT, false, "Default case should not be reached");
@@ -720,7 +714,7 @@ std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::
   else if (name.ends_with(dv_region))
   {
     name = name.substr(0, name.size() - dv_region.size());
-    path_region = DiscIO::Region::NTSC_J;
+    path_region = DiscIO::Region::DEV;
   }
 
   const DiscIO::Region used_region =
@@ -765,6 +759,7 @@ std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::
   constexpr std::string_view us_region = "/" USA_DIR;
   constexpr std::string_view jp_region = "/" JPN_DIR;
   constexpr std::string_view eu_region = "/" EUR_DIR;
+  constexpr std::string_view dv_region = "/" DEV_DIR;
   std::string_view base_path = configured_folder;
   std::optional<DiscIO::Region> path_region = std::nullopt;
   if (base_path.ends_with(us_region))
@@ -781,6 +776,11 @@ std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::
   {
     base_path = base_path.substr(0, base_path.size() - eu_region.size());
     path_region = DiscIO::Region::PAL;
+  }
+  else if (base_path.ends_with(eu_region))
+  {
+    base_path = base_path.substr(0, base_path.size() - dv_region.size());
+    path_region = DiscIO::Region::DEV;
   }
 
   const DiscIO::Region used_region =

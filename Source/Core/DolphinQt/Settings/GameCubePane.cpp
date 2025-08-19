@@ -447,7 +447,7 @@ bool GameCubePane::SetMemcard(ExpansionInterface::Slot slot, const QString& file
   const std::string jp_path = Config::GetMemcardPath(raw_path, slot, DiscIO::Region::NTSC_J);
   const std::string us_path = Config::GetMemcardPath(raw_path, slot, DiscIO::Region::NTSC_U);
   const std::string eu_path = Config::GetMemcardPath(raw_path, slot, DiscIO::Region::PAL);
-  const std::string dv_path = Config::GetMemcardPath(raw_path, slot, DiscIO::Region::NTSC_J);
+  const std::string dv_path = Config::GetMemcardPath(raw_path, slot, DiscIO::Region::DEV);
   const bool raw_path_valid =
       raw_path == jp_path || raw_path == us_path || raw_path == eu_path || raw_path == dv_path;
 
@@ -457,7 +457,7 @@ bool GameCubePane::SetMemcard(ExpansionInterface::Slot slot, const QString& file
     ModalMessageBox::critical(
         this, tr("Error"),
         tr("The filename %1 does not conform to Dolphin's region code format "
-           "for memory cards. Please rename this file to either %2, %3, %4 or "
+           "for memory cards. Please rename this file to either %2, %3, %4, or "
            "%5, matching the region of the save files that are on it.")
             .arg(QString::fromStdString(PathToFileName(raw_path)))
             .arg(QString::fromStdString(PathToFileName(us_path)))
@@ -555,8 +555,9 @@ bool GameCubePane::SetGCIFolder(ExpansionInterface::Slot slot, const QString& pa
   const std::string default_jp_path = Config::GetGCIFolderPath("", slot, DiscIO::Region::NTSC_J);
   const std::string default_us_path = Config::GetGCIFolderPath("", slot, DiscIO::Region::NTSC_U);
   const std::string default_eu_path = Config::GetGCIFolderPath("", slot, DiscIO::Region::PAL);
-  const bool is_default_path =
-      raw_path == default_jp_path || raw_path == default_us_path || raw_path == default_eu_path;
+  const std::string default_dv_path = Config::GetGCIFolderPath("", slot, DiscIO::Region::DEV);
+  const bool is_default_path = raw_path == default_jp_path || raw_path == default_us_path ||
+                               raw_path == default_eu_path || raw_path == default_dv_path;
 
   bool path_changed;
   if (is_default_path)
@@ -573,7 +574,9 @@ bool GameCubePane::SetGCIFolder(ExpansionInterface::Slot slot, const QString& pa
     const std::string jp_path = Config::GetGCIFolderPath(raw_path, slot, DiscIO::Region::NTSC_J);
     const std::string us_path = Config::GetGCIFolderPath(raw_path, slot, DiscIO::Region::NTSC_U);
     const std::string eu_path = Config::GetGCIFolderPath(raw_path, slot, DiscIO::Region::PAL);
-    const bool raw_path_valid = raw_path == jp_path || raw_path == us_path || raw_path == eu_path;
+    const std::string dv_path = Config::GetGCIFolderPath(raw_path, slot, DiscIO::Region::DEV);
+    const bool raw_path_valid =
+        raw_path == jp_path || raw_path == us_path || raw_path == eu_path || raw_path == dv_path;
 
     if (!raw_path_valid)
     {
@@ -581,12 +584,13 @@ bool GameCubePane::SetGCIFolder(ExpansionInterface::Slot slot, const QString& pa
       ModalMessageBox::critical(
           this, tr("Error"),
           tr("The folder %1 does not conform to Dolphin's region code format "
-             "for GCI folders. Please rename this folder to either %2, %3, or "
-             "%4, matching the region of the save files that are in it.")
+             "for GCI folders. Please rename this folder to either %2, %3, %4, or "
+             "%5, matching the region of the save files that are in it.")
               .arg(QString::fromStdString(PathToFileName(raw_path)))
               .arg(QString::fromStdString(PathToFileName(us_path)))
               .arg(QString::fromStdString(PathToFileName(eu_path)))
-              .arg(QString::fromStdString(PathToFileName(jp_path))));
+              .arg(QString::fromStdString(PathToFileName(jp_path)))
+              .arg(QString::fromStdString(PathToFileName(dv_path))));
       return false;
     }
 

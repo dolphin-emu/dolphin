@@ -155,10 +155,10 @@ static const u8 s_cdr_card_data[] = {
     0x37, 0x00, 0x00, 0x38, 0x00, 0x00, 0x39, 0x00, 0x00, 0x3D, 0x00};
 
 const static u8 s_region_flags[] = "\x00\x00\x30\x00"
-                           //   "\x01\xfe\x00\x00"  // JAPAN
-                           "\x02\xfd\x00\x00"  // USA
-                           //"\x03\xfc\x00\x00"  // export
-                           "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff";
+                                   //   "\x01\xfe\x00\x00"  // JAPAN
+                                   "\x02\xfd\x00\x00"  // USA
+                                   //"\x03\xfc\x00\x00"  // export
+                                   "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff";
 // AM-Baseboard device on SI
 CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(Core::System& system, SIDevices device,
                                              int device_number)
@@ -1927,7 +1927,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               case VirtuaStriker4:
               case VirtuaStriker4_2006:
               {
-                message.AddData((~PadStatus.stickY)+1);
+                message.AddData((~PadStatus.stickY) + 1);
                 message.AddData((u8)0);
                 message.AddData(PadStatus.stickX);
                 message.AddData((u8)0);
