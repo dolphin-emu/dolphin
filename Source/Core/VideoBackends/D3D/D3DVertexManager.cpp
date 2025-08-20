@@ -213,6 +213,7 @@ void VertexManager::ResetBuffer(u32 vertex_stride)
   m_cur_buffer_pointer = m_base_buffer_pointer;
   m_end_buffer_pointer = m_base_buffer_pointer + m_cpu_vertex_buffer.size();
   m_index_generator.Start(m_cpu_index_buffer.data());
+  m_last_reset_pointer = m_cur_buffer_pointer;
 }
 
 void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
@@ -290,24 +291,23 @@ void VertexManager::UploadUniforms()
 
   if (pixel_shader_manager.custom_constants_dirty)
   {
-    if (m_last_custom_pixel_buffer_size < pixel_shader_manager.custom_constants.size())
+    if (m_last_custom_buffer_size < pixel_shader_manager.custom_constants.size())
     {
-      m_custom_pixel_constant_buffer =
+      m_custom_constant_buffer =
           AllocateConstantBuffer(static_cast<u32>(pixel_shader_manager.custom_constants.size()));
     }
-    UpdateConstantBuffer(m_custom_pixel_constant_buffer.Get(),
+    UpdateConstantBuffer(m_custom_constant_buffer.Get(),
                          pixel_shader_manager.custom_constants.data(),
                          static_cast<u32>(pixel_shader_manager.custom_constants.size()));
-    m_last_custom_pixel_buffer_size = pixel_shader_manager.custom_constants.size();
+    m_last_custom_buffer_size = pixel_shader_manager.custom_constants.size();
     pixel_shader_manager.custom_constants_dirty = false;
   }
 
   D3D::stateman->SetPixelConstants(
       m_pixel_constant_buffer.Get(),
-      g_ActiveConfig.bEnablePixelLighting ? m_vertex_constant_buffer.Get() : nullptr,
-      pixel_shader_manager.custom_constants.empty() ? nullptr :
-                                                      m_custom_pixel_constant_buffer.Get());
+      g_ActiveConfig.bEnablePixelLighting ? m_vertex_constant_buffer.Get() : nullptr);
   D3D::stateman->SetVertexConstants(m_vertex_constant_buffer.Get());
   D3D::stateman->SetGeometryConstants(m_geometry_constant_buffer.Get());
+  D3D::stateman->SetCustomConstants(m_custom_constant_buffer.Get());
 }
 }  // namespace DX11

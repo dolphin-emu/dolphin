@@ -5,7 +5,6 @@
 
 #include <array>
 #include <string>
-#include <vector>
 
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
@@ -26,7 +25,9 @@ public:
 
   // constant management
   void SetProjectionMatrix(XFStateManager& xf_state_manager);
-  void SetConstants(const std::vector<std::string>& textures, XFStateManager& xf_state_manager);
+  void ForceProjectionMatrixUpdate(XFStateManager& xf_state_manager,
+                                   const Common::Matrix44& modifier);
+  void SetConstants(XFStateManager& xf_state_manager);
 
   // data: 3 floats representing the X, Y and Z vertex model coordinates and the posmatrix index.
   // out:  4 floats which will be initialized with the corresponding clip space coordinates
@@ -82,7 +83,7 @@ private:
   alignas(16) std::array<float, 16> m_projection_matrix;
 
   // track changes
-  bool m_projection_graphics_mod_change = false;
+  Common::Matrix44 m_last_camera_modifier = Common::Matrix44::Identity();
 
   Common::Matrix44 LoadProjectionMatrix();
 };

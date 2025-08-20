@@ -68,8 +68,8 @@ private:
   ComPtr<ID3D11Buffer> m_geometry_constant_buffer = nullptr;
   ComPtr<ID3D11Buffer> m_pixel_constant_buffer = nullptr;
 
-  ComPtr<ID3D11Buffer> m_custom_pixel_constant_buffer = nullptr;
-  std::size_t m_last_custom_pixel_buffer_size = 0;
+  ComPtr<ID3D11Buffer> m_custom_constant_buffer = nullptr;
+  std::size_t m_last_custom_buffer_size = 0;
 
   ComPtr<ID3D11Buffer> m_texel_buffer = nullptr;
   std::array<ComPtr<ID3D11ShaderResourceView>, NUM_TEXEL_BUFFER_FORMATS> m_texel_buffer_views;

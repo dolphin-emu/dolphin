@@ -378,4 +378,53 @@ float Matrix44::Determinant() const
          m[0] * m[9] * m[6] * m[15] - m[4] * m[1] * m[10] * m[15] + m[0] * m[5] * m[10] * m[15];
 }
 
+Matrix44 Matrix44::Inverted() const
+{
+  const auto m = [this](int x, int y) { return data[y + x * 4]; };
+
+  const auto invdet = 1 / Determinant();
+
+  Matrix44 result;
+
+  const auto minv = [&result](int x, int y) -> auto& { return result.data[y + x * 4]; };
+
+  const double A2323 = m(2, 2) * m(3, 3) - m(2, 3) * m(3, 2);
+  const double A1323 = m(2, 1) * m(3, 3) - m(2, 3) * m(3, 1);
+  const double A1223 = m(2, 1) * m(3, 2) - m(2, 2) * m(3, 1);
+  const double A0323 = m(2, 0) * m(3, 3) - m(2, 3) * m(3, 0);
+  const double A0223 = m(2, 0) * m(3, 2) - m(2, 2) * m(3, 0);
+  const double A0123 = m(2, 0) * m(3, 1) - m(2, 1) * m(3, 0);
+  const double A2313 = m(1, 2) * m(3, 3) - m(1, 3) * m(3, 2);
+  const double A1313 = m(1, 1) * m(3, 3) - m(1, 3) * m(3, 1);
+  const double A1213 = m(1, 1) * m(3, 2) - m(1, 2) * m(3, 1);
+  const double A2312 = m(1, 2) * m(2, 3) - m(1, 3) * m(2, 2);
+  const double A1312 = m(1, 1) * m(2, 3) - m(1, 3) * m(2, 1);
+  const double A1212 = m(1, 1) * m(2, 2) - m(1, 2) * m(2, 1);
+  const double A0313 = m(1, 0) * m(3, 3) - m(1, 3) * m(3, 0);
+  const double A0213 = m(1, 0) * m(3, 2) - m(1, 2) * m(3, 0);
+  const double A0312 = m(1, 0) * m(2, 3) - m(1, 3) * m(2, 0);
+  const double A0212 = m(1, 0) * m(2, 2) - m(1, 2) * m(2, 0);
+  const double A0113 = m(1, 0) * m(3, 1) - m(1, 1) * m(3, 0);
+  const double A0112 = m(1, 0) * m(2, 1) - m(1, 1) * m(2, 0);
+
+  minv(0, 0) = invdet * (m(1, 1) * A2323 - m(1, 2) * A1323 + m(1, 3) * A1223);
+  minv(0, 1) = invdet * -(m(0, 1) * A2323 - m(0, 2) * A1323 + m(0, 3) * A1223);
+  minv(0, 2) = invdet * (m(0, 1) * A2313 - m(0, 2) * A1313 + m(0, 3) * A1213);
+  minv(0, 3) = invdet * -(m(0, 1) * A2312 - m(0, 2) * A1312 + m(0, 3) * A1212);
+  minv(1, 0) = invdet * -(m(1, 0) * A2323 - m(1, 2) * A0323 + m(1, 3) * A0223);
+  minv(1, 1) = invdet * (m(0, 0) * A2323 - m(0, 2) * A0323 + m(0, 3) * A0223);
+  minv(1, 2) = invdet * -(m(0, 0) * A2313 - m(0, 2) * A0313 + m(0, 3) * A0213);
+  minv(1, 3) = invdet * (m(0, 0) * A2312 - m(0, 2) * A0312 + m(0, 3) * A0212);
+  minv(2, 0) = invdet * (m(1, 0) * A1323 - m(1, 1) * A0323 + m(1, 3) * A0123);
+  minv(2, 1) = invdet * -(m(0, 0) * A1323 - m(0, 1) * A0323 + m(0, 3) * A0123);
+  minv(2, 2) = invdet * (m(0, 0) * A1313 - m(0, 1) * A0313 + m(0, 3) * A0113);
+  minv(2, 3) = invdet * -(m(0, 0) * A1312 - m(0, 1) * A0312 + m(0, 3) * A0112);
+  minv(3, 0) = invdet * -(m(1, 0) * A1223 - m(1, 1) * A0223 + m(1, 2) * A0123);
+  minv(3, 1) = invdet * (m(0, 0) * A1223 - m(0, 1) * A0223 + m(0, 2) * A0123);
+  minv(3, 2) = invdet * -(m(0, 0) * A1213 - m(0, 1) * A0213 + m(0, 2) * A0113);
+  minv(3, 3) = invdet * (m(0, 0) * A1212 - m(0, 1) * A0212 + m(0, 2) * A0112);
+
+  return result;
+}
+
 }  // namespace Common
