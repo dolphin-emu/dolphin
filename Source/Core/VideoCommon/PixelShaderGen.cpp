@@ -131,17 +131,6 @@ constexpr Common::EnumMap<const char*, TevColorArg::Zero> tev_c_input_table{
     "int3(0,0,0)",        // ZERO
 };
 
-constexpr Common::EnumMap<const char*, TevColorArg::Zero> tev_c_input_type{
-    "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_PREV",    "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_PREV",
-    "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR",   "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR",
-    "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR",   "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR",
-    "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR",   "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR",
-    "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_TEX",     "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_TEX",
-    "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_RAS",     "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_RAS",
-    "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_NUMERIC", "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_NUMERIC",
-    "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_KONST",   "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_NUMERIC",
-};
-
 constexpr Common::EnumMap<const char*, TevAlphaArg::Zero> tev_a_input_table{
     "prev.a",       // APREV,
     "c0.a",         // A0,
@@ -151,13 +140,6 @@ constexpr Common::EnumMap<const char*, TevAlphaArg::Zero> tev_a_input_table{
     "rastemp.a",    // RASA,
     "konsttemp.a",  // KONST,  (hw1 had quarter)
     "0",            // ZERO
-};
-
-constexpr Common::EnumMap<const char*, TevAlphaArg::Zero> tev_a_input_type{
-    "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_PREV",  "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR",
-    "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR", "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_COLOR",
-    "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_TEX",   "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_RAS",
-    "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_KONST", "CUSTOM_SHADER_TEV_STAGE_INPUT_TYPE_NUMERIC",
 };
 
 constexpr Common::EnumMap<const char*, RasColorChan::Zero> tev_ras_table{
