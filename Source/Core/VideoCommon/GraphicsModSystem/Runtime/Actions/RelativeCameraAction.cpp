@@ -13,6 +13,8 @@
 
 #include "Core/System.h"
 
+#include "Common/JsonUtil.h"
+
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/FreeLookCamera.h"
 #include "VideoCommon/GraphicsModEditor/Controls/AssetDisplay.h"
@@ -52,10 +54,8 @@ void RelativeCameraAction::OnDrawStarted(GraphicsModActionData::DrawStarted* dra
   if (!draw_started->camera) [[unlikely]]
     return;
 
-  if (m_camera.color_asset_id == "" && m_camera.depth_asset_id == "")
-    return;
-
-  *draw_started->camera = m_camera;
+  if (m_camera.color_asset_id != "" || m_camera.depth_asset_id == "" || m_has_transform)
+    *draw_started->camera = m_camera;
 }
 
 void RelativeCameraAction::DrawImGui()
@@ -77,6 +77,12 @@ void RelativeCameraAction::DrawImGui()
       if (ImGui::Button("Set to current Freelook view"))
       {
         m_camera.transform = g_freelook_camera.GetView();
+        m_has_transform = true;
+      }
+      if (ImGui::Button("Reset"))
+      {
+        m_camera.transform = Common::Matrix44::Identity();
+        m_has_transform = false;
       }
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
@@ -120,6 +126,7 @@ void RelativeCameraAction::SerializeToConfig(picojson::object* obj)
   auto& json_obj = *obj;
   json_obj["color_render_target"] = picojson::value{m_camera.color_asset_id};
   json_obj["depth_render_target"] = picojson::value{m_camera.depth_asset_id};
+  json_obj["transform"] = picojson::value{ToJsonObject(m_camera.transform)};
 }
 
 std::string RelativeCameraAction::GetFactoryName() const

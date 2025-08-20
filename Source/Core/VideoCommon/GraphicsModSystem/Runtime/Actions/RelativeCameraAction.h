@@ -25,6 +25,6 @@ public:
 
 private:
   std::shared_ptr<VideoCommon::CustomAssetLibrary> m_library;
-  VideoCommon::CustomAssetLibrary::AssetID m_color_rt_asset_id;
+  bool m_has_transform = false;
   GraphicsModSystem::Camera m_camera;
 };
