@@ -180,7 +180,9 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Set up paths
 set(datadir ${CMAKE_INSTALL_FULL_DATADIR}/dolphin-emu CACHE PATH "datadir")
+set(datarootdir ${CMAKE_INSTALL_FULL_DATAROOTDIR} CACHE PATH "datarootdir")
 add_definitions(-DDATA_DIR="${datadir}/")
+add_definitions(-DDATA_ROOT_DIR="${datarootdir}/")
 
 if(CMAKE_SYSROOT)
   # If we should use a sysroot, tell pkg-config to search for packages in there, not on the host
