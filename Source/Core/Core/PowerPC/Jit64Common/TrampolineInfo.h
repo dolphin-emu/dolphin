@@ -6,6 +6,7 @@
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
+#include "Core/PowerPC/Gekko.h"
 
 // Stores information we need to batch-patch a MOV with a call to the slow read/write path after
 // it faults. There will be 10s of thousands of these structs live, so be wary of making this too
@@ -20,6 +21,9 @@ struct TrampolineInfo final
 
   // The PPC PC for the current load/store block
   u32 pc = 0;
+
+  // The instruction which is being emulated
+  UGeckoInstruction inst;
 
   // Saved because we need these to make the ABI call in the trampoline
   BitSet32 registersInUse{};
