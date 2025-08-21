@@ -298,8 +298,8 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
     return {};
   }
 
-  if (!LoadTextureDataFromFile(asset_id, texture_path->second,
-                               TextureAndSamplerData::Type::Type_Texture2D, data))
+  if (!LoadTextureDataFromFile(asset_id, texture_path->second, AbstractTextureType::Texture_2D,
+                               data))
   {
     return {};
   }
@@ -370,16 +370,16 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
   }
   else
   {
-    data->m_sampler = RenderState::GetLinearSamplerState();
-    data->m_type = TextureAndSamplerData::Type::Type_Texture2D;
+    data->sampler = RenderState::GetLinearSamplerState();
+    data->type = AbstractTextureType::Texture_2D;
   }
 
-  if (!LoadTextureDataFromFile(asset_id, texture_path->second, data->m_type, &data->m_texture))
+  if (!LoadTextureDataFromFile(asset_id, texture_path->second, data->type, &data->texture_data))
     return {};
-  if (!PurgeInvalidMipsFromTextureData(asset_id, &data->m_texture))
+  if (!PurgeInvalidMipsFromTextureData(asset_id, &data->texture_data))
     return {};
 
-  return LoadInfo{GetAssetSize(data->m_texture) + metadata_size};
+  return LoadInfo{GetAssetSize(data->texture_data) + metadata_size};
 }
 
 void DirectFilesystemAssetLibrary::SetAssetIDMapData(const AssetID& asset_id,
