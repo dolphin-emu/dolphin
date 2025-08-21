@@ -363,6 +363,7 @@ protected:
   void ClearCRFieldBit(int field, int bit);
   void SetCRFieldBit(int field, int bit);
   void FixGTBeforeSettingCRFieldBit(Arm64Gen::ARM64Reg reg);
+  void FixGTBeforeSettingEQ(Arm64Gen::ARM64Reg reg);
   Arm64Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
 
   void UpdateFPExceptionSummary(Arm64Gen::ARM64Reg fpscr);
