@@ -894,7 +894,7 @@ void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
     m_system.GetCoreTiming().Throttle(ticks);
 
   g_perf_metrics.CountVBlank();
-  VIEndFieldEvent::Trigger();
+  m_system.GetVideoEvents().vi_end_field_event.Trigger();
   Core::OnFrameEnd(m_system);
 }
 
