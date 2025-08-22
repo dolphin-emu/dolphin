@@ -180,6 +180,7 @@ void AudioPane::CreateWidgets()
 
   // Set initial value display
   audio_buffer_size_label->setText(tr("%1 ms").arg(audio_buffer_size->value()));
+  audio_buffer_size_label->setFixedWidth(QFontMetrics(font()).boundingRect(tr(" 000 ms")).width());
 
   m_audio_fill_gaps = new ConfigBool(tr("Fill Audio Gaps"), Config::MAIN_AUDIO_FILL_GAPS);
 

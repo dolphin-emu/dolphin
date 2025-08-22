@@ -6,6 +6,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDateTimeEdit>
+#include <QFontMetrics>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -102,6 +103,10 @@ void AdvancedPane::CreateLayout()
          "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
   timing_group_layout->addWidget(correct_time_drift);
 
+  // Make all labels the same width, so that the sliders are aligned.
+  const QFontMetrics font_metrics{font()};
+  const int label_width = font_metrics.boundingRect(QStringLiteral(" 500% (000.00 VPS)")).width();
+
   auto* clock_override = new QGroupBox(tr("Clock Override"));
   auto* clock_override_layout = new QVBoxLayout();
   clock_override->setLayout(clock_override_layout);
@@ -120,6 +125,8 @@ void AdvancedPane::CreateLayout()
   cpu_clock_override_slider_layout->addWidget(m_cpu_clock_override_slider);
 
   m_cpu_label = new QLabel();
+  m_cpu_label->setFixedWidth(label_width);
+  m_cpu_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   cpu_clock_override_slider_layout->addWidget(m_cpu_label);
 
   std::function<void()> cpu_text = [this]() {
@@ -163,6 +170,8 @@ void AdvancedPane::CreateLayout()
   vi_rate_override_slider_layout->addWidget(m_vi_rate_override_slider);
 
   m_vi_label = new QLabel();
+  m_vi_label->setFixedWidth(label_width);
+  m_vi_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   vi_rate_override_slider_layout->addWidget(m_vi_label);
   std::function<void()> vi_text = [this]() {
     const int percent =
@@ -208,6 +217,8 @@ void AdvancedPane::CreateLayout()
 
   m_mem1_label =
       new QLabel(tr("%1 MB (MEM1)").arg(QString::number(m_mem1_override_slider->value())));
+  m_mem1_label->setFixedWidth(label_width);
+  m_mem1_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   mem1_override_slider_layout->addWidget(m_mem1_label);
   connect(m_mem1_override_slider, &QSlider::valueChanged, this, [this](int value) {
     m_mem1_label->setText(tr("%1 MB (MEM1)").arg(QString::number(value)));
@@ -222,6 +233,8 @@ void AdvancedPane::CreateLayout()
 
   m_mem2_label =
       new QLabel(tr("%1 MB (MEM2)").arg(QString::number(m_mem2_override_slider->value())));
+  m_mem2_label->setFixedWidth(label_width);
+  m_mem2_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   mem2_override_slider_layout->addWidget(m_mem2_label);
   connect(m_mem2_override_slider, &QSlider::valueChanged, this, [this](int value) {
     m_mem2_label->setText(tr("%1 MB (MEM2)").arg(QString::number(value)));
