@@ -160,26 +160,29 @@ void AudioPane::CreateWidgets()
   auto* playback_layout = new QGridLayout;
   playback_box->setLayout(playback_layout);
 
-  ConfigSlider* audio_buffer_size = new ConfigSlider(16, 512, Config::MAIN_AUDIO_BUFFER_SIZE, 8);
+  m_audio_buffer_size = new ConfigSlider(16, 512, Config::MAIN_AUDIO_BUFFER_SIZE, 8);
   QLabel* audio_buffer_size_label = new QLabel;
 
-  audio_buffer_size->setSingleStep(8);
-  audio_buffer_size->setPageStep(8);
+  m_audio_buffer_size->setSingleStep(8);
+  m_audio_buffer_size->setPageStep(8);
 
-  audio_buffer_size->SetDescription(
-      tr("Controls the number of audio samples buffered."
-         " Lower values reduce latency but may cause more crackling or stuttering."
-         "<br><br><dolphin_emphasis>If unsure, set this to 80 ms.</dolphin_emphasis>"));
+  m_audio_buffer_size->SetDescription(
+      tr("Controls the number of audio samples buffered. "
+         "Lower values reduce latency but may cause more crackling or stuttering."
+         "<br><br>LLE requires a larger buffer than HLE because it emits audio in larger chunks."
+         "<br><br><dolphin_emphasis>If unsure, set this to 80 ms for HLE or 120 ms for "
+         "LLE</dolphin_emphasis>"));
 
   // Connect the slider to update the value label live
-  connect(audio_buffer_size, &QSlider::valueChanged, this, [=](int value) {
-    int stepped_value = (value / 8) * 8;
-    audio_buffer_size->setValue(stepped_value);
-    audio_buffer_size_label->setText(tr("%1 ms").arg(stepped_value));
-  });
+  connect(m_audio_buffer_size, &QSlider::valueChanged, this,
+          [audio_buffer_size_label, this](int value) {
+            int stepped_value = (value / 8) * 8;
+            m_audio_buffer_size->setValue(stepped_value);
+            audio_buffer_size_label->setText(tr("%1 ms").arg(stepped_value));
+          });
 
   // Set initial value display
-  audio_buffer_size_label->setText(tr("%1 ms").arg(audio_buffer_size->value()));
+  audio_buffer_size_label->setText(tr("%1 ms").arg(m_audio_buffer_size->value()));
 
   m_audio_fill_gaps = new ConfigBool(tr("Fill Audio Gaps"), Config::MAIN_AUDIO_FILL_GAPS);
 
@@ -188,8 +191,8 @@ void AudioPane::CreateWidgets()
 
   // Create a horizontal layout for the slider + value label
   auto* buffer_layout = new QHBoxLayout;
-  buffer_layout->addWidget(new ConfigSliderLabel(tr("Audio Buffer Size:"), audio_buffer_size));
-  buffer_layout->addWidget(audio_buffer_size);
+  buffer_layout->addWidget(new ConfigSliderLabel(tr("Audio Buffer Size:"), m_audio_buffer_size));
+  buffer_layout->addWidget(m_audio_buffer_size);
   buffer_layout->addWidget(audio_buffer_size_label);
 
   playback_layout->addLayout(buffer_layout, 0, 0);
@@ -235,6 +238,14 @@ void AudioPane::OnDspChanged()
   m_dolby_pro_logic->setEnabled(enabled);
   m_dolby_quality_label->setEnabled(enabled && m_dolby_pro_logic->isChecked());
   m_dolby_quality_combo->setEnabled(enabled && m_dolby_pro_logic->isChecked());
+  if (Config::Get(Config::MAIN_DSP_HLE))
+  {
+    m_audio_buffer_size->setValue(std::min(80, m_audio_buffer_size->value()));
+  }
+  else
+  {
+    m_audio_buffer_size->setValue(std::max(120, m_audio_buffer_size->value()));
+  }
 }
 
 void AudioPane::OnBackendChanged()
