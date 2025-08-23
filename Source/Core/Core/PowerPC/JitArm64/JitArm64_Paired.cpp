@@ -92,7 +92,7 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
   const bool duplicated_c = muls || madds;
   const bool fma = use_b && use_c;
   const bool negate_result = (op5 & ~0x1) == 30;
-  const bool msub = op5 == 28 || op5 == 30;
+  const bool negate_b = op5 == 28 || op5 == 30;
 
   const bool inaccurate_fma = fma && !Config::Get(Config::SESSION_USE_FMA);
   const bool round_c = use_c && !js.op->fprIsSingle[c];
@@ -105,6 +105,13 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
   const RegType type = single ? RegType::Single : RegType::Register;
   const u8 size = single ? 32 : 64;
   const auto reg_encoder = single ? EncodeRegToDouble : EncodeRegToQuad;
+
+  const bool error_free_transformation = fma && !single && m_accurate_fmadds;
+  if (error_free_transformation)
+  {
+    gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
+    fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1, ARM64Reg::Q2, ARM64Reg::Q3, ARM64Reg::Q4);
+  }
 
   const ARM64Reg VA = reg_encoder(fpr.R(a, type));
   const ARM64Reg VB = use_b ? reg_encoder(fpr.R(b, type)) : ARM64Reg::INVALID_REG;
@@ -119,49 +126,77 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
     ARM64Reg rounded_c_reg = VC;
     if (round_c)
     {
-      ASSERT_MSG(DYNA_REC, !single, "Tried to apply 25-bit precision to single");
-      V0Q = fpr.GetScopedReg();
-      rounded_c_reg = reg_encoder(V0Q);
+      if (error_free_transformation)
+      {
+        // This register happens to be free, so we can skip allocating one
+        rounded_c_reg = ARM64Reg::Q3;
+      }
+      else
+      {
+        V0Q = fpr.GetScopedReg();
+        rounded_c_reg = reg_encoder(V0Q);
+      }
     }
 
     ARM64Reg result_reg = VD;
     ARM64Reg inaccurate_fma_reg = VD;
-    const bool need_accurate_fma_reg =
-        fma && !inaccurate_fma && (msub || VD != VB) && (VD == VA || VD == rounded_c_reg);
-    const bool preserve_d =
-        m_accurate_nans && (VD == VA || (use_b && VD == VB) || (use_c && VD == VC));
-    if (need_accurate_fma_reg || preserve_d)
+    if (error_free_transformation)
     {
-      if (V0Q == ARM64Reg::INVALID_REG)
-        V0Q = fpr.GetScopedReg();
-      result_reg = reg_encoder(V0Q);
-      inaccurate_fma_reg = reg_encoder(V0Q);
-
-      if (need_accurate_fma_reg && round_c)
-      {
-        V1Q = fpr.GetScopedReg();
-        rounded_c_reg = reg_encoder(V1Q);
-      }
+      result_reg = reg_encoder(ARM64Reg::Q0);
+      inaccurate_fma_reg = reg_encoder(ARM64Reg::Q0);
     }
-    else if (fma && inaccurate_fma && VD == VB)
+    else
     {
-      if (V0Q == ARM64Reg::INVALID_REG)
-        V0Q = fpr.GetScopedReg();
-      inaccurate_fma_reg = reg_encoder(V0Q);
+      const bool need_accurate_fma_reg =
+          fma && !inaccurate_fma && (negate_b || VD != VB) && (VD == VA || VD == rounded_c_reg);
+      const bool preserve_d =
+          m_accurate_nans && (VD == VA || (use_b && VD == VB) || (use_c && VD == VC));
+      if (need_accurate_fma_reg || preserve_d)
+      {
+        if (V0Q == ARM64Reg::INVALID_REG)
+          V0Q = fpr.GetScopedReg();
+        result_reg = reg_encoder(V0Q);
+        inaccurate_fma_reg = reg_encoder(V0Q);
+
+        if (need_accurate_fma_reg && round_c)
+        {
+          V1Q = fpr.GetScopedReg();
+          rounded_c_reg = reg_encoder(V1Q);
+        }
+      }
+      else if (fma && inaccurate_fma && VD == VB)
+      {
+        if (V0Q == ARM64Reg::INVALID_REG)
+          V0Q = fpr.GetScopedReg();
+        inaccurate_fma_reg = reg_encoder(V0Q);
+      }
     }
 
     if (m_accurate_nans)
     {
-      if (V1Q == ARM64Reg::INVALID_REG)
-        V1Q = fpr.GetScopedReg();
+      if (error_free_transformation)
+      {
+        // These registers happen to be free, so we can skip allocating new ones
+        V1Q = ARM64Reg::Q1;
+        V2Q = ARM64Reg::Q2;
+      }
+      else
+      {
+        if (V1Q == ARM64Reg::INVALID_REG)
+          V1Q = fpr.GetScopedReg();
 
-      if (duplicated_c || VD == result_reg)
-        V2Q = fpr.GetScopedReg();
+        if (duplicated_c || VD == result_reg)
+          V2Q = fpr.GetScopedReg();
+      }
     }
 
     if (round_c)
+    {
+      ASSERT_MSG(DYNA_REC, !single, "Tried to apply 25-bit precision to single");
       Force25BitPrecision(rounded_c_reg, VC);
+    }
 
+    std::optional<ARM64Reg> negated_b_reg;
     switch (op5)
     {
     case 12:  // ps_muls0: d = a * c.ps0
@@ -218,6 +253,11 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
       else
       {
         m_float_emit.FNEG(size, result_reg, VB);
+        if (error_free_transformation)
+        {
+          m_float_emit.MOV(ARM64Reg::Q4, result_reg);
+          negated_b_reg = ARM64Reg::Q4;
+        }
         m_float_emit.FMLA(size, result_reg, VA, rounded_c_reg);
       }
       break;
@@ -238,6 +278,75 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
     default:
       ASSERT_MSG(DYNA_REC, 0, "ps_arith - invalid op");
       break;
+    }
+
+    // Read the comment in the interpreter function NI_madd_msub to find out what's going on here
+    if (error_free_transformation)
+    {
+      // We've calculated s := a + b (with a = VA * rounded_c_reg, b = negate_b ? -VB : VB)
+
+      // a' := s - b
+      // (Transformed into -a' := b - s)
+      if (negate_b)
+      {
+        if (!negated_b_reg)
+        {
+          m_float_emit.FNEG(size, ARM64Reg::Q4, VB);
+          negated_b_reg = ARM64Reg::Q4;
+        }
+        m_float_emit.FSUB(size, ARM64Reg::Q1, *negated_b_reg, result_reg);
+      }
+      else
+      {
+        m_float_emit.FSUB(size, ARM64Reg::Q1, VB, result_reg);
+      }
+
+      // b' := s - a'
+      // (Transformed into b' := s + -a')
+      m_float_emit.FADD(size, ARM64Reg::Q2, result_reg, ARM64Reg::Q1);
+
+      // da := a - a'
+      // (Transformed into da := a + -a')
+      if (inaccurate_fma)
+      {
+        switch (op5)
+        {
+        case 14:  // ps_madds0: d = a * c.ps0 + b
+          m_float_emit.FMUL(size, ARM64Reg::Q3, VA, rounded_c_reg, 0);
+          break;
+        case 15:  // ps_madds1: d = a * c.ps1 + b
+          m_float_emit.FMUL(size, ARM64Reg::Q3, VA, rounded_c_reg, 1);
+          break;
+        default:
+          m_float_emit.FMUL(size, ARM64Reg::Q3, VA, rounded_c_reg);
+          break;
+        }
+        m_float_emit.FADD(size, ARM64Reg::Q1, ARM64Reg::Q3, ARM64Reg::Q1);
+      }
+      else
+      {
+        switch (op5)
+        {
+        case 14:  // ps_madds0: d = a * c.ps0 + b
+          m_float_emit.FMLA(size, ARM64Reg::Q1, VA, rounded_c_reg, 0);
+          break;
+        case 15:  // ps_madds1: d = a * c.ps1 + b
+          m_float_emit.FMLA(size, ARM64Reg::Q1, VA, rounded_c_reg, 1);
+          break;
+        default:
+          m_float_emit.FMLA(size, ARM64Reg::Q1, VA, rounded_c_reg);
+          break;
+        }
+      }
+
+      // db := b - b'
+      // (Transformed into -db := b' - b)
+      if (negate_b)
+        m_float_emit.FADD(size, ARM64Reg::Q2, ARM64Reg::Q2, VB);
+      else
+        m_float_emit.FSUB(size, ARM64Reg::Q2, ARM64Reg::Q2, VB);
+
+      BL(GetAsmRoutines()->ps_madd_eft);
     }
 
     FixupBranch nan_fixup;
@@ -314,7 +423,13 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
 
   fpr.FixSinglePrecision(d);
 
+  if (error_free_transformation)
+    gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
+
   SetFPRFIfNeeded(true, VD);
+
+  if (error_free_transformation)
+    fpr.Unlock(ARM64Reg::Q0, ARM64Reg::Q1, ARM64Reg::Q2, ARM64Reg::Q3, ARM64Reg::Q4);
 }
 
 void JitArm64::ps_sel(UGeckoInstruction inst)

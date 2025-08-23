@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "Common/Arm64Emitter.h"
+#include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/FloatUtils.h"
@@ -265,6 +266,14 @@ void JitArm64::GenerateCommonAsm()
   GenerateFPRF(false);
   Common::JitRegister::Register(GetAsmRoutines()->fprf_single, GetCodePtr(), "JIT_FPRF");
 
+  GetAsmRoutines()->fmadds_eft = GetCodePtr();
+  GenerateFmaddsEft();
+  Common::JitRegister::Register(GetAsmRoutines()->fmadds_eft, GetCodePtr(), "JIT_fmadds_eft");
+
+  GetAsmRoutines()->ps_madd_eft = GetCodePtr();
+  GeneratePsMaddEft();
+  Common::JitRegister::Register(GetAsmRoutines()->ps_madd_eft, GetCodePtr(), "JIT_ps_madd_eft");
+
   GenerateQuantizedLoads();
   GenerateQuantizedStores();
 }
@@ -512,6 +521,90 @@ void JitArm64::GenerateFPRF(bool single)
   TST(input_reg, LogicalImm(input_frac_mask, single ? GPRSize::B32 : GPRSize::B64));
   CSEL(fprf_reg, ARM64Reg::W1, ARM64Reg::W2, CCFlags::CC_EQ);
   B(write_fprf_and_ret);
+}
+
+// Inputs:
+// D0: Result with potentially incorrect rounding
+// D1: First error term
+// D2: Second error term, negated
+//
+// Outputs result with corrected rounding in D0. Clobbers X0-X1, D1, and flags.
+void JitArm64::GenerateFmaddsEft()
+{
+  // Check if D0 is an even tie, i.e. check (input & 0x1fffffff) == 0x10000000
+  m_float_emit.FMOV(ARM64Reg::X0, ARM64Reg::D0);
+  MOVI2R(ARM64Reg::W1, 0x80000000);
+  CMP(ARM64Reg::W1, ARM64Reg::W0, ArithOption(ARM64Reg::W0, ShiftType::LSL, 3));
+  FixupBranch even_tie = B(CCFlags::CC_EQ);
+
+  const u8* ret = GetCodePtr();
+  RET();
+
+  // Check if the error is 0
+  SetJumpTarget(even_tie);
+  m_float_emit.FSUB(ARM64Reg::D1, ARM64Reg::D1, ARM64Reg::D2);
+  m_float_emit.FCMP(ARM64Reg::D1);
+  B(CCFlags::CC_EQ, ret);
+
+  // Round D0 up or down
+  MOVZ(ARM64Reg::X1, 1);
+  CNEG(ARM64Reg::X1, ARM64Reg::X1, CCFlags::CC_LT);
+  CMP(ARM64Reg::X0, 0);
+  CNEG(ARM64Reg::X1, ARM64Reg::X1, CCFlags::CC_LT);
+  ADD(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X1);
+  m_float_emit.FMOV(ARM64Reg::D0, ARM64Reg::X0);
+  RET();
+}
+
+// Inputs:
+// Q0: Results with potentially incorrect rounding
+// Q1: First error terms
+// Q2: Second error terms, negated
+//
+// Outputs results with corrected rounding in Q0. Clobbers X0, Q1-Q4, and flags.
+void JitArm64::GeneratePsMaddEft()
+{
+  // Check if Q0 has an even tie, i.e. check (input & 0x1fffffff) == 0x10000000
+  MOVI2R(ARM64Reg::X0, 0x8000'0000'0000'0000);
+  m_float_emit.SHL(64, ARM64Reg::Q3, ARM64Reg::Q0, 35);
+  m_float_emit.DUP(64, ARM64Reg::Q4, ARM64Reg::X0);
+  m_float_emit.CMEQ(64, ARM64Reg::Q3, ARM64Reg::Q3, ARM64Reg::Q4);
+
+  // Just for performance, exit early if there is no even tie
+  m_float_emit.XTN(32, ARM64Reg::D4, ARM64Reg::Q3);
+  FixupBranch even_tie;
+  if (cpu_info.bAFP)
+  {
+    m_float_emit.FCMP(ARM64Reg::D4);
+    even_tie = B(CCFlags::CC_NEQ);
+  }
+  else
+  {
+    // If we don't have AFP and the emulated software has NI set, subnormals will compare equal to
+    // zero, so we can't use FCMP unless we were to put some shuffle instruction before it.
+    // FMOV is a little slower than FCMP, but it's faster than adding an extra instruction.
+    m_float_emit.FMOV(ARM64Reg::X0, ARM64Reg::D4);
+    even_tie = CBNZ(ARM64Reg::X0);
+  }
+  RET();
+  SetJumpTarget(even_tie);
+
+  // Check if the error is zero
+  m_float_emit.FSUB(64, ARM64Reg::Q1, ARM64Reg::Q1, ARM64Reg::Q2);
+  MOVZ(ARM64Reg::X0, 1);
+  m_float_emit.FCMEQ(64, ARM64Reg::Q2, ARM64Reg::Q1);
+
+  // Store -1 or 1 in Q1 depending on whether we're rounding down or up
+  m_float_emit.EOR(ARM64Reg::Q1, ARM64Reg::Q1, ARM64Reg::Q0);
+  m_float_emit.DUP(64, ARM64Reg::Q4, ARM64Reg::X0);
+  m_float_emit.SSHR(64, ARM64Reg::Q1, ARM64Reg::Q1, 63);
+  m_float_emit.ORR(ARM64Reg::Q1, ARM64Reg::Q1, ARM64Reg::Q4);
+
+  // Round the elements that have both a non-zero error and an even tie
+  m_float_emit.BIC(ARM64Reg::Q2, ARM64Reg::Q3, ARM64Reg::Q2);
+  m_float_emit.AND(ARM64Reg::Q1, ARM64Reg::Q1, ARM64Reg::Q2);
+  m_float_emit.ADD(64, ARM64Reg::Q0, ARM64Reg::Q0, ARM64Reg::Q1);
+  RET();
 }
 
 void JitArm64::GenerateQuantizedLoads()

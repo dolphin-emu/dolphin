@@ -57,7 +57,7 @@
 // After resetting the stack to the top, we call _resetstkoflw() to restore
 // the guard page at the 256kb mark.
 
-const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 23> JitBase::JIT_SETTINGS{{
+const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 24> JitBase::JIT_SETTINGS{{
     {&JitBase::bJITOff, &Config::MAIN_DEBUG_JIT_OFF},
     {&JitBase::bJITLoadStoreOff, &Config::MAIN_DEBUG_JIT_LOAD_STORE_OFF},
     {&JitBase::bJITLoadStorelXzOff, &Config::MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF},
@@ -79,6 +79,7 @@ const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 23> JitB
     {&JitBase::m_low_dcbz_hack, &Config::MAIN_LOW_DCBZ_HACK},
     {&JitBase::m_fprf, &Config::MAIN_FPRF},
     {&JitBase::m_accurate_nans, &Config::MAIN_ACCURATE_NANS},
+    {&JitBase::m_accurate_fmadds, &Config::MAIN_ACCURATE_FMADDS},
     {&JitBase::m_fastmem_enabled, &Config::MAIN_FASTMEM},
     {&JitBase::m_accurate_cpu_cache_enabled, &Config::MAIN_ACCURATE_CPU_CACHE},
 }};

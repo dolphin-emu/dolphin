@@ -77,7 +77,7 @@ public:
   // Returns false if no free memory region can be found for either of the two.
   bool SetEmitterStateToFreeCodeRegion();
 
-  BitSet32 CallerSavedRegistersInUse() const;
+  BitSet32 CallerSavedRegistersInUse(BitSet32 additional_registers = {}) const;
   BitSet8 ComputeStaticGQRs(const PPCAnalyst::CodeBlock&) const;
 
   void IntializeSpeculativeConstants();

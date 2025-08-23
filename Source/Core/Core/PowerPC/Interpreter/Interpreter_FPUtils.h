@@ -342,12 +342,12 @@ inline FPResult NI_madd_msub(PowerPC::PowerPCState& ppc_state, double a, double 
   //    - This will cause `d` to round to 100...00, meaning it will tie then round upwards.
   // 3. Tying up to even because `c` is too small
   //    a. The highest bit of `d` is 1, the rest of the bits of `d` are 0 (this means it ties)
-  //    b. The lowest bit of `f` is 1 (this means it ties to even downwards)
+  //    b. The lowest bit of `f` is 1 (this means it ties to even upwards)
   //    c. `c` is negative and does not round `d` downwards
   //    -  This is similar to the first one but in reverse, rounding up instead of down.
   // 4. Tying down because `d` rounded down
   //    a. The highest and lowest bits of `d` are 1, the rest of the bits of `d` are 0
-  //    b. The lowest bit of `f` is 0 (this means it ties to even upwards)
+  //    b. The lowest bit of `f` is 0 (this means it ties to even downwards)
   //    c. `c` is negative, and the highest bit of c is 1,
   //       and at least one other bit of c is nonzero
   //    - The backwards counterpart to case 2, this will cause `d` to round back down to 100..00,
@@ -375,12 +375,6 @@ inline FPResult NI_madd_msub(PowerPC::PowerPCState& ppc_state, double a, double 
   // - Correct ordering of NaN checking (for both double and single precision)
   // - Rounding frC up
   // - Rounding only once for single precision inputs (this will be the large majority of cases!)
-  //   - Currently this is interpreter-only.
-  //     This can be implemented in the JIT just as easily, though.
-  //     Eventually the JITs should hopefully support detecting back to back
-  //     single-precision operations, which will lead to no overhead at all.
-  //     In the cases where JITs can't do this, an alternative method is used, as
-  //     is done in the interpreter as well.
   // - Rounding only once for double precision inputs
   //   - This is a side effect of how we handle single-precision inputs: By doing
   //     error calculations rather than checking if every input is a float, we ensure that we know
@@ -421,7 +415,7 @@ inline FPResult NI_madd_msub(PowerPC::PowerPCState& ppc_state, double a, double 
     const double b_sign = sub ? -b : b;
     result.value = std::fma(a, c_round, b_sign);
 
-    // We then check if we're currently tying in rounding directioh
+    // We then check if we're currently tying in rounding direction
     const u64 result_bits = std::bit_cast<u64>(result.value);
 
     // The mask of the `d` bits as shown in the above comments
@@ -432,9 +426,8 @@ inline FPResult NI_madd_msub(PowerPC::PowerPCState& ppc_state, double a, double 
 
     // Because we check this entire mask which includes a 1 bit, we can be sure that
     // if this result passes, the input is not an infinity that would become a NaN.
-    // This means that, for the JITs, if they only wanted to check for a subset of these
-    // bits (e.g. only checking if the last one was 0), then using the zero flag for a branch,
-    // they would have to check if the result was NaN before here.
+    // If we had only checked for a subset of these bits (e.g. only checking if the last
+    // one was 0), we would have needed to also check if the exponent was all ones.
     if ((result_bits & D_MASK) == EVEN_TIE)
     {
       // Because we have a tie, we now compute any error in the FMA calculation
