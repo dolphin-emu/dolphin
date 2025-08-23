@@ -585,7 +585,7 @@ static bool ZeroCode_FillAndSlide(const Core::CPUThreadGuard& guard, const u32 v
     LogInfo("--------");
     for (int i = 0; i < write_num; ++i)
     {
-      ApplyMemoryPatch<u32>(guard, static_cast<u8>(val), curr_addr);
+      ApplyMemoryPatch<u8>(guard, static_cast<u8>(val), curr_addr);
       curr_addr += addr_incr;
       val += val_incr;
       LogInfo("Write {:08x} to address {:08x}", val & 0xFF, curr_addr);
