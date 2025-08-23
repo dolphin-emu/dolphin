@@ -375,12 +375,6 @@ inline FPResult NI_madd_msub(PowerPC::PowerPCState& ppc_state, double a, double 
   // - Correct ordering of NaN checking (for both double and single precision)
   // - Rounding frC up
   // - Rounding only once for single precision inputs (this will be the large majority of cases!)
-  //   - Currently this is interpreter-only.
-  //     This can be implemented in the JIT just as easily, though.
-  //     Eventually the JITs should hopefully support detecting back to back
-  //     single-precision operations, which will lead to no overhead at all.
-  //     In the cases where JITs can't do this, an alternative method is used, as
-  //     is done in the interpreter as well.
   // - Rounding only once for double precision inputs
   //   - This is a side effect of how we handle single-precision inputs: By doing
   //     error calculations rather than checking if every input is a float, we ensure that we know
@@ -421,7 +415,7 @@ inline FPResult NI_madd_msub(PowerPC::PowerPCState& ppc_state, double a, double 
     const double b_sign = sub ? -b : b;
     result.value = std::fma(a, c_round, b_sign);
 
-    // We then check if we're currently tying in rounding directioh
+    // We then check if we're currently tying in rounding direction
     const u64 result_bits = std::bit_cast<u64>(result.value);
 
     // The mask of the `d` bits as shown in the above comments

@@ -79,6 +79,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
   const bool use_b = op5 != 25;  // fmul uses no B
   const bool fma = use_b && use_c;
   const bool negate_result = (op5 & ~0x1) == 30;
+  const bool negate_b = op5 == 28 || op5 == 30;
 
   const bool output_is_single = inst.OPCD == 59;
   const bool inaccurate_fma = op5 > 25 && !Config::Get(Config::SESSION_USE_FMA);
@@ -89,6 +90,14 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
            (!use_c || fpr.IsSingle(c, true));
   };
   const bool inputs_are_singles = inputs_are_singles_func();
+
+  const bool error_free_transformation =
+      fma && !inputs_are_singles && output_is_single && m_accurate_fmadds;
+  if (error_free_transformation)
+  {
+    gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+    fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1, ARM64Reg::Q2);
+  }
 
   const bool single = inputs_are_singles && output_is_single;
   const RegType type = single ? RegType::LowerPairSingle : RegType::LowerPair;
@@ -108,29 +117,43 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     ARM64Reg rounded_c_reg = VC;
     if (round_c)
     {
-      ASSERT_MSG(DYNA_REC, !inputs_are_singles, "Tried to apply 25-bit precision to single");
-
       V0Q = fpr.GetScopedReg();
       rounded_c_reg = reg_encoder(V0Q);
-      Force25BitPrecision(rounded_c_reg, VC);
     }
 
     ARM64Reg result_reg = VD;
     ARM64Reg inaccurate_fma_reg = VD;
-    const bool preserve_d =
-        m_accurate_nans && (VD == VA || (use_b && VD == VB) || (use_c && VD == VC));
-    if (preserve_d)
+    if (error_free_transformation)
     {
-      if (V0Q == ARM64Reg::INVALID_REG)
+      result_reg = reg_encoder(ARM64Reg::Q0);
+      inaccurate_fma_reg = reg_encoder(ARM64Reg::Q0);
+
+      if (inaccurate_fma && V0Q == ARM64Reg::INVALID_REG)
         V0Q = fpr.GetScopedReg();
-      result_reg = reg_encoder(V0Q);
-      inaccurate_fma_reg = reg_encoder(V0Q);
     }
-    else if (fma && inaccurate_fma && VD == VB)
+    else
     {
-      if (V0Q == ARM64Reg::INVALID_REG)
-        V0Q = fpr.GetScopedReg();
-      inaccurate_fma_reg = reg_encoder(V0Q);
+      const bool preserve_d =
+          m_accurate_nans && (VD == VA || (use_b && VD == VB) || (use_c && VD == VC));
+      if (preserve_d)
+      {
+        if (V0Q == ARM64Reg::INVALID_REG)
+          V0Q = fpr.GetScopedReg();
+        result_reg = reg_encoder(V0Q);
+        inaccurate_fma_reg = reg_encoder(V0Q);
+      }
+      else if (fma && inaccurate_fma && VD == VB)
+      {
+        if (V0Q == ARM64Reg::INVALID_REG)
+          V0Q = fpr.GetScopedReg();
+        inaccurate_fma_reg = reg_encoder(V0Q);
+      }
+    }
+
+    if (round_c)
+    {
+      ASSERT_MSG(DYNA_REC, !inputs_are_singles, "Tried to apply 25-bit precision to single");
+      Force25BitPrecision(rounded_c_reg, VC);
     }
 
     switch (op5)
@@ -181,6 +204,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     }
 
     Common::SmallVector<FixupBranch, 4> nan_fixups;
+    std::optional<FixupBranch> nan_early_fixup;
     if (m_accurate_nans)
     {
       // Check if we need to handle NaNs
@@ -217,7 +241,6 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
         SetJumpTarget(skip);
       }
 
-      std::optional<FixupBranch> nan_early_fixup;
       if (negate_result)
       {
         // If we have a NaN, we must not execute FNEG.
@@ -231,10 +254,45 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
       }
 
       SwitchToNearCode();
-
-      if (nan_early_fixup)
-        SetJumpTarget(*nan_early_fixup);
     }
+
+    // Read the comment in the interpreter function NI_madd_msub to find out what's going on here
+    if (error_free_transformation)
+    {
+      // Earlier we calculated s := a + b (with a = VA * rounded_c_reg, b = negate_b ? -VB : VB)
+
+      // a' := s - b
+      if (negate_b)
+        m_float_emit.FADD(ARM64Reg::D1, result_reg, VB);
+      else
+        m_float_emit.FSUB(ARM64Reg::D1, result_reg, VB);
+
+      // b' := s - a'
+      m_float_emit.FSUB(ARM64Reg::D2, result_reg, ARM64Reg::D1);
+
+      // da := a - a'
+      if (inaccurate_fma)
+      {
+        m_float_emit.FMUL(EncodeRegToDouble(V0Q), VA, rounded_c_reg);
+        m_float_emit.FSUB(ARM64Reg::D1, EncodeRegToDouble(V0Q), ARM64Reg::D1);
+      }
+      else
+      {
+        m_float_emit.FNMSUB(ARM64Reg::D1, VA, rounded_c_reg, ARM64Reg::D1);
+      }
+
+      // db := b - b'
+      // (Transformed into -db := b' - b)
+      if (negate_b)
+        m_float_emit.FADD(ARM64Reg::D2, ARM64Reg::D2, VB);
+      else
+        m_float_emit.FSUB(ARM64Reg::D2, ARM64Reg::D2, VB);
+
+      BL(GetAsmRoutines()->fmadds_eft);
+    }
+
+    if (nan_early_fixup)
+      SetJumpTarget(*nan_early_fixup);
 
     // PowerPC's nmadd/nmsub perform rounding before the final negation, which is not the case
     // for any of AArch64's FMA instructions, so we negate using a separate instruction.
@@ -255,7 +313,13 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     fpr.FixSinglePrecision(d);
   }
 
+  if (error_free_transformation)
+    gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+
   SetFPRFIfNeeded(output_is_single, VD);
+
+  if (error_free_transformation)
+    fpr.Unlock(ARM64Reg::Q0, ARM64Reg::Q1, ARM64Reg::Q2);
 }
 
 void JitArm64::fp_logic(UGeckoInstruction inst)
