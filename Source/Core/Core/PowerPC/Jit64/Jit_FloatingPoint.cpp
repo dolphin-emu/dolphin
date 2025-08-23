@@ -93,8 +93,9 @@ void Jit64::FinalizeDoubleResult(X64Reg output, const OpArg& input)
   SetFPRFIfNeeded(input, false);
 }
 
-void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::optional<OpArg> Ra,
-                       std::optional<OpArg> Rb, std::optional<OpArg> Rc)
+FixupBranch Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber,
+                              std::optional<OpArg> Ra, std::optional<OpArg> Rb,
+                              std::optional<OpArg> Rc)
 {
   //                      | PowerPC  | x86
   // ---------------------+----------+---------
@@ -103,9 +104,6 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
   //
   // Dragon Ball: Revenge of King Piccolo requires generated NaNs
   // to be positive, so we'll have to handle them manually.
-
-  if (!m_accurate_nans)
-    return;
 
   if (inst.OPCD != 4)
   {
@@ -140,7 +138,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
 
     FixupBranch done = J(Jump::Near);
     SwitchToNearCode();
-    SetJumpTarget(done);
+    return done;
   }
   else
   {
@@ -217,7 +215,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
 
     FixupBranch done = J(Jump::Near);
     SwitchToNearCode();
-    SetJumpTarget(done);
+    return done;
   }
 }
 
@@ -329,14 +327,21 @@ void Jit64::fp_arith(UGeckoInstruction inst)
     }
   }
 
-  switch (inst.SUBOP5)
+  if (m_accurate_nans)
   {
-  case 18:
-    HandleNaNs(inst, dest, XMM0, Ra, Rarg2, std::nullopt);
-    break;
-  case 25:
-    HandleNaNs(inst, dest, XMM0, Ra, std::nullopt, Rarg2);
-    break;
+    std::optional<FixupBranch> handled_nans;
+    switch (inst.SUBOP5)
+    {
+    case 18:
+      handled_nans = HandleNaNs(inst, dest, XMM0, Ra, Rarg2, std::nullopt);
+      break;
+    case 25:
+      handled_nans = HandleNaNs(inst, dest, XMM0, Ra, std::nullopt, Rarg2);
+      break;
+    }
+
+    if (handled_nans)
+      SetJumpTarget(*handled_nans);
   }
 
   if (single)
@@ -585,8 +590,14 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     DEBUG_ASSERT(!preserve_d);
   }
 
-  // If packed, the clobber register must be XMM0. If not packed, the clobber register is unused.
-  HandleNaNs(inst, result_xmm, XMM0, Ra, Rb, madds_accurate_nans ? R(Rc_duplicated) : Rc);
+  if (m_accurate_nans)
+  {
+    // If packed, the clobber register must be XMM0. If not packed, the clobber register is unused.
+    const FixupBranch handled_nans =
+        HandleNaNs(inst, result_xmm, XMM0, Ra, Rb, madds_accurate_nans ? R(Rc_duplicated) : Rc);
+
+    SetJumpTarget(handled_nans);
+  }
 
   if (single)
     FinalizeSingleResult(Rd, R(result_xmm), packed, true);
