@@ -293,9 +293,9 @@ void SetBlendMode()
 */
 void ClearScreen(const MathUtil::Rectangle<int>& rc)
 {
-  bool colorEnable = (bpmem.blendmode.colorupdate != 0);
-  bool alphaEnable = (bpmem.blendmode.alphaupdate != 0);
-  bool zEnable = (bpmem.zmode.updateenable != 0);
+  bool colorEnable = (bpmem.blendmode.color_update != 0);
+  bool alphaEnable = (bpmem.blendmode.alpha_update != 0);
+  bool zEnable = (bpmem.zmode.update_enable != 0);
   auto pixel_format = bpmem.zcontrol.pixel_format;
 
   // (1): Disable unused color channels

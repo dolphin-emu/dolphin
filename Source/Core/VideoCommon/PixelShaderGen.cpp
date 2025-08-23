@@ -174,7 +174,7 @@ PixelShaderUid GetPixelShaderUid()
   PixelShaderUid out;
 
   pixel_shader_uid_data* const uid_data = out.GetUidData();
-  uid_data->useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
+  uid_data->useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alpha_update &&
                           bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24;
 
   uid_data->genMode_numindstages = bpmem.genMode.numindstages;
@@ -203,8 +203,8 @@ PixelShaderUid GetPixelShaderUid()
   const bool forced_early_z = uid_data->ztest == EmulatedZ::ForcedEarly;
   const bool per_pixel_depth =
       (bpmem.ztex2.op != ZTexOp::Disabled && uid_data->ztest == EmulatedZ::Late) ||
-      (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z) ||
-      (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
+      (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.test_enable && !forced_early_z) ||
+      (bpmem.zmode.test_enable && bpmem.genMode.zfreeze);
 
   uid_data->per_pixel_depth = per_pixel_depth;
 
