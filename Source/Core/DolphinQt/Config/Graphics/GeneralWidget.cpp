@@ -117,6 +117,8 @@ void GeneralWidget::CreateWidgets()
   m_render_main_window =
       new ConfigBool(tr("Render to Main Window"), Config::MAIN_RENDER_TO_MAIN, m_game_layer);
 
+  m_imgui_size = new ConfigInteger(12, 40, Config::GFX_IMGUI_FONT_SIZE);
+
   m_options_box->setLayout(m_options_layout);
 
   m_options_layout->addWidget(m_render_main_window, 0, 0);
@@ -124,6 +126,9 @@ void GeneralWidget::CreateWidgets()
 
   m_options_layout->addWidget(m_show_messages, 0, 1);
   m_options_layout->addWidget(m_show_ping, 1, 1);
+
+  m_options_layout->addWidget(new QLabel(tr("OSD Font Size:")), 2, 0);
+  m_options_layout->addWidget(m_imgui_size, 2, 1);
 
   // Other
   auto* shader_compilation_box = new QGroupBox(tr("Shader Compilation"));
@@ -302,6 +307,10 @@ void GeneralWidget::AddDescriptions()
                  "two or fewer cores, it is recommended to enable this option, as a large shader "
                  "queue may reduce frame rates.<br><br><dolphin_emphasis>Otherwise, if "
                  "unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_OSD_FONT_SIZE_DESCRIPTION[] = QT_TR_NOOP(
+      "Changes the font size of the On Screen Display. Affects features such as performance "
+      "statistics, frame counter, and netplay chat.<br><br><dolphin_emphasis>If "
+      "unsure, leave this at 14.</dolphin_emphasis>");
 
   m_backend_combo->SetTitle(tr("Backend"));
   m_backend_combo->SetDescription(
@@ -337,6 +346,8 @@ void GeneralWidget::AddDescriptions()
   m_shader_compilation_mode[3]->SetDescription(tr(TR_SHADER_COMPILE_SKIP_DRAWING_DESCRIPTION));
 
   m_wait_for_shaders->SetDescription(tr(TR_SHADER_COMPILE_BEFORE_START_DESCRIPTION));
+
+  m_imgui_size->SetDescription(tr(TR_OSD_FONT_SIZE_DESCRIPTION));
 }
 
 void GeneralWidget::OnBackendChanged(const QString& backend_name)
