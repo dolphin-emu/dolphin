@@ -801,19 +801,19 @@ public:
   void PSHUFLW(X64Reg dest, const OpArg& arg, u8 shuffle);
   void PSHUFHW(X64Reg dest, const OpArg& arg, u8 shuffle);
 
-  void PSRLW(X64Reg reg, int shift);
-  void PSRLD(X64Reg reg, int shift);
-  void PSRLQ(X64Reg reg, int shift);
+  void PSRLW(X64Reg reg, u8 shift);
+  void PSRLD(X64Reg reg, u8 shift);
+  void PSRLQ(X64Reg reg, u8 shift);
   void PSRLQ(X64Reg reg, const OpArg& arg);
-  void PSRLDQ(X64Reg reg, int shift);
+  void PSRLDQ(X64Reg reg, u8 shift);
 
-  void PSLLW(X64Reg reg, int shift);
-  void PSLLD(X64Reg reg, int shift);
-  void PSLLQ(X64Reg reg, int shift);
-  void PSLLDQ(X64Reg reg, int shift);
+  void PSLLW(X64Reg reg, u8 shift);
+  void PSLLD(X64Reg reg, u8 shift);
+  void PSLLQ(X64Reg reg, u8 shift);
+  void PSLLDQ(X64Reg reg, u8 shift);
 
-  void PSRAW(X64Reg reg, int shift);
-  void PSRAD(X64Reg reg, int shift);
+  void PSRAW(X64Reg reg, u8 shift);
+  void PSRAD(X64Reg reg, u8 shift);
 
   // SSE4: data type conversions
   void PMOVSXBW(X64Reg dest, const OpArg& arg);
@@ -835,6 +835,9 @@ public:
   void BLENDVPD(X64Reg dest, const OpArg& arg);
   void BLENDPS(X64Reg dest, const OpArg& arg, u8 blend);
   void BLENDPD(X64Reg dest, const OpArg& arg, u8 blend);
+
+  // SSE4: compare instructions
+  void PCMPEQQ(X64Reg dest, const OpArg& arg);
 
   // AVX
   void VADDSS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
@@ -877,6 +880,8 @@ public:
   void VPANDN(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VPOR(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VPXOR(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
+
+  void VPSLLQ(X64Reg regOp1, X64Reg regOp2, u8 shift);
 
   void VMOVAPS(const OpArg& arg, X64Reg regOp);
 
