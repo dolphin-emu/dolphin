@@ -11,6 +11,7 @@
 #include "Common/StringUtil.h"
 #include "Common/VariantUtil.h"
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
+#include "VideoCommon/ShaderGenCommon.h"
 
 namespace VideoCommon
 {
@@ -134,36 +135,6 @@ static bool ParseShaderValue(const CustomAssetLibrary::AssetID& asset_id,
       return true;
     }
   }
-  else if (type == "sampler2d")
-  {
-    if (json_value.is<std::string>())
-    {
-      ShaderProperty::Sampler2D sampler2d;
-      sampler2d.value = json_value.get<std::string>();
-      *value = std::move(sampler2d);
-      return true;
-    }
-  }
-  else if (type == "sampler2darray")
-  {
-    if (json_value.is<std::string>())
-    {
-      ShaderProperty::Sampler2DArray sampler2darray;
-      sampler2darray.value = json_value.get<std::string>();
-      *value = std::move(sampler2darray);
-      return true;
-    }
-  }
-  else if (type == "samplercube")
-  {
-    if (json_value.is<std::string>())
-    {
-      ShaderProperty::SamplerCube samplercube;
-      samplercube.value = json_value.get<std::string>();
-      *value = std::move(samplercube);
-      return true;
-    }
-  }
 
   ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse the json, value is not valid for type '{}'",
                 asset_id, type);
@@ -223,7 +194,7 @@ ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
                     asset_id);
       return false;
     }
-    property.m_description = description_iter->second.to_str();
+    property.description = description_iter->second.to_str();
 
     const auto code_name_iter = property_data_obj.find("code_name");
     if (code_name_iter == property_data_obj.end())
@@ -245,10 +216,15 @@ ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
     const auto default_iter = property_data_obj.find("default");
     if (default_iter != property_data_obj.end())
     {
-      if (!ParseShaderValue(asset_id, default_iter->second, code_name, type, &property.m_default))
+      if (!ParseShaderValue(asset_id, default_iter->second, code_name, type,
+                            &property.default_value))
       {
         return false;
       }
+    }
+    else
+    {
+      property.default_value = ShaderProperty::GetDefaultValueFromTypeName(type);
     }
 
     shader_properties->try_emplace(std::move(code_name), std::move(property));
@@ -257,63 +233,124 @@ ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
   return true;
 }
 
-bool PixelShaderData::FromJson(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
-                               const picojson::object& json, PixelShaderData* data)
+bool RasterSurfaceShaderData::FromJson(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
+                                       const picojson::object& json, RasterSurfaceShaderData* data)
 {
-  const auto properties_iter = json.find("properties");
-  if (properties_iter == json.end())
-  {
-    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'properties' not found", asset_id);
-    return false;
-  }
-  if (!properties_iter->second.is<picojson::array>())
-  {
-    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'properties' is not the right json type",
-                  asset_id);
-    return false;
-  }
-  const auto& properties_array = properties_iter->second.get<picojson::array>();
-  if (!ParseShaderProperties(asset_id, properties_array, &data->m_properties))
-    return false;
-
-  for (const auto& [name, property] : data->m_properties)
-  {
-    if (data->m_shader_source.find(name) == std::string::npos)
+  const auto parse_properties = [&](const char* name, std::string_view source,
+                                    std::map<std::string, ShaderProperty>* properties) -> bool {
+    const auto properties_iter = json.find(name);
+    if (properties_iter == json.end())
     {
-      ERROR_LOG_FMT(
-          VIDEO,
-          "Asset '{}' failed to parse json, the code name '{}' defined in the metadata was not "
-          "found in the shader source",
-          asset_id, name);
+      ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, '{}' not found", asset_id, name);
       return false;
     }
-  }
+    if (!properties_iter->second.is<picojson::array>())
+    {
+      ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, '{}' is not the right json type",
+                    asset_id, name);
+      return false;
+    }
+    const auto& properties_array = properties_iter->second.get<picojson::array>();
+
+    if (!ParseShaderProperties(asset_id, properties_array, properties))
+      return false;
+
+    for (const auto& [code_name, property] : *properties)
+    {
+      if (source.find(code_name) == std::string::npos)
+      {
+        ERROR_LOG_FMT(
+            VIDEO,
+            "Asset '{}' failed to parse json, the code name '{}' defined in the metadata was not "
+            "found in the source for '{}'",
+            asset_id, code_name, name);
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const auto parse_samplers =
+      [&](const char* name,
+          std::vector<VideoCommon::RasterSurfaceShaderData::SamplerData>* samplers) -> bool {
+    const auto samplers_iter = json.find(name);
+    if (samplers_iter == json.end())
+    {
+      ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, '{}' not found", asset_id, name);
+      return false;
+    }
+    if (!samplers_iter->second.is<picojson::array>())
+    {
+      ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, '{}' is not the right json type",
+                    asset_id, name);
+      return false;
+    }
+    const auto& samplers_array = samplers_iter->second.get<picojson::array>();
+    if (!std::ranges::all_of(samplers_array, [](const picojson::value& json_data) {
+          return json_data.is<picojson::object>();
+        }))
+    {
+      ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, '{}' must contain objects", asset_id,
+                    name);
+      return false;
+    }
+
+    for (const auto& sampler_json : samplers_array)
+    {
+      auto& sampler_json_obj = sampler_json.get<picojson::object>();
+
+      SamplerData sampler;
+
+      if (const auto sampler_name = ReadStringFromJson(sampler_json_obj, "name"))
+      {
+        sampler.name = *sampler_name;
+      }
+      else
+      {
+        ERROR_LOG_FMT(VIDEO,
+                      "Asset '{}' failed to parse sampler json, 'name' not found or wrong type",
+                      asset_id);
+        return false;
+      }
+
+      if (const auto sampler_type =
+              ReadNumericFromJson<AbstractTextureType>(sampler_json_obj, "type"))
+      {
+        sampler.type = *sampler_type;
+      }
+      else
+      {
+        ERROR_LOG_FMT(VIDEO,
+                      "Asset '{}' failed to parse sampler json, 'type' not found or wrong type",
+                      asset_id);
+        return false;
+      }
+      samplers->push_back(std::move(sampler));
+    }
+
+    return true;
+  };
+
+  if (!parse_properties("properties", data->pixel_source, &data->uniform_properties))
+    return false;
+
+  if (!parse_samplers("samplers", &data->samplers))
+    return false;
 
   return true;
 }
 
-void PixelShaderData::ToJson(picojson::object& obj, const PixelShaderData& data)
+void RasterSurfaceShaderData::ToJson(picojson::object& obj, const RasterSurfaceShaderData& data)
 {
-  picojson::array json_properties;
-  for (const auto& [name, property] : data.m_properties)
-  {
+  const auto add_property = [](picojson::array* json_properties, const std::string& name,
+                               const ShaderProperty& property) {
     picojson::object json_property;
-    json_property.emplace("code_name", name);
-    json_property.emplace("description", property.m_description);
 
-    std::visit(overloaded{[&](const ShaderProperty::Sampler2D& default_value) {
-                            json_property.emplace("type", "sampler2d");
-                            json_property.emplace("default", default_value.value);
-                          },
-                          [&](const ShaderProperty::Sampler2DArray& default_value) {
-                            json_property.emplace("type", "sampler2darray");
-                            json_property.emplace("default", default_value.value);
-                          },
-                          [&](const ShaderProperty::SamplerCube& default_value) {
-                            json_property.emplace("type", "samplercube");
-                            json_property.emplace("default", default_value.value);
-                          },
-                          [&](s32 default_value) {
+    json_property.emplace("code_name", name);
+    json_property.emplace("description", property.description);
+
+    std::visit(overloaded{[&](s32 default_value) {
                             json_property.emplace("type", "int");
                             json_property.emplace("default", static_cast<double>(default_value));
                           },
@@ -357,37 +394,43 @@ void PixelShaderData::ToJson(picojson::object& obj, const PixelShaderData& data)
                             json_property.emplace("type", "bool");
                             json_property.emplace("default", default_value);
                           }},
-               property.m_default);
+               property.default_value);
 
-    json_properties.emplace_back(std::move(json_property));
+    json_properties->emplace_back(std::move(json_property));
+  };
+
+  const auto add_sampler = [](picojson::array* json_samplers, const SamplerData& sampler) {
+    picojson::object json_sampler;
+    json_sampler.emplace("name", sampler.name);
+    json_sampler.emplace("type", static_cast<double>(sampler.type));
+    json_samplers->emplace_back(std::move(json_sampler));
+  };
+
+  picojson::array json_properties;
+  for (const auto& [name, property] : data.uniform_properties)
+  {
+    add_property(&json_properties, name, property);
   }
-
   obj.emplace("properties", std::move(json_properties));
+
+  picojson::array json_samplers;
+  for (const auto& sampler : data.samplers)
+  {
+    add_sampler(&json_samplers, sampler);
+  }
+  obj.emplace("samplers", json_samplers);
 }
 
 std::span<const std::string_view> ShaderProperty::GetValueTypeNames()
 {
-  static constexpr std::array<std::string_view, 14> values = {
-      "sampler2d", "sampler2darray", "samplercube", "int",    "int2", "int3", "int4",
-      "float",     "float2",         "float3",      "float4", "rgb",  "rgba", "bool"};
+  static constexpr std::array<std::string_view, 11> values = {
+      "int", "int2", "int3", "int4", "float", "float2", "float3", "float4", "rgb", "rgba", "bool"};
   return values;
 }
 
 ShaderProperty::Value ShaderProperty::GetDefaultValueFromTypeName(std::string_view name)
 {
-  if (name == "sampler2d")
-  {
-    return Sampler2D{};
-  }
-  else if (name == "sampler2darray")
-  {
-    return Sampler2DArray{};
-  }
-  else if (name == "samplercube")
-  {
-    return SamplerCube{};
-  }
-  else if (name == "int")
+  if (name == "int")
   {
     return 0;
   }
@@ -435,10 +478,44 @@ ShaderProperty::Value ShaderProperty::GetDefaultValueFromTypeName(std::string_vi
   return Value{};
 }
 
-CustomAssetLibrary::LoadInfo PixelShaderAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
+void ShaderProperty::WriteAsShaderCode(ShaderCode& shader_source, std::string_view name,
+                                       const ShaderProperty& property)
 {
-  auto potential_data = std::make_shared<PixelShaderData>();
-  const auto loaded_info = m_owning_library->LoadPixelShader(asset_id, potential_data.get());
+  const auto write_shader = [&](std::string_view type, u32 element_count) {
+    if (element_count == 1)
+    {
+      shader_source.Write("{} {};\n", type, name);
+    }
+    else
+    {
+      shader_source.Write("{}{} {};\n", type, element_count, name);
+    }
+
+    for (std::size_t i = element_count; i < 4; i++)
+    {
+      shader_source.Write("{} {}_padding_{};\n", type, name, i + 1);
+    }
+  };
+  std::visit(overloaded{[&](s32) { write_shader("int", 1); },
+                        [&](const std::array<s32, 2>&) { write_shader("int", 2); },
+                        [&](const std::array<s32, 3>&) { write_shader("int", 3); },
+                        [&](const std::array<s32, 4>&) { write_shader("int", 4); },
+                        [&](float) { write_shader("float", 1); },
+                        [&](const std::array<float, 2>&) { write_shader("float", 2); },
+                        [&](const std::array<float, 3>&) { write_shader("float", 3); },
+                        [&](const std::array<float, 4>&) { write_shader("float", 4); },
+                        [&](const ShaderProperty::RGB&) { write_shader("float", 3); },
+                        [&](const ShaderProperty::RGBA&) { write_shader("float", 4); },
+                        [&](bool) { write_shader("bool", 1); }},
+             property.default_value);
+}
+
+CustomAssetLibrary::LoadInfo
+RasterSurfaceShaderAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
+{
+  auto potential_data = std::make_shared<RasterSurfaceShaderData>();
+  const auto loaded_info =
+      m_owning_library->LoadRasterSurfaceShader(asset_id, potential_data.get());
   if (loaded_info.bytes_loaded == 0)
     return {};
   {
