@@ -219,7 +219,7 @@
     <ClCompile Include="Settings\GeneralPane.cpp" />
     <ClCompile Include="Settings\InterfacePane.cpp" />
     <ClCompile Include="Settings\PathPane.cpp" />
-    <ClCompile Include="Settings\USBDeviceAddToWhitelistDialog.cpp" />
+    <ClCompile Include="Settings\USBDevicePicker.cpp" />
     <ClCompile Include="Settings\WiiPane.cpp" />
     <ClCompile Include="SkylanderPortal\SkylanderModifyDialog.cpp" />
     <ClCompile Include="SkylanderPortal\SkylanderPortalWindow.cpp" />
@@ -429,7 +429,7 @@
     <QtMoc Include="Settings\GeneralPane.h" />
     <QtMoc Include="Settings\InterfacePane.h" />
     <QtMoc Include="Settings\PathPane.h" />
-    <QtMoc Include="Settings\USBDeviceAddToWhitelistDialog.h" />
+    <QtMoc Include="Settings\USBDevicePicker.h" />
     <QtMoc Include="Settings\WiiPane.h" />
     <QtMoc Include="SkylanderPortal\SkylanderPortalWindow.h" />
     <QtMoc Include="TAS\GCTASInputWindow.h" />
