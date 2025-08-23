@@ -800,6 +800,7 @@ public:
     ARM64Reg zr = Is64Bit(Rd) ? ARM64Reg::ZR : ARM64Reg::WZR;
     CSINV(Rd, zr, zr, (CCFlags)((u32)cond ^ 1));
   }
+  void CNEG(ARM64Reg Rd, ARM64Reg Rn, CCFlags cond) { CSNEG(Rd, Rn, Rn, (CCFlags)((u32)cond ^ 1)); }
   void NEG(ARM64Reg Rd, ARM64Reg Rs) { SUB(Rd, Is64Bit(Rd) ? ARM64Reg::ZR : ARM64Reg::WZR, Rs); }
   void NEG(ARM64Reg Rd, ARM64Reg Rs, ArithOption Option)
   {
@@ -1281,6 +1282,7 @@ public:
   void BIT(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void BSL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void DUP(u8 size, ARM64Reg Rd, ARM64Reg Rn, u8 index);
+  void EOR(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void FABS(u8 size, ARM64Reg Rd, ARM64Reg Rn);
   void FADD(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void FMAX(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
@@ -1342,6 +1344,19 @@ public:
   void SCVTF(ARM64Reg Rd, ARM64Reg Rn, int scale);
   void UCVTF(ARM64Reg Rd, ARM64Reg Rn, int scale);
 
+  // Comparison
+  void CMEQ(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+  void CMEQ(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+  void CMGE(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+  void CMGE(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+  void CMGT(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+  void CMGT(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+  void CMHI(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+  void CMHS(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+  void CMLE(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+  void CMLT(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+  void CMTST(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+
   // Float comparison
   void FCMP(ARM64Reg Rn, ARM64Reg Rm);
   void FCMP(ARM64Reg Rn);
@@ -1380,6 +1395,7 @@ public:
   void SHL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
   void SSHLL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
   void SSHLL2(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
+  void SSHR(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
   void URSHR(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
   void USHLL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
   void USHLL2(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
