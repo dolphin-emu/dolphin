@@ -93,8 +93,9 @@ void Jit64::FinalizeDoubleResult(X64Reg output, const OpArg& input)
   SetFPRFIfNeeded(input, false);
 }
 
-void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::optional<OpArg> Ra,
-                       std::optional<OpArg> Rb, std::optional<OpArg> Rc)
+std::optional<FixupBranch> Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber,
+                                             std::optional<OpArg> Ra, std::optional<OpArg> Rb,
+                                             std::optional<OpArg> Rc)
 {
   //                      | PowerPC  | x86
   // ---------------------+----------+---------
@@ -105,7 +106,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
   // to be positive, so we'll have to handle them manually.
 
   if (!m_accurate_nans)
-    return;
+    return std::nullopt;
 
   if (inst.OPCD != 4)
   {
@@ -140,7 +141,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
 
     FixupBranch done = J(Jump::Near);
     SwitchToNearCode();
-    SetJumpTarget(done);
+    return done;
   }
   else
   {
@@ -217,7 +218,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
 
     FixupBranch done = J(Jump::Near);
     SwitchToNearCode();
-    SetJumpTarget(done);
+    return done;
   }
 }
 
@@ -329,15 +330,19 @@ void Jit64::fp_arith(UGeckoInstruction inst)
     }
   }
 
+  std::optional<FixupBranch> handled_nans;
   switch (inst.SUBOP5)
   {
   case 18:
-    HandleNaNs(inst, dest, XMM0, Ra, Rarg2, std::nullopt);
+    handled_nans = HandleNaNs(inst, dest, XMM0, Ra, Rarg2, std::nullopt);
     break;
   case 25:
-    HandleNaNs(inst, dest, XMM0, Ra, std::nullopt, Rarg2);
+    handled_nans = HandleNaNs(inst, dest, XMM0, Ra, std::nullopt, Rarg2);
     break;
   }
+
+  if (handled_nans)
+    SetJumpTarget(*handled_nans);
 
   if (single)
     FinalizeSingleResult(Rd, R(dest), packed, true);
@@ -572,7 +577,11 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   }
 
   // If packed, the clobber register must be XMM0. If not packed, the clobber register is unused.
-  HandleNaNs(inst, result_xmm, XMM0, Ra, Rb, madds_accurate_nans ? R(Rc_duplicated) : Rc);
+  const std::optional<FixupBranch> handled_nans =
+      HandleNaNs(inst, result_xmm, XMM0, Ra, Rb, madds_accurate_nans ? R(Rc_duplicated) : Rc);
+
+  if (handled_nans)
+    SetJumpTarget(*handled_nans);
 
   if (single)
     FinalizeSingleResult(Rd, R(result_xmm), packed, true);

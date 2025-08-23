@@ -100,12 +100,18 @@ void Jit64::ps_muls(UGeckoInstruction inst)
   default:
     PanicAlertFmt("ps_muls WTF!!!");
   }
+
   if (round_input)
     Force25BitPrecision(XMM1, R(Rc_duplicated), XMM0);
   else if (XMM1 != Rc_duplicated)
     MOVAPD(XMM1, Rc_duplicated);
   MULPD(XMM1, Ra);
-  HandleNaNs(inst, XMM1, XMM0, Ra, std::nullopt, Rc_duplicated);
+
+  const std::optional<FixupBranch> handled_nans =
+      HandleNaNs(inst, XMM1, XMM0, Ra, std::nullopt, Rc_duplicated);
+  if (handled_nans)
+    SetJumpTarget(*handled_nans);
+
   FinalizeSingleResult(Rd, R(XMM1));
 }
 
