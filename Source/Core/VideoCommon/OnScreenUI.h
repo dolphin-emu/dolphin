@@ -15,7 +15,7 @@
 class NativeVertexFormat;
 class AbstractTexture;
 class AbstractPipeline;
-class ImTextureData;
+struct ImTextureData;
 
 namespace VideoCommon
 {
