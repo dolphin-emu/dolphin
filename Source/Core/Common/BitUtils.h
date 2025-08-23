@@ -154,14 +154,27 @@ public:
     return result;
   }
 
+  inline auto operator[](std::size_t index) const
+  {
+    using S = std::conditional_t<std::is_const<PtrType>::value, const std::byte, std::byte>;
+    S* const target = reinterpret_cast<S*>(m_ptr) + index * sizeof(T);
+    return BitCastPtrType<T, S>{target};
+  }
+
 private:
   PtrType* m_ptr;
 };
 
 // Provides an aliasing-safe alternative to reinterpret_cast'ing pointers to structs
 // Conversion constructor and operator= provided for a convenient syntax.
-// Usage: MyStruct s = BitCastPtr<MyStruct>(some_ptr);
+// Usage:
+// MyStruct s = BitCastPtr<MyStruct>(some_ptr);
 // BitCastPtr<MyStruct>(some_ptr) = s;
+//
+// Array example:
+// BitCastPtr<MyStruct> unaligned_array(unaligned_ptr);
+// MyStruct s = unaligned_array[2];
+// unaligned_array[2] = s;
 template <typename T, typename PtrType>
 inline auto BitCastPtr(PtrType* ptr) noexcept -> BitCastPtrType<T, PtrType>
 {
