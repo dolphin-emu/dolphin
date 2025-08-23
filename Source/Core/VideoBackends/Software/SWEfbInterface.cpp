@@ -311,8 +311,8 @@ static u32 GetDestinationFactor(u8* srcClr, u8* dstClr, DstBlendFactor mode)
 
 static void BlendColor(u8* srcClr, u8* dstClr)
 {
-  u32 srcFactor = GetSourceFactor(srcClr, dstClr, bpmem.blendmode.srcfactor);
-  u32 dstFactor = GetDestinationFactor(srcClr, dstClr, bpmem.blendmode.dstfactor);
+  u32 srcFactor = GetSourceFactor(srcClr, dstClr, bpmem.blendmode.src_factor);
+  u32 dstFactor = GetDestinationFactor(srcClr, dstClr, bpmem.blendmode.dst_factor);
 
   for (int i = 0; i < 4; i++)
   {
@@ -416,16 +416,16 @@ void BlendTev(u16 x, u16 y, u8* color)
 
   u8* dstClrPtr = (u8*)&dstClr;
 
-  if (bpmem.blendmode.blendenable)
+  if (bpmem.blendmode.blend_enable)
   {
     if (bpmem.blendmode.subtract)
       SubtractBlend(color, dstClrPtr);
     else
       BlendColor(color, dstClrPtr);
   }
-  else if (bpmem.blendmode.logicopenable)
+  else if (bpmem.blendmode.logic_op_enable)
   {
-    LogicBlend(*((u32*)color), &dstClr, bpmem.blendmode.logicmode);
+    LogicBlend(*((u32*)color), &dstClr, bpmem.blendmode.logic_mode);
   }
   else
   {
@@ -435,15 +435,15 @@ void BlendTev(u16 x, u16 y, u8* color)
   if (bpmem.dstalpha.enable)
     dstClrPtr[ALP_C] = bpmem.dstalpha.alpha;
 
-  if (bpmem.blendmode.colorupdate)
+  if (bpmem.blendmode.color_update)
   {
     Dither(x, y, dstClrPtr);
-    if (bpmem.blendmode.alphaupdate)
+    if (bpmem.blendmode.alpha_update)
       SetPixelAlphaColor(offset, dstClrPtr);
     else
       SetPixelColorOnly(offset, dstClrPtr);
   }
-  else if (bpmem.blendmode.alphaupdate)
+  else if (bpmem.blendmode.alpha_update)
   {
     SetPixelAlphaOnly(offset, dstClrPtr[ALP_C]);
   }
@@ -452,14 +452,14 @@ void BlendTev(u16 x, u16 y, u8* color)
 void SetColor(u16 x, u16 y, u8* color)
 {
   u32 offset = GetColorOffset(x, y);
-  if (bpmem.blendmode.colorupdate)
+  if (bpmem.blendmode.color_update)
   {
-    if (bpmem.blendmode.alphaupdate)
+    if (bpmem.blendmode.alpha_update)
       SetPixelAlphaColor(offset, color);
     else
       SetPixelColorOnly(offset, color);
   }
-  else if (bpmem.blendmode.alphaupdate)
+  else if (bpmem.blendmode.alpha_update)
   {
     SetPixelAlphaOnly(offset, color[ALP_C]);
   }
@@ -467,7 +467,7 @@ void SetColor(u16 x, u16 y, u8* color)
 
 void SetDepth(u16 x, u16 y, u32 depth)
 {
-  if (bpmem.zmode.updateenable)
+  if (bpmem.zmode.update_enable)
     SetPixelDepth(GetDepthOffset(x, y), depth);
 }
 
@@ -702,7 +702,7 @@ bool ZCompare(u16 x, u16 y, u32 z)
     break;
   }
 
-  if (pass && bpmem.zmode.updateenable)
+  if (pass && bpmem.zmode.update_enable)
   {
     SetPixelDepth(offset, z);
   }

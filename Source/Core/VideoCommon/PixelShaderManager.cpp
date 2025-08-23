@@ -162,7 +162,7 @@ void PixelShaderManager::SetConstants()
   {
     // Destination alpha is only enabled if alpha writes are enabled. Force entire uniform to zero
     // when disabled.
-    u32 dstalpha = bpmem.blendmode.alphaupdate && bpmem.dstalpha.enable &&
+    u32 dstalpha = bpmem.blendmode.alpha_update && bpmem.dstalpha.enable &&
                            bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24 ?
                        bpmem.dstalpha.hex :
                        0;
@@ -468,29 +468,29 @@ void PixelShaderManager::SetBlendModeChanged()
   }
   BlendingState state = {};
   state.Generate(bpmem);
-  if (constants.blend_enable != state.blendenable)
+  if (constants.blend_enable != state.blend_enable)
   {
-    constants.blend_enable = state.blendenable;
+    constants.blend_enable = state.blend_enable;
     dirty = true;
   }
-  if (constants.blend_src_factor != state.srcfactor)
+  if (constants.blend_src_factor != state.src_factor)
   {
-    constants.blend_src_factor = state.srcfactor;
+    constants.blend_src_factor = state.src_factor;
     dirty = true;
   }
-  if (constants.blend_src_factor_alpha != state.srcfactoralpha)
+  if (constants.blend_src_factor_alpha != state.src_factor_alpha)
   {
-    constants.blend_src_factor_alpha = state.srcfactoralpha;
+    constants.blend_src_factor_alpha = state.src_factor_alpha;
     dirty = true;
   }
-  if (constants.blend_dst_factor != state.dstfactor)
+  if (constants.blend_dst_factor != state.dst_factor)
   {
-    constants.blend_dst_factor = state.dstfactor;
+    constants.blend_dst_factor = state.dst_factor;
     dirty = true;
   }
-  if (constants.blend_dst_factor_alpha != state.dstfactoralpha)
+  if (constants.blend_dst_factor_alpha != state.dst_factor_alpha)
   {
-    constants.blend_dst_factor_alpha = state.dstfactoralpha;
+    constants.blend_dst_factor_alpha = state.dst_factor_alpha;
     dirty = true;
   }
   if (constants.blend_subtract != state.subtract)
@@ -498,19 +498,19 @@ void PixelShaderManager::SetBlendModeChanged()
     constants.blend_subtract = state.subtract;
     dirty = true;
   }
-  if (constants.blend_subtract_alpha != state.subtractAlpha)
+  if (constants.blend_subtract_alpha != state.subtract_alpha)
   {
-    constants.blend_subtract_alpha = state.subtractAlpha;
+    constants.blend_subtract_alpha = state.subtract_alpha;
     dirty = true;
   }
-  if (constants.logic_op_enable != state.logicopenable)
+  if (constants.logic_op_enable != state.logic_op_enable)
   {
-    constants.logic_op_enable = state.logicopenable;
+    constants.logic_op_enable = state.logic_op_enable;
     dirty = true;
   }
-  if (constants.logic_op_mode != state.logicmode)
+  if (constants.logic_op_mode != state.logic_mode)
   {
-    constants.logic_op_mode = state.logicmode;
+    constants.logic_op_mode = state.logic_mode;
     dirty = true;
   }
   m_dest_alpha_dirty = true;

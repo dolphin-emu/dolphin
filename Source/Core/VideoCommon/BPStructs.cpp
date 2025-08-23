@@ -99,10 +99,11 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
   switch (bp.address)
   {
   case BPMEM_GENMODE:  // Set the Generation Mode
-    PRIM_LOG("genmode: texgen={}, col={}, multisampling={}, tev={}, cullmode={}, ind={}, zfeeze={}",
-             bpmem.genMode.numtexgens, bpmem.genMode.numcolchans, bpmem.genMode.multisampling,
-             bpmem.genMode.numtevstages + 1, bpmem.genMode.cullmode, bpmem.genMode.numindstages,
-             bpmem.genMode.zfreeze);
+    PRIM_LOG(
+        "genmode: texgen={}, col={}, multisampling={}, tev={}, cull_mode={}, ind={}, zfeeze={}",
+        bpmem.genMode.numtexgens, bpmem.genMode.numcolchans, bpmem.genMode.multisampling,
+        bpmem.genMode.numtevstages + 1, bpmem.genMode.cull_mode, bpmem.genMode.numindstages,
+        bpmem.genMode.zfreeze);
 
     if (bp.changes)
       pixel_shader_manager.SetGenModeChanged();
@@ -144,8 +145,8 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     geometry_shader_manager.SetLinePtWidthChanged();
     return;
   case BPMEM_ZMODE:  // Depth Control
-    PRIM_LOG("zmode: test={}, func={}, upd={}", bpmem.zmode.testenable, bpmem.zmode.func,
-             bpmem.zmode.updateenable);
+    PRIM_LOG("zmode: test={}, func={}, upd={}", bpmem.zmode.test_enable, bpmem.zmode.func,
+             bpmem.zmode.update_enable);
     SetDepthMode();
     pixel_shader_manager.SetZModeControl();
     return;
@@ -153,9 +154,10 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     if (bp.changes & 0xFFFF)
     {
       PRIM_LOG("blendmode: en={}, open={}, colupd={}, alphaupd={}, dst={}, src={}, sub={}, mode={}",
-               bpmem.blendmode.blendenable, bpmem.blendmode.logicopenable,
-               bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate, bpmem.blendmode.dstfactor,
-               bpmem.blendmode.srcfactor, bpmem.blendmode.subtract, bpmem.blendmode.logicmode);
+               bpmem.blendmode.blend_enable, bpmem.blendmode.logic_op_enable,
+               bpmem.blendmode.color_update, bpmem.blendmode.alpha_update,
+               bpmem.blendmode.dst_factor, bpmem.blendmode.src_factor, bpmem.blendmode.subtract,
+               bpmem.blendmode.logic_mode);
 
       SetBlendMode();
 

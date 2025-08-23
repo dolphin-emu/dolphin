@@ -153,7 +153,7 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
   {
     // TODO: Test if perf regs are incremented even if test is disabled
     EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_INPUT_ZCOMPLOC);
-    if (bpmem.zmode.testenable)
+    if (bpmem.zmode.test_enable)
     {
       // early z
       if (!EfbInterface::ZCompare(x, y, z))

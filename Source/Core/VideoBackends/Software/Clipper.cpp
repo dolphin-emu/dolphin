@@ -301,7 +301,7 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
 
   if (!backface)
   {
-    if (bpmem.genMode.cullmode == CullMode::Back || bpmem.genMode.cullmode == CullMode::All)
+    if (bpmem.genMode.cull_mode == CullMode::Back || bpmem.genMode.cull_mode == CullMode::All)
     {
       // cull frontfacing - we still need to update the slope for zfreeze
       PerspectiveDivide(v0);
@@ -314,7 +314,7 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
   }
   else
   {
-    if (bpmem.genMode.cullmode == CullMode::Front || bpmem.genMode.cullmode == CullMode::All)
+    if (bpmem.genMode.cull_mode == CullMode::Front || bpmem.genMode.cull_mode == CullMode::All)
     {
       // cull backfacing - we still need to update the slope for zfreeze
       PerspectiveDivide(v0);

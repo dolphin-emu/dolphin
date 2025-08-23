@@ -615,7 +615,7 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
   pixel_shader_uid_data* ps = out.ps_uid.GetUidData();
   BlendingState& blend = out.blending_state;
 
-  if (ps->ztest == EmulatedZ::ForcedEarly && !out.depth_state.updateenable)
+  if (ps->ztest == EmulatedZ::ForcedEarly && !out.depth_state.update_enable)
   {
     // No need to force early depth test if you're not writing z
     ps->ztest = EmulatedZ::Early;
@@ -623,7 +623,7 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
 
   // If framebuffer fetch is available, we can emulate logic ops in the fragment shader
   // and don't need the below blend approximation
-  if (blend.logicopenable && !g_backend_info.bSupportsLogicOp &&
+  if (blend.logic_op_enable && !g_backend_info.bSupportsLogicOp &&
       !g_backend_info.bSupportsFramebufferFetch)
   {
     if (!blend.LogicOpApproximationIsExact())
@@ -632,7 +632,7 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
     if (blend.LogicOpApproximationWantsShaderHelp())
     {
       ps->emulate_logic_op_with_blend = true;
-      ps->logic_op_mode = static_cast<u32>(blend.logicmode.Value());
+      ps->logic_op_mode = static_cast<u32>(blend.logic_mode.Value());
     }
     blend.ApproximateLogicOpWithBlending();
   }
@@ -644,7 +644,7 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
   {
     // Only use dual-source blending when required on drivers that don't support it very well.
     ps->no_dual_src = true;
-    blend.usedualsrc = false;
+    blend.use_dual_src = false;
   }
 
   if (g_backend_info.bSupportsFramebufferFetch)
@@ -655,30 +655,30 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
         ps->ztest == EmulatedZ::ForcedEarly)
     {
       ps->ztest = EmulatedZ::EarlyWithFBFetch;
-      fbfetch_blend |= static_cast<bool>(out.blending_state.blendenable);
+      fbfetch_blend |= static_cast<bool>(out.blending_state.blend_enable);
       ps->no_dual_src = true;
     }
-    fbfetch_blend |= blend.logicopenable && !g_backend_info.bSupportsLogicOp;
-    fbfetch_blend |= blend.usedualsrc && !g_backend_info.bSupportsDualSourceBlend;
+    fbfetch_blend |= blend.logic_op_enable && !g_backend_info.bSupportsLogicOp;
+    fbfetch_blend |= blend.use_dual_src && !g_backend_info.bSupportsDualSourceBlend;
     if (fbfetch_blend)
     {
       ps->no_dual_src = true;
-      if (blend.logicopenable)
+      if (blend.logic_op_enable)
       {
         ps->logic_op_enable = true;
-        ps->logic_op_mode = static_cast<u32>(blend.logicmode.Value());
-        blend.logicopenable = false;
+        ps->logic_op_mode = static_cast<u32>(blend.logic_mode.Value());
+        blend.logic_op_enable = false;
       }
-      if (blend.blendenable)
+      if (blend.blend_enable)
       {
         ps->blend_enable = true;
-        ps->blend_src_factor = blend.srcfactor;
-        ps->blend_src_factor_alpha = blend.srcfactoralpha;
-        ps->blend_dst_factor = blend.dstfactor;
-        ps->blend_dst_factor_alpha = blend.dstfactoralpha;
+        ps->blend_src_factor = blend.src_factor;
+        ps->blend_src_factor_alpha = blend.src_factor_alpha;
+        ps->blend_dst_factor = blend.dst_factor;
+        ps->blend_dst_factor_alpha = blend.dst_factor_alpha;
         ps->blend_subtract = blend.subtract;
-        ps->blend_subtract_alpha = blend.subtractAlpha;
-        blend.blendenable = false;
+        ps->blend_subtract_alpha = blend.subtract_alpha;
+        blend.blend_enable = false;
       }
     }
   }
@@ -687,7 +687,7 @@ static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
   if (!g_backend_info.bSupportsDualSourceBlend)
   {
     ps->no_dual_src = true;
-    blend.usedualsrc = false;
+    blend.use_dual_src = false;
   }
 
   if (ps->ztest == EmulatedZ::ForcedEarly && !g_backend_info.bSupportsEarlyZ)
@@ -788,7 +788,7 @@ static GXUberPipelineUid ApplyDriverBugs(const GXUberPipelineUid& in)
 
   // If framebuffer fetch is available, we can emulate logic ops in the fragment shader
   // and don't need the below blend approximation
-  if (out.blending_state.logicopenable && !g_backend_info.bSupportsLogicOp &&
+  if (out.blending_state.logic_op_enable && !g_backend_info.bSupportsLogicOp &&
       !g_backend_info.bSupportsFramebufferFetch)
   {
     if (!out.blending_state.LogicOpApproximationIsExact())
@@ -801,15 +801,15 @@ static GXUberPipelineUid ApplyDriverBugs(const GXUberPipelineUid& in)
   {
     // Always blend in shader
     out.blending_state.hex = 0;
-    out.blending_state.colorupdate = in.blending_state.colorupdate.Value();
-    out.blending_state.alphaupdate = in.blending_state.alphaupdate.Value();
+    out.blending_state.color_update = in.blending_state.color_update.Value();
+    out.blending_state.alpha_update = in.blending_state.alpha_update.Value();
     out.ps_uid.GetUidData()->no_dual_src = true;
   }
   else if (!g_backend_info.bSupportsDualSourceBlend ||
            (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) &&
             !out.blending_state.RequiresDualSrc()))
   {
-    out.blending_state.usedualsrc = false;
+    out.blending_state.use_dual_src = false;
     out.ps_uid.GetUidData()->no_dual_src = true;
   }
 
@@ -1313,8 +1313,8 @@ void ShaderCache::QueueUberShaderPipelines()
         if (ps_uid.GetUidData()->uint_output)
         {
           // uint_output is only ever enabled when logic ops are enabled.
-          config.blending_state.logicopenable = true;
-          config.blending_state.logicmode = LogicOp::And;
+          config.blending_state.logic_op_enable = true;
+          config.blending_state.logic_mode = LogicOp::And;
         }
 
         auto iter = m_gx_uber_pipeline_cache.find(config);
@@ -1354,28 +1354,28 @@ void ShaderCache::QueueUberShaderPipelines()
           //    dual source blend is enabled.  That's it.
           //  - Apple GPUs: Shaders are keyed on vertex layout and all blending settings.  We use
           //    framebuffer fetch here, so the only blending settings used by ubershaders are the
-          //    alphaupdate and colorupdate ones.  Also keyed on primitive type, but Metal supports
-          //    setting it to "unknown" and we do for ubershaders (but MoltenVK won't).
+          //    alpha_update and color_update ones.  Also keyed on primitive type, but Metal
+          //    supports setting it to "unknown" and we do for ubershaders (but MoltenVK won't).
           // Windows Vulkan:
           //  - AMD, Nvidia: Definitely keyed on dual source blend, but the others seem more random
           //    Changing a setting on one shader will require a recompile, but changing the same
-          //    setting on another won't.  Compiling a copy with alphaupdate off, colorupdate off,
+          //    setting on another won't.  Compiling a copy with alpha_update off, color_update off,
           //    and one with DSB on seems to get pretty good coverage though.
           // Windows D3D12:
           //  - AMD: Keyed on dual source blend and vertex layout
           //  - Nvidia Kepler: No recompiles for changes to vertex layout or blend
-          blend.alphaupdate = false;
+          blend.alpha_update = false;
           QueueDummyPipeline(vuid, guid, cleared_puid, blend);
-          blend.alphaupdate = true;
-          blend.colorupdate = false;
+          blend.alpha_update = true;
+          blend.color_update = false;
           QueueDummyPipeline(vuid, guid, cleared_puid, blend);
-          blend.colorupdate = true;
+          blend.color_update = true;
           if (!cleared_puid.GetUidData()->no_dual_src && !cleared_puid.GetUidData()->uint_output)
           {
-            blend.blendenable = true;
-            blend.usedualsrc = true;
-            blend.srcfactor = SrcBlendFactor::SrcAlpha;
-            blend.dstfactor = DstBlendFactor::InvSrcAlpha;
+            blend.blend_enable = true;
+            blend.use_dual_src = true;
+            blend.src_factor = SrcBlendFactor::SrcAlpha;
+            blend.dst_factor = DstBlendFactor::InvSrcAlpha;
             QueueDummyPipeline(vuid, guid, cleared_puid, blend);
           }
         }

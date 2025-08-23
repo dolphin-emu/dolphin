@@ -30,8 +30,8 @@ struct DepthStencilSelector
   {
   }
   DepthStencilSelector(DepthState state)
-      : DepthStencilSelector(state.testenable ? state.updateenable : false,
-                             state.testenable ? state.func : CompareMode::Always)
+      : DepthStencilSelector(state.test_enable ? state.update_enable : false,
+                             state.test_enable ? state.func : CompareMode::Always)
   {
   }
 
