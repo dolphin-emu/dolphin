@@ -160,12 +160,12 @@ bool CPUCull::AreAllVerticesCulled(VertexLoaderBase* loader, OpcodeDecoder::Prim
   static constexpr Common::EnumMap<CullMode, CullMode::All> cullmode_invert = {
       CullMode::None, CullMode::Front, CullMode::Back, CullMode::All};
 
-  CullMode cullmode = bpmem.genMode.cullmode;
+  CullMode cull_mode = bpmem.genMode.cull_mode;
   if (xfmem.viewport.ht > 0)  // See videosoftware Clipper.cpp:IsBackface
-    cullmode = cullmode_invert[cullmode];
+    cull_mode = cullmode_invert[cull_mode];
   const TransformFunction transform = m_transform_table[posHas3Elems][perVertexPosMtx];
   transform(m_transform_buffer.get(), src, stride, count);
-  const CullFunction cull = m_cull_table[primitive][cullmode];
+  const CullFunction cull = m_cull_table[primitive][cull_mode];
   return cull(m_transform_buffer.get(), count);
 }
 

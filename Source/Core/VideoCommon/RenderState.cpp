@@ -11,18 +11,18 @@
 
 void RasterizationState::Generate(const BPMemory& bp, PrimitiveType primitive_type)
 {
-  cullmode = bp.genMode.cullmode;
+  cull_mode = bp.genMode.cull_mode;
   primitive = primitive_type;
 
   // Back-face culling should be disabled for points/lines.
   if (primitive_type != PrimitiveType::Triangles && primitive_type != PrimitiveType::TriangleStrip)
-    cullmode = CullMode::None;
+    cull_mode = CullMode::None;
 }
 
 void DepthState::Generate(const BPMemory& bp)
 {
-  testenable = bp.zmode.testenable.Value();
-  updateenable = bp.zmode.updateenable.Value();
+  test_enable = bp.zmode.test_enable.Value();
+  update_enable = bp.zmode.update_enable.Value();
   func = bp.zmode.func.Value();
 }
 
@@ -39,9 +39,9 @@ static bool IsDualSrc(DstBlendFactor factor)
 bool BlendingState::RequiresDualSrc() const
 {
   bool requires_dual_src = false;
-  requires_dual_src |= IsDualSrc(srcfactor) || IsDualSrc(srcfactoralpha);
-  requires_dual_src |= IsDualSrc(dstfactor) || IsDualSrc(dstfactoralpha);
-  requires_dual_src &= blendenable && usedualsrc;
+  requires_dual_src |= IsDualSrc(src_factor) || IsDualSrc(src_factor_alpha);
+  requires_dual_src |= IsDualSrc(dst_factor) || IsDualSrc(dst_factor_alpha);
+  requires_dual_src &= blend_enable && use_dual_src;
   return requires_dual_src;
 }
 
@@ -115,64 +115,64 @@ void BlendingState::Generate(const BPMemory& bp)
   const bool target_has_alpha = bp.zcontrol.pixel_format == PixelFormat::RGBA6_Z24;
   const bool alpha_test_may_succeed = bp.alpha_test.TestResult() != AlphaTestResult::Fail;
 
-  colorupdate = bp.blendmode.colorupdate && alpha_test_may_succeed;
-  alphaupdate = bp.blendmode.alphaupdate && target_has_alpha && alpha_test_may_succeed;
-  const bool dstalpha = bp.dstalpha.enable && alphaupdate;
-  usedualsrc = true;
+  color_update = bp.blendmode.color_update && alpha_test_may_succeed;
+  alpha_update = bp.blendmode.alpha_update && target_has_alpha && alpha_test_may_succeed;
+  const bool dst_alpha = bp.dstalpha.enable && alpha_update;
+  use_dual_src = true;
 
-  if (bp.blendmode.blendenable)
+  if (bp.blendmode.blend_enable)
   {
     if (bp.blendmode.subtract)
     {
-      blendenable = true;
-      subtractAlpha = subtract = true;
-      srcfactoralpha = srcfactor = SrcBlendFactor::One;
-      dstfactoralpha = dstfactor = DstBlendFactor::One;
+      blend_enable = true;
+      subtract_alpha = subtract = true;
+      src_factor_alpha = src_factor = SrcBlendFactor::One;
+      dst_factor_alpha = dst_factor = DstBlendFactor::One;
 
-      if (dstalpha)
+      if (dst_alpha)
       {
-        subtractAlpha = false;
-        srcfactoralpha = SrcBlendFactor::One;
-        dstfactoralpha = DstBlendFactor::Zero;
+        subtract_alpha = false;
+        src_factor_alpha = SrcBlendFactor::One;
+        dst_factor_alpha = DstBlendFactor::Zero;
       }
     }
     else
     {
-      blendenable = true;
-      srcfactor = bp.blendmode.srcfactor;
-      dstfactor = bp.blendmode.dstfactor;
+      blend_enable = true;
+      src_factor = bp.blendmode.src_factor;
+      dst_factor = bp.blendmode.dst_factor;
       if (!target_has_alpha)
       {
         // uses ONE instead of DSTALPHA
-        srcfactor = RemoveDstAlphaUsage(srcfactor);
-        dstfactor = RemoveDstAlphaUsage(dstfactor);
+        src_factor = RemoveDstAlphaUsage(src_factor);
+        dst_factor = RemoveDstAlphaUsage(dst_factor);
       }
       // replaces SrcClr with SrcAlpha and DstClr with DstAlpha, it is important to
       // use the dst function for the src factor and vice versa
-      srcfactoralpha = RemoveDstColorUsage(srcfactor);
-      dstfactoralpha = RemoveSrcColorUsage(dstfactor);
+      src_factor_alpha = RemoveDstColorUsage(src_factor);
+      dst_factor_alpha = RemoveSrcColorUsage(dst_factor);
 
-      if (dstalpha)
+      if (dst_alpha)
       {
-        srcfactoralpha = SrcBlendFactor::One;
-        dstfactoralpha = DstBlendFactor::Zero;
+        src_factor_alpha = SrcBlendFactor::One;
+        dst_factor_alpha = DstBlendFactor::Zero;
       }
     }
   }
-  else if (bp.blendmode.logicopenable)
+  else if (bp.blendmode.logic_op_enable)
   {
-    if (bp.blendmode.logicmode == LogicOp::NoOp)
+    if (bp.blendmode.logic_mode == LogicOp::NoOp)
     {
-      // Fast path for Kirby's Return to Dreamland, they use it with dstAlpha.
-      colorupdate = false;
-      alphaupdate = alphaupdate && dstalpha;
+      // Fast path for Kirby's Return to Dreamland, they use it with dst_alpha.
+      color_update = false;
+      alpha_update = alpha_update && dst_alpha;
     }
     else
     {
-      logicopenable = true;
-      logicmode = bp.blendmode.logicmode;
+      logic_op_enable = true;
+      logic_mode = bp.blendmode.logic_mode;
 
-      if (dstalpha)
+      if (dst_alpha)
       {
         // TODO: Not supported by backends.
       }
@@ -184,15 +184,15 @@ void BlendingState::Generate(const BPMemory& bp)
   // the blend state but not actually written (i.e. the alpha src or dst factor is src alpha, but
   // alpha update is disabled). So, change the blending configuration to not use a dual-source
   // factor. Note that in theory, disabling writing should render these irrelevant.
-  if (!colorupdate)
+  if (!color_update)
   {
-    srcfactor = SrcBlendFactor::Zero;
-    dstfactor = DstBlendFactor::One;
+    src_factor = SrcBlendFactor::Zero;
+    dst_factor = DstBlendFactor::One;
   }
-  if (!alphaupdate)
+  if (!alpha_update)
   {
-    srcfactoralpha = SrcBlendFactor::Zero;
-    dstfactoralpha = DstBlendFactor::One;
+    src_factor_alpha = SrcBlendFactor::Zero;
+    dst_factor_alpha = DstBlendFactor::One;
   }
 }
 
@@ -200,10 +200,10 @@ void BlendingState::ApproximateLogicOpWithBlending()
 {
   struct LogicOpApproximation
   {
-    bool blendEnable;
+    bool blend_enable;
     bool subtract;
-    SrcBlendFactor srcfactor;
-    DstBlendFactor dstfactor;
+    SrcBlendFactor src_factor;
+    DstBlendFactor dst_factor;
   };
   // TODO: This previously had a warning about SRC and DST being aliased and not to mix them,
   // but INVSRCCLR and INVDSTCLR were also aliased and were mixed.
@@ -229,23 +229,23 @@ void BlendingState::ApproximateLogicOpWithBlending()
       // clang-format on
   }};
 
-  logicopenable = false;
-  usedualsrc = false;
-  const LogicOpApproximation& approximation = approximations[static_cast<u32>(logicmode.Value())];
-  if (approximation.blendEnable)
+  logic_op_enable = false;
+  use_dual_src = false;
+  const LogicOpApproximation& approximation = approximations[static_cast<u32>(logic_mode.Value())];
+  if (approximation.blend_enable)
   {
-    blendenable = true;
+    blend_enable = true;
     subtract = approximation.subtract;
-    srcfactor = approximation.srcfactor;
-    srcfactoralpha = approximation.srcfactor;
-    dstfactor = approximation.dstfactor;
-    dstfactoralpha = approximation.dstfactor;
+    src_factor = approximation.src_factor;
+    src_factor_alpha = approximation.src_factor;
+    dst_factor = approximation.dst_factor;
+    dst_factor_alpha = approximation.dst_factor;
   }
 }
 
 bool BlendingState::LogicOpApproximationIsExact()
 {
-  switch (logicmode.Value())
+  switch (logic_mode.Value())
   {
   case LogicOp::Clear:
   case LogicOp::Set:
@@ -261,7 +261,7 @@ bool BlendingState::LogicOpApproximationIsExact()
 
 bool BlendingState::LogicOpApproximationWantsShaderHelp()
 {
-  switch (logicmode.Value())
+  switch (logic_mode.Value())
   {
   case LogicOp::Clear:
   case LogicOp::Set:
@@ -332,7 +332,7 @@ RasterizationState GetInvalidRasterizationState()
 RasterizationState GetNoCullRasterizationState(PrimitiveType primitive)
 {
   RasterizationState state = {};
-  state.cullmode = CullMode::None;
+  state.cull_mode = CullMode::None;
   state.primitive = primitive;
   return state;
 }
@@ -340,7 +340,7 @@ RasterizationState GetNoCullRasterizationState(PrimitiveType primitive)
 RasterizationState GetCullBackFaceRasterizationState(PrimitiveType primitive)
 {
   RasterizationState state = {};
-  state.cullmode = CullMode::Back;
+  state.cull_mode = CullMode::Back;
   state.primitive = primitive;
   return state;
 }
@@ -355,8 +355,8 @@ DepthState GetInvalidDepthState()
 DepthState GetNoDepthTestingDepthState()
 {
   DepthState state = {};
-  state.testenable = false;
-  state.updateenable = false;
+  state.test_enable = false;
+  state.update_enable = false;
   state.func = CompareMode::Always;
   return state;
 }
@@ -364,8 +364,8 @@ DepthState GetNoDepthTestingDepthState()
 DepthState GetAlwaysWriteDepthState()
 {
   DepthState state = {};
-  state.testenable = true;
-  state.updateenable = true;
+  state.test_enable = true;
+  state.update_enable = true;
   state.func = CompareMode::Always;
   return state;
 }
@@ -380,30 +380,30 @@ BlendingState GetInvalidBlendingState()
 BlendingState GetNoBlendingBlendState()
 {
   BlendingState state = {};
-  state.usedualsrc = false;
-  state.blendenable = false;
-  state.srcfactor = SrcBlendFactor::One;
-  state.srcfactoralpha = SrcBlendFactor::One;
-  state.dstfactor = DstBlendFactor::Zero;
-  state.dstfactoralpha = DstBlendFactor::Zero;
-  state.logicopenable = false;
-  state.colorupdate = true;
-  state.alphaupdate = true;
+  state.use_dual_src = false;
+  state.blend_enable = false;
+  state.src_factor = SrcBlendFactor::One;
+  state.src_factor_alpha = SrcBlendFactor::One;
+  state.dst_factor = DstBlendFactor::Zero;
+  state.dst_factor_alpha = DstBlendFactor::Zero;
+  state.logic_op_enable = false;
+  state.color_update = true;
+  state.alpha_update = true;
   return state;
 }
 
 BlendingState GetNoColorWriteBlendState()
 {
   BlendingState state = {};
-  state.usedualsrc = false;
-  state.blendenable = false;
-  state.srcfactor = SrcBlendFactor::One;
-  state.srcfactoralpha = SrcBlendFactor::One;
-  state.dstfactor = DstBlendFactor::Zero;
-  state.dstfactoralpha = DstBlendFactor::Zero;
-  state.logicopenable = false;
-  state.colorupdate = false;
-  state.alphaupdate = false;
+  state.use_dual_src = false;
+  state.blend_enable = false;
+  state.src_factor = SrcBlendFactor::One;
+  state.src_factor_alpha = SrcBlendFactor::One;
+  state.dst_factor = DstBlendFactor::Zero;
+  state.dst_factor_alpha = DstBlendFactor::Zero;
+  state.logic_op_enable = false;
+  state.color_update = false;
+  state.alpha_update = false;
   return state;
 }
 

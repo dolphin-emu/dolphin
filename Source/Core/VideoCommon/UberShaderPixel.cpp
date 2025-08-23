@@ -26,11 +26,11 @@ PixelShaderUid GetPixelShaderUid()
   uid_data->early_depth = bpmem.GetEmulatedZ() == EmulatedZ::Early &&
                           (g_ActiveConfig.bFastDepthCalc ||
                            bpmem.alpha_test.TestResult() == AlphaTestResult::Undetermined) &&
-                          !(bpmem.zmode.testenable && bpmem.genMode.zfreeze);
+                          !(bpmem.zmode.test_enable && bpmem.genMode.zfreeze);
   uid_data->per_pixel_depth =
       (bpmem.ztex2.op != ZTexOp::Disabled && bpmem.GetEmulatedZ() == EmulatedZ::Late) ||
-      (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !uid_data->early_depth) ||
-      (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
+      (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.test_enable && !uid_data->early_depth) ||
+      (bpmem.zmode.test_enable && bpmem.genMode.zfreeze);
   uid_data->uint_output = bpmem.blendmode.UseLogicOp();
 
   return out;

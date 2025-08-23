@@ -906,14 +906,14 @@ bool FramebufferManager::CompileClearPipelines()
 
   for (u32 color_enable = 0; color_enable < 2; color_enable++)
   {
-    config.blending_state.colorupdate = color_enable != 0;
+    config.blending_state.color_update = color_enable != 0;
     for (u32 alpha_enable = 0; alpha_enable < 2; alpha_enable++)
     {
-      config.blending_state.alphaupdate = alpha_enable != 0;
+      config.blending_state.alpha_update = alpha_enable != 0;
       for (u32 depth_enable = 0; depth_enable < 2; depth_enable++)
       {
-        config.depth_state.testenable = depth_enable != 0;
-        config.depth_state.updateenable = depth_enable != 0;
+        config.depth_state.test_enable = depth_enable != 0;
+        config.depth_state.update_enable = depth_enable != 0;
 
         m_clear_pipelines[color_enable][alpha_enable][depth_enable] = g_gfx->CreatePipeline(config);
         if (!m_clear_pipelines[color_enable][alpha_enable][depth_enable])

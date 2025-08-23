@@ -145,11 +145,11 @@ bool OnScreenUI::RecompileImGuiPipeline()
   pconfig.rasterization_state = RenderState::GetNoCullRasterizationState(PrimitiveType::Triangles);
   pconfig.depth_state = RenderState::GetNoDepthTestingDepthState();
   pconfig.blending_state = RenderState::GetNoBlendingBlendState();
-  pconfig.blending_state.blendenable = true;
-  pconfig.blending_state.srcfactor = SrcBlendFactor::SrcAlpha;
-  pconfig.blending_state.dstfactor = DstBlendFactor::InvSrcAlpha;
-  pconfig.blending_state.srcfactoralpha = SrcBlendFactor::Zero;
-  pconfig.blending_state.dstfactoralpha = DstBlendFactor::One;
+  pconfig.blending_state.blend_enable = true;
+  pconfig.blending_state.src_factor = SrcBlendFactor::SrcAlpha;
+  pconfig.blending_state.dst_factor = DstBlendFactor::InvSrcAlpha;
+  pconfig.blending_state.src_factor_alpha = SrcBlendFactor::Zero;
+  pconfig.blending_state.dst_factor_alpha = DstBlendFactor::One;
   pconfig.framebuffer_state.color_texture_format = g_presenter->GetBackbufferFormat();
   pconfig.framebuffer_state.depth_texture_format = AbstractTextureFormat::Undefined;
   pconfig.framebuffer_state.samples = 1;
