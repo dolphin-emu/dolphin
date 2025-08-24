@@ -173,12 +173,8 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
   {
     for (int comp = 0; comp < 4; comp++)
     {
-      u16 color = (u16)ColorSlopes[i][comp].GetValue(x, y);
-
-      // clamp color value to 0
-      u16 mask = ~(color >> 8);
-
-      tev.Color[i][comp] = color & mask;
+      const float color = ColorSlopes[i][comp].GetValue(x, y);
+      tev.Color[i][comp] = (u8)std::clamp<float>(color, 0.0f, 255.0f);
     }
   }
 
