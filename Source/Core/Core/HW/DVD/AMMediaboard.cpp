@@ -87,6 +87,12 @@ static u8 s_network_buffer[512 * 1024];
 static u8 s_allnet_buffer[4096];
 static u8 s_allnet_settings[0x8500];
 
+constexpr char s_allnet_reply[] = {
+    "uri=http://"
+    "sega.com&host=sega.com&nickname=sega&name=sega&year=2025&month=08&day=16&hour=21&minute=10&"
+    "second=12&place_id=1234&setting=0x123&region0=jap&region_name0=japan&region_name1=usa&region_"
+    "name2=asia&region_name3=export&end"};
+
 // Sockets FDs are required to go from 0 to 63.
 // Games use the FD as indexes so we have to workaround it.
 
@@ -527,19 +533,10 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
 
     if (offset >= AllNetBuffer && offset < 0x89011000)
     {
-      const u32 allnet_offset = offset - AllNetBuffer;
       INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Read All.Net Buffer ({:08x},{})", offset, length);
 
       // Fake reply
-      memset(s_allnet_buffer, 0, sizeof(s_allnet_buffer));
-      sprintf(
-          (char*)s_allnet_buffer,
-          "uri=http://"
-          "sega.com&host=sega.com&nickname=sega&name=sega&year=2025&month=08&day=16&hour=21&"
-          "minute=10&second=12&place_id=1234&setting=0x123&region0=jap&region_name0=japan&region_"
-          "name1=usa&region_name2=asia&region_name3=export&end");
-
-      memcpy(memory.GetSpanForAddress(address).data(), s_allnet_buffer + allnet_offset, length);
+      memcpy(memory.GetSpanForAddress(address).data(), s_allnet_reply, sizeof(s_allnet_reply));
       return 0;
     }
 
@@ -853,7 +850,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
         u32 fd = s_sockets[SocketCheck(s_media_buffer_32[2] - 1)];
 
         // BUG: NAMCAM is hardcoded to call this with socket ID 0x100 which might be some magic
-        // thing? Winsocks expects a valid socket so we take the socket from the connect.
+        // thing? A valid value is needed so we use the socket from the connect.
 
         if (AMMediaboard::GetGameType() == MarioKartGP2)
         {
@@ -1234,49 +1231,52 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
         INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Execute command (2):{0:04X}",
                      static_cast<u16>(ammb_command));
 
+        memset(s_media_buffer, 0, 0x20);
+
+        // Counter/Command
+        s_media_buffer_32[0] = s_media_buffer_32[8] | 0x80000000;  // Set command okay flag
+
         // Handle command
         switch (ammb_command)
         {
         case AMMBCommand::Unknown_000:
-          memory.Write_U32_Swap(1, address + 4);
+          s_media_buffer_32[1] = 1;
           break;
         case AMMBCommand::GetDIMMSize:
-          memory.Write_U32_Swap(0x1FFF8000, address + 4);
+          s_media_buffer_32[1] = 0x20000000;
           break;
         case AMMBCommand::GetMediaBoardStatus:
-          memory.Write_U32_Swap(LoadedGameProgram, address + 4);
-          memory.Write_U32_Swap(100, address + 8);
+          s_media_buffer_32[1] = LoadedGameProgram;
+          s_media_buffer_32[2] = 100;
           break;
+          // SegaBoot version: 3.09
         case AMMBCommand::GetSegaBootVersion:
-          memory.Write_U16(Common::swap16(0x0309), address + 4);
-          memory.Write_U16(Common::swap16(2), address + 6);
-          memory.Write_U32_Swap(0x4746, address + 8);  // "GF"
-          memory.Write_U32_Swap(0xFF, address + 16);
+          // Version
+          s_media_buffer[4] = 0x03;
+          s_media_buffer[5] = 0x09;
+          // Unknown
+          s_media_buffer[6] = 1;
+          s_media_buffer_32[2] = 1;
+          s_media_buffer_32[4] = 0xFF;
           break;
         case AMMBCommand::GetSystemFlags:
-          memory.Write_U8(0, address + 4);
-          memory.Write_U8(GDROM, address + 5);
-          memory.Write_U8(1, address + 6);
-          memory.Write_U16(0, address + 8);  // Access Count
-          memory.Write_U8(1, address + 10);
+          s_media_buffer[4] = 1;
+          s_media_buffer[5] = GDROM;
+          // Enable development mode (Sega Boot)
+          // This also allows region free booting
+          s_media_buffer[6] = 1;
+          s_media_buffer[8] = 0;  // Access Count
           break;
         case AMMBCommand::GetMediaBoardSerial:
-          for (int i = 0; i < 16; ++i)
-            memory.Write_U8(reinterpret_cast<const u8*>("A85E-01A62204904")[i], address + 4 + i);
+          memcpy(s_media_buffer + 4, "A89E-27A50364511", 16);
           break;
         case AMMBCommand::Unknown_104:
-          memory.Write_U8(1, address + 4);
+          s_media_buffer[4] = 1;
           break;
         default:
           PanicAlertFmtT("Unhandled Media Board Command:{0:04x}", static_cast<u16>(ammb_command));
           break;
         }
-
-        memory.Write_U32(Common::swap32(*reinterpret_cast<u32*>(&s_media_buffer[0x20]) |
-                                        0x80000000),  // Command done flag
-                         address);
-
-        memcpy(s_media_buffer, memory.GetSpanForAddress(address).data(), length);
 
         memset(s_media_buffer + 0x20, 0, 0x20);
 
@@ -1381,9 +1381,8 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
         s_media_buffer_32[4] = 0xFF;
         break;
       case AMMBCommand::GetSystemFlags:
-        // 1: GD-ROM
         s_media_buffer[4] = 1;
-        s_media_buffer[5] = 1;
+        s_media_buffer[5] = GDROM;
         // Enable development mode (Sega Boot)
         // This also allows region free booting
         s_media_buffer[6] = 1;

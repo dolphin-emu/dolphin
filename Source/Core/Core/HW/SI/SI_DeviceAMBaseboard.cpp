@@ -1,8 +1,6 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// #pragma warning(disable : 4189)
-
 #include "Core/HW/SI/SI_DeviceAMBaseboard.h"
 
 #include <algorithm>
@@ -215,10 +213,10 @@ CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(Core::System& system, SIDevices dev
   m_card_state_call_count = 0;
 
   // Serial
-  m_wheelinit = 0;
+  m_wheel_init = 0;
 
-  m_motorinit = 0;
-  m_motorforce_x = 0;
+  m_motor_init = 0;
+  m_motor_force_y = 0;
 
   m_fzdx_seatbelt = true;
   m_fzdx_motion_stop = false;
@@ -232,7 +230,7 @@ CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(Core::System& system, SIDevices dev
   m_fzcc_emergency = false;
   m_fzcc_service = false;
 
-  memset(m_motorreply, 0, sizeof(m_motorreply));
+  memset(m_motor_reply, 0, sizeof(m_motor_reply));
 }
 
 constexpr u32 SI_XFER_LENGTH_MASK = 0x7f;
@@ -470,13 +468,13 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               data_out[data_offset++] = gcam_command;
               data_out[data_offset++] = 0x03;
 
-              switch (m_wheelinit)
+              switch (m_wheel_init)
               {
               case 0:
                 data_out[data_offset++] = 'E';  // Error
                 data_out[data_offset++] = '0';
                 data_out[data_offset++] = '0';
-                m_wheelinit++;
+                m_wheel_init++;
                 break;
               case 1:
                 data_out[data_offset++] = 'C';  // Power Off
@@ -485,7 +483,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 // Only turn on when a wheel is connected
                 if (serial_interface.GetDeviceType(1) == SerialInterface::SIDEVICE_GC_STEERING)
                 {
-                  m_wheelinit++;
+                  m_wheel_init++;
                 }
                 break;
               case 2:
@@ -883,14 +881,15 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           {
             // All commands are OR'd with 0x80
             // Last byte is checksum which we don't care about
-            u32 serial_command = Common::swap32(*(u32*)(data_in + command_offset));
-            serial_command ^= 0x80000000;
+            const u32 serial_command =
+                Common::swap32(*(u32*)(data_in + command_offset)) ^ 0x80000000;
+
             if (AMMediaboard::GetGameType() == FZeroAX ||
                 AMMediaboard::GetGameType() == FZeroAXMonster)
             {
               INFO_LOG_FMT(SERIALINTERFACE_AMBB,
-                           "GC-AM: Command 0x31 (MOTOR) Length:{:02x} Command:{:06x}({:02x})",
-                           length, serial_command >> 8, serial_command & 0xFF);
+                           "GC-AM: Command 0x31 (MOTOR) Length:{:02x} Command:{:04x}({:02x})",
+                           length, (serial_command >> 8) & 0xFFFF, serial_command >> 24);
             }
             else
             {
@@ -918,11 +917,11 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 AMMediaboard::GetGameType() == FZeroAXMonster)
             {
               // Status
-              m_motorreply[command_offset + 2] = 0;
-              m_motorreply[command_offset + 3] = 0;
+              m_motor_reply[command_offset + 2] = 0;
+              m_motor_reply[command_offset + 3] = 0;
 
               // Error
-              m_motorreply[command_offset + 4] = 0;
+              m_motor_reply[command_offset + 4] = 0;
 
               switch (serial_command >> 24)
               {
@@ -939,26 +938,25 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 // Left
                 if (serial_command & 0x010000)
                 {
-                  m_motorforce_x = -((s16)serial_command & 0xFF00);
+                  m_motor_force_y = -((s16)serial_command & 0xFF00);
                 }
                 else  // Right
                 {
-                  m_motorforce_x = (serial_command - 0x4000) & 0xFF00;
+                  m_motor_force_y = (serial_command - 0x4000) & 0xFF00;
                 }
 
-                m_motorforce_x *= 2;
+                m_motor_force_y *= 2;
 
                 // FFB
-                if (m_motorinit == 2)
+                if (m_motor_init == 2)
                 {
                   if (serial_interface.GetDeviceType(1) == SerialInterface::SIDEVICE_GC_STEERING)
                   {
-                    GCPadStatus PadStatus;
-                    PadStatus = Pad::GetStatus(1);
+                    const GCPadStatus PadStatus = Pad::GetStatus(1);
                     if (PadStatus.isConnected)
                     {
-                      ControlState mapped_strength = (double)(m_motorforce_x >> 8);
-                      mapped_strength /= 127.f;
+                      const ControlState mapped_strength = (double)(m_motor_force_y >> 8) / 127.f;
+
                       Pad::Rumble(1, mapped_strength);
                       INFO_LOG_FMT(SERIALINTERFACE_AMBB,
                                    "GC-AM: Command 0x31 (MOTOR) mapped_strength:{}",
@@ -973,19 +971,19 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 break;
               // Switch back to normal controls
               case 7:
-                m_motorinit = 2;
+                m_motor_init = 2;
                 break;
               // Reset
               case 0x7F:
-                m_motorinit = 1;
-                memset(m_motorreply, 0, sizeof(m_motorreply));
+                m_motor_init = 1;
+                memset(m_motor_reply, 0, sizeof(m_motor_reply));
                 break;
               }
 
               // Checksum
-              m_motorreply[command_offset + 5] = m_motorreply[command_offset + 2] ^
-                                                 m_motorreply[command_offset + 3] ^
-                                                 m_motorreply[command_offset + 4];
+              m_motor_reply[command_offset + 5] = m_motor_reply[command_offset + 2] ^
+                                                  m_motor_reply[command_offset + 3] ^
+                                                  m_motor_reply[command_offset + 4];
             }
           }
 
@@ -996,14 +994,14 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           }
           else
           {
-            if (m_motorinit)
+            if (m_motor_init)
             {
               // Motor
-              m_motorreply[0] = gcam_command;
-              m_motorreply[1] = length;  // Same out as in size
+              m_motor_reply[0] = gcam_command;
+              m_motor_reply[1] = length;  // Same out as in size
 
-              memcpy(data_out + data_offset, m_motorreply, m_motorreply[1] + 2);
-              data_offset += m_motorreply[1] + 2;
+              memcpy(data_out + data_offset, m_motor_reply, m_motor_reply[1] + 2);
+              data_offset += m_motor_reply[1] + 2;
             }
           }
 
@@ -1879,15 +1877,15 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               case FZeroAX:
               case FZeroAXMonster:
                 // Steering
-                if (m_motorinit == 1)
+                if (m_motor_init == 1)
                 {
-                  if (m_motorforce_x > 0)
+                  if (m_motor_force_y > 0)
                   {
-                    message.AddData(0x80 - (m_motorforce_x >> 8));
+                    message.AddData(0x80 - (m_motor_force_y >> 8));
                   }
                   else
                   {
-                    message.AddData((m_motorforce_x >> 8));
+                    message.AddData((m_motor_force_y >> 8));
                   }
                   message.AddData((u8)0);
 
@@ -1896,7 +1894,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 }
                 else
                 {
-                  message.AddData(PadStatus.stickX);
+                  // The center for the Y axis is expected to be 78h this adjusts that
+                  message.AddData(PadStatus.stickX - 12);
                   message.AddData((u8)0);
 
                   message.AddData(PadStatus.stickY);
@@ -1927,14 +1926,14 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               case VirtuaStriker4:
               case VirtuaStriker4_2006:
               {
-                message.AddData((~PadStatus.stickY) + 1);
+                message.AddData(-PadStatus.stickY);
                 message.AddData((u8)0);
                 message.AddData(PadStatus.stickX);
                 message.AddData((u8)0);
 
                 PadStatus = Pad::GetStatus(1);
 
-                message.AddData((~PadStatus.stickY) + 1);
+                message.AddData(-PadStatus.stickY);
                 message.AddData((u8)0);
                 message.AddData(PadStatus.stickX);
                 message.AddData((u8)0);
@@ -2090,7 +2089,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               {
                 NOTICE_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0xF0, Reset");
                 delay = 0;
-                m_wheelinit = 0;
+                m_wheel_init = 0;
                 m_ic_card_state = 0x20;
               }
               message.AddData(StatusOkay);
