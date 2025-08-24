@@ -61,8 +61,10 @@ interface SettingsFragmentView {
 
     /**
      * Have the fragment tell the containing Activity that a Setting was modified.
+     *
+     * @param allSettingsChanged This indicates if all currently visible settings were changed (by loading a config)
      */
-    fun onSettingChanged()
+    fun onSettingChanged(allSettingsChanged: Boolean = false)
 
     /**
      * Refetches the values of all controller settings.
