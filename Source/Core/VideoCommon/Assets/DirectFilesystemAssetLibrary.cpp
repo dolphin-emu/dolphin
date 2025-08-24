@@ -40,29 +40,37 @@ std::size_t GetAssetSize(const CustomTextureData& data)
 }
 }  // namespace
 
-CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadPixelShader(const AssetID& asset_id,
-                                                                           PixelShaderData* data)
+CustomAssetLibrary::LoadInfo
+DirectFilesystemAssetLibrary::LoadRasterSurfaceShader(const AssetID& asset_id,
+                                                      RasterSurfaceShaderData* data)
 {
   const auto asset_map = GetAssetMapForID(asset_id);
 
   // Asset map for a pixel shader is the shader and some metadata
-  if (asset_map.size() != 2)
+  if (asset_map.size() != 3)
   {
-    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have two files mapped!", asset_id);
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have three files mapped!", asset_id);
     return {};
   }
 
   const auto metadata = asset_map.find("metadata");
-  const auto shader = asset_map.find("shader");
   if (metadata == asset_map.end())
   {
     ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have a metadata entry mapped!", asset_id);
     return {};
   }
 
-  if (shader == asset_map.end())
+  const auto vertex_shader = asset_map.find("vertex_shader");
+  if (vertex_shader == asset_map.end())
   {
-    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have a shader entry mapped!", asset_id);
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have a vertex shader entry mapped!", asset_id);
+    return {};
+  }
+
+  const auto pixel_shader = asset_map.find("pixel_shader");
+  if (pixel_shader == asset_map.end())
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' expected to have a pixel shader entry mapped!", asset_id);
     return {};
   }
 
@@ -78,24 +86,43 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadPixelShader(const
       return {};
     }
   }
-  std::size_t shader_size;
+  std::size_t vertex_shader_size;
   {
     std::error_code ec;
-    shader_size = std::filesystem::file_size(shader->second, ec);
+    vertex_shader_size = std::filesystem::file_size(vertex_shader->second, ec);
     if (ec)
     {
-      ERROR_LOG_FMT(VIDEO,
-                    "Asset '{}' error - failed to get shader source file size with error '{}'!",
-                    asset_id, ec);
+      ERROR_LOG_FMT(
+          VIDEO, "Asset '{}' error - failed to get vertex shader source file size with error '{}'!",
+          asset_id, ec);
       return {};
     }
   }
-  const auto approx_mem_size = metadata_size + shader_size;
-
-  if (!File::ReadFileToString(PathToString(shader->second), data->m_shader_source))
+  std::size_t pixel_shader_size;
   {
-    ERROR_LOG_FMT(VIDEO, "Asset '{}' error -  failed to load the shader file '{}',", asset_id,
-                  PathToString(shader->second));
+    std::error_code ec;
+    pixel_shader_size = std::filesystem::file_size(pixel_shader->second, ec);
+    if (ec)
+    {
+      ERROR_LOG_FMT(
+          VIDEO, "Asset '{}' error - failed to get pixel shader source file size with error '{}'!",
+          asset_id, ec);
+      return {};
+    }
+  }
+  const auto approx_mem_size = metadata_size + vertex_shader_size + pixel_shader_size;
+
+  if (!File::ReadFileToString(PathToString(vertex_shader->second), data->vertex_source))
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' error -  failed to load the vertex shader file '{}',",
+                  asset_id, PathToString(vertex_shader->second));
+    return {};
+  }
+
+  if (!File::ReadFileToString(PathToString(pixel_shader->second), data->pixel_source))
+  {
+    ERROR_LOG_FMT(VIDEO, "Asset '{}' error -  failed to load the pixel shader file '{}',", asset_id,
+                  PathToString(pixel_shader->second));
     return {};
   }
 
@@ -120,7 +147,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadPixelShader(const
 
   const auto& root_obj = root.get<picojson::object>();
 
-  if (!PixelShaderData::FromJson(asset_id, root_obj, data))
+  if (!RasterSurfaceShaderData::FromJson(asset_id, root_obj, data))
     return {};
 
   return LoadInfo{approx_mem_size};
