@@ -797,6 +797,11 @@ if(UNIX)
   )
 endif()
 
+if(WIN32 OR LINUX)
+  target_sources(core PRIVATE HW/EXI/BBA/IPC.cpp)
+  target_link_libraries(core PRIVATE cpp-ipc::ipc)
+endif()
+
 if(MSVC)
   # Add precompiled header
   target_link_libraries(core PRIVATE use_pch)
