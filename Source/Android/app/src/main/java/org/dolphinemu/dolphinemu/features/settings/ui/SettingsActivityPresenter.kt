@@ -5,6 +5,7 @@ package org.dolphinemu.dolphinemu.features.settings.ui
 import android.os.Bundle
 import android.text.TextUtils
 import androidx.appcompat.app.AppCompatActivity
+import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedController
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
@@ -96,8 +97,6 @@ class SettingsActivityPresenter(
         val isGc = this.menuTag?.isGCPadMenu == true
 
         if(isWiimote || isWiimoteSub || isGc) {
-            Log.error("controllersetting changed: $isWiimote $isWiimoteSub $isGc")
-
             val wiimoteId = this.menuTag!!.subType
             val controller = if(isGc) {
                 EmulatedController.getGcPad(wiimoteId)
@@ -106,7 +105,7 @@ class SettingsActivityPresenter(
             }
 
             val profileName = controller.getProfileName()
-            val profileNameUnsavedSuffix = " (Unsaved)"
+            val profileNameUnsavedSuffix = activity.getString(R.string.input_profiles_changed_suffix)
             if (!profileName.endsWith(profileNameUnsavedSuffix)) {
                 val newName = controller.getProfileName()+profileNameUnsavedSuffix
                 controller.setProfileName(newName)

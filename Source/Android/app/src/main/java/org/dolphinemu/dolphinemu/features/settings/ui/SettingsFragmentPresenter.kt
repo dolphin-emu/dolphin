@@ -2456,9 +2456,9 @@ class SettingsFragmentPresenter(
     fun updateControllerName() {
         val controller = menuTag.correspondingEmulatedController
         val profileDescription = if(controller.getProfileName().isEmpty()) {
-            "No Profile..."
+            context.getString(R.string.input_profiles_no_loaded_description)
         } else {
-            context.getString(R.string.input_profiles_descríption, controller.getProfileName())
+            context.getString(R.string.input_profiles_description, controller.getProfileName())
         }
         controllerProfileSelector?.updateDescription(profileDescription)
     }
