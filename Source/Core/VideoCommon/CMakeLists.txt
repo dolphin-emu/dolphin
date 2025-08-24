@@ -29,6 +29,8 @@ add_library(videocommon
   Assets/TextureAsset.h
   Assets/TextureAssetUtils.cpp
   Assets/TextureAssetUtils.h
+  Assets/TextureSamplerValue.cpp
+  Assets/TextureSamplerValue.h
   Assets/Types.h
   Assets/WatchableFilesystemAssetLibrary.h
   AsyncRequests.cpp
