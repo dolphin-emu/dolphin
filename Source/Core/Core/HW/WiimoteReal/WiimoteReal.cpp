@@ -20,6 +20,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/WiimoteSettings.h"
 #include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
@@ -207,7 +208,14 @@ void Wiimote::WriteReport(Report rpt)
     m_rumble_state = new_rumble_state;
   }
 
-  m_write_reports.Push(std::move(rpt));
+  auto& core_timing = Core::System::GetInstance().GetCoreTiming();
+
+  // When invoked from the CPU thread, send the report at the proper time.
+  // From other threads (e.g. on construction/destruction) send the report immediately.
+  const auto report_time =
+      Core::IsCPUThread() ? core_timing.GetTargetHostTime(core_timing.GetTicks()) : Clock::now();
+
+  m_write_reports.Emplace(report_time, std::move(rpt));
   IOWakeup();
 }
 
@@ -334,7 +342,8 @@ bool Wiimote::Write()
   if (m_write_reports.Empty())
     return true;
 
-  Report const& rpt = m_write_reports.Front();
+  auto const& timed_report = m_write_reports.Front();
+  auto const& rpt = timed_report.report;
 
   if (m_balance_board_dump_port > 0 && m_index == WIIMOTE_BALANCE_BOARD)
   {
@@ -342,6 +351,9 @@ bool Wiimote::Write()
     (void)Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost,
                       m_balance_board_dump_port);
   }
+
+  // Write the report at the proper time, mainly for speaker data, not that it will help much.
+  std::this_thread::sleep_until(timed_report.time);
   int ret = IOWrite(rpt.data(), rpt.size());
 
   m_write_reports.Pop();

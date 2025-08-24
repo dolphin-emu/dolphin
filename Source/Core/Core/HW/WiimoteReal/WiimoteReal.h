@@ -154,7 +154,14 @@ private:
   Common::Event m_thread_ready_event;
 
   Common::SPSCQueue<Report> m_read_reports;
-  Common::SPSCQueue<Report> m_write_reports;
+
+  struct TimedReport
+  {
+    TimePoint time;
+    Report report;
+  };
+
+  Common::SPSCQueue<TimedReport> m_write_reports;
 
   bool m_speaker_enabled_in_dolphin_config = false;
   int m_balance_board_dump_port = 0;
