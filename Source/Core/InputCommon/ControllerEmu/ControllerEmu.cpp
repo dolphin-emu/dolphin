@@ -120,7 +120,7 @@ void EmulatedController::LoadConfig(Common::IniFile::Section* sec)
 
   std::string name;
   if (sec->Get("ProfileName", &name, ""))
-      SetProfileName(name);
+    SetProfileName(name);
 
   LoadGroupsConfig(sec, "");
 }

@@ -244,8 +244,8 @@ public:
   void LoadConfig(Common::IniFile::Section* sec);
   void SaveConfig(Common::IniFile::Section* sec);
 
-  std::string GetProfileName(){ return m_profile_name; }
-  void SetProfileName(std::string name){ m_profile_name = name; }
+  std::string GetProfileName() { return m_profile_name; }
+  void SetProfileName(std::string name) { m_profile_name = name; }
 
   bool IsDefaultDeviceConnected() const;
   const ciface::Core::DeviceQualifier& GetDefaultDevice() const;
