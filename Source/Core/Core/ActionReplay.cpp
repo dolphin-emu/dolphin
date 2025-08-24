@@ -174,6 +174,15 @@ void AddCode(ARCode code)
   }
 }
 
+size_t CountEnabledCodes()
+{
+  if (!Config::AreCheatsEnabled())
+    return 0;
+
+  std::lock_guard guard(s_lock);
+  return s_active_codes.size();
+}
+
 void LoadAndApplyCodes(const Common::IniFile& global_ini, const Common::IniFile& local_ini,
                        const std::string& game_id, u16 revision)
 {

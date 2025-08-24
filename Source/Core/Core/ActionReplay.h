@@ -50,6 +50,7 @@ void SetSyncedCodesAsActive();
 void UpdateSyncedCodes(std::span<const ARCode> codes);
 std::vector<ARCode> ApplyAndReturnCodes(std::span<const ARCode> codes);
 void AddCode(ARCode new_code);
+size_t CountEnabledCodes();
 void LoadAndApplyCodes(const Common::IniFile& global_ini, const Common::IniFile& local_ini,
                        const std::string& game_id, u16 revision);
 
