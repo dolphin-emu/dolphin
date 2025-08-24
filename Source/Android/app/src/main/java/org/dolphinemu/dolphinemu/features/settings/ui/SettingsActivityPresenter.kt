@@ -110,7 +110,6 @@ class SettingsActivityPresenter(
             if (!profileName.endsWith(profileNameUnsavedSuffix)) {
                 val newName = controller.getProfileName()+profileNameUnsavedSuffix
                 controller.setProfileName(newName)
-                // todo: Update ui
             }
         }
     }

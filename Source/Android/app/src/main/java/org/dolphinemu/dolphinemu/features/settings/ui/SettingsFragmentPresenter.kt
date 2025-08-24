@@ -47,6 +47,7 @@ class SettingsFragmentPresenter(
 
     private var settingsList: ArrayList<SettingsItem>? = null
     private var hasOldControllerSettings = false
+    private var controllerProfileSelector: RunRunnable? = null
 
     private var serialPort1Type = 0
     private var controllerNumber = 0
@@ -2438,7 +2439,7 @@ class SettingsFragmentPresenter(
             ) { clearControllerSettings(controller) })
 
 
-        val profileSelector = RunRunnable(
+        controllerProfileSelector = RunRunnable(
           context,
           R.string.input_profiles,
           0,
@@ -2446,16 +2447,20 @@ class SettingsFragmentPresenter(
           0,
           true
         ) { fragmentView.showDialogFragment(ProfileDialog.create(menuTag)) }
+        sl.add(controllerProfileSelector!!)
+        updateControllerName()
 
+        updateOldControllerSettingsWarningVisibility(controller)
+    }
+
+    fun updateControllerName() {
+        val controller = menuTag.correspondingEmulatedController
         val profileDescription = if(controller.getProfileName().isEmpty()) {
-            ""
+            "No Profile..."
         } else {
             context.getString(R.string.input_profiles_descríption, controller.getProfileName())
         }
-
-        profileSelector.updateDescription(profileDescription)
-        sl.add(profileSelector)
-        updateOldControllerSettingsWarningVisibility(controller)
+        controllerProfileSelector?.updateDescription(profileDescription)
     }
 
     /**
