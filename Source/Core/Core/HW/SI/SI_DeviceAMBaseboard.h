@@ -219,11 +219,11 @@ private:
   u32 m_card_state_call_count;
   u8 m_card_offset;
 
-  u32 m_wheelinit;
+  u32 m_wheel_init;
 
-  u32 m_motorinit;
-  u8 m_motorreply[64];
-  s16 m_motorforce_x;
+  u32 m_motor_init;
+  u8 m_motor_reply[64];
+  s16 m_motor_force_y;
 
   // F-Zero AX (DX)
   bool m_fzdx_seatbelt;
