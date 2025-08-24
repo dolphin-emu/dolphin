@@ -11,7 +11,6 @@ import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.DialogInputStringBinding
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView
-import org.dolphinemu.dolphinemu.utils.Log
 import java.io.File
 import java.util.Locale
 
@@ -51,7 +50,9 @@ class ProfileDialogPresenter {
                 (dialog!!.requireActivity() as SettingsActivityView).onControllerSettingsChanged()
                 dialog.dismiss()
 
-              Log.error("Loaded Profile: $profileName, ${menuTag.correspondingEmulatedController.getProfileName()}")
+                // override the profilename with the given name, because otherwise it will be marked as
+                // "unsaved" and suffixed by SettingsActivityPresenter.onSettingChanged(), which is wrong.
+                menuTag.correspondingEmulatedController.setProfileName(profileName)
             }
             .setNegativeButton(R.string.no, null)
             .show()
@@ -62,6 +63,7 @@ class ProfileDialogPresenter {
         // If the user is creating a new profile, we normally shouldn't show a warning,
         // but if they've entered the name of an existing profile, we should shown an overwrite warning.
         val profilePath = getProfilePath(profileName, false)
+        menuTag.correspondingEmulatedController.setProfileName(profileName)
         if (!File(profilePath).exists()) {
             menuTag.correspondingEmulatedController.saveProfile(profilePath)
             dialog!!.dismiss()
@@ -69,7 +71,6 @@ class ProfileDialogPresenter {
             MaterialAlertDialogBuilder(context!!)
                 .setMessage(context.getString(R.string.input_profile_confirm_save, profileName))
                 .setPositiveButton(R.string.yes) { _: DialogInterface?, _: Int ->
-                    menuTag.correspondingEmulatedController.setProfileName(profileName)
                     menuTag.correspondingEmulatedController.saveProfile(profilePath)
                     dialog!!.dismiss()
                 }

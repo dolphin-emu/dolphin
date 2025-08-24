@@ -57,8 +57,10 @@ interface SettingsActivityView {
     /**
      * Called by a containing Fragment to tell the Activity that a Setting was changed;
      * unless this has been called, the Activity will not save to disk.
+     *
+     * @param allSettingsChanged This indicates if all currently visible settings were changed (by loading a config)
      */
-    fun onSettingChanged()
+    fun onSettingChanged(allSettingsChanged: Boolean = false)
 
     /**
      * Refetches the values of all controller settings.

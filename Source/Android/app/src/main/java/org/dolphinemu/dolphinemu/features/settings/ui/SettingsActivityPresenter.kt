@@ -5,6 +5,7 @@ package org.dolphinemu.dolphinemu.features.settings.ui
 import android.os.Bundle
 import android.text.TextUtils
 import androidx.appcompat.app.AppCompatActivity
+import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedController
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import org.dolphinemu.dolphinemu.utils.Log
@@ -80,8 +81,39 @@ class SettingsActivityPresenter(
         }
     }
 
-    fun onSettingChanged() {
+    fun onSettingChanged(allSettingsChanged: Boolean = false) {
         shouldSave = true
+
+        // if all settings were changed at once, we loaded a profile.
+        if(!allSettingsChanged) {
+            updateControllerProfileName()
+        }
+    }
+
+    private fun updateControllerProfileName() {
+        val isWiimote = this.menuTag?.isWiimoteMenu == true
+        val isWiimoteSub = this.menuTag?.isWiimoteSubmenu == true
+        val isGc = this.menuTag?.isGCPadMenu == true
+
+        if(isWiimote || isWiimoteSub || isGc) {
+            Log.error("controllersetting changed: $isWiimote $isWiimoteSub $isGc")
+
+            val wiimoteId = this.menuTag!!.subType
+            val controller = if(isGc) {
+                EmulatedController.getGcPad(wiimoteId)
+            } else {
+                EmulatedController.getWiimote(wiimoteId)
+            }
+
+            val profileName = controller.getProfileName()
+            val profileNameUnsavedSuffix = " (Unsaved)"
+            if (!profileName.endsWith(profileNameUnsavedSuffix)) {
+                val newName = controller.getProfileName()+profileNameUnsavedSuffix
+                controller.setProfileName(newName)
+                loadSettingsUI()
+
+            }
+        }
     }
 
     fun saveState(outState: Bundle) {
@@ -89,6 +121,8 @@ class SettingsActivityPresenter(
     }
 
     fun onMenuTagAction(menuTag: MenuTag, value: Int) {
+        // update the menu tag when it changes
+        this.menuTag = menuTag
         if (menuTag.isSerialPort1Menu) {
             // Not disabled or dummy
             if (value != 0 && value != 255) {

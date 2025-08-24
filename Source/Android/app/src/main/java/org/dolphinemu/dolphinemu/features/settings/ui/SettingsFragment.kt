@@ -141,8 +141,8 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
     override val settings: Settings?
         get() = presenter.settings
 
-    override fun onSettingChanged() {
-        activityView!!.onSettingChanged()
+    override fun onSettingChanged(allSettingsChanged: Boolean) {
+        activityView!!.onSettingChanged(allSettingsChanged)
     }
 
     override fun onControllerSettingsChanged() {
