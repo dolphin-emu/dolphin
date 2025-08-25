@@ -83,7 +83,7 @@ void CustomPipelineAction::DrawImGui()
       ImGui::TableNextColumn();
       if (GraphicsModEditor::Controls::AssetDisplay("CustomPipelineActionMaterial",
                                                     editor.GetEditorState(), &m_material_asset,
-                                                    GraphicsModEditor::RasterMaterial))
+                                                    GraphicsModEditor::Material))
       {
         GraphicsModEditor::EditorEvents::AssetReloadEvent::Trigger(m_material_asset);
       }
