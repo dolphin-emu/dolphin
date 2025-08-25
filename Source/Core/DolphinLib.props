@@ -152,6 +152,7 @@
     <ClInclude Include="Common\Projection.h" />
     <ClInclude Include="Common\QoSSession.h" />
     <ClInclude Include="Common\Random.h" />
+    <ClInclude Include="Common\Rational.h" />
     <ClInclude Include="Common\Result.h" />
     <ClInclude Include="Common\scmrev.h" />
     <ClInclude Include="Common\ScopeGuard.h" />
