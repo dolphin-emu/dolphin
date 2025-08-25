@@ -5,16 +5,18 @@
 
 #include <QDialog>
 
-class QStackedWidget;
-class QListWidget;
+namespace QtUtils
+{
+class VerticalTabsTabWidget;
+}
 class MainWindow;
 
-// A settings window with a QListWidget to switch between panes of a QStackedWidget.
-class StackedSettingsWindow : public QDialog
+// A settings window that contains a tab widget with vertical tabs.
+class TabbedSettingsWindow : public QDialog
 {
   Q_OBJECT
 public:
-  explicit StackedSettingsWindow(QWidget* parent = nullptr);
+  explicit TabbedSettingsWindow(QWidget* parent = nullptr);
 
   void ActivatePane(int index);
 
@@ -28,8 +30,7 @@ protected:
   void OnDoneCreatingPanes();
 
 private:
-  QStackedWidget* m_stacked_panes;
-  QListWidget* m_navigation_list;
+  QtUtils::VerticalTabsTabWidget* m_tabbed_panes{};
 };
 
 enum class SettingsWindowPaneIndex : int
@@ -45,7 +46,7 @@ enum class SettingsWindowPaneIndex : int
   Advanced,
 };
 
-class SettingsWindow final : public StackedSettingsWindow
+class SettingsWindow final : public TabbedSettingsWindow
 {
   Q_OBJECT
 public:

@@ -25,7 +25,7 @@
 #include "UICommon/GameFile.h"
 
 PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& game)
-    : StackedSettingsWindow{parent}, m_filepath(game.GetFilePath())
+    : TabbedSettingsWindow{parent}, m_filepath(game.GetFilePath())
 {
   setWindowTitle(QStringLiteral("%1: %2 - %3")
                      .arg(QString::fromStdString(game.GetFileName()),
