@@ -28,7 +28,7 @@ constexpr u16 LegalNitroChannelMask = 0b0011'1111'1111'1110u;
 
 u16 SelectWifiChannel(u16 enabled_channels_mask, u16 current_channel)
 {
-  const Common::BitSet<u16> enabled_channels{enabled_channels_mask & LegalChannelMask};
+  const Common::BitSet<u16> enabled_channels(enabled_channels_mask & LegalChannelMask);
   u16 next_channel = current_channel;
   for (int i = 0; i < 16; ++i)
   {
