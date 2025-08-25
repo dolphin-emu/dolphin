@@ -114,11 +114,8 @@ void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride
   // Inform the Presenter of the next estimated swap time.
 
   auto& vi = system.GetVideoInterface();
-  const s64 refresh_rate_den = vi.GetTargetRefreshRateDenominator();
-  const s64 refresh_rate_num = vi.GetTargetRefreshRateNumerator();
-
   const auto next_swap_estimated_ticks =
-      ticks + (system.GetSystemTimers().GetTicksPerSecond() * refresh_rate_den / refresh_rate_num);
+      ticks + u64(system.GetSystemTimers().GetTicksPerSecond() / vi.GetTargetRefreshRate());
   const auto next_swap_estimated_time = core_timing.GetTargetHostTime(next_swap_estimated_ticks);
 
   AsyncRequests::GetInstance()->PushEvent([=] {

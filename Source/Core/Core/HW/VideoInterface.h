@@ -4,10 +4,10 @@
 #pragma once
 
 #include <array>
-#include <memory>
 
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
+#include "Common/Rational.h"
 
 enum class FieldType;
 class PointerWrap;
@@ -381,9 +381,7 @@ public:
   // Change values pertaining to video mode
   void UpdateParameters();
 
-  double GetTargetRefreshRate() const;
-  u32 GetTargetRefreshRateNumerator() const;
-  u32 GetTargetRefreshRateDenominator() const;
+  MathUtil::Rational<u32> GetTargetRefreshRate() const;
 
   u32 GetTicksPerSample() const;
   u32 GetTicksPerHalfLine() const;
@@ -440,9 +438,7 @@ private:
   // 0xcc002076 - 0xcc00207f is full of 0x00FF: unknown
   // 0xcc002080 - 0xcc002100 even more unknown
 
-  double m_target_refresh_rate = 0;
-  u32 m_target_refresh_rate_numerator = 0;
-  u32 m_target_refresh_rate_denominator = 1;
+  MathUtil::Rational<u32> m_target_refresh_rate{0};
 
   u64 m_ticks_last_line_start = 0;  // number of ticks when the current full scanline started
   u32 m_half_line_count = 0;        // number of halflines that have occurred for this full frame
