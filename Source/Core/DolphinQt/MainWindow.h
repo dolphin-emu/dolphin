@@ -281,6 +281,6 @@ private:
   RegisterWidget* m_register_widget;
   ThreadWidget* m_thread_widget;
   WatchWidget* m_watch_widget;
-  CheatsManager* m_cheats_manager;
+  CheatsManager* m_cheats_manager{};
   QByteArray m_render_widget_geometry;
 };
