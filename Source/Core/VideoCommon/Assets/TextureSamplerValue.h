@@ -30,6 +30,8 @@ struct TextureSamplerValue
   SamplerOrigin sampler_origin = SamplerOrigin::Asset;
   std::string texture_hash;
 
+  bool is_render_target = false;
+
   static bool FromJson(const picojson::object& json, TextureSamplerValue* data);
   static void ToJson(picojson::object* obj, const TextureSamplerValue& data);
 };
