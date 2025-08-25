@@ -23,6 +23,7 @@
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/ConfigControls/ConfigInteger.h"
 #include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
+#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/GameConfigWidget.h"
 #include "DolphinQt/Config/Graphics/GraphicsPane.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
@@ -117,6 +118,20 @@ void GeneralWidget::CreateWidgets()
   m_render_main_window =
       new ConfigBool(tr("Render to Main Window"), Config::MAIN_RENDER_TO_MAIN, m_game_layer);
 
+  // ImGui Font Size
+  auto* imgui_size_layout = new QHBoxLayout();
+
+  m_imgui_size = new ConfigSlider(12, 40, Config::GFX_IMGUI_FONT_SIZE);
+  auto* imgui_size_number = new QLabel(QString::number(m_imgui_size->value()));
+  connect(m_imgui_size, &QSlider::valueChanged, this, [this, imgui_size_number](int value) {
+    imgui_size_number->setText(QString::number(value));
+  });
+
+  imgui_size_layout->addWidget(new QLabel(tr("OSD Font Size:")));
+  imgui_size_layout->addWidget(m_imgui_size);
+  imgui_size_layout->addWidget(imgui_size_number);
+  imgui_size_layout->setContentsMargins(0, 0, 0, 0);
+
   m_options_box->setLayout(m_options_layout);
 
   m_options_layout->addWidget(m_render_main_window, 0, 0);
@@ -124,6 +139,8 @@ void GeneralWidget::CreateWidgets()
 
   m_options_layout->addWidget(m_show_messages, 0, 1);
   m_options_layout->addWidget(m_show_ping, 1, 1);
+
+  m_options_layout->addLayout(imgui_size_layout, 2, 0, 1, 2);
 
   // Other
   auto* shader_compilation_box = new QGroupBox(tr("Shader Compilation"));
@@ -302,6 +319,10 @@ void GeneralWidget::AddDescriptions()
                  "two or fewer cores, it is recommended to enable this option, as a large shader "
                  "queue may reduce frame rates.<br><br><dolphin_emphasis>Otherwise, if "
                  "unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_OSD_FONT_SIZE_DESCRIPTION[] = QT_TR_NOOP(
+      "Changes the font size of the On Screen Display. Affects features such as performance "
+      "statistics, frame counter, and netplay chat.<br><br><dolphin_emphasis>If "
+      "unsure, leave this at 14.</dolphin_emphasis>");
 
   m_backend_combo->SetTitle(tr("Backend"));
   m_backend_combo->SetDescription(
@@ -337,6 +358,8 @@ void GeneralWidget::AddDescriptions()
   m_shader_compilation_mode[3]->SetDescription(tr(TR_SHADER_COMPILE_SKIP_DRAWING_DESCRIPTION));
 
   m_wait_for_shaders->SetDescription(tr(TR_SHADER_COMPILE_BEFORE_START_DESCRIPTION));
+
+  m_imgui_size->SetDescription(tr(TR_OSD_FONT_SIZE_DESCRIPTION));
 }
 
 void GeneralWidget::OnBackendChanged(const QString& backend_name)
