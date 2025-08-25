@@ -39,8 +39,9 @@ QWidget* CreateIconWarning(QWidget* parent, QStyle::StandardPixmap standard_pixm
 void AdjustSizeWithinScreen(QWidget* widget)
 {
   const auto screen_size = widget->screen()->availableSize();
-
-  const auto adj_screen_size = screen_size * 9 / 10;
+  const bool landscape{screen_size.width() > screen_size.height()};
+  const QSize adj_screen_size{(landscape && screen_size.height() >= 1080) ? (screen_size * 8 / 10) :
+                                                                            (screen_size * 9 / 10)};
 
   widget->resize(widget->sizeHint().boundedTo(adj_screen_size));
 }
