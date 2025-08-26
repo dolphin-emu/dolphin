@@ -41,7 +41,7 @@ extern "C" DISCORD_EXPORT void Discord_Register(const char* applicationId, const
         command = exePath;
     }
 
-    const char* destopFileFormat = "[Desktop Entry]\n"
+    const char* desktopFileFormat = "[Desktop Entry]\n"
                                    "Name=Game %s\n"
                                    "Exec=%s %%u\n" // note: it really wants that %u in there
                                    "Type=Application\n"
@@ -50,7 +50,7 @@ extern "C" DISCORD_EXPORT void Discord_Register(const char* applicationId, const
                                    "MimeType=x-scheme-handler/discord-%s;\n";
     char desktopFile[2048];
     int fileLen = snprintf(
-      desktopFile, sizeof(desktopFile), destopFileFormat, applicationId, command, applicationId);
+      desktopFile, sizeof(desktopFile), desktopFileFormat, applicationId, command, applicationId);
     if (fileLen <= 0) {
         return;
     }
