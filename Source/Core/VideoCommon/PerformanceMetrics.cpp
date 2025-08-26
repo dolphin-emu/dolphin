@@ -170,7 +170,7 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
   if (g_ActiveConfig.bShowGraphs)
   {
     // Force smaller font
-    ImGui::PushFont(NULL, 14.0f);
+    ImGui::PushFont(NULL, 13.0f);
     ImGui::PushStyleColor(ImGuiCol_ResizeGrip, 0);
     const auto graph_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings |
                              ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav | movable_flag |
