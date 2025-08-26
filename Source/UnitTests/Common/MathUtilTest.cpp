@@ -66,6 +66,13 @@ TEST(MathUtil, SaturatingCast)
   // 16777217 = 2^24 + 1 is the first integer that cannot be represented correctly with a f32.
   EXPECT_EQ(16777216, MathUtil::SaturatingCast<s32>(float(16777216)));
   EXPECT_EQ(16777216, MathUtil::SaturatingCast<s32>(float(16777217)));
+
+  // Note that values in the range [2147483584, 2147483776] have an equivalent float representation.
+  EXPECT_EQ(std::numeric_limits<s32>::max(), MathUtil::SaturatingCast<s32>(2147483648.f));
+  EXPECT_EQ(std::numeric_limits<s32>::min(), MathUtil::SaturatingCast<s32>(-2147483649.f));
+
+  // Cast from a signed integer type to a smaller signed integer type
+  EXPECT_EQ(-128, (MathUtil::SaturatingCast<s8, int>(-129)));
 }
 
 TEST(MathUtil, RectangleEquality)
