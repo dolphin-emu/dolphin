@@ -18,6 +18,14 @@ TEST(MathUtil, IntLog2)
   EXPECT_EQ(63, MathUtil::IntLog2(0xFFFFFFFFFFFFFFFFull));
 }
 
+TEST(MathUtil, Compare3Way)
+{
+  EXPECT_TRUE(std::is_lt(MathUtil::Compare3Way(-1, 1u)));
+  EXPECT_TRUE(std::is_gteq(MathUtil::Compare3Way(5u, -17ll)));
+  EXPECT_TRUE(std::is_eq(MathUtil::Compare3Way(42ull, 42)));
+  EXPECT_TRUE(std::is_neq(MathUtil::Compare3Way(s32(-1), u32(-1))));
+}
+
 TEST(MathUtil, NextPowerOf2)
 {
   EXPECT_EQ(4U, MathUtil::NextPowerOf2(3));
