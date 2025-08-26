@@ -181,7 +181,7 @@ void VideoConfig::Refresh()
   bVertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUNDING);
   iEFBAccessTileSize = Config::Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
   iMissingColorValue = Config::Get(Config::GFX_HACK_MISSING_COLOR_VALUE);
-  bFastTextureSampling = Config::Get(Config::GFX_HACK_FAST_TEXTURE_SAMPLING);
+  bFastTextureSampling = false;//Config::Get(Config::GFX_HACK_FAST_TEXTURE_SAMPLING);
 #ifdef __APPLE__
   bNoMipmapping = Config::Get(Config::GFX_HACK_NO_MIPMAPPING);
 #endif
