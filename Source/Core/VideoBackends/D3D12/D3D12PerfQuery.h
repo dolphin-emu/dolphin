@@ -9,7 +9,7 @@
 
 namespace DX12
 {
-class PerfQuery final : public PerfQueryBase
+class PerfQuery final : public HardwarePerfQueryBase
 {
 public:
   PerfQuery();
@@ -23,7 +23,6 @@ public:
   void EnableQuery(PerfQueryGroup group) override;
   void DisableQuery(PerfQueryGroup group) override;
   void ResetQuery() override;
-  u32 GetQueryResult(PerfQueryType type) override;
   void FlushResults() override;
   bool IsFlushed() const override;
 

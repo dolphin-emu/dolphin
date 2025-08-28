@@ -12,7 +12,7 @@
 
 namespace Vulkan
 {
-class PerfQuery : public PerfQueryBase
+class PerfQuery : public HardwarePerfQueryBase
 {
 public:
   PerfQuery();
@@ -25,7 +25,6 @@ public:
   void EnableQuery(PerfQueryGroup group) override;
   void DisableQuery(PerfQueryGroup group) override;
   void ResetQuery() override;
-  u32 GetQueryResult(PerfQueryType type) override;
   void FlushResults() override;
   bool IsFlushed() const override;
 

@@ -10,13 +10,12 @@
 
 namespace Metal
 {
-class PerfQuery final : public PerfQueryBase
+class PerfQuery final : public HardwarePerfQueryBase
 {
 public:
   void EnableQuery(PerfQueryGroup type) override;
   void DisableQuery(PerfQueryGroup type) override;
   void ResetQuery() override;
-  u32 GetQueryResult(PerfQueryType type) override;
   void FlushResults() override;
   bool IsFlushed() const override;
 

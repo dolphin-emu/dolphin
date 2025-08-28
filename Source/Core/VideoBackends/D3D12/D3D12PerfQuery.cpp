@@ -109,30 +109,6 @@ void PerfQuery::ResetQuery()
   }
 }
 
-u32 PerfQuery::GetQueryResult(PerfQueryType type)
-{
-  u32 result = 0;
-  if (type == PQ_ZCOMP_INPUT_ZCOMPLOC || type == PQ_ZCOMP_OUTPUT_ZCOMPLOC)
-  {
-    result = m_results[PQG_ZCOMP_ZCOMPLOC].load(std::memory_order_relaxed);
-  }
-  else if (type == PQ_ZCOMP_INPUT || type == PQ_ZCOMP_OUTPUT)
-  {
-    result = m_results[PQG_ZCOMP].load(std::memory_order_relaxed);
-  }
-  else if (type == PQ_BLEND_INPUT)
-  {
-    result = m_results[PQG_ZCOMP].load(std::memory_order_relaxed) +
-             m_results[PQG_ZCOMP_ZCOMPLOC].load(std::memory_order_relaxed);
-  }
-  else if (type == PQ_EFB_COPY_CLOCKS)
-  {
-    result = m_results[PQG_EFB_COPY_CLOCKS].load(std::memory_order_relaxed);
-  }
-
-  return result / 4;
-}
-
 void PerfQuery::FlushResults()
 {
   while (!IsFlushed())
