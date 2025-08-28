@@ -72,8 +72,8 @@ void CPUManager::StartTimePlayedTimer()
 {
   Common::SetCurrentThreadName("Play Time Tracker");
 
-  // Steady clock for greater accuracy of timing
-  std::chrono::steady_clock timer;
+  // Use a clock that will appropriately ignore suspended system time.
+  Common::SteadyAwakeClock timer;
   auto prev_time = timer.now();
 
   while (true)

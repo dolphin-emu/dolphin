@@ -50,4 +50,19 @@ private:
 #endif
 };
 
+// Similar to std::chrono::steady_clock except this clock
+// specifically does *not* count time while the system is suspended.
+class SteadyAwakeClock
+{
+public:
+  using rep = s64;
+  using period = std::nano;
+  using duration = std::chrono::duration<rep, period>;
+  using time_point = std::chrono::time_point<SteadyAwakeClock>;
+
+  static constexpr bool is_steady = true;
+
+  static time_point now();
+};
+
 }  // Namespace Common
