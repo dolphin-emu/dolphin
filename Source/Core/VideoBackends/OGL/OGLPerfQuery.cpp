@@ -30,25 +30,9 @@ PerfQuery::PerfQuery() : m_query_read_pos()
   ResetQuery();
 }
 
-void PerfQuery::EnableQuery(PerfQueryGroup group)
-{
-  m_query->EnableQuery(group);
-}
-
-void PerfQuery::DisableQuery(PerfQueryGroup group)
-{
-  m_query->DisableQuery(group);
-}
-
 bool PerfQuery::IsFlushed() const
 {
   return m_query_count.load(std::memory_order_relaxed) == 0;
-}
-
-// TODO: could selectively flush things, but I don't think that will do much
-void PerfQuery::FlushResults()
-{
-  m_query->FlushResults();
 }
 
 void PerfQuery::ResetQuery()
