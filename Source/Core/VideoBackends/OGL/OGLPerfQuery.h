@@ -20,7 +20,6 @@ public:
   PerfQuery();
   ~PerfQuery() override {}
   void ResetQuery() override;
-  bool IsFlushed() const override;
 
 protected:
   struct ActiveQuery

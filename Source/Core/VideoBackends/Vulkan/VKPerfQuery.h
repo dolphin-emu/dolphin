@@ -26,7 +26,6 @@ public:
   void DisableQuery(PerfQueryGroup group) override;
   void ResetQuery() override;
   void FlushResults() override;
-  bool IsFlushed() const override;
 
 private:
   // u32 is used for the sample counts.

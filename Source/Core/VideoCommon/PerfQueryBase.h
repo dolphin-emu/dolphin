@@ -68,6 +68,7 @@ class HardwarePerfQueryBase : public PerfQueryBase
 {
 public:
   u32 GetQueryResult(PerfQueryType type) final;
+  bool IsFlushed() const final;
 
 protected:
   std::atomic<u32> m_query_count{};

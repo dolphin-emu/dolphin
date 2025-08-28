@@ -17,7 +17,6 @@ public:
   void DisableQuery(PerfQueryGroup type) override;
   void ResetQuery() override;
   void FlushResults() override;
-  bool IsFlushed() const override;
 
   /// Notify PerfQuery of a new pending encoder
   /// One call to ReturnResults should be made for every call to IncCount

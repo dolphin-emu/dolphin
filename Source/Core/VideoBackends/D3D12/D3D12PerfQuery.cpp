@@ -115,11 +115,6 @@ void PerfQuery::FlushResults()
     PartialFlush(true, true);
 }
 
-bool PerfQuery::IsFlushed() const
-{
-  return m_query_count.load(std::memory_order_relaxed) == 0;
-}
-
 void PerfQuery::ResolveQueries()
 {
   // Do we need to split the resolve as it's wrapping around?

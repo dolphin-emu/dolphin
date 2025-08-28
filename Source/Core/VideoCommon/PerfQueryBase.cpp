@@ -40,3 +40,8 @@ u32 HardwarePerfQueryBase::GetQueryResult(PerfQueryType type)
 
   return result / 4;
 }
+
+bool HardwarePerfQueryBase::IsFlushed() const
+{
+  return m_query_count.load(std::memory_order_relaxed) == 0;
+}

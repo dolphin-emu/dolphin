@@ -30,11 +30,6 @@ PerfQuery::PerfQuery() : m_query_read_pos()
   ResetQuery();
 }
 
-bool PerfQuery::IsFlushed() const
-{
-  return m_query_count.load(std::memory_order_relaxed) == 0;
-}
-
 void PerfQuery::ResetQuery()
 {
   m_query_count.store(0, std::memory_order_relaxed);

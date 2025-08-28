@@ -136,9 +136,4 @@ void PerfQuery::WeakFlush()
   }
 }
 
-bool PerfQuery::IsFlushed() const
-{
-  return m_query_count.load(std::memory_order_relaxed) == 0;
-}
-
 }  // namespace DX11

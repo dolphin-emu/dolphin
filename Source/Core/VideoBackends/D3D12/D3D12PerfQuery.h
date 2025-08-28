@@ -24,7 +24,6 @@ public:
   void DisableQuery(PerfQueryGroup group) override;
   void ResetQuery() override;
   void FlushResults() override;
-  bool IsFlushed() const override;
 
 private:
   struct ActiveQuery
