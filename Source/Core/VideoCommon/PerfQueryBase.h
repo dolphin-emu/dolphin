@@ -43,13 +43,13 @@ public:
   // The call to EnableQuery() should be placed immediately before the draw command, otherwise
   // there is a risk of GPU resets if the query is left open and the buffer is submitted during
   // resource binding (D3D12/Vulkan).
-  virtual void EnableQuery(PerfQueryGroup type) {}
+  virtual void EnableQuery(PerfQueryGroup type) = 0;
 
   // Stop querying the specified value for the following host GPU commands
-  virtual void DisableQuery(PerfQueryGroup type) {}
+  virtual void DisableQuery(PerfQueryGroup type) = 0;
 
   // Reset query counters to zero and drop any pending queries
-  virtual void ResetQuery() {}
+  virtual void ResetQuery() = 0;
 
   // Return the measured value for the specified query type
   // NOTE: Called from CPU thread
@@ -57,11 +57,11 @@ public:
 
   // Request the value of any pending queries - causes a pipeline flush and thus should be used
   // carefully!
-  virtual void FlushResults() {}
+  virtual void FlushResults() = 0;
 
   // True if there are no further pending query results
   // NOTE: Called from CPU thread
-  virtual bool IsFlushed() const { return true; }
+  virtual bool IsFlushed() const = 0;
 };
 
 class HardwarePerfQueryBase : public PerfQueryBase
