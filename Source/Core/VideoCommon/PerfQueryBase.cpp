@@ -20,25 +20,36 @@ u32 HardwarePerfQueryBase::GetQueryResult(PerfQueryType type)
 {
   u32 result = 0;
 
-  if (type == PQ_ZCOMP_INPUT_ZCOMPLOC || type == PQ_ZCOMP_OUTPUT_ZCOMPLOC)
+  switch (type)
   {
-    result = m_results[PQG_ZCOMP_ZCOMPLOC].load(std::memory_order_relaxed);
-  }
-  else if (type == PQ_ZCOMP_INPUT || type == PQ_ZCOMP_OUTPUT)
-  {
+  case PQ_ZCOMP_INPUT_ZCOMPLOC:
+  case PQ_ZCOMP_OUTPUT_ZCOMPLOC:
+    // Need for Speed: Most Wanted uses this for the sun.
+    result = m_results[PQG_ZCOMP_ZCOMPLOC].load(std::memory_order_relaxed) / 4;
+    break;
+
+  case PQ_ZCOMP_INPUT:
+  case PQ_ZCOMP_OUTPUT:
+    // Timesplitters Future Perfect uses this for the story mode opening cinematic lens flare.
     result = m_results[PQG_ZCOMP].load(std::memory_order_relaxed);
-  }
-  else if (type == PQ_BLEND_INPUT)
-  {
-    result = m_results[PQG_ZCOMP].load(std::memory_order_relaxed) +
-             m_results[PQG_ZCOMP_ZCOMPLOC].load(std::memory_order_relaxed);
-  }
-  else if (type == PQ_EFB_COPY_CLOCKS)
-  {
+    break;
+
+  case PQ_BLEND_INPUT:
+    // Super Mario Sunshine uses this to complete "Scrubbing Sirena Beach".
+    result = (m_results[PQG_ZCOMP].load(std::memory_order_relaxed) +
+              m_results[PQG_ZCOMP_ZCOMPLOC].load(std::memory_order_relaxed)) /
+             4;
+    break;
+
+  case PQ_EFB_COPY_CLOCKS:
     result = m_results[PQG_EFB_COPY_CLOCKS].load(std::memory_order_relaxed);
+    break;
+
+  default:
+    break;
   }
 
-  return result / 4;
+  return result;
 }
 
 bool HardwarePerfQueryBase::IsFlushed() const
