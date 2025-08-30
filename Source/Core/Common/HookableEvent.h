@@ -19,10 +19,17 @@ namespace Common
 {
 struct HookBase
 {
-  // Prevent slicing/copying/moving.
-  virtual ~HookBase() = 0;
+  virtual ~HookBase() = default;
+
+  // This shouldn't be copied. And since we always wrap it in unique_ptr, no need to move it either
+  HookBase(const HookBase&) = delete;
+  HookBase(HookBase&&) = delete;
+  HookBase& operator=(const HookBase&) = delete;
+  HookBase& operator=(HookBase&&) = delete;
+
+protected:
+  HookBase() = default;
 };
-inline HookBase::~HookBase() = default;
 
 // EventHook is a handle a registered listener holds.
 // When the handle is destroyed, the HookableEvent will automatically remove the listener.
