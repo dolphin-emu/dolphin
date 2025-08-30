@@ -454,7 +454,7 @@ private:
   u32 m_even_field_last_hl = 0;   // index last halfline of the even field
   u32 m_odd_field_last_hl = 0;    // index last halfline of the odd field
 
-  float m_config_vi_oc_factor = 0.0f;
+  float m_config_vi_oc_factor = 1.0f;
 
   Config::ConfigChangedCallbackID m_config_changed_callback_id;
   Core::System& m_system;
