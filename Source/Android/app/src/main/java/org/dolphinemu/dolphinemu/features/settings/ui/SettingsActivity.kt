@@ -246,8 +246,8 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
-    override fun onSettingChanged() {
-        presenter!!.onSettingChanged()
+    override fun onSettingChanged(allSettingsChanged: Boolean) {
+        presenter!!.onSettingChanged(allSettingsChanged)
     }
 
     override fun onControllerSettingsChanged() {
