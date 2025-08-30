@@ -35,6 +35,7 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 namespace PatchEngine
 {
@@ -200,6 +201,18 @@ void LoadPatches()
     ActionReplay::LoadAndApplyCodes(globalIni, localIni, sconfig.GetGameID(),
                                     sconfig.GetRevision());
   }
+
+  const size_t enabled_patch_count =
+      std::ranges::count_if(s_on_frame, [](Patch patch) { return patch.enabled; });
+  if (enabled_patch_count > 0)
+  {
+    OSD::AddMessage(fmt::format("{} game patch(es) enabled", enabled_patch_count),
+                    OSD::Duration::NORMAL);
+  }
+
+  const size_t enabled_cheat_count = ActionReplay::CountEnabledCodes() + Gecko::CountEnabledCodes();
+  if (enabled_cheat_count > 0)
+    OSD::AddMessage(fmt::format("{} cheat(s) enabled", enabled_cheat_count), OSD::Duration::NORMAL);
 }
 
 static void ApplyPatches(const Core::CPUThreadGuard& guard, const std::vector<Patch>& patches)

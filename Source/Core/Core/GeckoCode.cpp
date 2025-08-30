@@ -50,6 +50,15 @@ static std::vector<GeckoCode> s_active_codes;
 static std::vector<GeckoCode> s_synced_codes;
 static std::mutex s_active_codes_lock;
 
+size_t CountEnabledCodes()
+{
+  if (!Config::AreCheatsEnabled())
+    return 0;
+
+  std::lock_guard guard(s_active_codes_lock);
+  return s_active_codes.size();
+}
+
 void SetActiveCodes(std::span<const GeckoCode> gcodes, const std::string& game_id, u16 revision)
 {
   std::lock_guard lk(s_active_codes_lock);
