@@ -203,8 +203,8 @@ private:
   EventType* m_ev_lost = nullptr;
 
   CPUThreadConfigCallback::ConfigChangedCallbackID m_registered_config_callback_id;
-  float m_config_oc_factor = 0.0f;
-  float m_config_oc_inv_factor = 0.0f;
+  float m_config_oc_factor = 1.0f;
+  float m_config_oc_inv_factor = 1.0f;
   bool m_config_sync_on_skip_idle = false;
 
   s64 m_throttle_reference_cycle = 0;
