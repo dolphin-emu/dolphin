@@ -223,11 +223,14 @@ void Settings::ApplyStyle()
     GetToolTipStyle(window_color, text_color, unused_text_emphasis_color, border_color, palette,
                     palette);
 
+    const int padding{QFontMetrics(QFont()).height() / 2};
+
     const auto tooltip_stylesheet =
-        QStringLiteral("QToolTip { background-color: #%1; color: #%2; padding: 8px; "
-                       "border: 1px; border-style: solid; border-color: #%3; }")
+        QStringLiteral("QToolTip { background-color: #%1; color: #%2; padding: %3px; "
+                       "border: 1px; border-style: solid; border-color: #%4; }")
             .arg(window_color.rgba(), 0, 16)
             .arg(text_color.rgba(), 0, 16)
+            .arg(padding)
             .arg(border_color.rgba(), 0, 16);
     stylesheet_contents.append(QStringLiteral("%1").arg(tooltip_stylesheet));
   }
