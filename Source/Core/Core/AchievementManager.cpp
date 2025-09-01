@@ -9,6 +9,7 @@
 #include <memory>
 
 #include <fmt/format.h>
+#include <SFML/Audio.hpp>
 
 #include <rcheevos/include/rc_api_info.h>
 
@@ -1106,6 +1107,16 @@ void AchievementManager::DisplayWelcomeMessage()
   OSD::AddMessage(fmt::format("Leaderboard submissions are {}",
                               rc_client_get_hardcore_enabled(m_client) ? "ON" : "OFF"),
                   OSD::Duration::VERY_LONG, color);
+
+  std::string directory = File::GetSysDirectory() + DIR_SEP + RESOURCES_DIR + DIR_SEP;
+  sf::SoundBuffer buffer;
+  if (!buffer.loadFromFile(fmt::format("{}{}", directory, DEFAULT_UNLOCK_SOUND_FILENAME)))
+  {
+    // Handle error if loading fails
+  }
+  sf::Sound sound(buffer);
+  sound.play();
+
 }
 
 void AchievementManager::HandleAchievementTriggeredEvent(const rc_client_event_t* client_event)
