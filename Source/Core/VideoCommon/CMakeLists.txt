@@ -322,6 +322,7 @@ PRIVATE
   spng::spng
   xxhash::xxhash
   imgui
+  ImGuizmo
   implot
   glslang
   tinygltf
