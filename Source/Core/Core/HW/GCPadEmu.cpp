@@ -52,7 +52,7 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
   groups.emplace_back(m_main_stick = new ControllerEmu::OctagonAnalogStick(
                           MAIN_STICK_GROUP, _trans("Control Stick"), MAIN_STICK_GATE_RADIUS));
   groups.emplace_back(m_c_stick = new ControllerEmu::OctagonAnalogStick(
-                          C_STICK_GROUP, _trans("C Stick"), C_STICK_GATE_RADIUS));
+                          C_STICK_GROUP, _trans("C-Stick"), C_STICK_GATE_RADIUS));
 
   // triggers
   groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(TRIGGERS_GROUP));
@@ -178,65 +178,62 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
 
-#ifdef ANDROID
   // Rumble
-  m_rumble->SetControlExpression(0, "`Android/0/Device Sensors:Motor 0`");
-#else
+  m_rumble->SetControlExpression(0, "Motor");
+
   // Buttons: A, B, X, Y, Z
-  m_buttons->SetControlExpression(0, "`X`");
-  m_buttons->SetControlExpression(1, "`Z`");
-  m_buttons->SetControlExpression(2, "`C`");
-  m_buttons->SetControlExpression(3, "`S`");
-  m_buttons->SetControlExpression(4, "`D`");
+  m_buttons->SetControlExpression(0, "G|`Button S`");
+  m_buttons->SetControlExpression(1, "F|`Button W`");
+  m_buttons->SetControlExpression(2, "H|`Button E`");
+  m_buttons->SetControlExpression(3, "T|`Button N`");
+#ifdef __APPLE__
+  m_buttons->SetControlExpression(4, "Option|Tab|`Shoulder R`|Back");
+#else
+  m_buttons->SetControlExpression(4, "Alt|Tab|`Shoulder R`|Back");
+#endif
+
 #ifdef _WIN32
-  m_buttons->SetControlExpression(5, "`RETURN`");  // Start
+  m_buttons->SetControlExpression(5, "Enter|Start");  // Start
 #else
   // OS X/Linux
   // Start
-  m_buttons->SetControlExpression(5, "`Return`");
+  m_buttons->SetControlExpression(5, "Return|Start");
 #endif
 
   // D-Pad
-  m_dpad->SetControlExpression(0, "`T`");  // Up
-  m_dpad->SetControlExpression(1, "`G`");  // Down
-  m_dpad->SetControlExpression(2, "`F`");  // Left
-  m_dpad->SetControlExpression(3, "`H`");  // Right
-
-  // C Stick
-  m_c_stick->SetControlExpression(0, "`I`");  // Up
-  m_c_stick->SetControlExpression(1, "`K`");  // Down
-  m_c_stick->SetControlExpression(2, "`J`");  // Left
-  m_c_stick->SetControlExpression(3, "`L`");  // Right
-  // Modifier
-  m_c_stick->SetControlExpression(4, "`Ctrl`");
+  m_dpad->SetControlExpression(0, "Up|`Pad N`");  // Up
+  m_dpad->SetControlExpression(1, "Down|`Pad S`");  // Down
+  m_dpad->SetControlExpression(2, "Left|`Pad W`");  // Left
+  m_dpad->SetControlExpression(3, "Right|`Pad E`");  // Right
 
   // Control Stick
-#ifdef _WIN32
-  m_main_stick->SetControlExpression(0, "`UP`");     // Up
-  m_main_stick->SetControlExpression(1, "`DOWN`");   // Down
-  m_main_stick->SetControlExpression(2, "`LEFT`");   // Left
-  m_main_stick->SetControlExpression(3, "`RIGHT`");  // Right
-#elif __APPLE__
-  m_main_stick->SetControlExpression(0, "`Up Arrow`");     // Up
-  m_main_stick->SetControlExpression(1, "`Down Arrow`");   // Down
-  m_main_stick->SetControlExpression(2, "`Left Arrow`");   // Left
-  m_main_stick->SetControlExpression(3, "`Right Arrow`");  // Right
-#else
-  m_main_stick->SetControlExpression(0, "`Up`");     // Up
-  m_main_stick->SetControlExpression(1, "`Down`");   // Down
-  m_main_stick->SetControlExpression(2, "`Left`");   // Left
-  m_main_stick->SetControlExpression(3, "`Right`");  // Right
-#endif
+  m_main_stick->SetControlExpression(0, "W|`Left Y+`");     // Up
+  m_main_stick->SetControlExpression(1, "S|`Left Y-`");   // Down
+  m_main_stick->SetControlExpression(2, "A|`Left X-`");   // Left
+  m_main_stick->SetControlExpression(3, "D|`Left X+`");  // Right
   // Modifier
-  m_main_stick->SetControlExpression(4, "`Shift`");
+  m_main_stick->SetControlExpression(4, "`Left Shift`");
+
+  // C-Stick
+  m_c_stick->SetControlExpression(0, "I|`Right Y+`");  // Up
+  m_c_stick->SetControlExpression(1, "K|`Right Y-`");  // Down
+  m_c_stick->SetControlExpression(2, "J|`Right X-`");  // Left
+  m_c_stick->SetControlExpression(3, "L|`Right X+`");  // Right
+  // Modifier
+  m_c_stick->SetControlExpression(4, "`Right Shift`");
 
   // Because our defaults use keyboard input, set calibration shapes to squares.
   m_c_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
   m_main_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
 
   // Triggers
-  m_triggers->SetControlExpression(0, "`Q`");  // L
-  m_triggers->SetControlExpression(1, "`W`");  // R
+#ifdef _WIN32
+  m_triggers->SetControlExpression(0, "Ctrl|`Trigger L`");  // L (digital)
+#else
+  m_triggers->SetControlExpression(0, "Control|`Trigger L`");  // L (digital)
+  m_triggers->SetControlExpression(1, "Space|`Trigger R`");  // R (digital)
+  m_triggers->SetControlExpression(2, "`Trigger L`");  // L (analog)
+  m_triggers->SetControlExpression(3, "`Trigger R`");  // R (analog)
 #endif
 }
 

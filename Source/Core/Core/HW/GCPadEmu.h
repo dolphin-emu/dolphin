@@ -54,7 +54,7 @@ public:
   static constexpr ControlState C_STICK_GATE_RADIUS = 0.7221375;
 
   static constexpr const char* BUTTONS_GROUP = _trans("Buttons");
-  static constexpr const char* MAIN_STICK_GROUP = "Main Stick";
+  static constexpr const char* MAIN_STICK_GROUP = "Control Stick";
   static constexpr const char* C_STICK_GROUP = "C-Stick";
   static constexpr const char* DPAD_GROUP = _trans("D-Pad");
   static constexpr const char* TRIGGERS_GROUP = _trans("Triggers");
@@ -70,13 +70,13 @@ public:
   static constexpr const char* START_BUTTON = "Start";
 
   // i18n: The left trigger button (labeled L on real controllers)
-  static constexpr const char* L_DIGITAL = _trans("L");
+  static constexpr const char* L_DIGITAL = _trans("L (digital)");
   // i18n: The right trigger button (labeled R on real controllers)
-  static constexpr const char* R_DIGITAL = _trans("R");
+  static constexpr const char* R_DIGITAL = _trans("R (digital)");
   // i18n: The left trigger button (labeled L on real controllers) used as an analog input
-  static constexpr const char* L_ANALOG = _trans("L-Analog");
+  static constexpr const char* L_ANALOG = _trans("L (analog)");
   // i18n: The right trigger button (labeled R on real controllers) used as an analog input
-  static constexpr const char* R_ANALOG = _trans("R-Analog");
+  static constexpr const char* R_ANALOG = _trans("R (analog)");
 
 private:
   ControllerEmu::Buttons* m_buttons;

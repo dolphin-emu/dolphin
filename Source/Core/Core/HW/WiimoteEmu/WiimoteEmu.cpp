@@ -295,7 +295,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
                         {_trans("Battery"),
                          // i18n: The percent symbol.
                          _trans("%")},
-                        95, 0, 100);
+                        `Battery`, 0, 100);
 
   // Note: "Upright" and "Sideways" options can be enabled at the same time which produces an
   // orientation where the wiimote points towards the left with the buttons towards you.
@@ -686,85 +686,50 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
 
-#ifdef ANDROID
   // Rumble
-  m_rumble->SetControlExpression(0, "`Android/0/Device Sensors:Motor 0`");
-
-  // Motion Source
-  m_imu_accelerometer->SetControlExpression(0, "`Android/0/Device Sensors:Accel Up`");
-  m_imu_accelerometer->SetControlExpression(1, "`Android/0/Device Sensors:Accel Down`");
-  m_imu_accelerometer->SetControlExpression(2, "`Android/0/Device Sensors:Accel Left`");
-  m_imu_accelerometer->SetControlExpression(3, "`Android/0/Device Sensors:Accel Right`");
-  m_imu_accelerometer->SetControlExpression(4, "`Android/0/Device Sensors:Accel Forward`");
-  m_imu_accelerometer->SetControlExpression(5, "`Android/0/Device Sensors:Accel Backward`");
-  m_imu_gyroscope->SetControlExpression(0, "`Android/0/Device Sensors:Gyro Pitch Up`");
-  m_imu_gyroscope->SetControlExpression(1, "`Android/0/Device Sensors:Gyro Pitch Down`");
-  m_imu_gyroscope->SetControlExpression(2, "`Android/0/Device Sensors:Gyro Roll Left`");
-  m_imu_gyroscope->SetControlExpression(3, "`Android/0/Device Sensors:Gyro Roll Right`");
-  m_imu_gyroscope->SetControlExpression(4, "`Android/0/Device Sensors:Gyro Yaw Left`");
-  m_imu_gyroscope->SetControlExpression(5, "`Android/0/Device Sensors:Gyro Yaw Right`");
-#else
+  m_rumble->SetControlExpression(0, "Motor");
 // Buttons
 #if defined HAVE_X11 && HAVE_X11
   // A
-  m_buttons->SetControlExpression(0, "`Click 1`");
+  m_buttons->SetControlExpression(0, "`Mouse 1`");
   // B
-  m_buttons->SetControlExpression(1, "`Click 3`");
+  m_buttons->SetControlExpression(1, "`Mouse 2`");
 #elif defined(__APPLE__)
   // A
-  m_buttons->SetControlExpression(0, "`Left Click`");
+  m_buttons->SetControlExpression(0, "`Left Mouse Button`");
   // B
-  m_buttons->SetControlExpression(1, "`Right Click`");
+  m_buttons->SetControlExpression(1, "`Right Mouse Button`");
 #else
   // A
-  m_buttons->SetControlExpression(0, "`Click 0`");
+  m_buttons->SetControlExpression(0, "`Mouse 1`");
   // B
-  m_buttons->SetControlExpression(1, "`Click 1`");
+  m_buttons->SetControlExpression(1, "`Mouse 2`");
 #endif
   // 1 2 - +
-  m_buttons->SetControlExpression(2, "`1`");
-  m_buttons->SetControlExpression(3, "`2`");
-  m_buttons->SetControlExpression(4, "Q");
-  m_buttons->SetControlExpression(5, "E");
-
-#ifdef _WIN32
-  m_buttons->SetControlExpression(6, "RETURN");  // Home
-#else
-  // Home
-  m_buttons->SetControlExpression(6, "Return");
-#endif
+  m_buttons->SetControlExpression(2, "1");
+  m_buttons->SetControlExpression(3, "2");
+  m_buttons->SetControlExpression(4, "Q|`Mouse 4`");
+  m_buttons->SetControlExpression(5, "E|`Mouse 5`");
 
   // Shake
   for (int i = 0; i < 3; ++i)
 #ifdef __APPLE__
-    m_shake->SetControlExpression(i, "`Middle Click`");
+    m_shake->SetControlExpression(i, "`Middle Mouse Button`");
 #else
-    m_shake->SetControlExpression(i, "`Click 2`");
+    m_shake->SetControlExpression(i, "`Mouse 3`");
 #endif
 
   // Pointing (IR)
-  m_ir->SetControlExpression(0, "`Cursor Y-`");
-  m_ir->SetControlExpression(1, "`Cursor Y+`");
-  m_ir->SetControlExpression(2, "`Cursor X-`");
-  m_ir->SetControlExpression(3, "`Cursor X+`");
+  m_ir->SetControlExpression(0, "`Cursor Y-`|`Touchpad Y-`");
+  m_ir->SetControlExpression(1, "`Cursor Y+`|`Touchpad Y+`");
+  m_ir->SetControlExpression(2, "`Cursor X-`|`Touchpad X-`");
+  m_ir->SetControlExpression(3, "`Cursor X+`|`Touchpad X+`");
 
 // DPad
-#ifdef _WIN32
-  m_dpad->SetControlExpression(0, "UP");     // Up
-  m_dpad->SetControlExpression(1, "DOWN");   // Down
-  m_dpad->SetControlExpression(2, "LEFT");   // Left
-  m_dpad->SetControlExpression(3, "RIGHT");  // Right
-#elif __APPLE__
-  m_dpad->SetControlExpression(0, "`Up Arrow`");     // Up
-  m_dpad->SetControlExpression(1, "`Down Arrow`");   // Down
-  m_dpad->SetControlExpression(2, "`Left Arrow`");   // Left
-  m_dpad->SetControlExpression(3, "`Right Arrow`");  // Right
-#else
-  m_dpad->SetControlExpression(0, "Up");     // Up
-  m_dpad->SetControlExpression(1, "Down");   // Down
+  m_dpad->SetControlExpression(0, "Up|`Axis Z+`");     // Up
+  m_dpad->SetControlExpression(1, "Down|`Axis Z+`");   // Down
   m_dpad->SetControlExpression(2, "Left");   // Left
   m_dpad->SetControlExpression(3, "Right");  // Right
-#endif
 
   // Motion Source
   m_imu_accelerometer->SetControlExpression(0, "`Accel Up`");

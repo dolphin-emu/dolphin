@@ -127,7 +127,7 @@ std::string KeycodeToName(const CGKeyCode keycode)
       {kVK_ANSI_Backslash, "\\"},
       {kVK_ANSI_Semicolon, ";"},
       {kVK_ANSI_Quote, "'"},
-      {kVK_ANSI_Grave, "Tilde"},
+      {kVK_ANSI_Grave, "`"},
       {kVK_ANSI_Comma, ","},
       {kVK_ANSI_Period, "."},
       {kVK_ANSI_Slash, "/"},
@@ -149,10 +149,10 @@ std::string KeycodeToName(const CGKeyCode keycode)
       {kVK_ForwardDelete, "Delete"},
       {kVK_End, "End"},
       {kVK_PageDown, "Page Down"},
-      {kVK_RightArrow, "Right Arrow"},
-      {kVK_LeftArrow, "Left Arrow"},
-      {kVK_DownArrow, "Down Arrow"},
-      {kVK_UpArrow, "Up Arrow"},
+      {kVK_RightArrow, "Right"},
+      {kVK_LeftArrow, "Left"},
+      {kVK_DownArrow, "Down"},
+      {kVK_UpArrow, "Up"},
       {kVK_ANSI_KeypadDivide, "Keypad /"},
       {kVK_ANSI_KeypadMultiply, "Keypad *"},
       {kVK_ANSI_KeypadMinus, "Keypad -"},
@@ -172,11 +172,11 @@ std::string KeycodeToName(const CGKeyCode keycode)
       {kVK_ANSI_KeypadEquals, "Keypad ="},
       {kVK_Control, "Left Control"},
       {kVK_Shift, "Left Shift"},
-      {kVK_Option, "Left Alt"},
+      {kVK_Option, "Left Option"},
       {kVK_Command, "Command"},
       {kVK_RightControl, "Right Control"},
       {kVK_RightShift, "Right Shift"},
-      {kVK_RightOption, "Right Alt"},
+      {kVK_RightOption, "Right Option"},
   };
 
   if (named_keys.contains(keycode))
@@ -207,7 +207,7 @@ KeyboardAndMouse::KeyboardAndMouse(void* view)
     AddInput(new Key(keycode));
 
   // Add combined left/right modifiers with consistent naming across platforms.
-  AddCombinedInput("Alt", {"Left Alt", "Right Alt"});
+  AddCombinedInput("Option", {"Left Option", "Right Option"});
   AddCombinedInput("Shift", {"Left Shift", "Right Shift"});
   AddCombinedInput("Ctrl", {"Left Control", "Right Control"});
 
@@ -315,11 +315,11 @@ std::string KeyboardAndMouse::Cursor::GetName() const
 std::string KeyboardAndMouse::Button::GetName() const
 {
   if (m_button == kCGMouseButtonLeft)
-    return "Left Click";
-  if (m_button == kCGMouseButtonCenter)
-    return "Middle Click";
+    return "Left Mouse Button";
   if (m_button == kCGMouseButtonRight)
-    return "Right Click";
-  return std::string("Click ") + char('0' + m_button);
+    return "Right Mouse Button";
+  if (m_button == kCGMouseButtonCenter)
+    return "Middle Mouse Button";
+  return std::string("Mouse ") + char('1' + m_button);
 }
 }  // namespace ciface::Quartz

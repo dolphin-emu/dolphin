@@ -94,22 +94,22 @@ void GBAPad::LoadDefaults(const ControllerInterface& ciface)
 
 #ifndef ANDROID
   // Buttons
-  m_buttons->SetControlExpression(0, "`Z`");  // B
-  m_buttons->SetControlExpression(1, "`X`");  // A
-  m_buttons->SetControlExpression(2, "`Q`");  // L
-  m_buttons->SetControlExpression(3, "`W`");  // R
+  m_buttons->SetControlExpression(0, "Ctrl|Z|`Button W`|`Button N`");  // B
+  m_buttons->SetControlExpression(1, "Space|X|`Button S`|`Button E`");  // A
+  m_buttons->SetControlExpression(2, "A|`Shoulder L`|`Trigger L`");  // L
+  m_buttons->SetControlExpression(3, "S|`Shoulder R`|`Trigger R`");  // R
 #ifdef _WIN32
-  m_buttons->SetControlExpression(4, "`BACK`");    // Select
-  m_buttons->SetControlExpression(5, "`RETURN`");  // Start
+  m_buttons->SetControlExpression(4, "Tab|Back");    // Select
+  m_buttons->SetControlExpression(5, "Enter|Start");  // Start
 #else
-  m_buttons->SetControlExpression(4, "`Backspace`");  // Select
-  m_buttons->SetControlExpression(5, "`Return`");     // Start
+  m_buttons->SetControlExpression(4, "Tab|Back");  // Select
+  m_buttons->SetControlExpression(5, "Return|Start");     // Start
 #endif
 
   // D-Pad
-  m_dpad->SetControlExpression(0, "`T`");  // Up
-  m_dpad->SetControlExpression(1, "`G`");  // Down
-  m_dpad->SetControlExpression(2, "`F`");  // Left
-  m_dpad->SetControlExpression(3, "`H`");  // Right
+  m_dpad->SetControlExpression(0, "Up");  // Up
+  m_dpad->SetControlExpression(1, "Down");  // Down
+  m_dpad->SetControlExpression(2, "Left");  // Left
+  m_dpad->SetControlExpression(3, "Right");  // Right
 #endif
 }
