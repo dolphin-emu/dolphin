@@ -1858,19 +1858,23 @@ void XEmitter::WriteVEXOp4(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, co
   Write8((u8)regOp3 << 4);
 }
 
-void XEmitter::WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg,
-                          int W, int extrabytes)
+void CheckAVXSupport()
 {
   if (!cpu_info.bAVX)
     PanicAlertFmt("Trying to use AVX on a system that doesn't support it. Bad programmer.");
+}
+
+void XEmitter::WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg,
+                          int W, int extrabytes)
+{
+  CheckAVXSupport();
   WriteVEXOp(opPrefix, op, regOp1, regOp2, arg, W, extrabytes);
 }
 
 void XEmitter::WriteAVXOp4(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg,
                            X64Reg regOp3, int W)
 {
-  if (!cpu_info.bAVX)
-    PanicAlertFmt("Trying to use AVX on a system that doesn't support it. Bad programmer.");
+  CheckAVXSupport();
   WriteVEXOp4(opPrefix, op, regOp1, regOp2, arg, regOp3, W);
 }
 
@@ -3028,6 +3032,19 @@ void XEmitter::VPOR(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
 void XEmitter::VPXOR(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x66, 0xEF, regOp1, regOp2, arg);
+}
+
+void XEmitter::VMOVAPS(const OpArg& arg, X64Reg regOp)
+{
+  WriteAVXOp(0x00, 0x29, X64Reg::INVALID_REG, regOp, arg);
+}
+
+void XEmitter::VZEROUPPER()
+{
+  CheckAVXSupport();
+  Write8(0xC5);
+  Write8(0xF8);
+  Write8(0x77);
 }
 
 void XEmitter::VFMADD132PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
