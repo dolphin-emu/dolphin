@@ -14,9 +14,8 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
 // USA.
+#pragma once
 
-#ifndef FREESURROUND_DECODER_H
-#define FREESURROUND_DECODER_H
 #include "KissFFTR.h"
 #include <complex>
 #include <vector>
@@ -52,12 +51,10 @@ typedef enum channel_id {
 // of channels that are present. Here is a graphic of the cs_5point1 setup:
 // http://en.wikipedia.org/wiki/File:5_1_channels_(surround_sound)_label.svg
 typedef enum channel_setup {
-  cs_5point1 = ci_front_left | ci_front_center | ci_front_right | ci_back_left |
-               ci_back_right | ci_lfe,
+  cs_5point1 = ci_front_left | ci_front_center | ci_front_right | ci_back_left | ci_back_right | ci_lfe,
 
-  cs_7point1 = ci_front_left | ci_front_center | ci_front_right |
-               ci_side_center_left | ci_side_center_right | ci_back_left |
-               ci_back_right | ci_lfe
+  cs_7point1 = ci_front_left | ci_front_center | ci_front_right | ci_side_center_left | ci_side_center_right |
+               ci_back_left | ci_back_right | ci_lfe
 } channel_setup;
 
 // The FreeSurround decoder.
@@ -68,15 +65,15 @@ public:
   // @param setup The output channel setup -- determines the number of output
   // channels and their place in the sound field.
   // @param blocksize Granularity at which data is processed by the decode()
-  // function. Must be a power of two and should correspond to ca. 10ms worth
+  // function. Must be a power of two and should correspond to ca. 10 ms worth
   // of single-channel samples (default is 4096 for 44.1Khz data). Do not make
-  // it shorter or longer than 5ms to 20ms since the granularity at which
+  // it shorter or longer than 5 ms to 20 ms since the granularity at which
   // locations are decoded changes with this.
   DPL2FSDecoder();
+
   ~DPL2FSDecoder();
 
-  void Init(channel_setup setup = cs_5point1, unsigned int blocksize = 4096,
-            unsigned int samplerate = 48000);
+  void Init(channel_setup chsetup = cs_5point1, unsigned int blocksize = 4096, unsigned int sample_rate = 48000);
 
   // Decode a chunk of stereo sound. The output is delayed by half of the
   // blocksize. This function is the only one needed for straightforward
@@ -86,7 +83,7 @@ public:
   // @return A pointer to an internal buffer of exactly blocksize (multiplexed)
   // multichannel samples. The actual number of values depends on the number of
   // output channels in the chosen channel setup.
-  float *decode(float *input);
+  float *decode(const float *input);
 
   // Flush the internal buffer.
   void flush();
@@ -94,22 +91,30 @@ public:
   // set soundfield & rendering parameters
   // for more information, see full FreeSurround source code
   void set_circular_wrap(float v);
+
   void set_shift(float v);
+
   void set_depth(float v);
+
   void set_focus(float v);
+
   void set_center_image(float v);
+
   void set_front_separation(float v);
+
   void set_rear_separation(float v);
+
   void set_low_cutoff(float v);
+
   void set_high_cutoff(float v);
+
   void set_bass_redirection(bool v);
 
   // number of samples currently held in the buffer
-  unsigned int buffered();
+  [[nodiscard]] unsigned int buffered() const;
 
 private:
   // constants
-  const float pi = 3.141592654f;
   const float epsilon = 0.000001f;
 
   // number of samples per input/output block, number of output channels
@@ -175,35 +180,45 @@ private:
   // the signal to be constructed in every channel, in the frequency domain
   // instantiate the decoder with a given channel setup and processing block
   // size (in samples)
-  std::vector<std::vector<cplx>> signal;
+  std::vector<std::vector<cplx> > signal;
 
   // helper functions
-  inline float sqr(double x);
-  inline double amplitude(const cplx &x);
-  inline double phase(const cplx &x);
-  inline cplx polar(double a, double p);
-  inline float min(double a, double b);
-  inline float max(double a, double b);
-  inline float clamp(double x);
-  inline float sign(double x);
+  static inline float sqr(double x);
+
+  static inline double amplitude(const cplx &x);
+
+  static inline double phase(const cplx &x);
+
+  static inline cplx polar(double a, double p);
+
+  static inline float min(double a, double b);
+
+  static inline float max(double a, double b);
+
+  static inline float clamp(double x);
+
+  static inline float sign(double x);
 
   // get the distance of the soundfield edge, along a given angle
-  inline double edgedistance(double a);
+  static inline double edgedistance(double a);
 
   // get the index (and fractional offset!) in a piecewise-linear channel
   // allocation grid
-  int map_to_grid(double &x);
+  static int map_to_grid(double &x);
 
   // decode a block of data and overlap-add it into outbuf
-  void buffered_decode(float *input);
+  void buffered_decode(const float *input);
 
   // transform amp/phase difference space into x/y soundfield space
-  void transform_decode(double a, double p, double &x, double &y);
+  static std::tuple<double, double> transform_decode(double amp, double phase);
+
+  static float calculate_x(double amp, double phase);
+
+  static float calculate_y(double amp, double phase);
 
   // apply a circular_wrap transformation to some position
-  void transform_circular_wrap(double &x, double &y, double refangle);
+  static void transform_circular_wrap(double &x, double &y, double refangle);
 
   // apply a focus transformation to some position
-  void transform_focus(double &x, double &y, double focus);
+  static void transform_focus(double &x, double &y, double focus);
 };
-#endif
