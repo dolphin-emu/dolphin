@@ -786,6 +786,8 @@ endif()
 
 add_subdirectory(Externals/watcher)
 
+add_subdirectory(Externals/ImGuizmo)
+
 if(WIN32 OR LINUX)
   add_subdirectory(Externals/cpp-ipc)
 endif()
