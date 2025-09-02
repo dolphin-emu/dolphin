@@ -12,7 +12,8 @@
 
 // The normal user directory
 #ifdef _WIN32
-#define NORMAL_USER_DIR "Dolphin Emulator"
+//#define NORMAL_USER_DIR "Dolphin Emulator"
+#define NORMAL_USER_DIR "Dolphin Emulator (temp)"
 #elif defined(__APPLE__)
 #define NORMAL_USER_DIR "Library/Application Support/Dolphin"
 #elif defined(ANDROID)

@@ -179,6 +179,8 @@ if(ENABLE_SDL)
     ControllerInterface/SDL/SDL.h
     ControllerInterface/SDL/SDLGamepad.cpp
     ControllerInterface/SDL/SDLGamepad.h
+    ControllerInterface/SDL/SDLKeyboardMouse.cpp
+    ControllerInterface/SDL/SDLKeyboardMouse.h
   )
   target_link_libraries(inputcommon PRIVATE SDL3::SDL3)
   target_compile_definitions(inputcommon PUBLIC HAVE_SDL3=1)
