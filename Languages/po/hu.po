@@ -14,7 +14,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-21 21:04+0200\n"
+"POT-Creation-Date: 2025-09-03 08:03+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Péter Patkós, 2023-2025\n"
 "Language-Team: Hungarian (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -38,11 +38,11 @@ msgstr "Nem sikerült megnyitni írásra: \"{0}\"."
 #: Source/Android/jni/MainAndroid.cpp:467
 #, c++-format
 msgid "Wrote to \"{0}\"."
-msgstr ""
+msgstr "Sikeres írás: \"{0}\"."
 
 #: Source/Android/jni/WiiUtils.cpp:114
 msgid "The decryption keys need to be appended to the NAND backup file."
-msgstr ""
+msgstr "A NAND biztonsági mentés fájlhoz csatolni kell a titkosító kulcsokat."
 
 #: Source/Core/AudioCommon/OpenALStream.cpp:99
 msgid "OpenAL: can't find sound devices"
@@ -56,7 +56,7 @@ msgstr "OpenAL: {0} eszköz nem nyitható meg"
 #: Source/Core/AudioCommon/OpenALStream.cpp:117
 #, c++-format
 msgid "OpenAL: can't create context for device {0}"
-msgstr ""
+msgstr "OpenAL: környezet létrehozása sikertelen az eszköz számára: {0}"
 
 #: Source/Core/AudioCommon/WaveFile.cpp:38
 #: Source/Core/VideoCommon/FrameDumpFFMpeg.cpp:144
@@ -67,7 +67,7 @@ msgstr "Törlöd a meglévő '{0}' fájlt?"
 #: Source/Core/AudioCommon/WaveFile.cpp:52
 #, c++-format
 msgid "The file {0} was already open, the file header will not be written."
-msgstr ""
+msgstr "A fájl már meg van nyitva, a fájl fejléce nem lesz módosítva: {0}."
 
 #: Source/Core/AudioCommon/WaveFile.cpp:60
 #, c++-format
@@ -83,18 +83,20 @@ msgid ""
 "Error: After \"{0}\", found {1} ({2:#x}) instead of save marker {3} "
 "({4:#x}). Aborting savestate load..."
 msgstr ""
+"Hiba: \"{0}\" után, {1} ({2:#x}) található a mentési jelölő {3} ({4:#x}) "
+"helyett. Mentés betöltésének leállítása..."
 
 #: Source/Core/Common/FatFsUtil.h:13
 msgid "Pack SD Card Now"
-msgstr ""
+msgstr "SD-kártya becsomagolása most"
 
 #: Source/Core/Common/FatFsUtil.h:14
 msgid "Unpack SD Card Now"
-msgstr ""
+msgstr "SD-kártya kicsomagolása most"
 
 #: Source/Core/Common/MsgHandler.cpp:59
-#: Source/Core/DolphinQt/GameList/GameList.cpp:743
-#: Source/Core/DolphinQt/GameList/GameList.cpp:805
+#: Source/Core/DolphinQt/GameList/GameList.cpp:750
+#: Source/Core/DolphinQt/GameList/GameList.cpp:812
 #: Source/Core/DolphinQt/MenuBar.cpp:1504
 #: Source/Core/DolphinQt/MenuBar.cpp:1746
 msgid "Information"
@@ -127,74 +129,87 @@ msgid ""
 "This build of Dolphin is not natively compiled for your CPU.\n"
 "Please run the ARM64 build of Dolphin for a better experience."
 msgstr ""
+"Ez a Dolphin verzió nincs natívan fordítva a CPU-dhoz.\n"
+"Futtasd a Dolphin ARM64-es verzióját a jobb élmény érdekében."
 
-#: Source/Core/Core/ActionReplay.cpp:230
+#: Source/Core/Core/ActionReplay.cpp:240
 #, c++-format
 msgid "Action Replay Error: invalid AR code line: {0}"
-msgstr ""
+msgstr "Action Replay hiba: érvénytelen AR kódsor: {0}"
 
-#: Source/Core/Core/ActionReplay.cpp:414
+#: Source/Core/Core/ActionReplay.cpp:424
 #, c++-format
 msgid ""
 "Action Replay Error: Invalid size ({0:08x} : address = {1:08x}) in Ram Write "
 "And Fill ({2})"
 msgstr ""
+"Action Replay hiba: érvénytelen méret ({0:08x} : cím = {1:08x}) a RAM "
+"írásban és kitöltésben ({2})"
 
-#: Source/Core/Core/ActionReplay.cpp:475
+#: Source/Core/Core/ActionReplay.cpp:485
 #, c++-format
 msgid ""
 "Action Replay Error: Invalid size ({0:08x} : address = {1:08x}) in Write To "
 "Pointer ({2})"
 msgstr ""
+"Action Replay hiba: érvénytelen méret ({0:08x} : cím = {1:08x}) a mutató "
+"írásában ({2})"
 
-#: Source/Core/Core/ActionReplay.cpp:541
+#: Source/Core/Core/ActionReplay.cpp:549
 #, c++-format
 msgid ""
 "Action Replay Error: Invalid size ({0:08x} : address = {1:08x}) in Add Code "
 "({2})"
 msgstr ""
+"Action Replay hiba: érvénytelen méret ({0:08x} : cím= {1:08x}) a kód "
+"hozzáadásban ({2})"
 
-#: Source/Core/Core/ActionReplay.cpp:556
+#: Source/Core/Core/ActionReplay.cpp:564
 #, c++-format
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented "
 "({0})\n"
 "Master codes are not needed. Do not use master codes."
 msgstr ""
+"Action Replay hiba: Mester kód és CCXXXXXX írása nincs beépítve ({0})\n"
+"Mester kódokra nincs szükség. Ne használj mester kódokat."
 
-#: Source/Core/Core/ActionReplay.cpp:633
+#: Source/Core/Core/ActionReplay.cpp:641
 #, c++-format
 msgid ""
 "Action Replay Error: Invalid size ({0:08x} : address = {1:08x}) in Fill and "
 "Slide ({2})"
 msgstr ""
+"Action Replay hiba: érvénytelen méret({0:08x} : cím = {1:08x}) a kitöltésben "
+"és regiszterben ({2})"
 
-#: Source/Core/Core/ActionReplay.cpp:692
+#: Source/Core/Core/ActionReplay.cpp:698
 #, c++-format
 msgid "Action Replay Error: Invalid value ({0:08x}) in Memory Copy ({1})"
 msgstr ""
+"Action Replay hiba: érvénytelen érték ({0:08x}) a memória másolásban ({1})"
 
-#: Source/Core/Core/ActionReplay.cpp:729
+#: Source/Core/Core/ActionReplay.cpp:735
 #, c++-format
 msgid "Action Replay: Normal Code 0: Invalid Subtype {0:08x} ({1})"
-msgstr ""
+msgstr "Action Replay: Normál kód 0: Érvénytelen altípus {0:08x} ({1})"
 
-#: Source/Core/Core/ActionReplay.cpp:771
+#: Source/Core/Core/ActionReplay.cpp:777
 #, c++-format
 msgid "Action Replay: Invalid Normal Code Type {0:08x} ({1})"
-msgstr ""
+msgstr "Action Replay: Érvénytelen normál kódtípus {0:08x} ({1})"
 
-#: Source/Core/Core/ActionReplay.cpp:804
+#: Source/Core/Core/ActionReplay.cpp:810
 #, c++-format
 msgid "Action Replay: Conditional Code: Invalid Size {0:08x} ({1})"
-msgstr ""
+msgstr "Action Replay: Feltételes kód: Érvénytelen méret {0:08x} ({1})"
 
-#: Source/Core/Core/ActionReplay.cpp:828
+#: Source/Core/Core/ActionReplay.cpp:834
 #, c++-format
 msgid "Action Replay: Normal Code {0}: Invalid subtype {1:08x} ({2})"
-msgstr ""
+msgstr "Action Replay: Normál kód {0}: Érvénytelen altípus {1:08x} ({2})"
 
-#: Source/Core/Core/ActionReplay.cpp:913
+#: Source/Core/Core/ActionReplay.cpp:919
 msgid ""
 "This action replay simulator does not support codes that modify Action "
 "Replay itself."
@@ -202,11 +217,11 @@ msgstr ""
 "Az action replay szimulátor nem támogat olyan kódokat, amelyek magát az "
 "Action Replayt módosítják."
 
-#: Source/Core/Core/ActionReplay.cpp:946
+#: Source/Core/Core/ActionReplay.cpp:952
 msgid "Zero 3 code not supported"
 msgstr "Zero 3 kód nem támogatott"
 
-#: Source/Core/Core/ActionReplay.cpp:966
+#: Source/Core/Core/ActionReplay.cpp:972
 #, c++-format
 msgid "Zero code unknown to Dolphin: {0:08x}"
 msgstr "A Dolphin számára ismeretlen Zero kód: {0:08x}"
@@ -220,6 +235,11 @@ msgid ""
 "Culprit Code:\n"
 "{0}"
 msgstr ""
+"Action Replay kód dekódolási hiba:\n"
+"Sikertelen paritás ellenőrzés\n"
+"\n"
+"Felelős kód:\n"
+"{0}"
 
 #: Source/Core/Core/Boot/Boot_BS2Emu.cpp:447
 msgid "SetupWiiMemory: Can't create setting.txt file"
@@ -231,6 +251,8 @@ msgid ""
 "Files specified in the M3U file \"{0}\" were not found:\n"
 "{1}"
 msgstr ""
+"A(z) \"{0}\" M3U fájlban megadott fájlok nem találhatók:\n"
+"{1}"
 
 #: Source/Core/Core/Boot/Boot.cpp:100
 #, c++-format
@@ -255,7 +277,7 @@ msgstr "A {0} fájl nem ismerhető fel"
 #: Source/Core/Core/Boot/Boot.cpp:412
 #, c++-format
 msgid "The IPL file is not a known good dump. (CRC32: {0:x})"
-msgstr ""
+msgstr "Az IPL fájl nem egy ismert, jó minőségű másolat. (CRC32: {0:x})"
 
 #: Source/Core/Core/Boot/Boot.cpp:419
 #, c++-format
@@ -315,6 +337,10 @@ msgid ""
 "discarded on next boot if you do not manually re-issue a resync in Config > "
 "Wii > SD Card Settings > {0}!"
 msgstr ""
+"Nem sikerült szinkronizálni az SD-kártyát a mappával. A jelenlegi munkamenet "
+"során végzett összes módosítás elveszik a következő indításkor, ha nem "
+"indítasz el egy manuális újraszinkronizálást a következő helyen: "
+"Konfiguráció > Wii > SD-kártya beállítások > {0}!"
 
 #: Source/Core/Core/DSP/DSPCore.cpp:75
 msgid ""
@@ -327,6 +353,14 @@ msgid ""
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio might be garbled."
 msgstr ""
+"A DSP ROM-jaidnak helytelenek a hashei.\n"
+"\n"
+"Töröld a dsp_rom.bin és a dsp_coef.bin fájlokat a GC mappából a User mappán "
+"belül, hogy a szabad DSP ROM-ot használd, vagy cseréld le őket egy valódi "
+"GameCube-ról vagy Wii-ről származó, jó minőségű másolatra.\n"
+"\n"
+"Szeretnéd most leállítani a probléma megoldásához?\n"
+"Ha a „Nem” opciót választod, a hang torz lehet."
 
 #: Source/Core/Core/DSP/DSPCore.cpp:89
 msgid ""
@@ -340,6 +374,16 @@ msgid ""
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio might be garbled."
 msgstr ""
+"Egy régi, a Dolphin Team által készített ingyenes DSP ROM-ot használsz.\n"
+"Az emuláció pontosságának javulása miatt ez a ROM már nem működik "
+"megfelelően.\n"
+"\n"
+"Töröld a dsp_rom.bin és a dsp_coef.bin fájlokat a GC mappából a User mappán "
+"belül, hogy a legújabb ingyenes DSP ROM-ot használd, vagy cseréld le őket "
+"egy valódi GameCube-ról vagy Wii-ről származó, jó minőségű másolatra.\n"
+"\n"
+"Szeretnéd most leállítani a probléma megoldásához?\n"
+"Ha a „Nem” opciót választod, a hang torz lehet."
 
 #: Source/Core/Core/FifoPlayer/FifoDataFile.cpp:213
 msgid "Failed to read DFF file."
@@ -352,7 +396,7 @@ msgstr "DFF fájl mérete 0; sérült/nem teljes fájl?"
 #: Source/Core/Core/FifoPlayer/FifoDataFile.cpp:229
 #, c++-format
 msgid "DFF file magic number is incorrect: got {0:08x}, expected {1:08x}"
-msgstr ""
+msgstr "DFF fájl magic number hibás: kapott {0:08x}, elvárt {1:08x}"
 
 #: Source/Core/Core/FifoPlayer/FifoDataFile.cpp:237
 #, c++-format
@@ -504,7 +548,7 @@ msgstr "Y csökkentése"
 
 #: Source/Core/Core/FreeLookManager.cpp:116
 msgid "Incremental Rotation"
-msgstr ""
+msgstr "Fokozatos forgatás"
 
 #: Source/Core/Core/FreeLookManager.cpp:318
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:25
@@ -633,19 +677,19 @@ msgstr "Írásvédett mód"
 #. going through code step by step.
 #: Source/Core/Core/HotkeyManager.cpp:65
 msgid "Step Into"
-msgstr ""
+msgstr "Belépés"
 
 #. i18n: Here, "Step" is a verb. This feature is used for
 #. going through code step by step.
 #: Source/Core/Core/HotkeyManager.cpp:68 Source/Core/DolphinQt/ToolBar.cpp:106
 msgid "Step Over"
-msgstr ""
+msgstr "Átlépés"
 
 #. i18n: Here, "Step" is a verb. This feature is used for
 #. going through code step by step.
 #: Source/Core/Core/HotkeyManager.cpp:71 Source/Core/DolphinQt/ToolBar.cpp:109
 msgid "Step Out"
-msgstr ""
+msgstr "Kilépés"
 
 #: Source/Core/Core/HotkeyManager.cpp:72 Source/Core/DolphinQt/ToolBar.cpp:110
 msgid "Skip"
@@ -654,12 +698,12 @@ msgstr "Átugrás"
 #. i18n: Here, PC is an acronym for program counter, not personal computer.
 #: Source/Core/Core/HotkeyManager.cpp:75 Source/Core/DolphinQt/ToolBar.cpp:112
 msgid "Show PC"
-msgstr ""
+msgstr "Programszámláló megjelenítése"
 
 #. i18n: Here, PC is an acronym for program counter, not personal computer.
 #: Source/Core/Core/HotkeyManager.cpp:77 Source/Core/DolphinQt/ToolBar.cpp:114
 msgid "Set PC"
-msgstr ""
+msgstr "Programszámláló beállítása"
 
 #: Source/Core/Core/HotkeyManager.cpp:79
 #: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1234
@@ -676,7 +720,7 @@ msgstr "Memória töréspont hozzáadása"
 
 #: Source/Core/Core/HotkeyManager.cpp:83
 msgid "Press Sync Button"
-msgstr ""
+msgstr "Nyomd meg a Sync gombot"
 
 #: Source/Core/Core/HotkeyManager.cpp:84
 msgid "Connect Wii Remote 1"
@@ -744,7 +788,7 @@ msgstr "Képarány kapcsoló"
 
 #: Source/Core/Core/HotkeyManager.cpp:112
 msgid "Toggle Skip EFB Access"
-msgstr ""
+msgstr "EFB-hozzáférés kihagyás kapcsoló"
 
 #: Source/Core/Core/HotkeyManager.cpp:113
 msgid "Toggle EFB Copies"
@@ -1037,11 +1081,11 @@ msgstr "4x"
 
 #: Source/Core/Core/HotkeyManager.cpp:202
 msgid "Show Skylanders Portal"
-msgstr ""
+msgstr "Skylanders Portal megjelenítése"
 
 #: Source/Core/Core/HotkeyManager.cpp:203
 msgid "Show Infinity Base"
-msgstr ""
+msgstr "Infinity Base megjelenítése"
 
 #: Source/Core/Core/HotkeyManager.cpp:214
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:257
@@ -1065,7 +1109,7 @@ msgstr "Általános"
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGBA.cpp:23
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:24
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:74
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:348
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:349
 msgid "Volume"
 msgstr "Hangerő"
 
@@ -1082,7 +1126,7 @@ msgstr "Film"
 #: Source/Core/Core/HotkeyManager.cpp:346
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyDebugging.cpp:21
 msgid "Stepping"
-msgstr ""
+msgstr "Lépés"
 
 #: Source/Core/Core/HotkeyManager.cpp:347
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyDebugging.cpp:24
@@ -1182,6 +1226,10 @@ msgid ""
 "\n"
 "Unknown ucode (CRC = {0:08x}) - forcing AXWii."
 msgstr ""
+"A cím lehet, hogy nem kompatibilis a DSP HLE emulációval. Próbálj LLE-t "
+"használni, ha egyedi fejlesztésű.\n"
+"\n"
+"Ismeretlen ucode (CRC = {0:08x}) - AXWii erőltetése."
 
 #: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:325
 #, c++-format
@@ -1191,6 +1239,10 @@ msgid ""
 "\n"
 "DSPHLE: Unknown ucode (CRC = {0:08x}) - forcing AX."
 msgstr ""
+"A cím lehet, hogy nem kompatibilis a DSP HLE emulációval. Próbálj LLE-t "
+"használni, ha egyedi fejlesztésű.\n"
+"\n"
+"DSPHLE: Ismeretlen ucode (CRC = {0:08x}) - AX erőltetése."
 
 #: Source/Core/Core/HW/DVD/DVDInterface.cpp:436
 msgid "The disc that was about to be inserted couldn't be found."
@@ -1240,6 +1292,10 @@ msgid ""
 "reboot is probably required at this point to get Windows to see the new "
 "driver."
 msgstr ""
+"HIBA: A Dolphin ezen változatához szükséges legalább a TAP-Win32 driver {0}."
+"{1} verziója -- Ha mostanában frissítetted a Dolphin emulátort, akkor "
+"valószínűleg újra kell indítanod a számítógépet, hogy a Windows felismerje "
+"az új illesztőprogramot."
 
 #: Source/Core/Core/HW/EXI/EXI.cpp:50
 msgid ""
@@ -1248,6 +1304,10 @@ msgid ""
 "sync properly, please change the selected device to Memory Card or GCI "
 "Folder."
 msgstr ""
+"A film azt jelzi, hogy memóriakártyát kell behelyezni a(z) {0:n} slotba, de "
+"jelenleg nincs ilyen behelyezve (ehelyett {1} van behelyezve). A film "
+"megfelelő szinkronizálásához változtasd meg a kiválasztott eszközt "
+"Memóriakártyára vagy GCI mappára."
 
 #: Source/Core/Core/HW/EXI/EXI_Device.cpp:142
 msgid ""
@@ -1262,6 +1322,9 @@ msgid ""
 "address must be used. Generate a new MAC address starting with 00:09:bf or "
 "00:17:ab."
 msgstr ""
+"A BBA MAC-cím {0} érvénytelen az XLink Kai számára. Érvényes Nintendo "
+"GameCube MAC-címet kell használni. Generálj új MAC-címet, amely 00:09:bf "
+"vagy 00:17:ab kezdetű."
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:92
 msgid "Dummy"
@@ -1331,12 +1394,18 @@ msgid ""
 "Error: Trying to access Windows-1252 fonts but they are not loaded. Games "
 "may not show fonts correctly, or crash."
 msgstr ""
+"Hiba: A Windows-1252 betűtípusokhoz történő hozzáférési kísérlet során, a "
+"betöltésük sikertelen. A játékokban a betűk helytelenül jelenhetnek meg, "
+"vagy összeomolhatnak."
 
 #: Source/Core/Core/HW/EXI/EXI_DeviceIPL.cpp:339
 msgid ""
 "Error: Trying to access Shift JIS fonts but they are not loaded. Games may "
 "not show fonts correctly, or crash."
 msgstr ""
+"Hiba: A Shift JIS betűtípusokhoz történő hozzáférési kísérlet során, a "
+"betöltésük sikertelen. A játékokban a betűk helytelenül jelenhetnek meg, "
+"vagy összeomolhatnak."
 
 #: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:200
 #, c++-format
@@ -1360,7 +1429,7 @@ msgstr "Hiba: GBA{0} nem tudta megnyitni a ROM-ot {1} alatt"
 #: Source/Core/Core/HW/GBACore.cpp:200
 #, c++-format
 msgid "Error: GBA{0} failed to create core"
-msgstr ""
+msgstr "Hiba: GBA{0} mag létrehozása nem sikerült."
 
 #: Source/Core/Core/HW/GBACore.cpp:220
 #, c++-format
@@ -1428,13 +1497,13 @@ msgstr "Digitális irányok"
 #: Source/Core/Core/HW/GBAPadEmu.h:45
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Shinkansen.cpp:42
 msgid "SELECT"
-msgstr ""
+msgstr "SELECT"
 
 #. i18n: The START/PAUSE button on GameCube controllers
 #: Source/Core/Core/HW/GBAPadEmu.h:46 Source/Core/Core/HW/GCPadEmu.cpp:49
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Shinkansen.cpp:43
 msgid "START"
-msgstr ""
+msgstr "START"
 
 #: Source/Core/Core/HW/GCKeyboard.cpp:20
 msgid "Keyboard"
@@ -1452,7 +1521,7 @@ msgstr "Gombok"
 #: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:408
 #, c++-format
 msgid "Report: GCIFolder Writing to unallocated block {0:#x}"
-msgstr ""
+msgstr "Jelentés: A GCIFolder nem allokált blokkba ír: {0:#x}"
 
 #: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:428
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
@@ -1474,6 +1543,8 @@ msgid ""
 "Warning: Number of blocks indicated by the BAT ({0}) does not match that of "
 "the loaded file header ({1})"
 msgstr ""
+"Figyelem: A BAT által jelölt blokkok száma ({0}) nem egyezik a betöltött "
+"fejlécmérettel ({1})"
 
 #: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:655
 #, c++-format
@@ -1553,6 +1624,9 @@ msgid ""
 "If unchecked, the connection state of the emulated controller is linked\n"
 "to the connection state of the real default device (if there is one)."
 msgstr ""
+"Ha be van jelölve, az emulált vezérlő mindig csatlakoztatva van.\n"
+"Ha nincs bejelölve, az emulált vezérlő csatlakozási állapota a valós\n"
+"alapértelmezett eszköz csatlakozási állapotához igazodik (ha van ilyen).”"
 
 #: Source/Core/Core/HW/GCPadEmu.h:60
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.h:224
@@ -1607,7 +1681,7 @@ msgstr "Jobb analóg"
 
 #: Source/Core/Core/HW/SI/SI_Device.cpp:176
 msgid "Error: This build does not support emulated GBA controllers"
-msgstr ""
+msgstr "Hiba: Ez a verzió nem támogatja az emulált GBA vezérlőket."
 
 #: Source/Core/Core/HW/Wiimote.cpp:101
 msgid "Wii Remote"
@@ -1892,11 +1966,11 @@ msgstr "Átúsztatás"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:31
 msgid "Rocker Up"
-msgstr ""
+msgstr "Felfelé billentés"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:32
 msgid "Rocker Down"
-msgstr ""
+msgstr "Lefelé billentés"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:35
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:185
@@ -1907,7 +1981,7 @@ msgstr ""
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:224
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:229
 msgid "Point"
-msgstr ""
+msgstr "Célzás"
 
 #. i18n: FOV stands for "Field of view".
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:234
@@ -1932,7 +2006,7 @@ msgstr "°"
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:238
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:246
 msgid "Camera field of view (affects sensitivity of pointing)."
-msgstr ""
+msgstr "Kamera látószöge (befolyásolja a célzás érzékenységét)"
 
 #. i18n: FOV stands for "Field of view".
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:242
@@ -1941,7 +2015,7 @@ msgstr "Függőleges látótér (FOV)"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:250
 msgid "Point (Passthrough)"
-msgstr ""
+msgstr "Célzás (Átvitel)"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:254
 msgid "Gyroscope"
@@ -1996,6 +2070,10 @@ msgid ""
 "Please refer to the NAND usage guide for setup instructions: https://dolphin-"
 "emu.org/docs/guides/nand-usage-guide/"
 msgstr ""
+"A Wii Shop Channel nem használható anélkül, hogy a saját eszközazonosítóidat "
+"megadnád.\n"
+"A beállítás részleteiért tekintsd meg a NAND használati útmutatót: https://"
+"dolphin-emu.org/docs/guides/nand-usage-guide/"
 
 #: Source/Core/Core/IOS/ES/ES.cpp:382
 #, c++-format
@@ -2034,6 +2112,9 @@ msgid ""
 "https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on "
 "setting up Wii networking."
 msgstr ""
+"IOS: A biztonságos kommunikációhoz (SSL) szükséges fájl ({0}) érvénytelen. A "
+"Wii hálózati beállításához látogass el ide: https://dolphin-emu.org/docs/"
+"guides/wii-network-guide/"
 
 #: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:77
 msgid "Failed to write BT.DINF to SYSCONF"
@@ -2053,6 +2134,8 @@ msgid ""
 "Bluetooth passthrough mode is enabled, but Dolphin was built without libusb. "
 "Passthrough mode cannot be used."
 msgstr ""
+"A Bluetooth-átviteli mód engedélyezve van, de a Dolphin libusb nélkül lett "
+"összeállítva. Az átviteli mód nem használható."
 
 #: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:137
 #, c++-format
@@ -2065,6 +2148,9 @@ msgid ""
 "\n"
 "The emulated console will now stop."
 msgstr ""
+"Nem található használható Bluetooth USB adapter a Bluetooth-átvitelhez.\n"
+"\n"
+"Az emulált konzol most leáll."
 
 #: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:151
 #, c++-format
@@ -2075,6 +2161,12 @@ msgid ""
 "\n"
 "The emulated console will now stop."
 msgstr ""
+"Nem található használható Bluetooth USB adapter a Bluetooth-átvitelhez.\n"
+"A következő hiba történt, miközben a Dolphin megpróbálta használni az "
+"adaptert:\n"
+"{0}\n"
+"\n"
+"Az emulált konzol most leáll."
 
 #: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:171
 msgid ""
@@ -2082,11 +2174,14 @@ msgid ""
 "\n"
 "Bluetooth passthrough will probably not work."
 msgstr ""
+"A Realtek Bluetooth-eszköz inicializálása sikertelen.\n"
+"\n"
+"A Bluetooth-átvitel valószínűleg nem fog működni."
 
 #: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:489
 #, c++-format
 msgid "Failed to open Bluetooth device {:04x}:{:04x}: {}"
-msgstr "Nem sikerült megnyitni a Bluetooth eszközt: {:04x}:{:04x}: {}"
+msgstr "Nem sikerült megnyitni a Bluetooth-eszközt: {:04x}:{:04x}: {}"
 
 #: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:506
 #, c++-format
@@ -2097,7 +2192,7 @@ msgstr ""
 #: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:513
 #, c++-format
 msgid "Failed to claim interface for BT passthrough: {0}"
-msgstr ""
+msgstr "A BT-átvitelhez szükséges interfész igénylése sikertelen: {0}"
 
 #: Source/Core/Core/IOS/USB/Bluetooth/RealtekFirmwareLoader.cpp:438
 #: Source/Core/Core/IOS/USB/Bluetooth/RealtekFirmwareLoader.cpp:463
@@ -2117,6 +2212,11 @@ msgid ""
 "\n"
 "Not all devices expect this file."
 msgstr ""
+"A(z) {0} fájl nem található a szerveren.\n"
+"\n"
+"Ez normális lehet.\n"
+"\n"
+"Nem minden eszköz várja ezt a fájlt."
 
 #: Source/Core/Core/IOS/USB/Bluetooth/RealtekFirmwareLoader.cpp:476
 #, c++-format
@@ -2127,6 +2227,11 @@ msgid ""
 "Refer to https://wiki.dolphin-emu.org/index.php?title=Bluetooth_Passthrough "
 "for instructions."
 msgstr ""
+"A Bluetooth-átvitel nem tudta beolvasni a firmware fájlt innen:\n"
+"{0}\n"
+"\n"
+"Útmutatásért látogass el ide: https://wiki.dolphin-emu.org/index.php?"
+"title=Bluetooth_Passthrough"
 
 #: Source/Core/Core/IOS/USB/Bluetooth/RealtekFirmwareLoader.cpp:521
 #, c++-format
@@ -2135,6 +2240,9 @@ msgid ""
 "\n"
 "Automatically download from gitlab.com now?"
 msgstr ""
+"A Bluetooth-átvitelhez szükséges firmware hiányzik: {0}\n"
+"\n"
+"Letöltöd a gitlab.com webhelyről most?"
 
 #: Source/Core/Core/Movie.cpp:209
 #, c++-format
@@ -2147,6 +2255,8 @@ msgid ""
 "The disc change to \"{0}\" could not be saved in the .dtm file.\n"
 "The filename of the disc image must not be longer than 40 characters."
 msgstr ""
+"Nem menthető a .dtm fájlba, hogy a lemez erre változik: „{0}”.\n"
+"A lemezkép fájlneve nem lehet hosszabb 40 karakternél."
 
 #: Source/Core/Core/Movie.cpp:916
 msgid "Invalid recording file"
@@ -2176,6 +2286,9 @@ msgid ""
 "save (byte {0} < {1}) (frame {2} < {3}). You should load another save before "
 "continuing."
 msgstr ""
+"Figyelem: Olyan mentést töltöttél be, ami a választott videó befejezése "
+"előtti. ({0} < {1} bájt) ({2} < {3} képkocka). Folytatás előtt betölthetsz "
+"egy másik mentést."
 
 #: Source/Core/Core/Movie.cpp:1050
 #, c++-format
@@ -2184,6 +2297,9 @@ msgid ""
 "{0} > {1}) (input {2} > {3}). You should load another save before "
 "continuing, or load this state with read-only mode off."
 msgstr ""
+"Figyelem: Olyan mentést töltöttél be, ami a választott videó befejezése "
+"utáni. ({0} > {1} bájt) ({2} > {3} bemenet). Folytatás előtt betölthetsz egy "
+"másik mentést, vagy betöltheted ezt a mentést kikapcsolt írásvédett móddal."
 
 #: Source/Core/Core/Movie.cpp:1076
 #, c++-format
@@ -2192,6 +2308,10 @@ msgid ""
 "should load another save before continuing, or load this state with read-"
 "only mode off. Otherwise you'll probably get a desync."
 msgstr ""
+"Figyelem: Olyan mentést töltöttél be, amelyik videójánál {0} ({1:#x}) bájt "
+"eltérés mutatkozik. Folytatás előtt betölthetsz egy másik mentést, vagy "
+"betöltheted ezt a mentést kikapcsolt írásvédett móddal. Ellenkező esetben "
+"szinkronizációs hibák jelentkezhetnek."
 
 #: Source/Core/Core/Movie.cpp:1092
 #, c++-format
@@ -2213,11 +2333,28 @@ msgid ""
 "DLeft={32}, DRight={33}, L={34}, R={35}, LT={36}, RT={37}, AnalogX={38}, "
 "AnalogY={39}, CX={40}, CY={41}, Connected={42}"
 msgstr ""
+"Figyelem: Olyan mentést töltöttél be, amelyik videójánál {0} képkocka "
+"eltérés mutatkozik. Folytatás előtt betölthetsz egy másik mentést, vagy "
+"betöltheted ezt a mentést kikapcsolt írásvédett móddal. Ellenkező esetben "
+"szinkronizációs hibák jelentkezhetnek.\n"
+"\n"
+"Bővebb információ: A választott videó {1} képkocka hosszú, a mentett állás "
+"videója pedig {2} képkocka hosszú.\n"
+"\n"
+"{3} képkockánál az aktuális videón megnyomva:\n"
+"Start={4}, A={5}, B={6}, X={7}, Y={8}, Z={9}, DUp={10}, DDown={11}, "
+"DLeft={12}, DRight={13}, L={14}, R={15}, LT={16}, RT={17}, AnalogX={18}, "
+"AnalogY={19}, CX={20}, CY={21}, Connected={22}\n"
+"\n"
+"{23} képkockánál a mentett állás videóján megnyomva:\n"
+"Start={24}, A={25}, B={26}, X={27}, Y={28}, Z={29}, DUp={30}, DDown={31}, "
+"DLeft={32}, DRight={33}, L={34}, R={35}, LT={36}, RT={37}, AnalogX={38}, "
+"AnalogY={39}, CX={40}, CY={41}, Connected={42}"
 
 #: Source/Core/Core/Movie.cpp:1173
 #, c++-format
 msgid "Premature movie end in PlayController. {0} + {1} > {2}"
-msgstr ""
+msgstr "Túl korai PlayController videó befejezés. {0} + {1} > {2}"
 
 #: Source/Core/Core/Movie.cpp:1238
 #, c++-format
@@ -2227,17 +2364,17 @@ msgstr "Lemez váltása erre: {0}"
 #: Source/Core/Core/Movie.cpp:1263
 #, c++-format
 msgid "Premature movie end in PlayWiimote. {0} + 1 > {1}"
-msgstr ""
+msgstr "Túl korai PlayWiimote videó befejezés. {0} + 1 > {1}"
 
 #: Source/Core/Core/Movie.cpp:1274
 #, c++-format
 msgid "Invalid serialized length:{0} in PlayWiimote. byte:{1}"
-msgstr ""
+msgstr "Érvénytelen szerializált hossz a PlayWiimote-ban: {0}. bájt: {1}"
 
 #: Source/Core/Core/Movie.cpp:1283
 #, c++-format
 msgid "Premature movie end in PlayWiimote. {0} + {1} > {2}"
-msgstr ""
+msgstr "Túl korai PlayWiimote videó befejezés. {0} + {1} > {2}"
 
 #: Source/Core/Core/Movie.cpp:1292
 #, c++-format
@@ -2424,7 +2561,7 @@ msgstr ""
 #: Source/Core/Core/NetPlayCommon.cpp:208
 #: Source/Core/Core/NetPlayCommon.cpp:291
 msgid "Internal LZO Error - decompression failed"
-msgstr ""
+msgstr "Belső LZO hiba - sikertelen kibontás"
 
 #: Source/Core/Core/NetPlayCommon.cpp:214
 #, c++-format
@@ -2487,11 +2624,11 @@ msgstr "A kiválasztott játék nem létezik a játéklistában!"
 
 #: Source/Core/Core/NetPlayServer.cpp:1515
 msgid "Error collecting save data!"
-msgstr ""
+msgstr "Hiba a mentett adatok összegyűjtésekor!"
 
 #: Source/Core/Core/NetPlayServer.cpp:1537
 msgid "Error synchronizing save data!"
-msgstr "Hiba a mentett adatok szinkronizálása közben!"
+msgstr "Hiba a mentett adatok szinkronizálásakor!"
 
 #: Source/Core/Core/NetPlayServer.cpp:1551
 msgid "Error synchronizing cheat codes!"
@@ -2533,6 +2670,8 @@ msgid ""
 "Internal LZO Error - decompression failed ({0}) ({1}) \n"
 "Unable to retrieve outdated savestate version info."
 msgstr ""
+"Belső LZO hiba - sikertelen kibontás ({0}) ({1})\n"
+"Nem sikerült lekérni az elavult savestate verziójának adatait."
 
 #: Source/Core/Core/State.cpp:549
 #, c++-format
@@ -2570,7 +2709,7 @@ msgstr ""
 #: Source/Core/Core/State.cpp:689
 #, c++-format
 msgid "Internal LZ4 Error - decompression failed ({0}, {1}, {2})"
-msgstr ""
+msgstr "Belső LZ4 hiba - sikertelen kibontás ({0}, {1}, {2})"
 
 #: Source/Core/Core/State.cpp:702
 #, c++-format
@@ -2616,6 +2755,7 @@ msgstr ""
 #: Source/Core/Core/WiiUtils.cpp:108
 msgid "WAD installation failed: Could not finalise title import."
 msgstr ""
+"A WAD telepítése sikertelen: nem sikerült véglegesíteni a cím importálását."
 
 #: Source/Core/Core/WiiUtils.cpp:140
 msgid "WAD installation failed: Could not create Wii Shop log files."
@@ -2652,6 +2792,8 @@ msgid ""
 "Check that you have permissions to write the target folder and that the "
 "media can be written."
 msgstr ""
+"Nem sikerült megnyitni a kimeneti fájlt: \"{0}\". \n"
+"Ellenőrizd, hogy van-e jogosultságod a célmappába írni, és a média írható-e."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:292
 msgid "Files opened, ready to compress."
@@ -2965,19 +3107,24 @@ msgstr ""
 msgid ""
 "The format that the disc image is saved in does not store the size of the "
 "disc image."
-msgstr ""
+msgstr "A lemezképfájl formátuma nem tárolja a lemezkép méretét."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:796
 msgid ""
 "This disc image is too small and lacks some data. The problem is most likely "
 "that this is a dual-layer disc that has been dumped as a single-layer disc."
 msgstr ""
+"A lemezképfájl túl kicsi, és hiányosak az adatok. A probléma oka nagy "
+"valószínűséggel, hogy egy kétrétegű lemezt egyrétegűként mentettek le."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:799
 msgid ""
 "This disc image is too small and lacks some data. If your dumping program "
 "saved the disc image as several parts, you need to merge them into one file."
 msgstr ""
+"Ez a lemezkép túl kicsi, és hiányoznak róla adatok. Ha a lemezmentő program "
+"több részletben mentette el a lemezképet, össze kell őket egyesítened "
+"egyetlen fájllá."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:826
 msgid "This debug disc image has the size of a retail disc image."
@@ -2989,6 +3136,9 @@ msgid ""
 "loading times longer. You will likely be unable to share input recordings "
 "and use NetPlay with anyone who is using a good dump."
 msgstr ""
+"A lemezkép mérete szokatlan. Ez valószínűleg megnöveli az emulált betöltési "
+"időt. Valószínűleg nem fogsz tudni megosztani beviteli felvételeket, és a "
+"NetPlay sem fog működni senkivel, akinek a lemezképe megfelelő."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:849
 msgid "This disc image has an unusual size."
@@ -3013,6 +3163,9 @@ msgid ""
 "code has been modified, the game might run at the wrong speed, graphical "
 "elements might be offset, or the game might not run at all."
 msgstr ""
+"A régiókód nem egyezik a játék azonosítójával. Ha a régiókódot módosították, "
+"a játék hibás sebességgel futhat, a grafikai elemek elcsúszhatnak, vagy a "
+"játék egyáltalán nem indul el."
 
 #. i18n: You may want to leave the term "ERROR #002" untranslated,
 #. since the emulated software always displays it in English.
@@ -3062,6 +3215,8 @@ msgid ""
 "Some padding data that should be zero is not zero. This can make the game "
 "freeze at certain points."
 msgstr ""
+"A kitöltő adatok egy része, aminek nullának kéne lennie, nem az. Ez a "
+"probléma bizonyos helyeken a játék lefagyásához vezethet."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1231
 #, c++-format
@@ -3091,6 +3246,8 @@ msgid ""
 "This is a good dump according to Redump.org, but Dolphin has found problems. "
 "This might be a bug in Dolphin."
 msgstr ""
+"Ez a fájl a Redump.org szerint egy jó másolat, de a Dolphin problémákat "
+"talált. Ez lehet, hogy a Dolphin hibája."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1371
 msgid "Dolphin is unable to verify unlicensed discs."
@@ -3118,6 +3275,8 @@ msgid ""
 "This is a bad dump. This doesn't necessarily mean that the game won't run "
 "correctly."
 msgstr ""
+"Ez egy rossz másolat. Ez nem feltétlenül jelenti azt, hogy a játék nem fog "
+"helyesen futni."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1410
 msgid "This is a bad dump."
@@ -3146,18 +3305,23 @@ msgid ""
 "Problems with low severity were found. They will most likely not prevent the "
 "game from running."
 msgstr ""
+"Alacsony súlyosságú hibákra bukkantunk. Ezek valószínűleg nem akadályozzák "
+"meg a játék elindulását."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1445
 msgid ""
 "Problems with medium severity were found. The whole game or certain parts of "
 "the game might not work correctly."
 msgstr ""
+"Közepes súlyosságú hibákra bukkantunk. A teljes játék vagy annak bizonyos "
+"részei valószínűleg nem fognak megfelelően működni."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1450
 msgid ""
 "Problems with high severity were found. The game will most likely not work "
 "at all."
 msgstr ""
+"Súlyos hibákra bukkantunk. A játék nagy valószínűséggel nem fog elindulni."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1458
 msgid ""
@@ -3178,6 +3342,11 @@ msgid ""
 "Because this title is not for retail Wii consoles, Dolphin cannot ensure "
 "that it hasn't been tampered with, even if signatures appear valid."
 msgstr ""
+"\n"
+"\n"
+"Mivel ez a játék nem kereskedelmi forgalomban lévő Wii konzolokhoz készült, "
+"a Dolphin nem tudja garantálni, hogy nem módosították, még akkor sem, ha az "
+"aláírások érvényesnek tűnnek."
 
 #: Source/Core/DolphinQt/AboutDialog.cpp:17
 msgid "About Dolphin"
@@ -3306,6 +3475,10 @@ msgid ""
 "account to use. Dolphin does not save your password locally and uses an API "
 "token to maintain login."
 msgstr ""
+"Engedélyezi a RetroAchievements integrációt, hogy jutalmakat szerezz és a "
+"ranglistákon versenyezz. <br><br>A használathoz be kell jelentkezned egy "
+"RetroAchievements fiókkal. A Dolphin nem menti el a jelszavadat, ehelyett "
+"egy API tokent használ a bejelentkezés fenntartásához."
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:69
 msgid "Username"
@@ -3576,6 +3749,8 @@ msgstr "Nincs futó játék."
 msgid ""
 "Please start a game before starting a search with standard memory regions."
 msgstr ""
+"Indíts el egy játékot, mielőtt keresést kezdeményeznél a sztenderd "
+"memóriaterületeken."
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:100
 msgid "[%1, %2]"
@@ -3754,6 +3929,8 @@ msgid ""
 "Search currently not possible in virtual address space. Please run the game "
 "for a bit and try again."
 msgstr ""
+"Jelenleg a virtuális címtérben nem lehetséges a keresés. Futtasd egy ideig a "
+"játékot, majd próbáld újra."
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:381
 msgid "Unknown error occurred."
@@ -3791,15 +3968,15 @@ msgstr "Számos hiba történt az AR-kódok generálásakor."
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:571
 msgid "Can only generate AR code for values in virtual memory."
-msgstr ""
+msgstr "Csak virtuális memóriában lévő értékekhez lehet AR-kódot generálni."
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:574
 msgid "Cannot generate AR code for this address."
-msgstr "Nem generálható AR kód ehhez a címhez."
+msgstr "Nem generálható AR-kód ehhez a címhez."
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:577
 msgid "Internal error while generating AR code."
-msgstr ""
+msgstr "Belső hiba történt az AR-kód generálása közben."
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:584
 msgid "Generated AR code(s)."
@@ -3808,7 +3985,7 @@ msgstr "AR-kód(ok) generálva."
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:616
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:47
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:240
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1021
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1028
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:243
 #: Source/Core/DolphinQt/MenuBar.cpp:711
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:90
@@ -4199,8 +4376,8 @@ msgstr "Rendszeradatok kibontása..."
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:384
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:298
 #: Source/Core/DolphinQt/ConvertDialog.cpp:531
-#: Source/Core/DolphinQt/GameList/GameList.cpp:660
-#: Source/Core/DolphinQt/GameList/GameList.cpp:688
+#: Source/Core/DolphinQt/GameList/GameList.cpp:667
+#: Source/Core/DolphinQt/GameList/GameList.cpp:695
 #: Source/Core/DolphinQt/MenuBar.cpp:236 Source/Core/DolphinQt/MenuBar.cpp:1193
 #: Source/Core/DolphinQt/MenuBar.cpp:1416
 msgid "Success"
@@ -4310,24 +4487,32 @@ msgstr "Szabad nézet beállítások"
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:35
 msgid "Section that contains most CPU and Hardware related settings."
 msgstr ""
+"Szekció, amely a legtöbb CPU- és hardverrel kapcsolatos beállítást "
+"tartalmazza."
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:37
 msgid ""
 "Controls whether or not Dual Core should be enabled. Can improve performance "
 "but can also cause issues. Defaults to <b>True</b>"
 msgstr ""
+"Beállítja, hogy a kétmagos mód engedélyezve legyen-e. Javíthatja a "
+"teljesítményt, de problémákat is okozhat. Alapértelmezett érték:<b>Igaz</b>"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:42
 msgid ""
 "Emulate the disc speed of real hardware. Disabling can cause instability. "
 "Defaults to <b>True</b>"
 msgstr ""
+"Emulálja a valódi hardver lemezsebességét. A kikapcsolása instabilitást "
+"okozhat. Alapértelmezett érték: <b>Igaz</b>"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:45
 msgid ""
 "Controls whether or not the Memory Management Unit should be emulated fully. "
 "Few games require it."
 msgstr ""
+"Szabályozza, hogy a Memóriakezelő Egység teljes emulációja engedélyezve "
+"legyen-e. Kevés játék igényli."
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:50
 msgid ""
@@ -4446,13 +4631,15 @@ msgid ""
 "Failed to open file in external editor.\n"
 "Make sure there's an application assigned to open INI files."
 msgstr ""
+"Nem sikerült megnyitni a fájlt a külső szerkesztőben. \n"
+"Győződj meg róla, hogy van alkalmazás rendelve az INI fájlok megnyitásához."
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:102
 msgid "Enable Dual Core"
 msgstr "Kétmagos mód használata"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:103
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:72
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:73
 msgid "Enable MMU"
 msgstr "MMU használata"
 
@@ -4513,6 +4700,9 @@ msgid ""
 "Enable emulated disc speed. Disabling this can cause crashes and other "
 "problems in some games. (ON = Compatible, OFF = Unlocked)"
 msgstr ""
+"Engedélyezi az emulált lemez sebességét. Ennek kikapcsolása összeomlásokat "
+"és más problémákat okozhat egyes játékokban. (BE = Kompatibilis, KI = "
+"Korlátlan)"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:135
 msgid "Deterministic dual core:"
@@ -4733,7 +4923,7 @@ msgstr "Statisztikák megjelenítése"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:88
 msgid "Show Projection Statistics"
-msgstr ""
+msgstr "Vetítési statisztikák megjelenítése"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:91
 msgid "Texture Format Overlay"
@@ -4765,7 +4955,7 @@ msgstr "XFB cél kimentése"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:121
 msgid "Disable EFB VRAM Copies"
-msgstr ""
+msgstr "EFB VRAM másolatok letiltása"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:124
 msgid "Enable Graphics Mods"
@@ -4998,6 +5188,10 @@ msgid ""
 "exponentially more RAM but fixes possible stuttering."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Az egyéni textúrákat induláskor a rendszermemóriába gyorsítótárazza."
+"<br><br>Ez sokkal több memóriát igényelhet, de csökkenti az akadozást."
+"<br><br><dolphin_emphasis>Ha bizonytalan vagy, hagyd üresen.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:351
 msgid ""
@@ -5079,6 +5273,10 @@ msgid ""
 "don't have any issue with this.<br><br><dolphin_emphasis>If unsure, leave "
 "this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Ez a beállítás engedélyezi a progresszív szkennelést, ha az emulált szoftver "
+"támogatja. A legtöbb játéknál ez nem okoz problémát. "
+"<br><br><dolphin_emphasis>Ha bizonytalan vagy, hagyd üresen.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:403
 msgid ""
@@ -5178,6 +5376,10 @@ msgid ""
 "display targets.<br>Monitors often target sRGB. TVs often target 2.2."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Konvertálja a gammaértéket a játék által megcélzott szintről a kijelződ SDR "
+"szintjére. <br>A monitorok általában az sRGB-t célozzák, míg a tévék a 2.2-"
+"es gammaértéket.<br><br><dolphin_emphasis> Ha bizonytalan vagy, hagyd üresen."
+"</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:50
 msgid ""
@@ -5229,7 +5431,7 @@ msgstr "SDR Gamma korrekció"
 
 #: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:96
 msgid "SDR Display Gamma Target"
-msgstr ""
+msgstr "SDR-kijelző cél gammaértéke"
 
 #: Source/Core/DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.cpp:100
 msgid "sRGB"
@@ -5835,6 +6037,9 @@ msgid ""
 "window.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
+"A fő Dolphin ablakot használja a renderelésre, külön ablak helyett. "
+"<br><br><dolphin_emphasis>Ha bizonytalan vagy, hagyd üresen.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:248
 msgid ""
@@ -5864,6 +6069,10 @@ msgid ""
 "performance if emulation speed is below 100%.<br><br><dolphin_emphasis>If "
 "unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Vízszintes szinkronra vár a képtörés megakadályozása érdekében."
+"<br><br>Csökkenti a teljesítményt, ha az emulációs sebesség 100% alatt van."
+"<br><br><dolphin_emphasis>Ha bizonytalan vagy, hagyd üresen.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:272
 msgid ""
@@ -5886,6 +6095,10 @@ msgid ""
 "but GPU demands are low.<br><br>Recommended for low-end hardware. "
 "<br><br><dolphin_emphasis>If unsure, select this mode.</dolphin_emphasis>"
 msgstr ""
+"Az Ubershadereket soha nem alkalmazza.. Az akadozás a shader fordítása "
+"közben fog jelentkezni, de a GPU terhelése alacsony.<br><br>Alacsony "
+"teljesítményű hardverekhez ajánlott. <br><br><dolphin_emphasis>Ha "
+"bizonytalan vagy, válaszd ezt a módot.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:284
 msgid ""
@@ -5950,6 +6163,8 @@ msgid ""
 "Selects a hardware adapter to use.<br><br><dolphin_emphasis>If unsure, "
 "select the first one.</dolphin_emphasis>"
 msgstr ""
+"Kiválasztja a használandó hardveres adaptert.<br><br><dolphin_emphasis>Ha "
+"bizonytalan vagy, válaszd az első opciót.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:366
 msgid ""
@@ -6001,7 +6216,7 @@ msgstr "XFB azonnali prezentálása"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:86
 msgid "Skip Presenting Duplicate Frames"
-msgstr "Duplikált képkockák prezentálásának kihagyása"
+msgstr "Ismétlődő képkockák kihagyása"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:99
 msgid "Fast Depth Calculation"
@@ -6088,6 +6303,13 @@ msgid ""
 "the Skip Presenting Duplicate Frames setting.<br><br><dolphin_emphasis>If "
 "unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Ez a beállítás azonnal megjeleníti az XFB másolatokat, amint azok "
+"létrejönnek, ahelyett, hogy megvárná a soronkénti kiolvasást.<br><br>Egyes "
+"játékoknál grafikai hibákhoz vezethet, ha a játék nem számít arra, hogy az "
+"összes XFB másolat megjelenítésre kerül, de csökkenti a késleltetést."
+"<br><br>A beállítás bekapcsolása az Ismétlődő képkockák kihagyása opcióval "
+"azonos hatást eredményez. <br><br><dolphin_emphasis>Ha bizonytalan vagy, "
+"hagyd üresen.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:197
 msgid ""
@@ -6694,8 +6916,8 @@ msgstr "A profil '%1' nem létezik"
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:280
 #: Source/Core/DolphinQt/ConvertDialog.cpp:280
 #: Source/Core/DolphinQt/ConvertDialog.cpp:403
-#: Source/Core/DolphinQt/GameList/GameList.cpp:675
-#: Source/Core/DolphinQt/GameList/GameList.cpp:854
+#: Source/Core/DolphinQt/GameList/GameList.cpp:682
+#: Source/Core/DolphinQt/GameList/GameList.cpp:861
 #: Source/Core/DolphinQt/MainWindow.cpp:992
 #: Source/Core/DolphinQt/MainWindow.cpp:1764
 #: Source/Core/DolphinQt/WiiUpdate.cpp:139
@@ -6707,7 +6929,7 @@ msgid "Are you sure that you want to delete '%1'?"
 msgstr "Biztosan törölni szeretnéd: '%1'?"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:282
-#: Source/Core/DolphinQt/GameList/GameList.cpp:856
+#: Source/Core/DolphinQt/GameList/GameList.cpp:863
 msgid "This cannot be undone!"
 msgstr "Ez nem vonható vissza!"
 
@@ -7015,11 +7237,11 @@ msgstr "Automatikus"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:181
 msgid "Wii Remotes"
-msgstr ""
+msgstr "Wii Remote-ok"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:184
 msgid "Passthrough a Bluetooth adapter"
-msgstr "Bluetooth adapter átvitele"
+msgstr "Bluetooth-adapter átvitele"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:188
 msgid "Sync"
@@ -7035,7 +7257,7 @@ msgstr "Mentett Wii Remote párosítások visszaállítása"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:193
 msgid "Emulate the Wii's Bluetooth adapter"
-msgstr "Wii Bluetooth adapterének emulálása"
+msgstr "Wii Bluetooth-adapterének emulálása"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:194
 msgid "Continuous Scanning"
@@ -7051,7 +7273,7 @@ msgstr "Hangszóró adatok bekapcsolása"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:197
 msgid "Connect Wii Remotes for Emulated Controllers"
-msgstr ""
+msgstr "Wii Remote-ok csatlakoztatása az emulált vezérlőkhöz"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:229
 msgid "Emulated Wii Remote"
@@ -7066,7 +7288,7 @@ msgid ""
 "A supported Bluetooth device could not be found.\n"
 "You must manually connect your Wii Remote."
 msgstr ""
-"Nem található támogatott Bluetooth eszköz.\n"
+"Nem található támogatott Bluetooth-eszköz.\n"
 "Manuálisan kell csatlakoztatnod a Wii távirányítót."
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:334
@@ -7194,6 +7416,9 @@ msgid ""
 "\n"
 "Please select another destination path for \"%1\""
 msgstr ""
+"A célfájl nem lehet azonos a forrásfájllal.\n"
+"\n"
+"Válassz másik célútvonalat a(z) \"%1\" számára."
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:429
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:276
@@ -7993,6 +8218,58 @@ msgid ""
 "possible for them to go out of range or to become NaN. A warning will be "
 "given if NaN is returned, and the var that became NaN will be logged."
 msgstr ""
+"Feltételek:\n"
+"Egy olyan kifejezést állít be, amely egy töréspont elérésekor kiértékelésre "
+"kerül. Ha a kifejezés hamis vagy 0, a töréspont figyelmen kívül marad a "
+"következő elérésig. Az utasításokat vesszővel kell elválasztani. Csak az "
+"utolsó utasítás alapján dől el, hogy mi történik.\n"
+"\n"
+"Hivatkozható regiszterek:\n"
+"GPR-ek: r0..r31\n"
+"FPR-ek: f0..f31\n"
+"SPR-ek: xer, lr, ctr, dsisr, dar, dec, sdr1, srr0, srr1, tbl, tbu, pvr, "
+"sprg0..sprg3, ear, ibat0u..ibat7u, ibat0l..ibat7l, dbat0u..dbat7u, "
+"dbat0l..dbat07, gqr0..gqr7, hid0, hid1, hid2, hid4, iabr, dabr, wpar, dmau, "
+"dmal, ecid_u, ecid_m, ecid_l, upmc1..upmc4, usia, sia, l2cr, ictc, mmcr0, "
+"mmcr1, pmc1..pmc4, thrm1..thrm3\n"
+"Egyéb: pc, msr\n"
+"\n"
+"Funkciók:\n"
+"Regiszter beállítása: r1 = 8\n"
+"Típuskonverziók: s8(0xff) – elérhető: s8, u8, s16, u16, s32, u32\n"
+"Hívási verem: callstack(0x80123456) vagy callstack(\"anim\")\n"
+"String összehasonlítás: streq(r3, \"abc\") – mindkét paraméter lehet cím "
+"vagy string\n"
+"Memória olvasása: read_u32(0x80000000) – elérhető: u8, s8, u16, s16, u32, "
+"s32, f32, f64\n"
+"Memória írása: write_u32(r3, 0x80000000) – elérhető: u8, u16, u32, f32, f64\n"
+"* jelenlegi írás mindig aktiválódik\n"
+"\n"
+"Műveletek:\n"
+"Unáris: -u, !u, ~u\n"
+"Matematika: * / + -, hatványozás: **, maradék: %, biteltolás: <<, >>\n"
+"Összehasonlítás: <, <=, >, >=, ==, !=, &&, ||\n"
+"Bitműveletek: &, |, ^\n"
+"\n"
+"Példák:\n"
+"r4 == 1\n"
+"f0 == 1.0 && f2 < 10.0\n"
+"r26 <= r0 && ((r5 + 3) & -4) * ((r6 + 3) & -4)* 4 > r0\n"
+"p = r3 + 0x8, p == 0x8003510 && read_u32(p) != 0\n"
+"Írás és töréspont: r4 = 8, 1\n"
+"Írás és folytatás: f3 = f1 + f2, 0\n"
+"A feltételnek mindig az utolsó utasításnak kell lennie.\n"
+"\n"
+"Sztringeket csak a callstack() vagy streq() függvényekben használj, és azok "
+"\"idézőjelben\" legyenek. Ne rendelj stringeket változókhoz.\n"
+"Minden változó kiírásra kerül a Memóriainterfész naplóban, ha a töréspont "
+"eléri, vagy ha NaN érték keletkezik.\n"
+"Problémák ellenőrzéséhez rendelj egy változót az egyenletedhez, hogy az "
+"kiírható legyen.\n"
+"\n"
+"Megjegyzés: Minden érték belsőleg Double típusra konvertálódik, ezért "
+"előfordulhat, hogy túlcsordul vagy NaN lesz. NaN esetén figyelmeztetés "
+"jelenik meg, és a hibás változó naplózásra kerül."
 
 #. i18n: The title for a dialog that shows help for how to use conditions. If a condition is set
 #. for a breakpoint, the condition becoming true is a prerequisite for triggering the breakpoint.
@@ -8172,6 +8449,8 @@ msgid ""
 "Target value was overwritten by current instruction.\n"
 "Instructions executed:   %1"
 msgstr ""
+"A célérték felülírásra került az aktuális utasítás által.\n"
+"Végrehajtott utasítások:  %1"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:730
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:294
@@ -8456,7 +8735,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:611
 msgid "PPC Instruction Coverage"
-msgstr ""
+msgstr "PPC utasítás lefedettség"
 
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:613
 msgid "Host Near Code Cache"
@@ -8490,7 +8769,7 @@ msgstr ""
 #. i18n: This means to say it is a count of PPC instructions recompiled more than once.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:638
 msgid "Repeat Instructions"
-msgstr ""
+msgstr "Ismételt utasítások"
 
 #. i18n: "Near Code" refers to the near code cache of Dolphin's JITs.
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:640
@@ -8535,7 +8814,7 @@ msgstr "Érték másolása"
 
 #: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1214
 msgid "Add or edit region label"
-msgstr ""
+msgstr "Régió címke hozzáadása vagy szerkesztése"
 
 #: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1225
 msgid "Show in code"
@@ -8720,7 +8999,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:253
 msgid "Labels"
-msgstr ""
+msgstr "Címkék"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:259
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:139
@@ -8729,7 +9008,7 @@ msgstr "Adat"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:265
 msgid "Filter Label List"
-msgstr ""
+msgstr "Címkelista szűrése"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:278
 #: Source/Core/DolphinQt/MenuBar.cpp:468
@@ -8746,19 +9025,19 @@ msgstr "&Fájl betöltése a jelenlegi címre"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:288
 msgid "&Auto update memory values"
-msgstr ""
+msgstr "&Memóriaértékek automatikus frissítése"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:299
 msgid "&Highlight recently changed values"
-msgstr ""
+msgstr "&Nemrég változott értékek kiemelése"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:304
 msgid "Highlight &color"
-msgstr ""
+msgstr "Kiemelési &szín"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:308
 msgid "&Show symbols and notes"
-msgstr ""
+msgstr "&Szimbólumok és megjegyzések megjelenítése"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:316
 msgid "&Export"
@@ -8818,7 +9097,7 @@ msgstr "Nem sikerült beolvasni a fájlt."
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:940
 msgid "Failed to dump %1: Can't open file"
-msgstr ""
+msgstr "Sikertelen másolat %1: A fájl nem nyitható meg."
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:947
 msgid "Failed to dump %1: Failed to write to file"
@@ -9283,91 +9562,91 @@ msgstr "Következő egyezés"
 msgid "Previous Match"
 msgstr "Előző egyezés"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:142
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:141
 msgid "No recording loaded."
 msgstr "Nincs betöltött felvétel."
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:146
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:145
 msgid "Recording"
 msgstr "Rögzítés"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:156
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:155
 msgid "Frame %1"
 msgstr "Képkocka %1"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:175
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:174
 msgid "Object %1"
 msgstr ""
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:177
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:176
 msgid "EFB copy %1"
 msgstr ""
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:291
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:290
 msgid "Call display list at %1 with size %2"
 msgstr ""
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:392
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:391
 msgid "Invalid search parameters (no object selected)"
 msgstr "Érvénytelen keresési paraméterek (nincs kiválasztott elem)"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:402
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:401
 msgid "Invalid search string (only even string lengths supported)"
 msgstr ""
 "Érvénytelen keresési karakterlánc (csak azonos karakterlánchossz támogatott)"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:419
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:418
 msgid "Invalid search string (couldn't convert to number)"
 msgstr "Érvénytelen keresési karakterlánc (nem alakítható számmá)"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:465
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:464
 msgid "Found %1 results for \"%2\""
 msgstr "%1 találat erre: \"%2\""
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:532
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:531
 msgid "BP register "
 msgstr "BP regiszter "
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:537
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:554
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:569
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:723
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:726
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:729
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:536
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:553
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:568
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:722
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:725
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:728
 msgid "No description available"
 msgstr "Nincs elérhető leírás"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:549
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:548
 msgid "CP register "
 msgstr "CP regiszter "
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:564
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:563
 msgid "XF register "
 msgstr "XF regiszter "
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:584
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:583
 msgid "Usually used for position matrices"
 msgstr ""
 
 #. i18n: A normal matrix is a matrix used for transforming normal vectors. The word "normal"
 #. does not have its usual meaning here, but rather the meaning of "perpendicular to a
 #. surface".
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:590
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:589
 msgid "Usually used for normal matrices"
 msgstr ""
 
 #. i18n: Tex coord is short for texture coordinate
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:594
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:593
 msgid "Usually used for tex coord matrices"
 msgstr ""
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:597
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:596
 msgid "Usually used for light objects"
 msgstr ""
 
 #. i18n: In this context, a primitive means a point, line, triangle or rectangle.
 #. Do not translate the word primitive as if it was an adjective.
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:614
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:613
 msgid "Primitive %1"
 msgstr ""
 
@@ -9484,12 +9763,12 @@ msgstr "Rögzítés..."
 msgid "No file loaded / recorded."
 msgstr "Nincs betöltött / rögzített fájl."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:301
+#: Source/Core/DolphinQt/GameList/GameList.cpp:308
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:196
 msgid "Refreshing..."
 msgstr "Frissítés..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:302
+#: Source/Core/DolphinQt/GameList/GameList.cpp:309
 msgid ""
 "Dolphin could not find any GameCube/Wii ISOs or WADs.\n"
 "Double-click here to set a games directory..."
@@ -9497,144 +9776,144 @@ msgstr ""
 "A Dolphin nem talált GameCube/Wii ISO vagy WAD fájlt.\n"
 "Kétszer kattints ide egy játékmappa megadásához..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:314
+#: Source/Core/DolphinQt/GameList/GameList.cpp:321
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:39
 msgid "Select a Directory"
 msgstr "Válassz egy könyvtárat"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:404
+#: Source/Core/DolphinQt/GameList/GameList.cpp:411
 msgid "Convert Selected Files..."
 msgstr "Kiválasztott fájlok konvertálása..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:411
+#: Source/Core/DolphinQt/GameList/GameList.cpp:418
 msgid "Export Wii Saves"
 msgstr "Wii mentések exportálása"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:415
+#: Source/Core/DolphinQt/GameList/GameList.cpp:422
 msgid "Delete Selected Files..."
 msgstr "Kiválasztott fájlok törlése..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:422
+#: Source/Core/DolphinQt/GameList/GameList.cpp:429
 msgid "&Properties"
 msgstr "&Tulajdonságok"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:425
+#: Source/Core/DolphinQt/GameList/GameList.cpp:432
 msgid "&Wiki"
 msgstr "&Wiki"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:432
+#: Source/Core/DolphinQt/GameList/GameList.cpp:439
 msgid "Start with Riivolution Patches..."
 msgstr "Indítás Riivolution Patchekkel..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:437
+#: Source/Core/DolphinQt/GameList/GameList.cpp:444
 msgid "Set as &Default ISO"
 msgstr "&Beállítás alapértelmezett ISO-ként"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:440
+#: Source/Core/DolphinQt/GameList/GameList.cpp:447
 msgid "Convert File..."
 msgstr "Fájl konvertálása..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:442
+#: Source/Core/DolphinQt/GameList/GameList.cpp:449
 msgid "Change &Disc"
 msgstr "Lemez&váltás"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:453
+#: Source/Core/DolphinQt/GameList/GameList.cpp:460
 msgid "Perform System Update"
 msgstr "Rendszerfrissítés végrehajtása"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:465
+#: Source/Core/DolphinQt/GameList/GameList.cpp:472
 msgid "Install to the NAND"
 msgstr "Telepítés a NAND-ra"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:466
+#: Source/Core/DolphinQt/GameList/GameList.cpp:473
 msgid "Uninstall from the NAND"
 msgstr "Eltávolítás a NAND-ról"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:493
+#: Source/Core/DolphinQt/GameList/GameList.cpp:500
 msgid "Open Wii &Save Folder"
 msgstr "Wii &Mentés mappa megnyitása"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:495
+#: Source/Core/DolphinQt/GameList/GameList.cpp:502
 msgid "Export Wii Save"
 msgstr "Wii mentés exportálása"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:505
+#: Source/Core/DolphinQt/GameList/GameList.cpp:512
 msgid "Open GameCube &Save Folder"
 msgstr "GameCube &Mentés mappa megnyitása"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:509
+#: Source/Core/DolphinQt/GameList/GameList.cpp:516
 msgid "Open &Containing Folder"
 msgstr "&Tartalmazó mappa megnyitása"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:510
+#: Source/Core/DolphinQt/GameList/GameList.cpp:517
 msgid "Delete File..."
 msgstr "Fájl törlése..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:512
-#: Source/Core/DolphinQt/GameList/GameList.cpp:515
+#: Source/Core/DolphinQt/GameList/GameList.cpp:519
+#: Source/Core/DolphinQt/GameList/GameList.cpp:522
 msgid "Add Shortcut to Desktop"
 msgstr "Parancsikon hozzáaadása az Asztalhoz"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:516
+#: Source/Core/DolphinQt/GameList/GameList.cpp:523
 msgid "There was an issue adding a shortcut to the desktop"
 msgstr "Hiba történt az asztali parancsikon létrehozásakor"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:523
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1032
+#: Source/Core/DolphinQt/GameList/GameList.cpp:530
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1039
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:261
 #: Source/Core/DolphinQt/MenuBar.cpp:722
 msgid "Tags"
 msgstr "Címkék"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:544
+#: Source/Core/DolphinQt/GameList/GameList.cpp:551
 msgid "New Tag..."
 msgstr "Új címke..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:545
+#: Source/Core/DolphinQt/GameList/GameList.cpp:552
 msgid "Remove Tag..."
 msgstr "Címke eltávolítása..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:549
+#: Source/Core/DolphinQt/GameList/GameList.cpp:556
 msgid "Host with NetPlay"
 msgstr "Hosztolás NetPlay-jel"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:598
+#: Source/Core/DolphinQt/GameList/GameList.cpp:605
 #: Source/Core/DolphinQt/MenuBar.cpp:1340
 msgid "Select Export Directory"
 msgstr "Exportálási könyvtár kiválasztása"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:618
-#: Source/Core/DolphinQt/GameList/GameList.cpp:623
+#: Source/Core/DolphinQt/GameList/GameList.cpp:625
+#: Source/Core/DolphinQt/GameList/GameList.cpp:630
 #: Source/Core/DolphinQt/MenuBar.cpp:1346
 msgid "Save Export"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:619
+#: Source/Core/DolphinQt/GameList/GameList.cpp:626
 msgid "Failed to export the following save files:"
-msgstr ""
+msgstr "A következő mentési fájlok exportálása sikertelen:"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:623
+#: Source/Core/DolphinQt/GameList/GameList.cpp:630
 msgid "Successfully exported save files"
 msgstr "Sikeresen exportált mentési fájlok"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:660
-#: Source/Core/DolphinQt/GameList/GameList.cpp:688
-#: Source/Core/DolphinQt/GameList/GameList.cpp:878
+#: Source/Core/DolphinQt/GameList/GameList.cpp:667
+#: Source/Core/DolphinQt/GameList/GameList.cpp:695
+#: Source/Core/DolphinQt/GameList/GameList.cpp:885
 #: Source/Core/DolphinQt/MenuBar.cpp:1198
 msgid "Failure"
 msgstr "Hiba"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:661
+#: Source/Core/DolphinQt/GameList/GameList.cpp:668
 #: Source/Core/DolphinQt/MenuBar.cpp:1194
 msgid "Successfully installed this title to the NAND."
 msgstr "A játék sikeresen telepítve lett a NAND-ra."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:662
+#: Source/Core/DolphinQt/GameList/GameList.cpp:669
 #: Source/Core/DolphinQt/MenuBar.cpp:1198
 msgid "Failed to install this title to the NAND."
 msgstr "Nem sikerült telepíteni ezt a játékot a NAND-ra."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:676
+#: Source/Core/DolphinQt/GameList/GameList.cpp:683
 msgid ""
 "Uninstalling the WAD will remove the currently installed version of this "
 "title from the NAND without deleting its save data. Continue?"
@@ -9642,123 +9921,125 @@ msgstr ""
 "A WAD eltávolítása törli a játék aktuálisan telepített verzióját a NAND-ról "
 "anélkül, hogy a mentett adatokat törölné. Folytatod?"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:689
+#: Source/Core/DolphinQt/GameList/GameList.cpp:696
 msgid "Successfully removed this title from the NAND."
 msgstr "A játék sikeresen el lett távolítva a NAND-ról."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:690
+#: Source/Core/DolphinQt/GameList/GameList.cpp:697
 msgid "Failed to remove this title from the NAND."
 msgstr "Nem sikerült eltávolítani ezt a játékot a NAND-ról."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:743
-#: Source/Core/DolphinQt/GameList/GameList.cpp:805
+#: Source/Core/DolphinQt/GameList/GameList.cpp:750
+#: Source/Core/DolphinQt/GameList/GameList.cpp:812
 msgid "No save data found."
 msgstr "Nem található mentett adat."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:855
+#: Source/Core/DolphinQt/GameList/GameList.cpp:862
 msgid "Are you sure you want to delete this file?"
 msgstr "Biztosan törlöd ezt a fájlt?"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:879
+#: Source/Core/DolphinQt/GameList/GameList.cpp:886
 msgid "Failed to delete the selected file."
 msgstr "Nem sikerült törölni a kiválasztott fájlt."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:880
+#: Source/Core/DolphinQt/GameList/GameList.cpp:887
 msgid ""
 "Check whether you have the permissions required to delete the file or "
 "whether it's still in use."
 msgstr ""
+"Ellenőrizd, hogy van-e jogosultságod a fájl törlésére, vagy hogy "
+"használatban van-e."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1018
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1025
 #: Source/Core/DolphinQt/MenuBar.cpp:708
 msgid "Platform"
 msgstr "Platform"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1019
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1026
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:241
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:150
 #: Source/Core/DolphinQt/MenuBar.cpp:709
 msgid "Banner"
 msgstr "Banner"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1020
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1027
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:237
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:152
 #: Source/Core/DolphinQt/MenuBar.cpp:710
 msgid "Title"
 msgstr "Cím"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1022
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1029
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:245
 #: Source/Core/DolphinQt/MenuBar.cpp:712
 msgid "Maker"
 msgstr "Készítő"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1023
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1030
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:247
 #: Source/Core/DolphinQt/MenuBar.cpp:713
 msgid "File Name"
 msgstr "Fájlnév"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1024
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1031
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:249
 #: Source/Core/DolphinQt/MenuBar.cpp:714
 msgid "File Path"
 msgstr "Fájl útvonala:"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1025
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1032
 #: Source/Core/DolphinQt/MenuBar.cpp:715
 msgid "Game ID"
 msgstr "Játék azonosító"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1026
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1033
 #: Source/Core/DolphinQt/MenuBar.cpp:716
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:221
 msgid "Region"
 msgstr "Régió"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1027
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1034
 #: Source/Core/DolphinQt/MenuBar.cpp:717
 msgid "File Size"
 msgstr "Fájlméret"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1028
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1035
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:253
 #: Source/Core/DolphinQt/MenuBar.cpp:718
 msgid "File Format"
 msgstr "Fájlformátum"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1029
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1036
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:255
 #: Source/Core/DolphinQt/MenuBar.cpp:719
 msgid "Block Size"
 msgstr "Blokk méret"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1030
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1037
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:257
 #: Source/Core/DolphinQt/MenuBar.cpp:720
 msgid "Compression"
 msgstr "Tömörítés"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1031
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1038
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:259
 #: Source/Core/DolphinQt/MenuBar.cpp:721
 msgid "Time Played"
 msgstr "Játékidő"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1141
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1148
 msgid "New tag"
 msgstr "Új címke"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1141
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1148
 msgid "Name for a new tag:"
 msgstr "Új címke neve:"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1153
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1160
 msgid "Remove tag"
 msgstr "Címke eltávolítása"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1153
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1160
 msgid "Name of the tag to remove:"
 msgstr "Eltávolítandó címke neve:"
 
@@ -10036,7 +10317,7 @@ msgstr "GameCube memóriakártyák"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:376
 msgid "Data inconsistency in GCMemcardManager, aborting action."
-msgstr ""
+msgstr "Adatinkonzisztencia a GCMemcardManager-ben, művelet megszakítása."
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:397
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:404
@@ -10062,6 +10343,7 @@ msgstr "Sikertelen exportálás"
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:640
 msgid "Failed to read selected savefile(s) from memory card."
 msgstr ""
+"Nem sikerült beolvasni a kiválasztott mentési fájl(oka)t a memóriakártyáról."
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:436
 msgid "Export Save File"
@@ -10078,7 +10360,7 @@ msgstr "Mentési fájlok exportálása"
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:487
 msgctxt ""
 msgid "Failed to export %n out of %1 save file(s)."
-msgstr ""
+msgstr "Nem sikerült exportálni %n fájlt a(z) %1 mentési fájlból."
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:495
 msgctxt ""
@@ -10125,7 +10407,7 @@ msgstr "\"%1\" importálása sikertelen."
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:675
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:690
 msgid "Failed to write modified memory card to disk."
-msgstr ""
+msgstr "Nem sikerült a módosított memóriakártyát lemezre írni."
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:585
 msgid "Import Save File(s)"
@@ -10745,7 +11027,7 @@ msgstr "Eszközt&ár megjelenítése"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:495
 msgid "&Lock Widgets In Place"
-msgstr ""
+msgstr "&Widgetek elhelyezésének zárolása"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:503
 msgid "&Code"
@@ -11047,7 +11329,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:952
 msgid "Log JIT Instruction Coverage"
-msgstr ""
+msgstr "JIT utasítás lefedettségének naplózása"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:954
 msgid "Search for an Instruction"
@@ -11385,7 +11667,7 @@ msgstr "RSO auto-felismerés"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1522
 msgid "Auto-detect RSO modules?"
-msgstr ""
+msgstr "Automatikus RSO modul-észlelés?"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1527
 msgid "Enter the RSO module address:"
@@ -11464,7 +11746,7 @@ msgstr "Aláírásfájl mentése"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1868
 msgid "Failed to save signature file '%1'"
-msgstr ""
+msgstr "Nem sikerült az aláírásfájl mentése: '%1'"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1878
 msgid ""
@@ -11968,7 +12250,7 @@ msgstr "Max puffer:"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:971
 msgid "Possible desync detected: %1 might have desynced at frame %2"
-msgstr ""
+msgstr "Lehetséges szinkronhiba: %1 eltérhetett a %2. képkockánál."
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:978
 msgid "Lost connection to NetPlay server..."
@@ -12048,6 +12330,20 @@ msgid ""
 "Wii Remote support in netplay is experimental and may not work correctly.\n"
 "Use at your own risk.\n"
 msgstr ""
+"FIGYELEM:\n"
+"\n"
+"Minden játékosnak azonos Dolphin verziót kell használnia.\n"
+"Ha egnedélyezve van, az SD kártyának azonosnak kell lennie a játékosok "
+"között.\n"
+"Ha DSP LLE van használatban, azonos DSP ROMok szükségesek a játékosok "
+"között.\n"
+"Ha a játék lefagy induláskor, lehet, hogy nem támogatja a Kétmagos Netplay-"
+"t. Kapcsold ki a Kétmagos módot. \n"
+"Ha közvetlen csatlakoztok, a gazdának nyitott/forwardolt UDP port "
+"szükséges.\n"
+"\n"
+"A Wiimote támogatás kísérleti stádiumban van, ezért nem valószínű, hogy "
+"működik. Csak saját felelősségre használd.\n"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:138
 msgid "Force Listen Port:"
@@ -12075,6 +12371,8 @@ msgid ""
 "This will limit the speed of chunked uploading per client, which is used for "
 "save sync."
 msgstr ""
+"Ez korlátozza az ügyfelenkénti darabos feltöltési sebességet, amit a "
+"mentések szinkronizálására használ."
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:162
 msgid "Name of your session shown in the server browser"
@@ -12274,42 +12572,42 @@ msgstr "Bezárás"
 msgid "Search games..."
 msgstr "Játékok keresése..."
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:34
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:35
 msgid "Interpreter (slowest)"
 msgstr "Értelmező (leglassabb)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:35
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:36
 msgid "Cached Interpreter (slower)"
 msgstr "Gyorsítótáras értelmező (lassabb)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:36
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:37
 msgid "JIT Recompiler for x86-64 (recommended)"
 msgstr "JIT értelmező x86-64-hez (ajánlott)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:37
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:38
 msgid "JIT Recompiler for ARM64 (recommended)"
 msgstr "JIT újrafordító ARM64-hez (ajánlott)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:55
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:56
 msgid "CPU Options"
 msgstr "CPU beállítások"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:66
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:67
 msgid "CPU Emulation Engine:"
 msgstr "CPU emulációs motor:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:74
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:75
 msgid ""
 "Enables the Memory Management Unit, needed for some games. (ON = Compatible, "
 "OFF = Fast)<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:78
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:79
 msgid "Pause on Panic"
 msgstr "Pánik esetén szünet"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:80
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:81
 msgid ""
 "Pauses the emulation if a Read/Write or Unknown Instruction panic occurs."
 "<br>Enabling will affect performance.<br>The performance impact is the same "
@@ -12317,11 +12615,11 @@ msgid ""
 "unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:86
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:87
 msgid "Enable Write-Back Cache (slow)"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:88
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:89
 msgid ""
 "Enables emulation of the CPU write-back cache.<br>Enabling will have a "
 "significant impact on performance.<br>This should be left disabled unless "
@@ -12329,35 +12627,40 @@ msgid ""
 "</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:93
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:94
 msgid "Timing"
 msgstr "Időzítés"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:97
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:98
 msgid "Correct Time Drift"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:99
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:100
 msgid ""
 "Allow the emulated console to run fast after stutters,<br>pursuing accurate "
 "overall elapsed time unless paused or speed-adjusted.<br><br>This may be "
 "useful for internet play.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"Ez a beállítás lehetővé teszi, hogy az emulált konzol a szaggatások után "
+"felgyorsuljon, <br>így tartva a pontosan eltelt időt, kivéve ha az emuláció "
+"szünetel vagy sebessége módosítva van.<br><br> Ez hasznos lehet online játék "
+"esetén. <br><br><dolphin_emphasis>Ha bizonytalan vagy, hagyd üresen.</"
+"dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:105
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:110
 msgid "Clock Override"
 msgstr "Órajel felülbírálás"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:111
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:116
 msgid "Enable Emulated CPU Clock Override"
 msgstr "Emulált CPU órajel felülbírálásának engedélyezése"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:131
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:138
 msgid "%1% (%2 MHz)"
 msgstr "%1% (%2 MHz)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:138
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:145
 msgid ""
 "Adjusts the emulated CPU's clock rate.<br><br>On games that have an unstable "
 "frame rate despite full emulation speed, higher values can improve their "
@@ -12368,20 +12671,30 @@ msgid ""
 "a non-default clock.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"Ez a beállítás az emulált CPU órajelét módosítja.<br><br> Azoknál a "
+"játékoknál, amelyeknek a képkockasebessége instabil, annak ellenére, hogy az "
+"emuláció egyébként teljes sebességgel fut, a magasabb értékek javíthatják a "
+"teljesítményt, de ez erősebb eszközt igényel. Az alacsonyabb értékek "
+"csökkentik az emulált konzol teljesítményét, viszont növelik az emuláció "
+"sebességét. <br><br>FIGYELMEZTETÉS: A gyári beállítástól (100%) eltérő érték "
+"hibás működést és grafikai hibákat okozhat. Csak saját felelősségre. Kérjük, "
+"ne jelents be olyan hibákat, amelyek a nem gyári órajel használata miatt "
+"következnek be. <br><br><dolphin_emphasis>Ha bizonytalan vagy, hagyd üresen."
+"</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:148
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:155
 msgid "VBI Frequency Override"
 msgstr "VBI frekvencia felülbírálás"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:154
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:161
 msgid "Enable VBI Frequency Override"
 msgstr "VBI frekvencia felülbírálás engedélyezése"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:175
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:184
 msgid "%1% (%2 VPS)"
 msgstr "%1% (%2 VPS)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:182
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:191
 msgid ""
 "Adjusts the VBI frequency. Also adjusts the emulated CPU's clock rate, to "
 "keep it relatively the same.<br><br>Makes games run at a different frame "
@@ -12392,26 +12705,37 @@ msgid ""
 "Please do not report bugs that occur with a non-default frequency."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Ez a beállítás a VBI frekvenciáját módosítja. A relatív konzisztencia "
+"érdekében az emulált CPU órajelét is ehhez igazítja.<br><br>A frekvencia "
+"változtatásával a játékok eltérő képkockasebességen fognak futni. Ha "
+"csökkented az értéket, az emuláció kevésbé lesz megterhelő, míg a növelése "
+"folyamatosabb élményt eredményezhet. Ez azonban kihatással lehet a "
+"játékmenet sebességére, mivel az gyakran a képkockasebességhez van kötve."
+"<br><br>FIGYELMEZTETÉS: A gyári beállítástól (100%) eltérő érték hibás "
+"működést és grafikai hibákat okozhat.Csak saját felelősségre. Kérjük, ne "
+"jelents be olyan hibákat, amelyek a nem gyári órajel használata miatt "
+"következnek be. <br><br><dolphin_emphasis>Ha bizonytalan vagy, hagyd üresen."
+"</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:192
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:201
 msgid "Memory Override"
 msgstr "Memória felülbírálás"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:198
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:207
 msgid "Enable Emulated Memory Size Override"
 msgstr "Emulált memóriaméret felülbírálásának engedélyezése"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:210
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:213
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:219
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:224
 msgid "%1 MB (MEM1)"
 msgstr "%1 MB (MEM1)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:224
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:227
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:235
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:240
 msgid "%1 MB (MEM2)"
 msgstr "%1 MB (MEM2)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:231
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:244
 msgid ""
 "Adjusts the amount of RAM in the emulated console.<br><br><b>WARNING</b>: "
 "Enabling this will completely break many games.<br>Only a small number of "
@@ -12419,20 +12743,24 @@ msgid ""
 "unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:237
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:250
 msgid "Custom RTC Options"
 msgstr "Egyéni RTC beállítások"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:241
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:254
 msgid "Enable Custom RTC"
 msgstr "Egyéni RTC használata"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:258
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:271
 msgid ""
 "This setting allows you to set a custom real time clock (RTC) separate from "
 "your current system time.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"Ez a beállítás lehetővé teszi, hogy egy egyedi valós idejű órát (RTC) állíts "
+"be, amely független a számítógéped aktuális rendszeridejétől."
+"<br><br><dolphin_emphasis>Ha bizonytalan vagy, hagyd üresen.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:38
 msgid "%1%"
@@ -12467,7 +12795,7 @@ msgid "Audio Backend:"
 msgstr "Audió feldolgozó:"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:115
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:334
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:335
 msgid "Dolby Pro Logic II Decoder"
 msgstr "Dolby Pro Logic II dekóder"
 
@@ -12500,7 +12828,7 @@ msgid "Output Device:"
 msgstr "Kimeneti eszköz:"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:147
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:226
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:227
 msgid "Latency: %1 ms"
 msgstr "Késleltetés: %1 ms"
 
@@ -12518,27 +12846,35 @@ msgid ""
 "but may cause more crackling or stuttering.<br><br><dolphin_emphasis>If "
 "unsure, set this to 80 ms.</dolphin_emphasis>"
 msgstr ""
+"Szabályozza a pufferelt hangminták számát. Az alacsonyabb értékek csökkentik "
+"a késleltetést, de több recsegést vagy akadozást okozhatnak."
+"<br><br><dolphin_emphasis>Ha bizonytalan vagy, állítsd 80 ms értékre.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:178
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:182
 msgid "%1 ms"
 msgstr "%1 ms"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:184
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:360
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:183
+msgid " 000 ms"
+msgstr ""
+
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:185
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:361
 msgid "Fill Audio Gaps"
 msgstr "Audio hézagok kitöltése"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:186
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:357
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:187
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:358
 msgid "Mute When Disabling Speed Limit"
 msgstr "Némítás a sebességkorlátozás letiltásakor"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:191
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:192
 msgid "Audio Buffer Size:"
 msgstr "Audio pufferméret:"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:295
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:296
 msgid ""
 "Selects how the Digital Signal Processor (DSP) is emulated. Determines how "
 "the audio is processed and what system features are available."
@@ -12551,13 +12887,13 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, select HLE.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:305
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:306
 msgid ""
 "Selects which audio API to use internally.<br><br><dolphin_emphasis>If "
 "unsure, select %1.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:308
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:309
 msgid ""
 "Sets the audio latency in milliseconds. Higher values may reduce audio "
 "crackling. Certain backends only.<br><br><dolphin_emphasis>If unsure, leave "
@@ -12568,14 +12904,17 @@ msgstr ""
 "<br><br><dolphin_emphasis>Ha bizonytalan vagy, hagyd 20 ms értéken.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:311
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:312
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. Certain backends "
 "only. <br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
+"Engedélyezi a Dolby Pro Logic II emulációt 5.1-es térhangzással. Csak "
+"bizonyos backendekkel működik. <br><br><dolphin_emphasis>Ha bizonytalan "
+"vagy, hagyd üresen.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:314
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:315
 msgid ""
 "Adjusts the quality setting of the Dolby Pro Logic II decoder. Higher "
 "presets increases audio latency.<br><br><dolphin_emphasis>If unsure, select "
@@ -12585,7 +12924,7 @@ msgstr ""
 "előbeállítások növelik a hang késleltetését.<br><br><dolphin_emphasis>Ha "
 "bizonytalan vagy, válaszd a Magas opciót.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:317
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:318
 msgid ""
 "Adjusts audio output volume.<br><br><dolphin_emphasis>If unsure, leave this "
 "at 100%.</dolphin_emphasis>"
@@ -12593,7 +12932,7 @@ msgstr ""
 "A kimeneti hangerő beállítása. <br><br><dolphin_emphasis>Ha bizonytalan "
 "vagy, hagyd 100 százalékon.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:320
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:321
 msgid ""
 "Repeat existing audio during lag spikes to prevent stuttering."
 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
@@ -12602,7 +12941,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>Ha bizonytalan vagy, hagyd kipipálva.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:323
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:324
 msgid ""
 "Mutes the audio when overriding the emulation speed limit (default hotkey: "
 "Tab). <br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
@@ -12612,19 +12951,19 @@ msgstr ""
 "gyorsgomb: Tab). <br><br><dolphin_emphasis>Ha bizonytalan vagy, hagyd üresen."
 "</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:326
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:327
 msgid "DSP Emulation Engine"
 msgstr "DSP emulációs motor"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:329
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:330
 msgid "Audio Backend"
 msgstr "Audió feldolgozó"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:337
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:338
 msgid "Decoding Quality"
 msgstr "Dekódolás minősége"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:342
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:343
 msgid ""
 "Selects an output device to use.<br><br><dolphin_emphasis>If unsure, select "
 "Default Device.</dolphin_emphasis>"
@@ -12633,11 +12972,11 @@ msgstr ""
 "bizonytalan vagy, válaszd az Alapértelmezett eszköz opciót.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:344
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:345
 msgid "Output Device"
 msgstr "Kimeneti eszköz"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:353
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:354
 msgid "Latency"
 msgstr "Késleltetés"
 
@@ -12652,6 +12991,8 @@ msgid ""
 "For setup instructions, <a href=\"https://wiki.dolphin-emu.org/index.php?"
 "title=Broadband_Adapter\">refer to this page</a>."
 msgstr ""
+"A beállítási útmutatóért <a href=\"https://wiki.dolphin-emu.org/index.php?"
+"title=Broadband_Adapter\">látogass el ide</a>."
 
 #. i18n: MAC stands for Media Access Control. A MAC address uniquely identifies a network
 #. interface (physical) like a serial number. "MAC" should be kept in translations.
@@ -12705,6 +13046,8 @@ msgid ""
 "For setup instructions, <a href=\"https://www.teamxlink.co.uk/wiki/"
 "Dolphin\">refer to this page</a>."
 msgstr ""
+"A beállítási útmutatóért <a href=\"https://www.teamxlink.co.uk/wiki/"
+"Dolphin\">látogass el ide</a>."
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:93
 msgid "XLink Kai BBA Destination Address"
@@ -12972,6 +13315,12 @@ msgid ""
 "<br><br>This setting cannot be changed while emulation is active."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Ez a beállítás külön szálakra osztja a CPU és a GPU emulációs feladatait. "
+"Csökkenti az egy szálra eső terhelést azáltal, hogy a Dolphin nehezebb "
+"feladatait két magra osztja, ami általában javítja a teljesítményt. "
+"Eredményezhet azonban hibákat és összeomlásokat.<br><br> A beállítás nem "
+"módosítható, amíg az emuláció fut.<br><br><dolphin_emphasis> Ha bizonytalan "
+"vagy, hagyd üresen.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:376
 msgid ""
@@ -13050,6 +13399,8 @@ msgid ""
 "automatically.<br><br>This setting cannot be changed while emulation is "
 "active."
 msgstr ""
+"Beállítja a régiót azoknál a játékoknál, amelyek régiója nem határozható meg "
+"automatikusan.<br><br>Ez a beállítás nem módosítható, amíg az emuláció aktív."
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:430
 msgid ""
@@ -13297,6 +13648,9 @@ msgid ""
 "disappear after several seconds.<br><br><dolphin_emphasis>If unsure, leave "
 "this checked.</dolphin_emphasis>"
 msgstr ""
+"OSD üzeneteket jelenít meg a render ablak fölött. Ezek az üzenetek néhány "
+"másodperc után eltűnnek.<br><br><dolphin_emphasis>Ha bizonytalan vagy, hagyd "
+"bejelölve.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:376
 msgid ""
@@ -13338,6 +13692,9 @@ msgid ""
 "render window is focused.<br><br><dolphin_emphasis>If unsure, select "
 "&quot;On Movement&quot;.</dolphin_emphasis>"
 msgstr ""
+"Elrejti az egérkurzort, amikor a render ablakban van és az ablak van "
+"fókuszban.<br><br><dolphin_emphasis>Ha bizonytalan vagy, válaszd a "
+"&quot;Mozgatáskor&quot; opciót.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:393
 msgid ""
@@ -13353,6 +13710,10 @@ msgid ""
 "added will be presented here, allowing you to switch to them."
 "<br><br><dolphin_emphasis>If unsure, select (System).</dolphin_emphasis>"
 msgstr ""
+"Beállítja a Dolphin felhasználói felületének stílusát. Az általad hozzáadott "
+"stílusok itt fognak megjelenni, itt átválthatsz rájuk."
+"<br><br><dolphin_emphasis>Ha bizonytalan vagy, válaszd a (Rendszer) opciót.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:402
 msgid "Theme"
@@ -13849,6 +14210,7 @@ msgid ""
 "The file associated to this file was closed! Did you clear the slot before "
 "saving?"
 msgstr ""
+"A fájlhoz társított fájl be lett zárva! Kitörölted a foglalatot mentés előtt?"
 
 #: Source/Core/DolphinQt/SkylanderPortal/SkylanderModifyDialog.cpp:295
 msgid "Can't edit villains for this trophy!"
@@ -14218,6 +14580,8 @@ msgid ""
 "Warning: Analog inputs may reset to controller values at random. In some "
 "cases this can be fixed by adding a deadzone."
 msgstr ""
+"Figyelem: Az analóg vezérlők néha véletlenszerűen visszaállnak az eredeti "
+"értékekre. Néhány esetben ez a probléma egy holtzóna hozzáadásával javítható."
 
 #: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:57
 msgid "Duration of Turbo Button Press (frames):"
@@ -14402,6 +14766,8 @@ msgid ""
 "Could not install an update to the Wii system memory. Please refer to logs "
 "for more information."
 msgstr ""
+"Nem sikerült frissítést telepíteni a Wii rendszermemóriájába. További "
+"információért tekintsd meg a naplófájlokat."
 
 #: Source/Core/DolphinQt/WiiUpdate.cpp:58
 msgid "Update cancelled"
@@ -14412,6 +14778,8 @@ msgid ""
 "The update has been cancelled. It is strongly recommended to finish it in "
 "order to avoid inconsistent system software versions."
 msgstr ""
+"A frissítés megszakítva. Erősen ajánlott befejezni a frissítést, hogy "
+"elkerüld a rendszer szoftververzióinak eltérését."
 
 #: Source/Core/DolphinQt/WiiUpdate.cpp:65
 msgid ""
@@ -14422,7 +14790,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/WiiUpdate.cpp:72
 msgid "The game disc does not contain any usable update information."
-msgstr ""
+msgstr "A játék lemeze nem tartalmaz használható frissítési információt."
 
 #: Source/Core/DolphinQt/WiiUpdate.cpp:96
 msgid ""
@@ -14458,7 +14826,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/WiiUpdate.cpp:140
 msgid "Connect to the Internet and perform an online system update?"
-msgstr ""
+msgstr "Csatlakozol az internethez, és elvégzel egy online rendszerfrissítést?"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/AnalogStick.cpp:32
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:25
@@ -14919,10 +15287,12 @@ msgid ""
 "Failed to load {0}. If you are using Windows 7, try installing the KB4019990 "
 "update package."
 msgstr ""
+"Nem sikerült betölteni a fájlt: {0}. Ha Windows 7-et használsz, próbáld meg "
+"telepíteni a KB4019990 frissítési csomagot."
 
 #: Source/Core/VideoBackends/D3DCommon/D3DCommon.cpp:55
 msgid "Failed to find one or more D3D symbols"
-msgstr ""
+msgstr "Nem sikerült megtalálni egy vagy több D3D szimbólumot."
 
 #: Source/Core/VideoBackends/D3D/D3DBase.cpp:46
 msgid "Failed to load d3d11.dll"
@@ -14939,6 +15309,9 @@ msgid ""
 "Make sure your video card supports at least D3D 10.0\n"
 "{0}"
 msgstr ""
+"A Direct3D inicializálása sikertelen.\n"
+"Győződj meg róla, hogy a videokártyád legalább a D3D 10.0-t támogatja.\n"
+"{0}"
 
 #: Source/Core/VideoBackends/D3D/D3DMain.cpp:38
 msgid "Direct3D 11"

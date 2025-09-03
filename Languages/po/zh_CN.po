@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-21 21:04+0200\n"
+"POT-Creation-Date: 2025-09-03 08:03+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: 天绝星 <c.cejhb@gmail.com>, 2015-2025\n"
 "Language-Team: Chinese (China) (http://app.transifex.com/dolphinemu/dolphin-"
@@ -100,8 +100,8 @@ msgid "Unpack SD Card Now"
 msgstr "解包 SD 卡"
 
 #: Source/Core/Common/MsgHandler.cpp:59
-#: Source/Core/DolphinQt/GameList/GameList.cpp:743
-#: Source/Core/DolphinQt/GameList/GameList.cpp:805
+#: Source/Core/DolphinQt/GameList/GameList.cpp:750
+#: Source/Core/DolphinQt/GameList/GameList.cpp:812
 #: Source/Core/DolphinQt/MenuBar.cpp:1504
 #: Source/Core/DolphinQt/MenuBar.cpp:1746
 msgid "Information"
@@ -137,12 +137,12 @@ msgstr ""
 "此 Dolphin 构建版本没有对你的 CPU 原生编译。\n"
 "请运行 Dolphin 的 ARM64 版本以获得更好的体验。"
 
-#: Source/Core/Core/ActionReplay.cpp:230
+#: Source/Core/Core/ActionReplay.cpp:240
 #, c++-format
 msgid "Action Replay Error: invalid AR code line: {0}"
 msgstr "Action Replay 错误: 无效 AR 代码行: {0}"
 
-#: Source/Core/Core/ActionReplay.cpp:414
+#: Source/Core/Core/ActionReplay.cpp:424
 #, c++-format
 msgid ""
 "Action Replay Error: Invalid size ({0:08x} : address = {1:08x}) in Ram Write "
@@ -151,7 +151,7 @@ msgstr ""
 "Action Replay 错误: 无效大小 ({0:08x} : 地址 = {1:08x}) 于 内存写入和填充 "
 "({2})"
 
-#: Source/Core/Core/ActionReplay.cpp:475
+#: Source/Core/Core/ActionReplay.cpp:485
 #, c++-format
 msgid ""
 "Action Replay Error: Invalid size ({0:08x} : address = {1:08x}) in Write To "
@@ -159,7 +159,7 @@ msgid ""
 msgstr ""
 "Action Replay 错误: 无效大小 ({0:08x} : 地址 = {1:08x}) 于 写入到指针 ({2})"
 
-#: Source/Core/Core/ActionReplay.cpp:541
+#: Source/Core/Core/ActionReplay.cpp:549
 #, c++-format
 msgid ""
 "Action Replay Error: Invalid size ({0:08x} : address = {1:08x}) in Add Code "
@@ -167,7 +167,7 @@ msgid ""
 msgstr ""
 "Action Replay 错误: 无效大小 ({0:08x} : 地址 = {1:08x}) 于 添加代码 ({2})"
 
-#: Source/Core/Core/ActionReplay.cpp:556
+#: Source/Core/Core/ActionReplay.cpp:564
 #, c++-format
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented "
@@ -177,7 +177,7 @@ msgstr ""
 "Action Replay 错误: 主代码与写入到 CCXXXXXX 尚未实现 ({0})\n"
 "不需要主代码。请不要使用主代码。"
 
-#: Source/Core/Core/ActionReplay.cpp:633
+#: Source/Core/Core/ActionReplay.cpp:641
 #, c++-format
 msgid ""
 "Action Replay Error: Invalid size ({0:08x} : address = {1:08x}) in Fill and "
@@ -185,42 +185,42 @@ msgid ""
 msgstr ""
 "Action Replay 错误: 无效大小 ({0:08x} : 地址 = {1:08x}) 于 填充和滑动 ({2})"
 
-#: Source/Core/Core/ActionReplay.cpp:692
+#: Source/Core/Core/ActionReplay.cpp:698
 #, c++-format
 msgid "Action Replay Error: Invalid value ({0:08x}) in Memory Copy ({1})"
 msgstr "Action Replay 错误: 无效数值 ({0:08x}) 于 内存复制 ({1})"
 
-#: Source/Core/Core/ActionReplay.cpp:729
+#: Source/Core/Core/ActionReplay.cpp:735
 #, c++-format
 msgid "Action Replay: Normal Code 0: Invalid Subtype {0:08x} ({1})"
 msgstr "Action Replay: 正常代码 0: 无效子类型 {0:08x} ({1})"
 
-#: Source/Core/Core/ActionReplay.cpp:771
+#: Source/Core/Core/ActionReplay.cpp:777
 #, c++-format
 msgid "Action Replay: Invalid Normal Code Type {0:08x} ({1})"
 msgstr "Action Replay: 无效正常代码类型 {0:08x} ({1})"
 
-#: Source/Core/Core/ActionReplay.cpp:804
+#: Source/Core/Core/ActionReplay.cpp:810
 #, c++-format
 msgid "Action Replay: Conditional Code: Invalid Size {0:08x} ({1})"
 msgstr "Action Replay: 条件代码: 无效大小 {0:08x} ({1})"
 
-#: Source/Core/Core/ActionReplay.cpp:828
+#: Source/Core/Core/ActionReplay.cpp:834
 #, c++-format
 msgid "Action Replay: Normal Code {0}: Invalid subtype {1:08x} ({2})"
 msgstr "Action Replay: 正常代码 {0}: 无效子类型 {1:08x} ({2})"
 
-#: Source/Core/Core/ActionReplay.cpp:913
+#: Source/Core/Core/ActionReplay.cpp:919
 msgid ""
 "This action replay simulator does not support codes that modify Action "
 "Replay itself."
 msgstr "此Action Replay模拟器不支持修改Action Replay本身的代码。"
 
-#: Source/Core/Core/ActionReplay.cpp:946
+#: Source/Core/Core/ActionReplay.cpp:952
 msgid "Zero 3 code not supported"
 msgstr "Zero 3 代码不支持"
 
-#: Source/Core/Core/ActionReplay.cpp:966
+#: Source/Core/Core/ActionReplay.cpp:972
 #, c++-format
 msgid "Zero code unknown to Dolphin: {0:08x}"
 msgstr "Dophin 未知的零代码：{0:08x}"
@@ -1098,7 +1098,7 @@ msgstr "常规"
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGBA.cpp:23
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:24
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:74
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:348
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:349
 msgid "Volume"
 msgstr "音量"
 
@@ -2148,6 +2148,9 @@ msgid ""
 "\n"
 "Bluetooth passthrough will probably not work."
 msgstr ""
+"无法初始化 Realtek 蓝牙设备。\n"
+"\n"
+"蓝牙直通功能可能无法正常工作。"
 
 #: Source/Core/Core/IOS/USB/Bluetooth/LibUSBBluetoothAdapter.cpp:489
 #, c++-format
@@ -2172,6 +2175,9 @@ msgid ""
 "\n"
 "Error: {1}"
 msgstr ""
+"HTTP GET {0}\n"
+"\n"
+"错误: {1}"
 
 #: Source/Core/Core/IOS/USB/Bluetooth/RealtekFirmwareLoader.cpp:457
 #, c++-format
@@ -2182,6 +2188,11 @@ msgid ""
 "\n"
 "Not all devices expect this file."
 msgstr ""
+"服务器上未找到文件 {0}。\n"
+"\n"
+"这可能是正常现象。\n"
+"\n"
+"并非所有设备都需要此文件。"
 
 #: Source/Core/Core/IOS/USB/Bluetooth/RealtekFirmwareLoader.cpp:476
 #, c++-format
@@ -2192,6 +2203,11 @@ msgid ""
 "Refer to https://wiki.dolphin-emu.org/index.php?title=Bluetooth_Passthrough "
 "for instructions."
 msgstr ""
+"蓝牙直通无法从以下位置读取固件文件：\n"
+"{0}\n"
+"\n"
+"请参阅 https://wiki.dolphin-emu.org/index.php?title=Bluetooth_Passthrough 获"
+"取说明。"
 
 #: Source/Core/Core/IOS/USB/Bluetooth/RealtekFirmwareLoader.cpp:521
 #, c++-format
@@ -2200,6 +2216,9 @@ msgid ""
 "\n"
 "Automatically download from gitlab.com now?"
 msgstr ""
+"蓝牙直通缺少所需固件：{0}\n"
+"\n"
+"现在是否自动从 gitlab.com 下载？"
 
 #: Source/Core/Core/Movie.cpp:209
 #, c++-format
@@ -2586,6 +2605,9 @@ msgid ""
 "\n"
 "For accurate emulation, enable MMU in advanced settings."
 msgstr ""
+"对 {0:#010x} 的写入无效，PC = {1:#010x}；游戏在真实硬件上可能会崩溃。\n"
+"\n"
+"为了实现准确的模拟，请在高级设置中启用 MMU。"
 
 #: Source/Core/Core/PowerPC/MMU.cpp:1286
 #, c++-format
@@ -2595,6 +2617,9 @@ msgid ""
 "\n"
 "For accurate emulation, enable MMU in advanced settings."
 msgstr ""
+"从 {0:#010x} 读取无效，PC = {1:#010x}；游戏在真实硬件上可能会崩溃。\n"
+"\n"
+"为了实现准确的模拟，请在高级设置中启用 MMU。"
 
 #: Source/Core/Core/State.cpp:329
 msgid "Internal LZ4 Error - compression failed"
@@ -3937,7 +3962,7 @@ msgstr "已生成 AR 代码。"
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:616
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:47
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:240
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1021
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1028
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:243
 #: Source/Core/DolphinQt/MenuBar.cpp:711
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:90
@@ -4341,8 +4366,8 @@ msgstr "提取系统数据"
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:384
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:298
 #: Source/Core/DolphinQt/ConvertDialog.cpp:531
-#: Source/Core/DolphinQt/GameList/GameList.cpp:660
-#: Source/Core/DolphinQt/GameList/GameList.cpp:688
+#: Source/Core/DolphinQt/GameList/GameList.cpp:667
+#: Source/Core/DolphinQt/GameList/GameList.cpp:695
 #: Source/Core/DolphinQt/MenuBar.cpp:236 Source/Core/DolphinQt/MenuBar.cpp:1193
 #: Source/Core/DolphinQt/MenuBar.cpp:1416
 msgid "Success"
@@ -4600,7 +4625,7 @@ msgid "Enable Dual Core"
 msgstr "启用双核心"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:103
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:72
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:73
 msgid "Enable MMU"
 msgstr "启用 MMU"
 
@@ -7098,8 +7123,8 @@ msgstr "配置文件 '%1' 不存在"
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:280
 #: Source/Core/DolphinQt/ConvertDialog.cpp:280
 #: Source/Core/DolphinQt/ConvertDialog.cpp:403
-#: Source/Core/DolphinQt/GameList/GameList.cpp:675
-#: Source/Core/DolphinQt/GameList/GameList.cpp:854
+#: Source/Core/DolphinQt/GameList/GameList.cpp:682
+#: Source/Core/DolphinQt/GameList/GameList.cpp:861
 #: Source/Core/DolphinQt/MainWindow.cpp:992
 #: Source/Core/DolphinQt/MainWindow.cpp:1764
 #: Source/Core/DolphinQt/WiiUpdate.cpp:139
@@ -7111,7 +7136,7 @@ msgid "Are you sure that you want to delete '%1'?"
 msgstr "确定要删除 '%1' 吗?"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:282
-#: Source/Core/DolphinQt/GameList/GameList.cpp:856
+#: Source/Core/DolphinQt/GameList/GameList.cpp:863
 msgid "This cannot be undone!"
 msgstr "不能被撤销！"
 
@@ -9071,7 +9096,7 @@ msgstr "复制数值"
 
 #: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1214
 msgid "Add or edit region label"
-msgstr ""
+msgstr "添加或编辑区域标签"
 
 #: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:1225
 msgid "Show in code"
@@ -9256,7 +9281,7 @@ msgstr "只写"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:253
 msgid "Labels"
-msgstr ""
+msgstr "标签"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:259
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:139
@@ -9265,7 +9290,7 @@ msgstr "数据"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:265
 msgid "Filter Label List"
-msgstr ""
+msgstr "过滤标签列表"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:278
 #: Source/Core/DolphinQt/MenuBar.cpp:468
@@ -9282,19 +9307,19 @@ msgstr "将文件加载到当前地址(&L)"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:288
 msgid "&Auto update memory values"
-msgstr ""
+msgstr "自动更新内存数值(&A)"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:299
 msgid "&Highlight recently changed values"
-msgstr ""
+msgstr "高亮最近更改的数值(&H)"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:304
 msgid "Highlight &color"
-msgstr ""
+msgstr "高亮颜色(&C)"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:308
 msgid "&Show symbols and notes"
-msgstr ""
+msgstr "显示符号和注释(&S)"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:316
 msgid "&Export"
@@ -9819,90 +9844,90 @@ msgstr "匹配下一个"
 msgid "Previous Match"
 msgstr "匹配上一个"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:142
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:141
 msgid "No recording loaded."
 msgstr "没有录制被载入。"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:146
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:145
 msgid "Recording"
 msgstr "正在录制"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:156
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:155
 msgid "Frame %1"
 msgstr "帧 %1"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:175
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:174
 msgid "Object %1"
 msgstr "对象 %1"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:177
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:176
 msgid "EFB copy %1"
 msgstr "EFB 复制 %1"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:291
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:290
 msgid "Call display list at %1 with size %2"
 msgstr "调用位于 %1 大小为 %2 的显示列表"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:392
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:391
 msgid "Invalid search parameters (no object selected)"
 msgstr "无效的搜索参数（没有选择对象）"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:402
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:401
 msgid "Invalid search string (only even string lengths supported)"
 msgstr "无效的搜索字符串（仅支持相等长度的字符串）"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:419
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:418
 msgid "Invalid search string (couldn't convert to number)"
 msgstr "无效的搜索字符串（无法转换成数字）"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:465
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:464
 msgid "Found %1 results for \"%2\""
 msgstr "已找到 “%2” 的 %1 个结果 "
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:532
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:531
 msgid "BP register "
 msgstr "BP 寄存器"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:537
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:554
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:569
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:723
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:726
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:729
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:536
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:553
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:568
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:722
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:725
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:728
 msgid "No description available"
 msgstr "没有可用的说明"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:549
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:548
 msgid "CP register "
 msgstr "CP 寄存器"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:564
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:563
 msgid "XF register "
 msgstr "XF 寄存器"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:584
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:583
 msgid "Usually used for position matrices"
 msgstr "通常用于位置矩阵"
 
 #. i18n: A normal matrix is a matrix used for transforming normal vectors. The word "normal"
 #. does not have its usual meaning here, but rather the meaning of "perpendicular to a
 #. surface".
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:590
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:589
 msgid "Usually used for normal matrices"
 msgstr "通常用于法线矩阵"
 
 #. i18n: Tex coord is short for texture coordinate
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:594
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:593
 msgid "Usually used for tex coord matrices"
 msgstr "通常用于纹理坐标矩阵"
 
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:597
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:596
 msgid "Usually used for light objects"
 msgstr "通常用于轻量对象"
 
 #. i18n: In this context, a primitive means a point, line, triangle or rectangle.
 #. Do not translate the word primitive as if it was an adjective.
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:614
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:613
 msgid "Primitive %1"
 msgstr "图元 %1"
 
@@ -10028,12 +10053,12 @@ msgstr "正在录制..."
 msgid "No file loaded / recorded."
 msgstr "文件未加载 / 录制"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:301
+#: Source/Core/DolphinQt/GameList/GameList.cpp:308
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:196
 msgid "Refreshing..."
 msgstr "正在刷新..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:302
+#: Source/Core/DolphinQt/GameList/GameList.cpp:309
 msgid ""
 "Dolphin could not find any GameCube/Wii ISOs or WADs.\n"
 "Double-click here to set a games directory..."
@@ -10041,144 +10066,144 @@ msgstr ""
 "Dolphin 无法找到任何 GameCube/Wii 镜像或 WAD 文件。\n"
 "双击这里设置一个游戏目录……"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:314
+#: Source/Core/DolphinQt/GameList/GameList.cpp:321
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:39
 msgid "Select a Directory"
 msgstr "选择目录"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:404
+#: Source/Core/DolphinQt/GameList/GameList.cpp:411
 msgid "Convert Selected Files..."
 msgstr "转换所选文件..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:411
+#: Source/Core/DolphinQt/GameList/GameList.cpp:418
 msgid "Export Wii Saves"
 msgstr "导出 Wii 存档"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:415
+#: Source/Core/DolphinQt/GameList/GameList.cpp:422
 msgid "Delete Selected Files..."
 msgstr "删除所选文件..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:422
+#: Source/Core/DolphinQt/GameList/GameList.cpp:429
 msgid "&Properties"
 msgstr "属性(&P)"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:425
+#: Source/Core/DolphinQt/GameList/GameList.cpp:432
 msgid "&Wiki"
 msgstr "百科(&W)"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:432
+#: Source/Core/DolphinQt/GameList/GameList.cpp:439
 msgid "Start with Riivolution Patches..."
 msgstr "启动时附带 Riivolution 补丁..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:437
+#: Source/Core/DolphinQt/GameList/GameList.cpp:444
 msgid "Set as &Default ISO"
 msgstr "设置为默认镜像(&D)"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:440
+#: Source/Core/DolphinQt/GameList/GameList.cpp:447
 msgid "Convert File..."
 msgstr "转换文件..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:442
+#: Source/Core/DolphinQt/GameList/GameList.cpp:449
 msgid "Change &Disc"
 msgstr "切换光盘(&D)"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:453
+#: Source/Core/DolphinQt/GameList/GameList.cpp:460
 msgid "Perform System Update"
 msgstr "执行系统更新"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:465
+#: Source/Core/DolphinQt/GameList/GameList.cpp:472
 msgid "Install to the NAND"
 msgstr "安装至 NAND"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:466
+#: Source/Core/DolphinQt/GameList/GameList.cpp:473
 msgid "Uninstall from the NAND"
 msgstr "从 NAND 中卸载"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:493
+#: Source/Core/DolphinQt/GameList/GameList.cpp:500
 msgid "Open Wii &Save Folder"
 msgstr "打开 Wii 存档目录(&S)"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:495
+#: Source/Core/DolphinQt/GameList/GameList.cpp:502
 msgid "Export Wii Save"
 msgstr "导出 Wii 存档"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:505
+#: Source/Core/DolphinQt/GameList/GameList.cpp:512
 msgid "Open GameCube &Save Folder"
 msgstr "打开 GameCube 存档目录(&S)"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:509
+#: Source/Core/DolphinQt/GameList/GameList.cpp:516
 msgid "Open &Containing Folder"
 msgstr "打开所在目录(&C)"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:510
+#: Source/Core/DolphinQt/GameList/GameList.cpp:517
 msgid "Delete File..."
 msgstr "删除文件..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:512
-#: Source/Core/DolphinQt/GameList/GameList.cpp:515
+#: Source/Core/DolphinQt/GameList/GameList.cpp:519
+#: Source/Core/DolphinQt/GameList/GameList.cpp:522
 msgid "Add Shortcut to Desktop"
 msgstr "添加快捷方式到桌面"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:516
+#: Source/Core/DolphinQt/GameList/GameList.cpp:523
 msgid "There was an issue adding a shortcut to the desktop"
 msgstr "向桌面添加快捷方式时出现问题"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:523
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1032
+#: Source/Core/DolphinQt/GameList/GameList.cpp:530
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1039
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:261
 #: Source/Core/DolphinQt/MenuBar.cpp:722
 msgid "Tags"
 msgstr "标签"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:544
+#: Source/Core/DolphinQt/GameList/GameList.cpp:551
 msgid "New Tag..."
 msgstr "新标签..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:545
+#: Source/Core/DolphinQt/GameList/GameList.cpp:552
 msgid "Remove Tag..."
 msgstr "移除标签..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:549
+#: Source/Core/DolphinQt/GameList/GameList.cpp:556
 msgid "Host with NetPlay"
 msgstr "建主机联网游戏"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:598
+#: Source/Core/DolphinQt/GameList/GameList.cpp:605
 #: Source/Core/DolphinQt/MenuBar.cpp:1340
 msgid "Select Export Directory"
 msgstr "选择导出目录"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:618
-#: Source/Core/DolphinQt/GameList/GameList.cpp:623
+#: Source/Core/DolphinQt/GameList/GameList.cpp:625
+#: Source/Core/DolphinQt/GameList/GameList.cpp:630
 #: Source/Core/DolphinQt/MenuBar.cpp:1346
 msgid "Save Export"
 msgstr "存档导出"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:619
+#: Source/Core/DolphinQt/GameList/GameList.cpp:626
 msgid "Failed to export the following save files:"
 msgstr "导出以下存档文件失败："
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:623
+#: Source/Core/DolphinQt/GameList/GameList.cpp:630
 msgid "Successfully exported save files"
 msgstr "成功导出存档文件"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:660
-#: Source/Core/DolphinQt/GameList/GameList.cpp:688
-#: Source/Core/DolphinQt/GameList/GameList.cpp:878
+#: Source/Core/DolphinQt/GameList/GameList.cpp:667
+#: Source/Core/DolphinQt/GameList/GameList.cpp:695
+#: Source/Core/DolphinQt/GameList/GameList.cpp:885
 #: Source/Core/DolphinQt/MenuBar.cpp:1198
 msgid "Failure"
 msgstr "失败"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:661
+#: Source/Core/DolphinQt/GameList/GameList.cpp:668
 #: Source/Core/DolphinQt/MenuBar.cpp:1194
 msgid "Successfully installed this title to the NAND."
 msgstr "成功将此软件安装到 NAND。"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:662
+#: Source/Core/DolphinQt/GameList/GameList.cpp:669
 #: Source/Core/DolphinQt/MenuBar.cpp:1198
 msgid "Failed to install this title to the NAND."
 msgstr "无法将该游戏安装到 NAND。"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:676
+#: Source/Core/DolphinQt/GameList/GameList.cpp:683
 msgid ""
 "Uninstalling the WAD will remove the currently installed version of this "
 "title from the NAND without deleting its save data. Continue?"
@@ -10186,123 +10211,123 @@ msgstr ""
 "卸载 WAD 会将该游戏的当前已安装版本从 NAND 中移除，而不会删除其存档。是否继"
 "续？"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:689
+#: Source/Core/DolphinQt/GameList/GameList.cpp:696
 msgid "Successfully removed this title from the NAND."
 msgstr "成功将此软件从 NAND 中移除。"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:690
+#: Source/Core/DolphinQt/GameList/GameList.cpp:697
 msgid "Failed to remove this title from the NAND."
 msgstr "将该游戏从 NAND 中移除失败。"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:743
-#: Source/Core/DolphinQt/GameList/GameList.cpp:805
+#: Source/Core/DolphinQt/GameList/GameList.cpp:750
+#: Source/Core/DolphinQt/GameList/GameList.cpp:812
 msgid "No save data found."
 msgstr "没有找到存档数据。"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:855
+#: Source/Core/DolphinQt/GameList/GameList.cpp:862
 msgid "Are you sure you want to delete this file?"
 msgstr "确定要删除该文件吗?"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:879
+#: Source/Core/DolphinQt/GameList/GameList.cpp:886
 msgid "Failed to delete the selected file."
 msgstr "无法删除所选文件。"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:880
+#: Source/Core/DolphinQt/GameList/GameList.cpp:887
 msgid ""
 "Check whether you have the permissions required to delete the file or "
 "whether it's still in use."
 msgstr "请检查您是否有删除该文件的权限以及其是否仍在使用。"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1018
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1025
 #: Source/Core/DolphinQt/MenuBar.cpp:708
 msgid "Platform"
 msgstr "平台"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1019
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1026
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:241
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:150
 #: Source/Core/DolphinQt/MenuBar.cpp:709
 msgid "Banner"
 msgstr "标图"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1020
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1027
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:237
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:152
 #: Source/Core/DolphinQt/MenuBar.cpp:710
 msgid "Title"
 msgstr "标题"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1022
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1029
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:245
 #: Source/Core/DolphinQt/MenuBar.cpp:712
 msgid "Maker"
 msgstr "制作者"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1023
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1030
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:247
 #: Source/Core/DolphinQt/MenuBar.cpp:713
 msgid "File Name"
 msgstr "文件名"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1024
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1031
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:249
 #: Source/Core/DolphinQt/MenuBar.cpp:714
 msgid "File Path"
 msgstr "文件路径"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1025
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1032
 #: Source/Core/DolphinQt/MenuBar.cpp:715
 msgid "Game ID"
 msgstr "游戏 ID"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1026
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1033
 #: Source/Core/DolphinQt/MenuBar.cpp:716
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:221
 msgid "Region"
 msgstr "地区"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1027
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1034
 #: Source/Core/DolphinQt/MenuBar.cpp:717
 msgid "File Size"
 msgstr "文件大小"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1028
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1035
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:253
 #: Source/Core/DolphinQt/MenuBar.cpp:718
 msgid "File Format"
 msgstr "文件格式"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1029
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1036
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:255
 #: Source/Core/DolphinQt/MenuBar.cpp:719
 msgid "Block Size"
 msgstr "区块大小"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1030
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1037
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:257
 #: Source/Core/DolphinQt/MenuBar.cpp:720
 msgid "Compression"
 msgstr "压缩"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1031
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1038
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:259
 #: Source/Core/DolphinQt/MenuBar.cpp:721
 msgid "Time Played"
 msgstr "游戏时间"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1141
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1148
 msgid "New tag"
 msgstr "新标签"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1141
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1148
 msgid "Name for a new tag:"
 msgstr "命名一个新标签:"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1153
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1160
 msgid "Remove tag"
 msgstr "移除标签"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1153
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1160
 msgid "Name of the tag to remove:"
 msgstr "要移除的标签名:"
 
@@ -12877,31 +12902,31 @@ msgstr "关闭"
 msgid "Search games..."
 msgstr "搜索游戏..."
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:34
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:35
 msgid "Interpreter (slowest)"
 msgstr "解释器（最慢）"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:35
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:36
 msgid "Cached Interpreter (slower)"
 msgstr "缓存解释器（较慢）"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:36
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:37
 msgid "JIT Recompiler for x86-64 (recommended)"
 msgstr "适用于 x86-64 的 JIT 重编译器（推荐）"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:37
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:38
 msgid "JIT Recompiler for ARM64 (recommended)"
 msgstr "适用于 ARM64 的 JIT 重编译器（推荐）"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:55
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:56
 msgid "CPU Options"
 msgstr "CPU 选项"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:66
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:67
 msgid "CPU Emulation Engine:"
 msgstr "CPU 模拟引擎:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:74
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:75
 msgid ""
 "Enables the Memory Management Unit, needed for some games. (ON = Compatible, "
 "OFF = Fast)<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
@@ -12910,11 +12935,11 @@ msgstr ""
 "启用内存管理单元，某些游戏需要启用此项。(开 = 兼容，关 = 快"
 "速)<br><br><dolphin_emphasis>如无法确定，请不要选中此项。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:78
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:79
 msgid "Pause on Panic"
 msgstr "宕机时暂停"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:80
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:81
 msgid ""
 "Pauses the emulation if a Read/Write or Unknown Instruction panic occurs."
 "<br>Enabling will affect performance.<br>The performance impact is the same "
@@ -12925,11 +12950,11 @@ msgstr ""
 "用 MMU 时相同。<br><br><dolphin_emphasis>如无法确定，请不要选中此项。</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:86
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:87
 msgid "Enable Write-Back Cache (slow)"
 msgstr "使用回写缓存 (慢速)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:88
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:89
 msgid ""
 "Enables emulation of the CPU write-back cache.<br>Enabling will have a "
 "significant impact on performance.<br>This should be left disabled unless "
@@ -12940,15 +12965,15 @@ msgstr ""
 "禁用。<br><br><dolphin_emphasis>如无法确定，请不要选中此项。</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:93
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:94
 msgid "Timing"
 msgstr "校时"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:97
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:98
 msgid "Correct Time Drift"
 msgstr "校正时间偏移"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:99
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:100
 msgid ""
 "Allow the emulated console to run fast after stutters,<br>pursuing accurate "
 "overall elapsed time unless paused or speed-adjusted.<br><br>This may be "
@@ -12959,19 +12984,19 @@ msgstr ""
 "度。<br><br>这可能对联网游戏有用。<br><br><dolphin_emphasis>如无法确定，请不"
 "要选中此项。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:105
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:110
 msgid "Clock Override"
 msgstr "时钟频率覆盖"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:111
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:116
 msgid "Enable Emulated CPU Clock Override"
 msgstr "启用模拟 CPU 频率覆盖"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:131
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:138
 msgid "%1% (%2 MHz)"
 msgstr "%1% (%2 MHz)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:138
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:145
 msgid ""
 "Adjusts the emulated CPU's clock rate.<br><br>On games that have an unstable "
 "frame rate despite full emulation speed, higher values can improve their "
@@ -12988,19 +13013,19 @@ msgstr ""
 "出现故障。如要更改风险自负。请勿提交非默认时钟频率导致的错误。"
 "<br><br><dolphin_emphasis>如无法确定，请不要选中此项。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:148
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:155
 msgid "VBI Frequency Override"
 msgstr "VBI 频率覆盖"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:154
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:161
 msgid "Enable VBI Frequency Override"
 msgstr "启用 VBI 频率覆盖"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:175
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:184
 msgid "%1% (%2 VPS)"
 msgstr "%1% (%2 VPS)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:182
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:191
 msgid ""
 "Adjusts the VBI frequency. Also adjusts the emulated CPU's clock rate, to "
 "keep it relatively the same.<br><br>Makes games run at a different frame "
@@ -13017,25 +13042,25 @@ msgstr ""
 "可能会导致游戏崩溃并出现故障。如要更改风险自负。请勿提交非默认频率导致的错"
 "误。<br><br><dolphin_emphasis>如无法确定，请不要选中此项。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:192
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:201
 msgid "Memory Override"
 msgstr "内存覆盖"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:198
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:207
 msgid "Enable Emulated Memory Size Override"
 msgstr "启用模拟内存大小覆盖"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:210
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:213
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:219
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:224
 msgid "%1 MB (MEM1)"
 msgstr "%1 MB (内存1)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:224
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:227
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:235
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:240
 msgid "%1 MB (MEM2)"
 msgstr "%1 MB (内存2)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:231
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:244
 msgid ""
 "Adjusts the amount of RAM in the emulated console.<br><br><b>WARNING</b>: "
 "Enabling this will completely break many games.<br>Only a small number of "
@@ -13046,15 +13071,15 @@ msgstr ""
 "<br>只有少数游戏可以从中受益。<br><br><dolphin_emphasis>如无法确定，请不要选"
 "中此项。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:237
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:250
 msgid "Custom RTC Options"
 msgstr "自定义 RTC 选项"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:241
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:254
 msgid "Enable Custom RTC"
 msgstr "启用自定义 RTC"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:258
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:271
 msgid ""
 "This setting allows you to set a custom real time clock (RTC) separate from "
 "your current system time.<br><br><dolphin_emphasis>If unsure, leave this "
@@ -13096,7 +13121,7 @@ msgid "Audio Backend:"
 msgstr "音频后端："
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:115
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:334
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:335
 msgid "Dolby Pro Logic II Decoder"
 msgstr "杜比定向逻辑II解码器"
 
@@ -13129,7 +13154,7 @@ msgid "Output Device:"
 msgstr "输出设备："
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:147
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:226
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:227
 msgid "Latency: %1 ms"
 msgstr "延迟: %1 毫秒"
 
@@ -13156,21 +13181,25 @@ msgstr ""
 msgid "%1 ms"
 msgstr "%1 毫秒"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:184
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:360
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:183
+msgid " 000 ms"
+msgstr ""
+
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:185
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:361
 msgid "Fill Audio Gaps"
 msgstr "填充音频间隔"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:186
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:357
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:187
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:358
 msgid "Mute When Disabling Speed Limit"
 msgstr "禁用速度限制时静音"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:191
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:192
 msgid "Audio Buffer Size:"
 msgstr "音频缓冲区大小："
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:295
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:296
 msgid ""
 "Selects how the Digital Signal Processor (DSP) is emulated. Determines how "
 "the audio is processed and what system features are available."
@@ -13189,7 +13218,7 @@ msgstr ""
 "b> - 通过解释器进行 DSP 的低阶模拟。速度最慢，仅用于调试目的。不推荐。"
 "<br><br><dolphin_emphasis>如无法确定，请选择 HLE。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:305
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:306
 msgid ""
 "Selects which audio API to use internally.<br><br><dolphin_emphasis>If "
 "unsure, select %1.</dolphin_emphasis>"
@@ -13197,7 +13226,7 @@ msgstr ""
 "选择内部使用的音频 API 接口。<br><br><dolphin_emphasis>如无法确定，请选择 "
 "%1。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:308
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:309
 msgid ""
 "Sets the audio latency in milliseconds. Higher values may reduce audio "
 "crackling. Certain backends only.<br><br><dolphin_emphasis>If unsure, leave "
@@ -13207,7 +13236,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>如无法确定，请将其保持为 20 毫秒。</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:311
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:312
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. Certain backends "
 "only. <br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
@@ -13216,7 +13245,7 @@ msgstr ""
 "使用 5.1 环绕立体声开启杜比定向逻辑II模拟。仅限某些后端。"
 "<br><br><dolphin_emphasis>如无法确定，请不要选中此项。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:314
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:315
 msgid ""
 "Adjusts the quality setting of the Dolby Pro Logic II decoder. Higher "
 "presets increases audio latency.<br><br><dolphin_emphasis>If unsure, select "
@@ -13225,7 +13254,7 @@ msgstr ""
 "调整杜比定向逻辑II解码器的质量设置。较高的预设值会增加音频延迟。"
 "<br><br><dolphin_emphasis>如无法确定，请选择“高”。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:317
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:318
 msgid ""
 "Adjusts audio output volume.<br><br><dolphin_emphasis>If unsure, leave this "
 "at 100%.</dolphin_emphasis>"
@@ -13233,7 +13262,7 @@ msgstr ""
 "调整音频输出音量。<br><br><dolphin_emphasis>如无法确定，请将其保持为 100%。</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:320
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:321
 msgid ""
 "Repeat existing audio during lag spikes to prevent stuttering."
 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
@@ -13241,7 +13270,7 @@ msgstr ""
 "在延迟峰值期间重复现有音频以防止卡顿。<br><br><dolphin_emphasis>如无法确定，"
 "请选中此项。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:323
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:324
 msgid ""
 "Mutes the audio when overriding the emulation speed limit (default hotkey: "
 "Tab). <br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
@@ -13250,19 +13279,19 @@ msgstr ""
 "超过模拟速度限制时静音（默认热键：Tab）。<br><br><dolphin_emphasis>如无法确"
 "定，请不要选中此项。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:326
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:327
 msgid "DSP Emulation Engine"
 msgstr "DSP 模拟引擎"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:329
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:330
 msgid "Audio Backend"
 msgstr "音频后端"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:337
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:338
 msgid "Decoding Quality"
 msgstr "解码质量"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:342
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:343
 msgid ""
 "Selects an output device to use.<br><br><dolphin_emphasis>If unsure, select "
 "Default Device.</dolphin_emphasis>"
@@ -13270,11 +13299,11 @@ msgstr ""
 "选择要使用的输出设备。<br><br><dolphin_emphasis>如无法确定，请选择默认设备。"
 "</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:344
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:345
 msgid "Output Device"
 msgstr "输出设备"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:353
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:354
 msgid "Latency"
 msgstr "延迟"
 
@@ -13619,6 +13648,10 @@ msgid ""
 "<br><br>This setting cannot be changed while emulation is active."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"将 CPU 和 GPU 模拟工作分开到单独的线程。通过将 Dolphin 最重的负载分散到两个核"
+"心来减少单线程负担，这通常可以提高性能。但可能会导致故障和崩溃。<br><br>模拟"
+"处于活动状态时无法更改此设置。<br><br><dolphin_emphasis>如无法确定，请不要选"
+"中此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:376
 msgid ""
