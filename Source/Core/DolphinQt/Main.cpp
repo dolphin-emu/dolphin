@@ -265,6 +265,11 @@ int main(int argc, char* argv[])
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
     if (!Config::Get(Config::MAIN_ANALYTICS_PERMISSION_ASKED))
     {
+      // Give the main window time to adjust its geometry on first show, or else the analytics
+      // prompt may appear in odd positions that do not align with the center of the main window.
+      QCoreApplication::processEvents();
+      QCoreApplication::processEvents();
+
       ModalMessageBox analytics_prompt(&win);
 
       analytics_prompt.setIcon(QMessageBox::Question);
