@@ -9,7 +9,7 @@
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
-#include "Common/FloatUtils.h"
+#include "Core/FloatUtils.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/PowerPC.h"
