@@ -876,6 +876,10 @@ public:
   void VPOR(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VPXOR(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
 
+  void VMOVAPS(const OpArg& arg, X64Reg regOp);
+
+  void VZEROUPPER();
+
   // FMA3
   void VFMADD132PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VFMADD213PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
