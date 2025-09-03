@@ -12,7 +12,7 @@ namespace UICommon
 class GameFile;
 }
 
-class PropertiesDialog final : public StackedSettingsWindow
+class PropertiesDialog final : public TabbedSettingsWindow
 {
   Q_OBJECT
 public:
