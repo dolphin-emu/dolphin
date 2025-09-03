@@ -19,10 +19,10 @@
 
 Statistics g_stats;
 
-static Common::EventHook s_before_frame_event =
-    BeforeFrameEvent::Register([] { g_stats.ResetFrame(); }, "Statistics::ResetFrame");
+static Common::EventHook s_before_frame_event = GetVideoEvents().before_frame_event.Register(
+    [] { g_stats.ResetFrame(); }, "Statistics::ResetFrame");
 
-static Common::EventHook s_after_frame_event = AfterFrameEvent::Register(
+static Common::EventHook s_after_frame_event = GetVideoEvents().after_frame_event.Register(
     [](const Core::System& system) {
       DolphinAnalytics::Instance().ReportPerformanceInfo({
           .speed_ratio = system.GetSystemTimers().GetEstimatedEmulationPerformance(),
