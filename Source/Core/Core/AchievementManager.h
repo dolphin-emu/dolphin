@@ -84,6 +84,7 @@ public:
   static constexpr std::string_view DEFAULT_GAME_BADGE_FILENAME = "achievements_game.png";
   static constexpr std::string_view DEFAULT_LOCKED_BADGE_FILENAME = "achievements_locked.png";
   static constexpr std::string_view DEFAULT_UNLOCKED_BADGE_FILENAME = "achievements_unlocked.png";
+  static constexpr std::string_view DEFAULT_UNLOCK_SOUND_FILENAME = "achievement_unlocked.wav";
   static constexpr std::string_view GRAY = "transparent";
   static constexpr std::string_view GOLD = "#FFD700";
   static constexpr std::string_view BLUE = "#0B71C1";
