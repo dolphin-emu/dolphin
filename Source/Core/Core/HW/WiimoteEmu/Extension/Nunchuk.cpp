@@ -179,35 +179,45 @@ void Nunchuk::LoadDefaults()
 {
 #ifndef ANDROID
   // Stick
-  m_stick->SetControlExpression(0, "W");  // up
-  m_stick->SetControlExpression(1, "S");  // down
-  m_stick->SetControlExpression(2, "A");  // left
-  m_stick->SetControlExpression(3, "D");  // right
+  m_stick->SetControlExpression(0, "W|`Left Y+`");  // up
+  m_stick->SetControlExpression(1, "S|`Left Y-`");  // down
+  m_stick->SetControlExpression(2, "A|`Left X-`");  // left
+  m_stick->SetControlExpression(3, "D|`Left X+`");  // right
+#elif _WIN32
+  m_stick->SetControlExpression(4, "Left Alt");  // right
+#elif __APPLE__
+  m_stick->SetControlExpression(4, "Left Option");  // right
+#else
+  m_stick->SetControlExpression(4, "Alt_L");  // right
+#endif
 
   // Because our defaults use keyboard input, set calibration shape to a square.
   m_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
 
 // Buttons
 #ifdef _WIN32
-  m_buttons->SetControlExpression(0, "LCONTROL");  // C
-  m_buttons->SetControlExpression(1, "LSHIFT");    // Z
+  m_buttons->SetControlExpression(0, "Left Shift");  // C
+  m_buttons->SetControlExpression(1, "Left Ctrl");    // Z
 #elif __APPLE__
-  m_buttons->SetControlExpression(0, "`Left Control`");  // C
-  m_buttons->SetControlExpression(1, "`Left Shift`");    // Z
+  m_buttons->SetControlExpression(0, "`Left Shift`");  // C
+  m_buttons->SetControlExpression(1, "`Left Control`");    // Z
 #else
-  m_buttons->SetControlExpression(0, "Control_L");  // C
-  m_buttons->SetControlExpression(1, "Shift_L");    // Z
+  m_buttons->SetControlExpression(0, "Shift_L");  // C
+  m_buttons->SetControlExpression(1, "Control_L");    // Z
 #endif
 
   // Shake
   for (int i = 0; i < 3; ++i)
   {
-#ifdef __APPLE__
-    m_shake->SetControlExpression(i, "`Middle Click`");
-#else
-    m_shake->SetControlExpression(i, "`Click 2`");
-#endif
+    m_shake->SetControlExpression(i, "F");
   }
-#endif
+
+  // Motion Source
+  m_imu_accelerometer->SetControlExpression(0, "`Accel L Up`");
+  m_imu_accelerometer->SetControlExpression(1, "`Accel L Down`");
+  m_imu_accelerometer->SetControlExpression(2, "`Accel L Left`");
+  m_imu_accelerometer->SetControlExpression(3, "`Accel L Right`");
+  m_imu_accelerometer->SetControlExpression(4, "`Accel L Forward`");
+  m_imu_accelerometer->SetControlExpression(5, "`Accel L Backward`");
 }
 }  // namespace WiimoteEmu

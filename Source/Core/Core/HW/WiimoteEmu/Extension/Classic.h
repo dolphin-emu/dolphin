@@ -235,13 +235,13 @@ public:
   static constexpr const char* HOME_BUTTON = "Home";
 
   // i18n: The left trigger button (labeled L on real controllers)
-  static constexpr const char* L_DIGITAL = _trans("L");
+  static constexpr const char* L_DIGITAL = _trans("L (digital)");
   // i18n: The right trigger button (labeled R on real controllers)
-  static constexpr const char* R_DIGITAL = _trans("R");
+  static constexpr const char* R_DIGITAL = _trans("R (digital)");
   // i18n: The left trigger button (labeled L on real controllers) used as an analog input
-  static constexpr const char* L_ANALOG = _trans("L-Analog");
+  static constexpr const char* L_ANALOG = _trans("L (analog)");
   // i18n: The right trigger button (labeled R on real controllers) used as an analog input
-  static constexpr const char* R_ANALOG = _trans("R-Analog");
+  static constexpr const char* R_ANALOG = _trans("R (analog)");
 
 private:
   ControllerEmu::Buttons* m_buttons;

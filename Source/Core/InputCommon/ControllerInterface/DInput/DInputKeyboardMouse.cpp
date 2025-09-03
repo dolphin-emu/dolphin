@@ -135,9 +135,9 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
     AddInput(new Key(i, m_state_in.keyboard[named_keys[i].code]));
 
   // Add combined left/right modifiers with consistent naming across platforms.
-  AddCombinedInput("Alt", {"LMENU", "RMENU"});
-  AddCombinedInput("Shift", {"LSHIFT", "RSHIFT"});
-  AddCombinedInput("Ctrl", {"LCONTROL", "RCONTROL"});
+  AddCombinedInput("Alt", {"Left Alt", "Right Alt"});
+  AddCombinedInput("Shift", {"Left Shift", "Right Shift"});
+  AddCombinedInput("Ctrl", {"Left Ctrl", "Right Ctrl"});
 
   // MOUSE
   DIDEVCAPS mouse_caps = {};
@@ -297,7 +297,7 @@ std::string KeyboardMouse::Key::GetName() const
 
 std::string KeyboardMouse::Button::GetName() const
 {
-  return std::string("Click ") + char('0' + m_index);
+  return std::string("Mouse ") + char('1' + m_index);
 }
 
 std::string KeyboardMouse::Axis::GetName() const

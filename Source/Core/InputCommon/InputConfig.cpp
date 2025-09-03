@@ -198,8 +198,9 @@ bool InputConfig::IsControllerControlledByGamepadDevice(int index) const
   return !((controller.source == "Quartz")      // OSX Quartz Keyboard/Mouse
            || (controller.source == "XInput2")  // Linux and BSD Keyboard/Mouse
            || (controller.source == "Android" && controller.cid <= 0)  // Android non-gamepad device
-           || (controller.source == "DInput" &&
-               controller.name == "Keyboard Mouse"));  // Windows Keyboard/Mouse
+           || (controller.source == "DInput")  // Windows Keyboard/Mouse
+           || (controller.source == "SDL" &&
+               controller.name == "Keyboard Mouse"));
 }
 
 void InputConfig::GenerateControllerTextures(const Common::IniFile& file)
