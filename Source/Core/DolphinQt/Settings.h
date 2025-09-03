@@ -66,9 +66,11 @@ public:
     Light = 1,
     Dark = 2,
     User = 3,
+    DarkGray = 4,
+    Dark2 = 5,
 
     MinValue = 0,
-    MaxValue = 3,
+    MaxValue = 5,
   };
 
   void SetStyleType(StyleType type);
