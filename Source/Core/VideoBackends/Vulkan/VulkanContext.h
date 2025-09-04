@@ -18,11 +18,22 @@ namespace Vulkan
 class VulkanContext
 {
 public:
+  enum class Extension : uint32_t
+  {
+    KHR_get_physical_device_properties2,
+    KHR_swapchain,
+#ifdef SUPPORTS_VULKAN_EXCLUSIVE_FULLSCREEN
+    EXT_full_screen_exclusive,
+#endif
+    EXT_memory_budget,
+    EXT_depth_clamp_control,
+    EXT_depth_range_unrestricted,
+    Last = EXT_depth_range_unrestricted
+  };
   struct PhysicalDeviceInfo
   {
     PhysicalDeviceInfo(const PhysicalDeviceInfo&) = default;
     explicit PhysicalDeviceInfo(VkPhysicalDevice device);
-    VkPhysicalDeviceFeatures features() const;
 
     char deviceName[VK_MAX_PHYSICAL_DEVICE_NAME_SIZE];
     u8 pipelineCacheUUID[VK_UUID_SIZE];
@@ -54,6 +65,14 @@ public:
     bool depthClamp;
     bool textureCompressionBC;
     bool shaderSubgroupOperations = false;
+    Common::EnumMap<bool, Extension::Last> extensions = {};
+  };
+  struct DeviceFeatures
+  {
+    DeviceFeatures(const PhysicalDeviceInfo& info);
+    DeviceFeatures(DeviceFeatures&&) = delete;  // Contains internal pointers
+    VkPhysicalDeviceFeatures2 features2;
+    VkPhysicalDeviceDepthClampControlFeaturesEXT features_depth_clamp;
   };
 
   VulkanContext(VkInstance instance, VkPhysicalDevice physical_device);
@@ -117,9 +136,6 @@ public:
   VkDeviceSize GetBufferImageGranularity() const { return m_device_info.bufferImageGranularity; }
   float GetMaxSamplerAnisotropy() const { return m_device_info.maxSamplerAnisotropy; }
 
-  // Returns true if the specified extension is supported and enabled.
-  bool SupportsDeviceExtension(const char* name) const;
-
   // Returns true if exclusive fullscreen is supported for the given surface.
   bool SupportsExclusiveFullscreen(const WindowSystemInfo& wsi, VkSurfaceKHR surface);
 
@@ -155,8 +171,6 @@ private:
   VkDebugUtilsMessengerEXT m_debug_utils_messenger = VK_NULL_HANDLE;
 
   PhysicalDeviceInfo m_device_info;
-
-  std::vector<std::string> m_device_extensions;
 };
 
 extern std::unique_ptr<VulkanContext> g_vulkan_context;
