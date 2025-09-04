@@ -777,7 +777,7 @@ std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::
     base_path = base_path.substr(0, base_path.size() - eu_region.size());
     path_region = DiscIO::Region::PAL;
   }
-  else if (base_path.ends_with(eu_region))
+  else if (base_path.ends_with(dv_region))
   {
     base_path = base_path.substr(0, base_path.size() - dv_region.size());
     path_region = DiscIO::Region::DEV;

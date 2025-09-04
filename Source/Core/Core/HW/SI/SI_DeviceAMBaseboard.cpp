@@ -245,7 +245,7 @@ void CSIDevice_AMBaseboard::ICCardSendReply(ICCommand* iccommand, u8* buffer, u3
 {
   iccommand->status = Common::swap16(iccommand->status);
 
-  const u16 crc = CheckSumXOR(iccommand->data + 2, iccommand->pktlen - 1);
+  const u8 crc = CheckSumXOR(iccommand->data + 2, iccommand->pktlen - 1);
 
   for (u32 i = 0; i < iccommand->pktlen + 1; ++i)
   {

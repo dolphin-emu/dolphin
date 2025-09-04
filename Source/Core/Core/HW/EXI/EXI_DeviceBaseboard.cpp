@@ -90,9 +90,8 @@ CEXIBaseboard::CEXIBaseboard(Core::System& system) : IEXIDevice(system), m_posit
 
     std::srand(static_cast<u32>(std::time(nullptr)));
 
-    std::string backup_Filename =
-        fmt::format("{}tribackup_tmp_{}{}.bin", File::GetUserPath(D_TRIUSER_IDX), rand(),
-                    SConfig::GetInstance().GetGameID());
+    backup_filename = fmt::format("{}tribackup_tmp_{}{}.bin", File::GetUserPath(D_TRIUSER_IDX),
+                                  rand(), SConfig::GetInstance().GetGameID());
 
     m_backup = File::IOFile(backup_filename, "wb+");
   }
@@ -121,6 +120,7 @@ CEXIBaseboard::CEXIBaseboard(Core::System& system) : IEXIDevice(system), m_posit
     }
   }
 }
+
 CEXIBaseboard::~CEXIBaseboard()
 {
   m_backup.Close();

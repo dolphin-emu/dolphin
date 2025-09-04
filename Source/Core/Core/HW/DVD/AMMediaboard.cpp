@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <fmt/format.h>
 #include <string>
+#include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -77,7 +78,7 @@ static File::IOFile s_extra;
 static File::IOFile s_backup;
 static File::IOFile s_dimm;
 
-static u8* s_dimm_disc = nullptr;
+Common::UniqueBuffer<u8> s_dimm_disc;
 
 static u8 s_firmware[2 * 1024 * 1024];
 static u32 s_media_buffer_32[192];
@@ -197,11 +198,11 @@ void Init()
   if (!s_netctrl.IsOpen())
     PanicAlertFmt("Failed to open/create: {}", base_path + "trinetctrl.bin");
   if (!s_extra.IsOpen())
-    PanicAlertFmt("Failed to open/create: {}", base_path + "s_extra.bin");
+    PanicAlertFmt("Failed to open/create: {}", base_path + "triextra.bin");
   if (!s_dimm.IsOpen())
-    PanicAlertFmt("Failed to open/create: {}", base_path + "s_dimm.bin");
+    PanicAlertFmt("Failed to open/create: {}", base_path + "tridimm.bin");
   if (!s_backup.IsOpen())
-    PanicAlertFmt("Failed to open/create: {}", base_path + "s_backup.bin");
+    PanicAlertFmt("Failed to open/create: {}", base_path + "backup.bin");
 
   // This is the firmware for the Triforce
   const std::string sega_boot_filename = base_path + "segaboot.gcm";
@@ -231,10 +232,10 @@ u8* InitDIMM(u32 size)
   if (size == 0)
     return nullptr;
 
-  if (!s_dimm_disc)
+  if (!s_dimm_disc.size())
   {
-    s_dimm_disc = new (std::nothrow) u8[size];
-    if (!s_dimm_disc)
+    s_dimm_disc.reset(size);
+    if (!s_dimm_disc.size())
     {
       PanicAlertFmt("Failed to allocate DIMM memory.");
       return nullptr;
@@ -242,7 +243,7 @@ u8* InitDIMM(u32 size)
   }
 
   s_firmware_map = 0;
-  return s_dimm_disc;
+  return s_dimm_disc.data();
 }
 
 static s32 NetDIMMAccept(int fd, sockaddr* addr, int* len)
@@ -1071,9 +1072,9 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
       return 0;
     }
 
-    if (s_dimm_disc)
+    if (s_dimm_disc.size())
     {
-      memcpy(memory.GetSpanForAddress(address).data(), s_dimm_disc + offset, length);
+      memcpy(memory.GetSpanForAddress(address).data(), s_dimm_disc.data() + offset, length);
       return 0;
     }
 
@@ -1425,7 +1426,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: closesocket( {}({}) ):{}\n", fd,
                        s_media_buffer_32[10], ret);
 
-        s_sockets[s_media_buffer_32[10]] = SOCKET_ERROR;
+        s_sockets[SocketCheck(s_media_buffer_32[10])] = SOCKET_ERROR;
 
         s_media_buffer_32[1] = ret;
         s_last_error = SSC_SUCCESS;
@@ -1437,7 +1438,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
 
         const u32 fd = s_sockets[SocketCheck(s_media_buffer_32[10])];
         const u32 off = s_media_buffer_32[11] - NetworkCommandAddress;
-        const u32 len = s_media_buffer_32[14];
+        const u32 len = s_media_buffer_32[12];
 
         memcpy((void*)&addr, s_network_command_buffer + off, sizeof(sockaddr_in));
 
@@ -1455,7 +1456,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
       {
         const u32 fd = s_sockets[SocketCheck(s_media_buffer_32[10])];
         const u32 off = s_media_buffer_32[11];
-        u32 len = s_media_buffer_32[14];
+        u32 len = s_media_buffer_32[12];
 
         if (len >= sizeof(s_network_buffer))
         {
@@ -1487,7 +1488,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
       {
         const u32 fd = s_sockets[SocketCheck(s_media_buffer_32[10])];
         u32 off = s_media_buffer_32[11];
-        const u32 len = s_media_buffer_32[14];
+        const u32 len = s_media_buffer_32[12];
 
         if (off >= NetworkBufferAddress1 && off < NetworkBufferAddress1 + sizeof(s_network_buffer))
         {
@@ -1532,9 +1533,9 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
         timeval* timeout = nullptr;
 
         // Only one of 3, 4, 5 is ever set alongside 6
-        if (s_media_buffer_32[11] && s_media_buffer_32[16])
+        if (s_media_buffer_32[11] && s_media_buffer_32[14])
         {
-          const u32 ROffset = s_media_buffer_32[16] - NetworkCommandAddress;
+          const u32 ROffset = s_media_buffer_32[14] - NetworkCommandAddress;
 
           readfds = (fd_set*)(s_network_command_buffer + ROffset);
           FD_ZERO(readfds);
@@ -1543,25 +1544,25 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
           timeout =
               (timeval*)(s_network_command_buffer + s_media_buffer_32[11] - NetworkCommandAddress);
         }
-        else if (s_media_buffer_32[14] && s_media_buffer_32[16])
+        else if (s_media_buffer_32[12] && s_media_buffer_32[14])
         {
-          const u32 WOffset = s_media_buffer_32[16] - NetworkCommandAddress;
+          const u32 WOffset = s_media_buffer_32[14] - NetworkCommandAddress;
           writefds = (fd_set*)(s_network_command_buffer + WOffset);
           FD_ZERO(writefds);
           FD_SET(fd, writefds);
 
           timeout =
-              (timeval*)(s_network_command_buffer + s_media_buffer_32[14] - NetworkCommandAddress);
+              (timeval*)(s_network_command_buffer + s_media_buffer_32[12] - NetworkCommandAddress);
         }
-        else if (s_media_buffer_32[15] && s_media_buffer_32[16])
+        else if (s_media_buffer_32[13] && s_media_buffer_32[14])
         {
-          const u32 EOffset = s_media_buffer_32[16] - NetworkCommandAddress;
+          const u32 EOffset = s_media_buffer_32[14] - NetworkCommandAddress;
           exceptfds = (fd_set*)(s_network_command_buffer + EOffset);
           FD_ZERO(exceptfds);
           FD_SET(fd, exceptfds);
 
           timeout =
-              (timeval*)(s_network_command_buffer + s_media_buffer_32[15] - NetworkCommandAddress);
+              (timeval*)(s_network_command_buffer + s_media_buffer_32[13] - NetworkCommandAddress);
         }
 
         // BUG?: F-Zero AX Monster calls select with a two second timeout
@@ -1590,10 +1591,10 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
       {
         const SOCKET fd = (SOCKET)(s_sockets[SocketCheck(s_media_buffer_32[10])]);
         const int level = (int)(s_media_buffer_32[11]);
-        const int optname = (int)(s_media_buffer_32[14]);
+        const int optname = (int)(s_media_buffer_32[12]);
         const char* optval =
-            (char*)(s_network_command_buffer + s_media_buffer_32[15] - NetworkCommandAddress);
-        const int optlen = (int)(s_media_buffer_32[16]);
+            (char*)(s_network_command_buffer + s_media_buffer_32[13] - NetworkCommandAddress);
+        const int optlen = (int)(s_media_buffer_32[14]);
 
         const int ret = setsockopt(fd, level, optname, optval, optlen);
         const int err = WSAGetLastError();
@@ -1798,10 +1799,12 @@ u32 GetGameType()
   }
   // Never reached
 }
+
 bool GetTestMenu()
 {
   return s_test_menu;
 }
+
 void Shutdown()
 {
   s_netcfg.Close();
@@ -1810,10 +1813,9 @@ void Shutdown()
   s_backup.Close();
   s_dimm.Close();
 
-  if (s_dimm_disc)
+  if (s_dimm_disc.size())
   {
-    delete[] s_dimm_disc;
-    s_dimm_disc = nullptr;
+    s_dimm_disc.clear();
   }
 
   // Close all sockets
