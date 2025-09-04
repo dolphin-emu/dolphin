@@ -36,6 +36,7 @@ VideoConfig g_ActiveConfig;
 BackendInfo g_backend_info;
 static std::optional<CPUThreadConfigCallback::ConfigChangedCallbackID>
     s_config_changed_callback_id = std::nullopt;
+static Common::EventHook s_check_config_event;
 
 static bool IsVSyncActive(bool enabled)
 {
@@ -216,8 +217,16 @@ void VideoConfig::VerifyValidity()
   }
 }
 
+void VideoConfig::Init()
+{
+  s_check_config_event = GetVideoEvents().after_frame_event.Register(
+      [](Core::System&) { CheckForConfigChanges(); }, "CheckForConfigChanges");
+}
+
 void VideoConfig::Shutdown()
 {
+  s_check_config_event.reset();
+
   if (!s_config_changed_callback_id.has_value())
     return;
 
@@ -391,6 +400,3 @@ void CheckForConfigChanges()
 
   // TODO: Move everything else to the ConfigChanged event
 }
-
-static Common::EventHook s_check_config_event = GetVideoEvents().after_frame_event.Register(
-    [](Core::System&) { CheckForConfigChanges(); }, "CheckForConfigChanges");
