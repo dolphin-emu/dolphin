@@ -35,8 +35,11 @@
 #include <inttypes.h>
 #include <mutex>
 
+// clang-format off
 #include <imgui.h>
 #include <implot.h>
+#include <ImGuizmo.h>
+// clang-format on
 
 namespace VideoCommon
 {
@@ -217,6 +220,8 @@ void OnScreenUI::BeginImGuiFrameUnlocked(u32 width, u32 height)
   io.DeltaTime = time_diff_secs;
 
   ImGui::NewFrame();
+  ImGuizmo::BeginFrame();
+  ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
 }
 
 void OnScreenUI::DrawImGui()
