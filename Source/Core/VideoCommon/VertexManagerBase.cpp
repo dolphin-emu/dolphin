@@ -763,6 +763,11 @@ void VertexManagerBase::Flush()
       draw_data.vertex_format = VertexLoaderManager::GetCurrentVertexFormat();
       draw_data.gpu_skinning_position_transform = vertex_shader_manager.constants.transformmatrices;
       draw_data.gpu_skinning_normal_transform = vertex_shader_manager.constants.normalmatrices;
+      draw_data.projection_transform = vertex_shader_manager.constants.projection;
+      draw_data.viewport_details = xfmem.viewport;
+
+      // First 3 float4 are position transform
+      draw_data.object_transform = {vertex_shader_manager.constants.posnormalmatrix.data(), 3};
 
       auto& mod_manager = system.GetGraphicsModManager();
       mod_manager.GetBackend().OnDraw(draw_data, this);
