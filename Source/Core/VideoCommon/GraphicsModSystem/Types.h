@@ -73,6 +73,9 @@ struct DrawDataView
   std::span<const u16> index_data;
   std::span<const float4> gpu_skinning_position_transform;
   std::span<const float4> gpu_skinning_normal_transform;
+  std::span<const float4> object_transform;
+  std::span<const float4> projection_transform;
+  Viewport viewport_details;
   NativeVertexFormat* vertex_format = nullptr;
   Common::SmallVector<TextureView, 8> textures;
   std::array<SamplerState, 8> samplers;
