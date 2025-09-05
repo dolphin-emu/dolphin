@@ -38,6 +38,8 @@ public:
   virtual void SerializeToConfig(picojson::object* obj) {}
   virtual std::string GetFactoryName() const { return ""; }
 
+  virtual Common::Matrix44* GetTransform() { return nullptr; }
+
 protected:
   GraphicsModSystem::DrawCallID m_draw_call = GraphicsModSystem::DrawCallID::INVALID;
 
