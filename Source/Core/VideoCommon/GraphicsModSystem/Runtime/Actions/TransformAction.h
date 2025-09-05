@@ -19,7 +19,7 @@ public:
   static std::unique_ptr<TransformAction> Create();
 
   TransformAction() = default;
-  TransformAction(Common::Vec3 rotation, Common::Vec3 scale, Common::Vec3 translation);
+  TransformAction(Common::Matrix44 transform);
 
   void OnDrawStarted(GraphicsModActionData::DrawStarted*) override;
 
@@ -28,10 +28,8 @@ public:
   void SerializeToConfig(picojson::object* obj) override;
   std::string GetFactoryName() const override;
 
+  Common::Matrix44* GetTransform() override;
+
 private:
-  Common::Vec3 m_rotation = Common::Vec3{0, 0, 0};
-  Common::Vec3 m_scale = Common::Vec3{1, 1, 1};
-  Common::Vec3 m_translation = Common::Vec3{0, 0, 0};
-  Common::Matrix44 m_calculated_transform = Common::Matrix44::Identity();
-  bool m_transform_changed = false;
+  Common::Matrix44 m_transform = Common::Matrix44::Identity();
 };

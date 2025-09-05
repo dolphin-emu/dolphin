@@ -3,11 +3,16 @@
 
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/TransformAction.h"
 
+#define USE_IMGUI_API
+
+// clang-format off
+#include <imgui.h>
+#include <ImGuizmo.h>
+// clang-format on
+
 #include "Common/JsonUtil.h"
 
 #include "VideoCommon/GraphicsModEditor/EditorEvents.h"
-
-#include <imgui.h>
 
 std::unique_ptr<TransformAction> TransformAction::Create(const picojson::value& json_data)
 {
@@ -16,46 +21,24 @@ std::unique_ptr<TransformAction> TransformAction::Create(const picojson::value& 
 
   const auto& obj = json_data.get<picojson::object>();
 
-  Common::Vec3 scale{1, 1, 1};
-  if (const auto it = obj.find("scale"); it != obj.end())
+  Common::Matrix44 transform;
+  if (const auto it = obj.find("transform"); it != obj.end())
   {
     if (it->second.is<picojson::object>())
     {
-      FromJson(it->second.get<picojson::object>(), scale);
+      FromJson(it->second.get<picojson::object>(), transform);
     }
   }
 
-  Common::Vec3 translation{};
-  if (const auto it = obj.find("translation"); it != obj.end())
-  {
-    if (it->second.is<picojson::object>())
-    {
-      FromJson(it->second.get<picojson::object>(), translation);
-    }
-  }
-
-  Common::Vec3 rotation{};
-  if (const auto it = obj.find("rotation"); it != obj.end())
-  {
-    if (it->second.is<picojson::object>())
-    {
-      FromJson(it->second.get<picojson::object>(), rotation);
-    }
-  }
-  return std::make_unique<TransformAction>(std::move(rotation), std::move(scale),
-                                           std::move(translation));
+  return std::make_unique<TransformAction>(std::move(transform));
 }
 
 std::unique_ptr<TransformAction> TransformAction::Create()
 {
-  return std::make_unique<TransformAction>(Common::Vec3{}, Common::Vec3{1, 1, 1}, Common::Vec3{});
+  return std::make_unique<TransformAction>(Common::Matrix44::Identity());
 }
 
-TransformAction::TransformAction(Common::Vec3 rotation, Common::Vec3 scale,
-                                 Common::Vec3 translation)
-    : m_rotation(std::move(rotation)), m_scale(std::move(scale)),
-      m_translation(std::move(translation)), m_calculated_transform(Common::Matrix44::Identity()),
-      m_transform_changed(true)
+TransformAction::TransformAction(Common::Matrix44 transform) : m_transform(transform)
 {
 }
 
@@ -65,34 +48,48 @@ void TransformAction::DrawImGui()
   {
     if (ImGui::BeginTable("TransformTable", 2))
     {
+      float matrixTranslation[3], matrixRotation[3], matrixScale[3];
+
+      auto transform = m_transform.Transpose();
+      ImGuizmo::DecomposeMatrixToComponents(transform.data.data(), matrixTranslation,
+                                            matrixRotation, matrixScale);
+
+      bool changed = false;
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("Scale");
       ImGui::TableNextColumn();
-      if (ImGui::InputFloat3("##Scale", m_scale.data.data()))
+      if (ImGui::InputFloat3("##Scale", matrixScale))
       {
         GraphicsModEditor::EditorEvents::ChangeOccurredEvent::Trigger();
-        m_transform_changed = true;
+        changed = true;
       }
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("Rotation");
       ImGui::TableNextColumn();
-      if (ImGui::InputFloat3("##Rotation", m_rotation.data.data()))
+      if (ImGui::InputFloat3("##Rotation", matrixRotation))
       {
         GraphicsModEditor::EditorEvents::ChangeOccurredEvent::Trigger();
-        m_transform_changed = true;
+        changed = true;
       }
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("Translate");
       ImGui::TableNextColumn();
-      if (ImGui::InputFloat3("##Translate", m_translation.data.data()))
+      if (ImGui::InputFloat3("##Translate", matrixTranslation))
       {
         GraphicsModEditor::EditorEvents::ChangeOccurredEvent::Trigger();
-        m_transform_changed = true;
+        changed = true;
       }
       ImGui::EndTable();
+
+      if (changed)
+      {
+        ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale,
+                                                transform.data.data());
+        m_transform = transform.Transpose();
+      }
     }
   }
 }
@@ -102,17 +99,7 @@ void TransformAction::OnDrawStarted(GraphicsModActionData::DrawStarted* draw_sta
   if (!draw_started) [[unlikely]]
     return;
 
-  if (m_transform_changed)
-  {
-    const auto scale = Common::Matrix33::Scale(m_scale);
-    const auto rotation = Common::Quaternion::RotateXYZ(m_rotation);
-    m_calculated_transform = Common::Matrix44::Translate(m_translation) *
-                             Common::Matrix44::FromQuaternion(rotation) *
-                             Common::Matrix44::FromMatrix33(scale);
-
-    m_transform_changed = false;
-  }
-  *draw_started->transform = m_calculated_transform;
+  *draw_started->transform = m_transform;
 }
 
 void TransformAction::SerializeToConfig(picojson::object* obj)
@@ -121,12 +108,15 @@ void TransformAction::SerializeToConfig(picojson::object* obj)
     return;
 
   auto& json_obj = *obj;
-  json_obj.emplace("translation", ToJsonObject(m_translation));
-  json_obj.emplace("scale", ToJsonObject(m_scale));
-  json_obj.emplace("rotation", ToJsonObject(m_rotation));
+  json_obj.emplace("transform", ToJsonObject(m_transform));
 }
 
 std::string TransformAction::GetFactoryName() const
 {
   return "transform";
+}
+
+Common::Matrix44* TransformAction::GetTransform()
+{
+  return &m_transform;
 }
