@@ -1027,6 +1027,9 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
                     OSD::Color::RED);
   }
 
+  if (game == nullptr)
+    return;
+
   rc_client_set_read_memory_function(instance.m_client, MemoryPeeker);
   instance.FetchGameBadges();
   instance.m_system.store(&Core::System::GetInstance(), std::memory_order_release);
