@@ -140,6 +140,9 @@ public:
   void mtfsfx(UGeckoInstruction inst);
 
   // LoadStore
+  void WriteInitCacheLoop(const u32 cycle_count_per_loop, const Arm64Gen::ARM64Reg loop_counter,
+                          const Arm64Gen::ARM64Reg WA, const Arm64Gen::ARM64Reg WB);
+
   void lXX(UGeckoInstruction inst);
   void stX(UGeckoInstruction inst);
   void lmw(UGeckoInstruction inst);
