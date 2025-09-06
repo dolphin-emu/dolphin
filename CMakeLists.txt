@@ -1,7 +1,7 @@
 ########################################
 # General setup
 #
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.18)
 
 cmake_policy(SET CMP0079 NEW) # let target_link_libraries() link to a target defined in a different directory
 cmake_policy(SET CMP0080 OLD) # allow using BundleUtilities at configure time
@@ -657,7 +657,8 @@ add_subdirectory(Externals/glslang)
 if(WIN32 OR APPLE)
   add_subdirectory(Externals/spirv_cross)
 endif()
-add_subdirectory(Externals/tinygltf)
+
+dolphin_find_optional_system_library(TinyGLTF Externals/tinygltf)
 
 if(ENABLE_VULKAN)
   add_definitions(-DHAS_VULKAN)
