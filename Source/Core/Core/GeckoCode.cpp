@@ -68,11 +68,11 @@ void SetActiveCodes(std::span<const GeckoCode> gcodes, const std::string& game_i
   {
     s_active_codes.reserve(gcodes.size());
 
+    const auto should_be_activated = [&game_id, &revision](const GeckoCode& code) {
+      return AchievementManager::GetInstance().ShouldGeckoCodeBeActivated(code, game_id, revision);
+    };
     std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_active_codes),
-                 [&game_id, &revision](const GeckoCode& code) {
-                   return code.enabled && AchievementManager::GetInstance().CheckApprovedGeckoCode(
-                                              code, game_id, revision);
-                 });
+                 should_be_activated);
   }
   s_active_codes.shrink_to_fit();
 
