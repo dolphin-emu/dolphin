@@ -318,9 +318,9 @@ static bool LoadFirmware(LibUSBBluetoothAdapter& adapter, std::span<const char> 
 
   HCICommandPayload<0xfc20, rtl_download_cmd> payload{};
 
-  const auto write_block = [&](std::span<const u8> data) {
+  const auto write_block = [&](std::span<const u8> block) {
     rtl_download_response result{};
-    if (!adapter.SendBlockingCommand(data, Common::AsWritableU8Span(result)))
+    if (!adapter.SendBlockingCommand(block, Common::AsWritableU8Span(result)))
       return false;
 
     if (result.status != 0x00)
