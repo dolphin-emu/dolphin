@@ -40,6 +40,8 @@ Dolphin includes or links code of the following third-party software projects:
    [LGPLv2.1+](https://github.com/libusb/libusb/blob/master/COPYING)
 - [LLVM](http://llvm.org/):
    [University of Illinois/NCSA Open Source license](http://llvm.org/docs/DeveloperPolicy.html#license)
+- [json](https://json.nlohmann.me/):
+   [MIT](https://json.nlohmann.me/home/license/)
 - [LZO](http://www.oberhumer.com/opensource/lzo/):
    [GPLv2+](http://www.oberhumer.com/opensource/gpl.html)
 - [mGBA](http://mgba.io)

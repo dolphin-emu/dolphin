@@ -31,6 +31,7 @@ PUBLIC
 
 PRIVATE
   fmt::fmt
+  nlohmann_json::nlohmann_json
   $<$<BOOL:APPLE>:${IOK_LIBRARY}>
 )
 

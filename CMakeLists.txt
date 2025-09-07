@@ -774,7 +774,7 @@ if (WIN32)
   include_directories(Externals/OpenAL/include)
 endif()
 
-include_directories(Externals/picojson)
+dolphin_find_optional_system_library(nlohmann_json Externals/nlohmann_json)
 
 add_subdirectory(Externals/expr)
 

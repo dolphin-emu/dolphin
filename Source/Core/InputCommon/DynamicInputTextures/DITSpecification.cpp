@@ -4,19 +4,21 @@
 #include "InputCommon/DynamicInputTextures/DITSpecification.h"
 
 #include <fmt/format.h>
+#include <nlohmann/json.hpp>
 
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
+#include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 
 namespace InputCommon::DynamicInputTextures
 {
-bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_textures,
+bool ProcessSpecificationV1(nlohmann::json& root, std::vector<Data>& input_textures,
                             const std::string& base_path, const std::string& json_file)
 {
-  const picojson::value& output_textures_json = root.get("output_textures");
-  if (!output_textures_json.is<picojson::object>())
+  auto it = root.find("output_textures");
+  if (it == root.end() || !it->is_object())
   {
     ERROR_LOG_FMT(
         VIDEO,
@@ -25,42 +27,28 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
         json_file);
     return false;
   }
+  const nlohmann::json& output_textures = *it;
 
-  const picojson::value& preserve_aspect_ratio_json = root.get("preserve_aspect_ratio");
+  const bool preserve_aspect_ratio = ReadBoolFromJson(root, "preserve_aspect_ratio").value_or(true);
 
-  bool preserve_aspect_ratio = true;
-  if (preserve_aspect_ratio_json.is<bool>())
-  {
-    preserve_aspect_ratio = preserve_aspect_ratio_json.get<bool>();
-  }
+  const std::string generated_folder_name =
+      ReadStringFromJson(root, "generated_folder_name")
+          .value_or(fmt::format("{}_Generated", SConfig::GetInstance().GetGameID()));
 
-  const picojson::value& generated_folder_name_json = root.get("generated_folder_name");
+  const nlohmann::json default_host_controls =
+      ReadObjectFromJson(root, "default_host_controls").value_or(nlohmann::json{});
 
-  const std::string& game_id = SConfig::GetInstance().GetGameID();
-  std::string generated_folder_name = fmt::format("{}_Generated", game_id);
-  if (generated_folder_name_json.is<std::string>())
-  {
-    generated_folder_name = generated_folder_name_json.get<std::string>();
-  }
-
-  const picojson::value& default_host_controls_json = root.get("default_host_controls");
-  picojson::object default_host_controls;
-  if (default_host_controls_json.is<picojson::object>())
-  {
-    default_host_controls = default_host_controls_json.get<picojson::object>();
-  }
-
-  const auto output_textures = output_textures_json.get<picojson::object>();
-  for (auto& [name, data] : output_textures)
+  for (auto& [name, data] : output_textures.items())
   {
     Data texture_data;
     texture_data.m_hires_texture_name = name;
 
     // Required fields
-    const picojson::value& image = data.get("image");
-    const picojson::value& emulated_controls = data.get("emulated_controls");
+    auto image_it = data.find("image");
+    auto controls_it = data.find("emulated_controls");
 
-    if (!image.is<std::string>() || !emulated_controls.is<picojson::object>())
+    if (image_it == data.end() || !image_it->is_string() || controls_it == data.end() ||
+        !controls_it->is_object())
     {
       ERROR_LOG_FMT(VIDEO,
                     "Failed to load dynamic input json file '{}' because required fields "
@@ -69,8 +57,10 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
                     json_file);
       return false;
     }
+    const std::string& image = *image_it;
+    const nlohmann::json& emulated_controls = *controls_it;
 
-    texture_data.m_image_name = image.to_str();
+    texture_data.m_image_name = image;
     texture_data.m_preserve_aspect_ratio = preserve_aspect_ratio;
     texture_data.m_generated_folder_name = generated_folder_name;
 
@@ -84,10 +74,9 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
       return false;
     }
 
-    const auto& emulated_controls_json = emulated_controls.get<picojson::object>();
-    for (auto& [emulated_controller_name, map] : emulated_controls_json)
+    for (auto& [emulated_controller_name, map] : emulated_controls.items())
     {
-      if (!map.is<picojson::object>())
+      if (!map.is_object())
       {
         ERROR_LOG_FMT(VIDEO,
                       "Failed to load dynamic input json file '{}' because 'emulated_controls' "
@@ -97,9 +86,9 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
       }
 
       auto& key_to_regions = texture_data.m_emulated_controllers[emulated_controller_name];
-      for (auto& [emulated_control, regions_array] : map.get<picojson::object>())
+      for (auto& [emulated_control, regions_array] : map.items())
       {
-        if (!regions_array.is<picojson::array>())
+        if (!regions_array.is_array())
         {
           ERROR_LOG_FMT(
               VIDEO,
@@ -110,10 +99,9 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
         }
 
         std::vector<Rect> region_rects;
-        for (auto& region : regions_array.get<picojson::array>())
+        for (auto& region : regions_array)
         {
-          Rect r;
-          if (!region.is<picojson::array>())
+          if (!region.is_array())
           {
             ERROR_LOG_FMT(
                 VIDEO,
@@ -123,9 +111,7 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
             return false;
           }
 
-          auto region_offsets = region.get<picojson::array>();
-
-          if (region_offsets.size() != 4)
+          if (region.size() != 4)
           {
             ERROR_LOG_FMT(
                 VIDEO,
@@ -136,7 +122,7 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
             return false;
           }
 
-          if (!std::ranges::all_of(region_offsets, &picojson::value::is<double>))
+          if (!std::ranges::all_of(region, &nlohmann::json::is_number))
           {
             ERROR_LOG_FMT(
                 VIDEO,
@@ -146,10 +132,11 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
             return false;
           }
 
-          r.left = static_cast<u32>(region_offsets[0].get<double>());
-          r.top = static_cast<u32>(region_offsets[1].get<double>());
-          r.right = static_cast<u32>(region_offsets[2].get<double>());
-          r.bottom = static_cast<u32>(region_offsets[3].get<double>());
+          Rect r;
+          r.left = region[0].get<u32>();
+          r.top = region[1].get<u32>();
+          r.right = region[2].get<u32>();
+          r.bottom = region[3].get<u32>();
           region_rects.push_back(r);
         }
         key_to_regions.insert_or_assign(emulated_control, std::move(region_rects));
@@ -158,12 +145,8 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
 
     // Default to the default controls but overwrite if the creator
     // has provided something specific
-    picojson::object host_controls = default_host_controls;
-    const picojson::value& host_controls_json = data.get("host_controls");
-    if (host_controls_json.is<picojson::object>())
-    {
-      host_controls = host_controls_json.get<picojson::object>();
-    }
+    const nlohmann::json host_controls =
+        ReadObjectFromJson(data, "host_controls").value_or(default_host_controls);
 
     if (host_controls.empty())
     {
@@ -174,9 +157,9 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
       return false;
     }
 
-    for (auto& [host_device, map] : host_controls)
+    for (auto& [host_device, map] : host_controls.items())
     {
-      if (!map.is<picojson::object>())
+      if (!map.is_object())
       {
         ERROR_LOG_FMT(VIDEO,
                       "Failed to load dynamic input json file '{}' because 'host_controls' "
@@ -185,9 +168,17 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
         return false;
       }
       auto& host_control_to_imagename = texture_data.m_host_devices[host_device];
-      for (auto& [host_control, image_name] : map.get<picojson::object>())
+      for (auto& [host_control, image_name] : map.items())
       {
-        host_control_to_imagename.insert_or_assign(host_control, image_name.to_str());
+        if (!image_name.is_string())
+        {
+          ERROR_LOG_FMT(VIDEO,
+                        "Failed to load dynamic input json file '{}' because 'host_controls' "
+                        "value '{}' is incorrect type ",
+                        json_file, host_control);
+          return false;
+        }
+        host_control_to_imagename[host_control] = image_name.get<std::string>();
       }
     }
 

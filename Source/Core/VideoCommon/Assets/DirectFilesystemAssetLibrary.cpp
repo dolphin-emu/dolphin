@@ -7,6 +7,7 @@
 #include <vector>
 
 #include <fmt/std.h>
+#include <nlohmann/json.hpp>
 
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -126,7 +127,7 @@ DirectFilesystemAssetLibrary::LoadRasterSurfaceShader(const AssetID& asset_id,
     return {};
   }
 
-  picojson::value root;
+  nlohmann::json root;
   std::string error;
   if (!JsonFromFile(PathToString(metadata->second), &root, &error))
   {
@@ -136,7 +137,7 @@ DirectFilesystemAssetLibrary::LoadRasterSurfaceShader(const AssetID& asset_id,
     return {};
   }
 
-  if (!root.is<picojson::object>())
+  if (!root.is_object())
   {
     ERROR_LOG_FMT(
         VIDEO,
@@ -145,9 +146,7 @@ DirectFilesystemAssetLibrary::LoadRasterSurfaceShader(const AssetID& asset_id,
     return {};
   }
 
-  const auto& root_obj = root.get<picojson::object>();
-
-  if (!RasterSurfaceShaderData::FromJson(asset_id, root_obj, data))
+  if (!RasterSurfaceShaderData::FromJson(asset_id, root, data))
     return {};
 
   return LoadInfo{approx_mem_size};
@@ -178,7 +177,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(const As
     }
   }
 
-  picojson::value root;
+  nlohmann::json root;
   std::string error;
   if (!JsonFromFile(PathToString(asset_path), &root, &error))
   {
@@ -188,7 +187,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(const As
         asset_id, PathToString(asset_path), error);
     return {};
   }
-  if (!root.is<picojson::object>())
+  if (!root.is_object())
   {
     ERROR_LOG_FMT(VIDEO,
                   "Asset '{}' error - material failed to load the json file '{}', due to root not "
@@ -197,9 +196,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(const As
     return {};
   }
 
-  const auto& root_obj = root.get<picojson::object>();
-
-  if (!MaterialData::FromJson(asset_id, root_obj, data))
+  if (!MaterialData::FromJson(asset_id, root, data))
   {
     ERROR_LOG_FMT(VIDEO,
                   "Asset '{}' error -  material failed to load the json file '{}', as material "
@@ -280,7 +277,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetI
     return {};
   }
 
-  picojson::value root;
+  nlohmann::json root;
   std::string error;
   if (!JsonFromFile(PathToString(metadata->second), &root, &error))
   {
@@ -289,7 +286,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetI
                   asset_id, PathToString(metadata->second), error);
     return {};
   }
-  if (!root.is<picojson::object>())
+  if (!root.is_object())
   {
     ERROR_LOG_FMT(
         VIDEO,
@@ -298,9 +295,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetI
     return {};
   }
 
-  const auto& root_obj = root.get<picojson::object>();
-
-  if (!MeshData::FromJson(asset_id, root_obj, data))
+  if (!MeshData::FromJson(asset_id, root, data))
     return {};
 
   return LoadInfo{approx_mem_size};
@@ -371,7 +366,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
       return {};
     }
 
-    picojson::value root;
+    nlohmann::json root;
     std::string error;
     if (!JsonFromFile(PathToString(metadata->second), &root, &error))
     {
@@ -380,7 +375,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
                     asset_id, PathToString(metadata->second), error);
       return {};
     }
-    if (!root.is<picojson::object>())
+    if (!root.is_object())
     {
       ERROR_LOG_FMT(
           VIDEO,
@@ -389,8 +384,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
       return {};
     }
 
-    const auto& root_obj = root.get<picojson::object>();
-    if (!TextureAndSamplerData::FromJson(asset_id, root_obj, data))
+    if (!TextureAndSamplerData::FromJson(asset_id, root, data))
     {
       return {};
     }

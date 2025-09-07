@@ -8,8 +8,10 @@
 #include <optional>
 
 #include <fmt/format.h>
+#include <nlohmann/json.hpp>
 
 #include "Common/FileUtil.h"
+#include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/VariantUtil.h"
@@ -27,18 +29,17 @@ CustomPipelineAction::Create(std::shared_ptr<VideoCommon::CustomAssetLibrary> li
 }
 
 std::unique_ptr<CustomPipelineAction>
-CustomPipelineAction::Create(const picojson::value& json_data,
+CustomPipelineAction::Create(const nlohmann::json& json_data,
                              std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
 {
   std::vector<CustomPipelineAction::PipelinePassPassDescription> pipeline_passes;
 
-  const auto& passes_json = json_data.get("passes");
-  if (passes_json.is<picojson::array>())
+  if (const auto& passes = ReadArrayFromJson(json_data, "passes"))
   {
-    for (const auto& passes_json_val : passes_json.get<picojson::array>())
+    for (const auto& pass : *passes)
     {
       CustomPipelineAction::PipelinePassPassDescription pipeline_pass;
-      if (!passes_json_val.is<picojson::object>())
+      if (!pass.is_object())
       {
         ERROR_LOG_FMT(VIDEO,
                       "Failed to load custom pipeline action, 'passes' has an array value that "
@@ -46,23 +47,21 @@ CustomPipelineAction::Create(const picojson::value& json_data,
         return nullptr;
       }
 
-      auto pass = passes_json_val.get<picojson::object>();
-      if (!pass.contains("pixel_material_asset"))
+      auto pma_it = pass.find("pixel_material_asset");
+      if (pma_it == pass.end())
       {
         ERROR_LOG_FMT(VIDEO,
                       "Failed to load custom pipeline action, 'passes' value missing required "
                       "field 'pixel_material_asset'");
         return nullptr;
       }
-
-      auto pixel_material_asset_json = pass["pixel_material_asset"];
-      if (!pixel_material_asset_json.is<std::string>())
+      else if (!pma_it->is_string())
       {
         ERROR_LOG_FMT(VIDEO, "Failed to load custom pipeline action, 'passes' field "
                              "'pixel_material_asset' is not a string!");
         return nullptr;
       }
-      pipeline_pass.m_pixel_material_asset = pixel_material_asset_json.to_str();
+      pipeline_pass.m_pixel_material_asset = pma_it->get<std::string>();
       pipeline_passes.push_back(std::move(pipeline_pass));
     }
   }
