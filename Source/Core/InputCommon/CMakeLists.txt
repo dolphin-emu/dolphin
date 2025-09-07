@@ -83,6 +83,7 @@ PUBLIC
 
 PRIVATE
   fmt::fmt
+  nlohmann_json::nlohmann_json
   sfml-network
   spng::spng
 )

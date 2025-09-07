@@ -5,17 +5,17 @@
 
 #include <string>
 
-#include <picojson.h>
+#include <nlohmann/json.hpp>
 
 struct GraphicsModFeatureConfig
 {
   std::string m_group;
   std::string m_action;
-  picojson::value m_action_data;
+  nlohmann::json m_action_data;
 
-  void SerializeToConfig(picojson::object& json_obj) const;
-  bool DeserializeFromConfig(const picojson::object& value);
+  void SerializeToConfig(nlohmann::json& json_obj) const;
+  bool DeserializeFromConfig(const nlohmann::json& value);
 
-  void SerializeToProfile(picojson::object* value) const;
-  void DeserializeFromProfile(const picojson::object& value);
+  void SerializeToProfile(nlohmann::json* value) const;
+  void DeserializeFromProfile(const nlohmann::json& value);
 };

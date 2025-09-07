@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include <picojson.h>
+#include <nlohmann/json_fwd.hpp>
 
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsTarget.h"
 
@@ -15,9 +15,9 @@ struct GraphicsTargetGroupConfig
   std::string m_name;
   std::vector<GraphicsTargetConfig> m_targets;
 
-  void SerializeToConfig(picojson::object& json_obj) const;
-  bool DeserializeFromConfig(const picojson::object& obj);
+  void SerializeToConfig(nlohmann::json& json_obj) const;
+  bool DeserializeFromConfig(const nlohmann::json& obj);
 
-  void SerializeToProfile(picojson::object* obj) const;
-  void DeserializeFromProfile(const picojson::object& obj);
+  void SerializeToProfile(nlohmann::json* obj) const;
+  void DeserializeFromProfile(const nlohmann::json& obj);
 };

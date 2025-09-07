@@ -220,6 +220,7 @@ PUBLIC
   core
 PRIVATE
   fmt::fmt
+  nlohmann_json::nlohmann_json
   spng::spng
   xxhash::xxhash
   imgui

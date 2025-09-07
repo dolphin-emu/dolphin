@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include <picojson.h>
+#include <nlohmann/json_fwd.hpp>
 
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
 
@@ -30,7 +30,7 @@ struct TextureSamplerValue
   SamplerOrigin sampler_origin = SamplerOrigin::Asset;
   std::string texture_hash;
 
-  static bool FromJson(const picojson::object& json, TextureSamplerValue* data);
-  static void ToJson(picojson::object* obj, const TextureSamplerValue& data);
+  static bool FromJson(const nlohmann::json& json, TextureSamplerValue* data);
+  static void ToJson(nlohmann::json* obj, const TextureSamplerValue& data);
 };
 }  // namespace VideoCommon

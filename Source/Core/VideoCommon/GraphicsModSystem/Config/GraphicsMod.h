@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include <picojson.h>
+#include <nlohmann/json.hpp>
 
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModAsset.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModFeature.h"
@@ -34,13 +34,13 @@ struct GraphicsModConfig
   std::vector<GraphicsModAssetConfig> m_assets;
 
   static std::optional<GraphicsModConfig> Create(const std::string& file, Source source);
-  static std::optional<GraphicsModConfig> Create(const picojson::object* obj);
+  static std::optional<GraphicsModConfig> Create(const nlohmann::json* obj);
 
   std::string GetAbsolutePath() const;
 
-  void SerializeToConfig(picojson::object& json_obj) const;
-  bool DeserializeFromConfig(const picojson::value& value);
+  void SerializeToConfig(nlohmann::json& json_obj) const;
+  bool DeserializeFromConfig(const nlohmann::json& value);
 
-  void SerializeToProfile(picojson::object* value) const;
-  void DeserializeFromProfile(const picojson::object& value);
+  void SerializeToProfile(nlohmann::json* value) const;
+  void DeserializeFromProfile(const nlohmann::json& value);
 };

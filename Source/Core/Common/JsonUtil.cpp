@@ -5,64 +5,113 @@
 
 #include <fstream>
 
+#include <nlohmann/detail/input/json_sax.hpp>
+#include <nlohmann/json.hpp>
+
 #include "Common/FileUtil.h"
 
-picojson::object ToJsonObject(const Common::Vec3& vec)
+class SaxJsonParser
+    : public nlohmann::detail::json_sax_dom_parser<nlohmann::json,
+                                                   nlohmann::detail::string_input_adapter_type>
 {
-  picojson::object obj;
-  obj.emplace("x", vec.x);
-  obj.emplace("y", vec.y);
-  obj.emplace("z", vec.z);
-  return obj;
+public:
+  explicit SaxJsonParser(nlohmann::json& j)
+      : nlohmann::detail::json_sax_dom_parser<nlohmann::json,
+                                              nlohmann::detail::string_input_adapter_type>(j, false)
+  {
+  }
+
+  bool parse_error(std::size_t position, const std::string& last_token,
+                   const nlohmann::json::exception& ex)
+  {
+    m_error = ex.what();
+    return false;
+  }
+
+  std::string m_error;
+};
+
+nlohmann::json ToJsonObject(const Common::Vec3& vec)
+{
+  return {{"x", vec.x}, {"y", vec.y}, {"z", vec.z}};
 }
 
-void FromJson(const picojson::object& obj, Common::Vec3& vec)
+void FromJson(const nlohmann::json& obj, Common::Vec3& vec)
 {
-  vec.x = ReadNumericFromJson<float>(obj, "x").value_or(0.0f);
-  vec.y = ReadNumericFromJson<float>(obj, "y").value_or(0.0f);
-  vec.z = ReadNumericFromJson<float>(obj, "z").value_or(0.0f);
+  vec.x = obj.value("x", 0.0f);
+  vec.y = obj.value("y", 0.0f);
+  vec.z = obj.value("z", 0.0f);
 }
 
-std::optional<std::string> ReadStringFromJson(const picojson::object& obj, const std::string& key)
+std::optional<std::string> ReadStringFromJson(const nlohmann::json& obj, const std::string_view key)
 {
-  const auto it = obj.find(key);
-  if (it == obj.end())
+  auto it = obj.find(key);
+  if (it == obj.end() || !it->is_string())
     return std::nullopt;
-  if (!it->second.is<std::string>())
-    return std::nullopt;
-  return it->second.to_str();
+
+  return it->get<std::string>();
 }
 
-std::optional<bool> ReadBoolFromJson(const picojson::object& obj, const std::string& key)
+std::optional<bool> ReadBoolFromJson(const nlohmann::json& obj, const std::string_view key)
 {
-  const auto it = obj.find(key);
-  if (it == obj.end())
+  auto it = obj.find(key);
+  if (it == obj.end() || !it->is_boolean())
     return std::nullopt;
-  if (!it->second.is<bool>())
-    return std::nullopt;
-  return it->second.get<bool>();
+
+  return it->get<bool>();
 }
 
-bool JsonToFile(const std::string& filename, const picojson::value& root, bool prettify)
+std::optional<nlohmann::json> ReadObjectFromJson(const nlohmann::json& obj,
+                                                 const std::string_view key)
+{
+  auto it = obj.find(key);
+  if (it == obj.end() || !it->is_object())
+    return std::nullopt;
+
+  return *it;
+}
+
+std::optional<nlohmann::json> ReadArrayFromJson(const nlohmann::json& obj,
+                                                const std::string_view key)
+{
+  auto it = obj.find(key);
+  if (it == obj.end() || !it->is_array())
+    return std::nullopt;
+
+  return *it;
+}
+
+bool JsonToFile(const std::string& filename, const nlohmann::json& root, bool prettify)
 {
   std::ofstream json_stream;
   File::OpenFStream(json_stream, filename, std::ios_base::out);
   if (!json_stream.is_open())
-  {
     return false;
-  }
-  json_stream << root.serialize(prettify);
+
+  json_stream << root.dump(prettify ? 2 : -1);
+
   return true;
 }
 
-bool JsonFromFile(const std::string& filename, picojson::value* root, std::string* error)
+bool JsonFromFile(const std::string& filename, nlohmann::json* root, std::string* error)
 {
   std::string json_data;
   if (!File::ReadFileToString(filename, json_data))
   {
+    if (error)
+      *error = "Failed to read file";
     return false;
   }
 
-  *error = picojson::parse(*root, json_data);
-  return error->empty();
+  nlohmann::json result;
+  SaxJsonParser json_parser(result);
+  if (!nlohmann::json::sax_parse(json_data, &json_parser))
+  {
+    if (error)
+      *error = json_parser.m_error;
+    return false;
+  }
+
+  *root = std::move(result);
+  return true;
 }
