@@ -496,17 +496,22 @@ QTabBar QToolButton::left-arrow {
 QTabBar QToolButton::right-arrow {
 	image: url(:/dolphin_dark_win/right-triangle-tabbar.svg);
 }
+
 QTableCornerButton::section {
-    background-color: #202020;
-    border: 1px solid #7e7e7e;
-    border-top: 0px;
-    border-left: 0px;
-    border-bottom: 0px;
+	background-color: #202020;
+	border: 1px solid #7e7e7e;
+	border-top: 0px;
+	border-left: 0px;
+	border-bottom: 0px;
 }
 
 QProgressBar {
-     border: 2px solid grey;
-     border-radius: 5px;
-     background-color: #202020;
- }
- 
+	background-color: #202020;
+	border: 1px solid #7e7e7e;
+	color: #dcdcdc;
+	text-align: center;
+}
+QProgressBar::chunk {
+	background-color: #24a806;
+	width: 1px;
+}
