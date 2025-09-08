@@ -142,7 +142,7 @@ void Metal::StagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_re
   @autoreleasepool
   {
     const size_t stride = m_config.GetStride();
-    const u32 offset = dst_rect.top * stride + dst_rect.left * m_texel_size;
+    const u32 offset = src_rect.top * stride + src_rect.left * m_texel_size;
     const MTLSize size =
         MTLSizeMake(src_rect.right - src_rect.left, src_rect.bottom - src_rect.top, 1);
     g_state_tracker->EndRenderPass();
