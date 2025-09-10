@@ -278,6 +278,9 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
   fpr.ResetRegisters(js.op->GetFregsOut());
   gpr.ResetCRRegisters(js.op->crOut);
 
+  if (js.op->opinfo->flags & FL_SET_MSR)
+    EmitUpdateMembase();
+
   if (js.op->canEndBlock)
   {
     if (js.isLastInstruction)
