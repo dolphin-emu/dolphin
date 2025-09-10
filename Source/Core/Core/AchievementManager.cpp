@@ -71,6 +71,7 @@ void AchievementManager::Init(void* hwnd)
     {
       std::lock_guard lg{m_lock};
       m_client = rc_client_create(MemoryPeeker, Request);
+      rc_client_set_allow_background_memory_reads(m_client, 0);
     }
     std::string host_url = Config::Get(Config::RA_HOST_URL);
     if (!host_url.empty())
@@ -357,32 +358,20 @@ bool AchievementManager::CanPause()
 
 void AchievementManager::DoIdle()
 {
+  rc_client_set_allow_background_memory_reads(m_client, 1);
   std::thread([this] {
     while (true)
     {
-      Common::SleepCurrentThread(1000);
+      Common::SleepCurrentThread(100);
+      std::lock_guard lg{m_lock};
+      Core::System* system = m_system.load(std::memory_order_acquire);
+      if ((!system || Core::GetState(*system) != Core::State::Paused) ||
+          (!m_background_execution_allowed) || (!m_client || (!IsGameLoaded() && !m_dll_found)))
       {
-        std::lock_guard lg{m_lock};
-        Core::System* system = m_system.load(std::memory_order_acquire);
-        if (!system || Core::GetState(*system) != Core::State::Paused)
-          return;
-        if (!m_background_execution_allowed)
-          return;
-        if (!m_client || !IsGameLoaded())
-          return;
+        rc_client_set_allow_background_memory_reads(m_client, 0);
+        return;
       }
-      // rc_client_idle peeks at memory to recalculate rich presence and therefore
-      // needs to be on host or CPU thread to access memory.
-      Core::QueueHostJob([this](Core::System& system) {
-        std::lock_guard lg{m_lock};
-        if (Core::GetState(system) != Core::State::Paused)
-          return;
-        if (!m_background_execution_allowed)
-          return;
-        if (!m_client || !IsGameLoaded())
-          return;
-        rc_client_idle(m_client);
-      });
+      rc_client_idle(m_client);
     }
   }).detach();
 }
