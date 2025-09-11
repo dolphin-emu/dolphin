@@ -10,11 +10,13 @@
 #include <string>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
 #include "Core/Debugger/DebugInterface.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/PowerPC/Expression.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
@@ -72,6 +74,8 @@ BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
       ss << "l";
     if (bp.break_on_hit)
       ss << "b";
+    if (bp.log_call_stack)
+      ss << "s";
     if (bp.condition)
       ss << "c " << bp.condition->GetText();
     bp_strings.emplace_back(ss.str());
@@ -96,6 +100,7 @@ void BreakPoints::AddFromStrings(const TBreakPointsStr& bp_strings)
     bp.is_enabled = flags.find('n') != flags.npos;
     bp.log_on_hit = flags.find('l') != flags.npos;
     bp.break_on_hit = flags.find('b') != flags.npos;
+    bp.log_call_stack = flags.find('s') != flags.npos;
     if (flags.find('c') != std::string::npos)
     {
       iss >> std::ws;
@@ -119,10 +124,10 @@ void BreakPoints::Add(TBreakPoint bp)
 
 void BreakPoints::Add(u32 address)
 {
-  BreakPoints::Add(address, true, false, std::nullopt);
+  BreakPoints::Add(address, true, false, false, std::nullopt);
 }
 
-void BreakPoints::Add(u32 address, bool break_on_hit, bool log_on_hit,
+void BreakPoints::Add(u32 address, bool break_on_hit, bool log_on_hit, bool log_call_stack,
                       std::optional<Expression> condition)
 {
   // Check for existing breakpoint, and overwrite with new info.
@@ -133,6 +138,7 @@ void BreakPoints::Add(u32 address, bool break_on_hit, bool log_on_hit,
   bp.is_enabled = true;
   bp.break_on_hit = break_on_hit;
   bp.log_on_hit = log_on_hit;
+  bp.log_call_stack = log_call_stack;
   bp.address = address;
   bp.condition = std::move(condition);
 
@@ -241,6 +247,8 @@ MemChecks::TMemChecksStr MemChecks::GetStrings() const
       ss << 'l';
     if (mc.break_on_hit)
       ss << 'b';
+    if (mc.log_call_stack)
+      ss << 's';
     if (mc.condition)
       ss << "c " << mc.condition->GetText();
 
@@ -271,6 +279,7 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
     mc.is_enabled = flags.find('n') != flags.npos;
     mc.is_break_on_read = flags.find('r') != flags.npos;
     mc.is_break_on_write = flags.find('w') != flags.npos;
+    mc.log_call_stack = flags.find('s') != flags.npos;
     mc.log_on_hit = flags.find('l') != flags.npos;
     mc.break_on_hit = flags.find('b') != flags.npos;
     if (flags.find('c') != std::string::npos)
@@ -421,6 +430,14 @@ bool TMemCheck::Action(Core::System& system, u64 value, u32 addr, bool write, si
       NOTICE_LOG_FMT(MEMMAP, "MBP {:08x} ({}) {}{} {:x} at {:08x} ({})", pc,
                      ppc_symbol_db.GetDescription(pc), write ? "Write" : "Read", size * 8, value,
                      addr, ppc_symbol_db.GetDescription(addr));
+
+      if (log_call_stack)
+      {
+        ASSERT(Core::IsCPUThread());
+        Core::CPUThreadGuard guard(system);
+        Dolphin_Debugger::PrintCallstack(guard, Common::Log::LogType::MEMMAP,
+                                         Common::Log::LogLevel::LNOTICE);
+      }
     }
     if (break_on_hit)
       return true;
