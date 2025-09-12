@@ -23,6 +23,7 @@ public:
   static std::unique_ptr<DXShader> CreateFromBytecode(ShaderStage stage, BinaryData bytecode,
                                                       std::string_view name);
   static std::unique_ptr<DXShader> CreateFromSource(ShaderStage stage, std::string_view source,
+                                                    VideoCommon::ShaderIncluder* shader_includer,
                                                     std::string_view name);
 
 private:
