@@ -12,6 +12,7 @@
 
 #include <rcheevos/include/rc_api_info.h>
 
+#include "AudioCommon/SoundStream.h"
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonPaths.h"
@@ -61,6 +62,7 @@ AchievementManager& AchievementManager::GetInstance()
 void AchievementManager::Init(void* hwnd)
 {
   LoadDefaultBadges();
+  LoadSounds();
   if (!m_client && Config::Get(Config::RA_ENABLED))
   {
     {
@@ -903,6 +905,27 @@ void AchievementManager::LoadDefaultBadges()
   }
 }
 
+void AchievementManager::LoadSounds()
+{
+  std::lock_guard lg{m_lock};
+
+  static constexpr u32 HEADER_SIZE = 40;
+  std::string directory = File::GetSysDirectory() + DIR_SEP + RESOURCES_DIR + DIR_SEP;
+
+  if (m_unlock_sound.empty())
+  {
+    File::IOFile file;
+    file.Open(fmt::format("{}{}", directory, DEFAULT_UNLOCK_SOUND_FILENAME), "rb");
+    Common::UniqueBuffer<u8> header_buffer(HEADER_SIZE);
+    file.ReadBytes(header_buffer.data(), HEADER_SIZE);
+    u32 size;
+    file.ReadBytes(&size, 4);
+    m_unlock_sound.resize(size / 2);
+    file.ReadBytes(m_unlock_sound.data(), size);
+  }
+  INFO_LOG_FMT(ACHIEVEMENTS, "Sound Loaded");
+}
+
 void AchievementManager::LoginCallback(int result, const char* error_message, rc_client_t* client,
                                        void* userdata)
 {
@@ -1109,6 +1132,9 @@ void AchievementManager::DisplayWelcomeMessage()
   OSD::AddMessage(fmt::format("Leaderboard submissions are {}",
                               rc_client_get_hardcore_enabled(m_client) ? "ON" : "OFF"),
                   OSD::Duration::VERY_LONG, color);
+
+  SoundStream* sound_stream = Core::System::GetInstance().GetSoundStream();
+  sound_stream->GetMixer()->PushStreamingSamples(m_unlock_sound.data(), m_unlock_sound.size());
 }
 
 void AchievementManager::HandleAchievementTriggeredEvent(const rc_client_event_t* client_event)
@@ -1237,6 +1263,9 @@ void AchievementManager::HandleAchievementProgressIndicatorShowEvent(
   instance.m_last_progress_message = current_time;
   AchievementManager::GetInstance().m_update_callback(
       UpdatedItems{.achievements = {client_event->achievement->id}});
+  SoundStream* sound_stream = Core::System::GetInstance().GetSoundStream();
+  sound_stream->GetMixer()->PushStreamingSamples(instance.m_unlock_sound.data(),
+                                                 instance.m_unlock_sound.size());
 }
 
 void AchievementManager::HandleGameCompletedEvent(const rc_client_event_t* client_event,

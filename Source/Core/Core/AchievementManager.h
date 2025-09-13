@@ -75,6 +75,7 @@ public:
   static constexpr size_t RP_SIZE = 256;
   using RichPresence = std::array<char, RP_SIZE>;
   using Badge = VideoCommon::CustomTextureData::ArraySlice::Level;
+  using Sound = std::vector<s16>;
   static constexpr size_t MAX_DISPLAYED_LBOARDS = 4;
   // This is hardcoded to 24MiB because rcheevos currently hardcodes it to 24MiB.
   static constexpr u32 MEM1_SIZE = 0x01800000;
@@ -84,6 +85,7 @@ public:
   static constexpr std::string_view DEFAULT_GAME_BADGE_FILENAME = "achievements_game.png";
   static constexpr std::string_view DEFAULT_LOCKED_BADGE_FILENAME = "achievements_locked.png";
   static constexpr std::string_view DEFAULT_UNLOCKED_BADGE_FILENAME = "achievements_unlocked.png";
+  static constexpr std::string_view DEFAULT_UNLOCK_SOUND_FILENAME = "achievement_unlocked.wav";
   static constexpr std::string_view GRAY = "transparent";
   static constexpr std::string_view GOLD = "#FFD700";
   static constexpr std::string_view BLUE = "#0B71C1";
@@ -205,6 +207,7 @@ private:
   static u32 FindConsoleID(const DiscIO::Platform& platform);
 
   void LoadDefaultBadges();
+  void LoadSounds();
   static void LoginCallback(int result, const char* error_message, rc_client_t* client,
                             void* userdata);
 
@@ -274,6 +277,7 @@ private:
   Badge m_default_game_badge;
   Badge m_default_unlocked_badge;
   Badge m_default_locked_badge;
+  Sound m_unlock_sound;
   std::atomic_bool m_background_execution_allowed = true;
   Badge m_player_badge;
   Hash m_game_hash{};
