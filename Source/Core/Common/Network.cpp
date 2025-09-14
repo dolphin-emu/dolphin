@@ -9,17 +9,21 @@
 #include <vector>
 
 #ifndef _WIN32
+#include <arpa/inet.h>
+#include <cstring>
+#include <ifaddrs.h>
 #include <netinet/in.h>
-#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #else
 #include <WinSock2.h>
+#include <iphlpapi.h>
 #endif
 
 #include <fmt/format.h>
 
 #include "Common/BitUtils.h"
+#include "Common/Buffer.h"
 #include "Common/CommonFuncs.h"
 #include "Common/Random.h"
 #include "Common/StringUtil.h"
@@ -99,6 +103,65 @@ std::optional<BluetoothAddress> StringToBluetoothAddress(std::string_view str)
     return std::nullopt;
   std::ranges::reverse(*result);
   return std::bit_cast<BluetoothAddress>(*result);
+}
+
+std::optional<IPAddress> GetSubnetMask(const IPAddress& address)
+{
+  std::optional<IPAddress> result;
+
+  // Android apparently does not provide getifaddrs.
+  // TODO: Provide an android implementation.
+#if !defined(ANDROID)
+  const auto target_in_addr = std::bit_cast<in_addr>(address);
+
+#if defined(_WIN32)
+  static constexpr ULONG flags = GAA_FLAG_INCLUDE_PREFIX;
+
+  // This is basically what Microsoft recommends.
+  Common::UniqueBuffer<IP_ADAPTER_ADDRESSES> buffer(15000 / sizeof(IP_ADAPTER_ADDRESSES));
+  auto buffer_size = ULONG(buffer.size() * sizeof(IP_ADAPTER_ADDRESSES));
+
+  if (GetAdaptersAddresses(AF_INET, flags, nullptr, buffer.data(), &buffer_size) != NO_ERROR)
+    return result;
+
+  for (auto* addr = buffer.data(); addr != nullptr; addr = addr->Next)
+  {
+    for (auto* ua = addr->FirstUnicastAddress; ua != nullptr; ua = ua->Next)
+    {
+      auto* const sa = reinterpret_cast<SOCKADDR_IN*>(ua->Address.lpSockaddr);
+      if (sa->sin_addr.s_addr != target_in_addr.s_addr)
+        continue;
+
+      result = std::bit_cast<IPAddress>(htonl(u32(-1) << (32 - ua->OnLinkPrefixLength)));
+      break;
+    }
+  }
+#else
+  ifaddrs* ifaddrs{};
+  if (getifaddrs(&ifaddrs) == -1)
+    return result;
+
+  for (auto* ifa = ifaddrs; ifa != nullptr; ifa = ifa->ifa_next)
+  {
+    if (ifa->ifa_addr->sa_family != AF_INET || ifa->ifa_addr == nullptr ||
+        ifa->ifa_netmask == nullptr)
+    {
+      continue;
+    }
+
+    auto* const ifaddr = reinterpret_cast<sockaddr_in*>(ifa->ifa_addr);
+    if (ifaddr->sin_addr.s_addr != target_in_addr.s_addr)
+      continue;
+
+    auto* const mask = reinterpret_cast<sockaddr_in*>(ifa->ifa_netmask);
+    result = std::bit_cast<IPAddress>(mask->sin_addr.s_addr);
+    break;
+  }
+
+  freeifaddrs(ifaddrs);
+#endif
+#endif
+  return result;
 }
 
 EthernetHeader::EthernetHeader() = default;
