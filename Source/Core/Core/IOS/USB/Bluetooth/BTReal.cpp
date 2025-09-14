@@ -399,41 +399,33 @@ void BluetoothRealDevice::SendHCIDeleteLinkKeyCommand()
   m_lib_usb_bt_adapter->SendControlTransfer(Common::AsU8Span(payload));
 }
 
+// TODO: rename function
 bool BluetoothRealDevice::SendHCIStoreLinkKeyCommand()
 {
   if (m_link_keys.empty())
     return false;
 
-  // Range: 0x01 to 0x0B per Bluetooth spec.
-  static constexpr std::size_t MAX_LINK_KEYS = 0x0B;
-  const auto num_link_keys = u8(std::min(m_link_keys.size(), MAX_LINK_KEYS));
-
-  INFO_LOG_FMT(IOS_WIIMOTE, "SendHCIStoreLinkKeyCommand num_link_keys: {}", num_link_keys);
-
   struct Payload
   {
     hci_cmd_hdr_t header{HCI_CMD_WRITE_STORED_LINK_KEY};
     hci_write_stored_link_key_cp command{};
-    struct LinkKey
-    {
-      bdaddr_t bdaddr;
-      linkkey_t linkkey;
-    };
-    std::array<LinkKey, MAX_LINK_KEYS> link_keys{};
+    bdaddr_t bdaddr{};
+    linkkey_t linkkey{};
   } payload;
-  static_assert(sizeof(Payload) == 4 + (6 + 16) * MAX_LINK_KEYS);
+  static_assert(sizeof(Payload) == 4 + (6 + 16));
 
-  const u8 payload_size =
-      sizeof(payload.header) + sizeof(payload.command) + (sizeof(Payload::LinkKey) * num_link_keys);
+  payload.header.length = sizeof(payload) - sizeof(payload.header);
+  payload.command.num_keys_write = 1;
 
-  payload.header.length = payload_size - sizeof(payload.header);
-  payload.command.num_keys_write = num_link_keys;
+  for (auto& [bdaddr, linkkey] : m_link_keys)
+  {
+    payload.bdaddr = bdaddr;
+    payload.linkkey = linkkey;
 
-  int index = 0;
-  for (auto& [bdaddr, linkkey] : m_link_keys | std::views::take(num_link_keys))
-    payload.link_keys[index++] = {bdaddr, linkkey};
+    INFO_LOG_FMT(IOS_WIIMOTE, "SendHCIStoreLinkKeyCommand num_link_keys: {}", 1);
+    m_lib_usb_bt_adapter->SendControlTransfer(Common::AsU8Span(payload));
+  }
 
-  m_lib_usb_bt_adapter->SendControlTransfer(Common::AsU8Span(payload).first(payload_size));
   return true;
 }
 
