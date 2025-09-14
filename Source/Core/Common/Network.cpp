@@ -110,7 +110,7 @@ std::optional<IPAddress> GetSubnetMask(const IPAddress& address)
   std::optional<IPAddress> result;
 
   // Android apparently does not provide getifaddrs.
-  // TODO: Provide an android implementation.
+  // TODO: Provide an Android implementation.
 #if !defined(ANDROID)
   const auto target_in_addr = std::bit_cast<in_addr>(address);
 
