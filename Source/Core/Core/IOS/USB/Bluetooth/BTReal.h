@@ -85,7 +85,7 @@ private:
 
   void SendHCIResetCommand();
   void SendHCIDeleteLinkKeyCommand();
-  bool SendHCIStoreLinkKeyCommand();
+  bool SendHCIWriteLinkKeys();
 
   void FakeVendorCommandReply(u16 opcode, USB::V0IntrMessage& ctrl);
 
