@@ -5,6 +5,7 @@
 
 #include <array>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -180,7 +181,15 @@ struct DHCPPacket
 {
   DHCPPacket();
   DHCPPacket(const std::vector<u8>& data);
-  void AddOption(u8 fnc, const std::vector<u8>& params);
+
+  void AddOption(u8 fnc, std::span<const u8> params);
+
+  template <std::size_t N>
+  void AddOption(u8 fnc, const u8 (&data)[N])
+  {
+    AddOption(fnc, std::span(data));
+  }
+
   std::vector<u8> Build() const;
 
   DHCPBody body;

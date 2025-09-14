@@ -278,7 +278,7 @@ DHCPPacket::DHCPPacket(const std::vector<u8>& data)
   }
 }
 
-void DHCPPacket::AddOption(u8 fnc, const std::vector<u8>& params)
+void DHCPPacket::AddOption(u8 fnc, std::span<const u8> params)
 {
   if (params.size() > 255)
     return;
