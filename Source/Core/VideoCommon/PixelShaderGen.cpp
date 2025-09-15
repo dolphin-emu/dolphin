@@ -1827,6 +1827,8 @@ static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid
     if (use_dual_source)
       out.Write("\tocol1 = float4(0.0, 0.0, 0.0, float(prev.a) / 255.0);\n");
   }
+
+  out.Write("\tocol0.rgb = ocol0.bgr;\n");
 }
 
 static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
