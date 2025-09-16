@@ -1,10 +1,12 @@
-cmake_minimum_required(VERSION 3.0)
+option(SPNG_SHARED "Build shared lib" OFF)
+option(SPNG_STATIC "Build static lib" ON)
+option(BUILD_EXAMPLES "Build examples" OFF)
 
-project(spng C)
+set(_PREV_CMAKE_SKIP_INSTALL_RULES "${CMAKE_SKIP_INSTALL_RULES}")
+set(CMAKE_SKIP_INSTALL_RULES TRUE)
 
-add_library(spng STATIC libspng/spng/spng.c)
-target_compile_definitions(spng PUBLIC SPNG_STATIC)
-target_link_libraries(spng PUBLIC ZLIB::ZLIB)
-target_include_directories(spng PUBLIC libspng/spng)
-dolphin_disable_warnings(spng)
-add_library(spng::spng ALIAS spng)
+add_subdirectory(libspng)
+
+set(CMAKE_SKIP_INSTALL_RULES "${_PREV_CMAKE_SKIP_INSTALL_RULES}")
+
+add_library(spng::spng ALIAS spng_static)
