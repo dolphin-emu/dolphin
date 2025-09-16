@@ -1445,6 +1445,41 @@ void JitArm64::subfcx(UGeckoInstruction inst)
     if (inst.Rc)
       ComputeRC0(gpr.GetImm(d));
   }
+  else if (gpr.IsImm(a, 0))
+  {
+    if (d != b)
+    {
+      gpr.BindToRegister(d, false);
+      MOV(gpr.R(d), gpr.R(b));
+    }
+    ComputeCarry(true);
+    if (inst.Rc)
+      ComputeRC0(gpr.R(d));
+  }
+  else if (gpr.IsImm(a) && ((gpr.GetImm(a) & 0xFFF) == gpr.GetImm(a)))
+  {
+    gpr.BindToRegister(d, d == b);
+    CARRY_IF_NEEDED(SUB, SUBS, gpr.R(d), gpr.R(b), gpr.GetImm(a));
+    ComputeCarry();
+    if (inst.Rc)
+      ComputeRC0(gpr.R(d));
+  }
+  else if (gpr.IsImm(a) && ((gpr.GetImm(a) & 0xFFF000) == gpr.GetImm(a)))
+  {
+    gpr.BindToRegister(d, d == b);
+    CARRY_IF_NEEDED(SUB, SUBS, gpr.R(d), gpr.R(b), gpr.GetImm(a) >> 12, true);
+    ComputeCarry();
+    if (inst.Rc)
+      ComputeRC0(gpr.R(d));
+  }
+  else if (gpr.IsImm(b, 0))
+  {
+    gpr.BindToRegister(d, d == a);
+    CARRY_IF_NEEDED(NEG, NEGS, gpr.R(d), gpr.R(a));
+    ComputeCarry();
+    if (inst.Rc)
+      ComputeRC0(gpr.R(d));
+  }
   else
   {
     gpr.BindToRegister(d, d == a || d == b);
