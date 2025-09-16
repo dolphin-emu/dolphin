@@ -65,7 +65,7 @@ class DocumentProvider : DocumentsProvider() {
             add(DocumentsContract.Root.COLUMN_ICON, R.drawable.ic_dolphin)
             add(
                 DocumentsContract.Root.COLUMN_FLAGS,
-                DocumentsContract.Root.FLAG_SUPPORTS_CREATE or DocumentsContract.Root.FLAG_SUPPORTS_RECENTS or DocumentsContract.Root.FLAG_SUPPORTS_SEARCH
+                DocumentsContract.Root.FLAG_SUPPORTS_CREATE or DocumentsContract.Root.FLAG_SUPPORTS_RECENTS or DocumentsContract.Root.FLAG_SUPPORTS_SEARCH or DocumentsContract.Root.FLAG_LOCAL_ONLY or DocumentsContract.Root.FLAG_SUPPORTS_IS_CHILD
             )
             add(DocumentsContract.Root.COLUMN_DOCUMENT_ID, ROOT_ID)
         }
