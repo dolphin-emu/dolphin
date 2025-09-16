@@ -434,6 +434,7 @@ public:
   Vec3 Transform(const Vec3& point, float w) const;
 
   float Determinant() const;
+  Matrix44 Inverted() const;
 
   Matrix44& operator*=(const Matrix44& rhs)
   {
