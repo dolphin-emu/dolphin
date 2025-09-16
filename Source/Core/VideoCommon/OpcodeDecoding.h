@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <type_traits>
+#include <concepts>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -122,8 +122,8 @@ public:
 namespace detail
 {
 // Main logic; split so that the main RunCommand can call OnCommand with the returned size.
-template <typename T, typename = std::enable_if_t<std::is_base_of_v<Callback, T>>>
-static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& callback)
+static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available,
+                                           std::derived_from<Callback> auto& callback)
 {
   if (available < 1)
     return 0;
@@ -253,8 +253,8 @@ static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& cal
 }
 }  // namespace detail
 
-template <typename T, typename = std::enable_if_t<std::is_base_of_v<Callback, T>>>
-DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& callback)
+DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available,
+                                    std::derived_from<Callback> auto& callback)
 {
   const u32 size = detail::RunCommand(data, available, callback);
   if (size > 0)
@@ -264,8 +264,8 @@ DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& callback)
   return size;
 }
 
-template <typename T, typename = std::enable_if_t<std::is_base_of_v<Callback, T>>>
-DOLPHIN_FORCE_INLINE u32 Run(const u8* data, u32 available, T& callback)
+DOLPHIN_FORCE_INLINE u32 Run(const u8* data, u32 available,
+                             std::derived_from<Callback> auto& callback)
 {
   u32 size = 0;
   while (size < available)
