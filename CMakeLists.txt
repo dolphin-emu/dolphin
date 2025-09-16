@@ -193,7 +193,7 @@ endif()
 # as defined above.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
 
-if (WIN32)
+if (MSVC)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Binary)
 
   if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
@@ -536,7 +536,7 @@ if(ENABLE_EGL)
 endif()
 
 if(ENCODE_FRAMEDUMPS)
-  if(WIN32)
+  if(MSVC)
     if(_M_X86_64)
       set(FFMPEG_DIR Externals/FFmpeg-bin/x64)
     elseif(_M_ARM_64)
@@ -556,7 +556,7 @@ if(ENCODE_FRAMEDUMPS)
     if(WIN32)
       # Our prebuilt binaries depend on Bcrypt
       set_property(TARGET FFmpeg::avutil APPEND PROPERTY
-        INTERFACE_LINK_LIBRARIES "Bcrypt.lib"
+        INTERFACE_LINK_LIBRARIES Bcrypt
       )
     endif()
   else()
@@ -769,8 +769,10 @@ else()
   message(STATUS "libsystemd not found, disabling traversal server watchdog support")
 endif()
 
-if (WIN32)
+if (MSVC)
   include_directories(Externals/WIL/include)
+endif()
+if (WIN32)
   include_directories(Externals/OpenAL/include)
 endif()
 
