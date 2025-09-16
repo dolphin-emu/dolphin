@@ -149,10 +149,14 @@ public:
                                 u16 revision) const;
   void FilterApprovedARCodes(std::vector<ActionReplay::ARCode>& codes, const std::string& game_id,
                              u16 revision) const;
-  bool CheckApprovedGeckoCode(const Gecko::GeckoCode& code, const std::string& game_id,
-                              u16 revision) const;
-  bool CheckApprovedARCode(const ActionReplay::ARCode& code, const std::string& game_id,
+  bool ShouldGeckoCodeBeActivated(const Gecko::GeckoCode& code, const std::string& game_id,
+                                  u16 revision) const;
+  bool ShouldARCodeBeActivated(const ActionReplay::ARCode& code, const std::string& game_id,
+                               u16 revision) const;
+  bool IsApprovedGeckoCode(const Gecko::GeckoCode& code, const std::string& game_id,
                            u16 revision) const;
+  bool IsApprovedARCode(const ActionReplay::ARCode& code, const std::string& game_id,
+                        u16 revision) const;
 
   void SetSpectatorMode();
   std::string_view GetPlayerDisplayName() const;
@@ -220,7 +224,9 @@ private:
   template <typename T>
   void FilterApprovedIni(std::vector<T>& codes, const std::string& game_id, u16 revision) const;
   template <typename T>
-  bool CheckApprovedCode(const T& code, const std::string& game_id, u16 revision) const;
+  bool ShouldCodeBeActivated(const T& code, const std::string& game_id, u16 revision) const;
+  template <typename T>
+  bool IsApprovedCode(const T& code, const std::string& game_id, u16 revision) const;
   Common::SHA1::Digest GetCodeHash(const PatchEngine::Patch& patch) const;
   Common::SHA1::Digest GetCodeHash(const Gecko::GeckoCode& code) const;
   Common::SHA1::Digest GetCodeHash(const ActionReplay::ARCode& code) const;
@@ -333,14 +339,14 @@ public:
 
   constexpr bool IsHardcoreModeActive() { return false; }
 
-  constexpr bool CheckApprovedGeckoCode(const Gecko::GeckoCode& code, const std::string& game_id,
-                                        u16 revision)
+  constexpr bool ShouldGeckoCodeBeActivated(const Gecko::GeckoCode& code,
+                                            const std::string& game_id, u16 revision)
   {
     return true;
   }
 
-  constexpr bool CheckApprovedARCode(const ActionReplay::ARCode& code, const std::string& game_id,
-                                     u16 revision)
+  constexpr bool ShouldARCodeBeActivated(const ActionReplay::ARCode& code,
+                                         const std::string& game_id, u16 revision)
   {
     return true;
   }
