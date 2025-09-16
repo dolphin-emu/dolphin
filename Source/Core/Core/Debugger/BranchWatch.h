@@ -261,6 +261,9 @@ private:
     return GetCollectionP(condition);
   }
 
+  void IsolateOverwrittenShared(const CPUThreadGuard& guard,
+                                const std::function<bool(u32, u32)>& compare_func);
+
   std::size_t m_blacklist_size = 0;
   Phase m_recording_phase = Phase::Blacklist;
   bool m_recording_active = false;
