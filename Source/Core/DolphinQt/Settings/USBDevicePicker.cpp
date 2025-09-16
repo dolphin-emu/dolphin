@@ -1,7 +1,9 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "DolphinQt/Settings/USBDeviceAddToWhitelistDialog.h"
+#include "DolphinQt/Settings/USBDevicePicker.h"
+
+#include <optional>
 
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -18,23 +20,12 @@
 
 #include <fmt/format.h>
 
-#include "Common/StringUtil.h"
-
-#include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/USBUtils.h"
 
-#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings/WiiPane.h"
 
-static bool IsValidUSBIDString(const std::string& string)
-{
-  if (string.empty() || string.length() > 4)
-    return false;
-  return std::ranges::all_of(string, Common::IsXDigit);
-}
-
-USBDeviceAddToWhitelistDialog::USBDeviceAddToWhitelistDialog(QWidget* parent) : QDialog(parent)
+USBDevicePicker::USBDevicePicker(QWidget* parent, FilterFunctionType filter)
+    : QDialog(parent), m_filter(std::move(filter))
 {
   InitControls();
   setLayout(main_layout);
@@ -42,19 +33,28 @@ USBDeviceAddToWhitelistDialog::USBDeviceAddToWhitelistDialog(QWidget* parent) : 
   adjustSize();
 }
 
-void USBDeviceAddToWhitelistDialog::InitControls()
+std::optional<USBUtils::DeviceInfo> USBDevicePicker::Run(QWidget* parent, const QString& title,
+                                                         FilterFunctionType filter)
 {
-  setWindowTitle(tr("Add New USB Device"));
+  USBDevicePicker picker(parent, std::move(filter));
+  picker.setWindowTitle(title);
 
-  m_whitelist_buttonbox = new QDialogButtonBox();
-  auto* add_button = new QPushButton(tr("Add"));
+  if (picker.exec() == QDialog::Accepted)
+    return picker.GetSelectedDevice();
+
+  return std::nullopt;
+}
+
+void USBDevicePicker::InitControls()
+{
+  m_picker_buttonbox = new QDialogButtonBox();
+  auto* select_button = new QPushButton(tr("Select"));
   auto* cancel_button = new QPushButton(tr("Cancel"));
-  m_whitelist_buttonbox->addButton(add_button, QDialogButtonBox::AcceptRole);
-  m_whitelist_buttonbox->addButton(cancel_button, QDialogButtonBox::RejectRole);
-  connect(add_button, &QPushButton::clicked, this,
-          &USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist);
-  connect(cancel_button, &QPushButton::clicked, this, &USBDeviceAddToWhitelistDialog::reject);
-  add_button->setDefault(true);
+  m_picker_buttonbox->addButton(select_button, QDialogButtonBox::AcceptRole);
+  m_picker_buttonbox->addButton(cancel_button, QDialogButtonBox::RejectRole);
+  connect(select_button, &QPushButton::clicked, this, &QDialog::accept);
+  connect(cancel_button, &QPushButton::clicked, this, &QDialog::reject);
+  select_button->setDefault(true);
 
   main_layout = new QVBoxLayout();
   enter_device_id_label = new QLabel(tr("Enter USB device ID"));
@@ -87,31 +87,33 @@ void USBDeviceAddToWhitelistDialog::InitControls()
   usb_inserted_devices_list = new QListWidget();
   m_refresh_devices_timer = new QTimer(this);
   connect(usb_inserted_devices_list, &QListWidget::currentItemChanged, this,
-          &USBDeviceAddToWhitelistDialog::OnDeviceSelection);
-  connect(usb_inserted_devices_list, &QListWidget::itemDoubleClicked, add_button,
+          &USBDevicePicker::OnDeviceSelection);
+  connect(usb_inserted_devices_list, &QListWidget::itemDoubleClicked, select_button,
           &QPushButton::clicked);
-  connect(m_refresh_devices_timer, &QTimer::timeout, this,
-          &USBDeviceAddToWhitelistDialog::RefreshDeviceList);
+  connect(m_refresh_devices_timer, &QTimer::timeout, this, &USBDevicePicker::RefreshDeviceList);
   RefreshDeviceList();
   m_refresh_devices_timer->start(1000);
 
   main_layout->addWidget(usb_inserted_devices_list);
-  main_layout->addWidget(m_whitelist_buttonbox);
+  main_layout->addWidget(m_picker_buttonbox);
 
   // i18n: VID means Vendor ID (in the context of a USB device)
   device_vid_textbox->setPlaceholderText(tr("Device VID"));
   // i18n: PID means Product ID (in the context of a USB device), not Process ID
   device_pid_textbox->setPlaceholderText(tr("Device PID"));
 
+  const QRegularExpression hex_regex(QStringLiteral("^[0-9A-Fa-f]*$"));
+  const QRegularExpressionValidator* hex_validator =
+      new QRegularExpressionValidator(hex_regex, this);
+  device_vid_textbox->setValidator(hex_validator);
   device_vid_textbox->setMaxLength(4);
+  device_pid_textbox->setValidator(hex_validator);
   device_pid_textbox->setMaxLength(4);
 }
-void USBDeviceAddToWhitelistDialog::RefreshDeviceList()
-{
-  const auto whitelist = Config::GetUSBDeviceWhitelist();
 
-  const auto& current_devices = USBUtils::ListDevices(
-      [&whitelist](const USBUtils::DeviceInfo& device) { return !whitelist.contains(device); });
+void USBDevicePicker::RefreshDeviceList()
+{
+  const auto& current_devices = USBUtils::ListDevices(m_filter);
 
   if (current_devices == m_shown_devices)
     return;
@@ -129,44 +131,7 @@ void USBDeviceAddToWhitelistDialog::RefreshDeviceList()
 
   m_shown_devices = current_devices;
 }
-
-void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
-{
-  const std::string vid_string(StripWhitespace(device_vid_textbox->text().toStdString()));
-  const std::string pid_string(StripWhitespace(device_pid_textbox->text().toStdString()));
-  if (!IsValidUSBIDString(vid_string))
-  {
-    ModalMessageBox::critical(this, tr("USB Whitelist Error"),
-                              // i18n: Here, VID means Vendor ID (for a USB device).
-                              tr("The entered VID is invalid."));
-    return;
-  }
-  if (!IsValidUSBIDString(pid_string))
-  {
-    ModalMessageBox::critical(this, tr("USB Whitelist Error"),
-                              // i18n: Here, PID means Product ID (for a USB device).
-                              tr("The entered PID is invalid."));
-    return;
-  }
-
-  const u16 vid = static_cast<u16>(std::stoul(vid_string, nullptr, 16));
-  const u16 pid = static_cast<u16>(std::stoul(pid_string, nullptr, 16));
-  const USBUtils::DeviceInfo new_device{vid, pid};
-
-  auto whitelist = Config::GetUSBDeviceWhitelist();
-  if (whitelist.contains(new_device))
-  {
-    ModalMessageBox::critical(this, tr("USB Whitelist Error"),
-                              tr("This USB device is already whitelisted."));
-    return;
-  }
-  whitelist.emplace(new_device);
-  Config::SetUSBDeviceWhitelist(whitelist);
-  Config::Save();
-  accept();
-}
-
-void USBDeviceAddToWhitelistDialog::OnDeviceSelection()
+void USBDevicePicker::OnDeviceSelection()
 {
   auto* current_item = usb_inserted_devices_list->currentItem();
   if (!current_item)
@@ -177,4 +142,20 @@ void USBDeviceAddToWhitelistDialog::OnDeviceSelection()
 
   device_vid_textbox->setText(QString::fromStdString(fmt::format("{:04x}", device.vid)));
   device_pid_textbox->setText(QString::fromStdString(fmt::format("{:04x}", device.pid)));
+}
+
+std::optional<USBUtils::DeviceInfo> USBDevicePicker::GetSelectedDevice() const
+{
+  const std::string vid_string(device_vid_textbox->text().toStdString());
+  const std::string pid_string(device_pid_textbox->text().toStdString());
+
+  if (vid_string.empty() || pid_string.empty())
+    return std::nullopt;
+
+  const u16 vid = static_cast<u16>(std::stoul(vid_string, nullptr, 16));
+  const u16 pid = static_cast<u16>(std::stoul(pid_string, nullptr, 16));
+
+  const USBUtils::DeviceInfo device{vid, pid};
+
+  return device;
 }

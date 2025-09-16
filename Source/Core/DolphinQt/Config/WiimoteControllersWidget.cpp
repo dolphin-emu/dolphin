@@ -37,6 +37,7 @@
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
+#include "DolphinQt/Settings/USBDevicePicker.h"
 
 WiimoteControllersWidget::WiimoteControllersWidget(QWidget* parent) : QWidget(parent)
 {
@@ -133,6 +134,9 @@ void WiimoteControllersWidget::OnBluetoothAdapterRefreshComplete(
     m_bluetooth_adapters->addItem(device_info, QVariant::fromValue(disconnected_device));
     m_bluetooth_adapters->setCurrentIndex(m_bluetooth_adapters->count() - 1);
   }
+
+  m_bluetooth_adapters->insertSeparator(m_bluetooth_adapters->count());
+  m_bluetooth_adapters->addItem(tr("More Options..."));
 }
 
 static int GetRadioButtonIndicatorWidth()
@@ -299,6 +303,8 @@ void WiimoteControllersWidget::ConnectWidgets()
 
 void WiimoteControllersWidget::OnBluetoothPassthroughDeviceChanged(int index)
 {
+  std::optional<USBUtils::DeviceInfo> device_info;
+  bool needs_refresh = false;
   // "Automatic" selection
   if (index == 0)
   {
@@ -308,19 +314,31 @@ void WiimoteControllersWidget::OnBluetoothPassthroughDeviceChanged(int index)
                       Config::MAIN_BLUETOOTH_PASSTHROUGH_VID);
     return;
   }
-
-  const QVariant item_data = m_bluetooth_adapters->itemData(index);
-
-  if (!item_data.isValid() || !item_data.canConvert<USBUtils::DeviceInfo>())
+  // "More Options..." selection
+  else if (index == m_bluetooth_adapters->count() - 1)
   {
-    ERROR_LOG_FMT(COMMON, "Invalid Bluetooth device info selected in WiimoteControllersWidget");
-    return;
+    device_info = USBDevicePicker::Run(this, tr("Select A Bluetooth Device"));
+    needs_refresh = true;
+  }
+  else
+  {
+    const QVariant item_data = m_bluetooth_adapters->itemData(index);
+
+    if (!item_data.isValid() || !item_data.canConvert<USBUtils::DeviceInfo>())
+    {
+      ERROR_LOG_FMT(COMMON, "Invalid Bluetooth device info selected in WiimoteControllersWidget");
+      return;
+    }
+    device_info = item_data.value<USBUtils::DeviceInfo>();
   }
 
-  const auto& device_info = item_data.value<USBUtils::DeviceInfo>();
-
-  Config::SetBaseOrCurrent(Config::MAIN_BLUETOOTH_PASSTHROUGH_PID, device_info.pid);
-  Config::SetBaseOrCurrent(Config::MAIN_BLUETOOTH_PASSTHROUGH_VID, device_info.vid);
+  if (device_info.has_value())
+  {
+    Config::SetBaseOrCurrent(Config::MAIN_BLUETOOTH_PASSTHROUGH_PID, device_info->pid);
+    Config::SetBaseOrCurrent(Config::MAIN_BLUETOOTH_PASSTHROUGH_VID, device_info->vid);
+  }
+  if (needs_refresh)
+    StartBluetoothAdapterRefresh();
 }
 
 void WiimoteControllersWidget::OnBluetoothPassthroughResetPressed()
