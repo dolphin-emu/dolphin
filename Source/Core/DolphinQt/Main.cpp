@@ -265,30 +265,44 @@ int main(int argc, char* argv[])
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
     if (!Config::Get(Config::MAIN_ANALYTICS_PERMISSION_ASKED))
     {
-      ModalMessageBox analytics_prompt(&win);
+      // To ensure that the analytics prompt appears aligned with the center of the main window,
+      // the dialog is only shown after the application is ready, as only then it is guaranteed that
+      // the main window has been placed in its final position.
+      auto* const connection_context = new QObject(&win);
+      QObject::connect(
+          qApp, &QGuiApplication::applicationStateChanged, connection_context,
+          [connection_context, &win](const Qt::ApplicationState state) {
+            if (state != Qt::ApplicationState::ApplicationActive)
+              return;
 
-      analytics_prompt.setIcon(QMessageBox::Question);
-      analytics_prompt.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-      analytics_prompt.setWindowTitle(QObject::tr("Allow Usage Statistics Reporting"));
-      analytics_prompt.setText(
-          QObject::tr("Do you authorize Dolphin to report information to Dolphin's developers?"));
-      analytics_prompt.setInformativeText(
-          QObject::tr("If authorized, Dolphin can collect data on its performance, "
-                      "feature usage, and configuration, as well as data on your system's "
-                      "hardware and operating system.\n\n"
-                      "No private data is ever collected. This data helps us understand "
-                      "how people and emulated games use Dolphin and prioritize our "
-                      "efforts. It also helps us identify rare configurations that are "
-                      "causing bugs, performance and stability issues.\n"
-                      "This authorization can be revoked at any time through Dolphin's "
-                      "settings."));
+            // Severe the connection after the first run.
+            delete connection_context;
 
-      const int answer = analytics_prompt.exec();
+            ModalMessageBox analytics_prompt(&win);
 
-      Config::SetBase(Config::MAIN_ANALYTICS_PERMISSION_ASKED, true);
-      Settings::Instance().SetAnalyticsEnabled(answer == QMessageBox::Yes);
+            analytics_prompt.setIcon(QMessageBox::Question);
+            analytics_prompt.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+            analytics_prompt.setWindowTitle(QObject::tr("Allow Usage Statistics Reporting"));
+            analytics_prompt.setText(QObject::tr(
+                "Do you authorize Dolphin to report information to Dolphin's developers?"));
+            analytics_prompt.setInformativeText(
+                QObject::tr("If authorized, Dolphin can collect data on its performance, "
+                            "feature usage, and configuration, as well as data on your system's "
+                            "hardware and operating system.\n\n"
+                            "No private data is ever collected. This data helps us understand "
+                            "how people and emulated games use Dolphin and prioritize our "
+                            "efforts. It also helps us identify rare configurations that are "
+                            "causing bugs, performance and stability issues.\n"
+                            "This authorization can be revoked at any time through Dolphin's "
+                            "settings."));
 
-      DolphinAnalytics::Instance().ReloadConfig();
+            const int answer = analytics_prompt.exec();
+
+            Config::SetBase(Config::MAIN_ANALYTICS_PERMISSION_ASKED, true);
+            Settings::Instance().SetAnalyticsEnabled(answer == QMessageBox::Yes);
+
+            DolphinAnalytics::Instance().ReloadConfig();
+          });
     }
 #endif
 

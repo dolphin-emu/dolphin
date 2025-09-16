@@ -43,6 +43,29 @@ void AdjustSizeWithinScreen(QWidget* widget)
   const auto adj_screen_size = screen_size * 9 / 10;
 
   widget->resize(widget->sizeHint().boundedTo(adj_screen_size));
+
+  CenterOnParentWindow(widget);
+}
+
+void CenterOnParentWindow(QWidget* const widget)
+{
+  // Find the top-level window.
+  const QWidget* const parent_widget{widget->parentWidget()};
+  if (!parent_widget)
+    return;
+  const QWidget* const window{parent_widget->window()};
+
+  // Calculate position based on the widgets' size and position.
+  const QRect window_geometry{window->geometry()};
+  const QSize window_size{window_geometry.size()};
+  const QPoint window_pos{window_geometry.topLeft()};
+  const QRect geometry{widget->geometry()};
+  const QSize size{geometry.size()};
+  const QPoint offset{(window_size.width() - size.width()) / 2,
+                      (window_size.height() - size.height()) / 2};
+  const QPoint pos{window_pos + offset};
+
+  widget->setGeometry(QRect(pos, size));
 }
 
 }  // namespace QtUtils
