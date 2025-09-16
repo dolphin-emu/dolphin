@@ -22,21 +22,4 @@ struct CustomPipeline
   void UpdatePixelData(std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
                        std::span<const u32> texture_units,
                        const VideoCommon::CustomAssetLibrary::AssetID& material_to_load);
-
-  VideoCommon::CachedAsset<VideoCommon::MaterialAsset> m_pixel_material;
-  VideoCommon::CachedAsset<VideoCommon::PixelShaderAsset> m_pixel_shader;
-
-  struct CachedTextureAsset
-  {
-    VideoCommon::CachedAsset<VideoCommon::TextureAsset> m_cached_asset;
-    std::unique_ptr<AbstractTexture> m_texture;
-    std::string m_sampler_code;
-    std::string m_define_code;
-  };
-  std::vector<std::optional<CachedTextureAsset>> m_game_textures;
-
-  ShaderCode m_last_generated_shader_code;
-  ShaderCode m_last_generated_material_code;
-
-  std::vector<u8> m_material_data;
 };

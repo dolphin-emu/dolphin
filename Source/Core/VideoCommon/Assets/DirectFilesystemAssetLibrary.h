@@ -22,7 +22,7 @@ class DirectFilesystemAssetLibrary final : public WatchableFilesystemAssetLibrar
 public:
   LoadInfo LoadTexture(const AssetID& asset_id, TextureAndSamplerData* data) override;
   LoadInfo LoadTexture(const AssetID& asset_id, CustomTextureData* data) override;
-  LoadInfo LoadPixelShader(const AssetID& asset_id, PixelShaderData* data) override;
+  LoadInfo LoadRasterSurfaceShader(const AssetID& asset_id, RasterSurfaceShaderData* data) override;
   LoadInfo LoadMaterial(const AssetID& asset_id, MaterialData* data) override;
   LoadInfo LoadMesh(const AssetID& asset_id, MeshData* data) override;
 
