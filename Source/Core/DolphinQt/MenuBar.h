@@ -12,6 +12,9 @@
 #include <QPointer>
 
 #include "Common/CommonTypes.h"
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+#include "Common/HookableEvent.h"
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
 class QMenu;
 class ParallelProgressDialog;
@@ -299,4 +302,8 @@ private:
   QAction* m_jit_register_cache_off;
 
   bool m_game_selected = false;
+
+#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
+  Common::EventHook m_raintegration_event_hook;
+#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 };
