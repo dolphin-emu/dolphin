@@ -46,46 +46,32 @@ StackedSettingsWindow::StackedSettingsWindow(QWidget* parent) : QDialog{parent}
   m_navigation_list->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
 
   // FYI: "base" is the window color on Windows and "alternate-base" is very high contrast on macOS.
-  const auto [list_background, list_hover_background] =
-#if defined(_WIN32)
-      std::pair("palette(alternate-base)", "palette(base)");
+  const auto* const list_background =
+#if !defined(__APPLE__)
+      "palette(alternate-base)";
 #else
-      std::pair("palette(base)", "palette(alternate-base)");
+      "palette(base)";
 #endif
 
   m_navigation_list->setStyleSheet(
       QString::fromUtf8(
           // Remove border around entire widget and adjust background color.
           "QListWidget { border: 0; background: %1; } "
-          "QListWidget::item { padding: %2; "
-#if defined(__linux__)
-          "} "
-#else
-          // For some reason this is needed to fix inconsistent item padding on Windows and macOS,
-          //  but it unfortunately also breaks item background color changes.
-          "border: 0; } "
-          // Restore selected item color.
+          // Note: padding-left is broken unless border is set, which then breaks colors.
+          // see: https://bugreports.qt.io/browse/QTBUG-122698
+          "QListWidget::item { padding-top: %2px; padding-bottom: %2px; } "
+          // Maintain selected item color when unfocused.
           "QListWidget::item:selected { background: palette(highlight); "
-#if defined(_WIN32)
-          // Prevent text color change on focus loss on Windows.
+#if !defined(__APPLE__)
+          // Prevent text color change on focus loss.
           // This seems to breaks the nice white text on macOS.
           "color: palette(highlighted-text); "
 #endif
           "} "
-          // Restore hovered item color, though not really the correct color.
-          "QListWidget::item:hover:!selected { background: %3; } "
-#endif
-#if defined(_WIN32)
-          // Remove ugly dotted outline on selected row.
-          "* { outline: none; } "
-#endif
-          )
+          // Remove ugly dotted outline on selected row (Windows and GNOME).
+          "* { outline: none; } ")
           .arg(QString::fromUtf8(list_background))
-          .arg(list_item_padding)
-#if !defined(__linux__)
-          .arg(QString::fromUtf8(list_hover_background))
-#endif
-  );
+          .arg(list_item_padding));
 
   layout->addWidget(m_navigation_list);
 
@@ -120,7 +106,8 @@ void StackedSettingsWindow::OnDoneCreatingPanes()
 void StackedSettingsWindow::AddPane(QWidget* widget, const QString& name)
 {
   m_stacked_panes->addWidget(widget);
-  m_navigation_list->addItem(name);
+  // Pad the left and right of each item.
+  m_navigation_list->addItem(QStringLiteral("  %1  ").arg(name));
 }
 
 void StackedSettingsWindow::AddWrappedPane(QWidget* widget, const QString& name)
