@@ -221,10 +221,6 @@ void LibUSBBluetoothAdapter::Update()
     m_unacknowledged_commands.pop_front();
   }
 
-  // Allow sending commands if none are pending acknowledgement.
-  if (m_unacknowledged_commands.empty())
-    m_num_hci_command_packets = 1;
-
   // Push queued commands when the controller is ready for them.
   if (!m_pending_hci_transfers.empty() && IsControllerReadyForCommand())
   {
