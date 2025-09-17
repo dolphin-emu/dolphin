@@ -81,18 +81,31 @@ private:
   void TryToFillHCIEndpoint();
   void TryToFillACLEndpoint();
 
+  void HandleHCICommand(const USB::V0CtrlMessage& cmd);
   [[nodiscard]] BufferType ProcessHCIEvent(BufferType buffer);
 
-  void SendHCIResetCommand();
-  void SendHCIDeleteLinkKeyCommand();
+  void SendHCIReset();
+  void SendHCIDeleteLinkKeys();
   bool SendHCIWriteLinkKeys();
 
-  void FakeVendorCommandReply(u16 opcode, USB::V0IntrMessage& ctrl);
+  template <typename... Args>
+  void QueueFakeReply(Args&&...);
 
-  void FakeSyncButtonEvent(USB::V0IntrMessage& ctrl, std::span<const u8> payload);
+  void FakeEvent(u8 event, std::span<const u8> payload, USB::V0IntrMessage& ctrl);
+  void FakeCommandComplete(u16 opcode, std::span<const u8> payload, USB::V0IntrMessage& ctrl);
+  void FakeVendorCommand(u16 opcode, USB::V0IntrMessage& ctrl);
+
   void FakeSyncButtonPressedEvent(USB::V0IntrMessage& ctrl);
   void FakeSyncButtonHeldEvent(USB::V0IntrMessage& ctrl);
 
+  bool ShouldFakeStoredLinkKeys() const;
+
+  void FakeReadStoredLinkKey(hci_read_stored_link_key_cp cmd);
+  void FakeReturnLinkKey(bdaddr_t, linkkey_t, USB::V0IntrMessage& ctrl);
+  void FakeWriteStoredLinkKey(u8 key_count, USB::V0IntrMessage& ctrl);
+  void FakeDeleteStoredLinkKey(u16 key_count, USB::V0IntrMessage& ctrl);
+
+  // Load/Save to config.
   void LoadLinkKeys();
   void SaveLinkKeys();
 };
