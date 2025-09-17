@@ -246,6 +246,15 @@ void Matrix33::Multiply(const Matrix33& a, const Vec3& vec, Vec3* result)
   result->data = MatrixMultiply<3, 3, 1>(a.data, vec.data);
 }
 
+float Matrix33::Determinant() const
+{
+  const auto m = [this](int x, int y) { return data[y + x * 3]; };
+
+  return m(0, 0) * (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) -
+         m(0, 1) * (m(1, 0) * m(2, 2) - m(1, 2) * m(2, 0)) +
+         m(0, 2) * (m(1, 0) * m(2, 1) - m(1, 1) * m(2, 0));
+}
+
 Matrix33 Matrix33::Inverted() const
 {
   const auto m = [this](int x, int y) { return data[y + x * 3]; };
@@ -269,13 +278,21 @@ Matrix33 Matrix33::Inverted() const
   return result;
 }
 
-float Matrix33::Determinant() const
+Matrix33 Matrix33::Transposed() const
 {
-  const auto m = [this](int x, int y) { return data[y + x * 3]; };
+  Matrix33 result;
 
-  return m(0, 0) * (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) -
-         m(0, 1) * (m(1, 0) * m(2, 2) - m(1, 2) * m(2, 0)) +
-         m(0, 2) * (m(1, 0) * m(2, 1) - m(1, 1) * m(2, 0));
+  result.data[0] = data[0];
+  result.data[1] = data[3];
+  result.data[2] = data[6];
+  result.data[3] = data[1];
+  result.data[4] = data[4];
+  result.data[5] = data[7];
+  result.data[6] = data[2];
+  result.data[7] = data[5];
+  result.data[8] = data[8];
+
+  return result;
 }
 
 Matrix44 Matrix44::Identity()
@@ -424,6 +441,28 @@ Matrix44 Matrix44::Inverted() const
   minv(3, 2) = invdet * -(m(0, 0) * A1213 - m(0, 1) * A0213 + m(0, 2) * A0113);
   minv(3, 3) = invdet * (m(0, 0) * A1212 - m(0, 1) * A0212 + m(0, 2) * A0112);
 
+  return result;
+}
+
+Matrix44 Matrix44::Transposed() const
+{
+  Matrix44 result;
+  result.data[0] = data[0];
+  result.data[1] = data[4];
+  result.data[2] = data[8];
+  result.data[3] = data[12];
+  result.data[4] = data[1];
+  result.data[5] = data[5];
+  result.data[6] = data[9];
+  result.data[7] = data[13];
+  result.data[8] = data[2];
+  result.data[9] = data[6];
+  result.data[10] = data[10];
+  result.data[11] = data[14];
+  result.data[12] = data[3];
+  result.data[13] = data[7];
+  result.data[14] = data[11];
+  result.data[15] = data[15];
   return result;
 }
 
