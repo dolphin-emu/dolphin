@@ -159,8 +159,15 @@ std::string MovieManager::GetRTCDisplay() const
   const time_t current_time = CEXIIPL::GetEmulatedTime(m_system, CEXIIPL::UNIX_EPOCH);
   const tm gm_time = fmt::gmtime(current_time);
 
-  // Use current locale for formatting time, as fmt is locale-agnostic by default.
+#if FMT_VERSION < 120000  // fmt < 12 still supports locale overload
   return fmt::format(std::locale{""}, "Date/Time: {:%c}", gm_time);
+#else
+  // fmt >= 12: no locale overload, fall back to standard library
+  std::ostringstream oss;
+  oss.imbue(std::locale(""));
+  oss << "Date/Time: " << std::put_time(&gm_time, "%c");
+  return oss.str();
+#endif
 }
 
 // NOTE: GPU Thread
