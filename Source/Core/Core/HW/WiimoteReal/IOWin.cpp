@@ -802,8 +802,7 @@ void ProcessWiimotes(bool new_scan, const T& callback)
   srch.fReturnConnected = true;
   srch.fReturnUnknown = true;
   srch.fIssueInquiry = new_scan;
-  // multiple of 1.28 seconds
-  srch.cTimeoutMultiplier = 2;
+  srch.cTimeoutMultiplier = BLUETOOTH_INQUIRY_LENGTH;
 
   BLUETOOTH_FIND_RADIO_PARAMS radioParam;
   radioParam.dwSize = sizeof(radioParam);
