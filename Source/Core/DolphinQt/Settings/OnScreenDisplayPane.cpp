@@ -1,0 +1,202 @@
+// Copyright 2025 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "DolphinQt/Settings/OnScreenDisplayPane.h"
+
+#include <QGridLayout>
+#include <QGroupBox>
+#include <QLabel>
+#include <QVBoxLayout>
+#include <QWidget>
+
+#include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/MainSettings.h"
+
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigInteger.h"
+
+OnScreenDisplayPane::OnScreenDisplayPane(QWidget* parent) : QWidget(parent)
+{
+  CreateLayout();
+  AddDescriptions();
+}
+
+void OnScreenDisplayPane::CreateLayout()
+{
+  // General
+  auto* general_box = new QGroupBox(tr("General"));
+  auto* general_layout = new QGridLayout();
+  general_box->setLayout(general_layout);
+
+  m_enable_osd = new ConfigBool(tr("Show Messages"), Config::MAIN_OSD_MESSAGES, m_game_layer);
+  m_font_size = new ConfigInteger(12, 40, Config::MAIN_OSD_FONT_SIZE);
+  // m_font_size->setMinimumWidth(m_font_size->sizeHint().width() * 2);
+
+  general_layout->setAlignment(Qt::AlignLeft);
+  general_layout->addWidget(m_enable_osd, 0, 0);
+  general_layout->addWidget(new QLabel(tr("Font Size:")), 1, 0);
+  general_layout->addWidget(m_font_size, 1, 1);
+
+  // Performance
+  auto* performance_box = new QGroupBox(tr("Performance Statistics"));
+  auto* performance_layout = new QGridLayout();
+  performance_box->setLayout(performance_layout);
+
+  m_show_fps = new ConfigBool(tr("Show FPS"), Config::GFX_SHOW_FPS, m_game_layer);
+  m_show_ftimes = new ConfigBool(tr("Show Frame Times"), Config::GFX_SHOW_FTIMES, m_game_layer);
+  m_show_vps = new ConfigBool(tr("Show VPS"), Config::GFX_SHOW_VPS, m_game_layer);
+  m_show_vtimes = new ConfigBool(tr("Show VBlank Times"), Config::GFX_SHOW_VTIMES, m_game_layer);
+  m_show_speed = new ConfigBool(tr("Show % Speed"), Config::GFX_SHOW_SPEED, m_game_layer);
+  m_show_speed_colors =
+      new ConfigBool(tr("Show Speed Colors"), Config::GFX_SHOW_SPEED_COLORS, m_game_layer);
+  m_log_render_time = new ConfigBool(tr("Log Render Time to File"),
+                                     Config::GFX_LOG_RENDER_TIME_TO_FILE, m_game_layer);
+  m_show_graphs =
+      new ConfigBool(tr("Show Performance Graphs"), Config::GFX_SHOW_GRAPHS, m_game_layer);
+  m_perf_samp_window = new ConfigInteger(0, 10000, Config::GFX_PERF_SAMP_WINDOW, m_game_layer, 100);
+  m_perf_samp_window->SetTitle(tr("Performance Sample Window (ms)"));
+
+  performance_layout->setAlignment(Qt::AlignLeft);
+  performance_layout->addWidget(m_show_fps, 0, 0);
+  performance_layout->addWidget(m_show_ftimes, 0, 1);
+  performance_layout->addWidget(m_show_vps, 1, 0);
+  performance_layout->addWidget(m_show_vtimes, 1, 1);
+  performance_layout->addWidget(m_show_speed, 2, 0);
+  performance_layout->addWidget(m_show_speed_colors, 2, 1);
+  performance_layout->addWidget(m_log_render_time, 3, 0);
+  performance_layout->addWidget(m_show_graphs, 4, 0);
+  performance_layout->addWidget(new QLabel(tr("Update Rate (ms):")), 5, 0);
+  performance_layout->addWidget(m_perf_samp_window, 5, 1);
+
+  // Movie
+  auto* movie_box = new QGroupBox(tr("Other Statistics"));
+  auto* movie_layout = new QGridLayout();
+  movie_box->setLayout(movie_layout);
+
+  m_rerecord_counter =
+      new ConfigBool(tr("Show Rerecord Counter"), Config::MAIN_MOVIE_SHOW_RERECORD, m_game_layer);
+  m_lag_counter = new ConfigBool(tr("Show Lag Counter"), Config::MAIN_SHOW_LAG, m_game_layer);
+  m_frame_counter =
+      new ConfigBool(tr("Show Frame Counter"), Config::MAIN_SHOW_FRAME_COUNT, m_game_layer);
+  m_input_display =
+      new ConfigBool(tr("Show Input Display"), Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY, m_game_layer);
+  m_system_clock =
+      new ConfigBool(tr("Show System Clock"), Config::MAIN_MOVIE_SHOW_RTC, m_game_layer);
+
+  movie_layout->addWidget(m_rerecord_counter, 0, 0);
+  movie_layout->addWidget(m_lag_counter, 0, 1);
+  movie_layout->addWidget(m_frame_counter, 1, 0);
+  movie_layout->addWidget(m_input_display, 1, 1);
+  movie_layout->addWidget(m_system_clock, 2, 0);
+  movie_layout->setAlignment(Qt::AlignLeft);
+
+  // NetPlay
+  auto* netplay_box = new QGroupBox(tr("Netplay"));
+  auto* netplay_layout = new QGridLayout();
+  netplay_box->setLayout(netplay_layout);
+
+  m_show_ping =
+      new ConfigBool(tr("Show NetPlay Ping"), Config::GFX_SHOW_NETPLAY_PING, m_game_layer);
+  m_show_chat =
+      new ConfigBool(tr("Show NetPlay Chat"), Config::GFX_SHOW_NETPLAY_MESSAGES, m_game_layer);
+
+  netplay_layout->setAlignment(Qt::AlignLeft);
+  netplay_layout->addWidget(m_show_ping, 0, 0);
+  netplay_layout->addWidget(m_show_chat, 0, 1);
+
+  // Align all GroupBox columns according to widest items.
+  const int width = m_show_graphs->sizeHint().width();
+  general_layout->setColumnMinimumWidth(0, width);
+  movie_layout->setColumnMinimumWidth(0, width);
+  netplay_layout->setColumnMinimumWidth(0, width);
+
+  const int width2 = m_show_vtimes->sizeHint().width();
+  general_layout->setColumnMinimumWidth(1, width2);
+  movie_layout->setColumnMinimumWidth(1, width2);
+  netplay_layout->setColumnMinimumWidth(1, width2);
+
+  // Stack GroupBoxes
+  auto* main_layout = new QVBoxLayout;
+  main_layout->addWidget(general_box);
+  main_layout->addWidget(performance_box);
+  main_layout->addWidget(movie_box);
+  main_layout->addWidget(netplay_box);
+  main_layout->addStretch();
+
+  setLayout(main_layout);
+}
+
+void OnScreenDisplayPane::AddDescriptions()
+{
+  static constexpr char TR_ENABLE_OSD_DESCRIPTION[] =
+      QT_TR_NOOP("Shows on-screen display messages over the render window. These messages "
+                 "disappear after several seconds."
+                 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
+  static const char TR_OSD_FONT_SIZE_DESCRIPTION[] = QT_TR_NOOP(
+      "Changes the font size of the On Screen Display. Affects features such as performance "
+      "statistics, frame counter, and netplay chat.<br><br><dolphin_emphasis>If "
+      "unsure, leave this at 14.</dolphin_emphasis>");
+
+  static const char TR_SHOW_FPS_DESCRIPTION[] =
+      QT_TR_NOOP("Shows the number of distinct frames rendered per second as a measure of "
+                 "visual smoothness.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_FTIMES_DESCRIPTION[] =
+      QT_TR_NOOP("Shows the average time in ms between each distinct rendered frame alongside "
+                 "the standard deviation.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_VPS_DESCRIPTION[] =
+      QT_TR_NOOP("Shows the number of frames rendered per second as a measure of "
+                 "emulation speed.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_VTIMES_DESCRIPTION[] =
+      QT_TR_NOOP("Shows the average time in ms between each rendered frame alongside "
+                 "the standard deviation.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_GRAPHS_DESCRIPTION[] =
+      QT_TR_NOOP("Shows frametime graph along with statistics as a representation of "
+                 "emulation performance.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_SPEED_DESCRIPTION[] =
+      QT_TR_NOOP("Shows the % speed of emulation compared to full speed."
+                 "<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_SPEED_COLORS_DESCRIPTION[] =
+      QT_TR_NOOP("Changes the color of the FPS counter depending on emulation speed."
+                 "<br><br><dolphin_emphasis>If unsure, leave this "
+                 "checked.</dolphin_emphasis>");
+  static const char TR_PERF_SAMP_WINDOW_DESCRIPTION[] =
+      QT_TR_NOOP("The amount of time the FPS and VPS counters will sample over."
+                 "<br><br>The higher the value, the more stable the FPS/VPS counter will be, "
+                 "but the slower it will be to update."
+                 "<br><br><dolphin_emphasis>If unsure, leave this "
+                 "at 1000ms.</dolphin_emphasis>");
+  static const char TR_LOG_RENDERTIME_DESCRIPTION[] = QT_TR_NOOP(
+      "Logs the render time of every frame to User/Logs/render_time.txt.<br><br>Use this "
+      "feature to measure Dolphin's performance.<br><br><dolphin_emphasis>If "
+      "unsure, leave this unchecked.</dolphin_emphasis>");
+
+  static const char TR_SHOW_NETPLAY_PING_DESCRIPTION[] = QT_TR_NOOP(
+      "Shows the player's maximum ping while playing on "
+      "NetPlay.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION[] =
+      QT_TR_NOOP("Shows chat messages, buffer changes, and desync alerts "
+                 "while playing NetPlay.<br><br><dolphin_emphasis>If unsure, leave "
+                 "this unchecked.</dolphin_emphasis>");
+
+  m_enable_osd->SetDescription(tr(TR_ENABLE_OSD_DESCRIPTION));
+  m_font_size->SetDescription(tr(TR_OSD_FONT_SIZE_DESCRIPTION));
+
+  m_show_fps->SetDescription(tr(TR_SHOW_FPS_DESCRIPTION));
+  m_show_ftimes->SetDescription(tr(TR_SHOW_FTIMES_DESCRIPTION));
+  m_show_vps->SetDescription(tr(TR_SHOW_VPS_DESCRIPTION));
+  m_show_vtimes->SetDescription(tr(TR_SHOW_VTIMES_DESCRIPTION));
+  m_show_graphs->SetDescription(tr(TR_SHOW_GRAPHS_DESCRIPTION));
+  m_show_speed->SetDescription(tr(TR_SHOW_SPEED_DESCRIPTION));
+  m_perf_samp_window->SetDescription(tr(TR_PERF_SAMP_WINDOW_DESCRIPTION));
+  m_log_render_time->SetDescription(tr(TR_LOG_RENDERTIME_DESCRIPTION));
+  m_show_speed_colors->SetDescription(tr(TR_SHOW_SPEED_COLORS_DESCRIPTION));
+
+  m_show_ping->SetDescription(tr(TR_SHOW_NETPLAY_PING_DESCRIPTION));
+  m_show_chat->SetDescription(tr(TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION));
+}
