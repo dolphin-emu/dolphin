@@ -10,6 +10,7 @@
 #include <string>
 #include <tuple>
 
+#include <fmt/base.h>
 #include <fmt/format.h>
 
 #include "Common/MathUtil.h"

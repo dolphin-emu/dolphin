@@ -3,6 +3,7 @@
 
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
+#include <fmt/base.h>
 #include <fmt/format.h>
 
 namespace ControllerEmu

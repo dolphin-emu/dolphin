@@ -16,6 +16,7 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/base.h>
 #include <fmt/format.h>
 
 #include "Common/CommonTypes.h"

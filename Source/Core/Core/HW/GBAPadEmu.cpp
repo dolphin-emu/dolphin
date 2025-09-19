@@ -3,6 +3,7 @@
 
 #include "Core/HW/GBAPadEmu.h"
 
+#include <fmt/base.h>
 #include <fmt/format.h>
 
 #include "Core/HW/GBAPad.h"

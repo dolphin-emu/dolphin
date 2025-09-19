@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstddef>
+#include <fmt/base.h>
 #include <fmt/format.h>
 #include <string_view>
 #include "Common/FormatUtil.h"
