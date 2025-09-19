@@ -17,6 +17,7 @@
 #include <WinSock2.h>
 #endif
 
+#include <fmt/base.h>
 #include <fmt/format.h>
 
 #include "Common/BitUtils.h"

@@ -36,6 +36,7 @@
 #include <array>
 #include <string>
 
+#include <fmt/base.h>
 #include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
