@@ -66,10 +66,25 @@ void CachedInterpreter::ExecuteOneBlock()
   while (true)
   {
     const auto callback = *reinterpret_cast<const AnyCallback*>(normal_entry);
-    if (const auto distance = callback(ppc_state, normal_entry + sizeof(callback)))
-      normal_entry += distance;
+    const u8* payload = normal_entry + sizeof(callback);
+    // Direct dispatch to the most commonly used callbacks for better performance
+    if (callback == reinterpret_cast<AnyCallback>(CallbackCast(Interpret<false>))) [[likely]]
+    {
+      Interpret<false>(ppc_state, *reinterpret_cast<const InterpretOperands*>(payload));
+      normal_entry = payload + sizeof(InterpretOperands);
+    }
+    else if (callback == reinterpret_cast<AnyCallback>(CallbackCast(Interpret<true>)))
+    {
+      Interpret<true>(ppc_state, *reinterpret_cast<const InterpretOperands*>(payload));
+      normal_entry = payload + sizeof(InterpretOperands);
+    }
     else
-      break;
+    {
+      if (const auto distance = callback(ppc_state, payload))
+        normal_entry += distance;
+      else
+        break;
+    }
   }
 }
 
