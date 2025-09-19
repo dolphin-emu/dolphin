@@ -30,7 +30,7 @@ private:
   ConfigBool* m_show_vtimes;
   ConfigBool* m_show_graphs;
   ConfigBool* m_show_speed;
-  ConfigBool* m_show_speed_colors;
+  ConfigBool* m_speed_colors;
   ConfigInteger* m_perf_samp_window;
   ConfigBool* m_log_render_time;
 

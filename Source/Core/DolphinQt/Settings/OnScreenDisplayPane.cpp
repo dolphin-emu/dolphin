@@ -28,11 +28,10 @@ void OnScreenDisplayPane::CreateLayout()
   auto* general_layout = new QGridLayout();
   general_box->setLayout(general_layout);
 
-  m_enable_osd = new ConfigBool(tr("Show Messages"), Config::MAIN_OSD_MESSAGES, m_game_layer);
+  m_enable_osd = new ConfigBool(tr("Show Messages"), Config::MAIN_OSD_MESSAGES);
   m_font_size = new ConfigInteger(12, 40, Config::MAIN_OSD_FONT_SIZE);
   // m_font_size->setMinimumWidth(m_font_size->sizeHint().width() * 2);
 
-  general_layout->setAlignment(Qt::AlignLeft);
   general_layout->addWidget(m_enable_osd, 0, 0);
   general_layout->addWidget(new QLabel(tr("Font Size:")), 1, 0);
   general_layout->addWidget(m_font_size, 1, 1);
@@ -42,78 +41,57 @@ void OnScreenDisplayPane::CreateLayout()
   auto* performance_layout = new QGridLayout();
   performance_box->setLayout(performance_layout);
 
-  m_show_fps = new ConfigBool(tr("Show FPS"), Config::GFX_SHOW_FPS, m_game_layer);
-  m_show_ftimes = new ConfigBool(tr("Show Frame Times"), Config::GFX_SHOW_FTIMES, m_game_layer);
-  m_show_vps = new ConfigBool(tr("Show VPS"), Config::GFX_SHOW_VPS, m_game_layer);
-  m_show_vtimes = new ConfigBool(tr("Show VBlank Times"), Config::GFX_SHOW_VTIMES, m_game_layer);
-  m_show_speed = new ConfigBool(tr("Show % Speed"), Config::GFX_SHOW_SPEED, m_game_layer);
-  m_show_speed_colors =
-      new ConfigBool(tr("Show Speed Colors"), Config::GFX_SHOW_SPEED_COLORS, m_game_layer);
-  m_log_render_time = new ConfigBool(tr("Log Render Time to File"),
-                                     Config::GFX_LOG_RENDER_TIME_TO_FILE, m_game_layer);
-  m_show_graphs =
-      new ConfigBool(tr("Show Performance Graphs"), Config::GFX_SHOW_GRAPHS, m_game_layer);
-  m_perf_samp_window = new ConfigInteger(0, 10000, Config::GFX_PERF_SAMP_WINDOW, m_game_layer, 100);
+  m_show_fps = new ConfigBool(tr("Show FPS"), Config::GFX_SHOW_FPS);
+  m_show_ftimes = new ConfigBool(tr("Show Frame Times"), Config::GFX_SHOW_FTIMES);
+  m_show_vps = new ConfigBool(tr("Show VPS"), Config::GFX_SHOW_VPS);
+  m_show_vtimes = new ConfigBool(tr("Show VBlank Times"), Config::GFX_SHOW_VTIMES);
+  m_show_speed = new ConfigBool(tr("Show % Speed"), Config::GFX_SHOW_SPEED);
+  m_speed_colors = new ConfigBool(tr("Show Speed Colors"), Config::GFX_SHOW_SPEED_COLORS);
+  m_log_render_time =
+      new ConfigBool(tr("Log Render Time to File"), Config::GFX_LOG_RENDER_TIME_TO_FILE);
+  m_show_graphs = new ConfigBool(tr("Show Performance Graphs"), Config::GFX_SHOW_GRAPHS);
+  m_perf_samp_window = new ConfigInteger(0, 10000, Config::GFX_PERF_SAMP_WINDOW, 100);
   m_perf_samp_window->SetTitle(tr("Performance Sample Window (ms)"));
 
-  performance_layout->setAlignment(Qt::AlignLeft);
   performance_layout->addWidget(m_show_fps, 0, 0);
   performance_layout->addWidget(m_show_ftimes, 0, 1);
   performance_layout->addWidget(m_show_vps, 1, 0);
   performance_layout->addWidget(m_show_vtimes, 1, 1);
   performance_layout->addWidget(m_show_speed, 2, 0);
-  performance_layout->addWidget(m_show_speed_colors, 2, 1);
+  performance_layout->addWidget(m_speed_colors, 2, 1);
   performance_layout->addWidget(m_log_render_time, 3, 0);
   performance_layout->addWidget(m_show_graphs, 4, 0);
-  performance_layout->addWidget(new QLabel(tr("Update Rate (ms):")), 5, 0);
+  performance_layout->addWidget(new QLabel(tr("Graph Update Rate (ms):")), 5, 0);
   performance_layout->addWidget(m_perf_samp_window, 5, 1);
 
   // Movie
-  auto* movie_box = new QGroupBox(tr("Other Statistics"));
+  auto* movie_box = new QGroupBox(tr("Movie Window"));
   auto* movie_layout = new QGridLayout();
   movie_box->setLayout(movie_layout);
 
   m_rerecord_counter =
-      new ConfigBool(tr("Show Rerecord Counter"), Config::MAIN_MOVIE_SHOW_RERECORD, m_game_layer);
-  m_lag_counter = new ConfigBool(tr("Show Lag Counter"), Config::MAIN_SHOW_LAG, m_game_layer);
-  m_frame_counter =
-      new ConfigBool(tr("Show Frame Counter"), Config::MAIN_SHOW_FRAME_COUNT, m_game_layer);
-  m_input_display =
-      new ConfigBool(tr("Show Input Display"), Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY, m_game_layer);
-  m_system_clock =
-      new ConfigBool(tr("Show System Clock"), Config::MAIN_MOVIE_SHOW_RTC, m_game_layer);
+      new ConfigBool(tr("Show Rerecord Counter"), Config::MAIN_MOVIE_SHOW_RERECORD);
+  m_lag_counter = new ConfigBool(tr("Show Lag Counter"), Config::MAIN_SHOW_LAG);
+  m_frame_counter = new ConfigBool(tr("Show Frame Counter"), Config::MAIN_SHOW_FRAME_COUNT);
+  m_input_display = new ConfigBool(tr("Show Input Display"), Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY);
+  m_system_clock = new ConfigBool(tr("Show System Clock"), Config::MAIN_MOVIE_SHOW_RTC);
 
   movie_layout->addWidget(m_rerecord_counter, 0, 0);
   movie_layout->addWidget(m_lag_counter, 0, 1);
   movie_layout->addWidget(m_frame_counter, 1, 0);
   movie_layout->addWidget(m_input_display, 1, 1);
   movie_layout->addWidget(m_system_clock, 2, 0);
-  movie_layout->setAlignment(Qt::AlignLeft);
 
   // NetPlay
   auto* netplay_box = new QGroupBox(tr("Netplay"));
   auto* netplay_layout = new QGridLayout();
   netplay_box->setLayout(netplay_layout);
 
-  m_show_ping =
-      new ConfigBool(tr("Show NetPlay Ping"), Config::GFX_SHOW_NETPLAY_PING, m_game_layer);
-  m_show_chat =
-      new ConfigBool(tr("Show NetPlay Chat"), Config::GFX_SHOW_NETPLAY_MESSAGES, m_game_layer);
+  m_show_ping = new ConfigBool(tr("Show NetPlay Ping"), Config::GFX_SHOW_NETPLAY_PING);
+  m_show_chat = new ConfigBool(tr("Show NetPlay Chat"), Config::GFX_SHOW_NETPLAY_MESSAGES);
 
-  netplay_layout->setAlignment(Qt::AlignLeft);
   netplay_layout->addWidget(m_show_ping, 0, 0);
   netplay_layout->addWidget(m_show_chat, 0, 1);
-
-  // Align all GroupBox columns according to widest items.
-  const int width = m_show_graphs->sizeHint().width();
-  general_layout->setColumnMinimumWidth(0, width);
-  movie_layout->setColumnMinimumWidth(0, width);
-  netplay_layout->setColumnMinimumWidth(0, width);
-
-  const int width2 = m_show_vtimes->sizeHint().width();
-  general_layout->setColumnMinimumWidth(1, width2);
-  movie_layout->setColumnMinimumWidth(1, width2);
-  netplay_layout->setColumnMinimumWidth(1, width2);
 
   // Stack GroupBoxes
   auto* main_layout = new QVBoxLayout;
@@ -122,7 +100,6 @@ void OnScreenDisplayPane::CreateLayout()
   main_layout->addWidget(movie_box);
   main_layout->addWidget(netplay_box);
   main_layout->addStretch();
-
   setLayout(main_layout);
 }
 
@@ -135,7 +112,7 @@ void OnScreenDisplayPane::AddDescriptions()
   static const char TR_OSD_FONT_SIZE_DESCRIPTION[] = QT_TR_NOOP(
       "Changes the font size of the On Screen Display. Affects features such as performance "
       "statistics, frame counter, and netplay chat.<br><br><dolphin_emphasis>If "
-      "unsure, leave this at 14.</dolphin_emphasis>");
+      "unsure, leave this at 13.</dolphin_emphasis>");
 
   static const char TR_SHOW_FPS_DESCRIPTION[] =
       QT_TR_NOOP("Shows the number of distinct frames rendered per second as a measure of "
@@ -184,6 +161,24 @@ void OnScreenDisplayPane::AddDescriptions()
                  "while playing NetPlay.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
 
+  static const char TR_RERECORD_COUNTER_DESCRIPTION[] =
+      QT_TR_NOOP("Shows how many times the input recording has been overwritten by using "
+                 "savestates.<br><br><dolphin_emphasis>If unsure, leave "
+                 "this unchecked.</dolphin_emphasis>");
+  static const char TR_LAG_COUNTER_DESCRIPTION[] = QT_TR_NOOP(
+      "Shows how many frames have occured without controller inputs being checked. Resets to 1 "
+      "when inputs are processed. <br><br><dolphin_emphasis>If unsure, leave "
+      "this unchecked.</dolphin_emphasis>");
+  static const char TR_FRAME_COUNTER_DESCRIPTION[] =
+      QT_TR_NOOP("Shows how many frames have passed. <br><br><dolphin_emphasis>If unsure, leave "
+                 "this unchecked.</dolphin_emphasis>");
+  static const char TR_INPUT_DISPLAY_DESCRIPTION[] = QT_TR_NOOP(
+      "Shows the controls currently being input.<br><br><dolphin_emphasis>If unsure, leave "
+      "this unchecked.</dolphin_emphasis>");
+  static const char TR_SYSTEM_CLOCK_DESCRIPTION[] =
+      QT_TR_NOOP("Shows current system time.<br><br><dolphin_emphasis>If unsure, leave "
+                 "this unchecked.</dolphin_emphasis>");
+
   m_enable_osd->SetDescription(tr(TR_ENABLE_OSD_DESCRIPTION));
   m_font_size->SetDescription(tr(TR_OSD_FONT_SIZE_DESCRIPTION));
 
@@ -195,8 +190,14 @@ void OnScreenDisplayPane::AddDescriptions()
   m_show_speed->SetDescription(tr(TR_SHOW_SPEED_DESCRIPTION));
   m_perf_samp_window->SetDescription(tr(TR_PERF_SAMP_WINDOW_DESCRIPTION));
   m_log_render_time->SetDescription(tr(TR_LOG_RENDERTIME_DESCRIPTION));
-  m_show_speed_colors->SetDescription(tr(TR_SHOW_SPEED_COLORS_DESCRIPTION));
+  m_speed_colors->SetDescription(tr(TR_SHOW_SPEED_COLORS_DESCRIPTION));
 
   m_show_ping->SetDescription(tr(TR_SHOW_NETPLAY_PING_DESCRIPTION));
   m_show_chat->SetDescription(tr(TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION));
+
+  m_rerecord_counter->SetDescription(tr(TR_RERECORD_COUNTER_DESCRIPTION));
+  m_lag_counter->SetDescription(tr(TR_LAG_COUNTER_DESCRIPTION));
+  m_frame_counter->SetDescription(tr(TR_FRAME_COUNTER_DESCRIPTION));
+  m_input_display->SetDescription(tr(TR_INPUT_DISPLAY_DESCRIPTION));
+  m_system_clock->SetDescription(tr(TR_SYSTEM_CLOCK_DESCRIPTION));
 }
