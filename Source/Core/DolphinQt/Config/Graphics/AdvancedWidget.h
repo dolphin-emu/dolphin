@@ -34,15 +34,6 @@ private:
   ConfigBool* m_show_proj_statistics;
   ConfigBool* m_enable_format_overlay;
   ConfigBool* m_enable_api_validation;
-  ConfigBool* m_show_fps;
-  ConfigBool* m_show_ftimes;
-  ConfigBool* m_show_vps;
-  ConfigBool* m_show_vtimes;
-  ConfigBool* m_show_graphs;
-  ConfigBool* m_show_speed;
-  ConfigBool* m_show_speed_colors;
-  ConfigInteger* m_perf_samp_window;
-  ConfigBool* m_log_render_time;
 
   // Utility
   ConfigBool* m_prefetch_custom_textures;
