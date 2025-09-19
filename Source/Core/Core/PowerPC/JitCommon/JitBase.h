@@ -197,7 +197,7 @@ public:
   JitBase& operator=(JitBase&&) = delete;
   ~JitBase() override;
 
-  bool IsProfilingEnabled() const { return m_enable_profiling; }
+  bool IsProfilingEnabled() const { return m_enable_profiling && m_enable_debugging; }
   bool IsDebuggingEnabled() const { return m_enable_debugging; }
 
   static const u8* Dispatch(JitBase& jit);
