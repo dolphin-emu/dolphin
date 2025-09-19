@@ -41,6 +41,7 @@ extern const Info<float> GFX_WIDESCREEN_HEURISTIC_STANDARD_RATIO;
 extern const Info<float> GFX_WIDESCREEN_HEURISTIC_WIDESCREEN_RATIO;
 extern const Info<bool> GFX_CROP;
 extern const Info<int> GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES;
+extern const Info<int> GFX_IMGUI_FONT_SIZE;
 extern const Info<bool> GFX_SHOW_FPS;
 extern const Info<bool> GFX_SHOW_FTIMES;
 extern const Info<bool> GFX_SHOW_VPS;
