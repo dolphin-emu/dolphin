@@ -118,9 +118,11 @@ VertexManagerBase::~VertexManagerBase() = default;
 
 bool VertexManagerBase::Initialize()
 {
-  m_frame_end_event =
-      AfterFrameEvent::Register([this](Core::System&) { OnEndFrame(); }, "VertexManagerBase");
-  m_after_present_event = AfterPresentEvent::Register(
+  auto& video_events = GetVideoEvents();
+
+  m_frame_end_event = video_events.after_frame_event.Register(
+      [this](Core::System&) { OnEndFrame(); }, "VertexManagerBase");
+  m_after_present_event = video_events.after_present_event.Register(
       [this](const PresentInfo& pi) { m_ticks_elapsed = pi.emulated_timestamp; },
       "VertexManagerBase");
   m_index_generator.Init();
@@ -442,7 +444,7 @@ void VertexManagerBase::Flush()
   if (m_draw_counter == 0)
   {
     // This is more or less the start of the Frame
-    BeforeFrameEvent::Trigger();
+    GetVideoEvents().before_frame_event.Trigger();
   }
 
   if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens ||
