@@ -23,9 +23,11 @@ signals:
 
 protected:
   void OnConfigChanged() override;
+  bool ShouldLabelBeBold() const override;
 
 private:
   void Update();
+  bool IsSelected() const;
 
   const Config::Info<int> m_setting;
   int m_value;
