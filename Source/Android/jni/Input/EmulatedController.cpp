@@ -154,6 +154,21 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
   return ToJString(env, EmulatedControllerFromJava(env, obj)->GetConfig()->GetProfileKey());
 }
 
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_setProfileName(
+    JNIEnv* env, jobject obj, jstring j_name)
+{
+  const std::string name = GetJString(env, j_name);
+  EmulatedControllerFromJava(env, obj)->SetProfileName(name);
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getProfileName(
+    JNIEnv* env, jobject obj)
+{
+  return ToJString(env, EmulatedControllerFromJava(env, obj)->GetProfileName());
+}
+
 JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getUserProfileDirectoryPath(
     JNIEnv* env, jobject obj)
