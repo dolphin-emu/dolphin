@@ -52,10 +52,9 @@ private:
   ConfigBool* m_enable_fullscreen;
 
   // Options
-  ConfigBool* m_show_ping;
   ConfigBool* m_autoadjust_window_size;
-  ConfigBool* m_show_messages;
   ConfigBool* m_render_main_window;
+
   std::array<ConfigRadioInt*, 4> m_shader_compilation_mode{};
   ConfigBool* m_wait_for_shaders;
   int m_previous_backend = 0;
