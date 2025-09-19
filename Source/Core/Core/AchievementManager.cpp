@@ -49,8 +49,13 @@
 #include <shlwapi.h>
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
+#ifdef ANDROID
+static const Common::HttpRequest::Headers USER_AGENT_HEADER = {
+    {"User-Agent", Common::GetUserAgentStr() + " (Android)"}};
+#else   // ANDROID
 static const Common::HttpRequest::Headers USER_AGENT_HEADER = {
     {"User-Agent", Common::GetUserAgentStr()}};
+#endif  // ANDROID
 
 AchievementManager& AchievementManager::GetInstance()
 {
@@ -901,6 +906,9 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to login {} to RetroAchievements server.",
                  Config::Get(Config::RA_USERNAME));
     UpdateEvent::Trigger({.failed_login_code = result});
+#ifdef ANDROID
+    LoginEvent::Trigger(result);
+#endif  // ANDROID
     return;
   }
 
@@ -913,6 +921,9 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to retrieve user information from client.");
     UpdateEvent::Trigger({.failed_login_code = RC_INVALID_STATE});
+#ifdef ANDROID
+    LoginEvent::Trigger(RC_INVALID_STATE);
+#endif  // ANDROID
     return;
   }
 
@@ -932,9 +943,15 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
                    user->username, Config::Get(Config::RA_USERNAME));
       rc_client_logout(client);
       UpdateEvent::Trigger({.failed_login_code = RC_INVALID_STATE});
+#ifdef ANDROID
+      LoginEvent::Trigger(RC_INVALID_STATE);
+#endif  // ANDROID
       return;
     }
   }
+#ifdef ANDROID
+  LoginEvent::Trigger(RC_OK);
+#endif  // ANDROID
   INFO_LOG_FMT(ACHIEVEMENTS, "Successfully logged in {} to RetroAchievements server.",
                user->username);
   std::lock_guard lg{AchievementManager::GetInstance().GetLock()};
