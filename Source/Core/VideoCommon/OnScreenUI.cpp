@@ -263,11 +263,12 @@ void OnScreenUI::DrawDebugText()
   {
     // Position under the FPS display.
     ImGui::SetNextWindowPos(
-        ImVec2(ImGui::GetIO().DisplaySize.x - 10.f * m_backbuffer_scale, 80.f * m_backbuffer_scale),
+        ImVec2(ImGui::GetIO().DisplaySize.x - ImGui::GetFontSize() * m_backbuffer_scale,
+               80.f * m_backbuffer_scale),
         ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f));
-    ImGui::SetNextWindowSizeConstraints(
-        ImVec2(150.0f * m_backbuffer_scale, 20.0f * m_backbuffer_scale),
-        ImGui::GetIO().DisplaySize);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(5.0f * ImGui::GetFontSize() * m_backbuffer_scale,
+                                               2.1f * ImGui::GetFontSize() * m_backbuffer_scale),
+                                        ImGui::GetIO().DisplaySize);
     if (ImGui::Begin("Movie", nullptr, ImGuiWindowFlags_NoFocusOnAppearing))
     {
       auto& movie = Core::System::GetInstance().GetMovie();
@@ -394,6 +395,12 @@ void OnScreenUI::Finalize()
   OSD::DrawMessages();
   DrawChallengesAndLeaderboards();
   ImGui::Render();
+
+  // Check for font changes
+  ImGuiStyle& style = ImGui::GetStyle();
+  const int size = Config::Get(Config::MAIN_OSD_FONT_SIZE);
+  if (size != style.FontSizeBase)
+    style.FontSizeBase = static_cast<float>(size);
 
   // Create or update fonts.
   ImDrawData* draw_data = ImGui::GetDrawData();
