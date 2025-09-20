@@ -4,22 +4,20 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 #include <algorithm>
-#include <cstdlib>
 #include <mutex>
-#include <queue>
 #include <unordered_set>
 
-#include "Common/ChunkFile.h"
+#include <SFML/Network/UdpSocket.hpp>
+
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
-#include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/Swap.h"
 #include "Common/Thread.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/WiimoteSettings.h"
 #include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
@@ -29,10 +27,8 @@
 #include "Core/HW/WiimoteReal/IOhidapi.h"
 #include "Core/System.h"
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Wiimote/WiimoteController.h"
-#include "InputCommon/InputConfig.h"
-
-#include "SFML/Network.hpp"
 
 namespace WiimoteReal
 {
@@ -172,7 +168,6 @@ void Wiimote::Shutdown()
 
   StopThread();
   ClearReadQueue();
-  m_write_reports.Clear();
 
   NOTICE_LOG_FMT(WIIMOTE, "Disconnected real wiimote.");
 }
@@ -207,7 +202,14 @@ void Wiimote::WriteReport(Report rpt)
     m_rumble_state = new_rumble_state;
   }
 
-  m_write_reports.Push(std::move(rpt));
+  auto& core_timing = Core::System::GetInstance().GetCoreTiming();
+
+  // When invoked from the CPU thread, send the report at the proper time.
+  // From other threads (e.g. on construction/destruction) send the report as soon as possible.
+  const auto report_time =
+      Core::IsCPUThread() ? core_timing.GetTargetHostTime(core_timing.GetTicks()) : Clock::now();
+
+  m_write_thread.EmplaceItem(report_time, std::move(rpt));
   IOWakeup();
 }
 
@@ -296,29 +298,18 @@ void Wiimote::InterruptDataOutput(const u8* data, const u32 size)
   WriteReport(std::move(rpt));
 }
 
-void Wiimote::Read()
+bool Wiimote::Read()
 {
   Report rpt(MAX_PAYLOAD);
   auto const result = IORead(rpt.data());
 
-  if (0 == result)
-  {
-    ERROR_LOG_FMT(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wii Remote {}.", m_index + 1);
-    DisconnectInternal();
-
-    return;
-  }
-
   // Drop the report if not connected.
-  if (!m_is_linked)
-    return;
-
-  if (result > 0)
+  if (m_is_linked && result > 0)
   {
     if (m_balance_board_dump_port > 0 && m_index == WIIMOTE_BALANCE_BOARD)
     {
       static sf::UdpSocket Socket;
-      (void)Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost,
+      (void)Socket.send(rpt.data(), rpt.size(), sf::IpAddress::LocalHost,
                         m_balance_board_dump_port);
     }
 
@@ -326,15 +317,13 @@ void Wiimote::Read()
     rpt.resize(result);
     m_read_reports.Push(std::move(rpt));
   }
+
+  return result != 0;
 }
 
-bool Wiimote::Write()
+bool Wiimote::Write(const TimedReport& timed_report)
 {
-  // nothing written, but this is not an error
-  if (m_write_reports.Empty())
-    return true;
-
-  Report const& rpt = m_write_reports.Front();
+  auto const& rpt = timed_report.report;
 
   if (m_balance_board_dump_port > 0 && m_index == WIIMOTE_BALANCE_BOARD)
   {
@@ -342,12 +331,10 @@ bool Wiimote::Write()
     (void)Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost,
                       m_balance_board_dump_port);
   }
+
+  // Write the report at the proper time, mainly for speaker data, not that it will help much.
+  std::this_thread::sleep_until(timed_report.time);
   int ret = IOWrite(rpt.data(), rpt.size());
-
-  m_write_reports.Pop();
-
-  if (!m_write_reports.Empty())
-    IOWakeup();
 
   return ret != 0;
 }
@@ -520,22 +507,16 @@ ButtonData Wiimote::GetCurrentlyPressedButtons()
 
 void Wiimote::Prepare()
 {
-  m_need_prepare.Set();
-  IOWakeup();
-}
+  const auto now = Clock::now();
 
-bool Wiimote::PrepareOnThread()
-{
   // Set reporting mode to non-continuous core buttons and turn on rumble.
-  u8 static const mode_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::ReportMode), 1,
-                                   u8(InputReportID::ReportCore)};
+  Report mode_report = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::ReportMode), 1,
+                        u8(InputReportID::ReportCore)};
+  m_write_thread.EmplaceItem(now, std::move(mode_report));
 
   // Request status and turn off rumble.
-  u8 static const req_status_report[] = {WR_SET_REPORT | BT_OUTPUT,
-                                         u8(OutputReportID::RequestStatus), 0};
-
-  return IOWrite(mode_report, sizeof(mode_report)) &&
-         (Common::SleepCurrentThread(200), IOWrite(req_status_report, sizeof(req_status_report)));
+  Report req_status_report = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::RequestStatus), 0};
+  m_write_thread.EmplaceItem(now + std::chrono::milliseconds{200}, std::move(req_status_report));
 }
 
 void Wiimote::EmuStop()
@@ -786,7 +767,6 @@ bool Wiimote::Connect(int index)
 
   if (!m_run_thread.IsSet())
   {
-    m_need_prepare.Set();
     m_run_thread.Set();
     StartThread();
     m_thread_ready_event.Wait();
@@ -797,20 +777,24 @@ bool Wiimote::Connect(int index)
 
 void Wiimote::StartThread()
 {
-  m_wiimote_thread = std::thread(&Wiimote::ThreadFunc, this);
+  // Note that the read thread starts the writing worker thread.
+  m_read_thread = std::thread(&Wiimote::ReadThreadFunc, this);
 }
 
 void Wiimote::StopThread()
 {
   if (!m_run_thread.TestAndClear())
     return;
+
   IOWakeup();
-  m_wiimote_thread.join();
+
+  // Note that the read thread stops the writing worker thread.
+  m_read_thread.join();
 }
 
-void Wiimote::ThreadFunc()
+void Wiimote::ReadThreadFunc()
 {
-  Common::SetCurrentThreadName("Wiimote Device Thread");
+  Common::SetCurrentThreadName("Wiimote Read Thread");
 
   bool ok = ConnectInternal();
 
@@ -828,22 +812,18 @@ void Wiimote::ThreadFunc()
     return;
   }
 
-  // main loop
-  while (IsConnected() && m_run_thread.IsSet())
+  m_write_thread.Reset("Wiimote Write Thread", std::bind_front(&Wiimote::Write, this));
+
+  while (m_run_thread.IsSet())
   {
-    if (m_need_prepare.TestAndClear() && !PrepareOnThread())
+    if (!Read())
     {
-      ERROR_LOG_FMT(WIIMOTE, "Wiimote::PrepareOnThread failed.  Disconnecting Wiimote {}.",
-                    m_index + 1);
+      ERROR_LOG_FMT(WIIMOTE, "Wiimote::Read failed. Disconnecting Wiimote {}.", m_index + 1);
       break;
     }
-    if (!Write())
-    {
-      ERROR_LOG_FMT(WIIMOTE, "Wiimote::Write failed.  Disconnecting Wiimote {}.", m_index + 1);
-      break;
-    }
-    Read();
   }
+
+  m_write_thread.StopAndCancel();
 
   DisconnectInternal();
 }
