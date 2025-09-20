@@ -30,14 +30,12 @@ If you make any contributions to Dolphin after December 1st, 2014, you are agree
 # <a name="prerequisites">Before You Start
 
 This is an emulator, that means that it runs games by emulating other hardware (in this case, the Wii and GameCube). In order to contribute, you will need to understand how these consoles work. You can learn this by:
- - Searching on the web how they work (for example, [on WiiBrew](https://wiibrew.org/wiki/Main_Page)).
+ - Searching on the web how they work (for example, [on WiiBrew](https://wiibrew.org/wiki/Main_Page), or [YAGCD](https://www.gc-forever.com/yagcd/)).
  - Manually reverse engineering the Wii/GameCube console (we will not help you with this).
- - Asking for help from tech-savy people dedicated to console hardware.
 We advise you to please do not: 
  - [**Attempt to Learn or find Trade Secrets**](#trade-secrets).
- - Break DRM for reverse engineering.
- - Redistribute Nintendo's soft/firmware.
-These are all **ILLEGAL**. We won't help you if you do it anyway, and we ask you never contribute do Dolphin.
+ - Break any relevant laws in your country.
+These are all **ILLEGAL**. We won't help you if you do it anyway.
 
 # <a name="introduction"></a>Coding style introduction
 
