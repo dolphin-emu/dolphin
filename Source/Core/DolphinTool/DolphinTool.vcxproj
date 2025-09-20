@@ -38,6 +38,7 @@
   <Import Project="$(ExternalsDir)bzip2\exports.props" />
   <Import Project="$(ExternalsDir)cpp-optparse\exports.props" />
   <Import Project="$(ExternalsDir)fmt\exports.props" />
+  <Import Project="$(ExternalsDir)glslang\exports.props" />
   <Import Project="$(ExternalsDir)liblzma\exports.props" />
   <Import Project="$(ExternalsDir)mbedtls\exports.props" />
   <Import Project="$(ExternalsDir)picojson\exports.props" />
