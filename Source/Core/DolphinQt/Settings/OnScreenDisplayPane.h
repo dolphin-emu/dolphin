@@ -35,6 +35,7 @@ private:
   ConfigInteger* m_graph_update_rate;
 
   // Movie window
+  ConfigBool* m_movie_window;
   ConfigBool* m_rerecord_counter;
   ConfigBool* m_lag_counter;
   ConfigBool* m_frame_counter;

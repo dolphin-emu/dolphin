@@ -132,6 +132,8 @@ signals:
   void RecordingStatusChanged(bool recording);
   void ReadOnlyModeChanged(bool read_only);
 
+  void ConfigureOSD();
+
 private:
   void OnEmulationStateChanged(Core::State state);
   void OnConfigChanged();
@@ -251,6 +253,7 @@ private:
   QAction* m_recording_start;
   QAction* m_recording_stop;
   QAction* m_recording_read_only;
+  QAction* m_movie_window;
 
   // Options
   QAction* m_boot_to_pause;

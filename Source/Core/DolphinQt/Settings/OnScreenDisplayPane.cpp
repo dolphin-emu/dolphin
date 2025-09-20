@@ -67,6 +67,7 @@ void OnScreenDisplayPane::CreateLayout()
   auto* movie_layout = new QGridLayout();
   movie_box->setLayout(movie_layout);
 
+  m_movie_window = new ConfigBool(tr("Show Movie Window"), Config::MAIN_MOVIE_SHOW_OSD);
   m_rerecord_counter =
       new ConfigBool(tr("Show Rerecord Counter"), Config::MAIN_MOVIE_SHOW_RERECORD);
   m_lag_counter = new ConfigBool(tr("Show Lag Counter"), Config::MAIN_SHOW_LAG);
@@ -74,11 +75,12 @@ void OnScreenDisplayPane::CreateLayout()
   m_input_display = new ConfigBool(tr("Show Input Display"), Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY);
   m_system_clock = new ConfigBool(tr("Show System Clock"), Config::MAIN_MOVIE_SHOW_RTC);
 
-  movie_layout->addWidget(m_rerecord_counter, 0, 0);
-  movie_layout->addWidget(m_lag_counter, 0, 1);
-  movie_layout->addWidget(m_frame_counter, 1, 0);
-  movie_layout->addWidget(m_input_display, 1, 1);
-  movie_layout->addWidget(m_system_clock, 2, 0);
+  movie_layout->addWidget(m_movie_window, 0, 0);
+  movie_layout->addWidget(m_rerecord_counter, 1, 0);
+  movie_layout->addWidget(m_lag_counter, 1, 1);
+  movie_layout->addWidget(m_frame_counter, 2, 0);
+  movie_layout->addWidget(m_input_display, 2, 1);
+  movie_layout->addWidget(m_system_clock, 3, 0);
 
   // NetPlay
   auto* netplay_box = new QGroupBox(tr("Netplay"));
@@ -197,6 +199,10 @@ void OnScreenDisplayPane::AddDescriptions()
                  "while playing NetPlay.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
 
+  static const char TR_MOVIE_WINDOW_DESCRIPTION[] =
+      QT_TR_NOOP("Shows a window that can be filled with information related to movie recordings. "
+                 "The other options in this group determine what appears in the window. "
+                 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_RERECORD_COUNTER_DESCRIPTION[] =
       QT_TR_NOOP("Shows how many times the input recording has been overwritten by using "
                  "savestates.<br><br><dolphin_emphasis>If unsure, leave "
@@ -237,6 +243,7 @@ void OnScreenDisplayPane::AddDescriptions()
   m_show_ping->SetDescription(tr(TR_SHOW_NETPLAY_PING_DESCRIPTION));
   m_show_chat->SetDescription(tr(TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION));
 
+  m_movie_window->SetDescription(tr(TR_MOVIE_WINDOW_DESCRIPTION));
   m_rerecord_counter->SetDescription(tr(TR_RERECORD_COUNTER_DESCRIPTION));
   m_lag_counter->SetDescription(tr(TR_LAG_COUNTER_DESCRIPTION));
   m_frame_counter->SetDescription(tr(TR_FRAME_COUNTER_DESCRIPTION));
