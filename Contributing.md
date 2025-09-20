@@ -2,6 +2,7 @@
 
 - [Legal](#legal)
 - [Coding style introduction](#introduction)
+- [Before You Start](#prerequisites)
 - [C++ coding style and formatting](#cpp-coding-style-and-formatting)
 - [C++ code-specific guidelines](#cpp-code-specific-guidelines)
 - [Android](#android)
@@ -25,6 +26,18 @@ Also, this probably goes without saying, but piracy is strictly forbidden both o
 ## <a name="code-licensing"></a>Code licensing
 
 If you make any contributions to Dolphin after December 1st, 2014, you are agreeing that any code you have contributed will be licensed under the GNU GPL version 2 (or any later version).
+
+# <a name="prerequisites">Before You Start
+
+This is an emulator, that means that it runs games by emulating other hardware (In this case, the Wii and Gamecube). In order to contribute, you will need to understand how these consoles work. You can learn this by:
+ - Searching on the web how they work (for example, [on WiiBrew](https://wiibrew.org/wiki/Main_Page)).
+ - Manually reverse engineering the Wii/Gamecube console (we will not help you with this).
+ - Asking for help from tech-savy people dedicated to console hardware.
+We advise you to please do not: 
+ - [**Attempt to Learn or find Trade Secrets**](#trade-secrets).
+ - Break DRM for reverse engineering.
+ - Redistribute Nintendo's soft/firmware.
+These are all **ILLEGAL**. We won't help you if you do it anyway, and we ask you never contribute do Dolphin.
 
 # <a name="introduction"></a>Coding style introduction
 
