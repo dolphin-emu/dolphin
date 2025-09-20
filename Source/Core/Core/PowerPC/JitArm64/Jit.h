@@ -114,7 +114,6 @@ public:
   void rlwimix(UGeckoInstruction inst);
   void subfex(UGeckoInstruction inst);
   void subfzex(UGeckoInstruction inst);
-  void subfcx(UGeckoInstruction inst);
   void subfic(UGeckoInstruction inst);
   void addex(UGeckoInstruction inst);
   void divwux(UGeckoInstruction inst);
