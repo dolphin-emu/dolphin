@@ -29,7 +29,7 @@ If you make any contributions to Dolphin after December 1st, 2014, you are agree
 
 # <a name="prerequisites">Before You Start
 
-This is an emulator, that means that it runs games by emulating other hardware (In this case, the Wii and Gamecube). In order to contribute, you will need to understand how these consoles work. You can learn this by:
+This is an emulator, that means that it runs games by emulating other hardware (in this case, the Wii and GameCube). In order to contribute, you will need to understand how these consoles work. You can learn this by:
  - Searching on the web how they work (for example, [on WiiBrew](https://wiibrew.org/wiki/Main_Page)).
  - Manually reverse engineering the Wii/Gamecube console (we will not help you with this).
  - Asking for help from tech-savy people dedicated to console hardware.
