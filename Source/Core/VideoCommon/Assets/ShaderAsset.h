@@ -10,7 +10,7 @@
 #include <string_view>
 #include <variant>
 
-#include <picojson.h>
+#include <nlohmann/json_fwd.hpp>
 
 #include "VideoCommon/Assets/CustomAsset.h"
 #include "VideoCommon/TextureConfig.h"
@@ -45,9 +45,9 @@ struct ShaderProperty
 
 struct RasterSurfaceShaderData
 {
-  static bool FromJson(const CustomAssetLibrary::AssetID& asset_id, const picojson::object& json,
+  static bool FromJson(const CustomAssetLibrary::AssetID& asset_id, const nlohmann::json& json,
                        RasterSurfaceShaderData* data);
-  static void ToJson(picojson::object& obj, const RasterSurfaceShaderData& data);
+  static void ToJson(nlohmann::json& obj, const RasterSurfaceShaderData& data);
 
   // These shader properties describe the input that the
   // shader expects to expose.  The key is text

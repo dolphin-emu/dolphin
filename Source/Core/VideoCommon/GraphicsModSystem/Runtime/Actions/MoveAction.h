@@ -6,7 +6,7 @@
 #include <memory>
 #include <string_view>
 
-#include <picojson.h>
+#include <nlohmann/json_fwd.hpp>
 
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModAction.h"
 
@@ -14,7 +14,7 @@ class MoveAction final : public GraphicsModAction
 {
 public:
   static constexpr std::string_view factory_name = "move";
-  static std::unique_ptr<MoveAction> Create(const picojson::value& json_data);
+  static std::unique_ptr<MoveAction> Create(const nlohmann::json& json_data);
   explicit MoveAction(Common::Vec3 position_offset);
   void OnProjection(GraphicsModActionData::Projection* projection) override;
   void OnProjectionAndTexture(GraphicsModActionData::Projection* projection) override;

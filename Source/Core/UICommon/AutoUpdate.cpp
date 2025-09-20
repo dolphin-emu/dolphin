@@ -7,12 +7,13 @@
 #include <string>
 
 #include <fmt/format.h>
-#include <picojson.h>
+#include <nlohmann/json.hpp>
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
+#include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -97,41 +98,59 @@ void CleanupFromPreviousUpdate()
 
 // This ignores i18n because most of the text in there (change descriptions) is only going to be
 // written in english anyway.
-std::string GenerateChangelog(const picojson::array& versions)
+std::string GenerateChangelog(const nlohmann::json& versions)
 {
   std::string changelog;
   for (const auto& ver : versions)
   {
-    if (!ver.is<picojson::object>())
+    if (!ver.is_object())
       continue;
-    picojson::object ver_obj = ver.get<picojson::object>();
 
-    if (ver_obj["changelog_html"].is<picojson::null>())
+    auto shortrev = ReadStringFromJson(ver, "shortrev");
+    if (!shortrev)
+      continue;
+
+    if (const auto changelog_html = ReadStringFromJson(ver, "changelog_html"))
+    {
+      if (!changelog.empty())
+        changelog += "<hr>";
+      changelog += "<b>Dolphin " + *shortrev + "</b>";
+      changelog += "<p>" + *changelog_html + "</p>";
+    }
+    else
     {
       if (!changelog.empty())
         changelog += "<div style=\"margin-top: 0.4em;\"></div>";  // Vertical spacing.
 
       // Try to link to the PR if we have this info. Otherwise just show shortrev.
-      if (ver_obj["pr_url"].is<std::string>())
+      if (const auto pr_url = ReadStringFromJson(ver, "pr_url"))
       {
-        changelog += "<a href=\"" + ver_obj["pr_url"].get<std::string>() + "\">" +
-                     ver_obj["shortrev"].get<std::string>() + "</a>";
+        changelog += "<a href=\"" + *pr_url + "\">" + *shortrev + "</a>";
       }
       else
       {
-        changelog += ver_obj["shortrev"].get<std::string>();
+        changelog += *shortrev;
       }
-      const std::string escaped_description =
-          Common::GetEscapedHtml(ver_obj["short_descr"].get<std::string>());
-      changelog += " by <a href = \"" + ver_obj["author_url"].get<std::string>() + "\">" +
-                   ver_obj["author"].get<std::string>() + "</a> &mdash; " + escaped_description;
-    }
-    else
-    {
-      if (!changelog.empty())
-        changelog += "<hr>";
-      changelog += "<b>Dolphin " + ver_obj["shortrev"].get<std::string>() + "</b>";
-      changelog += "<p>" + ver_obj["changelog_html"].get<std::string>() + "</p>";
+
+      // Theoretically none of the values below should be missing.
+      auto author = ReadStringFromJson(ver, "author").value_or("Unknown Author");
+
+      changelog += " by ";
+
+      if (const auto author_url = ReadStringFromJson(ver, "author_url")) [[likely]]
+      {
+        changelog += "<a href=\"" + *author_url + "\">" + author + "</a>";
+      }
+      else [[unlikely]]
+      {
+        changelog += author;
+      }
+
+      if (auto desc = Common::GetEscapedHtml(ReadStringFromJson(ver, "short_descr").value_or(""));
+          !desc.empty()) [[likely]]
+      {
+        changelog += " &mdash; " + desc;
+      }
     }
   }
   return changelog;
@@ -211,16 +230,14 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
   const std::string contents(reinterpret_cast<char*>(resp->data()), resp->size());
   INFO_LOG_FMT(COMMON, "Auto-update JSON response: {}", contents);
 
-  picojson::value json;
-  const std::string err = picojson::parse(json, contents);
-  if (!err.empty())
+  nlohmann::json json = nlohmann::json::parse(contents, nullptr, false);
+  if (json.is_discarded())
   {
-    CriticalAlertFmtT("Invalid JSON received from auto-update service : {0}", err);
+    CriticalAlertFmtT("Invalid JSON received from auto-update service : {0}", contents);
     return;
   }
-  picojson::object obj = json.get<picojson::object>();
 
-  if (obj["status"].get<std::string>() != "outdated")
+  if (json["status"].get<std::string>() != "outdated")
   {
     if (is_manual_check)
       SuccessAlertFmtT("You are running the latest version available on this update track.");
@@ -229,14 +246,14 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
   }
 
   NewVersionInformation nvi;
-  nvi.this_manifest_url = obj["old"].get<picojson::object>()["manifest"].get<std::string>();
-  nvi.next_manifest_url = obj["new"].get<picojson::object>()["manifest"].get<std::string>();
-  nvi.content_store_url = obj["content-store"].get<std::string>();
-  nvi.new_shortrev = obj["new"].get<picojson::object>()["name"].get<std::string>();
-  nvi.new_hash = obj["new"].get<picojson::object>()["hash"].get<std::string>();
+  nvi.this_manifest_url = json["old"]["manifest"].get<std::string>();
+  nvi.next_manifest_url = json["new"]["manifest"].get<std::string>();
+  nvi.content_store_url = json["content-store"].get<std::string>();
+  nvi.new_shortrev = json["new"]["name"].get<std::string>();
+  nvi.new_hash = json["new"]["hash"].get<std::string>();
 
   // TODO: generate the HTML changelog from the JSON information.
-  nvi.changelog_html = GenerateChangelog(obj["changelog"].get<picojson::array>());
+  nvi.changelog_html = GenerateChangelog(json["changelog"]);
 
   if (std::getenv("DOLPHIN_UPDATE_TEST_DONE"))
   {

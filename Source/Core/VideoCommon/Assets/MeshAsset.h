@@ -9,7 +9,7 @@
 #include <string>
 #include <string_view>
 
-#include <picojson.h>
+#include <nlohmann/json_fwd.hpp>
 
 #include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
@@ -43,9 +43,9 @@ struct MeshDataChunk
 
 struct MeshData
 {
-  static bool FromJson(const CustomAssetLibrary::AssetID& asset_id, const picojson::object& json,
+  static bool FromJson(const CustomAssetLibrary::AssetID& asset_id, const nlohmann::json& json,
                        MeshData* data);
-  static void ToJson(picojson::object& obj, const MeshData& data);
+  static void ToJson(nlohmann::json& obj, const MeshData& data);
 
   static bool FromDolphinMesh(std::span<const u8> raw_data, MeshData* data);
 

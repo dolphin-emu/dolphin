@@ -185,6 +185,7 @@ PRIVATE
   CURL::libcurl
   FatFs
   Iconv::Iconv
+  nlohmann_json::nlohmann_json
   spng::spng
   watcher
   ${VTUNE_LIBRARIES}

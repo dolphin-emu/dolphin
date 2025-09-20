@@ -7,10 +7,11 @@
 #include <numeric>
 #include <string>
 
-#include <picojson.h>
+#include <nlohmann/json.hpp>
 
 #include "Common/Common.h"
 #include "Common/HttpRequest.h"
+#include "Common/JsonUtil.h"
 #include "Common/Thread.h"
 #include "Common/Version.h"
 
@@ -24,16 +25,13 @@ NetPlayIndex::~NetPlayIndex()
     Remove();
 }
 
-static std::optional<picojson::value> ParseResponse(const std::vector<u8>& response)
+static std::optional<nlohmann::json> ParseResponse(const std::vector<u8>& response)
 {
   const std::string response_string(reinterpret_cast<const char*>(response.data()),
                                     response.size());
 
-  picojson::value json;
-
-  const auto error = picojson::parse(json, response_string);
-
-  if (!error.empty())
+  nlohmann::json json = nlohmann::json::parse(response_string, nullptr, false);
+  if (json.is_discarded())
     return {};
 
   return json;
@@ -72,50 +70,48 @@ NetPlayIndex::List(const std::map<std::string, std::string>& filters)
     return {};
   }
 
-  const auto& status = json->get("status");
+  const auto& status = json->at("status");
 
-  if (status.to_str() != "OK")
+  if (status.get<std::string>() != "OK")
   {
-    m_last_error = status.to_str();
+    m_last_error = status.get<std::string>();
     return {};
   }
 
-  const auto& entries = json->get("sessions");
+  const auto& entries = json->at("sessions");
 
   std::vector<NetPlaySession> sessions;
 
-  for (const auto& entry : entries.get<picojson::array>())
+  for (const auto& entry : entries)
   {
-    const auto& name = entry.get("name");
-    const auto& region = entry.get("region");
-    const auto& method = entry.get("method");
-    const auto& game_id = entry.get("game");
-    const auto& server_id = entry.get("server_id");
-    const auto& has_password = entry.get("password");
-    const auto& player_count = entry.get("player_count");
-    const auto& port = entry.get("port");
-    const auto& in_game = entry.get("in_game");
-    const auto& version = entry.get("version");
+    const auto& name = ReadStringFromJson(entry, "name");
+    const auto& region = ReadStringFromJson(entry, "region");
+    const auto& method = ReadStringFromJson(entry, "method");
+    const auto& game_id = ReadStringFromJson(entry, "game");
+    const auto& server_id = ReadStringFromJson(entry, "server_id");
+    const auto& has_password = ReadBoolFromJson(entry, "password");
+    const auto& player_count = ReadNumericFromJson<int>(entry, "player_count");
+    const auto& port = ReadNumericFromJson<int>(entry, "port");
+    const auto& in_game = ReadBoolFromJson(entry, "in_game");
+    const auto& version = ReadStringFromJson(entry, "version");
 
-    if (!name.is<std::string>() || !region.is<std::string>() || !method.is<std::string>() ||
-        !server_id.is<std::string>() || !game_id.is<std::string>() || !has_password.is<bool>() ||
-        !player_count.is<double>() || !port.is<double>() || !in_game.is<bool>() ||
-        !version.is<std::string>())
+    if (!name || !region || !method || !game_id || !server_id || !has_password || !player_count ||
+        !port || !in_game || !version)
     {
       continue;
     }
 
     NetPlaySession session;
-    session.name = name.to_str();
-    session.region = region.to_str();
-    session.game_id = game_id.to_str();
-    session.server_id = server_id.to_str();
-    session.method = method.to_str();
-    session.version = version.to_str();
-    session.has_password = has_password.get<bool>();
-    session.player_count = static_cast<int>(player_count.get<double>());
-    session.port = static_cast<int>(port.get<double>());
-    session.in_game = in_game.get<bool>();
+    session.name = *name;
+    session.region = *region;
+    session.game_id = *game_id;
+    session.server_id = *server_id;
+    session.method = *method;
+    session.version = *version;
+    session.has_password = *has_password;
+    session.player_count = *player_count;
+    session.port = *port;
+    session.in_game = *in_game;
 
     sessions.push_back(std::move(session));
   }
@@ -147,7 +143,7 @@ void NetPlayIndex::NotificationLoop()
       return;
     }
 
-    std::string status = json->get("status").to_str();
+    std::string status = json->at("status").get<std::string>();
 
     if (status != "OK")
     {
@@ -187,7 +183,7 @@ bool NetPlayIndex::Add(const NetPlaySession& session)
     return false;
   }
 
-  std::string status = json->get("status").to_str();
+  std::string status = json->at("status").get<std::string>();
 
   if (status != "OK")
   {
@@ -195,7 +191,7 @@ bool NetPlayIndex::Add(const NetPlaySession& session)
     return false;
   }
 
-  m_secret = json->get("secret").to_str();
+  m_secret = json->at("secret").get<std::string>();
   m_in_game = session.in_game;
   m_player_count = session.player_count;
   m_game = session.game_id;

@@ -7,6 +7,7 @@
 #include <array>
 #include <utility>
 
+#include <nlohmann/json.hpp>
 #include <tinygltf/tiny_gltf.h>
 
 #include "Common/IOFile.h"
@@ -472,11 +473,12 @@ bool ReadGLTF(std::string_view mesh_file, const tinygltf::Model& model, MeshData
 }
 }  // namespace
 bool MeshData::FromJson(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
-                        const picojson::object& json, MeshData* data)
+                        const nlohmann::json& json, MeshData* data)
 {
-  if (const auto iter = json.find("material_mapping"); iter != json.end())
+  if (auto it = json.find("material_mapping"); it != json.end())
   {
-    if (!iter->second.is<picojson::object>())
+    const auto& material_mapping = *it;
+    if (!material_mapping.is_object())
     {
       ERROR_LOG_FMT(
           VIDEO,
@@ -485,9 +487,9 @@ bool MeshData::FromJson(const VideoCommon::CustomAssetLibrary::AssetID& asset_id
       return false;
     }
 
-    for (const auto& [material_name, asset_id_json] : iter->second.get<picojson::object>())
+    for (const auto& [material_name, asset_id_json] : material_mapping.items())
     {
-      if (!asset_id_json.is<std::string>())
+      if (!asset_id_json.is_string())
       {
         ERROR_LOG_FMT(
             VIDEO,
@@ -496,20 +498,20 @@ bool MeshData::FromJson(const VideoCommon::CustomAssetLibrary::AssetID& asset_id
         return false;
       }
 
-      data->m_mesh_material_to_material_asset_id[material_name] = asset_id_json.to_str();
+      data->m_mesh_material_to_material_asset_id[material_name] = asset_id_json.get<std::string>();
     }
   }
   return true;
 }
 
-void MeshData::ToJson(picojson::object& obj, const MeshData& data)
+void MeshData::ToJson(nlohmann::json& obj, const MeshData& data)
 {
-  picojson::object material_mapping;
+  nlohmann::json material_mapping;
   for (const auto& [material_name, asset_id] : data.m_mesh_material_to_material_asset_id)
   {
-    material_mapping.emplace(material_name, asset_id);
+    material_mapping[material_name] = asset_id;
   }
-  obj.emplace("material_mapping", std::move(material_mapping));
+  obj["material_mapping"] = std::move(material_mapping);
 }
 
 bool MeshData::FromDolphinMesh(std::span<const u8> raw_data, MeshData* data)

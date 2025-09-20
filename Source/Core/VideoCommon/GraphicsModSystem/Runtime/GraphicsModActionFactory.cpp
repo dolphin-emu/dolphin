@@ -3,6 +3,8 @@
 
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionFactory.h"
 
+#include <nlohmann/json.hpp>
+
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/CustomPipelineAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/MoveAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/PrintAction.h"
@@ -11,7 +13,7 @@
 
 namespace GraphicsModActionFactory
 {
-std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson::value& json_data,
+std::unique_ptr<GraphicsModAction> Create(std::string_view name, const nlohmann::json& json_data,
                                           std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
 {
   if (name == PrintAction::factory_name)

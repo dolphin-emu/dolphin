@@ -9,7 +9,7 @@
 
 #include <fmt/format.h>
 #include <gtest/gtest.h>
-#include <picojson.h>
+#include <nlohmann/json.hpp>
 
 #include "Common/BitUtils.h"
 #include "Common/CommonPaths.h"
@@ -40,7 +40,7 @@ void ReadVerified(const Common::IniFile& ini, const std::string& filename,
 TEST(PatchAllowlist, VerifyHashes)
 {
   // Iterate over GameSettings directory
-  picojson::object new_allowlist;
+  nlohmann::json new_allowlist;
   std::string cur_directory = File::GetExeDirectory()
 #if defined(__APPLE__)
                               + DIR_SEP "Tests"  // FIXME: Ugly hack.
@@ -52,7 +52,7 @@ TEST(PatchAllowlist, VerifyHashes)
   for (const auto& file : directory.children)
   {
     // Load ini file
-    picojson::object approved;
+    nlohmann::json approved;
     Common::IniFile ini_file;
     ini_file.Load(file.physicalName, true);
     std::string game_id = file.virtualName.substr(0, file.virtualName.find_first_of('.'));
@@ -85,7 +85,7 @@ TEST(PatchAllowlist, VerifyHashes)
         context->Update(Common::BitCastToArray<u8>(entry.conditional));
       }
       auto digest = context->Finish();
-      approved[patch.name] = picojson::value(Common::SHA1::DigestToString(digest));
+      approved[patch.name] = Common::SHA1::DigestToString(digest);
     }
     // Iterate over approved geckos
     for (const auto& code : geckos)
@@ -101,7 +101,7 @@ TEST(PatchAllowlist, VerifyHashes)
         context->Update(Common::BitCastToArray<u8>(entry.data));
       }
       auto digest = context->Finish();
-      approved[code.name] = picojson::value(Common::SHA1::DigestToString(digest));
+      approved[code.name] = Common::SHA1::DigestToString(digest);
     }
     // Iterate over approved AR codes
     for (const auto& code : action_replays)
@@ -117,15 +117,15 @@ TEST(PatchAllowlist, VerifyHashes)
         context->Update(Common::BitCastToArray<u8>(entry.value));
       }
       auto digest = context->Finish();
-      approved[code.name] = picojson::value(Common::SHA1::DigestToString(digest));
+      approved[code.name] = Common::SHA1::DigestToString(digest);
     }
     // Add approved patches and codes to tree
     if (!approved.empty())
-      new_allowlist[game_id] = picojson::value(approved);
+      new_allowlist[game_id] = approved;
   }
 
   // Hash new allowlist
-  std::string new_allowlist_str = picojson::value(new_allowlist).serialize();
+  std::string new_allowlist_str = new_allowlist.dump();
   auto context = Common::SHA1::CreateContext();
   context->Update(new_allowlist_str);
   auto digest = context->Finish();
@@ -146,7 +146,7 @@ TEST(PatchAllowlist, VerifyHashes)
     static constexpr std::string_view NEW_APPROVED_LIST_FILENAME = "New-ApprovedInis.json";
     const auto& new_list_filepath =
         fmt::format("{}{}{}", sys_directory, DIR_SEP, NEW_APPROVED_LIST_FILENAME);
-    if (!JsonToFile(new_list_filepath, picojson::value(new_allowlist), false))
+    if (!JsonToFile(new_list_filepath, new_allowlist, false))
     {
       ADD_FAILURE() << "Failed to write new approved list to " << list_filepath;
     }

@@ -7,6 +7,8 @@
 #include <string_view>
 #include <variant>
 
+#include <nlohmann/json.hpp>
+
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/VariantUtil.h"
@@ -242,8 +244,7 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
     for (const GraphicsModFeatureConfig& feature : mod.m_features)
     {
       const auto create_action =
-          [filesystem_library](const std::string_view& action_name,
-                               const picojson::value& json_data,
+          [filesystem_library](const std::string_view& action_name, const nlohmann::json& json_data,
                                GraphicsModConfig mod_config) -> std::unique_ptr<GraphicsModAction> {
         auto action =
             GraphicsModActionFactory::Create(action_name, json_data, std::move(filesystem_library));

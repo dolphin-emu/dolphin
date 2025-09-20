@@ -8,7 +8,7 @@
 #include <string_view>
 #include <vector>
 
-#include <picojson.h>
+#include <nlohmann/json_fwd.hpp>
 
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/CustomPipeline.h"
@@ -24,8 +24,7 @@ public:
 
   static constexpr std::string_view factory_name = "custom_pipeline";
   static std::unique_ptr<CustomPipelineAction>
-  Create(const picojson::value& json_data,
-         std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
+  Create(const nlohmann::json& json_data, std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
   static std::unique_ptr<CustomPipelineAction>
   Create(std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
   explicit CustomPipelineAction(std::shared_ptr<VideoCommon::CustomAssetLibrary> library);

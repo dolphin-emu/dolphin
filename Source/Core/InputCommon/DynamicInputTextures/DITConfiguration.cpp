@@ -7,7 +7,7 @@
 #include <sstream>
 #include <string>
 
-#include <picojson.h>
+#include <nlohmann/json.hpp>
 
 #include "Common/CommonPaths.h"
 #include "Common/IniFile.h"
@@ -23,7 +23,7 @@ namespace InputCommon::DynamicInputTextures
 {
 Configuration::Configuration(const std::string& json_path)
 {
-  picojson::value root;
+  nlohmann::json root;
   std::string error;
   if (!JsonFromFile(json_path, &root, &error))
   {
@@ -35,22 +35,20 @@ Configuration::Configuration(const std::string& json_path)
 
   SplitPath(json_path, &m_base_path, nullptr, nullptr);
 
-  const picojson::value& specification_json = root.get("specification");
   u8 specification = 1;
-  if (specification_json.is<double>())
+  if (const auto spec_from_json = ReadNumericFromJson<double>(root, "specification"))
   {
-    const double spec_from_json = specification_json.get<double>();
-    if (spec_from_json < static_cast<double>(std::numeric_limits<u8>::min()) ||
-        spec_from_json > static_cast<double>(std::numeric_limits<u8>::max()))
+    if (*spec_from_json < static_cast<double>(std::numeric_limits<u8>::min()) ||
+        *spec_from_json > static_cast<double>(std::numeric_limits<u8>::max()))
     {
       ERROR_LOG_FMT(
           VIDEO,
           "Failed to load dynamic input json file '{}', specification '{}' is not within bounds",
-          json_path, spec_from_json);
+          json_path, *spec_from_json);
       m_valid = false;
       return;
     }
-    specification = static_cast<u8>(spec_from_json);
+    specification = static_cast<u8>(*spec_from_json);
   }
 
   if (specification != 1)

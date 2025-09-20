@@ -7,7 +7,7 @@
 #include <string>
 #include <variant>
 
-#include <picojson.h>
+#include <nlohmann/json_fwd.hpp>
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/TextureDecoder.h"
@@ -55,8 +55,8 @@ using GraphicsTargetConfig =
     std::variant<DrawStartedTextureTarget, LoadTextureTarget, CreateTextureTarget, EFBTarget,
                  XFBTarget, ProjectionTarget>;
 
-void SerializeTargetToConfig(picojson::object& json_obj, const GraphicsTargetConfig& target);
-std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const picojson::object& obj);
+void SerializeTargetToConfig(nlohmann::json& json_obj, const GraphicsTargetConfig& target);
+std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const nlohmann::json& obj);
 
-void SerializeTargetToProfile(picojson::object* obj, const GraphicsTargetConfig& target);
-void DeserializeTargetFromProfile(const picojson::object& obj, GraphicsTargetConfig* target);
+void SerializeTargetToProfile(nlohmann::json* obj, const GraphicsTargetConfig& target);
+void DeserializeTargetFromProfile(const nlohmann::json& obj, GraphicsTargetConfig* target);

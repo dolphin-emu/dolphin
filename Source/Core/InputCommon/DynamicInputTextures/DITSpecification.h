@@ -6,12 +6,12 @@
 #include <string>
 #include <vector>
 
-#include <picojson.h>
+#include <nlohmann/json_fwd.hpp>
 
 #include "InputCommon/DynamicInputTextures/DITData.h"
 
 namespace InputCommon::DynamicInputTextures
 {
-bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_textures,
+bool ProcessSpecificationV1(nlohmann::json& root, std::vector<Data>& input_textures,
                             const std::string& base_path, const std::string& json_file);
 }
