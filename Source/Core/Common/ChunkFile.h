@@ -32,7 +32,6 @@
 #include "Common/EnumMap.h"
 #include "Common/Flag.h"
 #include "Common/Inline.h"
-#include "Common/Logging/Log.h"
 
 // Wrapper class
 class PointerWrap
@@ -195,13 +194,15 @@ public:
     DoArray(x.data(), static_cast<u32>(x.size()));
   }
 
-  template <typename T, typename std::enable_if_t<std::is_trivially_copyable_v<T>, int> = 0>
+  template <typename T>
+  requires(std::is_trivially_copyable_v<T>)
   void DoArray(T* x, u32 count)
   {
     DoVoid(x, count * sizeof(T));
   }
 
-  template <typename T, typename std::enable_if_t<!std::is_trivially_copyable_v<T>, int> = 0>
+  template <typename T>
+  requires(!std::is_trivially_copyable_v<T>)
   void DoArray(T* x, u32 count)
   {
     for (u32 i = 0; i < count; ++i)
