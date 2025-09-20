@@ -6,13 +6,11 @@
 #include <cstddef>
 #include <map>
 #include <optional>
-#include <tuple>
 
 #include <rangeset/rangesizeset.h>
 
 #include "Common/Arm64Emitter.h"
 
-#include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/JitArm64/JitArm64Cache.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitArmCommon/BackPatch.h"
