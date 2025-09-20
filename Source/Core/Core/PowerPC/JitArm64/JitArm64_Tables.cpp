@@ -101,7 +101,7 @@ constexpr std::array<JitArm64OpTemplate, 13> s_table4{{
     {592, &JitArm64::ps_mergeXX},  // ps_merge10
     {624, &JitArm64::ps_mergeXX},  // ps_merge11
 
-    {1014, &JitArm64::FallBackToInterpreter},  // dcbz_l
+    {1014, &JitArm64::dcbz},  // dcbz_l
 }};
 
 constexpr std::array<JitArm64OpTemplate, 17> s_table4_2{{
