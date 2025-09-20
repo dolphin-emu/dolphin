@@ -356,6 +356,7 @@ void MappingWindow::OnSelectDevice(int)
   const auto device = m_devices_combo->currentData().toString().toStdString();
 
   m_controller->SetDefaultDevice(device);
+  m_controller->LoadDefaultBindings();
 
   emit ConfigChanged();
   m_controller->UpdateReferences(g_controller_interface);

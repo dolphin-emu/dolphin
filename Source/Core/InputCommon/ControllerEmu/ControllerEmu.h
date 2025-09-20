@@ -240,6 +240,7 @@ public:
   virtual InputConfig* GetConfig() const = 0;
 
   virtual void LoadDefaults(const ControllerInterface& ciface);
+  virtual void LoadDefaultBindings();
 
   void LoadConfig(Common::IniFile::Section* sec);
   void SaveConfig(Common::IniFile::Section* sec);

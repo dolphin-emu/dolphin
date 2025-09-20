@@ -154,6 +154,12 @@ void EmulatedController::LoadDefaults(const ControllerInterface& ciface)
   {
     SetDefaultDevice(default_device_string);
   }
+
+  LoadDefaultBindings();
+}
+
+void EmulatedController::LoadDefaultBindings()
+{
 }
 
 void ControlGroupContainer::SetInputOverrideFunction(InputOverrideFunction override_func)

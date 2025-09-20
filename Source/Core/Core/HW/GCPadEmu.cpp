@@ -174,10 +174,21 @@ void GCPad::SetOutput(const ControlState strength)
   m_rumble->controls[0]->control_ref->State(strength);
 }
 
-void GCPad::LoadDefaults(const ControllerInterface& ciface)
+void GCPad::LoadDefaultBindings()
 {
-  EmulatedController::LoadDefaults(ciface);
+  const auto& default_device = GetDefaultDevice();
+  if (default_device.source == "SDL" && !default_device.name.empty())
+  {
+    SetupSDLGamepadBindings();
+  }
+  else
+  {
+    SetupGamepadBindings();
+  }
+}
 
+void GCPad::SetupGamepadBindings()
+{
 #ifdef ANDROID
   // Rumble
   m_rumble->SetControlExpression(0, "`Android/0/Device Sensors:Motor 0`");
@@ -238,6 +249,50 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   m_triggers->SetControlExpression(0, "`Q`");  // L
   m_triggers->SetControlExpression(1, "`W`");  // R
 #endif
+}
+
+void GCPad::SetupSDLGamepadBindings()
+{
+  // Set up automatic SDL gamepad bindings for GameCube controller
+
+  // Buttons: Map to SDL face buttons (South/East/West/North)
+  m_buttons->SetControlExpression(0, "`Button S`");    // A -> South (typically bottom button)
+  m_buttons->SetControlExpression(1, "`Button E`");    // B -> East (typically right button)
+  m_buttons->SetControlExpression(2, "`Button W`");    // X -> West (typically left button)
+  m_buttons->SetControlExpression(3, "`Button N`");    // Y -> North (typically top button)
+  m_buttons->SetControlExpression(4, "`Shoulder R`");  // Z -> Right shoulder button
+  m_buttons->SetControlExpression(5, "`Start`");       // Start -> Start button
+
+  // D-Pad: Map to SDL D-pad
+  m_dpad->SetControlExpression(0, "`Pad N`");  // Up
+  m_dpad->SetControlExpression(1, "`Pad S`");  // Down
+  m_dpad->SetControlExpression(2, "`Pad W`");  // Left
+  m_dpad->SetControlExpression(3, "`Pad E`");  // Right
+
+  // Main Stick: Map to SDL left analog stick
+  m_main_stick->SetControlExpression(0, "`Left Y+`");  // Up
+  m_main_stick->SetControlExpression(1, "`Left Y-`");  // Down
+  m_main_stick->SetControlExpression(2, "`Left X-`");  // Left
+  m_main_stick->SetControlExpression(3, "`Left X+`");  // Right
+  m_main_stick->SetControlExpression(4, "`Thumb L`");  // Left Stick Button
+  m_main_stick->SetCalibrationFromGate(ControllerEmu::RoundStickGate(1.0));
+
+  // C-Stick: Map to SDL right analog stick
+  m_c_stick->SetControlExpression(0, "`Right Y+`");  // Up
+  m_c_stick->SetControlExpression(1, "`Right Y-`");  // Down
+  m_c_stick->SetControlExpression(2, "`Right X-`");  // Left
+  m_c_stick->SetControlExpression(3, "`Right X+`");  // Right
+  m_c_stick->SetControlExpression(4, "`Thumb R`");   // Right Stick Button
+  m_c_stick->SetCalibrationFromGate(ControllerEmu::RoundStickGate(1.0));
+
+  // Triggers: Map to SDL triggers
+  m_triggers->SetControlExpression(0, "`Trigger L`");  // L Digital
+  m_triggers->SetControlExpression(1, "`Trigger R`");  // R Digital
+  m_triggers->SetControlExpression(2, "`Trigger L`");  // L Analog
+  m_triggers->SetControlExpression(3, "`Trigger R`");  // R Analog
+
+  // Rumble: Map to SDL rumble
+  m_rumble->SetControlExpression(0, "`Motor`");  // Rumble
 }
 
 bool GCPad::GetMicButton() const
