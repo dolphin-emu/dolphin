@@ -3,15 +3,12 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/IRPassthrough.h"
 
-#include <memory>
+#include <algorithm>
 #include <string>
 
 #include "Common/Common.h"
-#include "Common/MathUtil.h"
 
-#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/Control/Input.h"
 
 namespace ControllerEmu
 {
@@ -46,6 +43,12 @@ ControlState IRPassthrough::GetObjectPositionY(size_t object_index) const
 ControlState IRPassthrough::GetObjectSize(size_t object_index) const
 {
   return controls[object_index * 3 + 2]->GetState();
+}
+
+bool IRPassthrough::AreInputsBound() const
+{
+  return std::ranges::any_of(
+      controls, [](const auto& control) { return control->control_ref->BoundCount() > 0; });
 }
 
 }  // namespace ControllerEmu
