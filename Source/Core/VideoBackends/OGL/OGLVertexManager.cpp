@@ -22,6 +22,11 @@
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
+namespace Core
+{
+class System;
+}
+
 namespace OGL
 {
 static void CheckBufferBinding()
@@ -34,7 +39,9 @@ static void CheckBufferBinding()
   }
 }
 
-VertexManager::VertexManager() = default;
+VertexManager::VertexManager(Core::System& system) : m_system(system)
+{
+}
 
 VertexManager::~VertexManager()
 {

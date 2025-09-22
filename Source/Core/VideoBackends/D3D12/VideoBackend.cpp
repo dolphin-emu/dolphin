@@ -139,7 +139,7 @@ bool VideoBackend::Initialize(Core::System& system, const WindowSystemInfo& wsi)
 
   // Create main wrapper instances.
   auto gfx = std::make_unique<DX12::Gfx>(std::move(swap_chain), wsi.render_surface_scale);
-  auto vertex_manager = std::make_unique<DX12::VertexManager>();
+  auto vertex_manager = std::make_unique<DX12::VertexManager>(system);
   auto perf_query = std::make_unique<DX12::PerfQuery>();
   auto bounding_box = std::make_unique<DX12::D3D12BoundingBox>();
 

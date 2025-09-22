@@ -213,7 +213,7 @@ bool VideoBackend::Initialize(Core::System& system, const WindowSystemInfo& wsi)
   ProgramShaderCache::Init();
   g_sampler_cache = std::make_unique<SamplerCache>();
 
-  auto vertex_manager = std::make_unique<VertexManager>();
+  auto vertex_manager = std::make_unique<VertexManager>(system);
   auto perf_query = GetPerfQuery(gfx->IsGLES());
   auto bounding_box = std::make_unique<OGLBoundingBox>();
 

@@ -24,7 +24,9 @@
 
 namespace DX12
 {
-VertexManager::VertexManager() = default;
+VertexManager::VertexManager(Core::System& system) : m_system(system)
+{
+}
 
 VertexManager::~VertexManager() = default;
 
@@ -146,8 +148,7 @@ void VertexManager::UploadUniforms()
 
 void VertexManager::UpdateVertexShaderConstants()
 {
-  auto& system = Core::System::GetInstance();
-  auto& vertex_shader_manager = system.GetVertexShaderManager();
+  auto& vertex_shader_manager = m_system.GetVertexShaderManager();
 
   if (!vertex_shader_manager.dirty || !ReserveConstantStorage())
     return;
@@ -162,8 +163,7 @@ void VertexManager::UpdateVertexShaderConstants()
 
 void VertexManager::UpdateGeometryShaderConstants()
 {
-  auto& system = Core::System::GetInstance();
-  auto& geometry_shader_manager = system.GetGeometryShaderManager();
+  auto& geometry_shader_manager = m_system.GetGeometryShaderManager();
 
   if (!geometry_shader_manager.dirty || !ReserveConstantStorage())
     return;
@@ -178,8 +178,7 @@ void VertexManager::UpdateGeometryShaderConstants()
 
 void VertexManager::UpdatePixelShaderConstants()
 {
-  auto& system = Core::System::GetInstance();
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  auto& pixel_shader_manager = m_system.GetPixelShaderManager();
 
   if (!ReserveConstantStorage())
     return;
@@ -197,8 +196,7 @@ void VertexManager::UpdatePixelShaderConstants()
 
 void VertexManager::UpdateCustomShaderConstants()
 {
-  auto& system = Core::System::GetInstance();
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  auto& pixel_shader_manager = m_system.GetPixelShaderManager();
 
   if (!ReserveConstantStorage())
     return;
@@ -217,8 +215,7 @@ void VertexManager::UpdateCustomShaderConstants()
 
 bool VertexManager::ReserveConstantStorage()
 {
-  auto& system = Core::System::GetInstance();
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  auto& pixel_shader_manager = m_system.GetPixelShaderManager();
 
   static constexpr u32 reserve_size =
       static_cast<u32>(std::max({sizeof(PixelShaderConstants), sizeof(VertexShaderConstants),
@@ -242,8 +239,7 @@ bool VertexManager::ReserveConstantStorage()
 
 void VertexManager::UploadAllConstants()
 {
-  auto& system = Core::System::GetInstance();
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  auto& pixel_shader_manager = m_system.GetPixelShaderManager();
 
   // We are free to re-use parts of the buffer now since we're uploading all constants.
   const u32 pixel_constants_offset = 0;
@@ -278,8 +274,8 @@ void VertexManager::UploadAllConstants()
   Gfx::GetInstance()->SetConstantBuffer(3, m_uniform_stream_buffer.GetCurrentGPUPointer() +
                                                geometry_constants_offset);
 
-  auto& vertex_shader_manager = system.GetVertexShaderManager();
-  auto& geometry_shader_manager = system.GetGeometryShaderManager();
+  auto& vertex_shader_manager = m_system.GetVertexShaderManager();
+  auto& geometry_shader_manager = m_system.GetGeometryShaderManager();
 
   // Copy the actual data in
   std::memcpy(m_uniform_stream_buffer.GetCurrentHostPointer() + pixel_constants_offset,

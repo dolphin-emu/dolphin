@@ -105,7 +105,7 @@ bool VideoSoftware::Initialize(Core::System& system, const WindowSystemInfo& wsi
   Rasterizer::Init();
 
   return InitializeShared(system, std::make_unique<SWGfx>(std::move(window)),
-                          std::make_unique<SWVertexLoader>(), std::make_unique<PerfQuery>(),
+                          std::make_unique<SWVertexLoader>(system), std::make_unique<PerfQuery>(),
                           std::make_unique<SWBoundingBox>(), std::make_unique<SWEFBInterface>(),
                           std::make_unique<TextureCache>());
 }

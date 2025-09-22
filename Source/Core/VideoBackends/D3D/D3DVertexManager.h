@@ -14,6 +14,11 @@
 
 enum class ShaderAttrib : u32;
 
+namespace Core
+{
+class System;
+}
+
 namespace DX11
 {
 class D3DVertexFormat : public NativeVertexFormat
@@ -35,7 +40,7 @@ private:
 class VertexManager : public VertexManagerBase
 {
 public:
-  VertexManager();
+  VertexManager(Core::System& system);
   ~VertexManager() override;
 
   bool Initialize() override;
@@ -74,6 +79,8 @@ private:
   ComPtr<ID3D11Buffer> m_texel_buffer = nullptr;
   std::array<ComPtr<ID3D11ShaderResourceView>, NUM_TEXEL_BUFFER_FORMATS> m_texel_buffer_views;
   u32 m_texel_buffer_offset = 0;
+
+  Core::System& m_system;
 };
 
 }  // namespace DX11

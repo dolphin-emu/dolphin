@@ -10,6 +10,11 @@
 #include "VideoBackends/Vulkan/VulkanLoader.h"
 #include "VideoCommon/VertexManagerBase.h"
 
+namespace Core
+{
+class System;
+}
+
 namespace Vulkan
 {
 class StreamBuffer;
@@ -17,7 +22,7 @@ class StreamBuffer;
 class VertexManager : public VertexManagerBase
 {
 public:
-  VertexManager();
+  VertexManager(Core::System& system);
   ~VertexManager() override;
 
   bool Initialize() override;
@@ -53,5 +58,6 @@ protected:
   std::unique_ptr<StreamBuffer> m_texel_stream_buffer;
   std::array<VkBufferView, NUM_TEXEL_BUFFER_FORMATS> m_texel_buffer_views = {};
   u32 m_uniform_buffer_reserve_size = 0;
+  Core::System& m_system;
 };
 }  // namespace Vulkan
