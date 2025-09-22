@@ -69,8 +69,7 @@ void ExpansionInterfaceManager::AddMemoryCard(Slot slot)
 void ExpansionInterfaceManager::AddSP1Device()
 {
   EXIDeviceType sp1_device = EXIDeviceType::Baseboard;
-  auto& system = Core::System::GetInstance();
-  if (system.IsTriforce())
+  if (m_system.IsTriforce())
   {
     sp1_device = Config::Get(Config::MAIN_SERIAL_PORT_1);
   }
