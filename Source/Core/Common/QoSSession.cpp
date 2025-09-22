@@ -54,6 +54,15 @@ QoSSession::~QoSSession()
 #else
 QoSSession::QoSSession(ENetPeer* peer, int tos_val)
 {
+// Apple systems don't support SO_PRIORITY on BSD sockets, but they do support a flag for
+// marking sockets as a specific type of traffic. `NET_SERVICE_TYPE_RV` should roughly
+// correspond to "low delay tolerant, low-medium loss tolerant, elastic flow, variable
+// packet interval, rate and size".
+#if defined(__APPLE__)
+  constexpr int srv_type = NET_SERVICE_TYPE_RV;
+  setsockopt(peer->host->socket, SOL_SOCKET, SO_NET_SERVICE_TYPE, &srv_type, sizeof(srv_type));
+#endif
+
 #if defined(__linux__)
   constexpr int priority = 7;
   setsockopt(peer->host->socket, SOL_SOCKET, SO_PRIORITY, &priority, sizeof(priority));
