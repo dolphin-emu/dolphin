@@ -28,6 +28,8 @@
 
 #include "VideoCommon/OnScreenDisplay.h"
 
+static constexpr bool USE_QOS_SERVICE_TYPE_GUARANTEED = false;
+
 namespace IOS::HLE
 {
 
@@ -264,21 +266,24 @@ auto BluetoothRealDevice::ProcessHCIEvent(BufferType buffer) -> BufferType
 
     // We configure HCI_SERVICE_TYPE_GUARANTEED for each new connection.
     // This solves dropped input issues at least for the mentioned Sena adapter.
+    if constexpr (USE_QOS_SERVICE_TYPE_GUARANTEED)
+    {
+      INFO_LOG_FMT(IOS_WIIMOTE, "Sending HCI_CMD_QOS_SETUP");
 
-    INFO_LOG_FMT(IOS_WIIMOTE, "Sending HCI_CMD_QOS_SETUP");
+      HCICommandPayload<HCI_CMD_QOS_SETUP, hci_qos_setup_cp> payload;
 
-    HCICommandPayload<HCI_CMD_QOS_SETUP, hci_qos_setup_cp> payload;
+      // Copy the connection handle.
+      std::memcpy(&payload.command.con_handle, buffer.data() + 3,
+                  sizeof(payload.command.con_handle));
 
-    // Copy the connection handle.
-    std::memcpy(&payload.command.con_handle, buffer.data() + 3, sizeof(payload.command.con_handle));
+      payload.command.service_type = HCI_SERVICE_TYPE_GUARANTEED;
+      payload.command.token_rate = 0xffffffff;
+      payload.command.peak_bandwidth = 0xffffffff;
+      payload.command.latency = 10000;
+      payload.command.delay_variation = 0xffffffff;
 
-    payload.command.service_type = HCI_SERVICE_TYPE_GUARANTEED;
-    payload.command.token_rate = 0xffffffff;
-    payload.command.peak_bandwidth = 0xffffffff;
-    payload.command.latency = 10000;
-    payload.command.delay_variation = 0xffffffff;
-
-    m_lib_usb_bt_adapter->SendControlTransfer(Common::AsU8Span(payload));
+      m_lib_usb_bt_adapter->SendControlTransfer(Common::AsU8Span(payload));
+    }
   }
   else if (event == HCI_EVENT_QOS_SETUP_COMPL)
   {
