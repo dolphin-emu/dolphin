@@ -11,7 +11,9 @@
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
 #include "Common/Swap.h"
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
 #include "Core/DolphinAnalytics.h"
+#endif
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/MACUtils.h"
 #include "Core/System.h"
@@ -198,7 +200,9 @@ std::optional<IPCReply> NetWDCommandDevice::Open(const OpenRequest& request)
     if (mode != WD::Mode::DSCommunications && mode != WD::Mode::AOSSAccessPointScan)
     {
       ERROR_LOG_FMT(IOS_NET, "Unsupported WD operating mode: {}", mode);
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesUncommonWDMode);
+#endif
       return IPCReply(s32(ResultCode::UnavailableCommand));
     }
 
@@ -390,7 +394,9 @@ std::optional<IPCReply> NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_WD_CHANGE_GAMEINFO:
   case IOCTLV_WD_CHANGE_VTSF:
   default:
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesWDUnimplementedIOCtl);
+#endif
     request.Dump(GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_NET,
                  Common::Log::LogLevel::LWARNING);
   }

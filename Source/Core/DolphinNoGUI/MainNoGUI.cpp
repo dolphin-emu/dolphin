@@ -20,7 +20,9 @@
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/Core.h"
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
 #include "Core/DolphinAnalytics.h"
+#endif
 #include "Core/Host.h"
 #include "Core/System.h"
 
@@ -306,7 +308,9 @@ int main(const int argc, char* argv[])
   sigaction(SIGTERM, &sa, nullptr);
 #endif
 
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   DolphinAnalytics::Instance().ReportDolphinStart("nogui");
+#endif
 
   if (!BootManager::BootCore(Core::System::GetInstance(), std::move(boot), wsi))
   {

@@ -8,7 +8,9 @@
 
 #include <imgui.h>
 
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
 #include "Core/DolphinAnalytics.h"
+#endif
 #include "Core/HW/SystemTimers.h"
 #include "Core/System.h"
 
@@ -24,11 +26,13 @@ static Common::EventHook s_before_frame_event =
 
 static Common::EventHook s_after_frame_event = AfterFrameEvent::Register(
     [](const Core::System& system) {
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
       DolphinAnalytics::Instance().ReportPerformanceInfo({
           .speed_ratio = system.GetSystemTimers().GetEstimatedEmulationPerformance(),
           .num_prims = g_stats.this_frame.num_prims + g_stats.this_frame.num_dl_prims,
           .num_draw_calls = g_stats.this_frame.num_draw_calls,
       });
+#endif
     },
     "Statistics::PerformanceSample");
 

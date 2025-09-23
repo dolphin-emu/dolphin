@@ -15,7 +15,9 @@
 #include "Common/MathUtil.h"
 #include "Common/SmallVector.h"
 
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
 #include "Core/DolphinAnalytics.h"
+#endif
 #include "Core/HW/SystemTimers.h"
 #include "Core/System.h"
 
@@ -457,6 +459,7 @@ void VertexManagerBase::Flush()
 
     // Analytics reporting so we can discover which games have this problem, that way when we
     // eventually simulate the behavior we have test cases for it.
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
     if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens)
     {
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::MismatchedGPUTexGensBetweenXFAndBP);
@@ -465,6 +468,7 @@ void VertexManagerBase::Flush()
     {
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::MismatchedGPUColorsBetweenXFAndBP);
     }
+#endif
 
     return;
   }

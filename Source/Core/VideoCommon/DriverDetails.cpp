@@ -6,7 +6,9 @@
 #include <map>
 
 #include "Common/Logging/LogManager.h"
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
 #include "Core/DolphinAnalytics.h"
+#endif
 
 namespace DriverDetails
 {
@@ -312,6 +314,7 @@ void OverrideBug(Bug bug, bool new_value)
       bug, BugInfo{m_api, m_os, m_vendor, m_driver, m_family, bug, -1, -1, false});
   if (it->second.m_hasbug != new_value)
   {
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
     DolphinAnalytics& analytics = DolphinAnalytics::Instance();
     Common::AnalyticsReportBuilder builder(analytics.BaseBuilder());
     builder.AddData("type", "gpu-bug-override");
@@ -322,7 +325,7 @@ void OverrideBug(Bug bug, bool new_value)
     builder.AddData("driver", to_string(m_driver));
     builder.AddData("version", std::to_string(m_version));
     analytics.Send(builder);
-
+#endif
     it->second.m_hasbug = new_value;
   }
 }

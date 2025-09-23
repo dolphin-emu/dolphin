@@ -40,7 +40,9 @@
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
 #include "Core/DolphinAnalytics.h"
+#endif
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
@@ -566,7 +568,9 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(J
   UICommon::CreateDirectories();
   Common::RegisterMsgAlertHandler(&MsgAlert);
   Common::AndroidSetReportHandler(&ReportSend);
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   DolphinAnalytics::AndroidSetGetValFunc(&GetAnalyticValue);
+#endif
 
   WiimoteReal::InitAdapterClass();
   UICommon::Init();
@@ -576,13 +580,17 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(J
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReportStartToAnalytics(JNIEnv*,
                                                                                            jclass)
 {
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   DolphinAnalytics::Instance().ReportDolphinStart(GetAnalyticValue("DEVICE_TYPE"));
+#endif
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GenerateNewStatisticsId(JNIEnv*,
                                                                                             jclass)
 {
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   DolphinAnalytics::Instance().GenerateNewIdentity();
+#endif
 }
 
 // Returns the scale factor for imgui rendering.

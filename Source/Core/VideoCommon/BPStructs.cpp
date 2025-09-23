@@ -15,7 +15,9 @@
 #include "Common/Logging/Log.h"
 
 #include "Core/CoreTiming.h"
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
 #include "Core/DolphinAnalytics.h"
+#endif
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
@@ -785,7 +787,9 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     break;
   }
 
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesUnknownBPCommand);
+#endif
   WARN_LOG_FMT(VIDEO, "Unknown BP opcode: address = {:#010x} value = {:#010x}", bp.address,
                bp.newvalue);
 }

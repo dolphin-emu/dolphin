@@ -16,7 +16,9 @@
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 #include "Core/Core.h"
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
 #include "Core/DolphinAnalytics.h"
+#endif
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
@@ -180,7 +182,9 @@ void AXUCode::HandleCommandList()
       break;
 
     case CMD_UNK_08:
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesUnimplementedAXCommand);
+#endif
       curr_idx += 10;
       break;  // TODO: check
 

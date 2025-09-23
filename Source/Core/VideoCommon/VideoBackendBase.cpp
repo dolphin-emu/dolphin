@@ -20,7 +20,9 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
 #include "Core/DolphinAnalytics.h"
+#endif
 #include "Core/System.h"
 
 // TODO: ugly
@@ -125,8 +127,9 @@ u32 VideoBackendBase::Video_GetQueryResult(PerfQueryType type)
 
 u16 VideoBackendBase::Video_GetBoundingBox(int index)
 {
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::ReadsBoundingBox);
-
+#endif
   if (!g_ActiveConfig.bBBoxEnable)
   {
     static bool warn_once = true;

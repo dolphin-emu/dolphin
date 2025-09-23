@@ -28,7 +28,9 @@
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
 #include "Core/DolphinAnalytics.h"
+#endif
 #include "Core/System.h"
 
 #include "DolphinQt/Host.h"
@@ -254,7 +256,9 @@ int main(int argc, char* argv[])
   }
   else
   {
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
     DolphinAnalytics::Instance().ReportDolphinStart("qt");
+#endif
 
     Settings::Instance().InitDefaultPalette();
     Settings::Instance().ApplyStyle();

@@ -20,7 +20,9 @@
 #include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
 #include "Core/DolphinAnalytics.h"
+#endif
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 

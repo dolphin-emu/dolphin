@@ -9,7 +9,9 @@
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
 #include "Core/DolphinAnalytics.h"
+#endif
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
 
@@ -47,12 +49,14 @@ static void XFRegWritten(Core::System& system, XFStateManager& xf_state_manager,
     case XFMEM_CLIPDISABLE:
     {
       ClipDisable setting{.hex = value};
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
       if (setting.disable_clipping_detection)
         DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::SetsXFClipDisableBit0);
       if (setting.disable_trivial_rejection)
         DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::SetsXFClipDisableBit1);
       if (setting.disable_cpoly_clipping_acceleration)
         DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::SetsXFClipDisableBit2);
+#endif
       break;
     }
 
@@ -180,7 +184,9 @@ static void XFRegWritten(Core::System& system, XFStateManager& xf_state_manager,
     case 0x104d:
     case 0x104e:
     case 0x104f:
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesUnknownXFCommand);
+#endif
       DEBUG_LOG_FMT(VIDEO, "Possible Normal Mtx XF reg?: {:x}={:x}", address, value);
       break;
 
@@ -191,7 +197,9 @@ static void XFRegWritten(Core::System& system, XFStateManager& xf_state_manager,
     case 0x1017:
 
     default:
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesUnknownXFCommand);
+#endif
       WARN_LOG_FMT(VIDEO, "Unknown XF Reg: {:x}={:x}", address, value);
       break;
     }

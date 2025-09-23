@@ -46,7 +46,9 @@
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
 #include "Core/DolphinAnalytics.h"
+#endif
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FreeLookManager.h"
 #include "Core/HLE/HLE.h"
@@ -355,8 +357,10 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
   else
     Common::SetCurrentThreadName("CPU-GPU thread");
 
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   // This needs to be delayed until after the video backend is ready.
   DolphinAnalytics::Instance().ReportGameStart();
+#endif
 
   // Clear performance data collected from previous threads.
   g_perf_metrics.Reset();
