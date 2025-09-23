@@ -57,7 +57,7 @@ void GeneralWidget::CreateWidgets()
   for (auto& backend : VideoBackendBase::GetAvailableBackends())
   {
     options.push_back(std::make_pair(tr(backend->GetDisplayName().c_str()),
-                                     QString::fromStdString(backend->GetName())));
+                                     QString::fromStdString(backend->GetConfigName())));
   }
   m_backend_combo = new ConfigStringChoice(options, Config::MAIN_GFX_BACKEND, m_game_layer);
   m_previous_backend = m_backend_combo->currentIndex();

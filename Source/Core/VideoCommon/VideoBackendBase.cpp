@@ -86,7 +86,7 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 std::string VideoBackendBase::BadShaderFilename(const char* shader_stage, int counter)
 {
   return fmt::format("{}bad_{}_{}_{}.txt", File::GetUserPath(D_DUMP_IDX), shader_stage,
-                     g_video_backend->GetName(), counter);
+                     g_video_backend->GetConfigName(), counter);
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
@@ -169,7 +169,7 @@ static VideoBackendBase* GetDefaultVideoBackend()
 std::string VideoBackendBase::GetDefaultBackendConfigName()
 {
   auto* default_backend = GetDefaultVideoBackend();
-  return default_backend ? default_backend->GetName() : "";
+  return default_backend ? default_backend->GetConfigName() : "";
 }
 
 std::string VideoBackendBase::GetDefaultBackendDisplayName()
@@ -222,7 +222,7 @@ void VideoBackendBase::ActivateBackend(const std::string& name)
     g_video_backend = GetDefaultVideoBackend();
 
   const auto& backends = GetAvailableBackends();
-  const auto iter = std::ranges::find(backends, name, &VideoBackendBase::GetName);
+  const auto iter = std::ranges::find(backends, name, &VideoBackendBase::GetConfigName);
 
   if (iter == backends.end())
     return;
