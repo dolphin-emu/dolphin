@@ -29,9 +29,16 @@ public:
   Create(const picojson::value& json_data,
          std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
   explicit CustomMeshAction(std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
-  CustomMeshAction(std::shared_ptr<VideoCommon::CustomAssetLibrary> library, Common::Vec3 rotation,
-                   Common::Vec3 scale, Common::Vec3 translation,
-                   VideoCommon::CustomAssetLibrary::AssetID mesh_asset_id);
+
+  struct SerializableData
+  {
+    VideoCommon::CustomAssetLibrary::AssetID asset_id;
+    Common::Matrix44 transform;
+    bool ignore_mesh_transform;
+  };
+
+  CustomMeshAction(std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
+                   SerializableData serializable_data);
   ~CustomMeshAction();
   void OnDrawStarted(GraphicsModActionData::DrawStarted*) override;
 
@@ -39,18 +46,14 @@ public:
   void SerializeToConfig(picojson::object* obj) override;
   std::string GetFactoryName() const override;
 
+  Common::Matrix44* GetTransform() override;
+
 private:
   std::shared_ptr<VideoCommon::CustomAssetLibrary> m_library;
-  VideoCommon::CustomAssetLibrary::AssetID m_mesh_asset_id;
   VideoCommon::CachedAsset<VideoCommon::MeshAsset> m_cached_mesh_asset;
 
-  Common::Vec3 m_scale = Common::Vec3{1, 1, 1};
-  Common::Vec3 m_rotation = Common::Vec3{0, 0, 0};
-  Common::Vec3 m_translation = Common::Vec3{0, 0, 0};
+  SerializableData m_serializable_data;
   Common::Vec3 m_original_mesh_center = Common::Vec3{0, 0, 0};
-  bool m_transform_changed = false;
   bool m_mesh_asset_changed = false;
   bool m_recalculate_original_mesh_center = true;
-  bool m_ignore_mesh_transform = false;
-  Common::Matrix44 m_calculated_transform;
 };
