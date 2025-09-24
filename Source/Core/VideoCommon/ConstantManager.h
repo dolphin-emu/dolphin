@@ -19,6 +19,7 @@ enum class LogicOp : u32;
 
 struct alignas(16) PixelShaderConstants
 {
+  std::array<float4, 4> freelook;
   std::array<int4, 4> colors;
   std::array<int4, 4> kcolors;
   int4 alpha;
