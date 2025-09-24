@@ -259,6 +259,7 @@ void WriteSwitch(ShaderCode& out, APIType ApiType, std::string_view variable,
 }
 
 // Constant variable names
+#define I_FREELOOK "cfreelook"
 #define I_COLORS "color"
 #define I_KCOLORS "k"
 #define I_ALPHA "alphaRef"
