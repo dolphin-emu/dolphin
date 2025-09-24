@@ -382,6 +382,8 @@ void VideoBackendBase::ShutdownShared()
   if (g_texture_cache)
     g_texture_cache->Shutdown();
 
+  system.GetGraphicsModManager().Shutdown();
+
   g_bounding_box.reset();
   g_perf_query.reset();
   g_texture_cache.reset();
