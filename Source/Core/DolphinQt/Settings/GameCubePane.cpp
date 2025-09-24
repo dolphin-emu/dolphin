@@ -138,10 +138,16 @@ void GameCubePane::CreateWidgets()
   }
 
   // Add SP1 devices
-  for (const auto device :
-       {EXIDeviceType::None, EXIDeviceType::Dummy, EXIDeviceType::Ethernet,
-        EXIDeviceType::EthernetXLink, EXIDeviceType::EthernetTapServer,
-        EXIDeviceType::EthernetBuiltIn, EXIDeviceType::ModemTapServer, EXIDeviceType::Baseboard})
+  for (const auto device : {
+           EXIDeviceType::None,
+           EXIDeviceType::Dummy,
+           EXIDeviceType::Ethernet,
+           EXIDeviceType::EthernetXLink,
+           EXIDeviceType::EthernetTapServer,
+           EXIDeviceType::EthernetBuiltIn,
+           EXIDeviceType::ModemTapServer,
+           EXIDeviceType::Baseboard,
+       })
   {
     m_slot_combos[ExpansionInterface::Slot::SP1]->addItem(tr(fmt::format("{:n}", device).c_str()),
                                                           static_cast<int>(device));
