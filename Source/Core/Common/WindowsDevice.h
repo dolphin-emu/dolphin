@@ -22,6 +22,8 @@
 #include <cfgmgr32.h>
 #include <devpropdef.h>
 
+#include "Common/Functional.h"
+
 namespace Common
 {
 std::optional<std::wstring> GetDevNodeStringProperty(DEVINST device,
@@ -70,6 +72,33 @@ struct NullTerminatedStringList
 
 NullTerminatedStringList<WCHAR> GetDeviceInterfaceList(LPGUID iface_class_guid, DEVINSTID device_id,
                                                        ULONG flags);
+
+class DeviceChangeNotification
+{
+public:
+  enum class EventType : bool
+  {
+    Arrival,
+    Removal,
+  };
+  using CallbackType = Common::MoveOnlyFunction<void(EventType)>;
+
+  DeviceChangeNotification();
+  ~DeviceChangeNotification();
+
+  // FYI: Currently hardcoded to a GUID_DEVINTERFACE_HID filter.
+  void Register(CallbackType callback);
+  void Unregister();
+
+  DeviceChangeNotification(const DeviceChangeNotification&) = delete;
+  DeviceChangeNotification(DeviceChangeNotification&&) = delete;
+  void operator=(const DeviceChangeNotification&) = delete;
+  void operator=(DeviceChangeNotification&&) = delete;
+
+private:
+  CallbackType m_callback{};
+  HCMNOTIFICATION m_notify_handle{nullptr};
+};
 
 }  // namespace Common
 
