@@ -143,6 +143,7 @@ bool IsKnownRealtekBluetoothDevice(u16 vid, u16 pid)
       {0x6655, 0x8771},
       {0x7392, 0xc611},
       {0x2b89, 0x8761},
+      {0x2b89, 0x6275},
       // Additional Realtek 8821AE Bluetooth devices
       {0x0b05, 0x17dc},
       {0x13d3, 0x3414},
