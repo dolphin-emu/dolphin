@@ -4,6 +4,7 @@
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
 
 #include <fmt/format.h>
+#include <nlohmann/json.hpp>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
@@ -16,7 +17,7 @@
 std::optional<GraphicsModConfig> GraphicsModConfig::Create(const std::string& file_path,
                                                            Source source)
 {
-  picojson::value root;
+  nlohmann::json root;
   std::string error;
   if (!JsonFromFile(file_path, &root, &error))
   {
@@ -61,34 +62,28 @@ std::optional<GraphicsModConfig> GraphicsModConfig::Create(const std::string& fi
   return result;
 }
 
-std::optional<GraphicsModConfig> GraphicsModConfig::Create(const picojson::object* obj)
+std::optional<GraphicsModConfig> GraphicsModConfig::Create(const nlohmann::json* obj)
 {
   if (!obj)
     return std::nullopt;
 
-  const auto source_it = obj->find("source");
-  if (source_it == obj->end())
-  {
+  const std::optional<std::string> source_str = ReadStringFromJson(*obj, "source");
+  if (!source_str)
     return std::nullopt;
-  }
-  const std::string source_str = source_it->second.to_str();
 
-  const auto path_it = obj->find("path");
-  if (path_it == obj->end())
-  {
+  const std::optional<std::string> relative_path = ReadStringFromJson(*obj, "path");
+  if (!relative_path)
     return std::nullopt;
-  }
-  const std::string relative_path = path_it->second.to_str();
 
-  if (source_str == "system")
+  if (*source_str == "system")
   {
     return Create(fmt::format("{}{}{}", File::GetSysDirectory(), DOLPHIN_SYSTEM_GRAPHICS_MOD_DIR,
-                              relative_path),
+                              *relative_path),
                   Source::System);
   }
   else
   {
-    return Create(File::GetUserPath(D_GRAPHICSMOD_IDX) + relative_path, Source::User);
+    return Create(File::GetUserPath(D_GRAPHICSMOD_IDX) + *relative_path, Source::User);
   }
 }
 
@@ -105,79 +100,63 @@ std::string GraphicsModConfig::GetAbsolutePath() const
   }
 }
 
-void GraphicsModConfig::SerializeToConfig(picojson::object& json_obj) const
+void GraphicsModConfig::SerializeToConfig(nlohmann::json& json_obj) const
 {
-  picojson::object serialized_metadata;
-  serialized_metadata.emplace("title", m_title);
-  serialized_metadata.emplace("author", m_author);
-  serialized_metadata.emplace("description", m_description);
-  json_obj.emplace("meta", std::move(serialized_metadata));
+  nlohmann::json serialized_metadata;
+  serialized_metadata["title"] = m_title;
+  serialized_metadata["author"] = m_author;
+  serialized_metadata["description"] = m_description;
+  json_obj["meta"] = std::move(serialized_metadata);
 
-  picojson::array serialized_groups;
+  nlohmann::json serialized_groups;
   for (const auto& group : m_groups)
   {
-    picojson::object serialized_group;
+    nlohmann::json serialized_group;
     group.SerializeToConfig(serialized_group);
-    serialized_groups.emplace_back(std::move(serialized_group));
+    serialized_groups.push_back(std::move(serialized_group));
   }
-  json_obj.emplace("groups", std::move(serialized_groups));
+  json_obj["groups"] = std::move(serialized_groups);
 
-  picojson::array serialized_features;
+  nlohmann::json serialized_features;
   for (const auto& feature : m_features)
   {
-    picojson::object serialized_feature;
+    nlohmann::json serialized_feature;
     feature.SerializeToConfig(serialized_feature);
-    serialized_features.emplace_back(std::move(serialized_feature));
+    serialized_features.push_back(std::move(serialized_feature));
   }
-  json_obj.emplace("features", std::move(serialized_features));
+  json_obj["features"] = std::move(serialized_features);
 
-  picojson::array serialized_assets;
+  nlohmann::json serialized_assets;
   for (const auto& asset : m_assets)
   {
-    picojson::object serialized_asset;
+    nlohmann::json serialized_asset;
     asset.SerializeToConfig(serialized_asset);
-    serialized_assets.emplace_back(std::move(serialized_asset));
+    serialized_assets.push_back(std::move(serialized_asset));
   }
-  json_obj.emplace("assets", std::move(serialized_assets));
+  json_obj["assets"] = std::move(serialized_assets);
 }
 
-bool GraphicsModConfig::DeserializeFromConfig(const picojson::value& value)
+bool GraphicsModConfig::DeserializeFromConfig(const nlohmann::json& value)
 {
-  const auto& meta = value.get("meta");
-  if (meta.is<picojson::object>())
+  if (const auto& meta = ReadObjectFromJson(value, "meta"))
   {
-    const auto& title = meta.get("title");
-    if (title.is<std::string>())
-    {
-      m_title = title.to_str();
-    }
-
-    const auto& author = meta.get("author");
-    if (author.is<std::string>())
-    {
-      m_author = author.to_str();
-    }
-
-    const auto& description = meta.get("description");
-    if (description.is<std::string>())
-    {
-      m_description = description.to_str();
-    }
+    m_title = ReadStringFromJson(meta, "title").value_or(m_title);
+    m_author = ReadStringFromJson(meta, "author").value_or(m_author);
+    m_description = ReadStringFromJson(meta, "description").value_or(m_description);
   }
 
-  const auto& groups = value.get("groups");
-  if (groups.is<picojson::array>())
+  if (const auto& groups = ReadArrayFromJson(value, "groups"))
   {
-    for (const auto& group_val : groups.get<picojson::array>())
+    for (const auto& group_val : *groups)
     {
-      if (!group_val.is<picojson::object>())
+      if (!group_val.is_object())
       {
         ERROR_LOG_FMT(
             VIDEO, "Failed to load mod configuration file, specified group is not a json object");
         return false;
       }
       GraphicsTargetGroupConfig group;
-      if (!group.DeserializeFromConfig(group_val.get<picojson::object>()))
+      if (!group.DeserializeFromConfig(group_val))
       {
         return false;
       }
@@ -186,19 +165,18 @@ bool GraphicsModConfig::DeserializeFromConfig(const picojson::value& value)
     }
   }
 
-  const auto& features = value.get("features");
-  if (features.is<picojson::array>())
+  if (const auto& features = ReadArrayFromJson(value, "features"))
   {
-    for (const auto& feature_val : features.get<picojson::array>())
+    for (const auto& feature_val : *features)
     {
-      if (!feature_val.is<picojson::object>())
+      if (!feature_val.is_object())
       {
         ERROR_LOG_FMT(
             VIDEO, "Failed to load mod configuration file, specified feature is not a json object");
         return false;
       }
       GraphicsModFeatureConfig feature;
-      if (!feature.DeserializeFromConfig(feature_val.get<picojson::object>()))
+      if (!feature.DeserializeFromConfig(feature_val))
       {
         return false;
       }
@@ -207,19 +185,18 @@ bool GraphicsModConfig::DeserializeFromConfig(const picojson::value& value)
     }
   }
 
-  const auto& assets = value.get("assets");
-  if (assets.is<picojson::array>())
+  if (const auto& assets = ReadArrayFromJson(value, "assets"))
   {
-    for (const auto& asset_val : assets.get<picojson::array>())
+    for (const auto& asset_val : *assets)
     {
-      if (!asset_val.is<picojson::object>())
+      if (!asset_val.is_object())
       {
         ERROR_LOG_FMT(
             VIDEO, "Failed to load mod configuration file, specified asset is not a json object");
         return false;
       }
       GraphicsModAssetConfig asset;
-      if (!asset.DeserializeFromConfig(asset_val.get<picojson::object>()))
+      if (!asset.DeserializeFromConfig(asset_val))
       {
         return false;
       }
@@ -231,7 +208,7 @@ bool GraphicsModConfig::DeserializeFromConfig(const picojson::value& value)
   return true;
 }
 
-void GraphicsModConfig::SerializeToProfile(picojson::object* obj) const
+void GraphicsModConfig::SerializeToProfile(nlohmann::json* obj) const
 {
   if (!obj)
     return;
@@ -240,93 +217,64 @@ void GraphicsModConfig::SerializeToProfile(picojson::object* obj) const
   switch (m_source)
   {
   case Source::User:
-    json_obj.emplace("source", "user");
+    json_obj["source"] = "user";
     break;
   case Source::System:
-    json_obj.emplace("source", "system");
+    json_obj["source"] = "system";
     break;
   }
 
-  json_obj.emplace("path", m_relative_path);
+  json_obj["path"] = m_relative_path;
 
-  picojson::array serialized_groups;
+  nlohmann::json serialized_groups;
   for (const auto& group : m_groups)
   {
-    picojson::object serialized_group;
+    nlohmann::json serialized_group;
     group.SerializeToProfile(&serialized_group);
-    serialized_groups.emplace_back(std::move(serialized_group));
+    serialized_groups.push_back(std::move(serialized_group));
   }
-  json_obj.emplace("groups", std::move(serialized_groups));
+  json_obj["groups"] = std::move(serialized_groups);
 
-  picojson::array serialized_features;
+  nlohmann::json serialized_features;
   for (const auto& feature : m_features)
   {
-    picojson::object serialized_feature;
+    nlohmann::json serialized_feature;
     feature.SerializeToProfile(&serialized_feature);
-    serialized_features.emplace_back(std::move(serialized_feature));
+    serialized_features.push_back(std::move(serialized_feature));
   }
-  json_obj.emplace("features", std::move(serialized_features));
+  json_obj["features"] = std::move(serialized_features);
 
-  json_obj.emplace("enabled", m_enabled);
+  json_obj["enabled"] = m_enabled;
 
-  json_obj.emplace("weight", static_cast<double>(m_weight));
+  json_obj["weight"] = m_weight;
 }
 
-void GraphicsModConfig::DeserializeFromProfile(const picojson::object& obj)
+void GraphicsModConfig::DeserializeFromProfile(const nlohmann::json& obj)
 {
-  if (const auto it = obj.find("groups"); it != obj.end())
+  if (const auto& serialized_groups = ReadArrayFromJson(obj, "groups"))
   {
-    if (it->second.is<picojson::array>())
-    {
-      const auto& serialized_groups = it->second.get<picojson::array>();
-      if (serialized_groups.size() != m_groups.size())
-        return;
+    if (serialized_groups->size() != m_groups.size())
+      return;
 
-      for (std::size_t i = 0; i < serialized_groups.size(); i++)
-      {
-        const auto& serialized_group_val = serialized_groups[i];
-        if (serialized_group_val.is<picojson::object>())
-        {
-          const auto& serialized_group = serialized_group_val.get<picojson::object>();
-          m_groups[i].DeserializeFromProfile(serialized_group);
-        }
-      }
+    for (std::size_t i = 0; i < serialized_groups->size(); i++)
+    {
+      if (serialized_groups->at(i).is_object())
+        m_groups[i].DeserializeFromProfile(serialized_groups->at(i));
     }
   }
 
-  if (const auto it = obj.find("features"); it != obj.end())
+  if (const auto& serialized_features = ReadArrayFromJson(obj, "features"))
   {
-    if (it->second.is<picojson::array>())
-    {
-      const auto& serialized_features = it->second.get<picojson::array>();
-      if (serialized_features.size() != m_features.size())
-        return;
+    if (serialized_features->size() != m_features.size())
+      return;
 
-      for (std::size_t i = 0; i < serialized_features.size(); i++)
-      {
-        const auto& serialized_feature_val = serialized_features[i];
-        if (serialized_feature_val.is<picojson::object>())
-        {
-          const auto& serialized_feature = serialized_feature_val.get<picojson::object>();
-          m_features[i].DeserializeFromProfile(serialized_feature);
-        }
-      }
+    for (std::size_t i = 0; i < serialized_features->size(); i++)
+    {
+      if (serialized_features->at(i).is_object())
+        m_features[i].DeserializeFromProfile(serialized_features->at(i));
     }
   }
 
-  if (const auto it = obj.find("enabled"); it != obj.end())
-  {
-    if (it->second.is<bool>())
-    {
-      m_enabled = it->second.get<bool>();
-    }
-  }
-
-  if (const auto it = obj.find("weight"); it != obj.end())
-  {
-    if (it->second.is<double>())
-    {
-      m_weight = static_cast<u16>(it->second.get<double>());
-    }
-  }
+  m_enabled = ReadBoolFromJson(obj, "enabled").value_or(m_enabled);
+  m_weight = ReadNumericFromJson<u16>(obj, "weight").value_or(m_weight);
 }

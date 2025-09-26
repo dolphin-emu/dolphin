@@ -3,53 +3,53 @@
 
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModFeature.h"
 
+#include <nlohmann/json.hpp>
+
 #include "Common/Logging/Log.h"
 
-void GraphicsModFeatureConfig::SerializeToConfig(picojson::object& json_obj) const
+void GraphicsModFeatureConfig::SerializeToConfig(nlohmann::json& json_obj) const
 {
-  json_obj.emplace("group", m_group);
-  json_obj.emplace("action", m_action);
-  json_obj.emplace("action_data", m_action_data);
+  json_obj["group"] = m_group;
+  json_obj["action"] = m_action;
+  json_obj["action_data"] = m_action_data;
 }
 
-bool GraphicsModFeatureConfig::DeserializeFromConfig(const picojson::object& obj)
+bool GraphicsModFeatureConfig::DeserializeFromConfig(const nlohmann::json& obj)
 {
-  if (auto group_iter = obj.find("group"); group_iter != obj.end())
+  if (auto group_it = obj.find("group"); group_it != obj.end())
   {
-    if (!group_iter->second.is<std::string>())
+    if (!group_it->is_string())
     {
       ERROR_LOG_FMT(
           VIDEO,
           "Failed to load mod configuration file, specified feature's group is not a string");
       return false;
     }
-    m_group = group_iter->second.get<std::string>();
+    m_group = group_it->get<std::string>();
   }
 
-  if (auto action_iter = obj.find("action"); action_iter != obj.end())
+  if (auto action_it = obj.find("action"); action_it != obj.end())
   {
-    if (!action_iter->second.is<std::string>())
+    if (!action_it->is_string())
     {
       ERROR_LOG_FMT(
           VIDEO,
           "Failed to load mod configuration file, specified feature's action is not a string");
       return false;
     }
-    m_action = action_iter->second.get<std::string>();
+    m_action = action_it->get<std::string>();
   }
 
-  if (auto action_data_iter = obj.find("action_data"); action_data_iter != obj.end())
-  {
-    m_action_data = action_data_iter->second;
-  }
+  if (auto action_data_it = obj.find("action_data"); action_data_it != obj.end())
+    m_action_data = *action_data_it;
 
   return true;
 }
 
-void GraphicsModFeatureConfig::SerializeToProfile(picojson::object*) const
+void GraphicsModFeatureConfig::SerializeToProfile(nlohmann::json*) const
 {
 }
 
-void GraphicsModFeatureConfig::DeserializeFromProfile(const picojson::object&)
+void GraphicsModFeatureConfig::DeserializeFromProfile(const nlohmann::json&)
 {
 }

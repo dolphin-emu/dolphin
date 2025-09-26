@@ -9,6 +9,7 @@
 #include <memory>
 
 #include <fmt/format.h>
+#include <nlohmann/json.hpp>
 
 #include <rcheevos/include/rc_api_info.h>
 
@@ -95,9 +96,9 @@ void AchievementManager::Init(void* hwnd)
   }
 }
 
-picojson::value AchievementManager::LoadApprovedList()
+nlohmann::json AchievementManager::LoadApprovedList()
 {
-  picojson::value temp;
+  nlohmann::json temp;
   std::string error;
   if (!JsonFromFile(fmt::format("{}{}{}", File::GetSysDirectory(), DIR_SEP, APPROVED_LIST_FILENAME),
                     &temp, &error))
@@ -108,7 +109,7 @@ picojson::value AchievementManager::LoadApprovedList()
     return {};
   }
   auto context = Common::SHA1::CreateContext();
-  context->Update(temp.serialize());
+  context->Update(temp.dump());
   auto digest = context->Finish();
   if (digest != APPROVED_LIST_HASH)
   {
@@ -442,7 +443,7 @@ void AchievementManager::FilterApprovedIni(std::vector<T>& codes, const std::str
     return;
 
   // Approved codes list failed to hash
-  if (!m_ini_root->is<picojson::value::object>())
+  if (!m_ini_root->is_object())
   {
     codes.clear();
     return;
@@ -463,7 +464,7 @@ bool AchievementManager::CheckApprovedCode(const T& code, const std::string& gam
     return true;
 
   // Approved codes list failed to hash
-  if (!m_ini_root->is<picojson::value::object>())
+  if (!m_ini_root->is_object())
     return false;
 
   INFO_LOG_FMT(ACHIEVEMENTS, "Verifying code {}", code.name);
@@ -475,14 +476,19 @@ bool AchievementManager::CheckApprovedCode(const T& code, const std::string& gam
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
   {
     auto config = filename.substr(0, filename.length() - 4);
-    if (m_ini_root->contains(config))
+    if (auto it_config = m_ini_root->find(config); it_config != m_ini_root->end())
     {
-      auto ini_config = m_ini_root->get(config);
-      if (ini_config.is<picojson::object>() && ini_config.contains(code.name))
+      const auto& ini_config = *it_config;
+      if (ini_config.is_object())
       {
-        auto ini_code = ini_config.get(code.name);
-        if (ini_code.template is<std::string>())
-          verified = (ini_code.template get<std::string>() == hash);
+        if (auto it_code = ini_config.find(code.name); it_code != ini_config.end())
+        {
+          const auto& ini_code = *it_code;
+          if (ini_code.is_string())
+          {
+            verified = (ini_code.template get<std::string>() == hash);
+          }
+        }
       }
     }
   }

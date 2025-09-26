@@ -4,7 +4,7 @@
 #pragma once
 
 #include <fmt/format.h>
-#include <picojson.h>
+#include <nlohmann/json_fwd.hpp>
 
 #include "Common/EnumFormatter.h"
 #include "VideoCommon/Assets/CustomAsset.h"
@@ -15,9 +15,9 @@ namespace VideoCommon
 {
 struct TextureAndSamplerData
 {
-  static bool FromJson(const CustomAssetLibrary::AssetID& asset_id, const picojson::object& json,
+  static bool FromJson(const CustomAssetLibrary::AssetID& asset_id, const nlohmann::json& json,
                        TextureAndSamplerData* data);
-  static void ToJson(picojson::object* obj, const TextureAndSamplerData& data);
+  static void ToJson(nlohmann::json* obj, const TextureAndSamplerData& data);
   AbstractTextureType type;
   CustomTextureData texture_data;
   SamplerState sampler;

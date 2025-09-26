@@ -55,7 +55,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cubeb", "..\Externals\cubeb
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pugixml", "..\Externals\pugixml\pugixml.vcxproj", "{38FEE76F-F347-484B-949C-B4649381CFFB}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "picojson", "..\Externals\picojson\picojson.vcxproj", "{2C0D058E-DE35-4471-AD99-E68A2CAF9E18}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nlohmann_json", "..\Externals\nlohmann_json\nlohmann_json.vcxproj", "{2C0D058E-DE35-4471-AD99-E68A2CAF9E18}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ed25519", "..\Externals\ed25519\ed25519.vcxproj", "{5BDF4B91-1491-4FB0-BC27-78E9A8E97DC3}"
 EndProject

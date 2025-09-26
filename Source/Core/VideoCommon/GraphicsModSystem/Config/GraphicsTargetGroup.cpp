@@ -3,53 +3,56 @@
 
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsTargetGroup.h"
 
+#include <nlohmann/json.hpp>
+
 #include "Common/Logging/Log.h"
 
-void GraphicsTargetGroupConfig::SerializeToConfig(picojson::object& json_obj) const
+void GraphicsTargetGroupConfig::SerializeToConfig(nlohmann::json& json_obj) const
 {
-  picojson::array serialized_targets;
+  nlohmann::json serialized_targets;
   for (const auto& target : m_targets)
   {
-    picojson::object serialized_target;
+    nlohmann::json serialized_target;
     SerializeTargetToConfig(serialized_target, target);
-    serialized_targets.emplace_back(std::move(serialized_target));
+    serialized_targets.push_back(std::move(serialized_target));
   }
-  json_obj.emplace("targets", std::move(serialized_targets));
-  json_obj.emplace("name", m_name);
+  json_obj["targets"] = std::move(serialized_targets);
+  json_obj["name"] = m_name;
 }
 
-bool GraphicsTargetGroupConfig::DeserializeFromConfig(const picojson::object& obj)
+bool GraphicsTargetGroupConfig::DeserializeFromConfig(const nlohmann::json& obj)
 {
-  if (auto name_iter = obj.find("name"); name_iter != obj.end())
+  if (auto name_it = obj.find("name"); name_it != obj.end())
   {
-    if (!name_iter->second.is<std::string>())
+    if (!name_it->is_string())
     {
       ERROR_LOG_FMT(
           VIDEO, "Failed to load mod configuration file, specified group's name is not a string");
       return false;
     }
-    m_name = name_iter->second.get<std::string>();
+    m_name = name_it->get<std::string>();
   }
 
-  if (auto targets_iter = obj.find("targets"); targets_iter != obj.end())
+  if (auto targets_it = obj.find("targets"); targets_it != obj.end())
   {
-    if (!targets_iter->second.is<picojson::array>())
+    const auto& targets = *targets_it;
+    if (!targets.is_array())
     {
       ERROR_LOG_FMT(
           VIDEO,
           "Failed to load mod configuration file, specified group's targets is not an array");
       return false;
     }
-    for (const auto& target_val : targets_iter->second.get<picojson::array>())
+    for (const auto& target_val : targets)
     {
-      if (!target_val.is<picojson::object>())
+      if (!target_val.is_object())
       {
         ERROR_LOG_FMT(
             VIDEO,
             "Failed to load shader configuration file, specified target is not a json object");
         return false;
       }
-      const auto target = DeserializeTargetFromConfig(target_val.get<picojson::object>());
+      const auto target = DeserializeTargetFromConfig(target_val);
       if (!target)
       {
         return false;
@@ -62,40 +65,41 @@ bool GraphicsTargetGroupConfig::DeserializeFromConfig(const picojson::object& ob
   return true;
 }
 
-void GraphicsTargetGroupConfig::SerializeToProfile(picojson::object* obj) const
+void GraphicsTargetGroupConfig::SerializeToProfile(nlohmann::json* obj) const
 {
   if (!obj)
     return;
   auto& json_obj = *obj;
-  picojson::array serialized_targets;
+  nlohmann::json serialized_targets;
   for (const auto& target : m_targets)
   {
-    picojson::object serialized_target;
+    nlohmann::json serialized_target;
     SerializeTargetToProfile(&serialized_target, target);
-    serialized_targets.emplace_back(std::move(serialized_target));
+    serialized_targets.push_back(std::move(serialized_target));
   }
-  json_obj.emplace("targets", std::move(serialized_targets));
+  json_obj["targets"] = std::move(serialized_targets);
 }
 
-void GraphicsTargetGroupConfig::DeserializeFromProfile(const picojson::object& obj)
+void GraphicsTargetGroupConfig::DeserializeFromProfile(const nlohmann::json& obj)
 {
-  if (const auto it = obj.find("targets"); it != obj.end())
-  {
-    if (it->second.is<picojson::array>())
-    {
-      const auto& serialized_targets = it->second.get<picojson::array>();
-      if (serialized_targets.size() != m_targets.size())
-        return;
+  if (!obj.is_object())
+    return;
 
-      for (std::size_t i = 0; i < serialized_targets.size(); i++)
-      {
-        const auto& serialized_target_val = serialized_targets[i];
-        if (serialized_target_val.is<picojson::object>())
-        {
-          const auto& serialized_target = serialized_target_val.get<picojson::object>();
-          DeserializeTargetFromProfile(serialized_target, &m_targets[i]);
-        }
-      }
+  auto it = obj.find("targets");
+  if (it == obj.end())
+    return;
+
+  const auto& serialized_targets = *it;
+  if (!serialized_targets.is_array() || serialized_targets.size() != m_targets.size())
+    return;
+
+  for (std::size_t i = 0; i < serialized_targets.size(); i++)
+  {
+    const auto& serialized_target_val = serialized_targets[i];
+    if (serialized_target_val.is_object())
+    {
+      const auto& serialized_target = serialized_target_val;
+      DeserializeTargetFromProfile(serialized_target, &m_targets[i]);
     }
   }
 }

@@ -3,26 +3,14 @@
 
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/MoveAction.h"
 
-std::unique_ptr<MoveAction> MoveAction::Create(const picojson::value& json_data)
+#include <nlohmann/json.hpp>
+
+std::unique_ptr<MoveAction> MoveAction::Create(const nlohmann::json& json_data)
 {
   Common::Vec3 position_offset;
-  const auto& x = json_data.get("X");
-  if (x.is<double>())
-  {
-    position_offset.x = static_cast<float>(x.get<double>());
-  }
-
-  const auto& y = json_data.get("Y");
-  if (y.is<double>())
-  {
-    position_offset.y = static_cast<float>(y.get<double>());
-  }
-
-  const auto& z = json_data.get("Z");
-  if (z.is<double>())
-  {
-    position_offset.z = static_cast<float>(z.get<double>());
-  }
+  position_offset.x = json_data.value("X", position_offset.x);
+  position_offset.y = json_data.value("Y", position_offset.y);
+  position_offset.z = json_data.value("Z", position_offset.z);
   return std::make_unique<MoveAction>(position_offset);
 }
 

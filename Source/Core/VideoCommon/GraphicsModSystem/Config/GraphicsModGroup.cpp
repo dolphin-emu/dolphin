@@ -4,10 +4,9 @@
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
 
 #include <map>
-#include <sstream>
 #include <string>
 
-#include <picojson.h>
+#include <nlohmann/json.hpp>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
@@ -43,7 +42,7 @@ void GraphicsModGroupConfig::Load()
   std::set<std::string> known_paths;
   if (File::Exists(file_path))
   {
-    picojson::value root;
+    nlohmann::json root;
     std::string error;
     if (!JsonFromFile(file_path, &root, &error))
     {
@@ -52,7 +51,7 @@ void GraphicsModGroupConfig::Load()
                     file_path, error);
       return;
     }
-    if (!root.is<picojson::object>())
+    if (!root.is_object())
     {
       ERROR_LOG_FMT(
           VIDEO,
@@ -61,25 +60,24 @@ void GraphicsModGroupConfig::Load()
       return;
     }
 
-    const auto& mods = root.get("mods");
-    if (mods.is<picojson::array>())
+    const auto& mods = root["mods"];
+    if (mods.is_array())
     {
-      for (const auto& mod_json : mods.get<picojson::array>())
+      for (const auto& mod_json : mods.items())
       {
-        if (mod_json.is<picojson::object>())
-        {
-          const auto& mod_json_obj = mod_json.get<picojson::object>();
-          auto graphics_mod = GraphicsModConfig::Create(&mod_json_obj);
-          if (!graphics_mod)
-          {
-            continue;
-          }
-          graphics_mod->DeserializeFromProfile(mod_json_obj);
+        const auto& mod_json_obj = mod_json.value();
+        if (!mod_json_obj.is_object())
+          continue;
 
-          auto mod_full_path = graphics_mod->GetAbsolutePath();
-          known_paths.insert(std::move(mod_full_path));
-          m_graphics_mods.push_back(std::move(*graphics_mod));
-        }
+        auto graphics_mod = GraphicsModConfig::Create(&mod_json_obj);
+        if (!graphics_mod)
+          continue;
+
+        graphics_mod->DeserializeFromProfile(mod_json_obj);
+
+        auto mod_full_path = graphics_mod->GetAbsolutePath();
+        known_paths.insert(std::move(mod_full_path));
+        m_graphics_mods.push_back(std::move(*graphics_mod));
       }
     }
   }
@@ -122,27 +120,20 @@ void GraphicsModGroupConfig::Load()
 
 void GraphicsModGroupConfig::Save() const
 {
-  const std::string file_path = GetPath();
-  std::ofstream json_stream;
-  File::OpenFStream(json_stream, file_path, std::ios_base::out);
-  if (!json_stream.is_open())
-  {
-    ERROR_LOG_FMT(VIDEO, "Failed to open graphics mod group json file '{}' for writing", file_path);
-    return;
-  }
-
-  picojson::object serialized_root;
-  picojson::array serialized_mods;
+  nlohmann::json serialized_root;
+  serialized_root["mods"] = nlohmann::json::array();
   for (const auto& mod : m_graphics_mods)
   {
-    picojson::object serialized_mod;
+    nlohmann::json serialized_mod;
     mod.SerializeToProfile(&serialized_mod);
-    serialized_mods.emplace_back(std::move(serialized_mod));
+    serialized_root["mods"].push_back(std::move(serialized_mod));
   }
-  serialized_root.emplace("mods", std::move(serialized_mods));
 
-  const auto output = picojson::value{serialized_root}.serialize(true);
-  json_stream << output;
+  const std::string file_path = GetPath();
+  if (!JsonToFile(file_path, serialized_root, true))
+  {
+    ERROR_LOG_FMT(VIDEO, "Failed to open graphics mod group json file '{}' for writing", file_path);
+  }
 }
 
 void GraphicsModGroupConfig::SetChangeCount(u32 change_count)

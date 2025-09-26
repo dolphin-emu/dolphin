@@ -7,54 +7,47 @@
 #include <string>
 #include <type_traits>
 
-#include <picojson.h>
+#include <nlohmann/json.hpp>
 
 #include "Common/Matrix.h"
 
-// Ideally this would use a concept like, 'template <std::ranges::range Range>' to constrain it,
-// but unfortunately we'd need to require clang 15 for that, since the ranges library isn't
-// fully implemented until then, but this should suffice.
-
-template <typename Range>
-picojson::array ToJsonArray(const Range& data)
-{
-  using RangeUnderlyingType = typename Range::value_type;
-  picojson::array result;
-  result.reserve(std::size(data));
-
-  for (const auto& value : data)
-  {
-    if constexpr (std::is_integral_v<RangeUnderlyingType> ||
-                  std::is_floating_point_v<RangeUnderlyingType>)
-    {
-      result.emplace_back(static_cast<double>(value));
-    }
-    else
-    {
-      result.emplace_back(value);
-    }
-  }
-
-  return result;
-}
-
 template <typename Type>
-std::optional<Type> ReadNumericFromJson(const picojson::object& obj, const std::string& key)
+std::optional<Type> ReadNumericFromJson(const nlohmann::json& obj, const std::string_view key)
 {
-  const auto it = obj.find(key);
-  if (it == obj.end())
+  auto it = obj.find(key);
+  if (it == obj.end() || !it->is_number())
     return std::nullopt;
-  if (!it->second.is<double>())
-    return std::nullopt;
-  return static_cast<Type>(it->second.get<double>());
+
+  const double numeric = it->get<double>();
+
+  if constexpr (std::is_same_v<Type, double>)
+  {
+    return numeric;
+  }
+  else
+  {
+    if (numeric < static_cast<double>(std::numeric_limits<Type>::lowest()) ||
+        numeric > static_cast<double>(std::numeric_limits<Type>::max()))
+    {
+      return std::nullopt;
+    }
+    return static_cast<Type>(numeric);
+  }
 }
 
-std::optional<std::string> ReadStringFromJson(const picojson::object& obj, const std::string& key);
+std::optional<std::string> ReadStringFromJson(const nlohmann::json& obj,
+                                              const std::string_view key);
 
-std::optional<bool> ReadBoolFromJson(const picojson::object& obj, const std::string& key);
+std::optional<bool> ReadBoolFromJson(const nlohmann::json& obj, const std::string_view key);
 
-picojson::object ToJsonObject(const Common::Vec3& vec);
-void FromJson(const picojson::object& obj, Common::Vec3& vec);
+std::optional<nlohmann::json> ReadObjectFromJson(const nlohmann::json& obj,
+                                                 const std::string_view key);
 
-bool JsonToFile(const std::string& filename, const picojson::value& root, bool prettify = false);
-bool JsonFromFile(const std::string& filename, picojson::value* root, std::string* error);
+std::optional<nlohmann::json> ReadArrayFromJson(const nlohmann::json& obj,
+                                                const std::string_view key);
+
+nlohmann::json ToJsonObject(const Common::Vec3& vec);
+void FromJson(const nlohmann::json& obj, Common::Vec3& vec);
+
+bool JsonToFile(const std::string& filename, const nlohmann::json& root, bool prettify = false);
+bool JsonFromFile(const std::string& filename, nlohmann::json* root, std::string* error);
