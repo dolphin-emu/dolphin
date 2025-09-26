@@ -24,6 +24,13 @@ namespace Common
 // Obtains a device property and returns it as a wide string.
 std::wstring GetDeviceProperty(const HANDLE& device_info, const PSP_DEVINFO_DATA device_data,
                                const DEVPROPKEY* requested_property);
+
+std::optional<std::wstring> GetDevNodeStringProperty(DEVINST device,
+                                                     const DEVPROPKEY* requested_property);
+
+std::optional<std::wstring> GetDeviceInterfaceStringProperty(LPCWSTR iface,
+                                                             const DEVPROPKEY* requested_property);
+
 }  // namespace Common
 
 #endif

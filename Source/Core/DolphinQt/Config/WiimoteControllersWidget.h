@@ -14,6 +14,7 @@ class QCheckBox;
 class QComboBox;
 class QHBoxLayout;
 class QGridLayout;
+class QToolButton;
 class QGroupBox;
 class QLabel;
 class QPushButton;
@@ -70,6 +71,6 @@ private:
   QCheckBox* m_wiimote_real_balance_board;
   QCheckBox* m_wiimote_speaker_data;
   QCheckBox* m_wiimote_ciface;
-  QPushButton* m_wiimote_refresh;
+  QToolButton* m_wiimote_refresh;
   QLabel* m_bluetooth_unavailable;
 };
