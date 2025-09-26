@@ -38,6 +38,7 @@ enum class SettingsWindowPaneIndex : int
   Graphics,
   Controllers,
   Interface,
+  OnScreenDisplay,
   Audio,
   Paths,
   GameCube,

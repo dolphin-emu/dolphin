@@ -14,7 +14,6 @@
 #include <QFontDialog>
 #include <QInputDialog>
 #include <QMap>
-#include <QSignalBlocker>
 #include <QUrl>
 
 #include <fmt/format.h>
@@ -66,6 +65,7 @@
 #include "DolphinQt/QtUtils/NonAutodismissibleMenu.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
+#include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Updater.h"
 
@@ -176,8 +176,9 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
 
 void MenuBar::OnConfigChanged()
 {
-  const QSignalBlocker blocker(m_jit_profile_blocks);
-  m_jit_profile_blocks->setChecked(Config::Get(Config::MAIN_DEBUG_JIT_ENABLE_PROFILING));
+  SignalBlocking(m_jit_profile_blocks)
+      ->setChecked(Config::Get(Config::MAIN_DEBUG_JIT_ENABLE_PROFILING));
+  SignalBlocking(m_movie_window)->setChecked(Config::Get(Config::MAIN_MOVIE_SHOW_OSD));
 }
 
 void MenuBar::OnDebugModeToggled(bool enabled)
@@ -845,36 +846,13 @@ void MenuBar::AddMovieMenu()
   connect(pause_at_end, &QAction::toggled,
           [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_MOVIE_PAUSE_MOVIE, value); });
 
-  auto* rerecord_counter = movie_menu->addAction(tr("Show Rerecord Counter"));
-  rerecord_counter->setCheckable(true);
-  rerecord_counter->setChecked(Config::Get(Config::MAIN_MOVIE_SHOW_RERECORD));
-  connect(rerecord_counter, &QAction::toggled,
-          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_MOVIE_SHOW_RERECORD, value); });
+  m_movie_window = movie_menu->addAction(tr("Enable Movie Window"));
+  m_movie_window->setCheckable(true);
+  m_movie_window->setChecked(Config::Get(Config::MAIN_MOVIE_SHOW_OSD));
+  connect(m_movie_window, &QAction::toggled,
+          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_MOVIE_SHOW_OSD, value); });
 
-  auto* lag_counter = movie_menu->addAction(tr("Show Lag Counter"));
-  lag_counter->setCheckable(true);
-  lag_counter->setChecked(Config::Get(Config::MAIN_SHOW_LAG));
-  connect(lag_counter, &QAction::toggled,
-          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_SHOW_LAG, value); });
-
-  auto* frame_counter = movie_menu->addAction(tr("Show Frame Counter"));
-  frame_counter->setCheckable(true);
-  frame_counter->setChecked(Config::Get(Config::MAIN_SHOW_FRAME_COUNT));
-  connect(frame_counter, &QAction::toggled,
-          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_SHOW_FRAME_COUNT, value); });
-
-  auto* input_display = movie_menu->addAction(tr("Show Input Display"));
-  input_display->setCheckable(true);
-  input_display->setChecked(Config::Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY));
-  connect(input_display, &QAction::toggled, [](bool value) {
-    Config::SetBaseOrCurrent(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY, value);
-  });
-
-  auto* system_clock = movie_menu->addAction(tr("Show System Clock"));
-  system_clock->setCheckable(true);
-  system_clock->setChecked(Config::Get(Config::MAIN_MOVIE_SHOW_RTC));
-  connect(system_clock, &QAction::toggled,
-          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_MOVIE_SHOW_RTC, value); });
+  movie_menu->addAction(tr("Customize Movie Window"), this, &MenuBar::ConfigureOSD);
 
   movie_menu->addSeparator();
 
