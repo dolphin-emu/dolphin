@@ -70,7 +70,6 @@
 #define DUMP_DEBUG_BRANCHWATCH_DIR "BranchWatch"
 #define DUMP_DEBUG_JITBLOCKS_DIR "JitBlocks"
 #define LOGS_DIR "Logs"
-#define MAIL_LOGS_DIR "Mail"
 #define SHADERS_DIR "Shaders"
 #define WII_SYSCONF_DIR "shared2" DIR_SEP "sys"
 #define WII_WC24CONF_DIR "shared2" DIR_SEP "wc24"
