@@ -27,6 +27,7 @@
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
+#include "DolphinQt/Config/ConfigControls/ConfigInteger.h"
 #include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
@@ -198,6 +199,14 @@ void InterfacePane::CreateInGame()
       new ConfigBool(tr("Use Panic Handlers"), Config::MAIN_USE_PANIC_HANDLERS);
   m_checkbox_enable_osd =
       new ConfigBool(tr("Show On-Screen Display Messages"), Config::MAIN_OSD_MESSAGES);
+
+  m_osd_font_size = new ConfigInteger(12, 40, Config::MAIN_OSD_FONT_SIZE);
+  m_osd_font_size->setMinimumWidth(m_osd_font_size->sizeHint().width() * 2);
+  auto* font_size_layout = new QHBoxLayout;
+  font_size_layout->addWidget(new QLabel(tr("On-Screen Display Font Size: ")));
+  font_size_layout->addWidget(m_osd_font_size);
+  font_size_layout->addStretch();
+
   m_checkbox_show_active_title =
       new ConfigBool(tr("Show Active Title in Window Title"), Config::MAIN_SHOW_ACTIVE_TITLE);
   m_checkbox_pause_on_focus_lost =
@@ -228,6 +237,7 @@ void InterfacePane::CreateInGame()
   groupbox_layout->addWidget(m_checkbox_confirm_on_stop);
   groupbox_layout->addWidget(m_checkbox_use_panic_handlers);
   groupbox_layout->addWidget(m_checkbox_enable_osd);
+  groupbox_layout->addLayout(font_size_layout);
   groupbox_layout->addWidget(m_checkbox_show_active_title);
   groupbox_layout->addWidget(m_checkbox_pause_on_focus_lost);
   groupbox_layout->addWidget(mouse_groupbox);
@@ -372,6 +382,10 @@ void InterfacePane::AddDescriptions()
       QT_TR_NOOP("Shows on-screen display messages over the render window. These messages "
                  "disappear after several seconds."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
+  static const char TR_OSD_FONT_SIZE_DESCRIPTION[] =
+      QT_TR_NOOP("Changes the font size of the On Screen Display. Affects features such as the FPS"
+                 "display, TAS movie window, and netplay chat."
+                 "<br><br><dolphin_emphasis>If unsure, leave this at 13.</dolphin_emphasis>");
   static constexpr char TR_SHOW_ACTIVE_TITLE_DESCRIPTION[] =
       QT_TR_NOOP("Shows the active game title in the render window's title bar."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
@@ -420,6 +434,8 @@ void InterfacePane::AddDescriptions()
   m_checkbox_use_panic_handlers->SetDescription(tr(TR_USE_PANIC_HANDLERS_DESCRIPTION));
 
   m_checkbox_enable_osd->SetDescription(tr(TR_ENABLE_OSD_DESCRIPTION));
+
+  m_osd_font_size->SetDescription(tr(TR_OSD_FONT_SIZE_DESCRIPTION));
 
   m_checkbox_show_active_title->SetDescription(tr(TR_SHOW_ACTIVE_TITLE_DESCRIPTION));
 
