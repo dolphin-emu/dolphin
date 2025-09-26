@@ -66,18 +66,6 @@ void ExpansionInterfaceManager::AddMemoryCard(Slot slot)
   m_channels[SlotToEXIChannel(slot)]->AddDevice(memorycard_device, SlotToEXIDevice(slot));
 }
 
-void ExpansionInterfaceManager::AddSP1Device()
-{
-  EXIDeviceType sp1_device = EXIDeviceType::Baseboard;
-  auto& system = Core::System::GetInstance();
-  if (system.IsTriforce())
-  {
-    sp1_device = Config::Get(Config::MAIN_SERIAL_PORT_1);
-  }
-
-  m_channels[0]->AddDevice(sp1_device, SlotToEXIDevice(Slot::SP1));
-}
-
 u8 SlotToEXIChannel(Slot slot)
 {
   switch (slot)
@@ -157,9 +145,15 @@ void ExpansionInterfaceManager::Init(const Sram* override_sram)
     AddMemoryCard(slot);
 
   m_channels[0]->AddDevice(EXIDeviceType::MaskROM, 1);
-  AddSP1Device();
-  m_channels[SlotToEXIChannel(Slot::SP1)]->AddDevice(Config::Get(Config::MAIN_SERIAL_PORT_1),
-                                                     SlotToEXIDevice(Slot::SP1));
+
+  // Automatically connect the Triforce Baseboard in Triforce mode
+  EXIDeviceType sp1_device = Config::Get(Config::MAIN_SERIAL_PORT_1);
+  if (m_system.IsTriforce())
+  {
+    sp1_device = EXIDeviceType::Baseboard;
+  }
+
+  m_channels[SlotToEXIChannel(Slot::SP1)]->AddDevice(sp1_device, SlotToEXIDevice(Slot::SP1));
   m_channels[SlotToEXIChannel(Slot::SP2)]->AddDevice(Config::Get(Config::MAIN_SERIAL_PORT_2),
                                                      SlotToEXIDevice(Slot::SP2));
 
