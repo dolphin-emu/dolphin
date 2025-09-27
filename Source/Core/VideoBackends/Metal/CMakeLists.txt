@@ -35,6 +35,7 @@ PUBLIC
   videocommon
 PRIVATE
   spirv_cross
+  glslang::glslang
   ${FOUNDATION_LIBRARY}
   ${METAL_LIBRARY}
   ${QUARTZCORE_LIBRARY}

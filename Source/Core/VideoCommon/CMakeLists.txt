@@ -224,7 +224,7 @@ PRIVATE
   xxhash::xxhash
   imgui
   implot
-  glslang
+  glslang::glslang
   tinygltf
 )
 
@@ -266,16 +266,6 @@ if(FFmpeg_FOUND)
     )
   endif()
 endif()
-
-# Silence warnings on glslang by flagging it as a system include
-target_include_directories(videocommon
-SYSTEM PUBLIC
-  ${CMAKE_SOURCE_DIR}/Externals/glslang/glslang/glslang/Public
-SYSTEM PRIVATE
-  ${CMAKE_SOURCE_DIR}/Externals/glslang/glslang/glslang
-  ${CMAKE_SOURCE_DIR}/Externals/glslang/glslang/SPIRV
-  ${CMAKE_SOURCE_DIR}/Externals/glslang/glslang
-)
 
 if(MSVC)
   # Add precompiled header
