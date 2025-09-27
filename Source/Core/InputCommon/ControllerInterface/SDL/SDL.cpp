@@ -139,6 +139,9 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
   // Disable DualSense Player LEDs; We already colorize the Primary LED
   SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, "0");
 
+  // SDL is blocking on a IDirectInputDevice8_Acquire call. I don't know what to do about that..
+  SDL_SetHint(SDL_HINT_JOYSTICK_DIRECTINPUT, "0");
+
   m_hotplug_thread = std::thread([this] {
     Common::SetCurrentThreadName("SDL Hotplug Thread");
 
