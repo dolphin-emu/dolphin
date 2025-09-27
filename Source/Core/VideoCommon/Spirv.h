@@ -21,17 +21,21 @@ using CodeVector = std::vector<CodeType>;
 
 // Compile a vertex shader to SPIR-V.
 std::optional<CodeVector> CompileVertexShader(std::string_view source_code, APIType api_type,
-                                              glslang::EShTargetLanguageVersion language_version);
+                                              glslang::EShTargetLanguageVersion language_version,
+                                              glslang::TShader::Includer* shader_includer);
 
 // Compile a geometry shader to SPIR-V.
 std::optional<CodeVector> CompileGeometryShader(std::string_view source_code, APIType api_type,
-                                                glslang::EShTargetLanguageVersion language_version);
+                                                glslang::EShTargetLanguageVersion language_version,
+                                                glslang::TShader::Includer* shader_includer);
 
 // Compile a fragment shader to SPIR-V.
 std::optional<CodeVector> CompileFragmentShader(std::string_view source_code, APIType api_type,
-                                                glslang::EShTargetLanguageVersion language_version);
+                                                glslang::EShTargetLanguageVersion language_version,
+                                                glslang::TShader::Includer* shader_includer);
 
 // Compile a compute shader to SPIR-V.
 std::optional<CodeVector> CompileComputeShader(std::string_view source_code, APIType api_type,
-                                               glslang::EShTargetLanguageVersion language_version);
+                                               glslang::EShTargetLanguageVersion language_version,
+                                               glslang::TShader::Includer* shader_includer);
 }  // namespace SPIRV

@@ -14,6 +14,11 @@
 
 #include "VideoBackends/Metal/MRCHelpers.h"
 
+namespace VideoCommon
+{
+class ShaderIncluder;
+}
+
 namespace Metal
 {
 struct DeviceFeatures
@@ -54,7 +59,8 @@ static inline bool HasStencil(AbstractTextureFormat format)
   return format == AbstractTextureFormat::D24_S8 || format == AbstractTextureFormat::D32F_S8;
 }
 
-std::optional<std::string> TranslateShaderToMSL(ShaderStage stage, std::string_view source);
+std::optional<std::string> TranslateShaderToMSL(ShaderStage stage, std::string_view source,
+                                                VideoCommon::ShaderIncluder* shader_includer);
 
 }  // namespace Util
 }  // namespace Metal
