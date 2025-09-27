@@ -44,7 +44,7 @@ PUBLIC
 
 PRIVATE
   # Link against glslang, the other necessary libraries are referenced by the executable.
-  glslang
+  glslang::glslang
   xxhash::xxhash
 )
 
