@@ -229,6 +229,96 @@ void Jit64::lXXx(UGeckoInstruction inst)
     BSWAP(accessSize, Rd);
 }
 
+// Sets up the optimization for common cache loop patterns, in the following form:
+// - dcx rX
+// - addi rX,rX,32
+// - bdnz+ -8
+//
+// It automatically decrease the downcount and CTR, but it does *not* automatically perform
+// `rX += 32 * RSCRATCH2`.
+//
+// The passed register will be realized and clobbered. RSCRATCH will be clobbered.
+//
+// RSCRATCH2 will be set to the number of loops to execute minus 1.
+void Jit64::WriteInitCacheLoop(const u32 cycle_count_per_loop, RCX64Reg& loop_counter)
+{
+  // We'll execute somewhere between one single cacheline invalidation and however many are needed
+  // to reduce the downcount to zero, never exceeding the amount requested by the game.
+  // To stay consistent with the rest of the code we adjust the involved registers (CTR and Rb)
+  // by the amount of cache lines we invalidate minus one -- since we'll run the regular addi and
+  // bdnz afterwards! So if we invalidate a single cache line, we don't adjust the registers at
+  // all, if we invalidate 2 cachelines we adjust the registers by one step, and so on.
+
+  RCX64Reg reg_cycle_count = gpr.Scratch();
+  RCX64Reg reg_downcount = gpr.Scratch();
+  RegCache::Realize(reg_cycle_count, reg_downcount, loop_counter);
+
+  // This must be true in order for us to pick up the DIV results and not trash any data.
+  static_assert(RSCRATCH == Gen::EAX && RSCRATCH2 == Gen::EDX);
+
+  // This is both setting the adjusted loop count to 0 for the downcount <= 0 case and clearing
+  // the upper bits for the DIV instruction in the downcount > 0 case.
+  XOR(32, R(RSCRATCH2), R(RSCRATCH2));
+
+  MOV(32, R(RSCRATCH), PPCSTATE(downcount));
+  TEST(32, R(RSCRATCH), R(RSCRATCH));                       // if (downcount <= 0)
+  FixupBranch downcount_is_zero_or_negative = J_CC(CC_LE);  // only do 1 invalidation; else:
+  MOV(32, R(loop_counter), PPCSTATE_CTR);
+  MOV(32, R(reg_downcount), R(RSCRATCH));
+  MOV(32, R(reg_cycle_count), Imm32(cycle_count_per_loop));
+  DIV(32, R(reg_cycle_count));                  // RSCRATCH = downcount / cycle_count
+  LEA(32, RSCRATCH2, MDisp(loop_counter, -1));  // RSCRATCH2 = CTR - 1
+  // ^ Note that this CTR-1 implicitly handles the CTR == 0 case correctly.
+  CMP(32, R(RSCRATCH), R(RSCRATCH2));
+  CMOVcc(32, RSCRATCH2, R(RSCRATCH), CC_B);  // RSCRATCH2 = min(RSCRATCH, RSCRATCH2)
+
+  // RSCRATCH2 now holds the amount of loops to execute minus 1, which is the amount we need to
+  // adjust downcount, CTR, and Rb by to exit the loop construct with the right values in those
+  // registers.
+  SUB(32, R(loop_counter), R(RSCRATCH2));
+  MOV(32, PPCSTATE_CTR, R(loop_counter));  // CTR -= RSCRATCH2
+  IMUL(32, reg_cycle_count, R(RSCRATCH2));
+  // ^ Note that this cannot overflow because it's limited by (downcount/cycle_count).
+  SUB(32, R(reg_downcount), R(reg_cycle_count));
+  MOV(32, PPCSTATE(downcount), R(reg_downcount));  // downcount -= (RSCRATCH2 * reg_cycle_count)
+
+  SetJumpTarget(downcount_is_zero_or_negative);
+
+  if (IsDebuggingEnabled())
+  {
+    const X64Reg bw_reg_a = reg_cycle_count, bw_reg_b = reg_downcount;
+    const BitSet32 bw_caller_save = (CallerSavedRegistersInUse() | BitSet32{RSCRATCH2}) &
+                                    ~BitSet32{int(bw_reg_a), int(bw_reg_b), int(loop_counter)};
+
+    MOV(64, R(bw_reg_a), ImmPtr(&m_branch_watch));
+    MOVZX(32, 8, bw_reg_b, MDisp(bw_reg_a, Core::BranchWatch::GetOffsetOfRecordingActive()));
+    TEST(32, R(bw_reg_b), R(bw_reg_b));
+
+    FixupBranch branch_in = J_CC(CC_NZ, Jump::Near);
+    SwitchToFarCode();
+    SetJumpTarget(branch_in);
+
+    // Assert RSCRATCH2 won't be clobbered before it is moved from.
+    static_assert(RSCRATCH2 != ABI_PARAM1);
+
+    ABI_PushRegistersAndAdjustStack(bw_caller_save, 0);
+    MOV(64, R(ABI_PARAM1), R(bw_reg_a));
+    // RSCRATCH2 holds the amount of faked branch watch hits. Move RSCRATCH2 first, because
+    // ABI_PARAM2 clobbers RSCRATCH2 on Windows and ABI_PARAM3 clobbers RSCRATCH2 on Linux!
+    MOV(32, R(ABI_PARAM4), R(RSCRATCH2));
+    const PPCAnalyst::CodeOp& op = js.op[2];
+    MOV(64, R(ABI_PARAM2), Imm64(Core::FakeBranchWatchCollectionKey{op.address, op.branchTo}));
+    MOV(32, R(ABI_PARAM3), Imm32(op.inst.hex));
+    ABI_CallFunction(m_ppc_state.msr.IR ? &Core::BranchWatch::HitVirtualTrue_fk_n :
+                                          &Core::BranchWatch::HitPhysicalTrue_fk_n);
+    ABI_PopRegistersAndAdjustStack(bw_caller_save, 0);
+
+    FixupBranch branch_out = J(Jump::Near);
+    SwitchToNearCode();
+    SetJumpTarget(branch_out);
+  }
+}
+
 void Jit64::dcbx(UGeckoInstruction inst)
 {
   FALLBACK_IF(m_accurate_cpu_cache_enabled);
@@ -252,89 +342,13 @@ void Jit64::dcbx(UGeckoInstruction inst)
   RCX64Reg loop_counter;
   if (make_loop)
   {
-    // We'll execute somewhere between one single cacheline invalidation and however many are needed
-    // to reduce the downcount to zero, never exceeding the amount requested by the game.
-    // To stay consistent with the rest of the code we adjust the involved registers (CTR and Rb)
-    // by the amount of cache lines we invalidate minus one -- since we'll run the regular addi and
-    // bdnz afterwards! So if we invalidate a single cache line, we don't adjust the registers at
-    // all, if we invalidate 2 cachelines we adjust the registers by one step, and so on.
-
-    RCX64Reg reg_cycle_count = gpr.Scratch();
-    RCX64Reg reg_downcount = gpr.Scratch();
-    loop_counter = gpr.Scratch();
-    RegCache::Realize(reg_cycle_count, reg_downcount, loop_counter);
-
-    // This must be true in order for us to pick up the DIV results and not trash any data.
-    static_assert(RSCRATCH == Gen::EAX && RSCRATCH2 == Gen::EDX);
-
-    // Alright, now figure out how many loops we want to do.
-    const u8 cycle_count_per_loop =
+    const u32 cycle_count_per_loop =
         js.op[0].opinfo->num_cycles + js.op[1].opinfo->num_cycles + js.op[2].opinfo->num_cycles;
 
-    // This is both setting the adjusted loop count to 0 for the downcount <= 0 case and clearing
-    // the upper bits for the DIV instruction in the downcount > 0 case.
-    XOR(32, R(RSCRATCH2), R(RSCRATCH2));
-
-    MOV(32, R(RSCRATCH), PPCSTATE(downcount));
-    TEST(32, R(RSCRATCH), R(RSCRATCH));                       // if (downcount <= 0)
-    FixupBranch downcount_is_zero_or_negative = J_CC(CC_LE);  // only do 1 invalidation; else:
-    MOV(32, R(loop_counter), PPCSTATE_CTR);
-    MOV(32, R(reg_downcount), R(RSCRATCH));
-    MOV(32, R(reg_cycle_count), Imm32(cycle_count_per_loop));
-    DIV(32, R(reg_cycle_count));                  // RSCRATCH = downcount / cycle_count
-    LEA(32, RSCRATCH2, MDisp(loop_counter, -1));  // RSCRATCH2 = CTR - 1
-    // ^ Note that this CTR-1 implicitly handles the CTR == 0 case correctly.
-    CMP(32, R(RSCRATCH), R(RSCRATCH2));
-    CMOVcc(32, RSCRATCH2, R(RSCRATCH), CC_B);  // RSCRATCH2 = min(RSCRATCH, RSCRATCH2)
-
-    // RSCRATCH2 now holds the amount of loops to execute minus 1, which is the amount we need to
-    // adjust downcount, CTR, and Rb by to exit the loop construct with the right values in those
-    // registers.
-    SUB(32, R(loop_counter), R(RSCRATCH2));
-    MOV(32, PPCSTATE_CTR, R(loop_counter));  // CTR -= RSCRATCH2
-    IMUL(32, reg_cycle_count, R(RSCRATCH2));
-    // ^ Note that this cannot overflow because it's limited by (downcount/cycle_count).
-    SUB(32, R(reg_downcount), R(reg_cycle_count));
-    MOV(32, PPCSTATE(downcount), R(reg_downcount));  // downcount -= (RSCRATCH2 * reg_cycle_count)
-
-    SetJumpTarget(downcount_is_zero_or_negative);
-
+    loop_counter = gpr.Scratch();
+    WriteInitCacheLoop(cycle_count_per_loop, loop_counter);
     // Load the loop_counter register with the amount of invalidations to execute.
     LEA(32, loop_counter, MDisp(RSCRATCH2, 1));
-
-    if (IsDebuggingEnabled())
-    {
-      const X64Reg bw_reg_a = reg_cycle_count, bw_reg_b = reg_downcount;
-      const BitSet32 bw_caller_save = (CallerSavedRegistersInUse() | BitSet32{RSCRATCH2}) &
-                                      ~BitSet32{int(bw_reg_a), int(bw_reg_b)};
-
-      MOV(64, R(bw_reg_a), ImmPtr(&m_branch_watch));
-      MOVZX(32, 8, bw_reg_b, MDisp(bw_reg_a, Core::BranchWatch::GetOffsetOfRecordingActive()));
-      TEST(32, R(bw_reg_b), R(bw_reg_b));
-
-      FixupBranch branch_in = J_CC(CC_NZ, Jump::Near);
-      SwitchToFarCode();
-      SetJumpTarget(branch_in);
-
-      // Assert RSCRATCH2 won't be clobbered before it is moved from.
-      static_assert(RSCRATCH2 != ABI_PARAM1);
-
-      ABI_PushRegistersAndAdjustStack(bw_caller_save, 0);
-      MOV(64, R(ABI_PARAM1), R(bw_reg_a));
-      // RSCRATCH2 holds the amount of faked branch watch hits. Move RSCRATCH2 first, because
-      // ABI_PARAM2 clobbers RSCRATCH2 on Windows and ABI_PARAM3 clobbers RSCRATCH2 on Linux!
-      MOV(32, R(ABI_PARAM4), R(RSCRATCH2));
-      const PPCAnalyst::CodeOp& op = js.op[2];
-      MOV(64, R(ABI_PARAM2), Imm64(Core::FakeBranchWatchCollectionKey{op.address, op.branchTo}));
-      MOV(32, R(ABI_PARAM3), Imm32(op.inst.hex));
-      ABI_CallFunction(m_ppc_state.msr.IR ? &Core::BranchWatch::HitVirtualTrue_fk_n :
-                                            &Core::BranchWatch::HitPhysicalTrue_fk_n);
-      ABI_PopRegistersAndAdjustStack(bw_caller_save, 0);
-
-      FixupBranch branch_out = J(Jump::Near);
-      SwitchToNearCode();
-      SetJumpTarget(branch_out);
-    }
   }
 
   X64Reg addr = RSCRATCH;
@@ -423,10 +437,38 @@ void Jit64::dcbt(UGeckoInstruction inst)
   // This is important because invalidating the block cache when we don't
   // need to is terrible for performance.
   // (Invalidating the jit block cache on dcbst is a heuristic.)
-  if (CanMergeNextInstructions(1) && js.op[1].inst.OPCD == 31 && js.op[1].inst.SUBOP10 == 54 &&
-      js.op[1].inst.RA == inst.RA && js.op[1].inst.RB == inst.RB)
+  const bool followed_by_dcbst =
+      (CanMergeNextInstructions(1) && js.op[1].inst.OPCD == 31 && js.op[1].inst.SUBOP10 == 54 &&
+       js.op[1].inst.RA == inst.RA && js.op[1].inst.RB == inst.RB);
+
+  if (followed_by_dcbst)
   {
     js.skipInstructions = 1;
+  }
+
+  const u32 i = followed_by_dcbst;
+  // Check if the next instructions match a known looping pattern:
+  // - dcbt rX
+  // - dcbst rX (optional)
+  // - addi rX,rX,32
+  // - bdnz+ -8 (or -12 if dcbst)
+  const bool make_loop = inst.RA == 0 && inst.RB != 0 && CanMergeNextInstructions(2 + i) &&
+                         (js.op[1 + i].inst.hex & 0xfc00'ffff) == 0x38000020 &&
+                         js.op[1 + i].inst.RA_6 == inst.RB && js.op[1 + i].inst.RD_2 == inst.RB &&
+                         js.op[2 + i].inst.hex == 0x42010000 - (4 * (2 + i));
+
+  if (make_loop)
+  {
+    u32 cycle_count_per_loop = 0;
+    for (u32 j = 0; j < 3 + i; j++)
+      cycle_count_per_loop += js.op[j].opinfo->num_cycles;
+    RCX64Reg loop_counter = gpr.Scratch();
+    WriteInitCacheLoop(cycle_count_per_loop, loop_counter);
+
+    SHL(32, R(RSCRATCH2), Imm8(5));
+    RCX64Reg Rb = gpr.Bind(inst.RB, RCMode::ReadWrite);
+    RegCache::Realize(Rb);
+    ADD(32, R(Rb), R(RSCRATCH2));  // Rb += (RSCRATCH2 * 32)
   }
 }
 

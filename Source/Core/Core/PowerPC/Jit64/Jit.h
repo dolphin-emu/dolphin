@@ -239,6 +239,8 @@ public:
   void psq_lXX(UGeckoInstruction inst);
   void psq_stXX(UGeckoInstruction inst);
 
+  void WriteInitCacheLoop(u32 cycle_count_per_loop, RCX64Reg& loop_counter);
+
   void fmaddXX(UGeckoInstruction inst);
   void fsign(UGeckoInstruction inst);
   void fselx(UGeckoInstruction inst);
