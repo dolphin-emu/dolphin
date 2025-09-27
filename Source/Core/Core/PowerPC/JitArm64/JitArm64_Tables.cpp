@@ -172,8 +172,8 @@ constexpr std::array<JitArm64OpTemplate, 107> s_table31{{
     {616, &JitArm64::negx},     // negox
     {40, &JitArm64::subfx},     // subfx
     {552, &JitArm64::subfx},    // subfox
-    {8, &JitArm64::subfcx},     // subfcx
-    {520, &JitArm64::subfcx},   // subfcox
+    {8, &JitArm64::subfx},      // subfcx
+    {520, &JitArm64::subfx},    // subfcox
     {136, &JitArm64::subfex},   // subfex
     {648, &JitArm64::subfex},   // subfeox
     {232, &JitArm64::subfex},   // subfmex
