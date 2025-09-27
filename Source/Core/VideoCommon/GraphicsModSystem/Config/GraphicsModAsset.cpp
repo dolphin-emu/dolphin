@@ -3,12 +3,15 @@
 
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModAsset.h"
 
+#include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
-void GraphicsModAssetConfig::SerializeToConfig(picojson::object& json_obj) const
+namespace GraphicsModSystem::Config
 {
-  json_obj.emplace("name", m_asset_id);
+void GraphicsModAsset::Serialize(picojson::object& json_obj) const
+{
+  json_obj.emplace("id", m_asset_id);
 
   picojson::object serialized_data;
   for (const auto& [name, path] : m_map)
@@ -18,21 +21,16 @@ void GraphicsModAssetConfig::SerializeToConfig(picojson::object& json_obj) const
   json_obj.emplace("data", std::move(serialized_data));
 }
 
-bool GraphicsModAssetConfig::DeserializeFromConfig(const picojson::object& obj)
+bool GraphicsModAsset::Deserialize(const picojson::object& obj)
 {
-  auto name_iter = obj.find("name");
-  if (name_iter == obj.end())
+  const auto id = ReadStringFromJson(obj, "id");
+  if (!id)
   {
-    ERROR_LOG_FMT(VIDEO, "Failed to load mod configuration file, specified asset has no name");
+    ERROR_LOG_FMT(VIDEO, "Failed to load mod configuration file, specified asset has an id "
+                         "that is not valid");
     return false;
   }
-  if (!name_iter->second.is<std::string>())
-  {
-    ERROR_LOG_FMT(VIDEO, "Failed to load mod configuration file, specified asset has a name "
-                         "that is not a string");
-    return false;
-  }
-  m_asset_id = name_iter->second.to_str();
+  m_asset_id = *id;
 
   auto data_iter = obj.find("data");
   if (data_iter == obj.end())
@@ -64,3 +62,4 @@ bool GraphicsModAssetConfig::DeserializeFromConfig(const picojson::object& obj)
 
   return true;
 }
+}  // namespace GraphicsModSystem::Config

@@ -13,6 +13,11 @@
 #include "VideoBackends/Vulkan/VulkanLoader.h"
 #include "VideoCommon/AbstractShader.h"
 
+namespace VideoCommon
+{
+class ShaderIncluder;
+}
+
 namespace Vulkan
 {
 class VKShader final : public AbstractShader
@@ -27,6 +32,7 @@ public:
   BinaryData GetBinary() const override;
 
   static std::unique_ptr<VKShader> CreateFromSource(ShaderStage stage, std::string_view source,
+                                                    VideoCommon::ShaderIncluder* shader_includer,
                                                     std::string_view name);
   static std::unique_ptr<VKShader> CreateFromBinary(ShaderStage stage, const void* data,
                                                     size_t length, std::string_view name);
