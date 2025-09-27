@@ -686,8 +686,13 @@ void WiimoteScannerWindows::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
 {
   RemoveUnusableWiimoteBluetoothDevices();
   DiscoverAndPairWiimotes();
-  // TODO: This sleep is hacky. We should run FindWiimoteHIDDevices when a new device is created.
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  // Kinda odd that we never return any remotes here. The scanner interface is odd.
+  // We return all the results in FindAlreadyConnectedWiimote.
+}
+
+void WiimoteScannerWindows::FindAlreadyConnectedWiimote(std::vector<Wiimote*>& found_wiimotes,
+                                                        Wiimote*& found_board)
+{
   FindWiimoteHIDDevices(found_wiimotes, found_board);
 }
 

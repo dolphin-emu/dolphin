@@ -697,9 +697,6 @@ void WiimoteScanner::ThreadFunc()
 
     CheckForDisconnectedWiimotes();
 
-    if (m_scan_mode.load() == WiimoteScanMode::DO_NOT_SCAN)
-      continue;
-
     // If we don't want Wiimotes in ControllerInterface, we may not need them at all.
     if (!Config::Get(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE))
     {
@@ -721,31 +718,19 @@ void WiimoteScanner::ThreadFunc()
     {
       std::vector<Wiimote*> found_wiimotes;
       Wiimote* found_board = nullptr;
+      backend->FindAlreadyConnectedWiimote(found_wiimotes, found_board);
+      HandleNewWiimotes(std::move(found_wiimotes), found_board);
+    }
+
+    if (m_scan_mode.load() == WiimoteScanMode::DO_NOT_SCAN)
+      continue;
+
+    for (const auto& backend : m_backends)
+    {
+      std::vector<Wiimote*> found_wiimotes;
+      Wiimote* found_board = nullptr;
       backend->FindWiimotes(found_wiimotes, found_board);
-      {
-        std::unique_lock wm_lk(g_wiimotes_mutex);
-
-        for (auto* wiimote : found_wiimotes)
-        {
-          {
-            std::lock_guard lk(s_known_ids_mutex);
-            s_known_ids.insert(wiimote->GetId());
-          }
-
-          AddWiimoteToPool(std::unique_ptr<Wiimote>(wiimote));
-          g_controller_interface.PlatformPopulateDevices([] { ProcessWiimotePool(); });
-        }
-
-        if (found_board)
-        {
-          {
-            std::lock_guard lk(s_known_ids_mutex);
-            s_known_ids.insert(found_board->GetId());
-          }
-
-          TryToConnectBalanceBoard(std::unique_ptr<Wiimote>(found_board));
-        }
-      }
+      HandleNewWiimotes(std::move(found_wiimotes), found_board);
     }
 
     // Stop scanning if not in continuous mode.
@@ -761,6 +746,32 @@ void WiimoteScanner::ThreadFunc()
   pool_thread.join();
 
   NOTICE_LOG_FMT(WIIMOTE, "Wiimote scanning thread has stopped.");
+}
+
+void WiimoteScanner::HandleNewWiimotes(std::vector<Wiimote*> wiimotes, Wiimote* balance_board)
+{
+  std::unique_lock wm_lk(g_wiimotes_mutex);
+
+  for (auto* wiimote : wiimotes)
+  {
+    {
+      std::lock_guard lk(s_known_ids_mutex);
+      s_known_ids.insert(wiimote->GetId());
+    }
+
+    AddWiimoteToPool(std::unique_ptr<Wiimote>(wiimote));
+    g_controller_interface.PlatformPopulateDevices([] { ProcessWiimotePool(); });
+  }
+
+  if (balance_board)
+  {
+    {
+      std::lock_guard lk(s_known_ids_mutex);
+      s_known_ids.insert(balance_board->GetId());
+    }
+
+    TryToConnectBalanceBoard(std::unique_ptr<Wiimote>(balance_board));
+  }
 }
 
 bool Wiimote::Connect(int index)

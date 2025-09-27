@@ -181,6 +181,10 @@ public:
   virtual void Update() = 0;
   // requests the backend to stop scanning if FindWiimotes is blocking
   virtual void RequestStopSearching() = 0;
+
+  // Used by Windows to search for HID interfaces of already connected Wii remotes.
+  // hidapi should probably implement the equivalent.
+  virtual void FindAlreadyConnectedWiimote(std::vector<Wiimote*>&, Wiimote*&) {}
 };
 
 enum class WiimoteScanMode
@@ -204,6 +208,8 @@ public:
 private:
   void ThreadFunc();
   void PoolThreadFunc();
+
+  void HandleNewWiimotes(std::vector<Wiimote*>, Wiimote*);
 
   std::vector<std::unique_ptr<WiimoteScannerBackend>> m_backends;
   mutable std::mutex m_backends_mutex;
