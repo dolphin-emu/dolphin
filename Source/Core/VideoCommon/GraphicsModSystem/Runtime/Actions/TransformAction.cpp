@@ -50,7 +50,7 @@ void TransformAction::DrawImGui()
     {
       float matrixTranslation[3], matrixRotation[3], matrixScale[3];
 
-      auto transform = m_transform.Transpose();
+      auto transform = m_transform.Transposed();
       ImGuizmo::DecomposeMatrixToComponents(transform.data.data(), matrixTranslation,
                                             matrixRotation, matrixScale);
 
@@ -88,7 +88,7 @@ void TransformAction::DrawImGui()
       {
         ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale,
                                                 transform.data.data());
-        m_transform = transform.Transpose();
+        m_transform = transform.Transposed();
       }
     }
   }
