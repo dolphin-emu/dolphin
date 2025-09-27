@@ -84,6 +84,7 @@ bool WiimoteAndroid::ConnectInternal()
 
 void WiimoteAndroid::DisconnectInternal()
 {
+  is_connected = false;
 }
 
 bool WiimoteAndroid::IsConnected() const
