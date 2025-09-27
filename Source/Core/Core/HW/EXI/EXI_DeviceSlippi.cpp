@@ -2121,7 +2121,7 @@ void CEXISlippi::prepareOnlineMatchState()
   chat_message_player_idx = 0;
   local_chat_message_id = 0;
   // in CSS p1 is always current player and p2 is opponent
-  local_player_name = p1_ame = user_info.display_name;
+  local_player_name = p1_name = user_info.display_name;
   opp_name = p2_name = "Player 2";
   p1_rank = 8;
   p2_rank = 15;
