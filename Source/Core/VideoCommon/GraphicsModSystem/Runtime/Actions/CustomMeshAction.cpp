@@ -146,7 +146,7 @@ void CustomMeshAction::DrawImGui()
     {
       float matrixTranslation[3], matrixRotation[3], matrixScale[3];
 
-      auto transform = m_serializable_data.transform.Transpose();
+      auto transform = m_serializable_data.transform.Transposed();
       ImGuizmo::DecomposeMatrixToComponents(transform.data.data(), matrixTranslation,
                                             matrixRotation, matrixScale);
 
@@ -183,7 +183,7 @@ void CustomMeshAction::DrawImGui()
       {
         ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale,
                                                 transform.data.data());
-        m_serializable_data.transform = transform.Transpose();
+        m_serializable_data.transform = transform.Transposed();
       }
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
