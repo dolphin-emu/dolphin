@@ -70,8 +70,8 @@ static_assert(!std::is_same_v<ObjectType<&Bar::c>, Bar>);
 
 // Template for checking if Types is count occurrences of T.
 template <typename T, size_t count, typename... Ts>
-struct IsNOf : std::integral_constant<bool, std::conjunction_v<std::is_convertible<Ts, T>...> &&
-                                                sizeof...(Ts) == count>
+struct IsNOf : std::bool_constant<std::conjunction_v<std::is_convertible<Ts, T>...> &&
+                                  sizeof...(Ts) == count>
 {
 };
 

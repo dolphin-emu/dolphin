@@ -106,3 +106,7 @@
 	path = Externals/miniupnpc/miniupnp
 	url = https://github.com/miniupnp/miniupnp.git
 	shallow = true
+[submodule "Externals/glslang/glslang"]
+	path = Externals/glslang/glslang
+	url = https://github.com/KhronosGroup/glslang.git
+	shallow = true

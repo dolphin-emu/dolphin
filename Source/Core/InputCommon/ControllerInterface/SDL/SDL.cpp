@@ -130,9 +130,6 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
 {
   EnableSDLLogging();
 
-  // This is required on windows so that SDL's joystick code properly pumps window messages
-  SDL_SetHint(SDL_HINT_JOYSTICK_THREAD, "1");
-
   SDL_SetHint(SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "1");
 
   // We have our own WGI backend. Enabling SDL's WGI handling creates even more redundant devices.
@@ -177,34 +174,11 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
       }
     }
 
-#ifdef _WIN32
-    // This is a hack to workaround SDL_hidapi using window messages to detect device
-    // removal/arrival, yet no part of SDL pumps messages for it. It can hopefully be removed in the
-    // future when SDL fixes the issue. Note this is a separate issue from SDL_HINT_JOYSTICK_THREAD.
-    // Also note that SDL_WaitEvent may block while device detection window messages get queued up,
-    // causing some noticible stutter. This is just another reason it should be fixed properly by
-    // SDL...
-    const auto window_handle =
-        FindWindowEx(HWND_MESSAGE, nullptr, TEXT("SDL_HIDAPI_DEVICE_DETECTION"), nullptr);
-#endif
-
     SDL_Event e;
     while (SDL_WaitEvent(&e))
     {
       if (!HandleEventAndContinue(e))
         return;
-
-#ifdef _WIN32
-      MSG msg;
-      while (window_handle && PeekMessage(&msg, window_handle, 0, 0, PM_NOREMOVE))
-      {
-        if (GetMessageA(&msg, window_handle, 0, 0) != 0)
-        {
-          TranslateMessage(&msg);
-          DispatchMessage(&msg);
-        }
-      }
-#endif
     }
   });
 

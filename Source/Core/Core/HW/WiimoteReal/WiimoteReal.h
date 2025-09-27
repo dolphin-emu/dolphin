@@ -10,11 +10,12 @@
 #include <thread>
 #include <vector>
 
-#include "Common/Common.h"
 #include "Common/Config/Config.h"
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/SPSCQueue.h"
+#include "Common/WorkQueueThread.h"
+
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
@@ -53,8 +54,6 @@ public:
   Wiimote& operator=(Wiimote&&) = delete;
 
   ~Wiimote() override;
-  // This needs to be called in derived destructors!
-  void Shutdown();
 
   virtual std::string GetId() const = 0;
 
@@ -95,6 +94,9 @@ public:
   int GetIndex() const;
 
 protected:
+  // This needs to be called in derived destructors!
+  void Shutdown();
+
   Wiimote();
 
   int m_index = 0;
@@ -108,13 +110,17 @@ protected:
   u8 m_bt_device_index = 0;
 
 private:
-  void Read();
-  bool Write();
+  struct TimedReport
+  {
+    TimePoint time;
+    Report report;
+  };
+
+  bool Read();
+  bool Write(const TimedReport& timed_report);
 
   void StartThread();
   void StopThread();
-
-  bool PrepareOnThread();
 
   void ResetDataReporting();
 
@@ -130,13 +136,15 @@ private:
 
   virtual int IORead(u8* buf) = 0;
   virtual int IOWrite(u8 const* buf, size_t len) = 0;
+
+  // Make a blocking IORead call immediately return.
   virtual void IOWakeup() = 0;
 
-  void ThreadFunc();
+  void ReadThreadFunc();
 
   void RefreshConfig();
 
-  bool m_is_linked = false;
+  std::atomic<bool> m_is_linked = false;
 
   // We track the speaker state to convert unnecessary speaker data into rumble reports.
   bool m_speaker_enable = false;
@@ -145,16 +153,14 @@ private:
   // And we track the rumble state to drop unnecessary rumble reports.
   bool m_rumble_state = false;
 
-  std::thread m_wiimote_thread;
+  std::thread m_read_thread;
   // Whether to keep running the thread.
   Common::Flag m_run_thread;
-  // Whether to call PrepareOnThread.
-  Common::Flag m_need_prepare;
   // Triggered when the thread has finished ConnectInternal.
   Common::Event m_thread_ready_event;
 
   Common::SPSCQueue<Report> m_read_reports;
-  Common::SPSCQueue<Report> m_write_reports;
+  Common::WorkQueueThreadSP<TimedReport> m_write_thread;
 
   bool m_speaker_enabled_in_dolphin_config = false;
   int m_balance_board_dump_port = 0;

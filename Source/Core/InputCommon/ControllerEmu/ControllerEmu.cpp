@@ -115,7 +115,7 @@ void EmulatedController::LoadConfig(Common::IniFile::Section* sec)
   const auto lock = EmulatedController::GetStateLock();
 
   std::string defdev;
-  if (sec->Get("Device", &defdev, ""))
+  if (sec->Get("Device", &defdev, "") && !defdev.empty())
     SetDefaultDevice(defdev);
 
   LoadGroupsConfig(sec, "");
