@@ -2399,7 +2399,9 @@ void CEXISlippi::prepareOnlineMatchState()
     //*game_bit_field3 = *game_bit_field3 | 0x8;
 
     // Overwrite alt_stage_mode if in ranked
-    if (!pause_allowed)
+    auto stage_selection_mode = last_search.mode == SlippiMatchmaking::OnlinePlayMode::DIRECT ||
+                                last_search.mode == SlippiMatchmaking::OnlinePlayMode::TEAMS;
+    if (!stage_selection_mode)
     {
       alt_stage_mode = 0;
     }
