@@ -6,7 +6,6 @@
 #include <string>
 
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
-#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 
 namespace ControllerEmu
@@ -19,5 +18,7 @@ public:
   ControlState GetObjectPositionX(size_t object_index) const;
   ControlState GetObjectPositionY(size_t object_index) const;
   ControlState GetObjectSize(size_t object_index) const;
+
+  bool AreInputsBound() const;
 };
 }  // namespace ControllerEmu
