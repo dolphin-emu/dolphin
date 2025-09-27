@@ -7,6 +7,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <vector>
 
@@ -218,8 +219,10 @@ extern std::unique_ptr<Wiimote> g_wiimotes[MAX_BBMOTES];
 
 void AddWiimoteToPool(std::unique_ptr<Wiimote>);
 
-bool IsValidDeviceName(const std::string& name);
-bool IsBalanceBoardName(const std::string& name);
+bool IsValidDeviceName(std::string_view name);
+bool IsWiimoteName(std::string_view name);
+bool IsBalanceBoardName(std::string_view name);
+
 bool IsNewWiimote(const std::string& identifier);
 
 void HandleWiimoteSourceChange(unsigned int wiimote_number);
