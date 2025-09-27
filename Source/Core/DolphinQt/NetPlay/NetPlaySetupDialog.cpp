@@ -242,7 +242,11 @@ void NetPlaySetupDialog::ConnectWidgets()
           &NetPlaySetupDialog::SaveSettings);
 
 #ifdef USE_UPNP
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(m_host_upnp, &QCheckBox::checkStateChanged, this, &NetPlaySetupDialog::SaveSettings);
+#else
   connect(m_host_upnp, &QCheckBox::stateChanged, this, &NetPlaySetupDialog::SaveSettings);
+#endif
 #endif
 
   connect(m_connect_button, &QPushButton::clicked, this, &QDialog::accept);
