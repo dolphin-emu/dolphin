@@ -965,13 +965,17 @@ void Refresh()
     s_wiimote_scanner.SetScanMode(WiimoteScanMode::SCAN_ONCE);
 }
 
-bool IsValidDeviceName(const std::string& name)
+bool IsValidDeviceName(std::string_view name)
 {
-  return "Nintendo RVL-CNT-01" == name || "Nintendo RVL-CNT-01-TR" == name ||
-         IsBalanceBoardName(name);
+  return IsWiimoteName(name) || IsBalanceBoardName(name);
 }
 
-bool IsBalanceBoardName(const std::string& name)
+bool IsWiimoteName(std::string_view name)
+{
+  return name == "Nintendo RVL-CNT-01" || name == "Nintendo RVL-CNT-01-TR";
+}
+
+bool IsBalanceBoardName(std::string_view name)
 {
   return "Nintendo RVL-WBC-01" == name;
 }
