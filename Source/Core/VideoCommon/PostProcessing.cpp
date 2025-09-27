@@ -27,6 +27,7 @@
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/ShaderCache.h"
+#include "VideoCommon/ShaderCompileUtils.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -97,6 +98,9 @@ void PostProcessingConfiguration::LoadShader(const std::string& shader)
   // might have set in the settings
   LoadOptionsConfiguration();
   m_current_shader_code = code;
+  m_shader_includer =
+      std::make_unique<ShaderIncluder>(File::GetUserPath(D_SHADERS_IDX) + sub_dir,
+                                       File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir);
 }
 
 void PostProcessingConfiguration::LoadDefaultShader()
@@ -809,14 +813,14 @@ bool PostProcessing::CompileVertexShader()
   std::ostringstream ss_default;
   ss_default << GetUniformBufferHeader(false);
   ss_default << GetVertexShaderBody();
-  m_default_vertex_shader = g_gfx->CreateShaderFromSource(ShaderStage::Vertex, ss_default.str(),
-                                                          "Default post-processing vertex shader");
+  m_default_vertex_shader = g_gfx->CreateShaderFromSource(
+      ShaderStage::Vertex, ss_default.str(), nullptr, "Default post-processing vertex shader");
 
   std::ostringstream ss;
   ss << GetUniformBufferHeader(true);
   ss << GetVertexShaderBody();
-  m_vertex_shader =
-      g_gfx->CreateShaderFromSource(ShaderStage::Vertex, ss.str(), "Post-processing vertex shader");
+  m_vertex_shader = g_gfx->CreateShaderFromSource(ShaderStage::Vertex, ss.str(), nullptr,
+                                                  "Post-processing vertex shader");
 
   if (!m_default_vertex_shader || !m_vertex_shader)
   {
@@ -966,7 +970,7 @@ bool PostProcessing::CompilePixelShader()
   if (LoadShaderFromFile(s_default_pixel_shader_name, "", default_pixel_shader_code))
   {
     m_default_pixel_shader = g_gfx->CreateShaderFromSource(
-        ShaderStage::Pixel, GetHeader(false) + default_pixel_shader_code + GetFooter(),
+        ShaderStage::Pixel, GetHeader(false) + default_pixel_shader_code + GetFooter(), nullptr,
         "Default post-processing pixel shader");
     // We continue even if all of this failed, it doesn't matter
     m_default_uniform_staging_buffer.resize(CalculateUniformsSize(false));
@@ -979,6 +983,7 @@ bool PostProcessing::CompilePixelShader()
   m_config.LoadShader(g_ActiveConfig.sPostProcessingShader);
   m_pixel_shader = g_gfx->CreateShaderFromSource(
       ShaderStage::Pixel, GetHeader(true) + m_config.GetShaderCode() + GetFooter(),
+      m_config.GetShaderIncluder(),
       fmt::format("User post-processing pixel shader: {}", m_config.GetShader()));
   if (!m_pixel_shader)
   {
@@ -987,7 +992,7 @@ bool PostProcessing::CompilePixelShader()
     // Use default shader.
     m_config.LoadDefaultShader();
     m_pixel_shader = g_gfx->CreateShaderFromSource(
-        ShaderStage::Pixel, GetHeader(true) + m_config.GetShaderCode() + GetFooter(),
+        ShaderStage::Pixel, GetHeader(true) + m_config.GetShaderCode() + GetFooter(), nullptr,
         "Default user post-processing pixel shader");
     if (!m_pixel_shader)
     {

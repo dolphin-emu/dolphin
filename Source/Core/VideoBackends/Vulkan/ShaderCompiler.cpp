@@ -8,6 +8,7 @@
 
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/ShaderCompileUtils.h"
 #include "VideoCommon/Spirv.h"
 
 namespace Vulkan::ShaderCompiler
@@ -21,6 +22,9 @@ namespace Vulkan::ShaderCompiler
 static const char SHADER_HEADER[] = R"(
   // Target GLSL 4.5.
   #version 450 core
+
+  #extension GL_ARB_shading_language_include : enable
+
   #define ATTRIBUTE_LOCATION(x) layout(location = x)
   #define FRAGMENT_OUTPUT_LOCATION(x) layout(location = x)
   #define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y) layout(location = x, index = y)
@@ -121,27 +125,31 @@ static glslang::EShTargetLanguageVersion GetLanguageVersion()
   return glslang::EShTargetSpv_1_0;
 }
 
-std::optional<SPIRVCodeVector> CompileVertexShader(std::string_view source_code)
+std::optional<SPIRVCodeVector> CompileVertexShader(std::string_view source_code,
+                                                   VideoCommon::ShaderIncluder* shader_includer)
 {
   return SPIRV::CompileVertexShader(GetShaderCode(source_code, SHADER_HEADER), APIType::Vulkan,
-                                    GetLanguageVersion());
+                                    GetLanguageVersion(), shader_includer);
 }
 
-std::optional<SPIRVCodeVector> CompileGeometryShader(std::string_view source_code)
+std::optional<SPIRVCodeVector> CompileGeometryShader(std::string_view source_code,
+                                                     VideoCommon::ShaderIncluder* shader_includer)
 {
   return SPIRV::CompileGeometryShader(GetShaderCode(source_code, SHADER_HEADER), APIType::Vulkan,
-                                      GetLanguageVersion());
+                                      GetLanguageVersion(), shader_includer);
 }
 
-std::optional<SPIRVCodeVector> CompileFragmentShader(std::string_view source_code)
+std::optional<SPIRVCodeVector> CompileFragmentShader(std::string_view source_code,
+                                                     VideoCommon::ShaderIncluder* shader_includer)
 {
   return SPIRV::CompileFragmentShader(GetShaderCode(source_code, SHADER_HEADER), APIType::Vulkan,
-                                      GetLanguageVersion());
+                                      GetLanguageVersion(), shader_includer);
 }
 
-std::optional<SPIRVCodeVector> CompileComputeShader(std::string_view source_code)
+std::optional<SPIRVCodeVector> CompileComputeShader(std::string_view source_code,
+                                                    VideoCommon::ShaderIncluder* shader_includer)
 {
   return SPIRV::CompileComputeShader(GetShaderCode(source_code, COMPUTE_SHADER_HEADER),
-                                     APIType::Vulkan, GetLanguageVersion());
+                                     APIType::Vulkan, GetLanguageVersion(), shader_includer);
 }
 }  // namespace Vulkan::ShaderCompiler

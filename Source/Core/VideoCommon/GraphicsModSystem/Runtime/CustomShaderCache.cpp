@@ -348,7 +348,7 @@ CustomShaderCache::CompilePixelShader(const PixelShaderUid& uid,
 {
   const ShaderCode source_code =
       GeneratePixelShaderCode(m_api_type, m_host_config, uid.GetUidData(), {});
-  return g_gfx->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer(),
+  return g_gfx->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer(), nullptr,
                                        "Custom Pixel Shader");
 }
 
@@ -357,7 +357,7 @@ CustomShaderCache::CompilePixelShader(const UberShader::PixelShaderUid& uid,
                                       const CustomShaderInstance& custom_shaders) const
 {
   const ShaderCode source_code = GenPixelShader(m_api_type, m_host_config, uid.GetUidData());
-  return g_gfx->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer(),
+  return g_gfx->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer(), nullptr,
                                        "Custom Uber Pixel Shader");
 }
 

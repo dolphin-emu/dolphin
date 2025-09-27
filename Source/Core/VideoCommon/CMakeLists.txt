@@ -147,6 +147,8 @@ add_library(videocommon
   RenderState.h
   ShaderCache.cpp
   ShaderCache.h
+  ShaderCompileUtils.cpp
+  ShaderCompileUtils.h
   ShaderGenCommon.cpp
   ShaderGenCommon.h
   Spirv.cpp
