@@ -291,5 +291,7 @@ extern SlippiNetplayClient* SLIPPI_NETPLAY;  // singleton static pointer
 
 inline bool IsOnline()
 {
-  return SLIPPI_NETPLAY != nullptr;
+  return SLIPPI_NETPLAY != nullptr &&
+         SLIPPI_NETPLAY->GetSlippiConnectStatus() ==
+             SlippiNetplayClient::SlippiConnectStatus::NET_CONNECT_STATUS_CONNECTED;
 }
