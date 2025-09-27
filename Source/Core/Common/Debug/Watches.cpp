@@ -7,6 +7,7 @@
 #include <locale>
 #include <sstream>
 
+#include <fmt/base.h>
 #include <fmt/format.h>
 
 namespace Common::Debug
