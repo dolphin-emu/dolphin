@@ -12,6 +12,7 @@
 #include <QPushButton>
 #include <QRadioButton>
 #include <QScreen>
+#include <QToolButton>
 #include <QVBoxLayout>
 #include <QVariant>
 
@@ -38,6 +39,10 @@
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/USBDevicePicker.h"
+
+#if defined(_WIN32)
+#include "Core/HW//WiimoteReal/IOWin.h"
+#endif
 
 WiimoteControllersWidget::WiimoteControllersWidget(QWidget* parent) : QWidget(parent)
 {
@@ -191,7 +196,26 @@ void WiimoteControllersWidget::CreateLayout()
   m_bluetooth_adapters_refresh = new NonDefaultQPushButton(tr("Refresh"));
   m_wiimote_sync = new NonDefaultQPushButton(tr("Sync"));
   m_wiimote_reset = new NonDefaultQPushButton(tr("Reset"));
-  m_wiimote_refresh = new NonDefaultQPushButton(tr("Refresh"));
+
+  m_wiimote_refresh = new QToolButton();
+  auto* const wiimote_refresh_action = new QAction(tr("Refresh"), m_wiimote_refresh);
+  m_wiimote_refresh->setDefaultAction(wiimote_refresh_action);
+  connect(wiimote_refresh_action, &QAction::triggered, this,
+          &WiimoteControllersWidget::OnWiimoteRefreshPressed);
+  m_wiimote_refresh->setPopupMode(QToolButton::ToolButtonPopupMode::MenuButtonPopup);
+
+#if defined(_WIN32)
+  auto* const wiimote_sync_action = new QAction(tr("Sync"), m_wiimote_refresh);
+  m_wiimote_refresh->addAction(wiimote_sync_action);
+  connect(wiimote_sync_action, &QAction::triggered, this,
+          &WiimoteReal::WiimoteScannerWindows::HostPerformWiimoteSync);
+
+  auto* const wiimote_reset_action = new QAction(tr("Reset"), m_wiimote_refresh);
+  m_wiimote_refresh->addAction(wiimote_reset_action);
+  connect(wiimote_reset_action, &QAction::triggered, this,
+          &WiimoteReal::WiimoteScannerWindows::HostPerformWiimoteReset);
+#endif
+
   m_wiimote_pt_labels[0] = new QLabel(tr("Sync real Wii Remotes and pair them"));
   m_wiimote_pt_labels[1] = new QLabel(tr("Reset all saved Wii Remote pairings"));
   m_wiimote_emu = new QRadioButton(tr("Emulate the Wii's Bluetooth adapter"));
@@ -287,8 +311,6 @@ void WiimoteControllersWidget::ConnectWidgets()
           &WiimoteControllersWidget::OnBluetoothPassthroughSyncPressed);
   connect(m_wiimote_reset, &QPushButton::clicked, this,
           &WiimoteControllersWidget::OnBluetoothPassthroughResetPressed);
-  connect(m_wiimote_refresh, &QPushButton::clicked, this,
-          &WiimoteControllersWidget::OnWiimoteRefreshPressed);
 
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
