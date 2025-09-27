@@ -219,7 +219,9 @@ extern std::unique_ptr<Wiimote> g_wiimotes[MAX_BBMOTES];
 void AddWiimoteToPool(std::unique_ptr<Wiimote>);
 
 bool IsValidDeviceName(const std::string& name);
+bool IsWiimoteName(const std::string& name);
 bool IsBalanceBoardName(const std::string& name);
+
 bool IsNewWiimote(const std::string& identifier);
 
 void HandleWiimoteSourceChange(unsigned int wiimote_number);

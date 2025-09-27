@@ -967,8 +967,12 @@ void Refresh()
 
 bool IsValidDeviceName(const std::string& name)
 {
-  return "Nintendo RVL-CNT-01" == name || "Nintendo RVL-CNT-01-TR" == name ||
-         IsBalanceBoardName(name);
+  return IsWiimoteName(name) || IsBalanceBoardName(name);
+}
+
+bool IsWiimoteName(const std::string& name)
+{
+  return "Nintendo RVL-CNT-01" == name || "Nintendo RVL-CNT-01-TR";
 }
 
 bool IsBalanceBoardName(const std::string& name)
