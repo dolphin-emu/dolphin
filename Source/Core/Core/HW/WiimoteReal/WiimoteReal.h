@@ -146,6 +146,7 @@ private:
   virtual void IOWakeup() = 0;
 
   void ReadThreadFunc();
+  void WriteThreadFunc();
 
   void RefreshConfig();
 
@@ -158,14 +159,16 @@ private:
   // And we track the rumble state to drop unnecessary rumble reports.
   bool m_rumble_state = false;
 
-  std::thread m_read_thread;
+  std::thread m_write_thread;
   // Whether to keep running the thread.
   Common::Flag m_run_thread;
   // Triggered when the thread has finished ConnectInternal.
   Common::Event m_thread_ready_event;
 
   Common::SPSCQueue<Report> m_read_reports;
-  Common::WorkQueueThreadSP<TimedReport> m_write_thread;
+  Common::SPSCQueue<TimedReport> m_write_reports;
+  // Kick the write thread.
+  Common::Event m_write_event;
 
   bool m_speaker_enabled_in_dolphin_config = false;
   int m_balance_board_dump_port = 0;
