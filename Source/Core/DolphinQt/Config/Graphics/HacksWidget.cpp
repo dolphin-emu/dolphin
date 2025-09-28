@@ -140,6 +140,16 @@ void HacksWidget::OnBackendChanged(const QString& backend_name)
 
 void HacksWidget::ConnectWidgets()
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(m_store_efb_copies, &QCheckBox::checkStateChanged,
+          [this](Qt::CheckState) { UpdateDeferEFBCopiesEnabled(); });
+  connect(m_store_xfb_copies, &QCheckBox::checkStateChanged,
+          [this](Qt::CheckState) { UpdateDeferEFBCopiesEnabled(); });
+  connect(m_immediate_xfb, &QCheckBox::checkStateChanged,
+          [this](Qt::CheckState) { UpdateSkipPresentingDuplicateFramesEnabled(); });
+  connect(m_vi_skip, &QCheckBox::checkStateChanged,
+          [this](Qt::CheckState) { UpdateSkipPresentingDuplicateFramesEnabled(); });
+#else
   connect(m_store_efb_copies, &QCheckBox::stateChanged,
           [this](int) { UpdateDeferEFBCopiesEnabled(); });
   connect(m_store_xfb_copies, &QCheckBox::stateChanged,
@@ -148,6 +158,7 @@ void HacksWidget::ConnectWidgets()
           [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
   connect(m_vi_skip, &QCheckBox::stateChanged,
           [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
+#endif
 }
 
 void HacksWidget::AddDescriptions()
