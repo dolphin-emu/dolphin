@@ -123,7 +123,7 @@ public:
     std::string str_value;
     if (section.Get(group_name + m_details.ini_name, &str_value))
     {
-      m_value.m_input.SetExpression(std::move(str_value));
+      m_value.m_input.SetExpression(ciface::ExpressionParser::AdjustFromIniFile(str_value));
       SimplifyIfPossible();
     }
     else
@@ -140,10 +140,9 @@ public:
     }
     else
     {
-      // We can't save line breaks in a single line config. Restoring them is too complicated.
-      std::string expression = m_value.m_input.GetExpression();
-      ReplaceBreaksWithSpaces(expression);
-      section.Set(group_name + m_details.ini_name, expression, "");
+      std::string expression =
+          ciface::ExpressionParser::PrepareForIniFile(m_value.m_input.GetExpression());
+      section.Set(group_name + m_details.ini_name, std::move(expression), "");
     }
   }
 

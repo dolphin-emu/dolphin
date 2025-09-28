@@ -9,6 +9,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <ranges>
 #include <regex>
 #include <string>
 #include <utility>
@@ -204,8 +205,9 @@ Token Lexer::NextToken()
     const auto end_of_comment = expr.find("*/", it - expr.begin());
     if (end_of_comment == std::string::npos)
       return Token(TOK_INVALID);
-    it = expr.begin() + end_of_comment + 2;
-    return Token(TOK_COMMENT);
+    std::string comment_contents(it, expr.begin() + end_of_comment);
+    it += comment_contents.size() + 2;
+    return Token(TOK_COMMENT, std::move(comment_contents));
   }
 
   const auto tok_type = GetBinaryOperatorTokenTypeFromChar(c);
@@ -227,7 +229,11 @@ Token Lexer::NextToken()
   case '\t':
   case '\n':
   case '\r':
-    return Token(TOK_WHITESPACE);
+  {
+    Token tok{TOK_WHITESPACE};
+    tok.data = c;
+    return tok;
+  }
   case '(':
     return Token(TOK_LPAREN);
   case ')':
@@ -1127,4 +1133,50 @@ ParseResult ParseExpression(const std::string& str)
                                                              std::move(complex_result.expr));
   return complex_result;
 }
+
+std::string PrepareForIniFile(std::string expr)
+{
+  std::vector<Token> tokens;
+  Lexer(expr).Tokenize(tokens);
+  for (Token& token : tokens | std::views::reverse)
+  {
+    if (token.type == TOK_WHITESPACE && token.data == "\n")
+    {
+      // Replace loose newlines with a comment containing backslash-n.
+      expr.replace(token.string_position, token.string_length, "/*\\n*/");
+    }
+    else if (token.type == TOK_COMMENT)
+    {
+      // Escape newlines and backslashes in multiline /**/ comments.
+      expr.replace(token.string_position + 2, token.string_length - 4,
+                   Common::EscapeString(std::move(token.data)));
+    }
+  }
+  return expr;
+}
+
+std::string AdjustFromIniFile(std::string expr)
+{
+  std::vector<Token> tokens;
+  Lexer(expr).Tokenize(tokens);
+  for (Token& token : tokens | std::views::reverse)
+  {
+    if (token.type == TOK_COMMENT)
+    {
+      const std::string unescaped = Common::UnescapeString(std::move(token.data));
+      if (unescaped == "\n")
+      {
+        // Comments containing only a newline become just that newline.
+        expr.replace(token.string_position, token.string_length, unescaped);
+      }
+      else
+      {
+        // Otherwise just unescape the comment contents.
+        expr.replace(token.string_position + 2, token.string_length - 4, unescaped);
+      }
+    }
+  }
+  return expr;
+}
+
 }  // namespace ciface::ExpressionParser

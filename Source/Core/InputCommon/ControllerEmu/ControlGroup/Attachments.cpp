@@ -61,7 +61,8 @@ void Attachments::LoadConfig(Common::IniFile::Section* sec, const std::string& b
 
   // First assume attachment string is a valid expression.
   // If it instead matches one of the names of our attachments it is overridden below.
-  GetSelectionSetting().GetInputReference().SetExpression(attachment_text);
+  GetSelectionSetting().GetInputReference().SetExpression(
+      ciface::ExpressionParser::PrepareForIniFile(attachment_text));
 
   u32 n = 0;
   for (auto& ai : GetAttachmentList())
@@ -85,9 +86,9 @@ void Attachments::SaveConfig(Common::IniFile::Section* sec, const std::string& b
   }
   else
   {
-    std::string expression = GetSelectionSetting().GetInputReference().GetExpression();
-    ReplaceBreaksWithSpaces(expression);
-    sec->Set(base + name, expression, "None");
+    std::string expression = ciface::ExpressionParser::AdjustFromIniFile(
+        GetSelectionSetting().GetInputReference().GetExpression());
+    sec->Set(base + name, std::move(expression), "None");
   }
 
   for (auto& ai : GetAttachmentList())
