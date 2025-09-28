@@ -14,7 +14,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #else
-#include <WinSock2.h>
+#include <winsock2.h>
 #endif
 
 #include <fmt/format.h>
