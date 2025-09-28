@@ -100,7 +100,7 @@ static constexpr int TIMER_RESOLUTION_MS = 1;
 
 void Timer::IncreaseResolution()
 {
-#ifdef _WIN32
+#ifdef _MSC_VER
   // Disable execution speed and timer resolution throttling process-wide.
   // This mainly will keep Dolphin marked as high performance if it's in the background. The OS
   // should make it high performance if it's in the foreground anyway (or for some specific
@@ -176,7 +176,11 @@ void PrecisionTimer::SleepUntil(Clock::time_point target)
       break;
 
     const LARGE_INTEGER due_time{.QuadPart = -ticks};
+#ifdef __MINGW32__
+    SetWaitableTimer(m_timer_handle, &due_time, 0, NULL, NULL, FALSE);
+#else
     SetWaitableTimerEx(m_timer_handle, &due_time, 0, NULL, NULL, NULL, 0);
+#endif
     WaitForSingleObject(m_timer_handle, INFINITE);
   }
 #else
