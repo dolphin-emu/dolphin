@@ -92,6 +92,13 @@ void EmuCodeBlock::SwitchToNearCode()
   SetCodePtr(m_near_code, m_near_code_end, m_near_code_write_failed);
 }
 
+void EmuCodeBlock::FlushPCBeforeSlowAccess()
+{
+  // PC is used by memory watchpoints (if enabled), profiling where to insert gather pipe
+  // interrupt checks, and printing accurate PC locations in debug logs.
+  MOV(32, PPCSTATE(pc), Imm32(m_jit.js.compilerPC));
+}
+
 FixupBranch EmuCodeBlock::BATAddressLookup(X64Reg addr, X64Reg tmp, const void* bat_table)
 {
   MOV(64, R(tmp), ImmPtr(bat_table));
@@ -386,14 +393,11 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     SetJumpTarget(slow);
   }
 
-  // PC is used by memory watchpoints (if enabled), profiling where to insert gather pipe
-  // interrupt checks, and printing accurate PC locations in debug logs.
-  //
-  // In the case of Jit64AsmCommon routines, we don't know the PC here,
-  // so the caller has to store the PC themselves.
+  // In the case of Jit64AsmCommon routines, the state we want to store here isn't known
+  // when compiling the routine, so the caller has to store it themselves.
   if (!(flags & SAFE_LOADSTORE_NO_UPDATE_PC))
   {
-    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
+    FlushPCBeforeSlowAccess();
   }
 
   size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
@@ -457,8 +461,7 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
     return;
   }
 
-  // Helps external systems know which instruction triggered the read.
-  MOV(32, PPCSTATE(pc), Imm32(m_jit.js.compilerPC));
+  FlushPCBeforeSlowAccess();
 
   // Fall back to general-case code.
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
@@ -560,14 +563,11 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     SetJumpTarget(slow);
   }
 
-  // PC is used by memory watchpoints (if enabled), profiling where to insert gather pipe
-  // interrupt checks, and printing accurate PC locations in debug logs.
-  //
-  // In the case of Jit64AsmCommon routines, we don't know the PC here,
-  // so the caller has to store the PC themselves.
+  // In the case of Jit64AsmCommon routines, the state we want to store here isn't known
+  // when compiling the routine, so the caller has to store it themselves.
   if (!(flags & SAFE_LOADSTORE_NO_UPDATE_PC))
   {
-    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
+    FlushPCBeforeSlowAccess();
   }
 
   size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
@@ -663,8 +663,7 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
   }
   else
   {
-    // Helps external systems know which instruction triggered the write
-    MOV(32, PPCSTATE(pc), Imm32(m_jit.js.compilerPC));
+    FlushPCBeforeSlowAccess();
 
     ABI_PushRegistersAndAdjustStack(registersInUse, 0);
     switch (accessSize)

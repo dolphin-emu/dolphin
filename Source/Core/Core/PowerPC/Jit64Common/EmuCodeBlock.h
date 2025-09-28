@@ -49,6 +49,8 @@ public:
     return Gen::M(m_const_pool.GetConstant(&value, sizeof(T), N, index));
   }
 
+  void FlushPCBeforeSlowAccess();
+
   // Writes upper 15 bits of physical address to addr and clobbers the lower 17 bits of addr.
   // Jumps to the returned FixupBranch if lookup fails.
   Gen::FixupBranch BATAddressLookup(Gen::X64Reg addr, Gen::X64Reg tmp, const void* bat_table);
