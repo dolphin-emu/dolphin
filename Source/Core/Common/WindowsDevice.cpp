@@ -6,6 +6,7 @@
 #include "Common/WindowsDevice.h"
 
 #include <string>
+#include <vector>
 
 #include "Common/CommonFuncs.h"
 
