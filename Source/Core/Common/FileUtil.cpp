@@ -33,8 +33,8 @@
 #include "Common/StringUtil.h"
 
 #ifdef _WIN32
-#include <Windows.h>
-#include <Shlwapi.h>
+#include <windows.h>
+#include <shlwapi.h>
 #include <commdlg.h>  // for GetSaveFileName
 #include <direct.h>   // getcwd
 #include <io.h>
