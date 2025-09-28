@@ -12,7 +12,7 @@
 #ifdef __APPLE__
 #include <sys/sysctl.h>
 #elif defined(_WIN32)
-#include <Windows.h>
+#include <windows.h>
 #include <arm64intr.h>
 #include "Common/WindowsRegistry.h"
 #elif defined(__linux__)
