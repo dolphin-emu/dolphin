@@ -7,10 +7,10 @@
 #include <string>
 #include <thread>
 
-#include <Windows.h>
-#include <CommCtrl.h>
-#include <ShObjIdl.h>
-#include <ShlObj.h>
+#include <windows.h>
+#include <commctrl.h>
+#include <shobjidl.h>
+#include <shlobj.h>
 #include <shellapi.h>
 #include <wrl/client.h>
 
