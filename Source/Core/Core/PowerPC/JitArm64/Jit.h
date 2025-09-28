@@ -324,6 +324,8 @@ protected:
   void GenerateConvertDoubleToSingle();
   void GenerateConvertSingleToDouble();
   void GenerateFPRF(bool single);
+  void GenerateFmaddsEft();
+  void GeneratePsMaddEft();
   void GenerateQuantizedLoads();
   void GenerateQuantizedStores();
 
