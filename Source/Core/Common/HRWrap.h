@@ -6,8 +6,9 @@
 #include <fmt/format.h>
 #include <string>
 #include <winerror.h>
+#ifdef _MSC_VER
 #include <winrt/base.h>
-
+#endif
 #include "Common/CommonTypes.h"
 
 namespace Common

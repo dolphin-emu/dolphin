@@ -9,6 +9,10 @@
 #include "SFML/Network/Socket.hpp"
 
 #ifdef _WIN32
+#ifdef __MINGW32__
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
 #include <ws2ipdef.h>
 #else
 #include <sys/select.h>
