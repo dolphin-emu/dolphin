@@ -122,11 +122,11 @@ void ApplyCodes(std::span<const ARCode> codes, const std::string& game_id, u16 r
   std::lock_guard guard(s_lock);
   s_disable_logging = false;
   s_active_codes.clear();
-  std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_active_codes),
-               [&game_id, &revision](const ARCode& code) {
-                 return code.enabled && AchievementManager::GetInstance().CheckApprovedARCode(
-                                            code, game_id, revision);
-               });
+
+  const auto should_be_activated = [&game_id, &revision](const ARCode& code) {
+    return AchievementManager::GetInstance().ShouldARCodeBeActivated(code, game_id, revision);
+  };
+  std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_active_codes), should_be_activated);
   s_active_codes.shrink_to_fit();
 }
 
