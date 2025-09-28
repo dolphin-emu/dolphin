@@ -13,6 +13,7 @@
 #include "Common/JitRegister.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
+#include "Core/FloatUtils.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
@@ -140,20 +141,20 @@ void CommonAsmRoutines::GenFrsqrte()
   AND(32, R(RSCRATCH_EXTRA), Imm8(0x1F));
 
   PUSH(RSCRATCH2);
-  MOV(64, R(RSCRATCH2), ImmPtr(GetConstantFromPool(Common::frsqrte_expected)));
-  static_assert(sizeof(Common::BaseAndDec) == 8, "Unable to use SCALE_8; incorrect size");
+  MOV(64, R(RSCRATCH2), ImmPtr(GetConstantFromPool(Core::frsqrte_expected)));
+  static_assert(sizeof(Core::BaseAndDec) == 8, "Unable to use SCALE_8; incorrect size");
 
   SHR(64, R(RSCRATCH), Imm8(37));
   AND(32, R(RSCRATCH), Imm32(0x7FF));
   IMUL(32, RSCRATCH,
-       MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_8, offsetof(Common::BaseAndDec, m_dec)));
+       MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_8, offsetof(Core::BaseAndDec, m_dec)));
   ADD(32, R(RSCRATCH),
-      MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_8, offsetof(Common::BaseAndDec, m_base)));
+      MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_8, offsetof(Core::BaseAndDec, m_base)));
   SHL(64, R(RSCRATCH), Imm8(26));
 
   POP(RSCRATCH2);
-  OR(64, R(RSCRATCH2), R(RSCRATCH));  // vali |= (s64)(frsqrte_expected_base[index] +
-                                      // frsqrte_expected_dec[index] * (i % 2048)) << 26;
+  OR(64, R(RSCRATCH2), R(RSCRATCH));  // vali |= (s64)(Core::frsqrte_expected_base[index] +
+                                      // Core::frsqrte_expected_dec[index] * (i % 2048)) << 26;
   MOVQ_xmm(XMM0, R(RSCRATCH2));
   RET();
 
@@ -205,7 +206,7 @@ void CommonAsmRoutines::GenFrsqrte()
 
   SetJumpTarget(denormal);
   ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
-  ABI_CallFunction(Common::ApproximateReciprocalSquareRoot);
+  ABI_CallFunction(Core::ApproximateReciprocalSquareRoot);
   ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
   RET();
 
@@ -246,25 +247,23 @@ void CommonAsmRoutines::GenFres()
   AND(32, R(RSCRATCH2), Imm8(0x1F));   // i / 1024
 
   PUSH(RSCRATCH_EXTRA);
-  MOV(64, R(RSCRATCH_EXTRA), ImmPtr(GetConstantFromPool(Common::fres_expected)));
-  static_assert(sizeof(Common::BaseAndDec) == 8, "Unable to use SCALE_8; incorrect size");
+  MOV(64, R(RSCRATCH_EXTRA), ImmPtr(GetConstantFromPool(Core::fres_expected)));
+  static_assert(sizeof(Core::BaseAndDec) == 8, "Unable to use SCALE_8; incorrect size");
 
   IMUL(32, RSCRATCH,
-       MComplex(RSCRATCH_EXTRA, RSCRATCH2, SCALE_8, offsetof(Common::BaseAndDec, m_dec)));
-  ADD(32, R(RSCRATCH), Imm8(1));
-  SHR(32, R(RSCRATCH), Imm8(1));
+       MComplex(RSCRATCH_EXTRA, RSCRATCH2, SCALE_8, offsetof(Core::BaseAndDec, m_dec)));
 
-  MOV(32, R(RSCRATCH2),
-      MComplex(RSCRATCH_EXTRA, RSCRATCH2, SCALE_8, offsetof(Common::BaseAndDec, m_base)));
-  SUB(32, R(RSCRATCH2), R(RSCRATCH));
-  SHL(64, R(RSCRATCH2), Imm8(29));
+  ADD(32, R(RSCRATCH),
+      MComplex(RSCRATCH_EXTRA, RSCRATCH2, SCALE_8, offsetof(Core::BaseAndDec, m_base)));
+  SHR(32, R(RSCRATCH), Imm8(1));
+  SHL(64, R(RSCRATCH), Imm8(29));
 
   POP(RSCRATCH_EXTRA);
 
-  OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));  // vali |= (s64)(fres_expected_base[i / 1024] -
-                                            // (fres_expected_dec[i / 1024] * (i % 1024) + 1) / 2)
-                                            // << 29
-  MOVQ_xmm(XMM0, R(RSCRATCH2));
+  OR(64, R(RSCRATCH),
+     R(RSCRATCH_EXTRA));  // vali |= (s64)((u64)(Core::fres_expected_base[i / 1024] +
+                          // (Core::fres_expected_dec[i / 1024] * (i % 1024)) / 2)) << 29
+  MOVQ_xmm(XMM0, R(RSCRATCH));
   RET();
 
   // Exception flags for zero input.
@@ -276,7 +275,8 @@ void CommonAsmRoutines::GenFres()
 
   SetJumpTarget(complex);
   ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
-  ABI_CallFunction(Common::ApproximateReciprocal);
+  LEA(64, ABI_PARAM1, PPCSTATE(fpscr));
+  ABI_CallFunction(Core::ApproximateReciprocal);
   ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
   RET();
 
