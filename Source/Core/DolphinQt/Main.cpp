@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 #ifdef __linux__

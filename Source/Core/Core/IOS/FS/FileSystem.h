@@ -12,7 +12,7 @@
 
 #ifdef _WIN32
 // TODO: Horrible hack, remove ASAP!
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 #include "Common/CommonTypes.h"

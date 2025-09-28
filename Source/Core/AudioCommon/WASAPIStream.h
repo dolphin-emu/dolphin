@@ -6,7 +6,7 @@
 #ifdef _WIN32
 
 // clang-format off
-#include <Windows.h>
+#include <windows.h>
 #include <mmreg.h>
 #include <objbase.h>
 #include <wil/resource.h>

@@ -30,7 +30,7 @@
 #endif
 
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #include <filesystem>
 #endif
 
