@@ -444,7 +444,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
         if (round_input)
           Force25BitPrecision(XMM1, Rc, XMM2);
         else
-          MOVSD(XMM1, Rc);
+          MOVAPD(XMM1, Rc);
       }
       else
       {
@@ -461,8 +461,8 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 
       if (i == 0)
       {
-        MOVSD(XMM0, Ra);
-        MOVSD(XMM2, Rb);
+        MOVAPD(XMM0, Ra);
+        MOVAPD(XMM2, Rb);
       }
       else
       {
