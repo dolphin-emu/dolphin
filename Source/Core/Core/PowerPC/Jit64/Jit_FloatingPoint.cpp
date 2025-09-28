@@ -443,6 +443,8 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
       {
         if (round_input)
           Force25BitPrecision(XMM1, Rc, XMM2);
+        else if (Rc.IsSimpleReg())
+          MOVAPD(XMM1, Rc);
         else
           MOVSD(XMM1, Rc);
       }
@@ -461,8 +463,15 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 
       if (i == 0)
       {
-        MOVSD(XMM0, Ra);
-        MOVSD(XMM2, Rb);
+        if (Ra.IsSimpleReg())
+          MOVAPD(XMM0, Ra);
+        else
+          MOVSD(XMM0, Ra);
+
+        if (Rb.IsSimpleReg())
+          MOVAPD(XMM2, Rb);
+        else
+          MOVSD(XMM2, Rb);
       }
       else
       {
@@ -480,9 +489,14 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     }
 
     if (packed)
+    {
+      // result_xmm's upper lane has the result of the first loop iteration
       MOVSD(R(result_xmm), XMM0);
+    }
     else
+    {
       DEBUG_ASSERT(result_xmm == XMM0);
+    }
 
     if (madds_accurate_nans)
     {
