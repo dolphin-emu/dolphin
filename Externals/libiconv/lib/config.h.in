@@ -1,0 +1,63 @@
+/* Define to 1 to enable a few rarely used encodings. */
+#cmakedefine01 ENABLE_EXTRA
+
+/* Define to 1 if the package shall run at any location in the filesystem. */
+#cmakedefine01 ENABLE_RELOCATABLE
+
+/* Define to a type if <wchar.h> does not define. */
+#cmakedefine mbstate_t "@MBSTATE_T@"
+
+/* Define if you have <iconv.h>, the iconv_t type, and the
+   iconv_open, iconv, iconv_close functions. */
+#cmakedefine01 HAVE_ICONV
+/* Define as const if the declaration of iconv() needs const. */
+#define ICONV_CONST
+
+/* Define to 1 if you have the getc_unlocked() function. */
+#cmakedefine01 HAVE_GETC_UNLOCKED
+
+/* Define if you have <langinfo.h> and nl_langinfo(CODESET). */
+#cmakedefine01 HAVE_LANGINFO_CODESET
+
+/* Define if you have the mbrtowc() function. */
+#cmakedefine01 HAVE_MBRTOWC
+
+/* Define to 1 if you have the setlocale() function. */
+#cmakedefine01 HAVE_SETLOCALE
+
+/* Define to 1 if you have the <stddef.h> header file. */
+#cmakedefine01 HAVE_STDDEF_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#cmakedefine01 HAVE_STDLIB_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#cmakedefine01 HAVE_STRING_H
+
+/* Define to 1 or 0, depending whether the compiler supports simple visibility
+   declarations. */
+#cmakedefine01 HAVE_VISIBILITY
+
+/* Define if you have the wcrtomb() function. */
+#cmakedefine01 HAVE_WCRTOMB
+
+/* Define to 1 if O_NOFOLLOW works. */
+#cmakedefine01 HAVE_WORKING_O_NOFOLLOW
+
+/* Define if the machine's byte ordering is little endian. */
+#cmakedefine01 WORDS_LITTLEENDIAN
+
+/* Define to the value of ${prefix}, as a string. */
+#cmakedefine INSTALLPREFIX "@CMAKE_INSTALL_PREFIX@"
+
+/* Define to '__inline__' or '__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
+#cmakedefine inline "@INLINE@"
+#endif
+
+/* Define to 'int' if <sys/types.h> does not define. */
+#cmakedefine mode_t "@MODE_T@"
+
+/* Define as a signed type of the same size as size_t. */
+#cmakedefine ssize_t "@SSIZE_T@"
