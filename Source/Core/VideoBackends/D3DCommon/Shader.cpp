@@ -8,8 +8,8 @@
 #include <string_view>
 
 #include <fmt/format.h>
+#include <glslang/SPIRV/disassemble.h>
 #include <wrl/client.h>
-#include "disassemble.h"
 #include "spirv_hlsl.hpp"
 
 #include "Common/Assert.h"

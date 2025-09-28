@@ -3,9 +3,8 @@
 
 #include "VideoCommon/Spirv.h"
 
-// glslang includes
-#include "GlslangToSpv.h"
-#include "disassemble.h"
+#include <glslang/SPIRV/GlslangToSpv.h>
+#include <glslang/SPIRV/disassemble.h>
 
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"

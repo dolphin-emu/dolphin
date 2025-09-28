@@ -8,7 +8,7 @@
 #include <string_view>
 #include <vector>
 
-#include "ShaderLang.h"
+#include <glslang/Public/ShaderLang.h>
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/VideoCommon.h"
