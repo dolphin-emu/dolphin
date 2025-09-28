@@ -8,9 +8,9 @@
 
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
-#include "Common/FloatUtils.h"
 #include "Common/Intrinsics.h"
 #include "Common/Swap.h"
+#include "Core/FloatUtils.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Gekko.h"
@@ -899,13 +899,13 @@ void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr
   MOVDDUP(dst, R(dst));
 }
 
-alignas(16) static const u64 psDoubleExp[2] = {Common::DOUBLE_EXP, 0};
-alignas(16) static const u64 psDoubleFrac[2] = {Common::DOUBLE_FRAC, 0};
-alignas(16) static const u64 psDoubleNoSign[2] = {~Common::DOUBLE_SIGN, 0};
+alignas(16) static const u64 psDoubleExp[2] = {DOUBLE_EXP, 0};
+alignas(16) static const u64 psDoubleFrac[2] = {DOUBLE_FRAC, 0};
+alignas(16) static const u64 psDoubleNoSign[2] = {~DOUBLE_SIGN, 0};
 
-alignas(16) static const u32 psFloatExp[4] = {Common::FLOAT_EXP, 0, 0, 0};
-alignas(16) static const u32 psFloatFrac[4] = {Common::FLOAT_FRAC, 0, 0, 0};
-alignas(16) static const u32 psFloatNoSign[4] = {~Common::FLOAT_SIGN, 0, 0, 0};
+alignas(16) static const u32 psFloatExp[4] = {FLOAT_EXP, 0, 0, 0};
+alignas(16) static const u32 psFloatFrac[4] = {FLOAT_FRAC, 0, 0, 0};
+alignas(16) static const u32 psFloatNoSign[4] = {~FLOAT_SIGN, 0, 0, 0};
 
 // TODO: it might be faster to handle FPRF in the same way as CR is currently handled for integer,
 // storing the result of each floating point op and calculating it when needed. This is trickier
@@ -932,8 +932,7 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm, bool single)
     FixupBranch zeroExponent = J_CC(CC_Z);
 
     // Nice normalized number: sign ? PPC_FPCLASS_NN : PPC_FPCLASS_PN;
-    LEA(32, RSCRATCH,
-        MScaled(RSCRATCH, Common::PPC_FPCLASS_NN - Common::PPC_FPCLASS_PN, Common::PPC_FPCLASS_PN));
+    LEA(32, RSCRATCH, MScaled(RSCRATCH, PPC_FPCLASS_NN - PPC_FPCLASS_PN, PPC_FPCLASS_PN));
     continue1 = J();
 
     SetJumpTarget(maxExponent);
@@ -944,14 +943,12 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm, bool single)
     FixupBranch notNAN = J_CC(CC_Z);
 
     // Max exponent + mantissa: PPC_FPCLASS_QNAN
-    MOV(32, R(RSCRATCH), Imm32(Common::PPC_FPCLASS_QNAN));
+    MOV(32, R(RSCRATCH), Imm32(PPC_FPCLASS_QNAN));
     continue2 = J();
 
     // Max exponent + no mantissa: sign ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
     SetJumpTarget(notNAN);
-    LEA(32, RSCRATCH,
-        MScaled(RSCRATCH, Common::PPC_FPCLASS_NINF - Common::PPC_FPCLASS_PINF,
-                Common::PPC_FPCLASS_PINF));
+    LEA(32, RSCRATCH, MScaled(RSCRATCH, PPC_FPCLASS_NINF - PPC_FPCLASS_PINF, PPC_FPCLASS_PINF));
     continue3 = J();
 
     SetJumpTarget(zeroExponent);
@@ -962,28 +959,27 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm, bool single)
     FixupBranch zero = J_CC(CC_Z);
 
     // No exponent + mantissa: sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
-    LEA(32, RSCRATCH,
-        MScaled(RSCRATCH, Common::PPC_FPCLASS_ND - Common::PPC_FPCLASS_PD, Common::PPC_FPCLASS_PD));
+    LEA(32, RSCRATCH, MScaled(RSCRATCH, PPC_FPCLASS_ND - PPC_FPCLASS_PD, PPC_FPCLASS_PD));
     continue4 = J();
 
     // Zero: sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
     SetJumpTarget(zero);
     SHL(32, R(RSCRATCH), Imm8(4));
-    ADD(32, R(RSCRATCH), Imm8(Common::PPC_FPCLASS_PZ));
+    ADD(32, R(RSCRATCH), Imm8(PPC_FPCLASS_PZ));
   }
   else
   {
     MOVQ_xmm(R(RSCRATCH), xmm);
     if (single)
-      TEST(32, R(RSCRATCH), Imm32(Common::FLOAT_EXP));
+      TEST(32, R(RSCRATCH), Imm32(FLOAT_EXP));
     else
       TEST(64, R(RSCRATCH), MConst(psDoubleExp));
     FixupBranch zeroExponent = J_CC(CC_Z);
 
     if (single)
     {
-      AND(32, R(RSCRATCH), Imm32(~Common::FLOAT_SIGN));
-      CMP(32, R(RSCRATCH), Imm32(Common::FLOAT_EXP));
+      AND(32, R(RSCRATCH), Imm32(~FLOAT_SIGN));
+      CMP(32, R(RSCRATCH), Imm32(FLOAT_EXP));
     }
     else
     {
@@ -996,38 +992,34 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm, bool single)
 
     MOVQ_xmm(R(RSCRATCH), xmm);
     SHR(input_size, R(RSCRATCH), Imm8(input_size - 1));
-    LEA(32, RSCRATCH,
-        MScaled(RSCRATCH, Common::PPC_FPCLASS_NN - Common::PPC_FPCLASS_PN, Common::PPC_FPCLASS_PN));
+    LEA(32, RSCRATCH, MScaled(RSCRATCH, PPC_FPCLASS_NN - PPC_FPCLASS_PN, PPC_FPCLASS_PN));
     continue1 = J();
 
     SetJumpTarget(nan);
-    MOV(32, R(RSCRATCH), Imm32(Common::PPC_FPCLASS_QNAN));
+    MOV(32, R(RSCRATCH), Imm32(PPC_FPCLASS_QNAN));
     continue2 = J();
 
     SetJumpTarget(infinity);
     MOVQ_xmm(R(RSCRATCH), xmm);
     SHR(input_size, R(RSCRATCH), Imm8(input_size - 1));
-    LEA(32, RSCRATCH,
-        MScaled(RSCRATCH, Common::PPC_FPCLASS_NINF - Common::PPC_FPCLASS_PINF,
-                Common::PPC_FPCLASS_PINF));
+    LEA(32, RSCRATCH, MScaled(RSCRATCH, PPC_FPCLASS_NINF - PPC_FPCLASS_PINF, PPC_FPCLASS_PINF));
     continue3 = J();
 
     SetJumpTarget(zeroExponent);
     if (single)
-      TEST(input_size, R(RSCRATCH), Imm32(~Common::FLOAT_SIGN));
+      TEST(input_size, R(RSCRATCH), Imm32(~FLOAT_SIGN));
     else
       TEST(input_size, R(RSCRATCH), MConst(psDoubleNoSign));
     FixupBranch zero = J_CC(CC_Z);
 
     SHR(input_size, R(RSCRATCH), Imm8(input_size - 1));
-    LEA(32, RSCRATCH,
-        MScaled(RSCRATCH, Common::PPC_FPCLASS_ND - Common::PPC_FPCLASS_PD, Common::PPC_FPCLASS_PD));
+    LEA(32, RSCRATCH, MScaled(RSCRATCH, PPC_FPCLASS_ND - PPC_FPCLASS_PD, PPC_FPCLASS_PD));
     continue4 = J();
 
     SetJumpTarget(zero);
     SHR(input_size, R(RSCRATCH), Imm8(input_size - 1));
     SHL(32, R(RSCRATCH), Imm8(4));
-    ADD(32, R(RSCRATCH), Imm8(Common::PPC_FPCLASS_PZ));
+    ADD(32, R(RSCRATCH), Imm8(PPC_FPCLASS_PZ));
   }
 
   SetJumpTarget(continue1);
