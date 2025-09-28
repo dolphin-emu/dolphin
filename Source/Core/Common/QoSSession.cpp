@@ -4,7 +4,7 @@
 #include "Common/QoSSession.h"
 
 #if defined(_WIN32)
-#include <Qos2.h>
+#include <qos2.h>
 #pragma comment(lib, "qwave")
 #endif
 

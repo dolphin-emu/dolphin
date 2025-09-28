@@ -29,13 +29,13 @@
 #include "Common/StringUtil.h"
 
 #ifdef _WIN32
-#include <Windows.h>
-#include <Shlwapi.h>
+#include <windows.h>
 #include <commdlg.h>  // for GetSaveFileName
 #include <direct.h>   // getcwd
 #include <io.h>
 #include <objbase.h>  // guid stuff
 #include <shellapi.h>
+#include <shlwapi.h>
 #else
 #include <libgen.h>
 #include <stdlib.h>
