@@ -7,7 +7,7 @@
 #include <string>
 #include <thread>
 
-#include <Windows.h>
+#include <windows.h>
 #include <CommCtrl.h>
 #include <ShObjIdl.h>
 #include <ShlObj.h>

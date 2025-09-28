@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <string.h>
 #ifdef _WIN32
-#include <WinSock2.h>
+#include <winsock2.h>
 #include <iphlpapi.h>
 #include <ws2tcpip.h>
 typedef SSIZE_T ssize_t;

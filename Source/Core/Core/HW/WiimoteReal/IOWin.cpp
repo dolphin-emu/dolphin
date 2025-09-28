@@ -11,8 +11,8 @@
 #include <unordered_set>
 
 #include <windows.h>
-#include <BluetoothAPIs.h>
-#include <Cfgmgr32.h>
+#include <bluetoothapis.h>
+#include <cfgmgr32.h>
 #include <dbt.h>
 #include <hidsdi.h>
 #include <setupapi.h>
@@ -20,7 +20,7 @@
 // initguid.h must be included before Devpkey.h
 // clang-format off
 #include <initguid.h>
-#include <Devpkey.h>
+#include <devpkey.h>
 // clang-format on
 
 #include "Common/CommonFuncs.h"
