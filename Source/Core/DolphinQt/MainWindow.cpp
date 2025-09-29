@@ -126,6 +126,7 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
+#include "InputCommon/InputConfig.h"
 
 #include "UICommon/DiscordPresence.h"
 #include "UICommon/GameFile.h"
