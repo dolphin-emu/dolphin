@@ -7,7 +7,6 @@
 //  * Depop support
 //  * ITD support
 //  * Polyphase sample interpolation support (not very useful)
-//  * Dolby Pro 2 mixing with recent AX versions
 
 #pragma once
 
@@ -20,6 +19,7 @@
 #include "Common/Swap.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
+#include "Core/HW/DSPHLE/UCodes/AXDolbyProLogicII.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
 
@@ -110,6 +110,14 @@ protected:
   u16 m_compressor_pos = 0;
 
   std::unique_ptr<Accelerator> m_accelerator;
+  std::unique_ptr<DolbyProLogicII> m_dpl2_encoder;
+
+  // DPL2 per-frame state and scratch buffers (5 ms @ 32 kHz = 160 samples)
+  bool m_frame_use_dpl2 = false;           // Set during ProcessPBList when any PB requests DPL2
+  u32 m_dpl2_effective_mc = 0;             // Bitwise-OR of all mixer_control values that requested DPL2
+  bool m_frame_ran_mixauxblr = false;      // Tracks whether MixAUXBLR command was issued this frame
+  int m_dpl2_left[32 * 5]{};               // Scratch Lt
+  int m_dpl2_right[32 * 5]{};              // Scratch Rt
 
   // Constructs without any GC-specific state, so it can be used by the deriving AXWii.
   AXUCode(DSPHLE* dsphle, u32 crc, bool dummy);

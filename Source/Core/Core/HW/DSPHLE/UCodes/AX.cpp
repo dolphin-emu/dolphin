@@ -36,6 +36,7 @@ AXUCode::AXUCode(DSPHLE* dsphle, u32 crc) : AXUCode(dsphle, crc, false)
   INFO_LOG_FMT(DSPHLE, "Instantiating AXUCode: crc={:08x}", crc);
 
   m_accelerator = std::make_unique<HLEAccelerator>(dsphle->GetSystem().GetDSP());
+  m_dpl2_encoder = std::make_unique<DolbyProLogicII>();
 }
 
 AXUCode::~AXUCode() = default;
@@ -355,9 +356,13 @@ AXMixControl AXUCode::ConvertMixerControl(u32 mixer_control)
     if (mixer_control & 0x2000)
       ret |= MIX_AUXB_S_RAMP;
 
-    // TODO: 0x4000 is used for Dolby Pro 2 sound mixing
-    // It selects the input surround channel for all AUXB mixing channels.
-    // This will only matter once we have ITD support.
+    // 0x4000 is used for Dolby Pro Logic II sound mixing
+    // It enables DPL2 encoding of the 5-channel output to stereo
+    if (mixer_control & 0x4000)
+    {
+      // Enable surround channel routing for DPL2
+      ret |= MIX_AUXB_S;
+    }
   }
 
   return (AXMixControl)ret;
@@ -365,6 +370,12 @@ AXMixControl AXUCode::ConvertMixerControl(u32 mixer_control)
 
 void AXUCode::SetupProcessing(u32 init_addr)
 {
+  // Reset per-frame DPL2 state at the very start of a frame, before any commands run.
+  // We defer DPL2 matrix encoding until OutputSamples(), so we keep stems intact here.
+  m_frame_use_dpl2 = false;
+  m_dpl2_effective_mc = 0;
+  m_frame_ran_mixauxblr = false;
+
   const std::array<BufferDesc, 9> buffers = {{
       {m_samples_main_left, 32},
       {m_samples_main_right, 32},
@@ -464,6 +475,10 @@ void AXUCode::ProcessPBList(u32 pb_addr)
   AXPB pb;
 
   auto& memory = m_dsphle->GetSystem().GetMemory();
+
+  bool has_dpl2_request = false;
+  u32 dpl2_effective_mc = 0;
+
   while (pb_addr)
   {
     AXBuffers buffers = {{m_samples_main_left, m_samples_main_right, m_samples_main_surround,
@@ -471,6 +486,14 @@ void AXUCode::ProcessPBList(u32 pb_addr)
                           m_samples_auxB_left, m_samples_auxB_right, m_samples_auxB_surround}};
 
     ReadPB(memory, pb_addr, pb);
+
+    // Check if this PB requests DPL2 processing
+    if ((pb.mixer_control & 0x0010) || (pb.mixer_control & 0x4000))
+    {
+      has_dpl2_request = true;
+      // Accumulate a normalized view of DPL2-relevant mixer control bits across all PBs.
+      dpl2_effective_mc |= pb.mixer_control;
+    }
 
     PBUpdateData updates = LoadPBUpdates(memory, pb);
 
@@ -490,6 +513,11 @@ void AXUCode::ProcessPBList(u32 pb_addr)
     WritePB(memory, pb_addr, pb);
     pb_addr = HILO_TO_32(pb.next_pb);
   }
+
+  // Defer DPL2 matrixing until OutputSamples() to avoid mutating stems that
+  // may be consumed by later AX commands in the same frame.
+  m_frame_use_dpl2 = has_dpl2_request && (m_dpl2_encoder != nullptr);
+  m_dpl2_effective_mc = dpl2_effective_mc;
 }
 
 void AXUCode::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr)
@@ -607,21 +635,95 @@ void AXUCode::RunCompressor(u16 threshold, u16 release_frames, u32 table_addr, u
 
 void AXUCode::OutputSamples(u32 lr_addr, u32 surround_addr)
 {
+  // Always upload the surround stem as-is; DPL2 encoding only affects the final L/R output.
   int surround_buffer[5 * 32];
-
   for (u32 i = 0; i < 5 * 32; ++i)
     surround_buffer[i] = Common::swap32(m_samples_main_surround[i]);
   auto& memory = m_dsphle->GetSystem().GetMemory();
   memcpy(HLEMemory_Get_Pointer(memory, surround_addr), surround_buffer, sizeof(surround_buffer));
 
+  // Prepare output L/R for this frame, possibly running the DPL2 matrix.
+  const u32 num = 5 * 32; // 5 ms @ 32 kHz
+
+  if (m_frame_use_dpl2 && m_dpl2_encoder)
+  {
+    // Build 5.0 stems for the encoder with explicit, documented routing:
+    // - Front L/R: MAIN.L/R, compensating if MixAUXBLR already summed AUXB into MAIN this frame.
+    // - Center: derived as C = 0.707 * (L + R) per DPL2 spec.
+    // - Rears: RL=AuxB.L, RR=AuxB.R; fallback to mono surround if AUXB is silent but S is present.
+
+    // Optional compensation for MixAUXBLR to reduce double counting of rears in fronts.
+    // We compute a temporary front that attempts to remove the direct AUXB contribution when present.
+    alignas(16) int front_l[5 * 32];
+    alignas(16) int front_r[5 * 32];
+    alignas(16) int center[5 * 32];
+    alignas(16) int rl[5 * 32];
+    alignas(16) int rr[5 * 32];
+
+    // Compute simple energy to detect silent rears.
+    long long energy_rl = 0;
+    long long energy_rr = 0;
+    long long energy_s = 0;
+    for (u32 i = 0; i < num; ++i)
+    {
+      energy_rl += std::abs((long long)m_samples_auxB_left[i]);
+      energy_rr += std::abs((long long)m_samples_auxB_right[i]);
+      energy_s  += std::abs((long long)m_samples_main_surround[i]);
+    }
+    const bool auxb_has_rear = (energy_rl | energy_rr) != 0;
+    const bool mono_surround_present = (!auxb_has_rear) && (energy_s != 0);
+
+    for (u32 i = 0; i < num; ++i)
+    {
+      int L = m_samples_main_left[i];
+      int R = m_samples_main_right[i];
+
+      // If AUXB was mixed into MAIN already, subtract it to approximate original fronts.
+      if (m_frame_ran_mixauxblr)
+      {
+        L -= m_samples_auxB_left[i];
+        R -= m_samples_auxB_right[i];
+      }
+
+      front_l[i] = L;
+      front_r[i] = R;
+
+      // Center derived per spec: C = 0.707 * (L + R). Use float here for precision then cast.
+      center[i] = (int)std::lround(0.70710678 * (double(L) + double(R)));
+
+      if (auxb_has_rear)
+      {
+        rl[i] = m_samples_auxB_left[i];
+        rr[i] = m_samples_auxB_right[i];
+      }
+      else if (mono_surround_present)
+      {
+        // Legacy mono surround: feed equally to RL/RR; the Hilbert network provides phase.
+        rl[i] = m_samples_main_surround[i];
+        rr[i] = m_samples_main_surround[i];
+      }
+      else
+      {
+        rl[i] = 0;
+        rr[i] = 0;
+      }
+    }
+
+    // Run the encoder. Internally it applies the quadrature shifts and matrix with built-in headroom.
+    m_dpl2_encoder->Encode(front_l, front_r, center, rl, rr, m_dpl2_left, m_dpl2_right, num);
+  }
+
   // 32 samples per ms, 5 ms, 2 channels
   short buffer[5 * 32 * 2];
 
-  // Output samples clamped to 16 bits and interlaced RLRLRLRLRL...
-  for (u32 i = 0; i < 5 * 32; ++i)
+  // Output samples clamped to 16 bits and interlaced RLRLRL...
+  for (u32 i = 0; i < num; ++i)
   {
-    s16 left = ClampS16(m_samples_main_left[i]);
-    s16 right = ClampS16(m_samples_main_right[i]);
+    const int src_l = (m_frame_use_dpl2 && m_dpl2_encoder) ? m_dpl2_left[i] : m_samples_main_left[i];
+    const int src_r = (m_frame_use_dpl2 && m_dpl2_encoder) ? m_dpl2_right[i] : m_samples_main_right[i];
+
+    s16 left = ClampS16(src_l);
+    s16 right = ClampS16(src_r);
 
     buffer[2 * i + 0] = Common::swap16(right);
     buffer[2 * i + 1] = Common::swap16(left);
@@ -632,6 +734,11 @@ void AXUCode::OutputSamples(u32 lr_addr, u32 surround_addr)
 
 void AXUCode::MixAUXBLR(u32 ul_addr, u32 dl_addr)
 {
+  // Flag that this command ran in the current frame. This allows the DPL2
+  // output stage to compensate for AUXB being summed into MAIN (to reduce
+  // double-counting when encoding from preserved stems).
+  m_frame_ran_mixauxblr = true;
+
   // Upload AUXB L/R
   auto& memory = m_dsphle->GetSystem().GetMemory();
   int* ptr = (int*)HLEMemory_Get_Pointer(memory, ul_addr);

@@ -160,6 +160,8 @@ add_library(core
   HW/DSPHLE/UCodes/AESnd.h
   HW/DSPHLE/UCodes/AX.cpp
   HW/DSPHLE/UCodes/AX.h
+  HW/DSPHLE/UCodes/AXDolbyProLogicII.cpp
+  HW/DSPHLE/UCodes/AXDolbyProLogicII.h
   HW/DSPHLE/UCodes/AXStructs.h
   HW/DSPHLE/UCodes/AXVoice.h
   HW/DSPHLE/UCodes/AXWii.cpp
