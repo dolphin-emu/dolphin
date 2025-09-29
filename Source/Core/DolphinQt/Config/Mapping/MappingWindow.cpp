@@ -90,9 +90,9 @@ MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
   installEventFilter(filter);
 
   filter->connect(filter, &WindowActivationEventFilter::windowDeactivated,
-                  [] { HotkeyManagerEmu::Enable(true); });
+                  [] { HotkeyManagerEmu::RemoveSuppression(); });
   filter->connect(filter, &WindowActivationEventFilter::windowActivated,
-                  [] { HotkeyManagerEmu::Enable(false); });
+                  [] { HotkeyManagerEmu::AddSuppression(); });
 
   MappingCommon::CreateMappingProcessor(this);
 

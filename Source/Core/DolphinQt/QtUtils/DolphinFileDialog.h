@@ -14,8 +14,8 @@ namespace DolphinFileDialog
 class HotkeyDisabler final
 {
 public:
-  HotkeyDisabler() { HotkeyManagerEmu::Enable(false); }
-  ~HotkeyDisabler() { HotkeyManagerEmu::Enable(true); }
+  HotkeyDisabler() { HotkeyManagerEmu::AddSuppression(); }
+  ~HotkeyDisabler() { HotkeyManagerEmu::RemoveSuppression(); }
 };
 
 QString getExistingDirectory(QWidget* parent = nullptr, const QString& caption = QString(),
