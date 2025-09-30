@@ -31,8 +31,6 @@ private:
   int m_mayflash_index;
   bool is_connected = true;
 
-  JNIEnv* m_env;
-
   jmethodID m_input_func;
   jmethodID m_output_func;
 
