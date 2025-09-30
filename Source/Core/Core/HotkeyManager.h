@@ -257,8 +257,5 @@ void LoadConfig();
 InputConfig* GetConfig();
 ControllerEmu::ControlGroup* GetHotkeyGroup(HotkeyGroup group);
 void GetStatus(bool ignore_focus);
-bool IsSuppressed();
-void AddSuppression();
-void RemoveSuppression();
 bool IsPressed(int Id, bool held);
 }  // namespace HotkeyManagerEmu

@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <array>
-#include <atomic>
 #include <string>
 #include <vector>
 
@@ -210,7 +209,6 @@ namespace HotkeyManagerEmu
 {
 static std::array<u32, NUM_HOTKEY_GROUPS> s_hotkey_down;
 static HotkeyStatus s_hotkey;
-static std::atomic_int s_suppression_count = 0;
 
 static InputConfig s_config("Hotkeys", _trans("Hotkeys"), "Hotkeys", "Hotkeys");
 
@@ -223,21 +221,6 @@ void GetStatus(bool ignore_focus)
 {
   // Get input
   static_cast<HotkeyManager*>(s_config.GetController(0))->GetInput(&s_hotkey, ignore_focus);
-}
-
-bool IsSuppressed()
-{
-  return s_suppression_count.load(std::memory_order_relaxed) > 0;
-}
-
-void AddSuppression()
-{
-  s_suppression_count.fetch_add(1, std::memory_order_relaxed);
-}
-
-void RemoveSuppression()
-{
-  s_suppression_count.fetch_sub(1, std::memory_order_relaxed);
 }
 
 bool IsPressed(int id, bool held)

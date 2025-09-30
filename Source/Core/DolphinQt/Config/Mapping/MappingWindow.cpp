@@ -16,7 +16,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
-#include "Core/HotkeyManager.h"
+#include "Core/InputSuppressor.h"
 
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
@@ -90,9 +90,9 @@ MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
   installEventFilter(filter);
 
   filter->connect(filter, &WindowActivationEventFilter::windowDeactivated,
-                  [] { HotkeyManagerEmu::RemoveSuppression(); });
+                  [] { InputSuppressor::RemoveSuppression(); });
   filter->connect(filter, &WindowActivationEventFilter::windowActivated,
-                  [] { HotkeyManagerEmu::AddSuppression(); });
+                  [] { InputSuppressor::AddSuppression(); });
 
   MappingCommon::CreateMappingProcessor(this);
 

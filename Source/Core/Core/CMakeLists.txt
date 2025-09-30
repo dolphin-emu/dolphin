@@ -342,6 +342,8 @@ add_library(core
   HW/WiiSave.cpp
   HW/WiiSave.h
   HW/WiiSaveStructs.h
+  InputSuppressor.cpp
+  InputSuppressor.h
   IOS/Device.cpp
   IOS/Device.h
   IOS/DeviceStub.cpp

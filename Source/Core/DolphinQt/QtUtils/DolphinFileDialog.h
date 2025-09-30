@@ -3,21 +3,12 @@
 
 #pragma once
 
-#include "Core/HotkeyManager.h"
-
 #include <QFileDialog>
 #include <QObject>
 #include <QString>
 
 namespace DolphinFileDialog
 {
-class HotkeyDisabler final
-{
-public:
-  HotkeyDisabler() { HotkeyManagerEmu::AddSuppression(); }
-  ~HotkeyDisabler() { HotkeyManagerEmu::RemoveSuppression(); }
-};
-
 QString getExistingDirectory(QWidget* parent = nullptr, const QString& caption = QString(),
                              const QString& dir = QString(),
                              QFileDialog::Options options = QFileDialog::ShowDirsOnly);
