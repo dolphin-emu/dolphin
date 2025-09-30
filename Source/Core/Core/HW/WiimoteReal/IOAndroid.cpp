@@ -53,17 +53,16 @@ WiimoteAndroid::~WiimoteAndroid()
 // Connect to a Wiimote with a known address.
 bool WiimoteAndroid::ConnectInternal()
 {
-  m_env = IDCache::GetEnvForThread();
+  auto* const env = IDCache::GetEnvForThread();
 
-  jfieldID payload_field = m_env->GetStaticFieldID(s_adapter_class, "wiimotePayload", "[[B");
+  jfieldID payload_field = env->GetStaticFieldID(s_adapter_class, "wiimotePayload", "[[B");
   jobjectArray payload_object =
-      reinterpret_cast<jobjectArray>(m_env->GetStaticObjectField(s_adapter_class, payload_field));
-  m_java_wiimote_payload =
-      (jbyteArray)m_env->GetObjectArrayElement(payload_object, m_mayflash_index);
+      reinterpret_cast<jobjectArray>(env->GetStaticObjectField(s_adapter_class, payload_field));
+  m_java_wiimote_payload = (jbyteArray)env->GetObjectArrayElement(payload_object, m_mayflash_index);
 
   // Get function pointers
-  m_input_func = m_env->GetStaticMethodID(s_adapter_class, "input", "(I)I");
-  m_output_func = m_env->GetStaticMethodID(s_adapter_class, "output", "(I[BI)I");
+  m_input_func = env->GetStaticMethodID(s_adapter_class, "input", "(I)I");
+  m_output_func = env->GetStaticMethodID(s_adapter_class, "output", "(I[BI)I");
 
   is_connected = true;
 
@@ -84,26 +83,30 @@ bool WiimoteAndroid::IsConnected() const
 // zero = error
 int WiimoteAndroid::IORead(u8* buf)
 {
-  int read_size = m_env->CallStaticIntMethod(s_adapter_class, m_input_func, m_mayflash_index);
+  auto* const env = IDCache::GetEnvForThread();
+
+  int read_size = env->CallStaticIntMethod(s_adapter_class, m_input_func, m_mayflash_index);
   if (read_size > 0)
   {
-    jbyte* java_data = m_env->GetByteArrayElements(m_java_wiimote_payload, nullptr);
+    jbyte* java_data = env->GetByteArrayElements(m_java_wiimote_payload, nullptr);
     memcpy(buf + 1, java_data, std::min(MAX_PAYLOAD - 1, read_size));
     buf[0] = 0xA1;
-    m_env->ReleaseByteArrayElements(m_java_wiimote_payload, java_data, 0);
+    env->ReleaseByteArrayElements(m_java_wiimote_payload, java_data, 0);
   }
   return read_size <= 0 ? read_size : read_size + 1;
 }
 
 int WiimoteAndroid::IOWrite(u8 const* buf, size_t len)
 {
-  jbyteArray output_array = m_env->NewByteArray(len);
-  jbyte* output = m_env->GetByteArrayElements(output_array, nullptr);
+  auto* const env = IDCache::GetEnvForThread();
+
+  jbyteArray output_array = env->NewByteArray(len);
+  jbyte* output = env->GetByteArrayElements(output_array, nullptr);
   memcpy(output, buf, len);
-  m_env->ReleaseByteArrayElements(output_array, output, 0);
-  int written = m_env->CallStaticIntMethod(s_adapter_class, m_output_func, m_mayflash_index,
-                                           output_array, len);
-  m_env->DeleteLocalRef(output_array);
+  env->ReleaseByteArrayElements(output_array, output, 0);
+  int written =
+      env->CallStaticIntMethod(s_adapter_class, m_output_func, m_mayflash_index, output_array, len);
+  env->DeleteLocalRef(output_array);
   return written;
 }
 
