@@ -17,7 +17,9 @@ class WiimoteAndroid final : public Wiimote
 public:
   WiimoteAndroid(int index);
   ~WiimoteAndroid() override;
-  std::string GetId() const override { return "Android " + std::to_string(m_mayflash_index); }
+
+  std::string GetId() const override;
+  static std::string GetIdFromDolphinBarIndex(int index);
 
 protected:
   bool ConnectInternal() override;
