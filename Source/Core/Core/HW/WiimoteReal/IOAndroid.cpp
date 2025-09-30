@@ -37,7 +37,12 @@ void WiimoteScannerAndroid::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
       env->CallStaticBooleanMethod(s_adapter_class, openadapter_func))
   {
     for (int i = 0; i < MAX_WIIMOTES; ++i)
+    {
+      if (!IsNewWiimote(WiimoteAndroid::GetIdFromDolphinBarIndex(i)))
+        continue;
+
       found_wiimotes.emplace_back(new WiimoteAndroid(i));
+    }
   }
 }
 
@@ -48,6 +53,16 @@ WiimoteAndroid::WiimoteAndroid(int index) : Wiimote(), m_mayflash_index(index)
 WiimoteAndroid::~WiimoteAndroid()
 {
   Shutdown();
+}
+
+std::string WiimoteAndroid::GetId() const
+{
+  return GetIdFromDolphinBarIndex(m_mayflash_index);
+}
+
+std::string WiimoteAndroid::GetIdFromDolphinBarIndex(int index)
+{
+  return "Android " + std::to_string(index);
 }
 
 // Connect to a Wiimote with a known address.
