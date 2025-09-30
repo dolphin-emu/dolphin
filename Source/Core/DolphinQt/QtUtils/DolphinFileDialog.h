@@ -4,8 +4,10 @@
 #pragma once
 
 #include <QFileDialog>
-#include <QObject>
 #include <QString>
+#include <QStringList>
+
+class QWidget;
 
 namespace DolphinFileDialog
 {
