@@ -3036,7 +3036,7 @@ void XEmitter::VPXOR(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
 
 void XEmitter::VMOVAPS(const OpArg& arg, X64Reg regOp)
 {
-  WriteAVXOp(0x00, 0x29, X64Reg::INVALID_REG, regOp, arg);
+  WriteAVXOp(0x00, 0x29, regOp, X64Reg::INVALID_REG, arg);
 }
 
 void XEmitter::VZEROUPPER()

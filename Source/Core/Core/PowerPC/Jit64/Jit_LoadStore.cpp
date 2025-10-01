@@ -474,9 +474,18 @@ void Jit64::dcbz(UGeckoInstruction inst)
     FixupBranch slow = J_CC(CC_Z, Jump::Near);
 
     // Fast path: compute full address, then zero out 32 bytes of memory.
-    XORPS(XMM0, R(XMM0));
-    MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 0), XMM0);
-    MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 16), XMM0);
+    if (cpu_info.bAVX)
+    {
+      VXORPS(XMM0, XMM0, R(XMM0));
+      VMOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 0), YMM0);
+      VZEROUPPER();
+    }
+    else
+    {
+      XORPS(XMM0, R(XMM0));
+      MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 0), XMM0);
+      MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 16), XMM0);
+    }
 
     // Slow path: call the general-case code.
     SwitchToFarCode();
