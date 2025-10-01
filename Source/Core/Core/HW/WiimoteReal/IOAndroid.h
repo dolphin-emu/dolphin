@@ -12,8 +12,12 @@
 
 namespace WiimoteReal
 {
+class WiimoteScannerAndroid;
+
 class WiimoteAndroid final : public Wiimote
 {
+  friend WiimoteScannerAndroid;
+
 public:
   WiimoteAndroid(int index);
   ~WiimoteAndroid() override;
@@ -31,7 +35,7 @@ protected:
 
 private:
   int m_mayflash_index;
-  bool is_connected = true;
+  bool is_connected = false;
 
   jmethodID m_input_func;
   jmethodID m_output_func;

@@ -43,7 +43,12 @@ void WiimoteScannerAndroid::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
       if (!IsNewWiimote(WiimoteAndroid::GetIdFromDolphinBarIndex(i)))
         continue;
 
-      found_wiimotes.emplace_back(new WiimoteAndroid(i));
+      auto wiimote = std::make_unique<WiimoteAndroid>(i);
+
+      if (!wiimote->ConnectInternal())
+        continue;
+
+      found_wiimotes.emplace_back(wiimote.release());
     }
   }
 }
@@ -70,6 +75,9 @@ std::string WiimoteAndroid::GetIdFromDolphinBarIndex(int index)
 // Connect to a Wiimote with a known address.
 bool WiimoteAndroid::ConnectInternal()
 {
+  if (IsConnected())
+    return true;
+
   auto* const env = IDCache::GetEnvForThread();
 
   jfieldID payload_field = env->GetStaticFieldID(s_adapter_class, "wiimotePayload", "[[B");
@@ -80,6 +88,12 @@ bool WiimoteAndroid::ConnectInternal()
   // Get function pointers
   m_input_func = env->GetStaticMethodID(s_adapter_class, "input", "(I)I");
   m_output_func = env->GetStaticMethodID(s_adapter_class, "output", "(I[BI)I");
+
+  // Test a write to see if a remote is actually connected to the DolphinBar.
+  constexpr u8 report[] = {WR_SET_REPORT | BT_OUTPUT,
+                           u8(WiimoteCommon::OutputReportID::RequestStatus), 0};
+  if (IOWrite(report, sizeof(report)) <= 0)
+    return false;
 
   is_connected = true;
 
