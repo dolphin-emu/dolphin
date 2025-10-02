@@ -34,7 +34,6 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.*
 import org.dolphinemu.dolphinemu.model.GpuDriverMetadata
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter
 import org.dolphinemu.dolphinemu.utils.*
-import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -48,6 +47,7 @@ class SettingsFragmentPresenter(
 
     private var settingsList: ArrayList<SettingsItem>? = null
     private var hasOldControllerSettings = false
+    private var controllerProfileSelector: RunRunnable? = null
 
     private var serialPort1Type = 0
     private var controllerNumber = 0
@@ -2265,7 +2265,6 @@ class SettingsFragmentPresenter(
 
     private fun addWiimoteSubSettings(sl: ArrayList<SettingsItem>, wiimoteNumber: Int) {
         val wiimote = EmulatedController.getWiimote(wiimoteNumber)
-
         if (!TextUtils.isEmpty(gameId)) {
             addControllerPerGameSettings(sl, wiimote, wiimoteNumber)
         } else {
@@ -2438,17 +2437,30 @@ class SettingsFragmentPresenter(
                 0,
                 true
             ) { clearControllerSettings(controller) })
-        sl.add(
-            RunRunnable(
-                context,
-                R.string.input_profiles,
-                0,
-                0,
-                0,
-                true
-            ) { fragmentView.showDialogFragment(ProfileDialog.create(menuTag)) })
+
+
+        controllerProfileSelector = RunRunnable(
+          context,
+          R.string.input_profiles,
+          0,
+          0,
+          0,
+          true
+        ) { fragmentView.showDialogFragment(ProfileDialog.create(menuTag)) }
+        sl.add(controllerProfileSelector!!)
+        updateControllerName()
 
         updateOldControllerSettingsWarningVisibility(controller)
+    }
+
+    fun updateControllerName() {
+        val controller = menuTag.correspondingEmulatedController
+        val profileDescription = if(controller.getProfileName().isEmpty()) {
+            context.getString(R.string.input_profiles_unnamed_profile_loaded_description)
+        } else {
+            context.getString(R.string.input_profiles_description, controller.getProfileName())
+        }
+        controllerProfileSelector?.updateDescription(profileDescription)
     }
 
     /**
