@@ -236,6 +236,7 @@ void GeckoCodeWidget::EditCode()
     return;
 
   const int index = item->data(Qt::UserRole).toInt();
+  const bool enabled = item->checkState() == Qt::Checked;
 
   m_cheat_code_editor->SetGeckoCode(&m_gecko_codes[index]);
   if (m_cheat_code_editor->exec() == QDialog::Rejected)
@@ -243,6 +244,9 @@ void GeckoCodeWidget::EditCode()
 
   SaveCodes();
   UpdateList();
+
+  if (!m_restart_required && enabled)
+    Gecko::SetActiveCodes(m_gecko_codes, m_game_id, m_game_revision);
 }
 
 void GeckoCodeWidget::RemoveCode()

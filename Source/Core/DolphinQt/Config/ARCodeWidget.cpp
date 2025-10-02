@@ -298,6 +298,8 @@ void ARCodeWidget::OnCodeEditClicked()
     return;
 
   const auto* const selected = items[0];
+  const bool enabled = selected->checkState() == Qt::Checked;
+
   auto& current_ar = m_ar_codes[m_code_list->row(selected)];
 
   if (current_ar.user_defined)
@@ -318,6 +320,9 @@ void ARCodeWidget::OnCodeEditClicked()
 
   SaveCodes();
   UpdateList();
+
+  if (!m_restart_required && enabled)
+    ActionReplay::ApplyCodes(m_ar_codes, m_game_id, m_game_revision);
 }
 
 void ARCodeWidget::OnCodeRemoveClicked()
