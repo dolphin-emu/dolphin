@@ -57,7 +57,7 @@ void PathPane::BrowseDefaultGame()
 void PathPane::BrowseWiiNAND()
 {
   QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
-      this, tr("Select Wii NAND Root"), QString::fromStdString(Config::Get(Config::MAIN_FS_PATH))));
+      this, tr("Select Wii NAND Root"), QString::fromStdString(File::GetUserPath(D_WIIROOT_IDX))));
   if (!dir.isEmpty())
   {
     m_nand_edit->setText(dir);
@@ -68,7 +68,7 @@ void PathPane::BrowseWiiNAND()
 void PathPane::BrowseDump()
 {
   QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
-      this, tr("Select Dump Path"), QString::fromStdString(Config::Get(Config::MAIN_DUMP_PATH))));
+      this, tr("Select Dump Path"), QString::fromStdString(File::GetUserPath(D_DUMP_IDX))));
   if (!dir.isEmpty())
   {
     m_dump_edit->setText(dir);
@@ -79,7 +79,7 @@ void PathPane::BrowseDump()
 void PathPane::BrowseLoad()
 {
   QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
-      this, tr("Select Load Path"), QString::fromStdString(Config::Get(Config::MAIN_LOAD_PATH))));
+      this, tr("Select Load Path"), QString::fromStdString(File::GetUserPath(D_LOAD_IDX))));
   if (!dir.isEmpty())
   {
     m_load_edit->setText(dir);
@@ -91,7 +91,7 @@ void PathPane::BrowseResourcePack()
 {
   QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
       this, tr("Select Resource Pack Path"),
-      QString::fromStdString(Config::Get(Config::MAIN_RESOURCEPACK_PATH))));
+      QString::fromStdString(File::GetUserPath(D_RESOURCEPACK_IDX))));
   if (!dir.isEmpty())
   {
     m_resource_pack_edit->setText(dir);
@@ -102,7 +102,7 @@ void PathPane::BrowseResourcePack()
 void PathPane::BrowseWFS()
 {
   const QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
-      this, tr("Select WFS Path"), QString::fromStdString(Config::Get(Config::MAIN_WFS_PATH))));
+      this, tr("Select WFS Path"), QString::fromStdString(File::GetUserPath(D_WFSROOT_IDX))));
   if (!dir.isEmpty())
   {
     m_wfs_edit->setText(dir);

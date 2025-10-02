@@ -531,7 +531,7 @@ void WiiPane::BrowseSDSyncFolder()
 {
   QString file = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
       this, tr("Select a Folder to Sync with the SD Card Image"),
-      QString::fromStdString(Config::Get(Config::MAIN_WII_SD_CARD_SYNC_FOLDER_PATH))));
+      QString::fromStdString(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX))));
   if (!file.isEmpty())
     SetSDSyncFolder(file);
 }
