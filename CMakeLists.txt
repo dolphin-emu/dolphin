@@ -788,6 +788,8 @@ endif()
 
 add_subdirectory(Externals/watcher)
 
+add_subdirectory(Externals/ImGuizmo)
+
 ########################################
 # Pre-build events: Define configuration variables and write SCM info header
 #

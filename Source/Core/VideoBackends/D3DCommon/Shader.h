@@ -8,6 +8,11 @@
 #include "VideoBackends/D3DCommon/D3DCommon.h"
 #include "VideoCommon/AbstractShader.h"
 
+namespace VideoCommon
+{
+class ShaderIncluder;
+}
+
 namespace D3DCommon
 {
 class Shader : public AbstractShader
@@ -20,7 +25,8 @@ public:
   BinaryData GetBinary() const override;
 
   static std::optional<BinaryData> CompileShader(D3D_FEATURE_LEVEL feature_level, ShaderStage stage,
-                                                 std::string_view source);
+                                                 std::string_view source,
+                                                 VideoCommon::ShaderIncluder* shader_includer);
 
   static BinaryData CreateByteCode(const void* data, size_t length);
 

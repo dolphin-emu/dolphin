@@ -5,6 +5,8 @@
 
 #include <fstream>
 
+#include <fmt/format.h>
+
 #include "Common/FileUtil.h"
 
 picojson::object ToJsonObject(const Common::Vec3& vec)
@@ -21,6 +23,24 @@ void FromJson(const picojson::object& obj, Common::Vec3& vec)
   vec.x = ReadNumericFromJson<float>(obj, "x").value_or(0.0f);
   vec.y = ReadNumericFromJson<float>(obj, "y").value_or(0.0f);
   vec.z = ReadNumericFromJson<float>(obj, "z").value_or(0.0f);
+}
+
+picojson::object ToJsonObject(const Common::Matrix44& mat)
+{
+  picojson::object obj;
+  for (std::size_t i = 0; i < mat.data.size(); i++)
+  {
+    obj.emplace(fmt::format("m{}", i), mat.data[i]);
+  }
+  return obj;
+}
+
+void FromJson(const picojson::object& obj, Common::Matrix44& mat)
+{
+  for (std::size_t i = 0; i < mat.data.size(); i++)
+  {
+    mat.data[i] = ReadNumericFromJson<float>(obj, fmt::format("m{}", i)).value_or(0.0f);
+  }
 }
 
 std::optional<std::string> ReadStringFromJson(const picojson::object& obj, const std::string& key)

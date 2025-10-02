@@ -19,6 +19,7 @@
 #include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/FramebufferShaderGen.h"
+#include "VideoCommon/GraphicsModEditor/EditorMain.h"
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/NetPlayGolfUI.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -31,8 +32,11 @@
 #include <inttypes.h>
 #include <mutex>
 
+// clang-format off
 #include <imgui.h>
 #include <implot.h>
+#include <ImGuizmo.h>
+// clang-format on
 
 namespace VideoCommon
 {
@@ -86,11 +90,19 @@ bool OnScreenUI::Initialize(u32 width, u32 height, float scale)
   m_ready = true;
   BeginImGuiFrameUnlocked(width, height);  // lock is already held
 
+  auto& system = Core::System::GetInstance();
+  auto& graphics_mod_editor = system.GetGraphicsModEditor();
+  graphics_mod_editor.Initialize();
+
   return true;
 }
 
 OnScreenUI::~OnScreenUI()
 {
+  auto& system = Core::System::GetInstance();
+  auto& graphics_mod_editor = system.GetGraphicsModEditor();
+  graphics_mod_editor.Shutdown();
+
   std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
 
   ImGui::EndFrame();
@@ -112,11 +124,11 @@ bool OnScreenUI::RecompileImGuiPipeline()
       g_presenter->GetBackbufferFormat() == AbstractTextureFormat::RGBA16F;
 
   std::unique_ptr<AbstractShader> vertex_shader = g_gfx->CreateShaderFromSource(
-      ShaderStage::Vertex, FramebufferShaderGen::GenerateImGuiVertexShader(),
+      ShaderStage::Vertex, FramebufferShaderGen::GenerateImGuiVertexShader(), nullptr,
       "ImGui vertex shader");
   std::unique_ptr<AbstractShader> pixel_shader = g_gfx->CreateShaderFromSource(
       ShaderStage::Pixel, FramebufferShaderGen::GenerateImGuiPixelShader(linear_space_output),
-      "ImGui pixel shader");
+      nullptr, "ImGui pixel shader");
   if (!vertex_shader || !pixel_shader)
   {
     PanicAlertFmt("Failed to compile ImGui shaders");
@@ -129,7 +141,7 @@ bool OnScreenUI::RecompileImGuiPipeline()
   {
     geometry_shader = g_gfx->CreateShaderFromSource(
         ShaderStage::Geometry, FramebufferShaderGen::GeneratePassthroughGeometryShader(1, 1),
-        "ImGui passthrough geometry shader");
+        nullptr, "ImGui passthrough geometry shader");
     if (!geometry_shader)
     {
       PanicAlertFmt("Failed to compile ImGui geometry shader");
@@ -188,6 +200,8 @@ void OnScreenUI::BeginImGuiFrameUnlocked(u32 width, u32 height)
   io.DeltaTime = time_diff_secs;
 
   ImGui::NewFrame();
+  ImGuizmo::BeginFrame();
+  ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
 }
 
 void OnScreenUI::DrawImGui()
@@ -295,6 +309,13 @@ void OnScreenUI::DrawDebugText()
         ImGui::TextUnformatted(movie.GetRerecords().c_str());
     }
     ImGui::End();
+  }
+
+  auto& system = Core::System::GetInstance();
+  auto& graphics_mod_editor = system.GetGraphicsModEditor();
+  if (graphics_mod_editor.IsEnabled())
+  {
+    graphics_mod_editor.DrawImGui();
   }
 
   if (g_ActiveConfig.bOverlayStats)
@@ -522,8 +543,8 @@ void OnScreenUI::SetKeyMap(const DolphinKeyMap& key_map)
       ImGuiKey_DownArrow, ImGuiKey_PageUp,    ImGuiKey_PageDown,   ImGuiKey_Home,
       ImGuiKey_End,       ImGuiKey_Insert,    ImGuiKey_Delete,     ImGuiKey_Backspace,
       ImGuiKey_Space,     ImGuiKey_Enter,     ImGuiKey_Escape,     ImGuiKey_KeypadEnter,
-      ImGuiKey_A,         ImGuiKey_C,         ImGuiKey_V,          ImGuiKey_X,
-      ImGuiKey_Y,         ImGuiKey_Z,
+      ImGuiMod_Ctrl,      ImGuiMod_Shift,     ImGuiKey_A,          ImGuiKey_C,
+      ImGuiKey_V,         ImGuiKey_X,         ImGuiKey_Y,          ImGuiKey_Z,
   };
 
   auto lock = GetImGuiLock();
