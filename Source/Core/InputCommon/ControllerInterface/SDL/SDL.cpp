@@ -16,6 +16,7 @@
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
+#include "Common/Thread.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/SDL/SDLGamepad.h"
@@ -138,7 +139,15 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
   // Disable DualSense Player LEDs; We already colorize the Primary LED
   SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, "0");
 
+  // Disabling DirectInput support apparently solves hangs on shutdown for users with
+  //  "8BitDo Ultimate 2" controllers.
+  // It also works around a possibly related random hang on a IDirectInputDevice8_Acquire
+  //  call within SDL.
+  SDL_SetHint(SDL_HINT_JOYSTICK_DIRECTINPUT, "0");
+
   m_hotplug_thread = std::thread([this] {
+    Common::SetCurrentThreadName("SDL Hotplug Thread");
+
     Common::ScopeGuard quit_guard([] {
       // TODO: there seems to be some sort of memory leak with SDL, quit isn't freeing everything up
       SDL_Quit();
