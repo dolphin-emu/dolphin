@@ -10,6 +10,8 @@
 #include "Common/WorkQueueThread.h"
 #include "Core/USBUtils.h"
 
+#include "Core/HW/Wiimote.h"
+
 class QCheckBox;
 class QComboBox;
 class QHBoxLayout;
@@ -50,10 +52,10 @@ private:
 
   QGroupBox* m_wiimote_box;
   QGridLayout* m_wiimote_layout;
-  std::array<QLabel*, 4> m_wiimote_labels;
-  std::array<QComboBox*, 4> m_wiimote_boxes;
-  std::array<QPushButton*, 4> m_wiimote_buttons;
-  std::array<QHBoxLayout*, 4> m_wiimote_groups;
+  std::array<QLabel*, MAX_BBMOTES> m_wiimote_labels;
+  std::array<QComboBox*, MAX_BBMOTES> m_wiimote_boxes;
+  std::array<QPushButton*, MAX_BBMOTES> m_wiimote_buttons;
+  std::array<QHBoxLayout*, MAX_BBMOTES> m_wiimote_groups;
   std::array<QLabel*, 2> m_wiimote_pt_labels;
 
   Common::AsyncWorkThreadSP m_bluetooth_adapter_refresh_thread;
@@ -67,7 +69,6 @@ private:
   QPushButton* m_wiimote_sync;
   QPushButton* m_wiimote_reset;
   QCheckBox* m_wiimote_continuous_scanning;
-  QCheckBox* m_wiimote_real_balance_board;
   QCheckBox* m_wiimote_speaker_data;
   QCheckBox* m_wiimote_ciface;
   QPushButton* m_wiimote_refresh;
