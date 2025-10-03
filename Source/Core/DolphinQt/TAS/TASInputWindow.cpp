@@ -70,6 +70,11 @@ TASInputWindow::TASInputWindow(QWidget* parent) : QDialog(parent)
 
   m_settings_box = new QGroupBox(tr("Settings"));
   m_settings_box->setLayout(settings_layout);
+
+  // Let users clear the focus from text inputs by clicking somewhere in the window. Without this
+  // the only way to clear the focus (which suppresses hotkeys and controller/Free Look inputs) is
+  // to click on one of the checkboxes.
+  setFocusPolicy(Qt::ClickFocus);
 }
 
 int TASInputWindow::GetTurboPressFrames() const
