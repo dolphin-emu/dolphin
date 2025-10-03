@@ -77,7 +77,7 @@ bool IsRealtekVID(u16 vid)
 
 bool IsKnownRealtekBluetoothDevice(u16 vid, u16 pid)
 {
-  // This list comes from Linux source: drivers/bluetooth/btusb.c
+  // This list comes mostly from Linux source: drivers/bluetooth/btusb.c
   constexpr std::pair<u16, u16> realtek_ids[] = {
       // Realtek 8821CE Bluetooth devices
       {0x13d3, 0x3529},
@@ -136,14 +136,25 @@ bool IsKnownRealtekBluetoothDevice(u16 vid, u16 pid)
       {0x0bda, 0xb009},
       {0x2ff8, 0xb011},
       // Additional Realtek 8761BUV Bluetooth devices
-      {0x2357, 0x0604},
+      {0x04bb, 0x0a15},
       {0x0b05, 0x190e},
-      {0x2550, 0x8761},
+      {0x0bda, 0x2550},
+      {0x0bda, 0x876e},
       {0x0bda, 0x8771},
+      {0x0bda, 0x877b},
+      {0x0bda, 0x877c},
+      {0x0bda, 0xa725},
+      {0x0bda, 0xa729},
+      {0x2357, 0x0604},
+      {0x2550, 0x8761},
+      {0x2b89, 0x3cfa},
+      {0x2b89, 0x6275},
+      {0x2b89, 0x8761},
+      {0x2c0a, 0x8761},
+      {0x3188, 0x8771},
+      {0x33f2, 0x1688},
       {0x6655, 0x8771},
       {0x7392, 0xc611},
-      {0x2b89, 0x8761},
-      {0x2b89, 0x6275},
       // Additional Realtek 8821AE Bluetooth devices
       {0x0b05, 0x17dc},
       {0x13d3, 0x3414},
@@ -158,7 +169,6 @@ bool IsKnownRealtekBluetoothDevice(u16 vid, u16 pid)
       {0x04c5, 0x161f},
       {0x0b05, 0x18ef},
       {0x13d3, 0x3548},
-      {0x13d3, 0x3549},
       {0x13d3, 0x3553},
       {0x13d3, 0x3555},
       {0x2ff8, 0x3051},
