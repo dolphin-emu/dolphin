@@ -94,19 +94,23 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
   const bool negate_result = (op5 & ~0x1) == 30;
   const bool negate_b = op5 == 28 || op5 == 30;
 
-  const bool inaccurate_fma = fma && !Config::Get(Config::SESSION_USE_FMA);
+  const bool nonfused_requested = fma && !Config::Get(Config::SESSION_USE_FMA);
+  const bool error_free_transformation_requested = fma && m_accurate_fmadds;
   const bool round_c = use_c && !js.op->fprIsSingle[c];
 
   const auto inputs_are_singles_func = [&] {
     return fpr.IsSingle(a) && (!use_b || fpr.IsSingle(b)) && (!use_c || fpr.IsSingle(c));
   };
 
-  const bool single = inputs_are_singles_func() && !inaccurate_fma;
+  const bool single =
+      inputs_are_singles_func() && (error_free_transformation_requested || !nonfused_requested);
   const RegType type = single ? RegType::Single : RegType::Register;
   const u8 size = single ? 32 : 64;
   const auto reg_encoder = single ? EncodeRegToDouble : EncodeRegToQuad;
 
-  const bool error_free_transformation = fma && !single && m_accurate_fmadds;
+  const bool nonfused = nonfused_requested && !single;
+  const bool error_free_transformation = error_free_transformation_requested && !single;
+
   if (error_free_transformation)
   {
     gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
@@ -139,36 +143,36 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
     }
 
     ARM64Reg result_reg = VD;
-    ARM64Reg inaccurate_fma_reg = VD;
+    ARM64Reg nonfused_reg = VD;
     if (error_free_transformation)
     {
       result_reg = reg_encoder(ARM64Reg::Q0);
-      inaccurate_fma_reg = reg_encoder(ARM64Reg::Q0);
+      nonfused_reg = reg_encoder(ARM64Reg::Q0);
     }
     else
     {
-      const bool need_accurate_fma_reg =
-          fma && !inaccurate_fma && (negate_b || VD != VB) && (VD == VA || VD == rounded_c_reg);
+      const bool need_fused_fma_reg =
+          fma && !nonfused && (negate_b || VD != VB) && (VD == VA || VD == rounded_c_reg);
       const bool preserve_d =
           m_accurate_nans && (VD == VA || (use_b && VD == VB) || (use_c && VD == VC));
-      if (need_accurate_fma_reg || preserve_d)
+      if (need_fused_fma_reg || preserve_d)
       {
         if (V0Q == ARM64Reg::INVALID_REG)
           V0Q = fpr.GetScopedReg();
         result_reg = reg_encoder(V0Q);
-        inaccurate_fma_reg = reg_encoder(V0Q);
+        nonfused_reg = reg_encoder(V0Q);
 
-        if (need_accurate_fma_reg && round_c)
+        if (need_fused_fma_reg && round_c)
         {
           V1Q = fpr.GetScopedReg();
           rounded_c_reg = reg_encoder(V1Q);
         }
       }
-      else if (fma && inaccurate_fma && VD == VB)
+      else if (fma && nonfused && VD == VB)
       {
         if (V0Q == ARM64Reg::INVALID_REG)
           V0Q = fpr.GetScopedReg();
-        inaccurate_fma_reg = reg_encoder(V0Q);
+        nonfused_reg = reg_encoder(V0Q);
       }
     }
 
@@ -206,10 +210,10 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
       m_float_emit.FMUL(size, result_reg, VA, rounded_c_reg, 1);
       break;
     case 14:  // ps_madds0: d = a * c.ps0 + b
-      if (inaccurate_fma)
+      if (nonfused)
       {
-        m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg, 0);
-        m_float_emit.FADD(size, result_reg, inaccurate_fma_reg, VB);
+        m_float_emit.FMUL(size, nonfused_reg, VA, rounded_c_reg, 0);
+        m_float_emit.FADD(size, result_reg, nonfused_reg, VB);
       }
       else
       {
@@ -219,10 +223,10 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
       }
       break;
     case 15:  // ps_madds1: d = a * c.ps1 + b
-      if (inaccurate_fma)
+      if (nonfused)
       {
-        m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg, 1);
-        m_float_emit.FADD(size, result_reg, inaccurate_fma_reg, VB);
+        m_float_emit.FMUL(size, nonfused_reg, VA, rounded_c_reg, 1);
+        m_float_emit.FADD(size, result_reg, nonfused_reg, VB);
       }
       else
       {
@@ -245,10 +249,10 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
       break;
     case 28:  // ps_msub:  d = a * c - b
     case 30:  // ps_nmsub: d = -(a * c - b)
-      if (inaccurate_fma)
+      if (nonfused)
       {
-        m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg);
-        m_float_emit.FSUB(size, result_reg, inaccurate_fma_reg, VB);
+        m_float_emit.FMUL(size, nonfused_reg, VA, rounded_c_reg);
+        m_float_emit.FSUB(size, result_reg, nonfused_reg, VB);
       }
       else
       {
@@ -263,10 +267,10 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
       break;
     case 29:  // ps_madd:  d = a * c + b
     case 31:  // ps_nmadd: d = -(a * c + b)
-      if (inaccurate_fma)
+      if (nonfused)
       {
-        m_float_emit.FMUL(size, inaccurate_fma_reg, VA, rounded_c_reg);
-        m_float_emit.FADD(size, result_reg, inaccurate_fma_reg, VB);
+        m_float_emit.FMUL(size, nonfused_reg, VA, rounded_c_reg);
+        m_float_emit.FADD(size, result_reg, nonfused_reg, VB);
       }
       else
       {
@@ -307,7 +311,7 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
 
       // da := a - a'
       // (Transformed into da := a + -a')
-      if (inaccurate_fma)
+      if (nonfused)
       {
         switch (op5)
         {

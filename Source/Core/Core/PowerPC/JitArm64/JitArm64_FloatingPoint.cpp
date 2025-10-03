@@ -82,7 +82,8 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
   const bool negate_b = op5 == 28 || op5 == 30;
 
   const bool output_is_single = inst.OPCD == 59;
-  const bool inaccurate_fma = fma && !Config::Get(Config::SESSION_USE_FMA);
+  const bool nonfused_requested = fma && !Config::Get(Config::SESSION_USE_FMA);
+  const bool error_free_transformation_requested = fma && m_accurate_fmadds;
   const bool round_c = use_c && output_is_single && !js.op->fprIsSingle[c];
 
   const auto inputs_are_singles_func = [&] {
@@ -90,14 +91,18 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
            (!use_c || fpr.IsSingle(c, true));
   };
 
-  const bool single = inputs_are_singles_func() && output_is_single && !inaccurate_fma;
+  const bool single = inputs_are_singles_func() && output_is_single &&
+                      (error_free_transformation_requested || !nonfused_requested);
   const RegType type = single ? RegType::LowerPairSingle : RegType::LowerPair;
   const RegType type_out = output_is_single ?
                                (single ? RegType::DuplicatedSingle : RegType::Duplicated) :
                                RegType::LowerPair;
   const auto reg_encoder = single ? EncodeRegToSingle : EncodeRegToDouble;
 
-  const bool error_free_transformation = fma && !single && output_is_single && m_accurate_fmadds;
+  const bool nonfused = nonfused_requested && !single;
+  const bool error_free_transformation =
+      error_free_transformation_requested && !single && output_is_single;
+
   if (error_free_transformation)
   {
     gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
@@ -120,13 +125,13 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     }
 
     ARM64Reg result_reg = VD;
-    ARM64Reg inaccurate_fma_reg = VD;
+    ARM64Reg nonfused_reg = VD;
     if (error_free_transformation)
     {
       result_reg = reg_encoder(ARM64Reg::Q0);
-      inaccurate_fma_reg = reg_encoder(ARM64Reg::Q0);
+      nonfused_reg = reg_encoder(ARM64Reg::Q0);
 
-      if (inaccurate_fma && V0Q == ARM64Reg::INVALID_REG)
+      if (nonfused && V0Q == ARM64Reg::INVALID_REG)
         V0Q = fpr.GetScopedReg();
     }
     else
@@ -138,13 +143,13 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
         if (V0Q == ARM64Reg::INVALID_REG)
           V0Q = fpr.GetScopedReg();
         result_reg = reg_encoder(V0Q);
-        inaccurate_fma_reg = reg_encoder(V0Q);
+        nonfused_reg = reg_encoder(V0Q);
       }
-      else if (fma && inaccurate_fma && VD == VB)
+      else if (fma && nonfused && VD == VB)
       {
         if (V0Q == ARM64Reg::INVALID_REG)
           V0Q = fpr.GetScopedReg();
-        inaccurate_fma_reg = reg_encoder(V0Q);
+        nonfused_reg = reg_encoder(V0Q);
       }
     }
 
@@ -174,10 +179,10 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     // So, we negate using a separate FNEG instruction instead of using AArch64's nmadd/msub.
     case 28:  // fmsub: "D = A*C - B" vs "Vd = (-Va) + Vn*Vm"
     case 30:  // fnmsub: "D = -(A*C - B)" vs "Vd = -((-Va) + Vn*Vm)"
-      if (inaccurate_fma)
+      if (nonfused)
       {
-        m_float_emit.FMUL(inaccurate_fma_reg, VA, rounded_c_reg);
-        m_float_emit.FSUB(result_reg, inaccurate_fma_reg, VB);
+        m_float_emit.FMUL(nonfused_reg, VA, rounded_c_reg);
+        m_float_emit.FSUB(result_reg, nonfused_reg, VB);
       }
       else
       {
@@ -186,10 +191,10 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
       break;
     case 29:  // fmadd: "D = A*C + B" vs "Vd = Va + Vn*Vm"
     case 31:  // fnmadd: "D = -(A*C + B)" vs "Vd = -(Va + Vn*Vm)"
-      if (inaccurate_fma)
+      if (nonfused)
       {
-        m_float_emit.FMUL(inaccurate_fma_reg, VA, rounded_c_reg);
-        m_float_emit.FADD(result_reg, inaccurate_fma_reg, VB);
+        m_float_emit.FMUL(nonfused_reg, VA, rounded_c_reg);
+        m_float_emit.FADD(result_reg, nonfused_reg, VB);
       }
       else
       {
@@ -269,7 +274,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
       m_float_emit.FSUB(ARM64Reg::D2, result_reg, ARM64Reg::D1);
 
       // da := a - a'
-      if (inaccurate_fma)
+      if (nonfused)
       {
         m_float_emit.FMUL(EncodeRegToDouble(V0Q), VA, rounded_c_reg);
         m_float_emit.FSUB(ARM64Reg::D1, EncodeRegToDouble(V0Q), ARM64Reg::D1);
