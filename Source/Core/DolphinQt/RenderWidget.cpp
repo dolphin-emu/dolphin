@@ -19,6 +19,7 @@
 #include <QTimer>
 #include <QWindow>
 
+#include "Core/Config/InputFocus.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/State.h"
@@ -82,6 +83,8 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   m_mouse_timer->setSingleShot(true);
   setMouseTracking(true);
 
+  connect(&Settings::Instance(), &Settings::DolphinActiveApplicationChanged, this,
+          &RenderWidget::UpdateCursor);
   connect(&Settings::Instance(), &Settings::CursorVisibilityChanged, this,
           &RenderWidget::OnHideCursorChanged);
   connect(&Settings::Instance(), &Settings::LockCursorChanged, this,
@@ -164,13 +167,19 @@ void RenderWidget::UpdateCursor()
 {
   if (!Settings::Instance().GetLockCursor())
   {
+    using Policy = Config::InputFocusPolicy;
     // Only hide if the cursor is automatically locking (it will hide on lock).
     // "Unhide" the cursor if we lost focus, otherwise it will disappear when hovering
     // on top of the game window in the background
     const bool keep_on_top = (windowFlags() & Qt::WindowStaysOnTopHint) != 0;
+    const Config::InputFocusPolicy focus_policy = Config::Get(Config::MAIN_CONTROLLER_FOCUS_POLICY);
+    const bool focus_policy_is_met =
+        (focus_policy == Policy::AnyApplication) ||
+        (focus_policy == Policy::Dolphin && Host::GetInstance()->GetDolphinActiveApplication()) ||
+        isActiveWindow();
     const bool should_hide =
         (Settings::Instance().GetCursorVisibility() == Config::ShowCursor::Never) &&
-        (keep_on_top || Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT) || isActiveWindow());
+        (keep_on_top || focus_policy_is_met);
     setCursor(should_hide ? Qt::BlankCursor : Qt::ArrowCursor);
   }
   else
