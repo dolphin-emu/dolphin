@@ -9,6 +9,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#include "Core/Config/InputFocus.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 
@@ -65,6 +66,9 @@ void CommonControllersWidget::ConnectWidgets()
 {
   connect(m_common_configure_controller_interface, &QPushButton::clicked, this,
           &CommonControllersWidget::OnControllerInterfaceConfigure);
+  connect(m_common_accept_input_from, &QComboBox::currentIndexChanged, [](const int index) {
+    Settings::Instance().ControllerFocusPolicyChanged(static_cast<Config::InputFocusPolicy>(index));
+  });
 }
 
 void CommonControllersWidget::OnControllerInterfaceConfigure()

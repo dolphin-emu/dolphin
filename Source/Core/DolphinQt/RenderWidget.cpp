@@ -85,6 +85,8 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 
   connect(&Settings::Instance(), &Settings::DolphinActiveApplicationChanged, this,
           &RenderWidget::UpdateCursor);
+  connect(&Settings::Instance(), &Settings::ControllerFocusPolicyChanged, this,
+          &RenderWidget::UpdateCursor);
   connect(&Settings::Instance(), &Settings::CursorVisibilityChanged, this,
           &RenderWidget::OnHideCursorChanged);
   connect(&Settings::Instance(), &Settings::LockCursorChanged, this,
