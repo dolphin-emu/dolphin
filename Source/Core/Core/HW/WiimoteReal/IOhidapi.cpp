@@ -70,8 +70,7 @@ void WiimoteScannerHidapi::FindWiimotes(std::vector<Wiimote*>& wiimotes, Wiimote
   {
     const std::string name = device->product_string ? WStringToUTF8(device->product_string) : "";
     const bool is_wiimote =
-        IsValidDeviceName(name) || (device->vendor_id == 0x057e &&
-                                    (device->product_id == 0x0306 || device->product_id == 0x0330));
+        IsValidDeviceName(name) || IsKnownDeviceId({device->vendor_id, device->product_id});
     if (!is_wiimote || !IsNewWiimote(device->path) || !IsDeviceUsable(device->path))
       continue;
 

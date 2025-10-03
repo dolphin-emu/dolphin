@@ -983,6 +983,11 @@ bool IsNewWiimote(const std::string& identifier)
   return !s_known_ids.contains(identifier);
 }
 
+bool IsKnownDeviceId(const USBUtils::DeviceInfo& device_info)
+{
+  return device_info.vid == 0x057e && (device_info.pid == 0x0306 || device_info.pid == 0x0330);
+}
+
 void HandleWiimoteSourceChange(unsigned int index)
 {
   std::lock_guard wm_lk(g_wiimotes_mutex);
