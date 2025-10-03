@@ -26,6 +26,7 @@ public:
   bool GetRenderFullscreen();
   bool GetGBAFocus();
   bool GetTASInputFocus() const;
+  bool GetDolphinActiveApplication() const;
 
   void SetMainWindowHandle(void* handle);
   void SetRenderHandle(void* handle);
@@ -33,6 +34,7 @@ public:
   void SetRenderFullFocus(bool focus);
   void SetRenderFullscreen(bool fullscreen);
   void SetTASInputFocus(bool focus);
+  void SetDolphinActiveApplication(bool is_active_application);
   void ResizeSurface(int new_width, int new_height);
 
 signals:
@@ -55,4 +57,5 @@ private:
   std::atomic<bool> m_render_full_focus{false};
   std::atomic<bool> m_render_fullscreen{false};
   std::atomic<bool> m_tas_input_focus{false};
+  std::atomic<bool> m_dolphin_active_application{true};
 };
