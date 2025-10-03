@@ -3,7 +3,9 @@
 
 #include "Core/HW/WiimoteReal/IOhidapi.h"
 
-#include <algorithm>
+#if defined(__linux__)
+#include <filesystem>
+#endif
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
@@ -11,6 +13,50 @@
 
 using namespace WiimoteCommon;
 using namespace WiimoteReal;
+
+#if defined(__linux__)
+// Here we check the currently attached Linux driver just for logging purposes.
+// Maybe in the future we'll be able to bind the desired HID driver somehow.
+static void LogLinuxDriverName(const char* device_path)
+{
+  namespace fs = std::filesystem;
+
+  const auto sys_device = "/sys/class/hidraw" / fs::path(device_path).filename() / "device";
+
+  // "driver" is a symlink to a path that contains the driver name.
+  //  usually /sys/bus/hid/drivers/hid-generic (what we want)
+  //  or this /sys/bus/hid/drivers/wiimote (what we don't want)
+  std::error_code err;
+  const auto sys_driver = fs::canonical(sys_device / "driver", err);
+
+  if (err)
+  {
+    WARN_LOG_FMT(WIIMOTE, "Could not determine current driver of {}. error: {}", device_path,
+                 err.message());
+    return;
+  }
+
+  const auto driver_name = sys_driver.filename();
+  if (driver_name == "wiimote")
+  {
+    // If Linux's 'wiimote' driver is attached, we will be forever fighting with it.
+    // It's not going to work very well.
+
+    // One could write fs::canonical(sys_device).filename() to (sys_driver / "unbind")
+    // And then also write it to "/sys/bus/hid/drivers/hid-generic/bind"
+    // This should create a new hidraw device with the 'hid-generic' driver.
+
+    // But that requires elevated permissions.. Linux is annoying.
+
+    ERROR_LOG_FMT(WIIMOTE, "Wii remote at {} has the Linux 'wiimote' driver attached.",
+                  device_path);
+  }
+  else
+  {
+    DEBUG_LOG_FMT(WIIMOTE, "Wii remote at {} has driver: {}", device_path, driver_name.string());
+  }
+}
+#endif
 
 static bool IsDeviceUsable(const std::string& device_path)
 {
@@ -72,6 +118,10 @@ void WiimoteScannerHidapi::FindWiimotes(std::vector<Wiimote*>& wiimotes, Wiimote
         IsValidDeviceName(name) || IsKnownDeviceId({device->vendor_id, device->product_id});
     if (!is_wiimote || !IsNewWiimote(device->path) || !IsDeviceUsable(device->path))
       continue;
+
+#if defined(__linux__)
+    LogLinuxDriverName(device->path);
+#endif
 
     auto* wiimote = new WiimoteHidapi(device->path);
     const bool is_balance_board = IsBalanceBoardName(name) || wiimote->IsBalanceBoard();
