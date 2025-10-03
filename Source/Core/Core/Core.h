@@ -20,6 +20,11 @@
 struct BootParameters;
 struct WindowSystemInfo;
 
+namespace Config
+{
+enum class InputFocusPolicy;
+}
+
 namespace Core
 {
 class System;
@@ -192,6 +197,8 @@ void HostDispatchJobs(Core::System& system);
 void DoFrameStep(Core::System& system);
 
 void UpdateInputGate(bool require_focus, bool require_full_focus = false);
+
+void UpdateInputGate(Config::InputFocusPolicy input_focus_policy, bool require_full_focus = false);
 
 void UpdateTitle(Core::System& system);
 

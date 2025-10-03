@@ -31,6 +31,7 @@ add_library(core
   Config/FreeLookSettings.h
   Config/GraphicsSettings.cpp
   Config/GraphicsSettings.h
+  Config/InputFocus.h
   Config/MainSettings.cpp
   Config/MainSettings.h
   Config/NetplaySettings.cpp

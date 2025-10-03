@@ -42,6 +42,7 @@
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/CPUThreadConfigCallback.h"
+#include "Core/Config/InputFocus.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
@@ -1049,6 +1050,33 @@ void UpdateInputGate(bool require_focus, bool require_full_focus)
       !require_focus || !require_full_focus || (focus_passes && Host_RendererHasFullFocus());
   const bool input_suppressed = InputSuppressor::IsSuppressed();
   ControlReference::SetInputGate(focus_passes && full_focus_passes && !input_suppressed);
+}
+
+void UpdateInputGate(const Config::InputFocusPolicy input_focus_policy,
+                     const bool require_full_focus)
+{
+  using Policy = Config::InputFocusPolicy;
+
+  if (InputSuppressor::IsSuppressed())
+  {
+    ControlReference::SetInputGate(false);
+    return;
+  }
+
+  if (input_focus_policy == Policy::AnyApplication ||
+      (input_focus_policy == Policy::Dolphin && Host_DolphinIsActiveApplication()))
+  {
+    // If the user accepts input from windows other than the render window or TAS inputs, controls
+    // should pass even if an on screen interface is blocking Dolphin's UI.
+    ControlReference::SetInputGate(true);
+    return;
+  }
+
+  const bool focus_passes =
+      (Host_RendererHasFocus() || Host_TASInputHasFocus()) && !Host_UIBlocksControllerState();
+  const bool full_focus_passes =
+      !require_full_focus || (focus_passes && Host_RendererHasFullFocus());
+  ControlReference::SetInputGate(focus_passes && full_focus_passes);
 }
 
 CPUThreadGuard::CPUThreadGuard(Core::System& system)

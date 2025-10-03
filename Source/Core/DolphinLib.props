@@ -198,6 +198,7 @@
     <ClInclude Include="Core\Config\DefaultLocale.h" />
     <ClInclude Include="Core\Config\FreeLookSettings.h" />
     <ClInclude Include="Core\Config\GraphicsSettings.h" />
+    <ClInclude Include="Core\Config\InputFocus.h" />
     <ClInclude Include="Core\Config\MainSettings.h" />
     <ClInclude Include="Core\Config\NetplaySettings.h" />
     <ClInclude Include="Core\Config\SessionSettings.h" />
