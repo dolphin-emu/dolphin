@@ -8,7 +8,6 @@
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/HW/WiimoteCommon/WiimoteHid.h"
 
 using namespace WiimoteCommon;
 using namespace WiimoteReal;
@@ -65,8 +64,8 @@ bool WiimoteScannerHidapi::IsReady() const
 
 void WiimoteScannerHidapi::FindWiimotes(std::vector<Wiimote*>& wiimotes, Wiimote*& board)
 {
-  hid_device_info* list = hid_enumerate(0x0, 0x0);
-  for (hid_device_info* device = list; device; device = device->next)
+  hid_device_info* list = hid_enumerate(0x0, 0x0);  // FYI: 0 for all VID/PID.
+  for (hid_device_info* device = list; device != nullptr; device = device->next)
   {
     const std::string name = device->product_string ? WStringToUTF8(device->product_string) : "";
     const bool is_wiimote =
@@ -89,7 +88,7 @@ void WiimoteScannerHidapi::FindWiimotes(std::vector<Wiimote*>& wiimotes, Wiimote
   hid_free_enumeration(list);
 }
 
-WiimoteHidapi::WiimoteHidapi(const std::string& device_path) : m_device_path(device_path)
+WiimoteHidapi::WiimoteHidapi(std::string device_path) : m_device_path(std::move(device_path))
 {
 }
 
@@ -145,6 +144,7 @@ int WiimoteHidapi::IORead(u8* buf)
 
 int WiimoteHidapi::IOWrite(const u8* buf, size_t len)
 {
+  assert(len > 0);
   DEBUG_ASSERT(buf[0] == (WR_SET_REPORT | BT_OUTPUT));
   int result = hid_write(m_handle, buf + 1, len - 1);
   if (result == -1)
