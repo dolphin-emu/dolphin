@@ -13,11 +13,18 @@ namespace Config
 {
 // Configuration Information
 
+enum class HotkeyFocusPolicy
+{
+  AnyApplication = 0,
+  Dolphin = 1,
+  RenderOrTASWindow = 2,
+};
+
 // UI.General
 
 extern const Info<bool> MAIN_USE_DISCORD_PRESENCE;
 extern const Info<bool> MAIN_USE_GAME_COVERS;
-extern const Info<bool> MAIN_FOCUSED_HOTKEYS;
+extern const Info<HotkeyFocusPolicy> MAIN_HOTKEY_FOCUS_POLICY;
 extern const Info<bool> MAIN_RECURSIVE_ISO_PATHS;
 extern const Info<std::string> MAIN_CURRENT_STATE_PATH;
 

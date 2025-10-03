@@ -148,6 +148,11 @@ void InterfacePane::CreateUI()
   m_label_userstyle = new QLabel(tr("Style:"));
   combobox_layout->addRow(m_label_userstyle, m_combobox_userstyle);
 
+  m_combobox_accept_hotkeys_from =
+      new ConfigChoice({tr("Any Application"), tr("Dolphin"), tr("Render Window or TAS Input")},
+                       Config::MAIN_HOTKEY_FOCUS_POLICY);
+  combobox_layout->addRow(tr("Accept Hotkeys From:"), m_combobox_accept_hotkeys_from);
+
   auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
 
   m_combobox_userstyle->addItem(tr("(System)"), static_cast<int>(Settings::StyleType::System));
@@ -171,8 +176,6 @@ void InterfacePane::CreateUI()
       new ConfigBool(tr("Download Game Covers from GameTDB.com for Use in Grid Mode"),
                      Config::MAIN_USE_GAME_COVERS);
   m_checkbox_show_debugging_ui = new ToolTipCheckBox(tr("Enable Debugging UI"));
-  m_checkbox_focused_hotkeys =
-      new ConfigBool(tr("Hotkeys Require Window Focus"), Config::MAIN_FOCUSED_HOTKEYS);
   m_checkbox_disable_screensaver =
       new ConfigBool(tr("Inhibit Screensaver During Emulation"), Config::MAIN_DISABLE_SCREENSAVER);
   m_checkbox_time_tracking =
@@ -181,7 +184,6 @@ void InterfacePane::CreateUI()
   groupbox_layout->addWidget(m_checkbox_use_builtin_title_database);
   groupbox_layout->addWidget(m_checkbox_use_covers);
   groupbox_layout->addWidget(m_checkbox_show_debugging_ui);
-  groupbox_layout->addWidget(m_checkbox_focused_hotkeys);
   groupbox_layout->addWidget(m_checkbox_disable_screensaver);
   groupbox_layout->addWidget(m_checkbox_time_tracking);
 }
@@ -410,6 +412,12 @@ void InterfacePane::AddDescriptions()
       QT_TR_NOOP("Sets the style of Dolphin's user interface. Any custom styles that you have "
                  "added will be presented here, allowing you to switch to them."
                  "<br><br><dolphin_emphasis>If unsure, select (System).</dolphin_emphasis>");
+  static constexpr char TR_ACCEPT_HOTKEYS_FROM_DESCRIPTION[] = QT_TR_NOOP(
+      "Requires the selected window or application to be focused for hotkeys to be accepted. Some "
+      "Dolphin windows such as controller or hotkey mapping windows will block hotkeys while they "
+      "are open regardless of this setting, and text fields will block hotkeys while they are "
+      "focused."
+      "<br><br><dolphin_emphasis>If unsure, select 'Dolphin'.</dolphin_emphasis>");
 
   m_checkbox_use_builtin_title_database->SetDescription(tr(TR_TITLE_DATABASE_DESCRIPTION));
 
@@ -420,8 +428,6 @@ void InterfacePane::AddDescriptions()
 
   m_combobox_language->SetTitle(tr("Language"));
   m_combobox_language->SetDescription(tr(TR_LANGUAGE_DESCRIPTION));
-
-  m_checkbox_focused_hotkeys->SetDescription(tr(TR_FOCUSED_HOTKEYS_DESCRIPTION));
 
   m_checkbox_use_covers->SetDescription(tr(TR_USE_COVERS_DESCRIPTION));
 
@@ -451,4 +457,7 @@ void InterfacePane::AddDescriptions()
 
   m_combobox_userstyle->SetTitle(tr("Style"));
   m_combobox_userstyle->SetDescription(tr(TR_USER_STYLE_DESCRIPTION));
+
+  m_combobox_accept_hotkeys_from->SetTitle(tr("Accept Hotkeys From"));
+  m_combobox_accept_hotkeys_from->SetDescription(tr(TR_ACCEPT_HOTKEYS_FROM_DESCRIPTION));
 }
