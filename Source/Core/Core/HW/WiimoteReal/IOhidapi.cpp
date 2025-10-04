@@ -108,8 +108,10 @@ bool WiimoteScannerHidapi::IsReady() const
   return true;
 }
 
-void WiimoteScannerHidapi::FindWiimotes(std::vector<Wiimote*>& wiimotes, Wiimote*& board)
+auto WiimoteScannerHidapi::FindAttachedWiimotes() -> FindResults
 {
+  FindResults results;
+
   hid_device_info* list = hid_enumerate(0x0, 0x0);  // FYI: 0 for all VID/PID.
   for (hid_device_info* device = list; device != nullptr; device = device->next)
   {
@@ -123,12 +125,12 @@ void WiimoteScannerHidapi::FindWiimotes(std::vector<Wiimote*>& wiimotes, Wiimote
     LogLinuxDriverName(device->path);
 #endif
 
-    auto* wiimote = new WiimoteHidapi(device->path);
+    auto wiimote = std::make_unique<WiimoteHidapi>(device->path);
     const bool is_balance_board = IsBalanceBoardName(name) || wiimote->IsBalanceBoard();
     if (is_balance_board)
-      board = wiimote;
+      results.balance_boards.emplace_back(std::move(wiimote));
     else
-      wiimotes.push_back(wiimote);
+      results.wii_remotes.emplace_back(std::move(wiimote));
 
     NOTICE_LOG_FMT(WIIMOTE, "Found {} at {}: {} {} ({:04x}:{:04x})",
                    is_balance_board ? "balance board" : "Wiimote", device->path,
@@ -136,6 +138,8 @@ void WiimoteScannerHidapi::FindWiimotes(std::vector<Wiimote*>& wiimotes, Wiimote
                    WStringToUTF8(device->product_string), device->vendor_id, device->product_id);
   }
   hid_free_enumeration(list);
+
+  return results;
 }
 
 WiimoteHidapi::WiimoteHidapi(std::string device_path) : m_device_path(std::move(device_path))

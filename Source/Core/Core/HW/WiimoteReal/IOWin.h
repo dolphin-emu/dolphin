@@ -52,8 +52,10 @@ class WiimoteScannerWindows final : public WiimoteScannerBackend
 public:
   WiimoteScannerWindows();
   bool IsReady() const override;
-  void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
-  void FindAttachedDevices(std::vector<Wiimote*>&, Wiimote*&) override;
+
+  FindResults FindNewWiimotes() override;
+  FindResults FindAttachedWiimotes() override;
+
   void Update() override;
   void RequestStopSearching() override {}
 
@@ -61,7 +63,7 @@ public:
   static void RemoveRememberedWiimotes();
 
 private:
-  void FindWiimoteHIDDevices(std::vector<Wiimote*>&, Wiimote*&);
+  FindResults FindWiimoteHIDDevices();
 };
 }  // namespace WiimoteReal
 

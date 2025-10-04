@@ -184,15 +184,24 @@ public:
   // Note: Invoked from UI thread.
   virtual bool IsReady() const = 0;
 
-  virtual void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) = 0;
   // function called when not looking for more Wiimotes
   virtual void Update() = 0;
   // requests the backend to stop scanning if FindWiimotes is blocking
   virtual void RequestStopSearching() = 0;
 
-  // Used by Windows to search for HID interfaces of already connected Wii remotes.
-  // hidapi should probably implement the equivalent.
-  virtual void FindAttachedDevices(std::vector<Wiimote*>&, Wiimote*&) {}
+  struct FindResults
+  {
+    std::vector<std::unique_ptr<Wiimote>> wii_remotes;
+    std::vector<std::unique_ptr<Wiimote>> balance_boards;
+  };
+
+  // Implementations are expected to perform a new inquiry if possible.
+  // Only not-yet-in-use remotes shall be returned.
+  virtual FindResults FindNewWiimotes() { return FindAttachedWiimotes(); }
+
+  // Implementations shall return not-not-in-use already connected remotes.
+  // e.g. DolphinBar interfaces would be found here.
+  virtual FindResults FindAttachedWiimotes() { return {}; }
 };
 
 enum class WiimoteScanMode
