@@ -21,6 +21,7 @@
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
+#include "Core/USBUtils.h"
 
 class PointerWrap;
 
@@ -227,6 +228,8 @@ bool IsWiimoteName(std::string_view name);
 bool IsBalanceBoardName(std::string_view name);
 
 bool IsNewWiimote(const std::string& identifier);
+
+bool IsKnownDeviceId(const USBUtils::DeviceInfo&);
 
 void HandleWiimoteSourceChange(unsigned int wiimote_number);
 
