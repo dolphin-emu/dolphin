@@ -689,14 +689,11 @@ void WiimoteScanner::ThreadFunc()
       g_controller_interface.PlatformPopulateDevices([] { ProcessWiimotePool(); });
     }
 
-    // Does stuff needed to detect disconnects on Windows
+    // Currently does nothing. To be removed.
     for (const auto& backend : m_backends)
       backend->Update();
 
     CheckForDisconnectedWiimotes();
-
-    if (m_scan_mode.load() == WiimoteScanMode::DO_NOT_SCAN)
-      continue;
 
     // If we don't want Wiimotes in ControllerInterface, we may not need them at all.
     if (!Config::Get(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE))
@@ -715,11 +712,22 @@ void WiimoteScanner::ThreadFunc()
         continue;
     }
 
+    // Stop scanning if not in continuous mode.
+    auto scan_mode = WiimoteScanMode::SCAN_ONCE;
+    m_scan_mode.compare_exchange_strong(scan_mode, WiimoteScanMode::DO_NOT_SCAN);
+
     for (const auto& backend : m_backends)
     {
       std::vector<Wiimote*> found_wiimotes;
       Wiimote* found_board = nullptr;
-      backend->FindWiimotes(found_wiimotes, found_board);
+
+      // When not scanning we still look for already attached devices.
+      // This allows Windows and DolphinBar remotes to be quickly discovered.
+      if (scan_mode == WiimoteScanMode::DO_NOT_SCAN)
+        backend->FindAttachedDevices(found_wiimotes, found_board);
+      else
+        backend->FindWiimotes(found_wiimotes, found_board);
+
       {
         std::unique_lock wm_lk(g_wiimotes_mutex);
 
@@ -745,10 +753,6 @@ void WiimoteScanner::ThreadFunc()
         }
       }
     }
-
-    // Stop scanning if not in continuous mode.
-    auto scan_mode = WiimoteScanMode::SCAN_ONCE;
-    m_scan_mode.compare_exchange_strong(scan_mode, WiimoteScanMode::DO_NOT_SCAN);
   }
 
   {
