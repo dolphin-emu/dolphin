@@ -28,6 +28,59 @@ private:
   Config::Info<int> m_setting;
 };
 
+class ConfigChoiceU32 final : public ConfigControl<ToolTipComboBox>
+{
+  Q_OBJECT
+public:
+  ConfigChoiceU32(const QStringList& options, const Config::Info<u32>& setting,
+                  Config::Layer* layer = nullptr);
+
+protected:
+  void OnConfigChanged() override;
+
+private:
+  void Update(int choice);
+
+  Config::Info<u32> m_setting;
+};
+
+template <typename T>
+class ConfigChoiceMap final : public ConfigControl<ToolTipComboBox>
+{
+public:
+  ConfigChoiceMap(const std::vector<std::pair<QString, T>>& options, const Config::Info<T>& setting,
+                  Config::Layer* layer = nullptr)
+      : ConfigControl<ToolTipComboBox>(setting.GetLocation(), layer), m_setting(setting),
+        m_options(options)
+  {
+    for (const auto& [option_text, option_data] : options)
+      addItem(option_text);
+
+    OnConfigChanged();
+    connect(this, &QComboBox::currentIndexChanged, this, &ConfigChoiceMap::Update);
+  }
+
+protected:
+  void OnConfigChanged() override
+  {
+    const T value = ReadValue(m_setting);
+    const auto it = std::find_if(m_options.begin(), m_options.end(),
+                                 [&value](const auto& pair) { return pair.second == value; });
+
+    int index =
+        (it != m_options.end()) ? static_cast<int>(std::distance(m_options.begin(), it)) : -1;
+
+    const QSignalBlocker blocker(this);
+    setCurrentIndex(index);
+  }
+
+private:
+  void Update(int choice) { SaveValue(m_setting, m_options[choice].second); }
+
+  const Config::Info<T> m_setting;
+  const std::vector<std::pair<QString, T>> m_options;
+};
+
 class ConfigStringChoice final : public ConfigControl<ToolTipComboBox>
 {
   Q_OBJECT

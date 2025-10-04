@@ -3,16 +3,18 @@
 
 #pragma once
 
-#include <vector>
-
+#include <QPushButton>
 #include <QWidget>
 
+#include "Core/PowerPC/PowerPC.h"
+
 class ConfigBool;
+template <typename T>
+class ConfigChoiceMap;
 class ConfigFloatSlider;
 class ConfigSlider;
 class ConfigSliderU32;
 class QCheckBox;
-class QComboBox;
 class QLabel;
 class QRadioButton;
 class QSlider;
@@ -34,7 +36,9 @@ private:
   void ConnectLayout();
   void Update();
 
-  QComboBox* m_cpu_emulation_engine_combobox;
+  void OnResetButtonClicked();
+
+  ConfigChoiceMap<PowerPC::CPUCore>* m_cpu_emulation_engine_combobox;
   ConfigBool* m_enable_mmu_checkbox;
   ConfigBool* m_pause_on_panic_checkbox;
   ConfigBool* m_accurate_cpu_cache_checkbox;
@@ -54,4 +58,6 @@ private:
   QLabel* m_mem1_label;
   ConfigSliderU32* m_mem2_override_slider;
   QLabel* m_mem2_label;
+
+  QPushButton* m_reset_button;
 };

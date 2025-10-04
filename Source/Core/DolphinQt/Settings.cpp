@@ -773,10 +773,7 @@ bool Settings::IsSDCardInserted() const
 void Settings::SetSDCardInserted(bool inserted)
 {
   if (IsSDCardInserted() != inserted)
-  {
     Config::SetBaseOrCurrent(Config::MAIN_WII_SD_CARD, inserted);
-    emit SDCardInsertionChanged(inserted);
-  }
 }
 
 bool Settings::IsUSBKeyboardConnected() const
@@ -787,10 +784,7 @@ bool Settings::IsUSBKeyboardConnected() const
 void Settings::SetUSBKeyboardConnected(bool connected)
 {
   if (IsUSBKeyboardConnected() != connected)
-  {
     Config::SetBaseOrCurrent(Config::MAIN_WII_KEYBOARD, connected);
-    emit USBKeyboardConnectionChanged(connected);
-  }
 }
 
 bool Settings::IsWiiSpeakMuted() const
