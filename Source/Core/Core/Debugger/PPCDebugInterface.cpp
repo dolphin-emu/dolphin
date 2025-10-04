@@ -48,9 +48,9 @@ void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, std::span<u8> value, co
   for (u32 offset = 0; offset < size; ++offset)
   {
     u8 old_value = PowerPC::MMU::HostRead_U8(guard, address + offset);
+    PowerPC::MMU::HostWrite_U8(guard, value[offset], address + offset);
     if (old_value != value[offset])
     {
-      PowerPC::MMU::HostWrite_U8(guard, value[offset], address + offset);
       should_invalidate_cache = true;
       if (store_existing_value)
         value[offset] = old_value;
