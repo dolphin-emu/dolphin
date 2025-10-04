@@ -51,9 +51,15 @@ bool WiimoteScannerLinux::IsReady() const
   return m_device_sock > 0;
 }
 
-void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wiimote*& found_board)
+auto WiimoteScannerLinux::FindWiimotes(QueryType query_type) -> FindResults
 {
-  WiimoteScannerLinux::AddAutoConnectAddresses(found_wiimotes);
+  FindResults results;
+
+  // This backend only supports connecting to newly discovered Wii remotes.
+  if (query_type != QueryType::NewInquiry)
+    return results;
+
+  WiimoteScannerLinux::AddAutoConnectAddresses(results.wii_remotes);
 
   // supposedly 1.28 seconds
   int const wait_len = 1;
@@ -61,7 +67,6 @@ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wi
   int const max_infos = 255;
   inquiry_info scan_infos[max_infos] = {};
   auto* scan_infos_ptr = scan_infos;
-  found_board = nullptr;
   // Use Limited Dedicated Inquiry Access Code (LIAC) to query, since third-party Wiimotes
   // cannot be discovered without it.
   const u8 lap[3] = {0x00, 0x8b, 0x9e};
@@ -72,7 +77,7 @@ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wi
   if (found_devices < 0)
   {
     ERROR_LOG_FMT(WIIMOTE, "Error searching for Bluetooth devices.");
-    return;
+    return results;
   }
 
   DEBUG_LOG_FMT(WIIMOTE, "Found {} Bluetooth device(s).", found_devices);
@@ -100,21 +105,24 @@ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wi
       continue;
 
     // Found a new device
-    Wiimote* wm = new WiimoteLinux(scan_info.bdaddr);
+    auto wm = std::make_unique<WiimoteLinux>(scan_info.bdaddr);
     if (IsBalanceBoardName(name))
     {
-      found_board = wm;
+      results.balance_boards.emplace_back(std::move(wm));
       NOTICE_LOG_FMT(WIIMOTE, "Found balance board ({}).", bdaddr_str);
     }
     else
     {
-      found_wiimotes.push_back(wm);
+      results.wii_remotes.emplace_back(std::move(wm));
       NOTICE_LOG_FMT(WIIMOTE, "Found Wiimote ({}).", bdaddr_str);
     }
   }
+
+  return results;
 }
 
-void WiimoteScannerLinux::AddAutoConnectAddresses(std::vector<Wiimote*>& found_wiimotes)
+void WiimoteScannerLinux::AddAutoConnectAddresses(
+    std::vector<std::unique_ptr<Wiimote>>& found_wiimotes)
 {
   std::string entries = Config::Get(Config::MAIN_WIIMOTE_AUTO_CONNECT_ADDRESSES);
   if (entries.empty())
@@ -129,8 +137,7 @@ void WiimoteScannerLinux::AddAutoConnectAddresses(std::vector<Wiimote*>& found_w
     }
     if (!IsNewWiimote(bt_address_str))
       continue;
-    Wiimote* wm = new WiimoteLinux(bt_addr);
-    found_wiimotes.push_back(wm);
+    found_wiimotes.emplace_back(std::make_unique<WiimoteLinux>(bt_addr));
     NOTICE_LOG_FMT(WIIMOTE, "Added Wiimote with fixed address ({}).", bt_address_str);
   }
 }

@@ -14,7 +14,6 @@
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/SPSCQueue.h"
-#include "Common/WorkQueueThread.h"
 
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
@@ -141,6 +140,7 @@ private:
   virtual void IOWakeup() = 0;
 
   void ReadThreadFunc();
+  void WriteThreadFunc();
 
   void RefreshConfig();
 
@@ -153,14 +153,16 @@ private:
   // And we track the rumble state to drop unnecessary rumble reports.
   bool m_rumble_state = false;
 
-  std::thread m_read_thread;
+  std::thread m_write_thread;
   // Whether to keep running the thread.
   Common::Flag m_run_thread;
   // Triggered when the thread has finished ConnectInternal.
   Common::Event m_thread_ready_event;
 
   Common::SPSCQueue<Report> m_read_reports;
-  Common::WorkQueueThreadSP<TimedReport> m_write_thread;
+  Common::SPSCQueue<TimedReport> m_write_reports;
+  // Kick the write thread.
+  Common::Event m_write_event;
 
   bool m_speaker_enabled_in_dolphin_config = false;
   int m_balance_board_dump_port = 0;
@@ -172,12 +174,31 @@ class WiimoteScannerBackend
 {
 public:
   virtual ~WiimoteScannerBackend() = default;
+
   virtual bool IsReady() const = 0;
-  virtual void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) = 0;
+
   // function called when not looking for more Wiimotes
   virtual void Update() = 0;
+
   // requests the backend to stop scanning if FindWiimotes is blocking
   virtual void RequestStopSearching() = 0;
+
+  struct FindResults
+  {
+    std::vector<std::unique_ptr<Wiimote>> wii_remotes;
+    std::vector<std::unique_ptr<Wiimote>> balance_boards;
+  };
+
+  // Implementations not supporting AttachedDevices will return nothing.
+  // Implementations not supporting NewInquiry may operate as if with AttachedDevices.
+  enum class QueryType : bool
+  {
+    AttachedDevices,  // Quickly return already attached remotes.
+    NewInquiry,       // Perform a blocking multi-second inquiry.
+  };
+
+  // Only not-yet-in-use remotes shall be returned.
+  virtual FindResults FindWiimotes(QueryType) = 0;
 };
 
 enum class WiimoteScanMode

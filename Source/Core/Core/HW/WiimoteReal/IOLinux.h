@@ -44,14 +44,14 @@ public:
   WiimoteScannerLinux();
   ~WiimoteScannerLinux() override;
   bool IsReady() const override;
-  void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
+  FindResults FindWiimotes(QueryType) override;
   void Update() override {}                // not needed on Linux
   void RequestStopSearching() override {}  // not needed on Linux
 private:
   int m_device_id;
   int m_device_sock;
 
-  void AddAutoConnectAddresses(std::vector<Wiimote*>&);
+  void AddAutoConnectAddresses(std::vector<std::unique_ptr<Wiimote>>&);
 };
 }  // namespace WiimoteReal
 

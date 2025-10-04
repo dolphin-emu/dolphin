@@ -3,12 +3,9 @@
 
 #include "Core/HW/WiimoteReal/IOhidapi.h"
 
-#include <algorithm>
-
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/HW/WiimoteCommon/WiimoteHid.h"
 
 using namespace WiimoteCommon;
 using namespace WiimoteReal;
@@ -63,8 +60,12 @@ bool WiimoteScannerHidapi::IsReady() const
   return true;
 }
 
-void WiimoteScannerHidapi::FindWiimotes(std::vector<Wiimote*>& wiimotes, Wiimote*& board)
+auto WiimoteScannerHidapi::FindWiimotes(QueryType) -> FindResults
 {
+  // FYI: QueryType is ignored. hidapi just deals with already attached devices.
+
+  FindResults results;
+
   hid_device_info* list = hid_enumerate(0x0, 0x0);
   for (hid_device_info* device = list; device; device = device->next)
   {
@@ -75,12 +76,12 @@ void WiimoteScannerHidapi::FindWiimotes(std::vector<Wiimote*>& wiimotes, Wiimote
     if (!is_wiimote || !IsNewWiimote(device->path) || !IsDeviceUsable(device->path))
       continue;
 
-    auto* wiimote = new WiimoteHidapi(device->path);
+    auto wiimote = std::make_unique<WiimoteHidapi>(device->path);
     const bool is_balance_board = IsBalanceBoardName(name) || wiimote->IsBalanceBoard();
     if (is_balance_board)
-      board = wiimote;
+      results.balance_boards.emplace_back(std::move(wiimote));
     else
-      wiimotes.push_back(wiimote);
+      results.wii_remotes.emplace_back(std::move(wiimote));
 
     NOTICE_LOG_FMT(WIIMOTE, "Found {} at {}: {} {} ({:04x}:{:04x})",
                    is_balance_board ? "balance board" : "Wiimote", device->path,
@@ -88,6 +89,8 @@ void WiimoteScannerHidapi::FindWiimotes(std::vector<Wiimote*>& wiimotes, Wiimote
                    WStringToUTF8(device->product_string), device->vendor_id, device->product_id);
   }
   hid_free_enumeration(list);
+
+  return results;
 }
 
 WiimoteHidapi::WiimoteHidapi(const std::string& device_path) : m_device_path(device_path)
