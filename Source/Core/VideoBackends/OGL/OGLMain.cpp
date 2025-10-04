@@ -78,7 +78,7 @@ void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
 {
   std::unique_ptr<GLContext> temp_gl_context =
       GLContext::Create(wsi, g_Config.stereo_mode == StereoMode::QuadBuffer, true, false,
-                        Config::Get(Config::GFX_PREFER_GLES));
+          Config::Get(Config::GFX_PREFER_GLES));
 
   if (!temp_gl_context)
     return;
@@ -168,7 +168,7 @@ bool VideoBackend::FillBackendInfo(GLContext* context)
   {
     PanicAlertFmtT("GPU: OGL ERROR: Number of attributes {0} not enough.\n"
                    "GPU: Does your video card support OpenGL 2.x?",
-                   numvertexattribs);
+        numvertexattribs);
     return false;
   }
 
@@ -197,7 +197,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 {
   std::unique_ptr<GLContext> main_gl_context =
       GLContext::Create(wsi, g_Config.stereo_mode == StereoMode::QuadBuffer, true, false,
-                        Config::Get(Config::GFX_PREFER_GLES));
+          Config::Get(Config::GFX_PREFER_GLES));
   if (!main_gl_context)
     return false;
 
@@ -212,8 +212,8 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   auto perf_query = GetPerfQuery(gfx->IsGLES());
   auto bounding_box = std::make_unique<OGLBoundingBox>();
 
-  return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
-                          std::move(bounding_box));
+  return InitializeShared(
+      std::move(gfx), std::move(vertex_manager), std::move(perf_query), std::move(bounding_box));
 }
 
 void VideoBackend::Shutdown()

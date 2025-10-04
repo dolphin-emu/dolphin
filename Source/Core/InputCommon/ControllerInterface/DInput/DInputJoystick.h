@@ -29,7 +29,10 @@ private:
   {
   public:
     Axis(u8 index, const LONG& axis, LONG base, LONG range)
-        : m_axis(axis), m_base(base), m_range(range), m_index(index)
+        : m_axis(axis)
+        , m_base(base)
+        , m_range(range)
+        , m_index(index)
     {
     }
     std::string GetName() const override;
@@ -45,7 +48,9 @@ private:
   {
   public:
     Hat(u8 index, const DWORD& hat, u8 direction)
-        : m_hat(hat), m_direction(direction), m_index(index)
+        : m_hat(hat)
+        , m_direction(direction)
+        , m_index(index)
     {
     }
     std::string GetName() const override;

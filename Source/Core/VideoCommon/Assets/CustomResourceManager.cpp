@@ -81,8 +81,7 @@ CustomResourceManager::TextureTimePair CustomResourceManager::GetTextureDataFrom
   return {};
 }
 
-void CustomResourceManager::LoadTextureDataAsset(
-    const CustomAssetLibrary::AssetID& asset_id,
+void CustomResourceManager::LoadTextureDataAsset(const CustomAssetLibrary::AssetID& asset_id,
     std::shared_ptr<VideoCommon::CustomAssetLibrary> library, InternalTextureDataResource* resource)
 {
   if (!resource->asset)
@@ -97,8 +96,8 @@ void CustomResourceManager::LoadTextureDataAsset(
   {
     // Tell the system we are still interested in loading this asset
     const auto asset_handle = resource->asset->GetHandle();
-    m_pending_assets.MakeAssetHighestPriority(asset_handle,
-                                              m_asset_handle_to_data[asset_handle].asset.get());
+    m_pending_assets.MakeAssetHighestPriority(
+        asset_handle, m_asset_handle_to_data[asset_handle].asset.get());
   }
   else if (resource->asset_data->load_status == AssetData::LoadStatus::LoadFinished)
   {
@@ -222,7 +221,7 @@ void CustomResourceManager::RemoveAssetsUntilBelowMemoryLimit()
     asset_data.load_request_time = {};
 
     INFO_LOG_FMT(VIDEO, "Unloading asset: {} ({})", asset_data.asset->GetAssetId(),
-                 UICommon::FormatSize(bytes_unloaded));
+        UICommon::FormatSize(bytes_unloaded));
   }
 }
 

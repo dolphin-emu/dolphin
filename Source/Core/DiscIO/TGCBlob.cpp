@@ -20,8 +20,8 @@ u32 SubtractBE32(u32 minuend_be, u32 subtrahend_le)
   return Common::swap32(Common::swap32(minuend_be) - subtrahend_le);
 }
 
-void Replace(u64 offset, u64 size, u8* out_ptr, u64 replace_offset, u64 replace_size,
-             const u8* replace_ptr)
+void Replace(
+    u64 offset, u64 size, u8* out_ptr, u64 replace_offset, u64 replace_size, const u8* replace_ptr)
 {
   const u64 replace_start = std::max(offset, replace_offset);
   const u64 replace_end = std::min(offset + size, replace_offset + replace_size);
@@ -29,7 +29,7 @@ void Replace(u64 offset, u64 size, u8* out_ptr, u64 replace_offset, u64 replace_
   if (replace_end > replace_start)
   {
     std::copy_n(replace_ptr + (replace_start - replace_offset), replace_end - replace_start,
-                out_ptr + (replace_start - offset));
+        out_ptr + (replace_start - offset));
   }
 }
 
@@ -121,7 +121,7 @@ bool TGCFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
     Replace<u32>(offset, nbytes, out_ptr, 0x0420, replacement_dol_offset);
     Replace<u32>(offset, nbytes, out_ptr, 0x0424, replacement_fst_offset);
     Replace(offset, nbytes, out_ptr, Common::swap32(replacement_fst_offset), m_fst.size(),
-            m_fst.data());
+        m_fst.data());
 
     return true;
   }

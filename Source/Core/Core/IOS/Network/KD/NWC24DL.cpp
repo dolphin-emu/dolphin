@@ -21,8 +21,8 @@ NWC24Dl::NWC24Dl(std::shared_ptr<FS::FileSystem> fs) : m_fs{std::move(fs)}
   if (!ReadDlList())
   {
     ERROR_LOG_FMT(IOS_WC24,
-                  "There is an error in the DL list for WC24. WiiConnect24 downloading will be "
-                  "unavailable for this current IOS session.");
+        "There is an error in the DL list for WC24. WiiConnect24 downloading will be "
+        "unavailable for this current IOS session.");
     m_is_disabled = true;
 
     // If the DL list is corrupted, delete it.

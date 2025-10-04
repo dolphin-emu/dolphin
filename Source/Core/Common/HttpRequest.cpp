@@ -33,11 +33,11 @@ public:
   void FollowRedirects(long max);
   s32 GetLastResponseCode();
   Response Fetch(const std::string& url, Method method, const Headers& headers, const u8* payload,
-                 size_t size, AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only,
-                 std::span<Multiform> multiform = {});
+      size_t size, AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only,
+      std::span<Multiform> multiform = {});
 
-  static int CurlProgressCallback(Impl* impl, curl_off_t dltotal, curl_off_t dlnow,
-                                  curl_off_t ultotal, curl_off_t ulnow);
+  static int CurlProgressCallback(
+      Impl* impl, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow);
   std::string EscapeComponent(const std::string& string);
 
 private:
@@ -90,31 +90,31 @@ std::string HttpRequest::GetHeaderValue(std::string_view name) const
   return m_impl->GetHeaderValue(name);
 }
 
-HttpRequest::Response HttpRequest::Get(const std::string& url, const Headers& headers,
-                                       AllowedReturnCodes codes)
+HttpRequest::Response HttpRequest::Get(
+    const std::string& url, const Headers& headers, AllowedReturnCodes codes)
 {
   return m_impl->Fetch(url, Impl::Method::GET, headers, nullptr, 0, codes);
 }
 
 HttpRequest::Response HttpRequest::Post(const std::string& url, const std::vector<u8>& payload,
-                                        const Headers& headers, AllowedReturnCodes codes)
+    const Headers& headers, AllowedReturnCodes codes)
 {
   return m_impl->Fetch(url, Impl::Method::POST, headers, payload.data(), payload.size(), codes);
 }
 
 HttpRequest::Response HttpRequest::Post(const std::string& url, const std::string& payload,
-                                        const Headers& headers, AllowedReturnCodes codes)
+    const Headers& headers, AllowedReturnCodes codes)
 {
   return m_impl->Fetch(url, Impl::Method::POST, headers,
-                       reinterpret_cast<const u8*>(payload.data()), payload.size(), codes);
+      reinterpret_cast<const u8*>(payload.data()), payload.size(), codes);
 }
 
-int HttpRequest::Impl::CurlProgressCallback(Impl* impl, curl_off_t dltotal, curl_off_t dlnow,
-                                            curl_off_t ultotal, curl_off_t ulnow)
+int HttpRequest::Impl::CurlProgressCallback(
+    Impl* impl, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
 {
   // Abort if callback isn't true
   return !impl->m_callback(static_cast<s64>(dltotal), static_cast<s64>(dlnow),
-                           static_cast<s64>(ultotal), static_cast<s64>(ulnow));
+      static_cast<s64>(ultotal), static_cast<s64>(ulnow));
 }
 
 HttpRequest::Impl::Impl(std::chrono::milliseconds timeout_ms, ProgressCallback callback)
@@ -143,8 +143,7 @@ HttpRequest::Impl::Impl(std::chrono::milliseconds timeout_ms, ProgressCallback c
   curl_easy_setopt(m_curl.get(), CURLOPT_NOSIGNAL, true);
   curl_easy_setopt(m_curl.get(), CURLOPT_CONNECTTIMEOUT_MS, static_cast<long>(timeout_ms.count()));
   // Sadly CURLOPT_LOW_SPEED_TIME doesn't have a millisecond variant so we have to use seconds
-  curl_easy_setopt(
-      m_curl.get(), CURLOPT_LOW_SPEED_TIME,
+  curl_easy_setopt(m_curl.get(), CURLOPT_LOW_SPEED_TIME,
       static_cast<long>(std::chrono::duration_cast<std::chrono::seconds>(timeout_ms).count()));
   curl_easy_setopt(m_curl.get(), CURLOPT_LOW_SPEED_LIMIT, 1);
 }
@@ -172,8 +171,7 @@ void HttpRequest::Impl::UseIPv4()
 }
 
 HttpRequest::Response HttpRequest::PostMultiform(const std::string& url,
-                                                 std::span<Multiform> multiform,
-                                                 const Headers& headers, AllowedReturnCodes codes)
+    std::span<Multiform> multiform, const Headers& headers, AllowedReturnCodes codes)
 {
   return m_impl->Fetch(url, Impl::Method::POST, headers, nullptr, 0, codes, multiform);
 }
@@ -228,9 +226,8 @@ static size_t header_callback(char* buffer, size_t size, size_t nitems, void* us
 }
 
 HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method method,
-                                               const Headers& headers, const u8* payload,
-                                               size_t size, AllowedReturnCodes codes,
-                                               std::span<Multiform> multiform)
+    const Headers& headers, const u8* payload, size_t size, AllowedReturnCodes codes,
+    std::span<Multiform> multiform)
 {
   m_response_headers.clear();
   curl_easy_setopt(m_curl.get(), CURLOPT_POST, method == Method::POST);
@@ -293,14 +290,14 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method me
   {
     if (buffer.empty())
     {
-      ERROR_LOG_FMT(COMMON, "Failed to {} {}: server replied with code {}", type, url,
-                    response_code);
+      ERROR_LOG_FMT(
+          COMMON, "Failed to {} {}: server replied with code {}", type, url, response_code);
     }
     else
     {
       ERROR_LOG_FMT(COMMON, "Failed to {} {}: server replied with code {} and body\n\x1b[0m{:.{}}",
-                    type, url, response_code, reinterpret_cast<char*>(buffer.data()),
-                    static_cast<int>(buffer.size()));
+          type, url, response_code, reinterpret_cast<char*>(buffer.data()),
+          static_cast<int>(buffer.size()));
     }
     return {};
   }

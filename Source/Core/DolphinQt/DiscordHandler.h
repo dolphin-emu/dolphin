@@ -27,10 +27,10 @@ public:
   void Start();
   void Stop();
   void DiscordJoin() override;
-  void DiscordJoinRequest(const char* id, const std::string& discord_tag,
-                          const char* avatar) override;
-  void ShowNewJoinRequest(const std::string& id, const std::string& discord_tag,
-                          const std::string& avatar);
+  void DiscordJoinRequest(
+      const char* id, const std::string& discord_tag, const char* avatar) override;
+  void ShowNewJoinRequest(
+      const std::string& id, const std::string& discord_tag, const std::string& avatar);
 #endif
 
 signals:

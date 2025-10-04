@@ -78,8 +78,8 @@ void GameCubePane::CreateWidgets()
 
   // Add languages
   for (const auto& entry : {std::make_pair(tr("English"), 0), std::make_pair(tr("German"), 1),
-                            std::make_pair(tr("French"), 2), std::make_pair(tr("Spanish"), 3),
-                            std::make_pair(tr("Italian"), 4), std::make_pair(tr("Dutch"), 5)})
+           std::make_pair(tr("French"), 2), std::make_pair(tr("Spanish"), 3),
+           std::make_pair(tr("Italian"), 4), std::make_pair(tr("Dutch"), 5)})
   {
     m_language_combo->addItem(entry.first, entry.second);
   }
@@ -128,8 +128,8 @@ void GameCubePane::CreateWidgets()
 
   // Add slot devices
   for (const auto device : {EXIDeviceType::None, EXIDeviceType::Dummy, EXIDeviceType::MemoryCard,
-                            EXIDeviceType::MemoryCardFolder, EXIDeviceType::Gecko,
-                            EXIDeviceType::AGP, EXIDeviceType::Microphone})
+           EXIDeviceType::MemoryCardFolder, EXIDeviceType::Gecko, EXIDeviceType::AGP,
+           EXIDeviceType::Microphone})
   {
     const QString name = tr(fmt::format("{:n}", device).c_str());
     const int value = static_cast<int>(device);
@@ -148,8 +148,8 @@ void GameCubePane::CreateWidgets()
            EXIDeviceType::ModemTapServer,
        })
   {
-    m_slot_combos[ExpansionInterface::Slot::SP1]->addItem(tr(fmt::format("{:n}", device).c_str()),
-                                                          static_cast<int>(device));
+    m_slot_combos[ExpansionInterface::Slot::SP1]->addItem(
+        tr(fmt::format("{:n}", device).c_str()), static_cast<int>(device));
   }
 
   {
@@ -252,26 +252,30 @@ void GameCubePane::ConnectWidgets()
   for (ExpansionInterface::Slot slot : GUI_SLOTS)
   {
     connect(m_slot_combos[slot], &QComboBox::currentIndexChanged, this,
-            [this, slot] { UpdateButton(slot); });
-    connect(m_slot_combos[slot], &QComboBox::currentIndexChanged, this,
-            &GameCubePane::SaveSettings);
+        [this, slot] { UpdateButton(slot); });
+    connect(
+        m_slot_combos[slot], &QComboBox::currentIndexChanged, this, &GameCubePane::SaveSettings);
     connect(m_slot_buttons[slot], &QPushButton::clicked, [this, slot] { OnConfigPressed(slot); });
   }
 
   for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
   {
-    connect(m_memcard_paths[slot], &QLineEdit::editingFinished, [this, slot] {
-      // revert path change on failure
-      if (!SetMemcard(slot, m_memcard_paths[slot]->text()))
-        LoadSettings();
-    });
+    connect(m_memcard_paths[slot], &QLineEdit::editingFinished,
+        [this, slot]
+        {
+          // revert path change on failure
+          if (!SetMemcard(slot, m_memcard_paths[slot]->text()))
+            LoadSettings();
+        });
     connect(m_agp_paths[slot], &QLineEdit::editingFinished,
-            [this, slot] { SetAGPRom(slot, m_agp_paths[slot]->text()); });
-    connect(m_gci_paths[slot], &QLineEdit::editingFinished, [this, slot] {
-      // revert path change on failure
-      if (!SetGCIFolder(slot, m_gci_paths[slot]->text()))
-        LoadSettings();
-    });
+        [this, slot] { SetAGPRom(slot, m_agp_paths[slot]->text()); });
+    connect(m_gci_paths[slot], &QLineEdit::editingFinished,
+        [this, slot]
+        {
+          // revert path change on failure
+          if (!SetGCIFolder(slot, m_gci_paths[slot]->text()))
+            LoadSettings();
+        });
   }
 
 #ifdef HAS_LIBMGBA
@@ -285,8 +289,8 @@ void GameCubePane::ConnectWidgets()
   connect(m_gba_bios_edit, &QLineEdit::editingFinished, this, &GameCubePane::SaveSettings);
   connect(m_gba_browse_bios, &QPushButton::clicked, this, &GameCubePane::BrowseGBABios);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  connect(m_gba_save_rom_path, &QCheckBox::checkStateChanged, this,
-          &GameCubePane::SaveRomPathChanged);
+  connect(
+      m_gba_save_rom_path, &QCheckBox::checkStateChanged, this, &GameCubePane::SaveRomPathChanged);
 #else
   connect(m_gba_save_rom_path, &QCheckBox::stateChanged, this, &GameCubePane::SaveRomPathChanged);
 #endif
@@ -301,7 +305,7 @@ void GameCubePane::ConnectWidgets()
 
   // Emulation State
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          &GameCubePane::OnEmulationStateChanged);
+      &GameCubePane::OnEmulationStateChanged);
   OnEmulationStateChanged();
 }
 
@@ -417,8 +421,8 @@ void GameCubePane::OnConfigPressed(ExpansionInterface::Slot slot)
   }
   case ExpansionInterface::EXIDeviceType::ModemTapServer:
   {
-    BroadbandAdapterSettingsDialog dialog(this,
-                                          BroadbandAdapterSettingsDialog::Type::ModemTapServer);
+    BroadbandAdapterSettingsDialog dialog(
+        this, BroadbandAdapterSettingsDialog::Type::ModemTapServer);
     dialog.exec();
     return;
   }
@@ -438,10 +442,10 @@ void GameCubePane::BrowseMemcard(ExpansionInterface::Slot slot)
 {
   ASSERT(ExpansionInterface::IsMemcardSlot(slot));
 
-  const QString filename = DolphinFileDialog::getSaveFileName(
-      this, tr("Choose a File to Open or Create"),
-      QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
-      tr("GameCube Memory Cards (*.raw *.gcp)"), nullptr, QFileDialog::DontConfirmOverwrite);
+  const QString filename =
+      DolphinFileDialog::getSaveFileName(this, tr("Choose a File to Open or Create"),
+          QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
+          tr("GameCube Memory Cards (*.raw *.gcp)"), nullptr, QFileDialog::DontConfirmOverwrite);
 
   if (!filename.isEmpty())
     SetMemcard(slot, filename);
@@ -468,13 +472,13 @@ bool GameCubePane::SetMemcard(ExpansionInterface::Slot slot, const QString& file
   {
     // TODO: We could try to autodetect the card region here and offer automatic renaming.
     ModalMessageBox::critical(this, tr("Error"),
-                              tr("The filename %1 does not conform to Dolphin's region code format "
-                                 "for memory cards. Please rename this file to either %2, %3, or "
-                                 "%4, matching the region of the save files that are on it.")
-                                  .arg(QString::fromStdString(PathToFileName(raw_path)))
-                                  .arg(QString::fromStdString(PathToFileName(us_path)))
-                                  .arg(QString::fromStdString(PathToFileName(eu_path)))
-                                  .arg(QString::fromStdString(PathToFileName(jp_path))));
+        tr("The filename %1 does not conform to Dolphin's region code format "
+           "for memory cards. Please rename this file to either %2, %3, or "
+           "%4, matching the region of the save files that are on it.")
+            .arg(QString::fromStdString(PathToFileName(raw_path)))
+            .arg(QString::fromStdString(PathToFileName(us_path)))
+            .arg(QString::fromStdString(PathToFileName(eu_path)))
+            .arg(QString::fromStdString(PathToFileName(jp_path))));
     return false;
   }
 
@@ -487,8 +491,7 @@ bool GameCubePane::SetMemcard(ExpansionInterface::Slot slot, const QString& file
 
       if (error_code.HasCriticalErrors() || !mc || !mc->IsValid())
       {
-        ModalMessageBox::critical(
-            this, tr("Error"),
+        ModalMessageBox::critical(this, tr("Error"),
             tr("The file\n%1\nis either corrupted or not a GameCube memory card file.\n%2")
                 .arg(QString::fromStdString(path))
                 .arg(GCMemcardManager::GetErrorMessagesForErrorCode(error_code)));
@@ -508,8 +511,7 @@ bool GameCubePane::SetMemcard(ExpansionInterface::Slot slot, const QString& file
     const std::string other_eu_path = Config::GetMemcardPath(other_slot, DiscIO::Region::PAL);
     if (eu_path == other_eu_path)
     {
-      ModalMessageBox::critical(
-          this, tr("Error"),
+      ModalMessageBox::critical(this, tr("Error"),
           tr("The same file can't be used in multiple slots; it is already used by %1.")
               .arg(QString::fromStdString(fmt::to_string(other_slot))));
       return false;
@@ -529,8 +531,8 @@ bool GameCubePane::SetMemcard(ExpansionInterface::Slot slot, const QString& file
     {
       // ChangeDevice unplugs the device for 1 second, which means that games should notice that
       // the path has changed and thus the memory card contents have changed
-      system.GetExpansionInterface().ChangeDevice(slot,
-                                                  ExpansionInterface::EXIDeviceType::MemoryCard);
+      system.GetExpansionInterface().ChangeDevice(
+          slot, ExpansionInterface::EXIDeviceType::MemoryCard);
     }
   }
 
@@ -589,8 +591,7 @@ bool GameCubePane::SetGCIFolder(ExpansionInterface::Slot slot, const QString& pa
     if (!raw_path_valid)
     {
       // TODO: We could try to autodetect the card region here and offer automatic renaming.
-      ModalMessageBox::critical(
-          this, tr("Error"),
+      ModalMessageBox::critical(this, tr("Error"),
           tr("The folder %1 does not conform to Dolphin's region code format "
              "for GCI folders. Please rename this folder to either %2, %3, or "
              "%4, matching the region of the save files that are in it.")
@@ -612,8 +613,7 @@ bool GameCubePane::SetGCIFolder(ExpansionInterface::Slot slot, const QString& pa
       const std::string other_eu_path = Config::GetGCIFolderPath(other_slot, DiscIO::Region::PAL);
       if (eu_path == other_eu_path)
       {
-        ModalMessageBox::critical(
-            this, tr("Error"),
+        ModalMessageBox::critical(this, tr("Error"),
             tr("The same folder can't be used in multiple slots; it is already used by %1.")
                 .arg(QString::fromStdString(fmt::to_string(other_slot))));
         return false;
@@ -648,9 +648,9 @@ void GameCubePane::BrowseAGPRom(ExpansionInterface::Slot slot)
 {
   ASSERT(ExpansionInterface::IsMemcardSlot(slot));
 
-  QString filename = DolphinFileDialog::getSaveFileName(
-      this, tr("Choose a File to Open"), QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
-      tr("Game Boy Advance Carts (*.gba)"), nullptr, QFileDialog::DontConfirmOverwrite);
+  QString filename = DolphinFileDialog::getSaveFileName(this, tr("Choose a File to Open"),
+      QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)), tr("Game Boy Advance Carts (*.gba)"),
+      nullptr, QFileDialog::DontConfirmOverwrite);
 
   if (!filename.isEmpty())
     SetAGPRom(slot, filename);
@@ -681,9 +681,9 @@ void GameCubePane::SetAGPRom(ExpansionInterface::Slot slot, const QString& filen
 
 void GameCubePane::BrowseGBABios()
 {
-  QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
-      this, tr("Select GBA BIOS"), QString::fromStdString(File::GetUserPath(F_GBABIOS_IDX)),
-      tr("All Files (*)")));
+  QString file =
+      QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(this, tr("Select GBA BIOS"),
+          QString::fromStdString(File::GetUserPath(F_GBABIOS_IDX)), tr("All Files (*)")));
   if (!file.isEmpty())
   {
     m_gba_bios_edit->setText(file);
@@ -710,9 +710,8 @@ void GameCubePane::SaveRomPathChanged()
 
 void GameCubePane::BrowseGBASaves()
 {
-  QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
-      this, tr("Select GBA Saves Path"),
-      QString::fromStdString(File::GetUserPath(D_GBASAVES_IDX))));
+  QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(this,
+      tr("Select GBA Saves Path"), QString::fromStdString(File::GetUserPath(D_GBASAVES_IDX))));
   if (!dir.isEmpty())
   {
     m_gba_saves_edit->setText(dir);
@@ -816,8 +815,8 @@ void GameCubePane::SaveSettings()
     File::SetUserPath(D_GBASAVES_IDX, Config::Get(Config::MAIN_GBA_SAVES_PATH));
     for (size_t i = 0; i < m_gba_rom_edits.size(); ++i)
     {
-      Config::SetBaseOrCurrent(Config::MAIN_GBA_ROM_PATHS[i],
-                               m_gba_rom_edits[i]->text().toStdString());
+      Config::SetBaseOrCurrent(
+          Config::MAIN_GBA_ROM_PATHS[i], m_gba_rom_edits[i]->text().toStdString());
     }
 
     auto server = Settings::Instance().GetNetPlayServer();
@@ -835,9 +834,8 @@ std::string GameCubePane::GetOpenGBARom(std::string_view title)
   if (!title.empty())
     caption += QStringLiteral(": %1").arg(QString::fromStdString(std::string(title)));
   return QDir::toNativeSeparators(
-             DolphinFileDialog::getOpenFileName(
-                 nullptr, caption, QString(),
-                 tr("Game Boy Advance ROMs (*.gba *.gbc *.gb *.7z *.zip *.agb *.mb *.rom *.bin);;"
-                    "All Files (*)")))
+      DolphinFileDialog::getOpenFileName(nullptr, caption, QString(),
+          tr("Game Boy Advance ROMs (*.gba *.gbc *.gb *.7z *.zip *.agb *.mb *.rom *.bin);;"
+             "All Files (*)")))
       .toStdString();
 }

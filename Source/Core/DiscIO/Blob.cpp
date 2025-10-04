@@ -28,9 +28,8 @@ namespace DiscIO
 {
 std::string GetName(BlobType blob_type, bool translate)
 {
-  const auto translate_str = [translate](const std::string& str) {
-    return translate ? Common::GetStringT(str.c_str()) : str;
-  };
+  const auto translate_str = [translate](const std::string& str)
+  { return translate ? Common::GetStringT(str.c_str()) : str; };
 
   switch (blob_type)
   {
@@ -95,15 +94,17 @@ SectorReader::Cache* SectorReader::GetEmptyCacheLine()
 {
   Cache* oldest = &m_cache[0];
   // Find the Least Recently Used cache line to replace.
-  std::for_each(m_cache.begin() + 1, m_cache.end(), [&](Cache& line) {
-    if (line.IsLessRecentlyUsedThan(*oldest))
-    {
-      oldest->ShiftLRU();
-      oldest = &line;
-      return;
-    }
-    line.ShiftLRU();
-  });
+  std::for_each(m_cache.begin() + 1, m_cache.end(),
+      [&](Cache& line)
+      {
+        if (line.IsLessRecentlyUsedThan(*oldest))
+        {
+          oldest->ShiftLRU();
+          oldest = &line;
+          return;
+        }
+        line.ShiftLRU();
+      });
   oldest->Reset();
   return oldest;
 }

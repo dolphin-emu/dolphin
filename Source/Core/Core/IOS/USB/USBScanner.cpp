@@ -91,17 +91,19 @@ void USBScanner::StartScanning()
 {
   if (m_thread_running.TestAndSet())
   {
-    m_thread = std::thread([this] {
-      Common::SetCurrentThreadName("USB Scan Thread");
-      while (m_thread_running.IsSet())
-      {
-        if (UpdateDevices())
-          m_first_scan_complete_flag.Set(true);
-        Common::SleepCurrentThread(50);
-      }
-      m_devices.clear();
-      m_first_scan_complete_flag.Set(false);
-    });
+    m_thread = std::thread(
+        [this]
+        {
+          Common::SetCurrentThreadName("USB Scan Thread");
+          while (m_thread_running.IsSet())
+          {
+            if (UpdateDevices())
+              m_first_scan_complete_flag.Set(true);
+            Common::SleepCurrentThread(50);
+          }
+          m_devices.clear();
+          m_first_scan_complete_flag.Set(false);
+        });
   }
 }
 
@@ -149,21 +151,23 @@ bool USBScanner::AddNewDevices(DeviceMap* new_devices) const
 
     if (m_context.IsValid())
     {
-      const int ret = m_context.GetDeviceList([&](libusb_device* device) {
-        libusb_device_descriptor descriptor;
-        libusb_get_device_descriptor(device, &descriptor);
-        if (descriptor.idVendor == 0x1209 && descriptor.idProduct == 0x2882)
-        {
-          WakeupSantrollerDevice(device);
-        }
-        const USBUtils::DeviceInfo device_info{descriptor.idVendor, descriptor.idProduct};
-        if (!whitelist.contains(device_info))
-          return true;
+      const int ret = m_context.GetDeviceList(
+          [&](libusb_device* device)
+          {
+            libusb_device_descriptor descriptor;
+            libusb_get_device_descriptor(device, &descriptor);
+            if (descriptor.idVendor == 0x1209 && descriptor.idProduct == 0x2882)
+            {
+              WakeupSantrollerDevice(device);
+            }
+            const USBUtils::DeviceInfo device_info{descriptor.idVendor, descriptor.idProduct};
+            if (!whitelist.contains(device_info))
+              return true;
 
-        auto usb_device = std::make_unique<USB::LibusbDevice>(device, descriptor);
-        AddDevice(std::move(usb_device), new_devices);
-        return true;
-      });
+            auto usb_device = std::make_unique<USB::LibusbDevice>(device, descriptor);
+            AddDevice(std::move(usb_device), new_devices);
+            return true;
+          });
       if (ret != LIBUSB_SUCCESS)
         WARN_LOG_FMT(IOS_USB, "GetDeviceList failed: {}", LibusbUtils::ErrorWrap(ret));
     }
@@ -206,9 +210,9 @@ void USBScanner::WakeupSantrollerDevice(libusb_device* device)
     libusb_set_auto_detach_kernel_driver(lusb_handle, true);
     libusb_claim_interface(lusb_handle, 2);
 #endif
-    libusb_control_transfer(
-        lusb_handle, +LIBUSB_ENDPOINT_IN | +LIBUSB_REQUEST_TYPE_CLASS | +LIBUSB_RECIPIENT_INTERFACE,
-        0x01, 0x03f2, 2, nullptr, 0x11, 5000);
+    libusb_control_transfer(lusb_handle,
+        +LIBUSB_ENDPOINT_IN | +LIBUSB_REQUEST_TYPE_CLASS | +LIBUSB_RECIPIENT_INTERFACE, 0x01,
+        0x03f2, 2, nullptr, 0x11, 5000);
     libusb_close(lusb_handle);
   }
 #endif

@@ -455,9 +455,10 @@ void RegisterDevicesChangedCallbackIfNeeded(JNIEnv* env, jclass controller_inter
       env->GetStaticMethodID(global_controller_interface_class, "onDevicesChanged", "()V");
 
   g_controller_interface.RegisterDevicesChangedCallback(
-      [global_controller_interface_class, controller_interface_on_devices_changed] {
-        IDCache::GetEnvForThread()->CallStaticVoidMethod(global_controller_interface_class,
-                                                         controller_interface_on_devices_changed);
+      [global_controller_interface_class, controller_interface_on_devices_changed]
+      {
+        IDCache::GetEnvForThread()->CallStaticVoidMethod(
+            global_controller_interface_class, controller_interface_on_devices_changed);
       });
 }
 
@@ -518,7 +519,8 @@ class AndroidAxis : public AndroidInput
 {
 public:
   AndroidAxis(int source, int axis, bool negative)
-      : AndroidInput(ConstructAxisName(source, axis, negative)), m_negative(negative)
+      : AndroidInput(ConstructAxisName(source, axis, negative))
+      , m_negative(negative)
   {
   }
 
@@ -542,9 +544,9 @@ public:
   // That is, it's up to the device that contains this axis to keep sensor_event_listener valid.
   // It does however create its own global reference to the passed-in name.
   AndroidSensorAxis(JNIEnv* env, jobject sensor_event_listener, jstring j_name, bool negative)
-      : AndroidAxis(GetJString(env, j_name), negative),
-        m_sensor_event_listener(sensor_event_listener),
-        m_j_name(reinterpret_cast<jstring>(env->NewGlobalRef(j_name)))
+      : AndroidAxis(GetJString(env, j_name), negative)
+      , m_sensor_event_listener(sensor_event_listener)
+      , m_j_name(reinterpret_cast<jstring>(env->NewGlobalRef(j_name)))
   {
   }
 
@@ -583,7 +585,8 @@ class AndroidMotor : public Core::Device::Output
 {
 public:
   AndroidMotor(JNIEnv* env, jobject vibrator, jint id)
-      : m_vibrator(env->NewGlobalRef(vibrator)), m_id(id)
+      : m_vibrator(env->NewGlobalRef(vibrator))
+      , m_id(id)
   {
   }
 
@@ -597,8 +600,8 @@ public:
 
     if (old_state < 0.5 && state >= 0.5)
     {
-      IDCache::GetEnvForThread()->CallStaticVoidMethod(s_controller_interface_class,
-                                                       s_controller_interface_vibrate, m_vibrator);
+      IDCache::GetEnvForThread()->CallStaticVoidMethod(
+          s_controller_interface_class, s_controller_interface_vibrate, m_vibrator);
     }
   }
 
@@ -612,9 +615,9 @@ class AndroidDevice final : public Core::Device
 {
 public:
   AndroidDevice(JNIEnv* env, jobject input_device)
-      : m_sensor_event_listener(AddSensors(env, input_device)),
-        m_source(env->CallIntMethod(input_device, s_input_device_get_sources)),
-        m_controller_number(env->CallIntMethod(input_device, s_input_device_get_controller_number))
+      : m_sensor_event_listener(AddSensors(env, input_device))
+      , m_source(env->CallIntMethod(input_device, s_input_device_get_sources))
+      , m_controller_number(env->CallIntMethod(input_device, s_input_device_get_controller_number))
   {
     jstring j_name =
         reinterpret_cast<jstring>(env->CallObjectMethod(input_device, s_input_device_get_name));
@@ -630,8 +633,10 @@ public:
 
   // Constructor for the device added by Dolphin to contain sensor inputs
   AndroidDevice(JNIEnv* env, std::string name)
-      : m_sensor_event_listener(AddSensors(env, nullptr)), m_source(AINPUT_SOURCE_SENSOR),
-        m_controller_number(0), m_name(std::move(name))
+      : m_sensor_event_listener(AddSensors(env, nullptr))
+      , m_source(AINPUT_SOURCE_SENSOR)
+      , m_controller_number(0)
+      , m_name(std::move(name))
   {
     AddSystemMotors(env);
   }
@@ -725,9 +730,8 @@ private:
     jobject local_sensor_event_listener;
     if (input_device)
     {
-      local_sensor_event_listener =
-          env->NewObject(s_sensor_event_listener_class,
-                         s_sensor_event_listener_constructor_input_device, input_device);
+      local_sensor_event_listener = env->NewObject(s_sensor_event_listener_class,
+          s_sensor_event_listener_constructor_input_device, input_device);
     }
     else
     {
@@ -879,11 +883,11 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
       env->GetStaticMethodID(s_controller_interface_class, "unregisterInputDeviceListener", "()V");
   s_controller_interface_get_vibrator_manager =
       env->GetStaticMethodID(s_controller_interface_class, "getVibratorManager",
-                             "(Landroid/view/InputDevice;)Lorg/dolphinemu/dolphinemu/features/"
-                             "input/model/DolphinVibratorManager;");
-  s_controller_interface_get_system_vibrator_manager = env->GetStaticMethodID(
-      s_controller_interface_class, "getSystemVibratorManager",
-      "()Lorg/dolphinemu/dolphinemu/features/input/model/DolphinVibratorManager;");
+          "(Landroid/view/InputDevice;)Lorg/dolphinemu/dolphinemu/features/"
+          "input/model/DolphinVibratorManager;");
+  s_controller_interface_get_system_vibrator_manager =
+      env->GetStaticMethodID(s_controller_interface_class, "getSystemVibratorManager",
+          "()Lorg/dolphinemu/dolphinemu/features/input/model/DolphinVibratorManager;");
   s_controller_interface_vibrate =
       env->GetStaticMethodID(s_controller_interface_class, "vibrate", "(Landroid/os/Vibrator;)V");
   env->DeleteLocalRef(controller_interface_class);
@@ -920,8 +924,8 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
   s_keycodes_array = reinterpret_cast<jintArray>(env->NewGlobalRef(keycodes_array));
   env->DeleteLocalRef(keycodes_array);
 
-  env->CallStaticVoidMethod(s_controller_interface_class,
-                            s_controller_interface_register_input_device_listener);
+  env->CallStaticVoidMethod(
+      s_controller_interface_class, s_controller_interface_register_input_device_listener);
 
   RegisterDevicesChangedCallbackIfNeeded(env, s_controller_interface_class);
 }
@@ -930,8 +934,8 @@ InputBackend::~InputBackend()
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
-  env->CallStaticVoidMethod(s_controller_interface_class,
-                            s_controller_interface_unregister_input_device_listener);
+  env->CallStaticVoidMethod(
+      s_controller_interface_class, s_controller_interface_unregister_input_device_listener);
 
   env->DeleteGlobalRef(s_input_device_class);
   env->DeleteGlobalRef(s_motion_range_class);
@@ -967,13 +971,13 @@ void InputBackend::AddDevice(JNIEnv* env, int device_id)
   Core::DeviceQualifier qualifier;
   qualifier.FromDevice(device.get());
 
-  INFO_LOG_FMT(CONTROLLERINTERFACE, "Added device ID {} as {}", device_id,
-               device->GetQualifiedName());
+  INFO_LOG_FMT(
+      CONTROLLERINTERFACE, "Added device ID {} as {}", device_id, device->GetQualifiedName());
   s_device_id_to_device_qualifier.emplace(device_id, qualifier);
 
   jstring j_qualifier = ToJString(env, qualifier.ToString());
-  env->CallVoidMethod(device->GetSensorEventListener(),
-                      s_sensor_event_listener_set_device_qualifier, j_qualifier);
+  env->CallVoidMethod(
+      device->GetSensorEventListener(), s_sensor_event_listener_set_device_qualifier, j_qualifier);
   env->DeleteLocalRef(j_qualifier);
 }
 
@@ -995,8 +999,8 @@ void InputBackend::AddSensorDevice(JNIEnv* env)
   INFO_LOG_FMT(CONTROLLERINTERFACE, "Added sensor device as {}", device->GetQualifiedName());
 
   jstring j_qualifier = ToJString(env, qualifier.ToString());
-  env->CallVoidMethod(device->GetSensorEventListener(),
-                      s_sensor_event_listener_set_device_qualifier, j_qualifier);
+  env->CallVoidMethod(
+      device->GetSensorEventListener(), s_sensor_event_listener_set_device_qualifier, j_qualifier);
   env->DeleteLocalRef(j_qualifier);
 }
 
@@ -1052,7 +1056,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
   if (!input)
   {
     ERROR_LOG_FMT(CONTROLLERINTERFACE, "Could not find input {} in device {}", input_name,
-                  device->GetQualifiedName());
+        device->GetQualifiedName());
     return false;
   }
 
@@ -1060,8 +1064,8 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
   casted_input->SetState(state);
   const Clock::time_point last_polled = casted_input->GetLastPolled();
 
-  DEBUG_LOG_FMT(CONTROLLERINTERFACE, "Set {} of {} to {}", input_name, device->GetQualifiedName(),
-                state);
+  DEBUG_LOG_FMT(
+      CONTROLLERINTERFACE, "Set {} of {} to {}", input_name, device->GetQualifiedName(), state);
 
   return last_polled >= Clock::now() - ACTIVE_INPUT_TIMEOUT;
 }
@@ -1092,7 +1096,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
       if (!TryParse(axis_id_str, &axis_id))
       {
         ERROR_LOG_FMT(CONTROLLERINTERFACE, "Failed to parse \"{}\" from \"{}\" as axis ID",
-                      axis_id_str, input_name);
+            axis_id_str, input_name);
         continue;
       }
 
@@ -1102,8 +1106,8 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
       casted_input->SetState(value);
       last_polled = std::max(last_polled, casted_input->GetLastPolled());
 
-      DEBUG_LOG_FMT(CONTROLLERINTERFACE, "Set {} of {} to {}", input_name,
-                    device->GetQualifiedName(), value);
+      DEBUG_LOG_FMT(
+          CONTROLLERINTERFACE, "Set {} of {} to {}", input_name, device->GetQualifiedName(), value);
     }
   }
 
@@ -1163,8 +1167,8 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_notifySe
 }
 
 JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_refreshDevices(JNIEnv* env,
-                                                                                       jclass)
+Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_refreshDevices(
+    JNIEnv* env, jclass)
 {
   g_controller_interface.RefreshDevices();
 }

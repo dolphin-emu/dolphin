@@ -204,38 +204,38 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
 
     if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1.cache_manually_managed))
     {
-      TexDecoder_DecodeTexel(sampledTex, image_src, imageS, imageT, image_width_minus_1, texfmt,
-                             tlut, tlutfmt);
+      TexDecoder_DecodeTexel(
+          sampledTex, image_src, imageS, imageT, image_width_minus_1, texfmt, tlut, tlutfmt);
       SetTexel(sampledTex, texel, (128 - fractS) * (128 - fractT));
 
-      TexDecoder_DecodeTexel(sampledTex, image_src, imageSPlus1, imageT, image_width_minus_1,
-                             texfmt, tlut, tlutfmt);
+      TexDecoder_DecodeTexel(
+          sampledTex, image_src, imageSPlus1, imageT, image_width_minus_1, texfmt, tlut, tlutfmt);
       AddTexel(sampledTex, texel, (fractS) * (128 - fractT));
 
-      TexDecoder_DecodeTexel(sampledTex, image_src, imageS, imageTPlus1, image_width_minus_1,
-                             texfmt, tlut, tlutfmt);
+      TexDecoder_DecodeTexel(
+          sampledTex, image_src, imageS, imageTPlus1, image_width_minus_1, texfmt, tlut, tlutfmt);
       AddTexel(sampledTex, texel, (128 - fractS) * (fractT));
 
       TexDecoder_DecodeTexel(sampledTex, image_src, imageSPlus1, imageTPlus1, image_width_minus_1,
-                             texfmt, tlut, tlutfmt);
+          texfmt, tlut, tlutfmt);
       AddTexel(sampledTex, texel, (fractS) * (fractT));
     }
     else
     {
-      TexDecoder_DecodeTexelRGBA8FromTmem(sampledTex, image_src, image_src_odd, imageS, imageT,
-                                          image_width_minus_1);
+      TexDecoder_DecodeTexelRGBA8FromTmem(
+          sampledTex, image_src, image_src_odd, imageS, imageT, image_width_minus_1);
       SetTexel(sampledTex, texel, (128 - fractS) * (128 - fractT));
 
-      TexDecoder_DecodeTexelRGBA8FromTmem(sampledTex, image_src, image_src_odd, imageSPlus1, imageT,
-                                          image_width_minus_1);
+      TexDecoder_DecodeTexelRGBA8FromTmem(
+          sampledTex, image_src, image_src_odd, imageSPlus1, imageT, image_width_minus_1);
       AddTexel(sampledTex, texel, (fractS) * (128 - fractT));
 
-      TexDecoder_DecodeTexelRGBA8FromTmem(sampledTex, image_src, image_src_odd, imageS, imageTPlus1,
-                                          image_width_minus_1);
+      TexDecoder_DecodeTexelRGBA8FromTmem(
+          sampledTex, image_src, image_src_odd, imageS, imageTPlus1, image_width_minus_1);
       AddTexel(sampledTex, texel, (128 - fractS) * (fractT));
 
-      TexDecoder_DecodeTexelRGBA8FromTmem(sampledTex, image_src, image_src_odd, imageSPlus1,
-                                          imageTPlus1, image_width_minus_1);
+      TexDecoder_DecodeTexelRGBA8FromTmem(
+          sampledTex, image_src, image_src_odd, imageSPlus1, imageTPlus1, image_width_minus_1);
       AddTexel(sampledTex, texel, (fractS) * (fractT));
     }
 
@@ -256,13 +256,13 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
 
     if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1.cache_manually_managed))
     {
-      TexDecoder_DecodeTexel(sample, image_src, imageS, imageT, image_width_minus_1, texfmt, tlut,
-                             tlutfmt);
+      TexDecoder_DecodeTexel(
+          sample, image_src, imageS, imageT, image_width_minus_1, texfmt, tlut, tlutfmt);
     }
     else
     {
-      TexDecoder_DecodeTexelRGBA8FromTmem(sample, image_src, image_src_odd, imageS, imageT,
-                                          image_width_minus_1);
+      TexDecoder_DecodeTexelRGBA8FromTmem(
+          sample, image_src, image_src_odd, imageS, imageT, image_width_minus_1);
     }
   }
 }

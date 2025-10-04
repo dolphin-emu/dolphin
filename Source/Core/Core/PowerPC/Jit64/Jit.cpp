@@ -120,8 +120,9 @@ using namespace PowerPC;
 */
 
 Jit64::Jit64(Core::System& system)
-    : JitBase(system), QuantizedMemoryRoutines(*this),
-      m_disassembler(HostDisassembler::Factory(HostDisassembler::Platform::x86_64))
+    : JitBase(system)
+    , QuantizedMemoryRoutines(*this)
+    , m_disassembler(HostDisassembler::Factory(HostDisassembler::Platform::x86_64))
 {
 }
 
@@ -152,9 +153,9 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
     if (access_address < memory_base || access_address >= memory_base + 0x1'0000'0000)
     {
       WARN_LOG_FMT(DYNA_REC,
-                   "Jit64 address calculation overflowed! Please report if this happens a lot. "
-                   "PC {:#018x}, access address {:#018x}, memory base {:#018x}, MSR.DR {}",
-                   ctx->CTX_PC, access_address, memory_base, ppc_state.msr.DR);
+          "Jit64 address calculation overflowed! Please report if this happens a lot. "
+          "PC {:#018x}, access address {:#018x}, memory base {:#018x}, MSR.DR {}",
+          ctx->CTX_PC, access_address, memory_base, ppc_state.msr.DR);
     }
 
     return BackPatch(ctx);
@@ -465,7 +466,7 @@ bool Jit64::Cleanup()
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
     ABI_CallFunctionCCCP(PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
-                         js.numFloatingPointInst, &m_ppc_state);
+        js.numFloatingPointInst, &m_ppc_state);
     ABI_PopRegistersAndAdjustStack({}, 0);
     did_something = true;
   }
@@ -473,8 +474,8 @@ bool Jit64::Cleanup()
   if (IsProfilingEnabled())
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunctionPC(&JitBlock::ProfileData::EndProfiling, js.curBlock->profile_data.get(),
-                       js.downcountAmount);
+    ABI_CallFunctionPC(
+        &JitBlock::ProfileData::EndProfiling, js.curBlock->profile_data.get(), js.downcountAmount);
     ABI_PopRegistersAndAdjustStack({}, 0);
     did_something = true;
   }
@@ -740,10 +741,10 @@ void Jit64::Trace()
 #endif
 
   DEBUG_LOG_FMT(DYNA_REC,
-                "JIT64 PC: {:08x} SRR0: {:08x} SRR1: {:08x} FPSCR: {:08x} "
-                "MSR: {:08x} LR: {:08x} {} {}",
-                m_ppc_state.pc, SRR0(m_ppc_state), SRR1(m_ppc_state), m_ppc_state.fpscr.Hex,
-                m_ppc_state.msr.Hex, m_ppc_state.spr[8], regs, fregs);
+      "JIT64 PC: {:08x} SRR0: {:08x} SRR1: {:08x} FPSCR: {:08x} "
+      "MSR: {:08x} LR: {:08x} {} {}",
+      m_ppc_state.pc, SRR0(m_ppc_state), SRR1(m_ppc_state), m_ppc_state.fpscr.Hex,
+      m_ppc_state.msr.Hex, m_ppc_state.spr[8], regs, fregs);
 }
 
 void Jit64::Jit(u32 em_address)
@@ -934,7 +935,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
       ABI_PushRegistersAndAdjustStack({}, 0);
       ABI_CallFunctionPC(JitInterface::CompileExceptionCheckFromJIT, &m_system.GetJitInterface(),
-                         static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
+          static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
       ABI_PopRegistersAndAdjustStack({}, 0);
       JMP(asm_routines.dispatcher_no_check, Jump::Near);
       SwitchToNearCode();
@@ -1009,8 +1010,8 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         FixupBranch noExtIntEnable = J_CC(CC_Z, Jump::Near);
         MOV(64, R(RSCRATCH), ImmPtr(&m_system.GetProcessorInterface().m_interrupt_cause));
         TEST(32, MatR(RSCRATCH),
-             Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN |
-                   ProcessorInterface::INT_CAUSE_PE_FINISH));
+            Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN |
+                  ProcessorInterface::INT_CAUSE_PE_FINISH));
         FixupBranch noCPInt = J_CC(CC_Z, Jump::Near);
 
         {
@@ -1039,8 +1040,8 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         // The only thing that currently sets op.skip is the BLR following optimization.
         // If any non-branch instruction starts setting that too, this will need to be changed.
         ASSERT(op.inst.hex == 0x4e800020);
-        WriteBranchWatch<true>(op.address, op.branchTo, op.inst, RSCRATCH, RSCRATCH2,
-                               CallerSavedRegistersInUse());
+        WriteBranchWatch<true>(
+            op.address, op.branchTo, op.inst, RSCRATCH, RSCRATCH2, CallerSavedRegistersInUse());
       }
     }
     else
@@ -1123,8 +1124,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         // it.
         FixupBranch memException;
         ASSERT_MSG(DYNA_REC, !(js.fastmemLoadStore && js.fixupExceptionHandler),
-                   "Fastmem loadstores shouldn't have exception handler fixups (PC={:x})!",
-                   op.address);
+            "Fastmem loadstores shouldn't have exception handler fixups (PC={:x})!", op.address);
         if (!js.fastmemLoadStore && !js.fixupExceptionHandler)
         {
           TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
@@ -1282,7 +1282,7 @@ void Jit64::IntializeSpeculativeConstants()
         MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
         ABI_PushRegistersAndAdjustStack({}, 0);
         ABI_CallFunctionPC(JitInterface::CompileExceptionCheckFromJIT, &m_system.GetJitInterface(),
-                           static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
+            static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
         ABI_PopRegistersAndAdjustStack({}, 0);
         JMP(asm_routines.dispatcher_no_check, Jump::Near);
         SwitchToNearCode();
@@ -1336,10 +1336,10 @@ void Jit64::LogGeneratedCode() const
 
   stream << "\nPPC Code Buffer:\n";
   for (const PPCAnalyst::CodeOp& op :
-       std::span{m_code_buffer.data(), code_block.m_num_instructions})
+      std::span{m_code_buffer.data(), code_block.m_num_instructions})
   {
     fmt::print(stream, "0x{:08x}\t\t{}\n", op.address,
-               Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address));
+        Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address));
   }
 
   const JitBlock* const block = js.curBlock;

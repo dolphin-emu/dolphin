@@ -27,7 +27,8 @@ Layer::Layer(LayerType type) : m_layer(type)
 }
 
 Layer::Layer(std::unique_ptr<ConfigLayerLoader> loader)
-    : m_layer(loader->GetLayer()), m_loader(std::move(loader))
+    : m_layer(loader->GetLayer())
+    , m_loader(std::move(loader))
 {
   Load();
 }
@@ -69,13 +70,13 @@ void Layer::DeleteAllKeys()
 Section Layer::GetSection(System system, const std::string& section)
 {
   return Section{m_map.lower_bound(Location{system, section, ""}),
-                 m_map.lower_bound(Location{system, section + '\001', ""})};
+      m_map.lower_bound(Location{system, section + '\001', ""})};
 }
 
 ConstSection Layer::GetSection(System system, const std::string& section) const
 {
   return ConstSection{m_map.lower_bound(Location{system, section, ""}),
-                      m_map.lower_bound(Location{system, section + '\001', ""})};
+      m_map.lower_bound(Location{system, section + '\001', ""})};
 }
 
 void Layer::Load()

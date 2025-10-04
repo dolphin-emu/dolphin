@@ -23,7 +23,8 @@ static Common::EventHook s_before_frame_event =
     BeforeFrameEvent::Register([] { g_stats.ResetFrame(); }, "Statistics::ResetFrame");
 
 static Common::EventHook s_after_frame_event = AfterFrameEvent::Register(
-    [](const Core::System& system) {
+    [](const Core::System& system)
+    {
       DolphinAnalytics::Instance().ReportPerformanceInfo({
           .speed_ratio = system.GetSystemTimers().GetEstimatedEmulationPerformance(),
           .num_prims = g_stats.this_frame.num_prims + g_stats.this_frame.num_dl_prims,
@@ -56,8 +57,8 @@ void Statistics::Display() const
 {
   const float scale = ImGui::GetIO().DisplayFramebufferScale.x;
   ImGui::SetNextWindowPos(ImVec2(10.0f * scale, 10.0f * scale), ImGuiCond_FirstUseEver);
-  ImGui::SetNextWindowSizeConstraints(ImVec2(275.0f * scale, 400.0f * scale),
-                                      ImGui::GetIO().DisplaySize);
+  ImGui::SetNextWindowSizeConstraints(
+      ImVec2(275.0f * scale, 400.0f * scale), ImGui::GetIO().DisplaySize);
   if (!ImGui::Begin("Statistics", nullptr, ImGuiWindowFlags_NoNavInputs))
   {
     ImGui::End();
@@ -66,7 +67,8 @@ void Statistics::Display() const
 
   ImGui::Columns(2, "Statistics", true);
 
-  const auto draw_statistic = [](const char* name, const char* format, auto&&... args) {
+  const auto draw_statistic = [](const char* name, const char* format, auto&&... args)
+  {
     ImGui::TextUnformatted(name);
     ImGui::NextColumn();
     ImGui::Text(format, std::forward<decltype(args)>(args)...);
@@ -176,9 +178,8 @@ void Statistics::AddScissorRect()
     }
     else
     {
-      add = std::ranges::find_if(scissors, [&](auto& s) {
-              return s.Matches(scissor, show_scissors, show_viewports);
-            }) == scissors.end();
+      add = std::ranges::find_if(scissors, [&](auto& s)
+                { return s.Matches(scissor, show_scissors, show_viewports); }) == scissors.end();
     }
   }
   if (add)
@@ -243,9 +244,10 @@ void Statistics::DisplayScissor()
   constexpr int DRAW_START = -1024;
   constexpr int DRAW_END = DRAW_START + 3 * 1024;
 
-  const auto vec = [&](int x, int y, int xoff = 0, int yoff = 0) {
+  const auto vec = [&](int x, int y, int xoff = 0, int yoff = 0)
+  {
     return ImVec2(p.x + int(float(x - DRAW_START) / scissor_scale) + xoff,
-                  p.y + int(float(y - DRAW_START) / scissor_scale) + yoff);
+        p.y + int(float(y - DRAW_START) / scissor_scale) + yoff);
   };
 
   const auto light_grey = ImGui::GetColorU32(ImVec4(.5f, .5f, .5f, 1.f));
@@ -256,13 +258,15 @@ void Statistics::DisplayScissor()
   for (int y = DRAW_START; y <= DRAW_END; y += 1024)
     draw_list->AddLine(vec(DRAW_START, y), vec(DRAW_END, y), light_grey);
 
-  const auto draw_x = [&](int x, int y, int size, ImU32 col) {
+  const auto draw_x = [&](int x, int y, int size, ImU32 col)
+  {
     // Add an extra offset on the second parameter as otherwise ImGui seems to give results that are
     // too small on one side
     draw_list->AddLine(vec(x, y, -size, -size), vec(x, y, +size + 1, +size + 1), col);
     draw_list->AddLine(vec(x, y, -size, +size), vec(x, y, +size + 1, -size - 1), col);
   };
-  const auto draw_rect = [&](int x0, int y0, int x1, int y1, ImU32 col, bool show_oob = true) {
+  const auto draw_rect = [&](int x0, int y0, int x1, int y1, ImU32 col, bool show_oob = true)
+  {
     x0 = std::clamp(x0, DRAW_START, DRAW_END);
     y0 = std::clamp(y0, DRAW_START, DRAW_END);
     x1 = std::clamp(x1, DRAW_START, DRAW_END);
@@ -281,10 +285,15 @@ void Statistics::DisplayScissor()
     }
   };
   static std::array<ImVec4, 6> COLORS = {
-      ImVec4(1, 0, 0, 1), ImVec4(1, 1, 0, 1), ImVec4(0, 1, 0, 1),
-      ImVec4(0, 1, 1, 1), ImVec4(0, 0, 1, 1), ImVec4(1, 0, 1, 1),
+      ImVec4(1, 0, 0, 1),
+      ImVec4(1, 1, 0, 1),
+      ImVec4(0, 1, 0, 1),
+      ImVec4(0, 1, 1, 1),
+      ImVec4(0, 0, 1, 1),
+      ImVec4(1, 0, 1, 1),
   };
-  const auto draw_scissor = [&](size_t index) {
+  const auto draw_scissor = [&](size_t index)
+  {
     const auto& info = scissors[index];
     const ImU32 col = ImGui::GetColorU32(COLORS[index % COLORS.size()]);
     int x_off = info.scissor_off.x << 1;
@@ -303,13 +312,13 @@ void Statistics::DisplayScissor()
 
     if (show_scissors)
     {
-      draw_rect(info.scissor_tl.x, info.scissor_tl.y, info.scissor_br.x + 1, info.scissor_br.y + 1,
-                col);
+      draw_rect(
+          info.scissor_tl.x, info.scissor_tl.y, info.scissor_br.x + 1, info.scissor_br.y + 1, col);
     }
     if (show_viewports)
     {
-      draw_rect(info.viewport_left, info.viewport_top, info.viewport_right, info.viewport_bottom,
-                col);
+      draw_rect(
+          info.viewport_left, info.viewport_top, info.viewport_right, info.viewport_bottom, col);
     }
     for (size_t i = 0; i < info.m_result.size(); i++)
     {
@@ -319,11 +328,12 @@ void Statistics::DisplayScissor()
 
       const auto& r = info.m_result[i];
       draw_list->AddRectFilled(vec(r.rect.left + r.x_off, r.rect.top + r.y_off),
-                               vec(r.rect.right + r.x_off, r.rect.bottom + r.y_off), new_col);
+          vec(r.rect.right + r.x_off, r.rect.bottom + r.y_off), new_col);
     }
   };
   constexpr auto NUM_SCISSOR_COLUMNS = 8;
-  const auto draw_scissor_table_header = [&] {
+  const auto draw_scissor_table_header = [&]
+  {
     ImGui::TableSetupColumn("#");
     ImGui::TableSetupColumn("x0");
     ImGui::TableSetupColumn("y0");
@@ -334,7 +344,8 @@ void Statistics::DisplayScissor()
     ImGui::TableSetupColumn("Affected");
     ImGui::TableHeadersRow();
   };
-  const auto draw_scissor_table_row = [&](size_t index) {
+  const auto draw_scissor_table_row = [&](size_t index)
+  {
     const auto& info = scissors[index];
     int x_off = (info.scissor_off.x << 1) - info.viewport_top;
     int y_off = (info.scissor_off.y << 1) - info.viewport_left;
@@ -401,7 +412,8 @@ void Statistics::DisplayScissor()
       ImGui::TableNextColumn();
     }
   };
-  const auto scissor_table_skip_row = [&](size_t index) {
+  const auto scissor_table_skip_row = [&](size_t index)
+  {
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
     ImGui::TextColored(COLORS[index % COLORS.size()], "%zu", index + 1);
@@ -413,7 +425,8 @@ void Statistics::DisplayScissor()
     }
   };
   constexpr auto NUM_VIEWPORT_COLUMNS = 5;
-  const auto draw_viewport_table_header = [&] {
+  const auto draw_viewport_table_header = [&]
+  {
     ImGui::TableSetupColumn("#");
     ImGui::TableSetupColumn("vx0");
     ImGui::TableSetupColumn("vy0");
@@ -421,7 +434,8 @@ void Statistics::DisplayScissor()
     ImGui::TableSetupColumn("vy1");
     ImGui::TableHeadersRow();
   };
-  const auto draw_viewport_table_row = [&](size_t index) {
+  const auto draw_viewport_table_row = [&](size_t index)
+  {
     const auto& info = scissors[index];
     ImGui::TableNextColumn();
     ImGui::TextColored(COLORS[index % COLORS.size()], "%zu", index + 1);
@@ -434,7 +448,8 @@ void Statistics::DisplayScissor()
     ImGui::TableNextColumn();
     ImGui::Text("%.1f", info.viewport_bottom);
   };
-  const auto viewport_table_skip_row = [&](size_t index) {
+  const auto viewport_table_skip_row = [&](size_t index)
+  {
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
     ImGui::TextColored(COLORS[index % COLORS.size()], "%zu", index + 1);

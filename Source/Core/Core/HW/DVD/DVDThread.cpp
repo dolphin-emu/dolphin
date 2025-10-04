@@ -151,8 +151,8 @@ bool DVDThread::IsInsertedDiscRunning()
   return SConfig::GetInstance().GetGameID() == m_disc->GetGameID();
 }
 
-bool DVDThread::UpdateRunningGameMetadata(const DiscIO::Partition& partition,
-                                          std::optional<u64> title_id)
+bool DVDThread::UpdateRunningGameMetadata(
+    const DiscIO::Partition& partition, std::optional<u64> title_id)
 {
   if (!m_disc)
     return false;
@@ -178,22 +178,20 @@ void DVDThread::WaitUntilIdle()
 }
 
 void DVDThread::StartRead(u64 dvd_offset, u32 length, const DiscIO::Partition& partition,
-                          DVD::ReplyType reply_type, s64 ticks_until_completion)
+    DVD::ReplyType reply_type, s64 ticks_until_completion)
 {
   StartReadInternal(false, 0, dvd_offset, length, partition, reply_type, ticks_until_completion);
 }
 
 void DVDThread::StartReadToEmulatedRAM(u32 output_address, u64 dvd_offset, u32 length,
-                                       const DiscIO::Partition& partition,
-                                       DVD::ReplyType reply_type, s64 ticks_until_completion)
+    const DiscIO::Partition& partition, DVD::ReplyType reply_type, s64 ticks_until_completion)
 {
-  StartReadInternal(true, output_address, dvd_offset, length, partition, reply_type,
-                    ticks_until_completion);
+  StartReadInternal(
+      true, output_address, dvd_offset, length, partition, reply_type, ticks_until_completion);
 }
 
 void DVDThread::StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offset, u32 length,
-                                  const DiscIO::Partition& partition, DVD::ReplyType reply_type,
-                                  s64 ticks_until_completion)
+    const DiscIO::Partition& partition, DVD::ReplyType reply_type, s64 ticks_until_completion)
 {
   ASSERT(Core::IsCPUThread());
 
@@ -260,20 +258,20 @@ void DVDThread::FinishRead(u64 id, s64 cycles_late)
   const std::vector<u8>& buffer = result.second;
 
   DEBUG_LOG_FMT(DVDINTERFACE,
-                "Disc has been read. Real time: {} us. "
-                "Real time including delay: {} us. "
-                "Emulated time including delay: {} us.",
-                request.realtime_done_us - request.realtime_started_us,
-                Common::Timer::NowUs() - request.realtime_started_us,
-                (m_system.GetCoreTiming().GetTicks() - request.time_started_ticks) /
-                    (m_system.GetSystemTimers().GetTicksPerSecond() / 1000000));
+      "Disc has been read. Real time: {} us. "
+      "Real time including delay: {} us. "
+      "Emulated time including delay: {} us.",
+      request.realtime_done_us - request.realtime_started_us,
+      Common::Timer::NowUs() - request.realtime_started_us,
+      (m_system.GetCoreTiming().GetTicks() - request.time_started_ticks) /
+          (m_system.GetSystemTimers().GetTicksPerSecond() / 1000000));
 
   auto& dvd_interface = m_system.GetDVDInterface();
   DVD::DIInterruptType interrupt;
   if (buffer.size() != request.length)
   {
     PanicAlertFmtT("The disc could not be read (at {0:#x} - {1:#x}).", request.dvd_offset,
-                   request.dvd_offset + request.length);
+        request.dvd_offset + request.length);
 
     dvd_interface.SetDriveError(DVD::DriveError::ReadError);
     interrupt = DVD::DIInterruptType::DEINT;

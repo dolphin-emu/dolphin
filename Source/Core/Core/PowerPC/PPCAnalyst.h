@@ -192,8 +192,8 @@ private:
   };
 
   bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const;
-  void ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse,
-                               ReorderType type) const;
+  void ReorderInstructionsCore(
+      u32 instructions, CodeOp* code, bool reverse, ReorderType type) const;
   void ReorderInstructions(u32 instructions, CodeOp* code) const;
   void SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo) const;
   bool IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instructions) const;
@@ -207,11 +207,11 @@ private:
   bool m_enable_div_by_zero_exceptions = false;
 };
 
-void FindFunctions(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr,
-                   PPCSymbolDB* func_db);
-bool AnalyzeFunction(const Core::CPUThreadGuard& guard, u32 startAddr, Common::Symbol& func,
-                     u32 max_size = 0);
-bool ReanalyzeFunction(const Core::CPUThreadGuard& guard, u32 start_addr, Common::Symbol& func,
-                       u32 max_size = 0);
+void FindFunctions(
+    const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr, PPCSymbolDB* func_db);
+bool AnalyzeFunction(
+    const Core::CPUThreadGuard& guard, u32 startAddr, Common::Symbol& func, u32 max_size = 0);
+bool ReanalyzeFunction(
+    const Core::CPUThreadGuard& guard, u32 start_addr, Common::Symbol& func, u32 max_size = 0);
 
 }  // namespace PPCAnalyst

@@ -237,7 +237,7 @@ struct PowerPCState
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
 #endif
 static_assert(offsetof(PowerPC::PowerPCState, above_fits_in_first_0x100) <= 0x100,
-              "top of PowerPCState too big");
+    "top of PowerPCState too big");
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
@@ -328,8 +328,8 @@ private:
   Core::System& m_system;
 };
 
-void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst,
-                              PowerPCState& ppc_state);
+void UpdatePerformanceMonitor(
+    u32 cycles, u32 num_load_stores, u32 num_fp_inst, PowerPCState& ppc_state);
 
 void CheckExceptionsFromJIT(PowerPCManager& power_pc);
 void CheckExternalExceptionsFromJIT(PowerPCManager& power_pc);

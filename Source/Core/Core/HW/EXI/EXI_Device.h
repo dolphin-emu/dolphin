@@ -80,8 +80,7 @@ private:
 };
 
 std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, EXIDeviceType device_type,
-                                             int channel_num,
-                                             const Memcard::HeaderData& memcard_header_data);
+    int channel_num, const Memcard::HeaderData& memcard_header_data);
 }  // namespace ExpansionInterface
 
 template <>

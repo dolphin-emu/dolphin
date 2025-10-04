@@ -47,8 +47,8 @@ public:
 
   // Schedule a transfer to submit at a specific time.
   void ScheduleBulkTransfer(u8 endpoint, std::span<const u8> data, TimePoint target_time);
-  void ScheduleControlTransfer(u8 type, u8 request, u8 value, u8 index, std::span<const u8> data,
-                               TimePoint target_time);
+  void ScheduleControlTransfer(
+      u8 type, u8 request, u8 value, u8 index, std::span<const u8> data, TimePoint target_time);
 
   // Schedule a transfer to be submitted as soon as possible.
   void SendControlTransfer(std::span<const u8> data);

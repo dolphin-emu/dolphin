@@ -37,21 +37,21 @@ public:
   Result<FileStatus> GetFileStatus(Fd fd) override;
 
   ResultCode CreateFile(Uid caller_uid, Gid caller_gid, const std::string& path,
-                        FileAttribute attribute, Modes modes) override;
+      FileAttribute attribute, Modes modes) override;
 
   ResultCode CreateDirectory(Uid caller_uid, Gid caller_gid, const std::string& path,
-                             FileAttribute attribute, Modes modes) override;
+      FileAttribute attribute, Modes modes) override;
 
   ResultCode Delete(Uid caller_uid, Gid caller_gid, const std::string& path) override;
   ResultCode Rename(Uid caller_uid, Gid caller_gid, const std::string& old_path,
-                    const std::string& new_path) override;
+      const std::string& new_path) override;
 
-  Result<std::vector<std::string>> ReadDirectory(Uid caller_uid, Gid caller_gid,
-                                                 const std::string& path) override;
+  Result<std::vector<std::string>> ReadDirectory(
+      Uid caller_uid, Gid caller_gid, const std::string& path) override;
 
   Result<Metadata> GetMetadata(Uid caller_uid, Gid caller_gid, const std::string& path) override;
   ResultCode SetMetadata(Uid caller_uid, const std::string& path, Uid uid, Gid gid,
-                         FileAttribute attribute, Modes modes) override;
+      FileAttribute attribute, Modes modes) override;
 
   Result<NandStats> GetNandStats() override;
   Result<DirectoryStats> GetDirectoryStats(const std::string& path) override;
@@ -97,7 +97,7 @@ private:
   std::shared_ptr<File::IOFile> OpenHostFile(const std::string& host_path);
 
   ResultCode CreateFileOrDirectory(Uid uid, Gid gid, const std::string& path,
-                                   FileAttribute attribute, Modes modes, bool is_file);
+      FileAttribute attribute, Modes modes, bool is_file);
   bool IsFileOpened(const std::string& path) const;
   bool IsDirectoryInUse(const std::string& path) const;
 

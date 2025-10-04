@@ -100,18 +100,21 @@ static RangeList ComputeScissorRanges(int start, int end, int offset, int efb_di
 
 ScissorResult::ScissorResult(const BPMemory& bpmemory, const XFMemory& xfmemory)
     : ScissorResult(bpmemory,
-                    std::minmax(xfmemory.viewport.xOrig - xfmemory.viewport.wd,
-                                xfmemory.viewport.xOrig + xfmemory.viewport.wd),
-                    std::minmax(xfmemory.viewport.yOrig - xfmemory.viewport.ht,
-                                xfmemory.viewport.yOrig + xfmemory.viewport.ht))
+          std::minmax(xfmemory.viewport.xOrig - xfmemory.viewport.wd,
+              xfmemory.viewport.xOrig + xfmemory.viewport.wd),
+          std::minmax(xfmemory.viewport.yOrig - xfmemory.viewport.ht,
+              xfmemory.viewport.yOrig + xfmemory.viewport.ht))
 {
 }
 ScissorResult::ScissorResult(const BPMemory& bpmemory, std::pair<float, float> viewport_x,
-                             std::pair<float, float> viewport_y)
-    : scissor_tl{.hex = bpmemory.scissorTL.hex}, scissor_br{.hex = bpmemory.scissorBR.hex},
-      scissor_off{.hex = bpmemory.scissorOffset.hex}, viewport_left(viewport_x.first),
-      viewport_right(viewport_x.second), viewport_top(viewport_y.first),
-      viewport_bottom(viewport_y.second)
+    std::pair<float, float> viewport_y)
+    : scissor_tl{.hex = bpmemory.scissorTL.hex}
+    , scissor_br{.hex = bpmemory.scissorBR.hex}
+    , scissor_off{.hex = bpmemory.scissorOffset.hex}
+    , viewport_left(viewport_x.first)
+    , viewport_right(viewport_x.second)
+    , viewport_top(viewport_y.first)
+    , viewport_bottom(viewport_y.second)
 {
   // Range is [left, right] and [top, bottom] (closed intervals)
   const int left = scissor_tl.x;
@@ -422,14 +425,14 @@ void SetInterlacingMode(const BPCmd& bp)
     // SDK always sets bpmem.lineptwidth.lineaspect via BPMEM_LINEPTWIDTH
     // just before this cmd
     DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMODE texLOD:{} lineaspect:{}", bpmem.fieldmode.texLOD,
-                  bpmem.lineptwidth.adjust_for_aspect_ratio);
+        bpmem.lineptwidth.adjust_for_aspect_ratio);
   }
   break;
   case BPMEM_FIELDMASK:
   {
     // Determines if fields will be written to EFB (always computed)
-    DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMASK even:{} odd:{}", bpmem.fieldmask.even,
-                  bpmem.fieldmask.odd);
+    DEBUG_LOG_FMT(
+        VIDEO, "BPMEM_FIELDMASK even:{} odd:{}", bpmem.fieldmask.even, bpmem.fieldmask.odd);
   }
   break;
   default:

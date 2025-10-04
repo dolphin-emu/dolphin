@@ -24,8 +24,10 @@ static u32 GenBuffer()
 }
 
 StreamBuffer::StreamBuffer(u32 type, u32 size)
-    : m_buffer(GenBuffer()), m_buffertype(type), m_size(MathUtil::NextPowerOf2(size)),
-      m_bit_per_slot(MathUtil::IntLog2(MathUtil::NextPowerOf2(size) / SYNC_POINTS))
+    : m_buffer(GenBuffer())
+    , m_buffertype(type)
+    , m_size(MathUtil::NextPowerOf2(size))
+    , m_bit_per_slot(MathUtil::IntLog2(MathUtil::NextPowerOf2(size) / SYNC_POINTS))
 {
   m_iterator = 0;
   m_used_iterator = 0;
@@ -151,8 +153,7 @@ public:
       m_iterator = 0;
     }
     u8* pointer = (u8*)glMapBufferRange(m_buffertype, m_iterator, size,
-                                        GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT |
-                                            GL_MAP_UNSYNCHRONIZED_BIT);
+        GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
     return std::make_pair(pointer, m_iterator);
   }
 
@@ -186,8 +187,7 @@ public:
   {
     AllocMemory(size);
     u8* pointer = (u8*)glMapBufferRange(m_buffertype, m_iterator, size,
-                                        GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT |
-                                            GL_MAP_UNSYNCHRONIZED_BIT);
+        GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
     return std::make_pair(pointer, m_iterator);
   }
 
@@ -216,7 +216,8 @@ class BufferStorage : public StreamBuffer
 {
 public:
   BufferStorage(u32 type, u32 size, bool _coherent = true)
-      : StreamBuffer(type, size), coherent(_coherent)
+      : StreamBuffer(type, size)
+      , coherent(_coherent)
   {
     CreateFences();
     glBindBuffer(m_buffertype, m_buffer);
@@ -226,12 +227,10 @@ public:
     // CLIENT_STORAGE_BIT is set since we access the buffer more frequently on the client side then
     // server side
     glBufferStorage(m_buffertype, m_size, nullptr,
-                    GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
-                        (coherent ? GL_MAP_COHERENT_BIT : 0));
-    m_pointer =
-        (u8*)glMapBufferRange(m_buffertype, 0, m_size,
-                              GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
-                                  (coherent ? GL_MAP_COHERENT_BIT : GL_MAP_FLUSH_EXPLICIT_BIT));
+        GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | (coherent ? GL_MAP_COHERENT_BIT : 0));
+    m_pointer = (u8*)glMapBufferRange(m_buffertype, 0, m_size,
+        GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
+            (coherent ? GL_MAP_COHERENT_BIT : GL_MAP_FLUSH_EXPLICIT_BIT));
   }
 
   ~BufferStorage() override
@@ -275,7 +274,7 @@ public:
         Common::AlignUp(m_size, ALIGN_PINNED_MEMORY), ALIGN_PINNED_MEMORY));
     glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, m_buffer);
     glBufferData(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD,
-                 Common::AlignUp(m_size, ALIGN_PINNED_MEMORY), m_pointer, GL_STREAM_COPY);
+        Common::AlignUp(m_size, ALIGN_PINNED_MEMORY), m_pointer, GL_STREAM_COPY);
     glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, 0);
     glBindBuffer(m_buffertype, m_buffer);
   }
@@ -369,9 +368,9 @@ std::unique_ptr<StreamBuffer> StreamBuffer::Create(u32 type, u32 size)
     // buffer storage works well in most situations
     if (g_ogl_config.bSupportsGLBufferStorage &&
         !(DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BUFFER_STORAGE) &&
-          type == GL_ARRAY_BUFFER) &&
+            type == GL_ARRAY_BUFFER) &&
         !(DriverDetails::HasBug(DriverDetails::BUG_INTEL_BROKEN_BUFFER_STORAGE) &&
-          type == GL_ELEMENT_ARRAY_BUFFER))
+            type == GL_ELEMENT_ARRAY_BUFFER))
       return std::make_unique<BufferStorage>(type, size);
 
     // don't fall back to MapAnd* for Nvidia drivers

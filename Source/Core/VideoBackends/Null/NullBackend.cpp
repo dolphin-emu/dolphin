@@ -68,8 +68,8 @@ void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
 bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 {
   return InitializeShared(std::make_unique<NullGfx>(), std::make_unique<VertexManager>(),
-                          std::make_unique<PerfQuery>(), std::make_unique<NullBoundingBox>(),
-                          std::make_unique<NullEFBInterface>(), std::make_unique<TextureCache>());
+      std::make_unique<PerfQuery>(), std::make_unique<NullBoundingBox>(),
+      std::make_unique<NullEFBInterface>(), std::make_unique<TextureCache>());
 }
 
 void VideoBackend::Shutdown()

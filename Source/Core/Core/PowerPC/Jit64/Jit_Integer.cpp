@@ -30,8 +30,8 @@ using namespace JitCommon;
 
 void Jit64::GenerateConstantOverflow(s64 val)
 {
-  GenerateConstantOverflow(val > std::numeric_limits<s32>::max() ||
-                           val < std::numeric_limits<s32>::min());
+  GenerateConstantOverflow(
+      val > std::numeric_limits<s32>::max() || val < std::numeric_limits<s32>::min());
 }
 
 void Jit64::GenerateConstantOverflow(bool overflow)
@@ -251,7 +251,7 @@ static u32 Xor(u32 a, u32 b)
 }
 
 void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop,
-                     void (XEmitter::*op)(int, const OpArg&, const OpArg&), bool Rc, bool carry)
+    void (XEmitter::*op)(int, const OpArg&, const OpArg&), bool Rc, bool carry)
 {
   bool needs_test = doop == Add;
   // Be careful; addic treats r0 as r0, but addi treats r0 as zero.
@@ -377,11 +377,11 @@ bool Jit64::CheckMergedBranch(u32 crf) const
     return false;
 
   const UGeckoInstruction& next = js.op[1].inst;
-  return (((next.OPCD == 16 /* bcx */) ||
-           ((next.OPCD == 19) && (next.SUBOP10 == 528) /* bcctrx */) ||
-           ((next.OPCD == 19) && (next.SUBOP10 == 16) /* bclrx */)) &&
-          (next.BO & BO_DONT_DECREMENT_FLAG) && !(next.BO & BO_DONT_CHECK_CONDITION) &&
-          static_cast<u32>(next.BI >> 2) == crf);
+  return (
+      ((next.OPCD == 16 /* bcx */) || ((next.OPCD == 19) && (next.SUBOP10 == 528) /* bcctrx */) ||
+          ((next.OPCD == 19) && (next.SUBOP10 == 16) /* bclrx */)) &&
+      (next.BO & BO_DONT_DECREMENT_FLAG) && !(next.BO & BO_DONT_CHECK_CONDITION) &&
+      static_cast<u32>(next.BI >> 2) == crf);
 }
 
 void Jit64::DoMergedBranch()
@@ -506,8 +506,8 @@ void Jit64::DoMergedBranchCondition()
   }
   else if (IsDebuggingEnabled())
   {
-    WriteBranchWatch<false>(nextPC, nextPC + 4, next, RSCRATCH, RSCRATCH2,
-                            CallerSavedRegistersInUse());
+    WriteBranchWatch<false>(
+        nextPC, nextPC + 4, next, RSCRATCH, RSCRATCH2, CallerSavedRegistersInUse());
   }
 }
 
@@ -558,8 +558,8 @@ void Jit64::DoMergedBranchImmediate(s64 val)
   }
   else if (IsDebuggingEnabled())
   {
-    WriteBranchWatch<false>(nextPC, nextPC + 4, next, RSCRATCH, RSCRATCH2,
-                            CallerSavedRegistersInUse());
+    WriteBranchWatch<false>(
+        nextPC, nextPC + 4, next, RSCRATCH, RSCRATCH2, CallerSavedRegistersInUse());
   }
 }
 

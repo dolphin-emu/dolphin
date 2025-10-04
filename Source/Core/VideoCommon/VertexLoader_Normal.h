@@ -14,13 +14,13 @@ class VertexLoader_Normal
 {
 public:
   static DOLPHIN_FORCE_INLINE u32 GetSize(VertexComponentFormat type, ComponentFormat format,
-                                          NormalComponentCount elements, bool index3)
+      NormalComponentCount elements, bool index3)
   {
     return s_table_size[type][index3][elements][format];
   }
 
   static TPipelineFunction GetFunction(VertexComponentFormat type, ComponentFormat format,
-                                       NormalComponentCount elements, bool index3);
+      NormalComponentCount elements, bool index3);
 
 private:
   template <typename T, auto last_member>
@@ -28,10 +28,11 @@ private:
 
   using SizeTable = EnumMap<
       std::array<EnumMap<EnumMap<u32, ComponentFormat::InvalidFloat7>, NormalComponentCount::NTB>,
-                 2>,
+          2>,
       VertexComponentFormat::Index16>;
 
-  static constexpr SizeTable s_table_size = []() consteval {
+  static constexpr SizeTable s_table_size = []() consteval
+  {
     SizeTable table{};
 
     using VCF = VertexComponentFormat;

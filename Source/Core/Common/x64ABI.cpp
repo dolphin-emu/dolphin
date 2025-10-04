@@ -11,7 +11,7 @@ using namespace Gen;
 // Shared code between Win64 and Unix64
 
 void XEmitter::ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size,
-                                      size_t* shadowp, size_t* subtractionp, size_t* xmm_offsetp)
+    size_t* shadowp, size_t* subtractionp, size_t* xmm_offsetp)
 {
   size_t shadow = 0;
 #if defined(_WIN32)
@@ -40,13 +40,13 @@ void XEmitter::ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_
   *xmm_offsetp = subtraction - xmm_base_subtraction;
 }
 
-size_t XEmitter::ABI_PushRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignment,
-                                                 size_t needed_frame_size)
+size_t XEmitter::ABI_PushRegistersAndAdjustStack(
+    BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size)
 {
   mask[RSP] = false;  // Stack pointer is never pushed
   size_t shadow, subtraction, xmm_offset;
-  ABI_CalculateFrameSize(mask, rsp_alignment, needed_frame_size, &shadow, &subtraction,
-                         &xmm_offset);
+  ABI_CalculateFrameSize(
+      mask, rsp_alignment, needed_frame_size, &shadow, &subtraction, &xmm_offset);
 
   if (mask[RBP])
   {
@@ -69,13 +69,13 @@ size_t XEmitter::ABI_PushRegistersAndAdjustStack(BitSet32 mask, size_t rsp_align
   return shadow;
 }
 
-void XEmitter::ABI_PopRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignment,
-                                              size_t needed_frame_size)
+void XEmitter::ABI_PopRegistersAndAdjustStack(
+    BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size)
 {
   mask[RSP] = false;  // Stack pointer is never pushed
   size_t shadow, subtraction, xmm_offset;
-  ABI_CalculateFrameSize(mask, rsp_alignment, needed_frame_size, &shadow, &subtraction,
-                         &xmm_offset);
+  ABI_CalculateFrameSize(
+      mask, rsp_alignment, needed_frame_size, &shadow, &subtraction, &xmm_offset);
 
   for (int x : (mask & ABI_ALL_FPRS))
   {
@@ -96,8 +96,8 @@ void XEmitter::ABI_PopRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignmen
     POP(RBP);
 }
 
-void XEmitter::MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, s32 offset1, Gen::X64Reg dst2,
-                      Gen::X64Reg src2)
+void XEmitter::MOVTwo(
+    int bits, Gen::X64Reg dst1, Gen::X64Reg src1, s32 offset1, Gen::X64Reg dst2, Gen::X64Reg src2)
 {
   if (dst1 == src2 && dst2 == src1)
   {

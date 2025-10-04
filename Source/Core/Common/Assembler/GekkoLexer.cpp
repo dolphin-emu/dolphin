@@ -638,7 +638,8 @@ TokenType Lexer::LexStringLit(std::string_view& invalid_reason, Interval& invali
 TokenType Lexer::ClassifyAlnum() const
 {
   const std::string_view alnum = m_lex_string.substr(m_pos.index, m_scan_pos.index - m_pos.index);
-  constexpr auto valid_regnum = [](std::string_view rn) {
+  constexpr auto valid_regnum = [](std::string_view rn)
+  {
     if (rn.length() == 1 && std::isdigit(rn[0]))
     {
       return true;

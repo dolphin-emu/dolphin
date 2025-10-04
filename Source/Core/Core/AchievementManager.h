@@ -89,9 +89,8 @@ public:
   static constexpr std::string_view GOLD = "#FFD700";
   static constexpr std::string_view BLUE = "#0B71C1";
   static constexpr std::string_view APPROVED_LIST_FILENAME = "ApprovedInis.json";
-  static const inline Common::SHA1::Digest APPROVED_LIST_HASH = {
-      0x29, 0x4C, 0xBD, 0x08, 0xF0, 0x5F, 0x47, 0x94, 0xC9, 0xB8,
-      0x05, 0x2E, 0x5C, 0xD6, 0x14, 0x48, 0xFA, 0x07, 0xE8, 0x53};
+  static const inline Common::SHA1::Digest APPROVED_LIST_HASH = {0x29, 0x4C, 0xBD, 0x08, 0xF0, 0x5F,
+      0x47, 0x94, 0xC9, 0xB8, 0x05, 0x2E, 0x5C, 0xD6, 0x14, 0x48, 0xFA, 0x07, 0xE8, 0x53};
 
   struct LeaderboardEntry
   {
@@ -143,20 +142,20 @@ public:
   std::recursive_mutex& GetLock();
   bool IsHardcoreModeActive() const;
 
-  void FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches, const std::string& game_id,
-                             u16 revision) const;
-  void FilterApprovedGeckoCodes(std::vector<Gecko::GeckoCode>& codes, const std::string& game_id,
-                                u16 revision) const;
-  void FilterApprovedARCodes(std::vector<ActionReplay::ARCode>& codes, const std::string& game_id,
-                             u16 revision) const;
-  bool ShouldGeckoCodeBeActivated(const Gecko::GeckoCode& code, const std::string& game_id,
-                                  u16 revision) const;
-  bool ShouldARCodeBeActivated(const ActionReplay::ARCode& code, const std::string& game_id,
-                               u16 revision) const;
-  bool IsApprovedGeckoCode(const Gecko::GeckoCode& code, const std::string& game_id,
-                           u16 revision) const;
-  bool IsApprovedARCode(const ActionReplay::ARCode& code, const std::string& game_id,
-                        u16 revision) const;
+  void FilterApprovedPatches(
+      std::vector<PatchEngine::Patch>& patches, const std::string& game_id, u16 revision) const;
+  void FilterApprovedGeckoCodes(
+      std::vector<Gecko::GeckoCode>& codes, const std::string& game_id, u16 revision) const;
+  void FilterApprovedARCodes(
+      std::vector<ActionReplay::ARCode>& codes, const std::string& game_id, u16 revision) const;
+  bool ShouldGeckoCodeBeActivated(
+      const Gecko::GeckoCode& code, const std::string& game_id, u16 revision) const;
+  bool ShouldARCodeBeActivated(
+      const ActionReplay::ARCode& code, const std::string& game_id, u16 revision) const;
+  bool IsApprovedGeckoCode(
+      const Gecko::GeckoCode& code, const std::string& game_id, u16 revision) const;
+  bool IsApprovedARCode(
+      const ActionReplay::ARCode& code, const std::string& game_id, u16 revision) const;
 
   void SetSpectatorMode();
   std::string_view GetPlayerDisplayName() const;
@@ -206,17 +205,17 @@ private:
   static u32 FindConsoleID(const DiscIO::Platform& platform);
 
   void LoadDefaultBadges();
-  static void LoginCallback(int result, const char* error_message, rc_client_t* client,
-                            void* userdata);
+  static void LoginCallback(
+      int result, const char* error_message, rc_client_t* client, void* userdata);
 
   void FetchBoardInfo(AchievementId leaderboard_id);
 
   std::unique_ptr<DiscIO::Volume>& GetLoadingVolume() { return m_loading_volume; }
 
-  static void LoadGameCallback(int result, const char* error_message, rc_client_t* client,
-                               void* userdata);
-  static void ChangeMediaCallback(int result, const char* error_message, rc_client_t* client,
-                                  void* userdata);
+  static void LoadGameCallback(
+      int result, const char* error_message, rc_client_t* client, void* userdata);
+  static void ChangeMediaCallback(
+      int result, const char* error_message, rc_client_t* client, void* userdata);
   void DisplayWelcomeMessage();
 
   void SetHardcoreMode();
@@ -232,8 +231,7 @@ private:
   Common::SHA1::Digest GetCodeHash(const ActionReplay::ARCode& code) const;
 
   static void LeaderboardEntriesCallback(int result, const char* error_message,
-                                         rc_client_leaderboard_entry_list_t* list,
-                                         rc_client_t* client, void* userdata);
+      rc_client_leaderboard_entry_list_t* list, rc_client_t* client, void* userdata);
 
   static void HandleAchievementTriggeredEvent(const rc_client_event_t* client_event);
   static void HandleLeaderboardStartedEvent(const rc_client_event_t* client_event);
@@ -250,18 +248,18 @@ private:
   static void HandleServerErrorEvent(const rc_client_event_t* client_event);
 
   static void Request(const rc_api_request_t* request, rc_client_server_callback_t callback,
-                      void* callback_data, rc_client_t* client);
+      void* callback_data, rc_client_t* client);
   static u32 MemoryVerifier(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
   static u32 MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
   void FetchBadge(Badge* badge, u32 badge_type, const BadgeNameFunction function,
-                  const UpdatedItems callback_data);
+      const UpdatedItems callback_data);
   static void EventHandler(const rc_client_event_t* event, rc_client_t* client);
 
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
-  static void LoadIntegrationCallback(int result, const char* error_message, rc_client_t* client,
-                                      void* userdata);
-  static void RAIntegrationEventHandler(const rc_client_raintegration_event_t* event,
-                                        rc_client_t* client);
+  static void LoadIntegrationCallback(
+      int result, const char* error_message, rc_client_t* client, void* userdata);
+  static void RAIntegrationEventHandler(
+      const rc_client_raintegration_event_t* event, rc_client_t* client);
   static void MemoryPoker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
   static void GameTitleEstimateHandler(char* buffer, u32 buffer_size, rc_client_t* client);
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
@@ -339,14 +337,14 @@ public:
 
   constexpr bool IsHardcoreModeActive() { return false; }
 
-  constexpr bool ShouldGeckoCodeBeActivated(const Gecko::GeckoCode& code,
-                                            const std::string& game_id, u16 revision)
+  constexpr bool ShouldGeckoCodeBeActivated(
+      const Gecko::GeckoCode& code, const std::string& game_id, u16 revision)
   {
     return true;
   }
 
-  constexpr bool ShouldARCodeBeActivated(const ActionReplay::ARCode& code,
-                                         const std::string& game_id, u16 revision)
+  constexpr bool ShouldARCodeBeActivated(
+      const ActionReplay::ARCode& code, const std::string& game_id, u16 revision)
   {
     return true;
   }

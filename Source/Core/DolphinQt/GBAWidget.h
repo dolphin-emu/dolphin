@@ -34,7 +34,7 @@ class GBAWidget : public QWidget
   Q_OBJECT
 public:
   explicit GBAWidget(std::weak_ptr<HW::GBA::Core> core, const HW::GBA::CoreInfo& info,
-                     const std::optional<NetPlay::PadDetails>& netplay_pad);
+      const std::optional<NetPlay::PadDetails>& netplay_pad);
   ~GBAWidget() override;
 
   void GameChanged(const HW::GBA::CoreInfo& info);

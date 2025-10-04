@@ -6,9 +6,13 @@
 #include "Common/GL/GLContext.h"
 
 GLX11Window::GLX11Window(Display* display, Window parent_window, Colormap color_map, Window window,
-                         int width, int height)
-    : m_display(display), m_parent_window(parent_window), m_color_map(color_map), m_window(window),
-      m_width(width), m_height(height)
+    int width, int height)
+    : m_display(display)
+    , m_parent_window(parent_window)
+    , m_color_map(color_map)
+    , m_window(window)
+    , m_width(width)
+    , m_height(height)
 {
 }
 
@@ -28,8 +32,8 @@ void GLX11Window::UpdateDimensions()
   m_height = attribs.height;
 }
 
-std::unique_ptr<GLX11Window> GLX11Window::Create(Display* display, Window parent_window,
-                                                 XVisualInfo* vi)
+std::unique_ptr<GLX11Window> GLX11Window::Create(
+    Display* display, Window parent_window, XVisualInfo* vi)
 {
   // Set color map for the new window based on the visual.
   Colormap color_map = XCreateColormap(display, parent_window, vi->visual, AllocNone);
@@ -41,13 +45,12 @@ std::unique_ptr<GLX11Window> GLX11Window::Create(Display* display, Window parent
   XGetWindowAttributes(display, parent_window, &parent_attribs);
 
   // Create the window
-  Window window =
-      XCreateWindow(display, parent_window, 0, 0, parent_attribs.width, parent_attribs.height, 0,
-                    vi->depth, InputOutput, vi->visual, CWColormap, &attribs);
+  Window window = XCreateWindow(display, parent_window, 0, 0, parent_attribs.width,
+      parent_attribs.height, 0, vi->depth, InputOutput, vi->visual, CWColormap, &attribs);
   XSelectInput(display, parent_window, StructureNotifyMask);
   XMapWindow(display, window);
   XSync(display, True);
 
-  return std::make_unique<GLX11Window>(display, parent_window, color_map, window,
-                                       parent_attribs.width, parent_attribs.height);
+  return std::make_unique<GLX11Window>(
+      display, parent_window, color_map, window, parent_attribs.width, parent_attribs.height);
 }

@@ -80,9 +80,9 @@ public:
   void ScheduleUpdateInterrupts(CoreTiming::FromThread from, int cycles_late);
 
   void ChangeDevice(Slot slot, EXIDeviceType device_type,
-                    CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU);
+      CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU);
   void ChangeDevice(u8 channel, u8 device_num, EXIDeviceType device_type,
-                    CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU);
+      CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU);
 
   CEXIChannel* GetChannel(u32 index);
   IEXIDevice* GetDevice(Slot slot);

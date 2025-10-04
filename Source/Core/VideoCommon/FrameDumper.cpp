@@ -23,8 +23,7 @@ static constexpr int VIDEO_ENCODER_LCM = 4;
 static bool DumpFrameToPNG(const FrameData& frame, const std::string& file_name)
 {
   return Common::ConvertRGBAToRGBAndSavePNG(file_name, frame.data, frame.width, frame.height,
-                                            frame.stride,
-                                            Config::Get(Config::GFX_PNG_COMPRESSION_LEVEL));
+      frame.stride, Config::Get(Config::GFX_PNG_COMPRESSION_LEVEL));
 }
 
 FrameDumper::FrameDumper()
@@ -39,9 +38,8 @@ FrameDumper::~FrameDumper()
 }
 
 void FrameDumper::DumpCurrentFrame(const AbstractTexture* src_texture,
-                                   const MathUtil::Rectangle<int>& src_rect,
-                                   const MathUtil::Rectangle<int>& target_rect, u64 ticks,
-                                   int frame_number)
+    const MathUtil::Rectangle<int>& src_rect, const MathUtil::Rectangle<int>& target_rect,
+    u64 ticks, int frame_number)
 {
   int source_width = src_rect.GetWidth();
   int source_height = src_rect.GetHeight();
@@ -56,7 +54,7 @@ void FrameDumper::DumpCurrentFrame(const AbstractTexture* src_texture,
       return;
 
     g_gfx->ScaleTexture(m_frame_dump_render_framebuffer.get(),
-                        m_frame_dump_render_framebuffer->GetRect(), src_texture, src_rect);
+        m_frame_dump_render_framebuffer->GetRect(), src_texture, src_rect);
     src_texture = m_frame_dump_render_texture.get();
     copy_rect = src_texture->GetRect();
   }
@@ -64,8 +62,8 @@ void FrameDumper::DumpCurrentFrame(const AbstractTexture* src_texture,
   if (!CheckFrameDumpReadbackTexture(target_width, target_height))
     return;
 
-  m_frame_dump_readback_texture->CopyFromTexture(src_texture, copy_rect, 0, 0,
-                                                 m_frame_dump_readback_texture->GetRect());
+  m_frame_dump_readback_texture->CopyFromTexture(
+      src_texture, copy_rect, 0, 0, m_frame_dump_readback_texture->GetRect());
   m_last_frame_state = m_ffmpeg_dump.FetchState(ticks, frame_number);
   m_frame_dump_needs_flush = true;
 }
@@ -85,7 +83,7 @@ bool FrameDumper::CheckFrameDumpRenderTexture(u32 target_width, u32 target_heigh
   m_frame_dump_render_texture.reset();
   m_frame_dump_render_texture = g_gfx->CreateTexture(
       TextureConfig(target_width, target_height, 1, 1, 1, AbstractTextureFormat::RGBA8,
-                    AbstractTextureFlag_RenderTarget, AbstractTextureType::Texture_2DArray),
+          AbstractTextureFlag_RenderTarget, AbstractTextureType::Texture_2DArray),
       "Frame dump render texture");
   if (!m_frame_dump_render_texture)
   {
@@ -106,9 +104,8 @@ bool FrameDumper::CheckFrameDumpReadbackTexture(u32 target_width, u32 target_hei
 
   rbtex.reset();
   rbtex = g_gfx->CreateStagingTexture(StagingTextureType::Readback,
-                                      TextureConfig(target_width, target_height, 1, 1, 1,
-                                                    AbstractTextureFormat::RGBA8, 0,
-                                                    AbstractTextureType::Texture_2DArray));
+      TextureConfig(target_width, target_height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0,
+          AbstractTextureType::Texture_2DArray));
   if (!rbtex)
     return false;
 
@@ -131,7 +128,7 @@ void FrameDumper::FlushFrameDump()
   if (output->Map())
   {
     DumpFrameData(reinterpret_cast<u8*>(output->GetMappedPointer()), output->GetConfig().width,
-                  output->GetConfig().height, static_cast<int>(output->GetMappedStride()));
+        output->GetConfig().height, static_cast<int>(output->GetMappedStride()));
   }
   else
   {
@@ -309,8 +306,8 @@ void FrameDumper::StopFrameDumpToFFMPEG()
 
 std::string FrameDumper::GetFrameDumpNextImageFileName() const
 {
-  return fmt::format("{}framedump_{}.png", File::GetUserPath(D_DUMPFRAMES_IDX),
-                     m_frame_dump_image_counter);
+  return fmt::format(
+      "{}framedump_{}.png", File::GetUserPath(D_DUMPFRAMES_IDX), m_frame_dump_image_counter);
 }
 
 bool FrameDumper::StartFrameDumpToImage(const FrameData&)

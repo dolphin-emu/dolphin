@@ -78,7 +78,7 @@ void CEXIModem::ImmWrite(u32 data, u32 size)
   else if (!IsWriteTransfer(m_transfer_descriptor))
   {
     ERROR_LOG_FMT(SP1, "Received EXI IMM write {:x} ({} bytes) after read command {:x}", data, size,
-                  m_transfer_descriptor);
+        m_transfer_descriptor);
     m_transfer_descriptor = INVALID_TRANSFER_DESCRIPTOR;
   }
   else if (IsModemTransfer(m_transfer_descriptor))
@@ -110,18 +110,18 @@ void CEXIModem::DMAWrite(u32 addr, u32 size)
   if (m_transfer_descriptor == INVALID_TRANSFER_DESCRIPTOR)
   {
     ERROR_LOG_FMT(SP1, "Received EXI DMA write {:x} ({} bytes) after read command {:x}", addr, size,
-                  m_transfer_descriptor);
+        m_transfer_descriptor);
   }
   else if (!IsWriteTransfer(m_transfer_descriptor))
   {
     ERROR_LOG_FMT(SP1, "Received EXI DMA write {:x} ({} bytes) after read command {:x}", addr, size,
-                  m_transfer_descriptor);
+        m_transfer_descriptor);
     m_transfer_descriptor = INVALID_TRANSFER_DESCRIPTOR;
   }
   else if (!IsModemTransfer(m_transfer_descriptor))
   {
     ERROR_LOG_FMT(SP1, "Received EXI DMA write {:x} ({} bytes) to registers {:x}", addr, size,
-                  m_transfer_descriptor);
+        m_transfer_descriptor);
     m_transfer_descriptor = INVALID_TRANSFER_DESCRIPTOR;
   }
   else
@@ -141,7 +141,7 @@ u32 CEXIModem::ImmRead(u32 size)
   else if (IsWriteTransfer(m_transfer_descriptor))
   {
     ERROR_LOG_FMT(SP1, "Received EXI IMM read ({} bytes) after write command {:x}", size,
-                  m_transfer_descriptor);
+        m_transfer_descriptor);
     m_transfer_descriptor = INVALID_TRANSFER_DESCRIPTOR;
     return 0;
   }
@@ -177,19 +177,19 @@ void CEXIModem::DMARead(u32 addr, u32 size)
 {
   if (m_transfer_descriptor == INVALID_TRANSFER_DESCRIPTOR)
   {
-    ERROR_LOG_FMT(SP1, "Received EXI DMA read {:x} ({} bytes) with no pending transfer", addr,
-                  size);
+    ERROR_LOG_FMT(
+        SP1, "Received EXI DMA read {:x} ({} bytes) with no pending transfer", addr, size);
   }
   else if (IsWriteTransfer(m_transfer_descriptor))
   {
     ERROR_LOG_FMT(SP1, "Received EXI DMA read {:x} ({} bytes) after write command {:x}", addr, size,
-                  m_transfer_descriptor);
+        m_transfer_descriptor);
     m_transfer_descriptor = INVALID_TRANSFER_DESCRIPTOR;
   }
   else if (!IsModemTransfer(m_transfer_descriptor))
   {
     ERROR_LOG_FMT(SP1, "Received EXI DMA read {:x} ({} bytes) to registers {:x}", addr, size,
-                  m_transfer_descriptor);
+        m_transfer_descriptor);
     m_transfer_descriptor = INVALID_TRANSFER_DESCRIPTOR;
   }
   else
@@ -205,7 +205,7 @@ void CEXIModem::HandleReadModemTransfer(void* data, u32 size)
   if (size > bytes_requested)
   {
     ERROR_LOG_FMT(SP1, "More bytes requested ({}) than originally requested for transfer {:x}",
-                  size, m_transfer_descriptor);
+        size, m_transfer_descriptor);
     size = bytes_requested;
   }
   const u16 bytes_requested_after_read = bytes_requested - size;
@@ -245,7 +245,7 @@ void CEXIModem::HandleWriteModemTransfer(const void* data, u32 size)
   if (size > bytes_expected)
   {
     ERROR_LOG_FMT(SP1, "More bytes received ({}) than expected for transfer {:x}", size,
-                  m_transfer_descriptor);
+        m_transfer_descriptor);
     return;
   }
   const u16 bytes_expected_after_write = bytes_expected - size;
@@ -318,7 +318,7 @@ void CEXIModem::OnReceiveBufferSizeChangedLocked(bool from_cpu)
   m_regs[Register::BYTES_AVAILABLE_HIGH] = (bytes_available >> 8) & 0xFF;
   m_regs[Register::BYTES_AVAILABLE_LOW] = bytes_available & 0xFF;
   SetInterruptFlag(Interrupt::RECEIVE_BUFFER_ABOVE_THRESHOLD,
-                   m_receive_buffer.size() >= GetRxThreshold(), from_cpu);
+      m_receive_buffer.size() >= GetRxThreshold(), from_cpu);
   // TODO: There is a second interrupt here, which the GameCube modem library
   // expects to be used when large frames are received. However, the correct
   // semantics for this interrupt aren't obvious. Reverse-engineering some games
@@ -358,7 +358,7 @@ void CEXIModem::AddATReply(const std::string& data)
 void CEXIModem::RunAllPendingATCommands()
 {
   for (std::size_t newline_pos = m_at_command_data.find_first_of("\r\n");
-       newline_pos != std::string::npos; newline_pos = m_at_command_data.find_first_of("\r\n"))
+      newline_pos != std::string::npos; newline_pos = m_at_command_data.find_first_of("\r\n"))
   {
     std::string command = m_at_command_data.substr(0, newline_pos);
     m_at_command_data = m_at_command_data.substr(newline_pos + 1);

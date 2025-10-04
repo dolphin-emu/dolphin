@@ -143,13 +143,13 @@ void NetPlayBrowser::ConnectWidgets()
   connect(m_edit_game_id, &QLineEdit::textChanged, this, &NetPlayBrowser::Refresh);
 
   connect(m_table_widget, &QTableWidget::itemSelectionChanged, this,
-          &NetPlayBrowser::OnSelectionChanged);
+      &NetPlayBrowser::OnSelectionChanged);
   connect(m_table_widget, &QTableWidget::itemDoubleClicked, this, &NetPlayBrowser::accept);
 
   connect(this, &NetPlayBrowser::UpdateStatusRequested, this,
-          &NetPlayBrowser::OnUpdateStatusRequested, Qt::QueuedConnection);
+      &NetPlayBrowser::OnUpdateStatusRequested, Qt::QueuedConnection);
   connect(this, &NetPlayBrowser::UpdateListRequested, this, &NetPlayBrowser::OnUpdateListRequested,
-          Qt::QueuedConnection);
+      Qt::QueuedConnection);
 }
 
 void NetPlayBrowser::Refresh()
@@ -206,7 +206,7 @@ void NetPlayBrowser::RefreshLoop()
       else
       {
         emit UpdateStatusRequested(tr("Error obtaining session list: %1")
-                                       .arg(QString::fromStdString(client.GetLastError())));
+                .arg(QString::fromStdString(client.GetLastError())));
       }
     }
   }
@@ -219,8 +219,7 @@ void NetPlayBrowser::UpdateList()
   m_table_widget->clear();
   m_table_widget->setColumnCount(7);
   m_table_widget->setHorizontalHeaderLabels({tr("Region"), tr("Name"), tr("Password?"),
-                                             tr("In-Game?"), tr("Game"), tr("Players"),
-                                             tr("Version")});
+      tr("In-Game?"), tr("Game"), tr("Players"), tr("Version")});
 
   auto* hor_header = m_table_widget->horizontalHeader();
 
@@ -346,8 +345,8 @@ void NetPlayBrowser::SaveSettings() const
     visibility = QStringLiteral("private");
   settings.setValue(QStringLiteral("netplaybrowser/visibility"), visibility);
 
-  settings.setValue(QStringLiteral("netplaybrowser/hide_incompatible"),
-                    m_check_hide_incompatible->isChecked());
+  settings.setValue(
+      QStringLiteral("netplaybrowser/hide_incompatible"), m_check_hide_incompatible->isChecked());
   settings.setValue(QStringLiteral("netplaybrowser/hide_ingame"), m_check_hide_ingame->isChecked());
 }
 

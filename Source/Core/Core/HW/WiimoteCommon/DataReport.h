@@ -53,8 +53,8 @@ public:
   u8* data_ptr = nullptr;
 };
 
-std::unique_ptr<DataReportManipulator> MakeDataReportManipulator(InputReportID rpt_id,
-                                                                 u8* data_ptr);
+std::unique_ptr<DataReportManipulator> MakeDataReportManipulator(
+    InputReportID rpt_id, u8* data_ptr);
 
 class DataReportBuilder
 {

@@ -189,7 +189,7 @@ struct HeaderData
 static_assert(std::is_trivially_copyable_v<HeaderData>);
 
 void InitializeHeaderData(HeaderData* data, const CardFlashId& flash_id, u16 size_mbits,
-                          bool shift_jis, u32 rtc_bias, u32 sram_language, u64 format_time);
+    bool shift_jis, u32 rtc_bias, u32 sram_language, u64 format_time);
 
 bool operator==(const HeaderData& lhs, const HeaderData& rhs);
 
@@ -218,7 +218,7 @@ struct Header
 
   // initialize a formatted header block
   explicit Header(const CardFlashId& flash_id, u16 size_mbits, bool shift_jis, u32 rtc_bias,
-                  u32 sram_language, u64 format_time);
+      u32 sram_language, u64 format_time);
 
   // initialize a header block from existing HeaderData
   explicit Header(const HeaderData& data);
@@ -416,8 +416,7 @@ private:
 
 public:
   static std::optional<GCMemcard> Create(std::string filename, const CardFlashId& flash_id,
-                                         u16 size_mbits, bool shift_jis, u32 rtc_bias,
-                                         u32 sram_language, u64 format_time);
+      u16 size_mbits, bool shift_jis, u32 rtc_bias, u32 sram_language, u64 format_time);
 
   static std::pair<GCMemcardErrorCode, std::optional<GCMemcard>> Open(std::string filename);
 
@@ -430,13 +429,13 @@ public:
   bool IsShiftJIS() const;
   bool Save();
   bool Format(const CardFlashId& flash_id, u16 size_mbits, bool shift_jis, u32 rtc_bias,
-              u32 sram_language, u64 format_time);
+      u32 sram_language, u64 format_time);
   static bool Format(u8* card_data, const CardFlashId& flash_id, u16 size_mbits, bool shift_jis,
-                     u32 rtc_bias, u32 sram_language, u64 format_time);
-  static s32 FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
-                                       std::vector<GCMBlock>& FileBuffer);
-  static s32 PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
-                                   std::vector<GCMBlock>& FileBuffer);
+      u32 rtc_bias, u32 sram_language, u64 format_time);
+  static s32 FZEROGX_MakeSaveGameValid(
+      const Header& cardheader, const DEntry& direntry, std::vector<GCMBlock>& FileBuffer);
+  static s32 PSO_MakeSaveGameValid(
+      const Header& cardheader, const DEntry& direntry, std::vector<GCMBlock>& FileBuffer);
 
   bool FixChecksums();
 
@@ -458,9 +457,8 @@ public:
   // get file length in blocks
   u16 DEntry_BlockCount(u8 index) const;
 
-  std::optional<std::vector<u8>>
-  GetSaveDataBytes(u8 save_index, size_t offset = 0,
-                   size_t length = std::numeric_limits<size_t>::max()) const;
+  std::optional<std::vector<u8>> GetSaveDataBytes(
+      u8 save_index, size_t offset = 0, size_t length = std::numeric_limits<size_t>::max()) const;
 
   // Returns, if available, the two strings shown on the save file in the GC BIOS, in UTF8.
   // The first is the big line on top, usually the game title, and the second is the smaller line

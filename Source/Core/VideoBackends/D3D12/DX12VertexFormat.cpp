@@ -20,41 +20,41 @@ static DXGI_FORMAT VarToDXGIFormat(ComponentFormat t, u32 components, bool integ
   static constexpr Common::EnumMap<ComponentArray, ComponentFormat::InvalidFloat7>
       float_type_lookup = {
           f({DXGI_FORMAT_R8_UNORM, DXGI_FORMAT_R8G8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM,
-             DXGI_FORMAT_R8G8B8A8_UNORM}),  // UByte
+              DXGI_FORMAT_R8G8B8A8_UNORM}),  // UByte
           f({DXGI_FORMAT_R8_SNORM, DXGI_FORMAT_R8G8_SNORM, DXGI_FORMAT_R8G8B8A8_SNORM,
-             DXGI_FORMAT_R8G8B8A8_SNORM}),  // Byte
+              DXGI_FORMAT_R8G8B8A8_SNORM}),  // Byte
           f({DXGI_FORMAT_R16_UNORM, DXGI_FORMAT_R16G16_UNORM, DXGI_FORMAT_R16G16B16A16_UNORM,
-             DXGI_FORMAT_R16G16B16A16_UNORM}),  // UShort
+              DXGI_FORMAT_R16G16B16A16_UNORM}),  // UShort
           f({DXGI_FORMAT_R16_SNORM, DXGI_FORMAT_R16G16_SNORM, DXGI_FORMAT_R16G16B16A16_SNORM,
-             DXGI_FORMAT_R16G16B16A16_SNORM}),  // Short
+              DXGI_FORMAT_R16G16B16A16_SNORM}),  // Short
           f({DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_R32G32_FLOAT, DXGI_FORMAT_R32G32B32_FLOAT,
-             DXGI_FORMAT_R32G32B32A32_FLOAT}),  // Float
+              DXGI_FORMAT_R32G32B32A32_FLOAT}),  // Float
           f({DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_R32G32_FLOAT, DXGI_FORMAT_R32G32B32_FLOAT,
-             DXGI_FORMAT_R32G32B32A32_FLOAT}),  // Invalid
+              DXGI_FORMAT_R32G32B32A32_FLOAT}),  // Invalid
           f({DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_R32G32_FLOAT, DXGI_FORMAT_R32G32B32_FLOAT,
-             DXGI_FORMAT_R32G32B32A32_FLOAT}),  // Invalid
+              DXGI_FORMAT_R32G32B32A32_FLOAT}),  // Invalid
           f({DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_R32G32_FLOAT, DXGI_FORMAT_R32G32B32_FLOAT,
-             DXGI_FORMAT_R32G32B32A32_FLOAT}),  // Invalid
+              DXGI_FORMAT_R32G32B32A32_FLOAT}),  // Invalid
       };
 
   static constexpr Common::EnumMap<ComponentArray, ComponentFormat::InvalidFloat7>
       integer_type_lookup = {
           f({DXGI_FORMAT_R8_UINT, DXGI_FORMAT_R8G8_UINT, DXGI_FORMAT_R8G8B8A8_UINT,
-             DXGI_FORMAT_R8G8B8A8_UINT}),  // UByte
+              DXGI_FORMAT_R8G8B8A8_UINT}),  // UByte
           f({DXGI_FORMAT_R8_SINT, DXGI_FORMAT_R8G8_SINT, DXGI_FORMAT_R8G8B8A8_SINT,
-             DXGI_FORMAT_R8G8B8A8_SINT}),  // Byte
+              DXGI_FORMAT_R8G8B8A8_SINT}),  // Byte
           f({DXGI_FORMAT_R16_UINT, DXGI_FORMAT_R16G16_UINT, DXGI_FORMAT_R16G16B16A16_UINT,
-             DXGI_FORMAT_R16G16B16A16_UINT}),  // UShort
+              DXGI_FORMAT_R16G16B16A16_UINT}),  // UShort
           f({DXGI_FORMAT_R16_SINT, DXGI_FORMAT_R16G16_SINT, DXGI_FORMAT_R16G16B16A16_SINT,
-             DXGI_FORMAT_R16G16B16A16_SINT}),  // Short
+              DXGI_FORMAT_R16G16B16A16_SINT}),  // Short
           f({DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_R32G32_FLOAT, DXGI_FORMAT_R32G32B32_FLOAT,
-             DXGI_FORMAT_R32G32B32A32_FLOAT}),  // Float
+              DXGI_FORMAT_R32G32B32A32_FLOAT}),  // Float
           f({DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_R32G32_FLOAT, DXGI_FORMAT_R32G32B32_FLOAT,
-             DXGI_FORMAT_R32G32B32A32_FLOAT}),  // Invalid
+              DXGI_FORMAT_R32G32B32A32_FLOAT}),  // Invalid
           f({DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_R32G32_FLOAT, DXGI_FORMAT_R32G32B32_FLOAT,
-             DXGI_FORMAT_R32G32B32A32_FLOAT}),  // Invalid
+              DXGI_FORMAT_R32G32B32A32_FLOAT}),  // Invalid
           f({DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_R32G32_FLOAT, DXGI_FORMAT_R32G32B32_FLOAT,
-             DXGI_FORMAT_R32G32B32A32_FLOAT}),  // Invalid
+              DXGI_FORMAT_R32G32B32A32_FLOAT}),  // Invalid
       };
 
   ASSERT(components > 0 && components <= 4);
@@ -74,7 +74,7 @@ void DXVertexFormat::GetInputLayoutDesc(D3D12_INPUT_LAYOUT_DESC* desc) const
 }
 
 void DXVertexFormat::AddAttribute(const char* semantic_name, ShaderAttrib semantic_index, u32 slot,
-                                  DXGI_FORMAT format, u32 offset)
+    DXGI_FORMAT format, u32 offset)
 {
   ASSERT(m_num_attributes < MAX_VERTEX_ATTRIBUTES);
 
@@ -96,8 +96,7 @@ void DXVertexFormat::MapAttributes()
 
   if (m_decl.position.enable)
   {
-    AddAttribute(
-        "TEXCOORD", ShaderAttrib::Position, 0,
+    AddAttribute("TEXCOORD", ShaderAttrib::Position, 0,
         VarToDXGIFormat(m_decl.position.type, m_decl.position.components, m_decl.position.integer),
         m_decl.position.offset);
   }
@@ -107,9 +106,9 @@ void DXVertexFormat::MapAttributes()
     if (m_decl.normals[i].enable)
     {
       AddAttribute("TEXCOORD", ShaderAttrib::Normal + i, 0,
-                   VarToDXGIFormat(m_decl.normals[i].type, m_decl.normals[i].components,
-                                   m_decl.normals[i].integer),
-                   m_decl.normals[i].offset);
+          VarToDXGIFormat(
+              m_decl.normals[i].type, m_decl.normals[i].components, m_decl.normals[i].integer),
+          m_decl.normals[i].offset);
     }
   }
 
@@ -118,9 +117,9 @@ void DXVertexFormat::MapAttributes()
     if (m_decl.colors[i].enable)
     {
       AddAttribute("TEXCOORD", ShaderAttrib::Color0 + i, 0,
-                   VarToDXGIFormat(m_decl.colors[i].type, m_decl.colors[i].components,
-                                   m_decl.colors[i].integer),
-                   m_decl.colors[i].offset);
+          VarToDXGIFormat(
+              m_decl.colors[i].type, m_decl.colors[i].components, m_decl.colors[i].integer),
+          m_decl.colors[i].offset);
     }
   }
 
@@ -129,16 +128,15 @@ void DXVertexFormat::MapAttributes()
     if (m_decl.texcoords[i].enable)
     {
       AddAttribute("TEXCOORD", ShaderAttrib::TexCoord0 + i, 0,
-                   VarToDXGIFormat(m_decl.texcoords[i].type, m_decl.texcoords[i].components,
-                                   m_decl.texcoords[i].integer),
-                   m_decl.texcoords[i].offset);
+          VarToDXGIFormat(m_decl.texcoords[i].type, m_decl.texcoords[i].components,
+              m_decl.texcoords[i].integer),
+          m_decl.texcoords[i].offset);
     }
   }
 
   if (m_decl.posmtx.enable)
   {
-    AddAttribute(
-        "TEXCOORD", ShaderAttrib::PositionMatrix, 0,
+    AddAttribute("TEXCOORD", ShaderAttrib::PositionMatrix, 0,
         VarToDXGIFormat(m_decl.posmtx.type, m_decl.posmtx.components, m_decl.posmtx.integer),
         m_decl.posmtx.offset);
   }

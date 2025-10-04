@@ -22,7 +22,9 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 BreakpointDialog::BreakpointDialog(BreakpointWidget* parent)
-    : QDialog(parent), m_parent(parent), m_open_mode(OpenMode::New)
+    : QDialog(parent)
+    , m_parent(parent)
+    , m_open_mode(OpenMode::New)
 {
   setWindowTitle(tr("New Breakpoint"));
   CreateWidgets();
@@ -33,7 +35,9 @@ BreakpointDialog::BreakpointDialog(BreakpointWidget* parent)
 }
 
 BreakpointDialog::BreakpointDialog(BreakpointWidget* parent, const TBreakPoint* breakpoint)
-    : QDialog(parent), m_parent(parent), m_open_mode(OpenMode::EditBreakPoint)
+    : QDialog(parent)
+    , m_parent(parent)
+    , m_open_mode(OpenMode::EditBreakPoint)
 {
   setWindowTitle(tr("Edit Breakpoint"));
   CreateWidgets();
@@ -52,7 +56,9 @@ BreakpointDialog::BreakpointDialog(BreakpointWidget* parent, const TBreakPoint* 
 }
 
 BreakpointDialog::BreakpointDialog(BreakpointWidget* parent, const TMemCheck* memcheck)
-    : QDialog(parent), m_parent(parent), m_open_mode(OpenMode::EditMemCheck)
+    : QDialog(parent)
+    , m_parent(parent)
+    , m_open_mode(OpenMode::EditMemCheck)
 {
   setWindowTitle(tr("Edit Breakpoint"));
 
@@ -87,8 +93,8 @@ BreakpointDialog::BreakpointDialog(BreakpointWidget* parent, const TMemCheck* me
 
 void BreakpointDialog::CreateWidgets()
 {
-  m_buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel |
-                                   QDialogButtonBox::Help);
+  m_buttons = new QDialogButtonBox(
+      QDialogButtonBox::Ok | QDialogButtonBox::Cancel | QDialogButtonBox::Help);
   auto* type_group = new QButtonGroup(this);
 
   // Instruction BP
@@ -224,10 +230,10 @@ void BreakpointDialog::ConnectWidgets()
   connect(m_instruction_bp, &QRadioButton::toggled, this, &BreakpointDialog::OnBPTypeChanged);
   connect(m_memory_bp, &QRadioButton::toggled, this, &BreakpointDialog::OnBPTypeChanged);
 
-  connect(m_memory_use_address, &QRadioButton::toggled, this,
-          &BreakpointDialog::OnAddressTypeChanged);
-  connect(m_memory_use_range, &QRadioButton::toggled, this,
-          &BreakpointDialog::OnAddressTypeChanged);
+  connect(
+      m_memory_use_address, &QRadioButton::toggled, this, &BreakpointDialog::OnAddressTypeChanged);
+  connect(
+      m_memory_use_range, &QRadioButton::toggled, this, &BreakpointDialog::OnAddressTypeChanged);
 }
 
 void BreakpointDialog::OnBPTypeChanged()
@@ -248,9 +254,10 @@ void BreakpointDialog::OnAddressTypeChanged()
 
 void BreakpointDialog::accept()
 {
-  auto invalid_input = [this](const QString& field) {
-    ModalMessageBox::critical(this, tr("Error"),
-                              tr("Invalid input for the field \"%1\"").arg(field));
+  auto invalid_input = [this](const QString& field)
+  {
+    ModalMessageBox::critical(
+        this, tr("Error"), tr("Invalid input for the field \"%1\"").arg(field));
   };
 
   bool instruction = m_instruction_bp->isChecked();

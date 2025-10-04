@@ -21,8 +21,8 @@
 namespace ControllerEmu
 {
 Cursor::Cursor(std::string name_, std::string ui_name_)
-    : ReshapableInput(std::move(name_), std::move(ui_name_), GroupType::Cursor),
-      m_last_update(Clock::now())
+    : ReshapableInput(std::move(name_), std::move(ui_name_), GroupType::Cursor)
+    , m_last_update(Clock::now())
 {
   for (auto& named_direction : named_directions)
     AddInput(Translatability::Translate, named_direction);
@@ -35,29 +35,29 @@ Cursor::Cursor(std::string name_, std::string ui_name_)
   // Default values chosen to reach screen edges in most games including the Wii Menu.
 
   AddSetting(&m_vertical_offset_setting,
-             // i18n: Refers to a positional offset applied to an emulated wiimote.
-             {_trans("Vertical Offset"),
-              // i18n: The symbol/abbreviation for centimeters.
-              _trans("cm")},
-             10, -100, 100);
+      // i18n: Refers to a positional offset applied to an emulated wiimote.
+      {_trans("Vertical Offset"),
+          // i18n: The symbol/abbreviation for centimeters.
+          _trans("cm")},
+      10, -100, 100);
 
   AddSetting(&m_yaw_setting,
-             // i18n: Refers to an amount of rotational movement about the "yaw" axis.
-             {_trans("Total Yaw"),
-              // i18n: The symbol/abbreviation for degrees (unit of angular measure).
-              _trans("°"),
-              // i18n: Refers to emulated wii remote movements.
-              _trans("Total rotation about the yaw axis.")},
-             25, 0, 360);
+      // i18n: Refers to an amount of rotational movement about the "yaw" axis.
+      {_trans("Total Yaw"),
+          // i18n: The symbol/abbreviation for degrees (unit of angular measure).
+          _trans("°"),
+          // i18n: Refers to emulated wii remote movements.
+          _trans("Total rotation about the yaw axis.")},
+      25, 0, 360);
 
   AddSetting(&m_pitch_setting,
-             // i18n: Refers to an amount of rotational movement about the "pitch" axis.
-             {_trans("Total Pitch"),
-              // i18n: The symbol/abbreviation for degrees (unit of angular measure).
-              _trans("°"),
-              // i18n: Refers to emulated wii remote movements.
-              _trans("Total rotation about the pitch axis.")},
-             20, 0, 360);
+      // i18n: Refers to an amount of rotational movement about the "pitch" axis.
+      {_trans("Total Pitch"),
+          // i18n: The symbol/abbreviation for degrees (unit of angular measure).
+          _trans("°"),
+          // i18n: Refers to emulated wii remote movements.
+          _trans("Total rotation about the pitch axis.")},
+      20, 0, 360);
 
   AddSetting(&m_relative_setting, {_trans("Relative Input")}, false);
   AddSetting(&m_autohide_setting, {_trans("Auto-Hide")}, false);
@@ -87,8 +87,8 @@ Cursor::StateData Cursor::GetState(const bool adjusted)
   return state;
 }
 
-Cursor::StateData Cursor::GetState(const bool adjusted,
-                                   const ControllerEmu::InputOverrideFunction& override_func)
+Cursor::StateData Cursor::GetState(
+    const bool adjusted, const ControllerEmu::InputOverrideFunction& override_func)
 {
   StateData state = GetState(adjusted);
   if (!override_func)

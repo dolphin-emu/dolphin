@@ -28,12 +28,11 @@ namespace UICommon
 {
 static constexpr u32 CACHE_REVISION = 26;  // Last changed in PR 10084
 
-std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
-                                          bool recursive_scan)
+std::vector<std::string> FindAllGamePaths(
+    const std::vector<std::string>& directories_to_scan, bool recursive_scan)
 {
-  static const std::vector<std::string> search_extensions = {
-      ".gcm", ".tgc", ".bin", ".iso", ".ciso", ".gcz", ".wbfs",
-      ".wia", ".rvz", ".nfs", ".wad", ".dol",  ".elf", ".json"};
+  static const std::vector<std::string> search_extensions = {".gcm", ".tgc", ".bin", ".iso",
+      ".ciso", ".gcz", ".wbfs", ".wia", ".rvz", ".nfs", ".wad", ".dol", ".elf", ".json"};
 
   // TODO: We could process paths iteratively as they are found
   return Common::DoFileSearch(directories_to_scan, search_extensions, recursive_scan);
@@ -62,8 +61,8 @@ void GameFileCache::Clear(DeleteOnDisk delete_on_disk)
   m_cached_files.clear();
 }
 
-std::shared_ptr<const GameFile> GameFileCache::AddOrGet(const std::string& path,
-                                                        bool* cache_changed)
+std::shared_ptr<const GameFile> GameFileCache::AddOrGet(
+    const std::string& path, bool* cache_changed)
 {
   auto it = std::ranges::find(m_cached_files, path, &GameFile::GetFilePath);
   const bool found = it != m_cached_files.cend();
@@ -82,9 +81,9 @@ std::shared_ptr<const GameFile> GameFileCache::AddOrGet(const std::string& path,
 }
 
 bool GameFileCache::Update(std::span<const std::string> all_game_paths,
-                           const GameAddedToCacheFn& game_added_to_cache,
-                           const GameRemovedFromCacheFn& game_removed_from_cache,
-                           const std::atomic_bool& processing_halted)
+    const GameAddedToCacheFn& game_added_to_cache,
+    const GameRemovedFromCacheFn& game_removed_from_cache,
+    const std::atomic_bool& processing_halted)
 {
   // Copy game paths into a set, except ones that match DiscIO::ShouldHideFromGameList.
   // TODO: Prevent DoFileSearch from looking inside /files/ directories of DirectoryBlobs at all?
@@ -148,8 +147,8 @@ bool GameFileCache::Update(std::span<const std::string> all_game_paths,
   return cache_changed;
 }
 
-bool GameFileCache::UpdateAdditionalMetadata(const GameUpdatedFn& game_updated,
-                                             const std::atomic_bool& processing_halted)
+bool GameFileCache::UpdateAdditionalMetadata(
+    const GameUpdatedFn& game_updated, const std::atomic_bool& processing_halted)
 {
   bool cache_changed = false;
 
@@ -274,11 +273,13 @@ void GameFileCache::DoState(PointerWrap* p, u64 size)
       return;
     }
   }
-  p->DoEachElement(m_cached_files, [](PointerWrap& state, std::shared_ptr<GameFile>& elem) {
-    if (state.IsReadMode())
-      elem = std::make_shared<GameFile>();
-    elem->DoState(state);
-  });
+  p->DoEachElement(m_cached_files,
+      [](PointerWrap& state, std::shared_ptr<GameFile>& elem)
+      {
+        if (state.IsReadMode())
+          elem = std::make_shared<GameFile>();
+        elem->DoState(state);
+      });
 }
 
 }  // namespace UICommon

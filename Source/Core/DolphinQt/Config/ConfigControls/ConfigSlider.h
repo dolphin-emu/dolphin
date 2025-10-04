@@ -20,12 +20,12 @@ class ConfigSlider final : public ConfigControl<ToolTipSlider>
 public:
   ConfigSlider(int minimum, int maximum, const Config::Info<int>& setting, int tick = 0);
   ConfigSlider(int minimum, int maximum, const Config::Info<int>& setting, Config::Layer* layer,
-               int tick = 0);
+      int tick = 0);
 
   // Generates a slider with tick_values.size() ticks. Each tick corresponds to the integer at that
   // index in the vector.
-  ConfigSlider(std::vector<int> tick_values, const Config::Info<int>& setting,
-               Config::Layer* layer);
+  ConfigSlider(
+      std::vector<int> tick_values, const Config::Info<int>& setting, Config::Layer* layer);
 
   void Update(int value);
 
@@ -45,7 +45,7 @@ class ConfigSliderU32 final : public ConfigControl<ToolTipSlider>
 public:
   ConfigSliderU32(u32 minimum, u32 maximum, const Config::Info<u32>& setting, u32 scale = 1);
   ConfigSliderU32(u32 minimum, u32 maximum, const Config::Info<u32>& setting, Config ::Layer* layer,
-                  u32 scale = 1);
+      u32 scale = 1);
 
   void Update(u32 value);
 

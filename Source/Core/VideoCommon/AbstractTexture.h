@@ -24,13 +24,12 @@ public:
   operator ImTextureRef() const;
 
   virtual void CopyRectangleFromTexture(const AbstractTexture* src,
-                                        const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
-                                        u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
-                                        u32 dst_layer, u32 dst_level) = 0;
-  virtual void ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
-                                  u32 layer, u32 level) = 0;
+      const MathUtil::Rectangle<int>& src_rect, u32 src_layer, u32 src_level,
+      const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer, u32 dst_level) = 0;
+  virtual void ResolveFromTexture(
+      const AbstractTexture* src, const MathUtil::Rectangle<int>& rect, u32 layer, u32 level) = 0;
   virtual void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-                    size_t buffer_size, u32 layer = 0) = 0;
+      size_t buffer_size, u32 layer = 0) = 0;
 
   // Hints to the backend that we have finished rendering to this texture, and it will be used
   // as a shader resource and sampled. For Vulkan, this transitions the image layout.
@@ -50,8 +49,8 @@ public:
   static bool IsCompressedFormat(AbstractTextureFormat format);
   static bool IsDepthFormat(AbstractTextureFormat format);
   static bool IsStencilFormat(AbstractTextureFormat format);
-  static bool IsCompatibleDepthAndColorFormats(AbstractTextureFormat depth_format,
-                                               AbstractTextureFormat color_format);
+  static bool IsCompatibleDepthAndColorFormats(
+      AbstractTextureFormat depth_format, AbstractTextureFormat color_format);
   static u32 CalculateStrideForFormat(AbstractTextureFormat format, u32 row_length);
   static u32 GetTexelSizeForFormat(AbstractTextureFormat format);
   static u32 GetBlockSizeForFormat(AbstractTextureFormat format);

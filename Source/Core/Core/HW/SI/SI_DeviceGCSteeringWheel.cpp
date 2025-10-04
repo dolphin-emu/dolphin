@@ -14,8 +14,8 @@
 
 namespace SerialInterface
 {
-CSIDevice_GCSteeringWheel::CSIDevice_GCSteeringWheel(Core::System& system, SIDevices device,
-                                                     int device_number)
+CSIDevice_GCSteeringWheel::CSIDevice_GCSteeringWheel(
+    Core::System& system, SIDevices device, int device_number)
     : CSIDevice_GCController(system, device, device_number)
 {
 }
@@ -72,11 +72,11 @@ DataResponse CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
 
     // Use either the upper-half of main-stick or lower-half of c-stick for accelerator.
     const int accel_value = std::max(pad_status.stickY - GCPadStatus::MAIN_STICK_CENTER_Y,
-                                     GCPadStatus::C_STICK_CENTER_Y - pad_status.substickY);
+        GCPadStatus::C_STICK_CENTER_Y - pad_status.substickY);
 
     // Use either the upper-half of c-stick or lower-half of main-stick for brake.
     const int brake_value = std::max(pad_status.substickY - GCPadStatus::C_STICK_CENTER_Y,
-                                     GCPadStatus::MAIN_STICK_CENTER_Y - pad_status.stickY);
+        GCPadStatus::MAIN_STICK_CENTER_Y - pad_status.stickY);
 
     // We must double these values because we are mapping half of a stick range to a 0..255 value.
     // We're only getting half the precison we could potentially have,

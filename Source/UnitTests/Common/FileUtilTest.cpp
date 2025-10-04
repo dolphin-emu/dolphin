@@ -10,9 +10,10 @@ class FileUtilTest : public testing::Test
 {
 protected:
   FileUtilTest()
-      : m_parent_directory(File::CreateTempDir()), m_file_path(m_parent_directory + "/file.txt"),
-        m_directory_path(m_parent_directory + "/dir"),
-        m_invalid_path(m_parent_directory + "/invalid.txt")
+      : m_parent_directory(File::CreateTempDir())
+      , m_file_path(m_parent_directory + "/file.txt")
+      , m_directory_path(m_parent_directory + "/dir")
+      , m_invalid_path(m_parent_directory + "/invalid.txt")
   {
   }
 
@@ -56,8 +57,8 @@ static void DeleteShouldRemoveFile(const std::string& path, File::IfAbsentBehavi
   EXPECT_TRUE(File::Delete(path, behavior));
 }
 
-static void DeleteShouldReturnTrueForInvalidPath(const std::string& path,
-                                                 File::IfAbsentBehavior behavior)
+static void DeleteShouldReturnTrueForInvalidPath(
+    const std::string& path, File::IfAbsentBehavior behavior)
 {
   EXPECT_TRUE(File::Delete(path, behavior));
 }
@@ -75,8 +76,8 @@ static void DeleteDirShouldNotRemoveFile(const std::string& path, File::IfAbsent
   File::Delete(path, behavior);
 }
 
-static void DeleteDirShouldReturnTrueForInvalidPath(const std::string& path,
-                                                    File::IfAbsentBehavior behavior)
+static void DeleteDirShouldReturnTrueForInvalidPath(
+    const std::string& path, File::IfAbsentBehavior behavior)
 {
   EXPECT_TRUE(File::DeleteDir(path, behavior));
 }

@@ -32,7 +32,9 @@ constexpr u64 GC_STOP_BIT_NS = 6500;
 constexpr u64 GBA_STOP_BIT_NS = 14000;
 
 ISIDevice::ISIDevice(Core::System& system, SIDevices device_type, int device_number)
-    : m_system(system), m_device_number(device_number), m_device_type(device_type)
+    : m_system(system)
+    , m_device_number(device_number)
+    , m_device_type(device_type)
 {
 }
 
@@ -51,8 +53,8 @@ SIDevices ISIDevice::GetDeviceType() const
 int ISIDevice::RunBuffer(u8* buffer, int request_length)
 {
 #ifdef _DEBUG
-  DEBUG_LOG_FMT(SERIALINTERFACE, "Send Data Device({}) - Length({})   ", m_device_number,
-                request_length);
+  DEBUG_LOG_FMT(
+      SERIALINTERFACE, "Send Data Device({}) - Length({})   ", m_device_number, request_length);
 
   std::string temp;
   int num = 0;
@@ -87,8 +89,8 @@ void ISIDevice::OnEvent(u64 userdata, s64 cycles_late)
 {
 }
 
-int SIDevice_GetGBATransferTime(const SystemTimers::SystemTimersManager& timers,
-                                EBufferCommands cmd)
+int SIDevice_GetGBATransferTime(
+    const SystemTimers::SystemTimersManager& timers, EBufferCommands cmd)
 {
   u64 gc_bytes_transferred = 1;
   u64 gba_bytes_transferred = 1;
@@ -146,8 +148,8 @@ bool SIDevice_IsGCController(SIDevices type)
 }
 
 // F A C T O R Y
-std::unique_ptr<ISIDevice> SIDevice_Create(Core::System& system, const SIDevices device,
-                                           const int port_number)
+std::unique_ptr<ISIDevice> SIDevice_Create(
+    Core::System& system, const SIDevices device, const int port_number)
 {
   switch (device)
   {

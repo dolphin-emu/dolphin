@@ -32,9 +32,8 @@ constexpr auto HOTKEY_VS_CONJUNCION_THRESHOLD = std::chrono::milliseconds(50);
 constexpr auto SPURIOUS_TRIGGER_COMBO_THRESHOLD = std::chrono::milliseconds(150);
 
 std::string GetExpressionForControl(const std::string& control_name,
-                                    const ciface::Core::DeviceQualifier& control_device,
-                                    const ciface::Core::DeviceQualifier& default_device,
-                                    Quote quote)
+    const ciface::Core::DeviceQualifier& control_device,
+    const ciface::Core::DeviceQualifier& default_device, Quote quote)
 {
   std::string expr;
 
@@ -60,13 +59,14 @@ std::string GetExpressionForControl(const std::string& control_name,
 }
 
 std::string BuildExpression(const Core::InputDetector::Results& detections,
-                            const ciface::Core::DeviceQualifier& default_device, Quote quote)
+    const ciface::Core::DeviceQualifier& default_device, Quote quote)
 {
   std::vector<const Core::InputDetector::Detection*> pressed_inputs;
 
   std::vector<std::string> alternations;
 
-  const auto get_control_expression = [&](auto& detection) {
+  const auto get_control_expression = [&](auto& detection)
+  {
     // Return the parent-most name if there is one for better hotkey strings.
     // Detection of L/R_Ctrl will be changed to just Ctrl.
     // Users can manually map L_Ctrl if they so desire.
@@ -77,18 +77,20 @@ std::string BuildExpression(const Core::InputDetector::Results& detections,
     ciface::Core::DeviceQualifier device_qualifier;
     device_qualifier.FromDevice(detection.device.get());
 
-    return MappingCommon::GetExpressionForControl(input->GetName(), device_qualifier,
-                                                  default_device, quote);
+    return MappingCommon::GetExpressionForControl(
+        input->GetName(), device_qualifier, default_device, quote);
   };
 
   bool new_alternation = false;
 
-  const auto handle_press = [&](auto& detection) {
+  const auto handle_press = [&](auto& detection)
+  {
     pressed_inputs.emplace_back(&detection);
     new_alternation = true;
   };
 
-  const auto handle_release = [&] {
+  const auto handle_release = [&]
+  {
     if (!new_alternation)
       return;
 
@@ -144,12 +146,16 @@ std::string BuildExpression(const Core::InputDetector::Results& detections,
 
 void RemoveSpuriousTriggerCombinations(Core::InputDetector::Results* detections)
 {
-  const auto is_spurious = [&](const auto& detection) {
-    return std::ranges::any_of(*detections, [&](const auto& d) {
-      // This is a spurious digital detection if a "smooth" (analog) detection is temporally near.
-      return &d != &detection && d.IsAnalogPress() && !detection.IsAnalogPress() &&
-             abs(d.press_time - detection.press_time) < SPURIOUS_TRIGGER_COMBO_THRESHOLD;
-    });
+  const auto is_spurious = [&](const auto& detection)
+  {
+    return std::ranges::any_of(*detections,
+        [&](const auto& d)
+        {
+          // This is a spurious digital detection if a "smooth" (analog) detection is temporally
+          // near.
+          return &d != &detection && d.IsAnalogPress() && !detection.IsAnalogPress() &&
+                 abs(d.press_time - detection.press_time) < SPURIOUS_TRIGGER_COMBO_THRESHOLD;
+        });
   };
 
   std::erase_if(*detections, is_spurious);
@@ -157,22 +163,20 @@ void RemoveSpuriousTriggerCombinations(Core::InputDetector::Results* detections)
 
 void RemoveDetectionsAfterTimePoint(Core::InputDetector::Results* results, Clock::time_point after)
 {
-  const auto is_after_time = [&](const Core::InputDetector::Detection& detection) {
-    return detection.release_time.value_or(after) >= after;
-  };
+  const auto is_after_time = [&](const Core::InputDetector::Detection& detection)
+  { return detection.release_time.value_or(after) >= after; };
 
   std::erase_if(*results, is_after_time);
 }
 
 bool ContainsCompleteDetection(const Core::InputDetector::Results& results)
 {
-  return std::ranges::any_of(results, [](const Core::InputDetector::Detection& detection) {
-    return detection.release_time.has_value();
-  });
+  return std::ranges::any_of(results, [](const Core::InputDetector::Detection& detection)
+      { return detection.release_time.has_value(); });
 }
 
-ReshapableInputMapper::ReshapableInputMapper(const Core::DeviceContainer& container,
-                                             std::span<const std::string> device_strings)
+ReshapableInputMapper::ReshapableInputMapper(
+    const Core::DeviceContainer& container, std::span<const std::string> device_strings)
 {
   m_input_detector.Start(container, device_strings);
 }
@@ -202,11 +206,11 @@ bool ReshapableInputMapper::IsComplete() const
 bool ReshapableInputMapper::IsCalibrationNeeded() const
 {
   return std::ranges::any_of(m_input_detector.GetResults() | std::views::take(REQUIRED_INPUT_COUNT),
-                             &ciface::Core::InputDetector::Detection::IsAnalogPress);
+      &ciface::Core::InputDetector::Detection::IsAnalogPress);
 }
 
-bool ReshapableInputMapper::ApplyResults(ControllerEmu::EmulatedController* controller,
-                                         ControllerEmu::ReshapableInput* stick)
+bool ReshapableInputMapper::ApplyResults(
+    ControllerEmu::EmulatedController* controller, ControllerEmu::ReshapableInput* stick)
 {
   auto const detections = m_input_detector.TakeResults();
 
@@ -223,12 +227,12 @@ bool ReshapableInputMapper::ApplyResults(ControllerEmu::EmulatedController* cont
     ciface::Core::DeviceQualifier device_qualifier;
     device_qualifier.FromDevice(results[i].device.get());
 
-    stick->controls[i]->control_ref->SetExpression(ciface::MappingCommon::GetExpressionForControl(
-        results[i].input->GetName(), device_qualifier, default_device,
-        ciface::MappingCommon::Quote::On));
+    stick->controls[i]->control_ref->SetExpression(
+        ciface::MappingCommon::GetExpressionForControl(results[i].input->GetName(),
+            device_qualifier, default_device, ciface::MappingCommon::Quote::On));
 
-    controller->UpdateSingleControlReference(g_controller_interface,
-                                             stick->controls[i]->control_ref.get());
+    controller->UpdateSingleControlReference(
+        g_controller_interface, stick->controls[i]->control_ref.get());
   }
 
   controller->GetConfig()->GenerateControllerTextures();
@@ -237,8 +241,8 @@ bool ReshapableInputMapper::ApplyResults(ControllerEmu::EmulatedController* cont
 }
 
 CalibrationBuilder::CalibrationBuilder(std::optional<Common::DVec2> center)
-    : m_calibration_data(ControllerEmu::ReshapableInput::CALIBRATION_SAMPLE_COUNT, 0.0),
-      m_center{center}
+    : m_calibration_data(ControllerEmu::ReshapableInput::CALIBRATION_SAMPLE_COUNT, 0.0)
+    , m_center{center}
 {
 }
 
@@ -248,8 +252,8 @@ void CalibrationBuilder::Update(Common::DVec2 point)
     m_center = point;
 
   const auto new_point = point - *m_center;
-  ControllerEmu::ReshapableInput::UpdateCalibrationData(m_calibration_data, m_prev_point,
-                                                        new_point);
+  ControllerEmu::ReshapableInput::UpdateCalibrationData(
+      m_calibration_data, m_prev_point, new_point);
   m_prev_point = new_point;
 }
 

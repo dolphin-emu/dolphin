@@ -390,8 +390,8 @@ InputDetector::InputDetector() : m_start_time{}, m_state{}
 {
 }
 
-void InputDetector::Start(const DeviceContainer& container,
-                          std::span<const std::string> device_strings)
+void InputDetector::Start(
+    const DeviceContainer& container, std::span<const std::string> device_strings)
 
 {
   m_start_time = Clock::now();
@@ -434,8 +434,7 @@ void InputDetector::Start(const DeviceContainer& container,
 }
 
 void InputDetector::Update(std::chrono::milliseconds initial_wait,
-                           std::chrono::milliseconds confirmation_wait,
-                           std::chrono::milliseconds maximum_wait)
+    std::chrono::milliseconds confirmation_wait, std::chrono::milliseconds maximum_wait)
 {
   if (m_state)
   {
@@ -444,7 +443,7 @@ void InputDetector::Update(std::chrono::milliseconds initial_wait,
 
     if (elapsed_time >= maximum_wait || (m_detections.empty() && elapsed_time >= initial_wait) ||
         (!m_detections.empty() && m_detections.back().release_time.has_value() &&
-         now >= *m_detections.back().release_time + confirmation_wait))
+            now >= *m_detections.back().release_time + confirmation_wait))
     {
       m_state.reset();
       return;

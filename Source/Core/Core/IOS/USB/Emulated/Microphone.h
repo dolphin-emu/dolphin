@@ -43,7 +43,7 @@ public:
 private:
 #ifdef HAVE_CUBEB
   static long CubebDataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
-                                void* output_buffer, long nframes);
+      void* output_buffer, long nframes);
 #endif
 
   long DataCallback(const SampleType* input_buffer, long nframes);

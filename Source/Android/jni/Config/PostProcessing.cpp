@@ -12,8 +12,8 @@
 extern "C" {
 
 JNIEXPORT jobjectArray JNICALL
-Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_getShaderList(JNIEnv* env,
-                                                                                    jclass)
+Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_getShaderList(
+    JNIEnv* env, jclass)
 {
   return VectorToJStringArray(env, VideoCommon::PostProcessing::GetShaderList());
 }

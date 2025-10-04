@@ -59,7 +59,7 @@ static bool InitUPnP()
     else
     {
       WARN_LOG_FMT(NETPLAY, "An error occurred trying to discover UPnP devices: {}",
-                   strupnperror(upnperror));
+          strupnperror(upnperror));
     }
 
     s_error = true;
@@ -78,9 +78,8 @@ static bool InitUPnP()
     std::unique_ptr<char, decltype(&std::free)> desc_xml(nullptr, std::free);
     int statusCode = 200;
 #if MINIUPNPC_API_VERSION >= 16
-    desc_xml.reset(
-        static_cast<char*>(miniwget_getaddr(dev->descURL, &desc_xml_size, s_our_ip.data(),
-                                            static_cast<int>(s_our_ip.size()), 0, &statusCode)));
+    desc_xml.reset(static_cast<char*>(miniwget_getaddr(dev->descURL, &desc_xml_size,
+        s_our_ip.data(), static_cast<int>(s_our_ip.size()), 0, &statusCode)));
 #else
     desc_xml.reset(static_cast<char*>(miniwget_getaddr(
         dev->descURL, &desc_xml_size, s_our_ip.data(), static_cast<int>(s_our_ip.size()), 0)));
@@ -119,8 +118,8 @@ static bool InitUPnP()
 static bool UnmapPort(const u16 port)
 {
   std::string port_str = std::to_string(port);
-  UPNP_DeletePortMapping(s_urls.controlURL, s_data.first.servicetype, port_str.c_str(), "UDP",
-                         nullptr);
+  UPNP_DeletePortMapping(
+      s_urls.controlURL, s_data.first.servicetype, port_str.c_str(), "UDP", nullptr);
 
   return true;
 }
@@ -133,9 +132,9 @@ static bool MapPort(const char* addr, const u16 port)
     UnmapPort(s_mapped);
 
   std::string port_str = std::to_string(port);
-  int result = UPNP_AddPortMapping(
-      s_urls.controlURL, s_data.first.servicetype, port_str.c_str(), port_str.c_str(), addr,
-      (std::string("dolphin-emu UDP on ") + addr).c_str(), "UDP", nullptr, nullptr);
+  int result = UPNP_AddPortMapping(s_urls.controlURL, s_data.first.servicetype, port_str.c_str(),
+      port_str.c_str(), addr, (std::string("dolphin-emu UDP on ") + addr).c_str(), "UDP", nullptr,
+      nullptr);
 
   if (result != 0)
     return false;

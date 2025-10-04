@@ -27,8 +27,8 @@ public:
   }
 
   template <typename C>
-  void GetState(C* const buttons, const C* bitmasks,
-                const InputOverrideFunction& override_func) const
+  void GetState(
+      C* const buttons, const C* bitmasks, const InputOverrideFunction& override_func) const
   {
     if (!override_func)
       return GetState(buttons, bitmasks);

@@ -30,19 +30,12 @@ bool PerfQuery::Initialize()
     return false;
 
   constexpr D3D12_HEAP_PROPERTIES heap_properties = {D3D12_HEAP_TYPE_READBACK};
-  constexpr D3D12_RESOURCE_DESC resource_desc = {D3D12_RESOURCE_DIMENSION_BUFFER,
-                                                 0,
-                                                 PERF_QUERY_BUFFER_SIZE * sizeof(PerfQueryDataType),
-                                                 1,
-                                                 1,
-                                                 1,
-                                                 DXGI_FORMAT_UNKNOWN,
-                                                 {1, 0},
-                                                 D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
-                                                 D3D12_RESOURCE_FLAG_NONE};
-  hr = g_dx_context->GetDevice()->CreateCommittedResource(
-      &heap_properties, D3D12_HEAP_FLAG_NONE, &resource_desc, D3D12_RESOURCE_STATE_COPY_DEST,
-      nullptr, IID_PPV_ARGS(&m_query_readback_buffer));
+  constexpr D3D12_RESOURCE_DESC resource_desc = {D3D12_RESOURCE_DIMENSION_BUFFER, 0,
+      PERF_QUERY_BUFFER_SIZE * sizeof(PerfQueryDataType), 1, 1, 1, DXGI_FORMAT_UNKNOWN, {1, 0},
+      D3D12_TEXTURE_LAYOUT_ROW_MAJOR, D3D12_RESOURCE_FLAG_NONE};
+  hr = g_dx_context->GetDevice()->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE,
+      &resource_desc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
+      IID_PPV_ARGS(&m_query_readback_buffer));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create query buffer: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return false;
@@ -75,8 +68,8 @@ void PerfQuery::EnableQuery(PerfQueryGroup group)
     entry.has_value = true;
     entry.query_group = group;
 
-    g_dx_context->GetCommandList()->BeginQuery(m_query_heap.Get(), D3D12_QUERY_TYPE_OCCLUSION,
-                                               m_query_next_pos);
+    g_dx_context->GetCommandList()->BeginQuery(
+        m_query_heap.Get(), D3D12_QUERY_TYPE_OCCLUSION, m_query_next_pos);
   }
 }
 
@@ -84,8 +77,8 @@ void PerfQuery::DisableQuery(PerfQueryGroup group)
 {
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
-    g_dx_context->GetCommandList()->EndQuery(m_query_heap.Get(), D3D12_QUERY_TYPE_OCCLUSION,
-                                             m_query_next_pos);
+    g_dx_context->GetCommandList()->EndQuery(
+        m_query_heap.Get(), D3D12_QUERY_TYPE_OCCLUSION, m_query_next_pos);
     m_query_next_pos = (m_query_next_pos + 1) % PERF_QUERY_BUFFER_SIZE;
     m_query_count.fetch_add(1, std::memory_order_relaxed);
     m_unresolved_queries++;
@@ -158,9 +151,9 @@ void PerfQuery::ResolveQueries(u32 query_count)
   DEBUG_ASSERT(m_unresolved_queries >= query_count &&
                (m_query_resolve_pos + query_count) <= PERF_QUERY_BUFFER_SIZE);
 
-  g_dx_context->GetCommandList()->ResolveQueryData(
-      m_query_heap.Get(), D3D12_QUERY_TYPE_OCCLUSION, m_query_resolve_pos, query_count,
-      m_query_readback_buffer.Get(), m_query_resolve_pos * sizeof(PerfQueryDataType));
+  g_dx_context->GetCommandList()->ResolveQueryData(m_query_heap.Get(), D3D12_QUERY_TYPE_OCCLUSION,
+      m_query_resolve_pos, query_count, m_query_readback_buffer.Get(),
+      m_query_resolve_pos * sizeof(PerfQueryDataType));
 
   // Flag all queries as available, but with a fence that has to be completed first
   for (u32 i = 0; i < query_count; i++)
@@ -221,7 +214,7 @@ void PerfQuery::AccumulateQueriesFromBuffer(u32 query_count)
          (m_query_readback_pos + query_count) <= PERF_QUERY_BUFFER_SIZE);
 
   const D3D12_RANGE read_range = {m_query_readback_pos * sizeof(PerfQueryDataType),
-                                  (m_query_readback_pos + query_count) * sizeof(PerfQueryDataType)};
+      (m_query_readback_pos + query_count) * sizeof(PerfQueryDataType)};
   u8* mapped_ptr;
   HRESULT hr = m_query_readback_buffer->Map(0, &read_range, reinterpret_cast<void**>(&mapped_ptr));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to map query readback buffer: {}", DX12HRWrap(hr));
@@ -250,8 +243,8 @@ void PerfQuery::AccumulateQueriesFromBuffer(u32 query_count)
                             g_framebuffer_manager->GetEFBHeight();
     if (g_ActiveConfig.iMultisamples > 1)
       native_res_result /= g_ActiveConfig.iMultisamples;
-    m_results[entry.query_group].fetch_add(static_cast<u32>(native_res_result),
-                                           std::memory_order_relaxed);
+    m_results[entry.query_group].fetch_add(
+        static_cast<u32>(native_res_result), std::memory_order_relaxed);
   }
 
   constexpr D3D12_RANGE write_range = {0, 0};

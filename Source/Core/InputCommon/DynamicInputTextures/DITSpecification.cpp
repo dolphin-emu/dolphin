@@ -13,13 +13,12 @@
 namespace InputCommon::DynamicInputTextures
 {
 bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_textures,
-                            const std::string& base_path, const std::string& json_file)
+    const std::string& base_path, const std::string& json_file)
 {
   const picojson::value& output_textures_json = root.get("output_textures");
   if (!output_textures_json.is<picojson::object>())
   {
-    ERROR_LOG_FMT(
-        VIDEO,
+    ERROR_LOG_FMT(VIDEO,
         "Failed to load dynamic input json file '{}' because 'output_textures' is missing or "
         "was not of type object",
         json_file);
@@ -63,10 +62,10 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
     if (!image.is<std::string>() || !emulated_controls.is<picojson::object>())
     {
       ERROR_LOG_FMT(VIDEO,
-                    "Failed to load dynamic input json file '{}' because required fields "
-                    "'image', or 'emulated_controls' are either "
-                    "missing or the incorrect type",
-                    json_file);
+          "Failed to load dynamic input json file '{}' because required fields "
+          "'image', or 'emulated_controls' are either "
+          "missing or the incorrect type",
+          json_file);
       return false;
     }
 
@@ -78,9 +77,9 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
     if (!File::Exists(image_full_path))
     {
       ERROR_LOG_FMT(VIDEO,
-                    "Failed to load dynamic input json file '{}' because the image '{}' "
-                    "could not be loaded",
-                    json_file, image_full_path);
+          "Failed to load dynamic input json file '{}' because the image '{}' "
+          "could not be loaded",
+          json_file, image_full_path);
       return false;
     }
 
@@ -90,9 +89,9 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
       if (!map.is<picojson::object>())
       {
         ERROR_LOG_FMT(VIDEO,
-                      "Failed to load dynamic input json file '{}' because 'emulated_controls' "
-                      "map key '{}' is incorrect type.  Expected map  ",
-                      json_file, emulated_controller_name);
+            "Failed to load dynamic input json file '{}' because 'emulated_controls' "
+            "map key '{}' is incorrect type.  Expected map  ",
+            json_file, emulated_controller_name);
         return false;
       }
 
@@ -101,8 +100,7 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
       {
         if (!regions_array.is<picojson::array>())
         {
-          ERROR_LOG_FMT(
-              VIDEO,
+          ERROR_LOG_FMT(VIDEO,
               "Failed to load dynamic input json file '{}' because emulated controller '{}' "
               "key '{}' has incorrect value type.  Expected array ",
               json_file, emulated_controller_name, emulated_control);
@@ -115,8 +113,7 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
           Rect r;
           if (!region.is<picojson::array>())
           {
-            ERROR_LOG_FMT(
-                VIDEO,
+            ERROR_LOG_FMT(VIDEO,
                 "Failed to load dynamic input json file '{}' because emulated controller '{}' "
                 "key '{}' has a region with the incorrect type.  Expected array ",
                 json_file, emulated_controller_name, emulated_control);
@@ -127,8 +124,7 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
 
           if (region_offsets.size() != 4)
           {
-            ERROR_LOG_FMT(
-                VIDEO,
+            ERROR_LOG_FMT(VIDEO,
                 "Failed to load dynamic input json file '{}' because emulated controller '{}' "
                 "key '{}' has a region that does not have 4 offsets (left, top, right, "
                 "bottom).",
@@ -138,8 +134,7 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
 
           if (!std::ranges::all_of(region_offsets, &picojson::value::is<double>))
           {
-            ERROR_LOG_FMT(
-                VIDEO,
+            ERROR_LOG_FMT(VIDEO,
                 "Failed to load dynamic input json file '{}' because emulated controller '{}' "
                 "key '{}' has a region that has the incorrect offset type.",
                 json_file, emulated_controller_name, emulated_control);
@@ -168,9 +163,9 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
     if (host_controls.empty())
     {
       ERROR_LOG_FMT(VIDEO,
-                    "Failed to load dynamic input json file '{}' because field "
-                    "'host_controls' is missing ",
-                    json_file);
+          "Failed to load dynamic input json file '{}' because field "
+          "'host_controls' is missing ",
+          json_file);
       return false;
     }
 
@@ -179,9 +174,9 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
       if (!map.is<picojson::object>())
       {
         ERROR_LOG_FMT(VIDEO,
-                      "Failed to load dynamic input json file '{}' because 'host_controls' "
-                      "map key '{}' is incorrect type ",
-                      json_file, host_device);
+            "Failed to load dynamic input json file '{}' because 'host_controls' "
+            "map key '{}' is incorrect type ",
+            json_file, host_device);
         return false;
       }
       auto& host_control_to_imagename = texture_data.m_host_devices[host_device];

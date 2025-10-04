@@ -118,10 +118,8 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_isSettingSav
 }
 
 JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_loadGameInis(JNIEnv* env,
-                                                                                 jclass,
-                                                                                 jstring jGameId,
-                                                                                 jint jRevision)
+Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_loadGameInis(
+    JNIEnv* env, jclass, jstring jGameId, jint jRevision)
 {
   const std::string game_id = GetJString(env, jGameId);
   const u16 revision = static_cast<u16>(jRevision);
@@ -147,8 +145,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_settings_model_Na
 }
 
 JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_deleteAllKeys(JNIEnv*, jclass,
-                                                                                  jint layer)
+Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_deleteAllKeys(
+    JNIEnv*, jclass, jint layer)
 {
   return GetLayer(layer, {})->DeleteAllKeys();
 }
@@ -174,28 +172,24 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_deleteKey(
 }
 
 JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_exists(JNIEnv* env, jclass,
-                                                                           jint layer, jstring file,
-                                                                           jstring section,
-                                                                           jstring key)
+Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_exists(
+    JNIEnv* env, jclass, jint layer, jstring file, jstring section, jstring key)
 {
   const Config::Location location = GetLocation(env, file, section, key);
   return static_cast<jboolean>(GetLayer(layer, location)->Exists(location));
 }
 
 JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_getString(
-    JNIEnv* env, jclass, jint layer, jstring file, jstring section, jstring key,
-    jstring default_value)
+Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_getString(JNIEnv* env, jclass,
+    jint layer, jstring file, jstring section, jstring key, jstring default_value)
 {
   const Config::Location location = GetLocation(env, file, section, key);
   return ToJString(env, Get(layer, location, GetJString(env, default_value)));
 }
 
 JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_getBoolean(
-    JNIEnv* env, jclass, jint layer, jstring file, jstring section, jstring key,
-    jboolean default_value)
+Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_getBoolean(JNIEnv* env, jclass,
+    jint layer, jstring file, jstring section, jstring key, jboolean default_value)
 {
   const Config::Location location = GetLocation(env, file, section, key);
   return static_cast<jboolean>(Get(layer, location, static_cast<bool>(default_value)));
@@ -208,9 +202,8 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_settings_model_Na
 }
 
 JNIEXPORT jfloat JNICALL
-Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_getFloat(
-    JNIEnv* env, jclass, jint layer, jstring file, jstring section, jstring key,
-    jfloat default_value)
+Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_getFloat(JNIEnv* env, jclass,
+    jint layer, jstring file, jstring section, jstring key, jfloat default_value)
 {
   return Get(layer, GetLocation(env, file, section, key), default_value);
 }

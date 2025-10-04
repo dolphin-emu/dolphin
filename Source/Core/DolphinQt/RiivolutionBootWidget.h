@@ -22,8 +22,7 @@ class RiivolutionBootWidget : public QDialog
   Q_OBJECT
 public:
   explicit RiivolutionBootWidget(std::string game_id, std::optional<u16> revision,
-                                 std::optional<u8> disc, std::string base_game_path,
-                                 QWidget* parent = nullptr);
+      std::optional<u8> disc, std::string base_game_path, QWidget* parent = nullptr);
   ~RiivolutionBootWidget() override;
 
   bool ShouldBoot() const { return m_should_boot; }
@@ -40,8 +39,8 @@ private:
 
   void LoadMatchingXMLs();
   void OpenXML();
-  void MakeGUIForParsedFile(std::string path, std::string root,
-                            DiscIO::Riivolution::Disc input_disc);
+  void MakeGUIForParsedFile(
+      std::string path, std::string root, DiscIO::Riivolution::Disc input_disc);
   std::optional<DiscIO::Riivolution::Config> LoadConfigXML(const std::string& root_directory);
   void SaveConfigXMLs();
   void BootGame();

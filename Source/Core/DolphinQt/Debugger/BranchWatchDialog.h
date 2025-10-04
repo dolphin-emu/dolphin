@@ -52,8 +52,7 @@ class BranchWatchDialog : public QDialog
 
 public:
   explicit BranchWatchDialog(Core::System& system, Core::BranchWatch& branch_watch,
-                             PPCSymbolDB& ppc_symbol_db, CodeWidget* code_widget,
-                             QWidget* parent = nullptr);
+      PPCSymbolDB& ppc_symbol_db, CodeWidget* code_widget, QWidget* parent = nullptr);
   ~BranchWatchDialog() override;
 
   BranchWatchDialog(const BranchWatchDialog&) = delete;

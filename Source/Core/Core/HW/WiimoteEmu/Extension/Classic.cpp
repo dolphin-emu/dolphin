@@ -54,7 +54,7 @@ Classic::Classic() : Extension1stParty("Classic", _trans("Classic Controller"))
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(BUTTONS_GROUP));
   for (auto& button_name :
-       {A_BUTTON, B_BUTTON, X_BUTTON, Y_BUTTON, ZL_BUTTON, ZR_BUTTON, MINUS_BUTTON, PLUS_BUTTON})
+      {A_BUTTON, B_BUTTON, X_BUTTON, Y_BUTTON, ZL_BUTTON, ZR_BUTTON, MINUS_BUTTON, PLUS_BUTTON})
   {
     m_buttons->AddInput(Translatability::DoNotTranslate, button_name);
   }
@@ -62,10 +62,10 @@ Classic::Classic() : Extension1stParty("Classic", _trans("Classic Controller"))
 
   // sticks
   constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / CAL_STICK_RADIUS;
-  groups.emplace_back(m_left_stick =
-                          new ControllerEmu::OctagonAnalogStick(LEFT_STICK_GROUP, gate_radius));
-  groups.emplace_back(m_right_stick =
-                          new ControllerEmu::OctagonAnalogStick(RIGHT_STICK_GROUP, gate_radius));
+  groups.emplace_back(
+      m_left_stick = new ControllerEmu::OctagonAnalogStick(LEFT_STICK_GROUP, gate_radius));
+  groups.emplace_back(
+      m_right_stick = new ControllerEmu::OctagonAnalogStick(RIGHT_STICK_GROUP, gate_radius));
 
   // triggers
   groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(TRIGGERS_GROUP));
@@ -115,8 +115,8 @@ void Classic::BuildDesiredExtensionState(DesiredExtensionState* target_state)
   // triggers
   {
     ControlState triggers[2] = {0, 0};
-    m_triggers->GetState(&buttons, classic_trigger_bitmasks.data(), triggers,
-                         m_input_override_function);
+    m_triggers->GetState(
+        &buttons, classic_trigger_bitmasks.data(), triggers, m_input_override_function);
 
     const u8 lt = MapFloat<u8>(triggers[0], 0, 0, TRIGGER_RANGE);
     const u8 rt = MapFloat<u8>(triggers[1], 0, 0, TRIGGER_RANGE);

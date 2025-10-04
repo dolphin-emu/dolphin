@@ -150,21 +150,20 @@ void SConfig::ResetRunningGameMetadata()
   SetRunningGameMetadata("00000000", "", "", 0, 0, DiscIO::Region::Unknown);
 }
 
-void SConfig::SetRunningGameMetadata(const DiscIO::Volume& volume,
-                                     const DiscIO::Partition& partition)
+void SConfig::SetRunningGameMetadata(
+    const DiscIO::Volume& volume, const DiscIO::Partition& partition)
 {
   std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
   if (partition == volume.GetGamePartition())
   {
     SetRunningGameMetadata(volume.GetGameID(), volume.GetGameTDBID(), volume.GetTriforceID(),
-                           volume.GetTitleID().value_or(0), volume.GetRevision().value_or(0),
-                           volume.GetRegion());
+        volume.GetTitleID().value_or(0), volume.GetRevision().value_or(0), volume.GetRegion());
   }
   else
   {
     SetRunningGameMetadata(volume.GetGameID(partition), volume.GetGameTDBID(partition),
-                           volume.GetTriforceID(), volume.GetTitleID(partition).value_or(0),
-                           volume.GetRevision(partition).value_or(0), volume.GetRegion());
+        volume.GetTriforceID(), volume.GetTitleID(partition).value_or(0),
+        volume.GetRevision(partition).value_or(0), volume.GetRegion());
   }
 }
 
@@ -182,7 +181,7 @@ void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Plat
   {
     // If not launching a disc game, just read everything from the TMD.
     SetRunningGameMetadata(tmd.GetGameID(), tmd.GetGameTDBID(), "", tmd_title_id,
-                           tmd.GetTitleVersion(), tmd.GetRegion());
+        tmd.GetTitleVersion(), tmd.GetRegion());
   }
 }
 
@@ -193,8 +192,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id)
 }
 
 void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
-                                     std::string triforce_id, u64 title_id, u16 revision,
-                                     DiscIO::Region region)
+    std::string triforce_id, u64 title_id, u16 revision, DiscIO::Region region)
 {
   std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
   const bool was_changed = m_game_id != game_id || m_gametdb_id != gametdb_id ||
@@ -321,7 +319,9 @@ std::string SConfig::MakeGameID(std::string_view file_name)
 struct SetGameMetadata
 {
   SetGameMetadata(SConfig* config_, Core::System& system_, DiscIO::Region* region_)
-      : config(config_), system(system_), region(region_)
+      : config(config_)
+      , system(system_)
+      , region(region_)
   {
   }
   bool operator()(const BootParameters::Disc& disc) const

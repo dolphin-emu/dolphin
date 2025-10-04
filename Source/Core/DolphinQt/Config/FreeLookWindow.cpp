@@ -41,6 +41,6 @@ void FreeLookWindow::ConnectWidgets()
 {
 #ifdef USE_RETRO_ACHIEVEMENTS
   connect(m_hc_warning, &HardcoreWarningWidget::OpenAchievementSettings, this,
-          &FreeLookWindow::OpenAchievementSettings);
+      &FreeLookWindow::OpenAchievementSettings);
 #endif  // USE_RETRO_ACHIEVEMENTS
 }

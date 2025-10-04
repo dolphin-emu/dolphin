@@ -104,7 +104,8 @@ SerializedWiimoteState SerializeDesiredState(const DesiredWiimoteState& state)
   if (extension)
   {
     std::visit(
-        [&s](const auto& arg) {
+        [&s](const auto& arg)
+        {
           using T = std::decay_t<decltype(arg)>;
           static_assert(sizeof(arg) <= 6);
           Common::BitCastPtr<T>(&s.data[s.length]) = arg;
@@ -144,7 +145,8 @@ bool DeserializeDesiredState(DesiredWiimoteState* state, const SerializedWiimote
     return false;
   }
 
-  const size_t expected_size = [&] {
+  const size_t expected_size = [&]
+  {
     size_t s = 1;
     if (has_buttons && has_accel)
       s += 5;
@@ -231,9 +233,8 @@ bool DeserializeDesiredState(DesiredWiimoteState* state, const SerializedWiimote
 
   if (extension)
   {
-    WithVariantAlternative<DesiredExtensionState::ExtensionData>(extension, [&]<typename T>() {
-      state->extension.data.emplace<T>(Common::BitCastPtr<T>(&d[pos]));
-    });
+    WithVariantAlternative<DesiredExtensionState::ExtensionData>(extension,
+        [&]<typename T>() { state->extension.data.emplace<T>(Common::BitCastPtr<T>(&d[pos])); });
   }
 
   return true;

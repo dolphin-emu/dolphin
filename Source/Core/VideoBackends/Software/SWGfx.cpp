@@ -34,25 +34,23 @@ bool SWGfx::SupportsUtilityDrawing() const
   return false;
 }
 
-std::unique_ptr<AbstractTexture> SWGfx::CreateTexture(const TextureConfig& config,
-                                                      [[maybe_unused]] std::string_view name)
+std::unique_ptr<AbstractTexture> SWGfx::CreateTexture(
+    const TextureConfig& config, [[maybe_unused]] std::string_view name)
 {
   return std::make_unique<SWTexture>(config);
 }
 
-std::unique_ptr<AbstractStagingTexture> SWGfx::CreateStagingTexture(StagingTextureType type,
-                                                                    const TextureConfig& config)
+std::unique_ptr<AbstractStagingTexture> SWGfx::CreateStagingTexture(
+    StagingTextureType type, const TextureConfig& config)
 {
   return std::make_unique<SWStagingTexture>(type, config);
 }
 
-std::unique_ptr<AbstractFramebuffer>
-SWGfx::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
-                         std::vector<AbstractTexture*> additional_color_attachments)
+std::unique_ptr<AbstractFramebuffer> SWGfx::CreateFramebuffer(AbstractTexture* color_attachment,
+    AbstractTexture* depth_attachment, std::vector<AbstractTexture*> additional_color_attachments)
 {
   return SWFramebuffer::Create(static_cast<SWTexture*>(color_attachment),
-                               static_cast<SWTexture*>(depth_attachment),
-                               std::move(additional_color_attachments));
+      static_cast<SWTexture*>(depth_attachment), std::move(additional_color_attachments));
 }
 
 bool SWGfx::BindBackbuffer(const ClearColor& clear_color)
@@ -76,16 +74,14 @@ public:
   BinaryData GetBinary() const override { return {}; }
 };
 
-std::unique_ptr<AbstractShader>
-SWGfx::CreateShaderFromSource(ShaderStage stage, [[maybe_unused]] std::string_view source,
-                              [[maybe_unused]] std::string_view name)
+std::unique_ptr<AbstractShader> SWGfx::CreateShaderFromSource(ShaderStage stage,
+    [[maybe_unused]] std::string_view source, [[maybe_unused]] std::string_view name)
 {
   return std::make_unique<SWShader>(stage);
 }
 
-std::unique_ptr<AbstractShader>
-SWGfx::CreateShaderFromBinary(ShaderStage stage, const void* data, size_t length,
-                              [[maybe_unused]] std::string_view name)
+std::unique_ptr<AbstractShader> SWGfx::CreateShaderFromBinary(
+    ShaderStage stage, const void* data, size_t length, [[maybe_unused]] std::string_view name)
 {
   return std::make_unique<SWShader>(stage);
 }
@@ -97,29 +93,28 @@ public:
   ~SWPipeline() override = default;
 };
 
-std::unique_ptr<AbstractPipeline> SWGfx::CreatePipeline(const AbstractPipelineConfig& config,
-                                                        const void* cache_data,
-                                                        size_t cache_data_length)
+std::unique_ptr<AbstractPipeline> SWGfx::CreatePipeline(
+    const AbstractPipelineConfig& config, const void* cache_data, size_t cache_data_length)
 {
   return std::make_unique<SWPipeline>();
 }
 
 // Called on the GPU thread
-void SWGfx::ShowImage(const AbstractTexture* source_texture,
-                      const MathUtil::Rectangle<int>& source_rc)
+void SWGfx::ShowImage(
+    const AbstractTexture* source_texture, const MathUtil::Rectangle<int>& source_rc)
 {
   if (!IsHeadless())
     m_window->ShowImage(source_texture, source_rc);
 }
 
 void SWGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool colorEnable,
-                        bool alphaEnable, bool zEnable, u32 color, u32 z)
+    bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
   EfbCopy::ClearEfb();
 }
 
-std::unique_ptr<NativeVertexFormat>
-SWGfx::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
+std::unique_ptr<NativeVertexFormat> SWGfx::CreateNativeVertexFormat(
+    const PortableVertexDeclaration& vtx_decl)
 {
   return std::make_unique<NativeVertexFormat>(vtx_decl);
 }
@@ -137,7 +132,7 @@ SurfaceInfo SWGfx::GetSurfaceInfo() const
 {
   GLContext* context = m_window->GetContext();
   return {std::max(context->GetBackBufferWidth(), 1u), std::max(context->GetBackBufferHeight(), 1u),
-          1.0f, AbstractTextureFormat::RGBA8};
+      1.0f, AbstractTextureFormat::RGBA8};
 }
 
 }  // namespace SW

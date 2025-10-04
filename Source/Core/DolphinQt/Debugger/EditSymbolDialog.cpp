@@ -13,9 +13,11 @@
 #include <QVBoxLayout>
 
 EditSymbolDialog::EditSymbolDialog(QWidget* parent, const u32 symbol_address, u32* symbol_size,
-                                   std::string* symbol_name, Type type)
-    : QDialog(parent), m_symbol_name(symbol_name), m_symbol_size(symbol_size),
-      m_symbol_address(symbol_address)
+    std::string* symbol_name, Type type)
+    : QDialog(parent)
+    , m_symbol_name(symbol_name)
+    , m_symbol_size(symbol_size)
+    , m_symbol_address(symbol_address)
 {
   m_type = type == Type::Symbol ? tr("Symbol") : tr("Note");
   setWindowTitle(tr("Edit %1").arg(m_type));
@@ -31,8 +33,8 @@ void EditSymbolDialog::CreateWidgets()
 
   QLabel* info_label = new QLabel(tr("Editing %1 starting at: %2\nWarning: Must save the symbol "
                                      "map for changes to be kept.")
-                                      .arg(m_type)
-                                      .arg(QString::number(m_symbol_address, 16)));
+          .arg(m_type)
+          .arg(QString::number(m_symbol_address, 16)));
   m_name_edit = new QLineEdit();
   m_name_edit->setPlaceholderText(tr("%1 name").arg(m_type));
 
@@ -109,36 +111,42 @@ void EditSymbolDialog::UpdateAddressData(u32 size)
 void EditSymbolDialog::ConnectWidgets()
 {
   connect(m_size_lines_spin, QOverload<int>::of(&QSpinBox::valueChanged), this,
-          [this](int value) { UpdateAddressData(value * 4); });
+      [this](int value) { UpdateAddressData(value * 4); });
 
-  connect(m_size_hex_edit, &QLineEdit::editingFinished, this, [this] {
-    bool good;
-    const u32 size = m_size_hex_edit->text().toUInt(&good, 16);
-    if (good)
-      UpdateAddressData(size);
-  });
+  connect(m_size_hex_edit, &QLineEdit::editingFinished, this,
+      [this]
+      {
+        bool good;
+        const u32 size = m_size_hex_edit->text().toUInt(&good, 16);
+        if (good)
+          UpdateAddressData(size);
+      });
 
-  connect(m_address_end_edit, &QLineEdit::textEdited, this, [this] {
-    bool good;
-    const u32 end = m_address_end_edit->text().toUInt(&good, 16);
-    if (good && end > m_symbol_address)
-      UpdateAddressData(end - m_symbol_address);
-  });
+  connect(m_address_end_edit, &QLineEdit::textEdited, this,
+      [this]
+      {
+        bool good;
+        const u32 end = m_address_end_edit->text().toUInt(&good, 16);
+        if (good && end > m_symbol_address)
+          UpdateAddressData(end - m_symbol_address);
+      });
 
   connect(m_buttons, &QDialogButtonBox::accepted, this, &EditSymbolDialog::Accepted);
   connect(m_buttons, &QDialogButtonBox::rejected, this, &EditSymbolDialog::reject);
-  connect(m_buttons, &QDialogButtonBox::clicked, this, [this](QAbstractButton* btn) {
-    const auto role = m_buttons->buttonRole(btn);
-    if (role == QDialogButtonBox::ButtonRole::ResetRole)
-    {
-      FillFunctionData();
-    }
-    else if (role == QDialogButtonBox::ButtonRole::DestructiveRole)
-    {
-      m_delete_chosen = true;
-      QDialog::accept();
-    }
-  });
+  connect(m_buttons, &QDialogButtonBox::clicked, this,
+      [this](QAbstractButton* btn)
+      {
+        const auto role = m_buttons->buttonRole(btn);
+        if (role == QDialogButtonBox::ButtonRole::ResetRole)
+        {
+          FillFunctionData();
+        }
+        else if (role == QDialogButtonBox::ButtonRole::DestructiveRole)
+        {
+          m_delete_chosen = true;
+          QDialog::accept();
+        }
+      });
 }
 
 void EditSymbolDialog::Accepted()

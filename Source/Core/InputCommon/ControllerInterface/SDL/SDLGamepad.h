@@ -64,7 +64,9 @@ private:
   public:
     std::string GetName() const override;
     Axis(SDL_Gamepad* gc, Sint16 range, SDL_GamepadAxis axis)
-        : m_gc(gc), m_range(range), m_axis(axis)
+        : m_gc(gc)
+        , m_range(range)
+        , m_axis(axis)
     {
     }
     ControlState GetState() const override;
@@ -93,7 +95,10 @@ private:
   public:
     std::string GetName() const override { return GetLegacyAxisName(m_index, m_range); }
     LegacyAxis(SDL_Joystick* js, int index, s16 range, bool is_handled_elsewhere)
-        : m_js(js), m_index(index), m_range(range), m_is_handled_elsewhere(is_handled_elsewhere)
+        : m_js(js)
+        , m_index(index)
+        , m_range(range)
+        , m_is_handled_elsewhere(is_handled_elsewhere)
     {
     }
     ControlState GetState() const override;
@@ -112,7 +117,9 @@ private:
   public:
     std::string GetName() const override { return GetLegacyHatName(m_index, m_direction); }
     LegacyHat(SDL_Joystick* js, int index, u8 direction)
-        : m_js(js), m_index(index), m_direction(direction)
+        : m_js(js)
+        , m_index(index)
+        , m_direction(direction)
     {
     }
     ControlState GetState() const override;
@@ -142,7 +149,10 @@ private:
     using UpdateCallback = void (Gamepad::*)(void);
 
     Rumble(const char* name, Gamepad& gc, Uint16* state, UpdateCallback update_callback)
-        : m_name{name}, m_gc{gc}, m_state{*state}, m_update_callback{update_callback}
+        : m_name{name}
+        , m_gc{gc}
+        , m_state{*state}
+        , m_update_callback{update_callback}
     {
     }
     std::string GetName() const override { return m_name; }
@@ -167,7 +177,9 @@ private:
   {
   public:
     CombinedMotor(Gamepad& gc, Uint16* low_state, Uint16* high_state)
-        : m_gc{gc}, m_low_state{*low_state}, m_high_state{*high_state}
+        : m_gc{gc}
+        , m_low_state{*low_state}
+        , m_high_state{*high_state}
     {
     }
     std::string GetName() const override { return "Motor"; }
@@ -279,7 +291,8 @@ private:
   {
   public:
     NonDetectableDirectionalInput(const char* name, const float* state)
-        : m_name{std::move(name)}, m_state{*state}
+        : m_name{std::move(name)}
+        , m_state{*state}
     {
     }
 
@@ -295,9 +308,13 @@ private:
   class MotionInput : public Input
   {
   public:
-    MotionInput(std::string name, SDL_Gamepad* gc, SDL_SensorType type, int index,
-                ControlState scale)
-        : m_name(std::move(name)), m_gc(gc), m_type(type), m_index(index), m_scale(scale)
+    MotionInput(
+        std::string name, SDL_Gamepad* gc, SDL_SensorType type, int index, ControlState scale)
+        : m_name(std::move(name))
+        , m_gc(gc)
+        , m_type(type)
+        , m_index(index)
+        , m_scale(scale)
     {
     }
 
@@ -334,7 +351,7 @@ public:
         SDL_GetNumGamepadTouchpadFingers(m_gamepad, touchpad_index) > finger_index)
     {
       SDL_GetGamepadTouchpadFinger(m_gamepad, touchpad_index, finger_index, nullptr, &m_touchpad_x,
-                                   &m_touchpad_y, &m_touchpad_pressure);
+          &m_touchpad_y, &m_touchpad_pressure);
       m_touchpad_x = m_touchpad_x * 2 - 1;
       m_touchpad_y = m_touchpad_y * 2 - 1;
     }

@@ -69,8 +69,8 @@ Turntable::Turntable() : Extension1stParty("Turntable", _trans("DJ Turntable"))
 
   // stick
   constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / STICK_RADIUS;
-  groups.emplace_back(m_stick =
-                          new ControllerEmu::OctagonAnalogStick(_trans("Stick"), gate_radius));
+  groups.emplace_back(
+      m_stick = new ControllerEmu::OctagonAnalogStick(_trans("Stick"), gate_radius));
 
   // effect dial
   groups.emplace_back(m_effect_dial = new ControllerEmu::Slider(_trans("Effect")));

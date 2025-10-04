@@ -52,7 +52,7 @@ std::vector<ARCode> ApplyAndReturnCodes(std::span<const ARCode> codes);
 void AddCode(ARCode new_code);
 size_t CountEnabledCodes();
 void LoadAndApplyCodes(const Common::IniFile& global_ini, const Common::IniFile& local_ini,
-                       const std::string& game_id, u16 revision);
+    const std::string& game_id, u16 revision);
 
 std::vector<ARCode> LoadCodes(const Common::IniFile& global_ini, const Common::IniFile& local_ini);
 void SaveCodes(Common::IniFile* local_ini, std::span<const ARCode> codes);

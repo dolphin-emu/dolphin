@@ -15,7 +15,9 @@
 #include "Common/Random.h"
 
 ClickBlurLabel::ClickBlurLabel(QWidget* parent)
-    : QStackedWidget(parent), m_normal_label(new QLabel(this)), m_blurred_label(new QLabel(this))
+    : QStackedWidget(parent)
+    , m_normal_label(new QLabel(this))
+    , m_blurred_label(new QLabel(this))
 {
   setCursor(Qt::PointingHandCursor);
 

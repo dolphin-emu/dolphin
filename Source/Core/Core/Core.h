@@ -146,7 +146,7 @@ bool WantsDeterminism();
 
 // [NOT THREADSAFE] For use by Host only
 void SetState(Core::System& system, State state, bool report_state_change = true,
-              bool override_achievement_restrictions = false);
+    bool override_achievement_restrictions = false);
 State GetState(Core::System& system);
 
 void SaveScreenShot();
@@ -160,8 +160,8 @@ void OnFrameEnd(Core::System& system);
 
 // Run a function on the CPU thread, asynchronously.
 // This is only valid to call from the host thread, since it uses PauseAndLock() internally.
-void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> function,
-                    bool wait_for_completion);
+void RunOnCPUThread(
+    Core::System& system, Common::MoveOnlyFunction<void()> function, bool wait_for_completion);
 
 // for calling back into UI code without introducing a dependency on it in core
 using StateChangedCallbackFunc = std::function<void(Core::State)>;

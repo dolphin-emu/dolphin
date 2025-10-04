@@ -4,10 +4,11 @@
 #include "DolphinQt/Config/ConfigControls/ConfigFloatSlider.h"
 
 ConfigFloatSlider::ConfigFloatSlider(float minimum, float maximum,
-                                     const Config::Info<float>& setting, float step,
-                                     Config::Layer* layer)
-    : ConfigControl(Qt::Horizontal, setting.GetLocation(), layer), m_minimum(minimum), m_step(step),
-      m_setting(setting)
+    const Config::Info<float>& setting, float step, Config::Layer* layer)
+    : ConfigControl(Qt::Horizontal, setting.GetLocation(), layer)
+    , m_minimum(minimum)
+    , m_step(step)
+    , m_setting(setting)
 {
   const float range = maximum - minimum;
   const int steps = std::round(range / step);

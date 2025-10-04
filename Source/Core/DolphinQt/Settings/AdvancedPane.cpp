@@ -130,7 +130,8 @@ void AdvancedPane::CreateLayout()
   m_cpu_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   cpu_clock_override_slider_layout->addWidget(m_cpu_label);
 
-  std::function<void()> cpu_text = [this]() {
+  std::function<void()> cpu_text = [this]()
+  {
     const float multi = Config::Get(Config::MAIN_OVERCLOCK);
     const int percent = static_cast<int>(std::round(multi * 100.f));
     const int core_clock =
@@ -174,7 +175,8 @@ void AdvancedPane::CreateLayout()
   m_vi_label->setFixedWidth(label_width);
   m_vi_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   vi_rate_override_slider_layout->addWidget(m_vi_label);
-  std::function<void()> vi_text = [this]() {
+  std::function<void()> vi_text = [this]()
+  {
     const int percent =
         static_cast<int>(std::round(Config::Get(Config::MAIN_VI_OVERCLOCK) * 100.f));
     float vps =
@@ -221,9 +223,8 @@ void AdvancedPane::CreateLayout()
   m_mem1_label->setFixedWidth(label_width);
   m_mem1_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   mem1_override_slider_layout->addWidget(m_mem1_label);
-  connect(m_mem1_override_slider, &QSlider::valueChanged, this, [this](int value) {
-    m_mem1_label->setText(tr("%1 MB (MEM1)").arg(QString::number(value)));
-  });
+  connect(m_mem1_override_slider, &QSlider::valueChanged, this,
+      [this](int value) { m_mem1_label->setText(tr("%1 MB (MEM1)").arg(QString::number(value))); });
 
   auto* mem2_override_slider_layout = new QHBoxLayout();
   mem2_override_slider_layout->setContentsMargins(0, 0, 0, 0);
@@ -237,9 +238,8 @@ void AdvancedPane::CreateLayout()
   m_mem2_label->setFixedWidth(label_width);
   m_mem2_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   mem2_override_slider_layout->addWidget(m_mem2_label);
-  connect(m_mem2_override_slider, &QSlider::valueChanged, this, [this](int value) {
-    m_mem2_label->setText(tr("%1 MB (MEM2)").arg(QString::number(value)));
-  });
+  connect(m_mem2_override_slider, &QSlider::valueChanged, this,
+      [this](int value) { m_mem2_label->setText(tr("%1 MB (MEM2)").arg(QString::number(value))); });
 
   m_ram_override_checkbox->SetDescription(
       tr("Adjusts the amount of RAM in the emulated console.<br><br>"
@@ -265,10 +265,10 @@ void AdvancedPane::CreateLayout()
   QtUtils::ShowFourDigitYear(m_custom_rtc_datetime);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
   m_custom_rtc_datetime->setDateTimeRange(QDateTime({2000, 1, 1}, {0, 0, 0}, QTimeZone::UTC),
-                                          QDateTime({2099, 12, 31}, {23, 59, 59}, QTimeZone::UTC));
+      QDateTime({2099, 12, 31}, {23, 59, 59}, QTimeZone::UTC));
 #else
   m_custom_rtc_datetime->setDateTimeRange(QDateTime({2000, 1, 1}, {0, 0, 0}, Qt::UTC),
-                                          QDateTime({2099, 12, 31}, {23, 59, 59}, Qt::UTC));
+      QDateTime({2099, 12, 31}, {23, 59, 59}, Qt::UTC));
 #endif
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
   m_custom_rtc_datetime->setTimeZone(QTimeZone::UTC);
@@ -287,23 +287,29 @@ void AdvancedPane::CreateLayout()
 
 void AdvancedPane::ConnectLayout()
 {
-  connect(m_cpu_emulation_engine_combobox, &QComboBox::currentIndexChanged, [](int index) {
-    const auto cpu_cores = PowerPC::AvailableCPUCores();
-    if (index >= 0 && static_cast<size_t>(index) < cpu_cores.size())
-      Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, cpu_cores[index]);
-  });
+  connect(m_cpu_emulation_engine_combobox, &QComboBox::currentIndexChanged,
+      [](int index)
+      {
+        const auto cpu_cores = PowerPC::AvailableCPUCores();
+        if (index >= 0 && static_cast<size_t>(index) < cpu_cores.size())
+          Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, cpu_cores[index]);
+      });
 
   m_ram_override_checkbox->setChecked(Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE));
-  connect(m_ram_override_checkbox, &QCheckBox::toggled, [this](bool enable_ram_override) {
-    Config::SetBaseOrCurrent(Config::MAIN_RAM_OVERRIDE_ENABLE, enable_ram_override);
-    Update();
-  });
+  connect(m_ram_override_checkbox, &QCheckBox::toggled,
+      [this](bool enable_ram_override)
+      {
+        Config::SetBaseOrCurrent(Config::MAIN_RAM_OVERRIDE_ENABLE, enable_ram_override);
+        Update();
+      });
 
-  connect(m_custom_rtc_datetime, &QDateTimeEdit::dateTimeChanged, [this](QDateTime date_time) {
-    Config::SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_VALUE,
-                             static_cast<u32>(date_time.toSecsSinceEpoch()));
-    Update();
-  });
+  connect(m_custom_rtc_datetime, &QDateTimeEdit::dateTimeChanged,
+      [this](QDateTime date_time)
+      {
+        Config::SetBaseOrCurrent(
+            Config::MAIN_CUSTOM_RTC_VALUE, static_cast<u32>(date_time.toSecsSinceEpoch()));
+        Update();
+      });
 }
 
 void AdvancedPane::Update()
@@ -328,8 +334,8 @@ void AdvancedPane::Update()
 
   {
     QFont bf = font();
-    bf.setBold(Config::GetActiveLayerForConfig(Config::MAIN_OVERCLOCK_ENABLE) !=
-               Config::LayerType::Base);
+    bf.setBold(
+        Config::GetActiveLayerForConfig(Config::MAIN_OVERCLOCK_ENABLE) != Config::LayerType::Base);
 
     const QSignalBlocker blocker(m_cpu_clock_override_checkbox);
     m_cpu_clock_override_checkbox->setFont(bf);
@@ -340,8 +346,8 @@ void AdvancedPane::Update()
   m_cpu_label->setEnabled(enable_cpu_clock_override_widgets);
 
   QFont vi_bf = font();
-  vi_bf.setBold(Config::GetActiveLayerForConfig(Config::MAIN_VI_OVERCLOCK_ENABLE) !=
-                Config::LayerType::Base);
+  vi_bf.setBold(
+      Config::GetActiveLayerForConfig(Config::MAIN_VI_OVERCLOCK_ENABLE) != Config::LayerType::Base);
   m_vi_rate_override_checkbox->setFont(vi_bf);
   m_vi_rate_override_checkbox->setChecked(enable_vi_rate_override_widgets);
 

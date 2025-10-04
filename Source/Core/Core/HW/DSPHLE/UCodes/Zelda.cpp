@@ -117,7 +117,8 @@ static const std::map<u32, u32> UCODE_FLAGS = {
 };
 
 ZeldaUCode::ZeldaUCode(DSPHLE* dsphle, u32 crc)
-    : UCodeInterface(dsphle, crc), m_renderer(dsphle->GetSystem())
+    : UCodeInterface(dsphle, crc)
+    , m_renderer(dsphle->GetSystem())
 {
   auto it = UCODE_FLAGS.find(crc);
   if (it == UCODE_FLAGS.end())
@@ -242,8 +243,8 @@ void ZeldaUCode::HandleMailDefault(u32 mail)
       }
       else
       {
-        NOTICE_LOG_FMT(DSPHLE,
-                       "Sync mail ({:08x}) received when rendering was not active. Halting.", mail);
+        NOTICE_LOG_FMT(
+            DSPHLE, "Sync mail ({:08x}) received when rendering was not active. Halting.", mail);
         SetMailState(MailState::HALTED);
       }
     }
@@ -548,8 +549,8 @@ void ZeldaUCode::RunPendingCommands()
       else if (m_flags & WEIRD_CMD_0C)
       {
         // TODO
-        NOTICE_LOG_FMT(DSPHLE, "Received an unhandled 0C command, params: {:08x} {:08x}", Read32(),
-                       Read32());
+        NOTICE_LOG_FMT(
+            DSPHLE, "Received an unhandled 0C command, params: {:08x} {:08x}", Read32(), Read32());
       }
       else
       {
@@ -1026,12 +1027,12 @@ void ZeldaAudioRenderer::PrepareFrame()
   // Add reverb data from previous frame.
   ApplyReverb(false);
   AddBuffersWithVolume(m_buf_front_left_reverb.data(), m_buf_back_left_reverb.data(), 0x50, 0x7FFF);
-  AddBuffersWithVolume(m_buf_front_right_reverb.data(), m_buf_back_left_reverb.data(), 0x50,
-                       0xB820);
-  AddBuffersWithVolume(m_buf_front_left_reverb.data(), m_buf_back_right_reverb.data() + 0x28, 0x28,
-                       0xB820);
-  AddBuffersWithVolume(m_buf_front_right_reverb.data(), m_buf_back_right_reverb.data() + 0x28, 0x28,
-                       0x7FFF);
+  AddBuffersWithVolume(
+      m_buf_front_right_reverb.data(), m_buf_back_left_reverb.data(), 0x50, 0xB820);
+  AddBuffersWithVolume(
+      m_buf_front_left_reverb.data(), m_buf_back_right_reverb.data() + 0x28, 0x28, 0xB820);
+  AddBuffersWithVolume(
+      m_buf_front_right_reverb.data(), m_buf_back_right_reverb.data() + 0x28, 0x28, 0x7FFF);
   m_buf_back_left_reverb.fill(0);
   m_buf_back_right_reverb.fill(0);
 
@@ -1117,7 +1118,8 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
       for (u16 i = 0; i < 8; ++i)
         (*last8_samples_buffers[rpb_idx])[i] = buffer[0x50 + i];
 
-      auto ApplyFilter = [&] {
+      auto ApplyFilter = [&]
+      {
         // Filter the buffer using provided coefficients.
         for (u16 i = 0; i < 0x50; ++i)
         {
@@ -1285,7 +1287,7 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
 #endif
 
   if (vpb.enable_biquad_filter && (vpb.biquad_an2 != 0 || vpb.biquad_an1 != 0 ||
-                                   vpb.biquad_bn2 != 0 || vpb.biquad_bn1 != 0x7FFF))
+                                      vpb.biquad_bn2 != 0 || vpb.biquad_bn1 != 0x7FFF))
   {
     ApplyBiquadFilter(&input_samples, &vpb);
   }
@@ -1352,7 +1354,7 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
     for (const auto& buffer : buffers)
     {
       AddBuffersWithVolumeRamp(buffer.buffer, input_samples, buffer.volume << 16,
-                               (buffer.volume_delta << 16) / (s32)buffer.buffer->size());
+          (buffer.volume_delta << 16) / (s32)buffer.buffer->size());
     }
 
     vpb.dolby_volume_current = vpb.dolby_volume_target;
@@ -1405,8 +1407,8 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
         continue;
       }
 
-      s32 new_volume = AddBuffersWithVolumeRamp(dst_buffer, input_samples,
-                                                vpb.channels[i].current_volume << 16, volume_step);
+      s32 new_volume = AddBuffersWithVolumeRamp(
+          dst_buffer, input_samples, vpb.channels[i].current_volume << 16, volume_step);
       vpb.channels[i].current_volume = new_volume >> 16;
     }
   }
@@ -1547,8 +1549,10 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
       bool variable_step;
     };
     std::map<u16, PatternInfo> samples_source_to_pattern = {
-        {VPB::SRC_CONST_PATTERN_0, {0, false}}, {VPB::SRC_CONST_PATTERN_0_VARIABLE_STEP, {0, true}},
-        {VPB::SRC_CONST_PATTERN_1, {1, false}}, {VPB::SRC_CONST_PATTERN_2, {2, false}},
+        {VPB::SRC_CONST_PATTERN_0, {0, false}},
+        {VPB::SRC_CONST_PATTERN_0_VARIABLE_STEP, {0, true}},
+        {VPB::SRC_CONST_PATTERN_1, {1, false}},
+        {VPB::SRC_CONST_PATTERN_2, {2, false}},
         {VPB::SRC_CONST_PATTERN_3, {3, false}},
     };
     auto& pattern_info = samples_source_to_pattern[vpb->samples_source_type];

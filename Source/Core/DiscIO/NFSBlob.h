@@ -41,8 +41,8 @@ static_assert(sizeof(NFSHeader) == 0x200);
 class NFSFileReader final : public BlobReader
 {
 public:
-  static std::unique_ptr<NFSFileReader> Create(File::IOFile first_file,
-                                               const std::string& directory_path);
+  static std::unique_ptr<NFSFileReader> Create(
+      File::IOFile first_file, const std::string& directory_path);
 
   BlobType GetBlobType() const override { return BlobType::NFS; }
   std::unique_ptr<BlobReader> CopyReader() const override;
@@ -66,12 +66,12 @@ private:
   static bool ReadKey(const std::string& path, const std::string& directory, Key* key_out);
   static std::vector<NFSLBARange> GetLBARanges(const NFSHeader& header);
   static std::vector<File::IOFile> OpenFiles(const std::string& directory, File::IOFile first_file,
-                                             u64 expected_raw_size, u64* raw_size_out);
+      u64 expected_raw_size, u64* raw_size_out);
   static u64 CalculateExpectedRawSize(const std::vector<NFSLBARange>& lba_ranges);
   static u64 CalculateExpectedDataSize(const std::vector<NFSLBARange>& lba_ranges);
 
-  NFSFileReader(std::vector<NFSLBARange> lba_ranges, std::vector<File::IOFile> files, Key key,
-                u64 raw_size);
+  NFSFileReader(
+      std::vector<NFSLBARange> lba_ranges, std::vector<File::IOFile> files, Key key, u64 raw_size);
 
   u64 ToPhysicalBlockIndex(u64 logical_block_index) const;
   bool ReadEncryptedBlock(u64 physical_block_index);

@@ -17,8 +17,8 @@ CustomShaderCache::CustomShaderCache()
   m_async_uber_shader_compiler = g_gfx->CreateAsyncShaderCompiler();
   m_async_uber_shader_compiler->StartWorkerThreads(1);  // TODO
 
-  m_frame_end_handler = AfterFrameEvent::Register([this](Core::System&) { RetrieveAsyncShaders(); },
-                                                  "RetrieveAsyncShaders");
+  m_frame_end_handler = AfterFrameEvent::Register(
+      [this](Core::System&) { RetrieveAsyncShaders(); }, "RetrieveAsyncShaders");
 }
 
 CustomShaderCache::~CustomShaderCache()
@@ -55,10 +55,9 @@ void CustomShaderCache::Reload()
   m_uber_pipeline_cache = {};
 }
 
-std::optional<const AbstractPipeline*>
-CustomShaderCache::GetPipelineAsync(const VideoCommon::GXPipelineUid& uid,
-                                    const CustomShaderInstance& custom_shaders,
-                                    const AbstractPipelineConfig& pipeline_config)
+std::optional<const AbstractPipeline*> CustomShaderCache::GetPipelineAsync(
+    const VideoCommon::GXPipelineUid& uid, const CustomShaderInstance& custom_shaders,
+    const AbstractPipelineConfig& pipeline_config)
 {
   if (auto holder = m_pipeline_cache.GetHolder(uid, custom_shaders))
   {
@@ -70,10 +69,9 @@ CustomShaderCache::GetPipelineAsync(const VideoCommon::GXPipelineUid& uid,
   return std::nullopt;
 }
 
-std::optional<const AbstractPipeline*>
-CustomShaderCache::GetPipelineAsync(const VideoCommon::GXUberPipelineUid& uid,
-                                    const CustomShaderInstance& custom_shaders,
-                                    const AbstractPipelineConfig& pipeline_config)
+std::optional<const AbstractPipeline*> CustomShaderCache::GetPipelineAsync(
+    const VideoCommon::GXUberPipelineUid& uid, const CustomShaderInstance& custom_shaders,
+    const AbstractPipelineConfig& pipeline_config)
 {
   if (auto holder = m_uber_pipeline_cache.GetHolder(uid, custom_shaders))
   {
@@ -87,17 +85,19 @@ CustomShaderCache::GetPipelineAsync(const VideoCommon::GXUberPipelineUid& uid,
 
 void CustomShaderCache::AsyncCreatePipeline(const VideoCommon::GXPipelineUid& uid,
 
-                                            const CustomShaderInstance& custom_shaders,
-                                            const AbstractPipelineConfig& pipeline_config)
+    const CustomShaderInstance& custom_shaders, const AbstractPipelineConfig& pipeline_config)
 {
   class PipelineWorkItem final : public VideoCommon::AsyncShaderCompiler::WorkItem
   {
   public:
     PipelineWorkItem(CustomShaderCache* shader_cache, const VideoCommon::GXPipelineUid& uid,
-                     const CustomShaderInstance& custom_shaders, PipelineIterator iterator,
-                     const AbstractPipelineConfig& pipeline_config)
-        : m_shader_cache(shader_cache), m_uid(uid), m_iterator(iterator), m_config(pipeline_config),
-          m_custom_shaders(custom_shaders)
+        const CustomShaderInstance& custom_shaders, PipelineIterator iterator,
+        const AbstractPipelineConfig& pipeline_config)
+        : m_shader_cache(shader_cache)
+        , m_uid(uid)
+        , m_iterator(iterator)
+        , m_config(pipeline_config)
+        , m_custom_shaders(custom_shaders)
     {
       SetStagesReady();
     }
@@ -107,8 +107,8 @@ void CustomShaderCache::AsyncCreatePipeline(const VideoCommon::GXPipelineUid& ui
       m_stages_ready = true;
 
       PixelShaderUid ps_uid = m_uid.ps_uid;
-      ClearUnusedPixelShaderUidBits(m_shader_cache->m_api_type, m_shader_cache->m_host_config,
-                                    &ps_uid);
+      ClearUnusedPixelShaderUidBits(
+          m_shader_cache->m_api_type, m_shader_cache->m_host_config, &ps_uid);
 
       if (auto holder = m_shader_cache->m_ps_cache.GetHolder(ps_uid, m_custom_shaders))
       {
@@ -171,17 +171,19 @@ void CustomShaderCache::AsyncCreatePipeline(const VideoCommon::GXPipelineUid& ui
 
 void CustomShaderCache::AsyncCreatePipeline(const VideoCommon::GXUberPipelineUid& uid,
 
-                                            const CustomShaderInstance& custom_shaders,
-                                            const AbstractPipelineConfig& pipeline_config)
+    const CustomShaderInstance& custom_shaders, const AbstractPipelineConfig& pipeline_config)
 {
   class PipelineWorkItem final : public VideoCommon::AsyncShaderCompiler::WorkItem
   {
   public:
     PipelineWorkItem(CustomShaderCache* shader_cache, const VideoCommon::GXUberPipelineUid& uid,
-                     const CustomShaderInstance& custom_shaders, UberPipelineIterator iterator,
-                     const AbstractPipelineConfig& pipeline_config)
-        : m_shader_cache(shader_cache), m_uid(uid), m_iterator(iterator), m_config(pipeline_config),
-          m_custom_shaders(custom_shaders)
+        const CustomShaderInstance& custom_shaders, UberPipelineIterator iterator,
+        const AbstractPipelineConfig& pipeline_config)
+        : m_shader_cache(shader_cache)
+        , m_uid(uid)
+        , m_iterator(iterator)
+        , m_config(pipeline_config)
+        , m_custom_shaders(custom_shaders)
     {
       SetStagesReady();
     }
@@ -191,8 +193,8 @@ void CustomShaderCache::AsyncCreatePipeline(const VideoCommon::GXUberPipelineUid
       m_stages_ready = true;
 
       UberShader::PixelShaderUid ps_uid = m_uid.ps_uid;
-      ClearUnusedPixelShaderUidBits(m_shader_cache->m_api_type, m_shader_cache->m_host_config,
-                                    &ps_uid);
+      ClearUnusedPixelShaderUidBits(
+          m_shader_cache->m_api_type, m_shader_cache->m_host_config, &ps_uid);
 
       if (auto holder = m_shader_cache->m_uber_ps_cache.GetHolder(ps_uid, m_custom_shaders))
       {
@@ -252,15 +254,15 @@ void CustomShaderCache::AsyncCreatePipeline(const VideoCommon::GXUberPipelineUid
   m_async_uber_shader_compiler->QueueWorkItem(std::move(work_item), 0);
 }
 
-void CustomShaderCache::NotifyPipelineFinished(PipelineIterator iterator,
-                                               std::unique_ptr<AbstractPipeline> pipeline)
+void CustomShaderCache::NotifyPipelineFinished(
+    PipelineIterator iterator, std::unique_ptr<AbstractPipeline> pipeline)
 {
   iterator->second.pending = false;
   iterator->second.value = std::move(pipeline);
 }
 
-void CustomShaderCache::NotifyPipelineFinished(UberPipelineIterator iterator,
-                                               std::unique_ptr<AbstractPipeline> pipeline)
+void CustomShaderCache::NotifyPipelineFinished(
+    UberPipelineIterator iterator, std::unique_ptr<AbstractPipeline> pipeline)
 {
   iterator->second.pending = false;
   iterator->second.value = std::move(pipeline);
@@ -268,14 +270,17 @@ void CustomShaderCache::NotifyPipelineFinished(UberPipelineIterator iterator,
 
 void CustomShaderCache::QueuePixelShaderCompile(const PixelShaderUid& uid,
 
-                                                const CustomShaderInstance& custom_shaders)
+    const CustomShaderInstance& custom_shaders)
 {
   class PixelShaderWorkItem final : public VideoCommon::AsyncShaderCompiler::WorkItem
   {
   public:
     PixelShaderWorkItem(CustomShaderCache* shader_cache, const PixelShaderUid& uid,
-                        const CustomShaderInstance& custom_shaders, PixelShaderIterator iter)
-        : m_shader_cache(shader_cache), m_uid(uid), m_custom_shaders(custom_shaders), m_iter(iter)
+        const CustomShaderInstance& custom_shaders, PixelShaderIterator iter)
+        : m_shader_cache(shader_cache)
+        , m_uid(uid)
+        , m_custom_shaders(custom_shaders)
+        , m_iter(iter)
     {
     }
 
@@ -306,14 +311,17 @@ void CustomShaderCache::QueuePixelShaderCompile(const PixelShaderUid& uid,
 
 void CustomShaderCache::QueuePixelShaderCompile(const UberShader::PixelShaderUid& uid,
 
-                                                const CustomShaderInstance& custom_shaders)
+    const CustomShaderInstance& custom_shaders)
 {
   class PixelShaderWorkItem final : public VideoCommon::AsyncShaderCompiler::WorkItem
   {
   public:
     PixelShaderWorkItem(CustomShaderCache* shader_cache, const UberShader::PixelShaderUid& uid,
-                        const CustomShaderInstance& custom_shaders, UberPixelShaderIterator iter)
-        : m_shader_cache(shader_cache), m_uid(uid), m_custom_shaders(custom_shaders), m_iter(iter)
+        const CustomShaderInstance& custom_shaders, UberPixelShaderIterator iter)
+        : m_shader_cache(shader_cache)
+        , m_uid(uid)
+        , m_custom_shaders(custom_shaders)
+        , m_iter(iter)
     {
     }
 
@@ -342,34 +350,32 @@ void CustomShaderCache::QueuePixelShaderCompile(const UberShader::PixelShaderUid
   m_async_uber_shader_compiler->QueueWorkItem(std::move(work_item), 0);
 }
 
-std::unique_ptr<AbstractShader>
-CustomShaderCache::CompilePixelShader(const PixelShaderUid& uid,
-                                      const CustomShaderInstance& custom_shaders) const
+std::unique_ptr<AbstractShader> CustomShaderCache::CompilePixelShader(
+    const PixelShaderUid& uid, const CustomShaderInstance& custom_shaders) const
 {
   const ShaderCode source_code =
       GeneratePixelShaderCode(m_api_type, m_host_config, uid.GetUidData(), {});
-  return g_gfx->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer(),
-                                       "Custom Pixel Shader");
+  return g_gfx->CreateShaderFromSource(
+      ShaderStage::Pixel, source_code.GetBuffer(), "Custom Pixel Shader");
 }
 
-std::unique_ptr<AbstractShader>
-CustomShaderCache::CompilePixelShader(const UberShader::PixelShaderUid& uid,
-                                      const CustomShaderInstance& custom_shaders) const
+std::unique_ptr<AbstractShader> CustomShaderCache::CompilePixelShader(
+    const UberShader::PixelShaderUid& uid, const CustomShaderInstance& custom_shaders) const
 {
   const ShaderCode source_code = GenPixelShader(m_api_type, m_host_config, uid.GetUidData());
-  return g_gfx->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer(),
-                                       "Custom Uber Pixel Shader");
+  return g_gfx->CreateShaderFromSource(
+      ShaderStage::Pixel, source_code.GetBuffer(), "Custom Uber Pixel Shader");
 }
 
-void CustomShaderCache::NotifyPixelShaderFinished(PixelShaderIterator iterator,
-                                                  std::unique_ptr<AbstractShader> shader)
+void CustomShaderCache::NotifyPixelShaderFinished(
+    PixelShaderIterator iterator, std::unique_ptr<AbstractShader> shader)
 {
   iterator->second.pending = false;
   iterator->second.value = std::move(shader);
 }
 
-void CustomShaderCache::NotifyPixelShaderFinished(UberPixelShaderIterator iterator,
-                                                  std::unique_ptr<AbstractShader> shader)
+void CustomShaderCache::NotifyPixelShaderFinished(
+    UberPixelShaderIterator iterator, std::unique_ptr<AbstractShader> shader)
 {
   iterator->second.pending = false;
   iterator->second.value = std::move(shader);

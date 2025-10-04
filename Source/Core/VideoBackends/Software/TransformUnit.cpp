@@ -85,8 +85,8 @@ void TransformPosition(const InputVertexData* src, OutputVertexData* dst)
 
   if (xfmem.projection.type == ProjectionType::Perspective)
   {
-    MultipleVec3Perspective(dst->mvPosition, xfmem.projection.rawProjection,
-                            dst->projectedPosition);
+    MultipleVec3Perspective(
+        dst->mvPosition, xfmem.projection.rawProjection, dst->projectedPosition);
   }
   else
   {
@@ -110,7 +110,7 @@ void TransformNormal(const InputVertexData* src, OutputVertexData* dst)
 }
 
 static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum,
-                                     const InputVertexData* srcVertex, OutputVertexData* dstVertex)
+    const InputVertexData* srcVertex, OutputVertexData* dstVertex)
 {
   Vec3 src;
   switch (texinfo.sourcerow)
@@ -213,8 +213,8 @@ static inline float SafeDivide(float n, float d)
   return (d == 0) ? (n > 0 ? 1 : 0) : n / d;
 }
 
-static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Vec3& normal,
-                                const LitChannel& chan)
+static float CalculateLightAttn(
+    const LightPointer* light, Vec3* _ldir, const Vec3& normal, const LitChannel& chan)
 {
   float attn = 1.0f;
   Vec3& ldir = *_ldir;
@@ -261,8 +261,8 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
   return attn;
 }
 
-static void LightColor(const Vec3& pos, const Vec3& normal, u8 lightNum, const LitChannel& chan,
-                       Vec3& lightCol)
+static void LightColor(
+    const Vec3& pos, const Vec3& normal, u8 lightNum, const LitChannel& chan, Vec3& lightCol)
 {
   const LightPointer* light = (const LightPointer*)&xfmem.lights[lightNum];
 
@@ -287,8 +287,8 @@ static void LightColor(const Vec3& pos, const Vec3& normal, u8 lightNum, const L
   }
 }
 
-static void LightAlpha(const Vec3& pos, const Vec3& normal, u8 lightNum, const LitChannel& chan,
-                       float& lightCol)
+static void LightAlpha(
+    const Vec3& pos, const Vec3& normal, u8 lightNum, const LitChannel& chan, float& lightCol)
 {
   const LightPointer* light = (const LightPointer*)&xfmem.lights[lightNum];
 

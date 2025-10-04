@@ -36,8 +36,8 @@ class Decompressor
 public:
   virtual ~Decompressor();
 
-  virtual bool Decompress(const DecompressionBuffer& in, DecompressionBuffer* out,
-                          size_t* in_bytes_read) = 0;
+  virtual bool Decompress(
+      const DecompressionBuffer& in, DecompressionBuffer* out, size_t* in_bytes_read) = 0;
   virtual bool Done() const { return m_done; }
 
 protected:
@@ -47,8 +47,8 @@ protected:
 class NoneDecompressor final : public Decompressor
 {
 public:
-  bool Decompress(const DecompressionBuffer& in, DecompressionBuffer* out,
-                  size_t* in_bytes_read) override;
+  bool Decompress(
+      const DecompressionBuffer& in, DecompressionBuffer* out, size_t* in_bytes_read) override;
 };
 
 // This class assumes that more bytes won't be added to in once in.bytes_written == in.data.size()
@@ -57,8 +57,8 @@ class PurgeDecompressor final : public Decompressor
 {
 public:
   PurgeDecompressor(u64 decompressed_size);
-  bool Decompress(const DecompressionBuffer& in, DecompressionBuffer* out,
-                  size_t* in_bytes_read) override;
+  bool Decompress(
+      const DecompressionBuffer& in, DecompressionBuffer* out, size_t* in_bytes_read) override;
 
 private:
   const u64 m_decompressed_size;
@@ -77,8 +77,8 @@ class Bzip2Decompressor final : public Decompressor
 public:
   ~Bzip2Decompressor() override;
 
-  bool Decompress(const DecompressionBuffer& in, DecompressionBuffer* out,
-                  size_t* in_bytes_read) override;
+  bool Decompress(
+      const DecompressionBuffer& in, DecompressionBuffer* out, size_t* in_bytes_read) override;
 
 private:
   bz_stream m_stream = {};
@@ -91,8 +91,8 @@ public:
   LZMADecompressor(bool lzma2, const u8* filter_options, size_t filter_options_size);
   ~LZMADecompressor() override;
 
-  bool Decompress(const DecompressionBuffer& in, DecompressionBuffer* out,
-                  size_t* in_bytes_read) override;
+  bool Decompress(
+      const DecompressionBuffer& in, DecompressionBuffer* out, size_t* in_bytes_read) override;
 
 private:
   lzma_stream m_stream = LZMA_STREAM_INIT;
@@ -108,8 +108,8 @@ public:
   ZstdDecompressor();
   ~ZstdDecompressor() override;
 
-  bool Decompress(const DecompressionBuffer& in, DecompressionBuffer* out,
-                  size_t* in_bytes_read) override;
+  bool Decompress(
+      const DecompressionBuffer& in, DecompressionBuffer* out, size_t* in_bytes_read) override;
 
 private:
   ZSTD_DStream* m_stream;
@@ -119,17 +119,17 @@ class RVZPackDecompressor final : public Decompressor
 {
 public:
   RVZPackDecompressor(std::unique_ptr<Decompressor> decompressor, DecompressionBuffer decompressed,
-                      u64 data_offset, u32 rvz_packed_size);
+      u64 data_offset, u32 rvz_packed_size);
 
-  bool Decompress(const DecompressionBuffer& in, DecompressionBuffer* out,
-                  size_t* in_bytes_read) override;
+  bool Decompress(
+      const DecompressionBuffer& in, DecompressionBuffer* out, size_t* in_bytes_read) override;
 
   bool Done() const override;
 
 private:
   bool IncrementBytesRead(size_t x);
   std::optional<bool> ReadToDecompressed(const DecompressionBuffer& in, size_t* in_bytes_read,
-                                         size_t decompressed_bytes_read, size_t bytes_to_read);
+      size_t decompressed_bytes_read, size_t bytes_to_read);
 
   std::unique_ptr<Decompressor> m_decompressor;
   DecompressionBuffer m_decompressed;
@@ -204,8 +204,8 @@ private:
 class LZMACompressor final : public Compressor
 {
 public:
-  LZMACompressor(bool lzma2, int compression_level, u8 compressor_data_out[7],
-                 u8* compressor_data_size_out);
+  LZMACompressor(
+      bool lzma2, int compression_level, u8 compressor_data_out[7], u8* compressor_data_size_out);
   ~LZMACompressor() override;
 
   bool Start(std::optional<u64> size) override;

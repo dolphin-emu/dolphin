@@ -58,18 +58,18 @@ bool CommandBufferManager::CreateCommandBuffers(size_t swapchain_image_count)
     resources.semaphore_used = false;
 
     VkCommandPoolCreateInfo pool_info = {VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO, nullptr, 0,
-                                         g_vulkan_context->GetGraphicsQueueFamilyIndex()};
-    res = vkCreateCommandPool(g_vulkan_context->GetDevice(), &pool_info, nullptr,
-                              &resources.command_pool);
+        g_vulkan_context->GetGraphicsQueueFamilyIndex()};
+    res = vkCreateCommandPool(
+        g_vulkan_context->GetDevice(), &pool_info, nullptr, &resources.command_pool);
     if (res != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(res, "vkCreateCommandPool failed: ");
       return false;
     }
 
-    VkCommandBufferAllocateInfo buffer_info = {
-        VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO, nullptr, resources.command_pool,
-        VK_COMMAND_BUFFER_LEVEL_PRIMARY, static_cast<uint32_t>(resources.command_buffers.size())};
+    VkCommandBufferAllocateInfo buffer_info = {VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+        nullptr, resources.command_pool, VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        static_cast<uint32_t>(resources.command_buffers.size())};
 
     res = vkAllocateCommandBuffers(device, &buffer_info, resources.command_buffers.data());
     if (res != VK_SUCCESS)
@@ -78,8 +78,8 @@ bool CommandBufferManager::CreateCommandBuffers(size_t swapchain_image_count)
       return false;
     }
 
-    VkFenceCreateInfo fence_info = {VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, nullptr,
-                                    VK_FENCE_CREATE_SIGNALED_BIT};
+    VkFenceCreateInfo fence_info = {
+        VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, nullptr, VK_FENCE_CREATE_SIGNALED_BIT};
 
     res = vkCreateFence(device, &fence_info, nullptr, &resources.fence);
     if (res != VK_SUCCESS)
@@ -167,17 +167,21 @@ VkDescriptorPool CommandBufferManager::CreateDescriptorPool(u32 max_descriptor_s
   const std::array<VkDescriptorPoolSize, 5> pool_sizes{{
       {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, max_descriptor_sets * 3},
       {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-       max_descriptor_sets *
-           (VideoCommon::MAX_PIXEL_SHADER_SAMPLERS + VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS +
-            NUM_UTILITY_PIXEL_SAMPLERS)},
+          max_descriptor_sets *
+              (VideoCommon::MAX_PIXEL_SHADER_SAMPLERS + VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS +
+                  NUM_UTILITY_PIXEL_SAMPLERS)},
       {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, max_descriptor_sets * 2},
       {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, max_descriptor_sets * 3},
       {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, max_descriptor_sets * 1},
   }};
 
   const VkDescriptorPoolCreateInfo pool_create_info = {
-      VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, nullptr,           0, max_descriptor_sets,
-      static_cast<u32>(pool_sizes.size()),           pool_sizes.data(),
+      VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+      nullptr,
+      0,
+      max_descriptor_sets,
+      static_cast<u32>(pool_sizes.size()),
+      pool_sizes.data(),
   };
 
   VkDevice device = g_vulkan_context->GetDevice();
@@ -198,9 +202,9 @@ VkDescriptorSet CommandBufferManager::AllocateDescriptorSet(VkDescriptorSetLayou
 
   if (!resources.descriptor_pools.empty()) [[likely]]
   {
-    VkDescriptorSetAllocateInfo allocate_info = {
-        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO, nullptr,
-        resources.descriptor_pools[resources.current_descriptor_pool_index], 1, &set_layout};
+    VkDescriptorSetAllocateInfo allocate_info = {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+        nullptr, resources.descriptor_pools[resources.current_descriptor_pool_index], 1,
+        &set_layout};
 
     VkResult res =
         vkAllocateDescriptorSets(g_vulkan_context->GetDevice(), &allocate_info, &descriptor_set);
@@ -231,12 +235,14 @@ VkDescriptorSet CommandBufferManager::AllocateDescriptorSet(VkDescriptorSetLayou
 
 bool CommandBufferManager::CreateSubmitThread()
 {
-  m_submit_thread.Reset("VK submission thread", [this](PendingCommandBufferSubmit submit) {
-    SubmitCommandBuffer(submit.command_buffer_index, submit.present_swap_chain,
-                        submit.present_image_index);
-    CmdBufferResources& resources = m_command_buffers[submit.command_buffer_index];
-    resources.waiting_for_submit.store(false, std::memory_order_release);
-  });
+  m_submit_thread.Reset("VK submission thread",
+      [this](PendingCommandBufferSubmit submit)
+      {
+        SubmitCommandBuffer(
+            submit.command_buffer_index, submit.present_swap_chain, submit.present_image_index);
+        CmdBufferResources& resources = m_command_buffers[submit.command_buffer_index];
+        resources.waiting_for_submit.store(false, std::memory_order_release);
+      });
 
   return true;
 }
@@ -277,7 +283,7 @@ void CommandBufferManager::WaitForCommandBufferCompletion(u32 index)
   {
     WaitForWorkerThreadIdle();
     ASSERT_MSG(VIDEO, !resources.waiting_for_submit.load(std::memory_order_relaxed),
-               "Submit thread is idle but command buffer is still waiting for submission!");
+        "Submit thread is idle but command buffer is still waiting for submission!");
   }
 
   // Wait for this command buffer to be completed.
@@ -310,9 +316,8 @@ void CommandBufferManager::WaitForCommandBufferCompletion(u32 index)
 }
 
 void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
-                                               bool wait_for_completion, bool advance_to_next_frame,
-                                               VkSwapchainKHR present_swap_chain,
-                                               uint32_t present_image_index)
+    bool wait_for_completion, bool advance_to_next_frame, VkSwapchainKHR present_swap_chain,
+    uint32_t present_image_index)
 {
   // End the current command buffer.
   CmdBufferResources& resources = GetCurrentCmdBufferResources();
@@ -322,8 +327,8 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
     if (res != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(res, "vkEndCommandBuffer failed: ");
-      PanicAlertFmt("Failed to end command buffer: {} ({})", VkResultToString(res),
-                    static_cast<int>(res));
+      PanicAlertFmt(
+          "Failed to end command buffer: {} ({})", VkResultToString(res), static_cast<int>(res));
     }
   }
 
@@ -366,8 +371,8 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
 
     if (frame_resources.descriptor_pools.size() == 1) [[likely]]
     {
-      VkResult res = vkResetDescriptorPool(g_vulkan_context->GetDevice(),
-                                           frame_resources.descriptor_pools[0], 0);
+      VkResult res = vkResetDescriptorPool(
+          g_vulkan_context->GetDevice(), frame_resources.descriptor_pools[0], 0);
       if (res != VK_SUCCESS)
         LOG_VULKAN_ERROR(res, "vkResetDescriptorPool failed: ");
     }
@@ -390,23 +395,16 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
   BeginCommandBuffer();
 }
 
-void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
-                                               VkSwapchainKHR present_swap_chain,
-                                               u32 present_image_index)
+void CommandBufferManager::SubmitCommandBuffer(
+    u32 command_buffer_index, VkSwapchainKHR present_swap_chain, u32 present_image_index)
 {
   CmdBufferResources& resources = m_command_buffers[command_buffer_index];
 
   // This may be executed on the worker thread, so don't modify any state of the manager class.
   uint32_t wait_bits = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-  VkSubmitInfo submit_info = {VK_STRUCTURE_TYPE_SUBMIT_INFO,
-                              nullptr,
-                              0,
-                              nullptr,
-                              &wait_bits,
-                              static_cast<u32>(resources.command_buffers.size()),
-                              resources.command_buffers.data(),
-                              0,
-                              nullptr};
+  VkSubmitInfo submit_info = {VK_STRUCTURE_TYPE_SUBMIT_INFO, nullptr, 0, nullptr, &wait_bits,
+      static_cast<u32>(resources.command_buffers.size()), resources.command_buffers.data(), 0,
+      nullptr};
 
   // If the init command buffer did not have any commands recorded, don't submit it.
   if (!resources.init_command_buffer_used)
@@ -432,22 +430,17 @@ void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkQueueSubmit failed: ");
-    PanicAlertFmt("Failed to submit command buffer: {} ({})", VkResultToString(res),
-                  static_cast<int>(res));
+    PanicAlertFmt(
+        "Failed to submit command buffer: {} ({})", VkResultToString(res), static_cast<int>(res));
   }
 
   // Do we have a swap chain to present?
   if (present_swap_chain != VK_NULL_HANDLE)
   {
     // Should have a signal semaphore.
-    VkPresentInfoKHR present_info = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-                                     nullptr,
-                                     1,
-                                     &m_present_semaphores[present_image_index],
-                                     1,
-                                     &present_swap_chain,
-                                     &present_image_index,
-                                     nullptr};
+    VkPresentInfoKHR present_info = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR, nullptr, 1,
+        &m_present_semaphores[present_image_index], 1, &present_swap_chain, &present_image_index,
+        nullptr};
 
     m_last_present_result = vkQueuePresentKHR(g_vulkan_context->GetPresentQueue(), &present_info);
     if (m_last_present_result != VK_SUCCESS)
@@ -494,7 +487,7 @@ void CommandBufferManager::BeginCommandBuffer()
 
   // Enable commands to be recorded to the two buffers again.
   VkCommandBufferBeginInfo begin_info = {VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, nullptr,
-                                         VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, nullptr};
+      VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, nullptr};
   for (VkCommandBuffer command_buffer : resources.command_buffers)
   {
     res = vkBeginCommandBuffer(command_buffer, &begin_info);

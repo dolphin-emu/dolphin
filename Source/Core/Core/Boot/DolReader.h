@@ -28,7 +28,7 @@ public:
   u32 GetEntryPoint() const override { return m_dolheader.entryPoint; }
   bool LoadIntoMemory(Core::System& system, bool only_in_mem1 = false) const override;
   bool LoadSymbols(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_symbol_db,
-                   const std::string& filename) const override
+      const std::string& filename) const override
   {
     return false;
   }

@@ -96,7 +96,7 @@ bool SupportsCustomDriver();
 
 const char* VkResultToString(VkResult res);
 void LogVulkanResult(Common::Log::LogLevel level, const char* func_name, const int line,
-                     VkResult res, const char* msg);
+    VkResult res, const char* msg);
 
 #define LOG_VULKAN_ERROR(res, msg)                                                                 \
   LogVulkanResult(Common::Log::LogLevel::LERROR, __func__, __LINE__, res, msg)

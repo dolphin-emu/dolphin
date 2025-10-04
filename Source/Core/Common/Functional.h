@@ -27,7 +27,7 @@ public:
   }
 
   result_type operator()(Args... args) const { return m_ptr->Invoke(std::forward<Args>(args)...); }
-  explicit operator bool() const { return m_ptr != nullptr; };
+  explicit operator bool() const { return m_ptr != nullptr; }
   void swap(MoveOnlyFunction& other) { m_ptr.swap(other.m_ptr); }
 
 private:

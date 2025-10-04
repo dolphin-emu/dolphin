@@ -112,13 +112,13 @@ bool ObjectCache::CreateDescriptorSetLayouts()
   // if geometry shaders are not supported by the device. See the decrement below.
   static const std::array<VkDescriptorSetLayoutBinding, 4> standard_ubo_bindings{{
       {UBO_DESCRIPTOR_SET_BINDING_PS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
-       VK_SHADER_STAGE_FRAGMENT_BIT},
+          VK_SHADER_STAGE_FRAGMENT_BIT},
       {UBO_DESCRIPTOR_SET_BINDING_VS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
-       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT},
+          VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT},
       {UBO_DESCRIPTOR_SET_BINDING_CUST, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
-       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT},
+          VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT},
       {UBO_DESCRIPTOR_SET_BINDING_GS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
-       VK_SHADER_STAGE_GEOMETRY_BIT},
+          VK_SHADER_STAGE_GEOMETRY_BIT},
   }};
 
   constexpr u32 MAX_PIXEL_SAMPLER_ARRAY_SIZE = 8;
@@ -129,7 +129,7 @@ bool ObjectCache::CreateDescriptorSetLayouts()
   static const std::array<VkDescriptorSetLayoutBinding, TOTAL_PIXEL_SAMPLER_BINDINGS>
       standard_sampler_bindings{{
           {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_PIXEL_SAMPLER_ARRAY_SIZE,
-           VK_SHADER_STAGE_FRAGMENT_BIT},
+              VK_SHADER_STAGE_FRAGMENT_BIT},
           {8, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
           {9, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
           {10, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
@@ -148,7 +148,7 @@ bool ObjectCache::CreateDescriptorSetLayouts()
 
   static const std::array<VkDescriptorSetLayoutBinding, 1> utility_ubo_bindings{{
       {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
-       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT},
+          VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT},
   }};
 
   // Utility samplers aren't dynamically indexed.
@@ -190,17 +190,17 @@ bool ObjectCache::CreateDescriptorSetLayouts()
 
   std::array<VkDescriptorSetLayoutCreateInfo, NUM_DESCRIPTOR_SET_LAYOUTS> create_infos{{
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
-       static_cast<u32>(ubo_bindings.size()), ubo_bindings.data()},
+          static_cast<u32>(ubo_bindings.size()), ubo_bindings.data()},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
-       static_cast<u32>(standard_sampler_bindings.size()), standard_sampler_bindings.data()},
+          static_cast<u32>(standard_sampler_bindings.size()), standard_sampler_bindings.data()},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
-       static_cast<u32>(standard_ssbo_bindings.size()), standard_ssbo_bindings.data()},
+          static_cast<u32>(standard_ssbo_bindings.size()), standard_ssbo_bindings.data()},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
-       static_cast<u32>(utility_ubo_bindings.size()), utility_ubo_bindings.data()},
+          static_cast<u32>(utility_ubo_bindings.size()), utility_ubo_bindings.data()},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
-       static_cast<u32>(utility_sampler_bindings.size()), utility_sampler_bindings.data()},
+          static_cast<u32>(utility_sampler_bindings.size()), utility_sampler_bindings.data()},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
-       static_cast<u32>(compute_set_bindings.size()), compute_set_bindings.data()},
+          static_cast<u32>(compute_set_bindings.size()), compute_set_bindings.data()},
   }};
 
   // Don't set the GS bit if geometry shaders aren't available.
@@ -222,8 +222,8 @@ bool ObjectCache::CreateDescriptorSetLayouts()
 
   for (size_t i = 0; i < create_infos.size(); i++)
   {
-    VkResult res = vkCreateDescriptorSetLayout(g_vulkan_context->GetDevice(), &create_infos[i],
-                                               nullptr, &m_descriptor_set_layouts[i]);
+    VkResult res = vkCreateDescriptorSetLayout(
+        g_vulkan_context->GetDevice(), &create_infos[i], nullptr, &m_descriptor_set_layouts[i]);
     if (res != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(res, "vkCreateDescriptorSetLayout failed: ");
@@ -270,19 +270,19 @@ bool ObjectCache::CreatePipelineLayouts()
   std::array<VkPipelineLayoutCreateInfo, NUM_PIPELINE_LAYOUTS> pipeline_layout_info{{
       // Standard
       {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
-       static_cast<u32>(standard_sets.size()), standard_sets.data(), 0, nullptr},
+          static_cast<u32>(standard_sets.size()), standard_sets.data(), 0, nullptr},
 
       // Uber
       {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
-       static_cast<u32>(uber_sets.size()), uber_sets.data(), 0, nullptr},
+          static_cast<u32>(uber_sets.size()), uber_sets.data(), 0, nullptr},
 
       // Utility
       {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
-       static_cast<u32>(utility_sets.size()), utility_sets.data(), 0, nullptr},
+          static_cast<u32>(utility_sets.size()), utility_sets.data(), 0, nullptr},
 
       // Compute
       {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
-       static_cast<u32>(compute_sets.size()), compute_sets.data(), 0, nullptr},
+          static_cast<u32>(compute_sets.size()), compute_sets.data(), 0, nullptr},
   }};
 
   const bool ssbos_in_standard =
@@ -299,7 +299,7 @@ bool ObjectCache::CreatePipelineLayouts()
   {
     VkResult res;
     if ((res = vkCreatePipelineLayout(g_vulkan_context->GetDevice(), &pipeline_layout_info[i],
-                                      nullptr, &m_pipeline_layouts[i])) != VK_SUCCESS)
+             nullptr, &m_pipeline_layouts[i])) != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(res, "vkCreatePipelineLayout failed: ");
       return false;
@@ -374,7 +374,7 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
       {VK_SAMPLER_MIPMAP_MODE_NEAREST, VK_SAMPLER_MIPMAP_MODE_LINEAR}};
   static constexpr std::array<VkSamplerAddressMode, 4> address_modes = {
       {VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_ADDRESS_MODE_REPEAT,
-       VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT}};
+          VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT}};
 
   VkSamplerCreateInfo create_info = {
       VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,              // VkStructureType         sType
@@ -403,7 +403,7 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
     // Cap anisotropy to device limits.
     create_info.anisotropyEnable = VK_TRUE;
     create_info.maxAnisotropy = std::min(static_cast<float>(1 << info.tm0.anisotropic_filtering),
-                                         g_vulkan_context->GetMaxSamplerAnisotropy());
+        g_vulkan_context->GetMaxSamplerAnisotropy());
   }
 
   VkSampler sampler = VK_NULL_HANDLE;
@@ -417,8 +417,7 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
 }
 
 VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_format,
-                                        u32 multisamples, VkAttachmentLoadOp load_op,
-                                        u8 additional_attachment_count)
+    u32 multisamples, VkAttachmentLoadOp load_op, u8 additional_attachment_count)
 {
   auto key =
       std::tie(color_format, depth_format, multisamples, load_op, additional_attachment_count);
@@ -437,10 +436,9 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
     color_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     color_attachment_references.push_back(std::move(color_reference));
     attachments.push_back({0, color_format, static_cast<VkSampleCountFlagBits>(multisamples),
-                           load_op, VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                           VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                           VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                           VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
+        load_op, VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+        VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
   }
   if (depth_format != VK_FORMAT_UNDEFINED)
   {
@@ -448,10 +446,9 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
     depth_reference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     depth_reference_ptr = &depth_reference;
     attachments.push_back({0, depth_format, static_cast<VkSampleCountFlagBits>(multisamples),
-                           load_op, VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                           VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                           VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                           VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL});
+        load_op, VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+        VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL});
   }
 
   for (u8 i = 0; i < additional_attachment_count; i++)
@@ -461,32 +458,17 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
     color_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     color_attachment_references.push_back(std::move(color_reference));
     attachments.push_back({0, color_format, static_cast<VkSampleCountFlagBits>(multisamples),
-                           load_op, VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                           VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                           VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                           VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
+        load_op, VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+        VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
   }
 
-  VkSubpassDescription subpass = {
-      0,
-      VK_PIPELINE_BIND_POINT_GRAPHICS,
-      0,
-      nullptr,
+  VkSubpassDescription subpass = {0, VK_PIPELINE_BIND_POINT_GRAPHICS, 0, nullptr,
       static_cast<uint32_t>(color_attachment_references.size()),
-      color_attachment_references.empty() ? nullptr : color_attachment_references.data(),
-      nullptr,
-      depth_reference_ptr,
-      0,
-      nullptr};
-  VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-                                      nullptr,
-                                      0,
-                                      static_cast<uint32_t>(attachments.size()),
-                                      attachments.data(),
-                                      1,
-                                      &subpass,
-                                      0,
-                                      nullptr};
+      color_attachment_references.empty() ? nullptr : color_attachment_references.data(), nullptr,
+      depth_reference_ptr, 0, nullptr};
+  VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO, nullptr, 0,
+      static_cast<uint32_t>(attachments.size()), attachments.data(), 1, &subpass, 0, nullptr};
 
   VkRenderPass pass;
   VkResult res = vkCreateRenderPass(g_vulkan_context->GetDevice(), &pass_info, nullptr, &pass);
@@ -603,7 +585,7 @@ struct VK_PIPELINE_CACHE_HEADER
 };
 #pragma pack(pop)
 static_assert(std::is_trivially_copyable<VK_PIPELINE_CACHE_HEADER>::value,
-              "VK_PIPELINE_CACHE_HEADER must be trivially copyable");
+    "VK_PIPELINE_CACHE_HEADER must be trivially copyable");
 
 bool ObjectCache::ValidatePipelineCache(const u8* data, size_t data_length)
 {
@@ -629,16 +611,16 @@ bool ObjectCache::ValidatePipelineCache(const u8* data, size_t data_length)
 
   if (header.vendor_id != g_vulkan_context->GetDeviceInfo().vendorID)
   {
-    ERROR_LOG_FMT(
-        VIDEO, "Pipeline cache failed validation: Incorrect vendor ID (file: {:#X}, device: {:#X})",
+    ERROR_LOG_FMT(VIDEO,
+        "Pipeline cache failed validation: Incorrect vendor ID (file: {:#X}, device: {:#X})",
         header.vendor_id, g_vulkan_context->GetDeviceInfo().vendorID);
     return false;
   }
 
   if (header.device_id != g_vulkan_context->GetDeviceInfo().deviceID)
   {
-    ERROR_LOG_FMT(
-        VIDEO, "Pipeline cache failed validation: Incorrect device ID (file: {:#X}, device: {:#X})",
+    ERROR_LOG_FMT(VIDEO,
+        "Pipeline cache failed validation: Incorrect device ID (file: {:#X}, device: {:#X})",
         header.device_id, g_vulkan_context->GetDeviceInfo().deviceID);
     return false;
   }
@@ -671,8 +653,8 @@ void ObjectCache::SavePipelineCache()
   }
 
   std::vector<u8> data(data_size);
-  res = vkGetPipelineCacheData(g_vulkan_context->GetDevice(), m_pipeline_cache, &data_size,
-                               data.data());
+  res = vkGetPipelineCacheData(
+      g_vulkan_context->GetDevice(), m_pipeline_cache, &data_size, data.data());
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkGetPipelineCacheData failed: ");

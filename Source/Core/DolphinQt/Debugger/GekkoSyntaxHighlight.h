@@ -42,8 +42,8 @@ class GekkoSyntaxHighlight : public QSyntaxHighlighter
   Q_OBJECT;
 
 public:
-  explicit GekkoSyntaxHighlight(QTextDocument* document, QTextCharFormat base_format,
-                                bool dark_scheme);
+  explicit GekkoSyntaxHighlight(
+      QTextDocument* document, QTextCharFormat base_format, bool dark_scheme);
 
   void HighlightSubstr(int start, int len, HighlightFormat format);
   void SetMode(int mode) { m_mode = mode; }

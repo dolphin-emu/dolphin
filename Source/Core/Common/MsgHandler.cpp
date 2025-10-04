@@ -34,7 +34,7 @@ bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, MsgTy
     window_style = MB_ICONWARNING;
 
   return IDYES == MessageBox(0, UTF8ToTStr(text).c_str(), UTF8ToTStr(caption).c_str(),
-                             window_style | (yes_no ? MB_YESNO : MB_OK));
+                      window_style | (yes_no ? MB_YESNO : MB_OK));
 #else
   fmt::print(stderr, "{}\n", text);
 
@@ -107,13 +107,13 @@ std::string GetStringT(const char* string)
 }
 
 static bool ShowMessageAlert(std::string_view text, bool yes_no, Common::Log::LogType log_type,
-                             MsgType style, const char* file, int line)
+    MsgType style, const char* file, int line)
 {
   const char* caption = GetCaption(style);
   // Directly call GenericLogFmt rather than using the normal log macros so that we can use the
   // caller's line file and line number
-  Common::Log::GenericLogFmt<2>(Common::Log::LogLevel::LERROR, log_type, file, line,
-                                FMT_STRING("{}: {}"), caption, text);
+  Common::Log::GenericLogFmt<2>(
+      Common::Log::LogLevel::LERROR, log_type, file, line, FMT_STRING("{}: {}"), caption, text);
 
   // Panic alerts.
   if (style == MsgType::Warning && s_abort_on_panic_alert)
@@ -134,7 +134,7 @@ static bool ShowMessageAlert(std::string_view text, bool yes_no, Common::Log::Lo
 // This is the first stop for gui alerts where the log is updated and the
 // correct window is shown, when using fmt
 bool MsgAlertFmtImpl(bool yes_no, MsgType style, Common::Log::LogType log_type, const char* file,
-                     int line, fmt::string_view format, const fmt::format_args& args)
+    int line, fmt::string_view format, const fmt::format_args& args)
 {
   const auto message = fmt::vformat(format, args);
 

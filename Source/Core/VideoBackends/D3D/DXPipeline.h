@@ -15,10 +15,10 @@ class DXPipeline final : public AbstractPipeline
 {
 public:
   DXPipeline(const AbstractPipelineConfig& config, ID3D11InputLayout* input_layout,
-             ID3D11VertexShader* vertex_shader, ID3D11GeometryShader* geometry_shader,
-             ID3D11PixelShader* pixel_shader, ID3D11RasterizerState* rasterizer_state,
-             ID3D11DepthStencilState* depth_state, ID3D11BlendState* blend_state,
-             D3D11_PRIMITIVE_TOPOLOGY primitive_topology, bool use_logic_op);
+      ID3D11VertexShader* vertex_shader, ID3D11GeometryShader* geometry_shader,
+      ID3D11PixelShader* pixel_shader, ID3D11RasterizerState* rasterizer_state,
+      ID3D11DepthStencilState* depth_state, ID3D11BlendState* blend_state,
+      D3D11_PRIMITIVE_TOPOLOGY primitive_topology, bool use_logic_op);
   ~DXPipeline() override;
 
   ID3D11InputLayout* GetInputLayout() const { return m_input_layout.Get(); }

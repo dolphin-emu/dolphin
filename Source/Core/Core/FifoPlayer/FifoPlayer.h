@@ -68,7 +68,10 @@ enum class FramePartType
 struct FramePart
 {
   constexpr FramePart(FramePartType type, u32 start, u32 end, const CPState& cpmem)
-      : m_type(type), m_start(start), m_end(end), m_cpmem(cpmem)
+      : m_type(type)
+      , m_start(start)
+      , m_end(end)
+      , m_cpmem(cpmem)
   {
   }
 

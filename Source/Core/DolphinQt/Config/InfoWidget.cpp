@@ -203,8 +203,8 @@ QWidget* InfoWidget::CreateBannerGraphic(const QPixmap& image)
 
 void InfoWidget::SaveBanner()
 {
-  QString path = DolphinFileDialog::getSaveFileName(this, tr("Select a File"), QDir::currentPath(),
-                                                    tr("PNG image file (*.png);; All Files (*)"));
+  QString path = DolphinFileDialog::getSaveFileName(
+      this, tr("Select a File"), QDir::currentPath(), tr("PNG image file (*.png);; All Files (*)"));
   ToQPixmap(m_game.GetBannerImage()).save(path, "PNG");
 }
 
@@ -229,8 +229,8 @@ void InfoWidget::CreateLanguageSelector()
   m_language_selector = new QComboBox();
   for (DiscIO::Language language : m_game.GetLanguages())
   {
-    m_language_selector->addItem(QString::fromStdString(DiscIO::GetName(language, true)),
-                                 static_cast<int>(language));
+    m_language_selector->addItem(
+        QString::fromStdString(DiscIO::GetName(language, true)), static_cast<int>(language));
     if (language == preferred_language)
       m_language_selector->setCurrentIndex(m_language_selector->count() - 1);
   }

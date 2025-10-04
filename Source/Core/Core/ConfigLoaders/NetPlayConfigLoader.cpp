@@ -25,7 +25,8 @@ class NetPlayConfigLayerLoader final : public Config::ConfigLayerLoader
 {
 public:
   explicit NetPlayConfigLayerLoader(const NetPlay::NetSettings& settings)
-      : ConfigLayerLoader(Config::LayerType::Netplay), m_settings(settings)
+      : ConfigLayerLoader(Config::LayerType::Netplay)
+      , m_settings(settings)
   {
   }
 
@@ -58,9 +59,10 @@ public:
     for (size_t i = 0; i < Config::SYSCONF_SETTINGS.size(); ++i)
     {
       std::visit(
-          [&](auto* info) {
-            layer->Set(*info, static_cast<decltype(info->GetDefaultValue())>(
-                                  m_settings.sysconf_settings[i]));
+          [&](auto* info)
+          {
+            layer->Set(*info,
+                static_cast<decltype(info->GetDefaultValue())>(m_settings.sysconf_settings[i]));
           },
           Config::SYSCONF_SETTINGS[i].config_info);
     }
@@ -73,8 +75,8 @@ public:
     layer->Set(Config::GFX_HACK_DISABLE_COPY_TO_VRAM, m_settings.disable_copy_to_vram);
     layer->Set(Config::GFX_HACK_IMMEDIATE_XFB, m_settings.immediate_xfb_enable);
     layer->Set(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES, m_settings.efb_emulate_format_changes);
-    layer->Set(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES,
-               m_settings.safe_texture_cache_color_samples);
+    layer->Set(
+        Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES, m_settings.safe_texture_cache_color_samples);
     layer->Set(Config::GFX_PERF_QUERIES_ENABLE, m_settings.perf_queries_enable);
     layer->Set(Config::MAIN_FLOAT_EXCEPTIONS, m_settings.float_exceptions);
     layer->Set(Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS, m_settings.divide_by_zero_exceptions);
@@ -115,10 +117,10 @@ public:
       layer->Set(Config::GFX_ENHANCE_FORCE_TRUE_COLOR, m_settings.force_true_color);
       layer->Set(Config::GFX_ENHANCE_DISABLE_COPY_FILTER, m_settings.disable_copy_filter);
       layer->Set(Config::GFX_DISABLE_FOG, m_settings.disable_fog);
-      layer->Set(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION,
-                 m_settings.arbitrary_mipmap_detection);
+      layer->Set(
+          Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION, m_settings.arbitrary_mipmap_detection);
       layer->Set(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD,
-                 m_settings.arbitrary_mipmap_detection_threshold);
+          m_settings.arbitrary_mipmap_detection_threshold);
       layer->Set(Config::GFX_ENABLE_GPU_TEXTURE_DECODING, m_settings.enable_gpu_texture_decoding);
 
       // Disable AA as it isn't deterministic across GPUs
@@ -134,9 +136,10 @@ public:
         layer->Set(Config::MAIN_GCI_FOLDER_A_PATH_OVERRIDE, path + "Card A");
         layer->Set(Config::MAIN_GCI_FOLDER_B_PATH_OVERRIDE, path + "Card B");
 
-        const auto make_memcard_path = [this](char letter) {
+        const auto make_memcard_path = [this](char letter)
+        {
           return fmt::format("{}{}{}.{}.raw", File::GetUserPath(D_GCUSER_IDX), GC_MEMCARD_NETPLAY,
-                             letter, m_settings.save_data_region);
+              letter, m_settings.save_data_region);
         };
         layer->Set(Config::MAIN_MEMCARD_A_PATH, make_memcard_path('A'));
         layer->Set(Config::MAIN_MEMCARD_B_PATH, make_memcard_path('B'));
@@ -170,8 +173,8 @@ private:
 };
 
 // Loader generation
-std::unique_ptr<Config::ConfigLayerLoader>
-GenerateNetPlayConfigLoader(const NetPlay::NetSettings& settings)
+std::unique_ptr<Config::ConfigLayerLoader> GenerateNetPlayConfigLoader(
+    const NetPlay::NetSettings& settings)
 {
   return std::make_unique<NetPlayConfigLayerLoader>(settings);
 }

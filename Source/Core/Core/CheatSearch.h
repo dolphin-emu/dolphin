@@ -115,18 +115,18 @@ std::vector<u8> GetValueAsByteVector(const SearchValue& value);
 // Do a new search across the given memory region in the given address space, only keeping values
 // for which the given validator returns true.
 template <typename T>
-Common::Result<SearchErrorCode, std::vector<SearchResult<T>>>
-NewSearch(const Core::CPUThreadGuard& guard, const std::vector<MemoryRange>& memory_ranges,
-          PowerPC::RequestedAddressSpace address_space, bool aligned,
-          const std::function<bool(const T& value)>& validator);
+Common::Result<SearchErrorCode, std::vector<SearchResult<T>>> NewSearch(
+    const Core::CPUThreadGuard& guard, const std::vector<MemoryRange>& memory_ranges,
+    PowerPC::RequestedAddressSpace address_space, bool aligned,
+    const std::function<bool(const T& value)>& validator);
 
 // Refresh the values for the given results in the given address space, only keeping values for
 // which the given validator returns true.
 template <typename T>
-Common::Result<SearchErrorCode, std::vector<SearchResult<T>>>
-NextSearch(const Core::CPUThreadGuard& guard, const std::vector<SearchResult<T>>& previous_results,
-           PowerPC::RequestedAddressSpace address_space,
-           const std::function<bool(const T& new_value, const T& old_value)>& validator);
+Common::Result<SearchErrorCode, std::vector<SearchResult<T>>> NextSearch(
+    const Core::CPUThreadGuard& guard, const std::vector<SearchResult<T>>& previous_results,
+    PowerPC::RequestedAddressSpace address_space,
+    const std::function<bool(const T& new_value, const T& old_value)>& validator);
 
 class CheatSearchSessionBase
 {
@@ -171,8 +171,8 @@ public:
   // Create a partial copy of this search session. Only the results with indices in the given range
   // are copied. This is useful if you want to run a next search on only partial result data of a
   // previous search.
-  virtual std::unique_ptr<CheatSearchSessionBase> ClonePartial(size_t begin_index,
-                                                               size_t end_index) const = 0;
+  virtual std::unique_ptr<CheatSearchSessionBase> ClonePartial(
+      size_t begin_index, size_t end_index) const = 0;
 };
 
 template <typename T>
@@ -180,7 +180,7 @@ class CheatSearchSession final : public CheatSearchSessionBase
 {
 public:
   CheatSearchSession(std::vector<MemoryRange> memory_ranges,
-                     PowerPC::RequestedAddressSpace address_space, bool aligned);
+      PowerPC::RequestedAddressSpace address_space, bool aligned);
   CheatSearchSession(const CheatSearchSession& session);
   CheatSearchSession(CheatSearchSession&& session);
   CheatSearchSession& operator=(const CheatSearchSession& session);
@@ -213,8 +213,8 @@ public:
   bool WasFirstSearchDone() const override;
 
   std::unique_ptr<CheatSearchSessionBase> Clone() const override;
-  std::unique_ptr<CheatSearchSessionBase> ClonePartial(size_t begin_index,
-                                                       size_t end_index) const override;
+  std::unique_ptr<CheatSearchSessionBase> ClonePartial(
+      size_t begin_index, size_t end_index) const override;
 
 private:
   std::vector<SearchResult<T>> m_search_results;
@@ -228,6 +228,5 @@ private:
 };
 
 std::unique_ptr<CheatSearchSessionBase> MakeSession(std::vector<MemoryRange> memory_ranges,
-                                                    PowerPC::RequestedAddressSpace address_space,
-                                                    bool aligned, DataType data_type);
+    PowerPC::RequestedAddressSpace address_space, bool aligned, DataType data_type);
 }  // namespace Cheats

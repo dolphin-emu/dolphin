@@ -174,7 +174,7 @@ constexpr std::array GAME_QUIRKS_NAMES{
     "invalid-color-component-format",
 };
 static_assert(GAME_QUIRKS_NAMES.size() == static_cast<u32>(GameQuirk::Count),
-              "Game quirks names and enum definition are out of sync.");
+    "Game quirks names and enum definition are out of sync.");
 
 void DolphinAnalytics::ReportGameQuirk(GameQuirk quirk)
 {
@@ -389,8 +389,8 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-gfx-internal-resolution", g_Config.iEFBScale);
   builder.AddData("cfg-gfx-tc-samples", g_Config.iSafeTextureCache_ColorSamples);
   builder.AddData("cfg-gfx-stereo-mode", static_cast<int>(g_Config.stereo_mode));
-  builder.AddData("cfg-gfx-stereo-per-eye-resolution-full",
-                  g_Config.stereo_per_eye_resolution_full);
+  builder.AddData(
+      "cfg-gfx-stereo-per-eye-resolution-full", g_Config.stereo_per_eye_resolution_full);
   builder.AddData("cfg-gfx-hdr", static_cast<int>(g_Config.bHDR));
   builder.AddData("cfg-gfx-per-pixel-lighting", g_Config.bEnablePixelLighting);
   builder.AddData("cfg-gfx-shader-compilation-mode", GetShaderCompilationMode(g_Config));
@@ -415,8 +415,8 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("gpu-has-early-z", g_backend_info.bSupportsEarlyZ);
   builder.AddData("gpu-has-binding-layout", g_backend_info.bSupportsBindingLayout);
   builder.AddData("gpu-has-bbox", g_backend_info.bSupportsBBox);
-  builder.AddData("gpu-has-fragment-stores-and-atomics",
-                  g_backend_info.bSupportsFragmentStoresAndAtomics);
+  builder.AddData(
+      "gpu-has-fragment-stores-and-atomics", g_backend_info.bSupportsFragmentStoresAndAtomics);
   builder.AddData("gpu-has-gs-instancing", g_backend_info.bSupportsGSInstancing);
   builder.AddData("gpu-has-post-processing", g_backend_info.bSupportsPostProcessing);
   builder.AddData("gpu-has-palette-conversion", g_backend_info.bSupportsPaletteConversion);
@@ -433,8 +433,8 @@ void DolphinAnalytics::MakePerGameBuilder()
   // We grab enough to tell what percentage of our users are playing with keyboard/mouse, some kind
   // of gamepad, or the official GameCube adapter.
   builder.AddData("gcadapter-detected", GCAdapter::IsDetected(nullptr));
-  builder.AddData("has-controller", Pad::GetConfig()->IsControllerControlledByGamepadDevice(0) ||
-                                        GCAdapter::IsDetected(nullptr));
+  builder.AddData("has-controller",
+      Pad::GetConfig()->IsControllerControlledByGamepadDevice(0) || GCAdapter::IsDetected(nullptr));
 
   m_per_game_builder = builder;
 }

@@ -69,7 +69,7 @@ public:
 
   void SetRegTracked(const std::string& reg);
   AutoStepResults AutoStepping(const Core::CPUThreadGuard& guard, bool continue_previous = false,
-                               AutoStop stop_on = AutoStop::Always);
+      AutoStop stop_on = AutoStop::Always);
 
 private:
   InstructionAttributes GetInstructionAttributes(const TraceOutput& line) const;

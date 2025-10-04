@@ -74,8 +74,8 @@ public:
     const auto confirmation_time =
         INPUT_DETECT_CONFIRMATION_TIME * (m_parent->IsWaitForAlternateMappingsEnabled() ? 1 : 0);
 
-    m_input_detector->Update(INPUT_DETECT_INITIAL_TIME, confirmation_time,
-                             INPUT_DETECT_MAXIMUM_TIME);
+    m_input_detector->Update(
+        INPUT_DETECT_INITIAL_TIME, confirmation_time, INPUT_DETECT_MAXIMUM_TIME);
 
     if (!m_input_detector->IsComplete())
       return;
@@ -130,8 +130,8 @@ public:
     auto* const control_reference = button->GetControlReference();
     control_reference->SetExpression(expression);
     m_parent->Save();
-    m_parent->GetController()->UpdateSingleControlReference(g_controller_interface,
-                                                            control_reference);
+    m_parent->GetController()->UpdateSingleControlReference(
+        g_controller_interface, control_reference);
     m_parent->GetController()->GetConfig()->GenerateControllerTextures();
   }
 

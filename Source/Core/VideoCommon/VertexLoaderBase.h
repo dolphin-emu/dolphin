@@ -57,8 +57,8 @@ class VertexLoaderBase
 public:
   static u32 GetVertexSize(const TVtxDesc& vtx_desc, const VAT& vtx_attr);
   static u32 GetVertexComponents(const TVtxDesc& vtx_desc, const VAT& vtx_attr);
-  static std::unique_ptr<VertexLoaderBase> CreateVertexLoader(const TVtxDesc& vtx_desc,
-                                                              const VAT& vtx_attr);
+  static std::unique_ptr<VertexLoaderBase> CreateVertexLoader(
+      const TVtxDesc& vtx_desc, const VAT& vtx_attr);
   virtual ~VertexLoaderBase() {}
   virtual int RunVertices(const u8* src, u8* dst, int count) = 0;
 
@@ -73,9 +73,10 @@ public:
 
 protected:
   VertexLoaderBase(const TVtxDesc& vtx_desc, const VAT& vtx_attr)
-      : m_vertex_size{GetVertexSize(vtx_desc, vtx_attr)},
-        m_native_components{GetVertexComponents(vtx_desc, vtx_attr)}, m_VtxAttr{vtx_attr},
-        m_VtxDesc{vtx_desc}
+      : m_vertex_size{GetVertexSize(vtx_desc, vtx_attr)}
+      , m_native_components{GetVertexComponents(vtx_desc, vtx_attr)}
+      , m_VtxAttr{vtx_attr}
+      , m_VtxDesc{vtx_desc}
   {
   }
 

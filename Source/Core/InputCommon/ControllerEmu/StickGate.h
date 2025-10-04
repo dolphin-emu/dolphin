@@ -95,8 +95,8 @@ public:
   void SetCalibrationToDefault();
   void SetCalibrationFromGate(const StickGate& gate);
 
-  static void UpdateCalibrationData(CalibrationData& data, Common::DVec2 point1,
-                                    Common::DVec2 point2);
+  static void UpdateCalibrationData(
+      CalibrationData& data, Common::DVec2 point1, Common::DVec2 point2);
   static ControlState GetCalibrationDataRadiusAtAngle(const CalibrationData& data, double angle);
 
   const CalibrationData& GetCalibrationData() const;
@@ -110,8 +110,8 @@ public:
   static constexpr const char* Z_INPUT_OVERRIDE = "Z";
 
 protected:
-  ReshapeData Reshape(ControlState x, ControlState y, ControlState modifier = 0.0,
-                      ControlState clamp = 1.0) const;
+  ReshapeData Reshape(
+      ControlState x, ControlState y, ControlState modifier = 0.0, ControlState clamp = 1.0) const;
 
   virtual Control* GetModifierInput() const;
 

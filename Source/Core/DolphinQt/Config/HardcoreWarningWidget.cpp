@@ -52,7 +52,7 @@ void HardcoreWarningWidget::CreateWidgets()
 void HardcoreWarningWidget::ConnectWidgets()
 {
   connect(m_settings_button, &QPushButton::clicked, this,
-          &HardcoreWarningWidget::OpenAchievementSettings);
+      &HardcoreWarningWidget::OpenAchievementSettings);
 }
 
 void HardcoreWarningWidget::Update()

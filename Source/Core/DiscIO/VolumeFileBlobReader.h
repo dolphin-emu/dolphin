@@ -18,8 +18,8 @@ class Volume;
 class VolumeFileBlobReader final : public BlobReader
 {
 public:
-  static std::unique_ptr<VolumeFileBlobReader>
-  Create(const Volume& volume, const Partition& partition, std::string_view file_path);
+  static std::unique_ptr<VolumeFileBlobReader> Create(
+      const Volume& volume, const Partition& partition, std::string_view file_path);
 
   BlobType GetBlobType() const override { return BlobType::PLAIN; }
   std::unique_ptr<BlobReader> CopyReader() const override;
@@ -36,8 +36,8 @@ public:
   bool Read(u64 offset, u64 length, u8* out_ptr) override;
 
 private:
-  VolumeFileBlobReader(const Volume& volume, const Partition& partition,
-                       std::unique_ptr<FileInfo> file_info);
+  VolumeFileBlobReader(
+      const Volume& volume, const Partition& partition, std::unique_ptr<FileInfo> file_info);
 
   const Volume& m_volume;
   const Partition& m_partition;

@@ -36,7 +36,8 @@ IOFile::IOFile(std::FILE* file) : m_file(file), m_good(true)
 }
 
 IOFile::IOFile(const std::string& filename, const char openmode[], SharedAccess sh)
-    : m_file(nullptr), m_good(true)
+    : m_file(nullptr)
+    , m_good(true)
 {
   Open(filename, openmode, sh);
 }
@@ -63,8 +64,8 @@ void IOFile::Swap(IOFile& other) noexcept
   std::swap(m_good, other.m_good);
 }
 
-bool IOFile::Open(const std::string& filename, const char openmode[],
-                  [[maybe_unused]] SharedAccess sh)
+bool IOFile::Open(
+    const std::string& filename, const char openmode[], [[maybe_unused]] SharedAccess sh)
 {
   Close();
 

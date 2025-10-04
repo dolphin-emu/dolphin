@@ -114,9 +114,9 @@
  */
 #pragma pack(1)
 template <std::size_t position, std::size_t bits, typename T,
-          // StorageType is T for non-enum or the underlying-type for an enum.
-          typename StorageType = std::conditional_t<std::is_enum_v<T>, std::underlying_type<T>,
-                                                    std::type_identity<T>>::type>
+    // StorageType is T for non-enum or the underlying-type for an enum.
+    typename StorageType =
+        std::conditional_t<std::is_enum_v<T>, std::underlying_type<T>, std::type_identity<T>>::type>
 struct BitField
 {
 public:
@@ -208,9 +208,9 @@ class BitFieldArrayIterator;
 
 #pragma pack(1)
 template <std::size_t position, std::size_t bits, std::size_t size, typename T,
-          // StorageType is T for non-enum or the underlying-type for an enum.
-          typename StorageType = std::conditional_t<std::is_enum_v<T>, std::underlying_type<T>,
-                                                    std::type_identity<T>>::type>
+    // StorageType is T for non-enum or the underlying-type for an enum.
+    typename StorageType =
+        std::conditional_t<std::is_enum_v<T>, std::underlying_type<T>, std::type_identity<T>>::type>
 struct BitFieldArray
 {
 public:
@@ -307,9 +307,10 @@ public:
   constexpr operator T() const { return Value(); }
 
 private:
-  constexpr BitFieldArrayConstRef(const BitFieldArray<position, bits, size, T, S>* array,
-                                  size_t index)
-      : m_array(array), m_index(index)
+  constexpr BitFieldArrayConstRef(
+      const BitFieldArray<position, bits, size, T, S>* array, size_t index)
+      : m_array(array)
+      , m_index(index)
   {
   }
 
@@ -339,7 +340,8 @@ public:
 
 private:
   constexpr BitFieldArrayRef(BitFieldArray<position, bits, size, T, S>* array, size_t index)
-      : m_array(array), m_index(index)
+      : m_array(array)
+      , m_index(index)
   {
   }
 
@@ -367,7 +369,8 @@ public:
 
 private:
   constexpr BitFieldArrayIterator(BitFieldArray<position, bits, size, T, S>* array, size_t index)
-      : m_array(array), m_index(index)
+      : m_array(array)
+      , m_index(index)
   {
   }
 
@@ -420,9 +423,10 @@ public:
   using reference = BitFieldArrayConstRef<position, bits, size, T, S>;
 
 private:
-  constexpr BitFieldArrayConstIterator(const BitFieldArray<position, bits, size, T, S>* array,
-                                       size_t index)
-      : m_array(array), m_index(index)
+  constexpr BitFieldArrayConstIterator(
+      const BitFieldArray<position, bits, size, T, S>* array, size_t index)
+      : m_array(array)
+      , m_index(index)
   {
   }
 
@@ -482,8 +486,8 @@ struct fmt::formatter<BitFieldArrayConstRef<position, bits, size, T, S>>
   fmt::formatter<T> m_formatter;
   constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
   template <typename FormatContext>
-  auto format(const BitFieldArrayConstRef<position, bits, size, T, S>& ref,
-              FormatContext& ctx) const
+  auto format(
+      const BitFieldArrayConstRef<position, bits, size, T, S>& ref, FormatContext& ctx) const
   {
     return m_formatter.format(ref.Value(), ctx);
   }

@@ -77,10 +77,10 @@ static std::string s_android_lib_directory;
 #ifdef __APPLE__
 static Common::DynamicLibrary s_security_framework;
 
-using DolSecTranslocateIsTranslocatedURL = Boolean (*)(CFURLRef path, bool* isTranslocated,
-                                                       CFErrorRef* __nullable error);
-using DolSecTranslocateCreateOriginalPathForURL = CFURLRef
-__nullable (*)(CFURLRef translocatedPath, CFErrorRef* __nullable error);
+using DolSecTranslocateIsTranslocatedURL = Boolean (*)(
+    CFURLRef path, bool* isTranslocated, CFErrorRef* __nullable error);
+using DolSecTranslocateCreateOriginalPathForURL = CFURLRef __nullable (*)(
+    CFURLRef translocatedPath, CFErrorRef* __nullable error);
 
 static DolSecTranslocateIsTranslocatedURL s_is_translocated_url;
 static DolSecTranslocateCreateOriginalPathForURL s_create_orig_path;
@@ -290,8 +290,8 @@ bool Rename(const std::string& srcFilename, const std::string& destFilename)
   std::filesystem::rename(StringToPath(srcFilename), StringToPath(destFilename), error);
   if (error)
   {
-    ERROR_LOG_FMT(COMMON, "{} failed: {} --> {}: {}", __func__, srcFilename, destFilename,
-                  error.message());
+    ERROR_LOG_FMT(
+        COMMON, "{} failed: {} --> {}: {}", __func__, srcFilename, destFilename, error.message());
   }
   return !error;
 }
@@ -315,8 +315,8 @@ bool RenameSync(const std::string& srcFilename, const std::string& destFilename)
 #ifdef _WIN32
   int fd = -1;
   // XXX is this really needed?
-  errno_t err = _wsopen_s(&fd, UTF8ToWString(srcFilename).c_str(), _O_RDONLY, _SH_DENYNO,
-                          _S_IREAD | _S_IWRITE);
+  errno_t err = _wsopen_s(
+      &fd, UTF8ToWString(srcFilename).c_str(), _O_RDONLY, _SH_DENYNO, _S_IREAD | _S_IWRITE);
   if (!err && fd >= 0)
   {
     if (_commit(fd) != 0)
@@ -346,7 +346,7 @@ bool CopyRegularFile(std::string_view source_path, std::string_view destination_
   if (!copied)
   {
     ERROR_LOG_FMT(COMMON, "{}: failed {} --> {}: {}", __func__, source_path, destination_path,
-                  error.message());
+        error.message());
   }
   return copied;
 }
@@ -440,7 +440,8 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
     return ScanDirectoryTreeAndroidContent(directory, recursive);
 #endif
 
-  auto path_to_physical_name = [](const fs::path& path) {
+  auto path_to_physical_name = [](const fs::path& path)
+  {
 #ifdef _WIN32
     return WStringToUTF8(path.generic_wstring());
 #else
@@ -448,7 +449,8 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
 #endif
   };
 
-  auto dirent_to_fstent = [&](const fs::directory_entry& entry) {
+  auto dirent_to_fstent = [&](const fs::directory_entry& entry)
+  {
     return FSTEntry{
         .isDirectory = entry.is_directory(),
         .size = entry.is_directory() || entry.is_fifo() ? 0 : entry.file_size(),
@@ -457,7 +459,8 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
     };
   };
 
-  auto calc_dir_size = [](FSTEntry* dir) {
+  auto calc_dir_size = [](FSTEntry* dir)
+  {
     dir->size += dir->children.size();
     for (auto& child : dir->children)
       if (child.isDirectory)
@@ -478,7 +481,7 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
     std::stack<FSTEntry*> dir_fsts;
     dir_fsts.push(&parent_entry);
     for (auto it = fs::recursive_directory_iterator(directory_path, error);
-         it != fs::recursive_directory_iterator(); it.increment(error))
+        it != fs::recursive_directory_iterator(); it.increment(error))
     {
       const int cur_depth = it.depth();
       if (cur_depth > prev_depth)
@@ -505,7 +508,7 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
   else
   {
     for (auto it = fs::directory_iterator(directory_path, error); it != fs::directory_iterator();
-         it.increment(error))
+        it.increment(error))
     {
       parent_entry.children.emplace_back(dirent_to_fstent(*it));
     }
@@ -537,7 +540,7 @@ bool DeleteDirRecursively(const std::string& directory)
 bool Copy(std::string_view source_path, std::string_view dest_path, bool overwrite_existing)
 {
   DEBUG_LOG_FMT(COMMON, "{}: {} --> {} ({})", __func__, source_path, dest_path,
-                overwrite_existing ? "overwrite" : "preserve");
+      overwrite_existing ? "overwrite" : "preserve");
 
   auto src_path = StringToPath(source_path);
   auto dst_path = StringToPath(dest_path);
@@ -553,14 +556,14 @@ bool Copy(std::string_view source_path, std::string_view dest_path, bool overwri
       return true;
 
     ERROR_LOG_FMT(COMMON, "{}: failed {} --> {} ({}): {}", __func__, source_path, dest_path,
-                  overwrite_existing ? "overwrite" : "preserve", error.message());
+        overwrite_existing ? "overwrite" : "preserve", error.message());
     return false;
   }
   return true;
 }
 
-static bool MoveWithOverwrite(const std::filesystem::path& src, const std::filesystem::path& dst,
-                              std::error_code& error)
+static bool MoveWithOverwrite(
+    const std::filesystem::path& src, const std::filesystem::path& dst, std::error_code& error)
 {
   fs::rename(src, dst, error);
   if (!error)
@@ -605,8 +608,8 @@ bool MoveWithOverwrite(std::string_view source_path, std::string_view dest_path)
   std::error_code error;
   if (!MoveWithOverwrite(src_path, dst_path, error))
   {
-    ERROR_LOG_FMT(COMMON, "{}: failed {} --> {}: {}", __func__, source_path, dest_path,
-                  error.message());
+    ERROR_LOG_FMT(
+        COMMON, "{}: failed {} --> {}: {}", __func__, source_path, dest_path, error.message());
   }
   return true;
 }
@@ -803,7 +806,7 @@ void SetSysDirectory(const std::string& path)
 {
   INFO_LOG_FMT(COMMON, "Setting Sys directory to {}", path);
   ASSERT_MSG(COMMON, s_android_sys_directory.empty(), "Sys directory already set to {}",
-             s_android_sys_directory);
+      s_android_sys_directory);
   s_android_sys_directory = path;
 }
 
@@ -811,9 +814,9 @@ void SetGpuDriverDirectories(const std::string& path, const std::string& lib_pat
 {
   INFO_LOG_FMT(COMMON, "Setting Driver directory to {} and library path to {}", path, lib_path);
   ASSERT_MSG(COMMON, s_android_driver_directory.empty(), "Driver directory already set to {}",
-             s_android_driver_directory);
+      s_android_driver_directory);
   ASSERT_MSG(COMMON, s_android_lib_directory.empty(), "Library directory already set to {}",
-             s_android_lib_directory);
+      s_android_lib_directory);
   s_android_driver_directory = path;
   s_android_lib_directory = lib_path;
 }

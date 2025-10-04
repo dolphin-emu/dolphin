@@ -214,8 +214,8 @@ HookFlag GetHookFlagsByIndex(u32 index)
   return os_patches[index].flags;
 }
 
-TryReplaceFunctionResult TryReplaceFunction(PPCSymbolDB& ppc_symbol_db, u32 address,
-                                            PowerPC::CoreMode mode)
+TryReplaceFunctionResult TryReplaceFunction(
+    PPCSymbolDB& ppc_symbol_db, u32 address, PowerPC::CoreMode mode)
 {
   const u32 hook_index = GetHookByFunctionAddress(ppc_symbol_db, address);
   if (hook_index == 0)
@@ -299,7 +299,7 @@ u32 UnpatchRange(Core::System& system, u32 start_addr, u32 end_addr)
   while (i != s_hooked_addresses.end() && i->first < end_addr)
   {
     INFO_LOG_FMT(OSHLE, "Unpatch HLE hooks [{:08x};{:08x}): {} at {:08x}", start_addr, end_addr,
-                 os_patches[i->second].name, i->first);
+        os_patches[i->second].name, i->first);
     ppc_state.iCache.Invalidate(memory, jit_interface, i->first);
     i = s_hooked_addresses.erase(i);
     count += 1;

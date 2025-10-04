@@ -71,8 +71,7 @@ u64 Timer::ElapsedMs() const
 u64 Timer::GetLocalTimeSinceJan1970()
 {
 #ifdef _MSC_VER
-  std::chrono::zoned_seconds seconds(
-      std::chrono::current_zone(),
+  std::chrono::zoned_seconds seconds(std::chrono::current_zone(),
       std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()));
   return seconds.get_local_time().time_since_epoch().count();
 #else
@@ -113,8 +112,8 @@ void Timer::IncreaseResolution()
   PowerThrottling.ControlMask =
       PROCESS_POWER_THROTTLING_EXECUTION_SPEED | PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION;
   PowerThrottling.StateMask = 0;
-  SetProcessInformation(GetCurrentProcess(), ProcessPowerThrottling, &PowerThrottling,
-                        sizeof(PowerThrottling));
+  SetProcessInformation(
+      GetCurrentProcess(), ProcessPowerThrottling, &PowerThrottling, sizeof(PowerThrottling));
 
   // Not actually sure how useful this is these days.. :')
   timeBeginPeriod(TIMER_RESOLUTION_MS);

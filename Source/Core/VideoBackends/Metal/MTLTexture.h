@@ -20,13 +20,12 @@ public:
   ~Texture();
 
   void CopyRectangleFromTexture(const AbstractTexture* src,
-                                const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
-                                u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
-                                u32 dst_layer, u32 dst_level) override;
+      const MathUtil::Rectangle<int>& src_rect, u32 src_layer, u32 src_level,
+      const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer, u32 dst_level) override;
   void ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
-                          u32 layer, u32 level) override;
+      u32 layer, u32 level) override;
   void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer, size_t buffer_size,
-            u32 layer) override;
+      u32 layer) override;
 
   id<MTLTexture> GetMTLTexture() const { return m_tex; }
 
@@ -37,16 +36,14 @@ private:
 class StagingTexture final : public AbstractStagingTexture
 {
 public:
-  StagingTexture(MRCOwned<id<MTLBuffer>> buffer, StagingTextureType type,
-                 const TextureConfig& config);
+  StagingTexture(
+      MRCOwned<id<MTLBuffer>> buffer, StagingTextureType type, const TextureConfig& config);
   ~StagingTexture();
 
   void CopyFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& src_rect,
-                       u32 src_layer, u32 src_level,
-                       const MathUtil::Rectangle<int>& dst_rect) override;
+      u32 src_layer, u32 src_level, const MathUtil::Rectangle<int>& dst_rect) override;
   void CopyToTexture(const MathUtil::Rectangle<int>& src_rect, AbstractTexture* dst,
-                     const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
-                     u32 dst_level) override;
+      const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer, u32 dst_level) override;
 
   bool Map() override;
   void Unmap() override;
@@ -61,8 +58,8 @@ class Framebuffer final : public AbstractFramebuffer
 {
 public:
   Framebuffer(AbstractTexture* color, AbstractTexture* depth,
-              std::vector<AbstractTexture*> additonal_color_textures,  //
-              u32 width, u32 height, u32 layers, u32 samples);
+      std::vector<AbstractTexture*> additonal_color_textures,  //
+      u32 width, u32 height, u32 layers, u32 samples);
   ~Framebuffer();
 
   MTLRenderPassDescriptor* PassDesc() const { return m_pass_descriptor; }

@@ -39,8 +39,8 @@ static const char s_default_pixel_shader_name[] = "default_pre_post_process";
 // RGBA16F should have enough quality even if we store colors in gamma space on it.
 static const AbstractTextureFormat s_intermediary_buffer_format = AbstractTextureFormat::RGBA16F;
 
-static bool LoadShaderFromFile(const std::string& shader, const std::string& sub_dir,
-                               std::string& out_code)
+static bool LoadShaderFromFile(
+    const std::string& shader, const std::string& sub_dir, std::string& out_code)
 {
   std::string path = File::GetUserPath(D_SHADERS_IDX) + sub_dir + shader + ".glsl";
 
@@ -125,7 +125,7 @@ void PostProcessingConfiguration::LoadOptions(const std::string& code)
 
   std::string configuration_string =
       code.substr(configuration_start + config_start_delimiter.size(),
-                  configuration_end - configuration_start - config_start_delimiter.size());
+          configuration_end - configuration_start - config_start_delimiter.size());
 
   std::istringstream in(configuration_string);
 
@@ -263,8 +263,8 @@ void PostProcessingConfiguration::LoadOptionsConfiguration()
     switch (it.second.m_type)
     {
     case ConfigurationOption::OptionType::Bool:
-      ini.GetOrCreateSection(section)->Get(it.second.m_option_name, &it.second.m_bool_value,
-                                           it.second.m_bool_value);
+      ini.GetOrCreateSection(section)->Get(
+          it.second.m_option_name, &it.second.m_bool_value, it.second.m_bool_value);
       break;
     case ConfigurationOption::OptionType::Integer:
     {
@@ -319,7 +319,7 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
       for (size_t i = 0; i < it.second.m_integer_values.size(); ++i)
       {
         value += fmt::format("{}{}", it.second.m_integer_values[i],
-                             i == (it.second.m_integer_values.size() - 1) ? "" : ", ");
+            i == (it.second.m_integer_values.size() - 1) ? "" : ", ");
       }
       ini.GetOrCreateSection(section)->Set(it.second.m_option_name, value);
     }
@@ -384,8 +384,8 @@ static std::vector<std::string> GetShaders(const std::string& sub_dir = "")
 {
   std::vector<std::string> paths =
       Common::DoFileSearch({File::GetUserPath(D_SHADERS_IDX) + sub_dir,
-                            File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir},
-                           {".glsl"});
+                               File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir},
+          {".glsl"});
   std::vector<std::string> result;
   for (std::string path : paths)
   {
@@ -468,8 +468,7 @@ bool PostProcessing::NeedsIntermediaryBuffer() const
 }
 
 void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
-                                     const MathUtil::Rectangle<int>& src,
-                                     const AbstractTexture* src_tex, int src_layer)
+    const MathUtil::Rectangle<int>& src, const AbstractTexture* src_tex, int src_layer)
 {
   if (g_gfx->GetCurrentFramebuffer()->GetColorFormat() != m_framebuffer_format)
   {
@@ -525,12 +524,11 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
         m_intermediary_color_texture->GetHeight() != target_height ||
         m_intermediary_color_texture->GetLayers() != target_layers)
     {
-      const TextureConfig intermediary_color_texture_config(
-          target_width, target_height, 1, target_layers, src_tex->GetSamples(),
-          s_intermediary_buffer_format, AbstractTextureFlag_RenderTarget,
-          AbstractTextureType::Texture_2DArray);
-      m_intermediary_color_texture = g_gfx->CreateTexture(intermediary_color_texture_config,
-                                                          "Intermediary post process texture");
+      const TextureConfig intermediary_color_texture_config(target_width, target_height, 1,
+          target_layers, src_tex->GetSamples(), s_intermediary_buffer_format,
+          AbstractTextureFlag_RenderTarget, AbstractTextureType::Texture_2DArray);
+      m_intermediary_color_texture = g_gfx->CreateTexture(
+          intermediary_color_texture_config, "Intermediary post process texture");
 
       m_intermediary_frame_buffer =
           g_gfx->CreateFramebuffer(m_intermediary_color_texture.get(), nullptr);
@@ -539,10 +537,9 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
     g_gfx->SetFramebuffer(m_intermediary_frame_buffer.get());
 
     FillUniformBuffer(src_rect, src_tex, src_layer, g_gfx->GetCurrentFramebuffer()->GetRect(),
-                      present_rect, uniform_staging_buffer->data(), !default_uniform_staging_buffer,
-                      true);
-    g_vertex_manager->UploadUtilityUniforms(uniform_staging_buffer->data(),
-                                            static_cast<u32>(uniform_staging_buffer->size()));
+        present_rect, uniform_staging_buffer->data(), !default_uniform_staging_buffer, true);
+    g_vertex_manager->UploadUtilityUniforms(
+        uniform_staging_buffer->data(), static_cast<u32>(uniform_staging_buffer->size()));
 
     g_gfx->SetViewportAndScissor(g_gfx->ConvertFramebufferRectangle(
         m_intermediary_color_texture->GetRect(), m_intermediary_frame_buffer.get()));
@@ -590,10 +587,9 @@ void PostProcessing::BlitFromTexture(const MathUtil::Rectangle<int>& dst,
   if (final_pipeline)
   {
     FillUniformBuffer(src_rect, src_tex, src_layer, g_gfx->GetCurrentFramebuffer()->GetRect(),
-                      present_rect, uniform_staging_buffer->data(), !default_uniform_staging_buffer,
-                      false);
-    g_vertex_manager->UploadUtilityUniforms(uniform_staging_buffer->data(),
-                                            static_cast<u32>(uniform_staging_buffer->size()));
+        present_rect, uniform_staging_buffer->data(), !default_uniform_staging_buffer, false);
+    g_vertex_manager->UploadUtilityUniforms(
+        uniform_staging_buffer->data(), static_cast<u32>(uniform_staging_buffer->size()));
 
     g_gfx->SetViewportAndScissor(
         g_gfx->ConvertFramebufferRectangle(dst, g_gfx->GetCurrentFramebuffer()));
@@ -809,8 +805,8 @@ bool PostProcessing::CompileVertexShader()
   std::ostringstream ss_default;
   ss_default << GetUniformBufferHeader(false);
   ss_default << GetVertexShaderBody();
-  m_default_vertex_shader = g_gfx->CreateShaderFromSource(ShaderStage::Vertex, ss_default.str(),
-                                                          "Default post-processing vertex shader");
+  m_default_vertex_shader = g_gfx->CreateShaderFromSource(
+      ShaderStage::Vertex, ss_default.str(), "Default post-processing vertex shader");
 
   std::ostringstream ss;
   ss << GetUniformBufferHeader(true);
@@ -863,28 +859,26 @@ size_t PostProcessing::CalculateUniformsSize(bool user_post_process) const
 }
 
 void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
-                                       const AbstractTexture* src_tex, int src_layer,
-                                       const MathUtil::Rectangle<int>& dst,
-                                       const MathUtil::Rectangle<int>& wnd, u8* buffer,
-                                       bool user_post_process, bool intermediary_buffer)
+    const AbstractTexture* src_tex, int src_layer, const MathUtil::Rectangle<int>& dst,
+    const MathUtil::Rectangle<int>& wnd, u8* buffer, bool user_post_process,
+    bool intermediary_buffer)
 {
   const float rcp_src_width = 1.0f / src_tex->GetWidth();
   const float rcp_src_height = 1.0f / src_tex->GetHeight();
 
   BuiltinUniforms builtin_uniforms;
   builtin_uniforms.source_resolution = {static_cast<float>(src_tex->GetWidth()),
-                                        static_cast<float>(src_tex->GetHeight()), rcp_src_width,
-                                        rcp_src_height};
-  builtin_uniforms.target_resolution = {
-      static_cast<float>(dst.GetWidth()), static_cast<float>(dst.GetHeight()),
-      1.0f / static_cast<float>(dst.GetWidth()), 1.0f / static_cast<float>(dst.GetHeight())};
-  builtin_uniforms.window_resolution = {
-      static_cast<float>(wnd.GetWidth()), static_cast<float>(wnd.GetHeight()),
-      1.0f / static_cast<float>(wnd.GetWidth()), 1.0f / static_cast<float>(wnd.GetHeight())};
+      static_cast<float>(src_tex->GetHeight()), rcp_src_width, rcp_src_height};
+  builtin_uniforms.target_resolution = {static_cast<float>(dst.GetWidth()),
+      static_cast<float>(dst.GetHeight()), 1.0f / static_cast<float>(dst.GetWidth()),
+      1.0f / static_cast<float>(dst.GetHeight())};
+  builtin_uniforms.window_resolution = {static_cast<float>(wnd.GetWidth()),
+      static_cast<float>(wnd.GetHeight()), 1.0f / static_cast<float>(wnd.GetWidth()),
+      1.0f / static_cast<float>(wnd.GetHeight())};
   builtin_uniforms.src_rect = {static_cast<float>(src.left) * rcp_src_width,
-                               static_cast<float>(src.top) * rcp_src_height,
-                               static_cast<float>(src.GetWidth()) * rcp_src_width,
-                               static_cast<float>(src.GetHeight()) * rcp_src_height};
+      static_cast<float>(src.top) * rcp_src_height,
+      static_cast<float>(src.GetWidth()) * rcp_src_width,
+      static_cast<float>(src.GetHeight()) * rcp_src_height};
   builtin_uniforms.src_layer = static_cast<s32>(src_layer);
   builtin_uniforms.time = static_cast<u32>(m_timer.ElapsedMs());
   builtin_uniforms.graphics_api = static_cast<s32>(g_backend_info.api_type);
@@ -935,14 +929,14 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
 
     case PostProcessingConfiguration::ConfigurationOption::OptionType::Integer:
       ASSERT(it.second.m_integer_values.size() <= 4);
-      std::copy_n(it.second.m_integer_values.begin(), it.second.m_integer_values.size(),
-                  value.as_int);
+      std::copy_n(
+          it.second.m_integer_values.begin(), it.second.m_integer_values.size(), value.as_int);
       break;
 
     case PostProcessingConfiguration::ConfigurationOption::OptionType::Float:
       ASSERT(it.second.m_float_values.size() <= 4);
-      std::copy_n(it.second.m_float_values.begin(), it.second.m_float_values.size(),
-                  value.as_float);
+      std::copy_n(
+          it.second.m_float_values.begin(), it.second.m_float_values.size(), value.as_float);
       break;
     }
 
@@ -965,8 +959,8 @@ bool PostProcessing::CompilePixelShader()
   std::string default_pixel_shader_code;
   if (LoadShaderFromFile(s_default_pixel_shader_name, "", default_pixel_shader_code))
   {
-    m_default_pixel_shader = g_gfx->CreateShaderFromSource(
-        ShaderStage::Pixel, GetHeader(false) + default_pixel_shader_code + GetFooter(),
+    m_default_pixel_shader = g_gfx->CreateShaderFromSource(ShaderStage::Pixel,
+        GetHeader(false) + default_pixel_shader_code + GetFooter(),
         "Default post-processing pixel shader");
     // We continue even if all of this failed, it doesn't matter
     m_default_uniform_staging_buffer.resize(CalculateUniformsSize(false));
@@ -977,8 +971,8 @@ bool PostProcessing::CompilePixelShader()
   }
 
   m_config.LoadShader(g_ActiveConfig.sPostProcessingShader);
-  m_pixel_shader = g_gfx->CreateShaderFromSource(
-      ShaderStage::Pixel, GetHeader(true) + m_config.GetShaderCode() + GetFooter(),
+  m_pixel_shader = g_gfx->CreateShaderFromSource(ShaderStage::Pixel,
+      GetHeader(true) + m_config.GetShaderCode() + GetFooter(),
       fmt::format("User post-processing pixel shader: {}", m_config.GetShader()));
   if (!m_pixel_shader)
   {
@@ -986,8 +980,8 @@ bool PostProcessing::CompilePixelShader()
 
     // Use default shader.
     m_config.LoadDefaultShader();
-    m_pixel_shader = g_gfx->CreateShaderFromSource(
-        ShaderStage::Pixel, GetHeader(true) + m_config.GetShaderCode() + GetFooter(),
+    m_pixel_shader = g_gfx->CreateShaderFromSource(ShaderStage::Pixel,
+        GetHeader(true) + m_config.GetShaderCode() + GetFooter(),
         "Default user post-processing pixel shader");
     if (!m_pixel_shader)
     {

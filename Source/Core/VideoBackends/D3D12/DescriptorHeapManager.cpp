@@ -13,11 +13,11 @@ namespace DX12
 DescriptorHeapManager::DescriptorHeapManager() = default;
 DescriptorHeapManager::~DescriptorHeapManager() = default;
 
-bool DescriptorHeapManager::Create(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE type,
-                                   u32 num_descriptors)
+bool DescriptorHeapManager::Create(
+    ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE type, u32 num_descriptors)
 {
-  D3D12_DESCRIPTOR_HEAP_DESC desc = {type, static_cast<UINT>(num_descriptors),
-                                     D3D12_DESCRIPTOR_HEAP_FLAG_NONE};
+  D3D12_DESCRIPTOR_HEAP_DESC desc = {
+      type, static_cast<UINT>(num_descriptors), D3D12_DESCRIPTOR_HEAP_FLAG_NONE};
 
   HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_descriptor_heap));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create descriptor heap: {}", DX12HRWrap(hr));
@@ -119,7 +119,7 @@ static void GetD3DSamplerDesc(D3D12_SAMPLER_DESC* desc, const SamplerState& stat
 
   static constexpr std::array<D3D12_TEXTURE_ADDRESS_MODE, 3> address_modes = {
       {D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-       D3D12_TEXTURE_ADDRESS_MODE_MIRROR}};
+          D3D12_TEXTURE_ADDRESS_MODE_MIRROR}};
   desc->AddressU = address_modes[static_cast<u32>(state.tm0.wrap_u.Value())];
   desc->AddressV = address_modes[static_cast<u32>(state.tm0.wrap_v.Value())];
   desc->AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
@@ -155,8 +155,8 @@ bool SamplerHeapManager::Lookup(const SamplerState& ss, D3D12_CPU_DESCRIPTOR_HAN
   D3D12_SAMPLER_DESC desc = {};
   GetD3DSamplerDesc(&desc, ss);
 
-  const D3D12_CPU_DESCRIPTOR_HANDLE new_handle = {m_heap_base_cpu.ptr +
-                                                  m_current_offset * m_descriptor_increment_size};
+  const D3D12_CPU_DESCRIPTOR_HANDLE new_handle = {
+      m_heap_base_cpu.ptr + m_current_offset * m_descriptor_increment_size};
   g_dx_context->GetDevice()->CreateSampler(&desc, new_handle);
 
   m_sampler_map.emplace(ss, new_handle);

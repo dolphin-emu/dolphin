@@ -27,7 +27,8 @@
 #include "VideoCommon/VideoConfig.h"
 
 GraphicsModListWidget::GraphicsModListWidget(const UICommon::GameFile& game)
-    : m_game_id(game.GetGameID()), m_mod_group(m_game_id)
+    : m_game_id(game.GetGameID())
+    , m_mod_group(m_game_id)
 {
   CalculateGameRunning(Core::GetState(Core::System::GetInstance()));
   if (m_loaded_game_is_running && g_Config.graphics_mod_config)
@@ -95,23 +96,23 @@ void GraphicsModListWidget::CreateWidgets()
 void GraphicsModListWidget::ConnectWidgets()
 {
   connect(m_warning, &GraphicsModWarningWidget::GraphicsModEnableSettings, this,
-          &GraphicsModListWidget::OpenGraphicsSettings);
+      &GraphicsModListWidget::OpenGraphicsSettings);
 
   connect(m_mod_list, &QListWidget::itemSelectionChanged, this,
-          &GraphicsModListWidget::ModSelectionChanged);
+      &GraphicsModListWidget::ModSelectionChanged);
 
   connect(m_mod_list, &QListWidget::itemChanged, this, &GraphicsModListWidget::ModItemChanged);
 
   connect(m_mod_list->model(), &QAbstractItemModel::rowsMoved, this,
-          &GraphicsModListWidget::SaveModList);
+      &GraphicsModListWidget::SaveModList);
 
   connect(m_open_directory_button, &QPushButton::clicked, this,
-          &GraphicsModListWidget::OpenGraphicsModDir);
+      &GraphicsModListWidget::OpenGraphicsModDir);
 
   connect(m_refresh, &QPushButton::clicked, this, &GraphicsModListWidget::RefreshModList);
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          &GraphicsModListWidget::CalculateGameRunning);
+      &GraphicsModListWidget::CalculateGameRunning);
 }
 
 void GraphicsModListWidget::RefreshModList()
@@ -138,9 +139,8 @@ void GraphicsModListWidget::RefreshModList()
   for (const GraphicsModConfig& mod : m_mod_group.GetMods())
   {
     // If no group matches the mod's features, or if the mod has no features, skip it
-    if (std::ranges::none_of(mod.m_features, [&groups](const GraphicsModFeatureConfig& feature) {
-          return groups.contains(feature.m_group);
-        }))
+    if (std::ranges::none_of(mod.m_features, [&groups](const GraphicsModFeatureConfig& feature)
+            { return groups.contains(feature.m_group); }))
     {
       continue;
     }

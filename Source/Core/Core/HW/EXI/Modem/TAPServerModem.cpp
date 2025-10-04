@@ -8,11 +8,10 @@
 namespace ExpansionInterface
 {
 
-CEXIModem::TAPServerNetworkInterface::TAPServerNetworkInterface(CEXIModem* modem_ref,
-                                                                const std::string& destination)
-    : NetworkInterface(modem_ref),
-      m_tapserver_if(
-          destination,
+CEXIModem::TAPServerNetworkInterface::TAPServerNetworkInterface(
+    CEXIModem* modem_ref, const std::string& destination)
+    : NetworkInterface(modem_ref)
+    , m_tapserver_if(destination,
           std::bind(&TAPServerNetworkInterface::HandleReceivedFrame, this, std::placeholders::_1),
           MODEM_RECV_SIZE)
 {

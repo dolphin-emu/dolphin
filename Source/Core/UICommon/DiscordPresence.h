@@ -17,8 +17,8 @@ class Handler
 public:
   virtual ~Handler();
   virtual void DiscordJoin() = 0;
-  virtual void DiscordJoinRequest(const char* id, const std::string& discord_tag,
-                                  const char* avatar) = 0;
+  virtual void DiscordJoinRequest(
+      const char* id, const std::string& discord_tag, const char* avatar) = 0;
 };
 
 enum class SecretType
@@ -33,15 +33,13 @@ void InitNetPlayFunctionality(Handler& handler);
 void CallPendingCallbacks();
 void UpdateClientID(const std::string& new_client = {});
 bool UpdateDiscordPresenceRaw(const std::string& details = {}, const std::string& state = {},
-                              const std::string& large_image_key = {},
-                              const std::string& large_image_text = {},
-                              const std::string& small_image_key = {},
-                              const std::string& small_image_text = {},
-                              const int64_t start_timestamp = 0, const int64_t end_timestamp = 0,
-                              const int party_size = 0, const int party_max = 0);
+    const std::string& large_image_key = {}, const std::string& large_image_text = {},
+    const std::string& small_image_key = {}, const std::string& small_image_text = {},
+    const int64_t start_timestamp = 0, const int64_t end_timestamp = 0, const int party_size = 0,
+    const int party_max = 0);
 void UpdateDiscordPresence(int party_size = 0, SecretType type = SecretType::Empty,
-                           const std::string& secret = {}, const std::string& current_game = {},
-                           const bool reset_timer = false);
+    const std::string& secret = {}, const std::string& current_game = {},
+    const bool reset_timer = false);
 std::string CreateSecretFromIPAddress(const std::string& ip_address, int port);
 void Shutdown();
 void SetDiscordPresenceEnabled(bool enabled);

@@ -70,14 +70,14 @@ struct DDS_PIXELFORMAT
 
 #define DDS_CUBEMAP_ALLFACES                                                                       \
   (DDS_CUBEMAP_POSITIVEX | DDS_CUBEMAP_NEGATIVEX | DDS_CUBEMAP_POSITIVEY | DDS_CUBEMAP_NEGATIVEY | \
-   DDS_CUBEMAP_POSITIVEZ | DDS_CUBEMAP_NEGATIVEZ)
+      DDS_CUBEMAP_POSITIVEZ | DDS_CUBEMAP_NEGATIVEZ)
 
 #define DDS_CUBEMAP 0x00000200  // DDSCAPS2_CUBEMAP
 
 #ifndef MAKEFOURCC
 #define MAKEFOURCC(ch0, ch1, ch2, ch3)                                                             \
   ((uint32_t)(uint8_t)(ch0) | ((uint32_t)(uint8_t)(ch1) << 8) | ((uint32_t)(uint8_t)(ch2) << 16) | \
-   ((uint32_t)(uint8_t)(ch3) << 24))
+      ((uint32_t)(uint8_t)(ch3) << 24))
 #endif /* defined(MAKEFOURCC) */
 
 #define DDS_HEADER_FLAGS_TEXTURE                                                                   \
@@ -143,9 +143,9 @@ constexpr DDS_PIXELFORMAT DDSPF_R8G8B8 = {
 static constexpr bool DDSPixelFormatMatches(const DDS_PIXELFORMAT& pf1, const DDS_PIXELFORMAT& pf2)
 {
   return std::tie(pf1.dwSize, pf1.dwFlags, pf1.dwFourCC, pf1.dwRGBBitCount, pf1.dwRBitMask,
-                  pf1.dwGBitMask, pf1.dwGBitMask, pf1.dwBBitMask, pf1.dwABitMask) ==
+             pf1.dwGBitMask, pf1.dwGBitMask, pf1.dwBBitMask, pf1.dwABitMask) ==
          std::tie(pf2.dwSize, pf2.dwFlags, pf2.dwFourCC, pf2.dwRGBBitCount, pf2.dwRBitMask,
-                  pf2.dwGBitMask, pf2.dwGBitMask, pf2.dwBBitMask, pf2.dwABitMask);
+             pf2.dwGBitMask, pf2.dwGBitMask, pf2.dwBBitMask, pf2.dwABitMask);
 }
 
 struct DDSLoadInfo
@@ -457,9 +457,8 @@ static bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
 }
 
 static bool ReadMipLevel(VideoCommon::CustomTextureData::ArraySlice::Level* level,
-                         File::IOFile& file, const std::string& filename, u32 mip_level,
-                         const DDSLoadInfo& info, u32 width, u32 height, u32 row_length,
-                         size_t size)
+    File::IOFile& file, const std::string& filename, u32 mip_level, const DDSLoadInfo& info,
+    u32 width, u32 height, u32 row_length, size_t size)
 {
   // D3D11 cannot handle block compressed textures where the first mip level is
   // not a multiple of the block size.
@@ -467,9 +466,9 @@ static bool ReadMipLevel(VideoCommon::CustomTextureData::ArraySlice::Level* leve
       ((width % info.block_size) != 0 || (height % info.block_size) != 0))
   {
     ERROR_LOG_FMT(VIDEO,
-                  "Invalid dimensions for DDS texture {}. For compressed textures of this format, "
-                  "the width/height of the first mip level must be a multiple of {}.",
-                  filename, info.block_size);
+        "Invalid dimensions for DDS texture {}. For compressed textures of this format, "
+        "the width/height of the first mip level must be a multiple of {}.",
+        filename, info.block_size);
     return false;
   }
 
@@ -513,7 +512,7 @@ bool LoadDDSTexture(CustomTextureData* texture, const std::string& filename)
     // Read first mip level, as it may have a custom pitch.
     CustomTextureData::ArraySlice::Level first_level;
     if (!ReadMipLevel(&first_level, file, filename, 0, info, info.width, info.height,
-                      info.first_mip_row_length, info.first_mip_size))
+            info.first_mip_row_length, info.first_mip_size))
     {
       return false;
     }
@@ -535,8 +534,8 @@ bool LoadDDSTexture(CustomTextureData* texture, const std::string& filename)
       u32 mip_row_length = blocks_wide * info.block_size;
       size_t mip_size = blocks_wide * static_cast<size_t>(info.bytes_per_block) * blocks_high;
       CustomTextureData::ArraySlice::Level level;
-      if (!ReadMipLevel(&level, file, filename, i, info, mip_width, mip_height, mip_row_length,
-                        mip_size))
+      if (!ReadMipLevel(
+              &level, file, filename, i, info, mip_width, mip_height, mip_row_length, mip_size))
         break;
 
       slice.m_levels.push_back(std::move(level));
@@ -546,8 +545,8 @@ bool LoadDDSTexture(CustomTextureData* texture, const std::string& filename)
   return true;
 }
 
-bool LoadDDSTexture(CustomTextureData::ArraySlice::Level* level, const std::string& filename,
-                    u32 mip_level)
+bool LoadDDSTexture(
+    CustomTextureData::ArraySlice::Level* level, const std::string& filename, u32 mip_level)
 {
   // Only loading a single mip level.
   File::IOFile file;
@@ -560,7 +559,7 @@ bool LoadDDSTexture(CustomTextureData::ArraySlice::Level* level, const std::stri
     return false;
 
   return ReadMipLevel(level, file, filename, mip_level, info, info.width, info.height,
-                      info.first_mip_row_length, info.first_mip_size);
+      info.first_mip_row_length, info.first_mip_size);
 }
 
 bool LoadPNGTexture(CustomTextureData::ArraySlice::Level* level, const std::string& filename)

@@ -54,9 +54,8 @@ std::string GetAndroidContentDisplayName(std::string_view uri);
 // Returns the display names of all children of a directory, non-recursively.
 std::vector<std::string> GetAndroidContentChildNames(std::string_view uri);
 
-std::vector<std::string> DoFileSearchAndroidContent(std::string_view directory,
-                                                    const std::vector<std::string>& extensions,
-                                                    bool recursive);
+std::vector<std::string> DoFileSearchAndroidContent(
+    std::string_view directory, const std::vector<std::string>& extensions, bool recursive);
 
 int GetNetworkIpAddress();
 int GetNetworkPrefixLength();

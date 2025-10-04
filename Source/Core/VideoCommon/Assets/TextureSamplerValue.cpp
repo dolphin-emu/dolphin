@@ -12,8 +12,8 @@ namespace VideoCommon
 {
 namespace
 {
-std::optional<TextureSamplerValue::SamplerOrigin>
-ReadSamplerOriginFromJSON(const picojson::object& json)
+std::optional<TextureSamplerValue::SamplerOrigin> ReadSamplerOriginFromJSON(
+    const picojson::object& json)
 {
   auto sampler_origin = ReadStringFromJson(json, "sampler_origin").value_or("");
   Common::ToLower(&sampler_origin);

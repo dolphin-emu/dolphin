@@ -69,8 +69,7 @@ Accessors::iterator Accessors::end() const
 }
 
 std::optional<u32> Accessors::Search(const Core::CPUThreadGuard& guard, u32 haystack_start,
-                                     const u8* needle_start, std::size_t needle_size,
-                                     bool forwards) const
+    const u8* needle_start, std::size_t needle_size, bool forwards) const
 {
   return std::nullopt;
 }
@@ -123,7 +122,7 @@ struct EffectiveAddressSpaceAccessors : Accessors
   }
 
   bool Matches(const Core::CPUThreadGuard& guard, u32 haystack_start, const u8* needle_start,
-               std::size_t needle_size) const
+      std::size_t needle_size) const
   {
     auto& system = guard.GetSystem();
     auto& memory = system.GetMemory();
@@ -170,8 +169,7 @@ struct EffectiveAddressSpaceAccessors : Accessors
   }
 
   std::optional<u32> Search(const Core::CPUThreadGuard& guard, u32 haystack_start,
-                            const u8* needle_start, std::size_t needle_size,
-                            bool forward) const override
+      const u8* needle_start, std::size_t needle_size, bool forward) const override
   {
     u32 haystack_address = haystack_start;
     // For forward=true, search incrementally (step +1) until it wraps back to 0x00000000
@@ -230,8 +228,7 @@ struct AuxiliaryAddressSpaceAccessors : Accessors
   }
 
   std::optional<u32> Search(const Core::CPUThreadGuard& guard, u32 haystack_offset,
-                            const u8* needle_start, std::size_t needle_size,
-                            bool forward) const override
+      const u8* needle_start, std::size_t needle_size, bool forward) const override
   {
     if (!IsValidAddress(guard, haystack_offset))
     {
@@ -250,8 +247,8 @@ struct AuxiliaryAddressSpaceAccessors : Accessors
       // using reverse iterator will also search the element in reverse
       auto reverse_end = std::make_reverse_iterator(begin() + needle_size - 1);
       auto it = std::search(std::make_reverse_iterator(begin() + haystack_offset + needle_size - 1),
-                            reverse_end, std::make_reverse_iterator(needle_start + needle_size),
-                            std::make_reverse_iterator(needle_start));
+          reverse_end, std::make_reverse_iterator(needle_start + needle_size),
+          std::make_reverse_iterator(needle_start));
       result = (it == reverse_end) ? end() : (&(*it) - needle_size + 1);
     }
     if (result == end())
@@ -306,8 +303,7 @@ struct CompositeAddressSpaceAccessors : Accessors
   }
 
   std::optional<u32> Search(const Core::CPUThreadGuard& guard, u32 haystack_offset,
-                            const u8* needle_start, std::size_t needle_size,
-                            bool forward) const override
+      const u8* needle_start, std::size_t needle_size, bool forward) const override
   {
     for (const AccessorMapping& mapping : m_accessor_mappings)
     {
@@ -328,19 +324,17 @@ struct CompositeAddressSpaceAccessors : Accessors
 
 private:
   std::vector<AccessorMapping> m_accessor_mappings;
-  std::vector<AccessorMapping>::iterator FindAppropriateAccessor(const Core::CPUThreadGuard& guard,
-                                                                 u32 address)
+  std::vector<AccessorMapping>::iterator FindAppropriateAccessor(
+      const Core::CPUThreadGuard& guard, u32 address)
   {
-    return std::ranges::find_if(m_accessor_mappings, [&guard, address](const AccessorMapping& a) {
-      return a.accessors->IsValidAddress(guard, address - a.base);
-    });
+    return std::ranges::find_if(m_accessor_mappings, [&guard, address](const AccessorMapping& a)
+        { return a.accessors->IsValidAddress(guard, address - a.base); });
   }
-  std::vector<AccessorMapping>::const_iterator
-  FindAppropriateAccessor(const Core::CPUThreadGuard& guard, u32 address) const
+  std::vector<AccessorMapping>::const_iterator FindAppropriateAccessor(
+      const Core::CPUThreadGuard& guard, u32 address) const
   {
-    return std::ranges::find_if(m_accessor_mappings, [&guard, address](const AccessorMapping& a) {
-      return a.accessors->IsValidAddress(guard, address - a.base);
-    });
+    return std::ranges::find_if(m_accessor_mappings, [&guard, address](const AccessorMapping& a)
+        { return a.accessors->IsValidAddress(guard, address - a.base); });
   }
 };
 
@@ -371,8 +365,7 @@ struct SmallBlockAccessors : Accessors
   }
 
   std::optional<u32> Search(const Core::CPUThreadGuard& guard, u32 haystack_offset,
-                            const u8* needle_start, std::size_t needle_size,
-                            bool forward) const override
+      const u8* needle_start, std::size_t needle_size, bool forward) const override
   {
     if (!IsValidAddress(guard, haystack_offset) ||
         !IsValidAddress(guard, haystack_offset + static_cast<u32>(needle_size) - 1))
@@ -391,8 +384,8 @@ struct SmallBlockAccessors : Accessors
       // using reverse iterator will also search the element in reverse
       auto reverse_end = std::make_reverse_iterator(begin() + needle_size - 1);
       auto it = std::search(std::make_reverse_iterator(begin() + haystack_offset + needle_size - 1),
-                            reverse_end, std::make_reverse_iterator(needle_start + needle_size),
-                            std::make_reverse_iterator(needle_start));
+          reverse_end, std::make_reverse_iterator(needle_start + needle_size),
+          std::make_reverse_iterator(needle_start));
       result = (it == reverse_end) ? end() : (&(*it) - needle_size + 1);
     }
     if (result == end())
@@ -477,8 +470,8 @@ void Init()
   s_mem2_address_space_accessors = {&memory.GetEXRAM(), memory.GetExRamSizeReal()};
   s_fake_address_space_accessors = {&memory.GetFakeVMEM(), memory.GetFakeVMemSize()};
   s_physical_address_space_accessors_gcn = {{0x00000000, &s_mem1_address_space_accessors}};
-  s_physical_address_space_accessors_wii = {{0x00000000, &s_mem1_address_space_accessors},
-                                            {0x10000000, &s_mem2_address_space_accessors}};
+  s_physical_address_space_accessors_wii = {
+      {0x00000000, &s_mem1_address_space_accessors}, {0x10000000, &s_mem2_address_space_accessors}};
   s_initialized = true;
 }
 

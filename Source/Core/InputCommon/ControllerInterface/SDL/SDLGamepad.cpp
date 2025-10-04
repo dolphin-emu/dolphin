@@ -20,7 +20,8 @@ static bool IsTriggerAxis(int index)
 }
 
 Gamepad::Gamepad(SDL_Gamepad* const gamepad, SDL_Joystick* const joystick)
-    : m_gamepad(gamepad), m_joystick(joystick)
+    : m_gamepad(gamepad)
+    , m_joystick(joystick)
 {
   const char* const sdl_name =
       (gamepad != nullptr) ? SDL_GetGamepadName(gamepad) : SDL_GetJoystickName(joystick);
@@ -33,7 +34,8 @@ Gamepad::Gamepad(SDL_Gamepad* const gamepad, SDL_Joystick* const joystick)
   std::unordered_set<int> registered_buttons;
   std::unordered_set<int> registered_hats;
   std::unordered_set<int> registered_axes;
-  const auto register_mapping = [&](const SDL_GamepadBinding& bind) {
+  const auto register_mapping = [&](const SDL_GamepadBinding& bind)
+  {
     switch (bind.input_type)
     {
     case SDL_GAMEPAD_BINDTYPE_BUTTON:
@@ -116,14 +118,15 @@ Gamepad::Gamepad(SDL_Gamepad* const gamepad, SDL_Joystick* const joystick)
     }
 
     // Motion
-    const auto add_sensor = [this](SDL_SensorType type, std::string_view sensor_name,
-                                   const SDLMotionAxisList& axes) {
+    const auto add_sensor =
+        [this](SDL_SensorType type, std::string_view sensor_name, const SDLMotionAxisList& axes)
+    {
       if (SDL_SetGamepadSensorEnabled(m_gamepad, type, true))
       {
         for (const SDLMotionAxis& axis : axes)
         {
           AddInput(new MotionInput(fmt::format("{} {}", sensor_name, axis.name), m_gamepad, type,
-                                   axis.index, axis.scale));
+              axis.index, axis.scale));
         }
       }
     };
@@ -166,7 +169,7 @@ Gamepad::Gamepad(SDL_Gamepad* const gamepad, SDL_Joystick* const joystick)
 
     // each axis gets a negative and a positive input instance associated with it
     AddFullAnalogSurfaceInputs(new LegacyAxis(m_joystick, i, -32768, is_registered),
-                               new LegacyAxis(m_joystick, i, 32767, is_registered));
+        new LegacyAxis(m_joystick, i, 32767, is_registered));
   }
 
   // Hats
@@ -208,7 +211,7 @@ Gamepad::Gamepad(SDL_Gamepad* const gamepad, SDL_Joystick* const joystick)
 
       // Periodic
       for (auto waveform :
-           {SDL_HAPTIC_SINE, SDL_HAPTIC_TRIANGLE, SDL_HAPTIC_SAWTOOTHUP, SDL_HAPTIC_SAWTOOTHDOWN})
+          {SDL_HAPTIC_SINE, SDL_HAPTIC_TRIANGLE, SDL_HAPTIC_SAWTOOTHUP, SDL_HAPTIC_SAWTOOTHDOWN})
       {
         if (supported_effects & waveform)
           AddOutput(new PeriodicEffect(m_haptic, waveform));
@@ -333,7 +336,7 @@ bool Gamepad::Button::IsMatchingName(std::string_view name) const
     return name == GetLegacyButtonName(m_binding.input.button);
   case SDL_GAMEPAD_BINDTYPE_HAT:
     return name == GetLegacyHatName(m_binding.input.hat.hat,
-                                    GetDirectionFromHatMask(m_binding.input.hat.hat_mask));
+                       GetDirectionFromHatMask(m_binding.input.hat.hat_mask));
   default:
     return false;
   }
@@ -423,7 +426,8 @@ Gamepad::RampEffect::RampEffect(SDL_Haptic* haptic) : HapticEffect(haptic)
 }
 
 Gamepad::PeriodicEffect::PeriodicEffect(SDL_Haptic* haptic, u16 waveform)
-    : HapticEffect(haptic), m_waveform(waveform)
+    : HapticEffect(haptic)
+    , m_waveform(waveform)
 {
   m_effect.periodic = {};
   SetDirection(&m_effect.periodic.direction);
@@ -434,7 +438,8 @@ Gamepad::PeriodicEffect::PeriodicEffect(SDL_Haptic* haptic, u16 waveform)
 }
 
 Gamepad::LeftRightEffect::LeftRightEffect(SDL_Haptic* haptic, Motor motor)
-    : HapticEffect(haptic), m_motor(motor)
+    : HapticEffect(haptic)
+    , m_motor(motor)
 {
   m_effect.leftright = {};
   m_effect.leftright.length = RUMBLE_LENGTH_MS;

@@ -46,14 +46,14 @@ protected:
 
   QGroupBox* CreateGroupBox(ControllerEmu::ControlGroup* group);
   QGroupBox* CreateGroupBox(const QString& name, ControllerEmu::ControlGroup* group);
-  QGroupBox* CreateControlsBox(const QString& name, ControllerEmu::ControlGroup* group,
-                               int columns);
+  QGroupBox* CreateControlsBox(
+      const QString& name, ControllerEmu::ControlGroup* group, int columns);
   void CreateControl(const ControllerEmu::Control* control, QFormLayout* layout, bool indicator);
   QPushButton* CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingBase& setting);
 
   void AddSettingWidget(QFormLayout* layout, ControllerEmu::NumericSettingBase* setting);
   void AddSettingWidgets(QFormLayout* layout, ControllerEmu::ControlGroup* group,
-                         ControllerEmu::SettingVisibility visibility);
+      ControllerEmu::SettingVisibility visibility);
 
   void ShowAdvancedControlGroupDialog(ControllerEmu::ControlGroup* group);
 

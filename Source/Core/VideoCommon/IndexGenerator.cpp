@@ -155,8 +155,8 @@ u16* AddQuads(u16* index_ptr, u32 num_verts, u32 index)
   // three vertices remaining, so render a triangle
   if (i == num_verts)
   {
-    index_ptr = WriteTriangle<pr>(index_ptr, index + num_verts - 3, index + num_verts - 2,
-                                  index + num_verts - 1);
+    index_ptr = WriteTriangle<pr>(
+        index_ptr, index + num_verts - 3, index + num_verts - 2, index + num_verts - 1);
   }
   return index_ptr;
 }
@@ -348,7 +348,7 @@ u32 IndexGenerator::GetRemainingIndices(OpcodeDecoder::Primitive primitive) cons
   {
     PanicAlertFmt("GetRemainingIndices would overflow; we've already written too many indices? "
                   "base index {} > max index {}",
-                  m_base_index, max_index);
+        m_base_index, max_index);
     return 0;
   }
 

@@ -28,8 +28,8 @@ void NetPlayGolfUI::Display()
 
   const float scale = ImGui::GetIO().DisplayFramebufferScale.x;
 
-  ImGui::SetNextWindowPos(ImVec2((20.0f + DEFAULT_WINDOW_WIDTH) * scale, 10.0f * scale),
-                          ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowPos(
+      ImVec2((20.0f + DEFAULT_WINDOW_WIDTH) * scale, 10.0f * scale), ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSizeConstraints(
       ImVec2(DEFAULT_WINDOW_WIDTH * scale, DEFAULT_WINDOW_HEIGHT * scale),
       ImGui::GetIO().DisplaySize);

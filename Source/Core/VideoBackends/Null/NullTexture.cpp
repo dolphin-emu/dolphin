@@ -10,18 +10,17 @@ NullTexture::NullTexture(const TextureConfig& tex_config) : AbstractTexture(tex_
 }
 
 void NullTexture::CopyRectangleFromTexture(const AbstractTexture* src,
-                                           const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
-                                           u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
-                                           u32 dst_layer, u32 dst_level)
+    const MathUtil::Rectangle<int>& src_rect, u32 src_layer, u32 src_level,
+    const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer, u32 dst_level)
 {
 }
-void NullTexture::ResolveFromTexture(const AbstractTexture* src,
-                                     const MathUtil::Rectangle<int>& rect, u32 layer, u32 level)
+void NullTexture::ResolveFromTexture(
+    const AbstractTexture* src, const MathUtil::Rectangle<int>& rect, u32 layer, u32 level)
 {
 }
 
 void NullTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-                       size_t buffer_size, u32 layer)
+    size_t buffer_size, u32 layer)
 {
 }
 
@@ -36,16 +35,14 @@ NullStagingTexture::NullStagingTexture(StagingTextureType type, const TextureCon
 NullStagingTexture::~NullStagingTexture() = default;
 
 void NullStagingTexture::CopyFromTexture(const AbstractTexture* src,
-                                         const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
-                                         u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
+    const MathUtil::Rectangle<int>& src_rect, u32 src_layer, u32 src_level,
+    const MathUtil::Rectangle<int>& dst_rect)
 {
   m_needs_flush = true;
 }
 
 void NullStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect,
-                                       AbstractTexture* dst,
-                                       const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
-                                       u32 dst_level)
+    AbstractTexture* dst, const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer, u32 dst_level)
 {
   m_needs_flush = true;
 }
@@ -65,20 +62,17 @@ void NullStagingTexture::Flush()
 }
 
 NullFramebuffer::NullFramebuffer(AbstractTexture* color_attachment,
-                                 AbstractTexture* depth_attachment,
-                                 std::vector<AbstractTexture*> additional_color_attachments,
-                                 AbstractTextureFormat color_format,
-                                 AbstractTextureFormat depth_format, u32 width, u32 height,
-                                 u32 layers, u32 samples)
+    AbstractTexture* depth_attachment, std::vector<AbstractTexture*> additional_color_attachments,
+    AbstractTextureFormat color_format, AbstractTextureFormat depth_format, u32 width, u32 height,
+    u32 layers, u32 samples)
     : AbstractFramebuffer(color_attachment, depth_attachment,
-                          std::move(additional_color_attachments), color_format, depth_format,
-                          width, height, layers, samples)
+          std::move(additional_color_attachments), color_format, depth_format, width, height,
+          layers, samples)
 {
 }
 
-std::unique_ptr<NullFramebuffer>
-NullFramebuffer::Create(NullTexture* color_attachment, NullTexture* depth_attachment,
-                        std::vector<AbstractTexture*> additional_color_attachments)
+std::unique_ptr<NullFramebuffer> NullFramebuffer::Create(NullTexture* color_attachment,
+    NullTexture* depth_attachment, std::vector<AbstractTexture*> additional_color_attachments)
 {
   if (!ValidateConfig(color_attachment, depth_attachment, additional_color_attachments))
     return nullptr;
@@ -94,8 +88,8 @@ NullFramebuffer::Create(NullTexture* color_attachment, NullTexture* depth_attach
   const u32 samples = either_attachment->GetSamples();
 
   return std::make_unique<NullFramebuffer>(color_attachment, depth_attachment,
-                                           std::move(additional_color_attachments), color_format,
-                                           depth_format, width, height, layers, samples);
+      std::move(additional_color_attachments), color_format, depth_format, width, height, layers,
+      samples);
 }
 
 }  // namespace Null

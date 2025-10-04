@@ -59,8 +59,8 @@ enum
 };
 
 // Indicates which pins are accessible by broadway.  Writable by starlet only.
-static constexpr Common::Flags<GPIO> gpio_owner = {GPIO::SLOT_LED, GPIO::SLOT_IN, GPIO::SENSOR_BAR,
-                                                   GPIO::DO_EJECT, GPIO::AVE_SCL, GPIO::AVE_SDA};
+static constexpr Common::Flags<GPIO> gpio_owner = {
+    GPIO::SLOT_LED, GPIO::SLOT_IN, GPIO::SENSOR_BAR, GPIO::DO_EJECT, GPIO::AVE_SCL, GPIO::AVE_SDA};
 
 WiiIPC::WiiIPC(Core::System& system) : m_system(system)
 {
@@ -96,10 +96,27 @@ void WiiIPC::InitState()
   // The only inputs are POWER, EJECT_BTN, SLOT_IN, and EEP_MISO; Broadway only has access to
   // SLOT_IN
   m_gpio_dir = {
-      GPIO::POWER,      GPIO::SHUTDOWN, GPIO::FAN,    GPIO::DC_DC,   GPIO::DI_SPIN,  GPIO::SLOT_LED,
-      GPIO::SENSOR_BAR, GPIO::DO_EJECT, GPIO::EEP_CS, GPIO::EEP_CLK, GPIO::EEP_MOSI, GPIO::AVE_SCL,
-      GPIO::AVE_SDA,    GPIO::DEBUG0,   GPIO::DEBUG1, GPIO::DEBUG2,  GPIO::DEBUG3,   GPIO::DEBUG4,
-      GPIO::DEBUG5,     GPIO::DEBUG6,   GPIO::DEBUG7,
+      GPIO::POWER,
+      GPIO::SHUTDOWN,
+      GPIO::FAN,
+      GPIO::DC_DC,
+      GPIO::DI_SPIN,
+      GPIO::SLOT_LED,
+      GPIO::SENSOR_BAR,
+      GPIO::DO_EJECT,
+      GPIO::EEP_CS,
+      GPIO::EEP_CLK,
+      GPIO::EEP_MOSI,
+      GPIO::AVE_SCL,
+      GPIO::AVE_SDA,
+      GPIO::DEBUG0,
+      GPIO::DEBUG1,
+      GPIO::DEBUG2,
+      GPIO::DEBUG3,
+      GPIO::DEBUG4,
+      GPIO::DEBUG5,
+      GPIO::DEBUG6,
+      GPIO::DEBUG7,
   };
   m_gpio_out = {};
 
@@ -131,75 +148,88 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
   mmio->Register(base | IPC_PPCMSG, MMIO::InvalidRead<u32>(), MMIO::DirectWrite<u32>(&m_ppc_msg));
 
-  mmio->Register(base | IPC_PPCCTRL, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
-                   auto& wii_ipc = system.GetWiiIPC();
-                   return wii_ipc.m_ctrl.ppc();
-                 }),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
-                   auto& wii_ipc = system.GetWiiIPC();
-                   wii_ipc.m_ctrl.ppc(val);
-                   // The IPC interrupt is triggered when IY1/IY2 is set and
-                   // Y1/Y2 is written to -- even when this results in clearing the bit.
-                   if ((val >> 2 & 1 && wii_ipc.m_ctrl.IY1) || (val >> 1 & 1 && wii_ipc.m_ctrl.IY2))
-                     wii_ipc.m_ppc_irq_flags |= INT_CAUSE_IPC_BROADWAY;
-                   if (wii_ipc.m_ctrl.X1)
-                     system.GetIOS()->EnqueueIPCRequest(wii_ipc.m_ppc_msg);
-                   system.GetIOS()->UpdateIPC();
-                   system.GetCoreTiming().ScheduleEvent(0, wii_ipc.m_event_type_update_interrupts,
-                                                        0);
-                 }));
+  mmio->Register(base | IPC_PPCCTRL,
+      MMIO::ComplexRead<u32>(
+          [](Core::System& system, u32)
+          {
+            auto& wii_ipc = system.GetWiiIPC();
+            return wii_ipc.m_ctrl.ppc();
+          }),
+      MMIO::ComplexWrite<u32>(
+          [](Core::System& system, u32, u32 val)
+          {
+            auto& wii_ipc = system.GetWiiIPC();
+            wii_ipc.m_ctrl.ppc(val);
+            // The IPC interrupt is triggered when IY1/IY2 is set and
+            // Y1/Y2 is written to -- even when this results in clearing the bit.
+            if ((val >> 2 & 1 && wii_ipc.m_ctrl.IY1) || (val >> 1 & 1 && wii_ipc.m_ctrl.IY2))
+              wii_ipc.m_ppc_irq_flags |= INT_CAUSE_IPC_BROADWAY;
+            if (wii_ipc.m_ctrl.X1)
+              system.GetIOS()->EnqueueIPCRequest(wii_ipc.m_ppc_msg);
+            system.GetIOS()->UpdateIPC();
+            system.GetCoreTiming().ScheduleEvent(0, wii_ipc.m_event_type_update_interrupts, 0);
+          }));
 
   mmio->Register(base | IPC_ARMMSG, MMIO::DirectRead<u32>(&m_arm_msg), MMIO::InvalidWrite<u32>());
 
   mmio->Register(base | PPC_IRQFLAG, MMIO::InvalidRead<u32>(),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
-                   auto& wii_ipc = system.GetWiiIPC();
-                   wii_ipc.m_ppc_irq_flags &= ~val;
-                   system.GetIOS()->UpdateIPC();
-                   system.GetCoreTiming().ScheduleEvent(0, wii_ipc.m_event_type_update_interrupts,
-                                                        0);
-                 }));
+      MMIO::ComplexWrite<u32>(
+          [](Core::System& system, u32, u32 val)
+          {
+            auto& wii_ipc = system.GetWiiIPC();
+            wii_ipc.m_ppc_irq_flags &= ~val;
+            system.GetIOS()->UpdateIPC();
+            system.GetCoreTiming().ScheduleEvent(0, wii_ipc.m_event_type_update_interrupts, 0);
+          }));
 
   mmio->Register(base | PPC_IRQMASK, MMIO::InvalidRead<u32>(),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
-                   auto& wii_ipc = system.GetWiiIPC();
-                   wii_ipc.m_ppc_irq_masks = val;
-                   if (wii_ipc.m_ppc_irq_masks & INT_CAUSE_IPC_BROADWAY)  // wtf?
-                     wii_ipc.Reset();
-                   system.GetIOS()->UpdateIPC();
-                   system.GetCoreTiming().ScheduleEvent(0, wii_ipc.m_event_type_update_interrupts,
-                                                        0);
-                 }));
+      MMIO::ComplexWrite<u32>(
+          [](Core::System& system, u32, u32 val)
+          {
+            auto& wii_ipc = system.GetWiiIPC();
+            wii_ipc.m_ppc_irq_masks = val;
+            if (wii_ipc.m_ppc_irq_masks & INT_CAUSE_IPC_BROADWAY)  // wtf?
+              wii_ipc.Reset();
+            system.GetIOS()->UpdateIPC();
+            system.GetCoreTiming().ScheduleEvent(0, wii_ipc.m_event_type_update_interrupts, 0);
+          }));
 
   // Dolphin currently does not emulate any hardware access restrictions.
   mmio->Register(base | AHBPROT, MMIO::Constant<u32>(0xFFFFFFFF), MMIO::InvalidWrite<u32>());
 
   mmio->Register(base | GPIOB_OUT, MMIO::DirectRead<u32>(&m_gpio_out.m_hex),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
-                   auto& wii_ipc = system.GetWiiIPC();
-                   wii_ipc.m_gpio_out.m_hex =
-                       (val & gpio_owner.m_hex) | (wii_ipc.m_gpio_out.m_hex & ~gpio_owner.m_hex);
-                   if (wii_ipc.m_gpio_out[GPIO::DO_EJECT])
-                   {
-                     INFO_LOG_FMT(WII_IPC, "Ejecting disc due to GPIO write");
-                     system.GetDVDInterface().EjectDisc(Core::CPUThreadGuard{system},
-                                                        DVD::EjectCause::Software);
-                   }
-                   // SENSOR_BAR is checked by WiimoteEmu::CameraLogic
-                   // TODO: AVE, SLOT_LED
-                 }));
+      MMIO::ComplexWrite<u32>(
+          [](Core::System& system, u32, u32 val)
+          {
+            auto& wii_ipc = system.GetWiiIPC();
+            wii_ipc.m_gpio_out.m_hex =
+                (val & gpio_owner.m_hex) | (wii_ipc.m_gpio_out.m_hex & ~gpio_owner.m_hex);
+            if (wii_ipc.m_gpio_out[GPIO::DO_EJECT])
+            {
+              INFO_LOG_FMT(WII_IPC, "Ejecting disc due to GPIO write");
+              system.GetDVDInterface().EjectDisc(
+                  Core::CPUThreadGuard{system}, DVD::EjectCause::Software);
+            }
+            // SENSOR_BAR is checked by WiimoteEmu::CameraLogic
+            // TODO: AVE, SLOT_LED
+          }));
   mmio->Register(base | GPIOB_DIR, MMIO::DirectRead<u32>(&m_gpio_dir.m_hex),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
-                   auto& wii_ipc = system.GetWiiIPC();
-                   wii_ipc.m_gpio_dir.m_hex =
-                       (val & gpio_owner.m_hex) | (wii_ipc.m_gpio_dir.m_hex & ~gpio_owner.m_hex);
-                 }));
-  mmio->Register(base | GPIOB_IN, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
-                   Common::Flags<GPIO> gpio_in;
-                   gpio_in[GPIO::SLOT_IN] = system.GetDVDInterface().IsDiscInside();
-                   return gpio_in.m_hex;
-                 }),
-                 MMIO::Nop<u32>());
+      MMIO::ComplexWrite<u32>(
+          [](Core::System& system, u32, u32 val)
+          {
+            auto& wii_ipc = system.GetWiiIPC();
+            wii_ipc.m_gpio_dir.m_hex =
+                (val & gpio_owner.m_hex) | (wii_ipc.m_gpio_dir.m_hex & ~gpio_owner.m_hex);
+          }));
+  mmio->Register(base | GPIOB_IN,
+      MMIO::ComplexRead<u32>(
+          [](Core::System& system, u32)
+          {
+            Common::Flags<GPIO> gpio_in;
+            gpio_in[GPIO::SLOT_IN] = system.GetDVDInterface().IsDiscInside();
+            return gpio_in.m_hex;
+          }),
+      MMIO::Nop<u32>());
   // Starlet GPIO registers, not normally accessible by PPC (but they can be depending on how
   // AHBPROT is set up).  We just always allow access, since some homebrew uses them.
 
@@ -212,46 +242,55 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // go through the HW_GPIOB registers if the corresponding bit is set in the HW_GPIO_OWNER
   // register.
   mmio->Register(base | GPIO_OUT, MMIO::DirectRead<u32>(&m_gpio_out.m_hex),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
-                   auto& wii_ipc = system.GetWiiIPC();
-                   wii_ipc.m_gpio_out.m_hex =
-                       (wii_ipc.m_gpio_out.m_hex & gpio_owner.m_hex) | (val & ~gpio_owner.m_hex);
-                   if (wii_ipc.m_gpio_out[GPIO::DO_EJECT])
-                   {
-                     INFO_LOG_FMT(WII_IPC, "Ejecting disc due to GPIO write");
-                     system.GetDVDInterface().EjectDisc(Core::CPUThreadGuard{system},
-                                                        DVD::EjectCause::Software);
-                   }
-                   // SENSOR_BAR is checked by WiimoteEmu::CameraLogic
-                   // TODO: AVE, SLOT_LED
-                 }));
+      MMIO::ComplexWrite<u32>(
+          [](Core::System& system, u32, u32 val)
+          {
+            auto& wii_ipc = system.GetWiiIPC();
+            wii_ipc.m_gpio_out.m_hex =
+                (wii_ipc.m_gpio_out.m_hex & gpio_owner.m_hex) | (val & ~gpio_owner.m_hex);
+            if (wii_ipc.m_gpio_out[GPIO::DO_EJECT])
+            {
+              INFO_LOG_FMT(WII_IPC, "Ejecting disc due to GPIO write");
+              system.GetDVDInterface().EjectDisc(
+                  Core::CPUThreadGuard{system}, DVD::EjectCause::Software);
+            }
+            // SENSOR_BAR is checked by WiimoteEmu::CameraLogic
+            // TODO: AVE, SLOT_LED
+          }));
   mmio->Register(base | GPIO_DIR, MMIO::DirectRead<u32>(&m_gpio_dir.m_hex),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
-                   auto& wii_ipc = system.GetWiiIPC();
-                   wii_ipc.m_gpio_dir.m_hex =
-                       (wii_ipc.m_gpio_dir.m_hex & gpio_owner.m_hex) | (val & ~gpio_owner.m_hex);
-                 }));
-  mmio->Register(base | GPIO_IN, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
-                   Common::Flags<GPIO> gpio_in;
-                   gpio_in[GPIO::SLOT_IN] = system.GetDVDInterface().IsDiscInside();
-                   return gpio_in.m_hex;
-                 }),
-                 MMIO::Nop<u32>());
+      MMIO::ComplexWrite<u32>(
+          [](Core::System& system, u32, u32 val)
+          {
+            auto& wii_ipc = system.GetWiiIPC();
+            wii_ipc.m_gpio_dir.m_hex =
+                (wii_ipc.m_gpio_dir.m_hex & gpio_owner.m_hex) | (val & ~gpio_owner.m_hex);
+          }));
+  mmio->Register(base | GPIO_IN,
+      MMIO::ComplexRead<u32>(
+          [](Core::System& system, u32)
+          {
+            Common::Flags<GPIO> gpio_in;
+            gpio_in[GPIO::SLOT_IN] = system.GetDVDInterface().IsDiscInside();
+            return gpio_in.m_hex;
+          }),
+      MMIO::Nop<u32>());
 
   mmio->Register(base | HW_RESETS, MMIO::DirectRead<u32>(&m_resets),
-                 MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
-                   // A reset occurs when the corresponding bit is cleared
-                   auto& wii_ipc = system.GetWiiIPC();
-                   const bool di_reset_triggered = (wii_ipc.m_resets & 0x400) && !(val & 0x400);
-                   wii_ipc.m_resets = val;
-                   if (di_reset_triggered)
-                   {
-                     // The GPIO *disables* spinning up the drive
-                     const bool spinup = !wii_ipc.m_gpio_out[GPIO::DI_SPIN];
-                     INFO_LOG_FMT(WII_IPC, "Resetting DI {} spinup", spinup ? "with" : "without");
-                     system.GetDVDInterface().ResetDrive(spinup);
-                   }
-                 }));
+      MMIO::ComplexWrite<u32>(
+          [](Core::System& system, u32, u32 val)
+          {
+            // A reset occurs when the corresponding bit is cleared
+            auto& wii_ipc = system.GetWiiIPC();
+            const bool di_reset_triggered = (wii_ipc.m_resets & 0x400) && !(val & 0x400);
+            wii_ipc.m_resets = val;
+            if (di_reset_triggered)
+            {
+              // The GPIO *disables* spinning up the drive
+              const bool spinup = !wii_ipc.m_gpio_out[GPIO::DI_SPIN];
+              INFO_LOG_FMT(WII_IPC, "Resetting DI {} spinup", spinup ? "with" : "without");
+              system.GetDVDInterface().ResetDrive(spinup);
+            }
+          }));
 
   // Register some stubbed/unknown MMIOs required to make Wii games work.
   mmio->Register(base | PPCSPEED, MMIO::InvalidRead<u32>(), MMIO::Nop<u32>());
@@ -279,8 +318,8 @@ void WiiIPC::UpdateInterrupts()
   }
 
   // Generate interrupt on PI if any of the devices behind starlet have an interrupt and mask is set
-  m_system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_WII_IPC,
-                                                !!(m_ppc_irq_flags & m_ppc_irq_masks));
+  m_system.GetProcessorInterface().SetInterrupt(
+      ProcessorInterface::INT_CAUSE_WII_IPC, !!(m_ppc_irq_flags & m_ppc_irq_masks));
 }
 
 void WiiIPC::ClearX1()
@@ -292,7 +331,7 @@ void WiiIPC::GenerateAck(u32 address)
 {
   m_ctrl.Y2 = 1;
   DEBUG_LOG_FMT(WII_IPC, "GenerateAck: {:08x} | {:08x} [R:{} A:{} E:{}]", m_ppc_msg, address,
-                m_ctrl.Y1, m_ctrl.Y2, m_ctrl.X1);
+      m_ctrl.Y1, m_ctrl.Y2, m_ctrl.X1);
   // Based on a hardware test, the IPC interrupt takes approximately 100 TB ticks to fire
   // after Y2 is seen in the control register.
   m_system.GetCoreTiming().ScheduleEvent(100_tbticks, m_event_type_update_interrupts);
@@ -303,7 +342,7 @@ void WiiIPC::GenerateReply(u32 address)
   m_arm_msg = address;
   m_ctrl.Y1 = 1;
   DEBUG_LOG_FMT(WII_IPC, "GenerateReply: {:08x} | {:08x} [R:{} A:{} E:{}]", m_ppc_msg, address,
-                m_ctrl.Y1, m_ctrl.Y2, m_ctrl.X1);
+      m_ctrl.Y1, m_ctrl.Y2, m_ctrl.X1);
   // Based on a hardware test, the IPC interrupt takes approximately 100 TB ticks to fire
   // after Y1 is seen in the control register.
   m_system.GetCoreTiming().ScheduleEvent(100_tbticks, m_event_type_update_interrupts);
@@ -311,7 +350,7 @@ void WiiIPC::GenerateReply(u32 address)
 
 bool WiiIPC::IsReady() const
 {
-  return ((m_ctrl.Y1 == 0) && (m_ctrl.Y2 == 0) &&
-          ((m_ppc_irq_flags & INT_CAUSE_IPC_BROADWAY) == 0));
+  return (
+      (m_ctrl.Y1 == 0) && (m_ctrl.Y2 == 0) && ((m_ppc_irq_flags & INT_CAUSE_IPC_BROADWAY) == 0));
 }
 }  // namespace IOS

@@ -13,7 +13,7 @@ class ConfigRadioInt final : public ConfigControl<ToolTipRadioButton>
   Q_OBJECT
 public:
   ConfigRadioInt(const QString& label, const Config::Info<int>& setting, int value,
-                 Config::Layer* layer = nullptr);
+      Config::Layer* layer = nullptr);
 
 signals:
   // Since selecting a new radio button deselects the old one, ::toggled will generate two signals.

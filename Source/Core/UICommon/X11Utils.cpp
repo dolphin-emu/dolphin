@@ -37,7 +37,7 @@ bool ToggleFullscreen(Display* dpy, Window win)
 
   // Send the event
   if (!XSendEvent(dpy, DefaultRootWindow(dpy), False,
-                  SubstructureRedirectMask | SubstructureNotifyMask, &event))
+          SubstructureRedirectMask | SubstructureNotifyMask, &event))
   {
     ERROR_LOG_FMT(VIDEO, "Failed to switch fullscreen/windowed mode.");
     return false;
@@ -48,9 +48,18 @@ bool ToggleFullscreen(Display* dpy, Window win)
 
 #ifdef HAVE_XRANDR
 XRRConfiguration::XRRConfiguration(Display* _dpy, Window _win)
-    : dpy(_dpy), win(_win), screenResources(nullptr), outputInfo(nullptr), crtcInfo(nullptr),
-      fullMode(0), fs_fb_width(0), fs_fb_height(0), fs_fb_width_mm(0), fs_fb_height_mm(0),
-      bValid(true), bIsFullscreen(false)
+    : dpy(_dpy)
+    , win(_win)
+    , screenResources(nullptr)
+    , outputInfo(nullptr)
+    , crtcInfo(nullptr)
+    , fullMode(0)
+    , fs_fb_width(0)
+    , fs_fb_height(0)
+    , fs_fb_width_mm(0)
+    , fs_fb_height_mm(0)
+    , bValid(true)
+    , bIsFullscreen(false)
 {
   int XRRMajorVersion, XRRMinorVersion;
 
@@ -119,7 +128,7 @@ void XRRConfiguration::Update()
   else
   {
     sscanf(fullscreen_display_res.c_str(), "%m[^:]: %ux%u%c", &output_name, &fullWidth, &fullHeight,
-           &auxFlag);
+        &auxFlag);
   }
   bool want_interlaced = ('i' == auxFlag);
 
@@ -138,8 +147,7 @@ void XRRConfiguration::Update()
           if (!output_name)
           {
             output_name = strdup(output_info->name);
-            Config::SetBaseOrCurrent(
-                Config::MAIN_FULLSCREEN_DISPLAY_RES,
+            Config::SetBaseOrCurrent(Config::MAIN_FULLSCREEN_DISPLAY_RES,
                 fmt::format("{}: {}x{}", output_info->name, fullWidth, fullHeight));
           }
           outputInfo = output_info;
@@ -206,14 +214,14 @@ void XRRConfiguration::ToggleDisplayMode(bool bFullscreen)
   if (bFullscreen)
   {
     XRRSetCrtcConfig(dpy, screenResources, outputInfo->crtc, CurrentTime, crtcInfo->x, crtcInfo->y,
-                     fullMode, crtcInfo->rotation, crtcInfo->outputs, crtcInfo->noutput);
+        fullMode, crtcInfo->rotation, crtcInfo->outputs, crtcInfo->noutput);
     XRRSetScreenSize(dpy, win, fs_fb_width, fs_fb_height, fs_fb_width_mm, fs_fb_height_mm);
     bIsFullscreen = true;
   }
   else
   {
     XRRSetCrtcConfig(dpy, screenResources, outputInfo->crtc, CurrentTime, crtcInfo->x, crtcInfo->y,
-                     crtcInfo->mode, crtcInfo->rotation, crtcInfo->outputs, crtcInfo->noutput);
+        crtcInfo->mode, crtcInfo->rotation, crtcInfo->outputs, crtcInfo->noutput);
     XRRSetScreenSize(dpy, win, fb_width, fb_height, fb_width_mm, fb_height_mm);
     bIsFullscreen = false;
   }

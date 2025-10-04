@@ -10,7 +10,8 @@ TASSlider::TASSlider(int default_, QWidget* parent) : QSlider(parent), m_default
 }
 
 TASSlider::TASSlider(int default_, Qt::Orientation orientation, QWidget* parent)
-    : QSlider(orientation, parent), m_default(default_)
+    : QSlider(orientation, parent)
+    , m_default(default_)
 {
 }
 

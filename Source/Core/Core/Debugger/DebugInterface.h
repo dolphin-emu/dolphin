@@ -65,8 +65,8 @@ public:
   {
     return "NODEBUGGER";
   }
-  virtual std::string GetRawMemoryString(const CPUThreadGuard& /*guard*/, int /*memory*/,
-                                         u32 /*address*/) const
+  virtual std::string GetRawMemoryString(
+      const CPUThreadGuard& /*guard*/, int /*memory*/, u32 /*address*/) const
   {
     return "NODEBUGGER";
   }
@@ -80,18 +80,18 @@ public:
   virtual bool IsMemCheck(u32 /*address*/, size_t /*size*/) const { return false; }
   virtual void ToggleMemCheck(u32 /*address*/, bool /*read*/, bool /*write*/, bool /*log*/) {}
   virtual u32 ReadMemory(const CPUThreadGuard& /*guard*/, u32 /*address*/) const { return 0; }
-  virtual void WriteExtraMemory(const CPUThreadGuard& /*guard*/, int /*memory*/, u32 /*value*/,
-                                u32 /*address*/)
+  virtual void WriteExtraMemory(
+      const CPUThreadGuard& /*guard*/, int /*memory*/, u32 /*value*/, u32 /*address*/)
   {
   }
-  virtual u32 ReadExtraMemory(const CPUThreadGuard& /*guard*/, int /*memory*/,
-                              u32 /*address*/) const
+  virtual u32 ReadExtraMemory(
+      const CPUThreadGuard& /*guard*/, int /*memory*/, u32 /*address*/) const
   {
     return 0;
   }
   virtual u32 ReadInstruction(const CPUThreadGuard& /*guard*/, u32 /*address*/) const { return 0; }
-  virtual std::optional<u32>
-  GetMemoryAddressFromInstruction(const std::string& /*instruction*/) const
+  virtual std::optional<u32> GetMemoryAddressFromInstruction(
+      const std::string& /*instruction*/) const
   {
     return std::nullopt;
   }

@@ -58,8 +58,9 @@ private:
 constexpr int CONNECTION_MESSAGE_TIME = 3000;
 
 WiimoteDevice::WiimoteDevice(BluetoothEmuDevice* host, bdaddr_t bd, unsigned int hid_source_number)
-    : m_host(host), m_bd(bd),
-      m_name(GetNumber() == WIIMOTE_BALANCE_BOARD ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01")
+    : m_host(host)
+    , m_bd(bd)
+    , m_name(GetNumber() == WIIMOTE_BALANCE_BOARD ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01")
 
 {
   INFO_LOG_FMT(IOS_WIIMOTE, "Wiimote: #{} Constructed", GetNumber());
@@ -224,8 +225,8 @@ void WiimoteDevice::Activate(bool connect)
   {
     SetBasebandState(BasebandState::RequestConnection);
 
-    Core::DisplayMessage(fmt::format("Wii Remote {} connected", GetNumber() + 1),
-                         CONNECTION_MESSAGE_TIME);
+    Core::DisplayMessage(
+        fmt::format("Wii Remote {} connected", GetNumber() + 1), CONNECTION_MESSAGE_TIME);
   }
   else if (!connect && IsConnected())
   {
@@ -235,8 +236,8 @@ void WiimoteDevice::Activate(bool connect)
     // Not doing that doesn't seem to break anything.
     m_host->RemoteDisconnect(GetBD());
 
-    Core::DisplayMessage(fmt::format("Wii Remote {} disconnected", GetNumber() + 1),
-                         CONNECTION_MESSAGE_TIME);
+    Core::DisplayMessage(
+        fmt::format("Wii Remote {} disconnected", GetNumber() + 1), CONNECTION_MESSAGE_TIME);
   }
 }
 
@@ -344,8 +345,8 @@ void WiimoteDevice::Update()
   }
 }
 
-WiimoteDevice::NextUpdateInputCall
-WiimoteDevice::PrepareInput(WiimoteEmu::DesiredWiimoteState* wiimote_state)
+WiimoteDevice::NextUpdateInputCall WiimoteDevice::PrepareInput(
+    WiimoteEmu::DesiredWiimoteState* wiimote_state)
 {
   if (m_connection_request_counter)
     --m_connection_request_counter;
@@ -370,16 +371,15 @@ WiimoteDevice::PrepareInput(WiimoteEmu::DesiredWiimoteState* wiimote_state)
   {
     auto gpio_out = m_host->GetSystem().GetWiiIPC().GetGPIOOutFlags();
     m_hid_source->PrepareInput(wiimote_state,
-                               gpio_out[IOS::GPIO::SENSOR_BAR] ?
-                                   WiimoteCommon::HIDWiimote::SensorBarState::Enabled :
-                                   WiimoteCommon::HIDWiimote::SensorBarState::Disabled);
+        gpio_out[IOS::GPIO::SENSOR_BAR] ? WiimoteCommon::HIDWiimote::SensorBarState::Enabled :
+                                          WiimoteCommon::HIDWiimote::SensorBarState::Disabled);
     return NextUpdateInputCall::Update;
   }
   return NextUpdateInputCall::None;
 }
 
-void WiimoteDevice::UpdateInput(NextUpdateInputCall next_call,
-                                const WiimoteEmu::DesiredWiimoteState& wiimote_state)
+void WiimoteDevice::UpdateInput(
+    NextUpdateInputCall next_call, const WiimoteEmu::DesiredWiimoteState& wiimote_state)
 {
   switch (next_call)
   {
@@ -402,7 +402,7 @@ void WiimoteDevice::ExecuteL2capCmd(u8* ptr, u32 size)
   u8* data = ptr + sizeof(l2cap_hdr_t);
   const u32 data_size = size - sizeof(l2cap_hdr_t);
   DEBUG_LOG_FMT(IOS_WIIMOTE, "  CID {:#06x}, Len {:#x}, DataSize {:#x}", header->dcid,
-                header->length, data_size);
+      header->length, data_size);
 
   if (header->length != data_size)
   {
@@ -537,7 +537,7 @@ void WiimoteDevice::ReceiveConnectionReq(u8 ident, u8* data, u32 size)
   if (FindChannelWithPSM(command_connection_req->psm) != nullptr)
   {
     ERROR_LOG_FMT(IOS_WIIMOTE, "Multiple channels with same PSM ({}) are not allowed.",
-                  command_connection_req->psm);
+        command_connection_req->psm);
 
     // A real wii remote refuses multiple connections with the same PSM.
     rsp.result = L2CAP_NO_RESOURCES;
@@ -764,9 +764,8 @@ constexpr u8 SDP_UINT32 = 0x0A;
 constexpr u8 SDP_SEQ8 = 0x35;
 [[maybe_unused]] constexpr u8 SDP_SEQ16 = 0x36;
 
-void WiimoteDevice::SDPSendServiceSearchResponse(u16 cid, u16 transaction_id,
-                                                 u8* service_search_pattern,
-                                                 u16 maximum_service_record_count)
+void WiimoteDevice::SDPSendServiceSearchResponse(
+    u16 cid, u16 transaction_id, u8* service_search_pattern, u16 maximum_service_record_count)
 {
   // verify block... we handle search pattern for HID service only
   {
@@ -860,9 +859,7 @@ static int ParseAttribList(u8* attrib_id_list, u16& start_id, u16& end_id)
 }
 
 void WiimoteDevice::SDPSendServiceAttributeResponse(u16 cid, u16 transaction_id, u32 service_handle,
-                                                    u16 start_attr_id, u16 end_attr_id,
-                                                    u16 maximum_attribute_byte_count,
-                                                    u8* continuation_state)
+    u16 start_attr_id, u16 end_attr_id, u16 maximum_attribute_byte_count, u8* continuation_state)
 {
   if (service_handle != 0x10000)
   {
@@ -913,8 +910,8 @@ void WiimoteDevice::HandleSDP(u16 cid, u8* data, u32 size)
     u8* service_search_pattern = buffer.GetPointer(5);
     const u16 maximum_service_record_count = buffer.Read16(10);
 
-    SDPSendServiceSearchResponse(cid, transaction_id, service_search_pattern,
-                                 maximum_service_record_count);
+    SDPSendServiceSearchResponse(
+        cid, transaction_id, service_search_pattern, maximum_service_record_count);
   }
   break;
 
@@ -938,7 +935,7 @@ void WiimoteDevice::HandleSDP(u16 cid, u8* data, u32 size)
     u8* continuation_state = buffer.GetPointer(offset);
 
     SDPSendServiceAttributeResponse(cid, transaction_id, service_handle, start_attr_id, end_attr_id,
-                                    maximum_attribute_byte_count, continuation_state);
+        maximum_attribute_byte_count, continuation_state);
   }
   break;
 

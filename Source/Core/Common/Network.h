@@ -202,7 +202,7 @@ struct TCPPacket
 {
   TCPPacket();
   TCPPacket(const MACAddress& destination, const MACAddress& source, const sockaddr_in& from,
-            const sockaddr_in& to, u32 seq, u32 ack, u16 flags);
+      const sockaddr_in& to, u32 seq, u32 ack, u16 flags);
   std::vector<u8> Build() const;
   u16 Size() const;
 
@@ -220,7 +220,7 @@ struct UDPPacket
 {
   UDPPacket();
   UDPPacket(const MACAddress& destination, const MACAddress& source, const sockaddr_in& from,
-            const sockaddr_in& to, const std::vector<u8>& payload);
+      const sockaddr_in& to, const std::vector<u8>& payload);
   std::vector<u8> Build() const;
   u16 Size() const;
 
@@ -262,8 +262,8 @@ MACAddress GenerateMacAddress(MACConsumer type);
 std::string MacAddressToString(const MACAddress& mac);
 std::optional<MACAddress> StringToMacAddress(std::string_view mac_string);
 u16 ComputeNetworkChecksum(const void* data, u16 length, u32 initial_value = 0);
-u16 ComputeTCPNetworkChecksum(const IPAddress& from, const IPAddress& to, const void* data,
-                              u16 length, u8 protocol);
+u16 ComputeTCPNetworkChecksum(
+    const IPAddress& from, const IPAddress& to, const void* data, u16 length, u8 protocol);
 NetworkErrorState SaveNetworkErrorState();
 void RestoreNetworkErrorState(const NetworkErrorState& state);
 const char* DecodeNetworkError(s32 error_code);

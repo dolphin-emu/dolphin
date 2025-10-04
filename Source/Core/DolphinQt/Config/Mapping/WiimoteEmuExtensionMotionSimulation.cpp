@@ -26,15 +26,15 @@ void WiimoteEmuExtensionMotionSimulation::CreateNunchukLayout()
   auto* layout = new QGridLayout();
   m_nunchuk_box = new QGroupBox(tr("Nunchuk"), this);
 
-  layout->addWidget(CreateGroupBox(tr("Shake"), Wiimote::GetNunchukGroup(
-                                                    GetPort(), WiimoteEmu::NunchukGroup::Shake)),
-                    0, 0);
-  layout->addWidget(CreateGroupBox(tr("Tilt"), Wiimote::GetNunchukGroup(
-                                                   GetPort(), WiimoteEmu::NunchukGroup::Tilt)),
-                    0, 1);
-  layout->addWidget(CreateGroupBox(tr("Swing"), Wiimote::GetNunchukGroup(
-                                                    GetPort(), WiimoteEmu::NunchukGroup::Swing)),
-                    0, 2);
+  layout->addWidget(CreateGroupBox(tr("Shake"),
+                        Wiimote::GetNunchukGroup(GetPort(), WiimoteEmu::NunchukGroup::Shake)),
+      0, 0);
+  layout->addWidget(CreateGroupBox(tr("Tilt"),
+                        Wiimote::GetNunchukGroup(GetPort(), WiimoteEmu::NunchukGroup::Tilt)),
+      0, 1);
+  layout->addWidget(CreateGroupBox(tr("Swing"),
+                        Wiimote::GetNunchukGroup(GetPort(), WiimoteEmu::NunchukGroup::Swing)),
+      0, 2);
 
   m_nunchuk_box->setLayout(layout);
 }

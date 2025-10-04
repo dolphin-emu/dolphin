@@ -59,8 +59,7 @@ double CalculateStopDistance(double velocity, double max_accel)
 namespace WiimoteEmu
 {
 Common::Quaternion ComplementaryFilter(const Common::Quaternion& gyroscope,
-                                       const Common::Vec3& accelerometer, float accel_weight,
-                                       const Common::Vec3& accelerometer_normal)
+    const Common::Vec3& accelerometer, float accel_weight, const Common::Vec3& accelerometer_normal)
 {
   const auto gyro_vec = gyroscope * accelerometer_normal;
   const auto normalized_accel = accelerometer.Normalized();
@@ -80,8 +79,8 @@ Common::Quaternion ComplementaryFilter(const Common::Quaternion& gyroscope,
   }
 }
 
-void EmulateShake(PositionalState* state, ControllerEmu::Shake* const shake_group,
-                  float time_elapsed)
+void EmulateShake(
+    PositionalState* state, ControllerEmu::Shake* const shake_group, float time_elapsed)
 {
   auto target_position = shake_group->GetState() * float(shake_group->GetIntensity() / 2);
   for (std::size_t i = 0; i != target_position.data.size(); ++i)
@@ -147,8 +146,7 @@ void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float t
   const auto y_target_dist = std::abs(target_position.y);
   const auto target_dist = Common::Vec3{xz_target_dist, y_target_dist, xz_target_dist};
   const auto speed = MathUtil::Lerp(Common::Vec3{1, 1, 1} * float(swing_group->GetReturnSpeed()),
-                                    Common::Vec3{1, 1, 1} * float(swing_group->GetSpeed()),
-                                    target_dist / max_distance);
+      Common::Vec3{1, 1, 1} * float(swing_group->GetSpeed()), target_dist / max_distance);
 
   // Convert our m/s "speed" to the jerk required to reach this speed when traveling 1 meter.
   const auto max_jerk = speed * speed * speed * 4;
@@ -181,8 +179,8 @@ void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float t
 
   // TODO: Backswing jerk should be based on x/z speed.
 
-  ApproachPositionWithJerk(state, target_position + Common::Vec3{0, backwards_movement, 0},
-                           max_jerk, time_elapsed);
+  ApproachPositionWithJerk(
+      state, target_position + Common::Vec3{0, backwards_movement, 0}, max_jerk, time_elapsed);
 
   // Clamp Left/Right/Up/Down movement within the configured circle.
   const auto xz_progress =
@@ -218,12 +216,12 @@ WiimoteCommon::AccelData ConvertAccelData(const Common::Vec3& accel, u16 zero_g,
 
   return WiimoteCommon::AccelData(
       {u16(std::clamp(std::lround(scaled_accel.x + zero_g), 0l, MAX_VALUE)),
-       u16(std::clamp(std::lround(scaled_accel.y + zero_g), 0l, MAX_VALUE)),
-       u16(std::clamp(std::lround(scaled_accel.z + zero_g), 0l, MAX_VALUE))});
+          u16(std::clamp(std::lround(scaled_accel.y + zero_g), 0l, MAX_VALUE)),
+          u16(std::clamp(std::lround(scaled_accel.z + zero_g), 0l, MAX_VALUE))});
 }
 
 void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
-                  const ControllerEmu::InputOverrideFunction& override_func, float time_elapsed)
+    const ControllerEmu::InputOverrideFunction& override_func, float time_elapsed)
 {
   const auto cursor = ir_group->GetState(true, override_func);
 
@@ -271,13 +269,13 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
   ApproachAngleWithAccel(state, target_angle, MAX_ACCEL, time_elapsed);
 }
 
-void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& angle_target,
-                            float max_accel, float time_elapsed)
+void ApproachAngleWithAccel(
+    RotationalState* state, const Common::Vec3& angle_target, float max_accel, float time_elapsed)
 {
   const auto stop_distance =
       Common::Vec3(CalculateStopDistance(state->angular_velocity.x, max_accel),
-                   CalculateStopDistance(state->angular_velocity.y, max_accel),
-                   CalculateStopDistance(state->angular_velocity.z, max_accel));
+          CalculateStopDistance(state->angular_velocity.y, max_accel),
+          CalculateStopDistance(state->angular_velocity.z, max_accel));
 
   const auto offset = angle_target - state->angle;
   const auto stop_offset = offset - stop_distance;
@@ -305,8 +303,8 @@ void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& angle_ta
 }
 
 void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_group,
-                      ControllerEmu::IMUAccelerometer* imu_accelerometer_group,
-                      ControllerEmu::IMUGyroscope* imu_gyroscope_group, float time_elapsed)
+    ControllerEmu::IMUAccelerometer* imu_accelerometer_group,
+    ControllerEmu::IMUGyroscope* imu_gyroscope_group, float time_elapsed)
 {
   const auto ang_vel = imu_gyroscope_group->GetState();
 
@@ -348,12 +346,12 @@ void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_gr
 }
 
 void ApproachPositionWithJerk(PositionalState* state, const Common::Vec3& position_target,
-                              const Common::Vec3& max_jerk, float time_elapsed)
+    const Common::Vec3& max_jerk, float time_elapsed)
 {
   const auto stop_distance =
       Common::Vec3(CalculateStopDistance(state->velocity.x, state->acceleration.x, max_jerk.x),
-                   CalculateStopDistance(state->velocity.y, state->acceleration.y, max_jerk.y),
-                   CalculateStopDistance(state->velocity.z, state->acceleration.z, max_jerk.z));
+          CalculateStopDistance(state->velocity.y, state->acceleration.y, max_jerk.y),
+          CalculateStopDistance(state->velocity.z, state->acceleration.z, max_jerk.z));
 
   const auto offset = position_target - state->position;
   const auto stop_offset = offset - stop_distance;
@@ -392,8 +390,8 @@ Common::Quaternion GetRotationFromAcceleration(const Common::Vec3& accel)
   const auto axis = normalized_accel.Cross({0, 0, 1});
 
   // Check that axis is non-zero to handle perfect up/down orientations.
-  return Common::Quaternion::Rotate(angle, axis.LengthSquared() ? axis.Normalized() :
-                                                                  Common::Vec3{0, 1, 0});
+  return Common::Quaternion::Rotate(
+      angle, axis.LengthSquared() ? axis.Normalized() : Common::Vec3{0, 1, 0});
 }
 
 Common::Quaternion GetRotationFromGyroscope(const Common::Vec3& gyro)

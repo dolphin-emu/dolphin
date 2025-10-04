@@ -24,14 +24,14 @@ VertexShaderUid GetVertexShaderUid()
   return out;
 }
 
-static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& host_config,
-                                   u32 num_texgen, ShaderCode& out);
+static void GenVertexShaderTexGens(
+    APIType api_type, const ShaderHostConfig& host_config, u32 num_texgen, ShaderCode& out);
 static void LoadVertexAttribute(ShaderCode& code, const ShaderHostConfig& host_config, u32 indent,
-                                std::string_view name, std::string_view shader_type,
-                                std::string_view stored_type, std::string_view offset_name = {});
+    std::string_view name, std::string_view shader_type, std::string_view stored_type,
+    std::string_view offset_name = {});
 
 ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config,
-                           const vertex_ubershader_uid_data* uid_data)
+    const vertex_ubershader_uid_data* uid_data)
 {
   const bool msaa = host_config.msaa;
   const bool ssaa = host_config.ssaa;
@@ -163,8 +163,7 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
   {
     out.Write("VARYING_LOCATION(0) out VertexData {{\n");
     GenerateVSOutputMembers(out, api_type, num_texgen, host_config,
-                            GetInterpolationQualifier(msaa, ssaa, true, false),
-                            ShaderStage::Vertex);
+        GetInterpolationQualifier(msaa, ssaa, true, false), ShaderStage::Vertex);
     out.Write("}} vs;\n");
   }
   else
@@ -172,25 +171,25 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
     // Let's set up attributes
     u32 counter = 0;
     out.Write("VARYING_LOCATION({}) {} out float4 colors_0;\n", counter++,
-              GetInterpolationQualifier(msaa, ssaa));
+        GetInterpolationQualifier(msaa, ssaa));
     out.Write("VARYING_LOCATION({}) {} out float4 colors_1;\n", counter++,
-              GetInterpolationQualifier(msaa, ssaa));
+        GetInterpolationQualifier(msaa, ssaa));
     for (u32 i = 0; i < num_texgen; ++i)
     {
       out.Write("VARYING_LOCATION({}) {} out float3 tex{};\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa), i);
+          GetInterpolationQualifier(msaa, ssaa), i);
     }
     if (!host_config.fast_depth_calc)
     {
       out.Write("VARYING_LOCATION({}) {} out float4 clipPos;\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa));
+          GetInterpolationQualifier(msaa, ssaa));
     }
     if (per_pixel_lighting)
     {
       out.Write("VARYING_LOCATION({}) {} out float3 Normal;\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa));
+          GetInterpolationQualifier(msaa, ssaa));
       out.Write("VARYING_LOCATION({}) {} out float3 WorldPos;\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa));
+          GetInterpolationQualifier(msaa, ssaa));
     }
   }
 
@@ -224,7 +223,7 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
             "float3 N2;\n"
             "\n"
             "if ((components & {}u) != 0u) {{ // VB_HAS_POSMTXIDX\n",
-            Common::ToUnderlying(VB_HAS_POSMTXIDX));
+      Common::ToUnderlying(VB_HAS_POSMTXIDX));
   LoadVertexAttribute(out, host_config, 2, "posmtx", "uint4", "ubyte4");
   out.Write("  // Vertex format has a per-vertex matrix\n"
             "  int posidx = int(posmtx.r);\n"
@@ -256,7 +255,7 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
             "float3 _rawbinormal;\n"
             "if ((components & {}u) != 0u) // VB_HAS_NORMAL\n"
             "{{\n",
-            Common::ToUnderlying(VB_HAS_NORMAL));
+      Common::ToUnderlying(VB_HAS_NORMAL));
   LoadVertexAttribute(out, host_config, 2, "rawnormal", "float3", "float3");
   out.Write("  _rawnormal = rawnormal;\n"
             "}}\n"
@@ -267,7 +266,7 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
             "\n"
             "if ((components & {}u) != 0u) // VB_HAS_TANGENT\n"
             "{{\n",
-            Common::ToUnderlying(VB_HAS_TANGENT));
+      Common::ToUnderlying(VB_HAS_TANGENT));
   LoadVertexAttribute(out, host_config, 2, "rawtangent", "float3", "float3");
   out.Write("  _rawtangent = rawtangent;\n"
             "}}\n"
@@ -278,7 +277,7 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
             "\n"
             "if ((components & {}u) != 0u) // VB_HAS_BINORMAL\n"
             "{{\n",
-            Common::ToUnderlying(VB_HAS_BINORMAL));
+      Common::ToUnderlying(VB_HAS_BINORMAL));
   LoadVertexAttribute(out, host_config, 2, "rawbinormal", "float3", "float3");
   out.Write("  _rawbinormal = rawbinormal;\n"
             "}}\n"
@@ -308,11 +307,11 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
   out.Write("// To use color 1, the vertex descriptor must have color 0 and 1.\n"
             "// If color 1 is present but not color 0, it is used for lighting channel 0.\n"
             "bool use_color_1 = ((components & {0}u) == {0}u); // VB_HAS_COL0 | VB_HAS_COL1\n",
-            static_cast<u32>(VB_HAS_COL0 | VB_HAS_COL1));
+      static_cast<u32>(VB_HAS_COL0 | VB_HAS_COL1));
 
   out.Write("if ((components & {0}u) == {0}u) // VB_HAS_COL0 | VB_HAS_COL1\n"
             "{{\n",
-            static_cast<u32>(VB_HAS_COL0 | VB_HAS_COL1));
+      static_cast<u32>(VB_HAS_COL0 | VB_HAS_COL1));
   LoadVertexAttribute(out, host_config, 2, "rawcolor0", "float4", "ubyte4");
   LoadVertexAttribute(out, host_config, 2, "rawcolor1", "float4", "ubyte4");
   out.Write("  vertex_color_0 = rawcolor0;\n"
@@ -320,14 +319,14 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
             "}}\n"
             "else if ((components & {}u) != 0u) // VB_HAS_COL0\n"
             "{{\n",
-            Common::ToUnderlying(VB_HAS_COL0));
+      Common::ToUnderlying(VB_HAS_COL0));
   LoadVertexAttribute(out, host_config, 2, "rawcolor0", "float4", "ubyte4");
   out.Write("  vertex_color_0 = rawcolor0;\n"
             "  vertex_color_1 = rawcolor0;\n"
             "}}\n"
             "else if ((components & {}u) != 0u) // VB_HAS_COL1\n"
             "{{\n",
-            Common::ToUnderlying(VB_HAS_COL1));
+      Common::ToUnderlying(VB_HAS_COL1));
   LoadVertexAttribute(out, host_config, 2, "rawcolor1", "float4", "ubyte4");
   out.Write("  vertex_color_0 = rawcolor1;\n"
             "  vertex_color_1 = rawcolor1;\n"
@@ -339,7 +338,7 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
             "}}\n");
 
   WriteVertexLighting(out, api_type, "pos.xyz", "_normal", "vertex_color_0", "vertex_color_1",
-                      "o.colors_0", "o.colors_1");
+      "o.colors_0", "o.colors_1");
 
   // Texture Coordinates
   if (num_texgen > 0)
@@ -362,7 +361,7 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
               "  float4 other_p1 = P1;\n"
               "  float4 other_p2 = P2;\n"
               "  if ((components & {}u) != 0u) {{ // VB_HAS_POSMTXIDX\n",
-              Common::ToUnderlying(VB_HAS_POSMTXIDX));
+        Common::ToUnderlying(VB_HAS_POSMTXIDX));
     out.Write("    uint other_posidx = load_input_uint4_ubyte4(other_base_offset, "
               "vertex_offset_posmtx).r;\n"
               "    other_p0 = " I_TRANSFORMMATRICES "[other_posidx];\n"
@@ -524,8 +523,8 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
   return out;
 }
 
-static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& host_config,
-                                   u32 num_texgen, ShaderCode& out)
+static void GenVertexShaderTexGens(
+    APIType api_type, const ShaderHostConfig& host_config, u32 num_texgen, ShaderCode& out)
 {
   // The HLSL compiler complains that the output texture coordinates are uninitialized when trying
   // to dynamically index them.
@@ -552,7 +551,7 @@ static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& hos
   out.Write("  case {:s}:\n", SourceRow::Normal);
   out.Write("    if ((components & {}u) != 0u) // VB_HAS_NORMAL\n"
             "    {{\n",
-            Common::ToUnderlying(VB_HAS_NORMAL));
+      Common::ToUnderlying(VB_HAS_NORMAL));
   LoadVertexAttribute(out, host_config, 6, "rawnormal", "float3", "float3");
   out.Write("      coord.xyz = rawnormal.xyz;\n"
             "    }}\n"
@@ -560,7 +559,7 @@ static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& hos
   out.Write("  case {:s}:\n", SourceRow::BinormalT);
   out.Write("    if ((components & {}u) != 0u) // VB_HAS_TANGENT\n"
             "    {{\n",
-            Common::ToUnderlying(VB_HAS_TANGENT));
+      Common::ToUnderlying(VB_HAS_TANGENT));
   LoadVertexAttribute(out, host_config, 6, "rawtangent", "float3", "float3");
   out.Write("      coord.xyz = rawtangent.xyz;\n"
             "    }}\n"
@@ -568,7 +567,7 @@ static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& hos
   out.Write("  case {:s}:\n", SourceRow::BinormalB);
   out.Write("    if ((components & {}u) != 0u) // VB_HAS_BINORMAL\n"
             "    {{\n",
-            Common::ToUnderlying(VB_HAS_BINORMAL));
+      Common::ToUnderlying(VB_HAS_BINORMAL));
   LoadVertexAttribute(out, host_config, 6, "rawbinormal", "float3", "float3");
   out.Write("      coord.xyz = rawbinormal.xyz;\n"
             "    }}\n"
@@ -578,12 +577,12 @@ static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& hos
     out.Write("  case {:s}:\n", static_cast<SourceRow>(Common::ToUnderlying(SourceRow::Tex0) + i));
     out.Write("    if ((components & {}u) != 0u) // VB_HAS_UV{}\n"
               "    {{\n",
-              VB_HAS_UV0 << i, i);
+        VB_HAS_UV0 << i, i);
     LoadVertexAttribute(out, host_config, 6, fmt::format("rawtex{}", i), "float3", "rawtex",
-                        fmt::format("rawtex[{}][{}]", i / 4, i % 4));
+        fmt::format("rawtex[{}][{}]", i / 4, i % 4));
     out.Write("      coord = float4(rawtex{}.x, rawtex{}.y, 1.0f, 1.0f);\n"
               "    }}\n",
-              i, i);
+        i, i);
     out.Write("    break;\n\n");
   }
   out.Write("  }}\n"
@@ -591,7 +590,7 @@ static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& hos
 
   out.Write("  // Input form of AB11 sets z element to 1.0\n");
   out.Write("  if ({} == {:s}) // inputform == AB11\n",
-            BitfieldExtract<&TexMtxInfo::inputform>("texMtxInfo"), TexInputForm::AB11);
+      BitfieldExtract<&TexMtxInfo::inputform>("texMtxInfo"), TexInputForm::AB11);
   out.Write("    coord.z = 1.0f;\n"
             "\n");
 
@@ -609,10 +608,10 @@ static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& hos
             "  {{\n");
   out.Write("  case {:s}:\n", TexGenType::EmbossMap);
   out.Write("    {{\n");
-  out.Write("      uint light = {};\n",
-            BitfieldExtract<&TexMtxInfo::embosslightshift>("texMtxInfo"));
-  out.Write("      uint source = {};\n",
-            BitfieldExtract<&TexMtxInfo::embosssourceshift>("texMtxInfo"));
+  out.Write(
+      "      uint light = {};\n", BitfieldExtract<&TexMtxInfo::embosslightshift>("texMtxInfo"));
+  out.Write(
+      "      uint source = {};\n", BitfieldExtract<&TexMtxInfo::embosssourceshift>("texMtxInfo"));
   out.Write("      switch (source) {{\n");
   for (u32 i = 0; i < num_texgen; i++)
     out.Write("      case {}u: output_tex.xyz = o.tex{}; break;\n", i, i);
@@ -632,7 +631,7 @@ static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& hos
   out.Write("  default:\n"
             "    {{\n");
   out.Write("      if ((components & ({}u /* VB_HAS_TEXMTXIDX0 */ << texgen)) != 0u) {{\n",
-            Common::ToUnderlying(VB_HAS_TEXMTXIDX0));
+      Common::ToUnderlying(VB_HAS_TEXMTXIDX0));
   if (host_config.backend_dynamic_vertex_loader || host_config.backend_vs_point_line_expand)
   {
     out.Write("        int tmp = int(load_input_float3_rawtex(vertex_base_offset, "
@@ -652,7 +651,7 @@ static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& hos
               "\n");
   }
   out.Write("        if ({} == {:s}) {{\n", BitfieldExtract<&TexMtxInfo::projection>("texMtxInfo"),
-            TexSize::STQ);
+      TexSize::STQ);
   out.Write("          output_tex.xyz = float3(dot(coord, " I_TRANSFORMMATRICES "[tmp]),\n"
             "                                  dot(coord, " I_TRANSFORMMATRICES "[tmp + 1]),\n"
             "                                  dot(coord, " I_TRANSFORMMATRICES "[tmp + 2]));\n"
@@ -663,7 +662,7 @@ static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& hos
             "        }}\n"
             "      }} else {{\n");
   out.Write("        if ({} == {:s}) {{\n", BitfieldExtract<&TexMtxInfo::projection>("texMtxInfo"),
-            TexSize::STQ);
+      TexSize::STQ);
   out.Write("          output_tex.xyz = float3(dot(coord, " I_TEXMATRICES "[3u * texgen]),\n"
             "                                  dot(coord, " I_TEXMATRICES "[3u * texgen + 1u]),\n"
             "                                  dot(coord, " I_TEXMATRICES "[3u * texgen + 2u]));\n"
@@ -711,14 +710,13 @@ static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& hos
 }
 
 static void LoadVertexAttribute(ShaderCode& code, const ShaderHostConfig& host_config, u32 indent,
-                                std::string_view name, std::string_view shader_type,
-                                std::string_view stored_type, std::string_view offset_name)
+    std::string_view name, std::string_view shader_type, std::string_view stored_type,
+    std::string_view offset_name)
 {
   if (host_config.backend_dynamic_vertex_loader || host_config.backend_vs_point_line_expand)
   {
     code.Write("{:{}}{} {} = load_input_{}_{}(vertex_base_offset, vertex_offset_{});\n", "", indent,
-               shader_type, name, shader_type, stored_type,
-               offset_name.empty() ? name : offset_name);
+        shader_type, name, shader_type, stored_type, offset_name.empty() ? name : offset_name);
   }
   // else inputs are always available
 }

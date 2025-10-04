@@ -90,8 +90,8 @@ public:
   // This function is slow
   NetPlay::SyncIdentifier GetSyncIdentifier() const;
   // This function is slow if all of game_id, revision, disc_number, is_datel are identical
-  NetPlay::SyncIdentifierComparison
-  CompareSyncIdentifier(const NetPlay::SyncIdentifier& sync_identifier) const;
+  NetPlay::SyncIdentifierComparison CompareSyncIdentifier(
+      const NetPlay::SyncIdentifier& sync_identifier) const;
 
   std::string GetWiiFSPath() const;
   DiscIO::Region GetRegion() const { return m_region; }
@@ -127,10 +127,10 @@ public:
 
 private:
   DiscIO::Language GetConfigLanguage() const;
-  static const std::string& Lookup(DiscIO::Language language,
-                                   const std::map<DiscIO::Language, std::string>& strings);
-  const std::string&
-  LookupUsingConfigLanguage(const std::map<DiscIO::Language, std::string>& strings) const;
+  static const std::string& Lookup(
+      DiscIO::Language language, const std::map<DiscIO::Language, std::string>& strings);
+  const std::string& LookupUsingConfigLanguage(
+      const std::map<DiscIO::Language, std::string>& strings) const;
   std::string GetExtension() const;
   bool IsElfOrDol() const;
   bool ReadXMLMetadata(const std::string& path);

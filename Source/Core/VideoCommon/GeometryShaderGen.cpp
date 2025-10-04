@@ -48,14 +48,13 @@ GeometryShaderUid GetGeometryShaderUid(PrimitiveType primitive_type)
 }
 
 static void EmitVertex(ShaderCode& out, const ShaderHostConfig& host_config,
-                       const geometry_shader_uid_data* uid_data, const char* vertex,
-                       APIType api_type, bool wireframe, bool stereo, bool first_vertex = false);
+    const geometry_shader_uid_data* uid_data, const char* vertex, APIType api_type, bool wireframe,
+    bool stereo, bool first_vertex = false);
 static void EndPrimitive(ShaderCode& out, const ShaderHostConfig& host_config,
-                         const geometry_shader_uid_data* uid_data, APIType api_type, bool wireframe,
-                         bool stereo);
+    const geometry_shader_uid_data* uid_data, APIType api_type, bool wireframe, bool stereo);
 
-ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& host_config,
-                                      const geometry_shader_uid_data* uid_data)
+ShaderCode GenerateGeometryShaderCode(
+    APIType api_type, const ShaderHostConfig& host_config, const geometry_shader_uid_data* uid_data)
 {
   ShaderCode out;
   // Non-uid template parameters will write to the dummy data (=> gets optimized out)
@@ -76,16 +75,16 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
     // Insert layout parameters
     if (host_config.backend_gs_instancing)
     {
-      out.Write("layout({}, invocations = {}) in;\n", primitives_ogl[primitive_type],
-                stereo ? 2 : 1);
+      out.Write(
+          "layout({}, invocations = {}) in;\n", primitives_ogl[primitive_type], stereo ? 2 : 1);
       out.Write("layout({}_strip, max_vertices = {}) out;\n", wireframe ? "line" : "triangle",
-                vertex_out);
+          vertex_out);
     }
     else
     {
       out.Write("layout({}) in;\n", primitives_ogl[primitive_type]);
       out.Write("layout({}_strip, max_vertices = {}) out;\n", wireframe ? "line" : "triangle",
-                stereo ? vertex_out * 2 : vertex_out);
+          stereo ? vertex_out * 2 : vertex_out);
     }
   }
 
@@ -101,8 +100,8 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
   out.Write("}};\n");
 
   out.Write("struct VS_OUTPUT {{\n");
-  GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config, "",
-                          ShaderStage::Geometry);
+  GenerateVSOutputMembers(
+      out, api_type, uid_data->numTexGens, host_config, "", ShaderStage::Geometry);
   out.Write("}};\n");
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
@@ -112,14 +111,12 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
 
     out.Write("VARYING_LOCATION(0) in VertexData {{\n");
     GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config,
-                            GetInterpolationQualifier(msaa, ssaa, true, true),
-                            ShaderStage::Geometry);
+        GetInterpolationQualifier(msaa, ssaa, true, true), ShaderStage::Geometry);
     out.Write("}} vs[{}];\n", vertex_in);
 
     out.Write("VARYING_LOCATION(0) out VertexData {{\n");
     GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config,
-                            GetInterpolationQualifier(msaa, ssaa, true, false),
-                            ShaderStage::Geometry);
+        GetInterpolationQualifier(msaa, ssaa, true, false), ShaderStage::Geometry);
 
     out.Write("}} ps;\n");
     if (stereo && !host_config.backend_gl_layer_in_fs)
@@ -145,13 +142,13 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
       out.Write("[maxvertexcount({})]\n[instance({})]\n", vertex_out, stereo ? 2 : 1);
       out.Write("void main({} VS_OUTPUT o[{}], inout {}Stream<VertexData> output, in uint "
                 "InstanceID : SV_GSInstanceID)\n{{\n",
-                primitives_d3d[primitive_type], vertex_in, wireframe ? "Line" : "Triangle");
+          primitives_d3d[primitive_type], vertex_in, wireframe ? "Line" : "Triangle");
     }
     else
     {
       out.Write("[maxvertexcount({})]\n", stereo ? vertex_out * 2 : vertex_out);
       out.Write("void main({} VS_OUTPUT o[{}], inout {}Stream<VertexData> output)\n{{\n",
-                primitives_d3d[primitive_type], vertex_in, wireframe ? "Line" : "Triangle");
+          primitives_d3d[primitive_type], vertex_in, wireframe ? "Line" : "Triangle");
     }
 
     out.Write("\tVertexData ps;\n");
@@ -314,8 +311,8 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
 }
 
 static void EmitVertex(ShaderCode& out, const ShaderHostConfig& host_config,
-                       const geometry_shader_uid_data* uid_data, const char* vertex,
-                       APIType api_type, bool wireframe, bool stereo, bool first_vertex)
+    const geometry_shader_uid_data* uid_data, const char* vertex, APIType api_type, bool wireframe,
+    bool stereo, bool first_vertex)
 {
   if (wireframe && first_vertex)
     out.Write("\tif (i == 0) first = {};\n", vertex);
@@ -361,8 +358,7 @@ static void EmitVertex(ShaderCode& out, const ShaderHostConfig& host_config,
 }
 
 static void EndPrimitive(ShaderCode& out, const ShaderHostConfig& host_config,
-                         const geometry_shader_uid_data* uid_data, APIType api_type, bool wireframe,
-                         bool stereo)
+    const geometry_shader_uid_data* uid_data, APIType api_type, bool wireframe, bool stereo)
 {
   if (wireframe)
     EmitVertex(out, host_config, uid_data, "first", api_type, wireframe, stereo);
@@ -380,7 +376,7 @@ void EnumerateGeometryShaderUids(const std::function<void(const GeometryShaderUi
   const std::array<PrimitiveType, 3> primitive_lut = {
       {g_backend_info.bSupportsPrimitiveRestart ? PrimitiveType::TriangleStrip :
                                                   PrimitiveType::Triangles,
-       PrimitiveType::Lines, PrimitiveType::Points}};
+          PrimitiveType::Lines, PrimitiveType::Points}};
   for (PrimitiveType primitive : primitive_lut)
   {
     geometry_shader_uid_data* const guid = uid.GetUidData();

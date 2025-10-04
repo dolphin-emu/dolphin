@@ -70,8 +70,8 @@ template <class uid_data>
 class ShaderUid : public ShaderGeneratorInterface
 {
 public:
-  static_assert(std::is_trivially_copyable_v<uid_data>,
-                "uid_data must be a trivially copyable type");
+  static_assert(
+      std::is_trivially_copyable_v<uid_data>, "uid_data must be a trivially copyable type");
 
   ShaderUid() { memset(GetUidData(), 0, GetUidDataSize()); }
 
@@ -185,21 +185,20 @@ union ShaderHostConfig
 
 // Gets the filename of the specified type of cache object (e.g. vertex shader, pipeline).
 std::string GetDiskShaderCacheFileName(APIType api_type, const char* type, bool include_gameid,
-                                       bool include_host_config, bool include_api = true);
+    bool include_host_config, bool include_api = true);
 
 void WriteIsNanHeader(ShaderCode& out, APIType api_type);
-void WriteBitfieldExtractHeader(ShaderCode& out, APIType api_type,
-                                const ShaderHostConfig& host_config);
+void WriteBitfieldExtractHeader(
+    ShaderCode& out, APIType api_type, const ShaderHostConfig& host_config);
 
 void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
-                             const ShaderHostConfig& host_config, std::string_view qualifier,
-                             ShaderStage stage);
+    const ShaderHostConfig& host_config, std::string_view qualifier, ShaderStage stage);
 
 void AssignVSOutputMembers(ShaderCode& object, std::string_view a, std::string_view b, u32 texgens,
-                           const ShaderHostConfig& host_config);
+    const ShaderHostConfig& host_config);
 
 void GenerateLineOffset(ShaderCode& object, std::string_view indent0, std::string_view indent1,
-                        std::string_view pos_a, std::string_view pos_b, std::string_view sign);
+    std::string_view pos_a, std::string_view pos_b, std::string_view sign);
 
 void GenerateVSLineExpansion(ShaderCode& object, std::string_view indent, u32 texgens);
 
@@ -213,8 +212,8 @@ void GenerateVSPointExpansion(ShaderCode& object, std::string_view indent, u32 t
 // As a workaround, we interpolate at the centroid of the coveraged pixel, which
 // is always inside the primitive.
 // Without MSAA, this flag is defined to have no effect.
-const char* GetInterpolationQualifier(bool msaa, bool ssaa, bool in_glsl_interface_block = false,
-                                      bool in = false);
+const char* GetInterpolationQualifier(
+    bool msaa, bool ssaa, bool in_glsl_interface_block = false, bool in = false);
 
 // bitfieldExtract generator for BitField types
 template <auto ptr_to_bitfield_member>
@@ -222,21 +221,20 @@ std::string BitfieldExtract(std::string_view source)
 {
   using BitFieldT = Common::MemberType<ptr_to_bitfield_member>;
   return fmt::format("bitfieldExtract({}({}), {}, {})", BitFieldT::IsSigned() ? "int" : "uint",
-                     source, static_cast<u32>(BitFieldT::StartBit()),
-                     static_cast<u32>(BitFieldT::NumBits()));
+      source, static_cast<u32>(BitFieldT::StartBit()), static_cast<u32>(BitFieldT::NumBits()));
 }
 
 template <auto last_member>
 void WriteSwitch(ShaderCode& out, APIType ApiType, std::string_view variable,
-                 const Common::EnumMap<std::string_view, last_member>& values, int indent,
-                 bool break_)
+    const Common::EnumMap<std::string_view, last_member>& values, int indent, bool break_)
 {
   using enum_type = decltype(last_member);
 
   // Generate a tree of if statements recursively
   // std::function must be used because auto won't capture before initialization and thus can't be
   // used recursively
-  std::function<void(u32, u32, u32)> BuildTree = [&](u32 cur_indent, u32 low, u32 high) {
+  std::function<void(u32, u32, u32)> BuildTree = [&](u32 cur_indent, u32 low, u32 high)
+  {
     // Each generated statement is for low <= x < high
     if (high == low + 1)
     {

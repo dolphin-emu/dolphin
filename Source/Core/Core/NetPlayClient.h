@@ -47,16 +47,16 @@ class NetPlayUI
 {
 public:
   virtual ~NetPlayUI() {}
-  virtual void BootGame(const std::string& filename,
-                        std::unique_ptr<BootSessionData> boot_session_data) = 0;
+  virtual void BootGame(
+      const std::string& filename, std::unique_ptr<BootSessionData> boot_session_data) = 0;
   virtual void StopGame() = 0;
   virtual bool IsHosting() const = 0;
 
   virtual void Update() = 0;
   virtual void AppendChat(const std::string& msg) = 0;
 
-  virtual void OnMsgChangeGame(const SyncIdentifier& sync_identifier,
-                               const std::string& netplay_name) = 0;
+  virtual void OnMsgChangeGame(
+      const SyncIdentifier& sync_identifier, const std::string& netplay_name) = 0;
   virtual void OnMsgChangeGBARom(int pad, const NetPlay::GBAConfig& config) = 0;
   virtual void OnMsgStartGame() = 0;
   virtual void OnMsgStopGame() = 0;
@@ -75,11 +75,10 @@ public:
   virtual void OnTtlDetermined(u8 ttl) = 0;
 
   virtual bool IsRecording() = 0;
-  virtual std::shared_ptr<const UICommon::GameFile>
-  FindGameFile(const SyncIdentifier& sync_identifier,
-               SyncIdentifierComparison* found = nullptr) = 0;
-  virtual std::string FindGBARomPath(const std::array<u8, 20>& hash, std::string_view title,
-                                     int device_number) = 0;
+  virtual std::shared_ptr<const UICommon::GameFile> FindGameFile(
+      const SyncIdentifier& sync_identifier, SyncIdentifierComparison* found = nullptr) = 0;
+  virtual std::string FindGBARomPath(
+      const std::array<u8, 20>& hash, std::string_view title, int device_number) = 0;
   virtual void ShowGameDigestDialog(const std::string& title) = 0;
   virtual void SetGameDigestProgress(int pid, int progress) = 0;
   virtual void SetGameDigestResult(int pid, const std::string& result) = 0;
@@ -88,8 +87,8 @@ public:
   virtual void OnIndexAdded(bool success, std::string error) = 0;
   virtual void OnIndexRefreshFailed(std::string error) = 0;
 
-  virtual void ShowChunkedProgressDialog(const std::string& title, u64 data_size,
-                                         const std::vector<int>& players) = 0;
+  virtual void ShowChunkedProgressDialog(
+      const std::string& title, u64 data_size, const std::vector<int>& players) = 0;
   virtual void HideChunkedProgressDialog() = 0;
   virtual void SetChunkedProgress(int pid, u64 progress) = 0;
 
@@ -115,7 +114,7 @@ public:
   void SendAsync(sf::Packet&& packet, u8 channel_id = DEFAULT_CHANNEL);
 
   NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog,
-                const std::string& name, const NetTraversalConfig& traversal_config);
+      const std::string& name, const NetTraversalConfig& traversal_config);
   ~NetPlayClient() override;
 
   std::vector<const Player*> GetPlayers();
@@ -175,7 +174,7 @@ public:
   void AdjustPadBufferSize(unsigned int size);
 
   void SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs, std::vector<u64> titles,
-                      std::string redirect_folder);
+      std::string redirect_folder);
 
   static SyncIdentifier GetSDCardIdentifier();
 
@@ -259,13 +258,13 @@ private:
   bool PollLocalPad(int local_pad, sf::Packet& packet);
   void SendPadHostPoll(PadIndex pad_num);
 
-  bool AddLocalWiimoteToBuffer(int local_wiimote, const WiimoteEmu::SerializedWiimoteState& state,
-                               sf::Packet& packet);
+  bool AddLocalWiimoteToBuffer(
+      int local_wiimote, const WiimoteEmu::SerializedWiimoteState& state, sf::Packet& packet);
 
   void UpdateDevices();
   void AddPadStateToPacket(int in_game_pad, const GCPadStatus& np, sf::Packet& packet);
-  void AddWiimoteStateToPacket(int in_game_pad, const WiimoteEmu::SerializedWiimoteState& np,
-                               sf::Packet& packet);
+  void AddWiimoteStateToPacket(
+      int in_game_pad, const WiimoteEmu::SerializedWiimoteState& np, sf::Packet& packet);
   void Send(const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL);
   void Disconnect();
   bool Connect();

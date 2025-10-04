@@ -207,7 +207,7 @@ void MovieManager::Init(const BootParameters& boot)
     if (strncmp(m_temp_header.gameID.data(), SConfig::GetInstance().GetGameID().c_str(), 6))
     {
       PanicAlertFmtT("The recorded game ({0}) is not the same as the selected game ({1})",
-                     m_temp_header.GetGameID(), SConfig::GetInstance().GetGameID());
+          m_temp_header.GetGameID(), SConfig::GetInstance().GetGameID());
       EndPlayInput(false);
     }
   }
@@ -351,7 +351,7 @@ void MovieManager::SignalDiscChange(const std::string& new_path)
     {
       PanicAlertFmtT("The disc change to \"{0}\" could not be saved in the .dtm file.\n"
                      "The filename of the disc image must not be longer than 40 characters.",
-                     filename);
+          filename);
     }
     m_disc_change_filename = filename;
     m_has_disc_change = true;
@@ -479,21 +479,22 @@ void MovieManager::ChangeWiiPads(bool instantly)
     const bool is_using_wiimote = IsUsingWiimote(i);
 
     Config::SetCurrent(Config::GetInfoForWiimoteSource(i),
-                       is_using_wiimote ? WiimoteSource::Emulated : WiimoteSource::None);
+        is_using_wiimote ? WiimoteSource::Emulated : WiimoteSource::None);
     if (bt != nullptr)
       bt->AccessWiimoteByIndex(i)->Activate(is_using_wiimote);
   }
 }
 
 // NOTE: Host Thread
-bool MovieManager::BeginRecordingInput(const ControllerTypeArray& controllers,
-                                       const WiimoteEnabledArray& wiimotes)
+bool MovieManager::BeginRecordingInput(
+    const ControllerTypeArray& controllers, const WiimoteEnabledArray& wiimotes)
 {
   if (m_play_mode != PlayMode::None ||
       (controllers == ControllerTypeArray{} && wiimotes == WiimoteEnabledArray{}))
     return false;
 
-  const auto start_recording = [this, controllers, wiimotes] {
+  const auto start_recording = [this, controllers, wiimotes]
+  {
     m_controllers = controllers;
     m_wiimotes = wiimotes;
     m_current_frame = m_total_frames = 0;
@@ -580,8 +581,8 @@ static std::string Analog2DToString(u32 x, u32 y, const std::string& prefix, u32
     {
       if (x != center && y != center)
       {
-        return fmt::format("{}:{},{}", prefix, x < center ? "LEFT" : "RIGHT",
-                           y < center ? "DOWN" : "UP");
+        return fmt::format(
+            "{}:{},{}", prefix, x < center ? "LEFT" : "RIGHT", y < center ? "DOWN" : "UP");
       }
 
       if (x != center)
@@ -716,25 +717,33 @@ static std::string GenerateWiiInputDisplayString(int index, const DesiredWiimote
   if (state.extension.data.index() != ExtensionNumber::NONE)
   {
     const auto ext_visitor = overloaded{
-        [&](const Nunchuk::DesiredState& nunchuk) {
+        [&](const Nunchuk::DesiredState& nunchuk)
+        {
           const auto bt = nunchuk.GetButtons();
           if (bt & Nunchuk::BUTTON_C)
             display_str += " C";
           if (bt & Nunchuk::BUTTON_Z)
             display_str += " Z";
-          display_str += fmt::format(" N-ACC:{},{},{}", nunchuk.GetAccelX(), nunchuk.GetAccelY(),
-                                     nunchuk.GetAccelZ());
+          display_str += fmt::format(
+              " N-ACC:{},{},{}", nunchuk.GetAccelX(), nunchuk.GetAccelY(), nunchuk.GetAccelZ());
           display_str += Analog2DToString(nunchuk.jx, nunchuk.jy, " ANA");
         },
-        [&](const Classic::DesiredState& cc) {
+        [&](const Classic::DesiredState& cc)
+        {
           const auto bt = cc.GetButtons();
           constexpr std::pair<u16, const char*> named_buttons[] = {
-              {Classic::PAD_LEFT, "LEFT"},    {Classic::PAD_RIGHT, "RIGHT"},
-              {Classic::PAD_DOWN, "DOWN"},    {Classic::PAD_UP, "UP"},
-              {Classic::BUTTON_A, "A"},       {Classic::BUTTON_B, "B"},
-              {Classic::BUTTON_X, "X"},       {Classic::BUTTON_Y, "Y"},
-              {Classic::BUTTON_ZL, "ZL"},     {Classic::BUTTON_ZR, "ZR"},
-              {Classic::BUTTON_PLUS, "+"},    {Classic::BUTTON_MINUS, "-"},
+              {Classic::PAD_LEFT, "LEFT"},
+              {Classic::PAD_RIGHT, "RIGHT"},
+              {Classic::PAD_DOWN, "DOWN"},
+              {Classic::PAD_UP, "UP"},
+              {Classic::BUTTON_A, "A"},
+              {Classic::BUTTON_B, "B"},
+              {Classic::BUTTON_X, "X"},
+              {Classic::BUTTON_Y, "Y"},
+              {Classic::BUTTON_ZL, "ZL"},
+              {Classic::BUTTON_ZR, "ZR"},
+              {Classic::BUTTON_PLUS, "+"},
+              {Classic::BUTTON_MINUS, "-"},
               {Classic::BUTTON_HOME, "HOME"},
           };
           for (auto& [value, name] : named_buttons)
@@ -764,9 +773,10 @@ static std::string GenerateWiiInputDisplayString(int index, const DesiredWiimote
         [&](const DrawsomeTablet::DesiredState&) { display_str += " Drawsome"; },
         [&](const TaTaCon::DesiredState&) { display_str += " TaTaCon"; },
         [&](const Shinkansen::DesiredState&) { display_str += " Shinkansen"; },
-        [](const auto& arg) {
+        [](const auto& arg)
+        {
           static_assert(std::is_same_v<std::monostate, std::decay_t<decltype(arg)>>,
-                        "unimplemented extension");
+              "unimplemented extension");
         },
     };
     std::visit(ext_visitor, state.extension.data);
@@ -901,8 +911,8 @@ void MovieManager::ReadHeader()
 }
 
 // NOTE: Host Thread
-bool MovieManager::PlayInput(const std::string& movie_path,
-                             std::optional<std::string>* savestate_path)
+bool MovieManager::PlayInput(
+    const std::string& movie_path, std::optional<std::string>* savestate_path)
 {
   if (m_play_mode != PlayMode::None)
     return false;
@@ -954,7 +964,7 @@ bool MovieManager::PlayInput(const std::string& movie_path,
     {
       PanicAlertFmtT("Movie {0} indicates that it starts from a savestate, but {1} doesn't exist. "
                      "The movie will likely not sync!",
-                     movie_path, savestate_path_temp);
+          movie_path, savestate_path_temp);
     }
 
     m_recording_from_save_state = true;
@@ -1076,7 +1086,7 @@ void MovieManager::LoadInput(const std::string& movie_path)
           PanicAlertFmtT("Warning: You loaded a save whose movie mismatches on byte {0} ({1:#x}). "
                          "You should load another save before continuing, or load this state with "
                          "read-only mode off. Otherwise you'll probably get a desync.",
-                         byte_offset, byte_offset);
+              byte_offset, byte_offset);
 
           std::ranges::copy(movInput, m_temp_input.begin());
         }
@@ -1085,7 +1095,7 @@ void MovieManager::LoadInput(const std::string& movie_path)
           const ptrdiff_t frame = mismatch_index / sizeof(ControllerState);
           ControllerState curPadState;
           memcpy(&curPadState, &m_temp_input[frame * sizeof(ControllerState)],
-                 sizeof(ControllerState));
+              sizeof(ControllerState));
           ControllerState movPadState;
           memcpy(&movPadState, &movInput[frame * sizeof(ControllerState)], sizeof(ControllerState));
           PanicAlertFmtT(
@@ -1154,7 +1164,7 @@ void MovieManager::CheckInputEnd()
 {
   if (m_current_byte >= m_temp_input.size() ||
       (m_system.GetCoreTiming().GetTicks() > m_total_tick_count &&
-       !IsRecordingInputFromSaveState()))
+          !IsRecordingInputFromSaveState()))
   {
     EndPlayInput(!m_read_only);
   }
@@ -1171,7 +1181,7 @@ void MovieManager::PlayController(GCPadStatus* PadStatus, int controllerID)
   if (m_current_byte + sizeof(ControllerState) > m_temp_input.size())
   {
     PanicAlertFmtT("Premature movie end in PlayController. {0} + {1} > {2}", m_current_byte,
-                   sizeof(ControllerState), m_temp_input.size());
+        sizeof(ControllerState), m_temp_input.size());
     EndPlayInput(!m_read_only);
     return;
   }
@@ -1260,8 +1270,8 @@ bool MovieManager::PlayWiimote(int wiimote, DesiredWiimoteState* desired_state)
 
   if (m_current_byte + sizeof(u8) > m_temp_input.size())
   {
-    PanicAlertFmtT("Premature movie end in PlayWiimote. {0} + 1 > {1}", m_current_byte,
-                   m_temp_input.size());
+    PanicAlertFmtT(
+        "Premature movie end in PlayWiimote. {0} + 1 > {1}", m_current_byte, m_temp_input.size());
     EndPlayInput(!m_read_only);
     return false;
   }
@@ -1272,7 +1282,7 @@ bool MovieManager::PlayWiimote(int wiimote, DesiredWiimoteState* desired_state)
   if (serialized.length > serialized.data.size())
   {
     PanicAlertFmtT("Invalid serialized length:{0} in PlayWiimote. byte:{1}", int(serialized.length),
-                   m_current_byte);
+        m_current_byte);
     EndPlayInput(!m_read_only);
     return false;
   }
@@ -1281,7 +1291,7 @@ bool MovieManager::PlayWiimote(int wiimote, DesiredWiimoteState* desired_state)
   if (m_current_byte + serialized.length > m_temp_input.size())
   {
     PanicAlertFmtT("Premature movie end in PlayWiimote. {0} + {1} > {2}", m_current_byte,
-                   int(serialized.length), m_temp_input.size());
+        int(serialized.length), m_temp_input.size());
     EndPlayInput(!m_read_only);
     return false;
   }
@@ -1290,11 +1300,11 @@ bool MovieManager::PlayWiimote(int wiimote, DesiredWiimoteState* desired_state)
   if (!WiimoteEmu::DeserializeDesiredState(desired_state, serialized))
   {
     PanicAlertFmtT("Aborting playback. Error in DeserializeDesiredState. byte:{0}{1}",
-                   m_current_byte,
-                   (m_controllers == ControllerTypeArray{}) ?
-                       " Try re-creating the recording with all GameCube controllers "
-                       "disabled (in Configure > GameCube > Device Settings)." :
-                       "");
+        m_current_byte,
+        (m_controllers == ControllerTypeArray{}) ?
+            " Try re-creating the recording with all GameCube controllers "
+            "disabled (in Configure > GameCube > Device Settings)." :
+            "");
     EndPlayInput(!m_read_only);
     return false;
   }
@@ -1428,10 +1438,10 @@ void MovieManager::GetSettings()
   }
   else
   {
-    const auto raw_memcard_exists = [](ExpansionInterface::Slot card_slot) {
-      return File::Exists(Config::GetMemcardPath(card_slot, SConfig::GetInstance().m_region));
-    };
-    const auto gci_folder_has_saves = [this](ExpansionInterface::Slot card_slot) {
+    const auto raw_memcard_exists = [](ExpansionInterface::Slot card_slot)
+    { return File::Exists(Config::GetMemcardPath(card_slot, SConfig::GetInstance().m_region)); };
+    const auto gci_folder_has_saves = [this](ExpansionInterface::Slot card_slot)
+    {
       const auto [path, migrate] = ExpansionInterface::CEXIMemoryCard::GetGCIFolderPath(
           card_slot, ExpansionInterface::AllowMovieFolder::No, *this);
       const u64 number_of_saves = File::ScanDirectoryTree(path, false).size;
@@ -1498,8 +1508,8 @@ void MovieManager::CheckMD5()
   Core::DisplayMessage("Verifying checksum...", 2000);
 
   std::array<u8, 16> game_md5;
-  mbedtls_md_file(mbedtls_md_info_from_type(MBEDTLS_MD_MD5), m_current_file_name.c_str(),
-                  game_md5.data());
+  mbedtls_md_file(
+      mbedtls_md_info_from_type(MBEDTLS_MD_MD5), m_current_file_name.c_str(), game_md5.data());
 
   if (game_md5 == m_md5)
     Core::DisplayMessage("Checksum of current game matches the recorded game.", 2000);
@@ -1514,8 +1524,8 @@ void MovieManager::GetMD5()
     return;
 
   Core::DisplayMessage("Calculating checksum of game file...", 2000);
-  mbedtls_md_file(mbedtls_md_info_from_type(MBEDTLS_MD_MD5), m_current_file_name.c_str(),
-                  m_md5.data());
+  mbedtls_md_file(
+      mbedtls_md_info_from_type(MBEDTLS_MD_MD5), m_current_file_name.c_str(), m_md5.data());
   Core::DisplayMessage("Finished calculating checksum.", 2000);
 }
 

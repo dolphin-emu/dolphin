@@ -12,12 +12,11 @@
 namespace VideoCommon
 {
 bool LoadTextureDataFromFile(const CustomAssetLibrary::AssetID& asset_id,
-                             const std::filesystem::path& asset_path, AbstractTextureType type,
-                             CustomTextureData* data);
+    const std::filesystem::path& asset_path, AbstractTextureType type, CustomTextureData* data);
 
 bool ValidateTextureData(const CustomAssetLibrary::AssetID& asset_id, const CustomTextureData& data,
-                         u32 native_width, u32 native_height);
+    u32 native_width, u32 native_height);
 
-bool PurgeInvalidMipsFromTextureData(const CustomAssetLibrary::AssetID& asset_id,
-                                     CustomTextureData* data);
+bool PurgeInvalidMipsFromTextureData(
+    const CustomAssetLibrary::AssetID& asset_id, CustomTextureData* data);
 }  // namespace VideoCommon

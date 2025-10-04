@@ -28,8 +28,8 @@ class ConvertDialog final : public QDialog
   Q_OBJECT
 
 public:
-  explicit ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> files,
-                         QWidget* parent = nullptr);
+  explicit ConvertDialog(
+      QList<std::shared_ptr<const UICommon::GameFile>> files, QWidget* parent = nullptr);
 
 private slots:
   void OnFormatChanged();

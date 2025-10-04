@@ -45,8 +45,8 @@
 
 using namespace BPFunctions;
 
-static constexpr Common::EnumMap<float, GammaCorrection::Invalid2_2> s_gammaLUT = {1.0f, 1.7f, 2.2f,
-                                                                                   2.2f};
+static constexpr Common::EnumMap<float, GammaCorrection::Invalid2_2> s_gammaLUT = {
+    1.0f, 1.7f, 2.2f, 2.2f};
 
 void BPInit()
 {
@@ -55,8 +55,7 @@ void BPInit()
 }
 
 static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& xf_state_manager,
-                      GeometryShaderManager& geometry_shader_manager, const BPCmd& bp,
-                      int cycles_into_future)
+    GeometryShaderManager& geometry_shader_manager, const BPCmd& bp, int cycles_into_future)
 {
   /*
   ----------------------------------------------------------------------------------------------------------------
@@ -82,11 +81,11 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
   if (((s32*)&bpmem)[bp.address] == bp.newvalue)
   {
     if (!(bp.address == BPMEM_TRIGGER_EFB_COPY || bp.address == BPMEM_CLEARBBOX1 ||
-          bp.address == BPMEM_CLEARBBOX2 || bp.address == BPMEM_SETDRAWDONE ||
-          bp.address == BPMEM_PE_TOKEN_ID || bp.address == BPMEM_PE_TOKEN_INT_ID ||
-          bp.address == BPMEM_LOADTLUT0 || bp.address == BPMEM_LOADTLUT1 ||
-          bp.address == BPMEM_TEXINVALIDATE || bp.address == BPMEM_PRELOAD_MODE ||
-          bp.address == BPMEM_CLEAR_PIXEL_PERF))
+            bp.address == BPMEM_CLEARBBOX2 || bp.address == BPMEM_SETDRAWDONE ||
+            bp.address == BPMEM_PE_TOKEN_ID || bp.address == BPMEM_PE_TOKEN_INT_ID ||
+            bp.address == BPMEM_LOADTLUT0 || bp.address == BPMEM_LOADTLUT1 ||
+            bp.address == BPMEM_TEXINVALIDATE || bp.address == BPMEM_PRELOAD_MODE ||
+            bp.address == BPMEM_CLEAR_PIXEL_PERF))
     {
       return;
     }
@@ -146,7 +145,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     return;
   case BPMEM_ZMODE:  // Depth Control
     PRIM_LOG("zmode: test={}, func={}, upd={}", bpmem.zmode.test_enable, bpmem.zmode.func,
-             bpmem.zmode.update_enable);
+        bpmem.zmode.update_enable);
     SetDepthMode();
     pixel_shader_manager.SetZModeControl();
     return;
@@ -154,10 +153,9 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     if (bp.changes & 0xFFFF)
     {
       PRIM_LOG("blendmode: en={}, open={}, colupd={}, alphaupd={}, dst={}, src={}, sub={}, mode={}",
-               bpmem.blendmode.blend_enable, bpmem.blendmode.logic_op_enable,
-               bpmem.blendmode.color_update, bpmem.blendmode.alpha_update,
-               bpmem.blendmode.dst_factor, bpmem.blendmode.src_factor, bpmem.blendmode.subtract,
-               bpmem.blendmode.logic_mode);
+          bpmem.blendmode.blend_enable, bpmem.blendmode.logic_op_enable,
+          bpmem.blendmode.color_update, bpmem.blendmode.alpha_update, bpmem.blendmode.dst_factor,
+          bpmem.blendmode.src_factor, bpmem.blendmode.subtract, bpmem.blendmode.logic_mode);
 
       SetBlendMode();
 
@@ -211,8 +209,8 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     auto& system = Core::System::GetInstance();
     if (!system.GetFifo().UseDeterministicGPUThread())
     {
-      system.GetPixelEngine().SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), false,
-                                       cycles_into_future);
+      system.GetPixelEngine().SetToken(
+          static_cast<u16>(bp.newvalue & 0xFFFF), false, cycles_into_future);
     }
     DEBUG_LOG_FMT(VIDEO, "SetPEToken {:#06X}", bp.newvalue & 0xFFFF);
     return;
@@ -227,8 +225,8 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     auto& system = Core::System::GetInstance();
     if (!system.GetFifo().UseDeterministicGPUThread())
     {
-      system.GetPixelEngine().SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), true,
-                                       cycles_into_future);
+      system.GetPixelEngine().SetToken(
+          static_cast<u16>(bp.newvalue & 0xFFFF), true, cycles_into_future);
     }
     DEBUG_LOG_FMT(VIDEO, "SetPEToken + INT {:#06X}", bp.newvalue & 0xFFFF);
     return;
@@ -275,7 +273,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     if (u32(srcRect.right) > EFB_WIDTH || u32(srcRect.bottom) > EFB_HEIGHT)
     {
       WARN_LOG_FMT(VIDEO, "Oversized EFB copy: {}x{} (offset {},{} stride {})", srcRect.GetWidth(),
-                   srcRect.GetHeight(), srcRect.left, srcRect.top, destStride);
+          srcRect.GetHeight(), srcRect.left, srcRect.top, destStride);
 
       if (u32(srcRect.left) >= EFB_WIDTH || u32(srcRect.top) >= EFB_HEIGHT)
       {
@@ -306,9 +304,9 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
       // bpmem.zcontrol.pixel_format to PixelFormat::Z24 is when the game wants to copy from ZBuffer
       // (Zbuffer uses 24-bit Format)
       bool is_depth_copy = bpmem.zcontrol.pixel_format == PixelFormat::Z24;
-      g_texture_cache->CopyRenderTargetToTexture(
-          destAddr, PE_copy.tp_realFormat(), copy_width, copy_height, destStride, is_depth_copy,
-          srcRect, PE_copy.intensity_fmt && PE_copy.auto_conv, PE_copy.half_scale, 1.0f,
+      g_texture_cache->CopyRenderTargetToTexture(destAddr, PE_copy.tp_realFormat(), copy_width,
+          copy_height, destStride, is_depth_copy, srcRect,
+          PE_copy.intensity_fmt && PE_copy.auto_conv, PE_copy.half_scale, 1.0f,
           s_gammaLUT[PE_copy.gamma], bpmem.triggerEFBCopy.clamp_top,
           bpmem.triggerEFBCopy.clamp_bottom, bpmem.copyfilter.GetCoefficients());
     }
@@ -330,16 +328,16 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
       u32 height = static_cast<u32>(num_xfb_lines);
 
       DEBUG_LOG_FMT(VIDEO,
-                    "RenderToXFB: destAddr: {:08x} | srcRect [{} {} {} {}] | fbWidth: {} | "
-                    "fbStride: {} | fbHeight: {} | yScale: {}",
-                    destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom,
-                    bpmem.copyTexSrcWH.x + 1, destStride, height, yScale);
+          "RenderToXFB: destAddr: {:08x} | srcRect [{} {} {} {}] | fbWidth: {} | "
+          "fbStride: {} | fbHeight: {} | yScale: {}",
+          destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom,
+          bpmem.copyTexSrcWH.x + 1, destStride, height, yScale);
 
       bool is_depth_copy = bpmem.zcontrol.pixel_format == PixelFormat::Z24;
-      g_texture_cache->CopyRenderTargetToTexture(
-          destAddr, EFBCopyFormat::XFB, copy_width, height, destStride, is_depth_copy, srcRect,
-          false, false, yScale, s_gammaLUT[PE_copy.gamma], bpmem.triggerEFBCopy.clamp_top,
-          bpmem.triggerEFBCopy.clamp_bottom, bpmem.copyfilter.GetCoefficients());
+      g_texture_cache->CopyRenderTargetToTexture(destAddr, EFBCopyFormat::XFB, copy_width, height,
+          destStride, is_depth_copy, srcRect, false, false, yScale, s_gammaLUT[PE_copy.gamma],
+          bpmem.triggerEFBCopy.clamp_top, bpmem.triggerEFBCopy.clamp_bottom,
+          bpmem.copyfilter.GetCoefficients());
 
       // This is as closest as we have to an "end of the frame"
       // It works 99% of the time.
@@ -439,8 +437,8 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     return;
   case BPMEM_ALPHACOMPARE:  // Compare Alpha Values
     PRIM_LOG("alphacmp: ref0={}, ref1={}, comp0={}, comp1={}, logic={}", bpmem.alpha_test.ref0,
-             bpmem.alpha_test.ref1, bpmem.alpha_test.comp0, bpmem.alpha_test.comp1,
-             bpmem.alpha_test.logic);
+        bpmem.alpha_test.ref1, bpmem.alpha_test.comp0, bpmem.alpha_test.comp1,
+        bpmem.alpha_test.logic);
     if (bp.changes & 0xFFFF)
       pixel_shader_manager.SetAlpha();
     if (bp.changes)
@@ -625,10 +623,10 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
             break;
           }
 
-          memory.CopyFromEmu(s_tex_mem.data() + tmem_addr_even, src_addr + bytes_read,
-                             TMEM_LINE_SIZE);
+          memory.CopyFromEmu(
+              s_tex_mem.data() + tmem_addr_even, src_addr + bytes_read, TMEM_LINE_SIZE);
           memory.CopyFromEmu(s_tex_mem.data() + tmem_addr_odd,
-                             src_addr + bytes_read + TMEM_LINE_SIZE, TMEM_LINE_SIZE);
+              src_addr + bytes_read + TMEM_LINE_SIZE, TMEM_LINE_SIZE);
           tmem_addr_even += TMEM_LINE_SIZE;
           tmem_addr_odd += TMEM_LINE_SIZE;
           bytes_read += TMEM_LINE_SIZE * 2;
@@ -637,8 +635,8 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
 
       if (OpcodeDecoder::g_record_fifo_data)
       {
-        Core::System::GetInstance().GetFifoRecorder().UseMemory(src_addr, bytes_read,
-                                                                MemoryUpdate::Type::TMEM);
+        Core::System::GetInstance().GetFifoRecorder().UseMemory(
+            src_addr, bytes_read, MemoryUpdate::Type::TMEM);
       }
 
       TMEM::InvalidateAll();
@@ -779,15 +777,15 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
   case BPMEM_TEV_COLOR_ENV:  // Texture Environment 1
   case BPMEM_TEV_COLOR_ENV + 16:
     pixel_shader_manager.SetTevCombiner((bp.address - BPMEM_TEV_COLOR_ENV) >> 1,
-                                        (bp.address - BPMEM_TEV_COLOR_ENV) & 1, bp.newvalue);
+        (bp.address - BPMEM_TEV_COLOR_ENV) & 1, bp.newvalue);
     return;
   default:
     break;
   }
 
   DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesUnknownBPCommand);
-  WARN_LOG_FMT(VIDEO, "Unknown BP opcode: address = {:#010x} value = {:#010x}", bp.address,
-               bp.newvalue);
+  WARN_LOG_FMT(
+      VIDEO, "Unknown BP opcode: address = {:#010x} value = {:#010x}", bp.address, bp.newvalue);
 }
 
 // Call browser: OpcodeDecoding.cpp RunCallback::OnBP()
@@ -806,7 +804,7 @@ void LoadBPReg(u8 reg, u32 value, int cycles_into_future)
     bpmem.bpMask = 0xFFFFFF;
 
   BPWritten(system.GetPixelShaderManager(), system.GetXFStateManager(),
-            system.GetGeometryShaderManager(), bp, cycles_into_future);
+      system.GetGeometryShaderManager(), bp, cycles_into_future);
 }
 
 void LoadBPRegPreprocess(u8 reg, u32 value, int cycles_into_future)
@@ -853,22 +851,22 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
   case BPMEM_IND_MTXA + 3:
   case BPMEM_IND_MTXA + 6:
     return std::make_pair(fmt::format("BPMEM_IND_MTXA Matrix {}", (cmd - BPMEM_IND_MTXA) / 3),
-                          fmt::format("Matrix {} column A\n{}", (cmd - BPMEM_IND_MTXA) / 3,
-                                      IND_MTXA{.hex = cmddata}));
+        fmt::format(
+            "Matrix {} column A\n{}", (cmd - BPMEM_IND_MTXA) / 3, IND_MTXA{.hex = cmddata}));
 
   case BPMEM_IND_MTXB:  // 0x07
   case BPMEM_IND_MTXB + 3:
   case BPMEM_IND_MTXB + 6:
     return std::make_pair(fmt::format("BPMEM_IND_MTXB Matrix {}", (cmd - BPMEM_IND_MTXB) / 3),
-                          fmt::format("Matrix {} column B\n{}", (cmd - BPMEM_IND_MTXB) / 3,
-                                      IND_MTXB{.hex = cmddata}));
+        fmt::format(
+            "Matrix {} column B\n{}", (cmd - BPMEM_IND_MTXB) / 3, IND_MTXB{.hex = cmddata}));
 
   case BPMEM_IND_MTXC:  // 0x08
   case BPMEM_IND_MTXC + 3:
   case BPMEM_IND_MTXC + 6:
     return std::make_pair(fmt::format("BPMEM_IND_MTXC Matrix {}", (cmd - BPMEM_IND_MTXC) / 3),
-                          fmt::format("Matrix {} column C\n{}", (cmd - BPMEM_IND_MTXC) / 3,
-                                      IND_MTXC{.hex = cmddata}));
+        fmt::format(
+            "Matrix {} column C\n{}", (cmd - BPMEM_IND_MTXC) / 3, IND_MTXC{.hex = cmddata}));
 
   case BPMEM_IND_IMASK:  // 0x0F
     return DescriptionlessReg(BPMEM_IND_IMASK);
@@ -891,7 +889,7 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
   case BPMEM_IND_CMD + 14:
   case BPMEM_IND_CMD + 15:
     return std::make_pair(fmt::format("BPMEM_IND_CMD number {}", cmd - BPMEM_IND_CMD),
-                          fmt::to_string(TevStageIndirect{.fullhex = cmddata}));
+        fmt::to_string(TevStageIndirect{.fullhex = cmddata}));
 
   case BPMEM_SCISSORTL:  // 0x20
     return std::make_pair(RegName(BPMEM_SCISSORTL), fmt::to_string(ScissorPos{.hex = cmddata}));
@@ -911,12 +909,12 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
     // TODO: Description
 
   case BPMEM_RAS1_SS0:  // 0x25
-    return std::make_pair(RegName(BPMEM_RAS1_SS0),
-                          fmt::to_string(std::make_pair(cmd, TEXSCALE{.hex = cmddata})));
+    return std::make_pair(
+        RegName(BPMEM_RAS1_SS0), fmt::to_string(std::make_pair(cmd, TEXSCALE{.hex = cmddata})));
 
   case BPMEM_RAS1_SS1:  // 0x26
-    return std::make_pair(RegName(BPMEM_RAS1_SS1),
-                          fmt::to_string(std::make_pair(cmd, TEXSCALE{.hex = cmddata})));
+    return std::make_pair(
+        RegName(BPMEM_RAS1_SS1), fmt::to_string(std::make_pair(cmd, TEXSCALE{.hex = cmddata})));
 
   case BPMEM_IREF:  // 0x27
     return std::make_pair(RegName(BPMEM_IREF), fmt::to_string(RAS1_IREF{.hex = cmddata}));
@@ -930,7 +928,7 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
   case BPMEM_TREF + 6:
   case BPMEM_TREF + 7:
     return std::make_pair(fmt::format("BPMEM_TREF number {}", cmd - BPMEM_TREF),
-                          fmt::to_string(std::make_pair(cmd, TwoTevStageOrders{.hex = cmddata})));
+        fmt::to_string(std::make_pair(cmd, TwoTevStageOrders{.hex = cmddata})));
 
   case BPMEM_SU_SSIZE:  // 0x30
   case BPMEM_SU_SSIZE + 2:
@@ -941,7 +939,7 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
   case BPMEM_SU_SSIZE + 12:
   case BPMEM_SU_SSIZE + 14:
     return std::make_pair(fmt::format("BPMEM_SU_SSIZE number {}", (cmd - BPMEM_SU_SSIZE) / 2),
-                          fmt::to_string(std::make_pair(true, TCInfo{.hex = cmddata})));
+        fmt::to_string(std::make_pair(true, TCInfo{.hex = cmddata})));
 
   case BPMEM_SU_TSIZE:  // 0x31
   case BPMEM_SU_TSIZE + 2:
@@ -952,7 +950,7 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
   case BPMEM_SU_TSIZE + 12:
   case BPMEM_SU_TSIZE + 14:
     return std::make_pair(fmt::format("BPMEM_SU_TSIZE number {}", (cmd - BPMEM_SU_TSIZE) / 2),
-                          fmt::to_string(std::make_pair(false, TCInfo{.hex = cmddata})));
+        fmt::to_string(std::make_pair(false, TCInfo{.hex = cmddata})));
 
   case BPMEM_ZMODE:  // 0x40
     return std::make_pair(RegName(BPMEM_ZMODE), fmt::format("Z mode: {}", ZMode{.hex = cmddata}));
@@ -961,8 +959,8 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
     return std::make_pair(RegName(BPMEM_BLENDMODE), fmt::to_string(BlendMode{.hex = cmddata}));
 
   case BPMEM_CONSTANTALPHA:  // 0x42
-    return std::make_pair(RegName(BPMEM_CONSTANTALPHA),
-                          fmt::to_string(ConstantAlpha{.hex = cmddata}));
+    return std::make_pair(
+        RegName(BPMEM_CONSTANTALPHA), fmt::to_string(ConstantAlpha{.hex = cmddata}));
 
   case BPMEM_ZCOMPARE:  // 0x43
     return std::make_pair(RegName(BPMEM_ZCOMPARE), fmt::to_string(PEControl{.hex = cmddata}));
@@ -989,50 +987,46 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
   case BPMEM_EFB_TL:  // 0x49
   {
     const X10Y10 left_top{.hex = cmddata};
-    return std::make_pair(RegName(BPMEM_EFB_TL),
-                          fmt::format("EFB Left: {}\nEFB Top: {}", left_top.x, left_top.y));
+    return std::make_pair(
+        RegName(BPMEM_EFB_TL), fmt::format("EFB Left: {}\nEFB Top: {}", left_top.x, left_top.y));
   }
 
   case BPMEM_EFB_WH:  // 0x4A
   {
     const X10Y10 width_height{.hex = cmddata};
-    return std::make_pair(
-        RegName(BPMEM_EFB_WH),
+    return std::make_pair(RegName(BPMEM_EFB_WH),
         fmt::format("EFB Width: {}\nEFB Height: {}", width_height.x + 1, width_height.y + 1));
   }
 
   case BPMEM_EFB_ADDR:  // 0x4B
-    return std::make_pair(
-        RegName(BPMEM_EFB_ADDR),
+    return std::make_pair(RegName(BPMEM_EFB_ADDR),
         fmt::format("EFB Target address (32 byte aligned): 0x{:06X}", cmddata << 5));
 
   case BPMEM_EFB_STRIDE:  // 0x4D
-    return std::make_pair(
-        RegName(BPMEM_EFB_STRIDE),
+    return std::make_pair(RegName(BPMEM_EFB_STRIDE),
         fmt::format("EFB destination stride (32 byte aligned): 0x{:06X}", cmddata << 5));
 
   case BPMEM_COPYYSCALE:  // 0x4E
-    return std::make_pair(
-        RegName(BPMEM_COPYYSCALE),
+    return std::make_pair(RegName(BPMEM_COPYYSCALE),
         fmt::format("Y scaling factor (XFB copy only): 0x{:X} ({}, reciprocal {})", cmddata,
-                    static_cast<float>(cmddata) / 256.f, 256.f / static_cast<float>(cmddata)));
+            static_cast<float>(cmddata) / 256.f, 256.f / static_cast<float>(cmddata)));
 
   case BPMEM_CLEAR_AR:  // 0x4F
     return std::make_pair(RegName(BPMEM_CLEAR_AR),
-                          fmt::format("Clear color alpha: 0x{:02X}\nClear color red: 0x{:02X}",
-                                      (cmddata & 0xFF00) >> 8, cmddata & 0xFF));
+        fmt::format("Clear color alpha: 0x{:02X}\nClear color red: 0x{:02X}",
+            (cmddata & 0xFF00) >> 8, cmddata & 0xFF));
 
   case BPMEM_CLEAR_GB:  // 0x50
     return std::make_pair(RegName(BPMEM_CLEAR_GB),
-                          fmt::format("Clear color green: 0x{:02X}\nClear color blue: 0x{:02X}",
-                                      (cmddata & 0xFF00) >> 8, cmddata & 0xFF));
+        fmt::format("Clear color green: 0x{:02X}\nClear color blue: 0x{:02X}",
+            (cmddata & 0xFF00) >> 8, cmddata & 0xFF));
 
   case BPMEM_CLEAR_Z:  // 0x51
     return std::make_pair(RegName(BPMEM_CLEAR_Z), fmt::format("Clear Z value: 0x{:06X}", cmddata));
 
   case BPMEM_TRIGGER_EFB_COPY:  // 0x52
-    return std::make_pair(RegName(BPMEM_TRIGGER_EFB_COPY),
-                          fmt::to_string(UPE_Copy{.Hex = cmddata}));
+    return std::make_pair(
+        RegName(BPMEM_TRIGGER_EFB_COPY), fmt::to_string(UPE_Copy{.Hex = cmddata}));
 
   case BPMEM_COPYFILTER0:  // 0x53
   {
@@ -1040,8 +1034,8 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
     const u32 w1 = (cmddata & 0x000fc0) >> 6;
     const u32 w2 = (cmddata & 0x03f000) >> 12;
     const u32 w3 = (cmddata & 0xfc0000) >> 18;
-    return std::make_pair(RegName(BPMEM_COPYFILTER0),
-                          fmt::format("w0: {}\nw1: {}\nw2: {}\nw3: {}", w0, w1, w2, w3));
+    return std::make_pair(
+        RegName(BPMEM_COPYFILTER0), fmt::format("w0: {}\nw1: {}\nw2: {}\nw3: {}", w0, w1, w2, w3));
   }
 
   case BPMEM_COPYFILTER1:  // 0x54
@@ -1050,19 +1044,19 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
     const u32 w5 = (cmddata & 0x000fc0) >> 6;
     const u32 w6 = (cmddata & 0x03f000) >> 12;
     // There is no w7
-    return std::make_pair(RegName(BPMEM_COPYFILTER1),
-                          fmt::format("w4: {}\nw5: {}\nw6: {}", w4, w5, w6));
+    return std::make_pair(
+        RegName(BPMEM_COPYFILTER1), fmt::format("w4: {}\nw5: {}\nw6: {}", w4, w5, w6));
   }
 
   case BPMEM_CLEARBBOX1:  // 0x55
-    return std::make_pair(RegName(BPMEM_CLEARBBOX1),
-                          fmt::format("Bounding Box index 0: {}\nBounding Box index 1: {}",
-                                      cmddata & 0x3ff, (cmddata >> 10) & 0x3ff));
+    return std::make_pair(
+        RegName(BPMEM_CLEARBBOX1), fmt::format("Bounding Box index 0: {}\nBounding Box index 1: {}",
+                                       cmddata & 0x3ff, (cmddata >> 10) & 0x3ff));
 
   case BPMEM_CLEARBBOX2:  // 0x56
-    return std::make_pair(RegName(BPMEM_CLEARBBOX2),
-                          fmt::format("Bounding Box index 2: {}\nBounding Box index 3: {}",
-                                      cmddata & 0x3ff, (cmddata >> 10) & 0x3ff));
+    return std::make_pair(
+        RegName(BPMEM_CLEARBBOX2), fmt::format("Bounding Box index 2: {}\nBounding Box index 3: {}",
+                                       cmddata & 0x3ff, (cmddata >> 10) & 0x3ff));
 
   case BPMEM_CLEAR_PIXEL_PERF:  // 0x57
     return DescriptionlessReg(BPMEM_CLEAR_PIXEL_PERF);
@@ -1073,37 +1067,35 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
     // TODO: Description
 
   case BPMEM_SCISSOROFFSET:  // 0x59
-    return std::make_pair(RegName(BPMEM_SCISSOROFFSET),
-                          fmt::to_string(ScissorOffset{.hex = cmddata}));
+    return std::make_pair(
+        RegName(BPMEM_SCISSOROFFSET), fmt::to_string(ScissorOffset{.hex = cmddata}));
 
   case BPMEM_PRELOAD_ADDR:  // 0x60
-    return std::make_pair(
-        RegName(BPMEM_PRELOAD_ADDR),
-        fmt::format("Tmem preload address (32 byte aligned, in main memory): 0x{:06x}",
-                    cmddata << 5));
+    return std::make_pair(RegName(BPMEM_PRELOAD_ADDR),
+        fmt::format(
+            "Tmem preload address (32 byte aligned, in main memory): 0x{:06x}", cmddata << 5));
 
   case BPMEM_PRELOAD_TMEMEVEN:  // 0x61
     return std::make_pair(RegName(BPMEM_PRELOAD_TMEMEVEN),
-                          fmt::format("Tmem preload even line: 0x{:04x} (byte 0x{:05x})", cmddata,
-                                      cmddata * TMEM_LINE_SIZE));
+        fmt::format(
+            "Tmem preload even line: 0x{:04x} (byte 0x{:05x})", cmddata, cmddata * TMEM_LINE_SIZE));
 
   case BPMEM_PRELOAD_TMEMODD:  // 0x62
     return std::make_pair(RegName(BPMEM_PRELOAD_TMEMODD),
-                          fmt::format("Tmem preload odd line: 0x{:04x} (byte 0x{:05x})", cmddata,
-                                      cmddata * TMEM_LINE_SIZE));
+        fmt::format(
+            "Tmem preload odd line: 0x{:04x} (byte 0x{:05x})", cmddata, cmddata * TMEM_LINE_SIZE));
 
   case BPMEM_PRELOAD_MODE:  // 0x63
-    return std::make_pair(RegName(BPMEM_PRELOAD_MODE),
-                          fmt::to_string(BPU_PreloadTileInfo{.hex = cmddata}));
+    return std::make_pair(
+        RegName(BPMEM_PRELOAD_MODE), fmt::to_string(BPU_PreloadTileInfo{.hex = cmddata}));
 
   case BPMEM_LOADTLUT0:  // 0x64
-    return std::make_pair(
-        RegName(BPMEM_LOADTLUT0),
+    return std::make_pair(RegName(BPMEM_LOADTLUT0),
         fmt::format("TLUT load address (32 byte aligned, in main memory): 0x{:06x}", cmddata << 5));
 
   case BPMEM_LOADTLUT1:  // 0x65
-    return std::make_pair(RegName(BPMEM_LOADTLUT1),
-                          fmt::to_string(BPU_LoadTlutInfo{.hex = cmddata}));
+    return std::make_pair(
+        RegName(BPMEM_LOADTLUT1), fmt::to_string(BPU_LoadTlutInfo{.hex = cmddata}));
 
   case BPMEM_TEXINVALIDATE:  // 0x66
     return DescriptionlessReg(BPMEM_TEXINVALIDATE);
@@ -1125,14 +1117,14 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
   case BPMEM_TX_SETMODE0 + 2:
   case BPMEM_TX_SETMODE0 + 3:
     return std::make_pair(fmt::format("BPMEM_TX_SETMODE0 Texture Unit {}", cmd - BPMEM_TX_SETMODE0),
-                          fmt::to_string(TexMode0{.hex = cmddata}));
+        fmt::to_string(TexMode0{.hex = cmddata}));
 
   case BPMEM_TX_SETMODE1:  // 0x84
   case BPMEM_TX_SETMODE1 + 1:
   case BPMEM_TX_SETMODE1 + 2:
   case BPMEM_TX_SETMODE1 + 3:
     return std::make_pair(fmt::format("BPMEM_TX_SETMODE1 Texture Unit {}", cmd - BPMEM_TX_SETMODE1),
-                          fmt::to_string(TexMode1{.hex = cmddata}));
+        fmt::to_string(TexMode1{.hex = cmddata}));
 
   case BPMEM_TX_SETIMAGE0:  // 0x88
   case BPMEM_TX_SETIMAGE0 + 1:
@@ -1171,7 +1163,7 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
   case BPMEM_TX_SETTLUT + 2:
   case BPMEM_TX_SETTLUT + 3:
     return std::make_pair(fmt::format("BPMEM_TX_SETTLUT Texture Unit {}", cmd - BPMEM_TX_SETTLUT),
-                          fmt::to_string(TexTLUT{.hex = cmddata}));
+        fmt::to_string(TexTLUT{.hex = cmddata}));
 
   case BPMEM_TX_SETMODE0_4:  // 0xA0
   case BPMEM_TX_SETMODE0_4 + 1:
@@ -1286,8 +1278,8 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
         fmt::to_string(TevReg::BG{.hex = cmddata}));
 
   case BPMEM_FOGRANGE:  // 0xE8
-    return std::make_pair("BPMEM_FOGRANGE Base",
-                          fmt::to_string(FogRangeParams::RangeBase{.hex = cmddata}));
+    return std::make_pair(
+        "BPMEM_FOGRANGE Base", fmt::to_string(FogRangeParams::RangeBase{.hex = cmddata}));
 
   case BPMEM_FOGRANGE + 1:
   case BPMEM_FOGRANGE + 2:
@@ -1295,7 +1287,7 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
   case BPMEM_FOGRANGE + 4:
   case BPMEM_FOGRANGE + 5:
     return std::make_pair(fmt::format("BPMEM_FOGRANGE K element {}", cmd - BPMEM_FOGRANGE),
-                          fmt::to_string(FogRangeKElement{.HEX = cmddata}));
+        fmt::to_string(FogRangeKElement{.HEX = cmddata}));
 
   case BPMEM_FOGPARAM0:  // 0xEE
     return std::make_pair(RegName(BPMEM_FOGPARAM0), fmt::to_string(FogParam0{.hex = cmddata}));
@@ -1304,15 +1296,15 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
     return std::make_pair(RegName(BPMEM_FOGBMAGNITUDE), fmt::format("B magnitude: {}", cmddata));
 
   case BPMEM_FOGBEXPONENT:  // 0xF0
-    return std::make_pair(RegName(BPMEM_FOGBEXPONENT),
-                          fmt::format("B shift: 1>>{} (1/{})", cmddata, 1 << cmddata));
+    return std::make_pair(
+        RegName(BPMEM_FOGBEXPONENT), fmt::format("B shift: 1>>{} (1/{})", cmddata, 1 << cmddata));
 
   case BPMEM_FOGPARAM3:  // 0xF1
     return std::make_pair(RegName(BPMEM_FOGPARAM3), fmt::to_string(FogParam3{.hex = cmddata}));
 
   case BPMEM_FOGCOLOR:  // 0xF2
-    return std::make_pair(RegName(BPMEM_FOGCOLOR),
-                          fmt::to_string(FogParams::FogColor{.hex = cmddata}));
+    return std::make_pair(
+        RegName(BPMEM_FOGCOLOR), fmt::to_string(FogParams::FogColor{.hex = cmddata}));
 
   case BPMEM_ALPHACOMPARE:  // 0xF3
     return std::make_pair(RegName(BPMEM_ALPHACOMPARE), fmt::to_string(AlphaTest{.hex = cmddata}));
@@ -1332,13 +1324,13 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
   case BPMEM_TEV_KSEL + 6:
   case BPMEM_TEV_KSEL + 7:
     return std::make_pair(fmt::format("BPMEM_TEV_KSEL number {}", cmd - BPMEM_TEV_KSEL),
-                          fmt::to_string(std::make_pair(cmd, TevKSel{.hex = cmddata})));
+        fmt::to_string(std::make_pair(cmd, TevKSel{.hex = cmddata})));
 
   case BPMEM_BP_MASK:  // 0xFE
     return std::make_pair(RegName(BPMEM_BP_MASK),
-                          fmt::format("The next BP command will only update these bits; others "
-                                      "will retain their prior values: {:06x}",
-                                      cmddata));
+        fmt::format("The next BP command will only update these bits; others "
+                    "will retain their prior values: {:06x}",
+            cmddata));
 
   default:
     return std::make_pair(fmt::format("Unknown BP Reg: {:02x}={:06x}", cmd, cmddata), "");

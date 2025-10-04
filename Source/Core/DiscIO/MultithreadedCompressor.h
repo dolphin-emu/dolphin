@@ -46,9 +46,10 @@ public:
       std::function<ConversionResult<OutputParameters>(CompressThreadState*, CompressParameters)>
           compress,
       std::function<ConversionResultCode(OutputParameters)> output)
-      : m_set_up_compress_thread_state(std::move(set_up_compress_thread_state)),
-        m_compress(std::move(compress)), m_output(std::move(output)),
-        m_threads(std::max<unsigned int>(1, std::thread::hardware_concurrency()))
+      : m_set_up_compress_thread_state(std::move(set_up_compress_thread_state))
+      , m_compress(std::move(compress))
+      , m_output(std::move(output))
+      , m_threads(std::max<unsigned int>(1, std::thread::hardware_concurrency()))
   {
     m_compress_threads = std::make_unique<CompressThread[]>(m_threads);
 
@@ -56,7 +57,7 @@ public:
     {
       m_compress_threads[i].thread =
           std::thread(std::mem_fn(&MultithreadedCompressor::CompressThreadFunction), this,
-                      &m_compress_threads[i]);
+              &m_compress_threads[i]);
     }
 
     m_output_thread =

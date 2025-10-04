@@ -23,26 +23,23 @@
 #define GL_QUERY_RESULT_NO_WAIT 0x9194
 #define GL_MIRROR_CLAMP_TO_EDGE 0x8743
 
-typedef void(APIENTRYP PFNDOLBUFFERSTORAGEPROC)(GLenum target, GLsizeiptr size, const void* data,
-                                                GLbitfield flags);
-typedef void(APIENTRYP PFNDOLCLEARTEXIMAGEPROC)(GLuint texture, GLint level, GLenum format,
-                                                GLenum type, const void* data);
+typedef void(APIENTRYP PFNDOLBUFFERSTORAGEPROC)(
+    GLenum target, GLsizeiptr size, const void* data, GLbitfield flags);
+typedef void(APIENTRYP PFNDOLCLEARTEXIMAGEPROC)(
+    GLuint texture, GLint level, GLenum format, GLenum type, const void* data);
 typedef void(APIENTRYP PFNDOLCLEARTEXSUBIMAGEPROC)(GLuint texture, GLint level, GLint xoffset,
-                                                   GLint yoffset, GLint zoffset, GLsizei width,
-                                                   GLsizei height, GLsizei depth, GLenum format,
-                                                   GLenum type, const void* data);
-typedef void(APIENTRYP PFNDOLBINDBUFFERSBASEPROC)(GLenum target, GLuint first, GLsizei count,
-                                                  const GLuint* buffers);
+    GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format,
+    GLenum type, const void* data);
+typedef void(APIENTRYP PFNDOLBINDBUFFERSBASEPROC)(
+    GLenum target, GLuint first, GLsizei count, const GLuint* buffers);
 typedef void(APIENTRYP PFNDOLBINDBUFFERSRANGEPROC)(GLenum target, GLuint first, GLsizei count,
-                                                   const GLuint* buffers, const GLintptr* offsets,
-                                                   const GLsizeiptr* sizes);
+    const GLuint* buffers, const GLintptr* offsets, const GLsizeiptr* sizes);
 typedef void(APIENTRYP PFNDOLBINDTEXTURESPROC)(GLuint first, GLsizei count, const GLuint* textures);
 typedef void(APIENTRYP PFNDOLBINDSAMPLERSPROC)(GLuint first, GLsizei count, const GLuint* samplers);
-typedef void(APIENTRYP PFNDOLBINDIMAGETEXTURESPROC)(GLuint first, GLsizei count,
-                                                    const GLuint* textures);
+typedef void(APIENTRYP PFNDOLBINDIMAGETEXTURESPROC)(
+    GLuint first, GLsizei count, const GLuint* textures);
 typedef void(APIENTRYP PFNDOLBINDVERTEXBUFFERSPROC)(GLuint first, GLsizei count,
-                                                    const GLuint* buffers, const GLintptr* offsets,
-                                                    const GLsizei* strides);
+    const GLuint* buffers, const GLintptr* offsets, const GLsizei* strides);
 
 extern PFNDOLCLEARTEXIMAGEPROC dolClearTexImage;
 extern PFNDOLCLEARTEXSUBIMAGEPROC dolClearTexSubImage;

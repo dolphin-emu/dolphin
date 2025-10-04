@@ -23,8 +23,8 @@ Pixel SampleNearest(const ImagePixelData& src, double u, double v)
 }
 }  // namespace
 
-void CopyImageRegion(const ImagePixelData& src, ImagePixelData& dst, const Rect& src_region,
-                     const Rect& dst_region)
+void CopyImageRegion(
+    const ImagePixelData& src, ImagePixelData& dst, const Rect& src_region, const Rect& dst_region)
 {
   if (src_region.GetWidth() != dst_region.GetWidth() ||
       src_region.GetHeight() != dst_region.GetHeight())
@@ -89,7 +89,7 @@ bool WriteImage(const std::string& path, const ImagePixelData& image)
   }
 
   return Common::SavePNG(path, buffer.data(), Common::ImageByteFormat::RGBA, image.width,
-                         image.height, image.width * 4);
+      image.height, image.width * 4);
 }
 
 ImagePixelData Resize(ResizeMode mode, const ImagePixelData& src, u32 new_width, u32 new_height)
@@ -116,7 +116,7 @@ ImagePixelData Resize(ResizeMode mode, const ImagePixelData& src, u32 new_width,
 }
 
 ImagePixelData ResizeKeepAspectRatio(ResizeMode mode, const ImagePixelData& src, u32 new_width,
-                                     u32 new_height, const Pixel& background_color)
+    u32 new_height, const Pixel& background_color)
 {
   ImagePixelData result(new_width, new_height, background_color);
 
@@ -154,7 +154,7 @@ ImagePixelData ResizeKeepAspectRatio(ResizeMode mode, const ImagePixelData& src,
     resized = Resize(mode, src, corrected_width, new_height);
   }
   CopyImageRegion(resized, result, Rect{0, 0, resized.width, resized.height},
-                  Rect{left, top, left + resized.width, top + resized.height});
+      Rect{left, top, left + resized.width, top + resized.height});
 
   return result;
 }

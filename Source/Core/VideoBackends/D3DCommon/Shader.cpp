@@ -139,8 +139,8 @@ std::optional<SPIRV::CodeVector> GetSpirv(ShaderStage stage, std::string_view so
   return std::nullopt;
 }
 
-std::optional<std::string> GetHLSL(D3D_FEATURE_LEVEL feature_level, ShaderStage stage,
-                                   std::string_view source)
+std::optional<std::string> GetHLSL(
+    D3D_FEATURE_LEVEL feature_level, ShaderStage stage, std::string_view source)
 {
   if (stage == ShaderStage::Geometry)
   {
@@ -158,7 +158,8 @@ std::optional<std::string> GetHLSL(D3D_FEATURE_LEVEL feature_level, ShaderStage 
 namespace D3DCommon
 {
 Shader::Shader(ShaderStage stage, BinaryData bytecode)
-    : AbstractShader(stage), m_bytecode(std::move(bytecode))
+    : AbstractShader(stage)
+    , m_bytecode(std::move(bytecode))
 {
 }
 
@@ -230,8 +231,8 @@ static const char* GetCompileTarget(D3D_FEATURE_LEVEL feature_level, ShaderStage
   }
 }
 
-std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL feature_level,
-                                                        ShaderStage stage, std::string_view source)
+std::optional<Shader::BinaryData> Shader::CompileShader(
+    D3D_FEATURE_LEVEL feature_level, ShaderStage stage, std::string_view source)
 {
   const auto hlsl = GetHLSL(feature_level, stage, source);
   if (!hlsl)
@@ -246,7 +247,7 @@ std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL featur
   Microsoft::WRL::ComPtr<ID3DBlob> code;
   Microsoft::WRL::ComPtr<ID3DBlob> errors;
   HRESULT hr = d3d_compile(hlsl->data(), hlsl->size(), nullptr, macros, nullptr, "main", target,
-                           flags, 0, &code, &errors);
+      flags, 0, &code, &errors);
   if (FAILED(hr))
   {
     static int num_failures = 0;
@@ -270,14 +271,14 @@ std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL featur
     file.close();
 
     PanicAlertFmt("Failed to compile {}: {}\nDebug info ({}):\n{}", filename, Common::HRWrap(hr),
-                  target, static_cast<const char*>(errors->GetBufferPointer()));
+        target, static_cast<const char*>(errors->GetBufferPointer()));
     return std::nullopt;
   }
 
   if (errors && errors->GetBufferSize() > 0)
   {
     WARN_LOG_FMT(VIDEO, "{} compilation succeeded with warnings:\n{}", target,
-                 static_cast<const char*>(errors->GetBufferPointer()));
+        static_cast<const char*>(errors->GetBufferPointer()));
   }
 
   return CreateByteCode(code->GetBufferPointer(), code->GetBufferSize());

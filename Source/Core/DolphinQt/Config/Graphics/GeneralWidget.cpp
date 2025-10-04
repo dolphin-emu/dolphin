@@ -39,9 +39,8 @@ GeneralWidget::GeneralWidget(GraphicsPane* gfx_pane) : m_game_layer{gfx_pane->Ge
   AddDescriptions();
 
   connect(gfx_pane, &GraphicsPane::BackendChanged, this, &GeneralWidget::OnBackendChanged);
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
-    OnEmulationStateChanged(state != Core::State::Uninitialized);
-  });
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+      [this](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
   OnEmulationStateChanged(!Core::IsUninitialized(Core::System::GetInstance()));
 }
 
@@ -56,21 +55,22 @@ void GeneralWidget::CreateWidgets()
   std::vector<std::pair<QString, QString>> options;
   for (auto& backend : VideoBackendBase::GetAvailableBackends())
   {
-    options.push_back(std::make_pair(tr(backend->GetDisplayName().c_str()),
-                                     QString::fromStdString(backend->GetName())));
+    options.push_back(std::make_pair(
+        tr(backend->GetDisplayName().c_str()), QString::fromStdString(backend->GetName())));
   }
   m_backend_combo = new ConfigStringChoice(options, Config::MAIN_GFX_BACKEND, m_game_layer);
   m_previous_backend = m_backend_combo->currentIndex();
 
-  m_aspect_combo = new ConfigChoice({tr("Auto"), tr("Force 16:9"), tr("Force 4:3"),
-                                     tr("Stretch to Window"), tr("Custom"), tr("Custom (Stretch)")},
-                                    Config::GFX_ASPECT_RATIO, m_game_layer);
+  m_aspect_combo =
+      new ConfigChoice({tr("Auto"), tr("Force 16:9"), tr("Force 4:3"), tr("Stretch to Window"),
+                           tr("Custom"), tr("Custom (Stretch)")},
+          Config::GFX_ASPECT_RATIO, m_game_layer);
   m_custom_aspect_label = new QLabel(tr("Custom Aspect Ratio:"));
   constexpr int MAX_CUSTOM_ASPECT_RATIO_RESOLUTION = 10000;
-  m_custom_aspect_width = new ConfigInteger(1, MAX_CUSTOM_ASPECT_RATIO_RESOLUTION,
-                                            Config::GFX_CUSTOM_ASPECT_RATIO_WIDTH, m_game_layer);
-  m_custom_aspect_height = new ConfigInteger(1, MAX_CUSTOM_ASPECT_RATIO_RESOLUTION,
-                                             Config::GFX_CUSTOM_ASPECT_RATIO_HEIGHT, m_game_layer);
+  m_custom_aspect_width = new ConfigInteger(
+      1, MAX_CUSTOM_ASPECT_RATIO_RESOLUTION, Config::GFX_CUSTOM_ASPECT_RATIO_WIDTH, m_game_layer);
+  m_custom_aspect_height = new ConfigInteger(
+      1, MAX_CUSTOM_ASPECT_RATIO_RESOLUTION, Config::GFX_CUSTOM_ASPECT_RATIO_HEIGHT, m_game_layer);
   ToggleCustomAspectRatio(m_aspect_combo->currentIndex());
 
   m_adapter_combo = new ToolTipComboBox;
@@ -110,8 +110,8 @@ void GeneralWidget::CreateWidgets()
 
   m_show_ping =
       new ConfigBool(tr("Show NetPlay Ping"), Config::GFX_SHOW_NETPLAY_PING, m_game_layer);
-  m_autoadjust_window_size = new ConfigBool(tr("Auto-Adjust Window Size"),
-                                            Config::MAIN_RENDER_WINDOW_AUTOSIZE, m_game_layer);
+  m_autoadjust_window_size = new ConfigBool(
+      tr("Auto-Adjust Window Size"), Config::MAIN_RENDER_WINDOW_AUTOSIZE, m_game_layer);
   m_show_messages =
       new ConfigBool(tr("Show NetPlay Messages"), Config::GFX_SHOW_NETPLAY_MESSAGES, m_game_layer);
   m_render_main_window =
@@ -139,11 +139,11 @@ void GeneralWidget::CreateWidgets()
   {
     m_shader_compilation_mode[i] = new ConfigRadioInt(
         tr(modes[i]), Config::GFX_SHADER_COMPILATION_MODE, static_cast<int>(i), m_game_layer);
-    shader_compilation_layout->addWidget(m_shader_compilation_mode[i], static_cast<int>(i / 2),
-                                         static_cast<int>(i % 2));
+    shader_compilation_layout->addWidget(
+        m_shader_compilation_mode[i], static_cast<int>(i / 2), static_cast<int>(i % 2));
   }
   m_wait_for_shaders = new ConfigBool(tr("Compile Shaders Before Starting"),
-                                      Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING, m_game_layer);
+      Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING, m_game_layer);
   shader_compilation_layout->addWidget(m_wait_for_shaders);
   shader_compilation_box->setLayout(shader_compilation_layout);
 
@@ -159,12 +159,14 @@ void GeneralWidget::ConnectWidgets()
 {
   // Video Backend
   connect(m_backend_combo, &QComboBox::currentIndexChanged, this, &GeneralWidget::BackendWarning);
-  connect(m_adapter_combo, &QComboBox::currentIndexChanged, this, [&](int index) {
-    Config::SetBaseOrCurrent(Config::GFX_ADAPTER, index);
-    emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
-  });
+  connect(m_adapter_combo, &QComboBox::currentIndexChanged, this,
+      [&](int index)
+      {
+        Config::SetBaseOrCurrent(Config::GFX_ADAPTER, index);
+        emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
+      });
   connect(m_aspect_combo, &QComboBox::currentIndexChanged, this,
-          &GeneralWidget::ToggleCustomAspectRatio);
+      &GeneralWidget::ToggleCustomAspectRatio);
 }
 
 void GeneralWidget::ToggleCustomAspectRatio(int index)
@@ -304,8 +306,7 @@ void GeneralWidget::AddDescriptions()
                  "unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_backend_combo->SetTitle(tr("Backend"));
-  m_backend_combo->SetDescription(
-      tr(TR_BACKEND_DESCRIPTION)
+  m_backend_combo->SetDescription(tr(TR_BACKEND_DESCRIPTION)
           .arg(QString::fromStdString(VideoBackendBase::GetDefaultBackendDisplayName())));
 
   m_adapter_combo->SetTitle(tr("Adapter"));
@@ -356,8 +357,8 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
   if (adapter_index < m_adapter_combo->count())
     m_adapter_combo->setCurrentIndex(adapter_index);
 
-  m_adapter_combo->setEnabled(supports_adapters &&
-                              Core::IsUninitialized(Core::System::GetInstance()));
+  m_adapter_combo->setEnabled(
+      supports_adapters && Core::IsUninitialized(Core::System::GetInstance()));
 
   static constexpr char TR_ADAPTER_AVAILABLE_DESCRIPTION[] =
       QT_TR_NOOP("Selects a hardware adapter to use.<br><br>"

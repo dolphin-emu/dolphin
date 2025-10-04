@@ -94,7 +94,7 @@ public:
   // If all the devices shared ptrs need to be destroyed immediately,
   // set force_devices_release to true.
   void RemoveDevice(std::function<bool(const ciface::Core::Device*)> callback,
-                    bool force_devices_release = false);
+      bool force_devices_release = false);
   // This is mandatory to use on device populations functions that can be called concurrently by
   // more than one thread, or that are called by a single other thread.
   // Without this, our devices list might end up in a mixed state.

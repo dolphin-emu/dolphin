@@ -10,7 +10,8 @@
 #include "VideoBackends/Metal/MTLStateTracker.h"
 
 Metal::Texture::Texture(MRCOwned<id<MTLTexture>> tex, const TextureConfig& config)
-    : AbstractTexture(config), m_tex(std::move(tex))
+    : AbstractTexture(config)
+    , m_tex(std::move(tex))
 {
 }
 
@@ -21,10 +22,8 @@ Metal::Texture::~Texture()
 }
 
 void Metal::Texture::CopyRectangleFromTexture(const AbstractTexture* src,
-                                              const MathUtil::Rectangle<int>& src_rect,
-                                              u32 src_layer, u32 src_level,
-                                              const MathUtil::Rectangle<int>& dst_rect,
-                                              u32 dst_layer, u32 dst_level)
+    const MathUtil::Rectangle<int>& src_rect, u32 src_layer, u32 src_level,
+    const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer, u32 dst_level)
 {
   g_state_tracker->EndRenderPass();
   id<MTLTexture> msrc = static_cast<const Texture*>(src)->GetMTLTexture();
@@ -43,8 +42,8 @@ void Metal::Texture::CopyRectangleFromTexture(const AbstractTexture* src,
   [blit endEncoding];
 }
 
-void Metal::Texture::ResolveFromTexture(const AbstractTexture* src,
-                                        const MathUtil::Rectangle<int>& rect, u32 layer, u32 level)
+void Metal::Texture::ResolveFromTexture(
+    const AbstractTexture* src, const MathUtil::Rectangle<int>& rect, u32 layer, u32 level)
 {
   ASSERT(rect == MathUtil::Rectangle<int>(0, 0, src->GetWidth(), src->GetHeight()));
   id<MTLTexture> src_tex = static_cast<const Texture*>(src)->GetMTLTexture();
@@ -56,7 +55,7 @@ void Metal::Texture::ResolveFromTexture(const AbstractTexture* src,
 static constexpr u32 STAGING_TEXTURE_UPLOAD_THRESHOLD = 1024 * 1024 * 4;
 
 void Metal::Texture::Load(u32 level, u32 width, u32 height, u32 row_length,  //
-                          const u8* buffer, size_t buffer_size, u32 layer)
+    const u8* buffer, size_t buffer_size, u32 layer)
 {
   @autoreleasepool
   {
@@ -95,9 +94,10 @@ void Metal::Texture::Load(u32 level, u32 width, u32 height, u32 row_length,  //
   }
 }
 
-Metal::StagingTexture::StagingTexture(MRCOwned<id<MTLBuffer>> buffer, StagingTextureType type,
-                                      const TextureConfig& config)
-    : AbstractStagingTexture(type, config), m_buffer(std::move(buffer))
+Metal::StagingTexture::StagingTexture(
+    MRCOwned<id<MTLBuffer>> buffer, StagingTextureType type, const TextureConfig& config)
+    : AbstractStagingTexture(type, config)
+    , m_buffer(std::move(buffer))
 {
   m_map_pointer = static_cast<char*>([m_buffer contents]);
   m_map_stride = config.GetStride();
@@ -106,9 +106,8 @@ Metal::StagingTexture::StagingTexture(MRCOwned<id<MTLBuffer>> buffer, StagingTex
 Metal::StagingTexture::~StagingTexture() = default;
 
 void Metal::StagingTexture::CopyFromTexture(const AbstractTexture* src,
-                                            const MathUtil::Rectangle<int>& src_rect,  //
-                                            u32 src_layer, u32 src_level,
-                                            const MathUtil::Rectangle<int>& dst_rect)
+    const MathUtil::Rectangle<int>& src_rect,  //
+    u32 src_layer, u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
 {
   @autoreleasepool
   {
@@ -135,9 +134,9 @@ void Metal::StagingTexture::CopyFromTexture(const AbstractTexture* src,
 }
 
 void Metal::StagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect,  //
-                                          AbstractTexture* dst,
-                                          const MathUtil::Rectangle<int>& dst_rect,  //
-                                          u32 dst_layer, u32 dst_level)
+    AbstractTexture* dst,
+    const MathUtil::Rectangle<int>& dst_rect,  //
+    u32 dst_layer, u32 dst_level)
 {
   @autoreleasepool
   {
@@ -203,13 +202,13 @@ static void InitStencilDesc(MTLRenderPassStencilAttachmentDescriptor* desc, Abst
 }
 
 Metal::Framebuffer::Framebuffer(AbstractTexture* color, AbstractTexture* depth,
-                                std::vector<AbstractTexture*> additonal_color_textures,  //
-                                u32 width, u32 height, u32 layers, u32 samples)
+    std::vector<AbstractTexture*> additonal_color_textures,  //
+    u32 width, u32 height, u32 layers, u32 samples)
     : AbstractFramebuffer(color, depth, {},
-                          color ? color->GetFormat() : AbstractTextureFormat::Undefined,  //
-                          depth ? depth->GetFormat() : AbstractTextureFormat::Undefined,  //
-                          width, height, layers, samples),
-      m_additional_color_textures(std::move(additonal_color_textures))
+          color ? color->GetFormat() : AbstractTextureFormat::Undefined,  //
+          depth ? depth->GetFormat() : AbstractTextureFormat::Undefined,  //
+          width, height, layers, samples)
+    , m_additional_color_textures(std::move(additonal_color_textures))
 {
   m_pass_descriptor = MRCTransfer([MTLRenderPassDescriptor new]);
   MTLRenderPassDescriptor* desc = m_pass_descriptor;

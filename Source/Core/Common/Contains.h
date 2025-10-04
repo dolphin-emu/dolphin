@@ -28,8 +28,8 @@ struct ContainsFn
   }
 
   template <std::ranges::input_range R, class T, class Proj = std::identity>
-  requires std::indirect_binary_predicate<
-      std::ranges::equal_to, std::projected<std::ranges::iterator_t<R>, Proj>, const T*>
+  requires std::indirect_binary_predicate<std::ranges::equal_to,
+      std::projected<std::ranges::iterator_t<R>, Proj>, const T*>
   constexpr bool operator()(R&& r, const T& value, Proj proj = {}) const
   {
     return (*this)(std::ranges::begin(r), std::ranges::end(r), value, std::move(proj));
@@ -39,28 +39,26 @@ struct ContainsFn
 struct ContainsSubrangeFn
 {
   template <std::forward_iterator I1, std::sentinel_for<I1> S1, std::forward_iterator I2,
-            std::sentinel_for<I2> S2, class Pred = std::ranges::equal_to,
-            class Proj1 = std::identity, class Proj2 = std::identity>
+      std::sentinel_for<I2> S2, class Pred = std::ranges::equal_to, class Proj1 = std::identity,
+      class Proj2 = std::identity>
   requires std::indirectly_comparable<I1, I2, Pred, Proj1, Proj2>
   constexpr bool operator()(I1 first1, S1 last1, I2 first2, S2 last2, Pred pred = {},
-                            Proj1 proj1 = {}, Proj2 proj2 = {}) const
+      Proj1 proj1 = {}, Proj2 proj2 = {}) const
   {
     return !std::ranges::search(std::move(first1), std::move(last1), std::move(first2),
-                                std::move(last2), std::move(pred), std::move(proj1),
-                                std::move(proj2))
+        std::move(last2), std::move(pred), std::move(proj1), std::move(proj2))
                 .empty();
   }
 
   template <std::ranges::forward_range R1, std::ranges::forward_range R2,
-            class Pred = std::ranges::equal_to, class Proj1 = std::identity,
-            class Proj2 = std::identity>
+      class Pred = std::ranges::equal_to, class Proj1 = std::identity, class Proj2 = std::identity>
   requires std::indirectly_comparable<std::ranges::iterator_t<R1>, std::ranges::iterator_t<R2>,
-                                      Pred, Proj1, Proj2>
-  constexpr bool operator()(R1&& r1, R2&& r2, Pred pred = {}, Proj1 proj1 = {},
-                            Proj2 proj2 = {}) const
+      Pred, Proj1, Proj2>
+  constexpr bool operator()(
+      R1&& r1, R2&& r2, Pred pred = {}, Proj1 proj1 = {}, Proj2 proj2 = {}) const
   {
     return (*this)(std::ranges::begin(r1), std::ranges::end(r1), std::ranges::begin(r2),
-                   std::ranges::end(r2), std::move(pred), std::move(proj1), std::move(proj2));
+        std::ranges::end(r2), std::move(pred), std::move(proj1), std::move(proj2));
   }
 };
 

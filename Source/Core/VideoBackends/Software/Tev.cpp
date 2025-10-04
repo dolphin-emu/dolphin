@@ -342,10 +342,10 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
     case IndMtxId::Indirect:
       // matrix values are S0.10, output format is S17.7, so divide by 8
       indtevtrans[0] = (indmtx.col0.ma * indcoord[0] + indmtx.col1.mc * indcoord[1] +
-                        indmtx.col2.me * indcoord[2]) >>
+                           indmtx.col2.me * indcoord[2]) >>
                        3;
       indtevtrans[1] = (indmtx.col0.mb * indcoord[0] + indmtx.col1.md * indcoord[1] +
-                        indmtx.col2.mf * indcoord[2]) >>
+                           indmtx.col2.mf * indcoord[2]) >>
                        3;
       break;
     case IndMtxId::S:
@@ -423,8 +423,7 @@ void Tev::Draw()
     const s32 scaleT = stageOdd ? texscale.ts1 : texscale.ts0;
 
     TextureSampler::Sample(Uv[texcoordSel].s >> scaleS, Uv[texcoordSel].t >> scaleT,
-                           IndirectLod[stageNum], IndirectLinear[stageNum], texmap,
-                           IndirectTex[stageNum]);
+        IndirectLod[stageNum], IndirectLinear[stageNum], texmap, IndirectTex[stageNum]);
   }
 
   for (unsigned int stageNum = 0; stageNum <= bpmem.genMode.numtevstages; stageNum++)
@@ -455,8 +454,8 @@ void Tev::Draw()
 
       if (bpmem.genMode.numtexgens > 0)
       {
-        TextureSampler::Sample(TexCoord.s, TexCoord.t, TextureLod[stageNum],
-                               TextureLinear[stageNum], texmap, texel);
+        TextureSampler::Sample(
+            TexCoord.s, TexCoord.t, TextureLod[stageNum], TextureLinear[stageNum], texmap, texel);
       }
       else
       {
@@ -542,7 +541,7 @@ void Tev::Draw()
   const auto& color_index = bpmem.combiners[bpmem.genMode.numtevstages].colorC.dest;
   const auto& alpha_index = bpmem.combiners[bpmem.genMode.numtevstages].alphaC.dest;
   u8 output[4] = {(u8)Reg[alpha_index].a, (u8)Reg[color_index].b, (u8)Reg[color_index].g,
-                  (u8)Reg[color_index].r};
+      (u8)Reg[color_index].r};
 
   if (!TevAlphaTest(output[ALP_C]))
     return;
@@ -674,7 +673,7 @@ void Tev::Draw()
   // The GC/Wii GPU rasterizes in 2x2 pixel groups, so bounding box values will be rounded to the
   // extents of these groups, rather than the exact pixel.
   BBoxManager::Update(static_cast<u16>(Position[0] & ~1), static_cast<u16>(Position[0] | 1),
-                      static_cast<u16>(Position[1] & ~1), static_cast<u16>(Position[1] | 1));
+      static_cast<u16>(Position[1] & ~1), static_cast<u16>(Position[1] | 1));
 
   INCSTAT(g_stats.this_frame.tev_pixels_out);
   EfbInterface::IncPerfCounterQuadCount(PQ_BLEND_INPUT);

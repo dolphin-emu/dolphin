@@ -71,8 +71,7 @@
 #define GL_MAX_COMBINED_IMAGE_UNIFORMS 0x90CF
 
 typedef void(APIENTRYP PFNDOLBINDIMAGETEXTUREPROC)(GLuint unit, GLuint texture, GLint level,
-                                                   GLboolean layered, GLint layer, GLenum access,
-                                                   GLenum format);
+    GLboolean layered, GLint layer, GLenum access, GLenum format);
 typedef void(APIENTRYP PFNDOLMEMORYBARRIERPROC)(GLbitfield barriers);
 
 extern PFNDOLBINDIMAGETEXTUREPROC dolBindImageTexture;

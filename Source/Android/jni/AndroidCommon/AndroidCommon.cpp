@@ -29,8 +29,8 @@ std::string GetJString(JNIEnv* env, jstring jstr)
 jstring ToJString(JNIEnv* env, std::string_view str)
 {
   const std::u16string converted_string = UTF8ToUTF16(str);
-  return env->NewString(reinterpret_cast<const jchar*>(converted_string.data()),
-                        converted_string.size());
+  return env->NewString(
+      reinterpret_cast<const jchar*>(converted_string.data()), converted_string.size());
 }
 
 std::vector<std::string> JStringArrayToVector(JNIEnv* env, jobjectArray array)
@@ -104,8 +104,8 @@ std::string OpenModeToAndroid(std::ios_base::openmode mode)
   case std::ios_base::in | std::ios_base::out | std::ios_base::app:
     return "rwa";
   default:
-    ERROR_LOG_FMT(COMMON,
-                  "OpenModeToAndroid(std::ios_base::openmode): Unsupported open mode: {:#x}", mode);
+    ERROR_LOG_FMT(
+        COMMON, "OpenModeToAndroid(std::ios_base::openmode): Unsupported open mode: {:#x}", mode);
     return "";
   }
 }
@@ -117,8 +117,8 @@ int OpenAndroidContent(std::string_view uri, std::string_view mode)
   jstring j_uri = ToJString(env, uri);
   jstring j_mode = ToJString(env, mode);
 
-  jint result = env->CallStaticIntMethod(IDCache::GetContentHandlerClass(),
-                                         IDCache::GetContentHandlerOpenFd(), j_uri, j_mode);
+  jint result = env->CallStaticIntMethod(
+      IDCache::GetContentHandlerClass(), IDCache::GetContentHandlerOpenFd(), j_uri, j_mode);
 
   env->DeleteLocalRef(j_uri);
   env->DeleteLocalRef(j_mode);
@@ -132,8 +132,8 @@ bool DeleteAndroidContent(std::string_view uri)
 
   jstring j_uri = ToJString(env, uri);
 
-  jboolean result = env->CallStaticBooleanMethod(IDCache::GetContentHandlerClass(),
-                                                 IDCache::GetContentHandlerDelete(), j_uri);
+  jboolean result = env->CallStaticBooleanMethod(
+      IDCache::GetContentHandlerClass(), IDCache::GetContentHandlerDelete(), j_uri);
 
   env->DeleteLocalRef(j_uri);
 
@@ -192,18 +192,17 @@ std::vector<std::string> GetAndroidContentChildNames(std::string_view uri)
   return result;
 }
 
-std::vector<std::string> DoFileSearchAndroidContent(std::string_view directory,
-                                                    const std::vector<std::string>& extensions,
-                                                    bool recursive)
+std::vector<std::string> DoFileSearchAndroidContent(
+    std::string_view directory, const std::vector<std::string>& extensions, bool recursive)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
   jstring j_directory = ToJString(env, directory);
   jobjectArray j_extensions = VectorToJStringArray(env, extensions);
 
-  jobjectArray j_result = reinterpret_cast<jobjectArray>(env->CallStaticObjectMethod(
-      IDCache::GetContentHandlerClass(), IDCache::GetContentHandlerDoFileSearch(), j_directory,
-      j_extensions, recursive));
+  jobjectArray j_result =
+      reinterpret_cast<jobjectArray>(env->CallStaticObjectMethod(IDCache::GetContentHandlerClass(),
+          IDCache::GetContentHandlerDoFileSearch(), j_directory, j_extensions, recursive));
 
   std::vector<std::string> result = JStringArrayToVector(env, j_result);
 
@@ -217,20 +216,20 @@ std::vector<std::string> DoFileSearchAndroidContent(std::string_view directory,
 int GetNetworkIpAddress()
 {
   JNIEnv* env = IDCache::GetEnvForThread();
-  return env->CallStaticIntMethod(IDCache::GetNetworkHelperClass(),
-                                  IDCache::GetNetworkHelperGetNetworkIpAddress());
+  return env->CallStaticIntMethod(
+      IDCache::GetNetworkHelperClass(), IDCache::GetNetworkHelperGetNetworkIpAddress());
 }
 
 int GetNetworkPrefixLength()
 {
   JNIEnv* env = IDCache::GetEnvForThread();
-  return env->CallStaticIntMethod(IDCache::GetNetworkHelperClass(),
-                                  IDCache::GetNetworkHelperGetNetworkPrefixLength());
+  return env->CallStaticIntMethod(
+      IDCache::GetNetworkHelperClass(), IDCache::GetNetworkHelperGetNetworkPrefixLength());
 }
 
 int GetNetworkGateway()
 {
   JNIEnv* env = IDCache::GetEnvForThread();
-  return env->CallStaticIntMethod(IDCache::GetNetworkHelperClass(),
-                                  IDCache::GetNetworkHelperGetNetworkGateway());
+  return env->CallStaticIntMethod(
+      IDCache::GetNetworkHelperClass(), IDCache::GetNetworkHelperGetNetworkGateway());
 }

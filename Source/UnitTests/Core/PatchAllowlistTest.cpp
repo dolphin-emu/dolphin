@@ -35,7 +35,7 @@ using AllowList = std::map<std::string /*ID*/, GameHashes>;
 
 template <typename T>
 void ReadVerified(const Common::IniFile& ini, const std::string& filename,
-                  const std::string& section, bool enabled, std::vector<T>* codes);
+    const std::string& section, bool enabled, std::vector<T>* codes);
 
 TEST(PatchAllowlist, VerifyHashes)
 {
@@ -62,12 +62,12 @@ TEST(PatchAllowlist, VerifyHashes)
     std::vector<ActionReplay::ARCode> action_replays =
         ActionReplay::LoadCodes(Common::IniFile(), ini_file);
     // Filter patches for RetroAchievements approved
-    ReadVerified<PatchEngine::Patch>(ini_file, game_id, "Patches_RetroAchievements_Verified", true,
-                                     &patches);
-    ReadVerified<Gecko::GeckoCode>(ini_file, game_id, "Gecko_RetroAchievements_Verified", true,
-                                   &geckos);
-    ReadVerified<ActionReplay::ARCode>(ini_file, game_id, "AR_RetroAchievements_Verified", true,
-                                       &action_replays);
+    ReadVerified<PatchEngine::Patch>(
+        ini_file, game_id, "Patches_RetroAchievements_Verified", true, &patches);
+    ReadVerified<Gecko::GeckoCode>(
+        ini_file, game_id, "Gecko_RetroAchievements_Verified", true, &geckos);
+    ReadVerified<ActionReplay::ARCode>(
+        ini_file, game_id, "AR_RetroAchievements_Verified", true, &action_replays);
     // Iterate over approved patches
     for (const auto& patch : patches)
     {
@@ -159,7 +159,7 @@ TEST(PatchAllowlist, VerifyHashes)
 
 template <typename T>
 void ReadVerified(const Common::IniFile& ini, const std::string& filename,
-                  const std::string& section, bool enabled, std::vector<T>* codes)
+    const std::string& section, bool enabled, std::vector<T>* codes)
 {
   for (auto& code : *codes)
     code.enabled = false;

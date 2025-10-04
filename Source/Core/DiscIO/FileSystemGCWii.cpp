@@ -30,14 +30,20 @@ constexpr u32 FST_ENTRY_SIZE = 4 * 3;  // An FST entry consists of three 32-bit 
 
 // Set everything manually.
 FileInfoGCWii::FileInfoGCWii(const u8* fst, u8 offset_shift, u32 index, u32 total_file_infos)
-    : m_fst(fst), m_offset_shift(offset_shift), m_index(index), m_total_file_infos(total_file_infos)
+    : m_fst(fst)
+    , m_offset_shift(offset_shift)
+    , m_index(index)
+    , m_total_file_infos(total_file_infos)
 {
 }
 
 // For the root object only.
 // m_fst and m_index must be correctly set before GetSize() is called!
 FileInfoGCWii::FileInfoGCWii(const u8* fst, u8 offset_shift)
-    : m_fst(fst), m_offset_shift(offset_shift), m_index(0), m_total_file_infos(GetSize())
+    : m_fst(fst)
+    , m_offset_shift(offset_shift)
+    , m_index(0)
+    , m_total_file_infos(GetSize())
 {
 }
 
@@ -82,8 +88,8 @@ FileInfo::const_iterator FileInfoGCWii::end() const
 
 u32 FileInfoGCWii::Get(EntryProperty entry_property) const
 {
-  return Common::swap32(m_fst + FST_ENTRY_SIZE * m_index +
-                        sizeof(u32) * static_cast<int>(entry_property));
+  return Common::swap32(
+      m_fst + FST_ENTRY_SIZE * m_index + sizeof(u32) * static_cast<int>(entry_property));
 }
 
 u32 FileInfoGCWii::GetSize() const
@@ -146,7 +152,7 @@ bool FileInfoGCWii::NameCaseInsensitiveEquals(std::string_view other) const
       // other is in UTF-8 and this is in Shift-JIS, so we convert so that we can compare correctly
       const std::string this_utf8 = SHIFTJISToUTF8(this_ptr);
       return std::equal(this_utf8.cbegin(), this_utf8.cend(), other.cbegin() + i, other.cend(),
-                        [](char a, char b) { return Common::ToLower(a) == Common::ToLower(b); });
+          [](char a, char b) { return Common::ToLower(a) == Common::ToLower(b); });
     }
     else if (Common::ToLower(*this_ptr) != Common::ToLower(*other_ptr))
     {
@@ -174,8 +180,8 @@ std::string FileInfoGCWii::GetPath() const
     // for a directory that contains this file. The search cannot fail,
     // because the root directory at index 0 contains all files.
     FileInfoGCWii potential_parent(*this, m_index - 1);
-    while (!(potential_parent.IsDirectory() &&
-             potential_parent.Get(EntryProperty::FILE_SIZE) > m_index))
+    while (!(
+        potential_parent.IsDirectory() && potential_parent.Get(EntryProperty::FILE_SIZE) > m_index))
     {
       potential_parent = FileInfoGCWii(*this, potential_parent.m_index - 1);
     }
@@ -224,7 +230,8 @@ bool FileInfoGCWii::IsValid(u64 fst_size, const FileInfoGCWii& parent_directory)
 }
 
 FileSystemGCWii::FileSystemGCWii(const VolumeDisc* volume, const Partition& partition)
-    : m_valid(false), m_root(nullptr, 0, 0, 0)
+    : m_valid(false)
+    , m_root(nullptr, 0, 0, 0)
 {
   u8 offset_shift;
   // Check if this is a GameCube or Wii disc
@@ -304,8 +311,8 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(std::string_view path) c
   return FindFileInfo(path, m_root);
 }
 
-std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(std::string_view path,
-                                                        const FileInfo& file_info) const
+std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(
+    std::string_view path, const FileInfo& file_info) const
 {
   // Given a path like "directory1/directory2/fileA.bin", this function will
   // find directory1 and then call itself to search for "directory2/fileA.bin".

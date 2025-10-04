@@ -40,16 +40,18 @@ void WiimoteEmuExtensionMotionInput::CreateNunchukLayout()
   warning_layout->addWidget(
       QtUtils::CreateIconWarning(this, QStyle::SP_MessageBoxWarning, warning_label), 1);
   warning_layout->addWidget(warning_input_sources_button);
-  connect(warning_input_sources_button, &QPushButton::clicked, this, [this] {
-    ControllerInterfaceWindow window{this};
-    window.exec();
-  });
+  connect(warning_input_sources_button, &QPushButton::clicked, this,
+      [this]
+      {
+        ControllerInterfaceWindow window{this};
+        window.exec();
+      });
   layout->addLayout(warning_layout, 0, 0, 1, -1);
 
-  layout->addWidget(CreateGroupBox(tr("Accelerometer"),
-                                   Wiimote::GetNunchukGroup(
-                                       GetPort(), WiimoteEmu::NunchukGroup::IMUAccelerometer)),
-                    1, 0);
+  layout->addWidget(
+      CreateGroupBox(tr("Accelerometer"),
+          Wiimote::GetNunchukGroup(GetPort(), WiimoteEmu::NunchukGroup::IMUAccelerometer)),
+      1, 0);
 
   m_nunchuk_box->setLayout(layout);
 }

@@ -123,9 +123,8 @@ void ApplyCodes(std::span<const ARCode> codes, const std::string& game_id, u16 r
   s_disable_logging = false;
   s_active_codes.clear();
 
-  const auto should_be_activated = [&game_id, &revision](const ARCode& code) {
-    return AchievementManager::GetInstance().ShouldARCodeBeActivated(code, game_id, revision);
-  };
+  const auto should_be_activated = [&game_id, &revision](const ARCode& code)
+  { return AchievementManager::GetInstance().ShouldARCodeBeActivated(code, game_id, revision); };
   std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_active_codes), should_be_activated);
   s_active_codes.shrink_to_fit();
 }
@@ -142,7 +141,7 @@ void UpdateSyncedCodes(std::span<const ARCode> codes)
   s_synced_codes.clear();
   s_synced_codes.reserve(codes.size());
   std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_synced_codes),
-               [](const ARCode& code) { return code.enabled; });
+      [](const ARCode& code) { return code.enabled; });
   s_synced_codes.shrink_to_fit();
 }
 
@@ -154,7 +153,7 @@ std::vector<ARCode> ApplyAndReturnCodes(std::span<const ARCode> codes)
     s_disable_logging = false;
     s_active_codes.clear();
     std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_active_codes),
-                 [](const ARCode& code) { return code.enabled; });
+        [](const ARCode& code) { return code.enabled; });
   }
   s_active_codes.shrink_to_fit();
 
@@ -184,7 +183,7 @@ size_t CountEnabledCodes()
 }
 
 void LoadAndApplyCodes(const Common::IniFile& global_ini, const Common::IniFile& local_ini,
-                       const std::string& game_id, u16 revision)
+    const std::string& game_id, u16 revision)
 {
   ApplyCodes(LoadCodes(global_ini, local_ini), game_id, revision);
 }
@@ -372,8 +371,8 @@ bool IsSelfLogging()
 
 // ----------------------
 // Code Functions
-static bool Subtype_RamWriteAndFill(const Core::CPUThreadGuard& guard, const ARAddr& addr,
-                                    const u32 data)
+static bool Subtype_RamWriteAndFill(
+    const Core::CPUThreadGuard& guard, const ARAddr& addr, const u32 data)
 {
   const u32 new_addr = addr.GCAddress();
 
@@ -423,15 +422,15 @@ static bool Subtype_RamWriteAndFill(const Core::CPUThreadGuard& guard, const ARA
     LogInfo("Bad Size");
     PanicAlertFmtT("Action Replay Error: Invalid size "
                    "({0:08x} : address = {1:08x}) in Ram Write And Fill ({2})",
-                   addr.size, addr.gcaddr, s_current_code->name);
+        addr.size, addr.gcaddr, s_current_code->name);
     return false;
   }
 
   return true;
 }
 
-static bool Subtype_WriteToPointer(const Core::CPUThreadGuard& guard, const ARAddr& addr,
-                                   const u32 data)
+static bool Subtype_WriteToPointer(
+    const Core::CPUThreadGuard& guard, const ARAddr& addr, const u32 data)
 {
   const u32 new_addr = addr.GCAddress();
   const u32 ptr = PowerPC::MMU::HostRead_U32(guard, new_addr);
@@ -484,7 +483,7 @@ static bool Subtype_WriteToPointer(const Core::CPUThreadGuard& guard, const ARAd
     LogInfo("Bad Size");
     PanicAlertFmtT("Action Replay Error: Invalid size "
                    "({0:08x} : address = {1:08x}) in Write To Pointer ({2})",
-                   addr.size, addr.gcaddr, s_current_code->name);
+        addr.size, addr.gcaddr, s_current_code->name);
     return false;
   }
   return true;
@@ -512,8 +511,8 @@ static bool Subtype_AddCode(const Core::CPUThreadGuard& guard, const ARAddr& add
     LogInfo("16-bit Add");
     LogInfo("--------");
     ApplyMemoryPatch<u16>(guard, PowerPC::MMU::HostRead_U16(guard, new_addr) + data, new_addr);
-    LogInfo("Wrote {:04x} to address {:08x}", PowerPC::MMU::HostRead_U16(guard, new_addr),
-            new_addr);
+    LogInfo(
+        "Wrote {:04x} to address {:08x}", PowerPC::MMU::HostRead_U16(guard, new_addr), new_addr);
     LogInfo("--------");
     break;
 
@@ -521,8 +520,8 @@ static bool Subtype_AddCode(const Core::CPUThreadGuard& guard, const ARAddr& add
     LogInfo("32-bit Add");
     LogInfo("--------");
     ApplyMemoryPatch<u32>(guard, PowerPC::MMU::HostRead_U32(guard, new_addr) + data, new_addr);
-    LogInfo("Wrote {:08x} to address {:08x}", PowerPC::MMU::HostRead_U32(guard, new_addr),
-            new_addr);
+    LogInfo(
+        "Wrote {:08x} to address {:08x}", PowerPC::MMU::HostRead_U32(guard, new_addr), new_addr);
     LogInfo("--------");
     break;
 
@@ -548,7 +547,7 @@ static bool Subtype_AddCode(const Core::CPUThreadGuard& guard, const ARAddr& add
     LogInfo("Bad Size");
     PanicAlertFmtT("Action Replay Error: Invalid size "
                    "({0:08x} : address = {1:08x}) in Add Code ({2})",
-                   addr.size, addr.gcaddr, s_current_code->name);
+        addr.size, addr.gcaddr, s_current_code->name);
     return false;
   }
   return true;
@@ -563,13 +562,13 @@ static bool Subtype_MasterCodeAndWriteToCCXXXXXX(const ARAddr& addr, const u32 d
   // u8  mcode_number = data & 0xFF;
   PanicAlertFmtT("Action Replay Error: Master Code and Write To CCXXXXXX not implemented ({0})\n"
                  "Master codes are not needed. Do not use master codes.",
-                 s_current_code->name);
+      s_current_code->name);
   return false;
 }
 
 // This needs more testing
-static bool ZeroCode_FillAndSlide(const Core::CPUThreadGuard& guard, const u32 val_last,
-                                  const ARAddr& addr, const u32 data)
+static bool ZeroCode_FillAndSlide(
+    const Core::CPUThreadGuard& guard, const u32 val_last, const ARAddr& addr, const u32 data)
 {
   const u32 new_addr = ARAddr(val_last).GCAddress();
   const u8 size = ARAddr(val_last).size;
@@ -648,8 +647,8 @@ static bool ZeroCode_FillAndSlide(const Core::CPUThreadGuard& guard, const u32 v
 // kenobi's "memory copy" Z-code. Requires an additional master code
 // on a real AR device. Documented here:
 // https://github.com/dolphin-emu/dolphin/wiki/GameCube-Action-Replay-Code-Types#type-z4-size-3--memory-copy
-static bool ZeroCode_MemoryCopy(const Core::CPUThreadGuard& guard, const u32 val_last,
-                                const ARAddr& addr, const u32 data)
+static bool ZeroCode_MemoryCopy(
+    const Core::CPUThreadGuard& guard, const u32 val_last, const ARAddr& addr, const u32 data)
 {
   const u32 addr_dest = val_last & ~0x06000000;
   const u32 addr_src = addr.GCAddress();
@@ -674,7 +673,7 @@ static bool ZeroCode_MemoryCopy(const Core::CPUThreadGuard& guard, const u32 val
       {
         ApplyMemoryPatch<u8>(guard, PowerPC::MMU::HostRead_U8(guard, ptr_src + i), ptr_dest + i);
         LogInfo("Wrote {:08x} to address {:08x}", PowerPC::MMU::HostRead_U8(guard, ptr_src + i),
-                ptr_dest + i);
+            ptr_dest + i);
       }
       LogInfo("--------");
     }
@@ -686,7 +685,7 @@ static bool ZeroCode_MemoryCopy(const Core::CPUThreadGuard& guard, const u32 val
       {
         ApplyMemoryPatch<u8>(guard, PowerPC::MMU::HostRead_U8(guard, addr_src + i), addr_dest + i);
         LogInfo("Wrote {:08x} to address {:08x}", PowerPC::MMU::HostRead_U8(guard, addr_src + i),
-                addr_dest + i);
+            addr_dest + i);
       }
       LogInfo("--------");
       return true;
@@ -696,7 +695,7 @@ static bool ZeroCode_MemoryCopy(const Core::CPUThreadGuard& guard, const u32 val
   {
     LogInfo("Bad Value");
     PanicAlertFmtT("Action Replay Error: Invalid value ({0:08x}) in Memory Copy ({1})",
-                   (data & ~0x7FFF), s_current_code->name);
+        (data & ~0x7FFF), s_current_code->name);
     return false;
   }
   return true;
@@ -733,7 +732,7 @@ static bool NormalCode(const Core::CPUThreadGuard& guard, const ARAddr& addr, co
   default:
     LogInfo("Bad Subtype");
     PanicAlertFmtT("Action Replay: Normal Code 0: Invalid Subtype {0:08x} ({1})", addr.subtype,
-                   s_current_code->name);
+        s_current_code->name);
     return false;
   }
 
@@ -774,14 +773,14 @@ static bool CompareValues(const u32 val1, const u32 val2, const int type)
 
   default:
     LogInfo("Unknown Compare type");
-    PanicAlertFmtT("Action Replay: Invalid Normal Code Type {0:08x} ({1})", type,
-                   s_current_code->name);
+    PanicAlertFmtT(
+        "Action Replay: Invalid Normal Code Type {0:08x} ({1})", type, s_current_code->name);
     return false;
   }
 }
 
-static bool ConditionalCode(const Core::CPUThreadGuard& guard, const ARAddr& addr, const u32 data,
-                            int* const pSkipCount)
+static bool ConditionalCode(
+    const Core::CPUThreadGuard& guard, const ARAddr& addr, const u32 data, int* const pSkipCount)
 {
   const u32 new_addr = addr.GCAddress();
 
@@ -808,7 +807,7 @@ static bool ConditionalCode(const Core::CPUThreadGuard& guard, const ARAddr& add
   default:
     LogInfo("Bad Size");
     PanicAlertFmtT("Action Replay: Conditional Code: Invalid Size {0:08x} ({1})", addr.size,
-                   s_current_code->name);
+        s_current_code->name);
     return false;
   }
 
@@ -832,7 +831,7 @@ static bool ConditionalCode(const Core::CPUThreadGuard& guard, const ARAddr& add
     default:
       LogInfo("Bad Subtype");
       PanicAlertFmtT("Action Replay: Normal Code {0}: Invalid subtype {1:08x} ({2})", 1,
-                     addr.subtype, s_current_code->name);
+          addr.subtype, s_current_code->name);
       return false;
     }
   }
@@ -1008,11 +1007,13 @@ void RunAllActive(const Core::CPUThreadGuard& cpu_guard)
   // are only atomic ops unless contested. It should be rare for this to
   // be contested.
   std::lock_guard guard(s_lock);
-  std::erase_if(s_active_codes, [&cpu_guard](const ARCode& code) {
-    const bool success = RunCodeLocked(cpu_guard, code);
-    LogInfo("\n");
-    return !success;
-  });
+  std::erase_if(s_active_codes,
+      [&cpu_guard](const ARCode& code)
+      {
+        const bool success = RunCodeLocked(cpu_guard, code);
+        LogInfo("\n");
+        return !success;
+      });
   s_disable_logging = true;
 }
 

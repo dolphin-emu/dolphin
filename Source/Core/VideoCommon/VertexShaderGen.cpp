@@ -75,7 +75,7 @@ VertexShaderUid GetVertexShaderUid()
 }
 
 static void WritePrimitiveExpand(APIType api_type, const ShaderHostConfig& host_config,
-                                 const vertex_shader_uid_data* uid_data, ShaderCode& out)
+    const vertex_shader_uid_data* uid_data, ShaderCode& out)
 {
   if (uid_data->vs_expand == VSExpand::None)
     return;
@@ -97,7 +97,7 @@ static void WritePrimitiveExpand(APIType api_type, const ShaderHostConfig& host_
 }
 
 static void WriteTransformMatrices(APIType api_type, const ShaderHostConfig& host_config,
-                                   const vertex_shader_uid_data* uid_data, ShaderCode& out)
+    const vertex_shader_uid_data* uid_data, ShaderCode& out)
 {
   out.Write("mat3x4 dolphin_position_matrix()\n");
   out.Write("{{\n");
@@ -159,7 +159,7 @@ static void WriteTransformMatrices(APIType api_type, const ShaderHostConfig& hos
 }
 
 static void WriteTexCoordTransforms(APIType api_type, const ShaderHostConfig& host_config,
-                                    const vertex_shader_uid_data* uid_data, ShaderCode& out)
+    const vertex_shader_uid_data* uid_data, ShaderCode& out)
 {
   for (u32 i = 0; i < uid_data->numTexGens; ++i)
   {
@@ -194,13 +194,13 @@ static void WriteTexCoordTransforms(APIType api_type, const ShaderHostConfig& ho
         {
           out.Write("\tresult = vec3(dot(coord, " I_TEXMATRICES "[{}]), dot(coord, " I_TEXMATRICES
                     "[{}]), dot(coord, " I_TEXMATRICES "[{}]));\n",
-                    3 * i, 3 * i + 1, 3 * i + 2);
+              3 * i, 3 * i + 1, 3 * i + 2);
         }
         else
         {
           out.Write("\tresult = vec3(dot(coord, " I_TEXMATRICES "[{}]), dot(coord, " I_TEXMATRICES
                     "[{}]), 1);\n",
-                    3 * i, 3 * i + 1);
+              3 * i, 3 * i + 1);
         }
       }
       // CHECKME: does this only work for regular tex gen types?
@@ -211,7 +211,7 @@ static void WriteTexCoordTransforms(APIType api_type, const ShaderHostConfig& ho
         out.Write("\tvec4 P0 = " I_POSTTRANSFORMMATRICES "[{}];\n"
                   "\tvec4 P1 = " I_POSTTRANSFORMMATRICES "[{}];\n"
                   "\tvec4 P2 = " I_POSTTRANSFORMMATRICES "[{}];\n",
-                  postInfo.index & 0x3f, (postInfo.index + 1) & 0x3f, (postInfo.index + 2) & 0x3f);
+            postInfo.index & 0x3f, (postInfo.index + 1) & 0x3f, (postInfo.index + 2) & 0x3f);
 
         if (postInfo.normalize)
           out.Write("\tresult = normalize(result);\n");
@@ -234,7 +234,7 @@ static void WriteTexCoordTransforms(APIType api_type, const ShaderHostConfig& ho
 }
 
 static void WriteVertexStructs(APIType api_type, const ShaderHostConfig& host_config,
-                               const vertex_shader_uid_data* uid_data, ShaderCode& out)
+    const vertex_shader_uid_data* uid_data, ShaderCode& out)
 {
   out.Write("struct DolphinVertexInput\n");
   out.Write("{{\n");
@@ -263,8 +263,8 @@ static void WriteVertexStructs(APIType api_type, const ShaderHostConfig& host_co
   out.Write("}};\n\n");
 }
 
-static void WriteVertexDefines(APIType, const ShaderHostConfig&,
-                               const vertex_shader_uid_data* uid_data, ShaderCode& out)
+static void WriteVertexDefines(
+    APIType, const ShaderHostConfig&, const vertex_shader_uid_data* uid_data, ShaderCode& out)
 {
   if ((uid_data->components & VB_HAS_COL0) != 0)
   {
@@ -330,7 +330,7 @@ static void WriteVertexDefines(APIType, const ShaderHostConfig&,
 }
 
 static void WriteEmulatedVertexBodyHeader(APIType api_type, const ShaderHostConfig& host_config,
-                                          const vertex_shader_uid_data* uid_data, ShaderCode& out)
+    const vertex_shader_uid_data* uid_data, ShaderCode& out)
 {
   constexpr std::string_view emulated_fragment_definition =
       "void dolphin_process_emulated_vertex(in DolphinVertexInput vertex_input, out "
@@ -344,8 +344,7 @@ static void WriteEmulatedVertexBodyHeader(APIType api_type, const ShaderHostConf
 }
 
 ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& host_config,
-                                    const vertex_shader_uid_data* uid_data,
-                                    CustomVertexContents custom_contents)
+    const vertex_shader_uid_data* uid_data, CustomVertexContents custom_contents)
 {
   ShaderCode out;
 
@@ -387,8 +386,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   }
 
   out.Write("struct VS_OUTPUT {{\n");
-  GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config, "",
-                          ShaderStage::Vertex);
+  GenerateVSOutputMembers(
+      out, api_type, uid_data->numTexGens, host_config, "", ShaderStage::Vertex);
   out.Write("}};\n\n");
 
   WriteIsNanHeader(out, api_type);
@@ -418,7 +417,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       if ((uid_data->components & (VB_HAS_UV0 << i)) != 0 || has_texmtx != 0)
       {
         out.Write("ATTRIBUTE_LOCATION({:s}) in float{} rawtex{};\n", ShaderAttrib::TexCoord0 + i,
-                  has_texmtx != 0 ? 3 : 2, i);
+            has_texmtx != 0 ? 3 : 2, i);
       }
     }
   }
@@ -457,7 +456,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
         out.Write("  float {0}0;\n"
                   "  float {0}1;\n"
                   "  float {0}2;\n",
-                  names[i]);
+            names[i]);
         input_extract.Write("float3 raw{0} = float3(i.{0}0, i.{0}1, i.{0}2);\n", names[i]);
       }
     }
@@ -466,8 +465,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       if (uid_data->components & (VB_HAS_COL0 << i))
       {
         out.Write("  uint color{};\n", i);
-        input_extract.Write("float4 rawcolor{0} = float4(unpack_ubyte4(i.color{0})) / 255.0f;\n",
-                            i);
+        input_extract.Write(
+            "float4 rawcolor{0} = float4(unpack_ubyte4(i.color{0})) / 255.0f;\n", i);
       }
     }
     for (int i = 0; i < 8; i++)
@@ -484,7 +483,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
         {
           out.Write("  float tex{0}_0;\n"
                     "  float tex{0}_1;\n",
-                    i);
+              i);
           input_extract.Write("float3 rawtex{0} = float3(i.tex{0}_0, i.tex{0}_1, 0.0f);\n", i);
         }
         else
@@ -492,9 +491,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
           out.Write("  float tex{0}_0;\n"
                     "  float tex{0}_1;\n"
                     "  float tex{0}_2;\n",
-                    i);
-          input_extract.Write("float3 rawtex{0} = float3(i.tex{0}_0, i.tex{0}_1, i.tex{0}_2);\n",
-                              i);
+              i);
+          input_extract.Write(
+              "float3 rawtex{0} = float3(i.tex{0}_0, i.tex{0}_1, i.tex{0}_2);\n", i);
         }
       }
     }
@@ -508,8 +507,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   {
     out.Write("VARYING_LOCATION(0) out VertexData {{\n");
     GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config,
-                            GetInterpolationQualifier(msaa, ssaa, true, false),
-                            ShaderStage::Vertex);
+        GetInterpolationQualifier(msaa, ssaa, true, false), ShaderStage::Vertex);
     out.Write("}} vs;\n");
   }
   else
@@ -517,25 +515,25 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     // Let's set up attributes
     u32 counter = 0;
     out.Write("VARYING_LOCATION({}) {} out float4 colors_0;\n", counter++,
-              GetInterpolationQualifier(msaa, ssaa));
+        GetInterpolationQualifier(msaa, ssaa));
     out.Write("VARYING_LOCATION({}) {} out float4 colors_1;\n", counter++,
-              GetInterpolationQualifier(msaa, ssaa));
+        GetInterpolationQualifier(msaa, ssaa));
     for (u32 i = 0; i < uid_data->numTexGens; ++i)
     {
       out.Write("VARYING_LOCATION({}) {} out float3 tex{};\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa), i);
+          GetInterpolationQualifier(msaa, ssaa), i);
     }
     if (!host_config.fast_depth_calc)
     {
       out.Write("VARYING_LOCATION({}) {} out float4 clipPos;\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa));
+          GetInterpolationQualifier(msaa, ssaa));
     }
     if (per_pixel_lighting)
     {
       out.Write("VARYING_LOCATION({}) {} out float3 Normal;\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa));
+          GetInterpolationQualifier(msaa, ssaa));
       out.Write("VARYING_LOCATION({}) {} out float3 WorldPos;\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa));
+          GetInterpolationQualifier(msaa, ssaa));
     }
   }
 
@@ -568,7 +566,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   {
     out.Write("InputData i = dolphin_primitive_expand_data(0);\n"
               "{}",
-              input_extract.GetBuffer());
+        input_extract.GetBuffer());
   }
 
   out.Write("VS_OUTPUT o;\n");
@@ -882,7 +880,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 }
 
 void WriteVertexBody(APIType api_type, const ShaderHostConfig& host_config,
-                     const vertex_shader_uid_data* uid_data, ShaderCode& out)
+    const vertex_shader_uid_data* uid_data, ShaderCode& out)
 {
   out.Write(
       "\tvertex_output.position = vec4(vertex_input.position * dolphin_position_matrix(), 1.0);\n");
@@ -926,30 +924,30 @@ void WriteVertexBody(APIType api_type, const ShaderHostConfig& host_config,
       out.Write("\t{{\n");
       // transform the light dir into tangent space
       out.Write("\t\tvec3 ldir = normalize(" LIGHT_POS ".xyz - vertex_output.position.xyz);\n",
-                LIGHT_POS_PARAMS(texinfo.embosslightshift));
+          LIGHT_POS_PARAMS(texinfo.embosslightshift));
 
       out.Write("\t\tvec3 tangent = vertex_input.tangent * dolphin_normal_matrix();\n");
       out.Write("\t\tvec3 binormal = vertex_input.binormal * dolphin_normal_matrix();\n");
       out.Write("\t\tvertex_output.texture_coord_{}.xyz = vertex_output.texture_coord_{}.xyz + "
                 "vec3(dot(ldir, tangent), "
                 "dot(ldir, binormal), 0.0);\n",
-                i, texinfo.embosssourceshift);
+          i, texinfo.embosssourceshift);
       out.Write("\t}}\n");
       break;
     case TexGenType::Color0:
       out.Write("\tvertex_output.texture_coord_{}.xyz = vec3(vertex_lighting_0.x, "
                 "vertex_lighting_0.y, 1);\n",
-                i);
+          i);
       break;
     case TexGenType::Color1:
       out.Write("\tvertex_output.texture_coord_{}.xyz = vec3(vertex_lighting_1.x, "
                 "vertex_lighting_1.y, 1);\n",
-                i);
+          i);
       break;
     case TexGenType::Regular:
       out.Write("\tvertex_output.texture_coord_{0} = "
                 "dolphin_transform_texcoord{0}(vertex_input.texture_coord_{0});\n",
-                i);
+          i);
       break;
     };
   }

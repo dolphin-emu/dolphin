@@ -51,8 +51,8 @@ int CameraLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
   return RawWrite(&m_reg_data, addr, count, data_in);
 }
 
-std::array<CameraPoint, CameraLogic::NUM_POINTS>
-CameraLogic::GetCameraPoints(const Common::Matrix44& transform, Common::Vec2 field_of_view)
+std::array<CameraPoint, CameraLogic::NUM_POINTS> CameraLogic::GetCameraPoints(
+    const Common::Matrix44& transform, Common::Vec2 field_of_view)
 {
   using Common::Matrix33;
   using Common::Matrix44;
@@ -70,29 +70,31 @@ CameraLogic::GetCameraPoints(const Common::Matrix44& transform, Common::Vec2 fie
 
   std::array<CameraPoint, CameraLogic::NUM_POINTS> camera_points;
 
-  std::ranges::transform(leds, camera_points.begin(), [&](const Vec3& v) {
-    const auto point = camera_view * Vec4(v, 1.0);
+  std::ranges::transform(leds, camera_points.begin(),
+      [&](const Vec3& v)
+      {
+        const auto point = camera_view * Vec4(v, 1.0);
 
-    // Check if LED is behind camera.
-    if (point.z < 0)
-      return CameraPoint();
+        // Check if LED is behind camera.
+        if (point.z < 0)
+          return CameraPoint();
 
-    // FYI: truncating vs. rounding seems to produce more symmetrical cursor positioning.
-    const auto x = s32((1 - point.x / point.w) * CAMERA_RES_X / 2);
-    const auto y = s32((1 - point.y / point.w) * CAMERA_RES_Y / 2);
+        // FYI: truncating vs. rounding seems to produce more symmetrical cursor positioning.
+        const auto x = s32((1 - point.x / point.w) * CAMERA_RES_X / 2);
+        const auto y = s32((1 - point.y / point.w) * CAMERA_RES_Y / 2);
 
-    // Check if LED is outside of view.
-    if (x < 0 || y < 0 || x >= CAMERA_RES_X || y >= CAMERA_RES_Y)
-      return CameraPoint();
+        // Check if LED is outside of view.
+        if (x < 0 || y < 0 || x >= CAMERA_RES_X || y >= CAMERA_RES_Y)
+          return CameraPoint();
 
-    // Curve fit from data using an official WM+ and sensor bar at middle "sensitivity".
-    // Point sizes at minimum and maximum sensitivity differ by around 0.5 (not implemented).
-    const auto point_size = 2.37f * std::pow(point.z, -0.778f);
+        // Curve fit from data using an official WM+ and sensor bar at middle "sensitivity".
+        // Point sizes at minimum and maximum sensitivity differ by around 0.5 (not implemented).
+        const auto point_size = 2.37f * std::pow(point.z, -0.778f);
 
-    const auto clamped_point_size = std::clamp<s32>(std::lround(point_size), 1, MAX_POINT_SIZE);
+        const auto clamped_point_size = std::clamp<s32>(std::lround(point_size), 1, MAX_POINT_SIZE);
 
-    return CameraPoint({u16(x), u16(y)}, u8(clamped_point_size));
-  });
+        return CameraPoint({u16(x), u16(y)}, u8(clamped_point_size));
+      });
 
   return camera_points;
 }

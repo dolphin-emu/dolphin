@@ -14,9 +14,12 @@
 
 namespace Common
 {
-TraversalClient::TraversalClient(ENetHost* netHost, const std::string& server, const u16 port,
-                                 const u16 port_alt)
-    : m_NetHost(netHost), m_Server(server), m_port(port), m_portAlt(port_alt)
+TraversalClient::TraversalClient(
+    ENetHost* netHost, const std::string& server, const u16 port, const u16 port_alt)
+    : m_NetHost(netHost)
+    , m_Server(server)
+    , m_port(port)
+    , m_portAlt(port_alt)
 {
   netHost->intercept = TraversalClient::InterceptCallback;
 
@@ -419,8 +422,8 @@ void TraversalClient::Reset()
 int ENET_CALLBACK TraversalClient::InterceptCallback(ENetHost* host, ENetEvent* event)
 {
   auto traversalClient = g_TraversalClient.get();
-  if (traversalClient->TestPacket(host->receivedData, host->receivedDataLength,
-                                  &host->receivedAddress) ||
+  if (traversalClient->TestPacket(
+          host->receivedData, host->receivedDataLength, &host->receivedAddress) ||
       (host->receivedDataLength == 1 && host->receivedData[0] == 0))
   {
     event->type = static_cast<ENetEventType>(Common::ENet::SKIPPABLE_EVENT);
@@ -440,8 +443,8 @@ static u16 g_OldServerPort;
 static u16 g_OldServerPortAlt;
 static u16 g_OldListenPort;
 
-bool EnsureTraversalClient(const std::string& server, u16 server_port, u16 server_port_alt,
-                           u16 listen_port)
+bool EnsureTraversalClient(
+    const std::string& server, u16 server_port, u16 server_port_alt, u16 listen_port)
 {
   if (!g_MainNetHost || !g_TraversalClient || server != g_OldServer ||
       server_port != g_OldServerPort || server_port_alt != g_OldServerPortAlt ||
@@ -453,11 +456,11 @@ bool EnsureTraversalClient(const std::string& server, u16 server_port, u16 serve
     g_OldListenPort = listen_port;
 
     ENetAddress addr = {ENET_HOST_ANY, listen_port};
-    auto host = Common::ENet::ENetHostPtr{enet_host_create(&addr,                   // address
-                                                           50,                      // peerCount
-                                                           NetPlay::CHANNEL_COUNT,  // channelLimit
-                                                           0,    // incomingBandwidth
-                                                           0)};  // outgoingBandwidth
+    auto host = Common::ENet::ENetHostPtr{enet_host_create(&addr,  // address
+        50,                                                        // peerCount
+        NetPlay::CHANNEL_COUNT,                                    // channelLimit
+        0,                                                         // incomingBandwidth
+        0)};                                                       // outgoingBandwidth
     if (!host)
     {
       g_MainNetHost.reset();

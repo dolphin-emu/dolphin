@@ -68,8 +68,8 @@ bool Metal::PerfQuery::IsFlushed() const
   return m_query_count.load(std::memory_order_acquire) == 0;
 }
 
-void Metal::PerfQuery::ReturnResults(const u64* data, const PerfQueryGroup* groups, size_t count,
-                                     u32 query_id)
+void Metal::PerfQuery::ReturnResults(
+    const u64* data, const PerfQueryGroup* groups, size_t count, u32 query_id)
 {
   {
     std::lock_guard<std::mutex> lock(m_results_mtx);

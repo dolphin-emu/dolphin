@@ -36,7 +36,9 @@ class Info
 {
 public:
   constexpr Info(const Location& location, const T& default_value)
-      : m_location{location}, m_default_value{default_value}, m_cached_value{default_value, 0}
+      : m_location{location}
+      , m_default_value{default_value}
+      , m_cached_value{default_value, 0}
   {
   }
 

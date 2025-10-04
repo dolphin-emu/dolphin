@@ -61,7 +61,7 @@ void ResourcePackManager::CreateWidgets()
 void ResourcePackManager::ConnectWidgets()
 {
   connect(m_open_directory_button, &QPushButton::clicked, this,
-          &ResourcePackManager::OpenResourcePackDir);
+      &ResourcePackManager::OpenResourcePackDir);
   connect(m_refresh_button, &QPushButton::clicked, this, &ResourcePackManager::Refresh);
   connect(m_change_button, &QPushButton::clicked, this, &ResourcePackManager::Change);
   connect(m_remove_button, &QPushButton::clicked, this, &ResourcePackManager::Remove);
@@ -69,10 +69,10 @@ void ResourcePackManager::ConnectWidgets()
   connect(m_priority_down_button, &QPushButton::clicked, this, &ResourcePackManager::PriorityDown);
 
   connect(m_table_widget, &QTableWidget::itemSelectionChanged, this,
-          &ResourcePackManager::SelectionChanged);
+      &ResourcePackManager::SelectionChanged);
 
   connect(m_table_widget, &QTableWidget::itemDoubleClicked, this,
-          &ResourcePackManager::ItemDoubleClicked);
+      &ResourcePackManager::ItemDoubleClicked);
 }
 
 void ResourcePackManager::OpenResourcePackDir()
@@ -123,8 +123,8 @@ void ResourcePackManager::RepopulateTable()
 
     QPixmap logo;
 
-    logo.loadFromData(reinterpret_cast<const uchar*>(pack.GetLogo().data()),
-                      (int)pack.GetLogo().size());
+    logo.loadFromData(
+        reinterpret_cast<const uchar*>(pack.GetLogo().data()), (int)pack.GetLogo().size());
 
     logo_item->setIcon(QIcon(logo));
 
@@ -137,7 +137,7 @@ void ResourcePackManager::RepopulateTable()
     website_item->setData(Qt::UserRole, website_item->text());
 
     for (auto* item :
-         {logo_item, name_item, version_item, author_item, description_item, website_item})
+        {logo_item, name_item, version_item, author_item, description_item, website_item})
     {
       item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
@@ -198,8 +198,7 @@ void ResourcePackManager::Install()
 
   if (!success)
   {
-    ModalMessageBox::critical(
-        this, tr("Error"),
+    ModalMessageBox::critical(this, tr("Error"),
         tr("Failed to install pack: %1").arg(QString::fromStdString(item.GetError())));
   }
 
@@ -219,8 +218,7 @@ void ResourcePackManager::Uninstall()
 
   if (!success)
   {
-    ModalMessageBox::critical(
-        this, tr("Error"),
+    ModalMessageBox::critical(this, tr("Error"),
         tr("Failed to uninstall pack: %1").arg(QString::fromStdString(item.GetError())));
   }
 
@@ -321,8 +319,8 @@ void ResourcePackManager::SelectionChanged()
   for (auto* item : {m_change_button, m_remove_button})
     item->setEnabled(has_selection);
 
-  m_priority_down_button->setEnabled(has_selection &&
-                                     items[0]->row() < m_table_widget->rowCount() - 1);
+  m_priority_down_button->setEnabled(
+      has_selection && items[0]->row() < m_table_widget->rowCount() - 1);
   m_priority_up_button->setEnabled(has_selection && items[0]->row() != 0);
 }
 

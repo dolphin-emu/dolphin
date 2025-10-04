@@ -192,7 +192,9 @@ class DeviceQualifier
 public:
   DeviceQualifier() : cid(-1) {}
   DeviceQualifier(std::string source_, const int id_, std::string name_)
-      : source(std::move(source_)), cid(id_), name(std::move(name_))
+      : source(std::move(source_))
+      , cid(id_)
+      , name(std::move(name_))
   {
   }
   void FromDevice(const Device* const dev);
@@ -258,7 +260,7 @@ public:
 
   void Start(const DeviceContainer& container, std::span<const std::string> device_strings);
   void Update(std::chrono::milliseconds initial_wait, std::chrono::milliseconds confirmation_wait,
-              std::chrono::milliseconds maximum_wait);
+      std::chrono::milliseconds maximum_wait);
   bool IsComplete() const;
 
   const Results& GetResults() const;

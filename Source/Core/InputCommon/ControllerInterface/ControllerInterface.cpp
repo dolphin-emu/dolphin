@@ -239,19 +239,22 @@ bool ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device
     return false;
 
   ASSERT_MSG(CONTROLLERINTERFACE, !tls_is_updating_devices,
-             "Devices shouldn't be added within input update calls, there is a risk of deadlock "
-             "if another thread was already here");
+      "Devices shouldn't be added within input update calls, there is a risk of deadlock "
+      "if another thread was already here");
 
   std::lock_guard lk_population(m_devices_population_mutex);
 
   {
     std::lock_guard lk(m_devices_mutex);
 
-    const auto is_id_in_use = [&device, this](int id) {
-      return std::ranges::any_of(m_devices, [&device, &id](const auto& d) {
-        return d->GetSource() == device->GetSource() && d->GetName() == device->GetName() &&
-               d->GetId() == id;
-      });
+    const auto is_id_in_use = [&device, this](int id)
+    {
+      return std::ranges::any_of(m_devices,
+          [&device, &id](const auto& d)
+          {
+            return d->GetSource() == device->GetSource() && d->GetName() == device->GetName() &&
+                   d->GetId() == id;
+          });
     };
 
     const auto preferred_id = device->GetPreferredId();
@@ -279,8 +282,8 @@ bool ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device
     // profile, it will automatically select the first device in the list as its default. It would
     // be nice to sort devices by Source then Name then ID, but it's better to leave them sorted by
     // the add order. This also avoids breaking the order on other platforms that are less tested.
-    std::ranges::stable_sort(m_devices, std::ranges::greater{},
-                             &ciface::Core::Device::GetSortPriority);
+    std::ranges::stable_sort(
+        m_devices, std::ranges::greater{}, &ciface::Core::Device::GetSortPriority);
   }
 
   if (!m_populating_devices_counter)
@@ -288,30 +291,32 @@ bool ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device
   return true;
 }
 
-void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::Device*)> callback,
-                                       bool force_devices_release)
+void ControllerInterface::RemoveDevice(
+    std::function<bool(const ciface::Core::Device*)> callback, bool force_devices_release)
 {
   // If we are shutdown (or in process of shutting down) ignore this request:
   if (!m_is_init)
     return;
 
   ASSERT_MSG(CONTROLLERINTERFACE, !tls_is_updating_devices,
-             "Devices shouldn't be removed within input update calls, there is a risk of deadlock "
-             "if another thread was already here");
+      "Devices shouldn't be removed within input update calls, there is a risk of deadlock "
+      "if another thread was already here");
 
   std::lock_guard lk_population(m_devices_population_mutex);
 
   bool any_removed;
   {
     std::lock_guard lk(m_devices_mutex);
-    const size_t erased = std::erase_if(m_devices, [&callback](const auto& dev) {
-      if (callback(dev.get()))
-      {
-        NOTICE_LOG_FMT(CONTROLLERINTERFACE, "Removed device: {}", dev->GetQualifiedName());
-        return true;
-      }
-      return false;
-    });
+    const size_t erased = std::erase_if(m_devices,
+        [&callback](const auto& dev)
+        {
+          if (callback(dev.get()))
+          {
+            NOTICE_LOG_FMT(CONTROLLERINTERFACE, "Removed device: {}", dev->GetQualifiedName());
+            return true;
+          }
+          return false;
+        });
     any_removed = erased != 0;
   }
 
@@ -363,10 +368,12 @@ void ControllerInterface::UpdateInput()
 
   if (devices_to_remove.size() > 0)
   {
-    RemoveDevice([&](const ciface::Core::Device* device) {
-      return std::ranges::any_of(devices_to_remove,
-                                 [device](const auto& d) { return d.lock().get() == device; });
-    });
+    RemoveDevice(
+        [&](const ciface::Core::Device* device)
+        {
+          return std::ranges::any_of(
+              devices_to_remove, [device](const auto& d) { return d.lock().get() == device; });
+        });
   }
 }
 
@@ -413,8 +420,8 @@ bool ControllerInterface::IsMouseCenteringRequested() const
 // Register a callback to be called when a device is added or removed (as from the input backends'
 // hotplug thread), or when devices are refreshed
 // Returns a handle for later removing the callback.
-ControllerInterface::HotplugCallbackHandle
-ControllerInterface::RegisterDevicesChangedCallback(std::function<void()> callback)
+ControllerInterface::HotplugCallbackHandle ControllerInterface::RegisterDevicesChangedCallback(
+    std::function<void()> callback)
 {
   std::lock_guard lk(m_callbacks_mutex);
   m_devices_changed_callbacks.emplace_back(std::move(callback));

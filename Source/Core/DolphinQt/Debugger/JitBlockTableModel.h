@@ -62,7 +62,7 @@ class JitBlockTableModel final : public QAbstractTableModel
 
 public:
   explicit JitBlockTableModel(Core::System& system, JitInterface& jit_interface,
-                              PPCSymbolDB& ppc_symbol_db, QObject* parent = nullptr);
+      PPCSymbolDB& ppc_symbol_db, QObject* parent = nullptr);
   ~JitBlockTableModel() override;
 
   JitBlockTableModel(const JitBlockTableModel&) = delete;
@@ -71,8 +71,8 @@ public:
   JitBlockTableModel& operator=(JitBlockTableModel&&) = delete;
 
   QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
-  QVariant headerData(int section, Qt::Orientation orientation,
-                      int role = Qt::DisplayRole) const override;
+  QVariant headerData(
+      int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
   int rowCount(const QModelIndex& parent = QModelIndex{}) const override;
   int columnCount(const QModelIndex& parent = QModelIndex{}) const override;
   bool removeRows(int row, int count, const QModelIndex& parent = QModelIndex{}) override;

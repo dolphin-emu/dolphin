@@ -94,7 +94,7 @@ void Jit64::FinalizeDoubleResult(X64Reg output, const OpArg& input)
 }
 
 void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::optional<OpArg> Ra,
-                       std::optional<OpArg> Rb, std::optional<OpArg> Rc)
+    std::optional<OpArg> Rb, std::optional<OpArg> Rc)
 {
   //                      | PowerPC  | x86
   // ---------------------+----------+---------
@@ -118,7 +118,8 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
 
     // If any inputs are NaNs, pick the first NaN of them
     Common::SmallVector<FixupBranch, 3> fixups;
-    const auto check_input = [&](const OpArg& Rx) {
+    const auto check_input = [&](const OpArg& Rx)
+    {
       MOVDDUP(xmm, Rx);
       UCOMISD(xmm, R(xmm));
       fixups.push_back(J_CC(CC_P));
@@ -161,7 +162,8 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
       BLENDVPD(xmm, MConst(psGeneratedQNaN));
 
       // If any inputs are NaNs, use those instead
-      const auto check_input = [&](const OpArg& Rx) {
+      const auto check_input = [&](const OpArg& Rx)
+      {
         avx_op(&XEmitter::VCMPPD, &XEmitter::CMPPD, clobber, Rx, Rx, CMP_UNORD);
         BLENDVPD(xmm, Rx);
       };
@@ -194,7 +196,8 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
       MOVAPD(xmm, tmp);
 
       // If any inputs are NaNs, use those instead
-      const auto check_input = [&](const OpArg& Rx) {
+      const auto check_input = [&](const OpArg& Rx)
+      {
         MOVAPD(clobber, Rx);
         CMPPD(clobber, R(clobber), CMP_ORD);
         MOVAPD(tmp, R(clobber));
@@ -378,7 +381,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   bool preserve_d = preserve_inputs && (a == d || b == d || c == d);
   bool packed =
       inst.OPCD == 4 || (!cpu_info.bAtom && !software_fma && single && js.op->fprIsDuplicated[a] &&
-                         js.op->fprIsDuplicated[b] && js.op->fprIsDuplicated[c]);
+                            js.op->fprIsDuplicated[b] && js.op->fprIsDuplicated[c]);
 
   const bool subtract = inst.SUBOP5 == 28 || inst.SUBOP5 == 30;  // msub, nmsub
   const bool negate = inst.SUBOP5 == 30 || inst.SUBOP5 == 31;    // nmsub, nmadd
@@ -598,15 +601,15 @@ void Jit64::fsign(UGeckoInstruction inst)
   {
   case 40:  // neg
     avx_op(&XEmitter::VXORPD, &XEmitter::XORPD, Rd, src, MConst(packed ? psSignBits2 : psSignBits),
-           packed);
+        packed);
     break;
   case 136:  // nabs
     avx_op(&XEmitter::VORPD, &XEmitter::ORPD, Rd, src, MConst(packed ? psSignBits2 : psSignBits),
-           packed);
+        packed);
     break;
   case 264:  // abs
     avx_op(&XEmitter::VANDPD, &XEmitter::ANDPD, Rd, src, MConst(packed ? psAbsMask2 : psAbsMask),
-           packed);
+        packed);
     break;
   default:
     PanicAlertFmt("fsign bleh");

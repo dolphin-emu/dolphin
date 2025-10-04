@@ -28,8 +28,8 @@ void EmitUniformBufferDeclaration(ShaderCode& code)
   code.Write("UBO_BINDING(std140, 1) uniform PSBlock\n");
 }
 
-void EmitSamplerDeclarations(ShaderCode& code, u32 start = 0, u32 end = 1,
-                             bool multisampled = false)
+void EmitSamplerDeclarations(
+    ShaderCode& code, u32 start = 0, u32 end = 1, bool multisampled = false)
 {
   switch (GetAPIType())
   {
@@ -86,8 +86,8 @@ void EmitTextureLoad(ShaderCode& code, u32 n, std::string_view coords)
 }
 
 void EmitVertexMainDeclaration(ShaderCode& code, u32 num_tex_inputs, u32 num_color_inputs,
-                               bool position_input, u32 num_tex_outputs, u32 num_color_outputs,
-                               std::string_view extra_inputs = {})
+    bool position_input, u32 num_tex_outputs, u32 num_color_outputs,
+    std::string_view extra_inputs = {})
 {
   switch (GetAPIType())
   {
@@ -136,8 +136,8 @@ void EmitVertexMainDeclaration(ShaderCode& code, u32 num_tex_inputs, u32 num_col
 }
 
 void EmitPixelMainDeclaration(ShaderCode& code, u32 num_tex_inputs, u32 num_color_inputs,
-                              std::string_view output_type = "float4",
-                              std::string_view extra_vars = {}, bool emit_frag_coord = false)
+    std::string_view output_type = "float4", std::string_view extra_vars = {},
+    bool emit_frag_coord = false)
 {
   switch (GetAPIType())
   {
@@ -182,7 +182,7 @@ std::string GenerateScreenQuadVertexShader()
   ShaderCode code;
   EmitVertexMainDeclaration(code, 0, 0, false, 1, 0,
 
-                            "#define id gl_VertexID\n");
+      "#define id gl_VertexID\n");
   code.Write(
       "{{\n"
       "  v_tex0 = float3(float((id << 1) & 2), float(id & 2), 0.0f);\n"
@@ -300,7 +300,7 @@ std::string GenerateTextureCopyVertexShader()
 
   EmitVertexMainDeclaration(code, 0, 0, false, 1, 0,
 
-                            "#define id gl_VertexID");
+      "#define id gl_VertexID");
   code.Write("{{\n"
              "  v_tex0 = float3(float((id << 1) & 2), float(id & 2), 0.0f);\n"
              "  opos = float4(v_tex0.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), 0.0f, 1.0f);\n"
@@ -383,7 +383,7 @@ std::string GenerateClearVertexShader()
 
   EmitVertexMainDeclaration(code, 0, 0, false, 0, 1,
 
-                            "#define id gl_VertexID\n");
+      "#define id gl_VertexID\n");
   code.Write(
       "{{\n"
       "  float2 coord = float2(float((id << 1) & 2), float(id & 2));\n"
@@ -423,7 +423,7 @@ std::string GenerateFormatConversionShader(EFBReinterpretType convtype, u32 samp
   EmitSamplerDeclarations(code, 0, 1, samples > 1);
   EmitPixelMainDeclaration(code, 1, 0, "float4",
 
-                           "");
+      "");
   code.Write("{{\n"
              "  int layer = int(v_tex0.z);\n");
   code.Write("  int3 coords = int3(int2(gl_FragCoord.xy), layer);\n");

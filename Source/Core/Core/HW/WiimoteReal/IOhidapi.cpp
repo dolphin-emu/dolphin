@@ -19,9 +19,9 @@ static bool IsDeviceUsable(const std::string& device_path)
   if (handle == nullptr)
   {
     ERROR_LOG_FMT(WIIMOTE,
-                  "Could not connect to Wii Remote at \"{}\". "
-                  "Do you have permission to access the device?",
-                  device_path);
+        "Could not connect to Wii Remote at \"{}\". "
+        "Do you have permission to access the device?",
+        device_path);
     return false;
   }
   // Some third-party adapters (DolphinBar) always expose all four Wii Remotes as HIDs
@@ -69,9 +69,9 @@ void WiimoteScannerHidapi::FindWiimotes(std::vector<Wiimote*>& wiimotes, Wiimote
   for (hid_device_info* device = list; device; device = device->next)
   {
     const std::string name = device->product_string ? WStringToUTF8(device->product_string) : "";
-    const bool is_wiimote =
-        IsValidDeviceName(name) || (device->vendor_id == 0x057e &&
-                                    (device->product_id == 0x0306 || device->product_id == 0x0330));
+    const bool is_wiimote = IsValidDeviceName(name) ||
+                            (device->vendor_id == 0x057e &&
+                                (device->product_id == 0x0306 || device->product_id == 0x0330));
     if (!is_wiimote || !IsNewWiimote(device->path) || !IsDeviceUsable(device->path))
       continue;
 
@@ -83,9 +83,9 @@ void WiimoteScannerHidapi::FindWiimotes(std::vector<Wiimote*>& wiimotes, Wiimote
       wiimotes.push_back(wiimote);
 
     NOTICE_LOG_FMT(WIIMOTE, "Found {} at {}: {} {} ({:04x}:{:04x})",
-                   is_balance_board ? "balance board" : "Wiimote", device->path,
-                   WStringToUTF8(device->manufacturer_string),
-                   WStringToUTF8(device->product_string), device->vendor_id, device->product_id);
+        is_balance_board ? "balance board" : "Wiimote", device->path,
+        WStringToUTF8(device->manufacturer_string), WStringToUTF8(device->product_string),
+        device->vendor_id, device->product_id);
   }
   hid_free_enumeration(list);
 }
@@ -108,9 +108,9 @@ bool WiimoteHidapi::ConnectInternal()
   if (m_handle == nullptr)
   {
     ERROR_LOG_FMT(WIIMOTE,
-                  "Could not connect to Wii Remote at \"{}\". "
-                  "Do you have permission to access the device?",
-                  m_device_path);
+        "Could not connect to Wii Remote at \"{}\". "
+        "Do you have permission to access the device?",
+        m_device_path);
   }
   return m_handle != nullptr;
 }

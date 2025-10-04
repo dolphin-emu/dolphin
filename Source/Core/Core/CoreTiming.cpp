@@ -64,9 +64,9 @@ EventType* CoreTimingManager::RegisterEvent(const std::string& name, TimedCallba
   // check for existing type with same name.
   // we want event type names to remain unique so that we can use them for serialization.
   ASSERT_MSG(POWERPC, !m_event_types.contains(name),
-             "CoreTiming Event \"{}\" is already registered. Events should only be registered "
-             "during Init to avoid breaking save states.",
-             name);
+      "CoreTiming Event \"{}\" is already registered. Events should only be registered "
+      "during Init to avoid breaking save states.",
+      name);
 
   auto info = m_event_types.emplace(name, EventType{callback, nullptr});
   EventType* event_type = &info.first->second;
@@ -106,13 +106,15 @@ void CoreTimingManager::Init()
   m_last_oc_factor = m_config_oc_factor;
   m_globals.last_OC_factor_inverted = m_config_oc_inv_factor;
 
-  m_on_state_changed_handle = Core::AddOnStateChangedCallback([this](Core::State state) {
-    if (state == Core::State::Running)
-    {
-      // We don't want Throttle to attempt catch-up for all the time lost while paused.
-      ResetThrottle(GetTicks());
-    }
-  });
+  m_on_state_changed_handle = Core::AddOnStateChangedCallback(
+      [this](Core::State state)
+      {
+        if (state == Core::State::Running)
+        {
+          // We don't want Throttle to attempt catch-up for all the time lost while paused.
+          ResetThrottle(GetTicks());
+        }
+      });
 }
 
 void CoreTimingManager::Shutdown()
@@ -173,37 +175,39 @@ void CoreTimingManager::DoState(PointerWrap& p)
   p.DoMarker("CoreTimingData");
 
   MoveEvents();
-  p.DoEachElement(m_event_queue, [this](PointerWrap& pw, Event& ev) {
-    pw.Do(ev.time);
-    pw.Do(ev.fifo_order);
-
-    // this is why we can't have (nice things) pointers as userdata
-    pw.Do(ev.userdata);
-
-    // we can't savestate ev.type directly because events might not get registered in the same
-    // order (or at all) every time.
-    // so, we savestate the event's type's name, and derive ev.type from that when loading.
-    std::string name;
-    if (!pw.IsReadMode())
-      name = *ev.type->name;
-
-    pw.Do(name);
-    if (pw.IsReadMode())
-    {
-      auto itr = m_event_types.find(name);
-      if (itr != m_event_types.end())
+  p.DoEachElement(m_event_queue,
+      [this](PointerWrap& pw, Event& ev)
       {
-        ev.type = &itr->second;
-      }
-      else
-      {
-        WARN_LOG_FMT(POWERPC,
-                     "Lost event from savestate because its type, \"{}\", has not been registered.",
-                     name);
-        ev.type = m_ev_lost;
-      }
-    }
-  });
+        pw.Do(ev.time);
+        pw.Do(ev.fifo_order);
+
+        // this is why we can't have (nice things) pointers as userdata
+        pw.Do(ev.userdata);
+
+        // we can't savestate ev.type directly because events might not get registered in the same
+        // order (or at all) every time.
+        // so, we savestate the event's type's name, and derive ev.type from that when loading.
+        std::string name;
+        if (!pw.IsReadMode())
+          name = *ev.type->name;
+
+        pw.Do(name);
+        if (pw.IsReadMode())
+        {
+          auto itr = m_event_types.find(name);
+          if (itr != m_event_types.end())
+          {
+            ev.type = &itr->second;
+          }
+          else
+          {
+            WARN_LOG_FMT(POWERPC,
+                "Lost event from savestate because its type, \"{}\", has not been registered.",
+                name);
+            ev.type = m_ev_lost;
+          }
+        }
+      });
   p.DoMarker("CoreTimingEvents");
 
   if (p.IsReadMode())
@@ -242,8 +246,8 @@ void CoreTimingManager::ClearPendingEvents()
   m_event_queue.clear();
 }
 
-void CoreTimingManager::ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata,
-                                      FromThread from)
+void CoreTimingManager::ScheduleEvent(
+    s64 cycles_into_future, EventType* event_type, u64 userdata, FromThread from)
 {
   ASSERT_MSG(POWERPC, event_type, "Event type is nullptr, will crash now.");
 
@@ -256,8 +260,8 @@ void CoreTimingManager::ScheduleEvent(s64 cycles_into_future, EventType* event_t
   {
     from_cpu_thread = from == FromThread::CPU;
     ASSERT_MSG(POWERPC, from_cpu_thread == Core::IsCPUThread(),
-               "A \"{}\" event was scheduled from the wrong thread ({})", *event_type->name,
-               from_cpu_thread ? "CPU" : "non-CPU");
+        "A \"{}\" event was scheduled from the wrong thread ({})", *event_type->name,
+        from_cpu_thread ? "CPU" : "non-CPU");
   }
 
   if (from_cpu_thread)
@@ -276,9 +280,9 @@ void CoreTimingManager::ScheduleEvent(s64 cycles_into_future, EventType* event_t
     if (Core::WantsDeterminism())
     {
       ERROR_LOG_FMT(POWERPC,
-                    "Someone scheduled an off-thread \"{}\" event while netplay or "
-                    "movie play/record was active.  This is likely to cause a desync.",
-                    *event_type->name);
+          "Someone scheduled an off-thread \"{}\" event while netplay or "
+          "movie play/record was active.  This is likely to cause a desync.",
+          *event_type->name);
     }
 
     std::lock_guard lk(m_ts_write_lock);
@@ -451,7 +455,7 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
     // Core is running too slow.. i.e. CPU bottleneck.
     const DT adjustment = min_target - target_time;
     DEBUG_LOG_FMT(CORE, "Core can not keep up with timings! [relaxing timings by {} us]",
-                  DT_us(adjustment).count());
+        DT_us(adjustment).count());
 
     m_throttle_reference_time += adjustment;
     target_time += adjustment;
@@ -519,7 +523,7 @@ void CoreTimingManager::LogPendingEvents() const
   for (const Event& ev : clone)
   {
     INFO_LOG_FMT(POWERPC, "PENDING: Now: {} Pending: {} Type: {}", m_globals.global_timer, ev.time,
-                 *ev.type->name);
+        *ev.type->name);
   }
 }
 

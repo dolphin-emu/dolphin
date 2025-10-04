@@ -55,18 +55,16 @@ const Common::Symbol* PPCSymbolDB::AddFunction(const Core::CPUThreadGuard& guard
 }
 
 void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAddr, u32 size,
-                                 const std::string& name, const std::string& object_name,
-                                 Common::Symbol::Type type)
+    const std::string& name, const std::string& object_name, Common::Symbol::Type type)
 {
   std::lock_guard lock(m_mutex);
-  AddKnownSymbol(guard, startAddr, size, name, object_name, type, &m_functions,
-                 &m_checksum_to_function);
+  AddKnownSymbol(
+      guard, startAddr, size, name, object_name, type, &m_functions, &m_checksum_to_function);
 }
 
 void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAddr, u32 size,
-                                 const std::string& name, const std::string& object_name,
-                                 Common::Symbol::Type type, XFuncMap* functions,
-                                 XFuncPtrMap* checksum_to_function)
+    const std::string& name, const std::string& object_name, Common::Symbol::Type type,
+    XFuncMap* functions, XFuncPtrMap* checksum_to_function)
 {
   auto iter = functions->find(startAddr);
   if (iter != functions->end())
@@ -94,7 +92,7 @@ void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAdd
       if (size != 0 && new_symbol.size != size)
       {
         WARN_LOG_FMT(SYMBOLS, "Analysed symbol ({}) size mismatch, {} expected but {} computed",
-                     name, size, new_symbol.size);
+            name, size, new_symbol.size);
         new_symbol.size = size;
       }
       (*checksum_to_function)[new_symbol.hash].insert(&new_symbol);
@@ -464,9 +462,8 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, std::string filenam
     // Column detection heuristic
     if (column_count == 0)
     {
-      constexpr auto is_hex_str = [](const std::string& s) {
-        return !s.empty() && s.find_first_not_of("0123456789abcdefABCDEF") == std::string::npos;
-      };
+      constexpr auto is_hex_str = [](const std::string& s)
+      { return !s.empty() && s.find_first_not_of("0123456789abcdefABCDEF") == std::string::npos; };
       const std::string stripped_line(StripWhitespace(line));
       std::istringstream iss(stripped_line);
       iss.imbue(std::locale::classic());
@@ -503,7 +500,8 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, std::string filenam
     char name[512]{};
     static constexpr char ENTRY_OF_STRING[] = " (entry of ";
     static constexpr std::string_view ENTRY_OF_VIEW(ENTRY_OF_STRING);
-    auto parse_entry_of = [](char* name_buf) {
+    auto parse_entry_of = [](char* name_buf)
+    {
       if (char* s1 = strstr(name_buf, ENTRY_OF_STRING); s1 != nullptr)
       {
         char container[512];
@@ -522,10 +520,10 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, std::string filenam
         }
       }
     };
-    auto was_alignment = [](const char* name_buf) {
-      return *name_buf == ' ' || (*name_buf >= '0' && *name_buf <= '9');
-    };
-    auto parse_alignment = [](char* name_buf, u32* alignment_buf) {
+    auto was_alignment = [](const char* name_buf)
+    { return *name_buf == ' ' || (*name_buf >= '0' && *name_buf <= '9'); };
+    auto parse_alignment = [](char* name_buf, u32* alignment_buf)
+    {
       const std::string buffer(StripWhitespace(name_buf));
       return sscanf(buffer.c_str(), "%i %511[^\r\n]", alignment_buf, name_buf);
     };
@@ -614,7 +612,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, std::string filenam
         else
         {
           AddKnownSymbol(guard, vaddress, size, name_string, object_filename_string, type,
-                         &new_functions, &checksum_to_function);
+              &new_functions, &checksum_to_function);
         }
       }
       else
@@ -656,8 +654,8 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
   for (const auto& symbol : function_symbols)
   {
     // Write symbol address, size, virtual address, alignment, name
-    std::string line = fmt::format("{:08x} {:06x} {:08x} {} {}", symbol.address, symbol.size,
-                                   symbol.address, 0, symbol.name);
+    std::string line = fmt::format(
+        "{:08x} {:06x} {:08x} {} {}", symbol.address, symbol.size, symbol.address, 0, symbol.name);
     // Also write the object name if it exists
     if (!symbol.object_name.empty())
       line += fmt::format(" \t{0}", symbol.object_name);
@@ -674,8 +672,8 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
   for (const auto& symbol : data_symbols)
   {
     // Write symbol address, size, virtual address, alignment, name
-    std::string line = fmt::format("{:08x} {:06x} {:08x} {} {}", symbol.address, symbol.size,
-                                   symbol.address, 0, symbol.name);
+    std::string line = fmt::format(
+        "{:08x} {:06x} {:08x} {} {}", symbol.address, symbol.size, symbol.address, 0, symbol.name);
     // Also write the object name if it exists
     if (!symbol.object_name.empty())
       line += fmt::format(" \t{0}", symbol.object_name);
@@ -690,7 +688,7 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
   {
     // Write symbol address, size, virtual address, alignment, name
     const std::string line = fmt::format("{:08x} {:06x} {:08x} {} {}\n", symbol.address,
-                                         symbol.size, symbol.address, 0, symbol.name);
+        symbol.size, symbol.address, 0, symbol.name);
     file.WriteString(line);
   }
 
@@ -738,7 +736,7 @@ bool PPCSymbolDB::SaveCodeMap(const Core::CPUThreadGuard& guard, const std::stri
     {
       const std::string disasm = ppc_debug_interface.Disassemble(&guard, address);
       f.WriteString(fmt::format("{0:08x} {1:<{2}.{3}} {4}\n", address, symbol.name,
-                                SYMBOL_NAME_LIMIT, SYMBOL_NAME_LIMIT, disasm));
+          SYMBOL_NAME_LIMIT, SYMBOL_NAME_LIMIT, disasm));
     }
   }
   return true;

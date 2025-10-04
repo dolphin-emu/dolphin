@@ -33,9 +33,9 @@ static u32 DPL2QualityToFrameBlockSize(AudioCommon::DPL2Quality quality)
 }
 
 Mixer::Mixer(u32 BackendSampleRate)
-    : m_output_sample_rate(BackendSampleRate),
-      m_surround_decoder(BackendSampleRate,
-                         DPL2QualityToFrameBlockSize(Config::Get(Config::MAIN_DPL2_QUALITY)))
+    : m_output_sample_rate(BackendSampleRate)
+    , m_surround_decoder(
+          BackendSampleRate, DPL2QualityToFrameBlockSize(Config::Get(Config::MAIN_DPL2_QUALITY)))
 {
   m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
   RefreshConfig();
@@ -89,9 +89,8 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
   const std::size_t buffer_size_samples = std::llround(buffer_size_ms * in_sample_rate / 1000.0);
 
   // Limit the possible queue sizes to any number between 4 and 64.
-  const std::size_t buffer_size_granules =
-      std::clamp((buffer_size_samples) / (GRANULE_SIZE >> 1), static_cast<std::size_t>(4),
-                 static_cast<std::size_t>(MAX_GRANULE_QUEUE_SIZE));
+  const std::size_t buffer_size_granules = std::clamp((buffer_size_samples) / (GRANULE_SIZE >> 1),
+      static_cast<std::size_t>(4), static_cast<std::size_t>(MAX_GRANULE_QUEUE_SIZE));
 
   bool fade_audio = m_queue_fading.load(std::memory_order_relaxed);
 
@@ -189,16 +188,16 @@ std::size_t Mixer::MixSurround(float* samples, std::size_t num_samples)
 
   constexpr std::size_t max_samples = 0x8000;
   ASSERT_MSG(AUDIO, needed_frames <= max_samples,
-             "needed_frames would overflow m_scratch_buffer: {} -> {} > {}", num_samples,
-             needed_frames, max_samples);
+      "needed_frames would overflow m_scratch_buffer: {} -> {} > {}", num_samples, needed_frames,
+      max_samples);
 
   std::array<s16, max_samples> buffer;
   std::size_t const available_frames = Mix(buffer.data(), static_cast<std::size_t>(needed_frames));
   if (available_frames != needed_frames)
   {
     ERROR_LOG_FMT(AUDIO,
-                  "Error decoding surround frames: needed {} frames for {} samples but got {}",
-                  needed_frames, num_samples, available_frames);
+        "Error decoding surround frames: needed {} frames for {} samples but got {}", needed_frames,
+        num_samples, available_frames);
     return 0;
   }
 
@@ -237,8 +236,8 @@ void Mixer::PushSamples(const s16* samples, std::size_t num_samples)
   {
     const s32 sample_rate_divisor = m_dma_mixer.GetInputSampleRateDivisor();
     auto const volume = m_dma_mixer.GetVolume();
-    m_wave_writer_dsp.AddStereoSamplesBE(samples, static_cast<u32>(num_samples),
-                                         sample_rate_divisor, volume.first, volume.second);
+    m_wave_writer_dsp.AddStereoSamplesBE(
+        samples, static_cast<u32>(num_samples), sample_rate_divisor, volume.first, volume.second);
   }
 }
 
@@ -253,13 +252,13 @@ void Mixer::PushStreamingSamples(const s16* samples, std::size_t num_samples)
   {
     const s32 sample_rate_divisor = m_streaming_mixer.GetInputSampleRateDivisor();
     auto const volume = m_streaming_mixer.GetVolume();
-    m_wave_writer_dtk.AddStereoSamplesBE(samples, static_cast<u32>(num_samples),
-                                         sample_rate_divisor, volume.first, volume.second);
+    m_wave_writer_dtk.AddStereoSamplesBE(
+        samples, static_cast<u32>(num_samples), sample_rate_divisor, volume.first, volume.second);
   }
 }
 
-void Mixer::PushWiimoteSpeakerSamples(const s16* samples, std::size_t num_samples,
-                                      u32 sample_rate_divisor)
+void Mixer::PushWiimoteSpeakerSamples(
+    const s16* samples, std::size_t num_samples, u32 sample_rate_divisor)
 {
   if (!IsOutputSampleRateValid())
     return;
@@ -269,8 +268,7 @@ void Mixer::PushWiimoteSpeakerSamples(const s16* samples, std::size_t num_sample
   std::array<s16, MAX_SPEAKER_SAMPLES * 2> samples_stereo;
 
   ASSERT_MSG(AUDIO, num_samples <= MAX_SPEAKER_SAMPLES,
-             "num_samples would overflow samples_stereo: {} > {}", num_samples,
-             MAX_SPEAKER_SAMPLES);
+      "num_samples would overflow samples_stereo: {} > {}", num_samples, MAX_SPEAKER_SAMPLES);
   if (num_samples <= MAX_SPEAKER_SAMPLES)
   {
     m_wiimote_speaker_mixer.SetInputSampleRateDivisor(sample_rate_divisor);
@@ -296,8 +294,7 @@ void Mixer::PushSkylanderPortalSamples(const u8* samples, std::size_t num_sample
   std::array<s16, MAX_PORTAL_SPEAKER_SAMPLES * 2> samples_stereo;
 
   ASSERT_MSG(AUDIO, num_samples <= MAX_PORTAL_SPEAKER_SAMPLES,
-             "num_samples is not less or equal to 32: {} > {}", num_samples,
-             MAX_PORTAL_SPEAKER_SAMPLES);
+      "num_samples is not less or equal to 32: {} > {}", num_samples, MAX_PORTAL_SPEAKER_SAMPLES);
 
   if (num_samples <= MAX_PORTAL_SPEAKER_SAMPLES)
   {
@@ -338,8 +335,8 @@ void Mixer::SetGBAInputSampleRateDivisors(std::size_t device_number, u32 rate_di
 
 void Mixer::SetStreamingVolume(u32 lvolume, u32 rvolume)
 {
-  m_streaming_mixer.SetVolume(std::clamp<u32>(lvolume, 0x00, 0xff),
-                              std::clamp<u32>(rvolume, 0x00, 0xff));
+  m_streaming_mixer.SetVolume(
+      std::clamp<u32>(lvolume, 0x00, 0xff), std::clamp<u32>(rvolume, 0x00, 0xff));
 }
 
 void Mixer::SetWiimoteSpeakerVolume(u32 lvolume, u32 rvolume)
@@ -471,50 +468,50 @@ void Mixer::MixerFifo::Enqueue()
   // elements = ", ".join([f"{x:.10f}f" for x in window])
   // print(f'constexpr std::array<StereoPair, GRANULE_SIZE> GRANULE_WINDOW = {{ {elements}
   // }};')
-  static constexpr std::array<StereoPair, GRANULE_SIZE> GRANULE_WINDOW = {
-      0.0000016272f, 0.0000050749f, 0.0000113187f, 0.0000216492f, 0.0000377350f, 0.0000616906f,
-      0.0000961509f, 0.0001443499f, 0.0002102045f, 0.0002984010f, 0.0004144844f, 0.0005649486f,
-      0.0007573262f, 0.0010002765f, 0.0013036694f, 0.0016786636f, 0.0021377783f, 0.0026949534f,
-      0.0033656000f, 0.0041666352f, 0.0051165029f, 0.0062351752f, 0.0075441359f, 0.0090663409f,
-      0.0108261579f, 0.0128492811f, 0.0151626215f, 0.0177941726f, 0.0207728499f, 0.0241283062f,
-      0.0278907219f, 0.0320905724f, 0.0367583739f, 0.0419244083f, 0.0476184323f, 0.0538693708f,
-      0.0607049996f, 0.0681516192f, 0.0762337261f, 0.0849736833f, 0.0943913952f, 0.1045039915f,
-      0.1153255250f, 0.1268666867f, 0.1391345431f, 0.1521323012f, 0.1658591025f, 0.1803098534f,
-      0.1954750915f, 0.2113408944f, 0.2278888303f, 0.2450959552f, 0.2629348550f, 0.2813737361f,
-      0.3003765625f, 0.3199032396f, 0.3399098438f, 0.3603488941f, 0.3811696664f, 0.4023185434f,
-      0.4237393998f, 0.4453740162f, 0.4671625177f, 0.4890438330f, 0.5109561670f, 0.5328374823f,
-      0.5546259838f, 0.5762606002f, 0.5976814566f, 0.6188303336f, 0.6396511059f, 0.6600901562f,
-      0.6800967604f, 0.6996234375f, 0.7186262639f, 0.7370651450f, 0.7549040448f, 0.7721111697f,
-      0.7886591056f, 0.8045249085f, 0.8196901466f, 0.8341408975f, 0.8478676988f, 0.8608654569f,
-      0.8731333133f, 0.8846744750f, 0.8954960085f, 0.9056086048f, 0.9150263167f, 0.9237662739f,
-      0.9318483808f, 0.9392950004f, 0.9461306292f, 0.9523815677f, 0.9580755917f, 0.9632416261f,
-      0.9679094276f, 0.9721092781f, 0.9758716938f, 0.9792271501f, 0.9822058274f, 0.9848373785f,
-      0.9871507189f, 0.9891738421f, 0.9909336591f, 0.9924558641f, 0.9937648248f, 0.9948834971f,
-      0.9958333648f, 0.9966344000f, 0.9973050466f, 0.9978622217f, 0.9983213364f, 0.9986963306f,
-      0.9989997235f, 0.9992426738f, 0.9994350514f, 0.9995855156f, 0.9997015990f, 0.9997897955f,
-      0.9998556501f, 0.9999038491f, 0.9999383094f, 0.9999622650f, 0.9999783508f, 0.9999886813f,
-      0.9999949251f, 0.9999983728f, 0.9999983728f, 0.9999949251f, 0.9999886813f, 0.9999783508f,
-      0.9999622650f, 0.9999383094f, 0.9999038491f, 0.9998556501f, 0.9997897955f, 0.9997015990f,
-      0.9995855156f, 0.9994350514f, 0.9992426738f, 0.9989997235f, 0.9986963306f, 0.9983213364f,
-      0.9978622217f, 0.9973050466f, 0.9966344000f, 0.9958333648f, 0.9948834971f, 0.9937648248f,
-      0.9924558641f, 0.9909336591f, 0.9891738421f, 0.9871507189f, 0.9848373785f, 0.9822058274f,
-      0.9792271501f, 0.9758716938f, 0.9721092781f, 0.9679094276f, 0.9632416261f, 0.9580755917f,
-      0.9523815677f, 0.9461306292f, 0.9392950004f, 0.9318483808f, 0.9237662739f, 0.9150263167f,
-      0.9056086048f, 0.8954960085f, 0.8846744750f, 0.8731333133f, 0.8608654569f, 0.8478676988f,
-      0.8341408975f, 0.8196901466f, 0.8045249085f, 0.7886591056f, 0.7721111697f, 0.7549040448f,
-      0.7370651450f, 0.7186262639f, 0.6996234375f, 0.6800967604f, 0.6600901562f, 0.6396511059f,
-      0.6188303336f, 0.5976814566f, 0.5762606002f, 0.5546259838f, 0.5328374823f, 0.5109561670f,
-      0.4890438330f, 0.4671625177f, 0.4453740162f, 0.4237393998f, 0.4023185434f, 0.3811696664f,
-      0.3603488941f, 0.3399098438f, 0.3199032396f, 0.3003765625f, 0.2813737361f, 0.2629348550f,
-      0.2450959552f, 0.2278888303f, 0.2113408944f, 0.1954750915f, 0.1803098534f, 0.1658591025f,
-      0.1521323012f, 0.1391345431f, 0.1268666867f, 0.1153255250f, 0.1045039915f, 0.0943913952f,
-      0.0849736833f, 0.0762337261f, 0.0681516192f, 0.0607049996f, 0.0538693708f, 0.0476184323f,
-      0.0419244083f, 0.0367583739f, 0.0320905724f, 0.0278907219f, 0.0241283062f, 0.0207728499f,
-      0.0177941726f, 0.0151626215f, 0.0128492811f, 0.0108261579f, 0.0090663409f, 0.0075441359f,
-      0.0062351752f, 0.0051165029f, 0.0041666352f, 0.0033656000f, 0.0026949534f, 0.0021377783f,
-      0.0016786636f, 0.0013036694f, 0.0010002765f, 0.0007573262f, 0.0005649486f, 0.0004144844f,
-      0.0002984010f, 0.0002102045f, 0.0001443499f, 0.0000961509f, 0.0000616906f, 0.0000377350f,
-      0.0000216492f, 0.0000113187f, 0.0000050749f, 0.0000016272f};
+  static constexpr std::array<StereoPair, GRANULE_SIZE> GRANULE_WINDOW = {0.0000016272f,
+      0.0000050749f, 0.0000113187f, 0.0000216492f, 0.0000377350f, 0.0000616906f, 0.0000961509f,
+      0.0001443499f, 0.0002102045f, 0.0002984010f, 0.0004144844f, 0.0005649486f, 0.0007573262f,
+      0.0010002765f, 0.0013036694f, 0.0016786636f, 0.0021377783f, 0.0026949534f, 0.0033656000f,
+      0.0041666352f, 0.0051165029f, 0.0062351752f, 0.0075441359f, 0.0090663409f, 0.0108261579f,
+      0.0128492811f, 0.0151626215f, 0.0177941726f, 0.0207728499f, 0.0241283062f, 0.0278907219f,
+      0.0320905724f, 0.0367583739f, 0.0419244083f, 0.0476184323f, 0.0538693708f, 0.0607049996f,
+      0.0681516192f, 0.0762337261f, 0.0849736833f, 0.0943913952f, 0.1045039915f, 0.1153255250f,
+      0.1268666867f, 0.1391345431f, 0.1521323012f, 0.1658591025f, 0.1803098534f, 0.1954750915f,
+      0.2113408944f, 0.2278888303f, 0.2450959552f, 0.2629348550f, 0.2813737361f, 0.3003765625f,
+      0.3199032396f, 0.3399098438f, 0.3603488941f, 0.3811696664f, 0.4023185434f, 0.4237393998f,
+      0.4453740162f, 0.4671625177f, 0.4890438330f, 0.5109561670f, 0.5328374823f, 0.5546259838f,
+      0.5762606002f, 0.5976814566f, 0.6188303336f, 0.6396511059f, 0.6600901562f, 0.6800967604f,
+      0.6996234375f, 0.7186262639f, 0.7370651450f, 0.7549040448f, 0.7721111697f, 0.7886591056f,
+      0.8045249085f, 0.8196901466f, 0.8341408975f, 0.8478676988f, 0.8608654569f, 0.8731333133f,
+      0.8846744750f, 0.8954960085f, 0.9056086048f, 0.9150263167f, 0.9237662739f, 0.9318483808f,
+      0.9392950004f, 0.9461306292f, 0.9523815677f, 0.9580755917f, 0.9632416261f, 0.9679094276f,
+      0.9721092781f, 0.9758716938f, 0.9792271501f, 0.9822058274f, 0.9848373785f, 0.9871507189f,
+      0.9891738421f, 0.9909336591f, 0.9924558641f, 0.9937648248f, 0.9948834971f, 0.9958333648f,
+      0.9966344000f, 0.9973050466f, 0.9978622217f, 0.9983213364f, 0.9986963306f, 0.9989997235f,
+      0.9992426738f, 0.9994350514f, 0.9995855156f, 0.9997015990f, 0.9997897955f, 0.9998556501f,
+      0.9999038491f, 0.9999383094f, 0.9999622650f, 0.9999783508f, 0.9999886813f, 0.9999949251f,
+      0.9999983728f, 0.9999983728f, 0.9999949251f, 0.9999886813f, 0.9999783508f, 0.9999622650f,
+      0.9999383094f, 0.9999038491f, 0.9998556501f, 0.9997897955f, 0.9997015990f, 0.9995855156f,
+      0.9994350514f, 0.9992426738f, 0.9989997235f, 0.9986963306f, 0.9983213364f, 0.9978622217f,
+      0.9973050466f, 0.9966344000f, 0.9958333648f, 0.9948834971f, 0.9937648248f, 0.9924558641f,
+      0.9909336591f, 0.9891738421f, 0.9871507189f, 0.9848373785f, 0.9822058274f, 0.9792271501f,
+      0.9758716938f, 0.9721092781f, 0.9679094276f, 0.9632416261f, 0.9580755917f, 0.9523815677f,
+      0.9461306292f, 0.9392950004f, 0.9318483808f, 0.9237662739f, 0.9150263167f, 0.9056086048f,
+      0.8954960085f, 0.8846744750f, 0.8731333133f, 0.8608654569f, 0.8478676988f, 0.8341408975f,
+      0.8196901466f, 0.8045249085f, 0.7886591056f, 0.7721111697f, 0.7549040448f, 0.7370651450f,
+      0.7186262639f, 0.6996234375f, 0.6800967604f, 0.6600901562f, 0.6396511059f, 0.6188303336f,
+      0.5976814566f, 0.5762606002f, 0.5546259838f, 0.5328374823f, 0.5109561670f, 0.4890438330f,
+      0.4671625177f, 0.4453740162f, 0.4237393998f, 0.4023185434f, 0.3811696664f, 0.3603488941f,
+      0.3399098438f, 0.3199032396f, 0.3003765625f, 0.2813737361f, 0.2629348550f, 0.2450959552f,
+      0.2278888303f, 0.2113408944f, 0.1954750915f, 0.1803098534f, 0.1658591025f, 0.1521323012f,
+      0.1391345431f, 0.1268666867f, 0.1153255250f, 0.1045039915f, 0.0943913952f, 0.0849736833f,
+      0.0762337261f, 0.0681516192f, 0.0607049996f, 0.0538693708f, 0.0476184323f, 0.0419244083f,
+      0.0367583739f, 0.0320905724f, 0.0278907219f, 0.0241283062f, 0.0207728499f, 0.0177941726f,
+      0.0151626215f, 0.0128492811f, 0.0108261579f, 0.0090663409f, 0.0075441359f, 0.0062351752f,
+      0.0051165029f, 0.0041666352f, 0.0033656000f, 0.0026949534f, 0.0021377783f, 0.0016786636f,
+      0.0013036694f, 0.0010002765f, 0.0007573262f, 0.0005649486f, 0.0004144844f, 0.0002984010f,
+      0.0002102045f, 0.0001443499f, 0.0000961509f, 0.0000616906f, 0.0000377350f, 0.0000216492f,
+      0.0000113187f, 0.0000050749f, 0.0000016272f};
 
   std::size_t const head = m_queue_head.load(std::memory_order_acquire);
 
@@ -523,8 +520,8 @@ void Mixer::MixerFifo::Enqueue()
   if (next_head == m_queue_tail.load(std::memory_order_acquire))
   {
     WARN_LOG_FMT(AUDIO,
-                 "Granule Queue has completely filled and audio samples are being dropped. "
-                 "This should not happen unless the audio backend has stopped requesting audio.");
+        "Granule Queue has completely filled and audio samples are being dropped. "
+        "This should not happen unless the audio backend has stopped requesting audio.");
     return;
   }
 

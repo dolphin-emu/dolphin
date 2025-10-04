@@ -215,8 +215,7 @@ struct fmt::formatter<DX12::DX12HRWrap>
     if (hr.m_hr == DXGI_ERROR_DEVICE_REMOVED && DX12::g_dx_context != nullptr &&
         DX12::g_dx_context->GetDevice() != nullptr)
     {
-      return fmt::format_to(
-          ctx.out(), "{}\nDevice removal reason: {}", Common::HRWrap(hr.m_hr),
+      return fmt::format_to(ctx.out(), "{}\nDevice removal reason: {}", Common::HRWrap(hr.m_hr),
           Common::HRWrap(DX12::g_dx_context->GetDevice()->GetDeviceRemovedReason()));
     }
     else

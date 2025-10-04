@@ -29,7 +29,12 @@ std::string Profiler::s_lazy_result;
 int Profiler::s_lazy_delay = 0;
 
 Profiler::Profiler(const std::string& name)
-    : m_name(name), m_usecs(0), m_usecs_min(UINT64_MAX), m_usecs_max(0), m_usecs_quad(0), m_calls(0)
+    : m_name(name)
+    , m_usecs(0)
+    , m_usecs_min(UINT64_MAX)
+    , m_usecs_max(0)
+    , m_usecs_quad(0)
+    , m_calls(0)
 {
   s_max_length = std::max<u32>(s_max_length, u32(m_name.length()));
 

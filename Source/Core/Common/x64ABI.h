@@ -37,7 +37,7 @@
 // xmm0-xmm15 use the upper 16 bits in the functions that push/pop registers.
 #define ABI_ALL_CALLER_SAVED                                                                       \
   (BitSet32{RAX, RCX, RDX, R8, R9, R10, R11, XMM0 + 16, XMM1 + 16, XMM2 + 16, XMM3 + 16,           \
-            XMM4 + 16, XMM5 + 16})
+      XMM4 + 16, XMM5 + 16})
 #else  // 64-bit Unix / OS X
 
 #define ABI_PARAM1 RDI

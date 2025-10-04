@@ -28,7 +28,7 @@ Configuration::Configuration(const std::string& json_path)
   if (!JsonFromFile(json_path, &root, &error))
   {
     ERROR_LOG_FMT(VIDEO, "Failed to load dynamic input json file '{}' due to parse error: {}",
-                  json_path, error);
+        json_path, error);
     m_valid = false;
     return;
   }
@@ -43,8 +43,7 @@ Configuration::Configuration(const std::string& json_path)
     if (spec_from_json < static_cast<double>(std::numeric_limits<u8>::min()) ||
         spec_from_json > static_cast<double>(std::numeric_limits<u8>::max()))
     {
-      ERROR_LOG_FMT(
-          VIDEO,
+      ERROR_LOG_FMT(VIDEO,
           "Failed to load dynamic input json file '{}', specification '{}' is not within bounds",
           json_path, spec_from_json);
       m_valid = false;
@@ -56,8 +55,8 @@ Configuration::Configuration(const std::string& json_path)
   if (specification != 1)
   {
     ERROR_LOG_FMT(VIDEO,
-                  "Failed to load dynamic input json file '{}', specification '{}' is invalid",
-                  json_path, specification);
+        "Failed to load dynamic input json file '{}', specification '{}' is invalid", json_path,
+        specification);
     m_valid = false;
     return;
   }
@@ -68,8 +67,7 @@ Configuration::Configuration(const std::string& json_path)
 Configuration::~Configuration() = default;
 
 void Configuration::GenerateTextures(const Common::IniFile& file,
-                                     const std::vector<std::string>& controller_names,
-                                     OutputDetails* output) const
+    const std::vector<std::string>& controller_names, OutputDetails* output) const
 {
   for (const auto& texture_data : m_dynamic_input_textures)
   {
@@ -78,8 +76,8 @@ void Configuration::GenerateTextures(const Common::IniFile& file,
 }
 
 void Configuration::GenerateTexture(const Common::IniFile& file,
-                                    const std::vector<std::string>& controller_names,
-                                    const Data& texture_data, OutputDetails* output) const
+    const std::vector<std::string>& controller_names, const Data& texture_data,
+    OutputDetails* output) const
 {
   // Two copies of the loaded texture
   // The first one is used as a fallback if a key or device isn't mapped
@@ -88,7 +86,7 @@ void Configuration::GenerateTexture(const Common::IniFile& file,
   if (!original_image)
   {
     ERROR_LOG_FMT(VIDEO, "Failed to load image '{}' needed for dynamic input texture generation",
-                  texture_data.m_image_name);
+        texture_data.m_image_name);
     return;
   }
   auto image_to_write = original_image;
@@ -162,9 +160,8 @@ void Configuration::GenerateTexture(const Common::IniFile& file,
           }
           else if (texture_data.m_preserve_aspect_ratio)
           {
-            pixel_data =
-                ResizeKeepAspectRatio(ResizeMode::Nearest, *host_key_image, rect.GetWidth(),
-                                      rect.GetHeight(), Pixel{0, 0, 0, 0});
+            pixel_data = ResizeKeepAspectRatio(ResizeMode::Nearest, *host_key_image,
+                rect.GetWidth(), rect.GetHeight(), Pixel{0, 0, 0, 0});
           }
           else
           {
@@ -172,8 +169,8 @@ void Configuration::GenerateTexture(const Common::IniFile& file,
                 Resize(ResizeMode::Nearest, *host_key_image, rect.GetWidth(), rect.GetHeight());
           }
 
-          CopyImageRegion(pixel_data, *image_to_write,
-                          Rect{0, 0, rect.GetWidth(), rect.GetHeight()}, rect);
+          CopyImageRegion(
+              pixel_data, *image_to_write, Rect{0, 0, rect.GetWidth(), rect.GetHeight()}, rect);
           dirty = true;
         }
       }

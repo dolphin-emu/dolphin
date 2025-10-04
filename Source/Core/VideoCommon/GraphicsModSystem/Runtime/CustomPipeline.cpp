@@ -18,7 +18,13 @@ namespace
 bool IsQualifier(std::string_view value)
 {
   static constexpr std::array<std::string_view, 7> qualifiers = {
-      "attribute", "const", "highp", "lowp", "mediump", "uniform", "varying",
+      "attribute",
+      "const",
+      "highp",
+      "lowp",
+      "mediump",
+      "uniform",
+      "varying",
   };
   return Common::Contains(qualifiers, value);
 }
@@ -26,7 +32,11 @@ bool IsQualifier(std::string_view value)
 bool IsBuiltInMacro(std::string_view value)
 {
   static constexpr std::array<std::string_view, 5> built_in = {
-      "__LINE__", "__FILE__", "__VERSION__", "GL_core_profile", "GL_compatibility_profile",
+      "__LINE__",
+      "__FILE__",
+      "__VERSION__",
+      "GL_core_profile",
+      "GL_compatibility_profile",
   };
   return Common::Contains(built_in, value);
 }
@@ -53,7 +63,8 @@ std::vector<std::string> GlobalConflicts(std::string_view source)
       continue;
     }
 
-    const auto parse_identifier = [&] {
+    const auto parse_identifier = [&]
+    {
       const u32 start = i;
       for (; i < source.size(); i++)
       {
@@ -76,7 +87,8 @@ std::vector<std::string> GlobalConflicts(std::string_view source)
     }
     else if (source[i] == '#')
     {
-      const auto parse_until_end_of_preprocessor = [&] {
+      const auto parse_until_end_of_preprocessor = [&]
+      {
         bool continue_until_next_newline = false;
         for (; i < source.size(); i++)
         {
@@ -164,15 +176,14 @@ std::vector<std::string> GlobalConflicts(std::string_view source)
   // Sort the conflicts from largest to smallest string
   // this way we can ensure smaller strings that are a substring
   // of the larger string are able to be replaced appropriately
-  std::ranges::sort(global_result, std::ranges::greater{},
-                    [](const std::string& s) { return s.size(); });
+  std::ranges::sort(
+      global_result, std::ranges::greater{}, [](const std::string& s) { return s.size(); });
   return global_result;
 }
 
 }  // namespace
 
 void CustomPipeline::UpdatePixelData(std::shared_ptr<VideoCommon::CustomAssetLibrary>,
-                                     std::span<const u32>,
-                                     const VideoCommon::CustomAssetLibrary::AssetID&)
+    std::span<const u32>, const VideoCommon::CustomAssetLibrary::AssetID&)
 {
 }

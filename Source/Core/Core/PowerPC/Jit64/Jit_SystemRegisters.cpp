@@ -453,7 +453,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
   FixupBranch eeDisabled = J_CC(CC_Z, Jump::Near);
 
   TEST(32, PPCSTATE(Exceptions),
-       Imm32(EXCEPTION_EXTERNAL_INT | EXCEPTION_PERFORMANCE_MONITOR | EXCEPTION_DECREMENTER));
+      Imm32(EXCEPTION_EXTERNAL_INT | EXCEPTION_PERFORMANCE_MONITOR | EXCEPTION_DECREMENTER));
   FixupBranch noExceptionsPending = J_CC(CC_Z, Jump::Near);
 
   // Check if a CP interrupt is waiting and keep the GPU emulation in sync (issue 4336)
@@ -735,7 +735,14 @@ void Jit64::mffsx(UGeckoInstruction inst)
 
 // MXCSR = s_fpscr_to_mxcsr[FPSCR & 7]
 static const u32 s_fpscr_to_mxcsr[8] = {
-    0x1F80, 0x7F80, 0x5F80, 0x3F80, 0x9F80, 0xFF80, 0xDF80, 0xBF80,
+    0x1F80,
+    0x7F80,
+    0x5F80,
+    0x3F80,
+    0x9F80,
+    0xFF80,
+    0xDF80,
+    0xBF80,
 };
 
 // Needs value of FPSCR in RSCRATCH.

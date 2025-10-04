@@ -36,9 +36,9 @@ Common::Matrix44 BuildMatrixFromNode(const tinygltf::Node& node)
 
   if (!node.scale.empty())
   {
-    matrix *= Common::Matrix44::FromMatrix33(Common::Matrix33::Scale(
-        Common::Vec3{static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]),
-                     static_cast<float>(node.scale[2])}));
+    matrix *= Common::Matrix44::FromMatrix33(
+        Common::Matrix33::Scale(Common::Vec3{static_cast<float>(node.scale[0]),
+            static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])}));
   }
 
   if (!node.rotation.empty())
@@ -51,8 +51,7 @@ Common::Matrix44 BuildMatrixFromNode(const tinygltf::Node& node)
   if (!node.translation.empty())
   {
     matrix *= Common::Matrix44::Translate(Common::Vec3{static_cast<float>(node.translation[0]),
-                                                       static_cast<float>(node.translation[1]),
-                                                       static_cast<float>(node.translation[2])});
+        static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])});
   }
 
   return matrix;
@@ -113,8 +112,8 @@ bool GLTFComponentTypeToAttributeFormat(int component_type, AttributeFormat* for
   return true;
 }
 
-bool UpdateVertexStrideFromPrimitive(const tinygltf::Model& model, u32 accessor_index,
-                                     MeshDataChunk* chunk)
+bool UpdateVertexStrideFromPrimitive(
+    const tinygltf::Model& model, u32 accessor_index, MeshDataChunk* chunk)
 {
   const tinygltf::Accessor& accessor = model.accessors[accessor_index];
 
@@ -138,7 +137,7 @@ bool UpdateVertexStrideFromPrimitive(const tinygltf::Model& model, u32 accessor_
 }
 
 bool CopyBufferDataFromPrimitive(const tinygltf::Model& model, u32 accessor_index,
-                                 std::size_t* outbound_offset, MeshDataChunk* chunk)
+    std::size_t* outbound_offset, MeshDataChunk* chunk)
 {
   const tinygltf::Accessor& accessor = model.accessors[accessor_index];
 
@@ -168,7 +167,7 @@ bool CopyBufferDataFromPrimitive(const tinygltf::Model& model, u32 accessor_inde
     {
       const std::size_t vertex_data_offset = i * chunk->vertex_stride + *outbound_offset;
       memcpy(&chunk->vertex_data[vertex_data_offset], &data[i * component_size * component_count],
-             component_size * component_count);
+          component_size * component_count);
     }
   }
   else
@@ -181,7 +180,7 @@ bool CopyBufferDataFromPrimitive(const tinygltf::Model& model, u32 accessor_inde
       const std::size_t gltf_data_offset = i * buffer_view.byteStride;
 
       memcpy(&chunk->vertex_data[vertex_data_offset], &data[gltf_data_offset],
-             component_size * component_count);
+          component_size * component_count);
     }
   }
 
@@ -191,7 +190,7 @@ bool CopyBufferDataFromPrimitive(const tinygltf::Model& model, u32 accessor_inde
 }
 
 bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
-                  const tinygltf::Mesh& mesh, const Common::Matrix44& mat, MeshData* data)
+    const tinygltf::Mesh& mesh, const Common::Matrix44& mat, MeshData* data)
 {
   for (std::size_t primitive_index = 0; primitive_index < mesh.primitives.size(); ++primitive_index)
   {
@@ -231,8 +230,7 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
       else if (index_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
       {
         // TODO: update Dolphin to support u32 indices
-        ERROR_LOG_FMT(
-            VIDEO,
+        ERROR_LOG_FMT(VIDEO,
             "Mesh '{}' uses an indice format of unsigned int which is not currently supported",
             mesh_file);
         return false;
@@ -265,8 +263,18 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
 
     chunk.vertex_stride = 0;
     static constexpr std::array<std::string_view, 12> all_names = {
-        "POSITION",   "NORMAL",     "COLOR_0",    "COLOR_1",    "TEXCOORD_0", "TEXCOORD_1",
-        "TEXCOORD_2", "TEXCOORD_3", "TEXCOORD_4", "TEXCOORD_5", "TEXCOORD_6", "TEXCOORD_7",
+        "POSITION",
+        "NORMAL",
+        "COLOR_0",
+        "COLOR_1",
+        "TEXCOORD_0",
+        "TEXCOORD_1",
+        "TEXCOORD_2",
+        "TEXCOORD_3",
+        "TEXCOORD_4",
+        "TEXCOORD_5",
+        "TEXCOORD_6",
+        "TEXCOORD_7",
     };
     for (std::size_t i = 0; i < all_names.size(); i++)
     {
@@ -282,8 +290,8 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
     const auto position_it = primitive.attributes.find("POSITION");
     if (position_it == primitive.attributes.end())
     {
-      ERROR_LOG_FMT(VIDEO, "Mesh '{}' does not provide a POSITION attribute, that is required",
-                    mesh_file);
+      ERROR_LOG_FMT(
+          VIDEO, "Mesh '{}' does not provide a POSITION attribute, that is required", mesh_file);
       return false;
     }
     std::size_t outbound_offset = 0;
@@ -297,8 +305,8 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
     chunk.vertex_declaration.position.enable = true;
     chunk.vertex_declaration.position.components = 3;
     chunk.vertex_declaration.position.offset = 0;
-    if (!GLTFComponentTypeToAttributeFormat(pos_accessor.componentType,
-                                            &chunk.vertex_declaration.position))
+    if (!GLTFComponentTypeToAttributeFormat(
+            pos_accessor.componentType, &chunk.vertex_declaration.position))
     {
       ERROR_LOG_FMT(VIDEO, "Mesh '{}' has invalid attribute format for position", mesh_file);
       return false;
@@ -308,8 +316,8 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
     // GLTF spec expects these values to exist but error if they don't
     if (pos_accessor.minValues.size() != 3)
     {
-      ERROR_LOG_FMT(VIDEO, "Mesh '{}' is expected to have a minimum value but it is missing",
-                    mesh_file);
+      ERROR_LOG_FMT(
+          VIDEO, "Mesh '{}' is expected to have a minimum value but it is missing", mesh_file);
       return false;
     }
     chunk.minimum_position.x = static_cast<float>(pos_accessor.minValues[0]);
@@ -318,8 +326,8 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
 
     if (pos_accessor.maxValues.size() != 3)
     {
-      ERROR_LOG_FMT(VIDEO, "Mesh '{}' is expected to have a maximum value but it is missing",
-                    mesh_file);
+      ERROR_LOG_FMT(
+          VIDEO, "Mesh '{}' is expected to have a maximum value but it is missing", mesh_file);
       return false;
     }
     chunk.maximum_position.x = static_cast<float>(pos_accessor.maxValues[0]);
@@ -343,11 +351,11 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
         chunk.vertex_declaration.colors[i].enable = true;
         chunk.vertex_declaration.colors[i].components = 3;
         const tinygltf::Accessor& accessor = model.accessors[color_it->second];
-        if (!GLTFComponentTypeToAttributeFormat(accessor.componentType,
-                                                &chunk.vertex_declaration.colors[i]))
+        if (!GLTFComponentTypeToAttributeFormat(
+                accessor.componentType, &chunk.vertex_declaration.colors[i]))
         {
-          ERROR_LOG_FMT(VIDEO, "Mesh '{}' has invalid attribute format for {}", mesh_file,
-                        color_names[i]);
+          ERROR_LOG_FMT(
+              VIDEO, "Mesh '{}' has invalid attribute format for {}", mesh_file, color_names[i]);
           return false;
         }
       }
@@ -367,8 +375,8 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
       chunk.vertex_declaration.normals[0].enable = true;
       chunk.vertex_declaration.normals[0].components = 3;
       const tinygltf::Accessor& accessor = model.accessors[normal_it->second];
-      if (!GLTFComponentTypeToAttributeFormat(accessor.componentType,
-                                              &chunk.vertex_declaration.normals[0]))
+      if (!GLTFComponentTypeToAttributeFormat(
+              accessor.componentType, &chunk.vertex_declaration.normals[0]))
       {
         ERROR_LOG_FMT(VIDEO, "Mesh '{}' has invalid attribute format for NORMAL", mesh_file);
         return false;
@@ -380,8 +388,14 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
     }
 
     static constexpr std::array<std::string_view, 8> texcoord_names = {
-        "TEXCOORD_0", "TEXCOORD_1", "TEXCOORD_2", "TEXCOORD_3",
-        "TEXCOORD_4", "TEXCOORD_5", "TEXCOORD_6", "TEXCOORD_7",
+        "TEXCOORD_0",
+        "TEXCOORD_1",
+        "TEXCOORD_2",
+        "TEXCOORD_3",
+        "TEXCOORD_4",
+        "TEXCOORD_5",
+        "TEXCOORD_6",
+        "TEXCOORD_7",
     };
     for (std::size_t i = 0; i < texcoord_names.size(); i++)
     {
@@ -395,11 +409,11 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
         chunk.vertex_declaration.texcoords[i].enable = true;
         chunk.vertex_declaration.texcoords[i].components = 2;
         const tinygltf::Accessor& accessor = model.accessors[texture_it->second];
-        if (!GLTFComponentTypeToAttributeFormat(accessor.componentType,
-                                                &chunk.vertex_declaration.texcoords[i]))
+        if (!GLTFComponentTypeToAttributeFormat(
+                accessor.componentType, &chunk.vertex_declaration.texcoords[i]))
         {
-          ERROR_LOG_FMT(VIDEO, "Mesh '{}' has invalid attribute format for {}", mesh_file,
-                        texcoord_names[i]);
+          ERROR_LOG_FMT(
+              VIDEO, "Mesh '{}' has invalid attribute format for {}", mesh_file, texcoord_names[i]);
           return false;
         }
       }
@@ -420,7 +434,7 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
 }
 
 bool ReadGLTFNodes(std::string_view mesh_file, const tinygltf::Model& model,
-                   const tinygltf::Node& node, const Common::Matrix44& mat, MeshData* data)
+    const tinygltf::Node& node, const Common::Matrix44& mat, MeshData* data)
 {
   if (node.mesh != -1)
   {
@@ -472,14 +486,13 @@ bool ReadGLTF(std::string_view mesh_file, const tinygltf::Model& model, MeshData
 }
 }  // namespace
 bool MeshData::FromJson(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
-                        const picojson::object& json, MeshData* data)
+    const picojson::object& json, MeshData* data)
 {
   if (const auto iter = json.find("material_mapping"); iter != json.end())
   {
     if (!iter->second.is<picojson::object>())
     {
-      ERROR_LOG_FMT(
-          VIDEO,
+      ERROR_LOG_FMT(VIDEO,
           "Asset '{}' failed to parse json, expected 'material_mapping' to be of type object",
           asset_id);
       return false;
@@ -489,8 +502,7 @@ bool MeshData::FromJson(const VideoCommon::CustomAssetLibrary::AssetID& asset_id
     {
       if (!asset_id_json.is<std::string>())
       {
-        ERROR_LOG_FMT(
-            VIDEO,
+        ERROR_LOG_FMT(VIDEO,
             "Asset '{}' failed to parse json, material name '{}' linked to a non-string value",
             asset_id, material_name);
         return false;
@@ -534,7 +546,7 @@ bool MeshData::FromDolphinMesh(std::span<const u8> raw_data, MeshData* data)
     // TODO C++23: use make_unique_overwrite
     chunk.vertex_data = std::unique_ptr<u8[]>(new u8[chunk.num_vertices * chunk.vertex_stride]);
     std::memcpy(chunk.vertex_data.get(), raw_data.data() + offset,
-                chunk.num_vertices * chunk.vertex_stride);
+        chunk.num_vertices * chunk.vertex_stride);
     offset += chunk.num_vertices * chunk.vertex_stride;
 
     std::memcpy(&chunk.num_indices, raw_data.data() + offset, sizeof(u32));
@@ -545,8 +557,8 @@ bool MeshData::FromDolphinMesh(std::span<const u8> raw_data, MeshData* data)
     std::memcpy(chunk.indices.get(), raw_data.data() + offset, chunk.num_indices * sizeof(u16));
     offset += chunk.num_indices * sizeof(u16);
 
-    std::memcpy(&chunk.vertex_declaration, raw_data.data() + offset,
-                sizeof(PortableVertexDeclaration));
+    std::memcpy(
+        &chunk.vertex_declaration, raw_data.data() + offset, sizeof(PortableVertexDeclaration));
     offset += sizeof(PortableVertexDeclaration);
 
     std::memcpy(&chunk.primitive_type, raw_data.data() + offset, sizeof(PrimitiveType));
@@ -562,15 +574,15 @@ bool MeshData::FromDolphinMesh(std::span<const u8> raw_data, MeshData* data)
     offset += sizeof(Common::Vec3);
 
     std::memcpy(&chunk.transform.data[0], raw_data.data() + offset,
-                chunk.transform.data.size() * sizeof(float));
+        chunk.transform.data.size() * sizeof(float));
     offset += chunk.transform.data.size() * sizeof(float);
 
     std::size_t material_name_size = 0;
     std::memcpy(&material_name_size, raw_data.data() + offset, sizeof(std::size_t));
     offset += sizeof(std::size_t);
 
-    chunk.material_name.assign(raw_data.data() + offset,
-                               raw_data.data() + offset + material_name_size);
+    chunk.material_name.assign(
+        raw_data.data() + offset, raw_data.data() + offset + material_name_size);
     offset += material_name_size * sizeof(char);
 
     data->m_mesh_chunks.push_back(std::move(chunk));
@@ -605,8 +617,8 @@ bool MeshData::ToDolphinMesh(File::IOFile* file_data, const MeshData& data)
       return false;
     if (!file_data->WriteBytes(&chunk.maximum_position, sizeof(Common::Vec3)))
       return false;
-    if (!file_data->WriteBytes(&chunk.transform.data[0],
-                               chunk.transform.data.size() * sizeof(float)))
+    if (!file_data->WriteBytes(
+            &chunk.transform.data[0], chunk.transform.data.size() * sizeof(float)))
     {
       return false;
     }
@@ -637,7 +649,7 @@ bool MeshData::FromGLTF(std::string_view gltf_file, MeshData* data)
     if (!loader.LoadASCIIFromFile(&model, &model_errors, &model_warnings, std::string{gltf_file}))
     {
       ERROR_LOG_FMT(VIDEO, "File '{}' was invalid GLTF, error: {}, warning: {}", gltf_file,
-                    model_errors, model_warnings);
+          model_errors, model_warnings);
       return false;
     }
     return ReadGLTF(gltf_file, model, data);

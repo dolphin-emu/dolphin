@@ -66,8 +66,7 @@ bool LoadMips(const std::filesystem::path& asset_path, CustomTextureData::ArrayS
 }
 }  // namespace
 bool LoadTextureDataFromFile(const CustomAssetLibrary::AssetID& asset_id,
-                             const std::filesystem::path& asset_path, AbstractTextureType type,
-                             CustomTextureData* data)
+    const std::filesystem::path& asset_path, AbstractTextureType type, CustomTextureData* data)
 {
   auto ext = PathToString(asset_path.extension());
   Common::ToLower(&ext);
@@ -94,8 +93,8 @@ bool LoadTextureDataFromFile(const CustomAssetLibrary::AssetID& asset_id,
     // but for now just error
     if (type != AbstractTextureType::Texture_2D)
     {
-      ERROR_LOG_FMT(VIDEO, "Asset '{}' error - PNG is not supported for texture type '{}'!",
-                    asset_id, type);
+      ERROR_LOG_FMT(
+          VIDEO, "Asset '{}' error - PNG is not supported for texture type '{}'!", asset_id, type);
       return {};
     }
 
@@ -125,20 +124,18 @@ bool LoadTextureDataFromFile(const CustomAssetLibrary::AssetID& asset_id,
 }
 
 bool ValidateTextureData(const CustomAssetLibrary::AssetID& asset_id, const CustomTextureData& data,
-                         u32 native_width, u32 native_height)
+    u32 native_width, u32 native_height)
 {
   if (data.m_slices.empty())
   {
     ERROR_LOG_FMT(VIDEO,
-                  "Texture data can't be validated for asset '{}' because no data was available.",
-                  asset_id);
+        "Texture data can't be validated for asset '{}' because no data was available.", asset_id);
     return false;
   }
 
   if (data.m_slices.size() > 1)
   {
-    ERROR_LOG_FMT(
-        VIDEO,
+    ERROR_LOG_FMT(VIDEO,
         "Texture data can't be validated for asset '{}' because it has more slices than expected.",
         asset_id);
     return false;
@@ -147,8 +144,7 @@ bool ValidateTextureData(const CustomAssetLibrary::AssetID& asset_id, const Cust
   const auto& slice = data.m_slices[0];
   if (slice.m_levels.empty())
   {
-    ERROR_LOG_FMT(
-        VIDEO,
+    ERROR_LOG_FMT(VIDEO,
         "Texture data can't be validated for asset '{}' because first slice has no data available.",
         asset_id);
     return false;
@@ -163,9 +159,9 @@ bool ValidateTextureData(const CustomAssetLibrary::AssetID& asset_id, const Cust
     // for legacy reasons this is only a notice that something *could*
     // go wrong
     WARN_LOG_FMT(VIDEO,
-                 "Invalid texture data size {}x{} for asset '{}'. The aspect differs "
-                 "from the native size {}x{}.",
-                 first_mip.width, first_mip.height, asset_id, native_width, native_height);
+        "Invalid texture data size {}x{} for asset '{}'. The aspect differs "
+        "from the native size {}x{}.",
+        first_mip.width, first_mip.height, asset_id, native_width, native_height);
   }
 
   // Same deal if the custom texture isn't a multiple of the native size.
@@ -176,16 +172,16 @@ bool ValidateTextureData(const CustomAssetLibrary::AssetID& asset_id, const Cust
     // for legacy reasons this is only a notice that something *could*
     // go wrong
     WARN_LOG_FMT(VIDEO,
-                 "Invalid texture data size {}x{} for asset '{}'. Please use an integer "
-                 "upscaling factor based on the native size {}x{}.",
-                 first_mip.width, first_mip.height, asset_id, native_width, native_height);
+        "Invalid texture data size {}x{} for asset '{}'. Please use an integer "
+        "upscaling factor based on the native size {}x{}.",
+        first_mip.width, first_mip.height, asset_id, native_width, native_height);
   }
 
   return true;
 }
 
-bool PurgeInvalidMipsFromTextureData(const CustomAssetLibrary::AssetID& asset_id,
-                                     CustomTextureData* data)
+bool PurgeInvalidMipsFromTextureData(
+    const CustomAssetLibrary::AssetID& asset_id, CustomTextureData* data)
 {
   for (std::size_t slice_index = 0; slice_index < data->m_slices.size(); slice_index++)
   {
@@ -207,19 +203,19 @@ bool PurgeInvalidMipsFromTextureData(const CustomAssetLibrary::AssetID& asset_id
           continue;
 
         ERROR_LOG_FMT(VIDEO,
-                      "Invalid custom game texture size {}x{} for texture asset {}. Slice {} with "
-                      "mipmap level {} "
-                      "must be {}x{}.",
-                      level.width, level.height, asset_id, slice_index, mip_level,
-                      current_mip_width, current_mip_height);
+            "Invalid custom game texture size {}x{} for texture asset {}. Slice {} with "
+            "mipmap level {} "
+            "must be {}x{}.",
+            level.width, level.height, asset_id, slice_index, mip_level, current_mip_width,
+            current_mip_height);
       }
       else
       {
         // It is invalid to have more than a single 1x1 mipmap.
         ERROR_LOG_FMT(VIDEO,
-                      "Custom game texture {} has too many 1x1 mipmaps for slice {}. Skipping "
-                      "extra levels.",
-                      asset_id, slice_index);
+            "Custom game texture {} has too many 1x1 mipmaps for slice {}. Skipping "
+            "extra levels.",
+            asset_id, slice_index);
       }
 
       // Drop this mip level and any others after it.
@@ -228,11 +224,11 @@ bool PurgeInvalidMipsFromTextureData(const CustomAssetLibrary::AssetID& asset_id
     }
 
     // All levels have to have the same format.
-    if (std::ranges::any_of(slice.m_levels,
-                            [&first_mip](const auto& l) { return l.format != first_mip.format; }))
+    if (std::ranges::any_of(
+            slice.m_levels, [&first_mip](const auto& l) { return l.format != first_mip.format; }))
     {
-      ERROR_LOG_FMT(
-          VIDEO, "Custom game texture {} has inconsistent formats across mip levels for slice {}.",
+      ERROR_LOG_FMT(VIDEO,
+          "Custom game texture {} has inconsistent formats across mip levels for slice {}.",
           asset_id, slice_index);
 
       return false;

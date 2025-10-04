@@ -18,8 +18,7 @@ bool GraphicsModFeatureConfig::DeserializeFromConfig(const picojson::object& obj
   {
     if (!group_iter->second.is<std::string>())
     {
-      ERROR_LOG_FMT(
-          VIDEO,
+      ERROR_LOG_FMT(VIDEO,
           "Failed to load mod configuration file, specified feature's group is not a string");
       return false;
     }
@@ -30,8 +29,7 @@ bool GraphicsModFeatureConfig::DeserializeFromConfig(const picojson::object& obj
   {
     if (!action_iter->second.is<std::string>())
     {
-      ERROR_LOG_FMT(
-          VIDEO,
+      ERROR_LOG_FMT(VIDEO,
           "Failed to load mod configuration file, specified feature's action is not a string");
       return false;
     }

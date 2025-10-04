@@ -32,7 +32,7 @@ public:
 
 private:
   static bool GetSeed(const u32* data, size_t size, size_t data_offset,
-                      LaggedFibonacciGenerator* lfg, u32 seed_out[SEED_SIZE]);
+      LaggedFibonacciGenerator* lfg, u32 seed_out[SEED_SIZE]);
 
   void Forward();
   void Backward(size_t start_word = 0, size_t end_word = LFG_K);

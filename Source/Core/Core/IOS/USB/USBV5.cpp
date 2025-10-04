@@ -67,7 +67,7 @@ V5IsoMessage::V5IsoMessage(EmulationKernel& ios, const IOCtlVRequest& ioctlv)
   }
   length = ioctlv.GetVector(2)->size;
   ASSERT_MSG(IOS_USB, length == total_packet_size, "Wrong buffer size ({:#x} != {:#x})", length,
-             total_packet_size);
+      total_packet_size);
 }
 }  // namespace USB
 
@@ -187,12 +187,12 @@ IPCReply USBV5ResourceManager::SuspendResume(USBV5Device& device, const IOCtlReq
   // Note: this is unimplemented because there's no easy way to do this in a
   // platform-independant way (libusb does not support power management).
   INFO_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Received {} command", host_device->GetVid(),
-               host_device->GetPid(), device.interface_number, resumed == 0 ? "suspend" : "resume");
+      host_device->GetPid(), device.interface_number, resumed == 0 ? "suspend" : "resume");
   return IPCReply(IPC_SUCCESS);
 }
 
-std::optional<IPCReply> USBV5ResourceManager::HandleDeviceIOCtl(const IOCtlRequest& request,
-                                                                Handler handler)
+std::optional<IPCReply> USBV5ResourceManager::HandleDeviceIOCtl(
+    const IOCtlRequest& request, Handler handler)
 {
   if (request.buffer_in == 0 || request.buffer_in_size != 0x20)
     return IPCReply(IPC_EINVAL);
@@ -204,8 +204,8 @@ std::optional<IPCReply> USBV5ResourceManager::HandleDeviceIOCtl(const IOCtlReque
   return handler(*device);
 }
 
-void USBV5ResourceManager::OnDeviceChange(const ChangeEvent event,
-                                          std::shared_ptr<USB::Device> device)
+void USBV5ResourceManager::OnDeviceChange(
+    const ChangeEvent event, std::shared_ptr<USB::Device> device)
 {
   std::lock_guard lock{m_usbv5_devices_mutex};
   const u64 host_device_id = device->GetId();
@@ -217,7 +217,7 @@ void USBV5ResourceManager::OnDeviceChange(const ChangeEvent event,
         continue;
 
       auto it = std::ranges::find_if(m_usbv5_devices | std::views::reverse,
-                                     [](const USBV5Device& entry) { return !entry.in_use; });
+          [](const USBV5Device& entry) { return !entry.in_use; });
       if (it == m_usbv5_devices.rend())
         return;
 
@@ -289,12 +289,12 @@ void USBV5ResourceManager::TriggerDeviceChangeReply()
     entry.num_altsettings = device->GetNumberOfAltSettings(entry.interface_number);
 
     memory.CopyToEmu(m_devicechange_hook_request->buffer_out + sizeof(entry) * num_devices, &entry,
-                     sizeof(entry));
+        sizeof(entry));
     ++num_devices;
   }
 
-  GetEmulationKernel().EnqueueIPCReply(*m_devicechange_hook_request, num_devices, 0,
-                                       CoreTiming::FromThread::ANY);
+  GetEmulationKernel().EnqueueIPCReply(
+      *m_devicechange_hook_request, num_devices, 0, CoreTiming::FromThread::ANY);
   m_devicechange_hook_request.reset();
   INFO_LOG_FMT(IOS_USB, "{} USBv5 device(s), including interfaces", num_devices);
 }

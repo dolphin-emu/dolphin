@@ -81,15 +81,15 @@ void SignatureDB::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* func_db)
   m_handler->Apply(guard, func_db);
 }
 
-bool SignatureDB::Add(const Core::CPUThreadGuard& guard, u32 start_addr, u32 size,
-                      const std::string& name)
+bool SignatureDB::Add(
+    const Core::CPUThreadGuard& guard, u32 start_addr, u32 size, const std::string& name)
 {
   return m_handler->Add(guard, start_addr, size, name);
 }
 
 // Adds a known function to the hash database
-bool HashSignatureDB::Add(const Core::CPUThreadGuard& guard, u32 startAddr, u32 size,
-                          const std::string& name)
+bool HashSignatureDB::Add(
+    const Core::CPUThreadGuard& guard, u32 startAddr, u32 size, const std::string& name)
 {
   u32 hash = ComputeCodeChecksum(guard, startAddr, startAddr + size - 4);
 
@@ -110,8 +110,8 @@ void HashSignatureDB::List() const
 {
   for (const auto& entry : m_database)
   {
-    DEBUG_LOG_FMT(SYMBOLS, "{} : {} bytes, hash = {:08x}", entry.second.name, entry.second.size,
-                  entry.first);
+    DEBUG_LOG_FMT(
+        SYMBOLS, "{} : {} bytes, hash = {:08x}", entry.second.name, entry.second.size, entry.first);
   }
   INFO_LOG_FMT(SYMBOLS, "{} functions known in current database.", m_database.size());
 }
@@ -132,12 +132,12 @@ void HashSignatureDB::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symb
       if (entry.second.size == static_cast<unsigned int>(function->size))
       {
         INFO_LOG_FMT(SYMBOLS, "Found {} at {:08x} (size: {:08x})!", entry.second.name,
-                     function->address, function->size);
+            function->address, function->size);
       }
       else
       {
         ERROR_LOG_FMT(SYMBOLS, "Wrong size! Found {} at {:08x} (size: {:08x} instead of {:08x})!",
-                      entry.second.name, function->address, function->size, entry.second.size);
+            entry.second.name, function->address, function->size, entry.second.size);
       }
     }
   }
@@ -146,21 +146,23 @@ void HashSignatureDB::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symb
 
 void HashSignatureDB::Populate(const PPCSymbolDB* symbol_db, const std::string& filter)
 {
-  symbol_db->ForEachSymbol([&](const Common::Symbol& symbol) {
-    if ((filter.empty() && (!symbol.name.empty()) && symbol.name.substr(0, 3) != "zz_" &&
-         symbol.name.substr(0, 1) != ".") ||
-        ((!filter.empty()) && symbol.name.substr(0, filter.size()) == filter))
-    {
-      DBFunc temp_dbfunc;
-      temp_dbfunc.name = symbol.name;
-      temp_dbfunc.size = symbol.size;
-      m_database[symbol.hash] = temp_dbfunc;
-    }
-  });
+  symbol_db->ForEachSymbol(
+      [&](const Common::Symbol& symbol)
+      {
+        if ((filter.empty() && (!symbol.name.empty()) && symbol.name.substr(0, 3) != "zz_" &&
+                symbol.name.substr(0, 1) != ".") ||
+            ((!filter.empty()) && symbol.name.substr(0, filter.size()) == filter))
+        {
+          DBFunc temp_dbfunc;
+          temp_dbfunc.name = symbol.name;
+          temp_dbfunc.size = symbol.size;
+          m_database[symbol.hash] = temp_dbfunc;
+        }
+      });
 }
 
-u32 HashSignatureDB::ComputeCodeChecksum(const Core::CPUThreadGuard& guard, u32 offsetStart,
-                                         u32 offsetEnd)
+u32 HashSignatureDB::ComputeCodeChecksum(
+    const Core::CPUThreadGuard& guard, u32 offsetStart, u32 offsetEnd)
 {
   u32 sum = 0;
   for (u32 offset = offsetStart; offset <= offsetEnd; offset += 4)

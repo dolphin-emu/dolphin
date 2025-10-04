@@ -273,7 +273,7 @@ void AXUCode::HandleCommandList()
       u16 auxb_r_dl_lo = m_cmdlist[curr_idx++];
 
       SendAUXAndMix(HILO_TO_32(auxa_lrs_up), HILO_TO_32(auxb_s_up), HILO_TO_32(main_l_dl),
-                    HILO_TO_32(main_r_dl), HILO_TO_32(auxb_l_dl), HILO_TO_32(auxb_r_dl));
+          HILO_TO_32(main_r_dl), HILO_TO_32(auxb_l_dl), HILO_TO_32(auxb_r_dl));
       break;
     }
 
@@ -467,8 +467,8 @@ void AXUCode::ProcessPBList(u32 pb_addr)
   while (pb_addr)
   {
     AXBuffers buffers = {{m_samples_main_left, m_samples_main_right, m_samples_main_surround,
-                          m_samples_auxA_left, m_samples_auxA_right, m_samples_auxA_surround,
-                          m_samples_auxB_left, m_samples_auxB_right, m_samples_auxB_surround}};
+        m_samples_auxA_left, m_samples_auxA_right, m_samples_auxA_surround, m_samples_auxB_left,
+        m_samples_auxB_right, m_samples_auxB_surround}};
 
     ReadPB(memory, pb_addr, pb);
 
@@ -479,8 +479,8 @@ void AXUCode::ProcessPBList(u32 pb_addr)
       ApplyUpdatesForMs(curr_ms, pb, pb.updates.num_updates, updates);
 
       ProcessVoice(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers, spms,
-                   ConvertMixerControl(pb.mixer_control),
-                   m_coeffs_checksum ? m_coeffs.data() : nullptr, false);
+          ConvertMixerControl(pb.mixer_control), m_coeffs_checksum ? m_coeffs.data() : nullptr,
+          false);
 
       // Forward the buffers
       for (auto& ptr : buffers.ptrs)
@@ -542,8 +542,8 @@ void AXUCode::UploadLRS(u32 dst_addr)
     buffers[1][i] = Common::swap32(m_samples_main_right[i]);
     buffers[2][i] = Common::swap32(m_samples_main_surround[i]);
   }
-  memcpy(HLEMemory_Get_Pointer(m_dsphle->GetSystem().GetMemory(), dst_addr), buffers,
-         sizeof(buffers));
+  memcpy(
+      HLEMemory_Get_Pointer(m_dsphle->GetSystem().GetMemory(), dst_addr), buffers, sizeof(buffers));
 }
 
 void AXUCode::SetMainLR(u32 src_addr)
@@ -669,8 +669,8 @@ void AXUCode::SetOppositeLR(u32 src_addr)
   }
 }
 
-void AXUCode::SendAUXAndMix(u32 auxa_lrs_up, u32 auxb_s_up, u32 main_l_dl, u32 main_r_dl,
-                            u32 auxb_l_dl, u32 auxb_r_dl)
+void AXUCode::SendAUXAndMix(
+    u32 auxa_lrs_up, u32 auxb_s_up, u32 main_l_dl, u32 main_r_dl, u32 auxb_l_dl, u32 auxb_r_dl)
 {
   // Buffers to upload first
   const std::array<const int*, 3> up_buffers{
@@ -735,8 +735,8 @@ void AXUCode::HandleMail(u32 mail)
     }
     else
     {
-      ERROR_LOG_FMT(DSPHLE, "Unknown mail sent to AX::HandleMail; expected command list: {:08x}",
-                    mail);
+      ERROR_LOG_FMT(
+          DSPHLE, "Unknown mail sent to AX::HandleMail; expected command list: {:08x}", mail);
     }
     break;
 
@@ -837,7 +837,7 @@ void AXUCode::DoAXState(PointerWrap& p)
     {
       Core::DisplayMessage("Could not find the DSP polyphase resampling coefficients used by the "
                            "savestate. Aborting load state.",
-                           3000);
+          3000);
       p.SetVerifyMode();
       return;
     }

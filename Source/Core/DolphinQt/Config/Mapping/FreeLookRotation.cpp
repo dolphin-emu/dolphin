@@ -29,17 +29,18 @@ void FreeLookRotation::CreateMainLayout()
   auto* alternate_input_sources_button = new QPushButton(tr("Alternate Input Sources"));
   alternate_input_layout->addWidget(note_label, 1);
   alternate_input_layout->addWidget(alternate_input_sources_button, 0, Qt::AlignRight);
-  connect(alternate_input_sources_button, &QPushButton::clicked, this, [this] {
-    ControllerInterfaceWindow* window = new ControllerInterfaceWindow(this);
-    window->setAttribute(Qt::WA_DeleteOnClose, true);
-    window->setWindowModality(Qt::WindowModality::WindowModal);
-    window->show();
-  });
+  connect(alternate_input_sources_button, &QPushButton::clicked, this,
+      [this]
+      {
+        ControllerInterfaceWindow* window = new ControllerInterfaceWindow(this);
+        window->setAttribute(Qt::WA_DeleteOnClose, true);
+        window->setWindowModality(Qt::WindowModality::WindowModal);
+        window->show();
+      });
   m_main_layout->addLayout(alternate_input_layout, 0, 0, 1, -1);
 
-  m_main_layout->addWidget(
-      CreateGroupBox(tr("Incremental Rotation (rad/sec)"),
-                     FreeLook::GetInputGroup(GetPort(), FreeLookGroup::Rotation)),
+  m_main_layout->addWidget(CreateGroupBox(tr("Incremental Rotation (rad/sec)"),
+                               FreeLook::GetInputGroup(GetPort(), FreeLookGroup::Rotation)),
       1, 0);
 
   setLayout(m_main_layout);

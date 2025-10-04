@@ -62,7 +62,7 @@ void PerfQuery::DisableQuery(PerfQueryGroup group)
   if (group == PQG_ZCOMP_ZCOMPLOC || group == PQG_ZCOMP)
   {
     auto& entry = m_query_buffer[(m_query_read_pos + m_query_count.load(std::memory_order_relaxed) +
-                                  m_query_buffer.size() - 1) %
+                                     m_query_buffer.size() - 1) %
                                  m_query_buffer.size()];
     D3D::context->End(entry.query.Get());
   }
@@ -119,8 +119,8 @@ void PerfQuery::FlushOne()
                           g_framebuffer_manager->GetEFBHeight();
   if (g_ActiveConfig.iMultisamples > 1)
     native_res_result /= g_ActiveConfig.iMultisamples;
-  m_results[entry.query_group].fetch_add(static_cast<u32>(native_res_result),
-                                         std::memory_order_relaxed);
+  m_results[entry.query_group].fetch_add(
+      static_cast<u32>(native_res_result), std::memory_order_relaxed);
 
   m_query_read_pos = (m_query_read_pos + 1) % m_query_buffer.size();
   m_query_count.fetch_sub(1, std::memory_order_relaxed);
@@ -140,16 +140,16 @@ void PerfQuery::WeakFlush()
     auto& entry = m_query_buffer[m_query_read_pos];
 
     UINT64 result = 0;
-    HRESULT hr = D3D::context->GetData(entry.query.Get(), &result, sizeof(result),
-                                       D3D11_ASYNC_GETDATA_DONOTFLUSH);
+    HRESULT hr = D3D::context->GetData(
+        entry.query.Get(), &result, sizeof(result), D3D11_ASYNC_GETDATA_DONOTFLUSH);
 
     if (hr == S_OK)
     {
       // NOTE: Reported pixel metrics should be referenced to native resolution
       const u64 native_res_result = result * EFB_WIDTH / g_framebuffer_manager->GetEFBWidth() *
                                     EFB_HEIGHT / g_framebuffer_manager->GetEFBHeight();
-      m_results[entry.query_group].store(static_cast<u32>(native_res_result),
-                                         std::memory_order_relaxed);
+      m_results[entry.query_group].store(
+          static_cast<u32>(native_res_result), std::memory_order_relaxed);
 
       m_query_read_pos = (m_query_read_pos + 1) % m_query_buffer.size();
       m_query_count.fetch_sub(1, std::memory_order_relaxed);

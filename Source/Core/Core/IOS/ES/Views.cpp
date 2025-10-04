@@ -60,8 +60,8 @@ IPCReply ESDevice::GetTicketViewCount(const IOCtlVRequest& request)
     WARN_LOG_FMT(IOS_ES, "GetViewCount: Faking IOS title {:016x} being present", TitleID);
   }
 
-  INFO_LOG_FMT(IOS_ES, "IOCTL_ES_GETVIEWCNT for titleID: {:016x} (View Count = {})", TitleID,
-               view_count);
+  INFO_LOG_FMT(
+      IOS_ES, "IOCTL_ES_GETVIEWCNT for titleID: {:016x} (View Count = {})", TitleID, view_count);
 
   memory.Write_U32(view_count, request.io_vectors[0].address);
   return IPCReply(IPC_SUCCESS);
@@ -91,7 +91,7 @@ IPCReply ESDevice::GetTicketViews(const IOCtlVRequest& request)
     {
       const std::vector<u8> ticket_view = ticket.GetRawTicketView(view);
       memory.CopyToEmu(request.io_vectors[0].address + view * sizeof(ES::TicketView),
-                       ticket_view.data(), ticket_view.size());
+          ticket_view.data(), ticket_view.size());
     }
   }
   else if (ShouldReturnFakeViewsForIOSes(TitleID, m_core.m_title_context))
@@ -105,8 +105,8 @@ IPCReply ESDevice::GetTicketViews(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-ReturnCode ESCore::GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size,
-                                     std::optional<u8> desired_version) const
+ReturnCode ESCore::GetTicketFromView(
+    const u8* ticket_view, u8* ticket, u32* ticket_size, std::optional<u8> desired_version) const
 {
   const u64 title_id = Common::swap64(&ticket_view[offsetof(ES::TicketView, title_id)]);
   const u64 ticket_id = Common::swap64(&ticket_view[offsetof(ES::TicketView, ticket_id)]);
@@ -403,7 +403,7 @@ IPCReply ESDevice::DIGetTMDSize(const IOCtlVRequest& request)
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
   memory.Write_U32(static_cast<u32>(m_core.m_title_context.tmd.GetBytes().size()),
-                   request.io_vectors[0].address);
+      request.io_vectors[0].address);
   return IPCReply(IPC_SUCCESS);
 }
 

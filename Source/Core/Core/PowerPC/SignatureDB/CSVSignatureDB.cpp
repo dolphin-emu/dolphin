@@ -72,8 +72,7 @@ bool CSVSignatureDB::Save(const std::string& file_path) const
     // The object name/location are unused for the time being.
     // To be implemented.
     f.WriteString(fmt::format("{0:08x}\t{1:08x}\t{2}\t{3}\t{4}\n", func.first, func.second.size,
-                              func.second.name, func.second.object_location,
-                              func.second.object_name));
+        func.second.name, func.second.object_location, func.second.object_name));
   }
 
   INFO_LOG_FMT(SYMBOLS, "CSV database save successful");

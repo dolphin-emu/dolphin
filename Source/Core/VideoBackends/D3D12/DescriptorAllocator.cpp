@@ -12,14 +12,14 @@ namespace DX12
 DescriptorAllocator::DescriptorAllocator() = default;
 DescriptorAllocator::~DescriptorAllocator() = default;
 
-bool DescriptorAllocator::Create(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE type,
-                                 u32 num_descriptors)
+bool DescriptorAllocator::Create(
+    ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE type, u32 num_descriptors)
 {
-  const D3D12_DESCRIPTOR_HEAP_DESC desc = {type, static_cast<UINT>(num_descriptors),
-                                           D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE};
+  const D3D12_DESCRIPTOR_HEAP_DESC desc = {
+      type, static_cast<UINT>(num_descriptors), D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE};
   HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_descriptor_heap));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Creating descriptor heap for linear allocator failed: {}",
-             DX12HRWrap(hr));
+      DX12HRWrap(hr));
   if (FAILED(hr))
     return false;
 
@@ -70,12 +70,12 @@ SamplerAllocator::~SamplerAllocator() = default;
 
 bool SamplerAllocator::Create(ID3D12Device* device)
 {
-  return DescriptorAllocator::Create(device, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
-                                     D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE);
+  return DescriptorAllocator::Create(
+      device, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE);
 }
 
-bool SamplerAllocator::GetGroupHandle(const SamplerStateSet& sss,
-                                      D3D12_GPU_DESCRIPTOR_HANDLE* handle)
+bool SamplerAllocator::GetGroupHandle(
+    const SamplerStateSet& sss, D3D12_GPU_DESCRIPTOR_HANDLE* handle)
 {
   auto it = m_sampler_map.find(sss);
   if (it != m_sampler_map.end())
@@ -100,10 +100,9 @@ bool SamplerAllocator::GetGroupHandle(const SamplerStateSet& sss,
   // Copy samplers from the sampler heap.
   static constexpr std::array<UINT, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS> source_sizes = {
       {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}};
-  g_dx_context->GetDevice()->CopyDescriptors(
-      1, &allocation.cpu_handle, &VideoCommon::MAX_PIXEL_SHADER_SAMPLERS,
-      VideoCommon::MAX_PIXEL_SHADER_SAMPLERS, source_handles.data(), source_sizes.data(),
-      D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+  g_dx_context->GetDevice()->CopyDescriptors(1, &allocation.cpu_handle,
+      &VideoCommon::MAX_PIXEL_SHADER_SAMPLERS, VideoCommon::MAX_PIXEL_SHADER_SAMPLERS,
+      source_handles.data(), source_sizes.data(), D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
   *handle = allocation.gpu_handle;
   m_sampler_map.emplace(sss, allocation.gpu_handle);
   return true;

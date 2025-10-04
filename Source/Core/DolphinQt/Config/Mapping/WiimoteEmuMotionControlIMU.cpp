@@ -38,10 +38,12 @@ void WiimoteEmuMotionControlIMU::CreateMainLayout()
   warning_layout->addWidget(
       QtUtils::CreateIconWarning(this, QStyle::SP_MessageBoxWarning, warning_label), 1);
   warning_layout->addWidget(warning_input_sources_button);
-  connect(warning_input_sources_button, &QPushButton::clicked, this, [this] {
-    ControllerInterfaceWindow window{this};
-    window.exec();
-  });
+  connect(warning_input_sources_button, &QPushButton::clicked, this,
+      [this]
+      {
+        ControllerInterfaceWindow window{this};
+        window.exec();
+      });
 
   auto* groups_layout = new QHBoxLayout();
   groups_layout->addWidget(

@@ -22,15 +22,12 @@
 #include "Common/StringUtil.h"
 
 using PVirtualAlloc2 = PVOID(WINAPI*)(HANDLE Process, PVOID BaseAddress, SIZE_T Size,
-                                      ULONG AllocationType, ULONG PageProtection,
-                                      MEM_EXTENDED_PARAMETER* ExtendedParameters,
-                                      ULONG ParameterCount);
+    ULONG AllocationType, ULONG PageProtection, MEM_EXTENDED_PARAMETER* ExtendedParameters,
+    ULONG ParameterCount);
 
 using PMapViewOfFile3 = PVOID(WINAPI*)(HANDLE FileMapping, HANDLE Process, PVOID BaseAddress,
-                                       ULONG64 Offset, SIZE_T ViewSize, ULONG AllocationType,
-                                       ULONG PageProtection,
-                                       MEM_EXTENDED_PARAMETER* ExtendedParameters,
-                                       ULONG ParameterCount);
+    ULONG64 Offset, SIZE_T ViewSize, ULONG AllocationType, ULONG PageProtection,
+    MEM_EXTENDED_PARAMETER* ExtendedParameters, ULONG ParameterCount);
 
 using PUnmapViewOfFileEx = BOOL(WINAPI*)(PVOID BaseAddress, ULONG UnmapFlags);
 
@@ -45,7 +42,9 @@ struct WindowsMemoryRegion
   bool m_is_mapped;
 
   WindowsMemoryRegion(u8* start, size_t size, bool is_mapped)
-      : m_start(start), m_size(size), m_is_mapped(is_mapped)
+      : m_start(start)
+      , m_size(size)
+      , m_is_mapped(is_mapped)
   {
   }
 };
@@ -120,9 +119,8 @@ static DWORD GetLowDWORD(u64 value)
 void MemArena::GrabSHMSegment(size_t size, std::string_view base_name)
 {
   const std::string name = fmt::format("{}.{}", base_name, GetCurrentProcessId());
-  m_memory_handle =
-      CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, GetHighDWORD(size),
-                        GetLowDWORD(size), UTF8ToTStr(name).c_str());
+  m_memory_handle = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
+      GetHighDWORD(size), GetLowDWORD(size), UTF8ToTStr(name).c_str());
 }
 
 void MemArena::ReleaseSHMSegment()
@@ -136,8 +134,8 @@ void MemArena::ReleaseSHMSegment()
 void* MemArena::CreateView(s64 offset, size_t size)
 {
   const u64 off = static_cast<u64>(offset);
-  return MapViewOfFileEx(m_memory_handle, FILE_MAP_ALL_ACCESS, GetHighDWORD(off), GetLowDWORD(off),
-                         size, nullptr);
+  return MapViewOfFileEx(
+      m_memory_handle, FILE_MAP_ALL_ACCESS, GetHighDWORD(off), GetLowDWORD(off), size, nullptr);
 }
 
 void MemArena::ReleaseView(void* view, size_t size)
@@ -156,9 +154,9 @@ u8* MemArena::ReserveMemoryRegion(size_t memory_size)
   u8* base;
   if (m_memory_functions.m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
   {
-    base = static_cast<u8*>(static_cast<PVirtualAlloc2>(m_memory_functions.m_address_VirtualAlloc2)(
-        nullptr, nullptr, memory_size, MEM_RESERVE | MEM_RESERVE_PLACEHOLDER, PAGE_NOACCESS,
-        nullptr, 0));
+    base = static_cast<u8*>(
+        static_cast<PVirtualAlloc2>(m_memory_functions.m_address_VirtualAlloc2)(nullptr, nullptr,
+            memory_size, MEM_RESERVE | MEM_RESERVE_PLACEHOLDER, PAGE_NOACCESS, nullptr, 0));
     if (base)
     {
       m_reserved_region = base;
@@ -199,7 +197,7 @@ void MemArena::ReleaseMemoryRegion()
     if (mapped_region_count > 0)
     {
       PanicAlertFmt("Error while releasing fastmem region: {} regions are still mapped!",
-                    mapped_region_count);
+          mapped_region_count);
     }
 
     // then free memory
@@ -233,9 +231,9 @@ WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, 
   if (it->m_is_mapped)
   {
     NOTICE_LOG_FMT(MEMMAP,
-                   "Address to map {} with a size of 0x{:x} overlaps with existing mapping "
-                   "at {}.",
-                   fmt::ptr(address), size, fmt::ptr(it->m_start));
+        "Address to map {} with a size of 0x{:x} overlaps with existing mapping "
+        "at {}.",
+        fmt::ptr(address), size, fmt::ptr(it->m_start));
     return nullptr;
   }
 
@@ -252,8 +250,8 @@ WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, 
     if (mapping_size < size)
     {
       NOTICE_LOG_FMT(MEMMAP,
-                     "Not enough free space at address {} to map 0x{:x} bytes (0x{:x} available).",
-                     fmt::ptr(mapping_address), size, mapping_size);
+          "Not enough free space at address {} to map 0x{:x} bytes (0x{:x} available).",
+          fmt::ptr(mapping_address), size, mapping_size);
       return nullptr;
     }
 
@@ -280,9 +278,9 @@ WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, 
   if (mapping_size < minimum_size)
   {
     NOTICE_LOG_FMT(MEMMAP,
-                   "Not enough free space at address {} to map memory region (need 0x{:x} "
-                   "bytes, but only 0x{:x} available).",
-                   fmt::ptr(address), minimum_size, mapping_size);
+        "Not enough free space at address {} to map memory region (need 0x{:x} "
+        "bytes, but only 0x{:x} available).",
+        fmt::ptr(address), minimum_size, mapping_size);
     return nullptr;
   }
 
@@ -313,7 +311,7 @@ WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, 
     const size_t after_mapping_size = mapping_size - minimum_size;
     regions.insert(it + 1, WindowsMemoryRegion(after_mapping_start, after_mapping_size, false));
     regions.insert(regions.begin() + mapping_index + 1,
-                   WindowsMemoryRegion(middle_mapping_start, middle_mapping_size, false));
+        WindowsMemoryRegion(middle_mapping_start, middle_mapping_size, false));
     return &regions[mapping_index + 1];
   }
 }
@@ -329,9 +327,9 @@ void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
       return nullptr;
     }
 
-    void* rv = static_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(
-        m_memory_handle, nullptr, base, offset, size, MEM_REPLACE_PLACEHOLDER, PAGE_READWRITE,
-        nullptr, 0);
+    void* rv =
+        static_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(m_memory_handle,
+            nullptr, base, offset, size, MEM_REPLACE_PLACEHOLDER, PAGE_READWRITE, nullptr, 0);
     if (rv)
     {
       region->m_is_mapped = true;
@@ -355,8 +353,8 @@ bool MemArena::JoinRegionsAfterUnmap(void* start_address, size_t size)
   auto& regions = m_regions;
   if (regions.empty())
   {
-    NOTICE_LOG_FMT(MEMMAP,
-                   "Tried to unmap a memory region without reserving a memory block first.");
+    NOTICE_LOG_FMT(
+        MEMMAP, "Tried to unmap a memory region without reserving a memory block first.");
     return false;
   }
 
@@ -461,10 +459,9 @@ void* LazyMemoryRegion::Create(size_t size)
   // reserve block of memory
   const size_t memory_size = Common::AlignUp(size, BLOCK_SIZE);
   const size_t block_count = memory_size / BLOCK_SIZE;
-  u8* memory =
-      static_cast<u8*>(static_cast<PVirtualAlloc2>(m_memory_functions.m_address_VirtualAlloc2)(
-          nullptr, nullptr, memory_size, MEM_RESERVE | MEM_RESERVE_PLACEHOLDER, PAGE_NOACCESS,
-          nullptr, 0));
+  u8* memory = static_cast<u8*>(
+      static_cast<PVirtualAlloc2>(m_memory_functions.m_address_VirtualAlloc2)(nullptr, nullptr,
+          memory_size, MEM_RESERVE | MEM_RESERVE_PLACEHOLDER, PAGE_NOACCESS, nullptr, 0));
   if (!memory)
   {
     NOTICE_LOG_FMT(MEMMAP, "Memory reservation of {} bytes failed.", size);
@@ -491,7 +488,7 @@ void* LazyMemoryRegion::Create(size_t size)
 
   // allocate a single block of real memory in the page file
   HANDLE zero_block = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READONLY,
-                                        GetHighDWORD(BLOCK_SIZE), GetLowDWORD(BLOCK_SIZE), nullptr);
+      GetHighDWORD(BLOCK_SIZE), GetLowDWORD(BLOCK_SIZE), nullptr);
   if (zero_block == nullptr)
   {
     NOTICE_LOG_FMT(MEMMAP, "CreateFileMapping() failed for zero block: {}", GetLastErrorString());
@@ -603,7 +600,7 @@ void LazyMemoryRegion::MakeMemoryBlockWritable(size_t block_index)
 
   // allocate a fresh block to map
   HANDLE block = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
-                                   GetHighDWORD(BLOCK_SIZE), GetLowDWORD(BLOCK_SIZE), nullptr);
+      GetHighDWORD(BLOCK_SIZE), GetLowDWORD(BLOCK_SIZE), nullptr);
   if (block == nullptr)
   {
     PanicAlertFmt("CreateFileMapping() failed for writable block: {}", GetLastErrorString());

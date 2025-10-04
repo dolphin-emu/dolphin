@@ -37,8 +37,8 @@ std::optional<Disc> ParseFile(const std::string& filename)
   return ParseString(std::string_view(data.data(), data.size()), filename);
 }
 
-static std::map<std::string, std::string> ReadParams(const pugi::xml_node& node,
-                                                     std::map<std::string, std::string> params = {})
+static std::map<std::string, std::string> ReadParams(
+    const pugi::xml_node& node, std::map<std::string, std::string> params = {})
 {
   for (const auto& param_node : node.children("param"))
   {
@@ -232,8 +232,8 @@ static bool CheckRegion(const std::vector<std::string>& xml_regions, std::string
   return false;
 }
 
-bool Disc::IsValidForGame(const std::string& game_id, std::optional<u16> revision,
-                          std::optional<u8> disc_number) const
+bool Disc::IsValidForGame(
+    const std::string& game_id, std::optional<u16> revision, std::optional<u8> disc_number) const
 {
   if (game_id.size() != 6)
     return false;
@@ -267,30 +267,31 @@ std::vector<Patch> Disc::GeneratePatches(const std::string& game_id) const
 
   const auto replace_variables =
       [&](std::string_view sv,
-          const std::vector<std::pair<std::string, std::string_view>>& replacements) {
-        std::string result;
-        result.reserve(sv.size());
-        while (!sv.empty())
+          const std::vector<std::pair<std::string, std::string_view>>& replacements)
+  {
+    std::string result;
+    result.reserve(sv.size());
+    while (!sv.empty())
+    {
+      bool replaced = false;
+      for (const auto& r : replacements)
+      {
+        if (sv.starts_with(r.first))
         {
-          bool replaced = false;
-          for (const auto& r : replacements)
-          {
-            if (sv.starts_with(r.first))
-            {
-              for (char c : r.second)
-                result.push_back(c);
-              sv = sv.substr(r.first.size());
-              replaced = true;
-              break;
-            }
-          }
-          if (replaced)
-            continue;
-          result.push_back(sv[0]);
-          sv = sv.substr(1);
+          for (char c : r.second)
+            result.push_back(c);
+          sv = sv.substr(r.first.size());
+          replaced = true;
+          break;
         }
-        return result;
-      };
+      }
+      if (replaced)
+        continue;
+      result.push_back(sv[0]);
+      sv = sv.substr(1);
+    }
+    return result;
+  };
 
   // Take only selected patches, replace placeholders in all strings, and return them.
   std::vector<Patch> active_patches;
@@ -357,7 +358,8 @@ std::vector<Patch> GenerateRiivolutionPatchesFromGameModDescriptor(
     {
       for (auto& option : section.m_options)
       {
-        const auto* info = [&]() -> const GameModDescriptorRiivolutionPatchOption* {
+        const auto* info = [&]() -> const GameModDescriptorRiivolutionPatchOption*
+        {
           for (const auto& o : patch_info.options)
           {
             if (o.section_name == section.m_name)
@@ -386,9 +388,7 @@ std::vector<Patch> GenerateRiivolutionPatchesFromGameModDescriptor(
 }
 
 std::vector<Patch> GenerateRiivolutionPatchesFromConfig(const std::string& root_directory,
-                                                        const std::string& game_id,
-                                                        std::optional<u16> revision,
-                                                        std::optional<u8> disc_number)
+    const std::string& game_id, std::optional<u16> revision, std::optional<u8> disc_number)
 {
   std::vector<Patch> result;
 
@@ -497,7 +497,8 @@ void ApplyConfigDefaults(Disc* disc, const Config& config)
 {
   for (const auto& config_option : config.m_options)
   {
-    auto* matching_option = [&]() -> Option* {
+    auto* matching_option = [&]() -> Option*
+    {
       for (auto& section : disc->m_sections)
       {
         for (auto& option : section.m_options)

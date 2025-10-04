@@ -15,7 +15,7 @@ class PerformanceTracker
 {
 public:
   PerformanceTracker(const std::optional<std::string> log_name = std::nullopt,
-                     const std::optional<DT> sample_window_duration = std::nullopt);
+      const std::optional<DT> sample_window_duration = std::nullopt);
   ~PerformanceTracker() = default;
 
   PerformanceTracker(const PerformanceTracker&) = delete;

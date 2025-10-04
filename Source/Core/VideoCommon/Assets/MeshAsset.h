@@ -43,8 +43,8 @@ struct MeshDataChunk
 
 struct MeshData
 {
-  static bool FromJson(const CustomAssetLibrary::AssetID& asset_id, const picojson::object& json,
-                       MeshData* data);
+  static bool FromJson(
+      const CustomAssetLibrary::AssetID& asset_id, const picojson::object& json, MeshData* data);
   static void ToJson(picojson::object& obj, const MeshData& data);
 
   static bool FromDolphinMesh(std::span<const u8> raw_data, MeshData* data);

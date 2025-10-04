@@ -117,14 +117,33 @@ TEST_F(GameTMDReaderTest, ContentInfo)
 {
   EXPECT_EQ(m_tmd.GetNumContents(), 1U);
 
-  const auto check_is_expected_content = [](const IOS::ES::Content& content) {
+  const auto check_is_expected_content = [](const IOS::ES::Content& content)
+  {
     EXPECT_EQ(content.id, 0U);
     EXPECT_EQ(content.index, 0U);
     EXPECT_EQ(content.type, 3U);
     EXPECT_EQ(content.size, 0xff7c0000ULL);
     constexpr std::array<u8, 20> expected_hash = {{
-        0x77, 0x13, 0xe0, 0xac, 0xef, 0xc1, 0x01, 0x51, 0xe7, 0x8b,
-        0x0b, 0x01, 0xa2, 0xfb, 0x03, 0xdb, 0x45, 0x8a, 0x0e, 0x18,
+        0x77,
+        0x13,
+        0xe0,
+        0xac,
+        0xef,
+        0xc1,
+        0x01,
+        0x51,
+        0xe7,
+        0x8b,
+        0x0b,
+        0x01,
+        0xa2,
+        0xfb,
+        0x03,
+        0xdb,
+        0x45,
+        0x8a,
+        0x0e,
+        0x18,
     }};
     EXPECT_EQ(content.sha1, expected_hash);
   };
@@ -178,28 +197,66 @@ TEST_F(IOSTMDReaderTest, ContentInfo)
 {
   EXPECT_EQ(m_tmd.GetNumContents(), 23U);
 
-  const auto check_is_first_content = [](const IOS::ES::Content& content) {
+  const auto check_is_first_content = [](const IOS::ES::Content& content)
+  {
     EXPECT_EQ(content.id, 0x00000020U);
     EXPECT_EQ(content.index, 0U);
     EXPECT_EQ(content.type, 1U);
     EXPECT_FALSE(content.IsShared());
     EXPECT_EQ(content.size, 0x40ULL);
     constexpr std::array<u8, 20> expected_hash = {{
-        0x2c, 0x96, 0x97, 0x6d, 0x25, 0x2b, 0x2e, 0xa0, 0xcd, 0xc1,
-        0xea, 0x16, 0x57, 0x7f, 0x3d, 0x90, 0x82, 0x59, 0xf1, 0x53,
+        0x2c,
+        0x96,
+        0x97,
+        0x6d,
+        0x25,
+        0x2b,
+        0x2e,
+        0xa0,
+        0xcd,
+        0xc1,
+        0xea,
+        0x16,
+        0x57,
+        0x7f,
+        0x3d,
+        0x90,
+        0x82,
+        0x59,
+        0xf1,
+        0x53,
     }};
     EXPECT_EQ(content.sha1, expected_hash);
   };
 
-  const auto check_is_kernel = [](const IOS::ES::Content& content) {
+  const auto check_is_kernel = [](const IOS::ES::Content& content)
+  {
     EXPECT_EQ(content.id, 0x00000018U);
     EXPECT_EQ(content.index, 22U);
     EXPECT_EQ(content.type, 0x8001U);
     EXPECT_TRUE(content.IsShared());
     EXPECT_EQ(content.size, 0x293d8ULL);
     constexpr std::array<u8, 20> expected_hash = {{
-        0xfd, 0x77, 0x46, 0xac, 0x47, 0x00, 0xd5, 0x86, 0xa9, 0x32,
-        0x84, 0xfb, 0xe3, 0x12, 0xc5, 0x2b, 0x2a, 0xc6, 0x33, 0xd3,
+        0xfd,
+        0x77,
+        0x46,
+        0xac,
+        0x47,
+        0x00,
+        0xd5,
+        0x86,
+        0xa9,
+        0x32,
+        0x84,
+        0xfb,
+        0xe3,
+        0x12,
+        0xc5,
+        0x2b,
+        0x2a,
+        0xc6,
+        0x33,
+        0xd3,
     }};
     EXPECT_EQ(content.sha1, expected_hash);
   };

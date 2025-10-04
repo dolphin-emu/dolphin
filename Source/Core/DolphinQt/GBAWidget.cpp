@@ -37,7 +37,8 @@ static void RestartCore(const std::weak_ptr<HW::GBA::Core>& core, std::string_vi
 {
   Core::RunOnCPUThread(
       Core::System::GetInstance(),
-      [core, rom_path = std::string(rom_path)] {
+      [core, rom_path = std::string(rom_path)]
+      {
         if (auto core_ptr = core.lock())
         {
           auto& info = Config::MAIN_GBA_ROM_PATHS[core_ptr->GetCoreInfo().device_number];
@@ -58,7 +59,8 @@ static void QueueEReaderCard(const std::weak_ptr<HW::GBA::Core>& core, std::stri
 {
   Core::RunOnCPUThread(
       Core::System::GetInstance(),
-      [core, card_path = std::string(card_path)] {
+      [core, card_path = std::string(card_path)]
+      {
         if (auto core_ptr = core.lock())
           core_ptr->EReaderQueueCard(card_path);
       },
@@ -66,11 +68,17 @@ static void QueueEReaderCard(const std::weak_ptr<HW::GBA::Core>& core, std::stri
 }
 
 GBAWidget::GBAWidget(std::weak_ptr<HW::GBA::Core> core, const HW::GBA::CoreInfo& info,
-                     const std::optional<NetPlay::PadDetails>& netplay_pad)
-    : QWidget(nullptr, LoadWindowFlags(netplay_pad ? netplay_pad->local_pad : info.device_number)),
-      m_core(std::move(core)), m_core_info(info), m_local_pad(info.device_number),
-      m_is_local_pad(true), m_volume(0), m_muted(false), m_force_disconnect(false), m_moving(false),
-      m_interframe_blending(false)
+    const std::optional<NetPlay::PadDetails>& netplay_pad)
+    : QWidget(nullptr, LoadWindowFlags(netplay_pad ? netplay_pad->local_pad : info.device_number))
+    , m_core(std::move(core))
+    , m_core_info(info)
+    , m_local_pad(info.device_number)
+    , m_is_local_pad(true)
+    , m_volume(0)
+    , m_muted(false)
+    , m_force_disconnect(false)
+    , m_moving(false)
+    , m_interframe_blending(false)
 {
   bool visible = true;
   if (netplay_pad)
@@ -113,7 +121,7 @@ void GBAWidget::SetVideoBuffer(std::span<const u32> video_buffer)
   if (video_buffer.size() == static_cast<size_t>(m_core_info.width * m_core_info.height))
   {
     m_last_frame = QImage(reinterpret_cast<const uchar*>(video_buffer.data()), m_core_info.width,
-                          m_core_info.height, QImage::Format_ARGB32)
+        m_core_info.height, QImage::Format_ARGB32)
                        .convertToFormat(QImage::Format_RGB32)
                        .rgbSwapped();
   }
@@ -161,7 +169,8 @@ void GBAWidget::ToggleDisconnect()
 
   Core::RunOnCPUThread(
       Core::System::GetInstance(),
-      [core = m_core, force_disconnect = m_force_disconnect] {
+      [core = m_core, force_disconnect = m_force_disconnect]
+      {
         if (auto core_ptr = core.lock())
           core_ptr->SetForceDisconnect(force_disconnect);
       },
@@ -190,9 +199,9 @@ void GBAWidget::UnloadROM()
 
 void GBAWidget::PromptForEReaderCards()
 {
-  const QStringList card_paths = DolphinFileDialog::getOpenFileNames(
-      this, tr("Select e-Reader Cards"), QString(), tr("e-Reader Cards (*.raw);;All Files (*)"),
-      nullptr, QFileDialog::Options());
+  const QStringList card_paths =
+      DolphinFileDialog::getOpenFileNames(this, tr("Select e-Reader Cards"), QString(),
+          tr("e-Reader Cards (*.raw);;All Files (*)"), nullptr, QFileDialog::Options());
 
   for (const QString& card_path : card_paths)
     QueueEReaderCard(m_core, QDir::toNativeSeparators(card_path).toStdString());
@@ -212,8 +221,8 @@ void GBAWidget::DoState(bool export_state)
     return;
 
   QString state_path = QDir::toNativeSeparators(
-      (export_state ? DolphinFileDialog::getSaveFileName : DolphinFileDialog::getOpenFileName)(
-          this, tr("Select a File"), QString(),
+      (export_state ? DolphinFileDialog::getSaveFileName : DolphinFileDialog::getOpenFileName)(this,
+          tr("Select a File"), QString(),
           tr("mGBA Save States (*.ss0 *.ss1 *.ss2 *.ss3 *.ss4 "
              "*.ss5 *.ss6 *.ss7 *.ss8 *.ss9);;"
              "All Files (*)"),
@@ -224,7 +233,8 @@ void GBAWidget::DoState(bool export_state)
 
   Core::RunOnCPUThread(
       Core::System::GetInstance(),
-      [export_state, core = m_core, state_path = state_path.toStdString()] {
+      [export_state, core = m_core, state_path = state_path.toStdString()]
+      {
         if (auto core_ptr = core.lock())
         {
           if (export_state)
@@ -244,18 +254,19 @@ void GBAWidget::ImportExportSave(bool export_save)
     return;
 
   QString save_path = QDir::toNativeSeparators(
-      (export_save ? DolphinFileDialog::getSaveFileName :
-                     DolphinFileDialog::getOpenFileName)(this, tr("Select a File"), QString(),
-                                                         tr("Save Game Files (*.sav);;"
-                                                            "All Files (*)"),
-                                                         nullptr, QFileDialog::Options()));
+      (export_save ? DolphinFileDialog::getSaveFileName : DolphinFileDialog::getOpenFileName)(this,
+          tr("Select a File"), QString(),
+          tr("Save Game Files (*.sav);;"
+             "All Files (*)"),
+          nullptr, QFileDialog::Options()));
 
   if (save_path.isEmpty())
     return;
 
   Core::RunOnCPUThread(
       Core::System::GetInstance(),
-      [export_save, core = m_core, save_path = save_path.toStdString()] {
+      [export_save, core = m_core, save_path = save_path.toStdString()]
+      {
         if (auto core_ptr = core.lock())
         {
           if (export_save)
@@ -360,11 +371,11 @@ void GBAWidget::LoadSettings()
 void GBAWidget::SaveSettings()
 {
   QSettings& settings = Settings::GetQSettings();
-  settings.setValue(QStringLiteral("gbawidget/flags%1").arg(m_local_pad + 1),
-                    static_cast<int>(windowFlags()));
+  settings.setValue(
+      QStringLiteral("gbawidget/flags%1").arg(m_local_pad + 1), static_cast<int>(windowFlags()));
   settings.setValue(QStringLiteral("gbawidget/geometry%1").arg(m_local_pad + 1), saveGeometry());
-  settings.setValue(QStringLiteral("gbawidget/interframeblending%1").arg(m_local_pad + 1),
-                    m_interframe_blending);
+  settings.setValue(
+      QStringLiteral("gbawidget/interframeblending%1").arg(m_local_pad + 1), m_interframe_blending);
 }
 
 bool GBAWidget::CanControlCore()
@@ -457,7 +468,7 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   blending_action->setCheckable(true);
   blending_action->setChecked(m_interframe_blending);
   connect(blending_action, &QAction::triggered, this,
-          [this] { m_interframe_blending = !m_interframe_blending; });
+      [this] { m_interframe_blending = !m_interframe_blending; });
 
   menu->addAction(disconnect_action);
   menu->addSeparator();

@@ -32,7 +32,7 @@ WiiSpeakWindow::WiiSpeakWindow(QWidget* parent) : QWidget(parent)
   CreateMainWindow();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          &WiiSpeakWindow::OnEmulationStateChanged);
+      &WiiSpeakWindow::OnEmulationStateChanged);
 
   OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
 }
@@ -44,7 +44,7 @@ void WiiSpeakWindow::CreateMainWindow()
   auto* main_layout = new QVBoxLayout();
   auto* label = new QLabel();
   label->setText(QStringLiteral("<center><i>%1</i></center>")
-                     .arg(tr("Some settings cannot be changed when emulation is running.")));
+          .arg(tr("Some settings cannot be changed when emulation is running.")));
   main_layout->addWidget(label);
 
   auto* checkbox_group = new QGroupBox();
@@ -63,9 +63,9 @@ void WiiSpeakWindow::CreateMainWindow()
   auto checkbox_mic_muted = new QCheckBox(tr("Mute"), this);
   checkbox_mic_muted->setChecked(Settings::Instance().IsWiiSpeakMuted());
   connect(&Settings::Instance(), &Settings::WiiSpeakMuteChanged, checkbox_mic_muted,
-          &QCheckBox::setChecked);
-  connect(checkbox_mic_muted, &QCheckBox::toggled, &Settings::Instance(),
-          &Settings::SetWiiSpeakMuted);
+      &QCheckBox::setChecked);
+  connect(
+      checkbox_mic_muted, &QCheckBox::toggled, &Settings::Instance(), &Settings::SetWiiSpeakMuted);
   checkbox_mic_muted->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   config_layout->addWidget(checkbox_mic_muted);
 
@@ -76,10 +76,12 @@ void WiiSpeakWindow::CreateMainWindow()
       std::clamp<int>(Config::Get(Config::MAIN_WII_SPEAK_VOLUME_MODIFIER), FILTER_MIN, FILTER_MAX);
   auto filter_slider = new QSlider(Qt::Horizontal, this);
   auto slider_label = new QLabel(tr("Volume modifier (value: %1dB)").arg(volume_modifier));
-  connect(filter_slider, &QSlider::valueChanged, this, [slider_label](int value) {
-    Config::SetBaseOrCurrent(Config::MAIN_WII_SPEAK_VOLUME_MODIFIER, value);
-    slider_label->setText(tr("Volume modifier (value: %1dB)").arg(value));
-  });
+  connect(filter_slider, &QSlider::valueChanged, this,
+      [slider_label](int value)
+      {
+        Config::SetBaseOrCurrent(Config::MAIN_WII_SPEAK_VOLUME_MODIFIER, value);
+        slider_label->setText(tr("Volume modifier (value: %1dB)").arg(value));
+      });
   filter_slider->setMinimum(FILTER_MIN);
   filter_slider->setMaximum(FILTER_MAX);
   filter_slider->setValue(volume_modifier);
@@ -88,19 +90,19 @@ void WiiSpeakWindow::CreateMainWindow()
   filter_slider->setSingleStep(1);
   volume_layout->addWidget(new QLabel(QStringLiteral("%1dB").arg(FILTER_MIN)), 0, 0, Qt::AlignLeft);
   volume_layout->addWidget(slider_label, 0, 1, Qt::AlignCenter);
-  volume_layout->addWidget(new QLabel(QStringLiteral("%1dB").arg(FILTER_MAX)), 0, 2,
-                           Qt::AlignRight);
+  volume_layout->addWidget(
+      new QLabel(QStringLiteral("%1dB").arg(FILTER_MAX)), 0, 2, Qt::AlignRight);
   volume_layout->addWidget(filter_slider, 1, 0, 1, 3);
   config_layout->addLayout(volume_layout);
   config_layout->setStretch(1, 3);
 
   m_combobox_microphones = new QComboBox();
 #ifndef HAVE_CUBEB
-  m_combobox_microphones->addItem(QLatin1String("(%1)").arg(tr("Audio backend unsupported")),
-                                  QString{});
+  m_combobox_microphones->addItem(
+      QLatin1String("(%1)").arg(tr("Audio backend unsupported")), QString{});
 #else
-  m_combobox_microphones->addItem(QLatin1String("(%1)").arg(tr("Autodetect preferred microphone")),
-                                  QString{});
+  m_combobox_microphones->addItem(
+      QLatin1String("(%1)").arg(tr("Autodetect preferred microphone")), QString{});
   for (auto& [device_id, device_name] : CubebUtils::ListInputDevices())
   {
     const auto user_data = QString::fromStdString(device_id);
@@ -108,7 +110,7 @@ void WiiSpeakWindow::CreateMainWindow()
   }
 #endif
   connect(m_combobox_microphones, &QComboBox::currentIndexChanged, this,
-          &WiiSpeakWindow::OnInputDeviceChange);
+      &WiiSpeakWindow::OnInputDeviceChange);
 
   auto current_device_id = QString::fromStdString(Config::Get(Config::MAIN_WII_SPEAK_MICROPHONE));
   m_combobox_microphones->setCurrentIndex(m_combobox_microphones->findData(current_device_id));

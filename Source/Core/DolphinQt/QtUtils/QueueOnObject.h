@@ -22,6 +22,6 @@ template <typename T, typename F>
 static void QueueOnObjectBlocking(T* obj, F&& func)
 {
   QObject src;
-  QObject::connect(&src, &QObject::destroyed, obj, std::forward<F>(func),
-                   Qt::BlockingQueuedConnection);
+  QObject::connect(
+      &src, &QObject::destroyed, obj, std::forward<F>(func), Qt::BlockingQueuedConnection);
 }

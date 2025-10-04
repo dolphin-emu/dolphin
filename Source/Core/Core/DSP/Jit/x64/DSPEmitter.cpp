@@ -30,8 +30,11 @@ constexpr size_t MAX_BLOCK_SIZE = 250;
 constexpr u16 DSP_IDLE_SKIP_CYCLES = 0x1000;
 
 DSPEmitter::DSPEmitter(DSPCore& dsp)
-    : m_compile_status_register{SR_INT_ENABLE | SR_EXT_INT_ENABLE}, m_blocks(MAX_BLOCKS),
-      m_block_size(MAX_BLOCKS), m_block_links(MAX_BLOCKS), m_dsp_core{dsp}
+    : m_compile_status_register{SR_INT_ENABLE | SR_EXT_INT_ENABLE}
+    , m_blocks(MAX_BLOCKS)
+    , m_block_size(MAX_BLOCKS)
+    , m_block_links(MAX_BLOCKS)
+    , m_dsp_core{dsp}
 {
   x64::InitInstructionTables();
   AllocCodeSpace(COMPILED_CODE_SIZE);
@@ -507,8 +510,8 @@ Gen::OpArg DSPEmitter::M_SDSP_r_st(size_t index)
 
 Gen::OpArg DSPEmitter::M_SDSP_reg_stack_ptrs(size_t index)
 {
-  return MDisp(R15, static_cast<int>(offsetof(SDSP, reg_stack_ptrs) +
-                                     sizeof(SDSP::reg_stack_ptrs[0]) * index));
+  return MDisp(R15,
+      static_cast<int>(offsetof(SDSP, reg_stack_ptrs) + sizeof(SDSP::reg_stack_ptrs[0]) * index));
 }
 #ifdef __GNUC__
 #pragma GCC diagnostic pop

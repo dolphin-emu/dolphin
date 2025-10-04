@@ -149,7 +149,7 @@ void LazyMemoryRegion::Clear()
   ASSERT(m_memory);
 
   void* new_memory = mmap(m_memory, m_size, PROT_READ | PROT_WRITE,
-                          MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_FIXED, -1, 0);
+      MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_FIXED, -1, 0);
   ASSERT(new_memory == m_memory);
 }
 

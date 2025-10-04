@@ -43,7 +43,9 @@
 using Type = MemoryViewWidget::Type;
 
 MemoryWidget::MemoryWidget(Core::System& system, QWidget* parent)
-    : QDockWidget(parent), m_system(system), m_ppc_symbol_db(system.GetPPCSymbolDB())
+    : QDockWidget(parent)
+    , m_system(system)
+    , m_ppc_symbol_db(system.GetPPCSymbolDB())
 {
   setWindowTitle(tr("Memory"));
   setObjectName(QStringLiteral("memory"));
@@ -63,18 +65,20 @@ MemoryWidget::MemoryWidget(Core::System& system, QWidget* parent)
   m_splitter->restoreState(settings.value(QStringLiteral("memorywidget/splitter")).toByteArray());
 
   connect(&Settings::Instance(), &Settings::MemoryVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+      [this](bool visible) { setHidden(!visible); });
 
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this,
-          [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsMemoryVisible()); });
+      [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsMemoryVisible()); });
 
-  connect(this, &QDockWidget::visibilityChanged, this, [this](bool visible) {
-    // Stop auto-update if MemoryView is tabbed out.
-    if (visible && m_auto_update_enabled)
-      RegisterAfterFrameEventCallback();
-    else
-      RemoveAfterFrameEventCallback();
-  });
+  connect(this, &QDockWidget::visibilityChanged, this,
+      [this](bool visible)
+      {
+        // Stop auto-update if MemoryView is tabbed out.
+        if (visible && m_auto_update_enabled)
+          RegisterAfterFrameEventCallback();
+        else
+          RemoveAfterFrameEventCallback();
+      });
   LoadSettings();
 
   ConnectWidgets();
@@ -279,13 +283,14 @@ void MemoryWidget::CreateWidgets()
   menubar->addMenu(menu_views);
 
   QMenu* menu_import = new QMenu(tr("&Import"), menubar);
-  menu_import->addAction(tr("&Load file to current address"), this,
-                         &MemoryWidget::OnSetValueFromFile);
+  menu_import->addAction(
+      tr("&Load file to current address"), this, &MemoryWidget::OnSetValueFromFile);
   menubar->addMenu(menu_import);
 
   // View Menu
-  auto* auto_update_action =
-      menu_views->addAction(tr("&Auto update memory values"), this, [this](bool checked) {
+  auto* auto_update_action = menu_views->addAction(tr("&Auto update memory values"), this,
+      [this](bool checked)
+      {
         m_auto_update_enabled = checked;
         if (checked)
           RegisterAfterFrameEventCallback();
@@ -295,17 +300,17 @@ void MemoryWidget::CreateWidgets()
   auto_update_action->setCheckable(true);
   auto_update_action->setChecked(true);
 
-  auto* highlight_update_action =
-      menu_views->addAction(tr("&Highlight recently changed values"), this,
-                            [this](bool checked) { m_memory_view->ToggleHighlights(checked); });
+  auto* highlight_update_action = menu_views->addAction(tr("&Highlight recently changed values"),
+      this, [this](bool checked) { m_memory_view->ToggleHighlights(checked); });
   highlight_update_action->setCheckable(true);
   highlight_update_action->setChecked(true);
 
-  menu_views->addAction(tr("Highlight &color"), this,
-                        [this] { m_memory_view->SetHighlightColor(); });
+  menu_views->addAction(
+      tr("Highlight &color"), this, [this] { m_memory_view->SetHighlightColor(); });
 
-  auto* show_notes =
-      menu_views->addAction(tr("&Show symbols and notes"), this, [this](bool checked) {
+  auto* show_notes = menu_views->addAction(tr("&Show symbols and notes"), this,
+      [this](bool checked)
+      {
         m_labels_visible = checked;
         m_memory_view->ShowSymbols(checked);
         UpdateNotes();
@@ -369,14 +374,14 @@ void MemoryWidget::ConnectWidgets()
   connect(m_data_edit, &QLineEdit::textChanged, this, &MemoryWidget::ValidateAndPreviewInputValue);
 
   connect(m_input_combo, &QComboBox::currentIndexChanged, this,
-          &MemoryWidget::ValidateAndPreviewInputValue);
+      &MemoryWidget::ValidateAndPreviewInputValue);
   connect(m_set_value, &QPushButton::clicked, this, &MemoryWidget::OnSetValue);
 
   connect(m_find_next, &QPushButton::clicked, this, &MemoryWidget::OnFindNextValue);
   connect(m_find_previous, &QPushButton::clicked, this, &MemoryWidget::OnFindPreviousValue);
 
   for (auto* radio :
-       {m_address_space_effective, m_address_space_auxiliary, m_address_space_physical})
+      {m_address_space_effective, m_address_space_auxiliary, m_address_space_physical})
   {
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnAddressSpaceChanged);
   }
@@ -400,8 +405,8 @@ void MemoryWidget::ConnectWidgets()
   connect(m_search_labels, &QLineEdit::textChanged, this, &MemoryWidget::RefreshLabelBox);
   connect(m_memory_view, &MemoryViewWidget::ShowCode, this, &MemoryWidget::ShowCode);
   connect(m_memory_view, &MemoryViewWidget::RequestWatch, this, &MemoryWidget::RequestWatch);
-  connect(m_memory_view, &MemoryViewWidget::ActivateSearch, this,
-          &MemoryWidget::ActivateSearchAddress);
+  connect(
+      m_memory_view, &MemoryViewWidget::ActivateSearch, this, &MemoryWidget::ActivateSearchAddress);
 }
 
 void MemoryWidget::closeEvent(QCloseEvent*)
@@ -494,12 +499,12 @@ void MemoryWidget::SaveSettings()
 
   settings.setValue(QStringLiteral("memorywidget/inputcombo"), m_input_combo->currentIndex());
 
-  settings.setValue(QStringLiteral("memorywidget/addrspace_effective"),
-                    m_address_space_effective->isChecked());
-  settings.setValue(QStringLiteral("memorywidget/addrspace_auxiliary"),
-                    m_address_space_auxiliary->isChecked());
-  settings.setValue(QStringLiteral("memorywidget/addrspace_physical"),
-                    m_address_space_physical->isChecked());
+  settings.setValue(
+      QStringLiteral("memorywidget/addrspace_effective"), m_address_space_effective->isChecked());
+  settings.setValue(
+      QStringLiteral("memorywidget/addrspace_auxiliary"), m_address_space_auxiliary->isChecked());
+  settings.setValue(
+      QStringLiteral("memorywidget/addrspace_physical"), m_address_space_physical->isChecked());
 
   settings.setValue(QStringLiteral("memorywidget/display_type"), m_display_combo->currentIndex());
 
@@ -801,8 +806,8 @@ void MemoryWidget::OnSetValueFromFile()
     return;
   }
 
-  QString path = QFileDialog::getOpenFileName(this, tr("Select a file"), QDir::currentPath(),
-                                              tr("All files (*)"));
+  QString path = QFileDialog::getOpenFileName(
+      this, tr("Select a file"), QDir::currentPath(), tr("All files (*)"));
   if (path.isNull())
   {
     return;
@@ -874,29 +879,31 @@ void MemoryWidget::UpdateSymbols()
   m_symbols_list->clear();
   m_data_list->clear();
 
-  m_ppc_symbol_db.ForEachSymbol([&](const Common::Symbol& symbol) {
-    QString name = QString::fromStdString(symbol.name);
+  m_ppc_symbol_db.ForEachSymbol(
+      [&](const Common::Symbol& symbol)
+      {
+        QString name = QString::fromStdString(symbol.name);
 
-    // If the symbol has an object name, add it to the entry name.
-    if (!symbol.object_name.empty())
-    {
-      name += QString::fromStdString(fmt::format(" ({})", symbol.object_name));
-    }
+        // If the symbol has an object name, add it to the entry name.
+        if (!symbol.object_name.empty())
+        {
+          name += QString::fromStdString(fmt::format(" ({})", symbol.object_name));
+        }
 
-    auto* item = new QListWidgetItem(name);
-    if (name == selection)
-      item->setSelected(true);
+        auto* item = new QListWidgetItem(name);
+        if (name == selection)
+          item->setSelected(true);
 
-    item->setData(Qt::UserRole, symbol.address);
+        item->setData(Qt::UserRole, symbol.address);
 
-    if (!name.contains(m_search_labels->text(), Qt::CaseInsensitive))
-      return;
+        if (!name.contains(m_search_labels->text(), Qt::CaseInsensitive))
+          return;
 
-    if (symbol.type != Common::Symbol::Type::Function)
-      m_data_list->addItem(item);
-    else
-      m_symbols_list->addItem(item);
-  });
+        if (symbol.type != Common::Symbol::Type::Function)
+          m_data_list->addItem(item);
+        else
+          m_symbols_list->addItem(item);
+      });
 
   m_symbols_list->sortItems();
 }
@@ -909,19 +916,21 @@ void MemoryWidget::UpdateNotes()
                                 m_note_list->selectedItems()[0]->text();
   m_note_list->clear();
 
-  m_ppc_symbol_db.ForEachNote([&](const Common::Note& note) {
-    const QString name = QString::fromStdString(note.name);
+  m_ppc_symbol_db.ForEachNote(
+      [&](const Common::Note& note)
+      {
+        const QString name = QString::fromStdString(note.name);
 
-    auto* item = new QListWidgetItem(name);
-    if (name == selection)
-      item->setSelected(true);
+        auto* item = new QListWidgetItem(name);
+        if (name == selection)
+          item->setSelected(true);
 
-    item->setData(Qt::UserRole, note.address);
+        item->setData(Qt::UserRole, note.address);
 
-    // Filter notes based on the search text.
-    if (name.contains(m_search_labels->text(), Qt::CaseInsensitive))
-      m_note_list->addItem(item);
-  });
+        // Filter notes based on the search text.
+        if (name.contains(m_search_labels->text(), Qt::CaseInsensitive))
+          m_note_list->addItem(item);
+      });
 
   m_note_list->sortItems();
 }
@@ -935,8 +944,7 @@ static void DumpArray(const std::string& filename, const u8* data, size_t length
 
   if (!f)
   {
-    ModalMessageBox::critical(
-        nullptr, QObject::tr("Error"),
+    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
         QObject::tr("Failed to dump %1: Can't open file").arg(QString::fromStdString(filename)));
     return;
   }
@@ -944,8 +952,8 @@ static void DumpArray(const std::string& filename, const u8* data, size_t length
   if (!f.WriteBytes(data, length))
   {
     ModalMessageBox::critical(nullptr, QObject::tr("Error"),
-                              QObject::tr("Failed to dump %1: Failed to write to file")
-                                  .arg(QString::fromStdString(filename)));
+        QObject::tr("Failed to dump %1: Failed to write to file")
+            .arg(QString::fromStdString(filename)));
   }
 }
 
@@ -953,28 +961,28 @@ void MemoryWidget::OnDumpMRAM()
 {
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Mem1);
   DumpArray(File::GetUserPath(F_MEM1DUMP_IDX), accessors->begin(),
-            std::distance(accessors->begin(), accessors->end()));
+      std::distance(accessors->begin(), accessors->end()));
 }
 
 void MemoryWidget::OnDumpExRAM()
 {
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Mem2);
   DumpArray(File::GetUserPath(F_MEM2DUMP_IDX), accessors->begin(),
-            std::distance(accessors->begin(), accessors->end()));
+      std::distance(accessors->begin(), accessors->end()));
 }
 
 void MemoryWidget::OnDumpARAM()
 {
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Auxiliary);
   DumpArray(File::GetUserPath(F_ARAMDUMP_IDX), accessors->begin(),
-            std::distance(accessors->begin(), accessors->end()));
+      std::distance(accessors->begin(), accessors->end()));
 }
 
 void MemoryWidget::OnDumpFakeVMEM()
 {
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Fake);
   DumpArray(File::GetUserPath(F_FAKEVMEMDUMP_IDX), accessors->begin(),
-            std::distance(accessors->begin(), accessors->end()));
+      std::distance(accessors->begin(), accessors->end()));
 }
 
 MemoryWidget::TargetAddress MemoryWidget::GetTargetAddress() const
@@ -1032,14 +1040,14 @@ void MemoryWidget::FindValue(bool next)
     target_addr.address += next ? 1 : -1;
   }
 
-  const std::optional<u32> found_addr = [&] {
+  const std::optional<u32> found_addr = [&]
+  {
     AddressSpace::Accessors* accessors =
         AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
 
     const Core::CPUThreadGuard guard(m_system);
     return accessors->Search(guard, target_addr.address,
-                             reinterpret_cast<const u8*>(search_for.data()),
-                             static_cast<u32>(search_for.size()), next);
+        reinterpret_cast<const u8*>(search_for.data()), static_cast<u32>(search_for.size()), next);
   }();
 
   if (found_addr.has_value())

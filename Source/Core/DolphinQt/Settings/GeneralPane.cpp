@@ -59,7 +59,7 @@ GeneralPane::GeneralPane(QWidget* parent) : QWidget(parent)
   ConnectLayout();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          &GeneralPane::OnEmulationStateChanged);
+      &GeneralPane::OnEmulationStateChanged);
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, &GeneralPane::LoadConfig);
 
   OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
@@ -102,35 +102,37 @@ void GeneralPane::OnEmulationStateChanged(Core::State state)
 void GeneralPane::ConnectLayout()
 {
   connect(m_checkbox_cheats, &QCheckBox::toggled, &Settings::Instance(),
-          &Settings::EnableCheatsChanged);
+      &Settings::EnableCheatsChanged);
 #ifdef USE_DISCORD_PRESENCE
   connect(m_checkbox_discord_presence, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
 #endif
 
   if (AutoUpdateChecker::SystemSupportsAutoUpdates())
   {
-    connect(m_combobox_update_track, &QComboBox::currentIndexChanged, this,
-            &GeneralPane::OnSaveConfig);
-    connect(&Settings::Instance(), &Settings::AutoUpdateTrackChanged, this,
-            &GeneralPane::LoadConfig);
+    connect(
+        m_combobox_update_track, &QComboBox::currentIndexChanged, this, &GeneralPane::OnSaveConfig);
+    connect(
+        &Settings::Instance(), &Settings::AutoUpdateTrackChanged, this, &GeneralPane::LoadConfig);
   }
 
   // Advanced
-  connect(m_combobox_speedlimit, &QComboBox::currentIndexChanged, [this] {
-    Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED,
-                             m_combobox_speedlimit->currentIndex() * 0.1f);
-    Config::Save();
-  });
+  connect(m_combobox_speedlimit, &QComboBox::currentIndexChanged,
+      [this]
+      {
+        Config::SetBaseOrCurrent(
+            Config::MAIN_EMULATION_SPEED, m_combobox_speedlimit->currentIndex() * 0.1f);
+        Config::Save();
+      });
 
   connect(m_combobox_fallback_region, &QComboBox::currentIndexChanged, this,
-          &GeneralPane::OnSaveConfig);
+      &GeneralPane::OnSaveConfig);
   connect(&Settings::Instance(), &Settings::FallbackRegionChanged, this, &GeneralPane::LoadConfig);
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   connect(&Settings::Instance(), &Settings::AnalyticsToggled, this, &GeneralPane::LoadConfig);
   connect(m_checkbox_enable_analytics, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
   connect(m_button_generate_new_identity, &QPushButton::clicked, this,
-          &GeneralPane::GenerateNewIdentity);
+      &GeneralPane::GenerateNewIdentity);
 #endif
 }
 
@@ -196,10 +198,9 @@ void GeneralPane::CreateAutoUpdate()
 
   auto_update_group_layout->addRow(tr("&Auto Update:"), m_combobox_update_track);
 
-  for (const QString& option :
-       {tr("Don't Update"),
-        // i18n: Releases is a noun.
-        tr("Releases (every few months)"), tr("Dev (multiple times a day)")})
+  for (const QString& option : {tr("Don't Update"),
+           // i18n: Releases is a noun.
+           tr("Releases (every few months)"), tr("Dev (multiple times a day)")})
   {
     m_combobox_update_track->addItem(option);
   }
@@ -480,8 +481,7 @@ void GeneralPane::UpdateDescriptionsUsingHardcoreStatus()
 
   if (hardcore_enabled)
   {
-    m_combobox_speedlimit->SetDescription(
-        tr("%1<br><br>%2")
+    m_combobox_speedlimit->SetDescription(tr("%1<br><br>%2")
             .arg(tr(TR_SPEEDLIMIT_DESCRIPTION))
             .arg(tr(TR_SPEEDLIMIT_RESTRICTION_IN_HARDCORE_DESCRIPTION)));
   }

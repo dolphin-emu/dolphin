@@ -75,7 +75,8 @@ std::optional<DeviceInfo> DeviceInfo::FromString(const std::string& str)
   if (colon_index == std::string::npos)
     return std::nullopt;
 
-  auto parse_hex = [](std::string_view sv, u16& out) -> bool {
+  auto parse_hex = [](std::string_view sv, u16& out) -> bool
+  {
     auto [ptr, ec] = std::from_chars(sv.data(), sv.data() + sv.size(), out, 16);
     return ec == std::errc();
   };
@@ -206,26 +207,28 @@ static std::optional<std::string> GetDeviceNameUsingLibUSB(u16 vid, u16 pid)
   if (!context.IsValid())
     return std::nullopt;
 
-  context.GetDeviceList([&device_name, vid, pid](libusb_device* device) {
-    libusb_device_descriptor desc{};
+  context.GetDeviceList(
+      [&device_name, vid, pid](libusb_device* device)
+      {
+        libusb_device_descriptor desc{};
 
-    if (libusb_get_device_descriptor(device, &desc) != LIBUSB_SUCCESS)
-      return true;
+        if (libusb_get_device_descriptor(device, &desc) != LIBUSB_SUCCESS)
+          return true;
 
-    if (desc.idVendor != vid || desc.idProduct != pid)
-      return true;
+        if (desc.idVendor != vid || desc.idProduct != pid)
+          return true;
 
-    if (!desc.iProduct)
-      return false;
+        if (!desc.iProduct)
+          return false;
 
-    libusb_device_handle* handle;
-    if (libusb_open(device, &handle) != LIBUSB_SUCCESS)
-      return false;
+        libusb_device_handle* handle;
+        if (libusb_open(device, &handle) != LIBUSB_SUCCESS)
+          return false;
 
-    device_name = LibusbUtils::GetStringDescriptor(handle, desc.iProduct);
-    libusb_close(handle);
-    return false;
-  });
+        device_name = LibusbUtils::GetStringDescriptor(handle, desc.iProduct);
+        libusb_close(handle);
+        return false;
+      });
   return device_name;
 }
 #endif
@@ -261,27 +264,29 @@ std::optional<std::string> GetDeviceNameFromVIDPID(u16 vid, u16 pid)
 }
 
 #ifdef __LIBUSB__
-std::vector<DeviceInfo>
-ListDevices(const std::function<bool(const libusb_device_descriptor&)>& filter)
+std::vector<DeviceInfo> ListDevices(
+    const std::function<bool(const libusb_device_descriptor&)>& filter)
 {
   std::vector<DeviceInfo> device_list;
   LibusbUtils::Context context;
   if (!context.IsValid())
     return {};
 
-  const int ret = context.GetDeviceList([&device_list, &filter](libusb_device* device) {
-    libusb_device_descriptor desc;
+  const int ret = context.GetDeviceList(
+      [&device_list, &filter](libusb_device* device)
+      {
+        libusb_device_descriptor desc;
 
-    if (libusb_get_device_descriptor(device, &desc) != LIBUSB_SUCCESS)
-      return true;
+        if (libusb_get_device_descriptor(device, &desc) != LIBUSB_SUCCESS)
+          return true;
 
-    if (filter(desc))
-    {
-      device_list.push_back({desc.idVendor, desc.idProduct});
-    }
+        if (filter(desc))
+        {
+          device_list.push_back({desc.idVendor, desc.idProduct});
+        }
 
-    return true;
-  });
+        return true;
+      });
 
   if (ret != LIBUSB_SUCCESS)
     WARN_LOG_FMT(CORE, "Failed to get device list: {}", LibusbUtils::ErrorWrap(ret));
@@ -291,10 +296,12 @@ ListDevices(const std::function<bool(const libusb_device_descriptor&)>& filter)
 
 std::vector<DeviceInfo> ListDevices(const std::function<bool(const DeviceInfo&)>& filter)
 {
-  return ListDevices([&filter](const libusb_device_descriptor& desc) {
-    const DeviceInfo info{desc.idVendor, desc.idProduct};
-    return filter(info);
-  });
+  return ListDevices(
+      [&filter](const libusb_device_descriptor& desc)
+      {
+        const DeviceInfo info{desc.idVendor, desc.idProduct};
+        return filter(info);
+      });
 }
 #endif
 }  // namespace USBUtils

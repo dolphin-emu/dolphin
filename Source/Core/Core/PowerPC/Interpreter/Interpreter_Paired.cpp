@@ -19,7 +19,7 @@ void Interpreter::ps_sel(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& c = ppc_state.ps[inst.FC];
 
   ppc_state.ps[inst.FD].SetBoth(a.PS0AsDouble() >= -0.0 ? c.PS0AsDouble() : b.PS0AsDouble(),
-                                a.PS1AsDouble() >= -0.0 ? c.PS1AsDouble() : b.PS1AsDouble());
+      a.PS1AsDouble() >= -0.0 ? c.PS1AsDouble() : b.PS1AsDouble());
 
   if (inst.Rc)
     ppc_state.UpdateCR1();
@@ -30,8 +30,8 @@ void Interpreter::ps_neg(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const auto& b = ppc_state.ps[inst.FB];
 
-  ppc_state.ps[inst.FD].SetBoth(b.PS0AsU64() ^ (UINT64_C(1) << 63),
-                                b.PS1AsU64() ^ (UINT64_C(1) << 63));
+  ppc_state.ps[inst.FD].SetBoth(
+      b.PS0AsU64() ^ (UINT64_C(1) << 63), b.PS1AsU64() ^ (UINT64_C(1) << 63));
 
   if (inst.Rc)
     ppc_state.UpdateCR1();
@@ -51,8 +51,8 @@ void Interpreter::ps_nabs(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const auto& b = ppc_state.ps[inst.FB];
 
-  ppc_state.ps[inst.FD].SetBoth(b.PS0AsU64() | (UINT64_C(1) << 63),
-                                b.PS1AsU64() | (UINT64_C(1) << 63));
+  ppc_state.ps[inst.FD].SetBoth(
+      b.PS0AsU64() | (UINT64_C(1) << 63), b.PS1AsU64() | (UINT64_C(1) << 63));
 
   if (inst.Rc)
     ppc_state.UpdateCR1();
@@ -63,8 +63,8 @@ void Interpreter::ps_abs(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const auto& b = ppc_state.ps[inst.FB];
 
-  ppc_state.ps[inst.FD].SetBoth(b.PS0AsU64() & ~(UINT64_C(1) << 63),
-                                b.PS1AsU64() & ~(UINT64_C(1) << 63));
+  ppc_state.ps[inst.FD].SetBoth(
+      b.PS0AsU64() & ~(UINT64_C(1) << 63), b.PS1AsU64() & ~(UINT64_C(1) << 63));
 
   if (inst.Rc)
     ppc_state.UpdateCR1();
@@ -263,11 +263,9 @@ void Interpreter::ps_msub(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
-  const float ps0 = ForceSingle(
-      ppc_state.fpscr,
+  const float ps0 = ForceSingle(ppc_state.fpscr,
       NI_msub<true>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble()).value);
-  const float ps1 = ForceSingle(
-      ppc_state.fpscr,
+  const float ps1 = ForceSingle(ppc_state.fpscr,
       NI_msub<true>(ppc_state, a.PS1AsDouble(), c.PS1AsDouble(), b.PS1AsDouble()).value);
 
   ppc_state.ps[inst.FD].SetBoth(ps0, ps1);
@@ -284,11 +282,9 @@ void Interpreter::ps_madd(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
-  const float ps0 = ForceSingle(
-      ppc_state.fpscr,
+  const float ps0 = ForceSingle(ppc_state.fpscr,
       NI_madd<true>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble()).value);
-  const float ps1 = ForceSingle(
-      ppc_state.fpscr,
+  const float ps1 = ForceSingle(ppc_state.fpscr,
       NI_madd<true>(ppc_state, a.PS1AsDouble(), c.PS1AsDouble(), b.PS1AsDouble()).value);
 
   ppc_state.ps[inst.FD].SetBoth(ps0, ps1);
@@ -305,11 +301,9 @@ void Interpreter::ps_nmsub(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
-  const float tmp0 = ForceSingle(
-      ppc_state.fpscr,
+  const float tmp0 = ForceSingle(ppc_state.fpscr,
       NI_msub<true>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble()).value);
-  const float tmp1 = ForceSingle(
-      ppc_state.fpscr,
+  const float tmp1 = ForceSingle(ppc_state.fpscr,
       NI_msub<true>(ppc_state, a.PS1AsDouble(), c.PS1AsDouble(), b.PS1AsDouble()).value);
 
   const float ps0 = std::isnan(tmp0) ? tmp0 : -tmp0;
@@ -329,11 +323,9 @@ void Interpreter::ps_nmadd(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
-  const float tmp0 = ForceSingle(
-      ppc_state.fpscr,
+  const float tmp0 = ForceSingle(ppc_state.fpscr,
       NI_madd<true>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble()).value);
-  const float tmp1 = ForceSingle(
-      ppc_state.fpscr,
+  const float tmp1 = ForceSingle(ppc_state.fpscr,
       NI_madd<true>(ppc_state, a.PS1AsDouble(), c.PS1AsDouble(), b.PS1AsDouble()).value);
 
   const float ps0 = std::isnan(tmp0) ? tmp0 : -tmp0;
@@ -423,11 +415,9 @@ void Interpreter::ps_madds0(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
-  const float ps0 = ForceSingle(
-      ppc_state.fpscr,
+  const float ps0 = ForceSingle(ppc_state.fpscr,
       NI_madd<true>(ppc_state, a.PS0AsDouble(), c.PS0AsDouble(), b.PS0AsDouble()).value);
-  const float ps1 = ForceSingle(
-      ppc_state.fpscr,
+  const float ps1 = ForceSingle(ppc_state.fpscr,
       NI_madd<true>(ppc_state, a.PS1AsDouble(), c.PS0AsDouble(), b.PS1AsDouble()).value);
 
   ppc_state.ps[inst.FD].SetBoth(ps0, ps1);
@@ -444,11 +434,9 @@ void Interpreter::ps_madds1(Interpreter& interpreter, UGeckoInstruction inst)
   const auto& b = ppc_state.ps[inst.FB];
   const auto& c = ppc_state.ps[inst.FC];
 
-  const float ps0 = ForceSingle(
-      ppc_state.fpscr,
+  const float ps0 = ForceSingle(ppc_state.fpscr,
       NI_madd<true>(ppc_state, a.PS0AsDouble(), c.PS1AsDouble(), b.PS0AsDouble()).value);
-  const float ps1 = ForceSingle(
-      ppc_state.fpscr,
+  const float ps1 = ForceSingle(ppc_state.fpscr,
       NI_madd<true>(ppc_state, a.PS1AsDouble(), c.PS1AsDouble(), b.PS1AsDouble()).value);
 
   ppc_state.ps[inst.FD].SetBoth(ps0, ps1);

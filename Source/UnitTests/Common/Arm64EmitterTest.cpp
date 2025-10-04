@@ -91,89 +91,105 @@ TEST(Arm64Emitter, CallFunction_OneConstantParameter)
 TEST(Arm64Emitter, CallFunction_OneRegisterParameterNoMov)
 {
   TestCallFunction test;
-  test.Emit([&] {
-    test.MOVI2R(ARM64Reg::X0, 100);
-    test.ABI_CallFunction(&OneParameterFunction, ARM64Reg::X0);
-  });
+  test.Emit(
+      [&]
+      {
+        test.MOVI2R(ARM64Reg::X0, 100);
+        test.ABI_CallFunction(&OneParameterFunction, ARM64Reg::X0);
+      });
   test.Run();
 }
 
 TEST(Arm64Emitter, CallFunction_OneRegisterParameterMov)
 {
   TestCallFunction test;
-  test.Emit([&] {
-    test.MOVI2R(ARM64Reg::X8, 100);
-    test.ABI_CallFunction(&OneParameterFunction, ARM64Reg::X8);
-  });
+  test.Emit(
+      [&]
+      {
+        test.MOVI2R(ARM64Reg::X8, 100);
+        test.ABI_CallFunction(&OneParameterFunction, ARM64Reg::X8);
+      });
   test.Run();
 }
 
 TEST(Arm64Emitter, CallFunction_TwoRegistersMixed)
 {
   TestCallFunction test;
-  test.Emit([&] {
-    test.MOVI2R(ARM64Reg::X0, 20);
-    test.ABI_CallFunction(&TwoParameterFunction, 10, ARM64Reg::X0);
-  });
+  test.Emit(
+      [&]
+      {
+        test.MOVI2R(ARM64Reg::X0, 20);
+        test.ABI_CallFunction(&TwoParameterFunction, 10, ARM64Reg::X0);
+      });
   test.Run();
 }
 
 TEST(Arm64Emitter, CallFunction_TwoRegistersCycle)
 {
   TestCallFunction test;
-  test.Emit([&] {
-    test.MOVI2R(ARM64Reg::X0, 20);
-    test.MOVI2R(ARM64Reg::X1, 10);
-    test.ABI_CallFunction(&TwoParameterFunction, ARM64Reg::X1, ARM64Reg::X0);
-  });
+  test.Emit(
+      [&]
+      {
+        test.MOVI2R(ARM64Reg::X0, 20);
+        test.MOVI2R(ARM64Reg::X1, 10);
+        test.ABI_CallFunction(&TwoParameterFunction, ARM64Reg::X1, ARM64Reg::X0);
+      });
   test.Run();
 }
 
 TEST(Arm64Emitter, CallFunction_ThreeRegistersMixed)
 {
   TestCallFunction test;
-  test.Emit([&] {
-    test.MOVI2R(ARM64Reg::X1, 10);
-    test.MOVI2R(ARM64Reg::X2, 20);
-    test.ABI_CallFunction(&ThreeParameterFunction, ARM64Reg::X1, ARM64Reg::X2, 30);
-  });
+  test.Emit(
+      [&]
+      {
+        test.MOVI2R(ARM64Reg::X1, 10);
+        test.MOVI2R(ARM64Reg::X2, 20);
+        test.ABI_CallFunction(&ThreeParameterFunction, ARM64Reg::X1, ARM64Reg::X2, 30);
+      });
   test.Run();
 }
 
 TEST(Arm64Emitter, CallFunction_ThreeRegistersCycle1)
 {
   TestCallFunction test;
-  test.Emit([&] {
-    test.MOVI2R(ARM64Reg::X0, 30);
-    test.MOVI2R(ARM64Reg::X1, 10);
-    test.MOVI2R(ARM64Reg::X2, 20);
-    test.ABI_CallFunction(&ThreeParameterFunction, ARM64Reg::X1, ARM64Reg::X2, ARM64Reg::X0);
-  });
+  test.Emit(
+      [&]
+      {
+        test.MOVI2R(ARM64Reg::X0, 30);
+        test.MOVI2R(ARM64Reg::X1, 10);
+        test.MOVI2R(ARM64Reg::X2, 20);
+        test.ABI_CallFunction(&ThreeParameterFunction, ARM64Reg::X1, ARM64Reg::X2, ARM64Reg::X0);
+      });
   test.Run();
 }
 
 TEST(Arm64Emitter, CallFunction_ThreeRegistersCycle2)
 {
   TestCallFunction test;
-  test.Emit([&] {
-    test.MOVI2R(ARM64Reg::X0, 20);
-    test.MOVI2R(ARM64Reg::X1, 30);
-    test.MOVI2R(ARM64Reg::X2, 10);
-    test.ABI_CallFunction(&ThreeParameterFunction, ARM64Reg::X2, ARM64Reg::X0, ARM64Reg::X1);
-  });
+  test.Emit(
+      [&]
+      {
+        test.MOVI2R(ARM64Reg::X0, 20);
+        test.MOVI2R(ARM64Reg::X1, 30);
+        test.MOVI2R(ARM64Reg::X2, 10);
+        test.ABI_CallFunction(&ThreeParameterFunction, ARM64Reg::X2, ARM64Reg::X0, ARM64Reg::X1);
+      });
   test.Run();
 }
 
 TEST(Arm64Emitter, CallFunction_EightRegistersMixed)
 {
   TestCallFunction test;
-  test.Emit([&] {
-    test.MOVI2R(ARM64Reg::X3, 12);
-    test.MOVI2R(ARM64Reg::X4, 23);
-    test.MOVI2R(ARM64Reg::X5, 24);
-    test.MOVI2R(ARM64Reg::X30, 2000);
-    test.ABI_CallFunction(&EightParameterFunction, ARM64Reg::X30, 40, ARM64Reg::X4, ARM64Reg::X5,
-                          ARM64Reg::X4, ARM64Reg::X3, 5, ARM64Reg::X4);
-  });
+  test.Emit(
+      [&]
+      {
+        test.MOVI2R(ARM64Reg::X3, 12);
+        test.MOVI2R(ARM64Reg::X4, 23);
+        test.MOVI2R(ARM64Reg::X5, 24);
+        test.MOVI2R(ARM64Reg::X30, 2000);
+        test.ABI_CallFunction(&EightParameterFunction, ARM64Reg::X30, 40, ARM64Reg::X4,
+            ARM64Reg::X5, ARM64Reg::X4, ARM64Reg::X3, 5, ARM64Reg::X4);
+      });
   test.Run();
 }

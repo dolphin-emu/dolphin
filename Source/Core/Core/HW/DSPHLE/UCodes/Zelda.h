@@ -83,8 +83,8 @@ private:
   // Note: On a real GC, the stepping happens in 32 steps instead. But hey,
   // we can do better here with very low risk. Why not? :)
   template <size_t N>
-  static s32 AddBuffersWithVolumeRamp(std::array<s16, N>* dst, const std::array<s16, N>& src,
-                                      s32 vol, s32 step)
+  static s32 AddBuffersWithVolumeRamp(
+      std::array<s16, N>* dst, const std::array<s16, N>& src, s32 vol, s32 step)
   {
     if (!vol && !step)
       return vol;

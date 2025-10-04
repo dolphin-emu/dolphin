@@ -39,7 +39,7 @@ jobject NumericSettingToJava(JNIEnv* env, ControllerEmu::NumericSettingBase* num
     return nullptr;
 
   return env->NewObject(IDCache::GetNumericSettingClass(), IDCache::GetNumericSettingConstructor(),
-                        reinterpret_cast<jlong>(numeric_setting));
+      reinterpret_cast<jlong>(numeric_setting));
 }
 
 extern "C" {

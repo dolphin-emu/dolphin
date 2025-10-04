@@ -16,8 +16,8 @@
 #include "Common/LdrWatcher.h"
 #include "Common/StringUtil.h"
 
-typedef NTSTATUS(NTAPI* PRTL_HEAP_COMMIT_ROUTINE)(IN PVOID Base, IN OUT PVOID* CommitAddress,
-                                                  IN OUT PSIZE_T CommitSize);
+typedef NTSTATUS(NTAPI* PRTL_HEAP_COMMIT_ROUTINE)(
+    IN PVOID Base, IN OUT PVOID* CommitAddress, IN OUT PSIZE_T CommitSize);
 
 typedef struct _RTL_HEAP_PARAMETERS
 {
@@ -35,11 +35,11 @@ typedef struct _RTL_HEAP_PARAMETERS
 } RTL_HEAP_PARAMETERS, *PRTL_HEAP_PARAMETERS;
 
 typedef PVOID (*RtlCreateHeap_t)(_In_ ULONG Flags, _In_opt_ PVOID HeapBase,
-                                 _In_opt_ SIZE_T ReserveSize, _In_opt_ SIZE_T CommitSize,
-                                 _In_opt_ PVOID Lock, _In_opt_ PRTL_HEAP_PARAMETERS Parameters);
+    _In_opt_ SIZE_T ReserveSize, _In_opt_ SIZE_T CommitSize, _In_opt_ PVOID Lock,
+    _In_opt_ PRTL_HEAP_PARAMETERS Parameters);
 
-static HANDLE WINAPI HeapCreateLow4GB(_In_ DWORD flOptions, _In_ SIZE_T dwInitialSize,
-                                      _In_ SIZE_T dwMaximumSize)
+static HANDLE WINAPI HeapCreateLow4GB(
+    _In_ DWORD flOptions, _In_ SIZE_T dwInitialSize, _In_ SIZE_T dwMaximumSize)
 {
   auto ntdll = GetModuleHandleW(L"ntdll");
   if (!ntdll)
@@ -89,7 +89,7 @@ public:
   {
     auto import_dir = &directories[IMAGE_DIRECTORY_ENTRY_IMPORT];
     for (auto import_desc = GetRva<PIMAGE_IMPORT_DESCRIPTOR>(import_dir->VirtualAddress);
-         import_desc->OriginalFirstThunk; import_desc++)
+        import_desc->OriginalFirstThunk; import_desc++)
     {
       auto module = GetRva<const char*>(import_desc->Name);
       auto names = GetRva<PIMAGE_THUNK_DATA>(import_desc->OriginalFirstThunk);
@@ -104,10 +104,12 @@ public:
             if (!strcmp(import->Name, function_name))
             {
               auto index = name - names;
-              return ModifyProtectedRegion(&thunks[index], sizeof(thunks[index]), [=] {
-                thunks[index].u1.Function =
-                    reinterpret_cast<decltype(thunks[index].u1.Function)>(value);
-              });
+              return ModifyProtectedRegion(&thunks[index], sizeof(thunks[index]),
+                  [=]
+                  {
+                    thunks[index].u1.Function =
+                        reinterpret_cast<decltype(thunks[index].u1.Function)>(value);
+                  });
             }
           }
         }
@@ -126,16 +128,17 @@ private:
 
 void CompatPatchesInstall(LdrWatcher* watcher)
 {
-  watcher->Install({{L"EZFRD64.dll", L"811EZFRD64.DLL"}, [](const LdrDllLoadEvent& event) {
-                      // *EZFRD64 is included in software packages for cheapo third-party gamepads
-                      // (and gamepad adapters). The module cannot handle its heap being above 4GB,
-                      // which tends to happen very often on modern Windows.
-                      // NOTE: The patch will always be applied, but it will only actually avoid the
-                      // crash if applied before module initialization (i.e. called on the Ldr
-                      // callout path).
-                      auto patcher = ImportPatcher(event.base_address);
-                      patcher.PatchIAT("kernel32.dll", "HeapCreate", HeapCreateLow4GB);
-                    }});
+  watcher->Install({{L"EZFRD64.dll", L"811EZFRD64.DLL"}, [](const LdrDllLoadEvent& event)
+      {
+        // *EZFRD64 is included in software packages for cheapo third-party gamepads
+        // (and gamepad adapters). The module cannot handle its heap being above 4GB,
+        // which tends to happen very often on modern Windows.
+        // NOTE: The patch will always be applied, but it will only actually avoid the
+        // crash if applied before module initialization (i.e. called on the Ldr
+        // callout path).
+        auto patcher = ImportPatcher(event.base_address);
+        patcher.PatchIAT("kernel32.dll", "HeapCreate", HeapCreateLow4GB);
+      }});
 }
 
 int __cdecl EnableCompatPatches()

@@ -115,9 +115,8 @@ void Reload()
 
 std::optional<std::string> GetNetworkPatch(std::string_view source, IsKD is_kd)
 {
-  const auto patch = std::ranges::find_if(s_patches, [&source, &is_kd](const NetworkPatch& p) {
-    return p.source == source && p.is_kd == is_kd && p.enabled;
-  });
+  const auto patch = std::ranges::find_if(s_patches, [&source, &is_kd](const NetworkPatch& p)
+      { return p.source == source && p.is_kd == is_kd && p.enabled; });
   if (patch == s_patches.end())
     return std::nullopt;
 
@@ -134,16 +133,14 @@ std::optional<std::string> GetNetworkPatchByPayload(std::string_view source)
     const size_t end_of_line = source.find("\r\n", pos);
     if (source.substr(pos).starts_with("Host: "))
     {
-      const std::string_view domain =
-          source.substr(pos + 6, end_of_line == std::string_view::npos ? std::string_view::npos :
-                                                                         (end_of_line - pos - 6));
+      const std::string_view domain = source.substr(pos + 6,
+          end_of_line == std::string_view::npos ? std::string_view::npos : (end_of_line - pos - 6));
       for (const WC24PatchEngine::NetworkPatch& patch : s_patches)
       {
         if (patch.is_kd != WC24PatchEngine::IsKD{true} && domain == patch.source && patch.enabled)
         {
           return fmt::format("{}Host: {}{}", source.substr(0, pos), patch.replacement,
-                             end_of_line == std::string_view::npos ? "" :
-                                                                     source.substr(end_of_line));
+              end_of_line == std::string_view::npos ? "" : source.substr(end_of_line));
         }
       }
 

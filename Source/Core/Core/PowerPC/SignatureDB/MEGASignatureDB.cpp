@@ -160,18 +160,20 @@ bool MEGASignatureDB::Save(const std::string& file_path) const
 
 void MEGASignatureDB::Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symbol_db) const
 {
-  symbol_db->ForEachSymbol([&](const Common::Symbol& symbol) {
-    for (const auto& sig : m_signatures)
-    {
-      if (Compare(guard, symbol.address, symbol.size, sig))
+  symbol_db->ForEachSymbol(
+      [&](const Common::Symbol& symbol)
       {
-        symbol_db->RenameSymbol(symbol, sig.name);
-        INFO_LOG_FMT(SYMBOLS, "Found {} at {:08x} (size: {:08x})!", sig.name, symbol.address,
-                     symbol.size);
-        break;
-      }
-    }
-  });
+        for (const auto& sig : m_signatures)
+        {
+          if (Compare(guard, symbol.address, symbol.size, sig))
+          {
+            symbol_db->RenameSymbol(symbol, sig.name);
+            INFO_LOG_FMT(SYMBOLS, "Found {} at {:08x} (size: {:08x})!", sig.name, symbol.address,
+                symbol.size);
+            break;
+          }
+        }
+      });
   symbol_db->Index();
 }
 
@@ -180,8 +182,8 @@ void MEGASignatureDB::Populate(const PPCSymbolDB* func_db, const std::string& fi
   ERROR_LOG_FMT(SYMBOLS, "MEGA database can't be populated yet.");
 }
 
-bool MEGASignatureDB::Add(const Core::CPUThreadGuard& guard, u32 startAddr, u32 size,
-                          const std::string& name)
+bool MEGASignatureDB::Add(
+    const Core::CPUThreadGuard& guard, u32 startAddr, u32 size, const std::string& name)
 {
   ERROR_LOG_FMT(SYMBOLS, "Can't add symbol to MEGA database yet.");
   return false;

@@ -137,7 +137,7 @@ void JitArm64::FlushCarry()
 }
 
 void JitArm64::reg_imm(u32 d, u32 a, u32 value, u32 (*do_op)(u32, u32),
-                       void (ARM64XEmitter::*op)(ARM64Reg, ARM64Reg, u64, ARM64Reg), bool Rc)
+    void (ARM64XEmitter::*op)(ARM64Reg, ARM64Reg, u64, ARM64Reg), bool Rc)
 {
   if (gpr.IsImm(a))
   {
@@ -315,9 +315,9 @@ void JitArm64::boolX(UGeckoInstruction inst)
     }
   }
   else if ((gpr.IsImm(s) && (gpr.GetImm(s) == 0 || gpr.GetImm(s) == 0xFFFFFFFF ||
-                             LogicalImm(gpr.GetImm(s), GPRSize::B32))) ||
+                                LogicalImm(gpr.GetImm(s), GPRSize::B32))) ||
            (gpr.IsImm(b) && (gpr.GetImm(b) == 0 || gpr.GetImm(b) == 0xFFFFFFFF ||
-                             LogicalImm(gpr.GetImm(b), GPRSize::B32))))
+                                LogicalImm(gpr.GetImm(b), GPRSize::B32))))
   {
     int i, j;
     if (gpr.IsImm(s))
@@ -673,9 +673,8 @@ void JitArm64::cmp(UGeckoInstruction inst)
   {
     // If we're dealing with immediates, check their most significant bit to
     // see if we can skip sign extension.
-    const auto should_sign_extend = [&](u32 reg) -> bool {
-      return !gpr.IsImm(reg) || (gpr.GetImm(reg) & (1U << 31));
-    };
+    const auto should_sign_extend = [&](u32 reg) -> bool
+    { return !gpr.IsImm(reg) || (gpr.GetImm(reg) & (1U << 31)); };
     bool sign_extend_a = should_sign_extend(a);
     bool sign_extend_b = should_sign_extend(b);
 
@@ -1305,7 +1304,8 @@ void JitArm64::subfex(UGeckoInstruction inst)
   const bool mex = inst.SUBOP10 & 32;
   const int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  const auto handle_imm = [&](const u32 i, const u32 j) {
+  const auto handle_imm = [&](const u32 i, const u32 j)
+  {
     const u32 imm = ~i + j;
     const bool is_zero = imm == 0;
     const bool is_all_ones = imm == 0xFFFFFFFF;

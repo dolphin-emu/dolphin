@@ -52,7 +52,9 @@ public:
   using reference = value_type;
 
   explicit MoIterator(const char* data, u32 table_offset, u32 index = 0)
-      : m_data{data}, m_table_offset{table_offset}, m_index{index}
+      : m_data{data}
+      , m_table_offset{table_offset}
+      , m_index{index}
   {
   }
 
@@ -167,8 +169,8 @@ public:
     const u16 version_major = ReadU16(&m_data[4]);
     if (version_major > 1)
     {
-      ERROR_LOG_FMT(COMMON, "MO file '{}' has unsupported version number {}", filename,
-                    version_major);
+      ERROR_LOG_FMT(
+          COMMON, "MO file '{}' has unsupported version number {}", filename, version_major);
       m_data = {};
       return;
     }
@@ -183,8 +185,8 @@ public:
   {
     const MoIterator begin(m_data.data(), m_offset_original_table);
     const MoIterator end(m_data.data(), m_offset_original_table, m_number_of_strings);
-    auto iter = std::lower_bound(begin, end, original_string,
-                                 [](const char* a, const char* b) { return strcmp(a, b) < 0; });
+    auto iter = std::lower_bound(
+        begin, end, original_string, [](const char* a, const char* b) { return strcmp(a, b) < 0; });
 
     if (iter == end || strcmp(*iter, original_string) != 0)
       return nullptr;
@@ -213,7 +215,7 @@ public:
   }
 
   QString translate(const char* context, const char* source_text,
-                    const char* disambiguation = nullptr, int n = -1) const override
+      const char* disambiguation = nullptr, int n = -1) const override
   {
     const char* translated_text;
 
@@ -279,8 +281,8 @@ static bool TryInstallTranslator(const QString& exact_language_code)
 #if defined _WIN32
         fmt::format("{}/Languages/{}.mo", File::GetExeDirectory(), lang)
 #elif defined __APPLE__
-        fmt::format("{}/Contents/Resources/{}.lproj/dolphin-emu.mo", File::GetBundleDirectory(),
-                    lang)
+        fmt::format(
+            "{}/Contents/Resources/{}.lproj/dolphin-emu.mo", File::GetBundleDirectory(), lang)
 #elif defined LINUX_LOCAL_DEV
         fmt::format("{}/../Source/Core/DolphinQt/{}/dolphin-emu.mo", File::GetExeDirectory(), lang)
 #else
@@ -317,8 +319,7 @@ void Translation::Initialize()
     if (TryInstallTranslator(QString::fromStdString(configured_language)))
       return;
 
-    ModalMessageBox::warning(
-        nullptr, QObject::tr("Error"),
+    ModalMessageBox::warning(nullptr, QObject::tr("Error"),
         QObject::tr("Error loading selected language. Falling back to system default."));
     Config::SetBase(Config::MAIN_INTERFACE_LANGUAGE, "");
   }

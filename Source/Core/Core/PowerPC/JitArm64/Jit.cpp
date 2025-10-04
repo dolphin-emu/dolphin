@@ -48,8 +48,9 @@ constexpr size_t FAR_CODE_SIZE = 1024 * 1024 * 64;
 constexpr size_t TOTAL_CODE_SIZE = NEAR_CODE_SIZE * 2 + FAR_CODE_SIZE * 2;
 
 JitArm64::JitArm64(Core::System& system)
-    : JitBase(system), m_float_emit(this),
-      m_disassembler(HostDisassembler::Factory(HostDisassembler::Platform::aarch64))
+    : JitBase(system)
+    , m_float_emit(this)
+    , m_disassembler(HostDisassembler::Factory(HostDisassembler::Platform::aarch64))
 {
 }
 
@@ -143,12 +144,12 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
       if (access_address < memory_base || access_address >= memory_base + 0x1'0000'0000)
       {
         ERROR_LOG_FMT(DYNA_REC,
-                      "JitArm64 address calculation overflowed. This should never happen! "
-                      "PC {:#018x}, access address {:#018x}, memory base {:#018x}, MSR.DR {}, "
-                      "mem_ptr {}, pbase {}, lbase {}",
-                      ctx->CTX_PC, access_address, memory_base, m_ppc_state.msr.DR,
-                      fmt::ptr(m_ppc_state.mem_ptr), fmt::ptr(memory.GetPhysicalBase()),
-                      fmt::ptr(memory.GetLogicalBase()));
+            "JitArm64 address calculation overflowed. This should never happen! "
+            "PC {:#018x}, access address {:#018x}, memory base {:#018x}, MSR.DR {}, "
+            "mem_ptr {}, pbase {}, lbase {}",
+            ctx->CTX_PC, access_address, memory_base, m_ppc_state.msr.DR,
+            fmt::ptr(m_ppc_state.mem_ptr), fmt::ptr(memory.GetPhysicalBase()),
+            fmt::ptr(memory.GetLogicalBase()));
       }
       else
       {
@@ -194,8 +195,8 @@ void JitArm64::GenerateAsmAndResetFreeMemoryRanges()
   const u8* routines_near_end = GetCodePtr();
   const u8* routines_far_end = m_far_code.GetCodePtr();
 
-  ResetFreeMemoryRanges(routines_near_end - routines_near_start,
-                        routines_far_end - routines_far_start);
+  ResetFreeMemoryRanges(
+      routines_near_end - routines_near_start, routines_far_end - routines_far_start);
 
   Host_JitCacheInvalidation();
 }
@@ -232,17 +233,17 @@ void JitArm64::ResetFreeMemoryRanges(size_t routines_near_size, size_t routines_
 {
   // Set the near and far code regions as unused.
   m_free_ranges_far_0.clear();
-  m_free_ranges_far_0.insert(m_far_code_0.GetWritableCodePtr() + routines_near_size,
-                             m_far_code_0.GetWritableCodeEnd());
+  m_free_ranges_far_0.insert(
+      m_far_code_0.GetWritableCodePtr() + routines_near_size, m_far_code_0.GetWritableCodeEnd());
   m_free_ranges_near_0.clear();
-  m_free_ranges_near_0.insert(m_near_code_0.GetWritableCodePtr(),
-                              m_near_code_0.GetWritableCodeEnd());
+  m_free_ranges_near_0.insert(
+      m_near_code_0.GetWritableCodePtr(), m_near_code_0.GetWritableCodeEnd());
   m_free_ranges_near_1.clear();
-  m_free_ranges_near_1.insert(m_near_code_1.GetWritableCodePtr() + routines_near_size,
-                              m_near_code_1.GetWritableCodeEnd());
+  m_free_ranges_near_1.insert(
+      m_near_code_1.GetWritableCodePtr() + routines_near_size, m_near_code_1.GetWritableCodeEnd());
   m_free_ranges_far_1.clear();
-  m_free_ranges_far_1.insert(m_far_code_1.GetWritableCodePtr() + routines_far_size,
-                             m_far_code_1.GetWritableCodeEnd());
+  m_free_ranges_far_1.insert(
+      m_far_code_1.GetWritableCodePtr() + routines_far_size, m_far_code_1.GetWritableCodeEnd());
 }
 
 void JitArm64::Shutdown()
@@ -349,7 +350,7 @@ void JitArm64::Cleanup()
   if (m_ppc_state.feature_flags & FEATURE_FLAG_PERFMON)
   {
     ABI_CallFunction(&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
-                     js.numFloatingPointInst, &m_ppc_state);
+        js.numFloatingPointInst, &m_ppc_state);
   }
 }
 
@@ -392,7 +393,7 @@ void JitArm64::IntializeSpeculativeConstants()
         MOVI2R(DISPATCHER_PC, js.blockStart);
         STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
         ABI_CallFunction(&JitInterface::CompileExceptionCheckFromJIT, &m_system.GetJitInterface(),
-                         static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
+            static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
         B(dispatcher_no_check);
         SwitchToNearCode();
       }
@@ -422,10 +423,10 @@ void JitArm64::MSRUpdated(u32 msr)
 {
   // Update mem_ptr
   auto& memory = m_system.GetMemory();
-  MOVP2R(MEM_REG,
-         UReg_MSR(msr).DR ?
-             (jo.fastmem ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase()) :
-             (jo.fastmem ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase()));
+  MOVP2R(
+      MEM_REG, UReg_MSR(msr).DR ?
+                   (jo.fastmem ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase()) :
+                   (jo.fastmem ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase()));
   STR(IndexType::Unsigned, MEM_REG, PPC_REG, PPCSTATE_OFF(mem_ptr));
 
   // Update feature_flags
@@ -472,14 +473,14 @@ void JitArm64::MSRUpdated(ARM64Reg msr)
   STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(feature_flags));
 }
 
-void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return,
-                         ARM64Reg exit_address_after_return_reg)
+void JitArm64::WriteExit(
+    u32 destination, bool LK, u32 exit_address_after_return, ARM64Reg exit_address_after_return_reg)
 {
   Cleanup();
   if (IsProfilingEnabled())
   {
-    ABI_CallFunction(&JitBlock::ProfileData::EndProfiling, js.curBlock->profile_data.get(),
-                     js.downcountAmount);
+    ABI_CallFunction(
+        &JitBlock::ProfileData::EndProfiling, js.curBlock->profile_data.get(), js.downcountAmount);
   }
   DoDownCount();
 
@@ -502,7 +503,7 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
     else
     {
       ORRI2R(ARM64Reg::X1, EncodeRegTo64(exit_address_after_return_reg), feature_flags << 32,
-             ARM64Reg::X1);
+          ARM64Reg::X1);
     }
     constexpr s32 adr_offset = JitArm64BlockCache::BLOCK_LINK_SIZE + sizeof(u32) * 2;
     host_address_after_return = GetCodePtr() + adr_offset;
@@ -575,7 +576,7 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
 }
 
 void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_after_return,
-                         ARM64Reg exit_address_after_return_reg)
+    ARM64Reg exit_address_after_return_reg)
 {
   if (dest != DISPATCHER_PC)
     MOV(DISPATCHER_PC, dest);
@@ -583,8 +584,8 @@ void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_afte
   Cleanup();
   if (IsProfilingEnabled())
   {
-    ABI_CallFunction(&JitBlock::ProfileData::EndProfiling, js.curBlock->profile_data.get(),
-                     js.downcountAmount);
+    ABI_CallFunction(
+        &JitBlock::ProfileData::EndProfiling, js.curBlock->profile_data.get(), js.downcountAmount);
   }
   DoDownCount();
 
@@ -610,7 +611,7 @@ void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_afte
     else
     {
       ORRI2R(ARM64Reg::X1, EncodeRegTo64(exit_address_after_return_reg), feature_flags << 32,
-             ARM64Reg::X1);
+          ARM64Reg::X1);
     }
     constexpr s32 adr_offset = sizeof(u32) * 3;
     const u8* host_address_after_return = GetCodePtr() + adr_offset;
@@ -689,7 +690,7 @@ void JitArm64::FakeLKExit(u32 exit_address_after_return, ARM64Reg exit_address_a
       after_reg = gpr.GetScopedReg();
       reg_to_push = EncodeRegTo64(after_reg);
       ORRI2R(reg_to_push, EncodeRegTo64(exit_address_after_return_reg), feature_flags << 32,
-             reg_to_push);
+          reg_to_push);
     }
 
     auto code_reg = gpr.GetScopedReg();
@@ -752,8 +753,8 @@ void JitArm64::WriteBLRExit(Arm64Gen::ARM64Reg dest)
   Cleanup();
   if (IsProfilingEnabled())
   {
-    ABI_CallFunction(&JitBlock::ProfileData::EndProfiling, js.curBlock->profile_data.get(),
-                     js.downcountAmount);
+    ABI_CallFunction(
+        &JitBlock::ProfileData::EndProfiling, js.curBlock->profile_data.get(), js.downcountAmount);
   }
 
   // Check if {PPC_PC, feature_flags} matches the current state, then RET to ARM_PC.
@@ -820,8 +821,8 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external, bool always
 
   if (IsProfilingEnabled())
   {
-    ABI_CallFunction(&JitBlock::ProfileData::EndProfiling, js.curBlock->profile_data.get(),
-                     js.downcountAmount);
+    ABI_CallFunction(
+        &JitBlock::ProfileData::EndProfiling, js.curBlock->profile_data.get(), js.downcountAmount);
   }
   DoDownCount();
 
@@ -831,12 +832,12 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external, bool always
 void JitArm64::WriteConditionalExceptionExit(int exception, u64 increment_sp_on_exit)
 {
   auto WA = gpr.GetScopedReg();
-  WriteConditionalExceptionExit(exception, WA, Arm64Gen::ARM64Reg::INVALID_REG,
-                                increment_sp_on_exit);
+  WriteConditionalExceptionExit(
+      exception, WA, Arm64Gen::ARM64Reg::INVALID_REG, increment_sp_on_exit);
 }
 
-void JitArm64::WriteConditionalExceptionExit(int exception, ARM64Reg temp_gpr, ARM64Reg temp_fpr,
-                                             u64 increment_sp_on_exit)
+void JitArm64::WriteConditionalExceptionExit(
+    int exception, ARM64Reg temp_gpr, ARM64Reg temp_fpr, u64 increment_sp_on_exit)
 {
   LDR(IndexType::Unsigned, temp_gpr, PPC_REG, PPCSTATE_OFF(Exceptions));
   FixupBranch no_exception = TBZ(temp_gpr, MathUtil::IntLog2(exception));
@@ -931,10 +932,10 @@ void JitArm64::Trace()
 #endif
 
   DEBUG_LOG_FMT(DYNA_REC,
-                "JitArm64 PC: {:08x} SRR0: {:08x} SRR1: {:08x} FPSCR: {:08x} "
-                "MSR: {:08x} LR: {:08x} {} {}",
-                m_ppc_state.pc, SRR0(m_ppc_state), SRR1(m_ppc_state), m_ppc_state.fpscr.Hex,
-                m_ppc_state.msr.Hex, m_ppc_state.spr[8], regs, fregs);
+      "JitArm64 PC: {:08x} SRR0: {:08x} SRR1: {:08x} FPSCR: {:08x} "
+      "MSR: {:08x} LR: {:08x} {} {}",
+      m_ppc_state.pc, SRR0(m_ppc_state), SRR1(m_ppc_state), m_ppc_state.fpscr.Hex,
+      m_ppc_state.msr.Hex, m_ppc_state.spr[8], regs, fregs);
 }
 
 void JitArm64::Jit(u32 em_address)
@@ -1056,9 +1057,8 @@ void JitArm64::EraseSingleBlock(const JitBlock& block)
 std::vector<JitBase::MemoryStats> JitArm64::GetMemoryStats() const
 {
   return {{"near_0", m_free_ranges_near_0.get_stats()},
-          {"near_1", m_free_ranges_near_1.get_stats()},
-          {"far_0", m_free_ranges_far_0.get_stats()},
-          {"far_1", m_free_ranges_far_1.get_stats()}};
+      {"near_1", m_free_ranges_near_1.get_stats()}, {"far_0", m_free_ranges_far_0.get_stats()},
+      {"far_1", m_free_ranges_far_1.get_stats()}};
 }
 
 std::size_t JitArm64::DisassembleNearCode(const JitBlock& block, std::ostream& stream) const
@@ -1155,7 +1155,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       MOVI2R(DISPATCHER_PC, js.blockStart);
       STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
       ABI_CallFunction(&JitInterface::CompileExceptionCheckFromJIT, &m_system.GetJitInterface(),
-                       static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
+          static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
       B(dispatcher_no_check);
       SwitchToNearCode();
       SetJumpTarget(no_fail);
@@ -1267,7 +1267,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         const BitSet32 gpr_caller_save =
             gpr.GetCallerSavedUsed() & ~BitSet32{DecodeReg(bw_reg_a), DecodeReg(bw_reg_b)};
         WriteBranchWatch<true>(op.address, op.branchTo, op.inst, bw_reg_a, bw_reg_b,
-                               gpr_caller_save, fpr.GetCallerSavedUsed());
+            gpr_caller_save, fpr.GetCallerSavedUsed());
       }
     }
     else
@@ -1294,8 +1294,8 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         Cleanup();
         if (IsProfilingEnabled())
         {
-          ABI_CallFunction(&JitBlock::ProfileData::EndProfiling, b->profile_data.get(),
-                           js.downcountAmount);
+          ABI_CallFunction(
+              &JitBlock::ProfileData::EndProfiling, b->profile_data.get(), js.downcountAmount);
         }
         DoDownCount();
         B(dispatcher_exit);
@@ -1398,10 +1398,10 @@ void JitArm64::LogGeneratedCode() const
 
   stream << "\nPPC Code Buffer:\n";
   for (const PPCAnalyst::CodeOp& op :
-       std::span{m_code_buffer.data(), code_block.m_num_instructions})
+      std::span{m_code_buffer.data(), code_block.m_num_instructions})
   {
     fmt::print(stream, "0x{:08x}\t\t{}\n", op.address,
-               Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address));
+        Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address));
   }
 
   const JitBlock* const block = js.curBlock;

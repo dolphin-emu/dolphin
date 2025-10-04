@@ -147,8 +147,8 @@ void ExpansionInterfaceManager::Init(const Sram* override_sram)
     for (u32 i = 0; i < MAX_EXI_CHANNELS; i++)
     {
       Memcard::HeaderData header_data;
-      Memcard::InitializeHeaderData(&header_data, flash_id, size_mbits, shift_jis, rtc_bias,
-                                    sram_language, format_time + i);
+      Memcard::InitializeHeaderData(
+          &header_data, flash_id, size_mbits, shift_jis, rtc_bias, sram_language, format_time + i);
       m_channels[i] = std::make_unique<CEXIChannel>(m_system, i, header_data);
     }
   }
@@ -158,10 +158,10 @@ void ExpansionInterfaceManager::Init(const Sram* override_sram)
 
   m_channels[0]->AddDevice(EXIDeviceType::MaskROM, 1);
   AddSP1Device();
-  m_channels[SlotToEXIChannel(Slot::SP1)]->AddDevice(Config::Get(Config::MAIN_SERIAL_PORT_1),
-                                                     SlotToEXIDevice(Slot::SP1));
-  m_channels[SlotToEXIChannel(Slot::SP2)]->AddDevice(Config::Get(Config::MAIN_SERIAL_PORT_2),
-                                                     SlotToEXIDevice(Slot::SP2));
+  m_channels[SlotToEXIChannel(Slot::SP1)]->AddDevice(
+      Config::Get(Config::MAIN_SERIAL_PORT_1), SlotToEXIDevice(Slot::SP1));
+  m_channels[SlotToEXIChannel(Slot::SP2)]->AddDevice(
+      Config::Get(Config::MAIN_SERIAL_PORT_2), SlotToEXIDevice(Slot::SP2));
 
   m_event_type_change_device = core_timing.RegisterEvent("ChangeEXIDevice", ChangeDeviceCallback);
   m_event_type_update_interrupts =
@@ -203,34 +203,33 @@ void ExpansionInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 }
 
-void ExpansionInterfaceManager::ChangeDeviceCallback(Core::System& system, u64 userdata,
-                                                     s64 cycles_late)
+void ExpansionInterfaceManager::ChangeDeviceCallback(
+    Core::System& system, u64 userdata, s64 cycles_late)
 {
   u8 channel = (u8)(userdata >> 32);
   u8 type = (u8)(userdata >> 16);
   u8 num = (u8)userdata;
 
-  system.GetExpansionInterface().m_channels.at(channel)->AddDevice(static_cast<EXIDeviceType>(type),
-                                                                   num);
+  system.GetExpansionInterface().m_channels.at(channel)->AddDevice(
+      static_cast<EXIDeviceType>(type), num);
 }
 
-void ExpansionInterfaceManager::ChangeDevice(Slot slot, EXIDeviceType device_type,
-                                             CoreTiming::FromThread from_thread)
+void ExpansionInterfaceManager::ChangeDevice(
+    Slot slot, EXIDeviceType device_type, CoreTiming::FromThread from_thread)
 {
   ChangeDevice(SlotToEXIChannel(slot), SlotToEXIDevice(slot), device_type, from_thread);
 }
 
-void ExpansionInterfaceManager::ChangeDevice(u8 channel, u8 device_num, EXIDeviceType device_type,
-                                             CoreTiming::FromThread from_thread)
+void ExpansionInterfaceManager::ChangeDevice(
+    u8 channel, u8 device_num, EXIDeviceType device_type, CoreTiming::FromThread from_thread)
 {
   // Let the hardware see no device for 1 second
   auto& core_timing = m_system.GetCoreTiming();
   core_timing.ScheduleEvent(0, m_event_type_change_device,
-                            ((u64)channel << 32) | ((u64)EXIDeviceType::None << 16) | device_num,
-                            from_thread);
-  core_timing.ScheduleEvent(
-      m_system.GetSystemTimers().GetTicksPerSecond(), m_event_type_change_device,
-      ((u64)channel << 32) | ((u64)device_type << 16) | device_num, from_thread);
+      ((u64)channel << 32) | ((u64)EXIDeviceType::None << 16) | device_num, from_thread);
+  core_timing.ScheduleEvent(m_system.GetSystemTimers().GetTicksPerSecond(),
+      m_event_type_change_device, ((u64)channel << 32) | ((u64)device_type << 16) | device_num,
+      from_thread);
 }
 
 CEXIChannel* ExpansionInterfaceManager::GetChannel(u32 index)
@@ -258,14 +257,14 @@ void ExpansionInterfaceManager::UpdateInterrupts()
   m_system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_EXI, causeInt);
 }
 
-void ExpansionInterfaceManager::UpdateInterruptsCallback(Core::System& system, u64 userdata,
-                                                         s64 cycles_late)
+void ExpansionInterfaceManager::UpdateInterruptsCallback(
+    Core::System& system, u64 userdata, s64 cycles_late)
 {
   system.GetExpansionInterface().UpdateInterrupts();
 }
 
-void ExpansionInterfaceManager::ScheduleUpdateInterrupts(CoreTiming::FromThread from,
-                                                         int cycles_late)
+void ExpansionInterfaceManager::ScheduleUpdateInterrupts(
+    CoreTiming::FromThread from, int cycles_late)
 {
   m_system.GetCoreTiming().ScheduleEvent(cycles_late, m_event_type_update_interrupts, 0, from);
 }

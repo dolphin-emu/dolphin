@@ -15,13 +15,13 @@ using FigureUIPosition = IOS::HLE::USB::FigureUIPosition;
 extern "C" {
 
 JNIEXPORT jobject JNICALL
-Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_getFigureMap(JNIEnv* env,
-                                                                                 jobject obj)
+Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_getFigureMap(
+    JNIEnv* env, jobject obj)
 {
   auto& system = Core::System::GetInstance();
 
   jobject hash_map_obj = env->NewObject(IDCache::GetHashMapClass(), IDCache::GetHashMapInit(),
-                                        system.GetInfinityBase().GetFigureList().size());
+      system.GetInfinityBase().GetFigureList().size());
 
   jclass long_class = env->FindClass("java/lang/Long");
   jmethodID long_init = env->GetMethodID(long_class, "<init>", "(J)V");
@@ -30,8 +30,8 @@ Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_getFigureMap
   {
     const std::string& name = it.first;
     jobject figure_number = env->NewObject(long_class, long_init, (jlong)it.second);
-    env->CallObjectMethod(hash_map_obj, IDCache::GetHashMapPut(), figure_number,
-                          ToJString(env, name));
+    env->CallObjectMethod(
+        hash_map_obj, IDCache::GetHashMapPut(), figure_number, ToJString(env, name));
     env->DeleteLocalRef(figure_number);
   }
 
@@ -39,13 +39,13 @@ Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_getFigureMap
 }
 
 JNIEXPORT jobject JNICALL
-Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_getInverseFigureMap(JNIEnv* env,
-                                                                                        jobject obj)
+Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_getInverseFigureMap(
+    JNIEnv* env, jobject obj)
 {
   auto& system = Core::System::GetInstance();
 
   jobject hash_map_obj = env->NewObject(IDCache::GetHashMapClass(), IDCache::GetHashMapInit(),
-                                        system.GetInfinityBase().GetFigureList().size());
+      system.GetInfinityBase().GetFigureList().size());
 
   jclass long_class = env->FindClass("java/lang/Long");
   jmethodID long_init = env->GetMethodID(long_class, "<init>", "(J)V");
@@ -54,8 +54,8 @@ Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_getInverseFi
   {
     const std::string& name = it.first;
     jobject figure_number = env->NewObject(long_class, long_init, (jlong)it.second);
-    env->CallObjectMethod(hash_map_obj, IDCache::GetHashMapPut(), ToJString(env, name),
-                          figure_number);
+    env->CallObjectMethod(
+        hash_map_obj, IDCache::GetHashMapPut(), ToJString(env, name), figure_number);
     env->DeleteLocalRef(figure_number);
   }
 
@@ -63,19 +63,16 @@ Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_getInverseFi
 }
 
 JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_removeFigure(JNIEnv* env,
-                                                                                 jclass clazz,
-                                                                                 jint position)
+Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_removeFigure(
+    JNIEnv* env, jclass clazz, jint position)
 {
   auto& system = Core::System::GetInstance();
   system.GetInfinityBase().RemoveFigure(static_cast<FigureUIPosition>(position));
 }
 
 JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_loadFigure(JNIEnv* env,
-                                                                               jclass clazz,
-                                                                               jint position,
-                                                                               jstring file_name)
+Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_loadFigure(
+    JNIEnv* env, jclass clazz, jint position, jstring file_name)
 {
   File::IOFile inf_file(GetJString(env, file_name), "r+b");
   if (!inf_file)
@@ -90,9 +87,8 @@ Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_loadFigure(J
 
   auto& system = Core::System::GetInstance();
   system.GetInfinityBase().RemoveFigure(static_cast<FigureUIPosition>(position));
-  return ToJString(env,
-                   system.GetInfinityBase().LoadFigure(file_data, std::move(inf_file),
-                                                       static_cast<FigureUIPosition>(position)));
+  return ToJString(env, system.GetInfinityBase().LoadFigure(file_data, std::move(inf_file),
+                            static_cast<FigureUIPosition>(position)));
 }
 
 JNIEXPORT jstring JNICALL
@@ -118,8 +114,7 @@ Java_org_dolphinemu_dolphinemu_features_infinitybase_InfinityConfig_createFigure
     return nullptr;
   }
 
-  return ToJString(env,
-                   system.GetInfinityBase().LoadFigure(file_data, std::move(inf_file),
-                                                       static_cast<FigureUIPosition>(position)));
+  return ToJString(env, system.GetInfinityBase().LoadFigure(file_data, std::move(inf_file),
+                            static_cast<FigureUIPosition>(position)));
 }
 }

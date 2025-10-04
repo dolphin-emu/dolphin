@@ -21,8 +21,8 @@ class FIFOPlayerWindow : public QWidget
 {
   Q_OBJECT
 public:
-  explicit FIFOPlayerWindow(FifoPlayer& fifo_player, FifoRecorder& fifo_recorder,
-                            QWidget* parent = nullptr);
+  explicit FIFOPlayerWindow(
+      FifoPlayer& fifo_player, FifoRecorder& fifo_recorder, QWidget* parent = nullptr);
   ~FIFOPlayerWindow() override;
 
 signals:

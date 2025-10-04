@@ -29,11 +29,11 @@ using PixelShaderUid = ShaderUid<pixel_ubershader_uid_data>;
 PixelShaderUid GetPixelShaderUid();
 
 ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
-                          const pixel_ubershader_uid_data* uid_data);
+    const pixel_ubershader_uid_data* uid_data);
 
 void EnumeratePixelShaderUids(const std::function<void(const PixelShaderUid&)>& callback);
-void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& host_config,
-                                   PixelShaderUid* uid);
+void ClearUnusedPixelShaderUidBits(
+    APIType api_type, const ShaderHostConfig& host_config, PixelShaderUid* uid);
 }  // namespace UberShader
 
 template <>
@@ -43,8 +43,7 @@ struct fmt::formatter<UberShader::pixel_ubershader_uid_data>
   template <typename FormatContext>
   auto format(const UberShader::pixel_ubershader_uid_data& uid, FormatContext& ctx) const
   {
-    return fmt::format_to(
-        ctx.out(), "Pixel UberShader for {} texgens{}{}{}{}", uid.num_texgens,
+    return fmt::format_to(ctx.out(), "Pixel UberShader for {} texgens{}{}{}{}", uid.num_texgens,
         uid.early_depth ? ", early-depth" : "", uid.per_pixel_depth ? ", per-pixel depth" : "",
         uid.uint_output ? ", uint output" : "", uid.no_dual_src ? ", no dual-source blending" : "");
   }

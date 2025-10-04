@@ -47,7 +47,7 @@ bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 }
 
 bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
-                    const std::string& outfile_path, const CompressCB& callback)
+    const std::string& outfile_path, const CompressCB& callback)
 {
   ASSERT(infile->GetDataSizeType() == DataSizeType::Accurate);
 
@@ -103,7 +103,7 @@ bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
     {
       PanicAlertFmtT("Failed to write the output file \"{0}\".\n"
                      "Check that you have enough space available on the target drive.",
-                     outfile_path);
+          outfile_path);
       success = false;
       break;
     }

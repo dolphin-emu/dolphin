@@ -6,22 +6,25 @@
 #include "VideoCommon/AbstractTexture.h"
 
 AbstractFramebuffer::AbstractFramebuffer(AbstractTexture* color_attachment,
-                                         AbstractTexture* depth_attachment,
-                                         std::vector<AbstractTexture*> additional_color_attachments,
-                                         AbstractTextureFormat color_format,
-                                         AbstractTextureFormat depth_format, u32 width, u32 height,
-                                         u32 layers, u32 samples)
-    : m_color_attachment(color_attachment), m_depth_attachment(depth_attachment),
-      m_additional_color_attachments(std::move(additional_color_attachments)),
-      m_color_format(color_format), m_depth_format(depth_format), m_width(width), m_height(height),
-      m_layers(layers), m_samples(samples)
+    AbstractTexture* depth_attachment, std::vector<AbstractTexture*> additional_color_attachments,
+    AbstractTextureFormat color_format, AbstractTextureFormat depth_format, u32 width, u32 height,
+    u32 layers, u32 samples)
+    : m_color_attachment(color_attachment)
+    , m_depth_attachment(depth_attachment)
+    , m_additional_color_attachments(std::move(additional_color_attachments))
+    , m_color_format(color_format)
+    , m_depth_format(depth_format)
+    , m_width(width)
+    , m_height(height)
+    , m_layers(layers)
+    , m_samples(samples)
 {
 }
 
 AbstractFramebuffer::~AbstractFramebuffer() = default;
 
-bool AbstractFramebuffer::ValidateConfig(
-    const AbstractTexture* color_attachment, const AbstractTexture* depth_attachment,
+bool AbstractFramebuffer::ValidateConfig(const AbstractTexture* color_attachment,
+    const AbstractTexture* depth_attachment,
     const std::vector<AbstractTexture*>& additional_color_attachments)
 {
   // Must have at least a color or depth attachment.
@@ -35,9 +38,8 @@ bool AbstractFramebuffer::ValidateConfig(
   // Currently we only expose a single mip level for render target textures.
   // MSAA textures are not supported with mip levels on most backends, and it simplifies our
   // handling of framebuffers.
-  auto CheckAttachment = [](const AbstractTexture* tex) {
-    return tex->GetConfig().IsRenderTarget() && tex->GetConfig().levels == 1;
-  };
+  auto CheckAttachment = [](const AbstractTexture* tex)
+  { return tex->GetConfig().IsRenderTarget() && tex->GetConfig().levels == 1; };
   if ((color_attachment && !CheckAttachment(color_attachment)) ||
       (depth_attachment && !CheckAttachment(depth_attachment)))
   {

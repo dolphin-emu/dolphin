@@ -108,10 +108,10 @@ public:
 
   PrimitiveType GetCurrentPrimitiveType() const { return m_current_primitive_type; }
   void AddIndices(OpcodeDecoder::Primitive primitive, u32 num_vertices);
-  bool AreAllVerticesCulled(VertexLoaderBase* loader, OpcodeDecoder::Primitive primitive,
-                            const u8* src, u32 count);
-  virtual DataReader PrepareForAdditionalData(OpcodeDecoder::Primitive primitive, u32 count,
-                                              u32 stride, bool cullall);
+  bool AreAllVerticesCulled(
+      VertexLoaderBase* loader, OpcodeDecoder::Primitive primitive, const u8* src, u32 count);
+  virtual DataReader PrepareForAdditionalData(
+      OpcodeDecoder::Primitive primitive, u32 count, u32 stride, bool cullall);
   /// Switch cullall off after a call to PrepareForAdditionalData with cullall true
   /// Expects that you will add a nonzero number of primitives before the next flush
   /// Returns whether cullall was changed (false if cullall was already off)
@@ -139,22 +139,21 @@ public:
   // Utility pipeline drawing (e.g. EFB copies, post-processing, UI).
   virtual void UploadUtilityUniforms(const void* uniforms, u32 uniforms_size);
   void UploadUtilityVertices(const void* vertices, u32 vertex_stride, u32 num_vertices,
-                             const u16* indices, u32 num_indices, u32* out_base_vertex,
-                             u32* out_base_index);
+      const u16* indices, u32 num_indices, u32* out_base_vertex, u32* out_base_index);
 
   // Determine how many bytes there are in each element of the texel buffer.
   // Needed for alignment and stride calculations.
   static u32 GetTexelBufferElementSize(TexelBufferFormat buffer_format);
 
   // Texel buffer, used for palette conversion.
-  virtual bool UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
-                                 u32* out_offset);
+  virtual bool UploadTexelBuffer(
+      const void* data, u32 data_size, TexelBufferFormat format, u32* out_offset);
 
   // The second set of parameters uploads a second blob in the same buffer, used for GPU texture
   // decoding for palette textures, as both the texture data and palette must be uploaded.
   virtual bool UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
-                                 u32* out_offset, const void* palette_data, u32 palette_size,
-                                 TexelBufferFormat palette_format, u32* out_palette_offset);
+      u32* out_offset, const void* palette_data, u32 palette_size, TexelBufferFormat palette_format,
+      u32* out_palette_offset);
 
   // Call if active config changes
   void OnConfigChange();
@@ -180,7 +179,7 @@ protected:
 
   // Commits/uploads the current batch of vertices.
   virtual void CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
-                            u32* out_base_vertex, u32* out_base_index);
+      u32* out_base_vertex, u32* out_base_index);
 
   // Uploads uniform buffers for GX draws.
   virtual void UploadUniforms();
@@ -224,18 +223,18 @@ private:
   static constexpr u32 MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK = 10;
 
   void RenderDrawCall(PixelShaderManager& pixel_shader_manager,
-                      GeometryShaderManager& geometry_shader_manager,
-                      const CustomPixelShaderContents& custom_pixel_shader_contents,
-                      std::span<u8> custom_pixel_shader_uniforms, PrimitiveType primitive_type,
-                      const AbstractPipeline* current_pipeline);
+      GeometryShaderManager& geometry_shader_manager,
+      const CustomPixelShaderContents& custom_pixel_shader_contents,
+      std::span<u8> custom_pixel_shader_uniforms, PrimitiveType primitive_type,
+      const AbstractPipeline* current_pipeline);
   void UpdatePipelineConfig();
   void UpdatePipelineObject();
 
-  const AbstractPipeline*
-  GetCustomPipeline(const CustomPixelShaderContents& custom_pixel_shader_contents,
-                    const VideoCommon::GXPipelineUid& current_pipeline_config,
-                    const VideoCommon::GXUberPipelineUid& current_uber_pipeline_confi,
-                    const AbstractPipeline* current_pipeline) const;
+  const AbstractPipeline* GetCustomPipeline(
+      const CustomPixelShaderContents& custom_pixel_shader_contents,
+      const VideoCommon::GXPipelineUid& current_pipeline_config,
+      const VideoCommon::GXUberPipelineUid& current_uber_pipeline_confi,
+      const AbstractPipeline* current_pipeline) const;
 
   bool m_is_flushed = true;
   FlushStatistics m_flush_statistics = {};

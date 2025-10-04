@@ -247,8 +247,8 @@ private:
 
   // CC helpers
   void Update_SR_Register64(Gen::X64Reg val = Gen::EAX, Gen::X64Reg scratch = Gen::EDX);
-  void UpdateSR64AddSub(Gen::X64Reg val1, Gen::X64Reg val2, Gen::X64Reg result, Gen::X64Reg scratch,
-                        bool subtract);
+  void UpdateSR64AddSub(
+      Gen::X64Reg val1, Gen::X64Reg val2, Gen::X64Reg result, Gen::X64Reg scratch, bool subtract);
   void UpdateSR64Add(Gen::X64Reg val1, Gen::X64Reg val2, Gen::X64Reg result, Gen::X64Reg scratch)
   {
     UpdateSR64AddSub(val1, val2, result, scratch, false);
@@ -286,8 +286,8 @@ private:
   void dsp_op_write_reg_imm(int reg, u16 val);
   void dsp_conditional_extend_accum(int reg);
   void dsp_conditional_extend_accum_imm(int reg, u16 val);
-  void dsp_op_read_reg(int reg, Gen::X64Reg host_dreg,
-                       RegisterExtension extend = RegisterExtension::None);
+  void dsp_op_read_reg(
+      int reg, Gen::X64Reg host_dreg, RegisterExtension extend = RegisterExtension::None);
 
   // SDSP memory offset helpers
   Gen::OpArg M_SDSP_pc();

@@ -46,17 +46,17 @@ std::vector<BBoxType> OGLBoundingBox::Read(u32 index, u32 length)
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
     glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(BBoxType) * index,
-                       sizeof(BBoxType) * length, values.data());
+        sizeof(BBoxType) * length, values.data());
   }
   else
   {
     // Using glMapBufferRange is faster on AMD cards by a measurable margin.
-    void* ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(BBoxType) * NUM_BBOX_VALUES,
-                                 GL_MAP_READ_BIT);
+    void* ptr = glMapBufferRange(
+        GL_SHADER_STORAGE_BUFFER, 0, sizeof(BBoxType) * NUM_BBOX_VALUES, GL_MAP_READ_BIT);
     if (ptr)
     {
       std::memcpy(values.data(), static_cast<const u8*>(ptr) + sizeof(BBoxType) * index,
-                  sizeof(BBoxType) * length);
+          sizeof(BBoxType) * length);
 
       glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
     }
@@ -70,7 +70,7 @@ void OGLBoundingBox::Write(u32 index, std::span<const BBoxType> values)
 {
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_buffer_id);
   glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(BBoxType) * index,
-                  sizeof(BBoxType) * values.size(), values.data());
+      sizeof(BBoxType) * values.size(), values.data());
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 

@@ -179,7 +179,7 @@ static void DecodeDXTBlock(u32* dst, const DXTBlock* src, int pitch)
 // TODO: refactor algorithms using _mm_loadl_epi64 unaligned loads to prefer 128-bit aligned loads.
 
 void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, TextureFormat texformat,
-                            const u8* tlut, TLUTFormat tlutfmt)
+    const u8* tlut, TLUTFormat tlutfmt)
 {
   const int Wsteps4 = (width + 3) / 4;
   const int Wsteps8 = (width + 7) / 8;
@@ -304,8 +304,8 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, Text
       for (int x = 0; x < width; x += 4)
       {
         for (int iy = 0; iy < 4; iy++)
-          DecodeBytes_RGBA8(dst + (y + iy) * width + x, (u16*)src + 4 * iy,
-                            (u16*)src + 4 * iy + 16);
+          DecodeBytes_RGBA8(
+              dst + (y + iy) * width + x, (u16*)src + 4 * iy, (u16*)src + 4 * iy + 16);
         src += 64;
       }
   }

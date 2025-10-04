@@ -90,14 +90,14 @@ static void RestoreFile(const std::string& path_in_nand)
 static void CopySave(FS::FileSystem* source, FS::FileSystem* dest, const u64 title_id)
 {
   dest->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL, Common::GetTitleDataPath(title_id) + '/',
-                       0, {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite});
+      0, {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite});
   const auto source_save = WiiSave::MakeNandStorage(source, title_id);
   const auto dest_save = WiiSave::MakeNandStorage(dest, title_id);
   WiiSave::Copy(source_save.get(), dest_save.get());
 }
 
 static bool CopyNandFile(FS::FileSystem* source_fs, const std::string& source_file,
-                         FS::FileSystem* dest_fs, const std::string& dest_file)
+    FS::FileSystem* dest_fs, const std::string& dest_file)
 {
   auto source_handle =
       source_fs->OpenFile(IOS::PID_KERNEL, IOS::PID_KERNEL, source_file, IOS::HLE::FS::Mode::Read);
@@ -107,12 +107,11 @@ static bool CopyNandFile(FS::FileSystem* source_fs, const std::string& source_fi
     return true;
 
   dest_fs->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL, dest_file, 0,
-                          {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite});
+      {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite});
 
-  auto dest_handle =
-      dest_fs->CreateAndOpenFile(IOS::PID_KERNEL, IOS::PID_KERNEL, source_file,
-                                 {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
-                                  IOS::HLE::FS::Mode::ReadWrite});
+  auto dest_handle = dest_fs->CreateAndOpenFile(IOS::PID_KERNEL, IOS::PID_KERNEL, source_file,
+      {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
+          IOS::HLE::FS::Mode::ReadWrite});
   if (!dest_handle)
     return false;
 
@@ -125,8 +124,8 @@ static bool CopyNandFile(FS::FileSystem* source_fs, const std::string& source_fi
   return true;
 }
 
-static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs,
-                                            const BootSessionData& boot_session_data)
+static void InitializeDeterministicWiiSaves(
+    FS::FileSystem* session_fs, const BootSessionData& boot_session_data)
 {
   auto& movie = Core::System::GetInstance().GetMovie();
   const u64 title_id = SConfig::GetInstance().GetTitleID();
@@ -153,7 +152,7 @@ static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs,
 
     auto* source_fs = sync_fs ? sync_fs : configured_fs.get();
     INFO_LOG_FMT(CORE, "Wii Save Init: Copying from {} to session_fs.",
-                 sync_fs ? "sync_fs" : "configured_fs");
+        sync_fs ? "sync_fs" : "configured_fs");
 
     // Copy the current user's save to the Blank NAND
     if (movie.IsMovieActive() && !NetPlay::IsNetPlayRunning())
@@ -171,8 +170,8 @@ static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs,
     }
 
     // Copy Mii data
-    if (!CopyNandFile(source_fs, Common::GetMiiDatabasePath(), session_fs,
-                      Common::GetMiiDatabasePath()))
+    if (!CopyNandFile(
+            source_fs, Common::GetMiiDatabasePath(), session_fs, Common::GetMiiDatabasePath()))
     {
       WARN_LOG_FMT(CORE, "Failed to copy Mii database to the NAND");
     }
@@ -281,8 +280,8 @@ void RestoreWiiSettings(RestoreReason reason)
 /// Copy a directory from host_source_path (on the host FS) to nand_target_path on the NAND.
 ///
 /// Both paths should not have trailing slashes. To specify the NAND root, use "".
-static bool CopySysmenuFilesToFS(FS::FileSystem* fs, const std::string& host_source_path,
-                                 const std::string& nand_target_path)
+static bool CopySysmenuFilesToFS(
+    FS::FileSystem* fs, const std::string& host_source_path, const std::string& nand_target_path)
 {
   const auto entries = File::ScanDirectoryTree(host_source_path, false);
   for (const File::FSTEntry& entry : entries.children)
@@ -359,7 +358,7 @@ void InitializeWiiFileSystemContents(
       if (save_redirect->m_clone)
       {
         File::Copy(Common::GetTitleDataPath(title_id, Common::FromWhichRoot::Session),
-                   save_redirect->m_target_path);
+            save_redirect->m_target_path);
       }
     }
     s_nand_redirects.emplace_back(IOS::HLE::FS::NandRedirect{
@@ -380,10 +379,10 @@ void CleanUpWiiFileSystemContents(const BootSessionData& boot_session_data)
       wii_root_is_temporary && (!netplay_settings || (is_netplay_write && is_netplay_host));
 
   INFO_LOG_FMT(CORE,
-               "Wii FS Cleanup: cleanup_required = {} (wii_root_is_temporary = {}, "
-               "is netplay = {}, is_netplay_write = {}, is_netplay_host = {})",
-               cleanup_required, wii_root_is_temporary, !!netplay_settings, is_netplay_write,
-               is_netplay_host);
+      "Wii FS Cleanup: cleanup_required = {} (wii_root_is_temporary = {}, "
+      "is netplay = {}, is_netplay_write = {}, is_netplay_host = {})",
+      cleanup_required, wii_root_is_temporary, !!netplay_settings, is_netplay_write,
+      is_netplay_host);
 
   if (!cleanup_required)
     return;
@@ -407,7 +406,7 @@ void CleanUpWiiFileSystemContents(const BootSessionData& boot_session_data)
 
   // Copy back Mii data
   if (!CopyNandFile(ios->GetFS().get(), Common::GetMiiDatabasePath(), configured_fs.get(),
-                    Common::GetMiiDatabasePath()))
+          Common::GetMiiDatabasePath()))
   {
     WARN_LOG_FMT(CORE, "Failed to copy Mii database to the NAND");
   }
@@ -418,7 +417,7 @@ void CleanUpWiiFileSystemContents(const BootSessionData& boot_session_data)
   // cleanup process.
   const bool copy_all = !netplay_settings || netplay_settings->savedata_sync_all_wii;
   for (const u64 title_id :
-       (copy_all ? ios->GetESCore().GetInstalledTitles() : boot_session_data.GetWiiSyncTitles()))
+      (copy_all ? ios->GetESCore().GetInstalledTitles() : boot_session_data.GetWiiSyncTitles()))
   {
     INFO_LOG_FMT(CORE, "Wii FS Cleanup: Copying {0:016x}.", title_id);
 
@@ -427,7 +426,7 @@ void CleanUpWiiFileSystemContents(const BootSessionData& boot_session_data)
     // FS won't write the save if the directory doesn't exist
     const std::string title_path = Common::GetTitleDataPath(title_id);
     configured_fs->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL, title_path + '/', 0,
-                                  {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite});
+        {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite});
 
     const auto user_save = WiiSave::MakeNandStorage(configured_fs.get(), title_id);
 

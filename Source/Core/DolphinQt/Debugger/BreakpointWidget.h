@@ -36,9 +36,9 @@ public:
   void AddBP(u32 addr);
   void AddBP(u32 addr, bool break_on_hit, bool log_on_hit, const QString& condition);
   void AddAddressMBP(u32 addr, bool on_read = true, bool on_write = true, bool do_log = true,
-                     bool do_break = true, const QString& condition = {});
+      bool do_break = true, const QString& condition = {});
   void AddRangedMBP(u32 from, u32 to, bool do_read = true, bool do_write = true, bool do_log = true,
-                    bool do_break = true, const QString& condition = {});
+      bool do_break = true, const QString& condition = {});
   void UpdateButtonsEnabled();
   void Update();
 

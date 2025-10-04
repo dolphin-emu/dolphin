@@ -72,13 +72,9 @@ void GLContextAGL::Swap()
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool GLContextAGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool core)
 {
-  NSOpenGLPixelFormatAttribute attr[] = {
-      NSOpenGLPFADoubleBuffer,
-      NSOpenGLPFAOpenGLProfile,
-      core ? NSOpenGLProfileVersion3_2Core : NSOpenGLProfileVersionLegacy,
-      NSOpenGLPFAAccelerated,
-      stereo ? NSOpenGLPFAStereo : static_cast<NSOpenGLPixelFormatAttribute>(0),
-      0};
+  NSOpenGLPixelFormatAttribute attr[] = {NSOpenGLPFADoubleBuffer, NSOpenGLPFAOpenGLProfile,
+      core ? NSOpenGLProfileVersion3_2Core : NSOpenGLProfileVersionLegacy, NSOpenGLPFAAccelerated,
+      stereo ? NSOpenGLPFAStereo : static_cast<NSOpenGLPixelFormatAttribute>(0), 0};
   m_pixel_format = [[NSOpenGLPixelFormat alloc] initWithAttributes:attr];
   if (m_pixel_format == nil)
   {

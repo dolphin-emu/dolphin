@@ -28,7 +28,7 @@ HacksWidget::HacksWidget(GraphicsPane* gfx_pane) : m_game_layer{gfx_pane->GetCon
   connect(gfx_pane, &GraphicsPane::BackendChanged, this, &HacksWidget::OnBackendChanged);
   OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   connect(m_gpu_texture_decoding, &QCheckBox::toggled,
-          [gfx_pane] { emit gfx_pane->UseGPUTextureDecodingChanged(); });
+      [gfx_pane] { emit gfx_pane->UseGPUTextureDecodingChanged(); });
 }
 
 void HacksWidget::CreateWidgets()
@@ -39,14 +39,14 @@ void HacksWidget::CreateWidgets()
   auto* efb_box = new QGroupBox(tr("Embedded Frame Buffer (EFB)"));
   auto* efb_layout = new QGridLayout();
   efb_box->setLayout(efb_layout);
-  m_skip_efb_cpu = new ConfigBool(tr("Skip EFB Access from CPU"),
-                                  Config::GFX_HACK_EFB_ACCESS_ENABLE, m_game_layer, true);
+  m_skip_efb_cpu = new ConfigBool(
+      tr("Skip EFB Access from CPU"), Config::GFX_HACK_EFB_ACCESS_ENABLE, m_game_layer, true);
   m_ignore_format_changes = new ConfigBool(
       tr("Ignore Format Changes"), Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES, m_game_layer, true);
-  m_store_efb_copies = new ConfigBool(tr("Store EFB Copies to Texture Only"),
-                                      Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM, m_game_layer);
-  m_defer_efb_copies = new ConfigBool(tr("Defer EFB Copies to RAM"),
-                                      Config::GFX_HACK_DEFER_EFB_COPIES, m_game_layer);
+  m_store_efb_copies = new ConfigBool(
+      tr("Store EFB Copies to Texture Only"), Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM, m_game_layer);
+  m_defer_efb_copies = new ConfigBool(
+      tr("Defer EFB Copies to RAM"), Config::GFX_HACK_DEFER_EFB_COPIES, m_game_layer);
 
   efb_layout->addWidget(m_skip_efb_cpu, 0, 0);
   efb_layout->addWidget(m_ignore_format_changes, 0, 1);
@@ -60,8 +60,8 @@ void HacksWidget::CreateWidgets()
 
   m_accuracy =
       new ConfigSlider({0, 512, 128}, Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES, m_game_layer);
-  m_gpu_texture_decoding = new ConfigBool(tr("GPU Texture Decoding"),
-                                          Config::GFX_ENABLE_GPU_TEXTURE_DECODING, m_game_layer);
+  m_gpu_texture_decoding = new ConfigBool(
+      tr("GPU Texture Decoding"), Config::GFX_ENABLE_GPU_TEXTURE_DECODING, m_game_layer);
 
   auto* safe_label = new QLabel(tr("Safe"));
   safe_label->setAlignment(Qt::AlignRight);
@@ -79,12 +79,12 @@ void HacksWidget::CreateWidgets()
   auto* xfb_layout = new QVBoxLayout();
   xfb_box->setLayout(xfb_layout);
 
-  m_store_xfb_copies = new ConfigBool(tr("Store XFB Copies to Texture Only"),
-                                      Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM, m_game_layer);
+  m_store_xfb_copies = new ConfigBool(
+      tr("Store XFB Copies to Texture Only"), Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM, m_game_layer);
   m_immediate_xfb =
       new ConfigBool(tr("Immediately Present XFB"), Config::GFX_HACK_IMMEDIATE_XFB, m_game_layer);
-  m_skip_duplicate_xfbs = new ConfigBool(tr("Skip Presenting Duplicate Frames"),
-                                         Config::GFX_HACK_SKIP_DUPLICATE_XFBS, m_game_layer);
+  m_skip_duplicate_xfbs = new ConfigBool(
+      tr("Skip Presenting Duplicate Frames"), Config::GFX_HACK_SKIP_DUPLICATE_XFBS, m_game_layer);
 
   xfb_layout->addWidget(m_store_xfb_copies);
   xfb_layout->addWidget(m_immediate_xfb);
@@ -142,22 +142,22 @@ void HacksWidget::ConnectWidgets()
 {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
   connect(m_store_efb_copies, &QCheckBox::checkStateChanged,
-          [this](Qt::CheckState) { UpdateDeferEFBCopiesEnabled(); });
+      [this](Qt::CheckState) { UpdateDeferEFBCopiesEnabled(); });
   connect(m_store_xfb_copies, &QCheckBox::checkStateChanged,
-          [this](Qt::CheckState) { UpdateDeferEFBCopiesEnabled(); });
+      [this](Qt::CheckState) { UpdateDeferEFBCopiesEnabled(); });
   connect(m_immediate_xfb, &QCheckBox::checkStateChanged,
-          [this](Qt::CheckState) { UpdateSkipPresentingDuplicateFramesEnabled(); });
+      [this](Qt::CheckState) { UpdateSkipPresentingDuplicateFramesEnabled(); });
   connect(m_vi_skip, &QCheckBox::checkStateChanged,
-          [this](Qt::CheckState) { UpdateSkipPresentingDuplicateFramesEnabled(); });
+      [this](Qt::CheckState) { UpdateSkipPresentingDuplicateFramesEnabled(); });
 #else
-  connect(m_store_efb_copies, &QCheckBox::stateChanged,
-          [this](int) { UpdateDeferEFBCopiesEnabled(); });
-  connect(m_store_xfb_copies, &QCheckBox::stateChanged,
-          [this](int) { UpdateDeferEFBCopiesEnabled(); });
+  connect(
+      m_store_efb_copies, &QCheckBox::stateChanged, [this](int) { UpdateDeferEFBCopiesEnabled(); });
+  connect(
+      m_store_xfb_copies, &QCheckBox::stateChanged, [this](int) { UpdateDeferEFBCopiesEnabled(); });
   connect(m_immediate_xfb, &QCheckBox::stateChanged,
-          [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
+      [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
   connect(m_vi_skip, &QCheckBox::stateChanged,
-          [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
+      [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
 #endif
 }
 

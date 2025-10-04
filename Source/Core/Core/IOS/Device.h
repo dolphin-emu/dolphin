@@ -137,13 +137,13 @@ struct IOCtlRequest final : Request
   u32 buffer_out_size = 0;
   IOCtlRequest(Core::System& system, u32 address);
   void Log(std::string_view description, Common::Log::LogType type = Common::Log::LogType::IOS,
-           Common::Log::LogLevel level = Common::Log::LogLevel::LINFO) const;
+      Common::Log::LogLevel level = Common::Log::LogLevel::LINFO) const;
   void Dump(Core::System& system, const std::string& description,
-            Common::Log::LogType type = Common::Log::LogType::IOS,
-            Common::Log::LogLevel level = Common::Log::LogLevel::LINFO) const;
+      Common::Log::LogType type = Common::Log::LogType::IOS,
+      Common::Log::LogLevel level = Common::Log::LogLevel::LINFO) const;
   void DumpUnknown(Core::System& system, const std::string& description,
-                   Common::Log::LogType type = Common::Log::LogType::IOS,
-                   Common::Log::LogLevel level = Common::Log::LogLevel::LERROR) const;
+      Common::Log::LogType type = Common::Log::LogType::IOS,
+      Common::Log::LogLevel level = Common::Log::LogLevel::LERROR) const;
 };
 
 struct IOCtlVRequest final : Request
@@ -169,11 +169,11 @@ struct IOCtlVRequest final : Request
   IOCtlVRequest(Core::System& system, u32 address);
   bool HasNumberOfValidVectors(size_t in_count, size_t io_count) const;
   void Dump(Core::System& system, std::string_view description,
-            Common::Log::LogType type = Common::Log::LogType::IOS,
-            Common::Log::LogLevel level = Common::Log::LogLevel::LINFO) const;
+      Common::Log::LogType type = Common::Log::LogType::IOS,
+      Common::Log::LogLevel level = Common::Log::LogLevel::LINFO) const;
   void DumpUnknown(Core::System& system, const std::string& description,
-                   Common::Log::LogType type = Common::Log::LogType::IOS,
-                   Common::Log::LogLevel level = Common::Log::LogLevel::LERROR) const;
+      Common::Log::LogType type = Common::Log::LogType::IOS,
+      Common::Log::LogLevel level = Common::Log::LogLevel::LERROR) const;
 };
 
 class Device
@@ -229,8 +229,8 @@ private:
 class EmulationDevice : public Device
 {
 public:
-  EmulationDevice(EmulationKernel& ios, const std::string& device_name,
-                  DeviceType type = DeviceType::Static)
+  EmulationDevice(
+      EmulationKernel& ios, const std::string& device_name, DeviceType type = DeviceType::Static)
       : Device(ios, device_name, type)
   {
   }

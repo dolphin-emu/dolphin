@@ -66,8 +66,10 @@ static QString RefToDisplayString(ControlReference* ref)
 }
 
 MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, ControlType control_type)
-    : ElidedButton{RefToDisplayString(ref)}, m_mapping_window{parent->GetParent()},
-      m_reference{ref}, m_control_type{control_type}
+    : ElidedButton{RefToDisplayString(ref)}
+    , m_mapping_window{parent->GetParent()}
+    , m_reference{ref}
+    , m_control_type{control_type}
 {
   if (m_reference->IsInput())
   {
@@ -82,8 +84,8 @@ MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, Contr
   connect(this, &MappingButton::clicked, this, &MappingButton::Clicked);
 
   connect(parent, &MappingWidget::ConfigChanged, this, &MappingButton::ConfigChanged);
-  connect(this, &MappingButton::ConfigChanged,
-          [this] { setText(RefToDisplayString(m_reference)); });
+  connect(
+      this, &MappingButton::ConfigChanged, [this] { setText(RefToDisplayString(m_reference)); });
 }
 
 void MappingButton::AdvancedPressed()
@@ -91,7 +93,7 @@ void MappingButton::AdvancedPressed()
   m_mapping_window->CancelMapping();
 
   IOWindow io(m_mapping_window, m_mapping_window->GetController(), m_reference,
-              m_reference->IsInput() ? IOWindow::Type::Input : IOWindow::Type::Output);
+      m_reference->IsInput() ? IOWindow::Type::Input : IOWindow::Type::Output);
   io.exec();
 
   ConfigChanged();
@@ -114,8 +116,8 @@ void MappingButton::Clear()
   m_reference->range = 100.0 / SLIDER_TICK_COUNT;
 
   m_reference->SetExpression("");
-  m_mapping_window->GetController()->UpdateSingleControlReference(g_controller_interface,
-                                                                  m_reference);
+  m_mapping_window->GetController()->UpdateSingleControlReference(
+      g_controller_interface, m_reference);
 
   m_mapping_window->Save();
 

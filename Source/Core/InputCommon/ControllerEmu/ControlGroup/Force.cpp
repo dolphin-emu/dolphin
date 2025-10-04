@@ -25,12 +25,12 @@ Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType
   AddInput(Translatability::Translate, _trans("Backward"));
 
   AddSetting(&m_distance_setting,
-             {_trans("Distance"),
-              // i18n: The symbol/abbreviation for centimeters.
-              _trans("cm"),
-              // i18n: Refering to emulated wii remote swing movement.
-              _trans("Distance of travel from neutral position.")},
-             50, 1, 100);
+      {_trans("Distance"),
+          // i18n: The symbol/abbreviation for centimeters.
+          _trans("cm"),
+          // i18n: Refering to emulated wii remote swing movement.
+          _trans("Distance of travel from neutral position.")},
+      50, 1, 100);
 
   // These speed settings are used to calculate a maximum jerk (change in acceleration).
   // The calculation uses a travel distance of 1 meter.
@@ -39,29 +39,29 @@ Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType
   // Values result in an exponentially increasing jerk.
 
   AddSetting(&m_speed_setting,
-             {_trans("Speed"),
-              // i18n: The symbol/abbreviation for meters per second.
-              _trans("m/s"),
-              // i18n: Refering to emulated wii remote swing movement.
-              _trans("Peak velocity of outward swing movements.")},
-             16, 1, 40);
+      {_trans("Speed"),
+          // i18n: The symbol/abbreviation for meters per second.
+          _trans("m/s"),
+          // i18n: Refering to emulated wii remote swing movement.
+          _trans("Peak velocity of outward swing movements.")},
+      16, 1, 40);
 
   // "Return Speed" allows for a "slow return" that won't trigger additional actions.
   AddSetting(&m_return_speed_setting,
-             {_trans("Return Speed"),
-              // i18n: The symbol/abbreviation for meters per second.
-              _trans("m/s"),
-              // i18n: Refering to emulated wii remote swing movement.
-              _trans("Peak velocity of movements to neutral position.")},
-             2, 1, 40);
+      {_trans("Return Speed"),
+          // i18n: The symbol/abbreviation for meters per second.
+          _trans("m/s"),
+          // i18n: Refering to emulated wii remote swing movement.
+          _trans("Peak velocity of movements to neutral position.")},
+      2, 1, 40);
 
   AddSetting(&m_angle_setting,
-             {_trans("Angle"),
-              // i18n: The symbol/abbreviation for degrees (unit of angular measure).
-              _trans("°"),
-              // i18n: Refering to emulated wii remote swing movement.
-              _trans("Rotation applied at extremities of swing.")},
-             90, 1, 180);
+      {_trans("Angle"),
+          // i18n: The symbol/abbreviation for degrees (unit of angular measure).
+          _trans("°"),
+          // i18n: Refering to emulated wii remote swing movement.
+          _trans("Rotation applied at extremities of swing.")},
+      90, 1, 180);
 }
 
 Force::ReshapeData Force::GetReshapableState(bool adjusted) const
@@ -137,23 +137,23 @@ Shake::Shake(const std::string& name_, ControlState default_intensity_scale)
   // Total travel distance in centimeters.
   // Negative values can be used to reverse the initial direction of movement.
   AddSetting(&m_intensity_setting,
-             // i18n: Refers to the intensity of shaking an emulated wiimote.
-             {_trans("Intensity"),
-              // i18n: The symbol/abbreviation for centimeters.
-              _trans("cm"),
-              // i18n: Refering to emulated wii remote movement.
-              _trans("Total travel distance.")},
-             10 * default_intensity_scale, -50, 50);
+      // i18n: Refers to the intensity of shaking an emulated wiimote.
+      {_trans("Intensity"),
+          // i18n: The symbol/abbreviation for centimeters.
+          _trans("cm"),
+          // i18n: Refering to emulated wii remote movement.
+          _trans("Total travel distance.")},
+      10 * default_intensity_scale, -50, 50);
 
   // Approximate number of up/down movements in one second.
   AddSetting(&m_frequency_setting,
-             // i18n: Refers to a number of actions per second in Hz.
-             {_trans("Frequency"),
-              // i18n: The symbol/abbreviation for hertz (cycles per second).
-              _trans("Hz"),
-              // i18n: Refering to emulated wii remote movement.
-              _trans("Number of shakes per second.")},
-             6, 1, 20);
+      // i18n: Refers to a number of actions per second in Hz.
+      {_trans("Frequency"),
+          // i18n: The symbol/abbreviation for hertz (cycles per second).
+          _trans("Hz"),
+          // i18n: Refering to emulated wii remote movement.
+          _trans("Number of shakes per second.")},
+      6, 1, 20);
 }
 
 Shake::StateData Shake::GetState(bool adjusted) const

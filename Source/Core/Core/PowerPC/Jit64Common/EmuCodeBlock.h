@@ -55,21 +55,21 @@ public:
   // Jumps to the returned FixupBranch if lookup fails.
   Gen::FixupBranch BATAddressLookup(Gen::X64Reg addr, Gen::X64Reg tmp, const void* bat_table);
 
-  Gen::FixupBranch CheckIfSafeAddress(const Gen::OpArg& reg_value, Gen::X64Reg reg_addr,
-                                      BitSet32 registers_in_use);
+  Gen::FixupBranch CheckIfSafeAddress(
+      const Gen::OpArg& reg_value, Gen::X64Reg reg_addr, BitSet32 registers_in_use);
   // these return the address of the MOV, for backpatching
   void UnsafeWriteRegToReg(Gen::OpArg reg_value, Gen::X64Reg reg_addr, int accessSize,
-                           s32 offset = 0, bool swap = true, Gen::MovInfo* info = nullptr);
+      s32 offset = 0, bool swap = true, Gen::MovInfo* info = nullptr);
   void UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize,
-                           s32 offset = 0, bool swap = true, Gen::MovInfo* info = nullptr);
+      s32 offset = 0, bool swap = true, Gen::MovInfo* info = nullptr);
 
   bool UnsafeLoadToReg(Gen::X64Reg reg_value, Gen::OpArg opAddress, int accessSize, s32 offset,
-                       bool signExtend, Gen::MovInfo* info = nullptr);
+      bool signExtend, Gen::MovInfo* info = nullptr);
 
   // Generate a load/write from the MMIO handler for a given address. Only
   // call for known addresses in MMIO range (MMIO::IsMMIOAddress).
   void MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value, BitSet32 registers_in_use,
-                     u32 address, int access_size, bool sign_extend);
+      u32 address, int access_size, bool sign_extend);
 
   enum SafeLoadStoreFlags
   {
@@ -86,17 +86,17 @@ public:
   };
 
   void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize, s32 offset,
-                     BitSet32 registersInUse, bool signExtend, int flags = 0);
-  void SafeLoadToRegImmediate(Gen::X64Reg reg_value, u32 address, int accessSize,
-                              BitSet32 registersInUse, bool signExtend);
+      BitSet32 registersInUse, bool signExtend, int flags = 0);
+  void SafeLoadToRegImmediate(
+      Gen::X64Reg reg_value, u32 address, int accessSize, BitSet32 registersInUse, bool signExtend);
 
   // Clobbers RSCRATCH or reg_addr depending on the relevant flag.  Preserves
   // reg_value if the load fails and js.memcheck is enabled.
   // Works with immediate inputs and simple registers only.
   void SafeWriteRegToReg(Gen::OpArg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset,
-                         BitSet32 registersInUse, int flags = 0);
+      BitSet32 registersInUse, int flags = 0);
   void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset,
-                         BitSet32 registersInUse, int flags = 0);
+      BitSet32 registersInUse, int flags = 0);
 
   // applies to safe and unsafe WriteRegToReg
   bool WriteClobbersRegValue(int accessSize, bool swap);
@@ -111,12 +111,11 @@ public:
   void JitClearCA();
 
   void avx_op(void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, const Gen::OpArg&),
-              void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&), Gen::X64Reg regOp,
-              const Gen::OpArg& arg1, const Gen::OpArg& arg2, bool packed = true,
-              bool reversible = false);
+      void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&), Gen::X64Reg regOp,
+      const Gen::OpArg& arg1, const Gen::OpArg& arg2, bool packed = true, bool reversible = false);
   void avx_op(void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, const Gen::OpArg&, u8),
-              void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&, u8), Gen::X64Reg regOp,
-              const Gen::OpArg& arg1, const Gen::OpArg& arg2, u8 imm);
+      void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&, u8), Gen::X64Reg regOp,
+      const Gen::OpArg& arg1, const Gen::OpArg& arg2, u8 imm);
 
   void Force25BitPrecision(Gen::X64Reg output, const Gen::OpArg& input, Gen::X64Reg tmp);
 

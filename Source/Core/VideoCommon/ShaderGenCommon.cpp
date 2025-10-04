@@ -51,7 +51,7 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
 }
 
 std::string GetDiskShaderCacheFileName(APIType api_type, const char* type, bool include_gameid,
-                                       bool include_host_config, bool include_api)
+    bool include_host_config, bool include_api)
 {
   if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
     File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
@@ -116,8 +116,8 @@ void WriteIsNanHeader(ShaderCode& out, APIType api_type)
   }
 }
 
-void WriteBitfieldExtractHeader(ShaderCode& out, APIType api_type,
-                                const ShaderHostConfig& host_config)
+void WriteBitfieldExtractHeader(
+    ShaderCode& out, APIType api_type, const ShaderHostConfig& host_config)
 {
   // ==============================================
   //  BitfieldExtract for APIs which don't have it
@@ -141,9 +141,8 @@ void WriteBitfieldExtractHeader(ShaderCode& out, APIType api_type,
 }
 
 static void DefineOutputMember(ShaderCode& object, APIType api_type, std::string_view qualifier,
-                               std::string_view type, std::string_view name, int var_index,
-                               ShaderStage stage, std::string_view semantic = {},
-                               int semantic_index = -1)
+    std::string_view type, std::string_view name, int var_index, ShaderStage stage,
+    std::string_view semantic = {}, int semantic_index = -1)
 {
   object.Write("\t{} {} {}", qualifier, type, name);
 
@@ -162,8 +161,7 @@ static void DefineOutputMember(ShaderCode& object, APIType api_type, std::string
 }
 
 void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
-                             const ShaderHostConfig& host_config, std::string_view qualifier,
-                             ShaderStage stage)
+    const ShaderHostConfig& host_config, std::string_view qualifier, ShaderStage stage)
 {
   // SPIRV-Cross names all semantics as "TEXCOORD"
   // Unfortunately Geometry shaders (which also uses this function)
@@ -182,32 +180,32 @@ void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
     if (host_config.backend_geometry_shaders)
     {
       DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 0, stage, "TEXCOORD",
-                         index_base + index_offset);
+          index_base + index_offset);
       DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 1, stage, "TEXCOORD",
-                         index_base + index_offset + 1);
+          index_base + index_offset + 1);
       index_offset += 2;
     }
 
     for (unsigned int i = 0; i < texgens; ++i)
     {
       DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, stage, "TEXCOORD",
-                         index_base + index_offset + i);
+          index_base + index_offset + i);
     }
     index_offset += texgens;
 
     if (!host_config.fast_depth_calc)
     {
       DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, stage, "TEXCOORD",
-                         index_base + index_offset);
+          index_base + index_offset);
       index_offset++;
     }
 
     if (host_config.per_pixel_lighting)
     {
       DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, stage, "TEXCOORD",
-                         index_base + index_offset);
+          index_base + index_offset);
       DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, stage, "TEXCOORD",
-                         index_base + index_offset + 1);
+          index_base + index_offset + 1);
       index_offset += 2;
     }
   }
@@ -219,31 +217,31 @@ void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
 
     if (host_config.backend_geometry_shaders)
     {
-      DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 0, stage,
-                         "SV_ClipDistance", 0);
-      DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 1, stage,
-                         "SV_ClipDistance", 1);
+      DefineOutputMember(
+          object, api_type, qualifier, "float", "clipDist", 0, stage, "SV_ClipDistance", 0);
+      DefineOutputMember(
+          object, api_type, qualifier, "float", "clipDist", 1, stage, "SV_ClipDistance", 1);
     }
 
     for (unsigned int i = 0; i < texgens; ++i)
       DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, stage, "TEXCOORD", i);
 
     if (!host_config.fast_depth_calc)
-      DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, stage, "TEXCOORD",
-                         texgens);
+      DefineOutputMember(
+          object, api_type, qualifier, "float4", "clipPos", -1, stage, "TEXCOORD", texgens);
 
     if (host_config.per_pixel_lighting)
     {
-      DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, stage, "TEXCOORD",
-                         texgens + 1);
-      DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, stage, "TEXCOORD",
-                         texgens + 2);
+      DefineOutputMember(
+          object, api_type, qualifier, "float3", "Normal", -1, stage, "TEXCOORD", texgens + 1);
+      DefineOutputMember(
+          object, api_type, qualifier, "float3", "WorldPos", -1, stage, "TEXCOORD", texgens + 2);
     }
   }
 }
 
 void AssignVSOutputMembers(ShaderCode& object, std::string_view a, std::string_view b, u32 texgens,
-                           const ShaderHostConfig& host_config)
+    const ShaderHostConfig& host_config)
 {
   object.Write("\t{}.pos = {}.pos;\n", a, b);
   object.Write("\t{}.colors_0 = {}.colors_0;\n", a, b);
@@ -269,7 +267,7 @@ void AssignVSOutputMembers(ShaderCode& object, std::string_view a, std::string_v
 }
 
 void GenerateLineOffset(ShaderCode& object, std::string_view indent0, std::string_view indent1,
-                        std::string_view pos_a, std::string_view pos_b, std::string_view sign)
+    std::string_view pos_a, std::string_view pos_b, std::string_view sign)
 {
   // GameCube/Wii's line drawing algorithm is a little quirky. It does not
   // use the correct line caps. Instead, the line caps are vertical or
@@ -287,8 +285,8 @@ void GenerateLineOffset(ShaderCode& object, std::string_view indent0, std::strin
                // Lerp LineWidth/2 from [0..VpHeight] to [1..-1]
                "{indent1}offset = float2(0, {sign}-" I_LINEPTPARAMS ".z / " I_LINEPTPARAMS ".y);\n"
                "{indent0}}}\n",
-               fmt::arg("indent0", indent0), fmt::arg("indent1", indent1),  //
-               fmt::arg("pos_a", pos_a), fmt::arg("pos_b", pos_b), fmt::arg("sign", sign));
+      fmt::arg("indent0", indent0), fmt::arg("indent1", indent1),  //
+      fmt::arg("pos_a", pos_a), fmt::arg("pos_b", pos_b), fmt::arg("sign", sign));
 }
 
 void GenerateVSLineExpansion(ShaderCode& object, std::string_view indent, u32 texgens)
@@ -299,11 +297,11 @@ void GenerateVSLineExpansion(ShaderCode& object, std::string_view indent, u32 te
                "[3], other_pos));\n"
                "\n"
                "{0}float expand_sign = is_right ? 1.0f : -1.0f;\n",
-               indent);
+      indent);
   GenerateLineOffset(object, indent, indent1, "o.pos", "other_pos", "expand_sign * ");
   object.Write("\n"
                "{}o.pos.xy += offset * o.pos.w;\n",
-               indent);
+      indent);
   if (texgens > 0)
   {
     object.Write("{}if ((" I_TEXOFFSET "[2] != 0) && is_right) {{\n", indent);
@@ -330,7 +328,7 @@ void GenerateVSPointExpansion(ShaderCode& object, std::string_view indent, u32 t
                  "{0}  float texOffsetMagnitude = 1.0f / float(" I_TEXOFFSET "[3]);\n"
                  "{0}  float2 texOffset = float2(is_right ? texOffsetMagnitude : 0.0f, "
                  "is_bottom ? texOffsetMagnitude : 0.0f);",
-                 indent);
+        indent);
     for (u32 i = 0; i < texgens; i++)
     {
       object.Write("{}  if (((" I_TEXOFFSET "[1] >> {}) & 0x1) != 0)\n", indent, i);

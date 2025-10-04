@@ -182,7 +182,7 @@ double CalculateRawDiscReadTime(u64 offset, u64 length, bool wii_disc)
   }
 
   DEBUG_LOG_FMT(DVDINTERFACE, "Read {:#x} @ {:#x} @{} mm: {} us, {} MiB/s", length, offset,
-                physical_offset * 1000, length / speed * 1000 * 1000, speed / 1024 / 1024);
+      physical_offset * 1000, length / speed * 1000 * 1000, speed / 1024 / 1024);
 
   return length / speed;
 }

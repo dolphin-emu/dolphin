@@ -17,9 +17,13 @@ class MMIOWriteCodeGenerator : public MMIO::WriteHandlingMethodVisitor<T>
 {
 public:
   MMIOWriteCodeGenerator(Core::System* system, ARM64XEmitter* emit, BitSet32 gprs_in_use,
-                         BitSet32 fprs_in_use, ARM64Reg src_reg, u32 address)
-      : m_system(system), m_emit(emit), m_gprs_in_use(gprs_in_use), m_fprs_in_use(fprs_in_use),
-        m_src_reg(src_reg), m_address(address)
+      BitSet32 fprs_in_use, ARM64Reg src_reg, u32 address)
+      : m_system(system)
+      , m_emit(emit)
+      , m_gprs_in_use(gprs_in_use)
+      , m_fprs_in_use(fprs_in_use)
+      , m_src_reg(src_reg)
+      , m_address(address)
   {
   }
 
@@ -98,9 +102,14 @@ class MMIOReadCodeGenerator : public MMIO::ReadHandlingMethodVisitor<T>
 {
 public:
   MMIOReadCodeGenerator(Core::System* system, ARM64XEmitter* emit, BitSet32 gprs_in_use,
-                        BitSet32 fprs_in_use, ARM64Reg dst_reg, u32 address, bool sign_extend)
-      : m_system(system), m_emit(emit), m_gprs_in_use(gprs_in_use), m_fprs_in_use(fprs_in_use),
-        m_dst_reg(dst_reg), m_address(address), m_sign_extend(sign_extend)
+      BitSet32 fprs_in_use, ARM64Reg dst_reg, u32 address, bool sign_extend)
+      : m_system(system)
+      , m_emit(emit)
+      , m_gprs_in_use(gprs_in_use)
+      , m_fprs_in_use(fprs_in_use)
+      , m_dst_reg(dst_reg)
+      , m_address(address)
+      , m_sign_extend(sign_extend)
   {
   }
 
@@ -206,7 +215,7 @@ void SwapPairs(ARM64XEmitter* emit, ARM64Reg dst_reg, ARM64Reg src_reg, u32 flag
 }
 
 void ByteswapAfterLoad(ARM64XEmitter* emit, ARM64FloatEmitter* float_emit, ARM64Reg dst_reg,
-                       ARM64Reg src_reg, u32 flags, bool is_reversed, bool is_extended)
+    ARM64Reg src_reg, u32 flags, bool is_reversed, bool is_extended)
 {
   if (is_reversed == !(flags & BackPatchInfo::FLAG_REVERSE))
   {
@@ -255,7 +264,7 @@ void ByteswapAfterLoad(ARM64XEmitter* emit, ARM64FloatEmitter* float_emit, ARM64
 }
 
 ARM64Reg ByteswapBeforeStore(ARM64XEmitter* emit, ARM64FloatEmitter* float_emit, ARM64Reg tmp_reg,
-                             ARM64Reg src_reg, u32 flags, bool want_reversed)
+    ARM64Reg src_reg, u32 flags, bool want_reversed)
 {
   // Byteswapping zero is still zero.
   // We'd typically expect a writable register to be passed in, but recognize
@@ -300,27 +309,27 @@ ARM64Reg ByteswapBeforeStore(ARM64XEmitter* emit, ARM64FloatEmitter* float_emit,
 }
 
 void MMIOLoadToReg(Core::System& system, MMIO::Mapping* mmio, ARM64XEmitter* emit,
-                   ARM64FloatEmitter* float_emit, BitSet32 gprs_in_use, BitSet32 fprs_in_use,
-                   ARM64Reg dst_reg, u32 address, u32 flags)
+    ARM64FloatEmitter* float_emit, BitSet32 gprs_in_use, BitSet32 fprs_in_use, ARM64Reg dst_reg,
+    u32 address, u32 flags)
 {
   ASSERT(!(flags & BackPatchInfo::FLAG_FLOAT));
 
   if (flags & BackPatchInfo::FLAG_SIZE_8)
   {
     MMIOReadCodeGenerator<u8> gen(&system, emit, gprs_in_use, fprs_in_use, dst_reg, address,
-                                  flags & BackPatchInfo::FLAG_EXTEND);
+        flags & BackPatchInfo::FLAG_EXTEND);
     mmio->GetHandlerForRead<u8>(address).Visit(gen);
   }
   else if (flags & BackPatchInfo::FLAG_SIZE_16)
   {
     MMIOReadCodeGenerator<u16> gen(&system, emit, gprs_in_use, fprs_in_use, dst_reg, address,
-                                   flags & BackPatchInfo::FLAG_EXTEND);
+        flags & BackPatchInfo::FLAG_EXTEND);
     mmio->GetHandlerForRead<u16>(address).Visit(gen);
   }
   else if (flags & BackPatchInfo::FLAG_SIZE_32)
   {
     MMIOReadCodeGenerator<u32> gen(&system, emit, gprs_in_use, fprs_in_use, dst_reg, address,
-                                   flags & BackPatchInfo::FLAG_EXTEND);
+        flags & BackPatchInfo::FLAG_EXTEND);
     mmio->GetHandlerForRead<u32>(address).Visit(gen);
   }
 
@@ -328,8 +337,8 @@ void MMIOLoadToReg(Core::System& system, MMIO::Mapping* mmio, ARM64XEmitter* emi
 }
 
 void MMIOWriteRegToAddr(Core::System& system, MMIO::Mapping* mmio, ARM64XEmitter* emit,
-                        ARM64FloatEmitter* float_emit, BitSet32 gprs_in_use, BitSet32 fprs_in_use,
-                        ARM64Reg src_reg, u32 address, u32 flags)
+    ARM64FloatEmitter* float_emit, BitSet32 gprs_in_use, BitSet32 fprs_in_use, ARM64Reg src_reg,
+    u32 address, u32 flags)
 {
   ASSERT(!(flags & BackPatchInfo::FLAG_FLOAT));
 

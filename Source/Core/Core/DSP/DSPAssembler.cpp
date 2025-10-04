@@ -64,30 +64,16 @@ struct fmt::formatter<DSP::DSPAssembler::LocationContext>
 
 namespace DSP
 {
-static const char* err_string[] = {"",
-                                   "Unknown Error",
-                                   "Unknown opcode",
-                                   "Not enough parameters",
-                                   "Too many parameters",
-                                   "Wrong parameter",
-                                   "Expected parameter of type 'string'",
-                                   "Expected parameter of type 'value'",
-                                   "Expected parameter of type 'register'",
-                                   "Expected parameter of type 'memory pointer'",
-                                   "Expected parameter of type 'immediate'",
-                                   "Incorrect binary value",
-                                   "Incorrect hexadecimal value",
-                                   "Incorrect decimal value",
-                                   "Label already exists",
-                                   "Label not defined",
-                                   "No matching brackets",
-                                   "This opcode cannot be extended",
-                                   "Given extending params for non extensible opcode",
-                                   "Wrong parameter: must be accumulator register",
-                                   "Wrong parameter: must be mid accumulator register",
-                                   "Invalid register",
-                                   "Number out of range",
-                                   "Program counter out of range"};
+static const char* err_string[] = {"", "Unknown Error", "Unknown opcode", "Not enough parameters",
+    "Too many parameters", "Wrong parameter", "Expected parameter of type 'string'",
+    "Expected parameter of type 'value'", "Expected parameter of type 'register'",
+    "Expected parameter of type 'memory pointer'", "Expected parameter of type 'immediate'",
+    "Incorrect binary value", "Incorrect hexadecimal value", "Incorrect decimal value",
+    "Label already exists", "Label not defined", "No matching brackets",
+    "This opcode cannot be extended", "Given extending params for non extensible opcode",
+    "Wrong parameter: must be accumulator register",
+    "Wrong parameter: must be mid accumulator register", "Invalid register", "Number out of range",
+    "Program counter out of range"};
 
 DSPAssembler::DSPAssembler(const AssemblerSettings& settings) : m_settings(settings)
 {
@@ -95,8 +81,8 @@ DSPAssembler::DSPAssembler(const AssemblerSettings& settings) : m_settings(setti
 
 DSPAssembler::~DSPAssembler() = default;
 
-bool DSPAssembler::Assemble(const std::string& text, std::vector<u16>& code,
-                            std::vector<int>* line_numbers)
+bool DSPAssembler::Assemble(
+    const std::string& text, std::vector<u16>& code, std::vector<int>* line_numbers)
 {
   if (line_numbers)
     line_numbers->clear();
@@ -136,16 +122,16 @@ void DSPAssembler::ShowError(AssemblerError err_code)
 }
 
 template <typename... Args>
-void DSPAssembler::ShowError(AssemblerError err_code, fmt::format_string<Args...> format,
-                             Args&&... args)
+void DSPAssembler::ShowError(
+    AssemblerError err_code, fmt::format_string<Args...> format, Args&&... args)
 {
   if (!m_settings.force)
     m_failed = true;
 
   const auto msg = fmt::format(format, std::forward<Args>(args)...);
 
-  m_last_error_str = fmt::format("{}\nERROR: {}: {}\n\n", m_location,
-                                 err_string[static_cast<size_t>(err_code)], msg);
+  m_last_error_str = fmt::format(
+      "{}\nERROR: {}: {}\n\n", m_location, err_string[static_cast<size_t>(err_code)], msg);
   fmt::print(stderr, "{}", m_last_error_str);
   m_last_error = err_code;
 }
@@ -377,9 +363,8 @@ u32 DSPAssembler::ParseExpression(const char* ptr)
     if (val < 0)
     {
       ShowWarning("Number Underflow: {}", val);
-      val = 0x10000 +
-            (val &
-             0xffff);  // ATTENTION: avoid a terrible bug!!! number cannot write with '-' in sprintf
+      val = 0x10000 + (val & 0xffff);  // ATTENTION: avoid a terrible bug!!! number cannot write
+                                       // with '-' in sprintf
     }
     sprintf(d_buffer, "%d", val);
   }
@@ -511,8 +496,8 @@ static u16 get_mask_shifted_down(u16 mask)
   return mask;
 }
 
-bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t count,
-                                OpcodeType type)
+bool DSPAssembler::VerifyParams(
+    const DSPOPCTemplate* opc, param_t* par, size_t count, OpcodeType type)
 {
   for (size_t i = 0; i < count; i++)
   {
@@ -635,20 +620,20 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
         if (value == 7)  // value 7 for sbclr/sbset
         {
           ShowError(AssemblerError::NumberOutOfRange, "Value must be from 0x0 to {:#x}, was {:#x}",
-                    value, (int)par[i].val);
+              value, (int)par[i].val);
         }
         else if (opc->params[i].type == P_MEM)
         {
           if (value < 256)
           {
             ShowError(AssemblerError::NumberOutOfRange,
-                      "Address value must be from {:#x} to {:#x}, was {:#x}", valueu, (value >> 1),
-                      (int)par[i].val);
+                "Address value must be from {:#x} to {:#x}, was {:#x}", valueu, (value >> 1),
+                (int)par[i].val);
           }
           else
           {
             ShowError(AssemblerError::NumberOutOfRange,
-                      "Address value must be from 0x0 to {:#x}, was {:#x}", value, (int)par[i].val);
+                "Address value must be from 0x0 to {:#x}, was {:#x}", value, (int)par[i].val);
           }
         }
         else if ((int)par[i].val < -((value >> 1) + 1))
@@ -656,14 +641,14 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
           if (value < 128)
           {
             ShowError(AssemblerError::NumberOutOfRange,
-                      "Value must be from {:#x} to {:#x}, was {:#x}", -((value >> 1) + 1),
-                      value >> 1, (int)par[i].val);
+                "Value must be from {:#x} to {:#x}, was {:#x}", -((value >> 1) + 1), value >> 1,
+                (int)par[i].val);
           }
           else
           {
             ShowError(AssemblerError::NumberOutOfRange,
-                      "Value must be from {:#x} to {:#x} or 0x0 to {:#x}, was {:#x}",
-                      -((value >> 1) + 1), value >> 1, value, (int)par[i].val);
+                "Value must be from {:#x} to {:#x} or 0x0 to {:#x}, was {:#x}", -((value >> 1) + 1),
+                value >> 1, value, (int)par[i].val);
           }
         }
       }
@@ -674,7 +659,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
           if (par[i].val > (unsigned)value)
           {
             ShowError(AssemblerError::NumberOutOfRange,
-                      "Value must be from {:#x} to {:#x}, was {:#x}\n", valueu, value, par[i].val);
+                "Value must be from {:#x} to {:#x}, was {:#x}\n", valueu, value, par[i].val);
           }
         }
         else if (opc->params[i].type == P_MEM)
@@ -687,14 +672,13 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
             if (value < 256)
             {
               ShowError(AssemblerError::NumberOutOfRange,
-                        "Address value must be from {:#x} to {:#x}, was {:04x}\n", valueu, value,
-                        par[i].val);
+                  "Address value must be from {:#x} to {:#x}, was {:04x}\n", valueu, value,
+                  par[i].val);
             }
             else
             {
               ShowError(AssemblerError::NumberOutOfRange,
-                        "Address value must be less than {:#x}, was {:04x}\n", value + 1,
-                        par[i].val);
+                  "Address value must be less than {:#x}, was {:04x}\n", value + 1, par[i].val);
             }
           }
         }
@@ -707,13 +691,13 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
             if (value < 64)
             {
               ShowError(AssemblerError::NumberOutOfRange,
-                        "Value must be from {:#x} to {:#x}, was {:#x}\n", -(value + 1), value,
-                        par[i].val);
+                  "Value must be from {:#x} to {:#x}, was {:#x}\n", -(value + 1), value,
+                  par[i].val);
             }
             else
             {
               ShowError(AssemblerError::NumberOutOfRange,
-                        "Value must be less than {:#x}, was {:#x}\n", value + 1, par[i].val);
+                  "Value must be less than {:#x}, was {:#x}\n", value + 1, par[i].val);
             }
           }
         }
@@ -848,7 +832,7 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
           if (!((ptr[j] >= 'A' && ptr[j] <= 'Z') || (ptr[j] == '_')))
             valid = false;
         if (!((ptr[j] >= '0' && ptr[j] <= '9') || (ptr[j] >= 'A' && ptr[j] <= 'Z') ||
-              (ptr[j] == '_')))
+                (ptr[j] == '_')))
           valid = false;
       }
       if (valid)
@@ -977,7 +961,7 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
         if (m_cur_addr > params[0].val)
         {
           ShowError(AssemblerError::PCOutOfRange, "WARNPC at 0x{:04x}, expected 0x{:04x} or less",
-                    m_cur_addr, params[0].val);
+              m_cur_addr, params[0].val);
         }
       }
       else

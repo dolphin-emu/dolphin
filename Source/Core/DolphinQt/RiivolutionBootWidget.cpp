@@ -40,10 +40,12 @@ struct GuiRiivolutionPatchIndex
 Q_DECLARE_METATYPE(GuiRiivolutionPatchIndex);
 
 RiivolutionBootWidget::RiivolutionBootWidget(std::string game_id, std::optional<u16> revision,
-                                             std::optional<u8> disc, std::string base_game_path,
-                                             QWidget* parent)
-    : QDialog(parent), m_game_id(std::move(game_id)), m_revision(revision), m_disc_number(disc),
-      m_base_game_path(std::move(base_game_path))
+    std::optional<u8> disc, std::string base_game_path, QWidget* parent)
+    : QDialog(parent)
+    , m_game_id(std::move(game_id))
+    , m_revision(revision)
+    , m_disc_number(disc)
+    , m_base_game_path(std::move(base_game_path))
 {
   setWindowTitle(tr("Start with Riivolution Patches"));
 
@@ -99,9 +101,9 @@ void RiivolutionBootWidget::ConnectWidgets()
 {
 #ifdef USE_RETRO_ACHIEVEMENTS
   connect(m_hc_warning, &HardcoreWarningWidget::OpenAchievementSettings, this,
-          &RiivolutionBootWidget::OpenAchievementSettings);
+      &RiivolutionBootWidget::OpenAchievementSettings);
   connect(m_hc_warning, &HardcoreWarningWidget::OpenAchievementSettings, this,
-          &RiivolutionBootWidget::reject);
+      &RiivolutionBootWidget::reject);
 #endif  // USE_RETRO_ACHIEVEMENTS
 }
 
@@ -133,8 +135,8 @@ static std::string FindRoot(const std::string& path)
 void RiivolutionBootWidget::OpenXML()
 {
   const std::string& riivolution_dir = File::GetUserPath(D_RIIVOLUTION_IDX);
-  QStringList paths = QFileDialog::getOpenFileNames(
-      this, tr("Select Riivolution XML file"), QString::fromStdString(riivolution_dir),
+  QStringList paths = QFileDialog::getOpenFileNames(this, tr("Select Riivolution XML file"),
+      QString::fromStdString(riivolution_dir),
       QStringLiteral("%1 (*.xml);;%2 (*)").arg(tr("Riivolution XML files")).arg(tr("All Files")));
   if (paths.isEmpty())
     return;
@@ -145,16 +147,14 @@ void RiivolutionBootWidget::OpenXML()
     auto parsed = DiscIO::Riivolution::ParseFile(p);
     if (!parsed)
     {
-      ModalMessageBox::warning(
-          this, tr("Failed loading XML."),
+      ModalMessageBox::warning(this, tr("Failed loading XML."),
           tr("Did not recognize %1 as a valid Riivolution XML file.").arg(path));
       continue;
     }
 
     if (!parsed->IsValidForGame(m_game_id, m_revision, m_disc_number))
     {
-      ModalMessageBox::warning(
-          this, tr("Invalid game."),
+      ModalMessageBox::warning(this, tr("Invalid game."),
           tr("The patches in %1 are not for the selected game or game revision.").arg(path));
       continue;
     }
@@ -167,8 +167,8 @@ void RiivolutionBootWidget::OpenXML()
   }
 }
 
-void RiivolutionBootWidget::MakeGUIForParsedFile(std::string path, std::string root,
-                                                 DiscIO::Riivolution::Disc input_disc)
+void RiivolutionBootWidget::MakeGUIForParsedFile(
+    std::string path, std::string root, DiscIO::Riivolution::Disc input_disc)
 {
   const size_t disc_index = m_discs.size();
   const auto& disc =
@@ -186,15 +186,17 @@ void RiivolutionBootWidget::MakeGUIForParsedFile(std::string path, std::string r
   xml_root_layout->addWidget(xml_root_line_edit, 0);
   xml_root_layout->addWidget(xml_root_open, 0);
   disc_layout->addLayout(xml_root_layout);
-  connect(xml_root_open, &QPushButton::clicked, this, [this, xml_root_line_edit, disc_index] {
-    QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
-        this, tr("Select the Virtual SD Card Root"), xml_root_line_edit->text()));
-    if (!dir.isEmpty())
-    {
-      xml_root_line_edit->setText(dir);
-      m_discs[disc_index].root = dir.toStdString();
-    }
-  });
+  connect(xml_root_open, &QPushButton::clicked, this,
+      [this, xml_root_line_edit, disc_index]
+      {
+        QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
+            this, tr("Select the Virtual SD Card Root"), xml_root_line_edit->text()));
+        if (!dir.isEmpty())
+        {
+          xml_root_line_edit->setText(dir);
+          m_discs[disc_index].root = dir.toStdString();
+        }
+      });
 
   for (size_t section_index = 0; section_index < disc.disc.m_sections.size(); ++section_index)
   {
@@ -214,20 +216,22 @@ void RiivolutionBootWidget::MakeGUIForParsedFile(std::string path, std::string r
       for (size_t choice_index = 0; choice_index < option.m_choices.size(); ++choice_index)
       {
         const auto& choice = option.m_choices[choice_index];
-        const GuiRiivolutionPatchIndex gui_index{disc_index, section_index, option_index,
-                                                 choice_index + 1};
+        const GuiRiivolutionPatchIndex gui_index{
+            disc_index, section_index, option_index, choice_index + 1};
         selection->addItem(QString::fromStdString(choice.m_name), QVariant::fromValue(gui_index));
       }
       if (option.m_selected_choice <= option.m_choices.size())
         selection->setCurrentIndex(static_cast<int>(option.m_selected_choice));
 
-      connect(selection, &QComboBox::currentIndexChanged, this, [this, selection](int idx) {
-        const auto gui_index = selection->currentData().value<GuiRiivolutionPatchIndex>();
-        auto& selected_disc = m_discs[gui_index.m_disc_index].disc;
-        auto& selected_section = selected_disc.m_sections[gui_index.m_section_index];
-        auto& selected_option = selected_section.m_options[gui_index.m_option_index];
-        selected_option.m_selected_choice = static_cast<u32>(gui_index.m_choice_index);
-      });
+      connect(selection, &QComboBox::currentIndexChanged, this,
+          [this, selection](int idx)
+          {
+            const auto gui_index = selection->currentData().value<GuiRiivolutionPatchIndex>();
+            auto& selected_disc = m_discs[gui_index.m_disc_index].disc;
+            auto& selected_section = selected_disc.m_sections[gui_index.m_section_index];
+            auto& selected_option = selected_section.m_options[gui_index.m_option_index];
+            selected_option.m_selected_choice = static_cast<u32>(gui_index.m_choice_index);
+          });
 
       grid_layout->addWidget(label, row, 0, 1, 1);
       grid_layout->addWidget(selection, row, 1, 1, 1);
@@ -240,8 +244,8 @@ void RiivolutionBootWidget::MakeGUIForParsedFile(std::string path, std::string r
   m_patch_section_layout->addWidget(disc_box);
 }
 
-std::optional<DiscIO::Riivolution::Config>
-RiivolutionBootWidget::LoadConfigXML(const std::string& root_directory)
+std::optional<DiscIO::Riivolution::Config> RiivolutionBootWidget::LoadConfigXML(
+    const std::string& root_directory)
 {
   // The way Riivolution stores settings only makes sense for standard game IDs.
   if (!(m_game_id.size() == 4 || m_game_id.size() == 6))
@@ -339,9 +343,9 @@ void RiivolutionBootWidget::SaveAsPreset()
 
   QDir dir = QFileInfo(QString::fromStdString(m_base_game_path)).dir();
   QString target_path = QFileDialog::getSaveFileName(this, tr("Save Preset"), dir.absolutePath(),
-                                                     QStringLiteral("%1 (*.json);;%2 (*)")
-                                                         .arg(tr("Dolphin Game Mod Preset"))
-                                                         .arg(tr("All Files")));
+      QStringLiteral("%1 (*.json);;%2 (*)")
+          .arg(tr("Dolphin Game Mod Preset"))
+          .arg(tr("All Files")));
   if (target_path.isEmpty())
     return;
 

@@ -89,10 +89,10 @@ void SamplerCache::SetParameters(GLuint sampler_id, const SamplerState& params)
   static constexpr std::array<GLenum, 3> address_modes = {
       {GL_CLAMP_TO_EDGE, GL_REPEAT, GL_MIRRORED_REPEAT}};
 
-  glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S,
-                      address_modes[static_cast<u32>(params.tm0.wrap_u.Value())]);
-  glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T,
-                      address_modes[static_cast<u32>(params.tm0.wrap_v.Value())]);
+  glSamplerParameteri(
+      sampler_id, GL_TEXTURE_WRAP_S, address_modes[static_cast<u32>(params.tm0.wrap_u.Value())]);
+  glSamplerParameteri(
+      sampler_id, GL_TEXTURE_WRAP_T, address_modes[static_cast<u32>(params.tm0.wrap_v.Value())]);
 
   glSamplerParameterf(sampler_id, GL_TEXTURE_MIN_LOD, params.tm1.min_lod / 16.f);
   glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_LOD, params.tm1.max_lod / 16.f);
@@ -105,7 +105,7 @@ void SamplerCache::SetParameters(GLuint sampler_id, const SamplerState& params)
   if (params.tm0.anisotropic_filtering != 0 && g_ogl_config.bSupportsAniso)
   {
     glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-                        static_cast<float>(1 << params.tm0.anisotropic_filtering));
+        static_cast<float>(1 << params.tm0.anisotropic_filtering));
   }
 }
 

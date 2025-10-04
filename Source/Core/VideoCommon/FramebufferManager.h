@@ -35,8 +35,8 @@ constexpr u32 NUM_EFB_REINTERPRET_TYPES = 6;
 template <>
 struct fmt::formatter<EFBReinterpretType> : EnumFormatter<EFBReinterpretType::RGB565ToRGBA6>
 {
-  static constexpr array_type names = {"RGB8 to RGB565", "RGB8 to RGBA6",  "RGBA6 to RGB8",
-                                       "RGB6 to RGB565", "RGB565 to RGB8", "RGB565 to RGBA6"};
+  static constexpr array_type names = {"RGB8 to RGB565", "RGB8 to RGBA6", "RGBA6 to RGB8",
+      "RGB6 to RGB565", "RGB565 to RGB8", "RGB565 to RGBA6"};
   constexpr formatter() : EnumFormatter(names) {}
 };
 
@@ -98,8 +98,8 @@ public:
 
   // Resolve color/depth textures to a non-msaa texture, and return it.
   AbstractTexture* ResolveEFBColorTexture(const MathUtil::Rectangle<int>& region);
-  AbstractTexture* ResolveEFBDepthTexture(const MathUtil::Rectangle<int>& region,
-                                          bool force_r32f = false);
+  AbstractTexture* ResolveEFBDepthTexture(
+      const MathUtil::Rectangle<int>& region, bool force_r32f = false);
 
   // Reinterpret pixel format of EFB color texture.
   // Assumes no render pass is currently in progress.
@@ -110,7 +110,7 @@ public:
 
   // Clears the EFB using shaders.
   void ClearEFB(const MathUtil::Rectangle<int>& rc, bool clear_color, bool clear_alpha,
-                bool clear_z, u32 color, u32 z);
+      bool clear_z, u32 color, u32 z);
 
   AbstractPipeline* GetClearPipeline(bool clear_color, bool clear_alpha, bool clear_z) const;
 
@@ -183,11 +183,11 @@ protected:
   MathUtil::Rectangle<int> GetEFBCacheTileRect(u32 tile_index) const;
   void PopulateEFBCache(bool depth, u32 tile_index, bool async = false);
 
-  void CreatePokeVertices(std::vector<EFBPokeVertex>* destination_list, u32 x, u32 y, float z,
-                          u32 color);
+  void CreatePokeVertices(
+      std::vector<EFBPokeVertex>* destination_list, u32 x, u32 y, float z, u32 color);
 
-  void DrawPokeVertices(const EFBPokeVertex* vertices, u32 vertex_count,
-                        const AbstractPipeline* pipeline);
+  void DrawPokeVertices(
+      const EFBPokeVertex* vertices, u32 vertex_count, const AbstractPipeline* pipeline);
 
   std::tuple<u32, u32> CalculateTargetSize();
 

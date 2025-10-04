@@ -22,7 +22,7 @@ void CopyPreprocessCPStateFromMain()
 {
   static_assert(std::is_trivially_copyable_v<CPState>);
   std::memcpy(static_cast<void*>(&g_preprocess_cp_state),
-              static_cast<const void*>(&g_main_cp_state), sizeof(CPState));
+      static_cast<const void*>(&g_main_cp_state), sizeof(CPState));
 }
 
 std::pair<std::string, std::string> GetCPRegInfo(u8 cmd, u32 value)
@@ -42,19 +42,19 @@ std::pair<std::string, std::string> GetCPRegInfo(u8 cmd, u32 value)
       return std::make_pair("CP_VAT_REG_A invalid", "");
 
     return std::make_pair(fmt::format("CP_VAT_REG_A - Format {}", cmd & CP_VAT_MASK),
-                          fmt::to_string(UVAT_group0{.Hex = value}));
+        fmt::to_string(UVAT_group0{.Hex = value}));
   case CP_VAT_REG_B:
     if (cmd - CP_VAT_REG_B >= CP_NUM_VAT_REG)
       return std::make_pair("CP_VAT_REG_B invalid", "");
 
     return std::make_pair(fmt::format("CP_VAT_REG_B - Format {}", cmd & CP_VAT_MASK),
-                          fmt::to_string(UVAT_group1{.Hex = value}));
+        fmt::to_string(UVAT_group1{.Hex = value}));
   case CP_VAT_REG_C:
     if (cmd - CP_VAT_REG_C >= CP_NUM_VAT_REG)
       return std::make_pair("CP_VAT_REG_C invalid", "");
 
     return std::make_pair(fmt::format("CP_VAT_REG_C - Format {}", cmd & CP_VAT_MASK),
-                          fmt::to_string(UVAT_group2{.Hex = value}));
+        fmt::to_string(UVAT_group2{.Hex = value}));
   case ARRAY_BASE:
     return std::make_pair(
         fmt::format("ARRAY_BASE Array {}", static_cast<CPArray>(cmd & CP_ARRAY_MASK)),
@@ -100,8 +100,8 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
     {
       // All titles using libogc or the official SDK issue 0x20 with value=0 on startup
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesCPPerfCommand);
-      DEBUG_LOG_FMT(VIDEO, "Unknown CP command possibly relating to perf queries used: {:02x}",
-                    sub_cmd);
+      DEBUG_LOG_FMT(
+          VIDEO, "Unknown CP command possibly relating to perf queries used: {:02x}", sub_cmd);
     }
     break;
 
@@ -110,9 +110,9 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
     {
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesMaybeInvalidCPCommand);
       WARN_LOG_FMT(VIDEO,
-                   "CP MATINDEX_A: an exact value of {:02x} was expected "
-                   "but instead a value of {:02x} was seen",
-                   Common::ToUnderlying(MATINDEX_A), sub_cmd);
+          "CP MATINDEX_A: an exact value of {:02x} was expected "
+          "but instead a value of {:02x} was seen",
+          Common::ToUnderlying(MATINDEX_A), sub_cmd);
     }
 
     matrix_index_a.Hex = value;
@@ -123,9 +123,9 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
     {
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesMaybeInvalidCPCommand);
       WARN_LOG_FMT(VIDEO,
-                   "CP MATINDEX_B: an exact value of {:02x} was expected "
-                   "but instead a value of {:02x} was seen",
-                   Common::ToUnderlying(MATINDEX_B), sub_cmd);
+          "CP MATINDEX_B: an exact value of {:02x} was expected "
+          "but instead a value of {:02x} was seen",
+          Common::ToUnderlying(MATINDEX_B), sub_cmd);
     }
 
     matrix_index_b.Hex = value;
@@ -136,9 +136,9 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
     {
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesMaybeInvalidCPCommand);
       WARN_LOG_FMT(VIDEO,
-                   "CP VCD_LO: an exact value of {:02x} was expected "
-                   "but instead a value of {:02x} was seen",
-                   Common::ToUnderlying(VCD_LO), sub_cmd);
+          "CP VCD_LO: an exact value of {:02x} was expected "
+          "but instead a value of {:02x} was seen",
+          Common::ToUnderlying(VCD_LO), sub_cmd);
     }
 
     vtx_desc.low.Hex = value;
@@ -149,9 +149,9 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
     {
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesMaybeInvalidCPCommand);
       WARN_LOG_FMT(VIDEO,
-                   "CP VCD_HI: an exact value of {:02x} was expected "
-                   "but instead a value of {:02x} was seen",
-                   Common::ToUnderlying(VCD_HI), sub_cmd);
+          "CP VCD_HI: an exact value of {:02x} was expected "
+          "but instead a value of {:02x} was seen",
+          Common::ToUnderlying(VCD_HI), sub_cmd);
     }
 
     vtx_desc.high.Hex = value;

@@ -192,8 +192,8 @@ struct Disc
   std::string m_xml_path;
 
   // Checks whether these patches are valid for the given game.
-  bool IsValidForGame(const std::string& game_id, std::optional<u16> revision,
-                      std::optional<u8> disc_number) const;
+  bool IsValidForGame(
+      const std::string& game_id, std::optional<u16> revision, std::optional<u8> disc_number) const;
 
   // Transforms an abstract XML-parsed patch set into a concrete one, with only the selected
   // patches applied and all placeholders replaced.
@@ -225,9 +225,7 @@ std::vector<Patch> GenerateRiivolutionPatchesFromGameModDescriptor(
     const GameModDescriptorRiivolution& descriptor, const std::string& game_id,
     std::optional<u16> revision, std::optional<u8> disc_number);
 std::vector<Patch> GenerateRiivolutionPatchesFromConfig(const std::string& root_directory,
-                                                        const std::string& game_id,
-                                                        std::optional<u16> revision,
-                                                        std::optional<u8> disc_number);
+    const std::string& game_id, std::optional<u16> revision, std::optional<u8> disc_number);
 std::optional<Config> ParseConfigFile(const std::string& filename);
 std::optional<Config> ParseConfigString(std::string_view xml);
 std::string WriteConfigString(const Config& config);

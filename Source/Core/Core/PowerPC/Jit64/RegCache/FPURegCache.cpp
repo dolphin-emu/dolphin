@@ -27,8 +27,8 @@ void FPURegCache::LoadRegister(preg_t preg, X64Reg new_loc)
 
 std::span<const X64Reg> FPURegCache::GetAllocationOrder() const
 {
-  static constexpr X64Reg allocation_order[] = {XMM6,  XMM7,  XMM8,  XMM9, XMM10, XMM11, XMM12,
-                                                XMM13, XMM14, XMM15, XMM2, XMM3,  XMM4,  XMM5};
+  static constexpr X64Reg allocation_order[] = {
+      XMM6, XMM7, XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15, XMM2, XMM3, XMM4, XMM5};
   return allocation_order;
 }
 

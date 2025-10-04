@@ -25,7 +25,8 @@
 #include "DolphinQt/Settings/WiiPane.h"
 
 USBDevicePicker::USBDevicePicker(QWidget* parent, FilterFunctionType filter)
-    : QDialog(parent), m_filter(std::move(filter))
+    : QDialog(parent)
+    , m_filter(std::move(filter))
 {
   InitControls();
   setLayout(main_layout);
@@ -33,8 +34,8 @@ USBDevicePicker::USBDevicePicker(QWidget* parent, FilterFunctionType filter)
   adjustSize();
 }
 
-std::optional<USBUtils::DeviceInfo> USBDevicePicker::Run(QWidget* parent, const QString& title,
-                                                         FilterFunctionType filter)
+std::optional<USBUtils::DeviceInfo> USBDevicePicker::Run(
+    QWidget* parent, const QString& title, FilterFunctionType filter)
 {
   USBDevicePicker picker(parent, std::move(filter));
   picker.setWindowTitle(title);
@@ -87,9 +88,9 @@ void USBDevicePicker::InitControls()
   usb_inserted_devices_list = new QListWidget();
   m_refresh_devices_timer = new QTimer(this);
   connect(usb_inserted_devices_list, &QListWidget::currentItemChanged, this,
-          &USBDevicePicker::OnDeviceSelection);
+      &USBDevicePicker::OnDeviceSelection);
   connect(usb_inserted_devices_list, &QListWidget::itemDoubleClicked, select_button,
-          &QPushButton::clicked);
+      &QPushButton::clicked);
   connect(m_refresh_devices_timer, &QTimer::timeout, this, &USBDevicePicker::RefreshDeviceList);
   RefreshDeviceList();
   m_refresh_devices_timer->start(1000);
@@ -121,8 +122,8 @@ void USBDevicePicker::RefreshDeviceList()
   usb_inserted_devices_list->clear();
   for (const auto& device : current_devices)
   {
-    auto* item = new QListWidgetItem(QString::fromStdString(device.ToDisplayString()),
-                                     usb_inserted_devices_list);
+    auto* item = new QListWidgetItem(
+        QString::fromStdString(device.ToDisplayString()), usb_inserted_devices_list);
     QVariant device_data = QVariant::fromValue(device);
     item->setData(Qt::UserRole, device_data);
   }

@@ -25,8 +25,8 @@ struct CallstackEntry
 };
 
 bool GetCallstack(const Core::CPUThreadGuard& guard, std::vector<CallstackEntry>& output);
-void PrintCallstack(const Core::CPUThreadGuard& guard, Common::Log::LogType type,
-                    Common::Log::LogLevel level);
+void PrintCallstack(
+    const Core::CPUThreadGuard& guard, Common::Log::LogType type, Common::Log::LogLevel level);
 void PrintDataBuffer(const Core::System& system, Common::Log::LogType type, u32 address, u32 size,
-                     std::string_view title);
+    std::string_view title);
 }  // namespace Dolphin_Debugger

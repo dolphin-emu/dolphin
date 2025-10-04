@@ -119,7 +119,7 @@ s32 WiiSockMan::GetNetErrorCode(s32 ret, std::string_view caller, bool is_rw)
   }
 
   ERROR_LOG_FMT(IOS_NET, "{} failed with error {}: {}, ret= {}", caller, error_code,
-                Common::DecodeNetworkError(error_code), ret);
+      Common::DecodeNetworkError(error_code), ret);
 
   const s32 return_value = TranslateErrorCode(error_code, is_rw);
   SetLastNetError(return_value);
@@ -294,7 +294,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
         ReturnValue = m_socket_manager.GetNetErrorCode(ret, "SO_BIND", false);
 
         INFO_LOG_FMT(IOS_NET, "IOCTL_SO_BIND ({:08X}, {}:{}) = {}", wii_fd,
-                     inet_ntoa(local_name.sin_addr), Common::swap16(local_name.sin_port), ret);
+            inet_ntoa(local_name.sin_addr), Common::swap16(local_name.sin_port), ret);
         break;
       }
       case IOCTL_SO_CONNECT:
@@ -308,7 +308,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
         UpdateConnectingState(ReturnValue);
 
         INFO_LOG_FMT(IOS_NET, "IOCTL_SO_CONNECT ({:08x}, {}:{}) = {}", wii_fd,
-                     inet_ntoa(local_name.sin_addr), Common::swap16(local_name.sin_port), ret);
+            inet_ntoa(local_name.sin_addr), Common::swap16(local_name.sin_port), ret);
         break;
       }
       case IOCTL_SO_ACCEPT:
@@ -452,7 +452,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
               int res = mbedtls_ssl_get_verify_result(ctx);
               mbedtls_x509_crt_verify_info(error_buffer, sizeof(error_buffer), "", res);
               ERROR_LOG_FMT(IOS_SSL, "MBEDTLS_ERR_X509_CERT_VERIFY_FAILED (verify_result = {}): {}",
-                            res, error_buffer);
+                  res, error_buffer);
 
               if (res & MBEDTLS_X509_BADCERT_CN_MISMATCH)
                 res = SSL_ERR_VCOMMONNAME;
@@ -491,11 +491,11 @@ void WiiSocket::Update(bool read, bool write, bool except)
             }
 
             INFO_LOG_FMT(IOS_SSL,
-                         "IOCTLV_NET_SSL_DOHANDSHAKE = ({}) "
-                         "BufferIn: ({:08x}, {}), BufferIn2: ({:08x}, {}), "
-                         "BufferOut: ({:08x}, {}), BufferOut2: ({:08x}, {})",
-                         ret, BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferOut,
-                         BufferOutSize, BufferOut2, BufferOutSize2);
+                "IOCTLV_NET_SSL_DOHANDSHAKE = ({}) "
+                "BufferIn: ({:08x}, {}), BufferIn2: ({:08x}, {}), "
+                "BufferOut: ({:08x}, {}), BufferOut2: ({:08x}, {})",
+                ret, BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferOut, BufferOutSize,
+                BufferOut2, BufferOutSize2);
             break;
           }
           case IOCTLV_NET_SSL_WRITE:
@@ -625,13 +625,12 @@ void WiiSocket::Update(bool read, bool write, bool except)
             system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogWrite(data, ret, fd, to);
 
           INFO_LOG_FMT(IOS_NET,
-                       "{} = {} Socket: {:08x}, BufferIn: ({:08x}, {}), BufferIn2: ({:08x}, {}), "
-                       "{}.{}.{}.{}",
-                       has_destaddr ? "IOCTLV_SO_SENDTO " : "IOCTLV_SO_SEND ", ReturnValue, wii_fd,
-                       BufferIn, BufferInSize, BufferIn2, BufferInSize2,
-                       local_name.sin_addr.s_addr & 0xFF, (local_name.sin_addr.s_addr >> 8) & 0xFF,
-                       (local_name.sin_addr.s_addr >> 16) & 0xFF,
-                       (local_name.sin_addr.s_addr >> 24) & 0xFF);
+              "{} = {} Socket: {:08x}, BufferIn: ({:08x}, {}), BufferIn2: ({:08x}, {}), "
+              "{}.{}.{}.{}",
+              has_destaddr ? "IOCTLV_SO_SENDTO " : "IOCTLV_SO_SEND ", ReturnValue, wii_fd, BufferIn,
+              BufferInSize, BufferIn2, BufferInSize2, local_name.sin_addr.s_addr & 0xFF,
+              (local_name.sin_addr.s_addr >> 8) & 0xFF, (local_name.sin_addr.s_addr >> 16) & 0xFF,
+              (local_name.sin_addr.s_addr >> 24) & 0xFF);
           break;
         }
         case IOCTLV_SO_RECVFROM:
@@ -685,12 +684,12 @@ void WiiSocket::Update(bool read, bool write, bool except)
             system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogRead(data, ret, fd, from);
 
           INFO_LOG_FMT(IOS_NET,
-                       "{}({}, {}) Socket: {:08X}, Flags: {:08X}, "
-                       "BufferIn: ({:08x}, {}), BufferIn2: ({:08x}, {}), "
-                       "BufferOut: ({:08x}, {}), BufferOut2: ({:08x}, {})",
-                       BufferOutSize2 ? "IOCTLV_SO_RECVFROM " : "IOCTLV_SO_RECV ", ReturnValue,
-                       fmt::ptr(data), wii_fd, flags, BufferIn, BufferInSize, BufferIn2,
-                       BufferInSize2, BufferOut, BufferOutSize, BufferOut2, BufferOutSize2);
+              "{}({}, {}) Socket: {:08X}, Flags: {:08X}, "
+              "BufferIn: ({:08x}, {}), BufferIn2: ({:08x}, {}), "
+              "BufferOut: ({:08x}, {}), BufferOut2: ({:08x}, {})",
+              BufferOutSize2 ? "IOCTLV_SO_RECVFROM " : "IOCTLV_SO_RECV ", ReturnValue,
+              fmt::ptr(data), wii_fd, flags, BufferIn, BufferInSize, BufferIn2, BufferInSize2,
+              BufferOut, BufferOutSize, BufferOut2, BufferOutSize2);
 
           if (BufferOutSize2 != 0)
           {
@@ -713,13 +712,13 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
     if (nonBlock || forceNonBlock ||
         (!it->is_ssl && ReturnValue != -SO_EAGAIN && ReturnValue != -SO_EINPROGRESS &&
-         ReturnValue != -SO_EALREADY) ||
+            ReturnValue != -SO_EALREADY) ||
         (it->is_ssl && ReturnValue != SSL_ERR_WAGAIN && ReturnValue != SSL_ERR_RAGAIN))
     {
-      DEBUG_LOG_FMT(
-          IOS_NET, "IOCTL(V) Sock: {:08x} ioctl/v: {} returned: {} nonBlock: {} forceNonBlock: {}",
-          wii_fd, it->is_ssl ? static_cast<int>(it->ssl_type) : static_cast<int>(it->net_type),
-          ReturnValue, nonBlock, forceNonBlock);
+      DEBUG_LOG_FMT(IOS_NET,
+          "IOCTL(V) Sock: {:08x} ioctl/v: {} returned: {} nonBlock: {} forceNonBlock: {}", wii_fd,
+          it->is_ssl ? static_cast<int>(it->ssl_type) : static_cast<int>(it->net_type), ReturnValue,
+          nonBlock, forceNonBlock);
 
       m_socket_manager.EnqueueIPCReply(it->request, ReturnValue);
       it = pending_sockops.erase(it);
@@ -781,7 +780,7 @@ WiiSocket::ConnectingState WiiSocket::GetConnectingState() const
     {
       const s32 error = get_errno();
       ERROR_LOG_FMT(IOS_SSL, "Failed to get socket (fd={}) connection state (err={}): {}", wii_fd,
-                    error, Common::DecodeNetworkError(error));
+          error, Common::DecodeNetworkError(error));
       return ConnectingState::Error;
     }
 
@@ -794,14 +793,14 @@ WiiSocket::ConnectingState WiiSocket::GetConnectingState() const
     {
       error = get_errno();
       ERROR_LOG_FMT(IOS_SSL, "Failed to get socket (fd={}) error state (err={}): {}", wii_fd, error,
-                    Common::DecodeNetworkError(error));
+          Common::DecodeNetworkError(error));
       return ConnectingState::Error;
     }
 
     if (error != 0)
     {
       ERROR_LOG_FMT(IOS_SSL, "Non-blocking connect (fd={}) failed (err={}): {}", wii_fd, error,
-                    Common::DecodeNetworkError(error));
+          Common::DecodeNetworkError(error));
       return ConnectingState::Error;
     }
 
@@ -812,7 +811,7 @@ WiiSocket::ConnectingState WiiSocket::GetConnectingState() const
     {
       error = get_errno();
       ERROR_LOG_FMT(IOS_SSL, "Non-blocking connect (fd={}) failed to get peername (err={}): {}",
-                    wii_fd, error, Common::DecodeNetworkError(error));
+          wii_fd, error, Common::DecodeNetworkError(error));
       return ConnectingState::Error;
     }
 
@@ -831,8 +830,8 @@ bool WiiSocket::IsTCP() const
 
   int socket_type;
   socklen_t option_length = sizeof(socket_type);
-  return getsockopt(fd, SOL_SOCKET, SO_TYPE, reinterpret_cast<char*>(&socket_type),
-                    &option_length) == 0 &&
+  return getsockopt(
+             fd, SOL_SOCKET, SO_TYPE, reinterpret_cast<char*>(&socket_type), &option_length) == 0 &&
          socket_type == SOCK_STREAM;
 }
 
@@ -909,12 +908,11 @@ s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
       int socket_type;
       socklen_t option_length = sizeof(socket_type);
       const bool is_udp = getsockopt(fd, SOL_SOCKET, SO_TYPE, reinterpret_cast<char*>(&socket_type),
-                                     &option_length) == 0 &&
+                              &option_length) == 0 &&
                           socket_type == SOCK_DGRAM;
       const int opt_broadcast = 1;
-      if (is_udp &&
-          setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char*>(&opt_broadcast),
-                     sizeof(opt_broadcast)) != 0)
+      if (is_udp && setsockopt(fd, SOL_SOCKET, SO_BROADCAST,
+                        reinterpret_cast<const char*>(&opt_broadcast), sizeof(opt_broadcast)) != 0)
       {
         ERROR_LOG_FMT(IOS_NET, "Failed to set SO_BROADCAST on socket");
       }
@@ -1033,7 +1031,7 @@ void WiiSockMan::Update()
     {
       WiiSocket& sock = pair.second;
       sock.Update(FD_ISSET(sock.fd, &read_fds) != 0, FD_ISSET(sock.fd, &write_fds) != 0,
-                  FD_ISSET(sock.fd, &except_fds) != 0);
+          FD_ISSET(sock.fd, &except_fds) != 0);
     }
   }
   else
@@ -1068,61 +1066,63 @@ void WiiSockMan::UpdatePollCommands()
   auto& system = m_ios.GetSystem();
   auto& memory = system.GetMemory();
 
-  std::erase_if(pending_polls, [&system, &memory, this](PollCommand& pcmd) {
-    const auto request = Request(system, pcmd.request_addr);
-    auto& pfds = pcmd.wii_fds;
-    int ret = 0;
+  std::erase_if(pending_polls,
+      [&system, &memory, this](PollCommand& pcmd)
+      {
+        const auto request = Request(system, pcmd.request_addr);
+        auto& pfds = pcmd.wii_fds;
+        int ret = 0;
 
-    // Happens only on savestate load
-    if (pfds[0].revents & error_event)
-    {
-      ret = static_cast<int>(pfds.size());
-    }
-    else
-    {
-      // Make the behavior of poll consistent across platforms by not passing:
-      //  - Set with invalid fds, revents is set to 0 (Linux) or POLLNVAL (Windows)
-      //  - Set without a valid socket, raises an error on Windows
-      std::vector<int> original_order(pfds.size());
-      std::iota(original_order.begin(), original_order.end(), 0);
-      // Select indices with valid fds
-      const auto partition_result = std::ranges::partition(original_order, [&](auto i) {
-        return GetHostSocket(memory.Read_U32(pcmd.buffer_out + 0xc * i)) >= 0;
+        // Happens only on savestate load
+        if (pfds[0].revents & error_event)
+        {
+          ret = static_cast<int>(pfds.size());
+        }
+        else
+        {
+          // Make the behavior of poll consistent across platforms by not passing:
+          //  - Set with invalid fds, revents is set to 0 (Linux) or POLLNVAL (Windows)
+          //  - Set without a valid socket, raises an error on Windows
+          std::vector<int> original_order(pfds.size());
+          std::iota(original_order.begin(), original_order.end(), 0);
+          // Select indices with valid fds
+          const auto partition_result = std::ranges::partition(original_order, [&](auto i)
+              { return GetHostSocket(memory.Read_U32(pcmd.buffer_out + 0xc * i)) >= 0; });
+          const auto n_valid = std::distance(original_order.begin(), partition_result.begin());
+
+          // Move all the valid pollfds to the front of the vector
+          for (auto i = 0; i < n_valid; ++i)
+            std::swap(pfds[i], pfds[original_order[i]]);
+
+          if (n_valid > 0)
+            ret = poll(pfds.data(), n_valid, 0);
+          if (ret < 0)
+            ret = GetNetErrorCode(ret, "UpdatePollCommands", false);
+
+          // Move everything back to where they were
+          for (auto i = 0; i < n_valid; ++i)
+            std::swap(pfds[i], pfds[original_order[i]]);
+        }
+
+        if (ret == 0 && pcmd.timeout)
+          return false;
+
+        // Translate native to Wii events,
+        for (u32 i = 0; i < pfds.size(); ++i)
+        {
+          const int revents = ConvertEvents(pfds[i].revents, ConvertDirection::NativeToWii);
+
+          // No need to change fd or events as they are input only.
+          // memory.Write_U32(ufds[i].fd, request.buffer_out + 0xc*i); //fd
+          // memory.Write_U32(events, request.buffer_out + 0xc*i + 4); //events
+          memory.Write_U32(revents, pcmd.buffer_out + 0xc * i + 8);  // revents
+          DEBUG_LOG_FMT(IOS_NET,
+              "IOCTL_SO_POLL socket {} wevents {:08X} events {:08X} revents {:08X}", i, revents,
+              pfds[i].events, pfds[i].revents);
+        }
+        EnqueueIPCReply(request, ret);
+        return true;
       });
-      const auto n_valid = std::distance(original_order.begin(), partition_result.begin());
-
-      // Move all the valid pollfds to the front of the vector
-      for (auto i = 0; i < n_valid; ++i)
-        std::swap(pfds[i], pfds[original_order[i]]);
-
-      if (n_valid > 0)
-        ret = poll(pfds.data(), n_valid, 0);
-      if (ret < 0)
-        ret = GetNetErrorCode(ret, "UpdatePollCommands", false);
-
-      // Move everything back to where they were
-      for (auto i = 0; i < n_valid; ++i)
-        std::swap(pfds[i], pfds[original_order[i]]);
-    }
-
-    if (ret == 0 && pcmd.timeout)
-      return false;
-
-    // Translate native to Wii events,
-    for (u32 i = 0; i < pfds.size(); ++i)
-    {
-      const int revents = ConvertEvents(pfds[i].revents, ConvertDirection::NativeToWii);
-
-      // No need to change fd or events as they are input only.
-      // memory.Write_U32(ufds[i].fd, request.buffer_out + 0xc*i); //fd
-      // memory.Write_U32(events, request.buffer_out + 0xc*i + 4); //events
-      memory.Write_U32(revents, pcmd.buffer_out + 0xc * i + 8);  // revents
-      DEBUG_LOG_FMT(IOS_NET, "IOCTL_SO_POLL socket {} wevents {:08X} events {:08X} revents {:08X}",
-                    i, revents, pfds[i].events, pfds[i].revents);
-    }
-    EnqueueIPCReply(request, ret);
-    return true;
-  });
 }
 
 sockaddr_in WiiSockMan::ToNativeAddrIn(WiiSockAddrIn from)
@@ -1143,8 +1143,14 @@ s32 WiiSockMan::ConvertEvents(s32 events, ConvertDirection dir)
     int native;
     int wii;
   } mapping[] = {
-      {POLLRDNORM, 0x0001}, {POLLRDBAND, 0x0002}, {POLLPRI, 0x0004}, {POLLWRNORM, 0x0008},
-      {POLLWRBAND, 0x0010}, {POLLERR, 0x0020},    {POLLHUP, 0x0040}, {POLLNVAL, 0x0080},
+      {POLLRDNORM, 0x0001},
+      {POLLRDBAND, 0x0002},
+      {POLLPRI, 0x0004},
+      {POLLWRNORM, 0x0008},
+      {POLLWRBAND, 0x0010},
+      {POLLERR, 0x0020},
+      {POLLHUP, 0x0040},
+      {POLLNVAL, 0x0080},
   };
 
   s32 converted_events = 0;

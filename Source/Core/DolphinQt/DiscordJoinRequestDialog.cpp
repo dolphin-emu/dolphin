@@ -16,9 +16,10 @@
 #include "Common/HttpRequest.h"
 
 DiscordJoinRequestDialog::DiscordJoinRequestDialog(QWidget* parent, const std::string& id,
-                                                   const std::string& discord_tag,
-                                                   const std::string& avatar)
-    : QDialog(parent), m_user_id(id), m_close_timestamp(std::time(nullptr) + s_max_lifetime_seconds)
+    const std::string& discord_tag, const std::string& avatar)
+    : QDialog(parent)
+    , m_user_id(id)
+    , m_close_timestamp(std::time(nullptr) + s_max_lifetime_seconds)
 {
   setWindowTitle(tr("Request to Join Your Party"));
 

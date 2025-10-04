@@ -23,14 +23,13 @@ public:
   };
 
   static constexpr std::string_view factory_name = "custom_pipeline";
-  static std::unique_ptr<CustomPipelineAction>
-  Create(const picojson::value& json_data,
-         std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
-  static std::unique_ptr<CustomPipelineAction>
-  Create(std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
+  static std::unique_ptr<CustomPipelineAction> Create(
+      const picojson::value& json_data, std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
+  static std::unique_ptr<CustomPipelineAction> Create(
+      std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
   explicit CustomPipelineAction(std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
   CustomPipelineAction(std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
-                       std::vector<PipelinePassPassDescription> pass_descriptions);
+      std::vector<PipelinePassPassDescription> pass_descriptions);
   void OnDrawStarted(GraphicsModActionData::DrawStarted*) override;
 
 private:

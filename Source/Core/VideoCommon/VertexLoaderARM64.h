@@ -29,9 +29,9 @@ private:
   Arm64Gen::ARM64FloatEmitter m_float_emit;
   std::pair<Arm64Gen::ARM64Reg, u32> GetVertexAddr(CPArray array, VertexComponentFormat attribute);
   void ReadVertex(VertexComponentFormat attribute, ComponentFormat format, int count_in,
-                  int count_out, bool dequantize, u8 scaling_exponent,
-                  AttributeFormat* native_format, Arm64Gen::ARM64Reg reg, u32 offset);
-  void ReadColor(VertexComponentFormat attribute, ColorFormat format, Arm64Gen::ARM64Reg reg,
-                 u32 offset);
+      int count_out, bool dequantize, u8 scaling_exponent, AttributeFormat* native_format,
+      Arm64Gen::ARM64Reg reg, u32 offset);
+  void ReadColor(
+      VertexComponentFormat attribute, ColorFormat format, Arm64Gen::ARM64Reg reg, u32 offset);
   void GenerateVertexLoader();
 };

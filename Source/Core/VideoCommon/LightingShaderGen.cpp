@@ -10,8 +10,8 @@
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/XFMemory.h"
 
-static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_data, int index,
-                                int litchan_index, bool alpha)
+static void GenerateLightShader(
+    ShaderCode& object, const LightingUidData& uid_data, int index, int litchan_index, bool alpha)
 {
   const char* swizzle = alpha ? "a" : "rgb";
   const char* swizzle_components = (alpha) ? "" : "3";
@@ -33,11 +33,10 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
     object.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(index));
     object.Write("attn = (dot(_normal, ldir) >= 0.0) ? max(0.0, dot(_normal, " LIGHT_DIR
                  ".xyz)) : 0.0;\n",
-                 LIGHT_DIR_PARAMS(index));
+        LIGHT_DIR_PARAMS(index));
     object.Write("cosAttn = " LIGHT_COSATT ".xyz;\n", LIGHT_COSATT_PARAMS(index));
     object.Write("distAttn = {}(" LIGHT_DISTATT ".xyz);\n",
-                 (diffusefunc == DiffuseFunc::None) ? "" : "normalize",
-                 LIGHT_DISTATT_PARAMS(index));
+        (diffusefunc == DiffuseFunc::None) ? "" : "normalize", LIGHT_DISTATT_PARAMS(index));
     object.Write("attn = max(0.0f, dot(cosAttn, float3(1.0, attn, attn*attn))) / dot(distAttn, "
                  "float3(1.0, attn, attn*attn));\n");
     break;
@@ -47,12 +46,12 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
                  "dist = sqrt(dist2);\n"
                  "ldir = ldir / dist;\n"
                  "attn = max(0.0, dot(ldir, " LIGHT_DIR ".xyz));\n",
-                 LIGHT_DIR_PARAMS(index));
+        LIGHT_DIR_PARAMS(index));
     // attn*attn may overflow
     object.Write("attn = max(0.0, " LIGHT_COSATT ".x + " LIGHT_COSATT ".y*attn + " LIGHT_COSATT
                  ".z*attn*attn) / dot(" LIGHT_DISTATT ".xyz, float3(1.0,dist,dist2));\n",
-                 LIGHT_COSATT_PARAMS(index), LIGHT_COSATT_PARAMS(index), LIGHT_COSATT_PARAMS(index),
-                 LIGHT_DISTATT_PARAMS(index));
+        LIGHT_COSATT_PARAMS(index), LIGHT_COSATT_PARAMS(index), LIGHT_COSATT_PARAMS(index),
+        LIGHT_DISTATT_PARAMS(index));
     break;
   }
 
@@ -60,14 +59,14 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
   {
   case DiffuseFunc::None:
     object.Write("lacc.{} += int{}(round(attn * float{}(" LIGHT_COL ")));\n", swizzle,
-                 swizzle_components, swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
+        swizzle_components, swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
     break;
   case DiffuseFunc::Sign:
   case DiffuseFunc::Clamp:
     object.Write("lacc.{} += int{}(round(attn * {}dot(ldir, _normal)) * float{}(" LIGHT_COL
                  ")));\n",
-                 swizzle, swizzle_components, diffusefunc != DiffuseFunc::Sign ? "max(0.0," : "(",
-                 swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
+        swizzle, swizzle_components, diffusefunc != DiffuseFunc::Sign ? "max(0.0," : "(",
+        swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
     break;
   default:
     ASSERT(false);
@@ -83,8 +82,8 @@ void GenerateLightingShaderHeader(ShaderCode& object, const LightingUidData& uid
 {
   for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
   {
-    object.Write("vec4 dolphin_calculate_lighting_chn{}(vec4 base_color, vec3 pos, vec3 _normal)\n",
-                 j);
+    object.Write(
+        "vec4 dolphin_calculate_lighting_chn{}(vec4 base_color, vec3 pos, vec3 _normal)\n", j);
     object.Write("{{\n");
 
     object.Write("\tint4 lacc;\n"
@@ -180,8 +179,7 @@ void GetLightingShaderUid(LightingUidData& uid_data)
 }
 
 static void GenerateCustomLightingImpl(ShaderCode* out, const LightingUidData& uid_data, int index,
-                                       int litchan_index, u32 channel_index, u32 custom_light_index,
-                                       bool alpha)
+    int litchan_index, u32 channel_index, u32 custom_light_index, bool alpha)
 {
   const auto attnfunc =
       static_cast<AttenuationFunc>((uid_data.attnfunc >> (2 * litchan_index)) & 0x3);
@@ -191,25 +189,25 @@ static void GenerateCustomLightingImpl(ShaderCode* out, const LightingUidData& u
 
   out->Write("\t{{\n");
   out->Write("\t\tfrag_input.{}[{}].direction = " LIGHT_DIR ".xyz;\n", name, custom_light_index,
-             LIGHT_DIR_PARAMS(index));
+      LIGHT_DIR_PARAMS(index));
   out->Write("\t\tfrag_input.{}[{}].position = " LIGHT_POS ".xyz;\n", name, custom_light_index,
-             LIGHT_POS_PARAMS(index));
+      LIGHT_POS_PARAMS(index));
   out->Write("\t\tfrag_input.{}[{}].cosatt = " LIGHT_COSATT ";\n", name, custom_light_index,
-             LIGHT_COSATT_PARAMS(index));
+      LIGHT_COSATT_PARAMS(index));
   out->Write("\t\tfrag_input.{}[{}].distatt = " LIGHT_DISTATT ";\n", name, custom_light_index,
-             LIGHT_DISTATT_PARAMS(index));
+      LIGHT_DISTATT_PARAMS(index));
   out->Write("\t\tfrag_input.{}[{}].attenuation_type = {};\n", name, custom_light_index,
-             static_cast<u32>(attnfunc));
+      static_cast<u32>(attnfunc));
   if (alpha)
   {
     out->Write("\t\tfrag_input.{}[{}].color = float3(" LIGHT_COL
                ") / float3(255.0, 255.0, 255.0);\n",
-               name, custom_light_index, LIGHT_COL_PARAMS(index, alpha ? "a" : "rgb"));
+        name, custom_light_index, LIGHT_COL_PARAMS(index, alpha ? "a" : "rgb"));
   }
   else
   {
     out->Write("\t\tfrag_input.{}[{}].color = " LIGHT_COL " / float3(255.0, 255.0, 255.0);\n", name,
-               custom_light_index, LIGHT_COL_PARAMS(index, alpha ? "a" : "rgb"));
+        custom_light_index, LIGHT_COL_PARAMS(index, alpha ? "a" : "rgb"));
   }
   out->Write("\t}}\n");
 }
@@ -220,28 +218,28 @@ void GenerateCustomLighting(ShaderCode* out, const LightingUidData& uid_data)
   {
     for (u32 channel_index = 0; channel_index < NUM_XF_COLOR_CHANNELS; channel_index++)
     {
-      out->Write("\tfrag_input.lights_chan{}_color[{}].direction = float3(0, 0, 0);\n",
-                 channel_index, i);
-      out->Write("\tfrag_input.lights_chan{}_color[{}].position = float3(0, 0, 0);\n",
-                 channel_index, i);
-      out->Write("\tfrag_input.lights_chan{}_color[{}].color = float3(0, 0, 0);\n", channel_index,
-                 i);
-      out->Write("\tfrag_input.lights_chan{}_color[{}].cosatt = float4(0, 0, 0, 0);\n",
-                 channel_index, i);
-      out->Write("\tfrag_input.lights_chan{}_color[{}].distatt = float4(0, 0, 0, 0);\n",
-                 channel_index, i);
+      out->Write(
+          "\tfrag_input.lights_chan{}_color[{}].direction = float3(0, 0, 0);\n", channel_index, i);
+      out->Write(
+          "\tfrag_input.lights_chan{}_color[{}].position = float3(0, 0, 0);\n", channel_index, i);
+      out->Write(
+          "\tfrag_input.lights_chan{}_color[{}].color = float3(0, 0, 0);\n", channel_index, i);
+      out->Write(
+          "\tfrag_input.lights_chan{}_color[{}].cosatt = float4(0, 0, 0, 0);\n", channel_index, i);
+      out->Write(
+          "\tfrag_input.lights_chan{}_color[{}].distatt = float4(0, 0, 0, 0);\n", channel_index, i);
       out->Write("\tfrag_input.lights_chan{}_color[{}].attenuation_type = 0;\n", channel_index, i);
 
-      out->Write("\tfrag_input.lights_chan{}_alpha[{}].direction = float3(0, 0, 0);\n",
-                 channel_index, i);
-      out->Write("\tfrag_input.lights_chan{}_alpha[{}].position = float3(0, 0, 0);\n",
-                 channel_index, i);
-      out->Write("\tfrag_input.lights_chan{}_alpha[{}].color = float3(0, 0, 0);\n", channel_index,
-                 i);
-      out->Write("\tfrag_input.lights_chan{}_alpha[{}].cosatt = float4(0, 0, 0, 0);\n",
-                 channel_index, i);
-      out->Write("\tfrag_input.lights_chan{}_alpha[{}].distatt = float4(0, 0, 0, 0);\n",
-                 channel_index, i);
+      out->Write(
+          "\tfrag_input.lights_chan{}_alpha[{}].direction = float3(0, 0, 0);\n", channel_index, i);
+      out->Write(
+          "\tfrag_input.lights_chan{}_alpha[{}].position = float3(0, 0, 0);\n", channel_index, i);
+      out->Write(
+          "\tfrag_input.lights_chan{}_alpha[{}].color = float3(0, 0, 0);\n", channel_index, i);
+      out->Write(
+          "\tfrag_input.lights_chan{}_alpha[{}].cosatt = float4(0, 0, 0, 0);\n", channel_index, i);
+      out->Write(
+          "\tfrag_input.lights_chan{}_alpha[{}].distatt = float4(0, 0, 0, 0);\n", channel_index, i);
       out->Write("\tfrag_input.lights_chan{}_alpha[{}].attenuation_type = 0;\n", channel_index, i);
     }
   }

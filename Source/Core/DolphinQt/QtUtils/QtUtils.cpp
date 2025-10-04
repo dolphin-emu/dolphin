@@ -61,8 +61,8 @@ void CenterOnParentWindow(QWidget* const widget)
   const QPoint window_pos{window_geometry.topLeft()};
   const QRect geometry{widget->geometry()};
   const QSize size{geometry.size()};
-  const QPoint offset{(window_size.width() - size.width()) / 2,
-                      (window_size.height() - size.height()) / 2};
+  const QPoint offset{
+      (window_size.width() - size.width()) / 2, (window_size.height() - size.height()) / 2};
   const QPoint pos{window_pos + offset};
 
   widget->setGeometry(QRect(pos, size));

@@ -36,22 +36,22 @@ std::optional<IPCReply> USB_VEN::IOCtl(const IOCtlRequest& request)
   case USB::IOCTL_USBV5_SHUTDOWN:
     return Shutdown(request);
   case USB::IOCTL_USBV5_GETDEVPARAMS:
-    return HandleDeviceIOCtl(request,
-                             [&](USBV5Device& device) { return GetDeviceInfo(device, request); });
+    return HandleDeviceIOCtl(
+        request, [&](USBV5Device& device) { return GetDeviceInfo(device, request); });
   case USB::IOCTL_USBV5_ATTACHFINISH:
     return IPCReply(IPC_SUCCESS);
   case USB::IOCTL_USBV5_SETALTERNATE:
     return HandleDeviceIOCtl(
         request, [&](USBV5Device& device) { return SetAlternateSetting(device, request); });
   case USB::IOCTL_USBV5_SUSPEND_RESUME:
-    return HandleDeviceIOCtl(request,
-                             [&](USBV5Device& device) { return SuspendResume(device, request); });
+    return HandleDeviceIOCtl(
+        request, [&](USBV5Device& device) { return SuspendResume(device, request); });
   case USB::IOCTL_USBV5_CANCELENDPOINT:
-    return HandleDeviceIOCtl(request,
-                             [&](USBV5Device& device) { return CancelEndpoint(device, request); });
+    return HandleDeviceIOCtl(
+        request, [&](USBV5Device& device) { return CancelEndpoint(device, request); });
   default:
-    request.DumpUnknown(GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_USB,
-                        Common::Log::LogLevel::LERROR);
+    request.DumpUnknown(
+        GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_USB, Common::Log::LogLevel::LERROR);
     return IPCReply(IPC_SUCCESS);
   }
 }
@@ -84,8 +84,8 @@ std::optional<IPCReply> USB_VEN::IOCtlV(const IOCtlVRequest& request)
       host_device->Attach();
     else
       host_device->AttachAndChangeInterface(device->interface_number);
-    return HandleTransfer(host_device, request.request,
-                          [&, this] { return SubmitTransfer(*host_device, request); });
+    return HandleTransfer(
+        host_device, request.request, [&, this] { return SubmitTransfer(*host_device, request); });
   }
   default:
     return IPCReply(IPC_EINVAL);
@@ -149,10 +149,12 @@ IPCReply USB_VEN::GetDeviceInfo(USBV5Device& device, const IOCtlRequest& request
   memory.CopyToEmu(request.buffer_out + 40, &config_descriptor, sizeof(config_descriptor));
 
   std::vector<USB::InterfaceDescriptor> interfaces = host_device->GetInterfaces(0);
-  auto it = std::ranges::find_if(interfaces, [&](const USB::InterfaceDescriptor& interface) {
-    return interface.bInterfaceNumber == device.interface_number &&
-           interface.bAlternateSetting == alt_setting;
-  });
+  auto it = std::ranges::find_if(interfaces,
+      [&](const USB::InterfaceDescriptor& interface)
+      {
+        return interface.bInterfaceNumber == device.interface_number &&
+               interface.bAlternateSetting == alt_setting;
+      });
   if (it == interfaces.end())
     return IPCReply(IPC_EINVAL);
   it->Swap();
@@ -162,8 +164,8 @@ IPCReply USB_VEN::GetDeviceInfo(USBV5Device& device, const IOCtlRequest& request
   for (size_t i = 0; i < endpoints.size(); ++i)
   {
     endpoints[i].Swap();
-    memory.CopyToEmu(request.buffer_out + 64 + 8 * static_cast<u8>(i), &endpoints[i],
-                     sizeof(endpoints[i]));
+    memory.CopyToEmu(
+        request.buffer_out + 64 + 8 * static_cast<u8>(i), &endpoints[i], sizeof(endpoints[i]));
   }
 
   return IPCReply(IPC_SUCCESS);

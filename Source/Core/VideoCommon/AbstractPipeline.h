@@ -54,20 +54,18 @@ struct AbstractPipelineConfig
   bool operator==(const AbstractPipelineConfig& rhs) const
   {
     return std::tie(vertex_format, vertex_shader, geometry_shader, pixel_shader,
-                    rasterization_state.hex, depth_state.hex, blending_state.hex,
-                    framebuffer_state.hex, usage) ==
-           std::tie(rhs.vertex_format, rhs.vertex_shader, rhs.geometry_shader, rhs.pixel_shader,
-                    rhs.rasterization_state.hex, rhs.depth_state.hex, rhs.blending_state.hex,
-                    rhs.framebuffer_state.hex, rhs.usage);
+               rasterization_state.hex, depth_state.hex, blending_state.hex, framebuffer_state.hex,
+               usage) == std::tie(rhs.vertex_format, rhs.vertex_shader, rhs.geometry_shader,
+                             rhs.pixel_shader, rhs.rasterization_state.hex, rhs.depth_state.hex,
+                             rhs.blending_state.hex, rhs.framebuffer_state.hex, rhs.usage);
   }
   bool operator<(const AbstractPipelineConfig& rhs) const
   {
     return std::tie(vertex_format, vertex_shader, geometry_shader, pixel_shader,
-                    rasterization_state.hex, depth_state.hex, blending_state.hex,
-                    framebuffer_state.hex, usage) <
-           std::tie(rhs.vertex_format, rhs.vertex_shader, rhs.geometry_shader, rhs.pixel_shader,
-                    rhs.rasterization_state.hex, rhs.depth_state.hex, rhs.blending_state.hex,
-                    rhs.framebuffer_state.hex, rhs.usage);
+               rasterization_state.hex, depth_state.hex, blending_state.hex, framebuffer_state.hex,
+               usage) < std::tie(rhs.vertex_format, rhs.vertex_shader, rhs.geometry_shader,
+                            rhs.pixel_shader, rhs.rasterization_state.hex, rhs.depth_state.hex,
+                            rhs.blending_state.hex, rhs.framebuffer_state.hex, rhs.usage);
   }
 };
 

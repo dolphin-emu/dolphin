@@ -53,23 +53,22 @@ StackedSettingsWindow::StackedSettingsWindow(QWidget* parent) : QDialog{parent}
       "palette(base)";
 #endif
 
-  m_navigation_list->setStyleSheet(
-      QString::fromUtf8(
-          // Remove border around entire widget and adjust background color.
-          "QListWidget { border: 0; background: %1; } "
-          // Note: padding-left is broken unless border is set, which then breaks colors.
-          // see: https://bugreports.qt.io/browse/QTBUG-122698
-          "QListWidget::item { padding-top: %2px; padding-bottom: %2px; } "
-          // Maintain selected item color when unfocused.
-          "QListWidget::item:selected { background: palette(highlight); "
+  m_navigation_list->setStyleSheet(QString::fromUtf8(
+      // Remove border around entire widget and adjust background color.
+      "QListWidget { border: 0; background: %1; } "
+      // Note: padding-left is broken unless border is set, which then breaks colors.
+      // see: https://bugreports.qt.io/browse/QTBUG-122698
+      "QListWidget::item { padding-top: %2px; padding-bottom: %2px; } "
+      // Maintain selected item color when unfocused.
+      "QListWidget::item:selected { background: palette(highlight); "
 #if !defined(__APPLE__)
-          // Prevent text color change on focus loss.
-          // This seems to breaks the nice white text on macOS.
-          "color: palette(highlighted-text); "
+      // Prevent text color change on focus loss.
+      // This seems to breaks the nice white text on macOS.
+      "color: palette(highlighted-text); "
 #endif
-          "} "
-          // Remove ugly dotted outline on selected row (Windows and GNOME).
-          "* { outline: none; } ")
+      "} "
+      // Remove ugly dotted outline on selected row (Windows and GNOME).
+      "* { outline: none; } ")
           .arg(QString::fromUtf8(list_background))
           .arg(list_item_padding));
 
@@ -92,7 +91,7 @@ StackedSettingsWindow::StackedSettingsWindow(QWidget* parent) : QDialog{parent}
   connect(button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
   connect(m_navigation_list, &QListWidget::currentRowChanged, m_stacked_panes,
-          &QStackedWidget::setCurrentIndex);
+      &QStackedWidget::setCurrentIndex);
 }
 
 void StackedSettingsWindow::OnDoneCreatingPanes()

@@ -172,9 +172,7 @@ bool IsKnownRealtekBluetoothDevice(u16 vid, u16 pid)
 
 // Returns the data to be loaded, or an empty buffer on error.
 static Common::UniqueBuffer<char> ParseFirmware(std::span<const char> fw_data,
-                                                std::span<const char> cfg_data,
-                                                const hci_read_local_ver_rp& local_ver,
-                                                u8 rom_version)
+    std::span<const char> cfg_data, const hci_read_local_ver_rp& local_ver, u8 rom_version)
 {
   if (fw_data.size() < sizeof(rtl_epatch_header))
   {
@@ -184,10 +182,10 @@ static Common::UniqueBuffer<char> ParseFirmware(std::span<const char> fw_data,
 
   const rtl_epatch_header epatch_info = Common::BitCastPtr<rtl_epatch_header>(fw_data.data());
   if (std::memcmp(epatch_info.signature.data(), RTL_EPATCH_SIGNATURE.data(),
-                  epatch_info.signature.size()) != 0)
+          epatch_info.signature.size()) != 0)
   {
     if (std::memcmp(epatch_info.signature.data(), RTL_EPATCH_SIGNATURE_V2.data(),
-                    epatch_info.signature.size()) == 0)
+            epatch_info.signature.size()) == 0)
     {
       ERROR_LOG_FMT(IOS_WIIMOTE, "EPATCH v2 not implemented. Please report device to developers.");
     }
@@ -245,11 +243,20 @@ static Common::UniqueBuffer<char> ParseFirmware(std::span<const char> fw_data,
   };
 
   constexpr LMPSubverProjectID subver_project_ids[] = {
-      {RTL_ROM_LMP_8723B, 1},  {RTL_ROM_LMP_8821A, 2},  {RTL_ROM_LMP_8761A, 3},
-      {RTL_ROM_LMP_8822B, 8},  {RTL_ROM_LMP_8723B, 9},  {RTL_ROM_LMP_8821A, 10},
-      {RTL_ROM_LMP_8822B, 13}, {RTL_ROM_LMP_8761A, 14}, {RTL_ROM_LMP_8852A, 18},
-      {RTL_ROM_LMP_8852A, 20}, {RTL_ROM_LMP_8852A, 25}, {RTL_ROM_LMP_8851B, 36},
-      {RTL_ROM_LMP_8922A, 44}, {RTL_ROM_LMP_8852A, 47},
+      {RTL_ROM_LMP_8723B, 1},
+      {RTL_ROM_LMP_8821A, 2},
+      {RTL_ROM_LMP_8761A, 3},
+      {RTL_ROM_LMP_8822B, 8},
+      {RTL_ROM_LMP_8723B, 9},
+      {RTL_ROM_LMP_8821A, 10},
+      {RTL_ROM_LMP_8822B, 13},
+      {RTL_ROM_LMP_8761A, 14},
+      {RTL_ROM_LMP_8852A, 18},
+      {RTL_ROM_LMP_8852A, 20},
+      {RTL_ROM_LMP_8852A, 25},
+      {RTL_ROM_LMP_8851B, 36},
+      {RTL_ROM_LMP_8922A, 44},
+      {RTL_ROM_LMP_8852A, 47},
   };
 
   // Verify that the project ID is what we expect for our LMP subversion.
@@ -292,8 +299,8 @@ static Common::UniqueBuffer<char> ParseFirmware(std::span<const char> fw_data,
       std::copy_n(fw_data.data() + patch_offset, patch_length - sizeof(fw_version), result.data());
 
       // The last 4 bytes are replaced with fw_version.
-      std::memcpy(result.data() + patch_length - sizeof(fw_version), &fw_version,
-                  sizeof(fw_version));
+      std::memcpy(
+          result.data() + patch_length - sizeof(fw_version), &fw_version, sizeof(fw_version));
 
       // Append the config binary.
       std::ranges::copy(cfg_data, result.data() + patch_length);
@@ -319,7 +326,8 @@ static bool LoadFirmware(LibUSBBluetoothAdapter& adapter, std::span<const char> 
 
   HCICommandPayload<0xfc20, rtl_download_cmd> payload{};
 
-  const auto write_block = [&](std::span<const u8> block) {
+  const auto write_block = [&](std::span<const u8> block)
+  {
     rtl_download_response result{};
     if (!adapter.SendBlockingCommand(block, Common::AsWritableU8Span(result)))
       return false;
@@ -416,8 +424,8 @@ static std::string GetFirmwareLoadPath()
   return File::GetUserPath(D_FIRMWARE_IDX) + "rtl_bt/";
 }
 
-static void DownloadFirmwareFilesFromInternet(const std::string& fw_filename,
-                                              const std::string& config_filename)
+static void DownloadFirmwareFilesFromInternet(
+    const std::string& fw_filename, const std::string& config_filename)
 {
   // Gitlab seems to be an appropriate source.
   // An alternative could be kernel.org
@@ -440,8 +448,7 @@ static void DownloadFirmwareFilesFromInternet(const std::string& fw_filename,
       return;
     }
 
-    File::WriteStringToFile(
-        firmware_load_path + fw_filename,
+    File::WriteStringToFile(firmware_load_path + fw_filename,
         std::string_view{reinterpret_cast<const char*>(response->data()), response->size()});
   }
 
@@ -457,7 +464,7 @@ static void DownloadFirmwareFilesFromInternet(const std::string& fw_filename,
         // But the very popular 8761B does, so I suppose it makes sense to show this error.
         PanicAlertFmtT("File {0} was not found on the server.\n\nThis might be normal.\n\n"
                        "Not all devices expect this file.",
-                       config_filename);
+            config_filename);
       }
       else
       {
@@ -466,8 +473,7 @@ static void DownloadFirmwareFilesFromInternet(const std::string& fw_filename,
       return;
     }
 
-    File::WriteStringToFile(
-        firmware_load_path + config_filename,
+    File::WriteStringToFile(firmware_load_path + config_filename,
         std::string_view{reinterpret_cast<const char*>(response->data()), response->size()});
   }
 }
@@ -478,7 +484,7 @@ static void ShowFirmwareReadError(std::string_view fw_path)
                  "{0}\n\n"
                  "Refer to https://wiki.dolphin-emu.org/index.php?title=Bluetooth_Passthrough "
                  "for instructions.",
-                 fw_path);
+      fw_path);
 }
 
 bool InitializeRealtekBluetoothDevice(LibUSBBluetoothAdapter& adapter)
@@ -486,7 +492,7 @@ bool InitializeRealtekBluetoothDevice(LibUSBBluetoothAdapter& adapter)
   // Read local version.
   hci_read_local_ver_rp local_ver{};
   if (!adapter.SendBlockingCommand(Common::AsU8Span(hci_cmd_hdr_t{HCI_CMD_READ_LOCAL_VER, 0}),
-                                   Common::AsWritableU8Span(local_ver)))
+          Common::AsWritableU8Span(local_ver)))
   {
     return false;
   }
@@ -521,7 +527,7 @@ bool InitializeRealtekBluetoothDevice(LibUSBBluetoothAdapter& adapter)
     const bool should_download =
         AskYesNoFmtT("Bluetooth passthrough requires missing firmware: {0}\n\n"
                      "Automatically download from gitlab.com now?",
-                     base_filename);
+            base_filename);
 
     if (should_download)
       DownloadFirmwareFilesFromInternet(fw_filename, config_filename);
@@ -549,8 +555,8 @@ bool InitializeRealtekBluetoothDevice(LibUSBBluetoothAdapter& adapter)
 
   // Read ROM version.
   rtl_rom_version_evt read_rom_ver{};
-  if (!adapter.SendBlockingCommand(Common::AsU8Span(hci_cmd_hdr_t{0xfc6d, 0}),
-                                   Common::AsWritableU8Span(read_rom_ver)))
+  if (!adapter.SendBlockingCommand(
+          Common::AsU8Span(hci_cmd_hdr_t{0xfc6d, 0}), Common::AsWritableU8Span(read_rom_ver)))
   {
     return false;
   }

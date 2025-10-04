@@ -55,14 +55,14 @@ bool IsTAPDevice(const TCHAR* guid)
     else
     {
       len = sizeof(component_id);
-      status = RegQueryValueEx(unit_key, component_id_string, nullptr, &data_type,
-                               (LPBYTE)component_id, &len);
+      status = RegQueryValueEx(
+          unit_key, component_id_string, nullptr, &data_type, (LPBYTE)component_id, &len);
 
       if (!(status != ERROR_SUCCESS || data_type != REG_SZ))
       {
         len = sizeof(net_cfg_instance_id);
         status = RegQueryValueEx(unit_key, net_cfg_instance_id_string, nullptr, &data_type,
-                                 (LPBYTE)net_cfg_instance_id, &len);
+            (LPBYTE)net_cfg_instance_id, &len);
 
         if (status == ERROR_SUCCESS && data_type == REG_SZ)
         {
@@ -95,14 +95,14 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
   DWORD len;
   DWORD cSubKeys = 0;
 
-  status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, NETWORK_CONNECTIONS_KEY, 0, KEY_READ | KEY_QUERY_VALUE,
-                        &control_net_key);
+  status = RegOpenKeyEx(
+      HKEY_LOCAL_MACHINE, NETWORK_CONNECTIONS_KEY, 0, KEY_READ | KEY_QUERY_VALUE, &control_net_key);
 
   if (status != ERROR_SUCCESS)
     return false;
 
   status = RegQueryInfoKey(control_net_key, nullptr, nullptr, nullptr, &cSubKeys, nullptr, nullptr,
-                           nullptr, nullptr, nullptr, nullptr, nullptr);
+      nullptr, nullptr, nullptr, nullptr, nullptr);
 
   if (status != ERROR_SUCCESS)
     return false;
@@ -123,7 +123,7 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
       continue;
 
     _sntprintf(connection_string, _countof(connection_string), _T("%s\\%s\\Connection"),
-               NETWORK_CONNECTIONS_KEY, enum_name);
+        NETWORK_CONNECTIONS_KEY, enum_name);
     connection_string[_countof(connection_string) - 1] = _T('\0');
 
     status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, connection_string, 0, KEY_READ, &connection_key);
@@ -131,8 +131,8 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
     if (status == ERROR_SUCCESS)
     {
       len = sizeof(name_data);
-      status = RegQueryValueEx(connection_key, name_string, nullptr, &name_type, (LPBYTE)name_data,
-                               &len);
+      status = RegQueryValueEx(
+          connection_key, name_string, nullptr, &name_type, (LPBYTE)name_data, &len);
 
       if (status != ERROR_SUCCESS || name_type != REG_SZ)
       {
@@ -160,7 +160,7 @@ bool OpenTAP(HANDLE& adapter, const std::basic_string<TCHAR>& device_guid)
   auto const device_path = USERMODEDEVICEDIR + device_guid + TAPSUFFIX;
 
   adapter = CreateFile(device_path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING,
-                       FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED, nullptr);
+      FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED, nullptr);
 
   if (adapter == INVALID_HANDLE_VALUE)
   {
@@ -205,26 +205,26 @@ bool CEXIETHERNET::TAPNetworkInterface::Activate()
   /* get driver version info */
   ULONG info[3]{};
   if (DeviceIoControl(mHAdapter, TAP_IOCTL_GET_VERSION, &info, sizeof(info), &info, sizeof(info),
-                      &len, nullptr))
+          &len, nullptr))
   {
-    INFO_LOG_FMT(SP1, "TAP-Win32 Driver Version {}.{} {}", info[0], info[1],
-                 info[2] ? "(DEBUG)" : "");
+    INFO_LOG_FMT(
+        SP1, "TAP-Win32 Driver Version {}.{} {}", info[0], info[1], info[2] ? "(DEBUG)" : "");
   }
   if (!(info[0] > TAP_WIN32_MIN_MAJOR ||
-        (info[0] == TAP_WIN32_MIN_MAJOR && info[1] >= TAP_WIN32_MIN_MINOR)))
+          (info[0] == TAP_WIN32_MIN_MAJOR && info[1] >= TAP_WIN32_MIN_MINOR)))
   {
     PanicAlertFmtT("ERROR: This version of Dolphin requires a TAP-Win32 driver"
                    " that is at least version {0}.{1} -- If you recently upgraded your Dolphin"
                    " distribution, a reboot is probably required at this point to get"
                    " Windows to see the new driver.",
-                   TAP_WIN32_MIN_MAJOR, TAP_WIN32_MIN_MINOR);
+        TAP_WIN32_MIN_MAJOR, TAP_WIN32_MIN_MINOR);
     return false;
   }
 
   /* set driver media status to 'connected' */
   ULONG status = TRUE;
   if (!DeviceIoControl(mHAdapter, TAP_IOCTL_SET_MEDIA_STATUS, &status, sizeof(status), &status,
-                       sizeof(status), &len, nullptr))
+          sizeof(status), &len, nullptr))
   {
     ERROR_LOG_FMT(SP1, "WARNING: The TAP-Win32 driver rejected a"
                        "TAP_IOCTL_SET_MEDIA_STATUS DeviceIoControl call.");
@@ -279,7 +279,7 @@ void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* s
 
     // Read from TAP into internal buffer.
     if (ReadFile(self->mHAdapter, self->m_eth_ref->mRecvBuffer.get(), BBA_RECV_SIZE, &transferred,
-                 &self->mReadOverlapped))
+            &self->mReadOverlapped))
     {
       // Returning immediately is not likely to happen, but if so, reset the event state manually.
       ResetEvent(self->mReadOverlapped.hEvent);
@@ -308,7 +308,7 @@ void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* s
 
     // Copy to BBA buffer, and fire interrupt if enabled.
     DEBUG_LOG_FMT(SP1, "Received {} bytes:\n {}", transferred,
-                  ArrayToString(self->m_eth_ref->mRecvBuffer.get(), transferred, 0x10));
+        ArrayToString(self->m_eth_ref->mRecvBuffer.get(), transferred, 0x10));
     if (self->readEnabled.IsSet())
     {
       self->m_eth_ref->mRecvBufferLength = transferred;

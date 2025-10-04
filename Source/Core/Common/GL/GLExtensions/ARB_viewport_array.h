@@ -6,12 +6,12 @@
 #include "Common/GL/GLExtensions/gl_common.h"
 
 typedef void(APIENTRYP PFNDOLVIEWPORTARRAYVPROC)(GLuint first, GLsizei count, const GLfloat* v);
-typedef void(APIENTRYP PFNDOLVIEWPORTINDEXEDFPROC)(GLuint index, GLfloat x, GLfloat y, GLfloat w,
-                                                   GLfloat h);
+typedef void(APIENTRYP PFNDOLVIEWPORTINDEXEDFPROC)(
+    GLuint index, GLfloat x, GLfloat y, GLfloat w, GLfloat h);
 typedef void(APIENTRYP PFNDOLVIEWPORTINDEXEDFVPROC)(GLuint index, const GLfloat* v);
 typedef void(APIENTRYP PFNDOLSCISSORARRAYVPROC)(GLuint first, GLsizei count, const GLint* v);
-typedef void(APIENTRYP PFNDOLSCISSORINDEXEDPROC)(GLuint index, GLint left, GLint bottom,
-                                                 GLsizei width, GLsizei height);
+typedef void(APIENTRYP PFNDOLSCISSORINDEXEDPROC)(
+    GLuint index, GLint left, GLint bottom, GLsizei width, GLsizei height);
 typedef void(APIENTRYP PFNDOLSCISSORINDEXEDVPROC)(GLuint index, const GLint* v);
 typedef void(APIENTRYP PFNDOLDEPTHRANGEARRAYVPROC)(GLuint first, GLsizei count, const GLdouble* v);
 typedef void(APIENTRYP PFNDOLDEPTHRANGEINDEXEDPROC)(GLuint index, GLdouble n, GLdouble f);

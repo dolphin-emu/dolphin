@@ -26,8 +26,8 @@ constexpr auto CENTER_CONFIG_NAME = "Center";
 constexpr auto CENTER_CONFIG_SCALE = 100;
 
 // Calculate distance to intersection of a ray with a line segment defined by two points.
-std::optional<double> GetRayLineIntersection(Common::DVec2 ray, Common::DVec2 point1,
-                                             Common::DVec2 point2)
+std::optional<double> GetRayLineIntersection(
+    Common::DVec2 ray, Common::DVec2 point1, Common::DVec2 point2)
 {
   const auto diff = point2 - point1;
 
@@ -154,8 +154,8 @@ ControlState ReshapableInput::GetDeadzonePercentage() const
   return m_deadzone_setting.GetValue() / 100;
 }
 
-ControlState ReshapableInput::GetCalibrationDataRadiusAtAngle(const CalibrationData& data,
-                                                              double angle)
+ControlState ReshapableInput::GetCalibrationDataRadiusAtAngle(
+    const CalibrationData& data, double angle)
 {
   const auto sample_pos = angle / MathUtil::TAU * data.size();
   // Interpolate the radius between 2 calibration samples.
@@ -164,10 +164,9 @@ ControlState ReshapableInput::GetCalibrationDataRadiusAtAngle(const CalibrationD
   const double sample1_angle = sample1_index * MathUtil::TAU / data.size();
   const double sample2_angle = sample2_index * MathUtil::TAU / data.size();
 
-  const auto intersection =
-      GetRayLineIntersection(GetPointFromAngleAndLength(angle, 1.0),
-                             GetPointFromAngleAndLength(sample1_angle, data[sample1_index]),
-                             GetPointFromAngleAndLength(sample2_angle, data[sample2_index]));
+  const auto intersection = GetRayLineIntersection(GetPointFromAngleAndLength(angle, 1.0),
+      GetPointFromAngleAndLength(sample1_angle, data[sample1_index]),
+      GetPointFromAngleAndLength(sample2_angle, data[sample2_index]));
 
   // Intersection has no value when points are on top of eachother.
   return intersection.value_or(data[sample1_index]);
@@ -194,8 +193,8 @@ void ReshapableInput::SetCalibrationFromGate(const StickGate& gate)
     val = gate.GetRadiusAtAngle(MathUtil::TAU * i++ / m_calibration.size());
 }
 
-void ReshapableInput::UpdateCalibrationData(CalibrationData& data, Common::DVec2 point1,
-                                            Common::DVec2 point2)
+void ReshapableInput::UpdateCalibrationData(
+    CalibrationData& data, Common::DVec2 point1, Common::DVec2 point2)
 {
   for (u32 i = 0; i != data.size(); ++i)
   {
@@ -236,8 +235,8 @@ void ReshapableInput::LoadConfig(Common::IniFile::Section* section, const std::s
   // Special handling for "Modifier" button "Range" settings which default to 50% instead of 100%.
   if (const auto* modifier_input = GetModifierInput())
   {
-    section->Get(group + modifier_input->name + "/Range", &modifier_input->control_ref->range,
-                 50.0);
+    section->Get(
+        group + modifier_input->name + "/Range", &modifier_input->control_ref->range, 50.0);
     modifier_input->control_ref->range /= 100;
   }
 
@@ -278,25 +277,24 @@ void ReshapableInput::SaveConfig(Common::IniFile::Section* section, const std::s
   // Special handling for "Modifier" button "Range" settings which default to 50% instead of 100%.
   if (const auto* modifier_input = GetModifierInput())
   {
-    section->Set(group + modifier_input->name + "/Range", modifier_input->control_ref->range * 100,
-                 50.0);
+    section->Set(
+        group + modifier_input->name + "/Range", modifier_input->control_ref->range * 100, 50.0);
   }
 
   const std::ranges::transform_view scaled_calibration(
       m_calibration, [](ControlState val) { return val * CALIBRATION_CONFIG_SCALE; });
   section->Set(group + CALIBRATION_CONFIG_NAME,
-               fmt::format("{:.2f}", fmt::join(scaled_calibration, " ")), "");
+      fmt::format("{:.2f}", fmt::join(scaled_calibration, " ")), "");
 
   // Save center value.
   static constexpr char center_format[] = "{:.2f} {:.2f}";
-  const auto center_data = fmt::format(center_format, m_center.x * CENTER_CONFIG_SCALE,
-                                       m_center.y * CENTER_CONFIG_SCALE);
+  const auto center_data = fmt::format(
+      center_format, m_center.x * CENTER_CONFIG_SCALE, m_center.y * CENTER_CONFIG_SCALE);
   section->Set(group + CENTER_CONFIG_NAME, center_data, fmt::format(center_format, 0.0, 0.0));
 }
 
-ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlState y,
-                                                      ControlState modifier,
-                                                      ControlState clamp) const
+ReshapableInput::ReshapeData ReshapableInput::Reshape(
+    ControlState x, ControlState y, ControlState modifier, ControlState clamp) const
 {
   x -= m_center.x;
   y -= m_center.y;
@@ -338,7 +336,7 @@ ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlSta
   dist *= gate_max_dist;
 
   return {std::clamp(std::cos(angle) * dist, -clamp, clamp),
-          std::clamp(std::sin(angle) * dist, -clamp, clamp)};
+      std::clamp(std::sin(angle) * dist, -clamp, clamp)};
 }
 
 Control* ReshapableInput::GetModifierInput() const

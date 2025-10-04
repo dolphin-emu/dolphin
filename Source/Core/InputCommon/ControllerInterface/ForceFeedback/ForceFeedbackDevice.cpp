@@ -25,9 +25,7 @@ static const ForceType force_type_names[] = {
     {GUID_ConstantForce, "Constant"},  // DICONSTANTFORCE
     {GUID_RampForce, "Ramp"},          // DIRAMPFORCE
     {GUID_Square, "Square"},           // DIPERIODIC ...
-    {GUID_Sine, "Sine"},
-    {GUID_Triangle, "Triangle"},
-    {GUID_SawtoothUp, "Sawtooth Up"},
+    {GUID_Sine, "Sine"}, {GUID_Triangle, "Triangle"}, {GUID_SawtoothUp, "Sawtooth Up"},
     {GUID_SawtoothDown, "Sawtooth Down"},
     //{GUID_Spring, "Spring"},          // DICUSTOMFORCE ... < I think
     //{GUID_Damper, "Damper"},
@@ -205,9 +203,10 @@ bool ForceFeedbackDevice::ForcePeriodic::UpdateParameters(int magnitude)
 }
 
 template <typename P>
-ForceFeedbackDevice::TypedForce<P>::TypedForce(ForceFeedbackDevice* parent, const char* name,
-                                               LPDIRECTINPUTEFFECT effect, const P& params)
-    : Force(parent, name, effect), m_params(params)
+ForceFeedbackDevice::TypedForce<P>::TypedForce(
+    ForceFeedbackDevice* parent, const char* name, LPDIRECTINPUTEFFECT effect, const P& params)
+    : Force(parent, name, effect)
+    , m_params(params)
 {
 }
 
@@ -228,9 +227,12 @@ std::string ForceFeedbackDevice::Force::GetName() const
   return m_name;
 }
 
-ForceFeedbackDevice::Force::Force(ForceFeedbackDevice* parent, const char* name,
-                                  LPDIRECTINPUTEFFECT effect)
-    : m_effect(effect), m_parent(*parent), m_name(name), m_desired_magnitude()
+ForceFeedbackDevice::Force::Force(
+    ForceFeedbackDevice* parent, const char* name, LPDIRECTINPUTEFFECT effect)
+    : m_effect(effect)
+    , m_parent(*parent)
+    , m_name(name)
+    , m_desired_magnitude()
 {
 }
 

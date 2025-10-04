@@ -24,8 +24,8 @@
 #define GL_DISPATCH_INDIRECT_BUFFER_BINDING 0x90EF
 #define GL_COMPUTE_SHADER_BIT 0x00000020
 
-typedef void(APIENTRYP PFNDOLDISPATCHCOMPUTEPROC)(GLuint num_groups_x, GLuint num_groups_y,
-                                                  GLuint num_groups_z);
+typedef void(APIENTRYP PFNDOLDISPATCHCOMPUTEPROC)(
+    GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z);
 typedef void(APIENTRYP PFNDOLDISPATCHCOMPUTEINDIRECTPROC)(GLintptr indirect);
 
 extern PFNDOLDISPATCHCOMPUTEPROC dolDispatchCompute;

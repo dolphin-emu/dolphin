@@ -13,8 +13,7 @@
 namespace TextureConversionShaderGen
 {
 TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_intensity,
-                         bool scale_by_half, float gamma_rcp,
-                         const std::array<u32, 3>& filter_coefficients)
+    bool scale_by_half, float gamma_rcp, const std::array<u32, 3>& filter_coefficients)
 {
   TCShaderUid out;
 
@@ -107,7 +106,7 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
   out.Write("uint4 SampleEFB(float3 uv, float y_offset) {{\n"
             "  float4 tex_sample = texture(samp0, float3(uv.x, clamp(uv.y + (y_offset * "
             "pixel_height), clamp_tb.x, clamp_tb.y), {}));\n",
-            mono_depth ? "0.0" : "uv.z");
+      mono_depth ? "0.0" : "uv.z");
   if (uid_data->is_depth_copy)
   {
     if (!g_backend_info.bSupportsReversedDepthRange)
@@ -156,7 +155,7 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
   out.Write("  // Shift right by 6 to divide by 64, as filter coefficients\n"
             "  // that sum to 64 result in no change in brightness\n"
             "  uint4 texcol_raw = uint4(combined_rows.rgb >> 6, {});\n",
-            uid_data->efb_has_alpha ? "current_row.a" : "255");
+      uid_data->efb_has_alpha ? "current_row.a" : "255");
 
   if (uid_data->copy_filter_can_overflow)
     out.Write("  texcol_raw &= 0x1ffu;\n");
@@ -249,7 +248,7 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
 
   default:
     ERROR_LOG_FMT(VIDEO, "Unknown copy/intensity color format: {} {}", uid_data->dst_format,
-                  uid_data->is_intensity);
+        uid_data->is_intensity);
     out.Write("  ocol0 = float4(texcol_raw.rgba) / 255.0;\n");
     break;
   }

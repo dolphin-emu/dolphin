@@ -35,8 +35,8 @@ std::optional<WrapMode> ReadWrapModeFromJSON(const picojson::object& json, const
   return std::nullopt;
 }
 
-std::optional<FilterMode> ReadFilterModeFromJSON(const picojson::object& json,
-                                                 const std::string& filter)
+std::optional<FilterMode> ReadFilterModeFromJSON(
+    const picojson::object& json, const std::string& filter)
 {
   auto filter_mode = ReadStringFromJson(json, filter).value_or("");
   Common::ToLower(&filter_mode);
@@ -54,7 +54,7 @@ std::optional<FilterMode> ReadFilterModeFromJSON(const picojson::object& json,
 }
 
 bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
-                  const picojson::object& json, SamplerState* sampler)
+    const picojson::object& json, SamplerState* sampler)
 {
   if (!sampler) [[unlikely]]
     return false;
@@ -66,8 +66,8 @@ bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
   {
     if (!sampler_state_wrap_iter->second.is<picojson::object>())
     {
-      ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'wrap_mode' is not the right type",
-                    asset_id);
+      ERROR_LOG_FMT(
+          VIDEO, "Asset '{}' failed to parse json, 'wrap_mode' is not the right type", asset_id);
       return false;
     }
     const auto sampler_state_wrap_obj = sampler_state_wrap_iter->second.get<picojson::object>();
@@ -79,9 +79,9 @@ bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
     else
     {
       ERROR_LOG_FMT(VIDEO,
-                    "Asset '{}' failed to parse json, 'wrap_mode[u]' has an invalid "
-                    "value",
-                    asset_id);
+          "Asset '{}' failed to parse json, 'wrap_mode[u]' has an invalid "
+          "value",
+          asset_id);
       return false;
     }
 
@@ -92,9 +92,9 @@ bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
     else
     {
       ERROR_LOG_FMT(VIDEO,
-                    "Asset '{}' failed to parse json, 'wrap_mode[v]' has an invalid "
-                    "value",
-                    asset_id);
+          "Asset '{}' failed to parse json, 'wrap_mode[v]' has an invalid "
+          "value",
+          asset_id);
       return false;
     }
   }
@@ -104,8 +104,8 @@ bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
   {
     if (!sampler_state_filter_iter->second.is<picojson::object>())
     {
-      ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, 'filter_mode' is not the right type",
-                    asset_id);
+      ERROR_LOG_FMT(
+          VIDEO, "Asset '{}' failed to parse json, 'filter_mode' is not the right type", asset_id);
       return false;
     }
     const auto sampler_state_filter_obj = sampler_state_filter_iter->second.get<picojson::object>();
@@ -117,9 +117,9 @@ bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
     else
     {
       ERROR_LOG_FMT(VIDEO,
-                    "Asset '{}' failed to parse json, 'filter_mode[min]' has an invalid "
-                    "value",
-                    asset_id);
+          "Asset '{}' failed to parse json, 'filter_mode[min]' has an invalid "
+          "value",
+          asset_id);
       return false;
     }
 
@@ -130,9 +130,9 @@ bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
     else
     {
       ERROR_LOG_FMT(VIDEO,
-                    "Asset '{}' failed to parse json, 'filter_mode[mag]' has an invalid "
-                    "value",
-                    asset_id);
+          "Asset '{}' failed to parse json, 'filter_mode[mag]' has an invalid "
+          "value",
+          asset_id);
       return false;
     }
 
@@ -143,9 +143,9 @@ bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
     else
     {
       ERROR_LOG_FMT(VIDEO,
-                    "Asset '{}' failed to parse json, 'filter_mode[mipmap]' has an invalid "
-                    "value",
-                    asset_id);
+          "Asset '{}' failed to parse json, 'filter_mode[mipmap]' has an invalid "
+          "value",
+          asset_id);
       return false;
     }
   }
@@ -154,21 +154,21 @@ bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
 }
 }  // namespace
 bool TextureAndSamplerData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
-                                     const picojson::object& json, TextureAndSamplerData* data)
+    const picojson::object& json, TextureAndSamplerData* data)
 {
   const auto type_iter = json.find("type");
   if (type_iter == json.end())
   {
-    ERROR_LOG_FMT(VIDEO, "Asset '{}' failed to parse json, property entry 'type' not found",
-                  asset_id);
+    ERROR_LOG_FMT(
+        VIDEO, "Asset '{}' failed to parse json, property entry 'type' not found", asset_id);
     return false;
   }
   if (!type_iter->second.is<std::string>())
   {
     ERROR_LOG_FMT(VIDEO,
-                  "Asset '{}' failed to parse json, property entry 'type' is not "
-                  "the right json type",
-                  asset_id);
+        "Asset '{}' failed to parse json, property entry 'type' is not "
+        "the right json type",
+        asset_id);
     return false;
   }
   std::string type = type_iter->second.to_str();
@@ -194,9 +194,9 @@ bool TextureAndSamplerData::FromJson(const CustomAssetLibrary::AssetID& asset_id
   else
   {
     ERROR_LOG_FMT(VIDEO,
-                  "Asset '{}' failed to parse json, texture type '{}' "
-                  "an invalid option",
-                  asset_id, type);
+        "Asset '{}' failed to parse json, texture type '{}' "
+        "an invalid option",
+        asset_id, type);
     return false;
   }
 
@@ -222,7 +222,8 @@ void TextureAndSamplerData::ToJson(picojson::object* obj, const TextureAndSample
     break;
   };
 
-  auto wrap_mode_to_string = [](WrapMode mode) {
+  auto wrap_mode_to_string = [](WrapMode mode)
+  {
     switch (mode)
     {
     case WrapMode::Clamp:
@@ -235,7 +236,8 @@ void TextureAndSamplerData::ToJson(picojson::object* obj, const TextureAndSample
 
     return "";
   };
-  auto filter_mode_to_string = [](FilterMode mode) {
+  auto filter_mode_to_string = [](FilterMode mode)
+  {
     switch (mode)
     {
     case FilterMode::Linear:
@@ -273,8 +275,8 @@ CustomAssetLibrary::LoadInfo TextureAsset::LoadImpl(const CustomAssetLibrary::As
   return loaded_info;
 }
 
-CustomAssetLibrary::LoadInfo
-TextureAndSamplerAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
+CustomAssetLibrary::LoadInfo TextureAndSamplerAsset::LoadImpl(
+    const CustomAssetLibrary::AssetID& asset_id)
 {
   auto potential_data = std::make_shared<TextureAndSamplerData>();
   const auto loaded_info = m_owning_library->LoadTexture(asset_id, potential_data.get());

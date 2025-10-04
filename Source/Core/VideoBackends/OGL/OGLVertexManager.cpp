@@ -40,8 +40,8 @@ VertexManager::~VertexManager()
 {
   if (g_backend_info.bSupportsPaletteConversion)
   {
-    glDeleteTextures(static_cast<GLsizei>(m_texel_buffer_views.size()),
-                     m_texel_buffer_views.data());
+    glDeleteTextures(
+        static_cast<GLsizei>(m_texel_buffer_views.size()), m_texel_buffer_views.data());
   }
 
   // VAO must be found when destroying the index buffer.
@@ -99,8 +99,8 @@ void VertexManager::UploadUtilityUniforms(const void* uniforms, u32 uniforms_siz
   ProgramShaderCache::UploadConstants(uniforms, uniforms_size);
 }
 
-bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
-                                      u32* out_offset)
+bool VertexManager::UploadTexelBuffer(
+    const void* data, u32 data_size, TexelBufferFormat format, u32* out_offset)
 {
   if (data_size > m_texel_buffer->GetSize())
     return false;
@@ -120,8 +120,8 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
 }
 
 bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
-                                      u32* out_offset, const void* palette_data, u32 palette_size,
-                                      TexelBufferFormat palette_format, u32* out_palette_offset)
+    u32* out_offset, const void* palette_data, u32 palette_size, TexelBufferFormat palette_format,
+    u32* out_palette_offset)
 {
   const u32 elem_size = GetTexelBufferElementSize(format);
   const u32 palette_elem_size = GetTexelBufferElementSize(palette_format);
@@ -171,8 +171,8 @@ void VertexManager::ResetBuffer(u32 vertex_stride)
   m_index_generator.Start(reinterpret_cast<u16*>(buffer.first));
 }
 
-void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
-                                 u32* out_base_vertex, u32* out_base_index)
+void VertexManager::CommitBuffer(
+    u32 num_vertices, u32 vertex_stride, u32 num_indices, u32* out_base_vertex, u32* out_base_index)
 {
   u32 vertex_data_size = num_vertices * vertex_stride;
   u32 index_data_size = num_indices * sizeof(u16);

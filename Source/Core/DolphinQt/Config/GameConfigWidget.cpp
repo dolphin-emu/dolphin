@@ -34,8 +34,8 @@
 
 #include "UICommon/GameFile.h"
 
-static void PopulateTab(QTabWidget* tab, const std::string& path, std::string& game_id,
-                        u16 revision, bool read_only)
+static void PopulateTab(
+    QTabWidget* tab, const std::string& path, std::string& game_id, u16 revision, bool read_only)
 {
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
   {
@@ -64,9 +64,9 @@ GameConfigWidget::GameConfigWidget(const UICommon::GameFile& game) : m_game(game
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, &GameConfigWidget::LoadSettings);
 
   PopulateTab(m_default_tab, File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP, m_game_id,
-              m_game.GetRevision(), true);
-  PopulateTab(m_local_tab, File::GetUserPath(D_GAMESETTINGS_IDX), m_game_id, m_game.GetRevision(),
-              false);
+      m_game.GetRevision(), true);
+  PopulateTab(
+      m_local_tab, File::GetUserPath(D_GAMESETTINGS_IDX), m_game_id, m_game.GetRevision(), false);
 
   bool game_id_tab = false;
   for (int i = 0; i < m_local_tab->count(); i++)
@@ -78,17 +78,18 @@ GameConfigWidget::GameConfigWidget(const UICommon::GameFile& game) : m_game(game
   if (game_id_tab == false)
   {
     // Create new local game ini tab if none exists.
-    auto* edit = new GameConfigEdit(
-        nullptr, QString::fromStdString(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini"),
-        false);
+    auto* edit = new GameConfigEdit(nullptr,
+        QString::fromStdString(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini"), false);
     m_local_tab->addTab(edit, QString::fromStdString(m_game_id + ".ini"));
   }
 
   // Fails to change font if it's directly called at this time. Is there a better workaround?
-  QTimer::singleShot(100, this, [this] {
-    SetItalics();
-    Config::OnConfigChanged();
-  });
+  QTimer::singleShot(100, this,
+      [this]
+      {
+        SetItalics();
+        Config::OnConfigChanged();
+      });
 }
 
 void GameConfigWidget::CreateWidgets()
@@ -107,8 +108,8 @@ void GameConfigWidget::CreateWidgets()
       new ConfigBool(tr("Emulate Disc Speed"), Config::MAIN_FAST_DISC_SPEED, layer, true);
   m_use_dsp_hle = new ConfigBool(tr("DSP HLE (fast)"), Config::MAIN_DSP_HLE, layer);
 
-  const std::vector<std::string> choice{tr("auto").toStdString(), tr("none").toStdString(),
-                                        tr("fake-completion").toStdString()};
+  const std::vector<std::string> choice{
+      tr("auto").toStdString(), tr("none").toStdString(), tr("fake-completion").toStdString()};
   m_deterministic_dual_core =
       new ConfigStringChoice(choice, Config::MAIN_GPU_DETERMINISM_MODE, layer);
 
@@ -152,11 +153,11 @@ void GameConfigWidget::CreateWidgets()
   m_use_monoscopic_shadows->SetDescription(
       tr("Use a single depth buffer for both eyes. Needed for a few games."));
 
-  stereoscopy_layout->addWidget(new ConfigSliderLabel(tr("Depth Percentage:"), m_depth_slider), 0,
-                                0);
+  stereoscopy_layout->addWidget(
+      new ConfigSliderLabel(tr("Depth Percentage:"), m_depth_slider), 0, 0);
   stereoscopy_layout->addWidget(m_depth_slider, 0, 1);
-  stereoscopy_layout->addWidget(new ConfigIntegerLabel(tr("Convergence:"), m_convergence_spin), 1,
-                                0);
+  stereoscopy_layout->addWidget(
+      new ConfigIntegerLabel(tr("Convergence:"), m_convergence_spin), 1, 0);
   stereoscopy_layout->addWidget(m_convergence_spin, 1, 1);
   stereoscopy_layout->addWidget(m_use_monoscopic_shadows, 2, 0);
 
@@ -201,43 +202,45 @@ void GameConfigWidget::CreateWidgets()
 
   const int editor_index = tab_widget->addTab(advanced_widget, tr("Editor"));
 
-  connect(tab_widget, &QTabWidget::currentChanged, this, [this, editor_index](int index) {
-    // Update the ini editor after editing other tabs.
-    if (index == editor_index)
-    {
-      // Layer only auto-saves when it is destroyed.
-      m_layer->Save();
-
-      // There can be multiple ini loaded for a game, only replace the one related to the game
-      // ini being edited.
-      for (int i = 0; i < m_local_tab->count(); i++)
+  connect(tab_widget, &QTabWidget::currentChanged, this,
+      [this, editor_index](int index)
       {
-        if (m_local_tab->tabText(i).toStdString() == m_game_id + ".ini")
+        // Update the ini editor after editing other tabs.
+        if (index == editor_index)
         {
-          m_local_tab->removeTab(i);
+          // Layer only auto-saves when it is destroyed.
+          m_layer->Save();
 
-          auto* edit = new GameConfigEdit(
-              nullptr,
-              QString::fromStdString(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini"),
-              false);
+          // There can be multiple ini loaded for a game, only replace the one related to the game
+          // ini being edited.
+          for (int i = 0; i < m_local_tab->count(); i++)
+          {
+            if (m_local_tab->tabText(i).toStdString() == m_game_id + ".ini")
+            {
+              m_local_tab->removeTab(i);
 
-          m_local_tab->insertTab(i, edit, QString::fromStdString(m_game_id + ".ini"));
-          break;
+              auto* edit = new GameConfigEdit(nullptr,
+                  QString::fromStdString(
+                      File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini"),
+                  false);
+
+              m_local_tab->insertTab(i, edit, QString::fromStdString(m_game_id + ".ini"));
+              break;
+            }
+          }
         }
-      }
-    }
 
-    // Update other tabs after using ini editor.
-    if (m_prev_tab_index == editor_index)
-    {
-      // Load won't clear deleted keys, so everything is wiped before loading.
-      m_layer->DeleteAllKeys();
-      m_layer->Load();
-      Config::OnConfigChanged();
-    }
+        // Update other tabs after using ini editor.
+        if (m_prev_tab_index == editor_index)
+        {
+          // Load won't clear deleted keys, so everything is wiped before loading.
+          m_layer->DeleteAllKeys();
+          m_layer->Load();
+          Config::OnConfigChanged();
+        }
 
-    m_prev_tab_index = index;
-  });
+        m_prev_tab_index = index;
+      });
 
   const QString help_msg = tr(
       "Italics mark default game settings, bold marks user settings.\nRight-click to remove user "
@@ -280,7 +283,8 @@ GameConfigWidget::~GameConfigWidget()
 void GameConfigWidget::LoadSettings()
 {
   // Load globals
-  auto update_bool = [this](auto config, bool reverse = false) {
+  auto update_bool = [this](auto config, bool reverse = false)
+  {
     const Config::Location& setting = config->GetLocation();
 
     // Don't overwrite local with global
@@ -296,7 +300,8 @@ void GameConfigWidget::LoadSettings()
     }
   };
 
-  auto update_int = [this](auto config) {
+  auto update_int = [this](auto config)
+  {
     const Config::Location& setting = config->GetLocation();
 
     if (m_layer->Exists(setting) || !m_global_layer->Exists(setting))
@@ -312,7 +317,7 @@ void GameConfigWidget::LoadSettings()
   };
 
   for (ConfigBool* config : {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu,
-                             m_use_dsp_hle, m_use_monoscopic_shadows})
+           m_use_dsp_hle, m_use_monoscopic_shadows})
   {
     update_bool(config);
   }
@@ -326,7 +331,8 @@ void GameConfigWidget::LoadSettings()
 void GameConfigWidget::SetItalics()
 {
   // Mark system game settings with italics. Called once because it should never change.
-  auto italics = [this](auto config) {
+  auto italics = [this](auto config)
+  {
     if (!m_global_layer->Exists(config->GetLocation()))
       return;
 

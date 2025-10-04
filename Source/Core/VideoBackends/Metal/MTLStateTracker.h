@@ -63,8 +63,8 @@ public:
   void BeginRenderPass(MTLLoadAction load_action);
   void BeginRenderPass(MTLRenderPassDescriptor* descriptor);
   void BeginComputePass();
-  MTLRenderPassDescriptor* GetRenderPassDescriptor(Framebuffer* framebuffer,
-                                                   MTLLoadAction load_action);
+  MTLRenderPassDescriptor* GetRenderPassDescriptor(
+      Framebuffer* framebuffer, MTLLoadAction load_action);
 
   void EndRenderPass();
   void FlushEncoders();
@@ -105,8 +105,8 @@ public:
 
   void Draw(u32 base_vertex, u32 num_vertices);
   void DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex);
-  void DispatchComputeShader(u32 groupsize_x, u32 groupsize_y, u32 groupsize_z, u32 groups_x,
-                             u32 groups_y, u32 groups_z);
+  void DispatchComputeShader(
+      u32 groupsize_x, u32 groupsize_y, u32 groupsize_z, u32 groups_x, u32 groups_y, u32 groups_z);
   void ResolveTexture(id<MTLTexture> src, id<MTLTexture> dst, u32 layer, u32 level);
 
   size_t Align(size_t amt, AlignMask align)
@@ -124,7 +124,7 @@ public:
   Map CommitPreallocation(UploadBuffer buffer_idx, size_t amt, AlignMask align)
   {
     DEBUG_ASSERT((m_upload_buffers[static_cast<int>(buffer_idx)].usage.Pos() &
-                  static_cast<size_t>(align)) == 0);
+                     static_cast<size_t>(align)) == 0);
     return CommitPreallocation(buffer_idx, Align(amt, align));
   }
   id<MTLBlitCommandEncoder> GetUploadEncoder();

@@ -33,8 +33,8 @@ GraphicsModGroupConfig::GraphicsModGroupConfig(GraphicsModGroupConfig&&) noexcep
 
 GraphicsModGroupConfig& GraphicsModGroupConfig::operator=(const GraphicsModGroupConfig&) = default;
 
-GraphicsModGroupConfig&
-GraphicsModGroupConfig::operator=(GraphicsModGroupConfig&&) noexcept = default;
+GraphicsModGroupConfig& GraphicsModGroupConfig::operator=(
+    GraphicsModGroupConfig&&) noexcept = default;
 
 void GraphicsModGroupConfig::Load()
 {
@@ -48,14 +48,13 @@ void GraphicsModGroupConfig::Load()
     if (!JsonFromFile(file_path, &root, &error))
     {
       ERROR_LOG_FMT(VIDEO,
-                    "Failed to load graphics mod group json file '{}' due to parse error: {}",
-                    file_path, error);
+          "Failed to load graphics mod group json file '{}' due to parse error: {}", file_path,
+          error);
       return;
     }
     if (!root.is<picojson::object>())
     {
-      ERROR_LOG_FMT(
-          VIDEO,
+      ERROR_LOG_FMT(VIDEO,
           "Failed to load graphics mod group json file '{}' due to root not being an object!",
           file_path);
       return;
@@ -84,8 +83,9 @@ void GraphicsModGroupConfig::Load()
     }
   }
 
-  const auto try_add_mod = [&known_paths, this](const std::string& dir,
-                                                GraphicsModConfig::Source source) {
+  const auto try_add_mod = [&known_paths, this](
+                               const std::string& dir, GraphicsModConfig::Source source)
+  {
     auto file = dir + DIR_SEP + "metadata.json";
     UnifyPathSeparators(file);
     if (known_paths.contains(file))

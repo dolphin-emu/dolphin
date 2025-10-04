@@ -61,8 +61,8 @@
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWad.h"
 
-static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
-                                            const std::string& folder_path)
+static std::vector<std::string> ReadM3UFile(
+    const std::string& m3u_path, const std::string& folder_path)
 {
   std::vector<std::string> result;
   std::vector<std::string> nonexistent;
@@ -92,7 +92,7 @@ static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
   if (!nonexistent.empty())
   {
     PanicAlertFmtT("Files specified in the M3U file \"{0}\" were not found:\n{1}", m3u_path,
-                   fmt::join(nonexistent, "\n"));
+        fmt::join(nonexistent, "\n"));
     return {};
   }
 
@@ -106,9 +106,10 @@ BootSessionData::BootSessionData()
 {
 }
 
-BootSessionData::BootSessionData(std::optional<std::string> savestate_path,
-                                 DeleteSavestateAfterBoot delete_savestate)
-    : m_savestate_path(std::move(savestate_path)), m_delete_savestate(delete_savestate)
+BootSessionData::BootSessionData(
+    std::optional<std::string> savestate_path, DeleteSavestateAfterBoot delete_savestate)
+    : m_savestate_path(std::move(savestate_path))
+    , m_delete_savestate(delete_savestate)
 {
 }
 
@@ -128,8 +129,8 @@ DeleteSavestateAfterBoot BootSessionData::GetDeleteSavestate() const
   return m_delete_savestate;
 }
 
-void BootSessionData::SetSavestateData(std::optional<std::string> savestate_path,
-                                       DeleteSavestateAfterBoot delete_savestate)
+void BootSessionData::SetSavestateData(
+    std::optional<std::string> savestate_path, DeleteSavestateAfterBoot delete_savestate)
 {
   m_savestate_path = std::move(savestate_path);
   m_delete_savestate = delete_savestate;
@@ -157,8 +158,7 @@ void BootSessionData::InvokeWiiSyncCleanup() const
 }
 
 void BootSessionData::SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs,
-                                     std::vector<u64> titles, std::string redirect_folder,
-                                     WiiSyncCleanupFunction cleanup)
+    std::vector<u64> titles, std::string redirect_folder, WiiSyncCleanupFunction cleanup)
 {
   m_wii_sync_fs = std::move(fs);
   m_wii_sync_titles = std::move(titles);
@@ -177,19 +177,20 @@ void BootSessionData::SetNetplaySettings(std::unique_ptr<NetPlay::NetSettings> n
 }
 
 BootParameters::BootParameters(Parameters&& parameters_, BootSessionData boot_session_data_)
-    : parameters(std::move(parameters_)), boot_session_data(std::move(boot_session_data_))
+    : parameters(std::move(parameters_))
+    , boot_session_data(std::move(boot_session_data_))
 {
 }
 
-std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::string boot_path,
-                                                                 BootSessionData boot_session_data_)
+std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(
+    std::string boot_path, BootSessionData boot_session_data_)
 {
-  return GenerateFromFile(std::vector<std::string>{std::move(boot_path)},
-                          std::move(boot_session_data_));
+  return GenerateFromFile(
+      std::vector<std::string>{std::move(boot_path)}, std::move(boot_session_data_));
 }
 
-std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std::string> paths,
-                                                                 BootSessionData boot_session_data_)
+std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(
+    std::vector<std::string> paths, BootSessionData boot_session_data_)
 {
   ASSERT(!paths.empty());
 
@@ -235,30 +236,29 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
   }
 #endif
 
-  static const std::unordered_set<std::string> disc_image_extensions = {
-      {".gcm", ".bin", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".wia", ".rvz", ".nfs", ".dol",
-       ".elf"}};
+  static const std::unordered_set<std::string> disc_image_extensions = {{".gcm", ".bin", ".iso",
+      ".tgc", ".wbfs", ".ciso", ".gcz", ".wia", ".rvz", ".nfs", ".dol", ".elf"}};
   if (disc_image_extensions.contains(extension))
   {
     std::unique_ptr<DiscIO::VolumeDisc> disc = DiscIO::CreateDisc(path);
     if (disc)
     {
-      return std::make_unique<BootParameters>(Disc{std::move(path), std::move(disc), paths},
-                                              std::move(boot_session_data_));
+      return std::make_unique<BootParameters>(
+          Disc{std::move(path), std::move(disc), paths}, std::move(boot_session_data_));
     }
 
     if (extension == ".elf")
     {
       auto elf_reader = std::make_unique<ElfReader>(path);
-      return std::make_unique<BootParameters>(Executable{std::move(path), std::move(elf_reader)},
-                                              std::move(boot_session_data_));
+      return std::make_unique<BootParameters>(
+          Executable{std::move(path), std::move(elf_reader)}, std::move(boot_session_data_));
     }
 
     if (extension == ".dol")
     {
       auto dol_reader = std::make_unique<DolReader>(path);
-      return std::make_unique<BootParameters>(Executable{std::move(path), std::move(dol_reader)},
-                                              std::move(boot_session_data_));
+      return std::make_unique<BootParameters>(
+          Executable{std::move(path), std::move(dol_reader)}, std::move(boot_session_data_));
     }
 
     PanicAlertFmtT("\"{0}\" is an invalid GCM/ISO file, or is not a GC/Wii ISO.", path);
@@ -290,10 +290,10 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
       if (descriptor->riivolution && std::holds_alternative<Disc>(boot_params->parameters))
       {
         const auto& volume = *std::get<Disc>(boot_params->parameters).volume;
-        AddRiivolutionPatches(boot_params.get(),
-                              DiscIO::Riivolution::GenerateRiivolutionPatchesFromGameModDescriptor(
-                                  *descriptor->riivolution, volume.GetGameID(),
-                                  volume.GetRevision(), volume.GetDiscNumber()));
+        AddRiivolutionPatches(
+            boot_params.get(), DiscIO::Riivolution::GenerateRiivolutionPatchesFromGameModDescriptor(
+                                   *descriptor->riivolution, volume.GetGameID(),
+                                   volume.GetRevision(), volume.GetDiscNumber()));
       }
 
       return boot_params;
@@ -319,8 +319,7 @@ BootParameters::IPL::IPL(DiscIO::Region region_, Disc&& disc_) : IPL(region_)
 // The returned pointer must only be used while we are still booting,
 // because DVDThread can do whatever it wants to the disc after that.
 static const DiscIO::VolumeDisc* SetDisc(DVD::DVDInterface& dvd_interface,
-                                         std::unique_ptr<DiscIO::VolumeDisc> disc,
-                                         std::vector<std::string> auto_disc_change_paths = {})
+    std::unique_ptr<DiscIO::VolumeDisc> disc, std::vector<std::string> auto_disc_change_paths = {})
 {
   const DiscIO::VolumeDisc* pointer = disc.get();
   dvd_interface.SetDisc(std::move(disc), auto_disc_change_paths);
@@ -328,7 +327,7 @@ static const DiscIO::VolumeDisc* SetDisc(DVD::DVDInterface& dvd_interface,
 }
 
 bool CBoot::DVDRead(Core::System& system, const DiscIO::VolumeDisc& disc, u64 dvd_offset,
-                    u32 output_address, u32 length, const DiscIO::Partition& partition)
+    u32 output_address, u32 length, const DiscIO::Partition& partition)
 {
   std::vector<u8> buffer(length);
   if (!disc.Read(dvd_offset, length, buffer.data(), partition))
@@ -417,7 +416,7 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
   if (known_ipl && pal_ipl != (boot_region == DiscIO::Region::PAL))
   {
     PanicAlertFmtT("{0} IPL found in {1} directory. The disc might not be recognized",
-                   pal_ipl ? "PAL" : "NTSC", Config::GetDirectoryForRegion(boot_region));
+        pal_ipl ? "PAL" : "NTSC", Config::GetDirectoryForRegion(boot_region));
   }
 
   // Run the descrambler over the encrypted section containing BS1/BS2
@@ -438,8 +437,8 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
   }
   if (data.size() > 0x820)
   {
-    memory.CopyToEmu(0x01300000, data.data() + 0x820,
-                     std::min<size_t>(data.size() - 0x820, 0x1AFE00));
+    memory.CopyToEmu(
+        0x01300000, data.data() + 0x820, std::min<size_t>(data.size() - 0x820, 0x1AFE00));
   }
 
   auto& ppc_state = system.GetPPCState();
@@ -475,9 +474,8 @@ static void SetDefaultDisc(DVD::DVDInterface& dvd_interface)
 static void CopyDefaultExceptionHandlers(Core::System& system)
 {
   constexpr u32 EXCEPTION_HANDLER_ADDRESSES[] = {0x00000100, 0x00000200, 0x00000300, 0x00000400,
-                                                 0x00000500, 0x00000600, 0x00000700, 0x00000800,
-                                                 0x00000900, 0x00000C00, 0x00000D00, 0x00000F00,
-                                                 0x00001300, 0x00001400, 0x00001700};
+      0x00000500, 0x00000600, 0x00000700, 0x00000800, 0x00000900, 0x00000C00, 0x00000D00,
+      0x00000F00, 0x00001300, 0x00001400, 0x00001700};
 
   auto& memory = system.GetMemory();
   constexpr u32 RFI_INSTRUCTION = 0x4C000064;
@@ -486,21 +484,23 @@ static void CopyDefaultExceptionHandlers(Core::System& system)
 }
 
 // Third boot step after BootManager and Core. See Call schedule in BootManager.cpp
-bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
-                   std::unique_ptr<BootParameters> boot)
+bool CBoot::BootUp(
+    Core::System& system, const Core::CPUThreadGuard& guard, std::unique_ptr<BootParameters> boot)
 {
   SConfig& config = SConfig::GetInstance();
 
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
-  system.GetVideoInterface().Preset(DiscIO::IsNTSC(config.m_region) ||
-                                    (system.IsWii() && Config::Get(Config::SYSCONF_PAL60)));
+  system.GetVideoInterface().Preset(
+      DiscIO::IsNTSC(config.m_region) || (system.IsWii() && Config::Get(Config::SYSCONF_PAL60)));
 
   struct BootTitle
   {
     BootTitle(Core::System& system_, const Core::CPUThreadGuard& guard_,
-              const std::vector<DiscIO::Riivolution::Patch>& patches)
-        : system(system_), guard(guard_), config(SConfig::GetInstance()),
-          riivolution_patches(patches)
+        const std::vector<DiscIO::Riivolution::Patch>& patches)
+        : system(system_)
+        , guard(guard_)
+        , config(SConfig::GetInstance())
+        , riivolution_patches(patches)
     {
     }
     bool operator()(BootParameters::Disc& disc) const
@@ -630,7 +630,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       {
         NOTICE_LOG_FMT(BOOT, "Inserting disc: {}", ipl.disc->path);
         SetDisc(system.GetDVDInterface(), DiscIO::CreateDisc(ipl.disc->path),
-                ipl.disc->auto_disc_change_paths);
+            ipl.disc->auto_disc_change_paths);
       }
       else
       {
@@ -696,8 +696,8 @@ void UpdateStateFlags(std::function<void(StateFlags*)> update_function)
   const std::string file_path = Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/" WII_STATE;
   const auto fs = Core::System::GetInstance().GetIOS()->GetFS();
   constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
-  const auto file = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, file_path,
-                                          {rw_mode, rw_mode, rw_mode});
+  const auto file = fs->CreateAndOpenFile(
+      IOS::SYSMENU_UID, IOS::SYSMENU_GID, file_path, {rw_mode, rw_mode, rw_mode});
   if (!file)
     return;
 
@@ -718,8 +718,8 @@ void CreateSystemMenuTitleDirs()
   es.CreateTitleDirectories(Titles::SYSTEM_MENU, IOS::SYSMENU_GID);
 }
 
-void AddRiivolutionPatches(BootParameters* boot_params,
-                           std::vector<DiscIO::Riivolution::Patch> riivolution_patches)
+void AddRiivolutionPatches(
+    BootParameters* boot_params, std::vector<DiscIO::Riivolution::Patch> riivolution_patches)
 {
   if (riivolution_patches.empty())
     return;
@@ -729,11 +729,13 @@ void AddRiivolutionPatches(BootParameters* boot_params,
   auto& disc = std::get<BootParameters::Disc>(boot_params->parameters);
   disc.volume = DiscIO::CreateDisc(DiscIO::DirectoryBlobReader::Create(
       std::move(disc.volume),
-      [&](std::vector<DiscIO::FSTBuilderNode>* fst) {
+      [&](std::vector<DiscIO::FSTBuilderNode>* fst)
+      {
         DiscIO::Riivolution::ApplyPatchesToFiles(
             riivolution_patches, DiscIO::Riivolution::PatchIndex::DolphinSysFiles, fst, nullptr);
       },
-      [&](std::vector<DiscIO::FSTBuilderNode>* fst, DiscIO::FSTBuilderNode* dol_node) {
+      [&](std::vector<DiscIO::FSTBuilderNode>* fst, DiscIO::FSTBuilderNode* dol_node)
+      {
         DiscIO::Riivolution::ApplyPatchesToFiles(
             riivolution_patches, DiscIO::Riivolution::PatchIndex::FileSystem, fst, dol_node);
       }));

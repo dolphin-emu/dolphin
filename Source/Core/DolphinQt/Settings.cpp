@@ -50,48 +50,58 @@ static std::unique_ptr<QPalette> s_default_palette;
 Settings::Settings()
 {
   qRegisterMetaType<Core::State>();
-  Core::AddOnStateChangedCallback([this](Core::State new_state) {
-    QueueOnObject(this, [this, new_state] {
-      // Avoid signal spam while continuously frame stepping. Will still send a signal for the first
-      // and last framestep.
-      if (!m_continuously_frame_stepping)
-        emit EmulationStateChanged(new_state);
-    });
-  });
-
-  m_config_changed_callback_id = Config::AddConfigChangedCallback([this] {
-    static std::atomic<bool> do_once{true};
-    if (do_once.exchange(false))
-    {
-      // Calling ConfigChanged() with a "delay" can have risks, for example, if from
-      // code we change some configs that result in Qt greying out some setting, we could
-      // end up editing that setting before its greyed out, sending out an event,
-      // which might not be expected or handled by the code, potentially crashing.
-      // The only safe option would be to wait on the Qt thread to have finished executing this.
-      QueueOnObject(this, [this] {
-        do_once = true;
-        emit ConfigChanged();
+  Core::AddOnStateChangedCallback(
+      [this](Core::State new_state)
+      {
+        QueueOnObject(this,
+            [this, new_state]
+            {
+              // Avoid signal spam while continuously frame stepping. Will still send a signal for
+              // the first and last framestep.
+              if (!m_continuously_frame_stepping)
+                emit EmulationStateChanged(new_state);
+            });
       });
-    }
-  });
 
-  m_hotplug_callback_handle = g_controller_interface.RegisterDevicesChangedCallback([this] {
-    if (Core::IsHostThread())
-    {
-      emit DevicesChanged();
-    }
-    else
-    {
-      // Any device shared_ptr in the host thread needs to be released immediately as otherwise
-      // they'd continue living until the queued event has run, but some devices can't be recreated
-      // until they are destroyed.
-      // This is safe from any thread. Devices will be refreshed and re-acquired and in
-      // DevicesChanged(). Calling it without queueing shouldn't cause any deadlocks but is slow.
-      emit ReleaseDevices();
+  m_config_changed_callback_id = Config::AddConfigChangedCallback(
+      [this]
+      {
+        static std::atomic<bool> do_once{true};
+        if (do_once.exchange(false))
+        {
+          // Calling ConfigChanged() with a "delay" can have risks, for example, if from
+          // code we change some configs that result in Qt greying out some setting, we could
+          // end up editing that setting before its greyed out, sending out an event,
+          // which might not be expected or handled by the code, potentially crashing.
+          // The only safe option would be to wait on the Qt thread to have finished executing this.
+          QueueOnObject(this,
+              [this]
+              {
+                do_once = true;
+                emit ConfigChanged();
+              });
+        }
+      });
 
-      QueueOnObject(this, [this] { emit DevicesChanged(); });
-    }
-  });
+  m_hotplug_callback_handle = g_controller_interface.RegisterDevicesChangedCallback(
+      [this]
+      {
+        if (Core::IsHostThread())
+        {
+          emit DevicesChanged();
+        }
+        else
+        {
+          // Any device shared_ptr in the host thread needs to be released immediately as otherwise
+          // they'd continue living until the queued event has run, but some devices can't be
+          // recreated until they are destroyed. This is safe from any thread. Devices will be
+          // refreshed and re-acquired and in DevicesChanged(). Calling it without queueing
+          // shouldn't cause any deadlocks but is slow.
+          emit ReleaseDevices();
+
+          QueueOnObject(this, [this] { emit DevicesChanged(); });
+        }
+      });
 }
 
 Settings::~Settings()
@@ -220,8 +230,8 @@ void Settings::ApplyStyle()
     QColor text_color;
     QColor unused_text_emphasis_color;
     QColor border_color;
-    GetToolTipStyle(window_color, text_color, unused_text_emphasis_color, border_color, palette,
-                    palette);
+    GetToolTipStyle(
+        window_color, text_color, unused_text_emphasis_color, border_color, palette, palette);
 
     const auto tooltip_stylesheet =
         QStringLiteral("QToolTip { background-color: #%1; color: #%2; padding: 8px; "
@@ -262,8 +272,8 @@ void Settings::SetStyleType(StyleType type)
 }
 
 void Settings::GetToolTipStyle(QColor& window_color, QColor& text_color,
-                               QColor& emphasis_text_color, QColor& border_color,
-                               const QPalette& palette, const QPalette& high_contrast_palette) const
+    QColor& emphasis_text_color, QColor& border_color, const QPalette& palette,
+    const QPalette& high_contrast_palette) const
 {
   const auto theme_window_color = palette.color(QPalette::Base);
   const auto theme_window_hsv = theme_window_color.toHsv();

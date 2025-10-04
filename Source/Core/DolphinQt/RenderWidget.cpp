@@ -52,30 +52,34 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   setPalette(p);
 
   connect(Host::GetInstance(), &Host::RequestTitle, this, &RenderWidget::setWindowTitle);
-  connect(Host::GetInstance(), &Host::RequestRenderSize, this, [this](int w, int h) {
-    if (!Config::Get(Config::MAIN_RENDER_WINDOW_AUTOSIZE) || isFullScreen() || isMaximized())
-      return;
+  connect(Host::GetInstance(), &Host::RequestRenderSize, this,
+      [this](int w, int h)
+      {
+        if (!Config::Get(Config::MAIN_RENDER_WINDOW_AUTOSIZE) || isFullScreen() || isMaximized())
+          return;
 
-    const auto dpr = window()->windowHandle()->screen()->devicePixelRatio();
+        const auto dpr = window()->windowHandle()->screen()->devicePixelRatio();
 
-    resize(w / dpr, h / dpr);
-  });
+        resize(w / dpr, h / dpr);
+      });
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
-    if (state == Core::State::Running)
-      SetPresenterKeyMap();
-  });
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+      [this](Core::State state)
+      {
+        if (state == Core::State::Running)
+          SetPresenterKeyMap();
+      });
 
   // We have to use Qt::DirectConnection here because we don't want those signals to get queued
   // (which results in them not getting called)
   connect(this, &RenderWidget::StateChanged, Host::GetInstance(), &Host::SetRenderFullscreen,
-          Qt::DirectConnection);
+      Qt::DirectConnection);
   connect(this, &RenderWidget::HandleChanged, this, &RenderWidget::OnHandleChanged,
-          Qt::DirectConnection);
+      Qt::DirectConnection);
   connect(this, &RenderWidget::SizeChanged, Host::GetInstance(), &Host::ResizeSurface,
-          Qt::DirectConnection);
+      Qt::DirectConnection);
   connect(this, &RenderWidget::FocusChanged, Host::GetInstance(), &Host::SetRenderFocus,
-          Qt::DirectConnection);
+      Qt::DirectConnection);
 
   m_mouse_timer = new QTimer(this);
   connect(m_mouse_timer, &QTimer::timeout, this, &RenderWidget::HandleCursorTimer);
@@ -83,13 +87,13 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   setMouseTracking(true);
 
   connect(&Settings::Instance(), &Settings::CursorVisibilityChanged, this,
-          &RenderWidget::OnHideCursorChanged);
+      &RenderWidget::OnHideCursorChanged);
   connect(&Settings::Instance(), &Settings::LockCursorChanged, this,
-          &RenderWidget::OnLockCursorChanged);
+      &RenderWidget::OnLockCursorChanged);
   OnHideCursorChanged();
   OnLockCursorChanged();
   connect(&Settings::Instance(), &Settings::KeepWindowOnTopChanged, this,
-          &RenderWidget::OnKeepOnTopChanged);
+      &RenderWidget::OnKeepOnTopChanged);
   OnKeepOnTopChanged(Settings::Instance().IsKeepWindowOnTopEnabled());
   m_mouse_timer->start(MOUSE_HIDE_DELAY);
 
@@ -142,7 +146,7 @@ void RenderWidget::OnHandleChanged(void* handle)
     // Remove rounded corners from the render window on Windows 11
     const DWM_WINDOW_CORNER_PREFERENCE corner_preference = DWMWCP_DONOTROUND;
     DwmSetWindowAttribute(static_cast<HWND>(handle), DWMWA_WINDOW_CORNER_PREFERENCE,
-                          &corner_preference, sizeof(corner_preference));
+        &corner_preference, sizeof(corner_preference));
 #endif
   }
   Host::GetInstance()->SetRenderHandle(handle);
@@ -176,7 +180,7 @@ void RenderWidget::UpdateCursor()
   else
   {
     setCursor((m_cursor_locked &&
-               Settings::Instance().GetCursorVisibility() == Config::ShowCursor::Never) ?
+                  Settings::Instance().GetCursorVisibility() == Config::ShowCursor::Never) ?
                   Qt::BlankCursor :
                   Qt::ArrowCursor);
   }
@@ -186,8 +190,8 @@ void RenderWidget::OnKeepOnTopChanged(bool top)
 {
   const bool was_visible = isVisible();
 
-  setWindowFlags(top ? windowFlags() | Qt::WindowStaysOnTopHint :
-                       windowFlags() & ~Qt::WindowStaysOnTopHint);
+  setWindowFlags(
+      top ? windowFlags() | Qt::WindowStaysOnTopHint : windowFlags() & ~Qt::WindowStaysOnTopHint);
 
   m_dont_lock_cursor_on_show = true;
   if (was_visible)
@@ -322,7 +326,7 @@ void RenderWidget::SetCursorLocked(bool locked, bool follow_aspect_ratio)
       if (isActiveWindow())
       {
         cursor().setPos(render_rect.left() + render_rect.width() / 2,
-                        render_rect.top() + render_rect.height() / 2);
+            render_rect.top() + render_rect.height() / 2);
       }
 
       // Show the cursor or the user won't know the mouse is now unlocked
@@ -578,11 +582,27 @@ void RenderWidget::PassEventToPresenter(const QEvent* event)
 void RenderWidget::SetPresenterKeyMap()
 {
   static constexpr DolphinKeyMap key_map = {
-      Qt::Key_Tab,    Qt::Key_Left,      Qt::Key_Right, Qt::Key_Up,     Qt::Key_Down,
-      Qt::Key_PageUp, Qt::Key_PageDown,  Qt::Key_Home,  Qt::Key_End,    Qt::Key_Insert,
-      Qt::Key_Delete, Qt::Key_Backspace, Qt::Key_Space, Qt::Key_Return, Qt::Key_Escape,
+      Qt::Key_Tab,
+      Qt::Key_Left,
+      Qt::Key_Right,
+      Qt::Key_Up,
+      Qt::Key_Down,
+      Qt::Key_PageUp,
+      Qt::Key_PageDown,
+      Qt::Key_Home,
+      Qt::Key_End,
+      Qt::Key_Insert,
+      Qt::Key_Delete,
+      Qt::Key_Backspace,
+      Qt::Key_Space,
+      Qt::Key_Return,
+      Qt::Key_Escape,
       Qt::Key_Enter,  // Keypad enter
-      Qt::Key_A,      Qt::Key_C,         Qt::Key_V,     Qt::Key_X,      Qt::Key_Y,
+      Qt::Key_A,
+      Qt::Key_C,
+      Qt::Key_V,
+      Qt::Key_X,
+      Qt::Key_Y,
       Qt::Key_Z,
   };
 

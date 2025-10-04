@@ -32,8 +32,8 @@ struct TitleContext
 {
   void Clear();
   void DoState(PointerWrap& p);
-  void Update(const ES::TMDReader& tmd_, const ES::TicketReader& ticket_,
-              DiscIO::Platform platform);
+  void Update(
+      const ES::TMDReader& tmd_, const ES::TicketReader& ticket_, DiscIO::Platform platform);
 
   ES::TicketReader ticket;
   ES::TMDReader tmd;
@@ -84,8 +84,8 @@ public:
 
   ES::TMDReader FindImportTMD(u64 title_id, Ticks ticks = {}) const;
   ES::TMDReader FindInstalledTMD(u64 title_id, Ticks ticks = {}) const;
-  ES::TicketReader FindSignedTicket(u64 title_id,
-                                    std::optional<u8> desired_version = std::nullopt) const;
+  ES::TicketReader FindSignedTicket(
+      u64 title_id, std::optional<u8> desired_version = std::nullopt) const;
 
   // Get installed titles (in /title) without checking for TMDs at all.
   std::vector<u64> GetInstalledTitles() const;
@@ -100,9 +100,8 @@ public:
     No = false,
   };
 
-  std::vector<ES::Content>
-  GetStoredContentsFromTMD(const ES::TMDReader& tmd,
-                           CheckContentHashes check_content_hashes = CheckContentHashes::No) const;
+  std::vector<ES::Content> GetStoredContentsFromTMD(const ES::TMDReader& tmd,
+      CheckContentHashes check_content_hashes = CheckContentHashes::No) const;
   u32 GetSharedContentsCount() const;
   std::vector<std::array<u8, 20>> GetSharedContents() const;
 
@@ -126,20 +125,19 @@ public:
     Yes,
   };
   ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain,
-                          TicketImportType type = TicketImportType::PossiblyPersonalised,
-                          VerifySignature verify_signature = VerifySignature::Yes);
+      TicketImportType type = TicketImportType::PossiblyPersonalised,
+      VerifySignature verify_signature = VerifySignature::Yes);
   ReturnCode ImportTmd(Context& context, const std::vector<u8>& tmd_bytes, u64 caller_title_id,
-                       u32 caller_title_flags);
+      u32 caller_title_flags);
   ReturnCode ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
-                             const std::vector<u8>& cert_chain,
-                             VerifySignature verify_signature = VerifySignature::Yes);
+      const std::vector<u8>& cert_chain, VerifySignature verify_signature = VerifySignature::Yes);
   ReturnCode ImportContentBegin(Context& context, u64 title_id, u32 content_id);
   ReturnCode ImportContentData(Context& context, u32 content_fd, const u8* data, u32 data_size);
   ReturnCode ImportContentEnd(Context& context, u32 content_fd);
   ReturnCode ImportTitleDone(Context& context);
   ReturnCode ImportTitleCancel(Context& context);
   ReturnCode ExportTitleInit(Context& context, u64 title_id, u8* tmd, u32 tmd_size,
-                             u64 caller_title_id, u32 caller_title_flags);
+      u64 caller_title_id, u32 caller_title_flags);
   ReturnCode ExportContentBegin(Context& context, u64 title_id, u32 content_id);
   ReturnCode ExportContentData(Context& context, u32 content_fd, u8* data, u32 data_size);
   ReturnCode ExportContentEnd(Context& context, u32 content_fd);
@@ -154,11 +152,11 @@ public:
   ReturnCode GetTitleId(u64* device_id) const;
 
   ReturnCode VerifySign(const std::vector<u8>& hash, const std::vector<u8>& ecc_signature,
-                        const std::vector<u8>& certs);
+      const std::vector<u8>& certs);
 
   // Views
-  ReturnCode GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size,
-                               std::optional<u8> desired_version) const;
+  ReturnCode GetTicketFromView(
+      const u8* ticket_view, u8* ticket, u32* ticket_size, std::optional<u8> desired_version) const;
 
   ReturnCode SetUpStreamKey(u32 uid, const u8* ticket_view, const ES::TMDReader& tmd, u32* handle);
 
@@ -179,11 +177,11 @@ public:
   // On success, if issuer_handle is non-null, the IOSC object for the issuer will be written to it.
   // The caller is responsible for using IOSC_DeleteObject.
   ReturnCode VerifyContainer(VerifyContainerType type, VerifyMode mode,
-                             const ES::SignedBlobReader& signed_blob,
-                             const std::vector<u8>& cert_chain, u32* issuer_handle = nullptr);
+      const ES::SignedBlobReader& signed_blob, const std::vector<u8>& cert_chain,
+      u32* issuer_handle = nullptr);
   ReturnCode VerifyContainer(VerifyContainerType type, VerifyMode mode,
-                             const ES::CertReader& certificate, const std::vector<u8>& cert_chain,
-                             u32 certificate_iosc_handle);
+      const ES::CertReader& certificate, const std::vector<u8>& cert_chain,
+      u32 certificate_iosc_handle);
 
 private:
   // Start a title import.
@@ -204,8 +202,8 @@ private:
   ReturnCode ReadCertStore(std::vector<u8>* buffer) const;
   ReturnCode WriteNewCertToStore(const ES::CertReader& cert);
 
-  ReturnCode CheckStreamKeyPermissions(u32 uid, const u8* ticket_view,
-                                       const ES::TMDReader& tmd) const;
+  ReturnCode CheckStreamKeyPermissions(
+      u32 uid, const u8* ticket_view, const ES::TMDReader& tmd) const;
 
   struct OpenedContent
   {

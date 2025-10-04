@@ -77,8 +77,8 @@ static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 // Also collect which internal branch goes the farthest.
 // If any one goes farther than the blr or rfi, assume that there is more than
 // one blr or rfi, and keep scanning.
-bool AnalyzeFunction(const Core::CPUThreadGuard& guard, u32 startAddr, Common::Symbol& func,
-                     u32 max_size)
+bool AnalyzeFunction(
+    const Core::CPUThreadGuard& guard, u32 startAddr, Common::Symbol& func, u32 max_size)
 {
   if (func.name.empty())
     func.Rename(fmt::format("zz_{:08x}_", startAddr));
@@ -176,8 +176,8 @@ bool AnalyzeFunction(const Core::CPUThreadGuard& guard, u32 startAddr, Common::S
   }
 }
 
-bool ReanalyzeFunction(const Core::CPUThreadGuard& guard, u32 start_addr, Common::Symbol& func,
-                       u32 max_size)
+bool ReanalyzeFunction(
+    const Core::CPUThreadGuard& guard, u32 start_addr, Common::Symbol& func, u32 max_size)
 {
   ASSERT_MSG(SYMBOLS, func.analyzed, "The function wasn't previously analyzed!");
 
@@ -191,10 +191,12 @@ static void AnalyzeFunction2(PPCSymbolDB* func_db, Common::Symbol* func)
 {
   u32 flags = func->flags;
 
-  bool nonleafcall = std::ranges::any_of(func->calls, [&](const auto& call) {
-    const Common::Symbol* const called_func = func_db->GetSymbolFromAddr(call.function);
-    return called_func && (called_func->flags & Common::FFLAG_LEAF) == 0;
-  });
+  bool nonleafcall = std::ranges::any_of(func->calls,
+      [&](const auto& call)
+      {
+        const Common::Symbol* const called_func = func_db->GetSymbolFromAddr(call.function);
+        return called_func && (called_func->flags & Common::FFLAG_LEAF) == 0;
+      });
 
   if (nonleafcall && !(flags & Common::FFLAG_EVIL) && !(flags & Common::FFLAG_RFI))
     flags |= Common::FFLAG_ONLYCALLSNICELEAFS;
@@ -222,7 +224,7 @@ static bool InstructionCanEndBlock(const CodeOp& op)
 {
   return (op.opinfo->flags & FL_ENDBLOCK) &&
          (!IsMtspr(op.inst) || GetSPRIndex(op.inst) == SPR_MMCR0 ||
-          GetSPRIndex(op.inst) == SPR_MMCR1);
+             GetSPRIndex(op.inst) == SPR_MMCR1);
 }
 
 bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
@@ -285,8 +287,8 @@ bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
 // called by another function. Therefore, let's scan the
 // entire space for bl operations and find what functions
 // get called.
-static void FindFunctionsFromBranches(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr,
-                                      Common::SymbolDB* func_db)
+static void FindFunctionsFromBranches(
+    const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr, Common::SymbolDB* func_db)
 {
   auto& mmu = guard.GetSystem().GetMMU();
   for (u32 addr = startAddr; addr < endAddr; addr += 4)
@@ -323,15 +325,11 @@ static void FindFunctionsFromHandlers(const Core::CPUThreadGuard& guard, PPCSymb
 {
   static const std::map<u32, const char* const> handlers = {
       {0x80000100, "system_reset_exception_handler"},
-      {0x80000200, "machine_check_exception_handler"},
-      {0x80000300, "dsi_exception_handler"},
-      {0x80000400, "isi_exception_handler"},
-      {0x80000500, "external_interrupt_exception_handler"},
-      {0x80000600, "alignment_exception_handler"},
-      {0x80000700, "program_exception_handler"},
+      {0x80000200, "machine_check_exception_handler"}, {0x80000300, "dsi_exception_handler"},
+      {0x80000400, "isi_exception_handler"}, {0x80000500, "external_interrupt_exception_handler"},
+      {0x80000600, "alignment_exception_handler"}, {0x80000700, "program_exception_handler"},
       {0x80000800, "floating_point_unavailable_exception_handler"},
-      {0x80000900, "decrementer_exception_handler"},
-      {0x80000C00, "system_call_exception_handler"},
+      {0x80000900, "decrementer_exception_handler"}, {0x80000C00, "system_call_exception_handler"},
       {0x80000D00, "trace_exception_handler"},
       {0x80000E00, "floating_point_assist_exception_handler"},
       {0x80000F00, "performance_monitor_interrupt_handler"},
@@ -354,8 +352,8 @@ static void FindFunctionsFromHandlers(const Core::CPUThreadGuard& guard, PPCSymb
   }
 }
 
-static void FindFunctionsAfterReturnInstruction(const Core::CPUThreadGuard& guard,
-                                                PPCSymbolDB* func_db)
+static void FindFunctionsAfterReturnInstruction(
+    const Core::CPUThreadGuard& guard, PPCSymbolDB* func_db)
 {
   std::vector<u32> funcAddrs;
 
@@ -392,8 +390,8 @@ static void FindFunctionsAfterReturnInstruction(const Core::CPUThreadGuard& guar
   }
 }
 
-void FindFunctions(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr,
-                   PPCSymbolDB* func_db)
+void FindFunctions(
+    const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
 {
   // Step 1: Find all functions
   FindFunctionsFromBranches(guard, startAddr, endAddr, func_db);
@@ -407,45 +405,47 @@ void FindFunctions(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr
   int numLeafs = 0, numNice = 0, numUnNice = 0;
   int numTimer = 0, numRFI = 0, numStraightLeaf = 0;
   int leafSize = 0, niceSize = 0, unniceSize = 0;
-  func_db->ForEachSymbolWithMutation([&](Common::Symbol& f) {
-    if (f.address == 4)
-    {
-      WARN_LOG_FMT(SYMBOLS, "Weird function");
-    }
-    else
-    {
-      AnalyzeFunction2(func_db, &f);
-      if (f.name.substr(0, 3) == "zzz")
+  func_db->ForEachSymbolWithMutation(
+      [&](Common::Symbol& f)
       {
-        if (f.flags & Common::FFLAG_LEAF)
-          f.Rename(f.name + "_leaf");
-        if (f.flags & Common::FFLAG_STRAIGHT)
-          f.Rename(f.name + "_straight");
-      }
-      if (f.flags & Common::FFLAG_LEAF)
-      {
-        numLeafs++;
-        leafSize += f.size;
-      }
-      else if (f.flags & Common::FFLAG_ONLYCALLSNICELEAFS)
-      {
-        numNice++;
-        niceSize += f.size;
-      }
-      else
-      {
-        numUnNice++;
-        unniceSize += f.size;
-      }
+        if (f.address == 4)
+        {
+          WARN_LOG_FMT(SYMBOLS, "Weird function");
+        }
+        else
+        {
+          AnalyzeFunction2(func_db, &f);
+          if (f.name.substr(0, 3) == "zzz")
+          {
+            if (f.flags & Common::FFLAG_LEAF)
+              f.Rename(f.name + "_leaf");
+            if (f.flags & Common::FFLAG_STRAIGHT)
+              f.Rename(f.name + "_straight");
+          }
+          if (f.flags & Common::FFLAG_LEAF)
+          {
+            numLeafs++;
+            leafSize += f.size;
+          }
+          else if (f.flags & Common::FFLAG_ONLYCALLSNICELEAFS)
+          {
+            numNice++;
+            niceSize += f.size;
+          }
+          else
+          {
+            numUnNice++;
+            unniceSize += f.size;
+          }
 
-      if (f.flags & Common::FFLAG_TIMERINSTRUCTIONS)
-        numTimer++;
-      if (f.flags & Common::FFLAG_RFI)
-        numRFI++;
-      if ((f.flags & Common::FFLAG_STRAIGHT) && (f.flags & Common::FFLAG_LEAF))
-        numStraightLeaf++;
-    }
-  });
+          if (f.flags & Common::FFLAG_TIMERINSTRUCTIONS)
+            numTimer++;
+          if (f.flags & Common::FFLAG_RFI)
+            numRFI++;
+          if ((f.flags & Common::FFLAG_STRAIGHT) && (f.flags & Common::FFLAG_LEAF))
+            numStraightLeaf++;
+        }
+      });
   if (numLeafs == 0)
     leafSize = 0;
   else
@@ -462,11 +462,11 @@ void FindFunctions(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr
     unniceSize /= numUnNice;
 
   INFO_LOG_FMT(SYMBOLS,
-               "Functions analyzed. {} leafs, {} nice, {} unnice."
-               "{} timer, {} rfi. {} are branchless leafs.",
-               numLeafs, numNice, numUnNice, numTimer, numRFI, numStraightLeaf);
-  INFO_LOG_FMT(SYMBOLS, "Average size: {} (leaf), {} (nice), {}(unnice)", leafSize, niceSize,
-               unniceSize);
+      "Functions analyzed. {} leafs, {} nice, {} unnice."
+      "{} timer, {} rfi. {} are branchless leafs.",
+      numLeafs, numNice, numUnNice, numTimer, numRFI, numStraightLeaf);
+  INFO_LOG_FMT(
+      SYMBOLS, "Average size: {} (leaf), {} (nice), {}(unnice)", leafSize, niceSize, unniceSize);
 }
 
 static bool isCarryOp(const CodeOp& a)
@@ -480,8 +480,8 @@ static bool isCror(const CodeOp& a)
   return a.inst.OPCD == 19 && a.inst.SUBOP10 == 449;
 }
 
-void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse,
-                                          ReorderType type) const
+void PPCAnalyzer::ReorderInstructionsCore(
+    u32 instructions, CodeOp* code, bool reverse, ReorderType type) const
 {
   // Instruction Reordering Pass
   // Carry pass: bubble carry-using instructions as close to each other as possible, so we can avoid
@@ -575,8 +575,8 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code) const
     ReorderInstructionsCore(instructions, code, true, ReorderType::CROR);
 }
 
-void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
-                                      const GekkoOPInfo* opinfo) const
+void PPCAnalyzer::SetInstructionStats(
+    CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo) const
 {
   bool first_fpu_instruction = false;
   if (opinfo->flags & FL_USE_FPU)
@@ -800,8 +800,8 @@ static bool CanCauseGatherPipeInterruptCheck(const CodeOp& op)
          op.opinfo->type == OpType::StorePS;
 }
 
-u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
-                         std::size_t block_size) const
+u32 PPCAnalyzer::Analyze(
+    u32 address, CodeBlock* block, CodeBuffer* buffer, std::size_t block_size) const
 {
   // Clear block stats
   *block->m_stats = {};
@@ -924,7 +924,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       }
       else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
                ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 ||
-                (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
+                   (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
       {
         // bclrx with conditional branch
         conditional_continue = true;

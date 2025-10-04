@@ -23,16 +23,16 @@ MixedTriggers::MixedTriggers(const std::string& name_)
   AddDeadzoneSetting(&m_deadzone_setting, 25);
 
   AddSetting(&m_threshold_setting,
-             {_trans("Threshold"),
-              // i18n: The percent symbol.
-              _trans("%"),
-              // i18n: Refers to the "threshold" setting for pressure sensitive gamepad inputs.
-              _trans("Input strength required for activation.")},
-             90, 1, 100);
+      {_trans("Threshold"),
+          // i18n: The percent symbol.
+          _trans("%"),
+          // i18n: Refers to the "threshold" setting for pressure sensitive gamepad inputs.
+          _trans("Input strength required for activation.")},
+      90, 1, 100);
 }
 
-void MixedTriggers::GetState(u16* const digital, const u16* bitmasks, ControlState* analog,
-                             bool adjusted) const
+void MixedTriggers::GetState(
+    u16* const digital, const u16* bitmasks, ControlState* analog, bool adjusted) const
 {
   const ControlState threshold = GetThreshold();
   ControlState deadzone = GetDeadzone();
@@ -65,7 +65,7 @@ void MixedTriggers::GetState(u16* const digital, const u16* bitmasks, ControlSta
 }
 
 void MixedTriggers::GetState(u16* digital, const u16* bitmasks, ControlState* analog,
-                             const InputOverrideFunction& override_func, bool adjusted) const
+    const InputOverrideFunction& override_func, bool adjusted) const
 {
   if (!override_func)
     return GetState(digital, bitmasks, analog, adjusted);

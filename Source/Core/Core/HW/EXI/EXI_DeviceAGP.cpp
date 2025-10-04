@@ -236,7 +236,7 @@ u32 CEXIAgp::ImmRead(u32 _uSize)
     RomVal1 = EE_READ_FALSE;
     if ((m_eeprom_size != 0) && (m_eeprom_pos >= EE_IGNORE_BITS) &&
         ((((u64*)m_eeprom.data())[(m_eeprom_cmd >> 1) & m_eeprom_add_mask]) >>
-         ((EE_DATA_BITS - 1) - (m_eeprom_pos - EE_IGNORE_BITS))) &
+            ((EE_DATA_BITS - 1) - (m_eeprom_pos - EE_IGNORE_BITS))) &
             0x1)
     {
       RomVal1 = EE_READ_TRUE;

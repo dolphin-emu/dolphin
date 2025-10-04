@@ -54,10 +54,12 @@ GCMemcardCreateNewDialog::GCMemcardCreateNewDialog(QWidget* parent) : QDialog(pa
   setLayout(layout);
 
   connect(button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
-  connect(button_box, &QDialogButtonBox::accepted, [this] {
-    if (CreateCard())
-      accept();
-  });
+  connect(button_box, &QDialogButtonBox::accepted,
+      [this]
+      {
+        if (CreateCard())
+          accept();
+      });
 
   setWindowTitle(tr("Create New Memory Card"));
 }
@@ -69,8 +71,8 @@ bool GCMemcardCreateNewDialog::CreateCard()
   const u16 size = static_cast<u16>(m_combobox_size->currentData().toInt());
   const bool is_shift_jis = m_radio_shiftjis->isChecked();
 
-  const QString path = DolphinFileDialog::getSaveFileName(
-      this, tr("Create New Memory Card"), QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
+  const QString path = DolphinFileDialog::getSaveFileName(this, tr("Create New Memory Card"),
+      QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
       tr("GameCube Memory Cards (*.raw *.gcp)") + QStringLiteral(";;") + tr("All Files (*)"));
 
   if (path.isEmpty())
@@ -83,8 +85,8 @@ bool GCMemcardCreateNewDialog::CreateCard()
       Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
 
   const std::string p = path.toStdString();
-  auto memcard = Memcard::GCMemcard::Create(p, flash_id, size, is_shift_jis, rtc_bias,
-                                            sram_language, format_time);
+  auto memcard = Memcard::GCMemcard::Create(
+      p, flash_id, size, is_shift_jis, rtc_bias, sram_language, format_time);
   if (memcard && memcard->Save())
   {
     m_card_path = p;

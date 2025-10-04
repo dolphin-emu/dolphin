@@ -44,7 +44,9 @@ class Tev
   struct TevColorRef
   {
     constexpr explicit TevColorRef(const s16& r_, const s16& g_, const s16& b_)
-        : r(r_), g(g_), b(b_)
+        : r(r_)
+        , g(g_)
+        , b(b_)
     {
     }
 
@@ -71,7 +73,10 @@ class Tev
   struct TevKonstRef
   {
     constexpr explicit TevKonstRef(const s16& a_, const s16& r_, const s16& g_, const s16& b_)
-        : a(a_), r(r_), g(g_), b(b_)
+        : a(a_)
+        , r(r_)
+        , g(g_)
+        , b(b_)
     {
     }
 

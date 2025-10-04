@@ -246,64 +246,54 @@
 #define GL_VERTEX_BINDING_BUFFER 0x8F4F
 #define GL_DISPLAY_LIST 0x82E7
 
-typedef void(APIENTRYP PFNDOLCLEARBUFFERDATAPROC)(GLenum target, GLenum internalformat,
-                                                  GLenum format, GLenum type, const void* data);
+typedef void(APIENTRYP PFNDOLCLEARBUFFERDATAPROC)(
+    GLenum target, GLenum internalformat, GLenum format, GLenum type, const void* data);
 typedef void(APIENTRYP PFNDOLCLEARBUFFERSUBDATAPROC)(GLenum target, GLenum internalformat,
-                                                     GLintptr offset, GLsizeiptr size,
-                                                     GLenum format, GLenum type, const void* data);
+    GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void* data);
 typedef void(APIENTRYP PFNDOLFRAMEBUFFERPARAMETERIPROC)(GLenum target, GLenum pname, GLint param);
-typedef void(APIENTRYP PFNDOLGETFRAMEBUFFERPARAMETERIVPROC)(GLenum target, GLenum pname,
-                                                            GLint* params);
-typedef void(APIENTRYP PFNDOLGETINTERNALFORMATI64VPROC)(GLenum target, GLenum internalformat,
-                                                        GLenum pname, GLsizei bufSize,
-                                                        GLint64* params);
+typedef void(APIENTRYP PFNDOLGETFRAMEBUFFERPARAMETERIVPROC)(
+    GLenum target, GLenum pname, GLint* params);
+typedef void(APIENTRYP PFNDOLGETINTERNALFORMATI64VPROC)(
+    GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint64* params);
 typedef void(APIENTRYP PFNDOLINVALIDATETEXSUBIMAGEPROC)(GLuint texture, GLint level, GLint xoffset,
-                                                        GLint yoffset, GLint zoffset, GLsizei width,
-                                                        GLsizei height, GLsizei depth);
+    GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth);
 typedef void(APIENTRYP PFNDOLINVALIDATETEXIMAGEPROC)(GLuint texture, GLint level);
-typedef void(APIENTRYP PFNDOLINVALIDATEBUFFERSUBDATAPROC)(GLuint buffer, GLintptr offset,
-                                                          GLsizeiptr length);
+typedef void(APIENTRYP PFNDOLINVALIDATEBUFFERSUBDATAPROC)(
+    GLuint buffer, GLintptr offset, GLsizeiptr length);
 typedef void(APIENTRYP PFNDOLINVALIDATEBUFFERDATAPROC)(GLuint buffer);
-typedef void(APIENTRYP PFNDOLINVALIDATEFRAMEBUFFERPROC)(GLenum target, GLsizei numAttachments,
-                                                        const GLenum* attachments);
+typedef void(APIENTRYP PFNDOLINVALIDATEFRAMEBUFFERPROC)(
+    GLenum target, GLsizei numAttachments, const GLenum* attachments);
 typedef void(APIENTRYP PFNDOLINVALIDATESUBFRAMEBUFFERPROC)(GLenum target, GLsizei numAttachments,
-                                                           const GLenum* attachments, GLint x,
-                                                           GLint y, GLsizei width, GLsizei height);
-typedef void(APIENTRYP PFNDOLMULTIDRAWARRAYSINDIRECTPROC)(GLenum mode, const void* indirect,
-                                                          GLsizei drawcount, GLsizei stride);
-typedef void(APIENTRYP PFNDOLMULTIDRAWELEMENTSINDIRECTPROC)(GLenum mode, GLenum type,
-                                                            const void* indirect, GLsizei drawcount,
-                                                            GLsizei stride);
-typedef void(APIENTRYP PFNDOLGETPROGRAMINTERFACEIVPROC)(GLuint program, GLenum programInterface,
-                                                        GLenum pname, GLint* params);
-typedef GLuint(APIENTRYP PFNDOLGETPROGRAMRESOURCEINDEXPROC)(GLuint program, GLenum programInterface,
-                                                            const GLchar* name);
+    const GLenum* attachments, GLint x, GLint y, GLsizei width, GLsizei height);
+typedef void(APIENTRYP PFNDOLMULTIDRAWARRAYSINDIRECTPROC)(
+    GLenum mode, const void* indirect, GLsizei drawcount, GLsizei stride);
+typedef void(APIENTRYP PFNDOLMULTIDRAWELEMENTSINDIRECTPROC)(
+    GLenum mode, GLenum type, const void* indirect, GLsizei drawcount, GLsizei stride);
+typedef void(APIENTRYP PFNDOLGETPROGRAMINTERFACEIVPROC)(
+    GLuint program, GLenum programInterface, GLenum pname, GLint* params);
+typedef GLuint(APIENTRYP PFNDOLGETPROGRAMRESOURCEINDEXPROC)(
+    GLuint program, GLenum programInterface, const GLchar* name);
 typedef void(APIENTRYP PFNDOLGETPROGRAMRESOURCENAMEPROC)(GLuint program, GLenum programInterface,
-                                                         GLuint index, GLsizei bufSize,
-                                                         GLsizei* length, GLchar* name);
+    GLuint index, GLsizei bufSize, GLsizei* length, GLchar* name);
 typedef void(APIENTRYP PFNDOLGETPROGRAMRESOURCEIVPROC)(GLuint program, GLenum programInterface,
-                                                       GLuint index, GLsizei propCount,
-                                                       const GLenum* props, GLsizei bufSize,
-                                                       GLsizei* length, GLint* params);
-typedef GLint(APIENTRYP PFNDOLGETPROGRAMRESOURCELOCATIONPROC)(GLuint program,
-                                                              GLenum programInterface,
-                                                              const GLchar* name);
-typedef GLint(APIENTRYP PFNDOLGETPROGRAMRESOURCELOCATIONINDEXPROC)(GLuint program,
-                                                                   GLenum programInterface,
-                                                                   const GLchar* name);
-typedef void(APIENTRYP PFNDOLTEXBUFFERRANGEPROC)(GLenum target, GLenum internalformat,
-                                                 GLuint buffer, GLintptr offset, GLsizeiptr size);
+    GLuint index, GLsizei propCount, const GLenum* props, GLsizei bufSize, GLsizei* length,
+    GLint* params);
+typedef GLint(APIENTRYP PFNDOLGETPROGRAMRESOURCELOCATIONPROC)(
+    GLuint program, GLenum programInterface, const GLchar* name);
+typedef GLint(APIENTRYP PFNDOLGETPROGRAMRESOURCELOCATIONINDEXPROC)(
+    GLuint program, GLenum programInterface, const GLchar* name);
+typedef void(APIENTRYP PFNDOLTEXBUFFERRANGEPROC)(
+    GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
 typedef void(APIENTRYP PFNDOLTEXTUREVIEWPROC)(GLuint texture, GLenum target, GLuint origtexture,
-                                              GLenum internalformat, GLuint minlevel,
-                                              GLuint numlevels, GLuint minlayer, GLuint numlayers);
-typedef void(APIENTRYP PFNDOLBINDVERTEXBUFFERPROC)(GLuint bindingindex, GLuint buffer,
-                                                   GLintptr offset, GLsizei stride);
-typedef void(APIENTRYP PFNDOLVERTEXATTRIBFORMATPROC)(GLuint attribindex, GLint size, GLenum type,
-                                                     GLboolean normalized, GLuint relativeoffset);
-typedef void(APIENTRYP PFNDOLVERTEXATTRIBIFORMATPROC)(GLuint attribindex, GLint size, GLenum type,
-                                                      GLuint relativeoffset);
-typedef void(APIENTRYP PFNDOLVERTEXATTRIBLFORMATPROC)(GLuint attribindex, GLint size, GLenum type,
-                                                      GLuint relativeoffset);
+    GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers);
+typedef void(APIENTRYP PFNDOLBINDVERTEXBUFFERPROC)(
+    GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride);
+typedef void(APIENTRYP PFNDOLVERTEXATTRIBFORMATPROC)(
+    GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset);
+typedef void(APIENTRYP PFNDOLVERTEXATTRIBIFORMATPROC)(
+    GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
+typedef void(APIENTRYP PFNDOLVERTEXATTRIBLFORMATPROC)(
+    GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
 typedef void(APIENTRYP PFNDOLVERTEXATTRIBBINDINGPROC)(GLuint attribindex, GLuint bindingindex);
 typedef void(APIENTRYP PFNDOLVERTEXBINDINGDIVISORPROC)(GLuint bindingindex, GLuint divisor);
 

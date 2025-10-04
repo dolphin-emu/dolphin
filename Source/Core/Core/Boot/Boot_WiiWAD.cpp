@@ -18,9 +18,11 @@
 
 bool CBoot::BootNANDTitle(Core::System& system, const u64 title_id)
 {
-  UpdateStateFlags([](StateFlags* state) {
-    state->type = 0x04;  // TYPE_NANDBOOT
-  });
+  UpdateStateFlags(
+      [](StateFlags* state)
+      {
+        state->type = 0x04;  // TYPE_NANDBOOT
+      });
 
   auto es = system.GetIOS()->GetESDevice();
   const IOS::ES::TicketReader ticket = es->GetCore().FindSignedTicket(title_id);

@@ -10,8 +10,8 @@ namespace SW
 // Copies a region of source to a region of destination, performing nearest-neighbor rescaling
 template <typename T>
 void CopyRegion(const T* const source, const MathUtil::Rectangle<int>& srcrect, const int src_width,
-                const int src_height, T* destination, const MathUtil::Rectangle<int>& dstrect,
-                const int dst_width, const int dst_height)
+    const int src_height, T* destination, const MathUtil::Rectangle<int>& dstrect,
+    const int dst_width, const int dst_height)
 {
   ASSERT(srcrect.top >= 0 && srcrect.bottom <= src_height);
   ASSERT(srcrect.left >= 0 && srcrect.right <= src_width);
@@ -44,7 +44,7 @@ void CopyRegion(const T* const source, const MathUtil::Rectangle<int>& srcrect, 
 // Copies the entire image from source to destination, performing nearest-neighbor rescaling
 template <typename T>
 void CopyRegion(const T* const source, const int src_width, const int src_height, T* destination,
-                const int dst_width, const int dst_height)
+    const int dst_width, const int dst_height)
 {
   MathUtil::Rectangle<int> srcrect{0, 0, src_width, src_height};
   MathUtil::Rectangle<int> dstrect{0, 0, dst_width, dst_height};

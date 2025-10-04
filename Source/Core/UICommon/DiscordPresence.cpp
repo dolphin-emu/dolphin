@@ -37,7 +37,7 @@ namespace
 Handler* event_handler = nullptr;
 const char* username = "";
 static int64_t s_start_timestamp = std::chrono::duration_cast<std::chrono::seconds>(
-                                       std::chrono::system_clock::now().time_since_epoch())
+    std::chrono::system_clock::now().time_since_epoch())
                                        .count();
 
 void HandleDiscordReady(const DiscordUser* user)
@@ -165,12 +165,10 @@ void InitNetPlayFunctionality(Handler& handler)
 }
 
 bool UpdateDiscordPresenceRaw(const std::string& details, const std::string& state,
-                              const std::string& large_image_key,
-                              const std::string& large_image_text,
-                              const std::string& small_image_key,
-                              const std::string& small_image_text, const int64_t start_timestamp,
-                              const int64_t end_timestamp, const int party_size,
-                              const int party_max)
+    const std::string& large_image_key, const std::string& large_image_text,
+    const std::string& small_image_key, const std::string& small_image_text,
+    const int64_t start_timestamp, const int64_t end_timestamp, const int party_size,
+    const int party_max)
 {
 #ifdef USE_DISCORD_PRESENCE
   if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
@@ -200,7 +198,7 @@ bool UpdateDiscordPresenceRaw(const std::string& details, const std::string& sta
 }
 
 void UpdateDiscordPresence(int party_size, SecretType type, const std::string& secret,
-                           const std::string& current_game, bool reset_timer)
+    const std::string& current_game, bool reset_timer)
 {
 #ifdef USE_DISCORD_PRESENCE
   if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
@@ -232,7 +230,7 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
   if (reset_timer)
   {
     s_start_timestamp = std::chrono::duration_cast<std::chrono::seconds>(
-                            std::chrono::system_clock::now().time_since_epoch())
+        std::chrono::system_clock::now().time_since_epoch())
                             .count();
   }
   discord_presence.startTimestamp = s_start_timestamp;

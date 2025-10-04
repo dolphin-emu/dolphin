@@ -16,14 +16,16 @@
 
 namespace DX11
 {
-DXTexture::DXTexture(const TextureConfig& config, ComPtr<ID3D11Texture2D> texture,
-                     std::string_view name)
-    : AbstractTexture(config), m_texture(std::move(texture)), m_name(name)
+DXTexture::DXTexture(
+    const TextureConfig& config, ComPtr<ID3D11Texture2D> texture, std::string_view name)
+    : AbstractTexture(config)
+    , m_texture(std::move(texture))
+    , m_name(name)
 {
   if (!m_name.empty())
   {
-    m_texture->SetPrivateData(WKPDID_D3DDebugObjectName, static_cast<UINT>(m_name.size()),
-                              m_name.c_str());
+    m_texture->SetPrivateData(
+        WKPDID_D3DDebugObjectName, static_cast<UINT>(m_name.size()), m_name.c_str());
   }
 }
 
@@ -45,16 +47,15 @@ std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config, std::s
   if (config.IsComputeImage())
     bindflags |= D3D11_BIND_UNORDERED_ACCESS;
 
-  CD3D11_TEXTURE2D_DESC desc(
-      tex_format, config.width, config.height, config.layers, config.levels, bindflags,
-      D3D11_USAGE_DEFAULT, 0, config.samples, 0,
+  CD3D11_TEXTURE2D_DESC desc(tex_format, config.width, config.height, config.layers, config.levels,
+      bindflags, D3D11_USAGE_DEFAULT, 0, config.samples, 0,
       config.type == AbstractTextureType::Texture_CubeMap ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0);
   ComPtr<ID3D11Texture2D> d3d_texture;
   HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, d3d_texture.GetAddressOf());
   if (FAILED(hr))
   {
     PanicAlertFmt("Failed to create {}x{}x{} D3D backing texture: {}", config.width, config.height,
-                  config.layers, DX11HRWrap(hr));
+        config.layers, DX11HRWrap(hr));
     return nullptr;
   }
 
@@ -72,9 +73,8 @@ std::unique_ptr<DXTexture> DXTexture::CreateAdopted(ComPtr<ID3D11Texture2D> text
 
   // Convert to our texture config format.
   TextureConfig config(desc.Width, desc.Height, desc.MipLevels, desc.ArraySize,
-                       desc.SampleDesc.Count,
-                       D3DCommon::GetAbstractFormatForDXGIFormat(desc.Format), 0,
-                       AbstractTextureType::Texture_2DArray);
+      desc.SampleDesc.Count, D3DCommon::GetAbstractFormatForDXGIFormat(desc.Format), 0,
+      AbstractTextureType::Texture_2DArray);
   if (desc.BindFlags & D3D11_BIND_RENDER_TARGET)
     config.flags |= AbstractTextureFlag_RenderTarget;
   if (desc.BindFlags & D3D11_BIND_UNORDERED_ACCESS)
@@ -115,15 +115,15 @@ bool DXTexture::CreateSRV()
     PanicAlertFmt("Failed to create D3D SRV - unhandled type");
     return false;
   }
-  const CD3D11_SHADER_RESOURCE_VIEW_DESC desc(
-      m_texture.Get(), dimension, D3DCommon::GetSRVFormatForAbstractFormat(m_config.format), 0,
-      m_config.levels, 0, m_config.layers);
+  const CD3D11_SHADER_RESOURCE_VIEW_DESC desc(m_texture.Get(), dimension,
+      D3DCommon::GetSRVFormatForAbstractFormat(m_config.format), 0, m_config.levels, 0,
+      m_config.layers);
   DEBUG_ASSERT(!m_srv);
   HRESULT hr = D3D::device->CreateShaderResourceView(m_texture.Get(), &desc, m_srv.GetAddressOf());
   if (FAILED(hr))
   {
     PanicAlertFmt("Failed to create {}x{}x{} D3D SRV: {}", m_config.width, m_config.height,
-                  m_config.layers, DX11HRWrap(hr));
+        m_config.layers, DX11HRWrap(hr));
     return false;
   }
 
@@ -132,15 +132,14 @@ bool DXTexture::CreateSRV()
 
 bool DXTexture::CreateUAV()
 {
-  const CD3D11_UNORDERED_ACCESS_VIEW_DESC desc(
-      m_texture.Get(), D3D11_UAV_DIMENSION_TEXTURE2DARRAY,
+  const CD3D11_UNORDERED_ACCESS_VIEW_DESC desc(m_texture.Get(), D3D11_UAV_DIMENSION_TEXTURE2DARRAY,
       D3DCommon::GetSRVFormatForAbstractFormat(m_config.format), 0, 0, m_config.layers);
   DEBUG_ASSERT(!m_uav);
   HRESULT hr = D3D::device->CreateUnorderedAccessView(m_texture.Get(), &desc, m_uav.GetAddressOf());
   if (FAILED(hr))
   {
     PanicAlertFmt("Failed to create {}x{}x{} D3D UAV: {}", m_config.width, m_config.height,
-                  m_config.layers, DX11HRWrap(hr));
+        m_config.layers, DX11HRWrap(hr));
     return false;
   }
 
@@ -148,13 +147,12 @@ bool DXTexture::CreateUAV()
 }
 
 void DXTexture::CopyRectangleFromTexture(const AbstractTexture* src,
-                                         const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
-                                         u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
-                                         u32 dst_layer, u32 dst_level)
+    const MathUtil::Rectangle<int>& src_rect, u32 src_layer, u32 src_level,
+    const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer, u32 dst_level)
 {
   const DXTexture* srcentry = static_cast<const DXTexture*>(src);
-  ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
-         src_rect.GetHeight() == dst_rect.GetHeight());
+  ASSERT(
+      src_rect.GetWidth() == dst_rect.GetWidth() && src_rect.GetHeight() == dst_rect.GetHeight());
 
   D3D11_BOX src_box;
   src_box.left = src_rect.left;
@@ -164,14 +162,14 @@ void DXTexture::CopyRectangleFromTexture(const AbstractTexture* src,
   src_box.front = 0;
   src_box.back = 1;
 
-  D3D::context->CopySubresourceRegion(
-      m_texture.Get(), D3D11CalcSubresource(dst_level, dst_layer, m_config.levels), dst_rect.left,
-      dst_rect.top, 0, srcentry->m_texture.Get(),
+  D3D::context->CopySubresourceRegion(m_texture.Get(),
+      D3D11CalcSubresource(dst_level, dst_layer, m_config.levels), dst_rect.left, dst_rect.top, 0,
+      srcentry->m_texture.Get(),
       D3D11CalcSubresource(src_level, src_layer, srcentry->m_config.levels), &src_box);
 }
 
-void DXTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
-                                   u32 layer, u32 level)
+void DXTexture::ResolveFromTexture(
+    const AbstractTexture* src, const MathUtil::Rectangle<int>& rect, u32 layer, u32 level)
 {
   const DXTexture* srcentry = static_cast<const DXTexture*>(src);
   DEBUG_ASSERT(m_config.samples > 1 && m_config.width == srcentry->m_config.width &&
@@ -179,24 +177,25 @@ void DXTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
   DEBUG_ASSERT(rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&
                rect.top + rect.GetHeight() <= static_cast<int>(srcentry->m_config.height));
 
-  D3D::context->ResolveSubresource(
-      m_texture.Get(), D3D11CalcSubresource(level, layer, m_config.levels),
-      srcentry->m_texture.Get(), D3D11CalcSubresource(level, layer, srcentry->m_config.levels),
+  D3D::context->ResolveSubresource(m_texture.Get(),
+      D3D11CalcSubresource(level, layer, m_config.levels), srcentry->m_texture.Get(),
+      D3D11CalcSubresource(level, layer, srcentry->m_config.levels),
       D3DCommon::GetDXGIFormatForAbstractFormat(m_config.format, false));
 }
 
 void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-                     size_t buffer_size, u32 layer)
+    size_t buffer_size, u32 layer)
 {
   size_t src_pitch = CalculateStrideForFormat(m_config.format, row_length);
   D3D::context->UpdateSubresource(m_texture.Get(),
-                                  D3D11CalcSubresource(level, layer, m_config.levels), nullptr,
-                                  buffer, static_cast<UINT>(src_pitch), 0);
+      D3D11CalcSubresource(level, layer, m_config.levels), nullptr, buffer,
+      static_cast<UINT>(src_pitch), 0);
 }
 
-DXStagingTexture::DXStagingTexture(StagingTextureType type, const TextureConfig& config,
-                                   ComPtr<ID3D11Texture2D> tex)
-    : AbstractStagingTexture(type, config), m_tex(std::move(tex))
+DXStagingTexture::DXStagingTexture(
+    StagingTextureType type, const TextureConfig& config, ComPtr<ID3D11Texture2D> tex)
+    : AbstractStagingTexture(type, config)
+    , m_tex(std::move(tex))
 {
 }
 
@@ -206,8 +205,8 @@ DXStagingTexture::~DXStagingTexture()
     DXStagingTexture::Unmap();
 }
 
-std::unique_ptr<DXStagingTexture> DXStagingTexture::Create(StagingTextureType type,
-                                                           const TextureConfig& config)
+std::unique_ptr<DXStagingTexture> DXStagingTexture::Create(
+    StagingTextureType type, const TextureConfig& config)
 {
   D3D11_USAGE usage;
   UINT cpu_flags;
@@ -230,7 +229,7 @@ std::unique_ptr<DXStagingTexture> DXStagingTexture::Create(StagingTextureType ty
   }
 
   CD3D11_TEXTURE2D_DESC desc(D3DCommon::GetDXGIFormatForAbstractFormat(config.format, false),
-                             config.width, config.height, 1, 1, bind_flags, usage, cpu_flags);
+      config.width, config.height, 1, 1, bind_flags, usage, cpu_flags);
 
   ComPtr<ID3D11Texture2D> texture;
   HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, texture.GetAddressOf());
@@ -242,12 +241,12 @@ std::unique_ptr<DXStagingTexture> DXStagingTexture::Create(StagingTextureType ty
 }
 
 void DXStagingTexture::CopyFromTexture(const AbstractTexture* src,
-                                       const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
-                                       u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
+    const MathUtil::Rectangle<int>& src_rect, u32 src_layer, u32 src_level,
+    const MathUtil::Rectangle<int>& dst_rect)
 {
   ASSERT(m_type == StagingTextureType::Readback || m_type == StagingTextureType::Mutable);
-  ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
-         src_rect.GetHeight() == dst_rect.GetHeight());
+  ASSERT(
+      src_rect.GetWidth() == dst_rect.GetWidth() && src_rect.GetHeight() == dst_rect.GetHeight());
   ASSERT(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= src->GetWidth() &&
          src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= src->GetHeight());
   ASSERT(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= m_config.width &&
@@ -260,16 +259,15 @@ void DXStagingTexture::CopyFromTexture(const AbstractTexture* src,
       static_cast<u32>(src_rect.GetHeight()) == GetHeight())
   {
     // Copy whole resource, needed for depth textures.
-    D3D::context->CopySubresourceRegion(
-        m_tex.Get(), 0, 0, 0, 0, static_cast<const DXTexture*>(src)->GetD3DTexture(),
+    D3D::context->CopySubresourceRegion(m_tex.Get(), 0, 0, 0, 0,
+        static_cast<const DXTexture*>(src)->GetD3DTexture(),
         D3D11CalcSubresource(src_level, src_layer, src->GetLevels()), nullptr);
   }
   else
   {
     CD3D11_BOX src_box(src_rect.left, src_rect.top, 0, src_rect.right, src_rect.bottom, 1);
-    D3D::context->CopySubresourceRegion(
-        m_tex.Get(), 0, static_cast<u32>(dst_rect.left), static_cast<u32>(dst_rect.top), 0,
-        static_cast<const DXTexture*>(src)->GetD3DTexture(),
+    D3D::context->CopySubresourceRegion(m_tex.Get(), 0, static_cast<u32>(dst_rect.left),
+        static_cast<u32>(dst_rect.top), 0, static_cast<const DXTexture*>(src)->GetD3DTexture(),
         D3D11CalcSubresource(src_level, src_layer, src->GetLevels()), &src_box);
   }
 
@@ -277,12 +275,11 @@ void DXStagingTexture::CopyFromTexture(const AbstractTexture* src,
 }
 
 void DXStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, AbstractTexture* dst,
-                                     const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
-                                     u32 dst_level)
+    const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer, u32 dst_level)
 {
   ASSERT(m_type == StagingTextureType::Upload);
-  ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
-         src_rect.GetHeight() == dst_rect.GetHeight());
+  ASSERT(
+      src_rect.GetWidth() == dst_rect.GetWidth() && src_rect.GetHeight() == dst_rect.GetHeight());
   ASSERT(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= GetWidth() &&
          src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= GetHeight());
   ASSERT(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= dst->GetWidth() &&
@@ -294,16 +291,14 @@ void DXStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
   if (static_cast<u32>(src_rect.GetWidth()) == dst->GetWidth() &&
       static_cast<u32>(src_rect.GetHeight()) == dst->GetHeight())
   {
-    D3D::context->CopySubresourceRegion(
-        static_cast<const DXTexture*>(dst)->GetD3DTexture(),
+    D3D::context->CopySubresourceRegion(static_cast<const DXTexture*>(dst)->GetD3DTexture(),
         D3D11CalcSubresource(dst_level, dst_layer, dst->GetLevels()), 0, 0, 0, m_tex.Get(), 0,
         nullptr);
   }
   else
   {
     CD3D11_BOX src_box(src_rect.left, src_rect.top, 0, src_rect.right, src_rect.bottom, 1);
-    D3D::context->CopySubresourceRegion(
-        static_cast<const DXTexture*>(dst)->GetD3DTexture(),
+    D3D::context->CopySubresourceRegion(static_cast<const DXTexture*>(dst)->GetD3DTexture(),
         D3D11CalcSubresource(dst_level, dst_layer, dst->GetLevels()),
         static_cast<u32>(dst_rect.left), static_cast<u32>(dst_rect.top), 0, m_tex.Get(), 0,
         &src_box);
@@ -350,17 +345,15 @@ void DXStagingTexture::Flush()
 }
 
 DXFramebuffer::DXFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
-                             std::vector<AbstractTexture*> additional_color_attachments,
-                             AbstractTextureFormat color_format, AbstractTextureFormat depth_format,
-                             u32 width, u32 height, u32 layers, u32 samples,
-                             ComPtr<ID3D11RenderTargetView> rtv,
-                             ComPtr<ID3D11RenderTargetView> integer_rtv,
-                             ComPtr<ID3D11DepthStencilView> dsv,
-                             std::vector<ComPtr<ID3D11RenderTargetView>> additional_rtvs)
+    std::vector<AbstractTexture*> additional_color_attachments, AbstractTextureFormat color_format,
+    AbstractTextureFormat depth_format, u32 width, u32 height, u32 layers, u32 samples,
+    ComPtr<ID3D11RenderTargetView> rtv, ComPtr<ID3D11RenderTargetView> integer_rtv,
+    ComPtr<ID3D11DepthStencilView> dsv, std::vector<ComPtr<ID3D11RenderTargetView>> additional_rtvs)
     : AbstractFramebuffer(color_attachment, depth_attachment,
-                          std::move(additional_color_attachments), color_format, depth_format,
-                          width, height, layers, samples),
-      m_integer_rtv(std::move(integer_rtv)), m_dsv(std::move(dsv))
+          std::move(additional_color_attachments), color_format, depth_format, width, height,
+          layers, samples)
+    , m_integer_rtv(std::move(integer_rtv))
+    , m_dsv(std::move(dsv))
 {
   m_render_targets.push_back(std::move(rtv));
   for (auto additional_rtv : additional_rtvs)
@@ -418,9 +411,8 @@ void DXFramebuffer::Clear(const ClearColor& color_value, float depth_value)
   }
 }
 
-std::unique_ptr<DXFramebuffer>
-DXFramebuffer::Create(DXTexture* color_attachment, DXTexture* depth_attachment,
-                      std::vector<AbstractTexture*> additional_color_attachments)
+std::unique_ptr<DXFramebuffer> DXFramebuffer::Create(DXTexture* color_attachment,
+    DXTexture* depth_attachment, std::vector<AbstractTexture*> additional_color_attachments)
 {
   if (!ValidateConfig(color_attachment, depth_attachment, additional_color_attachments))
     return nullptr;
@@ -439,15 +431,15 @@ DXFramebuffer::Create(DXTexture* color_attachment, DXTexture* depth_attachment,
   ComPtr<ID3D11RenderTargetView> integer_rtv;
   if (color_attachment)
   {
-    CD3D11_RENDER_TARGET_VIEW_DESC desc(
-        color_attachment->IsMultisampled() ? D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY :
-                                             D3D11_RTV_DIMENSION_TEXTURE2DARRAY,
+    CD3D11_RENDER_TARGET_VIEW_DESC desc(color_attachment->IsMultisampled() ?
+                                            D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY :
+                                            D3D11_RTV_DIMENSION_TEXTURE2DARRAY,
         D3DCommon::GetRTVFormatForAbstractFormat(color_attachment->GetFormat(), false), 0, 0,
         color_attachment->GetLayers());
-    HRESULT hr = D3D::device->CreateRenderTargetView(color_attachment->GetD3DTexture(), &desc,
-                                                     rtv.GetAddressOf());
+    HRESULT hr = D3D::device->CreateRenderTargetView(
+        color_attachment->GetD3DTexture(), &desc, rtv.GetAddressOf());
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create render target view for framebuffer: {}",
-               DX11HRWrap(hr));
+        DX11HRWrap(hr));
     if (FAILED(hr))
       return nullptr;
 
@@ -457,10 +449,10 @@ DXFramebuffer::Create(DXTexture* color_attachment, DXTexture* depth_attachment,
     if (g_backend_info.bSupportsLogicOp && integer_format != desc.Format)
     {
       desc.Format = integer_format;
-      hr = D3D::device->CreateRenderTargetView(color_attachment->GetD3DTexture(), &desc,
-                                               integer_rtv.GetAddressOf());
+      hr = D3D::device->CreateRenderTargetView(
+          color_attachment->GetD3DTexture(), &desc, integer_rtv.GetAddressOf());
       ASSERT_MSG(VIDEO, SUCCEEDED(hr),
-                 "Failed to create integer render target view for framebuffer: {}", DX11HRWrap(hr));
+          "Failed to create integer render target view for framebuffer: {}", DX11HRWrap(hr));
     }
   }
 
@@ -468,16 +460,16 @@ DXFramebuffer::Create(DXTexture* color_attachment, DXTexture* depth_attachment,
   for (auto additional_color_attachment : additional_color_attachments)
   {
     ComPtr<ID3D11RenderTargetView> additional_rtv;
-    CD3D11_RENDER_TARGET_VIEW_DESC desc(
-        additional_color_attachment->IsMultisampled() ? D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY :
-                                                        D3D11_RTV_DIMENSION_TEXTURE2DARRAY,
+    CD3D11_RENDER_TARGET_VIEW_DESC desc(additional_color_attachment->IsMultisampled() ?
+                                            D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY :
+                                            D3D11_RTV_DIMENSION_TEXTURE2DARRAY,
         D3DCommon::GetRTVFormatForAbstractFormat(additional_color_attachment->GetFormat(), false),
         0, 0, 1);
     HRESULT hr = D3D::device->CreateRenderTargetView(
         static_cast<DXTexture*>(additional_color_attachment)->GetD3DTexture(), &desc,
         additional_rtv.GetAddressOf());
-    ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Create render target view for framebuffer: {}",
-               DX11HRWrap(hr));
+    ASSERT_MSG(
+        VIDEO, SUCCEEDED(hr), "Create render target view for framebuffer: {}", DX11HRWrap(hr));
     if (FAILED(hr))
       return nullptr;
     additional_rtvs.push_back(std::move(additional_rtv));
@@ -486,23 +478,22 @@ DXFramebuffer::Create(DXTexture* color_attachment, DXTexture* depth_attachment,
   ComPtr<ID3D11DepthStencilView> dsv;
   if (depth_attachment)
   {
-    const CD3D11_DEPTH_STENCIL_VIEW_DESC desc(
-        depth_attachment->GetConfig().IsMultisampled() ? D3D11_DSV_DIMENSION_TEXTURE2DMSARRAY :
-                                                         D3D11_DSV_DIMENSION_TEXTURE2DARRAY,
+    const CD3D11_DEPTH_STENCIL_VIEW_DESC desc(depth_attachment->GetConfig().IsMultisampled() ?
+                                                  D3D11_DSV_DIMENSION_TEXTURE2DMSARRAY :
+                                                  D3D11_DSV_DIMENSION_TEXTURE2DARRAY,
         D3DCommon::GetDSVFormatForAbstractFormat(depth_attachment->GetFormat()), 0, 0,
         depth_attachment->GetLayers(), 0);
-    HRESULT hr = D3D::device->CreateDepthStencilView(depth_attachment->GetD3DTexture(), &desc,
-                                                     dsv.GetAddressOf());
+    HRESULT hr = D3D::device->CreateDepthStencilView(
+        depth_attachment->GetD3DTexture(), &desc, dsv.GetAddressOf());
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create depth stencil view for framebuffer: {}",
-               DX11HRWrap(hr));
+        DX11HRWrap(hr));
     if (FAILED(hr))
       return nullptr;
   }
 
-  return std::make_unique<DXFramebuffer>(
-      color_attachment, depth_attachment, std::move(additional_color_attachments), color_format,
-      depth_format, width, height, layers, samples, std::move(rtv), std::move(integer_rtv),
-      std::move(dsv), std::move(additional_rtvs));
+  return std::make_unique<DXFramebuffer>(color_attachment, depth_attachment,
+      std::move(additional_color_attachments), color_format, depth_format, width, height, layers,
+      samples, std::move(rtv), std::move(integer_rtv), std::move(dsv), std::move(additional_rtvs));
 }
 
 }  // namespace DX11

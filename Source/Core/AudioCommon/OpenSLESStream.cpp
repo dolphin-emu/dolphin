@@ -46,7 +46,7 @@ bool OpenSLESStream::Init()
       env->CallStaticIntMethod(audio_utils, IDCache::GetAudioUtilsGetFramesPerBuffer());
 
   INFO_LOG_FMT(AUDIO, "OpenSLES configuration: {} Hz, {} frames per buffer", sample_rate,
-               m_frames_per_buffer);
+      m_frames_per_buffer);
 
   constexpr SLuint32 channels = 2;
   const SLuint32 samples_per_buffer = m_frames_per_buffer * channels;
@@ -69,11 +69,9 @@ bool OpenSLESStream::Init()
   ASSERT(SL_RESULT_SUCCESS == result);
 
   SLDataLocator_AndroidSimpleBufferQueue loc_bufq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
-  SLDataFormat_PCM format_pcm = {
-      SL_DATAFORMAT_PCM,           channels,
-      sample_rate * 1000,          SL_PCMSAMPLEFORMAT_FIXED_16,
-      SL_PCMSAMPLEFORMAT_FIXED_16, SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
-      SL_BYTEORDER_LITTLEENDIAN};
+  SLDataFormat_PCM format_pcm = {SL_DATAFORMAT_PCM, channels, sample_rate * 1000,
+      SL_PCMSAMPLEFORMAT_FIXED_16, SL_PCMSAMPLEFORMAT_FIXED_16,
+      SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT, SL_BYTEORDER_LITTLEENDIAN};
 
   SLDataSource audioSrc = {&loc_bufq, &format_pcm};
 
@@ -85,8 +83,8 @@ bool OpenSLESStream::Init()
   const SLInterfaceID ids[2] = {SL_IID_BUFFERQUEUE, SL_IID_VOLUME};
   const SLboolean req[2] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
   result = (*m_engine_engine)
-               ->CreateAudioPlayer(m_engine_engine, &m_bq_player_object, &audioSrc, &audioSnk, 2,
-                                   ids, req);
+               ->CreateAudioPlayer(
+                   m_engine_engine, &m_bq_player_object, &audioSrc, &audioSnk, 2, ids, req);
   ASSERT(SL_RESULT_SUCCESS == result);
 
   result = (*m_bq_player_object)->Realize(m_bq_player_object, SL_BOOLEAN_FALSE);

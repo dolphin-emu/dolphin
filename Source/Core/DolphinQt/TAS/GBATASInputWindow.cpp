@@ -22,7 +22,8 @@
 #include "InputCommon/InputConfig.h"
 
 GBATASInputWindow::GBATASInputWindow(QWidget* parent, int controller_id)
-    : TASInputWindow(parent), m_controller_id(controller_id)
+    : TASInputWindow(parent)
+    , m_controller_id(controller_id)
 {
   setWindowTitle(tr("GBA TAS Input %1").arg(controller_id + 1));
 
@@ -34,10 +35,10 @@ GBATASInputWindow::GBATASInputWindow(QWidget* parent, int controller_id)
       CreateButton(QStringLiteral("&L"), GBAPad::BUTTONS_GROUP, GBAPad::L_BUTTON, &m_overrider);
   m_r_button =
       CreateButton(QStringLiteral("&R"), GBAPad::BUTTONS_GROUP, GBAPad::R_BUTTON, &m_overrider);
-  m_select_button = CreateButton(QStringLiteral("SELE&CT"), GBAPad::BUTTONS_GROUP,
-                                 GBAPad::SELECT_BUTTON, &m_overrider);
-  m_start_button = CreateButton(QStringLiteral("&START"), GBAPad::BUTTONS_GROUP,
-                                GBAPad::START_BUTTON, &m_overrider);
+  m_select_button = CreateButton(
+      QStringLiteral("SELE&CT"), GBAPad::BUTTONS_GROUP, GBAPad::SELECT_BUTTON, &m_overrider);
+  m_start_button = CreateButton(
+      QStringLiteral("&START"), GBAPad::BUTTONS_GROUP, GBAPad::START_BUTTON, &m_overrider);
 
   m_left_button =
       CreateButton(QStringLiteral("L&eft"), GBAPad::DPAD_GROUP, DIRECTION_LEFT, &m_overrider);

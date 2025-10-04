@@ -21,13 +21,14 @@
 #include "DolphinQt/Settings.h"
 
 RegisterWidget::RegisterWidget(QWidget* parent)
-    : QDockWidget(parent), m_system(Core::System::GetInstance())
+    : QDockWidget(parent)
+    , m_system(Core::System::GetInstance())
 {
   setWindowTitle(tr("Registers"));
   setObjectName(QStringLiteral("registers"));
 
-  setHidden(!Settings::Instance().IsRegistersVisible() ||
-            !Settings::Instance().IsDebugModeEnabled());
+  setHidden(
+      !Settings::Instance().IsRegistersVisible() || !Settings::Instance().IsDebugModeEnabled());
 
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
@@ -46,11 +47,10 @@ RegisterWidget::RegisterWidget(QWidget* parent)
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &RegisterWidget::Update);
 
   connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+      [this](bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](bool enabled) {
-    setHidden(!enabled || !Settings::Instance().IsRegistersVisible());
-  });
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this,
+      [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsRegistersVisible()); });
 }
 
 RegisterWidget::~RegisterWidget()
@@ -102,8 +102,8 @@ void RegisterWidget::CreateWidgets()
 
 void RegisterWidget::ConnectWidgets()
 {
-  connect(m_table, &QTableWidget::customContextMenuRequested, this,
-          &RegisterWidget::ShowContextMenu);
+  connect(
+      m_table, &QTableWidget::customContextMenuRequested, this, &RegisterWidget::ShowContextMenu);
   connect(m_table, &QTableWidget::itemChanged, this, &RegisterWidget::OnItemChanged);
   connect(&Settings::Instance(), &Settings::DebugFontChanged, m_table, &RegisterWidget::setFont);
 }
@@ -129,17 +129,19 @@ void RegisterWidget::ShowContextMenu()
 
     // i18n: This kind of "watch" is used for watching emulated memory.
     // It's not related to timekeeping devices.
-    menu->addAction(tr("Add to &watch"), this, [this, item] {
-      const u32 address = item->GetValue();
-      const QString name = QStringLiteral("reg_%1").arg(address, 8, 16, QLatin1Char('0'));
-      emit RequestWatch(name, address);
-    });
+    menu->addAction(tr("Add to &watch"), this,
+        [this, item]
+        {
+          const u32 address = item->GetValue();
+          const QString name = QStringLiteral("reg_%1").arg(address, 8, 16, QLatin1Char('0'));
+          emit RequestWatch(name, address);
+        });
     menu->addAction(tr("Add memory &breakpoint"), this,
-                    [this, item] { emit RequestMemoryBreakpoint(item->GetValue()); });
-    menu->addAction(tr("View &memory"), this,
-                    [this, item] { emit RequestViewInMemory(item->GetValue()); });
-    menu->addAction(tr("View &code"), this,
-                    [this, item] { emit RequestViewInCode(item->GetValue()); });
+        [this, item] { emit RequestMemoryBreakpoint(item->GetValue()); });
+    menu->addAction(
+        tr("View &memory"), this, [this, item] { emit RequestViewInMemory(item->GetValue()); });
+    menu->addAction(
+        tr("View &code"), this, [this, item] { emit RequestViewInCode(item->GetValue()); });
 
     menu->addSeparator();
 
@@ -176,7 +178,7 @@ void RegisterWidget::ShowContextMenu()
       const std::string type_string =
           fmt::format("{}{}", type == RegisterType::gpr ? "r" : "f", m_table->currentItem()->row());
       menu->addAction(tr("Run until hit (ignoring breakpoints)"),
-                      [this, type_string] { AutoStep(type_string); });
+          [this, type_string] { AutoStep(type_string); });
     }
 
     for (auto* action : {view_hex, view_int, view_uint, view_float, view_double})
@@ -186,8 +188,8 @@ void RegisterWidget::ShowContextMenu()
       action->setActionGroup(group);
     }
 
-    for (auto* action : {view_hex_column, view_int_column, view_uint_column, view_float_column,
-                         view_double_column})
+    for (auto* action :
+        {view_hex_column, view_int_column, view_uint_column, view_float_column, view_double_column})
     {
       action->setVisible(false);
     }
@@ -233,47 +235,59 @@ void RegisterWidget::ShowContextMenu()
       break;
     }
 
-    connect(view_hex, &QAction::triggered, [this, item] {
-      m_updating = true;
-      item->SetDisplay(RegisterDisplay::Hex);
-      m_updating = false;
-    });
-
-    connect(view_int, &QAction::triggered, [this, item] {
-      m_updating = true;
-      item->SetDisplay(RegisterDisplay::SInt32);
-      m_updating = false;
-    });
-
-    connect(view_uint, &QAction::triggered, [this, item] {
-      m_updating = true;
-      item->SetDisplay(RegisterDisplay::UInt32);
-      m_updating = false;
-    });
-
-    connect(view_float, &QAction::triggered, [this, item] {
-      m_updating = true;
-      item->SetDisplay(RegisterDisplay::Float);
-      m_updating = false;
-    });
-
-    connect(view_double, &QAction::triggered, [this, item] {
-      m_updating = true;
-      item->SetDisplay(RegisterDisplay::Double);
-      m_updating = false;
-    });
-
-    for (auto* action : {view_hex_column, view_int_column, view_uint_column, view_float_column,
-                         view_double_column})
-    {
-      connect(action, &QAction::triggered, [this, action] {
-        auto col = m_table->currentItem()->column();
-        for (int i = 0; i < 32; i++)
+    connect(view_hex, &QAction::triggered,
+        [this, item]
         {
-          auto* update_item = static_cast<RegisterColumn*>(m_table->item(i, col));
-          update_item->SetDisplay(static_cast<RegisterDisplay>(action->data().toInt()));
-        }
-      });
+          m_updating = true;
+          item->SetDisplay(RegisterDisplay::Hex);
+          m_updating = false;
+        });
+
+    connect(view_int, &QAction::triggered,
+        [this, item]
+        {
+          m_updating = true;
+          item->SetDisplay(RegisterDisplay::SInt32);
+          m_updating = false;
+        });
+
+    connect(view_uint, &QAction::triggered,
+        [this, item]
+        {
+          m_updating = true;
+          item->SetDisplay(RegisterDisplay::UInt32);
+          m_updating = false;
+        });
+
+    connect(view_float, &QAction::triggered,
+        [this, item]
+        {
+          m_updating = true;
+          item->SetDisplay(RegisterDisplay::Float);
+          m_updating = false;
+        });
+
+    connect(view_double, &QAction::triggered,
+        [this, item]
+        {
+          m_updating = true;
+          item->SetDisplay(RegisterDisplay::Double);
+          m_updating = false;
+        });
+
+    for (auto* action :
+        {view_hex_column, view_int_column, view_uint_column, view_float_column, view_double_column})
+    {
+      connect(action, &QAction::triggered,
+          [this, action]
+          {
+            auto col = m_table->currentItem()->column();
+            for (int i = 0; i < 32; i++)
+            {
+              auto* update_item = static_cast<RegisterColumn*>(m_table->item(i, col));
+              update_item->SetDisplay(static_cast<RegisterDisplay>(action->data().toInt()));
+            }
+          });
     }
 
     menu->addSeparator();
@@ -289,15 +303,15 @@ void RegisterWidget::AutoStep(const std::string& reg) const
   CodeTrace trace;
   trace.SetRegTracked(reg);
 
-  QMessageBox msgbox(
-      QMessageBox::NoIcon, tr("Timed Out"),
+  QMessageBox msgbox(QMessageBox::NoIcon, tr("Timed Out"),
       tr("<font color='#ff0000'>AutoStepping timed out. Current instruction is irrelevant."),
       QMessageBox::Cancel);
   QPushButton* run_button = msgbox.addButton(tr("Keep Running"), QMessageBox::AcceptRole);
 
   while (true)
   {
-    const AutoStepResults results = [this, &trace] {
+    const AutoStepResults results = [this, &trace]
+    {
       Core::CPUThreadGuard guard(m_system);
       return trace.AutoStepping(guard, true);
     }();
@@ -343,7 +357,8 @@ void RegisterWidget::PopulateTable()
     // IBAT registers
     AddRegister(
         i, 5, RegisterType::ibat, "IBAT" + std::to_string(i),
-        [this, i] {
+        [this, i]
+        {
           const auto& ppc_state = m_system.GetPPCState();
           return (static_cast<u64>(ppc_state.spr[SPR_IBAT0U + i * 2]) << 32) +
                  ppc_state.spr[SPR_IBAT0L + i * 2];
@@ -351,7 +366,8 @@ void RegisterWidget::PopulateTable()
         nullptr);
     AddRegister(
         i + 4, 5, RegisterType::ibat, "IBAT" + std::to_string(4 + i),
-        [this, i] {
+        [this, i]
+        {
           const auto& ppc_state = m_system.GetPPCState();
           return (static_cast<u64>(ppc_state.spr[SPR_IBAT4U + i * 2]) << 32) +
                  ppc_state.spr[SPR_IBAT4L + i * 2];
@@ -361,7 +377,8 @@ void RegisterWidget::PopulateTable()
     // DBAT registers
     AddRegister(
         i + 8, 5, RegisterType::dbat, "DBAT" + std::to_string(i),
-        [this, i] {
+        [this, i]
+        {
           const auto& ppc_state = m_system.GetPPCState();
           return (static_cast<u64>(ppc_state.spr[SPR_DBAT0U + i * 2]) << 32) +
                  ppc_state.spr[SPR_DBAT0L + i * 2];
@@ -369,7 +386,8 @@ void RegisterWidget::PopulateTable()
         nullptr);
     AddRegister(
         i + 12, 5, RegisterType::dbat, "DBAT" + std::to_string(4 + i),
-        [this, i] {
+        [this, i]
+        {
           const auto& ppc_state = m_system.GetPPCState();
           return (static_cast<u64>(ppc_state.spr[SPR_DBAT4U + i * 2]) << 32) +
                  ppc_state.spr[SPR_DBAT4L + i * 2];
@@ -447,7 +465,8 @@ void RegisterWidget::PopulateTable()
   // MSR
   AddRegister(
       23, 5, RegisterType::msr, "MSR", [this] { return m_system.GetPPCState().msr.Hex; },
-      [this](u64 value) {
+      [this](u64 value)
+      {
         m_system.GetPPCState().msr.Hex = value;
         PowerPC::MSRUpdated(m_system.GetPPCState());
       });
@@ -488,7 +507,8 @@ void RegisterWidget::PopulateTable()
   // Hash Mask
   AddRegister(
       31, 5, RegisterType::pt_hashmask, "Hash Mask",
-      [this] {
+      [this]
+      {
         const auto& ppc_state = m_system.GetPPCState();
         return (ppc_state.pagetable_hashmask << 6) | ppc_state.pagetable_base;
       },
@@ -499,7 +519,7 @@ void RegisterWidget::PopulateTable()
 }
 
 void RegisterWidget::AddRegister(int row, int column, RegisterType type, std::string register_name,
-                                 std::function<u64()> get_reg, std::function<void(u64)> set_reg)
+    std::function<u64()> get_reg, std::function<void(u64)> set_reg)
 {
   auto* value = new RegisterColumn(type, std::move(get_reg), std::move(set_reg));
 

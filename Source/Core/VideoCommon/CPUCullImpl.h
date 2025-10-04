@@ -75,7 +75,7 @@ ATTR_TARGET DOLPHIN_FORCE_INLINE static __m256 vector_broadcast(__m256 v)
 
 #ifdef USE_AVX
 ATTR_TARGET DOLPHIN_FORCE_INLINE static void TransposeYMM(__m256& o0, __m256& o1,  //
-                                                          __m256& o2, __m256& o3)
+    __m256& o2, __m256& o3)
 {
   __m256d tmp0 = _mm256_castps_pd(_mm256_unpacklo_ps(o0, o1));
   __m256d tmp1 = _mm256_castps_pd(_mm256_unpacklo_ps(o2, o3));
@@ -87,8 +87,8 @@ ATTR_TARGET DOLPHIN_FORCE_INLINE static void TransposeYMM(__m256& o0, __m256& o1
   o3 = _mm256_castpd_ps(_mm256_unpackhi_pd(tmp2, tmp3));
 }
 
-ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadTransposedYMM(const void* source, __m256& o0,
-                                                               __m256& o1, __m256& o2, __m256& o3)
+ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadTransposedYMM(
+    const void* source, __m256& o0, __m256& o1, __m256& o2, __m256& o3)
 {
   const Vector* vsource = static_cast<const Vector*>(source);
   o0 = _mm256_broadcast_ps(&vsource[0]);
@@ -98,8 +98,8 @@ ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadTransposedYMM(const void* sourc
   TransposeYMM(o0, o1, o2, o3);
 }
 
-ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadPosYMM(const void* sourcel, const void* sourceh,
-                                                        __m256& o0, __m256& o1, __m256& o2)
+ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadPosYMM(
+    const void* sourcel, const void* sourceh, __m256& o0, __m256& o1, __m256& o2)
 {
   const Vector* vsourcel = static_cast<const Vector*>(sourcel);
   const Vector* vsourceh = static_cast<const Vector*>(sourceh);
@@ -108,8 +108,8 @@ ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadPosYMM(const void* sourcel, con
   o2 = _mm256_insertf128_ps(_mm256_castps128_ps256(vsourcel[2]), vsourceh[2], 1);
 }
 
-ATTR_TARGET DOLPHIN_FORCE_INLINE static void
-LoadTransposedPosYMM(const void* source, __m256& o0, __m256& o1, __m256& o2, __m256& o3)
+ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadTransposedPosYMM(
+    const void* source, __m256& o0, __m256& o1, __m256& o2, __m256& o3)
 {
   const Vector* vsource = static_cast<const Vector*>(source);
   o0 = _mm256_broadcast_ps(&vsource[0]);
@@ -119,8 +119,8 @@ LoadTransposedPosYMM(const void* source, __m256& o0, __m256& o1, __m256& o2, __m
   TransposeYMM(o0, o1, o2, o3);
 }
 
-ATTR_TARGET DOLPHIN_FORCE_INLINE static __m256 ApplyMatrixYMM(__m256 v, __m256 m0, __m256 m1,
-                                                              __m256 m2, __m256 m3)
+ATTR_TARGET DOLPHIN_FORCE_INLINE static __m256 ApplyMatrixYMM(
+    __m256 v, __m256 m0, __m256 m1, __m256 m2, __m256 m3)
 {
   __m256 output = _mm256_mul_ps(vector_broadcast<0>(v), m0);
 #ifdef USE_FMA
@@ -135,9 +135,9 @@ ATTR_TARGET DOLPHIN_FORCE_INLINE static __m256 ApplyMatrixYMM(__m256 v, __m256 m
   return output;
 }
 
-ATTR_TARGET DOLPHIN_FORCE_INLINE static __m256
-TransformVertexNoTransposeYMM(__m256 vertex, __m256 pos0, __m256 pos1, __m256 pos2,  //
-                              __m256 proj0, __m256 proj1, __m256 proj2, __m256 proj3)
+ATTR_TARGET DOLPHIN_FORCE_INLINE static __m256 TransformVertexNoTransposeYMM(__m256 vertex,
+    __m256 pos0, __m256 pos1, __m256 pos2,  //
+    __m256 proj0, __m256 proj1, __m256 proj2, __m256 proj3)
 {
   __m256 mul0 = _mm256_mul_ps(vertex, pos0);
   __m256 mul1 = _mm256_mul_ps(vertex, pos1);
@@ -148,9 +148,9 @@ TransformVertexNoTransposeYMM(__m256 vertex, __m256 pos0, __m256 pos1, __m256 po
 }
 
 template <bool PositionHas3Elems>
-ATTR_TARGET DOLPHIN_FORCE_INLINE static __m256
-TransformVertexYMM(__m256 vertex, __m256 pos0, __m256 pos1, __m256 pos2, __m256 pos3,  //
-                   __m256 proj0, __m256 proj1, __m256 proj2, __m256 proj3)
+ATTR_TARGET DOLPHIN_FORCE_INLINE static __m256 TransformVertexYMM(__m256 vertex, __m256 pos0,
+    __m256 pos1, __m256 pos2, __m256 pos3,  //
+    __m256 proj0, __m256 proj1, __m256 proj2, __m256 proj3)
 {
   __m256 output = pos3;  // vertex.w is always 1.0
 #ifdef USE_FMA
@@ -168,10 +168,10 @@ TransformVertexYMM(__m256 vertex, __m256 pos0, __m256 pos1, __m256 pos2, __m256 
 }
 
 template <bool PositionHas3Elems, bool PerVertexPosMtx>
-ATTR_TARGET DOLPHIN_FORCE_INLINE static __m256
-LoadTransform2Vertices(const u8* v0data, const u8* v1data,                  //
-                       __m256 pos0, __m256 pos1, __m256 pos2, __m256 pos3,  //
-                       __m256 proj0, __m256 proj1, __m256 proj2, __m256 proj3)
+ATTR_TARGET DOLPHIN_FORCE_INLINE static __m256 LoadTransform2Vertices(const u8* v0data,
+    const u8* v1data,                                    //
+    __m256 pos0, __m256 pos1, __m256 pos2, __m256 pos3,  //
+    __m256 proj0, __m256 proj1, __m256 proj2, __m256 proj3)
 {
   __m256 v01;
   if constexpr (PerVertexPosMtx)
@@ -228,7 +228,7 @@ LoadTransform2Vertices(const u8* v0data, const u8* v1data,                  //
 #endif
 
     v01 = TransformVertexYMM<PositionHas3Elems>(v01, pos0, pos1, pos2, pos3,  //
-                                                proj0, proj1, proj2, proj3);
+        proj0, proj1, proj2, proj3);
   }
 
   return v01;
@@ -238,8 +238,8 @@ LoadTransform2Vertices(const u8* v0data, const u8* v1data,                  //
 
 #ifndef USE_AVX
 // Note: Assumes 16-byte aligned source
-ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadTransposed(const void* source, Vector& o0,
-                                                            Vector& o1, Vector& o2, Vector& o3)
+ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadTransposed(
+    const void* source, Vector& o0, Vector& o1, Vector& o2, Vector& o3)
 {
 #if defined(USE_SSE)
   const Vector* vsource = static_cast<const Vector*>(source);
@@ -265,8 +265,8 @@ ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadTransposed(const void* source, 
 #endif
 }
 
-ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadTransposedPos(const void* source, Vector& o0,
-                                                               Vector& o1, Vector& o2, Vector& o3)
+ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadTransposedPos(
+    const void* source, Vector& o0, Vector& o1, Vector& o2, Vector& o3)
 {
   const Vector* vsource = static_cast<const Vector*>(source);
 #if defined(USE_SSE)
@@ -297,7 +297,7 @@ ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadTransposedPos(const void* sourc
 
 #ifndef USE_NEON
 ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadPos(const void* source,  //
-                                                     Vector& o0, Vector& o1, Vector& o2)
+    Vector& o0, Vector& o1, Vector& o2)
 {
   const Vector* vsource = static_cast<const Vector*>(source);
   o0 = vsource[0];
@@ -306,8 +306,8 @@ ATTR_TARGET DOLPHIN_FORCE_INLINE static void LoadPos(const void* source,  //
 }
 #endif
 
-ATTR_TARGET DOLPHIN_FORCE_INLINE static Vector ApplyMatrix(Vector v, Vector m0, Vector m1,
-                                                           Vector m2, Vector m3)
+ATTR_TARGET DOLPHIN_FORCE_INLINE static Vector ApplyMatrix(
+    Vector v, Vector m0, Vector m1, Vector m2, Vector m3)
 {
 #if defined(USE_SSE)
   Vector output = _mm_mul_ps(vector_broadcast<0>(v), m0);
@@ -338,9 +338,9 @@ ATTR_TARGET DOLPHIN_FORCE_INLINE static Vector ApplyMatrix(Vector v, Vector m0, 
 }
 
 #ifndef USE_NEON
-ATTR_TARGET DOLPHIN_FORCE_INLINE static Vector
-TransformVertexNoTranspose(Vector vertex, Vector pos0, Vector pos1, Vector pos2,  //
-                           Vector proj0, Vector proj1, Vector proj2, Vector proj3)
+ATTR_TARGET DOLPHIN_FORCE_INLINE static Vector TransformVertexNoTranspose(Vector vertex,
+    Vector pos0, Vector pos1, Vector pos2,  //
+    Vector proj0, Vector proj1, Vector proj2, Vector proj3)
 {
 #ifdef USE_SSE
   Vector mul0 = _mm_mul_ps(vertex, pos0);
@@ -367,9 +367,9 @@ TransformVertexNoTranspose(Vector vertex, Vector pos0, Vector pos1, Vector pos2,
 #endif
 
 template <bool PositionHas3Elems>
-ATTR_TARGET DOLPHIN_FORCE_INLINE static Vector
-TransformVertex(Vector vertex, Vector pos0, Vector pos1, Vector pos2, Vector pos3,  //
-                Vector proj0, Vector proj1, Vector proj2, Vector proj3)
+ATTR_TARGET DOLPHIN_FORCE_INLINE static Vector TransformVertex(Vector vertex, Vector pos0,
+    Vector pos1, Vector pos2, Vector pos3,  //
+    Vector proj0, Vector proj1, Vector proj2, Vector proj3)
 {
   Vector output = pos3;  // vertex.w is always 1.0
 #if defined(USE_FMA)
@@ -403,9 +403,8 @@ TransformVertex(Vector vertex, Vector pos0, Vector pos1, Vector pos2, Vector pos
 }
 
 template <bool PositionHas3Elems, bool PerVertexPosMtx>
-ATTR_TARGET DOLPHIN_FORCE_INLINE static Vector
-LoadTransformVertex(const u8* data, Vector pos0, Vector pos1, Vector pos2, Vector pos3,
-                    Vector proj0, Vector proj1, Vector proj2, Vector proj3)
+ATTR_TARGET DOLPHIN_FORCE_INLINE static Vector LoadTransformVertex(const u8* data, Vector pos0,
+    Vector pos1, Vector pos2, Vector pos3, Vector proj0, Vector proj1, Vector proj2, Vector proj3)
 {
   Vector vertex;
   if constexpr (PerVertexPosMtx)
@@ -430,7 +429,7 @@ LoadTransformVertex(const u8* data, Vector pos0, Vector pos1, Vector pos2, Vecto
     }
 
     vertex = TransformVertex<PositionHas3Elems>(vertex, pos0, pos1, pos2, pos3,  //
-                                                proj0, proj1, proj2, proj3);
+        proj0, proj1, proj2, proj3);
 #else
     LoadPos(&xfmem.posMatrices[idx * 4], pos0, pos1, pos2);
 
@@ -499,7 +498,7 @@ LoadTransformVertex(const u8* data, Vector pos0, Vector pos1, Vector pos2, Vecto
     }
 
     vertex = TransformVertex<PositionHas3Elems>(vertex, pos0, pos1, pos2, pos3,  //
-                                                proj0, proj1, proj2, proj3);
+        proj0, proj1, proj2, proj3);
   }
 
   return vertex;
@@ -529,11 +528,10 @@ ATTR_TARGET static void TransformVertices(void* output, const void* vertices, u3
   }
   if (count & 1)
   {
-    *voutput = LoadTransformVertex<PositionHas3Elems, PerVertexPosMtx>(
-        cvertices,                                                     //
-        _mm256_castps256_ps128(pos0), _mm256_castps256_ps128(pos1),    //
-        _mm256_castps256_ps128(pos2), _mm256_castps256_ps128(pos3),    //
-        _mm256_castps256_ps128(proj0), _mm256_castps256_ps128(proj1),  //
+    *voutput = LoadTransformVertex<PositionHas3Elems, PerVertexPosMtx>(cvertices,  //
+        _mm256_castps256_ps128(pos0), _mm256_castps256_ps128(pos1),                //
+        _mm256_castps256_ps128(pos2), _mm256_castps256_ps128(pos3),                //
+        _mm256_castps256_ps128(proj0), _mm256_castps256_ps128(proj1),              //
         _mm256_castps256_ps128(proj2), _mm256_castps256_ps128(proj3));
   }
 #else
@@ -553,8 +551,7 @@ ATTR_TARGET static void TransformVertices(void* output, const void* vertices, u3
 
 template <CullMode Mode>
 ATTR_TARGET DOLPHIN_FORCE_INLINE static bool CullTriangle(const CPUCull::TransformedVertex& a,
-                                                          const CPUCull::TransformedVertex& b,
-                                                          const CPUCull::TransformedVertex& c)
+    const CPUCull::TransformedVertex& b, const CPUCull::TransformedVertex& c)
 {
   if (Mode == CullMode::All)
     return true;
@@ -626,7 +623,7 @@ ATTR_TARGET DOLPHIN_FORCE_INLINE static bool CullTriangle(const CPUCull::Transfo
   __m128i x_lt_nw = _mm_castps_si128(_mm_cmplt_ps(allx, allnw));
   __m128i y_lt_nw = _mm_castps_si128(_mm_cmplt_ps(ally, allnw));
   __m128i any_out_of_bounds = _mm_packs_epi16(_mm_packs_epi32(x_lt_nw, y_lt_nw),  //
-                                              _mm_packs_epi32(x_gt_pw, y_gt_pw));
+      _mm_packs_epi32(x_gt_pw, y_gt_pw));
   cull |= 0 != _mm_movemask_epi8(_mm_cmpeq_epi32(_mm_set1_epi32(~0), any_out_of_bounds));
 #elif defined(USE_NEON)
   float64x2_t xyab = vreinterpretq_f64_f32(vzip1q_f32(va, vb));
@@ -654,8 +651,8 @@ ATTR_TARGET DOLPHIN_FORCE_INLINE static bool CullTriangle(const CPUCull::Transfo
 }
 
 template <OpcodeDecoder::Primitive Primitive, CullMode Mode>
-ATTR_TARGET static bool AreAllVerticesCulled(const CPUCull::TransformedVertex* transformed,
-                                             int count)
+ATTR_TARGET static bool AreAllVerticesCulled(
+    const CPUCull::TransformedVertex* transformed, int count)
 {
   switch (Primitive)
   {

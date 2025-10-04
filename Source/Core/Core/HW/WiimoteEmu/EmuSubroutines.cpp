@@ -49,7 +49,7 @@ void Wiimote::InvokeHandler(H&& handler, const WiimoteCommon::OutputReportGeneri
   if (size < sizeof(T))
   {
     ERROR_LOG_FMT(WIIMOTE, "InvokeHandler: report: {:#04x} invalid size: {}",
-                  static_cast<u8>(rpt.rpt_id), size);
+        static_cast<u8>(rpt.rpt_id), size);
     return;
   }
 
@@ -140,8 +140,8 @@ void Wiimote::SendAck(OutputReportID rpt_id, ErrorCode error_code)
   InterruptDataInputCallback(rpt.GetData(), rpt.GetSize());
 }
 
-void Wiimote::HandleExtensionSwap(ExtensionNumber desired_extension_number,
-                                  bool desired_motion_plus)
+void Wiimote::HandleExtensionSwap(
+    ExtensionNumber desired_extension_number, bool desired_motion_plus)
 {
   if (WIIMOTE_BALANCE_BOARD == m_index)
   {
@@ -154,8 +154,8 @@ void Wiimote::HandleExtensionSwap(ExtensionNumber desired_extension_number,
 
   if (m_is_motion_plus_attached && !desired_motion_plus)
   {
-    INFO_LOG_FMT(WIIMOTE, "Detaching Motion Plus (Wiimote {} in slot {})", m_index,
-                 m_bt_device_index);
+    INFO_LOG_FMT(
+        WIIMOTE, "Detaching Motion Plus (Wiimote {} in slot {})", m_index, m_bt_device_index);
 
     // M+ is attached and it's not wanted, so remove it.
     m_extension_port.AttachExtension(GetNoneExtension());
@@ -181,8 +181,8 @@ void Wiimote::HandleExtensionSwap(ExtensionNumber desired_extension_number,
     }
     else
     {
-      INFO_LOG_FMT(WIIMOTE, "Attaching Motion Plus (Wiimote {} in slot {})", m_index,
-                   m_bt_device_index);
+      INFO_LOG_FMT(
+          WIIMOTE, "Attaching Motion Plus (Wiimote {} in slot {})", m_index, m_bt_device_index);
 
       // No extension attached so attach M+.
       m_is_motion_plus_attached = true;
@@ -198,8 +198,8 @@ void Wiimote::HandleExtensionSwap(ExtensionNumber desired_extension_number,
     // A different extension is wanted (either by user or by the M+ logic above)
     if (GetActiveExtensionNumber() != ExtensionNumber::NONE)
     {
-      INFO_LOG_FMT(WIIMOTE, "Detaching Extension (Wiimote {} in slot {})", m_index,
-                   m_bt_device_index);
+      INFO_LOG_FMT(
+          WIIMOTE, "Detaching Extension (Wiimote {} in slot {})", m_index, m_bt_device_index);
 
       // First we must detach the current extension.
       // The next call will change to the new extension if needed.
@@ -208,7 +208,7 @@ void Wiimote::HandleExtensionSwap(ExtensionNumber desired_extension_number,
     else
     {
       INFO_LOG_FMT(WIIMOTE, "Switching to Extension {} (Wiimote {} in slot {})",
-                   Common::ToUnderlying(desired_extension_number), m_index, m_bt_device_index);
+          Common::ToUnderlying(desired_extension_number), m_index, m_bt_device_index);
 
       m_active_extension = desired_extension_number;
     }
@@ -262,7 +262,7 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
   const u16 address = Common::swap16(wd.address);
 
   DEBUG_LOG_FMT(WIIMOTE, "Wiimote::WriteData: {:#04x} @ {:#04x} @ {:#04x} ({})", wd.space,
-                wd.slave_address, address, wd.size);
+      wd.slave_address, address, wd.size);
 
   if (0 == wd.size || wd.size > 16)
   {
@@ -390,7 +390,7 @@ void Wiimote::HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData& rp
     {
       // Speaker data reports result in a write to the speaker hardware at offset 0x00.
       m_i2c_bus.BusWrite(SpeakerLogic::I2C_ADDR, SpeakerLogic::SPEAKER_DATA_OFFSET, rpt.length,
-                         std::data(rpt.data));
+          std::data(rpt.data));
     }
   }
 
@@ -419,8 +419,8 @@ void Wiimote::HandleReadData(const OutputReportReadData& rd)
   m_read_request.size = Common::swap16(rd.size);
 
   DEBUG_LOG_FMT(WIIMOTE, "Wiimote::ReadData: {} @ {:#04x} @ {:#04x} ({})",
-                static_cast<u8>(m_read_request.space), m_read_request.slave_address,
-                m_read_request.address, m_read_request.size);
+      static_cast<u8>(m_read_request.space), m_read_request.slave_address, m_read_request.address,
+      m_read_request.size);
 
   // Send up to one read-data-reply.
   // If more data needs to be sent it will happen on the next "Update()"
@@ -494,7 +494,7 @@ bool Wiimote::ProcessReadDataRequest()
     if (bytes_read != bytes_to_read)
     {
       DEBUG_LOG_FMT(WIIMOTE, "Responding with read error 7 @ {:#x} @ {:#x} ({})",
-                    m_read_request.slave_address, m_read_request.address, m_read_request.size);
+          m_read_request.slave_address, m_read_request.address, m_read_request.size);
       error_code = ErrorCode::Nack;
       break;
     }

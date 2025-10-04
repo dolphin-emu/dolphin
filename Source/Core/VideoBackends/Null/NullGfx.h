@@ -17,24 +17,22 @@ public:
   bool IsHeadless() const override;
   bool SupportsUtilityDrawing() const override;
 
-  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config,
-                                                 std::string_view name) override;
-  std::unique_ptr<AbstractStagingTexture>
-  CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
-  std::unique_ptr<AbstractFramebuffer>
-  CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
-                    std::vector<AbstractTexture*> additional_color_attachments) override;
+  std::unique_ptr<AbstractTexture> CreateTexture(
+      const TextureConfig& config, std::string_view name) override;
+  std::unique_ptr<AbstractStagingTexture> CreateStagingTexture(
+      StagingTextureType type, const TextureConfig& config) override;
+  std::unique_ptr<AbstractFramebuffer> CreateFramebuffer(AbstractTexture* color_attachment,
+      AbstractTexture* depth_attachment,
+      std::vector<AbstractTexture*> additional_color_attachments) override;
 
-  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage, std::string_view source,
-                                                         std::string_view name) override;
-  std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage, const void* data,
-                                                         size_t length,
-                                                         std::string_view name) override;
-  std::unique_ptr<NativeVertexFormat>
-  CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
+  std::unique_ptr<AbstractShader> CreateShaderFromSource(
+      ShaderStage stage, std::string_view source, std::string_view name) override;
+  std::unique_ptr<AbstractShader> CreateShaderFromBinary(
+      ShaderStage stage, const void* data, size_t length, std::string_view name) override;
+  std::unique_ptr<NativeVertexFormat> CreateNativeVertexFormat(
+      const PortableVertexDeclaration& vtx_decl) override;
   std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config,
-                                                   const void* cache_data = nullptr,
-                                                   size_t cache_data_length = 0) override;
+      const void* cache_data = nullptr, size_t cache_data_length = 0) override;
   SurfaceInfo GetSurfaceInfo() const override { return {}; }
 };
 

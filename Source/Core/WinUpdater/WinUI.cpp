@@ -70,15 +70,14 @@ bool InitWindow()
   if (!RegisterClass(&wndcl))
     return false;
 
-  window_handle =
-      CreateWindow(L"UPDATER", L"Dolphin Updater", WINDOW_FLAGS, CW_USEDEFAULT, CW_USEDEFAULT, 500,
-                   100, nullptr, nullptr, GetModuleHandle(nullptr), 0);
+  window_handle = CreateWindow(L"UPDATER", L"Dolphin Updater", WINDOW_FLAGS, CW_USEDEFAULT,
+      CW_USEDEFAULT, 500, 100, nullptr, nullptr, GetModuleHandle(nullptr), 0);
 
   if (!window_handle)
     return false;
 
   if (SUCCEEDED(CoCreateInstance(CLSID_TaskbarList, nullptr, CLSCTX_INPROC_SERVER,
-                                 IID_PPV_ARGS(taskbar_list.GetAddressOf()))))
+          IID_PPV_ARGS(taskbar_list.GetAddressOf()))))
   {
     if (FAILED(taskbar_list->HrInit()))
     {
@@ -88,8 +87,8 @@ bool InitWindow()
 
   int y = PADDING_HEIGHT;
 
-  label_handle = CreateWindow(L"STATIC", nullptr, WS_VISIBLE | WS_CHILD, 5, y, 500, 25,
-                              window_handle, nullptr, nullptr, 0);
+  label_handle = CreateWindow(
+      L"STATIC", nullptr, WS_VISIBLE | WS_CHILD, 5, y, 500, 25, window_handle, nullptr, nullptr, 0);
 
   if (!label_handle)
     return false;
@@ -102,12 +101,12 @@ bool InitWindow()
     return false;
 
   SendMessage(label_handle, WM_SETFONT,
-              reinterpret_cast<WPARAM>(CreateFontIndirect(&metrics.lfMessageFont)), 0);
+      reinterpret_cast<WPARAM>(CreateFontIndirect(&metrics.lfMessageFont)), 0);
 
   y += GetWindowHeight(label_handle) + PADDING_HEIGHT;
 
   total_progressbar_handle = CreateWindow(PROGRESS_CLASS, nullptr, PROGRESSBAR_FLAGS, 5, y, 470, 25,
-                                          window_handle, nullptr, nullptr, 0);
+      window_handle, nullptr, nullptr, 0);
 
   y += GetWindowHeight(total_progressbar_handle) + PADDING_HEIGHT;
 
@@ -115,7 +114,7 @@ bool InitWindow()
     return false;
 
   current_progressbar_handle = CreateWindow(PROGRESS_CLASS, nullptr, PROGRESSBAR_FLAGS, 5, y, 470,
-                                            25, window_handle, nullptr, nullptr, 0);
+      25, window_handle, nullptr, nullptr, 0);
 
   y += GetWindowHeight(current_progressbar_handle) + PADDING_HEIGHT;
 
@@ -141,8 +140,8 @@ bool InitWindow()
 
 void SetTotalMarquee(bool marquee)
 {
-  SetWindowLong(total_progressbar_handle, GWL_STYLE,
-                PROGRESSBAR_FLAGS | (marquee ? PBS_MARQUEE : 0));
+  SetWindowLong(
+      total_progressbar_handle, GWL_STYLE, PROGRESSBAR_FLAGS | (marquee ? PBS_MARQUEE : 0));
   SendMessage(total_progressbar_handle, PBM_SETMARQUEE, marquee, 0);
   if (taskbar_list)
   {
@@ -168,8 +167,8 @@ void SetTotalProgress(int current, int total)
 
 void SetCurrentMarquee(bool marquee)
 {
-  SetWindowLong(current_progressbar_handle, GWL_STYLE,
-                PROGRESSBAR_FLAGS | (marquee ? PBS_MARQUEE : 0));
+  SetWindowLong(
+      current_progressbar_handle, GWL_STYLE, PROGRESSBAR_FLAGS | (marquee ? PBS_MARQUEE : 0));
   SendMessage(current_progressbar_handle, PBM_SETMARQUEE, marquee, 0);
 }
 
@@ -210,11 +209,12 @@ void MessageLoop()
 {
   HRESULT result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 
-  Common::ScopeGuard ui_guard{[result] {
-    taskbar_list.Reset();
-    if (SUCCEEDED(result))
-      CoUninitialize();
-  }};
+  Common::ScopeGuard ui_guard{[result]
+      {
+        taskbar_list.Reset();
+        if (SUCCEEDED(result))
+          CoUninitialize();
+      }};
 
   if (!InitWindow())
   {
@@ -277,7 +277,7 @@ void LaunchApplication(std::string path)
     if (IsTestMode())
       SetEnvironmentVariableA("DOLPHIN_UPDATE_TEST_DONE", "1");
     if (CreateProcessW(wpath.c_str(), cmdline.data(), nullptr, nullptr, TRUE, 0, nullptr, nullptr,
-                       &startup_info, &process_info))
+            &startup_info, &process_info))
     {
       CloseHandle(process_info.hThread);
       CloseHandle(process_info.hProcess);

@@ -52,8 +52,8 @@ static MTLTextureType FromAbstract(AbstractTextureType type, bool multisample)
   return MTLTextureType2DArray;
 }
 
-std::unique_ptr<AbstractTexture> Metal::Gfx::CreateTexture(const TextureConfig& config,
-                                                           std::string_view name)
+std::unique_ptr<AbstractTexture> Metal::Gfx::CreateTexture(
+    const TextureConfig& config, std::string_view name)
 {
   @autoreleasepool
   {
@@ -86,8 +86,8 @@ std::unique_ptr<AbstractTexture> Metal::Gfx::CreateTexture(const TextureConfig& 
   }
 }
 
-std::unique_ptr<AbstractStagingTexture>
-Metal::Gfx::CreateStagingTexture(StagingTextureType type, const TextureConfig& config)
+std::unique_ptr<AbstractStagingTexture> Metal::Gfx::CreateStagingTexture(
+    StagingTextureType type, const TextureConfig& config)
 {
   @autoreleasepool
   {
@@ -107,22 +107,21 @@ Metal::Gfx::CreateStagingTexture(StagingTextureType type, const TextureConfig& c
   }
 }
 
-std::unique_ptr<AbstractFramebuffer>
-Metal::Gfx::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
-                              std::vector<AbstractTexture*> additional_color_attachments)
+std::unique_ptr<AbstractFramebuffer> Metal::Gfx::CreateFramebuffer(
+    AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+    std::vector<AbstractTexture*> additional_color_attachments)
 {
   AbstractTexture* const either_attachment = color_attachment ? color_attachment : depth_attachment;
-  return std::make_unique<Framebuffer>(
-      color_attachment, depth_attachment, std::move(additional_color_attachments),
-      either_attachment->GetWidth(), either_attachment->GetHeight(), either_attachment->GetLayers(),
+  return std::make_unique<Framebuffer>(color_attachment, depth_attachment,
+      std::move(additional_color_attachments), either_attachment->GetWidth(),
+      either_attachment->GetHeight(), either_attachment->GetLayers(),
       either_attachment->GetSamples());
 }
 
 // MARK: Pipeline Creation
 
-std::unique_ptr<AbstractShader> Metal::Gfx::CreateShaderFromSource(ShaderStage stage,
-                                                                   std::string_view source,
-                                                                   std::string_view name)
+std::unique_ptr<AbstractShader> Metal::Gfx::CreateShaderFromSource(
+    ShaderStage stage, std::string_view source, std::string_view name)
 {
   std::optional<std::string> msl = Util::TranslateShaderToMSL(stage, source);
   if (!msl.has_value())
@@ -134,9 +133,8 @@ std::unique_ptr<AbstractShader> Metal::Gfx::CreateShaderFromSource(ShaderStage s
   return CreateShaderFromMSL(stage, std::move(*msl), source, name);
 }
 
-std::unique_ptr<AbstractShader> Metal::Gfx::CreateShaderFromBinary(ShaderStage stage,
-                                                                   const void* data, size_t length,
-                                                                   std::string_view name)
+std::unique_ptr<AbstractShader> Metal::Gfx::CreateShaderFromBinary(
+    ShaderStage stage, const void* data, size_t length, std::string_view name)
 {
   return CreateShaderFromMSL(stage, std::string(static_cast<const char*>(data), length), {}, name);
 }
@@ -167,14 +165,14 @@ static NSString* GenericShaderName(ShaderStage stage)
 
 // clang-format on
 
-std::unique_ptr<AbstractShader> Metal::Gfx::CreateShaderFromMSL(ShaderStage stage, std::string msl,
-                                                                std::string_view glsl,
-                                                                std::string_view name)
+std::unique_ptr<AbstractShader> Metal::Gfx::CreateShaderFromMSL(
+    ShaderStage stage, std::string msl, std::string_view glsl, std::string_view name)
 {
   @autoreleasepool
   {
     NSError* err = nullptr;
-    auto DumpBadShader = [&](std::string_view msg) {
+    auto DumpBadShader = [&](std::string_view msg)
+    {
       static int counter = 0;
       std::string filename = VideoBackendBase::BadShaderFilename(StageFilename(stage), counter++);
       std::ofstream stream(filename);
@@ -225,7 +223,7 @@ std::unique_ptr<AbstractShader> Metal::Gfx::CreateShaderFromMSL(ShaderStage stag
                                                       encoding:NSUTF8StringEncoding])];
     else
       [fn setLabel:[NSString stringWithFormat:GenericShaderName(stage),
-                                              m_shader_counter[static_cast<u32>(stage)]++]];
+                       m_shader_counter[static_cast<u32>(stage)]++]];
     [lib setLabel:[fn label]];
     if (stage == ShaderStage::Compute)
     {
@@ -243,15 +241,15 @@ std::unique_ptr<AbstractShader> Metal::Gfx::CreateShaderFromMSL(ShaderStage stag
         DumpBadShader(fmt::format("Failed to compile compute pipeline {}", name));
         return nullptr;
       }
-      return std::make_unique<ComputePipeline>(stage, reflection, std::move(msl), std::move(fn),
-                                               std::move(pipeline));
+      return std::make_unique<ComputePipeline>(
+          stage, reflection, std::move(msl), std::move(fn), std::move(pipeline));
     }
     return std::make_unique<Shader>(stage, std::move(msl), std::move(fn));
   }
 }
 
-std::unique_ptr<NativeVertexFormat>
-Metal::Gfx::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
+std::unique_ptr<NativeVertexFormat> Metal::Gfx::CreateNativeVertexFormat(
+    const PortableVertexDeclaration& vtx_decl)
 {
   @autoreleasepool
   {
@@ -259,9 +257,8 @@ Metal::Gfx::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
   }
 }
 
-std::unique_ptr<AbstractPipeline> Metal::Gfx::CreatePipeline(const AbstractPipelineConfig& config,
-                                                             const void* cache_data,
-                                                             size_t cache_data_length)
+std::unique_ptr<AbstractPipeline> Metal::Gfx::CreatePipeline(
+    const AbstractPipelineConfig& config, const void* cache_data, size_t cache_data_length)
 {
   return g_object_cache->CreatePipeline(config);
 }
@@ -298,7 +295,7 @@ void Metal::Gfx::OnConfigChanged(u32 bits)
 }
 
 void Metal::Gfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_enable,
-                             bool alpha_enable, bool z_enable, u32 color, u32 z)
+    bool alpha_enable, bool z_enable, u32 color, u32 z)
 {
   u32 framebuffer_width = m_current_framebuffer->GetWidth();
   u32 framebuffer_height = m_current_framebuffer->GetHeight();
@@ -373,8 +370,8 @@ void Metal::Gfx::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
   }
 }
 
-void Metal::Gfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
-                                        const ClearColor& color_value, float depth_value)
+void Metal::Gfx::SetAndClearFramebuffer(
+    AbstractFramebuffer* framebuffer, const ClearColor& color_value, float depth_value)
 {
   @autoreleasepool
   {
@@ -404,8 +401,7 @@ void Metal::Gfx::SetSamplerState(u32 index, const SamplerState& state)
 void Metal::Gfx::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
 {
   g_state_tracker->SetTexture(index + VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS,
-                              texture ? static_cast<const Texture*>(texture)->GetMTLTexture() :
-                                        nullptr);
+      texture ? static_cast<const Texture*>(texture)->GetMTLTexture() : nullptr);
 }
 
 void Metal::Gfx::UnbindTexture(const AbstractTexture* texture)
@@ -413,8 +409,8 @@ void Metal::Gfx::UnbindTexture(const AbstractTexture* texture)
   g_state_tracker->UnbindTexture(static_cast<const Texture*>(texture)->GetMTLTexture());
 }
 
-void Metal::Gfx::SetViewport(float x, float y, float width, float height, float near_depth,
-                             float far_depth)
+void Metal::Gfx::SetViewport(
+    float x, float y, float width, float height, float near_depth, float far_depth)
 {
   g_state_tracker->SetViewport(x, y, width, height, near_depth, far_depth);
 }
@@ -436,14 +432,13 @@ void Metal::Gfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
 }
 
 void Metal::Gfx::DispatchComputeShader(const AbstractShader* shader,  //
-                                       u32 groupsize_x, u32 groupsize_y, u32 groupsize_z,
-                                       u32 groups_x, u32 groups_y, u32 groups_z)
+    u32 groupsize_x, u32 groupsize_y, u32 groupsize_z, u32 groups_x, u32 groups_y, u32 groups_z)
 {
   @autoreleasepool
   {
     g_state_tracker->SetPipeline(static_cast<const ComputePipeline*>(shader));
     g_state_tracker->DispatchComputeShader(groupsize_x, groupsize_y, groupsize_z,  //
-                                           groups_x, groups_y, groups_z);
+        groups_x, groups_y, groups_z);
   }
 }
 
@@ -507,7 +502,7 @@ void Metal::Gfx::SetupSurface()
   [m_layer setDrawableSize:{static_cast<double>(info.width), static_cast<double>(info.height)}];
 
   TextureConfig cfg(info.width, info.height, 1, 1, 1, info.format, AbstractTextureFlag_RenderTarget,
-                    AbstractTextureType::Texture_2DArray);
+      AbstractTextureType::Texture_2DArray);
   m_bb_texture = std::make_unique<Texture>(nullptr, cfg);
   m_backbuffer = std::make_unique<Framebuffer>(
       m_bb_texture.get(), nullptr, std::vector<AbstractTexture*>{}, info.width, info.height, 1, 1);
@@ -525,5 +520,5 @@ SurfaceInfo Metal::Gfx::GetSurfaceInfo() const
   const float scale = [m_layer contentsScale];
 
   return {static_cast<u32>(size.width * scale), static_cast<u32>(size.height * scale), scale,
-          Util::ToAbstract([m_layer pixelFormat])};
+      Util::ToAbstract([m_layer pixelFormat])};
 }

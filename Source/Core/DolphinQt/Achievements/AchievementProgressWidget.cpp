@@ -64,7 +64,7 @@ void AchievementProgressWidget::UpdateData(bool clean_all)
   auto* client = instance.GetClient();
   auto* achievement_list =
       rc_client_create_achievement_list(client, RC_CLIENT_ACHIEVEMENT_CATEGORY_CORE_AND_UNOFFICIAL,
-                                        RC_CLIENT_ACHIEVEMENT_LIST_GROUPING_PROGRESS);
+          RC_CLIENT_ACHIEVEMENT_LIST_GROUPING_PROGRESS);
   if (!achievement_list)
     return;
   for (u32 ix = 0; ix < achievement_list->num_buckets; ix++)

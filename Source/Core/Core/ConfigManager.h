@@ -122,8 +122,7 @@ private:
   static void ReloadTextures(Core::System& system);
 
   void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
-                              std::string triforce_id, u64 title_id, u16 revision,
-                              DiscIO::Region region);
+      std::string triforce_id, u64 title_id, u16 revision, DiscIO::Region region);
 
   static SConfig* m_Instance;
   mutable std::recursive_mutex m_metadata_lock;

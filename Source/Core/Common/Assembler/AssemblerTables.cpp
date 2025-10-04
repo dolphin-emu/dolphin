@@ -150,30 +150,35 @@ u32 OperandDesc::Fit(u32 val) const
 // PARSER TABLES //
 ///////////////////
 
-extern const CaseInsensitiveDict<u32, '_'> sprg_map = {
-    {"xer", 1},      {"lr", 8},       {"ctr", 9},      {"dsisr", 18},   {"dar", 19},
-    {"dec", 22},     {"sdr1", 25},    {"srr0", 26},    {"srr1", 27},    {"sprg0", 272},
-    {"sprg1", 273},  {"sprg2", 274},  {"sprg3", 275},  {"ear", 282},    {"tbl", 284},
-    {"tbu", 285},    {"ibat0u", 528}, {"ibat0l", 529}, {"ibat1u", 530}, {"ibat1l", 531},
+extern const CaseInsensitiveDict<u32, '_'> sprg_map = {{"xer", 1}, {"lr", 8}, {"ctr", 9},
+    {"dsisr", 18}, {"dar", 19}, {"dec", 22}, {"sdr1", 25}, {"srr0", 26}, {"srr1", 27},
+    {"sprg0", 272}, {"sprg1", 273}, {"sprg2", 274}, {"sprg3", 275}, {"ear", 282}, {"tbl", 284},
+    {"tbu", 285}, {"ibat0u", 528}, {"ibat0l", 529}, {"ibat1u", 530}, {"ibat1l", 531},
     {"ibat2u", 532}, {"ibat2l", 533}, {"ibat3u", 534}, {"ibat3l", 535}, {"dbat0u", 536},
     {"dbat0l", 537}, {"dbat1u", 538}, {"dbat1l", 539}, {"dbat2u", 540}, {"dbat2l", 541},
-    {"dbat3u", 542}, {"dbat3l", 543}, {"gqr0", 912},   {"gqr1", 913},   {"gqr2", 914},
-    {"gqr3", 915},   {"gqr4", 916},   {"gqr5", 917},   {"gqr6", 918},   {"gqr7", 919},
-    {"hid2", 920},   {"wpar", 921},   {"dma_u", 922},  {"dma_l", 923},  {"ummcr0", 936},
-    {"upmc1", 937},  {"upmc2", 938},  {"usia", 939},   {"ummcr1", 940}, {"upmc3", 941},
-    {"upmc4", 942},  {"usda", 943},   {"mmcr0", 952},  {"pmc1", 953},   {"pmc2", 954},
-    {"sia", 955},    {"mmcr1", 956},  {"pmc3", 957},   {"pmc4", 958},   {"sda", 959},
-    {"hid0", 1008},  {"hid1", 1009},  {"iabr", 1010},  {"dabr", 1013},  {"l2cr", 1017},
-    {"ictc", 1019},  {"thrm1", 1020}, {"thrm2", 1021}, {"thrm3", 1022}};
+    {"dbat3u", 542}, {"dbat3l", 543}, {"gqr0", 912}, {"gqr1", 913}, {"gqr2", 914}, {"gqr3", 915},
+    {"gqr4", 916}, {"gqr5", 917}, {"gqr6", 918}, {"gqr7", 919}, {"hid2", 920}, {"wpar", 921},
+    {"dma_u", 922}, {"dma_l", 923}, {"ummcr0", 936}, {"upmc1", 937}, {"upmc2", 938}, {"usia", 939},
+    {"ummcr1", 940}, {"upmc3", 941}, {"upmc4", 942}, {"usda", 943}, {"mmcr0", 952}, {"pmc1", 953},
+    {"pmc2", 954}, {"sia", 955}, {"mmcr1", 956}, {"pmc3", 957}, {"pmc4", 958}, {"sda", 959},
+    {"hid0", 1008}, {"hid1", 1009}, {"iabr", 1010}, {"dabr", 1013}, {"l2cr", 1017}, {"ictc", 1019},
+    {"thrm1", 1020}, {"thrm2", 1021}, {"thrm3", 1022}};
 
 extern const CaseInsensitiveDict<GekkoDirective> directives_map = {
-    {"byte", GekkoDirective::Byte},     {"2byte", GekkoDirective::_2byte},
-    {"4byte", GekkoDirective::_4byte},  {"8byte", GekkoDirective::_8byte},
-    {"float", GekkoDirective::Float},   {"double", GekkoDirective::Double},
-    {"locate", GekkoDirective::Locate}, {"padalign", GekkoDirective::PadAlign},
-    {"align", GekkoDirective::Align},   {"zeros", GekkoDirective::Zeros},
-    {"skip", GekkoDirective::Skip},     {"defvar", GekkoDirective::DefVar},
-    {"ascii", GekkoDirective::Ascii},   {"asciz", GekkoDirective::Asciz},
+    {"byte", GekkoDirective::Byte},
+    {"2byte", GekkoDirective::_2byte},
+    {"4byte", GekkoDirective::_4byte},
+    {"8byte", GekkoDirective::_8byte},
+    {"float", GekkoDirective::Float},
+    {"double", GekkoDirective::Double},
+    {"locate", GekkoDirective::Locate},
+    {"padalign", GekkoDirective::PadAlign},
+    {"align", GekkoDirective::Align},
+    {"zeros", GekkoDirective::Zeros},
+    {"skip", GekkoDirective::Skip},
+    {"defvar", GekkoDirective::DefVar},
+    {"ascii", GekkoDirective::Ascii},
+    {"asciz", GekkoDirective::Asciz},
 };
 
 #define MNEMONIC(mnemonic_str, mnemonic_enum, variant_bits, alg)                                   \
@@ -830,7 +835,7 @@ extern const std::array<MnemonicDesc, NUM_MNEMONICS * VARIANT_PERMUTATIONS> mnem
     MNEMONIC(19, InsertVal(150, 21, 30)),                               // isync
     MNEMONIC(31, InsertVal(20, 21, 30), OpDesc_D, OpDesc_A, OpDesc_B),  // lwarx
     MNEMONIC(31, InsertVal(150, 21, 30) | InsertVal(1, 31, 31), OpDesc_S, OpDesc_A,
-             OpDesc_B),                    // stwcx.
+        OpDesc_B),                         // stwcx.
     MNEMONIC(31, InsertVal(598, 21, 30)),  // sync
 
     // A-18
@@ -920,13 +925,13 @@ extern const std::array<MnemonicDesc, NUM_MNEMONICS * VARIANT_PERMUTATIONS> mnem
 
     // A-30
     MNEMONIC(4, InsertVal(6, 25, 30), OpDesc_D, OpDesc_A, OpDesc_B, OpDesc_W2,
-             OpDesc_I2),  // psq_lx
+        OpDesc_I2),  // psq_lx
     MNEMONIC(4, InsertVal(7, 25, 30), OpDesc_S, OpDesc_A, OpDesc_B, OpDesc_W2,
-             OpDesc_I2),  // psq_stx
+        OpDesc_I2),  // psq_stx
     MNEMONIC(4, InsertVal(38, 25, 30), OpDesc_D, OpDesc_A, OpDesc_B, OpDesc_W2,
-             OpDesc_I2),  // psq_lux
+        OpDesc_I2),  // psq_lux
     MNEMONIC(4, InsertVal(39, 25, 30), OpDesc_S, OpDesc_A, OpDesc_B, OpDesc_W2,
-             OpDesc_I2),                                                          // psq_stux
+        OpDesc_I2),                                                               // psq_stux
     BASIC_MNEMONIC(56, OpDesc_D, OpDesc_OffdPs, OpDesc_A, OpDesc_W1, OpDesc_I1),  // psq_l
     BASIC_MNEMONIC(57, OpDesc_D, OpDesc_OffdPs, OpDesc_A, OpDesc_W1, OpDesc_I1),  // psq_lu
     BASIC_MNEMONIC(60, OpDesc_S, OpDesc_OffdPs, OpDesc_A, OpDesc_W1, OpDesc_I1),  // psq_st
@@ -1446,7 +1451,7 @@ constexpr TransitionF HasQuote = [](char c) { return c == '"'; };
 
 extern const std::vector<DfaNode> float_dfa = {
     {{DfaEdge(HasPlusOrMinus, 1), DfaEdge(HasDigit, 2), DfaEdge(HasDot, 5)},
-     "Invalid float: No numeric value"},
+        "Invalid float: No numeric value"},
 
     {{DfaEdge(HasDigit, 2), DfaEdge(HasDot, 5)}, "Invalid float: No numeric value"},
 
@@ -1458,7 +1463,7 @@ extern const std::vector<DfaNode> float_dfa = {
     {{DfaEdge(HasDigit, 6), DfaEdge(HasE, 7)}, std::nullopt},
 
     {{DfaEdge(HasDigit, 9), DfaEdge(HasPlusOrMinus, 8)},
-     "Invalid float: No numeric value following exponent signifier"},
+        "Invalid float: No numeric value following exponent signifier"},
     {{DfaEdge(HasDigit, 9)}, "Invalid float: No numeric value following exponent signifier"},
     {{DfaEdge(HasDigit, 9)}, std::nullopt},
 };
@@ -1466,7 +1471,7 @@ extern const std::vector<DfaNode> float_dfa = {
 extern const std::vector<DfaNode> string_dfa = {
     // Base character check
     {{DfaEdge(HasNormal, 0), DfaEdge(HasInvalid, 1), DfaEdge(HasQuote, 2), DfaEdge(HasEscape, 3)},
-     "Invalid string: No terminating \""},
+        "Invalid string: No terminating \""},
 
     // Invalid (unescaped newline)
     {{}, "Invalid string: No terminating \""},
@@ -1475,19 +1480,19 @@ extern const std::vector<DfaNode> string_dfa = {
 
     // Escape character breakout
     {{DfaEdge(HasSCE, 0), DfaEdge(HasInvalid, 1), DfaEdge(HasOctal, 4), DfaEdge(HasHexStart, 6)},
-     "Invalid string: No terminating \""},
+        "Invalid string: No terminating \""},
 
     // Octal characters, at most 3
     {{DfaEdge(HasNormalMinusOctal, 0), DfaEdge(HasInvalid, 1), DfaEdge(HasQuote, 2),
-      DfaEdge(HasEscape, 3), DfaEdge(HasOctal, 5)},
-     "Invalid string: No terminating \""},
+         DfaEdge(HasEscape, 3), DfaEdge(HasOctal, 5)},
+        "Invalid string: No terminating \""},
     {{DfaEdge(HasNormal, 0), DfaEdge(HasInvalid, 1), DfaEdge(HasQuote, 2), DfaEdge(HasEscape, 3)},
-     "Invalid string: No terminating \""},
+        "Invalid string: No terminating \""},
 
     // Hex characters, 1 or more
     {{DfaEdge(HasHex, 7)}, "Invalid string: bad hex escape"},
     {{DfaEdge(HasNormalMinusHex, 0), DfaEdge(HasInvalid, 1), DfaEdge(HasQuote, 2),
-      DfaEdge(HasEscape, 3), DfaEdge(HasHex, 7)},
-     "Invalid string: No terminating \""},
+         DfaEdge(HasEscape, 3), DfaEdge(HasHex, 7)},
+        "Invalid string: No terminating \""},
 };
 }  // namespace Common::GekkoAssembler::detail

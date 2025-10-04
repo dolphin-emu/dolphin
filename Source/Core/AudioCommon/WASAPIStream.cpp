@@ -91,7 +91,7 @@ static void ForEachNamedDevice(const std::function<bool(ComPtr<IMMDevice>, std::
   ComPtr<IMMDeviceEnumerator> enumerator;
 
   result = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
-                            IID_PPV_ARGS(enumerator.GetAddressOf()));
+      IID_PPV_ARGS(enumerator.GetAddressOf()));
 
   if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
     return;
@@ -131,10 +131,12 @@ std::vector<std::string> WASAPIStream::GetAvailableDevices()
 {
   std::vector<std::string> device_names;
 
-  ForEachNamedDevice([&device_names](ComPtr<IMMDevice>, std::string n) {
-    device_names.push_back(std::move(n));
-    return true;
-  });
+  ForEachNamedDevice(
+      [&device_names](ComPtr<IMMDevice>, std::string n)
+      {
+        device_names.push_back(std::move(n));
+        return true;
+      });
 
   return device_names;
 }
@@ -143,14 +145,16 @@ ComPtr<IMMDevice> WASAPIStream::GetDeviceByName(std::string_view name)
 {
   ComPtr<IMMDevice> device;
 
-  ForEachNamedDevice([&device, &name](ComPtr<IMMDevice> d, std::string n) {
-    if (n == name)
-    {
-      device = std::move(d);
-      return false;
-    }
-    return true;
-  });
+  ForEachNamedDevice(
+      [&device, &name](ComPtr<IMMDevice> d, std::string n)
+      {
+        if (n == name)
+        {
+          device = std::move(d);
+          return false;
+        }
+        return true;
+      });
 
   return device;
 }
@@ -158,9 +162,8 @@ ComPtr<IMMDevice> WASAPIStream::GetDeviceByName(std::string_view name)
 bool WASAPIStream::Init()
 {
   ASSERT(m_enumerator == nullptr);
-  HRESULT const result =
-      CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
-                       IID_PPV_ARGS(m_enumerator.GetAddressOf()));
+  HRESULT const result = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr,
+      CLSCTX_INPROC_SERVER, IID_PPV_ARGS(m_enumerator.GetAddressOf()));
 
   if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
     return false;
@@ -188,7 +191,7 @@ bool WASAPIStream::SetRunning(bool running)
       if (!device)
       {
         ERROR_LOG_FMT(AUDIO, "Can't find device '{}', falling back to default",
-                      Config::Get(Config::MAIN_WASAPI_DEVICE));
+            Config::Get(Config::MAIN_WASAPI_DEVICE));
         result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, device.GetAddressOf());
       }
     }
@@ -213,7 +216,7 @@ bool WASAPIStream::SetRunning(bool running)
 
     // Get IAudioDevice
     result = device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
-                              reinterpret_cast<LPVOID*>(audio_client.GetAddressOf()));
+        reinterpret_cast<LPVOID*>(audio_client.GetAddressOf()));
 
     if (!HandleWinAPI("Failed to activate IAudioClient", result))
       return false;
@@ -228,8 +231,7 @@ bool WASAPIStream::SetRunning(bool running)
     if (!HandleWinAPI("Failed to obtain device period", result))
       return false;
 
-    result = audio_client->Initialize(
-        AUDCLNT_SHAREMODE_EXCLUSIVE,
+    result = audio_client->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE,
         AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST, device_period,
         device_period, reinterpret_cast<WAVEFORMATEX*>(&m_format), nullptr);
 
@@ -237,7 +239,7 @@ bool WASAPIStream::SetRunning(bool running)
     {
       OSD::AddMessage("Your current audio device doesn't support 16-bit 48000 hz PCM audio. WASAPI "
                       "exclusive mode won't work.",
-                      6000U);
+          6000U);
       return false;
     }
 
@@ -250,7 +252,7 @@ bool WASAPIStream::SetRunning(bool running)
 
       // Get IAudioDevice
       result = device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
-                                reinterpret_cast<LPVOID*>(audio_client.ReleaseAndGetAddressOf()));
+          reinterpret_cast<LPVOID*>(audio_client.ReleaseAndGetAddressOf()));
 
       if (!HandleWinAPI("Failed to reactivate IAudioClient", result))
         return false;
@@ -260,8 +262,7 @@ bool WASAPIStream::SetRunning(bool running)
               10000.0 * 1000 * m_frames_in_buffer / m_format.Format.nSamplesPerSec + 0.5) +
           Config::Get(Config::MAIN_AUDIO_LATENCY) * 10000;
 
-      result = audio_client->Initialize(
-          AUDCLNT_SHAREMODE_EXCLUSIVE,
+      result = audio_client->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE,
           AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST, device_period,
           device_period, reinterpret_cast<WAVEFORMATEX*>(&m_format), nullptr);
     }

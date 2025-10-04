@@ -44,8 +44,8 @@ struct PCAPRecordHeader
 
 void PCAP::AddHeader(u32 link_type)
 {
-  PCAPHeader hdr = {PCAP_MAGIC, PCAP_VERSION_MAJOR,  PCAP_VERSION_MINOR, 0,
-                    0,          PCAP_CAPTURE_LENGTH, link_type};
+  PCAPHeader hdr = {
+      PCAP_MAGIC, PCAP_VERSION_MAJOR, PCAP_VERSION_MINOR, 0, 0, PCAP_CAPTURE_LENGTH, link_type};
   m_fp->WriteBytes(&hdr, sizeof(hdr));
 }
 
@@ -54,8 +54,7 @@ void PCAP::AddPacket(const u8* bytes, size_t size)
 {
   std::chrono::system_clock::time_point now(std::chrono::system_clock::now());
   auto ts = now.time_since_epoch();
-  PCAPRecordHeader rec_hdr = {
-      (u32)std::chrono::duration_cast<std::chrono::seconds>(ts).count(),
+  PCAPRecordHeader rec_hdr = {(u32)std::chrono::duration_cast<std::chrono::seconds>(ts).count(),
       (u32)(std::chrono::duration_cast<std::chrono::microseconds>(ts).count() % 1000000), (u32)size,
       (u32)size};
   m_fp->WriteBytes(&rec_hdr, sizeof(rec_hdr));

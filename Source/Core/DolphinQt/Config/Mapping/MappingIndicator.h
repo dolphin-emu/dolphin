@@ -91,7 +91,7 @@ public:
 
 protected:
   void DrawReshapableInput(ControllerEmu::ReshapableInput& group,
-                           std::optional<ControllerEmu::ReshapableInput::ReshapeData> adj_coord);
+      std::optional<ControllerEmu::ReshapableInput::ReshapeData> adj_coord);
 
   virtual void DrawUnderGate(QPainter&) {}
 
@@ -241,7 +241,7 @@ class CalibrationWidget : public QToolButton
 {
 public:
   CalibrationWidget(MappingWidget& mapping_widget, ControllerEmu::ReshapableInput& input,
-                    ReshapableInputIndicator& indicator);
+      ReshapableInputIndicator& indicator);
 
   void Update(Common::DVec2 point);
 

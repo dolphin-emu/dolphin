@@ -32,22 +32,14 @@ StreamBuffer::~StreamBuffer()
 bool StreamBuffer::AllocateBuffer(u32 size)
 {
   static const D3D12_HEAP_PROPERTIES heap_properties = {D3D12_HEAP_TYPE_UPLOAD};
-  const D3D12_RESOURCE_DESC resource_desc = {D3D12_RESOURCE_DIMENSION_BUFFER,
-                                             0,
-                                             size,
-                                             1,
-                                             1,
-                                             1,
-                                             DXGI_FORMAT_UNKNOWN,
-                                             {1, 0},
-                                             D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
-                                             D3D12_RESOURCE_FLAG_NONE};
+  const D3D12_RESOURCE_DESC resource_desc = {D3D12_RESOURCE_DIMENSION_BUFFER, 0, size, 1, 1, 1,
+      DXGI_FORMAT_UNKNOWN, {1, 0}, D3D12_TEXTURE_LAYOUT_ROW_MAJOR, D3D12_RESOURCE_FLAG_NONE};
 
-  HRESULT hr = g_dx_context->GetDevice()->CreateCommittedResource(
-      &heap_properties, D3D12_HEAP_FLAG_NONE, &resource_desc, D3D12_RESOURCE_STATE_GENERIC_READ,
-      nullptr, IID_PPV_ARGS(&m_buffer));
-  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to allocate buffer of size {}: {}", size,
-             DX12HRWrap(hr));
+  HRESULT hr =
+      g_dx_context->GetDevice()->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE,
+          &resource_desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&m_buffer));
+  ASSERT_MSG(
+      VIDEO, SUCCEEDED(hr), "Failed to allocate buffer of size {}: {}", size, DX12HRWrap(hr));
   if (FAILED(hr))
     return false;
 
@@ -72,8 +64,8 @@ bool StreamBuffer::ReserveMemory(u32 num_bytes, u32 alignment)
   // Check for sane allocations
   if (required_bytes > m_size)
   {
-    PanicAlertFmt("Attempting to allocate {} bytes from a {} byte stream buffer", num_bytes,
-                  m_size);
+    PanicAlertFmt(
+        "Attempting to allocate {} bytes from a {} byte stream buffer", num_bytes, m_size);
 
     return false;
   }
@@ -239,8 +231,8 @@ bool StreamBuffer::WaitForClearSpace(u32 num_bytes)
 
   // Wait until this fence is signaled. This will fire the callback, updating the GPU position.
   g_dx_context->WaitForFence(iter->first);
-  m_tracked_fences.erase(m_tracked_fences.begin(),
-                         m_current_offset == iter->second ? m_tracked_fences.end() : ++iter);
+  m_tracked_fences.erase(
+      m_tracked_fences.begin(), m_current_offset == iter->second ? m_tracked_fences.end() : ++iter);
   m_current_offset = new_offset;
   m_current_gpu_position = new_gpu_position;
   return true;

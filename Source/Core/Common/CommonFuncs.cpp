@@ -66,7 +66,7 @@ std::string GetWin32ErrorString(DWORD error_code)
   wchar_t error_message[BUFFER_SIZE];
 
   FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code,
-                 MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), error_message, BUFFER_SIZE, nullptr);
+      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), error_message, BUFFER_SIZE, nullptr);
   return WStringToUTF8(error_message);
 }
 

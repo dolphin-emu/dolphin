@@ -133,17 +133,14 @@ void Host_UpdateDiscordClientID(const std::string& client_id)
 }
 
 bool Host_UpdateDiscordPresenceRaw(const std::string& details, const std::string& state,
-                                   const std::string& large_image_key,
-                                   const std::string& large_image_text,
-                                   const std::string& small_image_key,
-                                   const std::string& small_image_text,
-                                   const int64_t start_timestamp, const int64_t end_timestamp,
-                                   const int party_size, const int party_max)
+    const std::string& large_image_key, const std::string& large_image_text,
+    const std::string& small_image_key, const std::string& small_image_text,
+    const int64_t start_timestamp, const int64_t end_timestamp, const int party_size,
+    const int party_max)
 {
 #ifdef USE_DISCORD_PRESENCE
   return Discord::UpdateDiscordPresenceRaw(details, state, large_image_key, large_image_text,
-                                           small_image_key, small_image_text, start_timestamp,
-                                           end_timestamp, party_size, party_max);
+      small_image_key, small_image_text, start_timestamp, end_timestamp, party_size, party_max);
 #else
   return false;
 #endif
@@ -198,20 +195,20 @@ int main(const int argc, char* argv[])
       .help("Window platform to use [%choices]")
       .choices({"headless"
 #ifdef __linux__
-                ,
-                "fbdev"
+          ,
+          "fbdev"
 #endif
 #if HAVE_X11
-                ,
-                "x11"
+          ,
+          "x11"
 #endif
 #ifdef _WIN32
-                ,
-                "win32"
+          ,
+          "win32"
 #endif
 #ifdef __APPLE__
-                ,
-                "macos"
+          ,
+          "macos"
 #endif
       });
 
@@ -230,7 +227,7 @@ int main(const int argc, char* argv[])
   {
     const std::list<std::string> paths_list = options.all("exec");
     const std::vector<std::string> paths{std::make_move_iterator(std::begin(paths_list)),
-                                         std::make_move_iterator(std::end(paths_list))};
+        std::make_move_iterator(std::end(paths_list))};
     boot = BootParameters::GenerateFromFile(
         paths, BootSessionData(save_state_path, DeleteSavestateAfterBoot::No));
     game_specified = true;
@@ -277,10 +274,12 @@ int main(const int argc, char* argv[])
   UICommon::Init();
   UICommon::InitControllers(wsi);
 
-  Common::ScopeGuard ui_common_guard([] {
-    UICommon::ShutdownControllers();
-    UICommon::Shutdown();
-  });
+  Common::ScopeGuard ui_common_guard(
+      []
+      {
+        UICommon::ShutdownControllers();
+        UICommon::Shutdown();
+      });
 
   if (save_state_path && !game_specified)
   {
@@ -288,10 +287,12 @@ int main(const int argc, char* argv[])
     return 1;
   }
 
-  Core::AddOnStateChangedCallback([](const Core::State state) {
-    if (state == Core::State::Uninitialized)
-      s_platform->Stop();
-  });
+  Core::AddOnStateChangedCallback(
+      [](const Core::State state)
+      {
+        if (state == Core::State::Uninitialized)
+          s_platform->Stop();
+      });
 
 #ifdef _WIN32
   std::signal(SIGINT, signal_handler);

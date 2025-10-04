@@ -14,5 +14,5 @@
 namespace GraphicsModActionFactory
 {
 std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson::value& json_data,
-                                          std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
+    std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
 }

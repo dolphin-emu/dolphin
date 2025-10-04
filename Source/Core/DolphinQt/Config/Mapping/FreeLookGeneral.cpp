@@ -23,8 +23,8 @@ void FreeLookGeneral::CreateMainLayout()
   layout->addWidget(
       CreateGroupBox(tr("Speed"), FreeLook::GetInputGroup(GetPort(), FreeLookGroup::Speed)), 0, 1);
   layout->addWidget(CreateGroupBox(tr("Field of View"),
-                                   FreeLook::GetInputGroup(GetPort(), FreeLookGroup::FieldOfView)),
-                    0, 2);
+                        FreeLook::GetInputGroup(GetPort(), FreeLookGroup::FieldOfView)),
+      0, 2);
   layout->addWidget(
       CreateGroupBox(tr("Other"), FreeLook::GetInputGroup(GetPort(), FreeLookGroup::Other)), 0, 3);
 

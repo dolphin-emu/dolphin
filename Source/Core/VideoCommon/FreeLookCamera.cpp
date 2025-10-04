@@ -321,7 +321,7 @@ void FreeLookCamera::DoState(PointerWrap& p)
       const std::string message =
           fmt::format("State needs same free look camera type. Settings value '{}', loaded value "
                       "'{}'.  Aborting load state",
-                      old_type_name, loaded_type_name);
+              old_type_name, loaded_type_name);
       Core::DisplayMessage(message, 5000);
       p.SetVerifyMode();
     }

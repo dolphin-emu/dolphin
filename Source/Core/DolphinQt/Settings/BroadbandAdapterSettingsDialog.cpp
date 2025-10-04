@@ -68,7 +68,7 @@ void BroadbandAdapterSettingsDialog::InitControls()
         new QLabel(tr("The default value \"%1\" will work with a local tapserver and newserv."
                       " You can also enter a network location (address:port) to connect to a "
                       "remote tapserver.")
-                       .arg(address_placeholder));
+                .arg(address_placeholder));
 #endif
     window_title = tr("BBA destination address");
     break;
@@ -100,8 +100,8 @@ void BroadbandAdapterSettingsDialog::InitControls()
   m_address_input->setPlaceholderText(address_placeholder);
 
   auto buttonbox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-  connect(buttonbox, &QDialogButtonBox::accepted, this,
-          &BroadbandAdapterSettingsDialog::SaveAddress);
+  connect(
+      buttonbox, &QDialogButtonBox::accepted, this, &BroadbandAdapterSettingsDialog::SaveAddress);
   connect(buttonbox, &QDialogButtonBox::rejected, this, &BroadbandAdapterSettingsDialog::reject);
 
   description->setTextFormat(Qt::RichText);
@@ -129,8 +129,7 @@ void BroadbandAdapterSettingsDialog::SaveAddress()
     static const std::regex re_mac_address("([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})");
     if (!std::regex_match(bba_new_address, re_mac_address))
     {
-      ModalMessageBox::critical(
-          this, tr("Broadband Adapter Error"),
+      ModalMessageBox::critical(this, tr("Broadband Adapter Error"),
           // i18n: MAC stands for Media Access Control. A MAC address uniquely identifies a network
           // interface (physical) like a serial number. "MAC" should be kept in translations.
           tr("The entered MAC address is invalid."));

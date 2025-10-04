@@ -37,13 +37,13 @@
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 
 // Public key used to verify update manifests.
-const std::array<u8, 32> UPDATE_PUB_KEY = {
-    0x2a, 0xb3, 0xd1, 0xdc, 0x6e, 0xf5, 0x07, 0xf6, 0xa0, 0x6c, 0x7c, 0x54, 0xdf, 0x54, 0xf4, 0x42,
-    0x80, 0xa6, 0x28, 0x8b, 0x6d, 0x70, 0x14, 0xb5, 0x4c, 0x34, 0x95, 0x20, 0x4d, 0xd4, 0xd3, 0x5d};
+const std::array<u8, 32> UPDATE_PUB_KEY = {0x2a, 0xb3, 0xd1, 0xdc, 0x6e, 0xf5, 0x07, 0xf6, 0xa0,
+    0x6c, 0x7c, 0x54, 0xdf, 0x54, 0xf4, 0x42, 0x80, 0xa6, 0x28, 0x8b, 0x6d, 0x70, 0x14, 0xb5, 0x4c,
+    0x34, 0x95, 0x20, 0x4d, 0xd4, 0xd3, 0x5d};
 // The private key for UPDATE_PUB_KEY_TEST is in Tools/test-updater.py
-const std::array<u8, 32> UPDATE_PUB_KEY_TEST = {
-    0x0c, 0x5f, 0xdc, 0xd1, 0x15, 0x71, 0xfb, 0x86, 0x4f, 0x9e, 0x6d, 0xe6, 0x65, 0x39, 0x43, 0xe1,
-    0x9e, 0xe0, 0x9b, 0x28, 0xc9, 0x1a, 0x60, 0xb7, 0x67, 0x1c, 0xf3, 0xf6, 0xca, 0x1b, 0xdd, 0x1a};
+const std::array<u8, 32> UPDATE_PUB_KEY_TEST = {0x0c, 0x5f, 0xdc, 0xd1, 0x15, 0x71, 0xfb, 0x86,
+    0x4f, 0x9e, 0x6d, 0xe6, 0x65, 0x39, 0x43, 0xe1, 0x9e, 0xe0, 0x9b, 0x28, 0xc9, 0x1a, 0x60, 0xb7,
+    0x67, 0x1c, 0xf3, 0xf6, 0xca, 0x1b, 0xdd, 0x1a};
 
 // Where to log updater output.
 static File::IOFile log_file;
@@ -83,7 +83,8 @@ bool HexDecode(const std::string& hex, u8* buffer, size_t size)
   if (hex.size() != size * 2)
     return false;
 
-  auto DecodeNibble = [](char c) -> std::optional<u8> {
+  auto DecodeNibble = [](char c) -> std::optional<u8>
+  {
     if (c >= '0' && c <= '9')
       return static_cast<u8>(c - '0');
     else if (c >= 'a' && c <= 'f')
@@ -147,8 +148,8 @@ std::optional<std::string> GzipInflate(const std::string& data)
 Manifest::Hash ComputeHash(const std::string& contents)
 {
   std::array<u8, 32> full;
-  mbedtls_sha256_ret(reinterpret_cast<const u8*>(contents.data()), contents.size(), full.data(),
-                     false);
+  mbedtls_sha256_ret(
+      reinterpret_cast<const u8*>(contents.data()), contents.size(), full.data(), false);
 
   Manifest::Hash out;
   std::copy_n(full.begin(), 16, out.begin());
@@ -161,8 +162,7 @@ bool VerifySignature(const std::string& data, const std::string& b64_signature)
   size_t sig_size;
 
   if (mbedtls_base64_decode(signature, sizeof(signature), &sig_size,
-                            reinterpret_cast<const u8*>(b64_signature.data()),
-                            b64_signature.size()) ||
+          reinterpret_cast<const u8*>(b64_signature.data()), b64_signature.size()) ||
       sig_size != sizeof(signature))
   {
     LogToFile("Invalid base64: %s\n", b64_signature.c_str());
@@ -170,8 +170,8 @@ bool VerifySignature(const std::string& data, const std::string& b64_signature)
   }
 
   const auto& pub_key = UI::IsTestMode() ? UPDATE_PUB_KEY_TEST : UPDATE_PUB_KEY;
-  return ed25519_verify(signature, reinterpret_cast<const u8*>(data.data()), data.size(),
-                        pub_key.data());
+  return ed25519_verify(
+      signature, reinterpret_cast<const u8*>(data.data()), data.size(), pub_key.data());
 }
 
 void FlushLog()
@@ -190,7 +190,7 @@ void TodoList::Log() const
       std::string old_desc =
           op.old_hash ? HexEncode(op.old_hash->data(), op.old_hash->size()) : "(new)";
       LogToFile("  - %s: %s -> %s\n", op.filename.c_str(), old_desc.c_str(),
-                HexEncode(op.new_hash.data(), op.new_hash.size()).c_str());
+          HexEncode(op.new_hash.data(), op.new_hash.size()).c_str());
     }
   }
   if (to_delete.size())
@@ -199,13 +199,13 @@ void TodoList::Log() const
     for (const auto& op : to_delete)
     {
       LogToFile("  - %s (%s)\n", op.filename.c_str(),
-                HexEncode(op.old_hash.data(), op.old_hash.size()).c_str());
+          HexEncode(op.old_hash.data(), op.old_hash.size()).c_str());
     }
   }
 }
 
 bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download,
-                     const std::string& content_base_url, const std::string& temp_path)
+    const std::string& content_base_url, const std::string& temp_path)
 {
   Common::HttpRequest req(std::chrono::seconds(30), ProgressCallback);
 
@@ -267,7 +267,7 @@ bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download,
 }
 
 bool PlatformVersionCheck(const std::vector<TodoList::UpdateOp>& to_update,
-                          const std::string& install_base_path, const std::string& temp_dir)
+    const std::string& install_base_path, const std::string& temp_dir)
 {
   UI::SetDescription("Checking platform...");
   return Platform::VersionCheck(to_update, install_base_path, temp_dir);
@@ -337,8 +337,8 @@ bool BackupFile(const std::string& path)
   return true;
 }
 
-bool DeleteObsoleteFiles(const std::vector<TodoList::DeleteOp>& to_delete,
-                         const std::string& install_base_path)
+bool DeleteObsoleteFiles(
+    const std::vector<TodoList::DeleteOp>& to_delete, const std::string& install_base_path)
 {
   for (const auto& op : to_delete)
   {
@@ -371,7 +371,7 @@ bool DeleteObsoleteFiles(const std::vector<TodoList::DeleteOp>& to_delete,
 }
 
 bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
-                 const std::string& install_base_path, const std::string& temp_path)
+    const std::string& install_base_path, const std::string& temp_path)
 {
 #ifdef _WIN32
   const auto self_path = std::filesystem::path(Common::GetModuleName(nullptr).value());
@@ -444,8 +444,8 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
 
     // Now we can safely move the new contents to the location.
     std::string content_filename = HexEncode(op.new_hash.data(), op.new_hash.size());
-    LogToFile("Updating file %s from content %s...\n", op.filename.c_str(),
-              content_filename.c_str());
+    LogToFile(
+        "Updating file %s from content %s...\n", op.filename.c_str(), content_filename.c_str());
 #ifdef __APPLE__
     // macOS caches the code signature of Mach-O executables when they're first loaded.
     // Unfortunately, there is a quirk in the kernel with how it handles the cache: if the file is
@@ -480,7 +480,7 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
 }
 
 bool PerformUpdate(const TodoList& todo, const std::string& install_base_path,
-                   const std::string& content_base_url, const std::string& temp_path)
+    const std::string& content_base_url, const std::string& temp_path)
 {
   LogToFile("Starting download step...\n");
   if (!DownloadContent(todo.to_download, content_base_url, temp_path))
@@ -657,8 +657,8 @@ std::optional<Options> ParseCommandLine(std::vector<std::string>& args)
   Options opts;
 
   // Required arguments.
-  std::vector<std::string> required{"this-manifest-url", "next-manifest-url", "content-store-url",
-                                    "install-base-path"};
+  std::vector<std::string> required{
+      "this-manifest-url", "next-manifest-url", "content-store-url", "install-base-path"};
   for (const auto& req : required)
   {
     if (!options.is_set(req))

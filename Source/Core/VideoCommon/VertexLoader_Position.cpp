@@ -118,9 +118,8 @@ constexpr Table s_table_read_position = {
 };
 }  // Anonymous namespace
 
-TPipelineFunction VertexLoader_Position::GetFunction(VertexComponentFormat type,
-                                                     ComponentFormat format,
-                                                     CoordComponentCount elements)
+TPipelineFunction VertexLoader_Position::GetFunction(
+    VertexComponentFormat type, ComponentFormat format, CoordComponentCount elements)
 {
   return s_table_read_position[type][format][elements];
 }

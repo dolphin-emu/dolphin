@@ -25,8 +25,8 @@ public:
   // Copies the value into the pool if it doesn't exist. Returns a pointer
   // to existing values if they were already copied. Pointer equality is
   // used to determine if two constants are the same.
-  const void* GetConstant(const void* value, size_t element_size, size_t num_elements,
-                          size_t index);
+  const void* GetConstant(
+      const void* value, size_t element_size, size_t num_elements, size_t index);
 
 private:
   struct ConstantInfo

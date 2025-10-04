@@ -31,7 +31,7 @@ public:
   VolumeGC(std::unique_ptr<BlobReader> reader);
   ~VolumeGC() override;
   bool Read(u64 offset, u64 length, u8* buffer,
-            const Partition& partition = PARTITION_NONE) const override;
+      const Partition& partition = PARTITION_NONE) const override;
   const FileSystem* GetFileSystem(const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const override;
   std::string GetTriforceID() const override;

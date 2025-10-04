@@ -22,9 +22,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
   if (lstrlenW(pCmdLine) == 0)
   {
     MessageBoxW(nullptr,
-                L"This updater is not meant to be launched directly. Configure Auto-Update in "
-                "Dolphin's settings instead.",
-                L"Error", MB_ICONERROR);
+        L"This updater is not meant to be launched directly. Configure Auto-Update in "
+        "Dolphin's settings instead.",
+        L"Error", MB_ICONERROR);
     return 1;
   }
 
@@ -53,7 +53,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     if (IsUserAnAdmin())
     {
       MessageBox(nullptr, L"Failed to write to directory despite administrator privileges.",
-                 L"Error", MB_ICONERROR);
+          L"Error", MB_ICONERROR);
       return 1;
     }
 

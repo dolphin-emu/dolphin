@@ -28,8 +28,8 @@ static void XFMemWritten(XFStateManager& xf_state_manager, u32 transferSize, u32
   xf_state_manager.InvalidateXFRange(baseAddress, baseAddress + transferSize);
 }
 
-static void XFRegWritten(Core::System& system, XFStateManager& xf_state_manager, u32 address,
-                         u32 value)
+static void XFRegWritten(
+    Core::System& system, XFStateManager& xf_state_manager, u32 address, u32 value)
 {
   if (address >= XFMEM_REGISTERS_START && address < XFMEM_REGISTERS_END)
   {
@@ -203,7 +203,7 @@ void LoadXFReg(u16 base_address, u8 transfer_size, const u8* data)
   if (base_address > XFMEM_REGISTERS_END)
   {
     WARN_LOG_FMT(VIDEO, "XF load base address past end of address space: {:x} {} bytes",
-                 base_address, transfer_size);
+        base_address, transfer_size);
     return;
   }
 
@@ -213,7 +213,7 @@ void LoadXFReg(u16 base_address, u8 transfer_size, const u8* data)
   if (end_address > XFMEM_REGISTERS_END)
   {
     WARN_LOG_FMT(VIDEO, "XF load ends past end of address space: {:x} {} bytes", base_address,
-                 transfer_size);
+        transfer_size);
     end_address = XFMEM_REGISTERS_END;
   }
 
@@ -336,93 +336,93 @@ std::pair<std::string, std::string> GetXFRegInfo(u32 address, u32 value)
     return std::make_pair(RegName(XFMEM_VTXSPECS), fmt::to_string(INVTXSPEC{.hex = value}));
 
   case XFMEM_SETNUMCHAN:
-    return std::make_pair(RegName(XFMEM_SETNUMCHAN),
-                          fmt::format("Number of color channels: {}", value & 3));
+    return std::make_pair(
+        RegName(XFMEM_SETNUMCHAN), fmt::format("Number of color channels: {}", value & 3));
     break;
 
   case XFMEM_SETCHAN0_AMBCOLOR:
-    return std::make_pair(RegName(XFMEM_SETCHAN0_AMBCOLOR),
-                          fmt::format("Channel 0 Ambient Color: {:08x}", value));
+    return std::make_pair(
+        RegName(XFMEM_SETCHAN0_AMBCOLOR), fmt::format("Channel 0 Ambient Color: {:08x}", value));
   case XFMEM_SETCHAN1_AMBCOLOR:
-    return std::make_pair(RegName(XFMEM_SETCHAN1_AMBCOLOR),
-                          fmt::format("Channel 1 Ambient Color: {:08x}", value));
+    return std::make_pair(
+        RegName(XFMEM_SETCHAN1_AMBCOLOR), fmt::format("Channel 1 Ambient Color: {:08x}", value));
 
   case XFMEM_SETCHAN0_MATCOLOR:
-    return std::make_pair(RegName(XFMEM_SETCHAN0_MATCOLOR),
-                          fmt::format("Channel 0 Material Color: {:08x}", value));
+    return std::make_pair(
+        RegName(XFMEM_SETCHAN0_MATCOLOR), fmt::format("Channel 0 Material Color: {:08x}", value));
   case XFMEM_SETCHAN1_MATCOLOR:
-    return std::make_pair(RegName(XFMEM_SETCHAN1_MATCOLOR),
-                          fmt::format("Channel 1 Material Color: {:08x}", value));
+    return std::make_pair(
+        RegName(XFMEM_SETCHAN1_MATCOLOR), fmt::format("Channel 1 Material Color: {:08x}", value));
 
   case XFMEM_SETCHAN0_COLOR:  // Channel Color
     return std::make_pair(RegName(XFMEM_SETCHAN0_COLOR),
-                          fmt::format("Channel 0 Color config:\n{}", LitChannel{.hex = value}));
+        fmt::format("Channel 0 Color config:\n{}", LitChannel{.hex = value}));
   case XFMEM_SETCHAN1_COLOR:
     return std::make_pair(RegName(XFMEM_SETCHAN1_COLOR),
-                          fmt::format("Channel 1 Color config:\n{}", LitChannel{.hex = value}));
+        fmt::format("Channel 1 Color config:\n{}", LitChannel{.hex = value}));
   case XFMEM_SETCHAN0_ALPHA:  // Channel Alpha
     return std::make_pair(RegName(XFMEM_SETCHAN0_ALPHA),
-                          fmt::format("Channel 0 Alpha config:\n{}", LitChannel{.hex = value}));
+        fmt::format("Channel 0 Alpha config:\n{}", LitChannel{.hex = value}));
   case XFMEM_SETCHAN1_ALPHA:
     return std::make_pair(RegName(XFMEM_SETCHAN1_ALPHA),
-                          fmt::format("Channel 1 Alpha config:\n{}", LitChannel{.hex = value}));
+        fmt::format("Channel 1 Alpha config:\n{}", LitChannel{.hex = value}));
 
   case XFMEM_DUALTEX:
     return std::make_pair(RegName(XFMEM_DUALTEX),
-                          fmt::format("Dual Tex Trans {}", (value & 1) ? "enabled" : "disabled"));
+        fmt::format("Dual Tex Trans {}", (value & 1) ? "enabled" : "disabled"));
 
   case XFMEM_SETMATRIXINDA:
     return std::make_pair(RegName(XFMEM_SETMATRIXINDA),
-                          fmt::format("Matrix index A:\n{}", TMatrixIndexA{.Hex = value}));
+        fmt::format("Matrix index A:\n{}", TMatrixIndexA{.Hex = value}));
   case XFMEM_SETMATRIXINDB:
     return std::make_pair(RegName(XFMEM_SETMATRIXINDB),
-                          fmt::format("Matrix index B:\n{}", TMatrixIndexB{.Hex = value}));
+        fmt::format("Matrix index B:\n{}", TMatrixIndexB{.Hex = value}));
 
   case XFMEM_SETVIEWPORT:
     return std::make_pair(RegName(XFMEM_SETVIEWPORT + 0),
-                          fmt::format("Viewport width: {}", std::bit_cast<float>(value)));
+        fmt::format("Viewport width: {}", std::bit_cast<float>(value)));
   case XFMEM_SETVIEWPORT + 1:
     return std::make_pair(RegName(XFMEM_SETVIEWPORT + 1),
-                          fmt::format("Viewport height: {}", std::bit_cast<float>(value)));
+        fmt::format("Viewport height: {}", std::bit_cast<float>(value)));
   case XFMEM_SETVIEWPORT + 2:
     return std::make_pair(RegName(XFMEM_SETVIEWPORT + 2),
-                          fmt::format("Viewport z range: {}", std::bit_cast<float>(value)));
+        fmt::format("Viewport z range: {}", std::bit_cast<float>(value)));
   case XFMEM_SETVIEWPORT + 3:
     return std::make_pair(RegName(XFMEM_SETVIEWPORT + 3),
-                          fmt::format("Viewport x origin: {}", std::bit_cast<float>(value)));
+        fmt::format("Viewport x origin: {}", std::bit_cast<float>(value)));
   case XFMEM_SETVIEWPORT + 4:
     return std::make_pair(RegName(XFMEM_SETVIEWPORT + 4),
-                          fmt::format("Viewport y origin: {}", std::bit_cast<float>(value)));
+        fmt::format("Viewport y origin: {}", std::bit_cast<float>(value)));
   case XFMEM_SETVIEWPORT + 5:
     return std::make_pair(RegName(XFMEM_SETVIEWPORT + 5),
-                          fmt::format("Viewport far z: {}", std::bit_cast<float>(value)));
+        fmt::format("Viewport far z: {}", std::bit_cast<float>(value)));
     break;
 
   case XFMEM_SETPROJECTION:
     return std::make_pair(RegName(XFMEM_SETPROJECTION + 0),
-                          fmt::format("Projection[0]: {}", std::bit_cast<float>(value)));
+        fmt::format("Projection[0]: {}", std::bit_cast<float>(value)));
   case XFMEM_SETPROJECTION + 1:
     return std::make_pair(RegName(XFMEM_SETPROJECTION + 1),
-                          fmt::format("Projection[1]: {}", std::bit_cast<float>(value)));
+        fmt::format("Projection[1]: {}", std::bit_cast<float>(value)));
   case XFMEM_SETPROJECTION + 2:
     return std::make_pair(RegName(XFMEM_SETPROJECTION + 2),
-                          fmt::format("Projection[2]: {}", std::bit_cast<float>(value)));
+        fmt::format("Projection[2]: {}", std::bit_cast<float>(value)));
   case XFMEM_SETPROJECTION + 3:
     return std::make_pair(RegName(XFMEM_SETPROJECTION + 3),
-                          fmt::format("Projection[3]: {}", std::bit_cast<float>(value)));
+        fmt::format("Projection[3]: {}", std::bit_cast<float>(value)));
   case XFMEM_SETPROJECTION + 4:
     return std::make_pair(RegName(XFMEM_SETPROJECTION + 4),
-                          fmt::format("Projection[4]: {}", std::bit_cast<float>(value)));
+        fmt::format("Projection[4]: {}", std::bit_cast<float>(value)));
   case XFMEM_SETPROJECTION + 5:
     return std::make_pair(RegName(XFMEM_SETPROJECTION + 5),
-                          fmt::format("Projection[5]: {}", std::bit_cast<float>(value)));
+        fmt::format("Projection[5]: {}", std::bit_cast<float>(value)));
   case XFMEM_SETPROJECTION + 6:
-    return std::make_pair(RegName(XFMEM_SETPROJECTION + 6),
-                          fmt::to_string(static_cast<ProjectionType>(value)));
+    return std::make_pair(
+        RegName(XFMEM_SETPROJECTION + 6), fmt::to_string(static_cast<ProjectionType>(value)));
 
   case XFMEM_SETNUMTEXGENS:
-    return std::make_pair(RegName(XFMEM_SETNUMTEXGENS),
-                          fmt::format("Number of tex gens: {}", value & 15));
+    return std::make_pair(
+        RegName(XFMEM_SETNUMTEXGENS), fmt::format("Number of tex gens: {}", value & 15));
 
   case XFMEM_SETTEXMTXINFO:
   case XFMEM_SETTEXMTXINFO + 1:
@@ -461,8 +461,7 @@ std::pair<std::string, std::string> GetXFRegInfo(u32 address, u32 value)
   case 0x104d:
   case 0x104e:
   case 0x104f:
-    return std::make_pair(
-        fmt::format("Possible Normal Mtx XF reg?: {:x}={:x}", address, value),
+    return std::make_pair(fmt::format("Possible Normal Mtx XF reg?: {:x}={:x}", address, value),
         "Maybe these are for Normals? xfmem.texcoords[0].nrmmtxinfo.hex = data; break; ??");
     break;
 
@@ -571,8 +570,8 @@ std::string GetXFMemDescription(u32 address, u32 value)
   }
 }
 
-std::pair<std::string, std::string> GetXFTransferInfo(u16 base_address, u8 transfer_size,
-                                                      const u8* data)
+std::pair<std::string, std::string> GetXFTransferInfo(
+    u16 base_address, u8 transfer_size, const u8* data)
 {
   if (base_address > XFMEM_REGISTERS_END)
   {
@@ -610,7 +609,7 @@ std::pair<std::string, std::string> GetXFTransferInfo(u16 base_address, u8 trans
     }
 
     fmt::format_to(std::back_inserter(name), "Write {} XF mem words at {:04x}",
-                   xf_mem_transfer_size, xf_mem_base);
+        xf_mem_transfer_size, xf_mem_base);
 
     for (u32 i = 0; i < xf_mem_transfer_size; i++)
     {
@@ -627,7 +626,7 @@ std::pair<std::string, std::string> GetXFTransferInfo(u16 base_address, u8 trans
   if (base_address >= XFMEM_REGISTERS_START)
   {
     fmt::format_to(std::back_inserter(name), "Write {} XF regs at {:04x}",
-                   end_address - base_address, base_address);
+        end_address - base_address, base_address);
 
     for (u32 address = base_address; address < end_address; address++)
     {
@@ -643,11 +642,11 @@ std::pair<std::string, std::string> GetXFTransferInfo(u16 base_address, u8 trans
   return std::make_pair(fmt::to_string(name), fmt::to_string(desc));
 }
 
-std::pair<std::string, std::string> GetXFIndexedLoadInfo(CPArray array, u32 index, u16 address,
-                                                         u8 size)
+std::pair<std::string, std::string> GetXFIndexedLoadInfo(
+    CPArray array, u32 index, u16 address, u8 size)
 {
-  const auto desc = fmt::format("Load {} words to XF address {:03x} from CP array {} row {}", size,
-                                address, array, index);
+  const auto desc = fmt::format(
+      "Load {} words to XF address {:03x} from CP array {} row {}", size, address, array, index);
   fmt::memory_buffer written;
   for (u32 i = 0; i < size; i++)
   {

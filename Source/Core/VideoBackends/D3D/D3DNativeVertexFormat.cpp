@@ -17,8 +17,8 @@ namespace DX11
 {
 std::mutex s_input_layout_lock;
 
-std::unique_ptr<NativeVertexFormat>
-Gfx::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
+std::unique_ptr<NativeVertexFormat> Gfx::CreateNativeVertexFormat(
+    const PortableVertexDeclaration& vtx_decl)
 {
   return std::make_unique<D3DVertexFormat>(vtx_decl);
 }
@@ -156,8 +156,8 @@ ID3D11InputLayout* D3DVertexFormat::GetInputLayout(const void* vs_bytecode, size
   if (layout)
     return layout;
 
-  HRESULT hr = D3D::device->CreateInputLayout(m_elems.data(), m_num_elems, vs_bytecode,
-                                              vs_bytecode_size, &layout);
+  HRESULT hr = D3D::device->CreateInputLayout(
+      m_elems.data(), m_num_elems, vs_bytecode, vs_bytecode_size, &layout);
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create input layout: {}", DX11HRWrap(hr));
 
   // This method can be called from multiple threads, so ensure that only one thread sets the

@@ -52,7 +52,7 @@ const char* PatchTypeAsString(PatchType type);
 std::optional<PatchEntry> DeserializeLine(std::string line);
 std::string SerializeLine(const PatchEntry& entry);
 void LoadPatchSection(const std::string& section, std::vector<Patch>* patches,
-                      const Common::IniFile& globalIni, const Common::IniFile& localIni);
+    const Common::IniFile& globalIni, const Common::IniFile& localIni);
 void SavePatchSection(Common::IniFile* local_ini, const std::vector<Patch>& patches);
 void LoadPatches();
 

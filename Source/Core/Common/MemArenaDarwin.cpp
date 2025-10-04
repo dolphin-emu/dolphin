@@ -26,12 +26,12 @@ void MemArena::GrabSHMSegment(size_t size, std::string_view base_name)
   memory_object_size_t entry_size = size;
   constexpr vm_prot_t prot = VM_PROT_READ | VM_PROT_WRITE;
 
-  retval = mach_make_memory_entry_64(mach_task_self(), &entry_size, m_shm_address, prot,
-                                     &m_shm_entry, MACH_PORT_NULL);
+  retval = mach_make_memory_entry_64(
+      mach_task_self(), &entry_size, m_shm_address, prot, &m_shm_entry, MACH_PORT_NULL);
   if (retval != KERN_SUCCESS)
   {
-    ERROR_LOG_FMT(MEMMAP, "GrabSHMSegment failed: mach_make_memory_entry_64 returned {0:#x}",
-                  retval);
+    ERROR_LOG_FMT(
+        MEMMAP, "GrabSHMSegment failed: mach_make_memory_entry_64 returned {0:#x}", retval);
 
     m_shm_address = 0;
     m_shm_entry = MACH_PORT_NULL;
@@ -71,7 +71,7 @@ void* MemArena::CreateView(s64 offset, size_t size)
   constexpr vm_prot_t prot = VM_PROT_READ | VM_PROT_WRITE;
 
   kern_return_t retval = vm_map(mach_task_self(), &address, size, 0, VM_FLAGS_ANYWHERE, m_shm_entry,
-                                offset, false, prot, prot, VM_INHERIT_DEFAULT);
+      offset, false, prot, prot, VM_INHERIT_DEFAULT);
   if (retval != KERN_SUCCESS)
   {
     ERROR_LOG_FMT(MEMMAP, "CreateView failed: vm_map returned {0:#x}", retval);
@@ -134,7 +134,7 @@ void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
 
   kern_return_t retval =
       vm_map(mach_task_self(), &address, size, 0, VM_FLAGS_FIXED | VM_FLAGS_OVERWRITE, m_shm_entry,
-             offset, false, prot, prot, VM_INHERIT_DEFAULT);
+          offset, false, prot, prot, VM_INHERIT_DEFAULT);
   if (retval != KERN_SUCCESS)
   {
     ERROR_LOG_FMT(MEMMAP, "MapInMemoryRegion failed: vm_map returned {0:#x}", retval);

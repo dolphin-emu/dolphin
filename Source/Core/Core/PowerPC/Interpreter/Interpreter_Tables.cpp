@@ -337,7 +337,8 @@ constexpr std::array<InterpreterOpTemplate, 10> s_table63_2{{
     {31, Interpreter::fnmaddx},   // fnmaddx
 }};
 
-constexpr std::array<Interpreter::Instruction, 64> s_interpreter_op_table = []() consteval {
+constexpr std::array<Interpreter::Instruction, 64> s_interpreter_op_table = []() consteval
+{
   std::array<Interpreter::Instruction, 64> table{};
   table.fill(Interpreter::unknown_instruction);
   for (auto& tpl : s_primary_table)
@@ -347,7 +348,8 @@ constexpr std::array<Interpreter::Instruction, 64> s_interpreter_op_table = []()
   };
   return table;
 }();
-constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table4 = []() consteval {
+constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table4 = []() consteval
+{
   std::array<Interpreter::Instruction, 1024> table{};
   table.fill(Interpreter::unknown_instruction);
 
@@ -382,7 +384,8 @@ constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table4 = [
 
   return table;
 }();
-constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table19 = []() consteval {
+constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table19 = []() consteval
+{
   std::array<Interpreter::Instruction, 1024> table{};
   table.fill(Interpreter::unknown_instruction);
   for (auto& tpl : s_table19)
@@ -392,7 +395,8 @@ constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table19 = 
   };
   return table;
 }();
-constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table31 = []() consteval {
+constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table31 = []() consteval
+{
   std::array<Interpreter::Instruction, 1024> table{};
   table.fill(Interpreter::unknown_instruction);
   for (auto& tpl : s_table31)
@@ -402,7 +406,8 @@ constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table31 = 
   };
   return table;
 }();
-constexpr std::array<Interpreter::Instruction, 32> s_interpreter_op_table59 = []() consteval {
+constexpr std::array<Interpreter::Instruction, 32> s_interpreter_op_table59 = []() consteval
+{
   std::array<Interpreter::Instruction, 32> table{};
   table.fill(Interpreter::unknown_instruction);
   for (auto& tpl : s_table59)
@@ -412,7 +417,8 @@ constexpr std::array<Interpreter::Instruction, 32> s_interpreter_op_table59 = []
   };
   return table;
 }();
-constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table63 = []() consteval {
+constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table63 = []() consteval
+{
   std::array<Interpreter::Instruction, 1024> table{};
   table.fill(Interpreter::unknown_instruction);
   for (auto& tpl : s_table63)

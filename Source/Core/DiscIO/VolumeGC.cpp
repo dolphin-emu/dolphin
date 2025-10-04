@@ -30,11 +30,13 @@
 namespace DiscIO
 {
 VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader)
-    : m_reader(std::move(reader)), m_is_triforce(false)
+    : m_reader(std::move(reader))
+    , m_is_triforce(false)
 {
   ASSERT(m_reader);
 
-  m_file_system = [this]() -> std::unique_ptr<FileSystem> {
+  m_file_system = [this]() -> std::unique_ptr<FileSystem>
+  {
     auto file_system = std::make_unique<FileSystemGCWii>(this, PARTITION_NONE);
     return file_system->IsValid() ? std::move(file_system) : nullptr;
   };
@@ -50,7 +52,7 @@ VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader)
       return;
     BootID triforce_header;
     const u64 file_size = ReadFile(*this, PARTITION_NONE, file_info.get(),
-                                   reinterpret_cast<u8*>(&triforce_header), sizeof(BootID));
+        reinterpret_cast<u8*>(&triforce_header), sizeof(BootID));
     if (file_size >= 4 && triforce_header.magic == BTID_MAGIC)
     {
       m_is_triforce = true;
@@ -188,8 +190,8 @@ std::array<u8, 20> VolumeGC::GetSyncHash() const
 VolumeGC::ConvertedGCBanner VolumeGC::LoadBannerFile() const
 {
   GCBanner banner_file;
-  const u64 file_size = ReadFile(*this, PARTITION_NONE, "opening.bnr",
-                                 reinterpret_cast<u8*>(&banner_file), sizeof(GCBanner));
+  const u64 file_size = ReadFile(
+      *this, PARTITION_NONE, "opening.bnr", reinterpret_cast<u8*>(&banner_file), sizeof(GCBanner));
   if (file_size < 4)
   {
     WARN_LOG_FMT(DISCIO, "Could not read opening.bnr.");
@@ -209,16 +211,16 @@ VolumeGC::ConvertedGCBanner VolumeGC::LoadBannerFile() const
   }
   else
   {
-    WARN_LOG_FMT(DISCIO, "Invalid opening.bnr. Type: {:#0x} Size: {:#0x}", banner_file.id,
-                 file_size);
+    WARN_LOG_FMT(
+        DISCIO, "Invalid opening.bnr. Type: {:#0x} Size: {:#0x}", banner_file.id, file_size);
     return {};
   }
 
   return ExtractBannerInformation(banner_file, is_bnr1);
 }
 
-VolumeGC::ConvertedGCBanner VolumeGC::ExtractBannerInformation(const GCBanner& banner_file,
-                                                               bool is_bnr1) const
+VolumeGC::ConvertedGCBanner VolumeGC::ExtractBannerInformation(
+    const GCBanner& banner_file, bool is_bnr1) const
 {
   ConvertedGCBanner banner;
 
@@ -239,8 +241,8 @@ VolumeGC::ConvertedGCBanner VolumeGC::ExtractBannerInformation(const GCBanner& b
   banner.image_width = GC_BANNER_WIDTH;
   banner.image_height = GC_BANNER_HEIGHT;
   banner.image_buffer = std::vector<u32>(GC_BANNER_WIDTH * GC_BANNER_HEIGHT);
-  Common::Decode5A3Image(banner.image_buffer.data(), banner_file.image, GC_BANNER_WIDTH,
-                         GC_BANNER_HEIGHT);
+  Common::Decode5A3Image(
+      banner.image_buffer.data(), banner_file.image, GC_BANNER_WIDTH, GC_BANNER_HEIGHT);
 
   for (u32 i = 0; i < number_of_languages; ++i)
   {

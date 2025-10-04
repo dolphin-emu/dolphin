@@ -69,10 +69,9 @@ inline bool IsMMIOAddress(u32 address, bool is_wii)
 inline u32 UniqueID(u32 address)
 {
   DEBUG_ASSERT_MSG(MEMMAP,
-                   ((address & 0xFFFF0000) == 0x0C000000) ||
-                       ((address & 0xFFFF0000) == 0x0D000000) ||
-                       ((address & 0xFFFF0000) == 0x0D800000),
-                   "Trying to get the ID of a non-existing MMIO address.");
+      ((address & 0xFFFF0000) == 0x0C000000) || ((address & 0xFFFF0000) == 0x0D000000) ||
+          ((address & 0xFFFF0000) == 0x0D800000),
+      "Trying to get the ID of a non-existing MMIO address.");
 
   return (((address >> 24) & 1) << 16) | (address & 0xFFFF);
 }
@@ -190,9 +189,9 @@ private:
   template <typename Unit>
   ReadHandler<Unit>& GetReadHandler(size_t index)
   {
-    static_assert(std::is_same<Unit, u8>() || std::is_same<Unit, u16>() ||
-                      std::is_same<Unit, u32>(),
-                  "Invalid unit used");
+    static_assert(
+        std::is_same<Unit, u8>() || std::is_same<Unit, u16>() || std::is_same<Unit, u32>(),
+        "Invalid unit used");
 
     auto handlers = std::tie(m_read_handlers8, m_read_handlers16, m_read_handlers32);
 
@@ -203,9 +202,9 @@ private:
   template <typename Unit>
   WriteHandler<Unit>& GetWriteHandler(size_t index)
   {
-    static_assert(std::is_same<Unit, u8>() || std::is_same<Unit, u16>() ||
-                      std::is_same<Unit, u32>(),
-                  "Invalid unit used");
+    static_assert(
+        std::is_same<Unit, u8>() || std::is_same<Unit, u16>() || std::is_same<Unit, u32>(),
+        "Invalid unit used");
 
     auto handlers = std::tie(m_write_handlers8, m_write_handlers16, m_write_handlers32);
 

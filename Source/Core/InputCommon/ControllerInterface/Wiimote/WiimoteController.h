@@ -169,8 +169,8 @@ private:
 
   using AckReportHandler = std::function<ReportHandler::HandlerResult(const InputReportAck& reply)>;
 
-  static AckReportHandler MakeAckHandler(OutputReportID report_id,
-                                         std::function<void(WiimoteCommon::ErrorCode)> callback);
+  static AckReportHandler MakeAckHandler(
+      OutputReportID report_id, std::function<void(WiimoteCommon::ErrorCode)> callback);
 
   // TODO: Make parameter const. (need to modify DataReportManipulator)
   void ProcessInputReport(WiimoteReal::Report& report);
@@ -193,11 +193,10 @@ private:
   using ReadResponse = std::optional<std::vector<u8>>;
 
   void ReadData(AddressSpace space, u8 slave, u16 address, u16 size,
-                std::function<void(ReadResponse)> callback);
+      std::function<void(ReadResponse)> callback);
 
   void AddReadDataReplyHandler(AddressSpace space, u8 slave, u16 address, u16 size,
-                               std::vector<u8> starting_data,
-                               std::function<void(ReadResponse)> callback);
+      std::vector<u8> starting_data, std::function<void(ReadResponse)> callback);
 
   template <typename T = std::initializer_list<u8>, typename C>
   void WriteData(AddressSpace space, u8 slave, u16 address, T&& data, C&& callback);

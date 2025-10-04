@@ -54,8 +54,8 @@ void SetSIMDMode(RoundMode rounding_mode, bool non_ieee_mode)
   if (!afp_warning_shown && !cpu_info.bAFP && non_ieee_mode)
   {
     afp_warning_shown = true;
-    WARN_LOG_FMT(POWERPC,
-                 "Non-IEEE mode was requested, but host CPU is not known to support FEAT_AFP");
+    WARN_LOG_FMT(
+        POWERPC, "Non-IEEE mode was requested, but host CPU is not known to support FEAT_AFP");
   }
 
   // lookup table for FPSCR.RN-to-FPCR.RMode translation

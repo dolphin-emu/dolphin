@@ -1018,8 +1018,8 @@ void Interpreter::Helper_StoreString(Interpreter& interpreter, const u32 EA, u32
   while (n >= 4)
   {
     current_value |= ppc_state.gpr[r];
-    interpreter.m_mmu.Write_U32(static_cast<u32>(current_value >> misalignment_bits),
-                                current_address);
+    interpreter.m_mmu.Write_U32(
+        static_cast<u32>(current_value >> misalignment_bits), current_address);
     if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)
       return;
 

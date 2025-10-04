@@ -25,33 +25,33 @@ static ActionReplay::ARCode* GetPointer(JNIEnv* env, jobject obj)
 jobject ARCheatToJava(JNIEnv* env, const ActionReplay::ARCode& code)
 {
   return env->NewObject(IDCache::GetARCheatClass(), IDCache::GetARCheatConstructor(),
-                        reinterpret_cast<jlong>(new ActionReplay::ARCode(code)));
+      reinterpret_cast<jlong>(new ActionReplay::ARCode(code)));
 }
 
 extern "C" {
 
-JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_finalize(JNIEnv* env, jobject obj)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_finalize(
+    JNIEnv* env, jobject obj)
 {
   delete GetPointer(env, obj);
 }
 
-JNIEXPORT jlong JNICALL
-Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_createNew(JNIEnv* env, jobject obj)
+JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_createNew(
+    JNIEnv* env, jobject obj)
 {
   auto* code = new ActionReplay::ARCode;
   code->user_defined = true;
   return reinterpret_cast<jlong>(code);
 }
 
-JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_getName(JNIEnv* env, jobject obj)
+JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_getName(
+    JNIEnv* env, jobject obj)
 {
   return ToJString(env, GetPointer(env, obj)->name);
 }
 
-JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_getCode(JNIEnv* env, jobject obj)
+JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_getCode(
+    JNIEnv* env, jobject obj)
 {
   ActionReplay::ARCode* code = GetPointer(env, obj);
 
@@ -69,14 +69,14 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_getCode(JNIEnv* env
 }
 
 JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_getUserDefined(JNIEnv* env,
-                                                                            jobject obj)
+Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_getUserDefined(
+    JNIEnv* env, jobject obj)
 {
   return static_cast<jboolean>(GetPointer(env, obj)->user_defined);
 }
 
-JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_getEnabled(JNIEnv* env, jobject obj)
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_getEnabled(
+    JNIEnv* env, jobject obj)
 {
   return static_cast<jboolean>(GetPointer(env, obj)->enabled);
 }
@@ -132,9 +132,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCh
 }
 
 JNIEXPORT jobjectArray JNICALL
-Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_loadCodes(JNIEnv* env, jclass,
-                                                                       jstring jGameID,
-                                                                       jint revision)
+Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_loadCodes(
+    JNIEnv* env, jclass, jstring jGameID, jint revision)
 {
   const std::string game_id = GetJString(env, jGameID);
   Common::IniFile game_ini_local;

@@ -245,8 +245,8 @@ static void ReadCommand()
   if (chk_calc != chk_read)
   {
     ERROR_LOG_FMT(GDB_STUB,
-                  "gdb: invalid checksum: calculated {:02x} and read {:02x} for ${}# (length: {})",
-                  chk_calc, chk_read, CommandBufferAsString(), s_cmd_len);
+        "gdb: invalid checksum: calculated {:02x} and read {:02x} for ${}# (length: {})", chk_calc,
+        chk_read, CommandBufferAsString(), s_cmd_len);
     s_cmd_len = 0;
 
     Nack();
@@ -254,7 +254,7 @@ static void ReadCommand()
   }
 
   DEBUG_LOG_FMT(GDB_STUB, "gdb: read command {} with a length of {}: {}",
-                static_cast<char>(s_cmd_bfr[0]), s_cmd_len, CommandBufferAsString());
+      static_cast<char>(s_cmd_bfr[0]), s_cmd_len, CommandBufferAsString());
   Ack();
 }
 
@@ -322,7 +322,7 @@ static void WriteHostInfo()
 {
   return SendReply(
       fmt::format("cputype:{};cpusubtype:{};ostype:unknown;vendor:unknown;endian:big;ptrsize:4",
-                  MACH_O_POWERPC, MACH_O_POWERPC_750)
+          MACH_O_POWERPC, MACH_O_POWERPC_750)
           .c_str());
 }
 
@@ -879,7 +879,7 @@ static bool AddBreakpoint(BreakpointType type, u32 addr, u32 len)
     auto& breakpoints = Core::System::GetInstance().GetPowerPC().GetBreakPoints();
     breakpoints.Add(addr);
     INFO_LOG_FMT(GDB_STUB, "gdb: added {} breakpoint: {:08x} bytes at {:08x}",
-                 static_cast<int>(type), len, addr);
+        static_cast<int>(type), len, addr);
   }
   else
   {
@@ -897,7 +897,7 @@ static bool AddBreakpoint(BreakpointType type, u32 addr, u32 len)
     auto& memchecks = Core::System::GetInstance().GetPowerPC().GetMemChecks();
     memchecks.Add(std::move(new_memcheck));
     INFO_LOG_FMT(GDB_STUB, "gdb: added {} memcheck: {:08x} bytes at {:08x}", static_cast<int>(type),
-                 len, addr);
+        len, addr);
   }
   Host_PPCBreakpointsChanged();
   return true;
@@ -1048,7 +1048,7 @@ void ProcessCommands(bool loop_until_continue)
 // exported functions
 
 static void InitGeneric(int domain, const sockaddr* server_addr, socklen_t server_addrlen,
-                        sockaddr* client_addr, socklen_t* client_addrlen);
+    sockaddr* client_addr, socklen_t* client_addrlen);
 
 #ifndef _WIN32
 void InitLocal(const char* socket)
@@ -1075,13 +1075,13 @@ void Init(u32 port)
   socklen_t client_addrlen = sizeof(saddr_client);
 
   InitGeneric(PF_INET, (const sockaddr*)&saddr_server, sizeof(saddr_server),
-              (sockaddr*)&saddr_client, &client_addrlen);
+      (sockaddr*)&saddr_client, &client_addrlen);
 
   saddr_client.sin_addr.s_addr = ntohl(saddr_client.sin_addr.s_addr);
 }
 
 static void InitGeneric(int domain, const sockaddr* server_addr, socklen_t server_addrlen,
-                        sockaddr* client_addr, socklen_t* client_addrlen)
+    sockaddr* client_addr, socklen_t* client_addrlen)
 {
   s_socket_context.emplace();
 
@@ -1165,7 +1165,7 @@ void SendSignal(Signal signal)
 
   char bfr[128] = {};
   fmt::format_to(bfr, "T{:02x}{:02x}:{:08x};{:02x}:{:08x};", static_cast<u8>(signal), 64,
-                 ppc_state.pc, 1, ppc_state.gpr[1]);
+      ppc_state.pc, 1, ppc_state.gpr[1]);
   SendReply(bfr);
 }
 }  // namespace GDBStub

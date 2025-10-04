@@ -37,8 +37,8 @@ static std::mutex s_guids_mutex;
 void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
 {
   std::list<DIDEVICEINSTANCE> joysticks;
-  idi8->EnumDevices(DI8DEVCLASS_GAMECTRL, DIEnumDevicesCallback, (LPVOID)&joysticks,
-                    DIEDFL_ATTACHEDONLY);
+  idi8->EnumDevices(
+      DI8DEVCLASS_GAMECTRL, DIEnumDevicesCallback, (LPVOID)&joysticks, DIEDFL_ATTACHEDONLY);
 
   std::unordered_set<DWORD> xinput_guids = GetXInputGUIDS();
   for (DIDEVICEINSTANCE& joystick : joysticks)
@@ -64,14 +64,14 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
     {
       if (SUCCEEDED(js_device->SetDataFormat(&c_dfDIJoystick)))
       {
-        HRESULT hr = js_device->SetCooperativeLevel(GetAncestor(hwnd, GA_ROOT),
-                                                    DISCL_BACKGROUND | DISCL_EXCLUSIVE);
+        HRESULT hr = js_device->SetCooperativeLevel(
+            GetAncestor(hwnd, GA_ROOT), DISCL_BACKGROUND | DISCL_EXCLUSIVE);
         if (FAILED(hr))
         {
           WARN_LOG_FMT(CONTROLLERINTERFACE,
-                       "DInput: Failed to acquire device exclusively. Force feedback will be "
-                       "unavailable.  {}",
-                       Common::HRWrap(hr));
+              "DInput: Failed to acquire device exclusively. Force feedback will be "
+              "unavailable.  {}",
+              Common::HRWrap(hr));
           // Fall back to non-exclusive mode, with no rumble
           if (FAILED(
                   js_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
@@ -168,7 +168,7 @@ Joystick::Joystick(const LPDIRECTINPUTDEVICE8 device) : m_device(device)
 
       // each axis gets a negative and a positive input instance associated with it
       AddFullAnalogSurfaceInputs(new Axis(offset, ax, base, range.lMin - base),
-                                 new Axis(offset, ax, base, range.lMax - base));
+          new Axis(offset, ax, base, range.lMax - base));
     }
   }
 

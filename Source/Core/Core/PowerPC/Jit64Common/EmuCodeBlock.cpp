@@ -83,7 +83,7 @@ void EmuCodeBlock::SwitchToFarCode()
   m_near_code_end = GetWritableCodeEnd();
   m_near_code_write_failed = HasWriteFailed();
   SetCodePtr(m_far_code.GetWritableCodePtr(), m_far_code.GetWritableCodeEnd(),
-             m_far_code.HasWriteFailed());
+      m_far_code.HasWriteFailed());
 }
 
 void EmuCodeBlock::SwitchToNearCode()
@@ -109,8 +109,8 @@ FixupBranch EmuCodeBlock::BATAddressLookup(X64Reg addr, X64Reg tmp, const void* 
   return J_CC(CC_NC, m_far_code.Enabled() ? Jump::Near : Jump::Short);
 }
 
-FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_addr,
-                                             BitSet32 registers_in_use)
+FixupBranch EmuCodeBlock::CheckIfSafeAddress(
+    const OpArg& reg_value, X64Reg reg_addr, BitSet32 registers_in_use)
 {
   registers_in_use[reg_addr] = true;
   if (reg_value.IsSimpleReg())
@@ -138,8 +138,8 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_
   return J_CC(CC_Z, m_far_code.Enabled() ? Jump::Near : Jump::Short);
 }
 
-void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset,
-                                       bool swap, MovInfo* info)
+void EmuCodeBlock::UnsafeWriteRegToReg(
+    OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset, bool swap, MovInfo* info)
 {
   if (info)
   {
@@ -165,13 +165,13 @@ void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acc
 }
 
 void EmuCodeBlock::UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize,
-                                       s32 offset, bool swap, Gen::MovInfo* info)
+    s32 offset, bool swap, Gen::MovInfo* info)
 {
   UnsafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, swap, info);
 }
 
-bool EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int accessSize, s32 offset,
-                                   bool signExtend, MovInfo* info)
+bool EmuCodeBlock::UnsafeLoadToReg(
+    X64Reg reg_value, OpArg opAddress, int accessSize, s32 offset, bool signExtend, MovInfo* info)
 {
   bool offsetAddedToAddress = false;
   OpArg memOperand;
@@ -217,9 +217,13 @@ class MMIOReadCodeGenerator : public MMIO::ReadHandlingMethodVisitor<T>
 {
 public:
   MMIOReadCodeGenerator(Core::System* system, Gen::X64CodeBlock* code, BitSet32 registers_in_use,
-                        Gen::X64Reg dst_reg, u32 address, bool sign_extend)
-      : m_system(system), m_code(code), m_registers_in_use(registers_in_use), m_dst_reg(dst_reg),
-        m_address(address), m_sign_extend(sign_extend)
+      Gen::X64Reg dst_reg, u32 address, bool sign_extend)
+      : m_system(system)
+      , m_code(code)
+      , m_registers_in_use(registers_in_use)
+      , m_dst_reg(dst_reg)
+      , m_address(address)
+      , m_sign_extend(sign_extend)
   {
   }
 
@@ -294,29 +298,28 @@ private:
 };
 
 void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
-                                 BitSet32 registers_in_use, u32 address, int access_size,
-                                 bool sign_extend)
+    BitSet32 registers_in_use, u32 address, int access_size, bool sign_extend)
 {
   switch (access_size)
   {
   case 8:
   {
-    MMIOReadCodeGenerator<u8> gen(&m_jit.m_system, this, registers_in_use, reg_value, address,
-                                  sign_extend);
+    MMIOReadCodeGenerator<u8> gen(
+        &m_jit.m_system, this, registers_in_use, reg_value, address, sign_extend);
     mmio->GetHandlerForRead<u8>(address).Visit(gen);
     break;
   }
   case 16:
   {
-    MMIOReadCodeGenerator<u16> gen(&m_jit.m_system, this, registers_in_use, reg_value, address,
-                                   sign_extend);
+    MMIOReadCodeGenerator<u16> gen(
+        &m_jit.m_system, this, registers_in_use, reg_value, address, sign_extend);
     mmio->GetHandlerForRead<u16>(address).Visit(gen);
     break;
   }
   case 32:
   {
-    MMIOReadCodeGenerator<u32> gen(&m_jit.m_system, this, registers_in_use, reg_value, address,
-                                   sign_extend);
+    MMIOReadCodeGenerator<u32> gen(
+        &m_jit.m_system, this, registers_in_use, reg_value, address, sign_extend);
     mmio->GetHandlerForRead<u32>(address).Visit(gen);
     break;
   }
@@ -324,7 +327,7 @@ void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
 }
 
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize,
-                                 s32 offset, BitSet32 registersInUse, bool signExtend, int flags)
+    s32 offset, BitSet32 registersInUse, bool signExtend, int flags)
 {
   bool force_slow_access = (flags & SAFE_LOADSTORE_FORCE_SLOW_ACCESS) != 0;
 
@@ -369,7 +372,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   }
 
   ASSERT_MSG(DYNA_REC, opAddress.IsSimpleReg(),
-             "Incorrect use of SafeLoadToReg (address isn't register or immediate)");
+      "Incorrect use of SafeLoadToReg (address isn't register or immediate)");
   X64Reg reg_addr = opAddress.GetSimpleReg();
   if (offset)
   {
@@ -441,8 +444,8 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   }
 }
 
-void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int accessSize,
-                                          BitSet32 registersInUse, bool signExtend)
+void EmuCodeBlock::SafeLoadToRegImmediate(
+    X64Reg reg_value, u32 address, int accessSize, BitSet32 registersInUse, bool signExtend)
 {
   // If the address is known to be RAM, just load it directly.
   if (m_jit.jo.fastmem_arena && m_jit.m_mmu.IsOptimizableRAMAddress(address, accessSize))
@@ -456,8 +459,8 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
   if (accessSize != 64 && mmioAddress)
   {
     auto& memory = m_jit.m_system.GetMemory();
-    MMIOLoadToReg(memory.GetMMIOMapping(), reg_value, registersInUse, mmioAddress, accessSize,
-                  signExtend);
+    MMIOLoadToReg(
+        memory.GetMMIOMapping(), reg_value, registersInUse, mmioAddress, accessSize, signExtend);
     return;
   }
 
@@ -495,7 +498,7 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
 }
 
 void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset,
-                                     BitSet32 registersInUse, int flags)
+    BitSet32 registersInUse, int flags)
 {
   bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
   bool force_slow_access = (flags & SAFE_LOADSTORE_FORCE_SLOW_ACCESS) != 0;
@@ -589,15 +592,15 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   {
   case 64:
     ABI_CallFunctionPRR(swap ? PowerPC::WriteU64FromJit : PowerPC::WriteU64SwapFromJit,
-                        &m_jit.m_mmu, reg, reg_addr);
+        &m_jit.m_mmu, reg, reg_addr);
     break;
   case 32:
     ABI_CallFunctionPRR(swap ? PowerPC::WriteU32FromJit : PowerPC::WriteU32SwapFromJit,
-                        &m_jit.m_mmu, reg, reg_addr);
+        &m_jit.m_mmu, reg, reg_addr);
     break;
   case 16:
     ABI_CallFunctionPRR(swap ? PowerPC::WriteU16FromJit : PowerPC::WriteU16SwapFromJit,
-                        &m_jit.m_mmu, reg, reg_addr);
+        &m_jit.m_mmu, reg, reg_addr);
     break;
   case 8:
     ABI_CallFunctionPRR(PowerPC::WriteU8FromJit, &m_jit.m_mmu, reg, reg_addr);
@@ -619,7 +622,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 }
 
 void EmuCodeBlock::SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize,
-                                     s32 offset, BitSet32 registersInUse, int flags)
+    s32 offset, BitSet32 registersInUse, int flags)
 {
   SafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, registersInUse, flags);
 }
@@ -629,8 +632,8 @@ bool EmuCodeBlock::WriteClobbersRegValue(int accessSize, bool swap)
   return swap && !cpu_info.bMOVBE && accessSize > 8;
 }
 
-bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
-                                       BitSet32 registersInUse)
+bool EmuCodeBlock::WriteToConstAddress(
+    int accessSize, OpArg arg, u32 address, BitSet32 registersInUse)
 {
   arg = FixImmediate(accessSize, arg);
 
@@ -740,8 +743,8 @@ void EmuCodeBlock::JitClearCA()
 
 // Abstract between AVX and SSE: automatically handle 3-operand instructions
 void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
-                          void (XEmitter::*sseOp)(X64Reg, const OpArg&), X64Reg regOp,
-                          const OpArg& arg1, const OpArg& arg2, bool packed, bool reversible)
+    void (XEmitter::*sseOp)(X64Reg, const OpArg&), X64Reg regOp, const OpArg& arg1,
+    const OpArg& arg2, bool packed, bool reversible)
 {
   if (arg1.IsSimpleReg(regOp))
   {
@@ -797,8 +800,8 @@ void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
 
 // Abstract between AVX and SSE: automatically handle 3-operand instructions
 void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&, u8),
-                          void (XEmitter::*sseOp)(X64Reg, const OpArg&, u8), X64Reg regOp,
-                          const OpArg& arg1, const OpArg& arg2, u8 imm)
+    void (XEmitter::*sseOp)(X64Reg, const OpArg&, u8), X64Reg regOp, const OpArg& arg1,
+    const OpArg& arg2, u8 imm)
 {
   if (arg1.IsSimpleReg(regOp))
   {
@@ -864,8 +867,8 @@ void EmuCodeBlock::Force25BitPrecision(X64Reg output, const OpArg& input, X64Reg
   }
 }
 
-alignas(16) static const __m128i double_qnan_bit = _mm_set_epi64x(0xffffffffffffffff,
-                                                                  0xfff7ffffffffffff);
+alignas(16) static const __m128i double_qnan_bit = _mm_set_epi64x(
+    0xffffffffffffffff, 0xfff7ffffffffffff);
 
 // Converting single->double is a bit easier because all single denormals are double normals.
 void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr)
@@ -951,7 +954,7 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm, bool single)
     SetJumpTarget(notNAN);
     LEA(32, RSCRATCH,
         MScaled(RSCRATCH, Common::PPC_FPCLASS_NINF - Common::PPC_FPCLASS_PINF,
-                Common::PPC_FPCLASS_PINF));
+            Common::PPC_FPCLASS_PINF));
     continue3 = J();
 
     SetJumpTarget(zeroExponent);
@@ -1009,7 +1012,7 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm, bool single)
     SHR(input_size, R(RSCRATCH), Imm8(input_size - 1));
     LEA(32, RSCRATCH,
         MScaled(RSCRATCH, Common::PPC_FPCLASS_NINF - Common::PPC_FPCLASS_PINF,
-                Common::PPC_FPCLASS_PINF));
+            Common::PPC_FPCLASS_PINF));
     continue3 = J();
 
     SetJumpTarget(zeroExponent);

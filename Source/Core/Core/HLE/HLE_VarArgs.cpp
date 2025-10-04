@@ -21,11 +21,13 @@ double HLE::SystemVABI::VAList::GetFPR(u32 fpr) const
 }
 
 HLE::SystemVABI::VAListStruct::VAListStruct(const Core::CPUThreadGuard& guard, u32 address)
-    : VAList(guard, 0), m_va_list{PowerPC::MMU::HostRead_U8(guard, address),
-                                  PowerPC::MMU::HostRead_U8(guard, address + 1),
-                                  PowerPC::MMU::HostRead_U32(guard, address + 4),
-                                  PowerPC::MMU::HostRead_U32(guard, address + 8)},
-      m_address(address), m_has_fpr_area(guard.GetSystem().GetPPCState().cr.GetBit(6) == 1)
+    : VAList(guard, 0)
+    , m_va_list{PowerPC::MMU::HostRead_U8(guard, address),
+          PowerPC::MMU::HostRead_U8(guard, address + 1),
+          PowerPC::MMU::HostRead_U32(guard, address + 4),
+          PowerPC::MMU::HostRead_U32(guard, address + 8)}
+    , m_address(address)
+    , m_has_fpr_area(guard.GetSystem().GetPPCState().cr.GetBit(6) == 1)
 {
   m_stack = m_va_list.overflow_arg_area;
   m_gpr += m_va_list.gpr;

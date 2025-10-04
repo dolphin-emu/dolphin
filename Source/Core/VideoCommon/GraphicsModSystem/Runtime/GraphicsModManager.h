@@ -23,15 +23,14 @@ public:
   bool Initialize();
 
   const std::vector<GraphicsModAction*>& GetProjectionActions(ProjectionType projection_type) const;
-  const std::vector<GraphicsModAction*>&
-  GetProjectionTextureActions(ProjectionType projection_type,
-                              const std::string& texture_name) const;
-  const std::vector<GraphicsModAction*>&
-  GetDrawStartedActions(const std::string& texture_name) const;
-  const std::vector<GraphicsModAction*>&
-  GetTextureLoadActions(const std::string& texture_name) const;
-  const std::vector<GraphicsModAction*>&
-  GetTextureCreateActions(const std::string& texture_name) const;
+  const std::vector<GraphicsModAction*>& GetProjectionTextureActions(
+      ProjectionType projection_type, const std::string& texture_name) const;
+  const std::vector<GraphicsModAction*>& GetDrawStartedActions(
+      const std::string& texture_name) const;
+  const std::vector<GraphicsModAction*>& GetTextureLoadActions(
+      const std::string& texture_name) const;
+  const std::vector<GraphicsModAction*>& GetTextureCreateActions(
+      const std::string& texture_name) const;
   const std::vector<GraphicsModAction*>& GetEFBActions(const FBInfo& efb) const;
   const std::vector<GraphicsModAction*>& GetXFBActions(const FBInfo& xfb) const;
 

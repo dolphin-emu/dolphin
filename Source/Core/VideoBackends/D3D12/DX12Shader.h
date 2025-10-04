@@ -20,10 +20,10 @@ public:
   ID3D12PipelineState* GetComputePipeline() const { return m_compute_pipeline.Get(); }
   D3D12_SHADER_BYTECODE GetD3DByteCode() const;
 
-  static std::unique_ptr<DXShader> CreateFromBytecode(ShaderStage stage, BinaryData bytecode,
-                                                      std::string_view name);
-  static std::unique_ptr<DXShader> CreateFromSource(ShaderStage stage, std::string_view source,
-                                                    std::string_view name);
+  static std::unique_ptr<DXShader> CreateFromBytecode(
+      ShaderStage stage, BinaryData bytecode, std::string_view name);
+  static std::unique_ptr<DXShader> CreateFromSource(
+      ShaderStage stage, std::string_view source, std::string_view name);
 
 private:
   DXShader(ShaderStage stage, BinaryData bytecode, std::string_view name);

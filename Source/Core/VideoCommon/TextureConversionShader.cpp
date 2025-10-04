@@ -203,7 +203,7 @@ static void WriteSwizzler(ShaderCode& code, const EFBCopyParams& params, APIType
   int samples = GetEncodedSampleCount(params.copy_format);
 
   code.Write("  int x_block_position = (uv1.x >> {}) << {};\n",
-             MathUtil::IntLog2(blkH * blkW / samples), MathUtil::IntLog2(blkW));
+      MathUtil::IntLog2(blkH * blkW / samples), MathUtil::IntLog2(blkW));
   code.Write("  int y_block_position = uv1.y << {};\n", MathUtil::IntLog2(blkH));
   if (samples == 1)
   {
@@ -212,10 +212,10 @@ static void WriteSwizzler(ShaderCode& code, const EFBCopyParams& params, APIType
     samples = 2;
   }
   code.Write("  int offset_in_block = uv1.x & {};\n", (blkH * blkW / samples) - 1);
-  code.Write("  int y_offset_in_block = offset_in_block >> {};\n",
-             MathUtil::IntLog2(blkW / samples));
+  code.Write(
+      "  int y_offset_in_block = offset_in_block >> {};\n", MathUtil::IntLog2(blkW / samples));
   code.Write("  int x_offset_in_block = (offset_in_block & {}) << {};\n", (blkW / samples) - 1,
-             MathUtil::IntLog2(samples));
+      MathUtil::IntLog2(samples));
 
   code.Write("  sampleUv.x = x_block_position + x_offset_in_block;\n"
              "  sampleUv.y = y_block_position + y_offset_in_block;\n");
@@ -242,11 +242,11 @@ static void WriteSwizzler(ShaderCode& code, const EFBCopyParams& params, APIType
   }
 
   code.Write("  float2 pixel_size = float2(position.w, position.w) / float2({}, {});\n", EFB_WIDTH,
-             EFB_HEIGHT);
+      EFB_HEIGHT);
 }
 
 static void WriteSampleColor(ShaderCode& code, std::string_view color_comp, std::string_view dest,
-                             int x_offset, APIType api_type, const EFBCopyParams& params)
+    int x_offset, APIType api_type, const EFBCopyParams& params)
 {
   code.Write("  {} = SampleEFB(uv0, pixel_size, {}).{};\n", dest, x_offset, color_comp);
 }
@@ -361,8 +361,8 @@ static void WriteRGBA8Encoder(ShaderCode& code, APIType api_type, const EFBCopyP
   code.Write("  ocol0 = first ? color0 : color1;\n");
 }
 
-static void WriteC4Encoder(ShaderCode& code, std::string_view comp, APIType api_type,
-                           const EFBCopyParams& params)
+static void WriteC4Encoder(
+    ShaderCode& code, std::string_view comp, APIType api_type, const EFBCopyParams& params)
 {
   code.Write("  float4 color0;\n"
              "  float4 color1;\n");
@@ -382,8 +382,8 @@ static void WriteC4Encoder(ShaderCode& code, std::string_view comp, APIType api_
   code.Write("  ocol0 = (color0 * 16.0 + color1) / 255.0;\n");
 }
 
-static void WriteC8Encoder(ShaderCode& code, std::string_view comp, APIType api_type,
-                           const EFBCopyParams& params)
+static void WriteC8Encoder(
+    ShaderCode& code, std::string_view comp, APIType api_type, const EFBCopyParams& params)
 {
   WriteSampleColor(code, comp, "ocol0.b", 0, api_type, params);
   WriteSampleColor(code, comp, "ocol0.g", 1, api_type, params);
@@ -391,8 +391,8 @@ static void WriteC8Encoder(ShaderCode& code, std::string_view comp, APIType api_
   WriteSampleColor(code, comp, "ocol0.a", 3, api_type, params);
 }
 
-static void WriteCC4Encoder(ShaderCode& code, std::string_view comp, APIType api_type,
-                            const EFBCopyParams& params)
+static void WriteCC4Encoder(
+    ShaderCode& code, std::string_view comp, APIType api_type, const EFBCopyParams& params)
 {
   code.Write("  float2 texSample;\n"
              "  float4 color0;\n"
@@ -420,8 +420,8 @@ static void WriteCC4Encoder(ShaderCode& code, std::string_view comp, APIType api
   code.Write("  ocol0 = (color0 * 16.0 + color1) / 255.0;\n");
 }
 
-static void WriteCC8Encoder(ShaderCode& code, std::string_view comp, APIType api_type,
-                            const EFBCopyParams& params)
+static void WriteCC8Encoder(
+    ShaderCode& code, std::string_view comp, APIType api_type, const EFBCopyParams& params)
 {
   WriteSampleColor(code, comp, "ocol0.bg", 0, api_type, params);
   WriteSampleColor(code, comp, "ocol0.ra", 1, api_type, params);
@@ -661,9 +661,8 @@ float4 GetPaletteColorNormalized(uint index)
 )";
 
 static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
-    {TextureFormat::I4,
-     {TEXEL_BUFFER_FORMAT_R8_UINT, 0, 8, 8, false,
-      R"(
+    {TextureFormat::I4, {TEXEL_BUFFER_FORMAT_R8_UINT, 0, 8, 8, false,
+                            R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -694,9 +693,8 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
       }
 
       )"}},
-    {TextureFormat::IA4,
-     {TEXEL_BUFFER_FORMAT_R8_UINT, 0, 8, 8, false,
-      R"(
+    {TextureFormat::IA4, {TEXEL_BUFFER_FORMAT_R8_UINT, 0, 8, 8, false,
+                             R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -712,9 +710,8 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
       )"}},
-    {TextureFormat::I8,
-     {TEXEL_BUFFER_FORMAT_R8_UINT, 0, 8, 8, false,
-      R"(
+    {TextureFormat::I8, {TEXEL_BUFFER_FORMAT_R8_UINT, 0, 8, 8, false,
+                            R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -728,9 +725,8 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
       )"}},
-    {TextureFormat::IA8,
-     {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
-      R"(
+    {TextureFormat::IA8, {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
+                             R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -745,9 +741,8 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
       )"}},
-    {TextureFormat::RGB565,
-     {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
-      R"(
+    {TextureFormat::RGB565, {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
+                                R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -767,9 +762,8 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
       }
 
       )"}},
-    {TextureFormat::RGB5A3,
-     {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
-      R"(
+    {TextureFormat::RGB5A3, {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
+                                R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -799,9 +793,8 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
       }
 
       )"}},
-    {TextureFormat::RGBA8,
-     {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
-      R"(
+    {TextureFormat::RGBA8, {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
+                               R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -833,9 +826,8 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
       )"}},
-    {TextureFormat::CMPR,
-     {TEXEL_BUFFER_FORMAT_R32G32_UINT, 0, 64, 1, true,
-      R"(
+    {TextureFormat::CMPR, {TEXEL_BUFFER_FORMAT_R32G32_UINT, 0, 64, 1, true,
+                              R"(
       // In the compute version of this decoder, we flatten the blocks to a one-dimension array.
       // Each group is subdivided into 16, and the first thread in each group fetches the DXT data.
       // All threads then calculate the possible colors for the block and write to the output image.
@@ -949,9 +941,9 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
       }
       )"}},
     {TextureFormat::C4,
-     {TEXEL_BUFFER_FORMAT_R8_UINT, static_cast<u32>(TexDecoder_GetPaletteSize(TextureFormat::C4)),
-      8, 8, false,
-      R"(
+        {TEXEL_BUFFER_FORMAT_R8_UINT,
+            static_cast<u32>(TexDecoder_GetPaletteSize(TextureFormat::C4)), 8, 8, false,
+            R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -976,9 +968,9 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
 
       )"}},
     {TextureFormat::C8,
-     {TEXEL_BUFFER_FORMAT_R8_UINT, static_cast<u32>(TexDecoder_GetPaletteSize(TextureFormat::C8)),
-      8, 8, false,
-      R"(
+        {TEXEL_BUFFER_FORMAT_R8_UINT,
+            static_cast<u32>(TexDecoder_GetPaletteSize(TextureFormat::C8)), 8, 8, false,
+            R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -991,9 +983,9 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
       }
       )"}},
     {TextureFormat::C14X2,
-     {TEXEL_BUFFER_FORMAT_R16_UINT,
-      static_cast<u32>(TexDecoder_GetPaletteSize(TextureFormat::C14X2)), 8, 8, false,
-      R"(
+        {TEXEL_BUFFER_FORMAT_R16_UINT,
+            static_cast<u32>(TexDecoder_GetPaletteSize(TextureFormat::C14X2)), 8, 8, false,
+            R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 coords = gl_GlobalInvocationID.xy;
@@ -1010,9 +1002,8 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
     // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
     // TODO: Use more precise numbers for this conversion (although on real hardware, the XFB isn't
     // in a real texture format, so does this conversion actually ever happen?)
-    {TextureFormat::XFB,
-     {TEXEL_BUFFER_FORMAT_RGBA8_UINT, 0, 8, 8, false,
-      R"(
+    {TextureFormat::XFB, {TEXEL_BUFFER_FORMAT_RGBA8_UINT, 0, 8, 8, false,
+                             R"(
       DEFINE_MAIN(8, 8)
       {
         uint2 uv = gl_GlobalInvocationID.xy;
@@ -1047,11 +1038,11 @@ std::pair<u32, u32> GetDispatchCount(const DecodingShaderInfo* info, u32 width, 
     return {(width * height + (info->group_size_x - 1)) / info->group_size_x, 1};
 
   return {(width + (info->group_size_x - 1)) / info->group_size_x,
-          (height + (info->group_size_y - 1)) / info->group_size_y};
+      (height + (info->group_size_y - 1)) / info->group_size_y};
 }
 
-std::string GenerateDecodingShader(TextureFormat format, std::optional<TLUTFormat> palette_format,
-                                   APIType api_type)
+std::string GenerateDecodingShader(
+    TextureFormat format, std::optional<TLUTFormat> palette_format, APIType api_type)
 {
   const DecodingShaderInfo* info = GetDecodingShaderInfo(format);
   if (!info)

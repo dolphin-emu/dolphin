@@ -76,7 +76,7 @@ void JitArm64::rfi(UGeckoInstruction inst)
 
 template <bool condition>
 void JitArm64::WriteBranchWatch(u32 origin, u32 destination, UGeckoInstruction inst, ARM64Reg reg_a,
-                                ARM64Reg reg_b, BitSet32 gpr_caller_save, BitSet32 fpr_caller_save)
+    ARM64Reg reg_b, BitSet32 gpr_caller_save, BitSet32 fpr_caller_save)
 {
   const ARM64Reg branch_watch = EncodeRegTo64(reg_a);
   MOVP2R(branch_watch, &m_branch_watch);
@@ -94,7 +94,7 @@ void JitArm64::WriteBranchWatch(u32 origin, u32 destination, UGeckoInstruction i
                                                      &Core::BranchWatch::HitVirtualFalse_fk) :
                                         (condition ? &Core::BranchWatch::HitPhysicalTrue_fk :
                                                      &Core::BranchWatch::HitPhysicalFalse_fk),
-                   branch_watch, Core::FakeBranchWatchCollectionKey{origin, destination}, inst.hex);
+      branch_watch, Core::FakeBranchWatchCollectionKey{origin, destination}, inst.hex);
   m_float_emit.ABI_PopRegisters(fpr_caller_save, float_emit_tmp);
   ABI_PopRegisters(gpr_caller_save);
 
@@ -104,15 +104,14 @@ void JitArm64::WriteBranchWatch(u32 origin, u32 destination, UGeckoInstruction i
   SetJumpTarget(branch_over);
 }
 
-template void JitArm64::WriteBranchWatch<true>(u32, u32, UGeckoInstruction, ARM64Reg, ARM64Reg,
-                                               BitSet32, BitSet32);
-template void JitArm64::WriteBranchWatch<false>(u32, u32, UGeckoInstruction, ARM64Reg, ARM64Reg,
-                                                BitSet32, BitSet32);
+template void JitArm64::WriteBranchWatch<true>(
+    u32, u32, UGeckoInstruction, ARM64Reg, ARM64Reg, BitSet32, BitSet32);
+template void JitArm64::WriteBranchWatch<false>(
+    u32, u32, UGeckoInstruction, ARM64Reg, ARM64Reg, BitSet32, BitSet32);
 
 void JitArm64::WriteBranchWatchDestInRegister(u32 origin, ARM64Reg destination,
-                                              UGeckoInstruction inst, ARM64Reg reg_a,
-                                              ARM64Reg reg_b, BitSet32 gpr_caller_save,
-                                              BitSet32 fpr_caller_save)
+    UGeckoInstruction inst, ARM64Reg reg_a, ARM64Reg reg_b, BitSet32 gpr_caller_save,
+    BitSet32 fpr_caller_save)
 {
   const ARM64Reg branch_watch = EncodeRegTo64(reg_a);
   MOVP2R(branch_watch, &m_branch_watch);
@@ -126,9 +125,9 @@ void JitArm64::WriteBranchWatchDestInRegister(u32 origin, ARM64Reg destination,
   const ARM64Reg float_emit_tmp = EncodeRegTo64(reg_b);
   ABI_PushRegisters(gpr_caller_save);
   m_float_emit.ABI_PushRegisters(fpr_caller_save, float_emit_tmp);
-  ABI_CallFunction(m_ppc_state.msr.IR ? &Core::BranchWatch::HitVirtualTrue :
-                                        &Core::BranchWatch::HitPhysicalTrue,
-                   branch_watch, origin, destination, inst.hex);
+  ABI_CallFunction(
+      m_ppc_state.msr.IR ? &Core::BranchWatch::HitVirtualTrue : &Core::BranchWatch::HitPhysicalTrue,
+      branch_watch, origin, destination, inst.hex);
   m_float_emit.ABI_PopRegisters(fpr_caller_save, float_emit_tmp);
   ABI_PopRegisters(gpr_caller_save);
 
@@ -159,8 +158,8 @@ void JitArm64::bx(UGeckoInstruction inst)
       BitSet32 gpr_caller_save = gpr.GetCallerSavedUsed() & ~BitSet32{DecodeReg(WB), DecodeReg(WC)};
       if (WA != ARM64Reg::INVALID_REG && js.op->skipLRStack)
         gpr_caller_save[DecodeReg(WA)] = false;
-      WriteBranchWatch<true>(js.compilerPC, js.op->branchTo, inst, WB, WC, gpr_caller_save,
-                             fpr.GetCallerSavedUsed());
+      WriteBranchWatch<true>(
+          js.compilerPC, js.op->branchTo, inst, WB, WC, gpr_caller_save, fpr.GetCallerSavedUsed());
     }
     if (inst.LK && !js.op->skipLRStack)
     {
@@ -263,7 +262,7 @@ void JitArm64::bcx(UGeckoInstruction inst)
       const BitSet32 gpr_caller_save =
           gpr.GetCallerSavedUsed() & ~BitSet32{DecodeReg(bw_reg_a), DecodeReg(bw_reg_b)};
       WriteBranchWatch<true>(js.compilerPC, js.op->branchTo, inst, bw_reg_a, bw_reg_b,
-                             gpr_caller_save, fpr.GetCallerSavedUsed());
+          gpr_caller_save, fpr.GetCallerSavedUsed());
     }
     if (js.op->branchIsIdleLoop)
     {
@@ -300,8 +299,8 @@ void JitArm64::bcx(UGeckoInstruction inst)
   {
     const BitSet32 gpr_caller_save =
         gpr.GetCallerSavedUsed() & ~BitSet32{DecodeReg(WA), DecodeReg(WB)};
-    WriteBranchWatch<false>(js.compilerPC, js.compilerPC + 4, inst, WA, WB, gpr_caller_save,
-                            fpr.GetCallerSavedUsed());
+    WriteBranchWatch<false>(
+        js.compilerPC, js.compilerPC + 4, inst, WA, WB, gpr_caller_save, fpr.GetCallerSavedUsed());
   }
 }
 
@@ -317,7 +316,7 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
 
   // bcctrx doesn't decrement and/or test CTR
   ASSERT_MSG(DYNA_REC, inst.BO_2 & BO_DONT_DECREMENT_FLAG,
-             "bcctrx with decrement and test CTR option is invalid!");
+      "bcctrx with decrement and test CTR option is invalid!");
 
   // BO_2 == 1z1zz -> b always
 
@@ -421,8 +420,8 @@ void JitArm64::bclrx(UGeckoInstruction inst)
             js.op->branchIsIdleLoop ? BitSet32{} : BitSet32{DecodeReg(WA)} & CALLER_SAVED_GPRS;
         fpr_caller_save = {};
       }
-      WriteBranchWatchDestInRegister(js.compilerPC, WA, inst, WB, WC, gpr_caller_save,
-                                     fpr_caller_save);
+      WriteBranchWatchDestInRegister(
+          js.compilerPC, WA, inst, WB, WC, gpr_caller_save, fpr_caller_save);
     }
     if (js.op->branchIsIdleLoop)
     {
@@ -459,7 +458,7 @@ void JitArm64::bclrx(UGeckoInstruction inst)
   {
     const BitSet32 gpr_caller_save =
         gpr.GetCallerSavedUsed() & ~BitSet32{DecodeReg(WA), DecodeReg(WB)};
-    WriteBranchWatch<false>(js.compilerPC, js.compilerPC + 4, inst, WA, WB, gpr_caller_save,
-                            fpr.GetCallerSavedUsed());
+    WriteBranchWatch<false>(
+        js.compilerPC, js.compilerPC + 4, inst, WA, WB, gpr_caller_save, fpr.GetCallerSavedUsed());
   }
 }

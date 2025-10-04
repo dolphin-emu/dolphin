@@ -53,8 +53,8 @@ public:
       std::memcpy(&iv_tmp[0], iv, BLOCK_SIZE);
 
     constexpr int mode = (AesMode == Mode::Encrypt) ? MBEDTLS_AES_ENCRYPT : MBEDTLS_AES_DECRYPT;
-    if (mbedtls_aes_crypt_cbc(const_cast<mbedtls_aes_context*>(&ctx), mode, len, &iv_tmp[0], buf_in,
-                              buf_out))
+    if (mbedtls_aes_crypt_cbc(
+            const_cast<mbedtls_aes_context*>(&ctx), mode, len, &iv_tmp[0], buf_in, buf_out))
       return false;
 
     if (iv_out)
@@ -360,8 +360,8 @@ public:
     vst1q_u8(buf_out, block);
   }
 
-  virtual bool Crypt(const u8* iv, u8* iv_out, const u8* buf_in, u8* buf_out,
-                     size_t len) const override
+  virtual bool Crypt(
+      const u8* iv, u8* iv_out, const u8* buf_in, u8* buf_out, size_t len) const override
   {
     if (len % BLOCK_SIZE)
       return false;

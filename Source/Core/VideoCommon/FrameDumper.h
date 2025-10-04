@@ -27,8 +27,8 @@ public:
 
   // Fills the frame dump staging texture with the current XFB texture.
   void DumpCurrentFrame(const AbstractTexture* src_texture,
-                        const MathUtil::Rectangle<int>& src_rect,
-                        const MathUtil::Rectangle<int>& target_rect, u64 ticks, int frame_number);
+      const MathUtil::Rectangle<int>& src_rect, const MathUtil::Rectangle<int>& target_rect,
+      u64 ticks, int frame_number);
 
   void SaveScreenshot(std::string filename);
 

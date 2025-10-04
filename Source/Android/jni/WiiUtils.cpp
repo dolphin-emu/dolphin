@@ -74,9 +74,8 @@ static jint ConvertUpdateResult(WiiUtils::UpdateResult result)
 
 extern "C" {
 
-JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_installWAD(JNIEnv* env,
-                                                                                    jclass,
-                                                                                    jstring jFile)
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_installWAD(
+    JNIEnv* env, jclass, jstring jFile)
 {
   const std::string path = GetJString(env, jFile);
   return static_cast<jboolean>(WiiUtils::InstallWAD(path));
@@ -86,7 +85,8 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_importWiiSa
     JNIEnv* env, jclass, jstring jFile, jobject jCanOverwrite)
 {
   const std::string path = GetJString(env, jFile);
-  const auto can_overwrite = [&] {
+  const auto can_overwrite = [&]
+  {
     const jmethodID get = IDCache::GetBooleanSupplierGet();
     return static_cast<bool>(env->CallBooleanMethod(jCanOverwrite, get));
   };
@@ -94,20 +94,21 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_importWiiSa
   return ConvertCopyResult(WiiSave::Import(path, can_overwrite));
 }
 
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_importNANDBin(JNIEnv* env,
-                                                                                   jclass,
-                                                                                   jstring jFile)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_importNANDBin(
+    JNIEnv* env, jclass, jstring jFile)
 {
   const std::string path = GetJString(env, jFile);
 
   return DiscIO::NANDImporter().ImportNANDBin(
       path,
-      [] {
+      []
+      {
         // This callback gets called every now and then in case we want to update the GUI. However,
         // we have no way of knowing what the current progress is, so we can't do anything
         // especially useful. DolphinQt chooses to show the elapsed time, for reference.
       },
-      [] {
+      []
+      {
         // This callback gets called if the NAND file does not have decryption keys appended to it.
         // We're supposed to ask the user for a separate file containing keys, but this is probably
         // more work to implement on Android than it's worth, as this case almost never comes up.
@@ -124,7 +125,8 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_doOnlineUpd
   jobject jCallbackGlobal = env->NewGlobalRef(jCallback);
   Common::ScopeGuard scope_guard([jCallbackGlobal, env] { env->DeleteGlobalRef(jCallbackGlobal); });
 
-  const auto callback = [&jCallbackGlobal](int processed, int total, u64 title_id) {
+  const auto callback = [&jCallbackGlobal](int processed, int total, u64 title_id)
+  {
     JNIEnv* env = IDCache::GetEnvForThread();
     return static_cast<bool>(env->CallBooleanMethod(
         jCallbackGlobal, IDCache::GetWiiUpdateCallbackFunction(), processed, total, title_id));
@@ -135,17 +137,16 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_doOnlineUpd
   return ConvertUpdateResult(result);
 }
 
-JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_doDiscUpdate(JNIEnv* env,
-                                                                                  jclass,
-                                                                                  jstring jPath,
-                                                                                  jobject jCallback)
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_doDiscUpdate(
+    JNIEnv* env, jclass, jstring jPath, jobject jCallback)
 {
   const std::string path = GetJString(env, jPath);
 
   jobject jCallbackGlobal = env->NewGlobalRef(jCallback);
   Common::ScopeGuard scope_guard([jCallbackGlobal, env] { env->DeleteGlobalRef(jCallbackGlobal); });
 
-  const auto callback = [&jCallbackGlobal](int processed, int total, u64 title_id) {
+  const auto callback = [&jCallbackGlobal](int processed, int total, u64 title_id)
+  {
     JNIEnv* env = IDCache::GetEnvForThread();
     return static_cast<bool>(env->CallBooleanMethod(
         jCallbackGlobal, IDCache::GetWiiUpdateCallbackFunction(), processed, total, title_id));
@@ -156,8 +157,8 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_doDiscUpdat
   return ConvertUpdateResult(result);
 }
 
-JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_utils_WiiUtils_isSystemMenuInstalled(JNIEnv* env, jclass)
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_isSystemMenuInstalled(
+    JNIEnv* env, jclass)
 {
   IOS::HLE::Kernel ios;
   const auto tmd = ios.GetESCore().FindInstalledTMD(Titles::SYSTEM_MENU);
@@ -165,8 +166,8 @@ Java_org_dolphinemu_dolphinemu_utils_WiiUtils_isSystemMenuInstalled(JNIEnv* env,
   return tmd.IsValid();
 }
 
-JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_utils_WiiUtils_isSystemMenuvWii(JNIEnv* env, jclass)
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_isSystemMenuvWii(
+    JNIEnv* env, jclass)
 {
   IOS::HLE::Kernel ios;
   const auto tmd = ios.GetESCore().FindInstalledTMD(Titles::SYSTEM_MENU);
@@ -174,8 +175,8 @@ Java_org_dolphinemu_dolphinemu_utils_WiiUtils_isSystemMenuvWii(JNIEnv* env, jcla
   return tmd.IsvWii();
 }
 
-JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_utils_WiiUtils_getSystemMenuVersion(JNIEnv* env, jclass)
+JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_getSystemMenuVersion(
+    JNIEnv* env, jclass)
 {
   IOS::HLE::Kernel ios;
   const auto tmd = ios.GetESCore().FindInstalledTMD(Titles::SYSTEM_MENU);
@@ -188,14 +189,14 @@ Java_org_dolphinemu_dolphinemu_utils_WiiUtils_getSystemMenuVersion(JNIEnv* env, 
   return ToJString(env, DiscIO::GetSysMenuVersionString(tmd.GetTitleVersion(), tmd.IsvWii()));
 }
 
-JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_utils_WiiUtils_syncSdFolderToSdImage(JNIEnv* env, jclass)
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_syncSdFolderToSdImage(
+    JNIEnv* env, jclass)
 {
   return static_cast<jboolean>(Common::SyncSDFolderToSDImage([]() { return false; }, false));
 }
 
-JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_utils_WiiUtils_syncSdImageToSdFolder(JNIEnv* env, jclass)
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_syncSdImageToSdFolder(
+    JNIEnv* env, jclass)
 {
   return static_cast<jboolean>(Common::SyncSDImageToSDFolder([]() { return false; }));
 }

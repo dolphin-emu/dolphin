@@ -113,12 +113,14 @@ class ComplexHandlingMethod : public ReadHandlingMethod<T>, public WriteHandling
 {
 public:
   explicit ComplexHandlingMethod(std::function<T(Core::System&, u32)> read_lambda)
-      : read_lambda_(read_lambda), write_lambda_(InvalidWriteLambda())
+      : read_lambda_(read_lambda)
+      , write_lambda_(InvalidWriteLambda())
   {
   }
 
   explicit ComplexHandlingMethod(std::function<void(Core::System&, u32, T)> write_lambda)
-      : read_lambda_(InvalidReadLambda()), write_lambda_(write_lambda)
+      : read_lambda_(InvalidReadLambda())
+      , write_lambda_(write_lambda)
   {
   }
 
@@ -136,20 +138,22 @@ public:
 private:
   std::function<T(Core::System&, u32)> InvalidReadLambda() const
   {
-    return [](Core::System&, u32) {
+    return [](Core::System&, u32)
+    {
       DEBUG_ASSERT_MSG(MEMMAP, 0,
-                       "Called the read lambda on a write "
-                       "complex handler.");
+          "Called the read lambda on a write "
+          "complex handler.");
       return 0;
     };
   }
 
   std::function<void(Core::System&, u32, T)> InvalidWriteLambda() const
   {
-    return [](Core::System&, u32, T) {
+    return [](Core::System&, u32, T)
+    {
       DEBUG_ASSERT_MSG(MEMMAP, 0,
-                       "Called the write lambda on a read "
-                       "complex handler.");
+          "Called the write lambda on a read "
+          "complex handler.");
     };
   }
 
@@ -172,19 +176,24 @@ WriteHandlingMethod<T>* ComplexWrite(std::function<void(Core::System&, u32, T)> 
 template <typename T>
 ReadHandlingMethod<T>* InvalidRead()
 {
-  return ComplexRead<T>([](Core::System&, u32 addr) {
-    ERROR_LOG_FMT(MEMMAP, "Trying to read {} bits from an invalid MMIO (addr={:08x})",
-                  8 * sizeof(T), addr);
-    return 0;
-  });
+  return ComplexRead<T>(
+      [](Core::System&, u32 addr)
+      {
+        ERROR_LOG_FMT(MEMMAP, "Trying to read {} bits from an invalid MMIO (addr={:08x})",
+            8 * sizeof(T), addr);
+        return 0;
+      });
 }
 template <typename T>
 WriteHandlingMethod<T>* InvalidWrite()
 {
-  return ComplexWrite<T>([](Core::System&, u32 addr, T val) {
-    ERROR_LOG_FMT(MEMMAP, "Trying to write {} bits to an invalid MMIO (addr={:08x}, val={:08x})",
-                  8 * sizeof(T), addr, val);
-  });
+  return ComplexWrite<T>(
+      [](Core::System&, u32 addr, T val)
+      {
+        ERROR_LOG_FMT(MEMMAP,
+            "Trying to write {} bits to an invalid MMIO (addr={:08x}, val={:08x})", 8 * sizeof(T),
+            addr, val);
+      });
 }
 
 // Converters to larger and smaller size. Probably the most complex of these
@@ -229,10 +238,12 @@ ReadHandlingMethod<T>* ReadToSmaller(Mapping* mmio, u32 high_part_addr, u32 low_
   ReadHandler<ST>* low_part = &mmio->GetHandlerForRead<ST>(low_part_addr);
 
   // TODO(delroth): optimize
-  return ComplexRead<T>([=](Core::System& system, u32 addr) {
-    return ((T)high_part->Read(system, high_part_addr) << (8 * sizeof(ST))) |
-           low_part->Read(system, low_part_addr);
-  });
+  return ComplexRead<T>(
+      [=](Core::System& system, u32 addr)
+      {
+        return ((T)high_part->Read(system, high_part_addr) << (8 * sizeof(ST))) |
+               low_part->Read(system, low_part_addr);
+      });
 }
 
 template <typename T>
@@ -244,10 +255,12 @@ WriteHandlingMethod<T>* WriteToSmaller(Mapping* mmio, u32 high_part_addr, u32 lo
   WriteHandler<ST>* low_part = &mmio->GetHandlerForWrite<ST>(low_part_addr);
 
   // TODO(delroth): optimize
-  return ComplexWrite<T>([=](Core::System& system, u32 addr, T val) {
-    high_part->Write(system, high_part_addr, val >> (8 * sizeof(ST)));
-    low_part->Write(system, low_part_addr, (ST)val);
-  });
+  return ComplexWrite<T>(
+      [=](Core::System& system, u32 addr, T val)
+      {
+        high_part->Write(system, high_part_addr, val >> (8 * sizeof(ST)));
+        low_part->Write(system, low_part_addr, (ST)val);
+      });
 }
 
 template <typename T>
@@ -258,9 +271,8 @@ ReadHandlingMethod<T>* ReadToLarger(Mapping* mmio, u32 larger_addr, u32 shift)
   ReadHandler<LT>* large = &mmio->GetHandlerForRead<LT>(larger_addr);
 
   // TODO(delroth): optimize
-  return ComplexRead<T>([large, shift](Core::System& system, u32 addr) {
-    return large->Read(system, addr & ~(sizeof(LT) - 1)) >> shift;
-  });
+  return ComplexRead<T>([large, shift](Core::System& system, u32 addr)
+      { return large->Read(system, addr & ~(sizeof(LT) - 1)) >> shift; });
 }
 
 // Inplementation of the ReadHandler and WriteHandler class. There is a lot of

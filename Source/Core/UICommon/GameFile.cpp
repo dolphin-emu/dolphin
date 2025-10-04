@@ -70,8 +70,8 @@ DiscIO::Language GameFile::GetConfigLanguage() const
   return SConfig::GetInstance().GetLanguageAdjustedForRegion(DiscIO::IsWii(m_platform), m_region);
 }
 
-const std::string& GameFile::Lookup(DiscIO::Language language,
-                                    const std::map<DiscIO::Language, std::string>& strings)
+const std::string& GameFile::Lookup(
+    DiscIO::Language language, const std::map<DiscIO::Language, std::string>& strings)
 {
   auto end = strings.end();
   auto it = strings.find(language);
@@ -93,8 +93,8 @@ const std::string& GameFile::Lookup(DiscIO::Language language,
   return EMPTY_STRING;
 }
 
-const std::string&
-GameFile::LookupUsingConfigLanguage(const std::map<DiscIO::Language, std::string>& strings) const
+const std::string& GameFile::LookupUsingConfigLanguage(
+    const std::map<DiscIO::Language, std::string>& strings) const
 {
   return Lookup(GetConfigLanguage(), strings);
 }
@@ -667,8 +667,8 @@ static std::optional<Common::SHA1::Digest> GetFileHash(const std::string& path)
   return GetHash(buffer);
 }
 
-static std::optional<Common::SHA1::Digest> MixHash(const std::optional<Common::SHA1::Digest>& lhs,
-                                                   const std::optional<Common::SHA1::Digest>& rhs)
+static std::optional<Common::SHA1::Digest> MixHash(
+    const std::optional<Common::SHA1::Digest>& lhs, const std::optional<Common::SHA1::Digest>& rhs)
 {
   if (!lhs && !rhs)
     return std::nullopt;
@@ -726,12 +726,12 @@ Common::SHA1::Digest GameFile::GetSyncHash() const
 NetPlay::SyncIdentifier GameFile::GetSyncIdentifier() const
 {
   const u64 dol_elf_size = m_platform == DiscIO::Platform::ELFOrDOL ? m_file_size : 0;
-  return NetPlay::SyncIdentifier{dol_elf_size,  m_game_id,       m_revision,
-                                 m_disc_number, m_is_datel_disc, GetSyncHash()};
+  return NetPlay::SyncIdentifier{
+      dol_elf_size, m_game_id, m_revision, m_disc_number, m_is_datel_disc, GetSyncHash()};
 }
 
-NetPlay::SyncIdentifierComparison
-GameFile::CompareSyncIdentifier(const NetPlay::SyncIdentifier& sync_identifier) const
+NetPlay::SyncIdentifierComparison GameFile::CompareSyncIdentifier(
+    const NetPlay::SyncIdentifier& sync_identifier) const
 {
   const bool is_elf_or_dol = m_platform == DiscIO::Platform::ELFOrDOL;
   if ((is_elf_or_dol ? m_file_size : 0) != sync_identifier.dol_elf_size)

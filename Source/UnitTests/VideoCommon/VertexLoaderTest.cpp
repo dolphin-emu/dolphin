@@ -115,15 +115,12 @@ class VertexLoaderParamTest
           std::tuple<VertexComponentFormat, ComponentFormat, CoordComponentCount, int>>
 {
 };
-INSTANTIATE_TEST_SUITE_P(
-    AllCombinations, VertexLoaderParamTest,
-    ::testing::Combine(
-        ::testing::Values(VertexComponentFormat::Direct, VertexComponentFormat::Index8,
-                          VertexComponentFormat::Index16),
+INSTANTIATE_TEST_SUITE_P(AllCombinations, VertexLoaderParamTest,
+    ::testing::Combine(::testing::Values(VertexComponentFormat::Direct,
+                           VertexComponentFormat::Index8, VertexComponentFormat::Index16),
         ::testing::Values(ComponentFormat::UByte, ComponentFormat::Byte, ComponentFormat::UShort,
-                          ComponentFormat::Short, ComponentFormat::Float,
-                          ComponentFormat::InvalidFloat5, ComponentFormat::InvalidFloat6,
-                          ComponentFormat::InvalidFloat7),
+            ComponentFormat::Short, ComponentFormat::Float, ComponentFormat::InvalidFloat5,
+            ComponentFormat::InvalidFloat6, ComponentFormat::InvalidFloat7),
         ::testing::Values(CoordComponentCount::XY, CoordComponentCount::XYZ),
         ::testing::Values(0, 1, 31)  // frac
         ));
@@ -265,12 +262,10 @@ class VertexLoaderSpeedTest : public VertexLoaderTest,
                               public ::testing::WithParamInterface<std::tuple<ComponentFormat, int>>
 {
 };
-INSTANTIATE_TEST_SUITE_P(
-    FormatsAndElements, VertexLoaderSpeedTest,
+INSTANTIATE_TEST_SUITE_P(FormatsAndElements, VertexLoaderSpeedTest,
     ::testing::Combine(::testing::Values(ComponentFormat::UByte, ComponentFormat::Byte,
-                                         ComponentFormat::UShort, ComponentFormat::Short,
-                                         ComponentFormat::Float),
-                       ::testing::Values(0, 1)));
+                           ComponentFormat::UShort, ComponentFormat::Short, ComponentFormat::Float),
+        ::testing::Values(0, 1)));
 
 TEST_P(VertexLoaderSpeedTest, PositionDirectAll)
 {
@@ -299,8 +294,8 @@ TEST_P(VertexLoaderSpeedTest, TexCoordSingleElement)
   m_vtx_attr.g0.Tex0CoordFormat = format;
   m_vtx_attr.g0.Tex0CoordElements = elements;
   const size_t elem_size = GetElementSize(format);
-  CreateAndCheckSizes(2 * sizeof(s8) + elem_count * elem_size,
-                      2 * sizeof(float) + elem_count * sizeof(float));
+  CreateAndCheckSizes(
+      2 * sizeof(s8) + elem_count * elem_size, 2 * sizeof(float) + elem_count * sizeof(float));
   for (int i = 0; i < 1000; ++i)
     RunVertices(100000);
 }
@@ -539,15 +534,13 @@ class VertexLoaderNormalTest
           std::tuple<VertexComponentFormat, ComponentFormat, NormalComponentCount, bool>>
 {
 };
-INSTANTIATE_TEST_SUITE_P(
-    AllCombinations, VertexLoaderNormalTest,
+INSTANTIATE_TEST_SUITE_P(AllCombinations, VertexLoaderNormalTest,
     ::testing::Combine(
         ::testing::Values(VertexComponentFormat::NotPresent, VertexComponentFormat::Direct,
-                          VertexComponentFormat::Index8, VertexComponentFormat::Index16),
+            VertexComponentFormat::Index8, VertexComponentFormat::Index16),
         ::testing::Values(ComponentFormat::UByte, ComponentFormat::Byte, ComponentFormat::UShort,
-                          ComponentFormat::Short, ComponentFormat::Float,
-                          ComponentFormat::InvalidFloat5, ComponentFormat::InvalidFloat6,
-                          ComponentFormat::InvalidFloat7),
+            ComponentFormat::Short, ComponentFormat::Float, ComponentFormat::InvalidFloat5,
+            ComponentFormat::InvalidFloat6, ComponentFormat::InvalidFloat7),
         ::testing::Values(NormalComponentCount::N, NormalComponentCount::NTB),
         ::testing::Values(false, true)));
 
@@ -564,7 +557,8 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
   m_vtx_attr.g0.NormalElements = elements;
   m_vtx_attr.g0.NormalIndex3 = index3;
 
-  const u32 in_size = [&]() -> u32 {
+  const u32 in_size = [&]() -> u32
+  {
     if (addr == VertexComponentFormat::NotPresent)
       return 0;
 
@@ -583,7 +577,8 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
       return base_count * base_size;
     }
   }();
-  const u32 out_size = [&]() -> u32 {
+  const u32 out_size = [&]() -> u32
+  {
     if (addr == VertexComponentFormat::NotPresent)
       return 0;
 
@@ -593,7 +588,8 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
 
   CreateAndCheckSizes(2 * sizeof(float) + in_size, 2 * sizeof(float) + out_size);
 
-  auto input_with_expected_type = [&](float value) {
+  auto input_with_expected_type = [&](float value)
+  {
     switch (format)
     {
     case ComponentFormat::UByte:
@@ -617,7 +613,8 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
     }
   };
 
-  auto create_normal = [&](int counter_base) {
+  auto create_normal = [&](int counter_base)
+  {
     if (addr == VertexComponentFormat::Direct)
     {
       input_with_expected_type(counter_base / 32.f);
@@ -635,7 +632,8 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
     }
     // Do nothing for NotPresent
   };
-  auto create_tangent_and_binormal = [&](int counter_base) {
+  auto create_tangent_and_binormal = [&](int counter_base)
+  {
     if (IsIndexed(addr))
     {
       // With NormalIndex3, specifying the same index 3 times should give the same result
@@ -778,8 +776,7 @@ class VertexLoaderSkippedColorsTest : public VertexLoaderTest,
 {
 };
 INSTANTIATE_TEST_SUITE_P(AllCombinations, VertexLoaderSkippedColorsTest,
-                         ::testing::Combine(::testing::Values(false, true),
-                                            ::testing::Values(false, true)));
+    ::testing::Combine(::testing::Values(false, true), ::testing::Values(false, true)));
 
 TEST_P(VertexLoaderSkippedColorsTest, SkippedColors)
 {
@@ -894,7 +891,7 @@ public:
       1 << (NUM_COMPONENTS_TO_TEST * NUM_PARAMETERS_PER_COMPONENT);
 };
 INSTANTIATE_TEST_SUITE_P(AllCombinations, VertexLoaderSkippedTexCoordsTest,
-                         ::testing::Range(0u, VertexLoaderSkippedTexCoordsTest::NUM_COMBINATIONS));
+    ::testing::Range(0u, VertexLoaderSkippedTexCoordsTest::NUM_COMBINATIONS));
 
 TEST_P(VertexLoaderSkippedTexCoordsTest, SkippedTextures)
 {

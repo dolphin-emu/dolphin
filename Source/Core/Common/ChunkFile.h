@@ -52,7 +52,9 @@ private:
 
 public:
   PointerWrap(u8** ptr, size_t size, Mode mode)
-      : m_ptr_current(ptr), m_ptr_end(*ptr + size), m_mode(mode)
+      : m_ptr_current(ptr)
+      , m_ptr_end(*ptr + size)
+      , m_mode(mode)
   {
   }
 
@@ -367,8 +369,8 @@ private:
 
     case Mode::Verify:
       DEBUG_ASSERT_MSG(COMMON, !memcmp(data, *m_ptr_current, size),
-                       "Savestate verification failure: buf {} != {} (size {}).\n", fmt::ptr(data),
-                       fmt::ptr(*m_ptr_current), size);
+          "Savestate verification failure: buf {} != {} (size {}).\n", fmt::ptr(data),
+          fmt::ptr(*m_ptr_current), size);
       break;
     }
 

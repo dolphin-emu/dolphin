@@ -55,8 +55,8 @@ FIFOAnalyzer::FIFOAnalyzer(FifoPlayer& fifo_player) : m_fifo_player(fifo_player)
       settings.value(QStringLiteral("fifoanalyzer/searchsplitter")).toByteArray());
 
   OnDebugFontChanged(Settings::Instance().GetDebugFont());
-  connect(&Settings::Instance(), &Settings::DebugFontChanged, this,
-          &FIFOAnalyzer::OnDebugFontChanged);
+  connect(
+      &Settings::Instance(), &Settings::DebugFontChanged, this, &FIFOAnalyzer::OnDebugFontChanged);
 }
 
 FIFOAnalyzer::~FIFOAnalyzer()
@@ -245,8 +245,8 @@ public:
                .arg(value, 6, 16, QLatin1Char('0'))
                .arg(QString::fromStdString(name));
   }
-  OPCODE_CALLBACK(void OnIndexedLoad(const CPArray array, const u32 index, const u16 address,
-                                     const u8 size))
+  OPCODE_CALLBACK(
+      void OnIndexedLoad(const CPArray array, const u32 index, const u16 address, const u8 size))
   {
     const auto [desc, written] = GetXFIndexedLoadInfo(array, index, address, size);
     text = QStringLiteral("LOAD INDX %1   %2")
@@ -254,8 +254,7 @@ public:
                .arg(QString::fromStdString(desc));
   }
   OPCODE_CALLBACK(void OnPrimitiveCommand(const OpcodeDecoder::Primitive primitive, const u8 vat,
-                                          const u32 vertex_size, const u16 num_vertices,
-                                          const u8* vertex_data))
+      const u32 vertex_size, const u16 num_vertices, const u8* vertex_data))
   {
     const auto name = fmt::to_string(primitive);
 
@@ -363,8 +362,8 @@ void FIFOAnalyzer::UpdateDetails()
     const u32 start_offset = object_offset;
     m_object_data_offsets.push_back(start_offset);
 
-    object_offset += OpcodeDecoder::RunCommand(&fifo_frame.fifoData[object_start + start_offset],
-                                               object_size - start_offset, callback);
+    object_offset += OpcodeDecoder::RunCommand(
+        &fifo_frame.fifoData[object_start + start_offset], object_size - start_offset, callback);
 
     QString new_label =
         QStringLiteral("%1:  ").arg(object_start + start_offset, 8, 16, QLatin1Char('0')) +
@@ -482,10 +481,8 @@ void FIFOAnalyzer::FindPrevious()
   const int index = m_detail_list->currentRow();
   ASSERT(index >= 0);
 
-  const auto prev_result =
-      std::ranges::find_if(m_search_results | std::views::reverse, [index](auto& result) {
-        return result.m_cmd < static_cast<u32>(index);
-      });
+  const auto prev_result = std::ranges::find_if(m_search_results | std::views::reverse,
+      [index](auto& result) { return result.m_cmd < static_cast<u32>(index); });
   if (prev_result != m_search_results.rend())
   {
     ShowSearchResult((m_search_results.rend() - prev_result) - 1);
@@ -570,8 +567,8 @@ public:
       text += QString::fromStdString(desc);
   }
 
-  OPCODE_CALLBACK(void OnIndexedLoad(const CPArray array, const u32 index, const u16 address,
-                                     const u8 size))
+  OPCODE_CALLBACK(
+      void OnIndexedLoad(const CPArray array, const u32 index, const u16 address, const u8 size))
   {
     const auto [desc, written] = GetXFIndexedLoadInfo(array, index, address, size);
 
@@ -603,8 +600,7 @@ public:
   }
 
   OPCODE_CALLBACK(void OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat,
-                                          const u32 vertex_size, const u16 num_vertices,
-                                          const u8* vertex_data))
+      const u32 vertex_size, const u16 num_vertices, const u8* vertex_data))
   {
     const auto name = fmt::format("{} VAT {}", primitive, vat);
 
@@ -618,7 +614,8 @@ public:
 
     u32 i = 0;
     const auto process_component = [&](const VertexComponentFormat cformat, ComponentFormat format,
-                                       const u32 non_indexed_count, const u32 indexed_count = 1) {
+                                       const u32 non_indexed_count, const u32 indexed_count = 1)
+    {
       u32 count;
       if (cformat == VertexComponentFormat::NotPresent)
         return;
@@ -654,7 +651,8 @@ public:
       }
       text += QLatin1Char{' '};
     };
-    const auto process_simple_component = [&](const u32 size) {
+    const auto process_simple_component = [&](const u32 size)
+    {
       for (u32 component_off = 0; component_off < size; component_off++)
       {
         text += QStringLiteral("%1").arg(vertex_data[i + component_off], 2, 16, QLatin1Char('0'));
@@ -677,13 +675,12 @@ public:
           process_simple_component(1);
       }
       process_component(vtx_desc.low.Position, vtx_attr.g0.PosFormat,
-                        vtx_attr.g0.PosElements == CoordComponentCount::XY ? 2 : 3);
+          vtx_attr.g0.PosElements == CoordComponentCount::XY ? 2 : 3);
       const u32 normal_component_count =
           vtx_desc.low.Normal == VertexComponentFormat::Direct ? 3 : 1;
       const u32 normal_elements = vtx_attr.g0.NormalElements == NormalComponentCount::NTB ? 3 : 1;
       process_component(vtx_desc.low.Normal, vtx_attr.g0.NormalFormat,
-                        normal_component_count * normal_elements,
-                        vtx_attr.g0.NormalIndex3 ? normal_elements : 1);
+          normal_component_count * normal_elements, vtx_attr.g0.NormalIndex3 ? normal_elements : 1);
       for (u32 c = 0; c < vtx_desc.low.Color.Size(); c++)
       {
         static constexpr Common::EnumMap<u32, ColorFormat::RGBA8888> component_sizes = {
@@ -712,7 +709,7 @@ public:
       for (u32 t = 0; t < vtx_desc.high.TexCoord.Size(); t++)
       {
         process_component(vtx_desc.high.TexCoord[t], vtx_attr.GetTexFormat(t),
-                          vtx_attr.GetTexElements(t) == TexComponentCount::ST ? 2 : 1);
+            vtx_attr.GetTexElements(t) == TexComponentCount::ST ? 2 : 1);
       }
     }
   }
@@ -766,8 +763,8 @@ void FIFOAnalyzer::UpdateDescription()
   const u32 entry_start = m_object_data_offsets[entry_nr];
 
   auto callback = DescriptionCallback(frame_info.parts[end_part_nr].m_cpmem);
-  OpcodeDecoder::RunCommand(&fifo_frame.fifoData[object_start + entry_start],
-                            object_size - entry_start, callback);
+  OpcodeDecoder::RunCommand(
+      &fifo_frame.fifoData[object_start + entry_start], object_size - entry_start, callback);
   m_entry_detail_browser->setText(callback.text);
 }
 

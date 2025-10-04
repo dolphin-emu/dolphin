@@ -64,9 +64,38 @@ u16* dspbufC;
 u32* dspbufU;
 
 u16 dspreg_in[32] = {
-    0x0410, 0x0510, 0x0610, 0x0710, 0x0810, 0x0910, 0x0a10, 0x0b10, 0xFFFF, 0xFFFF, 0xFFFF,
-    0xFFFF, 0x0855, 0x0966, 0x0a77, 0x0b88, 0x0014, 0xfff5, 0x00ff, 0x2200, 0x0000, 0x0000,
-    0x0000, 0x0000, 0x0003, 0x0004, 0x8000, 0x000C, 0x0007, 0x0008, 0x0009, 0x000a,
+    0x0410,
+    0x0510,
+    0x0610,
+    0x0710,
+    0x0810,
+    0x0910,
+    0x0a10,
+    0x0b10,
+    0xFFFF,
+    0xFFFF,
+    0xFFFF,
+    0xFFFF,
+    0x0855,
+    0x0966,
+    0x0a77,
+    0x0b88,
+    0x0014,
+    0xfff5,
+    0x00ff,
+    0x2200,
+    0x0000,
+    0x0000,
+    0x0000,
+    0x0000,
+    0x0003,
+    0x0004,
+    0x8000,
+    0x000C,
+    0x0007,
+    0x0008,
+    0x0009,
+    0x000a,
 };  ///            ax_h_1   ax_h_1
 
 /* ttt ?
@@ -138,9 +167,38 @@ int curUcode = 0, runningUcode = 1;
 int dsp_steps = 0;
 
 constexpr std::array reg_names = {
-    "ar0", "ar1", "ar2", "ar3", "ix0", "ix1", "ix2", "ix3", "wr0", "wr1", "wr2",
-    "wr3", "st0", "st1", "st2", "st3", "c0h", "c1h", "cr ", "sr ", "pl ", "pm1",
-    "ph ", "pm2", "x0l", "x1l", "x0h", "x1h", "c0l", "c1l", "c0m", "c1m",
+    "ar0",
+    "ar1",
+    "ar2",
+    "ar3",
+    "ix0",
+    "ix1",
+    "ix2",
+    "ix3",
+    "wr0",
+    "wr1",
+    "wr2",
+    "wr3",
+    "st0",
+    "st1",
+    "st2",
+    "st3",
+    "c0h",
+    "c1h",
+    "cr ",
+    "sr ",
+    "pl ",
+    "pm1",
+    "ph ",
+    "pm2",
+    "x0l",
+    "x1l",
+    "x0h",
+    "x1h",
+    "c0l",
+    "c1l",
+    "c0m",
+    "c1m",
 };
 
 void print_reg_block(int x, int y, int sel, const u16* regs, const u16* compare_regs)
@@ -166,9 +224,9 @@ void print_reg_block(int x, int y, int sel, const u16* regs, const u16* compare_
   CON_SetColor(CON_WHITE);
 
   CON_Printf(x + 2, y + 9, "ACC0: %02x %04x %04x", regs[DSP_REG_ACH0] & 0xff, regs[DSP_REG_ACM0],
-             regs[DSP_REG_ACL0]);
+      regs[DSP_REG_ACL0]);
   CON_Printf(x + 2, y + 10, "ACC1: %02x %04x %04x", regs[DSP_REG_ACH1] & 0xff, regs[DSP_REG_ACM1],
-             regs[DSP_REG_ACL1]);
+      regs[DSP_REG_ACL1]);
   CON_Printf(x + 2, y + 11, "AX0:     %04x %04x", regs[DSP_REG_AXH0], regs[DSP_REG_AXL0]);
   CON_Printf(x + 2, y + 12, "AX1:     %04x %04x", regs[DSP_REG_AXH1], regs[DSP_REG_AXL1]);
 
@@ -343,7 +401,7 @@ void handle_dsp_mail(void)
       // DMA ucode to iram base, entry point is just after exception vectors...0x10
       // NOTE: for any ucode made by dsptool, the block length will be 8191
       real_dsp.SendTask((void*)MEM_VIRTUAL_TO_PHYSICAL(dsp_code[curUcode]), 0,
-                        sizeof(dsp_code[curUcode]) - 1, 0x10);
+          sizeof(dsp_code[curUcode]) - 1, 0x10);
 
       runningUcode = curUcode + 1;
 
@@ -354,7 +412,7 @@ void handle_dsp_mail(void)
     {
       // dsp_base.inc is reporting an exception happened
       CON_PrintRow(4, 25, "%s caused exception %x at step %i", UCODE_NAMES[curUcode], mail & 0xff,
-                   dsp_steps);
+          dsp_steps);
     }
     else if (mail == 0x8888dead)
     {
@@ -444,7 +502,7 @@ void handle_dsp_mail(void)
     */
 
     CON_PrintRow(2, 1, "UCode: %d/%d %s, Last mail: %08x", curUcode + 1, NUM_UCODES,
-                 UCODE_NAMES[curUcode], mail);
+        UCODE_NAMES[curUcode], mail);
   }
 }
 
@@ -521,7 +579,7 @@ void dump_all_ucodes(bool fastmode)
       if (UCodeToDump < NUM_UCODES - 1)
       {
         sprintf(temp, "Dump %d Successful. Wrote %d bytes, steps: %d", UCodeToDump + 1, written,
-                dsp_steps);
+            dsp_steps);
         UpdateLastMessage(temp);
       }
       else
@@ -636,8 +694,8 @@ int main()
     CON_Printf(4, 19, "+/- (GC:'L'/'R') to move");
     CON_Printf(4, 20, "A (GC:'A') to edit register; B (GC:'B') to start over");
     CON_Printf(4, 21, "1 (GC:'Z') to move next microcode");
-    CON_Printf(4, 22,
-               "2 (GC:'X') dump results to SD; UP (GC:'Y') dump results to SD (SINGLE FILE)");
+    CON_Printf(
+        4, 22, "2 (GC:'X') dump results to SD; UP (GC:'Y') dump results to SD (SINGLE FILE)");
     CON_Printf(4, 23, "Home (GC:'START') to exit");
 #else
     CON_Printf(2, 18, "Controls:");

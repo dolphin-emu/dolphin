@@ -17,14 +17,13 @@ std::optional<T> DeserializeFBTargetFromConfig(const picojson::object& obj, std:
   const auto texture_filename_iter = obj.find("texture_filename");
   if (texture_filename_iter == obj.end())
   {
-    ERROR_LOG_FMT(VIDEO,
-                  "Failed to load mod configuration file, option 'texture_filename' not found");
+    ERROR_LOG_FMT(
+        VIDEO, "Failed to load mod configuration file, option 'texture_filename' not found");
     return std::nullopt;
   }
   if (!texture_filename_iter->second.is<std::string>())
   {
-    ERROR_LOG_FMT(
-        VIDEO,
+    ERROR_LOG_FMT(VIDEO,
         "Failed to load mod configuration file, option 'texture_filename' is not a string type");
     return std::nullopt;
   }
@@ -113,28 +112,28 @@ std::optional<std::string> ExtractTextureFilenameForConfig(const picojson::objec
   const auto texture_filename_iter = obj.find("texture_filename");
   if (texture_filename_iter == obj.end())
   {
-    ERROR_LOG_FMT(VIDEO,
-                  "Failed to load mod configuration file, option 'texture_filename' not found");
+    ERROR_LOG_FMT(
+        VIDEO, "Failed to load mod configuration file, option 'texture_filename' not found");
     return std::nullopt;
   }
   if (!texture_filename_iter->second.is<std::string>())
   {
-    ERROR_LOG_FMT(
-        VIDEO,
+    ERROR_LOG_FMT(VIDEO,
         "Failed to load mod configuration file, option 'texture_filename' is not a string type");
     return std::nullopt;
   }
   std::string texture_info = texture_filename_iter->second.get<std::string>();
 
-  const auto handle_fb_texture =
-      [&texture_info](std::string_view type) -> std::optional<std::string> {
+  const auto handle_fb_texture = [&texture_info](
+                                     std::string_view type) -> std::optional<std::string>
+  {
     const auto letter_n_pos = texture_info.find("_n");
     if (letter_n_pos == std::string::npos)
     {
       ERROR_LOG_FMT(VIDEO,
-                    "Failed to load mod configuration file, value in 'texture_filename' "
-                    "is {} without a count",
-                    type);
+          "Failed to load mod configuration file, value in 'texture_filename' "
+          "is {} without a count",
+          type);
       return std::nullopt;
     }
 
@@ -155,47 +154,52 @@ std::optional<std::string> ExtractTextureFilenameForConfig(const picojson::objec
 
 void SerializeTargetToConfig(picojson::object& json_obj, const GraphicsTargetConfig& target)
 {
-  std::visit(overloaded{
-                 [&](const DrawStartedTextureTarget& the_target) {
-                   json_obj.emplace("type", "draw_started");
-                   json_obj.emplace("texture_filename", the_target.m_texture_info_string);
-                 },
-                 [&](const LoadTextureTarget& the_target) {
-                   json_obj.emplace("type", "load_texture");
-                   json_obj.emplace("texture_filename", the_target.m_texture_info_string);
-                 },
-                 [&](const CreateTextureTarget& the_target) {
-                   json_obj.emplace("type", "create_texture");
-                   json_obj.emplace("texture_filename", the_target.m_texture_info_string);
-                 },
-                 [&](const EFBTarget& the_target) {
-                   json_obj.emplace("type", "efb");
-                   json_obj.emplace("texture_filename",
-                                    fmt::format("{}_{}x{}_{}", EFB_DUMP_PREFIX, the_target.m_width,
-                                                the_target.m_height,
-                                                static_cast<int>(the_target.m_texture_format)));
-                 },
-                 [&](const XFBTarget& the_target) {
-                   json_obj.emplace("type", "xfb");
-                   json_obj.emplace("texture_filename",
-                                    fmt::format("{}_{}x{}_{}", XFB_DUMP_PREFIX, the_target.m_width,
-                                                the_target.m_height,
-                                                static_cast<int>(the_target.m_texture_format)));
-                 },
-                 [&](const ProjectionTarget& the_target) {
-                   const char* type_name = "3d";
-                   if (the_target.m_projection_type == ProjectionType::Orthographic)
-                     type_name = "2d";
+  std::visit(
+      overloaded{
+          [&](const DrawStartedTextureTarget& the_target)
+          {
+            json_obj.emplace("type", "draw_started");
+            json_obj.emplace("texture_filename", the_target.m_texture_info_string);
+          },
+          [&](const LoadTextureTarget& the_target)
+          {
+            json_obj.emplace("type", "load_texture");
+            json_obj.emplace("texture_filename", the_target.m_texture_info_string);
+          },
+          [&](const CreateTextureTarget& the_target)
+          {
+            json_obj.emplace("type", "create_texture");
+            json_obj.emplace("texture_filename", the_target.m_texture_info_string);
+          },
+          [&](const EFBTarget& the_target)
+          {
+            json_obj.emplace("type", "efb");
+            json_obj.emplace("texture_filename",
+                fmt::format("{}_{}x{}_{}", EFB_DUMP_PREFIX, the_target.m_width, the_target.m_height,
+                    static_cast<int>(the_target.m_texture_format)));
+          },
+          [&](const XFBTarget& the_target)
+          {
+            json_obj.emplace("type", "xfb");
+            json_obj.emplace("texture_filename",
+                fmt::format("{}_{}x{}_{}", XFB_DUMP_PREFIX, the_target.m_width, the_target.m_height,
+                    static_cast<int>(the_target.m_texture_format)));
+          },
+          [&](const ProjectionTarget& the_target)
+          {
+            const char* type_name = "3d";
+            if (the_target.m_projection_type == ProjectionType::Orthographic)
+              type_name = "2d";
 
-                   json_obj.emplace("type", type_name);
+            json_obj.emplace("type", type_name);
 
-                   if (the_target.m_texture_info_string)
-                   {
-                     json_obj.emplace("texture_filename", *the_target.m_texture_info_string);
-                   }
-                 },
-             },
-             target);
+            if (the_target.m_texture_info_string)
+            {
+              json_obj.emplace("texture_filename", *the_target.m_texture_info_string);
+            }
+          },
+      },
+      target);
 }
 
 std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const picojson::object& obj)
@@ -208,8 +212,8 @@ std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const picojson::
   }
   if (!type_iter->second.is<std::string>())
   {
-    ERROR_LOG_FMT(VIDEO,
-                  "Failed to load mod configuration file, option 'type' is not a string type");
+    ERROR_LOG_FMT(
+        VIDEO, "Failed to load mod configuration file, option 'type' is not a string type");
     return std::nullopt;
   }
   const std::string& type = type_iter->second.get<std::string>();
@@ -270,8 +274,8 @@ std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const picojson::
     }
     if (!value_iter->second.is<std::string>())
     {
-      ERROR_LOG_FMT(VIDEO,
-                    "Failed to load mod configuration file, option 'value' is not a string type");
+      ERROR_LOG_FMT(
+          VIDEO, "Failed to load mod configuration file, option 'value' is not a string type");
       return std::nullopt;
     }
     const auto& value_str = value_iter->second.get<std::string>();
@@ -293,8 +297,8 @@ std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const picojson::
   }
   else
   {
-    ERROR_LOG_FMT(VIDEO,
-                  "Failed to load mod configuration file, option 'type' is not a valid value");
+    ERROR_LOG_FMT(
+        VIDEO, "Failed to load mod configuration file, option 'type' is not a valid value");
   }
   return std::nullopt;
 }

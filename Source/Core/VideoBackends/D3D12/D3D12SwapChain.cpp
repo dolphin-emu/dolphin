@@ -10,8 +10,8 @@
 
 namespace DX12
 {
-SwapChain::SwapChain(const WindowSystemInfo& wsi, IDXGIFactory* dxgi_factory,
-                     ID3D12CommandQueue* d3d_command_queue)
+SwapChain::SwapChain(
+    const WindowSystemInfo& wsi, IDXGIFactory* dxgi_factory, ID3D12CommandQueue* d3d_command_queue)
     : D3DCommon::SwapChain(wsi, dxgi_factory, d3d_command_queue)
 {
 }
@@ -43,8 +43,8 @@ bool SwapChain::CreateSwapChainBuffers()
       return false;
 
     buffer.framebuffer = DXFramebuffer::Create(buffer.texture.get(), nullptr, {});
-    ASSERT_MSG(VIDEO, buffer.framebuffer != nullptr,
-               "Failed to create swap chain buffer framebuffer");
+    ASSERT_MSG(
+        VIDEO, buffer.framebuffer != nullptr, "Failed to create swap chain buffer framebuffer");
     if (!buffer.framebuffer)
       return false;
 

@@ -13,13 +13,15 @@
 // -0x80..0x7f.
 #ifdef __GNUC__
 #define PPCSTATE_OFF(i)                                                                            \
-  ([]() consteval {                                                                                \
-    _Pragma("GCC diagnostic push")                                                                 \
-            _Pragma("GCC diagnostic ignored \"-Winvalid-offsetof\"") return static_cast<int>(      \
-                offsetof(PowerPC::PowerPCState, i)) -                                              \
-        0x80;                                                                                      \
-    _Pragma("GCC diagnostic pop")                                                                  \
-  }())
+  (                                                                                                \
+      []() consteval                                                                               \
+      {                                                                                            \
+        _Pragma("GCC diagnostic push")                                                             \
+                _Pragma("GCC diagnostic ignored \"-Winvalid-offsetof\"") return static_cast<int>(  \
+                    offsetof(PowerPC::PowerPCState, i)) -                                          \
+            0x80;                                                                                  \
+        _Pragma("GCC diagnostic pop")                                                              \
+      }())
 
 #define PPCSTATE_OFF_ARRAY(elem, i)                                                                \
   (PPCSTATE_OFF(elem[0]) + static_cast<int>(sizeof(PowerPC::PowerPCState::elem[0]) * (i)))
@@ -27,9 +29,9 @@
 #define PPCSTATE_OFF(i) (static_cast<int>(offsetof(PowerPC::PowerPCState, i)) - 0x80)
 
 #define PPCSTATE_OFF_ARRAY(elem, i)                                                                \
-  (static_cast<int>(offsetof(PowerPC::PowerPCState, elem[0]) +                                     \
-                    sizeof(PowerPC::PowerPCState::elem[0]) * (i)) -                                \
-   0x80)
+  (static_cast<int>(                                                                               \
+       offsetof(PowerPC::PowerPCState, elem[0]) + sizeof(PowerPC::PowerPCState::elem[0]) * (i)) -  \
+      0x80)
 #endif
 
 #define PPCSTATE_OFF_GPR(i) PPCSTATE_OFF_ARRAY(gpr, i)

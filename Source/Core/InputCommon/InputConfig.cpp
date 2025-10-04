@@ -20,9 +20,11 @@
 #include "InputCommon/InputProfile.h"
 
 InputConfig::InputConfig(const std::string& ini_name, const std::string& gui_name,
-                         const std::string& profile_directory_name, const std::string& profile_key)
-    : m_ini_name(ini_name), m_gui_name(gui_name), m_profile_directory_name(profile_directory_name),
-      m_profile_key(profile_key)
+    const std::string& profile_directory_name, const std::string& profile_key)
+    : m_ini_name(ini_name)
+    , m_gui_name(gui_name)
+    , m_profile_directory_name(profile_directory_name)
+    , m_profile_key(profile_key)
 {
 }
 
@@ -84,7 +86,7 @@ bool InputConfig::LoadConfig()
         SplitPath(profile[n], nullptr, &base, nullptr);
         Core::DisplayMessage("Loading game specific input profile '" + base + "' for device '" +
                                  controller->GetName() + "'",
-                             6000);
+            6000);
 
         inifile.Load(profile[n]);
         config = *inifile.GetOrCreateSection("Profile");
@@ -172,10 +174,12 @@ void InputConfig::RegisterHotplugCallback()
 {
   // Update control references on all controllers
   // as configured devices may have been added or removed.
-  m_hotplug_callback_handle = g_controller_interface.RegisterDevicesChangedCallback([this] {
-    for (auto& controller : m_controllers)
-      controller->UpdateReferences(g_controller_interface);
-  });
+  m_hotplug_callback_handle = g_controller_interface.RegisterDevicesChangedCallback(
+      [this]
+      {
+        for (auto& controller : m_controllers)
+          controller->UpdateReferences(g_controller_interface);
+      });
 }
 
 void InputConfig::UnregisterHotplugCallback()
@@ -199,7 +203,7 @@ bool InputConfig::IsControllerControlledByGamepadDevice(int index) const
            || (controller.source == "XInput2")  // Linux and BSD Keyboard/Mouse
            || (controller.source == "Android" && controller.cid <= 0)  // Android non-gamepad device
            || (controller.source == "DInput" &&
-               controller.name == "Keyboard Mouse"));  // Windows Keyboard/Mouse
+                  controller.name == "Keyboard Mouse"));  // Windows Keyboard/Mouse
 }
 
 void InputConfig::GenerateControllerTextures(const Common::IniFile& file)

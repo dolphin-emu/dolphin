@@ -246,8 +246,7 @@ struct Message
         Common::ComputeCRC32(reinterpret_cast<const u8*>(&m_message), sizeof(ToMsgType));
     if (crc32_in_header != crc32_calculated)
     {
-      NOTICE_LOG_FMT(
-          CONTROLLERINTERFACE,
+      NOTICE_LOG_FMT(CONTROLLERINTERFACE,
           "DualShockUDPClient Received message with bad CRC in header: got {:08x}, expected {:08x}",
           crc32_in_header, crc32_calculated);
       return std::nullopt;

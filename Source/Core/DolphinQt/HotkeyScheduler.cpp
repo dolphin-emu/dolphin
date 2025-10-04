@@ -345,11 +345,12 @@ void HotkeyScheduler::Run()
       else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE_4))
         m_profile_cycler.NextWiimoteProfileForGame(3);
 
-      auto ShowVolume = [] {
+      auto ShowVolume = []
+      {
         OSD::AddMessage(std::string("Volume: ") +
                         (Config::Get(Config::MAIN_AUDIO_MUTED) ?
-                             "Muted" :
-                             std::to_string(Config::Get(Config::MAIN_AUDIO_VOLUME)) + "%"));
+                                "Muted" :
+                                std::to_string(Config::Get(Config::MAIN_AUDIO_VOLUME)) + "%"));
       };
 
       // Volume
@@ -373,7 +374,8 @@ void HotkeyScheduler::Run()
 
       // Graphics
       const auto efb_scale = Config::Get(Config::GFX_EFB_SCALE);
-      const auto ShowEFBScale = [](int new_efb_scale) {
+      const auto ShowEFBScale = [](int new_efb_scale)
+      {
         switch (new_efb_scale)
         {
         case EFB_SCALE_AUTO_INTEGRAL:
@@ -450,22 +452,23 @@ void HotkeyScheduler::Run()
         OSD::AddMessage(fmt::format("Copy EFB: {}", new_value ? "to Texture" : "to RAM"));
       }
 
-      auto ShowXFBCopies = [] {
-        OSD::AddMessage(fmt::format(
-            "Copy XFB: {}{}", Config::Get(Config::GFX_HACK_IMMEDIATE_XFB) ? " (Immediate)" : "",
+      auto ShowXFBCopies = []
+      {
+        OSD::AddMessage(fmt::format("Copy XFB: {}{}",
+            Config::Get(Config::GFX_HACK_IMMEDIATE_XFB) ? " (Immediate)" : "",
             Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM) ? "to Texture" : "to RAM"));
       };
 
       if (IsHotkey(HK_TOGGLE_XFBCOPIES))
       {
         Config::SetCurrent(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM,
-                           !Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM));
+            !Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM));
         ShowXFBCopies();
       }
       if (IsHotkey(HK_TOGGLE_IMMEDIATE_XFB))
       {
-        Config::SetCurrent(Config::GFX_HACK_IMMEDIATE_XFB,
-                           !Config::Get(Config::GFX_HACK_IMMEDIATE_XFB));
+        Config::SetCurrent(
+            Config::GFX_HACK_IMMEDIATE_XFB, !Config::Get(Config::GFX_HACK_IMMEDIATE_XFB));
         ShowXFBCopies();
       }
       if (IsHotkey(HK_TOGGLE_FOG))
@@ -481,7 +484,7 @@ void HotkeyScheduler::Run()
         Config::SetCurrent(Config::GFX_DUMP_TEXTURES, enable_dumping);
         OSD::AddMessage(
             fmt::format("Texture Dumping {}",
-                        enable_dumping ? "enabled. This will reduce performance." : "disabled."),
+                enable_dumping ? "enabled. This will reduce performance." : "disabled."),
             OSD::Duration::NORMAL);
       }
 
@@ -504,7 +507,8 @@ void HotkeyScheduler::Run()
         AudioCommon::UpdateSoundStream(system);
       }
 
-      auto ShowEmulationSpeed = [] {
+      auto ShowEmulationSpeed = []
+      {
         const float emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
         if (!AchievementManager::GetInstance().IsHardcoreModeActive() ||
             Config::Get(Config::MAIN_EMULATION_SPEED) >= 1.0f ||
@@ -512,7 +516,7 @@ void HotkeyScheduler::Run()
         {
           OSD::AddMessage(emulation_speed <= 0 ? "Speed Limit: Unlimited" :
                                                  fmt::format("Speed Limit: {}%",
-                                                             std::lround(emulation_speed * 100.f)));
+                                                     std::lround(emulation_speed * 100.f)));
         }
       };
 
@@ -611,8 +615,8 @@ void HotkeyScheduler::Run()
       Config::SetCurrent(Config::GFX_STEREO_DEPTH, std::max(stereo_depth - 1, 0));
 
     if (IsHotkey(HK_INCREASE_DEPTH, true))
-      Config::SetCurrent(Config::GFX_STEREO_DEPTH,
-                         std::min(stereo_depth + 1, Config::GFX_STEREO_DEPTH_MAXIMUM));
+      Config::SetCurrent(
+          Config::GFX_STEREO_DEPTH, std::min(stereo_depth + 1, Config::GFX_STEREO_DEPTH_MAXIMUM));
 
     const auto stereo_convergence = Config::Get(Config::GFX_STEREO_CONVERGENCE);
 
@@ -621,7 +625,7 @@ void HotkeyScheduler::Run()
 
     if (IsHotkey(HK_INCREASE_CONVERGENCE, true))
       Config::SetCurrent(Config::GFX_STEREO_CONVERGENCE,
-                         std::min(stereo_convergence + 5, Config::GFX_STEREO_CONVERGENCE_MAXIMUM));
+          std::min(stereo_convergence + 5, Config::GFX_STEREO_CONVERGENCE_MAXIMUM));
 
     // Free Look
     if (IsHotkey(HK_FREELOOK_TOGGLE))

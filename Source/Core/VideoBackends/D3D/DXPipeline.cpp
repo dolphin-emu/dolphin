@@ -17,14 +17,20 @@
 namespace DX11
 {
 DXPipeline::DXPipeline(const AbstractPipelineConfig& config, ID3D11InputLayout* input_layout,
-                       ID3D11VertexShader* vertex_shader, ID3D11GeometryShader* geometry_shader,
-                       ID3D11PixelShader* pixel_shader, ID3D11RasterizerState* rasterizer_state,
-                       ID3D11DepthStencilState* depth_state, ID3D11BlendState* blend_state,
-                       D3D11_PRIMITIVE_TOPOLOGY primitive_topology, bool use_logic_op)
-    : AbstractPipeline(config), m_input_layout(input_layout), m_vertex_shader(vertex_shader),
-      m_geometry_shader(geometry_shader), m_pixel_shader(pixel_shader),
-      m_rasterizer_state(rasterizer_state), m_depth_state(depth_state), m_blend_state(blend_state),
-      m_primitive_topology(primitive_topology), m_use_logic_op(use_logic_op)
+    ID3D11VertexShader* vertex_shader, ID3D11GeometryShader* geometry_shader,
+    ID3D11PixelShader* pixel_shader, ID3D11RasterizerState* rasterizer_state,
+    ID3D11DepthStencilState* depth_state, ID3D11BlendState* blend_state,
+    D3D11_PRIMITIVE_TOPOLOGY primitive_topology, bool use_logic_op)
+    : AbstractPipeline(config)
+    , m_input_layout(input_layout)
+    , m_vertex_shader(vertex_shader)
+    , m_geometry_shader(geometry_shader)
+    , m_pixel_shader(pixel_shader)
+    , m_rasterizer_state(rasterizer_state)
+    , m_depth_state(depth_state)
+    , m_blend_state(blend_state)
+    , m_primitive_topology(primitive_topology)
+    , m_use_logic_op(use_logic_op)
 {
 }
 
@@ -49,8 +55,8 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
   ID3D11InputLayout* input_layout =
       config.vertex_format ?
           const_cast<D3DVertexFormat*>(static_cast<const D3DVertexFormat*>(config.vertex_format))
-              ->GetInputLayout(vertex_shader->GetByteCode().data(),
-                               vertex_shader->GetByteCode().size()) :
+              ->GetInputLayout(
+                  vertex_shader->GetByteCode().data(), vertex_shader->GetByteCode().size()) :
           nullptr;
 
   // Only use the integer RTV if logic op is supported, and enabled.
@@ -58,9 +64,8 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
       config.blending_state.logic_op_enable && g_backend_info.bSupportsLogicOp;
 
   return std::make_unique<DXPipeline>(config, input_layout, vertex_shader->GetD3DVertexShader(),
-                                      geometry_shader ? geometry_shader->GetD3DGeometryShader() :
-                                                        nullptr,
-                                      pixel_shader->GetD3DPixelShader(), rasterizer_state,
-                                      depth_state, blend_state, primitive_topology, use_logic_op);
+      geometry_shader ? geometry_shader->GetD3DGeometryShader() : nullptr,
+      pixel_shader->GetD3DPixelShader(), rasterizer_state, depth_state, blend_state,
+      primitive_topology, use_logic_op);
 }
 }  // namespace DX11

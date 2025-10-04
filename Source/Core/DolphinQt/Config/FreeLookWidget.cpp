@@ -43,8 +43,8 @@ void FreeLookWidget::CreateLayout()
 #endif  // USE_RETRO_ACHIEVEMENTS
   m_freelook_controller_configure_button = new NonDefaultQPushButton(tr("Configure Controller"));
 
-  m_freelook_control_type = new ConfigChoice({tr("Six Axis"), tr("First Person"), tr("Orbital")},
-                                             Config::FL1_CONTROL_TYPE);
+  m_freelook_control_type = new ConfigChoice(
+      {tr("Six Axis"), tr("First Person"), tr("Orbital")}, Config::FL1_CONTROL_TYPE);
   m_freelook_control_type->SetTitle(tr("Free Look Control Type"));
   m_freelook_control_type->SetDescription(tr(
       "Changes the in-game camera type during Free Look.<br><br>"
@@ -86,13 +86,15 @@ void FreeLookWidget::CreateLayout()
 void FreeLookWidget::ConnectWidgets()
 {
   connect(m_freelook_controller_configure_button, &QPushButton::clicked, this,
-          &FreeLookWidget::OnFreeLookControllerConfigured);
+      &FreeLookWidget::OnFreeLookControllerConfigured);
   connect(m_enable_freelook, &QCheckBox::clicked, this, &FreeLookWidget::SaveSettings);
   connect(m_freelook_background_input, &QCheckBox::clicked, this, &FreeLookWidget::SaveSettings);
-  connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
-    const QSignalBlocker blocker(this);
-    LoadSettings();
-  });
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this,
+      [this]
+      {
+        const QSignalBlocker blocker(this);
+        LoadSettings();
+      });
 }
 
 void FreeLookWidget::OnFreeLookControllerConfigured()
@@ -123,8 +125,8 @@ void FreeLookWidget::SaveSettings()
 {
   const bool checked = m_enable_freelook->isChecked();
   Config::SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, checked);
-  Config::SetBaseOrCurrent(Config::FREE_LOOK_BACKGROUND_INPUT,
-                           m_freelook_background_input->isChecked());
+  Config::SetBaseOrCurrent(
+      Config::FREE_LOOK_BACKGROUND_INPUT, m_freelook_background_input->isChecked());
   m_freelook_control_type->setEnabled(checked);
   m_freelook_controller_configure_button->setEnabled(checked);
   m_freelook_background_input->setEnabled(checked);

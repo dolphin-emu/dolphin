@@ -154,14 +154,14 @@ public:
     auto GetLeftStick() const
     {
       return StickCalibration{StickType{left_stick_x.min, left_stick_y.min},
-                              StickType{left_stick_x.center, left_stick_y.center},
-                              StickType{left_stick_x.max, left_stick_y.max}};
+          StickType{left_stick_x.center, left_stick_y.center},
+          StickType{left_stick_x.max, left_stick_y.max}};
     }
     auto GetRightStick() const
     {
       return StickCalibration{StickType{right_stick_x.min, right_stick_y.min},
-                              StickType{right_stick_x.center, right_stick_y.center},
-                              StickType{right_stick_x.max, right_stick_y.max}};
+          StickType{right_stick_x.center, right_stick_y.center},
+          StickType{right_stick_x.max, right_stick_y.max}};
     }
     auto GetLeftTrigger() const { return TriggerCalibration{left_trigger_zero, TRIGGER_MAX}; }
     auto GetRightTrigger() const { return TriggerCalibration{right_trigger_zero, TRIGGER_MAX}; }

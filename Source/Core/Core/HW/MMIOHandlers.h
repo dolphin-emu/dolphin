@@ -196,18 +196,18 @@ private:
   MaybeExtern template class WriteHandler<T>
 
 #define MMIO_SPECIAL_PUBLIC_SPECIALIZATIONS(MaybeExtern)                                           \
-  MaybeExtern template ReadHandlingMethod<u16>* ReadToSmaller(Mapping* mmio, u32 high_part_addr,   \
-                                                              u32 low_part_addr);                  \
-  MaybeExtern template ReadHandlingMethod<u32>* ReadToSmaller(Mapping* mmio, u32 high_part_addr,   \
-                                                              u32 low_part_addr);                  \
-  MaybeExtern template WriteHandlingMethod<u16>* WriteToSmaller(Mapping* mmio, u32 high_part_addr, \
-                                                                u32 low_part_addr);                \
-  MaybeExtern template WriteHandlingMethod<u32>* WriteToSmaller(Mapping* mmio, u32 high_part_addr, \
-                                                                u32 low_part_addr);                \
-  MaybeExtern template ReadHandlingMethod<u8>* ReadToLarger(Mapping* mmio, u32 larger_addr,        \
-                                                            u32 shift);                            \
-  MaybeExtern template ReadHandlingMethod<u16>* ReadToLarger(Mapping* mmio, u32 larger_addr,       \
-                                                             u32 shift)
+  MaybeExtern template ReadHandlingMethod<u16>* ReadToSmaller(                                     \
+      Mapping* mmio, u32 high_part_addr, u32 low_part_addr);                                       \
+  MaybeExtern template ReadHandlingMethod<u32>* ReadToSmaller(                                     \
+      Mapping* mmio, u32 high_part_addr, u32 low_part_addr);                                       \
+  MaybeExtern template WriteHandlingMethod<u16>* WriteToSmaller(                                   \
+      Mapping* mmio, u32 high_part_addr, u32 low_part_addr);                                       \
+  MaybeExtern template WriteHandlingMethod<u32>* WriteToSmaller(                                   \
+      Mapping* mmio, u32 high_part_addr, u32 low_part_addr);                                       \
+  MaybeExtern template ReadHandlingMethod<u8>* ReadToLarger(                                       \
+      Mapping* mmio, u32 larger_addr, u32 shift);                                                  \
+  MaybeExtern template ReadHandlingMethod<u16>* ReadToLarger(                                      \
+      Mapping* mmio, u32 larger_addr, u32 shift)
 
 #define MMIO_PUBLIC_SPECIALIZATIONS()                                                              \
   MMIO_GENERIC_PUBLIC_SPECIALIZATIONS(MaybeExtern, u8);                                            \

@@ -29,8 +29,8 @@ public:
   // Called from main thread
   void PushSamples(const s16* samples, std::size_t num_samples);
   void PushStreamingSamples(const s16* samples, std::size_t num_samples);
-  void PushWiimoteSpeakerSamples(const s16* samples, std::size_t num_samples,
-                                 u32 sample_rate_divisor);
+  void PushWiimoteSpeakerSamples(
+      const s16* samples, std::size_t num_samples, u32 sample_rate_divisor);
   void PushSkylanderPortalSamples(const u8* samples, std::size_t num_samples);
   void PushGBASamples(std::size_t device_number, const s16* samples, std::size_t num_samples);
 
@@ -101,8 +101,9 @@ private:
 
   public:
     MixerFifo(Mixer* mixer, u32 sample_rate_divisor, bool little_endian)
-        : m_mixer(mixer), m_input_sample_rate_divisor(sample_rate_divisor),
-          m_little_endian(little_endian)
+        : m_mixer(mixer)
+        , m_input_sample_rate_divisor(sample_rate_divisor)
+        , m_little_endian(little_endian)
     {
     }
     void DoState(PointerWrap& p);
@@ -149,9 +150,9 @@ private:
   MixerFifo m_wiimote_speaker_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 3000, true};
   MixerFifo m_skylander_portal_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 8000, true};
   std::array<MixerFifo, 4> m_gba_mixers{MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true},
-                                        MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true},
-                                        MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true},
-                                        MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true}};
+      MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true},
+      MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true},
+      MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true}};
   u32 m_output_sample_rate;
 
   AudioCommon::SurroundDecoder m_surround_decoder;

@@ -4,7 +4,9 @@
 #include "VideoBackends/Metal/MTLObjectCache.h"
 
 Metal::Shader::Shader(ShaderStage stage, std::string msl, MRCOwned<id<MTLFunction>> shader)
-    : AbstractShader(stage), m_msl(std::move(msl)), m_shader(std::move(shader))
+    : AbstractShader(stage)
+    , m_msl(std::move(msl))
+    , m_shader(std::move(shader))
 {
 }
 

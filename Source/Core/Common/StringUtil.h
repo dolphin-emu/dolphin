@@ -86,7 +86,7 @@ bool TryParse(const std::string& str, T* output, int base = 0)
     return false;
 
   using LimitsType = typename std::conditional_t<std::is_enum_v<T>, std::underlying_type<T>,
-                                                 std::common_type<T>>::type;
+      std::common_type<T>>::type;
   // Fail if outside numeric limits.
   if (value < std::numeric_limits<LimitsType>::min() ||
       value > std::numeric_limits<LimitsType>::max())
@@ -172,7 +172,7 @@ std::from_chars_result FromChars(std::string_view sv, std::integral auto& value,
   return std::from_chars(first, last, value, base);
 }
 std::from_chars_result FromChars(std::string_view sv, std::floating_point auto& value,
-                                 std::chars_format fmt = std::chars_format::general)
+    std::chars_format fmt = std::chars_format::general)
 {
   const char* const first = sv.data();
   const char* const last = first + sv.size();
@@ -186,8 +186,8 @@ std::vector<std::string> SplitString(const std::string& str, char delim);
 
 // "C:/Windows/winhelp.exe" to "C:/Windows/", "winhelp", ".exe"
 // This requires forward slashes to be used for the path separators, even on Windows.
-bool SplitPath(std::string_view full_path, std::string* path, std::string* filename,
-               std::string* extension);
+bool SplitPath(
+    std::string_view full_path, std::string* path, std::string* filename, std::string* extension);
 
 // Converts the path separators of a path into forward slashes on Windows, which is assumed to be
 // true for paths at various places in the codebase.

@@ -33,20 +33,20 @@ IMUGyroscope::IMUGyroscope(std::string name_, std::string ui_name_)
   AddInput(Translatability::Translate, _trans("Yaw Right"));
 
   AddSetting(&m_deadzone_setting,
-             {_trans("Dead Zone"),
-              // i18n: "°/s" is the symbol for degrees (angular measurement) divided by seconds.
-              _trans("°/s"),
-              // i18n: Refers to the dead-zone setting of gyroscope input.
-              _trans("Angular velocity to ignore and remap.")},
-             2, 0, 180);
+      {_trans("Dead Zone"),
+          // i18n: "°/s" is the symbol for degrees (angular measurement) divided by seconds.
+          _trans("°/s"),
+          // i18n: Refers to the dead-zone setting of gyroscope input.
+          _trans("Angular velocity to ignore and remap.")},
+      2, 0, 180);
 
   AddSetting(&m_calibration_period_setting,
-             {_trans("Calibration Period"),
-              // i18n: "s" is the symbol for seconds.
-              _trans("s"),
-              // i18n: Refers to the "Calibration" setting of gyroscope input.
-              _trans("Time period of stable input to trigger calibration. (zero to disable)")},
-             3, 0, 30);
+      {_trans("Calibration Period"),
+          // i18n: "s" is the symbol for seconds.
+          _trans("s"),
+          // i18n: Refers to the "Calibration" setting of gyroscope input.
+          _trans("Time period of stable input to trigger calibration. (zero to disable)")},
+      3, 0, 30);
 }
 
 void IMUGyroscope::RestartCalibration()
@@ -89,8 +89,8 @@ void IMUGyroscope::UpdateCalibration(const StateData& state)
     // Check for required calibration update frequency
     // and if current data is within deadzone distance of mean stable value.
     if (calibration_freq < WORST_ACCEPTABLE_CALIBRATION_UPDATE_FREQUENCY ||
-        std::ranges::any_of(current_difference.data,
-                            [&](auto c) { return std::abs(c) > deadzone; }))
+        std::ranges::any_of(
+            current_difference.data, [&](auto c) { return std::abs(c) > deadzone; }))
     {
       RestartCalibration();
     }
@@ -116,8 +116,8 @@ void IMUGyroscope::UpdateCalibration(const StateData& state)
 auto IMUGyroscope::GetRawState() const -> StateData
 {
   return StateData(controls[1]->GetState() - controls[0]->GetState(),
-                   controls[2]->GetState() - controls[3]->GetState(),
-                   controls[4]->GetState() - controls[5]->GetState());
+      controls[2]->GetState() - controls[3]->GetState(),
+      controls[4]->GetState() - controls[5]->GetState());
 }
 
 bool IMUGyroscope::AreInputsBound() const

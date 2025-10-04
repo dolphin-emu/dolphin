@@ -20,8 +20,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
   const int commits_ahead = Common::GetScmCommitsAheadMaster();
   if (commits_ahead > 0)
   {
-    branch_str = tr("%1 (%2)").arg(
-        branch_str,
+    branch_str = tr("%1 (%2)").arg(branch_str,
         // i18n: A positive number of version control commits made compared to some named branch
         tr("%1 commit(s) ahead of %2").arg(commits_ahead).arg(QStringLiteral("master")));
   }
@@ -56,23 +55,23 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
 <a href='https://forums.dolphin-emu.org/'>%SUPPORT%</a>
 )")
           .replace(QStringLiteral("%VERSION_STRING%"),
-                   QString::fromUtf8(Common::GetScmDescStr().c_str()))
+              QString::fromUtf8(Common::GetScmDescStr().c_str()))
           .replace(QStringLiteral("%BRANCH%"),
-                   // i18n: "Branch" means the version control term, not a literal tree branch.
-                   tr("Branch: %1").arg(branch_str))
+              // i18n: "Branch" means the version control term, not a literal tree branch.
+              tr("Branch: %1").arg(branch_str))
           .replace(QStringLiteral("%REVISION%"),
-                   tr("Revision: %1").arg(QString::fromUtf8(Common::GetScmRevGitStr().c_str())))
-          .replace(QStringLiteral("%QT_VERSION%"),
-                   tr("Using Qt %1").arg(QStringLiteral(QT_VERSION_STR)))
+              tr("Revision: %1").arg(QString::fromUtf8(Common::GetScmRevGitStr().c_str())))
+          .replace(
+              QStringLiteral("%QT_VERSION%"), tr("Using Qt %1").arg(QStringLiteral(QT_VERSION_STR)))
           .replace(QStringLiteral("%CHECK_FOR_UPDATES%"), tr("Check for updates"))
           .replace(QStringLiteral("%ABOUT_DOLPHIN%"),
-                   // i18n: The word "free" in the standard phrase "free and open source"
-                   // is "free" as in "freedom" - it refers to certain properties of the
-                   // software's license, not the software's price. (It is true that Dolphin
-                   // can be downloaded at no cost, but that's not what this message says.)
-                   tr("Dolphin is a free and open-source GameCube and Wii emulator."))
+              // i18n: The word "free" in the standard phrase "free and open source"
+              // is "free" as in "freedom" - it refers to certain properties of the
+              // software's license, not the software's price. (It is true that Dolphin
+              // can be downloaded at no cost, but that's not what this message says.)
+              tr("Dolphin is a free and open-source GameCube and Wii emulator."))
           .replace(QStringLiteral("%GAMES_YOU_OWN%"),
-                   tr("This software should not be used to play games you do not legally own."))
+              tr("This software should not be used to play games you do not legally own."))
           .replace(QStringLiteral("%LICENSE%"), tr("License"))
           .replace(QStringLiteral("%AUTHORS%"), tr("Authors"))
           .replace(QStringLiteral("%SUPPORT%"), tr("Support"));
@@ -81,8 +80,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
   text_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
   text_label->setOpenExternalLinks(true);
 
-  QLabel* copyright = new QLabel(
-      QStringLiteral("<small>%1</small>")
+  QLabel* copyright = new QLabel(QStringLiteral("<small>%1</small>")
           .arg(
               // i18n: This message uses curly quotes in English. If you want to use curly quotes
               // in your translation, please use the type of curly quotes that's appropriate for

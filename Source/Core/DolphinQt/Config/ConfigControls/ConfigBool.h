@@ -14,7 +14,7 @@ class ConfigBool final : public ConfigControl<ToolTipCheckBox>
 public:
   ConfigBool(const QString& label, const Config::Info<bool>& setting, bool reverse = false);
   ConfigBool(const QString& label, const Config::Info<bool>& setting, Config::Layer* layer,
-             bool reverse = false);
+      bool reverse = false);
 
 protected:
   void OnConfigChanged() override;

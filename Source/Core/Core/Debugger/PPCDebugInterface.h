@@ -23,7 +23,7 @@ class System;
 class PPCSymbolDB;
 
 void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, std::span<u8> value, const u32 address,
-                      bool store_existing_value = true);
+    bool store_existing_value = true);
 
 template <std::unsigned_integral T>
 void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, T value, const u32 address)
@@ -73,8 +73,8 @@ public:
   void SetPatch(const Core::CPUThreadGuard& guard, u32 address, u32 value) override;
   void SetPatch(const Core::CPUThreadGuard& guard, u32 address, std::vector<u8> value) override;
   void SetFramePatch(const Core::CPUThreadGuard& guard, u32 address, u32 value) override;
-  void SetFramePatch(const Core::CPUThreadGuard& guard, u32 address,
-                     std::vector<u8> value) override;
+  void SetFramePatch(
+      const Core::CPUThreadGuard& guard, u32 address, std::vector<u8> value) override;
   const std::vector<Common::Debug::MemoryPatch>& GetPatches() const override;
   void UnsetPatch(const Core::CPUThreadGuard& guard, u32 address) override;
   void EnablePatch(const Core::CPUThreadGuard& guard, std::size_t index) override;
@@ -88,8 +88,8 @@ public:
   Common::Debug::Threads GetThreads(const Core::CPUThreadGuard& guard) const override;
 
   std::string Disassemble(const Core::CPUThreadGuard* guard, u32 address) const override;
-  std::string GetRawMemoryString(const Core::CPUThreadGuard& guard, int memory,
-                                 u32 address) const override;
+  std::string GetRawMemoryString(
+      const Core::CPUThreadGuard& guard, int memory, u32 address) const override;
   bool IsAlive() const override;
   bool IsBreakpoint(u32 address) const override;
   void AddBreakpoint(u32 address) override;

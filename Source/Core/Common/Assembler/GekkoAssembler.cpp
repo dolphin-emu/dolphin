@@ -22,13 +22,13 @@ namespace
 {
 using namespace Common::GekkoAssembler::detail;
 
-FailureOr<u32> FillInstruction(const MnemonicDesc& desc, const OperandList& operands,
-                               std::string_view inst_line)
+FailureOr<u32> FillInstruction(
+    const MnemonicDesc& desc, const OperandList& operands, std::string_view inst_line)
 {
   // Parser shouldn't allow this to pass
   ASSERT_MSG(COMMON, desc.operand_count == operands.count && !operands.overfill,
-             "Unexpected operand count mismatch for instruction {}. Expected {} but found {}",
-             inst_line, desc.operand_count, operands.overfill ? 6 : operands.count);
+      "Unexpected operand count mismatch for instruction {}. Expected {} but found {}", inst_line,
+      desc.operand_count, operands.overfill ? 6 : operands.count);
 
   u32 instruction = desc.initial_value;
   for (u32 i = 0; i < operands.count; i++)
@@ -42,13 +42,13 @@ FailureOr<u32> FillInstruction(const MnemonicDesc& desc, const OperandList& oper
         if (desc.operand_masks[i].is_signed)
         {
           message = fmt::format("{:#x} not between {:#x} and {:#x}", static_cast<s32>(operands[i]),
-                                static_cast<s32>(desc.operand_masks[i].MinVal()),
-                                static_cast<s32>(desc.operand_masks[i].MaxVal()));
+              static_cast<s32>(desc.operand_masks[i].MinVal()),
+              static_cast<s32>(desc.operand_masks[i].MaxVal()));
         }
         else
         {
           message = fmt::format("{:#x} not between {:#x} and {:#x}", operands[i],
-                                desc.operand_masks[i].MinVal(), desc.operand_masks[i].MaxVal());
+              desc.operand_masks[i].MinVal(), desc.operand_masks[i].MaxVal());
         }
       }
       else
@@ -56,19 +56,18 @@ FailureOr<u32> FillInstruction(const MnemonicDesc& desc, const OperandList& oper
         if (desc.operand_masks[i].is_signed)
         {
           message = fmt::format("{:#x} not between {:#x} and {:#x} or not aligned to {}",
-                                static_cast<s32>(operands[i]),
-                                static_cast<s32>(desc.operand_masks[i].MinVal()),
-                                static_cast<s32>(desc.operand_masks[i].MaxVal()), trunc_bits + 1);
+              static_cast<s32>(operands[i]), static_cast<s32>(desc.operand_masks[i].MinVal()),
+              static_cast<s32>(desc.operand_masks[i].MaxVal()), trunc_bits + 1);
         }
         else
         {
-          message = fmt::format("{:#x} not between {:#x} and {:#x} or not aligned to {}",
-                                operands[i], desc.operand_masks[i].MinVal(),
-                                desc.operand_masks[i].MaxVal(), trunc_bits + 1);
+          message =
+              fmt::format("{:#x} not between {:#x} and {:#x} or not aligned to {}", operands[i],
+                  desc.operand_masks[i].MinVal(), desc.operand_masks[i].MaxVal(), trunc_bits + 1);
         }
       }
-      return AssemblerError{std::move(message), "", 0, TagOf(operands.list[i]).begin,
-                            TagOf(operands.list[i]).len};
+      return AssemblerError{
+          std::move(message), "", 0, TagOf(operands.list[i]).begin, TagOf(operands.list[i]).len};
     }
     instruction |= desc.operand_masks[i].Fit(operands[i]);
   }
@@ -114,8 +113,8 @@ void CodeBlock::PushBigEndian(u32 val)
   instructions.push_back(val & 0xff);
 }
 
-FailureOr<std::vector<CodeBlock>> Assemble(std::string_view instruction,
-                                           u32 current_instruction_address)
+FailureOr<std::vector<CodeBlock>> Assemble(
+    std::string_view instruction, u32 current_instruction_address)
 {
   FailureOr<detail::GekkoIR> parse_result =
       detail::ParseToIR(instruction, current_instruction_address);
@@ -140,7 +139,7 @@ FailureOr<std::vector<CodeBlock>> Assemble(std::string_view instruction,
           OperandList adjusted_ops;
           ASSERT(parsed_inst.op_interval.len <= MAX_OPERANDS);
           adjusted_ops.Copy(operands.begin() + parsed_inst.op_interval.begin,
-                            operands.begin() + parsed_inst.op_interval.End());
+              operands.begin() + parsed_inst.op_interval.End());
 
           size_t idx = parsed_inst.mnemonic_index;
           if (parsed_inst.is_extended)
@@ -165,8 +164,8 @@ FailureOr<std::vector<CodeBlock>> Assemble(std::string_view instruction,
       else if (std::holds_alternative<detail::ByteChunk>(chunk))
       {
         detail::ByteChunk byte_arr = std::get<detail::ByteChunk>(chunk);
-        new_block.instructions.insert(new_block.instructions.end(), byte_arr.begin(),
-                                      byte_arr.end());
+        new_block.instructions.insert(
+            new_block.instructions.end(), byte_arr.begin(), byte_arr.end());
       }
       else if (std::holds_alternative<detail::PadChunk>(chunk))
       {

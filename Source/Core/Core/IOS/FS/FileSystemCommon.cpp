@@ -33,11 +33,11 @@ SplitPathResult SplitPathAndBasename(std::string_view path)
 {
   const auto last_separator = path.rfind('/');
   return {std::string(path.substr(0, std::max<size_t>(1, last_separator))),
-          std::string(path.substr(last_separator + 1))};
+      std::string(path.substr(last_separator + 1))};
 }
 
-std::unique_ptr<FileSystem> MakeFileSystem(Location location,
-                                           std::vector<NandRedirect> nand_redirects)
+std::unique_ptr<FileSystem> MakeFileSystem(
+    Location location, std::vector<NandRedirect> nand_redirects)
 {
   const std::string nand_root =
       File::GetUserPath(location == Location::Session ? D_SESSION_WIIROOT_IDX : D_WIIROOT_IDX);
@@ -92,8 +92,8 @@ Result<FileStatus> FileHandle::GetStatus() const
   return m_fs->GetFileStatus(*m_fd);
 }
 
-Result<FileHandle> FileSystem::CreateAndOpenFile(Uid uid, Gid gid, const std::string& path,
-                                                 Modes modes)
+Result<FileHandle> FileSystem::CreateAndOpenFile(
+    Uid uid, Gid gid, const std::string& path, Modes modes)
 {
   if (Result<FileHandle> file = OpenFile(uid, gid, path, Mode::ReadWrite))
     return file;
@@ -105,8 +105,8 @@ Result<FileHandle> FileSystem::CreateAndOpenFile(Uid uid, Gid gid, const std::st
   return OpenFile(uid, gid, path, Mode::ReadWrite);
 }
 
-ResultCode FileSystem::CreateFullPath(Uid uid, Gid gid, const std::string& path,
-                                      FileAttribute attribute, Modes modes)
+ResultCode FileSystem::CreateFullPath(
+    Uid uid, Gid gid, const std::string& path, FileAttribute attribute, Modes modes)
 {
   std::string::size_type position = 1;
   while (true)

@@ -33,7 +33,9 @@ public:
   }
 
   RelativeMouseAxis(u8 index, bool positive, const RelativeMouseState* state)
-      : m_state(*state), m_index(index), m_scale(positive * 2 - 1)
+      : m_state(*state)
+      , m_index(index)
+      , m_scale(positive * 2 - 1)
   {
   }
 
@@ -118,9 +120,12 @@ KeyboardMouse::~KeyboardMouse()
   m_mo_device->Release();
 }
 
-KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
-                             const LPDIRECTINPUTDEVICE8 mo_device)
-    : m_kb_device(kb_device), m_mo_device(mo_device), m_last_update(GetTickCount()), m_state_in()
+KeyboardMouse::KeyboardMouse(
+    const LPDIRECTINPUTDEVICE8 kb_device, const LPDIRECTINPUTDEVICE8 mo_device)
+    : m_kb_device(kb_device)
+    , m_mo_device(mo_device)
+    , m_last_update(GetTickCount())
+    , m_state_in()
 {
   s_keyboard_mouse_exists = true;
 

@@ -38,8 +38,11 @@ struct Message
 {
   Message() = default;
   Message(std::string text_, u32 duration_, u32 color_,
-          const VideoCommon::CustomTextureData::ArraySlice::Level* icon_ = nullptr)
-      : text(std::move(text_)), duration(duration_), color(color_), icon(icon_)
+      const VideoCommon::CustomTextureData::ArraySlice::Level* icon_ = nullptr)
+      : text(std::move(text_))
+      , duration(duration_)
+      , color(color_)
+      , icon(icon_)
   {
     timer.Start();
   }
@@ -59,9 +62,9 @@ static std::mutex s_messages_mutex;
 static ImVec4 ARGBToImVec4(const u32 argb)
 {
   return ImVec4(static_cast<float>((argb >> 16) & 0xFF) / 255.0f,
-                static_cast<float>((argb >> 8) & 0xFF) / 255.0f,
-                static_cast<float>((argb >> 0) & 0xFF) / 255.0f,
-                static_cast<float>((argb >> 24) & 0xFF) / 255.0f);
+      static_cast<float>((argb >> 8) & 0xFF) / 255.0f,
+      static_cast<float>((argb >> 0) & 0xFF) / 255.0f,
+      static_cast<float>((argb >> 24) & 0xFF) / 255.0f);
 }
 
 static float DrawMessage(int index, Message& msg, const ImVec2& position, int time_left)
@@ -81,10 +84,10 @@ static float DrawMessage(int index, Message& msg, const ImVec2& position, int ti
 
   float window_height = 0.0f;
   if (ImGui::Begin(window_name.c_str(), nullptr,
-                   ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
-                       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-                       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
-                       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
+          ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMove |
+              ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar |
+              ImGuiWindowFlags_NoNav | ImGuiWindowFlags_AlwaysAutoResize |
+              ImGuiWindowFlags_NoFocusOnAppearing))
   {
     if (msg.icon)
     {
@@ -93,12 +96,12 @@ static float DrawMessage(int index, Message& msg, const ImVec2& position, int ti
         const u32 width = msg.icon->width;
         const u32 height = msg.icon->height;
         TextureConfig tex_config(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0,
-                                 AbstractTextureType::Texture_2DArray);
+            AbstractTextureType::Texture_2DArray);
         msg.texture = g_gfx->CreateTexture(tex_config);
         if (msg.texture)
         {
-          msg.texture->Load(0, width, height, width, msg.icon->data.data(),
-                            sizeof(u32) * width * height);
+          msg.texture->Load(
+              0, width, height, width, msg.icon->data.data(), sizeof(u32) * width * height);
         }
         else
         {
@@ -109,8 +112,8 @@ static float DrawMessage(int index, Message& msg, const ImVec2& position, int ti
 
       if (msg.texture)
       {
-        ImGui::Image(*msg.texture.get(), ImVec2(static_cast<float>(msg.icon->width),
-                                                static_cast<float>(msg.icon->height)));
+        ImGui::Image(*msg.texture.get(),
+            ImVec2(static_cast<float>(msg.icon->width), static_cast<float>(msg.icon->height)));
         ImGui::SameLine();
       }
     }
@@ -131,7 +134,7 @@ static float DrawMessage(int index, Message& msg, const ImVec2& position, int ti
 }
 
 void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb,
-                     const VideoCommon::CustomTextureData::ArraySlice::Level* icon)
+    const VideoCommon::CustomTextureData::ArraySlice::Level* icon)
 {
   std::lock_guard lock{s_messages_mutex};
 
@@ -146,7 +149,7 @@ void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb,
 }
 
 void AddMessage(std::string message, u32 ms, u32 argb,
-                const VideoCommon::CustomTextureData::ArraySlice::Level* icon)
+    const VideoCommon::CustomTextureData::ArraySlice::Level* icon)
 {
   std::lock_guard lock{s_messages_mutex};
   s_messages.emplace(MessageType::Typeless, Message(std::move(message), ms, argb, std::move(icon)));

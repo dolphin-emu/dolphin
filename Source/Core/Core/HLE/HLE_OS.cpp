@@ -31,8 +31,7 @@ enum class ParameterType : bool
 };
 
 static std::string GetStringVA(Core::System& system, const Core::CPUThreadGuard& guard,
-                               u32 str_reg = 3,
-                               ParameterType parameter_type = ParameterType::ParameterList);
+    u32 str_reg = 3, ParameterType parameter_type = ParameterType::ParameterList);
 
 void HLE_OSPanic(const Core::CPUThreadGuard& guard)
 {
@@ -46,8 +45,8 @@ void HLE_OSPanic(const Core::CPUThreadGuard& guard)
   StringPopBackIf(&msg, '\n');
 
   PanicAlertFmt("OSPanic: {}: {}", error, msg);
-  ERROR_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| OSPanic: {}: {}", LR(ppc_state), ppc_state.pc, error,
-                msg);
+  ERROR_LOG_FMT(
+      OSREPORT_HLE, "{:08x}->{:08x}| OSPanic: {}: {}", LR(ppc_state), ppc_state.pc, error, msg);
 
   ppc_state.npc = LR(ppc_state);
 }
@@ -63,7 +62,7 @@ static void HLE_GeneralDebugPrint(const Core::CPUThreadGuard& guard, ParameterTy
   // Is gpr3 pointing to a pointer (including nullptr) rather than an ASCII string
   if (PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[3]) &&
       (PowerPC::MMU::HostIsRAMAddress(guard, PowerPC::MMU::HostRead_U32(guard, ppc_state.gpr[3])) ||
-       PowerPC::MMU::HostRead_U32(guard, ppc_state.gpr[3]) == 0))
+          PowerPC::MMU::HostRead_U32(guard, ppc_state.gpr[3]) == 0))
   {
     if (PowerPC::MMU::HostIsRAMAddress(guard, ppc_state.gpr[4]))
     {
@@ -93,7 +92,7 @@ static void HLE_GeneralDebugPrint(const Core::CPUThreadGuard& guard, ParameterTy
   StringPopBackIf(&report_message, '\n');
 
   NOTICE_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| {}", LR(ppc_state), ppc_state.pc,
-                 SHIFTJISToUTF8(report_message));
+      SHIFTJISToUTF8(report_message));
 }
 
 // Generalized function for printing formatted string using parameter list.
@@ -133,7 +132,7 @@ void HLE_write_console(const Core::CPUThreadGuard& guard)
   StringPopBackIf(&report_message, '\n');
 
   NOTICE_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| {}", LR(ppc_state), ppc_state.pc,
-                 SHIFTJISToUTF8(report_message));
+      SHIFTJISToUTF8(report_message));
 }
 
 // Log (v)dprintf message if fd is 1 (stdout) or 2 (stderr)
@@ -148,7 +147,7 @@ static void HLE_LogDPrint(const Core::CPUThreadGuard& guard, ParameterType param
   std::string report_message = GetStringVA(system, guard, 4, parameter_type);
   StringPopBackIf(&report_message, '\n');
   NOTICE_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| {}", LR(ppc_state), ppc_state.pc,
-                 SHIFTJISToUTF8(report_message));
+      SHIFTJISToUTF8(report_message));
 }
 
 // Log dprintf message
@@ -191,7 +190,7 @@ static void HLE_LogFPrint(const Core::CPUThreadGuard& guard, ParameterType param
   std::string report_message = GetStringVA(system, guard, 4, parameter_type);
   StringPopBackIf(&report_message, '\n');
   NOTICE_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| {}", LR(ppc_state), ppc_state.pc,
-                 SHIFTJISToUTF8(report_message));
+      SHIFTJISToUTF8(report_message));
 }
 
 // Log fprintf message
@@ -214,7 +213,8 @@ class HLEPrintArgsVAList final : public HLEPrintArgs
 {
 public:
   HLEPrintArgsVAList(const Core::CPUThreadGuard& guard, HLE::SystemVABI::VAList* list)
-      : m_guard(guard), m_va_list(list)
+      : m_guard(guard)
+      , m_va_list(list)
   {
   }
 
@@ -224,14 +224,14 @@ public:
   std::string GetString(std::optional<u32> max_length) override
   {
     return max_length == 0u ? std::string() :
-                              PowerPC::MMU::HostGetString(m_guard, m_va_list->GetArgT<u32>(),
-                                                          max_length.value_or(0u));
+                              PowerPC::MMU::HostGetString(
+                                  m_guard, m_va_list->GetArgT<u32>(), max_length.value_or(0u));
   }
   std::u16string GetU16String(std::optional<u32> max_length) override
   {
     return max_length == 0u ? std::u16string() :
-                              PowerPC::MMU::HostGetU16String(m_guard, m_va_list->GetArgT<u32>(),
-                                                             max_length.value_or(0u));
+                              PowerPC::MMU::HostGetU16String(
+                                  m_guard, m_va_list->GetArgT<u32>(), max_length.value_or(0u));
   }
 
 private:
@@ -241,7 +241,7 @@ private:
 }  // namespace
 
 static std::string GetStringVA(Core::System& system, const Core::CPUThreadGuard& guard, u32 str_reg,
-                               ParameterType parameter_type)
+    ParameterType parameter_type)
 {
   auto& ppc_state = system.GetPPCState();
 
@@ -296,7 +296,8 @@ std::string GetStringVA(HLEPrintArgs* args, std::string_view string)
       ++i;
     }
 
-    const auto take_field_or_precision = [&](bool* left_justified_flag_ptr) -> std::optional<u32> {
+    const auto take_field_or_precision = [&](bool* left_justified_flag_ptr) -> std::optional<u32>
+    {
       if (i >= string.size())
         return std::nullopt;
 
@@ -401,15 +402,15 @@ std::string GetStringVA(HLEPrintArgs* args, std::string_view string)
         // that's really just a guess. Ideally we can figure out a way to autodetect this, but if
         // not we should probably just expose a setting for it in the debugger somewhere. For now
         // we just assume 16 bits.
-        fmt::format_to(
-            std::back_inserter(result), fmt::runtime(left_justified_flag ? "{0:<{1}}" : "{0:>{1}}"),
+        fmt::format_to(std::back_inserter(result),
+            fmt::runtime(left_justified_flag ? "{0:<{1}}" : "{0:>{1}}"),
             UTF8ToSHIFTJIS(UTF16ToUTF8(args->GetU16String(precision))), field_width.value_or(0));
       }
       else
       {
         fmt::format_to(std::back_inserter(result),
-                       fmt::runtime(left_justified_flag ? "{0:<{1}}" : "{0:>{1}}"),
-                       args->GetString(precision), field_width.value_or(0));
+            fmt::runtime(left_justified_flag ? "{0:<{1}}" : "{0:>{1}}"), args->GetString(precision),
+            field_width.value_or(0));
       }
       break;
     }
@@ -421,25 +422,24 @@ std::string GetStringVA(HLEPrintArgs* args, std::string_view string)
         // Same problem as with wide strings here.
         const char16_t wide_char = static_cast<char16_t>(value);
         fmt::format_to(std::back_inserter(result),
-                       fmt::runtime(left_justified_flag ? "{0:<{1}}" : "{0:>{1}}"),
-                       UTF8ToSHIFTJIS(UTF16ToUTF8(std::u16string_view(&wide_char, 1))),
-                       field_width.value_or(0));
+            fmt::runtime(left_justified_flag ? "{0:<{1}}" : "{0:>{1}}"),
+            UTF8ToSHIFTJIS(UTF16ToUTF8(std::u16string_view(&wide_char, 1))),
+            field_width.value_or(0));
       }
       else
       {
         fmt::format_to(std::back_inserter(result),
-                       fmt::runtime(left_justified_flag ? "{0:<{1}}" : "{0:>{1}}"),
-                       static_cast<char>(value), field_width.value_or(0));
+            fmt::runtime(left_justified_flag ? "{0:<{1}}" : "{0:>{1}}"), static_cast<char>(value),
+            field_width.value_or(0));
       }
       break;
     }
     case 'd':
     case 'i':
     {
-      const auto options = fmt::format(
-          "{}{}{}{}{}{}", left_justified_flag ? "-" : "", sign_prepended_flag ? "+" : "",
-          space_prepended_flag ? " " : "", padding_zeroes_flag ? "0" : "",
-          field_width ? fmt::format("{}", *field_width) : "",
+      const auto options = fmt::format("{}{}{}{}{}{}", left_justified_flag ? "-" : "",
+          sign_prepended_flag ? "+" : "", space_prepended_flag ? " " : "",
+          padding_zeroes_flag ? "0" : "", field_width ? fmt::format("{}", *field_width) : "",
           precision ? fmt::format(".{}", *precision) : "");
       if (length_modifier == LengthModifier::ll)
       {
@@ -459,10 +459,10 @@ std::string GetStringVA(HLEPrintArgs* args, std::string_view string)
     }
     case 'o':
     {
-      const auto options = fmt::format(
-          "{}{}{}{}{}{}{}", left_justified_flag ? "-" : "", sign_prepended_flag ? "+" : "",
-          space_prepended_flag ? " " : "", alternative_form_flag ? "#" : "",
-          padding_zeroes_flag ? "0" : "", field_width ? fmt::format("{}", *field_width) : "",
+      const auto options = fmt::format("{}{}{}{}{}{}{}", left_justified_flag ? "-" : "",
+          sign_prepended_flag ? "+" : "", space_prepended_flag ? " " : "",
+          alternative_form_flag ? "#" : "", padding_zeroes_flag ? "0" : "",
+          field_width ? fmt::format("{}", *field_width) : "",
           precision ? fmt::format(".{}", *precision) : "");
       if (length_modifier == LengthModifier::ll)
       {
@@ -483,10 +483,10 @@ std::string GetStringVA(HLEPrintArgs* args, std::string_view string)
     case 'x':
     case 'X':
     {
-      const auto options = fmt::format(
-          "{}{}{}{}{}{}{}", left_justified_flag ? "-" : "", sign_prepended_flag ? "+" : "",
-          space_prepended_flag ? " " : "", alternative_form_flag ? "#" : "",
-          padding_zeroes_flag ? "0" : "", field_width ? fmt::format("{}", *field_width) : "",
+      const auto options = fmt::format("{}{}{}{}{}{}{}", left_justified_flag ? "-" : "",
+          sign_prepended_flag ? "+" : "", space_prepended_flag ? " " : "",
+          alternative_form_flag ? "#" : "", padding_zeroes_flag ? "0" : "",
+          field_width ? fmt::format("{}", *field_width) : "",
           precision ? fmt::format(".{}", *precision) : "");
       if (length_modifier == LengthModifier::ll)
       {
@@ -510,10 +510,9 @@ std::string GetStringVA(HLEPrintArgs* args, std::string_view string)
     }
     case 'u':
     {
-      const auto options = fmt::format(
-          "{}{}{}{}{}{}", left_justified_flag ? "-" : "", sign_prepended_flag ? "+" : "",
-          space_prepended_flag ? " " : "", padding_zeroes_flag ? "0" : "",
-          field_width ? fmt::format("{}", *field_width) : "",
+      const auto options = fmt::format("{}{}{}{}{}{}", left_justified_flag ? "-" : "",
+          sign_prepended_flag ? "+" : "", space_prepended_flag ? " " : "",
+          padding_zeroes_flag ? "0" : "", field_width ? fmt::format("{}", *field_width) : "",
           precision ? fmt::format(".{}", *precision) : "");
       if (length_modifier == LengthModifier::ll)
       {
@@ -540,10 +539,10 @@ std::string GetStringVA(HLEPrintArgs* args, std::string_view string)
     case 'g':
     case 'G':
     {
-      const auto options = fmt::format(
-          "{}{}{}{}{}{}{}", left_justified_flag ? "-" : "", sign_prepended_flag ? "+" : "",
-          space_prepended_flag ? " " : "", alternative_form_flag ? "#" : "",
-          padding_zeroes_flag ? "0" : "", field_width ? fmt::format("{}", *field_width) : "",
+      const auto options = fmt::format("{}{}{}{}{}{}{}", left_justified_flag ? "-" : "",
+          sign_prepended_flag ? "+" : "", space_prepended_flag ? " " : "",
+          alternative_form_flag ? "#" : "", padding_zeroes_flag ? "0" : "",
+          field_width ? fmt::format("{}", *field_width) : "",
           precision ? fmt::format(".{}", *precision) : "");
       double value = args->GetF64();
       result += fmt::sprintf(fmt::format("%{}{}", options, format_specifier).c_str(), value);
@@ -555,10 +554,9 @@ std::string GetStringVA(HLEPrintArgs* args, std::string_view string)
       break;
     case 'p':
     {
-      const auto options =
-          fmt::format("{}{}{}{}{}", left_justified_flag ? "-" : "", sign_prepended_flag ? "+" : "",
-                      space_prepended_flag ? " " : "", padding_zeroes_flag ? "0" : "",
-                      field_width ? fmt::format("{}", *field_width) : "");
+      const auto options = fmt::format("{}{}{}{}{}", left_justified_flag ? "-" : "",
+          sign_prepended_flag ? "+" : "", space_prepended_flag ? " " : "",
+          padding_zeroes_flag ? "0" : "", field_width ? fmt::format("{}", *field_width) : "");
       const u32 value = args->GetU32();
       result += fmt::sprintf(fmt::format("%{}" PRIx32, options).c_str(), value);
       break;

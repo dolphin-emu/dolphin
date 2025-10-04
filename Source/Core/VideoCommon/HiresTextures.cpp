@@ -55,7 +55,7 @@ std::pair<std::string, bool> GetNameArbPair(const TextureInfo& texture_info)
   // Single wildcard ignoring the tlut hash
   const std::string texture_name_single_wildcard_tlut =
       fmt::format("{}_{}_$_{}", texture_name_details.base_name, texture_name_details.texture_name,
-                  texture_name_details.format_name);
+          texture_name_details.format_name);
   if (auto iter = s_hires_texture_id_to_arbmipmap.find(texture_name_single_wildcard_tlut);
       iter != s_hires_texture_id_to_arbmipmap.end())
   {
@@ -65,7 +65,7 @@ std::pair<std::string, bool> GetNameArbPair(const TextureInfo& texture_info)
   // Single wildcard ignoring the texture hash
   const std::string texture_name_single_wildcard_tex =
       fmt::format("{}_${}_{}", texture_name_details.base_name, texture_name_details.tlut_name,
-                  texture_name_details.format_name);
+          texture_name_details.format_name);
   if (auto iter = s_hires_texture_id_to_arbmipmap.find(texture_name_single_wildcard_tex);
       iter != s_hires_texture_id_to_arbmipmap.end())
   {
@@ -125,8 +125,8 @@ void HiresTexture::Update()
         {
           // Since this is just a texture (single file) the mapper doesn't really matter
           // just provide a string
-          s_file_library->SetAssetIDMapData(filename, std::map<std::string, std::filesystem::path>{
-                                                          {"texture", StringToPath(path)}});
+          s_file_library->SetAssetIDMapData(filename,
+              std::map<std::string, std::filesystem::path>{{"texture", StringToPath(path)}});
 
           if (g_ActiveConfig.bCacheHiresTextures)
           {
@@ -141,15 +141,15 @@ void HiresTexture::Update()
 
     if (failed_insert)
     {
-      ERROR_LOG_FMT(VIDEO, "One or more textures at path '{}' were already inserted",
-                    texture_directory);
+      ERROR_LOG_FMT(
+          VIDEO, "One or more textures at path '{}' were already inserted", texture_directory);
     }
   }
 
   if (g_ActiveConfig.bCacheHiresTextures)
   {
-    OSD::AddMessage(fmt::format("Loading '{}' custom textures", s_hires_texture_cache.size()),
-                    10000);
+    OSD::AddMessage(
+        fmt::format("Loading '{}' custom textures", s_hires_texture_cache.size()), 10000);
   }
   else
   {
@@ -187,7 +187,8 @@ std::shared_ptr<HiresTexture> HiresTexture::Search(const TextureInfo& texture_in
 }
 
 HiresTexture::HiresTexture(bool has_arbitrary_mipmaps, std::string id)
-    : m_has_arbitrary_mipmaps(has_arbitrary_mipmaps), m_id(std::move(id))
+    : m_has_arbitrary_mipmaps(has_arbitrary_mipmaps)
+    , m_id(std::move(id))
 {
 }
 
@@ -198,8 +199,8 @@ VideoCommon::CustomResourceManager::TextureTimePair HiresTexture::LoadTexture() 
   return custom_resource_manager.GetTextureDataFromAsset(m_id, s_file_library);
 }
 
-std::set<std::string> GetTextureDirectoriesWithGameId(const std::string& root_directory,
-                                                      const std::string& game_id)
+std::set<std::string> GetTextureDirectoriesWithGameId(
+    const std::string& root_directory, const std::string& game_id)
 {
   std::set<std::string> result;
   const std::string texture_directory = root_directory + game_id;
@@ -219,7 +220,8 @@ std::set<std::string> GetTextureDirectoriesWithGameId(const std::string& root_di
     }
   }
 
-  const auto match_gameid_or_all = [game_id](const std::string& filename) {
+  const auto match_gameid_or_all = [game_id](const std::string& filename)
+  {
     std::string basename;
     SplitPath(filename, nullptr, &basename, nullptr);
     return basename == game_id || basename == game_id.substr(0, 3) || basename == "all";

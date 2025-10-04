@@ -418,7 +418,8 @@ void SDSP::DoState(PointerWrap& p)
 }
 
 DSPCore::DSPCore()
-    : m_dsp{*this}, m_dsp_interpreter{std::make_unique<Interpreter::Interpreter>(*this)}
+    : m_dsp{*this}
+    , m_dsp_interpreter{std::make_unique<Interpreter::Interpreter>(*this)}
 {
 }
 

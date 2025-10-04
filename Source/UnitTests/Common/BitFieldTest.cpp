@@ -166,8 +166,8 @@ TEST(BitField, Alignment)
 
   alignas(16) OddlyAlignedTestStruct test_struct;
   TestUnion& object = test_struct.obj;
-  static_assert(alignof(decltype(test_struct.obj.signed_1bit)) == 1,
-                "Incorrect variable alignment");
+  static_assert(
+      alignof(decltype(test_struct.obj.signed_1bit)) == 1, "Incorrect variable alignment");
 
   for (u64 val : table)
   {
@@ -219,13 +219,13 @@ TEST(BitField, Fmt)
     EXPECT_EQ(fmt::to_string(object.full_u64), fmt::to_string(object.full_u64.Value()));
     EXPECT_EQ(fmt::to_string(object.full_s64), fmt::to_string(object.full_s64.Value()));
     EXPECT_EQ(fmt::to_string(object.regular_field_unsigned),
-              fmt::to_string(object.regular_field_unsigned.Value()));
+        fmt::to_string(object.regular_field_unsigned.Value()));
     EXPECT_EQ(fmt::to_string(object.regular_field_unsigned2),
-              fmt::to_string(object.regular_field_unsigned2.Value()));
+        fmt::to_string(object.regular_field_unsigned2.Value()));
     EXPECT_EQ(fmt::to_string(object.regular_field_signed),
-              fmt::to_string(object.regular_field_signed.Value()));
-    EXPECT_EQ(fmt::to_string(object.at_dword_boundary),
-              fmt::to_string(object.at_dword_boundary.Value()));
+        fmt::to_string(object.regular_field_signed.Value()));
+    EXPECT_EQ(
+        fmt::to_string(object.at_dword_boundary), fmt::to_string(object.at_dword_boundary.Value()));
     EXPECT_EQ(fmt::to_string(object.signed_1bit), fmt::to_string(object.signed_1bit.Value()));
     EXPECT_EQ(fmt::to_string(object.flag), fmt::to_string(object.flag.Value()));
     // The custom enum formatter should be used properly.
@@ -233,20 +233,20 @@ TEST(BitField, Fmt)
     EXPECT_EQ(fmt::to_string(object.enum_2), fmt::to_string(object.enum_2.Value()));
 
     // Formatting the BitField should respect the format spec
-    EXPECT_EQ(fmt::format("{:02x}", object.full_u64),
-              fmt::format("{:02x}", object.full_u64.Value()));
-    EXPECT_EQ(fmt::format("{:02x}", object.full_s64),
-              fmt::format("{:02x}", object.full_s64.Value()));
+    EXPECT_EQ(
+        fmt::format("{:02x}", object.full_u64), fmt::format("{:02x}", object.full_u64.Value()));
+    EXPECT_EQ(
+        fmt::format("{:02x}", object.full_s64), fmt::format("{:02x}", object.full_s64.Value()));
     EXPECT_EQ(fmt::format("{:02x}", object.regular_field_unsigned),
-              fmt::format("{:02x}", object.regular_field_unsigned.Value()));
+        fmt::format("{:02x}", object.regular_field_unsigned.Value()));
     EXPECT_EQ(fmt::format("{:02x}", object.regular_field_unsigned2),
-              fmt::format("{:02x}", object.regular_field_unsigned2.Value()));
+        fmt::format("{:02x}", object.regular_field_unsigned2.Value()));
     EXPECT_EQ(fmt::format("{:02x}", object.regular_field_signed),
-              fmt::format("{:02x}", object.regular_field_signed.Value()));
+        fmt::format("{:02x}", object.regular_field_signed.Value()));
     EXPECT_EQ(fmt::format("{:02x}", object.at_dword_boundary),
-              fmt::format("{:02x}", object.at_dword_boundary.Value()));
+        fmt::format("{:02x}", object.at_dword_boundary.Value()));
     EXPECT_EQ(fmt::format("{:02x}", object.signed_1bit),
-              fmt::format("{:02x}", object.signed_1bit.Value()));
+        fmt::format("{:02x}", object.signed_1bit.Value()));
     EXPECT_EQ(fmt::format("{:02x}", object.flag), fmt::format("{:02x}", object.flag.Value()));
     EXPECT_EQ(fmt::format("{:s}", object.enum_1), fmt::format("{:s}", object.enum_1.Value()));
     EXPECT_EQ(fmt::format("{:s}", object.enum_2), fmt::format("{:s}", object.enum_2.Value()));
@@ -481,7 +481,7 @@ TEST(BitFieldArray, Enum)
 
   EXPECT_EQ("[A (0), B (1), C (2), D (3)]", fmt::format("[{}]", fmt::join(object.arr, ", ")));
   EXPECT_EQ("[0x0u /* A */, 0x1u /* B */, 0x2u /* C */, 0x3u /* D */]",
-            fmt::format("[{:s}]", fmt::join(object.arr, ", ")));
+      fmt::format("[{:s}]", fmt::join(object.arr, ", ")));
 }
 
 union TestUnion5

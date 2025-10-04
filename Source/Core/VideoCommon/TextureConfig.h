@@ -53,9 +53,15 @@ struct TextureConfig
 {
   constexpr TextureConfig() = default;
   constexpr TextureConfig(u32 width_, u32 height_, u32 levels_, u32 layers_, u32 samples_,
-                          AbstractTextureFormat format_, u32 flags_, AbstractTextureType type_)
-      : width(width_), height(height_), levels(levels_), layers(layers_), samples(samples_),
-        format(format_), flags(flags_), type(type_)
+      AbstractTextureFormat format_, u32 flags_, AbstractTextureType type_)
+      : width(width_)
+      , height(height_)
+      , levels(levels_)
+      , layers(layers_)
+      , samples(samples_)
+      , format(format_)
+      , flags(flags_)
+      , type(type_)
   {
   }
 

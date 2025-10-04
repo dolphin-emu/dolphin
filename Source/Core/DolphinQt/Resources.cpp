@@ -31,7 +31,8 @@ QIcon Resources::LoadNamedIcon(std::string_view name, const QString& dir)
 
   QIcon icon;
 
-  auto load_png = [&](int scale) {
+  auto load_png = [&](int scale)
+  {
     QString suffix = QStringLiteral(".png");
     if (scale > 1)
       suffix = QString::fromLatin1("@%1x.png").arg(scale);
@@ -80,15 +81,14 @@ void Resources::Init()
   m_svg_supported = QImageReader::supportedImageFormats().contains("svg");
 
   for (std::string_view platform :
-       {"Platform_Gamecube", "Platform_Triforce", "Platform_Wii", "Platform_Wad", "Platform_File"})
+      {"Platform_Gamecube", "Platform_Triforce", "Platform_Wii", "Platform_Wad", "Platform_File"})
   {
     m_platforms.append(GetResourceIcon(platform));
   }
 
-  for (std::string_view country :
-       {"Flag_Europe", "Flag_Japan", "Flag_USA", "Flag_Australia", "Flag_France", "Flag_Germany",
-        "Flag_Italy", "Flag_Korea", "Flag_Netherlands", "Flag_Russia", "Flag_Spain", "Flag_Taiwan",
-        "Flag_International", "Flag_Unknown"})
+  for (std::string_view country : {"Flag_Europe", "Flag_Japan", "Flag_USA", "Flag_Australia",
+           "Flag_France", "Flag_Germany", "Flag_Italy", "Flag_Korea", "Flag_Netherlands",
+           "Flag_Russia", "Flag_Spain", "Flag_Taiwan", "Flag_International", "Flag_Unknown"})
   {
     m_countries.append(GetResourceIcon(country));
   }

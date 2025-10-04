@@ -26,8 +26,8 @@ private:
   Gen::FixupBranch m_skip_vertex;
   Gen::OpArg GetVertexAddr(CPArray array, VertexComponentFormat attribute);
   void ReadVertex(Gen::OpArg data, VertexComponentFormat attribute, ComponentFormat format,
-                  int count_in, int count_out, bool dequantize, u8 scaling_exponent,
-                  AttributeFormat* native_format);
+      int count_in, int count_out, bool dequantize, u8 scaling_exponent,
+      AttributeFormat* native_format);
   void ReadColor(Gen::OpArg data, VertexComponentFormat attribute, ColorFormat format);
   void GenerateVertexLoader();
 };

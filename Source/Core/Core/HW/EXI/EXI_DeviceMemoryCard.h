@@ -44,8 +44,8 @@ enum class AllowMovieFolder
 class CEXIMemoryCard : public IEXIDevice
 {
 public:
-  CEXIMemoryCard(Core::System& system, Slot slot, bool gci_folder,
-                 const Memcard::HeaderData& header_data);
+  CEXIMemoryCard(
+      Core::System& system, Slot slot, bool gci_folder, const Memcard::HeaderData& header_data);
   ~CEXIMemoryCard() override;
   void SetCS(int cs) override;
   bool IsInterruptSet() override;
@@ -61,14 +61,14 @@ public:
   static void Init(CoreTiming::CoreTimingManager& core_timing);
   static void Shutdown();
 
-  static std::pair<std::string /* path */, bool /* migrate */>
-  GetGCIFolderPath(Slot card_slot, AllowMovieFolder allow_movie_folder, Movie::MovieManager& movie);
+  static std::pair<std::string /* path */, bool /* migrate */> GetGCIFolderPath(
+      Slot card_slot, AllowMovieFolder allow_movie_folder, Movie::MovieManager& movie);
 
 private:
   void SetupGciFolder(const Memcard::HeaderData& header_data);
   void SetupRawMemcard(u16 size_mb);
-  static void EventCompleteFindInstance(Core::System& system, u64 userdata,
-                                        std::function<void(CEXIMemoryCard*)> callback);
+  static void EventCompleteFindInstance(
+      Core::System& system, u64 userdata, std::function<void(CEXIMemoryCard*)> callback);
 
   // Scheduled when a command that required delayed end signaling is done.
   static void CmdDoneCallback(Core::System& system, u64 userdata, s64 cyclesLate);

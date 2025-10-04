@@ -21,10 +21,9 @@ WiiEncryptionCache::WiiEncryptionCache(BlobReader* blob) : m_blob(blob)
 
 WiiEncryptionCache::~WiiEncryptionCache() = default;
 
-const std::array<u8, VolumeWii::GROUP_TOTAL_SIZE>*
-WiiEncryptionCache::EncryptGroup(u64 offset, u64 partition_data_offset,
-                                 u64 partition_data_decrypted_size, const Key& key,
-                                 const HashExceptionCallback& hash_exception_callback)
+const std::array<u8, VolumeWii::GROUP_TOTAL_SIZE>* WiiEncryptionCache::EncryptGroup(u64 offset,
+    u64 partition_data_offset, u64 partition_data_decrypted_size, const Key& key,
+    const HashExceptionCallback& hash_exception_callback)
 {
   // Only allocate memory if this function actually ends up getting called
   if (!m_cache)
@@ -44,16 +43,13 @@ WiiEncryptionCache::EncryptGroup(u64 offset, u64 partition_data_offset,
 
     if (hash_exception_callback)
     {
-      hash_exception_callback_2 =
-          [offset, &hash_exception_callback](
-              VolumeWii::HashBlock hash_blocks[VolumeWii::BLOCKS_PER_GROUP]) {
-            return hash_exception_callback(hash_blocks, offset);
-          };
+      hash_exception_callback_2 = [offset, &hash_exception_callback](
+                                      VolumeWii::HashBlock hash_blocks[VolumeWii::BLOCKS_PER_GROUP])
+      { return hash_exception_callback(hash_blocks, offset); };
     }
 
     if (!VolumeWii::EncryptGroup(group_offset_in_partition, partition_data_offset,
-                                 partition_data_decrypted_size, key, m_blob, m_cache.get(),
-                                 hash_exception_callback_2))
+            partition_data_decrypted_size, key, m_blob, m_cache.get(), hash_exception_callback_2))
     {
       m_cached_offset = std::numeric_limits<u64>::max();  // Invalidate the cache
       return nullptr;
@@ -66,14 +62,14 @@ WiiEncryptionCache::EncryptGroup(u64 offset, u64 partition_data_offset,
 }
 
 bool WiiEncryptionCache::EncryptGroups(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset,
-                                       u64 partition_data_decrypted_size, const Key& key,
-                                       const HashExceptionCallback& hash_exception_callback)
+    u64 partition_data_decrypted_size, const Key& key,
+    const HashExceptionCallback& hash_exception_callback)
 {
   while (size > 0)
   {
     const std::array<u8, VolumeWii::GROUP_TOTAL_SIZE>* group =
         EncryptGroup(Common::AlignDown(offset, VolumeWii::GROUP_TOTAL_SIZE), partition_data_offset,
-                     partition_data_decrypted_size, key, hash_exception_callback);
+            partition_data_decrypted_size, key, hash_exception_callback);
 
     if (!group)
       return false;

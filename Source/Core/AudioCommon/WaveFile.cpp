@@ -117,8 +117,8 @@ void WaveFileWriter::Write4(const char* ptr)
   m_file.WriteBytes(ptr, 4);
 }
 
-void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count,
-                                        u32 sample_rate_divisor, int l_volume, int r_volume)
+void WaveFileWriter::AddStereoSamplesBE(
+    const short* sample_data, u32 count, u32 sample_rate_divisor, int l_volume, int r_volume)
 {
   if (!m_file)
   {

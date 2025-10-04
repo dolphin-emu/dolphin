@@ -113,29 +113,21 @@
 typedef void(APIENTRYP PFNDOLACTIVETEXTUREPROC)(GLenum texture);
 typedef void(APIENTRYP PFNDOLSAMPLECOVERAGEPROC)(GLclampf value, GLboolean invert);
 typedef void(APIENTRYP PFNDOLCOMPRESSEDTEXIMAGE3DPROC)(GLenum target, GLint level,
-                                                       GLenum internalformat, GLsizei width,
-                                                       GLsizei height, GLsizei depth, GLint border,
-                                                       GLsizei imageSize, const GLvoid* data);
+    GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border,
+    GLsizei imageSize, const GLvoid* data);
 typedef void(APIENTRYP PFNDOLCOMPRESSEDTEXIMAGE2DPROC)(GLenum target, GLint level,
-                                                       GLenum internalformat, GLsizei width,
-                                                       GLsizei height, GLint border,
-                                                       GLsizei imageSize, const GLvoid* data);
+    GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize,
+    const GLvoid* data);
 typedef void(APIENTRYP PFNDOLCOMPRESSEDTEXIMAGE1DPROC)(GLenum target, GLint level,
-                                                       GLenum internalformat, GLsizei width,
-                                                       GLint border, GLsizei imageSize,
-                                                       const GLvoid* data);
+    GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const GLvoid* data);
 typedef void(APIENTRYP PFNDOLCOMPRESSEDTEXSUBIMAGE3DPROC)(GLenum target, GLint level, GLint xoffset,
-                                                          GLint yoffset, GLint zoffset,
-                                                          GLsizei width, GLsizei height,
-                                                          GLsizei depth, GLenum format,
-                                                          GLsizei imageSize, const GLvoid* data);
+    GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format,
+    GLsizei imageSize, const GLvoid* data);
 typedef void(APIENTRYP PFNDOLCOMPRESSEDTEXSUBIMAGE2DPROC)(GLenum target, GLint level, GLint xoffset,
-                                                          GLint yoffset, GLsizei width,
-                                                          GLsizei height, GLenum format,
-                                                          GLsizei imageSize, const GLvoid* data);
+    GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize,
+    const GLvoid* data);
 typedef void(APIENTRYP PFNDOLCOMPRESSEDTEXSUBIMAGE1DPROC)(GLenum target, GLint level, GLint xoffset,
-                                                          GLsizei width, GLenum format,
-                                                          GLsizei imageSize, const GLvoid* data);
+    GLsizei width, GLenum format, GLsizei imageSize, const GLvoid* data);
 typedef void(APIENTRYP PFNDOLGETCOMPRESSEDTEXIMAGEPROC)(GLenum target, GLint level, GLvoid* img);
 
 typedef void(APIENTRYP PFNDOLACTIVETEXTUREARBPROC)(GLenum texture);
@@ -156,28 +148,28 @@ typedef void(APIENTRYP PFNDOLMULTITEXCOORD2IARBPROC)(GLenum target, GLint s, GLi
 typedef void(APIENTRYP PFNDOLMULTITEXCOORD2IVARBPROC)(GLenum target, const GLint* v);
 typedef void(APIENTRYP PFNDOLMULTITEXCOORD2SARBPROC)(GLenum target, GLshort s, GLshort t);
 typedef void(APIENTRYP PFNDOLMULTITEXCOORD2SVARBPROC)(GLenum target, const GLshort* v);
-typedef void(APIENTRYP PFNDOLMULTITEXCOORD3DARBPROC)(GLenum target, GLdouble s, GLdouble t,
-                                                     GLdouble r);
+typedef void(APIENTRYP PFNDOLMULTITEXCOORD3DARBPROC)(
+    GLenum target, GLdouble s, GLdouble t, GLdouble r);
 typedef void(APIENTRYP PFNDOLMULTITEXCOORD3DVARBPROC)(GLenum target, const GLdouble* v);
-typedef void(APIENTRYP PFNDOLMULTITEXCOORD3FARBPROC)(GLenum target, GLfloat s, GLfloat t,
-                                                     GLfloat r);
+typedef void(APIENTRYP PFNDOLMULTITEXCOORD3FARBPROC)(
+    GLenum target, GLfloat s, GLfloat t, GLfloat r);
 typedef void(APIENTRYP PFNDOLMULTITEXCOORD3FVARBPROC)(GLenum target, const GLfloat* v);
 typedef void(APIENTRYP PFNDOLMULTITEXCOORD3IARBPROC)(GLenum target, GLint s, GLint t, GLint r);
 typedef void(APIENTRYP PFNDOLMULTITEXCOORD3IVARBPROC)(GLenum target, const GLint* v);
-typedef void(APIENTRYP PFNDOLMULTITEXCOORD3SARBPROC)(GLenum target, GLshort s, GLshort t,
-                                                     GLshort r);
+typedef void(APIENTRYP PFNDOLMULTITEXCOORD3SARBPROC)(
+    GLenum target, GLshort s, GLshort t, GLshort r);
 typedef void(APIENTRYP PFNDOLMULTITEXCOORD3SVARBPROC)(GLenum target, const GLshort* v);
-typedef void(APIENTRYP PFNDOLMULTITEXCOORD4DARBPROC)(GLenum target, GLdouble s, GLdouble t,
-                                                     GLdouble r, GLdouble q);
+typedef void(APIENTRYP PFNDOLMULTITEXCOORD4DARBPROC)(
+    GLenum target, GLdouble s, GLdouble t, GLdouble r, GLdouble q);
 typedef void(APIENTRYP PFNDOLMULTITEXCOORD4DVARBPROC)(GLenum target, const GLdouble* v);
-typedef void(APIENTRYP PFNDOLMULTITEXCOORD4FARBPROC)(GLenum target, GLfloat s, GLfloat t, GLfloat r,
-                                                     GLfloat q);
+typedef void(APIENTRYP PFNDOLMULTITEXCOORD4FARBPROC)(
+    GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q);
 typedef void(APIENTRYP PFNDOLMULTITEXCOORD4FVARBPROC)(GLenum target, const GLfloat* v);
-typedef void(APIENTRYP PFNDOLMULTITEXCOORD4IARBPROC)(GLenum target, GLint s, GLint t, GLint r,
-                                                     GLint q);
+typedef void(APIENTRYP PFNDOLMULTITEXCOORD4IARBPROC)(
+    GLenum target, GLint s, GLint t, GLint r, GLint q);
 typedef void(APIENTRYP PFNDOLMULTITEXCOORD4IVARBPROC)(GLenum target, const GLint* v);
-typedef void(APIENTRYP PFNDOLMULTITEXCOORD4SARBPROC)(GLenum target, GLshort s, GLshort t, GLshort r,
-                                                     GLshort q);
+typedef void(APIENTRYP PFNDOLMULTITEXCOORD4SARBPROC)(
+    GLenum target, GLshort s, GLshort t, GLshort r, GLshort q);
 typedef void(APIENTRYP PFNDOLMULTITEXCOORD4SVARBPROC)(GLenum target, const GLshort* v);
 typedef void(APIENTRYP PFNDOLLOADTRANSPOSEMATRIXFARBPROC)(const GLfloat* m);
 typedef void(APIENTRYP PFNDOLLOADTRANSPOSEMATRIXDARBPROC)(const GLdouble* m);

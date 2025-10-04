@@ -92,8 +92,8 @@ public:
 
   // Suppresses each input + modifier pair.
   // The returned object removes the suppression on destruction.
-  Suppressor MakeSuppressor(const Modifiers* modifiers,
-                            const std::unique_ptr<ControlExpression>* final_input);
+  Suppressor MakeSuppressor(
+      const Modifiers* modifiers, const std::unique_ptr<ControlExpression>* final_input);
 
 private:
   using Suppression = std::pair<Device::Input*, Device::Input*>;
@@ -143,10 +143,12 @@ Token Lexer::GetDelimitedToken(TokenType type, char delimeter)
 
 std::string Lexer::FetchWordChars()
 {
-  return FetchCharsWhile([](char c) {
-    return std::isalpha(c, std::locale::classic()) || std::isdigit(c, std::locale::classic()) ||
-           c == '_';
-  });
+  return FetchCharsWhile(
+      [](char c)
+      {
+        return std::isalpha(c, std::locale::classic()) || std::isdigit(c, std::locale::classic()) ||
+               c == '_';
+      });
 }
 
 Token Lexer::GetDelimitedLiteral()
@@ -328,28 +330,27 @@ private:
   Device::Output* m_output = nullptr;
 };
 
-bool HotkeySuppressions::IsSuppressedIgnoringModifiers(Device::Input* input,
-                                                       const Modifiers& ignore_modifiers) const
+bool HotkeySuppressions::IsSuppressedIgnoringModifiers(
+    Device::Input* input, const Modifiers& ignore_modifiers) const
 {
   // Input is suppressed if it exists in the map with a modifier that we aren't ignoring.
   auto it = m_suppressions.lower_bound({input, nullptr});
   auto it_end = m_suppressions.lower_bound({input + 1, nullptr});
 
   // We need to ignore L_Ctrl R_Ctrl when supplied Ctrl and vice-versa.
-  const auto is_same_modifier = [](Device::Input* i1, Device::Input* i2) {
-    return i1 && i2 && (i1 == i2 || i1->IsChild(i2) || i2->IsChild(i1));
-  };
+  const auto is_same_modifier = [](Device::Input* i1, Device::Input* i2)
+  { return i1 && i2 && (i1 == i2 || i1->IsChild(i2) || i2->IsChild(i1)); };
 
-  return std::any_of(it, it_end, [&](const auto& s) {
-    return std::ranges::none_of(ignore_modifiers, [&](const auto& m) {
-      return is_same_modifier(m->GetInput(), s.first.second);
-    });
-  });
+  return std::any_of(it, it_end,
+      [&](const auto& s)
+      {
+        return std::ranges::none_of(ignore_modifiers,
+            [&](const auto& m) { return is_same_modifier(m->GetInput(), s.first.second); });
+      });
 }
 
-HotkeySuppressions::Suppressor
-HotkeySuppressions::MakeSuppressor(const Modifiers* modifiers,
-                                   const std::unique_ptr<ControlExpression>* final_input)
+HotkeySuppressions::Suppressor HotkeySuppressions::MakeSuppressor(
+    const Modifiers* modifiers, const std::unique_ptr<ControlExpression>* final_input)
 {
   for (auto& modifier : *modifiers)
   {
@@ -360,11 +361,14 @@ HotkeySuppressions::MakeSuppressor(const Modifiers* modifiers,
     }
   }
 
-  return Suppressor(std::make_unique<std::function<void()>>([this, modifiers, final_input] {
-                      for (auto& modifier : *modifiers)
-                        RemoveSuppression(modifier->GetInput(), (*final_input)->GetInput());
-                    }).release(),
-                    InvokingDeleter{});
+  return Suppressor(std::make_unique<std::function<void()>>(
+                        [this, modifiers, final_input]
+                        {
+                          for (auto& modifier : *modifiers)
+                            RemoveSuppression(modifier->GetInput(), (*final_input)->GetInput());
+                        })
+                        .release(),
+      InvokingDeleter{});
 }
 
 class BinaryExpression : public Expression
@@ -374,9 +378,11 @@ public:
   std::unique_ptr<Expression> lhs;
   std::unique_ptr<Expression> rhs;
 
-  BinaryExpression(TokenType op_, std::unique_ptr<Expression>&& lhs_,
-                   std::unique_ptr<Expression>&& rhs_)
-      : op(op_), lhs(std::move(lhs_)), rhs(std::move(rhs_))
+  BinaryExpression(
+      TokenType op_, std::unique_ptr<Expression>&& lhs_, std::unique_ptr<Expression>&& rhs_)
+      : op(op_)
+      , lhs(std::move(lhs_))
+      , rhs(std::move(rhs_))
   {
   }
 
@@ -644,7 +650,8 @@ class CoalesceExpression : public Expression
 {
 public:
   CoalesceExpression(std::unique_ptr<Expression>&& lhs, std::unique_ptr<Expression>&& rhs)
-      : m_lhs(std::move(lhs)), m_rhs(std::move(rhs))
+      : m_lhs(std::move(lhs))
+      , m_rhs(std::move(rhs))
   {
   }
 
@@ -792,8 +799,7 @@ private:
   }
 
   ParseResult ParseFunctionArguments(const std::string_view& func_name,
-                                     std::unique_ptr<FunctionExpression>&& func,
-                                     const Token& func_tok)
+      std::unique_ptr<FunctionExpression>&& func, const Token& func_tok)
   {
     std::vector<std::unique_ptr<Expression>> args;
 
@@ -850,8 +856,8 @@ private:
                         std::get<FunctionExpression::ExpectedArguments>(argument_validation).text +
                         ')';
 
-      return ParseResult::MakeErrorResult(func_tok,
-                                          Common::FmtFormatT("Expected arguments: {0}", text));
+      return ParseResult::MakeErrorResult(
+          func_tok, Common::FmtFormatT("Expected arguments: {0}", text));
     }
 
     return ParseResult::MakeSuccessfulResult(std::move(func));
@@ -988,8 +994,8 @@ private:
         if (op.type == TOK_ASSIGN && !op.data.empty())
         {
           const TokenType op_type = GetBinaryOperatorTokenTypeFromChar(op.data[0]);
-          expr = std::make_unique<CompoundAssignmentExpression>(op_type, std::move(expr),
-                                                                std::move(rhs.expr));
+          expr = std::make_unique<CompoundAssignmentExpression>(
+              op_type, std::move(expr), std::move(rhs.expr));
         }
         else
         {
@@ -1006,8 +1012,8 @@ private:
 
         const Token should_be_colon = Chew();
         if (should_be_colon.type != TOK_COLON)
-          return ParseResult::MakeErrorResult(should_be_colon,
-                                              Common::GetStringT("Expected colon."));
+          return ParseResult::MakeErrorResult(
+              should_be_colon, Common::GetStringT("Expected colon."));
 
         auto false_result = ParseInfixOperations(OperatorPrecedence(op.type));
         if (false_result.status != ParseStatus::Successful)
@@ -1092,8 +1098,8 @@ static ParseResult ParseComplexExpression(const std::string& str)
   std::vector<Token> tokens;
   const ParseStatus tokenize_status = l.Tokenize(tokens);
   if (tokenize_status != ParseStatus::Successful)
-    return ParseResult::MakeErrorResult(Token(TOK_INVALID),
-                                        Common::GetStringT("Tokenizing failed."));
+    return ParseResult::MakeErrorResult(
+        Token(TOK_INVALID), Common::GetStringT("Tokenizing failed."));
   return ParseTokens(tokens);
 }
 
@@ -1123,8 +1129,8 @@ ParseResult ParseExpression(const std::string& str)
     return complex_result;
   }
 
-  complex_result.expr = std::make_unique<CoalesceExpression>(std::move(bareword_expr),
-                                                             std::move(complex_result.expr));
+  complex_result.expr = std::make_unique<CoalesceExpression>(
+      std::move(bareword_expr), std::move(complex_result.expr));
   return complex_result;
 }
 }  // namespace ciface::ExpressionParser

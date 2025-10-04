@@ -38,14 +38,14 @@ TEST(FloatUtils, FlushToZero)
   EXPECT_EQ(-0.0, Common::FlushToZero(-std::numeric_limits<double>::denorm_min()));
   EXPECT_EQ(+0.0, Common::FlushToZero(+std::numeric_limits<double>::min() / 2));
   EXPECT_EQ(-0.0, Common::FlushToZero(-std::numeric_limits<double>::min() / 2));
-  EXPECT_EQ(std::numeric_limits<double>::min(),
-            Common::FlushToZero(std::numeric_limits<double>::min()));
-  EXPECT_EQ(std::numeric_limits<double>::max(),
-            Common::FlushToZero(std::numeric_limits<double>::max()));
+  EXPECT_EQ(
+      std::numeric_limits<double>::min(), Common::FlushToZero(std::numeric_limits<double>::min()));
+  EXPECT_EQ(
+      std::numeric_limits<double>::max(), Common::FlushToZero(std::numeric_limits<double>::max()));
   EXPECT_EQ(+std::numeric_limits<double>::infinity(),
-            Common::FlushToZero(+std::numeric_limits<double>::infinity()));
+      Common::FlushToZero(+std::numeric_limits<double>::infinity()));
   EXPECT_EQ(-std::numeric_limits<double>::infinity(),
-            Common::FlushToZero(-std::numeric_limits<double>::infinity()));
+      Common::FlushToZero(-std::numeric_limits<double>::infinity()));
 
   // Test all subnormals as well as an equally large set of random normal floats.
   std::default_random_engine engine(0);
@@ -68,22 +68,21 @@ TEST(FloatUtils, FlushToZero)
 
 TEST(FloatUtils, ApproximateReciprocalSquareRoot)
 {
-  constexpr std::array<u64, 57> expected_values{
-      0x7FF0'0000'0000'0000, 0x617F'FE80'0000'0000, 0x60BF'FE80'0000'0000, 0x5FE0'0008'2C00'0000,
-      0x5FDF'FE80'0000'0000, 0x5FDF'FE80'0000'0000, 0x3FEF'FE80'0000'0000, 0x1FF0'0008'2C00'0000,
-      0x0000'0000'0000'0000, 0x7FF8'0000'0000'0001, 0x7FFF'FFFF'FFFF'FFFF, 0x7FF8'0000'0000'0000,
-      0x7FFF'FFFF'FFFF'FFFF, 0xFFF0'0000'0000'0000, 0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000,
+  constexpr std::array<u64, 57> expected_values{0x7FF0'0000'0000'0000, 0x617F'FE80'0000'0000,
+      0x60BF'FE80'0000'0000, 0x5FE0'0008'2C00'0000, 0x5FDF'FE80'0000'0000, 0x5FDF'FE80'0000'0000,
+      0x3FEF'FE80'0000'0000, 0x1FF0'0008'2C00'0000, 0x0000'0000'0000'0000, 0x7FF8'0000'0000'0001,
+      0x7FFF'FFFF'FFFF'FFFF, 0x7FF8'0000'0000'0000, 0x7FFF'FFFF'FFFF'FFFF, 0xFFF0'0000'0000'0000,
       0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000,
-      0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000, 0xFFF8'0000'0000'0001, 0xFFFF'FFFF'FFFF'FFFF,
-      0xFFF8'0000'0000'0000, 0xFFFF'FFFF'FFFF'FFFF, 0x43E6'9FA0'0000'0000, 0x43DF'FE80'0000'0000,
-      0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000, 0x43E6'9360'6000'0000, 0x43DF'ED30'7000'0000,
-      0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000, 0x44A6'9FA0'0000'0000, 0x4496'9FA0'0000'0000,
-      0x448F'FE80'0000'0000, 0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000,
-      0x44A6'9360'6000'0000, 0x4496'9360'6000'0000, 0x448F'ED30'7000'0000, 0x7FF8'0000'0000'0000,
-      0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000, 0x3C06'9FA0'0000'0000, 0x3BFF'FE80'0000'0000,
-      0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000, 0x43EF'FE80'0000'0000, 0x43F6'9FA0'0000'0000,
-      0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000, 0x3FEA'2040'0000'0000, 0x3FA0'3108'0000'0000,
-      0x7FF8'0000'0000'0000};
+      0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000,
+      0xFFF8'0000'0000'0001, 0xFFFF'FFFF'FFFF'FFFF, 0xFFF8'0000'0000'0000, 0xFFFF'FFFF'FFFF'FFFF,
+      0x43E6'9FA0'0000'0000, 0x43DF'FE80'0000'0000, 0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000,
+      0x43E6'9360'6000'0000, 0x43DF'ED30'7000'0000, 0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000,
+      0x44A6'9FA0'0000'0000, 0x4496'9FA0'0000'0000, 0x448F'FE80'0000'0000, 0x7FF8'0000'0000'0000,
+      0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000, 0x44A6'9360'6000'0000, 0x4496'9360'6000'0000,
+      0x448F'ED30'7000'0000, 0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000,
+      0x3C06'9FA0'0000'0000, 0x3BFF'FE80'0000'0000, 0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000,
+      0x43EF'FE80'0000'0000, 0x43F6'9FA0'0000'0000, 0x7FF8'0000'0000'0000, 0x7FF8'0000'0000'0000,
+      0x3FEA'2040'0000'0000, 0x3FA0'3108'0000'0000, 0x7FF8'0000'0000'0000};
 
   for (size_t i = 0; i < double_test_values.size(); ++i)
   {

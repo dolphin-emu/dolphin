@@ -91,8 +91,8 @@ ControllerEmu::ControlGroup* GetGuitarGroup(int number, WiimoteEmu::GuitarGroup 
 ControllerEmu::ControlGroup* GetDrumsGroup(int number, WiimoteEmu::DrumsGroup group);
 ControllerEmu::ControlGroup* GetTurntableGroup(int number, WiimoteEmu::TurntableGroup group);
 ControllerEmu::ControlGroup* GetUDrawTabletGroup(int number, WiimoteEmu::UDrawTabletGroup group);
-ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(int number,
-                                                    WiimoteEmu::DrawsomeTabletGroup group);
+ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(
+    int number, WiimoteEmu::DrawsomeTabletGroup group);
 ControllerEmu::ControlGroup* GetTaTaConGroup(int number, WiimoteEmu::TaTaConGroup group);
 ControllerEmu::ControlGroup* GetShinkansenGroup(int number, WiimoteEmu::ShinkansenGroup group);
 }  // namespace Wiimote

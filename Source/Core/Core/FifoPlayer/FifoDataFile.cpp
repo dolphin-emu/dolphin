@@ -209,7 +209,8 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
   if (!file)
     return nullptr;
 
-  auto panic_failed_to_read = [] {
+  auto panic_failed_to_read = []
+  {
     CriticalAlertFmtT("Failed to read DFF file.");
     return nullptr;
   };
@@ -227,7 +228,7 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
   if (header.fileId != FILE_ID)
   {
     CriticalAlertFmtT("DFF file magic number is incorrect: got {0:08x}, expected {1:08x}",
-                      header.fileId, FILE_ID);
+        header.fileId, FILE_ID);
     return nullptr;
   }
 
@@ -277,10 +278,9 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
     CriticalAlertFmtT("Emulated memory size mismatch!\n"
                       "Current: MEM1 {0:08X} ({1} MiB), MEM2 {2:08X} ({3} MiB)\n"
                       "DFF: MEM1 {4:08X} ({5} MiB), MEM2 {6:08X} ({7} MiB)",
-                      memory.GetRamSizeReal(), memory.GetRamSizeReal() / 0x100000,
-                      memory.GetExRamSizeReal(), memory.GetExRamSizeReal() / 0x100000,
-                      header.mem1_size, header.mem1_size / 0x100000, header.mem2_size,
-                      header.mem2_size / 0x100000);
+        memory.GetRamSizeReal(), memory.GetRamSizeReal() / 0x100000, memory.GetExRamSizeReal(),
+        memory.GetExRamSizeReal() / 0x100000, header.mem1_size, header.mem1_size / 0x100000,
+        header.mem2_size, header.mem2_size / 0x100000);
     return nullptr;
   }
 
@@ -333,8 +333,8 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
     file.Seek(srcFrame.fifoDataOffset, File::SeekOrigin::Begin);
     file.ReadBytes(dstFrame.fifoData.data(), srcFrame.fifoDataSize);
 
-    ReadMemoryUpdates(srcFrame.memoryUpdatesOffset, srcFrame.numMemoryUpdates,
-                      dstFrame.memoryUpdates, file);
+    ReadMemoryUpdates(
+        srcFrame.memoryUpdatesOffset, srcFrame.numMemoryUpdates, dstFrame.memoryUpdates, file);
 
     if (!file.IsGood())
       return panic_failed_to_read();
@@ -364,8 +364,8 @@ bool FifoDataFile::GetFlag(u32 flag) const
   return !!(m_Flags & flag);
 }
 
-u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate>& memUpdates,
-                                     File::IOFile& file)
+u64 FifoDataFile::WriteMemoryUpdates(
+    const std::vector<MemoryUpdate>& memUpdates, File::IOFile& file)
 {
   // Add space for memory update list
   u64 updateListOffset = file.Tell();
@@ -395,8 +395,8 @@ u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate>& memUpdates
   return updateListOffset;
 }
 
-void FifoDataFile::ReadMemoryUpdates(u64 fileOffset, u32 numUpdates,
-                                     std::vector<MemoryUpdate>& memUpdates, File::IOFile& file)
+void FifoDataFile::ReadMemoryUpdates(
+    u64 fileOffset, u32 numUpdates, std::vector<MemoryUpdate>& memUpdates, File::IOFile& file)
 {
   memUpdates.resize(numUpdates);
 

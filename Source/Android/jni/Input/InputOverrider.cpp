@@ -16,8 +16,8 @@ Java_org_dolphinemu_dolphinemu_features_input_model_InputOverrider_registerGameC
 }
 
 JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_InputOverrider_registerWii(JNIEnv*, jclass,
-                                                                               int controller_index)
+Java_org_dolphinemu_dolphinemu_features_input_model_InputOverrider_registerWii(
+    JNIEnv*, jclass, int controller_index)
 {
   ciface::Touch::RegisterWiiInputOverrider(controller_index);
 }
@@ -40,16 +40,16 @@ JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_InputOverrider_setControlState(
     JNIEnv*, jclass, int controller_index, int control, double state)
 {
-  ciface::Touch::SetControlState(controller_index, static_cast<ciface::Touch::ControlID>(control),
-                                 state);
+  ciface::Touch::SetControlState(
+      controller_index, static_cast<ciface::Touch::ControlID>(control), state);
 }
 
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_InputOverrider_clearControlState(
     JNIEnv*, jclass, int controller_index, int control)
 {
-  ciface::Touch::ClearControlState(controller_index,
-                                   static_cast<ciface::Touch::ControlID>(control));
+  ciface::Touch::ClearControlState(
+      controller_index, static_cast<ciface::Touch::ControlID>(control));
 }
 
 JNIEXPORT double JNICALL

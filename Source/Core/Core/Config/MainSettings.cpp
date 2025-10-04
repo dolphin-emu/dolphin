@@ -36,8 +36,8 @@ namespace Config
 // Main.Core
 
 const Info<bool> MAIN_SKIP_IPL{{System::Main, "Core", "SkipIPL"}, true};
-const Info<PowerPC::CPUCore> MAIN_CPU_CORE{{System::Main, "Core", "CPUCore"},
-                                           PowerPC::DefaultCPUCore()};
+const Info<PowerPC::CPUCore> MAIN_CPU_CORE{
+    {System::Main, "Core", "CPUCore"}, PowerPC::DefaultCPUCore()};
 const Info<bool> MAIN_JIT_FOLLOW_BRANCH{{System::Main, "Core", "JITFollowBranch"}, true};
 const Info<bool> MAIN_FASTMEM{{System::Main, "Core", "Fastmem"}, true};
 const Info<bool> MAIN_FASTMEM_ARENA{{System::Main, "Core", "FastmemArena"}, true};
@@ -58,11 +58,11 @@ const Info<bool> MAIN_SYNC_ON_SKIP_IDLE{{System::Main, "Core", "SyncOnSkipIdle"}
 const Info<std::string> MAIN_DEFAULT_ISO{{System::Main, "Core", "DefaultISO"}, ""};
 const Info<bool> MAIN_ENABLE_CHEATS{{System::Main, "Core", "EnableCheats"}, false};
 const Info<int> MAIN_GC_LANGUAGE{{System::Main, "Core", "SelectedLanguage"}, 0};
-const Info<bool> MAIN_OVERRIDE_REGION_SETTINGS{{System::Main, "Core", "OverrideRegionSettings"},
-                                               false};
+const Info<bool> MAIN_OVERRIDE_REGION_SETTINGS{
+    {System::Main, "Core", "OverrideRegionSettings"}, false};
 const Info<bool> MAIN_DPL2_DECODER{{System::Main, "Core", "DPL2Decoder"}, false};
-const Info<AudioCommon::DPL2Quality> MAIN_DPL2_QUALITY{{System::Main, "Core", "DPL2Quality"},
-                                                       AudioCommon::GetDefaultDPL2Quality()};
+const Info<AudioCommon::DPL2Quality> MAIN_DPL2_QUALITY{
+    {System::Main, "Core", "DPL2Quality"}, AudioCommon::GetDefaultDPL2Quality()};
 const Info<int> MAIN_AUDIO_LATENCY{{System::Main, "Core", "AudioLatency"}, 20};
 const Info<int> MAIN_AUDIO_BUFFER_SIZE{{System::Main, "Core", "AudioBufferSize"}, 80};
 const Info<bool> MAIN_AUDIO_FILL_GAPS{{System::Main, "Core", "AudioFillGaps"}, true};
@@ -121,8 +121,8 @@ const Info<int> MAIN_MEMORY_CARD_SIZE{{System::Main, "Core", "MemoryCardSize"}, 
 
 const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_A{
     {System::Main, "Core", "SlotA"}, ExpansionInterface::EXIDeviceType::MemoryCardFolder};
-const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_B{{System::Main, "Core", "SlotB"},
-                                                          ExpansionInterface::EXIDeviceType::None};
+const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_B{
+    {System::Main, "Core", "SlotB"}, ExpansionInterface::EXIDeviceType::None};
 const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_1{
     {System::Main, "Core", "SerialPort1"}, ExpansionInterface::EXIDeviceType::None};
 const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_2{
@@ -131,7 +131,7 @@ const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_2{
 const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(ExpansionInterface::Slot slot)
 {
   static constexpr Common::EnumMap<const Info<ExpansionInterface::EXIDeviceType>*,
-                                   ExpansionInterface::MAX_SLOT>
+      ExpansionInterface::MAX_SLOT>
       infos{
           &MAIN_SLOT_A,
           &MAIN_SLOT_B,
@@ -146,8 +146,8 @@ const Info<std::string> MAIN_BBA_XLINK_IP{{System::Main, "Core", "BBA_XLINK_IP"}
 const Info<bool> MAIN_BBA_XLINK_CHAT_OSD{{System::Main, "Core", "BBA_XLINK_CHAT_OSD"}, true};
 
 // Schthack PSO Server - https://schtserv.com/
-const Info<std::string> MAIN_BBA_BUILTIN_DNS{{System::Main, "Core", "BBA_BUILTIN_DNS"},
-                                             "3.18.217.27"};
+const Info<std::string> MAIN_BBA_BUILTIN_DNS{
+    {System::Main, "Core", "BBA_BUILTIN_DNS"}, "3.18.217.27"};
 const Info<std::string> MAIN_BBA_TAPSERVER_DESTINATION{
     {System::Main, "Core", "BBA_TAPSERVER_DESTINATION"}, "/tmp/dolphin-tap"};
 const Info<std::string> MAIN_MODEM_TAPSERVER_DESTINATION{
@@ -157,14 +157,14 @@ const Info<std::string> MAIN_BBA_BUILTIN_IP{{System::Main, "Core", "BBA_BUILTIN_
 const Info<SerialInterface::SIDevices>& GetInfoForSIDevice(int channel)
 {
   static const std::array<const Info<SerialInterface::SIDevices>, 4> infos{
-      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice0"},
-                                       SerialInterface::SIDEVICE_GC_CONTROLLER},
-      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice1"},
-                                       SerialInterface::SIDEVICE_NONE},
-      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice2"},
-                                       SerialInterface::SIDEVICE_NONE},
-      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice3"},
-                                       SerialInterface::SIDEVICE_NONE},
+      Info<SerialInterface::SIDevices>{
+          {System::Main, "Core", "SIDevice0"}, SerialInterface::SIDEVICE_GC_CONTROLLER},
+      Info<SerialInterface::SIDevices>{
+          {System::Main, "Core", "SIDevice1"}, SerialInterface::SIDEVICE_NONE},
+      Info<SerialInterface::SIDevices>{
+          {System::Main, "Core", "SIDevice2"}, SerialInterface::SIDEVICE_NONE},
+      Info<SerialInterface::SIDevices>{
+          {System::Main, "Core", "SIDevice3"}, SerialInterface::SIDEVICE_NONE},
   };
   return infos[channel];
 }
@@ -213,8 +213,8 @@ const Info<float> MAIN_SYNC_GPU_OVERCLOCK{{System::Main, "Core", "SyncGpuOverclo
 const Info<bool> MAIN_FAST_DISC_SPEED{{System::Main, "Core", "FastDiscSpeed"}, false};
 const Info<bool> MAIN_LOW_DCBZ_HACK{{System::Main, "Core", "LowDCBZHack"}, false};
 const Info<bool> MAIN_FLOAT_EXCEPTIONS{{System::Main, "Core", "FloatExceptions"}, false};
-const Info<bool> MAIN_DIVIDE_BY_ZERO_EXCEPTIONS{{System::Main, "Core", "DivByZeroExceptions"},
-                                                false};
+const Info<bool> MAIN_DIVIDE_BY_ZERO_EXCEPTIONS{
+    {System::Main, "Core", "DivByZeroExceptions"}, false};
 const Info<bool> MAIN_FPRF{{System::Main, "Core", "FPRF"}, false};
 const Info<bool> MAIN_ACCURATE_NANS{{System::Main, "Core", "AccurateNaNs"}, false};
 const Info<bool> MAIN_DISABLE_ICACHE{{System::Main, "Core", "DisableICache"}, false};
@@ -226,8 +226,8 @@ constexpr bool DEFAULT_PRECISION_FRAME_TIMING = false;
 #else
 constexpr bool DEFAULT_PRECISION_FRAME_TIMING = true;
 #endif
-const Info<bool> MAIN_PRECISION_FRAME_TIMING{{System::Main, "Core", "PrecisionFrameTiming"},
-                                             DEFAULT_PRECISION_FRAME_TIMING};
+const Info<bool> MAIN_PRECISION_FRAME_TIMING{
+    {System::Main, "Core", "PrecisionFrameTiming"}, DEFAULT_PRECISION_FRAME_TIMING};
 const Info<float> MAIN_OVERCLOCK{{System::Main, "Core", "Overclock"}, 1.0f};
 const Info<bool> MAIN_OVERCLOCK_ENABLE{{System::Main, "Core", "OverclockEnable"}, false};
 const Info<float> MAIN_VI_OVERCLOCK{{System::Main, "Core", "VIOverclock"}, 1.0f};
@@ -235,14 +235,14 @@ const Info<bool> MAIN_VI_OVERCLOCK_ENABLE{{System::Main, "Core", "VIOverclockEna
 const Info<bool> MAIN_RAM_OVERRIDE_ENABLE{{System::Main, "Core", "RAMOverrideEnable"}, false};
 const Info<u32> MAIN_MEM1_SIZE{{System::Main, "Core", "MEM1Size"}, Memory::MEM1_SIZE_RETAIL};
 const Info<u32> MAIN_MEM2_SIZE{{System::Main, "Core", "MEM2Size"}, Memory::MEM2_SIZE_RETAIL};
-const Info<std::string> MAIN_GFX_BACKEND{{System::Main, "Core", "GFXBackend"},
-                                         VideoBackendBase::GetDefaultBackendConfigName()};
-const Info<HSP::HSPDeviceType> MAIN_HSP_DEVICE{{System::Main, "Core", "HSPDevice"},
-                                               HSP::HSPDeviceType::None};
+const Info<std::string> MAIN_GFX_BACKEND{
+    {System::Main, "Core", "GFXBackend"}, VideoBackendBase::GetDefaultBackendConfigName()};
+const Info<HSP::HSPDeviceType> MAIN_HSP_DEVICE{
+    {System::Main, "Core", "HSPDevice"}, HSP::HSPDeviceType::None};
 const Info<u32> MAIN_ARAM_EXPANSION_SIZE{{System::Main, "Core", "ARAMExpansionSize"}, 0x400000};
 
-const Info<std::string> MAIN_GPU_DETERMINISM_MODE{{System::Main, "Core", "GPUDeterminismMode"},
-                                                  "auto"};
+const Info<std::string> MAIN_GPU_DETERMINISM_MODE{
+    {System::Main, "Core", "GPUDeterminismMode"}, "auto"};
 const Info<s32> MAIN_OVERRIDE_BOOT_IOS{{System::Main, "Core", "OverrideBootIOS"}, -1};
 
 GPUDeterminismMode GetGPUDeterminismMode()
@@ -263,10 +263,10 @@ const Info<std::string> MAIN_PERF_MAP_DIR{{System::Main, "Core", "PerfMapDir"}, 
 const Info<bool> MAIN_CUSTOM_RTC_ENABLE{{System::Main, "Core", "EnableCustomRTC"}, false};
 // Measured in seconds since the unix epoch (1.1.1970).  Default is 1.1.2000; there are 7 leap years
 // between those dates.
-const Info<u32> MAIN_CUSTOM_RTC_VALUE{{System::Main, "Core", "CustomRTCValue"},
-                                      (30 * 365 + 7) * 24 * 60 * 60};
-const Info<DiscIO::Region> MAIN_FALLBACK_REGION{{System::Main, "Core", "FallbackRegion"},
-                                                GetDefaultRegion()};
+const Info<u32> MAIN_CUSTOM_RTC_VALUE{
+    {System::Main, "Core", "CustomRTCValue"}, (30 * 365 + 7) * 24 * 60 * 60};
+const Info<DiscIO::Region> MAIN_FALLBACK_REGION{
+    {System::Main, "Core", "FallbackRegion"}, GetDefaultRegion()};
 const Info<bool> MAIN_AUTO_DISC_CHANGE{{System::Main, "Core", "AutoDiscChange"}, false};
 const Info<bool> MAIN_ALLOW_SD_WRITES{{System::Main, "Core", "WiiSDCardAllowWrites"}, true};
 const Info<bool> MAIN_ENABLE_SAVESTATES{{System::Main, "Core", "EnableSaveStates"}, false};
@@ -287,8 +287,8 @@ const Info<int> MAIN_RENDER_WINDOW_XPOS{{System::Main, "Display", "RenderWindowX
 const Info<int> MAIN_RENDER_WINDOW_YPOS{{System::Main, "Display", "RenderWindowYPos"}, -1};
 const Info<int> MAIN_RENDER_WINDOW_WIDTH{{System::Main, "Display", "RenderWindowWidth"}, 640};
 const Info<int> MAIN_RENDER_WINDOW_HEIGHT{{System::Main, "Display", "RenderWindowHeight"}, 480};
-const Info<bool> MAIN_RENDER_WINDOW_AUTOSIZE{{System::Main, "Display", "RenderWindowAutoSize"},
-                                             false};
+const Info<bool> MAIN_RENDER_WINDOW_AUTOSIZE{
+    {System::Main, "Display", "RenderWindowAutoSize"}, false};
 const Info<bool> MAIN_KEEP_WINDOW_ON_TOP{{System::Main, "Display", "KeepWindowOnTop"}, false};
 const Info<bool> MAIN_DISABLE_SCREENSAVER{{System::Main, "Display", "DisableScreenSaver"}, true};
 
@@ -300,8 +300,8 @@ const Info<bool> MAIN_DSP_JIT{{System::Main, "DSP", "EnableJIT"}, true};
 const Info<bool> MAIN_DUMP_AUDIO{{System::Main, "DSP", "DumpAudio"}, false};
 const Info<bool> MAIN_DUMP_AUDIO_SILENT{{System::Main, "DSP", "DumpAudioSilent"}, false};
 const Info<bool> MAIN_DUMP_UCODE{{System::Main, "DSP", "DumpUCode"}, false};
-const Info<std::string> MAIN_AUDIO_BACKEND{{System::Main, "DSP", "Backend"},
-                                           AudioCommon::GetDefaultSoundBackend()};
+const Info<std::string> MAIN_AUDIO_BACKEND{
+    {System::Main, "DSP", "Backend"}, AudioCommon::GetDefaultSoundBackend()};
 const Info<int> MAIN_AUDIO_VOLUME{{System::Main, "DSP", "Volume"}, 100};
 const Info<bool> MAIN_AUDIO_MUTED{{System::Main, "DSP", "Muted"}, false};
 const Info<bool> MAIN_AUDIO_MUTE_ON_DISABLED_SPEED_LIMIT{
@@ -331,14 +331,14 @@ const Info<std::string> MAIN_WIRELESS_MAC{{System::Main, "General", "WirelessMac
 const Info<std::string> MAIN_GDB_SOCKET{{System::Main, "General", "GDBSocket"}, ""};
 const Info<int> MAIN_GDB_PORT{{System::Main, "General", "GDBPort"}, -1};
 const Info<int> MAIN_ISO_PATH_COUNT{{System::Main, "General", "ISOPaths"}, 0};
-const Info<std::string> MAIN_SKYLANDERS_PATH{{System::Main, "General", "SkylandersCollectionPath"},
-                                             ""};
+const Info<std::string> MAIN_SKYLANDERS_PATH{
+    {System::Main, "General", "SkylandersCollectionPath"}, ""};
 const Info<bool> MAIN_TIME_TRACKING{{System::Main, "General", "EnablePlayTimeTracking"}, true};
 
 static Info<std::string> MakeISOPathConfigInfo(size_t idx)
 {
-  return Config::Info<std::string>{{Config::System::Main, "General", fmt::format("ISOPath{}", idx)},
-                                   ""};
+  return Config::Info<std::string>{
+      {Config::System::Main, "General", fmt::format("ISOPath{}", idx)}, ""};
 }
 
 std::vector<std::string> GetIsoPaths()
@@ -403,8 +403,8 @@ const Info<bool> MAIN_NETWORK_SSL_DUMP_WRITE{{System::Main, "Network", "SSLDumpW
 const Info<bool> MAIN_NETWORK_SSL_VERIFY_CERTIFICATES{
     {System::Main, "Network", "SSLVerifyCertificates"}, true};
 const Info<bool> MAIN_NETWORK_SSL_DUMP_ROOT_CA{{System::Main, "Network", "SSLDumpRootCA"}, false};
-const Info<bool> MAIN_NETWORK_SSL_DUMP_PEER_CERT{{System::Main, "Network", "SSLDumpPeerCert"},
-                                                 false};
+const Info<bool> MAIN_NETWORK_SSL_DUMP_PEER_CERT{
+    {System::Main, "Network", "SSLDumpPeerCert"}, false};
 const Info<bool> MAIN_NETWORK_DUMP_BBA{{System::Main, "Network", "DumpBBA"}, false};
 const Info<bool> MAIN_NETWORK_DUMP_AS_PCAP{{System::Main, "Network", "DumpAsPCAP"}, false};
 // Default value based on:
@@ -422,15 +422,15 @@ const Info<bool> MAIN_OSD_MESSAGES{{System::Main, "Interface", "OnScreenDisplayM
 const Info<int> MAIN_OSD_FONT_SIZE{{System::Main, "Settings", "OSDFontSize"}, 13};
 const Info<bool> MAIN_SKIP_NKIT_WARNING{{System::Main, "Interface", "SkipNKitWarning"}, false};
 const Info<bool> MAIN_CONFIRM_ON_STOP{{System::Main, "Interface", "ConfirmStop"}, true};
-const Info<ShowCursor> MAIN_SHOW_CURSOR{{System::Main, "Interface", "CursorVisibility"},
-                                        ShowCursor::OnMovement};
+const Info<ShowCursor> MAIN_SHOW_CURSOR{
+    {System::Main, "Interface", "CursorVisibility"}, ShowCursor::OnMovement};
 const Info<bool> MAIN_LOCK_CURSOR{{System::Main, "Interface", "LockCursor"}, false};
 const Info<std::string> MAIN_INTERFACE_LANGUAGE{{System::Main, "Interface", "LanguageCode"}, ""};
 const Info<bool> MAIN_SHOW_ACTIVE_TITLE{{System::Main, "Interface", "ShowActiveTitle"}, true};
 const Info<bool> MAIN_USE_BUILT_IN_TITLE_DATABASE{
     {System::Main, "Interface", "UseBuiltinTitleDatabase"}, true};
-const Info<std::string> MAIN_THEME_NAME{{System::Main, "Interface", "ThemeName"},
-                                        DEFAULT_THEME_DIR};
+const Info<std::string> MAIN_THEME_NAME{
+    {System::Main, "Interface", "ThemeName"}, DEFAULT_THEME_DIR};
 const Info<bool> MAIN_PAUSE_ON_FOCUS_LOST{{System::Main, "Interface", "PauseOnFocusLost"}, false};
 const Info<bool> MAIN_ENABLE_DEBUGGING{{System::Main, "Interface", "DebugModeEnabled"}, false};
 
@@ -438,8 +438,8 @@ const Info<bool> MAIN_ENABLE_DEBUGGING{{System::Main, "Interface", "DebugModeEna
 
 const Info<std::string> MAIN_ANALYTICS_ID{{System::Main, "Analytics", "ID"}, ""};
 const Info<bool> MAIN_ANALYTICS_ENABLED{{System::Main, "Analytics", "Enabled"}, false};
-const Info<bool> MAIN_ANALYTICS_PERMISSION_ASKED{{System::Main, "Analytics", "PermissionAsked"},
-                                                 false};
+const Info<bool> MAIN_ANALYTICS_PERMISSION_ASKED{
+    {System::Main, "Analytics", "PermissionAsked"}, false};
 
 // Main.GameList
 
@@ -457,37 +457,37 @@ const Info<bool> MAIN_GAMELIST_LIST_FRANCE{{System::Main, "GameList", "ListFranc
 const Info<bool> MAIN_GAMELIST_LIST_GERMANY{{System::Main, "GameList", "ListGermany"}, true};
 const Info<bool> MAIN_GAMELIST_LIST_ITALY{{System::Main, "GameList", "ListItaly"}, true};
 const Info<bool> MAIN_GAMELIST_LIST_KOREA{{System::Main, "GameList", "ListKorea"}, true};
-const Info<bool> MAIN_GAMELIST_LIST_NETHERLANDS{{System::Main, "GameList", "ListNetherlands"},
-                                                true};
+const Info<bool> MAIN_GAMELIST_LIST_NETHERLANDS{
+    {System::Main, "GameList", "ListNetherlands"}, true};
 const Info<bool> MAIN_GAMELIST_LIST_RUSSIA{{System::Main, "GameList", "ListRussia"}, true};
 const Info<bool> MAIN_GAMELIST_LIST_SPAIN{{System::Main, "GameList", "ListSpain"}, true};
 const Info<bool> MAIN_GAMELIST_LIST_TAIWAN{{System::Main, "GameList", "ListTaiwan"}, true};
 const Info<bool> MAIN_GAMELIST_LIST_WORLD{{System::Main, "GameList", "ListWorld"}, true};
 const Info<bool> MAIN_GAMELIST_LIST_UNKNOWN{{System::Main, "GameList", "ListUnknown"}, true};
 const Info<int> MAIN_GAMELIST_LIST_SORT{{System::Main, "GameList", "ListSort"}, 3};
-const Info<int> MAIN_GAMELIST_LIST_SORT_SECONDARY{{System::Main, "GameList", "ListSortSecondary"},
-                                                  0};
+const Info<int> MAIN_GAMELIST_LIST_SORT_SECONDARY{
+    {System::Main, "GameList", "ListSortSecondary"}, 0};
 const Info<bool> MAIN_GAMELIST_COLUMN_PLATFORM{{System::Main, "GameList", "ColumnPlatform"}, true};
-const Info<bool> MAIN_GAMELIST_COLUMN_DESCRIPTION{{System::Main, "GameList", "ColumnDescription"},
-                                                  false};
+const Info<bool> MAIN_GAMELIST_COLUMN_DESCRIPTION{
+    {System::Main, "GameList", "ColumnDescription"}, false};
 const Info<bool> MAIN_GAMELIST_COLUMN_BANNER{{System::Main, "GameList", "ColumnBanner"}, true};
 const Info<bool> MAIN_GAMELIST_COLUMN_TITLE{{System::Main, "GameList", "ColumnTitle"}, true};
 const Info<bool> MAIN_GAMELIST_COLUMN_MAKER{{System::Main, "GameList", "ColumnNotes"}, true};
-const Info<bool> MAIN_GAMELIST_COLUMN_FILE_NAME{{System::Main, "GameList", "ColumnFileName"},
-                                                false};
-const Info<bool> MAIN_GAMELIST_COLUMN_FILE_PATH{{System::Main, "GameList", "ColumnFilePath"},
-                                                false};
+const Info<bool> MAIN_GAMELIST_COLUMN_FILE_NAME{
+    {System::Main, "GameList", "ColumnFileName"}, false};
+const Info<bool> MAIN_GAMELIST_COLUMN_FILE_PATH{
+    {System::Main, "GameList", "ColumnFilePath"}, false};
 const Info<bool> MAIN_GAMELIST_COLUMN_GAME_ID{{System::Main, "GameList", "ColumnID"}, false};
 const Info<bool> MAIN_GAMELIST_COLUMN_REGION{{System::Main, "GameList", "ColumnRegion"}, true};
 const Info<bool> MAIN_GAMELIST_COLUMN_FILE_SIZE{{System::Main, "GameList", "ColumnSize"}, true};
-const Info<bool> MAIN_GAMELIST_COLUMN_FILE_FORMAT{{System::Main, "GameList", "ColumnFileFormat"},
-                                                  false};
-const Info<bool> MAIN_GAMELIST_COLUMN_BLOCK_SIZE{{System::Main, "GameList", "ColumnBlockSize"},
-                                                 false};
-const Info<bool> MAIN_GAMELIST_COLUMN_COMPRESSION{{System::Main, "GameList", "ColumnCompression"},
-                                                  false};
-const Info<bool> MAIN_GAMELIST_COLUMN_TIME_PLAYED{{System::Main, "GameList", "ColumnTimePlayed"},
-                                                  true};
+const Info<bool> MAIN_GAMELIST_COLUMN_FILE_FORMAT{
+    {System::Main, "GameList", "ColumnFileFormat"}, false};
+const Info<bool> MAIN_GAMELIST_COLUMN_BLOCK_SIZE{
+    {System::Main, "GameList", "ColumnBlockSize"}, false};
+const Info<bool> MAIN_GAMELIST_COLUMN_COMPRESSION{
+    {System::Main, "GameList", "ColumnCompression"}, false};
+const Info<bool> MAIN_GAMELIST_COLUMN_TIME_PLAYED{
+    {System::Main, "GameList", "ColumnTimePlayed"}, true};
 const Info<bool> MAIN_GAMELIST_COLUMN_TAGS{{System::Main, "GameList", "ColumnTags"}, false};
 
 // Main.FifoPlayer
@@ -498,10 +498,10 @@ const Info<bool> MAIN_FIFOPLAYER_EARLY_MEMORY_UPDATES{
 
 // Main.AutoUpdate
 
-const Info<std::string> MAIN_AUTOUPDATE_UPDATE_TRACK{{System::Main, "AutoUpdate", "UpdateTrack"},
-                                                     Common::GetScmUpdateTrackStr()};
-const Info<std::string> MAIN_AUTOUPDATE_HASH_OVERRIDE{{System::Main, "AutoUpdate", "HashOverride"},
-                                                      ""};
+const Info<std::string> MAIN_AUTOUPDATE_UPDATE_TRACK{
+    {System::Main, "AutoUpdate", "UpdateTrack"}, Common::GetScmUpdateTrackStr()};
+const Info<std::string> MAIN_AUTOUPDATE_HASH_OVERRIDE{
+    {System::Main, "AutoUpdate", "HashOverride"}, ""};
 
 // Main.Movie
 
@@ -521,27 +521,27 @@ const Info<bool> MAIN_INPUT_BACKGROUND_INPUT{{System::Main, "Input", "Background
 
 const Info<bool> MAIN_DEBUG_JIT_OFF{{System::Main, "Debug", "JitOff"}, false};
 const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_OFF{{System::Main, "Debug", "JitLoadStoreOff"}, false};
-const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF{{System::Main, "Debug", "JitLoadStorelXzOff"},
-                                                   false};
-const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LWZ_OFF{{System::Main, "Debug", "JitLoadStorelwzOff"},
-                                                   false};
-const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LBZX_OFF{{System::Main, "Debug", "JitLoadStorelbzxOff"},
-                                                    false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF{
+    {System::Main, "Debug", "JitLoadStorelXzOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LWZ_OFF{
+    {System::Main, "Debug", "JitLoadStorelwzOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LBZX_OFF{
+    {System::Main, "Debug", "JitLoadStorelbzxOff"}, false};
 const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF{
     {System::Main, "Debug", "JitLoadStoreFloatingOff"}, false};
 const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF{
     {System::Main, "Debug", "JitLoadStorePairedOff"}, false};
-const Info<bool> MAIN_DEBUG_JIT_FLOATING_POINT_OFF{{System::Main, "Debug", "JitFloatingPointOff"},
-                                                   false};
+const Info<bool> MAIN_DEBUG_JIT_FLOATING_POINT_OFF{
+    {System::Main, "Debug", "JitFloatingPointOff"}, false};
 const Info<bool> MAIN_DEBUG_JIT_INTEGER_OFF{{System::Main, "Debug", "JitIntegerOff"}, false};
 const Info<bool> MAIN_DEBUG_JIT_PAIRED_OFF{{System::Main, "Debug", "JitPairedOff"}, false};
 const Info<bool> MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF{
     {System::Main, "Debug", "JitSystemRegistersOff"}, false};
 const Info<bool> MAIN_DEBUG_JIT_BRANCH_OFF{{System::Main, "Debug", "JitBranchOff"}, false};
-const Info<bool> MAIN_DEBUG_JIT_REGISTER_CACHE_OFF{{System::Main, "Debug", "JitRegisterCacheOff"},
-                                                   false};
-const Info<bool> MAIN_DEBUG_JIT_ENABLE_PROFILING{{System::Main, "Debug", "JitEnableProfiling"},
-                                                 false};
+const Info<bool> MAIN_DEBUG_JIT_REGISTER_CACHE_OFF{
+    {System::Main, "Debug", "JitRegisterCacheOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_ENABLE_PROFILING{
+    {System::Main, "Debug", "JitEnableProfiling"}, false};
 
 // Main.BluetoothPassthrough
 
@@ -556,8 +556,8 @@ const Info<std::string> MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS{
 
 const Info<bool> MAIN_USB_PASSTHROUGH_DISGUISE_PLAYSTATION_AS_WII{
     {System::Main, "USBPassthrough", "DisguisePlayStationAsWii"}, true};
-const Info<std::string> MAIN_USB_PASSTHROUGH_DEVICES{{System::Main, "USBPassthrough", "Devices"},
-                                                     ""};
+const Info<std::string> MAIN_USB_PASSTHROUGH_DEVICES{
+    {System::Main, "USBPassthrough", "Devices"}, ""};
 
 static std::set<USBUtils::DeviceInfo> LoadUSBWhitelistFromString(const std::string& devices_string)
 {
@@ -600,8 +600,8 @@ const Info<bool> MAIN_EMULATE_SKYLANDER_PORTAL{
 const Info<bool> MAIN_EMULATE_INFINITY_BASE{
     {System::Main, "EmulatedUSBDevices", "EmulateInfinityBase"}, false};
 
-const Info<bool> MAIN_EMULATE_WII_SPEAK{{System::Main, "EmulatedUSBDevices", "EmulateWiiSpeak"},
-                                        false};
+const Info<bool> MAIN_EMULATE_WII_SPEAK{
+    {System::Main, "EmulatedUSBDevices", "EmulateWiiSpeak"}, false};
 
 const Info<std::string> MAIN_WII_SPEAK_MICROPHONE{
     {System::Main, "EmulatedUSBDevices", "WiiSpeakMicrophone"}, ""};
@@ -658,14 +658,14 @@ std::string GetBootROMPath(const std::string& region_directory)
   return path;
 }
 
-std::string GetMemcardPath(ExpansionInterface::Slot slot, std::optional<DiscIO::Region> region,
-                           u16 size_mb)
+std::string GetMemcardPath(
+    ExpansionInterface::Slot slot, std::optional<DiscIO::Region> region, u16 size_mb)
 {
   return GetMemcardPath(Config::Get(GetInfoForMemcardPath(slot)), slot, region, size_mb);
 }
 
 std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::Slot slot,
-                           std::optional<DiscIO::Region> region, u16 size_mb)
+    std::optional<DiscIO::Region> region, u16 size_mb)
 {
   const std::string blocks_string = size_mb < Memcard::MBIT_SIZE_MEMORY_CARD_2043 ?
                                         fmt::format(".{}", Memcard::MbitToFreeBlocks(size_mb)) :
@@ -678,7 +678,7 @@ std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::
     const std::string region_string = Config::GetDirectoryForRegion(
         Config::ToGameCubeRegion(region ? *region : Config::Get(Config::MAIN_FALLBACK_REGION)));
     return fmt::format("{}{}.{}{}.raw", File::GetUserPath(D_GCUSER_IDX),
-                       is_slot_a ? GC_MEMCARDA : GC_MEMCARDB, region_string, blocks_string);
+        is_slot_a ? GC_MEMCARDA : GC_MEMCARDB, region_string, blocks_string);
   }
 
   // Custom path is expected to be stored in the form of
@@ -716,8 +716,7 @@ std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::
   const DiscIO::Region used_region =
       region ? *region : (path_region ? *path_region : Config::Get(Config::MAIN_FALLBACK_REGION));
   return fmt::format("{}{}.{}{}{}", dir, name,
-                     Config::GetDirectoryForRegion(Config::ToGameCubeRegion(used_region)),
-                     blocks_string, ext);
+      Config::GetDirectoryForRegion(Config::ToGameCubeRegion(used_region)), blocks_string, ext);
 }
 
 bool IsDefaultMemcardPathConfigured(ExpansionInterface::Slot slot)
@@ -731,15 +730,15 @@ std::string GetGCIFolderPath(ExpansionInterface::Slot slot, std::optional<DiscIO
 }
 
 std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::Slot slot,
-                             std::optional<DiscIO::Region> region)
+    std::optional<DiscIO::Region> region)
 {
   if (configured_folder.empty())
   {
     const auto region_dir = Config::GetDirectoryForRegion(
         Config::ToGameCubeRegion(region ? *region : Config::Get(Config::MAIN_FALLBACK_REGION)));
     const bool is_slot_a = slot == ExpansionInterface::Slot::A;
-    return fmt::format("{}{}/Card {}", File::GetUserPath(D_GCUSER_IDX), region_dir,
-                       is_slot_a ? 'A' : 'B');
+    return fmt::format(
+        "{}{}/Card {}", File::GetUserPath(D_GCUSER_IDX), region_dir, is_slot_a ? 'A' : 'B');
   }
 
   // Custom path is expected to be stored in the form of
@@ -776,8 +775,8 @@ std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::
   const DiscIO::Region used_region =
       region ? *region : (path_region ? *path_region : Config::Get(Config::MAIN_FALLBACK_REGION));
   return fmt::format("{}/{}", base_path,
-                     Config::GetDirectoryForRegion(Config::ToGameCubeRegion(used_region),
-                                                   Config::RegionDirectoryStyle::Modern));
+      Config::GetDirectoryForRegion(
+          Config::ToGameCubeRegion(used_region), Config::RegionDirectoryStyle::Modern));
 }
 
 bool IsDefaultGCIFolderPathConfigured(ExpansionInterface::Slot slot)

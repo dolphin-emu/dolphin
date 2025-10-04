@@ -58,25 +58,25 @@ static ConfigStringChoice* MakeLanguageComboBox()
       QPair{QStringLiteral(u"Polski"), QStringLiteral("pl")},             // Polish
       QPair{QStringLiteral(u"Portugu\u00EAs"), QStringLiteral("pt")},     // Portuguese
       QPair{QStringLiteral(u"Portugu\u00EAs (Brasil)"),
-            QStringLiteral("pt_BR")},                                    // Portuguese (Brazil)
+          QStringLiteral("pt_BR")},                                      // Portuguese (Brazil)
       QPair{QStringLiteral(u"Rom\u00E2n\u0103"), QStringLiteral("ro")},  // Romanian
       QPair{QStringLiteral(u"Srpski"), QStringLiteral("sr")},            // Serbian
       QPair{QStringLiteral(u"Suomi"), QStringLiteral("fi")},             // Finnish
       QPair{QStringLiteral(u"Svenska"), QStringLiteral("sv")},           // Swedish
       QPair{QStringLiteral(u"T\u00FCrk\u00E7e"), QStringLiteral("tr")},  // Turkish
       QPair{QStringLiteral(u"\u0395\u03BB\u03BB\u03B7\u03BD\u03B9\u03BA\u03AC"),
-            QStringLiteral("el")},  // Greek
+          QStringLiteral("el")},  // Greek
       QPair{QStringLiteral(u"\u0420\u0443\u0441\u0441\u043A\u0438\u0439"),
-            QStringLiteral("ru")},  // Russian
+          QStringLiteral("ru")},  // Russian
       QPair{QStringLiteral(u"\u0627\u0644\u0639\u0631\u0628\u064A\u0629"),
-            QStringLiteral("ar")},                                                     // Arabic
+          QStringLiteral("ar")},                                                       // Arabic
       QPair{QStringLiteral(u"\u0641\u0627\u0631\u0633\u06CC"), QStringLiteral("fa")},  // Farsi
       QPair{QStringLiteral(u"\uD55C\uAD6D\uC5B4"), QStringLiteral("ko")},              // Korean
       QPair{QStringLiteral(u"\u65E5\u672C\u8A9E"), QStringLiteral("ja")},              // Japanese
       QPair{QStringLiteral(u"\u7B80\u4F53\u4E2D\u6587"),
-            QStringLiteral("zh_CN")},  // Simplified Chinese
+          QStringLiteral("zh_CN")},  // Simplified Chinese
       QPair{QStringLiteral(u"\u7E41\u9AD4\u4E2D\u6587"),
-            QStringLiteral("zh_TW")},  // Traditional Chinese
+          QStringLiteral("zh_TW")},  // Traditional Chinese
   };
 
   auto* const combobox = new ConfigStringChoice(languages, Config::MAIN_INTERFACE_LANGUAGE);
@@ -97,9 +97,9 @@ InterfacePane::InterfacePane(QWidget* parent) : QWidget(parent)
   ConnectLayout();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          &InterfacePane::UpdateShowDebuggingCheckbox);
+      &InterfacePane::UpdateShowDebuggingCheckbox);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          &InterfacePane::OnEmulationStateChanged);
+      &InterfacePane::OnEmulationStateChanged);
 
   OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
 }
@@ -165,11 +165,11 @@ void InterfacePane::CreateUI()
   }
 
   // Checkboxes
-  m_checkbox_use_builtin_title_database = new ConfigBool(tr("Use Built-In Database of Game Names"),
-                                                         Config::MAIN_USE_BUILT_IN_TITLE_DATABASE);
+  m_checkbox_use_builtin_title_database = new ConfigBool(
+      tr("Use Built-In Database of Game Names"), Config::MAIN_USE_BUILT_IN_TITLE_DATABASE);
   m_checkbox_use_covers =
       new ConfigBool(tr("Download Game Covers from GameTDB.com for Use in Grid Mode"),
-                     Config::MAIN_USE_GAME_COVERS);
+          Config::MAIN_USE_GAME_COVERS);
   m_checkbox_show_debugging_ui = new ToolTipCheckBox(tr("Enable Debugging UI"));
   m_checkbox_focused_hotkeys =
       new ConfigBool(tr("Hotkeys Require Window Focus"), Config::MAIN_FOCUSED_HOTKEYS);
@@ -216,11 +216,10 @@ void InterfacePane::CreateInGame()
   auto* m_vboxlayout_hide_mouse = new QVBoxLayout;
   mouse_groupbox->setLayout(m_vboxlayout_hide_mouse);
 
-  m_radio_cursor_visible_movement =
-      new ConfigRadioInt(tr("On Movement"), Config::MAIN_SHOW_CURSOR,
-                         static_cast<int>(Config::ShowCursor::OnMovement));
-  m_radio_cursor_visible_never = new ConfigRadioInt(tr("Never"), Config::MAIN_SHOW_CURSOR,
-                                                    static_cast<int>(Config::ShowCursor::Never));
+  m_radio_cursor_visible_movement = new ConfigRadioInt(tr("On Movement"), Config::MAIN_SHOW_CURSOR,
+      static_cast<int>(Config::ShowCursor::OnMovement));
+  m_radio_cursor_visible_never = new ConfigRadioInt(
+      tr("Never"), Config::MAIN_SHOW_CURSOR, static_cast<int>(Config::ShowCursor::Never));
   m_radio_cursor_visible_always = new ConfigRadioInt(
       tr("Always"), Config::MAIN_SHOW_CURSOR, static_cast<int>(Config::ShowCursor::Constantly));
 
@@ -251,27 +250,27 @@ void InterfacePane::CreateInGame()
 void InterfacePane::ConnectLayout()
 {
   connect(m_checkbox_use_builtin_title_database, &QCheckBox::toggled, &Settings::Instance(),
-          &Settings::GameListRefreshRequested);
+      &Settings::GameListRefreshRequested);
   connect(m_checkbox_use_covers, &QCheckBox::toggled, &Settings::Instance(),
-          &Settings::MetadataRefreshRequested);
+      &Settings::MetadataRefreshRequested);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, &Settings::Instance(),
-          &Settings::SetDebugModeEnabled);
+      &Settings::SetDebugModeEnabled);
   connect(m_combobox_theme, &QComboBox::currentIndexChanged, &Settings::Instance(),
-          &Settings::ThemeChanged);
+      &Settings::ThemeChanged);
   connect(m_combobox_userstyle, &QComboBox::currentIndexChanged, this,
-          &InterfacePane::OnUserStyleChanged);
+      &InterfacePane::OnUserStyleChanged);
   connect(m_combobox_language, &QComboBox::currentIndexChanged, this,
-          &InterfacePane::OnLanguageChanged);
+      &InterfacePane::OnLanguageChanged);
   connect(m_checkbox_top_window, &QCheckBox::toggled, &Settings::Instance(),
-          &Settings::KeepWindowOnTopChanged);
+      &Settings::KeepWindowOnTopChanged);
   connect(m_radio_cursor_visible_movement, &ConfigRadioInt::OnSelected, &Settings::Instance(),
-          &Settings::CursorVisibilityChanged);
+      &Settings::CursorVisibilityChanged);
   connect(m_radio_cursor_visible_never, &ConfigRadioInt::OnSelected, &Settings::Instance(),
-          &Settings::CursorVisibilityChanged);
+      &Settings::CursorVisibilityChanged);
   connect(m_radio_cursor_visible_always, &ConfigRadioInt::OnSelected, &Settings::Instance(),
-          &Settings::CursorVisibilityChanged);
+      &Settings::CursorVisibilityChanged);
   connect(m_checkbox_lock_mouse, &QCheckBox::toggled, &Settings::Instance(),
-          &Settings::LockCursorChanged);
+      &Settings::LockCursorChanged);
 }
 
 void InterfacePane::UpdateShowDebuggingCheckbox()
@@ -291,8 +290,8 @@ void InterfacePane::UpdateShowDebuggingCheckbox()
   if (hardcore)
   {
     m_checkbox_show_debugging_ui->SetDescription(tr("%1<br><br>%2")
-                                                     .arg(tr(TR_SHOW_DEBUGGING_UI_DESCRIPTION))
-                                                     .arg(tr(TR_DISABLED_IN_HARDCORE_DESCRIPTION)));
+            .arg(tr(TR_SHOW_DEBUGGING_UI_DESCRIPTION))
+            .arg(tr(TR_DISABLED_IN_HARDCORE_DESCRIPTION)));
   }
   else
   {
@@ -327,8 +326,7 @@ void InterfacePane::OnUserStyleChanged()
 
 void InterfacePane::OnLanguageChanged()
 {
-  ModalMessageBox::information(
-      this, tr("Restart Required"),
+  ModalMessageBox::information(this, tr("Restart Required"),
       tr("You must restart Dolphin in order for the change to take effect."));
 }
 

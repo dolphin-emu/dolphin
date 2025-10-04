@@ -146,8 +146,7 @@ bool CheatCodeEditor::AcceptAR()
     }
     else
     {
-      auto result = ModalMessageBox::warning(
-          this, tr("Parsing Error"),
+      auto result = ModalMessageBox::warning(this, tr("Parsing Error"),
           tr("Unable to parse line %1 of the entered AR code as a valid "
              "encrypted or decrypted code. Make sure you typed it correctly.\n\n"
              "Would you like to ignore this line and continue parsing?")
@@ -163,8 +162,7 @@ bool CheatCodeEditor::AcceptAR()
   {
     if (!entries.empty())
     {
-      auto result = ModalMessageBox::warning(
-          this, tr("Invalid Mixed Code"),
+      auto result = ModalMessageBox::warning(this, tr("Invalid Mixed Code"),
           tr("This Action Replay code contains both encrypted and unencrypted lines; "
              "you should check that you have entered it correctly.\n\n"
              "Do you want to discard all unencrypted lines?"),
@@ -192,8 +190,8 @@ bool CheatCodeEditor::AcceptAR()
 
   if (entries.empty())
   {
-    ModalMessageBox::critical(this, tr("Error"),
-                              tr("The resulting decrypted AR code doesn't contain any lines."));
+    ModalMessageBox::critical(
+        this, tr("Error"), tr("The resulting decrypted AR code doesn't contain any lines."));
     return false;
   }
 
@@ -233,8 +231,7 @@ bool CheatCodeEditor::AcceptGecko()
     }
     else
     {
-      auto result = ModalMessageBox::warning(
-          this, tr("Parsing Error"),
+      auto result = ModalMessageBox::warning(this, tr("Parsing Error"),
           tr("Unable to parse line %1 of the entered Gecko code as a valid "
              "code. Make sure you typed it correctly.\n\n"
              "Would you like to ignore this line and continue parsing?")

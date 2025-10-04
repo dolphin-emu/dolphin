@@ -73,12 +73,14 @@ void MemoryManager::InitMMIO(bool is_wii)
 
 void MemoryManager::Init()
 {
-  const auto get_mem1_size = [] {
+  const auto get_mem1_size = []
+  {
     if (Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
       return Config::Get(Config::MAIN_MEM1_SIZE);
     return Memory::MEM1_SIZE_RETAIL;
   };
-  const auto get_mem2_size = [] {
+  const auto get_mem2_size = []
+  {
     if (Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
       return Config::Get(Config::MAIN_MEM2_SIZE);
     return Memory::MEM2_SIZE_RETAIL;
@@ -223,7 +225,7 @@ bool MemoryManager::InitFastmemArena()
     {
       PanicAlertFmt("Memory::InitFastmemArena(): Failed to map memory region at 0x{:08X} "
                     "(size 0x{:08X}) into physical fastmem region.",
-                    region.physical_address, region.size);
+          region.physical_address, region.size);
       return false;
     }
   }
@@ -332,13 +334,13 @@ void MemoryManager::DoState(PointerWrap& p)
   // state, cancel the load. This is technically possible to support but would require a bunch of
   // reinitialization of things that depend on these.
   if (std::tie(state_ram_size, state_l1_cache_size, state_have_fake_vmem, state_fake_vmem_size,
-               state_have_exram, state_exram_size) !=
-      std::tie(current_ram_size, current_l1_cache_size, current_have_fake_vmem,
-               current_fake_vmem_size, current_have_exram, current_exram_size))
+          state_have_exram, state_exram_size) != std::tie(current_ram_size, current_l1_cache_size,
+                                                     current_have_fake_vmem, current_fake_vmem_size,
+                                                     current_have_exram, current_exram_size))
   {
     Core::DisplayMessage("State is incompatible with current memory settings (MMU and/or memory "
                          "overrides). Aborting load state.",
-                         3000);
+        3000);
     p.SetVerifyMode();
     return;
   }
@@ -516,14 +518,14 @@ std::span<u8> MemoryManager::GetSpanForAddress(u32 address) const
   {
     if ((address >> 28) == 0x1 && (address & 0x0fffffff) < GetExRamSizeReal())
     {
-      return std::span(m_exram + (address & GetExRamMask()),
-                       GetExRamSizeReal() - (address & GetExRamMask()));
+      return std::span(
+          m_exram + (address & GetExRamMask()), GetExRamSizeReal() - (address & GetExRamMask()));
     }
   }
 
   auto& ppc_state = m_system.GetPPCState();
-  PanicAlertFmt("Unknown Pointer {:#010x} PC {:#010x} LR {:#010x}", address, ppc_state.pc,
-                LR(ppc_state));
+  PanicAlertFmt(
+      "Unknown Pointer {:#010x} PC {:#010x} LR {:#010x}", address, ppc_state.pc, LR(ppc_state));
   return {};
 }
 

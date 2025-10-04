@@ -59,7 +59,8 @@ void VideoConfig::Refresh()
     // invalid values. Instead, pause the video thread first, update the config and correct
     // it, then resume emulation, after which the video thread will detect the config has
     // changed and act accordingly.
-    const auto config_changed_callback = [] {
+    const auto config_changed_callback = []
+    {
       auto& system = Core::System::GetInstance();
 
       const bool lock_gpu_thread = Core::IsRunning(system);
@@ -356,7 +357,7 @@ void CheckForConfigChanges()
 
   // Framebuffer changed?
   if (changed_bits & (CONFIG_CHANGE_BIT_MULTISAMPLES | CONFIG_CHANGE_BIT_STEREO_MODE |
-                      CONFIG_CHANGE_BIT_TARGET_SIZE | CONFIG_CHANGE_BIT_HDR))
+                         CONFIG_CHANGE_BIT_TARGET_SIZE | CONFIG_CHANGE_BIT_HDR))
   {
     g_framebuffer_manager->RecreateEFBFramebuffer();
   }

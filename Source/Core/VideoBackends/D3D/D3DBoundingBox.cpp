@@ -27,8 +27,7 @@ bool D3DBoundingBox::Initialize()
   // Create 2 buffers here.
   // First for unordered access on default pool.
   auto desc = CD3D11_BUFFER_DESC(NUM_BBOX_VALUES * sizeof(BBoxType), D3D11_BIND_UNORDERED_ACCESS,
-                                 D3D11_USAGE_DEFAULT, 0, D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS,
-                                 sizeof(BBoxType));
+      D3D11_USAGE_DEFAULT, 0, D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS, sizeof(BBoxType));
   const BBoxType initial_values[NUM_BBOX_VALUES] = {0, 0, 0, 0};
   D3D11_SUBRESOURCE_DATA data;
   data.pSysMem = initial_values;
@@ -47,8 +46,8 @@ bool D3DBoundingBox::Initialize()
   desc.BindFlags = 0;
   desc.MiscFlags = 0;
   hr = D3D::device->CreateBuffer(&desc, nullptr, &m_staging_buffer);
-  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create BoundingBox Staging Buffer: {}",
-             DX11HRWrap(hr));
+  ASSERT_MSG(
+      VIDEO, SUCCEEDED(hr), "Failed to create BoundingBox Staging Buffer: {}", DX11HRWrap(hr));
   if (FAILED(hr))
     return false;
   D3DCommon::SetDebugObjectName(m_staging_buffer.Get(), "BoundingBox Staging Buffer");
@@ -80,7 +79,7 @@ std::vector<BBoxType> D3DBoundingBox::Read(u32 index, u32 length)
   if (SUCCEEDED(hr))
   {
     std::memcpy(values.data(), static_cast<const u8*>(map.pData) + sizeof(BBoxType) * index,
-                sizeof(BBoxType) * length);
+        sizeof(BBoxType) * length);
 
     D3D::context->Unmap(m_staging_buffer.Get(), 0);
   }
@@ -90,12 +89,8 @@ std::vector<BBoxType> D3DBoundingBox::Read(u32 index, u32 length)
 
 void D3DBoundingBox::Write(u32 index, std::span<const BBoxType> values)
 {
-  D3D11_BOX box{index * sizeof(BBoxType),
-                0,
-                0,
-                static_cast<u32>((index + values.size()) * sizeof(BBoxType)),
-                1,
-                1};
+  D3D11_BOX box{index * sizeof(BBoxType), 0, 0,
+      static_cast<u32>((index + values.size()) * sizeof(BBoxType)), 1, 1};
   D3D::context->UpdateSubresource(m_buffer.Get(), 0, &box, values.data(), 0, 0);
 }
 

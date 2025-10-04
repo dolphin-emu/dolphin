@@ -183,8 +183,8 @@ static u32 GetOwnProcessId()
 #endif
 }
 
-void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
-                                       std::string_view hash_override, const CheckType check_type)
+void AutoUpdateChecker::CheckForUpdate(
+    std::string_view update_track, std::string_view hash_override, const CheckType check_type)
 {
   // Don't bother checking if updates are not supported or not enabled.
   if (!SystemSupportsAutoUpdates() || update_track.empty())
@@ -196,7 +196,7 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
 
   std::string_view version_hash = hash_override.empty() ? Common::GetScmRevGitStr() : hash_override;
   std::string url = fmt::format("{}/update/check/v1/{}/{}/{}", GetUpdateServerUrl(), update_track,
-                                version_hash, GetPlatformID());
+      version_hash, GetPlatformID());
 
   const bool is_manual_check = check_type == CheckType::Manual;
 
@@ -250,7 +250,7 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
 }
 
 void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInformation& info,
-                                      const AutoUpdateChecker::RestartMode restart_mode)
+    const AutoUpdateChecker::RestartMode restart_mode)
 {
   // Check to make sure we don't already have an update triggered
   if (s_update_triggered)
@@ -296,7 +296,7 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   sinfo.dwFlags = STARTF_FORCEOFFFEEDBACK;  // No hourglass cursor after starting the process.
   PROCESS_INFORMATION pinfo;
   if (CreateProcessW(UTF8ToWString(UpdaterPath()).c_str(), UTF8ToWString(command_line).data(),
-                     nullptr, nullptr, FALSE, 0, nullptr, nullptr, &sinfo, &pinfo))
+          nullptr, nullptr, FALSE, 0, nullptr, nullptr, &sinfo, &pinfo))
   {
     CloseHandle(pinfo.hThread);
     CloseHandle(pinfo.hProcess);

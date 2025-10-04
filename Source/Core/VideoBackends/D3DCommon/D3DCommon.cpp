@@ -43,7 +43,7 @@ bool LoadLibraries()
   {
     PanicAlertFmtT("Failed to load {0}. If you are using Windows 7, try installing the "
                    "KB4019990 update package.",
-                   D3DCOMPILER_DLL_A);
+        D3DCOMPILER_DLL_A);
     s_dxgi_library.Close();
     return false;
   }
@@ -80,8 +80,8 @@ Microsoft::WRL::ComPtr<IDXGIFactory> CreateDXGIFactory(bool debug_device)
 
   // Use Win8.1 version if available.
   if (create_dxgi_factory2 &&
-      SUCCEEDED(create_dxgi_factory2(debug_device ? DXGI_CREATE_FACTORY_DEBUG : 0,
-                                     IID_PPV_ARGS(factory.GetAddressOf()))))
+      SUCCEEDED(create_dxgi_factory2(
+          debug_device ? DXGI_CREATE_FACTORY_DEBUG : 0, IID_PPV_ARGS(factory.GetAddressOf()))))
   {
     return factory;
   }
@@ -107,7 +107,7 @@ std::vector<std::string> GetAdapterNames()
   std::vector<std::string> adapters;
   Microsoft::WRL::ComPtr<IDXGIAdapter> adapter;
   while (factory->EnumAdapters(static_cast<UINT>(adapters.size()),
-                               adapter.ReleaseAndGetAddressOf()) != DXGI_ERROR_NOT_FOUND)
+             adapter.ReleaseAndGetAddressOf()) != DXGI_ERROR_NOT_FOUND)
   {
     std::string name;
     DXGI_ADAPTER_DESC desc;
@@ -299,13 +299,13 @@ void SetDebugObjectName(IUnknown* resource, std::string_view name)
   Microsoft::WRL::ComPtr<ID3D12DeviceChild> child12;
   if (SUCCEEDED(resource->QueryInterface(IID_PPV_ARGS(child11.GetAddressOf()))))
   {
-    child11->SetPrivateData(WKPDID_D3DDebugObjectName, static_cast<UINT>(name.length()),
-                            name.data());
+    child11->SetPrivateData(
+        WKPDID_D3DDebugObjectName, static_cast<UINT>(name.length()), name.data());
   }
   else if (SUCCEEDED(resource->QueryInterface(IID_PPV_ARGS(child12.GetAddressOf()))))
   {
-    child12->SetPrivateData(WKPDID_D3DDebugObjectName, static_cast<UINT>(name.length()),
-                            name.data());
+    child12->SetPrivateData(
+        WKPDID_D3DDebugObjectName, static_cast<UINT>(name.length()), name.data());
   }
 }
 }  // namespace D3DCommon

@@ -61,7 +61,7 @@ private:
   };
 
   static long DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
-                           void* output_buffer, long nframes);
+      void* output_buffer, long nframes);
 
   void TransferByte(u8& byte) override;
 

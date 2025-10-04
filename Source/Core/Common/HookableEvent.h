@@ -60,7 +60,8 @@ private:
   {
     ~HookImpl() override { HookableEvent::Remove(this); }
     HookImpl(CallbackType callback, std::string name)
-        : m_fn(std::move(callback)), m_name(std::move(name))
+        : m_fn(std::move(callback))
+        , m_name(std::move(name))
     {
     }
     CallbackType m_fn;

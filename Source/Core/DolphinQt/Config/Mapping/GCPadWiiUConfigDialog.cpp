@@ -15,7 +15,8 @@
 #include "InputCommon/GCAdapter.h"
 
 GCPadWiiUConfigDialog::GCPadWiiUConfigDialog(int port, QWidget* parent)
-    : QDialog(parent), m_port{port}
+    : QDialog(parent)
+    , m_port{port}
 {
   CreateLayout();
 

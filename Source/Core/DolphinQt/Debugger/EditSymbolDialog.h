@@ -24,7 +24,7 @@ public:
   };
 
   explicit EditSymbolDialog(QWidget* parent, const u32 symbol_address, u32* symbol_size,
-                            std::string* symbol_name, Type type = Type::Symbol);
+      std::string* symbol_name, Type type = Type::Symbol);
 
   bool DeleteRequested() const { return m_delete_chosen; }
 

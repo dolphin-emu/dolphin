@@ -154,18 +154,11 @@ void ClearCurrentRunLayer()
   s_layers.insert_or_assign(LayerType::CurrentRun, std::make_shared<Layer>(LayerType::CurrentRun));
 }
 
-static const std::map<System, std::string> system_to_name = {
-    {System::Main, "Dolphin"},
-    {System::GCPad, "GCPad"},
-    {System::WiiPad, "Wiimote"},
-    {System::GCKeyboard, "GCKeyboard"},
-    {System::GFX, "Graphics"},
-    {System::Logger, "Logger"},
-    {System::SYSCONF, "SYSCONF"},
-    {System::DualShockUDPClient, "DualShockUDPClient"},
-    {System::FreeLook, "FreeLook"},
-    {System::Session, "Session"},
-    {System::GameSettingsOnly, "GameSettingsOnly"},
+static const std::map<System, std::string> system_to_name = {{System::Main, "Dolphin"},
+    {System::GCPad, "GCPad"}, {System::WiiPad, "Wiimote"}, {System::GCKeyboard, "GCKeyboard"},
+    {System::GFX, "Graphics"}, {System::Logger, "Logger"}, {System::SYSCONF, "SYSCONF"},
+    {System::DualShockUDPClient, "DualShockUDPClient"}, {System::FreeLook, "FreeLook"},
+    {System::Session, "Session"}, {System::GameSettingsOnly, "GameSettingsOnly"},
     {System::Achievements, "Achievements"}};
 
 const std::string& GetSystemName(System system)

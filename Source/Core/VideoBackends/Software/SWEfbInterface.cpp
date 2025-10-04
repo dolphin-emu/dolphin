@@ -477,8 +477,8 @@ static u32 GetColor(u16 x, u16 y)
   return GetPixelColor(offset);
 }
 
-static u32 VerticalFilter(const std::array<u32, 3>& colors,
-                          const std::array<u8, 7>& filterCoefficients)
+static u32 VerticalFilter(
+    const std::array<u32, 3>& colors, const std::array<u8, 7>& filterCoefficients)
 {
   u8 in_colors[3][4];
   std::memcpy(&in_colors, colors.data(), sizeof(in_colors));
@@ -505,8 +505,8 @@ static u32 VerticalFilter(const std::array<u32, 3>& colors,
     {
       sum =
           in_colors[1][i] * (filterCoefficients[0] + filterCoefficients[1] + filterCoefficients[2] +
-                             filterCoefficients[3] + filterCoefficients[4] + filterCoefficients[5] +
-                             filterCoefficients[6]);
+                                filterCoefficients[3] + filterCoefficients[4] +
+                                filterCoefficients[5] + filterCoefficients[6]);
     }
     else
     {
@@ -575,7 +575,7 @@ u8* GetPixelPointer(u16 x, u16 y, bool depth)
 }
 
 void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const MathUtil::Rectangle<int>& source_rect,
-               float y_scale, float gamma)
+    float y_scale, float gamma)
 {
   if (!xfb_in_ram)
   {
@@ -660,7 +660,7 @@ void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const MathUtil::Rectangle<int>
   const int dst_height = src_height * y_scale;
 
   SW::CopyRegion(source.data(), src_width, src_height, reinterpret_cast<yuv422_packed*>(xfb_in_ram),
-                 dst_width, dst_height);
+      dst_width, dst_height);
 }
 
 bool ZCompare(u16 x, u16 y, u32 z)

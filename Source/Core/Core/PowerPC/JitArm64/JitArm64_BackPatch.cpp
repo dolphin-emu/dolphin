@@ -29,8 +29,8 @@ void JitArm64::DoBacktrace(uintptr_t access_address, SContext* ctx)
 {
   for (int i = 0; i < 30; i += 2)
   {
-    ERROR_LOG_FMT(DYNA_REC, "R{}: {:#018x}\tR{}: {:#018x}", i, ctx->CTX_REG(i), i + 1,
-                  ctx->CTX_REG(i + 1));
+    ERROR_LOG_FMT(
+        DYNA_REC, "R{}: {:#018x}\tR{}: {:#018x}", i, ctx->CTX_REG(i), i + 1, ctx->CTX_REG(i + 1));
   }
 
   ERROR_LOG_FMT(DYNA_REC, "R30: {:#018x}\tSP: {:#018x}", ctx->CTX_LR, ctx->CTX_SP);
@@ -44,19 +44,18 @@ void JitArm64::DoBacktrace(uintptr_t access_address, SContext* ctx)
   for (u64 pc = (ctx->CTX_PC - 32); pc < (ctx->CTX_PC + 32); pc += 16)
   {
     pc_memory += fmt::format("{:08x}{:08x}{:08x}{:08x}", Common::swap32(*(u32*)pc),
-                             Common::swap32(*(u32*)(pc + 4)), Common::swap32(*(u32*)(pc + 8)),
-                             Common::swap32(*(u32*)(pc + 12)));
+        Common::swap32(*(u32*)(pc + 4)), Common::swap32(*(u32*)(pc + 8)),
+        Common::swap32(*(u32*)(pc + 12)));
 
     ERROR_LOG_FMT(DYNA_REC, "{:#018x}: {:08x} {:08x} {:08x} {:08x}", pc, *(u32*)pc, *(u32*)(pc + 4),
-                  *(u32*)(pc + 8), *(u32*)(pc + 12));
+        *(u32*)(pc + 8), *(u32*)(pc + 12));
   }
 
   ERROR_LOG_FMT(DYNA_REC, "Full block: {}", pc_memory);
 }
 
 void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, ARM64Reg addr,
-                                    BitSet32 gprs_to_push, BitSet32 fprs_to_push,
-                                    bool emitting_routine)
+    BitSet32 gprs_to_push, BitSet32 fprs_to_push, bool emitting_routine)
 {
   const u32 access_size = BackPatchInfo::GetFlagSize(flags);
 
@@ -113,8 +112,8 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
     {
       m_float_emit.LDR(access_size, EncodeRegToDouble(RS), memory_base, memory_offset);
 
-      ByteswapAfterLoad(this, &m_float_emit, EncodeRegToDouble(RS), EncodeRegToDouble(RS), flags,
-                        true, false);
+      ByteswapAfterLoad(
+          this, &m_float_emit, EncodeRegToDouble(RS), EncodeRegToDouble(RS), flags, true, false);
     }
     else if (flags & BackPatchInfo::FLAG_STORE)
     {
@@ -223,17 +222,17 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
       if (access_size == 64)
       {
         ABI_CallFunction(reverse ? &PowerPC::WriteU64SwapFromJit : &PowerPC::WriteU64FromJit,
-                         &m_mmu, src_reg, ARM64Reg::W2);
+            &m_mmu, src_reg, ARM64Reg::W2);
       }
       else if (access_size == 32)
       {
         ABI_CallFunction(reverse ? &PowerPC::WriteU32SwapFromJit : &PowerPC::WriteU32FromJit,
-                         &m_mmu, src_reg, ARM64Reg::W2);
+            &m_mmu, src_reg, ARM64Reg::W2);
       }
       else if (access_size == 16)
       {
         ABI_CallFunction(reverse ? &PowerPC::WriteU16SwapFromJit : &PowerPC::WriteU16FromJit,
-                         &m_mmu, src_reg, ARM64Reg::W2);
+            &m_mmu, src_reg, ARM64Reg::W2);
       }
       else
       {

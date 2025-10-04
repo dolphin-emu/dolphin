@@ -112,8 +112,8 @@ CEXIIPL::CEXIIPL(Core::System& system) : IEXIDevice(system)
     // Descramble the encrypted section (contains BS1 and BS2)
     Descrambler(&m_rom[0x100], 0x1afe00);
 
-    const std::string_view name{reinterpret_cast<char*>(m_rom.get()),
-                                strnlen(reinterpret_cast<char*>(m_rom.get()), 0x100)};
+    const std::string_view name{
+        reinterpret_cast<char*>(m_rom.get()), strnlen(reinterpret_cast<char*>(m_rom.get()), 0x100)};
     INFO_LOG_FMT(BOOT, "Loaded bootrom: {}", name);
   }
   else
@@ -235,7 +235,7 @@ void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
   const u64 fontsize = (offset == 0x1aff00) ? 0x4a24d : 0x2575;
 
   INFO_LOG_FMT(BOOT, "Found IPL dump, loading {} font from {}",
-               (offset == 0x1aff00) ? "Shift JIS" : "Windows-1252", ipl_rom_path);
+      (offset == 0x1aff00) ? "Shift JIS" : "Windows-1252", ipl_rom_path);
 
   if (!stream.Seek(offset, File::SeekOrigin::Begin) || !stream.ReadBytes(&m_rom[offset], fontsize))
   {
@@ -284,8 +284,7 @@ void CEXIIPL::TransferByte(u8& data)
       UpdateRTC();
 
       DEBUG_LOG_FMT(EXPANSIONINTERFACE, "IPL-DEV cmd {} {:08x} {:02x}",
-                    m_command.is_write() ? "write" : "read", m_command.address(),
-                    m_command.low_bits());
+          m_command.is_write() ? "write" : "read", m_command.address(), m_command.low_bits());
     }
   }
   else
@@ -294,9 +293,10 @@ void CEXIIPL::TransferByte(u8& data)
     const u32 address = m_command.address();
 
     DEBUG_LOG_FMT(EXPANSIONINTERFACE, "IPL-DEV data {} {:08x} {:02x}",
-                  m_command.is_write() ? "write" : "read", address, data);
+        m_command.is_write() ? "write" : "read", address, data);
 
-    auto UartFifoAccess = [&] {
+    auto UartFifoAccess = [&]
+    {
       if (m_command.is_write())
       {
         if (data != '\0')

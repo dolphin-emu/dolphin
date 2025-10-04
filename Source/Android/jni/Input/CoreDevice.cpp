@@ -19,23 +19,21 @@ static ciface::Core::Device::Control* GetControlPointer(JNIEnv* env, jobject obj
       env->GetLongField(obj, IDCache::GetCoreDeviceControlPointer()));
 }
 
-static jobject CoreDeviceControlToJava(JNIEnv* env, jobject device,
-                                       ciface::Core::Device::Control* control)
+static jobject CoreDeviceControlToJava(
+    JNIEnv* env, jobject device, ciface::Core::Device::Control* control)
 {
   if (!control)
     return nullptr;
 
   return env->NewObject(IDCache::GetCoreDeviceControlClass(),
-                        IDCache::GetCoreDeviceControlConstructor(), device,
-                        reinterpret_cast<jlong>(control));
+      IDCache::GetCoreDeviceControlConstructor(), device, reinterpret_cast<jlong>(control));
 }
 
 template <typename T>
-static jobjectArray CoreDeviceControlVectorToJava(JNIEnv* env, jobject device,
-                                                  const std::vector<T*>& controls)
+static jobjectArray CoreDeviceControlVectorToJava(
+    JNIEnv* env, jobject device, const std::vector<T*>& controls)
 {
-  return VectorToJObjectArray(
-      env, controls, IDCache::GetCoreDeviceControlClass(),
+  return VectorToJObjectArray(env, controls, IDCache::GetCoreDeviceControlClass(),
       [device](JNIEnv* env, T* control) { return CoreDeviceControlToJava(env, device, control); });
 }
 
@@ -50,29 +48,28 @@ jobject CoreDeviceToJava(JNIEnv* env, std::shared_ptr<ciface::Core::Device> devi
   if (!device)
     return nullptr;
 
-  return env->NewObject(
-      IDCache::GetCoreDeviceClass(), IDCache::GetCoreDeviceConstructor(),
+  return env->NewObject(IDCache::GetCoreDeviceClass(), IDCache::GetCoreDeviceConstructor(),
       reinterpret_cast<jlong>(new std::shared_ptr<ciface::Core::Device>(std::move(device))));
 }
 
 extern "C" {
 
 JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_CoreDevice_00024Control_getName(JNIEnv* env,
-                                                                                    jobject obj)
+Java_org_dolphinemu_dolphinemu_features_input_model_CoreDevice_00024Control_getName(
+    JNIEnv* env, jobject obj)
 {
   return ToJString(env, GetControlPointer(env, obj)->GetName());
 }
 
 JNIEXPORT jdouble JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_CoreDevice_00024Control_getState(JNIEnv* env,
-                                                                                     jobject obj)
+Java_org_dolphinemu_dolphinemu_features_input_model_CoreDevice_00024Control_getState(
+    JNIEnv* env, jobject obj)
 {
   return env, GetControlPointer(env, obj)->ToInput()->GetState();
 }
 
-JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_CoreDevice_finalize(JNIEnv* env, jobject obj)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_input_model_CoreDevice_finalize(
+    JNIEnv* env, jobject obj)
 {
   delete GetDevicePointer(env, obj);
 }

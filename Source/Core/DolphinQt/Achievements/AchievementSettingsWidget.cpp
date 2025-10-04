@@ -33,7 +33,7 @@ AchievementSettingsWidget::AchievementSettingsWidget(QWidget* parent) : QWidget(
   ConnectWidgets();
 
   connect(&Settings::Instance(), &Settings::ConfigChanged, this,
-          &AchievementSettingsWidget::LoadSettings);
+      &AchievementSettingsWidget::LoadSettings);
 }
 
 void AchievementSettingsWidget::UpdateData(int login_failed_code)
@@ -147,21 +147,21 @@ void AchievementSettingsWidget::CreateLayout()
 void AchievementSettingsWidget::ConnectWidgets()
 {
   connect(m_common_integration_enabled_input, &QCheckBox::toggled, this,
-          &AchievementSettingsWidget::ToggleRAIntegration);
+      &AchievementSettingsWidget::ToggleRAIntegration);
   connect(m_common_login_button, &QPushButton::clicked, this, &AchievementSettingsWidget::Login);
   connect(m_common_logout_button, &QPushButton::clicked, this, &AchievementSettingsWidget::Logout);
   connect(m_common_hardcore_enabled_input, &QCheckBox::toggled, this,
-          &AchievementSettingsWidget::ToggleHardcore);
+      &AchievementSettingsWidget::ToggleHardcore);
   connect(m_common_unofficial_enabled_input, &QCheckBox::toggled, this,
-          &AchievementSettingsWidget::ToggleUnofficial);
+      &AchievementSettingsWidget::ToggleUnofficial);
   connect(m_common_encore_enabled_input, &QCheckBox::toggled, this,
-          &AchievementSettingsWidget::ToggleEncore);
+      &AchievementSettingsWidget::ToggleEncore);
   connect(m_common_spectator_enabled_input, &QCheckBox::toggled, this,
-          &AchievementSettingsWidget::ToggleSpectator);
+      &AchievementSettingsWidget::ToggleSpectator);
   connect(m_common_discord_presence_enabled_input, &QCheckBox::toggled, this,
-          &AchievementSettingsWidget::ToggleDiscordPresence);
+      &AchievementSettingsWidget::ToggleDiscordPresence);
   connect(m_common_progress_enabled_input, &QCheckBox::toggled, this,
-          &AchievementSettingsWidget::ToggleProgress);
+      &AchievementSettingsWidget::ToggleProgress);
 }
 
 void AchievementSettingsWidget::OnControllerInterfaceConfigure()
@@ -204,7 +204,7 @@ void AchievementSettingsWidget::LoadSettings()
       ->setChecked(Config::Get(Config::RA_HARDCORE_ENABLED));
   SignalBlocking(m_common_hardcore_enabled_input)
       ->setEnabled(enabled && (hardcore_enabled || (Core::IsUninitialized(system) &&
-                                                    !system.GetMovie().IsPlayingInput())));
+                                                       !system.GetMovie().IsPlayingInput())));
 
   SignalBlocking(m_common_unofficial_enabled_input)
       ->setChecked(Config::Get(Config::RA_UNOFFICIAL_ENABLED));
@@ -232,17 +232,17 @@ void AchievementSettingsWidget::SaveSettings()
   Config::ConfigChangeCallbackGuard config_guard;
 
   Config::SetBaseOrCurrent(Config::RA_ENABLED, m_common_integration_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_HARDCORE_ENABLED,
-                           m_common_hardcore_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_UNOFFICIAL_ENABLED,
-                           m_common_unofficial_enabled_input->isChecked());
+  Config::SetBaseOrCurrent(
+      Config::RA_HARDCORE_ENABLED, m_common_hardcore_enabled_input->isChecked());
+  Config::SetBaseOrCurrent(
+      Config::RA_UNOFFICIAL_ENABLED, m_common_unofficial_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_ENCORE_ENABLED, m_common_encore_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_SPECTATOR_ENABLED,
-                           m_common_spectator_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_DISCORD_PRESENCE_ENABLED,
-                           m_common_discord_presence_enabled_input->isChecked());
-  Config::SetBaseOrCurrent(Config::RA_PROGRESS_ENABLED,
-                           m_common_progress_enabled_input->isChecked());
+  Config::SetBaseOrCurrent(
+      Config::RA_SPECTATOR_ENABLED, m_common_spectator_enabled_input->isChecked());
+  Config::SetBaseOrCurrent(
+      Config::RA_DISCORD_PRESENCE_ENABLED, m_common_discord_presence_enabled_input->isChecked());
+  Config::SetBaseOrCurrent(
+      Config::RA_PROGRESS_ENABLED, m_common_progress_enabled_input->isChecked());
   Config::Save();
 }
 
@@ -268,8 +268,8 @@ void AchievementSettingsWidget::Login()
 
 void AchievementSettingsWidget::Logout()
 {
-  auto confirm = ModalMessageBox::question(
-      this, tr("Confirm Logout"), tr("Are you sure you want to log out of RetroAchievements?"),
+  auto confirm = ModalMessageBox::question(this, tr("Confirm Logout"),
+      tr("Are you sure you want to log out of RetroAchievements?"),
       QMessageBox::Yes | QMessageBox::No, QMessageBox::NoButton, Qt::ApplicationModal);
   if (confirm == QMessageBox::Yes)
   {
@@ -282,9 +282,9 @@ void AchievementSettingsWidget::ToggleHardcore()
 {
   if (Config::Get(Config::RA_HARDCORE_ENABLED))
   {
-    auto confirm = ModalMessageBox::question(
-        this, tr("Confirm Hardcore Off"), tr("Are you sure you want to turn hardcore mode off?"),
-        QMessageBox::Yes | QMessageBox::No, QMessageBox::NoButton, Qt::ApplicationModal);
+    auto confirm = ModalMessageBox::question(this, tr("Confirm Hardcore Off"),
+        tr("Are you sure you want to turn hardcore mode off?"), QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::NoButton, Qt::ApplicationModal);
     if (confirm != QMessageBox::Yes)
     {
       SignalBlocking(m_common_hardcore_enabled_input)->setChecked(true);

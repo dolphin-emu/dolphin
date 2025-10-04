@@ -119,8 +119,8 @@ bool PulseAudio::PulseInit()
   m_pa_ba.tlength =
       BUFFER_SAMPLES * m_channels *
       m_bytespersample;  // designed latency, only change this flag for low latency output
-  pa_stream_flags flags = pa_stream_flags(PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_ADJUST_LATENCY |
-                                          PA_STREAM_AUTO_TIMING_UPDATE);
+  pa_stream_flags flags = pa_stream_flags(
+      PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_ADJUST_LATENCY | PA_STREAM_AUTO_TIMING_UPDATE);
   m_pa_error = pa_stream_connect_playback(m_pa_s, nullptr, &m_pa_ba, flags, nullptr, nullptr);
   if (m_pa_error < 0)
   {

@@ -14,7 +14,9 @@
 constexpr int PADDING = 1;
 
 StickWidget::StickWidget(QWidget* parent, u16 max_x, u16 max_y)
-    : QWidget(parent), m_max_x(max_x), m_max_y(max_y)
+    : QWidget(parent)
+    , m_max_x(max_x)
+    , m_max_y(max_y)
 {
   setMouseTracking(false);
   setToolTip(tr("Left click to set the stick value.\n"
@@ -64,8 +66,8 @@ void StickWidget::paintEvent(QPaintEvent* event)
 
   painter.setBrush(Qt::blue);
   int neutral_radius = diameter / 30;
-  painter.drawEllipse(x - neutral_radius, y - neutral_radius, neutral_radius * 2,
-                      neutral_radius * 2);
+  painter.drawEllipse(
+      x - neutral_radius, y - neutral_radius, neutral_radius * 2, neutral_radius * 2);
 }
 
 void StickWidget::mousePressEvent(QMouseEvent* event)

@@ -48,7 +48,9 @@ class ProfilerExecuter
 {
 public:
   ProfilerExecuter(Profiler* profiler, u64* time, int* depth)
-      : m_profiler(profiler), m_time(time), m_depth(depth)
+      : m_profiler(profiler)
+      , m_time(time)
+      , m_depth(depth)
   {
     m_profiler->Start(m_time, m_depth);
   }

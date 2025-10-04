@@ -22,7 +22,7 @@ bool GLContextBGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
   m_window = static_cast<BWindow*>(wsi.render_window);
 
   m_gl = new BGLView(m_window ? m_window->Bounds() : BRect(), "GLContextBGL", B_FOLLOW_ALL_SIDES, 0,
-                     BGL_RGB | BGL_DOUBLE | BGL_ALPHA);
+      BGL_RGB | BGL_DOUBLE | BGL_ALPHA);
   if (m_window)
     m_window->AddChild(m_gl);
 

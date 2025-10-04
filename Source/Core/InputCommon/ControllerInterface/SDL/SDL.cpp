@@ -52,7 +52,8 @@ static void EnableSDLLogging()
 {
   SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE);
   SDL_SetLogOutputFunction(
-      [](void*, int category, SDL_LogPriority priority, const char* message) {
+      [](void*, int category, SDL_LogPriority priority, const char* message)
+      {
         std::string_view category_name{};
         switch (category)
         {
@@ -115,12 +116,12 @@ static void EnableSDLLogging()
         if (category_name.empty())
         {
           GENERIC_LOG_FMT(Common::Log::LogType::CONTROLLERINTERFACE, log_level, "unknown({}): {}",
-                          category, message);
+              category, message);
         }
         else
         {
           GENERIC_LOG_FMT(Common::Log::LogType::CONTROLLERINTERFACE, log_level, "{}: {}",
-                          category_name, message);
+              category_name, message);
         }
       },
       nullptr);
@@ -145,51 +146,56 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
   //  call within SDL.
   SDL_SetHint(SDL_HINT_JOYSTICK_DIRECTINPUT, "0");
 
-  m_hotplug_thread = std::thread([this] {
-    Common::SetCurrentThreadName("SDL Hotplug Thread");
-
-    Common::ScopeGuard quit_guard([] {
-      // TODO: there seems to be some sort of memory leak with SDL, quit isn't freeing everything up
-      SDL_Quit();
-    });
-    {
-      Common::ScopeGuard init_guard([this] { m_init_event.Set(); });
-
-      if (!SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMEPAD))
+  m_hotplug_thread = std::thread(
+      [this]
       {
-        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL failed to initialize");
-        return;
-      }
+        Common::SetCurrentThreadName("SDL Hotplug Thread");
 
-      const Uint32 custom_events_start = SDL_RegisterEvents(2);
-      if (custom_events_start == static_cast<Uint32>(-1))
-      {
-        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL failed to register custom events");
-        return;
-      }
-      m_stop_event_type = custom_events_start;
-      m_populate_event_type = custom_events_start + 1;
+        Common::ScopeGuard quit_guard(
+            []
+            {
+              // TODO: there seems to be some sort of memory leak with SDL, quit isn't freeing
+              // everything up
+              SDL_Quit();
+            });
+        {
+          Common::ScopeGuard init_guard([this] { m_init_event.Set(); });
 
-      // Drain all of the events and add the initial joysticks before returning. Otherwise, the
-      // individual joystick events as well as the custom populate event will be handled _after_
-      // ControllerInterface::Init/RefreshDevices has cleared its list of devices, resulting in
-      // duplicate devices. Adding devices will actually "fail" here, as the ControllerInterface
-      // hasn't finished initializing yet.
-      SDL_Event e;
-      while (SDL_PollEvent(&e))
-      {
-        if (!HandleEventAndContinue(e))
-          return;
-      }
-    }
+          if (!SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMEPAD))
+          {
+            ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL failed to initialize");
+            return;
+          }
 
-    SDL_Event e;
-    while (SDL_WaitEvent(&e))
-    {
-      if (!HandleEventAndContinue(e))
-        return;
-    }
-  });
+          const Uint32 custom_events_start = SDL_RegisterEvents(2);
+          if (custom_events_start == static_cast<Uint32>(-1))
+          {
+            ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL failed to register custom events");
+            return;
+          }
+          m_stop_event_type = custom_events_start;
+          m_populate_event_type = custom_events_start + 1;
+
+          // Drain all of the events and add the initial joysticks before returning. Otherwise, the
+          // individual joystick events as well as the custom populate event will be handled _after_
+          // ControllerInterface::Init/RefreshDevices has cleared its list of devices, resulting in
+          // duplicate devices. Adding devices will actually "fail" here, as the ControllerInterface
+          // hasn't finished initializing yet.
+          SDL_Event e;
+          while (SDL_PollEvent(&e))
+          {
+            if (!HandleEventAndContinue(e))
+              return;
+          }
+        }
+
+        SDL_Event e;
+        while (SDL_WaitEvent(&e))
+        {
+          if (!HandleEventAndContinue(e))
+            return;
+        }
+      });
 
   m_init_event.Wait();
 }
@@ -248,21 +254,25 @@ bool InputBackend::HandleEventAndContinue(const SDL_Event& e)
   }
   else if (e.type == SDL_EVENT_JOYSTICK_REMOVED)
   {
-    GetControllerInterface().RemoveDevice([&e](const auto* device) {
-      return device->GetSource() == "SDL" &&
-             static_cast<const Gamepad*>(device)->GetSDLInstanceID() == e.jdevice.which;
-    });
+    GetControllerInterface().RemoveDevice(
+        [&e](const auto* device)
+        {
+          return device->GetSource() == "SDL" &&
+                 static_cast<const Gamepad*>(device)->GetSDLInstanceID() == e.jdevice.which;
+        });
   }
   else if (e.type == m_populate_event_type)
   {
-    GetControllerInterface().PlatformPopulateDevices([this] {
-      int joystick_count = 0;
-      auto* const joystick_ids = SDL_GetJoysticks(&joystick_count);
-      for (auto instance_id : std::span(joystick_ids, joystick_count))
-        OpenAndAddDevice(instance_id);
+    GetControllerInterface().PlatformPopulateDevices(
+        [this]
+        {
+          int joystick_count = 0;
+          auto* const joystick_ids = SDL_GetJoysticks(&joystick_count);
+          for (auto instance_id : std::span(joystick_ids, joystick_count))
+            OpenAndAddDevice(instance_id);
 
-      SDL_free(joystick_ids);
-    });
+          SDL_free(joystick_ids);
+        });
   }
   else if (e.type == m_stop_event_type)
   {

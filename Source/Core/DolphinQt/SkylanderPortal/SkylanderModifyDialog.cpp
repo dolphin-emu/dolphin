@@ -20,7 +20,8 @@
 #include "DolphinQt/QtUtils/QtUtils.h"
 
 SkylanderModifyDialog::SkylanderModifyDialog(QWidget* parent, u8 slot)
-    : QDialog(parent), m_slot(slot)
+    : QDialog(parent)
+    , m_slot(slot)
 {
   bool should_show = true;
 
@@ -36,7 +37,7 @@ SkylanderModifyDialog::SkylanderModifyDialog(QWidget* parent, u8 slot)
   QString name = QString();
 
   if ((m_figure_data.skylander_data.nickname[0] != 0x00 &&
-       m_figure_data.normalized_type == IOS::HLE::USB::Type::Skylander))
+          m_figure_data.normalized_type == IOS::HLE::USB::Type::Skylander))
   {
     name = QStringLiteral("\"%1\"").arg(QString::fromUtf16(
         reinterpret_cast<char16_t*>(m_figure_data.skylander_data.nickname.data())));
@@ -80,8 +81,7 @@ SkylanderModifyDialog::SkylanderModifyDialog(QWidget* parent, u8 slot)
   else if (m_figure_data.normalized_type == IOS::HLE::USB::Type::Item)
   {
     should_show = false;
-    QMessageBox::warning(
-        this, tr("No data to modify!"),
+    QMessageBox::warning(this, tr("No data to modify!"),
         tr("The type of this Skylander does not have any data that can be modified!"),
         QMessageBox::Ok);
   }
@@ -89,17 +89,16 @@ SkylanderModifyDialog::SkylanderModifyDialog(QWidget* parent, u8 slot)
   {
     should_show = false;
     QMessageBox::warning(this, tr("Unknown Skylander type!"),
-                         tr("The type of this Skylander is unknown!"), QMessageBox::Ok);
+        tr("The type of this Skylander is unknown!"), QMessageBox::Ok);
   }
   else
   {
     should_show = false;
-    QMessageBox::warning(
-        this, tr("Unable to modify Skylander!"),
+    QMessageBox::warning(this, tr("Unable to modify Skylander!"),
         tr("The type of this Skylander is unknown, or can't be modified at this time!"),
         QMessageBox::Ok);
     QMessageBox::warning(this, tr("Can't be modified yet!"),
-                         tr("This Skylander type can't be modified yet!"), QMessageBox::Ok);
+        tr("This Skylander type can't be modified yet!"), QMessageBox::Ok);
   }
 
   layout->addWidget(m_buttons);
@@ -146,20 +145,20 @@ void SkylanderModifyDialog::PopulateSkylanderOptions(QVBoxLayout* layout)
   auto* label_last_reset = new QLabel(tr("Last reset:"));
   auto* edit_last_reset =
       new QDateTimeEdit(QDateTime(QDate(m_figure_data.skylander_data.last_reset.year,
-                                        m_figure_data.skylander_data.last_reset.month,
-                                        m_figure_data.skylander_data.last_reset.day),
-                                  QTime(m_figure_data.skylander_data.last_reset.hour,
-                                        m_figure_data.skylander_data.last_reset.minute)));
+                                      m_figure_data.skylander_data.last_reset.month,
+                                      m_figure_data.skylander_data.last_reset.day),
+          QTime(m_figure_data.skylander_data.last_reset.hour,
+              m_figure_data.skylander_data.last_reset.minute)));
 
   auto* hbox_last_placed = new QHBoxLayout();
   // i18n: A timestamp for when the Skylander was most recently used
   auto* label_last_placed = new QLabel(tr("Last placed:"));
   auto* edit_last_placed =
       new QDateTimeEdit(QDateTime(QDate(m_figure_data.skylander_data.last_placed.year,
-                                        m_figure_data.skylander_data.last_placed.month,
-                                        m_figure_data.skylander_data.last_placed.day),
-                                  QTime(m_figure_data.skylander_data.last_placed.hour,
-                                        m_figure_data.skylander_data.last_placed.minute)));
+                                      m_figure_data.skylander_data.last_placed.month,
+                                      m_figure_data.skylander_data.last_placed.day),
+          QTime(m_figure_data.skylander_data.last_placed.hour,
+              m_figure_data.skylander_data.last_placed.minute)));
 
   edit_money->setValidator(new QIntValidator(0, 65000, this));
   edit_hero->setValidator(new QIntValidator(0, 100, this));
@@ -210,79 +209,76 @@ void SkylanderModifyDialog::PopulateSkylanderOptions(QVBoxLayout* layout)
   layout->addLayout(hbox_last_reset);
   layout->addLayout(hbox_last_placed);
 
-  connect(m_buttons, &QDialogButtonBox::accepted, this, [=, this] {
-    if (!edit_money->hasAcceptableInput())
-    {
-      QMessageBox::warning(this, tr("Incorrect money value!"),
-                           tr("Make sure that the money value is between 0 and 65000!"),
-                           QMessageBox::Ok);
-    }
-    else if (!edit_hero->hasAcceptableInput())
-    {
-      QMessageBox::warning(this, tr("Incorrect hero level value!"),
-                           tr("Make sure that the hero level value is between 0 and 100!"),
-                           QMessageBox::Ok);
-    }
-    else if (!edit_nick->hasAcceptableInput())
-    {
-      QMessageBox::warning(this, tr("Incorrect nickname!"),
-                           tr("Make sure that the nickname is between 0 and 15 characters long!"),
-                           QMessageBox::Ok);
-    }
-    else if (!edit_playtime->hasAcceptableInput())
-    {
-      QMessageBox::warning(this, tr("Incorrect playtime value!"),
-                           tr("Make sure that the playtime value is valid!"), QMessageBox::Ok);
-    }
-    else if (!edit_last_reset->hasAcceptableInput())
-    {
-      QMessageBox::warning(this, tr("Incorrect last reset time!"),
-                           tr("Make sure that the last reset datetime value is valid!"),
-                           QMessageBox::Ok);
-    }
-    else if (!edit_last_placed->hasAcceptableInput())
-    {
-      QMessageBox::warning(this, tr("Incorrect last placed time!"),
-                           tr("Make sure that the last placed datetime value is valid!"),
-                           QMessageBox::Ok);
-    }
-    else
-    {
-      m_allow_close = true;
-      m_figure_data.skylander_data = {
-          .money = edit_money->text().toUShort(),
-          .hero_level = edit_hero->text().toUShort(),
-          .playtime = edit_playtime->text().toUInt(),
-          .last_reset = {.minute = static_cast<u8>(edit_last_reset->time().minute()),
-                         .hour = static_cast<u8>(edit_last_reset->time().hour()),
-                         .day = static_cast<u8>(edit_last_reset->date().day()),
-                         .month = static_cast<u8>(edit_last_reset->date().month()),
-                         .year = static_cast<u16>(edit_last_reset->date().year())},
-          .last_placed = {.minute = static_cast<u8>(edit_last_placed->time().minute()),
-                          .hour = static_cast<u8>(edit_last_placed->time().hour()),
-                          .day = static_cast<u8>(edit_last_placed->date().day()),
-                          .month = static_cast<u8>(edit_last_placed->date().month()),
-                          .year = static_cast<u16>(edit_last_placed->date().year())}};
-
-      std::u16string nickname = edit_nick->text().toStdU16String();
-      nickname.copy(reinterpret_cast<char16_t*>(m_figure_data.skylander_data.nickname.data()),
-                    nickname.length());
-
-      if (m_figure->FileIsOpen())
+  connect(m_buttons, &QDialogButtonBox::accepted, this,
+      [=, this]
       {
-        m_figure->SetData(&m_figure_data);
-      }
-      else
-      {
-        QMessageBox::warning(this, tr("Could not save your changes!"),
-                             tr("The file associated to this file was closed! Did you clear the "
-                                "slot before saving?"),
-                             QMessageBox::Ok);
-      }
+        if (!edit_money->hasAcceptableInput())
+        {
+          QMessageBox::warning(this, tr("Incorrect money value!"),
+              tr("Make sure that the money value is between 0 and 65000!"), QMessageBox::Ok);
+        }
+        else if (!edit_hero->hasAcceptableInput())
+        {
+          QMessageBox::warning(this, tr("Incorrect hero level value!"),
+              tr("Make sure that the hero level value is between 0 and 100!"), QMessageBox::Ok);
+        }
+        else if (!edit_nick->hasAcceptableInput())
+        {
+          QMessageBox::warning(this, tr("Incorrect nickname!"),
+              tr("Make sure that the nickname is between 0 and 15 characters long!"),
+              QMessageBox::Ok);
+        }
+        else if (!edit_playtime->hasAcceptableInput())
+        {
+          QMessageBox::warning(this, tr("Incorrect playtime value!"),
+              tr("Make sure that the playtime value is valid!"), QMessageBox::Ok);
+        }
+        else if (!edit_last_reset->hasAcceptableInput())
+        {
+          QMessageBox::warning(this, tr("Incorrect last reset time!"),
+              tr("Make sure that the last reset datetime value is valid!"), QMessageBox::Ok);
+        }
+        else if (!edit_last_placed->hasAcceptableInput())
+        {
+          QMessageBox::warning(this, tr("Incorrect last placed time!"),
+              tr("Make sure that the last placed datetime value is valid!"), QMessageBox::Ok);
+        }
+        else
+        {
+          m_allow_close = true;
+          m_figure_data.skylander_data = {.money = edit_money->text().toUShort(),
+              .hero_level = edit_hero->text().toUShort(),
+              .playtime = edit_playtime->text().toUInt(),
+              .last_reset = {.minute = static_cast<u8>(edit_last_reset->time().minute()),
+                  .hour = static_cast<u8>(edit_last_reset->time().hour()),
+                  .day = static_cast<u8>(edit_last_reset->date().day()),
+                  .month = static_cast<u8>(edit_last_reset->date().month()),
+                  .year = static_cast<u16>(edit_last_reset->date().year())},
+              .last_placed = {.minute = static_cast<u8>(edit_last_placed->time().minute()),
+                  .hour = static_cast<u8>(edit_last_placed->time().hour()),
+                  .day = static_cast<u8>(edit_last_placed->date().day()),
+                  .month = static_cast<u8>(edit_last_placed->date().month()),
+                  .year = static_cast<u16>(edit_last_placed->date().year())}};
 
-      this->accept();
-    }
-  });
+          std::u16string nickname = edit_nick->text().toStdU16String();
+          nickname.copy(reinterpret_cast<char16_t*>(m_figure_data.skylander_data.nickname.data()),
+              nickname.length());
+
+          if (m_figure->FileIsOpen())
+          {
+            m_figure->SetData(&m_figure_data);
+          }
+          else
+          {
+            QMessageBox::warning(this, tr("Could not save your changes!"),
+                tr("The file associated to this file was closed! Did you clear the "
+                   "slot before saving?"),
+                QMessageBox::Ok);
+          }
+
+          this->accept();
+        }
+      });
 }
 
 bool SkylanderModifyDialog::PopulateTrophyOptions(QVBoxLayout* layout)
@@ -293,9 +289,9 @@ bool SkylanderModifyDialog::PopulateTrophyOptions(QVBoxLayout* layout)
   if (m_figure_data.figure_id == KAOS_TROPHY_ID)
   {
     QMessageBox::warning(this, tr("Can't edit villains for this trophy!"),
-                         tr("Kaos is the only villain for this trophy and is always unlocked. No "
-                            "need to edit anything!"),
-                         QMessageBox::Ok);
+        tr("Kaos is the only villain for this trophy and is always unlocked. No "
+           "need to edit anything!"),
+        QMessageBox::Ok);
     return false;
   }
 
@@ -311,8 +307,8 @@ bool SkylanderModifyDialog::PopulateTrophyOptions(QVBoxLayout* layout)
   for (size_t i = 0; i < MAX_VILLAINS; ++i)
   {
     edit_villains[i] = new QCheckBox();
-    edit_villains[i]->setChecked(static_cast<bool>(m_figure_data.trophy_data.unlocked_villains &
-                                                   (0b1 << shift_distances[i])));
+    edit_villains[i]->setChecked(static_cast<bool>(
+        m_figure_data.trophy_data.unlocked_villains & (0b1 << shift_distances[i])));
     // i18n: "Captured" is a participle here. This string is used when listing villains, not when a
     // villain was just captured
     auto* const label = new QLabel(tr("Captured villain %1:").arg(i + 1));
@@ -323,16 +319,18 @@ bool SkylanderModifyDialog::PopulateTrophyOptions(QVBoxLayout* layout)
     layout->addLayout(hbox);
   }
 
-  connect(m_buttons, &QDialogButtonBox::accepted, this, [=, this] {
-    m_figure_data.trophy_data.unlocked_villains = 0x0;
-    for (size_t i = 0; i < MAX_VILLAINS; ++i)
-      m_figure_data.trophy_data.unlocked_villains |=
-          edit_villains[i]->isChecked() ? (0b1 << shift_distances[i]) : 0b0;
+  connect(m_buttons, &QDialogButtonBox::accepted, this,
+      [=, this]
+      {
+        m_figure_data.trophy_data.unlocked_villains = 0x0;
+        for (size_t i = 0; i < MAX_VILLAINS; ++i)
+          m_figure_data.trophy_data.unlocked_villains |=
+              edit_villains[i]->isChecked() ? (0b1 << shift_distances[i]) : 0b0;
 
-    m_figure->SetData(&m_figure_data);
-    m_allow_close = true;
-    this->accept();
-  });
+        m_figure->SetData(&m_figure_data);
+        m_allow_close = true;
+        this->accept();
+      });
 
   return true;
 }
