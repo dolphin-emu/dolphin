@@ -110,3 +110,7 @@
 	path = Externals/glslang/glslang
 	url = https://github.com/KhronosGroup/glslang.git
 	shallow = true
+[submodule "Externals/pugixml/pugixml"]
+	path = Externals/pugixml/pugixml
+	url = https://github.com/zeux/pugixml.git
+	shallow = true
