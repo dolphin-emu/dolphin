@@ -158,6 +158,12 @@ void Shutdown()
   Config::Shutdown();
 }
 
+void FlushUnsavedData()
+{
+  INFO_LOG_FMT(CORE, "Flushing unsaved data...");
+  Core::FlushUnsavedDataEvent::Trigger();
+}
+
 void InitControllers(const WindowSystemInfo& wsi)
 {
   if (g_controller_interface.IsInit())
