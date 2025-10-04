@@ -695,9 +695,6 @@ void WiimoteScanner::ThreadFunc()
 
     CheckForDisconnectedWiimotes();
 
-    if (m_scan_mode.load() == WiimoteScanMode::DO_NOT_SCAN)
-      continue;
-
     // If we don't want Wiimotes in ControllerInterface, we may not need them at all.
     if (!Config::Get(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE))
     {
@@ -715,40 +712,44 @@ void WiimoteScanner::ThreadFunc()
         continue;
     }
 
+    // Stop scanning if not in continuous mode.
+    auto scan_mode = WiimoteScanMode::SCAN_ONCE;
+    m_scan_mode.compare_exchange_strong(scan_mode, WiimoteScanMode::DO_NOT_SCAN);
+
+    // When not scanning we still look for already attached devices.
+    // This allows hidapi and DolphinBar remotes to be quickly discovered.
+    const auto query_type = (scan_mode == WiimoteScanMode::DO_NOT_SCAN) ?
+                                WiimoteScannerBackend::QueryType::AttachedDevices :
+                                WiimoteScannerBackend::QueryType::NewInquiry;
+
     for (const auto& backend : m_backends)
     {
-      std::vector<Wiimote*> found_wiimotes;
-      Wiimote* found_board = nullptr;
-      backend->FindWiimotes(found_wiimotes, found_board);
+      auto results = backend->FindWiimotes(query_type);
       {
         std::unique_lock wm_lk(g_wiimotes_mutex);
 
-        for (auto* wiimote : found_wiimotes)
+        for (auto& wiimote : results.wii_remotes)
         {
           {
             std::lock_guard lk(s_known_ids_mutex);
             s_known_ids.insert(wiimote->GetId());
           }
 
-          AddWiimoteToPool(std::unique_ptr<Wiimote>(wiimote));
+          AddWiimoteToPool(std::move(wiimote));
           g_controller_interface.PlatformPopulateDevices([] { ProcessWiimotePool(); });
         }
 
-        if (found_board)
+        for (auto& bboard : results.balance_boards)
         {
           {
             std::lock_guard lk(s_known_ids_mutex);
-            s_known_ids.insert(found_board->GetId());
+            s_known_ids.insert(bboard->GetId());
           }
 
-          TryToConnectBalanceBoard(std::unique_ptr<Wiimote>(found_board));
+          TryToConnectBalanceBoard(std::move(bboard));
         }
       }
     }
-
-    // Stop scanning if not in continuous mode.
-    auto scan_mode = WiimoteScanMode::SCAN_ONCE;
-    m_scan_mode.compare_exchange_strong(scan_mode, WiimoteScanMode::DO_NOT_SCAN);
   }
 
   {

@@ -48,7 +48,7 @@ class WiimoteScannerWindows final : public WiimoteScannerBackend
 public:
   WiimoteScannerWindows();
   bool IsReady() const override;
-  void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
+  FindResults FindWiimotes(QueryType) override;
   void Update() override;
   void RequestStopSearching() override {}
 };

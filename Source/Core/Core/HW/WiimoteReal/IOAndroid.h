@@ -45,7 +45,7 @@ public:
   WiimoteScannerAndroid() = default;
   ~WiimoteScannerAndroid() override = default;
   bool IsReady() const override { return true; }
-  void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
+  FindResults FindWiimotes(QueryType) override;
   void Update() override {}
   void RequestStopSearching() override {}
 };

@@ -20,11 +20,11 @@ namespace WiimoteReal
 // Java classes
 static jclass s_adapter_class;
 
-void WiimoteScannerAndroid::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
-                                         Wiimote*& found_board)
+auto WiimoteScannerAndroid::FindWiimotes(QueryType) -> FindResults
 {
-  found_wiimotes.clear();
-  found_board = nullptr;
+  // FYI: QueryType is ignored. Android only deals with DolphinBar interfaces.
+
+  FindResults results;
 
   NOTICE_LOG_FMT(WIIMOTE, "Finding Wiimotes");
 
@@ -39,9 +39,11 @@ void WiimoteScannerAndroid::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
     for (int i = 0; i < MAX_WIIMOTES; ++i)
     {
       if (IsNewWiimote(WiimoteAndroid::GetIdFromDolphinBarIndex(i)))
-        found_wiimotes.emplace_back(new WiimoteAndroid(i));
+        results.wii_remotes.emplace_back(std::make_unique<WiimoteAndroid>(i));
     }
   }
+
+  return results;
 }
 
 WiimoteAndroid::WiimoteAndroid(int index) : Wiimote(), m_mayflash_index(index)
