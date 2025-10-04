@@ -105,8 +105,8 @@ constexpr u32 PLACEHOLDER = 0xDEADBEEF;
 
 static bool SetupMemory(Memory::MemoryManager& memory, u64 ios_title_id, MemorySetupType setup_type)
 {
-  auto target_imv = std::ranges::find(GetMemoryValues(), static_cast<u16>(ios_title_id & 0xffff),
-                                      &MemoryValues::ios_number);
+  auto target_imv = std::ranges::find(
+      GetMemoryValues(), static_cast<u16>(ios_title_id & 0xffff), &MemoryValues::ios_number);
 
   if (target_imv == GetMemoryValues().end())
   {
@@ -305,7 +305,8 @@ Kernel::Kernel(u64 title_id) : m_title_id(title_id)
 }
 
 EmulationKernel::EmulationKernel(Core::System& system, u64 title_id)
-    : Kernel(title_id), m_system(system)
+    : Kernel(title_id)
+    , m_system(system)
 {
   INFO_LOG_FMT(IOS, "Starting IOS {:016x}", title_id);
 
@@ -400,8 +401,8 @@ u16 EmulationKernel::GetGidForPPC() const
   return m_ppc_gid;
 }
 
-static std::vector<u8> ReadBootContent(FSCore& fs, const std::string& path, size_t max_size,
-                                       Ticks ticks = {})
+static std::vector<u8> ReadBootContent(
+    FSCore& fs, const std::string& path, size_t max_size, Ticks ticks = {})
 {
   const auto fd = fs.Open(0, 0, path, FS::Mode::Read, {}, ticks);
   if (fd.Get() < 0)
@@ -493,8 +494,8 @@ static constexpr SystemTimers::TimeBaseTick GetIOSBootTicks(u32 version)
 // Passing a boot content path is optional because we do not require IOSes
 // to be installed at the moment. If one is passed, the boot binary must exist
 // on the NAND, or the call will fail like on a Wii.
-bool EmulationKernel::BootIOS(const u64 ios_title_id, HangPPC hang_ppc,
-                              const std::string& boot_content_path)
+bool EmulationKernel::BootIOS(
+    const u64 ios_title_id, HangPPC hang_ppc, const std::string& boot_content_path)
 {
   // IOS suspends regular PPC<->ARM IPC before loading a new IOS.
   // IPC is not resumed if the boot fails for any reason.
@@ -519,8 +520,8 @@ bool EmulationKernel::BootIOS(const u64 ios_title_id, HangPPC hang_ppc,
 
   if (Core::IsRunning(m_system))
   {
-    m_system.GetCoreTiming().ScheduleEvent(GetIOSBootTicks(GetVersion()), s_event_finish_ios_boot,
-                                           ios_title_id);
+    m_system.GetCoreTiming().ScheduleEvent(
+        GetIOSBootTicks(GetVersion()), s_event_finish_ios_boot, ios_title_id);
   }
   else
   {
@@ -663,7 +664,7 @@ std::optional<IPCReply> EmulationKernel::OpenDevice(OpenRequest& request)
 {
   const s32 new_fd = GetFreeDeviceID();
   INFO_LOG_FMT(IOS, "Opening {} (mode {}, fd {})", request.path,
-               Common::ToUnderlying(request.flags), new_fd);
+      Common::ToUnderlying(request.flags), new_fd);
   if (new_fd < 0 || new_fd >= IPC_MAX_FDS)
   {
     ERROR_LOG_FMT(IOS, "Couldn't get a free fd, too many open files");
@@ -688,8 +689,8 @@ std::optional<IPCReply> EmulationKernel::OpenDevice(OpenRequest& request)
 
   if (!device)
   {
-    constexpr std::string_view cios_devices[] = {"/dev/flash", "/dev/mload", "/dev/sdio/sdhc",
-                                                 "/dev/usb123", "/dev/usb2"};
+    constexpr std::string_view cios_devices[] = {
+        "/dev/flash", "/dev/mload", "/dev/sdio/sdhc", "/dev/usb123", "/dev/usb2"};
     static_assert(std::ranges::is_sorted(cios_devices));
     if (std::ranges::binary_search(cios_devices, request.path))
       WARN_LOG_FMT(IOS, "Possible anti-piracy check for cIOS device {}", request.path);
@@ -759,7 +760,7 @@ std::optional<IPCReply> EmulationKernel::HandleIPCCommand(const Request& request
   if (wall_time_after - wall_time_before > BLOCKING_IPC_COMMAND_THRESHOLD_US)
   {
     WARN_LOG_FMT(IOS, "Previous request to device {} blocked emulation for {} microseconds.",
-                 device->GetDeviceName(), wall_time_after - wall_time_before);
+        device->GetDeviceName(), wall_time_after - wall_time_before);
   }
 
   return ret;
@@ -789,13 +790,13 @@ void EmulationKernel::EnqueueIPCRequest(u32 address)
   // Based on hardware tests, IOS takes between 5µs and 10µs to acknowledge an IPC request.
   // Console 1: 456 TB ticks before ACK
   // Console 2: 658 TB ticks before ACK
-  GetSystem().GetCoreTiming().ScheduleEvent(500_tbticks, s_event_enqueue,
-                                            address | ENQUEUE_REQUEST_FLAG);
+  GetSystem().GetCoreTiming().ScheduleEvent(
+      500_tbticks, s_event_enqueue, address | ENQUEUE_REQUEST_FLAG);
 }
 
 // Called to send a reply to an IOS syscall
 void EmulationKernel::EnqueueIPCReply(const Request& request, const s32 return_value,
-                                      s64 cycles_in_future, CoreTiming::FromThread from)
+    s64 cycles_in_future, CoreTiming::FromThread from)
 {
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -960,8 +961,9 @@ void Init(Core::System& system)
 {
   auto& core_timing = system.GetCoreTiming();
 
-  s_event_enqueue =
-      core_timing.RegisterEvent("IPCEvent", [](Core::System& system_, u64 userdata, s64) {
+  s_event_enqueue = core_timing.RegisterEvent("IPCEvent",
+      [](Core::System& system_, u64 userdata, s64)
+      {
         auto* ios = system_.GetIOS();
         if (ios)
           ios->HandleIPCEvent(userdata);
@@ -972,8 +974,7 @@ void Init(Core::System& system)
   s_event_finish_ppc_bootstrap =
       core_timing.RegisterEvent("IOSFinishPPCBootstrap", FinishPPCBootstrap);
 
-  s_event_finish_ios_boot = core_timing.RegisterEvent(
-      "IOSFinishIOSBoot",
+  s_event_finish_ios_boot = core_timing.RegisterEvent("IOSFinishIOSBoot",
       [](Core::System& system_, u64 ios_title_id, s64) { FinishIOSBoot(system_, ios_title_id); });
 
   DIDevice::s_finish_executing_di_command =
@@ -1007,7 +1008,8 @@ IPCReply::IPCReply(s32 return_value_) : IPCReply(return_value_, 4000_tbticks)
 }
 
 IPCReply::IPCReply(s32 return_value_, u64 reply_delay_ticks_)
-    : return_value(return_value_), reply_delay_ticks(reply_delay_ticks_)
+    : return_value(return_value_)
+    , reply_delay_ticks(reply_delay_ticks_)
 {
 }
 }  // namespace IOS::HLE

@@ -80,9 +80,8 @@ bool PlatformWin32::RegisterRenderWindowClass()
 bool PlatformWin32::CreateRenderWindow()
 {
   m_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, WINDOW_CLASS_NAME, _T("Dolphin"), WS_OVERLAPPEDWINDOW,
-                          m_window_x < 0 ? CW_USEDEFAULT : m_window_x,
-                          m_window_y < 0 ? CW_USEDEFAULT : m_window_y, m_window_width,
-                          m_window_height, nullptr, nullptr, GetModuleHandle(nullptr), this);
+      m_window_x < 0 ? CW_USEDEFAULT : m_window_x, m_window_y < 0 ? CW_USEDEFAULT : m_window_y,
+      m_window_width, m_window_height, nullptr, nullptr, GetModuleHandle(nullptr), this);
   if (!m_hwnd)
   {
     MessageBox(nullptr, _T("CreateWindowEx failed."), _T("Error"), MB_ICONERROR | MB_OK);
@@ -165,8 +164,8 @@ void PlatformWin32::ProcessEvents()
   }
 }
 
-LRESULT PlatformWin32::WndProc(const HWND hwnd, const UINT msg, const WPARAM wParam,
-                               const LPARAM lParam)
+LRESULT PlatformWin32::WndProc(
+    const HWND hwnd, const UINT msg, const WPARAM wParam, const LPARAM lParam)
 {
   PlatformWin32* platform = reinterpret_cast<PlatformWin32*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
   switch (msg)
@@ -184,8 +183,8 @@ LRESULT PlatformWin32::WndProc(const HWND hwnd, const UINT msg, const WPARAM wPa
     {
       // Remove rounded corners from the render window on Windows 11
       constexpr DWM_WINDOW_CORNER_PREFERENCE corner_preference = DWMWCP_DONOTROUND;
-      DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &corner_preference,
-                            sizeof(corner_preference));
+      DwmSetWindowAttribute(
+          hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &corner_preference, sizeof(corner_preference));
     }
   }
   break;

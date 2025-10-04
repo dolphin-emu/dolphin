@@ -23,7 +23,8 @@
 static constexpr size_t PROGRESS_LENGTH = 24;
 
 AchievementBox::AchievementBox(QWidget* parent, const rc_client_achievement_t* achievement)
-    : QGroupBox(parent), m_achievement(achievement)
+    : QGroupBox(parent)
+    , m_achievement(achievement)
 {
   const auto& instance = AchievementManager::GetInstance();
   if (!instance.IsGameLoaded())
@@ -127,9 +128,8 @@ void AchievementBox::UpdateProgress()
     m_progress_bar->setRange(0, 100);
     m_progress_bar->setValue(m_achievement->unlocked ? 100 : m_achievement->measured_percent);
     m_progress_bar->setTextVisible(false);
-    m_progress_label->setText(
-        QString::fromUtf8(m_achievement->measured_progress,
-                          qstrnlen(m_achievement->measured_progress, PROGRESS_LENGTH)));
+    m_progress_label->setText(QString::fromUtf8(m_achievement->measured_progress,
+        qstrnlen(m_achievement->measured_progress, PROGRESS_LENGTH)));
     m_progress_label->setVisible(!m_achievement->unlocked);
     m_progress_bar->setVisible(true);
   }

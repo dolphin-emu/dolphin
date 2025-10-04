@@ -38,7 +38,8 @@
 namespace DX11
 {
 Gfx::Gfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
-    : m_backbuffer_scale(backbuffer_scale), m_swap_chain(std::move(swap_chain))
+    : m_backbuffer_scale(backbuffer_scale)
+    , m_swap_chain(std::move(swap_chain))
 {
 }
 
@@ -49,29 +50,27 @@ bool Gfx::IsHeadless() const
   return !m_swap_chain;
 }
 
-std::unique_ptr<AbstractTexture> Gfx::CreateTexture(const TextureConfig& config,
-                                                    std::string_view name)
+std::unique_ptr<AbstractTexture> Gfx::CreateTexture(
+    const TextureConfig& config, std::string_view name)
 {
   return DXTexture::Create(config, name);
 }
 
-std::unique_ptr<AbstractStagingTexture> Gfx::CreateStagingTexture(StagingTextureType type,
-                                                                  const TextureConfig& config)
+std::unique_ptr<AbstractStagingTexture> Gfx::CreateStagingTexture(
+    StagingTextureType type, const TextureConfig& config)
 {
   return DXStagingTexture::Create(type, config);
 }
 
-std::unique_ptr<AbstractFramebuffer>
-Gfx::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
-                       std::vector<AbstractTexture*> additional_color_attachments)
+std::unique_ptr<AbstractFramebuffer> Gfx::CreateFramebuffer(AbstractTexture* color_attachment,
+    AbstractTexture* depth_attachment, std::vector<AbstractTexture*> additional_color_attachments)
 {
   return DXFramebuffer::Create(static_cast<DXTexture*>(color_attachment),
-                               static_cast<DXTexture*>(depth_attachment),
-                               std::move(additional_color_attachments));
+      static_cast<DXTexture*>(depth_attachment), std::move(additional_color_attachments));
 }
 
-std::unique_ptr<AbstractShader>
-Gfx::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
+std::unique_ptr<AbstractShader> Gfx::CreateShaderFromSource(
+    ShaderStage stage, std::string_view source, std::string_view name)
 {
   auto bytecode = DXShader::CompileShader(D3D::feature_level, stage, source);
   if (!bytecode)
@@ -80,15 +79,14 @@ Gfx::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::str
   return DXShader::CreateFromBytecode(stage, std::move(*bytecode), name);
 }
 
-std::unique_ptr<AbstractShader> Gfx::CreateShaderFromBinary(ShaderStage stage, const void* data,
-                                                            size_t length, std::string_view name)
+std::unique_ptr<AbstractShader> Gfx::CreateShaderFromBinary(
+    ShaderStage stage, const void* data, size_t length, std::string_view name)
 {
   return DXShader::CreateFromBytecode(stage, DXShader::CreateByteCode(data, length), name);
 }
 
-std::unique_ptr<AbstractPipeline> Gfx::CreatePipeline(const AbstractPipelineConfig& config,
-                                                      const void* cache_data,
-                                                      size_t cache_data_length)
+std::unique_ptr<AbstractPipeline> Gfx::CreatePipeline(
+    const AbstractPipelineConfig& config, const void* cache_data, size_t cache_data_length)
 {
   return DXPipeline::Create(config);
 }
@@ -124,13 +122,13 @@ void Gfx::SetPipeline(const AbstractPipeline* pipeline)
 void Gfx::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 {
   // TODO: Move to stateman
-  const CD3D11_RECT rect(rc.left, rc.top, std::max(rc.right, rc.left + 1),
-                         std::max(rc.bottom, rc.top + 1));
+  const CD3D11_RECT rect(
+      rc.left, rc.top, std::max(rc.right, rc.left + 1), std::max(rc.bottom, rc.top + 1));
   D3D::context->RSSetScissorRects(1, &rect);
 }
 
-void Gfx::SetViewport(float x, float y, float width, float height, float near_depth,
-                      float far_depth)
+void Gfx::SetViewport(
+    float x, float y, float width, float height, float near_depth, float far_depth)
 {
   // TODO: Move to stateman
   const CD3D11_VIEWPORT vp(x, y, width, height, near_depth, far_depth);
@@ -150,7 +148,7 @@ void Gfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
 }
 
 void Gfx::DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x, u32 groupsize_y,
-                                u32 groupsize_z, u32 groups_x, u32 groups_y, u32 groups_z)
+    u32 groupsize_z, u32 groups_x, u32 groups_y, u32 groups_z)
 {
   D3D::stateman->SetComputeShader(static_cast<const DXShader*>(shader)->GetD3DComputeShader());
   D3D::stateman->SyncComputeBindings();
@@ -219,8 +217,8 @@ void Gfx::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
   SetFramebuffer(framebuffer);
 }
 
-void Gfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer, const ClearColor& color_value,
-                                 float depth_value)
+void Gfx::SetAndClearFramebuffer(
+    AbstractFramebuffer* framebuffer, const ClearColor& color_value, float depth_value)
 {
   SetFramebuffer(framebuffer);
   D3D::stateman->Apply();
@@ -231,8 +229,8 @@ void Gfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer, const ClearCo
 
 void Gfx::SetTexture(u32 index, const AbstractTexture* texture)
 {
-  D3D::stateman->SetTexture(index, texture ? static_cast<const DXTexture*>(texture)->GetD3DSRV() :
-                                             nullptr);
+  D3D::stateman->SetTexture(
+      index, texture ? static_cast<const DXTexture*>(texture)->GetD3DSRV() : nullptr);
 }
 
 void Gfx::SetSamplerState(u32 index, const SamplerState& state)
@@ -242,8 +240,8 @@ void Gfx::SetSamplerState(u32 index, const SamplerState& state)
 
 void Gfx::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
 {
-  D3D::stateman->SetComputeUAV(index,
-                               texture ? static_cast<DXTexture*>(texture)->GetD3DUAV() : nullptr);
+  D3D::stateman->SetComputeUAV(
+      index, texture ? static_cast<DXTexture*>(texture)->GetD3DUAV() : nullptr);
 }
 
 void Gfx::UnbindTexture(const AbstractTexture* texture)
@@ -277,8 +275,8 @@ bool Gfx::IsFullscreen() const
 SurfaceInfo Gfx::GetSurfaceInfo() const
 {
   return {m_swap_chain ? static_cast<u32>(m_swap_chain->GetWidth()) : 0,
-          m_swap_chain ? static_cast<u32>(m_swap_chain->GetHeight()) : 0, m_backbuffer_scale,
-          m_swap_chain ? m_swap_chain->GetFormat() : AbstractTextureFormat::Undefined};
+      m_swap_chain ? static_cast<u32>(m_swap_chain->GetHeight()) : 0, m_backbuffer_scale,
+      m_swap_chain ? m_swap_chain->GetFormat() : AbstractTextureFormat::Undefined};
 }
 
 }  // namespace DX11

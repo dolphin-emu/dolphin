@@ -148,9 +148,8 @@ void InputBackend::PopulateDevices()
       }
       // Since current_master is a master pointer, its attachment must
       // be a master keyboard.
-      GetControllerInterface().AddDevice(
-          std::make_shared<KeyboardMouse>((Window)hwnd, xi_opcode, current_master->deviceid,
-                                          current_master->attachment, scroll_increment));
+      GetControllerInterface().AddDevice(std::make_shared<KeyboardMouse>((Window)hwnd, xi_opcode,
+          current_master->deviceid, current_master->attachment, scroll_increment));
     }
   }
 
@@ -159,10 +158,13 @@ void InputBackend::PopulateDevices()
   XIFreeDeviceInfo(all_masters);
 }
 
-KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboard,
-                             double scroll_increment_)
-    : m_window(window), xi_opcode(opcode), pointer_deviceid(pointer), keyboard_deviceid(keyboard),
-      scroll_increment(scroll_increment_)
+KeyboardMouse::KeyboardMouse(
+    Window window, int opcode, int pointer, int keyboard, double scroll_increment_)
+    : m_window(window)
+    , xi_opcode(opcode)
+    , pointer_deviceid(pointer)
+    , keyboard_deviceid(keyboard)
+    , scroll_increment(scroll_increment_)
 {
   // The cool thing about each KeyboardMouse object having its own Display
   // is that each one gets its own separate copy of the X11 event stream,
@@ -275,13 +277,13 @@ void KeyboardMouse::UpdateCursor(bool should_center_mouse)
 
     // Get the absolute position of the mouse pointer and the button state.
     XIQueryPointer(m_display, pointer_deviceid, m_window, &root, &child, &root_x, &root_y, &win_x,
-                   &win_y, &button_state, &mods, &group);
+        &win_y, &button_state, &mods, &group);
 
     // X buttons are 1-indexed, so to get 32 button bits we need a larger type
     // for the shift.
     u64 buttons_zero_indexed = 0;
     std::memcpy(&buttons_zero_indexed, button_state.mask,
-                std::min<size_t>(button_state.mask_len, sizeof(m_state.buttons)));
+        std::min<size_t>(button_state.mask_len, sizeof(m_state.buttons)));
     m_state.buttons = buttons_zero_indexed >> 1;
 
     free(button_state.mask);
@@ -427,7 +429,9 @@ int KeyboardMouse::GetSortPriority() const
 }
 
 KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* keyboard)
-    : m_display(display), m_keyboard(keyboard), m_keycode(keycode)
+    : m_display(display)
+    , m_keyboard(keyboard)
+    , m_keycode(keycode)
 {
   int i = 0;
   KeySym keysym = 0;
@@ -465,7 +469,9 @@ ControlState KeyboardMouse::Button::GetState() const
 }
 
 KeyboardMouse::Cursor::Cursor(u8 index, bool positive, const float* cursor)
-    : m_cursor(cursor), m_index(index), m_positive(positive)
+    : m_cursor(cursor)
+    , m_index(index)
+    , m_positive(positive)
 {
   name = fmt::format("Cursor {}{}", static_cast<char>('X' + m_index), (m_positive ? '+' : '-'));
 }
@@ -476,13 +482,17 @@ ControlState KeyboardMouse::Cursor::GetState() const
 }
 
 KeyboardMouse::Axis::Axis(u8 index, bool positive, const float* axis)
-    : m_axis(axis), m_index(index), m_positive(positive)
+    : m_axis(axis)
+    , m_index(index)
+    , m_positive(positive)
 {
   name = fmt::format("Axis {}{}", static_cast<char>('X' + m_index), (m_positive ? '+' : '-'));
 }
 
 KeyboardMouse::RelativeMouse::RelativeMouse(u8 index, bool positive, const float* axis)
-    : m_axis(axis), m_index(index), m_positive(positive)
+    : m_axis(axis)
+    , m_index(index)
+    , m_positive(positive)
 {
   name =
       fmt::format("RelativeMouse {}{}", static_cast<char>('X' + m_index), (m_positive ? '+' : '-'));

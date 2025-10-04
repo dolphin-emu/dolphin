@@ -267,8 +267,8 @@ void PerfQueryGLESNV::FlushOne()
   const u64 native_res_result =
       static_cast<u64>(result) * EFB_WIDTH * EFB_HEIGHT /
       (g_framebuffer_manager->GetEFBWidth() * g_framebuffer_manager->GetEFBHeight());
-  m_results[entry.query_group].fetch_add(static_cast<u32>(native_res_result),
-                                         std::memory_order_relaxed);
+  m_results[entry.query_group].fetch_add(
+      static_cast<u32>(native_res_result), std::memory_order_relaxed);
 
   m_query_read_pos = (m_query_read_pos + 1) % m_query_buffer.size();
   m_query_count.fetch_sub(1, std::memory_order_relaxed);

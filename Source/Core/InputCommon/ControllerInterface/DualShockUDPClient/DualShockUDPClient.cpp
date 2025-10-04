@@ -34,10 +34,10 @@ namespace Settings
 const Config::Info<std::string> SERVER_ADDRESS{
     {Config::System::DualShockUDPClient, "Server", "IPAddress"}, ""};
 const Config::Info<int> SERVER_PORT{{Config::System::DualShockUDPClient, "Server", "Port"}, 0};
-const Config::Info<std::string> SERVERS{{Config::System::DualShockUDPClient, "Server", "Entries"},
-                                        ""};
-const Config::Info<bool> SERVERS_ENABLED{{Config::System::DualShockUDPClient, "Server", "Enabled"},
-                                         false};
+const Config::Info<std::string> SERVERS{
+    {Config::System::DualShockUDPClient, "Server", "Entries"}, ""};
+const Config::Info<bool> SERVERS_ENABLED{
+    {Config::System::DualShockUDPClient, "Server", "Enabled"}, false};
 }  // namespace Settings
 
 // Clock type used for querying timeframes
@@ -51,7 +51,9 @@ private:
   {
   public:
     Button(const char* name, const T& buttons, T mask)
-        : m_name(name), m_buttons(buttons), m_mask(mask)
+        : m_name(name)
+        , m_buttons(buttons)
+        , m_mask(mask)
     {
     }
     std::string GetName() const override { return m_name; }
@@ -68,7 +70,10 @@ private:
   {
   public:
     AnalogInput(const char* name, const T& input, ControlState range, ControlState offset = 0)
-        : m_name(name), m_input(input), m_range(range), m_offset(offset)
+        : m_name(name)
+        , m_input(input)
+        , m_range(range)
+        , m_offset(offset)
     {
     }
     std::string GetName() const final { return m_name; }
@@ -171,7 +176,9 @@ constexpr u32 SERVER_ASKED_PADS = 4;
 struct Server
 {
   Server(std::string description, std::string address, u16 port)
-      : m_description{std::move(description)}, m_address{std::move(address)}, m_port{port}
+      : m_description{std::move(description)}
+      , m_address{std::move(address)}
+      , m_port{port}
   {
   }
   Server(const Server&) = delete;
@@ -225,8 +232,8 @@ std::unique_ptr<ciface::InputBackend> CreateInputBackend(ControllerInterface* co
   return std::make_unique<InputBackend>(controller_interface);
 }
 
-static bool IsSameController(const Proto::MessageType::PortInfo& a,
-                             const Proto::MessageType::PortInfo& b)
+static bool IsSameController(
+    const Proto::MessageType::PortInfo& a, const Proto::MessageType::PortInfo& b)
 {
   // compare everything but battery_status
   return std::tie(a.pad_id, a.pad_state, a.model, a.connection_type, a.pad_mac_address) ==
@@ -262,8 +269,8 @@ void InputBackend::HotplugThreadFunc()
         list_ports.pad_ids = {0, 1, 2, 3};
         msg.Finish();
         if (server.m_socket.send(&list_ports, sizeof list_ports,
-                                 sf::IpAddress::resolve(server.m_address).value(),
-                                 server.m_port) != sf::Socket::Status::Done)
+                sf::IpAddress::resolve(server.m_address).value(),
+                server.m_port) != sf::Socket::Status::Done)
         {
           ERROR_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient HotplugThreadFunc send failed");
         }
@@ -464,9 +471,8 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
   {
     const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
     Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS,
-                             servers_setting + fmt::format("{}:{}:{};", "DS4",
-                                                           server_address_setting,
-                                                           server_port_setting));
+        servers_setting +
+            fmt::format("{}:{}:{};", "DS4", server_address_setting, server_port_setting));
     Config::SetBase(Settings::SERVER_ADDRESS, "");
     Config::SetBase(Settings::SERVER_PORT, 0);
   }
@@ -502,9 +508,8 @@ void InputBackend::PopulateDevices()
       if (port_info.pad_state != Proto::DsState::Connected)
         continue;
 
-      GetControllerInterface().AddDevice(
-          std::make_shared<Device>(server.m_description, static_cast<int>(port_index),
-                                   server.m_address, server.m_port, m_client_uid));
+      GetControllerInterface().AddDevice(std::make_shared<Device>(server.m_description,
+          static_cast<int>(port_index), server.m_address, server.m_port, m_client_uid));
     }
   }
 }
@@ -515,10 +520,13 @@ InputBackend::~InputBackend()
   StopHotplugThread();
 }
 
-Device::Device(std::string name, int index, std::string server_address, u16 server_port,
-               u32 client_uid)
-    : m_name{std::move(name)}, m_index{index}, m_server_address{std::move(server_address)},
-      m_server_port{server_port}, m_client_uid(client_uid)
+Device::Device(
+    std::string name, int index, std::string server_address, u16 server_port, u32 client_uid)
+    : m_name{std::move(name)}
+    , m_index{index}
+    , m_server_address{std::move(server_address)}
+    , m_server_port{server_port}
+    , m_client_uid(client_uid)
 {
   m_socket.setBlocking(false);
 
@@ -627,7 +635,7 @@ Core::DeviceRemoval Device::UpdateInput()
     data_req.pad_id_to_register = m_index;
     msg.Finish();
     if (m_socket.send(&data_req, sizeof(data_req), sf::IpAddress::resolve(m_server_address).value(),
-                      m_server_port) != sf::Socket::Status::Done)
+            m_server_port) != sf::Socket::Status::Done)
     {
       ERROR_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient UpdateInput send failed");
     }
@@ -638,8 +646,8 @@ Core::DeviceRemoval Device::UpdateInput()
   std::size_t received_bytes;
   std::optional<sf::IpAddress> sender;
   u16 port;
-  while (m_socket.receive(&msg, sizeof msg, received_bytes, sender, port) ==
-         sf::Socket::Status::Done)
+  while (
+      m_socket.receive(&msg, sizeof msg, received_bytes, sender, port) == sf::Socket::Status::Done)
   {
     if (auto pad_data = msg.CheckAndCastTo<Proto::MessageType::PadDataResponse>())
     {

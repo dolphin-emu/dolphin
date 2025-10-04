@@ -34,11 +34,9 @@ std::span<const X64Reg> GPRRegCache::GetAllocationOrder() const
 {
   static constexpr X64Reg allocation_order[] = {
 #ifdef _WIN32
-      RSI, RDI, R13, R14, R15, R8,
-      R9,  R10, R11, R12, RCX
+      RSI, RDI, R13, R14, R15, R8, R9, R10, R11, R12, RCX
 #else
-      R12, R13, R14, R15, RSI, RDI,
-      R8,  R9,  R10, R11, RCX
+      R12, R13, R14, R15, RSI, RDI, R8, R9, R10, R11, RCX
 #endif
   };
   return allocation_order;

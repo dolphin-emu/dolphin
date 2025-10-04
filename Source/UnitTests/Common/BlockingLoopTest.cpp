@@ -24,12 +24,16 @@ TEST(BlockingLoop, MultiThreaded)
     // Must not block as the loop is stopped.
     loop.Wait();
 
-    std::thread loop_thread([&] {
-      loop.Run([&] {
-        received_a.store(signaled_a.load());
-        received_b.store(signaled_b.load());
-      });
-    });
+    std::thread loop_thread(
+        [&]
+        {
+          loop.Run(
+              [&]
+              {
+                received_a.store(signaled_a.load());
+                received_b.store(signaled_b.load());
+              });
+        });
 
     // Now Wait must block.
     loop.Prepare();
@@ -39,32 +43,36 @@ TEST(BlockingLoop, MultiThreaded)
     EXPECT_EQ(signaled_a.load(), received_a.load());
     EXPECT_EQ(signaled_b.load(), received_b.load());
 
-    std::thread run_a_thread([&] {
-      for (int j = 0; j < 100; j++)
-      {
-        for (int k = 0; k < 100; k++)
+    std::thread run_a_thread(
+        [&]
         {
-          signaled_a++;
-          loop.Wakeup();
-        }
+          for (int j = 0; j < 100; j++)
+          {
+            for (int k = 0; k < 100; k++)
+            {
+              signaled_a++;
+              loop.Wakeup();
+            }
 
-        loop.Wait();
-        EXPECT_EQ(signaled_a.load(), received_a.load());
-      }
-    });
-    std::thread run_b_thread([&] {
-      for (int j = 0; j < 100; j++)
-      {
-        for (int k = 0; k < 100; k++)
+            loop.Wait();
+            EXPECT_EQ(signaled_a.load(), received_a.load());
+          }
+        });
+    std::thread run_b_thread(
+        [&]
         {
-          signaled_b++;
-          loop.Wakeup();
-        }
+          for (int j = 0; j < 100; j++)
+          {
+            for (int k = 0; k < 100; k++)
+            {
+              signaled_b++;
+              loop.Wakeup();
+            }
 
-        loop.Wait();
-        EXPECT_EQ(signaled_b.load(), received_b.load());
-      }
-    });
+            loop.Wait();
+            EXPECT_EQ(signaled_b.load(), received_b.load());
+          }
+        });
 
     run_a_thread.join();
     run_b_thread.join();

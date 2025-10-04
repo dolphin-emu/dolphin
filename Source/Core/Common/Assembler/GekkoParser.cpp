@@ -515,8 +515,8 @@ void ParseOperandList(ParseState* state, ParseAlg alg)
     steps = {_Operand, _Comma, _Operand, _Comma, _Operand, _Comma, _Operand, _Comma, _Operand};
     break;
   case ParseAlg::Op1Off1Op2:
-    steps = {_Operand, _Comma, _Operand, _Lparen, _Operand,
-             _Rparen,  _Comma, _Operand, _Comma,  _Operand};
+    steps = {
+        _Operand, _Comma, _Operand, _Lparen, _Operand, _Rparen, _Comma, _Operand, _Comma, _Operand};
     break;
   default:
     ASSERT(false);
@@ -855,7 +855,9 @@ void ParseProgram(ParseState* state)
 }  // namespace
 
 ParseState::ParseState(std::string_view input_str, ParsePlugin& p)
-    : lexer(input_str), plugin(p), eof(false)
+    : lexer(input_str)
+    , plugin(p)
+    , eof(false)
 {
 }
 
@@ -893,8 +895,11 @@ void ParseState::EmitErrorHere(std::string&& message)
   else
   {
     error = AssemblerError{
-        std::move(message), lexer.CurrentLine(),        lexer.LineNumber(),
-        lexer.ColNumber(),  cur_token.token_val.size(),
+        std::move(message),
+        lexer.CurrentLine(),
+        lexer.LineNumber(),
+        lexer.ColNumber(),
+        cur_token.token_val.size(),
     };
   }
 }

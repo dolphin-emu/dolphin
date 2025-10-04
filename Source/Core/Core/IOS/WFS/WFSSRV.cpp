@@ -311,8 +311,8 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
       fd_obj->position += read_bytes;
     }
 
-    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFS_READ: read {} bytes from FD {} ({})", read_bytes, fd,
-                 fd_obj->path);
+    INFO_LOG_FMT(
+        IOS_WFS, "IOCTL_WFS_READ: read {} bytes from FD {} ({})", read_bytes, fd, fd_obj->path);
     return_error_code = static_cast<int>(read_bytes);
     break;
   }
@@ -351,16 +351,16 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
       fd_obj->position += size;
     }
 
-    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFS_WRITE: written {} bytes from FD {} ({})", size, fd,
-                 fd_obj->path);
+    INFO_LOG_FMT(
+        IOS_WFS, "IOCTL_WFS_WRITE: written {} bytes from FD {} ({})", size, fd, fd_obj->path);
     break;
   }
 
   default:
     // TODO(wfs): Should be returning -3. However until we have everything
     // properly stubbed it's easier to simulate the methods succeeding.
-    request.DumpUnknown(system, GetDeviceName(), Common::Log::LogType::IOS_WFS,
-                        Common::Log::LogLevel::LWARNING);
+    request.DumpUnknown(
+        system, GetDeviceName(), Common::Log::LogType::IOS_WFS, Common::Log::LogLevel::LWARNING);
     memory.Memset(request.buffer_out, 0, request.buffer_out_size);
     break;
   }

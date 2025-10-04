@@ -43,12 +43,14 @@ LogWidget::LogWidget(QWidget* parent) : QDockWidget(parent), m_timer(new QTimer(
   ConnectWidgets();
 
   connect(m_timer, &QTimer::timeout, this, &LogWidget::UpdateLog);
-  connect(this, &QDockWidget::visibilityChanged, [this](bool visible) {
-    if (visible)
-      m_timer->start(UPDATE_LOG_DELAY);
-    else
-      m_timer->stop();
-  });
+  connect(this, &QDockWidget::visibilityChanged,
+      [this](bool visible)
+      {
+        if (visible)
+          m_timer->start(UPDATE_LOG_DELAY);
+        else
+          m_timer->stop();
+      });
 
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &LogWidget::UpdateFont);
 
@@ -102,11 +104,10 @@ void LogWidget::UpdateLog()
 
     const std::string_view str_view(std::get<std::string>(line));
 
-    m_log_text->appendHtml(
-        QStringLiteral("%1<span style=\"color: %2; white-space: pre\">%3</span>")
+    m_log_text->appendHtml(QStringLiteral("%1<span style=\"color: %2; white-space: pre\">%3</span>")
             .arg(QStringFromStringView(str_view.substr(0, TIMESTAMP_LENGTH)),
-                 QString::fromUtf8(color),
-                 QStringFromStringView(str_view.substr(TIMESTAMP_LENGTH)).toHtmlEscaped()));
+                QString::fromUtf8(color),
+                QStringFromStringView(str_view.substr(TIMESTAMP_LENGTH)).toHtmlEscaped()));
   }
 }
 
@@ -159,10 +160,12 @@ void LogWidget::CreateWidgets()
 
 void LogWidget::ConnectWidgets()
 {
-  connect(m_log_clear, &QPushButton::clicked, [this] {
-    m_log_text->clear();
-    m_log_ring_buffer.clear();
-  });
+  connect(m_log_clear, &QPushButton::clicked,
+      [this]
+      {
+        m_log_text->clear();
+        m_log_ring_buffer.clear();
+      });
   connect(m_log_wrap, &QCheckBox::toggled, this, &LogWidget::SaveSettings);
   connect(m_log_font, &QComboBox::currentIndexChanged, this, &LogWidget::SaveSettings);
   connect(this, &QDockWidget::topLevelChanged, this, &LogWidget::SaveSettings);
@@ -178,10 +181,10 @@ void LogWidget::LoadSettings()
 
   // Log - Wrap Lines
   m_log_wrap->setChecked(settings.value(QStringLiteral("logging/wraplines")).toBool());
-  m_log_text->setLineWrapMode(m_log_wrap->isChecked() ? QPlainTextEdit::WidgetWidth :
-                                                        QPlainTextEdit::NoWrap);
-  m_log_text->setHorizontalScrollBarPolicy(m_log_wrap->isChecked() ? Qt::ScrollBarAsNeeded :
-                                                                     Qt::ScrollBarAlwaysOn);
+  m_log_text->setLineWrapMode(
+      m_log_wrap->isChecked() ? QPlainTextEdit::WidgetWidth : QPlainTextEdit::NoWrap);
+  m_log_text->setHorizontalScrollBarPolicy(
+      m_log_wrap->isChecked() ? Qt::ScrollBarAsNeeded : Qt::ScrollBarAlwaysOn);
 
   // Log - Font Selection
   // Currently "Debugger Font" is not supported as there is no Qt Debugger, defaulting to Monospace
@@ -198,10 +201,10 @@ void LogWidget::SaveSettings()
 
   // Log - Wrap Lines
   settings.setValue(QStringLiteral("logging/wraplines"), m_log_wrap->isChecked());
-  m_log_text->setLineWrapMode(m_log_wrap->isChecked() ? QPlainTextEdit::WidgetWidth :
-                                                        QPlainTextEdit::NoWrap);
-  m_log_text->setHorizontalScrollBarPolicy(m_log_wrap->isChecked() ? Qt::ScrollBarAsNeeded :
-                                                                     Qt::ScrollBarAlwaysOn);
+  m_log_text->setLineWrapMode(
+      m_log_wrap->isChecked() ? QPlainTextEdit::WidgetWidth : QPlainTextEdit::NoWrap);
+  m_log_text->setHorizontalScrollBarPolicy(
+      m_log_wrap->isChecked() ? Qt::ScrollBarAsNeeded : Qt::ScrollBarAlwaysOn);
 
   // Log - Font Selection
   settings.setValue(QStringLiteral("logging/font"), m_log_font->currentIndex());
@@ -216,7 +219,7 @@ void LogWidget::Log(Common::Log::LogLevel level, const char* text)
 
   std::lock_guard lock(m_log_mutex);
   m_log_ring_buffer.emplace(std::piecewise_construct, std::forward_as_tuple(text, text_length),
-                            std::forward_as_tuple(level));
+      std::forward_as_tuple(level));
 }
 
 void LogWidget::closeEvent(QCloseEvent*)

@@ -38,10 +38,9 @@ enum class ShaderAttrib : u32
 template <>
 struct fmt::formatter<ShaderAttrib> : EnumFormatter<ShaderAttrib::TexCoord7>
 {
-  static constexpr array_type names = {
-      "Position",    "Position Matrix", "Normal",      "Tangent",     "Binormal",    "Color 0",
-      "Color 1",     nullptr,           "Tex Coord 0", "Tex Coord 1", "Tex Coord 2", "Tex Coord 3",
-      "Tex Coord 4", "Tex Coord 5",     "Tex Coord 6", "Tex Coord 7"};
+  static constexpr array_type names = {"Position", "Position Matrix", "Normal", "Tangent",
+      "Binormal", "Color 0", "Color 1", nullptr, "Tex Coord 0", "Tex Coord 1", "Tex Coord 2",
+      "Tex Coord 3", "Tex Coord 4", "Tex Coord 5", "Tex Coord 6", "Tex Coord 7"};
   constexpr formatter() : EnumFormatter(names) {}
 };
 // Intended for offsetting from Color0/TexCoord0
@@ -96,7 +95,6 @@ struct CustomVertexContents
 
 VertexShaderUid GetVertexShaderUid();
 ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& host_config,
-                                    const vertex_shader_uid_data* uid_data,
-                                    CustomVertexContents custom_contents);
+    const vertex_shader_uid_data* uid_data, CustomVertexContents custom_contents);
 void WriteVertexBody(APIType api_type, const ShaderHostConfig& host_config,
-                     const vertex_shader_uid_data* uid_data, ShaderCode& out);
+    const vertex_shader_uid_data* uid_data, ShaderCode& out);

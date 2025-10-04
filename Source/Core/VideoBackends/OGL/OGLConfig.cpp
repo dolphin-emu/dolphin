@@ -166,7 +166,7 @@ void InitDriverInfo()
     int revision = 0;
     // Example version string: '4.3.0 - Build 10.18.10.3907'
     sscanf(g_ogl_config.gl_version, "%d.%d.0 - Build %d.%d.%d.%d", &glmajor, &glminor, &major,
-           &minor, &release, &revision);
+        &minor, &release, &revision);
     version = 100000000 * major + 1000000 * minor + 10000 * release + revision;
     version /= 10000;
 #endif
@@ -183,7 +183,7 @@ void InitDriverInfo()
     // Nvidia seems to have removed their driver version from this string, so we can't get it.
     // hopefully we'll never have to workaround Nvidia bugs
     sscanf(g_ogl_config.gl_version, "%d.%d.%d NVIDIA %d.%d", &glmajor, &glminor, &glrelease, &major,
-           &minor);
+        &minor);
     version = 100 * major + minor;
   }
   break;
@@ -198,7 +198,7 @@ void InitDriverInfo()
     int major, minor, change;
     constexpr double change_scale = 10000000;
     sscanf(g_ogl_config.gl_version, "OpenGL ES %lg build %d.%d@%d", &gl_version, &major, &minor,
-           &change);
+        &change);
     version = 100 * major + minor;
     if (change >= change_scale)
     {
@@ -214,8 +214,8 @@ void InitDriverInfo()
   default:
     break;
   }
-  DriverDetails::Init(DriverDetails::API_OPENGL, vendor, driver, version, family,
-                      std::string(srenderer));
+  DriverDetails::Init(
+      DriverDetails::API_OPENGL, vendor, driver, version, family, std::string(srenderer));
 }
 
 bool PopulateConfig(GLContext* m_main_gl_context)
@@ -303,8 +303,8 @@ bool PopulateConfig(GLContext* m_main_gl_context)
   g_backend_info.bSupportsClipControl = GLExtensions::Supports("GL_ARB_clip_control");
   g_ogl_config.bSupportsCopySubImage =
       (GLExtensions::Supports("GL_ARB_copy_image") || GLExtensions::Supports("GL_NV_copy_image") ||
-       GLExtensions::Supports("GL_EXT_copy_image") ||
-       GLExtensions::Supports("GL_OES_copy_image")) &&
+          GLExtensions::Supports("GL_EXT_copy_image") ||
+          GLExtensions::Supports("GL_OES_copy_image")) &&
       !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_COPYIMAGE);
   g_ogl_config.bSupportsTextureSubImage = GLExtensions::Supports("ARB_get_texture_sub_image");
 
@@ -466,7 +466,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       PanicAlertFmtT("GPU: OGL ERROR: Need at least GLSL 1.30\n"
                      "GPU: Does your video card support OpenGL 3.0?\n"
                      "GPU: Your driver supports GLSL {0}",
-                     reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
+          reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
       bSuccess = false;
     }
     else if (GLExtensions::Version() == 300)
@@ -567,11 +567,11 @@ bool PopulateConfig(GLContext* m_main_gl_context)
             FramebufferManager::GetEFBColorFormat(), true);
         GLint num_color_sample_counts = 0;
         glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, colorInternalFormat,
-                              GL_NUM_SAMPLE_COUNTS, 1, &num_color_sample_counts);
+            GL_NUM_SAMPLE_COUNTS, 1, &num_color_sample_counts);
 
         ASSERT_MSG(VIDEO, num_color_sample_counts >= 0,
-                   "negative GL_NUM_SAMPLE_COUNTS for colors does not make sense: {}",
-                   num_color_sample_counts);
+            "negative GL_NUM_SAMPLE_COUNTS for colors does not make sense: {}",
+            num_color_sample_counts);
         color_aa_modes.reserve(num_color_sample_counts + 1);
         if (num_color_sample_counts > 0)
         {
@@ -579,11 +579,10 @@ bool PopulateConfig(GLContext* m_main_gl_context)
 
           static_assert(sizeof(GLint) == sizeof(u32));
           glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, colorInternalFormat, GL_SAMPLES,
-                                num_color_sample_counts,
-                                reinterpret_cast<GLint*>(color_aa_modes.data()));
+              num_color_sample_counts, reinterpret_cast<GLint*>(color_aa_modes.data()));
           ASSERT_MSG(VIDEO, std::ranges::is_sorted(color_aa_modes | std::views::reverse),
-                     "GPU driver didn't return sorted color AA modes: [{}]",
-                     fmt::join(color_aa_modes, ", "));
+              "GPU driver didn't return sorted color AA modes: [{}]",
+              fmt::join(color_aa_modes, ", "));
         }
 
         if (color_aa_modes.empty() || color_aa_modes.back() != 1)
@@ -596,11 +595,11 @@ bool PopulateConfig(GLContext* m_main_gl_context)
             FramebufferManager::GetEFBColorFormat(), true);
         GLint num_depth_sample_counts = 0;
         glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, depthInternalFormat,
-                              GL_NUM_SAMPLE_COUNTS, 1, &num_depth_sample_counts);
+            GL_NUM_SAMPLE_COUNTS, 1, &num_depth_sample_counts);
 
         ASSERT_MSG(VIDEO, num_depth_sample_counts >= 0,
-                   "negative GL_NUM_SAMPLE_COUNTS for depth does not make sense: {}",
-                   num_depth_sample_counts);
+            "negative GL_NUM_SAMPLE_COUNTS for depth does not make sense: {}",
+            num_depth_sample_counts);
         depth_aa_modes.reserve(num_depth_sample_counts + 1);
         if (num_depth_sample_counts > 0)
         {
@@ -608,11 +607,10 @@ bool PopulateConfig(GLContext* m_main_gl_context)
 
           static_assert(sizeof(GLint) == sizeof(u32));
           glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, depthInternalFormat, GL_SAMPLES,
-                                num_depth_sample_counts,
-                                reinterpret_cast<GLint*>(depth_aa_modes.data()));
+              num_depth_sample_counts, reinterpret_cast<GLint*>(depth_aa_modes.data()));
           ASSERT_MSG(VIDEO, std::ranges::is_sorted(depth_aa_modes | std::views::reverse),
-                     "GPU driver didn't return sorted depth AA modes: [{}]",
-                     fmt::join(depth_aa_modes, ", "));
+              "GPU driver didn't return sorted depth AA modes: [{}]",
+              fmt::join(depth_aa_modes, ", "));
         }
 
         if (depth_aa_modes.empty() || depth_aa_modes.back() != 1)
@@ -628,8 +626,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
       // We only want AA modes that are supported for both the color and depth textures. Probably
       // the support is the same, though. views::reverse is used to swap the order ahead of time.
       std::ranges::set_intersection(color_aa_modes | std::views::reverse,
-                                    depth_aa_modes | std::views::reverse,
-                                    std::back_inserter(g_backend_info.AAModes));
+          depth_aa_modes | std::views::reverse, std::back_inserter(g_backend_info.AAModes));
     }
     else
     {
@@ -676,7 +673,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
     glGetIntegerv(GL_SUBGROUP_SUPPORTED_FEATURES_KHR, &supported_features);
     if (~supported_features &
         (GL_SUBGROUP_FEATURE_BASIC_BIT_KHR | GL_SUBGROUP_FEATURE_ARITHMETIC_BIT_KHR |
-         GL_SUBGROUP_FEATURE_BALLOT_BIT_KHR))
+            GL_SUBGROUP_FEATURE_BALLOT_BIT_KHR))
     {
       g_ogl_config.bSupportsKHRShaderSubgroup = false;
     }
@@ -725,22 +722,21 @@ bool PopulateConfig(GLContext* m_main_gl_context)
   UpdateActiveConfig();
 
   OSD::AddMessage(fmt::format("Video Info: {}, {}, {}", g_ogl_config.gl_vendor,
-                              g_ogl_config.gl_renderer, g_ogl_config.gl_version),
-                  5000);
+                      g_ogl_config.gl_renderer, g_ogl_config.gl_version),
+      5000);
 
   if (!g_ogl_config.bSupportsGLBufferStorage && !g_ogl_config.bSupportsGLPinnedMemory)
   {
     OSD::AddMessage(fmt::format("Your OpenGL driver does not support {}_buffer_storage.",
-                                m_main_gl_context->IsGLES() ? "EXT" : "ARB"),
-                    60000);
+                        m_main_gl_context->IsGLES() ? "EXT" : "ARB"),
+        60000);
     OSD::AddMessage("This device's performance may be poor.", 60000);
   }
 
   INFO_LOG_FMT(VIDEO, "Video Info: {}, {}, {}", g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
-               g_ogl_config.gl_version);
+      g_ogl_config.gl_version);
 
-  const std::string missing_extensions = fmt::format(
-      "{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
+  const std::string missing_extensions = fmt::format("{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
       g_backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
       g_backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
       g_backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",

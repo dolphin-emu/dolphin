@@ -92,7 +92,7 @@ void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   for (auto& mapped_var : directly_mapped_vars)
   {
     mmio->Register(base | mapped_var.addr, MMIO::DirectRead<u16>(mapped_var.ptr),
-                   MMIO::DirectWrite<u16>(mapped_var.ptr));
+        MMIO::DirectWrite<u16>(mapped_var.ptr));
   }
 
   // Performance queries registers: read only, need to call the video backend
@@ -111,37 +111,39 @@ void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   };
   for (auto& pq_reg : pq_regs)
   {
-    mmio->Register(base | pq_reg.addr, MMIO::ComplexRead<u16>([pq_reg](Core::System&, u32) {
-                     return g_video_backend->Video_GetQueryResult(pq_reg.pqtype) & 0xFFFF;
-                   }),
-                   MMIO::InvalidWrite<u16>());
-    mmio->Register(base | (pq_reg.addr + 2), MMIO::ComplexRead<u16>([pq_reg](Core::System&, u32) {
-                     return g_video_backend->Video_GetQueryResult(pq_reg.pqtype) >> 16;
-                   }),
-                   MMIO::InvalidWrite<u16>());
+    mmio->Register(base | pq_reg.addr,
+        MMIO::ComplexRead<u16>([pq_reg](Core::System&, u32)
+            { return g_video_backend->Video_GetQueryResult(pq_reg.pqtype) & 0xFFFF; }),
+        MMIO::InvalidWrite<u16>());
+    mmio->Register(base | (pq_reg.addr + 2),
+        MMIO::ComplexRead<u16>([pq_reg](Core::System&, u32)
+            { return g_video_backend->Video_GetQueryResult(pq_reg.pqtype) >> 16; }),
+        MMIO::InvalidWrite<u16>());
   }
 
   // Control register
   mmio->Register(base | PE_CTRL_REGISTER, MMIO::DirectRead<u16>(&m_control.hex),
-                 MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
-                   auto& pe = system.GetPixelEngine();
+      MMIO::ComplexWrite<u16>(
+          [](Core::System& system, u32, u16 val)
+          {
+            auto& pe = system.GetPixelEngine();
 
-                   UPECtrlReg tmpCtrl{.hex = val};
+            UPECtrlReg tmpCtrl{.hex = val};
 
-                   if (tmpCtrl.pe_token)
-                     pe.m_signal_token_interrupt = false;
+            if (tmpCtrl.pe_token)
+              pe.m_signal_token_interrupt = false;
 
-                   if (tmpCtrl.pe_finish)
-                     pe.m_signal_finish_interrupt = false;
+            if (tmpCtrl.pe_finish)
+              pe.m_signal_finish_interrupt = false;
 
-                   pe.m_control.pe_token_enable = tmpCtrl.pe_token_enable.Value();
-                   pe.m_control.pe_finish_enable = tmpCtrl.pe_finish_enable.Value();
-                   pe.m_control.pe_token = false;   // this flag is write only
-                   pe.m_control.pe_finish = false;  // this flag is write only
+            pe.m_control.pe_token_enable = tmpCtrl.pe_token_enable.Value();
+            pe.m_control.pe_finish_enable = tmpCtrl.pe_finish_enable.Value();
+            pe.m_control.pe_token = false;   // this flag is write only
+            pe.m_control.pe_finish = false;  // this flag is write only
 
-                   DEBUG_LOG_FMT(PIXELENGINE, "(w16) CTRL_REGISTER: {:#06x}", val);
-                   pe.UpdateInterrupts();
-                 }));
+            DEBUG_LOG_FMT(PIXELENGINE, "(w16) CTRL_REGISTER: {:#06x}", val);
+            pe.UpdateInterrupts();
+          }));
 
   // Token register, readonly.
   mmio->Register(base | PE_TOKEN_REG, MMIO::DirectRead<u16>(&m_token), MMIO::InvalidWrite<u16>());
@@ -150,11 +152,13 @@ void PixelEngineManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   for (int i = 0; i < 4; ++i)
   {
     mmio->Register(base | (PE_BBOX_LEFT + 2 * i),
-                   MMIO::ComplexRead<u16>([i](Core::System& system, u32) {
-                     g_bounding_box->Disable(system.GetPixelShaderManager());
-                     return g_video_backend->Video_GetBoundingBox(i);
-                   }),
-                   MMIO::InvalidWrite<u16>());
+        MMIO::ComplexRead<u16>(
+            [i](Core::System& system, u32)
+            {
+              g_bounding_box->Disable(system.GetPixelShaderManager());
+              return g_video_backend->Video_GetBoundingBox(i);
+            }),
+        MMIO::InvalidWrite<u16>());
   }
 }
 
@@ -163,16 +167,16 @@ void PixelEngineManager::UpdateInterrupts()
   auto& processor_interface = m_system.GetProcessorInterface();
 
   // check if there is a token-interrupt
-  processor_interface.SetInterrupt(INT_CAUSE_PE_TOKEN,
-                                   m_signal_token_interrupt && m_control.pe_token_enable);
+  processor_interface.SetInterrupt(
+      INT_CAUSE_PE_TOKEN, m_signal_token_interrupt && m_control.pe_token_enable);
 
   // check if there is a finish-interrupt
-  processor_interface.SetInterrupt(INT_CAUSE_PE_FINISH,
-                                   m_signal_finish_interrupt && m_control.pe_finish_enable);
+  processor_interface.SetInterrupt(
+      INT_CAUSE_PE_FINISH, m_signal_finish_interrupt && m_control.pe_finish_enable);
 }
 
-void PixelEngineManager::SetTokenFinish_OnMainThread_Static(Core::System& system, u64 userdata,
-                                                            s64 cycles_late)
+void PixelEngineManager::SetTokenFinish_OnMainThread_Static(
+    Core::System& system, u64 userdata, s64 cycles_late)
 {
   system.GetPixelEngine().SetTokenFinish_OnMainThread(userdata, cycles_late);
 }

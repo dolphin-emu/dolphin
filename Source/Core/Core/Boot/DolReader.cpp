@@ -85,8 +85,8 @@ bool DolReader::Initialize(const std::vector<u8>& buffer)
 
       std::vector<u8> data(section_size);
       const u8* data_start = &buffer[section_offset];
-      std::memcpy(&data[0], data_start,
-                  std::min((size_t)section_size, buffer.size() - section_offset));
+      std::memcpy(
+          &data[0], data_start, std::min((size_t)section_size, buffer.size() - section_offset));
       m_data_sections.emplace_back(data);
     }
     else
@@ -125,10 +125,10 @@ bool DolReader::LoadIntoMemory(Core::System& system, bool only_in_mem1) const
   {
     if (!m_text_sections[i].empty() &&
         !(only_in_mem1 &&
-          m_dolheader.textAddress[i] + m_text_sections[i].size() >= memory.GetRamSizeReal()))
+            m_dolheader.textAddress[i] + m_text_sections[i].size() >= memory.GetRamSizeReal()))
     {
-      memory.CopyToEmu(m_dolheader.textAddress[i], m_text_sections[i].data(),
-                       m_text_sections[i].size());
+      memory.CopyToEmu(
+          m_dolheader.textAddress[i], m_text_sections[i].data(), m_text_sections[i].size());
     }
   }
 
@@ -137,10 +137,10 @@ bool DolReader::LoadIntoMemory(Core::System& system, bool only_in_mem1) const
   {
     if (!m_data_sections[i].empty() &&
         !(only_in_mem1 &&
-          m_dolheader.dataAddress[i] + m_data_sections[i].size() >= memory.GetRamSizeReal()))
+            m_dolheader.dataAddress[i] + m_data_sections[i].size() >= memory.GetRamSizeReal()))
     {
-      memory.CopyToEmu(m_dolheader.dataAddress[i], m_data_sections[i].data(),
-                       m_data_sections[i].size());
+      memory.CopyToEmu(
+          m_dolheader.dataAddress[i], m_data_sections[i].data(), m_data_sections[i].size());
     }
   }
 
@@ -160,7 +160,7 @@ bool DolReader::LoadAncastIntoMemory(Core::System& system) const
   if (Common::swap32(header->header_block.header_block_size) != sizeof(AncastHeaderBlock))
   {
     ERROR_LOG_FMT(BOOT, "Ancast: Invalid header block size: 0x{:x}",
-                  Common::swap32(header->header_block.header_block_size));
+        Common::swap32(header->header_block.header_block_size));
     return false;
   }
 
@@ -168,15 +168,15 @@ bool DolReader::LoadAncastIntoMemory(Core::System& system) const
   if (Common::swap32(header->signature_block.signature_type) != 0x01)
   {
     ERROR_LOG_FMT(BOOT, "Ancast: Invalid signature type: 0x{:x}",
-                  Common::swap32(header->signature_block.signature_type));
+        Common::swap32(header->signature_block.signature_type));
     return false;
   }
 
   // Make sure this is a Wii-Mode ancast image
   if (Common::swap32(header->info_block.image_type) != ANCAST_IMAGE_TYPE_ESPRESSO_WII)
   {
-    ERROR_LOG_FMT(BOOT, "Ancast: Invalid image type: 0x{:x}",
-                  Common::swap32(header->info_block.image_type));
+    ERROR_LOG_FMT(
+        BOOT, "Ancast: Invalid image type: 0x{:x}", Common::swap32(header->info_block.image_type));
     return false;
   }
 
@@ -206,24 +206,23 @@ bool DolReader::LoadAncastIntoMemory(Core::System& system) const
   else if (Common::swap32(header->info_block.console_type) != ANCAST_CONSOLE_TYPE_RETAIL)
   {
     ERROR_LOG_FMT(BOOT, "Ancast: Invalid console type: 0x{:x}",
-                  Common::swap32(header->info_block.console_type));
+        Common::swap32(header->info_block.console_type));
     return false;
   }
 
   // Decrypt the Ancast image
-  static constexpr u8 vwii_ancast_retail_key[0x10] = {0x2e, 0xfe, 0x8a, 0xbc, 0xed, 0xbb,
-                                                      0x7b, 0xaa, 0xe3, 0xc0, 0xed, 0x92,
-                                                      0xfa, 0x29, 0xf8, 0x66};
+  static constexpr u8 vwii_ancast_retail_key[0x10] = {0x2e, 0xfe, 0x8a, 0xbc, 0xed, 0xbb, 0x7b,
+      0xaa, 0xe3, 0xc0, 0xed, 0x92, 0xfa, 0x29, 0xf8, 0x66};
   static constexpr u8 vwii_ancast_dev_key[0x10] = {0x26, 0xaf, 0xf4, 0xbb, 0xac, 0x88, 0xbb, 0x76,
-                                                   0x9d, 0xfc, 0x54, 0xdd, 0x56, 0xd8, 0xef, 0xbd};
+      0x9d, 0xfc, 0x54, 0xdd, 0x56, 0xd8, 0xef, 0xbd};
   std::unique_ptr<Common::AES::Context> ctx =
       Common::AES::CreateContextDecrypt(is_dev ? vwii_ancast_dev_key : vwii_ancast_retail_key);
 
-  static constexpr u8 vwii_ancast_iv[0x10] = {0x59, 0x6d, 0x5a, 0x9a, 0xd7, 0x05, 0xf9, 0x4f,
-                                              0xe1, 0x58, 0x02, 0x6f, 0xea, 0xa7, 0xb8, 0x87};
+  static constexpr u8 vwii_ancast_iv[0x10] = {0x59, 0x6d, 0x5a, 0x9a, 0xd7, 0x05, 0xf9, 0x4f, 0xe1,
+      0x58, 0x02, 0x6f, 0xea, 0xa7, 0xb8, 0x87};
   std::vector<u8> decrypted(body_size);
   if (!ctx->Crypt(vwii_ancast_iv, section.data() + sizeof(EspressoAncastHeader), decrypted.data(),
-                  body_size))
+          body_size))
     return false;
 
   auto& memory = system.GetMemory();

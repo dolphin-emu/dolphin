@@ -20,14 +20,14 @@ class AbstractFramebuffer
 {
 public:
   AbstractFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
-                      std::vector<AbstractTexture*> additional_color_attachments,
-                      AbstractTextureFormat color_format, AbstractTextureFormat depth_format,
-                      u32 width, u32 height, u32 layers, u32 samples);
+      std::vector<AbstractTexture*> additional_color_attachments,
+      AbstractTextureFormat color_format, AbstractTextureFormat depth_format, u32 width, u32 height,
+      u32 layers, u32 samples);
   virtual ~AbstractFramebuffer();
 
   static bool ValidateConfig(const AbstractTexture* color_attachment,
-                             const AbstractTexture* depth_attachment,
-                             const std::vector<AbstractTexture*>& additional_color_attachments);
+      const AbstractTexture* depth_attachment,
+      const std::vector<AbstractTexture*>& additional_color_attachments);
 
   AbstractTexture* GetColorAttachment() const { return m_color_attachment; }
   AbstractTexture* GetDepthAttachment() const { return m_depth_attachment; }

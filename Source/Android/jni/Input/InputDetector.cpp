@@ -24,14 +24,14 @@ static ciface::Core::InputDetector* GetPointer(JNIEnv* env, jobject obj)
 
 extern "C" {
 
-JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_InputDetector_finalize(JNIEnv* env, jobject obj)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_input_model_InputDetector_finalize(
+    JNIEnv* env, jobject obj)
 {
   delete GetPointer(env, obj);
 }
 
-JNIEXPORT jlong JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_InputDetector_createNew(JNIEnv*, jobject)
+JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_features_input_model_InputDetector_createNew(
+    JNIEnv*, jobject)
 {
   return reinterpret_cast<jlong>(new ciface::Core::InputDetector);
 }
@@ -48,16 +48,16 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_input_model_Input
   GetPointer(env, obj)->Start(g_controller_interface, device_strings);
 }
 
-JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_InputDetector_update(JNIEnv* env, jobject obj)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_input_model_InputDetector_update(
+    JNIEnv* env, jobject obj)
 {
-  GetPointer(env, obj)->Update(INPUT_DETECT_INITIAL_TIME, INPUT_DETECT_CONFIRMATION_TIME,
-                               INPUT_DETECT_MAXIMUM_TIME);
+  GetPointer(env, obj)->Update(
+      INPUT_DETECT_INITIAL_TIME, INPUT_DETECT_CONFIRMATION_TIME, INPUT_DETECT_MAXIMUM_TIME);
 }
 
 JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_InputDetector_isComplete(JNIEnv* env,
-                                                                             jobject obj)
+Java_org_dolphinemu_dolphinemu_features_input_model_InputDetector_isComplete(
+    JNIEnv* env, jobject obj)
 {
   return GetPointer(env, obj)->IsComplete();
 }
@@ -73,7 +73,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_InputDetector_takeResults(
 
   ciface::MappingCommon::RemoveSpuriousTriggerCombinations(&detections);
 
-  return ToJString(env, ciface::MappingCommon::BuildExpression(detections, default_device,
-                                                               ciface::MappingCommon::Quote::On));
+  return ToJString(env, ciface::MappingCommon::BuildExpression(
+                            detections, default_device, ciface::MappingCommon::Quote::On));
 }
 }

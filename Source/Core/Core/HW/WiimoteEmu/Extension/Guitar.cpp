@@ -84,8 +84,8 @@ Guitar::Guitar() : Extension1stParty(_trans("Guitar"))
 
   // stick
   constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / STICK_RADIUS;
-  groups.emplace_back(m_stick =
-                          new ControllerEmu::OctagonAnalogStick(_trans("Stick"), gate_radius));
+  groups.emplace_back(
+      m_stick = new ControllerEmu::OctagonAnalogStick(_trans("Stick"), gate_radius));
 
   // whammy
   groups.emplace_back(m_whammy = new ControllerEmu::Triggers(_trans("Whammy")));

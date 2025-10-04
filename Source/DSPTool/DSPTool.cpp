@@ -63,8 +63,8 @@ static std::string CodeToHeader(const std::vector<u16>& code, const std::string&
   header.append("#define NUM_UCODES 1\n\n");
   std::string filename_without_extension;
   SplitPath(filename, nullptr, &filename_without_extension, nullptr);
-  header.append(fmt::format("const char* UCODE_NAMES[NUM_UCODES] = {{\"{}\"}};\n\n",
-                            filename_without_extension));
+  header.append(fmt::format(
+      "const char* UCODE_NAMES[NUM_UCODES] = {{\"{}\"}};\n\n", filename_without_extension));
   header.append("alignas(0x20) const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
 
   header.append("\t{\n\t\t");
@@ -80,8 +80,8 @@ static std::string CodeToHeader(const std::vector<u16>& code, const std::string&
   return header;
 }
 
-static std::string CodesToHeader(const std::vector<std::vector<u16>>& codes,
-                                 const std::vector<std::string>& filenames)
+static std::string CodesToHeader(
+    const std::vector<std::vector<u16>>& codes, const std::vector<std::string>& filenames)
 {
   std::vector<std::vector<u16>> codes_padded;
   std::size_t reserve_size = 0;
@@ -141,7 +141,7 @@ static bool PerformBinaryComparison(const std::string& lhs, const std::string& r
 }
 
 static void PrintResults(const std::string& input_name, const std::string& output_name,
-                         bool print_results_srhack, bool print_results_prodhack)
+    bool print_results_srhack, bool print_results_prodhack)
 {
   std::string dumpfile;
 
@@ -186,12 +186,12 @@ static void PrintResults(const std::string& input_name, const std::string& outpu
           break;
         case 0x16:  // DSP_REG_PRODH
           htemp = ((reg_vector.at(step * 32 + reg - 1) + reg_vector.at(step * 32 + reg + 1)) &
-                   ~0xffff) >>
+                      ~0xffff) >>
                   16;
           current_reg = (u8)(reg_vector.at(step * 32 + reg) + htemp);
           htemp =
               ((reg_vector.at(step * 32 - 32 + reg - 1) + reg_vector.at(step * 32 - 32 + reg + 1)) &
-               ~0xffff) >>
+                  ~0xffff) >>
               16;
           last_reg = (u8)(reg_vector.at(step * 32 - 32 + reg) + htemp);
           break;
@@ -209,8 +209,8 @@ static void PrintResults(const std::string& input_name, const std::string& outpu
       }
       if (last_reg != current_reg)
       {
-        results.append(fmt::format("{:02x} {:7s}: {:04x} {:04x}\n", reg, DSP::pdregname(reg),
-                                   last_reg, current_reg));
+        results.append(fmt::format(
+            "{:02x} {:7s}: {:04x} {:04x}\n", reg, DSP::pdregname(reg), last_reg, current_reg));
         changed = true;
       }
     }
@@ -268,8 +268,7 @@ static std::vector<std::string> GetAssemblerFiles(const std::string& source)
 }
 
 static bool PerformAssembly(const std::string& input_name, const std::string& output_name,
-                            const std::string& output_header_name, bool multiple, bool force,
-                            bool output_size)
+    const std::string& output_header_name, bool multiple, bool force, bool output_size)
 {
   if (input_name.empty())
   {

@@ -43,8 +43,8 @@ void DiscordHandler::Stop()
   m_thread.join();
 }
 
-void DiscordHandler::DiscordJoinRequest(const char* id, const std::string& discord_tag,
-                                        const char* avatar)
+void DiscordHandler::DiscordJoinRequest(
+    const char* id, const std::string& discord_tag, const char* avatar)
 {
   emit DiscordHandler::JoinRequest(id, discord_tag, avatar);
 }
@@ -54,8 +54,8 @@ void DiscordHandler::DiscordJoin()
   emit DiscordHandler::Join();
 }
 
-void DiscordHandler::ShowNewJoinRequest(const std::string& id, const std::string& discord_tag,
-                                        const std::string& avatar)
+void DiscordHandler::ShowNewJoinRequest(
+    const std::string& id, const std::string& discord_tag, const std::string& avatar)
 {
   std::lock_guard<std::mutex> lock(m_request_dialogs_mutex);
   m_request_dialogs.emplace_front(m_parent, id, discord_tag, avatar);
@@ -78,7 +78,7 @@ void DiscordHandler::Run()
     {
       std::lock_guard<std::mutex> lock(m_request_dialogs_mutex);
       for (auto request_dialog = m_request_dialogs.begin();
-           request_dialog != m_request_dialogs.end();)
+          request_dialog != m_request_dialogs.end();)
       {
         if (std::time(nullptr) < request_dialog->GetCloseTimestamp())
         {
@@ -86,11 +86,13 @@ void DiscordHandler::Run()
           continue;
         }
 
-        RunOnObject(m_parent, [this, &request_dialog] {
-          request_dialog->close();
-          request_dialog = m_request_dialogs.erase(request_dialog);
-          return nullptr;
-        });
+        RunOnObject(m_parent,
+            [this, &request_dialog]
+            {
+              request_dialog->close();
+              request_dialog = m_request_dialogs.erase(request_dialog);
+              return nullptr;
+            });
       }
     }
 

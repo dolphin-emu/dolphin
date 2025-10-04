@@ -39,7 +39,9 @@ QString HtmlFormatErrorLine(const Common::GekkoAssembler::AssemblerError& err)
 }  // namespace
 
 AssembleInstructionDialog::AssembleInstructionDialog(QWidget* parent, u32 address, u32 value)
-    : QDialog(parent), m_code(value), m_address(address)
+    : QDialog(parent)
+    , m_code(value)
+    , m_address(address)
 {
   setWindowModality(Qt::WindowModal);
   setWindowTitle(tr("Instruction"));

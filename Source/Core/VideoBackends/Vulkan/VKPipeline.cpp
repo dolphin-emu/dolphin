@@ -20,9 +20,11 @@
 namespace Vulkan
 {
 VKPipeline::VKPipeline(const AbstractPipelineConfig& config, VkPipeline pipeline,
-                       VkPipelineLayout pipeline_layout, AbstractPipelineUsage usage)
-    : AbstractPipeline(config), m_pipeline(pipeline), m_pipeline_layout(pipeline_layout),
-      m_usage(usage)
+    VkPipelineLayout pipeline_layout, AbstractPipelineUsage usage)
+    : AbstractPipeline(config)
+    , m_pipeline(pipeline)
+    , m_pipeline_layout(pipeline_layout)
+    , m_usage(usage)
 {
 }
 
@@ -39,12 +41,11 @@ static bool IsStripPrimitiveTopology(VkPrimitiveTopology topology)
          topology == VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY;
 }
 
-static VkPipelineRasterizationStateCreateInfo
-GetVulkanRasterizationState(const RasterizationState& state)
+static VkPipelineRasterizationStateCreateInfo GetVulkanRasterizationState(
+    const RasterizationState& state)
 {
-  static constexpr std::array<VkCullModeFlags, 4> cull_modes = {
-      {VK_CULL_MODE_NONE, VK_CULL_MODE_BACK_BIT, VK_CULL_MODE_FRONT_BIT,
-       VK_CULL_MODE_FRONT_AND_BACK}};
+  static constexpr std::array<VkCullModeFlags, 4> cull_modes = {{VK_CULL_MODE_NONE,
+      VK_CULL_MODE_BACK_BIT, VK_CULL_MODE_FRONT_BIT, VK_CULL_MODE_FRONT_AND_BACK}};
 
   bool depth_clamp = g_backend_info.bSupportsDepthClamp;
 
@@ -134,8 +135,8 @@ static VkPipelineDepthStencilStateCreateInfo GetVulkanDepthStencilState(const De
   };
 }
 
-static VkPipelineColorBlendAttachmentState
-GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage usage)
+static VkPipelineColorBlendAttachmentState GetVulkanAttachmentBlendState(
+    const BlendingState& state, AbstractPipelineUsage usage)
 {
   VkPipelineColorBlendAttachmentState vk_state = {};
 
@@ -148,16 +149,24 @@ GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage 
   if (use_dual_source)
   {
     static constexpr Common::EnumMap<VkBlendFactor, SrcBlendFactor::InvDstAlpha> src_factors{
-        VK_BLEND_FACTOR_ZERO,       VK_BLEND_FACTOR_ONE,
-        VK_BLEND_FACTOR_DST_COLOR,  VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
-        VK_BLEND_FACTOR_SRC1_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA,
-        VK_BLEND_FACTOR_DST_ALPHA,  VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+        VK_BLEND_FACTOR_ZERO,
+        VK_BLEND_FACTOR_ONE,
+        VK_BLEND_FACTOR_DST_COLOR,
+        VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
+        VK_BLEND_FACTOR_SRC1_ALPHA,
+        VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA,
+        VK_BLEND_FACTOR_DST_ALPHA,
+        VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
     };
     static constexpr Common::EnumMap<VkBlendFactor, DstBlendFactor::InvDstAlpha> dst_factors{
-        VK_BLEND_FACTOR_ZERO,       VK_BLEND_FACTOR_ONE,
-        VK_BLEND_FACTOR_SRC_COLOR,  VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR,
-        VK_BLEND_FACTOR_SRC1_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA,
-        VK_BLEND_FACTOR_DST_ALPHA,  VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+        VK_BLEND_FACTOR_ZERO,
+        VK_BLEND_FACTOR_ONE,
+        VK_BLEND_FACTOR_SRC_COLOR,
+        VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR,
+        VK_BLEND_FACTOR_SRC1_ALPHA,
+        VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA,
+        VK_BLEND_FACTOR_DST_ALPHA,
+        VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
     };
 
     vk_state.srcColorBlendFactor = src_factors[state.src_factor];
@@ -168,17 +177,25 @@ GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage 
   else
   {
     static constexpr Common::EnumMap<VkBlendFactor, SrcBlendFactor::InvDstAlpha> src_factors{
-        VK_BLEND_FACTOR_ZERO,      VK_BLEND_FACTOR_ONE,
-        VK_BLEND_FACTOR_DST_COLOR, VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
-        VK_BLEND_FACTOR_SRC_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-        VK_BLEND_FACTOR_DST_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+        VK_BLEND_FACTOR_ZERO,
+        VK_BLEND_FACTOR_ONE,
+        VK_BLEND_FACTOR_DST_COLOR,
+        VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
+        VK_BLEND_FACTOR_SRC_ALPHA,
+        VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+        VK_BLEND_FACTOR_DST_ALPHA,
+        VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
     };
 
     static constexpr Common::EnumMap<VkBlendFactor, DstBlendFactor::InvDstAlpha> dst_factors{
-        VK_BLEND_FACTOR_ZERO,      VK_BLEND_FACTOR_ONE,
-        VK_BLEND_FACTOR_SRC_COLOR, VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR,
-        VK_BLEND_FACTOR_SRC_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-        VK_BLEND_FACTOR_DST_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+        VK_BLEND_FACTOR_ZERO,
+        VK_BLEND_FACTOR_ONE,
+        VK_BLEND_FACTOR_SRC_COLOR,
+        VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR,
+        VK_BLEND_FACTOR_SRC_ALPHA,
+        VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+        VK_BLEND_FACTOR_DST_ALPHA,
+        VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
     };
 
     vk_state.srcColorBlendFactor = src_factors[state.src_factor];
@@ -203,16 +220,14 @@ GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage 
   return vk_state;
 }
 
-static VkPipelineColorBlendStateCreateInfo
-GetVulkanColorBlendState(const BlendingState& state,
-                         const VkPipelineColorBlendAttachmentState* attachments,
-                         uint32_t num_attachments)
+static VkPipelineColorBlendStateCreateInfo GetVulkanColorBlendState(const BlendingState& state,
+    const VkPipelineColorBlendAttachmentState* attachments, uint32_t num_attachments)
 {
   static constexpr std::array<VkLogicOp, 16> vk_logic_ops = {
       {VK_LOGIC_OP_CLEAR, VK_LOGIC_OP_AND, VK_LOGIC_OP_AND_REVERSE, VK_LOGIC_OP_COPY,
-       VK_LOGIC_OP_AND_INVERTED, VK_LOGIC_OP_NO_OP, VK_LOGIC_OP_XOR, VK_LOGIC_OP_OR,
-       VK_LOGIC_OP_NOR, VK_LOGIC_OP_EQUIVALENT, VK_LOGIC_OP_INVERT, VK_LOGIC_OP_OR_REVERSE,
-       VK_LOGIC_OP_COPY_INVERTED, VK_LOGIC_OP_OR_INVERTED, VK_LOGIC_OP_NAND, VK_LOGIC_OP_SET}};
+          VK_LOGIC_OP_AND_INVERTED, VK_LOGIC_OP_NO_OP, VK_LOGIC_OP_XOR, VK_LOGIC_OP_OR,
+          VK_LOGIC_OP_NOR, VK_LOGIC_OP_EQUIVALENT, VK_LOGIC_OP_INVERT, VK_LOGIC_OP_OR_REVERSE,
+          VK_LOGIC_OP_COPY_INVERTED, VK_LOGIC_OP_OR_INVERTED, VK_LOGIC_OP_NAND, VK_LOGIC_OP_SET}};
 
   VkBool32 vk_logic_op_enable = static_cast<VkBool32>(state.logic_op_enable);
   if (vk_logic_op_enable && !g_backend_info.bSupportsLogicOp)
@@ -295,7 +310,7 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   // Input assembly
   static constexpr std::array<VkPrimitiveTopology, 4> vk_primitive_topologies = {
       {VK_PRIMITIVE_TOPOLOGY_POINT_LIST, VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
-       VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP}};
+          VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP}};
   VkPipelineInputAssemblyStateCreateInfo input_assembly_state = {
       VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO, nullptr, 0,
       vk_primitive_topologies[static_cast<u32>(config.rasterization_state.primitive.Value())],
@@ -317,33 +332,21 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   uint32_t num_shader_stages = 0;
   if (config.vertex_shader)
   {
-    shader_stages[num_shader_stages++] = {
-        VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        nullptr,
-        0,
-        VK_SHADER_STAGE_VERTEX_BIT,
-        static_cast<const VKShader*>(config.vertex_shader)->GetShaderModule(),
-        "main"};
+    shader_stages[num_shader_stages++] = {VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+        nullptr, 0, VK_SHADER_STAGE_VERTEX_BIT,
+        static_cast<const VKShader*>(config.vertex_shader)->GetShaderModule(), "main"};
   }
   if (config.geometry_shader)
   {
-    shader_stages[num_shader_stages++] = {
-        VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        nullptr,
-        0,
-        VK_SHADER_STAGE_GEOMETRY_BIT,
-        static_cast<const VKShader*>(config.geometry_shader)->GetShaderModule(),
-        "main"};
+    shader_stages[num_shader_stages++] = {VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+        nullptr, 0, VK_SHADER_STAGE_GEOMETRY_BIT,
+        static_cast<const VKShader*>(config.geometry_shader)->GetShaderModule(), "main"};
   }
   if (config.pixel_shader)
   {
-    shader_stages[num_shader_stages++] = {
-        VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        nullptr,
-        0,
-        VK_SHADER_STAGE_FRAGMENT_BIT,
-        static_cast<const VKShader*>(config.pixel_shader)->GetShaderModule(),
-        "main"};
+    shader_stages[num_shader_stages++] = {VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+        nullptr, 0, VK_SHADER_STAGE_FRAGMENT_BIT,
+        static_cast<const VKShader*>(config.pixel_shader)->GetShaderModule(), "main"};
   }
 
   // Fill in Vulkan descriptor structs from our state structures.
@@ -360,13 +363,12 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   blend_attachment_states.push_back(blend_attachment_state);
   // Right now all our attachments have the same state
   for (u8 i = 0; i < static_cast<u8>(config.framebuffer_state.additional_color_attachment_count);
-       i++)
+      i++)
   {
     blend_attachment_states.push_back(blend_attachment_state);
   }
-  VkPipelineColorBlendStateCreateInfo blend_state =
-      GetVulkanColorBlendState(config.blending_state, blend_attachment_states.data(),
-                               static_cast<uint32_t>(blend_attachment_states.size()));
+  VkPipelineColorBlendStateCreateInfo blend_state = GetVulkanColorBlendState(config.blending_state,
+      blend_attachment_states.data(), static_cast<uint32_t>(blend_attachment_states.size()));
 
   static const VkDepthClampRangeEXT clamp_range = {0.0f, MAX_EFB_DEPTH};
   static const VkPipelineViewportDepthClampControlCreateInfoEXT depth_clamp_state = {
@@ -424,9 +426,8 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   };
 
   VkPipeline pipeline;
-  VkResult res =
-      vkCreateGraphicsPipelines(g_vulkan_context->GetDevice(), g_object_cache->GetPipelineCache(),
-                                1, &pipeline_info, nullptr, &pipeline);
+  VkResult res = vkCreateGraphicsPipelines(g_vulkan_context->GetDevice(),
+      g_object_cache->GetPipelineCache(), 1, &pipeline_info, nullptr, &pipeline);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateGraphicsPipelines failed: ");

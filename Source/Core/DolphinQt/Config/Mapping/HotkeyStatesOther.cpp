@@ -19,8 +19,8 @@ void HotkeyStatesOther::CreateMainLayout()
 
   layout->addWidget(
       CreateGroupBox(tr("Select Last State"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_SELECT_STATE)));
-  layout->addWidget(CreateGroupBox(tr("Load Last State"),
-                                   HotkeyManagerEmu::GetHotkeyGroup(HKGP_LOAD_LAST_STATE)));
+  layout->addWidget(CreateGroupBox(
+      tr("Load Last State"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_LOAD_LAST_STATE)));
   layout->addWidget(
       CreateGroupBox(tr("Other State Hotkeys"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_STATE_MISC)));
 

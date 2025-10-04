@@ -34,7 +34,7 @@ public:
 
 protected:
   Control(std::unique_ptr<ControlReference> ref, Translatability translate, std::string name,
-          std::string ui_name);
+      std::string ui_name);
   Control(std::unique_ptr<ControlReference> ref, Translatability translate, std::string name);
 };
 

@@ -50,9 +50,10 @@ static constexpr int FRAMECOUNT_INVALID = 0;
 
 struct TextureAndTLUTFormat
 {
-  TextureAndTLUTFormat(TextureFormat texfmt_ = TextureFormat::I4,
-                       TLUTFormat tlutfmt_ = TLUTFormat::IA8)
-      : texfmt(texfmt_), tlutfmt(tlutfmt_)
+  TextureAndTLUTFormat(
+      TextureFormat texfmt_ = TextureFormat::I4, TLUTFormat tlutfmt_ = TLUTFormat::IA8)
+      : texfmt(texfmt_)
+      , tlutfmt(tlutfmt_)
   {
   }
 
@@ -71,21 +72,23 @@ struct TextureAndTLUTFormat
 struct EFBCopyParams
 {
   EFBCopyParams(PixelFormat efb_format_, EFBCopyFormat copy_format_, bool depth_, bool yuv_,
-                bool all_copy_filter_coefs_needed_, bool copy_filter_can_overflow_,
-                bool apply_gamma_)
-      : efb_format(efb_format_), copy_format(copy_format_), depth(depth_), yuv(yuv_),
-        all_copy_filter_coefs_needed(all_copy_filter_coefs_needed_),
-        copy_filter_can_overflow(copy_filter_can_overflow_), apply_gamma(apply_gamma_)
+      bool all_copy_filter_coefs_needed_, bool copy_filter_can_overflow_, bool apply_gamma_)
+      : efb_format(efb_format_)
+      , copy_format(copy_format_)
+      , depth(depth_)
+      , yuv(yuv_)
+      , all_copy_filter_coefs_needed(all_copy_filter_coefs_needed_)
+      , copy_filter_can_overflow(copy_filter_can_overflow_)
+      , apply_gamma(apply_gamma_)
   {
   }
 
   bool operator<(const EFBCopyParams& rhs) const
   {
     return std::tie(efb_format, copy_format, depth, yuv, all_copy_filter_coefs_needed,
-                    copy_filter_can_overflow,
-                    apply_gamma) < std::tie(rhs.efb_format, rhs.copy_format, rhs.depth, rhs.yuv,
-                                            rhs.all_copy_filter_coefs_needed,
-                                            rhs.copy_filter_can_overflow, rhs.apply_gamma);
+               copy_filter_can_overflow, apply_gamma) <
+           std::tie(rhs.efb_format, rhs.copy_format, rhs.depth, rhs.yuv,
+               rhs.all_copy_filter_coefs_needed, rhs.copy_filter_can_overflow, rhs.apply_gamma);
   }
 
   PixelFormat efb_format;
@@ -110,10 +113,10 @@ struct fmt::formatter<EFBCopyParams>
     else
       copy_format = fmt::to_string(uid.copy_format);
     return fmt::format_to(ctx.out(),
-                          "format: {}, copy format: {}, depth: {}, yuv: {}, apply_gamma: {}, "
-                          "all_copy_filter_coefs_needed: {}, copy_filter_can_overflow: {}",
-                          uid.efb_format, copy_format, uid.depth, uid.yuv, uid.apply_gamma,
-                          uid.all_copy_filter_coefs_needed, uid.copy_filter_can_overflow);
+        "format: {}, copy format: {}, depth: {}, yuv: {}, apply_gamma: {}, "
+        "all_copy_filter_coefs_needed: {}, copy_filter_can_overflow: {}",
+        uid.efb_format, copy_format, uid.depth, uid.yuv, uid.apply_gamma,
+        uid.all_copy_filter_coefs_needed, uid.copy_filter_can_overflow);
   }
 };
 
@@ -171,13 +174,13 @@ struct TCacheEntry
   VideoCommon::CustomAsset::TimeType last_load_time;
   std::shared_ptr<HiresTexture> hires_texture;
 
-  explicit TCacheEntry(std::unique_ptr<AbstractTexture> tex,
-                       std::unique_ptr<AbstractFramebuffer> fb);
+  explicit TCacheEntry(
+      std::unique_ptr<AbstractTexture> tex, std::unique_ptr<AbstractFramebuffer> fb);
 
   ~TCacheEntry();
 
-  void SetGeneralParameters(u32 _addr, u32 _size, TextureAndTLUTFormat _format,
-                            bool force_safe_hashing)
+  void SetGeneralParameters(
+      u32 _addr, u32 _size, TextureAndTLUTFormat _format, bool force_safe_hashing)
   {
     addr = _addr;
     size_in_bytes = _size;
@@ -185,8 +188,8 @@ struct TCacheEntry
     should_force_safe_hashing = force_safe_hashing;
   }
 
-  void SetDimensions(unsigned int _native_width, unsigned int _native_height,
-                     unsigned int _native_levels)
+  void SetDimensions(
+      unsigned int _native_width, unsigned int _native_height, unsigned int _native_levels)
   {
     native_width = _native_width;
     native_height = _native_height;
@@ -278,18 +281,16 @@ public:
   void ReleaseToPool(TCacheEntry* entry);
 
   TCacheEntry* Load(const TextureInfo& texture_info);
-  RcTcacheEntry GetTexture(const int textureCacheSafetyColorSampleSize,
-                           const TextureInfo& texture_info);
-  RcTcacheEntry GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
-                              MathUtil::Rectangle<int>* display_rect);
+  RcTcacheEntry GetTexture(
+      const int textureCacheSafetyColorSampleSize, const TextureInfo& texture_info);
+  RcTcacheEntry GetXFBTexture(
+      u32 address, u32 width, u32 height, u32 stride, MathUtil::Rectangle<int>* display_rect);
 
   virtual void BindTextures(BitSet32 used_textures, const std::array<SamplerState, 8>& samplers);
   void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 width, u32 height,
-                                 u32 dstStride, bool is_depth_copy,
-                                 const MathUtil::Rectangle<int>& srcRect, bool isIntensity,
-                                 bool scaleByHalf, float y_scale, float gamma, bool clamp_top,
-                                 bool clamp_bottom,
-                                 const CopyFilterCoefficients::Values& filter_coefficients);
+      u32 dstStride, bool is_depth_copy, const MathUtil::Rectangle<int>& srcRect, bool isIntensity,
+      bool scaleByHalf, float y_scale, float gamma, bool clamp_top, bool clamp_bottom,
+      const CopyFilterCoefficients::Values& filter_coefficients);
 
   void ScaleTextureCacheEntryTo(RcTcacheEntry& entry, u32 new_width, u32 new_height);
 
@@ -310,8 +311,8 @@ public:
   static bool CopyFilterCanOverflow(const std::array<u32, 3>& coefficients);
 
   // Get a new sampler state
-  static SamplerState GetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
-                                      bool has_arbitrary_mips);
+  static SamplerState GetSamplerState(
+      u32 index, float custom_tex_scale, bool custom_tex, bool has_arbitrary_mips);
 
 protected:
   // Decodes the specified data to the GPU texture specified by entry.
@@ -320,20 +321,18 @@ protected:
   // aligned_width, aligned_height are the size of the image in pixels, aligned to the block size.
   // row_stride is the number of bytes for a row of blocks, not pixels.
   bool DecodeTextureOnGPU(RcTcacheEntry& entry, u32 dst_level, const u8* data, u32 data_size,
-                          TextureFormat format, u32 width, u32 height, u32 aligned_width,
-                          u32 aligned_height, u32 row_stride, const u8* palette,
-                          TLUTFormat palette_format);
+      TextureFormat format, u32 width, u32 height, u32 aligned_width, u32 aligned_height,
+      u32 row_stride, const u8* palette, TLUTFormat palette_format);
 
   virtual void CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams& params, u32 native_width,
-                       u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                       const MathUtil::Rectangle<int>& src_rect, bool scale_by_half,
-                       bool linear_filter, float y_scale, float gamma, bool clamp_top,
-                       bool clamp_bottom, const std::array<u32, 3>& filter_coefficients);
+      u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+      const MathUtil::Rectangle<int>& src_rect, bool scale_by_half, bool linear_filter,
+      float y_scale, float gamma, bool clamp_top, bool clamp_bottom,
+      const std::array<u32, 3>& filter_coefficients);
   virtual void CopyEFBToCacheEntry(RcTcacheEntry& entry, bool is_depth_copy,
-                                   const MathUtil::Rectangle<int>& src_rect, bool scale_by_half,
-                                   bool linear_filter, EFBCopyFormat dst_format, bool is_intensity,
-                                   float gamma, bool clamp_top, bool clamp_bottom,
-                                   const std::array<u32, 3>& filter_coefficients);
+      const MathUtil::Rectangle<int>& src_rect, bool scale_by_half, bool linear_filter,
+      EFBCopyFormat dst_format, bool is_intensity, float gamma, bool clamp_top, bool clamp_bottom,
+      const std::array<u32, 3>& filter_coefficients);
 
   alignas(16) u8* m_temp = nullptr;
   size_t m_temp_size = 0;
@@ -353,9 +352,9 @@ private:
   void SetBackupConfig(const VideoConfig& config);
 
   RcTcacheEntry CreateTextureEntry(const TextureCreationInfo& creation_info,
-                                   const TextureInfo& texture_info, int safety_color_sample_size,
-                                   VideoCommon::CustomTextureData* custom_texture_data,
-                                   bool custom_arbitrary_mipmaps, bool skip_texture_dump);
+      const TextureInfo& texture_info, int safety_color_sample_size,
+      VideoCommon::CustomTextureData* custom_texture_data, bool custom_arbitrary_mipmaps,
+      bool skip_texture_dump);
 
   RcTcacheEntry GetXFBFromCache(u32 address, u32 width, u32 height, u32 stride);
 
@@ -363,8 +362,8 @@ private:
 
   RcTcacheEntry ReinterpretEntry(const RcTcacheEntry& existing_entry, TextureFormat new_format);
 
-  RcTcacheEntry DoPartialTextureUpdates(RcTcacheEntry& entry_to_update, const u8* palette,
-                                        TLUTFormat tlutfmt);
+  RcTcacheEntry DoPartialTextureUpdates(
+      RcTcacheEntry& entry_to_update, const u8* palette, TLUTFormat tlutfmt);
   void StitchXFBCopy(RcTcacheEntry& entry_to_update);
 
   void CheckTempSize(size_t required_size);
@@ -376,25 +375,25 @@ private:
 
   // Return all possible overlapping textures. As addr+size of the textures is not
   // indexed, this may return false positives.
-  std::pair<TexAddrCache::iterator, TexAddrCache::iterator>
-  FindOverlappingTextures(u32 addr, u32 size_in_bytes);
+  std::pair<TexAddrCache::iterator, TexAddrCache::iterator> FindOverlappingTextures(
+      u32 addr, u32 size_in_bytes);
 
   // Removes and unlinks texture from texture cache and returns it to the pool
-  TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter,
-                                           bool discard_pending_efb_copy = false);
+  TexAddrCache::iterator InvalidateTexture(
+      TexAddrCache::iterator t_iter, bool discard_pending_efb_copy = false);
 
   void UninitializeEFBMemory(u8* dst, u32 stride, u32 bytes_per_row, u32 num_blocks_y);
   void UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_row, u32 num_blocks_y);
 
   // Precomputing the coefficients for the previous, current, and next lines for the copy filter.
-  static std::array<u32, 3>
-  GetRAMCopyFilterCoefficients(const CopyFilterCoefficients::Values& coefficients);
-  static std::array<u32, 3>
-  GetVRAMCopyFilterCoefficients(const CopyFilterCoefficients::Values& coefficients);
+  static std::array<u32, 3> GetRAMCopyFilterCoefficients(
+      const CopyFilterCoefficients::Values& coefficients);
+  static std::array<u32, 3> GetVRAMCopyFilterCoefficients(
+      const CopyFilterCoefficients::Values& coefficients);
 
   // Flushes a pending EFB copy to RAM from the host to the guest RAM.
   void WriteEFBCopyToRAM(u8* dst_ptr, u32 width, u32 height, u32 stride,
-                         std::unique_ptr<AbstractStagingTexture> staging_texture);
+      std::unique_ptr<AbstractStagingTexture> staging_texture);
   void FlushEFBCopy(TCacheEntry* entry);
 
   // Returns a staging texture of the maximum EFB copy size.

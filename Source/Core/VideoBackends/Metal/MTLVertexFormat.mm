@@ -119,8 +119,8 @@ static MTLVertexFormat ConvertFormat(ComponentFormat format, int count, bool int
   // clang-format on
 }
 
-static void SetAttribute(MTLVertexDescriptor* desc, ShaderAttrib attribute,
-                         const AttributeFormat& format)
+static void SetAttribute(
+    MTLVertexDescriptor* desc, ShaderAttrib attribute, const AttributeFormat& format)
 {
   if (!format.enable)
     return;
@@ -132,15 +132,16 @@ static void SetAttribute(MTLVertexDescriptor* desc, ShaderAttrib attribute,
 }
 
 template <size_t N>
-static void SetAttributes(MTLVertexDescriptor* desc, ShaderAttrib attribute,
-                          const std::array<AttributeFormat, N>& format)
+static void SetAttributes(
+    MTLVertexDescriptor* desc, ShaderAttrib attribute, const std::array<AttributeFormat, N>& format)
 {
   for (size_t i = 0; i < N; ++i)
     SetAttribute(desc, attribute + i, format[i]);
 }
 
 Metal::VertexFormat::VertexFormat(const PortableVertexDeclaration& vtx_decl)
-    : NativeVertexFormat(vtx_decl), m_desc(MRCTransfer([MTLVertexDescriptor new]))
+    : NativeVertexFormat(vtx_decl)
+    , m_desc(MRCTransfer([MTLVertexDescriptor new]))
 {
   [[[m_desc layouts] objectAtIndexedSubscript:0] setStride:vtx_decl.stride];
   SetAttribute(m_desc, ShaderAttrib::Position, vtx_decl.position);

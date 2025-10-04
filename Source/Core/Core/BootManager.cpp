@@ -55,8 +55,8 @@
 namespace BootManager
 {
 // Boot the ISO or file
-bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
-              const WindowSystemInfo& wsi)
+bool BootCore(
+    Core::System& system, std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 {
   if (!boot)
     return false;
@@ -100,8 +100,7 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
   // Override out-of-region languages/countries to prevent games from crashing or behaving oddly
   if (!Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS))
   {
-    Config::SetCurrent(
-        Config::MAIN_GC_LANGUAGE,
+    Config::SetCurrent(Config::MAIN_GC_LANGUAGE,
         DiscIO::ToGameCubeLanguage(StartUp.GetLanguageAdjustedForRegion(false, StartUp.m_region)));
 
     if (system.IsWii())
@@ -160,9 +159,8 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
     }
     else
     {
-      ConfigLoaders::SaveToSYSCONF(Config::LayerType::Meta, [](const Config::Location& location) {
-        return Config::GetActiveLayerForConfig(location) >= Config::LayerType::Movie;
-      });
+      ConfigLoaders::SaveToSYSCONF(Config::LayerType::Meta, [](const Config::Location& location)
+          { return Config::GetActiveLayerForConfig(location) >= Config::LayerType::Movie; });
     }
   }
 
@@ -172,11 +170,10 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
                         std::holds_alternative<BootParameters::Disc>(boot->parameters);
   if (load_ipl)
   {
-    return Core::Init(
-        system,
+    return Core::Init(system,
         std::make_unique<BootParameters>(
-            BootParameters::IPL{StartUp.m_region,
-                                std::move(std::get<BootParameters::Disc>(boot->parameters))},
+            BootParameters::IPL{
+                StartUp.m_region, std::move(std::get<BootParameters::Disc>(boot->parameters))},
             std::move(boot->boot_session_data)),
         wsi);
   }
@@ -201,7 +198,8 @@ static void RestoreSYSCONF()
   for (const auto& setting : Config::SYSCONF_SETTINGS)
   {
     std::visit(
-        [&](auto* info) {
+        [&](auto* info)
+        {
           // If this setting was overridden, then we copy the base layer value back to the SYSCONF.
           // Otherwise we leave the new value in the SYSCONF.
           if (Config::GetActiveLayerForConfig(*info) == Config::LayerType::Base)

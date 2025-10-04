@@ -69,7 +69,7 @@ AVRational GetTimeBaseForCurrentRefreshRate(s64 max_denominator)
   int num;
   int den;
   av_reduce(&num, &den, int(vi.GetTargetRefreshRateDenominator()),
-            int(vi.GetTargetRefreshRateNumerator()), max_denominator);
+      int(vi.GetTargetRefreshRateNumerator()), max_denominator);
   return AVRational{num, den};
 }
 
@@ -79,38 +79,40 @@ void InitAVCodec()
   if (first_run)
   {
     av_log_set_level(AV_LOG_DEBUG);
-    av_log_set_callback([](void* ptr, int level, const char* fmt, va_list vl) {
-      if (level < 0)
-        level = AV_LOG_DEBUG;
-      if (level >= 0)
-        level &= 0xff;
+    av_log_set_callback(
+        [](void* ptr, int level, const char* fmt, va_list vl)
+        {
+          if (level < 0)
+            level = AV_LOG_DEBUG;
+          if (level >= 0)
+            level &= 0xff;
 
-      if (level > av_log_get_level())
-        return;
+          if (level > av_log_get_level())
+            return;
 
-      auto log_level = Common::Log::LogLevel::LNOTICE;
-      if (level >= AV_LOG_ERROR && level < AV_LOG_WARNING)
-        log_level = Common::Log::LogLevel::LERROR;
-      else if (level >= AV_LOG_WARNING && level < AV_LOG_INFO)
-        log_level = Common::Log::LogLevel::LWARNING;
-      else if (level >= AV_LOG_INFO && level < AV_LOG_DEBUG)
-        log_level = Common::Log::LogLevel::LINFO;
-      else if (level >= AV_LOG_DEBUG)
-        // keep libav debug messages visible in release build of dolphin
-        log_level = Common::Log::LogLevel::LINFO;
+          auto log_level = Common::Log::LogLevel::LNOTICE;
+          if (level >= AV_LOG_ERROR && level < AV_LOG_WARNING)
+            log_level = Common::Log::LogLevel::LERROR;
+          else if (level >= AV_LOG_WARNING && level < AV_LOG_INFO)
+            log_level = Common::Log::LogLevel::LWARNING;
+          else if (level >= AV_LOG_INFO && level < AV_LOG_DEBUG)
+            log_level = Common::Log::LogLevel::LINFO;
+          else if (level >= AV_LOG_DEBUG)
+            // keep libav debug messages visible in release build of dolphin
+            log_level = Common::Log::LogLevel::LINFO;
 
-      // Don't perform this formatting if the log level is disabled
-      auto* log_manager = Common::Log::LogManager::GetInstance();
-      if (log_manager != nullptr &&
-          log_manager->IsEnabled(Common::Log::LogType::FRAMEDUMP, log_level))
-      {
-        constexpr size_t MAX_MSGLEN = 1024;
-        char message[MAX_MSGLEN];
-        CharArrayFromFormatV(message, MAX_MSGLEN, fmt, vl);
+          // Don't perform this formatting if the log level is disabled
+          auto* log_manager = Common::Log::LogManager::GetInstance();
+          if (log_manager != nullptr &&
+              log_manager->IsEnabled(Common::Log::LogType::FRAMEDUMP, log_level))
+          {
+            constexpr size_t MAX_MSGLEN = 1024;
+            char message[MAX_MSGLEN];
+            CharArrayFromFormatV(message, MAX_MSGLEN, fmt, vl);
 
-        GENERIC_LOG_FMT(Common::Log::LogType::FRAMEDUMP, log_level, "{}", message);
-      }
-    });
+            GENERIC_LOG_FMT(Common::Log::LogType::FRAMEDUMP, log_level, "{}", message);
+          }
+        });
 
     // TODO: We never call avformat_network_deinit.
     avformat_network_init();
@@ -214,8 +216,8 @@ bool FFMpegFrameDump::CreateVideoFile()
     return false;
   }
 
-  if (avformat_alloc_output_context2(&m_context->format, output_format, nullptr,
-                                     dump_path.c_str()) < 0)
+  if (avformat_alloc_output_context2(
+          &m_context->format, output_format, nullptr, dump_path.c_str()) < 0)
   {
     ERROR_LOG_FMT(FRAMEDUMP, "Could not allocate output context");
     return false;
@@ -265,7 +267,7 @@ bool FFMpegFrameDump::CreateVideoFile()
   const auto time_base = GetTimeBaseForCurrentRefreshRate(m_max_denominator);
 
   INFO_LOG_FMT(FRAMEDUMP, "Creating video file: {} x {} @ {}/{} fps", m_context->width,
-               m_context->height, time_base.den, time_base.num);
+      m_context->height, time_base.den, time_base.num);
 
   m_context->codec->codec_type = AVMEDIA_TYPE_VIDEO;
   m_context->codec->bit_rate = static_cast<int64_t>(Config::Get(Config::GFX_BITRATE_KBPS)) * 1000;
@@ -340,11 +342,11 @@ bool FFMpegFrameDump::CreateVideoFile()
   if (av_cmp_q(m_context->stream->time_base, time_base) != 0)
   {
     WARN_LOG_FMT(FRAMEDUMP, "Stream time base differs at {}/{}", m_context->stream->time_base.den,
-                 m_context->stream->time_base.num);
+        m_context->stream->time_base.num);
   }
 
-  OSD::AddMessage(fmt::format("Dumping Frames to \"{}\" ({}x{})", dump_path, m_context->width,
-                              m_context->height));
+  OSD::AddMessage(fmt::format(
+      "Dumping Frames to \"{}\" ({}x{})", dump_path, m_context->width, m_context->height));
   return true;
 }
 
@@ -366,8 +368,7 @@ void FFMpegFrameDump::AddFrame(const FrameData& frame)
     return;
 
   // Calculate presentation timestamp from ticks since start.
-  const s64 pts = av_rescale_q(
-      frame.state.ticks - m_context->start_ticks,
+  const s64 pts = av_rescale_q(frame.state.ticks - m_context->start_ticks,
       AVRational{1, int(Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond())},
       m_context->codec->time_base);
 
@@ -395,13 +396,13 @@ void FFMpegFrameDump::AddFrame(const FrameData& frame)
   m_context->src_frame->height = m_context->height;
 
   // Convert image from RGBA to desired pixel format.
-  m_context->sws = sws_getCachedContext(
-      m_context->sws, frame.width, frame.height, pix_fmt, m_context->width, m_context->height,
-      m_context->codec->pix_fmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
+  m_context->sws =
+      sws_getCachedContext(m_context->sws, frame.width, frame.height, pix_fmt, m_context->width,
+          m_context->height, m_context->codec->pix_fmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
   if (m_context->sws)
   {
     sws_scale(m_context->sws, m_context->src_frame->data, m_context->src_frame->linesize, 0,
-              frame.height, m_context->scaled_frame->data, m_context->scaled_frame->linesize);
+        frame.height, m_context->scaled_frame->data, m_context->scaled_frame->linesize);
   }
 
   m_context->last_pts = pts;
@@ -525,8 +526,8 @@ void FFMpegFrameDump::CheckForConfigChange(const FrameData& frame)
            frame.state.refresh_rate_num != m_context->codec->time_base.den)
   {
     INFO_LOG_FMT(FRAMEDUMP, "Starting new dump on refresh rate change {}/{} vs {}/{}.",
-                 m_context->codec->time_base.den, m_context->codec->time_base.num,
-                 frame.state.refresh_rate_num, frame.state.refresh_rate_den);
+        m_context->codec->time_base.den, m_context->codec->time_base.num,
+        frame.state.refresh_rate_num, frame.state.refresh_rate_den);
     restart_dump = true;
   }
 

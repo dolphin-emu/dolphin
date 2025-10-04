@@ -61,7 +61,8 @@
 #include "InputCommon/InputConfig.h"
 
 MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
-    : QDialog(parent), m_port(port_num)
+    : QDialog(parent)
+    , m_port(port_num)
 {
   setWindowTitle(tr("Port %1").arg(port_num + 1));
 
@@ -73,13 +74,15 @@ MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
   SetMappingType(type);
 
   const auto timer = new QTimer(this);
-  connect(timer, &QTimer::timeout, this, [this, timer] {
-    const double refresh_rate = screen()->refreshRate();
-    timer->setInterval(1000 / refresh_rate);
+  connect(timer, &QTimer::timeout, this,
+      [this, timer]
+      {
+        const double refresh_rate = screen()->refreshRate();
+        timer->setInterval(1000 / refresh_rate);
 
-    const auto lock = GetController()->GetStateLock();
-    emit Update();
-  });
+        const auto lock = GetController()->GetStateLock();
+        emit Update();
+      });
 
   timer->start(100);
 
@@ -90,9 +93,9 @@ MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
   installEventFilter(filter);
 
   filter->connect(filter, &WindowActivationEventFilter::windowDeactivated,
-                  [] { HotkeyManagerEmu::Enable(true); });
+      [] { HotkeyManagerEmu::Enable(true); });
   filter->connect(filter, &WindowActivationEventFilter::windowActivated,
-                  [] { HotkeyManagerEmu::Enable(false); });
+      [] { HotkeyManagerEmu::Enable(false); });
 
   MappingCommon::CreateMappingProcessor(this);
 
@@ -208,8 +211,8 @@ void MappingWindow::ConnectWidgets()
   connect(m_profiles_delete, &QPushButton::clicked, this, &MappingWindow::OnDeleteProfilePressed);
 
   connect(m_profiles_combo, &QComboBox::currentIndexChanged, this, &MappingWindow::OnSelectProfile);
-  connect(m_profiles_combo, &QComboBox::editTextChanged, this,
-          &MappingWindow::OnProfileTextChanged);
+  connect(
+      m_profiles_combo, &QComboBox::editTextChanged, this, &MappingWindow::OnProfileTextChanged);
 
   // We currently use the "Close" button as an "Accept" button so we must save on reject.
   connect(this, &QDialog::rejected, [this] { emit Save(); });
@@ -409,8 +412,8 @@ void MappingWindow::UpdateDeviceList()
       // Selected device is not currently attached.
       m_devices_combo->insertSeparator(m_devices_combo->count());
       const auto qname = QString::fromStdString(default_device);
-      m_devices_combo->addItem(QLatin1Char{'['} + tr("disconnected") + QStringLiteral("] ") + qname,
-                               qname);
+      m_devices_combo->addItem(
+          QLatin1Char{'['} + tr("disconnected") + QStringLiteral("] ") + qname, qname);
       m_devices_combo->setCurrentIndex(m_devices_combo->count() - 1);
     }
   }
@@ -443,7 +446,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
   case Type::MAPPING_GC_MICROPHONE:
     widget = new GCMicrophone(this);
     setWindowTitle(tr("GameCube Microphone Slot %1")
-                       .arg(GetPort() == 0 ? QLatin1Char{'A'} : QLatin1Char{'B'}));
+            .arg(GetPort() == 0 ? QLatin1Char{'A'} : QLatin1Char{'B'}));
     AddWidget(tr("Microphone"), widget);
     break;
   case Type::MAPPING_WIIMOTE_EMU:
@@ -524,15 +527,15 @@ void MappingWindow::PopulateProfileSelection()
   m_profiles_combo->insertSeparator(m_profiles_combo->count());
 
   for (const auto& filename :
-       Common::DoFileSearch({m_config->GetSysProfileDirectoryPath()}, {".ini"}))
+      Common::DoFileSearch({m_config->GetSysProfileDirectoryPath()}, {".ini"}))
   {
     std::string basename;
     SplitPath(filename, nullptr, &basename, nullptr);
     if (!basename.empty())
     {
       // i18n: "Stock" refers to input profiles included with Dolphin
-      m_profiles_combo->addItem(tr("%1 (Stock)").arg(QString::fromStdString(basename)),
-                                QString::fromStdString(filename));
+      m_profiles_combo->addItem(
+          tr("%1 (Stock)").arg(QString::fromStdString(basename)), QString::fromStdString(filename));
     }
   }
 

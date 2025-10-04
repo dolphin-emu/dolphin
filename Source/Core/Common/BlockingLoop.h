@@ -218,10 +218,12 @@ public:
       Wait();
       break;
     case StopMode::BlockAndGiveUp:
-      WaitYield(std::chrono::milliseconds(100), [&] {
-        // If timed out, assume no one will come along to call Run, so force a break
-        m_stopped.Set();
-      });
+      WaitYield(std::chrono::milliseconds(100),
+          [&]
+          {
+            // If timed out, assume no one will come along to call Run, so force a break
+            m_stopped.Set();
+          });
       break;
     }
   }

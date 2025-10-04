@@ -23,7 +23,7 @@
 namespace DiscIO
 {
 u64 ReadFile(const Volume& volume, const Partition& partition, const FileInfo* file_info,
-             u8* buffer, u64 max_buffer_size, u64 offset_in_file)
+    u8* buffer, u64 max_buffer_size, u64 offset_in_file)
 {
   if (!file_info || file_info->IsDirectory() || offset_in_file >= file_info->GetSize())
     return 0;
@@ -31,8 +31,8 @@ u64 ReadFile(const Volume& volume, const Partition& partition, const FileInfo* f
   const u64 read_length = std::min(max_buffer_size, file_info->GetSize() - offset_in_file);
 
   DEBUG_LOG_FMT(DISCIO, "Reading {:x} bytes at {:x} from file {}. Offset: {:x} Size: {:x}",
-                read_length, offset_in_file, file_info->GetPath(), file_info->GetOffset(),
-                file_info->GetSize());
+      read_length, offset_in_file, file_info->GetPath(), file_info->GetOffset(),
+      file_info->GetSize());
 
   if (!volume.Read(file_info->GetOffset() + offset_in_file, read_length, buffer, partition))
     return 0;
@@ -41,18 +41,18 @@ u64 ReadFile(const Volume& volume, const Partition& partition, const FileInfo* f
 }
 
 u64 ReadFile(const Volume& volume, const Partition& partition, std::string_view path, u8* buffer,
-             u64 max_buffer_size, u64 offset_in_file)
+    u64 max_buffer_size, u64 offset_in_file)
 {
   const FileSystem* file_system = volume.GetFileSystem(partition);
   if (!file_system)
     return 0;
 
   return ReadFile(volume, partition, file_system->FindFileInfo(path).get(), buffer, max_buffer_size,
-                  offset_in_file);
+      offset_in_file);
 }
 
 bool ExportData(const Volume& volume, const Partition& partition, u64 offset, u64 size,
-                const std::string& export_filename)
+    const std::string& export_filename)
 {
   File::IOFile f(export_filename, "wb");
   if (!f)
@@ -79,17 +79,17 @@ bool ExportData(const Volume& volume, const Partition& partition, u64 offset, u6
 }
 
 bool ExportFile(const Volume& volume, const Partition& partition, const FileInfo* file_info,
-                const std::string& export_filename)
+    const std::string& export_filename)
 {
   if (!file_info || file_info->IsDirectory())
     return false;
 
-  return ExportData(volume, partition, file_info->GetOffset(), file_info->GetSize(),
-                    export_filename);
+  return ExportData(
+      volume, partition, file_info->GetOffset(), file_info->GetSize(), export_filename);
 }
 
 bool ExportFile(const Volume& volume, const Partition& partition, std::string_view path,
-                const std::string& export_filename)
+    const std::string& export_filename)
 {
   const FileSystem* file_system = volume.GetFileSystem(partition);
   if (!file_system)
@@ -99,9 +99,8 @@ bool ExportFile(const Volume& volume, const Partition& partition, std::string_vi
 }
 
 void ExportDirectory(const Volume& volume, const Partition& partition, const FileInfo& directory,
-                     bool recursive, const std::string& filesystem_path,
-                     const std::string& export_folder,
-                     const std::function<bool(const std::string& path)>& update_progress)
+    bool recursive, const std::string& filesystem_path, const std::string& export_folder,
+    const std::function<bool(const std::string& path)>& update_progress)
 {
   std::string export_root = export_folder + '/';
   if (directory.IsDirectory() && !directory.IsRoot())
@@ -129,8 +128,8 @@ void ExportDirectory(const Volume& volume, const Partition& partition, const Fil
     }
     else if (recursive)
     {
-      ExportDirectory(volume, partition, file_info, recursive, filesystem_path, export_root,
-                      update_progress);
+      ExportDirectory(
+          volume, partition, file_info, recursive, filesystem_path, export_root, update_progress);
     }
   }
 }
@@ -146,8 +145,8 @@ bool ExportWiiUnencryptedHeader(const Volume& volume, const std::string& export_
 
   std::array<u8, WII_NONPARTITION_DISCHEADER_SIZE> buffer;
 
-  if (!volume.Read(WII_NONPARTITION_DISCHEADER_ADDRESS, buffer.size(), buffer.data(),
-                   PARTITION_NONE))
+  if (!volume.Read(
+          WII_NONPARTITION_DISCHEADER_ADDRESS, buffer.size(), buffer.data(), PARTITION_NONE))
   {
     return false;
   }
@@ -166,18 +165,18 @@ bool ExportWiiRegionData(const Volume& volume, const std::string& export_filenam
   if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
-  return ExportData(volume, PARTITION_NONE, WII_REGION_DATA_ADDRESS, WII_REGION_DATA_SIZE,
-                    export_filename);
+  return ExportData(
+      volume, PARTITION_NONE, WII_REGION_DATA_ADDRESS, WII_REGION_DATA_SIZE, export_filename);
 }
 
-bool ExportTicket(const Volume& volume, const Partition& partition,
-                  const std::string& export_filename)
+bool ExportTicket(
+    const Volume& volume, const Partition& partition, const std::string& export_filename)
 {
   if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
   return ExportData(volume, PARTITION_NONE, partition.offset + WII_PARTITION_TICKET_ADDRESS,
-                    WII_PARTITION_TICKET_SIZE, export_filename);
+      WII_PARTITION_TICKET_SIZE, export_filename);
 }
 
 bool ExportTMD(const Volume& volume, const Partition& partition, const std::string& export_filename)
@@ -195,8 +194,8 @@ bool ExportTMD(const Volume& volume, const Partition& partition, const std::stri
   return ExportData(volume, PARTITION_NONE, partition.offset + *offset, *size, export_filename);
 }
 
-bool ExportCertificateChain(const Volume& volume, const Partition& partition,
-                            const std::string& export_filename)
+bool ExportCertificateChain(
+    const Volume& volume, const Partition& partition, const std::string& export_filename)
 {
   if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
@@ -211,8 +210,8 @@ bool ExportCertificateChain(const Volume& volume, const Partition& partition,
   return ExportData(volume, PARTITION_NONE, partition.offset + *offset, *size, export_filename);
 }
 
-bool ExportH3Hashes(const Volume& volume, const Partition& partition,
-                    const std::string& export_filename)
+bool ExportH3Hashes(
+    const Volume& volume, const Partition& partition, const std::string& export_filename)
 {
   if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
@@ -222,12 +221,12 @@ bool ExportH3Hashes(const Volume& volume, const Partition& partition,
   if (!offset)
     return false;
 
-  return ExportData(volume, PARTITION_NONE, partition.offset + *offset, WII_PARTITION_H3_SIZE,
-                    export_filename);
+  return ExportData(
+      volume, PARTITION_NONE, partition.offset + *offset, WII_PARTITION_H3_SIZE, export_filename);
 }
 
-bool ExportHeader(const Volume& volume, const Partition& partition,
-                  const std::string& export_filename)
+bool ExportHeader(
+    const Volume& volume, const Partition& partition, const std::string& export_filename)
 {
   if (!IsDisc(volume.GetVolumeType()))
     return false;
@@ -248,8 +247,8 @@ bool ExportHeader(const Volume& volume, const Partition& partition,
   return true;
 }
 
-bool ExportBI2Data(const Volume& volume, const Partition& partition,
-                   const std::string& export_filename)
+bool ExportBI2Data(
+    const Volume& volume, const Partition& partition, const std::string& export_filename)
 {
   if (!IsDisc(volume.GetVolumeType()))
     return false;
@@ -257,8 +256,8 @@ bool ExportBI2Data(const Volume& volume, const Partition& partition,
   return ExportData(volume, partition, BI2_ADDRESS, BI2_SIZE, export_filename);
 }
 
-bool ExportApploader(const Volume& volume, const Partition& partition,
-                     const std::string& export_filename)
+bool ExportApploader(
+    const Volume& volume, const Partition& partition, const std::string& export_filename)
 {
   if (!IsDisc(volume.GetVolumeType()))
     return false;
@@ -298,8 +297,8 @@ bool ExportFST(const Volume& volume, const Partition& partition, const std::stri
   return ExportData(volume, partition, *fst_offset, *fst_size, export_filename);
 }
 
-bool ExportSystemData(const Volume& volume, const Partition& partition,
-                      const std::string& export_folder)
+bool ExportSystemData(
+    const Volume& volume, const Partition& partition, const std::string& export_folder)
 {
   bool success = true;
 

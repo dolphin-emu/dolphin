@@ -27,15 +27,15 @@ QoSSession::QoSSession(ENetPeer* peer, int tos_val) : m_peer(peer)
   sin.sin_addr.s_addr = peer->host->address.host;
 
   if (QOSAddSocketToFlow(m_qos_handle, peer->host->socket, reinterpret_cast<PSOCKADDR>(&sin),
-                         QOSTrafficTypeControl, QOS_NON_ADAPTIVE_FLOW, &m_qos_flow_id))
+          QOSTrafficTypeControl, QOS_NON_ADAPTIVE_FLOW, &m_qos_flow_id))
   {
     // We shift the complete ToS value by 3 to get rid of the 3 bit ECN field
     DWORD dscp = static_cast<DWORD>(tos_val >> 3);
 
     // Sets DSCP to the same as Linux
     // This will fail if we're not admin, but we ignore it
-    QOSSetFlow(m_qos_handle, m_qos_flow_id, QOSSetOutgoingDSCPValue, sizeof(DWORD), &dscp, 0,
-               nullptr);
+    QOSSetFlow(
+        m_qos_handle, m_qos_flow_id, QOSSetOutgoingDSCPValue, sizeof(DWORD), &dscp, 0, nullptr);
 
     m_success = true;
   }

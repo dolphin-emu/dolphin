@@ -79,9 +79,8 @@ bool Device::HasClass(const u8 device_class) const
   if (GetDeviceDescriptor().bDeviceClass == device_class)
     return true;
   const auto interfaces = GetInterfaces(0);
-  return std::ranges::any_of(interfaces, [device_class](const auto& interface) {
-    return interface.bInterfaceClass == device_class;
-  });
+  return std::ranges::any_of(interfaces,
+      [device_class](const auto& interface) { return interface.bInterfaceClass == device_class; });
 }
 
 void DeviceDescriptor::Swap()

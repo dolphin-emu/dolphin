@@ -36,7 +36,7 @@ HostFileSystem::HostFilename HostFileSystem::BuildFilename(const std::string& wi
   {
     if (wii_path.starts_with(redirect.source_path) &&
         (wii_path.size() == redirect.source_path.size() ||
-         wii_path[redirect.source_path.size()] == '/'))
+            wii_path[redirect.source_path.size()] == '/'))
     {
       std::string relative_to_redirect = wii_path.substr(redirect.source_path.size());
       return HostFilename{redirect.target_path + Common::EscapePath(relative_to_redirect), true};
@@ -128,8 +128,8 @@ static u64 FixupDirectoryEntries(File::FSTEntry* dir, bool is_root)
 }
 }  // namespace
 
-bool HostFileSystem::FstEntry::CheckPermission(Uid caller_uid, Gid caller_gid,
-                                               Mode requested_mode) const
+bool HostFileSystem::FstEntry::CheckPermission(
+    Uid caller_uid, Gid caller_gid, Mode requested_mode) const
 {
   if (caller_uid == 0)
     return true;
@@ -141,9 +141,10 @@ bool HostFileSystem::FstEntry::CheckPermission(Uid caller_uid, Gid caller_gid,
   return (u8(requested_mode) & u8(file_mode)) == u8(requested_mode);
 }
 
-HostFileSystem::HostFileSystem(const std::string& root_path,
-                               std::vector<NandRedirect> nand_redirects)
-    : m_root_path{root_path}, m_nand_redirects(std::move(nand_redirects))
+HostFileSystem::HostFileSystem(
+    const std::string& root_path, std::vector<NandRedirect> nand_redirects)
+    : m_root_path{root_path}
+    , m_nand_redirects(std::move(nand_redirects))
 {
   while (m_root_path.ends_with('/'))
     m_root_path.pop_back();
@@ -175,7 +176,8 @@ void HostFileSystem::LoadFst()
   if (!file)
     return;
 
-  const auto parse_entry = [&file](const auto& parse, size_t depth) -> std::optional<FstEntry> {
+  const auto parse_entry = [&file](const auto& parse, size_t depth) -> std::optional<FstEntry>
+  {
     if (depth > MaxPathDepth)
       return std::nullopt;
 
@@ -208,7 +210,8 @@ void HostFileSystem::LoadFst()
 void HostFileSystem::SaveFst()
 {
   std::vector<SerializedFstEntry> to_write;
-  auto collect_entries = [&to_write](const auto& collect, const FstEntry& entry) -> void {
+  auto collect_entries = [&to_write](const auto& collect, const FstEntry& entry) -> void
+  {
     SerializedFstEntry& serialized = to_write.emplace_back();
     serialized.SetName(entry.name);
     GetMetadataFields(serialized) = GetMetadataFields(entry.data);
@@ -262,7 +265,7 @@ HostFileSystem::FstEntry* HostFileSystem::GetFstEntryForPath(const std::string& 
       // This code path is also reached when creating a new file or directory;
       // proper metadata is filled in later.
       INFO_LOG_FMT(IOS_FS, "Creating a default entry for {} ({})", complete_path,
-                   host_file.is_redirect ? "redirect" : "NAND");
+          host_file.is_redirect ? "redirect" : "NAND");
       entry = &entry->children.emplace_back();
       entry->name = component;
       entry->data.modes = {Mode::ReadWrite, Mode::ReadWrite, Mode::ReadWrite};
@@ -415,7 +418,7 @@ void HostFileSystem::DoState(PointerWrap& p)
     if (!movie.IsMovieActive() || !original_save_state_made_during_movie_recording ||
         !Core::WiiRootIsTemporary() ||
         (original_save_state_made_during_movie_recording !=
-         (movie.IsMovieActive() && Core::WiiRootIsTemporary())))
+            (movie.IsMovieActive() && Core::WiiRootIsTemporary())))
     {
       (void)p.DoExternal(temp_val);
     }
@@ -454,8 +457,8 @@ ResultCode HostFileSystem::Format(Uid uid)
   return ResultCode::Success;
 }
 
-ResultCode HostFileSystem::CreateFileOrDirectory(Uid uid, Gid gid, const std::string& path,
-                                                 FileAttribute attr, Modes modes, bool is_file)
+ResultCode HostFileSystem::CreateFileOrDirectory(
+    Uid uid, Gid gid, const std::string& path, FileAttribute attr, Modes modes, bool is_file)
 {
   if (!IsValidNonRootPath(path) || !std::ranges::all_of(path, Common::IsPrintableCharacter))
   {
@@ -497,30 +500,28 @@ ResultCode HostFileSystem::CreateFileOrDirectory(Uid uid, Gid gid, const std::st
   return ResultCode::Success;
 }
 
-ResultCode HostFileSystem::CreateFile(Uid uid, Gid gid, const std::string& path, FileAttribute attr,
-                                      Modes modes)
+ResultCode HostFileSystem::CreateFile(
+    Uid uid, Gid gid, const std::string& path, FileAttribute attr, Modes modes)
 {
   return CreateFileOrDirectory(uid, gid, path, attr, modes, true);
 }
 
-ResultCode HostFileSystem::CreateDirectory(Uid uid, Gid gid, const std::string& path,
-                                           FileAttribute attr, Modes modes)
+ResultCode HostFileSystem::CreateDirectory(
+    Uid uid, Gid gid, const std::string& path, FileAttribute attr, Modes modes)
 {
   return CreateFileOrDirectory(uid, gid, path, attr, modes, false);
 }
 
 bool HostFileSystem::IsFileOpened(const std::string& path) const
 {
-  return std::ranges::any_of(m_handles, [&path](const Handle& handle) {
-    return handle.opened && handle.wii_path == path;
-  });
+  return std::ranges::any_of(m_handles,
+      [&path](const Handle& handle) { return handle.opened && handle.wii_path == path; });
 }
 
 bool HostFileSystem::IsDirectoryInUse(const std::string& path) const
 {
-  return std::ranges::any_of(m_handles, [&path](const Handle& handle) {
-    return handle.opened && handle.wii_path.starts_with(path);
-  });
+  return std::ranges::any_of(m_handles,
+      [&path](const Handle& handle) { return handle.opened && handle.wii_path.starts_with(path); });
 }
 
 ResultCode HostFileSystem::Delete(Uid uid, Gid gid, const std::string& path)
@@ -556,8 +557,8 @@ ResultCode HostFileSystem::Delete(Uid uid, Gid gid, const std::string& path)
   return ResultCode::Success;
 }
 
-ResultCode HostFileSystem::Rename(Uid uid, Gid gid, const std::string& old_path,
-                                  const std::string& new_path)
+ResultCode HostFileSystem::Rename(
+    Uid uid, Gid gid, const std::string& old_path, const std::string& new_path)
 {
   if (!IsValidNonRootPath(old_path) || !IsValidNonRootPath(new_path))
     return ResultCode::Invalid;
@@ -616,8 +617,8 @@ ResultCode HostFileSystem::Rename(Uid uid, Gid gid, const std::string& old_path,
       // device, so a simple rename may not work. Fall back to Copy & Delete and see if that works.
       if (!File::CopyRegularFile(host_old_path, host_new_path))
       {
-        ERROR_LOG_FMT(IOS_FS, "Copying {} to {} in Rename fallback failed", host_old_path,
-                      host_new_path);
+        ERROR_LOG_FMT(
+            IOS_FS, "Copying {} to {} in Rename fallback failed", host_old_path, host_new_path);
         return ResultCode::NotFound;
       }
       if (!File::Delete(host_old_path))
@@ -652,8 +653,8 @@ ResultCode HostFileSystem::Rename(Uid uid, Gid gid, const std::string& old_path,
   return ResultCode::Success;
 }
 
-Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid uid, Gid gid,
-                                                               const std::string& path)
+Result<std::vector<std::string>> HostFileSystem::ReadDirectory(
+    Uid uid, Gid gid, const std::string& path)
 {
   if (!IsValidPath(path))
     return ResultCode::Invalid;
@@ -680,7 +681,8 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid uid, Gid gid,
   for (size_t i = 0; i < entry->children.size(); ++i)
     sort_keys.emplace(entry->children[i].name, int(i));
 
-  const auto get_key = [&sort_keys](std::string_view key) {
+  const auto get_key = [&sort_keys](std::string_view key)
+  {
     const auto it = sort_keys.find(key);
     // As a fallback, files that are not in the FST are put at the beginning.
     return it != sort_keys.end() ? it->second : -1;
@@ -689,16 +691,17 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid uid, Gid gid,
   // Now sort in reverse order because Nintendo traverses a linked list
   // in which new elements are inserted at the front.
   std::ranges::sort(host_entry.children,
-                    [&get_key](const File::FSTEntry& one, const File::FSTEntry& two) {
-                      const int key1 = get_key(one.virtualName);
-                      const int key2 = get_key(two.virtualName);
-                      if (key1 != key2)
-                        return key1 > key2;
+      [&get_key](const File::FSTEntry& one, const File::FSTEntry& two)
+      {
+        const int key1 = get_key(one.virtualName);
+        const int key2 = get_key(two.virtualName);
+        if (key1 != key2)
+          return key1 > key2;
 
-                      // For files that are not in the FST, sort lexicographically to ensure that
-                      // results are consistent no matter what the underlying filesystem is.
-                      return one.virtualName > two.virtualName;
-                    });
+        // For files that are not in the FST, sort lexicographically to ensure that
+        // results are consistent no matter what the underlying filesystem is.
+        return one.virtualName > two.virtualName;
+      });
 
   std::vector<std::string> output;
   for (const File::FSTEntry& child : host_entry.children)
@@ -735,8 +738,8 @@ Result<Metadata> HostFileSystem::GetMetadata(Uid uid, Gid gid, const std::string
   return metadata;
 }
 
-ResultCode HostFileSystem::SetMetadata(Uid caller_uid, const std::string& path, Uid uid, Gid gid,
-                                       FileAttribute attr, Modes modes)
+ResultCode HostFileSystem::SetMetadata(
+    Uid caller_uid, const std::string& path, Uid uid, Gid gid, FileAttribute attr, Modes modes)
 {
   if (!IsValidPath(path))
     return ResultCode::Invalid;
@@ -810,8 +813,8 @@ Result<DirectoryStats> HostFileSystem::GetDirectoryStats(const std::string& wii_
   return stats;
 }
 
-Result<ExtendedDirectoryStats>
-HostFileSystem::GetExtendedDirectoryStats(const std::string& wii_path)
+Result<ExtendedDirectoryStats> HostFileSystem::GetExtendedDirectoryStats(
+    const std::string& wii_path)
 {
   if (!IsValidPath(wii_path))
     return ResultCode::Invalid;

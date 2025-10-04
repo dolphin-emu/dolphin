@@ -86,12 +86,12 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 std::string VideoBackendBase::BadShaderFilename(const char* shader_stage, int counter)
 {
   return fmt::format("{}bad_{}_{}_{}.txt", File::GetUserPath(D_DUMP_IDX), shader_stage,
-                     g_video_backend->GetName(), counter);
+      g_video_backend->GetName(), counter);
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
-void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
-                                       u64 ticks)
+void VideoBackendBase::Video_OutputXFB(
+    u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
 {
   if (m_initialized && g_presenter && !g_ActiveConfig.bImmediateXFB)
   {
@@ -99,9 +99,11 @@ void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride
     system.GetFifo().SyncGPU(Fifo::SyncGPUReason::Swap);
 
     const TimePoint presentation_time = system.GetCoreTiming().GetTargetHostTime(ticks);
-    AsyncRequests::GetInstance()->PushEvent([=] {
-      g_presenter->ViSwap(xfb_addr, fb_width, fb_stride, fb_height, ticks, presentation_time);
-    });
+    AsyncRequests::GetInstance()->PushEvent(
+        [=]
+        {
+          g_presenter->ViSwap(xfb_addr, fb_width, fb_stride, fb_height, ticks, presentation_time);
+        });
   }
 }
 
@@ -133,8 +135,8 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
     if (warn_once)
     {
       ERROR_LOG_FMT(VIDEO,
-                    "BBox shall be used but it is disabled. Please use a gameini to enable it "
-                    "for this game.");
+          "BBox shall be used but it is disabled. Please use a gameini to enable it "
+          "for this game.");
     }
     warn_once = false;
   }
@@ -180,7 +182,8 @@ std::string VideoBackendBase::GetDefaultBackendDisplayName()
 
 const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvailableBackends()
 {
-  static auto s_available_backends = [] {
+  static auto s_available_backends = []
+  {
     std::vector<std::unique_ptr<VideoBackendBase>> backends;
 
 #ifdef _WIN32
@@ -266,24 +269,21 @@ void VideoBackendBase::DoState(PointerWrap& p)
 }
 
 bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
-                                        std::unique_ptr<VertexManagerBase> vertex_manager,
-                                        std::unique_ptr<PerfQueryBase> perf_query,
-                                        std::unique_ptr<BoundingBox> bounding_box)
+    std::unique_ptr<VertexManagerBase> vertex_manager, std::unique_ptr<PerfQueryBase> perf_query,
+    std::unique_ptr<BoundingBox> bounding_box)
 {
   // All hardware backends use the default EFBInterface and TextureCacheBase.
   // Only Null and Software backends override them
 
   return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
-                          std::move(bounding_box), std::make_unique<HardwareEFBInterface>(),
-                          std::make_unique<TextureCacheBase>());
+      std::move(bounding_box), std::make_unique<HardwareEFBInterface>(),
+      std::make_unique<TextureCacheBase>());
 }
 
 bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
-                                        std::unique_ptr<VertexManagerBase> vertex_manager,
-                                        std::unique_ptr<PerfQueryBase> perf_query,
-                                        std::unique_ptr<BoundingBox> bounding_box,
-                                        std::unique_ptr<EFBInterfaceBase> efb_interface,
-                                        std::unique_ptr<TextureCacheBase> texture_cache)
+    std::unique_ptr<VertexManagerBase> vertex_manager, std::unique_ptr<PerfQueryBase> perf_query,
+    std::unique_ptr<BoundingBox> bounding_box, std::unique_ptr<EFBInterfaceBase> efb_interface,
+    std::unique_ptr<TextureCacheBase> texture_cache)
 {
   memset(reinterpret_cast<u8*>(&g_main_cp_state), 0, sizeof(g_main_cp_state));
   memset(reinterpret_cast<u8*>(&g_preprocess_cp_state), 0, sizeof(g_preprocess_cp_state));
@@ -338,7 +338,7 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
   if (g_Config.bDumpTextures)
   {
     OSD::AddMessage(fmt::format("Texture Dumping is enabled. This will reduce performance."),
-                    OSD::Duration::NORMAL);
+        OSD::Duration::NORMAL);
   }
 
   g_shader_cache->InitializeShaderCache();

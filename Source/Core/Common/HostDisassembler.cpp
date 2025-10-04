@@ -20,8 +20,8 @@
 class HostDisassemblerLLVM final : public HostDisassembler
 {
 public:
-  explicit HostDisassemblerLLVM(const char* host_disasm, const char* cpu = "",
-                                std::size_t inst_size = 0);
+  explicit HostDisassemblerLLVM(
+      const char* host_disasm, const char* cpu = "", std::size_t inst_size = 0);
   ~HostDisassemblerLLVM();
 
 private:
@@ -31,8 +31,8 @@ private:
   std::size_t Disassemble(const u8* begin, const u8* end, std::ostream& stream) override;
 };
 
-HostDisassemblerLLVM::HostDisassemblerLLVM(const char* host_disasm, const char* cpu,
-                                           std::size_t inst_size)
+HostDisassemblerLLVM::HostDisassemblerLLVM(
+    const char* host_disasm, const char* cpu, std::size_t inst_size)
     : m_instruction_size(inst_size)
 {
   LLVMInitializeAllTargetInfos();
@@ -45,8 +45,8 @@ HostDisassemblerLLVM::HostDisassemblerLLVM(const char* host_disasm, const char* 
   if (!m_llvm_context)
     return;
 
-  LLVMSetDisasmOptions(m_llvm_context, LLVMDisassembler_Option_AsmPrinterVariant |
-                                           LLVMDisassembler_Option_PrintLatency);
+  LLVMSetDisasmOptions(m_llvm_context,
+      LLVMDisassembler_Option_AsmPrinterVariant | LLVMDisassembler_Option_PrintLatency);
 }
 
 HostDisassemblerLLVM::~HostDisassemblerLLVM()
@@ -67,7 +67,7 @@ std::size_t HostDisassemblerLLVM::Disassemble(const u8* begin, const u8* end, st
 
     const auto inst_size =
         LLVMDisasmInstruction(m_llvm_context, const_cast<u8*>(begin), static_cast<u64>(end - begin),
-                              reinterpret_cast<u64>(begin), inst_disasm, sizeof(inst_disasm));
+            reinterpret_cast<u64>(begin), inst_disasm, sizeof(inst_disasm));
     if (inst_size == 0)
     {
       if (m_instruction_size != 0)
@@ -75,7 +75,7 @@ std::size_t HostDisassemblerLLVM::Disassemble(const u8* begin, const u8* end, st
         // If we are on an architecture that has a fixed instruction
         // size, we can continue onward past this bad instruction.
         fmt::println(stream, "{}\tInvalid inst: {:02x}", fmt::ptr(begin),
-                     fmt::join(std::span{begin, m_instruction_size}, ""));
+            fmt::join(std::span{begin, m_instruction_size}, ""));
         begin += m_instruction_size;
       }
       else
@@ -83,7 +83,7 @@ std::size_t HostDisassemblerLLVM::Disassemble(const u8* begin, const u8* end, st
         // We can't continue if we are on an architecture that has flexible
         // instruction sizes. Dump the rest of the block instead.
         fmt::println(stream, "{}\tInvalid inst: {:02x}", fmt::ptr(begin),
-                     fmt::join(std::span{begin, end}, ""));
+            fmt::join(std::span{begin, end}, ""));
         break;
       }
     }

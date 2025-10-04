@@ -126,8 +126,8 @@ void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, float v)
   AppendBytes(report, reinterpret_cast<u8*>(&v), sizeof(v), false);
 }
 
-void AnalyticsReportBuilder::AppendSerializedValueVector(std::string* report,
-                                                         const std::vector<u32>& v)
+void AnalyticsReportBuilder::AppendSerializedValueVector(
+    std::string* report, const std::vector<u32>& v)
 {
   AppendType(report, TypeId::UINT | TypeId::ARRAY);
   AppendVarInt(report, v.size());
@@ -199,7 +199,7 @@ void AnalyticsReporter::ThreadProc()
 void StdoutAnalyticsBackend::Send(std::string report)
 {
   printf("Analytics report sent:\n%s",
-         HexDump(reinterpret_cast<const u8*>(report.data()), report.size()).c_str());
+      HexDump(reinterpret_cast<const u8*>(report.data()), report.size()).c_str());
 }
 
 HttpAnalyticsBackend::HttpAnalyticsBackend(std::string endpoint) : m_endpoint(std::move(endpoint))

@@ -18,6 +18,6 @@ enum class GenerateActionReplayCodeErrorCode
   InvalidAddress,
 };
 
-Common::Result<GenerateActionReplayCodeErrorCode, ActionReplay::ARCode>
-GenerateActionReplayCode(const Cheats::CheatSearchSessionBase& session, size_t index);
+Common::Result<GenerateActionReplayCodeErrorCode, ActionReplay::ARCode> GenerateActionReplayCode(
+    const Cheats::CheatSearchSessionBase& session, size_t index);
 }  // namespace Cheats

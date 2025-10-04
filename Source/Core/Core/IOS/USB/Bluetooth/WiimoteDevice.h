@@ -50,8 +50,8 @@ public:
     Update
   };
   NextUpdateInputCall PrepareInput(WiimoteEmu::DesiredWiimoteState* wiimote_state);
-  void UpdateInput(NextUpdateInputCall next_call,
-                   const WiimoteEmu::DesiredWiimoteState& wiimote_state);
+  void UpdateInput(
+      NextUpdateInputCall next_call, const WiimoteEmu::DesiredWiimoteState& wiimote_state);
 
   void DoState(PointerWrap& p);
 
@@ -164,11 +164,10 @@ private:
   void ReceiveConfigurationResponse(u8 ident, u8* data, u32 size);
 
   void HandleSDP(u16 cid, u8* data, u32 size);
-  void SDPSendServiceSearchResponse(u16 cid, u16 transaction_id, u8* service_search_pattern,
-                                    u16 maximum_service_record_count);
+  void SDPSendServiceSearchResponse(
+      u16 cid, u16 transaction_id, u8* service_search_pattern, u16 maximum_service_record_count);
 
   void SDPSendServiceAttributeResponse(u16 cid, u16 transaction_id, u32 service_handle,
-                                       u16 start_attr_id, u16 end_attr_id,
-                                       u16 maximum_attribute_byte_count, u8* continuation_state);
+      u16 start_attr_id, u16 end_attr_id, u16 maximum_attribute_byte_count, u8* continuation_state);
 };
 }  // namespace IOS::HLE

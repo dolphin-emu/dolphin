@@ -51,9 +51,8 @@ struct ProjectionTarget
   ProjectionType m_projection_type = ProjectionType::Perspective;
 };
 
-using GraphicsTargetConfig =
-    std::variant<DrawStartedTextureTarget, LoadTextureTarget, CreateTextureTarget, EFBTarget,
-                 XFBTarget, ProjectionTarget>;
+using GraphicsTargetConfig = std::variant<DrawStartedTextureTarget, LoadTextureTarget,
+    CreateTextureTarget, EFBTarget, XFBTarget, ProjectionTarget>;
 
 void SerializeTargetToConfig(picojson::object& json_obj, const GraphicsTargetConfig& target);
 std::optional<GraphicsTargetConfig> DeserializeTargetFromConfig(const picojson::object& obj);

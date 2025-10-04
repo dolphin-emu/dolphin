@@ -164,8 +164,8 @@ public:
     HANDLE_ROOT_KEY = 0xfffffff,
   };
 
-  static constexpr std::array<DefaultHandle, 2> COMMON_KEY_HANDLES = {HANDLE_COMMON_KEY,
-                                                                      HANDLE_NEW_COMMON_KEY};
+  static constexpr std::array<DefaultHandle, 2> COMMON_KEY_HANDLES = {
+      HANDLE_COMMON_KEY, HANDLE_NEW_COMMON_KEY};
 
   enum ObjectType : u8
   {
@@ -193,28 +193,28 @@ public:
   // Delete an object. Built-in objects cannot be deleted.
   ReturnCode DeleteObject(Handle handle, u32 pid);
   // Import a secret, encrypted key into dest_handle, which will be decrypted using decrypt_handle.
-  ReturnCode ImportSecretKey(Handle dest_handle, Handle decrypt_handle, u8* iv,
-                             const u8* encrypted_key, u32 pid);
+  ReturnCode ImportSecretKey(
+      Handle dest_handle, Handle decrypt_handle, u8* iv, const u8* encrypted_key, u32 pid);
   // Import a secret key that is already decrypted.
   ReturnCode ImportSecretKey(Handle dest_handle, const u8* decrypted_key, u32 pid);
   // Import a public key. public_key_exponent must be passed for RSA keys.
-  ReturnCode ImportPublicKey(Handle dest_handle, const u8* public_key,
-                             const u8* public_key_exponent, u32 pid);
+  ReturnCode ImportPublicKey(
+      Handle dest_handle, const u8* public_key, const u8* public_key_exponent, u32 pid);
   // Compute an AES key from an ECDH shared secret.
-  ReturnCode ComputeSharedKey(Handle dest_handle, Handle private_handle, Handle public_handle,
-                              u32 pid);
+  ReturnCode ComputeSharedKey(
+      Handle dest_handle, Handle private_handle, Handle public_handle, u32 pid);
 
   // AES encrypt/decrypt.
-  ReturnCode Encrypt(Handle key_handle, u8* iv, const u8* input, size_t size, u8* output,
-                     u32 pid) const;
-  ReturnCode Decrypt(Handle key_handle, u8* iv, const u8* input, size_t size, u8* output,
-                     u32 pid) const;
+  ReturnCode Encrypt(
+      Handle key_handle, u8* iv, const u8* input, size_t size, u8* output, u32 pid) const;
+  ReturnCode Decrypt(
+      Handle key_handle, u8* iv, const u8* input, size_t size, u8* output, u32 pid) const;
 
   ReturnCode VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle signer_handle,
-                                 const std::vector<u8>& signature, u32 pid) const;
+      const std::vector<u8>& signature, u32 pid) const;
   // Import a certificate (signed by the certificate in signer_handle) into dest_handle.
-  ReturnCode ImportCertificate(const ES::CertReader& cert, Handle signer_handle, Handle dest_handle,
-                               u32 pid);
+  ReturnCode ImportCertificate(
+      const ES::CertReader& cert, Handle signer_handle, Handle dest_handle, u32 pid);
 
   // Ownership
   ReturnCode GetOwnership(Handle handle, u32* owner) const;
@@ -233,7 +233,7 @@ private:
     KeyEntry();
     KeyEntry(ObjectType type_, ObjectSubType subtype_, std::vector<u8>&& data_, u32 owner_mask_);
     KeyEntry(ObjectType type_, ObjectSubType subtype_, std::vector<u8>&& data_, u32 misc_data_,
-             u32 owner_mask_);
+        u32 owner_mask_);
     void DoState(PointerWrap& p);
 
     bool in_use = false;
@@ -263,7 +263,7 @@ private:
   bool HasOwnership(Handle handle, u32 pid) const;
   bool IsDefaultHandle(Handle handle) const;
   ReturnCode DecryptEncrypt(Common::AES::Mode mode, Handle key_handle, u8* iv, const u8* input,
-                            size_t size, u8* output, u32 pid) const;
+      size_t size, u8* output, u32 pid) const;
 
   ConsoleType m_console_type{ConsoleType::Retail};
   KeyEntries m_key_entries;

@@ -34,8 +34,8 @@ class TableEditDelegate : public QStyledItemDelegate
 public:
   explicit TableEditDelegate(QObject* parent) : QStyledItemDelegate(parent) {}
 
-  void setModelData(QWidget* editor, QAbstractItemModel* model,
-                    const QModelIndex& index) const override;
+  void setModelData(
+      QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override;
 
 signals:
   void editFinished(const int row, const int column, const QString& text) const;

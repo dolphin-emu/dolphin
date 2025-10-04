@@ -390,8 +390,8 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
 
   case SPR_WPAR:
     ASSERT_MSG(POWERPC, ppc_state.spr[SPR_WPAR] == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS,
-               "Gather pipe changed to unexpected address {:08x} @ PC {:08x}",
-               ppc_state.spr[SPR_WPAR], ppc_state.pc);
+        "Gather pipe changed to unexpected address {:08x} @ PC {:08x}", ppc_state.spr[SPR_WPAR],
+        ppc_state.pc);
     interpreter.m_system.GetGPFifo().ResetGatherPipe();
     break;
 
@@ -509,7 +509,8 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
     // TODO: Support thermal interrupts when enabled.
     constexpr u32 SIMULATED_TEMP = 42;  // °C
 
-    auto UpdateThermalReg = [&ppc_state](UReg_THRM12* reg) {
+    auto UpdateThermalReg = [&ppc_state](UReg_THRM12* reg)
+    {
       if (!THRM3(ppc_state).E || !reg->V)
       {
         reg->TIV = 0;

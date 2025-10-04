@@ -179,8 +179,13 @@ template <>
 struct fmt::formatter<IOS::HLE::WD::Mode> : EnumFormatter<IOS::HLE::WD::Mode::Unknown6>
 {
   static constexpr array_type names{
-      "Not initialized", "DS Communications", "Unknown 2", "AOSS Access Point Scan",
-      "Unknown 4",       "Unknown 5",         "Unknown 6",
+      "Not initialized",
+      "DS Communications",
+      "Unknown 2",
+      "AOSS Access Point Scan",
+      "Unknown 4",
+      "Unknown 5",
+      "Unknown 6",
   };
   constexpr formatter() : EnumFormatter(names) {}
 };

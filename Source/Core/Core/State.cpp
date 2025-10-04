@@ -112,7 +112,7 @@ static const std::map<u32, std::pair<std::string, std::string>> s_old_versions =
     // The 16 -> 17 change modified the size of StateHeader,
     // so versions older than that can't even be decompressed anymore
     {17, {"3.5-1311", "3.5-1364"}}, {18, {"3.5-1366", "3.5-1371"}}, {19, {"3.5-1372", "3.5-1408"}},
-    {20, {"3.5-1409", "4.0-704"}},  {21, {"4.0-705", "4.0-889"}},   {22, {"4.0-905", "4.0-1871"}},
+    {20, {"3.5-1409", "4.0-704"}}, {21, {"4.0-705", "4.0-889"}}, {22, {"4.0-905", "4.0-1871"}},
     {23, {"4.0-1873", "4.0-1900"}}, {24, {"4.0-1902", "4.0-1919"}}, {25, {"4.0-1921", "4.0-1936"}},
     {26, {"4.0-1939", "4.0-1959"}}, {27, {"4.0-1961", "4.0-2018"}}, {28, {"4.0-2020", "4.0-2291"}},
     {29, {"4.0-2293", "4.0-2360"}}, {30, {"4.0-2362", "4.0-2628"}}, {31, {"4.0-2632", "4.0-3331"}},
@@ -143,8 +143,8 @@ static void DoState(Core::System& system, PointerWrap& p)
   if (is_wii != is_wii_currently)
   {
     OSD::AddMessage(fmt::format("Cannot load a savestate created under {} mode in {} mode",
-                                is_wii ? "Wii" : "GC", is_wii_currently ? "Wii" : "GC"),
-                    OSD::Duration::NORMAL, OSD::Color::RED);
+                        is_wii ? "Wii" : "GC", is_wii_currently ? "Wii" : "GC"),
+        OSD::Duration::NORMAL, OSD::Color::RED);
     p.SetMeasureMode();
     return;
   }
@@ -160,10 +160,9 @@ static void DoState(Core::System& system, PointerWrap& p)
     OSD::AddMessage(fmt::format("Memory size mismatch!\n"
                                 "Current | MEM1 {:08X} ({:3}MB)    MEM2 {:08X} ({:3}MB)\n"
                                 "State   | MEM1 {:08X} ({:3}MB)    MEM2 {:08X} ({:3}MB)",
-                                memory.GetRamSizeReal(), memory.GetRamSizeReal() / 0x100000U,
-                                memory.GetExRamSizeReal(), memory.GetExRamSizeReal() / 0x100000U,
-                                state_mem1_size, state_mem1_size / 0x100000U, state_mem2_size,
-                                state_mem2_size / 0x100000U));
+        memory.GetRamSizeReal(), memory.GetRamSizeReal() / 0x100000U, memory.GetExRamSizeReal(),
+        memory.GetExRamSizeReal() / 0x100000U, state_mem1_size, state_mem1_size / 0x100000U,
+        state_mem2_size, state_mem2_size / 0x100000U));
     p.SetMeasureMode();
     return;
   }
@@ -217,7 +216,8 @@ void LoadFromBuffer(Core::System& system, Common::UniqueBuffer<u8>& buffer)
 
   Core::RunOnCPUThread(
       system,
-      [&] {
+      [&]
+      {
         u8* ptr = buffer.data();
         PointerWrap p(&ptr, buffer.size(), PointerWrap::Mode::Read);
         DoState(system, p);
@@ -229,7 +229,8 @@ void SaveToBuffer(Core::System& system, Common::UniqueBuffer<u8>& buffer)
 {
   Core::RunOnCPUThread(
       system,
-      [&] {
+      [&]
+      {
         u8* ptr = nullptr;
         PointerWrap p_measure(&ptr, 0, PointerWrap::Mode::Measure);
         DoState(system, p_measure);
@@ -320,9 +321,9 @@ static void CompressBufferToFile(const u8* raw_buffer, u64 size, File::IOFile& f
     const int bytes_to_compress =
         static_cast<int>(std::min(static_cast<u64>(LZ4_MAX_INPUT_SIZE), bytes_left_to_compress));
     Common::UniqueBuffer<char> compressed_buffer(LZ4_compressBound(bytes_to_compress));
-    const int compressed_len = LZ4_compress_default(
-        reinterpret_cast<const char*>(raw_buffer) + total_bytes_compressed, compressed_buffer.get(),
-        bytes_to_compress, int(compressed_buffer.size()));
+    const int compressed_len =
+        LZ4_compress_default(reinterpret_cast<const char*>(raw_buffer) + total_bytes_compressed,
+            compressed_buffer.get(), bytes_to_compress, int(compressed_buffer.size()));
 
     if (compressed_len == 0)
     {
@@ -355,8 +356,8 @@ static void CreateExtendedHeader(StateExtendedHeader& extended_header, size_t un
 static void WriteHeadersToFile(size_t uncompressed_size, File::IOFile& f)
 {
   StateHeader header{};
-  SConfig::GetInstance().GetGameID().copy(header.legacy_header.game_id,
-                                          std::size(header.legacy_header.game_id));
+  SConfig::GetInstance().GetGameID().copy(
+      header.legacy_header.game_id, std::size(header.legacy_header.game_id));
   header.legacy_header.time = GetSystemTimeAsDouble();
 
   header.version_header.version_cookie = COOKIE_BASE + STATE_VERSION;
@@ -466,7 +467,8 @@ void SaveAs(Core::System& system, const std::string& filename, bool wait)
 
   Core::RunOnCPUThread(
       system,
-      [&] {
+      [&]
+      {
         {
           std::lock_guard lk_(s_state_writes_in_queue_mutex);
           ++s_state_writes_in_queue;
@@ -535,7 +537,7 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
     // This doesn't seem to happen anymore.
     PanicAlertFmtT("Internal LZO Error - decompression failed ({0}) ({1}) \n"
                    "Unable to retrieve outdated savestate version info.",
-                   res, new_len);
+        res, new_len);
     return false;
   }
 
@@ -548,7 +550,7 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
   {
     PanicAlertFmtT("Internal LZO Error - failed to parse decompressed version cookie and version "
                    "string length ({0})",
-                   buffer.size());
+        buffer.size());
     return false;
   }
 
@@ -562,15 +564,15 @@ static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
   else
   {
     PanicAlertFmtT("Internal LZO Error - failed to parse decompressed version string ({0} / {1})",
-                   header.version_header.version_string_length, buffer.size());
+        header.version_header.version_string_length, buffer.size());
     return false;
   }
 
   return true;
 }
 
-static bool ReadStateHeaderFromFile(StateHeader& header, File::IOFile& f,
-                                    bool get_version_header = true)
+static bool ReadStateHeaderFromFile(
+    StateHeader& header, File::IOFile& f, bool get_version_header = true)
 {
   if (!f.IsOpen())
   {
@@ -680,14 +682,14 @@ static bool DecompressLZ4(Common::UniqueBuffer<u8>& raw_buffer, u64 size, File::
     u32 max_decompress_size =
         static_cast<u32>(std::min((u64)LZ4_MAX_INPUT_SIZE, size - total_bytes_read));
 
-    int bytes_read = LZ4_decompress_safe(
-        compressed_data.get(), reinterpret_cast<char*>(raw_buffer.data()) + total_bytes_read,
-        compressed_data_len, max_decompress_size);
+    int bytes_read = LZ4_decompress_safe(compressed_data.get(),
+        reinterpret_cast<char*>(raw_buffer.data()) + total_bytes_read, compressed_data_len,
+        max_decompress_size);
 
     if (bytes_read < 0)
     {
       PanicAlertFmtT("Internal LZ4 Error - decompression failed ({0}, {1}, {2})", bytes_read,
-                     compressed_data_len, max_decompress_size);
+          compressed_data_len, max_decompress_size);
       return false;
     }
 
@@ -699,8 +701,8 @@ static bool DecompressLZ4(Common::UniqueBuffer<u8>& raw_buffer, u64 size, File::
     }
     else if (total_bytes_read > size)
     {
-      PanicAlertFmtT("Internal LZ4 Error - payload size mismatch ({0} / {1}))", total_bytes_read,
-                     size);
+      PanicAlertFmtT(
+          "Internal LZ4 Error - payload size mismatch ({0} / {1}))", total_bytes_read, size);
       return false;
     }
   }
@@ -714,9 +716,9 @@ static bool ValidateHeaders(const StateHeader& header)
   if (strncmp(SConfig::GetInstance().GetGameID().c_str(), header.legacy_header.game_id, 6))
   {
     Core::DisplayMessage(fmt::format("State belongs to a different game (ID {})",
-                                     std::string_view{header.legacy_header.game_id,
-                                                      std::size(header.legacy_header.game_id)}),
-                         2000);
+                             std::string_view{header.legacy_header.game_id,
+                                 std::size(header.legacy_header.game_id)}),
+        2000);
     return false;
   }
 
@@ -762,8 +764,8 @@ static void LoadFileStateData(const std::string& filename, Common::UniqueBuffer<
     std::unique_lock lk(s_state_writes_in_queue_mutex);
     if (s_state_writes_in_queue != 0)
     {
-      if (!s_state_write_queue_is_empty.wait_for(lk, std::chrono::seconds(3),
-                                                 [] { return s_state_writes_in_queue == 0; }))
+      if (!s_state_write_queue_is_empty.wait_for(
+              lk, std::chrono::seconds(3), [] { return s_state_writes_in_queue == 0; }))
       {
         Core::DisplayMessage(
             "A previous state saving operation is still in progress, cancelling load.", 2000);
@@ -858,7 +860,8 @@ void LoadAs(Core::System& system, const std::string& filename)
 
   Core::RunOnCPUThread(
       system,
-      [&] {
+      [&]
+      {
         // Save temp buffer for undo load state
         auto& movie = system.GetMovie();
         if (!movie.IsJustStartingRecordingInputFromSaveState())
@@ -925,18 +928,20 @@ void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback)
 
 void Init(Core::System& system)
 {
-  s_save_thread.Reset("Savestate Worker", [&system](CompressAndDumpState_args args) {
-    CompressAndDumpState(system, args);
+  s_save_thread.Reset("Savestate Worker",
+      [&system](CompressAndDumpState_args args)
+      {
+        CompressAndDumpState(system, args);
 
-    {
-      std::lock_guard lk(s_state_writes_in_queue_mutex);
-      if (--s_state_writes_in_queue == 0)
-        s_state_write_queue_is_empty.notify_all();
-    }
+        {
+          std::lock_guard lk(s_state_writes_in_queue_mutex);
+          if (--s_state_writes_in_queue == 0)
+            s_state_write_queue_is_empty.notify_all();
+        }
 
-    if (args.state_write_done_event)
-      args.state_write_done_event->Set();
-  });
+        if (args.state_write_done_event)
+          args.state_write_done_event->Set();
+      });
 }
 
 void Shutdown()
@@ -950,7 +955,7 @@ void Shutdown()
 static std::string MakeStateFilename(int number)
 {
   return fmt::format("{}{}.s{:02d}", File::GetUserPath(D_STATESAVES_IDX),
-                     SConfig::GetInstance().GetGameID(), number);
+      SConfig::GetInstance().GetGameID(), number);
 }
 
 void Save(Core::System& system, int slot, bool wait)

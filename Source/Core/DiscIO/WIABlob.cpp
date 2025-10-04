@@ -79,7 +79,9 @@ std::pair<int, int> GetAllowedCompressionLevels(WIARVZCompressionType compressio
 
 template <bool RVZ>
 WIARVZFileReader<RVZ>::WIARVZFileReader(File::IOFile file, const std::string& path)
-    : m_file(std::move(file)), m_path(path), m_encryption_cache(this)
+    : m_file(std::move(file))
+    , m_path(path)
+    , m_encryption_cache(this)
 {
   m_valid = Initialize(path);
 }
@@ -206,10 +208,9 @@ bool WIARVZFileReader<RVZ>::Initialize(const std::string& path)
 
   const u32 number_of_raw_data_entries = Common::swap32(m_header_2.number_of_raw_data_entries);
   m_raw_data_entries.resize(number_of_raw_data_entries);
-  Chunk& raw_data_entries =
-      ReadCompressedData(Common::swap64(m_header_2.raw_data_entries_offset),
-                         Common::swap32(m_header_2.raw_data_entries_size),
-                         number_of_raw_data_entries * sizeof(RawDataEntry), m_compression_type);
+  Chunk& raw_data_entries = ReadCompressedData(Common::swap64(m_header_2.raw_data_entries_offset),
+      Common::swap32(m_header_2.raw_data_entries_size),
+      number_of_raw_data_entries * sizeof(RawDataEntry), m_compression_type);
   if (!raw_data_entries.ReadAll(&m_raw_data_entries))
     return false;
 
@@ -223,10 +224,9 @@ bool WIARVZFileReader<RVZ>::Initialize(const std::string& path)
 
   const u32 number_of_group_entries = Common::swap32(m_header_2.number_of_group_entries);
   m_group_entries.resize(number_of_group_entries);
-  Chunk& group_entries =
-      ReadCompressedData(Common::swap64(m_header_2.group_entries_offset),
-                         Common::swap32(m_header_2.group_entries_size),
-                         number_of_group_entries * sizeof(GroupEntry), m_compression_type);
+  Chunk& group_entries = ReadCompressedData(Common::swap64(m_header_2.group_entries_offset),
+      Common::swap32(m_header_2.group_entries_size), number_of_group_entries * sizeof(GroupEntry),
+      m_compression_type);
   if (!group_entries.ReadAll(&m_group_entries))
     return false;
 
@@ -273,8 +273,8 @@ bool WIARVZFileReader<RVZ>::HasDataOverlap() const
 }
 
 template <bool RVZ>
-std::unique_ptr<WIARVZFileReader<RVZ>> WIARVZFileReader<RVZ>::Create(File::IOFile file,
-                                                                     const std::string& path)
+std::unique_ptr<WIARVZFileReader<RVZ>> WIARVZFileReader<RVZ>::Create(
+    File::IOFile file, const std::string& path)
 {
   std::unique_ptr<WIARVZFileReader> blob(new WIARVZFileReader(std::move(file), path));
   return blob->m_valid ? std::move(blob) : nullptr;
@@ -377,11 +377,12 @@ bool WIARVZFileReader<RVZ>::Read(u64 offset, u64 size, u8* out_ptr)
         Common::ScopeGuard guard([this] { m_write_to_exception_list = false; });
 
         bool hash_exception_error = false;
-        if (!m_encryption_cache.EncryptGroups(
-                offset - partition_data_offset, bytes_to_read, out_ptr, partition_data_offset,
+        if (!m_encryption_cache.EncryptGroups(offset - partition_data_offset, bytes_to_read,
+                out_ptr, partition_data_offset,
                 partition_total_sectors * VolumeWii::BLOCK_DATA_SIZE, partition.partition_key,
                 [this, &hash_exception_error](
-                    VolumeWii::HashBlock hash_blocks[VolumeWii::BLOCKS_PER_GROUP], u64 offset_) {
+                    VolumeWii::HashBlock hash_blocks[VolumeWii::BLOCKS_PER_GROUP], u64 offset_)
+                {
                   // EncryptGroups calls ReadWiiDecrypted, which calls ReadFromGroups,
                   // which populates m_exception_list when m_write_to_exception_list == true
                   if (!ApplyHashExceptions(m_exception_list, hash_blocks))
@@ -402,9 +403,8 @@ bool WIARVZFileReader<RVZ>::Read(u64 offset, u64 size, u8* out_ptr)
     {
       const RawDataEntry& raw_data = m_raw_data_entries[data.index];
       if (!ReadFromGroups(&offset, &size, &out_ptr, chunk_size, VolumeWii::BLOCK_TOTAL_SIZE,
-                          Common::swap64(raw_data.data_offset), Common::swap64(raw_data.data_size),
-                          Common::swap32(raw_data.group_index),
-                          Common::swap32(raw_data.number_of_groups), 0))
+              Common::swap64(raw_data.data_offset), Common::swap64(raw_data.data_size),
+              Common::swap32(raw_data.group_index), Common::swap32(raw_data.number_of_groups), 0))
       {
         return false;
       }
@@ -415,8 +415,8 @@ bool WIARVZFileReader<RVZ>::Read(u64 offset, u64 size, u8* out_ptr)
 }
 
 template <bool RVZ>
-const typename WIARVZFileReader<RVZ>::PartitionEntry*
-WIARVZFileReader<RVZ>::GetPartition(u64 partition_data_offset, u32* partition_first_sector) const
+const typename WIARVZFileReader<RVZ>::PartitionEntry* WIARVZFileReader<RVZ>::GetPartition(
+    u64 partition_data_offset, u32* partition_first_sector) const
 {
   const auto it = m_data_entries.upper_bound(partition_data_offset);
   if (it == m_data_entries.end() || !it->second.is_partition)
@@ -431,8 +431,8 @@ WIARVZFileReader<RVZ>::GetPartition(u64 partition_data_offset, u32* partition_fi
 }
 
 template <bool RVZ>
-bool WIARVZFileReader<RVZ>::SupportsReadWiiDecrypted(u64 offset, u64 size,
-                                                     u64 partition_data_offset) const
+bool WIARVZFileReader<RVZ>::SupportsReadWiiDecrypted(
+    u64 offset, u64 size, u64 partition_data_offset) const
 {
   u32 partition_first_sector;
   const PartitionEntry* partition = GetPartition(partition_data_offset, &partition_first_sector);
@@ -452,8 +452,8 @@ bool WIARVZFileReader<RVZ>::SupportsReadWiiDecrypted(u64 offset, u64 size,
 }
 
 template <bool RVZ>
-bool WIARVZFileReader<RVZ>::ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr,
-                                             u64 partition_data_offset)
+bool WIARVZFileReader<RVZ>::ReadWiiDecrypted(
+    u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset)
 {
   u32 partition_first_sector;
   const PartitionEntry* partition = GetPartition(partition_data_offset, &partition_first_sector);
@@ -472,9 +472,9 @@ bool WIARVZFileReader<RVZ>::ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr,
         (Common::swap32(data.first_sector) - partition_first_sector) * VolumeWii::BLOCK_DATA_SIZE;
     const u64 data_size = Common::swap32(data.number_of_sectors) * VolumeWii::BLOCK_DATA_SIZE;
 
-    if (!ReadFromGroups(
-            &offset, &size, &out_ptr, chunk_size, VolumeWii::BLOCK_DATA_SIZE, data_offset,
-            data_size, Common::swap32(data.group_index), Common::swap32(data.number_of_groups),
+    if (!ReadFromGroups(&offset, &size, &out_ptr, chunk_size, VolumeWii::BLOCK_DATA_SIZE,
+            data_offset, data_size, Common::swap32(data.group_index),
+            Common::swap32(data.number_of_groups),
             std::max<u32>(1, static_cast<u32>(chunk_size / VolumeWii::GROUP_DATA_SIZE))))
     {
       return false;
@@ -486,9 +486,8 @@ bool WIARVZFileReader<RVZ>::ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr,
 
 template <bool RVZ>
 bool WIARVZFileReader<RVZ>::ReadFromGroups(u64* offset, u64* size, u8** out_ptr, u64 chunk_size,
-                                           u32 sector_size, u64 data_offset, u64 data_size,
-                                           u32 group_index, u32 number_of_groups,
-                                           u32 exception_lists)
+    u32 sector_size, u64 data_offset, u64 data_size, u32 group_index, u32 number_of_groups,
+    u32 exception_lists)
 {
   if (data_offset + data_size <= *offset)
     return true;
@@ -536,9 +535,8 @@ bool WIARVZFileReader<RVZ>::ReadFromGroups(u64* offset, u64* size, u8** out_ptr,
     {
       const u64 group_offset_in_file = static_cast<u64>(Common::swap32(group.data_offset)) << 2;
 
-      Chunk& chunk =
-          ReadCompressedData(group_offset_in_file, group_data_size, chunk_size, compression_type,
-                             exception_lists, rvz_packed_size, group_offset_in_data);
+      Chunk& chunk = ReadCompressedData(group_offset_in_file, group_data_size, chunk_size,
+          compression_type, exception_lists, rvz_packed_size, group_offset_in_data);
 
       if (!chunk.Read(offset_in_group, bytes_to_read, *out_ptr))
       {
@@ -566,11 +564,9 @@ bool WIARVZFileReader<RVZ>::ReadFromGroups(u64* offset, u64* size, u8** out_ptr,
 }
 
 template <bool RVZ>
-typename WIARVZFileReader<RVZ>::Chunk&
-WIARVZFileReader<RVZ>::ReadCompressedData(u64 offset_in_file, u64 compressed_size,
-                                          u64 decompressed_size,
-                                          WIARVZCompressionType compression_type,
-                                          u32 exception_lists, u32 rvz_packed_size, u64 data_offset)
+typename WIARVZFileReader<RVZ>::Chunk& WIARVZFileReader<RVZ>::ReadCompressedData(u64 offset_in_file,
+    u64 compressed_size, u64 decompressed_size, WIARVZCompressionType compression_type,
+    u32 exception_lists, u32 rvz_packed_size, u64 data_offset)
 {
   if (offset_in_file == m_cached_chunk_offset)
     return m_cached_chunk;
@@ -582,19 +578,19 @@ WIARVZFileReader<RVZ>::ReadCompressedData(u64 offset_in_file, u64 compressed_siz
     decompressor = std::make_unique<NoneDecompressor>();
     break;
   case WIARVZCompressionType::Purge:
-    decompressor = std::make_unique<PurgeDecompressor>(rvz_packed_size == 0 ? decompressed_size :
-                                                                              rvz_packed_size);
+    decompressor = std::make_unique<PurgeDecompressor>(
+        rvz_packed_size == 0 ? decompressed_size : rvz_packed_size);
     break;
   case WIARVZCompressionType::Bzip2:
     decompressor = std::make_unique<Bzip2Decompressor>();
     break;
   case WIARVZCompressionType::LZMA:
-    decompressor = std::make_unique<LZMADecompressor>(false, m_header_2.compressor_data,
-                                                      m_header_2.compressor_data_size);
+    decompressor = std::make_unique<LZMADecompressor>(
+        false, m_header_2.compressor_data, m_header_2.compressor_data_size);
     break;
   case WIARVZCompressionType::LZMA2:
-    decompressor = std::make_unique<LZMADecompressor>(true, m_header_2.compressor_data,
-                                                      m_header_2.compressor_data_size);
+    decompressor = std::make_unique<LZMADecompressor>(
+        true, m_header_2.compressor_data, m_header_2.compressor_data_size);
     break;
   case WIARVZCompressionType::Zstd:
     decompressor = std::make_unique<ZstdDecompressor>();
@@ -605,7 +601,7 @@ WIARVZFileReader<RVZ>::ReadCompressedData(u64 offset_in_file, u64 compressed_siz
 
   m_cached_chunk =
       Chunk(&m_file, offset_in_file, compressed_size, decompressed_size, exception_lists,
-            compressed_exception_lists, rvz_packed_size, data_offset, std::move(decompressor));
+          compressed_exception_lists, rvz_packed_size, data_offset, std::move(decompressor));
   m_cached_chunk_offset = offset_in_file;
   return m_cached_chunk;
 }
@@ -629,12 +625,15 @@ WIARVZFileReader<RVZ>::Chunk::Chunk() = default;
 
 template <bool RVZ>
 WIARVZFileReader<RVZ>::Chunk::Chunk(File::IOFile* file, u64 offset_in_file, u64 compressed_size,
-                                    u64 decompressed_size, u32 exception_lists,
-                                    bool compressed_exception_lists, u32 rvz_packed_size,
-                                    u64 data_offset, std::unique_ptr<Decompressor> decompressor)
-    : m_decompressor(std::move(decompressor)), m_file(file), m_offset_in_file(offset_in_file),
-      m_exception_lists(exception_lists), m_compressed_exception_lists(compressed_exception_lists),
-      m_rvz_packed_size(rvz_packed_size), m_data_offset(data_offset)
+    u64 decompressed_size, u32 exception_lists, bool compressed_exception_lists,
+    u32 rvz_packed_size, u64 data_offset, std::unique_ptr<Decompressor> decompressor)
+    : m_decompressor(std::move(decompressor))
+    , m_file(file)
+    , m_offset_in_file(offset_in_file)
+    , m_exception_lists(exception_lists)
+    , m_compressed_exception_lists(compressed_exception_lists)
+    , m_rvz_packed_size(rvz_packed_size)
+    , m_data_offset(data_offset)
 {
   constexpr size_t MAX_SIZE_PER_EXCEPTION_LIST =
       Common::AlignUp(VolumeWii::BLOCK_HEADER_SIZE, Common::SHA1::DIGEST_LEN) /
@@ -702,7 +701,7 @@ bool WIARVZFileReader<RVZ>::Chunk::Read(u64 offset, u64 size, u8* out_ptr)
     if (m_exception_lists > 0 && !m_compressed_exception_lists)
     {
       if (!HandleExceptions(m_in.data.data(), m_in.data.size(), m_in.bytes_written,
-                            &m_in_bytes_used_for_exceptions, true))
+              &m_in_bytes_used_for_exceptions, true))
       {
         return false;
       }
@@ -719,7 +718,7 @@ bool WIARVZFileReader<RVZ>::Chunk::Read(u64 offset, u64 size, u8* out_ptr)
     if (m_exception_lists > 0 && m_compressed_exception_lists)
     {
       if (!HandleExceptions(m_out.data.data(), m_out_bytes_allocated_for_exceptions,
-                            m_out.bytes_written, &m_out_bytes_used_for_exceptions, false))
+              m_out.bytes_written, &m_out_bytes_used_for_exceptions, false))
       {
         return false;
       }
@@ -770,14 +769,14 @@ bool WIARVZFileReader<RVZ>::Chunk::Decompress()
     // actually have data to copy.
     if (bytes_to_move > 0)
     {
-      std::memcpy(in.data.data(), m_out.data.data() + m_out_bytes_used_for_exceptions,
-                  bytes_to_move);
+      std::memcpy(
+          in.data.data(), m_out.data.data() + m_out_bytes_used_for_exceptions, bytes_to_move);
     }
 
     m_out.bytes_written = m_out_bytes_used_for_exceptions;
 
-    m_decompressor = std::make_unique<RVZPackDecompressor>(std::move(m_decompressor), std::move(in),
-                                                           m_data_offset, m_rvz_packed_size);
+    m_decompressor = std::make_unique<RVZPackDecompressor>(
+        std::move(m_decompressor), std::move(in), m_data_offset, m_rvz_packed_size);
 
     m_rvz_packed_size = 0;
   }
@@ -786,9 +785,8 @@ bool WIARVZFileReader<RVZ>::Chunk::Decompress()
 }
 
 template <bool RVZ>
-bool WIARVZFileReader<RVZ>::Chunk::HandleExceptions(const u8* data, size_t bytes_allocated,
-                                                    size_t bytes_written, size_t* bytes_used,
-                                                    bool align)
+bool WIARVZFileReader<RVZ>::Chunk::HandleExceptions(
+    const u8* data, size_t bytes_allocated, size_t bytes_written, size_t* bytes_used, bool align)
 {
   while (m_exception_lists > 0)
   {
@@ -874,7 +872,7 @@ bool WIARVZFileReader<RVZ>::ApplyHashExceptions(
       return false;
 
     std::memcpy(reinterpret_cast<u8*>(&hash_blocks[block_index]) + offset_in_block, &exception.hash,
-                Common::SHA1::DIGEST_LEN);
+        Common::SHA1::DIGEST_LEN);
   }
 
   return true;
@@ -894,8 +892,7 @@ bool WIARVZFileReader<RVZ>::PadTo4(File::IOFile* file, u64* bytes_written)
 
 template <bool RVZ>
 void WIARVZFileReader<RVZ>::AddRawDataEntry(u64 offset, u64 size, int chunk_size, u32* total_groups,
-                                            std::vector<RawDataEntry>* raw_data_entries,
-                                            std::vector<DataEntry>* data_entries)
+    std::vector<RawDataEntry>* raw_data_entries, std::vector<DataEntry>* data_entries)
 {
   constexpr size_t SKIP_SIZE = sizeof(WIAHeader2::disc_header);
   const u64 skip = offset < SKIP_SIZE ? std::min(SKIP_SIZE - offset, size) : 0;
@@ -912,7 +909,7 @@ void WIARVZFileReader<RVZ>::AddRawDataEntry(u64 offset, u64 size, int chunk_size
 
   data_entries->emplace_back(raw_data_entries->size());
   raw_data_entries->emplace_back(RawDataEntry{Common::swap64(offset), Common::swap64(size),
-                                              Common::swap32(group_index), Common::swap32(groups)});
+      Common::swap32(group_index), Common::swap32(groups)});
 }
 
 template <bool RVZ>
@@ -927,15 +924,15 @@ typename WIARVZFileReader<RVZ>::PartitionDataEntry WIARVZFileReader<RVZ>::Create
 
   data_entries->emplace_back(partition_entries.size(), index);
   return PartitionDataEntry{Common::swap32(offset / VolumeWii::BLOCK_TOTAL_SIZE),
-                            Common::swap32(size / VolumeWii::BLOCK_TOTAL_SIZE),
-                            Common::swap32(group_index), Common::swap32(groups)};
+      Common::swap32(size / VolumeWii::BLOCK_TOTAL_SIZE), Common::swap32(group_index),
+      Common::swap32(groups)};
 }
 
 template <bool RVZ>
-ConversionResultCode WIARVZFileReader<RVZ>::SetUpDataEntriesForWriting(
-    const VolumeDisc* volume, int chunk_size, u64 iso_size, u32* total_groups,
-    std::vector<PartitionEntry>* partition_entries, std::vector<RawDataEntry>* raw_data_entries,
-    std::vector<DataEntry>* data_entries, std::vector<const FileSystem*>* partition_file_systems)
+ConversionResultCode WIARVZFileReader<RVZ>::SetUpDataEntriesForWriting(const VolumeDisc* volume,
+    int chunk_size, u64 iso_size, u32* total_groups, std::vector<PartitionEntry>* partition_entries,
+    std::vector<RawDataEntry>* raw_data_entries, std::vector<DataEntry>* data_entries,
+    std::vector<const FileSystem*>* partition_file_systems)
 {
   std::vector<Partition> partitions;
   if (volume && volume->HasWiiHashes() && volume->HasWiiEncryption())
@@ -947,13 +944,15 @@ ConversionResultCode WIARVZFileReader<RVZ>::SetUpDataEntriesForWriting(
 
   u64 last_partition_end_offset = 0;
 
-  const auto add_raw_data_entry = [&](u64 offset, u64 size) {
+  const auto add_raw_data_entry = [&](u64 offset, u64 size)
+  {
     return AddRawDataEntry(offset, size, chunk_size, total_groups, raw_data_entries, data_entries);
   };
 
-  const auto create_partition_data_entry = [&](u64 offset, u64 size, u32 index) {
-    return CreatePartitionDataEntry(offset, size, index, chunk_size, total_groups,
-                                    *partition_entries, data_entries);
+  const auto create_partition_data_entry = [&](u64 offset, u64 size, u32 index)
+  {
+    return CreatePartitionDataEntry(
+        offset, size, index, chunk_size, total_groups, *partition_entries, data_entries);
   };
 
   for (const Partition& partition : partitions)
@@ -1036,7 +1035,7 @@ ConversionResultCode WIARVZFileReader<RVZ>::SetUpDataEntriesForWriting(
     // because construct_partition_data_entry may have rounded it
     last_partition_end_offset =
         (Common::swap32(partition_entry.data_entries[1].first_sector) +
-         Common::swap32(partition_entry.data_entries[1].number_of_sectors)) *
+            Common::swap32(partition_entry.data_entries[1].number_of_sectors)) *
         VolumeWii::BLOCK_TOTAL_SIZE;
 
     partition_entries->emplace_back(std::move(partition_entry));
@@ -1049,8 +1048,8 @@ ConversionResultCode WIARVZFileReader<RVZ>::SetUpDataEntriesForWriting(
 }
 
 template <bool RVZ>
-std::optional<std::vector<u8>> WIARVZFileReader<RVZ>::Compress(Compressor* compressor,
-                                                               const u8* data, size_t size)
+std::optional<std::vector<u8>> WIARVZFileReader<RVZ>::Compress(
+    Compressor* compressor, const u8* data, size_t size)
 {
   if (compressor)
   {
@@ -1066,8 +1065,7 @@ std::optional<std::vector<u8>> WIARVZFileReader<RVZ>::Compress(Compressor* compr
 
 template <bool RVZ>
 void WIARVZFileReader<RVZ>::SetUpCompressor(std::unique_ptr<Compressor>* compressor,
-                                            WIARVZCompressionType compression_type,
-                                            int compression_level, WIAHeader2* header_2)
+    WIARVZCompressionType compression_type, int compression_level, WIAHeader2* header_2)
 {
   switch (compression_type)
   {
@@ -1093,8 +1091,8 @@ void WIARVZFileReader<RVZ>::SetUpCompressor(std::unique_ptr<Compressor>* compres
     }
 
     const bool lzma2 = compression_type == WIARVZCompressionType::LZMA2;
-    *compressor = std::make_unique<LZMACompressor>(lzma2, compression_level, compressor_data,
-                                                   compressor_data_size);
+    *compressor = std::make_unique<LZMACompressor>(
+        lzma2, compression_level, compressor_data, compressor_data_size);
     break;
   }
   case WIARVZCompressionType::Zstd:
@@ -1105,8 +1103,7 @@ void WIARVZFileReader<RVZ>::SetUpCompressor(std::unique_ptr<Compressor>* compres
 
 template <bool RVZ>
 bool WIARVZFileReader<RVZ>::TryReuse(std::map<ReuseID, GroupEntry>* reusable_groups,
-                                     std::mutex* reusable_groups_mutex,
-                                     OutputParametersEntry* entry)
+    std::mutex* reusable_groups_mutex, OutputParametersEntry* entry)
 {
   if (entry->reused_group)
     return true;
@@ -1150,8 +1147,8 @@ static bool AllSame(const u8* begin, const u8* end)
 
 template <typename OutputParametersEntry>
 static void RVZPack(const u8* in, OutputParametersEntry* out, u64 bytes_per_chunk, size_t chunks,
-                    u64 total_size, u64 data_offset, bool multipart, bool allow_junk_reuse,
-                    bool compression, const FileSystem* file_system)
+    u64 total_size, u64 data_offset, bool multipart, bool allow_junk_reuse, bool compression,
+    const FileSystem* file_system)
 {
   using Seed = std::array<u32, LaggedFibonacciGenerator::SEED_SIZE>;
   struct JunkInfo
@@ -1184,7 +1181,7 @@ static void RVZPack(const u8* in, OutputParametersEntry* out, u64 bytes_per_chun
 
     const size_t bytes_to_read =
         std::min(Common::AlignUp(data_offset + 1, VolumeWii::BLOCK_TOTAL_SIZE) - data_offset,
-                 total_size - position);
+            total_size - position);
 
     const size_t data_offset_mod = static_cast<size_t>(data_offset % VolumeWii::BLOCK_TOTAL_SIZE);
 
@@ -1290,7 +1287,7 @@ static void RVZPack(const u8* in, OutputParametersEntry* out, u64 bytes_per_chun
 
 template <typename OutputParametersEntry>
 static void RVZPack(const u8* in, OutputParametersEntry* out, u64 size, u64 data_offset,
-                    bool allow_junk_reuse, bool compression, const FileSystem* file_system)
+    bool allow_junk_reuse, bool compression, const FileSystem* file_system)
 {
   RVZPack(in, out, size, 1, size, data_offset, false, allow_junk_reuse, compression, file_system);
 }
@@ -1298,13 +1295,11 @@ static void RVZPack(const u8* in, OutputParametersEntry* out, u64 size, u64 data
 template <bool RVZ>
 ConversionResult<typename WIARVZFileReader<RVZ>::OutputParameters>
 WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressParameters parameters,
-                                          const std::vector<PartitionEntry>& partition_entries,
-                                          const std::vector<DataEntry>& data_entries,
-                                          const FileSystem* file_system,
-                                          std::map<ReuseID, GroupEntry>* reusable_groups,
-                                          std::mutex* reusable_groups_mutex,
-                                          u64 chunks_per_wii_group, u64 exception_lists_per_chunk,
-                                          bool compressed_exception_lists, bool compression)
+    const std::vector<PartitionEntry>& partition_entries,
+    const std::vector<DataEntry>& data_entries, const FileSystem* file_system,
+    std::map<ReuseID, GroupEntry>* reusable_groups, std::mutex* reusable_groups_mutex,
+    u64 chunks_per_wii_group, u64 exception_lists_per_chunk, bool compressed_exception_lists,
+    bool compression)
 {
   std::vector<OutputParametersEntry> output_entries;
 
@@ -1319,7 +1314,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
     if constexpr (RVZ)
     {
       RVZPack(data.data(), output_entries.data(), data.size(), parameters.data_offset, true,
-              compression, file_system);
+          compression, file_system);
     }
     else
     {
@@ -1349,8 +1344,9 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
 
     const size_t first_chunk = output_entries.size();
 
-    const auto create_reuse_id = [&partition_entry, blocks,
-                                  blocks_per_chunk](u8 value, bool encrypted, u64 block) {
+    const auto create_reuse_id = [&partition_entry, blocks, blocks_per_chunk](
+                                     u8 value, bool encrypted, u64 block)
+    {
       const u64 size = std::min(blocks - block, blocks_per_chunk) * VolumeWii::BLOCK_DATA_SIZE;
       return ReuseID{partition_entry.partition_key, size, encrypted, value};
     };
@@ -1372,14 +1368,14 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
       if (!entry.reused_group && reuse_id)
       {
         const auto it = std::ranges::find(output_entries.begin(), output_entries.begin() + i,
-                                          reuse_id, &OutputParametersEntry::reuse_id);
+            reuse_id, &OutputParametersEntry::reuse_id);
         if (it != output_entries.begin() + i)
           entry.reused_group = it->reused_group;
       }
     }
 
-    if (!std::ranges::all_of(output_entries,
-                             [](const auto& entry) { return entry.reused_group.has_value(); }))
+    if (!std::ranges::all_of(
+            output_entries, [](const auto& entry) { return entry.reused_group.has_value(); }))
     {
       const u64 number_of_exception_lists =
           chunks_per_wii_group == 1 ? exception_lists_per_chunk : chunks;
@@ -1399,7 +1395,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
           {
             const u64 offset_of_block = offset_of_group + j * VolumeWii::BLOCK_TOTAL_SIZE;
             VolumeWii::DecryptBlockData(parameters.data.data() + offset_of_block,
-                                        state->decryption_buffer[j].data(), aes_context.get());
+                state->decryption_buffer[j].data(), aes_context.get());
           }
           else
           {
@@ -1423,10 +1419,11 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
           const u64 hash_offset_of_block = block_index_in_chunk * VolumeWii::BLOCK_HEADER_SIZE;
 
           VolumeWii::HashBlock hashes;
-          VolumeWii::DecryptBlockHashes(parameters.data.data() + offset_of_block, &hashes,
-                                        aes_context.get());
+          VolumeWii::DecryptBlockHashes(
+              parameters.data.data() + offset_of_block, &hashes, aes_context.get());
 
-          const auto compare_hash = [&](size_t offset_in_block) {
+          const auto compare_hash = [&](size_t offset_in_block)
+          {
             ASSERT(offset_in_block + Common::SHA1::DIGEST_LEN <= VolumeWii::BLOCK_HEADER_SIZE);
 
             const u8* desired_hash = reinterpret_cast<u8*>(&hashes) + offset_in_block;
@@ -1450,7 +1447,8 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
             }
           };
 
-          const auto compare_hashes = [&compare_hash](size_t offset, size_t size) {
+          const auto compare_hashes = [&compare_hash](size_t offset, size_t size)
+          {
             for (size_t l = 0; l < size; l += Common::SHA1::DIGEST_LEN)
               // The std::min is to ensure that we don't go beyond the end of HashBlock with
               // padding_2, which is 32 bytes long (not divisible by SHA1::DIGEST_LEN, which is 20).
@@ -1467,7 +1465,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
         }
 
         static_assert(std::is_trivially_copyable_v<
-                      typename decltype(CompressThreadState::decryption_buffer)::value_type>);
+            typename decltype(CompressThreadState::decryption_buffer)::value_type>);
         if constexpr (RVZ)
         {
           // We must not store junk efficiently for chunks that may get reused at a position
@@ -1479,8 +1477,8 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
           const u64 data_offset = parameters.data_offset + write_offset_of_group;
 
           RVZPack(state->decryption_buffer[0].data(), output_entries.data() + first_chunk,
-                  bytes_per_chunk, chunks, total_size, data_offset, groups > 1, allow_junk_reuse,
-                  compression, file_system);
+              bytes_per_chunk, chunks, total_size, data_offset, groups > 1, allow_junk_reuse,
+              compression, file_system);
         }
         else
         {
@@ -1569,7 +1567,8 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
       continue;
     }
 
-    const auto pad_exception_lists = [&entry] {
+    const auto pad_exception_lists = [&entry]
+    {
       while (entry.exception_lists.size() % 4 != 0)
         entry.exception_lists.push_back(0);
     };
@@ -1584,8 +1583,8 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
     {
       if (compressed_exception_lists && state->compressor)
       {
-        if (!state->compressor->Compress(entry.exception_lists.data(),
-                                         entry.exception_lists.size()))
+        if (!state->compressor->Compress(
+                entry.exception_lists.data(), entry.exception_lists.size()))
         {
           return ConversionResultCode::InternalError;
         }
@@ -1597,8 +1596,8 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
 
         if (state->compressor)
         {
-          if (!state->compressor->AddPrecedingDataOnlyForPurgeHashing(entry.exception_lists.data(),
-                                                                      entry.exception_lists.size()))
+          if (!state->compressor->AddPrecedingDataOnlyForPurgeHashing(
+                  entry.exception_lists.data(), entry.exception_lists.size()))
           {
             return ConversionResultCode::InternalError;
           }
@@ -1646,10 +1645,8 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
 
 template <bool RVZ>
 ConversionResultCode WIARVZFileReader<RVZ>::Output(std::vector<OutputParametersEntry>* entries,
-                                                   File::IOFile* outfile,
-                                                   std::map<ReuseID, GroupEntry>* reusable_groups,
-                                                   std::mutex* reusable_groups_mutex,
-                                                   GroupEntry* group_entry, u64* bytes_written)
+    File::IOFile* outfile, std::map<ReuseID, GroupEntry>* reusable_groups,
+    std::mutex* reusable_groups_mutex, GroupEntry* group_entry, u64* bytes_written)
 {
   for (OutputParametersEntry& entry : *entries)
   {
@@ -1699,15 +1696,14 @@ ConversionResultCode WIARVZFileReader<RVZ>::Output(std::vector<OutputParametersE
 
 template <bool RVZ>
 ConversionResultCode WIARVZFileReader<RVZ>::RunCallback(size_t groups_written, u64 bytes_read,
-                                                        u64 bytes_written, u32 total_groups,
-                                                        u64 iso_size, const CompressCB& callback)
+    u64 bytes_written, u32 total_groups, u64 iso_size, const CompressCB& callback)
 {
   int ratio = 0;
   if (bytes_read != 0)
     ratio = static_cast<int>(100 * bytes_written / bytes_read);
 
-  const std::string text = Common::FmtFormatT("{0} of {1} blocks. Compression ratio {2}%",
-                                              groups_written, total_groups, ratio);
+  const std::string text = Common::FmtFormatT(
+      "{0} of {1} blocks. Compression ratio {2}%", groups_written, total_groups, ratio);
 
   const float completion = static_cast<float>(bytes_read) / iso_size;
 
@@ -1717,14 +1713,14 @@ ConversionResultCode WIARVZFileReader<RVZ>::RunCallback(size_t groups_written, u
 
 template <bool RVZ>
 bool WIARVZFileReader<RVZ>::WriteHeader(File::IOFile* file, const u8* data, size_t size,
-                                        u64 upper_bound, u64* bytes_written, u64* offset_out)
+    u64 upper_bound, u64* bytes_written, u64* offset_out)
 {
   // The first part of the check is to prevent this from running more than once. If *bytes_written
   // is past the upper bound, we are already at the end of the file, so we don't need to do anything
   if (*bytes_written <= upper_bound && *bytes_written + size > upper_bound)
   {
-    WARN_LOG_FMT(DISCIO,
-                 "Headers did not fit in the allocated space. Writing to end of file instead");
+    WARN_LOG_FMT(
+        DISCIO, "Headers did not fit in the allocated space. Writing to end of file instead");
     if (!file->Seek(0, File::SeekOrigin::End))
       return false;
     *bytes_written = file->Tell();
@@ -1738,10 +1734,9 @@ bool WIARVZFileReader<RVZ>::WriteHeader(File::IOFile* file, const u8* data, size
 }
 
 template <bool RVZ>
-ConversionResultCode
-WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volume,
-                               File::IOFile* outfile, WIARVZCompressionType compression_type,
-                               int compression_level, int chunk_size, CompressCB callback)
+ConversionResultCode WIARVZFileReader<RVZ>::Convert(BlobReader* infile,
+    const VolumeDisc* infile_volume, File::IOFile* outfile, WIARVZCompressionType compression_type,
+    int compression_level, int chunk_size, CompressCB callback)
 {
   ASSERT(infile->GetDataSizeType() == DataSizeType::Accurate);
   ASSERT(chunk_size > 0);
@@ -1769,9 +1764,9 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
       infile_volume ? infile_volume->GetFileSystem(PARTITION_NONE) : nullptr;
   std::vector<const FileSystem*> partition_file_systems;
 
-  const ConversionResultCode set_up_data_entries_result = SetUpDataEntriesForWriting(
-      infile_volume, chunk_size, iso_size, &total_groups, &partition_entries, &raw_data_entries,
-      &data_entries, &partition_file_systems);
+  const ConversionResultCode set_up_data_entries_result =
+      SetUpDataEntriesForWriting(infile_volume, chunk_size, iso_size, &total_groups,
+          &partition_entries, &raw_data_entries, &data_entries, &partition_file_systems);
   if (set_up_data_entries_result != ConversionResultCode::Success)
     return set_up_data_entries_result;
 
@@ -1784,7 +1779,8 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
   // An estimate for how much space will be taken up by headers.
   // We will reserve this much space at the beginning of the file, and if the headers don't
   // fit in that space, we will need to write them at the end of the file instead.
-  const u64 headers_size_upper_bound = [&] {
+  const u64 headers_size_upper_bound = [&]
+  {
     // 0x100 is added to account for compression overhead (in particular for Purge).
     u64 upper_bound = sizeof(WIAHeader1) + sizeof(WIAHeader2) + partition_entries_size +
                       raw_data_entries_size + 0x100;
@@ -1816,12 +1812,14 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
   std::map<ReuseID, GroupEntry> reusable_groups;
   std::mutex reusable_groups_mutex;
 
-  const auto set_up_compress_thread_state = [&](CompressThreadState* state) {
+  const auto set_up_compress_thread_state = [&](CompressThreadState* state)
+  {
     SetUpCompressor(&state->compressor, compression_type, compression_level, nullptr);
     return ConversionResultCode::Success;
   };
 
-  const auto process_and_compress = [&](CompressThreadState* state, CompressParameters parameters) {
+  const auto process_and_compress = [&](CompressThreadState* state, CompressParameters parameters)
+  {
     const DataEntry& data_entry = *parameters.data_entry;
     const FileSystem* file_system = data_entry.is_partition ?
                                         partition_file_systems[data_entry.index] :
@@ -1830,21 +1828,20 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
     const bool compression = compression_type != WIARVZCompressionType::None;
 
     return ProcessAndCompress(state, std::move(parameters), partition_entries, data_entries,
-                              file_system, &reusable_groups, &reusable_groups_mutex,
-                              chunks_per_wii_group, exception_lists_per_chunk,
-                              compressed_exception_lists, compression);
+        file_system, &reusable_groups, &reusable_groups_mutex, chunks_per_wii_group,
+        exception_lists_per_chunk, compressed_exception_lists, compression);
   };
 
-  const auto output = [&](OutputParameters parameters) {
-    const ConversionResultCode result =
-        Output(&parameters.entries, outfile, &reusable_groups, &reusable_groups_mutex,
-               &group_entries[parameters.group_index], &bytes_written);
+  const auto output = [&](OutputParameters parameters)
+  {
+    const ConversionResultCode result = Output(&parameters.entries, outfile, &reusable_groups,
+        &reusable_groups_mutex, &group_entries[parameters.group_index], &bytes_written);
 
     if (result != ConversionResultCode::Success)
       return result;
 
     return RunCallback(parameters.group_index + parameters.entries.size(), parameters.bytes_read,
-                       bytes_written, total_groups, iso_size, callback);
+        bytes_written, total_groups, iso_size, callback);
   };
 
   MultithreadedCompressor<CompressThreadState, CompressParameters, OutputParameters> mt_compressor(
@@ -1964,22 +1961,22 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
 
   u64 partition_entries_offset;
   if (!WriteHeader(outfile, reinterpret_cast<u8*>(partition_entries.data()), partition_entries_size,
-                   headers_size_upper_bound, &bytes_written, &partition_entries_offset))
+          headers_size_upper_bound, &bytes_written, &partition_entries_offset))
   {
     return ConversionResultCode::WriteFailed;
   }
 
   u64 raw_data_entries_offset;
   if (!WriteHeader(outfile, compressed_raw_data_entries->data(),
-                   compressed_raw_data_entries->size(), headers_size_upper_bound, &bytes_written,
-                   &raw_data_entries_offset))
+          compressed_raw_data_entries->size(), headers_size_upper_bound, &bytes_written,
+          &raw_data_entries_offset))
   {
     return ConversionResultCode::WriteFailed;
   }
 
   u64 group_entries_offset;
   if (!WriteHeader(outfile, compressed_group_entries->data(), compressed_group_entries->size(),
-                   headers_size_upper_bound, &bytes_written, &group_entries_offset))
+          headers_size_upper_bound, &bytes_written, &group_entries_offset))
   {
     return ConversionResultCode::WriteFailed;
   }
@@ -2023,8 +2020,8 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
       Common::SHA1::CalculateDigest(reinterpret_cast<const u8*>(&header_2), sizeof(header_2));
   header_1.iso_file_size = Common::swap64(infile->GetDataSize());
   header_1.wia_file_size = Common::swap64(outfile->GetSize());
-  header_1.header_1_hash = Common::SHA1::CalculateDigest(reinterpret_cast<const u8*>(&header_1),
-                                                         offsetof(WIAHeader1, header_1_hash));
+  header_1.header_1_hash = Common::SHA1::CalculateDigest(
+      reinterpret_cast<const u8*>(&header_1), offsetof(WIAHeader1, header_1_hash));
 
   if (!outfile->Seek(0, File::SeekOrigin::Begin))
     return ConversionResultCode::WriteFailed;
@@ -2038,9 +2035,8 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
 }
 
 bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
-                       const std::string& outfile_path, bool rvz,
-                       WIARVZCompressionType compression_type, int compression_level,
-                       int chunk_size, const CompressCB& callback)
+    const std::string& outfile_path, bool rvz, WIARVZCompressionType compression_type,
+    int compression_level, int chunk_size, const CompressCB& callback)
 {
   File::IOFile outfile(outfile_path, "wb");
   if (!outfile)
@@ -2056,9 +2052,8 @@ bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
   std::unique_ptr<VolumeDisc> infile_volume = CreateDisc(infile_path);
 
   const auto convert = rvz ? RVZFileReader::Convert : WIAFileReader::Convert;
-  const ConversionResultCode result =
-      convert(infile, infile_volume.get(), &outfile, compression_type, compression_level,
-              chunk_size, callback);
+  const ConversionResultCode result = convert(infile, infile_volume.get(), &outfile,
+      compression_type, compression_level, chunk_size, callback);
 
   if (result == ConversionResultCode::ReadFailed)
     PanicAlertFmtT("Failed to read from the input file \"{0}\".", infile_path);
@@ -2067,7 +2062,7 @@ bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
   {
     PanicAlertFmtT("Failed to write the output file \"{0}\".\n"
                    "Check that you have enough space available on the target drive.",
-                   outfile_path);
+        outfile_path);
   }
 
   if (result != ConversionResultCode::Success)

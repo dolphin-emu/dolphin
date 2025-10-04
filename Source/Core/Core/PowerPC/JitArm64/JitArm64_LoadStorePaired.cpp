@@ -95,8 +95,8 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
     if (!w)
       flags |= BackPatchInfo::FLAG_PAIR;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, VS, EncodeRegTo64(addr_reg), gprs_in_use,
-                         fprs_in_use);
+    EmitBackpatchRoutine(
+        flags, MemAccessMode::Auto, VS, EncodeRegTo64(addr_reg), gprs_in_use, fprs_in_use);
   }
   else
   {
@@ -251,8 +251,8 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
     if (!w)
       flags |= BackPatchInfo::FLAG_PAIR;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, VS, EncodeRegTo64(addr_reg), gprs_in_use,
-                         fprs_in_use);
+    EmitBackpatchRoutine(
+        flags, MemAccessMode::Auto, VS, EncodeRegTo64(addr_reg), gprs_in_use, fprs_in_use);
   }
   else
   {

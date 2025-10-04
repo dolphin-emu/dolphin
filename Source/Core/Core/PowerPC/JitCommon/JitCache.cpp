@@ -113,8 +113,8 @@ JitBlock** JitBaseBlockCache::GetFastBlockMapFallback()
   return m_fast_block_map_fallback.data();
 }
 
-void JitBaseBlockCache::RunOnBlocks(const Core::CPUThreadGuard&,
-                                    std::function<void(const JitBlock&)> f) const
+void JitBaseBlockCache::RunOnBlocks(
+    const Core::CPUThreadGuard&, std::function<void(const JitBlock&)> f) const
 {
   for (const auto& e : block_map)
     f(e.second);
@@ -143,8 +143,7 @@ JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
 }
 
 void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
-                                      const PPCAnalyst::CodeBlock& code_block,
-                                      const PPCAnalyst::CodeBuffer& code_buffer)
+    const PPCAnalyst::CodeBlock& code_block, const PPCAnalyst::CodeBuffer& code_buffer)
 {
   size_t index = FastLookupIndexForAddress(block.effectiveAddress, block.feature_flags);
   if (m_entry_points_ptr)
@@ -167,8 +166,8 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
     const std::ranges::transform_view original_buffer_transform_view{
         std::span{code_buffer.data(), block.originalSize},
         [](const PPCAnalyst::CodeOp& op) { return std::make_pair(op.address, op.inst); }};
-    block.original_buffer.assign(original_buffer_transform_view.begin(),
-                                 original_buffer_transform_view.end());
+    block.original_buffer.assign(
+        original_buffer_transform_view.begin(), original_buffer_transform_view.end());
   }
 
   for (u32 addr : block.physical_addresses)
@@ -192,13 +191,12 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
       (symbol = m_jit.m_ppc_symbol_db.GetSymbolFromAddr(block.effectiveAddress)) != nullptr)
   {
     Common::JitRegister::Register(block.normalEntry, block.near_end - block.normalEntry,
-                                  "JIT_PPC_{}_{:08x}", symbol->function_name,
-                                  block.physicalAddress);
+        "JIT_PPC_{}_{:08x}", symbol->function_name, block.physicalAddress);
   }
   else
   {
     Common::JitRegister::Register(block.normalEntry, block.near_end - block.normalEntry,
-                                  "JIT_PPC_{:08x}", block.physicalAddress);
+        "JIT_PPC_{:08x}", block.physicalAddress);
   }
 }
 
@@ -300,8 +298,8 @@ void JitBaseBlockCache::InvalidateICache(u32 initial_address, u32 initial_length
   }
 }
 
-void JitBaseBlockCache::InvalidateICacheInternal(u32 physical_address, u32 address, u32 length,
-                                                 bool forced)
+void JitBaseBlockCache::InvalidateICacheInternal(
+    u32 physical_address, u32 address, u32 length, bool forced)
 {
   // Optimization for the case of invalidating a single cache line, which is used by the dcb*
   // instructions. If the valid_block bit for that cacheline is not set, we can safely skip
@@ -397,8 +395,8 @@ void JitBaseBlockCache::ErasePhysicalRange(u32 address, u32 length)
 void JitBaseBlockCache::EraseSingleBlock(const JitBlock& block)
 {
   const auto equal_range = block_map.equal_range(block.physicalAddress);
-  const auto block_map_iter = std::ranges::find(equal_range.first, equal_range.second, &block,
-                                                [](const auto& kv) { return &kv.second; });
+  const auto block_map_iter = std::ranges::find(
+      equal_range.first, equal_range.second, &block, [](const auto& kv) { return &kv.second; });
   if (block_map_iter == equal_range.second) [[unlikely]]
     return;
 

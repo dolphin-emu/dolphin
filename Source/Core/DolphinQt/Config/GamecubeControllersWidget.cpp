@@ -33,8 +33,8 @@ using SIDeviceName = std::pair<SerialInterface::SIDevices, const char*>;
 static constexpr std::array s_gc_types = {
     SIDeviceName{SerialInterface::SIDEVICE_NONE, _trans("None")},
     SIDeviceName{SerialInterface::SIDEVICE_GC_CONTROLLER, _trans("Standard Controller")},
-    SIDeviceName{SerialInterface::SIDEVICE_WIIU_ADAPTER,
-                 _trans("GameCube Controller Adapter (USB)")},
+    SIDeviceName{
+        SerialInterface::SIDEVICE_WIIU_ADAPTER, _trans("GameCube Controller Adapter (USB)")},
     SIDeviceName{SerialInterface::SIDEVICE_GC_STEERING, _trans("Steering Wheel")},
     SIDeviceName{SerialInterface::SIDEVICE_DANCEMAT, _trans("Dance Mat")},
     SIDeviceName{SerialInterface::SIDEVICE_GC_TARUKONGA, _trans("DK Bongos")},
@@ -66,9 +66,9 @@ GamecubeControllersWidget::GamecubeControllersWidget(QWidget* parent) : QWidget(
   ConnectWidgets();
 
   connect(&Settings::Instance(), &Settings::ConfigChanged, this,
-          [this] { LoadSettings(Core::GetState(Core::System::GetInstance())); });
+      [this] { LoadSettings(Core::GetState(Core::System::GetInstance())); });
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          [this](Core::State state) { LoadSettings(state); });
+      [this](Core::State state) { LoadSettings(state); });
   LoadSettings(Core::GetState(Core::System::GetInstance()));
 }
 
@@ -108,10 +108,12 @@ void GamecubeControllersWidget::ConnectWidgets()
 {
   for (size_t i = 0; i < m_gc_controller_boxes.size(); ++i)
   {
-    connect(m_gc_controller_boxes[i], &QComboBox::currentIndexChanged, this, [this, i] {
-      OnGCTypeChanged(i);
-      SaveSettings();
-    });
+    connect(m_gc_controller_boxes[i], &QComboBox::currentIndexChanged, this,
+        [this, i]
+        {
+          OnGCTypeChanged(i);
+          SaveSettings();
+        });
     connect(m_gc_buttons[i], &QPushButton::clicked, this, [this, i] { OnGCPadConfigure(i); });
   }
 }
@@ -120,8 +122,8 @@ void GamecubeControllersWidget::OnGCTypeChanged(size_t index)
 {
   const SerialInterface::SIDevices si_device =
       FromGCMenuIndex(m_gc_controller_boxes[index]->currentIndex());
-  m_gc_buttons[index]->setEnabled(si_device != SerialInterface::SIDEVICE_NONE &&
-                                  si_device != SerialInterface::SIDEVICE_GC_GBA);
+  m_gc_buttons[index]->setEnabled(
+      si_device != SerialInterface::SIDEVICE_NONE && si_device != SerialInterface::SIDEVICE_GC_GBA);
 }
 
 void GamecubeControllersWidget::OnGCPadConfigure(size_t index)

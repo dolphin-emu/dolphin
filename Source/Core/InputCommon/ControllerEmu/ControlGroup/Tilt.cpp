@@ -25,20 +25,20 @@ Tilt::Tilt(const std::string& name_) : ReshapableInput(name_, name_, GroupType::
   AddInput(Translatability::Translate, _trans("Modifier"));
 
   AddSetting(&m_max_angle_setting,
-             {_trans("Angle"),
-              // i18n: The symbol/abbreviation for degrees (unit of angular measure).
-              _trans("°"),
-              // i18n: Refers to tilting an emulated Wii Remote.
-              _trans("Maximum tilt angle.")},
-             85, 0, 180);
+      {_trans("Angle"),
+          // i18n: The symbol/abbreviation for degrees (unit of angular measure).
+          _trans("°"),
+          // i18n: Refers to tilting an emulated Wii Remote.
+          _trans("Maximum tilt angle.")},
+      85, 0, 180);
 
   AddSetting(&m_max_rotational_velocity,
-             {_trans("Velocity"),
-              // i18n: The symbol/abbreviation for hertz (cycles per second).
-              _trans("Hz"),
-              // i18n: Refers to tilting an emulated Wii Remote.
-              _trans("Peak angular velocity (measured in turns per second).")},
-             7, 1, 50);
+      {_trans("Velocity"),
+          // i18n: The symbol/abbreviation for hertz (cycles per second).
+          _trans("Hz"),
+          // i18n: Refers to tilting an emulated Wii Remote.
+          _trans("Peak angular velocity (measured in turns per second).")},
+      7, 1, 50);
 }
 
 Tilt::ReshapeData Tilt::GetReshapableState(bool adjusted) const

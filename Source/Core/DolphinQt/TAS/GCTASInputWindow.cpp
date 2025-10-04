@@ -22,14 +22,15 @@
 #include "InputCommon/InputConfig.h"
 
 GCTASInputWindow::GCTASInputWindow(QWidget* parent, int controller_id)
-    : TASInputWindow(parent), m_controller_id(controller_id)
+    : TASInputWindow(parent)
+    , m_controller_id(controller_id)
 {
   setWindowTitle(tr("GameCube TAS Input %1").arg(controller_id + 1));
 
   m_main_stick_box = CreateStickInputs(tr("Main Stick"), GCPad::MAIN_STICK_GROUP, &m_overrider, 1,
-                                       1, 255, 255, Qt::Key_F, Qt::Key_G);
-  m_c_stick_box = CreateStickInputs(tr("C Stick"), GCPad::C_STICK_GROUP, &m_overrider, 1, 1, 255,
-                                    255, Qt::Key_H, Qt::Key_J);
+      1, 255, 255, Qt::Key_F, Qt::Key_G);
+  m_c_stick_box = CreateStickInputs(
+      tr("C Stick"), GCPad::C_STICK_GROUP, &m_overrider, 1, 1, 255, 255, Qt::Key_H, Qt::Key_J);
 
   auto* top_layout = new QHBoxLayout;
   top_layout->addWidget(m_main_stick_box);
@@ -37,13 +38,11 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int controller_id)
 
   m_triggers_box = new QGroupBox(tr("Triggers"));
 
-  auto* l_trigger_layout =
-      CreateSliderValuePairLayout(tr("Left"), GCPad::TRIGGERS_GROUP, GCPad::L_ANALOG, &m_overrider,
-                                  0, 0, 0, 255, Qt::Key_N, m_triggers_box);
+  auto* l_trigger_layout = CreateSliderValuePairLayout(tr("Left"), GCPad::TRIGGERS_GROUP,
+      GCPad::L_ANALOG, &m_overrider, 0, 0, 0, 255, Qt::Key_N, m_triggers_box);
 
-  auto* r_trigger_layout =
-      CreateSliderValuePairLayout(tr("Right"), GCPad::TRIGGERS_GROUP, GCPad::R_ANALOG, &m_overrider,
-                                  0, 0, 0, 255, Qt::Key_M, m_triggers_box);
+  auto* r_trigger_layout = CreateSliderValuePairLayout(tr("Right"), GCPad::TRIGGERS_GROUP,
+      GCPad::R_ANALOG, &m_overrider, 0, 0, 0, 255, Qt::Key_M, m_triggers_box);
 
   auto* triggers_layout = new QVBoxLayout;
   triggers_layout->addLayout(l_trigger_layout);
@@ -60,8 +59,8 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int controller_id)
       CreateButton(QStringLiteral("&Y"), GCPad::BUTTONS_GROUP, GCPad::Y_BUTTON, &m_overrider);
   m_z_button =
       CreateButton(QStringLiteral("&Z"), GCPad::BUTTONS_GROUP, GCPad::Z_BUTTON, &m_overrider);
-  m_start_button = CreateButton(QStringLiteral("&START"), GCPad::BUTTONS_GROUP, GCPad::START_BUTTON,
-                                &m_overrider);
+  m_start_button = CreateButton(
+      QStringLiteral("&START"), GCPad::BUTTONS_GROUP, GCPad::START_BUTTON, &m_overrider);
 
   m_l_button =
       CreateButton(QStringLiteral("&L"), GCPad::TRIGGERS_GROUP, GCPad::L_DIGITAL, &m_overrider);

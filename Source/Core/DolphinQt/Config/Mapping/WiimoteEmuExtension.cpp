@@ -44,24 +44,20 @@ void WiimoteEmuExtension::CreateClassicLayout()
   auto* layout = new QGridLayout();
   m_classic_box = new QGroupBox(tr("Classic Controller"), this);
 
-  layout->addWidget(
-      CreateGroupBox(tr("Buttons"),
-                     Wiimote::GetClassicGroup(GetPort(), WiimoteEmu::ClassicGroup::Buttons)),
+  layout->addWidget(CreateGroupBox(tr("Buttons"),
+                        Wiimote::GetClassicGroup(GetPort(), WiimoteEmu::ClassicGroup::Buttons)),
       0, 0);
-  layout->addWidget(CreateGroupBox(tr("D-Pad"), Wiimote::GetClassicGroup(
-                                                    GetPort(), WiimoteEmu::ClassicGroup::DPad)),
-                    1, 0);
-  layout->addWidget(
-      CreateGroupBox(tr("Left Stick"),
-                     Wiimote::GetClassicGroup(GetPort(), WiimoteEmu::ClassicGroup::LeftStick)),
+  layout->addWidget(CreateGroupBox(tr("D-Pad"),
+                        Wiimote::GetClassicGroup(GetPort(), WiimoteEmu::ClassicGroup::DPad)),
+      1, 0);
+  layout->addWidget(CreateGroupBox(tr("Left Stick"),
+                        Wiimote::GetClassicGroup(GetPort(), WiimoteEmu::ClassicGroup::LeftStick)),
       0, 1, -1, 1);
-  layout->addWidget(
-      CreateGroupBox(tr("Right Stick"),
-                     Wiimote::GetClassicGroup(GetPort(), WiimoteEmu::ClassicGroup::RightStick)),
+  layout->addWidget(CreateGroupBox(tr("Right Stick"),
+                        Wiimote::GetClassicGroup(GetPort(), WiimoteEmu::ClassicGroup::RightStick)),
       0, 2, -1, 1);
-  layout->addWidget(
-      CreateGroupBox(tr("Triggers"),
-                     Wiimote::GetClassicGroup(GetPort(), WiimoteEmu::ClassicGroup::Triggers)),
+  layout->addWidget(CreateGroupBox(tr("Triggers"),
+                        Wiimote::GetClassicGroup(GetPort(), WiimoteEmu::ClassicGroup::Triggers)),
       0, 3, -1, 1);
 
   m_classic_box->setLayout(layout);
@@ -79,9 +75,9 @@ void WiimoteEmuExtension::CreateDrumsLayout()
   layout->addWidget(
       CreateGroupBox(tr("Pads"), Wiimote::GetDrumsGroup(GetPort(), WiimoteEmu::DrumsGroup::Pads)),
       0, 1);
-  layout->addWidget(CreateGroupBox(tr("Buttons"), Wiimote::GetDrumsGroup(
-                                                      GetPort(), WiimoteEmu::DrumsGroup::Buttons)),
-                    1, 1);
+  layout->addWidget(CreateGroupBox(tr("Buttons"),
+                        Wiimote::GetDrumsGroup(GetPort(), WiimoteEmu::DrumsGroup::Buttons)),
+      1, 1);
 
   m_drums_box->setLayout(layout);
 }
@@ -103,12 +99,11 @@ void WiimoteEmuExtension::CreateNunchukLayout()
   auto* layout = new QGridLayout();
   m_nunchuk_box = new QGroupBox(tr("Nunchuk"), this);
 
-  layout->addWidget(CreateGroupBox(tr("Stick"), Wiimote::GetNunchukGroup(
-                                                    GetPort(), WiimoteEmu::NunchukGroup::Stick)),
-                    0, 0);
-  layout->addWidget(
-      CreateGroupBox(tr("Buttons"),
-                     Wiimote::GetNunchukGroup(GetPort(), WiimoteEmu::NunchukGroup::Buttons)),
+  layout->addWidget(CreateGroupBox(tr("Stick"),
+                        Wiimote::GetNunchukGroup(GetPort(), WiimoteEmu::NunchukGroup::Stick)),
+      0, 0);
+  layout->addWidget(CreateGroupBox(tr("Buttons"),
+                        Wiimote::GetNunchukGroup(GetPort(), WiimoteEmu::NunchukGroup::Buttons)),
       0, 1);
 
   m_nunchuk_box->setLayout(layout);
@@ -148,32 +143,29 @@ void WiimoteEmuExtension::CreateTurntableLayout()
   auto* layout = new QGridLayout();
   m_turntable_box = new QGroupBox(tr("DJ Turntable"), this);
 
-  layout->addWidget(CreateGroupBox(tr("Stick"), Wiimote::GetTurntableGroup(
-                                                    GetPort(), WiimoteEmu::TurntableGroup::Stick)),
-                    0, 0, -1, 1);
+  layout->addWidget(CreateGroupBox(tr("Stick"),
+                        Wiimote::GetTurntableGroup(GetPort(), WiimoteEmu::TurntableGroup::Stick)),
+      0, 0, -1, 1);
 
-  layout->addWidget(
-      CreateGroupBox(tr("Buttons"),
-                     Wiimote::GetTurntableGroup(GetPort(), WiimoteEmu::TurntableGroup::Buttons)),
+  layout->addWidget(CreateGroupBox(tr("Buttons"),
+                        Wiimote::GetTurntableGroup(GetPort(), WiimoteEmu::TurntableGroup::Buttons)),
       0, 1);
-  layout->addWidget(
-      CreateGroupBox(tr("Effect"),
-                     Wiimote::GetTurntableGroup(GetPort(), WiimoteEmu::TurntableGroup::EffectDial)),
+  layout->addWidget(CreateGroupBox(tr("Effect"), Wiimote::GetTurntableGroup(GetPort(),
+                                                     WiimoteEmu::TurntableGroup::EffectDial)),
       1, 1, -1, 1);
 
   layout->addWidget(
       // i18n: "Table" refers to a turntable
       CreateGroupBox(tr("Left Table"),
-                     Wiimote::GetTurntableGroup(GetPort(), WiimoteEmu::TurntableGroup::LeftTable)),
+          Wiimote::GetTurntableGroup(GetPort(), WiimoteEmu::TurntableGroup::LeftTable)),
       0, 2);
   layout->addWidget(CreateGroupBox(
                         // i18n: "Table" refers to a turntable
                         tr("Right Table"), Wiimote::GetTurntableGroup(
                                                GetPort(), WiimoteEmu::TurntableGroup::RightTable)),
-                    1, 2);
-  layout->addWidget(
-      CreateGroupBox(tr("Crossfade"),
-                     Wiimote::GetTurntableGroup(GetPort(), WiimoteEmu::TurntableGroup::Crossfade)),
+      1, 2);
+  layout->addWidget(CreateGroupBox(tr("Crossfade"), Wiimote::GetTurntableGroup(GetPort(),
+                                                        WiimoteEmu::TurntableGroup::Crossfade)),
       2, 2);
 
   m_turntable_box->setLayout(layout);
@@ -184,8 +176,7 @@ void WiimoteEmuExtension::CreateUDrawTabletLayout()
   auto* hbox = new QHBoxLayout();
   m_udraw_tablet_box = new QGroupBox(tr("uDraw GameTablet"), this);
 
-  hbox->addWidget(CreateGroupBox(
-      tr("Buttons"),
+  hbox->addWidget(CreateGroupBox(tr("Buttons"),
       Wiimote::GetUDrawTabletGroup(GetPort(), WiimoteEmu::UDrawTabletGroup::Buttons)));
 
   hbox->addWidget(CreateGroupBox(
@@ -202,12 +193,10 @@ void WiimoteEmuExtension::CreateDrawsomeTabletLayout()
   const auto hbox = new QHBoxLayout();
   m_drawsome_tablet_box = new QGroupBox(tr("Drawsome Tablet"), this);
 
-  hbox->addWidget(CreateGroupBox(
-      tr("Stylus"),
+  hbox->addWidget(CreateGroupBox(tr("Stylus"),
       Wiimote::GetDrawsomeTabletGroup(GetPort(), WiimoteEmu::DrawsomeTabletGroup::Stylus)));
 
-  hbox->addWidget(CreateGroupBox(
-      tr("Touch"),
+  hbox->addWidget(CreateGroupBox(tr("Touch"),
       Wiimote::GetDrawsomeTabletGroup(GetPort(), WiimoteEmu::DrawsomeTabletGroup::Touch)));
 
   m_drawsome_tablet_box->setLayout(hbox);

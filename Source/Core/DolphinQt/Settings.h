@@ -78,8 +78,7 @@ public:
   void ApplyStyle();
 
   void GetToolTipStyle(QColor& window_color, QColor& text_color, QColor& emphasis_text_color,
-                       QColor& border_color, const QPalette& palette,
-                       const QPalette& high_contrast_palette) const;
+      QColor& border_color, const QPalette& palette, const QPalette& high_contrast_palette) const;
 
   bool IsLogVisible() const;
   void SetLogVisible(bool visible);

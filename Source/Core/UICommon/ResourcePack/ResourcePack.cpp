@@ -190,9 +190,8 @@ bool ResourcePack::Install(const std::string& path)
       continue;
     const std::string texture_name = texture_zip_path.substr(texture_zip_path_prefix.size());
 
-    auto texture_it = std::ranges::find_if(m_textures, [&texture_name](const std::string& texture) {
-      return mz_path_compare_wc(texture.c_str(), texture_name.c_str(), 1) == MZ_OK;
-    });
+    auto texture_it = std::ranges::find_if(m_textures, [&texture_name](const std::string& texture)
+        { return mz_path_compare_wc(texture.c_str(), texture_name.c_str(), 1) == MZ_OK; });
     if (texture_it == m_textures.cend())
       continue;
     const auto texture = *texture_it;

@@ -26,8 +26,8 @@ extern "C" {
 #if defined(_M_ARM_64)
 
 JNIEXPORT jobjectArray JNICALL
-Java_org_dolphinemu_dolphinemu_utils_GpuDriverHelper_00024Companion_getSystemDriverInfo(JNIEnv* env,
-                                                                                        jobject)
+Java_org_dolphinemu_dolphinemu_utils_GpuDriverHelper_00024Companion_getSystemDriverInfo(
+    JNIEnv* env, jobject)
 {
   if (!Vulkan::LoadVulkanLibrary(true))
   {
@@ -35,8 +35,8 @@ Java_org_dolphinemu_dolphinemu_utils_GpuDriverHelper_00024Companion_getSystemDri
   }
 
   u32 vk_api_version = 0;
-  VkInstance instance = Vulkan::VulkanContext::CreateVulkanInstance(WindowSystemType::Headless,
-                                                                    false, false, &vk_api_version);
+  VkInstance instance = Vulkan::VulkanContext::CreateVulkanInstance(
+      WindowSystemType::Headless, false, false, &vk_api_version);
   if (!instance)
   {
     return nullptr;
@@ -79,8 +79,8 @@ Java_org_dolphinemu_dolphinemu_utils_GpuDriverHelper_00024Companion_getSystemDri
 
   std::string driverVersion =
       fmt::format("{}.{}.{}", VK_API_VERSION_MAJOR(properties.driverVersion),
-                  VK_API_VERSION_MINOR(properties.driverVersion),
-                  VK_API_VERSION_PATCH(properties.driverVersion));
+          VK_API_VERSION_MINOR(properties.driverVersion),
+          VK_API_VERSION_PATCH(properties.driverVersion));
 
   vkDestroyInstance(instance, nullptr);
   Vulkan::UnloadVulkanLibrary();

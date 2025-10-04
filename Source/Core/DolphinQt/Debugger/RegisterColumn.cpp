@@ -8,9 +8,11 @@
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
-RegisterColumn::RegisterColumn(RegisterType type, std::function<u64()> get,
-                               std::function<void(u64)> set)
-    : m_type(type), m_get_register(std::move(get)), m_set_register(std::move(set))
+RegisterColumn::RegisterColumn(
+    RegisterType type, std::function<u64()> get, std::function<void(u64)> set)
+    : m_type(type)
+    , m_get_register(std::move(get))
+    , m_set_register(std::move(set))
 {
   RefreshValue();
   Update();
@@ -98,13 +100,12 @@ void RegisterColumn::Update()
   {
   case RegisterDisplay::Hex:
     text = QStringLiteral("%1").arg(m_value,
-                                    (m_type == RegisterType::ibat || m_type == RegisterType::dbat ||
-                                             m_type == RegisterType::fpr ||
-                                             m_type == RegisterType::tb ?
-                                         sizeof(u64) :
-                                         sizeof(u32)) *
-                                        2,
-                                    16, QLatin1Char('0'));
+        (m_type == RegisterType::ibat || m_type == RegisterType::dbat ||
+                    m_type == RegisterType::fpr || m_type == RegisterType::tb ?
+                sizeof(u64) :
+                sizeof(u32)) *
+            2,
+        16, QLatin1Char('0'));
     break;
   case RegisterDisplay::SInt32:
     text = QString::number(static_cast<qint32>(m_value));

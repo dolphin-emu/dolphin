@@ -114,9 +114,9 @@ void WiiPane::ConnectLayout()
   connect(m_pal60_mode_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_connect_keyboard_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(&Settings::Instance(), &Settings::SDCardInsertionChanged, m_sd_card_checkbox,
-          &QCheckBox::setChecked);
+      &QCheckBox::setChecked);
   connect(&Settings::Instance(), &Settings::USBKeyboardConnectionChanged,
-          m_connect_keyboard_checkbox, &QCheckBox::setChecked);
+      m_connect_keyboard_checkbox, &QCheckBox::setChecked);
   connect(m_wiilink_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
 
   // SD Card Settings
@@ -127,22 +127,21 @@ void WiiPane::ConnectLayout()
 
   // Whitelisted USB Passthrough Devices
   connect(m_whitelist_usb_list, &QListWidget::itemClicked, this, &WiiPane::ValidateSelectionState);
-  connect(m_whitelist_usb_add_button, &QPushButton::clicked, this,
-          &WiiPane::OnUSBWhitelistAddButton);
+  connect(
+      m_whitelist_usb_add_button, &QPushButton::clicked, this, &WiiPane::OnUSBWhitelistAddButton);
   connect(m_whitelist_usb_remove_button, &QPushButton::clicked, this,
-          &WiiPane::OnUSBWhitelistRemoveButton);
+      &WiiPane::OnUSBWhitelistRemoveButton);
 
   // Wii Remote Settings
-  connect(m_wiimote_ir_sensor_position, &QComboBox::currentIndexChanged, this,
-          &WiiPane::OnSaveConfig);
+  connect(
+      m_wiimote_ir_sensor_position, &QComboBox::currentIndexChanged, this, &WiiPane::OnSaveConfig);
   connect(m_wiimote_ir_sensitivity, &QSlider::valueChanged, this, &WiiPane::OnSaveConfig);
   connect(m_wiimote_speaker_volume, &QSlider::valueChanged, this, &WiiPane::OnSaveConfig);
   connect(m_wiimote_motor, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
 
   // Emulation State
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
-    OnEmulationStateChanged(state != Core::State::Uninitialized);
-  });
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+      [this](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
 }
 
 void WiiPane::CreateMisc()
@@ -221,8 +220,8 @@ void WiiPane::CreateSDCard()
   {
     QHBoxLayout* hlayout = new QHBoxLayout;
     m_sd_raw_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(F_WIISDCARDIMAGE_IDX)));
-    connect(m_sd_raw_edit, &QLineEdit::editingFinished,
-            [this] { SetSDRaw(m_sd_raw_edit->text()); });
+    connect(
+        m_sd_raw_edit, &QLineEdit::editingFinished, [this] { SetSDRaw(m_sd_raw_edit->text()); });
     QPushButton* sdcard_open = new NonDefaultQPushButton(QStringLiteral("..."));
     connect(sdcard_open, &QPushButton::clicked, this, &WiiPane::BrowseSDRaw);
     hlayout->addWidget(new QLabel(tr("SD Card Path:")));
@@ -244,7 +243,7 @@ void WiiPane::CreateSDCard()
     m_sd_sync_folder_edit =
         new QLineEdit(QString::fromStdString(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX)));
     connect(m_sd_sync_folder_edit, &QLineEdit::editingFinished,
-            [this] { SetSDSyncFolder(m_sd_sync_folder_edit->text()); });
+        [this] { SetSDSyncFolder(m_sd_sync_folder_edit->text()); });
     QPushButton* sdcard_open = new NonDefaultQPushButton(QStringLiteral("..."));
     connect(sdcard_open, &QPushButton::clicked, this, &WiiPane::BrowseSDSyncFolder);
     hlayout->addWidget(new QLabel(tr("SD Sync Folder:")));
@@ -264,54 +263,60 @@ void WiiPane::CreateSDCard()
 
   m_sd_pack_button = new NonDefaultQPushButton(tr(Common::SD_PACK_TEXT));
   m_sd_unpack_button = new NonDefaultQPushButton(tr(Common::SD_UNPACK_TEXT));
-  connect(m_sd_pack_button, &QPushButton::clicked, [this] {
-    auto result = ModalMessageBox::warning(
-        this, tr(Common::SD_PACK_TEXT),
-        tr("You are about to pack the content of the folder at %1 into the file at %2. All "
-           "current content of the file will be deleted. Are you sure you want to continue?")
-            .arg(QString::fromStdString(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX)))
-            .arg(QString::fromStdString(File::GetUserPath(F_WIISDCARDIMAGE_IDX))),
-        QMessageBox::Yes | QMessageBox::No);
-    if (result == QMessageBox::Yes)
-    {
-      ParallelProgressDialog progress_dialog(tr("Converting..."), tr("Cancel"), 0, 0, this);
-      progress_dialog.GetRaw()->setWindowModality(Qt::WindowModal);
-      progress_dialog.GetRaw()->setWindowTitle(tr("Progress"));
-      auto success = std::async(std::launch::async, [&] {
-        const bool good = Common::SyncSDFolderToSDImage(
-            [&progress_dialog] { return progress_dialog.WasCanceled(); }, false);
-        progress_dialog.Reset();
-        return good;
+  connect(m_sd_pack_button, &QPushButton::clicked,
+      [this]
+      {
+        auto result = ModalMessageBox::warning(this, tr(Common::SD_PACK_TEXT),
+            tr("You are about to pack the content of the folder at %1 into the file at %2. All "
+               "current content of the file will be deleted. Are you sure you want to continue?")
+                .arg(QString::fromStdString(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX)))
+                .arg(QString::fromStdString(File::GetUserPath(F_WIISDCARDIMAGE_IDX))),
+            QMessageBox::Yes | QMessageBox::No);
+        if (result == QMessageBox::Yes)
+        {
+          ParallelProgressDialog progress_dialog(tr("Converting..."), tr("Cancel"), 0, 0, this);
+          progress_dialog.GetRaw()->setWindowModality(Qt::WindowModal);
+          progress_dialog.GetRaw()->setWindowTitle(tr("Progress"));
+          auto success = std::async(std::launch::async,
+              [&]
+              {
+                const bool good = Common::SyncSDFolderToSDImage(
+                    [&progress_dialog] { return progress_dialog.WasCanceled(); }, false);
+                progress_dialog.Reset();
+                return good;
+              });
+          progress_dialog.GetRaw()->exec();
+          if (!success.get())
+            ModalMessageBox::warning(this, tr(Common::SD_PACK_TEXT), tr("Conversion failed."));
+        }
       });
-      progress_dialog.GetRaw()->exec();
-      if (!success.get())
-        ModalMessageBox::warning(this, tr(Common::SD_PACK_TEXT), tr("Conversion failed."));
-    }
-  });
-  connect(m_sd_unpack_button, &QPushButton::clicked, [this] {
-    auto result = ModalMessageBox::warning(
-        this, tr(Common::SD_UNPACK_TEXT),
-        tr("You are about to unpack the content of the file at %2 into the folder at %1. All "
-           "current content of the folder will be deleted. Are you sure you want to continue?")
-            .arg(QString::fromStdString(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX)))
-            .arg(QString::fromStdString(File::GetUserPath(F_WIISDCARDIMAGE_IDX))),
-        QMessageBox::Yes | QMessageBox::No);
-    if (result == QMessageBox::Yes)
-    {
-      ParallelProgressDialog progress_dialog(tr("Converting..."), tr("Cancel"), 0, 0, this);
-      progress_dialog.GetRaw()->setWindowModality(Qt::WindowModal);
-      progress_dialog.GetRaw()->setWindowTitle(tr("Progress"));
-      auto success = std::async(std::launch::async, [&] {
-        const bool good = Common::SyncSDImageToSDFolder(
-            [&progress_dialog] { return progress_dialog.WasCanceled(); });
-        progress_dialog.Reset();
-        return good;
+  connect(m_sd_unpack_button, &QPushButton::clicked,
+      [this]
+      {
+        auto result = ModalMessageBox::warning(this, tr(Common::SD_UNPACK_TEXT),
+            tr("You are about to unpack the content of the file at %2 into the folder at %1. All "
+               "current content of the folder will be deleted. Are you sure you want to continue?")
+                .arg(QString::fromStdString(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX)))
+                .arg(QString::fromStdString(File::GetUserPath(F_WIISDCARDIMAGE_IDX))),
+            QMessageBox::Yes | QMessageBox::No);
+        if (result == QMessageBox::Yes)
+        {
+          ParallelProgressDialog progress_dialog(tr("Converting..."), tr("Cancel"), 0, 0, this);
+          progress_dialog.GetRaw()->setWindowModality(Qt::WindowModal);
+          progress_dialog.GetRaw()->setWindowTitle(tr("Progress"));
+          auto success = std::async(std::launch::async,
+              [&]
+              {
+                const bool good = Common::SyncSDImageToSDFolder(
+                    [&progress_dialog] { return progress_dialog.WasCanceled(); });
+                progress_dialog.Reset();
+                return good;
+              });
+          progress_dialog.GetRaw()->exec();
+          if (!success.get())
+            ModalMessageBox::warning(this, tr(Common::SD_UNPACK_TEXT), tr("Conversion failed."));
+        }
       });
-      progress_dialog.GetRaw()->exec();
-      if (!success.get())
-        ModalMessageBox::warning(this, tr(Common::SD_UNPACK_TEXT), tr("Conversion failed."));
-    }
-  });
   sd_settings_group_layout->addWidget(m_sd_pack_button, row, 0, 1, 1);
   sd_settings_group_layout->addWidget(m_sd_unpack_button, row, 1, 1, 1);
   ++row;
@@ -431,7 +436,7 @@ void WiiPane::OnSaveConfig()
   Settings::Instance().SetUSBKeyboardConnected(m_connect_keyboard_checkbox->isChecked());
 
   Config::SetBase<u32>(Config::SYSCONF_SENSOR_BAR_POSITION,
-                       TranslateSensorBarPosition(m_wiimote_ir_sensor_position->currentIndex()));
+      TranslateSensorBarPosition(m_wiimote_ir_sensor_position->currentIndex()));
   Config::SetBase<u32>(Config::SYSCONF_SENSOR_BAR_SENSITIVITY, m_wiimote_ir_sensitivity->value());
   Config::SetBase<u32>(Config::SYSCONF_SPEAKER_VOLUME, m_wiimote_speaker_volume->value());
   Config::SetBase<u32>(Config::SYSCONF_LANGUAGE, m_system_language_choice->currentIndex());
@@ -442,15 +447,15 @@ void WiiPane::OnSaveConfig()
 
   Settings::Instance().SetSDCardInserted(m_sd_card_checkbox->isChecked());
   Config::SetBase(Config::MAIN_ALLOW_SD_WRITES, m_allow_sd_writes_checkbox->isChecked());
-  Config::SetBase(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC,
-                  m_sync_sd_folder_checkbox->isChecked());
+  Config::SetBase(
+      Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC, m_sync_sd_folder_checkbox->isChecked());
 
   const int sd_card_size_index = m_sd_card_size_combo->currentIndex();
   if (sd_card_size_index >= 0 &&
       static_cast<size_t>(sd_card_size_index) < sd_size_combo_entries.size())
   {
-    Config::SetBase(Config::MAIN_WII_SD_CARD_FILESIZE,
-                    sd_size_combo_entries[sd_card_size_index].size);
+    Config::SetBase(
+        Config::MAIN_WII_SD_CARD_FILESIZE, sd_size_combo_entries[sd_card_size_index].size);
   }
 }
 
@@ -463,16 +468,16 @@ void WiiPane::OnUSBWhitelistAddButton()
 {
   auto whitelist = Config::GetUSBDeviceWhitelist();
 
-  const std::optional<USBUtils::DeviceInfo> usb_device = USBDevicePicker::Run(
-      this, tr("Add New USB Device"),
-      [&whitelist](const USBUtils::DeviceInfo& device) { return !whitelist.contains(device); });
+  const std::optional<USBUtils::DeviceInfo> usb_device =
+      USBDevicePicker::Run(this, tr("Add New USB Device"),
+          [&whitelist](const USBUtils::DeviceInfo& device) { return !whitelist.contains(device); });
   if (!usb_device)
     return;
 
   if (whitelist.contains(*usb_device))
   {
-    ModalMessageBox::critical(this, tr("USB Whitelist Error"),
-                              tr("This USB device is already whitelisted."));
+    ModalMessageBox::critical(
+        this, tr("USB Whitelist Error"), tr("This USB device is already whitelisted."));
     return;
   }
   whitelist.emplace(*usb_device);
@@ -512,11 +517,11 @@ void WiiPane::PopulateUSBPassthroughListWidget()
 
 void WiiPane::BrowseSDRaw()
 {
-  QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
-      this, tr("Select SD Card Image"),
-      QString::fromStdString(Config::Get(Config::MAIN_WII_SD_CARD_IMAGE_PATH)),
-      tr("SD Card Image (*.raw);;"
-         "All Files (*)")));
+  QString file =
+      QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(this, tr("Select SD Card Image"),
+          QString::fromStdString(Config::Get(Config::MAIN_WII_SD_CARD_IMAGE_PATH)),
+          tr("SD Card Image (*.raw);;"
+             "All Files (*)")));
   if (!file.isEmpty())
     SetSDRaw(file);
 }
@@ -529,8 +534,8 @@ void WiiPane::SetSDRaw(const QString& path)
 
 void WiiPane::BrowseSDSyncFolder()
 {
-  QString file = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
-      this, tr("Select a Folder to Sync with the SD Card Image"),
+  QString file = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(this,
+      tr("Select a Folder to Sync with the SD Card Image"),
       QString::fromStdString(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX))));
   if (!file.isEmpty())
     SetSDSyncFolder(file);

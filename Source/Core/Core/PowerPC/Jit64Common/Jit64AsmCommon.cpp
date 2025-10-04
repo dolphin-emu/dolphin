@@ -148,7 +148,7 @@ void CommonAsmRoutines::GenFrsqrte()
   SHR(64, R(RSCRATCH), Imm8(37));
   AND(32, R(RSCRATCH), Imm32(0x7FF));
   IMUL(32, RSCRATCH,
-       MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_8, offsetof(Common::BaseAndDec, m_dec)));
+      MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_8, offsetof(Common::BaseAndDec, m_dec)));
   ADD(32, R(RSCRATCH),
       MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_8, offsetof(Common::BaseAndDec, m_base)));
   SHL(64, R(RSCRATCH), Imm8(26));
@@ -252,7 +252,7 @@ void CommonAsmRoutines::GenFres()
   static_assert(sizeof(Common::BaseAndDec) == 8, "Unable to use SCALE_8; incorrect size");
 
   IMUL(32, RSCRATCH,
-       MComplex(RSCRATCH_EXTRA, RSCRATCH2, SCALE_8, offsetof(Common::BaseAndDec, m_dec)));
+      MComplex(RSCRATCH_EXTRA, RSCRATCH2, SCALE_8, offsetof(Common::BaseAndDec, m_dec)));
   ADD(32, R(RSCRATCH), Imm8(1));
   SHR(32, R(RSCRATCH), Imm8(1));
 
@@ -367,8 +367,8 @@ const u8* CommonAsmRoutines::GenQuantizedStoreRuntime(bool single, EQuantizeType
   const u8* load = AlignCode4();
   GenQuantizedStore(single, type, -1);
   RET();
-  Common::JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedStore_{}_{}",
-                                Common::ToUnderlying(type), single);
+  Common::JitRegister::Register(
+      start, GetCodePtr(), "JIT_QuantizedStore_{}_{}", Common::ToUnderlying(type), single);
 
   return load;
 }
@@ -399,8 +399,8 @@ const u8* CommonAsmRoutines::GenQuantizedLoadRuntime(bool single, EQuantizeType 
   const u8* load = AlignCode4();
   GenQuantizedLoad(single, type, -1);
   RET();
-  Common::JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedLoad_{}_{}",
-                                Common::ToUnderlying(type), single);
+  Common::JitRegister::Register(
+      start, GetCodePtr(), "JIT_QuantizedLoad_{}_{}", Common::ToUnderlying(type), single);
 
   return load;
 }

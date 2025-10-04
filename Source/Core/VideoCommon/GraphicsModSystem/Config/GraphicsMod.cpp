@@ -13,15 +13,15 @@
 
 #include "VideoCommon/GraphicsModSystem/Constants.h"
 
-std::optional<GraphicsModConfig> GraphicsModConfig::Create(const std::string& file_path,
-                                                           Source source)
+std::optional<GraphicsModConfig> GraphicsModConfig::Create(
+    const std::string& file_path, Source source)
 {
   picojson::value root;
   std::string error;
   if (!JsonFromFile(file_path, &root, &error))
   {
     ERROR_LOG_FMT(VIDEO, "Failed to load graphics mod json file '{}' due to parse error: {}",
-                  file_path, error);
+        file_path, error);
     return std::nullopt;
   }
 
@@ -36,8 +36,7 @@ std::optional<GraphicsModConfig> GraphicsModConfig::Create(const std::string& fi
     const std::string base_path = File::GetUserPath(D_GRAPHICSMOD_IDX);
     if (base_path.size() > file_path.size())
     {
-      ERROR_LOG_FMT(
-          VIDEO,
+      ERROR_LOG_FMT(VIDEO,
           "Failed to load graphics mod json file '{}' due to it not matching the base path: {}",
           file_path, base_path);
       return std::nullopt;
@@ -49,8 +48,7 @@ std::optional<GraphicsModConfig> GraphicsModConfig::Create(const std::string& fi
     const std::string base_path = File::GetSysDirectory() + DOLPHIN_SYSTEM_GRAPHICS_MOD_DIR;
     if (base_path.size() > file_path.size())
     {
-      ERROR_LOG_FMT(
-          VIDEO,
+      ERROR_LOG_FMT(VIDEO,
           "Failed to load graphics mod json file '{}' due to it not matching the base path: {}",
           file_path, base_path);
       return std::nullopt;
@@ -83,8 +81,8 @@ std::optional<GraphicsModConfig> GraphicsModConfig::Create(const picojson::objec
   if (source_str == "system")
   {
     return Create(fmt::format("{}{}{}", File::GetSysDirectory(), DOLPHIN_SYSTEM_GRAPHICS_MOD_DIR,
-                              relative_path),
-                  Source::System);
+                      relative_path),
+        Source::System);
   }
   else
   {
@@ -96,8 +94,8 @@ std::string GraphicsModConfig::GetAbsolutePath() const
 {
   if (m_source == Source::System)
   {
-    return WithUnifiedPathSeparators(fmt::format("{}{}{}", File::GetSysDirectory(),
-                                                 DOLPHIN_SYSTEM_GRAPHICS_MOD_DIR, m_relative_path));
+    return WithUnifiedPathSeparators(fmt::format(
+        "{}{}{}", File::GetSysDirectory(), DOLPHIN_SYSTEM_GRAPHICS_MOD_DIR, m_relative_path));
   }
   else
   {

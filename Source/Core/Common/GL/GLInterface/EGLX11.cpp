@@ -32,14 +32,14 @@ EGLNativeWindowType GLContextEGLX11::GetEGLNativeWindow(EGLConfig config)
   visTemplate.visualid = vid;
 
   int nVisuals;
-  XVisualInfo* vi = XGetVisualInfo(static_cast<Display*>(m_wsi.display_connection), VisualIDMask,
-                                   &visTemplate, &nVisuals);
+  XVisualInfo* vi = XGetVisualInfo(
+      static_cast<Display*>(m_wsi.display_connection), VisualIDMask, &visTemplate, &nVisuals);
 
   if (m_render_window)
     m_render_window.reset();
 
   m_render_window = GLX11Window::Create(static_cast<Display*>(m_wsi.display_connection),
-                                        reinterpret_cast<Window>(m_wsi.render_surface), vi);
+      reinterpret_cast<Window>(m_wsi.render_surface), vi);
   m_backbuffer_width = m_render_window->GetWidth();
   m_backbuffer_height = m_render_window->GetHeight();
 

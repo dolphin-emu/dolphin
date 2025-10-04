@@ -107,9 +107,8 @@ constexpr Table s_table_read_tex_coord = {
 };
 }  // Anonymous namespace
 
-TPipelineFunction VertexLoader_TextCoord::GetFunction(VertexComponentFormat type,
-                                                      ComponentFormat format,
-                                                      TexComponentCount elements)
+TPipelineFunction VertexLoader_TextCoord::GetFunction(
+    VertexComponentFormat type, ComponentFormat format, TexComponentCount elements)
 {
   return s_table_read_tex_coord[type][format][elements];
 }

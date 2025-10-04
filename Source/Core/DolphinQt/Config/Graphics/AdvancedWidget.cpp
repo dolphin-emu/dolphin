@@ -30,11 +30,10 @@ AdvancedWidget::AdvancedWidget(GraphicsPane* gfx_pane) : m_game_layer{gfx_pane->
   AddDescriptions();
 
   connect(gfx_pane, &GraphicsPane::BackendChanged, this, &AdvancedWidget::OnBackendChanged);
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
-    OnEmulationStateChanged(state != Core::State::Uninitialized);
-  });
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+      [this](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
   connect(m_manual_texture_sampling, &QCheckBox::toggled,
-          [gfx_pane] { emit gfx_pane->UseFastTextureSamplingChanged(); });
+      [gfx_pane] { emit gfx_pane->UseFastTextureSamplingChanged(); });
 
   OnBackendChanged();
   OnEmulationStateChanged(!Core::IsUninitialized(Core::System::GetInstance()));
@@ -62,8 +61,8 @@ void AdvancedWidget::CreateWidgets()
       new ConfigBool(tr("Show Speed Colors"), Config::GFX_SHOW_SPEED_COLORS, m_game_layer);
   m_perf_samp_window = new ConfigInteger(0, 10000, Config::GFX_PERF_SAMP_WINDOW, m_game_layer, 100);
   m_perf_samp_window->SetTitle(tr("Performance Sample Window (ms)"));
-  m_log_render_time = new ConfigBool(tr("Log Render Time to File"),
-                                     Config::GFX_LOG_RENDER_TIME_TO_FILE, m_game_layer);
+  m_log_render_time = new ConfigBool(
+      tr("Log Render Time to File"), Config::GFX_LOG_RENDER_TIME_TO_FILE, m_game_layer);
 
   performance_layout->addWidget(m_show_fps, 0, 0);
   performance_layout->addWidget(m_show_ftimes, 0, 1);
@@ -85,12 +84,12 @@ void AdvancedWidget::CreateWidgets()
       new ConfigBool(tr("Enable Wireframe"), Config::GFX_ENABLE_WIREFRAME, m_game_layer);
   m_show_statistics =
       new ConfigBool(tr("Show Statistics"), Config::GFX_OVERLAY_STATS, m_game_layer);
-  m_show_proj_statistics = new ConfigBool(tr("Show Projection Statistics"),
-                                          Config::GFX_OVERLAY_PROJ_STATS, m_game_layer);
+  m_show_proj_statistics = new ConfigBool(
+      tr("Show Projection Statistics"), Config::GFX_OVERLAY_PROJ_STATS, m_game_layer);
   m_enable_format_overlay =
       new ConfigBool(tr("Texture Format Overlay"), Config::GFX_TEXFMT_OVERLAY_ENABLE, m_game_layer);
-  m_enable_api_validation = new ConfigBool(tr("Enable API Validation Layers"),
-                                           Config::GFX_ENABLE_VALIDATION_LAYER, m_game_layer);
+  m_enable_api_validation = new ConfigBool(
+      tr("Enable API Validation Layers"), Config::GFX_ENABLE_VALIDATION_LAYER, m_game_layer);
 
   debugging_layout->addWidget(m_enable_wireframe, 0, 0);
   debugging_layout->addWidget(m_show_statistics, 0, 1);
@@ -105,8 +104,8 @@ void AdvancedWidget::CreateWidgets()
 
   m_load_custom_textures =
       new ConfigBool(tr("Load Custom Textures"), Config::GFX_HIRES_TEXTURES, m_game_layer);
-  m_prefetch_custom_textures = new ConfigBool(tr("Prefetch Custom Textures"),
-                                              Config::GFX_CACHE_HIRES_TEXTURES, m_game_layer);
+  m_prefetch_custom_textures = new ConfigBool(
+      tr("Prefetch Custom Textures"), Config::GFX_CACHE_HIRES_TEXTURES, m_game_layer);
   m_prefetch_custom_textures->setEnabled(m_load_custom_textures->isChecked());
   m_dump_efb_target = new ConfigBool(tr("Dump EFB Target"), Config::GFX_DUMP_EFB_TARGET);
   m_dump_xfb_target = new ConfigBool(tr("Dump XFB Target"), Config::GFX_DUMP_XFB_TARGET);
@@ -118,8 +117,8 @@ void AdvancedWidget::CreateWidgets()
     m_dump_xfb_target->setEnabled(false);
   }
 
-  m_disable_vram_copies = new ConfigBool(tr("Disable EFB VRAM Copies"),
-                                         Config::GFX_HACK_DISABLE_COPY_TO_VRAM, m_game_layer);
+  m_disable_vram_copies = new ConfigBool(
+      tr("Disable EFB VRAM Copies"), Config::GFX_HACK_DISABLE_COPY_TO_VRAM, m_game_layer);
   m_enable_graphics_mods =
       new ConfigBool(tr("Enable Graphics Mods"), Config::GFX_MODS_ENABLE, m_game_layer);
 
@@ -162,8 +161,8 @@ void AdvancedWidget::CreateWidgets()
 
   m_frame_dumps_resolution_type =
       new ConfigChoice({tr("Window Resolution"), tr("Aspect Ratio Corrected Internal Resolution"),
-                        tr("Raw Internal Resolution")},
-                       Config::GFX_FRAME_DUMPS_RESOLUTION_TYPE, m_game_layer);
+                           tr("Raw Internal Resolution")},
+          Config::GFX_FRAME_DUMPS_RESOLUTION_TYPE, m_game_layer);
   m_png_compression_level =
       new ConfigInteger(0, 9, Config::GFX_PNG_COMPRESSION_LEVEL, m_game_layer);
   dump_layout->addWidget(new QLabel(tr("Resolution Type:")), 0, 0);
@@ -193,8 +192,8 @@ void AdvancedWidget::CreateWidgets()
   m_enable_cropping = new ConfigBool(tr("Crop"), Config::GFX_CROP, m_game_layer);
   m_enable_prog_scan =
       new ConfigBool(tr("Enable Progressive Scan"), Config::SYSCONF_PROGRESSIVE_SCAN, m_game_layer);
-  m_backend_multithreading = new ConfigBool(tr("Backend Multithreading"),
-                                            Config::GFX_BACKEND_MULTITHREADING, m_game_layer);
+  m_backend_multithreading = new ConfigBool(
+      tr("Backend Multithreading"), Config::GFX_BACKEND_MULTITHREADING, m_game_layer);
   m_prefer_vs_for_point_line_expansion = new ConfigBool(
       // i18n: VS is short for vertex shaders.
       tr("Prefer VS for Point/Line Expansion"), Config::GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION,
@@ -241,24 +240,26 @@ void AdvancedWidget::CreateWidgets()
 void AdvancedWidget::ConnectWidgets()
 {
   connect(m_load_custom_textures, &QCheckBox::toggled, this,
-          [this](bool checked) { m_prefetch_custom_textures->setEnabled(checked); });
-  connect(m_dump_textures, &QCheckBox::toggled, this, [this](bool checked) {
-    m_dump_mip_textures->setEnabled(checked);
-    m_dump_base_textures->setEnabled(checked);
-  });
+      [this](bool checked) { m_prefetch_custom_textures->setEnabled(checked); });
+  connect(m_dump_textures, &QCheckBox::toggled, this,
+      [this](bool checked)
+      {
+        m_dump_mip_textures->setEnabled(checked);
+        m_dump_base_textures->setEnabled(checked);
+      });
   connect(m_enable_graphics_mods, &QCheckBox::toggled, this,
-          [](bool checked) { emit Settings::Instance().EnableGfxModsChanged(checked); });
+      [](bool checked) { emit Settings::Instance().EnableGfxModsChanged(checked); });
 #if defined(HAVE_FFMPEG)
   connect(m_dump_use_lossless, &QCheckBox::toggled, this,
-          [this](bool checked) { m_dump_bitrate->setEnabled(!checked); });
+      [this](bool checked) { m_dump_bitrate->setEnabled(!checked); });
 #endif
 }
 
 void AdvancedWidget::OnBackendChanged()
 {
   m_backend_multithreading->setEnabled(g_backend_info.bSupportsMultithreading);
-  m_prefer_vs_for_point_line_expansion->setEnabled(g_backend_info.bSupportsGeometryShaders &&
-                                                   g_backend_info.bSupportsVSLinePointExpand);
+  m_prefer_vs_for_point_line_expansion->setEnabled(
+      g_backend_info.bSupportsGeometryShaders && g_backend_info.bSupportsVSLinePointExpand);
   AddDescriptions();
 }
 

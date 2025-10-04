@@ -15,8 +15,8 @@ namespace Common
 
 // Like std::span::subspan, except undefined behavior is replaced with returning a 0-length span.
 template <class T>
-[[nodiscard]] constexpr std::span<T> SafeSubspan(std::span<T> span, size_t offset,
-                                                 size_t count = std::dynamic_extent)
+[[nodiscard]] constexpr std::span<T> SafeSubspan(
+    std::span<T> span, size_t offset, size_t count = std::dynamic_extent)
 {
   if (count == std::dynamic_extent || offset > span.size())
     return span.subspan(std::min(offset, span.size()));

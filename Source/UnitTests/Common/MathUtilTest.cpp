@@ -60,9 +60,9 @@ TEST(MathUtil, SaturatingCast)
 
   // Edge cases
   EXPECT_EQ(std::numeric_limits<s32>::max(),
-            MathUtil::SaturatingCast<s32>(std::numeric_limits<float>::infinity()));
+      MathUtil::SaturatingCast<s32>(std::numeric_limits<float>::infinity()));
   EXPECT_EQ(std::numeric_limits<s32>::min(),
-            MathUtil::SaturatingCast<s32>(-std::numeric_limits<float>::infinity()));
+      MathUtil::SaturatingCast<s32>(-std::numeric_limits<float>::infinity()));
   // 16777217 = 2^24 + 1 is the first integer that cannot be represented correctly with a f32.
   EXPECT_EQ(16777216, MathUtil::SaturatingCast<s32>(float(16777216)));
   EXPECT_EQ(16777216, MathUtil::SaturatingCast<s32>(float(16777217)));

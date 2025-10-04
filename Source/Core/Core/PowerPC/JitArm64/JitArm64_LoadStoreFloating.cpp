@@ -354,7 +354,8 @@ void JitArm64::stfXX(UGeckoInstruction inst)
   ARM64Reg XA = EncodeRegTo64(addr_reg);
 
   bool addr_reg_set = !is_immediate;
-  const auto set_addr_reg_if_needed = [&] {
+  const auto set_addr_reg_if_needed = [&]
+  {
     if (!addr_reg_set)
       MOVI2R(XA, imm_addr);
   };
@@ -394,7 +395,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
         m_float_emit.REV32(8, ARM64Reg::D0, V0);
 
       m_float_emit.STR(accessSize, IndexType::Post, accessSize == 64 ? ARM64Reg::Q0 : ARM64Reg::D0,
-                       ARM64Reg::X2, accessSize >> 3);
+          ARM64Reg::X2, accessSize >> 3);
 
       STR(IndexType::Unsigned, ARM64Reg::X2, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
       js.fifoBytesSinceCheck += accessSize >> 3;
@@ -402,14 +403,14 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     else if (m_mmu.IsOptimizableRAMAddress(imm_addr, BackPatchInfo::GetFlagSize(flags)))
     {
       set_addr_reg_if_needed();
-      EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, V0, XA, regs_in_use,
-                           fprs_in_use);
+      EmitBackpatchRoutine(
+          flags, MemAccessMode::AlwaysFastAccess, V0, XA, regs_in_use, fprs_in_use);
     }
     else
     {
       set_addr_reg_if_needed();
-      EmitBackpatchRoutine(flags, MemAccessMode::AlwaysSlowAccess, V0, XA, regs_in_use,
-                           fprs_in_use);
+      EmitBackpatchRoutine(
+          flags, MemAccessMode::AlwaysSlowAccess, V0, XA, regs_in_use, fprs_in_use);
     }
   }
   else

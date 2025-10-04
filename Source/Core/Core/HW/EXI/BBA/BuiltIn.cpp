@@ -35,7 +35,7 @@ u64 GetTickCountStd()
 std::vector<u8> BuildFINFrame(StackRef* ref)
 {
   const Common::TCPPacket result(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
-                                 ref->ack_num, TCP_FLAG_FIN | TCP_FLAG_ACK | TCP_FLAG_RST);
+      ref->ack_num, TCP_FLAG_FIN | TCP_FLAG_ACK | TCP_FLAG_RST);
 
   for (auto& tcp_buf : ref->tcp_buffers)
     tcp_buf.used = false;
@@ -44,8 +44,8 @@ std::vector<u8> BuildFINFrame(StackRef* ref)
 
 std::vector<u8> BuildAckFrame(StackRef* ref)
 {
-  const Common::TCPPacket result(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
-                                 ref->ack_num, TCP_FLAG_ACK);
+  const Common::TCPPacket result(
+      ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num, ref->ack_num, TCP_FLAG_ACK);
   return result.Build();
 }
 
@@ -200,8 +200,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleARP(const Common::ARPPacket& packe
     return;
   }
   Common::ARPPacket response(m_current_mac, m_router_mac);
-  response.arp_header = Common::ARPHeader(arpdata.target_ip, ResolveAddress(arpdata.target_ip),
-                                          m_current_ip, m_current_mac);
+  response.arp_header = Common::ARPHeader(
+      arpdata.target_ip, ResolveAddress(arpdata.target_ip), m_current_ip, m_current_mac);
   WriteToQueue(response.Build());
 }
 
@@ -249,8 +249,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& pack
   WriteToQueue(response.Build());
 }
 
-std::optional<std::vector<u8>>
-CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
+std::optional<std::vector<u8>> CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(
+    StackRef* ref)
 {
   std::size_t datasize = 0;  // Set by socket.receive using a non-const reference
   unsigned short remote_port;
@@ -282,7 +282,7 @@ CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
     {
       // Create the resulting RST ACK packet
       const Common::TCPPacket result(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
-                                     ref->ack_num, TCP_FLAG_RST | TCP_FLAG_ACK);
+          ref->ack_num, TCP_FLAG_RST | TCP_FLAG_ACK);
       WriteToQueue(result.Build());
       ref->ip = 0;
       ref->tcp_socket.disconnect();
@@ -315,7 +315,7 @@ CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
     if (datasize > 0)
     {
       Common::TCPPacket packet(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
-                               ref->ack_num, TCP_FLAG_ACK | TCP_FLAG_PSH);
+          ref->ack_num, TCP_FLAG_ACK | TCP_FLAG_PSH);
       packet.data = std::vector<u8>(buffer.begin(), buffer.begin() + datasize);
 
       // build buffer
@@ -347,7 +347,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
 {
   const auto& [hwdata, ip_header, tcp_header, ip_options, tcp_options, data] = packet;
   StackRef* ref = m_network_ref.GetTCPSlot(tcp_header.source_port, tcp_header.destination_port,
-                                           std::bit_cast<u32>(ip_header.destination_addr));
+      std::bit_cast<u32>(ip_header.destination_addr));
   const u16 flags = ntohs(tcp_header.properties) & 0xfff;
   if (flags & (TCP_FLAG_FIN | TCP_FLAG_RST))
   {
@@ -579,8 +579,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUPnPClient()
   ref->tcp_socket.setBlocking(false);
   ref->ready = false;
 
-  Common::TCPPacket result(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
-                           ref->ack_num, TCP_FLAG_SIN);
+  Common::TCPPacket result(
+      ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num, ref->ack_num, TCP_FLAG_SIN);
   // Based on Nintendont packet capture of Mario Kart: Double Dash!!
   result.tcp_options = {
       0x02, 0x04, 0x05, 0xb4,  // Maximum segment size: 1460 bytes
@@ -736,7 +736,7 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
         std::exit(0);
       }
       std::memcpy(self->m_eth_ref->mRecvBuffer.get(), self->m_queue_data[self->m_queue_read].data(),
-                  datasize);
+          datasize);
       self->m_queue_read++;
       self->m_queue_read &= 15;
     }
@@ -851,8 +851,8 @@ BbaTcpSocket::ConnectingState BbaTcpSocket::Connected(StackRef* ref)
 
     if (select(nfds, &read_fds, &write_fds, &except_fds, &t) < 0)
     {
-      ERROR_LOG_FMT(SP1, "Failed to get BBA socket connection state: {}",
-                    Common::StrNetworkError());
+      ERROR_LOG_FMT(
+          SP1, "Failed to get BBA socket connection state: {}", Common::StrNetworkError());
       break;
     }
 
@@ -870,8 +870,8 @@ BbaTcpSocket::ConnectingState BbaTcpSocket::Connected(StackRef* ref)
 
     if (error != 0)
     {
-      ERROR_LOG_FMT(SP1, "BBA connect failed (err={}): {}", error,
-                    Common::DecodeNetworkError(error));
+      ERROR_LOG_FMT(
+          SP1, "BBA connect failed (err={}): {}", error, Common::DecodeNetworkError(error));
       m_connecting_state = ConnectingState::Error;
       break;
     }
@@ -891,7 +891,7 @@ BbaTcpSocket::ConnectingState BbaTcpSocket::Connected(StackRef* ref)
     INFO_LOG_FMT(SP1, "BBA connect succeeded");
 
     Common::TCPPacket result(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
-                             ref->ack_num, TCP_FLAG_SIN | TCP_FLAG_ACK);
+        ref->ack_num, TCP_FLAG_SIN | TCP_FLAG_ACK);
 
     result.tcp_options = {
         0x02, 0x04, 0x05, 0xb4,  // Maximum segment size: 1460 bytes
@@ -923,13 +923,13 @@ sf::Socket::Status BbaUdpSocket::Bind(u16 port, u32 net_ip)
   create();
   const int on = 1;
   if (setsockopt(getNativeHandle(), SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&on),
-                 sizeof(on)) != 0)
+          sizeof(on)) != 0)
   {
     ERROR_LOG_FMT(SP1, "setsockopt failed to reuse SSDP address: {}", Common::StrNetworkError());
   }
 #ifdef SO_REUSEPORT
   if (setsockopt(getNativeHandle(), SOL_SOCKET, SO_REUSEPORT, reinterpret_cast<const char*>(&on),
-                 sizeof(on)) != 0)
+          sizeof(on)) != 0)
   {
     ERROR_LOG_FMT(SP1, "setsockopt failed to reuse SSDP port: {}", Common::StrNetworkError());
   }
@@ -964,10 +964,10 @@ sf::Socket::Status BbaUdpSocket::Bind(u16 port, u32 net_ip)
 
   // Bind to the right interface
   if (setsockopt(getNativeHandle(), IPPROTO_IP, IP_MULTICAST_IF,
-                 reinterpret_cast<const char*>(&addr.sin_addr), sizeof(addr.sin_addr)) != 0)
+          reinterpret_cast<const char*>(&addr.sin_addr), sizeof(addr.sin_addr)) != 0)
   {
-    ERROR_LOG_FMT(SP1, "setsockopt failed to bind to the network interface: {}",
-                  Common::StrNetworkError());
+    ERROR_LOG_FMT(
+        SP1, "setsockopt failed to bind to the network interface: {}", Common::StrNetworkError());
     return sf::Socket::Status::Error;
   }
 
@@ -977,10 +977,10 @@ sf::Socket::Status BbaUdpSocket::Bind(u16 port, u32 net_ip)
   mreq.imr_multiaddr.s_addr = std::bit_cast<u32>(Common::IP_ADDR_SSDP);
   mreq.imr_interface.s_addr = net_ip;
   if (setsockopt(getNativeHandle(), IPPROTO_IP, IP_ADD_MEMBERSHIP,
-                 reinterpret_cast<const char*>(&mreq), sizeof(mreq)) != 0)
+          reinterpret_cast<const char*>(&mreq), sizeof(mreq)) != 0)
   {
     ERROR_LOG_FMT(SP1, "setsockopt failed to subscribe to SSDP multicast group: {}",
-                  Common::StrNetworkError());
+        Common::StrNetworkError());
     return sf::Socket::Status::Error;
   }
 

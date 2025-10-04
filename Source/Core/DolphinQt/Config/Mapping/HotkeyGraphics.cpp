@@ -18,8 +18,8 @@ void HotkeyGraphics::CreateMainLayout()
   m_main_layout = new QGridLayout();
 
   m_main_layout->addWidget(CreateGroupBox(tr("Graphics Toggles"),
-                                          HotkeyManagerEmu::GetHotkeyGroup(HKGP_GRAPHICS_TOGGLES)),
-                           0, 0, -1, 1);
+                               HotkeyManagerEmu::GetHotkeyGroup(HKGP_GRAPHICS_TOGGLES)),
+      0, 0, -1, 1);
 
   m_main_layout->addWidget(
       CreateGroupBox(tr("FreeLook"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_FREELOOK)), 0, 1);

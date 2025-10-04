@@ -83,7 +83,7 @@ class MainWindow final : public QMainWindow
 
 public:
   explicit MainWindow(Core::System& system, std::unique_ptr<BootParameters> boot_parameters,
-                      const std::string& movie_path);
+      const std::string& movie_path);
   ~MainWindow() override;
 
   WindowSystemInfo GetWindowSystemInfo() const;
@@ -151,14 +151,14 @@ private:
     No,
   };
 
-  void ScanForSecondDiscAndStartGame(const UICommon::GameFile& game,
-                                     std::unique_ptr<BootSessionData> boot_session_data = nullptr);
+  void ScanForSecondDiscAndStartGame(
+      const UICommon::GameFile& game, std::unique_ptr<BootSessionData> boot_session_data = nullptr);
   void StartGame(const QString& path, ScanForSecondDisc scan,
-                 std::unique_ptr<BootSessionData> boot_session_data = nullptr);
+      std::unique_ptr<BootSessionData> boot_session_data = nullptr);
   void StartGame(const std::string& path, ScanForSecondDisc scan,
-                 std::unique_ptr<BootSessionData> boot_session_data = nullptr);
+      std::unique_ptr<BootSessionData> boot_session_data = nullptr);
   void StartGame(const std::vector<std::string>& paths,
-                 std::unique_ptr<BootSessionData> boot_session_data = nullptr);
+      std::unique_ptr<BootSessionData> boot_session_data = nullptr);
   void StartGame(std::unique_ptr<BootParameters>&& parameters);
   void ShowRenderWidget();
   void HideRenderWidget(bool reinit = true, bool is_exit = false);

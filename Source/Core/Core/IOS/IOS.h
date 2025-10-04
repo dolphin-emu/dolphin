@@ -174,7 +174,7 @@ public:
 
   void EnqueueIPCRequest(u32 address);
   void EnqueueIPCReply(const Request& request, s32 return_value, s64 cycles_in_future = 0,
-                       CoreTiming::FromThread from = CoreTiming::FromThread::CPU);
+      CoreTiming::FromThread from = CoreTiming::FromThread::CPU);
 
   void SetUidForPPC(u32 uid);
   u32 GetUidForPPC() const;
@@ -182,8 +182,8 @@ public:
   u16 GetGidForPPC() const;
 
   bool BootstrapPPC(const std::string& boot_content_path);
-  bool BootIOS(u64 ios_title_id, HangPPC hang_ppc = HangPPC::No,
-               const std::string& boot_content_path = {});
+  bool BootIOS(
+      u64 ios_title_id, HangPPC hang_ppc = HangPPC::No, const std::string& boot_content_path = {});
   void InitIPC();
 
   Core::System& GetSystem() const { return m_system; }

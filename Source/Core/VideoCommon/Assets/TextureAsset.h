@@ -16,7 +16,7 @@ namespace VideoCommon
 struct TextureAndSamplerData
 {
   static bool FromJson(const CustomAssetLibrary::AssetID& asset_id, const picojson::object& json,
-                       TextureAndSamplerData* data);
+      TextureAndSamplerData* data);
   static void ToJson(picojson::object* obj, const TextureAndSamplerData& data);
   AbstractTextureType type;
   CustomTextureData texture_data;

@@ -52,7 +52,7 @@ public:
   // bpMem must point to the actual bp mem array used by the plugin because it will be read as fifo
   // data is recorded
   void SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32* xfMem, const u32* xfRegs,
-                      u32 xfRegsSize, const u8* texMem);
+      u32 xfRegsSize, const u8* texMem);
 
   // Checked once per frame prior to callng EndFrame()
   bool IsRecording() const;

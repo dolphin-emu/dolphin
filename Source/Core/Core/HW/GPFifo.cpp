@@ -93,8 +93,8 @@ void GPFifoManager::UpdateGatherPipe()
   for (processed = 0; pipe_count >= GATHER_PIPE_SIZE; processed += GATHER_PIPE_SIZE)
   {
     // copy the GatherPipe
-    memory.CopyToEmu(processor_interface.m_fifo_cpu_write_pointer, m_gather_pipe + processed,
-                     GATHER_PIPE_SIZE);
+    memory.CopyToEmu(
+        processor_interface.m_fifo_cpu_write_pointer, m_gather_pipe + processed, GATHER_PIPE_SIZE);
     pipe_count -= GATHER_PIPE_SIZE;
 
     // increase the CPUWritePointer

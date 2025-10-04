@@ -40,8 +40,8 @@ std::optional<GameModDescriptor> ParseGameModDescriptorFile(const std::string& f
   return ParseGameModDescriptorString(std::string_view(data.data(), data.size()), path);
 }
 
-static std::vector<GameModDescriptorRiivolutionPatchOption>
-ParseRiivolutionOptions(const picojson::array& array)
+static std::vector<GameModDescriptorRiivolutionPatchOption> ParseRiivolutionOptions(
+    const picojson::array& array)
 {
   std::vector<GameModDescriptorRiivolutionPatchOption> options;
   for (const auto& option_object : array)
@@ -65,8 +65,8 @@ ParseRiivolutionOptions(const picojson::array& array)
   return options;
 }
 
-static GameModDescriptorRiivolution ParseRiivolutionObject(const std::string& json_directory,
-                                                           const picojson::object& object)
+static GameModDescriptorRiivolution ParseRiivolutionObject(
+    const std::string& json_directory, const picojson::object& object)
 {
   GameModDescriptorRiivolution r;
   for (const auto& [element_key, element_value] : object)
@@ -94,8 +94,8 @@ static GameModDescriptorRiivolution ParseRiivolutionObject(const std::string& js
   return r;
 }
 
-std::optional<GameModDescriptor> ParseGameModDescriptorString(std::string_view json,
-                                                              std::string_view json_path)
+std::optional<GameModDescriptor> ParseGameModDescriptorString(
+    std::string_view json, std::string_view json_path)
 {
   std::string json_directory;
   SplitPath(json_path, &json_directory, nullptr, nullptr);
@@ -148,8 +148,8 @@ std::optional<GameModDescriptor> ParseGameModDescriptorString(std::string_view j
   return descriptor;
 }
 
-static picojson::object
-WriteGameModDescriptorRiivolution(const GameModDescriptorRiivolution& riivolution)
+static picojson::object WriteGameModDescriptorRiivolution(
+    const GameModDescriptorRiivolution& riivolution)
 {
   picojson::array json_patches;
   for (const auto& patch : riivolution.patches)
@@ -205,8 +205,8 @@ std::string WriteGameModDescriptorString(const GameModDescriptor& descriptor, bo
   return picojson::value(json_root).serialize(pretty);
 }
 
-bool WriteGameModDescriptorFile(const std::string& filename, const GameModDescriptor& descriptor,
-                                bool pretty)
+bool WriteGameModDescriptorFile(
+    const std::string& filename, const GameModDescriptor& descriptor, bool pretty)
 {
   auto json = WriteGameModDescriptorString(descriptor, pretty);
   if (json.empty())

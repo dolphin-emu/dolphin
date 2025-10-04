@@ -71,11 +71,11 @@ void SkylanderFigure::GenerateIncompleteHashIn(u8* dest) const
 
   // Byte array of ascii string " Copyright (C) 2010 Activision. All Rights Reserved.". The space at
   // the start of the string is intentional
-  static constexpr std::array<u8, 0x35> HASH_CONST = {
-      0x20, 0x43, 0x6F, 0x70, 0x79, 0x72, 0x69, 0x67, 0x68, 0x74, 0x20, 0x28, 0x43, 0x29,
-      0x20, 0x32, 0x30, 0x31, 0x30, 0x20, 0x41, 0x63, 0x74, 0x69, 0x76, 0x69, 0x73, 0x69,
-      0x6F, 0x6E, 0x2E, 0x20, 0x41, 0x6C, 0x6C, 0x20, 0x52, 0x69, 0x67, 0x68, 0x74, 0x73,
-      0x20, 0x52, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x64, 0x2E, 0x20};
+  static constexpr std::array<u8, 0x35> HASH_CONST = {0x20, 0x43, 0x6F, 0x70, 0x79, 0x72, 0x69,
+      0x67, 0x68, 0x74, 0x20, 0x28, 0x43, 0x29, 0x20, 0x32, 0x30, 0x31, 0x30, 0x20, 0x41, 0x63,
+      0x74, 0x69, 0x76, 0x69, 0x73, 0x69, 0x6F, 0x6E, 0x2E, 0x20, 0x41, 0x6C, 0x6C, 0x20, 0x52,
+      0x69, 0x67, 0x68, 0x74, 0x73, 0x20, 0x52, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x64, 0x2E,
+      0x20};
 
   memcpy(hash_in.data() + 0x21, HASH_CONST.data(), HASH_CONST.size());
 
@@ -115,7 +115,7 @@ void SkylanderFigure::Encrypt(std::span<const u8, FIGURE_SIZE> input)
     mbedtls_aes_setkey_enc(&aes_context, hash_out.data(), 128);
 
     mbedtls_aes_crypt_ecb(&aes_context, MBEDTLS_AES_ENCRYPT, current_block.data(),
-                          encrypted.data() + (i * BLOCK_SIZE));
+        encrypted.data() + (i * BLOCK_SIZE));
   }
 
   memcpy(m_data.data(), encrypted.data(), FIGURE_SIZE);
@@ -128,8 +128,8 @@ SkylanderFigure::SkylanderFigure(File::IOFile file)
   m_sky_file.Seek(0, File::SeekOrigin::Begin);
   m_sky_file.ReadBytes(m_data.data(), m_data.size());
 }
-bool SkylanderFigure::Create(u16 sky_id, u16 sky_var,
-                             std::optional<std::array<u8, 4>> requested_nuid)
+bool SkylanderFigure::Create(
+    u16 sky_id, u16 sky_var, std::optional<std::array<u8, 4>> requested_nuid)
 {
   if (!m_sky_file)
   {
@@ -182,7 +182,7 @@ void SkylanderFigure::GetBlock(u8 index, u8* dest) const
 FigureData SkylanderFigure::GetData() const
 {
   FigureData figure_data = {.figure_id = Common::BitCastPtr<u16>(m_data.data() + 0x10),
-                            .variant_id = Common::BitCastPtr<u16>(m_data.data() + 0x1C)};
+      .variant_id = Common::BitCastPtr<u16>(m_data.data() + 0x1C)};
 
   auto filter = std::make_pair(figure_data.figure_id, figure_data.variant_id);
   Type type = Type::Item;
@@ -208,15 +208,15 @@ FigureData SkylanderFigure::GetData() const
         .hero_level = Common::BitCastPtr<u16>(decrypted.data() + area_offset + 0x5A),
         .playtime = Common::BitCastPtr<u32>(decrypted.data() + area_offset + 0x5),
         .last_reset = {.minute = Common::BitCastPtr<u8>(decrypted.data() + area_offset + 0x60),
-                       .hour = Common::BitCastPtr<u8>(decrypted.data() + area_offset + 0x61),
-                       .day = Common::BitCastPtr<u8>(decrypted.data() + area_offset + 0x62),
-                       .month = Common::BitCastPtr<u8>(decrypted.data() + area_offset + 0x63),
-                       .year = Common::BitCastPtr<u16>(decrypted.data() + area_offset + 0x64)},
+            .hour = Common::BitCastPtr<u8>(decrypted.data() + area_offset + 0x61),
+            .day = Common::BitCastPtr<u8>(decrypted.data() + area_offset + 0x62),
+            .month = Common::BitCastPtr<u8>(decrypted.data() + area_offset + 0x63),
+            .year = Common::BitCastPtr<u16>(decrypted.data() + area_offset + 0x64)},
         .last_placed = {.minute = Common::BitCastPtr<u8>(decrypted.data() + area_offset + 0x50),
-                        .hour = Common::BitCastPtr<u8>(decrypted.data() + area_offset + 0x51),
-                        .day = Common::BitCastPtr<u8>(decrypted.data() + area_offset + 0x52),
-                        .month = Common::BitCastPtr<u8>(decrypted.data() + area_offset + 0x53),
-                        .year = Common::BitCastPtr<u16>(decrypted.data() + area_offset + 0x54)}};
+            .hour = Common::BitCastPtr<u8>(decrypted.data() + area_offset + 0x51),
+            .day = Common::BitCastPtr<u8>(decrypted.data() + area_offset + 0x52),
+            .month = Common::BitCastPtr<u8>(decrypted.data() + area_offset + 0x53),
+            .year = Common::BitCastPtr<u16>(decrypted.data() + area_offset + 0x54)}};
 
     figure_data.skylander_data.toy_code =
         ComputeToyCode(Common::BitCastPtr<u64>(decrypted.data() + 0x14));
@@ -268,49 +268,49 @@ void SkylanderFigure::SetData(FigureData* figure_data)
     memcpy(decrypted.data() + area_offset + 0x5, &figure_data->skylander_data.playtime, 4);
 
     {
-      memcpy(decrypted.data() + area_offset + 0x60, &figure_data->skylander_data.last_reset.minute,
-             1);
-      memcpy(decrypted.data() + area_offset + 0x61, &figure_data->skylander_data.last_reset.hour,
-             1);
+      memcpy(
+          decrypted.data() + area_offset + 0x60, &figure_data->skylander_data.last_reset.minute, 1);
+      memcpy(
+          decrypted.data() + area_offset + 0x61, &figure_data->skylander_data.last_reset.hour, 1);
       memcpy(decrypted.data() + area_offset + 0x62, &figure_data->skylander_data.last_reset.day, 1);
-      memcpy(decrypted.data() + area_offset + 0x63, &figure_data->skylander_data.last_reset.month,
-             1);
-      memcpy(decrypted.data() + area_offset + 0x64, &figure_data->skylander_data.last_reset.year,
-             2);
+      memcpy(
+          decrypted.data() + area_offset + 0x63, &figure_data->skylander_data.last_reset.month, 1);
+      memcpy(
+          decrypted.data() + area_offset + 0x64, &figure_data->skylander_data.last_reset.year, 2);
     }
 
     {
       memcpy(decrypted.data() + area_offset + 0x50, &figure_data->skylander_data.last_placed.minute,
-             1);
-      memcpy(decrypted.data() + area_offset + 0x51, &figure_data->skylander_data.last_placed.hour,
-             1);
-      memcpy(decrypted.data() + area_offset + 0x52, &figure_data->skylander_data.last_placed.day,
-             1);
-      memcpy(decrypted.data() + area_offset + 0x53, &figure_data->skylander_data.last_placed.month,
-             1);
-      memcpy(decrypted.data() + area_offset + 0x54, &figure_data->skylander_data.last_placed.year,
-             2);
+          1);
+      memcpy(
+          decrypted.data() + area_offset + 0x51, &figure_data->skylander_data.last_placed.hour, 1);
+      memcpy(
+          decrypted.data() + area_offset + 0x52, &figure_data->skylander_data.last_placed.day, 1);
+      memcpy(
+          decrypted.data() + area_offset + 0x53, &figure_data->skylander_data.last_placed.month, 1);
+      memcpy(
+          decrypted.data() + area_offset + 0x54, &figure_data->skylander_data.last_placed.year, 2);
     }
 
     {
       for (size_t i = 0; i < 8; ++i)
       {
         memcpy(decrypted.data() + area_offset + 0x20 + (i * 2),
-               &figure_data->skylander_data.nickname[i], 0x2);
+            &figure_data->skylander_data.nickname[i], 0x2);
       }
 
       for (size_t i = 0; i < 8; ++i)
       {
         memcpy(decrypted.data() + area_offset + 0x40 + (i * 2),
-               &figure_data->skylander_data.nickname[8 + i], 0x2);
+            &figure_data->skylander_data.nickname[8 + i], 0x2);
       }
     }
 
     {
-      ComputeChecksumType3(decrypted.data() + area_offset + 0x50,
-                           decrypted.data() + area_offset + 0xA);
-      ComputeChecksumType2(decrypted.data() + area_offset + 0x10,
-                           decrypted.data() + area_offset + 0xC);
+      ComputeChecksumType3(
+          decrypted.data() + area_offset + 0x50, decrypted.data() + area_offset + 0xA);
+      ComputeChecksumType2(
+          decrypted.data() + area_offset + 0x10, decrypted.data() + area_offset + 0xC);
       decrypted[area_offset + 9] = decrypted[other_area_offset + 9] + 1;
       ComputeChecksumType1(decrypted.data() + area_offset, decrypted.data() + area_offset + 0xE);
     }
@@ -333,10 +333,10 @@ void SkylanderFigure::SetData(FigureData* figure_data)
       memcpy(decrypted.data() + area_offset + 0x14, &figure_data->trophy_data.unlocked_villains, 1);
 
       {
-        ComputeChecksumType3(decrypted.data() + area_offset + 0x50,
-                             decrypted.data() + area_offset + 0xA);
-        ComputeChecksumType2(decrypted.data() + area_offset + 0x10,
-                             decrypted.data() + area_offset + 0xC);
+        ComputeChecksumType3(
+            decrypted.data() + area_offset + 0x50, decrypted.data() + area_offset + 0xA);
+        ComputeChecksumType2(
+            decrypted.data() + area_offset + 0x10, decrypted.data() + area_offset + 0xC);
         decrypted[area_offset + 9] = decrypted[other_area_offset + 9] + 1;
         ComputeChecksumType1(decrypted.data() + area_offset, decrypted.data() + area_offset + 0xE);
       }
@@ -402,7 +402,7 @@ void SkylanderFigure::DecryptFigure(std::array<u8, FIGURE_SIZE>* dest) const
     mbedtls_aes_setkey_dec(&aes_context, hash_out.data(), 128);
 
     mbedtls_aes_crypt_ecb(&aes_context, MBEDTLS_AES_DECRYPT, current_block.data(),
-                          decrypted.data() + (i * BLOCK_SIZE));
+        decrypted.data() + (i * BLOCK_SIZE));
   }
 
   memcpy(dest->data(), decrypted.data(), FIGURE_SIZE);

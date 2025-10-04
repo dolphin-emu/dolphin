@@ -26,8 +26,9 @@ static constexpr int BLOCK_SIZE = 2;
 struct SlopeContext
 {
   SlopeContext(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2,
-               s32 x0_, s32 y0_, s32 x_off, s32 y_off)
-      : x0(x0_), y0(y0_)
+      s32 x0_, s32 y0_, s32 x_off, s32 y_off)
+      : x0(x0_)
+      , y0(y0_)
   {
     // adjust a little less than 0.5
     const float adjust = 0.495f;
@@ -303,7 +304,7 @@ static void BuildBlock(s32 blockX, s32 blockY)
 }
 
 void UpdateZSlope(const OutputVertexData* v0, const OutputVertexData* v1,
-                  const OutputVertexData* v2, s32 x_off, s32 y_off)
+    const OutputVertexData* v2, s32 x_off, s32 y_off)
 {
   if (!bpmem.genMode.zfreeze)
   {
@@ -315,8 +316,7 @@ void UpdateZSlope(const OutputVertexData* v0, const OutputVertexData* v1,
 }
 
 static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v1,
-                                  const OutputVertexData* v2,
-                                  const BPFunctions::ScissorRect& scissor)
+    const OutputVertexData* v2, const BPFunctions::ScissorRect& scissor)
 {
   // The zslope should be updated now, even if the triangle is rejected by the scissor test, as
   // zfreeze depends on it
@@ -373,11 +373,11 @@ static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertex
     return;
 
   // Set up the remaining slopes
-  const SlopeContext ctx(v0, v1, v2, (X1 + 0xF) >> 4, (Y1 + 0xF) >> 4, scissor.x_off,
-                         scissor.y_off);
+  const SlopeContext ctx(
+      v0, v1, v2, (X1 + 0xF) >> 4, (Y1 + 0xF) >> 4, scissor.x_off, scissor.y_off);
 
   float w[3] = {1.0f / v0->projectedPosition.w, 1.0f / v1->projectedPosition.w,
-                1.0f / v2->projectedPosition.w};
+      1.0f / v2->projectedPosition.w};
   WSlope = Slope(w[0], w[1], w[2], ctx);
 
   for (unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
@@ -500,8 +500,8 @@ static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertex
   }
 }
 
-void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v1,
-                           const OutputVertexData* v2)
+void DrawTriangleFrontFace(
+    const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2)
 {
   INCSTAT(g_stats.this_frame.num_triangles_drawn);
 

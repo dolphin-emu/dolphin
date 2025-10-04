@@ -26,15 +26,14 @@ ControllerEmu::ControlGroupContainer* ControlGroupContainerFromJava(JNIEnv* env,
       env->GetLongField(obj, IDCache::GetControlGroupContainerPointer()));
 }
 
-static jobject ControlGroupContainerToJava(JNIEnv* env,
-                                           ControllerEmu::ControlGroupContainer* container)
+static jobject ControlGroupContainerToJava(
+    JNIEnv* env, ControllerEmu::ControlGroupContainer* container)
 {
   if (!container)
     return nullptr;
 
   return env->NewObject(IDCache::GetControlGroupContainerClass(),
-                        IDCache::GetControlGroupContainerConstructor(),
-                        reinterpret_cast<jlong>(container));
+      IDCache::GetControlGroupContainerConstructor(), reinterpret_cast<jlong>(container));
 }
 
 ControllerEmu::EmulatedController* EmulatedControllerFromJava(JNIEnv* env, jobject obj)
@@ -49,8 +48,7 @@ static jobject EmulatedControllerToJava(JNIEnv* env, ControllerEmu::EmulatedCont
     return nullptr;
 
   return env->NewObject(IDCache::GetEmulatedControllerClass(),
-                        IDCache::GetEmulatedControllerConstructor(),
-                        reinterpret_cast<jlong>(controller));
+      IDCache::GetEmulatedControllerConstructor(), reinterpret_cast<jlong>(controller));
 }
 
 extern "C" {
@@ -90,8 +88,8 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
 {
   ControllerEmu::EmulatedController* controller = EmulatedControllerFromJava(env, obj);
   controller->GetConfig()->GenerateControllerTextures();
-  return controller->UpdateSingleControlReference(g_controller_interface,
-                                                  ControlReferenceFromJava(env, control_reference));
+  return controller->UpdateSingleControlReference(
+      g_controller_interface, ControlReferenceFromJava(env, control_reference));
 }
 
 JNIEXPORT void JNICALL
@@ -166,8 +164,8 @@ JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getSysProfileDirectoryPath(
     JNIEnv* env, jobject obj)
 {
-  return ToJString(env,
-                   EmulatedControllerFromJava(env, obj)->GetConfig()->GetSysProfileDirectoryPath());
+  return ToJString(
+      env, EmulatedControllerFromJava(env, obj)->GetConfig()->GetSysProfileDirectoryPath());
 }
 
 JNIEXPORT jobject JNICALL

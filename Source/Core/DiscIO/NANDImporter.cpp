@@ -24,8 +24,7 @@ NANDImporter::NANDImporter() : m_nand_root(File::GetUserPath(D_WIIROOT_IDX))
 NANDImporter::~NANDImporter() = default;
 
 void NANDImporter::ImportNANDBin(const std::string& path_to_bin,
-                                 std::function<void()> update_callback,
-                                 const std::function<std::string()>& get_otp_dump_path)
+    std::function<void()> update_callback, const std::function<std::string()>& get_otp_dump_path)
 {
   m_update_callback = std::move(update_callback);
 
@@ -39,8 +38,8 @@ void NANDImporter::ImportNANDBin(const std::string& path_to_bin,
   ExtractCertificates();
 }
 
-bool NANDImporter::ReadNANDBin(const std::string& path_to_bin,
-                               const std::function<std::string()>& get_otp_dump_path)
+bool NANDImporter::ReadNANDBin(
+    const std::string& path_to_bin, const std::function<std::string()>& get_otp_dump_path)
 {
   constexpr size_t NAND_TOTAL_BLOCKS = 0x40000;
   constexpr size_t NAND_BLOCK_SIZE = 0x800;
@@ -97,7 +96,7 @@ bool NANDImporter::FindSuperblock()
   {
     auto superblock = std::make_unique<NANDSuperblock>();
     std::memcpy(superblock.get(), &m_nand[NAND_SUPERBLOCK_START + i * sizeof(NANDSuperblock)],
-                sizeof(NANDSuperblock));
+        sizeof(NANDSuperblock));
 
     if (std::memcmp(superblock->magic.data(), "SFFS", 4) != 0)
     {
@@ -245,7 +244,7 @@ bool NANDImporter::ExtractCertificates()
     if (search_result.empty())
     {
       ERROR_LOG_FMT(DISCIO, "ExtractCertificates: Could not find offset for certficate '{}'",
-                    certificate.filename);
+          certificate.filename);
       return false;
     }
 
@@ -255,8 +254,7 @@ bool NANDImporter::ExtractCertificates()
     constexpr int min_offset = 2;
     if (certificate_offset < min_offset)
     {
-      ERROR_LOG_FMT(
-          DISCIO,
+      ERROR_LOG_FMT(DISCIO,
           "ExtractCertificates: Invalid certificate offset {:#x}, must be between {:#x} and {:#x}",
           certificate_offset, min_offset, content_bytes.size());
       return false;
@@ -265,14 +263,13 @@ bool NANDImporter::ExtractCertificates()
     const size_t available_size = content_bytes.size() - static_cast<size_t>(certificate_offset);
     if (certificate_size > available_size)
     {
-      ERROR_LOG_FMT(
-          DISCIO,
+      ERROR_LOG_FMT(DISCIO,
           "ExtractCertificates: Invalid certificate size {:#x}, must be {:#x} bytes or smaller",
           certificate_size, available_size);
       return false;
     }
     INFO_LOG_FMT(DISCIO, "ExtractCertificates: '{}' offset: {:#x} size: {:#x}",
-                 certificate.filename, certificate_offset, certificate_size);
+        certificate.filename, certificate_offset, certificate_size);
 
     File::IOFile pem_file(pem_file_path, "wb");
     if (!pem_file.WriteBytes(&content_bytes[certificate_offset], certificate_size))

@@ -46,9 +46,9 @@ namespace WiiSave
 using Md5 = std::array<u8, 0x10>;
 
 constexpr std::array<u8, 0x10> s_sd_initial_iv{{0x21, 0x67, 0x12, 0xE6, 0xAA, 0x1F, 0x68, 0x9F,
-                                                0x95, 0xC5, 0xA2, 0x23, 0x24, 0xDC, 0x6A, 0x98}};
+    0x95, 0xC5, 0xA2, 0x23, 0x24, 0xDC, 0x6A, 0x98}};
 constexpr Md5 s_md5_blanker{{0x0E, 0x65, 0x37, 0x81, 0x99, 0xBE, 0x45, 0x17, 0xAB, 0x06, 0xEC, 0x22,
-                             0x45, 0x1A, 0x57, 0x93}};
+    0x45, 0x1A, 0x57, 0x93}};
 constexpr u32 s_ng_id = 0x0403AC68;
 
 void StorageDeleter::operator()(Storage* p) const
@@ -113,7 +113,7 @@ public:
     if (header.banner_size > sizeof(header.banner))
     {
       ERROR_LOG_FMT(CORE, "NandStorage::ReadHeader: {} corrupted banner_size: {:x}", banner_path,
-                    header.banner_size);
+          header.banner_size);
       return {};
     }
     header.tid = m_tid;
@@ -214,7 +214,8 @@ private:
       save_file.attributes = 0;
       save_file.type = metadata->is_file ? SaveFile::Type::File : SaveFile::Type::Directory;
       save_file.path = path.substr(m_data_dir.size() + 1);
-      save_file.data = [this, path]() -> std::optional<std::vector<u8>> {
+      save_file.data = [this, path]() -> std::optional<std::vector<u8>>
+      {
         const auto file = m_fs->OpenFile(*m_uid, *m_gid, path, FS::Mode::Read);
         if (!file)
           return {};
@@ -290,13 +291,13 @@ public:
 
     std::array<u8, 0x10> iv = s_sd_initial_iv;
     m_iosc.Decrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), reinterpret_cast<const u8*>(&header),
-                   sizeof(Header), reinterpret_cast<u8*>(&header), IOS::PID_ES);
+        sizeof(Header), reinterpret_cast<u8*>(&header), IOS::PID_ES);
     const u32 banner_size = header.banner_size;
     if ((banner_size < FULL_BNR_MIN) || (banner_size > FULL_BNR_MAX) ||
         (((banner_size - BNR_SZ) % ICON_SZ) != 0))
     {
-      ERROR_LOG_FMT(CONSOLE, "Not a Wii save or read failure for file header size {:x}",
-                    banner_size);
+      ERROR_LOG_FMT(
+          CONSOLE, "Not a Wii save or read failure for file header size {:x}", banner_size);
       return {};
     }
 
@@ -307,8 +308,8 @@ public:
     if (md5_file != md5_calc)
     {
       ERROR_LOG_FMT(CONSOLE, "MD5 mismatch\n {:016x}{:016x} != {:016x}{:016x}",
-                    Common::swap64(md5_file.data()), Common::swap64(md5_file.data() + 8),
-                    Common::swap64(md5_calc.data()), Common::swap64(md5_calc.data() + 8));
+          Common::swap64(md5_file.data()), Common::swap64(md5_file.data() + 8),
+          Common::swap64(md5_calc.data()), Common::swap64(md5_calc.data() + 8));
       return {};
     }
     return header;
@@ -357,7 +358,8 @@ public:
         std::array<u8, 0x10> iv = file_hdr.iv;
 
         save_file.data = [this, size, rounded_size, iv,
-                          pos]() mutable -> std::optional<std::vector<u8>> {
+                             pos]() mutable -> std::optional<std::vector<u8>>
+        {
           std::vector<u8> file_data(rounded_size);
           if (!m_file.Seek(pos, File::SeekOrigin::Begin) ||
               !m_file.ReadBytes(file_data.data(), rounded_size))
@@ -366,7 +368,7 @@ public:
           }
 
           m_iosc.Decrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), file_data.data(), rounded_size,
-                         file_data.data(), IOS::PID_ES);
+              file_data.data(), IOS::PID_ES);
           file_data.resize(size);
           return file_data;
         };
@@ -382,7 +384,7 @@ public:
     Header encrypted_header;
     std::array<u8, 0x10> iv = s_sd_initial_iv;
     m_iosc.Encrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), reinterpret_cast<const u8*>(&header),
-                   sizeof(Header), reinterpret_cast<u8*>(&encrypted_header), IOS::PID_ES);
+        sizeof(Header), reinterpret_cast<u8*>(&encrypted_header), IOS::PID_ES);
     return m_file.Seek(0, File::SeekOrigin::Begin) && m_file.WriteArray(&encrypted_header, 1);
   }
 
@@ -424,7 +426,7 @@ public:
         std::vector<u8> file_data_enc(Common::AlignUp(data->size(), BLOCK_SZ));
         std::ranges::copy(*data, file_data_enc.begin());
         m_iosc.Encrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, file_hdr.iv.data(), file_data_enc.data(),
-                       file_data_enc.size(), file_data_enc.data(), IOS::PID_ES);
+            file_data_enc.size(), file_data_enc.data(), IOS::PID_ES);
         if (!m_file.WriteBytes(file_data_enc.data(), file_data_enc.size()))
           return false;
       }
@@ -460,7 +462,7 @@ private:
     IOS::CertECC ap_cert;
     Common::ec::Signature ap_sig;
     m_iosc.Sign(ap_sig.data(), reinterpret_cast<u8*>(&ap_cert), Titles::SYSTEM_MENU,
-                data_sha1.data(), static_cast<u32>(data_sha1.size()));
+        data_sha1.data(), static_cast<u32>(data_sha1.size()));
 
     // Write signatures.
     if (!m_file.Seek(0, File::SeekOrigin::End))
@@ -555,8 +557,8 @@ CopyResult Import(const std::string& data_bin_path, std::function<bool()> can_ov
 
   if (!WiiUtils::EnsureTMDIsImported(*ios.GetFS(), ios.GetESCore(), header->tid))
   {
-    ERROR_LOG_FMT(CORE, "WiiSave::Import: Failed to find or import TMD for title {:16x}",
-                  header->tid);
+    ERROR_LOG_FMT(
+        CORE, "WiiSave::Import: Failed to find or import TMD for title {:16x}", header->tid);
     return CopyResult::TitleMissing;
   }
 
@@ -569,10 +571,10 @@ CopyResult Import(const std::string& data_bin_path, std::function<bool()> can_ov
 static CopyResult Export(u64 tid, std::string_view export_path, IOS::HLE::Kernel* ios)
 {
   const std::string path = fmt::format("{}/private/wii/title/{}{}{}{}/data.bin", export_path,
-                                       static_cast<char>(tid >> 24), static_cast<char>(tid >> 16),
-                                       static_cast<char>(tid >> 8), static_cast<char>(tid));
+      static_cast<char>(tid >> 24), static_cast<char>(tid >> 16), static_cast<char>(tid >> 8),
+      static_cast<char>(tid));
   return Copy(MakeNandStorage(ios->GetFS().get(), tid).get(),
-              MakeDataBinStorage(&ios->GetIOSC(), path, "w+b").get());
+      MakeDataBinStorage(&ios->GetIOSC(), path, "w+b").get());
 }
 
 CopyResult Export(u64 tid, std::string_view export_path)

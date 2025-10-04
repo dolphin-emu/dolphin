@@ -70,8 +70,8 @@ public:
   const IOS::ES::TMDReader& GetTMD(const Partition& partition) const override;
   const std::vector<u8>& GetCertificateChain(const Partition& partition) const override;
   const FileSystem* GetFileSystem(const Partition& partition) const override;
-  static u64 OffsetInHashedPartitionToRawOffset(u64 offset, const Partition& partition,
-                                                u64 partition_data_offset);
+  static u64 OffsetInHashedPartitionToRawOffset(
+      u64 offset, const Partition& partition, u64 partition_data_offset);
   u64 PartitionOffsetToRawOffset(u64 offset, const Partition& partition) const override;
   std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const override;
   std::map<Language, std::string> GetLongNames() const override;
@@ -80,8 +80,8 @@ public:
   Platform GetVolumeType() const override;
   bool IsDatelDisc() const override;
   bool CheckH3TableIntegrity(const Partition& partition) const override;
-  bool CheckBlockIntegrity(u64 block_index, const u8* encrypted_data,
-                           const Partition& partition) const override;
+  bool CheckBlockIntegrity(
+      u64 block_index, const u8* encrypted_data, const Partition& partition) const override;
   bool CheckBlockIntegrity(u64 block_index, const Partition& partition) const override;
 
   Region GetRegion() const override;
@@ -97,14 +97,13 @@ public:
   // The latter lets reading run in parallel with hashing.
   // This function returns false iff read_function returns false.
   static bool HashGroup(const std::array<u8, BLOCK_DATA_SIZE> in[BLOCKS_PER_GROUP],
-                        HashBlock out[BLOCKS_PER_GROUP],
-                        const std::function<bool(size_t block)>& read_function = {});
+      HashBlock out[BLOCKS_PER_GROUP], const std::function<bool(size_t block)>& read_function = {});
 
   static bool EncryptGroup(u64 offset, u64 partition_data_offset, u64 partition_data_decrypted_size,
-                           const std::array<u8, AES_KEY_SIZE>& key, BlobReader* blob,
-                           std::array<u8, GROUP_TOTAL_SIZE>* out,
-                           const std::function<void(HashBlock hash_blocks[BLOCKS_PER_GROUP])>&
-                               hash_exception_callback = {});
+      const std::array<u8, AES_KEY_SIZE>& key, BlobReader* blob,
+      std::array<u8, GROUP_TOTAL_SIZE>* out,
+      const std::function<void(HashBlock hash_blocks[BLOCKS_PER_GROUP])>& hash_exception_callback =
+          {});
 
   static void DecryptBlockHashes(const u8* in, HashBlock* out, Common::AES::Context* aes_context);
   static void DecryptBlockData(const u8* in, u8* out, Common::AES::Context* aes_context);

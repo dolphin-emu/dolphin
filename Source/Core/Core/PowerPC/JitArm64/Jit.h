@@ -176,16 +176,14 @@ public:
   void psq_lXX(UGeckoInstruction inst);
   void psq_stXX(UGeckoInstruction inst);
 
-  void ConvertDoubleToSingleLower(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
-                                  Arm64Gen::ARM64Reg src_reg);
-  void ConvertDoubleToSinglePair(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
-                                 Arm64Gen::ARM64Reg src_reg);
+  void ConvertDoubleToSingleLower(
+      size_t guest_reg, Arm64Gen::ARM64Reg dest_reg, Arm64Gen::ARM64Reg src_reg);
+  void ConvertDoubleToSinglePair(
+      size_t guest_reg, Arm64Gen::ARM64Reg dest_reg, Arm64Gen::ARM64Reg src_reg);
   void ConvertSingleToDoubleLower(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
-                                  Arm64Gen::ARM64Reg src_reg,
-                                  Arm64Gen::ARM64Reg scratch_reg = Arm64Gen::ARM64Reg::INVALID_REG);
+      Arm64Gen::ARM64Reg src_reg, Arm64Gen::ARM64Reg scratch_reg = Arm64Gen::ARM64Reg::INVALID_REG);
   void ConvertSingleToDoublePair(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
-                                 Arm64Gen::ARM64Reg src_reg,
-                                 Arm64Gen::ARM64Reg scratch_reg = Arm64Gen::ARM64Reg::INVALID_REG);
+      Arm64Gen::ARM64Reg src_reg, Arm64Gen::ARM64Reg scratch_reg = Arm64Gen::ARM64Reg::INVALID_REG);
 
   void FloatCompare(UGeckoInstruction inst, bool upper = false);
 
@@ -214,7 +212,7 @@ protected:
     m_near_code_end = GetWritableCodeEnd();
     m_near_code_write_failed = HasWriteFailed();
     SetCodePtrUnsafe(m_far_code.GetWritableCodePtr(), m_far_code.GetWritableCodeEnd(),
-                     m_far_code.HasWriteFailed());
+        m_far_code.HasWriteFailed());
     AlignCode16();
     m_in_far_code = true;
   }
@@ -279,8 +277,8 @@ protected:
   // - If !emitting_routine && mode != AlwaysFastAccess && jo.memcheck, X30 must not
   //   contain a guest register.
   void EmitBackpatchRoutine(u32 flags, MemAccessMode mode, Arm64Gen::ARM64Reg RS,
-                            Arm64Gen::ARM64Reg addr, BitSet32 gprs_to_push = BitSet32(0),
-                            BitSet32 fprs_to_push = BitSet32(0), bool emitting_routine = false);
+      Arm64Gen::ARM64Reg addr, BitSet32 gprs_to_push = BitSet32(0),
+      BitSet32 fprs_to_push = BitSet32(0), bool emitting_routine = false);
 
   // temp_gpr must be a valid register, but temp_fpr can be INVALID_REG.
   void FlushPPCStateBeforeSlowAccess(Arm64Gen::ARM64Reg temp_gpr, Arm64Gen::ARM64Reg temp_fpr);
@@ -291,9 +289,9 @@ protected:
   // If lookup succeeds, writes upper 15 bits of physical address to addr_out. If not,
   // jumps to the returned FixupBranch. Clobbers tmp and the 17 lower bits of addr_out.
   Arm64Gen::FixupBranch BATAddressLookup(Arm64Gen::ARM64Reg addr_out, Arm64Gen::ARM64Reg addr_in,
-                                         Arm64Gen::ARM64Reg tmp, const void* bat_table);
-  Arm64Gen::FixupBranch CheckIfSafeAddress(Arm64Gen::ARM64Reg addr, Arm64Gen::ARM64Reg tmp1,
-                                           Arm64Gen::ARM64Reg tmp2);
+      Arm64Gen::ARM64Reg tmp, const void* bat_table);
+  Arm64Gen::FixupBranch CheckIfSafeAddress(
+      Arm64Gen::ARM64Reg addr, Arm64Gen::ARM64Reg tmp1, Arm64Gen::ARM64Reg tmp2);
 
   bool DoJit(u32 em_address, JitBlock* b, u32 nextPC);
 
@@ -334,38 +332,33 @@ protected:
   // Branch Watch
   template <bool condition>
   void WriteBranchWatch(u32 origin, u32 destination, UGeckoInstruction inst,
-                        Arm64Gen::ARM64Reg reg_a, Arm64Gen::ARM64Reg reg_b,
-                        BitSet32 gpr_caller_save, BitSet32 fpr_caller_save);
+      Arm64Gen::ARM64Reg reg_a, Arm64Gen::ARM64Reg reg_b, BitSet32 gpr_caller_save,
+      BitSet32 fpr_caller_save);
   void WriteBranchWatchDestInRegister(u32 origin, Arm64Gen::ARM64Reg destination,
-                                      UGeckoInstruction inst, Arm64Gen::ARM64Reg reg_a,
-                                      Arm64Gen::ARM64Reg reg_b, BitSet32 gpr_caller_save,
-                                      BitSet32 fpr_caller_save);
+      UGeckoInstruction inst, Arm64Gen::ARM64Reg reg_a, Arm64Gen::ARM64Reg reg_b,
+      BitSet32 gpr_caller_save, BitSet32 fpr_caller_save);
 
   // Exits
-  void
-  WriteExit(u32 destination, bool LK = false, u32 exit_address_after_return = 0,
-            Arm64Gen::ARM64Reg exit_address_after_return_reg = Arm64Gen::ARM64Reg::INVALID_REG);
-  void
-  WriteExit(Arm64Gen::ARM64Reg dest, bool LK = false, u32 exit_address_after_return = 0,
-            Arm64Gen::ARM64Reg exit_address_after_return_reg = Arm64Gen::ARM64Reg::INVALID_REG);
-  void WriteExceptionExit(u32 destination, bool only_external = false,
-                          bool always_exception = false);
-  void WriteExceptionExit(Arm64Gen::ARM64Reg dest, bool only_external = false,
-                          bool always_exception = false);
+  void WriteExit(u32 destination, bool LK = false, u32 exit_address_after_return = 0,
+      Arm64Gen::ARM64Reg exit_address_after_return_reg = Arm64Gen::ARM64Reg::INVALID_REG);
+  void WriteExit(Arm64Gen::ARM64Reg dest, bool LK = false, u32 exit_address_after_return = 0,
+      Arm64Gen::ARM64Reg exit_address_after_return_reg = Arm64Gen::ARM64Reg::INVALID_REG);
+  void WriteExceptionExit(
+      u32 destination, bool only_external = false, bool always_exception = false);
+  void WriteExceptionExit(
+      Arm64Gen::ARM64Reg dest, bool only_external = false, bool always_exception = false);
   void WriteConditionalExceptionExit(int exception, u64 increment_sp_on_exit = 0);
   void WriteConditionalExceptionExit(int exception, Arm64Gen::ARM64Reg temp_gpr,
-                                     Arm64Gen::ARM64Reg temp_fpr = Arm64Gen::ARM64Reg::INVALID_REG,
-                                     u64 increment_sp_on_exit = 0);
-  void
-  FakeLKExit(u32 exit_address_after_return,
-             Arm64Gen::ARM64Reg exit_address_after_return_reg = Arm64Gen::ARM64Reg::INVALID_REG);
+      Arm64Gen::ARM64Reg temp_fpr = Arm64Gen::ARM64Reg::INVALID_REG, u64 increment_sp_on_exit = 0);
+  void FakeLKExit(u32 exit_address_after_return,
+      Arm64Gen::ARM64Reg exit_address_after_return_reg = Arm64Gen::ARM64Reg::INVALID_REG);
   void WriteBLRExit(Arm64Gen::ARM64Reg dest);
 
   void GetCRFieldBit(int field, int bit, Arm64Gen::ARM64Reg out);
   // This assumes that all bits except for bit 0 (LSB) are set to 0. But if bits_1_to_31_are_set
   // equals true, it instead assumes that all of bits 1 to 31 are set.
   void SetCRFieldBit(int field, int bit, Arm64Gen::ARM64Reg in, bool negate = false,
-                     bool bits_1_to_31_are_set = false);
+      bool bits_1_to_31_are_set = false);
   void ClearCRFieldBit(int field, int bit);
   void SetCRFieldBit(int field, int bit);
   void FixGTBeforeSettingCRFieldBit(Arm64Gen::ARM64Reg reg);
@@ -383,9 +376,8 @@ protected:
   void FlushCarry();
 
   void reg_imm(u32 d, u32 a, u32 value, u32 (*do_op)(u32, u32),
-               void (ARM64XEmitter::*op)(Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, u64,
-                                         Arm64Gen::ARM64Reg),
-               bool Rc = false);
+      void (ARM64XEmitter::*op)(Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, u64, Arm64Gen::ARM64Reg),
+      bool Rc = false);
   bool MultiplyImmediate(u32 imm, int a, int d, bool rc);
 
   void SetFPRFIfNeeded(bool single, Arm64Gen::ARM64Reg reg);

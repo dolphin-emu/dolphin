@@ -18,7 +18,7 @@ public:
     mbedtls_entropy_init(&m_entropy);
     mbedtls_hmac_drbg_init(&m_context);
     const int ret = mbedtls_hmac_drbg_seed(&m_context, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256),
-                                           mbedtls_entropy_func, &m_entropy, nullptr, 0);
+        mbedtls_entropy_func, &m_entropy, nullptr, 0);
     ASSERT(ret == 0);
   }
 

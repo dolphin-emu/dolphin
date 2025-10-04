@@ -142,8 +142,8 @@ ControllerEmu::ControlGroup* GetUDrawTabletGroup(int number, WiimoteEmu::UDrawTa
       ->GetUDrawTabletGroup(group);
 }
 
-ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(int number,
-                                                    WiimoteEmu::DrawsomeTabletGroup group)
+ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(
+    int number, WiimoteEmu::DrawsomeTabletGroup group)
 {
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
       ->GetDrawsomeTabletGroup(group);

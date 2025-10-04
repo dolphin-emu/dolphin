@@ -21,12 +21,12 @@ const Info<int> GFX_ADAPTER{{System::GFX, "Hardware", "Adapter"}, 0};
 
 const Info<bool> GFX_WIDESCREEN_HACK{{System::GFX, "Settings", "wideScreenHack"}, false};
 const Info<AspectMode> GFX_ASPECT_RATIO{{System::GFX, "Settings", "AspectRatio"}, AspectMode::Auto};
-const Info<int> GFX_CUSTOM_ASPECT_RATIO_WIDTH{{System::GFX, "Settings", "CustomAspectRatioWidth"},
-                                              1};
-const Info<int> GFX_CUSTOM_ASPECT_RATIO_HEIGHT{{System::GFX, "Settings", "CustomAspectRatioHeight"},
-                                               1};
-const Info<AspectMode> GFX_SUGGESTED_ASPECT_RATIO{{System::GFX, "Settings", "SuggestedAspectRatio"},
-                                                  AspectMode::Auto};
+const Info<int> GFX_CUSTOM_ASPECT_RATIO_WIDTH{
+    {System::GFX, "Settings", "CustomAspectRatioWidth"}, 1};
+const Info<int> GFX_CUSTOM_ASPECT_RATIO_HEIGHT{
+    {System::GFX, "Settings", "CustomAspectRatioHeight"}, 1};
+const Info<AspectMode> GFX_SUGGESTED_ASPECT_RATIO{
+    {System::GFX, "Settings", "SuggestedAspectRatio"}, AspectMode::Auto};
 const Info<u32> GFX_WIDESCREEN_HEURISTIC_TRANSITION_THRESHOLD{
     {System::GFX, "Settings", "WidescreenHeuristicTransitionThreshold"}, 3};
 const Info<float> GFX_WIDESCREEN_HEURISTIC_ASPECT_RATIO_SLOP{
@@ -50,8 +50,8 @@ const Info<bool> GFX_MOVABLE_PERFORMANCE_METRICS{
 const Info<int> GFX_PERF_SAMP_WINDOW{{System::GFX, "Settings", "PerfSampWindowMS"}, 1000};
 const Info<bool> GFX_SHOW_NETPLAY_PING{{System::GFX, "Settings", "ShowNetPlayPing"}, false};
 const Info<bool> GFX_SHOW_NETPLAY_MESSAGES{{System::GFX, "Settings", "ShowNetPlayMessages"}, false};
-const Info<bool> GFX_LOG_RENDER_TIME_TO_FILE{{System::GFX, "Settings", "LogRenderTimeToFile"},
-                                             false};
+const Info<bool> GFX_LOG_RENDER_TIME_TO_FILE{
+    {System::GFX, "Settings", "LogRenderTimeToFile"}, false};
 const Info<bool> GFX_OVERLAY_STATS{{System::GFX, "Settings", "OverlayStats"}, false};
 const Info<bool> GFX_OVERLAY_PROJ_STATS{{System::GFX, "Settings", "OverlayProjStats"}, false};
 const Info<bool> GFX_OVERLAY_SCISSOR_STATS{{System::GFX, "Settings", "OverlayScissorStats"}, false};
@@ -88,13 +88,13 @@ const Info<bool> GFX_TEXFMT_OVERLAY_ENABLE{{System::GFX, "Settings", "TexFmtOver
 const Info<bool> GFX_TEXFMT_OVERLAY_CENTER{{System::GFX, "Settings", "TexFmtOverlayCenter"}, false};
 const Info<bool> GFX_ENABLE_WIREFRAME{{System::GFX, "Settings", "WireFrame"}, false};
 const Info<bool> GFX_DISABLE_FOG{{System::GFX, "Settings", "DisableFog"}, false};
-const Info<bool> GFX_BORDERLESS_FULLSCREEN{{System::GFX, "Settings", "BorderlessFullscreen"},
-                                           false};
-const Info<bool> GFX_ENABLE_VALIDATION_LAYER{{System::GFX, "Settings", "EnableValidationLayer"},
-                                             false};
+const Info<bool> GFX_BORDERLESS_FULLSCREEN{
+    {System::GFX, "Settings", "BorderlessFullscreen"}, false};
+const Info<bool> GFX_ENABLE_VALIDATION_LAYER{
+    {System::GFX, "Settings", "EnableValidationLayer"}, false};
 
-const Info<bool> GFX_BACKEND_MULTITHREADING{{System::GFX, "Settings", "BackendMultithreading"},
-                                            true};
+const Info<bool> GFX_BACKEND_MULTITHREADING{
+    {System::GFX, "Settings", "BackendMultithreading"}, true};
 const Info<int> GFX_COMMAND_BUFFER_EXECUTE_INTERVAL{
     {System::GFX, "Settings", "CommandBufferExecuteInterval"}, 100};
 
@@ -119,8 +119,8 @@ const Info<TriState> GFX_MTL_USE_PRESENT_DRAWABLE{
 
 const Info<bool> GFX_SW_DUMP_OBJECTS{{System::GFX, "Settings", "SWDumpObjects"}, false};
 const Info<bool> GFX_SW_DUMP_TEV_STAGES{{System::GFX, "Settings", "SWDumpTevStages"}, false};
-const Info<bool> GFX_SW_DUMP_TEV_TEX_FETCHES{{System::GFX, "Settings", "SWDumpTevTexFetches"},
-                                             false};
+const Info<bool> GFX_SW_DUMP_TEV_TEX_FETCHES{
+    {System::GFX, "Settings", "SWDumpTevTexFetches"}, false};
 
 const Info<bool> GFX_PREFER_GLES{{System::GFX, "Settings", "PreferGLES"}, false};
 
@@ -128,8 +128,8 @@ const Info<bool> GFX_MODS_ENABLE{{System::GFX, "Settings", "EnableMods"}, false}
 
 const Info<std::string> GFX_DRIVER_LIB_NAME{{System::GFX, "Settings", "DriverLibName"}, ""};
 
-const Info<VertexLoaderType> GFX_VERTEX_LOADER_TYPE{{System::GFX, "Settings", "VertexLoaderType"},
-                                                    VertexLoaderType::Native};
+const Info<VertexLoaderType> GFX_VERTEX_LOADER_TYPE{
+    {System::GFX, "Settings", "VertexLoaderType"}, VertexLoaderType::Native};
 
 // Graphics.Enhancements
 
@@ -141,10 +141,10 @@ const Info<OutputResamplingMode> GFX_ENHANCE_OUTPUT_RESAMPLING{
     {System::GFX, "Enhancements", "OutputResampling"}, OutputResamplingMode::Default};
 const Info<std::string> GFX_ENHANCE_POST_SHADER{
     {System::GFX, "Enhancements", "PostProcessingShader"}, ""};
-const Info<bool> GFX_ENHANCE_FORCE_TRUE_COLOR{{System::GFX, "Enhancements", "ForceTrueColor"},
-                                              true};
-const Info<bool> GFX_ENHANCE_DISABLE_COPY_FILTER{{System::GFX, "Enhancements", "DisableCopyFilter"},
-                                                 true};
+const Info<bool> GFX_ENHANCE_FORCE_TRUE_COLOR{
+    {System::GFX, "Enhancements", "ForceTrueColor"}, true};
+const Info<bool> GFX_ENHANCE_DISABLE_COPY_FILTER{
+    {System::GFX, "Enhancements", "DisableCopyFilter"}, true};
 const Info<bool> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION{
     {System::GFX, "Enhancements", "ArbitraryMipmapDetection"}, false};
 const Info<float> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD{
@@ -153,8 +153,8 @@ const Info<bool> GFX_ENHANCE_HDR_OUTPUT{{System::GFX, "Enhancements", "HDROutput
 
 // Color.Correction
 
-const Info<bool> GFX_CC_CORRECT_COLOR_SPACE{{System::GFX, "ColorCorrection", "CorrectColorSpace"},
-                                            false};
+const Info<bool> GFX_CC_CORRECT_COLOR_SPACE{
+    {System::GFX, "ColorCorrection", "CorrectColorSpace"}, false};
 const Info<ColorCorrectionRegion> GFX_CC_GAME_COLOR_SPACE{
     {System::GFX, "ColorCorrection", "GameColorSpace"}, ColorCorrectionRegion::SMPTE_NTSCM};
 const Info<bool> GFX_CC_CORRECT_GAMMA{{System::GFX, "ColorCorrection", "CorrectGamma"}, false};
@@ -163,8 +163,8 @@ const Info<bool> GFX_CC_SDR_DISPLAY_GAMMA_SRGB{
     {System::GFX, "ColorCorrection", "SDRDisplayGammaSRGB"}, true};
 const Info<float> GFX_CC_SDR_DISPLAY_CUSTOM_GAMMA{
     {System::GFX, "ColorCorrection", "SDRDisplayCustomGamma"}, 2.2f};
-const Info<float> GFX_CC_HDR_PAPER_WHITE_NITS{{System::GFX, "ColorCorrection", "HDRPaperWhiteNits"},
-                                              203.f};
+const Info<float> GFX_CC_HDR_PAPER_WHITE_NITS{
+    {System::GFX, "ColorCorrection", "HDRPaperWhiteNits"}, 203.f};
 
 // Graphics.Stereoscopy
 
@@ -176,10 +176,10 @@ const Info<int> GFX_STEREO_CONVERGENCE_PERCENTAGE{
     {System::GFX, "Stereoscopy", "StereoConvergencePercentage"}, 100};
 const Info<bool> GFX_STEREO_SWAP_EYES{{System::GFX, "Stereoscopy", "StereoSwapEyes"}, false};
 const Info<int> GFX_STEREO_CONVERGENCE{{System::GFX, "Stereoscopy", "StereoConvergence"}, 20};
-const Info<bool> GFX_STEREO_EFB_MONO_DEPTH{{System::GFX, "Stereoscopy", "StereoEFBMonoDepth"},
-                                           false};
-const Info<int> GFX_STEREO_DEPTH_PERCENTAGE{{System::GFX, "Stereoscopy", "StereoDepthPercentage"},
-                                            100};
+const Info<bool> GFX_STEREO_EFB_MONO_DEPTH{
+    {System::GFX, "Stereoscopy", "StereoEFBMonoDepth"}, false};
+const Info<int> GFX_STEREO_DEPTH_PERCENTAGE{
+    {System::GFX, "Stereoscopy", "StereoDepthPercentage"}, 100};
 
 // Graphics.Hacks
 
@@ -201,10 +201,10 @@ const Info<bool> GFX_HACK_EFB_EMULATE_FORMAT_CHANGES{
     {System::GFX, "Hacks", "EFBEmulateFormatChanges"}, false};
 const Info<bool> GFX_HACK_VERTEX_ROUNDING{{System::GFX, "Hacks", "VertexRounding"}, false};
 const Info<bool> GFX_HACK_VI_SKIP{{System::GFX, "Hacks", "VISkip"}, false};
-const Info<u32> GFX_HACK_MISSING_COLOR_VALUE{{System::GFX, "Hacks", "MissingColorValue"},
-                                             0xFFFFFFFF};
-const Info<bool> GFX_HACK_FAST_TEXTURE_SAMPLING{{System::GFX, "Hacks", "FastTextureSampling"},
-                                                true};
+const Info<u32> GFX_HACK_MISSING_COLOR_VALUE{
+    {System::GFX, "Hacks", "MissingColorValue"}, 0xFFFFFFFF};
+const Info<bool> GFX_HACK_FAST_TEXTURE_SAMPLING{
+    {System::GFX, "Hacks", "FastTextureSampling"}, true};
 #ifdef __APPLE__
 const Info<bool> GFX_HACK_NO_MIPMAPPING{{System::GFX, "Hacks", "NoMipmapping"}, false};
 #endif

@@ -107,7 +107,7 @@ Common::Matrix44 VertexShaderManager::LoadProjectionMatrix()
   }
 
   PRIM_LOG("Projection: {} {} {} {} {} {}", rawProjection[0], rawProjection[1], rawProjection[2],
-           rawProjection[3], rawProjection[4], rawProjection[5]);
+      rawProjection[3], rawProjection[4], rawProjection[5]);
 
   auto corrected_matrix = Common::Matrix44::FromArray(m_projection_matrix);
 
@@ -161,8 +161,8 @@ bool VertexShaderManager::UseVertexDepthRange()
 
 // Syncs the shader constant buffers with xfmem
 // TODO: A cleaner way to control the matrices without making a mess in the parameters field
-void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
-                                       XFStateManager& xf_state_manager)
+void VertexShaderManager::SetConstants(
+    const std::vector<std::string>& textures, XFStateManager& xf_state_manager)
 {
   if (constants.missing_color_hex != g_ActiveConfig.iMissingColorValue)
   {
@@ -183,7 +183,7 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
     int startn = per_vertex_transform_matrix_changes[0] / 4;
     int endn = (per_vertex_transform_matrix_changes[1] + 3) / 4;
     memcpy(constants.transformmatrices[startn].data(), &xfmem.posMatrices[startn * 4],
-           (endn - startn) * sizeof(float4));
+        (endn - startn) * sizeof(float4));
     dirty = true;
     xf_state_manager.ResetPerVertexTransformMatrixChanges();
   }
@@ -208,7 +208,7 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
     int startn = post_transform_matrices_changed[0] / 4;
     int endn = (post_transform_matrices_changed[1] + 3) / 4;
     memcpy(constants.posttransformmatrices[startn].data(), &xfmem.postMatrices[startn * 4],
-           (endn - startn) * sizeof(float4));
+        (endn - startn) * sizeof(float4));
     dirty = true;
     xf_state_manager.ResetPostTransformMatrixChanges();
   }
@@ -254,7 +254,8 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
       dstlight.pos[2] = light.dpos[2];
 
       // TODO: Hardware testing is needed to confirm that this normalization is correct
-      auto sanitize = [](float f) {
+      auto sanitize = [](float f)
+      {
         if (std::isnan(f))
           return 0.0f;
         else if (std::isinf(f))
@@ -403,7 +404,7 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
     for (const auto& texture : textures)
     {
       for (const auto& action :
-           g_graphics_mod_manager->GetProjectionTextureActions(xfmem.projection.type, texture))
+          g_graphics_mod_manager->GetProjectionTextureActions(xfmem.projection.type, texture))
       {
         projection_actions.push_back(action);
       }
@@ -465,10 +466,10 @@ void VertexShaderManager::TransformToClipSpace(const float* data, float* out, u3
 
   const float t[3] = {data[0] * world_matrix[0] + data[1] * world_matrix[1] +
                           data[2] * world_matrix[2] + world_matrix[3],
-                      data[0] * world_matrix[4] + data[1] * world_matrix[5] +
-                          data[2] * world_matrix[6] + world_matrix[7],
-                      data[0] * world_matrix[8] + data[1] * world_matrix[9] +
-                          data[2] * world_matrix[10] + world_matrix[11]};
+      data[0] * world_matrix[4] + data[1] * world_matrix[5] + data[2] * world_matrix[6] +
+          world_matrix[7],
+      data[0] * world_matrix[8] + data[1] * world_matrix[9] + data[2] * world_matrix[10] +
+          world_matrix[11]};
 
   out[0] = t[0] * proj_matrix[0] + t[1] * proj_matrix[1] + t[2] * proj_matrix[2] + proj_matrix[3];
   out[1] = t[0] * proj_matrix[4] + t[1] * proj_matrix[5] + t[2] * proj_matrix[6] + proj_matrix[7];

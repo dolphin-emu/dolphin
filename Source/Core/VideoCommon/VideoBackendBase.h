@@ -67,17 +67,14 @@ public:
 protected:
   // For hardware backends
   bool InitializeShared(std::unique_ptr<AbstractGfx> gfx,
-                        std::unique_ptr<VertexManagerBase> vertex_manager,
-                        std::unique_ptr<PerfQueryBase> perf_query,
-                        std::unique_ptr<BoundingBox> bounding_box);
+      std::unique_ptr<VertexManagerBase> vertex_manager, std::unique_ptr<PerfQueryBase> perf_query,
+      std::unique_ptr<BoundingBox> bounding_box);
 
   // For software and null backends. Allows overriding the default EFBInterface and TextureCache
   bool InitializeShared(std::unique_ptr<AbstractGfx> gfx,
-                        std::unique_ptr<VertexManagerBase> vertex_manager,
-                        std::unique_ptr<PerfQueryBase> perf_query,
-                        std::unique_ptr<BoundingBox> bounding_box,
-                        std::unique_ptr<EFBInterfaceBase> efb_interface,
-                        std::unique_ptr<TextureCacheBase> texture_cache);
+      std::unique_ptr<VertexManagerBase> vertex_manager, std::unique_ptr<PerfQueryBase> perf_query,
+      std::unique_ptr<BoundingBox> bounding_box, std::unique_ptr<EFBInterfaceBase> efb_interface,
+      std::unique_ptr<TextureCacheBase> texture_cache);
   void ShutdownShared();
 
   bool m_initialized = false;

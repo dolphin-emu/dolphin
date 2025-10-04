@@ -23,8 +23,8 @@ template <typename T>
 void InstallKeyboardBlocker(QObject* obj, T* removal_signal_object, void (T::*removal_signal)())
 {
   removal_signal_object->connect(removal_signal_object, removal_signal,
-                                 new QtUtils::BlockKeyboardInputFilter{obj},
-                                 &QtUtils::BlockKeyboardInputFilter::ScheduleRemoval);
+      new QtUtils::BlockKeyboardInputFilter{obj},
+      &QtUtils::BlockKeyboardInputFilter::ScheduleRemoval);
 }
 
 }  // namespace QtUtils

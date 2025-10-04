@@ -41,42 +41,48 @@ ViewController* GetView()
 
 void UI::Error(const std::string& text)
 {
-  run_on_main([&] {
-    NSAlert* alert = [[[NSAlert alloc] init] autorelease];
+  run_on_main(
+      [&]
+      {
+        NSAlert* alert = [[[NSAlert alloc] init] autorelease];
 
-    [alert setMessageText:@"Fatal error"];
-    [alert setInformativeText:[NSString stringWithCString:text.c_str()
-                                                 encoding:NSUTF8StringEncoding]];
-    [alert setAlertStyle:NSAlertStyleCritical];
+        [alert setMessageText:@"Fatal error"];
+        [alert setInformativeText:[NSString stringWithCString:text.c_str()
+                                                     encoding:NSUTF8StringEncoding]];
+        [alert setAlertStyle:NSAlertStyleCritical];
 
-    [alert beginSheetModalForWindow:GetWindow()
-                  completionHandler:^(NSModalResponse) {
-                    [NSApp performSelector:@selector(terminate:) withObject:nil afterDelay:0.0];
-                  }];
-  });
+        [alert beginSheetModalForWindow:GetWindow()
+                      completionHandler:^(NSModalResponse) {
+                        [NSApp performSelector:@selector(terminate:) withObject:nil afterDelay:0.0];
+                      }];
+      });
 }
 
 void UI::SetVisible(bool visible)
 {
-  run_on_main([&] {
-    if (visible)
-    {
-      [NSApp unhide:nil];
-      [NSApp activateIgnoringOtherApps:YES];
-    }
-    else
-    {
-      [NSApp hide:nil];
-    }
-  });
+  run_on_main(
+      [&]
+      {
+        if (visible)
+        {
+          [NSApp unhide:nil];
+          [NSApp activateIgnoringOtherApps:YES];
+        }
+        else
+        {
+          [NSApp hide:nil];
+        }
+      });
 }
 
 void UI::SetDescription(const std::string& text)
 {
-  run_on_main([&] {
-    [GetView() SetDescription:[NSString stringWithCString:text.c_str()
-                                                 encoding:NSUTF8StringEncoding]];
-  });
+  run_on_main(
+      [&]
+      {
+        [GetView() SetDescription:[NSString stringWithCString:text.c_str()
+                                                     encoding:NSUTF8StringEncoding]];
+      });
 }
 
 void UI::SetTotalMarquee(bool marquee)
@@ -146,10 +152,10 @@ bool UI::IsTestMode()
 }
 
 bool Platform::VersionCheck(const std::vector<TodoList::UpdateOp>& to_update,
-                            const std::string& install_base_path, const std::string& temp_dir)
+    const std::string& install_base_path, const std::string& temp_dir)
 {
-  const auto op_it = std::ranges::find(to_update, "Dolphin.app/Contents/Info.plist",
-                                       &TodoList::UpdateOp::filename);
+  const auto op_it = std::ranges::find(
+      to_update, "Dolphin.app/Contents/Info.plist", &TodoList::UpdateOp::filename);
   if (op_it == to_update.cend())
     return true;
 
@@ -186,7 +192,7 @@ bool Platform::VersionCheck(const std::vector<TodoList::UpdateOp>& to_update,
       [components[0] integerValue], [components[1] integerValue], [components[2] integerValue]};
 
   LogToFile("Platform version check: next_version=%ld.%ld.%ld\n", (long)next_version.majorVersion,
-            (long)next_version.minorVersion, (long)next_version.patchVersion);
+      (long)next_version.minorVersion, (long)next_version.patchVersion);
 
   if (![[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:next_version])
   {

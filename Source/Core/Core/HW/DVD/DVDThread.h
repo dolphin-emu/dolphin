@@ -75,21 +75,19 @@ public:
   // if both of the following conditions are true:
   // - A disc is inserted
   // - The title_id argument doesn't contain a value, or its value matches the disc's title ID
-  bool UpdateRunningGameMetadata(const DiscIO::Partition& partition,
-                                 std::optional<u64> title_id = {});
+  bool UpdateRunningGameMetadata(
+      const DiscIO::Partition& partition, std::optional<u64> title_id = {});
 
   void StartRead(u64 dvd_offset, u32 length, const DiscIO::Partition& partition,
-                 DVD::ReplyType reply_type, s64 ticks_until_completion);
+      DVD::ReplyType reply_type, s64 ticks_until_completion);
   void StartReadToEmulatedRAM(u32 output_address, u64 dvd_offset, u32 length,
-                              const DiscIO::Partition& partition, DVD::ReplyType reply_type,
-                              s64 ticks_until_completion);
+      const DiscIO::Partition& partition, DVD::ReplyType reply_type, s64 ticks_until_completion);
 
 private:
   void WaitUntilIdle();
 
   void StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offset, u32 length,
-                         const DiscIO::Partition& partition, DVD::ReplyType reply_type,
-                         s64 ticks_until_completion);
+      const DiscIO::Partition& partition, DVD::ReplyType reply_type, s64 ticks_until_completion);
 
   static void GlobalFinishRead(Core::System& system, u64 id, s64 cycles_late);
   void FinishRead(u64 id, s64 cycles_late);

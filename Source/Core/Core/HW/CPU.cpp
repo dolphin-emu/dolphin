@@ -160,32 +160,34 @@ void CPUManager::Run()
 
     case State::Stepping:
       // Wait for step command.
-      m_state_cpu_cvar.wait(state_lock, [this, &state_lock, &gdb_step_sync_event] {
-        ExecutePendingJobs(state_lock);
-        CPUThreadConfigCallback::CheckForConfigChanges();
-        state_lock.unlock();
-        if (GDBStub::IsActive() && GDBStub::HasControl())
-        {
-          if (!GDBStub::JustConnected())
-            GDBStub::SendSignal(GDBStub::Signal::Sigtrap);
-          GDBStub::ProcessCommands(true);
-          // If we are still going to step, emulate the fact we just sent a step command
-          if (GDBStub::HasControl())
+      m_state_cpu_cvar.wait(state_lock,
+          [this, &state_lock, &gdb_step_sync_event]
           {
-            // Make sure the previous step by gdb was serviced
-            if (m_state_cpu_step_instruction_sync &&
-                m_state_cpu_step_instruction_sync != &gdb_step_sync_event)
+            ExecutePendingJobs(state_lock);
+            CPUThreadConfigCallback::CheckForConfigChanges();
+            state_lock.unlock();
+            if (GDBStub::IsActive() && GDBStub::HasControl())
             {
-              m_state_cpu_step_instruction_sync->Set();
-            }
+              if (!GDBStub::JustConnected())
+                GDBStub::SendSignal(GDBStub::Signal::Sigtrap);
+              GDBStub::ProcessCommands(true);
+              // If we are still going to step, emulate the fact we just sent a step command
+              if (GDBStub::HasControl())
+              {
+                // Make sure the previous step by gdb was serviced
+                if (m_state_cpu_step_instruction_sync &&
+                    m_state_cpu_step_instruction_sync != &gdb_step_sync_event)
+                {
+                  m_state_cpu_step_instruction_sync->Set();
+                }
 
-            m_state_cpu_step_instruction = true;
-            m_state_cpu_step_instruction_sync = &gdb_step_sync_event;
-          }
-        }
-        state_lock.lock();
-        return m_state_cpu_step_instruction || !IsStepping();
-      });
+                m_state_cpu_step_instruction = true;
+                m_state_cpu_step_instruction_sync = &gdb_step_sync_event;
+              }
+            }
+            state_lock.lock();
+            return m_state_cpu_step_instruction || !IsStepping();
+          });
       if (!IsStepping())
       {
         // Signal event if the mode changes.

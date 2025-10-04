@@ -46,7 +46,7 @@ private:
     MessageData(MessageType msg_type, u8 modifiers, PressedKeyData pressed_keys);
   };
   static_assert(std::is_trivially_copyable_v<MessageData>,
-                "MessageData must be trivially copyable, as it's copied into emulated memory.");
+      "MessageData must be trivially copyable, as it's copied into emulated memory.");
 #pragma pack(pop)
   std::queue<MessageData> m_message_queue;
 

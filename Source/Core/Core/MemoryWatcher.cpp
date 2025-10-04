@@ -108,5 +108,5 @@ void MemoryWatcher::Step(const Core::CPUThreadGuard& guard)
 
   std::string message = ComposeMessages(guard);
   sendto(m_fd, message.c_str(), message.size() + 1, 0, reinterpret_cast<sockaddr*>(&m_addr),
-         sizeof(m_addr));
+      sizeof(m_addr));
 }

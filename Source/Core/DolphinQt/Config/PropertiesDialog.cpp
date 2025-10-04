@@ -25,12 +25,12 @@
 #include "UICommon/GameFile.h"
 
 PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& game)
-    : StackedSettingsWindow{parent}, m_filepath(game.GetFilePath())
+    : StackedSettingsWindow{parent}
+    , m_filepath(game.GetFilePath())
 {
   setWindowTitle(QStringLiteral("%1: %2 - %3")
-                     .arg(QString::fromStdString(game.GetFileName()),
-                          QString::fromStdString(game.GetGameID()),
-                          QString::fromStdString(game.GetLongName())));
+          .arg(QString::fromStdString(game.GetFileName()), QString::fromStdString(game.GetGameID()),
+              QString::fromStdString(game.GetLongName())));
 
   auto* const info = new InfoWidget(game);
   auto* const ar = new ARCodeWidget(game.GetGameID(), game.GetRevision());
@@ -40,21 +40,21 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
   auto* const game_config = new GameConfigWidget(game);
   auto* const graphics_mod_list = new GraphicsModListWidget(game);
 
-  connect(gecko, &GeckoCodeWidget::OpenGeneralSettings, this,
-          &PropertiesDialog::OpenGeneralSettings);
+  connect(
+      gecko, &GeckoCodeWidget::OpenGeneralSettings, this, &PropertiesDialog::OpenGeneralSettings);
 
   connect(ar, &ARCodeWidget::OpenGeneralSettings, this, &PropertiesDialog::OpenGeneralSettings);
 #ifdef USE_RETRO_ACHIEVEMENTS
-  connect(ar, &ARCodeWidget::OpenAchievementSettings, this,
-          &PropertiesDialog::OpenAchievementSettings);
+  connect(
+      ar, &ARCodeWidget::OpenAchievementSettings, this, &PropertiesDialog::OpenAchievementSettings);
   connect(gecko, &GeckoCodeWidget::OpenAchievementSettings, this,
-          &PropertiesDialog::OpenAchievementSettings);
+      &PropertiesDialog::OpenAchievementSettings);
   connect(patches, &PatchesWidget::OpenAchievementSettings, this,
-          &PropertiesDialog::OpenAchievementSettings);
+      &PropertiesDialog::OpenAchievementSettings);
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   connect(graphics_mod_list, &GraphicsModListWidget::OpenGraphicsSettings, this,
-          &PropertiesDialog::OpenGraphicsSettings);
+      &PropertiesDialog::OpenGraphicsSettings);
 
   // Note: Intentional selective use of AddWrappedPane for a sensible dialog "minimumSize".
   AddWrappedPane(info, tr("Info"));

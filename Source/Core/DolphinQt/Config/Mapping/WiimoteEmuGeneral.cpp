@@ -20,7 +20,8 @@
 #include "InputCommon/InputConfig.h"
 
 WiimoteEmuGeneral::WiimoteEmuGeneral(MappingWindow* window, WiimoteEmuExtension* extension)
-    : MappingWidget(window), m_extension_widget(extension)
+    : MappingWidget(window)
+    , m_extension_widget(extension)
 {
   CreateMainLayout();
   Connect();
@@ -30,16 +31,14 @@ void WiimoteEmuGeneral::CreateMainLayout()
 {
   auto* layout = new QGridLayout;
 
-  layout->addWidget(
-      CreateGroupBox(tr("Buttons"),
-                     Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Buttons)),
+  layout->addWidget(CreateGroupBox(tr("Buttons"),
+                        Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Buttons)),
       0, 0, -1, 1);
-  layout->addWidget(CreateGroupBox(tr("D-Pad"), Wiimote::GetWiimoteGroup(
-                                                    GetPort(), WiimoteEmu::WiimoteGroup::DPad)),
-                    0, 1, -1, 1);
-  layout->addWidget(
-      CreateGroupBox(tr("Hotkeys"),
-                     Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Hotkeys)),
+  layout->addWidget(CreateGroupBox(tr("D-Pad"),
+                        Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::DPad)),
+      0, 1, -1, 1);
+  layout->addWidget(CreateGroupBox(tr("Hotkeys"),
+                        Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Hotkeys)),
       0, 2, -1, 1);
 
   auto* extension_group =
@@ -68,13 +67,12 @@ void WiimoteEmuGeneral::CreateMainLayout()
   ext_layout->insertRow(1, m_configure_ext_button);
 
   layout->addWidget(extension, 0, 3);
-  layout->addWidget(CreateGroupBox(tr("Rumble"), Wiimote::GetWiimoteGroup(
-                                                     GetPort(), WiimoteEmu::WiimoteGroup::Rumble)),
-                    1, 3);
+  layout->addWidget(CreateGroupBox(tr("Rumble"),
+                        Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Rumble)),
+      1, 3);
 
-  layout->addWidget(
-      CreateGroupBox(tr("Options"),
-                     Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Options)),
+  layout->addWidget(CreateGroupBox(tr("Options"),
+                        Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Options)),
       2, 3);
 
   setLayout(layout);
@@ -83,12 +81,12 @@ void WiimoteEmuGeneral::CreateMainLayout()
 void WiimoteEmuGeneral::Connect()
 {
   connect(m_extension_combo, &QComboBox::currentIndexChanged, this,
-          &WiimoteEmuGeneral::OnAttachmentChanged);
+      &WiimoteEmuGeneral::OnAttachmentChanged);
   connect(m_extension_combo, &QComboBox::activated, this, &WiimoteEmuGeneral::OnAttachmentSelected);
   connect(this, &MappingWidget::ConfigChanged, this, &WiimoteEmuGeneral::ConfigChanged);
   connect(this, &MappingWidget::Update, this, &WiimoteEmuGeneral::Update);
   connect(m_configure_ext_button, &QPushButton::clicked, GetParent(),
-          &MappingWindow::ActivateExtensionTab);
+      &MappingWindow::ActivateExtensionTab);
 }
 
 void WiimoteEmuGeneral::OnAttachmentChanged(int extension)

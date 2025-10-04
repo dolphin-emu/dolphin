@@ -60,7 +60,7 @@ public:
 
   // Render pass cache.
   VkRenderPass GetRenderPass(VkFormat color_format, VkFormat depth_format, u32 multisamples,
-                             VkAttachmentLoadOp load_op, u8 additional_attachment_count = 0);
+      VkAttachmentLoadOp load_op, u8 additional_attachment_count = 0);
 
   // Pipeline cache. Used when creating pipelines for drivers to store compiled programs.
   VkPipelineCache GetPipelineCache() const { return m_pipeline_cache; }

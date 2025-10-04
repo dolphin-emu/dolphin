@@ -63,7 +63,7 @@ bool WiiSpeak::AttachAndChangeInterface(const u8 interface)
 int WiiSpeak::CancelTransfer(const u8 endpoint)
 {
   INFO_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Cancelling transfers (endpoint {:#x})", m_vid, m_pid,
-               m_active_interface, endpoint);
+      m_active_interface, endpoint);
 
   return IPC_SUCCESS;
 }
@@ -71,7 +71,7 @@ int WiiSpeak::CancelTransfer(const u8 endpoint)
 int WiiSpeak::ChangeInterface(const u8 interface)
 {
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Changing interface to {}", m_vid, m_pid,
-                m_active_interface, interface);
+      m_active_interface, interface);
   m_active_interface = interface;
   return 0;
 }
@@ -89,10 +89,10 @@ int WiiSpeak::SetAltSetting(u8 alt_setting)
 int WiiSpeak::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
 {
   DEBUG_LOG_FMT(IOS_USB,
-                "[{:04x}:{:04x} {}] Control: bRequestType={:02x} bRequest={:02x} wValue={:04x}"
-                " wIndex={:04x} wLength={:04x}",
-                m_vid, m_pid, m_active_interface, cmd->request_type, cmd->request, cmd->value,
-                cmd->index, cmd->length);
+      "[{:04x}:{:04x} {}] Control: bRequestType={:02x} bRequest={:02x} wValue={:04x}"
+      " wIndex={:04x} wLength={:04x}",
+      m_vid, m_pid, m_active_interface, cmd->request_type, cmd->request, cmd->value, cmd->index,
+      cmd->length);
 
   switch (cmd->request_type << 8 | cmd->request)
   {
@@ -106,14 +106,14 @@ int WiiSpeak::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
   case USBHDR(DIR_HOST2DEVICE, TYPE_STANDARD, REC_INTERFACE, REQUEST_SET_INTERFACE):
   {
     INFO_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] REQUEST_SET_INTERFACE index={:04x} value={:04x}",
-                 m_vid, m_pid, m_active_interface, cmd->index, cmd->value);
+        m_vid, m_pid, m_active_interface, cmd->index, cmd->value);
     if (static_cast<u8>(cmd->index) != m_active_interface)
     {
       const int ret = ChangeInterface(static_cast<u8>(cmd->index));
       if (ret < 0)
       {
         ERROR_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Failed to change interface to {}", m_vid, m_pid,
-                      m_active_interface, cmd->index);
+            m_active_interface, cmd->index);
         return ret;
       }
     }
@@ -204,16 +204,16 @@ int WiiSpeak::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
     // Transfer: Wii -> Wii Speak
     break;
   default:
-    WARN_LOG_FMT(IOS_USB, "Wii Speak unsupported isochronous transfer (endpoint={:02x})",
-                 cmd->endpoint);
+    WARN_LOG_FMT(
+        IOS_USB, "Wii Speak unsupported isochronous transfer (endpoint={:02x})", cmd->endpoint);
     break;
   }
 
   // Transferring too slow causes the visual cue to not appear,
   // while transferring too fast results in more choppy audio.
   DEBUG_LOG_FMT(IOS_USB,
-                "Wii Speak isochronous transfer: length={:04x} endpoint={:02x} num_packets={:02x}",
-                cmd->length, cmd->endpoint, cmd->num_packets);
+      "Wii Speak isochronous transfer: length={:04x} endpoint={:02x} num_packets={:02x}",
+      cmd->length, cmd->endpoint, cmd->num_packets);
 
   // According to the Wii Speak specs on wiibrew, it's "USB 2.0 Full-speed Device Module",
   // so the length of a single frame should be 1 ms.
@@ -241,8 +241,8 @@ void WiiSpeak::SetRegister(const std::unique_ptr<CtrlMessage>& cmd)
   const u16 arg1 = memory.Read_U16(cmd->data_address + 2);
   const u16 arg2 = memory.Read_U16(cmd->data_address + 4);
 
-  DEBUG_LOG_FMT(IOS_USB, "Wii Speak register set (reg={:02x}, arg1={:04x}, arg2={:04x})", reg, arg1,
-                arg2);
+  DEBUG_LOG_FMT(
+      IOS_USB, "Wii Speak register set (reg={:02x}, arg1={:04x}, arg2={:04x})", reg, arg1, arg2);
 
   switch (reg)
   {
@@ -261,9 +261,9 @@ void WiiSpeak::SetRegister(const std::unique_ptr<CtrlMessage>& cmd)
     case FREQ_RESERVED:
     default:
       WARN_LOG_FMT(IOS_USB,
-                   "Wii Speak unsupported SAMPLER_FREQ set (arg1={:04x}, arg2={:04x}) defaulting "
-                   "to FREQ_16KHZ",
-                   arg1, arg2);
+          "Wii Speak unsupported SAMPLER_FREQ set (arg1={:04x}, arg2={:04x}) defaulting "
+          "to FREQ_16KHZ",
+          arg1, arg2);
       [[fallthrough]];
     case FREQ_16KHZ:
       m_sampler.freq = 16000;
@@ -274,7 +274,7 @@ void WiiSpeak::SetRegister(const std::unique_ptr<CtrlMessage>& cmd)
     break;
   case SAMPLER_GAIN:
     WARN_LOG_FMT(IOS_USB, "Wii Speak SAMPLER_GAIN set (arg1={:04x}, arg2={:04x}) not implemented",
-                 arg1, arg2);
+        arg1, arg2);
     switch (arg1 & ~0x300)
     {
     case GAIN_00dB:
@@ -288,9 +288,9 @@ void WiiSpeak::SetRegister(const std::unique_ptr<CtrlMessage>& cmd)
       break;
     default:
       WARN_LOG_FMT(IOS_USB,
-                   "Wii Speak unsupported SAMPLER_GAIN set (arg1={:04x}, arg2={:04x}) defaulting "
-                   "to GAIN_36dB",
-                   arg1, arg2);
+          "Wii Speak unsupported SAMPLER_GAIN set (arg1={:04x}, arg2={:04x}) defaulting "
+          "to GAIN_36dB",
+          arg1, arg2);
       [[fallthrough]];
     case GAIN_36dB:
       m_sampler.gain = 36;
@@ -311,8 +311,8 @@ void WiiSpeak::SetRegister(const std::unique_ptr<CtrlMessage>& cmd)
     case SP_RIN:
       break;
     default:
-      WARN_LOG_FMT(IOS_USB, "Wii Speak unsupported SP_STATE set (arg1={:04x}, arg2={:04x})", arg1,
-                   arg2);
+      WARN_LOG_FMT(
+          IOS_USB, "Wii Speak unsupported SP_STATE set (arg1={:04x}, arg2={:04x})", arg1, arg2);
       break;
     }
     break;
@@ -321,8 +321,8 @@ void WiiSpeak::SetRegister(const std::unique_ptr<CtrlMessage>& cmd)
     break;
   default:
     WARN_LOG_FMT(IOS_USB,
-                 "Wii Speak unsupported register set (reg={:02x}, arg1={:04x}, arg2={:04x})", reg,
-                 arg1, arg2);
+        "Wii Speak unsupported register set (reg={:02x}, arg1={:04x}, arg2={:04x})", reg, arg1,
+        arg2);
     break;
   }
 }
@@ -335,8 +335,8 @@ void WiiSpeak::GetRegister(const std::unique_ptr<CtrlMessage>& cmd) const
   const u32 arg1 = cmd->data_address + 2;
   const u32 arg2 = cmd->data_address + 4;
 
-  DEBUG_LOG_FMT(IOS_USB, "Wii Speak register get (reg={:02x}, arg1={:08x}, arg2={:08x})", reg, arg1,
-                arg2);
+  DEBUG_LOG_FMT(
+      IOS_USB, "Wii Speak register get (reg={:02x}, arg1={:08x}, arg2={:08x})", reg, arg1, arg2);
 
   switch (reg)
   {
@@ -354,9 +354,9 @@ void WiiSpeak::GetRegister(const std::unique_ptr<CtrlMessage>& cmd) const
       break;
     default:
       WARN_LOG_FMT(IOS_USB,
-                   "Wii Speak unsupported SAMPLER_FREQ get (arg1={:04x}, arg2={:04x}) defaulting "
-                   "to FREQ_16KHZ",
-                   arg1, arg2);
+          "Wii Speak unsupported SAMPLER_FREQ get (arg1={:04x}, arg2={:04x}) defaulting "
+          "to FREQ_16KHZ",
+          arg1, arg2);
       [[fallthrough]];
     case 16000:
       memory.Write_U16(FREQ_16KHZ, arg1);
@@ -377,9 +377,9 @@ void WiiSpeak::GetRegister(const std::unique_ptr<CtrlMessage>& cmd) const
       break;
     default:
       WARN_LOG_FMT(IOS_USB,
-                   "Wii Speak unsupported SAMPLER_GAIN get (arg1={:04x}, arg2={:04x}) defaulting "
-                   "to GAIN_36dB",
-                   arg1, arg2);
+          "Wii Speak unsupported SAMPLER_GAIN get (arg1={:04x}, arg2={:04x}) defaulting "
+          "to GAIN_36dB",
+          arg1, arg2);
       [[fallthrough]];
     case 36:
       memory.Write_U16(0x300 | GAIN_36dB, arg1);
@@ -405,8 +405,8 @@ void WiiSpeak::GetRegister(const std::unique_ptr<CtrlMessage>& cmd) const
     case SP_RIN:
       break;
     default:
-      WARN_LOG_FMT(IOS_USB, "Wii Speak unsupported SP_STATE get (arg1={:04x}, arg2={:04x})", arg1,
-                   arg2);
+      WARN_LOG_FMT(
+          IOS_USB, "Wii Speak unsupported SP_STATE get (arg1={:04x}, arg2={:04x})", arg1, arg2);
       break;
     }
     break;
@@ -415,8 +415,8 @@ void WiiSpeak::GetRegister(const std::unique_ptr<CtrlMessage>& cmd) const
     break;
   default:
     WARN_LOG_FMT(IOS_USB,
-                 "Wii Speak unsupported register get (reg={:02x}, arg1={:08x}, arg2={:08x})", reg,
-                 arg1, arg2);
+        "Wii Speak unsupported register get (reg={:02x}, arg1={:08x}, arg2={:08x})", reg, arg1,
+        arg2);
     break;
   }
 }

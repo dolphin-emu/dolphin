@@ -263,8 +263,7 @@ struct fmt::formatter<LitChannel>
   template <typename FormatContext>
   auto format(const LitChannel& chan, FormatContext& ctx) const
   {
-    return fmt::format_to(
-        ctx.out(),
+    return fmt::format_to(ctx.out(),
         "Material source: {0}\nEnable lighting: {1}\nLight mask: {2:x} ({2:08b})\n"
         "Ambient source: {3}\nDiffuse function: {4}\nAttenuation function: {5}",
         chan.matsource, chan.enablelighting ? "Yes" : "No", chan.GetFullLightMask(), chan.ambsource,
@@ -287,12 +286,11 @@ struct fmt::formatter<ClipDisable>
   auto format(const ClipDisable& cd, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(),
-                          "Disable clipping detection: {}\n"
-                          "Disable trivial rejection: {}\n"
-                          "Disable cpoly clipping acceleration: {}",
-                          cd.disable_clipping_detection ? "Yes" : "No",
-                          cd.disable_trivial_rejection ? "Yes" : "No",
-                          cd.disable_cpoly_clipping_acceleration ? "Yes" : "No");
+        "Disable clipping detection: {}\n"
+        "Disable trivial rejection: {}\n"
+        "Disable cpoly clipping acceleration: {}",
+        cd.disable_clipping_detection ? "Yes" : "No", cd.disable_trivial_rejection ? "Yes" : "No",
+        cd.disable_cpoly_clipping_acceleration ? "Yes" : "No");
   }
 };
 
@@ -311,7 +309,7 @@ struct fmt::formatter<INVTXSPEC>
   auto format(const INVTXSPEC& spec, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(), "Num colors: {}\nNum normals: {}\nNum textures: {}",
-                          spec.numcolors, spec.numnormals, spec.numtextures);
+        spec.numcolors, spec.numnormals, spec.numtextures);
   }
 };
 
@@ -335,10 +333,10 @@ struct fmt::formatter<TexMtxInfo>
   auto format(const TexMtxInfo& i, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(),
-                          "Projection: {}\nInput form: {}\nTex gen type: {}\n"
-                          "Source row: {}\nEmboss source shift: {}\nEmboss light shift: {}",
-                          i.projection, i.inputform, i.texgentype, i.sourcerow, i.embosssourceshift,
-                          i.embosslightshift);
+        "Projection: {}\nInput form: {}\nTex gen type: {}\n"
+        "Source row: {}\nEmboss source shift: {}\nEmboss light shift: {}",
+        i.projection, i.inputform, i.texgentype, i.sourcerow, i.embosssourceshift,
+        i.embosslightshift);
   }
 };
 
@@ -358,7 +356,7 @@ struct fmt::formatter<PostMtxInfo>
   auto format(const PostMtxInfo& i, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(), "Index: {}\nNormalize before send operation: {}", i.index,
-                          i.normalize ? "Yes" : "No");
+        i.normalize ? "Yes" : "No");
   }
 };
 

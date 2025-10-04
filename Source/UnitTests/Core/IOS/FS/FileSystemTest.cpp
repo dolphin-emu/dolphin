@@ -94,7 +94,7 @@ TEST(FileSystem, PathSplitting)
 TEST_F(FileSystemTest, EssentialDirectories)
 {
   for (const std::string path :
-       {"/sys", "/ticket", "/title", "/shared1", "/shared2", "/tmp", "/import", "/meta"})
+      {"/sys", "/ticket", "/title", "/shared1", "/shared2", "/tmp", "/import", "/meta"})
   {
     EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, path).Succeeded()) << path;
   }
@@ -137,8 +137,8 @@ TEST_F(FileSystemTest, CreateDirectory)
 
   constexpr u8 ArbitraryAttribute = 0x20;
 
-  ASSERT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, PATH, ArbitraryAttribute, modes),
-            ResultCode::Success);
+  ASSERT_EQ(
+      m_fs->CreateDirectory(Uid{0}, Gid{0}, PATH, ArbitraryAttribute, modes), ResultCode::Success);
 
   const Result<Metadata> stats = m_fs->GetMetadata(Uid{0}, Gid{0}, PATH);
   ASSERT_TRUE(stats.Succeeded());
@@ -156,7 +156,7 @@ TEST_F(FileSystemTest, CreateDirectory)
 
   // Paths with too many components should be rejected.
   EXPECT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, "/1/2/3/4/5/6/7/8/9", 0, modes),
-            ResultCode::TooManyPathComponents);
+      ResultCode::TooManyPathComponents);
 }
 
 TEST_F(FileSystemTest, Delete)
@@ -251,7 +251,8 @@ TEST_F(FileSystemTest, RenameWithExistingTargetFile)
 
 TEST_F(FileSystemTest, GetDirectoryStats)
 {
-  auto check_stats = [this](const u32 clusters, const u32 inodes) {
+  auto check_stats = [this](const u32 clusters, const u32 inodes)
+  {
     const Result<DirectoryStats> stats = m_fs->GetDirectoryStats("/tmp");
     ASSERT_TRUE(stats.Succeeded());
     EXPECT_EQ(stats->used_clusters, clusters);
@@ -308,8 +309,8 @@ TEST_F(FileSystemTest, Seek)
   EXPECT_EQ(file->GetStatus()->size, TEST_DATA.size());
   EXPECT_EQ(file->GetStatus()->offset, TEST_DATA.size());
 
-  auto seek_and_check = [&file](const u32 offset, const SeekMode mode,
-                                const u32 expected_position) {
+  auto seek_and_check = [&file](const u32 offset, const SeekMode mode, const u32 expected_position)
+  {
     const Result<u32> new_offset = file->Seek(offset, mode);
     ASSERT_TRUE(new_offset.Succeeded());
     EXPECT_EQ(*new_offset, expected_position);
@@ -467,5 +468,5 @@ TEST_F(FileSystemTest, CreateFullPath)
   // CreateFullPath should still succeed.
   // See https://github.com/dolphin-emu/dolphin/pull/8593
   EXPECT_EQ(m_fs->CreateFullPath(Uid{0x1000}, Gid{1}, "/shared2/wc24/mbox/Readme.txt", 0, modes),
-            ResultCode::Success);
+      ResultCode::Success);
 }

@@ -40,8 +40,8 @@ static ES::TMDReader FindTMD(FSCore& fs, const std::string& tmd_path, Ticks tick
 
 ES::TMDReader ESCore::FindImportTMD(u64 title_id, Ticks ticks) const
 {
-  return FindTMD(m_ios.GetFSCore(), Common::GetImportTitlePath(title_id) + "/content/title.tmd",
-                 ticks);
+  return FindTMD(
+      m_ios.GetFSCore(), Common::GetImportTitlePath(title_id) + "/content/title.tmd", ticks);
 }
 
 ES::TMDReader ESCore::FindInstalledTMD(u64 title_id, Ticks ticks) const
@@ -109,8 +109,8 @@ static std::vector<u64> GetTitlesInTitleOrImport(FS::FileSystem* fs, const std::
     {
       if (!IsValidPartOfTitleID(title_identifier))
         continue;
-      if (!fs->ReadDirectory(PID_KERNEL, PID_KERNEL,
-                             fmt::format("{}/{}", title_dir, title_identifier)))
+      if (!fs->ReadDirectory(
+              PID_KERNEL, PID_KERNEL, fmt::format("{}/{}", title_dir, title_identifier)))
       {
         continue;
       }
@@ -160,8 +160,8 @@ std::vector<u64> ESCore::GetTitlesWithTickets() const
     for (const std::string& file_name : *sub_entries)
     {
       const std::string name_without_ext = file_name.substr(0, 8);
-      if (fs->ReadDirectory(PID_KERNEL, PID_KERNEL,
-                            fmt::format("/ticket/{}/{}", title_type, file_name)) ||
+      if (fs->ReadDirectory(
+              PID_KERNEL, PID_KERNEL, fmt::format("/ticket/{}/{}", title_type, file_name)) ||
           !IsValidPartOfTitleID(name_without_ext) ||
           (name_without_ext + ".tik" != file_name && name_without_ext + ".tv1" != file_name))
       {
@@ -177,9 +177,8 @@ std::vector<u64> ESCore::GetTitlesWithTickets() const
   return title_ids;
 }
 
-std::vector<ES::Content>
-ESCore::GetStoredContentsFromTMD(const ES::TMDReader& tmd,
-                                 CheckContentHashes check_content_hashes) const
+std::vector<ES::Content> ESCore::GetStoredContentsFromTMD(
+    const ES::TMDReader& tmd, CheckContentHashes check_content_hashes) const
 {
   if (!tmd.IsValid())
     return {};
@@ -189,28 +188,29 @@ ESCore::GetStoredContentsFromTMD(const ES::TMDReader& tmd,
   std::vector<ES::Content> stored_contents;
 
   std::copy_if(contents.begin(), contents.end(), std::back_inserter(stored_contents),
-               [this, &tmd, check_content_hashes](const ES::Content& content) {
-                 const auto fs = m_ios.GetFS();
+      [this, &tmd, check_content_hashes](const ES::Content& content)
+      {
+        const auto fs = m_ios.GetFS();
 
-                 const std::string path = GetContentPath(tmd.GetTitleId(), content);
-                 if (path.empty())
-                   return false;
+        const std::string path = GetContentPath(tmd.GetTitleId(), content);
+        if (path.empty())
+          return false;
 
-                 // Check whether the content file exists.
-                 const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, path, FS::Mode::Read);
-                 if (!file.Succeeded())
-                   return false;
+        // Check whether the content file exists.
+        const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, path, FS::Mode::Read);
+        if (!file.Succeeded())
+          return false;
 
-                 // If content hash checks are disabled, all we have to do is check for existence.
-                 if (check_content_hashes == CheckContentHashes::No)
-                   return true;
+        // If content hash checks are disabled, all we have to do is check for existence.
+        if (check_content_hashes == CheckContentHashes::No)
+          return true;
 
-                 // Otherwise, check whether the installed content SHA1 matches the expected hash.
-                 std::vector<u8> content_data(file->GetStatus()->size);
-                 if (!file->Read(content_data.data(), content_data.size()))
-                   return false;
-                 return Common::SHA1::CalculateDigest(content_data) == content.sha1;
-               });
+        // Otherwise, check whether the installed content SHA1 matches the expected hash.
+        std::vector<u8> content_data(file->GetStatus()->size);
+        if (!file->Read(content_data.data(), content_data.size()))
+          return false;
+        return Common::SHA1::CalculateDigest(content_data) == content.sha1;
+      });
 
   return stored_contents;
 }
@@ -218,10 +218,12 @@ ESCore::GetStoredContentsFromTMD(const ES::TMDReader& tmd,
 u32 ESCore::GetSharedContentsCount() const
 {
   const auto entries = m_ios.GetFS()->ReadDirectory(PID_KERNEL, PID_KERNEL, "/shared1");
-  return static_cast<u32>(std::ranges::count_if(*entries, [this](const std::string& entry) {
-    return !m_ios.GetFS()->ReadDirectory(PID_KERNEL, PID_KERNEL, "/shared1/" + entry) &&
-           entry.size() == 12 && entry.compare(8, 4, ".app") == 0;
-  }));
+  return static_cast<u32>(std::ranges::count_if(*entries,
+      [this](const std::string& entry)
+      {
+        return !m_ios.GetFS()->ReadDirectory(PID_KERNEL, PID_KERNEL, "/shared1/" + entry) &&
+               entry.size() == 12 && entry.compare(8, 4, ".app") == 0;
+      }));
 }
 
 std::vector<std::array<u8, 20>> ESCore::GetSharedContents() const
@@ -269,8 +271,8 @@ bool ESCore::CreateTitleDirectories(u64 title_id, u16 group_id) const
   const std::string data_dir = Common::GetTitleDataPath(title_id);
   const auto data_dir_contents = fs->ReadDirectory(PID_KERNEL, PID_KERNEL, data_dir);
   if (!data_dir_contents && (data_dir_contents.Error() != FS::ResultCode::NotFound ||
-                             fs->CreateDirectory(PID_KERNEL, PID_KERNEL, data_dir, 0,
-                                                 data_dir_modes) != FS::ResultCode::Success))
+                                fs->CreateDirectory(PID_KERNEL, PID_KERNEL, data_dir, 0,
+                                    data_dir_modes) != FS::ResultCode::Success))
   {
     ERROR_LOG_FMT(IOS_ES, "Failed to create data dir for {:016x}", title_id);
     return false;
@@ -390,8 +392,8 @@ void ESCore::FinishAllStaleImports()
     FinishStaleImport(title_id);
 }
 
-std::string ESCore::GetContentPath(const u64 title_id, const ES::Content& content,
-                                   Ticks ticks) const
+std::string ESCore::GetContentPath(
+    const u64 title_id, const ES::Content& content, Ticks ticks) const
 {
   if (content.IsShared())
   {
@@ -408,11 +410,11 @@ s32 ESDevice::WriteSystemFile(const std::string& path, const std::vector<u8>& da
   const std::string tmp_path = "/tmp/" + PathToFileName(path);
 
   auto result = fs.CreateFile(PID_KERNEL, PID_KERNEL, tmp_path, {},
-                              {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None}, ticks);
+      {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None}, ticks);
   if (result != FS::ResultCode::Success)
   {
-    ERROR_LOG_FMT(IOS_ES, "Failed to create temporary file {}: {}", tmp_path,
-                  static_cast<int>(result));
+    ERROR_LOG_FMT(
+        IOS_ES, "Failed to create temporary file {}: {}", tmp_path, static_cast<int>(result));
     return FS::ConvertResult(result);
   }
 
@@ -439,7 +441,7 @@ s32 ESDevice::WriteSystemFile(const std::string& path, const std::vector<u8>& da
   if (result != FS::ResultCode::Success)
   {
     ERROR_LOG_FMT(IOS_ES, "Failed to move launch file to final destination ({}): {}", path,
-                  static_cast<int>(result));
+        static_cast<int>(result));
     return FS::ConvertResult(result);
   }
 

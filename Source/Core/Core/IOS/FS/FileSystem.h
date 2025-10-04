@@ -179,9 +179,8 @@ struct SplitPathResult
 };
 inline bool operator==(const SplitPathResult& lhs, const SplitPathResult& rhs)
 {
-  const auto fields = [](const SplitPathResult& obj) {
-    return std::tie(obj.parent, obj.file_name);
-  };
+  const auto fields = [](const SplitPathResult& obj)
+  { return std::tie(obj.parent, obj.file_name); };
   return fields(lhs) == fields(rhs);
 }
 
@@ -246,31 +245,31 @@ public:
 
   /// Create a file with the specified path and metadata.
   virtual ResultCode CreateFile(Uid caller_uid, Gid caller_gid, const std::string& path,
-                                FileAttribute attribute, Modes modes) = 0;
+      FileAttribute attribute, Modes modes) = 0;
   /// Create a directory with the specified path and metadata.
   virtual ResultCode CreateDirectory(Uid caller_uid, Gid caller_gid, const std::string& path,
-                                     FileAttribute attribute, Modes modes) = 0;
+      FileAttribute attribute, Modes modes) = 0;
 
   /// Create any parent directories for a path with the specified metadata.
   /// Example: "/a/b" to create directory /a; "/a/b/" to create directories /a and /a/b
   ResultCode CreateFullPath(Uid caller_uid, Gid caller_gid, const std::string& path,
-                            FileAttribute attribute, Modes modes);
+      FileAttribute attribute, Modes modes);
 
   /// Delete a file or directory with the specified path.
   virtual ResultCode Delete(Uid caller_uid, Gid caller_gid, const std::string& path) = 0;
   /// Rename a file or directory with the specified path.
-  virtual ResultCode Rename(Uid caller_uid, Gid caller_gid, const std::string& old_path,
-                            const std::string& new_path) = 0;
+  virtual ResultCode Rename(
+      Uid caller_uid, Gid caller_gid, const std::string& old_path, const std::string& new_path) = 0;
 
   /// List the children of a directory (non-recursively).
-  virtual Result<std::vector<std::string>> ReadDirectory(Uid caller_uid, Gid caller_gid,
-                                                         const std::string& path) = 0;
+  virtual Result<std::vector<std::string>> ReadDirectory(
+      Uid caller_uid, Gid caller_gid, const std::string& path) = 0;
 
   /// Get metadata about a file.
   virtual Result<Metadata> GetMetadata(Uid caller_uid, Gid caller_gid, const std::string& path) = 0;
   /// Set metadata for a file.
   virtual ResultCode SetMetadata(Uid caller_uid, const std::string& path, Uid uid, Gid gid,
-                                 FileAttribute attribute, Modes modes) = 0;
+      FileAttribute attribute, Modes modes) = 0;
 
   /// Get usage information about the NAND (block size, cluster and inode counts).
   virtual Result<NandStats> GetNandStats() = 0;
@@ -286,8 +285,8 @@ public:
 template <typename T>
 Result<size_t> FileHandle::Read(T* ptr, size_t count) const
 {
-  const Result<u32> bytes = m_fs->ReadBytesFromFile(*m_fd, reinterpret_cast<u8*>(ptr),
-                                                    static_cast<u32>(sizeof(T) * count));
+  const Result<u32> bytes = m_fs->ReadBytesFromFile(
+      *m_fd, reinterpret_cast<u8*>(ptr), static_cast<u32>(sizeof(T) * count));
   if (!bytes)
     return bytes.Error();
   if (*bytes != sizeof(T) * count)
@@ -298,8 +297,8 @@ Result<size_t> FileHandle::Read(T* ptr, size_t count) const
 template <typename T>
 Result<size_t> FileHandle::Write(const T* ptr, size_t count) const
 {
-  const auto result = m_fs->WriteBytesToFile(*m_fd, reinterpret_cast<const u8*>(ptr),
-                                             static_cast<u32>(sizeof(T) * count));
+  const auto result = m_fs->WriteBytesToFile(
+      *m_fd, reinterpret_cast<const u8*>(ptr), static_cast<u32>(sizeof(T) * count));
   if (!result)
     return result.Error();
   return count;
@@ -311,8 +310,8 @@ enum class Location
   Session,
 };
 
-std::unique_ptr<FileSystem> MakeFileSystem(Location location = Location::Session,
-                                           std::vector<NandRedirect> nand_redirects = {});
+std::unique_ptr<FileSystem> MakeFileSystem(
+    Location location = Location::Session, std::vector<NandRedirect> nand_redirects = {});
 
 /// Convert a FS result code to an IOS error code.
 IOS::HLE::ReturnCode ConvertResult(ResultCode code);

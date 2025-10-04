@@ -24,11 +24,11 @@ constexpr u16 SECTOR_SIZE = 512;
 constexpr u16 VF_LITTLE_ENDIAN = 0xFFFE;
 constexpr u16 VF_BIG_ENDIAN = 0xFEFF;
 ErrorCode WriteToVFF(const std::string& path, const std::string& filename,
-                     const std::shared_ptr<FS::FileSystem>& fs, std::span<const u8> data);
+    const std::shared_ptr<FS::FileSystem>& fs, std::span<const u8> data);
 ErrorCode ReadFromVFF(const std::string& path, const std::string& filename,
-                      const std::shared_ptr<FS::FileSystem>& fs, std::vector<u8>& out);
+    const std::shared_ptr<FS::FileSystem>& fs, std::vector<u8>& out);
 ErrorCode DeleteFileFromVFF(const std::string& path, const std::string& filename,
-                            const std::shared_ptr<FS::FileSystem>& fs);
+    const std::shared_ptr<FS::FileSystem>& fs);
 
 #pragma pack(push, 1)
 struct VFFHeader final

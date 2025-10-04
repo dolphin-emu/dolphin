@@ -66,7 +66,7 @@ public:
   };
 
   explicit IOWindow(MappingWindow* window, ControllerEmu::EmulatedController* m_controller,
-                    ControlReference* ref, Type type);
+      ControlReference* ref, Type type);
 
 signals:
   void DetectInputComplete();

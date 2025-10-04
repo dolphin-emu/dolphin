@@ -33,8 +33,8 @@ static float SourceAspectRatioToWidescreen(float source_aspect)
   return source_aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
 }
 
-static std::tuple<int, int> FindClosestIntegerResolution(float width, float height,
-                                                         float aspect_ratio)
+static std::tuple<int, int> FindClosestIntegerResolution(
+    float width, float height, float aspect_ratio)
 {
   // We can't round both the x and y resolution as that might generate an aspect ratio
   // further away from the target one, we also can't either ceil or floor both sides,
@@ -158,7 +158,7 @@ bool Presenter::FetchXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_heigh
 }
 
 void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks,
-                       TimePoint presentation_time)
+    TimePoint presentation_time)
 {
   bool is_duplicate = FetchXFB(xfb_addr, fb_width, fb_stride, fb_height, ticks);
 
@@ -284,8 +284,8 @@ void Presenter::ProcessFrameDumping(u64 ticks) const
 
     // TODO: any scaling done by this won't be gamma corrected,
     // we should either apply post processing as well, or port its gamma correction code
-    g_frame_dumper->DumpCurrentFrame(m_xfb_entry->texture.get(), m_xfb_rect, target_rect, ticks,
-                                     m_frame_count);
+    g_frame_dumper->DumpCurrentFrame(
+        m_xfb_entry->texture.get(), m_xfb_rect, target_rect, ticks, m_frame_count);
   }
 }
 
@@ -356,8 +356,8 @@ void Presenter::ConfigChanged(u32 changed_bits)
   }
 }
 
-std::tuple<MathUtil::Rectangle<int>, MathUtil::Rectangle<int>>
-Presenter::ConvertStereoRectangle(const MathUtil::Rectangle<int>& rc) const
+std::tuple<MathUtil::Rectangle<int>, MathUtil::Rectangle<int>> Presenter::ConvertStereoRectangle(
+    const MathUtil::Rectangle<int>& rc) const
 {
   // Resize target to half its original size
   auto draw_rc = rc;
@@ -464,8 +464,7 @@ float Presenter::CalculateDrawAspectRatio(bool allow_stretch) const
 }
 
 void Presenter::AdjustRectanglesToFitBounds(MathUtil::Rectangle<int>* target_rect,
-                                            MathUtil::Rectangle<int>* source_rect, int fb_width,
-                                            int fb_height)
+    MathUtil::Rectangle<int>* source_rect, int fb_width, int fb_height)
 {
   const int orig_target_width = target_rect->GetWidth();
   const int orig_target_height = target_rect->GetHeight();
@@ -546,7 +545,7 @@ u32 Presenter::AutoIntegralScale() const
       source_height > 0 ? ((target_height + (source_height - 1)) / source_height) : 1;
   // Limit to the max to avoid creating textures larger than their max supported resolution.
   return std::min(std::max(width_scale, height_scale),
-                  static_cast<u32>(Config::Get(Config::GFX_MAX_EFB_SCALE)));
+      static_cast<u32>(Config::Get(Config::GFX_MAX_EFB_SCALE)));
 }
 
 void Presenter::SetSuggestedWindowSize(int width, int height)
@@ -568,8 +567,8 @@ void Presenter::SetSuggestedWindowSize(int width, int height)
 }
 
 // Crop to exact forced aspect ratios if enabled and not AspectMode::Stretch.
-std::tuple<float, float> Presenter::ApplyStandardAspectCrop(float width, float height,
-                                                            bool allow_stretch) const
+std::tuple<float, float> Presenter::ApplyStandardAspectCrop(
+    float width, float height, bool allow_stretch) const
 {
   auto aspect_mode = g_ActiveConfig.aspect_mode;
 
@@ -707,8 +706,8 @@ void Presenter::UpdateDrawRectangle()
     {
       if (g_ActiveConfig.aspect_mode != AspectMode::Stretch)
       {
-        TryToSnapToXFBSize(int_draw_width, int_draw_height, m_xfb_rect.GetWidth(),
-                           m_xfb_rect.GetHeight());
+        TryToSnapToXFBSize(
+            int_draw_width, int_draw_height, m_xfb_rect.GetWidth(), m_xfb_rect.GetHeight());
       }
       // We can't draw something bigger than the window, it will crop
       int_draw_width = std::min(int_draw_width, static_cast<int>(win_width));
@@ -727,8 +726,8 @@ void Presenter::UpdateDrawRectangle()
   m_target_rectangle.bottom = m_target_rectangle.top + int_draw_height;
 }
 
-std::tuple<float, float> Presenter::ScaleToDisplayAspectRatio(const int width, const int height,
-                                                              bool allow_stretch) const
+std::tuple<float, float> Presenter::ScaleToDisplayAspectRatio(
+    const int width, const int height, bool allow_stretch) const
 {
   // Scale either the width or height depending the content aspect ratio.
   // This way we preserve as much resolution as possible when scaling.
@@ -742,8 +741,8 @@ std::tuple<float, float> Presenter::ScaleToDisplayAspectRatio(const int width, c
   return std::make_tuple(scaled_width, scaled_height);
 }
 
-std::tuple<int, int> Presenter::CalculateOutputDimensions(int width, int height,
-                                                          bool allow_stretch) const
+std::tuple<int, int> Presenter::CalculateOutputDimensions(
+    int width, int height, bool allow_stretch) const
 {
   // Protect against zero width and height, a minimum of 1 will do
   width = std::max(width, 1);
@@ -784,8 +783,7 @@ std::tuple<int, int> Presenter::CalculateOutputDimensions(int width, int height,
 }
 
 void Presenter::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
-                                  const AbstractTexture* source_texture,
-                                  const MathUtil::Rectangle<int>& source_rc)
+    const AbstractTexture* source_texture, const MathUtil::Rectangle<int>& source_rc)
 {
   if (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer &&
       g_backend_info.bUsesExplictQuadBuffering)
@@ -853,8 +851,8 @@ void Presenter::Present(std::optional<TimePoint> presentation_time)
     // Adjust the source rectangle instead of using an oversized viewport to render the XFB.
     auto render_target_rc = GetTargetRectangle();
     auto render_source_rc = m_xfb_rect;
-    AdjustRectanglesToFitBounds(&render_target_rc, &render_source_rc, m_backbuffer_width,
-                                m_backbuffer_height);
+    AdjustRectanglesToFitBounds(
+        &render_target_rc, &render_source_rc, m_backbuffer_width, m_backbuffer_height);
     RenderXFBToScreen(render_target_rc, m_xfb_entry->texture.get(), render_source_rc);
   }
 
@@ -927,8 +925,8 @@ void Presenter::DoState(PointerWrap& p)
     // This technically counts as the end of the frame
     AfterFrameEvent::Trigger(Core::System::GetInstance());
 
-    ImmediateSwap(m_last_xfb_addr, m_last_xfb_width, m_last_xfb_stride, m_last_xfb_height,
-                  m_last_xfb_ticks);
+    ImmediateSwap(
+        m_last_xfb_addr, m_last_xfb_width, m_last_xfb_stride, m_last_xfb_height, m_last_xfb_ticks);
   }
 }
 

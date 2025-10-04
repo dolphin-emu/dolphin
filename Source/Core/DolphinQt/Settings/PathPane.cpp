@@ -43,8 +43,8 @@ void PathPane::Browse()
 
 void PathPane::BrowseDefaultGame()
 {
-  QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
-      this, tr("Select a Game"), Settings::Instance().GetDefaultGame(),
+  QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(this,
+      tr("Select a Game"), Settings::Instance().GetDefaultGame(),
       QStringLiteral("%1 (*.elf *.dol *.gcm *.bin *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz "
                      "hif_000000.nfs *.wad *.m3u *.json);;%2 (*)")
           .arg(tr("All GC/Wii files"))
@@ -89,9 +89,9 @@ void PathPane::BrowseLoad()
 
 void PathPane::BrowseResourcePack()
 {
-  QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
-      this, tr("Select Resource Pack Path"),
-      QString::fromStdString(File::GetUserPath(D_RESOURCEPACK_IDX))));
+  QString dir = QDir::toNativeSeparators(
+      DolphinFileDialog::getExistingDirectory(this, tr("Select Resource Pack Path"),
+          QString::fromStdString(File::GetUserPath(D_RESOURCEPACK_IDX))));
   if (!dir.isEmpty())
   {
     m_resource_pack_edit->setText(dir);
@@ -124,14 +124,16 @@ QGroupBox* PathPane::MakeGameFolderBox()
   m_path_list->insertItems(0, Settings::Instance().GetPaths());
   m_path_list->setSpacing(1);
   connect(&Settings::Instance(), &Settings::PathAdded, this,
-          [this](const QString& dir) { m_path_list->addItem(dir); });
-  connect(&Settings::Instance(), &Settings::PathRemoved, this, [this](const QString& dir) {
-    auto items = m_path_list->findItems(dir, Qt::MatchExactly);
-    for (auto& item : items)
-      delete item;
-  });
+      [this](const QString& dir) { m_path_list->addItem(dir); });
+  connect(&Settings::Instance(), &Settings::PathRemoved, this,
+      [this](const QString& dir)
+      {
+        auto items = m_path_list->findItems(dir, Qt::MatchExactly);
+        for (auto& item : items)
+          delete item;
+      });
   connect(m_path_list, &QListWidget::itemSelectionChanged, this,
-          [this] { m_remove_path->setEnabled(m_path_list->selectedItems().count()); });
+      [this] { m_remove_path->setEnabled(m_path_list->selectedItems().count()); });
 
   vlayout->addWidget(m_path_list);
 
@@ -155,13 +157,15 @@ QGroupBox* PathPane::MakeGameFolderBox()
   vlayout->addWidget(recursive_checkbox);
   vlayout->addWidget(auto_checkbox);
 
-  connect(recursive_checkbox, &QCheckBox::toggled, [](bool checked) {
-    Config::SetBase(Config::MAIN_RECURSIVE_ISO_PATHS, checked);
-    Settings::Instance().RefreshGameList();
-  });
+  connect(recursive_checkbox, &QCheckBox::toggled,
+      [](bool checked)
+      {
+        Config::SetBase(Config::MAIN_RECURSIVE_ISO_PATHS, checked);
+        Settings::Instance().RefreshGameList();
+      });
 
-  connect(auto_checkbox, &QCheckBox::toggled, &Settings::Instance(),
-          &Settings::SetAutoRefreshEnabled);
+  connect(
+      auto_checkbox, &QCheckBox::toggled, &Settings::Instance(), &Settings::SetAutoRefreshEnabled);
 
   connect(add, &QPushButton::clicked, this, &PathPane::Browse);
   connect(m_remove_path, &QPushButton::clicked, this, &PathPane::RemovePath);
@@ -177,9 +181,9 @@ QGridLayout* PathPane::MakePathsLayout()
 
   m_game_edit = new QLineEdit(Settings::Instance().GetDefaultGame());
   connect(m_game_edit, &QLineEdit::editingFinished,
-          [this] { Settings::Instance().SetDefaultGame(m_game_edit->text()); });
+      [this] { Settings::Instance().SetDefaultGame(m_game_edit->text()); });
   connect(&Settings::Instance(), &Settings::DefaultGameChanged, this,
-          [this](const QString& path) { m_game_edit->setText(path); });
+      [this](const QString& path) { m_game_edit->setText(path); });
   QPushButton* game_open = new NonDefaultQPushButton(QStringLiteral("..."));
   connect(game_open, &QPushButton::clicked, this, &PathPane::BrowseDefaultGame);
   layout->addWidget(new QLabel(tr("Default ISO:")), 0, 0);
@@ -196,7 +200,7 @@ QGridLayout* PathPane::MakePathsLayout()
 
   m_dump_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(D_DUMP_IDX)));
   connect(m_dump_edit, &QLineEdit::editingFinished,
-          [this] { Config::SetBase(Config::MAIN_DUMP_PATH, m_dump_edit->text().toStdString()); });
+      [this] { Config::SetBase(Config::MAIN_DUMP_PATH, m_dump_edit->text().toStdString()); });
   QPushButton* dump_open = new NonDefaultQPushButton(QStringLiteral("..."));
   connect(dump_open, &QPushButton::clicked, this, &PathPane::BrowseDump);
   layout->addWidget(new QLabel(tr("Dump Path:")), 2, 0);
@@ -205,7 +209,7 @@ QGridLayout* PathPane::MakePathsLayout()
 
   m_load_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(D_LOAD_IDX)));
   connect(m_load_edit, &QLineEdit::editingFinished,
-          [this] { Config::SetBase(Config::MAIN_LOAD_PATH, m_load_edit->text().toStdString()); });
+      [this] { Config::SetBase(Config::MAIN_LOAD_PATH, m_load_edit->text().toStdString()); });
   QPushButton* load_open = new NonDefaultQPushButton(QStringLiteral("..."));
   connect(load_open, &QPushButton::clicked, this, &PathPane::BrowseLoad);
   layout->addWidget(new QLabel(tr("Load Path:")), 3, 0);
@@ -214,9 +218,11 @@ QGridLayout* PathPane::MakePathsLayout()
 
   m_resource_pack_edit =
       new QLineEdit(QString::fromStdString(File::GetUserPath(D_RESOURCEPACK_IDX)));
-  connect(m_resource_pack_edit, &QLineEdit::editingFinished, [this] {
-    Config::SetBase(Config::MAIN_RESOURCEPACK_PATH, m_resource_pack_edit->text().toStdString());
-  });
+  connect(m_resource_pack_edit, &QLineEdit::editingFinished,
+      [this]
+      {
+        Config::SetBase(Config::MAIN_RESOURCEPACK_PATH, m_resource_pack_edit->text().toStdString());
+      });
   QPushButton* resource_pack_open = new NonDefaultQPushButton(QStringLiteral("..."));
   connect(resource_pack_open, &QPushButton::clicked, this, &PathPane::BrowseResourcePack);
   layout->addWidget(new QLabel(tr("Resource Pack Path:")), 4, 0);
@@ -225,7 +231,7 @@ QGridLayout* PathPane::MakePathsLayout()
 
   m_wfs_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(D_WFSROOT_IDX)));
   connect(m_load_edit, &QLineEdit::editingFinished,
-          [this] { Config::SetBase(Config::MAIN_WFS_PATH, m_wfs_edit->text().toStdString()); });
+      [this] { Config::SetBase(Config::MAIN_WFS_PATH, m_wfs_edit->text().toStdString()); });
   QPushButton* wfs_open = new NonDefaultQPushButton(QStringLiteral("..."));
   connect(wfs_open, &QPushButton::clicked, this, &PathPane::BrowseWFS);
   layout->addWidget(new QLabel(tr("WFS Path:")), 5, 0);

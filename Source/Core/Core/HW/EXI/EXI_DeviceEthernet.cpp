@@ -78,10 +78,10 @@ CEXIETHERNET::CEXIETHERNET(Core::System& system, BBADeviceType type) : IEXIDevic
     // perspective so lets use "dolphin<bba mac>"
     m_network_interface =
         std::make_unique<XLinkNetworkInterface>(this, Config::Get(Config::MAIN_BBA_XLINK_IP), 34523,
-                                                "dolphin" + Config::Get(Config::MAIN_BBA_MAC),
-                                                Config::Get(Config::MAIN_BBA_XLINK_CHAT_OSD));
+            "dolphin" + Config::Get(Config::MAIN_BBA_MAC),
+            Config::Get(Config::MAIN_BBA_XLINK_CHAT_OSD));
     INFO_LOG_FMT(SP1, "Created XLink Kai BBA network interface connection to {}:34523",
-                 Config::Get(Config::MAIN_BBA_XLINK_IP));
+        Config::Get(Config::MAIN_BBA_XLINK_IP));
     break;
   }
 
@@ -137,12 +137,12 @@ void CEXIETHERNET::ImmWrite(u32 data, u32 size)
     transfer.direction = IsWriteCommand(data) ? transfer.WRITE : transfer.READ;
 
     DEBUG_LOG_FMT(SP1, "{} {} {} {:x}", IsMXCommand(data) ? "mx " : "exi",
-                  IsWriteCommand(data) ? "write" : "read ", GetRegisterName(), transfer.address);
+        IsWriteCommand(data) ? "write" : "read ", GetRegisterName(), transfer.address);
 
     if (transfer.address == BBA_IOB && transfer.region == transfer.MX)
     {
-      ERROR_LOG_FMT(SP1,
-                    "Usage of BBA_IOB indicates that the rx packet descriptor has been corrupted.");
+      ERROR_LOG_FMT(
+          SP1, "Usage of BBA_IOB indicates that the rx packet descriptor has been corrupted.");
     }
 
     // transfer has been setup
@@ -236,8 +236,8 @@ void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
   else
   {
     ERROR_LOG_FMT(SP1, "DMA write in {} {} mode - not implemented",
-                  transfer.region == transfer.EXI ? "exi" : "mx",
-                  transfer.direction == transfer.READ ? "read" : "write");
+        transfer.region == transfer.EXI ? "exi" : "mx",
+        transfer.direction == transfer.READ ? "read" : "write");
   }
 }
 
@@ -553,13 +553,13 @@ bool CEXIETHERNET::RecvHandlePacket()
 
 #ifdef BBA_TRACK_PAGE_PTRS
   INFO_LOG_FMT(SP1, "RecvHandlePacket {:x}\n{}", mRecvBufferLength,
-               ArrayToString(mRecvBuffer.get(), mRecvBufferLength, 16));
+      ArrayToString(mRecvBuffer.get(), mRecvBufferLength, 16));
 
   INFO_LOG_FMT(SP1, "{:x} {:x} {:x} {:x}", page_ptr(BBA_BP), page_ptr(BBA_RRP), page_ptr(BBA_RWP),
-               page_ptr(BBA_RHBP));
+      page_ptr(BBA_RHBP));
 #endif
-  m_system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogBBA(mRecvBuffer.get(),
-                                                                    mRecvBufferLength);
+  m_system.GetPowerPC().GetDebugInterface().NetworkLogger()->LogBBA(
+      mRecvBuffer.get(), mRecvBufferLength);
   write_ptr = &mBbaMem[page_ptr(BBA_RWP) << 8];
 
   descriptor = (Descriptor*)write_ptr;
@@ -604,7 +604,7 @@ bool CEXIETHERNET::RecvHandlePacket()
 
 #ifdef BBA_TRACK_PAGE_PTRS
   INFO_LOG_FMT(SP1, "{:x} {:x} {:x} {:x}", page_ptr(BBA_BP), page_ptr(BBA_RRP), page_ptr(BBA_RWP),
-               page_ptr(BBA_RHBP));
+      page_ptr(BBA_RHBP));
 #endif
 
   // Is the current frame multicast?

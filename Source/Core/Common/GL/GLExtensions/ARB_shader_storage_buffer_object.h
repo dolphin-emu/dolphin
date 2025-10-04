@@ -22,9 +22,8 @@
 #define GL_MAX_SHADER_STORAGE_BLOCK_SIZE 0x90DE
 #define GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT 0x90DF
 
-typedef void(APIENTRY* PFNDOLSHADERSTORAGEBLOCKBINDINGPROC)(GLuint program,
-                                                            GLuint storageBlockIndex,
-                                                            GLuint storageBlockBinding);
+typedef void(APIENTRY* PFNDOLSHADERSTORAGEBLOCKBINDINGPROC)(
+    GLuint program, GLuint storageBlockIndex, GLuint storageBlockBinding);
 
 extern PFNDOLSHADERSTORAGEBLOCKBINDINGPROC dolShaderStorageBlockBinding;
 

@@ -20,7 +20,9 @@ struct ScissorRange
 {
   constexpr ScissorRange() = default;
   constexpr ScissorRange(int offset_, int start_, int end_)
-      : offset(offset_), start(start_), end(end_)
+      : offset(offset_)
+      , start(start_)
+      , end(end_)
   {
   }
   int offset = 0;
@@ -32,8 +34,9 @@ struct ScissorRect
 {
   constexpr ScissorRect(ScissorRange x_range, ScissorRange y_range)
       :  // Rectangle ctor takes x0, y0, x1, y1.
-        rect(x_range.start, y_range.start, x_range.end, y_range.end), x_off(x_range.offset),
-        y_off(y_range.offset)
+      rect(x_range.start, y_range.start, x_range.end, y_range.end)
+      , x_off(x_range.offset)
+      , y_off(y_range.offset)
   {
   }
 
@@ -70,10 +73,14 @@ struct ScissorResult
   ScissorResult(const BPMemory& bpmem, const XFMemory& xfmem);
   ~ScissorResult() = default;
   ScissorResult(const ScissorResult& other)
-      : scissor_tl{.hex = other.scissor_tl.hex}, scissor_br{.hex = other.scissor_br.hex},
-        scissor_off{.hex = other.scissor_off.hex}, viewport_left{other.viewport_left},
-        viewport_right{other.viewport_right}, viewport_top{other.viewport_top},
-        viewport_bottom{other.viewport_bottom}, m_result{other.m_result}
+      : scissor_tl{.hex = other.scissor_tl.hex}
+      , scissor_br{.hex = other.scissor_br.hex}
+      , scissor_off{.hex = other.scissor_off.hex}
+      , viewport_left{other.viewport_left}
+      , viewport_right{other.viewport_right}
+      , viewport_top{other.viewport_top}
+      , viewport_bottom{other.viewport_bottom}
+      , m_result{other.m_result}
   {
   }
   ScissorResult& operator=(const ScissorResult& other)
@@ -91,10 +98,14 @@ struct ScissorResult
     return *this;
   }
   ScissorResult(ScissorResult&& other)
-      : scissor_tl{.hex = other.scissor_tl.hex}, scissor_br{.hex = other.scissor_br.hex},
-        scissor_off{.hex = other.scissor_off.hex}, viewport_left{other.viewport_left},
-        viewport_right{other.viewport_right}, viewport_top{other.viewport_top},
-        viewport_bottom{other.viewport_bottom}, m_result{std::move(other.m_result)}
+      : scissor_tl{.hex = other.scissor_tl.hex}
+      , scissor_br{.hex = other.scissor_br.hex}
+      , scissor_off{.hex = other.scissor_off.hex}
+      , viewport_left{other.viewport_left}
+      , viewport_right{other.viewport_right}
+      , viewport_top{other.viewport_top}
+      , viewport_bottom{other.viewport_bottom}
+      , m_result{std::move(other.m_result)}
   {
   }
   ScissorResult& operator=(ScissorResult&& other)
@@ -147,7 +158,7 @@ struct ScissorResult
 
 private:
   ScissorResult(const BPMemory& bpmem, std::pair<float, float> viewport_x,
-                std::pair<float, float> viewport_y);
+      std::pair<float, float> viewport_y);
 
   int GetViewportArea(const ScissorRect& rect) const;
   bool IsWorse(const ScissorRect& lhs, const ScissorRect& rhs) const;

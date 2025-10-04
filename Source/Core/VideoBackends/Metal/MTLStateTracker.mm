@@ -162,8 +162,8 @@ Metal::StateTracker::Map Metal::StateTracker::AllocateForTextureUpload(size_t am
   size_t pos = buffer.usage.Allocate(m_current_draw, amt);
 
   Map ret = {buffer.mtlbuffer, pos, reinterpret_cast<char*>(buffer.buffer) + pos};
-  DEBUG_ASSERT(pos <= buffer.usage.Size() &&
-               "Previous code should have guaranteed there was enough space");
+  DEBUG_ASSERT(
+      pos <= buffer.usage.Size() && "Previous code should have guaranteed there was enough space");
   return ret;
 }
 
@@ -212,15 +212,15 @@ std::pair<void*, size_t> Metal::StateTracker::Preallocate(UploadBuffer buffer_id
   return std::make_pair(reinterpret_cast<char*>(buffer.buffer) + pos, pos);
 }
 
-Metal::StateTracker::Map Metal::StateTracker::CommitPreallocation(UploadBuffer buffer_idx,
-                                                                  size_t amt)
+Metal::StateTracker::Map Metal::StateTracker::CommitPreallocation(
+    UploadBuffer buffer_idx, size_t amt)
 {
   BufferPair& buffer = m_upload_buffers[static_cast<int>(buffer_idx)];
   size_t pos = buffer.usage.Allocate(m_current_draw, amt);
   Map ret = {nil, pos, reinterpret_cast<char*>(buffer.buffer) + pos};
   ret.gpu_buffer = m_manual_buffer_upload ? buffer.gpubuffer : buffer.cpubuffer;
-  DEBUG_ASSERT(pos <= buffer.usage.Size() &&
-               "Previous code should have guaranteed there was enough space");
+  DEBUG_ASSERT(
+      pos <= buffer.usage.Size() && "Previous code should have guaranteed there was enough space");
   return ret;
 }
 
@@ -291,8 +291,8 @@ void Metal::StateTracker::SetCurrentFramebuffer(Framebuffer* framebuffer)
   m_current_framebuffer = framebuffer;
 }
 
-MTLRenderPassDescriptor* Metal::StateTracker::GetRenderPassDescriptor(Framebuffer* framebuffer,
-                                                                      MTLLoadAction load_action)
+MTLRenderPassDescriptor* Metal::StateTracker::GetRenderPassDescriptor(
+    Framebuffer* framebuffer, MTLLoadAction load_action)
 {
   framebuffer->SetLoadAction(load_action);
   return framebuffer->PassDesc();
@@ -331,15 +331,14 @@ void Metal::StateTracker::BeginRenderPass(MTLRenderPassDescriptor* descriptor)
   AbstractTexture* attachment = m_current_framebuffer->GetColorAttachment();
   if (!attachment)
     attachment = m_current_framebuffer->GetDepthAttachment();
-  static_assert(std::is_trivially_copyable<decltype(m_current)>::value,
-                "Make sure we can memset this");
+  static_assert(
+      std::is_trivially_copyable<decltype(m_current)>::value, "Make sure we can memset this");
   memset(&m_current, 0, sizeof(m_current));
   m_current.width = attachment->GetWidth();
   m_current.height = attachment->GetHeight();
   m_current.scissor_rect = MathUtil::Rectangle<int>(0, 0, m_current.width, m_current.height);
-  m_current.viewport = {
-      0.f, 0.f, static_cast<float>(m_current.width), static_cast<float>(m_current.height),
-      0.f, 1.f};
+  m_current.viewport = {0.f, 0.f, static_cast<float>(m_current.width),
+      static_cast<float>(m_current.height), 0.f, 1.f};
   m_current.depth_stencil = DepthStencilSelector(false, CompareMode::Always);
   m_current.depth_clip_mode = MTLDepthClipModeClip;
   m_current.cull_mode = MTLCullModeNone;
@@ -409,7 +408,8 @@ void Metal::StateTracker::FlushEncoders()
   }
   [m_current_render_cmdbuf
       addCompletedHandler:[backref = m_backref, draw = m_current_draw,
-                           q = std::move(m_current_perf_query)](id<MTLCommandBuffer> buf) {
+                              q = std::move(m_current_perf_query)](id<MTLCommandBuffer> buf)
+      {
         std::lock_guard<std::mutex> guard(backref->mtx);
         if (StateTracker* tracker = backref->state_tracker)
         {
@@ -495,8 +495,8 @@ void Metal::StateTracker::CheckScissor()
   m_flags.has_scissor = clipped == m_current.scissor_rect;
 }
 
-void Metal::StateTracker::SetViewport(float x, float y, float width, float height, float near_depth,
-                                      float far_depth)
+void Metal::StateTracker::SetViewport(
+    float x, float y, float width, float height, float near_depth, float far_depth)
 {
   m_state.viewport = {x, y, width, height, near_depth, far_depth};
   CheckViewport();
@@ -589,8 +589,8 @@ void Metal::StateTracker::SetVerticesAndIndices(id<MTLBuffer> vertices, id<MTLBu
   m_state.indices = indices;
 }
 
-void Metal::StateTracker::SetBBoxBuffer(id<MTLBuffer> bbox, id<MTLFence> upload,
-                                        id<MTLFence> download)
+void Metal::StateTracker::SetBBoxBuffer(
+    id<MTLBuffer> bbox, id<MTLFence> upload, id<MTLFence> download)
 {
   m_state.bbox = bbox;
   m_state.bbox_upload_fence = upload;
@@ -639,7 +639,7 @@ std::shared_ptr<Metal::StateTracker::PerfQueryTracker> Metal::StateTracker::NewP
       id<MTLBuffer> buffer = [g_device newBufferWithLength:PERF_QUERY_BUFFER_SIZE * sizeof(u64)
                                                    options:options];
       [buffer setLabel:[NSString stringWithFormat:@"PerfQuery Buffer %d",
-                                                  m_perf_query_tracker_counter++]];
+                           m_perf_query_tracker_counter++]];
       tracker->buffer = MRCTransfer(buffer);
       tracker->contents = static_cast<const u64*>([buffer contents]);
       tracker->query_id = m_state.perf_query_id;
@@ -669,7 +669,8 @@ void Metal::StateTracker::EnablePerfQuery(PerfQueryGroup group, u32 query_id)
     if (m_current_perf_query)
     {
       [m_current_render_cmdbuf
-          addCompletedHandler:[backref = m_backref, q = std::move(m_current_perf_query)](id) {
+          addCompletedHandler:[backref = m_backref, q = std::move(m_current_perf_query)](id)
+          {
             std::lock_guard<std::mutex> guard(backref->mtx);
             if (StateTracker* tracker = backref->state_tracker)
             {
@@ -825,7 +826,7 @@ void Metal::StateTracker::PrepareRender()
       if (pipe->UsesFragmentBuffer(1))
         SetFragmentBufferNow(1, map.gpu_buffer, map.gpu_offset);
       ADDSTAT(g_stats.this_frame.bytes_uniform_streamed,
-              Align(sizeof(VertexShaderConstants), AlignMask::Uniform));
+          Align(sizeof(VertexShaderConstants), AlignMask::Uniform));
     }
     if (!m_flags.has_gx_gs_uniform && pipe->UsesVertexBuffer(2))
     {
@@ -846,7 +847,7 @@ void Metal::StateTracker::PrepareRender()
       memcpy(map.cpu_buffer, &pixel_shader_manager.constants, sizeof(PixelShaderConstants));
       SetFragmentBufferNow(0, map.gpu_buffer, map.gpu_offset);
       ADDSTAT(g_stats.this_frame.bytes_uniform_streamed,
-              Align(sizeof(PixelShaderConstants), AlignMask::Uniform));
+          Align(sizeof(PixelShaderConstants), AlignMask::Uniform));
     }
   }
   else
@@ -953,8 +954,8 @@ void Metal::StateTracker::DrawIndexed(u32 base_index, u32 num_indices, u32 base_
                                      baseInstance:0];
 }
 
-void Metal::StateTracker::DispatchComputeShader(u32 groupsize_x, u32 groupsize_y, u32 groupsize_z,
-                                                u32 groups_x, u32 groups_y, u32 groups_z)
+void Metal::StateTracker::DispatchComputeShader(
+    u32 groupsize_x, u32 groupsize_y, u32 groupsize_z, u32 groups_x, u32 groups_y, u32 groups_z)
 {
   PrepareCompute();
   [m_current_compute_encoder
@@ -962,8 +963,8 @@ void Metal::StateTracker::DispatchComputeShader(u32 groupsize_x, u32 groupsize_y
       threadsPerThreadgroup:MTLSizeMake(groupsize_x, groupsize_y, groupsize_z)];
 }
 
-void Metal::StateTracker::ResolveTexture(id<MTLTexture> src, id<MTLTexture> dst, u32 layer,
-                                         u32 level)
+void Metal::StateTracker::ResolveTexture(
+    id<MTLTexture> src, id<MTLTexture> dst, u32 layer, u32 level)
 {
   EndRenderPass();
   auto color0 = [[m_resolve_pass_desc colorAttachments] objectAtIndexedSubscript:0];

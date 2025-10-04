@@ -25,8 +25,8 @@
 
 namespace DolphinTool
 {
-static std::optional<DiscIO::WIARVZCompressionType>
-ParseCompressionTypeString(const std::string& compression_str)
+static std::optional<DiscIO::WIARVZCompressionType> ParseCompressionTypeString(
+    const std::string& compression_str)
 {
   if (compression_str == "none")
     return DiscIO::WIARVZCompressionType::None;
@@ -165,8 +165,8 @@ int ConvertCommand(const std::vector<std::string>& args)
       return EXIT_FAILURE;
     }
 
-    fmt::print(std::cerr,
-               "Warning: The input file is not a GC/Wii disc image. Continuing anyway.\n");
+    fmt::print(
+        std::cerr, "Warning: The input file is not a GC/Wii disc image. Continuing anyway.\n");
   }
 
   if (scrub)
@@ -208,7 +208,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   if (volume && volume->IsNKit())
   {
     fmt::print(std::cerr,
-               "Warning: Converting an NKit file, output will still be NKit! Continuing anyway.\n");
+        "Warning: Converting an NKit file, output will still be NKit! Continuing anyway.\n");
   }
 
   // --block_size
@@ -234,17 +234,17 @@ int ConvertCommand(const std::vector<std::string>& args)
     if (block_size_o.value() < DiscIO::PREFERRED_MIN_BLOCK_SIZE ||
         block_size_o.value() > DiscIO::PREFERRED_MAX_BLOCK_SIZE)
     {
-      fmt::print(std::cerr,
-                 "Warning: Block size is not ideal for performance. Continuing anyway.\n");
+      fmt::print(
+          std::cerr, "Warning: Block size is not ideal for performance. Continuing anyway.\n");
     }
 
     if (format == DiscIO::BlobType::GCZ && volume &&
         !DiscIO::IsGCZBlockSizeLegacyCompatible(block_size_o.value(), volume->GetDataSize()))
     {
       fmt::print(std::cerr,
-                 "Warning: For GCZs to be compatible with Dolphin < 5.0-11893, the file size "
-                 "must be an integer multiple of the block size and must not be an integer "
-                 "multiple of the block size multiplied by 32. Continuing anyway.\n");
+          "Warning: For GCZs to be compatible with Dolphin < 5.0-11893, the file size "
+          "must be an integer multiple of the block size and must not be an integer "
+          "multiple of the block size multiplied by 32. Continuing anyway.\n");
     }
   }
 
@@ -265,9 +265,9 @@ int ConvertCommand(const std::vector<std::string>& args)
     }
 
     if ((format == DiscIO::BlobType::WIA &&
-         compression_o.value() == DiscIO::WIARVZCompressionType::Zstd) ||
+            compression_o.value() == DiscIO::WIARVZCompressionType::Zstd) ||
         (format == DiscIO::BlobType::RVZ &&
-         compression_o.value() == DiscIO::WIARVZCompressionType::Purge))
+            compression_o.value() == DiscIO::WIARVZCompressionType::Purge))
     {
       fmt::print(std::cerr, "Error: Compression type is not supported for the container format\n");
       return EXIT_FAILURE;
@@ -282,7 +282,7 @@ int ConvertCommand(const std::vector<std::string>& args)
       if (!compression_level_o.has_value())
       {
         fmt::print(std::cerr,
-                   "Error: Compression level must be set when compression type is not 'none'\n");
+            "Error: Compression level must be set when compression type is not 'none'\n");
         return EXIT_FAILURE;
       }
 
@@ -305,8 +305,8 @@ int ConvertCommand(const std::vector<std::string>& args)
   {
   case DiscIO::BlobType::PLAIN:
   {
-    success = DiscIO::ConvertToPlain(blob_reader.get(), input_file_path, output_file_path,
-                                     NOOP_STATUS_CALLBACK);
+    success = DiscIO::ConvertToPlain(
+        blob_reader.get(), input_file_path, output_file_path, NOOP_STATUS_CALLBACK);
     break;
   }
 
@@ -321,7 +321,7 @@ int ConvertCommand(const std::vector<std::string>& args)
         sub_type = 1;
     }
     success = DiscIO::ConvertToGCZ(blob_reader.get(), input_file_path, output_file_path, sub_type,
-                                   block_size_o.value(), NOOP_STATUS_CALLBACK);
+        block_size_o.value(), NOOP_STATUS_CALLBACK);
     break;
   }
 
@@ -329,9 +329,8 @@ int ConvertCommand(const std::vector<std::string>& args)
   case DiscIO::BlobType::RVZ:
   {
     success = DiscIO::ConvertToWIAOrRVZ(blob_reader.get(), input_file_path, output_file_path,
-                                        format == DiscIO::BlobType::RVZ, compression_o.value(),
-                                        compression_level_o.value(), block_size_o.value(),
-                                        NOOP_STATUS_CALLBACK);
+        format == DiscIO::BlobType::RVZ, compression_o.value(), compression_level_o.value(),
+        block_size_o.value(), NOOP_STATUS_CALLBACK);
     break;
   }
 

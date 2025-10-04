@@ -84,7 +84,8 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
   const bool inaccurate_fma = op5 > 25 && !Config::Get(Config::SESSION_USE_FMA);
   const bool round_c = use_c && output_is_single && !js.op->fprIsSingle[inst.FC];
 
-  const auto inputs_are_singles_func = [&] {
+  const auto inputs_are_singles_func = [&]
+  {
     return fpr.IsSingle(a, true) && (!use_b || fpr.IsSingle(b, true)) &&
            (!use_c || fpr.IsSingle(c, true));
   };
@@ -250,7 +251,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
   if (output_is_single)
   {
     ASSERT_MSG(DYNA_REC, inputs_are_singles == inputs_are_singles_func(),
-               "Register allocation turned singles into doubles in the middle of fp_arith");
+        "Register allocation turned singles into doubles in the middle of fp_arith");
 
     fpr.FixSinglePrecision(d);
   }
@@ -335,7 +336,7 @@ void JitArm64::fp_logic(UGeckoInstruction inst)
   }
 
   ASSERT_MSG(DYNA_REC, single == fpr.IsSingle(b, !packed),
-             "Register allocation turned singles into doubles in the middle of fp_logic");
+      "Register allocation turned singles into doubles in the middle of fp_logic");
 }
 
 void JitArm64::fselx(UGeckoInstruction inst)
@@ -364,16 +365,16 @@ void JitArm64::fselx(UGeckoInstruction inst)
   // If a == d, the RW call below may change the type of a to double. This is okay, because the
   // actual value in the register is not altered by RW. So let's just assert before calling RW.
   ASSERT_MSG(DYNA_REC, a_single == fpr.IsSingle(a, true),
-             "Register allocation turned singles into doubles in the middle of fselx");
+      "Register allocation turned singles into doubles in the middle of fselx");
 
   const ARM64Reg VD = fpr.RW(d, b_and_c_type);
 
   m_float_emit.FCMPE(a_reg_encoder(VA));
-  m_float_emit.FCSEL(b_and_c_reg_encoder(VD), b_and_c_reg_encoder(VC), b_and_c_reg_encoder(VB),
-                     CC_GE);
+  m_float_emit.FCSEL(
+      b_and_c_reg_encoder(VD), b_and_c_reg_encoder(VC), b_and_c_reg_encoder(VB), CC_GE);
 
   ASSERT_MSG(DYNA_REC, b_and_c_singles == (fpr.IsSingle(b, true) && fpr.IsSingle(c, true)),
-             "Register allocation turned singles into doubles in the middle of fselx");
+      "Register allocation turned singles into doubles in the middle of fselx");
 }
 
 void JitArm64::frspx(UGeckoInstruction inst)
@@ -397,7 +398,7 @@ void JitArm64::frspx(UGeckoInstruction inst)
       m_float_emit.FMOV(EncodeRegToSingle(VD), EncodeRegToSingle(VB));
 
     ASSERT_MSG(DYNA_REC, fpr.IsSingle(b, true),
-               "Register allocation turned singles into doubles in the middle of frspx");
+        "Register allocation turned singles into doubles in the middle of frspx");
 
     SetFPRFIfNeeded(true, VD);
   }
@@ -527,7 +528,7 @@ void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
   SetJumpTarget(continue1);
 
   ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a, true) && fpr.IsSingle(b, true)),
-             "Register allocation turned singles into doubles in the middle of fcmpX");
+      "Register allocation turned singles into doubles in the middle of fcmpX");
 
   if (fprf)
   {
@@ -602,7 +603,7 @@ void JitArm64::fctiwx(UGeckoInstruction inst)
   }
 
   ASSERT_MSG(DYNA_REC, b == d || single == fpr.IsSingle(b, true),
-             "Register allocation turned singles into doubles in the middle of fctiwzx");
+      "Register allocation turned singles into doubles in the middle of fctiwzx");
 }
 
 void JitArm64::fresx(UGeckoInstruction inst)
@@ -711,8 +712,8 @@ void JitArm64::ConvertDoubleToSinglePair(size_t guest_reg, ARM64Reg dest_reg, AR
   ABI_PopRegisters(gpr_saved);
 }
 
-void JitArm64::ConvertSingleToDoubleLower(size_t guest_reg, ARM64Reg dest_reg, ARM64Reg src_reg,
-                                          ARM64Reg scratch_reg)
+void JitArm64::ConvertSingleToDoubleLower(
+    size_t guest_reg, ARM64Reg dest_reg, ARM64Reg src_reg, ARM64Reg scratch_reg)
 {
   ASSERT(scratch_reg != src_reg);
 
@@ -773,8 +774,8 @@ void JitArm64::ConvertSingleToDoubleLower(size_t guest_reg, ARM64Reg dest_reg, A
   }
 }
 
-void JitArm64::ConvertSingleToDoublePair(size_t guest_reg, ARM64Reg dest_reg, ARM64Reg src_reg,
-                                         ARM64Reg scratch_reg)
+void JitArm64::ConvertSingleToDoublePair(
+    size_t guest_reg, ARM64Reg dest_reg, ARM64Reg src_reg, ARM64Reg scratch_reg)
 {
   ASSERT(scratch_reg != src_reg);
 
@@ -798,7 +799,7 @@ void JitArm64::ConvertSingleToDoublePair(size_t guest_reg, ARM64Reg dest_reg, AR
     // the absolute value of the corresponding element in src_reg compares greater than 0
     m_float_emit.MOVI(64, EncodeRegToDouble(scratch_reg), 0);
     m_float_emit.FACGT(32, EncodeRegToDouble(scratch_reg), EncodeRegToDouble(src_reg),
-                       EncodeRegToDouble(scratch_reg));
+        EncodeRegToDouble(scratch_reg));
 
     // 0x0000'0000'0000'0000 (zero)     -> 0x0000'0000'0000'0000 (zero)
     // 0x0000'0000'FFFF'FFFF (denormal) -> 0xFF00'0000'FFFF'FFFF (normal)

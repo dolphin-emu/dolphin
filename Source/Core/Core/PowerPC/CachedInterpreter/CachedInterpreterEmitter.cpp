@@ -28,7 +28,7 @@ void CachedInterpreterEmitter::Write(AnyCallback callback, const void* operands,
 s32 CachedInterpreterEmitter::PoisonCallback(PowerPC::PowerPCState& ppc_state, const void* operands)
 {
   ASSERT_MSG(DYNA_REC, false,
-             "The Cached Interpreter reached a poisoned callback. This should never happen!");
+      "The Cached Interpreter reached a poisoned callback. This should never happen!");
   return 0;
 }
 
@@ -37,5 +37,5 @@ void CachedInterpreterCodeBlock::PoisonMemory()
   DEBUG_ASSERT(reinterpret_cast<std::uintptr_t>(region) % alignof(AnyCallback) == 0);
   DEBUG_ASSERT(region_size % sizeof(AnyCallback) == 0);
   std::fill(reinterpret_cast<AnyCallback*>(region),
-            reinterpret_cast<AnyCallback*>(region + region_size), AnyCallbackCast(PoisonCallback));
+      reinterpret_cast<AnyCallback*>(region + region_size), AnyCallbackCast(PoisonCallback));
 }

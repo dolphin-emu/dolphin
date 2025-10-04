@@ -39,8 +39,8 @@ static inline void __cpuidex(int info[4], int function_id, int subfunction_id)
   info[0] = function_id;     // eax
   info[2] = subfunction_id;  // ecx
   __asm__("cpuid"
-          : "=a"(info[0]), "=b"(info[1]), "=c"(info[2]), "=d"(info[3])
-          : "a"(function_id), "c"(subfunction_id));
+      : "=a"(info[0]), "=b"(info[1]), "=c"(info[2]), "=d"(info[3])
+      : "a"(function_id), "c"(subfunction_id));
 #endif
 }
 
@@ -153,7 +153,7 @@ void CPUInfo::Detect()
     // Detect people unfortunate enough to be running Dolphin on an Atom
     if (vendor == CPUVendor::Intel && family == 6 &&
         (model == 0x1C || model == 0x26 || model == 0x27 || model == 0x35 || model == 0x36 ||
-         model == 0x37 || model == 0x4A || model == 0x4D || model == 0x5A || model == 0x5D))
+            model == 0x37 || model == 0x4A || model == 0x4D || model == 0x5A || model == 0x5D))
       bAtom = true;
 
     // Detect AMD Zen1, Zen1+ and Zen2

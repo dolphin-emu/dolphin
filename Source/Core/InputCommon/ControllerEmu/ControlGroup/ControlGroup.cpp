@@ -13,44 +13,46 @@
 
 namespace ControllerEmu
 {
-ControlGroup::ControlGroup(const std::string& name_, const GroupType type_,
-                           DefaultValue default_value_)
+ControlGroup::ControlGroup(
+    const std::string& name_, const GroupType type_, DefaultValue default_value_)
     : ControlGroup{name_, name_, type_, default_value_}
 {
 }
 
-ControlGroup::ControlGroup(std::string name_, std::string ui_name_, const GroupType type_,
-                           DefaultValue default_value_)
-    : name(std::move(name_)), ui_name(std::move(ui_name_)), type(type_),
-      default_value(default_value_)
+ControlGroup::ControlGroup(
+    std::string name_, std::string ui_name_, const GroupType type_, DefaultValue default_value_)
+    : name(std::move(name_))
+    , ui_name(std::move(ui_name_))
+    , type(type_)
+    , default_value(default_value_)
 {
   if (default_value_ != DefaultValue::AlwaysEnabled)
   {
-    enabled_setting = std::make_unique<NumericSetting<bool>>(
-        &enabled, NumericSettingDetails{_trans("Enabled")},
-        (default_value_ == DefaultValue::Enabled), false, true);
+    enabled_setting =
+        std::make_unique<NumericSetting<bool>>(&enabled, NumericSettingDetails{_trans("Enabled")},
+            (default_value_ == DefaultValue::Enabled), false, true);
   }
 }
 
 void ControlGroup::AddVirtualNotchSetting(SettingValue<double>* value, double max_virtual_notch_deg)
 {
   AddSetting(value,
-             {_trans("Virtual Notches"),
-              // i18n: The degrees symbol.
-              _trans("°"), _trans("Snap the thumbstick position to the nearest octagonal axis."),
-              nullptr, SettingVisibility::Advanced},
-             0, 0, max_virtual_notch_deg);
+      {_trans("Virtual Notches"),
+          // i18n: The degrees symbol.
+          _trans("°"), _trans("Snap the thumbstick position to the nearest octagonal axis."),
+          nullptr, SettingVisibility::Advanced},
+      0, 0, max_virtual_notch_deg);
 }
 
 void ControlGroup::AddDeadzoneSetting(SettingValue<double>* value, double maximum_deadzone)
 {
   AddSetting(value,
-             {_trans("Dead Zone"),
-              // i18n: The percent symbol.
-              _trans("%"),
-              // i18n: Refers to the dead-zone setting of gamepad inputs.
-              _trans("Input strength to ignore and remap.")},
-             0, 0, maximum_deadzone);
+      {_trans("Dead Zone"),
+          // i18n: The percent symbol.
+          _trans("%"),
+          // i18n: Refers to the dead-zone setting of gamepad inputs.
+          _trans("Input strength to ignore and remap.")},
+      0, 0, maximum_deadzone);
 }
 
 ControlGroup::~ControlGroup() = default;

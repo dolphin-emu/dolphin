@@ -89,22 +89,22 @@ void CheatSearchFactoryWidget::CreateWidgets()
   data_type_group->setLayout(data_type_layout);
 
   m_data_type_dropdown = new QComboBox();
-  m_data_type_dropdown->addItem(tr("8-bit Unsigned Integer"),
-                                QVariant::fromValue(Cheats::DataType::U8));
-  m_data_type_dropdown->addItem(tr("16-bit Unsigned Integer"),
-                                QVariant::fromValue(Cheats::DataType::U16));
-  m_data_type_dropdown->addItem(tr("32-bit Unsigned Integer"),
-                                QVariant::fromValue(Cheats::DataType::U32));
-  m_data_type_dropdown->addItem(tr("64-bit Unsigned Integer"),
-                                QVariant::fromValue(Cheats::DataType::U64));
-  m_data_type_dropdown->addItem(tr("8-bit Signed Integer"),
-                                QVariant::fromValue(Cheats::DataType::S8));
-  m_data_type_dropdown->addItem(tr("16-bit Signed Integer"),
-                                QVariant::fromValue(Cheats::DataType::S16));
-  m_data_type_dropdown->addItem(tr("32-bit Signed Integer"),
-                                QVariant::fromValue(Cheats::DataType::S32));
-  m_data_type_dropdown->addItem(tr("64-bit Signed Integer"),
-                                QVariant::fromValue(Cheats::DataType::S64));
+  m_data_type_dropdown->addItem(
+      tr("8-bit Unsigned Integer"), QVariant::fromValue(Cheats::DataType::U8));
+  m_data_type_dropdown->addItem(
+      tr("16-bit Unsigned Integer"), QVariant::fromValue(Cheats::DataType::U16));
+  m_data_type_dropdown->addItem(
+      tr("32-bit Unsigned Integer"), QVariant::fromValue(Cheats::DataType::U32));
+  m_data_type_dropdown->addItem(
+      tr("64-bit Unsigned Integer"), QVariant::fromValue(Cheats::DataType::U64));
+  m_data_type_dropdown->addItem(
+      tr("8-bit Signed Integer"), QVariant::fromValue(Cheats::DataType::S8));
+  m_data_type_dropdown->addItem(
+      tr("16-bit Signed Integer"), QVariant::fromValue(Cheats::DataType::S16));
+  m_data_type_dropdown->addItem(
+      tr("32-bit Signed Integer"), QVariant::fromValue(Cheats::DataType::S32));
+  m_data_type_dropdown->addItem(
+      tr("64-bit Signed Integer"), QVariant::fromValue(Cheats::DataType::S64));
   m_data_type_dropdown->addItem(tr("32-bit Float"), QVariant::fromValue(Cheats::DataType::F32));
   m_data_type_dropdown->addItem(tr("64-bit Float"), QVariant::fromValue(Cheats::DataType::F64));
   m_data_type_dropdown->setCurrentIndex(6);  // select 32bit signed int by default
@@ -128,9 +128,9 @@ void CheatSearchFactoryWidget::ConnectWidgets()
 {
   connect(m_new_search, &QPushButton::clicked, this, &CheatSearchFactoryWidget::OnNewSearchClicked);
   connect(m_standard_address_space, &QPushButton::toggled, this,
-          &CheatSearchFactoryWidget::OnAddressSpaceRadioChanged);
+      &CheatSearchFactoryWidget::OnAddressSpaceRadioChanged);
   connect(m_custom_address_space, &QRadioButton::toggled, this,
-          &CheatSearchFactoryWidget::OnAddressSpaceRadioChanged);
+      &CheatSearchFactoryWidget::OnAddressSpaceRadioChanged);
 }
 
 void CheatSearchFactoryWidget::RefreshGui()
@@ -157,8 +157,7 @@ void CheatSearchFactoryWidget::OnNewSearchClicked()
     auto& system = Core::System::GetInstance();
     if (!Core::IsRunning(system))
     {
-      ModalMessageBox::warning(
-          this, tr("No game running."),
+      ModalMessageBox::warning(this, tr("No game running."),
           tr("Please start a game before starting a search with standard memory regions."));
       return;
     }

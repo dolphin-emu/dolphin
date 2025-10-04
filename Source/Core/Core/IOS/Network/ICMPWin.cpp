@@ -64,8 +64,8 @@ int icmp_echo_req(const u32 s, const sockaddr_in* addr, const u8* data, const u3
 
   header->checksum = cksum((u16*)header, ICMP_HDR_LEN + data_length);
 
-  int num_bytes = sendto((SOCKET)s, (LPSTR)header, ICMP_HDR_LEN + data_length, 0, (sockaddr*)addr,
-                         sizeof(sockaddr));
+  int num_bytes = sendto(
+      (SOCKET)s, (LPSTR)header, ICMP_HDR_LEN + data_length, 0, (sockaddr*)addr, sizeof(sockaddr));
 
   if (num_bytes >= ICMP_HDR_LEN)
     num_bytes -= ICMP_HDR_LEN;
@@ -88,7 +88,7 @@ int icmp_echo_rep(const u32 s, sockaddr_in* addr, const u32 timeout, const u32 d
   if (select(0, &read_fds, nullptr, nullptr, &t) > 0)
   {
     num_bytes = recvfrom((SOCKET)s, (LPSTR)workspace, IP_HDR_LEN + ICMP_HDR_LEN + data_length, 0,
-                         (sockaddr*)addr, &addr_length);
+        (sockaddr*)addr, &addr_length);
 
     // TODO do we need to memcmp the data?
 

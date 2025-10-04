@@ -14,7 +14,7 @@
 #include "VideoCommon/AbstractStagingTexture.h"
 
 static_assert(std::is_same_v<AbstractTexture::imgui_texture_id, ImTextureID>,
-              "The typedef should match ImTextureID in imgui");
+    "The typedef should match ImTextureID in imgui");
 
 AbstractTexture::AbstractTexture(const TextureConfig& c) : m_config(c)
 {
@@ -47,8 +47,7 @@ bool AbstractTexture::Save(const std::string& filename, unsigned int level, int 
   // Use a temporary staging texture for the download. Certainly not optimal,
   // but this is not a frequently-executed code path..
   TextureConfig readback_texture_config(level_width, level_height, 1, 1, 1,
-                                        AbstractTextureFormat::RGBA8, 0,
-                                        AbstractTextureType::Texture_2DArray);
+      AbstractTextureFormat::RGBA8, 0, AbstractTextureType::Texture_2DArray);
   auto readback_texture =
       g_gfx->CreateStagingTexture(StagingTextureType::Readback, readback_texture_config);
   if (!readback_texture)
@@ -63,9 +62,9 @@ bool AbstractTexture::Save(const std::string& filename, unsigned int level, int 
     return false;
 
   return Common::SavePNG(filename,
-                         reinterpret_cast<const u8*>(readback_texture->GetMappedPointer()),
-                         Common::ImageByteFormat::RGBA, level_width, level_height,
-                         static_cast<int>(readback_texture->GetMappedStride()), compression);
+      reinterpret_cast<const u8*>(readback_texture->GetMappedPointer()),
+      Common::ImageByteFormat::RGBA, level_width, level_height,
+      static_cast<int>(readback_texture->GetMappedStride()), compression);
 }
 
 bool AbstractTexture::IsCompressedFormat(AbstractTextureFormat format)
@@ -103,8 +102,8 @@ bool AbstractTexture::IsStencilFormat(AbstractTextureFormat format)
   return format == AbstractTextureFormat::D24_S8 || format == AbstractTextureFormat::D32F_S8;
 }
 
-bool AbstractTexture::IsCompatibleDepthAndColorFormats(AbstractTextureFormat depth_format,
-                                                       AbstractTextureFormat color_format)
+bool AbstractTexture::IsCompatibleDepthAndColorFormats(
+    AbstractTextureFormat depth_format, AbstractTextureFormat color_format)
 {
   switch (depth_format)
   {

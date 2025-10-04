@@ -37,13 +37,13 @@ void DummyNetworkCaptureLogger::LogSSLWrite(const void* data, std::size_t length
 {
 }
 
-void DummyNetworkCaptureLogger::LogRead(const void* data, std::size_t length, s32 socket,
-                                        sockaddr* from)
+void DummyNetworkCaptureLogger::LogRead(
+    const void* data, std::size_t length, s32 socket, sockaddr* from)
 {
 }
 
-void DummyNetworkCaptureLogger::LogWrite(const void* data, std::size_t length, s32 socket,
-                                         sockaddr* to)
+void DummyNetworkCaptureLogger::LogWrite(
+    const void* data, std::size_t length, s32 socket, sockaddr* to)
 {
 }
 
@@ -83,7 +83,7 @@ PCAPSSLCaptureLogger::PCAPSSLCaptureLogger()
 {
   const std::string filepath =
       fmt::format("{}{} {:%Y-%m-%d %Hh%Mm%Ss}.pcap", File::GetUserPath(D_DUMPSSL_IDX),
-                  SConfig::GetInstance().GetGameID(), *Common::LocalTime(std::time(nullptr)));
+          SConfig::GetInstance().GetGameID(), *Common::LocalTime(std::time(nullptr)));
   m_file = std::make_unique<Common::PCAP>(
       new File::IOFile(filepath, "wb", File::SharedAccess::Read), Common::PCAP::LinkType::Ethernet);
 }
@@ -130,8 +130,8 @@ void PCAPSSLCaptureLogger::LogBBA(const void* data, std::size_t length)
   m_file->AddPacket(static_cast<const u8*>(data), length);
 }
 
-void PCAPSSLCaptureLogger::Log(LogType log_type, const void* data, std::size_t length, s32 socket,
-                               sockaddr* other)
+void PCAPSSLCaptureLogger::Log(
+    LogType log_type, const void* data, std::size_t length, s32 socket, sockaddr* other)
 {
   const auto state = Common::SaveNetworkErrorState();
   Common::ScopeGuard guard([&state] { Common::RestoreNetworkErrorState(state); });
@@ -163,20 +163,21 @@ void PCAPSSLCaptureLogger::Log(LogType log_type, const void* data, std::size_t l
 }
 
 void PCAPSSLCaptureLogger::LogIPv4(LogType log_type, const u8* data, u16 length, s32 socket,
-                                   const sockaddr_in& from, const sockaddr_in& to)
+    const sockaddr_in& from, const sockaddr_in& to)
 {
   int socket_type;
   socklen_t option_length = sizeof(int);
 
   if (getsockopt(socket, SOL_SOCKET, SO_TYPE, reinterpret_cast<char*>(&socket_type),
-                 &option_length) != 0 ||
+          &option_length) != 0 ||
       (socket_type != SOCK_STREAM && socket_type != SOCK_DGRAM))
   {
     return;
   }
 
   std::vector<u8> packet;
-  auto insert = [&](const auto* new_data, std::size_t size) {
+  auto insert = [&](const auto* new_data, std::size_t size)
+  {
     const u8* begin = reinterpret_cast<const u8*>(new_data);
     packet.insert(packet.end(), begin, begin + size);
   };

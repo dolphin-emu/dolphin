@@ -168,7 +168,7 @@ std::optional<std::string> GetStringDescriptor(libusb_device_handle* dev_handle,
   if (lang_id_result != 4 || buffer.length < 4 || buffer.descriptor_type != LIBUSB_DT_STRING)
   {
     ERROR_LOG_FMT(IOS_USB, "libusb_get_string_descriptor(desc_index={}, lang_id=0) result:{}",
-                  int(desc_index), lang_id_result);
+        int(desc_index), lang_id_result);
     return std::nullopt;
   }
 
@@ -180,15 +180,15 @@ std::optional<std::string> GetStringDescriptor(libusb_device_handle* dev_handle,
   if (str_result < 2 || buffer.length > str_result || buffer.descriptor_type != LIBUSB_DT_STRING)
   {
     ERROR_LOG_FMT(IOS_USB, "libusb_get_string_descriptor(desc_index={}, lang_id={}) result:{}",
-                  int(desc_index), lang_id, str_result);
+        int(desc_index), lang_id, str_result);
     return std::nullopt;
   }
 
   // The UTF-16 data size should be even and equal to the return value.
   if ((buffer.length & 1u) != 0 || buffer.length != str_result)
   {
-    WARN_LOG_FMT(IOS_USB, "GetStringDescriptor: buffer.length:{} result:{}", buffer.length,
-                 str_result);
+    WARN_LOG_FMT(
+        IOS_USB, "GetStringDescriptor: buffer.length:{} result:{}", buffer.length, str_result);
   }
 
   const std::size_t str_length = std::max(0, buffer.length - 2) / 2;

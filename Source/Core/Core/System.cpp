@@ -47,15 +47,31 @@ namespace Core
 struct System::Impl
 {
   explicit Impl(System& system)
-      : m_audio_interface(system), m_core_timing(system), m_command_processor{system},
-        m_cpu(system), m_dsp(system), m_dvd_interface(system), m_dvd_thread(system),
-        m_expansion_interface(system), m_fifo{system}, m_gp_fifo(system), m_wii_ipc(system),
-        m_memory(system), m_pixel_engine{system}, m_power_pc(system),
-        m_mmu(system, m_memory, m_power_pc), m_processor_interface(system),
-        m_serial_interface(system), m_system_timers(system), m_video_interface(system),
-        m_interpreter(system, m_power_pc.GetPPCState(), m_mmu, m_power_pc.GetBranchWatch(),
-                      m_power_pc.GetSymbolDB()),
-        m_jit_interface(system), m_fifo_player(system), m_fifo_recorder(system), m_movie(system)
+      : m_audio_interface(system)
+      , m_core_timing(system)
+      , m_command_processor{system}
+      , m_cpu(system)
+      , m_dsp(system)
+      , m_dvd_interface(system)
+      , m_dvd_thread(system)
+      , m_expansion_interface(system)
+      , m_fifo{system}
+      , m_gp_fifo(system)
+      , m_wii_ipc(system)
+      , m_memory(system)
+      , m_pixel_engine{system}
+      , m_power_pc(system)
+      , m_mmu(system, m_memory, m_power_pc)
+      , m_processor_interface(system)
+      , m_serial_interface(system)
+      , m_system_timers(system)
+      , m_video_interface(system)
+      , m_interpreter(system, m_power_pc.GetPPCState(), m_mmu, m_power_pc.GetBranchWatch(),
+            m_power_pc.GetSymbolDB())
+      , m_jit_interface(system)
+      , m_fifo_player(system)
+      , m_fifo_recorder(system)
+      , m_movie(system)
   {
   }
 

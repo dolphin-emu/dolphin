@@ -81,8 +81,8 @@ void Metal::Util::PopulateBackendInfo(BackendInfo* backend_info)
       1.0 < [[NSScreen deepestScreen] maximumPotentialExtendedDynamicRangeColorComponentValue];
 }
 
-void Metal::Util::PopulateBackendInfoAdapters(BackendInfo* backend_info,
-                                              const std::vector<MRCOwned<id<MTLDevice>>>& adapters)
+void Metal::Util::PopulateBackendInfoAdapters(
+    BackendInfo* backend_info, const std::vector<MRCOwned<id<MTLDevice>>>& adapters)
 {
   backend_info->Adapters.clear();
   for (id<MTLDevice> adapter : adapters)
@@ -93,7 +93,7 @@ void Metal::Util::PopulateBackendInfoAdapters(BackendInfo* backend_info,
 
 /// For testing driver brokenness
 static bool RenderSinglePixel(id<MTLDevice> dev, id<MTLFunction> vs, id<MTLFunction> fs,  //
-                              u32 px_in, u32* px_out)
+    u32 px_in, u32* px_out)
 {
   auto pdesc = MRCTransfer([MTLRenderPipelineDescriptor new]);
   [pdesc setVertexFunction:vs];
@@ -176,10 +176,10 @@ fragment float4 fbfetch_test(float4 in [[color(0), raster_order_group(0)]]) {
   if (!lib)
     return false;
   u32 outpx;
-  bool ok = RenderSinglePixel(dev,                                                     //
-                              MRCTransfer([lib newFunctionWithName:@"fs_triangle"]),   //
-                              MRCTransfer([lib newFunctionWithName:@"fbfetch_test"]),  //
-                              0x11223344, &outpx);
+  bool ok = RenderSinglePixel(dev,                             //
+      MRCTransfer([lib newFunctionWithName:@"fs_triangle"]),   //
+      MRCTransfer([lib newFunctionWithName:@"fbfetch_test"]),  //
+      0x11223344, &outpx);
   if (!ok)
     return false;
 
@@ -218,10 +218,10 @@ fragment float4 is_helper_test() {
     return DetectionResult::Unsure;
 
   u32 outpx;
-  bool ok = RenderSinglePixel(dev,                                                       //
-                              MRCTransfer([lib newFunctionWithName:@"fs_triangle"]),     //
-                              MRCTransfer([lib newFunctionWithName:@"is_helper_test"]),  //
-                              0, &outpx);
+  bool ok = RenderSinglePixel(dev,                               //
+      MRCTransfer([lib newFunctionWithName:@"fs_triangle"]),     //
+      MRCTransfer([lib newFunctionWithName:@"is_helper_test"]),  //
+      0, &outpx);
 
   // The pixel itself should not be a helper thread (0.5)
   // The pixels to its right and below should be helper threads (1.0)
@@ -233,13 +233,13 @@ fragment float4 is_helper_test() {
     return DetectionResult::No;  // Working correctly
   if (outpx == 0x0000ff)
     return DetectionResult::Yes;  // Inverted
-  WARN_LOG_FMT(VIDEO, "metal::simd_is_helper_thread might be broken! Test shader returned {:06x}!",
-               outpx);
+  WARN_LOG_FMT(
+      VIDEO, "metal::simd_is_helper_thread might be broken! Test shader returned {:06x}!", outpx);
   return DetectionResult::Unsure;
 }
 
-void Metal::Util::PopulateBackendInfoFeatures(const VideoConfig& config, BackendInfo* backend_info,
-                                              id<MTLDevice> device)
+void Metal::Util::PopulateBackendInfoFeatures(
+    const VideoConfig& config, BackendInfo* backend_info, id<MTLDevice> device)
 {
   // Initialize DriverDetails first so we can use it later
   DriverDetails::Vendor vendor = DriverDetails::VENDOR_UNKNOWN;
@@ -255,7 +255,7 @@ void Metal::Util::PopulateBackendInfoFeatures(const VideoConfig& config, Backend
   const NSOperatingSystemVersion cocoa_ver = [[NSProcessInfo processInfo] operatingSystemVersion];
   double version = cocoa_ver.majorVersion * 100 + cocoa_ver.minorVersion;
   DriverDetails::Init(DriverDetails::API_METAL, vendor, DriverDetails::DRIVER_APPLE, version,
-                      DriverDetails::Family::UNKNOWN, std::move(name));
+      DriverDetails::Family::UNKNOWN, std::move(name));
 
 #if TARGET_OS_OSX
   backend_info->bSupportsDepthClamp = true;
@@ -473,12 +473,12 @@ static const std::string_view MSL_HEADER =
 static constexpr std::pair<std::string_view, std::string_view> MSL_FIXUPS[] = {
     // Force-unroll the lighting loop in ubershaders, which greatly reduces register pressure on AMD
     {"for (uint chan = 0u; chan < 2u; chan++)",
-     "_Pragma(\"unroll\") for (uint chan = 0u; chan < 2u; chan++)"},
+        "_Pragma(\"unroll\") for (uint chan = 0u; chan < 2u; chan++)"},
 };
 
-static constexpr spirv_cross::MSLResourceBinding
-MakeResourceBinding(spv::ExecutionModel stage, u32 set, u32 binding,  //
-                    u32 msl_buffer, u32 msl_texture, u32 msl_sampler)
+static constexpr spirv_cross::MSLResourceBinding MakeResourceBinding(spv::ExecutionModel stage,
+    u32 set, u32 binding,  //
+    u32 msl_buffer, u32 msl_texture, u32 msl_sampler)
 {
   spirv_cross::MSLResourceBinding resource;
   resource.stage = stage;
@@ -490,8 +490,8 @@ MakeResourceBinding(spv::ExecutionModel stage, u32 set, u32 binding,  //
   return resource;
 }
 
-std::optional<std::string> Metal::Util::TranslateShaderToMSL(ShaderStage stage,
-                                                             std::string_view source)
+std::optional<std::string> Metal::Util::TranslateShaderToMSL(
+    ShaderStage stage, std::string_view source)
 {
   std::string full_source;
 

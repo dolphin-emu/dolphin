@@ -15,7 +15,9 @@ namespace DSP
 struct LabelMap::Label
 {
   Label(std::string lbl, s32 address, LabelType ltype)
-      : name(std::move(lbl)), addr(address), type(ltype)
+      : name(std::move(lbl))
+      , addr(address)
+      , type(ltype)
   {
   }
   std::string name;

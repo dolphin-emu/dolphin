@@ -21,7 +21,8 @@
 namespace DSP::HLE
 {
 AXWiiUCode::AXWiiUCode(DSPHLE* dsphle, u32 crc)
-    : AXUCode(dsphle, crc, false), m_last_main_volume(0x8000)
+    : AXUCode(dsphle, crc, false)
+    , m_last_main_volume(0x8000)
 {
   INFO_LOG_FMT(DSPHLE, "Instantiating AXWiiUCode: crc={:08x}", crc);
 
@@ -259,14 +260,27 @@ void AXWiiUCode::HandleCommandList()
 void AXWiiUCode::SetupProcessing(u32 init_addr)
 {
   const std::array<BufferDesc, 20> buffers = {{
-      {m_samples_main_left, 32}, {m_samples_main_right, 32}, {m_samples_main_surround, 32},
-      {m_samples_auxA_left, 32}, {m_samples_auxA_right, 32}, {m_samples_auxA_surround, 32},
-      {m_samples_auxB_left, 32}, {m_samples_auxB_right, 32}, {m_samples_auxB_surround, 32},
-      {m_samples_auxC_left, 32}, {m_samples_auxC_right, 32}, {m_samples_auxC_surround, 32},
+      {m_samples_main_left, 32},
+      {m_samples_main_right, 32},
+      {m_samples_main_surround, 32},
+      {m_samples_auxA_left, 32},
+      {m_samples_auxA_right, 32},
+      {m_samples_auxA_surround, 32},
+      {m_samples_auxB_left, 32},
+      {m_samples_auxB_right, 32},
+      {m_samples_auxB_surround, 32},
+      {m_samples_auxC_left, 32},
+      {m_samples_auxC_right, 32},
+      {m_samples_auxC_surround, 32},
 
-      {m_samples_wm0, 6},        {m_samples_aux0, 6},        {m_samples_wm1, 6},
-      {m_samples_aux1, 6},       {m_samples_wm2, 6},         {m_samples_aux2, 6},
-      {m_samples_wm3, 6},        {m_samples_aux3, 6},
+      {m_samples_wm0, 6},
+      {m_samples_aux0, 6},
+      {m_samples_wm1, 6},
+      {m_samples_aux1, 6},
+      {m_samples_wm2, 6},
+      {m_samples_aux2, 6},
+      {m_samples_wm3, 6},
+      {m_samples_aux3, 6},
   }};
   InitMixingBuffers<3 /*ms*/>(init_addr, buffers);
 }
@@ -383,8 +397,8 @@ void AXWiiUCode::ReadPB(Memory::MemoryManager& memory, u32 addr, AXPBWii& pb)
     // Skip updates field and skip gap after hpf.
     memory.CopyFromEmuSwapped<u16>((u16*)dst, addr, updates_begin);
     memset(dst + updates_begin, 0, sizeof(PBUpdatesWii));
-    memory.CopyFromEmuSwapped<u16>((u16*)(dst + updates_end), addr + updates_begin,
-                                   gap_begin - updates_end);
+    memory.CopyFromEmuSwapped<u16>(
+        (u16*)(dst + updates_end), addr + updates_begin, gap_begin - updates_end);
     memset(dst + gap_begin, 0, gap_end - gap_begin);
     memory.CopyFromEmuSwapped<u16>((u16*)(dst + gap_end), addr + gap_begin, sizeof(pb) - gap_end);
     break;
@@ -393,8 +407,8 @@ void AXWiiUCode::ReadPB(Memory::MemoryManager& memory, u32 addr, AXPBWii& pb)
     // Just skip updates field.
     memory.CopyFromEmuSwapped<u16>((u16*)dst, addr, updates_begin);
     memset(dst + updates_begin, 0, sizeof(PBUpdatesWii));
-    memory.CopyFromEmuSwapped<u16>((u16*)(dst + updates_end), addr + updates_begin,
-                                   sizeof(pb) - updates_end);
+    memory.CopyFromEmuSwapped<u16>(
+        (u16*)(dst + updates_end), addr + updates_begin, sizeof(pb) - updates_end);
     break;
   }
 }
@@ -411,22 +425,22 @@ void AXWiiUCode::WritePB(Memory::MemoryManager& memory, u32 addr, const AXPBWii&
   case 0x7699af32:
   case 0xfa450138:
     memory.CopyToEmuSwapped<u16>(addr, (const u16*)src, gap_begin);
-    memory.CopyToEmuSwapped<u16>(addr + gap_begin, (const u16*)(src + gap_end),
-                                 sizeof(pb) - gap_end);
+    memory.CopyToEmuSwapped<u16>(
+        addr + gap_begin, (const u16*)(src + gap_end), sizeof(pb) - gap_end);
     break;
   case 0xd9c4bf34:
   case 0xadbc06bd:
     memory.CopyToEmuSwapped<u16>(addr, (const u16*)src, updates_begin);
-    memory.CopyToEmuSwapped<u16>(addr + updates_begin, (const u16*)(src + updates_end),
-                                 gap_begin - updates_end);
-    memory.CopyToEmuSwapped<u16>(addr + gap_begin, (const u16*)(src + gap_end),
-                                 sizeof(pb) - gap_end);
+    memory.CopyToEmuSwapped<u16>(
+        addr + updates_begin, (const u16*)(src + updates_end), gap_begin - updates_end);
+    memory.CopyToEmuSwapped<u16>(
+        addr + gap_begin, (const u16*)(src + gap_end), sizeof(pb) - gap_end);
     break;
   case 0x347112ba:
   case 0x4cc52064:
     memory.CopyToEmuSwapped<u16>(addr, (const u16*)src, updates_begin);
-    memory.CopyToEmuSwapped<u16>(addr + updates_begin, (const u16*)(src + updates_end),
-                                 sizeof(pb) - updates_end);
+    memory.CopyToEmuSwapped<u16>(
+        addr + updates_begin, (const u16*)(src + updates_end), sizeof(pb) - updates_end);
     break;
   }
 }
@@ -443,12 +457,10 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
   while (pb_addr)
   {
     AXBuffers buffers = {{m_samples_main_left, m_samples_main_right, m_samples_main_surround,
-                          m_samples_auxA_left, m_samples_auxA_right, m_samples_auxA_surround,
-                          m_samples_auxB_left, m_samples_auxB_right, m_samples_auxB_surround,
-                          m_samples_auxC_left, m_samples_auxC_right, m_samples_auxC_surround,
-                          m_samples_wm0,       m_samples_aux0,       m_samples_wm1,
-                          m_samples_aux1,      m_samples_wm2,        m_samples_aux2,
-                          m_samples_wm3,       m_samples_aux3}};
+        m_samples_auxA_left, m_samples_auxA_right, m_samples_auxA_surround, m_samples_auxB_left,
+        m_samples_auxB_right, m_samples_auxB_surround, m_samples_auxC_left, m_samples_auxC_right,
+        m_samples_auxC_surround, m_samples_wm0, m_samples_aux0, m_samples_wm1, m_samples_aux1,
+        m_samples_wm2, m_samples_aux2, m_samples_wm3, m_samples_aux3}};
 
     ReadPB(memory, pb_addr, pb);
 
@@ -460,8 +472,8 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
       {
         ApplyUpdatesForMs(curr_ms, pb, pb.updates.num_updates, updates);
         ProcessVoice(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers, spms,
-                     ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
-                     m_coeffs_checksum ? m_coeffs.data() : nullptr, m_new_filter);
+            ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
+            m_coeffs_checksum ? m_coeffs.data() : nullptr, m_new_filter);
 
         // Forward the buffers
         for (auto& ptr : buffers.regular_ptrs)
@@ -473,8 +485,8 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
     else
     {
       ProcessVoice(static_cast<HLEAccelerator*>(m_accelerator.get()), pb, buffers, 96,
-                   ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
-                   m_coeffs_checksum ? m_coeffs.data() : nullptr, m_new_filter);
+          ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
+          m_coeffs_checksum ? m_coeffs.data() : nullptr, m_new_filter);
     }
 
     WritePB(memory, pb_addr, pb);
@@ -571,8 +583,8 @@ void AXWiiUCode::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
   GenerateVolumeRamp(volume_ramp, m_last_aux_volumes[aux_id], volume, 96);
   m_last_aux_volumes[aux_id] = volume;
 
-  int* mix_dest[4] = {m_samples_main_left, m_samples_main_right, m_samples_main_surround,
-                      m_samples_auxC_left};
+  int* mix_dest[4] = {
+      m_samples_main_left, m_samples_main_right, m_samples_main_surround, m_samples_auxC_left};
   for (u32 mix_i = 0; mix_i < 4; ++mix_i)
   {
     int* dl_ptr = (int*)HLEMemory_Get_Pointer(memory, addresses[2 + mix_i]);
@@ -606,8 +618,8 @@ void AXWiiUCode::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume, bool 
     surround_addr += sizeof(upload_buffer);
     for (size_t i = 0; i < upload_buffer.size(); ++i)
       upload_buffer[i] = Common::swap32(m_samples_auxC_left[i]);
-    memcpy(HLEMemory_Get_Pointer(memory, surround_addr), upload_buffer.data(),
-           sizeof(upload_buffer));
+    memcpy(
+        HLEMemory_Get_Pointer(memory, surround_addr), upload_buffer.data(), sizeof(upload_buffer));
   }
 
   // Clamp internal buffers to 16 bits.

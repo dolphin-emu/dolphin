@@ -21,7 +21,7 @@ MathUtil::Rectangle<int> TextureConfig::GetRect() const
 MathUtil::Rectangle<int> TextureConfig::GetMipRect(u32 level) const
 {
   return {0, 0, static_cast<int>(std::max(width >> level, 1u)),
-          static_cast<int>(std::max(height >> level, 1u))};
+      static_cast<int>(std::max(height >> level, 1u))};
 }
 
 size_t TextureConfig::GetStride() const

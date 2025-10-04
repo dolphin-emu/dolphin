@@ -158,7 +158,7 @@ void SHADER::SetProgramBindings(bool is_compute)
     // Per documentation: OpenGL copies the name string when glBindAttribLocation is called, so an
     // application may free its copy of the name string immediately after the function returns.
     glBindAttribLocation(glprogid, static_cast<GLuint>(ShaderAttrib::TexCoord0 + i),
-                         fmt::format("rawtex{}", i).c_str());
+        fmt::format("rawtex{}", i).c_str());
   }
 }
 
@@ -244,30 +244,30 @@ void ProgramShaderCache::UploadConstants()
     if (!pixel_shader_manager.custom_constants.empty())
     {
       memcpy(buffer.first + size, pixel_shader_manager.custom_constants.data(),
-             pixel_shader_manager.custom_constants.size());
+          pixel_shader_manager.custom_constants.size());
       size += custom_constants_size;
     }
 
-    memcpy(buffer.first + size, &geometry_shader_manager.constants,
-           sizeof(GeometryShaderConstants));
+    memcpy(
+        buffer.first + size, &geometry_shader_manager.constants, sizeof(GeometryShaderConstants));
 
     s_buffer->Unmap(s_ubo_buffer_size + custom_constants_size);
 
-    glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->m_buffer, buffer.second,
-                      sizeof(PixelShaderConstants));
+    glBindBufferRange(
+        GL_UNIFORM_BUFFER, 1, s_buffer->m_buffer, buffer.second, sizeof(PixelShaderConstants));
     size = Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align);
     glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->m_buffer, buffer.second + size,
-                      sizeof(VertexShaderConstants));
+        sizeof(VertexShaderConstants));
     size += Common::AlignUp(sizeof(VertexShaderConstants), s_ubo_align);
 
     if (!pixel_shader_manager.custom_constants.empty())
     {
       glBindBufferRange(GL_UNIFORM_BUFFER, 3, s_buffer->m_buffer, buffer.second + size,
-                        pixel_shader_manager.custom_constants.size());
+          pixel_shader_manager.custom_constants.size());
       size += Common::AlignUp(pixel_shader_manager.custom_constants.size(), s_ubo_align);
     }
     glBindBufferRange(GL_UNIFORM_BUFFER, 4, s_buffer->m_buffer, buffer.second + size,
-                      sizeof(GeometryShaderConstants));
+        sizeof(GeometryShaderConstants));
 
     pixel_shader_manager.dirty = false;
     vertex_shader_manager.dirty = false;
@@ -397,8 +397,8 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
 
       PanicAlertFmt("Failed to compile {} shader: {}\n"
                     "Debug info ({}, {}, {}):\n{}",
-                    prefix, filename, g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
-                    g_ogl_config.gl_version, info_log);
+          prefix, filename, g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
+          g_ogl_config.gl_version, info_log);
 
       return false;
     }
@@ -409,8 +409,8 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
   return true;
 }
 
-bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcode,
-                                                std::string_view pcode, std::string_view gcode)
+bool ProgramShaderCache::CheckProgramLinkResult(
+    GLuint id, std::string_view vcode, std::string_view pcode, std::string_view gcode)
 {
   GLint linkStatus;
   glGetProgramiv(id, GL_LINK_STATUS, &linkStatus);
@@ -442,8 +442,8 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcod
 
       PanicAlertFmt("Failed to link shaders: {}\n"
                     "Debug info ({}, {}, {}):\n{}",
-                    filename, g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
-                    g_ogl_config.gl_version, info_log);
+          filename, g_ogl_config.gl_vendor, g_ogl_config.gl_renderer, g_ogl_config.gl_version,
+          info_log);
 
       return false;
     }
@@ -549,15 +549,11 @@ void ProgramShaderCache::InvalidateLastProgram()
 }
 
 PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* vertex_format,
-                                                        const OGLShader* vertex_shader,
-                                                        const OGLShader* geometry_shader,
-                                                        const OGLShader* pixel_shader,
-                                                        const void* cache_data,
-                                                        size_t cache_data_size)
+    const OGLShader* vertex_shader, const OGLShader* geometry_shader, const OGLShader* pixel_shader,
+    const void* cache_data, size_t cache_data_size)
 {
   PipelineProgramKey key = {vertex_shader ? vertex_shader->GetID() : 0,
-                            geometry_shader ? geometry_shader->GetID() : 0,
-                            pixel_shader ? pixel_shader->GetID() : 0};
+      geometry_shader ? geometry_shader->GetID() : 0, pixel_shader ? pixel_shader->GetID() : 0};
   {
     std::lock_guard guard{s_pipeline_program_lock};
     auto iter = s_pipeline_programs.find(key);
@@ -579,8 +575,8 @@ PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* ve
     u32 program_binary_type;
     std::memcpy(&program_binary_type, cache_data, sizeof(u32));
     glProgramBinary(prog->shader.glprogid, static_cast<GLenum>(program_binary_type),
-                    static_cast<const u8*>(cache_data) + sizeof(u32),
-                    static_cast<GLsizei>(cache_data_size - sizeof(u32)));
+        static_cast<const u8*>(cache_data) + sizeof(u32),
+        static_cast<GLsizei>(cache_data_size - sizeof(u32)));
 
     // Check the link status. If this fails, it means the binary was invalid.
     GLint link_status;
@@ -627,9 +623,9 @@ PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* ve
       glBindVertexArray(s_last_VAO);
 
     if (!CheckProgramLinkResult(prog->shader.glprogid,
-                                vertex_shader ? vertex_shader->GetSource() : std::string_view{},
-                                geometry_shader ? geometry_shader->GetSource() : std::string_view{},
-                                pixel_shader ? pixel_shader->GetSource() : std::string_view{}))
+            vertex_shader ? vertex_shader->GetSource() : std::string_view{},
+            geometry_shader ? geometry_shader->GetSource() : std::string_view{},
+            pixel_shader ? pixel_shader->GetSource() : std::string_view{}))
     {
       prog->shader.Destroy();
       return nullptr;
@@ -805,50 +801,49 @@ void ProgramShaderCache::CreateHeader()
 )";
   }
 
-  s_glsl_header = fmt::format(
-      "{}\n"
-      "{}\n"  // ubo
-      "{}\n"  // early-z
-      "{}\n"  // 420pack
-      "{}\n"  // msaa
-      "{}\n"  // Input/output/sampler binding
-      "{}\n"  // Varying location
-      "{}\n"  // storage buffer
-      "{}\n"  // shader5
-      "{}\n"  // SSAA
-      "{}\n"  // Geometry point size
-      "{}\n"  // AEP
-      "{}\n"  // texture buffer
-      "{}\n"  // ES texture buffer
-      "{}\n"  // ES dual source blend
-      "{}\n"  // shader image load store
-      "{}\n"  // shader framebuffer fetch
-      "{}\n"  // shader thread shuffle
-      "{}\n"  // derivative control
-      "{}\n"  // query levels
-      "{}\n"  // OES multisample texture storage
+  s_glsl_header = fmt::format("{}\n"
+                              "{}\n"  // ubo
+                              "{}\n"  // early-z
+                              "{}\n"  // 420pack
+                              "{}\n"  // msaa
+                              "{}\n"  // Input/output/sampler binding
+                              "{}\n"  // Varying location
+                              "{}\n"  // storage buffer
+                              "{}\n"  // shader5
+                              "{}\n"  // SSAA
+                              "{}\n"  // Geometry point size
+                              "{}\n"  // AEP
+                              "{}\n"  // texture buffer
+                              "{}\n"  // ES texture buffer
+                              "{}\n"  // ES dual source blend
+                              "{}\n"  // shader image load store
+                              "{}\n"  // shader framebuffer fetch
+                              "{}\n"  // shader thread shuffle
+                              "{}\n"  // derivative control
+                              "{}\n"  // query levels
+                              "{}\n"  // OES multisample texture storage
 
-      // Precision defines for GLSL ES
-      "{}\n"
-      "{}\n"
-      "{}\n"
-      "{}\n"
-      "{}\n"
-      "{}\n"
+                              // Precision defines for GLSL ES
+                              "{}\n"
+                              "{}\n"
+                              "{}\n"
+                              "{}\n"
+                              "{}\n"
+                              "{}\n"
 
-      // Silly differences
-      "#define API_OPENGL 1\n"
-      "#define float2 vec2\n"
-      "#define float3 vec3\n"
-      "#define float4 vec4\n"
-      "#define uint2 uvec2\n"
-      "#define uint3 uvec3\n"
-      "#define uint4 uvec4\n"
-      "#define int2 ivec2\n"
-      "#define int3 ivec3\n"
-      "#define int4 ivec4\n"
-      "#define frac fract\n"
-      "#define lerp mix\n"
+                              // Silly differences
+                              "#define API_OPENGL 1\n"
+                              "#define float2 vec2\n"
+                              "#define float3 vec3\n"
+                              "#define float4 vec4\n"
+                              "#define uint2 uvec2\n"
+                              "#define uint3 uvec3\n"
+                              "#define uint4 uvec4\n"
+                              "#define int2 ivec2\n"
+                              "#define int3 ivec3\n"
+                              "#define int4 ivec4\n"
+                              "#define frac fract\n"
+                              "#define lerp mix\n"
 
       ,
       GetGLSLVersionString(), v < Glsl140 ? "#extension GL_ARB_uniform_buffer_object : enable" : "",

@@ -25,7 +25,7 @@ jobject ControlGroupToJava(JNIEnv* env, ControllerEmu::ControlGroup* group)
     return nullptr;
 
   return env->NewObject(IDCache::GetControlGroupClass(), IDCache::GetControlGroupConstructor(),
-                        reinterpret_cast<jlong>(group));
+      reinterpret_cast<jlong>(group));
 }
 
 extern "C" {

@@ -390,8 +390,8 @@ Digest CalculateDigest(const u8* msg, size_t len)
 
 std::string DigestToString(const Digest& digest)
 {
-  static constexpr std::array<char, 16> lookup = {'0', '1', '2', '3', '4', '5', '6', '7',
-                                                  '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+  static constexpr std::array<char, 16> lookup = {
+      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
   std::string hash;
   hash.reserve(digest.size() * 2);
   for (size_t i = 0; i < digest.size(); ++i)

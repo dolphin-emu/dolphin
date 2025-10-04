@@ -108,7 +108,7 @@ static inline void AddInterpolatedVertex(float t, int out, int in, int* numVerti
 
 #define CLIP_DOTPROD(I, A, B, C, D)                                                                \
   (Vertices[I]->projectedPosition.x * A + Vertices[I]->projectedPosition.y * B +                   \
-   Vertices[I]->projectedPosition.z * C + Vertices[I]->projectedPosition.w * D)
+      Vertices[I]->projectedPosition.z * C + Vertices[I]->projectedPosition.w * D)
 
 #define POLY_CLIP(PLANE_BIT, A, B, C, D)                                                           \
   {                                                                                                \
@@ -326,10 +326,9 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
     }
   }
 
-  int indices[NUM_INDICES] = {0,         1,         2,         SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
-                              SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
-                              SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
-                              SKIP_FLAG, SKIP_FLAG, SKIP_FLAG};
+  int indices[NUM_INDICES] = {0, 1, 2, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
+      SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
+      SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG};
   int numIndices = 3;
 
   if (backface)
@@ -373,18 +372,25 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
       PerspectiveDivide(Vertices[indices[i + 1]]);
       PerspectiveDivide(Vertices[indices[i + 2]]);
 
-      Rasterizer::DrawTriangleFrontFace(Vertices[indices[i]], Vertices[indices[i + 1]],
-                                        Vertices[indices[i + 2]]);
+      Rasterizer::DrawTriangleFrontFace(
+          Vertices[indices[i]], Vertices[indices[i + 1]], Vertices[indices[i + 2]]);
     }
   }
 }
 
 constexpr std::array<float, 8> LINE_PT_TEX_OFFSETS = {
-    0, 1 / 16.f, 1 / 8.f, 1 / 4.f, 1 / 2.f, 1, 1, 1,
+    0,
+    1 / 16.f,
+    1 / 8.f,
+    1 / 4.f,
+    1 / 2.f,
+    1,
+    1,
+    1,
 };
 
-static void CopyLineVertex(OutputVertexData* dst, const OutputVertexData* src, int px, int py,
-                           bool apply_line_offset)
+static void CopyLineVertex(
+    OutputVertexData* dst, const OutputVertexData* src, int px, int py, bool apply_line_offset)
 {
   const float line_half_width = bpmem.lineptwidth.linesize / 12.0f;
 
@@ -510,8 +516,8 @@ void ProcessPoint(OutputVertexData* center)
   Rasterizer::DrawTriangleFrontFace(&ur, &lr, &ul);
 }
 
-bool IsTriviallyRejected(const OutputVertexData* v0, const OutputVertexData* v1,
-                         const OutputVertexData* v2)
+bool IsTriviallyRejected(
+    const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2)
 {
   int mask = CalcClipMask(v0);
   mask &= CalcClipMask(v1);

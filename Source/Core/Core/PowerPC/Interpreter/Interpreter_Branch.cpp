@@ -74,7 +74,7 @@ void Interpreter::bcctrx(Interpreter& interpreter, UGeckoInstruction inst)
   auto& branch_watch = interpreter.m_branch_watch;
 
   DEBUG_ASSERT_MSG(POWERPC, (inst.BO_2 & BO_DONT_DECREMENT_FLAG) != 0,
-                   "bcctrx with decrement and test CTR option is invalid!");
+      "bcctrx with decrement and test CTR option is invalid!");
 
   const u32 condition =
       ((inst.BO_2 >> 4) | (ppc_state.cr.GetBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;

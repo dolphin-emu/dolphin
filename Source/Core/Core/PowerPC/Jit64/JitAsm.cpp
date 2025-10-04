@@ -159,8 +159,8 @@ void Jit64AsmRoutineManager::Generate()
       SHL(64, R(RSCRATCH_EXTRA), Imm8(32));
       OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));
 
-      static_assert(offsetof(JitBlockData, feature_flags) + 4 ==
-                    offsetof(JitBlockData, effectiveAddress));
+      static_assert(
+          offsetof(JitBlockData, feature_flags) + 4 == offsetof(JitBlockData, effectiveAddress));
 
       CMP(64, R(RSCRATCH2),
           MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlockData, feature_flags))));

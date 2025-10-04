@@ -152,8 +152,7 @@ std::vector<u64> VolumeWAD::GetContentOffsets() const
 }
 
 bool VolumeWAD::CheckContentIntegrity(const IOS::ES::Content& content,
-                                      const std::vector<u8>& encrypted_data,
-                                      const IOS::ES::TicketReader& ticket) const
+    const std::vector<u8>& encrypted_data, const IOS::ES::TicketReader& ticket) const
 {
   if (encrypted_data.size() != Common::AlignUp(content.size, 0x40))
     return false;
@@ -225,8 +224,8 @@ IOS::ES::TicketReader VolumeWAD::GetTicketWithFixedCommonKey() const
     }
   }
 
-  ERROR_LOG_FMT(DISCIO, "Couldn't find valid common key for WAD file ({} specified)",
-                specified_index);
+  ERROR_LOG_FMT(
+      DISCIO, "Couldn't find valid common key for WAD file ({} specified)", specified_index);
   return m_ticket;
 }
 

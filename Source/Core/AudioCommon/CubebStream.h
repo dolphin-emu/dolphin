@@ -43,7 +43,7 @@ private:
 #endif
 
   static long DataCallback(cubeb_stream* stream, void* user_data, const void* /*input_buffer*/,
-                           void* output_buffer, long num_frames);
+      void* output_buffer, long num_frames);
   static void StateCallback(cubeb_stream* stream, void* user_data, cubeb_state state);
 #endif
 };

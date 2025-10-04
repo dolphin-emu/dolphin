@@ -33,9 +33,22 @@ struct NamedReg
 };
 
 const std::vector<NamedReg> reg8names{
-    {RAX, "al"},   {RBX, "bl"},   {RCX, "cl"},   {RDX, "dl"},   {RSI, "sil"},  {RDI, "dil"},
-    {RBP, "bpl"},  {RSP, "spl"},  {R8, "r8b"},   {R9, "r9b"},   {R10, "r10b"}, {R11, "r11b"},
-    {R12, "r12b"}, {R13, "r13b"}, {R14, "r14b"}, {R15, "r15b"},
+    {RAX, "al"},
+    {RBX, "bl"},
+    {RCX, "cl"},
+    {RDX, "dl"},
+    {RSI, "sil"},
+    {RDI, "dil"},
+    {RBP, "bpl"},
+    {RSP, "spl"},
+    {R8, "r8b"},
+    {R9, "r9b"},
+    {R10, "r10b"},
+    {R11, "r11b"},
+    {R12, "r12b"},
+    {R13, "r13b"},
+    {R14, "r14b"},
+    {R15, "r15b"},
 };
 
 const std::vector<NamedReg> reg8hnames{
@@ -46,35 +59,98 @@ const std::vector<NamedReg> reg8hnames{
 };
 
 const std::vector<NamedReg> reg16names{
-    {RAX, "ax"},   {RBX, "bx"},   {RCX, "cx"},   {RDX, "dx"},   {RSI, "si"},   {RDI, "di"},
-    {RBP, "bp"},   {RSP, "sp"},   {R8, "r8w"},   {R9, "r9w"},   {R10, "r10w"}, {R11, "r11w"},
-    {R12, "r12w"}, {R13, "r13w"}, {R14, "r14w"}, {R15, "r15w"},
+    {RAX, "ax"},
+    {RBX, "bx"},
+    {RCX, "cx"},
+    {RDX, "dx"},
+    {RSI, "si"},
+    {RDI, "di"},
+    {RBP, "bp"},
+    {RSP, "sp"},
+    {R8, "r8w"},
+    {R9, "r9w"},
+    {R10, "r10w"},
+    {R11, "r11w"},
+    {R12, "r12w"},
+    {R13, "r13w"},
+    {R14, "r14w"},
+    {R15, "r15w"},
 };
 
 const std::vector<NamedReg> reg32names{
-    {RAX, "eax"},  {RBX, "ebx"},  {RCX, "ecx"},  {RDX, "edx"},  {RSI, "esi"},  {RDI, "edi"},
-    {RBP, "ebp"},  {RSP, "esp"},  {R8, "r8d"},   {R9, "r9d"},   {R10, "r10d"}, {R11, "r11d"},
-    {R12, "r12d"}, {R13, "r13d"}, {R14, "r14d"}, {R15, "r15d"},
+    {RAX, "eax"},
+    {RBX, "ebx"},
+    {RCX, "ecx"},
+    {RDX, "edx"},
+    {RSI, "esi"},
+    {RDI, "edi"},
+    {RBP, "ebp"},
+    {RSP, "esp"},
+    {R8, "r8d"},
+    {R9, "r9d"},
+    {R10, "r10d"},
+    {R11, "r11d"},
+    {R12, "r12d"},
+    {R13, "r13d"},
+    {R14, "r14d"},
+    {R15, "r15d"},
 };
 
 const std::vector<NamedReg> reg64names{
-    {RAX, "rax"}, {RBX, "rbx"}, {RCX, "rcx"}, {RDX, "rdx"}, {RSI, "rsi"}, {RDI, "rdi"},
-    {RBP, "rbp"}, {RSP, "rsp"}, {R8, "r8"},   {R9, "r9"},   {R10, "r10"}, {R11, "r11"},
-    {R12, "r12"}, {R13, "r13"}, {R14, "r14"}, {R15, "r15"},
+    {RAX, "rax"},
+    {RBX, "rbx"},
+    {RCX, "rcx"},
+    {RDX, "rdx"},
+    {RSI, "rsi"},
+    {RDI, "rdi"},
+    {RBP, "rbp"},
+    {RSP, "rsp"},
+    {R8, "r8"},
+    {R9, "r9"},
+    {R10, "r10"},
+    {R11, "r11"},
+    {R12, "r12"},
+    {R13, "r13"},
+    {R14, "r14"},
+    {R15, "r15"},
 };
 
 const std::vector<NamedReg> xmmnames{
-    {XMM0, "xmm0"},   {XMM1, "xmm1"},   {XMM2, "xmm2"},   {XMM3, "xmm3"},
-    {XMM4, "xmm4"},   {XMM5, "xmm5"},   {XMM6, "xmm6"},   {XMM7, "xmm7"},
-    {XMM8, "xmm8"},   {XMM9, "xmm9"},   {XMM10, "xmm10"}, {XMM11, "xmm11"},
-    {XMM12, "xmm12"}, {XMM13, "xmm13"}, {XMM14, "xmm14"}, {XMM15, "xmm15"},
+    {XMM0, "xmm0"},
+    {XMM1, "xmm1"},
+    {XMM2, "xmm2"},
+    {XMM3, "xmm3"},
+    {XMM4, "xmm4"},
+    {XMM5, "xmm5"},
+    {XMM6, "xmm6"},
+    {XMM7, "xmm7"},
+    {XMM8, "xmm8"},
+    {XMM9, "xmm9"},
+    {XMM10, "xmm10"},
+    {XMM11, "xmm11"},
+    {XMM12, "xmm12"},
+    {XMM13, "xmm13"},
+    {XMM14, "xmm14"},
+    {XMM15, "xmm15"},
 };
 
 const std::vector<NamedReg> ymmnames{
-    {YMM0, "ymm0"},   {YMM1, "ymm1"},   {YMM2, "ymm2"},   {YMM3, "ymm3"},
-    {YMM4, "ymm4"},   {YMM5, "ymm5"},   {YMM6, "ymm6"},   {YMM7, "ymm7"},
-    {YMM8, "ymm8"},   {YMM9, "ymm9"},   {YMM10, "ymm10"}, {YMM11, "ymm11"},
-    {YMM12, "ymm12"}, {YMM13, "ymm13"}, {YMM14, "ymm14"}, {YMM15, "ymm15"},
+    {YMM0, "ymm0"},
+    {YMM1, "ymm1"},
+    {YMM2, "ymm2"},
+    {YMM3, "ymm3"},
+    {YMM4, "ymm4"},
+    {YMM5, "ymm5"},
+    {YMM6, "ymm6"},
+    {YMM7, "ymm7"},
+    {YMM8, "ymm8"},
+    {YMM9, "ymm9"},
+    {YMM10, "ymm10"},
+    {YMM11, "ymm11"},
+    {YMM12, "ymm12"},
+    {YMM13, "ymm13"},
+    {YMM14, "ymm14"},
+    {YMM15, "ymm15"},
 };
 
 struct
@@ -82,9 +158,22 @@ struct
   CCFlags cc;
   std::string name;
 } ccnames[] = {
-    {CC_O, "o"},   {CC_NO, "no"},   {CC_B, "b"},   {CC_NB, "nb"},   {CC_Z, "z"}, {CC_NZ, "nz"},
-    {CC_BE, "be"}, {CC_NBE, "nbe"}, {CC_S, "s"},   {CC_NS, "ns"},   {CC_P, "p"}, {CC_NP, "np"},
-    {CC_L, "l"},   {CC_NL, "nl"},   {CC_LE, "le"}, {CC_NLE, "nle"},
+    {CC_O, "o"},
+    {CC_NO, "no"},
+    {CC_B, "b"},
+    {CC_NB, "nb"},
+    {CC_Z, "z"},
+    {CC_NZ, "nz"},
+    {CC_BE, "be"},
+    {CC_NBE, "nbe"},
+    {CC_S, "s"},
+    {CC_NS, "ns"},
+    {CC_P, "p"},
+    {CC_NP, "np"},
+    {CC_L, "l"},
+    {CC_NL, "nl"},
+    {CC_LE, "le"},
+    {CC_NLE, "nle"},
 };
 
 class x64EmitterTest : public testing::Test
@@ -138,14 +227,14 @@ protected:
     while (generated_code_iterator < emitter->GetCodePtr())
     {
       char instr_buffer[1024] = "";
-      generated_code_iterator +=
-          disasm->disasm64((u64)generated_code_iterator, (u64)generated_code_iterator,
-                           generated_code_iterator, instr_buffer);
+      generated_code_iterator += disasm->disasm64((u64)generated_code_iterator,
+          (u64)generated_code_iterator, generated_code_iterator, instr_buffer);
       disasmed += instr_buffer;
       disasmed += "\n";
     }
 
-    auto NormalizeAssembly = [](const std::string& str) -> std::string {
+    auto NormalizeAssembly = [](const std::string& str) -> std::string
+    {
       // Normalize assembly code to make it suitable for equality checks.
       // In particular:
       //   * Replace all whitespace characters by a single space.
@@ -361,7 +450,7 @@ TEST_F(x64EmitterTest, J_CC)
     emitter->SetJumpTarget(fixup);
     const u8 near_jump_condition_opcode = 0x80 + condition_code;
     ExpectBytes({/* two byte opcode */ 0x0f, near_jump_condition_opcode, /* offset 1 */ 0x1, 0x0,
-                 0x0, 0x0, /* nop */ 0x90});
+        0x0, 0x0, /* nop */ 0x90});
   }
 
   // Verify a short jump is used when possible and a near jump when needed.
@@ -522,8 +611,11 @@ TEST_F(x64EmitterTest, MOVNT_DQ_PS_PD)
       std::vector<NamedReg> regs;                                                                  \
       std::string out_name;                                                                        \
     } regsets[] = {                                                                                \
-        {8, reg8names, "al"},    {8, reg8hnames, "al"},   {16, reg16names, "ax"},                  \
-        {32, reg32names, "eax"}, {64, reg64names, "rax"},                                          \
+        {8, reg8names, "al"},                                                                      \
+        {8, reg8hnames, "al"},                                                                     \
+        {16, reg16names, "ax"},                                                                    \
+        {32, reg32names, "eax"},                                                                   \
+        {64, reg64names, "rax"},                                                                   \
     };                                                                                             \
     for (const auto& regset : regsets)                                                             \
       for (const auto& r : regset.regs)                                                            \
@@ -548,7 +640,11 @@ MUL_DIV_TEST(IDIV)
       int bits;                                                                                    \
       std::vector<NamedReg> regs;                                                                  \
     } regsets[] = {                                                                                \
-        {8, reg8names}, {8, reg8hnames}, {16, reg16names}, {32, reg32names}, {64, reg64names},     \
+        {8, reg8names},                                                                            \
+        {8, reg8hnames},                                                                           \
+        {16, reg16names},                                                                          \
+        {32, reg32names},                                                                          \
+        {64, reg64names},                                                                          \
     };                                                                                             \
     for (const auto& regset : regsets)                                                             \
       for (const auto& r : regset.regs)                                                            \
@@ -612,8 +708,11 @@ BT_TEST(BTC)
       std::vector<NamedReg> regs;                                                                  \
       std::string size;                                                                            \
     } regsets[] = {                                                                                \
-        {8, reg8names, "byte"},    {8, reg8hnames, "byte"},   {16, reg16names, "word"},            \
-        {32, reg32names, "dword"}, {64, reg64names, "qword"},                                      \
+        {8, reg8names, "byte"},                                                                    \
+        {8, reg8hnames, "byte"},                                                                   \
+        {16, reg16names, "word"},                                                                  \
+        {32, reg32names, "dword"},                                                                 \
+        {64, reg64names, "qword"},                                                                 \
     };                                                                                             \
     for (const auto& regset : regsets)                                                             \
       for (const auto& r : regset.regs)                                                            \
@@ -702,8 +801,8 @@ TEST_F(x64EmitterTest, MOV_AtReg)
     std::string segment = src.reg == RSP || src.reg == RBP ? "ss" : "ds";
 
     emitter->MOV(64, R(RAX), MatR(src.reg));
-    EXPECT_EQ(emitter->GetCodePtr(),
-              code_buffer + 3 + ((src.reg & 7) == RBP || (src.reg & 7) == RSP));
+    EXPECT_EQ(
+        emitter->GetCodePtr(), code_buffer + 3 + ((src.reg & 7) == RBP || (src.reg & 7) == RSP));
     ExpectDisassembly("mov rax, qword ptr " + segment + ":[" + src.name + "]");
   }
 }
@@ -770,18 +869,18 @@ TEST_F(x64EmitterTest, MOV_Complex)
 
       emitter->MOV(64, R(RAX), MComplex(src1.reg, src2.reg, 4, 0));
       EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 4 + ((src1.reg & 7) == RBP));
-      ExpectDisassembly("mov rax, qword ptr " + segment + ":[" + src1.name + "+" + src2.name +
-                        "*4]");
+      ExpectDisassembly(
+          "mov rax, qword ptr " + segment + ":[" + src1.name + "+" + src2.name + "*4]");
 
       emitter->MOV(64, R(RAX), MComplex(src1.reg, src2.reg, 4, 42));
       EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 5);
-      ExpectDisassembly("mov rax, qword ptr " + segment + ":[" + src1.name + "+" + src2.name +
-                        "*4+42]");
+      ExpectDisassembly(
+          "mov rax, qword ptr " + segment + ":[" + src1.name + "+" + src2.name + "*4+42]");
 
       emitter->MOV(64, R(RAX), MComplex(src1.reg, src2.reg, 4, 1000));
       EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 8);
-      ExpectDisassembly("mov rax, qword ptr " + segment + ":[" + src1.name + "+" + src2.name +
-                        "*4+1000]");
+      ExpectDisassembly(
+          "mov rax, qword ptr " + segment + ":[" + src1.name + "+" + src2.name + "*4+1000]");
     }
   }
 }
@@ -1308,8 +1407,8 @@ FMA3_TEST(VFMSUBADD, P, true)
           ExpectDisassembly(#Name " " + r1.name + ", " + r2.name + ", " + r3.name + ", 0x0b");     \
         }                                                                                          \
         emitter->Name(r1.reg, r2.reg, MatR(R12), 0x0b);                                            \
-        ExpectDisassembly(#Name " " + r1.name + ", " + r2.name +                                   \
-                          ", " MemBits " ptr ds:[r12], 0x0b");                                     \
+        ExpectDisassembly(                                                                         \
+            #Name " " + r1.name + ", " + r2.name + ", " MemBits " ptr ds:[r12], 0x0b");            \
       }                                                                                            \
     }                                                                                              \
   }

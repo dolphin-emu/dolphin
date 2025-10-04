@@ -19,9 +19,8 @@ class TextureInfo
 public:
   static TextureInfo FromStage(u32 stage);
   TextureInfo(u32 stage, std::span<const u8> data, std::span<const u8> tlut_data, u32 address,
-              TextureFormat texture_format, TLUTFormat tlut_format, u32 width, u32 height,
-              bool from_tmem, std::span<const u8> tmem_odd, std::span<const u8> tmem_even,
-              std::optional<u32> mip_count);
+      TextureFormat texture_format, TLUTFormat tlut_format, u32 width, u32 height, bool from_tmem,
+      std::span<const u8> tmem_odd, std::span<const u8> tmem_even, std::optional<u32> mip_count);
 
   struct NameDetails
   {
@@ -65,7 +64,7 @@ public:
   {
   public:
     MipLevel(u32 level, const TextureInfo& parent, bool from_tmem, std::span<const u8>* src_data,
-             std::span<const u8>* tmem_even, std::span<const u8>* tmem_odd);
+        std::span<const u8>* tmem_even, std::span<const u8>* tmem_odd);
 
     bool IsDataValid() const;
 

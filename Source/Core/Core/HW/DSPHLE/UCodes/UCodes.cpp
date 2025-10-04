@@ -124,7 +124,9 @@ void* HLEMemory_Get_Pointer(Memory::MemoryManager& memory, u32 address)
 }
 
 UCodeInterface::UCodeInterface(DSPHLE* dsphle, u32 crc)
-    : m_mail_handler(dsphle->AccessMailHandler()), m_dsphle(dsphle), m_crc(crc)
+    : m_mail_handler(dsphle->AccessMailHandler())
+    , m_dsphle(dsphle)
+    , m_crc(crc)
 {
 }
 
@@ -197,12 +199,12 @@ void UCodeInterface::PrepareBootUCode(u32 mail)
 
     DEBUG_LOG_FMT(DSPHLE, "PrepareBootUCode {:#010x}", ector_crc);
     DEBUG_LOG_FMT(DSPHLE, "DRAM -> MRAM: src {:04x} dst {:08x} size {:04x}",
-                  m_next_ucode.mram_dram_addr, m_next_ucode.mram_dest_addr, m_next_ucode.mram_size);
+        m_next_ucode.mram_dram_addr, m_next_ucode.mram_dest_addr, m_next_ucode.mram_size);
     DEBUG_LOG_FMT(DSPHLE, "MRAM -> IRAM: src {:08x} dst {:04x} size {:04x} startpc {:04x}",
-                  m_next_ucode.iram_mram_addr, m_next_ucode.iram_dest, m_next_ucode.iram_size,
-                  m_next_ucode.iram_startpc);
+        m_next_ucode.iram_mram_addr, m_next_ucode.iram_dest, m_next_ucode.iram_size,
+        m_next_ucode.iram_startpc);
     DEBUG_LOG_FMT(DSPHLE, "MRAM -> DRAM: src {:08x} dst {:04x} size {:04x}",
-                  m_next_ucode.dram_mram_addr, m_next_ucode.dram_dest, m_next_ucode.dram_size);
+        m_next_ucode.dram_mram_addr, m_next_ucode.dram_dest, m_next_ucode.dram_size);
 
     if (m_next_ucode.mram_size)
     {

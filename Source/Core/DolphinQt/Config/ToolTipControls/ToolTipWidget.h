@@ -60,8 +60,8 @@ private:
     this->killTimer(*m_timer_id);
     m_timer_id.reset();
 
-    BalloonTip::ShowBalloon(m_title, m_description,
-                            this->parentWidget()->mapToGlobal(GetToolTipPosition()), this);
+    BalloonTip::ShowBalloon(
+        m_title, m_description, this->parentWidget()->mapToGlobal(GetToolTipPosition()), this);
 
     Derived::timerEvent(event);
   }

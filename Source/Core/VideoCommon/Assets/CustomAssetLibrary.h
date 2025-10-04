@@ -36,8 +36,8 @@ public:
   virtual LoadInfo LoadTexture(const AssetID& asset_id, CustomTextureData* data) = 0;
 
   // Loads a raster surface shader
-  virtual LoadInfo LoadRasterSurfaceShader(const AssetID& asset_id,
-                                           RasterSurfaceShaderData* data) = 0;
+  virtual LoadInfo LoadRasterSurfaceShader(
+      const AssetID& asset_id, RasterSurfaceShaderData* data) = 0;
 
   // Loads a material
   virtual LoadInfo LoadMaterial(const AssetID& asset_id, MaterialData* data) = 0;

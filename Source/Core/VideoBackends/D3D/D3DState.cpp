@@ -37,8 +37,7 @@ void StateManager::Apply()
   {
     if (g_backend_info.bSupportsBBox)
     {
-      D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(
-          m_pending.framebuffer->GetNumRTVs(),
+      D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(m_pending.framebuffer->GetNumRTVs(),
           m_pending.use_integer_rtv ? m_pending.framebuffer->GetIntegerRTVArray() :
                                       m_pending.framebuffer->GetRTVArray(),
           m_pending.framebuffer->GetDSV(), m_pending.framebuffer->GetNumRTVs() + 1, 1,
@@ -47,10 +46,9 @@ void StateManager::Apply()
     else
     {
       D3D::context->OMSetRenderTargets(m_pending.framebuffer->GetNumRTVs(),
-                                       m_pending.use_integer_rtv ?
-                                           m_pending.framebuffer->GetIntegerRTVArray() :
-                                           m_pending.framebuffer->GetRTVArray(),
-                                       m_pending.framebuffer->GetDSV());
+          m_pending.use_integer_rtv ? m_pending.framebuffer->GetIntegerRTVArray() :
+                                      m_pending.framebuffer->GetRTVArray(),
+          m_pending.framebuffer->GetDSV());
     }
     m_current.framebuffer = m_pending.framebuffer;
     m_current.uav = m_pending.uav;
@@ -106,7 +104,7 @@ void StateManager::Apply()
         m_current.vertexBufferOffset != m_pending.vertexBufferOffset)
     {
       D3D::context->IASetVertexBuffers(0, 1, &m_pending.vertexBuffer, &m_pending.vertexBufferStride,
-                                       &m_pending.vertexBufferOffset);
+          &m_pending.vertexBufferOffset);
       m_current.vertexBuffer = m_pending.vertexBuffer;
       m_current.vertexBufferStride = m_pending.vertexBufferStride;
       m_current.vertexBufferOffset = m_pending.vertexBufferOffset;
@@ -236,8 +234,8 @@ void StateManager::SetComputeUAV(u32 index, ID3D11UnorderedAccessView* uav)
     return;
 
   m_compute_images[index] = uav;
-  D3D::context->CSSetUnorderedAccessViews(0, static_cast<u32>(m_compute_images.size()),
-                                          m_compute_images.data(), nullptr);
+  D3D::context->CSSetUnorderedAccessViews(
+      0, static_cast<u32>(m_compute_images.size()), m_compute_images.data(), nullptr);
 }
 
 void StateManager::SetComputeShader(ID3D11ComputeShader* shader)
@@ -379,10 +377,10 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
 
     static constexpr std::array<D3D11_LOGIC_OP, 16> logic_ops = {
         {D3D11_LOGIC_OP_CLEAR, D3D11_LOGIC_OP_AND, D3D11_LOGIC_OP_AND_REVERSE, D3D11_LOGIC_OP_COPY,
-         D3D11_LOGIC_OP_AND_INVERTED, D3D11_LOGIC_OP_NOOP, D3D11_LOGIC_OP_XOR, D3D11_LOGIC_OP_OR,
-         D3D11_LOGIC_OP_NOR, D3D11_LOGIC_OP_EQUIV, D3D11_LOGIC_OP_INVERT, D3D11_LOGIC_OP_OR_REVERSE,
-         D3D11_LOGIC_OP_COPY_INVERTED, D3D11_LOGIC_OP_OR_INVERTED, D3D11_LOGIC_OP_NAND,
-         D3D11_LOGIC_OP_SET}};
+            D3D11_LOGIC_OP_AND_INVERTED, D3D11_LOGIC_OP_NOOP, D3D11_LOGIC_OP_XOR, D3D11_LOGIC_OP_OR,
+            D3D11_LOGIC_OP_NOR, D3D11_LOGIC_OP_EQUIV, D3D11_LOGIC_OP_INVERT,
+            D3D11_LOGIC_OP_OR_REVERSE, D3D11_LOGIC_OP_COPY_INVERTED, D3D11_LOGIC_OP_OR_INVERTED,
+            D3D11_LOGIC_OP_NAND, D3D11_LOGIC_OP_SET}};
     tdesc.LogicOpEnable = TRUE;
     tdesc.LogicOp = logic_ops[u32(state.logic_mode.Value())];
 
@@ -413,14 +411,14 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   const bool use_dual_source = state.use_dual_src;
   const std::array<D3D11_BLEND, 8> src_factors = {
       {D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_DEST_COLOR, D3D11_BLEND_INV_DEST_COLOR,
-       use_dual_source ? D3D11_BLEND_SRC1_ALPHA : D3D11_BLEND_SRC_ALPHA,
-       use_dual_source ? D3D11_BLEND_INV_SRC1_ALPHA : D3D11_BLEND_INV_SRC_ALPHA,
-       D3D11_BLEND_DEST_ALPHA, D3D11_BLEND_INV_DEST_ALPHA}};
+          use_dual_source ? D3D11_BLEND_SRC1_ALPHA : D3D11_BLEND_SRC_ALPHA,
+          use_dual_source ? D3D11_BLEND_INV_SRC1_ALPHA : D3D11_BLEND_INV_SRC_ALPHA,
+          D3D11_BLEND_DEST_ALPHA, D3D11_BLEND_INV_DEST_ALPHA}};
   const std::array<D3D11_BLEND, 8> dst_factors = {
       {D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_SRC_COLOR, D3D11_BLEND_INV_SRC_COLOR,
-       use_dual_source ? D3D11_BLEND_SRC1_ALPHA : D3D11_BLEND_SRC_ALPHA,
-       use_dual_source ? D3D11_BLEND_INV_SRC1_ALPHA : D3D11_BLEND_INV_SRC_ALPHA,
-       D3D11_BLEND_DEST_ALPHA, D3D11_BLEND_INV_DEST_ALPHA}};
+          use_dual_source ? D3D11_BLEND_SRC1_ALPHA : D3D11_BLEND_SRC_ALPHA,
+          use_dual_source ? D3D11_BLEND_INV_SRC1_ALPHA : D3D11_BLEND_INV_SRC_ALPHA,
+          D3D11_BLEND_DEST_ALPHA, D3D11_BLEND_INV_DEST_ALPHA}};
 
   tdesc.SrcBlend = src_factors[u32(state.src_factor.Value())];
   tdesc.SrcBlendAlpha = src_factors[u32(state.src_factor_alpha.Value())];
@@ -473,10 +471,9 @@ ID3D11DepthStencilState* StateCache::Get(DepthState state)
   depthdc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 
   // Less/greater are swapped due to inverted depth.
-  const D3D11_COMPARISON_FUNC d3dCmpFuncs[8] = {
-      D3D11_COMPARISON_NEVER,         D3D11_COMPARISON_GREATER, D3D11_COMPARISON_EQUAL,
-      D3D11_COMPARISON_GREATER_EQUAL, D3D11_COMPARISON_LESS,    D3D11_COMPARISON_NOT_EQUAL,
-      D3D11_COMPARISON_LESS_EQUAL,    D3D11_COMPARISON_ALWAYS};
+  const D3D11_COMPARISON_FUNC d3dCmpFuncs[8] = {D3D11_COMPARISON_NEVER, D3D11_COMPARISON_GREATER,
+      D3D11_COMPARISON_EQUAL, D3D11_COMPARISON_GREATER_EQUAL, D3D11_COMPARISON_LESS,
+      D3D11_COMPARISON_NOT_EQUAL, D3D11_COMPARISON_LESS_EQUAL, D3D11_COMPARISON_ALWAYS};
 
   if (state.test_enable)
   {
@@ -502,7 +499,7 @@ D3D11_PRIMITIVE_TOPOLOGY StateCache::GetPrimitiveTopology(PrimitiveType primitiv
 {
   static constexpr std::array<D3D11_PRIMITIVE_TOPOLOGY, 4> primitives = {
       {D3D11_PRIMITIVE_TOPOLOGY_POINTLIST, D3D11_PRIMITIVE_TOPOLOGY_LINELIST,
-       D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP}};
+          D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP}};
   return primitives[static_cast<u32>(primitive)];
 }
 

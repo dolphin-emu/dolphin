@@ -53,7 +53,16 @@ static std::optional<DiscIO::Language> TryParseLanguage(const std::string& local
 
   // Same order as in Wii SYSCONF
   constexpr std::array<std::string_view, 10> LANGUAGES = {
-      "ja", "en", "de", "fr", "es", "it", "nl", "zh", "zh", "ko",
+      "ja",
+      "en",
+      "de",
+      "fr",
+      "es",
+      "it",
+      "nl",
+      "zh",
+      "zh",
+      "ko",
   };
 
   const auto it = std::ranges::find(LANGUAGES, split_locale[0]);

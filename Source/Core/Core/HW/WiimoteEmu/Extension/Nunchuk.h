@@ -136,8 +136,7 @@ public:
     auto GetStick() const
     {
       return StickCalibration(StickType{stick_x.min, stick_y.min},
-                              StickType{stick_x.center, stick_y.center},
-                              StickType{stick_x.max, stick_y.max});
+          StickType{stick_x.center, stick_y.center}, StickType{stick_x.max, stick_y.max});
     }
     auto GetAccel() const { return AccelCalibration(accel_zero_g.Get(), accel_one_g.Get()); }
 

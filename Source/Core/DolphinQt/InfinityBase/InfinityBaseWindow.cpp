@@ -46,7 +46,7 @@ InfinityBaseWindow::InfinityBaseWindow(QWidget* parent) : QWidget(parent)
   CreateMainWindow();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          &InfinityBaseWindow::OnEmulationStateChanged);
+      &InfinityBaseWindow::OnEmulationStateChanged);
 
   installEventFilter(this);
 
@@ -69,7 +69,8 @@ void InfinityBaseWindow::CreateMainWindow()
   checkbox_group->setLayout(checkbox_layout);
   main_layout->addWidget(checkbox_group);
 
-  auto add_line = [](QVBoxLayout* vbox) {
+  auto add_line = [](QVBoxLayout* vbox)
+  {
     auto* line = new QFrame();
     line->setFrameShape(QFrame::HLine);
     line->setFrameShadow(QFrame::Sunken);
@@ -142,9 +143,8 @@ void InfinityBaseWindow::ClearFigure(FigureUIPosition slot)
 
 void InfinityBaseWindow::LoadFigure(FigureUIPosition slot)
 {
-  const QString file_path =
-      DolphinFileDialog::getOpenFileName(this, tr("Select Figure File"), s_last_figure_path,
-                                         QStringLiteral("Infinity Figure (*.bin);;"));
+  const QString file_path = DolphinFileDialog::getOpenFileName(this, tr("Select Figure File"),
+      s_last_figure_path, QStringLiteral("Infinity Figure (*.bin);;"));
   if (file_path.isEmpty())
   {
     return;
@@ -169,8 +169,7 @@ void InfinityBaseWindow::LoadFigurePath(FigureUIPosition slot, const QString& pa
   File::IOFile inf_file(path.toStdString(), "r+b");
   if (!inf_file)
   {
-    QMessageBox::warning(
-        this, tr("Failed to open the Infinity file!"),
+    QMessageBox::warning(this, tr("Failed to open the Infinity file!"),
         tr("Failed to open the Infinity file:\n%1\n\nThe file may already be in use on the base.")
             .arg(path),
         QMessageBox::Ok);
@@ -179,8 +178,7 @@ void InfinityBaseWindow::LoadFigurePath(FigureUIPosition slot, const QString& pa
   std::array<u8, IOS::HLE::USB::INFINITY_NUM_BLOCKS * IOS::HLE::USB::INFINITY_BLOCK_SIZE> file_data;
   if (!inf_file.ReadBytes(file_data.data(), file_data.size()))
   {
-    QMessageBox::warning(
-        this, tr("Failed to read the Infinity file!"),
+    QMessageBox::warning(this, tr("Failed to read the Infinity file!"),
         tr("Failed to read the Infinity file:\n%1\n\nThe file was too small.").arg(path),
         QMessageBox::Ok);
     return;
@@ -208,14 +206,15 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, FigureUIPosition slot) :
     const auto figure = entry.second;
     // Only display entry if it is a piece appropriate for the slot
     if ((slot == FigureUIPosition::HexagonDiscOne &&
-         ((figure > 0x1E8480 && figure < 0x2DC6BF) || (figure > 0x3D0900 && figure < 0x4C4B3F))) ||
+            ((figure > 0x1E8480 && figure < 0x2DC6BF) ||
+                (figure > 0x3D0900 && figure < 0x4C4B3F))) ||
         ((slot == FigureUIPosition::HexagonDiscTwo || slot == FigureUIPosition::HexagonDiscThree) &&
-         (figure > 0x3D0900 && figure < 0x4C4B3F)) ||
+            (figure > 0x3D0900 && figure < 0x4C4B3F)) ||
         ((slot == FigureUIPosition::PlayerOne || slot == FigureUIPosition::PlayerTwo) &&
-         figure < 0x1E847F) ||
+            figure < 0x1E847F) ||
         ((slot == FigureUIPosition::P1AbilityOne || slot == FigureUIPosition::P1AbilityTwo ||
-          slot == FigureUIPosition::P2AbilityOne || slot == FigureUIPosition::P2AbilityTwo) &&
-         (figure > 0x2DC6C0 && figure < 0x3D08FF)))
+             slot == FigureUIPosition::P2AbilityOne || slot == FigureUIPosition::P2AbilityTwo) &&
+            (figure > 0x2DC6C0 && figure < 0x3D08FF)))
     {
       const auto figure_name = QString::fromStdString(entry.first);
       combo_figlist->addItem(figure_name, QVariant(figure));
@@ -258,66 +257,70 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, FigureUIPosition slot) :
 
   setLayout(layout);
 
-  connect(combo_figlist, &QComboBox::currentIndexChanged, [=](int index) {
-    const u32 char_info = combo_figlist->itemData(index).toUInt();
-    if (char_info != 0xFFFFFFFF)
-    {
-      edit_num->setText(QString::number(char_info));
-    }
-  });
+  connect(combo_figlist, &QComboBox::currentIndexChanged,
+      [=](int index)
+      {
+        const u32 char_info = combo_figlist->itemData(index).toUInt();
+        if (char_info != 0xFFFFFFFF)
+        {
+          edit_num->setText(QString::number(char_info));
+        }
+      });
 
-  connect(buttons, &QDialogButtonBox::accepted, this, [=, this] {
-    bool ok_char = false;
-    const u32 char_number = edit_num->text().toULong(&ok_char);
-    if (!ok_char)
-    {
-      QMessageBox::warning(this, tr("Error converting value"), tr("Character entered is invalid!"),
-                           QMessageBox::Ok);
-      return;
-    }
+  connect(buttons, &QDialogButtonBox::accepted, this,
+      [=, this]
+      {
+        bool ok_char = false;
+        const u32 char_number = edit_num->text().toULong(&ok_char);
+        if (!ok_char)
+        {
+          QMessageBox::warning(this, tr("Error converting value"),
+              tr("Character entered is invalid!"), QMessageBox::Ok);
+          return;
+        }
 
-    QString predef_name = s_last_figure_path;
+        QString predef_name = s_last_figure_path;
 
-    auto& system = Core::System::GetInstance();
-    const auto found_fig = system.GetInfinityBase().FindFigure(char_number);
-    if (!found_fig.empty())
-    {
-      predef_name += QString::fromStdString(found_fig + ".bin");
-    }
-    else
-    {
-      // i18n: This is used to create a file name. The string must end in ".bin".
-      QString str = tr("Unknown(%1).bin");
-      predef_name += str.arg(char_number);
-    }
+        auto& system = Core::System::GetInstance();
+        const auto found_fig = system.GetInfinityBase().FindFigure(char_number);
+        if (!found_fig.empty())
+        {
+          predef_name += QString::fromStdString(found_fig + ".bin");
+        }
+        else
+        {
+          // i18n: This is used to create a file name. The string must end in ".bin".
+          QString str = tr("Unknown(%1).bin");
+          predef_name += str.arg(char_number);
+        }
 
-    m_file_path = DolphinFileDialog::getSaveFileName(this, tr("Create Infinity File"), predef_name,
-                                                     tr("Infinity Object (*.bin);;"));
-    if (m_file_path.isEmpty())
-    {
-      return;
-    }
+        m_file_path = DolphinFileDialog::getSaveFileName(
+            this, tr("Create Infinity File"), predef_name, tr("Infinity Object (*.bin);;"));
+        if (m_file_path.isEmpty())
+        {
+          return;
+        }
 
-    if (!system.GetInfinityBase().CreateFigure(m_file_path.toStdString(), char_number))
-    {
-      QMessageBox::warning(
-          this, tr("Failed to create Infinity file"),
-          tr("Blank figure creation failed at:\n%1\n\nTry again with a different character.")
-              .arg(m_file_path),
-          QMessageBox::Ok);
-      return;
-    }
-    s_last_figure_path = QFileInfo(m_file_path).absolutePath() + QLatin1Char('/');
-    accept();
-  });
+        if (!system.GetInfinityBase().CreateFigure(m_file_path.toStdString(), char_number))
+        {
+          QMessageBox::warning(this, tr("Failed to create Infinity file"),
+              tr("Blank figure creation failed at:\n%1\n\nTry again with a different character.")
+                  .arg(m_file_path),
+              QMessageBox::Ok);
+          return;
+        }
+        s_last_figure_path = QFileInfo(m_file_path).absolutePath() + QLatin1Char('/');
+        accept();
+      });
 
   connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
   connect(co_compl, QOverload<const QString&>::of(&QCompleter::activated),
-          [=](const QString& text) {
-            combo_figlist->setCurrentText(text);
-            combo_figlist->setCurrentIndex(combo_figlist->findText(text));
-          });
+      [=](const QString& text)
+      {
+        combo_figlist->setCurrentText(text);
+        combo_figlist->setCurrentIndex(combo_figlist->findText(text));
+      });
 }
 
 QString CreateFigureDialog::GetFilePath() const

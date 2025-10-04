@@ -68,8 +68,8 @@ void PerfQuery::EnableQuery(PerfQueryGroup group)
 
     // Ensure the query starts within a render pass.
     StateTracker::GetInstance()->BeginRenderPass();
-    vkCmdBeginQuery(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool, m_query_next_pos,
-                    flags);
+    vkCmdBeginQuery(
+        g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool, m_query_next_pos, flags);
   }
 }
 
@@ -96,8 +96,8 @@ void PerfQuery::ResetQuery()
 
   // Reset entire query pool, ensuring all queries are ready to write to.
   StateTracker::GetInstance()->EndRenderPass();
-  vkCmdResetQueryPool(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool, 0,
-                      PERF_QUERY_BUFFER_SIZE);
+  vkCmdResetQueryPool(
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool, 0, PERF_QUERY_BUFFER_SIZE);
 
   std::memset(m_query_buffer.data(), 0, sizeof(ActiveQuery) * m_query_buffer.size());
 }
@@ -196,16 +196,15 @@ void PerfQuery::ReadbackQueries(u32 query_count)
          (m_query_readback_pos + query_count) <= PERF_QUERY_BUFFER_SIZE);
 
   // Read back from the GPU.
-  VkResult res = vkGetQueryPoolResults(
-      g_vulkan_context->GetDevice(), m_query_pool, m_query_readback_pos, query_count,
-      query_count * sizeof(PerfQueryDataType), m_query_result_buffer.data(),
-      sizeof(PerfQueryDataType), VK_QUERY_RESULT_WAIT_BIT);
+  VkResult res = vkGetQueryPoolResults(g_vulkan_context->GetDevice(), m_query_pool,
+      m_query_readback_pos, query_count, query_count * sizeof(PerfQueryDataType),
+      m_query_result_buffer.data(), sizeof(PerfQueryDataType), VK_QUERY_RESULT_WAIT_BIT);
   if (res != VK_SUCCESS)
     LOG_VULKAN_ERROR(res, "vkGetQueryPoolResults failed: ");
 
   StateTracker::GetInstance()->EndRenderPass();
   vkCmdResetQueryPool(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool,
-                      m_query_readback_pos, query_count);
+      m_query_readback_pos, query_count);
 
   // Remove pending queries.
   for (u32 i = 0; i < query_count; i++)
@@ -224,8 +223,8 @@ void PerfQuery::ReadbackQueries(u32 query_count)
                             g_framebuffer_manager->GetEFBHeight();
     if (g_ActiveConfig.iMultisamples > 1)
       native_res_result /= g_ActiveConfig.iMultisamples;
-    m_results[entry.query_group].fetch_add(static_cast<u32>(native_res_result),
-                                           std::memory_order_relaxed);
+    m_results[entry.query_group].fetch_add(
+        static_cast<u32>(native_res_result), std::memory_order_relaxed);
   }
 
   m_query_readback_pos = (m_query_readback_pos + query_count) % PERF_QUERY_BUFFER_SIZE;

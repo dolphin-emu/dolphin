@@ -50,8 +50,8 @@ struct std::hash<Core::BranchWatchCollectionKey>
 
 namespace Core
 {
-inline bool operator==(const BranchWatchCollectionKey& lhs,
-                       const BranchWatchCollectionKey& rhs) noexcept
+inline bool operator==(
+    const BranchWatchCollectionKey& lhs, const BranchWatchCollectionKey& rhs) noexcept
 {
   const std::hash<BranchWatchCollectionKey> hash;
   return hash(lhs) == hash(rhs) && lhs.original_inst.hex == rhs.original_inst.hex;
@@ -68,22 +68,22 @@ enum class BranchWatchSelectionInspection : u8
   EndOfEnumeration,
 };
 
-constexpr BranchWatchSelectionInspection operator|(BranchWatchSelectionInspection lhs,
-                                                   BranchWatchSelectionInspection rhs)
+constexpr BranchWatchSelectionInspection operator|(
+    BranchWatchSelectionInspection lhs, BranchWatchSelectionInspection rhs)
 {
-  return static_cast<BranchWatchSelectionInspection>(Common::ToUnderlying(lhs) |
-                                                     Common::ToUnderlying(rhs));
+  return static_cast<BranchWatchSelectionInspection>(
+      Common::ToUnderlying(lhs) | Common::ToUnderlying(rhs));
 }
 
-constexpr BranchWatchSelectionInspection operator&(BranchWatchSelectionInspection lhs,
-                                                   BranchWatchSelectionInspection rhs)
+constexpr BranchWatchSelectionInspection operator&(
+    BranchWatchSelectionInspection lhs, BranchWatchSelectionInspection rhs)
 {
-  return static_cast<BranchWatchSelectionInspection>(Common::ToUnderlying(lhs) &
-                                                     Common::ToUnderlying(rhs));
+  return static_cast<BranchWatchSelectionInspection>(
+      Common::ToUnderlying(lhs) & Common::ToUnderlying(rhs));
 }
 
-constexpr BranchWatchSelectionInspection& operator|=(BranchWatchSelectionInspection& self,
-                                                     BranchWatchSelectionInspection other)
+constexpr BranchWatchSelectionInspection& operator|=(
+    BranchWatchSelectionInspection& self, BranchWatchSelectionInspection other)
 {
   return self = self | other;
 }
@@ -261,8 +261,8 @@ private:
     return GetCollectionP(condition);
   }
 
-  void IsolateOverwrittenShared(const CPUThreadGuard& guard,
-                                const std::function<bool(u32, u32)>& compare_func);
+  void IsolateOverwrittenShared(
+      const CPUThreadGuard& guard, const std::function<bool(u32, u32)>& compare_func);
 
   std::size_t m_blacklist_size = 0;
   Phase m_recording_phase = Phase::Blacklist;

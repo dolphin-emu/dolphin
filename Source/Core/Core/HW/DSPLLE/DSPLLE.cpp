@@ -44,8 +44,8 @@ void DSPLLE::DoState(PointerWrap& p)
   p.Do(is_hle);
   if (is_hle && p.IsReadMode())
   {
-    Core::DisplayMessage("State is incompatible with current DSP engine. Aborting load state.",
-                         3000);
+    Core::DisplayMessage(
+        "State is incompatible with current DSP engine. Aborting load state.", 3000);
     p.SetVerifyMode();
     return;
   }
@@ -92,8 +92,8 @@ static bool LoadDSPRom(u16* rom, const std::string& filename, u32 size_in_bytes)
 
   if (bytes.size() != size_in_bytes)
   {
-    ERROR_LOG_FMT(DSPLLE, "{} has a wrong size ({}, expected {})", filename, bytes.size(),
-                  size_in_bytes);
+    ERROR_LOG_FMT(
+        DSPLLE, "{} has a wrong size ({}, expected {})", filename, bytes.size(), size_in_bytes);
     return false;
   }
 

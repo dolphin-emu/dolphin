@@ -14,10 +14,10 @@
     if (!(_a_)) [[unlikely]]                                                                       \
     {                                                                                              \
       if (!PanicYesNoFmtAssert(_t_,                                                                \
-                               "An error occurred.\n\n" _fmt_ "\n\n"                               \
-                               "  Condition: {}\n  File: {}\n  Line: {}\n  Function: {}\n\n"       \
-                               "Ignore and continue?",                                             \
-                               __VA_ARGS__ __VA_OPT__(, ) #_a_, __FILE__, __LINE__, __func__))     \
+              "An error occurred.\n\n" _fmt_ "\n\n"                                                \
+              "  Condition: {}\n  File: {}\n  Line: {}\n  Function: {}\n\n"                        \
+              "Ignore and continue?",                                                              \
+              __VA_ARGS__ __VA_OPT__(, ) #_a_, __FILE__, __LINE__, __func__))                      \
         Crash();                                                                                   \
     }                                                                                              \
   } while (0)
@@ -37,7 +37,7 @@
       if (!PanicYesNoFmt("An error occurred.\n\n"                                                  \
                          "  Condition: {}\n  File: {}\n  Line: {}\n  Function: {}\n\n"             \
                          "Ignore and continue?",                                                   \
-                         #_a_, __FILE__, __LINE__, __func__))                                      \
+              #_a_, __FILE__, __LINE__, __func__))                                                 \
         Crash();                                                                                   \
     }                                                                                              \
   } while (0)

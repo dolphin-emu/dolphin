@@ -161,8 +161,8 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   auto perf_query = std::make_unique<PerfQuery>();
   auto bounding_box = std::make_unique<D3DBoundingBox>();
 
-  return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
-                          std::move(bounding_box));
+  return InitializeShared(
+      std::move(gfx), std::move(vertex_manager), std::move(perf_query), std::move(bounding_box));
 }
 
 void VideoBackend::Shutdown()

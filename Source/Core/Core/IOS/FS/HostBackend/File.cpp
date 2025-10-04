@@ -49,7 +49,7 @@ std::shared_ptr<File::IOFile> HostFileSystem::OpenHostFile(const std::string& ho
         PanicYesNoFmt("File \"{}\" could not be opened!\n"
                       "This may happen with improper permissions or use by another process.\n"
                       "Press \"Yes\" to make another attempt.",
-                      host_path);
+            host_path);
 
     if (!try_again)
     {
@@ -60,7 +60,8 @@ std::shared_ptr<File::IOFile> HostFileSystem::OpenHostFile(const std::string& ho
   }
 
   // This code will be called when all references to the shared pointer below have been removed.
-  auto deleter = [this, host_path](File::IOFile* ptr) {
+  auto deleter = [this, host_path](File::IOFile* ptr)
+  {
     delete ptr;                     // IOFile's deconstructor closes the file.
     m_open_files.erase(host_path);  // erase the weak pointer from the list of open files.
   };

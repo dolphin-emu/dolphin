@@ -45,7 +45,7 @@ public:
   // Callees are not expected to hold onto the shared_ptr as that will prevent
   // the resource manager from being able to properly release data
   TextureTimePair GetTextureDataFromAsset(const CustomAssetLibrary::AssetID& asset_id,
-                                          std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
+      std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
 
 private:
   // A generic interface to describe an assets' type
@@ -82,8 +82,8 @@ private:
   };
 
   void LoadTextureDataAsset(const CustomAssetLibrary::AssetID& asset_id,
-                            std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
-                            InternalTextureDataResource* resource);
+      std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
+      InternalTextureDataResource* resource);
 
   void ProcessDirtyAssets();
   void ProcessLoadedAssets();
@@ -91,7 +91,7 @@ private:
 
   template <typename T>
   T* CreateAsset(const CustomAssetLibrary::AssetID& asset_id, AssetData::AssetType asset_type,
-                 std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
+      std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
   {
     const auto [it, added] =
         m_asset_id_to_handle.try_emplace(asset_id, m_asset_handle_to_data.size());

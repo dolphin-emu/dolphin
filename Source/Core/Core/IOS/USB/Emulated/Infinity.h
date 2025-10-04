@@ -51,7 +51,7 @@ public:
 
 private:
   void ScheduleTransfer(std::unique_ptr<TransferCommand> command, const std::array<u8, 32>& data,
-                        u64 expected_time_us);
+      u64 expected_time_us);
 
   u16 m_vid = 0;
   u16 m_pid = 0;
@@ -95,14 +95,14 @@ public:
   void GetPresentFigures(u8 sequence, std::array<u8, 32>& reply_buf);
   void GetFigureIdentifier(u8 fig_num, u8 sequence, std::array<u8, 32>& reply_buf);
   void QueryBlock(u8 fig_num, u8 block, std::array<u8, 32>& reply_buf, u8 sequence);
-  void WriteBlock(u8 fig_num, u8 block, const u8* to_write_buf, std::array<u8, 32>& reply_buf,
-                  u8 sequence);
+  void WriteBlock(
+      u8 fig_num, u8 block, const u8* to_write_buf, std::array<u8, 32>& reply_buf, u8 sequence);
   void DescrambleAndSeed(u8* buf, u8 sequence, std::array<u8, 32>& reply_buf);
   void GetNextAndScramble(u8 sequence, std::array<u8, 32>& reply_buf);
   void RemoveFigure(FigureUIPosition position);
   // Returns Infinity Figure name based on data from in_file param
   std::string LoadFigure(const std::array<u8, INFINITY_NUM_BLOCKS * INFINITY_BLOCK_SIZE>& buf,
-                         File::IOFile in_file, FigureUIPosition position);
+      File::IOFile in_file, FigureUIPosition position);
   bool CreateFigure(const std::string& file_path, u32 character);
   static std::span<const std::pair<const char*, const u32>> GetFigureList();
   std::string FindFigure(u32 character) const;

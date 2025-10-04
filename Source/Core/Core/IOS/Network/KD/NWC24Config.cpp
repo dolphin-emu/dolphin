@@ -62,8 +62,10 @@ void NWC24Config::ResetConfig()
   m_fs->Delete(PID_KD, PID_KD, CONFIG_PATH);
 
   constexpr const char* urls[5] = {
-      "https://amw.wc24.wii.com/cgi-bin/account.cgi", "http://rcw.wc24.wii.com/cgi-bin/check.cgi",
-      "http://mtw.wc24.wii.com/cgi-bin/receive.cgi",  "http://mtw.wc24.wii.com/cgi-bin/delete.cgi",
+      "https://amw.wc24.wii.com/cgi-bin/account.cgi",
+      "http://rcw.wc24.wii.com/cgi-bin/check.cgi",
+      "http://mtw.wc24.wii.com/cgi-bin/receive.cgi",
+      "http://mtw.wc24.wii.com/cgi-bin/delete.cgi",
       "http://mtw.wc24.wii.com/cgi-bin/send.cgi",
   };
 

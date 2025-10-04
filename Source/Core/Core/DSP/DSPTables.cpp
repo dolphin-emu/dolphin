@@ -603,7 +603,7 @@ void InitInstructionTable()
       if ((s_ext_op_table[i]->opcode_mask | iter->opcode_mask) != s_ext_op_table[i]->opcode_mask)
       {
         ERROR_LOG_FMT(DSPLLE, "opcode ext table place {} already in use by {} when inserting {}", i,
-                      s_ext_op_table[i]->name, iter->name);
+            s_ext_op_table[i]->name, iter->name);
       }
     }
   }

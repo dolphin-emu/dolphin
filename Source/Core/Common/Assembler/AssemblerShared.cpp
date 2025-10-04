@@ -21,6 +21,6 @@ std::string AssemblerError::FormatError() const
                      "  {2}\n"
                      "  {3:{4}}{5:^^{6}}\n"
                      "{7}",
-                     line + 1, col + 1, line_str, space_char, col, '^', len, message);
+      line + 1, col + 1, line_str, space_char, col, '^', len, message);
 }
 }  // namespace Common::GekkoAssembler

@@ -11,8 +11,8 @@ static void MarkAsUsed(u32* list, u32 start, u32 length)
     *list |= 1 << i;
 }
 
-static void GetArguments(NSArray<MTLArgument*>* arguments, u32* textures, u32* samplers,
-                         u32* buffers)
+static void GetArguments(
+    NSArray<MTLArgument*>* arguments, u32* textures, u32* samplers, u32* buffers)
 {
   for (MTLArgument* argument in arguments)
   {
@@ -21,7 +21,7 @@ static void GetArguments(NSArray<MTLArgument*>* arguments, u32* textures, u32* s
     if (idx + length > 32)
     {
       PanicAlertFmt("Making a MTLPipeline with high argument index {:d}..<{:d} for {:s}",  //
-                    idx, idx + length, [[argument name] UTF8String]);
+          idx, idx + length, [[argument name] UTF8String]);
       continue;
     }
     switch ([argument type])
@@ -54,18 +54,23 @@ Metal::PipelineReflection::PipelineReflection(MTLRenderPipelineReflection* refle
 }
 
 Metal::Pipeline::Pipeline(const AbstractPipelineConfig& config,
-                          MRCOwned<id<MTLRenderPipelineState>> pipeline,
-                          const PipelineReflection& reflection, MTLPrimitiveType prim,
-                          MTLCullMode cull, DepthState depth, AbstractPipelineUsage usage)
-    : AbstractPipeline(config), m_pipeline(std::move(pipeline)), m_prim(prim), m_cull(cull),
-      m_depth_stencil(depth), m_usage(usage), m_reflection(reflection)
+    MRCOwned<id<MTLRenderPipelineState>> pipeline, const PipelineReflection& reflection,
+    MTLPrimitiveType prim, MTLCullMode cull, DepthState depth, AbstractPipelineUsage usage)
+    : AbstractPipeline(config)
+    , m_pipeline(std::move(pipeline))
+    , m_prim(prim)
+    , m_cull(cull)
+    , m_depth_stencil(depth)
+    , m_usage(usage)
+    , m_reflection(reflection)
 {
 }
 
 Metal::ComputePipeline::ComputePipeline(ShaderStage stage, MTLComputePipelineReflection* reflection,
-                                        std::string msl, MRCOwned<id<MTLFunction>> shader,
-                                        MRCOwned<id<MTLComputePipelineState>> pipeline)
-    : Shader(stage, std::move(msl), std::move(shader)), m_compute_pipeline(std::move(pipeline))
+    std::string msl, MRCOwned<id<MTLFunction>> shader,
+    MRCOwned<id<MTLComputePipelineState>> pipeline)
+    : Shader(stage, std::move(msl), std::move(shader))
+    , m_compute_pipeline(std::move(pipeline))
 {
   GetArguments([reflection arguments], &m_textures, &m_samplers, &m_buffers);
 }

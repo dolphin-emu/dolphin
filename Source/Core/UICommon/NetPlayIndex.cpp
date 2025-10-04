@@ -26,8 +26,8 @@ NetPlayIndex::~NetPlayIndex()
 
 static std::optional<picojson::value> ParseResponse(const std::vector<u8>& response)
 {
-  const std::string response_string(reinterpret_cast<const char*>(response.data()),
-                                    response.size());
+  const std::string response_string(
+      reinterpret_cast<const char*>(response.data()), response.size());
 
   picojson::value json;
 
@@ -39,8 +39,8 @@ static std::optional<picojson::value> ParseResponse(const std::vector<u8>& respo
   return json;
 }
 
-std::optional<std::vector<NetPlaySession>>
-NetPlayIndex::List(const std::map<std::string, std::string>& filters)
+std::optional<std::vector<NetPlaySession>> NetPlayIndex::List(
+    const std::map<std::string, std::string>& filters)
 {
   Common::HttpRequest request;
 
@@ -238,7 +238,7 @@ void NetPlayIndex::Remove()
   // We don't really care whether this fails or not
   Common::HttpRequest request;
   request.Get(Config::Get(Config::NETPLAY_INDEX_URL) + "/v0/session/remove?secret=" + m_secret,
-              {{"X-Is-Dolphin", "1"}}, Common::HttpRequest::AllowedReturnCodes::All);
+      {{"X-Is-Dolphin", "1"}}, Common::HttpRequest::AllowedReturnCodes::All);
 
   m_secret.clear();
 }
@@ -246,8 +246,12 @@ void NetPlayIndex::Remove()
 std::vector<std::pair<std::string, std::string>> NetPlayIndex::GetRegions()
 {
   return {
-      {"EA", _trans("East Asia")},     {"CN", _trans("China")},         {"EU", _trans("Europe")},
-      {"NA", _trans("North America")}, {"SA", _trans("South America")}, {"OC", _trans("Oceania")},
+      {"EA", _trans("East Asia")},
+      {"CN", _trans("China")},
+      {"EU", _trans("Europe")},
+      {"NA", _trans("North America")},
+      {"SA", _trans("South America")},
+      {"OC", _trans("Oceania")},
       {"AF", _trans("Africa")},
   };
 }

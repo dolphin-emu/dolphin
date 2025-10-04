@@ -111,12 +111,10 @@ bool OnScreenUI::RecompileImGuiPipeline()
   const bool linear_space_output =
       g_presenter->GetBackbufferFormat() == AbstractTextureFormat::RGBA16F;
 
-  std::unique_ptr<AbstractShader> vertex_shader = g_gfx->CreateShaderFromSource(
-      ShaderStage::Vertex, FramebufferShaderGen::GenerateImGuiVertexShader(),
-      "ImGui vertex shader");
-  std::unique_ptr<AbstractShader> pixel_shader = g_gfx->CreateShaderFromSource(
-      ShaderStage::Pixel, FramebufferShaderGen::GenerateImGuiPixelShader(linear_space_output),
-      "ImGui pixel shader");
+  std::unique_ptr<AbstractShader> vertex_shader = g_gfx->CreateShaderFromSource(ShaderStage::Vertex,
+      FramebufferShaderGen::GenerateImGuiVertexShader(), "ImGui vertex shader");
+  std::unique_ptr<AbstractShader> pixel_shader = g_gfx->CreateShaderFromSource(ShaderStage::Pixel,
+      FramebufferShaderGen::GenerateImGuiPixelShader(linear_space_output), "ImGui pixel shader");
   if (!vertex_shader || !pixel_shader)
   {
     PanicAlertFmt("Failed to compile ImGui shaders");
@@ -127,8 +125,8 @@ bool OnScreenUI::RecompileImGuiPipeline()
   std::unique_ptr<AbstractShader> geometry_shader;
   if (g_gfx->UseGeometryShaderForUI())
   {
-    geometry_shader = g_gfx->CreateShaderFromSource(
-        ShaderStage::Geometry, FramebufferShaderGen::GeneratePassthroughGeometryShader(1, 1),
+    geometry_shader = g_gfx->CreateShaderFromSource(ShaderStage::Geometry,
+        FramebufferShaderGen::GeneratePassthroughGeometryShader(1, 1),
         "ImGui passthrough geometry shader");
     if (!geometry_shader)
     {
@@ -197,7 +195,7 @@ void OnScreenUI::DrawImGui()
     return;
 
   g_gfx->SetViewport(0.0f, 0.0f, static_cast<float>(m_backbuffer_width),
-                     static_cast<float>(m_backbuffer_height), 0.0f, 1.0f);
+      static_cast<float>(m_backbuffer_height), 0.0f, 1.0f);
 
   // Uniform buffer for draws.
   struct ImGuiUbo
@@ -220,8 +218,8 @@ void OnScreenUI::DrawImGui()
 
     u32 base_vertex, base_index;
     g_vertex_manager->UploadUtilityVertices(cmdlist->VtxBuffer.Data, sizeof(ImDrawVert),
-                                            cmdlist->VtxBuffer.Size, cmdlist->IdxBuffer.Data,
-                                            cmdlist->IdxBuffer.Size, &base_vertex, &base_index);
+        cmdlist->VtxBuffer.Size, cmdlist->IdxBuffer.Data, cmdlist->IdxBuffer.Size, &base_vertex,
+        &base_index);
 
     for (const ImDrawCmd& cmd : cmdlist->CmdBuffer)
     {
@@ -232,9 +230,9 @@ void OnScreenUI::DrawImGui()
       }
 
       g_gfx->SetScissorRect(g_gfx->ConvertFramebufferRectangle(
-          MathUtil::Rectangle<int>(
-              static_cast<int>(cmd.ClipRect.x), static_cast<int>(cmd.ClipRect.y),
-              static_cast<int>(cmd.ClipRect.z), static_cast<int>(cmd.ClipRect.w)),
+          MathUtil::Rectangle<int>(static_cast<int>(cmd.ClipRect.x),
+              static_cast<int>(cmd.ClipRect.y), static_cast<int>(cmd.ClipRect.z),
+              static_cast<int>(cmd.ClipRect.w)),
           g_gfx->GetCurrentFramebuffer()));
       g_gfx->SetTexture(0, reinterpret_cast<const AbstractTexture*>(cmd.GetTexID()));
       g_gfx->DrawIndexed(base_index, cmd.ElemCount, base_vertex);
@@ -264,20 +262,20 @@ void OnScreenUI::DrawDebugText()
     // Position under the FPS display.
     ImGui::SetNextWindowPos(
         ImVec2(ImGui::GetIO().DisplaySize.x - ImGui::GetFontSize() * m_backbuffer_scale,
-               80.f * m_backbuffer_scale),
+            80.f * m_backbuffer_scale),
         ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f));
     ImGui::SetNextWindowSizeConstraints(ImVec2(5.0f * ImGui::GetFontSize() * m_backbuffer_scale,
-                                               2.1f * ImGui::GetFontSize() * m_backbuffer_scale),
-                                        ImGui::GetIO().DisplaySize);
+                                            2.1f * ImGui::GetFontSize() * m_backbuffer_scale),
+        ImGui::GetIO().DisplaySize);
     if (ImGui::Begin("Movie", nullptr, ImGuiWindowFlags_NoFocusOnAppearing))
     {
       auto& movie = Core::System::GetInstance().GetMovie();
       if (movie.IsPlayingInput())
       {
-        ImGui::Text("Frame: %" PRIu64 " / %" PRIu64, movie.GetCurrentFrame(),
-                    movie.GetTotalFrames());
+        ImGui::Text(
+            "Frame: %" PRIu64 " / %" PRIu64, movie.GetCurrentFrame(), movie.GetTotalFrames());
         ImGui::Text("Input: %" PRIu64 " / %" PRIu64, movie.GetCurrentInputCount(),
-                    movie.GetTotalInputCount());
+            movie.GetTotalInputCount());
       }
       else if (Config::Get(Config::MAIN_SHOW_FRAME_COUNT))
       {
@@ -335,10 +333,10 @@ void OnScreenUI::DrawChallengesAndLeaderboards()
       const u32 width = icon.width;
       const u32 height = icon.height;
       TextureConfig tex_config(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0,
-                               AbstractTextureType::Texture_2DArray);
+          AbstractTextureType::Texture_2DArray);
       auto res = m_challenge_texture_map.insert_or_assign(name, g_gfx->CreateTexture(tex_config));
-      res.first->second->Load(0, width, height, width, icon.data.data(),
-                              sizeof(u32) * width * height);
+      res.first->second->Load(
+          0, width, height, width, icon.data.data(), sizeof(u32) * width * height);
     }
   }
 
@@ -347,18 +345,18 @@ void OnScreenUI::DrawChallengesAndLeaderboards()
   {
     float scale = ImGui::GetIO().DisplaySize.y / 1024.0;
     ImGui::SetNextWindowSize(ImVec2(0, 0));
-    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y), 0,
-                            ImVec2(1, 1));
+    ImGui::SetNextWindowPos(
+        ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y), 0, ImVec2(1, 1));
     if (ImGui::Begin("Challenges", nullptr,
-                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
-                         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-                         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
-                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
+            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMove |
+                ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar |
+                ImGuiWindowFlags_NoNav | ImGuiWindowFlags_AlwaysAutoResize |
+                ImGuiWindowFlags_NoFocusOnAppearing))
     {
       for (auto& [name, texture] : m_challenge_texture_map)
       {
         ImGui::Image(*texture.get(), ImVec2(static_cast<float>(texture->GetWidth()) * scale,
-                                            static_cast<float>(texture->GetHeight()) * scale));
+                                         static_cast<float>(texture->GetHeight()) * scale));
         ImGui::SameLine();
       }
     }
@@ -369,14 +367,14 @@ void OnScreenUI::DrawChallengesAndLeaderboards()
   const auto& leaderboard_progress = instance.GetActiveLeaderboards();
   if (!leaderboard_progress.empty())
   {
-    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x, leaderboard_y), 0,
-                            ImVec2(1.0, 1.0));
+    ImGui::SetNextWindowPos(
+        ImVec2(ImGui::GetIO().DisplaySize.x, leaderboard_y), 0, ImVec2(1.0, 1.0));
     ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
     if (ImGui::Begin("Leaderboards", nullptr,
-                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
-                         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-                         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
-                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
+            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMove |
+                ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar |
+                ImGuiWindowFlags_NoNav | ImGuiWindowFlags_AlwaysAutoResize |
+                ImGuiWindowFlags_NoFocusOnAppearing))
     {
       for (const auto& value : leaderboard_progress)
         ImGui::TextUnformatted(value.c_str());
@@ -419,7 +417,7 @@ void OnScreenUI::UpdateImguiTexture(ImTextureData* tex)
     IM_ASSERT(tex->Format == ImTextureFormat_RGBA32);
 
     TextureConfig font_tex_config(tex->Width, tex->Height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0,
-                                  AbstractTextureType::Texture_2DArray);
+        AbstractTextureType::Texture_2DArray);
     std::unique_ptr<AbstractTexture> font_tex =
         g_gfx->CreateTexture(font_tex_config, "ImGui font texture");
 
@@ -430,7 +428,7 @@ void OnScreenUI::UpdateImguiTexture(ImTextureData* tex)
     }
 
     font_tex->Load(0, tex->Width, tex->Height, tex->Width, tex->Pixels,
-                   sizeof(u32) * tex->Width * tex->Height);
+        sizeof(u32) * tex->Width * tex->Height);
 
     tex->SetTexID(static_cast<ImTextureID>(*font_tex.get()));
     // Keeps the texture alive.
@@ -458,7 +456,7 @@ void OnScreenUI::UpdateImguiTexture(ImTextureData* tex)
 
       // Create a staging texture to update the font texture with.
       TextureConfig font_tex_config(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0,
-                                    AbstractTextureType::Texture_2DArray);
+          AbstractTextureType::Texture_2DArray);
       std::unique_ptr<AbstractStagingTexture> stage =
           g_gfx->CreateStagingTexture(StagingTextureType::Upload, font_tex_config);
 
@@ -473,8 +471,8 @@ void OnScreenUI::UpdateImguiTexture(ImTextureData* tex)
 
       // Copy to font texture.
       const MathUtil::Rectangle<int> rect_staging = {0, 0, width, height};
-      const MathUtil::Rectangle<int> rect_target = {x_offset, y_offset, width + x_offset,
-                                                    height + y_offset};
+      const MathUtil::Rectangle<int> rect_target = {
+          x_offset, y_offset, width + x_offset, height + y_offset};
 
       stage->CopyToTexture(rect_staging, font_tex, rect_target, 0, 0);
     }
@@ -487,9 +485,8 @@ void OnScreenUI::UpdateImguiTexture(ImTextureData* tex)
 
     tex->SetTexID(ImTextureID_Invalid);
 
-    m_imgui_textures.erase(
-        std::find_if(m_imgui_textures.begin(), m_imgui_textures.end(),
-                     [font_tex](auto& element) { return element.get() == font_tex; }));
+    m_imgui_textures.erase(std::find_if(m_imgui_textures.begin(), m_imgui_textures.end(),
+        [font_tex](auto& element) { return element.get() == font_tex; }));
 
     tex->Status = ImTextureStatus_Destroyed;
   }
@@ -518,12 +515,28 @@ void OnScreenUI::SetScale(float backbuffer_scale)
 void OnScreenUI::SetKeyMap(const DolphinKeyMap& key_map)
 {
   static constexpr DolphinKeyMap dolphin_to_imgui_map = {
-      ImGuiKey_Tab,       ImGuiKey_LeftArrow, ImGuiKey_RightArrow, ImGuiKey_UpArrow,
-      ImGuiKey_DownArrow, ImGuiKey_PageUp,    ImGuiKey_PageDown,   ImGuiKey_Home,
-      ImGuiKey_End,       ImGuiKey_Insert,    ImGuiKey_Delete,     ImGuiKey_Backspace,
-      ImGuiKey_Space,     ImGuiKey_Enter,     ImGuiKey_Escape,     ImGuiKey_KeypadEnter,
-      ImGuiKey_A,         ImGuiKey_C,         ImGuiKey_V,          ImGuiKey_X,
-      ImGuiKey_Y,         ImGuiKey_Z,
+      ImGuiKey_Tab,
+      ImGuiKey_LeftArrow,
+      ImGuiKey_RightArrow,
+      ImGuiKey_UpArrow,
+      ImGuiKey_DownArrow,
+      ImGuiKey_PageUp,
+      ImGuiKey_PageDown,
+      ImGuiKey_Home,
+      ImGuiKey_End,
+      ImGuiKey_Insert,
+      ImGuiKey_Delete,
+      ImGuiKey_Backspace,
+      ImGuiKey_Space,
+      ImGuiKey_Enter,
+      ImGuiKey_Escape,
+      ImGuiKey_KeypadEnter,
+      ImGuiKey_A,
+      ImGuiKey_C,
+      ImGuiKey_V,
+      ImGuiKey_X,
+      ImGuiKey_Y,
+      ImGuiKey_Z,
   };
 
   auto lock = GetImGuiLock();

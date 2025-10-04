@@ -12,7 +12,8 @@
 #include "UICommon/GameFile.h"
 
 GameListDialog::GameListDialog(const GameListModel& game_list_model, QWidget* parent)
-    : QDialog(parent), m_game_list_model(game_list_model)
+    : QDialog(parent)
+    , m_game_list_model(game_list_model)
 {
   setWindowTitle(tr("Select a game"));
 
@@ -36,7 +37,7 @@ void GameListDialog::CreateWidgets()
 void GameListDialog::ConnectWidgets()
 {
   connect(m_game_list, &QListWidget::itemSelectionChanged,
-          [this] { m_button_box->setEnabled(m_game_list->currentRow() != -1); });
+      [this] { m_button_box->setEnabled(m_game_list->currentRow() != -1); });
 
   connect(m_game_list, &QListWidget::itemDoubleClicked, this, &GameListDialog::accept);
   connect(m_button_box, &QDialogButtonBox::accepted, this, &GameListDialog::accept);

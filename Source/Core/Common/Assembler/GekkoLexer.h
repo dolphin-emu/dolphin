@@ -103,7 +103,8 @@ public:
 
 public:
   explicit Lexer(std::string_view str)
-      : m_lex_string(str), m_match_rule(IdentifierMatchRule::Typical)
+      : m_lex_string(str)
+      , m_match_rule(IdentifierMatchRule::Typical)
   {
   }
 
@@ -131,10 +132,12 @@ public:
 
     std::copy_n(m_lexed_tokens.begin(), filled_amt, tokens_out->begin());
 
-    std::generate_n(tokens_out->begin() + filled_amt, N - filled_amt, [this] {
-      CursorPosition p = m_pos;
-      return m_lexed_tokens.emplace_back(p, LexSingle());
-    });
+    std::generate_n(tokens_out->begin() + filled_amt, N - filled_amt,
+        [this]
+        {
+          CursorPosition p = m_pos;
+          return m_lexed_tokens.emplace_back(p, LexSingle());
+        });
   }
 
   template <size_t N>
@@ -145,10 +148,12 @@ public:
     auto _it = m_lexed_tokens.begin();
     std::generate_n(tokens_out->begin(), filled_amt, [&_it] { return ValueOf(*_it++); });
 
-    std::generate_n(tokens_out->begin() + filled_amt, N - filled_amt, [this] {
-      CursorPosition p = m_pos;
-      return ValueOf(m_lexed_tokens.emplace_back(p, LexSingle()));
-    });
+    std::generate_n(tokens_out->begin() + filled_amt, N - filled_amt,
+        [this]
+        {
+          CursorPosition p = m_pos;
+          return ValueOf(m_lexed_tokens.emplace_back(p, LexSingle()));
+        });
   }
 
   template <size_t N>

@@ -226,7 +226,7 @@ void Interpreter::WriteControlRegister(u16 val)
   {
     // This bit is handled by Interpreter::RunCycles and DSPEmitter::CompileDispatcher
     INFO_LOG_FMT(DSPLLE, "DSP_CONTROL halt bit changed: {:04x} -> {:04x}, PC {:04x}",
-                 state.control_reg, val, state.pc);
+        state.control_reg, val, state.pc);
   }
 
   // The CR_EXTERNAL_INT bit is handled by DSPLLE::DSP_WriteControlRegister
@@ -297,7 +297,8 @@ bool Interpreter::CheckCondition(u8 condition) const
   const auto IsLess = [this] { return IsSRFlagSet(SR_OVERFLOW) != IsSRFlagSet(SR_SIGN); };
   const auto IsZero = [this] { return IsSRFlagSet(SR_ARITH_ZERO); };
   const auto IsLogicZero = [this] { return IsSRFlagSet(SR_LOGIC_ZERO); };
-  const auto IsConditionB = [this] {
+  const auto IsConditionB = [this]
+  {
     return (!(IsSRFlagSet(SR_OVER_S32) || IsSRFlagSet(SR_TOP2BITS))) || IsSRFlagSet(SR_ARITH_ZERO);
   };
 
@@ -902,7 +903,7 @@ void Interpreter::ZeroWriteBackLogPreserveAcc([[maybe_unused]] u8 acc)
     // acc0
     if (acc == 0 &&
         ((m_write_back_log_idx[i] == DSP_REG_ACL0) || (m_write_back_log_idx[i] == DSP_REG_ACM0) ||
-         (m_write_back_log_idx[i] == DSP_REG_ACH0)))
+            (m_write_back_log_idx[i] == DSP_REG_ACH0)))
     {
       continue;
     }
@@ -910,7 +911,7 @@ void Interpreter::ZeroWriteBackLogPreserveAcc([[maybe_unused]] u8 acc)
     // acc1
     if (acc == 1 &&
         ((m_write_back_log_idx[i] == DSP_REG_ACL1) || (m_write_back_log_idx[i] == DSP_REG_ACM1) ||
-         (m_write_back_log_idx[i] == DSP_REG_ACH1)))
+            (m_write_back_log_idx[i] == DSP_REG_ACH1)))
     {
       continue;
     }

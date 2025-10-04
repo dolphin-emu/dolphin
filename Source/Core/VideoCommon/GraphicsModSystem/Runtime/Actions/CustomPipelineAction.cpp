@@ -20,15 +20,14 @@
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/TextureCacheBase.h"
 
-std::unique_ptr<CustomPipelineAction>
-CustomPipelineAction::Create(std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
+std::unique_ptr<CustomPipelineAction> CustomPipelineAction::Create(
+    std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
 {
   return std::make_unique<CustomPipelineAction>(std::move(library));
 }
 
-std::unique_ptr<CustomPipelineAction>
-CustomPipelineAction::Create(const picojson::value& json_data,
-                             std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
+std::unique_ptr<CustomPipelineAction> CustomPipelineAction::Create(
+    const picojson::value& json_data, std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
 {
   std::vector<CustomPipelineAction::PipelinePassPassDescription> pipeline_passes;
 
@@ -41,8 +40,8 @@ CustomPipelineAction::Create(const picojson::value& json_data,
       if (!passes_json_val.is<picojson::object>())
       {
         ERROR_LOG_FMT(VIDEO,
-                      "Failed to load custom pipeline action, 'passes' has an array value that "
-                      "is not an object!");
+            "Failed to load custom pipeline action, 'passes' has an array value that "
+            "is not an object!");
         return nullptr;
       }
 
@@ -50,8 +49,8 @@ CustomPipelineAction::Create(const picojson::value& json_data,
       if (!pass.contains("pixel_material_asset"))
       {
         ERROR_LOG_FMT(VIDEO,
-                      "Failed to load custom pipeline action, 'passes' value missing required "
-                      "field 'pixel_material_asset'");
+            "Failed to load custom pipeline action, 'passes' value missing required "
+            "field 'pixel_material_asset'");
         return nullptr;
       }
 
@@ -75,8 +74,7 @@ CustomPipelineAction::Create(const picojson::value& json_data,
 
   if (pipeline_passes.size() > 1)
   {
-    ERROR_LOG_FMT(
-        VIDEO,
+    ERROR_LOG_FMT(VIDEO,
         "Failed to load custom pipeline action, multiple passes are not currently supported");
     return nullptr;
   }
@@ -89,10 +87,10 @@ CustomPipelineAction::CustomPipelineAction(std::shared_ptr<VideoCommon::CustomAs
 {
 }
 
-CustomPipelineAction::CustomPipelineAction(
-    std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
+CustomPipelineAction::CustomPipelineAction(std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
     std::vector<PipelinePassPassDescription> pass_descriptions)
-    : m_library(std::move(library)), m_passes_config(std::move(pass_descriptions))
+    : m_library(std::move(library))
+    , m_passes_config(std::move(pass_descriptions))
 {
   m_pipeline_passes.resize(m_passes_config.size());
 }

@@ -70,21 +70,14 @@
 #define GL_MAX_DEPTH_TEXTURE_SAMPLES 0x910F
 #define GL_MAX_INTEGER_SAMPLES 0x9110
 
-typedef void(APIENTRYP PFNDOLDRAWELEMENTSBASEVERTEXPROC)(GLenum mode, GLsizei count, GLenum type,
-                                                         const void* indices, GLint basevertex);
+typedef void(APIENTRYP PFNDOLDRAWELEMENTSBASEVERTEXPROC)(
+    GLenum mode, GLsizei count, GLenum type, const void* indices, GLint basevertex);
 typedef void(APIENTRYP PFNDOLDRAWRANGEELEMENTSBASEVERTEXPROC)(GLenum mode, GLuint start, GLuint end,
-                                                              GLsizei count, GLenum type,
-                                                              const void* indices,
-                                                              GLint basevertex);
+    GLsizei count, GLenum type, const void* indices, GLint basevertex);
 typedef void(APIENTRYP PFNDOLDRAWELEMENTSINSTANCEDBASEVERTEXPROC)(GLenum mode, GLsizei count,
-                                                                  GLenum type, const void* indices,
-                                                                  GLsizei instancecount,
-                                                                  GLint basevertex);
+    GLenum type, const void* indices, GLsizei instancecount, GLint basevertex);
 typedef void(APIENTRYP PFNDOLMULTIDRAWELEMENTSBASEVERTEXPROC)(GLenum mode, const GLsizei* count,
-                                                              GLenum type,
-                                                              const void* const* indices,
-                                                              GLsizei drawcount,
-                                                              const GLint* basevertex);
+    GLenum type, const void* const* indices, GLsizei drawcount, const GLint* basevertex);
 typedef void(APIENTRYP PFNDOLPROVOKINGVERTEXPROC)(GLenum mode);
 typedef GLsync(APIENTRYP PFNDOLFENCESYNCPROC)(GLenum condition, GLbitfield flags);
 typedef GLboolean(APIENTRYP PFNDOLISSYNCPROC)(GLsync sync);
@@ -92,21 +85,18 @@ typedef void(APIENTRYP PFNDOLDELETESYNCPROC)(GLsync sync);
 typedef GLenum(APIENTRYP PFNDOLCLIENTWAITSYNCPROC)(GLsync sync, GLbitfield flags, GLuint64 timeout);
 typedef void(APIENTRYP PFNDOLWAITSYNCPROC)(GLsync sync, GLbitfield flags, GLuint64 timeout);
 typedef void(APIENTRYP PFNDOLGETINTEGER64VPROC)(GLenum pname, GLint64* data);
-typedef void(APIENTRYP PFNDOLGETSYNCIVPROC)(GLsync sync, GLenum pname, GLsizei bufSize,
-                                            GLsizei* length, GLint* values);
+typedef void(APIENTRYP PFNDOLGETSYNCIVPROC)(
+    GLsync sync, GLenum pname, GLsizei bufSize, GLsizei* length, GLint* values);
 typedef void(APIENTRYP PFNDOLGETINTEGER64I_VPROC)(GLenum target, GLuint index, GLint64* data);
-typedef void(APIENTRYP PFNDOLGETBUFFERPARAMETERI64VPROC)(GLenum target, GLenum pname,
-                                                         GLint64* params);
-typedef void(APIENTRYP PFNDOLFRAMEBUFFERTEXTUREPROC)(GLenum target, GLenum attachment,
-                                                     GLuint texture, GLint level);
+typedef void(APIENTRYP PFNDOLGETBUFFERPARAMETERI64VPROC)(
+    GLenum target, GLenum pname, GLint64* params);
+typedef void(APIENTRYP PFNDOLFRAMEBUFFERTEXTUREPROC)(
+    GLenum target, GLenum attachment, GLuint texture, GLint level);
 typedef void(APIENTRYP PFNDOLTEXIMAGE2DMULTISAMPLEPROC)(GLenum target, GLsizei samples,
-                                                        GLenum internalformat, GLsizei width,
-                                                        GLsizei height,
-                                                        GLboolean fixedsamplelocations);
+    GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
 typedef void(APIENTRYP PFNDOLTEXIMAGE3DMULTISAMPLEPROC)(GLenum target, GLsizei samples,
-                                                        GLenum internalformat, GLsizei width,
-                                                        GLsizei height, GLsizei depth,
-                                                        GLboolean fixedsamplelocations);
+    GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth,
+    GLboolean fixedsamplelocations);
 typedef void(APIENTRYP PFNDOLGETMULTISAMPLEFVPROC)(GLenum pname, GLuint index, GLfloat* val);
 typedef void(APIENTRYP PFNDOLSAMPLEMASKIPROC)(GLuint maskNumber, GLbitfield mask);
 

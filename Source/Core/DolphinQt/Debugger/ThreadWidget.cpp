@@ -44,11 +44,10 @@ ThreadWidget::ThreadWidget(QWidget* parent) : QDockWidget(parent)
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &ThreadWidget::Update);
 
   connect(&Settings::Instance(), &Settings::ThreadsVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+      [this](bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](bool enabled) {
-    setHidden(!enabled || !Settings::Instance().IsThreadsVisible());
-  });
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this,
+      [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsThreadsVisible()); });
 }
 
 ThreadWidget::~ThreadWidget()
@@ -97,15 +96,16 @@ void ThreadWidget::CreateWidgets()
 void ThreadWidget::ConnectWidgets()
 {
   connect(m_thread_table->selectionModel(), &QItemSelectionModel::selectionChanged,
-          [this](const QItemSelection& selected, const QItemSelection& deselected) {
-            const auto indexes = selected.indexes();
-            const int row = indexes.empty() ? -1 : indexes.first().row();
-            OnSelectionChanged(row);
-          });
+      [this](const QItemSelection& selected, const QItemSelection& deselected)
+      {
+        const auto indexes = selected.indexes();
+        const int row = indexes.empty() ? -1 : indexes.first().row();
+        OnSelectionChanged(row);
+      });
   connect(m_context_table, &QTableWidget::customContextMenuRequested,
-          [this] { ShowContextMenu(m_context_table); });
+      [this] { ShowContextMenu(m_context_table); });
   connect(m_callstack_table, &QTableWidget::customContextMenuRequested,
-          [this] { ShowContextMenu(m_callstack_table); });
+      [this] { ShowContextMenu(m_callstack_table); });
 }
 
 void ThreadWidget::ShowContextMenu(QTableWidget* table)
@@ -124,10 +124,10 @@ void ThreadWidget::ShowContextMenu(QTableWidget* table)
 
   const QString watch_name = QStringLiteral("thread_context_%1").arg(addr, 8, 16, QLatin1Char('0'));
   menu->addAction(tr("Add &breakpoint"), this, [this, addr] { emit RequestBreakpoint(addr); });
-  menu->addAction(tr("Add memory breakpoint"), this,
-                  [this, addr] { emit RequestMemoryBreakpoint(addr); });
-  menu->addAction(tr("Add to &watch"), this,
-                  [this, addr, watch_name] { emit RequestWatch(watch_name, addr); });
+  menu->addAction(
+      tr("Add memory breakpoint"), this, [this, addr] { emit RequestMemoryBreakpoint(addr); });
+  menu->addAction(
+      tr("Add to &watch"), this, [this, addr, watch_name] { emit RequestWatch(watch_name, addr); });
   menu->addAction(tr("View &memory"), this, [this, addr] { emit RequestViewInMemory(addr); });
   menu->addAction(tr("View &code"), this, [this, addr] { emit RequestViewInCode(addr); });
   menu->exec(QCursor::pos());
@@ -185,14 +185,10 @@ QGroupBox* ThreadWidget::CreateThreadGroup()
   thread_group->setLayout(thread_layout);
 
   m_thread_table = new QTableWidget();
-  QStringList header{tr("Address"),
-                     tr("State"),
-                     tr("Detached"),
-                     tr("Suspended"),
-                     QStringLiteral("%1\n(%2)").arg(tr("Base priority"), tr("Effective priority")),
-                     QStringLiteral("%1\n%2").arg(tr("Stack end"), tr("Stack start")),
-                     tr("errno"),
-                     tr("Specific")};
+  QStringList header{tr("Address"), tr("State"), tr("Detached"), tr("Suspended"),
+      QStringLiteral("%1\n(%2)").arg(tr("Base priority"), tr("Effective priority")),
+      QStringLiteral("%1\n%2").arg(tr("Stack end"), tr("Stack start")), tr("errno"),
+      tr("Specific")};
   m_thread_table->setColumnCount(header.size());
 
   m_thread_table->setHorizontalHeaderLabels(header);
@@ -272,15 +268,16 @@ void ThreadWidget::Update()
   if (emu_state != Core::State::Paused)
     return;
 
-  const auto format_hex = [](u32 value) {
-    return QStringLiteral("%1").arg(value, 8, 16, QLatin1Char('0'));
-  };
-  const auto format_hex_from = [&format_hex](const Core::CPUThreadGuard& guard, u32 addr) {
+  const auto format_hex = [](u32 value)
+  { return QStringLiteral("%1").arg(value, 8, 16, QLatin1Char('0')); };
+  const auto format_hex_from = [&format_hex](const Core::CPUThreadGuard& guard, u32 addr)
+  {
     addr =
         PowerPC::MMU::HostIsRAMAddress(guard, addr) ? PowerPC::MMU::HostRead_U32(guard, addr) : 0;
     return format_hex(addr);
   };
-  const auto get_state = [](u16 thread_state) {
+  const auto get_state = [](u16 thread_state)
+  {
     QString state_name;
     switch (thread_state)
     {
@@ -301,10 +298,10 @@ void ThreadWidget::Update()
     }
     return QStringLiteral("%1 (%2)").arg(QString::number(thread_state), state_name);
   };
-  const auto get_priority = [](u16 base, u16 effective) {
-    return QStringLiteral("%1 (%2)").arg(QString::number(base), QString::number(effective));
-  };
-  const auto get_stack = [](u32 end, u32 start) {
+  const auto get_priority = [](u16 base, u16 effective)
+  { return QStringLiteral("%1 (%2)").arg(QString::number(base), QString::number(effective)); };
+  const auto get_stack = [](u32 end, u32 start)
+  {
     return QStringLiteral("%1\n%2")
         .arg(end, 8, 16, QLatin1Char('0'))
         .arg(start, 8, 16, QLatin1Char('0'));
@@ -334,8 +331,8 @@ void ThreadWidget::Update()
       m_thread_table->setItem(i, 2, new QTableWidgetItem(QString::number(thread->IsDetached())));
       m_thread_table->setItem(i, 3, new QTableWidgetItem(QString::number(thread->IsSuspended())));
       m_thread_table->setItem(i, 4,
-                              new QTableWidgetItem(get_priority(thread->GetBasePriority(),
-                                                                thread->GetEffectivePriority())));
+          new QTableWidgetItem(
+              get_priority(thread->GetBasePriority(), thread->GetEffectivePriority())));
       m_thread_table->setItem(
           i, 5, new QTableWidgetItem(get_stack(thread->GetStackEnd(), thread->GetStackStart())));
       m_thread_table->setItem(i, 6, new QTableWidgetItem(QString::number(thread->GetErrno())));
@@ -354,17 +351,20 @@ void ThreadWidget::Update()
 
 void ThreadWidget::UpdateThreadContext(const Common::Debug::PartialContext& context)
 {
-  const auto format_hex = [](const std::optional<u32>& value) {
+  const auto format_hex = [](const std::optional<u32>& value)
+  {
     if (!value)
       return QString{};
     return QStringLiteral("%1").arg(*value, 8, 16, QLatin1Char('0'));
   };
-  const auto format_hex_idx = [](const auto& table, std::size_t index) {
+  const auto format_hex_idx = [](const auto& table, std::size_t index)
+  {
     if (!table || index >= table->size())
       return QString{};
     return QStringLiteral("%1").arg(table->at(index), 8, 16, QLatin1Char('0'));
   };
-  const auto format_f64_as_u64_idx = [](const auto& table, std::size_t index) {
+  const auto format_f64_as_u64_idx = [](const auto& table, std::size_t index)
+  {
     if (!table || index >= table->size())
       return QString{};
     return QStringLiteral("%1").arg(std::bit_cast<u64>(table->at(index)), 16, 16, QLatin1Char('0'));
@@ -442,17 +442,16 @@ void ThreadWidget::UpdateThreadContext(const Common::Debug::PartialContext& cont
   m_context_table->resizeColumnsToContents();
 }
 
-void ThreadWidget::UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
-                                         const Common::Debug::PartialContext& context)
+void ThreadWidget::UpdateThreadCallstack(
+    const Core::CPUThreadGuard& guard, const Common::Debug::PartialContext& context)
 {
   m_callstack_table->setRowCount(0);
 
   if (!context.gpr)
     return;
 
-  const auto format_hex = [](u32 value) {
-    return QStringLiteral("%1").arg(value, 8, 16, QLatin1Char('0'));
-  };
+  const auto format_hex = [](u32 value)
+  { return QStringLiteral("%1").arg(value, 8, 16, QLatin1Char('0')); };
 
   u32 sp = context.gpr->at(1);
   for (int i = 0; i < 16; i++)
@@ -465,8 +464,7 @@ void ThreadWidget::UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
     {
       const u32 lr_save = PowerPC::MMU::HostRead_U32(guard, sp + 4);
       m_callstack_table->setItem(i, 2, new QTableWidgetItem(format_hex(lr_save)));
-      m_callstack_table->setItem(
-          i, 3,
+      m_callstack_table->setItem(i, 3,
           new QTableWidgetItem(QtUtils::FromStdString(
               guard.GetSystem().GetPowerPC().GetDebugInterface().GetDescription(lr_save))));
     }

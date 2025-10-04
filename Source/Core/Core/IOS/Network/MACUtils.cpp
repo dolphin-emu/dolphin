@@ -39,9 +39,9 @@ Common::MACAddress GetMACAddress()
     if (!wireless_mac.empty())
     {
       ERROR_LOG_FMT(IOS_NET,
-                    "The MAC provided ({}) is invalid. We have "
-                    "generated another one for you.",
-                    Common::MacAddressToString(mac.value()));
+          "The MAC provided ({}) is invalid. We have "
+          "generated another one for you.",
+          Common::MacAddressToString(mac.value()));
     }
   }
 

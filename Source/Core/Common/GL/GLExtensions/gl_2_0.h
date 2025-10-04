@@ -92,14 +92,14 @@
 
 typedef void(APIENTRYP PFNDOLBLENDEQUATIONSEPARATEPROC)(GLenum modeRGB, GLenum modeAlpha);
 typedef void(APIENTRYP PFNDOLDRAWBUFFERSPROC)(GLsizei n, const GLenum* bufs);
-typedef void(APIENTRYP PFNDOLSTENCILOPSEPARATEPROC)(GLenum face, GLenum sfail, GLenum dpfail,
-                                                    GLenum dppass);
-typedef void(APIENTRYP PFNDOLSTENCILFUNCSEPARATEPROC)(GLenum face, GLenum func, GLint ref,
-                                                      GLuint mask);
+typedef void(APIENTRYP PFNDOLSTENCILOPSEPARATEPROC)(
+    GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
+typedef void(APIENTRYP PFNDOLSTENCILFUNCSEPARATEPROC)(
+    GLenum face, GLenum func, GLint ref, GLuint mask);
 typedef void(APIENTRYP PFNDOLSTENCILMASKSEPARATEPROC)(GLenum face, GLuint mask);
 typedef void(APIENTRYP PFNDOLATTACHSHADERPROC)(GLuint program, GLuint shader);
-typedef void(APIENTRYP PFNDOLBINDATTRIBLOCATIONPROC)(GLuint program, GLuint index,
-                                                     const GLchar* name);
+typedef void(APIENTRYP PFNDOLBINDATTRIBLOCATIONPROC)(
+    GLuint program, GLuint index, const GLchar* name);
 typedef void(APIENTRYP PFNDOLCOMPILESHADERPROC)(GLuint shader);
 typedef GLuint(APIENTRYP PFNDOLCREATEPROGRAMPROC)(void);
 typedef GLuint(APIENTRYP PFNDOLCREATESHADERPROC)(GLenum type);
@@ -109,41 +109,39 @@ typedef void(APIENTRYP PFNDOLDETACHSHADERPROC)(GLuint program, GLuint shader);
 typedef void(APIENTRYP PFNDOLDISABLEVERTEXATTRIBARRAYPROC)(GLuint index);
 typedef void(APIENTRYP PFNDOLENABLEVERTEXATTRIBARRAYPROC)(GLuint index);
 typedef void(APIENTRYP PFNDOLGETACTIVEATTRIBPROC)(GLuint program, GLuint index, GLsizei bufSize,
-                                                  GLsizei* length, GLint* size, GLenum* type,
-                                                  GLchar* name);
+    GLsizei* length, GLint* size, GLenum* type, GLchar* name);
 typedef void(APIENTRYP PFNDOLGETACTIVEUNIFORMPROC)(GLuint program, GLuint index, GLsizei bufSize,
-                                                   GLsizei* length, GLint* size, GLenum* type,
-                                                   GLchar* name);
-typedef void(APIENTRYP PFNDOLGETATTACHEDSHADERSPROC)(GLuint program, GLsizei maxCount,
-                                                     GLsizei* count, GLuint* shaders);
+    GLsizei* length, GLint* size, GLenum* type, GLchar* name);
+typedef void(APIENTRYP PFNDOLGETATTACHEDSHADERSPROC)(
+    GLuint program, GLsizei maxCount, GLsizei* count, GLuint* shaders);
 typedef GLint(APIENTRYP PFNDOLGETATTRIBLOCATIONPROC)(GLuint program, const GLchar* name);
 typedef void(APIENTRYP PFNDOLGETPROGRAMIVPROC)(GLuint program, GLenum pname, GLint* params);
-typedef void(APIENTRYP PFNDOLGETPROGRAMINFOLOGPROC)(GLuint program, GLsizei bufSize,
-                                                    GLsizei* length, GLchar* infoLog);
+typedef void(APIENTRYP PFNDOLGETPROGRAMINFOLOGPROC)(
+    GLuint program, GLsizei bufSize, GLsizei* length, GLchar* infoLog);
 typedef void(APIENTRYP PFNDOLGETSHADERIVPROC)(GLuint shader, GLenum pname, GLint* params);
-typedef void(APIENTRYP PFNDOLGETSHADERINFOLOGPROC)(GLuint shader, GLsizei bufSize, GLsizei* length,
-                                                   GLchar* infoLog);
-typedef void(APIENTRYP PFNDOLGETSHADERSOURCEPROC)(GLuint shader, GLsizei bufSize, GLsizei* length,
-                                                  GLchar* source);
+typedef void(APIENTRYP PFNDOLGETSHADERINFOLOGPROC)(
+    GLuint shader, GLsizei bufSize, GLsizei* length, GLchar* infoLog);
+typedef void(APIENTRYP PFNDOLGETSHADERSOURCEPROC)(
+    GLuint shader, GLsizei bufSize, GLsizei* length, GLchar* source);
 typedef GLint(APIENTRYP PFNDOLGETUNIFORMLOCATIONPROC)(GLuint program, const GLchar* name);
 typedef void(APIENTRYP PFNDOLGETUNIFORMFVPROC)(GLuint program, GLint location, GLfloat* params);
 typedef void(APIENTRYP PFNDOLGETUNIFORMIVPROC)(GLuint program, GLint location, GLint* params);
 typedef void(APIENTRYP PFNDOLGETVERTEXATTRIBDVPROC)(GLuint index, GLenum pname, GLdouble* params);
 typedef void(APIENTRYP PFNDOLGETVERTEXATTRIBFVPROC)(GLuint index, GLenum pname, GLfloat* params);
 typedef void(APIENTRYP PFNDOLGETVERTEXATTRIBIVPROC)(GLuint index, GLenum pname, GLint* params);
-typedef void(APIENTRYP PFNDOLGETVERTEXATTRIBPOINTERVPROC)(GLuint index, GLenum pname,
-                                                          void** pointer);
+typedef void(APIENTRYP PFNDOLGETVERTEXATTRIBPOINTERVPROC)(
+    GLuint index, GLenum pname, void** pointer);
 typedef GLboolean(APIENTRYP PFNDOLISPROGRAMPROC)(GLuint program);
 typedef GLboolean(APIENTRYP PFNDOLISSHADERPROC)(GLuint shader);
 typedef void(APIENTRYP PFNDOLLINKPROGRAMPROC)(GLuint program);
-typedef void(APIENTRYP PFNDOLSHADERSOURCEPROC)(GLuint shader, GLsizei count,
-                                               const GLchar* const* string, const GLint* length);
+typedef void(APIENTRYP PFNDOLSHADERSOURCEPROC)(
+    GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length);
 typedef void(APIENTRYP PFNDOLUSEPROGRAMPROC)(GLuint program);
 typedef void(APIENTRYP PFNDOLUNIFORM1FPROC)(GLint location, GLfloat v0);
 typedef void(APIENTRYP PFNDOLUNIFORM2FPROC)(GLint location, GLfloat v0, GLfloat v1);
 typedef void(APIENTRYP PFNDOLUNIFORM3FPROC)(GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
-typedef void(APIENTRYP PFNDOLUNIFORM4FPROC)(GLint location, GLfloat v0, GLfloat v1, GLfloat v2,
-                                            GLfloat v3);
+typedef void(APIENTRYP PFNDOLUNIFORM4FPROC)(
+    GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
 typedef void(APIENTRYP PFNDOLUNIFORM1IPROC)(GLint location, GLint v0);
 typedef void(APIENTRYP PFNDOLUNIFORM2IPROC)(GLint location, GLint v0, GLint v1);
 typedef void(APIENTRYP PFNDOLUNIFORM3IPROC)(GLint location, GLint v0, GLint v1, GLint v2);
@@ -156,12 +154,12 @@ typedef void(APIENTRYP PFNDOLUNIFORM1IVPROC)(GLint location, GLsizei count, cons
 typedef void(APIENTRYP PFNDOLUNIFORM2IVPROC)(GLint location, GLsizei count, const GLint* value);
 typedef void(APIENTRYP PFNDOLUNIFORM3IVPROC)(GLint location, GLsizei count, const GLint* value);
 typedef void(APIENTRYP PFNDOLUNIFORM4IVPROC)(GLint location, GLsizei count, const GLint* value);
-typedef void(APIENTRYP PFNDOLUNIFORMMATRIX2FVPROC)(GLint location, GLsizei count,
-                                                   GLboolean transpose, const GLfloat* value);
-typedef void(APIENTRYP PFNDOLUNIFORMMATRIX3FVPROC)(GLint location, GLsizei count,
-                                                   GLboolean transpose, const GLfloat* value);
-typedef void(APIENTRYP PFNDOLUNIFORMMATRIX4FVPROC)(GLint location, GLsizei count,
-                                                   GLboolean transpose, const GLfloat* value);
+typedef void(APIENTRYP PFNDOLUNIFORMMATRIX2FVPROC)(
+    GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+typedef void(APIENTRYP PFNDOLUNIFORMMATRIX3FVPROC)(
+    GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+typedef void(APIENTRYP PFNDOLUNIFORMMATRIX4FVPROC)(
+    GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
 typedef void(APIENTRYP PFNDOLVALIDATEPROGRAMPROC)(GLuint program);
 typedef void(APIENTRYP PFNDOLVERTEXATTRIB1DPROC)(GLuint index, GLdouble x);
 typedef void(APIENTRYP PFNDOLVERTEXATTRIB1DVPROC)(GLuint index, const GLdouble* v);
@@ -184,28 +182,27 @@ typedef void(APIENTRYP PFNDOLVERTEXATTRIB3SVPROC)(GLuint index, const GLshort* v
 typedef void(APIENTRYP PFNDOLVERTEXATTRIB4NBVPROC)(GLuint index, const GLbyte* v);
 typedef void(APIENTRYP PFNDOLVERTEXATTRIB4NIVPROC)(GLuint index, const GLint* v);
 typedef void(APIENTRYP PFNDOLVERTEXATTRIB4NSVPROC)(GLuint index, const GLshort* v);
-typedef void(APIENTRYP PFNDOLVERTEXATTRIB4NUBPROC)(GLuint index, GLubyte x, GLubyte y, GLubyte z,
-                                                   GLubyte w);
+typedef void(APIENTRYP PFNDOLVERTEXATTRIB4NUBPROC)(
+    GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w);
 typedef void(APIENTRYP PFNDOLVERTEXATTRIB4NUBVPROC)(GLuint index, const GLubyte* v);
 typedef void(APIENTRYP PFNDOLVERTEXATTRIB4NUIVPROC)(GLuint index, const GLuint* v);
 typedef void(APIENTRYP PFNDOLVERTEXATTRIB4NUSVPROC)(GLuint index, const GLushort* v);
 typedef void(APIENTRYP PFNDOLVERTEXATTRIB4BVPROC)(GLuint index, const GLbyte* v);
-typedef void(APIENTRYP PFNDOLVERTEXATTRIB4DPROC)(GLuint index, GLdouble x, GLdouble y, GLdouble z,
-                                                 GLdouble w);
+typedef void(APIENTRYP PFNDOLVERTEXATTRIB4DPROC)(
+    GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
 typedef void(APIENTRYP PFNDOLVERTEXATTRIB4DVPROC)(GLuint index, const GLdouble* v);
-typedef void(APIENTRYP PFNDOLVERTEXATTRIB4FPROC)(GLuint index, GLfloat x, GLfloat y, GLfloat z,
-                                                 GLfloat w);
+typedef void(APIENTRYP PFNDOLVERTEXATTRIB4FPROC)(
+    GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
 typedef void(APIENTRYP PFNDOLVERTEXATTRIB4FVPROC)(GLuint index, const GLfloat* v);
 typedef void(APIENTRYP PFNDOLVERTEXATTRIB4IVPROC)(GLuint index, const GLint* v);
-typedef void(APIENTRYP PFNDOLVERTEXATTRIB4SPROC)(GLuint index, GLshort x, GLshort y, GLshort z,
-                                                 GLshort w);
+typedef void(APIENTRYP PFNDOLVERTEXATTRIB4SPROC)(
+    GLuint index, GLshort x, GLshort y, GLshort z, GLshort w);
 typedef void(APIENTRYP PFNDOLVERTEXATTRIB4SVPROC)(GLuint index, const GLshort* v);
 typedef void(APIENTRYP PFNDOLVERTEXATTRIB4UBVPROC)(GLuint index, const GLubyte* v);
 typedef void(APIENTRYP PFNDOLVERTEXATTRIB4UIVPROC)(GLuint index, const GLuint* v);
 typedef void(APIENTRYP PFNDOLVERTEXATTRIB4USVPROC)(GLuint index, const GLushort* v);
 typedef void(APIENTRYP PFNDOLVERTEXATTRIBPOINTERPROC)(GLuint index, GLint size, GLenum type,
-                                                      GLboolean normalized, GLsizei stride,
-                                                      const void* pointer);
+    GLboolean normalized, GLsizei stride, const void* pointer);
 
 extern PFNDOLATTACHSHADERPROC dolAttachShader;
 extern PFNDOLBINDATTRIBLOCATIONPROC dolBindAttribLocation;

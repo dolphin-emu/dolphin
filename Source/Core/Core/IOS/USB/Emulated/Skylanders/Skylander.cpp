@@ -43,11 +43,11 @@ const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders =
     {{5, 0x3810}, {"Terrafin (Eon's Elite)", Game::TrapTeam, Element::Earth, Type::Skylander}},
     {{6, 0x0000}, {"Dino-Rang", Game::SpyrosAdv, Element::Earth, Type::Skylander}},
     {{6, 0x4810},
-     {"Dino-Rang (Eon's Elite)", Game::Superchargers, Element::Earth, Type::Skylander}},
+        {"Dino-Rang (Eon's Elite)", Game::Superchargers, Element::Earth, Type::Skylander}},
     {{7, 0x0000}, {"Prism Break", Game::SpyrosAdv, Element::Earth, Type::Skylander}},
     {{7, 0x1206}, {"Prism Break (LightCore)", Game::Giants, Element::Earth, Type::Skylander}},
     {{7, 0x1214},
-     {"Prism Break (White Flocked LightCore)", Game::Giants, Element::Earth, Type::Skylander}},
+        {"Prism Break (White Flocked LightCore)", Game::Giants, Element::Earth, Type::Skylander}},
     {{7, 0x1801}, {"Prism Break (S2)", Game::Giants, Element::Earth, Type::Skylander}},
     {{7, 0x2805}, {"Prism Break (Hyper Beam)", Game::SwapForce, Element::Earth, Type::Skylander}},
     {{8, 0x0000}, {"Sunburn", Game::SpyrosAdv, Element::Fire, Type::Skylander}},
@@ -57,7 +57,7 @@ const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders =
     {{9, 0x1814}, {"Eruptor (White Flocked)", Game::Giants, Element::Fire, Type::Skylander}},
     {{9, 0x2805}, {"Eruptor (Lava Barf)", Game::SwapForce, Element::Fire, Type::Skylander}},
     {{9, 0x2C02},
-     {"Eruptor (Volcanic Lava Barf)", Game::SwapForce, Element::Fire, Type::Skylander}},
+        {"Eruptor (Volcanic Lava Barf)", Game::SwapForce, Element::Fire, Type::Skylander}},
     {{9, 0x3810}, {"Eruptor (Eon's Elite)", Game::TrapTeam, Element::Fire, Type::Skylander}},
     {{10, 0x0000}, {"Ignitor", Game::SpyrosAdv, Element::Fire, Type::Skylander}},
     {{10, 0x1801}, {"Ignitor (S2)", Game::Giants, Element::Fire, Type::Skylander}},
@@ -79,7 +79,7 @@ const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders =
     {{15, 0x1801}, {"Slam Bam (S2)", Game::Giants, Element::Water, Type::Skylander}},
     {{15, 0x1C03}, {"Slam Bam (Legendary)", Game::Giants, Element::Water, Type::Skylander}},
     {{15, 0x3810},
-     {"Slam Bam (Eon's Elite)", Game::Superchargers, Element::Water, Type::Skylander}},
+        {"Slam Bam (Eon's Elite)", Game::Superchargers, Element::Water, Type::Skylander}},
     {{16, 0x0000}, {"Spyro", Game::SpyrosAdv, Element::Magic, Type::Skylander}},
     {{16, 0x1801}, {"Spyro (S2)", Game::Giants, Element::Magic, Type::Skylander}},
     {{16, 0x2805}, {"Spyro (Mega Ram)", Game::SwapForce, Element::Magic, Type::Skylander}},
@@ -94,7 +94,7 @@ const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders =
     {{19, 0x1801}, {"Trigger Happy (S2)", Game::Giants, Element::Tech, Type::Skylander}},
     {{19, 0x2805}, {"Trigger Happy (Big Bang)", Game::SwapForce, Element::Tech, Type::Skylander}},
     {{19, 0x2C02},
-     {"Trigger Happy (Springtime Big Bang)", Game::SwapForce, Element::Tech, Type::Skylander}},
+        {"Trigger Happy (Springtime Big Bang)", Game::SwapForce, Element::Tech, Type::Skylander}},
     {{19, 0x3810}, {"Trigger Happy (Eon's Elite)", Game::TrapTeam, Element::Tech, Type::Skylander}},
     {{20, 0x0000}, {"Drobot", Game::SpyrosAdv, Element::Tech, Type::Skylander}},
     {{20, 0x1206}, {"Drobot (LightCore)", Game::Giants, Element::Tech, Type::Skylander}},
@@ -106,7 +106,7 @@ const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders =
     {{23, 0x0000}, {"Wrecking Ball", Game::SpyrosAdv, Element::Magic, Type::Skylander}},
     {{23, 0x1801}, {"Wrecking Ball (S2)", Game::Giants, Element::Magic, Type::Skylander}},
     {{23, 0x1814},
-     {"Wrecking Ball (Metallic Purple)", Game::Giants, Element::Magic, Type::Skylander}},
+        {"Wrecking Ball (Metallic Purple)", Game::Giants, Element::Magic, Type::Skylander}},
     {{24, 0x0000}, {"Camo", Game::SpyrosAdv, Element::Life, Type::Skylander}},
     {{24, 0x2805}, {"Camo (Thorn Horn)", Game::SwapForce, Element::Life, Type::Skylander}},
     {{25, 0x0000}, {"Zook", Game::SpyrosAdv, Element::Life, Type::Skylander}},
@@ -131,11 +131,11 @@ const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders =
     {{30, 0x1804}, {"Chop Chop (Metallic Blue)", Game::Giants, Element::Undead, Type::Skylander}},
     {{30, 0x2805}, {"Chop Chop (Twin Blade)", Game::SwapForce, Element::Undead, Type::Skylander}},
     {{30, 0x2816},
-     {"Chop Chop (Green Twin Blade)", Game::SwapForce, Element::Undead, Type::Skylander}},
+        {"Chop Chop (Green Twin Blade)", Game::SwapForce, Element::Undead, Type::Skylander}},
     {{30, 0x3810}, {"Chop Chop (Eon's Elite)", Game::TrapTeam, Element::Undead, Type::Skylander}},
     {{31, 0x0000}, {"Ghost Roaster", Game::SpyrosAdv, Element::Undead, Type::Skylander}},
     {{31, 0x4810},
-     {"Ghost Roaster (Eon's Elite)", Game::Superchargers, Element::Undead, Type::Skylander}},
+        {"Ghost Roaster (Eon's Elite)", Game::Superchargers, Element::Undead, Type::Skylander}},
     {{32, 0x0000}, {"Cynder", Game::SpyrosAdv, Element::Undead, Type::Skylander}},
     {{32, 0x1801}, {"Cynder (S2)", Game::Giants, Element::Undead, Type::Skylander}},
     {{32, 0x1811}, {"Cynder (Glow in the Dark)", Game::Giants, Element::Undead, Type::Skylander}},
@@ -157,14 +157,12 @@ const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders =
     {{105, 0x1015}, {"Hot Dog (Bronze)", Game::Giants, Element::Fire, Type::Skylander}},
     {{105, 0x1402}, {"Hot Dog (Molten)", Game::Giants, Element::Fire, Type::Skylander}},
     {{105, 0x2805}, {"Hot Dog (Fire Bone)", Game::SwapForce, Element::Fire, Type::Skylander}},
-    {{105, 0x281A},
-     {"Hot Dog (Red Flame Frito-Lay Fire Bone)", Game::SwapForce, Element::Fire, Type::Skylander}},
-    {{105, 0x281B},
-     {"Hot Dog (Green Flame Frito-Lay Fire Bone)", Game::SwapForce, Element::Fire,
-      Type::Skylander}},
-    {{105, 0x281C},
-     {"Hot Dog (Purple Flame Frito-Lay Fire Bone)", Game::SwapForce, Element::Fire,
-      Type::Skylander}},
+    {{105, 0x281A}, {"Hot Dog (Red Flame Frito-Lay Fire Bone)", Game::SwapForce, Element::Fire,
+                        Type::Skylander}},
+    {{105, 0x281B}, {"Hot Dog (Green Flame Frito-Lay Fire Bone)", Game::SwapForce, Element::Fire,
+                        Type::Skylander}},
+    {{105, 0x281C}, {"Hot Dog (Purple Flame Frito-Lay Fire Bone)", Game::SwapForce, Element::Fire,
+                        Type::Skylander}},
     {{106, 0x1000}, {"Chill", Game::Giants, Element::Water, Type::Skylander}},
     {{106, 0x1206}, {"Chill (LightCore)", Game::Giants, Element::Water, Type::Skylander}},
     {{106, 0x1603}, {"Chill (Legendary LightCore)", Game::Giants, Element::Water, Type::Skylander}},
@@ -176,7 +174,7 @@ const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders =
     {{108, 0x2805}, {"Pop Fizz (Super Gulp)", Game::SwapForce, Element::Magic, Type::Skylander}},
     {{108, 0x3805}, {"Pop Fizz (Fizzy Frenzy)", Game::TrapTeam, Element::Magic, Type::Skylander}},
     {{108, 0x3C02},
-     {"Pop Fizz (Love Potion Fizzy Frenzy)", Game::TrapTeam, Element::Magic, Type::Skylander}},
+        {"Pop Fizz (Love Potion Fizzy Frenzy)", Game::TrapTeam, Element::Magic, Type::Skylander}},
     {{109, 0x1206}, {"Ninjini", Game::Giants, Element::Magic, Type::Giant}},
     {{109, 0x1602}, {"Ninjini (Scarlet)", Game::Giants, Element::Magic, Type::Giant}},
     {{110, 0x1206}, {"Bouncer", Game::Giants, Element::Tech, Type::Giant}},
@@ -185,7 +183,7 @@ const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders =
     {{111, 0x1013}, {"Sprocket (Sparkle)", Game::Giants, Element::Tech, Type::Skylander}},
     {{111, 0x2805}, {"Sprocket (Heavy Duty)", Game::SwapForce, Element::Tech, Type::Skylander}},
     {{111, 0x2819},
-     {"Sprocket (Heavy Metal Heavy Duty)", Game::SwapForce, Element::Tech, Type::Skylander}},
+        {"Sprocket (Heavy Metal Heavy Duty)", Game::SwapForce, Element::Tech, Type::Skylander}},
     {{112, 0x1206}, {"Tree Rex", Game::Giants, Element::Life, Type::Giant}},
     {{112, 0x1602}, {"Tree Rex (Gnarly)", Game::Giants, Element::Life, Type::Giant}},
     {{113, 0x1000}, {"Shroomboom", Game::Giants, Element::Life, Type::Skylander}},
@@ -197,7 +195,7 @@ const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders =
     {{114, 0x1215}, {"Eye-Brawl (Pumpkin)", Game::Giants, Element::Undead, Type::Giant}},
     {{115, 0x1000}, {"Fright Rider", Game::Giants, Element::Undead, Type::Skylander}},
     {{115, 0x1011},
-     {"Fright Rider (Glow in the Dark)", Game::Giants, Element::Undead, Type::Skylander}},
+        {"Fright Rider (Glow in the Dark)", Game::Giants, Element::Undead, Type::Skylander}},
     {{115, 0x1015}, {"Fright Rider (Halloween)", Game::Giants, Element::Undead, Type::Skylander}},
     {{200, 0x0000}, {"Anvil Rain", Game::SpyrosAdv, Element::Other, Type::Item}},
     {{201, 0x0000}, {"Hidden Treasure", Game::SpyrosAdv, Element::Other, Type::Item}},
@@ -370,54 +368,54 @@ const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders =
     {{1000, 0x2000}, {"Boom Jet (Bottom)", Game::SwapForce, Element::Air, Type::Swapper}},
     {{1001, 0x2000}, {"Free Ranger (Bottom)", Game::SwapForce, Element::Air, Type::Swapper}},
     {{1001, 0x2403},
-     {"Free Ranger (Legendary) (Bottom)", Game::SwapForce, Element::Air, Type::Swapper}},
+        {"Free Ranger (Legendary) (Bottom)", Game::SwapForce, Element::Air, Type::Swapper}},
     {{1002, 0x2000}, {"Rubble Rouser (Bottom)", Game::SwapForce, Element::Earth, Type::Swapper}},
     {{1003, 0x2000}, {"Doom Stone (Bottom)", Game::SwapForce, Element::Earth, Type::Swapper}},
     {{1003, 0x2016},
-     {"Doom Stone (Gold & Bronze) (Bottom)", Game::SwapForce, Element::Earth, Type::Swapper}},
+        {"Doom Stone (Gold & Bronze) (Bottom)", Game::SwapForce, Element::Earth, Type::Swapper}},
     {{1004, 0x2000}, {"Blast Zone (Bottom)", Game::SwapForce, Element::Fire, Type::Swapper}},
     {{1004, 0x2402}, {"Blast Zone (Dark) (Bottom)", Game::SwapForce, Element::Fire, Type::Swapper}},
     {{1005, 0x2000}, {"Fire Kraken (Bottom)", Game::SwapForce, Element::Fire, Type::Swapper}},
     {{1005, 0x2004},
-     {"Fire Kraken (Gold) (Bottom)", Game::SwapForce, Element::Fire, Type::Swapper}},
+        {"Fire Kraken (Gold) (Bottom)", Game::SwapForce, Element::Fire, Type::Swapper}},
     {{1005, 0x2402},
-     {"Fire Kraken (Jade) (Bottom)", Game::SwapForce, Element::Fire, Type::Swapper}},
+        {"Fire Kraken (Jade) (Bottom)", Game::SwapForce, Element::Fire, Type::Swapper}},
     {{1006, 0x2000}, {"Stink Bomb (Bottom)", Game::SwapForce, Element::Life, Type::Swapper}},
     {{1006, 0x2016},
-     {"Stink Bomb (Silver & Gold) (Bottom)", Game::SwapForce, Element::Life, Type::Swapper}},
+        {"Stink Bomb (Silver & Gold) (Bottom)", Game::SwapForce, Element::Life, Type::Swapper}},
     {{1007, 0x2000}, {"Grilla Drilla (Bottom)", Game::SwapForce, Element::Life, Type::Swapper}},
     {{1008, 0x2000}, {"Hoot Loop (Bottom)", Game::SwapForce, Element::Magic, Type::Swapper}},
     {{1008, 0x2402},
-     {"Hoot Loop (Enchanted) (Bottom)", Game::SwapForce, Element::Magic, Type::Swapper}},
+        {"Hoot Loop (Enchanted) (Bottom)", Game::SwapForce, Element::Magic, Type::Swapper}},
     {{1009, 0x2000}, {"Trap Shadow (Bottom)", Game::SwapForce, Element::Magic, Type::Swapper}},
     {{1009, 0x2016},
-     {"Trap Shadow (Bronze & Silver) (Bottom)", Game::SwapForce, Element::Magic, Type::Swapper}},
+        {"Trap Shadow (Bronze & Silver) (Bottom)", Game::SwapForce, Element::Magic, Type::Swapper}},
     {{1010, 0x2000}, {"Magna Charge (Bottom)", Game::SwapForce, Element::Tech, Type::Swapper}},
     {{1010, 0x2402},
-     {"Magna Charge (Nitro) (Bottom)", Game::SwapForce, Element::Tech, Type::Swapper}},
+        {"Magna Charge (Nitro) (Bottom)", Game::SwapForce, Element::Tech, Type::Swapper}},
     {{1011, 0x2000}, {"Spy Rise (Bottom)", Game::SwapForce, Element::Tech, Type::Swapper}},
     {{1012, 0x2000}, {"Night Shift (Bottom)", Game::SwapForce, Element::Undead, Type::Swapper}},
     {{1012, 0x2403},
-     {"Night Shift (Legendary) (Bottom)", Game::SwapForce, Element::Undead, Type::Swapper}},
+        {"Night Shift (Legendary) (Bottom)", Game::SwapForce, Element::Undead, Type::Swapper}},
     {{1013, 0x2000}, {"Rattle Shake (Bottom)", Game::SwapForce, Element::Undead, Type::Swapper}},
     {{1013, 0x2402},
-     {"Rattle Shake (Quickdraw) (Bottom)", Game::SwapForce, Element::Undead, Type::Swapper}},
+        {"Rattle Shake (Quickdraw) (Bottom)", Game::SwapForce, Element::Undead, Type::Swapper}},
     {{1014, 0x2000}, {"Freeze Blade (Bottom)", Game::SwapForce, Element::Water, Type::Swapper}},
     {{1014, 0x2402},
-     {"Freeze Blade (Nitro) (Bottom)", Game::SwapForce, Element::Water, Type::Swapper}},
+        {"Freeze Blade (Nitro) (Bottom)", Game::SwapForce, Element::Water, Type::Swapper}},
     {{1015, 0x2000}, {"Wash Buckler (Bottom)", Game::SwapForce, Element::Water, Type::Swapper}},
     {{1015, 0x2018},
-     {"Wash Buckler (Gold) (Bottom)", Game::SwapForce, Element::Water, Type::Swapper}},
+        {"Wash Buckler (Gold) (Bottom)", Game::SwapForce, Element::Water, Type::Swapper}},
     {{1015, 0x2402},
-     {"Wash Buckler (Dark) (Bottom)", Game::SwapForce, Element::Water, Type::Swapper}},
+        {"Wash Buckler (Dark) (Bottom)", Game::SwapForce, Element::Water, Type::Swapper}},
     {{2000, 0x2000}, {"Boom Jet (Top)", Game::SwapForce, Element::Air, Type::Swapper}},
     {{2001, 0x2000}, {"Free Ranger (Top)", Game::SwapForce, Element::Air, Type::Swapper}},
     {{2001, 0x2403},
-     {"Free Ranger (Legendary) (Top)", Game::SwapForce, Element::Air, Type::Swapper}},
+        {"Free Ranger (Legendary) (Top)", Game::SwapForce, Element::Air, Type::Swapper}},
     {{2002, 0x2000}, {"Rubble Rouser (Top)", Game::SwapForce, Element::Earth, Type::Swapper}},
     {{2003, 0x2000}, {"Doom Stone (Top)", Game::SwapForce, Element::Earth, Type::Swapper}},
     {{2003, 0x2016},
-     {"Doom Stone (Gold & Bronze) (Top)", Game::SwapForce, Element::Earth, Type::Swapper}},
+        {"Doom Stone (Gold & Bronze) (Top)", Game::SwapForce, Element::Earth, Type::Swapper}},
     {{2004, 0x2000}, {"Blast Zone (Top)", Game::SwapForce, Element::Fire, Type::Swapper}},
     {{2004, 0x2402}, {"Blast Zone (Dark) (Top)", Game::SwapForce, Element::Fire, Type::Swapper}},
     {{2005, 0x2000}, {"Fire Kraken (Top)", Game::SwapForce, Element::Fire, Type::Swapper}},
@@ -425,26 +423,26 @@ const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders =
     {{2005, 0x2402}, {"Fire Kraken (Jade) (Top)", Game::SwapForce, Element::Fire, Type::Swapper}},
     {{2006, 0x2000}, {"Stink Bomb (Top)", Game::SwapForce, Element::Life, Type::Swapper}},
     {{2006, 0x2016},
-     {"Stink Bomb (Silver & Gold) (Top)", Game::SwapForce, Element::Life, Type::Swapper}},
+        {"Stink Bomb (Silver & Gold) (Top)", Game::SwapForce, Element::Life, Type::Swapper}},
     {{2007, 0x2000}, {"Grilla Drilla (Top)", Game::SwapForce, Element::Life, Type::Swapper}},
     {{2008, 0x2000}, {"Hoot Loop (Top)", Game::SwapForce, Element::Magic, Type::Swapper}},
     {{2008, 0x2402},
-     {"Hoot Loop (Enchanted) (Top)", Game::SwapForce, Element::Magic, Type::Swapper}},
+        {"Hoot Loop (Enchanted) (Top)", Game::SwapForce, Element::Magic, Type::Swapper}},
     {{2009, 0x2000}, {"Trap Shadow (Top)", Game::SwapForce, Element::Magic, Type::Swapper}},
     {{2009, 0x2016},
-     {"Trap Shadow (Bronze & Silver) (Top)", Game::SwapForce, Element::Magic, Type::Swapper}},
+        {"Trap Shadow (Bronze & Silver) (Top)", Game::SwapForce, Element::Magic, Type::Swapper}},
     {{2010, 0x2000}, {"Magna Charge (Top)", Game::SwapForce, Element::Tech, Type::Swapper}},
     {{2010, 0x2402}, {"Magna Charge (Nitro) (Top)", Game::SwapForce, Element::Tech, Type::Swapper}},
     {{2011, 0x2000}, {"Spy Rise (Top)", Game::SwapForce, Element::Tech, Type::Swapper}},
     {{2012, 0x2000}, {"Night Shift (Top)", Game::SwapForce, Element::Undead, Type::Swapper}},
     {{2012, 0x2403},
-     {"Night Shift (Legendary) (Top)", Game::SwapForce, Element::Undead, Type::Swapper}},
+        {"Night Shift (Legendary) (Top)", Game::SwapForce, Element::Undead, Type::Swapper}},
     {{2013, 0x2000}, {"Rattle Shake (Top)", Game::SwapForce, Element::Undead, Type::Swapper}},
     {{2013, 0x2402},
-     {"Rattle Shake (Quickdraw) (Top)", Game::SwapForce, Element::Undead, Type::Swapper}},
+        {"Rattle Shake (Quickdraw) (Top)", Game::SwapForce, Element::Undead, Type::Swapper}},
     {{2014, 0x2000}, {"Freeze Blade (Top)", Game::SwapForce, Element::Water, Type::Swapper}},
     {{2014, 0x2402},
-     {"Freeze Blade (Nitro) (Top)", Game::SwapForce, Element::Water, Type::Swapper}},
+        {"Freeze Blade (Nitro) (Top)", Game::SwapForce, Element::Water, Type::Swapper}},
     {{2015, 0x2000}, {"Wash Buckler (Top)", Game::SwapForce, Element::Water, Type::Swapper}},
     {{2015, 0x2018}, {"Wash Buckler (Gold) (Top)", Game::SwapForce, Element::Water, Type::Swapper}},
     {{2015, 0x2402}, {"Wash Buckler (Dark) (Top)", Game::SwapForce, Element::Water, Type::Swapper}},
@@ -469,19 +467,19 @@ const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders =
     {{3009, 0x2000}, {"Star Strike", Game::SwapForce, Element::Magic, Type::Skylander}},
     {{3009, 0x2206}, {"Star Strike (LightCore)", Game::SwapForce, Element::Magic, Type::Skylander}},
     {{3009, 0x2602},
-     {"Star Strike (Enchanted LightCore)", Game::SwapForce, Element::Magic, Type::Skylander}},
+        {"Star Strike (Enchanted LightCore)", Game::SwapForce, Element::Magic, Type::Skylander}},
     {{3010, 0x2000}, {"Countdown", Game::SwapForce, Element::Tech, Type::Skylander}},
     {{3010, 0x2206}, {"Countdown (LightCore)", Game::SwapForce, Element::Tech, Type::Skylander}},
     {{3010, 0x2402}, {"Countdown (Kickoff)", Game::SwapForce, Element::Tech, Type::Skylander}},
     {{3011, 0x2000}, {"Wind Up", Game::SwapForce, Element::Tech, Type::Skylander}},
     {{3011, 0x2404},
-     {"Wind Up (Gear Head Vicarious Visions)", Game::SwapForce, Element::Tech, Type::Skylander}},
+        {"Wind Up (Gear Head Vicarious Visions)", Game::SwapForce, Element::Tech, Type::Skylander}},
     {{3012, 0x2000}, {"Roller Brawl", Game::SwapForce, Element::Undead, Type::Skylander}},
     {{3013, 0x2000}, {"Grim Creeper", Game::SwapForce, Element::Undead, Type::Skylander}},
     {{3013, 0x2206},
-     {"Grim Creeper (LightCore)", Game::SwapForce, Element::Undead, Type::Skylander}},
+        {"Grim Creeper (LightCore)", Game::SwapForce, Element::Undead, Type::Skylander}},
     {{3013, 0x2603},
-     {"Grim Creeper (Legendary LightCore)", Game::SwapForce, Element::Undead, Type::Skylander}},
+        {"Grim Creeper (Legendary LightCore)", Game::SwapForce, Element::Undead, Type::Skylander}},
     {{3014, 0x2000}, {"Rip Tide", Game::SwapForce, Element::Water, Type::Skylander}},
     {{3014, 0x2016}, {"Rip Tide (Green)", Game::SwapForce, Element::Water, Type::Skylander}},
     {{3015, 0x2000}, {"Punk Shock", Game::SwapForce, Element::Water, Type::Skylander}},
@@ -498,7 +496,7 @@ const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders =
     {{3223, 0x401E}, {"Burn-Cycle (Patina)", Game::Superchargers, Element::Fire, Type::Vehicle}},
     {{3224, 0x4000}, {"Hot Streak", Game::Superchargers, Element::Fire, Type::Vehicle}},
     {{3224, 0x4004},
-     {"Hot Streak (Event Exclusive)", Game::Superchargers, Element::Fire, Type::Vehicle}},
+        {"Hot Streak (Event Exclusive)", Game::Superchargers, Element::Fire, Type::Vehicle}},
     {{3224, 0x411F}, {"Hot Streak (Mobile)", Game::Superchargers, Element::Fire, Type::Vehicle}},
     {{3224, 0x4402}, {"Hot Streak (Dark)", Game::Superchargers, Element::Fire, Type::Vehicle}},
     {{3224, 0x441E}, {"Hot Streak (Golden)", Game::Superchargers, Element::Fire, Type::Vehicle}},
@@ -508,30 +506,30 @@ const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders =
     {{3227, 0x4000}, {"Crypt Crusher", Game::Superchargers, Element::Undead, Type::Vehicle}},
     {{3228, 0x4000}, {"Stealth Stinger", Game::Superchargers, Element::Life, Type::Vehicle}},
     {{3228, 0x4402},
-     {"Stealth Stinger (Nitro)", Game::Superchargers, Element::Life, Type::Vehicle}},
+        {"Stealth Stinger (Nitro)", Game::Superchargers, Element::Life, Type::Vehicle}},
     {{3228, 0x450F},
-     {"Stealth Stinger (Instant)", Game::Superchargers, Element::Life, Type::Vehicle}},
+        {"Stealth Stinger (Instant)", Game::Superchargers, Element::Life, Type::Vehicle}},
     {{3231, 0x4000}, {"Dive Bomber", Game::Superchargers, Element::Water, Type::Vehicle}},
     {{3231, 0x4402},
-     {"Dive Bomber (Spring Ahead)", Game::Superchargers, Element::Water, Type::Vehicle}},
+        {"Dive Bomber (Spring Ahead)", Game::Superchargers, Element::Water, Type::Vehicle}},
     {{3231, 0x450F}, {"Dive Bomber (Instant)", Game::Superchargers, Element::Water, Type::Vehicle}},
     {{3232, 0x4000}, {"Sky Slicer", Game::Superchargers, Element::Air, Type::Vehicle}},
     {{3233, 0x4000}, {"Clown Cruiser", Game::Superchargers, Element::Air, Type::Vehicle}},
     {{3233, 0x4402}, {"Clown Cruiser (Dark)", Game::Superchargers, Element::Air, Type::Vehicle}},
     {{3234, 0x4000}, {"Gold Rusher", Game::Superchargers, Element::Tech, Type::Vehicle}},
     {{3234, 0x4402},
-     {"Gold Rusher (Power Blue)", Game::Superchargers, Element::Tech, Type::Vehicle}},
+        {"Gold Rusher (Power Blue)", Game::Superchargers, Element::Tech, Type::Vehicle}},
     {{3235, 0x4000}, {"Shield Striker", Game::Superchargers, Element::Tech, Type::Vehicle}},
     {{3235, 0x401E},
-     {"Shield Striker (Patina)", Game::Superchargers, Element::Tech, Type::Vehicle}},
+        {"Shield Striker (Patina)", Game::Superchargers, Element::Tech, Type::Vehicle}},
     {{3236, 0x4000}, {"Sun Runner", Game::Superchargers, Element::Light, Type::Vehicle}},
     {{3236, 0x4403},
-     {"Sun Runner (Legendary)", Game::Superchargers, Element::Light, Type::Vehicle}},
+        {"Sun Runner (Legendary)", Game::Superchargers, Element::Light, Type::Vehicle}},
     {{3237, 0x4000}, {"Sea Shadow", Game::Superchargers, Element::Dark, Type::Vehicle}},
     {{3237, 0x4402}, {"Sea Shadow (Dark)", Game::Superchargers, Element::Dark, Type::Vehicle}},
     {{3238, 0x4000}, {"Splatter Splasher", Game::Superchargers, Element::Magic, Type::Vehicle}},
     {{3238, 0x4402},
-     {"Splatter Splasher (Power Blue)", Game::Superchargers, Element::Magic, Type::Vehicle}},
+        {"Splatter Splasher (Power Blue)", Game::Superchargers, Element::Magic, Type::Vehicle}},
     {{3239, 0x4000}, {"Soda Skimmer", Game::Superchargers, Element::Magic, Type::Vehicle}},
     {{3239, 0x4402}, {"Soda Skimmer (Nitro)", Game::Superchargers, Element::Magic, Type::Vehicle}},
     {{3240, 0x4000}, {"Barrel Blaster", Game::Superchargers, Element::Tech, Type::Vehicle}},
@@ -549,63 +547,62 @@ const std::map<const std::pair<const u16, const u16>, SkyData> list_skylanders =
     {{3402, 0x4502}, {"Splat (Power Blue)", Game::Superchargers, Element::Magic, Type::Skylander}},
     {{3406, 0x4100}, {"Stormblade", Game::Superchargers, Element::Air, Type::Skylander}},
     {{3406, 0x410E},
-     {"Stormblade (Snow-Brite)", Game::Superchargers, Element::Air, Type::Skylander}},
+        {"Stormblade (Snow-Brite)", Game::Superchargers, Element::Air, Type::Skylander}},
     {{3411, 0x4100}, {"Smash Hit", Game::Superchargers, Element::Earth, Type::Skylander}},
     {{3411, 0x4502},
-     {"Smash Hit (Steel Plated)", Game::Superchargers, Element::Earth, Type::Skylander}},
+        {"Smash Hit (Steel Plated)", Game::Superchargers, Element::Earth, Type::Skylander}},
     {{3412, 0x4100}, {"Spitfire", Game::Superchargers, Element::Fire, Type::Skylander}},
     {{3412, 0x4502}, {"Spitfire (Dark)", Game::Superchargers, Element::Fire, Type::Skylander}},
     {{3412, 0x450F}, {"Spitfire (Instant)", Game::Superchargers, Element::Fire, Type::Skylander}},
     {{3413, 0x4100}, {"Jet-Vac (Hurricane)", Game::Superchargers, Element::Air, Type::Skylander}},
     {{3413, 0x4503},
-     {"Jet-Vac (Legendary Hurricane)", Game::Superchargers, Element::Air, Type::Skylander}},
+        {"Jet-Vac (Legendary Hurricane)", Game::Superchargers, Element::Air, Type::Skylander}},
     {{3414, 0x4100},
-     {"Trigger Happy (Double Dare)", Game::Superchargers, Element::Tech, Type::Skylander}},
-    {{3414, 0x4502},
-     {"Trigger Happy (Power Blue Double Dare)", Game::Superchargers, Element::Tech,
-      Type::Skylander}},
+        {"Trigger Happy (Double Dare)", Game::Superchargers, Element::Tech, Type::Skylander}},
+    {{3414, 0x4502}, {"Trigger Happy (Power Blue Double Dare)", Game::Superchargers, Element::Tech,
+                         Type::Skylander}},
     {{3415, 0x4100},
-     {"Stealth Elf (Super Shot)", Game::Superchargers, Element::Life, Type::Skylander}},
+        {"Stealth Elf (Super Shot)", Game::Superchargers, Element::Life, Type::Skylander}},
     {{3415, 0x4502},
-     {"Stealth Elf (Dark Super Shot)", Game::Superchargers, Element::Life, Type::Skylander}},
+        {"Stealth Elf (Dark Super Shot)", Game::Superchargers, Element::Life, Type::Skylander}},
     {{3415, 0x450F},
-     {"Stealth Elf (Instant Super Shot)", Game::Superchargers, Element::Life, Type::Skylander}},
+        {"Stealth Elf (Instant Super Shot)", Game::Superchargers, Element::Life, Type::Skylander}},
     {{3416, 0x4100},
-     {"Terrafin (Shark Shooter)", Game::Superchargers, Element::Earth, Type::Skylander}},
+        {"Terrafin (Shark Shooter)", Game::Superchargers, Element::Earth, Type::Skylander}},
     {{3417, 0x4100},
-     {"Roller Brawl (Bone Bash)", Game::Superchargers, Element::Undead, Type::Skylander}},
+        {"Roller Brawl (Bone Bash)", Game::Superchargers, Element::Undead, Type::Skylander}},
     {{3417, 0x411E},
-     {"Roller Brawl (Bronze Bone Bash)", Game::Superchargers, Element::Undead, Type::Skylander}},
-    {{3417, 0x4503},
-     {"Roller Brawl (Legendary Bone Bash)", Game::Superchargers, Element::Undead, Type::Skylander}},
+        {"Roller Brawl (Bronze Bone Bash)", Game::Superchargers, Element::Undead, Type::Skylander}},
+    {{3417, 0x4503}, {"Roller Brawl (Legendary Bone Bash)", Game::Superchargers, Element::Undead,
+                         Type::Skylander}},
     {{3420, 0x4100},
-     {"Pop Fizz (Big Bubble)", Game::Superchargers, Element::Magic, Type::Skylander}},
-    {{3420, 0x450E},
-     {"Pop Fizz (Birthday Bash Big Bubble)", Game::Superchargers, Element::Magic, Type::Skylander}},
+        {"Pop Fizz (Big Bubble)", Game::Superchargers, Element::Magic, Type::Skylander}},
+    {{3420, 0x450E}, {"Pop Fizz (Birthday Bash Big Bubble)", Game::Superchargers, Element::Magic,
+                         Type::Skylander}},
     {{3421, 0x4100}, {"Eruptor (Lava Lance)", Game::Superchargers, Element::Fire, Type::Skylander}},
     {{3421, 0x411E},
-     {"Eruptor (Patina Lava Lance)", Game::Superchargers, Element::Fire, Type::Skylander}},
+        {"Eruptor (Patina Lava Lance)", Game::Superchargers, Element::Fire, Type::Skylander}},
     {{3422, 0x4100},
-     {"Gill Grunt (Deep Dive)", Game::Superchargers, Element::Water, Type::Skylander}},
+        {"Gill Grunt (Deep Dive)", Game::Superchargers, Element::Water, Type::Skylander}},
     {{3423, 0x4100},
-     {"Donkey Kong (Turbo Charge)", Game::Superchargers, Element::Life, Type::Skylander}},
+        {"Donkey Kong (Turbo Charge)", Game::Superchargers, Element::Life, Type::Skylander}},
     {{3423, 0x4502},
-     {"Donkey Kong (Dark Turbo Charge)", Game::Superchargers, Element::Life, Type::Skylander}},
+        {"Donkey Kong (Dark Turbo Charge)", Game::Superchargers, Element::Life, Type::Skylander}},
     {{3424, 0x4100}, {"Bowser (Hammer Slam)", Game::Superchargers, Element::Fire, Type::Skylander}},
     {{3424, 0x4502},
-     {"Bowser (Dark Hammer Slam)", Game::Superchargers, Element::Fire, Type::Skylander}},
+        {"Bowser (Dark Hammer Slam)", Game::Superchargers, Element::Fire, Type::Skylander}},
     {{3425, 0x4100}, {"Dive-Clops", Game::Superchargers, Element::Water, Type::Skylander}},
     {{3425, 0x450E},
-     {"Dive-Clops (Missile-Tow)", Game::Superchargers, Element::Water, Type::Skylander}},
+        {"Dive-Clops (Missile-Tow)", Game::Superchargers, Element::Water, Type::Skylander}},
     {{3425, 0x450F},
-     {"Dive-Clops (Instant)", Game::Superchargers, Element::Water, Type::Skylander}},
+        {"Dive-Clops (Instant)", Game::Superchargers, Element::Water, Type::Skylander}},
     {{3426, 0x4100}, {"Astroblast", Game::Superchargers, Element::Tech, Type::Skylander}},
     {{3426, 0x4503},
-     {"Astroblast (Legendary)", Game::Superchargers, Element::Light, Type::Skylander}},
+        {"Astroblast (Legendary)", Game::Superchargers, Element::Light, Type::Skylander}},
     {{3427, 0x4100}, {"Nightfall", Game::Superchargers, Element::Dark, Type::Skylander}},
     {{3428, 0x4100}, {"Thrillipede", Game::Superchargers, Element::Life, Type::Skylander}},
     {{3428, 0x450D},
-     {"Thrillipede (Eggcited)", Game::Superchargers, Element::Life, Type::Skylander}},
+        {"Thrillipede (Eggcited)", Game::Superchargers, Element::Life, Type::Skylander}},
     {{3500, 0x4000}, {"Sky Trophy", Game::Superchargers, Element::Air, Type::Trophy}},
     {{3501, 0x4000}, {"Land Trophy", Game::Superchargers, Element::Earth, Type::Trophy}},
     {{3502, 0x4000}, {"Sea Trophy", Game::Superchargers, Element::Water, Type::Trophy}},
@@ -618,8 +615,8 @@ SkylanderUSB::SkylanderUSB()
   m_pid = 0x0150;
   m_id = (static_cast<u64>(m_vid) << 32 | static_cast<u64>(m_pid) << 16 | static_cast<u64>(9) << 8 |
           static_cast<u64>(1));
-  m_device_descriptor = DeviceDescriptor{0x12,   0x1,   0x200, 0x0, 0x0, 0x0, 0x40,
-                                         0x1430, 0x150, 0x100, 0x1, 0x2, 0x0, 0x1};
+  m_device_descriptor = DeviceDescriptor{
+      0x12, 0x1, 0x200, 0x0, 0x0, 0x0, 0x40, 0x1430, 0x150, 0x100, 0x1, 0x2, 0x0, 0x1};
   m_config_descriptor.emplace_back(ConfigDescriptor{0x9, 0x2, 0x29, 0x1, 0x1, 0x0, 0x80, 0xFA});
   m_interface_descriptor.emplace_back(
       InterfaceDescriptor{0x9, 0x4, 0x0, 0x0, 0x2, 0x3, 0x0, 0x0, 0x0});
@@ -674,7 +671,7 @@ bool SkylanderUSB::AttachAndChangeInterface(const u8 interface)
 int SkylanderUSB::CancelTransfer(const u8 endpoint)
 {
   INFO_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Cancelling transfers (endpoint {:#x})", m_vid, m_pid,
-               m_active_interface, endpoint);
+      m_active_interface, endpoint);
 
   return IPC_SUCCESS;
 }
@@ -682,7 +679,7 @@ int SkylanderUSB::CancelTransfer(const u8 endpoint)
 int SkylanderUSB::ChangeInterface(const u8 interface)
 {
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Changing interface to {}", m_vid, m_pid,
-                m_active_interface, interface);
+      m_active_interface, interface);
   m_active_interface = interface;
   return 0;
 }
@@ -706,10 +703,10 @@ int SkylanderUSB::SetAltSetting(u8 alt_setting)
 int SkylanderUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
 {
   DEBUG_LOG_FMT(IOS_USB,
-                "[{:04x}:{:04x} {}] Control: bRequestType={:02x} bRequest={} wValue={:04x}"
-                " wIndex={:04x} wLength={:04x}",
-                m_vid, m_pid, m_active_interface, cmd->request_type, cmd->request, cmd->value,
-                cmd->index, cmd->length);
+      "[{:04x}:{:04x} {}] Control: bRequestType={:02x} bRequest={} wValue={:04x}"
+      " wIndex={:04x} wLength={:04x}",
+      m_vid, m_pid, m_active_interface, cmd->request_type, cmd->request, cmd->value, cmd->index,
+      cmd->length);
 
   // If not HID Host to Device type, return invalid
   if (cmd->request_type != 0x21)
@@ -776,8 +773,8 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
       {
         control_response = {buf[0], buf[1]};
         interrupt_response = {0x41, buf[1], 0xFF, 0x77, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                              0x00, 0x00,   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                              0x00, 0x00,   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
         m_queries.push(interrupt_response);
         expected_count = 10;
         system.GetSkylanderPortal().Activate();
@@ -910,8 +907,8 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
       {
         control_response = {0x52, 0x00};
         interrupt_response = {0x52, 0x02, 0x1b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
         m_queries.push(interrupt_response);
         expected_count = 10;
       }
@@ -992,9 +989,9 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
         const u8 block = buf[2];
         system.GetSkylanderPortal().WriteBlock(sky_num, block, &buf[3], interrupt_response.data());
         m_queries.push(interrupt_response);
-        control_response = {buf[0],  buf[1],  buf[2],  buf[3],  buf[4],  buf[5],  buf[6],
-                            buf[7],  buf[8],  buf[9],  buf[10], buf[11], buf[12], buf[13],
-                            buf[14], buf[15], buf[16], buf[17], buf[18]};
+        control_response = {buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7], buf[8],
+            buf[9], buf[10], buf[11], buf[12], buf[13], buf[14], buf[15], buf[16], buf[17],
+            buf[18]};
         expected_count = 27;
       }
       break;
@@ -1015,7 +1012,7 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
 int SkylanderUSB::SubmitTransfer(std::unique_ptr<BulkMessage> cmd)
 {
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Bulk: length={} endpoint={}", m_vid, m_pid,
-                m_active_interface, cmd->length, cmd->endpoint);
+      m_active_interface, cmd->length, cmd->endpoint);
   return 0;
 }
 
@@ -1026,7 +1023,7 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<BulkMessage> cmd)
 int SkylanderUSB::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
 {
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Interrupt: length={} endpoint={}", m_vid, m_pid,
-                m_active_interface, cmd->length, cmd->endpoint);
+      m_active_interface, cmd->length, cmd->endpoint);
 
   auto& system = cmd->GetEmulationKernel().GetSystem();
   auto& memory = system.GetMemory();
@@ -1080,13 +1077,12 @@ int SkylanderUSB::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
 int SkylanderUSB::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
 {
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Isochronous: length={} endpoint={} num_packets={}",
-                m_vid, m_pid, m_active_interface, cmd->length, cmd->endpoint, cmd->num_packets);
+      m_vid, m_pid, m_active_interface, cmd->length, cmd->endpoint, cmd->num_packets);
   return 0;
 }
 
 void SkylanderUSB::ScheduleTransfer(std::unique_ptr<TransferCommand> command,
-                                    const std::array<u8, 64>& data, s32 expected_count,
-                                    u64 expected_time_us)
+    const std::array<u8, 64>& data, s32 expected_count, u64 expected_time_us)
 {
   command->FillBuffer(data.data(), expected_count);
   command->ScheduleTransferCompletion(expected_count, expected_time_us);
@@ -1222,12 +1218,9 @@ std::array<u8, 64> SkylanderPortal::GetStatus()
     status |= s.status;
   }
 
-  std::array<u8, 64> interrupt_response = {0x53,   0x00, 0x00, 0x00, 0x00, m_interrupt_counter++,
-                                           active, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                           0x00,   0x00, 0x00, 0x00, 0x00, 0x00,
-                                           0x00,   0x00, 0x00, 0x00, 0x00, 0x00,
-                                           0x00,   0x00, 0x00, 0x00, 0x00, 0x00,
-                                           0x00,   0x00};
+  std::array<u8, 64> interrupt_response = {0x53, 0x00, 0x00, 0x00, 0x00, m_interrupt_counter++,
+      active, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   memcpy(&interrupt_response[1], &status, sizeof(status));
   return interrupt_response;
 }

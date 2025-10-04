@@ -79,8 +79,8 @@ constexpr Common::EnumMap<PrimitiveType, Primitive::GX_DRAW_POINTS> primitive_fr
 // Just in case any game decides to take this into account, we do both these
 // tests with a large amount of slop.
 
-static float CalculateProjectionViewportRatio(const Projection::Raw& projection,
-                                              const Viewport& viewport)
+static float CalculateProjectionViewportRatio(
+    const Projection::Raw& projection, const Viewport& viewport)
 {
   const float projection_ar = projection[2] / projection[0];
   const float viewport_ar = viewport.wd / viewport.ht;
@@ -88,8 +88,8 @@ static float CalculateProjectionViewportRatio(const Projection::Raw& projection,
   return std::abs(projection_ar / viewport_ar);
 }
 
-static bool IsAnamorphicProjection(const Projection::Raw& projection, const Viewport& viewport,
-                                   const VideoConfig& config)
+static bool IsAnamorphicProjection(
+    const Projection::Raw& projection, const Viewport& viewport, const VideoConfig& config)
 {
   // If ratio between our projection and viewport aspect ratios is similar to 16:9 / 4:3
   // we have an anamorphic projection. This value can be overridden by a GameINI.
@@ -101,8 +101,8 @@ static bool IsAnamorphicProjection(const Projection::Raw& projection, const View
          config.widescreen_heuristic_aspect_ratio_slop;
 }
 
-static bool IsNormalProjection(const Projection::Raw& projection, const Viewport& viewport,
-                               const VideoConfig& config)
+static bool IsNormalProjection(
+    const Projection::Raw& projection, const Viewport& viewport, const VideoConfig& config)
 {
   return std::abs(CalculateProjectionViewportRatio(projection, viewport) -
                   config.widescreen_heuristic_standard_ratio) <
@@ -110,7 +110,8 @@ static bool IsNormalProjection(const Projection::Raw& projection, const Viewport
 }
 
 VertexManagerBase::VertexManagerBase()
-    : m_cpu_vertex_buffer(MAXVBUFFERSIZE), m_cpu_index_buffer(MAXIBUFFERSIZE)
+    : m_cpu_vertex_buffer(MAXVBUFFERSIZE)
+    , m_cpu_index_buffer(MAXIBUFFERSIZE)
 {
 }
 
@@ -120,9 +121,8 @@ bool VertexManagerBase::Initialize()
 {
   m_frame_end_event =
       AfterFrameEvent::Register([this](Core::System&) { OnEndFrame(); }, "VertexManagerBase");
-  m_after_present_event = AfterPresentEvent::Register(
-      [this](const PresentInfo& pi) { m_ticks_elapsed = pi.emulated_timestamp; },
-      "VertexManagerBase");
+  m_after_present_event = AfterPresentEvent::Register([this](const PresentInfo& pi)
+      { m_ticks_elapsed = pi.emulated_timestamp; }, "VertexManagerBase");
   m_index_generator.Init();
   m_custom_shader_cache = std::make_unique<CustomShaderCache>();
   m_cpu_cull.Init();
@@ -139,15 +139,14 @@ void VertexManagerBase::AddIndices(OpcodeDecoder::Primitive primitive, u32 num_v
   m_index_generator.AddIndices(primitive, num_vertices);
 }
 
-bool VertexManagerBase::AreAllVerticesCulled(VertexLoaderBase* loader,
-                                             OpcodeDecoder::Primitive primitive, const u8* src,
-                                             u32 count)
+bool VertexManagerBase::AreAllVerticesCulled(
+    VertexLoaderBase* loader, OpcodeDecoder::Primitive primitive, const u8* src, u32 count)
 {
   return m_cpu_cull.AreAllVerticesCulled(loader, primitive, src, count);
 }
 
-DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive primitive,
-                                                       u32 count, u32 stride, bool cullall)
+DataReader VertexManagerBase::PrepareForAdditionalData(
+    OpcodeDecoder::Primitive primitive, u32 count, u32 stride, bool cullall)
 {
   // Flush all EFB pokes. Since the buffer is shared, we can't draw pokes+primitives concurrently.
   g_framebuffer_manager->FlushEFBPokes();
@@ -173,7 +172,7 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
 
   // Check for size in buffer, if the buffer gets full, call Flush()
   if (!m_is_flushed && (count > remaining_index_generator_indices || count > remaining_indices ||
-                        needed_vertex_bytes > GetRemainingSize())) [[unlikely]]
+                           needed_vertex_bytes > GetRemainingSize())) [[unlikely]]
   {
     Flush();
   }
@@ -205,17 +204,17 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
   // ton of lines in one draw command, in which case we will either need to add support for
   // splitting a single draw command into multiple draws or using bigger indices.
   ASSERT_MSG(VIDEO, count <= remaining_index_generator_indices,
-             "VertexManager: Too few remaining index values ({} > {}). "
-             "32-bit indices or primitive breaking needed.",
-             count, remaining_index_generator_indices);
+      "VertexManager: Too few remaining index values ({} > {}). "
+      "32-bit indices or primitive breaking needed.",
+      count, remaining_index_generator_indices);
   ASSERT_MSG(VIDEO, count <= remaining_indices,
-             "VertexManager: Buffer not large enough for all indices! ({} > {}) "
-             "Increase MAXIBUFFERSIZE or we need primitive breaking after all.",
-             count, remaining_indices);
+      "VertexManager: Buffer not large enough for all indices! ({} > {}) "
+      "Increase MAXIBUFFERSIZE or we need primitive breaking after all.",
+      count, remaining_indices);
   ASSERT_MSG(VIDEO, needed_vertex_bytes <= GetRemainingSize(),
-             "VertexManager: Buffer not large enough for all vertices! ({} > {}) "
-             "Increase MAXVBUFFERSIZE or we need primitive breaking after all.",
-             needed_vertex_bytes, GetRemainingSize());
+      "VertexManager: Buffer not large enough for all vertices! ({} > {}) "
+      "Increase MAXVBUFFERSIZE or we need primitive breaking after all.",
+      needed_vertex_bytes, GetRemainingSize());
 
   return DataReader(m_cur_buffer_pointer, m_end_buffer_pointer);
 }
@@ -338,8 +337,8 @@ void VertexManagerBase::ResetBuffer(u32 vertex_stride)
   m_index_generator.Start(m_cpu_index_buffer.data());
 }
 
-void VertexManagerBase::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
-                                     u32* out_base_vertex, u32* out_base_index)
+void VertexManagerBase::CommitBuffer(
+    u32 num_vertices, u32 vertex_stride, u32 num_indices, u32* out_base_vertex, u32* out_base_index)
 {
   *out_base_vertex = 0;
   *out_base_index = 0;
@@ -376,8 +375,8 @@ void VertexManagerBase::UploadUtilityUniforms(const void* uniforms, u32 uniforms
 }
 
 void VertexManagerBase::UploadUtilityVertices(const void* vertices, u32 vertex_stride,
-                                              u32 num_vertices, const u16* indices, u32 num_indices,
-                                              u32* out_base_vertex, u32* out_base_index)
+    u32 num_vertices, const u16* indices, u32 num_indices, u32* out_base_vertex,
+    u32* out_base_index)
 {
   // The GX vertex list should be flushed before any utility draws occur.
   ASSERT(m_is_flushed);
@@ -403,16 +402,15 @@ u32 VertexManagerBase::GetTexelBufferElementSize(TexelBufferFormat buffer_format
   return 1u << static_cast<u32>(buffer_format);
 }
 
-bool VertexManagerBase::UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
-                                          u32* out_offset)
+bool VertexManagerBase::UploadTexelBuffer(
+    const void* data, u32 data_size, TexelBufferFormat format, u32* out_offset)
 {
   return false;
 }
 
 bool VertexManagerBase::UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
-                                          u32* out_offset, const void* palette_data,
-                                          u32 palette_size, TexelBufferFormat palette_format,
-                                          u32* palette_offset)
+    u32* out_offset, const void* palette_data, u32 palette_size, TexelBufferFormat palette_format,
+    u32* palette_offset)
 {
   return false;
 }
@@ -448,8 +446,7 @@ void VertexManagerBase::Flush()
   if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens ||
       xfmem.numChan.numColorChans != bpmem.genMode.numcolchans)
   {
-    ERROR_LOG_FMT(
-        VIDEO,
+    ERROR_LOG_FMT(VIDEO,
         "Mismatched configuration between XF and BP stages - {}/{} texgens, {}/{} colors. "
         "Skipping draw. Please report on the issue tracker.",
         xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens.Value(), xfmem.numChan.numColorChans,
@@ -471,20 +468,20 @@ void VertexManagerBase::Flush()
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
   PRIM_LOG("frame{}:\n texgen={}, numchan={}, dualtex={}, ztex={}, cole={}, alpe={}, ze={}",
-           g_ActiveConfig.iSaveTargetId, xfmem.numTexGen.numTexGens, xfmem.numChan.numColorChans,
-           xfmem.dualTexTrans.enabled, bpmem.ztex2.op.Value(), bpmem.blendmode.color_update.Value(),
-           bpmem.blendmode.alpha_update.Value(), bpmem.zmode.update_enable.Value());
+      g_ActiveConfig.iSaveTargetId, xfmem.numTexGen.numTexGens, xfmem.numChan.numColorChans,
+      xfmem.dualTexTrans.enabled, bpmem.ztex2.op.Value(), bpmem.blendmode.color_update.Value(),
+      bpmem.blendmode.alpha_update.Value(), bpmem.zmode.update_enable.Value());
 
   for (u32 i = 0; i < xfmem.numChan.numColorChans; ++i)
   {
     LitChannel* ch = &xfmem.color[i];
     PRIM_LOG("colchan{}: matsrc={}, light={:#x}, ambsrc={}, diffunc={}, attfunc={}", i,
-             ch->matsource.Value(), ch->GetFullLightMask(), ch->ambsource.Value(),
-             ch->diffusefunc.Value(), ch->attnfunc.Value());
+        ch->matsource.Value(), ch->GetFullLightMask(), ch->ambsource.Value(),
+        ch->diffusefunc.Value(), ch->attnfunc.Value());
     ch = &xfmem.alpha[i];
     PRIM_LOG("alpchan{}: matsrc={}, light={:#x}, ambsrc={}, diffunc={}, attfunc={}", i,
-             ch->matsource.Value(), ch->GetFullLightMask(), ch->ambsource.Value(),
-             ch->diffusefunc.Value(), ch->attnfunc.Value());
+        ch->matsource.Value(), ch->GetFullLightMask(), ch->ambsource.Value(),
+        ch->diffusefunc.Value(), ch->attnfunc.Value());
   }
 
   for (u32 i = 0; i < xfmem.numTexGen.numTexGens; ++i)
@@ -497,16 +494,15 @@ void VertexManagerBase::Flush()
 
     PRIM_LOG("txgen{}: proj={}, input={}, gentype={}, srcrow={}, embsrc={}, emblght={}, "
              "postmtx={}, postnorm={}",
-             i, tinfo.projection.Value(), tinfo.inputform.Value(), tinfo.texgentype.Value(),
-             tinfo.sourcerow.Value(), tinfo.embosssourceshift.Value(),
-             tinfo.embosslightshift.Value(), xfmem.postMtxInfo[i].index.Value(),
-             xfmem.postMtxInfo[i].normalize.Value());
+        i, tinfo.projection.Value(), tinfo.inputform.Value(), tinfo.texgentype.Value(),
+        tinfo.sourcerow.Value(), tinfo.embosssourceshift.Value(), tinfo.embosslightshift.Value(),
+        xfmem.postMtxInfo[i].index.Value(), xfmem.postMtxInfo[i].normalize.Value());
   }
 
   PRIM_LOG("pixel: tev={}, ind={}, texgen={}, dstalpha={}, alphatest={:#x}",
-           bpmem.genMode.numtevstages.Value() + 1, bpmem.genMode.numindstages.Value(),
-           bpmem.genMode.numtexgens.Value(), bpmem.dstalpha.enable.Value(),
-           (bpmem.alpha_test.hex >> 16) & 0xff);
+      bpmem.genMode.numtevstages.Value() + 1, bpmem.genMode.numindstages.Value(),
+      bpmem.genMode.numtexgens.Value(), bpmem.dstalpha.enable.Value(),
+      (bpmem.alpha_test.hex >> 16) & 0xff);
 #endif
 
   // Track some stats used elsewhere by the anamorphic widescreen heuristic.
@@ -617,8 +613,8 @@ void VertexManagerBase::Flush()
     bool skip = false;
     for (size_t i = 0; i < texture_names.size(); i++)
     {
-      GraphicsModActionData::DrawStarted draw_started{texture_units, &skip, &custom_pixel_shader,
-                                                      &custom_pixel_shader_uniforms};
+      GraphicsModActionData::DrawStarted draw_started{
+          texture_units, &skip, &custom_pixel_shader, &custom_pixel_shader_uniforms};
       for (const auto& action : g_graphics_mod_manager->GetDrawStartedActions(texture_names[i]))
       {
         action->OnDrawStarted(&draw_started);
@@ -653,13 +649,13 @@ void VertexManagerBase::Flush()
         {
           if (const auto custom_pipeline =
                   GetCustomPipeline(custom_pixel_shader_contents, m_current_pipeline_config,
-                                    m_current_uber_pipeline_config, m_current_pipeline_object))
+                      m_current_uber_pipeline_config, m_current_pipeline_object))
           {
             pipeline_object = custom_pipeline;
           }
         }
         RenderDrawCall(pixel_shader_manager, geometry_shader_manager, custom_pixel_shader_contents,
-                       custom_pixel_shader_uniforms, m_current_primitive_type, pipeline_object);
+            custom_pixel_shader_uniforms, m_current_primitive_type, pipeline_object);
       }
     }
 
@@ -673,8 +669,8 @@ void VertexManagerBase::Flush()
   if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens)
   {
     ERROR_LOG_FMT(VIDEO,
-                  "xf.numtexgens ({}) does not match bp.numtexgens ({}). Error in command stream.",
-                  xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens.Value());
+        "xf.numtexgens ({}) does not match bp.numtexgens ({}). Error in command stream.",
+        xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens.Value());
   }
 }
 
@@ -696,7 +692,7 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
 {
   float out[12];
   float viewOffset[2] = {xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,
-                         xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2};
+      xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2};
 
   if (m_current_primitive_type != PrimitiveType::Triangles &&
       m_current_primitive_type != PrimitiveType::TriangleStrip)
@@ -726,8 +722,8 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
     if (vert_decl.position.components == 2)
       VertexLoaderManager::position_cache[2 - i][2] = 0;
 
-    vertex_shader_manager.TransformToClipSpace(&VertexLoaderManager::position_cache[2 - i][0],
-                                               &out[i * 4], mtxIdx);
+    vertex_shader_manager.TransformToClipSpace(
+        &VertexLoaderManager::position_cache[2 - i][0], &out[i * 4], mtxIdx);
 
     // Transform to Screenspace
     float inv_w = 1.0f / out[3 + i * 4];
@@ -1054,8 +1050,8 @@ void VertexManagerBase::NotifyCustomShaderCacheOfHostChange(const ShaderHostConf
   m_custom_shader_cache->Reload();
 }
 
-void VertexManagerBase::RenderDrawCall(
-    PixelShaderManager& pixel_shader_manager, GeometryShaderManager& geometry_shader_manager,
+void VertexManagerBase::RenderDrawCall(PixelShaderManager& pixel_shader_manager,
+    GeometryShaderManager& geometry_shader_manager,
     const CustomPixelShaderContents& custom_pixel_shader_contents,
     std::span<u8> custom_pixel_shader_uniforms, PrimitiveType primitive_type,
     const AbstractPipeline* current_pipeline)
@@ -1075,8 +1071,8 @@ void VertexManagerBase::RenderDrawCall(
 
   u32 base_vertex, base_index;
   CommitBuffer(m_index_generator.GetNumVerts(),
-               VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride(),
-               m_index_generator.GetIndexLen(), &base_vertex, &base_index);
+      VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride(),
+      m_index_generator.GetIndexLen(), &base_vertex, &base_index);
 
   if (g_backend_info.api_type != APIType::D3D && g_ActiveConfig.UseVSForLinePointExpand() &&
       (primitive_type == PrimitiveType::Points || primitive_type == PrimitiveType::Lines))

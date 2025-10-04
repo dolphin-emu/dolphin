@@ -85,8 +85,8 @@ private:
   bool m_device_attached = false;
   bool init = false;
   std::unique_ptr<Microphone> m_microphone{};
-  const DeviceDescriptor m_device_descriptor{0x12,  0x1,    0x200,  0,   0,   0,   0x10,
-                                             0x57E, 0x0308, 0x0214, 0x1, 0x2, 0x0, 0x1};
+  const DeviceDescriptor m_device_descriptor{
+      0x12, 0x1, 0x200, 0, 0, 0, 0x10, 0x57E, 0x0308, 0x0214, 0x1, 0x2, 0x0, 0x1};
   const std::vector<ConfigDescriptor> m_config_descriptor{
       {0x9, 0x2, 0x0030, 0x1, 0x1, 0x0, 0x80, 0x32}};
   const std::vector<InterfaceDescriptor> m_interface_descriptor{

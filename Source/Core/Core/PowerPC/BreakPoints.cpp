@@ -122,8 +122,8 @@ void BreakPoints::Add(u32 address)
   BreakPoints::Add(address, true, false, std::nullopt);
 }
 
-void BreakPoints::Add(u32 address, bool break_on_hit, bool log_on_hit,
-                      std::optional<Expression> condition)
+void BreakPoints::Add(
+    u32 address, bool break_on_hit, bool log_on_hit, std::optional<Expression> condition)
 {
   // Check for existing breakpoint, and overwrite with new info.
   // This is assuming we usually want the new breakpoint over an old one.
@@ -380,9 +380,8 @@ bool MemChecks::UpdateRegistersUsedInConditions()
 
 TMemCheck* MemChecks::GetMemCheck(u32 address, size_t size)
 {
-  const auto iter = std::ranges::find_if(m_mem_checks, [address, size](const auto& mc) {
-    return mc.end_address >= address && address + size - 1 >= mc.start_address;
-  });
+  const auto iter = std::ranges::find_if(m_mem_checks, [address, size](const auto& mc)
+      { return mc.end_address >= address && address + size - 1 >= mc.start_address; });
 
   // None found
   if (iter == m_mem_checks.cend())
@@ -399,12 +398,14 @@ bool MemChecks::OverlapsMemcheck(u32 address, u32 length) const
   const u32 page_end_suffix = length - 1;
   const u32 page_end_address = address | page_end_suffix;
 
-  return std::ranges::any_of(m_mem_checks, [&](const auto& mc) {
-    return ((mc.start_address | page_end_suffix) == page_end_address ||
-            (mc.end_address | page_end_suffix) == page_end_address) ||
-           ((mc.start_address | page_end_suffix) < page_end_address &&
-            (mc.end_address | page_end_suffix) > page_end_address);
-  });
+  return std::ranges::any_of(m_mem_checks,
+      [&](const auto& mc)
+      {
+        return ((mc.start_address | page_end_suffix) == page_end_address ||
+                   (mc.end_address | page_end_suffix) == page_end_address) ||
+               ((mc.start_address | page_end_suffix) < page_end_address &&
+                   (mc.end_address | page_end_suffix) > page_end_address);
+      });
 }
 
 bool TMemCheck::Action(Core::System& system, u64 value, u32 addr, bool write, size_t size, u32 pc)
@@ -419,8 +420,8 @@ bool TMemCheck::Action(Core::System& system, u64 value, u32 addr, bool write, si
     {
       auto& ppc_symbol_db = system.GetPPCSymbolDB();
       NOTICE_LOG_FMT(MEMMAP, "MBP {:08x} ({}) {}{} {:x} at {:08x} ({})", pc,
-                     ppc_symbol_db.GetDescription(pc), write ? "Write" : "Read", size * 8, value,
-                     addr, ppc_symbol_db.GetDescription(addr));
+          ppc_symbol_db.GetDescription(pc), write ? "Write" : "Read", size * 8, value, addr,
+          ppc_symbol_db.GetDescription(addr));
     }
     if (break_on_hit)
       return true;

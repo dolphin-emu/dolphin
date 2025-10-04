@@ -18,12 +18,7 @@
 #include "InputCommon/GCPadStatus.h"
 
 static const u16 button_bitmasks[] = {
-    PAD_BUTTON_A,
-    PAD_BUTTON_B,
-    PAD_BUTTON_X,
-    PAD_BUTTON_Y,
-    PAD_TRIGGER_Z,
-    PAD_BUTTON_START,
+    PAD_BUTTON_A, PAD_BUTTON_B, PAD_BUTTON_X, PAD_BUTTON_Y, PAD_TRIGGER_Z, PAD_BUTTON_START,
     0  // MIC HAX
 };
 
@@ -32,8 +27,8 @@ static const u16 trigger_bitmasks[] = {
     PAD_TRIGGER_R,
 };
 
-static const u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT,
-                                    PAD_BUTTON_RIGHT};
+static const u16 dpad_bitmasks[] = {
+    PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT, PAD_BUTTON_RIGHT};
 
 GCPad::GCPad(const unsigned int index) : m_index(index)
 {
@@ -78,14 +73,13 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(OPTIONS_GROUP));
-  m_options->AddSetting(
-      &m_always_connected_setting,
+  m_options->AddSetting(&m_always_connected_setting,
       // i18n: Treat a controller as always being connected regardless of what
       // devices the user actually has plugged in
       {_trans("Always Connected"), nullptr,
-       _trans("If checked, the emulated controller is always connected.\n"
-              "If unchecked, the connection state of the emulated controller is linked\n"
-              "to the connection state of the real default device (if there is one).")},
+          _trans("If checked, the emulated controller is always connected.\n"
+                 "If unchecked, the connection state of the emulated controller is linked\n"
+                 "to the connection state of the real default device (if there is one).")},
       false);
 }
 
@@ -132,7 +126,7 @@ GCPadStatus GCPad::GetInput() const
   GCPadStatus pad = {};
 
   if (!(m_always_connected_setting.GetValue() || IsDefaultDeviceConnected() ||
-        m_input_override_function))
+          m_input_override_function))
   {
     pad.isConnected = false;
     return pad;

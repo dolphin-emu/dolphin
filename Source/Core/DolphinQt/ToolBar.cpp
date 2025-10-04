@@ -34,10 +34,10 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
   UpdateIcons();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          [this](Core::State state) { OnEmulationStateChanged(state); });
+      [this](Core::State state) { OnEmulationStateChanged(state); });
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
-          [this] { OnEmulationStateChanged(Core::GetState(Core::System::GetInstance())); });
+      [this] { OnEmulationStateChanged(Core::GetState(Core::System::GetInstance())); });
 
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this, &ToolBar::OnDebugModeToggled);
 
@@ -45,12 +45,12 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
   connect(this, &ToolBar::visibilityChanged, &Settings::Instance(), &Settings::SetToolBarVisible);
 
   connect(&Settings::Instance(), &Settings::WidgetLockChanged, this,
-          [this](bool locked) { setMovable(!locked); });
+      [this](bool locked) { setMovable(!locked); });
 
   connect(&Settings::Instance(), &Settings::GameListRefreshRequested, this,
-          [this] { m_refresh_action->setEnabled(false); });
+      [this] { m_refresh_action->setEnabled(false); });
   connect(&Settings::Instance(), &Settings::GameListRefreshStarted, this,
-          [this] { m_refresh_action->setEnabled(true); });
+      [this] { m_refresh_action->setEnabled(true); });
 
   OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
   OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
@@ -133,18 +133,17 @@ void ToolBar::MakeActions()
 
   // Ensure every button has about the same width
   std::vector<QWidget*> items;
-  for (const auto& action :
-       {m_open_action, m_pause_play_action, m_stop_action, m_stop_action, m_fullscreen_action,
-        m_screenshot_action, m_config_action, m_graphics_action, m_controllers_action,
-        m_step_action, m_step_over_action, m_step_out_action, m_skip_action, m_show_pc_action,
-        m_set_pc_action})
+  for (const auto& action : {m_open_action, m_pause_play_action, m_stop_action, m_stop_action,
+           m_fullscreen_action, m_screenshot_action, m_config_action, m_graphics_action,
+           m_controllers_action, m_step_action, m_step_over_action, m_step_out_action,
+           m_skip_action, m_show_pc_action, m_set_pc_action})
   {
     items.emplace_back(widgetForAction(action));
   }
 
   std::vector<int> widths;
-  std::ranges::transform(items, std::back_inserter(widths),
-                         [](QWidget* item) { return item->sizeHint().width(); });
+  std::ranges::transform(
+      items, std::back_inserter(widths), [](QWidget* item) { return item->sizeHint().width(); });
 
   const int min_width = *std::ranges::max_element(widths) * 0.85;
   for (QWidget* widget : items)

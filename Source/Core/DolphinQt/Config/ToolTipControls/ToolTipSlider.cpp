@@ -17,8 +17,8 @@ QPoint ToolTipSlider::GetToolTipPosition() const
   {
     QStyleOptionSlider opt;
     initStyleOption(&opt);
-    handle_rect = style()->subControlRect(QStyle::ComplexControl::CC_Slider, &opt,
-                                          QStyle::SubControl::SC_SliderHandle, this);
+    handle_rect = style()->subControlRect(
+        QStyle::ComplexControl::CC_Slider, &opt, QStyle::SubControl::SC_SliderHandle, this);
   }
 
   return pos() + handle_rect.center();

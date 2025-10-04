@@ -524,7 +524,7 @@ void DSPEmitter::dmem_write_imm(u16 address, X64Reg value)
   }
   default:  // Unmapped/non-existing memory
     ERROR_LOG_FMT(DSPLLE, "{:04x} DSP ERROR: Write to UNKNOWN ({:04x}) memory",
-                  m_dsp_core.DSPState().pc, address);
+        m_dsp_core.DSPState().pc, address);
     break;
   }
 }
@@ -613,7 +613,7 @@ void DSPEmitter::dmem_read_imm(u16 address)
   }
   default:  // Unmapped/non-existing memory
     ERROR_LOG_FMT(DSPLLE, "{:04x} DSP ERROR: Read from UNKNOWN ({:04x}) memory",
-                  m_dsp_core.DSPState().pc, address);
+        m_dsp_core.DSPState().pc, address);
   }
 }
 

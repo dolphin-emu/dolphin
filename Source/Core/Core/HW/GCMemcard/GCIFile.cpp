@@ -48,9 +48,9 @@ bool GCIFile::LoadSaveBlocks()
     if (file_size != size + DENTRY_SIZE)
     {
       ERROR_LOG_FMT(EXPANSIONINTERFACE,
-                    "{}\nwas not loaded because it is an invalid GCI.\n File size ({:#x}) does not "
-                    "match the size recorded in the header ({:#x})",
-                    m_filename.c_str(), file_size, size + DENTRY_SIZE);
+          "{}\nwas not loaded because it is an invalid GCI.\n File size ({:#x}) does not "
+          "match the size recorded in the header ({:#x})",
+          m_filename.c_str(), file_size, size + DENTRY_SIZE);
       return false;
     }
 

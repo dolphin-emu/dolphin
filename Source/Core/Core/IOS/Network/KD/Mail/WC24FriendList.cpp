@@ -49,7 +49,7 @@ bool WC24FriendList::CheckFriendList() const
   if (Common::swap32(m_data.header.magic) != FRIEND_LIST_MAGIC)
   {
     ERROR_LOG_FMT(IOS_WC24, "Receive List magic mismatch ({} != {})",
-                  Common::swap32(m_data.header.magic), FRIEND_LIST_MAGIC);
+        Common::swap32(m_data.header.magic), FRIEND_LIST_MAGIC);
     return false;
   }
 
@@ -58,8 +58,8 @@ bool WC24FriendList::CheckFriendList() const
 
 bool WC24FriendList::DoesFriendExist(u64 friend_id) const
 {
-  return std::ranges::any_of(m_data.friend_codes,
-                             [&friend_id](const u64 v) { return v == friend_id; });
+  return std::ranges::any_of(
+      m_data.friend_codes, [&friend_id](const u64 v) { return v == friend_id; });
 }
 
 std::vector<u64> WC24FriendList::GetUnconfirmedFriends() const

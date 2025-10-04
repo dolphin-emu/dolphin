@@ -46,7 +46,7 @@ public:
     }
 
     bool Get(std::string_view key, std::string* value,
-             const std::string& default_value = NULL_STRING) const;
+        const std::string& default_value = NULL_STRING) const;
 
     template <typename T>
     bool Get(std::string_view key, T* value, const std::common_type_t<T>& default_value = {}) const
@@ -122,7 +122,7 @@ public:
 
   void SetLines(std::string_view section_name, std::vector<std::string> lines);
   bool GetLines(std::string_view section_name, std::vector<std::string>* lines,
-                bool remove_comments = true) const;
+      bool remove_comments = true) const;
 
   bool DeleteKey(std::string_view section_name, std::string_view key);
   bool DeleteSection(std::string_view section_name);

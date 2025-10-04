@@ -109,7 +109,7 @@ private:
 
   void Log(LogType log_type, const void* data, std::size_t length, s32 socket, sockaddr* other);
   void LogIPv4(LogType log_type, const u8* data, u16 length, s32 socket, const sockaddr_in& from,
-               const sockaddr_in& to);
+      const sockaddr_in& to);
 
   std::unique_ptr<Common::PCAP> m_file;
   std::mutex m_io_mutex;

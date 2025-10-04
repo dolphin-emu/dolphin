@@ -13,14 +13,14 @@ static constexpr u16 DEFAULT_LISTEN_PORT = 2626;
 
 // Main.NetPlay
 
-const Info<std::string> NETPLAY_TRAVERSAL_SERVER{{System::Main, "NetPlay", "TraversalServer"},
-                                                 "stun.dolphin-emu.org"};
+const Info<std::string> NETPLAY_TRAVERSAL_SERVER{
+    {System::Main, "NetPlay", "TraversalServer"}, "stun.dolphin-emu.org"};
 const Info<u16> NETPLAY_TRAVERSAL_PORT{{System::Main, "NetPlay", "TraversalPort"}, 6262};
 const Info<u16> NETPLAY_TRAVERSAL_PORT_ALT{{System::Main, "NetPlay", "TraversalPortAlt"}, 6226};
-const Info<std::string> NETPLAY_TRAVERSAL_CHOICE{{System::Main, "NetPlay", "TraversalChoice"},
-                                                 "direct"};
-const Info<std::string> NETPLAY_INDEX_URL{{System::Main, "NetPlay", "IndexServer"},
-                                          "https://lobby.dolphin-emu.org"};
+const Info<std::string> NETPLAY_TRAVERSAL_CHOICE{
+    {System::Main, "NetPlay", "TraversalChoice"}, "direct"};
+const Info<std::string> NETPLAY_INDEX_URL{
+    {System::Main, "NetPlay", "IndexServer"}, "https://lobby.dolphin-emu.org"};
 
 const Info<bool> NETPLAY_USE_INDEX{{System::Main, "NetPlay", "UseIndex"}, false};
 const Info<std::string> NETPLAY_INDEX_NAME{{System::Main, "NetPlay", "IndexName"}, ""};
@@ -51,10 +51,10 @@ const Info<bool> NETPLAY_SAVEDATA_WRITE{{System::Main, "NetPlay", "WriteSaveData
 const Info<bool> NETPLAY_SAVEDATA_SYNC_ALL_WII{{System::Main, "NetPlay", "SyncAllWiiSaves"}, false};
 const Info<bool> NETPLAY_SYNC_CODES{{System::Main, "NetPlay", "SyncCodes"}, true};
 const Info<bool> NETPLAY_RECORD_INPUTS{{System::Main, "NetPlay", "RecordInputs"}, false};
-const Info<bool> NETPLAY_STRICT_SETTINGS_SYNC{{System::Main, "NetPlay", "StrictSettingsSync"},
-                                              false};
-const Info<std::string> NETPLAY_NETWORK_MODE{{System::Main, "NetPlay", "NetworkMode"},
-                                             "fixeddelay"};
+const Info<bool> NETPLAY_STRICT_SETTINGS_SYNC{
+    {System::Main, "NetPlay", "StrictSettingsSync"}, false};
+const Info<std::string> NETPLAY_NETWORK_MODE{
+    {System::Main, "NetPlay", "NetworkMode"}, "fixeddelay"};
 const Info<bool> NETPLAY_GOLF_MODE_OVERLAY{{System::Main, "NetPlay", "GolfModeOverlay"}, true};
 const Info<bool> NETPLAY_HIDE_REMOTE_GBAS{{System::Main, "NetPlay", "HideRemoteGBAs"}, false};
 

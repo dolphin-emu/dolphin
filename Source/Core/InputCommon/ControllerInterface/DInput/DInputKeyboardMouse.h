@@ -80,7 +80,9 @@ private:
   {
   public:
     Cursor(u8 index, const ControlState& axis, const bool positive)
-        : m_axis(axis), m_index(index), m_positive(positive)
+        : m_axis(axis)
+        , m_index(index)
+        , m_positive(positive)
     {
     }
     std::string GetName() const override;

@@ -24,7 +24,8 @@
 #include "VideoCommon/VideoBackendBase.h"
 
 GraphicsPane::GraphicsPane(MainWindow* main_window, Config::Layer* config_layer)
-    : m_main_window(main_window), m_config_layer{config_layer}
+    : m_main_window(main_window)
+    , m_config_layer{config_layer}
 {
   CreateMainLayout();
 

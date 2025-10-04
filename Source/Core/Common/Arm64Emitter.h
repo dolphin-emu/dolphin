@@ -631,8 +631,8 @@ private:
   void EncodeUnconditionalBranchInst(u32 opc, u32 op2, u32 op3, u32 op4, ARM64Reg Rn);
   void EncodeExceptionInst(u32 instenc, u32 imm);
   void EncodeSystemInst(u32 op0, u32 op1, u32 CRn, u32 CRm, u32 op2, ARM64Reg Rt);
-  void EncodeArithmeticInst(u32 instenc, bool flags, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm,
-                            ArithOption Option);
+  void EncodeArithmeticInst(
+      u32 instenc, bool flags, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Option);
   void EncodeArithmeticCarryInst(u32 op, bool flags, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void EncodeCondCompareImmInst(u32 op, ARM64Reg Rn, u32 imm, u32 nzcv, CCFlags cond);
   void EncodeCondCompareRegInst(u32 op, ARM64Reg Rn, ARM64Reg Rm, u32 nzcv, CCFlags cond);
@@ -651,8 +651,8 @@ private:
   void EncodeLoadStoreRegisterOffset(u32 size, u32 opc, ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm);
   void EncodeAddSubImmInst(u32 op, bool flags, u32 shift, u32 imm, ARM64Reg Rn, ARM64Reg Rd);
   void EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm);
-  void EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn,
-                           s32 imm);
+  void EncodeLoadStorePair(
+      u32 op, u32 load, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm);
   void EncodeAddressInst(u32 op, ARM64Reg Rd, s32 imm);
   void EncodeLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
 
@@ -671,7 +671,9 @@ protected:
 public:
   ARM64XEmitter() = default;
   ARM64XEmitter(u8* code, u8* code_end)
-      : m_code(code), m_code_end(code_end), m_lastCacheFlushEnd(code)
+      : m_code(code)
+      , m_code_end(code_end)
+      , m_lastCacheFlushEnd(code)
   {
   }
 
@@ -1052,8 +1054,8 @@ public:
   void EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch);
 
   // Wrappers around arithmetic operations with an immediate.
-  void ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool negative, bool flags,
-                       ARM64Reg scratch);
+  void ADDI2R_internal(
+      ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool negative, bool flags, ARM64Reg scratch);
   void ADDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
   void ADDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
   void SUBI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
@@ -1093,7 +1095,8 @@ public:
 
     std::array<u8, 32> source_gpr_uses{};
 
-    auto check_argument = [&](auto& arg) {
+    auto check_argument = [&](auto& arg)
+    {
       using Arg = std::decay_t<decltype(arg)>;
 
       if constexpr (std::is_same_v<Arg, ARM64Reg>)
@@ -1117,7 +1120,8 @@ public:
 
       size_t i = 0;
 
-      auto handle_register_argument = [&](auto& arg) {
+      auto handle_register_argument = [&](auto& arg)
+      {
         using Arg = std::decay_t<decltype(arg)>;
 
         if constexpr (std::is_same_v<Arg, ARM64Reg>)
@@ -1152,15 +1156,16 @@ public:
 
       if (!pending_moves.empty())
       {
-        ParallelMoves(pending_moves.data(), pending_moves.data() + pending_moves.size(),
-                      &source_gpr_uses);
+        ParallelMoves(
+            pending_moves.data(), pending_moves.data() + pending_moves.size(), &source_gpr_uses);
       }
     }
 
     {
       size_t i = 0;
 
-      auto handle_immediate_argument = [&](auto& arg) {
+      auto handle_immediate_argument = [&](auto& arg)
+      {
         using Arg = std::decay_t<decltype(arg)>;
 
         if constexpr (!std::is_same_v<Arg, ARM64Reg>)
@@ -1399,8 +1404,8 @@ public:
   void ORR(u8 size, ARM64Reg Rd, u8 imm, u8 shift = 0);
   void BIC(u8 size, ARM64Reg Rd, u8 imm, u8 shift = 0);
 
-  void MOVI2F(ARM64Reg Rd, float value, ARM64Reg scratch = ARM64Reg::INVALID_REG,
-              bool negate = false);
+  void MOVI2F(
+      ARM64Reg Rd, float value, ARM64Reg scratch = ARM64Reg::INVALID_REG, bool negate = false);
   void MOVI2FDUP(ARM64Reg Rd, float value, ARM64Reg scratch = ARM64Reg::INVALID_REG);
 
   // ABI related
@@ -1412,22 +1417,22 @@ private:
   inline void Write32(u32 value) { m_emit->Write32(value); }
   // Emitting functions
   void EmitLoadStoreImmediate(u8 size, u32 opc, IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
-  void EmitScalar2Source(bool M, bool S, u32 type, u32 opcode, ARM64Reg Rd, ARM64Reg Rn,
-                         ARM64Reg Rm);
+  void EmitScalar2Source(
+      bool M, bool S, u32 type, u32 opcode, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void EmitScalarThreeSame(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void EmitThreeSame(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void EmitCopy(bool Q, u32 op, u32 imm5, u32 imm4, ARM64Reg Rd, ARM64Reg Rn);
   void EmitScalar2RegMisc(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
   void EmitScalarPairwise(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
   void Emit2RegMisc(bool Q, bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
-  void EmitLoadStoreSingleStructure(bool L, bool R, u32 opcode, bool S, u32 size, ARM64Reg Rt,
-                                    ARM64Reg Rn);
-  void EmitLoadStoreSingleStructure(bool L, bool R, u32 opcode, bool S, u32 size, ARM64Reg Rt,
-                                    ARM64Reg Rn, ARM64Reg Rm);
+  void EmitLoadStoreSingleStructure(
+      bool L, bool R, u32 opcode, bool S, u32 size, ARM64Reg Rt, ARM64Reg Rn);
+  void EmitLoadStoreSingleStructure(
+      bool L, bool R, u32 opcode, bool S, u32 size, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm);
   void Emit1Source(bool M, bool S, u32 type, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
   void EmitConversion(bool sf, bool S, u32 type, u32 rmode, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
   void EmitConversion2(bool sf, bool S, bool direction, u32 type, u32 rmode, u32 opcode, int scale,
-                       ARM64Reg Rd, ARM64Reg Rn);
+      ARM64Reg Rd, ARM64Reg Rn);
   void EmitCompare(bool M, bool S, u32 op, u32 opcode2, ARM64Reg Rn, ARM64Reg Rm);
   void EmitCondSelect(bool M, bool S, CCFlags cond, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void EmitPermute(u32 size, u32 op, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
@@ -1436,17 +1441,17 @@ private:
   void EmitShiftImm(bool Q, bool U, u32 imm, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
   void EmitScalarShiftImm(bool U, u32 imm, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
   void EmitLoadStoreMultipleStructure(u32 size, bool L, u32 opcode, ARM64Reg Rt, ARM64Reg Rn);
-  void EmitLoadStoreMultipleStructurePost(u32 size, bool L, u32 opcode, ARM64Reg Rt, ARM64Reg Rn,
-                                          ARM64Reg Rm);
+  void EmitLoadStoreMultipleStructurePost(
+      u32 size, bool L, u32 opcode, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm);
   void EmitScalar1Source(bool M, bool S, u32 type, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
-  void EmitVectorxElement(bool U, u32 size, bool L, u32 opcode, bool H, ARM64Reg Rd, ARM64Reg Rn,
-                          ARM64Reg Rm);
+  void EmitVectorxElement(
+      bool U, u32 size, bool L, u32 opcode, bool H, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void EmitLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
   void EmitConvertScalarToInt(ARM64Reg Rd, ARM64Reg Rn, RoundingMode round, bool sign);
-  void EmitScalar3Source(bool isDouble, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra,
-                         int opcode);
-  void EncodeLoadStorePair(u32 size, bool load, IndexType type, ARM64Reg Rt, ARM64Reg Rt2,
-                           ARM64Reg Rn, s32 imm);
+  void EmitScalar3Source(
+      bool isDouble, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra, int opcode);
+  void EncodeLoadStorePair(
+      u32 size, bool load, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm);
   void EncodeLoadStoreRegisterOffset(u32 size, bool load, ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm);
   void EncodeModImm(bool Q, u8 op, u8 cmode, u8 o2, ARM64Reg Rd, u8 abcdefgh);
 

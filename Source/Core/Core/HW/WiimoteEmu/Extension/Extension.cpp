@@ -18,7 +18,8 @@ Extension::Extension(const char* name) : Extension(name, name)
 }
 
 Extension::Extension(const char* config_name, const char* display_name)
-    : m_config_name(config_name), m_display_name(display_name)
+    : m_config_name(config_name)
+    , m_display_name(display_name)
 {
 }
 

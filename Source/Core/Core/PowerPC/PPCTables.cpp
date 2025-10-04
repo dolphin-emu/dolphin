@@ -34,14 +34,12 @@ struct GekkoOPTemplate
   u64 flags;
 };
 
-constexpr GekkoOPTemplate s_unknown_op_info = {0, "unknown_instruction", OpType::Unknown, 0,
-                                               FL_ENDBLOCK};
+constexpr GekkoOPTemplate s_unknown_op_info = {
+    0, "unknown_instruction", OpType::Unknown, 0, FL_ENDBLOCK};
 
 constexpr std::array<GekkoOPTemplate, 54> s_primary_table{{
-    {4, "RunTable4", OpType::Subtable, 0, 0},
-    {19, "RunTable19", OpType::Subtable, 0, 0},
-    {31, "RunTable31", OpType::Subtable, 0, 0},
-    {59, "RunTable59", OpType::Subtable, 0, 0},
+    {4, "RunTable4", OpType::Subtable, 0, 0}, {19, "RunTable19", OpType::Subtable, 0, 0},
+    {31, "RunTable31", OpType::Subtable, 0, 0}, {59, "RunTable59", OpType::Subtable, 0, 0},
     {63, "RunTable63", OpType::Subtable, 0, 0},
 
     {16, "bcx", OpType::Branch, 1, FL_ENDBLOCK | FL_READ_CR_BI},
@@ -92,26 +90,26 @@ constexpr std::array<GekkoOPTemplate, 54> s_primary_table{{
 
     {48, "lfs", OpType::LoadFP, 1, FL_OUT_FLOAT_D | FL_IN_A | FL_USE_FPU | FL_LOADSTORE},
     {49, "lfsu", OpType::LoadFP, 1,
-     FL_OUT_FLOAT_D | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE},
+        FL_OUT_FLOAT_D | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE},
     {50, "lfd", OpType::LoadFP, 1, FL_INOUT_FLOAT_D | FL_IN_A | FL_USE_FPU | FL_LOADSTORE},
     {51, "lfdu", OpType::LoadFP, 1,
-     FL_INOUT_FLOAT_D | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE},
+        FL_INOUT_FLOAT_D | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE},
 
     {52, "stfs", OpType::StoreFP, 1, FL_IN_FLOAT_S | FL_IN_A0 | FL_USE_FPU | FL_LOADSTORE},
     {53, "stfsu", OpType::StoreFP, 1,
-     FL_IN_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE},
+        FL_IN_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE},
     {54, "stfd", OpType::StoreFP, 1, FL_IN_FLOAT_S | FL_IN_A0 | FL_USE_FPU | FL_LOADSTORE},
     {55, "stfdu", OpType::StoreFP, 1,
-     FL_IN_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE},
+        FL_IN_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE},
 
     {56, "psq_l", OpType::LoadPS, 1,
-     FL_OUT_FLOAT_D | FL_IN_A0 | FL_USE_FPU | FL_LOADSTORE | FL_PROGRAMEXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_A0 | FL_USE_FPU | FL_LOADSTORE | FL_PROGRAMEXCEPTION},
     {57, "psq_lu", OpType::LoadPS, 1,
-     FL_OUT_FLOAT_D | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE | FL_PROGRAMEXCEPTION},
+        FL_OUT_FLOAT_D | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE | FL_PROGRAMEXCEPTION},
     {60, "psq_st", OpType::StorePS, 1,
-     FL_IN_FLOAT_S | FL_IN_A0 | FL_USE_FPU | FL_LOADSTORE | FL_PROGRAMEXCEPTION},
+        FL_IN_FLOAT_S | FL_IN_A0 | FL_USE_FPU | FL_LOADSTORE | FL_PROGRAMEXCEPTION},
     {61, "psq_stu", OpType::StorePS, 1,
-     FL_IN_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE | FL_PROGRAMEXCEPTION},
+        FL_IN_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE | FL_PROGRAMEXCEPTION},
 
     // missing: 0, 1, 2, 5, 6, 9, 22, 30, 62, 58
 }};
@@ -119,106 +117,106 @@ constexpr std::array<GekkoOPTemplate, 54> s_primary_table{{
 constexpr std::array<GekkoOPTemplate, 13> s_table4{{
     // SUBOP10
     {0, "ps_cmpu0", OpType::PS, 1,
-     FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF | FL_PROGRAMEXCEPTION |
-         FL_FLOAT_EXCEPTION},
+        FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
     {32, "ps_cmpo0", OpType::PS, 1,
-     FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF | FL_PROGRAMEXCEPTION |
-         FL_FLOAT_EXCEPTION},
+        FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
     {40, "ps_neg", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_IN_FLOAT_B_BITEXACT | FL_RC_BIT_F | FL_USE_FPU |
-         FL_PROGRAMEXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_IN_FLOAT_B_BITEXACT | FL_RC_BIT_F | FL_USE_FPU |
+            FL_PROGRAMEXCEPTION},
     {136, "ps_nabs", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_IN_FLOAT_B_BITEXACT | FL_RC_BIT_F | FL_USE_FPU |
-         FL_PROGRAMEXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_IN_FLOAT_B_BITEXACT | FL_RC_BIT_F | FL_USE_FPU |
+            FL_PROGRAMEXCEPTION},
     {264, "ps_abs", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_IN_FLOAT_B_BITEXACT | FL_RC_BIT_F | FL_USE_FPU |
-         FL_PROGRAMEXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_IN_FLOAT_B_BITEXACT | FL_RC_BIT_F | FL_USE_FPU |
+            FL_PROGRAMEXCEPTION},
     {64, "ps_cmpu1", OpType::PS, 1,
-     FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF | FL_PROGRAMEXCEPTION |
-         FL_FLOAT_EXCEPTION},
+        FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
     {72, "ps_mr", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_IN_FLOAT_B_BITEXACT | FL_RC_BIT_F | FL_USE_FPU |
-         FL_PROGRAMEXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_IN_FLOAT_B_BITEXACT | FL_RC_BIT_F | FL_USE_FPU |
+            FL_PROGRAMEXCEPTION},
     {96, "ps_cmpo1", OpType::PS, 1,
-     FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF | FL_PROGRAMEXCEPTION |
-         FL_FLOAT_EXCEPTION},
+        FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
     {528, "ps_merge00", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_IN_FLOAT_AB_BITEXACT | FL_RC_BIT_F | FL_USE_FPU |
-         FL_PROGRAMEXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_IN_FLOAT_AB_BITEXACT | FL_RC_BIT_F | FL_USE_FPU |
+            FL_PROGRAMEXCEPTION},
     {560, "ps_merge01", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_IN_FLOAT_AB_BITEXACT | FL_RC_BIT_F | FL_USE_FPU |
-         FL_PROGRAMEXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_IN_FLOAT_AB_BITEXACT | FL_RC_BIT_F | FL_USE_FPU |
+            FL_PROGRAMEXCEPTION},
     {592, "ps_merge10", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_IN_FLOAT_AB_BITEXACT | FL_RC_BIT_F | FL_USE_FPU |
-         FL_PROGRAMEXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_IN_FLOAT_AB_BITEXACT | FL_RC_BIT_F | FL_USE_FPU |
+            FL_PROGRAMEXCEPTION},
     {624, "ps_merge11", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_IN_FLOAT_AB_BITEXACT | FL_RC_BIT_F | FL_USE_FPU |
-         FL_PROGRAMEXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_IN_FLOAT_AB_BITEXACT | FL_RC_BIT_F | FL_USE_FPU |
+            FL_PROGRAMEXCEPTION},
 
     {1014, "dcbz_l", OpType::System, 1, FL_IN_A0B | FL_LOADSTORE | FL_PROGRAMEXCEPTION},
 }};
 
 constexpr std::array<GekkoOPTemplate, 17> s_table4_2{{
     {10, "ps_sum0", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
     {11, "ps_sum1", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
     {12, "ps_muls0", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_AC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_AC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
     {13, "ps_muls1", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_AC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_AC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
     {14, "ps_madds0", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
     {15, "ps_madds1", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
     {18, "ps_div", OpType::PS, 17,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION | FL_FLOAT_DIV},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION | FL_FLOAT_DIV},
     {20, "ps_sub", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
     {21, "ps_add", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
     {23, "ps_sel", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_IN_FLOAT_BC_BITEXACT | FL_RC_BIT_F | FL_USE_FPU |
-         FL_PROGRAMEXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_IN_FLOAT_BC_BITEXACT | FL_RC_BIT_F | FL_USE_FPU |
+            FL_PROGRAMEXCEPTION},
     {24, "ps_res", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF | FL_PROGRAMEXCEPTION |
-         FL_FLOAT_EXCEPTION | FL_FLOAT_DIV},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION | FL_FLOAT_DIV},
     {25, "ps_mul", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_AC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_AC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
     {26, "ps_rsqrte", OpType::PS, 2,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF | FL_PROGRAMEXCEPTION |
-         FL_FLOAT_EXCEPTION | FL_FLOAT_DIV},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION | FL_FLOAT_DIV},
     {28, "ps_msub", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
     {29, "ps_madd", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
     {30, "ps_nmsub", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
     {31, "ps_nmadd", OpType::PS, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
 }};
 
 constexpr std::array<GekkoOPTemplate, 4> s_table4_3{{
     {6, "psq_lx", OpType::LoadPS, 1, FL_OUT_FLOAT_D | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE},
     {7, "psq_stx", OpType::StorePS, 1, FL_IN_FLOAT_S | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE},
     {38, "psq_lux", OpType::LoadPS, 1,
-     FL_OUT_FLOAT_D | FL_OUT_A | FL_IN_AB | FL_USE_FPU | FL_LOADSTORE},
+        FL_OUT_FLOAT_D | FL_OUT_A | FL_IN_AB | FL_USE_FPU | FL_LOADSTORE},
     {39, "psq_stux", OpType::StorePS, 1,
-     FL_IN_FLOAT_S | FL_OUT_A | FL_IN_AB | FL_USE_FPU | FL_LOADSTORE},
+        FL_IN_FLOAT_S | FL_OUT_A | FL_IN_AB | FL_USE_FPU | FL_LOADSTORE},
 }};
 
 constexpr std::array<GekkoOPTemplate, 13> s_table19{{
@@ -246,13 +244,13 @@ constexpr std::array<GekkoOPTemplate, 107> s_table31{{
     {522, "addcox", OpType::Integer, 1, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT | FL_SET_OE},
     {138, "addex", OpType::Integer, 1, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT},
     {650, "addeox", OpType::Integer, 1,
-     FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT | FL_SET_OE},
+        FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT | FL_SET_OE},
     {234, "addmex", OpType::Integer, 1, FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT},
     {746, "addmeox", OpType::Integer, 1,
-     FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT | FL_SET_OE},
+        FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT | FL_SET_OE},
     {202, "addzex", OpType::Integer, 1, FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT},
     {714, "addzeox", OpType::Integer, 1,
-     FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT | FL_SET_OE},
+        FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT | FL_SET_OE},
     {491, "divwx", OpType::Integer, 40, FL_OUT_D | FL_IN_AB | FL_RC_BIT},
     {1003, "divwox", OpType::Integer, 40, FL_OUT_D | FL_IN_AB | FL_RC_BIT | FL_SET_OE},
     {459, "divwux", OpType::Integer, 40, FL_OUT_D | FL_IN_AB | FL_RC_BIT},
@@ -269,13 +267,13 @@ constexpr std::array<GekkoOPTemplate, 107> s_table31{{
     {520, "subfcox", OpType::Integer, 1, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT | FL_SET_OE},
     {136, "subfex", OpType::Integer, 1, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT},
     {648, "subfeox", OpType::Integer, 1,
-     FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT | FL_SET_OE},
+        FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT | FL_SET_OE},
     {232, "subfmex", OpType::Integer, 1, FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT},
     {744, "subfmeox", OpType::Integer, 1,
-     FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT | FL_SET_OE},
+        FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT | FL_SET_OE},
     {200, "subfzex", OpType::Integer, 1, FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT},
     {712, "subfzeox", OpType::Integer, 1,
-     FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT | FL_SET_OE},
+        FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT | FL_SET_OE},
 
     {28, "andx", OpType::Integer, 1, FL_OUT_A | FL_IN_SB | FL_RC_BIT},
     {60, "andcx", OpType::Integer, 1, FL_OUT_A | FL_IN_SB | FL_RC_BIT},
@@ -353,24 +351,24 @@ constexpr std::array<GekkoOPTemplate, 107> s_table31{{
     // fp load/store
     {535, "lfsx", OpType::LoadFP, 1, FL_OUT_FLOAT_D | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE},
     {567, "lfsux", OpType::LoadFP, 1,
-     FL_OUT_FLOAT_D | FL_IN_AB | FL_OUT_A | FL_USE_FPU | FL_LOADSTORE},
+        FL_OUT_FLOAT_D | FL_IN_AB | FL_OUT_A | FL_USE_FPU | FL_LOADSTORE},
     {599, "lfdx", OpType::LoadFP, 1, FL_INOUT_FLOAT_D | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE},
     {631, "lfdux", OpType::LoadFP, 1,
-     FL_INOUT_FLOAT_D | FL_IN_AB | FL_OUT_A | FL_USE_FPU | FL_LOADSTORE},
+        FL_INOUT_FLOAT_D | FL_IN_AB | FL_OUT_A | FL_USE_FPU | FL_LOADSTORE},
 
     {663, "stfsx", OpType::StoreFP, 1, FL_IN_FLOAT_S | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE},
     {695, "stfsux", OpType::StoreFP, 1,
-     FL_IN_FLOAT_S | FL_IN_AB | FL_OUT_A | FL_USE_FPU | FL_LOADSTORE},
+        FL_IN_FLOAT_S | FL_IN_AB | FL_OUT_A | FL_USE_FPU | FL_LOADSTORE},
     {727, "stfdx", OpType::StoreFP, 1, FL_IN_FLOAT_S | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE},
     {759, "stfdux", OpType::StoreFP, 1,
-     FL_IN_FLOAT_S | FL_IN_AB | FL_OUT_A | FL_USE_FPU | FL_LOADSTORE},
+        FL_IN_FLOAT_S | FL_IN_AB | FL_OUT_A | FL_USE_FPU | FL_LOADSTORE},
     {983, "stfiwx", OpType::StoreFP, 1, FL_IN_FLOAT_S | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE},
 
     {19, "mfcr", OpType::System, 1, FL_OUT_D | FL_READ_ALL_CR},
     {83, "mfmsr", OpType::System, 1, FL_OUT_D | FL_PROGRAMEXCEPTION},
     {144, "mtcrf", OpType::System, 1, FL_IN_S | FL_SET_ALL_CR | FL_READ_ALL_CR},
     {146, "mtmsr", OpType::System, 1,
-     FL_IN_S | FL_ENDBLOCK | FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
+        FL_IN_S | FL_ENDBLOCK | FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
     {210, "mtsr", OpType::System, 1, FL_IN_S | FL_PROGRAMEXCEPTION},
     {242, "mtsrin", OpType::System, 1, FL_IN_SB | FL_PROGRAMEXCEPTION},
     {339, "mfspr", OpType::SPR, 1, FL_OUT_D | FL_PROGRAMEXCEPTION},
@@ -394,98 +392,102 @@ constexpr std::array<GekkoOPTemplate, 107> s_table31{{
 
 constexpr std::array<GekkoOPTemplate, 9> s_table59{{
     {18, "fdivsx", OpType::SingleFP, 17,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF | FL_FLOAT_EXCEPTION |
-         FL_FLOAT_DIV},  // TODO
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_FLOAT_EXCEPTION | FL_FLOAT_DIV},  // TODO
     {20, "fsubsx", OpType::SingleFP, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF | FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_FLOAT_EXCEPTION},
     {21, "faddsx", OpType::SingleFP, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF | FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_FLOAT_EXCEPTION},
     {24, "fresx", OpType::SingleFP, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF | FL_FLOAT_EXCEPTION |
-         FL_FLOAT_DIV},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_FLOAT_EXCEPTION | FL_FLOAT_DIV},
     {25, "fmulsx", OpType::SingleFP, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_AC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF | FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_AC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_FLOAT_EXCEPTION},
     {28, "fmsubsx", OpType::SingleFP, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_FLOAT_EXCEPTION},
     {29, "fmaddsx", OpType::SingleFP, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_FLOAT_EXCEPTION},
     {30, "fnmsubsx", OpType::SingleFP, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_FLOAT_EXCEPTION},
     {31, "fnmaddsx", OpType::SingleFP, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_FLOAT_EXCEPTION},
 }};
 
 constexpr std::array<GekkoOPTemplate, 15> s_table63{{
     {264, "fabsx", OpType::DoubleFP, 1,
-     FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_IN_FLOAT_B_BITEXACT | FL_RC_BIT_F | FL_USE_FPU},
+        FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_IN_FLOAT_B_BITEXACT | FL_RC_BIT_F | FL_USE_FPU},
 
     // FIXME: fcmp modifies the FPRF flags, but if the flags are clobbered later,
     // we don't actually need to calculate or store them here. So FL_READ_FPRF and FL_SET_FPRF is
     // not an ideal representation of fcmp's effect on FPRF flags and might result in slightly
     // sub-optimal code.
     {32, "fcmpo", OpType::DoubleFP, 1,
-     FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF | FL_FLOAT_EXCEPTION},
+        FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF | FL_FLOAT_EXCEPTION},
     {0, "fcmpu", OpType::DoubleFP, 1,
-     FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF | FL_FLOAT_EXCEPTION},
+        FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF | FL_FLOAT_EXCEPTION},
 
     {14, "fctiwx", OpType::DoubleFP, 1,
-     FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_FLOAT_EXCEPTION},
+        FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_FLOAT_EXCEPTION},
     {15, "fctiwzx", OpType::DoubleFP, 1,
-     FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_FLOAT_EXCEPTION},
+        FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_FLOAT_EXCEPTION},
     {72, "fmrx", OpType::DoubleFP, 1,
-     FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_IN_FLOAT_B_BITEXACT | FL_RC_BIT_F | FL_USE_FPU},
+        FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_IN_FLOAT_B_BITEXACT | FL_RC_BIT_F | FL_USE_FPU},
     {136, "fnabsx", OpType::DoubleFP, 1,
-     FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_IN_FLOAT_B_BITEXACT | FL_USE_FPU},
+        FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_IN_FLOAT_B_BITEXACT | FL_USE_FPU},
     {40, "fnegx", OpType::DoubleFP, 1,
-     FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_IN_FLOAT_B_BITEXACT | FL_USE_FPU},
+        FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_IN_FLOAT_B_BITEXACT | FL_USE_FPU},
     {12, "frspx", OpType::DoubleFP, 1,
-     FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF | FL_FLOAT_EXCEPTION},
+        FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_FLOAT_EXCEPTION},
 
     {64, "mcrfs", OpType::SystemFP, 1, FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF},
     {583, "mffsx", OpType::SystemFP, 1, FL_RC_BIT_F | FL_INOUT_FLOAT_D | FL_USE_FPU | FL_READ_FPRF},
     {70, "mtfsb0x", OpType::SystemFP, 3, FL_RC_BIT_F | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF},
     {38, "mtfsb1x", OpType::SystemFP, 3,
-     FL_RC_BIT_F | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF | FL_FLOAT_EXCEPTION},
+        FL_RC_BIT_F | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF | FL_FLOAT_EXCEPTION},
     {134, "mtfsfix", OpType::SystemFP, 3,
-     FL_RC_BIT_F | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF | FL_FLOAT_EXCEPTION},
+        FL_RC_BIT_F | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF | FL_FLOAT_EXCEPTION},
     {711, "mtfsfx", OpType::SystemFP, 3,
-     FL_RC_BIT_F | FL_IN_FLOAT_B | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF | FL_FLOAT_EXCEPTION},
+        FL_RC_BIT_F | FL_IN_FLOAT_B | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF | FL_FLOAT_EXCEPTION},
 }};
 
 constexpr std::array<GekkoOPTemplate, 10> s_table63_2{{
     {18, "fdivx", OpType::DoubleFP, 31,
-     FL_INOUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_FLOAT_EXCEPTION | FL_FLOAT_DIV},
+        FL_INOUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_FLOAT_EXCEPTION | FL_FLOAT_DIV},
     {20, "fsubx", OpType::DoubleFP, 1,
-     FL_INOUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_FLOAT_EXCEPTION},
+        FL_INOUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_FLOAT_EXCEPTION},
     {21, "faddx", OpType::DoubleFP, 1,
-     FL_INOUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_FLOAT_EXCEPTION},
+        FL_INOUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_FLOAT_EXCEPTION},
     {23, "fselx", OpType::DoubleFP, 1,
-     FL_INOUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_IN_FLOAT_BC_BITEXACT | FL_RC_BIT_F | FL_USE_FPU},
+        FL_INOUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_IN_FLOAT_BC_BITEXACT | FL_RC_BIT_F | FL_USE_FPU},
     {25, "fmulx", OpType::DoubleFP, 1,
-     FL_INOUT_FLOAT_D | FL_IN_FLOAT_AC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_FLOAT_EXCEPTION},
+        FL_INOUT_FLOAT_D | FL_IN_FLOAT_AC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_FLOAT_EXCEPTION},
     {26, "frsqrtex", OpType::DoubleFP, 1,
-     FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_FLOAT_EXCEPTION | FL_FLOAT_DIV},
+        FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_FLOAT_EXCEPTION | FL_FLOAT_DIV},
     {28, "fmsubx", OpType::DoubleFP, 1,
-     FL_INOUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_FLOAT_EXCEPTION},
+        FL_INOUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_FLOAT_EXCEPTION},
     {29, "fmaddx", OpType::DoubleFP, 1,
-     FL_INOUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_FLOAT_EXCEPTION},
+        FL_INOUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_FLOAT_EXCEPTION},
     {30, "fnmsubx", OpType::DoubleFP, 1,
-     FL_INOUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_FLOAT_EXCEPTION},
+        FL_INOUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_FLOAT_EXCEPTION},
     {31, "fnmaddx", OpType::DoubleFP, 1,
-     FL_INOUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
-         FL_FLOAT_EXCEPTION},
+        FL_INOUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF |
+            FL_FLOAT_EXCEPTION},
 }};
 
 constexpr size_t TOTAL_INSTRUCTION_COUNT =
@@ -507,11 +509,13 @@ struct Tables
 
 static std::array<GekkoOPStats, TOTAL_INSTRUCTION_COUNT> s_all_instructions_stats;
 
-constexpr Tables s_tables = []() consteval {
+constexpr Tables s_tables = []() consteval
+{
   Tables tables{};
 
   u32 counter = 0;
-  auto make_info = [&](const GekkoOPTemplate& inst) consteval -> u32 {
+  auto make_info = [&](const GekkoOPTemplate& inst) consteval -> u32
+  {
     ASSERT(counter < TOTAL_INSTRUCTION_COUNT);
     GekkoOPInfo* info = &tables.all_instructions[counter];
     info->opname = inst.opname;
@@ -714,7 +718,7 @@ void LogCompiledInstructions()
     if (info.stats->compile_count > 0)
     {
       f.WriteString(fmt::format("{0}\t{1}\t{2}\t{3:08x}\n", info.opname, info.stats->compile_count,
-                                info.stats->run_count, info.stats->last_use));
+          info.stats->run_count, info.stats->last_use));
     }
   }
 
@@ -724,8 +728,8 @@ void LogCompiledInstructions()
     const GekkoOPInfo& info = s_tables.all_instructions[i];
     if (info.stats->compile_count == 0)
     {
-      f.WriteString(fmt::format("{0}\t{1}\t{2}\n", info.opname, info.stats->compile_count,
-                                info.stats->run_count));
+      f.WriteString(fmt::format(
+          "{0}\t{1}\t{2}\n", info.opname, info.stats->compile_count, info.stats->run_count));
     }
   }
 

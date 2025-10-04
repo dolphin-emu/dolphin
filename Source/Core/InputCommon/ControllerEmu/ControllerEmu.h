@@ -26,8 +26,8 @@ constexpr const char* DIRECTION_DOWN = _trans("Down");
 constexpr const char* DIRECTION_LEFT = _trans("Left");
 constexpr const char* DIRECTION_RIGHT = _trans("Right");
 
-constexpr const char* named_directions[] = {DIRECTION_UP, DIRECTION_DOWN, DIRECTION_LEFT,
-                                            DIRECTION_RIGHT};
+constexpr const char* named_directions[] = {
+    DIRECTION_UP, DIRECTION_DOWN, DIRECTION_LEFT, DIRECTION_RIGHT};
 
 class ControlReference;
 
@@ -69,7 +69,9 @@ struct ThreePointCalibration
 {
   ThreePointCalibration() = default;
   ThreePointCalibration(const T& min_, const T& zero_, const T& max_)
-      : min{min_}, zero{zero_}, max{max_}
+      : min{min_}
+      , zero{zero_}
+      , max{max_}
   {
   }
 
@@ -153,7 +155,7 @@ struct RawValue
     // Multiplication by 1.f to floatify either a scalar or a Vec.
     return (ExpandValue(value, value_expansion) * 1.f - calibration_zero) /
            (use_max * 1.f * (calibration_max - calibration_zero) +
-            !use_max * 1.f * (calibration_zero - calibration_min));
+               !use_max * 1.f * (calibration_zero - calibration_min));
   }
 
   template <typename OtherT>
@@ -175,14 +177,14 @@ struct RawValue
 // Maps a float from -1.0..+1.0 to an integer in the provided range.
 template <typename T, typename F>
 T MapFloat(F input_value, T zero_value, T neg_1_value = std::numeric_limits<T>::min(),
-           T pos_1_value = std::numeric_limits<T>::max())
+    T pos_1_value = std::numeric_limits<T>::max())
 {
   static_assert(std::is_integral<T>(), "T is only sane for int types.");
   static_assert(std::is_floating_point<F>(), "F is only sane for float types.");
 
   static_assert(std::numeric_limits<long long>::min() <= std::numeric_limits<T>::min() &&
                     std::numeric_limits<long long>::max() >= std::numeric_limits<T>::max(),
-                "long long is not a superset of T. use of std::llround is not sane.");
+      "long long is not a superset of T. use of std::llround is not sane.");
 
   // Here we round when converting from float to int.
   // After applying our deadzone, resizing, and reshaping math
@@ -199,7 +201,7 @@ T MapFloat(F input_value, T zero_value, T neg_1_value = std::numeric_limits<T>::
 // Maps an integer in the provided range to a float in the range -1.0..1.0.
 template <typename F, typename T>
 F MapToFloat(T input_value, T zero_value, T neg_1_value = std::numeric_limits<T>::min(),
-             T pos_1_value = std::numeric_limits<T>::max())
+    T pos_1_value = std::numeric_limits<T>::max())
 {
   static_assert(std::is_integral<T>(), "T is only sane for int types.");
   static_assert(std::is_floating_point<F>(), "F is only sane for float types.");

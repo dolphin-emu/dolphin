@@ -50,8 +50,8 @@ void JitArm64::GetCRFieldBit(int field, int bit, ARM64Reg out)
   }
 }
 
-void JitArm64::SetCRFieldBit(int field, int bit, ARM64Reg in, bool negate,
-                             bool bits_1_to_31_are_set)
+void JitArm64::SetCRFieldBit(
+    int field, int bit, ARM64Reg in, bool negate, bool bits_1_to_31_are_set)
 {
   gpr.BindCRToRegister(field, true);
   ARM64Reg CR = gpr.CR(field);
@@ -435,8 +435,8 @@ void JitArm64::mfspr(UGeckoInstruction inst)
 
     LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(downcount));
     m_float_emit.SCVTF(SC, WA);
-    m_float_emit.LDR(32, IndexType::Unsigned, SD, Xg,
-                     offsetof(CoreTiming::Globals, last_OC_factor_inverted));
+    m_float_emit.LDR(
+        32, IndexType::Unsigned, SD, Xg, offsetof(CoreTiming::Globals, last_OC_factor_inverted));
     m_float_emit.FMUL(SC, SC, SD);
     m_float_emit.FCVTS(Xresult, SC, RoundingMode::Z);
 

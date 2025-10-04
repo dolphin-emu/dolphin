@@ -12,7 +12,8 @@
 #include "Common/GekkoDisassembler.h"
 
 PatchInstructionDialog::PatchInstructionDialog(QWidget* parent, u32 address, u32 value)
-    : QDialog(parent), m_address(address)
+    : QDialog(parent)
+    , m_address(address)
 {
   setWindowModality(Qt::WindowModal);
   setWindowTitle(tr("Instruction"));
@@ -54,8 +55,7 @@ void PatchInstructionDialog::OnEditChanged()
 
   m_button_box->button(QDialogButtonBox::Ok)->setEnabled(good);
 
-  m_preview_label->setText(
-      tr("Instruction: %1")
+  m_preview_label->setText(tr("Instruction: %1")
           .arg(QString::fromStdString(Common::GekkoDisassembler::Disassemble(m_code, m_address))));
 }
 

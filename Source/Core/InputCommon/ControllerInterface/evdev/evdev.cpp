@@ -42,8 +42,8 @@ public:
   void CloseDescriptor(int fd) { m_cleanup_thread.Push(fd); }
 
 private:
-  std::shared_ptr<evdevDevice>
-  FindDeviceWithUniqueIDAndPhysicalLocation(const char* unique_id, const char* physical_location);
+  std::shared_ptr<evdevDevice> FindDeviceWithUniqueIDAndPhysicalLocation(
+      const char* unique_id, const char* physical_location);
 
   void AddDeviceNode(const char* devnode);
 
@@ -241,9 +241,8 @@ public:
   bool IsDetectable() const override { return false; }
 };
 
-std::shared_ptr<evdevDevice>
-InputBackend::FindDeviceWithUniqueIDAndPhysicalLocation(const char* unique_id,
-                                                        const char* physical_location)
+std::shared_ptr<evdevDevice> InputBackend::FindDeviceWithUniqueIDAndPhysicalLocation(
+    const char* unique_id, const char* physical_location)
 {
   if (!unique_id || !physical_location)
     return nullptr;
@@ -292,7 +291,7 @@ void InputBackend::AddDeviceNode(const char* devnode)
   if (evdev_device)
   {
     NOTICE_LOG_FMT(CONTROLLERINTERFACE,
-                   "evdev combining devices with unique id: {}, physical location: {}", uniq, phys);
+        "evdev combining devices with unique id: {}, physical location: {}", uniq, phys);
 
     evdev_device->AddNode(devnode, fd, dev);
 
@@ -300,11 +299,8 @@ void InputBackend::AddDeviceNode(const char* devnode)
     // This will also give it the correct index and invoke device change callbacks.
     // Make sure to force the device removal immediately (as they are shared ptrs and
     // they could be kept alive, preventing us from re-creating the device)
-    GetControllerInterface().RemoveDevice(
-        [&evdev_device](const auto* device) {
-          return static_cast<const evdevDevice*>(device) == evdev_device.get();
-        },
-        true);
+    GetControllerInterface().RemoveDevice([&evdev_device](const auto* device)
+        { return static_cast<const evdevDevice*>(device) == evdev_device.get(); }, true);
 
     GetControllerInterface().AddDevice(evdev_device);
   }
@@ -369,19 +365,20 @@ void InputBackend::HotplugThreadFunc()
     // automatically removes the old one if it already existed
     if (strcmp(action, "remove") == 0)
     {
-      GetControllerInterface().PlatformPopulateDevices([&devnode, this] {
-        std::shared_ptr<evdevDevice> ptr;
+      GetControllerInterface().PlatformPopulateDevices(
+          [&devnode, this]
+          {
+            std::shared_ptr<evdevDevice> ptr;
 
-        const auto it = m_devnode_objects.find(devnode);
-        if (it != m_devnode_objects.end())
-          ptr = it->second.lock();
+            const auto it = m_devnode_objects.find(devnode);
+            if (it != m_devnode_objects.end())
+              ptr = it->second.lock();
 
-        // If we don't recognize this device, ptr will be null and no device will be removed.
+            // If we don't recognize this device, ptr will be null and no device will be removed.
 
-        GetControllerInterface().RemoveDevice([&ptr](const auto* device) {
-          return static_cast<const evdevDevice*>(device) == ptr.get();
-        });
-      });
+            GetControllerInterface().RemoveDevice([&ptr](const auto* device)
+                { return static_cast<const evdevDevice*>(device) == ptr.get(); });
+          });
     }
     else if (strcmp(action, "add") == 0)
     {
@@ -424,7 +421,8 @@ void InputBackend::StopHotplugThread()
 }
 
 InputBackend::InputBackend(ControllerInterface* controller_interface)
-    : ciface::InputBackend(controller_interface), m_cleanup_thread("evdev cleanup", close)
+    : ciface::InputBackend(controller_interface)
+    , m_cleanup_thread("evdev cleanup", close)
 {
   StartHotplugThread();
 }
@@ -521,7 +519,8 @@ bool evdevDevice::AddNode(std::string devnode, int fd, libevdev* dev)
   {
     // If INPUT_PROP_ACCELEROMETER is set then X,Y,Z,RX,RY,RZ contain motion data.
 
-    auto add_motion_inputs = [&num_axis, dev, this](int first_code, double scale) {
+    auto add_motion_inputs = [&num_axis, dev, this](int first_code, double scale)
+    {
       for (int i = 0; i != 3; ++i)
       {
         const int code = first_code + i;
@@ -548,7 +547,8 @@ bool evdevDevice::AddNode(std::string devnode, int fd, libevdev* dev)
 
   if (is_pointing_device)
   {
-    auto add_cursor_input = [&num_axis, dev, this](int code) {
+    auto add_cursor_input = [&num_axis, dev, this](int code)
+    {
       if (libevdev_has_event_code(dev, EV_ABS, code))
       {
         AddInput(new CursorInput(num_axis, code, false, dev));
@@ -572,8 +572,8 @@ bool evdevDevice::AddNode(std::string devnode, int fd, libevdev* dev)
   {
     if (libevdev_has_event_code(dev, EV_ABS, axis))
     {
-      AddFullAnalogSurfaceInputs(new Axis(num_axis, axis, false, dev),
-                                 new Axis(num_axis, axis, true, dev));
+      AddFullAnalogSurfaceInputs(
+          new Axis(num_axis, axis, false, dev), new Axis(num_axis, axis, true, dev));
       ++num_axis;
     }
   }

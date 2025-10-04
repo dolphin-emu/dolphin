@@ -56,8 +56,8 @@ static Common::EnumMap<char, MAX_MEMCARD_SLOT> s_card_short_names{'A', 'B'};
 
 // Takes care of the nasty recovery of the 'this' pointer from card_slot,
 // stored in the userdata parameter of the CoreTiming event.
-void CEXIMemoryCard::EventCompleteFindInstance(Core::System& system, u64 userdata,
-                                               std::function<void(CEXIMemoryCard*)> callback)
+void CEXIMemoryCard::EventCompleteFindInstance(
+    Core::System& system, u64 userdata, std::function<void(CEXIMemoryCard*)> callback)
 {
   Slot card_slot = static_cast<Slot>(userdata);
   IEXIDevice* self = system.GetExpansionInterface().GetDevice(card_slot);
@@ -73,14 +73,14 @@ void CEXIMemoryCard::EventCompleteFindInstance(Core::System& system, u64 userdat
 
 void CEXIMemoryCard::CmdDoneCallback(Core::System& system, u64 userdata, s64)
 {
-  EventCompleteFindInstance(system, userdata,
-                            [](CEXIMemoryCard* instance) { instance->CmdDone(); });
+  EventCompleteFindInstance(
+      system, userdata, [](CEXIMemoryCard* instance) { instance->CmdDone(); });
 }
 
 void CEXIMemoryCard::TransferCompleteCallback(Core::System& system, u64 userdata, s64)
 {
-  EventCompleteFindInstance(system, userdata,
-                            [](CEXIMemoryCard* instance) { instance->TransferComplete(); });
+  EventCompleteFindInstance(
+      system, userdata, [](CEXIMemoryCard* instance) { instance->TransferComplete(); });
 }
 
 void CEXIMemoryCard::Init(CoreTiming::CoreTimingManager& core_timing)
@@ -104,12 +104,13 @@ void CEXIMemoryCard::Shutdown()
   s_et_transfer_complete.fill(nullptr);
 }
 
-CEXIMemoryCard::CEXIMemoryCard(Core::System& system, const Slot slot, bool gci_folder,
-                               const Memcard::HeaderData& header_data)
-    : IEXIDevice(system), m_card_slot(slot)
+CEXIMemoryCard::CEXIMemoryCard(
+    Core::System& system, const Slot slot, bool gci_folder, const Memcard::HeaderData& header_data)
+    : IEXIDevice(system)
+    , m_card_slot(slot)
 {
-  ASSERT_MSG(EXPANSIONINTERFACE, IsMemcardSlot(slot), "Trying to create invalid memory card in {}.",
-             slot);
+  ASSERT_MSG(
+      EXPANSIONINTERFACE, IsMemcardSlot(slot), "Trying to create invalid memory card in {}.", slot);
 
   // NOTE: When loading a save state, DMA completion callbacks (s_et_transfer_complete) and such
   //   may have been restored, we need to anticipate those arriving.
@@ -148,9 +149,8 @@ CEXIMemoryCard::CEXIMemoryCard(Core::System& system, const Slot slot, bool gci_f
   SetCardFlashID(&sram, header.data(), m_card_slot);
 }
 
-std::pair<std::string /* path */, bool /* migrate */>
-CEXIMemoryCard::GetGCIFolderPath(Slot card_slot, AllowMovieFolder allow_movie_folder,
-                                 Movie::MovieManager& movie)
+std::pair<std::string /* path */, bool /* migrate */> CEXIMemoryCard::GetGCIFolderPath(
+    Slot card_slot, AllowMovieFolder allow_movie_folder, Movie::MovieManager& movie)
 {
   std::string path_override = Config::Get(Config::GetInfoForGCIPathOverride(card_slot));
 
@@ -165,8 +165,8 @@ CEXIMemoryCard::GetGCIFolderPath(Slot card_slot, AllowMovieFolder allow_movie_fo
   if (use_movie_folder)
   {
     return {fmt::format("{}{}/Movie/Card {}", File::GetUserPath(D_GCUSER_IDX),
-                        Config::GetDirectoryForRegion(region), s_card_short_names[card_slot]),
-            false};
+                Config::GetDirectoryForRegion(region), s_card_short_names[card_slot]),
+        false};
   }
 
   return {Config::GetGCIFolderPath(card_slot, region), true};
@@ -208,13 +208,13 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
       // TODO more user friendly abort
       PanicAlertFmtT("{0} is not a directory, failed to move to *.original.\n Verify your "
                      "write permissions or move the file outside of Dolphin",
-                     dir_path);
+          dir_path);
       std::exit(0);
     }
   }
 
-  m_memory_card = std::make_unique<GCMemcardDirectory>(dir_path + DIR_SEP, m_card_slot, header_data,
-                                                       current_game_id);
+  m_memory_card = std::make_unique<GCMemcardDirectory>(
+      dir_path + DIR_SEP, m_card_slot, header_data, current_game_id);
 }
 
 void CEXIMemoryCard::SetupRawMemcard(u16 size_mb)
@@ -364,11 +364,11 @@ void CEXIMemoryCard::TransferByte(u8& byte)
     case Command::ExtraByteProgram:
     case Command::ChipErase:
       DEBUG_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: command {:02x} at position 0. seems normal.",
-                    static_cast<u8>(m_command));
+          static_cast<u8>(m_command));
       break;
     default:
       WARN_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: command {:02x} at position 0",
-                   static_cast<u8>(m_command));
+          static_cast<u8>(m_command));
       break;
     }
     if (m_command == Command::ClearStatus)

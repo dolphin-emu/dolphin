@@ -42,7 +42,7 @@ VerifyWidget::VerifyWidget(std::shared_ptr<DiscIO::Volume> volume) : m_volume(st
   setLayout(layout);
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          &VerifyWidget::OnEmulationStateChanged);
+      &VerifyWidget::OnEmulationStateChanged);
 
   OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
 }
@@ -131,8 +131,8 @@ void VerifyWidget::ConnectWidgets()
 
 static void SetHash(QLineEdit* line_edit, const std::vector<u8>& hash)
 {
-  const QByteArray byte_array = QByteArray::fromRawData(reinterpret_cast<const char*>(hash.data()),
-                                                        static_cast<int>(hash.size()));
+  const QByteArray byte_array = QByteArray::fromRawData(
+      reinterpret_cast<const char*>(hash.data()), static_cast<int>(hash.size()));
   line_edit->setText(QString::fromLatin1(byte_array.toHex()));
 }
 
@@ -153,37 +153,36 @@ void VerifyWidget::Verify()
   const bool redump_verification =
       CanVerifyRedump() && m_redump_checkbox && m_redump_checkbox->isChecked();
 
-  DiscIO::VolumeVerifier verifier(
-      *m_volume, redump_verification,
+  DiscIO::VolumeVerifier verifier(*m_volume, redump_verification,
       {m_crc32_checkbox->isChecked(), m_md5_checkbox->isChecked(), m_sha1_checkbox->isChecked()});
 
   // We have to divide the number of processed bytes with something so it won't make ints overflow
   constexpr int DIVISOR = 0x100;
 
-  ParallelProgressDialog progress(tr("Verifying"), tr("Cancel"), 0,
-                                  static_cast<int>(verifier.GetTotalBytes() / DIVISOR), this);
+  ParallelProgressDialog progress(
+      tr("Verifying"), tr("Cancel"), 0, static_cast<int>(verifier.GetTotalBytes() / DIVISOR), this);
   progress.GetRaw()->setWindowTitle(tr("Verifying"));
   progress.GetRaw()->setMinimumDuration(500);
   progress.GetRaw()->setWindowModality(Qt::WindowModal);
 
-  auto future =
-      std::async(std::launch::async,
-                 [&verifier, &progress]() -> std::optional<DiscIO::VolumeVerifier::Result> {
-                   progress.SetValue(0);
-                   verifier.Start();
-                   while (verifier.GetBytesProcessed() != verifier.GetTotalBytes())
-                   {
-                     progress.SetValue(static_cast<int>(verifier.GetBytesProcessed() / DIVISOR));
-                     if (progress.WasCanceled())
-                       return std::nullopt;
+  auto future = std::async(std::launch::async,
+      [&verifier, &progress]() -> std::optional<DiscIO::VolumeVerifier::Result>
+      {
+        progress.SetValue(0);
+        verifier.Start();
+        while (verifier.GetBytesProcessed() != verifier.GetTotalBytes())
+        {
+          progress.SetValue(static_cast<int>(verifier.GetBytesProcessed() / DIVISOR));
+          if (progress.WasCanceled())
+            return std::nullopt;
 
-                     verifier.Process();
-                   }
-                   verifier.Finish();
+          verifier.Process();
+        }
+        verifier.Finish();
 
-                   progress.Reset();
-                   return verifier.GetResult();
-                 });
+        progress.Reset();
+        return verifier.GetResult();
+      });
   progress.GetRaw()->exec();
 
   std::optional<DiscIO::VolumeVerifier::Result> result = future.get();

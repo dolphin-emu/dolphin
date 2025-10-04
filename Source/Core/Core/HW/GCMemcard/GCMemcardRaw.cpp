@@ -35,9 +35,10 @@
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
 
-MemoryCard::MemoryCard(const std::string& filename, ExpansionInterface::Slot card_slot,
-                       u16 size_mbits)
-    : MemoryCardBase(card_slot, size_mbits), m_filename(filename)
+MemoryCard::MemoryCard(
+    const std::string& filename, ExpansionInterface::Slot card_slot, u16 size_mbits)
+    : MemoryCardBase(card_slot, size_mbits)
+    , m_filename(filename)
 {
   File::IOFile file(m_filename, "rb");
   if (file)
@@ -67,8 +68,8 @@ MemoryCard::MemoryCard(const std::string& filename, ExpansionInterface::Slot car
     const u32 sram_language = static_cast<u32>(sram.settings.language);
     const u64 format_time =
         Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
-    Memcard::GCMemcard::Format(&m_memcard_data[0], flash_id, size_mbits, shift_jis, rtc_bias,
-                               sram_language, format_time);
+    Memcard::GCMemcard::Format(
+        &m_memcard_data[0], flash_id, size_mbits, shift_jis, rtc_bias, sram_language, format_time);
 
     // Fills in the remaining blocks
     memset(&m_memcard_data[MC_HDR_SIZE], 0xFF, m_memory_card_size - MC_HDR_SIZE);
@@ -157,8 +158,8 @@ void MemoryCard::FlushThread()
       return;
 
     Core::DisplayMessage(fmt::format("Wrote to Memory Card {}",
-                                     m_card_slot == ExpansionInterface::Slot::A ? 'A' : 'B'),
-                         4000);
+                             m_card_slot == ExpansionInterface::Slot::A ? 'A' : 'B'),
+        4000);
   }
 }
 
@@ -183,8 +184,8 @@ s32 MemoryCard::Write(u32 dest_address, s32 length, const u8* src_address)
 {
   if (!IsAddressInBounds(dest_address, length))
   {
-    PanicAlertFmtT("MemoryCard: Write called with invalid destination address ({0:#x})",
-                   dest_address);
+    PanicAlertFmtT(
+        "MemoryCard: Write called with invalid destination address ({0:#x})", dest_address);
     return -1;
   }
 

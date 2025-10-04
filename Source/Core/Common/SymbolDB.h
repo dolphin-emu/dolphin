@@ -96,8 +96,8 @@ public:
   }
   void AddCompleteSymbol(const Symbol& symbol);
   bool RenameSymbol(const Symbol& symbol, const std::string& symbol_name);
-  bool RenameSymbol(const Symbol& symbol, const std::string& symbol_name,
-                    const std::string& object_name);
+  bool RenameSymbol(
+      const Symbol& symbol, const std::string& symbol_name, const std::string& object_name);
 
   const Symbol* GetSymbolFromName(std::string_view name) const;
   std::vector<const Symbol*> GetSymbolsFromName(std::string_view name) const;

@@ -31,12 +31,16 @@ struct ImagePixelData
   ImagePixelData() = default;
 
   explicit ImagePixelData(std::vector<Pixel> image_pixels, u32 width_, u32 height_)
-      : pixels(std::move(image_pixels)), width(width_), height(height_)
+      : pixels(std::move(image_pixels))
+      , width(width_)
+      , height(height_)
   {
   }
 
   explicit ImagePixelData(u32 width_, u32 height_, const Pixel& default_color = Pixel{0, 0, 0, 0})
-      : pixels(width_ * height_, default_color), width(width_), height(height_)
+      : pixels(width_ * height_, default_color)
+      , width(width_)
+      , height(height_)
   {
   }
   std::vector<Pixel> pixels;
@@ -44,8 +48,8 @@ struct ImagePixelData
   u32 height = 0;
 };
 
-void CopyImageRegion(const ImagePixelData& src, ImagePixelData& dst, const Rect& src_region,
-                     const Rect& dst_region);
+void CopyImageRegion(
+    const ImagePixelData& src, ImagePixelData& dst, const Rect& src_region, const Rect& dst_region);
 
 std::optional<ImagePixelData> LoadImage(const std::string& path);
 
@@ -59,5 +63,5 @@ enum class ResizeMode
 ImagePixelData Resize(ResizeMode mode, const ImagePixelData& src, u32 new_width, u32 new_height);
 
 ImagePixelData ResizeKeepAspectRatio(ResizeMode mode, const ImagePixelData& src, u32 new_width,
-                                     u32 new_height, const Pixel& background_color);
+    u32 new_height, const Pixel& background_color);
 }  // namespace InputCommon

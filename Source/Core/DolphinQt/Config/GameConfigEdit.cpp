@@ -23,7 +23,9 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 GameConfigEdit::GameConfigEdit(QWidget* parent, QString path, bool read_only)
-    : QWidget{parent}, m_path(std::move(path)), m_read_only(read_only)
+    : QWidget{parent}
+    , m_path(std::move(path))
+    , m_read_only(read_only)
 {
   CreateWidgets();
 
@@ -31,36 +33,34 @@ GameConfigEdit::GameConfigEdit(QWidget* parent, QString path, bool read_only)
 
   new GameConfigHighlighter(m_edit->document());
 
-  AddDescription(QStringLiteral("Core"),
-                 tr("Section that contains most CPU and Hardware related settings."));
+  AddDescription(
+      QStringLiteral("Core"), tr("Section that contains most CPU and Hardware related settings."));
 
   AddDescription(QStringLiteral("CPUThread"), tr("Controls whether or not Dual Core should be "
                                                  "enabled. Can improve performance but can also "
                                                  "cause issues. Defaults to <b>True</b>"));
 
   AddDescription(QStringLiteral("FastDiscSpeed"),
-                 tr("Emulate the disc speed of real hardware. Disabling can cause instability. "
-                    "Defaults to <b>True</b>"));
+      tr("Emulate the disc speed of real hardware. Disabling can cause instability. "
+         "Defaults to <b>True</b>"));
 
   AddDescription(QStringLiteral("MMU"), tr("Controls whether or not the Memory Management Unit "
                                            "should be emulated fully. Few games require it."));
 
-  AddDescription(
-      QStringLiteral("DSPHLE"),
+  AddDescription(QStringLiteral("DSPHLE"),
       tr("Controls whether to use high or low-level DSP emulation. Defaults to <b>True</b>"));
 
-  AddDescription(
-      QStringLiteral("JITFollowBranch"),
+  AddDescription(QStringLiteral("JITFollowBranch"),
       tr("Tries to translate branches ahead of time, improving performance in most cases. Defaults "
          "to <b>True</b>"));
 
   AddDescription(QStringLiteral("Gecko"), tr("Section that contains all Gecko cheat codes."));
 
-  AddDescription(QStringLiteral("ActionReplay"),
-                 tr("Section that contains all Action Replay cheat codes."));
+  AddDescription(
+      QStringLiteral("ActionReplay"), tr("Section that contains all Action Replay cheat codes."));
 
-  AddDescription(QStringLiteral("Video_Settings"),
-                 tr("Section that contains all graphics related settings."));
+  AddDescription(
+      QStringLiteral("Video_Settings"), tr("Section that contains all graphics related settings."));
 
   m_completer = new QCompleter(m_edit);
 
@@ -137,7 +137,7 @@ void GameConfigEdit::ConnectWidgets()
   connect(m_edit, &QTextEdit::textChanged, this, &GameConfigEdit::SaveFile);
   connect(m_edit, &QTextEdit::selectionChanged, this, &GameConfigEdit::OnSelectionChanged);
   connect(m_completer, qOverload<const QString&>(&QCompleter::activated), this,
-          &GameConfigEdit::OnAutoComplete);
+      &GameConfigEdit::OnAutoComplete);
 }
 
 void GameConfigEdit::OnSelectionChanged()
@@ -148,15 +148,15 @@ void GameConfigEdit::OnSelectionChanged()
     QWhatsThis::showText(QCursor::pos(), m_keyword_map[keyword], this);
 }
 
-void GameConfigEdit::AddBoolOption(QMenu* menu, const QString& name, const QString& section,
-                                   const QString& key)
+void GameConfigEdit::AddBoolOption(
+    QMenu* menu, const QString& name, const QString& section, const QString& key)
 {
   auto* option = menu->addMenu(name);
 
-  option->addAction(tr("On"), this,
-                    [this, section, key] { SetOption(section, key, QStringLiteral("True")); });
-  option->addAction(tr("Off"), this,
-                    [this, section, key] { SetOption(section, key, QStringLiteral("False")); });
+  option->addAction(
+      tr("On"), this, [this, section, key] { SetOption(section, key, QStringLiteral("True")); });
+  option->addAction(
+      tr("Off"), this, [this, section, key] { SetOption(section, key, QStringLiteral("False")); });
 }
 
 void GameConfigEdit::SetOption(const QString& section, const QString& key, const QString& value)
@@ -208,32 +208,38 @@ void GameConfigEdit::AddMenubarOptions()
     m_menu->addSeparator();
     auto* core_menubar = m_menu->addMenu(tr("Core"));
 
-    AddBoolOption(core_menubar, tr("Dual Core"), QStringLiteral("Core"),
-                  QStringLiteral("CPUThread"));
+    AddBoolOption(
+        core_menubar, tr("Dual Core"), QStringLiteral("Core"), QStringLiteral("CPUThread"));
     AddBoolOption(core_menubar, tr("MMU"), QStringLiteral("Core"), QStringLiteral("MMU"));
 
     auto* video_menubar = m_menu->addMenu(tr("Video"));
 
     AddBoolOption(video_menubar, tr("Store EFB Copies to Texture Only"),
-                  QStringLiteral("Video_Hacks"), QStringLiteral("EFBToTextureEnable"));
+        QStringLiteral("Video_Hacks"), QStringLiteral("EFBToTextureEnable"));
 
     AddBoolOption(video_menubar, tr("Store XFB Copies to Texture Only"),
-                  QStringLiteral("Video_Hacks"), QStringLiteral("XFBToTextureEnable"));
+        QStringLiteral("Video_Hacks"), QStringLiteral("XFBToTextureEnable"));
 
     {
       auto* texture_cache = video_menubar->addMenu(tr("Texture Cache"));
-      texture_cache->addAction(tr("Safe"), this, [this] {
-        SetOption(QStringLiteral("Video_Settings"), QStringLiteral("SafeTextureCacheColorSamples"),
-                  QStringLiteral("0"));
-      });
-      texture_cache->addAction(tr("Medium"), this, [this] {
-        SetOption(QStringLiteral("Video_Settings"), QStringLiteral("SafeTextureCacheColorSamples"),
-                  QStringLiteral("512"));
-      });
-      texture_cache->addAction(tr("Fast"), this, [this] {
-        SetOption(QStringLiteral("Video_Settings"), QStringLiteral("SafeTextureCacheColorSamples"),
-                  QStringLiteral("128"));
-      });
+      texture_cache->addAction(tr("Safe"), this,
+          [this]
+          {
+            SetOption(QStringLiteral("Video_Settings"),
+                QStringLiteral("SafeTextureCacheColorSamples"), QStringLiteral("0"));
+          });
+      texture_cache->addAction(tr("Medium"), this,
+          [this]
+          {
+            SetOption(QStringLiteral("Video_Settings"),
+                QStringLiteral("SafeTextureCacheColorSamples"), QStringLiteral("512"));
+          });
+      texture_cache->addAction(tr("Fast"), this,
+          [this]
+          {
+            SetOption(QStringLiteral("Video_Settings"),
+                QStringLiteral("SafeTextureCacheColorSamples"), QStringLiteral("128"));
+          });
     }
   }
 }
@@ -264,8 +270,8 @@ void GameConfigEdit::OpenExternalEditor()
   if (!QDesktopServices::openUrl(QUrl::fromLocalFile(m_path)))
   {
     ModalMessageBox::warning(this, tr("Error"),
-                             tr("Failed to open file in external editor.\nMake sure there's an "
-                                "application assigned to open INI files."));
+        tr("Failed to open file in external editor.\nMake sure there's an "
+           "application assigned to open INI files."));
   }
 }
 

@@ -99,8 +99,8 @@ void VertexLoader::CompileVertexTranslator()
   }
 
   // Write vertex position loader
-  WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.low.Position, m_VtxAttr.g0.PosFormat,
-                                               m_VtxAttr.g0.PosElements));
+  WriteCall(VertexLoader_Position::GetFunction(
+      m_VtxDesc.low.Position, m_VtxAttr.g0.PosFormat, m_VtxAttr.g0.PosElements));
 
   int pos_elements = m_VtxAttr.g0.PosElements == CoordComponentCount::XY ? 2 : 3;
   m_native_vtx_decl.position.components = pos_elements;
@@ -113,15 +113,14 @@ void VertexLoader::CompileVertexTranslator()
   // Normals
   if (m_VtxDesc.low.Normal != VertexComponentFormat::NotPresent)
   {
-    TPipelineFunction pFunc =
-        VertexLoader_Normal::GetFunction(m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat,
-                                         m_VtxAttr.g0.NormalElements, m_VtxAttr.g0.NormalIndex3);
+    TPipelineFunction pFunc = VertexLoader_Normal::GetFunction(m_VtxDesc.low.Normal,
+        m_VtxAttr.g0.NormalFormat, m_VtxAttr.g0.NormalElements, m_VtxAttr.g0.NormalIndex3);
 
     if (pFunc == nullptr)
     {
       PanicAlertFmt("VertexLoader_Normal::GetFunction({} {} {} {}) returned zero!",
-                    m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat, m_VtxAttr.g0.NormalElements,
-                    m_VtxAttr.g0.NormalIndex3);
+          m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat, m_VtxAttr.g0.NormalElements,
+          m_VtxAttr.g0.NormalIndex3);
     }
     WriteCall(pFunc);
 
@@ -179,11 +178,11 @@ void VertexLoader::CompileVertexTranslator()
     if (tc != VertexComponentFormat::NotPresent)
     {
       ASSERT_MSG(VIDEO, VertexComponentFormat::Direct <= tc && tc <= VertexComponentFormat::Index16,
-                 "Invalid texture coordinates!\n(tc = {})", tc);
+          "Invalid texture coordinates!\n(tc = {})", tc);
       ASSERT_MSG(VIDEO, ComponentFormat::UByte <= format && format <= ComponentFormat::Float,
-                 "Invalid texture coordinates format!\n(format = {})", format);
+          "Invalid texture coordinates format!\n(format = {})", format);
       ASSERT_MSG(VIDEO, elements == TexComponentCount::S || elements == TexComponentCount::ST,
-                 "Invalid number of texture coordinates elements!\n(elements = {})", elements);
+          "Invalid number of texture coordinates elements!\n(elements = {})", elements);
 
       WriteCall(VertexLoader_TextCoord::GetFunction(tc, format, elements));
     }

@@ -44,67 +44,73 @@
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
 
-static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no,
-                              Common::MsgType style)
+static bool QtMsgAlertHandler(
+    const char* caption, const char* text, bool yes_no, Common::MsgType style)
 {
   const bool called_from_cpu_thread = Core::IsCPUThread();
   const bool called_from_gpu_thread = Core::IsGPUThread();
 
-  std::optional<bool> r = RunOnObject(QApplication::instance(), [&] {
-    // If we were called from the CPU/GPU thread, set us as the CPU/GPU thread.
-    // This information is used in order to avoid deadlocks when calling e.g.
-    // Host::SetRenderFocus or Core::CPUThreadGuard. (Host::SetRenderFocus
-    // can get called automatically when a dialog steals the focus.)
-
-    Common::ScopeGuard cpu_scope_guard(&Core::UndeclareAsCPUThread);
-    Common::ScopeGuard gpu_scope_guard(&Core::UndeclareAsGPUThread);
-
-    if (!called_from_cpu_thread)
-      cpu_scope_guard.Dismiss();
-    if (!called_from_gpu_thread)
-      gpu_scope_guard.Dismiss();
-
-    if (called_from_cpu_thread)
-      Core::DeclareAsCPUThread();
-    if (called_from_gpu_thread)
-      Core::DeclareAsGPUThread();
-
-    ModalMessageBox message_box(QApplication::activeWindow(), Qt::ApplicationModal);
-    message_box.setWindowTitle(QString::fromUtf8(caption));
-    message_box.setText(QString::fromUtf8(text));
-
-    message_box.setStandardButtons(yes_no ? QMessageBox::Yes | QMessageBox::No : QMessageBox::Ok);
-    if (style == Common::MsgType::Warning)
-      message_box.addButton(QMessageBox::Ignore)->setText(QObject::tr("Ignore for this session"));
-
-    message_box.setIcon([&] {
-      switch (style)
+  std::optional<bool> r = RunOnObject(QApplication::instance(),
+      [&]
       {
-      case Common::MsgType::Information:
-        return QMessageBox::Information;
-      case Common::MsgType::Question:
-        return QMessageBox::Question;
-      case Common::MsgType::Warning:
-        return QMessageBox::Warning;
-      case Common::MsgType::Critical:
-        return QMessageBox::Critical;
-      }
-      // appease MSVC
-      return QMessageBox::NoIcon;
-    }());
+        // If we were called from the CPU/GPU thread, set us as the CPU/GPU thread.
+        // This information is used in order to avoid deadlocks when calling e.g.
+        // Host::SetRenderFocus or Core::CPUThreadGuard. (Host::SetRenderFocus
+        // can get called automatically when a dialog steals the focus.)
 
-    const int button = message_box.exec();
-    if (button == QMessageBox::Yes)
-      return true;
+        Common::ScopeGuard cpu_scope_guard(&Core::UndeclareAsCPUThread);
+        Common::ScopeGuard gpu_scope_guard(&Core::UndeclareAsGPUThread);
 
-    if (button == QMessageBox::Ignore)
-    {
-      Config::SetCurrent(Config::MAIN_USE_PANIC_HANDLERS, false);
-      return true;
-    }
+        if (!called_from_cpu_thread)
+          cpu_scope_guard.Dismiss();
+        if (!called_from_gpu_thread)
+          gpu_scope_guard.Dismiss();
 
-    return false;
-  });
+        if (called_from_cpu_thread)
+          Core::DeclareAsCPUThread();
+        if (called_from_gpu_thread)
+          Core::DeclareAsGPUThread();
+
+        ModalMessageBox message_box(QApplication::activeWindow(), Qt::ApplicationModal);
+        message_box.setWindowTitle(QString::fromUtf8(caption));
+        message_box.setText(QString::fromUtf8(text));
+
+        message_box.setStandardButtons(
+            yes_no ? QMessageBox::Yes | QMessageBox::No : QMessageBox::Ok);
+        if (style == Common::MsgType::Warning)
+          message_box.addButton(QMessageBox::Ignore)
+              ->setText(QObject::tr("Ignore for this session"));
+
+        message_box.setIcon(
+            [&]
+            {
+              switch (style)
+              {
+              case Common::MsgType::Information:
+                return QMessageBox::Information;
+              case Common::MsgType::Question:
+                return QMessageBox::Question;
+              case Common::MsgType::Warning:
+                return QMessageBox::Warning;
+              case Common::MsgType::Critical:
+                return QMessageBox::Critical;
+              }
+              // appease MSVC
+              return QMessageBox::NoIcon;
+            }());
+
+        const int button = message_box.exec();
+        if (button == QMessageBox::Yes)
+          return true;
+
+        if (button == QMessageBox::Ignore)
+        {
+          Config::SetCurrent(Config::MAIN_USE_PANIC_HANDLERS, false);
+          return true;
+        }
+
+        return false;
+      });
   if (r.has_value())
     return *r;
   return false;
@@ -190,7 +196,7 @@ int main(int argc, char* argv[])
   // Whenever the event loop is about to go to sleep, dispatch the jobs
   // queued in the Core first.
   QObject::connect(QAbstractEventDispatcher::instance(), &QAbstractEventDispatcher::aboutToBlock,
-                   &app, [] { Core::HostDispatchJobs(Core::System::GetInstance()); });
+      &app, [] { Core::HostDispatchJobs(Core::System::GetInstance()); });
 
   std::optional<std::string> save_state_path;
   if (options.is_set("save_state"))
@@ -204,7 +210,7 @@ int main(int argc, char* argv[])
   {
     const std::list<std::string> paths_list = options.all("exec");
     const std::vector<std::string> paths{std::make_move_iterator(std::begin(paths_list)),
-                                         std::make_move_iterator(std::end(paths_list))};
+        std::make_move_iterator(std::end(paths_list))};
     boot = BootParameters::GenerateFromFile(
         paths, BootSessionData(save_state_path, DeleteSavestateAfterBoot::No));
     game_specified = true;
@@ -234,15 +240,13 @@ int main(int argc, char* argv[])
 
   if (save_state_path && !game_specified)
   {
-    ModalMessageBox::critical(
-        nullptr, QObject::tr("Error"),
+    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
         QObject::tr("A save state cannot be loaded without specifying a game to launch."));
     retval = 1;
   }
   else if (Settings::Instance().IsBatchModeEnabled() && !game_specified)
   {
-    ModalMessageBox::critical(
-        nullptr, QObject::tr("Error"),
+    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
         QObject::tr("Batch mode cannot be used without specifying a game to launch."));
     retval = 1;
   }
@@ -260,7 +264,7 @@ int main(int argc, char* argv[])
     Settings::Instance().ApplyStyle();
 
     MainWindow win{Core::System::GetInstance(), std::move(boot),
-                   static_cast<const char*>(options.get("movie"))};
+        static_cast<const char*>(options.get("movie"))};
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
     if (!Config::Get(Config::MAIN_ANALYTICS_PERMISSION_ASKED))
@@ -269,9 +273,9 @@ int main(int argc, char* argv[])
       // the dialog is only shown after the application is ready, as only then it is guaranteed that
       // the main window has been placed in its final position.
       auto* const connection_context = new QObject(&win);
-      QObject::connect(
-          qApp, &QGuiApplication::applicationStateChanged, connection_context,
-          [connection_context, &win](const Qt::ApplicationState state) {
+      QObject::connect(qApp, &QGuiApplication::applicationStateChanged, connection_context,
+          [connection_context, &win](const Qt::ApplicationState state)
+          {
             if (state != Qt::ApplicationState::ApplicationActive)
               return;
 
@@ -309,7 +313,7 @@ int main(int argc, char* argv[])
     if (!Settings::Instance().IsBatchModeEnabled())
     {
       auto* updater = new Updater(&win, Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK),
-                                  Config::Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
+          Config::Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
       updater->start();
     }
 

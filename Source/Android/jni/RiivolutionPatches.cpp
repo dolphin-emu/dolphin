@@ -29,15 +29,15 @@ static std::vector<DiscIO::Riivolution::Disc>& GetReference(JNIEnv* env, jobject
 extern "C" {
 
 JNIEXPORT jlong JNICALL
-Java_org_dolphinemu_dolphinemu_features_riivolution_model_RiivolutionPatches_initialize(JNIEnv* env,
-                                                                                        jclass obj)
+Java_org_dolphinemu_dolphinemu_features_riivolution_model_RiivolutionPatches_initialize(
+    JNIEnv* env, jclass obj)
 {
   return reinterpret_cast<jlong>(new std::vector<DiscIO::Riivolution::Disc>);
 }
 
 JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_features_riivolution_model_RiivolutionPatches_finalize(JNIEnv* env,
-                                                                                      jobject obj)
+Java_org_dolphinemu_dolphinemu_features_riivolution_model_RiivolutionPatches_finalize(
+    JNIEnv* env, jobject obj)
 {
   delete GetPointer(env, obj);
 }
@@ -83,8 +83,7 @@ JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_features_riivolution_model_RiivolutionPatches_getOptionName(
     JNIEnv* env, jobject obj, jint disc_index, jint section_index, jint option_index)
 {
-  return ToJString(
-      env,
+  return ToJString(env,
       GetReference(env, obj)[disc_index].m_sections[section_index].m_options[option_index].m_name);
 }
 
@@ -131,8 +130,8 @@ Java_org_dolphinemu_dolphinemu_features_riivolution_model_RiivolutionPatches_set
       .m_selected_choice = choice_index;
 }
 
-static std::optional<DiscIO::Riivolution::Config> LoadConfigXML(const std::string& root_directory,
-                                                                std::string_view game_id)
+static std::optional<DiscIO::Riivolution::Config> LoadConfigXML(
+    const std::string& root_directory, std::string_view game_id)
 {
   // The way Riivolution stores settings only makes sense for standard game IDs.
   if (!(game_id.size() == 4 || game_id.size() == 6))

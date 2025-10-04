@@ -19,9 +19,10 @@ static constexpr double SAMPLE_RC_RATIO = 0.25;
 static constexpr u64 MAX_DT_QUEUE_SIZE = 1UL << 12;
 static constexpr u64 MAX_QUALITY_GRAPH_SIZE = 1UL << 8;
 
-PerformanceTracker::PerformanceTracker(const std::optional<std::string> log_name,
-                                       const std::optional<DT> sample_window_duration)
-    : m_log_name{log_name}, m_sample_window_duration{sample_window_duration}
+PerformanceTracker::PerformanceTracker(
+    const std::optional<std::string> log_name, const std::optional<DT> sample_window_duration)
+    : m_log_name{log_name}
+    , m_sample_window_duration{sample_window_duration}
 {
   Reset();
 }
@@ -145,7 +146,8 @@ void PerformanceTracker::ImPlotPlotLines(const char* label) const
   const bool quality = m_dt_queue.size() < MAX_QUALITY_GRAPH_SIZE;
 
   std::size_t point_index = 0;
-  const auto add_point = [&](DT dt, DT shift_x, float prev_ms) {
+  const auto add_point = [&](DT dt, DT shift_x, float prev_ms)
+  {
     const float ms = DT_ms{dt}.count();
 
     if (quality)
@@ -191,8 +193,8 @@ void PerformanceTracker::LogRenderTimeToFile(DT val)
 
   if (!m_bench_file.is_open())
   {
-    File::OpenFStream(m_bench_file, File::GetUserPath(D_LOGS_IDX) + *m_log_name,
-                      std::ios_base::out);
+    File::OpenFStream(
+        m_bench_file, File::GetUserPath(D_LOGS_IDX) + *m_log_name, std::ios_base::out);
   }
 
   m_bench_file << std::fixed << std::setprecision(8) << DT_ms(val).count() << std::endl;

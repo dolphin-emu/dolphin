@@ -52,8 +52,7 @@ void ESCore::TitleImportExportContext::DoState(PointerWrap& p)
 }
 
 ReturnCode ESCore::ImportTicket(const std::vector<u8>& ticket_bytes,
-                                const std::vector<u8>& cert_chain, TicketImportType type,
-                                VerifySignature verify_signature)
+    const std::vector<u8>& cert_chain, TicketImportType type, VerifySignature verify_signature)
 {
   ES::TicketReader ticket{ticket_bytes};
   if (!ticket.IsValid())
@@ -65,23 +64,23 @@ ReturnCode ESCore::ImportTicket(const std::vector<u8>& ticket_bytes,
   {
     if (device_id != ticket_device_id)
     {
-      WARN_LOG_FMT(IOS_ES, "Device ID mismatch: ticket {:08x}, device {:08x}", ticket_device_id,
-                   device_id);
+      WARN_LOG_FMT(
+          IOS_ES, "Device ID mismatch: ticket {:08x}, device {:08x}", ticket_device_id, device_id);
       return ES_DEVICE_ID_MISMATCH;
     }
     const ReturnCode ret = ticket.Unpersonalise(m_ios.GetIOSC());
     if (ret < 0)
     {
       ERROR_LOG_FMT(IOS_ES, "ImportTicket: Failed to unpersonalise ticket for {:016x} ({})",
-                    ticket.GetTitleId(), Common::ToUnderlying(ret));
+          ticket.GetTitleId(), Common::ToUnderlying(ret));
       return ret;
     }
   }
 
   if (verify_signature != VerifySignature::No)
   {
-    const ReturnCode verify_ret = VerifyContainer(VerifyContainerType::Ticket,
-                                                  VerifyMode::UpdateCertStore, ticket, cert_chain);
+    const ReturnCode verify_ret = VerifyContainer(
+        VerifyContainerType::Ticket, VerifyMode::UpdateCertStore, ticket, cert_chain);
     if (verify_ret != IPC_SUCCESS)
       return verify_ret;
   }
@@ -141,8 +140,8 @@ static void ResetTitleImportContext(ESCore::Context* context, IOSC& iosc)
   context->title_import_export = {};
 }
 
-ReturnCode ESCore::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes,
-                             u64 caller_title_id, u32 caller_title_flags)
+ReturnCode ESCore::ImportTmd(
+    Context& context, const std::vector<u8>& tmd_bytes, u64 caller_title_id, u32 caller_title_flags)
 {
   INFO_LOG_FMT(IOS_ES, "ImportTmd");
 
@@ -159,11 +158,11 @@ ReturnCode ESCore::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes,
     return ret;
 
   ret = VerifyContainer(VerifyContainerType::TMD, VerifyMode::UpdateCertStore,
-                        context.title_import_export.tmd, cert_store);
+      context.title_import_export.tmd, cert_store);
   if (ret != IPC_SUCCESS)
   {
-    ERROR_LOG_FMT(IOS_ES, "ImportTmd: VerifyContainer failed with error {}",
-                  Common::ToUnderlying(ret));
+    ERROR_LOG_FMT(
+        IOS_ES, "ImportTmd: VerifyContainer failed with error {}", Common::ToUnderlying(ret));
     return ret;
   }
 
@@ -174,11 +173,11 @@ ReturnCode ESCore::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes,
   }
 
   ret = InitBackupKey(caller_title_id, caller_title_flags, m_ios.GetIOSC(),
-                      &context.title_import_export.key_handle);
+      &context.title_import_export.key_handle);
   if (ret != IPC_SUCCESS)
   {
-    ERROR_LOG_FMT(IOS_ES, "ImportTmd: InitBackupKey failed with error {}",
-                  Common::ToUnderlying(ret));
+    ERROR_LOG_FMT(
+        IOS_ES, "ImportTmd: InitBackupKey failed with error {}", Common::ToUnderlying(ret));
     return ret;
   }
 
@@ -201,11 +200,11 @@ IPCReply ESDevice::ImportTmd(Context& context, const IOCtlVRequest& request)
   std::vector<u8> tmd(request.in_vectors[0].size);
   memory.CopyFromEmu(tmd.data(), request.in_vectors[0].address, request.in_vectors[0].size);
   return IPCReply(m_core.ImportTmd(context, tmd, m_core.m_title_context.tmd.GetTitleId(),
-                                   m_core.m_title_context.tmd.GetTitleFlags()));
+      m_core.m_title_context.tmd.GetTitleFlags()));
 }
 
-static ReturnCode InitTitleImportKey(const std::vector<u8>& ticket_bytes, IOSC& iosc,
-                                     IOSC::Handle* handle)
+static ReturnCode InitTitleImportKey(
+    const std::vector<u8>& ticket_bytes, IOSC& iosc, IOSC::Handle* handle)
 {
   ReturnCode ret =
       iosc.CreateObject(handle, IOSC::TYPE_SECRET_KEY, IOSC::ObjectSubType::AES128, PID_ES);
@@ -219,12 +218,11 @@ static ReturnCode InitTitleImportKey(const std::vector<u8>& ticket_bytes, IOSC& 
     return ES_INVALID_TICKET;
 
   return iosc.ImportSecretKey(*handle, IOSC::COMMON_KEY_HANDLES[index], iv.data(),
-                              &ticket_bytes[offsetof(ES::Ticket, title_key)], PID_ES);
+      &ticket_bytes[offsetof(ES::Ticket, title_key)], PID_ES);
 }
 
 ReturnCode ESCore::ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
-                                   const std::vector<u8>& cert_chain,
-                                   VerifySignature verify_signature)
+    const std::vector<u8>& cert_chain, VerifySignature verify_signature)
 {
   INFO_LOG_FMT(IOS_ES, "ImportTitleInit");
   ResetTitleImportContext(&context, m_ios.GetIOSC());
@@ -243,7 +241,7 @@ ReturnCode ESCore::ImportTitleInit(Context& context, const std::vector<u8>& tmd_
   if (verify_signature != VerifySignature::No)
   {
     ret = VerifyContainer(VerifyContainerType::TMD, VerifyMode::UpdateCertStore,
-                          context.title_import_export.tmd, cert_chain);
+        context.title_import_export.tmd, cert_chain);
     if (ret != IPC_SUCCESS)
       return ret;
   }
@@ -259,14 +257,14 @@ ReturnCode ESCore::ImportTitleInit(Context& context, const std::vector<u8>& tmd_
     if (ret != IPC_SUCCESS)
       return ret;
 
-    ret = VerifyContainer(VerifyContainerType::Ticket, VerifyMode::DoNotUpdateCertStore, ticket,
-                          cert_store);
+    ret = VerifyContainer(
+        VerifyContainerType::Ticket, VerifyMode::DoNotUpdateCertStore, ticket, cert_store);
     if (ret != IPC_SUCCESS)
       return ret;
   }
 
-  ret = InitTitleImportKey(ticket.GetBytes(), m_ios.GetIOSC(),
-                           &context.title_import_export.key_handle);
+  ret = InitTitleImportKey(
+      ticket.GetBytes(), m_ios.GetIOSC(), &context.title_import_export.key_handle);
   if (ret != IPC_SUCCESS)
     return ret;
 
@@ -307,7 +305,7 @@ ReturnCode ESCore::ImportContentBegin(Context& context, u64 title_id, u32 conten
   context.title_import_export.content.id = content_id;
 
   INFO_LOG_FMT(IOS_ES, "ImportContentBegin: title {:016x}, content ID {:08x}", title_id,
-               context.title_import_export.content.id);
+      context.title_import_export.content.id);
 
   if (!context.title_import_export.valid)
     return ES_EINVAL;
@@ -315,15 +313,15 @@ ReturnCode ESCore::ImportContentBegin(Context& context, u64 title_id, u32 conten
   if (title_id != context.title_import_export.tmd.GetTitleId())
   {
     ERROR_LOG_FMT(IOS_ES, "ImportContentBegin: title id {:016x} != TMD title id {:016x}, ignoring",
-                  title_id, context.title_import_export.tmd.GetTitleId());
+        title_id, context.title_import_export.tmd.GetTitleId());
     return ES_EINVAL;
   }
 
   // The IV for title content decryption is the lower two bytes of the
   // content index, zero extended.
   ES::Content content_info;
-  if (!context.title_import_export.tmd.FindContentById(context.title_import_export.content.id,
-                                                       &content_info))
+  if (!context.title_import_export.tmd.FindContentById(
+          context.title_import_export.content.id, &content_info))
     return ES_EINVAL;
   context.title_import_export.content.iv[0] = (content_info.index >> 8) & 0xFF;
   context.title_import_export.content.iv[1] = content_info.index & 0xFF;
@@ -351,8 +349,8 @@ IPCReply ESDevice::ImportContentBegin(Context& context, const IOCtlVRequest& req
   return IPCReply(m_core.ImportContentBegin(context, title_id, content_id));
 }
 
-ReturnCode ESCore::ImportContentData(Context& context, u32 content_fd, const u8* data,
-                                     u32 data_size)
+ReturnCode ESCore::ImportContentData(
+    Context& context, u32 content_fd, const u8* data, u32 data_size)
 {
   INFO_LOG_FMT(IOS_ES, "ImportContentData: content fd {:08x}, size {}", content_fd, data_size);
   context.title_import_export.content.buffer.insert(
@@ -392,20 +390,20 @@ ReturnCode ESCore::ImportContentEnd(Context& context, u32 content_fd)
     return ES_EINVAL;
 
   std::vector<u8> decrypted_data(context.title_import_export.content.buffer.size());
-  const ReturnCode decrypt_ret = m_ios.GetIOSC().Decrypt(
-      context.title_import_export.key_handle, context.title_import_export.content.iv.data(),
+  const ReturnCode decrypt_ret = m_ios.GetIOSC().Decrypt(context.title_import_export.key_handle,
+      context.title_import_export.content.iv.data(),
       context.title_import_export.content.buffer.data(),
       context.title_import_export.content.buffer.size(), decrypted_data.data(), PID_ES);
   if (decrypt_ret != IPC_SUCCESS)
     return decrypt_ret;
 
   ES::Content content_info;
-  context.title_import_export.tmd.FindContentById(context.title_import_export.content.id,
-                                                  &content_info);
+  context.title_import_export.tmd.FindContentById(
+      context.title_import_export.content.id, &content_info);
   if (!CheckIfContentHashMatches(decrypted_data, content_info))
   {
-    ERROR_LOG_FMT(IOS_ES, "ImportContentEnd: Hash for content {:08x} doesn't match",
-                  content_info.id);
+    ERROR_LOG_FMT(
+        IOS_ES, "ImportContentEnd: Hash for content {:08x} doesn't match", content_info.id);
     return ES_HASH_MISMATCH;
   }
 
@@ -418,8 +416,8 @@ ReturnCode ESCore::ImportContentEnd(Context& context, u32 content_fd)
   }
   else
   {
-    content_path = GetImportContentPath(context.title_import_export.tmd.GetTitleId(),
-                                        context.title_import_export.content.id);
+    content_path = GetImportContentPath(
+        context.title_import_export.tmd.GetTitleId(), context.title_import_export.content.id);
   }
 
   const std::string temp_path =
@@ -464,26 +462,28 @@ static bool HasAllRequiredContents(Kernel& ios, const ES::TMDReader& tmd)
   const u64 title_id = tmd.GetTitleId();
   const std::vector<ES::Content> contents = tmd.GetContents();
   const ES::SharedContentMap shared_content_map{ios.GetFSCore()};
-  return std::ranges::all_of(contents, [&](const ES::Content& content) {
-    if (content.IsOptional())
-      return true;
+  return std::ranges::all_of(contents,
+      [&](const ES::Content& content)
+      {
+        if (content.IsOptional())
+          return true;
 
-    if (content.IsShared())
-      return shared_content_map.GetFilenameFromSHA1(content.sha1).has_value();
+        if (content.IsShared())
+          return shared_content_map.GetFilenameFromSHA1(content.sha1).has_value();
 
-    // Note: the import hasn't been finalised yet, so the whole title directory
-    // is still in /import, not /title.
-    const std::string path = GetImportContentPath(title_id, content.id);
-    return ios.GetFS()->GetMetadata(PID_KERNEL, PID_KERNEL, path).Succeeded();
-  });
+        // Note: the import hasn't been finalised yet, so the whole title directory
+        // is still in /import, not /title.
+        const std::string path = GetImportContentPath(title_id, content.id);
+        return ios.GetFS()->GetMetadata(PID_KERNEL, PID_KERNEL, path).Succeeded();
+      });
 }
 
 ReturnCode ESCore::ImportTitleDone(Context& context)
 {
   if (!context.title_import_export.valid || context.title_import_export.content.valid)
   {
-    ERROR_LOG_FMT(IOS_ES,
-                  "ImportTitleDone: No title import, or a content import is still in progress");
+    ERROR_LOG_FMT(
+        IOS_ES, "ImportTitleDone: No title import, or a content import is still in progress");
     return ES_EINVAL;
   }
 
@@ -692,11 +692,11 @@ IPCReply ESDevice::DeleteContent(const IOCtlVRequest& request)
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
   return IPCReply(m_core.DeleteContent(memory.Read_U64(request.in_vectors[0].address),
-                                       memory.Read_U32(request.in_vectors[1].address)));
+      memory.Read_U32(request.in_vectors[1].address)));
 }
 
 ReturnCode ESCore::ExportTitleInit(Context& context, u64 title_id, u8* tmd_bytes, u32 tmd_size,
-                                   u64 caller_title_id, u32 caller_title_flags)
+    u64 caller_title_id, u32 caller_title_flags)
 {
   // No concurrent title import/export is allowed.
   if (context.title_import_export.valid)
@@ -710,7 +710,7 @@ ReturnCode ESCore::ExportTitleInit(Context& context, u64 title_id, u8* tmd_bytes
   context.title_import_export.tmd = tmd;
 
   const ReturnCode ret = InitBackupKey(caller_title_id, caller_title_flags, m_ios.GetIOSC(),
-                                       &context.title_import_export.key_handle);
+      &context.title_import_export.key_handle);
   if (ret != IPC_SUCCESS)
     return ret;
 
@@ -737,8 +737,7 @@ IPCReply ESDevice::ExportTitleInit(Context& context, const IOCtlVRequest& reques
   u8* tmd_bytes = memory.GetPointerForRange(request.io_vectors[0].address, tmd_size);
 
   return IPCReply(m_core.ExportTitleInit(context, title_id, tmd_bytes, tmd_size,
-                                         m_core.m_title_context.tmd.GetTitleId(),
-                                         m_core.m_title_context.tmd.GetTitleFlags()));
+      m_core.m_title_context.tmd.GetTitleId(), m_core.m_title_context.tmd.GetTitleFlags()));
 }
 
 ReturnCode ESCore::ExportContentBegin(Context& context, u64 title_id, u32 content_id)
@@ -811,9 +810,9 @@ ReturnCode ESCore::ExportContentData(Context& context, u32 content_fd, u8* data,
   buffer.resize(Common::AlignUp(buffer.size(), 32));
 
   std::vector<u8> output(buffer.size());
-  const ReturnCode encrypt_ret = m_ios.GetIOSC().Encrypt(
-      context.title_import_export.key_handle, context.title_import_export.content.iv.data(),
-      buffer.data(), buffer.size(), output.data(), PID_ES);
+  const ReturnCode encrypt_ret = m_ios.GetIOSC().Encrypt(context.title_import_export.key_handle,
+      context.title_import_export.content.iv.data(), buffer.data(), buffer.size(), output.data(),
+      PID_ES);
   if (encrypt_ret != IPC_SUCCESS)
     return encrypt_ret;
 
@@ -878,18 +877,20 @@ ReturnCode ESCore::DeleteSharedContent(const std::array<u8, 20>& sha1) const
 
   // Check whether the shared content is used by a system title.
   const std::vector<u64> titles = GetInstalledTitles();
-  const bool is_used_by_system_title = std::ranges::any_of(titles, [&](u64 id) {
-    if (!ES::IsTitleType(id, ES::TitleType::System))
-      return false;
+  const bool is_used_by_system_title = std::ranges::any_of(titles,
+      [&](u64 id)
+      {
+        if (!ES::IsTitleType(id, ES::TitleType::System))
+          return false;
 
-    const auto tmd = FindInstalledTMD(id);
-    if (!tmd.IsValid())
-      return true;
+        const auto tmd = FindInstalledTMD(id);
+        if (!tmd.IsValid())
+          return true;
 
-    const auto contents = tmd.GetContents();
-    return std::ranges::any_of(contents,
-                               [&sha1](const auto& content) { return content.sha1 == sha1; });
-  });
+        const auto contents = tmd.GetContents();
+        return std::ranges::any_of(
+            contents, [&sha1](const auto& content) { return content.sha1 == sha1; });
+      });
 
   // Any shared content used by a system title cannot be deleted.
   if (is_used_by_system_title)

@@ -27,7 +27,7 @@ IPCReply ESDevice::GetStoredContentsCount(const ES::TMDReader& tmd, const IOCtlV
   memory.Write_U32(num_contents, request.io_vectors[0].address);
 
   INFO_LOG_FMT(IOS_ES, "GetStoredContentsCount ({:#x}):  {} content(s) for {:016x}",
-               request.request, num_contents, tmd.GetTitleId());
+      request.request, num_contents, tmd.GetTitleId());
   return IPCReply(IPC_SUCCESS);
 }
 
@@ -113,8 +113,8 @@ IPCReply ESDevice::GetTMDStoredContents(const IOCtlVRequest& request)
   if (ret != IPC_SUCCESS)
     return IPCReply(ret);
 
-  ret = m_core.VerifyContainer(ESCore::VerifyContainerType::TMD,
-                               ESCore::VerifyMode::UpdateCertStore, tmd, cert_store);
+  ret = m_core.VerifyContainer(
+      ESCore::VerifyContainerType::TMD, ESCore::VerifyMode::UpdateCertStore, tmd, cert_store);
   if (ret != IPC_SUCCESS)
     return IPCReply(ret);
 

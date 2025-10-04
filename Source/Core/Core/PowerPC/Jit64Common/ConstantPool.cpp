@@ -36,8 +36,8 @@ void ConstantPool::Shutdown()
   m_const_info.clear();
 }
 
-const void* ConstantPool::GetConstant(const void* value, size_t element_size, size_t num_elements,
-                                      size_t index)
+const void* ConstantPool::GetConstant(
+    const void* value, size_t element_size, size_t num_elements, size_t index)
 {
   const size_t value_size = element_size * num_elements;
   const auto [iter, inserted] = m_const_info.emplace(value, ConstantInfo{});

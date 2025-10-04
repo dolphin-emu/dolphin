@@ -149,8 +149,10 @@ public:
   using VariableContainer = std::map<std::string, std::shared_ptr<ControlState>>;
 
   ControlEnvironment(const Core::DeviceContainer& container_, const Core::DeviceQualifier& default_,
-                     VariableContainer& vars)
-      : m_variables(vars), container(container_), default_device(default_)
+      VariableContainer& vars)
+      : m_variables(vars)
+      , container(container_)
+      , default_device(default_)
   {
   }
 

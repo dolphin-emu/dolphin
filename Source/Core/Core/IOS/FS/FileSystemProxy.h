@@ -36,7 +36,9 @@ public:
   {
   public:
     ScopedFd(FSCore* fs, s64 fd, Ticks tick_tracker = {})
-        : m_fs{fs}, m_fd{fd}, m_tick_tracker{tick_tracker}
+        : m_fs{fs}
+        , m_fd{fd}
+        , m_tick_tracker{tick_tracker}
     {
     }
 
@@ -63,19 +65,19 @@ public:
   // These are the equivalent of the IPC command handlers so IPC overhead is included
   // in timing calculations.
   ScopedFd Open(FS::Uid uid, FS::Gid gid, const std::string& path, FS::Mode mode,
-                std::optional<u32> ipc_fd = {}, Ticks ticks = {});
+      std::optional<u32> ipc_fd = {}, Ticks ticks = {});
   s32 Close(u64 fd, Ticks ticks = {});
   s32 Read(u64 fd, u8* data, u32 size, std::optional<u32> ipc_buffer_addr = {}, Ticks ticks = {});
-  s32 Write(u64 fd, const u8* data, u32 size, std::optional<u32> ipc_buffer_addr = {},
-            Ticks ticks = {});
+  s32 Write(
+      u64 fd, const u8* data, u32 size, std::optional<u32> ipc_buffer_addr = {}, Ticks ticks = {});
   s32 Seek(u64 fd, u32 offset, FS::SeekMode mode, Ticks ticks = {});
 
   FS::Result<FS::FileStatus> GetFileStatus(u64 fd, Ticks ticks = {});
   FS::ResultCode RenameFile(FS::Uid uid, FS::Gid gid, const std::string& old_path,
-                            const std::string& new_path, Ticks ticks = {});
+      const std::string& new_path, Ticks ticks = {});
   FS::ResultCode DeleteFile(FS::Uid uid, FS::Gid gid, const std::string& path, Ticks ticks = {});
   FS::ResultCode CreateFile(FS::Uid uid, FS::Gid gid, const std::string& path,
-                            FS::FileAttribute attribute, FS::Modes modes, Ticks ticks = {});
+      FS::FileAttribute attribute, FS::Modes modes, Ticks ticks = {});
 
   template <typename T>
   s32 Read(u64 fd, T* data, size_t count, Ticks ticks = {})

@@ -11,7 +11,8 @@
 #include "DolphinQt/TAS/TASInputWindow.h"
 
 TASCheckBox::TASCheckBox(const QString& text, TASInputWindow* parent)
-    : QCheckBox(text, parent), m_parent(parent)
+    : QCheckBox(text, parent)
+    , m_parent(parent)
 {
   setTristate(true);
 

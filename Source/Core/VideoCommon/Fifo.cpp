@@ -158,7 +158,7 @@ void FifoManager::SyncGPU(SyncGPUReason reason, bool may_move_read_ptr)
     if (may_move_read_ptr && m_fifo_aux_write_ptr != m_fifo_aux_read_ptr)
     {
       PanicAlertFmt("Aux FIFO not synced ({}, {})", fmt::ptr(m_fifo_aux_write_ptr),
-                    fmt::ptr(m_fifo_aux_read_ptr));
+          fmt::ptr(m_fifo_aux_read_ptr));
     }
 
     memmove(m_fifo_aux_data, m_fifo_aux_read_ptr, m_fifo_aux_write_ptr - m_fifo_aux_read_ptr);
@@ -223,7 +223,7 @@ void FifoManager::ReadDataFromFifo(u32 read_ptr)
     if (GPFifo::GATHER_PIPE_SIZE > static_cast<size_t>(FIFO_SIZE - existing_len))
     {
       PanicAlertFmt("FIFO out of bounds (existing {} + new {} > {})", existing_len,
-                    GPFifo::GATHER_PIPE_SIZE, FIFO_SIZE);
+          GPFifo::GATHER_PIPE_SIZE, FIFO_SIZE);
       return;
     }
     memmove(m_video_buffer, m_video_buffer_read_ptr, existing_len);
@@ -261,7 +261,7 @@ void FifoManager::ReadDataFromFifoOnCPU(u32 read_ptr)
     if (GPFifo::GATHER_PIPE_SIZE > static_cast<size_t>(FIFO_SIZE - existing_len))
     {
       PanicAlertFmt("FIFO out of bounds (existing {} + new {} > {})", existing_len,
-                    GPFifo::GATHER_PIPE_SIZE, FIFO_SIZE);
+          GPFifo::GATHER_PIPE_SIZE, FIFO_SIZE);
       return;
     }
   }
@@ -291,7 +291,8 @@ void FifoManager::RunGpuLoop()
   AsyncRequests::GetInstance()->SetPassthrough(false);
 
   m_gpu_mainloop.Run(
-      [this] {
+      [this]
+      {
         // Run events from the CPU thread.
         AsyncRequests::GetInstance()->PullEvents();
 
@@ -340,9 +341,9 @@ void FifoManager::RunGpuLoop()
                 static_cast<s32>(fifo.CPReadWriteDistance.load(std::memory_order_relaxed)) -
                 GPFifo::GATHER_PIPE_SIZE;
             ASSERT_MSG(COMMANDPROCESSOR, distance >= 0,
-                       "Negative fifo.CPReadWriteDistance = {} in FIFO Loop !\nThat can produce "
-                       "instability in the game. Please report it.",
-                       distance);
+                "Negative fifo.CPReadWriteDistance = {} in FIFO Loop !\nThat can produce "
+                "instability in the game. Please report it.",
+                distance);
 
             u8* write_ptr = m_video_buffer_write_ptr;
             m_video_buffer_read_ptr = OpcodeDecoder::RunFifo(
@@ -352,8 +353,8 @@ void FifoManager::RunGpuLoop()
             fifo.CPReadWriteDistance.fetch_sub(GPFifo::GATHER_PIPE_SIZE, std::memory_order_seq_cst);
             if ((write_ptr - m_video_buffer_read_ptr) == 0)
             {
-              fifo.SafeCPReadPointer.store(fifo.CPReadPointer.load(std::memory_order_relaxed),
-                                           std::memory_order_relaxed);
+              fifo.SafeCPReadPointer.store(
+                  fifo.CPReadPointer.load(std::memory_order_relaxed), std::memory_order_relaxed);
             }
 
             command_processor.SetCPStatusFromGPU();
@@ -415,7 +416,7 @@ bool AtBreakpoint(Core::System& system)
   const auto& fifo = command_processor.GetFifo();
   return fifo.bFF_BPEnable.load(std::memory_order_relaxed) &&
          (fifo.CPReadPointer.load(std::memory_order_relaxed) ==
-          fifo.CPBreakpoint.load(std::memory_order_relaxed));
+             fifo.CPBreakpoint.load(std::memory_order_relaxed));
 }
 
 void FifoManager::RunGpu()
@@ -434,8 +435,8 @@ void FifoManager::RunGpu()
     if (m_syncing_suspended)
     {
       m_syncing_suspended = false;
-      m_system.GetCoreTiming().ScheduleEvent(GPU_TIME_SLOT_SIZE, m_event_sync_gpu,
-                                             GPU_TIME_SLOT_SIZE);
+      m_system.GetCoreTiming().ScheduleEvent(
+          GPU_TIME_SLOT_SIZE, m_event_sync_gpu, GPU_TIME_SLOT_SIZE);
     }
   }
 }
@@ -473,8 +474,8 @@ int FifoManager::RunGpuOnCpu(int ticks)
     if (fifo.CPReadPointer.load(std::memory_order_relaxed) ==
         fifo.CPEnd.load(std::memory_order_relaxed))
     {
-      fifo.CPReadPointer.store(fifo.CPBase.load(std::memory_order_relaxed),
-                               std::memory_order_relaxed);
+      fifo.CPReadPointer.store(
+          fifo.CPBase.load(std::memory_order_relaxed), std::memory_order_relaxed);
     }
     else
     {

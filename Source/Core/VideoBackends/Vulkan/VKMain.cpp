@@ -32,8 +32,8 @@ void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
   if (LoadVulkanLibrary())
   {
     u32 vk_api_version = 0;
-    VkInstance temp_instance = VulkanContext::CreateVulkanInstance(WindowSystemType::Headless,
-                                                                   false, false, &vk_api_version);
+    VkInstance temp_instance = VulkanContext::CreateVulkanInstance(
+        WindowSystemType::Headless, false, false, &vk_api_version);
     if (temp_instance)
     {
       if (LoadVulkanInstanceFunctions(temp_instance))
@@ -73,8 +73,8 @@ void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
 // Helper method to check whether the Host GPU logging category is enabled.
 static bool IsHostGPULoggingEnabled()
 {
-  return Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::HOST_GPU,
-                                                           Common::Log::LogLevel::LERROR);
+  return Common::Log::LogManager::GetInstance()->IsEnabled(
+      Common::Log::LogType::HOST_GPU, Common::Log::LogLevel::LERROR);
 }
 
 // Helper method to determine whether to enable the debug utils extension.
@@ -166,9 +166,8 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   }
 
   // Now we can create the Vulkan device. VulkanContext takes ownership of the instance and surface.
-  g_vulkan_context =
-      VulkanContext::Create(instance, gpu_list[selected_adapter_index], surface, enable_debug_utils,
-                            enable_validation_layer, vk_api_version);
+  g_vulkan_context = VulkanContext::Create(instance, gpu_list[selected_adapter_index], surface,
+      enable_debug_utils, enable_validation_layer, vk_api_version);
   if (!g_vulkan_context)
   {
     PanicAlertFmt("Failed to create Vulkan device");
@@ -178,8 +177,8 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
   // Since VulkanContext maintains a copy of the device features and properties, we can use this
   // to initialize the backend information, so that we don't need to enumerate everything again.
-  VulkanContext::PopulateBackendInfoFeatures(&g_backend_info, g_vulkan_context->GetPhysicalDevice(),
-                                             g_vulkan_context->GetDeviceInfo());
+  VulkanContext::PopulateBackendInfoFeatures(
+      &g_backend_info, g_vulkan_context->GetPhysicalDevice(), g_vulkan_context->GetDeviceInfo());
   VulkanContext::PopulateBackendInfoMultisampleModes(
       &g_backend_info, g_vulkan_context->GetPhysicalDevice(), g_vulkan_context->GetDeviceInfo());
   g_backend_info.bSupportsExclusiveFullscreen =
@@ -232,8 +231,8 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   auto perf_query = std::make_unique<PerfQuery>();
   auto bounding_box = std::make_unique<VKBoundingBox>();
 
-  return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
-                          std::move(bounding_box));
+  return InitializeShared(
+      std::move(gfx), std::move(vertex_manager), std::move(perf_query), std::move(bounding_box));
 }
 
 void VideoBackend::Shutdown()
@@ -270,8 +269,8 @@ void VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
   }
 
   // [CAMetalLayer layer]
-  id layer = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(objc_getClass("CAMetalLayer"),
-                                                                sel_getUid("layer"));
+  id layer = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(
+      objc_getClass("CAMetalLayer"), sel_getUid("layer"));
   if (!layer)
   {
     ERROR_LOG_FMT(VIDEO, "Failed to create Metal layer.");
@@ -285,16 +284,16 @@ void VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
   reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(view, sel_getUid("setLayer:"), layer);
 
   // NSScreen* screen = [NSScreen mainScreen]
-  id screen = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(objc_getClass("NSScreen"),
-                                                                 sel_getUid("mainScreen"));
+  id screen = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(
+      objc_getClass("NSScreen"), sel_getUid("mainScreen"));
 
   // CGFloat factor = [screen backingScaleFactor]
   double factor =
       reinterpret_cast<double (*)(id, SEL)>(objc_msgSend)(screen, sel_getUid("backingScaleFactor"));
 
   // layer.contentsScale = factor
-  reinterpret_cast<void (*)(id, SEL, double)>(objc_msgSend)(layer, sel_getUid("setContentsScale:"),
-                                                            factor);
+  reinterpret_cast<void (*)(id, SEL, double)>(objc_msgSend)(
+      layer, sel_getUid("setContentsScale:"), factor);
 
   // Store the layer pointer, that way MoltenVK doesn't call [NSView layer] outside the main thread.
   wsi.render_surface = layer;

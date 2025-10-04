@@ -68,8 +68,8 @@ Quaternion Quaternion::Rotate(float rad, const Vec3& axis)
 {
   const auto sin_angle_2 = std::sin(rad / 2);
 
-  return Quaternion(std::cos(rad / 2), axis.x * sin_angle_2, axis.y * sin_angle_2,
-                    axis.z * sin_angle_2);
+  return Quaternion(
+      std::cos(rad / 2), axis.x * sin_angle_2, axis.y * sin_angle_2, axis.z * sin_angle_2);
 }
 
 Quaternion::Quaternion(float w, float x, float y, float z) : data(x, y, z, w)
@@ -104,10 +104,9 @@ Quaternion& Quaternion::operator*=(const Quaternion& rhs)
   auto& b = rhs.data;
 
   data = Vec4{a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
-              a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,
-              a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w,
-              // W
-              a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z};
+      a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x, a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w,
+      // W
+      a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z};
   return *this;
 }
 
@@ -165,9 +164,15 @@ Matrix33 Matrix33::FromQuaternion(const Quaternion& q)
   const auto qw = q.data.w;
 
   return {
-      1 - 2 * qy * qy - 2 * qz * qz, 2 * qx * qy - 2 * qz * qw,     2 * qx * qz + 2 * qy * qw,
-      2 * qx * qy + 2 * qz * qw,     1 - 2 * qx * qx - 2 * qz * qz, 2 * qy * qz - 2 * qx * qw,
-      2 * qx * qz - 2 * qy * qw,     2 * qy * qz + 2 * qx * qw,     1 - 2 * qx * qx - 2 * qy * qy,
+      1 - 2 * qy * qy - 2 * qz * qz,
+      2 * qx * qy - 2 * qz * qw,
+      2 * qx * qz + 2 * qy * qw,
+      2 * qx * qy + 2 * qz * qw,
+      1 - 2 * qx * qx - 2 * qz * qz,
+      2 * qy * qz - 2 * qx * qw,
+      2 * qx * qz - 2 * qy * qw,
+      2 * qy * qz + 2 * qx * qw,
+      1 - 2 * qx * qx - 2 * qy * qy,
   };
 }
 

@@ -148,7 +148,8 @@ class DelayedMemCheckUpdate final
 {
 public:
   DelayedMemCheckUpdate(MemChecks* memchecks, bool update_needed = false)
-      : m_memchecks(memchecks), m_update_needed(update_needed)
+      : m_memchecks(memchecks)
+      , m_update_needed(update_needed)
   {
   }
 

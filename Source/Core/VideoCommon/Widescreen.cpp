@@ -25,12 +25,13 @@ WidescreenManager::WidescreenManager()
       g_ActiveConfig.suggested_aspect_mode == AspectMode::ForceWide;
   if (!is_valid_suggested_aspect_mode)
   {
-    WARN_LOG_FMT(VIDEO,
-                 "Invalid suggested aspect ratio mode: only Auto, 4:3 and 16:9 are supported");
+    WARN_LOG_FMT(
+        VIDEO, "Invalid suggested aspect ratio mode: only Auto, 4:3 and 16:9 are supported");
   }
 
   m_config_changed = ConfigChangedEvent::Register(
-      [this](u32 bits) {
+      [this](u32 bits)
+      {
         if (bits & (CONFIG_CHANGE_BIT_ASPECT_RATIO))
         {
           // If the widescreen flag isn't being overridden by any settings,
@@ -100,18 +101,16 @@ void WidescreenManager::UpdateWidescreenHeuristic()
 
   // If widescreen hack isn't active and aspect_mode (UI) is 4:3 or 16:9 don't use heuristic.
   if (g_ActiveConfig.bWidescreenHack || (g_ActiveConfig.aspect_mode != AspectMode::ForceStandard &&
-                                         g_ActiveConfig.aspect_mode != AspectMode::ForceWide))
+                                            g_ActiveConfig.aspect_mode != AspectMode::ForceWide))
   {
     // Modify the threshold based on which aspect ratio we're already using:
     // If the game's in 4:3, it probably won't switch to anamorphic, and vice-versa.
     const u32 transition_threshold = g_ActiveConfig.widescreen_heuristic_transition_threshold;
 
-    const auto looks_normal = [transition_threshold](auto& counts) {
-      return counts.normal_vertex_count > counts.anamorphic_vertex_count * transition_threshold;
-    };
-    const auto looks_anamorphic = [transition_threshold](auto& counts) {
-      return counts.anamorphic_vertex_count > counts.normal_vertex_count * transition_threshold;
-    };
+    const auto looks_normal = [transition_threshold](auto& counts)
+    { return counts.normal_vertex_count > counts.anamorphic_vertex_count * transition_threshold; };
+    const auto looks_anamorphic = [transition_threshold](auto& counts)
+    { return counts.anamorphic_vertex_count > counts.normal_vertex_count * transition_threshold; };
 
     const auto& persp = flush_statistics.perspective;
     const auto& ortho = flush_statistics.orthographic;

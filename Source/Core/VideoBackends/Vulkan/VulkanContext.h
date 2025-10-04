@@ -64,7 +64,7 @@ public:
 
   // Helper method to create a Vulkan instance.
   static VkInstance CreateVulkanInstance(WindowSystemType wstype, bool enable_debug_utils,
-                                         bool enable_validation_layer, u32* out_vk_api_version);
+      bool enable_validation_layer, u32* out_vk_api_version);
 
   // Returns a list of Vulkan-compatible GPUs.
   using GPUList = std::vector<VkPhysicalDevice>;
@@ -74,17 +74,16 @@ public:
   // These are public so that the backend info can be populated without creating a context.
   static void PopulateBackendInfo(BackendInfo* backend_info);
   static void PopulateBackendInfoAdapters(BackendInfo* backend_info, const GPUList& gpu_list);
-  static void PopulateBackendInfoFeatures(BackendInfo* backend_info, VkPhysicalDevice gpu,
-                                          const PhysicalDeviceInfo& info);
-  static void PopulateBackendInfoMultisampleModes(BackendInfo* backend_info, VkPhysicalDevice gpu,
-                                                  const PhysicalDeviceInfo& info);
+  static void PopulateBackendInfoFeatures(
+      BackendInfo* backend_info, VkPhysicalDevice gpu, const PhysicalDeviceInfo& info);
+  static void PopulateBackendInfoMultisampleModes(
+      BackendInfo* backend_info, VkPhysicalDevice gpu, const PhysicalDeviceInfo& info);
 
   // Creates a Vulkan device context.
   // This assumes that PopulateBackendInfo and PopulateBackendInfoAdapters has already
   // been called for the specified VideoConfig.
   static std::unique_ptr<VulkanContext> Create(VkInstance instance, VkPhysicalDevice gpu,
-                                               VkSurfaceKHR surface, bool enable_debug_utils,
-                                               bool enable_validation_layer, u32 api_version);
+      VkSurfaceKHR surface, bool enable_debug_utils, bool enable_validation_layer, u32 api_version);
 
   // Enable/disable debug message runtime.
   bool EnableDebugUtils();
@@ -127,14 +126,13 @@ public:
 
 #ifdef WIN32
   // Returns the platform-specific exclusive fullscreen structure.
-  VkSurfaceFullScreenExclusiveWin32InfoEXT
-  GetPlatformExclusiveFullscreenInfo(const WindowSystemInfo& wsi);
+  VkSurfaceFullScreenExclusiveWin32InfoEXT GetPlatformExclusiveFullscreenInfo(
+      const WindowSystemInfo& wsi);
 #endif
 
 private:
   static bool SelectInstanceExtensions(std::vector<const char*>* extension_list,
-                                       WindowSystemType wstype, bool enable_debug_utils,
-                                       bool validation_layer_enabled);
+      WindowSystemType wstype, bool enable_debug_utils, bool validation_layer_enabled);
   bool SelectDeviceExtensions(bool enable_surface);
   void WarnMissingDeviceFeatures();
   bool CreateDevice(VkSurfaceKHR surface, bool enable_validation_layer);

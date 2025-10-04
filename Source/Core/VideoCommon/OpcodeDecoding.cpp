@@ -125,7 +125,7 @@ public:
       LoadIndexedXF(array, index, address, size);
   }
   OPCODE_CALLBACK(void OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat,
-                                          u32 vertex_size, u16 num_vertices, const u8* vertex_data))
+      u32 vertex_size, u16 num_vertices, const u8* vertex_data))
   {
     // load vertices
     const u32 size = vertex_size * num_vertices;

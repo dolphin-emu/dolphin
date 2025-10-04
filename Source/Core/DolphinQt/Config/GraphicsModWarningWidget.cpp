@@ -18,7 +18,7 @@ GraphicsModWarningWidget::GraphicsModWarningWidget(QWidget* parent) : QWidget(pa
   ConnectWidgets();
 
   connect(&Settings::Instance(), &Settings::EnableGfxModsChanged, this,
-          &GraphicsModWarningWidget::Update);
+      &GraphicsModWarningWidget::Update);
   Update();
 }
 
@@ -56,5 +56,5 @@ void GraphicsModWarningWidget::Update()
 void GraphicsModWarningWidget::ConnectWidgets()
 {
   connect(m_config_button, &QPushButton::clicked, this,
-          &GraphicsModWarningWidget::GraphicsModEnableSettings);
+      &GraphicsModWarningWidget::GraphicsModEnableSettings);
 }

@@ -11,8 +11,8 @@
 #define GLX_CONTEXT_MAJOR_VERSION_ARB 0x2091
 #define GLX_CONTEXT_MINOR_VERSION_ARB 0x2092
 
-typedef GLXContext (*PFNGLXCREATECONTEXTATTRIBSPROC)(Display*, GLXFBConfig, GLXContext, Bool,
-                                                     const int*);
+typedef GLXContext (*PFNGLXCREATECONTEXTATTRIBSPROC)(
+    Display*, GLXFBConfig, GLXContext, Bool, const int*);
 
 #ifndef GLX_EXT_swap_control
 typedef void (*PFNGLXSWAPINTERVALEXTPROC)(Display*, GLXDrawable, int);
@@ -67,8 +67,8 @@ void GLContextGLX::SwapInterval(int Interval)
   }
   else
   {
-    ERROR_LOG_FMT(VIDEO,
-                  "No support for SwapInterval (framerate clamped to monitor refresh rate).");
+    ERROR_LOG_FMT(
+        VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
   }
 }
 
@@ -95,7 +95,7 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
   if (glxMajorVersion < 1 || (glxMajorVersion == 1 && glxMinorVersion < 4))
   {
     ERROR_LOG_FMT(VIDEO, "glX-Version {}.{} detected, but need at least 1.4", glxMajorVersion,
-                  glxMinorVersion);
+        glxMinorVersion);
     return false;
   }
 
@@ -104,33 +104,16 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
       (PFNGLXCREATECONTEXTATTRIBSPROC)GetFuncAddress("glXCreateContextAttribsARB");
   if (!glXCreateContextAttribs)
   {
-    ERROR_LOG_FMT(VIDEO,
-                  "glXCreateContextAttribsARB not found, do you support GLX_ARB_create_context?");
+    ERROR_LOG_FMT(
+        VIDEO, "glXCreateContextAttribsARB not found, do you support GLX_ARB_create_context?");
     return false;
   }
 
   // choosing framebuffer
-  int visual_attribs[] = {GLX_X_RENDERABLE,
-                          True,
-                          GLX_DRAWABLE_TYPE,
-                          GLX_WINDOW_BIT,
-                          GLX_X_VISUAL_TYPE,
-                          GLX_TRUE_COLOR,
-                          GLX_RED_SIZE,
-                          8,
-                          GLX_GREEN_SIZE,
-                          8,
-                          GLX_BLUE_SIZE,
-                          8,
-                          GLX_DEPTH_SIZE,
-                          0,
-                          GLX_STENCIL_SIZE,
-                          0,
-                          GLX_DOUBLEBUFFER,
-                          True,
-                          GLX_STEREO,
-                          stereo ? True : False,
-                          None};
+  int visual_attribs[] = {GLX_X_RENDERABLE, True, GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
+      GLX_X_VISUAL_TYPE, GLX_TRUE_COLOR, GLX_RED_SIZE, 8, GLX_GREEN_SIZE, 8, GLX_BLUE_SIZE, 8,
+      GLX_DEPTH_SIZE, 0, GLX_STENCIL_SIZE, 0, GLX_DOUBLEBUFFER, True, GLX_STEREO,
+      stereo ? True : False, None};
   int fbcount = 0;
   GLXFBConfig* fbc = glXChooseFBConfig(m_display, screen, visual_attribs, &fbcount);
   if (!fbc || !fbcount)
@@ -151,8 +134,8 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
     {
       std::array<int, 9> context_attribs = {
           {GLX_CONTEXT_MAJOR_VERSION_ARB, version.first, GLX_CONTEXT_MINOR_VERSION_ARB,
-           version.second, GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
-           GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB, None}};
+              version.second, GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+              GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB, None}};
 
       s_glxError = false;
       m_context =
@@ -162,8 +145,8 @@ bool GLContextGLX::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
         continue;
 
       // Got a context.
-      INFO_LOG_FMT(VIDEO, "Created a GLX context with version {}.{}", version.first,
-                   version.second);
+      INFO_LOG_FMT(
+          VIDEO, "Created a GLX context with version {}.{}", version.first, version.second);
       m_attribs.insert(m_attribs.end(), context_attribs.begin(), context_attribs.end());
       break;
     }

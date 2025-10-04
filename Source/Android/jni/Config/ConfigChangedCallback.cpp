@@ -23,9 +23,8 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_ConfigChangedCallback_ini
 
   jobject runnable_global = env->NewGlobalRef(runnable);
   context->runnable = runnable_global;
-  context->callback_id = Config::AddConfigChangedCallback([runnable_global] {
-    IDCache::GetEnvForThread()->CallVoidMethod(runnable_global, IDCache::GetRunnableRun());
-  });
+  context->callback_id = Config::AddConfigChangedCallback([runnable_global]
+      { IDCache::GetEnvForThread()->CallVoidMethod(runnable_global, IDCache::GetRunnableRun()); });
 
   return reinterpret_cast<jlong>(context);
 }

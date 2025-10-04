@@ -38,10 +38,12 @@ void HardwareEFBInterface::ReinterpretPixelData(EFBReinterpretType convtype)
 
 u32 HardwareEFBInterface::PeekColorInternal(u16 x, u16 y)
 {
-  u32 color = AsyncRequests::GetInstance()->PushBlockingEvent([&] {
-    INCSTAT(g_stats.this_frame.num_efb_peeks);
-    return g_framebuffer_manager->PeekEFBColor(x, y);
-  });
+  u32 color = AsyncRequests::GetInstance()->PushBlockingEvent(
+      [&]
+      {
+        INCSTAT(g_stats.this_frame.num_efb_peeks);
+        return g_framebuffer_manager->PeekEFBColor(x, y);
+      });
 
   // a little-endian value is expected to be returned
   color = ((color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000));
@@ -93,10 +95,12 @@ u32 EFBInterfaceBase::PeekColor(u16 x, u16 y)
 
 u32 HardwareEFBInterface::PeekDepthInternal(u16 x, u16 y)
 {
-  float depth = AsyncRequests::GetInstance()->PushBlockingEvent([&] {
-    INCSTAT(g_stats.this_frame.num_efb_peeks);
-    return g_framebuffer_manager->PeekEFBDepth(x, y);
-  });
+  float depth = AsyncRequests::GetInstance()->PushBlockingEvent(
+      [&]
+      {
+        INCSTAT(g_stats.this_frame.num_efb_peeks);
+        return g_framebuffer_manager->PeekEFBDepth(x, y);
+      });
 
   // Depth buffer is inverted for improved precision near far plane
   if (!g_backend_info.bSupportsReversedDepthRange)
@@ -140,10 +144,12 @@ void HardwareEFBInterface::PokeColor(u16 x, u16 y, u32 poke_data)
   const u32 color =
       ((poke_data & 0xFF00FF00) | ((poke_data >> 16) & 0xFF) | ((poke_data << 16) & 0xFF0000));
 
-  AsyncRequests::GetInstance()->PushEvent([x, y, color] {
-    INCSTAT(g_stats.this_frame.num_efb_pokes);
-    g_framebuffer_manager->PokeEFBColor(x, y, color);
-  });
+  AsyncRequests::GetInstance()->PushEvent(
+      [x, y, color]
+      {
+        INCSTAT(g_stats.this_frame.num_efb_pokes);
+        g_framebuffer_manager->PokeEFBColor(x, y, color);
+      });
 }
 
 void HardwareEFBInterface::PokeDepth(u16 x, u16 y, u32 poke_data)
@@ -156,8 +162,10 @@ void HardwareEFBInterface::PokeDepth(u16 x, u16 y, u32 poke_data)
   if (!g_backend_info.bSupportsReversedDepthRange)
     depth = 1.0f - depth;
 
-  AsyncRequests::GetInstance()->PushEvent([x, y, depth] {
-    INCSTAT(g_stats.this_frame.num_efb_pokes);
-    g_framebuffer_manager->PokeEFBDepth(x, y, depth);
-  });
+  AsyncRequests::GetInstance()->PushEvent(
+      [x, y, depth]
+      {
+        INCSTAT(g_stats.this_frame.num_efb_pokes);
+        g_framebuffer_manager->PokeEFBDepth(x, y, depth);
+      });
 }

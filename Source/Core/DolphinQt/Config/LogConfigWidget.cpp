@@ -108,24 +108,26 @@ void LogConfigWidget::ConnectWidgets()
   connect(m_out_console, &QCheckBox::toggled, this, &LogConfigWidget::SaveSettings);
   connect(m_out_window, &QCheckBox::toggled, this, &LogConfigWidget::SaveSettings);
 
-  connect(m_types_toggle, &QPushButton::clicked, [this] {
-    m_all_enabled = !m_all_enabled;
+  connect(m_types_toggle, &QPushButton::clicked,
+      [this]
+      {
+        m_all_enabled = !m_all_enabled;
 
-    // Don't save every time we change an item
-    m_block_save = true;
+        // Don't save every time we change an item
+        m_block_save = true;
 
-    for (int i = 0; i < m_types_list->count(); i++)
-      m_types_list->item(i)->setCheckState(m_all_enabled ? Qt::Checked : Qt::Unchecked);
+        for (int i = 0; i < m_types_list->count(); i++)
+          m_types_list->item(i)->setCheckState(m_all_enabled ? Qt::Checked : Qt::Unchecked);
 
-    m_block_save = false;
+        m_block_save = false;
 
-    SaveSettings();
-  });
+        SaveSettings();
+      });
 
   connect(m_types_list, &QListWidget::itemChanged, this, &LogConfigWidget::SaveSettings);
 
   connect(&Settings::Instance(), &Settings::LogConfigVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+      [this](bool visible) { setHidden(!visible); });
 }
 
 void LogConfigWidget::LoadSettings()
@@ -199,10 +201,10 @@ void LogConfigWidget::SaveSettings()
 
   // Config - Outputs
   log_manager->EnableListener(Common::Log::LogListener::FILE_LISTENER, m_out_file->isChecked());
-  log_manager->EnableListener(Common::Log::LogListener::CONSOLE_LISTENER,
-                              m_out_console->isChecked());
-  log_manager->EnableListener(Common::Log::LogListener::LOG_WINDOW_LISTENER,
-                              m_out_window->isChecked());
+  log_manager->EnableListener(
+      Common::Log::LogListener::CONSOLE_LISTENER, m_out_console->isChecked());
+  log_manager->EnableListener(
+      Common::Log::LogListener::LOG_WINDOW_LISTENER, m_out_window->isChecked());
   // Config - Log Types
   for (int i = 0; i < static_cast<int>(Common::Log::LogType::NUMBER_OF_LOGS); ++i)
   {

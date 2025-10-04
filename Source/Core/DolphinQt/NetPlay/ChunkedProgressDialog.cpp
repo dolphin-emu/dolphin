@@ -66,8 +66,8 @@ void ChunkedProgressDialog::ConnectWidgets()
   connect(m_button_box, &QDialogButtonBox::rejected, this, &ChunkedProgressDialog::reject);
 }
 
-void ChunkedProgressDialog::show(const QString& title, const u64 data_size,
-                                 const std::vector<int>& players)
+void ChunkedProgressDialog::show(
+    const QString& title, const u64 data_size, const std::vector<int>& players)
 {
   m_progress_box->setTitle(title);
   m_data_size = data_size;
@@ -133,9 +133,9 @@ void ChunkedProgressDialog::SetProgress(const int pid, const u64 progress)
   const int prog = std::lround((static_cast<float>(progress) / m_data_size) * 100.0f);
 
   m_status_labels[pid]->setText(tr("%1[%2]: %3/%4 MiB")
-                                    .arg(player_name, QString::number(pid),
-                                         QString::fromStdString(fmt::format("{:.2f}", acquired)),
-                                         QString::fromStdString(fmt::format("{:.2f}", total))));
+          .arg(player_name, QString::number(pid),
+              QString::fromStdString(fmt::format("{:.2f}", acquired)),
+              QString::fromStdString(fmt::format("{:.2f}", total))));
   m_progress_bars[pid]->setValue(prog);
 }
 

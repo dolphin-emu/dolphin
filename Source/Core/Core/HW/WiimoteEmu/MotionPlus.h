@@ -137,7 +137,7 @@ public:
   static constexpr float FAST_SCALE = VALUE_SCALE_DEGREES / CALIBRATION_FAST_SCALE_DEGREES;
 
   static_assert(ZERO_VALUE == 1 << (BITS_OF_PRECISION - 1),
-                "SLOW_MAX_RAD_PER_SEC assumes calibrated zero is at center of sensor values.");
+      "SLOW_MAX_RAD_PER_SEC assumes calibrated zero is at center of sensor values.");
 
   static constexpr u16 SENSOR_RANGE = 1 << (BITS_OF_PRECISION - 1);
   static constexpr float SLOW_MAX_RAD_PER_SEC = SENSOR_RANGE / SLOW_SCALE;

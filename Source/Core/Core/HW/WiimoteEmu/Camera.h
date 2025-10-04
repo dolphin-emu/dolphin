@@ -133,8 +133,8 @@ public:
 
   void Reset();
   void DoState(PointerWrap& p);
-  static std::array<CameraPoint, NUM_POINTS> GetCameraPoints(const Common::Matrix44& transform,
-                                                             Common::Vec2 field_of_view);
+  static std::array<CameraPoint, NUM_POINTS> GetCameraPoints(
+      const Common::Matrix44& transform, Common::Vec2 field_of_view);
   void Update(const std::array<CameraPoint, NUM_POINTS>& camera_points);
   void SetEnabled(bool is_enabled);
 

@@ -59,99 +59,100 @@ const ControlsMap s_gcpad_controls_map = {{
     {{GCPad::TRIGGERS_GROUP, GCPad::L_ANALOG}, ControlID::GCPAD_L_ANALOG},
     {{GCPad::TRIGGERS_GROUP, GCPad::R_ANALOG}, ControlID::GCPAD_R_ANALOG},
     {{GCPad::MAIN_STICK_GROUP, ControllerEmu::ReshapableInput::X_INPUT_OVERRIDE},
-     ControlID::GCPAD_MAIN_STICK_X},
+        ControlID::GCPAD_MAIN_STICK_X},
     {{GCPad::MAIN_STICK_GROUP, ControllerEmu::ReshapableInput::Y_INPUT_OVERRIDE},
-     ControlID::GCPAD_MAIN_STICK_Y},
+        ControlID::GCPAD_MAIN_STICK_Y},
     {{GCPad::C_STICK_GROUP, ControllerEmu::ReshapableInput::X_INPUT_OVERRIDE},
-     ControlID::GCPAD_C_STICK_X},
+        ControlID::GCPAD_C_STICK_X},
     {{GCPad::C_STICK_GROUP, ControllerEmu::ReshapableInput::Y_INPUT_OVERRIDE},
-     ControlID::GCPAD_C_STICK_Y},
+        ControlID::GCPAD_C_STICK_Y},
 }};
 
 const ControlsMap s_wiimote_controls_map = {{
     {{WiimoteEmu::Wiimote::BUTTONS_GROUP, WiimoteEmu::Wiimote::A_BUTTON},
-     ControlID::WIIMOTE_A_BUTTON},
+        ControlID::WIIMOTE_A_BUTTON},
     {{WiimoteEmu::Wiimote::BUTTONS_GROUP, WiimoteEmu::Wiimote::B_BUTTON},
-     ControlID::WIIMOTE_B_BUTTON},
+        ControlID::WIIMOTE_B_BUTTON},
     {{WiimoteEmu::Wiimote::BUTTONS_GROUP, WiimoteEmu::Wiimote::ONE_BUTTON},
-     ControlID::WIIMOTE_ONE_BUTTON},
+        ControlID::WIIMOTE_ONE_BUTTON},
     {{WiimoteEmu::Wiimote::BUTTONS_GROUP, WiimoteEmu::Wiimote::TWO_BUTTON},
-     ControlID::WIIMOTE_TWO_BUTTON},
+        ControlID::WIIMOTE_TWO_BUTTON},
     {{WiimoteEmu::Wiimote::BUTTONS_GROUP, WiimoteEmu::Wiimote::PLUS_BUTTON},
-     ControlID::WIIMOTE_PLUS_BUTTON},
+        ControlID::WIIMOTE_PLUS_BUTTON},
     {{WiimoteEmu::Wiimote::BUTTONS_GROUP, WiimoteEmu::Wiimote::MINUS_BUTTON},
-     ControlID::WIIMOTE_MINUS_BUTTON},
+        ControlID::WIIMOTE_MINUS_BUTTON},
     {{WiimoteEmu::Wiimote::BUTTONS_GROUP, WiimoteEmu::Wiimote::HOME_BUTTON},
-     ControlID::WIIMOTE_HOME_BUTTON},
+        ControlID::WIIMOTE_HOME_BUTTON},
     {{WiimoteEmu::Wiimote::DPAD_GROUP, DIRECTION_UP}, ControlID::WIIMOTE_DPAD_UP},
     {{WiimoteEmu::Wiimote::DPAD_GROUP, DIRECTION_DOWN}, ControlID::WIIMOTE_DPAD_DOWN},
     {{WiimoteEmu::Wiimote::DPAD_GROUP, DIRECTION_LEFT}, ControlID::WIIMOTE_DPAD_LEFT},
     {{WiimoteEmu::Wiimote::DPAD_GROUP, DIRECTION_RIGHT}, ControlID::WIIMOTE_DPAD_RIGHT},
     {{WiimoteEmu::Wiimote::IR_GROUP, ControllerEmu::ReshapableInput::X_INPUT_OVERRIDE},
-     ControlID::WIIMOTE_IR_X},
+        ControlID::WIIMOTE_IR_X},
     {{WiimoteEmu::Wiimote::IR_GROUP, ControllerEmu::ReshapableInput::Y_INPUT_OVERRIDE},
-     ControlID::WIIMOTE_IR_Y},
+        ControlID::WIIMOTE_IR_Y},
 }};
 
 const ControlsMap s_nunchuk_controls_map = {{
     {{WiimoteEmu::Nunchuk::BUTTONS_GROUP, WiimoteEmu::Nunchuk::C_BUTTON},
-     ControlID::NUNCHUK_C_BUTTON},
+        ControlID::NUNCHUK_C_BUTTON},
     {{WiimoteEmu::Nunchuk::BUTTONS_GROUP, WiimoteEmu::Nunchuk::Z_BUTTON},
-     ControlID::NUNCHUK_Z_BUTTON},
+        ControlID::NUNCHUK_Z_BUTTON},
     {{WiimoteEmu::Nunchuk::STICK_GROUP, ControllerEmu::ReshapableInput::X_INPUT_OVERRIDE},
-     ControlID::NUNCHUK_STICK_X},
+        ControlID::NUNCHUK_STICK_X},
     {{WiimoteEmu::Nunchuk::STICK_GROUP, ControllerEmu::ReshapableInput::Y_INPUT_OVERRIDE},
-     ControlID::NUNCHUK_STICK_Y},
+        ControlID::NUNCHUK_STICK_Y},
 }};
 
 const ControlsMap s_classic_controls_map = {{
     {{WiimoteEmu::Classic::BUTTONS_GROUP, WiimoteEmu::Classic::A_BUTTON},
-     ControlID::CLASSIC_A_BUTTON},
+        ControlID::CLASSIC_A_BUTTON},
     {{WiimoteEmu::Classic::BUTTONS_GROUP, WiimoteEmu::Classic::B_BUTTON},
-     ControlID::CLASSIC_B_BUTTON},
+        ControlID::CLASSIC_B_BUTTON},
     {{WiimoteEmu::Classic::BUTTONS_GROUP, WiimoteEmu::Classic::X_BUTTON},
-     ControlID::CLASSIC_X_BUTTON},
+        ControlID::CLASSIC_X_BUTTON},
     {{WiimoteEmu::Classic::BUTTONS_GROUP, WiimoteEmu::Classic::Y_BUTTON},
-     ControlID::CLASSIC_Y_BUTTON},
+        ControlID::CLASSIC_Y_BUTTON},
     {{WiimoteEmu::Classic::BUTTONS_GROUP, WiimoteEmu::Classic::ZL_BUTTON},
-     ControlID::CLASSIC_ZL_BUTTON},
+        ControlID::CLASSIC_ZL_BUTTON},
     {{WiimoteEmu::Classic::BUTTONS_GROUP, WiimoteEmu::Classic::ZR_BUTTON},
-     ControlID::CLASSIC_ZR_BUTTON},
+        ControlID::CLASSIC_ZR_BUTTON},
     {{WiimoteEmu::Classic::BUTTONS_GROUP, WiimoteEmu::Classic::PLUS_BUTTON},
-     ControlID::CLASSIC_PLUS_BUTTON},
+        ControlID::CLASSIC_PLUS_BUTTON},
     {{WiimoteEmu::Classic::BUTTONS_GROUP, WiimoteEmu::Classic::MINUS_BUTTON},
-     ControlID::CLASSIC_MINUS_BUTTON},
+        ControlID::CLASSIC_MINUS_BUTTON},
     {{WiimoteEmu::Classic::BUTTONS_GROUP, WiimoteEmu::Classic::HOME_BUTTON},
-     ControlID::CLASSIC_HOME_BUTTON},
+        ControlID::CLASSIC_HOME_BUTTON},
     {{WiimoteEmu::Classic::DPAD_GROUP, DIRECTION_UP}, ControlID::CLASSIC_DPAD_UP},
     {{WiimoteEmu::Classic::DPAD_GROUP, DIRECTION_DOWN}, ControlID::CLASSIC_DPAD_DOWN},
     {{WiimoteEmu::Classic::DPAD_GROUP, DIRECTION_LEFT}, ControlID::CLASSIC_DPAD_LEFT},
     {{WiimoteEmu::Classic::DPAD_GROUP, DIRECTION_RIGHT}, ControlID::CLASSIC_DPAD_RIGHT},
     {{WiimoteEmu::Classic::TRIGGERS_GROUP, WiimoteEmu::Classic::L_DIGITAL},
-     ControlID::CLASSIC_L_DIGITAL},
+        ControlID::CLASSIC_L_DIGITAL},
     {{WiimoteEmu::Classic::TRIGGERS_GROUP, WiimoteEmu::Classic::R_DIGITAL},
-     ControlID::CLASSIC_R_DIGITAL},
+        ControlID::CLASSIC_R_DIGITAL},
     {{WiimoteEmu::Classic::TRIGGERS_GROUP, WiimoteEmu::Classic::L_ANALOG},
-     ControlID::CLASSIC_L_ANALOG},
+        ControlID::CLASSIC_L_ANALOG},
     {{WiimoteEmu::Classic::TRIGGERS_GROUP, WiimoteEmu::Classic::R_ANALOG},
-     ControlID::CLASSIC_R_ANALOG},
+        ControlID::CLASSIC_R_ANALOG},
     {{WiimoteEmu::Classic::LEFT_STICK_GROUP, ControllerEmu::ReshapableInput::X_INPUT_OVERRIDE},
-     ControlID::CLASSIC_LEFT_STICK_X},
+        ControlID::CLASSIC_LEFT_STICK_X},
     {{WiimoteEmu::Classic::LEFT_STICK_GROUP, ControllerEmu::ReshapableInput::Y_INPUT_OVERRIDE},
-     ControlID::CLASSIC_LEFT_STICK_Y},
+        ControlID::CLASSIC_LEFT_STICK_Y},
     {{WiimoteEmu::Classic::RIGHT_STICK_GROUP, ControllerEmu::ReshapableInput::X_INPUT_OVERRIDE},
-     ControlID::CLASSIC_RIGHT_STICK_X},
+        ControlID::CLASSIC_RIGHT_STICK_X},
     {{WiimoteEmu::Classic::RIGHT_STICK_GROUP, ControllerEmu::ReshapableInput::Y_INPUT_OVERRIDE},
-     ControlID::CLASSIC_RIGHT_STICK_Y},
+        ControlID::CLASSIC_RIGHT_STICK_Y},
 }};
 
-ControllerEmu::InputOverrideFunction GetInputOverrideFunction(const ControlsMap& controls_map,
-                                                              size_t i)
+ControllerEmu::InputOverrideFunction GetInputOverrideFunction(
+    const ControlsMap& controls_map, size_t i)
 {
   StateArray& state_array = s_state_arrays[i];
 
   return [&](std::string_view group_name, std::string_view control_name,
-             ControlState controller_state) -> std::optional<ControlState> {
+             ControlState controller_state) -> std::optional<ControlState>
+  {
     const auto it = controls_map.find(std::make_pair(group_name, control_name));
     if (it == controls_map.end())
       return std::nullopt;
@@ -186,7 +187,7 @@ void RegisterWiiInputOverrider(int controller_index)
       GetInputOverrideFunction(s_wiimote_controls_map, controller_index));
 
   auto& attachments = static_cast<ControllerEmu::Attachments*>(
-                          wiimote->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Attachments))
+      wiimote->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Attachments))
                           ->GetAttachmentList();
 
   attachments[WiimoteEmu::ExtensionNumber::NUNCHUK]->SetInputOverrideFunction(
@@ -211,7 +212,7 @@ void UnregisterWiiInputOverrider(int controller_index)
   wiimote->ClearInputOverrideFunction();
 
   auto& attachments = static_cast<ControllerEmu::Attachments*>(
-                          wiimote->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Attachments))
+      wiimote->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Attachments))
                           ->GetAttachmentList();
 
   attachments[WiimoteEmu::ExtensionNumber::NUNCHUK]->ClearInputOverrideFunction();

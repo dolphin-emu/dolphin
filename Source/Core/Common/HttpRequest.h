@@ -29,7 +29,7 @@ public:
   using ProgressCallback = std::function<bool(s64 dltotal, s64 dlnow, s64 ultotal, s64 ulnow)>;
 
   explicit HttpRequest(std::chrono::milliseconds timeout_ms = std::chrono::milliseconds{3000},
-                       ProgressCallback callback = nullptr);
+      ProgressCallback callback = nullptr);
   ~HttpRequest();
   bool IsValid() const;
 
@@ -49,15 +49,14 @@ public:
   std::string EscapeComponent(const std::string& string);
   std::string GetHeaderValue(std::string_view name) const;
   Response Get(const std::string& url, const Headers& headers = {},
-               AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
+      AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
   Response Post(const std::string& url, const std::vector<u8>& payload, const Headers& headers = {},
-                AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
+      AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
   Response Post(const std::string& url, const std::string& payload, const Headers& headers = {},
-                AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
+      AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
 
   Response PostMultiform(const std::string& url, std::span<Multiform> multiform,
-                         const Headers& headers = {},
-                         AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
+      const Headers& headers = {}, AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
 
 private:
   class Impl;

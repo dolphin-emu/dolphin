@@ -46,9 +46,8 @@ AudioPane::AudioPane()
   ConnectWidgets();
   OnBackendChanged();
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
-    OnEmulationStateChanged(state != Core::State::Uninitialized);
-  });
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+      [this](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
 
   OnEmulationStateChanged(!Core::IsUninitialized(Core::System::GetInstance()));
 }
@@ -80,9 +79,8 @@ void AudioPane::CreateWidgets()
   // Volume indicator text label.
   m_volume_indicator = new QLabel;
   m_volume_indicator->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
-  auto update_volume_label = [this]() {
-    m_volume_indicator->setText(GetVolumeLabelText(m_volume_slider->value()));
-  };
+  auto update_volume_label = [this]()
+  { m_volume_indicator->setText(GetVolumeLabelText(m_volume_slider->value())); };
   update_volume_label();
   connect(m_volume_slider, &QSlider::valueChanged, this, std::move(update_volume_label));
 
@@ -116,7 +114,7 @@ void AudioPane::CreateWidgets()
   m_dolby_quality_label = new QLabel(tr("Decoding Quality:"));
 
   QStringList quality_options{tr("Lowest (Latency ~10 ms)"), tr("Low (Latency ~20 ms)"),
-                              tr("High (Latency ~40 ms)"), tr("Highest (Latency ~80 ms)")};
+      tr("High (Latency ~40 ms)"), tr("Highest (Latency ~80 ms)")};
 
   m_dolby_quality_combo = new ConfigChoice(quality_options, Config::MAIN_DPL2_QUALITY);
 
@@ -131,8 +129,8 @@ void AudioPane::CreateWidgets()
 
   for (auto string : WASAPIStream::GetAvailableDevices())
   {
-    wasapi_options.push_back(std::pair<QString, QString>{QString::fromStdString(string),
-                                                         QString::fromStdString(string)});
+    wasapi_options.push_back(std::pair<QString, QString>{
+        QString::fromStdString(string), QString::fromStdString(string)});
   }
 
   m_wasapi_device_label = new QLabel(tr("Output Device:"));
@@ -172,11 +170,13 @@ void AudioPane::CreateWidgets()
          "<br><br><dolphin_emphasis>If unsure, set this to 80 ms.</dolphin_emphasis>"));
 
   // Connect the slider to update the value label live
-  connect(audio_buffer_size, &QSlider::valueChanged, this, [=](int value) {
-    int stepped_value = (value / 8) * 8;
-    audio_buffer_size->setValue(stepped_value);
-    audio_buffer_size_label->setText(tr("%1 ms").arg(stepped_value));
-  });
+  connect(audio_buffer_size, &QSlider::valueChanged, this,
+      [=](int value)
+      {
+        int stepped_value = (value / 8) * 8;
+        audio_buffer_size->setValue(stepped_value);
+        audio_buffer_size_label->setText(tr("%1 ms").arg(stepped_value));
+      });
 
   // Set initial value display
   audio_buffer_size_label->setText(tr("%1 ms").arg(audio_buffer_size->value()));
@@ -184,8 +184,8 @@ void AudioPane::CreateWidgets()
 
   m_audio_fill_gaps = new ConfigBool(tr("Fill Audio Gaps"), Config::MAIN_AUDIO_FILL_GAPS);
 
-  m_speed_up_mute_enable = new ConfigBool(tr("Mute When Disabling Speed Limit"),
-                                          Config::MAIN_AUDIO_MUTE_ON_DISABLED_SPEED_LIMIT);
+  m_speed_up_mute_enable = new ConfigBool(
+      tr("Mute When Disabling Speed Limit"), Config::MAIN_AUDIO_MUTE_ON_DISABLED_SPEED_LIMIT);
 
   // Create a horizontal layout for the slider + value label
   auto* buffer_layout = new QHBoxLayout;
@@ -219,12 +219,12 @@ void AudioPane::ConnectWidgets()
   connect(m_dolby_pro_logic, &ConfigBool::toggled, this, &AudioPane::OnDspChanged);
   connect(m_dsp_combo, &ConfigComplexChoice::currentIndexChanged, this, &AudioPane::OnDspChanged);
   connect(m_volume_slider, &QSlider::valueChanged, this,
-          [] { AudioCommon::UpdateSoundStream(Core::System::GetInstance()); });
+      [] { AudioCommon::UpdateSoundStream(Core::System::GetInstance()); });
 
   if (m_latency_control_supported)
   {
     connect(m_latency_slider, &QSlider::valueChanged, this,
-            [this](int value) { m_latency_label->setText(tr("Latency: %1 ms").arg(value)); });
+        [this](int value) { m_latency_label->setText(tr("Latency: %1 ms").arg(value)); });
   }
 }
 
@@ -328,8 +328,7 @@ void AudioPane::AddDescriptions()
   m_dsp_combo->SetDescription(tr(TR_DSP_DESCRIPTION));
 
   m_backend_combo->SetTitle(tr("Audio Backend"));
-  m_backend_combo->SetDescription(
-      tr(TR_AUDIO_BACKEND_DESCRIPTION)
+  m_backend_combo->SetDescription(tr(TR_AUDIO_BACKEND_DESCRIPTION)
           .arg(QString::fromStdString(AudioCommon::GetDefaultSoundBackend())));
 
   m_dolby_pro_logic->SetTitle(tr("Dolby Pro Logic II Decoder"));

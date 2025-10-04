@@ -37,29 +37,28 @@ private:
     using type = std::variant<std::monostate, typename Ts::ext_type::DesiredState...>;
 
     static_assert((std::is_same_v<std::variant_alternative_t<Ts::ext_num, type>,
-                                  typename Ts::ext_type::DesiredState> &&
-                   ...),
-                  "Please use ExtensionNumber enum order for DTM file index consistency.");
+                       typename Ts::ext_type::DesiredState> &&
+                      ...),
+        "Please use ExtensionNumber enum order for DTM file index consistency.");
   };
 
 public:
-  using ExtensionData =
-      ExtDataImpl<ExtNumTypePair<ExtensionNumber::NUNCHUK, Nunchuk>,
-                  ExtNumTypePair<ExtensionNumber::CLASSIC, Classic>,
-                  ExtNumTypePair<ExtensionNumber::GUITAR, Guitar>,
-                  ExtNumTypePair<ExtensionNumber::DRUMS, Drums>,
-                  ExtNumTypePair<ExtensionNumber::TURNTABLE, Turntable>,
-                  ExtNumTypePair<ExtensionNumber::UDRAW_TABLET, UDrawTablet>,
-                  ExtNumTypePair<ExtensionNumber::DRAWSOME_TABLET, DrawsomeTablet>,
-                  ExtNumTypePair<ExtensionNumber::TATACON, TaTaCon>,
-                  ExtNumTypePair<ExtensionNumber::SHINKANSEN, Shinkansen>>::type;
+  using ExtensionData = ExtDataImpl<ExtNumTypePair<ExtensionNumber::NUNCHUK, Nunchuk>,
+      ExtNumTypePair<ExtensionNumber::CLASSIC, Classic>,
+      ExtNumTypePair<ExtensionNumber::GUITAR, Guitar>,
+      ExtNumTypePair<ExtensionNumber::DRUMS, Drums>,
+      ExtNumTypePair<ExtensionNumber::TURNTABLE, Turntable>,
+      ExtNumTypePair<ExtensionNumber::UDRAW_TABLET, UDrawTablet>,
+      ExtNumTypePair<ExtensionNumber::DRAWSOME_TABLET, DrawsomeTablet>,
+      ExtNumTypePair<ExtensionNumber::TATACON, TaTaCon>,
+      ExtNumTypePair<ExtensionNumber::SHINKANSEN, Shinkansen>>::type;
 
   ExtensionData data = std::monostate{};
 };
 
 template <typename T>
-void DefaultExtensionUpdate(EncryptedExtension::Register* reg,
-                            const DesiredExtensionState& target_state)
+void DefaultExtensionUpdate(
+    EncryptedExtension::Register* reg, const DesiredExtensionState& target_state)
 {
   if (std::holds_alternative<T>(target_state.data))
   {

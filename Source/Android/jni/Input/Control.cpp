@@ -26,14 +26,14 @@ jobject ControlToJava(JNIEnv* env, ControllerEmu::Control* control)
     return nullptr;
 
   return env->NewObject(IDCache::GetControlClass(), IDCache::GetControlConstructor(),
-                        reinterpret_cast<jlong>(control));
+      reinterpret_cast<jlong>(control));
 }
 
 extern "C" {
 
 JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_Control_getUiName(JNIEnv* env,
-                                                                                    jobject obj)
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_Control_getUiName(
+    JNIEnv* env, jobject obj)
 {
   ControllerEmu::Control* control = GetPointer(env, obj);
   std::string ui_name = control->ui_name;

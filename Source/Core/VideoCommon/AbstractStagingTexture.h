@@ -35,8 +35,7 @@ public:
   // Copies from the GPU texture object to the staging texture, which can be mapped/read by the CPU.
   // Both src_rect and dst_rect must be with within the bounds of the the specified textures.
   virtual void CopyFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& src_rect,
-                               u32 src_layer, u32 src_level,
-                               const MathUtil::Rectangle<int>& dst_rect) = 0;
+      u32 src_layer, u32 src_level, const MathUtil::Rectangle<int>& dst_rect) = 0;
 
   // Wrapper for copying a whole layer of a texture to a readback texture.
   // Assumes that the level of src texture and this texture have the same dimensions.
@@ -45,8 +44,7 @@ public:
   // Copies from this staging texture to a GPU texture.
   // Both src_rect and dst_rect must be with within the bounds of the the specified textures.
   virtual void CopyToTexture(const MathUtil::Rectangle<int>& src_rect, AbstractTexture* dst,
-                             const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
-                             u32 dst_level) = 0;
+      const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer, u32 dst_level) = 0;
 
   // Wrapper for copying a whole layer of a texture to a readback texture.
   // Assumes that the level of src texture and this texture have the same dimensions.

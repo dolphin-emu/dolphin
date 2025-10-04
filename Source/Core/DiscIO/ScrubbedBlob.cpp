@@ -16,7 +16,8 @@
 namespace DiscIO
 {
 ScrubbedBlob::ScrubbedBlob(std::unique_ptr<BlobReader> blob_reader, DiscScrubber scrubber)
-    : m_blob_reader(std::move(blob_reader)), m_scrubber(std::move(scrubber))
+    : m_blob_reader(std::move(blob_reader))
+    , m_scrubber(std::move(scrubber))
 {
 }
 

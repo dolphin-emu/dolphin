@@ -68,11 +68,12 @@ void SetActiveCodes(std::span<const GeckoCode> gcodes, const std::string& game_i
   {
     s_active_codes.reserve(gcodes.size());
 
-    const auto should_be_activated = [&game_id, &revision](const GeckoCode& code) {
+    const auto should_be_activated = [&game_id, &revision](const GeckoCode& code)
+    {
       return AchievementManager::GetInstance().ShouldGeckoCodeBeActivated(code, game_id, revision);
     };
-    std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_active_codes),
-                 should_be_activated);
+    std::copy_if(
+        gcodes.begin(), gcodes.end(), std::back_inserter(s_active_codes), should_be_activated);
   }
   s_active_codes.shrink_to_fit();
 
@@ -91,7 +92,7 @@ void UpdateSyncedCodes(std::span<const GeckoCode> gcodes)
   s_synced_codes.clear();
   s_synced_codes.reserve(gcodes.size());
   std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_synced_codes),
-               [](const GeckoCode& code) { return code.enabled; });
+      [](const GeckoCode& code) { return code.enabled; });
   s_synced_codes.shrink_to_fit();
 }
 
@@ -104,7 +105,7 @@ std::vector<GeckoCode> SetAndReturnActiveCodes(std::span<const GeckoCode> gcodes
   {
     s_active_codes.reserve(gcodes.size());
     std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_active_codes),
-                 [](const GeckoCode& code) { return code.enabled; });
+        [](const GeckoCode& code) { return code.enabled; });
   }
   s_active_codes.shrink_to_fit();
 
@@ -120,8 +121,8 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
   std::string data;
   if (!File::ReadFileToString(File::GetSysDirectory() + GECKO_CODE_HANDLER, data))
   {
-    ERROR_LOG_FMT(ACTIONREPLAY,
-                  "Could not enable cheats because " GECKO_CODE_HANDLER " was missing.");
+    ERROR_LOG_FMT(
+        ACTIONREPLAY, "Could not enable cheats because " GECKO_CODE_HANDLER " was missing.");
     return Installation::Failed;
   }
 
@@ -177,10 +178,9 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
     if (next_address + active_code.codes.size() * CODE_SIZE > end_address)
     {
       NOTICE_LOG_FMT(ACTIONREPLAY,
-                     "Too many GeckoCodes! Ran out of storage space in Game RAM. Could "
-                     "not write: \"{}\". Need {} bytes, only {} remain.",
-                     active_code.name, active_code.codes.size() * CODE_SIZE,
-                     end_address - next_address);
+          "Too many GeckoCodes! Ran out of storage space in Game RAM. Could "
+          "not write: \"{}\". Need {} bytes, only {} remain.",
+          active_code.name, active_code.codes.size() * CODE_SIZE, end_address - next_address);
       continue;
     }
 
@@ -193,7 +193,7 @@ static Installation InstallCodeHandlerLocked(const Core::CPUThreadGuard& guard)
   }
 
   WARN_LOG_FMT(ACTIONREPLAY, "GeckoCodes: Using {} of {} bytes", next_address - start_address,
-               end_address - start_address);
+      end_address - start_address);
 
   // Stop code. Tells the handler that this is the end of the list.
   PowerPC::MMU::HostWrite_U32(guard, 0xF0000000, next_address);
@@ -281,13 +281,13 @@ void RunCodeHandler(const Core::CPUThreadGuard& guard)
   for (u32 i = 0; i < 14; ++i)
   {
     PowerPC::MMU::HostWrite_U64(guard, ppc_state.ps[i].PS0AsU64(), SP + 24 + 2 * i * sizeof(u64));
-    PowerPC::MMU::HostWrite_U64(guard, ppc_state.ps[i].PS1AsU64(),
-                                SP + 24 + (2 * i + 1) * sizeof(u64));
+    PowerPC::MMU::HostWrite_U64(
+        guard, ppc_state.ps[i].PS1AsU64(), SP + 24 + (2 * i + 1) * sizeof(u64));
   }
   DEBUG_LOG_FMT(ACTIONREPLAY,
-                "GeckoCodes: Initiating phantom branch-and-link. "
-                "PC = {:#010x}, SP = {:#010x}, SFP = {:#010x}",
-                ppc_state.pc, SP, SFP);
+      "GeckoCodes: Initiating phantom branch-and-link. "
+      "PC = {:#010x}, SP = {:#010x}, SFP = {:#010x}",
+      ppc_state.pc, SP, SFP);
   LR(ppc_state) = HLE_TRAMPOLINE_ADDRESS;
   ppc_state.pc = ppc_state.npc = ENTRY_POINT;
 }

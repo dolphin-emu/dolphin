@@ -17,8 +17,8 @@ namespace OGL
 class OGLShader final : public AbstractShader
 {
 public:
-  explicit OGLShader(ShaderStage stage, GLenum gl_type, GLuint gl_id, std::string source,
-                     std::string name);
+  explicit OGLShader(
+      ShaderStage stage, GLenum gl_type, GLuint gl_id, std::string source, std::string name);
   explicit OGLShader(GLuint gl_compute_program_id, std::string source, std::string name);
   ~OGLShader() override;
 
@@ -28,8 +28,8 @@ public:
   GLuint GetGLComputeProgramID() const { return m_gl_compute_program_id; }
   const std::string& GetSource() const { return m_source; }
 
-  static std::unique_ptr<OGLShader> CreateFromSource(ShaderStage stage, std::string_view source,
-                                                     std::string_view name);
+  static std::unique_ptr<OGLShader> CreateFromSource(
+      ShaderStage stage, std::string_view source, std::string_view name);
 
 private:
   u64 m_id;

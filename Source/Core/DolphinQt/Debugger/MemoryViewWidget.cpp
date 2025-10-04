@@ -57,8 +57,8 @@ constexpr int SCROLLBAR_CENTER = SCROLLBAR_MAXIMUM / 2;
 
 const QString INVALID_MEMORY = QStringLiteral("-");
 
-void TableEditDelegate::setModelData(QWidget* editor, QAbstractItemModel* model,
-                                     const QModelIndex& index) const
+void TableEditDelegate::setModelData(
+    QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
 {
   // Triggers on placing data into a cell. Editor has the text to be input, index has the location.
   const QString input = qobject_cast<QLineEdit*>(editor)->text();
@@ -87,17 +87,17 @@ public:
     // Prevent colors from changing based on focus.
     QPalette palette(m_view->palette());
     palette.setBrush(QPalette::Inactive, QPalette::Highlight, palette.brush(QPalette::Highlight));
-    palette.setBrush(QPalette::Inactive, QPalette::HighlightedText,
-                     palette.brush(QPalette::HighlightedText));
+    palette.setBrush(
+        QPalette::Inactive, QPalette::HighlightedText, palette.brush(QPalette::HighlightedText));
     setPalette(palette);
 
     setRowCount(30);
     setColumnCount(8);
 
     connect(this, &MemoryViewTable::customContextMenuRequested, m_view,
-            &MemoryViewWidget::OnContextMenu);
+        &MemoryViewWidget::OnContextMenu);
     connect(table_edit_delegate, &TableEditDelegate::editFinished, this,
-            &MemoryViewTable::OnDirectTableEdit);
+        &MemoryViewTable::OnDirectTableEdit);
   }
 
   void resizeEvent(QResizeEvent* event) override
@@ -198,7 +198,9 @@ private:
 };
 
 MemoryViewWidget::MemoryViewWidget(Core::System& system, QWidget* parent)
-    : QWidget(parent), m_system(system), m_ppc_symbol_db(m_system.GetPPCSymbolDB())
+    : QWidget(parent)
+    , m_system(system)
+    , m_ppc_symbol_db(m_system.GetPPCSymbolDB())
 {
   auto* layout = new QHBoxLayout();
   layout->setContentsMargins(0, 0, 0, 0);
@@ -213,36 +215,40 @@ MemoryViewWidget::MemoryViewWidget(Core::System& system, QWidget* parent)
   m_scrollbar->setRange(SCROLLBAR_MINIMUM, SCROLLBAR_MAXIMUM);
   m_scrollbar->setPageStep(SCROLLBAR_PAGESTEP);
   m_scrollbar->setValue(SCROLLBAR_CENTER);
-  connect(m_scrollbar, &QScrollBar::actionTriggered, this,
-          &MemoryViewWidget::ScrollbarActionTriggered);
-  connect(m_scrollbar, &QScrollBar::sliderReleased, this,
-          &MemoryViewWidget::ScrollbarSliderReleased);
+  connect(
+      m_scrollbar, &QScrollBar::actionTriggered, this, &MemoryViewWidget::ScrollbarActionTriggered);
+  connect(
+      m_scrollbar, &QScrollBar::sliderReleased, this, &MemoryViewWidget::ScrollbarSliderReleased);
   layout->addWidget(m_scrollbar);
 
   this->setLayout(layout);
 
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &MemoryViewWidget::UpdateFont);
   connect(Host::GetInstance(), &Host::PPCSymbolsChanged, this,
-          [this] { UpdateDispatcher(UpdateType::Symbols); });
+      [this] { UpdateDispatcher(UpdateType::Symbols); });
   connect(Host::GetInstance(), &Host::PPCBreakpointsChanged, this,
-          &MemoryViewWidget::UpdateBreakpointTags);
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
-    // UpdateDisasmDialog currently catches pauses, no need to signal it twice.
-    if (Core::GetState(m_system) != Core::State::Paused)
-      UpdateDispatcher(UpdateType::Values);
-  });
-  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
-    // Disasm spam will break updates while running. Only need it for things like steps when paused
-    // and breaks which trigger a pause.
-    if (Core::GetState(m_system) != Core::State::Running)
-      UpdateDispatcher(UpdateType::Values);
-  });
+      &MemoryViewWidget::UpdateBreakpointTags);
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+      [this]
+      {
+        // UpdateDisasmDialog currently catches pauses, no need to signal it twice.
+        if (Core::GetState(m_system) != Core::State::Paused)
+          UpdateDispatcher(UpdateType::Values);
+      });
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
+      [this]
+      {
+        // Disasm spam will break updates while running. Only need it for things like steps when
+        // paused and breaks which trigger a pause.
+        if (Core::GetState(m_system) != Core::State::Running)
+          UpdateDispatcher(UpdateType::Values);
+      });
 
   // CPU Thread to Main Thread.
-  connect(this, &MemoryViewWidget::AutoUpdate, this,
-          [this] { UpdateDispatcher(UpdateType::Auto); });
+  connect(
+      this, &MemoryViewWidget::AutoUpdate, this, [this] { UpdateDispatcher(UpdateType::Auto); });
   connect(&Settings::Instance(), &Settings::ThemeChanged, this,
-          [this] { UpdateDispatcher(UpdateType::Full); });
+      [this] { UpdateDispatcher(UpdateType::Full); });
 
   // Also calls create table.
   UpdateFont(Settings::Instance().GetDebugFont());
@@ -673,8 +679,8 @@ void MemoryViewWidget::GetValues()
 }
 
 // May only be called if we have taken on the role of the CPU thread
-std::optional<QString> MemoryViewWidget::ValueToString(const Core::CPUThreadGuard& guard,
-                                                       u32 address, Type type)
+std::optional<QString> MemoryViewWidget::ValueToString(
+    const Core::CPUThreadGuard& guard, u32 address, Type type)
 {
   const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
   if (!accessors->IsValidAddress(guard, address))
@@ -776,8 +782,7 @@ void MemoryViewWidget::UpdateBreakpointTags()
 
     if (row_breakpoint)
     {
-      m_table->item(i, 0)->setData(
-          Qt::DecorationRole,
+      m_table->item(i, 0)->setData(Qt::DecorationRole,
           Resources::GetThemeIcon("debugger_breakpoint")
               .pixmap(QSize(m_table->rowHeight(0) - 3, m_table->rowHeight(0) - 3)));
     }
@@ -933,8 +938,8 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView inpu
   case Type::HexString:
   {
     // Confirm it is only hex bytes
-    const QRegularExpression is_hex(QStringLiteral("^([0-9A-F]{2})*$"),
-                                    QRegularExpression::CaseInsensitiveOption);
+    const QRegularExpression is_hex(
+        QStringLiteral("^([0-9A-F]{2})*$"), QRegularExpression::CaseInsensitiveOption);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     const QRegularExpressionMatch match = is_hex.matchView(input_text);
 #else
@@ -1170,7 +1175,7 @@ void MemoryViewWidget::OnEditSymbol(EditSymbolType type, u32 addr)
   else if (type == EditSymbolType::EditRegion)
   {
     m_ppc_symbol_db.AddKnownSymbol(Core::CPUThreadGuard{m_system}, address, size, name, object_name,
-                                   Common::Symbol::Type::Data);
+        Common::Symbol::Type::Data);
   }
   else
   {
@@ -1204,9 +1209,8 @@ void MemoryViewWidget::OnContextMenu(const QPoint& pos)
   auto* copy_hex = menu->addAction(tr("Copy Hex"), this, [this, addr] { OnCopyHex(addr); });
   copy_hex->setEnabled(item_has_value);
 
-  auto* copy_value = menu->addAction(tr("Copy Value"), this, [item_selected] {
-    QApplication::clipboard()->setText(item_selected->text());
-  });
+  auto* copy_value = menu->addAction(tr("Copy Value"), this,
+      [item_selected] { QApplication::clipboard()->setText(item_selected->text()); });
   copy_value->setEnabled(item_has_value);
 
   menu->addSeparator();
@@ -1216,7 +1220,7 @@ void MemoryViewWidget::OnContextMenu(const QPoint& pos)
   auto* note_edit_action = menu->addAction(
       tr("Edit Note"), this, [this, addr] { OnEditSymbol(EditSymbolType::EditNote, addr); });
   menu->addAction(tr("Add or edit region label"), this,
-                  [this, addr] { OnEditSymbol(EditSymbolType::EditRegion, addr); });
+      [this, addr] { OnEditSymbol(EditSymbolType::EditRegion, addr); });
 
   auto* note = m_ppc_symbol_db.GetNoteFromAddr(addr);
   note_edit_action->setEnabled(note != nullptr);
@@ -1230,10 +1234,12 @@ void MemoryViewWidget::OnContextMenu(const QPoint& pos)
 
   menu->addSeparator();
 
-  menu->addAction(tr("Add to watch"), this, [this, addr] {
-    const QString name = QStringLiteral("mem_%1").arg(addr, 8, 16, QLatin1Char('0'));
-    emit RequestWatch(name, addr);
-  });
+  menu->addAction(tr("Add to watch"), this,
+      [this, addr]
+      {
+        const QString name = QStringLiteral("mem_%1").arg(addr, 8, 16, QLatin1Char('0'));
+        emit RequestWatch(name, addr);
+      });
 
   menu->addAction(tr("Toggle Breakpoint"), this, [this, addr] { ToggleBreakpoint(addr, false); });
 

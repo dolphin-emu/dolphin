@@ -91,17 +91,17 @@ std::string SerializeLine(const PatchEntry& entry)
   if (entry.conditional)
   {
     return fmt::format("0x{:08X}:{}:0x{:08X}:0x{:08X}", entry.address,
-                       PatchEngine::PatchTypeAsString(entry.type), entry.value, entry.comparand);
+        PatchEngine::PatchTypeAsString(entry.type), entry.value, entry.comparand);
   }
   else
   {
     return fmt::format("0x{:08X}:{}:0x{:08X}", entry.address,
-                       PatchEngine::PatchTypeAsString(entry.type), entry.value);
+        PatchEngine::PatchTypeAsString(entry.type), entry.value);
   }
 }
 
 void LoadPatchSection(const std::string& section, std::vector<Patch>* patches,
-                      const Common::IniFile& globalIni, const Common::IniFile& localIni)
+    const Common::IniFile& globalIni, const Common::IniFile& localIni)
 {
   for (const auto* ini : {&globalIni, &localIni})
   {
@@ -184,8 +184,8 @@ void LoadPatches()
   LoadPatchSection("OnFrame", &s_on_frame, globalIni, localIni);
 
 #ifdef USE_RETRO_ACHIEVEMENTS
-  AchievementManager::GetInstance().FilterApprovedPatches(s_on_frame, sconfig.GetGameID(),
-                                                          sconfig.GetRevision());
+  AchievementManager::GetInstance().FilterApprovedPatches(
+      s_on_frame, sconfig.GetGameID(), sconfig.GetRevision());
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   // Check if I'm syncing Codes
@@ -196,18 +196,18 @@ void LoadPatches()
   }
   else
   {
-    Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni), sconfig.GetGameID(),
-                          sconfig.GetRevision());
-    ActionReplay::LoadAndApplyCodes(globalIni, localIni, sconfig.GetGameID(),
-                                    sconfig.GetRevision());
+    Gecko::SetActiveCodes(
+        Gecko::LoadCodes(globalIni, localIni), sconfig.GetGameID(), sconfig.GetRevision());
+    ActionReplay::LoadAndApplyCodes(
+        globalIni, localIni, sconfig.GetGameID(), sconfig.GetRevision());
   }
 
   const size_t enabled_patch_count =
       std::ranges::count_if(s_on_frame, [](Patch patch) { return patch.enabled; });
   if (enabled_patch_count > 0)
   {
-    OSD::AddMessage(fmt::format("{} game patch(es) enabled", enabled_patch_count),
-                    OSD::Duration::NORMAL);
+    OSD::AddMessage(
+        fmt::format("{} game patch(es) enabled", enabled_patch_count), OSD::Duration::NORMAL);
   }
 
   const size_t enabled_cheat_count = ActionReplay::CountEnabledCodes() + Gecko::CountEnabledCodes();
@@ -255,8 +255,8 @@ static void ApplyPatches(const Core::CPUThreadGuard& guard, const std::vector<Pa
   }
 }
 
-static void ApplyMemoryPatches(const Core::CPUThreadGuard& guard,
-                               std::span<const std::size_t> memory_patch_indices)
+static void ApplyMemoryPatches(
+    const Core::CPUThreadGuard& guard, std::span<const std::size_t> memory_patch_indices)
 {
   std::lock_guard lock(s_on_frame_memory_mutex);
   for (std::size_t index : memory_patch_indices)
@@ -314,9 +314,9 @@ static void ApplyStartupPatches(Core::System& system)
   if (!ppc_state.msr.DR || !ppc_state.msr.IR)
   {
     DEBUG_LOG_FMT(ACTIONREPLAY,
-                  "Need to retry later. CPU configuration is currently incorrect. PC = {:#010x}, "
-                  "MSR = {:#010x}",
-                  ppc_state.pc, ppc_state.msr.Hex);
+        "Need to retry later. CPU configuration is currently incorrect. PC = {:#010x}, "
+        "MSR = {:#010x}",
+        ppc_state.pc, ppc_state.msr.Hex);
     return;
   }
 
@@ -337,9 +337,9 @@ bool ApplyFramePatches(Core::System& system)
   if (!ppc_state.msr.DR || !ppc_state.msr.IR || !IsStackValid(guard))
   {
     DEBUG_LOG_FMT(ACTIONREPLAY,
-                  "Need to retry later. CPU configuration is currently incorrect. PC = {:#010x}, "
-                  "MSR = {:#010x}",
-                  ppc_state.pc, ppc_state.msr.Hex);
+        "Need to retry later. CPU configuration is currently incorrect. PC = {:#010x}, "
+        "MSR = {:#010x}",
+        ppc_state.pc, ppc_state.msr.Hex);
     return false;
   }
 

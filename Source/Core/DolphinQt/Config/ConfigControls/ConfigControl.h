@@ -22,18 +22,23 @@ class ConfigControl : public Derived
 {
 public:
   ConfigControl(const Config::Location& location, Config::Layer* layer)
-      : m_location(location), m_layer(layer)
+      : m_location(location)
+      , m_layer(layer)
   {
     ConnectConfig();
   }
   ConfigControl(const QString& label, const Config::Location& location, Config::Layer* layer)
-      : Derived(label), m_location(location), m_layer(layer)
+      : Derived(label)
+      , m_location(location)
+      , m_layer(layer)
   {
     ConnectConfig();
   }
-  ConfigControl(const Qt::Orientation& orient, const Config::Location& location,
-                Config::Layer* layer)
-      : Derived(orient), m_location(location), m_layer(layer)
+  ConfigControl(
+      const Qt::Orientation& orient, const Config::Location& location, Config::Layer* layer)
+      : Derived(orient)
+      , m_location(location)
+      , m_layer(layer)
   {
     ConnectConfig();
   }
@@ -43,16 +48,18 @@ public:
 protected:
   void ConnectConfig()
   {
-    Derived::connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
-      QFont bf = Derived::font();
-      bf.setBold(IsConfigLocal());
-      Derived::setFont(bf);
+    Derived::connect(&Settings::Instance(), &Settings::ConfigChanged, this,
+        [this]
+        {
+          QFont bf = Derived::font();
+          bf.setBold(IsConfigLocal());
+          Derived::setFont(bf);
 
-      // This isn't signal blocked because the UI may need to be updated.
-      m_updating = true;
-      OnConfigChanged();
-      m_updating = false;
-    });
+          // This isn't signal blocked because the UI may need to be updated.
+          m_updating = true;
+          OnConfigChanged();
+          m_updating = false;
+        });
   }
 
   template <typename T>

@@ -55,8 +55,8 @@ std::optional<IPCReply> NetKDTimeDevice::IOCtl(const IOCtlRequest& request)
     const u64 adjusted_utc = memory.Read_U64(request.buffer_in);
     SetAdjustedUTC(adjusted_utc);
     update_misc = memory.Read_U32(request.buffer_in + 8);
-    INFO_LOG_FMT(IOS_WC24, "IOCTL_NW24_SET_UNIVERSAL_TIME ({}, {}) = {}", adjusted_utc, update_misc,
-                 result);
+    INFO_LOG_FMT(
+        IOS_WC24, "IOCTL_NW24_SET_UNIVERSAL_TIME ({}, {}) = {}", adjusted_utc, update_misc, result);
   }
   break;
 

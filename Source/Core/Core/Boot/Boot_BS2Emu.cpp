@@ -137,8 +137,8 @@ void CBoot::SetupBAT(Core::System& system, bool is_wii)
 }
 
 bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard, bool is_wii,
-                         const DiscIO::VolumeDisc& volume,
-                         const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
+    const DiscIO::VolumeDisc& volume,
+    const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
 {
   const DiscIO::Partition partition = volume.GetGamePartition();
 
@@ -205,11 +205,11 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
     const u32 dvd_offset = mmu.Read_U32(0x8130000c) << (is_wii ? 2 : 0);
 
     INFO_LOG_FMT(BOOT, "DVDRead: offset: {:08x}   memOffset: {:08x}   length: {}", dvd_offset,
-                 ram_address, length);
+        ram_address, length);
     DVDRead(system, volume, dvd_offset, ram_address, length, partition);
 
-    DiscIO::Riivolution::ApplyApploaderMemoryPatches(guard, riivolution_patches, ram_address,
-                                                     length);
+    DiscIO::Riivolution::ApplyApploaderMemoryPatches(
+        guard, riivolution_patches, ram_address, length);
 
     ppc_state.gpr[3] = 0x81300004;
     ppc_state.gpr[4] = 0x81300008;
@@ -255,8 +255,8 @@ void CBoot::SetupGCMemory(Core::System& system, const Core::CPUThreadGuard& guar
   PowerPC::MMU::HostWrite_U32(guard, console_type, 0x8000002C);
 
   // Fake the VI Init of the IPL (YAGCD 4.2.1.4)
-  PowerPC::MMU::HostWrite_U32(guard, DiscIO::IsNTSC(SConfig::GetInstance().m_region) ? 0 : 1,
-                              0x800000CC);
+  PowerPC::MMU::HostWrite_U32(
+      guard, DiscIO::IsNTSC(SConfig::GetInstance().m_region) ? 0 : 1, 0x800000CC);
 
   // ARAM Size. 16MB main + 4/16/32MB external. (retail consoles have no external ARAM)
   PowerPC::MMU::HostWrite_U32(guard, 0x01000000, 0x800000d0);
@@ -279,8 +279,8 @@ void CBoot::SetupGCMemory(Core::System& system, const Core::CPUThreadGuard& guar
 // copy the apploader to 0x81200000
 // execute the apploader, function by function, using the above utility.
 bool CBoot::EmulatedBS2_GC(Core::System& system, const Core::CPUThreadGuard& guard,
-                           const DiscIO::VolumeDisc& volume,
-                           const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
+    const DiscIO::VolumeDisc& volume,
+    const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
 {
   INFO_LOG_FMT(BOOT, "Faking GC BS2...");
 
@@ -373,14 +373,14 @@ bool CBoot::SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType con
   std::string serno;
   std::string model = "RVL-001(" + region_setting.area + ")";
   CreateSystemMenuTitleDirs();
-  const std::string settings_file_path(Common::GetTitleDataPath(Titles::SYSTEM_MENU) +
-                                       "/" WII_SETTING);
+  const std::string settings_file_path(
+      Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/" WII_SETTING);
 
   const auto fs = system.GetIOS()->GetFS();
   {
     Common::SettingsBuffer data;
-    const auto file = fs->OpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, settings_file_path,
-                                   IOS::HLE::FS::Mode::Read);
+    const auto file = fs->OpenFile(
+        IOS::SYSMENU_UID, IOS::SYSMENU_GID, settings_file_path, IOS::HLE::FS::Mode::Read);
     if (file && file->Read(data.data(), data.size()))
     {
       const Common::SettingsReader settings_reader(data);
@@ -403,7 +403,7 @@ bool CBoot::SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType con
       {
         region_setting =
             RegionSetting{settings_reader.GetValue("AREA"), settings_reader.GetValue("VIDEO"),
-                          settings_reader.GetValue("GAME"), settings_reader.GetValue("CODE")};
+                settings_reader.GetValue("GAME"), settings_reader.GetValue("CODE")};
       }
       else
       {
@@ -439,8 +439,8 @@ bool CBoot::SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType con
   settings_writer.AddSetting("GAME", region_setting.game);
 
   constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
-  const auto settings_file = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID,
-                                                   settings_file_path, {rw_mode, rw_mode, rw_mode});
+  const auto settings_file = fs->CreateAndOpenFile(
+      IOS::SYSMENU_UID, IOS::SYSMENU_GID, settings_file_path, {rw_mode, rw_mode, rw_mode});
   if (!settings_file ||
       !settings_file->Write(settings_writer.GetBytes().data(), settings_writer.GetBytes().size()))
   {
@@ -519,8 +519,8 @@ static void WriteEmptyPlayRecord()
   const std::string file_path = Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/play_rec.dat";
   const auto fs = Core::System::GetInstance().GetIOS()->GetFS();
   constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
-  const auto playrec_file = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, file_path,
-                                                  {rw_mode, rw_mode, rw_mode});
+  const auto playrec_file = fs->CreateAndOpenFile(
+      IOS::SYSMENU_UID, IOS::SYSMENU_GID, file_path, {rw_mode, rw_mode, rw_mode});
   if (!playrec_file)
     return;
   std::vector<u8> empty_record(0x80);
@@ -532,8 +532,8 @@ static void WriteEmptyPlayRecord()
 // copy the apploader to 0x81200000
 // execute the apploader
 bool CBoot::EmulatedBS2_Wii(Core::System& system, const Core::CPUThreadGuard& guard,
-                            const DiscIO::VolumeDisc& volume,
-                            const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
+    const DiscIO::VolumeDisc& volume,
+    const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
 {
   INFO_LOG_FMT(BOOT, "Faking Wii BS2...");
   if (volume.GetVolumeType() != DiscIO::Platform::WiiDisc)
@@ -546,11 +546,13 @@ bool CBoot::EmulatedBS2_Wii(Core::System& system, const Core::CPUThreadGuard& gu
     return false;
 
   WriteEmptyPlayRecord();
-  UpdateStateFlags([](StateFlags* state) {
-    state->flags = 0xc1;
-    state->type = 0xff;
-    state->discstate = 0x01;
-  });
+  UpdateStateFlags(
+      [](StateFlags* state)
+      {
+        state->flags = 0xc1;
+        state->type = 0xff;
+        state->discstate = 0x01;
+      });
 
   auto& memory = system.GetMemory();
 
@@ -619,8 +621,8 @@ bool CBoot::EmulatedBS2_Wii(Core::System& system, const Core::CPUThreadGuard& gu
 // Returns true if apploader has run successfully. If is_wii is true, the disc
 // that volume refers to must currently be inserted into the emulated disc drive.
 bool CBoot::EmulatedBS2(Core::System& system, const Core::CPUThreadGuard& guard, bool is_wii,
-                        const DiscIO::VolumeDisc& volume,
-                        const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
+    const DiscIO::VolumeDisc& volume,
+    const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
 {
   return is_wii ? EmulatedBS2_Wii(system, guard, volume, riivolution_patches) :
                   EmulatedBS2_GC(system, guard, volume, riivolution_patches);

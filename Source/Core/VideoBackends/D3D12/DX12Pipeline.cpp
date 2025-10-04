@@ -15,10 +15,14 @@
 namespace DX12
 {
 DXPipeline::DXPipeline(const AbstractPipelineConfig& config, ID3D12PipelineState* pipeline,
-                       ID3D12RootSignature* root_signature, AbstractPipelineUsage usage,
-                       D3D12_PRIMITIVE_TOPOLOGY primitive_topology, bool use_integer_rtv)
-    : AbstractPipeline(config), m_pipeline(pipeline), m_root_signature(root_signature),
-      m_usage(usage), m_primitive_topology(primitive_topology), m_use_integer_rtv(use_integer_rtv)
+    ID3D12RootSignature* root_signature, AbstractPipelineUsage usage,
+    D3D12_PRIMITIVE_TOPOLOGY primitive_topology, bool use_integer_rtv)
+    : AbstractPipeline(config)
+    , m_pipeline(pipeline)
+    , m_root_signature(root_signature)
+    , m_usage(usage)
+    , m_primitive_topology(primitive_topology)
+    , m_use_integer_rtv(use_integer_rtv)
 {
 }
 
@@ -59,7 +63,7 @@ static D3D12_PRIMITIVE_TOPOLOGY_TYPE GetD3DTopologyType(const RasterizationState
 }
 
 static void GetD3DRasterizerDesc(D3D12_RASTERIZER_DESC* desc, const RasterizationState& rs_state,
-                                 const FramebufferState& fb_state)
+    const FramebufferState& fb_state)
 {
   // No CULL_ALL here.
   static constexpr std::array<D3D12_CULL_MODE, 4> cull_modes = {
@@ -75,9 +79,9 @@ static void GetD3DDepthDesc(D3D12_DEPTH_STENCIL_DESC* desc, const DepthState& st
   // Less/greater are swapped due to inverted depth.
   static constexpr std::array<D3D12_COMPARISON_FUNC, 8> compare_funcs = {
       {D3D12_COMPARISON_FUNC_NEVER, D3D12_COMPARISON_FUNC_GREATER, D3D12_COMPARISON_FUNC_EQUAL,
-       D3D12_COMPARISON_FUNC_GREATER_EQUAL, D3D12_COMPARISON_FUNC_LESS,
-       D3D12_COMPARISON_FUNC_NOT_EQUAL, D3D12_COMPARISON_FUNC_LESS_EQUAL,
-       D3D12_COMPARISON_FUNC_ALWAYS}};
+          D3D12_COMPARISON_FUNC_GREATER_EQUAL, D3D12_COMPARISON_FUNC_LESS,
+          D3D12_COMPARISON_FUNC_NOT_EQUAL, D3D12_COMPARISON_FUNC_LESS_EQUAL,
+          D3D12_COMPARISON_FUNC_ALWAYS}};
 
   desc->DepthEnable = state.test_enable;
   desc->DepthFunc = compare_funcs[u32(state.func.Value())];
@@ -85,33 +89,29 @@ static void GetD3DDepthDesc(D3D12_DEPTH_STENCIL_DESC* desc, const DepthState& st
       state.update_enable ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
 }
 
-static void GetD3DBlendDesc(D3D12_BLEND_DESC* desc, const BlendingState& state,
-                            u8 render_target_count)
+static void GetD3DBlendDesc(
+    D3D12_BLEND_DESC* desc, const BlendingState& state, u8 render_target_count)
 {
-  static constexpr std::array<D3D12_BLEND, 8> src_dual_src_factors = {
-      {D3D12_BLEND_ZERO, D3D12_BLEND_ONE, D3D12_BLEND_DEST_COLOR, D3D12_BLEND_INV_DEST_COLOR,
-       D3D12_BLEND_SRC1_ALPHA, D3D12_BLEND_INV_SRC1_ALPHA, D3D12_BLEND_DEST_ALPHA,
-       D3D12_BLEND_INV_DEST_ALPHA}};
-  static constexpr std::array<D3D12_BLEND, 8> dst_dual_src_factors = {
-      {D3D12_BLEND_ZERO, D3D12_BLEND_ONE, D3D12_BLEND_SRC_COLOR, D3D12_BLEND_INV_SRC_COLOR,
-       D3D12_BLEND_SRC1_ALPHA, D3D12_BLEND_INV_SRC1_ALPHA, D3D12_BLEND_DEST_ALPHA,
-       D3D12_BLEND_INV_DEST_ALPHA}};
-  static constexpr std::array<D3D12_BLEND, 8> src_factors = {
-      {D3D12_BLEND_ZERO, D3D12_BLEND_ONE, D3D12_BLEND_DEST_COLOR, D3D12_BLEND_INV_DEST_COLOR,
-       D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_DEST_ALPHA,
-       D3D12_BLEND_INV_DEST_ALPHA}};
+  static constexpr std::array<D3D12_BLEND, 8> src_dual_src_factors = {{D3D12_BLEND_ZERO,
+      D3D12_BLEND_ONE, D3D12_BLEND_DEST_COLOR, D3D12_BLEND_INV_DEST_COLOR, D3D12_BLEND_SRC1_ALPHA,
+      D3D12_BLEND_INV_SRC1_ALPHA, D3D12_BLEND_DEST_ALPHA, D3D12_BLEND_INV_DEST_ALPHA}};
+  static constexpr std::array<D3D12_BLEND, 8> dst_dual_src_factors = {{D3D12_BLEND_ZERO,
+      D3D12_BLEND_ONE, D3D12_BLEND_SRC_COLOR, D3D12_BLEND_INV_SRC_COLOR, D3D12_BLEND_SRC1_ALPHA,
+      D3D12_BLEND_INV_SRC1_ALPHA, D3D12_BLEND_DEST_ALPHA, D3D12_BLEND_INV_DEST_ALPHA}};
+  static constexpr std::array<D3D12_BLEND, 8> src_factors = {{D3D12_BLEND_ZERO, D3D12_BLEND_ONE,
+      D3D12_BLEND_DEST_COLOR, D3D12_BLEND_INV_DEST_COLOR, D3D12_BLEND_SRC_ALPHA,
+      D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_DEST_ALPHA, D3D12_BLEND_INV_DEST_ALPHA}};
 
-  static constexpr std::array<D3D12_BLEND, 8> dst_factors = {
-      {D3D12_BLEND_ZERO, D3D12_BLEND_ONE, D3D12_BLEND_SRC_COLOR, D3D12_BLEND_INV_SRC_COLOR,
-       D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_DEST_ALPHA,
-       D3D12_BLEND_INV_DEST_ALPHA}};
+  static constexpr std::array<D3D12_BLEND, 8> dst_factors = {{D3D12_BLEND_ZERO, D3D12_BLEND_ONE,
+      D3D12_BLEND_SRC_COLOR, D3D12_BLEND_INV_SRC_COLOR, D3D12_BLEND_SRC_ALPHA,
+      D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_DEST_ALPHA, D3D12_BLEND_INV_DEST_ALPHA}};
 
   static constexpr std::array<D3D12_LOGIC_OP, 16> logic_ops = {
       {D3D12_LOGIC_OP_CLEAR, D3D12_LOGIC_OP_AND, D3D12_LOGIC_OP_AND_REVERSE, D3D12_LOGIC_OP_COPY,
-       D3D12_LOGIC_OP_AND_INVERTED, D3D12_LOGIC_OP_NOOP, D3D12_LOGIC_OP_XOR, D3D12_LOGIC_OP_OR,
-       D3D12_LOGIC_OP_NOR, D3D12_LOGIC_OP_EQUIV, D3D12_LOGIC_OP_INVERT, D3D12_LOGIC_OP_OR_REVERSE,
-       D3D12_LOGIC_OP_COPY_INVERTED, D3D12_LOGIC_OP_OR_INVERTED, D3D12_LOGIC_OP_NAND,
-       D3D12_LOGIC_OP_SET}};
+          D3D12_LOGIC_OP_AND_INVERTED, D3D12_LOGIC_OP_NOOP, D3D12_LOGIC_OP_XOR, D3D12_LOGIC_OP_OR,
+          D3D12_LOGIC_OP_NOR, D3D12_LOGIC_OP_EQUIV, D3D12_LOGIC_OP_INVERT,
+          D3D12_LOGIC_OP_OR_REVERSE, D3D12_LOGIC_OP_COPY_INVERTED, D3D12_LOGIC_OP_OR_INVERTED,
+          D3D12_LOGIC_OP_NAND, D3D12_LOGIC_OP_SET}};
 
   desc->AlphaToCoverageEnable = FALSE;
   desc->IndependentBlendEnable = FALSE;
@@ -161,8 +161,8 @@ static void GetD3DBlendDesc(D3D12_BLEND_DESC* desc, const BlendingState& state,
   }
 }
 
-std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& config,
-                                               const void* cache_data, size_t cache_data_size)
+std::unique_ptr<DXPipeline> DXPipeline::Create(
+    const AbstractPipelineConfig& config, const void* cache_data, size_t cache_data_size)
 {
   DEBUG_ASSERT(config.vertex_shader && config.pixel_shader);
 
@@ -189,7 +189,7 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
     desc.PS = static_cast<const DXShader*>(config.pixel_shader)->GetD3DByteCode();
 
   GetD3DBlendDesc(&desc.BlendState, config.blending_state,
-                  config.framebuffer_state.additional_color_attachment_count + 1);
+      config.framebuffer_state.additional_color_attachment_count + 1);
   desc.SampleMask = 0xFFFFFFFF;
   GetD3DRasterizerDesc(&desc.RasterizerState, config.rasterization_state, config.framebuffer_state);
   GetD3DDepthDesc(&desc.DepthStencilState, config.depth_state);
@@ -206,7 +206,7 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
     desc.RTVFormats[0] = D3DCommon::GetRTVFormatForAbstractFormat(
         config.framebuffer_state.color_texture_format, config.blending_state.logic_op_enable);
     for (u8 i = 0; i < static_cast<u8>(config.framebuffer_state.additional_color_attachment_count);
-         i++)
+        i++)
     {
       // For now set all formats to be the same
       desc.RTVFormats[i + 1] = desc.RTVFormats[0];
@@ -225,14 +225,14 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
   if (FAILED(hr))
   {
     WARN_LOG_FMT(VIDEO, "CreateGraphicsPipelineState() {}failed: {}",
-                 cache_data ? "with cache data " : "", DX12HRWrap(hr));
+        cache_data ? "with cache data " : "", DX12HRWrap(hr));
     return nullptr;
   }
 
   const bool use_integer_rtv =
       !config.blending_state.blend_enable && config.blending_state.logic_op_enable;
   return std::make_unique<DXPipeline>(config, pso, desc.pRootSignature, config.usage,
-                                      GetD3DTopology(config.rasterization_state), use_integer_rtv);
+      GetD3DTopology(config.rasterization_state), use_integer_rtv);
 }
 
 AbstractPipeline::CacheData DXPipeline::GetCacheData() const

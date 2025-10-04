@@ -13,8 +13,8 @@ using namespace Gen;
 
 namespace DSP::JIT::x64
 {
-void DSPEmitter::ReJitConditional(const UDSPInstruction opc,
-                                  void (DSPEmitter::*conditional_fn)(UDSPInstruction))
+void DSPEmitter::ReJitConditional(
+    const UDSPInstruction opc, void (DSPEmitter::*conditional_fn)(UDSPInstruction))
 {
   u8 cond = opc & 0xf;
   if (cond == 0xf)  // Always true.

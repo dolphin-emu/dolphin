@@ -32,12 +32,11 @@ struct ShaderProperty
   };
 
   using Value = std::variant<s32, std::array<s32, 2>, std::array<s32, 3>, std::array<s32, 4>, float,
-                             std::array<float, 2>, std::array<float, 3>, std::array<float, 4>, bool,
-                             RGB, RGBA>;
+      std::array<float, 2>, std::array<float, 3>, std::array<float, 4>, bool, RGB, RGBA>;
   static std::span<const std::string_view> GetValueTypeNames();
   static Value GetDefaultValueFromTypeName(std::string_view name);
-  static void WriteAsShaderCode(ShaderCode& shader_source, std::string_view name,
-                                const ShaderProperty& property);
+  static void WriteAsShaderCode(
+      ShaderCode& shader_source, std::string_view name, const ShaderProperty& property);
 
   Value default_value;
   std::string description;
@@ -46,7 +45,7 @@ struct ShaderProperty
 struct RasterSurfaceShaderData
 {
   static bool FromJson(const CustomAssetLibrary::AssetID& asset_id, const picojson::object& json,
-                       RasterSurfaceShaderData* data);
+      RasterSurfaceShaderData* data);
   static void ToJson(picojson::object& obj, const RasterSurfaceShaderData& data);
 
   // These shader properties describe the input that the

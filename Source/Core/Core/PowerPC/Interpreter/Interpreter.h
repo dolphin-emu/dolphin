@@ -25,7 +25,7 @@ class Interpreter : public CPUCoreBase
 {
 public:
   Interpreter(Core::System& system, PowerPC::PowerPCState& ppc_state, PowerPC::MMU& mmu,
-              Core::BranchWatch& branch_watch, PPCSymbolDB& ppc_symbol_db);
+      Core::BranchWatch& branch_watch, PPCSymbolDB& ppc_symbol_db);
   Interpreter(const Interpreter&) = delete;
   Interpreter(Interpreter&&) = delete;
   Interpreter& operator=(const Interpreter&) = delete;
@@ -304,10 +304,10 @@ private:
 
   template <typename T>
   static void Helper_IntCompare(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst, T a, T b);
-  static void Helper_FloatCompareOrdered(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst,
-                                         double a, double b);
-  static void Helper_FloatCompareUnordered(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst,
-                                           double a, double b);
+  static void Helper_FloatCompareOrdered(
+      PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst, double a, double b);
+  static void Helper_FloatCompareUnordered(
+      PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst, double a, double b);
 
   static void Helper_StoreString(Interpreter& interpreter, const u32 EA, u32 n, u32 r);
 

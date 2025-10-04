@@ -74,15 +74,16 @@ GameConfigHighlighter::GameConfigHighlighter(QTextDocument* parent) : QObject(pa
   // We're manually highlighting blocks because QSyntaxHighlighter
   // hangs with large (>2MB) files for some reason.
   connect(parent, &QTextDocument::contentsChange, this,
-          [this, parent](const int pos, int /* removed */, const int added) {
-            QTextBlock block = parent->findBlock(pos);
-            const auto pos_end = pos + added;
-            while (block.isValid() && block.position() <= pos_end)
-            {
-              HighlightBlock(block);
-              block = block.next();
-            }
-          });
+      [this, parent](const int pos, int /* removed */, const int added)
+      {
+        QTextBlock block = parent->findBlock(pos);
+        const auto pos_end = pos + added;
+        while (block.isValid() && block.position() <= pos_end)
+        {
+          HighlightBlock(block);
+          block = block.next();
+        }
+      });
 
   // Highlight all blocks right now.
   for (QTextBlock block = parent->begin(); block.isValid(); block = block.next())
@@ -100,8 +101,8 @@ void GameConfigHighlighter::HighlightBlock(const QTextBlock& block)
     {
       const auto match = it.next();
       format_ranges.emplace_back(QTextLayout::FormatRange{.start = int(match.capturedStart()),
-                                                          .length = int(match.capturedLength()),
-                                                          .format = rule.format});
+          .length = int(match.capturedLength()),
+          .format = rule.format});
     }
   }
 

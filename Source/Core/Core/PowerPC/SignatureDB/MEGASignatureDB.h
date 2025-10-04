@@ -19,7 +19,8 @@ class PPCSymbolDB;
 struct MEGASignatureReference
 {
   MEGASignatureReference(u32 ref_offset, std::string ref_name)
-      : offset(ref_offset), name(std::move(ref_name))
+      : offset(ref_offset)
+      , name(std::move(ref_name))
   {
   }
   u32 offset;
@@ -54,8 +55,8 @@ public:
   void Apply(const Core::CPUThreadGuard& guard, PPCSymbolDB* symbol_db) const override;
   void Populate(const PPCSymbolDB* func_db, const std::string& filter = "") override;
 
-  bool Add(const Core::CPUThreadGuard& guard, u32 startAddr, u32 size,
-           const std::string& name) override;
+  bool Add(
+      const Core::CPUThreadGuard& guard, u32 startAddr, u32 size, const std::string& name) override;
 
 private:
   std::vector<MEGASignature> m_signatures;

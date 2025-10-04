@@ -77,7 +77,7 @@ bool IsEnabled(HookFlag flag, PowerPC::CoreMode mode);
 
 // Performs the backend-independent preliminary checking for whether a function
 // can be HLEd. If it can be, the information needed for HLEing it is returned.
-TryReplaceFunctionResult TryReplaceFunction(PPCSymbolDB& ppc_symbol_db, u32 address,
-                                            PowerPC::CoreMode mode);
+TryReplaceFunctionResult TryReplaceFunction(
+    PPCSymbolDB& ppc_symbol_db, u32 address, PowerPC::CoreMode mode);
 
 }  // namespace HLE

@@ -19,8 +19,8 @@ namespace UICommon
 {
 class GameFile;
 
-std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
-                                          bool recursive_scan);
+std::vector<std::string> FindAllGamePaths(
+    const std::vector<std::string>& directories_to_scan, bool recursive_scan);
 
 class GameFileCache
 {
@@ -48,11 +48,11 @@ public:
 
   // These functions return true if the call modified the cache.
   bool Update(std::span<const std::string> all_game_paths,
-              const GameAddedToCacheFn& game_added_to_cache = {},
-              const GameRemovedFromCacheFn& game_removed_from_cache = {},
-              const std::atomic_bool& processing_halted = false);
-  bool UpdateAdditionalMetadata(const GameUpdatedFn& game_updated = {},
-                                const std::atomic_bool& processing_halted = false);
+      const GameAddedToCacheFn& game_added_to_cache = {},
+      const GameRemovedFromCacheFn& game_removed_from_cache = {},
+      const std::atomic_bool& processing_halted = false);
+  bool UpdateAdditionalMetadata(
+      const GameUpdatedFn& game_updated = {}, const std::atomic_bool& processing_halted = false);
 
   bool Load();
   bool Save();

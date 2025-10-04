@@ -278,7 +278,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
     {
 #ifdef _DEBUG
       NOTICE_LOG_FMT(SERIALINTERFACE, "{} cmd {:02x} [> {:02x}{:02x}{:02x}{:02x}]", m_device_number,
-                     buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
+          buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
 #endif
       m_sock_server.Flush();  // Clear out any replies we might have timed out waiting for
       m_sock_server.Send(buffer);
@@ -331,9 +331,8 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
             Common::Log::LogLevel::LERROR :
             Common::Log::LogLevel::LWARNING;
     GENERIC_LOG_FMT(Common::Log::LogType::SERIALINTERFACE, log_level,
-                    "{}                              [< {:02x}{:02x}{:02x}{:02x}{:02x}] ({})",
-                    m_device_number, buffer[0], buffer[1], buffer[2], buffer[3], buffer[4],
-                    num_data_received);
+        "{}                              [< {:02x}{:02x}{:02x}{:02x}{:02x}] ({})", m_device_number,
+        buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], num_data_received);
 #endif
     return num_data_received;
   }

@@ -38,9 +38,8 @@ public:
 
 _Pre_satisfies_(EventDataSize >= sizeof(CM_NOTIFY_EVENT_DATA)) static DWORD CALLBACK
     OnDevicesChanged(_In_ HCMNOTIFICATION hNotify, _In_opt_ PVOID Context,
-                     _In_ CM_NOTIFY_ACTION Action,
-                     _In_reads_bytes_(EventDataSize) PCM_NOTIFY_EVENT_DATA EventData,
-                     _In_ DWORD EventDataSize)
+        _In_ CM_NOTIFY_ACTION Action,
+        _In_reads_bytes_(EventDataSize) PCM_NOTIFY_EVENT_DATA EventData, _In_ DWORD EventDataSize)
 {
   if (Action == CM_NOTIFY_ACTION_DEVICEINTERFACEARRIVAL ||
       Action == CM_NOTIFY_ACTION_DEVICEINTERFACEREMOVAL)
@@ -51,11 +50,13 @@ _Pre_satisfies_(EventDataSize >= sizeof(CM_NOTIFY_EVENT_DATA)) static DWORD CALL
     {
       // TODO: we could easily use the message passed alongside this event, which tells
       // whether a device was added or removed, to avoid removing old, still connected, devices
-      g_controller_interface.PlatformPopulateDevices([&] {
-        ciface::DInput::PopulateDevices(
-            static_cast<ciface::Win32::InputBackend*>(Context)->GetHWND());
-        ciface::XInput::PopulateDevices();
-      });
+      g_controller_interface.PlatformPopulateDevices(
+          [&]
+          {
+            ciface::DInput::PopulateDevices(
+                static_cast<ciface::Win32::InputBackend*>(Context)->GetHWND());
+            ciface::XInput::PopulateDevices();
+          });
     }
   }
   return ERROR_SUCCESS;
@@ -80,8 +81,8 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
   WGInput::Init();
 
   CM_NOTIFY_FILTER notify_filter{.cbSize = sizeof(notify_filter),
-                                 .FilterType = CM_NOTIFY_FILTER_TYPE_DEVICEINTERFACE,
-                                 .u{.DeviceInterface{.ClassGuid = GUID_DEVINTERFACE_HID}}};
+      .FilterType = CM_NOTIFY_FILTER_TYPE_DEVICEINTERFACE,
+      .u{.DeviceInterface{.ClassGuid = GUID_DEVINTERFACE_HID}}};
   const CONFIGRET cfg_rv =
       CM_Register_Notification(&notify_filter, this, OnDevicesChanged, &s_notify_handle);
   if (cfg_rv != CR_SUCCESS)
@@ -92,12 +93,14 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
 
 void InputBackend::PopulateDevices()
 {
-  g_controller_interface.PlatformPopulateDevices([this] {
-    s_first_populate_devices_asked.Set();
-    ciface::DInput::PopulateDevices(GetHWND());
-    ciface::XInput::PopulateDevices();
-    ciface::WGInput::PopulateDevices();
-  });
+  g_controller_interface.PlatformPopulateDevices(
+      [this]
+      {
+        s_first_populate_devices_asked.Set();
+        ciface::DInput::PopulateDevices(GetHWND());
+        ciface::XInput::PopulateDevices();
+        ciface::WGInput::PopulateDevices();
+      });
 }
 
 void InputBackend::HandleWindowChange()

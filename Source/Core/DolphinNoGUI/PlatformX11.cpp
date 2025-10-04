@@ -90,19 +90,19 @@ bool PlatformX11::Init()
   }
 
   m_window = XCreateSimpleWindow(m_display, DefaultRootWindow(m_display), m_window_x, m_window_y,
-                                 m_window_width, m_window_height, 0, 0, BlackPixel(m_display, 0));
+      m_window_width, m_window_height, 0, 0, BlackPixel(m_display, 0));
   XSelectInput(m_display, m_window, StructureNotifyMask | KeyPressMask | FocusChangeMask);
   Atom wmProtocols[1];
   wmProtocols[0] = XInternAtom(m_display, "WM_DELETE_WINDOW", True);
   XSetWMProtocols(m_display, m_window, wmProtocols, 1);
   pid_t pid = getpid();
   XChangeProperty(m_display, m_window, XInternAtom(m_display, "_NET_WM_PID", False), XA_CARDINAL,
-                  32, PropModeReplace, reinterpret_cast<unsigned char*>(&pid), 1);
+      32, PropModeReplace, reinterpret_cast<unsigned char*>(&pid), 1);
   char host_name[HOST_NAME_MAX] = "";
   if (!gethostname(host_name, sizeof(host_name)))
   {
-    XTextProperty wmClientMachine = {reinterpret_cast<unsigned char*>(host_name), XA_STRING, 8,
-                                     strlen(host_name)};
+    XTextProperty wmClientMachine = {
+        reinterpret_cast<unsigned char*>(host_name), XA_STRING, 8, strlen(host_name)};
     XSetWMClientMachine(m_display, m_window, &wmClientMachine);
   }
   XMapRaised(m_display, m_window);
@@ -180,7 +180,7 @@ void PlatformX11::UpdateWindowPosition()
   Window winDummy;
   unsigned int borderDummy, depthDummy;
   XGetGeometry(m_display, m_window, &winDummy, &m_window_x, &m_window_y, &m_window_width,
-               &m_window_height, &borderDummy, &depthDummy);
+      &m_window_height, &borderDummy, &depthDummy);
 }
 
 void PlatformX11::ProcessEvents()

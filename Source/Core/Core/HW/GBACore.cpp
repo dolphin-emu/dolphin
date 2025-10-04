@@ -158,7 +158,8 @@ static std::array<u8, 20> GetROMHash(VFile* rom)
 }
 
 Core::Core(::Core::System& system, int device_number)
-    : m_device_number(device_number), m_system(system)
+    : m_device_number(device_number)
+    , m_system(system)
 {
   mLogSetDefaultLogger(&s_stub_logger);
 }
@@ -176,10 +177,11 @@ bool Core::Start(u64 gc_ticks)
   Common::ScopeGuard start_guard{[&] { Stop(); }};
 
   VFile* rom{};
-  Common::ScopeGuard rom_guard{[&] {
-    if (rom)
-      rom->close(rom);
-  }};
+  Common::ScopeGuard rom_guard{[&]
+      {
+        if (rom)
+          rom->close(rom);
+      }};
 
   m_rom_path = Config::Get(Config::MAIN_GBA_ROM_PATHS[m_device_number]);
   if (!m_rom_path.empty())
@@ -187,8 +189,8 @@ bool Core::Start(u64 gc_ticks)
     rom = OpenROM(m_rom_path.c_str());
     if (!rom)
     {
-      PanicAlertFmtT("Error: GBA{0} failed to open the ROM in {1}", m_device_number + 1,
-                     m_rom_path);
+      PanicAlertFmtT(
+          "Error: GBA{0} failed to open the ROM in {1}", m_device_number + 1, m_rom_path);
       return false;
     }
     m_rom_hash = GetROMHash(rom);
@@ -217,8 +219,8 @@ bool Core::Start(u64 gc_ticks)
   {
     if (!m_core->loadROM(m_core, rom))
     {
-      PanicAlertFmtT("Error: GBA{0} failed to load the ROM in {1}", m_device_number + 1,
-                     m_rom_path);
+      PanicAlertFmtT(
+          "Error: GBA{0} failed to load the ROM in {1}", m_device_number + 1, m_rom_path);
       return false;
     }
     rom_guard.Dismiss();
@@ -388,11 +390,13 @@ void Core::SetSIODriver()
   GBASIOSetDriver(&static_cast<::GBA*>(m_core->board)->sio, &m_sio_driver, SIO_JOYBUS);
 
   m_sio_driver.core = this;
-  m_sio_driver.load = [](GBASIODriver* driver) {
+  m_sio_driver.load = [](GBASIODriver* driver)
+  {
     static_cast<SIODriver*>(driver)->core->m_link_enabled = true;
     return true;
   };
-  m_sio_driver.unload = [](GBASIODriver* driver) {
+  m_sio_driver.unload = [](GBASIODriver* driver)
+  {
     static_cast<SIODriver*>(driver)->core->m_link_enabled = false;
     return true;
   };
@@ -423,11 +427,13 @@ void Core::AddCallbacks()
 {
   mCoreCallbacks callbacks{};
   callbacks.context = this;
-  callbacks.keysRead = [](void* context) {
+  callbacks.keysRead = [](void* context)
+  {
     auto core = static_cast<Core*>(context);
     core->m_core->setKeys(core->m_core, core->m_keys);
   };
-  callbacks.videoFrameEnded = [](void* context) {
+  callbacks.videoFrameEnded = [](void* context)
+  {
     auto core = static_cast<Core*>(context);
     if (auto host = core->m_host.lock())
       host->FrameEnded(core->m_video_buffer);
@@ -439,11 +445,13 @@ void Core::SetAVStream()
 {
   m_stream = {};
   m_stream.core = this;
-  m_stream.videoDimensionsChanged = [](mAVStream* stream, unsigned width, unsigned height) {
+  m_stream.videoDimensionsChanged = [](mAVStream* stream, unsigned width, unsigned height)
+  {
     auto core = static_cast<AVStream*>(stream)->core;
     core->SetVideoBuffer();
   };
-  m_stream.postAudioBuffer = [](mAVStream* stream, blip_t* left, blip_t* right) {
+  m_stream.postAudioBuffer = [](mAVStream* stream, blip_t* left, blip_t* right)
+  {
     auto core = static_cast<AVStream*>(stream)->core;
     std::vector<s16> buffer(SAMPLES * 2);
     blip_read_samples(left, &buffer[0], SAMPLES, 1);
@@ -459,7 +467,8 @@ void Core::SetupEvent()
 {
   m_event.context = this;
   m_event.name = "Dolphin Sync";
-  m_event.callback = [](mTiming* timing, void* context, u32 cycles_late) {
+  m_event.callback = [](mTiming* timing, void* context, u32 cycles_late)
+  {
     Core* core = static_cast<Core*>(context);
     if (core->m_core->platform(core->m_core) == mPLATFORM_GBA)
       static_cast<::GBA*>(core->m_core->board)->earlyExit = true;
@@ -578,7 +587,7 @@ void Core::RunUntil(u64 gc_ticks)
   const u32 core_frequency = GetCoreFrequency(m_core);
 
   mTimingSchedule(m_core->timing, &m_event,
-                  static_cast<s32>((gc_ticks - m_last_gc_ticks) * core_frequency / gc_frequency));
+      static_cast<s32>((gc_ticks - m_last_gc_ticks) * core_frequency / gc_frequency));
   m_waiting_for_event = true;
 
   s32 begin_time = mTimingCurrentTime(m_core->timing);
@@ -661,8 +670,8 @@ void Core::DoState(PointerWrap& p)
   Flush();
   if (!IsStarted())
   {
-    ::Core::DisplayMessage(fmt::format("GBA{} core not started. Aborting.", m_device_number + 1),
-                           3000);
+    ::Core::DisplayMessage(
+        fmt::format("GBA{} core not started. Aborting.", m_device_number + 1), 3000);
     p.SetVerifyMode();
     return;
   }
@@ -675,7 +684,7 @@ void Core::DoState(PointerWrap& p)
   p.Do(m_game_title);
 
   if (p.IsReadMode() && (has_rom != !m_rom_path.empty() ||
-                         (has_rom && (old_hash != m_rom_hash || old_title != m_game_title))))
+                            (has_rom && (old_hash != m_rom_hash || old_title != m_game_title))))
   {
     ::Core::DisplayMessage(
         fmt::format("Incompatible ROM state in GBA{}. Aborting load state.", m_device_number + 1),

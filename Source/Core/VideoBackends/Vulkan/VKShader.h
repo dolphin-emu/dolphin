@@ -26,10 +26,10 @@ public:
   VkPipeline GetComputePipeline() const { return m_compute_pipeline; }
   BinaryData GetBinary() const override;
 
-  static std::unique_ptr<VKShader> CreateFromSource(ShaderStage stage, std::string_view source,
-                                                    std::string_view name);
-  static std::unique_ptr<VKShader> CreateFromBinary(ShaderStage stage, const void* data,
-                                                    size_t length, std::string_view name);
+  static std::unique_ptr<VKShader> CreateFromSource(
+      ShaderStage stage, std::string_view source, std::string_view name);
+  static std::unique_ptr<VKShader> CreateFromBinary(
+      ShaderStage stage, const void* data, size_t length, std::string_view name);
 
 private:
   std::vector<u32> m_spv;

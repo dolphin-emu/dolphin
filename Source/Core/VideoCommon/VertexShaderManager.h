@@ -47,8 +47,8 @@ public:
     *dirty = true;
   }
 
-  static DOLPHIN_FORCE_INLINE void UpdateOffset(bool* dirty, bool include_components,
-                                                u32* old_value, const AttributeFormat& attribute)
+  static DOLPHIN_FORCE_INLINE void UpdateOffset(
+      bool* dirty, bool include_components, u32* old_value, const AttributeFormat& attribute)
   {
     if (!attribute.enable)
       return;
@@ -60,8 +60,7 @@ public:
 
   template <size_t N>
   static DOLPHIN_FORCE_INLINE void UpdateOffsets(bool* dirty, bool include_components,
-                                                 std::array<u32, N>* old_value,
-                                                 const std::array<AttributeFormat, N>& attribute)
+      std::array<u32, N>* old_value, const std::array<AttributeFormat, N>& attribute)
   {
     for (size_t i = 0; i < N; i++)
       UpdateOffset(dirty, include_components, &(*old_value)[i], attribute[i]);

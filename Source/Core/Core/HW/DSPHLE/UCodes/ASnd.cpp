@@ -189,8 +189,8 @@ void ASndUCode::HandleMail(u32 mail)
       }
       else
       {
-        WARN_LOG_FMT(DSPHLE, "ASndUCode - MAIL_TERMINATE is not supported in this version: {:08x}",
-                     mail);
+        WARN_LOG_FMT(
+            DSPHLE, "ASndUCode - MAIL_TERMINATE is not supported in this version: {:08x}", mail);
         m_mail_handler.PushMail(DSP_SYNC, true);
       }
       break;
@@ -269,10 +269,14 @@ void ASndUCode::DoMixing(u32 return_mail)
 
   // sample_selector jump table
   static constexpr std::array<std::pair<s16, s16> (ASndUCode::*)() const, 8> sample_selector{
-      &ASndUCode::ReadSampleMono8Bits,           &ASndUCode::ReadSampleMono16Bits,
-      &ASndUCode::ReadSampleStereo8Bits,         &ASndUCode::ReadSampleStereo16Bits,
-      &ASndUCode::ReadSampleMono8BitsUnsigned,   &ASndUCode::ReadSampleMono16BitsLittleEndian,
-      &ASndUCode::ReadSampleStereo8BitsUnsigned, &ASndUCode::ReadSampleStereo16BitsLittleEndian,
+      &ASndUCode::ReadSampleMono8Bits,
+      &ASndUCode::ReadSampleMono16Bits,
+      &ASndUCode::ReadSampleStereo8Bits,
+      &ASndUCode::ReadSampleStereo16Bits,
+      &ASndUCode::ReadSampleMono8BitsUnsigned,
+      &ASndUCode::ReadSampleMono16BitsLittleEndian,
+      &ASndUCode::ReadSampleStereo8BitsUnsigned,
+      &ASndUCode::ReadSampleStereo16BitsLittleEndian,
   };
   const auto sample_function = sample_selector[sample_format];
 

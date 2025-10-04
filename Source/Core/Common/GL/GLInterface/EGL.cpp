@@ -63,17 +63,8 @@ void GLContextEGL::DetectMode()
   {
     // attributes for a visual in RGBA format with at least
     // 8 bits per color
-    int attribs[] = {EGL_RED_SIZE,
-                     8,
-                     EGL_GREEN_SIZE,
-                     8,
-                     EGL_BLUE_SIZE,
-                     8,
-                     EGL_RENDERABLE_TYPE,
-                     renderable_type,
-                     EGL_SURFACE_TYPE,
-                     IsHeadless() ? 0 : EGL_WINDOW_BIT,
-                     EGL_NONE};
+    int attribs[] = {EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8, EGL_RENDERABLE_TYPE,
+        renderable_type, EGL_SURFACE_TYPE, IsHeadless() ? 0 : EGL_WINDOW_BIT, EGL_NONE};
 
     // Get how many configs there are
     if (!eglChooseConfig(m_egl_display, attribs, nullptr, 0, &num_configs))
@@ -167,17 +158,8 @@ bool GLContextEGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
 
   // attributes for a visual in RGBA format with at least
   // 8 bits per color
-  int attribs[] = {EGL_RENDERABLE_TYPE,
-                   0,
-                   EGL_RED_SIZE,
-                   8,
-                   EGL_GREEN_SIZE,
-                   8,
-                   EGL_BLUE_SIZE,
-                   8,
-                   EGL_SURFACE_TYPE,
-                   IsHeadless() ? 0 : EGL_WINDOW_BIT,
-                   EGL_NONE};
+  int attribs[] = {EGL_RENDERABLE_TYPE, 0, EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8,
+      EGL_SURFACE_TYPE, IsHeadless() ? 0 : EGL_WINDOW_BIT, EGL_NONE};
 
   std::vector<EGLint> ctx_attribs;
   switch (m_opengl_mode)
@@ -220,15 +202,10 @@ bool GLContextEGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
   {
     for (const auto& version : s_desktop_opengl_versions)
     {
-      std::vector<EGLint> core_attribs = {EGL_CONTEXT_MAJOR_VERSION_KHR,
-                                          version.first,
-                                          EGL_CONTEXT_MINOR_VERSION_KHR,
-                                          version.second,
-                                          EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR,
-                                          EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT_KHR,
-                                          EGL_CONTEXT_FLAGS_KHR,
-                                          EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE_BIT_KHR,
-                                          EGL_NONE};
+      std::vector<EGLint> core_attribs = {EGL_CONTEXT_MAJOR_VERSION_KHR, version.first,
+          EGL_CONTEXT_MINOR_VERSION_KHR, version.second, EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR,
+          EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT_KHR, EGL_CONTEXT_FLAGS_KHR,
+          EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE_BIT_KHR, EGL_NONE};
 
       m_egl_context = eglCreateContext(m_egl_display, m_config, EGL_NO_CONTEXT, &core_attribs[0]);
       if (m_egl_context)
@@ -305,8 +282,8 @@ bool GLContextEGL::CreateWindowSurface()
     if (!eglQuerySurface(m_egl_display, m_egl_surface, EGL_WIDTH, &surface_width) ||
         !eglQuerySurface(m_egl_display, m_egl_surface, EGL_HEIGHT, &surface_height))
     {
-      WARN_LOG_FMT(VIDEO,
-                   "Failed to get surface dimensions via eglQuerySurface. Size may be incorrect.");
+      WARN_LOG_FMT(
+          VIDEO, "Failed to get surface dimensions via eglQuerySurface. Size may be incorrect.");
     }
     m_backbuffer_width = static_cast<int>(surface_width);
     m_backbuffer_height = static_cast<int>(surface_height);

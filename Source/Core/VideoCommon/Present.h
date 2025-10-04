@@ -36,7 +36,7 @@ public:
   virtual ~Presenter();
 
   void ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks,
-              TimePoint presentation_time);
+      TimePoint presentation_time);
   void ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
 
   void Present(std::optional<TimePoint> presentation_time = std::nullopt);
@@ -66,16 +66,14 @@ public:
   // rectangle if it is greater. Works even if the source and target rectangles don't have a
   // 1:1 pixel mapping, scaling as appropriate.
   void AdjustRectanglesToFitBounds(MathUtil::Rectangle<int>* target_rect,
-                                   MathUtil::Rectangle<int>* source_rect, int fb_width,
-                                   int fb_height);
+      MathUtil::Rectangle<int>* source_rect, int fb_width, int fb_height);
 
   void ReleaseXFBContentLock();
 
   // Draws the specified XFB buffer to the screen, performing any post-processing.
   // Assumes that the backbuffer has already been bound and cleared.
   virtual void RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
-                                 const AbstractTexture* source_texture,
-                                 const MathUtil::Rectangle<int>& source_rc);
+      const AbstractTexture* source_texture, const MathUtil::Rectangle<int>& source_rc);
 
   VideoCommon::PostProcessing* GetPostProcessor() const { return m_post_processor.get(); }
   // Final surface changing
@@ -109,17 +107,17 @@ private:
 
   // Scales a raw XFB resolution to the target (display) aspect ratio,
   // also accounting for crop and other minor adjustments
-  std::tuple<int, int> CalculateOutputDimensions(int width, int height,
-                                                 bool allow_stretch = true) const;
-  std::tuple<float, float> ApplyStandardAspectCrop(float width, float height,
-                                                   bool allow_stretch = true) const;
+  std::tuple<int, int> CalculateOutputDimensions(
+      int width, int height, bool allow_stretch = true) const;
+  std::tuple<float, float> ApplyStandardAspectCrop(
+      float width, float height, bool allow_stretch = true) const;
   // Scales a raw XFB resolution to the target (display) aspect ratio
-  std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height,
-                                                     bool allow_stretch = true) const;
+  std::tuple<float, float> ScaleToDisplayAspectRatio(
+      int width, int height, bool allow_stretch = true) const;
 
   // Use this to convert a single target rectangle to two stereo rectangles
-  std::tuple<MathUtil::Rectangle<int>, MathUtil::Rectangle<int>>
-  ConvertStereoRectangle(const MathUtil::Rectangle<int>& rc) const;
+  std::tuple<MathUtil::Rectangle<int>, MathUtil::Rectangle<int>> ConvertStereoRectangle(
+      const MathUtil::Rectangle<int>& rc) const;
 
   std::mutex m_swap_mutex;
 

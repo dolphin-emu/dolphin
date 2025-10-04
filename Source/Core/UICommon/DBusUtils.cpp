@@ -57,7 +57,7 @@ static bool InhibitXfce()
   if (interface.lastError().isValid())
   {
     WARN_LOG_FMT(VIDEO, "org.xfce.ScreenSaver::Inhibit failed: {}",
-                 interface.lastError().message().toStdString());
+        interface.lastError().message().toStdString());
     return false;
   }
   INFO_LOG_FMT(VIDEO, "org.xfce.ScreenSaver::Inhibit succeeded");
@@ -78,7 +78,7 @@ static bool InhibitMate()
   if (interface.lastError().isValid())
   {
     WARN_LOG_FMT(VIDEO, "org.mate.ScreenSaver::Inhibit failed: {}",
-                 interface.lastError().message().toStdString());
+        interface.lastError().message().toStdString());
     return false;
   }
   INFO_LOG_FMT(VIDEO, "org.mate.ScreenSaver::Inhibit succeeded");
@@ -89,8 +89,8 @@ static bool InhibitMate()
 // Inhibits screensaver on GNOME, KDE and Cinnamon
 static bool InhibitFDO()
 {
-  QDBusInterface interface("org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver",
-                           "org.freedesktop.ScreenSaver");
+  QDBusInterface interface(
+      "org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver", "org.freedesktop.ScreenSaver");
   if (!interface.isValid())
     return false;
 
@@ -98,7 +98,7 @@ static bool InhibitFDO()
   if (interface.lastError().isValid())
   {
     WARN_LOG_FMT(VIDEO, "org.freedesktop.ScreenSaver::Inhibit failed: {}",
-                 interface.lastError().message().toStdString());
+        interface.lastError().message().toStdString());
     return false;
   }
   INFO_LOG_FMT(VIDEO, "org.freedesktop.ScreenSaver::Inhibit succeeded");
@@ -111,7 +111,7 @@ static bool InhibitFDO()
 static bool InhibitPortal()
 {
   QDBusInterface interface("org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop",
-                           "org.freedesktop.portal.Inhibit");
+      "org.freedesktop.portal.Inhibit");
   if (!interface.isValid())
     return false;
 
@@ -123,7 +123,7 @@ static bool InhibitPortal()
   if (interface.lastError().isValid())
   {
     WARN_LOG_FMT(VIDEO, "org.freedesktop.portal.Desktop::Inhibit failed: {}",
-                 interface.lastError().message().toStdString());
+        interface.lastError().message().toStdString());
     return false;
   }
   INFO_LOG_FMT(VIDEO, "org.freedesktop.portal.Desktop::Inhibit succeeded");
@@ -136,12 +136,12 @@ static void Uninhibit()
   if (s_fdo_cookie)
   {
     QDBusInterface interface("org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver",
-                             "org.freedesktop.ScreenSaver");
+        "org.freedesktop.ScreenSaver");
     interface.call("UnInhibit", s_fdo_cookie);
     if (interface.lastError().isValid())
     {
       WARN_LOG_FMT(VIDEO, "org.freedesktop.ScreenSaver::UnInhibit failed: {}",
-                   interface.lastError().message().toStdString());
+          interface.lastError().message().toStdString());
     }
     else
     {
@@ -152,13 +152,13 @@ static void Uninhibit()
 
   if (s_xfce_cookie)
   {
-    QDBusInterface interface("org.xfce.ScreenSaver", "/org/xfce/ScreenSaver",
-                             "org.xfce.ScreenSaver");
+    QDBusInterface interface(
+        "org.xfce.ScreenSaver", "/org/xfce/ScreenSaver", "org.xfce.ScreenSaver");
     interface.call("UnInhibit", s_xfce_cookie);
     if (interface.lastError().isValid())
     {
       WARN_LOG_FMT(VIDEO, "org.xfce.ScreenSaver::UnInhibit failed: {}",
-                   interface.lastError().message().toStdString());
+          interface.lastError().message().toStdString());
     }
     else
     {
@@ -174,7 +174,7 @@ static void Uninhibit()
     if (interface.lastError().isValid())
     {
       WARN_LOG_FMT(VIDEO, "org.mate.ScreenSaver::UnInhibit failed: {}",
-                   interface.lastError().message().toStdString());
+          interface.lastError().message().toStdString());
     }
     else
     {
@@ -185,13 +185,13 @@ static void Uninhibit()
 
   if (!s_portal_handle.isEmpty())
   {
-    QDBusInterface interface("org.freedesktop.portal.Desktop", s_portal_handle,
-                             "org.freedesktop.portal.Request");
+    QDBusInterface interface(
+        "org.freedesktop.portal.Desktop", s_portal_handle, "org.freedesktop.portal.Request");
     interface.call("Close");
     if (interface.lastError().isValid())
     {
       WARN_LOG_FMT(VIDEO, "org.freedesktop.portal.Request::Close failed: {}",
-                   interface.lastError().message().toStdString());
+          interface.lastError().message().toStdString());
     }
     else
     {

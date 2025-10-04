@@ -18,8 +18,8 @@ SocketContext::SocketContext()
     if (ret == 0)
     {
       INFO_LOG_FMT(COMMON, "WSAStartup succeeded, wVersion={}.{}, wHighVersion={}.{}",
-                   int(LOBYTE(s_data.wVersion)), int(HIBYTE(s_data.wVersion)),
-                   int(LOBYTE(s_data.wHighVersion)), int(HIBYTE(s_data.wHighVersion)));
+          int(LOBYTE(s_data.wVersion)), int(HIBYTE(s_data.wVersion)),
+          int(LOBYTE(s_data.wHighVersion)), int(HIBYTE(s_data.wHighVersion)));
     }
     else
     {
@@ -28,8 +28,8 @@ SocketContext::SocketContext()
       //
       // Source:
       // https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-wsastartup
-      ERROR_LOG_FMT(COMMON, "WSAStartup failed with error {}: {}", ret,
-                    Common::DecodeNetworkError(ret));
+      ERROR_LOG_FMT(
+          COMMON, "WSAStartup failed with error {}: {}", ret, Common::DecodeNetworkError(ret));
     }
   }
   s_num_objects++;

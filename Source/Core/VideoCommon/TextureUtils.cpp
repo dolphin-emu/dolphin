@@ -29,8 +29,8 @@ std::string BuildDumpTextureFilename(std::string basename, u32 level, bool is_ar
 }  // namespace
 namespace VideoCommon::TextureUtils
 {
-void DumpTexture(const ::AbstractTexture& texture, std::string basename, u32 level,
-                 bool is_arbitrary)
+void DumpTexture(
+    const ::AbstractTexture& texture, std::string basename, u32 level, bool is_arbitrary)
 {
   const std::string dump_dir =
       File::GetUserPath(D_DUMPTEXTURES_IDX) + SConfig::GetInstance().GetGameID();
@@ -47,8 +47,8 @@ void DumpTexture(const ::AbstractTexture& texture, std::string basename, u32 lev
   texture.Save(filename, level, Config::Get(Config::GFX_TEXTURE_PNG_COMPRESSION_LEVEL));
 }
 
-void TextureDumper::DumpTexture(const ::AbstractTexture& texture, std::string basename, u32 level,
-                                bool is_arbitrary)
+void TextureDumper::DumpTexture(
+    const ::AbstractTexture& texture, std::string basename, u32 level, bool is_arbitrary)
 {
   const std::string dump_dir =
       File::GetUserPath(D_DUMPTEXTURES_IDX) + SConfig::GetInstance().GetGameID();
@@ -65,8 +65,8 @@ void TextureDumper::DumpTexture(const ::AbstractTexture& texture, std::string ba
       m_dumped_textures.insert(name);
     }
 
-    NOTICE_LOG_FMT(VIDEO, "Found {} dumped textures that will not be re-dumped.",
-                   m_dumped_textures.size());
+    NOTICE_LOG_FMT(
+        VIDEO, "Found {} dumped textures that will not be re-dumped.", m_dumped_textures.size());
   }
 
   const std::string name = BuildDumpTextureFilename(std::move(basename), level, is_arbitrary);
@@ -75,6 +75,6 @@ void TextureDumper::DumpTexture(const ::AbstractTexture& texture, std::string ba
     return;
 
   texture.Save(fmt::format("{}/{}.png", dump_dir, name), level,
-               Config::Get(Config::GFX_TEXTURE_PNG_COMPRESSION_LEVEL));
+      Config::Get(Config::GFX_TEXTURE_PNG_COMPRESSION_LEVEL));
 }
 }  // namespace VideoCommon::TextureUtils

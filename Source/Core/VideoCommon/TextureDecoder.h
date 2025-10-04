@@ -42,9 +42,8 @@ enum class TextureFormat
 template <>
 struct fmt::formatter<TextureFormat> : EnumFormatter<TextureFormat::CMPR>
 {
-  static constexpr array_type names = {"I4",     "I8",    "IA4",   "IA8",   "RGB565",
-                                       "RGB5A3", "RGBA8", nullptr, "C4",    "C8",
-                                       "C14X2",  nullptr, nullptr, nullptr, "CMPR"};
+  static constexpr array_type names = {"I4", "I8", "IA4", "IA8", "RGB565", "RGB5A3", "RGBA8",
+      nullptr, "C4", "C8", "C14X2", nullptr, nullptr, nullptr, "CMPR"};
   constexpr formatter() : EnumFormatter(names) {}
 };
 
@@ -107,9 +106,18 @@ template <>
 struct fmt::formatter<EFBCopyFormat> : EnumFormatter<EFBCopyFormat::GB8>
 {
   static constexpr array_type names = {
-      "R4/I4/Z4",  "R8/I8/Z8H (?)", "RA4/IA4", "RA8/IA8 (Z16 too?)",
-      "RGB565",    "RGB5A3",        "RGBA8",   "A8",
-      "R8/I8/Z8H", "G8/Z8M",        "B8/Z8L",  "RG8/Z16R (Note: G and R are reversed)",
+      "R4/I4/Z4",
+      "R8/I8/Z8H (?)",
+      "RA4/IA4",
+      "RA8/IA8 (Z16 too?)",
+      "RGB565",
+      "RGB5A3",
+      "RGBA8",
+      "A8",
+      "R8/I8/Z8H",
+      "G8/Z8M",
+      "B8/Z8L",
+      "RG8/Z16R (Note: G and R are reversed)",
       "GB8/Z16L",
   };
   constexpr formatter() : EnumFormatter(names) {}
@@ -190,19 +198,19 @@ int TexDecoder_GetPaletteSize(TextureFormat fmt);
 TextureFormat TexDecoder_GetEFBCopyBaseFormat(EFBCopyFormat format);
 
 void TexDecoder_Decode(u8* dst, const u8* src, int width, int height, TextureFormat texformat,
-                       const u8* tlut, TLUTFormat tlutfmt);
-void TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int width,
-                                    int height);
+    const u8* tlut, TLUTFormat tlutfmt);
+void TexDecoder_DecodeRGBA8FromTmem(
+    u8* dst, const u8* src_ar, const u8* src_gb, int width, int height);
 void TexDecoder_DecodeTexel(u8* dst, std::span<const u8> src, int s, int t, int imageWidth,
-                            TextureFormat texformat, std::span<const u8> tlut, TLUTFormat tlutfmt);
-void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, std::span<const u8> src_ar,
-                                         std::span<const u8> src_gb, int s, int t, int imageWidth);
-void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int s, int t,
-                                         int imageWidth);
+    TextureFormat texformat, std::span<const u8> tlut, TLUTFormat tlutfmt);
+void TexDecoder_DecodeTexelRGBA8FromTmem(
+    u8* dst, std::span<const u8> src_ar, std::span<const u8> src_gb, int s, int t, int imageWidth);
+void TexDecoder_DecodeTexelRGBA8FromTmem(
+    u8* dst, const u8* src_ar, const u8* src_gb, int s, int t, int imageWidth);
 void TexDecoder_DecodeXFB(u8* dst, const u8* src, u32 width, u32 height, u32 stride);
 
 void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);
 
 /* Internal method, implemented by TextureDecoder_Generic and TextureDecoder_x64. */
 void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, TextureFormat texformat,
-                            const u8* tlut, TLUTFormat tlutfmt);
+    const u8* tlut, TLUTFormat tlutfmt);

@@ -82,7 +82,8 @@ bool AESndUCode::UseNewFlagMasks() const
 }
 
 AESndUCode::AESndUCode(DSPHLE* dsphle, u32 crc)
-    : UCodeInterface(dsphle, crc), m_accelerator(dsphle->GetSystem().GetDSP())
+    : UCodeInterface(dsphle, crc)
+    , m_accelerator(dsphle->GetSystem().GetDSP())
 {
 }
 
@@ -161,8 +162,8 @@ void AESndUCode::HandleMail(u32 mail)
       auto& memory = m_dsphle->GetSystem().GetMemory();
       for (u32 i = 0; i < NUM_OUTPUT_SAMPLES * 2; i++)
       {
-        HLEMemory_Write_U16(memory, m_parameter_block.out_buf + i * sizeof(u16),
-                            m_output_buffer[i]);
+        HLEMemory_Write_U16(
+            memory, m_parameter_block.out_buf + i * sizeof(u16), m_output_buffer[i]);
       }
       m_mail_handler.PushMail(DSP_SYNC, true);
       break;
@@ -305,7 +306,7 @@ void AESndUCode::DoMixing()
           m_has_shown_unsupported_sample_format_warning = true;
           PanicAlertFmt("EDuke32 Wii aesndlib uCode does not correctly handle this sample format: "
                         "{} (flags: {:08x})",
-                        voice_format, m_parameter_block.flags);
+              voice_format, m_parameter_block.flags);
         }
       }
     }

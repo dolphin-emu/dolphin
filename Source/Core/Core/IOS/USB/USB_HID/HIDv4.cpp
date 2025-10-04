@@ -60,8 +60,8 @@ std::optional<IPCReply> USB_HIDv4::IOCtl(const IOCtlRequest& request)
       return IPCReply(IPC_ENOENT);
     if (!device->Attach())
       return IPCReply(IPC_EINVAL);
-    return HandleTransfer(device, request.request,
-                          [&, this] { return SubmitTransfer(*device, request); });
+    return HandleTransfer(
+        device, request.request, [&, this] { return SubmitTransfer(*device, request); });
   }
   default:
     request.DumpUnknown(GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_USB);
@@ -229,8 +229,8 @@ void USB_HIDv4::TriggerDeviceChangeReply()
     memory.Write_U32(0xffffffff, dest + offset);
   }
 
-  GetEmulationKernel().EnqueueIPCReply(*m_devicechange_hook_request, IPC_SUCCESS, 0,
-                                       CoreTiming::FromThread::ANY);
+  GetEmulationKernel().EnqueueIPCReply(
+      *m_devicechange_hook_request, IPC_SUCCESS, 0, CoreTiming::FromThread::ANY);
   m_devicechange_hook_request.reset();
 }
 
@@ -240,7 +240,7 @@ static void CopyDescriptorToBuffer(std::vector<u8>* buffer, T descriptor)
   const size_t size = sizeof(descriptor);
   descriptor.Swap();
   buffer->insert(buffer->end(), reinterpret_cast<const u8*>(&descriptor),
-                 reinterpret_cast<const u8*>(&descriptor) + size);
+      reinterpret_cast<const u8*>(&descriptor) + size);
   constexpr size_t number_of_padding_bytes = Common::AlignUp(size, 4) - size;
   buffer->insert(buffer->end(), number_of_padding_bytes, 0);
 }

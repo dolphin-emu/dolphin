@@ -38,15 +38,15 @@ bool GraphicsModAssetConfig::DeserializeFromConfig(const picojson::object& obj)
   if (data_iter == obj.end())
   {
     ERROR_LOG_FMT(VIDEO, "Failed to load mod configuration file, specified asset '{}' has no data",
-                  m_asset_id);
+        m_asset_id);
     return false;
   }
   if (!data_iter->second.is<picojson::object>())
   {
     ERROR_LOG_FMT(VIDEO,
-                  "Failed to load mod configuration file, specified asset '{}' has data "
-                  "that is not an object",
-                  m_asset_id);
+        "Failed to load mod configuration file, specified asset '{}' has data "
+        "that is not an object",
+        m_asset_id);
     return false;
   }
   for (const auto& [key, value] : data_iter->second.get<picojson::object>())
@@ -54,9 +54,9 @@ bool GraphicsModAssetConfig::DeserializeFromConfig(const picojson::object& obj)
     if (!value.is<std::string>())
     {
       ERROR_LOG_FMT(VIDEO,
-                    "Failed to load mod configuration file, specified asset '{}' has data "
-                    "with a value for key '{}' that is not a string",
-                    m_asset_id, key);
+          "Failed to load mod configuration file, specified asset '{}' has data "
+          "with a value for key '{}' that is not a string",
+          m_asset_id, key);
       return false;
     }
     m_map[key] = value.to_str();

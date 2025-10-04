@@ -31,7 +31,7 @@ struct DepthStencilSelector
   }
   DepthStencilSelector(DepthState state)
       : DepthStencilSelector(state.test_enable ? state.update_enable : false,
-                             state.test_enable ? state.func : CompareMode::Always)
+            state.test_enable ? state.func : CompareMode::Always)
   {
   }
 
@@ -53,7 +53,7 @@ struct SamplerSelector
             (static_cast<u32>(state.tm0.mipmap_filter.Value()) << 2) |
             (static_cast<u32>(state.tm0.anisotropic_filtering) << 3);
     value |= (static_cast<u32>(state.tm0.wrap_u.Value()) +
-              3 * static_cast<u32>(state.tm0.wrap_v.Value()))
+                 3 * static_cast<u32>(state.tm0.wrap_v.Value()))
              << 7;
   }
   FilterMode MinFilter() const { return static_cast<FilterMode>(value & 1); }

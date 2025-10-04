@@ -68,7 +68,7 @@ void JitArm64::ps_mergeXX(UGeckoInstruction inst)
   }
 
   ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a) && fpr.IsSingle(b)),
-             "Register allocation turned singles into doubles in the middle of ps_mergeXX");
+      "Register allocation turned singles into doubles in the middle of ps_mergeXX");
 }
 
 void JitArm64::ps_arith(UGeckoInstruction inst)
@@ -93,9 +93,8 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
   const bool negate_result = (op5 & ~0x1) == 30;
   const bool msub = op5 == 28 || op5 == 30;
 
-  const auto singles_func = [&] {
-    return fpr.IsSingle(a) && (!use_b || fpr.IsSingle(b)) && (!use_c || fpr.IsSingle(c));
-  };
+  const auto singles_func = [&]
+  { return fpr.IsSingle(a) && (!use_b || fpr.IsSingle(b)) && (!use_c || fpr.IsSingle(c)); };
   const bool singles = singles_func();
 
   const bool inaccurate_fma = !Config::Get(Config::SESSION_USE_FMA);
@@ -249,7 +248,8 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
 
       // Pick the right NaNs
 
-      const auto check_input = [&](ARM64Reg input) {
+      const auto check_input = [&](ARM64Reg input)
+      {
         m_float_emit.FCMEQ(size, nan_temp_reg_paired, input, input);
         m_float_emit.BIF(result_reg, input, nan_temp_reg_paired);
       };
@@ -300,7 +300,7 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
   }
 
   ASSERT_MSG(DYNA_REC, singles == singles_func(),
-             "Register allocation turned singles into doubles in the middle of ps_arith");
+      "Register allocation turned singles into doubles in the middle of ps_arith");
 
   fpr.FixSinglePrecision(d);
 
@@ -347,7 +347,7 @@ void JitArm64::ps_sel(UGeckoInstruction inst)
   }
 
   ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c)),
-             "Register allocation turned singles into doubles in the middle of ps_sel");
+      "Register allocation turned singles into doubles in the middle of ps_sel");
 }
 
 void JitArm64::ps_sumX(UGeckoInstruction inst)
@@ -415,7 +415,7 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
   }
 
   ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c)),
-             "Register allocation turned singles into doubles in the middle of ps_sumX");
+      "Register allocation turned singles into doubles in the middle of ps_sumX");
 
   fpr.FixSinglePrecision(d);
 

@@ -100,7 +100,7 @@ bool JitBlockProxyModel::filterAcceptsRow(int source_row, const QModelIndex& sou
   {
     if (const QVariant& symbol_name_v = *sourceModel()->GetSymbolList()[source_row];
         !symbol_name_v.isValid() || !static_cast<const QString*>(symbol_name_v.data())
-                                         ->contains(m_symbol_name, Qt::CaseInsensitive))
+                                        ->contains(m_symbol_name, Qt::CaseInsensitive))
     {
       return false;
     }
@@ -187,9 +187,9 @@ void JITWidget::ShowFreeMemoryStatus()
     // i18n: Of each memory region, %1 is its remaining size displayed in an appropriate scale
     // of bytes (e.g. MiB), %2 is its untranslated name, and %3 is its fragmentation percentage.
     message.append(tr(" %1 %2 (%3% fragmented)")
-                       .arg(QString::fromStdString(UICommon::FormatSize(free_size, 2)))
-                       .arg(QtUtils::FromStdString(name))
-                       .arg(fragmentation_ratio * 100.0, 0, 'f', 2));
+            .arg(QString::fromStdString(UICommon::FormatSize(free_size, 2)))
+            .arg(QtUtils::FromStdString(name))
+            .arg(fragmentation_ratio * 100.0, 0, 'f', 2));
   }
   m_status_bar->showMessage(message);
 }
@@ -201,8 +201,8 @@ void JITWidget::UpdateContent(Core::State state)
     ShowFreeMemoryStatus();
 }
 
-static void DisassembleCodeBuffer(const JitBlock& block, PPCSymbolDB& ppc_symbol_db,
-                                  std::ostream& stream)
+static void DisassembleCodeBuffer(
+    const JitBlock& block, PPCSymbolDB& ppc_symbol_db, std::ostream& stream)
 {
   // Instructions are 4 byte aligned, so next_address = 1 will never produce a false-negative.
   for (u32 next_address = 1; const auto& [address, inst] : block.original_buffer)
@@ -213,7 +213,7 @@ static void DisassembleCodeBuffer(const JitBlock& block, PPCSymbolDB& ppc_symbol
       next_address = address;
     }
     fmt::print(stream, "0x{:08x}\t{}\n", address,
-               Common::GekkoDisassembler::Disassemble(inst.hex, address));
+        Common::GekkoDisassembler::Disassemble(inst.hex, address));
     next_address += sizeof(UGeckoInstruction);
   }
 }
@@ -239,13 +239,13 @@ void JITWidget::CrossDisassemble(const JitBlock& block)
   // percentage calculated from how inefficient (in other words, "blown-up") a given JIT block's
   // recompilation was when considering the host instruction count vs the PPC instruction count.
   m_status_bar->showMessage(tr("Host instruction count: %1 near %2 far (%3% blowup)")
-                                .arg(host_near_instruction_count)
-                                .arg(host_far_instruction_count)
-                                .arg(static_cast<double>(100 * (host_near_instruction_count +
-                                                                host_far_instruction_count)) /
-                                             block.originalSize -
-                                         100.0,
-                                     0, 'f', 2));
+          .arg(host_near_instruction_count)
+          .arg(host_far_instruction_count)
+          .arg(static_cast<double>(
+                   100 * (host_near_instruction_count + host_far_instruction_count)) /
+                       block.originalSize -
+                   100.0,
+              0, 'f', 2));
 }
 
 void JITWidget::CrossDisassemble(const QModelIndex& index)
@@ -269,9 +269,8 @@ void JITWidget::TableEraseBlocks()
   QModelIndexList index_list = selection_model->selectedRows();
   selection_model->clear();  // Side effect: currentChanged will be emitted (this is intended).
 
-  std::ranges::transform(index_list, index_list.begin(), [this](const QModelIndex& index) {
-    return m_table_proxy->mapToSource(index);
-  });
+  std::ranges::transform(index_list, index_list.begin(),
+      [this](const QModelIndex& index) { return m_table_proxy->mapToSource(index); });
   std::ranges::sort(index_list, std::less{});  // QModelIndex is incompatible with std::ranges::less
   for (const QModelIndex& index : std::ranges::reverse_view{index_list})
   {
@@ -304,8 +303,8 @@ void JITWidget::SaveQSettings() const
 
   settings.setValue(QStringLiteral("jitwidget/geometry"), saveGeometry());
   settings.setValue(QStringLiteral("jitwidget/floating"), isFloating());
-  settings.setValue(QStringLiteral("jitwidget/tableheader/state"),
-                    m_table_view->horizontalHeader()->saveState());
+  settings.setValue(
+      QStringLiteral("jitwidget/tableheader/state"), m_table_view->horizontalHeader()->saveState());
   settings.setValue(QStringLiteral("jitwidget/tablesplitter"), m_table_splitter->saveState());
   settings.setValue(QStringLiteral("jitwidget/disasmsplitter"), m_disasm_splitter->saveState());
 }
@@ -365,8 +364,7 @@ void JITWidget::OnRequestPPCComparison(u32 address, bool translate_address)
     const std::optional<u32> pm_address = m_system.GetMMU().GetTranslatedAddress(address);
     if (!pm_address.has_value())
     {
-      ModalMessageBox::warning(
-          this, tr("Error"),
+      ModalMessageBox::warning(this, tr("Error"),
           tr("Effective address %1 has no physical address translation.").arg(address, 0, 16));
       return;
     }
@@ -522,8 +520,8 @@ JITWidget::JITWidget(Core::System& system, QWidget* parent) : QDockWidget(parent
 
   m_table_view = new QTableView(nullptr);
   m_table_proxy = new JitBlockProxyModel(m_table_view);
-  m_table_model = new JitBlockTableModel(m_system, m_system.GetJitInterface(),
-                                         m_system.GetPPCSymbolDB(), m_table_proxy);
+  m_table_model = new JitBlockTableModel(
+      m_system, m_system.GetJitInterface(), m_system.GetPPCSymbolDB(), m_table_proxy);
 
   connect(this, &JITWidget::HideSignal, m_table_model, &JitBlockTableModel::OnHideSignal);
   connect(this, &JITWidget::ShowSignal, m_table_model, &JitBlockTableModel::OnShowSignal);
@@ -543,8 +541,8 @@ JITWidget::JITWidget(Core::System& system, QWidget* parent) : QDockWidget(parent
   m_table_view->setCornerButtonEnabled(false);
   m_table_view->verticalHeader()->hide();
   connect(m_table_view, &QTableView::doubleClicked, this, &JITWidget::OnTableDoubleClicked);
-  connect(m_table_view, &QTableView::customContextMenuRequested, this,
-          &JITWidget::OnTableContextMenu);
+  connect(
+      m_table_view, &QTableView::customContextMenuRequested, this, &JITWidget::OnTableContextMenu);
 
   auto* const horizontal_header = m_table_view->horizontalHeader();
   horizontal_header->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -552,37 +550,36 @@ JITWidget::JITWidget(Core::System& system, QWidget* parent) : QDockWidget(parent
   horizontal_header->setSectionsMovable(true);
   horizontal_header->setFirstSectionMovable(true);
   connect(horizontal_header, &QHeaderView::sortIndicatorChanged, m_table_model,
-          &JitBlockTableModel::OnSortIndicatorChanged);
+      &JitBlockTableModel::OnSortIndicatorChanged);
   connect(horizontal_header, &QHeaderView::customContextMenuRequested, this,
-          &JITWidget::OnTableHeaderContextMenu);
+      &JITWidget::OnTableHeaderContextMenu);
 
   auto* const selection_model = m_table_view->selectionModel();
   connect(selection_model, &QItemSelectionModel::currentChanged, this,
-          &JITWidget::OnTableCurrentChanged);
+      &JITWidget::OnTableCurrentChanged);
 
   auto* const controls_layout = new QHBoxLayout(nullptr);
   const auto address_filter_routine = [&](QLineEdit* line_edit, const QString& placeholder_text,
-                                          void (JitBlockProxyModel::*slot)(const QString&)) {
+                                          void (JitBlockProxyModel::*slot)(const QString&))
+  {
     line_edit->setPlaceholderText(placeholder_text);
     connect(line_edit, &QLineEdit::textChanged, m_table_proxy, slot);
     controls_layout->addWidget(line_edit);
   };
-  address_filter_routine(
-      new QLineEdit(nullptr), tr("Min Effective Address"),
+  address_filter_routine(new QLineEdit(nullptr), tr("Min Effective Address"),
       &JitBlockProxyModel::OnAddressTextChanged<&JitBlockProxyModel::m_em_address_min>);
-  address_filter_routine(
-      new QLineEdit(nullptr), tr("Max Effective Address"),
+  address_filter_routine(new QLineEdit(nullptr), tr("Max Effective Address"),
       &JitBlockProxyModel::OnAddressTextChanged<&JitBlockProxyModel::m_em_address_max>);
-  address_filter_routine(
-      m_pm_address_covered_line_edit = new QLineEdit(nullptr), tr("Recompiles Physical Address"),
+  address_filter_routine(m_pm_address_covered_line_edit = new QLineEdit(nullptr),
+      tr("Recompiles Physical Address"),
       &JitBlockProxyModel::OnAddressTextChanged<&JitBlockProxyModel::m_pm_address_covered>);
 
   auto* const symbol_name_line_edit = new QLineEdit(nullptr);
   symbol_name_line_edit->setPlaceholderText(tr("Symbol Name"));
   connect(symbol_name_line_edit, &QLineEdit::textChanged, m_table_model,
-          &JitBlockTableModel::OnFilterSymbolTextChanged);
+      &JitBlockTableModel::OnFilterSymbolTextChanged);
   connect(symbol_name_line_edit, &QLineEdit::textChanged, m_table_proxy,
-          &JitBlockProxyModel::OnSymbolTextChanged);
+      &JitBlockProxyModel::OnSymbolTextChanged);
   controls_layout->addWidget(symbol_name_line_edit);
 
   m_toggle_profiling_button = new QPushButton(nullptr);
@@ -602,15 +599,16 @@ JITWidget::JITWidget(Core::System& system, QWidget* parent) : QDockWidget(parent
   controls_layout->addWidget(m_wipe_profiling_button);
 
   m_disasm_splitter = new QSplitter(Qt::Horizontal, nullptr);
-  const auto text_box_routine = [&](QPlainTextEdit* text_edit, const QString& placeholder_text) {
+  const auto text_box_routine = [&](QPlainTextEdit* text_edit, const QString& placeholder_text)
+  {
     text_edit->setWordWrapMode(QTextOption::NoWrap);
     text_edit->setPlaceholderText(placeholder_text);
     text_edit->setReadOnly(true);
     m_disasm_splitter->addWidget(text_edit);
   };
   text_box_routine(m_ppc_asm_widget = new QPlainTextEdit(nullptr), tr("PPC Instruction Coverage"));
-  text_box_routine(m_host_near_asm_widget = new QPlainTextEdit(nullptr),
-                   tr("Host Near Code Cache"));
+  text_box_routine(
+      m_host_near_asm_widget = new QPlainTextEdit(nullptr), tr("Host Near Code Cache"));
   text_box_routine(m_host_far_asm_widget = new QPlainTextEdit(nullptr), tr("Host Far Code Cache"));
 
   m_table_splitter = new QSplitter(Qt::Vertical, nullptr);
@@ -657,10 +655,8 @@ JITWidget::JITWidget(Core::System& system, QWidget* parent) : QDockWidget(parent
   };
   for (int column = 0; column < Column::NumberOfColumns; ++column)
   {
-    auto* const action =
-        m_column_visibility_menu->addAction(tr(headers[column]), [this, column](bool enabled) {
-          m_table_view->setColumnHidden(column, !enabled);
-        });
+    auto* const action = m_column_visibility_menu->addAction(tr(headers[column]),
+        [this, column](bool enabled) { m_table_view->setColumnHidden(column, !enabled); });
     action->setChecked(!m_table_view->isColumnHidden(column));
     action->setCheckable(true);
   }

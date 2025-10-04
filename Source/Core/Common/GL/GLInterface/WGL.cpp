@@ -22,8 +22,8 @@ DECLARE_HANDLE(HPBUFFERARB);
 #define WGL_PBUFFER_WIDTH_ARB 0x2034
 #define WGL_PBUFFER_HEIGHT_ARB 0x2035
 #define WGL_PBUFFER_LOST_ARB 0x2036
-typedef HPBUFFERARB(WINAPI* PFNWGLCREATEPBUFFERARBPROC)(HDC hDC, int iPixelFormat, int iWidth,
-                                                        int iHeight, const int* piAttribList);
+typedef HPBUFFERARB(WINAPI* PFNWGLCREATEPBUFFERARBPROC)(
+    HDC hDC, int iPixelFormat, int iWidth, int iHeight, const int* piAttribList);
 typedef HDC(WINAPI* PFNWGLGETPBUFFERDCARBPROC)(HPBUFFERARB hPbuffer);
 typedef int(WINAPI* PFNWGLRELEASEPBUFFERDCARBPROC)(HPBUFFERARB hPbuffer, HDC hDC);
 typedef BOOL(WINAPI* PFNWGLDESTROYPBUFFERARBPROC)(HPBUFFERARB hPbuffer);
@@ -82,14 +82,11 @@ typedef BOOL(WINAPI* PFNWGLQUERYPBUFFERARBPROC)(HPBUFFERARB hPbuffer, int iAttri
 #define WGL_TYPE_RGBA_ARB 0x202B
 #define WGL_TYPE_COLORINDEX_ARB 0x202C
 typedef BOOL(WINAPI* PFNWGLGETPIXELFORMATATTRIBIVARBPROC)(HDC hdc, int iPixelFormat,
-                                                          int iLayerPlane, UINT nAttributes,
-                                                          const int* piAttributes, int* piValues);
+    int iLayerPlane, UINT nAttributes, const int* piAttributes, int* piValues);
 typedef BOOL(WINAPI* PFNWGLGETPIXELFORMATATTRIBFVARBPROC)(HDC hdc, int iPixelFormat,
-                                                          int iLayerPlane, UINT nAttributes,
-                                                          const int* piAttributes, FLOAT* pfValues);
+    int iLayerPlane, UINT nAttributes, const int* piAttributes, FLOAT* pfValues);
 typedef BOOL(WINAPI* PFNWGLCHOOSEPIXELFORMATARBPROC)(HDC hdc, const int* piAttribIList,
-                                                     const FLOAT* pfAttribFList, UINT nMaxFormats,
-                                                     int* piFormats, UINT* nNumFormats);
+    const FLOAT* pfAttribFList, UINT nMaxFormats, int* piFormats, UINT* nNumFormats);
 #endif /* WGL_ARB_pixel_format */
 
 #ifndef WGL_ARB_create_context
@@ -101,8 +98,8 @@ typedef BOOL(WINAPI* PFNWGLCHOOSEPIXELFORMATARBPROC)(HDC hdc, const int* piAttri
 #define WGL_CONTEXT_LAYER_PLANE_ARB 0x2093
 #define WGL_CONTEXT_FLAGS_ARB 0x2094
 #define ERROR_INVALID_VERSION_ARB 0x2095
-typedef HGLRC(WINAPI* PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC hDC, HGLRC hShareContext,
-                                                         const int* attribList);
+typedef HGLRC(WINAPI* PFNWGLCREATECONTEXTATTRIBSARBPROC)(
+    HDC hDC, HGLRC hShareContext, const int* attribList);
 #endif /* WGL_ARB_create_context */
 
 #ifndef WGL_ARB_create_context_profile
@@ -203,8 +200,8 @@ void GLContextWGL::SwapInterval(int interval)
   }
   else
   {
-    ERROR_LOG_FMT(VIDEO,
-                  "No support for SwapInterval (framerate clamped to monitor refresh rate).");
+    ERROR_LOG_FMT(
+        VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
   }
 }
 void GLContextWGL::Swap()
@@ -380,21 +377,14 @@ HGLRC GLContextWGL::CreateCoreContext(HDC dc, HGLRC share_context)
   {
     // Construct list of attributes. Prefer a forward-compatible, core context.
     std::array<int, 5 * 2> attribs = {WGL_CONTEXT_PROFILE_MASK_ARB,
-                                      WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+        WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 #ifdef _DEBUG
-                                      WGL_CONTEXT_FLAGS_ARB,
-                                      WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB |
-                                          WGL_CONTEXT_DEBUG_BIT_ARB,
+        WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | WGL_CONTEXT_DEBUG_BIT_ARB,
 #else
-                                      WGL_CONTEXT_FLAGS_ARB,
-                                      WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+        WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
 #endif
-                                      WGL_CONTEXT_MAJOR_VERSION_ARB,
-                                      version.first,
-                                      WGL_CONTEXT_MINOR_VERSION_ARB,
-                                      version.second,
-                                      0,
-                                      0};
+        WGL_CONTEXT_MAJOR_VERSION_ARB, version.first, WGL_CONTEXT_MINOR_VERSION_ARB, version.second,
+        0, 0};
 
     // Attempt creating this context.
     HGLRC core_context = wglCreateContextAttribsARB(dc, share_context, attribs.data());
@@ -409,8 +399,8 @@ HGLRC GLContextWGL::CreateCoreContext(HDC dc, HGLRC share_context)
   return nullptr;
 }
 
-bool GLContextWGL::CreatePBuffer(HDC onscreen_dc, int width, int height, HANDLE* pbuffer_handle,
-                                 HDC* pbuffer_dc)
+bool GLContextWGL::CreatePBuffer(
+    HDC onscreen_dc, int width, int height, HANDLE* pbuffer_handle, HDC* pbuffer_dc)
 {
   if (!wglChoosePixelFormatARB || !wglCreatePbufferARB || !wglGetPbufferDCARB ||
       !wglReleasePbufferDCARB || !wglDestroyPbufferARB)
@@ -419,28 +409,17 @@ bool GLContextWGL::CreatePBuffer(HDC onscreen_dc, int width, int height, HANDLE*
     return false;
   }
 
-  static constexpr std::array<int, 7 * 2> pf_iattribs = {
-      WGL_DRAW_TO_PBUFFER_ARB,
+  static constexpr std::array<int, 7 * 2> pf_iattribs = {WGL_DRAW_TO_PBUFFER_ARB,
       1,  // Pixel format compatible with pbuffer rendering
-      WGL_RED_BITS_ARB,
-      0,
-      WGL_GREEN_BITS_ARB,
-      0,
-      WGL_BLUE_BITS_ARB,
-      0,
-      WGL_DEPTH_BITS_ARB,
-      0,
-      WGL_STENCIL_BITS_ARB,
-      0,
-      0,
-      0};
+      WGL_RED_BITS_ARB, 0, WGL_GREEN_BITS_ARB, 0, WGL_BLUE_BITS_ARB, 0, WGL_DEPTH_BITS_ARB, 0,
+      WGL_STENCIL_BITS_ARB, 0, 0, 0};
 
   static constexpr std::array<float, 1 * 2> pf_fattribs = {};
 
   int pixel_format;
   UINT num_pixel_formats;
   if (!wglChoosePixelFormatARB(onscreen_dc, pf_iattribs.data(), pf_fattribs.data(), 1,
-                               &pixel_format, &num_pixel_formats))
+          &pixel_format, &num_pixel_formats))
   {
     ERROR_LOG_FMT(VIDEO, "Failed to obtain a compatible pbuffer pixel format");
     return false;

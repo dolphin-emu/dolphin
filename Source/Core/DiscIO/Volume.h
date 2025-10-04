@@ -82,8 +82,7 @@ public:
   virtual std::vector<u8> GetContent(u16 index) const { return {}; }
   virtual std::vector<u64> GetContentOffsets() const { return {}; }
   virtual bool CheckContentIntegrity(const IOS::ES::Content& content,
-                                     const std::vector<u8>& encrypted_data,
-                                     const IOS::ES::TicketReader& ticket) const
+      const std::vector<u8>& encrypted_data, const IOS::ES::TicketReader& ticket) const
   {
     return false;
   }
@@ -117,8 +116,8 @@ public:
   virtual bool IsDatelDisc() const = 0;
   virtual bool IsNKit() const = 0;
   virtual bool CheckH3TableIntegrity(const Partition& partition) const { return false; }
-  virtual bool CheckBlockIntegrity(u64 block_index, const u8* encrypted_data,
-                                   const Partition& partition) const
+  virtual bool CheckBlockIntegrity(
+      u64 block_index, const u8* encrypted_data, const Partition& partition) const
   {
     return false;
   }
@@ -156,8 +155,8 @@ protected:
       return CP1252ToUTF8(string);
   }
 
-  void ReadAndAddToSyncHash(Common::SHA1::Context* context, u64 offset, u64 length,
-                            const Partition& partition) const;
+  void ReadAndAddToSyncHash(
+      Common::SHA1::Context* context, u64 offset, u64 length, const Partition& partition) const;
   void AddTMDToSyncHash(Common::SHA1::Context* context, const Partition& partition) const;
 
   virtual u32 GetOffsetShift() const { return 0; }

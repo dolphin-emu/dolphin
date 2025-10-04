@@ -201,7 +201,7 @@ static inline void BoxfilterRGB_to_xx8(const u8* src, u8* x1, u8* x2, int comp1,
 }
 
 static void SetBlockDimensions(int blkWidthLog2, int blkHeightLog2, u16* sBlkCount, u16* tBlkCount,
-                               u16* sBlkSize, u16* tBlkSize)
+    u16* sBlkSize, u16* tBlkSize)
 {
   // if half_scale is 1 then the size is cut in half
   u32 width = bpmem.copyTexSrcWH.x >> bpmem.triggerEFBCopy.half_scale;
@@ -214,8 +214,8 @@ static void SetBlockDimensions(int blkWidthLog2, int blkHeightLog2, u16* sBlkCou
   *tBlkSize = 1 << blkHeightLog2;
 }
 
-static void SetSpans(int sBlkSize, int tBlkSize, s32* tSpan, s32* sBlkSpan, s32* tBlkSpan,
-                     s32* writeStride)
+static void SetSpans(
+    int sBlkSize, int tBlkSize, s32* tSpan, s32* sBlkSpan, s32* tBlkSpan, s32* writeStride)
 {
   // width is 1 less than the number of pixels of width
   u32 width = bpmem.copyTexSrcWH.x >> bpmem.triggerEFBCopy.half_scale;
@@ -1426,8 +1426,8 @@ static void EncodeZ24halfscale(u8* dst, const u8* src, EFBCopyFormat format)
 namespace
 {
 void EncodeEfbCopy(u8* dst, const EFBCopyParams& params, u32 native_width, u32 bytes_per_row,
-                   u32 num_blocks_y, u32 memory_stride, const MathUtil::Rectangle<int>& src_rect,
-                   bool scale_by_half)
+    u32 num_blocks_y, u32 memory_stride, const MathUtil::Rectangle<int>& src_rect,
+    bool scale_by_half)
 {
   const u8* src = EfbInterface::GetPixelPointer(src_rect.left, src_rect.top, params.depth);
 
@@ -1475,9 +1475,8 @@ void EncodeEfbCopy(u8* dst, const EFBCopyParams& params, u32 native_width, u32 b
 }  // namespace
 
 void Encode(AbstractStagingTexture* dst, const EFBCopyParams& params, u32 native_width,
-            u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-            const MathUtil::Rectangle<int>& src_rect, bool scale_by_half, float y_scale,
-            float gamma)
+    u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+    const MathUtil::Rectangle<int>& src_rect, bool scale_by_half, float y_scale, float gamma)
 {
   // HACK: Override the memory stride for this staging texture with new copy stride.
   // This is required because the texture encoder assumes that we're writing directly to memory,
@@ -1488,13 +1487,13 @@ void Encode(AbstractStagingTexture* dst, const EFBCopyParams& params, u32 native
 
   if (params.copy_format == EFBCopyFormat::XFB)
   {
-    EfbInterface::EncodeXFB(reinterpret_cast<u8*>(dst->GetMappedPointer()), native_width, src_rect,
-                            y_scale, gamma);
+    EfbInterface::EncodeXFB(
+        reinterpret_cast<u8*>(dst->GetMappedPointer()), native_width, src_rect, y_scale, gamma);
   }
   else
   {
     EncodeEfbCopy(reinterpret_cast<u8*>(dst->GetMappedPointer()), params, native_width,
-                  bytes_per_row, num_blocks_y, memory_stride, src_rect, scale_by_half);
+        bytes_per_row, num_blocks_y, memory_stride, src_rect, scale_by_half);
   }
 }
 }  // namespace TextureEncoder

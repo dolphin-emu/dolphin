@@ -34,11 +34,13 @@ enum class SettingVisibility
 struct NumericSettingDetails
 {
   NumericSettingDetails(const char* const _ini_name, const char* const _ui_suffix = nullptr,
-                        const char* const _ui_description = nullptr,
-                        const char* const _ui_name = nullptr,
-                        SettingVisibility _visibility = SettingVisibility::Normal)
-      : ini_name(_ini_name), ui_suffix(_ui_suffix), ui_description(_ui_description),
-        ui_name(_ui_name ? _ui_name : _ini_name), visibility(_visibility)
+      const char* const _ui_description = nullptr, const char* const _ui_name = nullptr,
+      SettingVisibility _visibility = SettingVisibility::Normal)
+      : ini_name(_ini_name)
+      , ui_suffix(_ui_suffix)
+      , ui_description(_ui_description)
+      , ui_name(_ui_name ? _ui_name : _ini_name)
+      , visibility(_visibility)
   {
   }
 
@@ -65,10 +67,10 @@ public:
 
   virtual ~NumericSettingBase() = default;
 
-  virtual void LoadFromIni(const Common::IniFile::Section& section,
-                           const std::string& group_name) = 0;
-  virtual void SaveToIni(Common::IniFile::Section& section,
-                         const std::string& group_name) const = 0;
+  virtual void LoadFromIni(
+      const Common::IniFile::Section& section, const std::string& group_name) = 0;
+  virtual void SaveToIni(
+      Common::IniFile::Section& section, const std::string& group_name) const = 0;
 
   virtual InputReference& GetInputReference() = 0;
   virtual const InputReference& GetInputReference() const = 0;
@@ -106,12 +108,15 @@ public:
 
   static_assert(std::is_same<ValueType, int>() || std::is_same<ValueType, double>() ||
                     std::is_same<ValueType, bool>(),
-                "NumericSetting is only implemented for int, double, and bool.");
+      "NumericSetting is only implemented for int, double, and bool.");
 
   NumericSetting(SettingValue<ValueType>* value, const NumericSettingDetails& details,
-                 ValueType default_value, ValueType min_value, ValueType max_value)
-      : NumericSettingBase(details), m_value(*value), m_default_value(default_value),
-        m_min_value(min_value), m_max_value(max_value)
+      ValueType default_value, ValueType min_value, ValueType max_value)
+      : NumericSettingBase(details)
+      , m_value(*value)
+      , m_default_value(default_value)
+      , m_min_value(min_value)
+      , m_max_value(max_value)
   {
     SetToDefault();
   }

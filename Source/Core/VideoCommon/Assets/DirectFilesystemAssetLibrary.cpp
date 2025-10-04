@@ -40,9 +40,8 @@ std::size_t GetAssetSize(const CustomTextureData& data)
 }
 }  // namespace
 
-CustomAssetLibrary::LoadInfo
-DirectFilesystemAssetLibrary::LoadRasterSurfaceShader(const AssetID& asset_id,
-                                                      RasterSurfaceShaderData* data)
+CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadRasterSurfaceShader(
+    const AssetID& asset_id, RasterSurfaceShaderData* data)
 {
   const auto asset_map = GetAssetMapForID(asset_id);
 
@@ -81,8 +80,8 @@ DirectFilesystemAssetLibrary::LoadRasterSurfaceShader(const AssetID& asset_id,
     if (ec)
     {
       ERROR_LOG_FMT(VIDEO,
-                    "Asset '{}' error - failed to get shader metadata file size with error '{}'!",
-                    asset_id, ec);
+          "Asset '{}' error - failed to get shader metadata file size with error '{}'!", asset_id,
+          ec);
       return {};
     }
   }
@@ -92,8 +91,8 @@ DirectFilesystemAssetLibrary::LoadRasterSurfaceShader(const AssetID& asset_id,
     vertex_shader_size = std::filesystem::file_size(vertex_shader->second, ec);
     if (ec)
     {
-      ERROR_LOG_FMT(
-          VIDEO, "Asset '{}' error - failed to get vertex shader source file size with error '{}'!",
+      ERROR_LOG_FMT(VIDEO,
+          "Asset '{}' error - failed to get vertex shader source file size with error '{}'!",
           asset_id, ec);
       return {};
     }
@@ -104,8 +103,8 @@ DirectFilesystemAssetLibrary::LoadRasterSurfaceShader(const AssetID& asset_id,
     pixel_shader_size = std::filesystem::file_size(pixel_shader->second, ec);
     if (ec)
     {
-      ERROR_LOG_FMT(
-          VIDEO, "Asset '{}' error - failed to get pixel shader source file size with error '{}'!",
+      ERROR_LOG_FMT(VIDEO,
+          "Asset '{}' error - failed to get pixel shader source file size with error '{}'!",
           asset_id, ec);
       return {};
     }
@@ -115,14 +114,14 @@ DirectFilesystemAssetLibrary::LoadRasterSurfaceShader(const AssetID& asset_id,
   if (!File::ReadFileToString(PathToString(vertex_shader->second), data->vertex_source))
   {
     ERROR_LOG_FMT(VIDEO, "Asset '{}' error -  failed to load the vertex shader file '{}',",
-                  asset_id, PathToString(vertex_shader->second));
+        asset_id, PathToString(vertex_shader->second));
     return {};
   }
 
   if (!File::ReadFileToString(PathToString(pixel_shader->second), data->pixel_source))
   {
     ERROR_LOG_FMT(VIDEO, "Asset '{}' error -  failed to load the pixel shader file '{}',", asset_id,
-                  PathToString(pixel_shader->second));
+        PathToString(pixel_shader->second));
     return {};
   }
 
@@ -131,15 +130,14 @@ DirectFilesystemAssetLibrary::LoadRasterSurfaceShader(const AssetID& asset_id,
   if (!JsonFromFile(PathToString(metadata->second), &root, &error))
   {
     ERROR_LOG_FMT(VIDEO,
-                  "Asset '{}' error -  failed to load the json file '{}', due to parse error: {}",
-                  asset_id, PathToString(metadata->second), error);
+        "Asset '{}' error -  failed to load the json file '{}', due to parse error: {}", asset_id,
+        PathToString(metadata->second), error);
     return {};
   }
 
   if (!root.is<picojson::object>())
   {
-    ERROR_LOG_FMT(
-        VIDEO,
+    ERROR_LOG_FMT(VIDEO,
         "Asset '{}' error -  failed to load the json file '{}', due to root not being an object!",
         asset_id, PathToString(metadata->second));
     return {};
@@ -153,8 +151,8 @@ DirectFilesystemAssetLibrary::LoadRasterSurfaceShader(const AssetID& asset_id,
   return LoadInfo{approx_mem_size};
 }
 
-CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(const AssetID& asset_id,
-                                                                        MaterialData* data)
+CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(
+    const AssetID& asset_id, MaterialData* data)
 {
   const auto asset_map = GetAssetMapForID(asset_id);
 
@@ -173,7 +171,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(const As
     if (ec)
     {
       ERROR_LOG_FMT(VIDEO, "Asset '{}' error - failed to get material file size with error '{}'!",
-                    asset_id, ec);
+          asset_id, ec);
       return {};
     }
   }
@@ -182,8 +180,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(const As
   std::string error;
   if (!JsonFromFile(PathToString(asset_path), &root, &error))
   {
-    ERROR_LOG_FMT(
-        VIDEO,
+    ERROR_LOG_FMT(VIDEO,
         "Asset '{}' error -  material failed to load the json file '{}', due to parse error: {}",
         asset_id, PathToString(asset_path), error);
     return {};
@@ -191,9 +188,9 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(const As
   if (!root.is<picojson::object>())
   {
     ERROR_LOG_FMT(VIDEO,
-                  "Asset '{}' error - material failed to load the json file '{}', due to root not "
-                  "being an object!",
-                  asset_id, PathToString(asset_path));
+        "Asset '{}' error - material failed to load the json file '{}', due to root not "
+        "being an object!",
+        asset_id, PathToString(asset_path));
     return {};
   }
 
@@ -202,17 +199,17 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMaterial(const As
   if (!MaterialData::FromJson(asset_id, root_obj, data))
   {
     ERROR_LOG_FMT(VIDEO,
-                  "Asset '{}' error -  material failed to load the json file '{}', as material "
-                  "json could not be parsed!",
-                  asset_id, PathToString(asset_path));
+        "Asset '{}' error -  material failed to load the json file '{}', as material "
+        "json could not be parsed!",
+        asset_id, PathToString(asset_path));
     return {};
   }
 
   return LoadInfo{metadata_size};
 }
 
-CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetID& asset_id,
-                                                                    MeshData* data)
+CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(
+    const AssetID& asset_id, MeshData* data)
 {
   const auto asset_map = GetAssetMapForID(asset_id);
 
@@ -244,8 +241,8 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetI
     if (ec)
     {
       ERROR_LOG_FMT(VIDEO,
-                    "Asset '{}' error - failed to get mesh metadata file size with error '{}'!",
-                    asset_id, ec);
+          "Asset '{}' error - failed to get mesh metadata file size with error '{}'!", asset_id,
+          ec);
       return {};
     }
   }
@@ -255,8 +252,8 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetI
     mesh_size = std::filesystem::file_size(mesh->second, ec);
     if (ec)
     {
-      ERROR_LOG_FMT(VIDEO, "Asset '{}' error - failed to get mesh file size with error '{}'!",
-                    asset_id, ec);
+      ERROR_LOG_FMT(
+          VIDEO, "Asset '{}' error - failed to get mesh file size with error '{}'!", asset_id, ec);
       return {};
     }
   }
@@ -266,7 +263,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetI
   if (!file.IsOpen())
   {
     ERROR_LOG_FMT(VIDEO, "Asset '{}' error - failed to open mesh file '{}'!", asset_id,
-                  PathToString(mesh->second));
+        PathToString(mesh->second));
     return {};
   }
 
@@ -276,7 +273,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetI
   if (!MeshData::FromDolphinMesh(bytes, data))
   {
     ERROR_LOG_FMT(VIDEO, "Asset '{}' error -  failed to load the mesh file '{}'!", asset_id,
-                  PathToString(mesh->second));
+        PathToString(mesh->second));
     return {};
   }
 
@@ -285,14 +282,13 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetI
   if (!JsonFromFile(PathToString(metadata->second), &root, &error))
   {
     ERROR_LOG_FMT(VIDEO,
-                  "Asset '{}' error -  failed to load the json file '{}', due to parse error: {}",
-                  asset_id, PathToString(metadata->second), error);
+        "Asset '{}' error -  failed to load the json file '{}', due to parse error: {}", asset_id,
+        PathToString(metadata->second), error);
     return {};
   }
   if (!root.is<picojson::object>())
   {
-    ERROR_LOG_FMT(
-        VIDEO,
+    ERROR_LOG_FMT(VIDEO,
         "Asset '{}' error -  failed to load the json file '{}', due to root not being an object!",
         asset_id, PathToString(metadata->second));
     return {};
@@ -306,14 +302,14 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadMesh(const AssetI
   return LoadInfo{approx_mem_size};
 }
 
-CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const AssetID& asset_id,
-                                                                       CustomTextureData* data)
+CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(
+    const AssetID& asset_id, CustomTextureData* data)
 {
   const auto asset_map = GetAssetMapForID(asset_id);
   if (asset_map.empty())
   {
     ERROR_LOG_FMT(VIDEO, "Asset '{}' error - raw texture expected to have one or two files mapped!",
-                  asset_id);
+        asset_id);
     return {};
   }
 
@@ -325,8 +321,8 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
     return {};
   }
 
-  if (!LoadTextureDataFromFile(asset_id, texture_path->second, AbstractTextureType::Texture_2D,
-                               data))
+  if (!LoadTextureDataFromFile(
+          asset_id, texture_path->second, AbstractTextureType::Texture_2D, data))
   {
     return {};
   }
@@ -336,8 +332,8 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
   return LoadInfo{GetAssetSize(*data)};
 }
 
-CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const AssetID& asset_id,
-                                                                       TextureAndSamplerData* data)
+CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(
+    const AssetID& asset_id, TextureAndSamplerData* data)
 {
   const auto asset_map = GetAssetMapForID(asset_id);
 
@@ -345,7 +341,7 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
   if (asset_map.empty() || asset_map.size() > 2)
   {
     ERROR_LOG_FMT(VIDEO, "Asset '{}' error - raw texture expected to have one or two files mapped!",
-                  asset_id);
+        asset_id);
     return {};
   }
 
@@ -366,8 +362,8 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
     if (ec)
     {
       ERROR_LOG_FMT(VIDEO,
-                    "Asset '{}' error - failed to get texture metadata file size with error '{}'!",
-                    asset_id, ec);
+          "Asset '{}' error - failed to get texture metadata file size with error '{}'!", asset_id,
+          ec);
       return {};
     }
 
@@ -376,14 +372,13 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
     if (!JsonFromFile(PathToString(metadata->second), &root, &error))
     {
       ERROR_LOG_FMT(VIDEO,
-                    "Asset '{}' error -  failed to load the json file '{}', due to parse error: {}",
-                    asset_id, PathToString(metadata->second), error);
+          "Asset '{}' error -  failed to load the json file '{}', due to parse error: {}", asset_id,
+          PathToString(metadata->second), error);
       return {};
     }
     if (!root.is<picojson::object>())
     {
-      ERROR_LOG_FMT(
-          VIDEO,
+      ERROR_LOG_FMT(VIDEO,
           "Asset '{}' error -  failed to load the json file '{}', due to root not being an object!",
           asset_id, PathToString(metadata->second));
       return {};
@@ -409,8 +404,8 @@ CustomAssetLibrary::LoadInfo DirectFilesystemAssetLibrary::LoadTexture(const Ass
   return LoadInfo{GetAssetSize(data->texture_data) + metadata_size};
 }
 
-void DirectFilesystemAssetLibrary::SetAssetIDMapData(const AssetID& asset_id,
-                                                     VideoCommon::Assets::AssetMap asset_path_map)
+void DirectFilesystemAssetLibrary::SetAssetIDMapData(
+    const AssetID& asset_id, VideoCommon::Assets::AssetMap asset_path_map)
 {
   VideoCommon::Assets::AssetMap previous_asset_map;
   {
@@ -448,8 +443,8 @@ void DirectFilesystemAssetLibrary::PathModified(std::string_view path)
   }
 }
 
-VideoCommon::Assets::AssetMap
-DirectFilesystemAssetLibrary::GetAssetMapForID(const AssetID& asset_id) const
+VideoCommon::Assets::AssetMap DirectFilesystemAssetLibrary::GetAssetMapForID(
+    const AssetID& asset_id) const
 {
   std::lock_guard lk(m_asset_map_lock);
   if (auto iter = m_asset_id_to_asset_map_path.find(asset_id);

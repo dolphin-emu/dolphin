@@ -22,7 +22,7 @@ class CommandLineConfigLayerLoader final : public Config::ConfigLayerLoader
 {
 public:
   CommandLineConfigLayerLoader(const std::list<std::string>& args, const std::string& video_backend,
-                               const std::string& audio_backend, bool batch, bool debugger)
+      const std::string& audio_backend, bool batch, bool debugger)
       : ConfigLayerLoader(Config::LayerType::CommandLine)
   {
     if (!video_backend.empty())
@@ -30,8 +30,8 @@ public:
 
     if (!audio_backend.empty())
     {
-      m_values.emplace_back(Config::MAIN_DSP_HLE.GetLocation(),
-                            ValueToString(audio_backend == "HLE"));
+      m_values.emplace_back(
+          Config::MAIN_DSP_HLE.GetLocation(), ValueToString(audio_backend == "HLE"));
     }
 
     // Batch mode hides the main window, and render to main hides the render window. To avoid a
@@ -134,8 +134,8 @@ static void AddConfigLayer(const optparse::Values& options)
   if (options.is_set_by_user("config"))
     config_args = options.all("config");
 
-  Config::AddLayer(std::make_unique<CommandLineConfigLayerLoader>(
-      std::move(config_args), static_cast<const char*>(options.get("video_backend")),
+  Config::AddLayer(std::make_unique<CommandLineConfigLayerLoader>(std::move(config_args),
+      static_cast<const char*>(options.get("video_backend")),
       static_cast<const char*>(options.get("audio_emulation")),
       static_cast<bool>(options.get("batch")), static_cast<bool>(options.get("debugger"))));
 }
@@ -147,8 +147,8 @@ optparse::Values& ParseArguments(optparse::OptionParser* parser, int argc, char*
   return options;
 }
 
-optparse::Values& ParseArguments(optparse::OptionParser* parser,
-                                 const std::vector<std::string>& arguments)
+optparse::Values& ParseArguments(
+    optparse::OptionParser* parser, const std::vector<std::string>& arguments)
 {
   optparse::Values& options = parser->parse_args(arguments);
   AddConfigLayer(options);

@@ -92,19 +92,18 @@ TEST(PageFault, PageFault)
   perform_invalid_access(data);
   auto end = std::chrono::high_resolution_clock::now();
 
-  auto difference_in_nanoseconds = [](auto diff_start, auto diff_end) {
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(diff_end - diff_start).count();
-  };
+  auto difference_in_nanoseconds = [](auto diff_start, auto diff_end)
+  { return std::chrono::duration_cast<std::chrono::nanoseconds>(diff_end - diff_start).count(); };
 
   EMM::UninstallExceptionHandler();
 
   fmt::print("page fault timing:\n");
   fmt::print("start->HandleFault     {} ns\n",
-             difference_in_nanoseconds(start, pfjit.m_pre_unprotect_time));
+      difference_in_nanoseconds(start, pfjit.m_pre_unprotect_time));
   fmt::print("UnWriteProtectMemory   {} ns\n",
-             difference_in_nanoseconds(pfjit.m_pre_unprotect_time, pfjit.m_post_unprotect_time));
+      difference_in_nanoseconds(pfjit.m_pre_unprotect_time, pfjit.m_post_unprotect_time));
   fmt::print("HandleFault->end       {} ns\n",
-             difference_in_nanoseconds(pfjit.m_post_unprotect_time, end));
+      difference_in_nanoseconds(pfjit.m_post_unprotect_time, end));
   fmt::print("total                  {} ns\n", difference_in_nanoseconds(start, end));
 
   system.GetJitInterface().SetJit(nullptr);

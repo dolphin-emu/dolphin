@@ -25,8 +25,8 @@
 namespace SerialInterface
 {
 // --- standard GameCube controller ---
-CSIDevice_GCController::CSIDevice_GCController(Core::System& system, SIDevices device,
-                                               int device_number)
+CSIDevice_GCController::CSIDevice_GCController(
+    Core::System& system, SIDevices device, int device_number)
     : ISIDevice(system, device, device_number)
 {
   // Here we set origin to perfectly centered values.
@@ -120,8 +120,8 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   return 0;
 }
 
-void CSIDevice_GCController::HandleMoviePadStatus(Movie::MovieManager& movie, int device_number,
-                                                  GCPadStatus* pad_status)
+void CSIDevice_GCController::HandleMoviePadStatus(
+    Movie::MovieManager& movie, int device_number, GCPadStatus* pad_status)
 {
   movie.SetPolledDevice();
   if (NetPlay_GetInput(device_number, pad_status))
@@ -240,8 +240,8 @@ u32 CSIDevice_GCController::MapPadStatus(const GCPadStatus& pad_status)
   return hi;
 }
 
-CSIDevice_GCController::EButtonCombo
-CSIDevice_GCController::HandleButtonCombos(const GCPadStatus& pad_status)
+CSIDevice_GCController::EButtonCombo CSIDevice_GCController::HandleButtonCombos(
+    const GCPadStatus& pad_status)
 {
   // Keep track of the special button combos (embedded in controller hardware... :( )
   EButtonCombo temp_combo;

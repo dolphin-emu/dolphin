@@ -25,7 +25,7 @@ public:
 
 private:
   void AddAttribute(const char* semantic_name, ShaderAttrib semantic_index, u32 slot,
-                    DXGI_FORMAT format, u32 offset);
+      DXGI_FORMAT format, u32 offset);
   void MapAttributes();
 
   std::array<D3D12_INPUT_ELEMENT_DESC, MAX_VERTEX_ATTRIBUTES> m_attribute_descriptions = {};

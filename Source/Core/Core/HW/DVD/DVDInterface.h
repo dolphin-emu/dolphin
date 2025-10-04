@@ -139,7 +139,7 @@ public:
   void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii);
 
   void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
-               std::optional<std::vector<std::string>> auto_disc_change_paths);
+      std::optional<std::vector<std::string>> auto_disc_change_paths);
   bool IsDiscInside() const;
   void EjectDisc(const Core::CPUThreadGuard& guard, EjectCause cause);
   void ChangeDisc(const Core::CPUThreadGuard& guard, const std::vector<std::string>& paths);
@@ -156,7 +156,7 @@ public:
   // and lets us skip encrypting/decrypting in some cases)
   void ExecuteCommand(ReplyType reply_type);
   void PerformDecryptingRead(u32 position, u32 length, u32 output_address,
-                             const DiscIO::Partition& partition, ReplyType reply_type);
+      const DiscIO::Partition& partition, ReplyType reply_type);
 
   // For circumventing Error #001 in DirectoryBlobs, which may have data in the offsets being
   // checked.
@@ -170,17 +170,17 @@ public:
 
   // Used by DVDThread
   void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type, s64 cycles_late,
-                              const std::vector<u8>& data = std::vector<u8>());
+      const std::vector<u8>& data = std::vector<u8>());
 
   // Used by IOS HLE
   void SetInterruptEnabled(DIInterruptType interrupt, bool enabled);
   void ClearInterrupt(DIInterruptType interrupt);
 
 private:
-  void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vector<u8>& audio_data,
-                            s64 cycles_late);
-  size_t ProcessDTKSamples(s16* target_samples, size_t target_block_count,
-                           const std::vector<u8>& audio_data);
+  void DTKStreamingCallback(
+      DIInterruptType interrupt_type, const std::vector<u8>& audio_data, s64 cycles_late);
+  size_t ProcessDTKSamples(
+      s16* target_samples, size_t target_block_count, const std::vector<u8>& audio_data);
   u32 AdvanceDTK(u32 maximum_blocks, u32* blocks_to_process);
 
   void SetLidOpen();
@@ -189,10 +189,9 @@ private:
 
   bool CheckReadPreconditions();
   bool ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_length, u32 output_length,
-                          const DiscIO::Partition& partition, ReplyType reply_type,
-                          DIInterruptType* interrupt_type);
+      const DiscIO::Partition& partition, ReplyType reply_type, DIInterruptType* interrupt_type);
   void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u32 output_address,
-                     ReplyType reply_type);
+      ReplyType reply_type);
 
   static void AutoChangeDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate);
   static void EjectDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate);

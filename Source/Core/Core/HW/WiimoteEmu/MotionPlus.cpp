@@ -452,8 +452,7 @@ void MotionPlus::Update(const DesiredExtensionState& target_state)
       {
         constexpr u8 CAL_OFFSET = offsetof(Register, calibration_data);
         m_i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, CAL_OFFSET,
-                          int(m_reg_data.passthrough_ext_calib.size()),
-                          m_reg_data.passthrough_ext_calib.data());
+            int(m_reg_data.passthrough_ext_calib.size()), m_reg_data.passthrough_ext_calib.data());
       }
     }
 
@@ -547,7 +546,7 @@ MotionPlus::DataFormat::Data MotionPlus::GetDefaultGyroscopeData()
 {
   return DataFormat::Data{DataFormat::GyroRawValue{DataFormat::GyroType{
                               u16(ZERO_VALUE), u16(ZERO_VALUE), u16(ZERO_VALUE)}},
-                          DataFormat::SlowType{true, true, true}};
+      DataFormat::SlowType{true, true, true}};
 }
 
 // This is something that is triggered by a read of 0x00 on real hardware.
@@ -610,8 +609,8 @@ void MotionPlus::PrepareInput(const MotionPlus::DataFormat::Data& gyroscope_data
       break;
     default:
       // This really shouldn't happen as the M+ deactivates on an invalid mode write.
-      ERROR_LOG_FMT(WIIMOTE, "M+ unknown passthrough-mode {}",
-                    static_cast<int>(GetPassthroughMode()));
+      ERROR_LOG_FMT(
+          WIIMOTE, "M+ unknown passthrough-mode {}", static_cast<int>(GetPassthroughMode()));
       mplus_data.is_mp_data = true;
       break;
     }

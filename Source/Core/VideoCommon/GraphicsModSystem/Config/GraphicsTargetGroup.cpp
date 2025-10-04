@@ -35,8 +35,7 @@ bool GraphicsTargetGroupConfig::DeserializeFromConfig(const picojson::object& ob
   {
     if (!targets_iter->second.is<picojson::array>())
     {
-      ERROR_LOG_FMT(
-          VIDEO,
+      ERROR_LOG_FMT(VIDEO,
           "Failed to load mod configuration file, specified group's targets is not an array");
       return false;
     }
@@ -44,8 +43,7 @@ bool GraphicsTargetGroupConfig::DeserializeFromConfig(const picojson::object& ob
     {
       if (!target_val.is<picojson::object>())
       {
-        ERROR_LOG_FMT(
-            VIDEO,
+        ERROR_LOG_FMT(VIDEO,
             "Failed to load shader configuration file, specified target is not a json object");
         return false;
       }

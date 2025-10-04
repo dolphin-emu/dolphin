@@ -37,8 +37,7 @@ std::unordered_set<DWORD> GetXInputGUIDS()
     // Need to find the size of the data and set the buffer appropriately
     DWORD buffer_size = 0;
     while (!SetupDiGetDeviceRegistryPropertyW(setup_enum, &dev_info, SPDRP_HARDWAREID, nullptr,
-                                              reinterpret_cast<BYTE*>(buffer.data()),
-                                              static_cast<DWORD>(buffer.size()), &buffer_size))
+        reinterpret_cast<BYTE*>(buffer.data()), static_cast<DWORD>(buffer.size()), &buffer_size))
     {
       if (buffer_size > buffer.size())
         buffer.resize(buffer_size);

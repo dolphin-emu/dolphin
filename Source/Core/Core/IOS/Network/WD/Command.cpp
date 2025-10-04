@@ -96,7 +96,8 @@ void NetWDCommandDevice::ProcessRecvRequests()
   // All pending requests must still be processed when the handle to the resource manager is closed.
   const bool force_process = m_clear_all_requests.TestAndClear();
 
-  const auto process_queue = [&](std::deque<u32>& queue) {
+  const auto process_queue = [&](std::deque<u32>& queue)
+  {
     if (!force_process)
       return;
 
@@ -168,7 +169,7 @@ void NetWDCommandDevice::HandleStateChange()
   }
 
   INFO_LOG_FMT(IOS_NET, "{}: done (status: {} -> {}, target was {})", __func__, status, m_status,
-               target_status);
+      target_status);
 }
 
 void NetWDCommandDevice::DoState(PointerWrap& p)
@@ -303,7 +304,7 @@ IPCReply NetWDCommandDevice::Disassociate(const IOCtlVRequest& request)
   if (m_status != target_status)
   {
     ERROR_LOG_FMT(IOS_NET, "WD_Disassociate: cannot disassociate in status {} (target {})",
-                  m_status, target_status);
+        m_status, target_status);
     return IPCReply(u32(ResultCode::UnavailableCommand));
   }
 
@@ -346,8 +347,8 @@ std::optional<IPCReply> NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
 
     auto& system = GetSystem();
     auto& memory = system.GetMemory();
-    u16* results = (u16*)memory.GetPointerForRange(request.io_vectors.at(0).address,
-                                                   sizeof(u16) + sizeof(BSSInfo));
+    u16* results = (u16*)memory.GetPointerForRange(
+        request.io_vectors.at(0).address, sizeof(u16) + sizeof(BSSInfo));
     // first u16 indicates number of BSSInfo following
     results[0] = Common::swap16(1);
 
@@ -392,7 +393,7 @@ std::optional<IPCReply> NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
   default:
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesWDUnimplementedIOCtl);
     request.Dump(GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_NET,
-                 Common::Log::LogLevel::LWARNING);
+        Common::Log::LogLevel::LWARNING);
   }
 
   return IPCReply(IPC_SUCCESS);

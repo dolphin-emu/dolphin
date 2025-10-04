@@ -10,8 +10,9 @@
 #include "Common/Thread.h"
 
 AlsaSound::AlsaSound()
-    : m_thread_status(ALSAThreadStatus::STOPPED), handle(nullptr),
-      frames_to_deliver(FRAME_COUNT_MIN)
+    : m_thread_status(ALSAThreadStatus::STOPPED)
+    , handle(nullptr)
+    , frames_to_deliver(FRAME_COUNT_MIN)
 {
 }
 
@@ -191,9 +192,9 @@ bool AlsaSound::AlsaInit()
   if ((unsigned int)frames_to_deliver > buffer_size)
     frames_to_deliver = buffer_size;
   NOTICE_LOG_FMT(AUDIO,
-                 "ALSA gave us a {} sample \"hardware\" buffer with {} periods. Will send {} "
-                 "samples per fragments.",
-                 buffer_size, periods, frames_to_deliver);
+      "ALSA gave us a {} sample \"hardware\" buffer with {} periods. Will send {} "
+      "samples per fragments.",
+      buffer_size, periods, frames_to_deliver);
 
   snd_pcm_sw_params_alloca(&swparams);
 

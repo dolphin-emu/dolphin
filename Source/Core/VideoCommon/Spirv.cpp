@@ -37,8 +37,7 @@ bool InitializeGlslang()
 
 const TBuiltInResource* GetCompilerResourceLimits()
 {
-  static const TBuiltInResource default_resource = {
-      /* .MaxLights = */ 32,
+  static const TBuiltInResource default_resource = {/* .MaxLights = */ 32,
       /* .MaxClipPlanes = */ 6,
       /* .MaxTextureUnits = */ 32,
       /* .MaxTextureCoords = */ 32,
@@ -156,10 +155,9 @@ const TBuiltInResource* GetCompilerResourceLimits()
   return &default_resource;
 }
 
-std::optional<SPIRV::CodeVector>
-CompileShaderToSPV(EShLanguage stage, APIType api_type,
-                   glslang::EShTargetLanguageVersion language_version, const char* stage_filename,
-                   std::string_view source)
+std::optional<SPIRV::CodeVector> CompileShaderToSPV(EShLanguage stage, APIType api_type,
+    glslang::EShTargetLanguageVersion language_version, const char* stage_filename,
+    std::string_view source)
 {
   if (!InitializeGlslang())
     return std::nullopt;
@@ -180,7 +178,8 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
 
   shader->setStringsWithLengths(&pass_source_code, &pass_source_code_length, 1);
 
-  auto DumpBadShader = [&](const char* msg) {
+  auto DumpBadShader = [&](const char* msg)
+  {
     static int counter = 0;
     std::string filename = VideoBackendBase::BadShaderFilename(stage_filename, counter++);
     std::ofstream stream;
@@ -208,8 +207,8 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
     PanicAlertFmt("{} (written to {})\nDebug info:\n{}", msg, filename, shader->getInfoLog());
   };
 
-  if (!shader->parse(GetCompilerResourceLimits(), default_version, profile, false, true, messages,
-                     includer))
+  if (!shader->parse(
+          GetCompilerResourceLimits(), default_version, profile, false, true, messages, includer))
   {
     DumpBadShader("Failed to parse shader");
     return std::nullopt;
@@ -277,25 +276,25 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
 namespace SPIRV
 {
 std::optional<CodeVector> CompileVertexShader(std::string_view source_code, APIType api_type,
-                                              glslang::EShTargetLanguageVersion language_version)
+    glslang::EShTargetLanguageVersion language_version)
 {
   return CompileShaderToSPV(EShLangVertex, api_type, language_version, "vs", source_code);
 }
 
 std::optional<CodeVector> CompileGeometryShader(std::string_view source_code, APIType api_type,
-                                                glslang::EShTargetLanguageVersion language_version)
+    glslang::EShTargetLanguageVersion language_version)
 {
   return CompileShaderToSPV(EShLangGeometry, api_type, language_version, "gs", source_code);
 }
 
 std::optional<CodeVector> CompileFragmentShader(std::string_view source_code, APIType api_type,
-                                                glslang::EShTargetLanguageVersion language_version)
+    glslang::EShTargetLanguageVersion language_version)
 {
   return CompileShaderToSPV(EShLangFragment, api_type, language_version, "ps", source_code);
 }
 
 std::optional<CodeVector> CompileComputeShader(std::string_view source_code, APIType api_type,
-                                               glslang::EShTargetLanguageVersion language_version)
+    glslang::EShTargetLanguageVersion language_version)
 {
   return CompileShaderToSPV(EShLangCompute, api_type, language_version, "cs", source_code);
 }

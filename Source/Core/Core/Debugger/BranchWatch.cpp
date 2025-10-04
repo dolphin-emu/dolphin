@@ -49,8 +49,8 @@ union USnapshotMetadata
   BitField<3, 6, Inspection, StorageType> inspection;
 
   USnapshotMetadata() : hex(0) {}
-  explicit USnapshotMetadata(bool is_virtual_, bool condition_, bool is_selected_,
-                             Inspection inspection_)
+  explicit USnapshotMetadata(
+      bool is_virtual_, bool condition_, bool is_selected_, Inspection inspection_)
       : USnapshotMetadata()
   {
     is_virtual = is_virtual_;
@@ -72,20 +72,20 @@ void BranchWatch::Save(const CPUThreadGuard& guard, std::FILE* file) const
 
   const bool is_reduction_phase = GetRecordingPhase() == Phase::Reduction;
 
-  const auto routine = [&](const Collection& collection, bool is_virtual, bool condition) {
+  const auto routine = [&](const Collection& collection, bool is_virtual, bool condition)
+  {
     for (const Collection::value_type& kv : collection)
     {
-      const auto iter = std::ranges::find_if(m_selection, [&](const Selection::value_type& value) {
-        return value.collection_ptr == &kv;
-      });
+      const auto iter = std::ranges::find_if(m_selection,
+          [&](const Selection::value_type& value) { return value.collection_ptr == &kv; });
       const bool selected = iter != m_selection.end();
       if (is_reduction_phase && !selected)
         continue;  // Unselected hits are irrelevant to the reduction phase.
       const auto inspection = selected ? iter->inspection : SelectionInspection{};
       fmt::println(file, "{:08x} {:08x} {:08x} {} {} {:x}", kv.first.origin_addr,
-                   kv.first.destin_addr, kv.first.original_inst.hex, kv.second.total_hits,
-                   kv.second.hits_snapshot,
-                   USnapshotMetadata(is_virtual, condition, selected, inspection).hex);
+          kv.first.destin_addr, kv.first.original_inst.hex, kv.second.total_hits,
+          kv.second.hits_snapshot,
+          USnapshotMetadata(is_virtual, condition, selected, inspection).hex);
     }
   };
   routine(m_collection_vt, true, true);
@@ -105,7 +105,7 @@ void BranchWatch::Load(const CPUThreadGuard& guard, std::FILE* file)
   std::size_t total_hits, hits_snapshot;
   USnapshotMetadata snapshot_metadata = {};
   while (std::fscanf(file, "%x %x %x %zu %zu %llx", &origin_addr, &destin_addr, &inst_hex,
-                     &total_hits, &hits_snapshot, &snapshot_metadata.hex) == 6)
+             &total_hits, &hits_snapshot, &snapshot_metadata.hex) == 6)
   {
     const bool is_virtual = snapshot_metadata.is_virtual;
     const bool condition = snapshot_metadata.condition;
@@ -113,7 +113,7 @@ void BranchWatch::Load(const CPUThreadGuard& guard, std::FILE* file)
     const auto [kv_iter, emplace_success] =
         GetCollection(is_virtual, condition)
             .try_emplace({{origin_addr, destin_addr}, inst_hex},
-                         BranchWatchCollectionValue{total_hits, hits_snapshot});
+                BranchWatchCollectionValue{total_hits, hits_snapshot});
 
     if (!emplace_success)
       continue;
@@ -121,8 +121,8 @@ void BranchWatch::Load(const CPUThreadGuard& guard, std::FILE* file)
     if (snapshot_metadata.is_selected)
     {
       // TODO C++20: Parenthesized initialization of aggregates has bad compiler support.
-      m_selection.emplace_back(BranchWatchSelectionValueType{&*kv_iter, is_virtual, condition,
-                                                             snapshot_metadata.inspection});
+      m_selection.emplace_back(BranchWatchSelectionValueType{
+          &*kv_iter, is_virtual, condition, snapshot_metadata.inspection});
     }
     else if (hits_snapshot != 0)
     {
@@ -141,7 +141,8 @@ void BranchWatch::IsolateHasExecuted(const CPUThreadGuard&)
   case Phase::Blacklist:
   {
     m_selection.reserve(GetCollectionSize() - m_blacklist_size);
-    const auto routine = [&](Collection& collection, bool is_virtual, bool condition) {
+    const auto routine = [&](Collection& collection, bool is_virtual, bool condition)
+    {
       for (Collection::value_type& kv : collection)
       {
         if (kv.second.hits_snapshot == 0)
@@ -161,13 +162,15 @@ void BranchWatch::IsolateHasExecuted(const CPUThreadGuard&)
     return;
   }
   case Phase::Reduction:
-    std::erase_if(m_selection, [](const Selection::value_type& value) -> bool {
-      Collection::value_type* const kv = value.collection_ptr;
-      if (kv->second.total_hits == kv->second.hits_snapshot)
-        return true;
-      kv->second.hits_snapshot = kv->second.total_hits;
-      return false;
-    });
+    std::erase_if(m_selection,
+        [](const Selection::value_type& value) -> bool
+        {
+          Collection::value_type* const kv = value.collection_ptr;
+          if (kv->second.total_hits == kv->second.hits_snapshot)
+            return true;
+          kv->second.hits_snapshot = kv->second.total_hits;
+          return false;
+        });
     return;
   }
 }
@@ -178,7 +181,8 @@ void BranchWatch::IsolateNotExecuted(const CPUThreadGuard&)
   {
   case Phase::Blacklist:
   {
-    const auto routine = [&](Collection& collection) {
+    const auto routine = [&](Collection& collection)
+    {
       for (Collection::value_type& kv : collection)
         kv.second.hits_snapshot = kv.second.total_hits;
     };
@@ -190,19 +194,21 @@ void BranchWatch::IsolateNotExecuted(const CPUThreadGuard&)
     return;
   }
   case Phase::Reduction:
-    std::erase_if(m_selection, [](const Selection::value_type& value) -> bool {
-      Collection::value_type* const kv = value.collection_ptr;
-      if (kv->second.total_hits != kv->second.hits_snapshot)
-        return true;
-      kv->second.hits_snapshot = kv->second.total_hits;
-      return false;
-    });
+    std::erase_if(m_selection,
+        [](const Selection::value_type& value) -> bool
+        {
+          Collection::value_type* const kv = value.collection_ptr;
+          if (kv->second.total_hits != kv->second.hits_snapshot)
+            return true;
+          kv->second.hits_snapshot = kv->second.total_hits;
+          return false;
+        });
     return;
   }
 }
 
-void BranchWatch::IsolateOverwrittenShared(const CPUThreadGuard& guard,
-                                           const std::function<bool(u32, u32)>& compare_func)
+void BranchWatch::IsolateOverwrittenShared(
+    const CPUThreadGuard& guard, const std::function<bool(u32, u32)>& compare_func)
 {
   if (Core::GetState(guard.GetSystem()) == Core::State::Uninitialized)
   {
@@ -216,7 +222,8 @@ void BranchWatch::IsolateOverwrittenShared(const CPUThreadGuard& guard,
     // This is a dirty hack of the assumptions that make the blacklist phase work. If the
     // hits_snapshot is non-zero while in the blacklist phase, that means it has been marked
     // for exclusion from the transition to the reduction phase.
-    const auto routine = [&](Collection& collection, PowerPC::RequestedAddressSpace address_space) {
+    const auto routine = [&](Collection& collection, PowerPC::RequestedAddressSpace address_space)
+    {
       for (Collection::value_type& kv : collection)
       {
         if (kv.second.hits_snapshot == 0)
@@ -237,15 +244,17 @@ void BranchWatch::IsolateOverwrittenShared(const CPUThreadGuard& guard,
     return;
   }
   case Phase::Reduction:
-    std::erase_if(m_selection, [&](const Selection::value_type& value) -> bool {
-      const std::optional read_result = PowerPC::MMU::HostTryReadInstruction(
-          guard, value.collection_ptr->first.origin_addr,
-          value.is_virtual ? PowerPC::RequestedAddressSpace::Virtual :
-                             PowerPC::RequestedAddressSpace::Physical);
-      if (!read_result.has_value())
-        return false;
-      return compare_func(value.collection_ptr->first.original_inst.hex, read_result->value);
-    });
+    std::erase_if(m_selection,
+        [&](const Selection::value_type& value) -> bool
+        {
+          const std::optional read_result =
+              PowerPC::MMU::HostTryReadInstruction(guard, value.collection_ptr->first.origin_addr,
+                  value.is_virtual ? PowerPC::RequestedAddressSpace::Virtual :
+                                     PowerPC::RequestedAddressSpace::Physical);
+          if (!read_result.has_value())
+            return false;
+          return compare_func(value.collection_ptr->first.original_inst.hex, read_result->value);
+        });
     return;
   }
 }

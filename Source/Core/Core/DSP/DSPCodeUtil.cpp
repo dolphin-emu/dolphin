@@ -81,8 +81,8 @@ bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2)
       disassembler.DisassembleOpcode(code1, &pc, line1);
       pc = i;
       disassembler.DisassembleOpcode(code2, &pc, line2);
-      fmt::print("!! {:04x} : {:04x} vs {:04x} - {}  vs  {}\n", i, code1[i], code2[i], line1,
-                 line2);
+      fmt::print(
+          "!! {:04x} : {:04x} vs {:04x} - {}  vs  {}\n", i, code1[i], code2[i], line1, line2);
 
       // Also do a comparison one word back if the previous word corresponded to an instruction with
       // a large immediate. (Compare operates on individual words, so both the main word and the
@@ -101,7 +101,7 @@ bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2)
           pc = i - 1;
           disassembler.DisassembleOpcode(code2, &pc, line2);
           fmt::print("   (or {:04x} : {:04x} {:04x} vs {:04x} {:04x} - {}  vs  {})\n", i - 1,
-                     code1[i - 1], code1[i], code2[i - 1], code2[i], line1, line2);
+              code1[i - 1], code1[i], code2[i - 1], code2[i], line1, line2);
         }
       }
     }

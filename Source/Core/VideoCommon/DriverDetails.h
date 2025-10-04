@@ -354,7 +354,7 @@ enum Bug
 
 // Initializes our internal vendor, device family, and driver version
 void Init(API api, Vendor vendor, Driver driver, const double version, const Family family,
-          std::string name);
+    std::string name);
 
 // Once Vendor and driver version is set, this will return if it has the applicable bug passed to
 // it.

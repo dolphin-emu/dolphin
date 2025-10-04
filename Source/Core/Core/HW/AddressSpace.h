@@ -45,8 +45,7 @@ struct Accessors
   virtual iterator end() const;
 
   virtual std::optional<u32> Search(const Core::CPUThreadGuard& guard, u32 haystack_offset,
-                                    const u8* needle_start, std::size_t needle_size,
-                                    bool forward) const;
+      const u8* needle_start, std::size_t needle_size, bool forward) const;
   virtual ~Accessors();
 };
 

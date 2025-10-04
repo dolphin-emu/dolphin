@@ -30,7 +30,7 @@
 #include "Core/System.h"
 
 void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, std::span<u8> value, const u32 address,
-                      bool store_existing_value)
+    bool store_existing_value)
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return;
@@ -95,7 +95,8 @@ void PPCPatches::UnPatch(std::size_t index)
 }
 
 PPCDebugInterface::PPCDebugInterface(Core::System& system, PPCSymbolDB& ppc_symbol_db)
-    : m_system(system), m_ppc_symbol_db(ppc_symbol_db)
+    : m_system(system)
+    , m_ppc_symbol_db(ppc_symbol_db)
 {
 }
 
@@ -181,8 +182,8 @@ void PPCDebugInterface::SetPatch(const Core::CPUThreadGuard& guard, u32 address,
   m_patches.SetPatch(guard, address, value);
 }
 
-void PPCDebugInterface::SetPatch(const Core::CPUThreadGuard& guard, u32 address,
-                                 std::vector<u8> value)
+void PPCDebugInterface::SetPatch(
+    const Core::CPUThreadGuard& guard, u32 address, std::vector<u8> value)
 {
   m_patches.SetPatch(guard, address, std::move(value));
 }
@@ -192,8 +193,8 @@ void PPCDebugInterface::SetFramePatch(const Core::CPUThreadGuard& guard, u32 add
   m_patches.SetFramePatch(guard, address, value);
 }
 
-void PPCDebugInterface::SetFramePatch(const Core::CPUThreadGuard& guard, u32 address,
-                                      std::vector<u8> value)
+void PPCDebugInterface::SetFramePatch(
+    const Core::CPUThreadGuard& guard, u32 address, std::vector<u8> value)
 {
   m_patches.SetFramePatch(guard, address, std::move(value));
 }
@@ -254,7 +255,8 @@ Common::Debug::Threads PPCDebugInterface::GetThreads(const Core::CPUThreadGuard&
     return threads;
 
   std::vector<u32> visited_addrs{active_thread->GetAddress()};
-  const auto insert_threads = [&guard, &threads, &visited_addrs](u32 addr, auto get_next_addr) {
+  const auto insert_threads = [&guard, &threads, &visited_addrs](u32 addr, auto get_next_addr)
+  {
     while (addr != 0 && PowerPC::MMU::HostIsRAMAddress(guard, addr))
     {
       if (Common::Contains(visited_addrs, addr))
@@ -305,8 +307,8 @@ std::string PPCDebugInterface::Disassemble(const Core::CPUThreadGuard* guard, u3
   }
 }
 
-std::string PPCDebugInterface::GetRawMemoryString(const Core::CPUThreadGuard& guard, int memory,
-                                                  u32 address) const
+std::string PPCDebugInterface::GetRawMemoryString(
+    const Core::CPUThreadGuard& guard, int memory, u32 address) const
 {
   if (IsAlive())
   {
@@ -314,8 +316,8 @@ std::string PPCDebugInterface::GetRawMemoryString(const Core::CPUThreadGuard& gu
 
     if (is_aram || PowerPC::MMU::HostIsRAMAddress(guard, address))
     {
-      return fmt::format("{:08X}{}", ReadExtraMemory(guard, memory, address),
-                         is_aram ? " (ARAM)" : "");
+      return fmt::format(
+          "{:08X}{}", ReadExtraMemory(guard, memory, address), is_aram ? " (ARAM)" : "");
     }
 
     return is_aram ? "--ARAM--" : "--------";
@@ -329,8 +331,8 @@ u32 PPCDebugInterface::ReadMemory(const Core::CPUThreadGuard& guard, u32 address
   return PowerPC::MMU::HostRead_U32(guard, address);
 }
 
-u32 PPCDebugInterface::ReadExtraMemory(const Core::CPUThreadGuard& guard, int memory,
-                                       u32 address) const
+u32 PPCDebugInterface::ReadExtraMemory(
+    const Core::CPUThreadGuard& guard, int memory, u32 address) const
 {
   switch (memory)
   {
@@ -447,8 +449,8 @@ std::string PPCDebugInterface::GetDescription(u32 address) const
   return m_ppc_symbol_db.GetDescription(address);
 }
 
-std::optional<u32>
-PPCDebugInterface::GetMemoryAddressFromInstruction(const std::string& instruction) const
+std::optional<u32> PPCDebugInterface::GetMemoryAddressFromInstruction(
+    const std::string& instruction) const
 {
   static const std::regex re(",[^r0-]*(-?)(?:0[xX])?([0-9a-fA-F]+|r\\d+)[^r^s]*.(p|toc|\\d+)");
   std::smatch match;
@@ -519,7 +521,8 @@ std::shared_ptr<Core::NetworkCaptureLogger> PPCDebugInterface::NetworkLogger()
   const bool has_ssl = Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ) ||
                        Config::Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE);
   const bool is_pcap = Config::Get(Config::MAIN_NETWORK_DUMP_AS_PCAP);
-  const auto current_capture_type = [&] {
+  const auto current_capture_type = [&]
+  {
     if (is_pcap)
       return Core::NetworkCaptureType::PCAP;
     if (has_ssl)

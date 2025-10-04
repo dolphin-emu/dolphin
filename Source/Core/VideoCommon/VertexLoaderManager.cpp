@@ -156,15 +156,17 @@ NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl)
   std::memset(static_cast<void*>(&new_decl), 0, sizeof(new_decl));
   new_decl.stride = decl.stride;
 
-  auto MakeDummyAttribute = [](AttributeFormat& attr, ComponentFormat type, int components,
-                               bool integer) {
+  auto MakeDummyAttribute =
+      [](AttributeFormat& attr, ComponentFormat type, int components, bool integer)
+  {
     attr.type = type;
     attr.components = components;
     attr.offset = 0;
     attr.enable = true;
     attr.integer = integer;
   };
-  auto CopyAttribute = [](AttributeFormat& attr, const AttributeFormat& src) {
+  auto CopyAttribute = [](AttributeFormat& attr, const AttributeFormat& src)
+  {
     attr.type = src.type;
     attr.components = src.components;
     attr.offset = src.offset;
@@ -231,8 +233,7 @@ VertexLoaderBase* GetOrCreateLoader(int vtx_attr_group)
   }
   else
   {
-    auto [it, added] = s_vertex_loader_map.try_emplace(
-        uid,
+    auto [it, added] = s_vertex_loader_map.try_emplace(uid,
         VertexLoaderBase::CreateVertexLoader(state->vtx_desc, state->vtx_attr[vtx_attr_group]));
     loader = it->second.get();
     INCSTAT(g_stats.num_vertex_loaders);
@@ -252,11 +253,11 @@ VertexLoaderBase* GetOrCreateLoader(int vtx_attr_group)
 static void CheckCPConfiguration(int vtx_attr_group)
 {
   // Validate that the XF input configuration matches the CP configuration
-  u32 num_cp_colors = std::count_if(
-      g_main_cp_state.vtx_desc.low.Color.begin(), g_main_cp_state.vtx_desc.low.Color.end(),
+  u32 num_cp_colors = std::count_if(g_main_cp_state.vtx_desc.low.Color.begin(),
+      g_main_cp_state.vtx_desc.low.Color.end(),
       [](auto format) { return format != VertexComponentFormat::NotPresent; });
-  u32 num_cp_tex_coords = std::count_if(
-      g_main_cp_state.vtx_desc.high.TexCoord.begin(), g_main_cp_state.vtx_desc.high.TexCoord.end(),
+  u32 num_cp_tex_coords = std::count_if(g_main_cp_state.vtx_desc.high.TexCoord.begin(),
+      g_main_cp_state.vtx_desc.high.TexCoord.end(),
       [](auto format) { return format != VertexComponentFormat::NotPresent; });
 
   u32 num_cp_normals;
@@ -288,13 +289,13 @@ static void CheckCPConfiguration(int vtx_attr_group)
     PanicAlertFmt("Mismatched configuration between CP and XF stages - {}/{} colors, {}/{} "
                   "normals, {}/{} texture coordinates. Please report on the issue tracker.\n\n"
                   "VCD: {:08x} {:08x}\nVAT {}: {:08x} {:08x} {:08x}\nXF vertex spec: {:08x}",
-                  num_cp_colors, xfmem.invtxspec.numcolors, num_cp_normals,
-                  num_xf_normals.has_value() ? fmt::to_string(num_xf_normals.value()) : "invalid",
-                  num_cp_tex_coords, xfmem.invtxspec.numtextures, g_main_cp_state.vtx_desc.low.Hex,
-                  g_main_cp_state.vtx_desc.high.Hex, vtx_attr_group,
-                  g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
-                  g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
-                  g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex, xfmem.invtxspec.hex);
+        num_cp_colors, xfmem.invtxspec.numcolors, num_cp_normals,
+        num_xf_normals.has_value() ? fmt::to_string(num_xf_normals.value()) : "invalid",
+        num_cp_tex_coords, xfmem.invtxspec.numtextures, g_main_cp_state.vtx_desc.low.Hex,
+        g_main_cp_state.vtx_desc.high.Hex, vtx_attr_group,
+        g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
+        g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
+        g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex, xfmem.invtxspec.hex);
 
     // Analytics reporting so we can discover which games have this problem, that way when we
     // eventually simulate the behavior we have test cases for it.
@@ -319,10 +320,10 @@ static void CheckCPConfiguration(int vtx_attr_group)
       g_main_cp_state.matrix_index_b.Hex != xfmem.MatrixIndexB.Hex) [[unlikely]]
   {
     WARN_LOG_FMT(VIDEO,
-                 "Mismatched matrix index configuration between CP and XF stages - "
-                 "index A: {:08x}/{:08x}, index B {:08x}/{:08x}.",
-                 g_main_cp_state.matrix_index_a.Hex, xfmem.MatrixIndexA.Hex,
-                 g_main_cp_state.matrix_index_b.Hex, xfmem.MatrixIndexB.Hex);
+        "Mismatched matrix index configuration between CP and XF stages - "
+        "index A: {:08x}/{:08x}, index B {:08x}/{:08x}.",
+        g_main_cp_state.matrix_index_a.Hex, xfmem.MatrixIndexA.Hex,
+        g_main_cp_state.matrix_index_b.Hex, xfmem.MatrixIndexB.Hex);
     DolphinAnalytics::Instance().ReportGameQuirk(
         GameQuirk::MismatchedGPUMatrixIndicesBetweenCPAndXF);
   }
@@ -330,19 +331,19 @@ static void CheckCPConfiguration(int vtx_attr_group)
   if (g_main_cp_state.vtx_attr[vtx_attr_group].g0.PosFormat >= ComponentFormat::InvalidFloat5)
   {
     WARN_LOG_FMT(VIDEO, "Invalid position format {} for VAT {} - {:08x} {:08x} {:08x}",
-                 g_main_cp_state.vtx_attr[vtx_attr_group].g0.PosFormat, vtx_attr_group,
-                 g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
-                 g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
-                 g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
+        g_main_cp_state.vtx_attr[vtx_attr_group].g0.PosFormat, vtx_attr_group,
+        g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
+        g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
+        g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::InvalidPositionComponentFormat);
   }
   if (g_main_cp_state.vtx_attr[vtx_attr_group].g0.NormalFormat >= ComponentFormat::InvalidFloat5)
   {
     WARN_LOG_FMT(VIDEO, "Invalid normal format {} for VAT {} - {:08x} {:08x} {:08x}",
-                 g_main_cp_state.vtx_attr[vtx_attr_group].g0.NormalFormat, vtx_attr_group,
-                 g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
-                 g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
-                 g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
+        g_main_cp_state.vtx_attr[vtx_attr_group].g0.NormalFormat, vtx_attr_group,
+        g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
+        g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
+        g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::InvalidNormalComponentFormat);
   }
   for (size_t i = 0; i < 8; i++)
@@ -350,11 +351,11 @@ static void CheckCPConfiguration(int vtx_attr_group)
     if (g_main_cp_state.vtx_attr[vtx_attr_group].GetTexFormat(i) >= ComponentFormat::InvalidFloat5)
     {
       WARN_LOG_FMT(VIDEO,
-                   "Invalid texture coordinate {} format {} for VAT {} - {:08x} {:08x} {:08x}", i,
-                   g_main_cp_state.vtx_attr[vtx_attr_group].GetTexFormat(i), vtx_attr_group,
-                   g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
-                   g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
-                   g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
+          "Invalid texture coordinate {} format {} for VAT {} - {:08x} {:08x} {:08x}", i,
+          g_main_cp_state.vtx_attr[vtx_attr_group].GetTexFormat(i), vtx_attr_group,
+          g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
+          g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
+          g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
       DolphinAnalytics::Instance().ReportGameQuirk(
           GameQuirk::InvalidTextureCoordinateComponentFormat);
     }
@@ -364,10 +365,10 @@ static void CheckCPConfiguration(int vtx_attr_group)
     if (g_main_cp_state.vtx_attr[vtx_attr_group].GetColorFormat(i) > ColorFormat::RGBA8888)
     {
       WARN_LOG_FMT(VIDEO, "Invalid color {} format {} for VAT {} - {:08x} {:08x} {:08x}", i,
-                   g_main_cp_state.vtx_attr[vtx_attr_group].GetColorFormat(i), vtx_attr_group,
-                   g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
-                   g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
-                   g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
+          g_main_cp_state.vtx_attr[vtx_attr_group].GetColorFormat(i), vtx_attr_group,
+          g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
+          g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
+          g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::InvalidColorComponentFormat);
     }
   }
@@ -421,8 +422,8 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
       g_current_components = loader->m_native_components;
       auto& system = Core::System::GetInstance();
       auto& vertex_shader_manager = system.GetVertexShaderManager();
-      vertex_shader_manager.SetVertexFormat(loader->m_native_components,
-                                            loader->m_native_vertex_format->GetVertexDeclaration());
+      vertex_shader_manager.SetVertexFormat(
+          loader->m_native_components, loader->m_native_vertex_format->GetVertexDeclaration());
     }
 
     // CPUCull's performance increase comes from encoding fewer GPU commands, not sending less data
@@ -443,8 +444,8 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
       const int max_vertices = 16380;  // Max is 16383, but 16380 is divisible by both 4 and 3
       const int run = CanSplit(primitive) && count > max_vertices ? max_vertices : count;
       count -= run;
-      DataReader dst = g_vertex_manager->PrepareForAdditionalData(primitive, run, stride,
-                                                                  cullall || can_cpu_cull);
+      DataReader dst = g_vertex_manager->PrepareForAdditionalData(
+          primitive, run, stride, cullall || can_cpu_cull);
 
       const int num_loaded = loader->RunVertices(src, dst.GetPointer(), run);
       src += loader->m_vertex_size * max_vertices;
@@ -472,10 +473,10 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
   return size;
 }
 
-template int RunVertices<false>(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count,
-                                const u8* src);
-template int RunVertices<true>(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count,
-                               const u8* src);
+template int RunVertices<false>(
+    int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, const u8* src);
+template int RunVertices<true>(
+    int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, const u8* src);
 
 NativeVertexFormat* GetCurrentVertexFormat()
 {

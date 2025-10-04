@@ -92,8 +92,8 @@ static const char* to_string(MTLCompareFunction compare)
 
 // clang-format on
 
-static void
-SetupDepthStencil(MRCOwned<id<MTLDepthStencilState>> (&dss)[Metal::DepthStencilSelector::N_VALUES])
+static void SetupDepthStencil(
+    MRCOwned<id<MTLDepthStencilState>> (&dss)[Metal::DepthStencilSelector::N_VALUES])
 {
   auto desc = MRCTransfer([MTLDepthStencilDescriptor new]);
   Metal::DepthStencilSelector sel;
@@ -104,7 +104,7 @@ SetupDepthStencil(MRCOwned<id<MTLDepthStencilState>> (&dss)[Metal::DepthStencilS
     [desc setDepthWriteEnabled:sel.UpdateEnable()];
     [desc setDepthCompareFunction:mcompare];
     [desc setLabel:[NSString stringWithFormat:@"DSS %s%s", to_string(mcompare),
-                                              sel.UpdateEnable() ? "+Write" : ""]];
+                       sel.UpdateEnable() ? "+Write" : ""]];
     dss[i] = MRCTransfer([Metal::g_device newDepthStencilStateWithDescriptor:desc]);
   }
 }
@@ -172,11 +172,10 @@ MRCOwned<id<MTLSamplerState>> Metal::ObjectCache::CreateSampler(SamplerSelector 
     [desc setSAddressMode:Convert(sel.WrapU())];
     [desc setTAddressMode:Convert(sel.WrapV())];
     [desc setMaxAnisotropy:1 << sel.AnisotropicFiltering()];
-    [desc setLabel:MRCTransfer([[NSString alloc]
-                       initWithFormat:@"%s%s%s %s%s%d", to_string(sel.MinFilter()),
-                                      to_string(sel.MagFilter()), to_string(sel.MipFilter()),
-                                      to_string(sel.WrapU()), to_string(sel.WrapV()),
-                                      1 << sel.AnisotropicFiltering()])];
+    [desc setLabel:MRCTransfer([[NSString alloc] initWithFormat:@"%s%s%s %s%s%d",
+                       to_string(sel.MinFilter()), to_string(sel.MagFilter()),
+                       to_string(sel.MipFilter()), to_string(sel.WrapU()), to_string(sel.WrapV()),
+                       1 << sel.AnisotropicFiltering()])];
     return MRCTransfer([Metal::g_device newSamplerStateWithDescriptor:desc]);
   }
 }
@@ -283,15 +282,16 @@ public:
       u8 components : 2;
       VertexAttribute() = default;
       explicit VertexAttribute(AttributeFormat format)
-          : offset(format.offset), components(format.components - 1)
+          : offset(format.offset)
+          , components(format.components - 1)
       {
         if (!format.enable)
           offset = 0x3F;  // Set it to something unlikely
       }
     };
     template <size_t N>
-    static void CopyAll(std::array<VertexAttribute, N>& output,
-                        const std::array<AttributeFormat, N>& input)
+    static void CopyAll(
+        std::array<VertexAttribute, N>& output, const std::array<AttributeFormat, N>& input)
     {
       for (size_t i = 0; i < N; ++i)
         output[i] = VertexAttribute(input[i]);
@@ -471,8 +471,9 @@ public:
             fmt::println(file, "Write None");
           if (bs.blend_enable)
           {
-            auto print_blend = [file](const char* name, SrcBlendFactor src, DstBlendFactor dst,
-                                      bool subtract) {
+            auto print_blend =
+                [file](const char* name, SrcBlendFactor src, DstBlendFactor dst, bool subtract)
+            {
               if (subtract)
                 fmt::println(file, "{}: dst * {} - src * {}", name, dst, src);
               else
@@ -503,9 +504,9 @@ public:
                                       "Failed to write detailed info";
 
         PanicAlertFmt("Failed to compile pipeline for {} and {}: {}\n{}",
-                      [[[desc vertexFunction] label] UTF8String],
-                      [[[desc fragmentFunction] label] UTF8String],
-                      [[err localizedDescription] UTF8String], file_msg);
+            [[[desc vertexFunction] label] UTF8String],
+            [[[desc fragmentFunction] label] UTF8String], [[err localizedDescription] UTF8String],
+            file_msg);
         return std::make_pair(nullptr, PipelineReflection());
       }
 
@@ -554,16 +555,15 @@ public:
   }
 };
 
-std::unique_ptr<AbstractPipeline>
-Metal::ObjectCache::CreatePipeline(const AbstractPipelineConfig& config)
+std::unique_ptr<AbstractPipeline> Metal::ObjectCache::CreatePipeline(
+    const AbstractPipelineConfig& config)
 {
   Internal::StoredPipeline pipeline = m_internal->GetOrCreatePipeline(config);
   if (!pipeline.first)
     return nullptr;
   return std::make_unique<Pipeline>(config, std::move(pipeline.first), pipeline.second,
-                                    Convert(config.rasterization_state.primitive),
-                                    Convert(config.rasterization_state.cull_mode),
-                                    config.depth_state, config.usage);
+      Convert(config.rasterization_state.primitive), Convert(config.rasterization_state.cull_mode),
+      config.depth_state, config.usage);
 }
 
 void Metal::ObjectCache::ShaderDestroyed(const Shader* shader)

@@ -120,9 +120,11 @@ struct NetTraversalConfig
 {
   NetTraversalConfig() = default;
   NetTraversalConfig(bool use_traversal_, std::string traversal_host_, u16 traversal_port_,
-                     u16 traversal_port_alt_ = 0)
-      : use_traversal{use_traversal_}, traversal_host{std::move(traversal_host_)},
-        traversal_port{traversal_port_}, traversal_port_alt{traversal_port_alt_}
+      u16 traversal_port_alt_ = 0)
+      : use_traversal{use_traversal_}
+      , traversal_host{std::move(traversal_host_)}
+      , traversal_port{traversal_port_}
+      , traversal_port_alt{traversal_port_alt_}
   {
   }
 
@@ -256,8 +258,7 @@ struct PadDetails
 };
 
 std::string GetPlayerMappingString(PlayerId pid, const PadMappingArray& pad_map,
-                                   const GBAConfigArray& gba_config,
-                                   const PadMappingArray& wiimote_map);
+    const GBAConfigArray& gba_config, const PadMappingArray& wiimote_map);
 bool IsNetPlayRunning();
 void SetSIPollBatching(bool state);
 void SendPowerButtonEvent();

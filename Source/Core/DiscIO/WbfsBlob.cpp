@@ -25,7 +25,8 @@ static constexpr u64 WII_SECTOR_COUNT = 143432 * 2;
 static constexpr u64 WII_DISC_HEADER_SIZE = 256;
 
 WbfsFileReader::WbfsFileReader(File::IOFile file, const std::string& path)
-    : m_size(0), m_good(false)
+    : m_size(0)
+    , m_good(false)
 {
   if (!AddFileToList(std::move(file)))
     return;
@@ -37,8 +38,8 @@ WbfsFileReader::WbfsFileReader(File::IOFile file, const std::string& path)
 
   // Grab disc info (assume slot 0, checked in ReadHeader())
   m_wlba_table.resize(m_blocks_per_disc);
-  m_files[0].file.Seek(m_hd_sector_size + WII_DISC_HEADER_SIZE /*+ i * m_disc_info_size*/,
-                       File::SeekOrigin::Begin);
+  m_files[0].file.Seek(
+      m_hd_sector_size + WII_DISC_HEADER_SIZE /*+ i * m_disc_info_size*/, File::SeekOrigin::Begin);
   m_files[0].file.ReadBytes(m_wlba_table.data(), m_blocks_per_disc * sizeof(u16));
   for (size_t i = 0; i < m_blocks_per_disc; i++)
     m_wlba_table[i] = Common::swap16(m_wlba_table[i]);

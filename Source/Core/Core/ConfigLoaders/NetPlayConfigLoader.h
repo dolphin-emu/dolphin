@@ -17,6 +17,6 @@ struct NetSettings;
 
 namespace ConfigLoaders
 {
-std::unique_ptr<Config::ConfigLayerLoader>
-GenerateNetPlayConfigLoader(const NetPlay::NetSettings& settings);
+std::unique_ptr<Config::ConfigLayerLoader> GenerateNetPlayConfigLoader(
+    const NetPlay::NetSettings& settings);
 }

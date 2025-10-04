@@ -17,35 +17,30 @@ namespace DX12
 {
 static D3D12_BOX RectangleToBox(const MathUtil::Rectangle<int>& rc)
 {
-  return D3D12_BOX{static_cast<UINT>(rc.left),  static_cast<UINT>(rc.top),    0,
-                   static_cast<UINT>(rc.right), static_cast<UINT>(rc.bottom), 1};
+  return D3D12_BOX{static_cast<UINT>(rc.left), static_cast<UINT>(rc.top), 0,
+      static_cast<UINT>(rc.right), static_cast<UINT>(rc.bottom), 1};
 }
 
 static ComPtr<ID3D12Resource> CreateTextureUploadBuffer(u32 buffer_size)
 {
   const D3D12_HEAP_PROPERTIES heap_properties = {D3D12_HEAP_TYPE_UPLOAD};
-  const D3D12_RESOURCE_DESC desc = {D3D12_RESOURCE_DIMENSION_BUFFER,
-                                    0,
-                                    buffer_size,
-                                    1,
-                                    1,
-                                    1,
-                                    DXGI_FORMAT_UNKNOWN,
-                                    {1, 0},
-                                    D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
-                                    D3D12_RESOURCE_FLAG_NONE};
+  const D3D12_RESOURCE_DESC desc = {D3D12_RESOURCE_DIMENSION_BUFFER, 0, buffer_size, 1, 1, 1,
+      DXGI_FORMAT_UNKNOWN, {1, 0}, D3D12_TEXTURE_LAYOUT_ROW_MAJOR, D3D12_RESOURCE_FLAG_NONE};
 
   ComPtr<ID3D12Resource> resource;
-  HRESULT hr = g_dx_context->GetDevice()->CreateCommittedResource(
-      &heap_properties, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-      IID_PPV_ARGS(&resource));
+  HRESULT hr =
+      g_dx_context->GetDevice()->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE,
+          &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&resource));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create texture upload buffer: {}", DX12HRWrap(hr));
   return resource;
 }
 
 DXTexture::DXTexture(const TextureConfig& config, ID3D12Resource* resource,
-                     D3D12_RESOURCE_STATES state, std::string_view name)
-    : AbstractTexture(config), m_resource(resource), m_state(state), m_name(UTF8ToWString(name))
+    D3D12_RESOURCE_STATES state, std::string_view name)
+    : AbstractTexture(config)
+    , m_resource(resource)
+    , m_state(state)
+    , m_name(UTF8ToWString(name))
 {
   if (!m_name.empty())
   {
@@ -57,14 +52,14 @@ DXTexture::~DXTexture()
 {
   if (m_uav_descriptor)
   {
-    g_dx_context->DeferDescriptorDestruction(g_dx_context->GetDescriptorHeapManager(),
-                                             m_uav_descriptor.index);
+    g_dx_context->DeferDescriptorDestruction(
+        g_dx_context->GetDescriptorHeapManager(), m_uav_descriptor.index);
   }
 
   if (m_srv_descriptor)
   {
-    g_dx_context->DeferDescriptorDestruction(g_dx_context->GetDescriptorHeapManager(),
-                                             m_srv_descriptor.index);
+    g_dx_context->DeferDescriptorDestruction(
+        g_dx_context->GetDescriptorHeapManager(), m_srv_descriptor.index);
   }
   if (m_resource)
     g_dx_context->DeferResourceDestruction(m_resource.Get());
@@ -91,17 +86,10 @@ std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config, std::s
   if (config.IsComputeImage())
     resource_flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
-  const D3D12_RESOURCE_DESC resource_desc = {
-      D3D12_RESOURCE_DIMENSION_TEXTURE2D,
-      0,
-      config.width,
-      config.height,
-      static_cast<u16>(config.layers),
-      static_cast<u16>(config.levels),
+  const D3D12_RESOURCE_DESC resource_desc = {D3D12_RESOURCE_DIMENSION_TEXTURE2D, 0, config.width,
+      config.height, static_cast<u16>(config.layers), static_cast<u16>(config.levels),
       D3DCommon::GetDXGIFormatForAbstractFormat(config.format, config.IsRenderTarget()),
-      {config.samples, 0},
-      D3D12_TEXTURE_LAYOUT_UNKNOWN,
-      resource_flags};
+      {config.samples, 0}, D3D12_TEXTURE_LAYOUT_UNKNOWN, resource_flags};
 
   D3D12_CLEAR_VALUE optimized_clear_value = {};
   if (config.IsRenderTarget())
@@ -113,8 +101,8 @@ std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config, std::s
   }
 
   ComPtr<ID3D12Resource> resource;
-  HRESULT hr = g_dx_context->GetDevice()->CreateCommittedResource(
-      &heap_properties, D3D12_HEAP_FLAG_NONE, &resource_desc, resource_state,
+  HRESULT hr = g_dx_context->GetDevice()->CreateCommittedResource(&heap_properties,
+      D3D12_HEAP_FLAG_NONE, &resource_desc, resource_state,
       config.IsRenderTarget() ? &optimized_clear_value : nullptr, IID_PPV_ARGS(&resource));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create D3D12 texture resource: {}", DX12HRWrap(hr));
   if (FAILED(hr))
@@ -140,8 +128,8 @@ std::unique_ptr<DXTexture> DXTexture::CreateAdopted(ID3D12Resource* resource)
   }
 
   TextureConfig config(static_cast<u32>(desc.Width), desc.Height, desc.MipLevels,
-                       desc.DepthOrArraySize, desc.SampleDesc.Count, format, 0,
-                       AbstractTextureType::Texture_2DArray);
+      desc.DepthOrArraySize, desc.SampleDesc.Count, format, 0,
+      AbstractTextureType::Texture_2DArray);
   if (desc.Flags &
       (D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL))
   {
@@ -191,7 +179,7 @@ bool DXTexture::CreateSRVDescriptor()
     return false;
   }
   D3D12_SHADER_RESOURCE_VIEW_DESC desc = {D3DCommon::GetSRVFormatForAbstractFormat(m_config.format),
-                                          dimension, D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING};
+      dimension, D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING};
 
   if (m_config.type == AbstractTextureType::Texture_CubeMap)
   {
@@ -211,8 +199,8 @@ bool DXTexture::CreateSRVDescriptor()
       desc.Texture2DArray.ArraySize = m_config.layers;
     }
   }
-  g_dx_context->GetDevice()->CreateShaderResourceView(m_resource.Get(), &desc,
-                                                      m_srv_descriptor.cpu_handle);
+  g_dx_context->GetDevice()->CreateShaderResourceView(
+      m_resource.Get(), &desc, m_srv_descriptor.cpu_handle);
   return true;
 }
 
@@ -228,14 +216,14 @@ bool DXTexture::CreateUAVDescriptor()
       D3DCommon::GetSRVFormatForAbstractFormat(m_config.format),
       D3D12_UAV_DIMENSION_TEXTURE2DARRAY};
   desc.Texture2DArray.ArraySize = m_config.layers;
-  g_dx_context->GetDevice()->CreateUnorderedAccessView(m_resource.Get(), nullptr, &desc,
-                                                       m_uav_descriptor.cpu_handle);
+  g_dx_context->GetDevice()->CreateUnorderedAccessView(
+      m_resource.Get(), nullptr, &desc, m_uav_descriptor.cpu_handle);
 
   return true;
 }
 
 void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
-                     size_t buffer_size, u32 layer)
+    size_t buffer_size, u32 layer)
 {
   // Textures greater than 1024*1024 will be put in staging textures that are released after
   // execution instead. A 2048x2048 texture is 16MB, and we'd only fit four of these in our
@@ -284,8 +272,8 @@ void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
     if (!g_dx_context->GetTextureUploadBuffer().ReserveMemory(
             upload_size, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT))
     {
-      WARN_LOG_FMT(VIDEO,
-                   "Executing command list while waiting for space in texture upload buffer");
+      WARN_LOG_FMT(
+          VIDEO, "Executing command list while waiting for space in texture upload buffer");
       Gfx::GetInstance()->ExecuteCommandList(false);
       if (!g_dx_context->GetTextureUploadBuffer().ReserveMemory(
               upload_size, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT))
@@ -332,13 +320,12 @@ void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   const u32 aligned_width = Common::AlignUp(width, block_size);
   const u32 aligned_height = Common::AlignUp(height, block_size);
   const D3D12_TEXTURE_COPY_LOCATION dst_loc = {m_resource.Get(),
-                                               D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-                                               {static_cast<UINT>(CalcSubresource(level, layer))}};
-  const D3D12_TEXTURE_COPY_LOCATION src_loc = {
-      upload_buffer_resource,
+      D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+      {static_cast<UINT>(CalcSubresource(level, layer))}};
+  const D3D12_TEXTURE_COPY_LOCATION src_loc = {upload_buffer_resource,
       D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
       {{upload_buffer_offset, D3DCommon::GetDXGIFormatForAbstractFormat(m_config.format, false),
-        aligned_width, aligned_height, 1, upload_stride}}};
+          aligned_width, aligned_height, 1, upload_stride}}};
   const D3D12_BOX src_box{0, 0, 0, aligned_width, aligned_height, 1};
   g_dx_context->GetCommandList()->CopyTextureRegion(&dst_loc, 0, 0, 0, &src_loc, &src_box);
 
@@ -349,9 +336,8 @@ void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
 }
 
 void DXTexture::CopyRectangleFromTexture(const AbstractTexture* src,
-                                         const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
-                                         u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
-                                         u32 dst_layer, u32 dst_level)
+    const MathUtil::Rectangle<int>& src_rect, u32 src_layer, u32 src_level,
+    const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer, u32 dst_level)
 {
   const DXTexture* src_dxtex = static_cast<const DXTexture*>(src);
   ASSERT(static_cast<u32>(src_rect.right) <= src->GetWidth() &&
@@ -360,12 +346,10 @@ void DXTexture::CopyRectangleFromTexture(const AbstractTexture* src,
          static_cast<u32>(dst_rect.bottom) <= GetHeight() && dst_layer <= GetLayers() &&
          dst_level <= GetLevels() && src_rect.GetWidth() == dst_rect.GetWidth() &&
          src_rect.GetHeight() == dst_rect.GetHeight());
-  const D3D12_TEXTURE_COPY_LOCATION dst_loc = {
-      m_resource.Get(),
+  const D3D12_TEXTURE_COPY_LOCATION dst_loc = {m_resource.Get(),
       D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
       {static_cast<UINT>(CalcSubresource(dst_level, dst_layer))}};
-  const D3D12_TEXTURE_COPY_LOCATION src_loc = {
-      src_dxtex->m_resource.Get(),
+  const D3D12_TEXTURE_COPY_LOCATION src_loc = {src_dxtex->m_resource.Get(),
       D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
       {static_cast<UINT>(src_dxtex->CalcSubresource(src_level, src_layer))}};
   const D3D12_BOX src_box = RectangleToBox(src_rect);
@@ -373,15 +357,15 @@ void DXTexture::CopyRectangleFromTexture(const AbstractTexture* src,
   src_dxtex->TransitionToState(D3D12_RESOURCE_STATE_COPY_SOURCE);
   TransitionToState(D3D12_RESOURCE_STATE_COPY_DEST);
 
-  g_dx_context->GetCommandList()->CopyTextureRegion(&dst_loc, dst_rect.left, dst_rect.top, 0,
-                                                    &src_loc, &src_box);
+  g_dx_context->GetCommandList()->CopyTextureRegion(
+      &dst_loc, dst_rect.left, dst_rect.top, 0, &src_loc, &src_box);
 
   // Only restore the source layout. Destination is restored by FinishedRendering().
   src_dxtex->TransitionToState(old_src_state);
 }
 
-void DXTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
-                                   u32 layer, u32 level)
+void DXTexture::ResolveFromTexture(
+    const AbstractTexture* src, const MathUtil::Rectangle<int>& rect, u32 layer, u32 level)
 {
   const DXTexture* src_dxtex = static_cast<const DXTexture*>(src);
 
@@ -389,8 +373,8 @@ void DXTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
   src_dxtex->TransitionToState(D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
   TransitionToState(D3D12_RESOURCE_STATE_RESOLVE_DEST);
 
-  g_dx_context->GetCommandList()->ResolveSubresource(
-      m_resource.Get(), CalcSubresource(level, layer), src_dxtex->m_resource.Get(),
+  g_dx_context->GetCommandList()->ResolveSubresource(m_resource.Get(),
+      CalcSubresource(level, layer), src_dxtex->m_resource.Get(),
       src_dxtex->CalcSubresource(level, layer),
       D3DCommon::GetDXGIFormatForAbstractFormat(m_config.format, false));
 
@@ -425,32 +409,31 @@ void DXTexture::DestroyResource()
 }
 
 DXFramebuffer::DXFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
-                             std::vector<AbstractTexture*> additional_color_attachments,
-                             AbstractTextureFormat color_format, AbstractTextureFormat depth_format,
-                             u32 width, u32 height, u32 layers, u32 samples)
+    std::vector<AbstractTexture*> additional_color_attachments, AbstractTextureFormat color_format,
+    AbstractTextureFormat depth_format, u32 width, u32 height, u32 layers, u32 samples)
     : AbstractFramebuffer(color_attachment, depth_attachment,
-                          std::move(additional_color_attachments), color_format, depth_format,
-                          width, height, layers, samples)
+          std::move(additional_color_attachments), color_format, depth_format, width, height,
+          layers, samples)
 {
 }
 
 DXFramebuffer::~DXFramebuffer()
 {
   if (m_depth_attachment)
-    g_dx_context->DeferDescriptorDestruction(g_dx_context->GetDSVHeapManager(),
-                                             m_dsv_descriptor.index);
+    g_dx_context->DeferDescriptorDestruction(
+        g_dx_context->GetDSVHeapManager(), m_dsv_descriptor.index);
   if (m_color_attachment)
   {
     if (m_int_rtv_descriptor)
     {
-      g_dx_context->DeferDescriptorDestruction(g_dx_context->GetRTVHeapManager(),
-                                               m_int_rtv_descriptor.index);
+      g_dx_context->DeferDescriptorDestruction(
+          g_dx_context->GetRTVHeapManager(), m_int_rtv_descriptor.index);
     }
   }
   for (auto render_target : m_render_targets)
   {
-    g_dx_context->DeferDescriptorDestruction(g_dx_context->GetRTVHeapManager(),
-                                             render_target.index);
+    g_dx_context->DeferDescriptorDestruction(
+        g_dx_context->GetRTVHeapManager(), render_target.index);
   }
 }
 
@@ -491,13 +474,13 @@ void DXFramebuffer::Unbind()
   }
 }
 
-void DXFramebuffer::ClearRenderTargets(const ClearColor& color_value,
-                                       const D3D12_RECT* rectangle) const
+void DXFramebuffer::ClearRenderTargets(
+    const ClearColor& color_value, const D3D12_RECT* rectangle) const
 {
   for (auto render_target : m_render_targets_raw)
   {
-    g_dx_context->GetCommandList()->ClearRenderTargetView(render_target, color_value.data(),
-                                                          rectangle ? 1 : 0, rectangle);
+    g_dx_context->GetCommandList()->ClearRenderTargetView(
+        render_target, color_value.data(), rectangle ? 1 : 0, rectangle);
   }
 }
 
@@ -506,8 +489,7 @@ void DXFramebuffer::ClearDepth(float depth_value, const D3D12_RECT* rectangle) c
   if (HasDepthBuffer())
   {
     g_dx_context->GetCommandList()->ClearDepthStencilView(GetDSVDescriptor().cpu_handle,
-                                                          D3D12_CLEAR_FLAG_DEPTH, depth_value, 0,
-                                                          rectangle ? 1 : 0, rectangle);
+        D3D12_CLEAR_FLAG_DEPTH, depth_value, 0, rectangle ? 1 : 0, rectangle);
   }
 }
 
@@ -525,9 +507,8 @@ void DXFramebuffer::TransitionRenderTargets() const
   }
 }
 
-std::unique_ptr<DXFramebuffer>
-DXFramebuffer::Create(DXTexture* color_attachment, DXTexture* depth_attachment,
-                      std::vector<AbstractTexture*> additional_color_attachments)
+std::unique_ptr<DXFramebuffer> DXFramebuffer::Create(DXTexture* color_attachment,
+    DXTexture* depth_attachment, std::vector<AbstractTexture*> additional_color_attachments)
 {
   if (!ValidateConfig(color_attachment, depth_attachment, additional_color_attachments))
     return nullptr;
@@ -544,7 +525,7 @@ DXFramebuffer::Create(DXTexture* color_attachment, DXTexture* depth_attachment,
 
   std::unique_ptr<DXFramebuffer> fb(
       new DXFramebuffer(color_attachment, depth_attachment, std::move(additional_color_attachments),
-                        color_format, depth_format, width, height, layers, samples));
+          color_format, depth_format, width, height, layers, samples));
   if (!fb->CreateRTVDescriptors() || (color_attachment && !fb->CreateIRTVDescriptor()) ||
       (depth_attachment && !fb->CreateDSVDescriptor()))
   {
@@ -614,9 +595,8 @@ bool DXFramebuffer::CreateIRTVDescriptor()
     if (!g_dx_context->GetRTVHeapManager().Allocate(&m_int_rtv_descriptor))
       return false;
 
-    D3D12_RENDER_TARGET_VIEW_DESC rtv_desc = {int_format, multisampled ?
-                                                              D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY :
-                                                              D3D12_RTV_DIMENSION_TEXTURE2DARRAY};
+    D3D12_RENDER_TARGET_VIEW_DESC rtv_desc = {int_format,
+        multisampled ? D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY : D3D12_RTV_DIMENSION_TEXTURE2DARRAY};
     if (multisampled)
       rtv_desc.Texture2DMSArray.ArraySize = m_layers;
     else
@@ -652,8 +632,10 @@ bool DXFramebuffer::CreateDSVDescriptor()
 }
 
 DXStagingTexture::DXStagingTexture(StagingTextureType type, const TextureConfig& config,
-                                   ID3D12Resource* resource, u32 stride, u32 buffer_size)
-    : AbstractStagingTexture(type, config), m_resource(resource), m_buffer_size(buffer_size)
+    ID3D12Resource* resource, u32 stride, u32 buffer_size)
+    : AbstractStagingTexture(type, config)
+    , m_resource(resource)
+    , m_buffer_size(buffer_size)
 {
   m_map_stride = stride;
 }
@@ -664,13 +646,13 @@ DXStagingTexture::~DXStagingTexture()
 }
 
 void DXStagingTexture::CopyFromTexture(const AbstractTexture* src,
-                                       const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
-                                       u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
+    const MathUtil::Rectangle<int>& src_rect, u32 src_layer, u32 src_level,
+    const MathUtil::Rectangle<int>& dst_rect)
 {
   const DXTexture* src_tex = static_cast<const DXTexture*>(src);
   ASSERT(m_type == StagingTextureType::Readback || m_type == StagingTextureType::Mutable);
-  ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
-         src_rect.GetHeight() == dst_rect.GetHeight());
+  ASSERT(
+      src_rect.GetWidth() == dst_rect.GetWidth() && src_rect.GetHeight() == dst_rect.GetHeight());
   ASSERT(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= src_tex->GetWidth() &&
          src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= src_tex->GetHeight());
   ASSERT(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= m_config.width &&
@@ -683,18 +665,16 @@ void DXStagingTexture::CopyFromTexture(const AbstractTexture* src,
   Unmap();
 
   // Copy from VRAM -> host-visible memory.
-  const D3D12_TEXTURE_COPY_LOCATION dst_loc = {
-      m_resource.Get(),
+  const D3D12_TEXTURE_COPY_LOCATION dst_loc = {m_resource.Get(),
       D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
-      {0,
-       {D3DCommon::GetDXGIFormatForAbstractFormat(m_config.format, false), m_config.width,
-        m_config.height, 1u, static_cast<UINT>(m_map_stride)}}};
-  const D3D12_TEXTURE_COPY_LOCATION src_loc = {
-      src_tex->GetResource(), D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+      {0, {D3DCommon::GetDXGIFormatForAbstractFormat(m_config.format, false), m_config.width,
+              m_config.height, 1u, static_cast<UINT>(m_map_stride)}}};
+  const D3D12_TEXTURE_COPY_LOCATION src_loc = {src_tex->GetResource(),
+      D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
       static_cast<UINT>(src_tex->CalcSubresource(src_level, src_layer))};
   const D3D12_BOX src_box = RectangleToBox(src_rect);
-  g_dx_context->GetCommandList()->CopyTextureRegion(&dst_loc, dst_rect.left, dst_rect.top, 0,
-                                                    &src_loc, &src_box);
+  g_dx_context->GetCommandList()->CopyTextureRegion(
+      &dst_loc, dst_rect.left, dst_rect.top, 0, &src_loc, &src_box);
 
   // Restore old source texture layout.
   src_tex->TransitionToState(old_state);
@@ -705,13 +685,12 @@ void DXStagingTexture::CopyFromTexture(const AbstractTexture* src,
 }
 
 void DXStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, AbstractTexture* dst,
-                                     const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
-                                     u32 dst_level)
+    const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer, u32 dst_level)
 {
   const DXTexture* dst_tex = static_cast<const DXTexture*>(dst);
   ASSERT(m_type == StagingTextureType::Upload || m_type == StagingTextureType::Mutable);
-  ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
-         src_rect.GetHeight() == dst_rect.GetHeight());
+  ASSERT(
+      src_rect.GetWidth() == dst_rect.GetWidth() && src_rect.GetHeight() == dst_rect.GetHeight());
   ASSERT(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= m_config.width &&
          src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= m_config.height);
   ASSERT(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= dst_tex->GetWidth() &&
@@ -724,18 +703,16 @@ void DXStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
   Unmap();
 
   // Copy from VRAM -> host-visible memory.
-  const D3D12_TEXTURE_COPY_LOCATION dst_loc = {
-      dst_tex->GetResource(), D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+  const D3D12_TEXTURE_COPY_LOCATION dst_loc = {dst_tex->GetResource(),
+      D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
       static_cast<UINT>(dst_tex->CalcSubresource(dst_level, dst_layer))};
-  const D3D12_TEXTURE_COPY_LOCATION src_loc = {
-      m_resource.Get(),
+  const D3D12_TEXTURE_COPY_LOCATION src_loc = {m_resource.Get(),
       D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
-      {0,
-       {D3DCommon::GetDXGIFormatForAbstractFormat(m_config.format, false), m_config.width,
-        m_config.height, 1u, static_cast<UINT>(m_map_stride)}}};
+      {0, {D3DCommon::GetDXGIFormatForAbstractFormat(m_config.format, false), m_config.width,
+              m_config.height, 1u, static_cast<UINT>(m_map_stride)}}};
   const D3D12_BOX src_box = RectangleToBox(src_rect);
-  g_dx_context->GetCommandList()->CopyTextureRegion(&dst_loc, dst_rect.left, dst_rect.top, 0,
-                                                    &src_loc, &src_box);
+  g_dx_context->GetCommandList()->CopyTextureRegion(
+      &dst_loc, dst_rect.left, dst_rect.top, 0, &src_loc, &src_box);
 
   // Restore old source texture layout.
   dst_tex->TransitionToState(old_state);
@@ -785,38 +762,30 @@ void DXStagingTexture::Flush()
     g_dx_context->WaitForFence(m_completed_fence);
 }
 
-std::unique_ptr<DXStagingTexture> DXStagingTexture::Create(StagingTextureType type,
-                                                           const TextureConfig& config)
+std::unique_ptr<DXStagingTexture> DXStagingTexture::Create(
+    StagingTextureType type, const TextureConfig& config)
 {
   ASSERT(config.levels == 1 && config.layers == 1 && config.samples == 1);
 
   // Readback and mutable share the same heap type.
   const bool is_upload = type == StagingTextureType::Upload;
-  const D3D12_HEAP_PROPERTIES heap_properties = {is_upload ? D3D12_HEAP_TYPE_UPLOAD :
-                                                             D3D12_HEAP_TYPE_READBACK};
+  const D3D12_HEAP_PROPERTIES heap_properties = {
+      is_upload ? D3D12_HEAP_TYPE_UPLOAD : D3D12_HEAP_TYPE_READBACK};
 
   const u32 texel_size = AbstractTexture::GetTexelSizeForFormat(config.format);
   const u32 stride = Common::AlignUp(config.width * texel_size, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
   const u32 size = stride * config.height;
 
-  const D3D12_RESOURCE_DESC desc = {D3D12_RESOURCE_DIMENSION_BUFFER,
-                                    0,
-                                    size,
-                                    1,
-                                    1,
-                                    1,
-                                    DXGI_FORMAT_UNKNOWN,
-                                    {1, 0},
-                                    D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
-                                    D3D12_RESOURCE_FLAG_NONE};
+  const D3D12_RESOURCE_DESC desc = {D3D12_RESOURCE_DIMENSION_BUFFER, 0, size, 1, 1, 1,
+      DXGI_FORMAT_UNKNOWN, {1, 0}, D3D12_TEXTURE_LAYOUT_ROW_MAJOR, D3D12_RESOURCE_FLAG_NONE};
 
   // Readback textures are stuck in COPY_DEST and are never GPU readable.
   // Upload textures are stuck in GENERIC_READ, and are never CPU readable.
   ComPtr<ID3D12Resource> resource;
-  HRESULT hr = g_dx_context->GetDevice()->CreateCommittedResource(
-      &heap_properties, D3D12_HEAP_FLAG_NONE, &desc,
-      is_upload ? D3D12_RESOURCE_STATE_GENERIC_READ : D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
-      IID_PPV_ARGS(&resource));
+  HRESULT hr =
+      g_dx_context->GetDevice()->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE,
+          &desc, is_upload ? D3D12_RESOURCE_STATE_GENERIC_READ : D3D12_RESOURCE_STATE_COPY_DEST,
+          nullptr, IID_PPV_ARGS(&resource));
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create staging texture resource: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return nullptr;

@@ -267,8 +267,8 @@ public:
 
   void Update();
   static sockaddr_in ToNativeAddrIn(WiiSockAddrIn from);
-  static WiiSockAddrIn ToWiiAddrIn(const sockaddr_in& from,
-                                   socklen_t addrlen = sizeof(WiiSockAddrIn));
+  static WiiSockAddrIn ToWiiAddrIn(
+      const sockaddr_in& from, socklen_t addrlen = sizeof(WiiSockAddrIn));
   static s32 ConvertEvents(s32 events, ConvertDirection dir);
 
   void DoState(PointerWrap& p);
@@ -291,7 +291,7 @@ public:
     if (socket_entry == WiiSockets.end())
     {
       ERROR_LOG_FMT(IOS_NET, "DoSock: Error, fd not found ({:08x}, {:08X}, {:08X})", sock,
-                    request.address, Common::ToUnderlying(type));
+          request.address, Common::ToUnderlying(type));
       EnqueueIPCReply(request, -SO_EBADF);
     }
     else

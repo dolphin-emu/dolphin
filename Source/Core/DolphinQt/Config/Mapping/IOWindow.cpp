@@ -143,7 +143,8 @@ void ControlExpressionSyntaxHighlighter::Highlight(QTextDocument* document)
     }
   }
 
-  auto get_token_char_format = [](const ciface::ExpressionParser::Token& token) {
+  auto get_token_char_format = [](const ciface::ExpressionParser::Token& token)
+  {
     std::optional<QTextCharFormat> char_format;
 
     using ciface::ExpressionParser::TokenType;
@@ -231,11 +232,11 @@ void ControlExpressionSyntaxHighlighter::Highlight(QTextDocument* document)
 class InputStateDelegate : public QItemDelegate
 {
 public:
-  explicit InputStateDelegate(IOWindow* parent, int column,
-                              std::function<ControlState(int row)> state_evaluator);
+  explicit InputStateDelegate(
+      IOWindow* parent, int column, std::function<ControlState(int row)> state_evaluator);
 
   void paint(QPainter* painter, const QStyleOptionViewItem& option,
-             const QModelIndex& index) const override;
+      const QModelIndex& index) const override;
 
 private:
   std::function<ControlState(int row)> m_state_evaluator;
@@ -255,9 +256,12 @@ private:
 };
 
 IOWindow::IOWindow(MappingWindow* window, ControllerEmu::EmulatedController* controller,
-                   ControlReference* ref, IOWindow::Type type)
-    : QDialog(window), m_reference(ref), m_original_expression(ref->GetExpression()),
-      m_controller(controller), m_type(type)
+    ControlReference* ref, IOWindow::Type type)
+    : QDialog(window)
+    , m_reference(ref)
+    , m_original_expression(ref->GetExpression())
+    , m_controller(controller)
+    , m_type(type)
 {
   CreateMainLayout();
 
@@ -294,17 +298,21 @@ void IOWindow::CreateMainLayout()
 
   if (m_type == Type::Input)
   {
-    m_parse_text = new InputStateLineEdit([this] {
-      const auto lock = m_controller->GetStateLock();
-      return m_reference->GetState<ControlState>();
-    });
+    m_parse_text = new InputStateLineEdit(
+        [this]
+        {
+          const auto lock = m_controller->GetStateLock();
+          return m_reference->GetState<ControlState>();
+        });
   }
   else
   {
-    m_parse_text = new InputStateLineEdit([this] {
-      const auto lock = m_controller->GetStateLock();
-      return m_output_test_timer->isActive() * m_reference->range;
-    });
+    m_parse_text = new InputStateLineEdit(
+        [this]
+        {
+          const auto lock = m_controller->GetStateLock();
+          return m_output_test_timer->isActive() * m_reference->range;
+        });
   }
 
   m_expression_text = new QPlainTextEdit();
@@ -398,11 +406,13 @@ void IOWindow::CreateMainLayout()
     m_option_list->setColumnWidth(1, 64);
     m_option_list->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
 
-    m_option_list->setItemDelegate(new InputStateDelegate(this, 1, [&](int row) {
-      std::lock_guard lock(m_selected_device_mutex);
-      // Clamp off negative values but allow greater than one in the text display.
-      return std::max(GetSelectedDevice()->Inputs()[row]->GetState(), 0.0);
-    }));
+    m_option_list->setItemDelegate(new InputStateDelegate(this, 1,
+        [&](int row)
+        {
+          std::lock_guard lock(m_selected_device_mutex);
+          // Clamp off negative values but allow greater than one in the text display.
+          return std::max(GetSelectedDevice()->Inputs()[row]->GetState(), 0.0);
+        }));
   }
   else
   {
@@ -501,8 +511,8 @@ void IOWindow::Update()
       return;
 
     // Select the first detected input.
-    auto list = m_option_list->findItems(QString::fromStdString(results.front().input->GetName()),
-                                         Qt::MatchFixedString);
+    auto list = m_option_list->findItems(
+        QString::fromStdString(results.front().input->GetName()), Qt::MatchFixedString);
     if (list.empty())
       return;
 
@@ -525,88 +535,103 @@ void IOWindow::ConnectWidgets()
   // Clicking "Detect" button starts a timer before the actual detection.
   auto* const input_detect_start_timer = new QTimer(this);
   input_detect_start_timer->setSingleShot(true);
-  connect(m_detect_button, &QPushButton::clicked, [this, input_detect_start_timer] {
-    m_detect_button->setText(tr("[ ... ]"));
-    input_detect_start_timer->start(MappingCommon::INPUT_DETECT_INITIAL_DELAY);
-  });
-  connect(input_detect_start_timer, &QTimer::timeout, [this] {
-    m_detect_button->setText(tr("[ Press Now ]"));
-    m_input_detector = std::make_unique<ciface::Core::InputDetector>();
-    const auto lock = m_controller->GetStateLock();
-    m_input_detector->Start(g_controller_interface, std::array{m_devq.ToString()});
-    QtUtils::InstallKeyboardBlocker(m_detect_button, this, &IOWindow::DetectInputComplete);
-  });
+  connect(m_detect_button, &QPushButton::clicked,
+      [this, input_detect_start_timer]
+      {
+        m_detect_button->setText(tr("[ ... ]"));
+        input_detect_start_timer->start(MappingCommon::INPUT_DETECT_INITIAL_DELAY);
+      });
+  connect(input_detect_start_timer, &QTimer::timeout,
+      [this]
+      {
+        m_detect_button->setText(tr("[ Press Now ]"));
+        m_input_detector = std::make_unique<ciface::Core::InputDetector>();
+        const auto lock = m_controller->GetStateLock();
+        m_input_detector->Start(g_controller_interface, std::array{m_devq.ToString()});
+        QtUtils::InstallKeyboardBlocker(m_detect_button, this, &IOWindow::DetectInputComplete);
+      });
   connect(this, &IOWindow::DetectInputComplete,
-          [this, initial_text = m_detect_button->text(), input_detect_start_timer] {
-            input_detect_start_timer->stop();
-            m_input_detector.reset();
-            m_detect_button->setText(initial_text);
-          });
+      [this, initial_text = m_detect_button->text(), input_detect_start_timer]
+      {
+        input_detect_start_timer->stop();
+        m_input_detector.reset();
+        m_detect_button->setText(initial_text);
+      });
 
   // Rumble testing:
-  connect(m_test_button, &QPushButton::clicked, [this] {
-    // Stop if already started.
-    if (m_output_test_timer->isActive())
-    {
-      emit IOWindow::TestOutputComplete();
-      return;
-    }
-    m_test_button->setText(QStringLiteral("[ ... ]"));
-    m_output_test_timer->start(OUTPUT_TEST_TIME);
-    const auto lock = m_controller->GetStateLock();
-    m_reference->State(1.0);
-  });
+  connect(m_test_button, &QPushButton::clicked,
+      [this]
+      {
+        // Stop if already started.
+        if (m_output_test_timer->isActive())
+        {
+          emit IOWindow::TestOutputComplete();
+          return;
+        }
+        m_test_button->setText(QStringLiteral("[ ... ]"));
+        m_output_test_timer->start(OUTPUT_TEST_TIME);
+        const auto lock = m_controller->GetStateLock();
+        m_reference->State(1.0);
+      });
   connect(m_output_test_timer, &QTimer::timeout,
-          [this, initial_text = m_test_button->text()] { emit TestOutputComplete(); });
-  connect(this, &IOWindow::TestOutputComplete, [this, initial_text = m_test_button->text()] {
-    m_output_test_timer->stop();
-    m_test_button->setText(initial_text);
-    const auto lock = m_controller->GetStateLock();
-    m_reference->State(0.0);
-  });
+      [this, initial_text = m_test_button->text()] { emit TestOutputComplete(); });
+  connect(this, &IOWindow::TestOutputComplete,
+      [this, initial_text = m_test_button->text()]
+      {
+        m_output_test_timer->stop();
+        m_test_button->setText(initial_text);
+        const auto lock = m_controller->GetStateLock();
+        m_reference->State(0.0);
+      });
 
   connect(m_button_box, &QDialogButtonBox::clicked, this, &IOWindow::OnDialogButtonPressed);
   connect(m_devices_combo, &QComboBox::currentTextChanged, this, &IOWindow::OnDeviceChanged);
   connect(m_scalar_spinbox, &QSpinBox::valueChanged, this, &IOWindow::OnRangeChanged);
 
   connect(m_expression_text, &QPlainTextEdit::textChanged,
-          [this] { UpdateExpression(m_expression_text->toPlainText().toStdString()); });
+      [this] { UpdateExpression(m_expression_text->toPlainText().toStdString()); });
 
-  connect(m_variables_combo, &QComboBox::activated, [this](int index) {
-    if (index == 0)
-      return;
+  connect(m_variables_combo, &QComboBox::activated,
+      [this](int index)
+      {
+        if (index == 0)
+          return;
 
-    // Reset button. 1 and 3 are separators.
-    if (index == 2)
-    {
-      const auto lock = ControllerEmu::EmulatedController::GetStateLock();
-      m_controller->ResetExpressionVariables();
-    }
-    else
-    {
-      m_expression_text->insertPlainText(QLatin1Char('$') + m_variables_combo->currentText());
-    }
+        // Reset button. 1 and 3 are separators.
+        if (index == 2)
+        {
+          const auto lock = ControllerEmu::EmulatedController::GetStateLock();
+          m_controller->ResetExpressionVariables();
+        }
+        else
+        {
+          m_expression_text->insertPlainText(QLatin1Char('$') + m_variables_combo->currentText());
+        }
 
-    m_variables_combo->setCurrentIndex(0);
-  });
+        m_variables_combo->setCurrentIndex(0);
+      });
 
-  connect(m_operators_combo, &QComboBox::activated, [this](int index) {
-    if (index == 0)
-      return;
+  connect(m_operators_combo, &QComboBox::activated,
+      [this](int index)
+      {
+        if (index == 0)
+          return;
 
-    m_expression_text->insertPlainText(m_operators_combo->currentText().left(1));
+        m_expression_text->insertPlainText(m_operators_combo->currentText().left(1));
 
-    m_operators_combo->setCurrentIndex(0);
-  });
+        m_operators_combo->setCurrentIndex(0);
+      });
 
-  connect(m_functions_combo, &QComboBox::activated, [this](int index) {
-    if (index == 0)
-      return;
+  connect(m_functions_combo, &QComboBox::activated,
+      [this](int index)
+      {
+        if (index == 0)
+          return;
 
-    m_expression_text->insertPlainText(m_functions_combo->currentText() + QStringLiteral("()"));
+        m_expression_text->insertPlainText(m_functions_combo->currentText() + QStringLiteral("()"));
 
-    m_functions_combo->setCurrentIndex(0);
-  });
+        m_functions_combo->setCurrentIndex(0);
+      });
 
   // revert the expression when the window closes without using the OK button
   // UpdateExpression will also ensure an active rumble test is stopped when the dialog closes.
@@ -677,7 +702,8 @@ void IOWindow::UpdateOptionList()
   if (m_selected_device == nullptr)
     return;
 
-  const auto add_rows = [this](auto& container) {
+  const auto add_rows = [this](auto& container)
+  {
     int row = 0;
     for (ciface::Core::Device::Control* control : container)
     {
@@ -686,8 +712,8 @@ void IOWindow::UpdateOptionList()
       if (control->IsHidden())
         m_option_list->hideRow(row);
 
-      m_option_list->setItem(row, 0,
-                             new QTableWidgetItem(QString::fromStdString(control->GetName())));
+      m_option_list->setItem(
+          row, 0, new QTableWidgetItem(QString::fromStdString(control->GetName())));
       ++row;
     }
   };
@@ -802,9 +828,11 @@ void IOWindow::UpdateExpression(std::string new_expression, UpdateMode mode)
   }
 }
 
-InputStateDelegate::InputStateDelegate(IOWindow* parent, int column,
-                                       std::function<ControlState(int row)> state_evaluator)
-    : QItemDelegate(parent), m_state_evaluator(std::move(state_evaluator)), m_column(column)
+InputStateDelegate::InputStateDelegate(
+    IOWindow* parent, int column, std::function<ControlState(int row)> state_evaluator)
+    : QItemDelegate(parent)
+    , m_state_evaluator(std::move(state_evaluator))
+    , m_column(column)
 {
 }
 
@@ -838,8 +866,8 @@ static void PaintStateIndicator(QPainter& painter, const QRect& region, ControlS
   painter.drawText(region, Qt::AlignCenter, state_string);
 }
 
-void InputStateDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option,
-                               const QModelIndex& index) const
+void InputStateDelegate::paint(
+    QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
   QItemDelegate::paint(painter, option, index);
 

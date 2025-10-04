@@ -27,8 +27,8 @@
 namespace IOS::HLE
 {
 SDIOSlot0Device::SDIOSlot0Device(EmulationKernel& ios, const std::string& device_name)
-    : EmulationDevice(ios, device_name),
-      m_sdhc_supported(HasFeature(ios.GetVersion(), Feature::SDv2))
+    : EmulationDevice(ios, device_name)
+    , m_sdhc_supported(HasFeature(ios.GetVersion(), Feature::SDv2))
 {
   if (!Config::Get(Config::MAIN_ALLOW_SD_WRITES))
     INFO_LOG_FMT(IOS_SD, "Writes to SD card disabled by user");
@@ -170,8 +170,7 @@ std::optional<IPCReply> SDIOSlot0Device::IOCtlV(const IOCtlVRequest& request)
 }
 
 s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 buffer_in_size,
-                                    u32 rw_buffer, u32 rw_buffer_size, u32 buffer_out,
-                                    u32 buffer_out_size)
+    u32 rw_buffer, u32 rw_buffer_size, u32 buffer_out, u32 buffer_out_size)
 {
   // The game will send us a SendCMD with this information. To be able to read and write
   // to a file we need to prepare a 0x10 byte output buffer as response.
@@ -277,7 +276,7 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
     // Data address (req.arg) is in byte units in a Standard Capacity SD Memory Card
     // and in block (512 Byte) units in a High Capacity SD Memory Card.
     INFO_LOG_FMT(IOS_SD, "{}Read {} Block(s) from {:#010x} bsize {} into {:#010x}!",
-                 req.isDMA ? "DMA " : "", req.blocks, req.arg, req.bsize, req.addr);
+        req.isDMA ? "DMA " : "", req.blocks, req.arg, req.bsize, req.addr);
 
     if (m_card)
     {
@@ -294,7 +293,7 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
       else
       {
         ERROR_LOG_FMT(IOS_SD, "Read Failed - error: {}, eof: {}", std::ferror(m_card.GetHandle()),
-                      std::feof(m_card.GetHandle()));
+            std::feof(m_card.GetHandle()));
         ret = RET_FAIL;
       }
     }
@@ -307,7 +306,7 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
     // Data address (req.arg) is in byte units in a Standard Capacity SD Memory Card
     // and in block (512 Byte) units in a High Capacity SD Memory Card.
     INFO_LOG_FMT(IOS_SD, "{}Write {} Block(s) from {:#010x} bsize {} to offset {:#010x}!",
-                 req.isDMA ? "DMA " : "", req.blocks, req.addr, req.bsize, req.arg);
+        req.isDMA ? "DMA " : "", req.blocks, req.addr, req.bsize, req.arg);
 
     if (m_card && Config::Get(Config::MAIN_ALLOW_SD_WRITES))
     {
@@ -320,7 +319,7 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
       if (!m_card.WriteBytes(memory.GetPointerForRange(req.addr, size), size))
       {
         ERROR_LOG_FMT(IOS_SD, "Write Failed - error: {}, eof: {}", std::ferror(m_card.GetHandle()),
-                      std::feof(m_card.GetHandle()));
+            std::feof(m_card.GetHandle()));
         ret = RET_FAIL;
       }
     }
@@ -446,11 +445,11 @@ std::optional<IPCReply> SDIOSlot0Device::SendCommand(const IOCtlRequest& request
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
 
-  INFO_LOG_FMT(IOS_SD, "IOCTL_SENDCMD {:x} IPC:{:08x}", memory.Read_U32(request.buffer_in),
-               request.address);
+  INFO_LOG_FMT(
+      IOS_SD, "IOCTL_SENDCMD {:x} IPC:{:08x}", memory.Read_U32(request.buffer_in), request.address);
 
   const s32 return_value = ExecuteCommand(request, request.buffer_in, request.buffer_in_size, 0, 0,
-                                          request.buffer_out, request.buffer_out_size);
+      request.buffer_out, request.buffer_out_size);
 
   if (return_value == RET_EVENT_REGISTER)
   {
@@ -491,9 +490,8 @@ IPCReply SDIOSlot0Device::GetStatus(const IOCtlRequest& request)
   const u32 status = sd_card_inserted ? (m_status | CARD_INSERTED) : CARD_NOT_EXIST;
 
   INFO_LOG_FMT(IOS_SD, "IOCTL_GETSTATUS. Replying that {} card is {}{}",
-               (status & CARD_SDHC) ? "SDHC" : "SD",
-               (status & CARD_INSERTED) ? "inserted" : "not present",
-               (status & CARD_INITIALIZED) ? " and initialized" : "");
+      (status & CARD_SDHC) ? "SDHC" : "SD", (status & CARD_INSERTED) ? "inserted" : "not present",
+      (status & CARD_INITIALIZED) ? " and initialized" : "");
 
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -521,10 +519,9 @@ IPCReply SDIOSlot0Device::SendCommand(const IOCtlVRequest& request)
   DEBUG_LOG_FMT(IOS_SD, "IOCTLV_SENDCMD {:#010x}", memory.Read_U32(request.in_vectors[0].address));
   memory.Memset(request.io_vectors[0].address, 0, request.io_vectors[0].size);
 
-  const s32 return_value =
-      ExecuteCommand(request, request.in_vectors[0].address, request.in_vectors[0].size,
-                     request.in_vectors[1].address, request.in_vectors[1].size,
-                     request.io_vectors[0].address, request.io_vectors[0].size);
+  const s32 return_value = ExecuteCommand(request, request.in_vectors[0].address,
+      request.in_vectors[0].size, request.in_vectors[1].address, request.in_vectors[1].size,
+      request.io_vectors[0].address, request.io_vectors[0].size);
 
   return IPCReply(return_value);
 }

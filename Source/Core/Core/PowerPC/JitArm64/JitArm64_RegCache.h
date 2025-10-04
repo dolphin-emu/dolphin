@@ -27,12 +27,14 @@ constexpr Arm64Gen::ARM64Reg DISPATCHER_PC = Arm64Gen::ARM64Reg::W26;
 
 #ifdef __GNUC__
 #define PPCSTATE_OFF(elem)                                                                         \
-  ([]() consteval {                                                                                \
-    _Pragma("GCC diagnostic push")                                                                 \
-        _Pragma("GCC diagnostic ignored \"-Winvalid-offsetof\"") return offsetof(                  \
-            PowerPC::PowerPCState, elem);                                                          \
-    _Pragma("GCC diagnostic pop")                                                                  \
-  }())
+  (                                                                                                \
+      []() consteval                                                                               \
+      {                                                                                            \
+        _Pragma("GCC diagnostic push")                                                             \
+            _Pragma("GCC diagnostic ignored \"-Winvalid-offsetof\"") return offsetof(              \
+                PowerPC::PowerPCState, elem);                                                      \
+        _Pragma("GCC diagnostic pop")                                                              \
+      }())
 
 #define PPCSTATE_OFF_ARRAY(elem, i)                                                                \
   (PPCSTATE_OFF(elem[0]) + sizeof(PowerPC::PowerPCState::elem[0]) * (i))
@@ -176,7 +178,7 @@ public:
   // A temporary register must be supplied when flushing GPRs with FlushMode::MaintainState,
   // but in other cases it can be set to ARM64Reg::INVALID_REG when convenient for the caller.
   virtual void Flush(FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
-                     IgnoreDiscardedRegisters ignore_discarded_registers) = 0;
+      IgnoreDiscardedRegisters ignore_discarded_registers) = 0;
 
   virtual BitSet32 GetCallerSavedUsed() const = 0;
 
@@ -281,7 +283,7 @@ protected:
 
   // Flushes a guest register by host provided
   virtual void FlushByHost(Arm64Gen::ARM64Reg host_reg,
-                           Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG) = 0;
+      Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG) = 0;
 
   void DiscardRegister(size_t preg);
   virtual void FlushRegister(size_t preg, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg) = 0;
@@ -322,8 +324,7 @@ public:
   // Flushes the register cache in different ways depending on the mode.
   // A temporary register must be supplied when flushing GPRs with FlushMode::MaintainState,
   // but in other cases it can be set to ARM64Reg::INVALID_REG when convenient for the caller.
-  void Flush(
-      FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
+  void Flush(FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
       IgnoreDiscardedRegisters ignore_discarded_registers = IgnoreDiscardedRegisters::No) override;
 
   // Returns a guest GPR inside of a host register.
@@ -389,13 +390,13 @@ public:
   BitSet32 GetDirtyGPRs() const;
 
   void StoreRegisters(BitSet32 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG,
-                      FlushMode flush_mode = FlushMode::All)
+      FlushMode flush_mode = FlushMode::All)
   {
     FlushRegisters(regs, flush_mode, tmp_reg, IgnoreDiscardedRegisters::No);
   }
 
   void StoreCRRegisters(BitSet8 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG,
-                        FlushMode flush_mode = FlushMode::All)
+      FlushMode flush_mode = FlushMode::All)
   {
     FlushCRRegisters(regs, flush_mode, tmp_reg, IgnoreDiscardedRegisters::No);
   }
@@ -409,7 +410,7 @@ protected:
 
   // Flushes a guest register by host provided
   void FlushByHost(Arm64Gen::ARM64Reg host_reg,
-                   Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG) override;
+      Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG) override;
 
   void FlushRegister(size_t index, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg) override;
 
@@ -433,9 +434,9 @@ private:
   void BindToRegister(const GuestRegInfo& guest_reg, bool will_read, bool will_write = true);
 
   void FlushRegisters(BitSet32 regs, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
-                      IgnoreDiscardedRegisters ignore_discarded_registers);
+      IgnoreDiscardedRegisters ignore_discarded_registers);
   void FlushCRRegisters(BitSet8 regs, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
-                        IgnoreDiscardedRegisters ignore_discarded_registers);
+      IgnoreDiscardedRegisters ignore_discarded_registers);
 };
 
 class Arm64FPRCache : public Arm64RegCache
@@ -445,8 +446,7 @@ public:
 
   // Flushes the register cache in different ways depending on the mode.
   // The temporary register can be set to ARM64Reg::INVALID_REG when convenient for the caller.
-  void Flush(
-      FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
+  void Flush(FlushMode mode, Arm64Gen::ARM64Reg tmp_reg,
       IgnoreDiscardedRegisters ignore_discarded_registers = IgnoreDiscardedRegisters::No) override;
 
   // Returns a guest register inside of a host register
@@ -462,7 +462,7 @@ public:
   void FixSinglePrecision(size_t preg);
 
   void StoreRegisters(BitSet32 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG,
-                      FlushMode flush_mode = FlushMode::All)
+      FlushMode flush_mode = FlushMode::All)
   {
     FlushRegisters(regs, flush_mode, tmp_reg);
   }
@@ -473,7 +473,7 @@ protected:
 
   // Flushes a guest register by host provided
   void FlushByHost(Arm64Gen::ARM64Reg host_reg,
-                   Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG) override;
+      Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG) override;
 
   void FlushRegister(size_t preg, FlushMode mode, Arm64Gen::ARM64Reg tmp_reg) override;
 

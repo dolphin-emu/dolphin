@@ -143,8 +143,7 @@ constexpr Common::EnumMap<const char*, TevAlphaArg::Zero> tev_a_input_table{
 };
 
 constexpr Common::EnumMap<const char*, RasColorChan::Zero> tev_ras_table{
-    "iround(col0 * 255.0)",
-    "iround(col1 * 255.0)",
+    "iround(col0 * 255.0)", "iround(col1 * 255.0)",
     "ERROR13",                                              // 2
     "ERROR14",                                              // 3
     "ERROR15",                                              // 4
@@ -192,7 +191,7 @@ PixelShaderUid GetPixelShaderUid()
   uid_data->ztest = bpmem.GetEmulatedZ();
   if (uid_data->ztest == EmulatedZ::Early &&
       (g_ActiveConfig.bFastDepthCalc ||
-       bpmem.alpha_test.TestResult() == AlphaTestResult::Undetermined)
+          bpmem.alpha_test.TestResult() == AlphaTestResult::Undetermined)
       // We can't allow early_ztest for zfreeze because depth is overridden per-pixel.
       // This means it's impossible for zcomploc to be emulated on a zfrozen polygon.
       && !bpmem.genMode.zfreeze)
@@ -310,8 +309,8 @@ PixelShaderUid GetPixelShaderUid()
   return out;
 }
 
-void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& host_config,
-                                   PixelShaderUid* uid)
+void ClearUnusedPixelShaderUidBits(
+    APIType api_type, const ShaderHostConfig& host_config, PixelShaderUid* uid)
 {
   pixel_shader_uid_data* const uid_data = uid->GetUidData();
 
@@ -326,8 +325,8 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
   uid_data->bounding_box &= host_config.bounding_box && host_config.backend_bbox;
 }
 
-void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
-                                  const ShaderHostConfig& host_config, bool bounding_box)
+void WritePixelShaderCommonHeader(
+    ShaderCode& out, APIType api_type, const ShaderHostConfig& host_config, bool bounding_box)
 {
   // dot product for integer vectors
   out.Write("int idot(int3 x, int3 y)\n"
@@ -472,7 +471,7 @@ void UpdateBoundingBox(float2 rawpos) {{
 }}
 
 )",
-              fmt::arg("efb_height", EFB_HEIGHT), fmt::arg("efb_scale", I_EFBSCALE));
+        fmt::arg("efb_height", EFB_HEIGHT), fmt::arg("efb_scale", I_EFBSCALE));
   }
 
   if (host_config.manual_texture_sampling)
@@ -527,7 +526,7 @@ uint WrapCoord(int coord, uint wrap, int size) {{
   }}
 }}
 )",
-                WrapMode::Clamp, WrapMode::Repeat, WrapMode::Mirror);
+          WrapMode::Clamp, WrapMode::Repeat, WrapMode::Mirror);
     }
     else
     {
@@ -547,7 +546,7 @@ uint WrapCoord(int coord, uint wrap, int size) {{
   }}
 }}
 )",
-                WrapMode::Clamp, WrapMode::Repeat, WrapMode::Mirror);
+          WrapMode::Clamp, WrapMode::Repeat, WrapMode::Mirror);
     }
   }
 
@@ -563,7 +562,7 @@ uint WrapCoord(int coord, uint wrap, int size) {{
       out.Write("  uint texmode0 = samp_texmode0(texmap);\n"
                 "  float lod_bias = float({}) / 256.0f;\n"
                 "  return iround(255.0 * texture(tex, coords, lod_bias));\n",
-                BitfieldExtract<&SamplerState::TM0::lod_bias>("texmode0"));
+          BitfieldExtract<&SamplerState::TM0::lod_bias>("texmode0"));
     }
     else
     {
@@ -590,17 +589,17 @@ uint WrapCoord(int coord, uint wrap, int size) {{
   int min_lod = int({});
   int max_lod = int({});
 )",
-              BitfieldExtract<&SamplerState::TM0::wrap_u>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::wrap_v>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::mag_filter>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::mipmap_filter>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::min_filter>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::diag_lod>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::lod_bias>("texmode0"),
-              // BitfieldExtract<&SamplerState::TM0::max_aniso>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::lod_clamp>("texmode0"),
-              BitfieldExtract<&SamplerState::TM1::min_lod>("texmode1"),
-              BitfieldExtract<&SamplerState::TM1::max_lod>("texmode1"));
+        BitfieldExtract<&SamplerState::TM0::wrap_u>("texmode0"),
+        BitfieldExtract<&SamplerState::TM0::wrap_v>("texmode0"),
+        BitfieldExtract<&SamplerState::TM0::mag_filter>("texmode0"),
+        BitfieldExtract<&SamplerState::TM0::mipmap_filter>("texmode0"),
+        BitfieldExtract<&SamplerState::TM0::min_filter>("texmode0"),
+        BitfieldExtract<&SamplerState::TM0::diag_lod>("texmode0"),
+        BitfieldExtract<&SamplerState::TM0::lod_bias>("texmode0"),
+        // BitfieldExtract<&SamplerState::TM0::max_aniso>("texmode0"),
+        BitfieldExtract<&SamplerState::TM0::lod_clamp>("texmode0"),
+        BitfieldExtract<&SamplerState::TM1::min_lod>("texmode1"),
+        BitfieldExtract<&SamplerState::TM1::max_lod>("texmode1"));
 
     if (host_config.manual_texture_sampling_custom_texture_sizes)
     {
@@ -734,27 +733,26 @@ uint WrapCoord(int coord, uint wrap, int size) {{
   }
 }
 
-static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
-                       APIType api_type, bool stereo);
+static void WriteStage(
+    ShaderCode& out, const pixel_shader_uid_data* uid_data, int n, APIType api_type, bool stereo);
 static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBias bias, TevOp op,
-                            bool clamp, TevScale scale);
+    bool clamp, TevScale scale);
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType api_type,
-                           bool per_pixel_depth, bool use_dual_source);
+    bool per_pixel_depth, bool use_dual_source);
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 static void WriteLogicOp(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 static void WriteLogicOpBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data);
-static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,
-                       bool use_dual_source);
+static void WriteColor(
+    ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data, bool use_dual_source);
 static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 
 static void WriteEmulatedFragmentBodyHeader(APIType api_type, const ShaderHostConfig& host_config,
-                                            const pixel_shader_uid_data* uid_data, ShaderCode& out);
+    const pixel_shader_uid_data* uid_data, ShaderCode& out);
 static void WriteFragmentDefinitions(APIType api_type, const ShaderHostConfig& host_config,
-                                     const pixel_shader_uid_data* uid_data, ShaderCode& out);
+    const pixel_shader_uid_data* uid_data, ShaderCode& out);
 
 ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& host_config,
-                                   const pixel_shader_uid_data* uid_data,
-                                   CustomPixelContents custom_contents)
+    const pixel_shader_uid_data* uid_data, CustomPixelContents custom_contents)
 {
   ShaderCode out;
 
@@ -766,7 +764,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
   out.Write("// Pixel Shader for TEV stages\n");
   out.Write("// {} TEV stages, {} texgens, {} IND stages\n", numStages,
-            uid_data->genMode_numtexgens, uid_data->genMode_numindstages);
+      uid_data->genMode_numtexgens, uid_data->genMode_numindstages);
 
   // Stuff that is shared between ubershaders and pixelgen.
   WriteBitfieldExtractHeader(out, api_type, host_config);
@@ -827,14 +825,14 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     {
       out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 {};\n"
                 "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n",
-                use_framebuffer_fetch ? "real_ocol0" : "ocol0");
+          use_framebuffer_fetch ? "real_ocol0" : "ocol0");
     }
     else
     {
       // Metal doesn't support a single unified variable for both input and output,
       // so when using framebuffer fetch, we declare the input separately below.
       out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 {};\n",
-                use_framebuffer_fetch ? "real_ocol0" : "ocol0");
+          use_framebuffer_fetch ? "real_ocol0" : "ocol0");
     }
 
     if (use_framebuffer_fetch)
@@ -853,13 +851,13 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     else
     {
       out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out {} ocol0;\n",
-                uid_data->uint_output ? "uvec4" : "vec4");
+          uid_data->uint_output ? "uvec4" : "vec4");
     }
 
     if (!uid_data->no_dual_src)
     {
       out.Write("{} out {} ocol1;\n", "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1)",
-                uid_data->uint_output ? "uvec4" : "vec4");
+          uid_data->uint_output ? "uvec4" : "vec4");
     }
   }
 
@@ -870,7 +868,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   {
     out.Write("VARYING_LOCATION(0) in VertexData {{\n");
     GenerateVSOutputMembers(out, api_type, uid_data->genMode_numtexgens, host_config,
-                            GetInterpolationQualifier(msaa, ssaa, true, true), ShaderStage::Pixel);
+        GetInterpolationQualifier(msaa, ssaa, true, true), ShaderStage::Pixel);
 
     out.Write("}};\n");
     if (stereo && !host_config.backend_gl_layer_in_fs)
@@ -881,25 +879,25 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     // Let's set up attributes
     u32 counter = 0;
     out.Write("VARYING_LOCATION({}) {} in float4 colors_0;\n", counter++,
-              GetInterpolationQualifier(msaa, ssaa));
+        GetInterpolationQualifier(msaa, ssaa));
     out.Write("VARYING_LOCATION({}) {} in float4 colors_1;\n", counter++,
-              GetInterpolationQualifier(msaa, ssaa));
+        GetInterpolationQualifier(msaa, ssaa));
     for (u32 i = 0; i < uid_data->genMode_numtexgens; ++i)
     {
       out.Write("VARYING_LOCATION({}) {} in float3 tex{};\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa), i);
+          GetInterpolationQualifier(msaa, ssaa), i);
     }
     if (!host_config.fast_depth_calc)
     {
       out.Write("VARYING_LOCATION({}) {} in float4 clipPos;\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa));
+          GetInterpolationQualifier(msaa, ssaa));
     }
     if (per_pixel_lighting)
     {
       out.Write("VARYING_LOCATION({}) {} in float3 Normal;\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa));
+          GetInterpolationQualifier(msaa, ssaa));
       out.Write("VARYING_LOCATION({}) {} in float3 WorldPos;\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa));
+          GetInterpolationQualifier(msaa, ssaa));
     }
   }
 
@@ -1009,7 +1007,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       (uid_data->Pretest == AlphaTestResult::Fail && uid_data->ztest == EmulatedZ::Late))
   {
     WriteAlphaTest(out, uid_data, api_type, uid_data->per_pixel_depth,
-                   !uid_data->no_dual_src || uid_data->blend_enable);
+        !uid_data->no_dual_src || uid_data->blend_enable);
   }
 
   // This situation is important for Mario Kart Wii's menus (they will render incorrectly if the
@@ -1085,7 +1083,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     out.SetConstantsUsed(C_ZBIAS, C_ZBIAS + 1);
     out.Write("\tzCoord = idot(" I_ZBIAS "[0].xyzw, frag_output.last_texture.xyzw) + " I_ZBIAS
               "[1].w {};\n",
-              (uid_data->ztex_op == ZTexOp::Add) ? "+ zCoord" : "");
+        (uid_data->ztex_op == ZTexOp::Add) ? "+ zCoord" : "");
     out.Write("\tzCoord = zCoord & 0xFFFFFF;\n");
   }
 
@@ -1131,8 +1129,8 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   return out;
 }
 
-static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
-                       APIType api_type, bool stereo)
+static void WriteStage(
+    ShaderCode& out, const pixel_shader_uid_data* uid_data, int n, APIType api_type, bool stereo)
 {
   using Common::EnumMap;
 
@@ -1183,7 +1181,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
       };
 
       out.Write("\talphabump = (iindtex{}.{} << {}) & 248;\n", tevind.bt,
-                tev_ind_alpha_sel[tevind.bs], tev_ind_alpha_shift[tevind.fmt]);
+          tev_ind_alpha_sel[tevind.bs], tev_ind_alpha_shift[tevind.fmt]);
     }
     else
     {
@@ -1199,13 +1197,20 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
           '4',  // ITF_4: 0bIIIIAAAA -> 0b0000IIII, shift of 4
           '5',  // ITF_3: 0bIIIAAAAA -> 0b00000III, shift of 5
       };
-      out.Write("\tint3 iindtevcrd{} = iindtex{} >> {};\n", n, tevind.bt,
-                tev_ind_fmt_shift[tevind.fmt]);
+      out.Write(
+          "\tint3 iindtevcrd{} = iindtex{} >> {};\n", n, tevind.bt, tev_ind_fmt_shift[tevind.fmt]);
 
       // bias - TODO: Check if this needs to be this complicated...
       // indexed by bias
       static constexpr EnumMap<const char*, IndTexBias::STU> tev_ind_bias_field{
-          "", "x", "y", "xy", "z", "xz", "yz", "xyz",
+          "",
+          "x",
+          "y",
+          "xy",
+          "z",
+          "xz",
+          "yz",
+          "xyz",
       };
 
       // indexed by fmt
@@ -1220,18 +1225,18 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
           tevind.bias == IndTexBias::U)
       {
         out.Write("\tiindtevcrd{}.{} += int({});\n", n, tev_ind_bias_field[tevind.bias],
-                  tev_ind_bias_add[tevind.fmt]);
+            tev_ind_bias_add[tevind.fmt]);
       }
       else if (tevind.bias == IndTexBias::ST || tevind.bias == IndTexBias::SU ||
                tevind.bias == IndTexBias::TU_)
       {
         out.Write("\tiindtevcrd{0}.{1} += int2({2}, {2});\n", n, tev_ind_bias_field[tevind.bias],
-                  tev_ind_bias_add[tevind.fmt]);
+            tev_ind_bias_add[tevind.fmt]);
       }
       else if (tevind.bias == IndTexBias::STU)
       {
         out.Write("\tiindtevcrd{0}.{1} += int3({2}, {2}, {2});\n", n,
-                  tev_ind_bias_field[tevind.bias], tev_ind_bias_add[tevind.fmt]);
+            tev_ind_bias_field[tevind.bias], tev_ind_bias_add[tevind.fmt]);
       }
 
       // Multiplied by 2 because each matrix has two rows.
@@ -1246,20 +1251,20 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
 
         out.Write("\tint2 indtevtrans{} = int2(idot(" I_INDTEXMTX
                   "[{}].xyz, iindtevcrd{}), idot(" I_INDTEXMTX "[{}].xyz, iindtevcrd{})) >> 3;\n",
-                  n, mtxidx, n, mtxidx + 1, n);
+            n, mtxidx, n, mtxidx + 1, n);
 
         // TODO: should use a shader uid branch for this for better performance
         if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BITWISE_OP_NEGATION))
         {
           out.Write("\tint indtexmtx_w_inverse_{} = -" I_INDTEXMTX "[{}].w;\n", n, mtxidx);
           out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
-                    mtxidx, n, mtxidx);
+              mtxidx, n, mtxidx);
           out.Write("\telse indtevtrans{} <<= indtexmtx_w_inverse_{};\n", n, n);
         }
         else
         {
           out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
-                    mtxidx, n, mtxidx);
+              mtxidx, n, mtxidx);
           out.Write("\telse indtevtrans{} <<= (-" I_INDTEXMTX "[{}].w);\n", n, mtxidx);
         }
       }
@@ -1268,19 +1273,19 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
         ASSERT(has_tex_coord);
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 
-        out.Write("\tint2 indtevtrans{} = int2(fixpoint_uv{} * iindtevcrd{}.xx) >> 8;\n", n,
-                  texcoord, n);
+        out.Write(
+            "\tint2 indtevtrans{} = int2(fixpoint_uv{} * iindtevcrd{}.xx) >> 8;\n", n, texcoord, n);
         if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BITWISE_OP_NEGATION))
         {
           out.Write("\tint  indtexmtx_w_inverse_{} = -" I_INDTEXMTX "[{}].w;\n", n, mtxidx);
           out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
-                    mtxidx, n, mtxidx);
+              mtxidx, n, mtxidx);
           out.Write("\telse indtevtrans{} <<= (indtexmtx_w_inverse_{});\n", n, n);
         }
         else
         {
           out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
-                    mtxidx, n, mtxidx);
+              mtxidx, n, mtxidx);
           out.Write("\telse indtevtrans{} <<= (-" I_INDTEXMTX "[{}].w);\n", n, mtxidx);
         }
       }
@@ -1289,20 +1294,20 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
         ASSERT(has_tex_coord);
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 
-        out.Write("\tint2 indtevtrans{} = int2(fixpoint_uv{} * iindtevcrd{}.yy) >> 8;\n", n,
-                  texcoord, n);
+        out.Write(
+            "\tint2 indtevtrans{} = int2(fixpoint_uv{} * iindtevcrd{}.yy) >> 8;\n", n, texcoord, n);
 
         if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BITWISE_OP_NEGATION))
         {
           out.Write("\tint  indtexmtx_w_inverse_{} = -" I_INDTEXMTX "[{}].w;\n", n, mtxidx);
           out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
-                    mtxidx, n, mtxidx);
+              mtxidx, n, mtxidx);
           out.Write("\telse indtevtrans{} <<= (indtexmtx_w_inverse_{});\n", n, n);
         }
         else
         {
           out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
-                    mtxidx, n, mtxidx);
+              mtxidx, n, mtxidx);
           out.Write("\telse indtevtrans{} <<= (-" I_INDTEXMTX "[{}].w);\n", n, mtxidx);
         }
       }
@@ -1327,7 +1332,11 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     // ---------
 
     static constexpr std::array<const char*, 5> tev_ind_wrap_start{
-        "(256<<7)", "(128<<7)", "(64<<7)", "(32<<7)", "(16<<7)",
+        "(256<<7)",
+        "(128<<7)",
+        "(64<<7)",
+        "(32<<7)",
+        "(16<<7)",
     };
 
     // wrap S
@@ -1342,7 +1351,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     else
     {
       out.Write("\twrappedcoord.x = fixpoint_uv{}.x & ({} - 1);\n", texcoord,
-                tev_ind_wrap_start[u32(tevind.sw.Value()) - u32(IndTexWrap::ITW_256)]);
+          tev_ind_wrap_start[u32(tevind.sw.Value()) - u32(IndTexWrap::ITW_256)]);
     }
 
     // wrap T
@@ -1357,7 +1366,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     else
     {
       out.Write("\twrappedcoord.y = fixpoint_uv{}.y & ({} - 1);\n", texcoord,
-                tev_ind_wrap_start[u32(tevind.tw.Value()) - u32(IndTexWrap::ITW_256)]);
+          tev_ind_wrap_start[u32(tevind.tw.Value()) - u32(IndTexWrap::ITW_256)]);
     }
 
     if (tevind.fb_addprev)  // add previous tevcoord
@@ -1383,18 +1392,18 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   {
     // Generate swizzle string to represent the Ras color channel swapping
     out.Write("\trastemp = {}.{}{}{}{};\n", tev_ras_table[stage.tevorders_colorchan],
-              rgba_swizzle[stage.ras_swap_r], rgba_swizzle[stage.ras_swap_g],
-              rgba_swizzle[stage.ras_swap_b], rgba_swizzle[stage.ras_swap_a]);
+        rgba_swizzle[stage.ras_swap_r], rgba_swizzle[stage.ras_swap_g],
+        rgba_swizzle[stage.ras_swap_b], rgba_swizzle[stage.ras_swap_a]);
   }
 
   if (stage.tevorders_enable && uid_data->genMode_numtexgens > 0)
   {
     // Generate swizzle string to represent the texture color channel swapping
-    out.Write("\trawtextemp = sampleTextureWrapper({}u, tevcoord.xy, layer);\n",
-              stage.tevorders_texmap);
+    out.Write(
+        "\trawtextemp = sampleTextureWrapper({}u, tevcoord.xy, layer);\n", stage.tevorders_texmap);
     out.Write("\ttextemp = rawtextemp.{}{}{}{};\n", rgba_swizzle[stage.tex_swap_r],
-              rgba_swizzle[stage.tex_swap_g], rgba_swizzle[stage.tex_swap_b],
-              rgba_swizzle[stage.tex_swap_a]);
+        rgba_swizzle[stage.tex_swap_g], rgba_swizzle[stage.tex_swap_b],
+        rgba_swizzle[stage.tex_swap_a]);
   }
   else if (uid_data->genMode_numtexgens == 0)
   {
@@ -1412,17 +1421,17 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
       ac.c == TevAlphaArg::Konst || ac.d == TevAlphaArg::Konst)
   {
     out.Write("\tkonsttemp = int4({}, {});\n", tev_ksel_table_c[stage.tevksel_kc],
-              tev_ksel_table_a[stage.tevksel_ka]);
+        tev_ksel_table_a[stage.tevksel_ka]);
 
     if (u32(stage.tevksel_kc) > 7)
     {
       out.SetConstantsUsed(C_KCOLORS + ((u32(stage.tevksel_kc) - 0xc) % 4),
-                           C_KCOLORS + ((u32(stage.tevksel_kc) - 0xc) % 4));
+          C_KCOLORS + ((u32(stage.tevksel_kc) - 0xc) % 4));
     }
     if (u32(stage.tevksel_ka) > 7)
     {
       out.SetConstantsUsed(C_KCOLORS + ((u32(stage.tevksel_ka) - 0xc) % 4),
-                           C_KCOLORS + ((u32(stage.tevksel_ka) - 0xc) % 4));
+          C_KCOLORS + ((u32(stage.tevksel_ka) - 0xc) % 4));
     }
   }
 
@@ -1444,20 +1453,20 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VECTOR_BITWISE_AND))
   {
     out.Write("\ttevin_a = int4({} & 255, {} & 255);\n", tev_c_input_table[cc.a],
-              tev_a_input_table[ac.a]);
+        tev_a_input_table[ac.a]);
     out.Write("\ttevin_b = int4({} & 255, {} & 255);\n", tev_c_input_table[cc.b],
-              tev_a_input_table[ac.b]);
+        tev_a_input_table[ac.b]);
     out.Write("\ttevin_c = int4({} & 255, {} & 255);\n", tev_c_input_table[cc.c],
-              tev_a_input_table[ac.c]);
+        tev_a_input_table[ac.c]);
   }
   else
   {
     out.Write("\ttevin_a = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.a],
-              tev_a_input_table[ac.a]);
+        tev_a_input_table[ac.a]);
     out.Write("\ttevin_b = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.b],
-              tev_a_input_table[ac.b]);
+        tev_a_input_table[ac.b]);
     out.Write("\ttevin_c = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.c],
-              tev_a_input_table[ac.c]);
+        tev_a_input_table[ac.c]);
   }
   out.Write("\ttevin_d = int4({}, {});\n", tev_c_input_table[cc.d], tev_a_input_table[ac.d]);
 
@@ -1530,7 +1539,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
 }
 
 static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBias bias, TevOp op,
-                            bool clamp, TevScale scale)
+    bool clamp, TevScale scale)
 {
   static constexpr Common::EnumMap<const char*, TevScale::Divide2> tev_scale_table_left{
       "",       // Scale1
@@ -1574,8 +1583,8 @@ static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBia
   out.Write(" {} ", tev_op_table[op]);
   out.Write("(((((tevin_a.{0}<<8) + "
             "(tevin_b.{0}-tevin_a.{0})*(tevin_c.{0}+(tevin_c.{0}>>7))){1}){2})>>8)",
-            components, tev_scale_table_left[scale],
-            (scale != TevScale::Divide2) ? tev_lerp_bias[op] : "");
+      components, tev_scale_table_left[scale],
+      (scale != TevScale::Divide2) ? tev_lerp_bias[op] : "");
   out.Write("){}", tev_scale_table_right[scale]);
 }
 
@@ -1598,14 +1607,15 @@ constexpr Common::EnumMap<const char*, AlphaTestOp::Xnor> tev_alpha_funclogic_ta
 };
 
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType api_type,
-                           bool per_pixel_depth, bool use_dual_source)
+    bool per_pixel_depth, bool use_dual_source)
 {
   static constexpr std::array<std::string_view, 2> alpha_ref{
       I_ALPHA ".r",
       I_ALPHA ".g",
   };
 
-  const auto write_alpha_func = [&out](CompareMode mode, std::string_view ref) {
+  const auto write_alpha_func = [&out](CompareMode mode, std::string_view ref)
+  {
     const bool has_no_arguments = mode == CompareMode::Never || mode == CompareMode::Always;
     if (has_no_arguments)
       out.Write("{}", tev_alpha_funcs_table[mode]);
@@ -1658,8 +1668,8 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
     {
       // Instead of using discard, fetch the framebuffer's color value and use it as the output
       // for this fragment.
-      out.Write("\t\t{} = float4(initial_ocol0.xyz, 1.0);\n",
-                use_dual_source ? "real_ocol0" : "ocol0");
+      out.Write(
+          "\t\t{} = float4(initial_ocol0.xyz, 1.0);\n", use_dual_source ? "real_ocol0" : "ocol0");
       out.Write("\t\treturn;\n");
     }
     else
@@ -1791,8 +1801,8 @@ static void WriteLogicOpBlend(ShaderCode& out, const pixel_shader_uid_data* uid_
   }
 }
 
-static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,
-                       bool use_dual_source)
+static void WriteColor(
+    ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data, bool use_dual_source)
 {
   // Some backends require the shader outputs be uint when writing to a uint render target for logic
   // op.
@@ -1876,7 +1886,7 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
     };
     out.Write("\tfloat4 src_color = {};\n"
               "\tfloat4 blend_src;",
-              uid_data->useDstAlpha ? "ocol1" : "ocol0");
+        uid_data->useDstAlpha ? "ocol1" : "ocol0");
     out.Write("\tblend_src.rgb = {}\n", blend_src_factor[uid_data->blend_src_factor]);
     out.Write("\tblend_src.a = {}\n", blend_src_factor_alpha[uid_data->blend_src_factor_alpha]);
     out.Write("\tfloat4 blend_dst;\n");
@@ -1909,7 +1919,7 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 }
 
 void WriteFragmentBody(APIType api_type, const ShaderHostConfig& host_config,
-                       const pixel_shader_uid_data* uid_data, ShaderCode& out)
+    const pixel_shader_uid_data* uid_data, ShaderCode& out)
 {
   const bool per_pixel_lighting = host_config.per_pixel_lighting;
   const bool stereo = host_config.stereo;
@@ -1973,7 +1983,7 @@ void WriteFragmentBody(APIType api_type, const ShaderHostConfig& host_config,
       out.Write("\tint2 fixpoint_uv{} = int2(", i);
       out.Write("(frag_input.tex{}.z == 0.0 ? frag_input.tex{}.xy : frag_input.tex{}.xy / "
                 "frag_input.tex{}.z)",
-                i, i, i, i);
+          i, i, i, i);
       out.Write(" * float2(" I_TEXDIMS "[{}].zw * 128));\n", i);
       // TODO: S24 overflows here?
     }
@@ -1995,10 +2005,10 @@ void WriteFragmentBody(APIType api_type, const ShaderHostConfig& host_config,
 
       out.SetConstantsUsed(C_INDTEXSCALE + i / 2, C_INDTEXSCALE + i / 2);
       out.Write("\ttempcoord = fixpoint_uv{} >> " I_INDTEXSCALE "[{}].{};\n", texcoord, i / 2,
-                (i & 1) ? "zw" : "xy");
+          (i & 1) ? "zw" : "xy");
 
-      out.Write("\tint3 iindtex{0} = sampleTextureWrapper({1}u, tempcoord, layer).abg;\n", i,
-                texmap);
+      out.Write(
+          "\tint3 iindtex{0} = sampleTextureWrapper({1}u, tempcoord, layer).abg;\n", i, texmap);
     }
   }
 
@@ -2030,7 +2040,7 @@ void WriteFragmentBody(APIType api_type, const ShaderHostConfig& host_config,
 }
 
 static void WriteFragmentDefinitions(APIType api_type, const ShaderHostConfig& host_config,
-                                     const pixel_shader_uid_data* uid_data, ShaderCode& out)
+    const pixel_shader_uid_data* uid_data, ShaderCode& out)
 {
   out.Write("struct DolphinLightData\n");
   out.Write("{{\n");
@@ -2076,17 +2086,17 @@ static void WriteFragmentDefinitions(APIType api_type, const ShaderHostConfig& h
 
   // CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE "enum" values
   out.Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_NONE = {}u;\n",
-            static_cast<u32>(AttenuationFunc::None));
+      static_cast<u32>(AttenuationFunc::None));
   out.Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_POINT = {}u;\n",
-            static_cast<u32>(AttenuationFunc::Spec));
+      static_cast<u32>(AttenuationFunc::Spec));
   out.Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_DIR = {}u;\n",
-            static_cast<u32>(AttenuationFunc::Dir));
+      static_cast<u32>(AttenuationFunc::Dir));
   out.Write("const uint CUSTOM_SHADER_LIGHTING_ATTENUATION_TYPE_SPOT = {}u;\n",
-            static_cast<u32>(AttenuationFunc::Spot));
+      static_cast<u32>(AttenuationFunc::Spot));
 }
 
 static void WriteEmulatedFragmentBodyHeader(APIType api_type, const ShaderHostConfig& host_config,
-                                            const pixel_shader_uid_data* uid_data, ShaderCode& out)
+    const pixel_shader_uid_data* uid_data, ShaderCode& out)
 {
   constexpr std::string_view emulated_fragment_definition =
       "void dolphin_process_emulated_fragment(in DolphinFragmentInput frag_input, out "

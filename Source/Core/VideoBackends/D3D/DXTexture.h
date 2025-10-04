@@ -28,13 +28,12 @@ public:
   static std::unique_ptr<DXTexture> CreateAdopted(ComPtr<ID3D11Texture2D> texture);
 
   void CopyRectangleFromTexture(const AbstractTexture* src,
-                                const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
-                                u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
-                                u32 dst_layer, u32 dst_level) override;
+      const MathUtil::Rectangle<int>& src_rect, u32 src_layer, u32 src_level,
+      const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer, u32 dst_level) override;
   void ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
-                          u32 layer, u32 level) override;
+      u32 layer, u32 level) override;
   void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer, size_t buffer_size,
-            u32 layer) override;
+      u32 layer) override;
 
   ID3D11Texture2D* GetD3DTexture() const { return m_texture.Get(); }
   ID3D11ShaderResourceView* GetD3DSRV() const { return m_srv.Get(); }
@@ -59,22 +58,20 @@ public:
   ~DXStagingTexture() override;
 
   void CopyFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& src_rect,
-                       u32 src_layer, u32 src_level,
-                       const MathUtil::Rectangle<int>& dst_rect) override;
+      u32 src_layer, u32 src_level, const MathUtil::Rectangle<int>& dst_rect) override;
   void CopyToTexture(const MathUtil::Rectangle<int>& src_rect, AbstractTexture* dst,
-                     const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
-                     u32 dst_level) override;
+      const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer, u32 dst_level) override;
 
   bool Map() override;
   void Unmap() override;
   void Flush() override;
 
-  static std::unique_ptr<DXStagingTexture> Create(StagingTextureType type,
-                                                  const TextureConfig& config);
+  static std::unique_ptr<DXStagingTexture> Create(
+      StagingTextureType type, const TextureConfig& config);
 
 private:
-  DXStagingTexture(StagingTextureType type, const TextureConfig& config,
-                   ComPtr<ID3D11Texture2D> tex);
+  DXStagingTexture(
+      StagingTextureType type, const TextureConfig& config, ComPtr<ID3D11Texture2D> tex);
 
   ComPtr<ID3D11Texture2D> m_tex = nullptr;
 };
@@ -83,11 +80,11 @@ class DXFramebuffer final : public AbstractFramebuffer
 {
 public:
   DXFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
-                std::vector<AbstractTexture*> additional_color_attachments,
-                AbstractTextureFormat color_format, AbstractTextureFormat depth_format, u32 width,
-                u32 height, u32 layers, u32 samples, ComPtr<ID3D11RenderTargetView> rtv,
-                ComPtr<ID3D11RenderTargetView> integer_rtv, ComPtr<ID3D11DepthStencilView> dsv,
-                std::vector<ComPtr<ID3D11RenderTargetView>> additional_rtvs);
+      std::vector<AbstractTexture*> additional_color_attachments,
+      AbstractTextureFormat color_format, AbstractTextureFormat depth_format, u32 width, u32 height,
+      u32 layers, u32 samples, ComPtr<ID3D11RenderTargetView> rtv,
+      ComPtr<ID3D11RenderTargetView> integer_rtv, ComPtr<ID3D11DepthStencilView> dsv,
+      std::vector<ComPtr<ID3D11RenderTargetView>> additional_rtvs);
   ~DXFramebuffer() override;
 
   ID3D11RenderTargetView* const* GetRTVArray() const { return m_render_targets_raw.data(); }
@@ -98,9 +95,8 @@ public:
   void Unbind();
   void Clear(const ClearColor& color_value, float depth_value);
 
-  static std::unique_ptr<DXFramebuffer>
-  Create(DXTexture* color_attachment, DXTexture* depth_attachment,
-         std::vector<AbstractTexture*> additional_color_attachments);
+  static std::unique_ptr<DXFramebuffer> Create(DXTexture* color_attachment,
+      DXTexture* depth_attachment, std::vector<AbstractTexture*> additional_color_attachments);
 
 protected:
   std::vector<ComPtr<ID3D11RenderTargetView>> m_render_targets;

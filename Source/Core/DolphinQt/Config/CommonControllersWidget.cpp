@@ -23,7 +23,7 @@ CommonControllersWidget::CommonControllersWidget(QWidget* parent) : QWidget(pare
   ConnectWidgets();
 
   connect(&Settings::Instance(), &Settings::ConfigChanged, this,
-          &CommonControllersWidget::LoadSettings);
+      &CommonControllersWidget::LoadSettings);
 }
 
 void CommonControllersWidget::CreateLayout()
@@ -51,7 +51,7 @@ void CommonControllersWidget::ConnectWidgets()
 {
   connect(m_common_bg_input, &QCheckBox::toggled, this, &CommonControllersWidget::SaveSettings);
   connect(m_common_configure_controller_interface, &QPushButton::clicked, this,
-          &CommonControllersWidget::OnControllerInterfaceConfigure);
+      &CommonControllersWidget::OnControllerInterfaceConfigure);
 }
 
 void CommonControllersWidget::OnControllerInterfaceConfigure()

@@ -6,13 +6,10 @@
 #include "Common/GL/GLExtensions/gl_common.h"
 
 typedef void(APIENTRYP PFNDOLTEXIMAGE2DMULTISAMPLEPROC)(GLenum target, GLsizei samples,
-                                                        GLenum internalformat, GLsizei width,
-                                                        GLsizei height,
-                                                        GLboolean fixedsamplelocations);
+    GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
 typedef void(APIENTRYP PFNDOLTEXIMAGE3DMULTISAMPLEPROC)(GLenum target, GLsizei samples,
-                                                        GLenum internalformat, GLsizei width,
-                                                        GLsizei height, GLsizei depth,
-                                                        GLboolean fixedsamplelocations);
+    GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth,
+    GLboolean fixedsamplelocations);
 typedef void(APIENTRYP PFNDOLGETMULTISAMPLEFVPROC)(GLenum pname, GLuint index, GLfloat* val);
 typedef void(APIENTRYP PFNDOLSAMPLEMASKIPROC)(GLuint maskNumber, GLbitfield mask);
 

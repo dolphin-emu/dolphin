@@ -55,8 +55,8 @@ RCOpArg::~RCOpArg()
 }
 
 RCOpArg::RCOpArg(RCOpArg&& other) noexcept
-    : rc(std::exchange(other.rc, nullptr)),
-      contents(std::exchange(other.contents, std::monostate{}))
+    : rc(std::exchange(other.rc, nullptr))
+    , contents(std::exchange(other.contents, std::monostate{}))
 {
 }
 
@@ -69,8 +69,8 @@ RCOpArg& RCOpArg::operator=(RCOpArg&& other) noexcept
 }
 
 RCOpArg::RCOpArg(RCX64Reg&& other) noexcept
-    : rc(std::exchange(other.rc, nullptr)),
-      contents(VariantCast(std::exchange(other.contents, std::monostate{})))
+    : rc(std::exchange(other.rc, nullptr))
+    , contents(VariantCast(std::exchange(other.contents, std::monostate{})))
 {
 }
 
@@ -191,8 +191,8 @@ RCX64Reg::~RCX64Reg()
 }
 
 RCX64Reg::RCX64Reg(RCX64Reg&& other) noexcept
-    : rc(std::exchange(other.rc, nullptr)),
-      contents(std::exchange(other.contents, std::monostate{}))
+    : rc(std::exchange(other.rc, nullptr))
+    , contents(std::exchange(other.contents, std::monostate{}))
 {
 }
 
@@ -259,7 +259,9 @@ RCForkGuard::RCForkGuard(RegCache& rc_) : rc(&rc_), m_regs(rc_.m_regs), m_xregs(
 }
 
 RCForkGuard::RCForkGuard(RCForkGuard&& other) noexcept
-    : rc(other.rc), m_regs(std::move(other.m_regs)), m_xregs(std::move(other.m_xregs))
+    : rc(other.rc)
+    , m_regs(std::move(other.m_regs))
+    , m_xregs(std::move(other.m_xregs))
 {
   other.rc = nullptr;
 }
@@ -370,14 +372,14 @@ RCForkGuard RegCache::Fork()
 void RegCache::Discard(BitSet32 pregs)
 {
   ASSERT_MSG(DYNA_REC, std::ranges::none_of(m_xregs, &X64CachedReg::IsLocked),
-             "Someone forgot to unlock a X64 reg");
+      "Someone forgot to unlock a X64 reg");
 
   for (preg_t i : pregs)
   {
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsLocked(), "Someone forgot to unlock PPC reg {} (X64 reg {}).",
-               i, Common::ToUnderlying(RX(i)));
-    ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction is in progress for {}!",
-               i);
+        i, Common::ToUnderlying(RX(i)));
+    ASSERT_MSG(
+        DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction is in progress for {}!", i);
 
     if (m_regs[i].IsBound())
     {
@@ -392,14 +394,14 @@ void RegCache::Discard(BitSet32 pregs)
 void RegCache::Flush(BitSet32 pregs, IgnoreDiscardedRegisters ignore_discarded_registers)
 {
   ASSERT_MSG(DYNA_REC, std::ranges::none_of(m_xregs, &X64CachedReg::IsLocked),
-             "Someone forgot to unlock a X64 reg");
+      "Someone forgot to unlock a X64 reg");
 
   for (preg_t i : pregs)
   {
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsLocked(), "Someone forgot to unlock PPC reg {} (X64 reg {}).",
-               i, Common::ToUnderlying(RX(i)));
-    ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction is in progress for {}!",
-               i);
+        i, Common::ToUnderlying(RX(i)));
+    ASSERT_MSG(
+        DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction is in progress for {}!", i);
 
     switch (m_regs[i].GetLocationType())
     {
@@ -407,7 +409,7 @@ void RegCache::Flush(BitSet32 pregs, IgnoreDiscardedRegisters ignore_discarded_r
       break;
     case PPCCachedReg::LocationType::Discarded:
       ASSERT_MSG(DYNA_REC, ignore_discarded_registers != IgnoreDiscardedRegisters::No,
-                 "Attempted to flush discarded PPC reg {}", i);
+          "Attempted to flush discarded PPC reg {}", i);
       break;
     case PPCCachedReg::LocationType::SpeculativeImmediate:
       // We can have a cached value without a host register through speculative constants.
@@ -428,7 +430,7 @@ void RegCache::Reset(BitSet32 pregs)
   for (preg_t i : pregs)
   {
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsAway(),
-               "Attempted to reset a loaded register (did you mean to flush it?)");
+        "Attempted to reset a loaded register (did you mean to flush it?)");
     m_regs[i].SetFlushed();
   }
 }
@@ -483,8 +485,8 @@ BitSet32 RegCache::RegistersInUse() const
 
 void RegCache::FlushX(X64Reg reg)
 {
-  ASSERT_MSG(DYNA_REC, reg < m_xregs.size(), "Flushing non-existent reg {}",
-             Common::ToUnderlying(reg));
+  ASSERT_MSG(
+      DYNA_REC, reg < m_xregs.size(), "Flushing non-existent reg {}", Common::ToUnderlying(reg));
   ASSERT(!m_xregs[reg].IsLocked());
   if (!m_xregs[reg].IsFree())
   {
@@ -521,10 +523,10 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
     }
 
     ASSERT_MSG(DYNA_REC,
-               std::ranges::none_of(
-                   m_regs, [xr](const auto& l) { return l.has_value() && l->IsSimpleReg(xr); },
-                   &PPCCachedReg::Location),
-               "Xreg {} already bound", Common::ToUnderlying(xr));
+        std::ranges::none_of(
+            m_regs, [xr](const auto& l) { return l.has_value() && l->IsSimpleReg(xr); },
+            &PPCCachedReg::Location),
+        "Xreg {} already bound", Common::ToUnderlying(xr));
 
     m_regs[i].SetBoundTo(xr);
   }
@@ -537,7 +539,7 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
   }
 
   ASSERT_MSG(DYNA_REC, !m_xregs[RX(i)].IsLocked(),
-             "WTF, this reg ({} -> {}) should have been flushed", i, Common::ToUnderlying(RX(i)));
+      "WTF, this reg ({} -> {}) should have been flushed", i, Common::ToUnderlying(RX(i)));
 }
 
 void RegCache::StoreFromRegister(preg_t i, FlushMode mode)
@@ -707,7 +709,8 @@ void RegCache::Realize(preg_t preg)
   const bool kill_imm = m_constraints[preg].ShouldKillImmediate();
   const bool kill_mem = m_constraints[preg].ShouldKillMemory();
 
-  const auto do_bind = [&] {
+  const auto do_bind = [&]
+  {
     BindToRegister(preg, load, dirty);
     m_constraints[preg].Realized(RCConstraint::RealizedLoc::Bound);
   };

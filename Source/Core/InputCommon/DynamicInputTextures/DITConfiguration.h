@@ -26,13 +26,12 @@ public:
   explicit Configuration(const std::string& json_path);
   ~Configuration();
   void GenerateTextures(const Common::IniFile& file,
-                        const std::vector<std::string>& controller_names,
-                        OutputDetails* output) const;
+      const std::vector<std::string>& controller_names, OutputDetails* output) const;
 
 private:
   void GenerateTexture(const Common::IniFile& file,
-                       const std::vector<std::string>& controller_names, const Data& texture_data,
-                       OutputDetails* output) const;
+      const std::vector<std::string>& controller_names, const Data& texture_data,
+      OutputDetails* output) const;
 
   std::vector<Data> m_dynamic_input_textures;
   std::string m_base_path;

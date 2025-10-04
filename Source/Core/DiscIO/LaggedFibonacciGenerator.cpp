@@ -28,8 +28,8 @@ void LaggedFibonacciGenerator::SetSeed(const u8 seed[SEED_SIZE * sizeof(u32)])
   Initialize(false);
 }
 
-size_t LaggedFibonacciGenerator::GetSeed(const u8* data, size_t size, size_t data_offset,
-                                         u32 seed_out[SEED_SIZE])
+size_t LaggedFibonacciGenerator::GetSeed(
+    const u8* data, size_t size, size_t data_offset, u32 seed_out[SEED_SIZE])
 {
   if ((reinterpret_cast<uintptr_t>(data) - data_offset) % alignof(u32) != 0)
   {
@@ -62,15 +62,14 @@ size_t LaggedFibonacciGenerator::GetSeed(const u8* data, size_t size, size_t dat
 }
 
 bool LaggedFibonacciGenerator::GetSeed(const u32* data, size_t size, size_t data_offset,
-                                       LaggedFibonacciGenerator* lfg, u32 seed_out[SEED_SIZE])
+    LaggedFibonacciGenerator* lfg, u32 seed_out[SEED_SIZE])
 {
   if (size < LFG_K)
     return false;
 
   // If the data doesn't look like something we can regenerate, return early to save time
-  if (!std::all_of(data, data + LFG_K, [](u32 x) {
-        return (Common::swap32(x) & 0x00C00000) == (Common::swap32(x) >> 2 & 0x00C00000);
-      }))
+  if (!std::all_of(data, data + LFG_K, [](u32 x)
+          { return (Common::swap32(x) & 0x00C00000) == (Common::swap32(x) >> 2 & 0x00C00000); }))
   {
     return false;
   }

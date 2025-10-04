@@ -600,8 +600,8 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_native_library_class = reinterpret_cast<jclass>(env->NewGlobalRef(native_library_class));
   s_display_toast_msg =
       env->GetStaticMethodID(s_native_library_class, "displayToastMsg", "(Ljava/lang/String;Z)V");
-  s_display_alert_msg = env->GetStaticMethodID(s_native_library_class, "displayAlertMsg",
-                                               "(Ljava/lang/String;Ljava/lang/String;ZZZ)Z");
+  s_display_alert_msg = env->GetStaticMethodID(
+      s_native_library_class, "displayAlertMsg", "(Ljava/lang/String;Ljava/lang/String;ZZZ)Z");
   s_update_touch_pointer =
       env->GetStaticMethodID(s_native_library_class, "updateTouchPointer", "()V");
   s_on_title_changed = env->GetStaticMethodID(s_native_library_class, "onTitleChanged", "()V");
@@ -625,8 +625,8 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_analytics_class = reinterpret_cast<jclass>(env->NewGlobalRef(analytics_class));
   s_send_analytics_report =
       env->GetStaticMethodID(s_analytics_class, "sendReport", "(Ljava/lang/String;[B)V");
-  s_get_analytics_value = env->GetStaticMethodID(s_analytics_class, "getValue",
-                                                 "(Ljava/lang/String;)Ljava/lang/String;");
+  s_get_analytics_value = env->GetStaticMethodID(
+      s_analytics_class, "getValue", "(Ljava/lang/String;)Ljava/lang/String;");
   env->DeleteLocalRef(analytics_class);
 
   const jclass pair_class = env->FindClass("androidx/core/util/Pair");
@@ -638,8 +638,8 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   const jclass hash_map_class = env->FindClass("java/util/HashMap");
   s_hash_map_class = reinterpret_cast<jclass>(env->NewGlobalRef(hash_map_class));
   s_hash_map_init = env->GetMethodID(s_hash_map_class, "<init>", "(I)V");
-  s_hash_map_put = env->GetMethodID(s_hash_map_class, "put",
-                                    "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+  s_hash_map_put = env->GetMethodID(
+      s_hash_map_class, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
   env->DeleteLocalRef(hash_map_class);
 
   const jclass compress_cb_class =
@@ -651,8 +651,8 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   const jclass content_handler_class =
       env->FindClass("org/dolphinemu/dolphinemu/utils/ContentHandler");
   s_content_handler_class = reinterpret_cast<jclass>(env->NewGlobalRef(content_handler_class));
-  s_content_handler_open_fd = env->GetStaticMethodID(s_content_handler_class, "openFd",
-                                                     "(Ljava/lang/String;Ljava/lang/String;)I");
+  s_content_handler_open_fd = env->GetStaticMethodID(
+      s_content_handler_class, "openFd", "(Ljava/lang/String;Ljava/lang/String;)I");
   s_content_handler_delete =
       env->GetStaticMethodID(s_content_handler_class, "delete", "(Ljava/lang/String;)Z");
   s_content_handler_get_size_and_is_directory = env->GetStaticMethodID(
@@ -661,9 +661,8 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
       s_content_handler_class, "getDisplayName", "(Ljava/lang/String;)Ljava/lang/String;");
   s_content_handler_get_child_names = env->GetStaticMethodID(
       s_content_handler_class, "getChildNames", "(Ljava/lang/String;Z)[Ljava/lang/String;");
-  s_content_handler_do_file_search =
-      env->GetStaticMethodID(s_content_handler_class, "doFileSearch",
-                             "(Ljava/lang/String;[Ljava/lang/String;Z)[Ljava/lang/String;");
+  s_content_handler_do_file_search = env->GetStaticMethodID(s_content_handler_class, "doFileSearch",
+      "(Ljava/lang/String;[Ljava/lang/String;Z)[Ljava/lang/String;");
   env->DeleteLocalRef(content_handler_class);
 
   const jclass network_helper_class =
@@ -716,9 +715,8 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
       env->FindClass("org/dolphinemu/dolphinemu/features/cheats/model/GraphicsMod");
   s_graphics_mod_class = reinterpret_cast<jclass>(env->NewGlobalRef(graphics_mod_class));
   s_graphics_mod_pointer = env->GetFieldID(graphics_mod_class, "pointer", "J");
-  s_graphics_mod_constructor =
-      env->GetMethodID(graphics_mod_class, "<init>",
-                       "(JLorg/dolphinemu/dolphinemu/features/cheats/model/GraphicsModGroup;)V");
+  s_graphics_mod_constructor = env->GetMethodID(graphics_mod_class, "<init>",
+      "(JLorg/dolphinemu/dolphinemu/features/cheats/model/GraphicsModGroup;)V");
   env->DeleteLocalRef(graphics_mod_class);
 
   const jclass riivolution_patches_class =
@@ -792,9 +790,8 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_core_device_control_class =
       reinterpret_cast<jclass>(env->NewGlobalRef(core_device_control_class));
   s_core_device_control_pointer = env->GetFieldID(core_device_control_class, "pointer", "J");
-  s_core_device_control_constructor =
-      env->GetMethodID(core_device_control_class, "<init>",
-                       "(Lorg/dolphinemu/dolphinemu/features/input/model/CoreDevice;J)V");
+  s_core_device_control_constructor = env->GetMethodID(core_device_control_class, "<init>",
+      "(Lorg/dolphinemu/dolphinemu/features/input/model/CoreDevice;J)V");
   env->DeleteLocalRef(core_device_control_class);
 
   const jclass input_detector_class =

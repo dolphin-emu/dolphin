@@ -20,7 +20,8 @@
 #include "UICommon/GameFile.h"
 
 PatchesWidget::PatchesWidget(const UICommon::GameFile& game)
-    : m_game_id(game.GetGameID()), m_game_revision(game.GetRevision())
+    : m_game_id(game.GetGameID())
+    , m_game_revision(game.GetRevision())
 {
   Common::IniFile game_ini_local;
   game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
@@ -69,7 +70,7 @@ void PatchesWidget::ConnectWidgets()
 {
 #ifdef USE_RETRO_ACHIEVEMENTS
   connect(m_hc_warning, &HardcoreWarningWidget::OpenAchievementSettings, this,
-          &PatchesWidget::OpenAchievementSettings);
+      &PatchesWidget::OpenAchievementSettings);
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   connect(m_list, &QListWidget::itemSelectionChanged, this, &PatchesWidget::UpdateActions);

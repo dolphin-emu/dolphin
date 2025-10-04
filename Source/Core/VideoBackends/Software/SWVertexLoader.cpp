@@ -34,8 +34,8 @@ SWVertexLoader::SWVertexLoader() = default;
 
 SWVertexLoader::~SWVertexLoader() = default;
 
-DataReader SWVertexLoader::PrepareForAdditionalData(OpcodeDecoder::Primitive primitive, u32 count,
-                                                    u32 stride, bool cullall)
+DataReader SWVertexLoader::PrepareForAdditionalData(
+    OpcodeDecoder::Primitive primitive, u32 count, u32 stride, bool cullall)
 {
   // The software renderer needs cullall to be false for zfreeze to work
   return VertexManagerBase::PrepareForAdditionalData(primitive, count, stride, false);
@@ -120,7 +120,7 @@ static T ReadNormalized(I value)
 
 template <typename T, bool swap = false>
 static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& format,
-                                int base_component, int components, bool reverse)
+    int base_component, int components, bool reverse)
 {
   if (format.enable)
   {
@@ -154,7 +154,7 @@ static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& f
       }
 
       ASSERT_MSG(VIDEO, !format.integer || (format.type < ComponentFormat::Float),
-                 "only non-float values are allowed to be streamed as integer");
+          "only non-float values are allowed to be streamed as integer");
     }
     for (; i < components; i++)
     {
@@ -164,10 +164,11 @@ static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& f
   }
 }
 
-static void ParseColorAttributes(InputVertexData* dst, DataReader& src,
-                                 const PortableVertexDeclaration& vdec)
+static void ParseColorAttributes(
+    InputVertexData* dst, DataReader& src, const PortableVertexDeclaration& vdec)
 {
-  const auto set_default_color = [](std::array<u8, 4>& color) {
+  const auto set_default_color = [](std::array<u8, 4>& color)
+  {
     color[Tev::ALP_C] = g_ActiveConfig.iMissingColorValue & 0xFF;
     color[Tev::BLU_C] = (g_ActiveConfig.iMissingColorValue >> 8) & 0xFF;
     color[Tev::GRN_C] = (g_ActiveConfig.iMissingColorValue >> 16) & 0xFF;
@@ -196,8 +197,8 @@ static void ParseColorAttributes(InputVertexData* dst, DataReader& src,
 
 void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, int index)
 {
-  DataReader src(m_cpu_vertex_buffer.data(),
-                 m_cpu_vertex_buffer.data() + m_cpu_vertex_buffer.size());
+  DataReader src(
+      m_cpu_vertex_buffer.data(), m_cpu_vertex_buffer.data() + m_cpu_vertex_buffer.size());
   src.Skip(index * vdec.stride);
 
   ReadVertexAttribute<float>(&m_vertex.position.x, src, vdec.position, 0, 3, false);

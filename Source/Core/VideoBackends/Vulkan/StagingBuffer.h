@@ -14,7 +14,7 @@ class StagingBuffer
 {
 public:
   StagingBuffer(STAGING_BUFFER_TYPE type, VkBuffer buffer, VmaAllocation allocation,
-                VkDeviceSize size, char* map_ptr);
+      VkDeviceSize size, char* map_ptr);
   virtual ~StagingBuffer();
 
   STAGING_BUFFER_TYPE GetType() const { return m_type; }
@@ -32,18 +32,18 @@ public:
   // Upload part 2: Prepare for device read from the GPU side
   // Implicit when submitting the command buffer, so rarely needed.
   void InvalidateGPUCache(VkCommandBuffer command_buffer, VkAccessFlagBits dst_access_flags,
-                          VkPipelineStageFlagBits dst_pipeline_stage, VkDeviceSize offset = 0,
-                          VkDeviceSize size = VK_WHOLE_SIZE);
+      VkPipelineStageFlagBits dst_pipeline_stage, VkDeviceSize offset = 0,
+      VkDeviceSize size = VK_WHOLE_SIZE);
 
   // Readback part 0: Prepare for GPU usage (if necessary)
   void PrepareForGPUWrite(VkCommandBuffer command_buffer, VkAccessFlagBits dst_access_flags,
-                          VkPipelineStageFlagBits dst_pipeline_stage, VkDeviceSize offset = 0,
-                          VkDeviceSize size = VK_WHOLE_SIZE);
+      VkPipelineStageFlagBits dst_pipeline_stage, VkDeviceSize offset = 0,
+      VkDeviceSize size = VK_WHOLE_SIZE);
 
   // Readback part 1: Prepare for host readback from the GPU side
   void FlushGPUCache(VkCommandBuffer command_buffer, VkAccessFlagBits src_access_flags,
-                     VkPipelineStageFlagBits src_pipeline_stage, VkDeviceSize offset = 0,
-                     VkDeviceSize size = VK_WHOLE_SIZE);
+      VkPipelineStageFlagBits src_pipeline_stage, VkDeviceSize offset = 0,
+      VkDeviceSize size = VK_WHOLE_SIZE);
 
   // Readback part 2: Prepare for host readback from the CPU side
   void InvalidateCPUCache(VkDeviceSize offset = 0, VkDeviceSize size = VK_WHOLE_SIZE);
@@ -53,19 +53,17 @@ public:
   void Write(VkDeviceSize offset, const void* data, size_t size, bool invalidate_caches = true);
 
   // Creates the optimal format of image copy.
-  static std::unique_ptr<StagingBuffer> Create(STAGING_BUFFER_TYPE type, VkDeviceSize size,
-                                               VkBufferUsageFlags usage);
+  static std::unique_ptr<StagingBuffer> Create(
+      STAGING_BUFFER_TYPE type, VkDeviceSize size, VkBufferUsageFlags usage);
 
   // Allocates the resources needed to create a staging buffer.
   static bool AllocateBuffer(STAGING_BUFFER_TYPE type, VkDeviceSize size, VkBufferUsageFlags usage,
-                             VkBuffer* out_buffer, VmaAllocation* out_alloc, char** out_map_ptr);
+      VkBuffer* out_buffer, VmaAllocation* out_alloc, char** out_map_ptr);
 
   // Wrapper for creating an barrier on a buffer
   static void BufferMemoryBarrier(VkCommandBuffer command_buffer, VkBuffer buffer,
-                                  VkAccessFlags src_access_mask, VkAccessFlags dst_access_mask,
-                                  VkDeviceSize offset, VkDeviceSize size,
-                                  VkPipelineStageFlags src_stage_mask,
-                                  VkPipelineStageFlags dst_stage_mask);
+      VkAccessFlags src_access_mask, VkAccessFlags dst_access_mask, VkDeviceSize offset,
+      VkDeviceSize size, VkPipelineStageFlags src_stage_mask, VkPipelineStageFlags dst_stage_mask);
 
 protected:
   STAGING_BUFFER_TYPE m_type;

@@ -89,7 +89,7 @@ public:
   int SubmitTransfer(std::unique_ptr<IntrMessage> message) override;
   int SubmitTransfer(std::unique_ptr<IsoMessage> message) override;
   void ScheduleTransfer(std::unique_ptr<TransferCommand> command, const std::array<u8, 64>& data,
-                        s32 expected_count, u64 expected_time_us);
+      s32 expected_count, u64 expected_time_us);
 
 private:
   u16 m_vid = 0;

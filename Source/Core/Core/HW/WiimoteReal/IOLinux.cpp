@@ -202,8 +202,8 @@ bool WiimoteLinux::ConnectInternal()
       // If opening channel fails sleep and try again
       if (retry == 3)
       {
-        WARN_LOG_FMT(WIIMOTE, "Unable to connect interrupt channel of Wiimote: {}",
-                     strerror(errno));
+        WARN_LOG_FMT(
+            WIIMOTE, "Unable to connect interrupt channel of Wiimote: {}", strerror(errno));
         close(m_int_sock);
         close(m_cmd_sock);
         m_int_sock = m_cmd_sock = -1;
@@ -292,9 +292,9 @@ int WiimoteLinux::IORead(u8* buf)
     {
       // This can happen if the Bluetooth dongle is disconnected
       ERROR_LOG_FMT(WIIMOTE,
-                    "Bluetooth appears to be disconnected.  "
-                    "Wiimote {} will be disconnected.",
-                    m_index + 1);
+          "Bluetooth appears to be disconnected.  "
+          "Wiimote {} will be disconnected.",
+          m_index + 1);
     }
 
     r = 0;

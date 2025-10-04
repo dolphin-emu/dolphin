@@ -46,8 +46,8 @@ protected:
   virtual void OnDeviceChangeEnd();
   virtual bool ShouldAddDevice(const USB::Device& device) const;
 
-  std::optional<IPCReply> HandleTransfer(std::shared_ptr<USB::Device> device, u32 request,
-                                         std::function<s32()> submit) const;
+  std::optional<IPCReply> HandleTransfer(
+      std::shared_ptr<USB::Device> device, u32 request, std::function<s32()> submit) const;
 
   std::map<u64, std::shared_ptr<USB::Device>> m_devices;
   mutable std::recursive_mutex m_devices_mutex;

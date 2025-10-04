@@ -609,12 +609,12 @@
 #define GL_CLIENT_ALL_ATTRIB_BITS 0xFFFFFFFF
 
 typedef void(APIENTRYP PFNDOLCLEARINDEXPROC)(GLfloat c);
-typedef void(APIENTRYP PFNDOLCLEARCOLORPROC)(GLclampf red, GLclampf green, GLclampf blue,
-                                             GLclampf alpha);
+typedef void(APIENTRYP PFNDOLCLEARCOLORPROC)(
+    GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
 typedef void(APIENTRYP PFNDOLCLEARPROC)(GLbitfield mask);
 typedef void(APIENTRYP PFNDOLINDEXMASKPROC)(GLuint mask);
-typedef void(APIENTRYP PFNDOLCOLORMASKPROC)(GLboolean red, GLboolean green, GLboolean blue,
-                                            GLboolean alpha);
+typedef void(APIENTRYP PFNDOLCOLORMASKPROC)(
+    GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
 typedef void(APIENTRYP PFNDOLALPHAFUNCPROC)(GLenum func, GLclampf ref);
 typedef void(APIENTRYP PFNDOLBLENDFUNCPROC)(GLenum sfactor, GLenum dfactor);
 typedef void(APIENTRYP PFNDOLLOGICOPPROC)(GLenum opcode);
@@ -657,14 +657,14 @@ typedef void(APIENTRYP PFNDOLCLEARDEPTHPROC)(GLclampd depth);
 typedef void(APIENTRYP PFNDOLDEPTHFUNCPROC)(GLenum func);
 typedef void(APIENTRYP PFNDOLDEPTHMASKPROC)(GLboolean flag);
 typedef void(APIENTRYP PFNDOLDEPTHRANGEPROC)(GLclampd near_val, GLclampd far_val);
-typedef void(APIENTRYP PFNDOLCLEARACCUMPROC)(GLfloat red, GLfloat green, GLfloat blue,
-                                             GLfloat alpha);
+typedef void(APIENTRYP PFNDOLCLEARACCUMPROC)(
+    GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
 typedef void(APIENTRYP PFNDOLACCUMPROC)(GLenum op, GLfloat value);
 typedef void(APIENTRYP PFNDOLMATRIXMODEPROC)(GLenum mode);
 typedef void(APIENTRYP PFNDOLORTHOPROC)(GLdouble left, GLdouble right, GLdouble bottom,
-                                        GLdouble top, GLdouble near_val, GLdouble far_val);
+    GLdouble top, GLdouble near_val, GLdouble far_val);
 typedef void(APIENTRYP PFNDOLFRUSTUMPROC)(GLdouble left, GLdouble right, GLdouble bottom,
-                                          GLdouble top, GLdouble near_val, GLdouble far_val);
+    GLdouble top, GLdouble near_val, GLdouble far_val);
 typedef void(APIENTRYP PFNDOLVIEWPORTPROC)(GLint x, GLint y, GLsizei width, GLsizei height);
 typedef void(APIENTRYP PFNDOLPUSHMATRIXPROC)(void);
 typedef void(APIENTRYP PFNDOLPOPMATRIXPROC)(void);
@@ -742,15 +742,15 @@ typedef void(APIENTRYP PFNDOLCOLOR3UBPROC)(GLubyte red, GLubyte green, GLubyte b
 typedef void(APIENTRYP PFNDOLCOLOR3UIPROC)(GLuint red, GLuint green, GLuint blue);
 typedef void(APIENTRYP PFNDOLCOLOR3USPROC)(GLushort red, GLushort green, GLushort blue);
 typedef void(APIENTRYP PFNDOLCOLOR4BPROC)(GLbyte red, GLbyte green, GLbyte blue, GLbyte alpha);
-typedef void(APIENTRYP PFNDOLCOLOR4DPROC)(GLdouble red, GLdouble green, GLdouble blue,
-                                          GLdouble alpha);
+typedef void(APIENTRYP PFNDOLCOLOR4DPROC)(
+    GLdouble red, GLdouble green, GLdouble blue, GLdouble alpha);
 typedef void(APIENTRYP PFNDOLCOLOR4FPROC)(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
 typedef void(APIENTRYP PFNDOLCOLOR4IPROC)(GLint red, GLint green, GLint blue, GLint alpha);
 typedef void(APIENTRYP PFNDOLCOLOR4SPROC)(GLshort red, GLshort green, GLshort blue, GLshort alpha);
 typedef void(APIENTRYP PFNDOLCOLOR4UBPROC)(GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha);
 typedef void(APIENTRYP PFNDOLCOLOR4UIPROC)(GLuint red, GLuint green, GLuint blue, GLuint alpha);
-typedef void(APIENTRYP PFNDOLCOLOR4USPROC)(GLushort red, GLushort green, GLushort blue,
-                                           GLushort alpha);
+typedef void(APIENTRYP PFNDOLCOLOR4USPROC)(
+    GLushort red, GLushort green, GLushort blue, GLushort alpha);
 typedef void(APIENTRYP PFNDOLCOLOR3BVPROC)(const GLbyte* v);
 typedef void(APIENTRYP PFNDOLCOLOR3DVPROC)(const GLdouble* v);
 typedef void(APIENTRYP PFNDOLCOLOR3FVPROC)(const GLfloat* v);
@@ -831,22 +831,22 @@ typedef void(APIENTRYP PFNDOLRECTDVPROC)(const GLdouble* v1, const GLdouble* v2)
 typedef void(APIENTRYP PFNDOLRECTFVPROC)(const GLfloat* v1, const GLfloat* v2);
 typedef void(APIENTRYP PFNDOLRECTIVPROC)(const GLint* v1, const GLint* v2);
 typedef void(APIENTRYP PFNDOLRECTSVPROC)(const GLshort* v1, const GLshort* v2);
-typedef void(APIENTRYP PFNDOLVERTEXPOINTERPROC)(GLint size, GLenum type, GLsizei stride,
-                                                const GLvoid* ptr);
+typedef void(APIENTRYP PFNDOLVERTEXPOINTERPROC)(
+    GLint size, GLenum type, GLsizei stride, const GLvoid* ptr);
 typedef void(APIENTRYP PFNDOLNORMALPOINTERPROC)(GLenum type, GLsizei stride, const GLvoid* ptr);
-typedef void(APIENTRYP PFNDOLCOLORPOINTERPROC)(GLint size, GLenum type, GLsizei stride,
-                                               const GLvoid* ptr);
+typedef void(APIENTRYP PFNDOLCOLORPOINTERPROC)(
+    GLint size, GLenum type, GLsizei stride, const GLvoid* ptr);
 typedef void(APIENTRYP PFNDOLINDEXPOINTERPROC)(GLenum type, GLsizei stride, const GLvoid* ptr);
-typedef void(APIENTRYP PFNDOLTEXCOORDPOINTERPROC)(GLint size, GLenum type, GLsizei stride,
-                                                  const GLvoid* ptr);
+typedef void(APIENTRYP PFNDOLTEXCOORDPOINTERPROC)(
+    GLint size, GLenum type, GLsizei stride, const GLvoid* ptr);
 typedef void(APIENTRYP PFNDOLEDGEFLAGPOINTERPROC)(GLsizei stride, const GLvoid* ptr);
 typedef void(APIENTRYP PFNDOLGETPOINTERVPROC)(GLenum pname, GLvoid** params);
 typedef void(APIENTRYP PFNDOLARRAYELEMENTPROC)(GLint i);
 typedef void(APIENTRYP PFNDOLDRAWARRAYSPROC)(GLenum mode, GLint first, GLsizei count);
-typedef void(APIENTRYP PFNDOLDRAWELEMENTSPROC)(GLenum mode, GLsizei count, GLenum type,
-                                               const GLvoid* indices);
-typedef void(APIENTRYP PFNDOLINTERLEAVEDARRAYSPROC)(GLenum format, GLsizei stride,
-                                                    const GLvoid* pointer);
+typedef void(APIENTRYP PFNDOLDRAWELEMENTSPROC)(
+    GLenum mode, GLsizei count, GLenum type, const GLvoid* indices);
+typedef void(APIENTRYP PFNDOLINTERLEAVEDARRAYSPROC)(
+    GLenum format, GLsizei stride, const GLvoid* pointer);
 typedef void(APIENTRYP PFNDOLSHADEMODELPROC)(GLenum mode);
 typedef void(APIENTRYP PFNDOLLIGHTFPROC)(GLenum light, GLenum pname, GLfloat param);
 typedef void(APIENTRYP PFNDOLLIGHTIPROC)(GLenum light, GLenum pname, GLint param);
@@ -877,14 +877,13 @@ typedef void(APIENTRYP PFNDOLGETPIXELMAPFVPROC)(GLenum map, GLfloat* values);
 typedef void(APIENTRYP PFNDOLGETPIXELMAPUIVPROC)(GLenum map, GLuint* values);
 typedef void(APIENTRYP PFNDOLGETPIXELMAPUSVPROC)(GLenum map, GLushort* values);
 typedef void(APIENTRYP PFNDOLBITMAPPROC)(GLsizei width, GLsizei height, GLfloat xorig,
-                                         GLfloat yorig, GLfloat xmove, GLfloat ymove,
-                                         const GLubyte* bitmap);
-typedef void(APIENTRYP PFNDOLREADPIXELSPROC)(GLint x, GLint y, GLsizei width, GLsizei height,
-                                             GLenum format, GLenum type, GLvoid* pixels);
-typedef void(APIENTRYP PFNDOLDRAWPIXELSPROC)(GLsizei width, GLsizei height, GLenum format,
-                                             GLenum type, const GLvoid* pixels);
-typedef void(APIENTRYP PFNDOLCOPYPIXELSPROC)(GLint x, GLint y, GLsizei width, GLsizei height,
-                                             GLenum type);
+    GLfloat yorig, GLfloat xmove, GLfloat ymove, const GLubyte* bitmap);
+typedef void(APIENTRYP PFNDOLREADPIXELSPROC)(
+    GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels);
+typedef void(APIENTRYP PFNDOLDRAWPIXELSPROC)(
+    GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid* pixels);
+typedef void(APIENTRYP PFNDOLCOPYPIXELSPROC)(
+    GLint x, GLint y, GLsizei width, GLsizei height, GLenum type);
 typedef void(APIENTRYP PFNDOLSTENCILFUNCPROC)(GLenum func, GLint ref, GLuint mask);
 typedef void(APIENTRYP PFNDOLSTENCILMASKPROC)(GLuint mask);
 typedef void(APIENTRYP PFNDOLSTENCILOPPROC)(GLenum fail, GLenum zfail, GLenum zpass);
@@ -906,57 +905,49 @@ typedef void(APIENTRYP PFNDOLGETTEXENVFVPROC)(GLenum target, GLenum pname, GLflo
 typedef void(APIENTRYP PFNDOLGETTEXENVIVPROC)(GLenum target, GLenum pname, GLint* params);
 typedef void(APIENTRYP PFNDOLTEXPARAMETERFPROC)(GLenum target, GLenum pname, GLfloat param);
 typedef void(APIENTRYP PFNDOLTEXPARAMETERIPROC)(GLenum target, GLenum pname, GLint param);
-typedef void(APIENTRYP PFNDOLTEXPARAMETERFVPROC)(GLenum target, GLenum pname,
-                                                 const GLfloat* params);
+typedef void(APIENTRYP PFNDOLTEXPARAMETERFVPROC)(
+    GLenum target, GLenum pname, const GLfloat* params);
 typedef void(APIENTRYP PFNDOLTEXPARAMETERIVPROC)(GLenum target, GLenum pname, const GLint* params);
 typedef void(APIENTRYP PFNDOLGETTEXPARAMETERFVPROC)(GLenum target, GLenum pname, GLfloat* params);
 typedef void(APIENTRYP PFNDOLGETTEXPARAMETERIVPROC)(GLenum target, GLenum pname, GLint* params);
-typedef void(APIENTRYP PFNDOLGETTEXLEVELPARAMETERFVPROC)(GLenum target, GLint level, GLenum pname,
-                                                         GLfloat* params);
-typedef void(APIENTRYP PFNDOLGETTEXLEVELPARAMETERIVPROC)(GLenum target, GLint level, GLenum pname,
-                                                         GLint* params);
+typedef void(APIENTRYP PFNDOLGETTEXLEVELPARAMETERFVPROC)(
+    GLenum target, GLint level, GLenum pname, GLfloat* params);
+typedef void(APIENTRYP PFNDOLGETTEXLEVELPARAMETERIVPROC)(
+    GLenum target, GLint level, GLenum pname, GLint* params);
 typedef void(APIENTRYP PFNDOLTEXIMAGE1DPROC)(GLenum target, GLint level, GLint internalFormat,
-                                             GLsizei width, GLint border, GLenum format,
-                                             GLenum type, const GLvoid* pixels);
+    GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid* pixels);
 typedef void(APIENTRYP PFNDOLTEXIMAGE2DPROC)(GLenum target, GLint level, GLint internalFormat,
-                                             GLsizei width, GLsizei height, GLint border,
-                                             GLenum format, GLenum type, const GLvoid* pixels);
-typedef void(APIENTRYP PFNDOLGETTEXIMAGEPROC)(GLenum target, GLint level, GLenum format,
-                                              GLenum type, GLvoid* pixels);
+    GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid* pixels);
+typedef void(APIENTRYP PFNDOLGETTEXIMAGEPROC)(
+    GLenum target, GLint level, GLenum format, GLenum type, GLvoid* pixels);
 typedef void(APIENTRYP PFNDOLGENTEXTURESPROC)(GLsizei n, GLuint* textures);
 typedef void(APIENTRYP PFNDOLDELETETEXTURESPROC)(GLsizei n, const GLuint* textures);
 typedef void(APIENTRYP PFNDOLBINDTEXTUREPROC)(GLenum target, GLuint texture);
-typedef void(APIENTRYP PFNDOLPRIORITIZETEXTURESPROC)(GLsizei n, const GLuint* textures,
-                                                     const GLclampf* priorities);
-typedef GLboolean(APIENTRYP PFNDOLARETEXTURESRESIDENTPROC)(GLsizei n, const GLuint* textures,
-                                                           GLboolean* residences);
+typedef void(APIENTRYP PFNDOLPRIORITIZETEXTURESPROC)(
+    GLsizei n, const GLuint* textures, const GLclampf* priorities);
+typedef GLboolean(APIENTRYP PFNDOLARETEXTURESRESIDENTPROC)(
+    GLsizei n, const GLuint* textures, GLboolean* residences);
 typedef GLboolean(APIENTRYP PFNDOLISTEXTUREPROC)(GLuint texture);
 typedef void(APIENTRYP PFNDOLTEXSUBIMAGE1DPROC)(GLenum target, GLint level, GLint xoffset,
-                                                GLsizei width, GLenum format, GLenum type,
-                                                const GLvoid* pixels);
+    GLsizei width, GLenum format, GLenum type, const GLvoid* pixels);
 typedef void(APIENTRYP PFNDOLTEXSUBIMAGE2DPROC)(GLenum target, GLint level, GLint xoffset,
-                                                GLint yoffset, GLsizei width, GLsizei height,
-                                                GLenum format, GLenum type, const GLvoid* pixels);
+    GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid* pixels);
 typedef void(APIENTRYP PFNDOLCOPYTEXIMAGE1DPROC)(GLenum target, GLint level, GLenum internalformat,
-                                                 GLint x, GLint y, GLsizei width, GLint border);
+    GLint x, GLint y, GLsizei width, GLint border);
 typedef void(APIENTRYP PFNDOLCOPYTEXIMAGE2DPROC)(GLenum target, GLint level, GLenum internalformat,
-                                                 GLint x, GLint y, GLsizei width, GLsizei height,
-                                                 GLint border);
-typedef void(APIENTRYP PFNDOLCOPYTEXSUBIMAGE1DPROC)(GLenum target, GLint level, GLint xoffset,
-                                                    GLint x, GLint y, GLsizei width);
+    GLint x, GLint y, GLsizei width, GLsizei height, GLint border);
+typedef void(APIENTRYP PFNDOLCOPYTEXSUBIMAGE1DPROC)(
+    GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
 typedef void(APIENTRYP PFNDOLCOPYTEXSUBIMAGE2DPROC)(GLenum target, GLint level, GLint xoffset,
-                                                    GLint yoffset, GLint x, GLint y, GLsizei width,
-                                                    GLsizei height);
-typedef void(APIENTRYP PFNDOLMAP1DPROC)(GLenum target, GLdouble u1, GLdouble u2, GLint stride,
-                                        GLint order, const GLdouble* points);
-typedef void(APIENTRYP PFNDOLMAP1FPROC)(GLenum target, GLfloat u1, GLfloat u2, GLint stride,
-                                        GLint order, const GLfloat* points);
+    GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+typedef void(APIENTRYP PFNDOLMAP1DPROC)(
+    GLenum target, GLdouble u1, GLdouble u2, GLint stride, GLint order, const GLdouble* points);
+typedef void(APIENTRYP PFNDOLMAP1FPROC)(
+    GLenum target, GLfloat u1, GLfloat u2, GLint stride, GLint order, const GLfloat* points);
 typedef void(APIENTRYP PFNDOLMAP2DPROC)(GLenum target, GLdouble u1, GLdouble u2, GLint ustride,
-                                        GLint uorder, GLdouble v1, GLdouble v2, GLint vstride,
-                                        GLint vorder, const GLdouble* points);
+    GLint uorder, GLdouble v1, GLdouble v2, GLint vstride, GLint vorder, const GLdouble* points);
 typedef void(APIENTRYP PFNDOLMAP2FPROC)(GLenum target, GLfloat u1, GLfloat u2, GLint ustride,
-                                        GLint uorder, GLfloat v1, GLfloat v2, GLint vstride,
-                                        GLint vorder, const GLfloat* points);
+    GLint uorder, GLfloat v1, GLfloat v2, GLint vstride, GLint vorder, const GLfloat* points);
 typedef void(APIENTRYP PFNDOLGETMAPDVPROC)(GLenum target, GLenum query, GLdouble* v);
 typedef void(APIENTRYP PFNDOLGETMAPFVPROC)(GLenum target, GLenum query, GLfloat* v);
 typedef void(APIENTRYP PFNDOLGETMAPIVPROC)(GLenum target, GLenum query, GLint* v);
@@ -970,10 +961,10 @@ typedef void(APIENTRYP PFNDOLEVALCOORD2DVPROC)(const GLdouble* u);
 typedef void(APIENTRYP PFNDOLEVALCOORD2FVPROC)(const GLfloat* u);
 typedef void(APIENTRYP PFNDOLMAPGRID1DPROC)(GLint un, GLdouble u1, GLdouble u2);
 typedef void(APIENTRYP PFNDOLMAPGRID1FPROC)(GLint un, GLfloat u1, GLfloat u2);
-typedef void(APIENTRYP PFNDOLMAPGRID2DPROC)(GLint un, GLdouble u1, GLdouble u2, GLint vn,
-                                            GLdouble v1, GLdouble v2);
-typedef void(APIENTRYP PFNDOLMAPGRID2FPROC)(GLint un, GLfloat u1, GLfloat u2, GLint vn, GLfloat v1,
-                                            GLfloat v2);
+typedef void(APIENTRYP PFNDOLMAPGRID2DPROC)(
+    GLint un, GLdouble u1, GLdouble u2, GLint vn, GLdouble v1, GLdouble v2);
+typedef void(APIENTRYP PFNDOLMAPGRID2FPROC)(
+    GLint un, GLfloat u1, GLfloat u2, GLint vn, GLfloat v1, GLfloat v2);
 typedef void(APIENTRYP PFNDOLEVALPOINT1PROC)(GLint i);
 typedef void(APIENTRYP PFNDOLEVALPOINT2PROC)(GLint i, GLint j);
 typedef void(APIENTRYP PFNDOLEVALMESH1PROC)(GLenum mode, GLint i1, GLint i2);

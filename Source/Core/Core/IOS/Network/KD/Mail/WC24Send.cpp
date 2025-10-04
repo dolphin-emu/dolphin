@@ -105,7 +105,7 @@ bool WC24SendList::CheckSendList() const
   if (Common::swap32(m_data.header.magic) != MAIL_LIST_MAGIC)
   {
     ERROR_LOG_FMT(IOS_WC24, "Send List magic mismatch ({} != {})",
-                  Common::swap32(m_data.header.magic), MAIL_LIST_MAGIC);
+        Common::swap32(m_data.header.magic), MAIL_LIST_MAGIC);
     return false;
   }
 
@@ -223,8 +223,8 @@ ErrorCode WC24SendList::AddRegistrationMessages(const WC24FriendList& friend_lis
 
     const std::string formatted_message =
         fmt::format(MAIL_REGISTRATION_STRING, sender, code, fmt::gmtime(t));
-    const std::span message{reinterpret_cast<const u8*>(formatted_message.data()),
-                            formatted_message.size()};
+    const std::span message{
+        reinterpret_cast<const u8*>(formatted_message.data()), formatted_message.size()};
     const ErrorCode reply = WriteToVFF(SEND_BOX_PATH, GetMailPath(entry_index), m_fs, message);
 
     if (reply != WC24_OK)

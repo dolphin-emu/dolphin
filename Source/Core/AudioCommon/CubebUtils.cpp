@@ -98,7 +98,8 @@ std::vector<std::pair<std::string, std::string>> ListInputDevices()
   {
     const auto& info = collection.device[i];
     const auto device_state = info.state;
-    const char* state_name = [device_state] {
+    const char* state_name = [device_state]
+    {
       switch (device_state)
       {
       case CUBEB_DEVICE_STATE_DISABLED:
@@ -115,18 +116,17 @@ std::vector<std::pair<std::string, std::string>> ListInputDevices()
     // According to cubeb_device_info definition in cubeb.h:
     //  > "Optional vendor name, may be NULL."
     // In practice, it seems some other fields might be NULL as well.
-    static constexpr auto fmt_str = [](const char* ptr) constexpr -> const char* {
-      return (ptr == nullptr) ? "(null)" : ptr;
-    };
+    static constexpr auto fmt_str = [](const char* ptr) constexpr -> const char*
+    { return (ptr == nullptr) ? "(null)" : ptr; };
 
     INFO_LOG_FMT(AUDIO,
-                 "[{}] Device ID: {}\n"
-                 "\tName: {}\n"
-                 "\tGroup ID: {}\n"
-                 "\tVendor: {}\n"
-                 "\tState: {}",
-                 i, fmt_str(info.device_id), fmt_str(info.friendly_name), fmt_str(info.group_id),
-                 fmt_str(info.vendor_name), state_name);
+        "[{}] Device ID: {}\n"
+        "\tName: {}\n"
+        "\tGroup ID: {}\n"
+        "\tVendor: {}\n"
+        "\tState: {}",
+        i, fmt_str(info.device_id), fmt_str(info.friendly_name), fmt_str(info.group_id),
+        fmt_str(info.vendor_name), state_name);
 
     if (info.device_id == nullptr)
       continue;  // Shouldn't happen
@@ -183,11 +183,14 @@ CoInitSyncWorker::CoInitSyncWorker([[maybe_unused]] std::string worker_name)
 #endif
 {
 #ifdef _WIN32
-  m_work_queue.PushBlocking([this] {
-    const auto result = ::CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
-    m_coinit_success = result == S_OK;
-    m_should_couninit = m_coinit_success || result == S_FALSE;
-  });
+  m_work_queue.PushBlocking(
+      [this]
+      {
+        const auto result =
+            ::CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
+        m_coinit_success = result == S_OK;
+        m_should_couninit = m_coinit_success || result == S_FALSE;
+      });
 #endif
 }
 
@@ -196,10 +199,12 @@ CoInitSyncWorker::~CoInitSyncWorker()
 #ifdef _WIN32
   if (m_should_couninit)
   {
-    m_work_queue.PushBlocking([this] {
-      m_should_couninit = false;
-      CoUninitialize();
-    });
+    m_work_queue.PushBlocking(
+        [this]
+        {
+          m_should_couninit = false;
+          CoUninitialize();
+        });
   }
   m_coinit_success = false;
 #endif

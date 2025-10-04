@@ -242,7 +242,7 @@ bool UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
   // that were marked executable, instead it uses the protections offered by MAP_JIT
   // for write protection.
   if (mprotect(ptr, size,
-               allowExecute ? (PROT_READ | PROT_WRITE | PROT_EXEC) : PROT_WRITE | PROT_READ) != 0)
+          allowExecute ? (PROT_READ | PROT_WRITE | PROT_EXEC) : PROT_WRITE | PROT_READ) != 0)
   {
     PanicAlertFmt("UnWriteProtectMemory failed!\nmprotect: {}", LastStrerrorString());
     return false;

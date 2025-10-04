@@ -46,24 +46,30 @@ TextureInfo TextureInfo::FromStage(u32 stage)
   if (from_tmem)
   {
     return TextureInfo(stage, TexDecoder_GetTmemSpan(tmem_address_even), tlut_data, address,
-                       texture_format, tlut_format, width, height, true,
-                       TexDecoder_GetTmemSpan(tmem_address_odd),
-                       TexDecoder_GetTmemSpan(tmem_address_even), mip_count);
+        texture_format, tlut_format, width, height, true, TexDecoder_GetTmemSpan(tmem_address_odd),
+        TexDecoder_GetTmemSpan(tmem_address_even), mip_count);
   }
 
   auto& system = Core::System::GetInstance();
   auto& memory = system.GetMemory();
   return TextureInfo(stage, memory.GetSpanForAddress(address), tlut_data, address, texture_format,
-                     tlut_format, width, height, false, {}, {}, mip_count);
+      tlut_format, width, height, false, {}, {}, mip_count);
 }
 
 TextureInfo::TextureInfo(u32 stage, std::span<const u8> data, std::span<const u8> tlut_data,
-                         u32 address, TextureFormat texture_format, TLUTFormat tlut_format,
-                         u32 width, u32 height, bool from_tmem, std::span<const u8> tmem_odd,
-                         std::span<const u8> tmem_even, std::optional<u32> mip_count)
-    : m_ptr(data.data()), m_tlut_ptr(tlut_data.data()), m_address(address), m_from_tmem(from_tmem),
-      m_tmem_odd(tmem_odd.data()), m_texture_format(texture_format), m_tlut_format(tlut_format),
-      m_raw_width(width), m_raw_height(height), m_stage(stage)
+    u32 address, TextureFormat texture_format, TLUTFormat tlut_format, u32 width, u32 height,
+    bool from_tmem, std::span<const u8> tmem_odd, std::span<const u8> tmem_even,
+    std::optional<u32> mip_count)
+    : m_ptr(data.data())
+    , m_tlut_ptr(tlut_data.data())
+    , m_address(address)
+    , m_from_tmem(from_tmem)
+    , m_tmem_odd(tmem_odd.data())
+    , m_texture_format(texture_format)
+    , m_tlut_format(tlut_format)
+    , m_raw_width(width)
+    , m_raw_height(height)
+    , m_stage(stage)
 {
   const bool is_palette_texture = IsColorIndexed(m_texture_format);
   if (is_palette_texture)
@@ -183,11 +189,11 @@ TextureInfo::NameDetails TextureInfo::CalculateTextureName() const
   const u64 tex_hash = XXH64(m_ptr, m_texture_size, 0);
   const u64 tlut_hash = tlut_size ? XXH64(tlut, tlut_size, 0) : 0;
 
-  return {.base_name = fmt::format("{}{}x{}{}", format_prefix, m_raw_width, m_raw_height,
-                                   m_mipmaps_enabled ? "_m" : ""),
-          .texture_name = fmt::format("{:016x}", tex_hash),
-          .tlut_name = tlut_size ? fmt::format("_{:016x}", tlut_hash) : "",
-          .format_name = fmt::to_string(static_cast<int>(m_texture_format))};
+  return {.base_name = fmt::format(
+              "{}{}x{}{}", format_prefix, m_raw_width, m_raw_height, m_mipmaps_enabled ? "_m" : ""),
+      .texture_name = fmt::format("{:016x}", tex_hash),
+      .tlut_name = tlut_size ? fmt::format("_{:016x}", tlut_hash) : "",
+      .format_name = fmt::to_string(static_cast<int>(m_texture_format))};
 }
 
 bool TextureInfo::IsDataValid() const
@@ -294,16 +300,15 @@ const TextureInfo::MipLevel* TextureInfo::GetMipMapLevel(u32 level) const
 }
 
 TextureInfo::MipLevel::MipLevel(u32 level, const TextureInfo& parent, bool from_tmem,
-                                std::span<const u8>* src_data, std::span<const u8>* tmem_even,
-                                std::span<const u8>* tmem_odd)
+    std::span<const u8>* src_data, std::span<const u8>* tmem_even, std::span<const u8>* tmem_odd)
 {
   m_raw_width = std::max(parent.GetRawWidth() >> level, 1u);
   m_raw_height = std::max(parent.GetRawHeight() >> level, 1u);
   m_expanded_width = Common::AlignUp(m_raw_width, parent.GetBlockWidth());
   m_expanded_height = Common::AlignUp(m_raw_height, parent.GetBlockHeight());
 
-  m_texture_size = TexDecoder_GetTextureSizeInBytes(m_expanded_width, m_expanded_height,
-                                                    parent.GetTextureFormat());
+  m_texture_size = TexDecoder_GetTextureSizeInBytes(
+      m_expanded_width, m_expanded_height, parent.GetTextureFormat());
 
   std::span<const u8>* data = from_tmem ? ((level % 2) ? tmem_odd : tmem_even) : src_data;
   m_ptr = data->data();

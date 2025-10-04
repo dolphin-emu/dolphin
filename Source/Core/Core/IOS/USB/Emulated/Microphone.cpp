@@ -88,52 +88,51 @@ void Microphone::StreamStart(u32 sampling_rate)
   if (!m_cubeb_ctx)
     return;
 
-  m_worker.Execute([this, sampling_rate] {
+  m_worker.Execute(
+      [this, sampling_rate]
+      {
 #ifdef ANDROID
-    JNIEnv* env = IDCache::GetEnvForThread();
-    if (jboolean result = env->CallStaticBooleanMethod(
-            IDCache::GetPermissionHandlerClass(),
-            IDCache::GetPermissionHandlerHasRecordAudioPermission(), nullptr);
-        result == JNI_FALSE)
-    {
-      env->CallStaticVoidMethod(IDCache::GetPermissionHandlerClass(),
-                                IDCache::GetPermissionHandlerRequestRecordAudioPermission(),
-                                nullptr);
-    }
+        JNIEnv* env = IDCache::GetEnvForThread();
+        if (jboolean result = env->CallStaticBooleanMethod(IDCache::GetPermissionHandlerClass(),
+                IDCache::GetPermissionHandlerHasRecordAudioPermission(), nullptr);
+            result == JNI_FALSE)
+        {
+          env->CallStaticVoidMethod(IDCache::GetPermissionHandlerClass(),
+              IDCache::GetPermissionHandlerRequestRecordAudioPermission(), nullptr);
+        }
 #endif
 
-    cubeb_stream_params params{};
-    params.format = CUBEB_SAMPLE_S16LE;
-    params.rate = sampling_rate;
-    params.channels = 1;
-    params.layout = CUBEB_LAYOUT_MONO;
+        cubeb_stream_params params{};
+        params.format = CUBEB_SAMPLE_S16LE;
+        params.rate = sampling_rate;
+        params.channels = 1;
+        params.layout = CUBEB_LAYOUT_MONO;
 
-    u32 minimum_latency;
-    if (cubeb_get_min_latency(m_cubeb_ctx.get(), &params, &minimum_latency) != CUBEB_OK)
-    {
-      WARN_LOG_FMT(IOS_USB, "Error getting minimum latency");
-      minimum_latency = 16;
-    }
+        u32 minimum_latency;
+        if (cubeb_get_min_latency(m_cubeb_ctx.get(), &params, &minimum_latency) != CUBEB_OK)
+        {
+          WARN_LOG_FMT(IOS_USB, "Error getting minimum latency");
+          minimum_latency = 16;
+        }
 
-    cubeb_devid input_device =
-        CubebUtils::GetInputDeviceById(Config::Get(Config::MAIN_WII_SPEAK_MICROPHONE));
-    if (cubeb_stream_init(m_cubeb_ctx.get(), &m_cubeb_stream, "Dolphin Emulated Wii Speak",
-                          input_device, &params, nullptr, nullptr,
-                          std::max<u32>(16, minimum_latency), CubebDataCallback, StateCallback,
-                          this) != CUBEB_OK)
-    {
-      ERROR_LOG_FMT(IOS_USB, "Error initializing cubeb stream");
-      return;
-    }
+        cubeb_devid input_device =
+            CubebUtils::GetInputDeviceById(Config::Get(Config::MAIN_WII_SPEAK_MICROPHONE));
+        if (cubeb_stream_init(m_cubeb_ctx.get(), &m_cubeb_stream, "Dolphin Emulated Wii Speak",
+                input_device, &params, nullptr, nullptr, std::max<u32>(16, minimum_latency),
+                CubebDataCallback, StateCallback, this) != CUBEB_OK)
+        {
+          ERROR_LOG_FMT(IOS_USB, "Error initializing cubeb stream");
+          return;
+        }
 
-    if (cubeb_stream_start(m_cubeb_stream) != CUBEB_OK)
-    {
-      ERROR_LOG_FMT(IOS_USB, "Error starting cubeb stream");
-      return;
-    }
+        if (cubeb_stream_start(m_cubeb_stream) != CUBEB_OK)
+        {
+          ERROR_LOG_FMT(IOS_USB, "Error starting cubeb stream");
+          return;
+        }
 
-    INFO_LOG_FMT(IOS_USB, "started cubeb stream");
-  });
+        INFO_LOG_FMT(IOS_USB, "started cubeb stream");
+      });
 }
 
 void Microphone::StreamStop()
@@ -141,16 +140,18 @@ void Microphone::StreamStop()
   if (!m_cubeb_stream)
     return;
 
-  m_worker.Execute([this] {
-    if (cubeb_stream_stop(m_cubeb_stream) != CUBEB_OK)
-      ERROR_LOG_FMT(IOS_USB, "Error stopping cubeb stream");
-    cubeb_stream_destroy(m_cubeb_stream);
-    m_cubeb_stream = nullptr;
-  });
+  m_worker.Execute(
+      [this]
+      {
+        if (cubeb_stream_stop(m_cubeb_stream) != CUBEB_OK)
+          ERROR_LOG_FMT(IOS_USB, "Error stopping cubeb stream");
+        cubeb_stream_destroy(m_cubeb_stream);
+        m_cubeb_stream = nullptr;
+      });
 }
 
 long Microphone::CubebDataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
-                                   void* /*output_buffer*/, long nframes)
+    void* /*output_buffer*/, long nframes)
 {
   // Skip data when core isn't running
   if (Core::GetState(Core::System::GetInstance()) != Core::State::Running)
@@ -175,9 +176,8 @@ long Microphone::DataCallback(const SampleType* input_buffer, long nframes)
 
   std::span<const SampleType> buffer(input_buffer, nframes);
   const auto gain = ComputeGain(Config::Get(Config::MAIN_WII_SPEAK_VOLUME_MODIFIER));
-  const auto apply_gain = [gain](SampleType sample) {
-    return MathUtil::SaturatingCast<SampleType>(sample * gain);
-  };
+  const auto apply_gain = [gain](SampleType sample)
+  { return MathUtil::SaturatingCast<SampleType>(sample * gain); };
 
   for (const SampleType le_sample : std::ranges::transform_view(buffer, apply_gain))
   {
@@ -203,7 +203,7 @@ u16 Microphone::ReadIntoBuffer(u8* ptr, u32 size)
 
   // Avoid buffer overflow during memcpy
   static_assert((STREAM_SIZE % BUFF_SIZE_SAMPLES) == 0,
-                "The STREAM_SIZE isn't a multiple of BUFF_SIZE_SAMPLES");
+      "The STREAM_SIZE isn't a multiple of BUFF_SIZE_SAMPLES");
 
   std::lock_guard lock(m_ring_lock);
 
@@ -365,12 +365,12 @@ void Microphone::Loudness::LogStats()
   const auto crest_factor_db = GetDecibel(crest_factor);
 
   INFO_LOG_FMT(IOS_USB,
-               "Wii Speak loudness stats (sample count: {}/{}):\n"
-               " - min={} max={} amplitude={} ({} dB)\n"
-               " - rms={} ({} dB) \n"
-               " - abs_mean={} ({} dB)\n"
-               " - crest_factor={} ({} dB)",
-               samples_count, SAMPLES_NEEDED, peak_min, peak_max, amplitude, amplitude_db, rms,
-               rms_db, abs_mean, abs_mean_db, crest_factor, crest_factor_db);
+      "Wii Speak loudness stats (sample count: {}/{}):\n"
+      " - min={} max={} amplitude={} ({} dB)\n"
+      " - rms={} ({} dB) \n"
+      " - abs_mean={} ({} dB)\n"
+      " - crest_factor={} ({} dB)",
+      samples_count, SAMPLES_NEEDED, peak_min, peak_max, amplitude, amplitude_db, rms, rms_db,
+      abs_mean, abs_mean_db, crest_factor, crest_factor_db);
 }
 }  // namespace IOS::HLE::USB

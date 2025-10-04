@@ -127,21 +127,20 @@ IPCReply ESDevice::Sign(const IOCtlVRequest& request)
   if (!m_core.m_title_context.active)
     return IPCReply(ES_EINVAL);
 
-  GetEmulationKernel().GetIOSC().Sign(sig_out, ap_cert_out, m_core.m_title_context.tmd.GetTitleId(),
-                                      data, data_size);
+  GetEmulationKernel().GetIOSC().Sign(
+      sig_out, ap_cert_out, m_core.m_title_context.tmd.GetTitleId(), data, data_size);
   return IPCReply(IPC_SUCCESS);
 }
 
 ReturnCode ESCore::VerifySign(const std::vector<u8>& hash, const std::vector<u8>& ecc_signature,
-                              const std::vector<u8>& certs_bytes)
+    const std::vector<u8>& certs_bytes)
 {
   const std::map<std::string, ES::CertReader> certs = ES::ParseCertChain(certs_bytes);
   if (certs.empty())
     return ES_EINVAL;
 
-  const auto ap_iterator = std::ranges::find_if(certs, [](const auto& entry) {
-    return entry.first.length() > 2 && entry.first.compare(0, 2, "AP") == 0;
-  });
+  const auto ap_iterator = std::ranges::find_if(certs, [](const auto& entry)
+      { return entry.first.length() > 2 && entry.first.compare(0, 2, "AP") == 0; });
   if (ap_iterator == certs.end())
     return ES_UNKNOWN_ISSUER;
   const ES::CertReader& ap = ap_iterator->second;
@@ -160,12 +159,12 @@ ReturnCode ESCore::VerifySign(const std::vector<u8>& hash, const std::vector<u8>
     return ret;
   Common::ScopeGuard handle_guard{[&] { iosc.DeleteObject(ng_cert, PID_ES); }};
 
-  ret = VerifyContainer(VerifyContainerType::Device, VerifyMode::DoNotUpdateCertStore, ng,
-                        certs_bytes, ng_cert);
+  ret = VerifyContainer(
+      VerifyContainerType::Device, VerifyMode::DoNotUpdateCertStore, ng, certs_bytes, ng_cert);
   if (ret != IPC_SUCCESS)
   {
-    ERROR_LOG_FMT(IOS_ES, "VerifySign: VerifyContainer(ng) failed with error {}",
-                  Common::ToUnderlying(ret));
+    ERROR_LOG_FMT(
+        IOS_ES, "VerifySign: VerifyContainer(ng) failed with error {}", Common::ToUnderlying(ret));
     return ret;
   }
 
@@ -173,7 +172,7 @@ ReturnCode ESCore::VerifySign(const std::vector<u8>& hash, const std::vector<u8>
   if (ret != IPC_SUCCESS)
   {
     ERROR_LOG_FMT(IOS_ES, "VerifySign: IOSC_VerifyPublicKeySign(ap) failed with error {}",
-                  Common::ToUnderlying(ret));
+        Common::ToUnderlying(ret));
     return ret;
   }
 
@@ -187,7 +186,7 @@ ReturnCode ESCore::VerifySign(const std::vector<u8>& hash, const std::vector<u8>
   if (ret != IPC_SUCCESS)
   {
     ERROR_LOG_FMT(IOS_ES, "VerifySign: IOSC_ImportPublicKey(ap) failed with error {}",
-                  Common::ToUnderlying(ret));
+        Common::ToUnderlying(ret));
     return ret;
   }
 
@@ -196,7 +195,7 @@ ReturnCode ESCore::VerifySign(const std::vector<u8>& hash, const std::vector<u8>
   if (ret != IPC_SUCCESS)
   {
     ERROR_LOG_FMT(IOS_ES, "VerifySign: IOSC_VerifyPublicKeySign(data) failed with error {}",
-                  Common::ToUnderlying(ret));
+        Common::ToUnderlying(ret));
     return ret;
   }
 

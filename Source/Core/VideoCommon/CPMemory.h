@@ -80,10 +80,9 @@ enum class CPArray : u8
 template <>
 struct fmt::formatter<CPArray> : EnumFormatter<CPArray::XF_D>
 {
-  static constexpr array_type names = {"Position",    "Normal",      "Color 0",     "Color 1",
-                                       "Tex Coord 0", "Tex Coord 1", "Tex Coord 2", "Tex Coord 3",
-                                       "Tex Coord 4", "Tex Coord 5", "Tex Coord 6", "Tex Coord 7",
-                                       "XF A",        "XF B",        "XF C",        "XF D"};
+  static constexpr array_type names = {"Position", "Normal", "Color 0", "Color 1", "Tex Coord 0",
+      "Tex Coord 1", "Tex Coord 2", "Tex Coord 3", "Tex Coord 4", "Tex Coord 5", "Tex Coord 6",
+      "Tex Coord 7", "XF A", "XF B", "XF C", "XF D"};
   constexpr formatter() : EnumFormatter(names) {}
 };
 // Intended for offsetting from Color0/TexCoord0
@@ -206,8 +205,12 @@ template <>
 struct fmt::formatter<ColorFormat> : EnumFormatter<ColorFormat::RGBA8888>
 {
   static constexpr array_type names = {
-      "RGB 16 bits 565",   "RGB 24 bits 888",   "RGB 32 bits 888x",
-      "RGBA 16 bits 4444", "RGBA 24 bits 6666", "RGBA 32 bits 8888",
+      "RGB 16 bits 565",
+      "RGB 24 bits 888",
+      "RGB 32 bits 888x",
+      "RGBA 16 bits 4444",
+      "RGBA 24 bits 6666",
+      "RGBA 32 bits 8888",
   };
   constexpr formatter() : EnumFormatter(names) {}
 };
@@ -275,8 +278,7 @@ struct fmt::formatter<TVtxDesc::Low>
   {
     static constexpr std::array<const char*, 2> present = {"Not present", "Present"};
 
-    return fmt::format_to(
-        ctx.out(),
+    return fmt::format_to(ctx.out(),
         "Position and normal matrix index: {}\n"
         "Texture Coord 0 matrix index: {}\n"
         "Texture Coord 1 matrix index: {}\n"
@@ -304,16 +306,16 @@ struct fmt::formatter<TVtxDesc::High>
   auto format(const TVtxDesc::High& desc, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(),
-                          "Texture Coord 0: {}\n"
-                          "Texture Coord 1: {}\n"
-                          "Texture Coord 2: {}\n"
-                          "Texture Coord 3: {}\n"
-                          "Texture Coord 4: {}\n"
-                          "Texture Coord 5: {}\n"
-                          "Texture Coord 6: {}\n"
-                          "Texture Coord 7: {}",
-                          desc.Tex0Coord, desc.Tex1Coord, desc.Tex2Coord, desc.Tex3Coord,
-                          desc.Tex4Coord, desc.Tex5Coord, desc.Tex6Coord, desc.Tex7Coord);
+        "Texture Coord 0: {}\n"
+        "Texture Coord 1: {}\n"
+        "Texture Coord 2: {}\n"
+        "Texture Coord 3: {}\n"
+        "Texture Coord 4: {}\n"
+        "Texture Coord 5: {}\n"
+        "Texture Coord 6: {}\n"
+        "Texture Coord 7: {}",
+        desc.Tex0Coord, desc.Tex1Coord, desc.Tex2Coord, desc.Tex3Coord, desc.Tex4Coord,
+        desc.Tex5Coord, desc.Tex6Coord, desc.Tex7Coord);
   }
 };
 template <>
@@ -365,25 +367,24 @@ struct fmt::formatter<UVAT_group0>
         "three indices, one each for normal, tangent, and binormal"};
 
     return fmt::format_to(ctx.out(),
-                          "Position elements: {}\n"
-                          "Position format: {}\n"
-                          "Position shift: {} ({})\n"
-                          "Normal elements: {}\n"
-                          "Normal format: {}\n"
-                          "Color 0 elements: {}\n"
-                          "Color 0 format: {}\n"
-                          "Color 1 elements: {}\n"
-                          "Color 1 format: {}\n"
-                          "Texture coord 0 elements: {}\n"
-                          "Texture coord 0 format: {}\n"
-                          "Texture coord 0 shift: {} ({})\n"
-                          "Byte dequant: {}\n"
-                          "Normal index 3: {}",
-                          g0.PosElements, g0.PosFormat, g0.PosFrac, 1.f / (1 << g0.PosFrac),
-                          g0.NormalElements, g0.NormalFormat, g0.Color0Elements, g0.Color0Comp,
-                          g0.Color1Elements, g0.Color1Comp, g0.Tex0CoordElements,
-                          g0.Tex0CoordFormat, g0.Tex0Frac, 1.f / (1 << g0.Tex0Frac),
-                          byte_dequant[g0.ByteDequant], normalindex3[g0.NormalIndex3]);
+        "Position elements: {}\n"
+        "Position format: {}\n"
+        "Position shift: {} ({})\n"
+        "Normal elements: {}\n"
+        "Normal format: {}\n"
+        "Color 0 elements: {}\n"
+        "Color 0 format: {}\n"
+        "Color 1 elements: {}\n"
+        "Color 1 format: {}\n"
+        "Texture coord 0 elements: {}\n"
+        "Texture coord 0 format: {}\n"
+        "Texture coord 0 shift: {} ({})\n"
+        "Byte dequant: {}\n"
+        "Normal index 3: {}",
+        g0.PosElements, g0.PosFormat, g0.PosFrac, 1.f / (1 << g0.PosFrac), g0.NormalElements,
+        g0.NormalFormat, g0.Color0Elements, g0.Color0Comp, g0.Color1Elements, g0.Color1Comp,
+        g0.Tex0CoordElements, g0.Tex0CoordFormat, g0.Tex0Frac, 1.f / (1 << g0.Tex0Frac),
+        byte_dequant[g0.ByteDequant], normalindex3[g0.NormalIndex3]);
   }
 };
 
@@ -415,8 +416,7 @@ struct fmt::formatter<UVAT_group1>
   template <typename FormatContext>
   auto format(const UVAT_group1& g1, FormatContext& ctx) const
   {
-    return fmt::format_to(
-        ctx.out(),
+    return fmt::format_to(ctx.out(),
         "Texture coord 1 elements: {}\n"
         "Texture coord 1 format: {}\n"
         "Texture coord 1 shift: {} ({})\n"
@@ -462,21 +462,20 @@ struct fmt::formatter<UVAT_group2>
   auto format(const UVAT_group2& g2, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(),
-                          "Texture coord 4 shift: {} ({})\n"
-                          "Texture coord 5 elements: {}\n"
-                          "Texture coord 5 format: {}\n"
-                          "Texture coord 5 shift: {} ({})\n"
-                          "Texture coord 6 elements: {}\n"
-                          "Texture coord 6 format: {}\n"
-                          "Texture coord 6 shift: {} ({})\n"
-                          "Texture coord 7 elements: {}\n"
-                          "Texture coord 7 format: {}\n"
-                          "Texture coord 7 shift: {} ({})",
-                          g2.Tex4Frac, 1.f / (1 << g2.Tex4Frac), g2.Tex5CoordElements,
-                          g2.Tex5CoordFormat, g2.Tex5Frac, 1.f / (1 << g2.Tex5Frac),
-                          g2.Tex6CoordElements, g2.Tex6CoordFormat, g2.Tex6Frac,
-                          1.f / (1 << g2.Tex6Frac), g2.Tex7CoordElements, g2.Tex7CoordFormat,
-                          g2.Tex7Frac, 1.f / (1 << g2.Tex7Frac));
+        "Texture coord 4 shift: {} ({})\n"
+        "Texture coord 5 elements: {}\n"
+        "Texture coord 5 format: {}\n"
+        "Texture coord 5 shift: {} ({})\n"
+        "Texture coord 6 elements: {}\n"
+        "Texture coord 6 format: {}\n"
+        "Texture coord 6 shift: {} ({})\n"
+        "Texture coord 7 elements: {}\n"
+        "Texture coord 7 format: {}\n"
+        "Texture coord 7 shift: {} ({})",
+        g2.Tex4Frac, 1.f / (1 << g2.Tex4Frac), g2.Tex5CoordElements, g2.Tex5CoordFormat,
+        g2.Tex5Frac, 1.f / (1 << g2.Tex5Frac), g2.Tex6CoordElements, g2.Tex6CoordFormat,
+        g2.Tex6Frac, 1.f / (1 << g2.Tex6Frac), g2.Tex7CoordElements, g2.Tex7CoordFormat,
+        g2.Tex7Frac, 1.f / (1 << g2.Tex7Frac));
   }
 };
 
@@ -713,8 +712,7 @@ struct fmt::formatter<TMatrixIndexA>
   auto format(const TMatrixIndexA& m, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(), "PosNormal: {}\nTex0: {}\nTex1: {}\nTex2: {}\nTex3: {}",
-                          m.PosNormalMtxIdx, m.Tex0MtxIdx, m.Tex1MtxIdx, m.Tex2MtxIdx,
-                          m.Tex3MtxIdx);
+        m.PosNormalMtxIdx, m.Tex0MtxIdx, m.Tex1MtxIdx, m.Tex2MtxIdx, m.Tex3MtxIdx);
   }
 };
 
@@ -734,7 +732,7 @@ struct fmt::formatter<TMatrixIndexB>
   auto format(const TMatrixIndexB& m, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(), "Tex4: {}\nTex5: {}\nTex6: {}\nTex7: {}", m.Tex4MtxIdx,
-                          m.Tex5MtxIdx, m.Tex6MtxIdx, m.Tex7MtxIdx);
+        m.Tex5MtxIdx, m.Tex6MtxIdx, m.Tex7MtxIdx);
   }
 };
 

@@ -86,7 +86,10 @@ struct Rectangle
   constexpr Rectangle() = default;
 
   constexpr Rectangle(T theLeft, T theTop, T theRight, T theBottom)
-      : left(theLeft), top(theTop), right(theRight), bottom(theBottom)
+      : left(theLeft)
+      , top(theTop)
+      , right(theRight)
+      , bottom(theBottom)
   {
   }
 

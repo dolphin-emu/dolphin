@@ -27,8 +27,8 @@ static bool IsStackBottom(const Core::CPUThreadGuard& guard, u32 addr)
   return !addr || !PowerPC::MMU::HostIsRAMAddress(guard, addr);
 }
 
-static void WalkTheStack(const Core::CPUThreadGuard& guard,
-                         const std::function<void(u32)>& stack_step)
+static void WalkTheStack(
+    const Core::CPUThreadGuard& guard, const std::function<void(u32)>& stack_step)
 {
   const auto& ppc_state = guard.GetSystem().GetPPCState();
 
@@ -75,26 +75,28 @@ bool GetCallstack(const Core::CPUThreadGuard& guard, std::vector<CallstackEntry>
 
   output.push_back({
       .Name = fmt::format(" * {} [ LR = {:08x} ]\n", ppc_symbol_db.GetDescription(LR(ppc_state)),
-                          LR(ppc_state) - 4),
+          LR(ppc_state) - 4),
       .vAddress = LR(ppc_state) - 4,
   });
 
-  WalkTheStack(guard, [&output, &ppc_symbol_db](u32 func_addr) {
-    std::string func_desc = ppc_symbol_db.GetDescription(func_addr);
-    if (func_desc.empty() || func_desc == "Invalid")
-      func_desc = "(unknown)";
+  WalkTheStack(guard,
+      [&output, &ppc_symbol_db](u32 func_addr)
+      {
+        std::string func_desc = ppc_symbol_db.GetDescription(func_addr);
+        if (func_desc.empty() || func_desc == "Invalid")
+          func_desc = "(unknown)";
 
-    output.push_back({
-        .Name = fmt::format(" * {} [ addr = {:08x} ]\n", func_desc, func_addr - 4),
-        .vAddress = func_addr - 4,
-    });
-  });
+        output.push_back({
+            .Name = fmt::format(" * {} [ addr = {:08x} ]\n", func_desc, func_addr - 4),
+            .vAddress = func_addr - 4,
+        });
+      });
 
   return true;
 }
 
-void PrintCallstack(const Core::CPUThreadGuard& guard, Common::Log::LogType type,
-                    Common::Log::LogLevel level)
+void PrintCallstack(
+    const Core::CPUThreadGuard& guard, Common::Log::LogType type, Common::Log::LogLevel level)
 {
   auto& power_pc = guard.GetSystem().GetPowerPC();
   const auto& ppc_state = power_pc.GetPPCState();
@@ -113,16 +115,18 @@ void PrintCallstack(const Core::CPUThreadGuard& guard, Common::Log::LogType type
     GENERIC_LOG_FMT(type, level, " * {}  [ LR = {:08x} ]", lr_desc, LR(ppc_state));
   }
 
-  WalkTheStack(guard, [type, level, &ppc_symbol_db](u32 func_addr) {
-    std::string func_desc = ppc_symbol_db.GetDescription(func_addr);
-    if (func_desc.empty() || func_desc == "Invalid")
-      func_desc = "(unknown)";
-    GENERIC_LOG_FMT(type, level, " * {} [ addr = {:08x} ]", func_desc, func_addr);
-  });
+  WalkTheStack(guard,
+      [type, level, &ppc_symbol_db](u32 func_addr)
+      {
+        std::string func_desc = ppc_symbol_db.GetDescription(func_addr);
+        if (func_desc.empty() || func_desc == "Invalid")
+          func_desc = "(unknown)";
+        GENERIC_LOG_FMT(type, level, " * {} [ addr = {:08x} ]", func_desc, func_addr);
+      });
 }
 
 void PrintDataBuffer(const Core::System& system, Common::Log::LogType type, u32 address, u32 size,
-                     std::string_view title)
+    std::string_view title)
 {
   const u8* data = system.GetMemory().GetPointerForRange(address, size);
 

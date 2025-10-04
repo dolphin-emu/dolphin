@@ -39,8 +39,8 @@ QWidget* s_parent = nullptr;
 }  // namespace
 
 void BalloonTip::ShowBalloon(const QString& title, const QString& message,
-                             const QPoint& target_arrow_tip_position, QWidget* const parent,
-                             const ShowArrow show_arrow, const int border_width)
+    const QPoint& target_arrow_tip_position, QWidget* const parent, const ShowArrow show_arrow,
+    const int border_width)
 {
   HideBalloon();
   if (message.isEmpty() && title.isEmpty())
@@ -79,8 +79,8 @@ BalloonTip::BalloonTip(PrivateTag, const QString& title, QString message, QWidge
   QColor window_color;
   QColor text_color;
   QColor dolphin_emphasis;
-  Settings::Instance().GetToolTipStyle(window_color, text_color, dolphin_emphasis, m_border_color,
-                                       parent->palette(), palette());
+  Settings::Instance().GetToolTipStyle(
+      window_color, text_color, dolphin_emphasis, m_border_color, parent->palette(), palette());
   const auto style_sheet = QStringLiteral("background-color: #%1; color: #%2;")
                                .arg(window_color.rgba(), 0, 16)
                                .arg(text_color.rgba(), 0, 16);
@@ -88,14 +88,15 @@ BalloonTip::BalloonTip(PrivateTag, const QString& title, QString message, QWidge
 
   // Replace text in our our message if specific "tags" are used
   message.replace(QStringLiteral("<dolphin_emphasis>"),
-                  QStringLiteral("<font color=\"#%1\"><b>").arg(dolphin_emphasis.rgba(), 0, 16));
+      QStringLiteral("<font color=\"#%1\"><b>").arg(dolphin_emphasis.rgba(), 0, 16));
   message.replace(QStringLiteral("</dolphin_emphasis>"), QStringLiteral("</b></font>"));
 
   auto* const balloontip_layout = new QVBoxLayout;
   balloontip_layout->setSizeConstraint(QLayout::SetFixedSize);
   setLayout(balloontip_layout);
 
-  const auto create_label = [=](const QString& text) {
+  const auto create_label = [=](const QString& text)
+  {
     QLabel* const label = new QLabel;
     balloontip_layout->addWidget(label);
 
@@ -181,7 +182,7 @@ void BalloonTip::paintEvent(QPaintEvent* const event)
 }
 
 void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
-                                       const ShowArrow show_arrow, const int border_full_width)
+    const ShowArrow show_arrow, const int border_full_width)
 {
   const float border_half_width = border_full_width / 2.0;
 
@@ -204,8 +205,8 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
 
   // Create enough space around the layout containing the title and message to draw the balloon and
   // both arrow tips (at most one of which will be visible)
-  layout()->setContentsMargins(horizontal_margin, vertical_margin, horizontal_margin,
-                               vertical_margin);
+  layout()->setContentsMargins(
+      horizontal_margin, vertical_margin, horizontal_margin, vertical_margin);
 
   QSize size_hint = sizeHint();
 
@@ -250,8 +251,8 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
   const QRect screen_rect = screen->geometry();
 
   QPainterPath rect_path;
-  rect_path.addRoundedRect(rect_left, rect_top, rect_width, rect_height, corner_outer_radius,
-                           corner_outer_radius);
+  rect_path.addRoundedRect(
+      rect_left, rect_top, rect_width, rect_height, corner_outer_radius, corner_outer_radius);
 
   // The default pen cap style Qt::SquareCap extends drawn lines one half width before the starting
   // point and one half width after the ending point such that the starting and ending points are
@@ -379,9 +380,8 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
   const int rightmost_valid_balloontip_global_x =
       screen_rect.left() + screen_rect.width() - size_hint.width();
   // If the balloon would extend off the screen, push it left or right until it's not
-  const int actual_balloontip_global_x =
-      std::max(screen_rect.left(),
-               std::min(rightmost_valid_balloontip_global_x, target_balloontip_global_x));
+  const int actual_balloontip_global_x = std::max(screen_rect.left(),
+      std::min(rightmost_valid_balloontip_global_x, target_balloontip_global_x));
   // The tip pixel should be in the middle of the control, and arrow_tip_exterior_y is at the bottom
   // of that pixel. When arrow_at_bottom is true the arrow is above arrow_tip_exterior_y and so the
   // tip pixel is in the right place, but when it's false the arrow is below arrow_tip_exterior_y

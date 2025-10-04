@@ -13,14 +13,14 @@
 class VertexLoader_TextCoord
 {
 public:
-  static DOLPHIN_FORCE_INLINE u32 GetSize(VertexComponentFormat type, ComponentFormat format,
-                                          TexComponentCount elements)
+  static DOLPHIN_FORCE_INLINE u32 GetSize(
+      VertexComponentFormat type, ComponentFormat format, TexComponentCount elements)
   {
     return s_table_size[type][format][elements];
   }
 
-  static TPipelineFunction GetFunction(VertexComponentFormat type, ComponentFormat format,
-                                       TexComponentCount elements);
+  static TPipelineFunction GetFunction(
+      VertexComponentFormat type, ComponentFormat format, TexComponentCount elements);
 
   // It is important to synchronize tcIndex, or else the wrong texture coordinate array will be used
   static TPipelineFunction GetDummyFunction();
@@ -31,9 +31,10 @@ private:
 
   using SizeTable =
       EnumMap<EnumMap<EnumMap<u32, TexComponentCount::ST>, ComponentFormat::InvalidFloat7>,
-              VertexComponentFormat::Index16>;
+          VertexComponentFormat::Index16>;
 
-  static constexpr SizeTable s_table_size = []() consteval {
+  static constexpr SizeTable s_table_size = []() consteval
+  {
     SizeTable table{};
 
     using VCF = VertexComponentFormat;

@@ -29,8 +29,8 @@ void CachedInterpreterBlockCache::ClearRangesToFree()
   m_ranges_to_free_on_next_codegen.clear();
 }
 
-void CachedInterpreterBlockCache::WriteLinkBlock(const JitBlock::LinkData& source,
-                                                 const JitBlock* dest)
+void CachedInterpreterBlockCache::WriteLinkBlock(
+    const JitBlock::LinkData& source, const JitBlock* dest)
 {
 }
 

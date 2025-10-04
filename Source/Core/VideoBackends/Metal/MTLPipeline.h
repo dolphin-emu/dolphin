@@ -28,9 +28,8 @@ class Pipeline final : public AbstractPipeline
 {
 public:
   explicit Pipeline(const AbstractPipelineConfig& config,
-                    MRCOwned<id<MTLRenderPipelineState>> pipeline,
-                    const PipelineReflection& reflection, MTLPrimitiveType prim, MTLCullMode cull,
-                    DepthState depth, AbstractPipelineUsage usage);
+      MRCOwned<id<MTLRenderPipelineState>> pipeline, const PipelineReflection& reflection,
+      MTLPrimitiveType prim, MTLCullMode cull, DepthState depth, AbstractPipelineUsage usage);
 
   id<MTLRenderPipelineState> Get() const { return m_pipeline; }
   MTLPrimitiveType Prim() const { return m_prim; }
@@ -57,8 +56,8 @@ class ComputePipeline : public Shader
 {
 public:
   explicit ComputePipeline(ShaderStage stage, MTLComputePipelineReflection* reflection,
-                           std::string msl, MRCOwned<id<MTLFunction>> shader,
-                           MRCOwned<id<MTLComputePipelineState>> pipeline);
+      std::string msl, MRCOwned<id<MTLFunction>> shader,
+      MRCOwned<id<MTLComputePipelineState>> pipeline);
 
   id<MTLComputePipelineState> GetComputePipeline() const { return m_compute_pipeline; }
   u32 GetTextures() const { return m_textures; }

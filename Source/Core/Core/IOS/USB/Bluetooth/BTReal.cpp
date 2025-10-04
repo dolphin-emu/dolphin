@@ -102,8 +102,8 @@ std::optional<IPCReply> BluetoothRealDevice::IOCtlV(const IOCtlVRequest& request
       }
 
       const auto payload = memory.GetSpanForAddress(cmd->data_address).first(cmd->length);
-      m_lib_usb_bt_adapter->ScheduleControlTransfer(cmd->request_type, cmd->request, cmd->value,
-                                                    cmd->index, payload, GetTargetTime());
+      m_lib_usb_bt_adapter->ScheduleControlTransfer(
+          cmd->request_type, cmd->request, cmd->value, cmd->index, payload, GetTargetTime());
 
       if (opcode == HCI_CMD_RESET)
       {
@@ -246,7 +246,7 @@ auto BluetoothRealDevice::ProcessHCIEvent(BufferType buffer) -> BufferType
       {
         // The controller buffers fewer ACL packets than the original BT module.
         WARN_LOG_FMT(IOS_WIIMOTE, "HCI_CMD_READ_BUFFER_SIZE num_acl_pkts({}) < ACL_PKT_NUM({})",
-                     reply.num_acl_pkts, ACL_PKT_NUM);
+            reply.num_acl_pkts, ACL_PKT_NUM);
       }
 
       // Force the other the parameters to match that of the original BT module.
@@ -339,7 +339,7 @@ void BluetoothRealDevice::DoState(PointerWrap& p)
   {
     OSD::AddMessage("If the savestate does not load correctly, disconnect all Wii Remotes "
                     "and reload it.",
-                    OSD::Duration::NORMAL);
+        OSD::Duration::NORMAL);
   }
 
   static bool s_has_shown_savestate_warning = false;
@@ -349,7 +349,7 @@ void BluetoothRealDevice::DoState(PointerWrap& p)
     OSD::AddMessage("Savestates may not work with Bluetooth passthrough in all cases.\n"
                     "They will only work if no remote is connected when restoring the state,\n"
                     "or no remote is disconnected after saving.",
-                    OSD::Duration::VERY_LONG);
+        OSD::Duration::VERY_LONG);
     s_has_shown_savestate_warning = true;
   }
 }
@@ -504,8 +504,7 @@ void BluetoothRealDevice::LoadLinkKeys()
     if (!address)
     {
       ERROR_LOG_FMT(IOS_WIIMOTE,
-                    "Malformed MAC address ({}). Skipping loading of current link key.",
-                    address_string);
+          "Malformed MAC address ({}). Skipping loading of current link key.", address_string);
       continue;
     }
 

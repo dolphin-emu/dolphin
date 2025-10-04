@@ -20,8 +20,8 @@ namespace WiimoteReal
 // Java classes
 static jclass s_adapter_class;
 
-void WiimoteScannerAndroid::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
-                                         Wiimote*& found_board)
+void WiimoteScannerAndroid::FindWiimotes(
+    std::vector<Wiimote*>& found_wiimotes, Wiimote*& found_board)
 {
   found_wiimotes.clear();
   found_board = nullptr;
@@ -101,8 +101,8 @@ int WiimoteAndroid::IOWrite(u8 const* buf, size_t len)
   jbyte* output = m_env->GetByteArrayElements(output_array, nullptr);
   memcpy(output, buf, len);
   m_env->ReleaseByteArrayElements(output_array, output, 0);
-  int written = m_env->CallStaticIntMethod(s_adapter_class, m_output_func, m_mayflash_index,
-                                           output_array, len);
+  int written = m_env->CallStaticIntMethod(
+      s_adapter_class, m_output_func, m_mayflash_index, output_array, len);
   m_env->DeleteLocalRef(output_array);
   return written;
 }

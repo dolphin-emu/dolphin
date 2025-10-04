@@ -128,8 +128,8 @@ static thread_local bool tls_is_cpu_thread = false;
 static thread_local bool tls_is_gpu_thread = false;
 static thread_local bool tls_is_host_thread = false;
 
-static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot,
-                      WindowSystemInfo wsi);
+static void EmuThread(
+    Core::System& system, std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi);
 
 static Common::EventHook s_frame_presented =
     AfterPresentEvent::Register(&Core::Callback_FramePresented, "Core Frame Presented");
@@ -169,7 +169,7 @@ void OnFrameEnd(Core::System& system)
 std::string StopMessage(bool main_thread, std::string_view message)
 {
   return fmt::format("Stop [{} {}]\t{}", main_thread ? "Main Thread" : "Video Thread",
-                     Common::CurrentThreadId(), message);
+      Common::CurrentThreadId(), message);
 }
 
 void DisplayMessage(std::string message, int time_in_ms)
@@ -336,17 +336,19 @@ static void CPUSetInitialExecutionState(bool force_paused = false)
 {
   // The CPU starts in stepping state, and will wait until a new state is set before executing.
   // SetState must be called on the host thread, so we defer it for later.
-  QueueHostJob([force_paused](Core::System& system) {
-    bool paused = SConfig::GetInstance().bBootToPause || force_paused;
-    SetState(system, paused ? State::Paused : State::Running, true, true);
-    Host_UpdateDisasmDialog();
-    Host_Message(HostMessageID::WMUserCreate);
-  });
+  QueueHostJob(
+      [force_paused](Core::System& system)
+      {
+        bool paused = SConfig::GetInstance().bBootToPause || force_paused;
+        SetState(system, paused ? State::Paused : State::Running, true, true);
+        Host_UpdateDisasmDialog();
+        Host_Message(HostMessageID::WMUserCreate);
+      });
 }
 
 // Create the CPU thread, which is a CPU + Video thread in Single Core mode.
-static void CpuThread(Core::System& system, const std::optional<std::string>& savestate_path,
-                      bool delete_savestate)
+static void CpuThread(
+    Core::System& system, const std::optional<std::string>& savestate_path, bool delete_savestate)
 {
   DeclareAsCPUThread();
 
@@ -424,8 +426,8 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
   }
 }
 
-static void FifoPlayerThread(Core::System& system, const std::optional<std::string>& savestate_path,
-                             bool delete_savestate)
+static void FifoPlayerThread(
+    Core::System& system, const std::optional<std::string>& savestate_path, bool delete_savestate)
 {
   DeclareAsCPUThread();
 
@@ -462,17 +464,18 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
 // Initialize and create emulation thread
 // Call browser: Init():s_emu_thread().
 // See the BootManager.cpp file description for a complete call schedule.
-static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot,
-                      WindowSystemInfo wsi)
+static void EmuThread(
+    Core::System& system, std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi)
 {
   NotifyStateChanged(State::Starting);
-  Common::ScopeGuard flag_guard{[] {
-    s_state.store(State::Uninitialized);
+  Common::ScopeGuard flag_guard{[]
+      {
+        s_state.store(State::Uninitialized);
 
-    NotifyStateChanged(State::Uninitialized);
+        NotifyStateChanged(State::Uninitialized);
 
-    INFO_LOG_FMT(CONSOLE, "Stop\t\t---- Shutdown complete ----");
-  }};
+        INFO_LOG_FMT(CONSOLE, "Stop\t\t---- Shutdown complete ----");
+      }};
 
   Common::SetCurrentThreadName("Emuthread - Starting");
 
@@ -506,20 +509,21 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
     sync_sd_folder = Common::SyncSDFolderToSDImage([] { return false; }, Core::WantsDeterminism());
   }
 
-  Common::ScopeGuard sd_folder_sync_guard{[sync_sd_folder] {
-    if (sync_sd_folder && Config::Get(Config::MAIN_ALLOW_SD_WRITES))
-    {
-      const bool sync_ok = Common::SyncSDImageToSDFolder([] { return false; });
-      if (!sync_ok)
+  Common::ScopeGuard sd_folder_sync_guard{[sync_sd_folder]
       {
-        PanicAlertFmtT(
-            "Failed to sync SD card with folder. All changes made this session will be "
-            "discarded on next boot if you do not manually re-issue a resync in Config > "
-            "Wii > SD Card Settings > {0}!",
-            Common::GetStringT(Common::SD_UNPACK_TEXT));
-      }
-    }
-  }};
+        if (sync_sd_folder && Config::Get(Config::MAIN_ALLOW_SD_WRITES))
+        {
+          const bool sync_ok = Common::SyncSDImageToSDFolder([] { return false; });
+          if (!sync_ok)
+          {
+            PanicAlertFmtT(
+                "Failed to sync SD card with folder. All changes made this session will be "
+                "discarded on next boot if you do not manually re-issue a resync in Config > "
+                "Wii > SD Card Settings > {0}!",
+                Common::GetStringT(Common::SD_UNPACK_TEXT));
+          }
+        }
+      }};
 
   // Wiimote input config is loaded in OnESTitleChanged
 
@@ -532,43 +536,45 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   Common::ScopeGuard audio_guard([&system] { AudioCommon::ShutdownSoundStream(system); });
 
   HW::Init(system,
-           NetPlay::IsNetPlayRunning() ? &(boot_session_data.GetNetplaySettings()->sram) : nullptr);
+      NetPlay::IsNetPlayRunning() ? &(boot_session_data.GetNetplaySettings()->sram) : nullptr);
 
-  Common::ScopeGuard hw_guard{[&system] {
-    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "Shutting down HW"));
-    HW::Shutdown(system);
-    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "HW shutdown"));
+  Common::ScopeGuard hw_guard{[&system]
+      {
+        INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "Shutting down HW"));
+        HW::Shutdown(system);
+        INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "HW shutdown"));
 
-    // The config must be restored only after the whole HW has shut down,
-    // not when it is still running.
-    BootManager::RestoreConfig();
+        // The config must be restored only after the whole HW has shut down,
+        // not when it is still running.
+        BootManager::RestoreConfig();
 
-    PatchEngine::Shutdown();
-    HLE::Clear();
+        PatchEngine::Shutdown();
+        HLE::Clear();
 
-    CPUThreadGuard guard(system);
-    system.GetPowerPC().GetDebugInterface().Clear(guard);
-  }};
+        CPUThreadGuard guard(system);
+        system.GetPowerPC().GetDebugInterface().Clear(guard);
+      }};
 
   if (!g_video_backend->Initialize(wsi))
   {
     PanicAlertFmt("Failed to initialize video backend!");
     return;
   }
-  Common::ScopeGuard video_guard{[] {
-    // Clear on screen messages that haven't expired
-    OSD::ClearMessages();
+  Common::ScopeGuard video_guard{[]
+      {
+        // Clear on screen messages that haven't expired
+        OSD::ClearMessages();
 
-    g_video_backend->Shutdown();
-  }};
+        g_video_backend->Shutdown();
+      }};
 
   if (cpu_info.HTT)
     Config::SetBaseOrCurrent(Config::MAIN_DSP_THREAD, cpu_info.num_cores > 4);
   else
     Config::SetBaseOrCurrent(Config::MAIN_DSP_THREAD, cpu_info.num_cores > 2);
 
-  if (!system.GetDSP().GetDSPEmulator()->Initialize(system.IsWii(),
-                                                    Config::Get(Config::MAIN_DSP_THREAD)))
+  if (!system.GetDSP().GetDSPEmulator()->Initialize(
+          system.IsWii(), Config::Get(Config::MAIN_DSP_THREAD)))
   {
     PanicAlertFmt("Failed to initialize DSP emulation!");
     return;
@@ -584,7 +590,7 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
 
   // Determine the CPU thread function
   void (*cpuThreadFunc)(Core::System& system, const std::optional<std::string>& savestate_path,
-                        bool delete_savestate);
+      bool delete_savestate);
   if (std::holds_alternative<BootParameters::DFF>(boot->parameters))
     cpuThreadFunc = FifoPlayerThread;
   else
@@ -604,10 +610,11 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   // Initialise Wii filesystem contents.
   // This is done here after Boot and not in BootManager to ensure that we operate
   // with the correct title context since save copying requires title directories to exist.
-  Common::ScopeGuard wiifs_guard{[&boot_session_data] {
-    Core::CleanUpWiiFileSystemContents(boot_session_data);
-    boot_session_data.InvokeWiiSyncCleanup();
-  }};
+  Common::ScopeGuard wiifs_guard{[&boot_session_data]
+      {
+        Core::CleanUpWiiFileSystemContents(boot_session_data);
+        boot_session_data.InvokeWiiSyncCleanup();
+      }};
   if (system.IsWii())
     Core::InitializeWiiFileSystemContents(savegame_redirect, boot_session_data);
   else
@@ -669,7 +676,7 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
 // Set or get the running state
 
 void SetState(Core::System& system, State state, bool report_state_change,
-              bool override_achievement_restrictions)
+    bool override_achievement_restrictions)
 {
   // State cannot be controlled until the CPU Thread is operational
   if (s_state.load() != State::Running)
@@ -807,8 +814,8 @@ static bool PauseAndLock(Core::System& system, bool do_lock, bool unpause_on_unl
   return was_unpaused;
 }
 
-void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> function,
-                    bool wait_for_completion)
+void RunOnCPUThread(
+    Core::System& system, Common::MoveOnlyFunction<void()> function, bool wait_for_completion)
 {
   // If the CPU thread is not running, assume there is no active CPU thread we can race against.
   if (!IsRunning(system) || IsCPUThread())
@@ -825,10 +832,12 @@ void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> funct
   {
     // Trigger the event after executing the function.
     s_cpu_thread_job_finished.Reset();
-    system.GetCPU().AddCPUThreadJob([&function] {
-      function();
-      s_cpu_thread_job_finished.Set();
-    });
+    system.GetCPU().AddCPUThreadJob(
+        [&function]
+        {
+          function();
+          s_cpu_thread_job_finished.Set();
+        });
   }
   else
   {
@@ -886,9 +895,9 @@ void Callback_NewField(Core::System& system)
 void UpdateTitle(Core::System& system)
 {
   // Settings are shown the same for both extended and summary info
-  const std::string SSettings = fmt::format(
-      "{} {} | {} | {}", system.GetPowerPC().GetCPUName(), system.IsDualCoreMode() ? "DC" : "SC",
-      g_video_backend->GetDisplayName(), Config::Get(Config::MAIN_DSP_HLE) ? "HLE" : "LLE");
+  const std::string SSettings = fmt::format("{} {} | {} | {}", system.GetPowerPC().GetCPUName(),
+      system.IsDualCoreMode() ? "DC" : "SC", g_video_backend->GetDisplayName(),
+      Config::Get(Config::MAIN_DSP_HLE) ? "HLE" : "LLE");
 
   std::string message = fmt::format("{} | {}", Common::GetScmRevStr(), SSettings);
   if (Config::Get(Config::MAIN_SHOW_ACTIVE_TITLE))
@@ -1050,7 +1059,8 @@ void UpdateInputGate(bool require_focus, bool require_full_focus)
 }
 
 CPUThreadGuard::CPUThreadGuard(Core::System& system)
-    : m_system(system), m_was_cpu_thread(IsCPUThread())
+    : m_system(system)
+    , m_was_cpu_thread(IsCPUThread())
 {
   if (!m_was_cpu_thread)
     m_was_unpaused = PauseAndLock(system, true, true);

@@ -24,126 +24,114 @@ namespace IOS::HLE::USB
 {
 // Information taken from https://disneyinfinity.fandom.com/wiki/Model_Numbers
 const std::array<std::pair<const char*, const u32>, 104> list_infinity_figures = {
-    {{"The Incredibles - Mr. Incredible", 0x0F4241},
-     {"Monsters University - Sulley", 0x0F4242},
-     {"Pirates of the Caribbean - Jack Sparrow", 0x0F4243},
-     {"The Lone Ranger - The Lone Ranger", 0x0F4244},
-     {"The Lone Ranger - Tonto", 0x0F4245},
-     {"Cars - Lightning McQueen", 0x0F4246},
-     {"Cars - Holley Shiftwell", 0x0F4247},
-     {"Toy Story - Buzz Lightyear", 0x0F4248},
-     {"Toy Story - Jessie", 0x0F4249},
-     {"Monsters University - Mike Wazowski", 0x0F424A},
-     {"The Incredibles - Mrs. Incredible", 0x0F424B},
-     {"Pirates of the Caribbean - Barbossa", 0x0F424C},
-     {"Pirates of the Caribbean - Davy Jones", 0x0F424D},
-     {"Monsters University - Randy", 0x0F424E},
-     {"The Incredibles - Syndrome", 0x0F424F},
-     {"Toy Story - Woody", 0x0F4250},
-     {"Cars - Mater", 0x0F4251},
-     {"The Incredibles - Dash", 0x0F4252},
-     {"The Incredibles - Violet", 0x0F4253},
-     {"Cars - Francesco Bernoulli", 0x0F4254},
-     {"Fantasia - Sorcerer's Apprentice Mickey", 0x0F4255},
-     {"The Nightmare Before Christmas - Jack Skellington", 0x0F4256},
-     {"Tangled - Rapunzel", 0x0F4257},
-     {"Frozen - Anna", 0x0F4258},
-     {"Frozen - Elsa", 0x0F4259},
-     {"Phineas and Ferb - Phineas Flynn", 0x0F425A},
-     {"Phineas and Ferb - Agent P", 0x0F425B},
-     {"Wreck-It Ralph - Wreck-It Ralph", 0x0F425C},
-     {"Wreck-It Ralph - Vanellope von Schweetz", 0x0F425D},
-     {"The Incredibles - Mr. Incredible (Crystal)", 0x0F425E},
-     {"Pirates of the Caribbean - Jack Sparrow (Crystal)", 0x0F425F},
-     {"Monsters University - Sulley (Crystal)", 0x0F4260},
-     {"Cars - Lightning McQueen (Crystal)", 0x0F4261},
-     {"The Lone Ranger - The Lone Ranger (Crystal)", 0x0F4262},
-     {"Toy Story - Buzz Lightyear (Crystal)", 0x0F4263},
-     {"Phineas and Ferb - Agent P (Crystal)", 0x0F4264},
-     {"Fantasia - Sorcerer's Apprentice Mickey (Crystal)", 0x0F4265},
-     {"Toy Story - Buzz Lightyear (Glowing)", 0x0F4266},
-     {"The Incredibles - Pirates of the Caribbean - Monsters University Play Set", 0x1E8481},
-     {"The Lone Ranger Play Set", 0x1E8482},
-     {"Cars Play Set", 0x1E8483},
-     {"Toy Story in Space Play Set", 0x1E8484},
-     {"Bolt - Bolt's Super Strength - Ability", 0x2DC6C3},
-     {"Wreck-it Ralph - Ralph's Power of Destruction - Ability", 0x2DC6C4},
-     {"Fantasia - Chernabog's Power - Ability", 0x2DC6C5},
-     {"Cars - C.H.R.O.M.E. Damage Increaser - Ability", 0x2DC6C6},
-     {"Phineas and Ferb - Dr. Doofenshmirtz's Damage-Inator! - Ability", 0x2DC6C7},
-     {"Frankenweenie - Electro-Charge - Ability", 0x2DC6C8},
-     {"Wreck-It Ralph - Fix-It Felix's Repair Power - Ability", 0x2DC6C9},
-     {"Tangled - Rapunzel's Healing - Ability", 0x2DC6CA},
-     {"Cars - C.H.R.O.M.E. Armor Shield - Ability", 0x2DC6CB},
-     {"Toy Story - Star Command Shield - Ability", 0x2DC6CC},
-     {"The Incredibles - Violet's Force Field - Ability", 0x2DC6CD},
-     {"Pirates of the Caribbean - Pieces of Eight - Ability", 0x2DC6CE},
-     {"DuckTales - Scrooge McDuck's Lucky Dime - Ability", 0x2DC6CF},
-     {"TRON - User Control Disc - Ability", 0x2DC6D0},
-     {"Fantasia - Mickey's Sorcerer Hat - Ability", 0x2DC6D1},
-     {"Toy Story - Emperor Zurg's Wrath - Ability", 0x2DC6FE},
-     {"The Sword in the Stone - Merlin's Summon - Ability", 0x2DC6FF},
-     {"Mickey Mouse Universe - Mickey's Car - Toy (Vehicle)", 0x3D0912},
-     {"Cinderella - Cinderella's Coach - Toy (Vehicle)", 0x3D0913},
-     {"The Muppets - Electric Mayhem Bus - Toy (Vehicle)", 0x3D0914},
-     {"101 Dalmatians - Cruella De Vil's Car - Toy (Vehicle)", 0x3D0915},
-     {"Toy Story - Pizza Planet Delivery Truck - Toy (Vehicle)", 0x3D0916},
-     {"Monsters, Inc. - Mike's New Car - Toy (Vehicle)", 0x3D0917},
-     {"Disney Parks - Disney Parks Parking Lot Tram - Toy (Vehicle)", 0x3D0919},
-     {"Peter Pan, Disney Parks - Jolly Roger - Toy (Aircraft)", 0x3D091A},
-     {"Dumbo, Disney Parks - Dumbo the Flying Elephant - Toy (Aircraft)", 0x3D091B},
-     {"Bolt - Calico Helicopter - Toy (Aircraft)", 0x3D091C},
-     {"Tangled - Maximus - Toy (Mount)", 0x3D091D},
-     {"Brave - Angus - Toy (Mount)", 0x3D091E},
-     {"Aladdin - Abu the Elephant - Toy (Mount)", 0x3D091F},
-     {"The Adventures of Ichabod and Mr. Toad - Headless Horseman's Horse - Toy (Mount)", 0x3D0920},
-     {"Beauty and the Beast - Phillipe - Toy (Mount)", 0x3D0921},
-     {"Mulan - Khan - Toy (Mount)", 0x3D0922},
-     {"Tarzan - Tantor - Toy (Mount)", 0x3D0923},
-     {"Mulan - Dragon Firework Cannon - Toy (Weapon)", 0x3D0924},
-     {"Lilo & Stitch - Stitch's Blaster - Toy (Weapon)", 0x3D0925},
-     {"Toy Story, Disney Parks - Toy Story Mania Blaster - Toy (Weapon)", 0x3D0926},
-     {"Alice in Wonderland - Flamingo Croquet Mallet - Toy (Weapon)", 0x3D0927},
-     {"Up - Carl Fredricksen's Cane - Toy (Weapon)", 0x3D0928},
-     {"Lilo & Stitch - Hangin' Ten Stitch With Surfboard - Toy (Hoverboard)", 0x3D0929},
-     {"Condorman - Condorman Glider - Toy (Glider)", 0x3D092A},
-     {"WALL-E - WALL-E's Fire Extinguisher - Toy (Jetpack)", 0x3D092B},
-     {"TRON - On the Grid - Customization (Terrain)", 0x3D092C},
-     {"WALL-E - WALL-E's Collection - Customization (Terrain)", 0x3D092D},
-     {"Wreck-It Ralph - King Candy's Dessert Toppings - Customization (Terrain)", 0x3D092E},
-     {"Frankenweenie - Victor's Experiments - Customization (Terrain)", 0x3D0930},
-     {"The Nightmare Before Christmas - Jack's Scary Decorations - Customization (Terrain)",
-      0x3D0931},
-     {"Frozen - Frozen Flourish - Customization (Terrain)", 0x3D0933},
-     {"Tangled - Rapunzel's Kingdom - Customization (Terrain)", 0x3D0934},
-     {"TRON - TRON Interface - Customization (Skydome)", 0x3D0935},
-     {"WALL-E - Buy N Large Atmosphere - Customization (Skydome)", 0x3D0936},
-     {"Wreck-It Ralph - Sugar Rush Sky - Customization (Skydome)", 0x3D0937},
-     {"The Nightmare Before Christmas - Halloween Town Sky - Customization (Skydome)", 0x3D093A},
-     {"Frozen - Chill in the Air - Customization (Skydome)", 0x3D093C},
-     {"Tangled - Rapunzel's Birthday Sky - Customization (Skydome)", 0x3D093D},
-     {"Toy Story, Disney Parks - Astro Blasters Space Cruiser - Toy (Vehicle)", 0x3D0940},
-     {"Finding Nemo - Marlin's Reef - Customization (Terrain)", 0x3D0941},
-     {"Finding Nemo - Nemo's Seascape - Customization (Skydome)", 0x3D0942},
-     {"Alice in Wonderland - Alice's Wonderland - Customization (Terrain)", 0x3D0943},
-     {"Alice in Wonderland - Tulgey Wood - Customization (Skydome)", 0x3D0944},
-     {"Phineas and Ferb - Tri-State Area Terrain - Customization (Terrain)", 0x3D0945},
-     {"Phineas and Ferb - Danville Sky - Customization (Skydome)", 0x3D0946}}};
+    {{"The Incredibles - Mr. Incredible", 0x0F4241}, {"Monsters University - Sulley", 0x0F4242},
+        {"Pirates of the Caribbean - Jack Sparrow", 0x0F4243},
+        {"The Lone Ranger - The Lone Ranger", 0x0F4244}, {"The Lone Ranger - Tonto", 0x0F4245},
+        {"Cars - Lightning McQueen", 0x0F4246}, {"Cars - Holley Shiftwell", 0x0F4247},
+        {"Toy Story - Buzz Lightyear", 0x0F4248}, {"Toy Story - Jessie", 0x0F4249},
+        {"Monsters University - Mike Wazowski", 0x0F424A},
+        {"The Incredibles - Mrs. Incredible", 0x0F424B},
+        {"Pirates of the Caribbean - Barbossa", 0x0F424C},
+        {"Pirates of the Caribbean - Davy Jones", 0x0F424D},
+        {"Monsters University - Randy", 0x0F424E}, {"The Incredibles - Syndrome", 0x0F424F},
+        {"Toy Story - Woody", 0x0F4250}, {"Cars - Mater", 0x0F4251},
+        {"The Incredibles - Dash", 0x0F4252}, {"The Incredibles - Violet", 0x0F4253},
+        {"Cars - Francesco Bernoulli", 0x0F4254},
+        {"Fantasia - Sorcerer's Apprentice Mickey", 0x0F4255},
+        {"The Nightmare Before Christmas - Jack Skellington", 0x0F4256},
+        {"Tangled - Rapunzel", 0x0F4257}, {"Frozen - Anna", 0x0F4258}, {"Frozen - Elsa", 0x0F4259},
+        {"Phineas and Ferb - Phineas Flynn", 0x0F425A}, {"Phineas and Ferb - Agent P", 0x0F425B},
+        {"Wreck-It Ralph - Wreck-It Ralph", 0x0F425C},
+        {"Wreck-It Ralph - Vanellope von Schweetz", 0x0F425D},
+        {"The Incredibles - Mr. Incredible (Crystal)", 0x0F425E},
+        {"Pirates of the Caribbean - Jack Sparrow (Crystal)", 0x0F425F},
+        {"Monsters University - Sulley (Crystal)", 0x0F4260},
+        {"Cars - Lightning McQueen (Crystal)", 0x0F4261},
+        {"The Lone Ranger - The Lone Ranger (Crystal)", 0x0F4262},
+        {"Toy Story - Buzz Lightyear (Crystal)", 0x0F4263},
+        {"Phineas and Ferb - Agent P (Crystal)", 0x0F4264},
+        {"Fantasia - Sorcerer's Apprentice Mickey (Crystal)", 0x0F4265},
+        {"Toy Story - Buzz Lightyear (Glowing)", 0x0F4266},
+        {"The Incredibles - Pirates of the Caribbean - Monsters University Play Set", 0x1E8481},
+        {"The Lone Ranger Play Set", 0x1E8482}, {"Cars Play Set", 0x1E8483},
+        {"Toy Story in Space Play Set", 0x1E8484},
+        {"Bolt - Bolt's Super Strength - Ability", 0x2DC6C3},
+        {"Wreck-it Ralph - Ralph's Power of Destruction - Ability", 0x2DC6C4},
+        {"Fantasia - Chernabog's Power - Ability", 0x2DC6C5},
+        {"Cars - C.H.R.O.M.E. Damage Increaser - Ability", 0x2DC6C6},
+        {"Phineas and Ferb - Dr. Doofenshmirtz's Damage-Inator! - Ability", 0x2DC6C7},
+        {"Frankenweenie - Electro-Charge - Ability", 0x2DC6C8},
+        {"Wreck-It Ralph - Fix-It Felix's Repair Power - Ability", 0x2DC6C9},
+        {"Tangled - Rapunzel's Healing - Ability", 0x2DC6CA},
+        {"Cars - C.H.R.O.M.E. Armor Shield - Ability", 0x2DC6CB},
+        {"Toy Story - Star Command Shield - Ability", 0x2DC6CC},
+        {"The Incredibles - Violet's Force Field - Ability", 0x2DC6CD},
+        {"Pirates of the Caribbean - Pieces of Eight - Ability", 0x2DC6CE},
+        {"DuckTales - Scrooge McDuck's Lucky Dime - Ability", 0x2DC6CF},
+        {"TRON - User Control Disc - Ability", 0x2DC6D0},
+        {"Fantasia - Mickey's Sorcerer Hat - Ability", 0x2DC6D1},
+        {"Toy Story - Emperor Zurg's Wrath - Ability", 0x2DC6FE},
+        {"The Sword in the Stone - Merlin's Summon - Ability", 0x2DC6FF},
+        {"Mickey Mouse Universe - Mickey's Car - Toy (Vehicle)", 0x3D0912},
+        {"Cinderella - Cinderella's Coach - Toy (Vehicle)", 0x3D0913},
+        {"The Muppets - Electric Mayhem Bus - Toy (Vehicle)", 0x3D0914},
+        {"101 Dalmatians - Cruella De Vil's Car - Toy (Vehicle)", 0x3D0915},
+        {"Toy Story - Pizza Planet Delivery Truck - Toy (Vehicle)", 0x3D0916},
+        {"Monsters, Inc. - Mike's New Car - Toy (Vehicle)", 0x3D0917},
+        {"Disney Parks - Disney Parks Parking Lot Tram - Toy (Vehicle)", 0x3D0919},
+        {"Peter Pan, Disney Parks - Jolly Roger - Toy (Aircraft)", 0x3D091A},
+        {"Dumbo, Disney Parks - Dumbo the Flying Elephant - Toy (Aircraft)", 0x3D091B},
+        {"Bolt - Calico Helicopter - Toy (Aircraft)", 0x3D091C},
+        {"Tangled - Maximus - Toy (Mount)", 0x3D091D}, {"Brave - Angus - Toy (Mount)", 0x3D091E},
+        {"Aladdin - Abu the Elephant - Toy (Mount)", 0x3D091F},
+        {"The Adventures of Ichabod and Mr. Toad - Headless Horseman's Horse - Toy (Mount)",
+            0x3D0920},
+        {"Beauty and the Beast - Phillipe - Toy (Mount)", 0x3D0921},
+        {"Mulan - Khan - Toy (Mount)", 0x3D0922}, {"Tarzan - Tantor - Toy (Mount)", 0x3D0923},
+        {"Mulan - Dragon Firework Cannon - Toy (Weapon)", 0x3D0924},
+        {"Lilo & Stitch - Stitch's Blaster - Toy (Weapon)", 0x3D0925},
+        {"Toy Story, Disney Parks - Toy Story Mania Blaster - Toy (Weapon)", 0x3D0926},
+        {"Alice in Wonderland - Flamingo Croquet Mallet - Toy (Weapon)", 0x3D0927},
+        {"Up - Carl Fredricksen's Cane - Toy (Weapon)", 0x3D0928},
+        {"Lilo & Stitch - Hangin' Ten Stitch With Surfboard - Toy (Hoverboard)", 0x3D0929},
+        {"Condorman - Condorman Glider - Toy (Glider)", 0x3D092A},
+        {"WALL-E - WALL-E's Fire Extinguisher - Toy (Jetpack)", 0x3D092B},
+        {"TRON - On the Grid - Customization (Terrain)", 0x3D092C},
+        {"WALL-E - WALL-E's Collection - Customization (Terrain)", 0x3D092D},
+        {"Wreck-It Ralph - King Candy's Dessert Toppings - Customization (Terrain)", 0x3D092E},
+        {"Frankenweenie - Victor's Experiments - Customization (Terrain)", 0x3D0930},
+        {"The Nightmare Before Christmas - Jack's Scary Decorations - Customization (Terrain)",
+            0x3D0931},
+        {"Frozen - Frozen Flourish - Customization (Terrain)", 0x3D0933},
+        {"Tangled - Rapunzel's Kingdom - Customization (Terrain)", 0x3D0934},
+        {"TRON - TRON Interface - Customization (Skydome)", 0x3D0935},
+        {"WALL-E - Buy N Large Atmosphere - Customization (Skydome)", 0x3D0936},
+        {"Wreck-It Ralph - Sugar Rush Sky - Customization (Skydome)", 0x3D0937},
+        {"The Nightmare Before Christmas - Halloween Town Sky - Customization (Skydome)", 0x3D093A},
+        {"Frozen - Chill in the Air - Customization (Skydome)", 0x3D093C},
+        {"Tangled - Rapunzel's Birthday Sky - Customization (Skydome)", 0x3D093D},
+        {"Toy Story, Disney Parks - Astro Blasters Space Cruiser - Toy (Vehicle)", 0x3D0940},
+        {"Finding Nemo - Marlin's Reef - Customization (Terrain)", 0x3D0941},
+        {"Finding Nemo - Nemo's Seascape - Customization (Skydome)", 0x3D0942},
+        {"Alice in Wonderland - Alice's Wonderland - Customization (Terrain)", 0x3D0943},
+        {"Alice in Wonderland - Tulgey Wood - Customization (Skydome)", 0x3D0944},
+        {"Phineas and Ferb - Tri-State Area Terrain - Customization (Terrain)", 0x3D0945},
+        {"Phineas and Ferb - Danville Sky - Customization (Skydome)", 0x3D0946}}};
 
-static constexpr std::array<u8, 32> SHA1_CONSTANT = {
-    0xAF, 0x62, 0xD2, 0xEC, 0x04, 0x91, 0x96, 0x8C, 0xC5, 0x2A, 0x1A, 0x71, 0x65, 0xF8, 0x65, 0xFE,
-    0x28, 0x63, 0x29, 0x20, 0x44, 0x69, 0x73, 0x6e, 0x65, 0x79, 0x20, 0x32, 0x30, 0x31, 0x33};
+static constexpr std::array<u8, 32> SHA1_CONSTANT = {0xAF, 0x62, 0xD2, 0xEC, 0x04, 0x91, 0x96, 0x8C,
+    0xC5, 0x2A, 0x1A, 0x71, 0x65, 0xF8, 0x65, 0xFE, 0x28, 0x63, 0x29, 0x20, 0x44, 0x69, 0x73, 0x6e,
+    0x65, 0x79, 0x20, 0x32, 0x30, 0x31, 0x33};
 
-static constexpr std::array<u8, 16> BLANK_BLOCK = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+static constexpr std::array<u8, 16> BLANK_BLOCK = {
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 InfinityUSB::InfinityUSB()
 {
   m_vid = 0x0E6F;
   m_pid = 0x0129;
   m_id = (u64(m_vid) << 32 | u64(m_pid) << 16 | u64(9) << 8 | u64(1));
-  m_device_descriptor = DeviceDescriptor{0x12,   0x1,    0x200, 0x0, 0x0, 0x0, 0x20,
-                                         0x0E6F, 0x0129, 0x200, 0x1, 0x2, 0x3, 0x1};
+  m_device_descriptor = DeviceDescriptor{
+      0x12, 0x1, 0x200, 0x0, 0x0, 0x0, 0x20, 0x0E6F, 0x0129, 0x200, 0x1, 0x2, 0x3, 0x1};
   m_config_descriptor.emplace_back(ConfigDescriptor{0x9, 0x2, 0x29, 0x1, 0x1, 0x0, 0x80, 0xFA});
   m_interface_descriptor.emplace_back(
       InterfaceDescriptor{0x9, 0x4, 0x0, 0x0, 0x2, 0x3, 0x0, 0x0, 0x0});
@@ -198,7 +186,7 @@ bool InfinityUSB::AttachAndChangeInterface(const u8 interface)
 int InfinityUSB::CancelTransfer(const u8 endpoint)
 {
   INFO_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Cancelling transfers (endpoint {:#x})", m_vid, m_pid,
-               m_active_interface, endpoint);
+      m_active_interface, endpoint);
 
   return IPC_SUCCESS;
 }
@@ -206,7 +194,7 @@ int InfinityUSB::CancelTransfer(const u8 endpoint)
 int InfinityUSB::ChangeInterface(const u8 interface)
 {
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Changing interface to {}", m_vid, m_pid,
-                m_active_interface, interface);
+      m_active_interface, interface);
   m_active_interface = interface;
   return 0;
 }
@@ -224,22 +212,22 @@ int InfinityUSB::SetAltSetting(u8 alt_setting)
 int InfinityUSB::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
 {
   DEBUG_LOG_FMT(IOS_USB,
-                "[{:04x}:{:04x} {}] Control: bRequestType={:02x} bRequest={:02x} wValue={:04x}"
-                " wIndex={:04x} wLength={:04x}",
-                m_vid, m_pid, m_active_interface, cmd->request_type, cmd->request, cmd->value,
-                cmd->index, cmd->length);
+      "[{:04x}:{:04x} {}] Control: bRequestType={:02x} bRequest={:02x} wValue={:04x}"
+      " wIndex={:04x} wLength={:04x}",
+      m_vid, m_pid, m_active_interface, cmd->request_type, cmd->request, cmd->value, cmd->index,
+      cmd->length);
   return 0;
 }
 int InfinityUSB::SubmitTransfer(std::unique_ptr<BulkMessage> cmd)
 {
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Bulk: length={:04x} endpoint={:02x}", m_vid, m_pid,
-                m_active_interface, cmd->length, cmd->endpoint);
+      m_active_interface, cmd->length, cmd->endpoint);
   return 0;
 }
 int InfinityUSB::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
 {
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Interrupt: length={:04x} endpoint={:02x}", m_vid,
-                m_pid, m_active_interface, cmd->length, cmd->endpoint);
+      m_pid, m_active_interface, cmd->length, cmd->endpoint);
 
   auto& system = cmd->GetEmulationKernel().GetSystem();
   auto& memory = system.GetMemory();
@@ -297,8 +285,8 @@ int InfinityUSB::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
     case 0x80:
     {
       // Activate Base, constant response (might be specific based on device type)
-      response_data = {0xaa, 0x15, 0x00, 0x00, 0x0f, 0x01, 0x00, 0x03, 0x02, 0x09, 0x09, 0x43,
-                       0x20, 0x32, 0x62, 0x36, 0x36, 0x4b, 0x34, 0x99, 0x67, 0x31, 0x93, 0x8c};
+      response_data = {0xaa, 0x15, 0x00, 0x00, 0x0f, 0x01, 0x00, 0x03, 0x02, 0x09, 0x09, 0x43, 0x20,
+          0x32, 0x62, 0x36, 0x36, 0x4b, 0x34, 0x99, 0x67, 0x31, 0x93, 0x8c};
       break;
     }
     case 0x81:
@@ -407,13 +395,13 @@ int InfinityUSB::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
 int InfinityUSB::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
 {
   DEBUG_LOG_FMT(IOS_USB,
-                "[{:04x}:{:04x} {}] Isochronous: length={:04x} endpoint={:02x} num_packets={:02x}",
-                m_vid, m_pid, m_active_interface, cmd->length, cmd->endpoint, cmd->num_packets);
+      "[{:04x}:{:04x} {}] Isochronous: length={:04x} endpoint={:02x} num_packets={:02x}", m_vid,
+      m_pid, m_active_interface, cmd->length, cmd->endpoint, cmd->num_packets);
   return 0;
 }
 
-void InfinityUSB::ScheduleTransfer(std::unique_ptr<TransferCommand> command,
-                                   const std::array<u8, 32>& data, u64 expected_time_us)
+void InfinityUSB::ScheduleTransfer(
+    std::unique_ptr<TransferCommand> command, const std::array<u8, 32>& data, u64 expected_time_us)
 {
   command->FillBuffer(data.data(), 32);
   command->ScheduleTransferCompletion(32, expected_time_us);
@@ -512,8 +500,8 @@ void InfinityBase::QueryBlock(u8 fig_num, u8 block, std::array<u8, 32>& reply_bu
   reply_buf[20] = GenerateChecksum(reply_buf, 20);
 }
 
-void InfinityBase::WriteBlock(u8 fig_num, u8 block, const u8* to_write_buf,
-                              std::array<u8, 32>& reply_buf, u8 sequence)
+void InfinityBase::WriteBlock(
+    u8 fig_num, u8 block, const u8* to_write_buf, std::array<u8, 32>& reply_buf, u8 sequence)
 {
   std::lock_guard lock(m_infinity_mutex);
 
@@ -542,44 +530,43 @@ void InfinityBase::WriteBlock(u8 fig_num, u8 block, const u8* to_write_buf,
 
 static u32 InfinityCRC32(const std::array<u8, 16>& buffer)
 {
-  static constexpr std::array<u32, 256> CRC32_TABLE{
-      0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f, 0xe963a535,
-      0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988, 0x09b64c2b, 0x7eb17cbd,
-      0xe7b82d07, 0x90bf1d91, 0x1db71064, 0x6ab020f2, 0xf3b97148, 0x84be41de, 0x1adad47d,
-      0x6ddde4eb, 0xf4d4b551, 0x83d385c7, 0x136c9856, 0x646ba8c0, 0xfd62f97a, 0x8a65c9ec,
-      0x14015c4f, 0x63066cd9, 0xfa0f3d63, 0x8d080df5, 0x3b6e20c8, 0x4c69105e, 0xd56041e4,
-      0xa2677172, 0x3c03e4d1, 0x4b04d447, 0xd20d85fd, 0xa50ab56b, 0x35b5a8fa, 0x42b2986c,
-      0xdbbbc9d6, 0xacbcf940, 0x32d86ce3, 0x45df5c75, 0xdcd60dcf, 0xabd13d59, 0x26d930ac,
-      0x51de003a, 0xc8d75180, 0xbfd06116, 0x21b4f4b5, 0x56b3c423, 0xcfba9599, 0xb8bda50f,
-      0x2802b89e, 0x5f058808, 0xc60cd9b2, 0xb10be924, 0x2f6f7c87, 0x58684c11, 0xc1611dab,
-      0xb6662d3d, 0x76dc4190, 0x01db7106, 0x98d220bc, 0xefd5102a, 0x71b18589, 0x06b6b51f,
-      0x9fbfe4a5, 0xe8b8d433, 0x7807c9a2, 0x0f00f934, 0x9609a88e, 0xe10e9818, 0x7f6a0dbb,
-      0x086d3d2d, 0x91646c97, 0xe6635c01, 0x6b6b51f4, 0x1c6c6162, 0x856530d8, 0xf262004e,
-      0x6c0695ed, 0x1b01a57b, 0x8208f4c1, 0xf50fc457, 0x65b0d9c6, 0x12b7e950, 0x8bbeb8ea,
-      0xfcb9887c, 0x62dd1ddf, 0x15da2d49, 0x8cd37cf3, 0xfbd44c65, 0x4db26158, 0x3ab551ce,
-      0xa3bc0074, 0xd4bb30e2, 0x4adfa541, 0x3dd895d7, 0xa4d1c46d, 0xd3d6f4fb, 0x4369e96a,
-      0x346ed9fc, 0xad678846, 0xda60b8d0, 0x44042d73, 0x33031de5, 0xaa0a4c5f, 0xdd0d7cc9,
-      0x5005713c, 0x270241aa, 0xbe0b1010, 0xc90c2086, 0x5768b525, 0x206f85b3, 0xb966d409,
-      0xce61e49f, 0x5edef90e, 0x29d9c998, 0xb0d09822, 0xc7d7a8b4, 0x59b33d17, 0x2eb40d81,
-      0xb7bd5c3b, 0xc0ba6cad, 0xedb88320, 0x9abfb3b6, 0x03b6e20c, 0x74b1d29a, 0xead54739,
-      0x9dd277af, 0x04db2615, 0x73dc1683, 0xe3630b12, 0x94643b84, 0x0d6d6a3e, 0x7a6a5aa8,
-      0xe40ecf0b, 0x9309ff9d, 0x0a00ae27, 0x7d079eb1, 0xf00f9344, 0x8708a3d2, 0x1e01f268,
-      0x6906c2fe, 0xf762575d, 0x806567cb, 0x196c3671, 0x6e6b06e7, 0xfed41b76, 0x89d32be0,
-      0x10da7a5a, 0x67dd4acc, 0xf9b9df6f, 0x8ebeeff9, 0x17b7be43, 0x60b08ed5, 0xd6d6a3e8,
-      0xa1d1937e, 0x38d8c2c4, 0x4fdff252, 0xd1bb67f1, 0xa6bc5767, 0x3fb506dd, 0x48b2364b,
-      0xd80d2bda, 0xaf0a1b4c, 0x36034af6, 0x41047a60, 0xdf60efc3, 0xa867df55, 0x316e8eef,
-      0x4669be79, 0xcb61b38c, 0xbc66831a, 0x256fd2a0, 0x5268e236, 0xcc0c7795, 0xbb0b4703,
-      0x220216b9, 0x5505262f, 0xc5ba3bbe, 0xb2bd0b28, 0x2bb45a92, 0x5cb36a04, 0xc2d7ffa7,
-      0xb5d0cf31, 0x2cd99e8b, 0x5bdeae1d, 0x9b64c2b0, 0xec63f226, 0x756aa39c, 0x026d930a,
-      0x9c0906a9, 0xeb0e363f, 0x72076785, 0x05005713, 0x95bf4a82, 0xe2b87a14, 0x7bb12bae,
-      0x0cb61b38, 0x92d28e9b, 0xe5d5be0d, 0x7cdcefb7, 0x0bdbdf21, 0x86d3d2d4, 0xf1d4e242,
-      0x68ddb3f8, 0x1fda836e, 0x81be16cd, 0xf6b9265b, 0x6fb077e1, 0x18b74777, 0x88085ae6,
-      0xff0f6a70, 0x66063bca, 0x11010b5c, 0x8f659eff, 0xf862ae69, 0x616bffd3, 0x166ccf45,
-      0xa00ae278, 0xd70dd2ee, 0x4e048354, 0x3903b3c2, 0xa7672661, 0xd06016f7, 0x4969474d,
-      0x3e6e77db, 0xaed16a4a, 0xd9d65adc, 0x40df0b66, 0x37d83bf0, 0xa9bcae53, 0xdebb9ec5,
-      0x47b2cf7f, 0x30b5ffe9, 0xbdbdf21c, 0xcabac28a, 0x53b39330, 0x24b4a3a6, 0xbad03605,
-      0xcdd70693, 0x54de5729, 0x23d967bf, 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94,
-      0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d};
+  static constexpr std::array<u32, 256> CRC32_TABLE{0x00000000, 0x77073096, 0xee0e612c, 0x990951ba,
+      0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e,
+      0x97d2d988, 0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91, 0x1db71064, 0x6ab020f2,
+      0xf3b97148, 0x84be41de, 0x1adad47d, 0x6ddde4eb, 0xf4d4b551, 0x83d385c7, 0x136c9856,
+      0x646ba8c0, 0xfd62f97a, 0x8a65c9ec, 0x14015c4f, 0x63066cd9, 0xfa0f3d63, 0x8d080df5,
+      0x3b6e20c8, 0x4c69105e, 0xd56041e4, 0xa2677172, 0x3c03e4d1, 0x4b04d447, 0xd20d85fd,
+      0xa50ab56b, 0x35b5a8fa, 0x42b2986c, 0xdbbbc9d6, 0xacbcf940, 0x32d86ce3, 0x45df5c75,
+      0xdcd60dcf, 0xabd13d59, 0x26d930ac, 0x51de003a, 0xc8d75180, 0xbfd06116, 0x21b4f4b5,
+      0x56b3c423, 0xcfba9599, 0xb8bda50f, 0x2802b89e, 0x5f058808, 0xc60cd9b2, 0xb10be924,
+      0x2f6f7c87, 0x58684c11, 0xc1611dab, 0xb6662d3d, 0x76dc4190, 0x01db7106, 0x98d220bc,
+      0xefd5102a, 0x71b18589, 0x06b6b51f, 0x9fbfe4a5, 0xe8b8d433, 0x7807c9a2, 0x0f00f934,
+      0x9609a88e, 0xe10e9818, 0x7f6a0dbb, 0x086d3d2d, 0x91646c97, 0xe6635c01, 0x6b6b51f4,
+      0x1c6c6162, 0x856530d8, 0xf262004e, 0x6c0695ed, 0x1b01a57b, 0x8208f4c1, 0xf50fc457,
+      0x65b0d9c6, 0x12b7e950, 0x8bbeb8ea, 0xfcb9887c, 0x62dd1ddf, 0x15da2d49, 0x8cd37cf3,
+      0xfbd44c65, 0x4db26158, 0x3ab551ce, 0xa3bc0074, 0xd4bb30e2, 0x4adfa541, 0x3dd895d7,
+      0xa4d1c46d, 0xd3d6f4fb, 0x4369e96a, 0x346ed9fc, 0xad678846, 0xda60b8d0, 0x44042d73,
+      0x33031de5, 0xaa0a4c5f, 0xdd0d7cc9, 0x5005713c, 0x270241aa, 0xbe0b1010, 0xc90c2086,
+      0x5768b525, 0x206f85b3, 0xb966d409, 0xce61e49f, 0x5edef90e, 0x29d9c998, 0xb0d09822,
+      0xc7d7a8b4, 0x59b33d17, 0x2eb40d81, 0xb7bd5c3b, 0xc0ba6cad, 0xedb88320, 0x9abfb3b6,
+      0x03b6e20c, 0x74b1d29a, 0xead54739, 0x9dd277af, 0x04db2615, 0x73dc1683, 0xe3630b12,
+      0x94643b84, 0x0d6d6a3e, 0x7a6a5aa8, 0xe40ecf0b, 0x9309ff9d, 0x0a00ae27, 0x7d079eb1,
+      0xf00f9344, 0x8708a3d2, 0x1e01f268, 0x6906c2fe, 0xf762575d, 0x806567cb, 0x196c3671,
+      0x6e6b06e7, 0xfed41b76, 0x89d32be0, 0x10da7a5a, 0x67dd4acc, 0xf9b9df6f, 0x8ebeeff9,
+      0x17b7be43, 0x60b08ed5, 0xd6d6a3e8, 0xa1d1937e, 0x38d8c2c4, 0x4fdff252, 0xd1bb67f1,
+      0xa6bc5767, 0x3fb506dd, 0x48b2364b, 0xd80d2bda, 0xaf0a1b4c, 0x36034af6, 0x41047a60,
+      0xdf60efc3, 0xa867df55, 0x316e8eef, 0x4669be79, 0xcb61b38c, 0xbc66831a, 0x256fd2a0,
+      0x5268e236, 0xcc0c7795, 0xbb0b4703, 0x220216b9, 0x5505262f, 0xc5ba3bbe, 0xb2bd0b28,
+      0x2bb45a92, 0x5cb36a04, 0xc2d7ffa7, 0xb5d0cf31, 0x2cd99e8b, 0x5bdeae1d, 0x9b64c2b0,
+      0xec63f226, 0x756aa39c, 0x026d930a, 0x9c0906a9, 0xeb0e363f, 0x72076785, 0x05005713,
+      0x95bf4a82, 0xe2b87a14, 0x7bb12bae, 0x0cb61b38, 0x92d28e9b, 0xe5d5be0d, 0x7cdcefb7,
+      0x0bdbdf21, 0x86d3d2d4, 0xf1d4e242, 0x68ddb3f8, 0x1fda836e, 0x81be16cd, 0xf6b9265b,
+      0x6fb077e1, 0x18b74777, 0x88085ae6, 0xff0f6a70, 0x66063bca, 0x11010b5c, 0x8f659eff,
+      0xf862ae69, 0x616bffd3, 0x166ccf45, 0xa00ae278, 0xd70dd2ee, 0x4e048354, 0x3903b3c2,
+      0xa7672661, 0xd06016f7, 0x4969474d, 0x3e6e77db, 0xaed16a4a, 0xd9d65adc, 0x40df0b66,
+      0x37d83bf0, 0xa9bcae53, 0xdebb9ec5, 0x47b2cf7f, 0x30b5ffe9, 0xbdbdf21c, 0xcabac28a,
+      0x53b39330, 0x24b4a3a6, 0xbad03605, 0xcdd70693, 0x54de5729, 0x23d967bf, 0xb3667a2e,
+      0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d};
 
   // Infinity figures calculate their CRC32 based on 12 bytes in the block of 16
   u32 ret = 0;
@@ -592,9 +579,9 @@ static u32 InfinityCRC32(const std::array<u8, 16>& buffer)
   return ret;
 }
 
-std::string
-InfinityBase::LoadFigure(const std::array<u8, INFINITY_NUM_BLOCKS * INFINITY_BLOCK_SIZE>& buf,
-                         File::IOFile in_file, FigureUIPosition position)
+std::string InfinityBase::LoadFigure(
+    const std::array<u8, INFINITY_NUM_BLOCKS * INFINITY_BLOCK_SIZE>& buf, File::IOFile in_file,
+    FigureUIPosition position)
 {
   std::lock_guard lock(m_infinity_mutex);
   u8 order_added;
@@ -634,8 +621,8 @@ InfinityBase::LoadFigure(const std::array<u8, INFINITY_NUM_BLOCKS * INFINITY_BLO
     return "Unknown Figure";
   }
 
-  std::array<u8, 32> figure_change_response = {0xab, 0x04,        static_cast<u8>(derived_position),
-                                               0x09, order_added, 0x00};
+  std::array<u8, 32> figure_change_response = {
+      0xab, 0x04, static_cast<u8>(derived_position), 0x09, order_added, 0x00};
   figure_change_response[6] = GenerateChecksum(figure_change_response, 6);
   m_figure_added_removed_response.push(figure_change_response);
 
@@ -816,8 +803,8 @@ std::array<u8, 16> InfinityBase::GenerateInfinityFigureKey(const std::vector<u8>
 
 std::array<u8, 16> InfinityBase::GenerateBlankFigureData(u32 figure_num)
 {
-  std::array<u8, 16> figure_data = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                    0x00, 0x00, 0x00, 0x01, 0xD1, 0x1F};
+  std::array<u8, 16> figure_data = {
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xD1, 0x1F};
 
   // Figure Number, input by end user
   figure_data[1] = u8((figure_num >> 16) & 0xFF);

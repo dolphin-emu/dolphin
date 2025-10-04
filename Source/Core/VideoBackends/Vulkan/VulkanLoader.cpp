@@ -67,8 +67,8 @@ static bool OpenVulkanLibrary(bool force_system_library)
     std::string driver_dir = File::GetGpuDriverDirectory(D_GPU_DRIVERS_EXTRACTED);
     INFO_LOG_FMT(HOST_GPU, "Loading driver: {}", driver_lib_name);
 
-    s_vulkan_module = adrenotools_open_libvulkan(
-        RTLD_NOW, ADRENOTOOLS_DRIVER_FILE_REDIRECT | ADRENOTOOLS_DRIVER_CUSTOM, tmp_dir.c_str(),
+    s_vulkan_module = adrenotools_open_libvulkan(RTLD_NOW,
+        ADRENOTOOLS_DRIVER_FILE_REDIRECT | ADRENOTOOLS_DRIVER_CUSTOM, tmp_dir.c_str(),
         hook_dir.c_str(), driver_dir.c_str(), driver_lib_name.c_str(), file_redirect_dir.c_str(),
         nullptr);
     if (s_vulkan_module.IsOpen())
@@ -123,7 +123,8 @@ void UnloadVulkanLibrary()
 bool LoadVulkanInstanceFunctions(VkInstance instance)
 {
   bool required_functions_missing = false;
-  auto LoadFunction = [&](PFN_vkVoidFunction* func_ptr, const char* name, bool is_required) {
+  auto LoadFunction = [&](PFN_vkVoidFunction* func_ptr, const char* name, bool is_required)
+  {
     *func_ptr = vkGetInstanceProcAddr(instance, name);
     if (!(*func_ptr) && is_required)
     {
@@ -143,7 +144,8 @@ bool LoadVulkanInstanceFunctions(VkInstance instance)
 bool LoadVulkanDeviceFunctions(VkDevice device)
 {
   bool required_functions_missing = false;
-  auto LoadFunction = [&](PFN_vkVoidFunction* func_ptr, const char* name, bool is_required) {
+  auto LoadFunction = [&](PFN_vkVoidFunction* func_ptr, const char* name, bool is_required)
+  {
     *func_ptr = vkGetDeviceProcAddr(device, name);
     if (!(*func_ptr) && is_required)
     {
@@ -242,10 +244,10 @@ const char* VkResultToString(VkResult res)
 }
 
 void LogVulkanResult(Common::Log::LogLevel level, const char* func_name, const int line,
-                     VkResult res, const char* msg)
+    VkResult res, const char* msg)
 {
   GENERIC_LOG_FMT(Common::Log::LogType::VIDEO, level, "({}:{}) {} ({}: {})", func_name, line, msg,
-                  static_cast<int>(res), VkResultToString(res));
+      static_cast<int>(res), VkResultToString(res));
 }
 
 #ifdef ANDROID

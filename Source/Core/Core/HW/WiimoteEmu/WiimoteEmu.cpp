@@ -52,15 +52,14 @@ namespace WiimoteEmu
 {
 using namespace WiimoteCommon;
 
-static const u16 button_bitmasks[] = {
-    Wiimote::BUTTON_A,     Wiimote::BUTTON_B,    Wiimote::BUTTON_ONE, Wiimote::BUTTON_TWO,
-    Wiimote::BUTTON_MINUS, Wiimote::BUTTON_PLUS, Wiimote::BUTTON_HOME};
+static const u16 button_bitmasks[] = {Wiimote::BUTTON_A, Wiimote::BUTTON_B, Wiimote::BUTTON_ONE,
+    Wiimote::BUTTON_TWO, Wiimote::BUTTON_MINUS, Wiimote::BUTTON_PLUS, Wiimote::BUTTON_HOME};
 
-static const u16 dpad_bitmasks[] = {Wiimote::PAD_UP, Wiimote::PAD_DOWN, Wiimote::PAD_LEFT,
-                                    Wiimote::PAD_RIGHT};
+static const u16 dpad_bitmasks[] = {
+    Wiimote::PAD_UP, Wiimote::PAD_DOWN, Wiimote::PAD_LEFT, Wiimote::PAD_RIGHT};
 
-static const u16 dpad_sideways_bitmasks[] = {Wiimote::PAD_RIGHT, Wiimote::PAD_LEFT, Wiimote::PAD_UP,
-                                             Wiimote::PAD_DOWN};
+static const u16 dpad_sideways_bitmasks[] = {
+    Wiimote::PAD_RIGHT, Wiimote::PAD_LEFT, Wiimote::PAD_UP, Wiimote::PAD_DOWN};
 
 void Wiimote::Reset()
 {
@@ -135,7 +134,16 @@ void Wiimote::Reset()
     // Accel calibration:
     // Last byte is a checksum.
     std::array<u8, 10> accel_calibration = {
-        ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_ZERO_G, 0, ACCEL_ONE_G, ACCEL_ONE_G, ACCEL_ONE_G, 0, 0, 0,
+        ACCEL_ZERO_G,
+        ACCEL_ZERO_G,
+        ACCEL_ZERO_G,
+        0,
+        ACCEL_ONE_G,
+        ACCEL_ONE_G,
+        ACCEL_ONE_G,
+        0,
+        0,
+        0,
     };
     UpdateCalibrationDataChecksum(accel_calibration, 1);
     m_eeprom.accel_calibration_1 = accel_calibration;
@@ -143,9 +151,9 @@ void Wiimote::Reset()
 
     // TODO: Is this needed?
     // Data of unknown purpose:
-    constexpr std::array<u8, 24> EEPROM_DATA_16D0 = {
-        0x00, 0x00, 0x00, 0xFF, 0x11, 0xEE, 0x00, 0x00, 0x33, 0xCC, 0x44, 0xBB,
-        0x00, 0x00, 0x66, 0x99, 0x77, 0x88, 0x00, 0x00, 0x2B, 0x01, 0xE8, 0x13};
+    constexpr std::array<u8, 24> EEPROM_DATA_16D0 = {0x00, 0x00, 0x00, 0xFF, 0x11, 0xEE, 0x00, 0x00,
+        0x33, 0xCC, 0x44, 0xBB, 0x00, 0x00, 0x66, 0x99, 0x77, 0x88, 0x00, 0x00, 0x2B, 0x01, 0xE8,
+        0x13};
     m_eeprom.unk_2 = EEPROM_DATA_16D0;
 
     std::string mii_file = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin";
@@ -178,7 +186,7 @@ void Wiimote::Reset()
     // Switch to desired M+ status and extension (if any).
     // M+ and EXT are reset on attachment.
     HandleExtensionSwap(static_cast<ExtensionNumber>(m_attachments->GetSelectedAttachment()),
-                        m_motion_plus_setting.GetValue());
+        m_motion_plus_setting.GetValue());
   }
 
   // Reset sub-devices.
@@ -230,28 +238,28 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   const auto fov_default =
       Common::DVec2(CameraLogic::CAMERA_FOV_X, CameraLogic::CAMERA_FOV_Y) / MathUtil::TAU * 360;
   m_imu_ir->AddSetting(&m_fov_x_setting,
-                       // i18n: FOV stands for "Field of view".
-                       {_trans("Horizontal FOV"),
-                        // i18n: The symbol/abbreviation for degrees (unit of angular measure).
-                        _trans("°"),
-                        // i18n: Refers to emulated wii remote camera properties.
-                        _trans("Camera field of view (affects sensitivity of pointing).")},
-                       fov_default.x, 0.01, 180);
+      // i18n: FOV stands for "Field of view".
+      {_trans("Horizontal FOV"),
+          // i18n: The symbol/abbreviation for degrees (unit of angular measure).
+          _trans("°"),
+          // i18n: Refers to emulated wii remote camera properties.
+          _trans("Camera field of view (affects sensitivity of pointing).")},
+      fov_default.x, 0.01, 180);
   m_imu_ir->AddSetting(&m_fov_y_setting,
-                       // i18n: FOV stands for "Field of view".
-                       {_trans("Vertical FOV"),
-                        // i18n: The symbol/abbreviation for degrees (unit of angular measure).
-                        _trans("°"),
-                        // i18n: Refers to emulated wii remote camera properties.
-                        _trans("Camera field of view (affects sensitivity of pointing).")},
-                       fov_default.y, 0.01, 180);
+      // i18n: FOV stands for "Field of view".
+      {_trans("Vertical FOV"),
+          // i18n: The symbol/abbreviation for degrees (unit of angular measure).
+          _trans("°"),
+          // i18n: Refers to emulated wii remote camera properties.
+          _trans("Camera field of view (affects sensitivity of pointing).")},
+      fov_default.y, 0.01, 180);
 
   groups.emplace_back(m_ir_passthrough = new ControllerEmu::IRPassthrough(
                           IR_PASSTHROUGH_GROUP, _trans("Point (Passthrough)")));
   groups.emplace_back(m_imu_accelerometer = new ControllerEmu::IMUAccelerometer(
                           ACCELEROMETER_GROUP, _trans("Accelerometer")));
-  groups.emplace_back(m_imu_gyroscope =
-                          new ControllerEmu::IMUGyroscope(GYROSCOPE_GROUP, _trans("Gyroscope")));
+  groups.emplace_back(
+      m_imu_gyroscope = new ControllerEmu::IMUGyroscope(GYROSCOPE_GROUP, _trans("Gyroscope")));
 
   // Hotkeys
   groups.emplace_back(m_hotkeys = new ControllerEmu::ModifySettingsButton(_trans("Hotkeys")));
@@ -286,24 +294,24 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
 
   m_options->AddSetting(&m_speaker_logic.m_speaker_pan_setting,
-                        {_trans("Speaker Pan"),
-                         // i18n: The percent symbol.
-                         _trans("%")},
-                        0, -100, 100);
+      {_trans("Speaker Pan"),
+          // i18n: The percent symbol.
+          _trans("%")},
+      0, -100, 100);
 
   m_options->AddSetting(&m_battery_setting,
-                        {_trans("Battery"),
-                         // i18n: The percent symbol.
-                         _trans("%")},
-                        95, 0, 100);
+      {_trans("Battery"),
+          // i18n: The percent symbol.
+          _trans("%")},
+      95, 0, 100);
 
   // Note: "Upright" and "Sideways" options can be enabled at the same time which produces an
   // orientation where the wiimote points towards the left with the buttons towards you.
-  m_options->AddSetting(&m_upright_setting,
-                        {UPRIGHT_OPTION, nullptr, nullptr, _trans("Upright Wii Remote")}, false);
+  m_options->AddSetting(
+      &m_upright_setting, {UPRIGHT_OPTION, nullptr, nullptr, _trans("Upright Wii Remote")}, false);
 
   m_options->AddSetting(&m_sideways_setting,
-                        {SIDEWAYS_OPTION, nullptr, nullptr, _trans("Sideways Wii Remote")}, false);
+      {SIDEWAYS_OPTION, nullptr, nullptr, _trans("Sideways Wii Remote")}, false);
 
   Reset();
 
@@ -393,21 +401,21 @@ ControllerEmu::ControlGroup* Wiimote::GetDrumsGroup(DrumsGroup group) const
 ControllerEmu::ControlGroup* Wiimote::GetTurntableGroup(TurntableGroup group) const
 {
   return static_cast<Turntable*>(
-             m_attachments->GetAttachmentList()[ExtensionNumber::TURNTABLE].get())
+      m_attachments->GetAttachmentList()[ExtensionNumber::TURNTABLE].get())
       ->GetGroup(group);
 }
 
 ControllerEmu::ControlGroup* Wiimote::GetUDrawTabletGroup(UDrawTabletGroup group) const
 {
   return static_cast<UDrawTablet*>(
-             m_attachments->GetAttachmentList()[ExtensionNumber::UDRAW_TABLET].get())
+      m_attachments->GetAttachmentList()[ExtensionNumber::UDRAW_TABLET].get())
       ->GetGroup(group);
 }
 
 ControllerEmu::ControlGroup* Wiimote::GetDrawsomeTabletGroup(DrawsomeTabletGroup group) const
 {
   return static_cast<DrawsomeTablet*>(
-             m_attachments->GetAttachmentList()[ExtensionNumber::DRAWSOME_TABLET].get())
+      m_attachments->GetAttachmentList()[ExtensionNumber::DRAWSOME_TABLET].get())
       ->GetGroup(group);
 }
 
@@ -420,7 +428,7 @@ ControllerEmu::ControlGroup* Wiimote::GetTaTaConGroup(TaTaConGroup group) const
 ControllerEmu::ControlGroup* Wiimote::GetShinkansenGroup(ShinkansenGroup group) const
 {
   return static_cast<Shinkansen*>(
-             m_attachments->GetAttachmentList()[ExtensionNumber::SHINKANSEN].get())
+      m_attachments->GetAttachmentList()[ExtensionNumber::SHINKANSEN].get())
       ->GetGroup(group);
 }
 
@@ -447,8 +455,8 @@ void Wiimote::UpdateButtonsStatus(const DesiredWiimoteState& target_state)
   m_status.buttons.hex = target_state.buttons.hex & ButtonData::BUTTON_MASK;
 }
 
-static std::array<CameraPoint, CameraLogic::NUM_POINTS>
-GetPassthroughCameraPoints(ControllerEmu::IRPassthrough* ir_passthrough)
+static std::array<CameraPoint, CameraLogic::NUM_POINTS> GetPassthroughCameraPoints(
+    ControllerEmu::IRPassthrough* ir_passthrough)
 {
   std::array<CameraPoint, CameraLogic::NUM_POINTS> camera_points;
   for (size_t i = 0; i < camera_points.size(); ++i)
@@ -462,20 +470,20 @@ GetPassthroughCameraPoints(ControllerEmu::IRPassthrough* ir_passthrough)
 
     camera_points[i].position.x =
         std::clamp(std::lround(x * ControlState(CameraLogic::CAMERA_RES_X - 1)), long(0),
-                   long(CameraLogic::CAMERA_RES_X - 1));
+            long(CameraLogic::CAMERA_RES_X - 1));
     camera_points[i].position.y =
         std::clamp(std::lround(y * ControlState(CameraLogic::CAMERA_RES_Y - 1)), long(0),
-                   long(CameraLogic::CAMERA_RES_Y - 1));
+            long(CameraLogic::CAMERA_RES_Y - 1));
     camera_points[i].size =
         std::clamp(std::lround(size * ControlState(CameraLogic::MAX_POINT_SIZE)), long(0),
-                   long(CameraLogic::MAX_POINT_SIZE));
+            long(CameraLogic::MAX_POINT_SIZE));
   }
 
   return camera_points;
 }
 
-void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
-                                       SensorBarState sensor_bar_state)
+void Wiimote::BuildDesiredWiimoteState(
+    DesiredWiimoteState* target_state, SensorBarState sensor_bar_state)
 {
   // Hotkey / settings modifier
   // Data is later accessed in IsSideways and IsUpright
@@ -488,8 +496,7 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
   target_state->buttons.hex = 0;
   m_buttons->GetState(&target_state->buttons.hex, button_bitmasks, m_input_override_function);
   m_dpad->GetState(&target_state->buttons.hex,
-                   IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks,
-                   m_input_override_function);
+      IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks, m_input_override_function);
 
   // Calculate accelerometer state.
   // Calibration values are 8-bit but we want 10-bit precision, so << 2.
@@ -503,8 +510,7 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
   }
   else if (sensor_bar_state == SensorBarState::Enabled)
   {
-    target_state->camera_points = CameraLogic::GetCameraPoints(
-        GetTotalTransformation(),
+    target_state->camera_points = CameraLogic::GetCameraPoints(GetTotalTransformation(),
         Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) / 360 *
             float(MathUtil::TAU));
   }
@@ -539,8 +545,8 @@ void Wiimote::SetWiimoteDeviceIndex(u8 index)
 }
 
 // This is called every ::Wiimote::UPDATE_FREQ (200hz)
-void Wiimote::PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state,
-                           SensorBarState sensor_bar_state)
+void Wiimote::PrepareInput(
+    WiimoteEmu::DesiredWiimoteState* target_state, SensorBarState sensor_bar_state)
 {
   const auto lock = GetStateLock();
   BuildDesiredWiimoteState(target_state, sensor_bar_state);
@@ -553,7 +559,7 @@ void Wiimote::Update(const WiimoteEmu::DesiredWiimoteState& target_state)
 
   // If a new extension is requested in the GUI the change will happen here.
   HandleExtensionSwap(static_cast<ExtensionNumber>(target_state.extension.data.index()),
-                      target_state.motion_plus.has_value());
+      target_state.motion_plus.has_value());
 
   // Prepare input data of the extension for reading.
   GetActiveExtension()->Update(target_state.extension);
@@ -653,7 +659,7 @@ void Wiimote::SendDataReport(const DesiredWiimoteState& target_state)
     const u8 ext_size = rpt_builder.GetExtDataSize();
 
     if (ext_size != m_i2c_bus.BusRead(ExtensionPort::REPORT_I2C_SLAVE,
-                                      ExtensionPort::REPORT_I2C_ADDR, ext_size, ext_data))
+                        ExtensionPort::REPORT_I2C_ADDR, ext_size, ext_data))
     {
       // Real wiimote seems to fill with 0xff on failed bus read
       std::fill_n(ext_data, ext_size, u8(0xff));
@@ -677,7 +683,7 @@ ButtonData Wiimote::GetCurrentlyPressedButtons()
   ButtonData buttons{};
   m_buttons->GetState(&buttons.hex, button_bitmasks, m_input_override_function);
   m_dpad->GetState(&buttons.hex, IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks,
-                   m_input_override_function);
+      m_input_override_function);
 
   return buttons;
 }
@@ -835,7 +841,7 @@ void Wiimote::StepDynamics()
   EmulatePoint(&m_point_state, m_ir, m_input_override_function, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateShake(&m_shake_state, m_shake, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateIMUCursor(&m_imu_cursor_state, m_imu_ir, m_imu_accelerometer, m_imu_gyroscope,
-                   1.f / ::Wiimote::UPDATE_FREQ);
+      1.f / ::Wiimote::UPDATE_FREQ);
 }
 
 Common::Vec3 Wiimote::GetAcceleration(Common::Vec3 extra_acceleration) const
@@ -852,7 +858,7 @@ Common::Vec3 Wiimote::GetAcceleration(Common::Vec3 extra_acceleration) const
 Common::Vec3 Wiimote::GetAngularVelocity(Common::Vec3 extra_angular_velocity) const
 {
   return GetOrientation() * (m_tilt_state.angular_velocity + m_swing_state.angular_velocity +
-                             m_point_state.angular_velocity + extra_angular_velocity);
+                                m_point_state.angular_velocity + extra_angular_velocity);
 }
 
 Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotation) const
@@ -875,7 +881,7 @@ Common::Quaternion Wiimote::GetOrientation() const
 }
 
 std::optional<Common::Vec3> Wiimote::OverrideVec3(const ControllerEmu::ControlGroup* control_group,
-                                                  std::optional<Common::Vec3> optional_vec) const
+    std::optional<Common::Vec3> optional_vec) const
 {
   bool has_value = optional_vec.has_value();
   Common::Vec3 vec = has_value ? *optional_vec : Common::Vec3{};
@@ -907,15 +913,14 @@ std::optional<Common::Vec3> Wiimote::OverrideVec3(const ControllerEmu::ControlGr
   return has_value ? std::make_optional(vec) : std::nullopt;
 }
 
-Common::Vec3 Wiimote::OverrideVec3(const ControllerEmu::ControlGroup* control_group,
-                                   Common::Vec3 vec) const
+Common::Vec3 Wiimote::OverrideVec3(
+    const ControllerEmu::ControlGroup* control_group, Common::Vec3 vec) const
 {
   return OverrideVec3(control_group, vec, m_input_override_function);
 }
 
-Common::Vec3
-Wiimote::OverrideVec3(const ControllerEmu::ControlGroup* control_group, Common::Vec3 vec,
-                      const ControllerEmu::InputOverrideFunction& input_override_function)
+Common::Vec3 Wiimote::OverrideVec3(const ControllerEmu::ControlGroup* control_group,
+    Common::Vec3 vec, const ControllerEmu::InputOverrideFunction& input_override_function)
 {
   if (input_override_function)
   {

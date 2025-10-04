@@ -53,12 +53,10 @@ static Map LoadMap(const std::string& file_path)
 
 void TitleDatabase::AddLazyMap(DiscIO::Language language, const std::string& language_code)
 {
-  m_title_maps[language] = [language_code]() -> Map {
-    return LoadMap(File::GetSysDirectory() + "wiitdb-" + language_code + ".txt");
-  };
-  m_triforce_title_maps[language] = [language_code]() -> Map {
-    return LoadMap(File::GetSysDirectory() + "triforcetdb-" + language_code + ".txt");
-  };
+  m_title_maps[language] = [language_code]() -> Map
+  { return LoadMap(File::GetSysDirectory() + "wiitdb-" + language_code + ".txt"); };
+  m_triforce_title_maps[language] = [language_code]() -> Map
+  { return LoadMap(File::GetSysDirectory() + "triforcetdb-" + language_code + ".txt"); };
 }
 
 TitleDatabase::TitleDatabase()
@@ -93,9 +91,8 @@ TitleDatabase::TitleDatabase()
 
 TitleDatabase::~TitleDatabase() = default;
 
-const std::string& TitleDatabase::GetTitleName(const std::string& gametdb_id,
-                                               const std::string& triforce_id,
-                                               DiscIO::Language language) const
+const std::string& TitleDatabase::GetTitleName(
+    const std::string& gametdb_id, const std::string& triforce_id, DiscIO::Language language) const
 {
   if (triforce_id != "")
   {
@@ -151,7 +148,7 @@ const std::string& TitleDatabase::GetChannelName(u64 title_id, DiscIO::Language 
 {
   const std::string id{
       {static_cast<char>((title_id >> 24) & 0xff), static_cast<char>((title_id >> 16) & 0xff),
-       static_cast<char>((title_id >> 8) & 0xff), static_cast<char>(title_id & 0xff)}};
+          static_cast<char>((title_id >> 8) & 0xff), static_cast<char>(title_id & 0xff)}};
   return GetTitleName(id, "", language);
 }
 

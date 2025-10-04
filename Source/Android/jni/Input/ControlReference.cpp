@@ -23,8 +23,7 @@ jobject ControlReferenceToJava(JNIEnv* env, ControlReference* control_reference)
     return nullptr;
 
   return env->NewObject(IDCache::GetControlReferenceClass(),
-                        IDCache::GetControlReferenceConstructor(),
-                        reinterpret_cast<jlong>(control_reference));
+      IDCache::GetControlReferenceConstructor(), reinterpret_cast<jlong>(control_reference));
 }
 
 extern "C" {

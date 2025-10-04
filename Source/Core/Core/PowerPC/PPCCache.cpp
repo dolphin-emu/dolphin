@@ -20,13 +20,28 @@ namespace PowerPC
 namespace
 {
 constexpr std::array<u32, 8> s_plru_mask{
-    11, 11, 19, 19, 37, 37, 69, 69,
+    11,
+    11,
+    19,
+    19,
+    37,
+    37,
+    69,
+    69,
 };
 constexpr std::array<u32, 8> s_plru_value{
-    11, 3, 17, 1, 36, 4, 64, 0,
+    11,
+    3,
+    17,
+    1,
+    36,
+    4,
+    64,
+    0,
 };
 
-constexpr std::array<u32, 255> s_way_from_valid = [] {
+constexpr std::array<u32, 255> s_way_from_valid = []
+{
   std::array<u32, 255> data{};
   for (size_t m = 0; m < data.size(); m++)
   {
@@ -38,7 +53,8 @@ constexpr std::array<u32, 255> s_way_from_valid = [] {
   return data;
 }();
 
-constexpr std::array<u32, 128> s_way_from_plru = [] {
+constexpr std::array<u32, 128> s_way_from_plru = []
+{
   std::array<u32, 128> data{};
 
   for (size_t m = 0; m < data.size(); m++)
@@ -283,8 +299,8 @@ void Cache::Read(Memory::MemoryManager& memory, u32 addr, void* buffer, u32 len,
 
     if (way != 0xff)
     {
-      std::memcpy(value, reinterpret_cast<u8*>(data[set][way].data()) + offset_in_block,
-                  len_in_block);
+      std::memcpy(
+          value, reinterpret_cast<u8*>(data[set][way].data()) + offset_in_block, len_in_block);
     }
     else
     {
@@ -310,8 +326,8 @@ void Cache::Write(Memory::MemoryManager& memory, u32 addr, const void* buffer, u
 
     if (way != 0xff)
     {
-      std::memcpy(reinterpret_cast<u8*>(data[set][way].data()) + offset_in_block, value,
-                  len_in_block);
+      std::memcpy(
+          reinterpret_cast<u8*>(data[set][way].data()) + offset_in_block, value, len_in_block);
       modified[set] |= (1 << way);
     }
     else
@@ -375,8 +391,8 @@ void Cache::DoState(Memory::MemoryManager& memory, PointerWrap& p)
   }
 }
 
-u32 InstructionCache::ReadInstruction(Memory::MemoryManager& memory,
-                                      PowerPC::PowerPCState& ppc_state, u32 addr)
+u32 InstructionCache::ReadInstruction(
+    Memory::MemoryManager& memory, PowerPC::PowerPCState& ppc_state, u32 addr)
 {
   if (!HID0(ppc_state).ICE || m_disable_icache)  // instruction cache is disabled
     return memory.Read_U32(addr);
@@ -386,8 +402,8 @@ u32 InstructionCache::ReadInstruction(Memory::MemoryManager& memory,
   return Common::swap32(value);
 }
 
-void InstructionCache::Invalidate(Memory::MemoryManager& memory, JitInterface& jit_interface,
-                                  u32 addr)
+void InstructionCache::Invalidate(
+    Memory::MemoryManager& memory, JitInterface& jit_interface, u32 addr)
 {
   // Per the 750cl manual, section 3.4.1.5 Instruction Cache Enabling/Disabling (page 137)
   // and section 3.4.2.6 Instruction Cache Block Invalidate (icbi) (page 140), the icbi

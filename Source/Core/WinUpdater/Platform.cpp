@@ -64,10 +64,8 @@ public:
   BuildInfo() = default;
   BuildInfo(const std::string& content)
   {
-    map = {{"OSMinimumVersionWin10", ""},
-           {"OSMinimumVersionWin11", ""},
-           {"VCToolsVersion", ""},
-           {"VCToolsUpdateURL", ""}};
+    map = {{"OSMinimumVersionWin10", ""}, {"OSMinimumVersionWin11", ""}, {"VCToolsVersion", ""},
+        {"VCToolsUpdateURL", ""}};
     Parse(content);
   }
 
@@ -206,7 +204,7 @@ static bool VCRuntimeUpdate(const BuildInfo& build_info)
   STARTUPINFOW startup_info{.cb = sizeof(startup_info)};
   PROCESS_INFORMATION process_info;
   if (!CreateProcessW(redist_path.c_str(), cmdline.data(), nullptr, nullptr, TRUE, 0, nullptr,
-                      nullptr, &startup_info, &process_info))
+          nullptr, &startup_info, &process_info))
   {
     return false;
   }
@@ -247,8 +245,7 @@ static VersionCheckResult OSVersionCheck(const BuildInfo& build_info)
 }
 
 std::optional<BuildInfos> InitBuildInfos(const std::vector<TodoList::UpdateOp>& to_update,
-                                         const std::string& install_base_path,
-                                         const std::string& temp_dir)
+    const std::string& install_base_path, const std::string& temp_dir)
 {
   const auto op_it = std::ranges::find(to_update, "build_info.txt", &TodoList::UpdateOp::filename);
   if (op_it == to_update.cend())
@@ -316,7 +313,7 @@ bool CheckBuildInfo(const BuildInfos& build_infos)
 }
 
 bool VersionCheck(const std::vector<TodoList::UpdateOp>& to_update,
-                  const std::string& install_base_path, const std::string& temp_dir)
+    const std::string& install_base_path, const std::string& temp_dir)
 {
   auto build_infos = InitBuildInfos(to_update, install_base_path, temp_dir);
   // If there's no build info, it means the check should be skipped.

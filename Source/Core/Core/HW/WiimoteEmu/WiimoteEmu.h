@@ -159,8 +159,8 @@ public:
   u8 GetWiimoteDeviceIndex() const override;
   void SetWiimoteDeviceIndex(u8 index) override;
 
-  void PrepareInput(WiimoteEmu::DesiredWiimoteState* target_state,
-                    SensorBarState sensor_bar_state) override;
+  void PrepareInput(
+      WiimoteEmu::DesiredWiimoteState* target_state, SensorBarState sensor_bar_state) override;
   void Update(const WiimoteEmu::DesiredWiimoteState& target_state) override;
   void EventLinked() override;
   void EventUnlinked() override;
@@ -175,9 +175,8 @@ public:
   ExtensionNumber GetActiveExtensionNumber() const;
   ControllerEmu::SubscribableSettingValue<bool>& GetMotionPlusSetting();
 
-  static Common::Vec3
-  OverrideVec3(const ControllerEmu::ControlGroup* control_group, Common::Vec3 vec,
-               const ControllerEmu::InputOverrideFunction& input_override_function);
+  static Common::Vec3 OverrideVec3(const ControllerEmu::ControlGroup* control_group,
+      Common::Vec3 vec, const ControllerEmu::InputOverrideFunction& input_override_function);
 
 private:
   // Used only for error generation:
@@ -202,16 +201,16 @@ private:
   // Returns the transformation of the world around the wiimote.
   // Used for simulating camera data and for rotating acceleration data.
   // Does not include orientation transformations.
-  Common::Matrix44
-  GetTransformation(const Common::Matrix33& extra_rotation = Common::Matrix33::Identity()) const;
+  Common::Matrix44 GetTransformation(
+      const Common::Matrix33& extra_rotation = Common::Matrix33::Identity()) const;
 
   // Returns the world rotation from the effects of sideways/upright settings.
   Common::Quaternion GetOrientation() const;
 
   std::optional<Common::Vec3> OverrideVec3(const ControllerEmu::ControlGroup* control_group,
-                                           std::optional<Common::Vec3> optional_vec) const;
-  Common::Vec3 OverrideVec3(const ControllerEmu::ControlGroup* control_group,
-                            Common::Vec3 vec) const;
+      std::optional<Common::Vec3> optional_vec) const;
+  Common::Vec3 OverrideVec3(
+      const ControllerEmu::ControlGroup* control_group, Common::Vec3 vec) const;
   Common::Vec3 GetTotalAcceleration() const;
   Common::Vec3 GetTotalAngularVelocity() const;
   Common::Matrix44 GetTotalTransformation() const;

@@ -106,8 +106,7 @@ void IEXIDevice::TransferByte(u8& byte)
 
 // F A C T O R Y
 std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, const EXIDeviceType device_type,
-                                             const int channel_num,
-                                             const Memcard::HeaderData& memcard_header_data)
+    const int channel_num, const Memcard::HeaderData& memcard_header_data)
 {
   std::unique_ptr<IEXIDevice> result;
   // XXX This computation isn't necessarily right (it holds for A/B, but not SP1)

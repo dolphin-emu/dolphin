@@ -25,16 +25,15 @@ struct MaterialProperty
 {
   static void WriteToMemory(u8*& buffer, const MaterialProperty& property);
   static std::size_t GetMemorySize(const MaterialProperty& property);
-  using Value =
-      std::variant<s32, std::array<s32, 2>, std::array<s32, 3>, std::array<s32, 4>, float,
-                   std::array<float, 2>, std::array<float, 3>, std::array<float, 4>, bool>;
+  using Value = std::variant<s32, std::array<s32, 2>, std::array<s32, 3>, std::array<s32, 4>, float,
+      std::array<float, 2>, std::array<float, 3>, std::array<float, 4>, bool>;
   Value m_value;
 };
 
 struct MaterialData
 {
   static bool FromJson(const CustomAssetLibrary::AssetID& asset_id, const picojson::object& json,
-                       MaterialData* data);
+      MaterialData* data);
   static void ToJson(picojson::object* obj, const MaterialData& data);
   CustomAssetLibrary::AssetID shader_asset;
   CustomAssetLibrary::AssetID next_material_asset;

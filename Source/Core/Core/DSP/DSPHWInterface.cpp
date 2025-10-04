@@ -42,7 +42,7 @@ u16 SDSP::ReadMailboxLow(Mailbox mailbox)
 #if defined(_DEBUG) || defined(DEBUGFAST)
   const char* const type = mailbox == Mailbox::DSP ? "DSP" : "CPU";
   DEBUG_LOG_FMT(DSP_MAIL, "{}(RM) B:{} M:{:#010x} (pc={:#06x})", type, static_cast<int>(mailbox),
-                PeekMailbox(mailbox), pc);
+      PeekMailbox(mailbox), pc);
 #endif
 
   return static_cast<u16>(value);
@@ -64,7 +64,7 @@ void SDSP::WriteMailboxLow(Mailbox mailbox, u16 value)
 #if defined(_DEBUG) || defined(DEBUGFAST)
   const char* const type = mailbox == Mailbox::DSP ? "DSP" : "CPU";
   DEBUG_LOG_FMT(DSP_MAIL, "{}(WM) B:{} M:{:#010x} (pc={:#06x})", type, static_cast<int>(mailbox),
-                PeekMailbox(mailbox), pc);
+      PeekMailbox(mailbox), pc);
 #endif
 }
 
@@ -130,23 +130,23 @@ void SDSP::WriteIFX(u32 address, u16 value)
     break;
 
   case DSP_ACSAH:
-    m_accelerator->SetStartAddress(value << 16 |
-                                   static_cast<u16>(m_accelerator->GetStartAddress()));
+    m_accelerator->SetStartAddress(
+        value << 16 | static_cast<u16>(m_accelerator->GetStartAddress()));
     break;
   case DSP_ACSAL:
-    m_accelerator->SetStartAddress(static_cast<u16>(m_accelerator->GetStartAddress() >> 16) << 16 |
-                                   value);
+    m_accelerator->SetStartAddress(
+        static_cast<u16>(m_accelerator->GetStartAddress() >> 16) << 16 | value);
     break;
   case DSP_ACEAH:
     m_accelerator->SetEndAddress(value << 16 | static_cast<u16>(m_accelerator->GetEndAddress()));
     break;
   case DSP_ACEAL:
-    m_accelerator->SetEndAddress(static_cast<u16>(m_accelerator->GetEndAddress() >> 16) << 16 |
-                                 value);
+    m_accelerator->SetEndAddress(
+        static_cast<u16>(m_accelerator->GetEndAddress() >> 16) << 16 | value);
     break;
   case DSP_ACCAH:
-    m_accelerator->SetCurrentAddress(value << 16 |
-                                     static_cast<u16>(m_accelerator->GetCurrentAddress()));
+    m_accelerator->SetCurrentAddress(
+        value << 16 | static_cast<u16>(m_accelerator->GetCurrentAddress()));
     break;
   case DSP_ACCAL:
     m_accelerator->SetCurrentAddress(
@@ -288,7 +288,7 @@ const u8* SDSP::IDMAIn(u16 dsp_addr, u32 addr, u32 size)
 
   Host::CodeLoaded(m_dsp_core, addr, size);
   NOTICE_LOG_FMT(DSPLLE, "*** Copy new UCode from {:#010x} to {:#06x} (crc: {:#08x})", addr,
-                 dsp_addr, m_iram_crc);
+      dsp_addr, m_iram_crc);
 
   return reinterpret_cast<const u8*>(iram) + dsp_addr;
 }
@@ -296,7 +296,7 @@ const u8* SDSP::IDMAIn(u16 dsp_addr, u32 addr, u32 size)
 const u8* SDSP::IDMAOut(u16 dsp_addr, u32 addr, u32 size)
 {
   ERROR_LOG_FMT(DSPLLE, "*** idma_out IRAM_DSP ({:#06x}) -> RAM ({:#010x}) : size ({:#010x})",
-                dsp_addr / 2, addr, size);
+      dsp_addr / 2, addr, size);
   return nullptr;
 }
 
@@ -305,7 +305,7 @@ const u8* SDSP::DDMAIn(u16 dsp_addr, u32 addr, u32 size)
 {
   Host::DMAToDSP(dram + dsp_addr / 2, addr, size);
   DEBUG_LOG_FMT(DSPLLE, "*** ddma_in RAM ({:#010x}) -> DRAM_DSP ({:#06x}) : size ({:#010x})", addr,
-                dsp_addr / 2, size);
+      dsp_addr / 2, size);
 
   return reinterpret_cast<const u8*>(dram) + dsp_addr;
 }
@@ -314,7 +314,7 @@ const u8* SDSP::DDMAOut(u16 dsp_addr, u32 addr, u32 size)
 {
   Host::DMAFromDSP(dram + dsp_addr / 2, addr, size);
   DEBUG_LOG_FMT(DSPLLE, "*** ddma_out DRAM_DSP ({:#06x}) -> RAM ({:#010x}) : size ({:#010x})",
-                dsp_addr / 2, addr, size);
+      dsp_addr / 2, addr, size);
 
   return reinterpret_cast<const u8*>(dram) + dsp_addr;
 }
@@ -329,15 +329,15 @@ void SDSP::DoDMA()
   if (len > 0x4000)
   {
     ERROR_LOG_FMT(DSPLLE,
-                  "DMA ERROR: PC: {:04x}, Control: {:04x}, Address: {:08x}, DSP Address: {:04x}, "
-                  "Size: {:04x}",
-                  pc, ctl, addr, dsp_addr, len);
+        "DMA ERROR: PC: {:04x}, Control: {:04x}, Address: {:08x}, DSP Address: {:04x}, "
+        "Size: {:04x}",
+        pc, ctl, addr, dsp_addr, len);
     std::exit(0);
   }
 #if defined(_DEBUG) || defined(DEBUGFAST)
-  DEBUG_LOG_FMT(
-      DSPLLE, "DMA pc: {:04x}, Control: {:04x}, Address: {:08x}, DSP Address: {:04x}, Size: {:04x}",
-      pc, ctl, addr, dsp_addr, len);
+  DEBUG_LOG_FMT(DSPLLE,
+      "DMA pc: {:04x}, Control: {:04x}, Address: {:08x}, DSP Address: {:04x}, Size: {:04x}", pc,
+      ctl, addr, dsp_addr, len);
 #endif
 
   const u8* copied_data_ptr = nullptr;

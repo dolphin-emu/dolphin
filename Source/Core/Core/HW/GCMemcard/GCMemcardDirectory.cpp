@@ -40,26 +40,26 @@
 
 static const char* MC_HDR = "MC_SYSTEM_AREA";
 
-static std::string GenerateDefaultGCIFilename(const Memcard::DEntry& entry,
-                                              bool card_encoding_is_shift_jis)
+static std::string GenerateDefaultGCIFilename(
+    const Memcard::DEntry& entry, bool card_encoding_is_shift_jis)
 {
   const auto string_decoder = card_encoding_is_shift_jis ? SHIFTJISToUTF8 : CP1252ToUTF8;
-  const auto strip_null = [](const std::string_view& s) {
+  const auto strip_null = [](const std::string_view& s)
+  {
     const auto offset = s.find('\0');
     if (offset == std::string_view::npos)
       return s;
     return s.substr(0, offset);
   };
 
-  const std::string_view makercode(reinterpret_cast<const char*>(entry.m_makercode.data()),
-                                   entry.m_makercode.size());
-  const std::string_view gamecode(reinterpret_cast<const char*>(entry.m_gamecode.data()),
-                                  entry.m_gamecode.size());
-  const std::string_view filename(reinterpret_cast<const char*>(entry.m_filename.data()),
-                                  entry.m_filename.size());
+  const std::string_view makercode(
+      reinterpret_cast<const char*>(entry.m_makercode.data()), entry.m_makercode.size());
+  const std::string_view gamecode(
+      reinterpret_cast<const char*>(entry.m_gamecode.data()), entry.m_gamecode.size());
+  const std::string_view filename(
+      reinterpret_cast<const char*>(entry.m_filename.data()), entry.m_filename.size());
   return Common::EscapeFileName(fmt::format("{}-{}-{}.gci", strip_null(string_decoder(makercode)),
-                                            strip_null(string_decoder(gamecode)),
-                                            strip_null(string_decoder(filename))));
+      strip_null(string_decoder(gamecode)), strip_null(string_decoder(filename))));
 }
 
 bool GCMemcardDirectory::LoadGCI(Memcard::GCIFile gci)
@@ -70,9 +70,9 @@ bool GCMemcardDirectory::LoadGCI(Memcard::GCIFile gci)
     if (HasSameIdentity(gci.m_gci_header, already_loaded_gci.m_gci_header))
     {
       ERROR_LOG_FMT(EXPANSIONINTERFACE,
-                    "{}\nwas not loaded because it has the same internal filename as previously "
-                    "loaded save\n{}",
-                    gci.m_filename, already_loaded_gci.m_filename);
+          "{}\nwas not loaded because it has the same internal filename as previously "
+          "loaded save\n{}",
+          gci.m_filename, already_loaded_gci.m_filename);
       return false;
     }
   }
@@ -83,8 +83,7 @@ bool GCMemcardDirectory::LoadGCI(Memcard::GCIFile gci)
   const u16 num_blocks = gci.m_gci_header.m_block_count;
   if (num_blocks > 2043)
   {
-    ERROR_LOG_FMT(
-        EXPANSIONINTERFACE,
+    ERROR_LOG_FMT(EXPANSIONINTERFACE,
         "{}\nwas not loaded because it is an invalid GCI.\nNumber of blocks claimed to be {}",
         gci.m_filename, num_blocks);
     return false;
@@ -100,8 +99,7 @@ bool GCMemcardDirectory::LoadGCI(Memcard::GCIFile gci)
   const u16 first_block = m_bat1.AssignBlocksContiguous(num_blocks);
   if (first_block == 0xFFFF)
   {
-    ERROR_LOG_FMT(
-        EXPANSIONINTERFACE,
+    ERROR_LOG_FMT(EXPANSIONINTERFACE,
         "{}\nwas not loaded because there are not enough free blocks on the virtual memory card",
         gci.m_filename);
     return false;
@@ -124,8 +122,8 @@ bool GCMemcardDirectory::LoadGCI(Memcard::GCIFile gci)
 }
 
 // This is only used by NetPlay but it made sense to put it here to keep the relevant code together
-std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::string& directory,
-                                                                   const std::string& game_id)
+std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(
+    const std::string& directory, const std::string& game_id)
 {
   std::vector<std::string> filenames;
 
@@ -147,9 +145,8 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
       continue;
 
     const auto same_identity_save_it =
-        std::ranges::find_if(loaded_saves, [&gci](const Memcard::DEntry& entry) {
-          return Memcard::HasSameIdentity(gci.m_gci_header, entry);
-        });
+        std::ranges::find_if(loaded_saves, [&gci](const Memcard::DEntry& entry)
+            { return Memcard::HasSameIdentity(gci.m_gci_header, entry); });
     if (same_identity_save_it != loaded_saves.end())
       continue;
 
@@ -179,10 +176,15 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
 }
 
 GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, ExpansionInterface::Slot slot,
-                                       const Memcard::HeaderData& header_data, u32 game_id)
-    : MemoryCardBase(slot, header_data.m_size_mb), m_game_id(game_id), m_last_block(-1),
-      m_hdr(header_data), m_bat1(header_data.m_size_mb), m_saves(0), m_save_directory(directory),
-      m_exiting(false)
+    const Memcard::HeaderData& header_data, u32 game_id)
+    : MemoryCardBase(slot, header_data.m_size_mb)
+    , m_game_id(game_id)
+    , m_last_block(-1)
+    , m_hdr(header_data)
+    , m_bat1(header_data.m_size_mb)
+    , m_saves(0)
+    , m_save_directory(directory)
+    , m_exiting(false)
 {
   // Use existing header data if available
   {
@@ -309,7 +311,7 @@ s32 GCMemcardDirectory::Read(u32 src_address, s32 length, u8* dest_address)
 
     // verify that we haven't calculated a length beyond BLOCK_SIZE
     DEBUG_ASSERT_MSG(EXPANSIONINTERFACE, (src_address + length) % Memcard::BLOCK_SIZE == 0,
-                     "Memcard directory Read Logic Error");
+        "Memcard directory Read Logic Error");
   }
 
   if (m_last_block != block)
@@ -369,7 +371,7 @@ s32 GCMemcardDirectory::Write(u32 dest_address, s32 length, const u8* src_addres
 
     // verify that we haven't calculated a length beyond BLOCK_SIZE
     DEBUG_ASSERT_MSG(EXPANSIONINTERFACE, (dest_address + length) % Memcard::BLOCK_SIZE == 0,
-                     "Memcard directory Write Logic Error");
+        "Memcard directory Write Logic Error");
   }
   if (m_last_block != block)
   {
@@ -475,7 +477,7 @@ inline void GCMemcardDirectory::SyncSaves()
     if (current->m_dir_entries[i].m_gamecode != Memcard::DEntry::UNINITIALIZED_GAMECODE)
     {
       INFO_LOG_FMT(EXPANSIONINTERFACE, "Syncing save {:#x}",
-                   Common::swap32(current->m_dir_entries[i].m_gamecode.data()));
+          Common::swap32(current->m_dir_entries[i].m_gamecode.data()));
       bool added = false;
       while (i >= m_saves.size())
       {
@@ -485,7 +487,7 @@ inline void GCMemcardDirectory::SyncSaves()
       }
 
       if (added || memcmp((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->m_dir_entries[i]),
-                          Memcard::DENTRY_SIZE))
+                       Memcard::DENTRY_SIZE))
       {
         m_saves[i].m_dirty = true;
         const u32 gamecode = Common::swap32(m_saves[i].m_gci_header.m_gamecode.data());
@@ -501,7 +503,7 @@ inline void GCMemcardDirectory::SyncSaves()
               Common::swap32(current->m_dir_entries[i].m_gamecode.data()));
         }
         memcpy((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->m_dir_entries[i]),
-               Memcard::DENTRY_SIZE);
+            Memcard::DENTRY_SIZE);
         if (old_start != new_start)
         {
           INFO_LOG_FMT(EXPANSIONINTERFACE, "Save moved from {:#x} to {:#x}", old_start, new_start);
@@ -517,7 +519,7 @@ inline void GCMemcardDirectory::SyncSaves()
     else if ((i < m_saves.size()) && (*(u32*)&(m_saves[i].m_gci_header) != 0xFFFFFFFF))
     {
       INFO_LOG_FMT(EXPANSIONINTERFACE, "Clearing and/or deleting save {:#x}",
-                   Common::swap32(m_saves[i].m_gci_header.m_gamecode.data()));
+          Common::swap32(m_saves[i].m_gci_header.m_gamecode.data()));
       m_saves[i].m_gci_header.m_gamecode = Memcard::DEntry::UNINITIALIZED_GAMECODE;
       m_saves[i].m_save_data.clear();
       m_saves[i].m_used_blocks.clear();
@@ -634,8 +636,8 @@ void GCMemcardDirectory::FlushToFile()
           // The save's header has been changed but the actual save blocks haven't been read/written
           // to
           // skip flushing this file until actual save data is modified
-          ERROR_LOG_FMT(EXPANSIONINTERFACE,
-                        "GCI header modified without corresponding save data changes");
+          ERROR_LOG_FMT(
+              EXPANSIONINTERFACE, "GCI header modified without corresponding save data changes");
           continue;
         }
         if (save.m_filename.empty())
@@ -652,8 +654,8 @@ void GCMemcardDirectory::FlushToFile()
           }
           if (File::Exists(default_save_name))
           {
-            PanicAlertFmtT("Failed to find new filename.\n{0}\n will be overwritten",
-                           default_save_name);
+            PanicAlertFmtT(
+                "Failed to find new filename.\n{0}\n will be overwritten", default_save_name);
           }
           save.m_filename = default_save_name;
         }
@@ -679,8 +681,8 @@ void GCMemcardDirectory::FlushToFile()
         {
           Core::DisplayMessage(
               fmt::format("Failed to open file at {} for writing", save.m_filename), 10000);
-          ERROR_LOG_FMT(EXPANSIONINTERFACE, "Failed to open file at {} for writing",
-                        save.m_filename);
+          ERROR_LOG_FMT(
+              EXPANSIONINTERFACE, "Failed to open file at {} for writing", save.m_filename);
         }
       }
       else if (save.m_filename.length() != 0)
@@ -731,8 +733,8 @@ void GCMemcardDirectory::DoState(PointerWrap& p)
   p.DoEachElement(m_saves, [](PointerWrap& p_, Memcard::GCIFile& save) { save.DoState(p_); });
 }
 
-void MigrateFromMemcardFile(const std::string& directory_name, ExpansionInterface::Slot card_slot,
-                            DiscIO::Region region)
+void MigrateFromMemcardFile(
+    const std::string& directory_name, ExpansionInterface::Slot card_slot, DiscIO::Region region)
 {
   File::CreateFullPath(directory_name);
   const std::string ini_memcard = Config::GetMemcardPath(card_slot, region);

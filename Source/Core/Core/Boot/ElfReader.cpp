@@ -144,7 +144,7 @@ bool ElfReader::LoadIntoMemory(Core::System& system, bool only_in_mem1) const
     Elf32_Phdr* p = segments + i;
 
     INFO_LOG_FMT(BOOT, "Type: {} Vaddr: {:08x} Filesz: {} Memsz: {}", p->p_type, p->p_vaddr,
-                 p->p_filesz, p->p_memsz);
+        p->p_filesz, p->p_memsz);
 
     if (p->p_type == PT_LOAD)
     {
@@ -181,7 +181,7 @@ SectionID ElfReader::GetSectionByName(const char* name, int firstSection) const
 }
 
 bool ElfReader::LoadSymbols(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_symbol_db,
-                            const std::string& filename) const
+    const std::string& filename) const
 {
   bool hasSymbols = false;
   SectionID sec = GetSectionByName(".symtab");

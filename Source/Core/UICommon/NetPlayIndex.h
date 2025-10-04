@@ -39,8 +39,8 @@ public:
   explicit NetPlayIndex();
   ~NetPlayIndex();
 
-  std::optional<std::vector<NetPlaySession>>
-  List(const std::map<std::string, std::string>& filters = {});
+  std::optional<std::vector<NetPlaySession>> List(
+      const std::map<std::string, std::string>& filters = {});
 
   static std::vector<std::pair<std::string, std::string>> GetRegions();
 

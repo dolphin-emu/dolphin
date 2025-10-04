@@ -73,7 +73,9 @@ private:
   {
   public:
     Button(const char* name, const u32& buttons, u32 mask)
-        : m_name(name), m_buttons(buttons), m_mask(mask)
+        : m_name(name)
+        , m_buttons(buttons)
+        , m_mask(mask)
     {
     }
     std::string GetName() const override { return m_name; }
@@ -90,7 +92,9 @@ private:
   {
   public:
     AnalogInput(const char* name, const T& input, ControlState range)
-        : m_name(name), m_input(input), m_range(range)
+        : m_name(name)
+        , m_input(input)
+        , m_range(range)
     {
     }
     std::string GetName() const final { return m_name; }
@@ -150,7 +154,7 @@ void InputBackend::PopulateDevices()
   while (this_device)
   {
     INFO_LOG_FMT(CONTROLLERINTERFACE, "Found {} (interface {})", this_device->path,
-                 this_device->interface_number);
+        this_device->interface_number);
 
     if (this_device->interface_number == 2)
     {

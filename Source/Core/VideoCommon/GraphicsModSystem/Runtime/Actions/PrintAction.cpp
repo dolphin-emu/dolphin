@@ -22,7 +22,7 @@ void PrintAction::OnEFB(GraphicsModActionData::EFB* efb)
     return;
 
   INFO_LOG_FMT(VIDEO, "OnEFB Called. Original [{}, {}], Scaled [{}, {}]", efb->texture_width,
-               efb->texture_height, *efb->scaled_width, *efb->scaled_height);
+      efb->texture_height, *efb->scaled_width, *efb->scaled_height);
 }
 
 void PrintAction::OnProjection(GraphicsModActionData::Projection*)

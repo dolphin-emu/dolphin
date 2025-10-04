@@ -109,9 +109,9 @@ public:
   void WriteIdleExit(u32 destination);
   template <bool condition>
   void WriteBranchWatch(u32 origin, u32 destination, UGeckoInstruction inst, Gen::X64Reg reg_a,
-                        Gen::X64Reg reg_b, BitSet32 caller_save);
+      Gen::X64Reg reg_b, BitSet32 caller_save);
   void WriteBranchWatchDestInRSCRATCH(u32 origin, UGeckoInstruction inst, Gen::X64Reg reg_a,
-                                      Gen::X64Reg reg_b, BitSet32 caller_save);
+      Gen::X64Reg reg_b, BitSet32 caller_save);
 
   bool Cleanup();
 
@@ -145,19 +145,18 @@ public:
   void UpdateFPExceptionSummary(Gen::X64Reg fpscr, Gen::X64Reg tmp1, Gen::X64Reg tmp2);
 
   void SetFPRFIfNeeded(const Gen::OpArg& xmm, bool single);
-  void FinalizeSingleResult(Gen::X64Reg output, const Gen::OpArg& input, bool packed = true,
-                            bool duplicate = false);
+  void FinalizeSingleResult(
+      Gen::X64Reg output, const Gen::OpArg& input, bool packed = true, bool duplicate = false);
   void FinalizeDoubleResult(Gen::X64Reg output, const Gen::OpArg& input);
   void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm, Gen::X64Reg clobber,
-                  std::optional<Gen::OpArg> Ra, std::optional<Gen::OpArg> Rb,
-                  std::optional<Gen::OpArg> Rc);
+      std::optional<Gen::OpArg> Ra, std::optional<Gen::OpArg> Rb, std::optional<Gen::OpArg> Rc);
 
   void MultiplyImmediate(u32 imm, int a, int d, bool overflow);
 
   typedef u32 (*Operation)(u32 a, u32 b);
   void regimmop(int d, int a, bool binary, u32 value, Operation doop,
-                void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&),
-                bool Rc = false, bool carry = false);
+      void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc = false,
+      bool carry = false);
   void FloatCompare(UGeckoInstruction inst, bool upper = false);
   void UpdateMXCSR();
 

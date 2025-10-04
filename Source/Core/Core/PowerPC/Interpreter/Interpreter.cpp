@@ -65,9 +65,12 @@ void Interpreter::UpdatePC()
 }
 
 Interpreter::Interpreter(Core::System& system, PowerPC::PowerPCState& ppc_state, PowerPC::MMU& mmu,
-                         Core::BranchWatch& branch_watch, PPCSymbolDB& ppc_symbol_db)
-    : m_system(system), m_ppc_state(ppc_state), m_mmu(mmu), m_branch_watch(branch_watch),
-      m_ppc_symbol_db(ppc_symbol_db)
+    Core::BranchWatch& branch_watch, PPCSymbolDB& ppc_symbol_db)
+    : m_system(system)
+    , m_ppc_state(ppc_state)
+    , m_mmu(mmu)
+    , m_branch_watch(branch_watch)
+    , m_ppc_symbol_db(ppc_symbol_db)
 {
 }
 
@@ -99,11 +102,11 @@ void Interpreter::Trace(const UGeckoInstruction& inst)
 
   const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(inst.hex, m_ppc_state.pc);
   DEBUG_LOG_FMT(POWERPC,
-                "INTER PC: {:08x} SRR0: {:08x} SRR1: {:08x} CRval: {:016x} "
-                "FPSCR: {:08x} MSR: {:08x} LR: {:08x} {} {:08x} {}",
-                m_ppc_state.pc, SRR0(m_ppc_state), SRR1(m_ppc_state), m_ppc_state.cr.fields[0],
-                m_ppc_state.fpscr.Hex, m_ppc_state.msr.Hex, m_ppc_state.spr[SPR_LR], regs, inst.hex,
-                ppc_inst);
+      "INTER PC: {:08x} SRR0: {:08x} SRR1: {:08x} CRval: {:016x} "
+      "FPSCR: {:08x} MSR: {:08x} LR: {:08x} {} {:08x} {}",
+      m_ppc_state.pc, SRR0(m_ppc_state), SRR1(m_ppc_state), m_ppc_state.cr.fields[0],
+      m_ppc_state.fpscr.Hex, m_ppc_state.msr.Hex, m_ppc_state.spr[SPR_LR], regs, inst.hex,
+      ppc_inst);
 }
 
 bool Interpreter::HandleFunctionHooking(u32 address)
@@ -192,7 +195,7 @@ int Interpreter::SingleStepInner()
   UpdatePC();
 
   PowerPC::UpdatePerformanceMonitor(opinfo->num_cycles, (opinfo->flags & FL_LOADSTORE) != 0,
-                                    (opinfo->flags & FL_USE_FPU) != 0, m_ppc_state);
+      (opinfo->flags & FL_USE_FPU) != 0, m_ppc_state);
   return opinfo->num_cycles;
 }
 
@@ -296,23 +299,22 @@ void Interpreter::unknown_instruction(Interpreter& interpreter, UGeckoInstructio
   const u32 opcode = PowerPC::MMU::HostRead_U32(guard, last_pc);
   const std::string disasm = Common::GekkoDisassembler::Disassemble(opcode, last_pc);
   NOTICE_LOG_FMT(POWERPC, "Last PC = {:08x} : {}", last_pc, disasm);
-  Dolphin_Debugger::PrintCallstack(guard, Common::Log::LogType::POWERPC,
-                                   Common::Log::LogLevel::LNOTICE);
+  Dolphin_Debugger::PrintCallstack(
+      guard, Common::Log::LogType::POWERPC, Common::Log::LogLevel::LNOTICE);
 
   const auto& ppc_state = interpreter.m_ppc_state;
-  NOTICE_LOG_FMT(
-      POWERPC,
+  NOTICE_LOG_FMT(POWERPC,
       "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
       inst.hex, ppc_state.pc, last_pc, LR(ppc_state));
   for (int i = 0; i < 32; i += 4)
   {
     NOTICE_LOG_FMT(POWERPC, "r{}: {:#010x} r{}: {:#010x} r{}: {:#010x} r{}: {:#010x}", i,
-                   ppc_state.gpr[i], i + 1, ppc_state.gpr[i + 1], i + 2, ppc_state.gpr[i + 2],
-                   i + 3, ppc_state.gpr[i + 3]);
+        ppc_state.gpr[i], i + 1, ppc_state.gpr[i + 1], i + 2, ppc_state.gpr[i + 2], i + 3,
+        ppc_state.gpr[i + 3]);
   }
   ASSERT_MSG(POWERPC, 0,
-             "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
-             inst.hex, ppc_state.pc, last_pc, LR(ppc_state));
+      "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
+      inst.hex, ppc_state.pc, last_pc, LR(ppc_state));
   if (system.IsPauseOnPanicMode())
     system.GetCPU().Break();
 }
