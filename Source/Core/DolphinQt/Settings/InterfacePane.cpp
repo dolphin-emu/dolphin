@@ -383,8 +383,10 @@ void InterfacePane::AddDescriptions()
                  "disappear after several seconds."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_OSD_FONT_SIZE_DESCRIPTION[] =
-      QT_TR_NOOP("Changes the font size of the On Screen Display. Affects features such as the FPS"
+      QT_TR_NOOP("Changes the font size of the On Screen Display. Affects features such as the FPS "
                  "display, TAS movie window, and netplay chat."
+                 "<br><br>The font can be changed by placing a TTF font file into Dolphin's "
+                 "User/Load folder, and renaming it OSD_Font.ttf."
                  "<br><br><dolphin_emphasis>If unsure, leave this at 13.</dolphin_emphasis>");
   static constexpr char TR_SHOW_ACTIVE_TITLE_DESCRIPTION[] =
       QT_TR_NOOP("Shows the active game title in the render window's title bar."
