@@ -55,9 +55,7 @@ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wi
 {
   WiimoteScannerLinux::AddAutoConnectAddresses(found_wiimotes);
 
-  // supposedly 1.28 seconds
-  int const wait_len = 1;
-
+  int const wait_len = BLUETOOTH_INQUIRY_LENGTH;
   int const max_infos = 255;
   inquiry_info scan_infos[max_infos] = {};
   auto* scan_infos_ptr = scan_infos;

@@ -33,6 +33,9 @@ constexpr int REPORT_HID_HEADER_SIZE = 1;
 
 constexpr u32 WIIMOTE_DEFAULT_TIMEOUT = 1000;
 
+// Multiple of 1.28 seconds. Wii games use a value of 3.
+constexpr u8 BLUETOOTH_INQUIRY_LENGTH = 3;
+
 // The 4 most significant bits of the first byte of an outgoing command must be
 // 0x50 if sending on the command channel and 0xA0 if sending on the interrupt
 // channel. On Mac and Linux we use interrupt channel; on Windows, command.
