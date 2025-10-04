@@ -22,11 +22,9 @@ namespace WiimoteReal
 // Java classes
 static jclass s_adapter_class;
 
-void WiimoteScannerAndroid::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
-                                         Wiimote*& found_board)
+auto WiimoteScannerAndroid::FindAttachedWiimotes() -> FindResults
 {
-  found_wiimotes.clear();
-  found_board = nullptr;
+  FindResults results;
 
   NOTICE_LOG_FMT(WIIMOTE, "Finding Wiimotes");
 
@@ -48,9 +46,14 @@ void WiimoteScannerAndroid::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
       if (!wiimote->ConnectInternal())
         continue;
 
-      found_wiimotes.emplace_back(wiimote.release());
+      // TODO: We make no attempt to differentiate balance boards here.
+      // wiimote->IsBalanceBoard() would probably be enough to do that.
+
+      results.wii_remotes.emplace_back(std::move(wiimote));
     }
   }
+
+  return results;
 }
 
 WiimoteAndroid::WiimoteAndroid(int index) : Wiimote(), m_mayflash_index(index)
