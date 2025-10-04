@@ -308,8 +308,17 @@ void WiimoteScannerWindows::FindAndAuthenticateWiimotes()
 {
   // The sync button method conveniently makes remotes seek reconnection on button press.
   // I think the 1+2 method is effectively pointless?
-  const auto pair_count =
-      DiscoverAndPairWiimotes(DEFAULT_INQUIRY_LENGTH, AuthenticationMethod::SyncButton);
+  static constexpr auto auth_method = AuthenticationMethod::SyncButton;
+
+  // Windows isn't so cooperative. This helps one button click actually able to pair a remote.
+  constexpr int ITERATION_COUNT = 3;
+
+  RemoveUnusableWiimoteBluetoothDevices();
+
+  auto pair_count = 0;
+  for (int i = 0; i != ITERATION_COUNT; ++i)
+    pair_count += DiscoverAndPairWiimotes(DEFAULT_INQUIRY_LENGTH, auth_method);
+
   NOTICE_LOG_FMT(WIIMOTE, "Successfully paired Wiimotes: {}", pair_count);
 }
 
