@@ -96,8 +96,10 @@ void AdvancedPane::CreateLayout()
   main_layout->addWidget(timing_group);
   auto* timing_group_layout = new QVBoxLayout{timing_group};
   auto* const correct_time_drift =
+      // i18n: Correct is a verb
       new ConfigBool{tr("Correct Time Drift"), Config::MAIN_CORRECT_TIME_DRIFT};
   correct_time_drift->SetDescription(
+      // i18n: Internet play refers to services like Wiimmfi, not the NetPlay feature in Dolphin
       tr("Allow the emulated console to run fast after stutters,"
          "<br>pursuing accurate overall elapsed time unless paused or speed-adjusted."
          "<br><br>This may be useful for internet play."
