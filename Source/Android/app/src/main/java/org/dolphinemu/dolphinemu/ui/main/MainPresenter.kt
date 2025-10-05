@@ -2,9 +2,13 @@
 
 package org.dolphinemu.dolphinemu.ui.main
 
+import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
+import android.net.Uri
 import androidx.activity.ComponentActivity
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -35,6 +39,69 @@ import java.util.concurrent.ExecutionException
 class MainPresenter(private val mainView: MainView, private val activity: FragmentActivity) {
     private var dirToAdd: String? = null
 
+    private val requestDirectory = activity.registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result: ActivityResult ->
+        val intent = result.data
+        if (result.resultCode == Activity.RESULT_OK && intent != null) {
+            if (DirectoryInitialization.preferOldFolderPicker(activity)) {
+                onDirectorySelected(FileBrowserHelper.getSelectedPath(intent))
+            } else {
+                onDirectorySelected(intent)
+            }
+        } else {
+            skipRescanningLibrary()
+        }
+    }
+
+    private val requestGameFile = activity.registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            FileBrowserHelper.runAfterExtensionCheck(
+                activity, uri, FileBrowserHelper.GAME_LIKE_EXTENSIONS
+            ) { EmulationActivity.launch(activity, uri.toString(), false) }
+        } else {
+            skipRescanningLibrary()
+        }
+    }
+
+    private val requestWadFile = activity.registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            FileBrowserHelper.runAfterExtensionCheck(
+                activity, uri, FileBrowserHelper.WAD_EXTENSION
+            ) { installWAD(uri.toString()) }
+        } else {
+            skipRescanningLibrary()
+        }
+    }
+
+    private val requestWiiSaveFile = activity.registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            FileBrowserHelper.runAfterExtensionCheck(
+                activity, uri, FileBrowserHelper.BIN_EXTENSION
+            ) { importWiiSave(uri.toString()) }
+        } else {
+            skipRescanningLibrary()
+        }
+    }
+
+    private val requestNandBinFile = activity.registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            FileBrowserHelper.runAfterExtensionCheck(
+                activity, uri, FileBrowserHelper.BIN_EXTENSION
+            ) { importNANDBin(uri.toString()) }
+        } else {
+            skipRescanningLibrary()
+        }
+    }
+
     fun onCreate() {
         // Ask the user to grant write permission if relevant and not already granted
         if (DirectoryInitialization.isWaitingForWriteAccess(activity))
@@ -50,8 +117,17 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
         GameFileCacheManager.isRescanning().observe(activity, refreshObserver)
     }
 
-    fun onFabClick() {
-        AfterDirectoryInitializationRunner().runWithLifecycle(activity) { mainView.launchFileListActivity() }
+    fun launchFileListActivity() {
+        val intent =
+            if (DirectoryInitialization.preferOldFolderPicker(activity)) {
+                FileBrowserHelper.createDirectoryPickerIntent(
+                    activity,
+                    FileBrowserHelper.GAME_EXTENSIONS,
+                )
+            } else {
+                Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+            }
+        requestDirectory.launch(intent)
     }
 
     fun handleOptionSelection(itemId: Int, activity: ComponentActivity): Boolean =
@@ -73,12 +149,12 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
             }
 
             R.id.button_add_directory -> {
-                AfterDirectoryInitializationRunner().runWithLifecycle(activity) { mainView.launchFileListActivity() }
+                AfterDirectoryInitializationRunner().runWithLifecycle(activity) { launchFileListActivity() }
                 true
             }
 
             R.id.menu_open_file -> {
-                mainView.launchOpenFileActivity(REQUEST_GAME_FILE)
+                requestGameFile.launch("*/*")
                 true
             }
 
@@ -95,21 +171,21 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
             R.id.menu_install_wad -> {
                 AfterDirectoryInitializationRunner().runWithLifecycle(
                     activity
-                ) { mainView.launchOpenFileActivity(REQUEST_WAD_FILE) }
+                ) { requestWadFile.launch("*/*") }
                 true
             }
 
             R.id.menu_import_wii_save -> {
                 AfterDirectoryInitializationRunner().runWithLifecycle(
                     activity
-                ) { mainView.launchOpenFileActivity(REQUEST_WII_SAVE_FILE) }
+                ) { requestWiiSaveFile.launch("*/*") }
                 true
             }
 
             R.id.menu_import_nand_backup -> {
                 AfterDirectoryInitializationRunner().runWithLifecycle(
                     activity
-                ) { mainView.launchOpenFileActivity(REQUEST_NAND_BIN_FILE) }
+                ) { requestNandBinFile.launch("*/*") }
                 true
             }
 
@@ -280,14 +356,6 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
     }
 
     companion object {
-        const val REQUEST_DIRECTORY = 1
-        const val REQUEST_GAME_FILE = 2
-        const val REQUEST_SD_FILE = 3
-        const val REQUEST_WAD_FILE = 4
-        const val REQUEST_WII_SAVE_FILE = 5
-        const val REQUEST_NAND_BIN_FILE = 6
-        const val REQUEST_GPU_DRIVER = 7
-
         private var shouldRescanLibrary = true
 
         @JvmStatic

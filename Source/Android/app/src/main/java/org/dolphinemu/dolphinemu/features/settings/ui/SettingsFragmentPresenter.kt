@@ -32,9 +32,7 @@ import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialogPresenter
 import org.dolphinemu.dolphinemu.features.settings.model.*
 import org.dolphinemu.dolphinemu.features.settings.model.view.*
 import org.dolphinemu.dolphinemu.model.GpuDriverMetadata
-import org.dolphinemu.dolphinemu.ui.main.MainPresenter
 import org.dolphinemu.dolphinemu.utils.*
-import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -584,57 +582,57 @@ class SettingsFragmentPresenter(
                 StringSetting.MAIN_DEFAULT_ISO,
                 R.string.default_ISO,
                 0,
-                MainPresenter.REQUEST_GAME_FILE,
+                fragmentView.activityResultLaunchers.requestGameFile,
                 null
             )
         )
         sl.add(
-            FilePicker(
+            DirectoryPicker(
                 context,
                 StringSetting.MAIN_FS_PATH,
                 R.string.wii_NAND_root,
                 0,
-                MainPresenter.REQUEST_DIRECTORY,
+                fragmentView.activityResultLaunchers.requestDirectory,
                 "/Wii"
             )
         )
         sl.add(
-            FilePicker(
+            DirectoryPicker(
                 context,
                 StringSetting.MAIN_DUMP_PATH,
                 R.string.dump_path,
                 0,
-                MainPresenter.REQUEST_DIRECTORY,
+                fragmentView.activityResultLaunchers.requestDirectory,
                 "/Dump"
             )
         )
         sl.add(
-            FilePicker(
+            DirectoryPicker(
                 context,
                 StringSetting.MAIN_LOAD_PATH,
                 R.string.load_path,
                 0,
-                MainPresenter.REQUEST_DIRECTORY,
+                fragmentView.activityResultLaunchers.requestDirectory,
                 "/Load"
             )
         )
         sl.add(
-            FilePicker(
+            DirectoryPicker(
                 context,
                 StringSetting.MAIN_RESOURCEPACK_PATH,
                 R.string.resource_pack_path,
                 0,
-                MainPresenter.REQUEST_DIRECTORY,
+                fragmentView.activityResultLaunchers.requestDirectory,
                 "/ResourcePacks"
             )
         )
         sl.add(
-            FilePicker(
+            DirectoryPicker(
                 context,
                 StringSetting.MAIN_WFS_PATH,
                 R.string.wfs_path,
                 0,
-                MainPresenter.REQUEST_DIRECTORY,
+                fragmentView.activityResultLaunchers.requestDirectory,
                 "/WFS"
             )
         )
@@ -784,17 +782,17 @@ class SettingsFragmentPresenter(
                 StringSetting.MAIN_WII_SD_CARD_IMAGE_PATH,
                 R.string.wii_sd_card_path,
                 0,
-                MainPresenter.REQUEST_SD_FILE,
+                fragmentView.activityResultLaunchers.requestRawFile,
                 "/Load/WiiSD.raw"
             )
         )
         sl.add(
-            FilePicker(
+            DirectoryPicker(
                 context,
                 StringSetting.MAIN_WII_SD_CARD_SYNC_FOLDER_PATH,
                 R.string.wii_sd_sync_folder,
                 0,
-                MainPresenter.REQUEST_DIRECTORY,
+                fragmentView.activityResultLaunchers.requestDirectory,
                 "/Load/WiiSDSync/"
             )
         )
