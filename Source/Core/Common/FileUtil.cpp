@@ -528,9 +528,9 @@ bool DeleteDirRecursively(const std::string& directory)
 
   std::error_code error;
   const std::uintmax_t num_removed = std::filesystem::remove_all(StringToPath(directory), error);
-  const bool success = num_removed != 0 && !error;
+  const bool success = num_removed != static_cast<std::uintmax_t>(-1) && !error;
   if (!success)
-    ERROR_LOG_FMT(COMMON, "{}: {} failed {}", __func__, directory, error.message());
+    ERROR_LOG_FMT(COMMON, "{}: {} failed. {}", __func__, directory, error.message());
   return success;
 }
 
