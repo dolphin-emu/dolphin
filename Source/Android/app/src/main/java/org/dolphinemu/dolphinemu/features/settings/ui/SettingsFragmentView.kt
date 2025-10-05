@@ -39,6 +39,11 @@ interface SettingsFragmentView {
     val adapter: SettingsAdapter?
 
     /**
+     * The activity result launchers to use for asking the user to pick a directory or file.
+     */
+    val activityResultLaunchers: SettingsActivityResultLaunchers
+
+    /**
      * Tell the Fragment to tell the containing Activity to show a new
      * Fragment containing a submenu of settings.
      *
