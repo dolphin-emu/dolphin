@@ -218,7 +218,7 @@ void Jit64AsmRoutineManager::Generate()
   // If jitting triggered an ISI exception, MSR.DR may have changed
   MOV(64, R(RMEM), PPCSTATE(mem_ptr));
 
-  JMP(dispatcher_no_check, Jump::Near);
+  JMP(dispatcher_no_check);
 
   SetJumpTarget(bail);
   do_timing = GetCodePtr();

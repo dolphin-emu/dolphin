@@ -207,7 +207,7 @@ bool Jit64::BackPatch(SContext* ctx)
 
   // Patch the original memory operation.
   XEmitter emitter(start, start + info.len);
-  emitter.JMP(trampoline, Jump::Near);
+  emitter.JMP(trampoline);
   // NOPs become dead code
   const u8* end = info.start + info.len;
   for (const u8* i = emitter.GetCodePtr(); i < end; ++i)
@@ -594,7 +594,10 @@ void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
     J_CC(CC_LE, asm_routines.do_timing);
 
     linkData.exitPtrs = GetWritableCodePtr();
-    JMP(asm_routines.dispatcher_no_timing_check, Jump::Near);
+    // Padding required for correctness, as the JMP length might differ between dispatcher and
+    // linked block: if this wrote a Short JMP but then JitBlockCache::WriteLinkBlock wrote a Near
+    // JMP, the latter would overwrite other instructions.
+    JMP(asm_routines.dispatcher_no_timing_check, true);
   }
 
   b->linkData.push_back(linkData);
@@ -622,7 +625,7 @@ void Jit64::WriteExitDestInRSCRATCH(bool bl, u32 after)
   }
   else
   {
-    JMP(asm_routines.dispatcher, Jump::Near);
+    JMP(asm_routines.dispatcher);
   }
 }
 
@@ -660,7 +663,7 @@ void Jit64::WriteRfiExitDestInRSCRATCH()
   ABI_PopRegistersAndAdjustStack({}, 0);
   EmitUpdateMembase();
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
-  JMP(asm_routines.dispatcher, Jump::Near);
+  JMP(asm_routines.dispatcher);
 }
 
 void Jit64::WriteIdleExit(u32 destination)
@@ -682,7 +685,7 @@ void Jit64::WriteExceptionExit()
   ABI_PopRegistersAndAdjustStack({}, 0);
   EmitUpdateMembase();
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
-  JMP(asm_routines.dispatcher, Jump::Near);
+  JMP(asm_routines.dispatcher);
 }
 
 void Jit64::WriteExternalExceptionExit()
@@ -695,7 +698,7 @@ void Jit64::WriteExternalExceptionExit()
   ABI_PopRegistersAndAdjustStack({}, 0);
   EmitUpdateMembase();
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
-  JMP(asm_routines.dispatcher, Jump::Near);
+  JMP(asm_routines.dispatcher);
 }
 
 void Jit64::Run()
@@ -936,7 +939,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       ABI_CallFunctionPC(JitInterface::CompileExceptionCheckFromJIT, &m_system.GetJitInterface(),
                          static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
       ABI_PopRegistersAndAdjustStack({}, 0);
-      JMP(asm_routines.dispatcher_no_check, Jump::Near);
+      JMP(asm_routines.dispatcher_no_check);
       SwitchToNearCode();
 
       // Insert a check that the GQRs are still the value we expect at
@@ -1064,7 +1067,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         Cleanup();
         MOV(32, PPCSTATE(npc), Imm32(op.address));
         SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
-        JMP(asm_routines.dispatcher_exit, Jump::Near);
+        JMP(asm_routines.dispatcher_exit);
 
         SetJumpTarget(noBreakpoint);
       }
@@ -1284,7 +1287,7 @@ void Jit64::IntializeSpeculativeConstants()
         ABI_CallFunctionPC(JitInterface::CompileExceptionCheckFromJIT, &m_system.GetJitInterface(),
                            static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
         ABI_PopRegistersAndAdjustStack({}, 0);
-        JMP(asm_routines.dispatcher_no_check, Jump::Near);
+        JMP(asm_routines.dispatcher_no_check);
         SwitchToNearCode();
       }
       CMP(32, PPCSTATE_GPR(i), Imm32(compileTimeValue));

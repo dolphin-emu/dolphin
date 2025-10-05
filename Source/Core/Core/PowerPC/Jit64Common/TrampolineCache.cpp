@@ -46,7 +46,7 @@ const u8* TrampolineCache::GenerateReadTrampoline(const TrampolineInfo& info)
   SafeLoadToReg(info.op_reg, info.op_arg, info.accessSize << 3, info.offset, info.registersInUse,
                 info.signExtend, info.flags | SAFE_LOADSTORE_FORCE_SLOW_ACCESS);
 
-  JMP(info.start + info.len, Jump::Near);
+  JMP(info.start + info.len);
 
   Common::JitRegister::Register(trampoline, GetCodePtr(), "JIT_ReadTrampoline_{:x}", info.pc);
   return trampoline;
@@ -65,7 +65,7 @@ const u8* TrampolineCache::GenerateWriteTrampoline(const TrampolineInfo& info)
   SafeWriteRegToReg(info.op_arg, info.op_reg, info.accessSize << 3, info.offset,
                     info.registersInUse, info.flags | SAFE_LOADSTORE_FORCE_SLOW_ACCESS);
 
-  JMP(info.start + info.len, Jump::Near);
+  JMP(info.start + info.len);
 
   Common::JitRegister::Register(trampoline, GetCodePtr(), "JIT_WriteTrampoline_{:x}", info.pc);
   return trampoline;
