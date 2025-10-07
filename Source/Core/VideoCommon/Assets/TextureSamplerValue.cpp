@@ -45,6 +45,8 @@ bool TextureSamplerValue::FromJson(const picojson::object& json, TextureSamplerV
   data->sampler_origin =
       ReadSamplerOriginFromJSON(json).value_or(TextureSamplerValue::SamplerOrigin::Asset);
 
+  data->is_render_target = ReadBoolFromJson(json, "is_render_target").value_or(false);
+
   return true;
 }
 
@@ -56,5 +58,7 @@ void TextureSamplerValue::ToJson(picojson::object* obj, const TextureSamplerValu
   obj->emplace("asset", data.asset);
   obj->emplace("texture_hash", data.texture_hash);
   obj->emplace("sampler_origin", ToString(data.sampler_origin));
+
+  obj->emplace("is_render_target", data.is_render_target);
 }
 }  // namespace VideoCommon

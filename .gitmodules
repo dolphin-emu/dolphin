@@ -110,3 +110,6 @@
 	path = Externals/glslang/glslang
 	url = https://github.com/KhronosGroup/glslang.git
 	shallow = true
+[submodule "Externals/ImGuizmo/ImGuizmo"]
+	path = Externals/ImGuizmo/ImGuizmo
+	url = https://github.com/CedricGuillemet/ImGuizmo.git

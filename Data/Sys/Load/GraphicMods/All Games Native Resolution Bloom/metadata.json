@@ -1,20 +1,42 @@
 {
-	"meta":
-	{
-		"title": "Native Resolution Bloom",
-		"author": "Dolphin Team",
-		"description": "Scales bloom effects to draw at their native resolution, regardless of internal resolution.  Results in bloom looking much more natural at higher resolutions but may cause shimmering."
-	},
-	"features":
-	[
-		{
-			"group": "Bloom",
-			"action": "scale",
-			"action_data": {
-				"X": 1.0,
-				"Y": 1.0,
-				"Z": 1.0
-			}
-		}
-	]
+  "actions": [
+    {
+      "data": {
+        "active": true,
+        "passes": [
+          {
+            "pixel_material_asset": "bloom_material"
+          }
+        ]
+      },
+      "factory_name": "custom_pipeline"
+    }
+  ],
+  "assets": [
+    {
+      "data": {
+        "metadata": "bloom.shader",
+        "shader": "bloom.glsl"
+      },
+      "id": "bloom_shader"
+    },
+    {
+      "data": {
+        "metadata": "bloom.material"
+      },
+      "id": "bloom_material"
+    }
+  ],
+  "meta": {
+    "author": "Dolphin Team",
+    "description": "Scales bloom effects to draw at their native resolution, regardless of internal resolution.  Results in bloom looking much more natural at higher resolutions.",
+    "mod_version": "1.0.0",
+    "schema_version": 1,
+    "title": "Native Resolution Bloom"
+  },
+  "tag_to_actions": {
+    "Bloom": [
+      0
+    ]
+  }
 }
