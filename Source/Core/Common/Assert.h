@@ -25,7 +25,7 @@
 #define DEBUG_ASSERT_MSG(_t_, _a_, _fmt_, ...)                                                     \
   do                                                                                               \
   {                                                                                                \
-    if constexpr (Common::Log::MAX_LOGLEVEL >= Common::Log::LogLevel::LDEBUG)                      \
+    if constexpr (Common::Log::MAX_EFFECTIVE_LOGLEVEL >= Common::Log::LogLevel::LDEBUG)            \
       ASSERT_MSG(_t_, _a_, _fmt_ __VA_OPT__(, ) __VA_ARGS__);                                      \
   } while (0)
 
@@ -45,6 +45,6 @@
 #define DEBUG_ASSERT(_a_)                                                                          \
   do                                                                                               \
   {                                                                                                \
-    if constexpr (Common::Log::MAX_LOGLEVEL >= Common::Log::LogLevel::LDEBUG)                      \
+    if constexpr (Common::Log::MAX_EFFECTIVE_LOGLEVEL >= Common::Log::LogLevel::LDEBUG)            \
       ASSERT(_a_);                                                                                 \
   } while (0)
