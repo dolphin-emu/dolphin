@@ -679,6 +679,9 @@ AchievementManager::GetActiveChallenges() const
 
 std::vector<std::string> AchievementManager::GetActiveLeaderboards() const
 {
+  if (!Config::Get(Config::RA_LEADERBOARD_TRACKER_ENABLED))
+    return {};
+
   std::vector<std::string> display_values;
   for (u32 ix = 0; ix < MAX_DISPLAYED_LBOARDS && ix < m_active_leaderboards.size(); ix++)
   {
