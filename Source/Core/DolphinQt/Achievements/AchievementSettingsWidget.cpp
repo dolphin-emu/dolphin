@@ -233,7 +233,7 @@ void AchievementSettingsWidget::LoadSettings()
       ->setChecked(Config::Get(Config::RA_SPECTATOR_ENABLED));
   SignalBlocking(m_common_spectator_enabled_input)->setEnabled(enabled);
 
-   SignalBlocking(m_common_leaderboard_tracker_enabled_input)
+  SignalBlocking(m_common_leaderboard_tracker_enabled_input)
       ->setChecked(Config::Get(Config::RA_LEADERBOARD_TRACKER_ENABLED));
   SignalBlocking(m_common_leaderboard_tracker_enabled_input)->setEnabled(enabled);
 
