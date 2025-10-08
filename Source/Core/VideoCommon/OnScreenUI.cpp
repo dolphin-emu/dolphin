@@ -8,6 +8,7 @@
 #include "Common/Timer.h"
 
 #include "Core/AchievementManager.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
@@ -324,10 +325,21 @@ void OnScreenUI::DrawChallengesAndLeaderboards()
 #ifdef USE_RETRO_ACHIEVEMENTS
   auto& instance = AchievementManager::GetInstance();
   std::lock_guard lg{instance.GetLock()};
-  if (instance.AreChallengesUpdated())
+  const bool challenge_indicators_enabled = Config::Get(Config::RA_CHALLENGE_INDICATORS_ENABLED);
+  const bool challenges_updated = instance.AreChallengesUpdated();
+  const auto& challenges = instance.GetActiveChallenges();
+
+  if (!challenge_indicators_enabled)
   {
-    instance.ResetChallengesUpdated();
-    const auto& challenges = instance.GetActiveChallenges();
+    if (challenges_updated)
+      instance.ResetChallengesUpdated();
+    if (!m_challenge_texture_map.empty())
+      m_challenge_texture_map.clear();
+  }
+  else if (challenges_updated || m_challenge_texture_map.size() != challenges.size())
+  {
+    if (challenges_updated)
+      instance.ResetChallengesUpdated();
     m_challenge_texture_map.clear();
     for (const auto& name : challenges)
     {
@@ -343,7 +355,7 @@ void OnScreenUI::DrawChallengesAndLeaderboards()
   }
 
   float leaderboard_y = ImGui::GetIO().DisplaySize.y;
-  if (!m_challenge_texture_map.empty())
+  if (challenge_indicators_enabled && !m_challenge_texture_map.empty())
   {
     float scale = ImGui::GetIO().DisplaySize.y / 1024.0;
     ImGui::SetNextWindowSize(ImVec2(0, 0));
@@ -367,7 +379,7 @@ void OnScreenUI::DrawChallengesAndLeaderboards()
   }
 
   const auto& leaderboard_progress = instance.GetActiveLeaderboards();
-  if (!leaderboard_progress.empty())
+  if (Config::Get(Config::RA_LEADERBOARD_TRACKER_ENABLED) && !leaderboard_progress.empty())
   {
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x, leaderboard_y), 0,
                             ImVec2(1.0, 1.0));
