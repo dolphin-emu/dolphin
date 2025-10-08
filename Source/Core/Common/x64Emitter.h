@@ -348,6 +348,7 @@ private:
   void WriteSimple1Byte(int bits, u8 byte, X64Reg reg);
   void WriteSimple2Byte(int bits, u8 byte1, u8 byte2, X64Reg reg);
   void WriteMulDivType(int bits, OpArg src, int ext);
+  void WriteIncDecType(int bits, OpArg src, int opReg);
   void WriteBitSearchType(int bits, X64Reg dest, OpArg src, u8 byte2, bool rep = false);
   void WriteShift(int bits, OpArg dest, const OpArg& shift, int ext);
   void WriteBitTest(int bits, const OpArg& dest, const OpArg& index, int ext);
@@ -500,6 +501,10 @@ public:
   void IMUL(int bits, X64Reg regOp, const OpArg& src, const OpArg& imm);
   void DIV(int bits, const OpArg& src);
   void IDIV(int bits, const OpArg& src);
+
+  // Inc / Dec
+  void INC(int bits, const OpArg& src);
+  void DEC(int bits, const OpArg& src);
 
   // Shift
   void ROL(int bits, const OpArg& dest, const OpArg& shift);
