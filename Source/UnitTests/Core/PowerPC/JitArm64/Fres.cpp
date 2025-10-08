@@ -58,11 +58,14 @@ TEST(JitArm64, Fres)
 
   TestFres test(Core::System::GetInstance());
 
+  // FPSCR with NI set
+  const UReg_FPSCR fpscr = UReg_FPSCR(0x00000004);
+
   for (const u64 ivalue : double_test_values)
   {
     const double dvalue = std::bit_cast<double>(ivalue);
 
-    const u64 expected = std::bit_cast<u64>(Common::ApproximateReciprocal(dvalue));
+    const u64 expected = std::bit_cast<u64>(Common::ApproximateReciprocal(fpscr, dvalue));
     const u64 actual = test.fres(ivalue);
 
     if (expected != actual)

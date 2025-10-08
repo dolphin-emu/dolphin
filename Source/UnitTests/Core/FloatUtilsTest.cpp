@@ -8,7 +8,7 @@
 
 #include <gtest/gtest.h>
 
-#include "Common/FloatUtils.h"
+#include "Core/FloatUtils.h"
 
 #include "../Core/PowerPC/TestValues.h"
 
