@@ -5,10 +5,10 @@
 
 #include <algorithm>
 #include <array>
-#include <cctype>
+#include <chrono>
 #include <cstring>
+#include <format>
 #include <iterator>
-#include <locale>
 #include <mbedtls/config.h>
 #include <mbedtls/md.h>
 #include <mutex>
@@ -17,7 +17,6 @@
 #include <variant>
 #include <vector>
 
-#include <fmt/chrono.h>
 #include <fmt/format.h>
 
 #include "Common/Assert.h"
@@ -157,10 +156,13 @@ std::string MovieManager::GetRTCDisplay() const
   using ExpansionInterface::CEXIIPL;
 
   const time_t current_time = CEXIIPL::GetEmulatedTime(m_system, CEXIIPL::UNIX_EPOCH);
-  const tm gm_time = fmt::gmtime(current_time);
 
-  // Use current locale for formatting time, as fmt is locale-agnostic by default.
-  return fmt::format(std::locale{""}, "Date/Time: {:%c}", gm_time);
+  // Interpret as a `local_time`. This avoids displaying the erroneous "GMT" when formatted.
+  const auto local_time = std::chrono::local_time{
+      std::chrono::system_clock::from_time_t(current_time).time_since_epoch()};
+
+  // Using L for locale-dependant formatting. std::format is locale-agnostic by default.
+  return std::format("Date/Time: {:L%c}", local_time);
 }
 
 // NOTE: GPU Thread

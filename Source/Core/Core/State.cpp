@@ -4,9 +4,10 @@
 #include "Core/State.h"
 
 #include <algorithm>
+#include <chrono>
 #include <condition_variable>
 #include <filesystem>
-#include <locale>
+#include <format>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -14,7 +15,6 @@
 #include <utility>
 #include <vector>
 
-#include <fmt/chrono.h>
 #include <fmt/format.h>
 
 #include <lz4.h>
@@ -28,7 +28,6 @@
 #include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
-#include "Common/TimeUtil.h"
 #include "Common/Version.h"
 #include "Common/WorkQueueThread.h"
 
@@ -40,7 +39,6 @@
 #include "Core/HW/HW.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -281,12 +279,12 @@ static std::string SystemTimeAsDoubleToString(double time)
 {
   // revert adjustments from GetSystemTimeAsDouble() to get a normal Unix timestamp again
   const time_t seconds = static_cast<time_t>(time) + DOUBLE_TIME_OFFSET;
-  const auto local_time = Common::LocalTime(seconds);
-  if (!local_time)
-    return "";
 
-  // fmt is locale agnostic by default, so explicitly use current locale.
-  return fmt::format(std::locale{""}, "{:%x %X}", *local_time);
+  const auto local_time =
+      std::chrono::current_zone()->to_local(std::chrono::system_clock::from_time_t(seconds));
+
+  // Using L for locale-dependant formatting. std::format is locale-agnostic by default.
+  return std::format("{:L%x %X}", local_time);
 }
 
 static std::string MakeStateFilename(int number);
