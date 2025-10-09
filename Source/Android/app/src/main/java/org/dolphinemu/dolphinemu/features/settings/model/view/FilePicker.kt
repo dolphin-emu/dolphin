@@ -3,15 +3,17 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view
 
 import android.content.Context
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractStringSetting
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 
-class FilePicker(
+open class FilePicker(
     context: Context,
     override var setting: AbstractStringSetting,
     titleId: Int,
     descriptionId: Int,
-    val requestType: Int,
+    val launcher: ActivityResultLauncher<Intent>,
     val defaultPathRelativeToUserDirectory: String?
 ) : SettingsItem(context, titleId, descriptionId) {
     override val type: Int = TYPE_FILE_PICKER
