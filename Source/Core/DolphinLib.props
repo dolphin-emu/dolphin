@@ -365,6 +365,7 @@
     <ClInclude Include="Core\HW\WiimoteReal\WiimoteReal.h" />
     <ClInclude Include="Core\HW\WiiSave.h" />
     <ClInclude Include="Core\HW\WiiSaveStructs.h" />
+    <ClInclude Include="Core\InputSuppressor.h" />
     <ClInclude Include="Core\IOS\Crypto\Sha.h" />
     <ClInclude Include="Core\IOS\Crypto\AesDevice.h" />
     <ClInclude Include="Core\IOS\Device.h" />
@@ -1041,6 +1042,7 @@
     <ClCompile Include="Core\HW\WiimoteReal\IOWin.cpp" />
     <ClCompile Include="Core\HW\WiimoteReal\WiimoteReal.cpp" />
     <ClCompile Include="Core\HW\WiiSave.cpp" />
+    <ClCompile Include="Core\InputSuppressor.cpp" />
     <ClCompile Include="Core\IOS\Crypto\Sha.cpp" />
     <ClCompile Include="Core\IOS\Crypto\AesDevice.cpp" />
     <ClCompile Include="Core\IOS\Device.cpp" />
