@@ -20,6 +20,7 @@
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
+#include "Core/USBUtils.h"
 
 class PointerWrap;
 
@@ -227,6 +228,8 @@ void AddWiimoteToPool(std::unique_ptr<Wiimote>);
 bool IsValidDeviceName(const std::string& name);
 bool IsBalanceBoardName(const std::string& name);
 bool IsNewWiimote(const std::string& identifier);
+
+bool IsKnownDeviceId(const USBUtils::DeviceInfo&);
 
 void HandleWiimoteSourceChange(unsigned int wiimote_number);
 
