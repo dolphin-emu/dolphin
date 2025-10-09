@@ -36,7 +36,7 @@ public:
   WiimoteScannerHidapi();
   ~WiimoteScannerHidapi() override;
   bool IsReady() const override;
-  void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
+  FindResults FindWiimotes(QueryType) override;
   void Update() override {}                // not needed for hidapi
   void RequestStopSearching() override {}  // not needed for hidapi
 };

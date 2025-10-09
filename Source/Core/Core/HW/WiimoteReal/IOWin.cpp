@@ -497,11 +497,16 @@ void WiimoteScannerWindows::Update()
 // Does not replace already found Wiimotes even if they are disconnected.
 // wm is an array of max_wiimotes Wiimotes
 // Returns the total number of found and connected Wiimotes.
-void WiimoteScannerWindows::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
-                                         Wiimote*& found_board)
+auto WiimoteScannerWindows::FindWiimotes(QueryType query_type) -> FindResults
 {
+  FindResults results;
+
+  // For the time being, this backend only supports discovering remotes when a scan is requested.
+  if (query_type != QueryType::NewInquiry)
+    return results;
+
   if (!s_loaded_ok)
-    return;
+    return results;
 
   ProcessWiimotes(true, [](HANDLE hRadio, const BLUETOOTH_RADIO_INFO& rinfo,
                            BLUETOOTH_DEVICE_INFO_STRUCT& btdi) {
@@ -547,15 +552,17 @@ void WiimoteScannerWindows::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
         continue;
       }
 
-      auto* wiimote = new WiimoteWindows(device_path, write_method);
+      auto wiimote = std::make_unique<WiimoteWindows>(device_path, write_method);
       if (wiimote->IsBalanceBoard())
-        found_board = wiimote;
+        results.balance_boards.emplace_back(std::move(wiimote));
       else
-        found_wiimotes.push_back(wiimote);
+        results.wii_remotes.emplace_back(std::move(wiimote));
     }
   }
 
   SetupDiDestroyDeviceInfoList(device_info);
+
+  return results;
 }
 
 bool WiimoteScannerWindows::IsReady() const
