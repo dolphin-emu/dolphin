@@ -203,12 +203,12 @@ void WatchWidget::Update()
     {
       if (PowerPC::MMU::HostIsRAMAddress(guard, entry.address))
       {
-        hex->setText(QStringLiteral("%1").arg(PowerPC::MMU::HostRead_U32(guard, entry.address), 8,
+        hex->setText(QStringLiteral("%1").arg(PowerPC::MMU::HostRead<u32>(guard, entry.address), 8,
                                               16, QLatin1Char('0')));
-        decimal->setText(QString::number(PowerPC::MMU::HostRead_U32(guard, entry.address)));
+        decimal->setText(QString::number(PowerPC::MMU::HostRead<u32>(guard, entry.address)));
         string->setText(
             QString::fromStdString(PowerPC::MMU::HostGetString(guard, entry.address, 32)));
-        floatValue->setText(QString::number(PowerPC::MMU::HostRead_F32(guard, entry.address)));
+        floatValue->setText(QString::number(PowerPC::MMU::HostRead<float>(guard, entry.address)));
         lockValue->setCheckState(entry.locked ? Qt::Checked : Qt::Unchecked);
       }
     }
@@ -425,7 +425,7 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
         }
         else
         {
-          PowerPC::MMU::HostWrite_U32(guard, value, debug_interface.GetWatch(row).address);
+          PowerPC::MMU::HostWrite<u32>(guard, value, debug_interface.GetWatch(row).address);
         }
       }
       else

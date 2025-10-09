@@ -5,6 +5,8 @@
 #include <cstddef>
 #include <memory>
 #include <type_traits>
+#include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 
 namespace Common
 {
@@ -141,4 +143,13 @@ concept TypedEnum = std::is_same_v<std::underlying_type_t<T>, Underlying>;
 
 template <typename T>
 concept BooleanEnum = TypedEnum<T, bool>;
+
+template <typename T>
+requires(sizeof(T) <= sizeof(u64) && std::has_single_bit(sizeof(T)))
+using MakeUnsignedSameSize =
+    std::tuple_element_t<MathUtil::IntLog2(sizeof(T)), std::tuple<u8, u16, u32, u64>>;
+
+template <std::unsigned_integral T>
+using MakeAtLeastU32 = std::conditional_t<std::is_same_v<T, u64>, u64, u32>;
+
 }  // namespace Common

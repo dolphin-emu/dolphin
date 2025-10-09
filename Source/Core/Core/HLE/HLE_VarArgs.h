@@ -55,7 +55,7 @@ public:
 
     for (size_t i = 0; i < sizeof(T); i += 1, addr += 1)
     {
-      reinterpret_cast<u8*>(&obj)[i] = PowerPC::MMU::HostRead_U8(m_guard, addr);
+      reinterpret_cast<u8*>(&obj)[i] = PowerPC::MMU::HostRead<u8>(m_guard, addr);
     }
 
     return obj;
@@ -76,7 +76,7 @@ public:
     else
     {
       m_stack = Common::AlignUp(m_stack, 4);
-      value = PowerPC::MMU::HostRead_U32(m_guard, m_stack);
+      value = PowerPC::MMU::HostRead<u32>(m_guard, m_stack);
       m_stack += 4;
     }
 
@@ -99,7 +99,7 @@ public:
     else
     {
       m_stack = Common::AlignUp(m_stack, 8);
-      value = PowerPC::MMU::HostRead_U64(m_guard, m_stack);
+      value = PowerPC::MMU::HostRead<u64>(m_guard, m_stack);
       m_stack += 8;
     }
 
@@ -120,7 +120,7 @@ public:
     else
     {
       m_stack = Common::AlignUp(m_stack, 8);
-      value = PowerPC::MMU::HostRead_F64(m_guard, m_stack);
+      value = PowerPC::MMU::HostRead<double>(m_guard, m_stack);
       m_stack += 8;
     }
 

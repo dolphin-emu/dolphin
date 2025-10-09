@@ -1373,8 +1373,8 @@ u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_
     address += (MEM2_START - MEM1_SIZE);
   for (u32 num_read = 0; num_read < num_bytes; num_read++)
   {
-    auto value = system.GetMMU().HostTryReadU8(thread_guard, address + num_read,
-                                               PowerPC::RequestedAddressSpace::Physical);
+    auto value = system.GetMMU().HostTryRead<u8>(thread_guard, address + num_read,
+                                                 PowerPC::RequestedAddressSpace::Physical);
     if (!value.has_value())
       return num_read;
     buffer[num_read] = value.value().value;

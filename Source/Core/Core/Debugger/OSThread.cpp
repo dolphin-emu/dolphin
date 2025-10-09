@@ -19,23 +19,23 @@ namespace Core::Debug
 void OSContext::Read(const Core::CPUThreadGuard& guard, u32 addr)
 {
   for (std::size_t i = 0; i < gpr.size(); i++)
-    gpr[i] = PowerPC::MMU::HostRead_U32(guard, addr + u32(i * sizeof(int)));
-  cr = PowerPC::MMU::HostRead_U32(guard, addr + 0x80);
-  lr = PowerPC::MMU::HostRead_U32(guard, addr + 0x84);
-  ctr = PowerPC::MMU::HostRead_U32(guard, addr + 0x88);
-  xer = PowerPC::MMU::HostRead_U32(guard, addr + 0x8C);
+    gpr[i] = PowerPC::MMU::HostRead<u32>(guard, addr + u32(i * sizeof(int)));
+  cr = PowerPC::MMU::HostRead<u32>(guard, addr + 0x80);
+  lr = PowerPC::MMU::HostRead<u32>(guard, addr + 0x84);
+  ctr = PowerPC::MMU::HostRead<u32>(guard, addr + 0x88);
+  xer = PowerPC::MMU::HostRead<u32>(guard, addr + 0x8C);
   for (std::size_t i = 0; i < fpr.size(); i++)
-    fpr[i] = PowerPC::MMU::HostRead_F64(guard, addr + 0x90 + u32(i * sizeof(double)));
-  fpscr = PowerPC::MMU::HostRead_U64(guard, addr + 0x190);
-  srr0 = PowerPC::MMU::HostRead_U32(guard, addr + 0x198);
-  srr1 = PowerPC::MMU::HostRead_U32(guard, addr + 0x19c);
-  dummy = PowerPC::MMU::HostRead_U16(guard, addr + 0x1a0);
-  state = static_cast<OSContext::State>(PowerPC::MMU::HostRead_U16(guard, addr + 0x1a2));
+    fpr[i] = PowerPC::MMU::HostRead<double>(guard, addr + 0x90 + u32(i * sizeof(double)));
+  fpscr = PowerPC::MMU::HostRead<u64>(guard, addr + 0x190);
+  srr0 = PowerPC::MMU::HostRead<u32>(guard, addr + 0x198);
+  srr1 = PowerPC::MMU::HostRead<u32>(guard, addr + 0x19c);
+  dummy = PowerPC::MMU::HostRead<u16>(guard, addr + 0x1a0);
+  state = static_cast<OSContext::State>(PowerPC::MMU::HostRead<u16>(guard, addr + 0x1a2));
   for (std::size_t i = 0; i < gqr.size(); i++)
-    gqr[i] = PowerPC::MMU::HostRead_U32(guard, addr + 0x1a4 + u32(i * sizeof(int)));
+    gqr[i] = PowerPC::MMU::HostRead<u32>(guard, addr + 0x1a4 + u32(i * sizeof(int)));
   psf_padding = 0;
   for (std::size_t i = 0; i < psf.size(); i++)
-    psf[i] = PowerPC::MMU::HostRead_F64(guard, addr + 0x1c8 + u32(i * sizeof(double)));
+    psf[i] = PowerPC::MMU::HostRead<double>(guard, addr + 0x1c8 + u32(i * sizeof(double)));
 }
 
 // Mutex offsets based on the following functions:
@@ -44,12 +44,12 @@ void OSContext::Read(const Core::CPUThreadGuard& guard, u32 addr)
 //  - __OSUnlockAllMutex
 void OSMutex::Read(const Core::CPUThreadGuard& guard, u32 addr)
 {
-  thread_queue.head = PowerPC::MMU::HostRead_U32(guard, addr);
-  thread_queue.tail = PowerPC::MMU::HostRead_U32(guard, addr + 0x4);
-  owner_addr = PowerPC::MMU::HostRead_U32(guard, addr + 0x8);
-  lock_count = PowerPC::MMU::HostRead_U32(guard, addr + 0xc);
-  link.next = PowerPC::MMU::HostRead_U32(guard, addr + 0x10);
-  link.prev = PowerPC::MMU::HostRead_U32(guard, addr + 0x14);
+  thread_queue.head = PowerPC::MMU::HostRead<u32>(guard, addr);
+  thread_queue.tail = PowerPC::MMU::HostRead<u32>(guard, addr + 0x4);
+  owner_addr = PowerPC::MMU::HostRead<u32>(guard, addr + 0x8);
+  lock_count = PowerPC::MMU::HostRead<u32>(guard, addr + 0xc);
+  link.next = PowerPC::MMU::HostRead<u32>(guard, addr + 0x10);
+  link.prev = PowerPC::MMU::HostRead<u32>(guard, addr + 0x14);
 }
 
 // Thread offsets based on the following functions:
@@ -67,38 +67,38 @@ void OSMutex::Read(const Core::CPUThreadGuard& guard, u32 addr)
 void OSThread::Read(const Core::CPUThreadGuard& guard, u32 addr)
 {
   context.Read(guard, addr);
-  state = PowerPC::MMU::HostRead_U16(guard, addr + 0x2c8);
-  is_detached = PowerPC::MMU::HostRead_U16(guard, addr + 0x2ca);
-  suspend = PowerPC::MMU::HostRead_U32(guard, addr + 0x2cc);
-  effective_priority = PowerPC::MMU::HostRead_U32(guard, addr + 0x2d0);
-  base_priority = PowerPC::MMU::HostRead_U32(guard, addr + 0x2d4);
-  exit_code_addr = PowerPC::MMU::HostRead_U32(guard, addr + 0x2d8);
+  state = PowerPC::MMU::HostRead<u16>(guard, addr + 0x2c8);
+  is_detached = PowerPC::MMU::HostRead<u16>(guard, addr + 0x2ca);
+  suspend = PowerPC::MMU::HostRead<u32>(guard, addr + 0x2cc);
+  effective_priority = PowerPC::MMU::HostRead<u32>(guard, addr + 0x2d0);
+  base_priority = PowerPC::MMU::HostRead<u32>(guard, addr + 0x2d4);
+  exit_code_addr = PowerPC::MMU::HostRead<u32>(guard, addr + 0x2d8);
 
-  queue_addr = PowerPC::MMU::HostRead_U32(guard, addr + 0x2dc);
-  queue_link.next = PowerPC::MMU::HostRead_U32(guard, addr + 0x2e0);
-  queue_link.prev = PowerPC::MMU::HostRead_U32(guard, addr + 0x2e4);
+  queue_addr = PowerPC::MMU::HostRead<u32>(guard, addr + 0x2dc);
+  queue_link.next = PowerPC::MMU::HostRead<u32>(guard, addr + 0x2e0);
+  queue_link.prev = PowerPC::MMU::HostRead<u32>(guard, addr + 0x2e4);
 
-  join_queue.head = PowerPC::MMU::HostRead_U32(guard, addr + 0x2e8);
-  join_queue.tail = PowerPC::MMU::HostRead_U32(guard, addr + 0x2ec);
+  join_queue.head = PowerPC::MMU::HostRead<u32>(guard, addr + 0x2e8);
+  join_queue.tail = PowerPC::MMU::HostRead<u32>(guard, addr + 0x2ec);
 
-  mutex_addr = PowerPC::MMU::HostRead_U32(guard, addr + 0x2f0);
-  mutex_queue.head = PowerPC::MMU::HostRead_U32(guard, addr + 0x2f4);
-  mutex_queue.tail = PowerPC::MMU::HostRead_U32(guard, addr + 0x2f8);
+  mutex_addr = PowerPC::MMU::HostRead<u32>(guard, addr + 0x2f0);
+  mutex_queue.head = PowerPC::MMU::HostRead<u32>(guard, addr + 0x2f4);
+  mutex_queue.tail = PowerPC::MMU::HostRead<u32>(guard, addr + 0x2f8);
 
-  thread_link.next = PowerPC::MMU::HostRead_U32(guard, addr + 0x2fc);
-  thread_link.prev = PowerPC::MMU::HostRead_U32(guard, addr + 0x300);
+  thread_link.next = PowerPC::MMU::HostRead<u32>(guard, addr + 0x2fc);
+  thread_link.prev = PowerPC::MMU::HostRead<u32>(guard, addr + 0x300);
 
-  stack_addr = PowerPC::MMU::HostRead_U32(guard, addr + 0x304);
-  stack_end = PowerPC::MMU::HostRead_U32(guard, addr + 0x308);
-  error = PowerPC::MMU::HostRead_U32(guard, addr + 0x30c);
-  specific[0] = PowerPC::MMU::HostRead_U32(guard, addr + 0x310);
-  specific[1] = PowerPC::MMU::HostRead_U32(guard, addr + 0x314);
+  stack_addr = PowerPC::MMU::HostRead<u32>(guard, addr + 0x304);
+  stack_end = PowerPC::MMU::HostRead<u32>(guard, addr + 0x308);
+  error = PowerPC::MMU::HostRead<u32>(guard, addr + 0x30c);
+  specific[0] = PowerPC::MMU::HostRead<u32>(guard, addr + 0x310);
+  specific[1] = PowerPC::MMU::HostRead<u32>(guard, addr + 0x314);
 }
 
 bool OSThread::IsValid(const Core::CPUThreadGuard& guard) const
 {
   return PowerPC::MMU::HostIsRAMAddress(guard, stack_end) &&
-         PowerPC::MMU::HostRead_U32(guard, stack_end) == STACK_MAGIC;
+         PowerPC::MMU::HostRead<u32>(guard, stack_end) == STACK_MAGIC;
 }
 
 OSThreadView::OSThreadView(const Core::CPUThreadGuard& guard, u32 addr)

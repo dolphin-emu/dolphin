@@ -10,6 +10,7 @@
 
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
+#include "Common/TypeUtils.h"
 
 namespace Core
 {
@@ -124,12 +125,17 @@ public:
   // If the read fails (eg. address does not correspond to a mapped address in the current address
   // space), a PanicAlert will be shown to the user and zero (or an empty string for the string
   // case) will be returned.
-  static u8 HostRead_U8(const Core::CPUThreadGuard& guard, u32 address);
-  static u16 HostRead_U16(const Core::CPUThreadGuard& guard, u32 address);
-  static u32 HostRead_U32(const Core::CPUThreadGuard& guard, u32 address);
-  static u64 HostRead_U64(const Core::CPUThreadGuard& guard, u32 address);
-  static float HostRead_F32(const Core::CPUThreadGuard& guard, u32 address);
-  static double HostRead_F64(const Core::CPUThreadGuard& guard, u32 address);
+  template <std::unsigned_integral T>
+  static T HostRead(const Core::CPUThreadGuard& guard, const u32 address);
+  template <typename T>
+  requires(!std::unsigned_integral<T>)
+  static T HostRead(const Core::CPUThreadGuard& guard, const u32 address)
+  {
+    using U = Common::MakeUnsignedSameSize<T>;
+    U result = HostRead<U>(guard, address);
+    return std::bit_cast<T>(result);
+  }
+
   static u32 HostRead_Instruction(const Core::CPUThreadGuard& guard, u32 address);
   static std::string HostGetString(const Core::CPUThreadGuard& guard, u32 address, size_t size = 0);
   static std::u16string HostGetU16String(const Core::CPUThreadGuard& guard, u32 address,
@@ -139,24 +145,20 @@ public:
   // If the read succeeds, the returned value will be present and the ReadResult contains the read
   // value and information on whether the given address had to be translated or not. Unlike the
   // HostRead functions, this does not raise a user-visible alert on failure.
-  static std::optional<ReadResult<u8>>
-  HostTryReadU8(const Core::CPUThreadGuard& guard, u32 address,
-                RequestedAddressSpace space = RequestedAddressSpace::Effective);
-  static std::optional<ReadResult<u16>>
-  HostTryReadU16(const Core::CPUThreadGuard& guard, u32 address,
-                 RequestedAddressSpace space = RequestedAddressSpace::Effective);
-  static std::optional<ReadResult<u32>>
-  HostTryReadU32(const Core::CPUThreadGuard& guard, u32 address,
-                 RequestedAddressSpace space = RequestedAddressSpace::Effective);
-  static std::optional<ReadResult<u64>>
-  HostTryReadU64(const Core::CPUThreadGuard& guard, u32 address,
-                 RequestedAddressSpace space = RequestedAddressSpace::Effective);
-  static std::optional<ReadResult<float>>
-  HostTryReadF32(const Core::CPUThreadGuard& guard, u32 address,
-                 RequestedAddressSpace space = RequestedAddressSpace::Effective);
-  static std::optional<ReadResult<double>>
-  HostTryReadF64(const Core::CPUThreadGuard& guard, u32 address,
-                 RequestedAddressSpace space = RequestedAddressSpace::Effective);
+  template <std::unsigned_integral T>
+  static std::optional<ReadResult<T>>
+  HostTryRead(const Core::CPUThreadGuard& guard, u32 address,
+              RequestedAddressSpace space = RequestedAddressSpace::Effective);
+  template <typename T>
+  static std::optional<ReadResult<T>>
+  HostTryRead(const Core::CPUThreadGuard& guard, u32 address,
+              RequestedAddressSpace space = RequestedAddressSpace::Effective)
+      requires(!std::unsigned_integral<T>)
+  {
+    using U = Common::MakeUnsignedSameSize<T>;
+    std::optional<ReadResult<U>> result = HostTryRead<U>(guard, address);
+    return std::bit_cast<std::optional<ReadResult<T>>>(result);
+  }
   static std::optional<ReadResult<u32>>
   HostTryReadInstruction(const Core::CPUThreadGuard& guard, u32 address,
                          RequestedAddressSpace space = RequestedAddressSpace::Effective);
@@ -167,35 +169,36 @@ public:
   // Writes a value to emulated memory using the currently active MMU settings.
   // If the write fails (eg. address does not correspond to a mapped address in the current address
   // space), a PanicAlert will be shown to the user.
-  static void HostWrite_U8(const Core::CPUThreadGuard& guard, u32 var, u32 address);
-  static void HostWrite_U16(const Core::CPUThreadGuard& guard, u32 var, u32 address);
-  static void HostWrite_U32(const Core::CPUThreadGuard& guard, u32 var, u32 address);
-  static void HostWrite_U64(const Core::CPUThreadGuard& guard, u64 var, u32 address);
-  static void HostWrite_F32(const Core::CPUThreadGuard& guard, float var, u32 address);
-  static void HostWrite_F64(const Core::CPUThreadGuard& guard, double var, u32 address);
+  template <std::unsigned_integral T>
+  static void HostWrite(const Core::CPUThreadGuard& guard, Common::MakeAtLeastU32<T> var,
+                        u32 address);
+  template <typename T>
+  static void HostWrite(const Core::CPUThreadGuard& guard, T var, u32 address)
+      requires(!std::unsigned_integral<T>)
+  {
+    using U = Common::MakeUnsignedSameSize<T>;
+    U cast_var = std::bit_cast<U>(var);
+    return HostWrite<U>(guard, cast_var, address);
+  }
 
   // Try to a write a value to memory at the given address in the given memory space.
   // If the write succeeds, the returned TryWriteResult contains information on whether the given
   // address had to be translated or not. Unlike the HostWrite functions, this does not raise a
   // user-visible alert on failure.
+  template <std::unsigned_integral T>
   static std::optional<WriteResult>
-  HostTryWriteU8(const Core::CPUThreadGuard& guard, u32 var, const u32 address,
-                 RequestedAddressSpace space = RequestedAddressSpace::Effective);
+  HostTryWrite(const Core::CPUThreadGuard& guard, const Common::MakeAtLeastU32<T> var,
+               const u32 address, RequestedAddressSpace space = RequestedAddressSpace::Effective);
+  template <typename T>
   static std::optional<WriteResult>
-  HostTryWriteU16(const Core::CPUThreadGuard& guard, u32 var, const u32 address,
-                  RequestedAddressSpace space = RequestedAddressSpace::Effective);
-  static std::optional<WriteResult>
-  HostTryWriteU32(const Core::CPUThreadGuard& guard, u32 var, const u32 address,
-                  RequestedAddressSpace space = RequestedAddressSpace::Effective);
-  static std::optional<WriteResult>
-  HostTryWriteU64(const Core::CPUThreadGuard& guard, u64 var, const u32 address,
-                  RequestedAddressSpace space = RequestedAddressSpace::Effective);
-  static std::optional<WriteResult>
-  HostTryWriteF32(const Core::CPUThreadGuard& guard, float var, const u32 address,
-                  RequestedAddressSpace space = RequestedAddressSpace::Effective);
-  static std::optional<WriteResult>
-  HostTryWriteF64(const Core::CPUThreadGuard& guard, double var, const u32 address,
-                  RequestedAddressSpace space = RequestedAddressSpace::Effective);
+  HostTryWrite(const Core::CPUThreadGuard& guard, const T var, const u32 address,
+               RequestedAddressSpace space = RequestedAddressSpace::Effective)
+      requires(!std::unsigned_integral<T>)
+  {
+    using U = Common::MakeUnsignedSameSize<T>;
+    U cast_var = std::bit_cast<U>(var);
+    return HostTryWrite<U>(guard, cast_var, address, space);
+  }
 
   // Returns whether a read or write to the given address will resolve to a RAM access in the given
   // address space.
@@ -213,15 +216,11 @@ public:
   u32 Read_Opcode(u32 address);
   TryReadInstResult TryReadInstruction(u32 address);
 
-  u8 Read_U8(u32 address);
-  u16 Read_U16(u32 address);
-  u32 Read_U32(u32 address);
-  u64 Read_U64(u32 address);
+  template <std::unsigned_integral T>
+  T Read(const u32 address);
 
-  void Write_U8(u32 var, u32 address);
-  void Write_U16(u32 var, u32 address);
-  void Write_U32(u32 var, u32 address);
-  void Write_U64(u64 var, u32 address);
+  template <std::unsigned_integral T>
+  void Write(const Common::MakeAtLeastU32<T> var, const u32 address);
 
   void Write_U16_Swap(u32 var, u32 address);
   void Write_U32_Swap(u32 var, u32 address);
@@ -305,20 +304,13 @@ private:
   void UpdateBATs(BatTable& bat_table, u32 base_spr);
   void UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr);
 
-  template <XCheckTLBFlag flag, typename T, bool never_translate = false>
+  template <XCheckTLBFlag flag, std::unsigned_integral T, bool never_translate = false>
   T ReadFromHardware(u32 em_address);
   template <XCheckTLBFlag flag, bool never_translate = false>
   void WriteToHardware(u32 em_address, const u32 data, const u32 size);
   template <XCheckTLBFlag flag>
   bool IsEffectiveRAMAddress(u32 address);
   bool IsPhysicalRAMAddress(u32 address) const;
-
-  template <typename T>
-  static std::optional<ReadResult<T>> HostTryReadUX(const Core::CPUThreadGuard& guard,
-                                                    const u32 address, RequestedAddressSpace space);
-  static std::optional<WriteResult> HostTryWriteUX(const Core::CPUThreadGuard& guard, const u32 var,
-                                                   const u32 address, const u32 size,
-                                                   RequestedAddressSpace space);
 
   Core::System& m_system;
   Memory::MemoryManager& m_memory;
@@ -330,14 +322,11 @@ private:
 };
 
 void ClearDCacheLineFromJit(MMU& mmu, u32 address);
-u32 ReadU8FromJit(MMU& mmu, u32 address);   // Returns zero-extended 32bit value
-u32 ReadU16FromJit(MMU& mmu, u32 address);  // Returns zero-extended 32bit value
-u32 ReadU32FromJit(MMU& mmu, u32 address);
-u64 ReadU64FromJit(MMU& mmu, u32 address);
-void WriteU8FromJit(MMU& mmu, u32 var, u32 address);
-void WriteU16FromJit(MMU& mmu, u32 var, u32 address);
-void WriteU32FromJit(MMU& mmu, u32 var, u32 address);
-void WriteU64FromJit(MMU& mmu, u64 var, u32 address);
+template <std::unsigned_integral T>
+// Returns zero-extended value
+Common::MakeAtLeastU32<T> ReadFromJit(MMU& mmu, u32 address);
+template <std::unsigned_integral T>
+void WriteFromJit(MMU& mmu, Common::MakeAtLeastU32<T> var, u32 address);
 void WriteU16SwapFromJit(MMU& mmu, u32 var, u32 address);
 void WriteU32SwapFromJit(MMU& mmu, u32 var, u32 address);
 void WriteU64SwapFromJit(MMU& mmu, u64 var, u32 address);
