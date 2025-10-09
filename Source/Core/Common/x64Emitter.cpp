@@ -412,26 +412,30 @@ void XEmitter::Rex(int w, int r, int x, int b)
     Write8(rx);
 }
 
-void XEmitter::JMP(const u8* addr, const Jump jump)
+void XEmitter::JMP(const u8* addr, bool force_near_padding)
 {
   u64 fn = (u64)addr;
-  if (jump == Jump::Short)
+  s64 distance = (s64)(fn - ((u64)code + SHORT_JMP_LEN));
+  if (distance < -0x80 || distance >= 0x80)
   {
-    s64 distance = (s64)(fn - ((u64)code + 2));
-    ASSERT_MSG(DYNA_REC, distance >= -0x80 && distance < 0x80,
-               "Jump::Short target too far away ({}), needs Jump::Near", distance);
-    // 8 bits will do
-    Write8(0xEB);
-    Write8((u8)(s8)distance);
+    distance = (s64)(fn - ((u64)code + NEAR_JMP_LEN));
+    ASSERT_MSG(DYNA_REC, distance >= -0x80000000LL && distance < 0x80000000LL,
+               "Jump target too far away ({}), needs indirect register", distance);
+    Write8(0xE9);
+    Write32((u32)(s32)distance);
   }
   else
   {
-    s64 distance = (s64)(fn - ((u64)code + 5));
-
-    ASSERT_MSG(DYNA_REC, distance >= -0x80000000LL && distance < 0x80000000LL,
-               "Jump::Near target too far away ({}), needs indirect register", distance);
-    Write8(0xE9);
-    Write32((u32)(s32)distance);
+    Write8(0xEB);
+    Write8((u8)(s8)distance);
+    if (force_near_padding)
+    {
+      for (int i = 0; i < NEAR_JMP_LEN - SHORT_JMP_LEN; i++)
+      {
+        // INT3 is more efficient than NOP if never executed, as it stops CPU speculation.
+        INT3();
+      }
+    }
   }
 }
 

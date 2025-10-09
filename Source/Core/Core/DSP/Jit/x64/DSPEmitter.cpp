@@ -119,7 +119,7 @@ void DSPEmitter::checkExceptions(u32 retval)
   TEST(32, R(ABI_RETURN), R(ABI_RETURN));
   FixupBranch skip_return = J_CC(CC_Z, Jump::Short);
   MOV(32, R(EAX), Imm32(retval));
-  JMP(m_return_dispatcher, Jump::Near);
+  JMP(m_return_dispatcher);
   SetJumpTarget(skip_return);
   m_gpr.LoadRegs(false);
   m_gpr.FlushRegs(c, false);
@@ -293,7 +293,7 @@ void DSPEmitter::Compile(u16 start_addr)
       {
         MOV(16, R(EAX), Imm16(m_block_size[start_addr]));
       }
-      JMP(m_return_dispatcher, Jump::Near);
+      JMP(m_return_dispatcher);
       m_gpr.LoadRegs(false);
       m_gpr.FlushRegs(c, false);
 
@@ -329,7 +329,7 @@ void DSPEmitter::Compile(u16 start_addr)
         {
           MOV(16, R(EAX), Imm16(m_block_size[start_addr]));
         }
-        JMP(m_return_dispatcher, Jump::Near);
+        JMP(m_return_dispatcher);
         m_gpr.LoadRegs(false);
         m_gpr.FlushRegs(c, false);
 
@@ -392,7 +392,7 @@ void DSPEmitter::Compile(u16 start_addr)
   {
     MOV(16, R(EAX), Imm16(m_block_size[start_addr]));
   }
-  JMP(m_return_dispatcher, Jump::Near);
+  JMP(m_return_dispatcher);
 }
 
 void DSPEmitter::CompileCurrent(DSPEmitter& emitter)
