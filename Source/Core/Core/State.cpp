@@ -6,15 +6,14 @@
 #include <algorithm>
 #include <condition_variable>
 #include <filesystem>
-#include <locale>
 #include <map>
 #include <memory>
 #include <mutex>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
 
-#include <fmt/chrono.h>
 #include <fmt/format.h>
 
 #include <lz4.h>
@@ -40,7 +39,6 @@
 #include "Core/HW/HW.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -285,8 +283,9 @@ static std::string SystemTimeAsDoubleToString(double time)
   if (!local_time)
     return "";
 
-  // fmt is locale agnostic by default, so explicitly use current locale.
-  return fmt::format(std::locale{""}, "{:%x %X}", *local_time);
+  std::ostringstream oss;
+  oss << std::put_time(&*local_time, "%x %X");
+  return std::move(oss).str();
 }
 
 static std::string MakeStateFilename(int number);

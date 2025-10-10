@@ -5,13 +5,10 @@
 
 #include <algorithm>
 #include <array>
-#include <cctype>
 #include <cstring>
 #include <iterator>
-#include <locale>
-#include <mbedtls/config.h>
-#include <mbedtls/md.h>
 #include <mutex>
+#include <sstream>
 #include <thread>
 #include <utility>
 #include <variant>
@@ -19,6 +16,9 @@
 
 #include <fmt/chrono.h>
 #include <fmt/format.h>
+
+#include <mbedtls/config.h>
+#include <mbedtls/md.h>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
@@ -159,8 +159,9 @@ std::string MovieManager::GetRTCDisplay() const
   const time_t current_time = CEXIIPL::GetEmulatedTime(m_system, CEXIIPL::UNIX_EPOCH);
   const tm gm_time = fmt::gmtime(current_time);
 
-  // Use current locale for formatting time, as fmt is locale-agnostic by default.
-  return fmt::format(std::locale{""}, "Date/Time: {:%c}", gm_time);
+  std::ostringstream oss;
+  oss << "Date/Time: " << std::put_time(&gm_time, "%c");
+  return std::move(oss).str();
 }
 
 // NOTE: GPU Thread
