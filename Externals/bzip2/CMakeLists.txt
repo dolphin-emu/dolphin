@@ -1,5 +1,7 @@
 project(bzip2 C)
 
+# TODO: Use bzip2 1.1.0's native support for CMake static builds once it releases.
+
 include(CheckTypeSize)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
@@ -52,19 +54,19 @@ endif()
 #============================================================================
 
 set(BZIP2_PUBLIC_HDRS
-    bzlib.h
+    bzip2/bzlib.h
 )
 set(BZIP2_PRIVATE_HDRS
-    bzlib_private.h
+    bzip2/bzlib_private.h
 )
 set(BZIP2_SRCS
-    blocksort.c
-    huffman.c
-    crctable.c
-    randtable.c
-    compress.c
-    decompress.c
-    bzlib.c
+    bzip2/blocksort.c
+    bzip2/huffman.c
+    bzip2/crctable.c
+    bzip2/randtable.c
+    bzip2/compress.c
+    bzip2/decompress.c
+    bzip2/bzlib.c
 )
 
 add_library(bzip2 STATIC ${BZIP2_SRCS} ${BZIP2_PUBLIC_HDRS} ${BZIP2_PRIVATE_HDRS})
@@ -73,5 +75,5 @@ dolphin_disable_warnings(bzip2)
 
 target_include_directories(bzip2
 PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/bzip2
 )
