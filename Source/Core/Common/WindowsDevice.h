@@ -13,9 +13,9 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-#include <Windows.h>
+#include <windows.h>
 
-#include <SetupAPI.h>
+#include <setupapi.h>
 #include <cfgmgr32.h>
 #include <devpropdef.h>
 

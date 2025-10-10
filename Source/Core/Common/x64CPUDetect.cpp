@@ -109,7 +109,7 @@ CPUInfo::CPUInfo()
 
 void CPUInfo::Detect()
 {
-#ifdef _WIN32
+#ifdef _MSC_VER
   WarnIfRunningUnderEmulation();
 #endif
 
