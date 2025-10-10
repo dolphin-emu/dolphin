@@ -90,6 +90,7 @@
     <ClCompile Include="Config\InfoWidget.cpp" />
     <ClCompile Include="Config\LogConfigWidget.cpp" />
     <ClCompile Include="Config\LogWidget.cpp" />
+    <ClCompile Include="Config\Mapping\BalanceBoardGeneral.cpp" />
     <ClCompile Include="Config\Mapping\FreeLookGeneral.cpp" />
     <ClCompile Include="Config\Mapping\FreeLookRotation.cpp" />
     <ClCompile Include="Config\Mapping\GBAPadEmu.cpp" />
@@ -223,6 +224,7 @@
     <ClCompile Include="Settings\WiiPane.cpp" />
     <ClCompile Include="SkylanderPortal\SkylanderModifyDialog.cpp" />
     <ClCompile Include="SkylanderPortal\SkylanderPortalWindow.cpp" />
+    <ClCompile Include="TAS\BalanceBoardWidget.cpp" />
     <ClCompile Include="TAS\GCTASInputWindow.cpp" />
     <ClCompile Include="TAS\GBATASInputWindow.cpp" />
     <ClCompile Include="TAS\IRWidget.cpp" />
@@ -317,6 +319,7 @@
     <QtMoc Include="Config\InfoWidget.h" />
     <QtMoc Include="Config\LogConfigWidget.h" />
     <QtMoc Include="Config\LogWidget.h" />
+    <QtMoc Include="Config\Mapping\BalanceBoardGeneral.h" />
     <QtMoc Include="Config\Mapping\FreeLookGeneral.h" />
     <QtMoc Include="Config\Mapping\FreeLookRotation.h" />
     <QtMoc Include="Config\Mapping\GBAPadEmu.h" />
@@ -432,6 +435,7 @@
     <QtMoc Include="Settings\USBDevicePicker.h" />
     <QtMoc Include="Settings\WiiPane.h" />
     <QtMoc Include="SkylanderPortal\SkylanderPortalWindow.h" />
+    <QtMoc Include="TAS\BalanceBoardWidget.h" />
     <QtMoc Include="TAS\GCTASInputWindow.h" />
     <QtMoc Include="TAS\GBATASInputWindow.h" />
     <QtMoc Include="TAS\IRWidget.h" />

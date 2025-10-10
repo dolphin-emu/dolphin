@@ -16,6 +16,8 @@
 #endif  // USE_RETRO_ACHIEVEMENTS
 
 #include "Core/Boot/Boot.h"
+#include "Core/HW/SI/SI.h"
+#include "Core/HW/Wiimote.h"
 #include "DolphinQt/FIFO/FIFOPlayerWindow.h"
 
 class QMenu;
@@ -53,7 +55,6 @@ class SkylanderPortalWindow;
 class ThreadWidget;
 class ToolBar;
 class WatchWidget;
-class WiiTASInputWindow;
 class WiiSpeakWindow;
 struct WindowSystemInfo;
 
@@ -258,11 +259,10 @@ private:
   NetPlayDialog* m_netplay_dialog;
   DiscordHandler* m_netplay_discord;
   NetPlaySetupDialog* m_netplay_setup_dialog;
-  static constexpr int num_gc_controllers = 4;
+  static constexpr int num_gc_controllers = SerialInterface::MAX_SI_CHANNELS;
   std::array<GCTASInputWindow*, num_gc_controllers> m_gc_tas_input_windows{};
   std::array<GBATASInputWindow*, num_gc_controllers> m_gba_tas_input_windows{};
-  static constexpr int num_wii_controllers = 4;
-  std::array<WiiTASInputWindow*, num_wii_controllers> m_wii_tas_input_windows{};
+  std::array<QDialog*, MAX_BBMOTES> m_wii_tas_input_windows{};
 
 #ifdef USE_RETRO_ACHIEVEMENTS
   AchievementsWindow* m_achievements_window = nullptr;
