@@ -1,0 +1,471 @@
+/* Copyright (C) 2022 Free Software Foundation, Inc.
+   This file is part of the GNU LIBICONV Library.
+
+   The GNU LIBICONV Library is free software; you can redistribute it
+   and/or modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either version 2.1
+   of the License, or (at your option) any later version.
+
+   The GNU LIBICONV Library is distributed in the hope that it will be
+   useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with the GNU LIBICONV Library; see the file COPYING.LIB.
+   If not, see <https://www.gnu.org/licenses/>.  */
+
+/* Encodings used by system dependent locales on z/OS. */
+
+DEFENCODING(( "IBM-037",
+              "IBM037",                 /* IANA */
+              "CP037",                  /* IANA */
+              "EBCDIC-CP-US",           /* IANA */
+              "EBCDIC-CP-CA",           /* IANA */
+              "EBCDIC-CP-WT",           /* IANA */
+              "EBCDIC-CP-NL",           /* IANA */
+              "csIBM037",               /* IANA */
+            ),
+            ebcdic037,
+            { ebcdic037_mbtowc, NULL },   { ebcdic037_wctomb, NULL })
+
+DEFENCODING(( "IBM-273",
+              "IBM273",                 /* IANA */
+              "CP273",                  /* IANA */
+              "csIBM273",               /* IANA */
+            ),
+            ebcdic273,
+            { ebcdic273_mbtowc, NULL },   { ebcdic273_wctomb, NULL })
+
+DEFENCODING(( "IBM-277",
+              "IBM277",                 /* IANA */
+              "EBCDIC-CP-DK",           /* IANA */
+              "EBCDIC-CP-NO",           /* IANA */
+              "csIBM277",               /* IANA */
+            ),
+            ebcdic277,
+            { ebcdic277_mbtowc, NULL },   { ebcdic277_wctomb, NULL })
+
+DEFENCODING(( "IBM-278",
+              "IBM278",                 /* IANA */
+              "CP278",                  /* IANA */
+              "EBCDIC-CP-FI",           /* IANA */
+              "EBCDIC-CP-SE",           /* IANA */
+              "csIBM278",               /* IANA */
+            ),
+            ebcdic278,
+            { ebcdic278_mbtowc, NULL },   { ebcdic278_wctomb, NULL })
+
+DEFENCODING(( "IBM-280",
+              "IBM280",                 /* IANA */
+              "CP280",                  /* IANA */
+              "EBCDIC-CP-IT",           /* IANA */
+              "csIBM280",               /* IANA */
+            ),
+            ebcdic280,
+            { ebcdic280_mbtowc, NULL },   { ebcdic280_wctomb, NULL })
+
+DEFENCODING(( "IBM-282",
+              "IBM282",
+            ),
+            ebcdic282,
+            { ebcdic282_mbtowc, NULL },   { ebcdic282_wctomb, NULL })
+
+DEFENCODING(( "IBM-284",
+              "IBM284",                 /* IANA */
+              "CP284",                  /* IANA */
+              "EBCDIC-CP-ES",           /* IANA */
+              "csIBM284",               /* IANA */
+            ),
+            ebcdic284,
+            { ebcdic284_mbtowc, NULL },   { ebcdic284_wctomb, NULL })
+
+DEFENCODING(( "IBM-285",
+              "IBM285",                 /* IANA */
+              "CP285",                  /* IANA */
+              "EBCDIC-CP-GB",           /* IANA */
+              "csIBM285",               /* IANA */
+            ),
+            ebcdic285,
+            { ebcdic285_mbtowc, NULL },   { ebcdic285_wctomb, NULL })
+
+DEFENCODING(( "IBM-297",
+              "IBM297",                 /* IANA */
+              "CP297",                  /* IANA */
+              "EBCDIC-CP-FR",           /* IANA */
+              "csIBM297",               /* IANA */
+            ),
+            ebcdic297,
+            { ebcdic297_mbtowc, NULL },   { ebcdic297_wctomb, NULL })
+
+DEFENCODING(( "IBM-423",
+              "IBM423",                 /* IANA */
+              "CP423",                  /* IANA */
+              "EBCDIC-CP-GR",           /* IANA */
+              "csIBM423",               /* IANA */
+            ),
+            ebcdic423,
+            { ebcdic423_mbtowc, NULL },   { ebcdic423_wctomb, NULL })
+
+DEFENCODING(( "IBM-424",
+              "IBM424",                 /* IANA */
+              "CP424",                  /* IANA */
+              "EBCDIC-CP-HE",           /* IANA */
+              "csIBM424",               /* IANA */
+            ),
+            ebcdic424,
+            { ebcdic424_mbtowc, NULL },   { ebcdic424_wctomb, NULL })
+
+DEFENCODING(( "IBM-425",
+              "IBM425",
+            ),
+            ebcdic425,
+            { ebcdic425_mbtowc, NULL },   { ebcdic425_wctomb, NULL })
+
+DEFENCODING(( "IBM-500",
+              "IBM500",                 /* IANA */
+              "CP500",                  /* IANA */
+              "EBCDIC-CP-BE",           /* IANA */
+              "EBCDIC-CP-CH",           /* IANA */
+              "csIBM500",               /* IANA */
+            ),
+            ebcdic500,
+            { ebcdic500_mbtowc, NULL },   { ebcdic500_wctomb, NULL })
+
+DEFENCODING(( "IBM-838",
+              "IBM838",
+              "IBM-THAI",               /* IANA */
+              "csIBMThai",              /* IANA */
+            ),
+            ebcdic838,
+            { ebcdic838_mbtowc, NULL },   { ebcdic838_wctomb, NULL })
+
+DEFENCODING(( "IBM-870",
+              "IBM870",                 /* IANA */
+              "CP870",                  /* IANA */
+              "EBCDIC-CP-ROECE",        /* IANA */
+              "EBCDIC-CP-YU",           /* IANA */
+              "csIBM870",               /* IANA */
+            ),
+            ebcdic870,
+            { ebcdic870_mbtowc, NULL },   { ebcdic870_wctomb, NULL })
+
+DEFENCODING(( "IBM-871",
+              "IBM871",                 /* IANA */
+              "CP871",                  /* IANA */
+              "EBCDIC-CP-IS",           /* IANA */
+              "csIBM871",               /* IANA */
+            ),
+            ebcdic871,
+            { ebcdic871_mbtowc, NULL },   { ebcdic871_wctomb, NULL })
+
+DEFENCODING(( "IBM-875",
+              "IBM875",                 /* glibc */
+              "CP875",                  /* glibc */
+              "EBCDIC-GREEK",           /* glibc */
+            ),
+            ebcdic875,
+            { ebcdic875_mbtowc, NULL },   { ebcdic875_wctomb, NULL })
+
+DEFENCODING(( "IBM-880",
+              "IBM880",                 /* IANA */
+              "CP880",                  /* IANA */
+              "EBCDIC-CYRILLIC",        /* IANA */
+              "csIBM880",               /* IANA */
+            ),
+            ebcdic880,
+            { ebcdic880_mbtowc, NULL },   { ebcdic880_wctomb, NULL })
+
+DEFENCODING(( "IBM-905",
+              "IBM905",                 /* IANA */
+              "CP905",                  /* IANA */
+              "EBCDIC-CP-TR",           /* IANA */
+              "csIBM905",               /* IANA */
+            ),
+            ebcdic905,
+            { ebcdic905_mbtowc, NULL },   { ebcdic905_wctomb, NULL })
+
+DEFENCODING(( "IBM-924",
+              "IBM924",
+              "IBM00924",               /* IANA */
+              "CCSID00924",             /* IANA */
+              "CP00924",                /* IANA */
+              "EBCDIC-LATIN9-EURO",     /* IANA */
+              "csIBM00924",             /* IANA */
+            ),
+            ebcdic924,
+            { ebcdic924_mbtowc, NULL },   { ebcdic924_wctomb, NULL })
+
+DEFENCODING(( "IBM-1025",
+              "IBM1025",                /* glibc */
+              "CP1025",                 /* glibc */
+            ),
+            ebcdic1025,
+            { ebcdic1025_mbtowc, NULL },  { ebcdic1025_wctomb, NULL })
+
+DEFENCODING(( "IBM-1026",
+              "IBM1026",                /* IANA */
+              "CP1026",                 /* IANA */
+              "csIBM1026",              /* IANA */
+            ),
+            ebcdic1026,
+            { ebcdic1026_mbtowc, NULL },  { ebcdic1026_wctomb, NULL })
+
+DEFENCODING(( "IBM-1047",               /* IANA */
+              "IBM1047",                /* IANA */
+              "CP1047",                 /* glibc */
+              "csIBM1047",              /* IANA */
+            ),
+            ebcdic1047,
+            { ebcdic1047_mbtowc, NULL },  { ebcdic1047_wctomb, NULL })
+
+DEFENCODING(( "IBM-1097",
+              "IBM1097",                /* glibc */
+              "CP1097",                 /* glibc */
+            ),
+            ebcdic1097,
+            { ebcdic1097_mbtowc, NULL },  { ebcdic1097_wctomb, NULL })
+
+DEFENCODING(( "IBM-1112",
+              "IBM1112",                /* glibc */
+              "CP1112",                 /* glibc */
+            ),
+            ebcdic1112,
+            { ebcdic1112_mbtowc, NULL },  { ebcdic1112_wctomb, NULL })
+
+DEFENCODING(( "IBM-1122",
+              "IBM1122",                /* glibc */
+              "CP1122",                 /* glibc */
+            ),
+            ebcdic1122,
+            { ebcdic1122_mbtowc, NULL },  { ebcdic1122_wctomb, NULL })
+
+DEFENCODING(( "IBM-1123",
+              "IBM1123",                /* glibc */
+              "CP1123",                 /* glibc */
+            ),
+            ebcdic1123,
+            { ebcdic1123_mbtowc, NULL },  { ebcdic1123_wctomb, NULL })
+
+DEFENCODING(( "IBM-1130",
+              "IBM1130",                /* glibc */
+              "CP1130",                 /* glibc */
+            ),
+            ebcdic1130,
+            { ebcdic1130_mbtowc, NULL },  { ebcdic1130_wctomb, NULL })
+
+DEFENCODING(( "IBM-1132",
+              "IBM1132",                /* glibc */
+              "CP1132",                 /* glibc */
+            ),
+            ebcdic1132,
+            { ebcdic1132_mbtowc, NULL },  { ebcdic1132_wctomb, NULL })
+
+DEFENCODING(( "IBM-1137",
+              "IBM1137",                /* glibc */
+              "CP1137",                 /* glibc */
+            ),
+            ebcdic1137,
+            { ebcdic1137_mbtowc, NULL },  { ebcdic1137_wctomb, NULL })
+
+DEFENCODING(( "IBM-1140",
+              "IBM1140",
+              "IBM01140",               /* IANA */
+              "CCSID01140",             /* IANA */
+              "CP01140",                /* IANA */
+              "EBCDIC-US-37+EURO",      /* IANA */
+              "csIBM01140",             /* IANA */
+            ),
+            ebcdic1140,
+            { ebcdic1140_mbtowc, NULL },  { ebcdic1140_wctomb, NULL })
+
+DEFENCODING(( "IBM-1141",
+              "IBM1141",
+              "IBM01141",               /* IANA */
+              "CCSID01141",             /* IANA */
+              "CP01141",                /* IANA */
+              "EBCDIC-DE-273+EURO",     /* IANA */
+              "csIBM01141",             /* IANA */
+            ),
+            ebcdic1141,
+            { ebcdic1141_mbtowc, NULL },  { ebcdic1141_wctomb, NULL })
+
+DEFENCODING(( "IBM-1142",
+              "IBM1142",
+              "IBM01142",               /* IANA */
+              "CCSID01142",             /* IANA */
+              "CP01142",                /* IANA */
+              "EBCDIC-DK-277+EURO",     /* IANA */
+              "EBCDIC-NO-277+EURO",     /* IANA */
+              "csIBM01142",             /* IANA */
+            ),
+            ebcdic1142,
+            { ebcdic1142_mbtowc, NULL },  { ebcdic1142_wctomb, NULL })
+
+DEFENCODING(( "IBM-1143",
+              "IBM1143",
+              "IBM01143",               /* IANA */
+              "CCSID01143",             /* IANA */
+              "CP01143",                /* IANA */
+              "EBCDIC-FI-278+EURO",     /* IANA */
+              "EBCDIC-SE-278+EURO",     /* IANA */
+              "csIBM01143",             /* IANA */
+            ),
+            ebcdic1143,
+            { ebcdic1143_mbtowc, NULL },  { ebcdic1143_wctomb, NULL })
+
+DEFENCODING(( "IBM-1144",
+              "IBM1144",
+              "IBM01144",               /* IANA */
+              "CCSID01144",             /* IANA */
+              "CP01144",                /* IANA */
+              "EBCDIC-IT-280+EURO",     /* IANA */
+              "csPC8CodePage1144",      /* IANA */
+            ),
+            ebcdic1144,
+            { ebcdic1144_mbtowc, NULL },  { ebcdic1144_wctomb, NULL })
+
+DEFENCODING(( "IBM-1145",
+              "IBM1145",
+              "IBM01145",               /* IANA */
+              "CCSID01145",             /* IANA */
+              "CP01145",                /* IANA */
+              "EBCDIC-ES-284+EURO",     /* IANA */
+              "csIBM01145",             /* IANA */
+            ),
+            ebcdic1145,
+            { ebcdic1145_mbtowc, NULL },  { ebcdic1145_wctomb, NULL })
+
+DEFENCODING(( "IBM-1146",
+              "IBM1146",
+              "IBM01146",               /* IANA */
+              "CCSID01146",             /* IANA */
+              "CP01146",                /* IANA */
+              "EBCDIC-GB-285+EURO",     /* IANA */
+              "csPC8CodePage1146",      /* IANA */
+            ),
+            ebcdic1146,
+            { ebcdic1146_mbtowc, NULL },  { ebcdic1146_wctomb, NULL })
+
+DEFENCODING(( "IBM-1147",
+              "IBM1147",
+              "IBM01147",               /* IANA */
+              "CCSID01147",             /* IANA */
+              "CP01147",                /* IANA */
+              "EBCDIC-FR-297+EURO",     /* IANA */
+              "csIBM01147",             /* IANA */
+            ),
+            ebcdic1147,
+            { ebcdic1147_mbtowc, NULL },  { ebcdic1147_wctomb, NULL })
+
+DEFENCODING(( "IBM-1148",
+              "IBM1148",
+              "IBM01148",               /* IANA */
+              "CCSID01148",             /* IANA */
+              "CP01148",                /* IANA */
+              "EBCDIC-INTERNATIONAL-500+EURO", /* IANA */
+              "csIBM01148",             /* IANA */
+            ),
+            ebcdic1148,
+            { ebcdic1148_mbtowc, NULL },  { ebcdic1148_wctomb, NULL })
+
+DEFENCODING(( "IBM-1149",
+              "IBM1149",
+              "IBM01149",               /* IANA */
+              "CCSID01149",             /* IANA */
+              "CP01149",                /* IANA */
+              "EBCDIC-IS-871+EURO",     /* IANA */
+              "csIBM01149",             /* IANA */
+            ),
+            ebcdic1149,
+            { ebcdic1149_mbtowc, NULL },  { ebcdic1149_wctomb, NULL })
+
+DEFENCODING(( "IBM-1153",
+              "IBM1153",                /* glibc */
+              "CP1153",                 /* glibc */
+            ),
+            ebcdic1153,
+            { ebcdic1153_mbtowc, NULL },  { ebcdic1153_wctomb, NULL })
+
+DEFENCODING(( "IBM-1154",
+              "IBM1154",                /* glibc */
+              "CP1154",                 /* glibc */
+            ),
+            ebcdic1154,
+            { ebcdic1154_mbtowc, NULL },  { ebcdic1154_wctomb, NULL })
+
+DEFENCODING(( "IBM-1155",
+              "IBM1155",                /* glibc */
+              "CP1155",                 /* glibc */
+            ),
+            ebcdic1155,
+            { ebcdic1155_mbtowc, NULL },  { ebcdic1155_wctomb, NULL })
+
+DEFENCODING(( "IBM-1156",
+              "IBM1156",                /* glibc */
+              "CP1156",                 /* glibc */
+            ),
+            ebcdic1156,
+            { ebcdic1156_mbtowc, NULL },  { ebcdic1156_wctomb, NULL })
+
+DEFENCODING(( "IBM-1157",
+              "IBM1157",                /* glibc */
+              "CP1157",                 /* glibc */
+            ),
+            ebcdic1157,
+            { ebcdic1157_mbtowc, NULL },  { ebcdic1157_wctomb, NULL })
+
+DEFENCODING(( "IBM-1158",
+              "IBM1158",                /* glibc */
+              "CP1158",                 /* glibc */
+            ),
+            ebcdic1158,
+            { ebcdic1158_mbtowc, NULL },  { ebcdic1158_wctomb, NULL })
+
+DEFENCODING(( "IBM-1160",
+              "IBM1160",                /* glibc */
+              "CP1160",                 /* glibc */
+            ),
+            ebcdic1160,
+            { ebcdic1160_mbtowc, NULL },  { ebcdic1160_wctomb, NULL })
+
+DEFENCODING(( "IBM-1164",
+              "IBM1164",                /* glibc */
+              "CP1164",                 /* glibc */
+            ),
+            ebcdic1164,
+            { ebcdic1164_mbtowc, NULL },  { ebcdic1164_wctomb, NULL })
+
+DEFENCODING(( "IBM-1165",
+              "IBM1165",
+            ),
+            ebcdic1165,
+            { ebcdic1165_mbtowc, NULL },  { ebcdic1165_wctomb, NULL })
+
+DEFENCODING(( "IBM-1166",
+              "IBM1166",                /* glibc */
+              "CP1166",                 /* glibc */
+            ),
+            ebcdic1166,
+            { ebcdic1166_mbtowc, NULL },  { ebcdic1166_wctomb, NULL })
+
+DEFENCODING(( "IBM-4971",
+              "IBM4971",                /* glibc */
+              "CP4971",                 /* glibc */
+            ),
+            ebcdic4971,
+            { ebcdic4971_mbtowc, NULL },  { ebcdic4971_wctomb, NULL })
+
+DEFENCODING(( "IBM-12712",
+              "IBM12712",               /* glibc */
+              "CP12712",                /* glibc */
+            ),
+            ebcdic12712,
+            { ebcdic12712_mbtowc, NULL }, { ebcdic12712_wctomb, NULL })
+
+DEFENCODING(( "IBM-16804",
+              "IBM16804",               /* glibc */
+              "CP16804",                /* glibc */
+            ),
+            ebcdic16804,
+            { ebcdic16804_mbtowc, NULL }, { ebcdic16804_wctomb, NULL })

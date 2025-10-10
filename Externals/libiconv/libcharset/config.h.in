@@ -1,0 +1,88 @@
+/* Define to 1 if you have the 'copy_file_range' function. */
+#cmakedefine01 HAVE_COPY_FILE_RANGE
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#cmakedefine01 HAVE_DLFCN_H
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#cmakedefine01 HAVE_INTTYPES_H
+
+/* Define if you have <langinfo.h> and nl_langinfo(CODESET). */
+#cmakedefine01 HAVE_LANGINFO_CODESET
+
+/* Define to 1 if you have the <mach-o/dyld.h> header file. */
+#cmakedefine01 HAVE_MACH_O_DYLD_H
+
+/* Define to 1 if you have the <minix/config.h> header file. */
+#cmakedefine01 HAVE_MINIX_CONFIG_H
+
+/* Define to 1 if you have the 'setlocale' function. */
+#cmakedefine01 HAVE_SETLOCALE
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#cmakedefine01 HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdio.h> header file. */
+#cmakedefine01 HAVE_STDIO_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#cmakedefine01 HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#cmakedefine01 HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#cmakedefine01 HAVE_STRING_H
+
+/* Define to 1 if you have the 'symlink' function. */
+#cmakedefine01 HAVE_SYMLINK
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#cmakedefine01 HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#cmakedefine01 HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#cmakedefine01 HAVE_UNISTD_H
+
+/* Define to 1 or 0, depending whether the compiler supports simple visibility
+ * declarations. */
+#cmakedefine01 HAVE_VISIBILITY
+
+/* Define to 1 if you have the <wchar.h> header file. */
+#cmakedefine01 HAVE_WCHAR_H
+
+/* Define to 1 if O_NOATIME works. */
+#cmakedefine01 HAVE_WORKING_O_NOATIME
+
+/* Define to 1 if O_NOFOLLOW works. */
+#cmakedefine01 HAVE_WORKING_O_NOFOLLOW
+
+/* Define to 1 if you have the '_NSGetExecutablePath' function. */
+#cmakedefine01 HAVE__NSGETEXECUTABLEPATH
+
+/* Define to the value of ${prefix}, as a string. */
+#cmakedefine INSTALLPREFIX "@CMAKE_INSTALL_PREFIX@"
+
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
+#cmakedefine LT_OBJDIR "@LT_OBJDIR@"
+
+/* Define to the address where bug reports for this package should be sent. */
+#cmakedefine PACKAGE_BUGREPORT "@PACKAGE_BUGREPORT@"
+/* Define to the full name of this package. */
+#cmakedefine PACKAGE_NAME "@PACKAGE_NAME@"
+/* Define to the full name and version of this package. */
+#cmakedefine PACKAGE_STRING "@PACKAGE_STRING@"
+/* Define to the one symbol short name of this package. */
+#cmakedefine PACKAGE_TARNAME "@PACKAGE_TARNAME@"
+/* Define to the home page for this package. */
+#cmakedefine PACKAGE_URL "@PACKAGE_URL@"
+
+/* Define to the version of this package. */
+#cmakedefine PACKAGE_VERSION "@PACKAGE_VERSION@"
+
+/* Define to 1 if all of the C89 standard headers exist (not just the ones
+   required in a freestanding environment). This macro is provided for
+   backward compatibility; new code need not use it. */
+#cmakedefine01 STDC_HEADERS
