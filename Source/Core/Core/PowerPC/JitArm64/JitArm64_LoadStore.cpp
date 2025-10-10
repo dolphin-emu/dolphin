@@ -755,6 +755,90 @@ void JitArm64::stmw(UGeckoInstruction inst)
     gpr.Unlock(ARM64Reg::W0);
 }
 
+// Sets up the optimization for common cache loop patterns, in the following form:
+// - dcx rX
+// - addi rX,rX,32
+// - bdnz+ -8
+//
+// It automatically decrease the downcount and CTR, but it does *not* automatically perform
+// `rX += 32 * WA`.
+//
+// All the passed registers will be clobbered.
+//
+// WA will be set to the number of loops to execute minus 1.
+void JitArm64::WriteInitCacheLoop(const u32 cycle_count_per_loop, const ARM64Reg loop_counter,
+                                  const ARM64Reg WA, const ARM64Reg WB)
+{
+  // We'll execute somewhere between one single cacheline invalidation and however many are needed
+  // to reduce the downcount to zero, never exceeding the amount requested by the game.
+  // To stay consistent with the rest of the code we adjust the involved registers (CTR and Rb)
+  // by the amount of cache lines we invalidate minus one -- since we'll run the regular addi and
+  // bdnz afterwards! So if we invalidate a single cache line, we don't adjust the registers at
+  // all, if we invalidate 2 cachelines we adjust the registers by one step, and so on.
+
+  const auto reg_cycle_count = gpr.GetScopedReg();
+  const auto reg_downcount = gpr.GetScopedReg();
+
+  LDR(IndexType::Unsigned, reg_downcount, PPC_REG, PPCSTATE_OFF(downcount));
+  MOVI2R(WA, 0);
+  CMP(reg_downcount, 0);                                          // if (downcount <= 0)
+  FixupBranch downcount_is_zero_or_negative = B(CCFlags::CC_LE);  // only do 1 invalidation; else:
+  LDR(IndexType::Unsigned, loop_counter, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
+  MOVI2R(reg_cycle_count, cycle_count_per_loop);
+  SDIV(WB, reg_downcount, reg_cycle_count);  // WB = downcount / cycle_count
+  SUB(WA, loop_counter, 1);                  // WA = CTR - 1
+  // ^ Note that this CTR-1 implicitly handles the CTR == 0 case correctly.
+  CMP(WB, WA);
+  CSEL(WA, WB, WA, CCFlags::CC_LO);  // WA = min(WB, WA)
+
+  // WA now holds the amount of loops to execute minus 1, which is the amount we need to adjust
+  // downcount, CTR, and Rb by to exit the loop construct with the right values in those
+  // registers.
+
+  // CTR -= WA
+  SUB(loop_counter, loop_counter, WA);
+  STR(IndexType::Unsigned, loop_counter, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
+
+  // downcount -= (WA * reg_cycle_count)
+  MSUB(reg_downcount, WA, reg_cycle_count, reg_downcount);
+  // ^ Note that this cannot overflow because it's limited by (downcount/cycle_count).
+  STR(IndexType::Unsigned, reg_downcount, PPC_REG, PPCSTATE_OFF(downcount));
+
+  SetJumpTarget(downcount_is_zero_or_negative);
+
+  if (IsDebuggingEnabled())
+  {
+    const ARM64Reg branch_watch = EncodeRegTo64(reg_cycle_count);
+    MOVP2R(branch_watch, &m_branch_watch);
+    LDRB(IndexType::Unsigned, WB, branch_watch, Core::BranchWatch::GetOffsetOfRecordingActive());
+    FixupBranch branch_over = CBZ(WB);
+
+    FixupBranch branch_in = B();
+    SwitchToFarCode();
+    SetJumpTarget(branch_in);
+
+    const BitSet32 gpr_caller_save =
+        gpr.GetCallerSavedUsed() & ~BitSet32{DecodeReg(WB), DecodeReg(reg_cycle_count),
+                                             DecodeReg(reg_downcount), DecodeReg(loop_counter)};
+    ABI_PushRegisters(gpr_caller_save);
+    const ARM64Reg float_emit_tmp = EncodeRegTo64(WB);
+    const BitSet32 fpr_caller_save = fpr.GetCallerSavedUsed();
+    m_float_emit.ABI_PushRegisters(fpr_caller_save, float_emit_tmp);
+    const PPCAnalyst::CodeOp& op = js.op[2];
+    ABI_CallFunction(m_ppc_state.msr.IR ? &Core::BranchWatch::HitVirtualTrue_fk_n :
+                                          &Core::BranchWatch::HitPhysicalTrue_fk_n,
+                     branch_watch, Core::FakeBranchWatchCollectionKey{op.address, op.branchTo},
+                     op.inst.hex, WA);
+    m_float_emit.ABI_PopRegisters(fpr_caller_save, float_emit_tmp);
+    ABI_PopRegisters(gpr_caller_save);
+
+    FixupBranch branch_out = B();
+    SwitchToNearCode();
+    SetJumpTarget(branch_out);
+    SetJumpTarget(branch_over);
+  }
+}
+
 void JitArm64::dcbx(UGeckoInstruction inst)
 {
   FALLBACK_IF(m_accurate_cpu_cache_enabled);
@@ -782,81 +866,13 @@ void JitArm64::dcbx(UGeckoInstruction inst)
     gpr.Lock(loop_counter);
     gpr.BindToRegister(b, true);
 
-    // We'll execute somewhere between one single cacheline invalidation and however many are needed
-    // to reduce the downcount to zero, never exceeding the amount requested by the game.
-    // To stay consistent with the rest of the code we adjust the involved registers (CTR and Rb)
-    // by the amount of cache lines we invalidate minus one -- since we'll run the regular addi and
-    // bdnz afterwards! So if we invalidate a single cache line, we don't adjust the registers at
-    // all, if we invalidate 2 cachelines we adjust the registers by one step, and so on.
-
-    const auto reg_cycle_count = gpr.GetScopedReg();
-    const auto reg_downcount = gpr.GetScopedReg();
-
     // Figure out how many loops we want to do.
-    const u8 cycle_count_per_loop =
+    const u32 cycle_count_per_loop =
         js.op[0].opinfo->num_cycles + js.op[1].opinfo->num_cycles + js.op[2].opinfo->num_cycles;
 
-    LDR(IndexType::Unsigned, reg_downcount, PPC_REG, PPCSTATE_OFF(downcount));
-    MOVI2R(WA, 0);
-    CMP(reg_downcount, 0);                                          // if (downcount <= 0)
-    FixupBranch downcount_is_zero_or_negative = B(CCFlags::CC_LE);  // only do 1 invalidation; else:
-    LDR(IndexType::Unsigned, loop_counter, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
-    MOVI2R(reg_cycle_count, cycle_count_per_loop);
-    SDIV(WB, reg_downcount, reg_cycle_count);  // WB = downcount / cycle_count
-    SUB(WA, loop_counter, 1);                  // WA = CTR - 1
-    // ^ Note that this CTR-1 implicitly handles the CTR == 0 case correctly.
-    CMP(WB, WA);
-    CSEL(WA, WB, WA, CCFlags::CC_LO);  // WA = min(WB, WA)
-
-    // WA now holds the amount of loops to execute minus 1, which is the amount we need to adjust
-    // downcount, CTR, and Rb by to exit the loop construct with the right values in those
-    // registers.
-
-    // CTR -= WA
-    SUB(loop_counter, loop_counter, WA);
-    STR(IndexType::Unsigned, loop_counter, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
-
-    // downcount -= (WA * reg_cycle_count)
-    MSUB(reg_downcount, WA, reg_cycle_count, reg_downcount);
-    // ^ Note that this cannot overflow because it's limited by (downcount/cycle_count).
-    STR(IndexType::Unsigned, reg_downcount, PPC_REG, PPCSTATE_OFF(downcount));
-
-    SetJumpTarget(downcount_is_zero_or_negative);
-
+    WriteInitCacheLoop(cycle_count_per_loop, loop_counter, WA, WB);
     // Load the loop_counter register with the amount of invalidations to execute.
     ADD(loop_counter, WA, 1);
-
-    if (IsDebuggingEnabled())
-    {
-      const ARM64Reg branch_watch = EncodeRegTo64(reg_cycle_count);
-      MOVP2R(branch_watch, &m_branch_watch);
-      LDRB(IndexType::Unsigned, WB, branch_watch, Core::BranchWatch::GetOffsetOfRecordingActive());
-      FixupBranch branch_over = CBZ(WB);
-
-      FixupBranch branch_in = B();
-      SwitchToFarCode();
-      SetJumpTarget(branch_in);
-
-      const BitSet32 gpr_caller_save =
-          gpr.GetCallerSavedUsed() &
-          ~BitSet32{DecodeReg(WB), DecodeReg(reg_cycle_count), DecodeReg(reg_downcount)};
-      ABI_PushRegisters(gpr_caller_save);
-      const ARM64Reg float_emit_tmp = EncodeRegTo64(WB);
-      const BitSet32 fpr_caller_save = fpr.GetCallerSavedUsed();
-      m_float_emit.ABI_PushRegisters(fpr_caller_save, float_emit_tmp);
-      const PPCAnalyst::CodeOp& op = js.op[2];
-      ABI_CallFunction(m_ppc_state.msr.IR ? &Core::BranchWatch::HitVirtualTrue_fk_n :
-                                            &Core::BranchWatch::HitPhysicalTrue_fk_n,
-                       branch_watch, Core::FakeBranchWatchCollectionKey{op.address, op.branchTo},
-                       op.inst.hex, WA);
-      m_float_emit.ABI_PopRegisters(fpr_caller_save, float_emit_tmp);
-      ABI_PopRegisters(gpr_caller_save);
-
-      FixupBranch branch_out = B();
-      SwitchToNearCode();
-      SetJumpTarget(branch_out);
-      SetJumpTarget(branch_over);
-    }
   }
 
   constexpr ARM64Reg effective_addr = WB;
@@ -957,10 +973,39 @@ void JitArm64::dcbt(UGeckoInstruction inst)
   // This is important because invalidating the block cache when we don't
   // need to is terrible for performance.
   // (Invalidating the jit block cache on dcbst is a heuristic.)
-  if (CanMergeNextInstructions(1) && js.op[1].inst.OPCD == 31 && js.op[1].inst.SUBOP10 == 54 &&
-      js.op[1].inst.RA == inst.RA && js.op[1].inst.RB == inst.RB)
+  const bool followed_by_dcbst =
+      (CanMergeNextInstructions(1) && js.op[1].inst.OPCD == 31 && js.op[1].inst.SUBOP10 == 54 &&
+       js.op[1].inst.RA == inst.RA && js.op[1].inst.RB == inst.RB);
+
+  if (followed_by_dcbst)
   {
     js.skipInstructions = 1;
+  }
+
+  const u32 i = followed_by_dcbst;
+  // Check if the next instructions match a known looping pattern:
+  // - dcbt rX
+  // - dcbst rX (optional)
+  // - addi rX,rX,32
+  // - bdnz+ -8 (or -12 if dcbst)
+  const bool make_loop = inst.RA == 0 && inst.RB != 0 && CanMergeNextInstructions(2 + i) &&
+                         (js.op[1 + i].inst.hex & 0xfc00'ffff) == 0x38000020 &&
+                         js.op[1 + i].inst.RA_6 == inst.RB && js.op[1 + i].inst.RD_2 == inst.RB &&
+                         js.op[2 + i].inst.hex == 0x42010000 - (4 * (2 + i));
+
+  if (make_loop)
+  {
+    u32 cycle_count_per_loop = 0;
+    for (u32 j = 0; j < 3 + i; j++)
+      cycle_count_per_loop += js.op[j].opinfo->num_cycles;
+    const auto WA = gpr.GetScopedReg();
+    const auto WB = gpr.GetScopedReg();
+    const auto loop_counter = gpr.GetScopedReg();
+    gpr.BindToRegister(inst.RB, true);
+
+    WriteInitCacheLoop(cycle_count_per_loop, loop_counter, WA, WB);
+
+    ADD(gpr.R(inst.RB), gpr.R(inst.RB), WA, ArithOption(WA, ShiftType::LSL, 5));  // Rb += (WA * 32)
   }
 }
 
