@@ -256,3 +256,22 @@ TEST(StringUtil, CaseInsensitiveContains_OverlappingMatches)
   EXPECT_TRUE(Common::CaseInsensitiveContains("aaaaaa", "aa"));
   EXPECT_TRUE(Common::CaseInsensitiveContains("ababababa", "bABa"));
 }
+
+TEST(StringUtil, EscapeAndUnescape)
+{
+  EXPECT_EQ(Common::EscapeString("\n\\"), "\\n\\\\");
+  EXPECT_EQ(Common::EscapeString("\\\nfoo\n\\bar\\\\"), "\\\\\\nfoo\\n\\\\bar\\\\\\\\");
+
+  EXPECT_EQ(Common::UnescapeString("\\n\\\\test"), "\n\\test");
+  EXPECT_EQ(Common::UnescapeString("\\n\\\\"), "\n\\");
+
+  // No change for unexpected escaped char.
+  EXPECT_EQ(Common::UnescapeString("\\7"), "\\7");
+
+  // Edge cases.
+  EXPECT_EQ(Common::UnescapeString("\\\\n"), "\\n");
+  EXPECT_EQ(Common::UnescapeString("\\\\\\"), "\\\\");
+  EXPECT_EQ(Common::UnescapeString("\\"), "\\");
+  EXPECT_EQ(Common::UnescapeString("7"), "7");
+  EXPECT_EQ(Common::UnescapeString(""), "");
+}
