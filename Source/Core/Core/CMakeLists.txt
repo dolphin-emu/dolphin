@@ -31,6 +31,7 @@ add_library(core
   Config/FreeLookSettings.h
   Config/GraphicsSettings.cpp
   Config/GraphicsSettings.h
+  Config/InputFocus.h
   Config/MainSettings.cpp
   Config/MainSettings.h
   Config/NetplaySettings.cpp
@@ -342,6 +343,8 @@ add_library(core
   HW/WiiSave.cpp
   HW/WiiSave.h
   HW/WiiSaveStructs.h
+  InputSuppressor.cpp
+  InputSuppressor.h
   IOS/Device.cpp
   IOS/Device.h
   IOS/DeviceStub.cpp

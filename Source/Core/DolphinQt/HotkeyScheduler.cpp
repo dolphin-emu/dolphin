@@ -21,6 +21,7 @@
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Config/FreeLookSettings.h"
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/InputFocus.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/Core.h"
@@ -30,6 +31,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
+#include "Core/InputSuppressor.h"
 #include "Core/State.h"
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
@@ -51,7 +53,6 @@ constexpr const char* DUBOIS_ALGORITHM_SHADER = "dubois";
 
 HotkeyScheduler::HotkeyScheduler() : m_stop_requested(false)
 {
-  HotkeyManagerEmu::Enable(true);
 }
 
 HotkeyScheduler::~HotkeyScheduler()
@@ -145,6 +146,25 @@ static void HandleFrameStepHotkeys()
   }
 }
 
+// For config backward compatibility the enum values in HotkeyFocusPolicy have different values than
+// their counterparts in InputFocusPolicy.
+static Config::InputFocusPolicy GetInputFocusPolicy(const Config::HotkeyFocusPolicy hotkey_focus)
+{
+  using Config::HotkeyFocusPolicy;
+  using Config::InputFocusPolicy;
+
+  switch (hotkey_focus)
+  {
+  case HotkeyFocusPolicy::RenderOrTASWindow:
+    return InputFocusPolicy::RenderOrTASWindow;
+  case HotkeyFocusPolicy::AnyApplication:
+    return InputFocusPolicy::AnyApplication;
+  case HotkeyFocusPolicy::Dolphin:
+  default:
+    return InputFocusPolicy::Dolphin;
+  }
+}
+
 void HotkeyScheduler::Run()
 {
   Common::SetCurrentThreadName("HotkeyScheduler");
@@ -160,14 +180,16 @@ void HotkeyScheduler::Run()
     g_controller_interface.SetCurrentInputChannel(ciface::InputChannel::Host);
     g_controller_interface.UpdateInput();
 
-    if (!HotkeyManagerEmu::IsEnabled())
+    if (InputSuppressor::IsSuppressed())
       continue;
 
     Core::System& system = Core::System::GetInstance();
     if (Core::GetState(system) != Core::State::Stopping)
     {
       // Obey window focus (config permitting) before checking hotkeys.
-      Core::UpdateInputGate(Config::Get(Config::MAIN_FOCUSED_HOTKEYS));
+      const Config::InputFocusPolicy input_focus_policy =
+          GetInputFocusPolicy(Config::Get(Config::MAIN_HOTKEY_FOCUS_POLICY));
+      Core::UpdateInputGate(input_focus_policy);
 
       HotkeyManagerEmu::GetStatus(false);
 

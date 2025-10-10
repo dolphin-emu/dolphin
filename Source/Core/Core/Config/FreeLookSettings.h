@@ -14,8 +14,10 @@ namespace Config
 {
 // Configuration Information
 
+enum class InputFocusPolicy;
+
 extern const Info<bool> FREE_LOOK_ENABLED;
-extern const Info<bool> FREE_LOOK_BACKGROUND_INPUT;
+extern const Info<InputFocusPolicy> FREE_LOOK_FOCUS_POLICY;
 
 // FreeLook.Controller1
 extern const Info<FreeLook::ControlType> FL1_CONTROL_TYPE;
