@@ -1159,7 +1159,7 @@ void BranchWatchDialog::SetBreakpoints(bool break_on_hit, bool log_on_hit) const
   for (const QModelIndex& index : m_index_list_temp)
   {
     const u32 address = m_table_proxy->data(index, UserRole::ClickRole).value<u32>();
-    breakpoints.Add(address, break_on_hit, log_on_hit, {});
+    breakpoints.Add(address, break_on_hit, log_on_hit, false, {});
   }
   emit Host::GetInstance()->PPCBreakpointsChanged();
 }
