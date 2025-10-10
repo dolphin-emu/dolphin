@@ -114,3 +114,7 @@
 	path = Externals/pugixml/pugixml
 	url = https://github.com/zeux/pugixml.git
 	shallow = true
+[submodule "Externals/bzip2/bzip2"]
+	path = Externals/bzip2/bzip2
+	url = https://gitlab.com/bzip2/bzip2.git
+	shallow = true
