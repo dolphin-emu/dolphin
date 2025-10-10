@@ -204,6 +204,7 @@
     <ClCompile Include="QtUtils\QtUtils.cpp" />
     <ClCompile Include="QtUtils\SetWindowDecorations.cpp" />
     <ClCompile Include="QtUtils\UTF8CodePointCountValidator.cpp" />
+    <ClCompile Include="QtUtils\VerticalTabsTabWidget.cpp" />
     <ClCompile Include="QtUtils\WindowActivationEventFilter.cpp" />
     <ClCompile Include="QtUtils\WrapInScrollArea.cpp" />
     <ClCompile Include="RenderWidget.cpp" />
@@ -265,6 +266,7 @@
     <ClInclude Include="QtUtils\QueueOnObject.h" />
     <ClInclude Include="QtUtils\RunOnObject.h" />
     <ClInclude Include="QtUtils\SignalBlocking.h" />
+    <ClInclude Include="QtUtils\VerticalTabsTabWidget.h" />
     <ClInclude Include="QtUtils\WrapInScrollArea.h" />
     <ClInclude Include="ResourcePackManager.h" />
     <ClInclude Include="Resources.h" />

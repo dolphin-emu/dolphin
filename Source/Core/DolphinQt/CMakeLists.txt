@@ -334,6 +334,8 @@ add_executable(dolphin-emu
   QtUtils/SignalBlocking.h
   QtUtils/UTF8CodePointCountValidator.cpp
   QtUtils/UTF8CodePointCountValidator.h
+  QtUtils/VerticalTabsTabWidget.cpp
+  QtUtils/VerticalTabsTabWidget.h
   QtUtils/WindowActivationEventFilter.cpp
   QtUtils/WindowActivationEventFilter.h
   QtUtils/WrapInScrollArea.cpp
