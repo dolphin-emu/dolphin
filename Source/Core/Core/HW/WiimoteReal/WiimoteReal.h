@@ -152,10 +152,6 @@ private:
 
   std::atomic<bool> m_is_linked = false;
 
-  // We track the speaker state to convert unnecessary speaker data into rumble reports.
-  bool m_speaker_enable = false;
-  bool m_speaker_mute = false;
-
   // And we track the rumble state to drop unnecessary rumble reports.
   bool m_rumble_state = false;
 
