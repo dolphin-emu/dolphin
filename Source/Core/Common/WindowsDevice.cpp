@@ -47,7 +47,8 @@ std::optional<std::wstring> GetPropertyHelper(auto function, auto dev,
   if (const auto result = function(dev, requested_property, &type, nullptr, &buffer_size, 0);
       result != CR_SUCCESS && result != CR_BUFFER_SMALL)
   {
-    WARN_LOG_FMT(COMMON, "CM_Get_DevNode_Property returned: {}", result);
+    if (result != CR_NO_SUCH_VALUE)
+      WARN_LOG_FMT(COMMON, "CM_Get_DevNode_Property returned: {}", result);
     return std::nullopt;
   }
   if (type != expected_type)
