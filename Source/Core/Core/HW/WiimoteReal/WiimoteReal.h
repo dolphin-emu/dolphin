@@ -7,6 +7,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <vector>
 
@@ -145,6 +146,7 @@ private:
   virtual void IOWakeup() = 0;
 
   void ReadThreadFunc();
+  void WriteThreadFunc();
 
   void RefreshConfig();
 
@@ -157,14 +159,16 @@ private:
   // And we track the rumble state to drop unnecessary rumble reports.
   bool m_rumble_state = false;
 
-  std::thread m_read_thread;
+  std::thread m_write_thread;
   // Whether to keep running the thread.
   Common::Flag m_run_thread;
   // Triggered when the thread has finished ConnectInternal.
   Common::Event m_thread_ready_event;
 
   Common::SPSCQueue<Report> m_read_reports;
-  Common::WorkQueueThreadSP<TimedReport> m_write_thread;
+  Common::SPSCQueue<TimedReport> m_write_reports;
+  // Kick the write thread.
+  Common::Event m_write_event;
 
   bool m_speaker_enabled_in_dolphin_config = false;
   int m_balance_board_dump_port = 0;
@@ -185,6 +189,10 @@ public:
   virtual void Update() = 0;
   // requests the backend to stop scanning if FindWiimotes is blocking
   virtual void RequestStopSearching() = 0;
+
+  // Used by Windows to search for HID interfaces of already connected Wii remotes.
+  // hidapi should probably implement the equivalent.
+  virtual void FindAttachedDevices(std::vector<Wiimote*>&, Wiimote*&) {}
 };
 
 enum class WiimoteScanMode
@@ -225,8 +233,10 @@ extern std::unique_ptr<Wiimote> g_wiimotes[MAX_BBMOTES];
 
 void AddWiimoteToPool(std::unique_ptr<Wiimote>);
 
-bool IsValidDeviceName(const std::string& name);
-bool IsBalanceBoardName(const std::string& name);
+bool IsValidDeviceName(std::string_view name);
+bool IsWiimoteName(std::string_view name);
+bool IsBalanceBoardName(std::string_view name);
+
 bool IsNewWiimote(const std::string& identifier);
 
 bool IsKnownDeviceId(const USBUtils::DeviceInfo&);
