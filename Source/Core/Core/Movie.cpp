@@ -1,6 +1,9 @@
 // Copyright 2009 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// This is working around linker errors when passing a locale to fmt.
+#define FMT_HEADER_ONLY
+
 #include "Core/Movie.h"
 
 #include <algorithm>
@@ -157,10 +160,21 @@ std::string MovieManager::GetRTCDisplay() const
   using ExpansionInterface::CEXIIPL;
 
   const time_t current_time = CEXIIPL::GetEmulatedTime(m_system, CEXIIPL::UNIX_EPOCH);
+
+  // Using L for locale-dependant formatting.
+  constexpr auto format_str = "Date/Time: {:L%c}";
+
+#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L && !defined(__APPLE__)
+  // Interpret as a `local_time`. This avoids displaying the erroneous "GMT" when formatted.
+  const auto local_time = std::chrono::local_time{
+      std::chrono::system_clock::from_time_t(current_time).time_since_epoch()};
+
+  return std::format(format_str, local_time);
+#else
   const tm gm_time = fmt::gmtime(current_time);
 
-  // Use current locale for formatting time, as fmt is locale-agnostic by default.
-  return fmt::format(std::locale{""}, "Date/Time: {:%c}", gm_time);
+  return fmt::format(std::locale{""}, format_str, gm_time);
+#endif
 }
 
 // NOTE: GPU Thread

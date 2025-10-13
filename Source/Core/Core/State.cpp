@@ -1,6 +1,9 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// This is working around linker errors when passing a locale to fmt.
+#define FMT_HEADER_ONLY
+
 #include "Core/State.h"
 
 #include <algorithm>
@@ -281,12 +284,22 @@ static std::string SystemTimeAsDoubleToString(double time)
 {
   // revert adjustments from GetSystemTimeAsDouble() to get a normal Unix timestamp again
   const time_t seconds = static_cast<time_t>(time) + DOUBLE_TIME_OFFSET;
+
+  // Using L for locale-dependant formatting.
+  constexpr auto format_str = "{:L%x %X}";
+
+#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L && !defined(__APPLE__)
+  const auto local_time =
+      std::chrono::current_zone()->to_local(std::chrono::system_clock::from_time_t(seconds));
+
+  return std::format(format_str, local_time);
+#else
   const auto local_time = Common::LocalTime(seconds);
   if (!local_time)
     return "";
 
-  // fmt is locale agnostic by default, so explicitly use current locale.
-  return fmt::format(std::locale{""}, "{:%x %X}", *local_time);
+  return fmt::format(std::locale{""}, format_str, *local_time);
+#endif
 }
 
 static std::string MakeStateFilename(int number);
