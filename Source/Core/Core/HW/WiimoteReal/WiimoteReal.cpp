@@ -1028,12 +1028,14 @@ bool IsValidDeviceName(std::string_view name)
 
 bool IsWiimoteName(std::string_view name)
 {
-  return name == "Nintendo RVL-CNT-01" || name == "Nintendo RVL-CNT-01-TR";
+  // Wii software similarly checks just the start of the name.
+  return name.starts_with("Nintendo RVL-CNT");
 }
 
 bool IsBalanceBoardName(std::string_view name)
 {
-  return "Nintendo RVL-WBC-01" == name;
+  // Wii software similarly checks just the start of the name.
+  return name.starts_with("Nintendo RVL-WBC");
 }
 
 // This is called from the scanner backends (currently on the scanner thread).
