@@ -6,6 +6,7 @@
 #include "Common/Logging/Log.h"
 
 #include "Core/Core.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
 HLE::SystemVABI::VAList::~VAList() = default;
