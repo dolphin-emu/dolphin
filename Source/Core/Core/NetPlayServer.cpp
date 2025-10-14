@@ -448,9 +448,6 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* incoming_connection, sf::Pack
   if (m_start_pending)
     return ConnectionError::GameRunning;
 
-  if (m_is_running && !Config::Get(Config::NETPLAY_INDEX_PASSWORD).empty())
-    return ConnectionError::GameRunning;
-
   if (m_players.size() >= 255)
     return ConnectionError::ServerFull;
 
