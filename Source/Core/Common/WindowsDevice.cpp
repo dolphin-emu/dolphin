@@ -83,6 +83,36 @@ std::optional<std::wstring> GetDeviceInterfaceStringProperty(LPCWSTR iface,
                            DEVPROP_TYPE_STRING);
 }
 
+NullTerminatedStringList<WCHAR> GetDeviceInterfaceList(LPGUID iface_class_guid, DEVINSTID device_id,
+                                                       ULONG flags)
+{
+  while (true)
+  {
+    ULONG list_size = 0;
+    const auto size_result =
+        CM_Get_Device_Interface_List_Size(&list_size, iface_class_guid, device_id, flags);
+    if (size_result != CR_SUCCESS || list_size == 0)
+      list_size = 1;
+
+    auto buffer = std::make_unique_for_overwrite<WCHAR[]>(list_size);
+    const auto list_result =
+        CM_Get_Device_Interface_List(iface_class_guid, device_id, buffer.get(), list_size, flags);
+
+    // "A new device can be added to the system causing the size returned to no longer be valid."
+    // Microsoft recommends trying again in a loop.
+    if (list_result == CR_BUFFER_SMALL)
+      continue;
+
+    if (list_result != CR_SUCCESS)
+    {
+      ERROR_LOG_FMT(COMMON, "CM_Get_Device_Interface_List: {}", list_result);
+      buffer[0] = 0;
+    }
+
+    return {std::move(buffer)};
+  }
+}
+
 }  // namespace Common
 
 #endif
