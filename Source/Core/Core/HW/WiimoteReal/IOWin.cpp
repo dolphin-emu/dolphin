@@ -583,20 +583,8 @@ auto WiimoteScannerWindows::FindWiimoteHIDDevices() -> FindResults
   // Enumerate connected HID interfaces IDs.
   auto class_guid = GUID_DEVINTERFACE_HID;
   constexpr ULONG flags = CM_GET_DEVICE_INTERFACE_LIST_PRESENT;
-  ULONG list_size = 0;
-  CM_Get_Device_Interface_List_Size(&list_size, &class_guid, nullptr, flags);
 
-  const auto buffer = std::make_unique_for_overwrite<WCHAR[]>(list_size);
-  const auto list_result =
-      CM_Get_Device_Interface_List(&class_guid, nullptr, buffer.get(), list_size, flags);
-  if (list_result != CR_SUCCESS)
-  {
-    ERROR_LOG_FMT(WIIMOTE, "CM_Get_Device_Interface_List: {}", list_result);
-    return results;
-  }
-
-  for (const WCHAR* hid_iface = buffer.get(); *hid_iface != L'\0';
-       hid_iface += wcslen(hid_iface) + 1)
+  for (auto* hid_iface : Common::GetDeviceInterfaceList(&class_guid, nullptr, flags))
   {
     // TODO: WiimoteWindows::GetId() does a redundant conversion.
     const auto hid_iface_utf8 = WStringToUTF8(hid_iface);
