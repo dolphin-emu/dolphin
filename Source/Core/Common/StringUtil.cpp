@@ -563,11 +563,9 @@ std::string UTF8ToSHIFTJIS(std::string_view input)
 
 std::string WStringToUTF8(std::wstring_view input)
 {
-  using codecvt = std::conditional_t<sizeof(wchar_t) == 2, std::codecvt_utf8_utf16<wchar_t>,
-                                     std::codecvt_utf8<wchar_t>>;
-
-  std::wstring_convert<codecvt, wchar_t> converter;
-  return converter.to_bytes(input.data(), input.data() + input.size());
+  // Note: Without LE iconv expects a BOM.
+  // The "WCHAR_T" code would be appropriate, but it's apparently not in every iconv implementation.
+  return CodeToUTF8((sizeof(wchar_t) == 2) ? "UTF-16LE" : "UTF-32LE", input);
 }
 
 std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
