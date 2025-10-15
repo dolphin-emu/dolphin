@@ -5,6 +5,8 @@
 
 #ifdef _WIN32
 
+#include <iterator>
+#include <memory>
 #include <optional>
 #include <string>
 
@@ -31,6 +33,47 @@ std::optional<std::wstring> GetDevNodeStringProperty(DEVINST device,
 
 std::optional<std::wstring> GetDeviceInterfaceStringProperty(LPCWSTR iface,
                                                              const DEVPROPKEY* requested_property);
+
+// Allows iterating null-separated/terminated string lists returned by the Windows API.
+template <typename T>
+struct NullTerminatedStringList
+{
+  class Iterator
+  {
+    friend NullTerminatedStringList;
+
+  public:
+    constexpr T* operator*() { return m_ptr; }
+
+    constexpr Iterator& operator++()
+    {
+      m_ptr += std::basic_string_view(m_ptr).size() + 1;
+      return *this;
+    }
+
+    constexpr Iterator operator++(int)
+    {
+      const auto result{*this};
+      ++*this;
+      return result;
+    }
+
+    constexpr bool operator==(std::default_sentinel_t) const { return *m_ptr == T{}; }
+
+  private:
+    constexpr Iterator(T* ptr) : m_ptr{ptr} {}
+
+    T* m_ptr;
+  };
+
+  constexpr auto begin() const { return Iterator{list.get()}; }
+  constexpr auto end() const { return std::default_sentinel; }
+
+  std::unique_ptr<T[]> list;
+};
+
+NullTerminatedStringList<WCHAR> GetDeviceInterfaceList(LPGUID iface_class_guid, DEVINSTID device_id,
+                                                       ULONG flags);
 
 }  // namespace Common
 
