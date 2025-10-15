@@ -369,6 +369,8 @@ add_executable(dolphin-emu
   Settings/GeneralPane.h
   Settings/InterfacePane.cpp
   Settings/InterfacePane.h
+	Settings/OnScreenDisplayPane.cpp
+	Settings/OnScreenDisplayPane.h
   Settings/PathPane.cpp
   Settings/PathPane.h
   Settings/USBDevicePicker.cpp

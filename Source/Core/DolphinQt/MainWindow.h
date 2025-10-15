@@ -208,6 +208,7 @@ private:
   void OnActivateChat();
   void OnRequestGolfControl();
   void ShowTASInput();
+  void ShowOSDWindow();
 
   void ChangeDisc();
   void EjectDisc();

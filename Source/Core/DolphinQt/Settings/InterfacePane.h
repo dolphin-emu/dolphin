@@ -6,7 +6,6 @@
 #include <QWidget>
 
 class ConfigBool;
-class ConfigInteger;
 class ConfigRadioInt;
 class ConfigStringChoice;
 class QLabel;
@@ -54,8 +53,6 @@ private:
 
   ConfigBool* m_checkbox_confirm_on_stop;
   ConfigBool* m_checkbox_use_panic_handlers;
-  ConfigBool* m_checkbox_enable_osd;
-  ConfigInteger* m_osd_font_size;
   ConfigBool* m_checkbox_show_active_title;
   ConfigBool* m_checkbox_pause_on_focus_lost;
   ConfigRadioInt* m_radio_cursor_visible_movement;

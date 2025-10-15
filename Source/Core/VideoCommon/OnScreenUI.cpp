@@ -256,11 +256,7 @@ void OnScreenUI::DrawImGui()
 // Create On-Screen-Messages
 void OnScreenUI::DrawDebugText()
 {
-  const bool show_movie_window =
-      Config::Get(Config::MAIN_SHOW_FRAME_COUNT) || Config::Get(Config::MAIN_SHOW_LAG) ||
-      Config::Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY) ||
-      Config::Get(Config::MAIN_MOVIE_SHOW_RTC) || Config::Get(Config::MAIN_MOVIE_SHOW_RERECORD);
-  if (show_movie_window)
+  if (Config::Get(Config::MAIN_MOVIE_SHOW_OSD))
   {
     // Position under the FPS display.
     ImGui::SetNextWindowPos(

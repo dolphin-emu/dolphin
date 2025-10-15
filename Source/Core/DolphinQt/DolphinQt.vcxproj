@@ -218,6 +218,7 @@
     <ClCompile Include="Settings\GameCubePane.cpp" />
     <ClCompile Include="Settings\GeneralPane.cpp" />
     <ClCompile Include="Settings\InterfacePane.cpp" />
+    <ClCompile Include="Settings\OnScreenDisplayPane.cpp" />
     <ClCompile Include="Settings\PathPane.cpp" />
     <ClCompile Include="Settings\USBDevicePicker.cpp" />
     <ClCompile Include="Settings\WiiPane.cpp" />
@@ -268,6 +269,7 @@
     <ClInclude Include="QtUtils\WrapInScrollArea.h" />
     <ClInclude Include="ResourcePackManager.h" />
     <ClInclude Include="Resources.h" />
+    <ClInclude Include="Settings\OnScreenDisplayPane.h" />
     <ClInclude Include="SkylanderPortal\SkylanderModifyDialog.h" />
     <ClInclude Include="TAS\TASControlState.h" />
     <ClInclude Include="TAS\TASSlider.h" />
