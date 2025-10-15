@@ -22,6 +22,7 @@
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
@@ -31,7 +32,6 @@
 constexpr u32 CODEPAGE_SHIFT_JIS = 932;
 constexpr u32 CODEPAGE_WINDOWS_1252 = 1252;
 
-#include "Common/CommonFuncs.h"
 #include "Common/Swap.h"
 #else
 #include <cerrno>
@@ -489,7 +489,8 @@ static std::string CodeTo(const char* tocode, const char* fromcode, std::basic_s
   auto* const conv_desc = iconv_open(tocode, fromcode);
   if ((iconv_t)-1 == conv_desc)
   {
-    ERROR_LOG_FMT(COMMON, "Iconv initialization failure [{}]: {}", fromcode, strerror(errno));
+    ERROR_LOG_FMT(COMMON, "Iconv initialization failure [{}]: {}", fromcode,
+                  Common::LastStrerrorString());
   }
   else
   {
@@ -522,7 +523,7 @@ static std::string CodeTo(const char* tocode, const char* fromcode, std::basic_s
         }
         else
         {
-          ERROR_LOG_FMT(COMMON, "iconv failure [{}]: {}", fromcode, strerror(errno));
+          ERROR_LOG_FMT(COMMON, "iconv failure [{}]: {}", fromcode, Common::LastStrerrorString());
           break;
         }
       }
