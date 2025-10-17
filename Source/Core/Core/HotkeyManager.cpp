@@ -209,7 +209,6 @@ namespace HotkeyManagerEmu
 {
 static std::array<u32, NUM_HOTKEY_GROUPS> s_hotkey_down;
 static HotkeyStatus s_hotkey;
-static bool s_enabled;
 
 static InputConfig s_config("Hotkeys", _trans("Hotkeys"), "Hotkeys", "Hotkeys");
 
@@ -222,16 +221,6 @@ void GetStatus(bool ignore_focus)
 {
   // Get input
   static_cast<HotkeyManager*>(s_config.GetController(0))->GetInput(&s_hotkey, ignore_focus);
-}
-
-bool IsEnabled()
-{
-  return s_enabled;
-}
-
-void Enable(bool enable_toggle)
-{
-  s_enabled = enable_toggle;
 }
 
 bool IsPressed(int id, bool held)
@@ -302,8 +291,6 @@ void Initialize()
   LoadConfig();
 
   s_hotkey_down = {};
-
-  s_enabled = true;
 }
 
 void LoadConfig()
