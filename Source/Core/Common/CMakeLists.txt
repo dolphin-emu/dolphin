@@ -185,7 +185,6 @@ PUBLIC
 PRIVATE
   CURL::libcurl
   FatFs
-  Iconv::Iconv
   spng::spng
   watcher
   ${VTUNE_LIBRARIES}
@@ -343,6 +342,8 @@ endif()
 
 if(WIN32)
   target_sources(common PRIVATE HRWrap.h HRWrap.cpp)
+else()
+  target_link_libraries(common PRIVATE Iconv::Iconv)
 endif()
 
 if(USE_UPNP)
