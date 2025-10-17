@@ -30,6 +30,7 @@
   </ItemGroup>
   <Import Project="$(ExternalsDir)Bochs_disasm\exports.props" />
   <Import Project="$(ExternalsDir)bzip2\exports.props" />
+  <Import Project="$(ExternalsDir)cpp-ipc\exports.props" />
   <Import Project="$(ExternalsDir)cpp-optparse\exports.props" />
   <Import Project="$(ExternalsDir)cubeb\exports.props" />
   <Import Project="$(ExternalsDir)curl\exports.props" />
