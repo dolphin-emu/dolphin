@@ -551,6 +551,12 @@ u32 Presenter::AutoIntegralScale() const
 
 void Presenter::SetSuggestedWindowSize(int width, int height)
 {
+  // "Internal Resolution" == "Auto" with "Auto-Adjust Window Size" will create a feedback loop.
+  // Perhaps IR:Auto could instead use the display resolution when "Auto-Adjust" is enabled ?
+  // For now, these features are incompatible and "Auto-Adjust Window Size" is stopped here.
+  if (g_ActiveConfig.iEFBScale == EFB_SCALE_AUTO_INTEGRAL)
+    return;
+
   // While trying to guess the best window resolution, we can't allow it to use the
   // "AspectMode::Stretch" setting because that would self influence the output result,
   // given it would be based on the previous frame resolution
