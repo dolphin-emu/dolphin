@@ -72,7 +72,7 @@ void ControlGroup::LoadConfig(Common::IniFile::Section* sec, const std::string& 
       // control expression
       std::string expression;
       sec->Get(group + c->name, &expression, "");
-      c->control_ref->SetExpression(std::move(expression));
+      c->control_ref->SetExpression(ciface::ExpressionParser::AdjustFromIniFile(expression));
     }
 
     // range
@@ -95,10 +95,9 @@ void ControlGroup::SaveConfig(Common::IniFile::Section* sec, const std::string& 
   for (auto& c : controls)
   {
     // control expression
-    std::string expression = c->control_ref->GetExpression();
-    // We can't save line breaks in a single line config. Restoring them is too complicated.
-    ReplaceBreaksWithSpaces(expression);
-    sec->Set(group + c->name, expression, "");
+    std::string expression =
+        ciface::ExpressionParser::PrepareForIniFile(c->control_ref->GetExpression());
+    sec->Set(group + c->name, std::move(expression), "");
 
     // range
     sec->Set(group + c->name + "/Range", c->control_ref->range * 100.0, 100.0);

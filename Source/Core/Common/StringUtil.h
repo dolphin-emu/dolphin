@@ -321,4 +321,11 @@ struct CaseInsensitiveLess
 };
 
 std::string BytesToHexString(std::span<const u8> bytes);
+
+// Escape/unescape newlines and backslashes by default.
+std::string EscapeString(std::string str, std::string_view find_chars = "\n\\",
+                         std::string_view replace_with_chars = "n\\", char escape_char = '\\');
+std::string UnescapeString(std::string str, std::string_view original_chars = "\n\\",
+                           std::string_view replaced_chars = "n\\", char escape_char = '\\');
+
 }  // namespace Common
