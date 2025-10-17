@@ -46,14 +46,8 @@ class SkylanderSlotAdapter(
         }
 
         holder.binding.buttonLoadFigure.setOnClickListener {
-            val loadSkylander = Intent(Intent.ACTION_OPEN_DOCUMENT)
-            loadSkylander.addCategory(Intent.CATEGORY_OPENABLE)
-            loadSkylander.type = "*/*"
             activity.setSkylanderData(0, 0, "", position)
-            activity.startActivityForResult(
-                loadSkylander,
-                EmulationActivity.REQUEST_SKYLANDER_FILE
-            )
+            activity.requestSkylanderFile.launch("*/*")
         }
 
         val inflater = LayoutInflater.from(activity)
@@ -85,29 +79,12 @@ class SkylanderSlotAdapter(
                 if (binding.skylanderId.text.toString().isNotBlank() &&
                     binding.skylanderVar.text.toString().isNotBlank()
                 ) {
-                    val createSkylander = Intent(Intent.ACTION_CREATE_DOCUMENT)
-                    createSkylander.addCategory(Intent.CATEGORY_OPENABLE)
-                    createSkylander.type = "*/*"
                     val id = binding.skylanderId.text.toString().toInt()
                     val variant = binding.skylanderVar.text.toString().toInt()
                     val name = SkylanderConfig.LIST_SKYLANDERS[SkylanderPair(id, variant)]
-                    if (name != null) {
-                        createSkylander.putExtra(
-                            Intent.EXTRA_TITLE,
-                            "$name.sky"
-                        )
-                        activity.setSkylanderData(id, variant, name, position)
-                    } else {
-                        createSkylander.putExtra(
-                            Intent.EXTRA_TITLE,
-                            "Unknown(ID: " + id + "Variant: " + variant + ").sky"
-                        )
-                        activity.setSkylanderData(id, variant, "Unknown", position)
-                    }
-                    activity.startActivityForResult(
-                        createSkylander,
-                        EmulationActivity.REQUEST_CREATE_SKYLANDER
-                    )
+                    val title = if (name != null) "$name.sky" else "Unknown(ID: $id Variant: $variant).sky"
+                    activity.setSkylanderData(id, variant, name ?: "Unknown", position)
+                    activity.requestCreateSkylander.launch(title)
                     createDialog.dismiss()
                 } else {
                     Toast.makeText(

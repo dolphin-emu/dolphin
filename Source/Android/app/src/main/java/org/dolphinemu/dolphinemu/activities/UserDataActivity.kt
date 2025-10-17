@@ -11,6 +11,8 @@ import android.os.Bundle
 import android.provider.DocumentsContract
 import android.view.View
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -37,6 +39,40 @@ class UserDataActivity : AppCompatActivity() {
     private lateinit var taskViewModel: TaskViewModel
 
     private lateinit var mBinding: ActivityUserDataBinding
+
+    private val requestImport = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            val arguments = Bundle()
+            arguments.putString(
+                UserDataImportWarningDialog.KEY_URI_RESULT,
+                uri.toString()
+            )
+
+            val dialog = UserDataImportWarningDialog()
+            dialog.arguments = arguments
+            dialog.show(supportFragmentManager, UserDataImportWarningDialog.TAG)
+        }
+    }
+
+    private val requestExport = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri: Uri? ->
+        if (uri != null) {
+            taskViewModel.clear()
+            taskViewModel.task = { exportUserData(uri) }
+
+            val arguments = Bundle()
+            arguments.putInt(TaskDialog.KEY_TITLE, R.string.export_in_progress)
+            arguments.putInt(TaskDialog.KEY_MESSAGE, 0)
+            arguments.putBoolean(TaskDialog.KEY_CANCELLABLE, true)
+
+            val dialog = TaskDialog()
+            dialog.arguments = arguments
+            dialog.show(supportFragmentManager, TaskDialog.TAG)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         taskViewModel = ViewModelProvider(this)[TaskViewModel::class.java]
@@ -83,34 +119,6 @@ class UserDataActivity : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
         return true
-    }
-
-    public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == REQUEST_CODE_IMPORT && resultCode == RESULT_OK) {
-            val arguments = Bundle()
-            arguments.putString(
-                UserDataImportWarningDialog.KEY_URI_RESULT,
-                data!!.data!!.toString()
-            )
-
-            val dialog = UserDataImportWarningDialog()
-            dialog.arguments = arguments
-            dialog.show(supportFragmentManager, UserDataImportWarningDialog.TAG)
-        } else if (requestCode == REQUEST_CODE_EXPORT && resultCode == RESULT_OK) {
-            taskViewModel.clear()
-            taskViewModel.task = { exportUserData(data!!.data!!) }
-
-            val arguments = Bundle()
-            arguments.putInt(TaskDialog.KEY_TITLE, R.string.export_in_progress)
-            arguments.putInt(TaskDialog.KEY_MESSAGE, 0)
-            arguments.putBoolean(TaskDialog.KEY_CANCELLABLE, true)
-
-            val dialog = TaskDialog()
-            dialog.arguments = arguments
-            dialog.show(supportFragmentManager, TaskDialog.TAG)
-        }
     }
 
     private fun openFileManager() {
@@ -171,15 +179,14 @@ class UserDataActivity : AppCompatActivity() {
     }
 
     private fun importUserData() {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-        intent.type = "application/zip"
-        startActivityForResult(intent, REQUEST_CODE_IMPORT)
+        requestImport.launch(arrayOf("application/zip"))
     }
 
     fun importUserData(source: Uri): Int {
         try {
-            if (!isDolphinUserDataBackup(source))
+            if (!isDolphinUserDataBackup(source)) {
                 return R.string.user_data_import_invalid_file
+            }
 
             taskViewModel.onResultDismiss = {
                 // Restart the app to apply the imported user data.
@@ -274,10 +281,7 @@ class UserDataActivity : AppCompatActivity() {
     }
 
     private fun exportUserData() {
-        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
-        intent.type = "application/zip"
-        intent.putExtra(Intent.EXTRA_TITLE, "dolphin-emu.zip")
-        startActivityForResult(intent, REQUEST_CODE_EXPORT)
+        requestExport.launch("dolphin-emu.zip")
     }
 
     private fun exportUserData(destination: Uri): Int {
@@ -340,9 +344,6 @@ class UserDataActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val REQUEST_CODE_IMPORT = 0
-        private const val REQUEST_CODE_EXPORT = 1
-
         private const val BUFFER_SIZE = 64 * 1024
 
         @JvmStatic
