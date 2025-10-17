@@ -157,6 +157,13 @@ void InterfacePane::CreateUI()
   m_combobox_userstyle->addItem(tr("(Dark)"), static_cast<int>(Settings::StyleType::Dark));
 #endif
 
+  m_combobox_userstyle->addItem(tr("(Fusion Light)"),
+                                static_cast<int>(Settings::StyleType::FusionLight));
+  m_combobox_userstyle->addItem(tr("(Fusion Dark Gray)"),
+                                static_cast<int>(Settings::StyleType::FusionDarkGray));
+  m_combobox_userstyle->addItem(tr("(Fusion Dark)"),
+                                static_cast<int>(Settings::StyleType::FusionDark));
+
   for (const std::string& path : userstyle_search_results)
   {
     const QFileInfo file_info(QString::fromStdString(path));
