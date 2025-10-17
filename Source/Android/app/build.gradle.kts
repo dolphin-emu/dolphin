@@ -8,7 +8,7 @@ plugins {
 @Suppress("UnstableApiUsage")
 android {
     compileSdkVersion = "android-36"
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "29.0.14206865"
 
     buildFeatures {
         viewBinding = true
