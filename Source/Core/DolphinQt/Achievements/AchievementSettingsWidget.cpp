@@ -42,6 +42,10 @@ void AchievementSettingsWidget::UpdateData(int login_failed_code)
   {
     switch (login_failed_code)
     {
+    case RC_LOGIN_REQUIRED:
+    case RC_EXPIRED_TOKEN:
+      m_common_login_failed->setText(tr("Logged Out - Credentials Expired"));
+      break;
     case RC_INVALID_CREDENTIALS:
       m_common_login_failed->setText(tr("Login Failed - Invalid Username/Password"));
       break;
