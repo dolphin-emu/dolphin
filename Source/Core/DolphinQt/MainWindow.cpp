@@ -59,9 +59,9 @@
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-#include "Core/HotkeyManager.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
+#include "Core/InputSuppressor.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
@@ -111,7 +111,6 @@
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
-#include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt/RenderWidget.h"
 #include "DolphinQt/ResourcePackManager.h"
 #include "DolphinQt/Resources.h"
@@ -127,6 +126,7 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
+#include "InputCommon/InputConfig.h"
 
 #include "UICommon/DiscordPresence.h"
 #include "UICommon/GameFile.h"
@@ -437,17 +437,6 @@ void MainWindow::InitCoreCallbacks()
   connect(filter, &FileOpenEventFilter::fileOpened, this, [this](const QString& file_name) {
     StartGame(BootParameters::GenerateFromFile(file_name.toStdString()));
   });
-}
-
-static void InstallHotkeyFilter(QWidget* dialog)
-{
-  auto* filter = new WindowActivationEventFilter(dialog);
-  dialog->installEventFilter(filter);
-
-  filter->connect(filter, &WindowActivationEventFilter::windowDeactivated,
-                  [] { HotkeyManagerEmu::Enable(true); });
-  filter->connect(filter, &WindowActivationEventFilter::windowActivated,
-                  [] { HotkeyManagerEmu::Enable(false); });
 }
 
 void MainWindow::CreateComponents()
@@ -1281,7 +1270,6 @@ void MainWindow::ShowFreeLookWindow()
   if (!m_freelook_window)
   {
     m_freelook_window = new FreeLookWindow(this);
-    InstallHotkeyFilter(m_freelook_window);
 
 #ifdef USE_RETRO_ACHIEVEMENTS
     connect(m_freelook_window, &FreeLookWindow::OpenAchievementSettings, this,
@@ -1308,7 +1296,6 @@ void MainWindow::ShowSettingsWindow()
     }
 #endif
     m_settings_window = new SettingsWindow(this);
-    InstallHotkeyFilter(m_settings_window);
   }
 
   m_settings_window->show();
@@ -1345,7 +1332,6 @@ void MainWindow::ShowHotkeyDialog()
   if (!m_hotkey_window)
   {
     m_hotkey_window = new MappingWindow(this, MappingWindow::Type::MAPPING_HOTKEYS, 0);
-    InstallHotkeyFilter(m_hotkey_window);
   }
 
   m_hotkey_window->show();

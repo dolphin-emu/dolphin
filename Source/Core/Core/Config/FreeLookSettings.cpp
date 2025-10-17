@@ -6,14 +6,15 @@
 #include <string>
 
 #include "Common/Config/Config.h"
+#include "Core/Config/InputFocus.h"
 #include "Core/FreeLookConfig.h"
 
 namespace Config
 {
 // Configuration Information
 const Info<bool> FREE_LOOK_ENABLED{{System::FreeLook, "General", "Enabled"}, false};
-const Info<bool> FREE_LOOK_BACKGROUND_INPUT{{System::FreeLook, "General", "BackgroundInput"},
-                                            false};
+const Info<InputFocusPolicy> FREE_LOOK_FOCUS_POLICY{
+    {System::FreeLook, "General", "BackgroundInput"}, InputFocusPolicy::RenderOrTASWindow};
 
 // FreeLook.Controller1
 const Info<FreeLook::ControlType> FL1_CONTROL_TYPE{{System::FreeLook, "Camera1", "ControlType"},

@@ -33,6 +33,7 @@
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
+#include "DolphinQt/QtUtils/InputSuppressorFocusFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
@@ -258,6 +259,13 @@ int main(int argc, char* argv[])
 
     Settings::Instance().InitDefaultPalette();
     Settings::Instance().ApplyStyle();
+
+    const auto set_application_active_state = [](const Qt::ApplicationState state) {
+      const bool is_active_application = (state & Qt::ApplicationState::ApplicationActive) != 0;
+      Host::GetInstance()->SetDolphinActiveApplication(is_active_application);
+    };
+    QObject::connect(qApp, &QGuiApplication::applicationStateChanged, set_application_active_state);
+    QtUtils::InstallInputSuppressorFocusFilter();
 
     MainWindow win{Core::System::GetInstance(), std::move(boot),
                    static_cast<const char*>(options.get("movie"))};

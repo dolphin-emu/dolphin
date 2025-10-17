@@ -20,6 +20,7 @@
 #include "Common/Version.h"
 #include "Core/AchievementManager.h"
 #include "Core/Config/DefaultLocale.h"
+#include "Core/Config/InputFocus.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
@@ -516,7 +517,8 @@ const Info<bool> MAIN_MOVIE_SHOW_OSD{{System::Main, "Movie", "ShowMovieWindow"},
 
 // Main.Input
 
-const Info<bool> MAIN_INPUT_BACKGROUND_INPUT{{System::Main, "Input", "BackgroundInput"}, false};
+const Info<InputFocusPolicy> MAIN_CONTROLLER_FOCUS_POLICY{
+    {System::Main, "Input", "BackgroundInput"}, InputFocusPolicy::RenderOrTASWindow};
 
 // Main.Debug
 

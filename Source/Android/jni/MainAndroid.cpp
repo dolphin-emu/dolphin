@@ -186,6 +186,11 @@ bool Host_TASInputHasFocus()
   return false;
 }
 
+bool Host_DolphinIsActiveApplication()
+{
+  return true;
+}
+
 void Host_YieldToUI()
 {
 }

@@ -325,6 +325,8 @@ add_executable(dolphin-emu
   QtUtils/FromStdString.h
   QtUtils/ImageConverter.cpp
   QtUtils/ImageConverter.h
+  QtUtils/InputSuppressorFocusFilter.cpp
+  QtUtils/InputSuppressorFocusFilter.h
   QtUtils/ModalMessageBox.cpp
   QtUtils/ModalMessageBox.h
   QtUtils/NonAutodismissibleMenu.cpp

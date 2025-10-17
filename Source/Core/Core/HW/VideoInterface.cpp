@@ -953,7 +953,7 @@ void VideoInterfaceManager::Update(u64 ticks)
     // This is a nice place to measure performance so we don't have to Throttle elsewhere.
     g_perf_metrics.CountPerformanceMarker(ticks, m_system.GetSystemTimers().GetTicksPerSecond());
 
-    Core::UpdateInputGate(!Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT),
+    Core::UpdateInputGate(Config::Get(Config::MAIN_CONTROLLER_FOCUS_POLICY),
                           Config::Get(Config::MAIN_LOCK_CURSOR));
     auto& si = m_system.GetSerialInterface();
     si.UpdateDevices();
