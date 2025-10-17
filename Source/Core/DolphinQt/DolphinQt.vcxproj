@@ -64,6 +64,8 @@
     <ClCompile Include="Config\ConfigControls\ConfigRadio.cpp" />
     <ClCompile Include="Config\ConfigControls\ConfigFloatSlider.cpp" />
     <ClCompile Include="Config\ConfigControls\ConfigSlider.cpp" />
+    <ClCompile Include="Config\ConfigControls\ConfigText.cpp" />
+    <ClCompile Include="Config\ConfigControls\ConfigUserPath.cpp" />
     <ClCompile Include="Config\ControllerInterface\ControllerInterfaceWindow.cpp" />
     <ClCompile Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.cpp" />
     <ClCompile Include="Config\ControllerInterface\DualShockUDPClientWidget.cpp" />
@@ -189,6 +191,7 @@
     <ClCompile Include="pch_qt.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="QtUtils\AnalyticsPrompt.cpp" />
     <ClCompile Include="QtUtils\AspectRatioWidget.cpp" />
     <ClCompile Include="QtUtils\BlockUserInputFilter.cpp" />
     <ClCompile Include="QtUtils\ClearLayoutRecursively.cpp" />
@@ -294,6 +297,8 @@
     <QtMoc Include="Config\ConfigControls\ConfigRadio.h" />
     <QtMoc Include="Config\ConfigControls\ConfigFloatSlider.h" />
     <QtMoc Include="Config\ConfigControls\ConfigSlider.h" />
+    <QtMoc Include="Config\ConfigControls\ConfigText.h" />
+    <QtMoc Include="Config\ConfigControls\ConfigUserPath.h" />
     <QtMoc Include="Config\ControllerInterface\ControllerInterfaceWindow.h" />
     <QtMoc Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.h" />
     <QtMoc Include="Config\ControllerInterface\DualShockUDPClientWidget.h" />
@@ -408,6 +413,7 @@
     <QtMoc Include="NetPlay\PadMappingDialog.h" />
     <QtMoc Include="NANDRepairDialog.h" />
     <QtMoc Include="NKitWarningDialog.h" />
+    <QtMoc Include="QtUtils\AnalyticsPrompt.h" />
     <QtMoc Include="QtUtils\AspectRatioWidget.h" />
     <QtMoc Include="QtUtils\BlockUserInputFilter.h" />
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
