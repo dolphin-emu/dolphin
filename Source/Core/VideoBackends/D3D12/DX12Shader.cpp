@@ -29,9 +29,10 @@ std::unique_ptr<DXShader> DXShader::CreateFromBytecode(ShaderStage stage, Binary
 }
 
 std::unique_ptr<DXShader> DXShader::CreateFromSource(ShaderStage stage, std::string_view source,
+                                                     VideoCommon::ShaderIncluder* shader_includer,
                                                      std::string_view name)
 {
-  auto bytecode = CompileShader(g_dx_context->GetFeatureLevel(), stage, source);
+  auto bytecode = CompileShader(g_dx_context->GetFeatureLevel(), stage, source, shader_includer);
   if (!bytecode)
     return nullptr;
 
