@@ -29,7 +29,8 @@ enum class PadGroup
   Triggers,
   Rumble,
   Mic,
-  Options
+  Options,
+  Triforce,
 };
 
 class GCPad : public ControllerEmu::EmulatedController
@@ -61,6 +62,7 @@ public:
   static constexpr const char* RUMBLE_GROUP = _trans("Rumble");
   static constexpr const char* MIC_GROUP = _trans("Microphone");
   static constexpr const char* OPTIONS_GROUP = _trans("Options");
+  static constexpr const char* TRIFORCE_GROUP = _trans("Triforce");
 
   static constexpr const char* A_BUTTON = "A";
   static constexpr const char* B_BUTTON = "B";
@@ -68,6 +70,11 @@ public:
   static constexpr const char* Y_BUTTON = "Y";
   static constexpr const char* Z_BUTTON = "Z";
   static constexpr const char* START_BUTTON = "Start";
+
+  // Special Triforce buttons
+  static constexpr const char* TEST_BUTTON = "Test";
+  static constexpr const char* SERVICE_BUTTON = "Service";
+  static constexpr const char* COIN_BUTTON = "Coin";
 
   // i18n: The left trigger button (labeled L on real controllers)
   static constexpr const char* L_DIGITAL = _trans("L");
@@ -87,6 +94,7 @@ private:
   ControllerEmu::ControlGroup* m_rumble;
   ControllerEmu::Buttons* m_mic;
   ControllerEmu::ControlGroup* m_options;
+  ControllerEmu::Buttons* m_triforce;
 
   ControllerEmu::SettingValue<bool> m_always_connected_setting;
 
