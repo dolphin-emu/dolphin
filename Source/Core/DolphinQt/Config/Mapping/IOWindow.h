@@ -71,6 +71,7 @@ public:
 signals:
   void DetectInputComplete();
   void TestOutputComplete();
+  void ExpressionChanged(const QString& expression);
 
 private:
   std::shared_ptr<ciface::Core::Device> GetSelectedDevice() const;

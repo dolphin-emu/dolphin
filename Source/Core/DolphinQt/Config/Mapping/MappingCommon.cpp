@@ -133,6 +133,7 @@ public:
     m_parent->GetController()->UpdateSingleControlReference(g_controller_interface,
                                                             control_reference);
     m_parent->GetController()->GetConfig()->GenerateControllerTextures();
+    m_parent->ExpressionChanged(0);
   }
 
   void UpdateInputDetectionStartTimer()

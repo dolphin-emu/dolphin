@@ -616,3 +616,8 @@ void MappingWindow::ActivateExtensionTab()
 {
   m_tab_widget->setCurrentIndex(3);
 }
+
+void MappingWindow::ExpressionChanged(int source)
+{
+  printf("ExpressionChanged(%d)\n", source);
+}
