@@ -361,8 +361,8 @@ bool AchievementManager::CanPause()
     OSD::AddMessage(
         fmt::format("RetroAchievements Hardcore Mode:\n"
                     "Cannot pause until another {:.2f} seconds have passed.",
-                    static_cast<float>(frames_to_next_pause) /
-                        Core::System::GetInstance().GetVideoInterface().GetTargetRefreshRate()),
+                    float(frames_to_next_pause /
+                          Core::System::GetInstance().GetVideoInterface().GetTargetRefreshRate())),
         OSD::Duration::VERY_LONG, OSD::Color::RED);
   }
   return can_pause;
