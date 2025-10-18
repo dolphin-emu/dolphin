@@ -3,6 +3,7 @@
 
 #include "DolphinQt/Config/WiimoteControllersWidget.h"
 
+#include <QAction>
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
