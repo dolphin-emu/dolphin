@@ -576,9 +576,10 @@ int WiimoteWindows::IOWrite(const u8* buf, size_t len)
   return write_result;
 }
 
-void WiimoteScannerWindows::FindWiimoteHIDDevices(std::vector<Wiimote*>& found_wiimotes,
-                                                  Wiimote*& found_board)
+auto WiimoteScannerWindows::FindWiimoteHIDDevices() -> FindResults
 {
+  FindResults results;
+
   // Enumerate connected HID interfaces IDs.
   auto class_guid = GUID_DEVINTERFACE_HID;
   constexpr ULONG flags = CM_GET_DEVICE_INTERFACE_LIST_PRESENT;
@@ -591,7 +592,7 @@ void WiimoteScannerWindows::FindWiimoteHIDDevices(std::vector<Wiimote*>& found_w
   if (list_result != CR_SUCCESS)
   {
     ERROR_LOG_FMT(WIIMOTE, "CM_Get_Device_Interface_List: {}", list_result);
-    return;
+    return results;
   }
 
   for (const WCHAR* hid_iface = buffer.get(); *hid_iface != L'\0';
@@ -678,26 +679,26 @@ void WiimoteScannerWindows::FindWiimoteHIDDevices(std::vector<Wiimote*>& found_w
       is_balance_board = wiimote->IsBalanceBoard();
 
     if (*is_balance_board)
-      delete std::exchange(found_board, wiimote.release());
+      results.balance_boards.emplace_back(std::move(wiimote));
     else
-      found_wiimotes.push_back(wiimote.release());
+      results.wii_remotes.emplace_back(std::move(wiimote));
   }
+
+  return results;
 }
 
-void WiimoteScannerWindows::FindWiimotes(std::vector<Wiimote*>&, Wiimote*&)
+auto WiimoteScannerWindows::FindNewWiimotes() -> FindResults
 {
   // Ideally we'd only enumerate the radios once.
   RemoveUnusableWiimoteBluetoothDevices();
   DiscoverAndPairWiimotes(DEFAULT_INQUIRY_LENGTH);
 
-  // Kinda odd that we never return any remotes here. The scanner interface is odd.
-  // We return all the results in FindAlreadyConnectedWiimote.
+  return FindWiimoteHIDDevices();
 }
 
-void WiimoteScannerWindows::FindAttachedDevices(std::vector<Wiimote*>& found_wiimotes,
-                                                Wiimote*& found_board)
+auto WiimoteScannerWindows::FindAttachedWiimotes() -> FindResults
 {
-  FindWiimoteHIDDevices(found_wiimotes, found_board);
+  return FindWiimoteHIDDevices();
 }
 
 bool WiimoteScannerWindows::IsReady() const
