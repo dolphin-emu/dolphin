@@ -265,6 +265,10 @@ void Jit64AsmRoutineManager::GenerateCommon()
   GenMfcr();
   cdts = AlignCode4();
   GenConvertDoubleToSingle();
+  fmadds_eft = AlignCode4();
+  GenerateFmaddsEft();
+  ps_madd_eft = AlignCode4();
+  GeneratePsMaddEft();
 
   GenQuantizedLoads();
   GenQuantizedSingleLoads();
