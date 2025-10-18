@@ -93,9 +93,8 @@ void MappingButton::AdvancedPressed()
   IOWindow io(m_mapping_window, m_mapping_window->GetController(), m_reference,
               m_reference->IsInput() ? IOWindow::Type::Input : IOWindow::Type::Output);
   
-  // Connect to IOWindow's ExpressionChanged signal
-  connect(&io, &IOWindow::ExpressionChanged, m_mapping_window, [this](const QString& expr) {
-    m_mapping_window->ExpressionChanged(1);
+  connect(&io, &IOWindow::OnMappingChange, m_mapping_window, [this](const QString& expr) {
+    m_mapping_window->OnMappingChange(1);
   });
   
   io.exec();
