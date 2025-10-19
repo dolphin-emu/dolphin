@@ -5,8 +5,8 @@ package org.dolphinemu.dolphinemu.features.settings.ui
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -141,8 +141,16 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
     override val settings: Settings?
         get() = presenter.settings
 
-    override fun onSettingChanged() {
-        activityView!!.onSettingChanged()
+    override fun onSettingChanged(allSettingsChanged: Boolean) {
+        activityView!!.onSettingChanged(allSettingsChanged)
+
+        // always update the name in the following menus:
+        if(menuTag.isWiimoteMenu || menuTag.isWiimoteSubmenu || menuTag.isGCPadMenu) {
+            presenter.updateControllerName()
+        }
+        Handler().postDelayed({
+            activityView!!.onSettingChanged(allSettingsChanged)
+        }, 2500)
     }
 
     override fun onControllerSettingsChanged() {

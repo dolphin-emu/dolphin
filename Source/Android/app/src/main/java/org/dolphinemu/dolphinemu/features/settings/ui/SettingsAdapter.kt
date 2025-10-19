@@ -147,7 +147,7 @@ class SettingsAdapter(
 
     fun notifyAllSettingsChanged() {
         notifyItemRangeChanged(0, itemCount)
-        fragmentView.onSettingChanged()
+        fragmentView.onSettingChanged(true)
     }
 
     fun onBooleanClick(item: SwitchSetting, checked: Boolean) {
