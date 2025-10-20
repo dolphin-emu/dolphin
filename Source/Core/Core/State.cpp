@@ -83,16 +83,9 @@ static u32 s_last_state_size = 0;
 // 2. Prevent new tasks from starting.
 static Common::TransferableSharedMutex s_state_saves_in_progress;
 
-struct CompressAndDumpStateArgs
-{
-  Common::UniqueBuffer<u8> buffer;
-  std::string filename;
-  std::shared_lock<decltype(s_state_saves_in_progress)> task_lock;
-};
-
 // Queue for compressing and writing savestates to disk.
 // Only the CPU thread manipulates this worker.
-static Common::WorkQueueThreadSP<CompressAndDumpStateArgs> s_compress_and_dump_thread;
+static Common::AsyncWorkThreadSP s_compress_and_dump_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
 constexpr u32 STATE_VERSION = 175;  // Last changed in PR 13751
@@ -387,11 +380,9 @@ static void WriteHeadersToFile(size_t uncompressed_size, File::IOFile& f)
   // If StateExtendedHeader is amended to include more than the base, add WriteBytes() calls here.
 }
 
-static void CompressAndDumpState(Core::System& system, const CompressAndDumpStateArgs& save_args)
+static void CompressAndDumpState(Core::System& system, std::span<const u8> buffer,
+                                 const std::string& filename)
 {
-  const auto& buffer = save_args.buffer;
-  const std::string& filename = save_args.filename;
-
   // Find free temporary filename.
 
   // TODO: The file exists check and the actual opening of the file should be atomic.
@@ -467,38 +458,30 @@ static void CompressAndDumpState(Core::System& system, const CompressAndDumpStat
   }
 }
 
-static void SaveAsFromCore(Core::System& system, std::string filename)
+Common::Detached SaveAs(Core::System& system, std::string filename)
 {
+  const auto lock = GetStateSaveTaskLock();
+
+  co_await Core::ScheduleOnCPUThread(system);
+
   // Try with a buffer a bit larger than the previous state.
   // This will often avoid the "Measure" step.
   const auto buffer_size_estimate = std::size_t(s_last_state_size) * 110 / 100;
-  Common::UniqueBuffer<u8> buffer{buffer_size_estimate};
+  Common::UniqueBuffer<u8> oversized_buffer{buffer_size_estimate};
+  const auto actual_size = SaveToBuffer(system, oversized_buffer);
 
-  if (const auto actual_size = SaveToBuffer(system, buffer))
-  {
-    // Adjust the oversized buffer down to the actual size.
-    buffer.assign(buffer.extract().first, actual_size);
-
-    CompressAndDumpStateArgs dump_args{
-        .buffer = std::move(buffer),
-        .filename = std::move(filename),
-        .task_lock = GetStateSaveTaskLock(),
-    };
-    Core::DisplayMessage("Saving State...", 1000);
-    s_compress_and_dump_thread.EmplaceItem(std::move(dump_args));
-  }
-  else
+  if (actual_size == 0)
   {
     Core::DisplayMessage("Unable to save: Internal DoState Error", 4000);
+    co_return;
   }
-}
 
-void SaveAs(Core::System& system, std::string filename)
-{
-  Core::RunOnCPUThread(
-      system, [&system, filename = std::move(filename), lock = GetStateSaveTaskLock()]() mutable {
-        SaveAsFromCore(system, std::move(filename));
-      });
+  Core::DisplayMessage("Saving State...", 1000);
+
+  // Switch to the worker thread to compress and write the state to the filesystem.
+  co_await s_compress_and_dump_thread.ScheduleHere();
+
+  CompressAndDumpState(system, std::span{oversized_buffer}.first(actual_size), filename);
 }
 
 static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
@@ -804,8 +787,13 @@ static void LoadFileStateData(const std::string& filename, Common::UniqueBuffer<
   ret_data.swap(buffer);
 }
 
-static void LoadAsFromCore(Core::System& system, std::string filename)
+Common::Detached LoadAs(Core::System& system, std::string filename)
 {
+  if (!CheckIfStateLoadIsAllowed(system))
+    co_return;
+
+  co_await Core::ScheduleOnCPUThread(system);
+
   // Ensure all data has reached the filesystem before trying to use it.
   s_compress_and_dump_thread.WaitForCompletion();
 
@@ -866,25 +854,14 @@ static void LoadAsFromCore(Core::System& system, std::string filename)
     s_on_after_load_callback();
 }
 
-void LoadAs(Core::System& system, std::string filename)
-{
-  if (!CheckIfStateLoadIsAllowed(system))
-    return;
-
-  Core::RunOnCPUThread(system, [&system, filename = std::move(filename)]() mutable {
-    LoadAsFromCore(system, std::move(filename));
-  });
-}
-
 void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback)
 {
   s_on_after_load_callback = std::move(callback);
 }
 
-void Init(Core::System& system)
+void Init(Core::System&)
 {
-  s_compress_and_dump_thread.Reset("Savestate Worker",
-                                   std::bind_front(&CompressAndDumpState, std::ref(system)));
+  s_compress_and_dump_thread.Reset("Savestate Worker");
 
   s_flush_unsaved_data_hook = UICommon::AddFlushUnsavedDataCallback([] {
     // Holding the lock for any amount of time means there are no pending state save tasks.
@@ -899,95 +876,94 @@ void Shutdown()
   s_flush_unsaved_data_hook.reset();
 }
 
-void Save(Core::System& system, int slot)
+Common::Detached Save(Core::System& system, int slot)
 {
-  SaveAs(system, MakeStateFilename(slot));
+  return SaveAs(system, MakeStateFilename(slot));
 }
 
-void Load(Core::System& system, int slot)
+Common::Detached Load(Core::System& system, int slot)
 {
-  LoadAs(system, MakeStateFilename(slot));
+  return LoadAs(system, MakeStateFilename(slot));
 }
 
-void LoadLastSaved(Core::System& system, int i)
+Common::Detached LoadLastSaved(Core::System& system, int i)
 {
-  if (!CheckIfStateLoadIsAllowed(system))
-    return;
+  co_await Core::ScheduleOnCPUThread(system);
 
-  Core::RunOnCPUThread(system, [&system, i] {
-    // Data must reach the filesystem for up to date "UsedSlots".
-    s_compress_and_dump_thread.WaitForCompletion();
+  // Data must reach the filesystem for up to date "UsedSlots".
+  s_compress_and_dump_thread.WaitForCompletion();
 
-    std::vector<SlotWithTimestamp> used_slots = GetUsedSlotsWithTimestamp();
-    if (std::size_t(i) > used_slots.size())
-    {
-      Core::DisplayMessage("State doesn't exist", 2000);
-      return;
-    }
+  std::vector<SlotWithTimestamp> used_slots = GetUsedSlotsWithTimestamp();
+  if (std::size_t(i) > used_slots.size())
+  {
+    Core::DisplayMessage("State doesn't exist", 2000);
+    co_return;
+  }
 
-    std::ranges::stable_sort(used_slots, std::ranges::greater{}, &SlotWithTimestamp::timestamp);
-    LoadAsFromCore(system, MakeStateFilename(used_slots[i].slot));
-  });
+  std::ranges::stable_sort(used_slots, std::ranges::greater{}, &SlotWithTimestamp::timestamp);
+  LoadAs(system, MakeStateFilename(used_slots[i].slot));
 }
 
-void SaveFirstSaved(Core::System& system)
+Common::Detached SaveFirstSaved(Core::System& system)
 {
-  Core::RunOnCPUThread(system, [&system, lock = GetStateSaveTaskLock()] {
-    // Data must reach the filesystem for up to date "UsedSlots".
-    s_compress_and_dump_thread.WaitForCompletion();
+  const auto lock = GetStateSaveTaskLock();
 
-    std::vector<SlotWithTimestamp> used_slots = GetUsedSlotsWithTimestamp();
-    auto slot = GetEmptySlot(used_slots);
-    if (!slot.has_value())
-    {
-      // overwrite the oldest state
-      std::ranges::stable_sort(used_slots, {}, &SlotWithTimestamp::timestamp);
-      slot = used_slots.front().slot;
-    }
+  co_await Core::ScheduleOnCPUThread(system);
 
-    SaveAsFromCore(system, MakeStateFilename(*slot));
-  });
+  // Data must reach the filesystem for up to date "UsedSlots".
+  s_compress_and_dump_thread.WaitForCompletion();
+
+  std::vector<SlotWithTimestamp> used_slots = GetUsedSlotsWithTimestamp();
+  auto slot = GetEmptySlot(used_slots);
+  if (!slot.has_value())
+  {
+    // overwrite the oldest state
+    std::ranges::stable_sort(used_slots, {}, &SlotWithTimestamp::timestamp);
+    slot = used_slots.front().slot;
+  }
+
+  SaveAs(system, MakeStateFilename(*slot));
 }
 
 // Load the last state before loading the state
-void UndoLoadState(Core::System& system)
+Common::Detached UndoLoadState(Core::System& system)
 {
   if (!CheckIfStateLoadIsAllowed(system))
-    return;
+    co_return;
 
-  Core::RunOnCPUThread(system, [&system] {
-    if (s_undo_load_buffer.empty())
-    {
-      PanicAlertFmtT("There is nothing to undo!");
-      return;
-    }
+  co_await Core::ScheduleOnCPUThread(system);
 
-    auto& movie = system.GetMovie();
-    if (movie.IsMovieActive())
+  if (s_undo_load_buffer.empty())
+  {
+    PanicAlertFmtT("There is nothing to undo!");
+    co_return;
+  }
+
+  auto& movie = system.GetMovie();
+  if (movie.IsMovieActive())
+  {
+    // Note: Only the CPU thread writes to "undo.dtm".
+    const std::string dtmpath = File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm";
+    if (File::Exists(dtmpath))
     {
-      // Note: Only the CPU thread writes to "undo.dtm".
-      const std::string dtmpath = File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm";
-      if (File::Exists(dtmpath))
-      {
-        LoadFromBuffer(system, s_undo_load_buffer);
-        movie.LoadInput(dtmpath);
-      }
-      else
-      {
-        PanicAlertFmtT("No undo.dtm found, aborting undo load state to prevent movie desyncs");
-      }
+      LoadFromBuffer(system, s_undo_load_buffer);
+      movie.LoadInput(dtmpath);
     }
     else
     {
-      LoadFromBuffer(system, s_undo_load_buffer);
+      PanicAlertFmtT("No undo.dtm found, aborting undo load state to prevent movie desyncs");
     }
-  });
+  }
+  else
+  {
+    LoadFromBuffer(system, s_undo_load_buffer);
+  }
 }
 
 // Load the state that the last save state overwritten on
-void UndoSaveState(Core::System& system)
+Common::Detached UndoSaveState(Core::System& system)
 {
-  LoadAs(system, File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav");
+  return LoadAs(system, File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav");
 }
 
 }  // namespace State
