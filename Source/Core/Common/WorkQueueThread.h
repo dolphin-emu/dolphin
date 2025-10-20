@@ -9,6 +9,7 @@
 #include <string>
 #include <thread>
 
+#include "Common/CoroutineUtil.h"
 #include "Common/Event.h"
 #include "Common/Functional.h"
 #include "Common/SPSCQueue.h"
@@ -210,6 +211,12 @@ public:
   void Cancel() { m_worker.Cancel(); }
   void Shutdown() { m_worker.Shutdown(); }
   void WaitForCompletion() { m_worker.WaitForCompletion(); }
+
+  // Returns a coroutine awaiter that suspends then queues resumption on the worker.
+  [[nodiscard]] auto ScheduleHere()
+  {
+    return Common::ResumeVia(std::bind_front(&AsyncWorkThreadBase::Push, this));
+  }
 
 private:
   WorkThread<FuncType> m_worker;
