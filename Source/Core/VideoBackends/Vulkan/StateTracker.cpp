@@ -288,6 +288,7 @@ void StateTracker::BeginRenderPass()
 
   m_current_render_pass = m_framebuffer->GetLoadRenderPass();
   m_framebuffer_render_area = m_framebuffer->GetRect();
+  m_framebuffer->PrepareForRenderPass();
 
   VkRenderPassBeginInfo begin_info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
                                       nullptr,
@@ -337,6 +338,7 @@ void StateTracker::BeginClearRenderPass(const VkRect2D& area, const VkClearValue
 
   m_current_render_pass = m_framebuffer->GetClearRenderPass();
   m_framebuffer_render_area = area;
+  m_framebuffer->PrepareForRenderPass();
 
   VkRenderPassBeginInfo begin_info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
                                       nullptr,
