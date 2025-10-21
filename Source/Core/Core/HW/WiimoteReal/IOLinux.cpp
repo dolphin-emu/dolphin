@@ -138,7 +138,8 @@ static int HciInquiry(int device_socket, InquiryRequest* request)
 
     // Signal doneness to `poll`.
     u64 val = 1;
-    write(done_event, &val, sizeof(val));
+    if (write(done_event, &val, sizeof(val)) != sizeof(val))
+      ERROR_LOG_FMT(WIIMOTE, "failed to write to eventfd: {}", Common::LastStrerrorString());
   }};
   Common::ScopeGuard join_guard([&] { pthread_join(hci_inquiry_thread.handle, nullptr); });
 
