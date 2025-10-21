@@ -5,6 +5,8 @@
 
 #include <jni.h>
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Flag.h"
@@ -20,11 +22,9 @@ namespace WiimoteReal
 // Java classes
 static jclass s_adapter_class;
 
-void WiimoteScannerAndroid::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
-                                         Wiimote*& found_board)
+auto WiimoteScannerAndroid::FindAttachedWiimotes() -> FindResults
 {
-  found_wiimotes.clear();
-  found_board = nullptr;
+  FindResults results;
 
   NOTICE_LOG_FMT(WIIMOTE, "Finding Wiimotes");
 
@@ -37,8 +37,23 @@ void WiimoteScannerAndroid::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
       env->CallStaticBooleanMethod(s_adapter_class, openadapter_func))
   {
     for (int i = 0; i < MAX_WIIMOTES; ++i)
-      found_wiimotes.emplace_back(new WiimoteAndroid(i));
+    {
+      if (!IsNewWiimote(WiimoteAndroid::GetIdFromDolphinBarIndex(i)))
+        continue;
+
+      auto wiimote = std::make_unique<WiimoteAndroid>(i);
+
+      if (!wiimote->ConnectInternal())
+        continue;
+
+      // TODO: We make no attempt to differentiate balance boards here.
+      // wiimote->IsBalanceBoard() would probably be enough to do that.
+
+      results.wii_remotes.emplace_back(std::move(wiimote));
+    }
   }
+
+  return results;
 }
 
 WiimoteAndroid::WiimoteAndroid(int index) : Wiimote(), m_mayflash_index(index)
@@ -50,9 +65,22 @@ WiimoteAndroid::~WiimoteAndroid()
   Shutdown();
 }
 
+std::string WiimoteAndroid::GetId() const
+{
+  return GetIdFromDolphinBarIndex(m_mayflash_index);
+}
+
+std::string WiimoteAndroid::GetIdFromDolphinBarIndex(int index)
+{
+  return fmt::format("Android {}", index);
+}
+
 // Connect to a Wiimote with a known address.
 bool WiimoteAndroid::ConnectInternal()
 {
+  if (IsConnected())
+    return true;
+
   auto* const env = IDCache::GetEnvForThread();
 
   jfieldID payload_field = env->GetStaticFieldID(s_adapter_class, "wiimotePayload", "[[B");
@@ -63,6 +91,12 @@ bool WiimoteAndroid::ConnectInternal()
   // Get function pointers
   m_input_func = env->GetStaticMethodID(s_adapter_class, "input", "(I)I");
   m_output_func = env->GetStaticMethodID(s_adapter_class, "output", "(I[BI)I");
+
+  // Test a write to see if a remote is actually connected to the DolphinBar.
+  constexpr u8 report[] = {WR_SET_REPORT | BT_OUTPUT,
+                           u8(WiimoteCommon::OutputReportID::RequestStatus), 0};
+  if (IOWrite(report, sizeof(report)) <= 0)
+    return false;
 
   is_connected = true;
 

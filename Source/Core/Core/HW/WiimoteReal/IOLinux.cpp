@@ -31,8 +31,10 @@ namespace WiimoteReal
 constexpr u16 L2CAP_PSM_HID_CNTL = 0x0011;
 constexpr u16 L2CAP_PSM_HID_INTR = 0x0013;
 
-static void AddAutoConnectAddresses(std::vector<Wiimote*>& found_wiimotes)
+static auto GetAutoConnectAddresses()
 {
+  std::vector<std::unique_ptr<Wiimote>> wii_remotes;
+
   std::string entries = Config::Get(Config::MAIN_WIIMOTE_AUTO_CONNECT_ADDRESSES);
   for (auto& bt_address_str : SplitString(entries, ','))
   {
@@ -47,9 +49,11 @@ static void AddAutoConnectAddresses(std::vector<Wiimote*>& found_wiimotes)
     if (!IsNewWiimote(bt_address_str))
       continue;
 
-    found_wiimotes.push_back(new WiimoteLinux(*bt_addr));
+    wii_remotes.emplace_back(std::make_unique<WiimoteLinux>(*bt_addr));
     NOTICE_LOG_FMT(WIIMOTE, "Added Wiimote with fixed address ({}).", bt_address_str);
   }
+
+  return wii_remotes;
 }
 
 WiimoteScannerLinux::WiimoteScannerLinux()
@@ -134,7 +138,8 @@ static int HciInquiry(int device_socket, InquiryRequest* request)
 
     // Signal doneness to `poll`.
     u64 val = 1;
-    write(done_event, &val, sizeof(val));
+    if (write(done_event, &val, sizeof(val)) != sizeof(val))
+      ERROR_LOG_FMT(WIIMOTE, "failed to write to eventfd: {}", Common::LastStrerrorString());
   }};
   Common::ScopeGuard join_guard([&] { pthread_join(hci_inquiry_thread.handle, nullptr); });
 
@@ -157,14 +162,14 @@ static int HciInquiry(int device_socket, InquiryRequest* request)
   return hci_inquiry_errorno;
 }
 
-void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wiimote*& found_board)
+auto WiimoteScannerLinux::FindNewWiimotes() -> FindResults
 {
-  found_board = nullptr;
+  FindResults results;
 
   if (!Open())
-    return;
+    return results;
 
-  AddAutoConnectAddresses(found_wiimotes);
+  results.wii_remotes = GetAutoConnectAddresses();
 
   InquiryRequest request{};
   request.dev_id = m_device_id;
@@ -186,7 +191,7 @@ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wi
   default:
     ERROR_LOG_FMT(WIIMOTE, "Error searching for Bluetooth devices: {}",
                   Common::StrerrorString(hci_inquiry_result));
-    return;
+    return results;
   }
 
   DEBUG_LOG_FMT(WIIMOTE, "Found {} Bluetooth device(s).", request.num_rsp);
@@ -197,8 +202,8 @@ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wi
         BluetoothAddressToString(std::bit_cast<Common::BluetoothAddress>(scan_info.bdaddr));
 
     // Did AddAutoConnectAddresses already add this remote?
-    const auto eq_this_bdaddr = [&](auto* wm) { return wm->GetId() == bdaddr_str; };
-    if (std::ranges::any_of(found_wiimotes, eq_this_bdaddr))
+    const auto eq_this_bdaddr = [&](auto& wm) { return wm->GetId() == bdaddr_str; };
+    if (std::ranges::any_of(results.wii_remotes, eq_this_bdaddr))
       continue;
 
     if (!IsNewWiimote(bdaddr_str))
@@ -233,15 +238,17 @@ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wi
         std::make_unique<WiimoteLinux>(std::bit_cast<Common::BluetoothAddress>(scan_info.bdaddr));
     if (IsBalanceBoardName(name))
     {
-      delete std::exchange(found_board, wm.release());
+      results.balance_boards.emplace_back(std::move(wm));
       NOTICE_LOG_FMT(WIIMOTE, "Found balance board ({}).", bdaddr_str);
     }
     else
     {
-      found_wiimotes.push_back(wm.release());
+      results.wii_remotes.emplace_back(std::move(wm));
       NOTICE_LOG_FMT(WIIMOTE, "Found Wiimote ({}).", bdaddr_str);
     }
   }
+
+  return results;
 }
 
 void WiimoteScannerLinux::Update()
