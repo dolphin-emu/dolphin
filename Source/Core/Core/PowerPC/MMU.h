@@ -274,7 +274,7 @@ private:
         : address(address_), result(result_), wi(wi_)
     {
     }
-    bool Success() const { return result <= TranslateAddressResultEnum::PAGE_TABLE_TRANSLATED; }
+    bool Succeeded() const { return result <= TranslateAddressResultEnum::PAGE_TABLE_TRANSLATED; }
   };
 
   union EffectiveAddress
