@@ -28,9 +28,14 @@ requires(!Common::Enum<T>)
 std::optional<T> TryParse(const std::string& str_value)
 {
   T value;
-  if (!::TryParse(str_value, &value))
-    return std::nullopt;
-  return value;
+  if (::TryParse(str_value, &value))
+    return value;
+
+  bool bool_value;
+  if (::TryParse(str_value, &bool_value))
+    return static_cast<T>(bool_value);
+
+  return std::nullopt;
 }
 
 template <Common::Enum T>

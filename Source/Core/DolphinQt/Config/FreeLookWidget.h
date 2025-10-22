@@ -6,7 +6,6 @@
 #include <QWidget>
 
 class ConfigChoice;
-class QCheckBox;
 class QPushButton;
 class ToolTipCheckBox;
 
@@ -27,5 +26,5 @@ private:
   ToolTipCheckBox* m_enable_freelook;
   ConfigChoice* m_freelook_control_type;
   QPushButton* m_freelook_controller_configure_button;
-  QCheckBox* m_freelook_background_input;
+  ConfigChoice* m_freelook_accept_input_from;
 };

@@ -114,6 +114,11 @@ bool Host_TASInputHasFocus()
   return false;
 }
 
+bool Host_DolphinIsActiveApplication()
+{
+  return s_platform->IsDolphinActive();
+}
+
 void Host_YieldToUI()
 {
 }
