@@ -175,7 +175,7 @@ T MMU::ReadFromHardware(u32 em_address)
       (IsOpcodeFlag(flag) ? m_ppc_state.msr.IR.Value() : m_ppc_state.msr.DR.Value()))
   {
     auto translated_addr = TranslateAddress<flag>(em_address);
-    if (!translated_addr.Success())
+    if (!translated_addr.Succeeded())
     {
       if (flag == XCheckTLBFlag::Read)
         GenerateDSIException(em_address, false);
@@ -293,7 +293,7 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
   if (!never_translate && m_ppc_state.msr.DR)
   {
     auto translated_addr = TranslateAddress<flag>(em_address);
-    if (!translated_addr.Success())
+    if (!translated_addr.Succeeded())
     {
       if (flag == XCheckTLBFlag::Write)
         GenerateDSIException(em_address, true);
@@ -478,7 +478,7 @@ TryReadInstResult MMU::TryReadInstruction(u32 address)
   if (m_ppc_state.msr.IR)
   {
     auto tlb_addr = TranslateAddress<XCheckTLBFlag::Opcode>(address);
-    if (!tlb_addr.Success())
+    if (!tlb_addr.Succeeded())
     {
       return TryReadInstResult{false, false, 0, 0};
     }
@@ -845,7 +845,7 @@ template <XCheckTLBFlag flag>
 bool MMU::IsEffectiveRAMAddress(const u32 address)
 {
   const auto translate_address = TranslateAddress<flag>(address);
-  return translate_address.Success() && IsPhysicalRAMAddress(translate_address.address);
+  return translate_address.Succeeded() && IsPhysicalRAMAddress(translate_address.address);
 }
 
 bool MMU::HostIsRAMAddress(const Core::CPUThreadGuard& guard, u32 address,
@@ -1143,7 +1143,7 @@ TranslateResult MMU::JitCache_TranslateAddress(u32 address)
 
   // TODO: We shouldn't use FLAG_OPCODE if the caller is the debugger.
   const auto tlb_addr = TranslateAddress<XCheckTLBFlag::Opcode>(address);
-  if (!tlb_addr.Success())
+  if (!tlb_addr.Succeeded())
     return TranslateResult{};
 
   const bool from_bat = tlb_addr.result == TranslateAddressResultEnum::BAT_TRANSLATED;
@@ -1574,7 +1574,7 @@ MMU::TranslateAddressResult MMU::TranslateAddress(u32 address)
 std::optional<u32> MMU::GetTranslatedAddress(u32 address)
 {
   auto result = TranslateAddress<XCheckTLBFlag::NoException>(address);
-  if (!result.Success())
+  if (!result.Succeeded())
   {
     return std::nullopt;
   }
