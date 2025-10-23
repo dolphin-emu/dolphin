@@ -418,9 +418,10 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
 
   if (GDBStub::IsActive())
   {
+    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stopping GDB ..."));
     GDBStub::Deinit();
+    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "GDB stopped."));
     INFO_LOG_FMT(GDB_STUB, "Killed by CPU shutdown");
-    return;
   }
 }
 
@@ -660,10 +661,6 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
     // Become the CPU thread
     cpuThreadFunc(system, savestate_path, delete_savestate);
   }
-
-  INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stopping GDB ..."));
-  GDBStub::Deinit();
-  INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "GDB stopped."));
 }
 
 // Set or get the running state
