@@ -1,0 +1,171 @@
+# SPDX-License-Identifier: 0BSD
+
+#############################################################################
+#
+# Author: Jia Tan
+#
+#############################################################################
+
+name: CI
+
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows running workflow manually
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  POSIX:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
+        build_system: [autotools, cmake]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      ########################
+      # Install Dependencies #
+      ########################
+
+      # Install Autotools on Linux
+      - name: Install Dependencies
+        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.build_system == 'autotools' }}
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y autoconf automake build-essential po4a autopoint doxygen musl-tools valgrind
+
+      - name: Install Dependencies
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.build_system == 'autotools' }}
+        run: |
+            sudo apt-get install -y gcc-multilib
+
+      # Install Autotools on Mac
+      - name: Install Dependencies
+        if: ${{ matrix.os == 'macos-latest' && matrix.build_system == 'autotools' }}
+        run: brew install autoconf automake libtool po4a doxygen
+
+      # Install CMake on Linux
+      - name: Install Dependencies
+        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.build_system == 'cmake' }}
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y build-essential cmake gettext doxygen musl-tools
+
+      # Install CMake on Mac
+      - name: Install Dependencies
+        if: ${{ matrix.os == 'macos-latest' && matrix.build_system == 'cmake' }}
+        run: brew install cmake gettext doxygen
+
+      ##################
+      # Build and Test #
+      ##################
+
+      # -b specifies the build system to use.
+      # -p specifies the phase (build or test) to help narrow down an error
+      #    if one occurs.
+      #
+      # The first two builds/tests are only run on Autotools Linux and
+      # affect the CFLAGS. Resetting the CFLAGS requires clearing the
+      # config cache between runs, so the tests that require CFLAGS are
+      # done first.
+      - name: Build 32-bit
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.build_system == 'autotools' }}
+        run: ./build-aux/ci_build.bash -b autotools -p build -m "gcc -m32"
+      - name: Test 32-bit
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.build_system == 'autotools' }}
+        run: |
+            ./build-aux/ci_build.bash -b autotools -p test -m "gcc -m32" -n 32_bit
+            cd ../xz_build && make distclean
+
+      # The sandbox must be disabled because it will prevent access to
+      # the /proc/ filesystem on Linux, which is used by the sanitizer's
+      # instrumentation.
+      - name: Build with -fsanitize=address,undefined
+        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.build_system == 'autotools' }}
+        run: ./build-aux/ci_build.bash -b autotools -p build -f "-fsanitize=address,undefined" -d sandbox
+      - name: Test with -fsanitize=address,undefined
+        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.build_system == 'autotools' }}
+        run: |
+            export UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=1
+            ./build-aux/ci_build.bash -b autotools -p test -f "-fsanitize=address,undefined" -d sandbox
+            cd ../xz_build && make distclean
+
+      - name: Build with Valgrind
+        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.build_system == 'autotools' }}
+        run: ./build-aux/ci_build.bash -b autotools -p build -d shared,sandbox
+      - name: Test with Valgrind
+        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.build_system == 'autotools' }}
+        run: |
+            ./build-aux/ci_build.bash -b autotools -p test -d sandbox -w "valgrind --quiet --trace-children=yes --trace-children-skip=*/cmp,*/cp,*/diff,*/grep,*/rm,*/sed --exit-on-first-error=yes --error-exitcode=1"
+            cd ../xz_build && make distclean
+
+      - name: Build with musl libc
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -p build -m "/usr/bin/musl-gcc"
+      - name: Test with musl libc
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: |
+            ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -p test -m "/usr/bin/musl-gcc"
+      - name: Clean up musl libc run
+        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.build_system == 'autotools' }}
+        run: cd ../xz_build && make distclean
+
+      - name: Build with full features
+        run: ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -p build
+      - name: Test with full features
+        run: ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -p test -n full_features
+
+      - name: Build without encoders
+        run: ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -d encoders,shared -p build
+      - name: Test without encoders
+        run: ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -d encoders,shared -p test -n no_encoders
+
+      - name: Build without decoders
+        run: ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -d decoders,shared -p build
+      - name: Test without decoders
+        run: ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -d decoders,shared -p test -n no_decoders
+
+      - name: Build without threads
+        run: ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -d threads,shared -p build
+      - name: Test without threads
+        run: ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -d threads,shared -p test -n no_threads
+
+      - name: Build without BCJ filters
+        run: ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -d bcj,shared,nls -p build
+      - name: Test without BCJ filters
+        run: ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -d bcj,shared,nls -p test -n no_bcj
+
+      - name: Build without Delta filters
+        run: ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -d delta,shared,nls -p build
+      - name: Test without Delta filters
+        run: ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -d delta,shared,nls -p test -n no_delta
+
+      - name: Build without sha256 check
+        run: ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -c crc32,crc64 -d shared,nls -p build
+      - name: Test without sha256 check
+        run: ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -c crc32,crc64 -d shared,nls -p test -n no_sha256
+
+      - name: Build without crc64 check
+        run: ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -c crc32,sha256 -d shared,nls -p build
+      - name: Test without crc64 check
+        run: ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -c crc32,sha256 -d shared,nls -p test -n no_crc64
+
+      - name: Build small
+        run: ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -d small -p build
+      - name: Test small
+        run: ./build-aux/ci_build.bash -b ${{ matrix.build_system }} -d small -p test -n small
+
+      # Attempt to upload the test logs as artifacts if any step has failed
+      - uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: ${{ matrix.os }} ${{ matrix.build_system }} Test Logs
+          path: build-aux/artifacts

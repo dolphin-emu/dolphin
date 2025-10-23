@@ -1,0 +1,55 @@
+# SPDX-License-Identifier: 0BSD
+
+# Authors: Sam James
+#          Lasse Collin
+#
+# This was written based on the OSS-Fuzz docs:
+# https://google.github.io/oss-fuzz/getting-started/continuous-integration/
+
+name: CIFuzz
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  CIFuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer: [ address, undefined, memory ]
+
+    steps:
+    - name: Build Fuzzers (${{ matrix.sanitizer }})
+      id: build
+      uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@master
+      with:
+        oss-fuzz-project-name: 'xz'
+        # The language must match the one in project.yaml in OSS-Fuzz:
+        # https://github.com/google/oss-fuzz/blob/master/projects/xz/project.yaml
+        # Thus, use C++ even though there are no C++ files in XZ Utils.
+        language: c++
+        sanitizer: ${{ matrix.sanitizer }}
+
+    - name: Run Fuzzers (${{ matrix.sanitizer }})
+      uses: google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@master
+      with:
+        oss-fuzz-project-name: 'xz'
+        language: c++
+        sanitizer: ${{ matrix.sanitizer }}
+        fuzz-seconds: 600
+        report-timeouts: true
+        report-ooms: true
+
+    - name: Upload Crash
+      uses: actions/upload-artifact@v4
+      if: failure() && steps.build.outcome == 'success'
+      with:
+        name: ${{ matrix.sanitizer }}-artifacts
+        path: ./out/artifacts

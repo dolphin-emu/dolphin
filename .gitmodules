@@ -118,3 +118,6 @@
 	path = Externals/cpp-optparse/cpp-optparse
 	url = https://github.com/weisslj/cpp-optparse.git
 	shallow = true
+[submodule "Externals/liblzma"]
+	path = Externals/liblzma
+	url = https://github.com/tukaani-project/xz

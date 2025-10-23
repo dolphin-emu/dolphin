@@ -1,0 +1,40 @@
+# SPDX-License-Identifier: 0BSD
+
+name: NetBSD
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  NetBSD:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    name: NetBSD
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test in NetBSD
+        id: test
+        uses: vmactions/netbsd-vm@46a58bbf03682b4cb24142b97fa315ae52bed573 #v1.1.8
+        with:
+          usesh: true
+          prepare: >
+            /usr/sbin/pkg_add -v
+            cmake
+            gettext-tools
+            ninja-build
+            po4a
+          run: |
+            set -e
+            uname -a
+            ./po4a/update-po
+            # Innocent putc() triggers strict-overflow warnings.
+            cmake -G Ninja -B build -DBUILD_SHARED_LIBS=ON -DCMAKE_C_FLAGS='-UNDEBUG -g -O2 -pipe -Wno-error=strict-overflow' -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+            ninja -C build
+            ctest --test-dir build --output-on-failure

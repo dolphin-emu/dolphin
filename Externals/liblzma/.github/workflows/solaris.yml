@@ -1,0 +1,34 @@
+# SPDX-License-Identifier: 0BSD
+
+name: Solaris
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  Solaris:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    name: Solaris
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test in Solaris
+        uses: vmactions/solaris-vm@cc8f82fa1a7cc746153ec3f71bf11f311f16e225 #v1.1.1
+        with:
+          release: 11.4-gcc
+          usesh: true
+          run: |
+            set -e
+            uname -a
+            # /usr/xpg4/bin isn't in PATH by default.
+            echo "Environment variable PATH: $PATH"
+            ./autogen.sh --no-po4a
+            ./configure --disable-static --enable-debug --enable-werror
+            make check

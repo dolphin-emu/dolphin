@@ -1,0 +1,40 @@
+# SPDX-License-Identifier: 0BSD
+
+name: DragonflyBSD
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  DragonflyBSD:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    name: DragonflyBSD
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test in DragonflyBSD
+        id: test
+        uses: vmactions/dragonflybsd-vm@e3c420e8a2362c2496fca6e76a291abd46f5d8e7 #v1.1.0
+        with:
+          usesh: true
+          prepare: >
+            pkg install -y
+            autoconf
+            automake
+            gettext-tools
+            libtool
+            m4
+          run: |
+            set -e
+            uname -a
+            ./autogen.sh --no-po4a
+            # Innocent putc() triggers strict-overflow warnings.
+            ./configure --disable-static --enable-debug --enable-werror CFLAGS='-g -O2 -pipe -Wno-error=strict-overflow'
+            make -j4 check

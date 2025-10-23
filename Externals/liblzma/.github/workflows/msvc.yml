@@ -1,0 +1,92 @@
+# SPDX-License-Identifier: 0BSD
+
+# Author: Lasse Collin
+
+name: Windows-MSVC
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  MSVC:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ windows-latest ]
+
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Win32
+        run: >
+          cmake
+          -A Win32
+          -B build-msvc-win32
+
+      - name: Build Win32 Debug
+        run: >
+          cmake
+          --build build-msvc-win32
+          --config Debug
+
+      - name: Test Win32 Debug
+        run: >
+          ctest
+          --test-dir build-msvc-win32
+          --build-config Debug
+          --output-on-failure
+
+      - name: Build Win32 Release
+        run: >
+          cmake
+          --build build-msvc-win32
+          --config Release
+
+      # This fails with VS 2019 without b5a5d9e3f702.
+      - name: Test Win32 Release
+        run: >
+          ctest
+          --test-dir build-msvc-win32
+          --build-config Release
+          --output-on-failure
+
+      - name: Configure x64
+        run: >
+          cmake
+          -A x64
+          -B build-msvc-x64
+
+      - name: Build x64 Debug
+        run: >
+          cmake
+          --build build-msvc-x64
+          --config Debug
+
+      - name: Test x64 Debug
+        run: >
+          ctest
+          --test-dir build-msvc-x64
+          --build-config Debug
+          --output-on-failure
+
+      - name: Build x64 Release
+        run: >
+          cmake
+          --build build-msvc-x64
+          --config Release
+
+      - name: Test x64 Release
+        run: >
+          ctest
+          --test-dir build-msvc-x64
+          --build-config Release
+          --output-on-failure

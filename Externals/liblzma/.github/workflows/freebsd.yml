@@ -1,0 +1,56 @@
+# SPDX-License-Identifier: 0BSD
+
+name: FreeBSD
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  FreeBSD:
+    strategy:
+      matrix:
+        include:
+          - host: ubuntu-latest
+            version: 12.4
+            arch: x86_64
+          - host: ubuntu-latest
+            version: 15.0
+            arch: x86_64
+          # - host: ubuntu-24.04-arm
+          #   version: 15.0
+          #   arch: aarch64
+
+    runs-on: ${{ matrix.host }}
+    timeout-minutes: 10
+
+    name: FreeBSD
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test in FreeBSD
+        uses: vmactions/freebsd-vm@c3ae29a132c8ef1924775414107a97cac042aad5 #v1.2.0
+        with:
+          release: ${{ matrix.release }}
+          arch: ${{ matrix.arch }}
+          usesh: true
+          prepare: >
+            pkg install -y
+            autoconf
+            automake
+            gettext-tools
+            libtool
+            m4
+            po4a
+          run: |
+            set -e
+            uname -a
+            ./autogen.sh
+            ./configure --disable-static --enable-debug --enable-werror
+            make -j4 check

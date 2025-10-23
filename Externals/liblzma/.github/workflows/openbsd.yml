@@ -1,0 +1,40 @@
+# SPDX-License-Identifier: 0BSD
+
+name: OpenBSD
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  OpenBSD:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    name: OpenBSD
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test in OpenBSD
+        uses: vmactions/openbsd-vm@284abc8fb4cd88f69946a0d4c27c4eecd82fdde9 #v1.1.7
+        with:
+          usesh: true
+          prepare: >
+            /usr/sbin/pkg_add -I -v
+            autoconf-2.72p0
+            automake-1.16.5
+            gettext-tools
+            libtool
+            m4
+          run: |
+            set -e
+            export AUTOCONF_VERSION=2.72
+            export AUTOMAKE_VERSION=1.16
+            uname -a
+            ./autogen.sh --no-po4a
+            ./configure --disable-static --enable-debug --enable-werror --disable-nls --enable-external-sha256
+            make -j4 check

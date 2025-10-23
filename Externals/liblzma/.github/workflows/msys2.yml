@@ -1,0 +1,148 @@
+# SPDX-License-Identifier: 0BSD
+
+#############################################################################
+#
+# Authors: Jia Tan
+#          Lasse Collin
+#
+#############################################################################
+
+name: Windows-MSYS2
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  MSYS2:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ windows-latest ]
+        sys: [ mingw32, ucrt64, clang64, msys ]
+        include:
+          - runner: windows-11-arm
+            sys: clangarm64
+
+    # Set the shell to be msys2 as a default to avoid setting it for
+    # every individual run command.
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+
+    steps:
+      - name: Setup MSYS2
+        if: ${{ matrix.sys == 'msys' }}
+        uses: msys2/setup-msys2@61f9e5e925871ba6c9e3e8da24ede83ea27fa91f # v2.27.0
+        with:
+          msystem: ${{ matrix.sys }}
+          update: true
+          install: >
+            make
+            ninja
+            autotools
+            cmake
+            base-devel
+            gettext-devel
+            gcc
+
+      - name: Setup MSYS2
+        if: ${{ matrix.sys != 'msys' }}
+        uses: msys2/setup-msys2@61f9e5e925871ba6c9e3e8da24ede83ea27fa91f # v2.27.0
+        with:
+          msystem: ${{ matrix.sys }}
+          update: true
+          pacboy: >
+            make:p
+            ninja:p
+            autotools:p
+            cmake:p
+            toolchain:p
+            gettext:p
+
+      - name: Git configuration
+        # Need to explicitly set the shell here since we set the default
+        # shell as msys2 earlier. This avoids an extra msys2 dependency on
+        # git.
+        shell: powershell
+        # Avoid Windows line endings. Otherwise test_scripts.sh will fail
+        # because the expected output is stored in the test framework as a
+        # text file and will not match the output from xzgrep.
+        run: git config --global core.autocrlf false
+
+      - uses: actions/checkout@v4
+
+      - name: CMake (full, shared)
+        run: |
+          set -e
+          cmake -G Ninja -B b-cmake-full \
+              -DBUILD_SHARED_LIBS=ON \
+              -DCMAKE_C_FLAGS='-UNDEBUG -g -O2 -pipe' \
+              -DCMAKE_COMPILE_WARNING_AS_ERROR=ON \
+              ${{ startsWith(matrix.sys, 'mingw') && '-DXZ_NLS=OFF' || '' }}
+          ninja -C b-cmake-full
+          ctest --test-dir b-cmake-full --output-on-failure
+
+      - name: CMake (small, static)
+        if: ${{ matrix.runner == 'windows-latest' }}
+        run: |
+          set -e
+          cmake -G Ninja -B b-cmake-small \
+              -DBUILD_SHARED_LIBS=OFF \
+              -DCMAKE_C_FLAGS='-UNDEBUG -g -Os -pipe' \
+              -DCMAKE_COMPILE_WARNING_AS_ERROR=ON \
+              -DXZ_SMALL=ON \
+              -DXZ_THREADS=no \
+              -DXZ_NLS=OFF
+          ninja -C b-cmake-small
+          ctest --test-dir b-cmake-small --output-on-failure
+
+      - name: autogen.sh
+        run: ./autogen.sh --no-po4a
+
+      - name: Autotools (full, shared)
+        run: |
+          set -e
+          mkdir b-autotools-full
+          cd b-autotools-full
+          ../configure \
+              --enable-debug \
+              --enable-werror \
+              --disable-static \
+              ${{ startsWith(matrix.sys, 'mingw') && '--disable-nls' || '' }}
+          make -j"$(nproc)" check
+
+      - name: Autotools (small, static)
+        if: ${{ matrix.runner == 'windows-latest' }}
+        run: |
+          set -e
+          mkdir b-autotools-small
+          cd b-autotools-small
+          ../configure \
+              --enable-debug \
+              --enable-werror \
+              --disable-shared \
+              --enable-small \
+              --disable-threads \
+              --disable-nls \
+              CFLAGS='-g -Os'
+          make -j"$(nproc)" check
+
+      # Upload the test logs as artifacts if any step has failed.
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-logs-${{ matrix.sys }}
+          path: |
+            b-cmake-*/Testing/Temporary/
+            b-cmake-*/test_*/
+            b-autotools-*/tests/*.log
+            b-autotools-*/tests/*output
