@@ -543,6 +543,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 ) { _: DialogInterface?, indexSelected: Int, isChecked: Boolean ->
                     BooleanSetting.valueOf(gcSettingBase + indexSelected)
                         .setBoolean(settings, isChecked)
+                    emulationFragment?.refreshInputOverlay()
                 }
             }
             InputOverlay.OVERLAY_WIIMOTE_CLASSIC -> {
@@ -557,6 +558,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 ) { _: DialogInterface?, indexSelected: Int, isChecked: Boolean ->
                     BooleanSetting.valueOf(classicSettingBase + indexSelected)
                         .setBoolean(settings, isChecked)
+                    emulationFragment?.refreshInputOverlay()
                 }
             }
             InputOverlay.OVERLAY_WIIMOTE_NUNCHUK -> {
@@ -578,6 +580,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 ) { _: DialogInterface?, indexSelected: Int, isChecked: Boolean ->
                     BooleanSetting.valueOf(nunchukSettingBase + translateToSettingsIndex(indexSelected))
                         .setBoolean(settings, isChecked)
+                    emulationFragment?.refreshInputOverlay()
                 }
             }
             else -> {
@@ -593,15 +596,12 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 ) { _: DialogInterface?, indexSelected: Int, isChecked: Boolean ->
                     BooleanSetting.valueOf(wiimoteSettingBase + indexSelected)
                         .setBoolean(settings, isChecked)
+                    emulationFragment?.refreshInputOverlay()
                 }
             }
         }
 
-        builder
-            .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
-                emulationFragment?.refreshInputOverlay()
-            }
-            .show()
+        builder.show()
     }
 
     private fun toggleControls() {
@@ -622,6 +622,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             ) { _: DialogInterface?, indexSelected: Int, isChecked: Boolean ->
                 BooleanSetting
                     .valueOf(gcSettingBase + indexSelected).setBoolean(settings, isChecked)
+                emulationFragment?.refreshInputOverlay()
             }
         } else if (currentController == InputOverlay.OVERLAY_WIIMOTE_CLASSIC) {
             val wiiClassicEnabledButtons = BooleanArray(14)
@@ -635,6 +636,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             ) { _: DialogInterface?, indexSelected: Int, isChecked: Boolean ->
                 BooleanSetting.valueOf(classicSettingBase + indexSelected)
                     .setBoolean(settings, isChecked)
+                emulationFragment?.refreshInputOverlay()
             }
         } else {
             val wiiEnabledButtons = BooleanArray(11)
@@ -649,6 +651,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 ) { _: DialogInterface?, indexSelected: Int, isChecked: Boolean ->
                     BooleanSetting
                         .valueOf(wiiSettingBase + indexSelected).setBoolean(settings, isChecked)
+                    emulationFragment?.refreshInputOverlay()
                 }
             } else {
                 builder.setMultiChoiceItems(
@@ -656,6 +659,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 ) { _: DialogInterface?, indexSelected: Int, isChecked: Boolean ->
                     BooleanSetting
                         .valueOf(wiiSettingBase + indexSelected).setBoolean(settings, isChecked)
+                    emulationFragment?.refreshInputOverlay()
                 }
             }
         }
@@ -664,7 +668,6 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             .setNeutralButton(R.string.emulation_toggle_all) { _: DialogInterface?, _: Int ->
                 emulationFragment!!.toggleInputOverlayVisibility(settings)
             }
-            .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int -> emulationFragment?.refreshInputOverlay() }
             .show()
     }
 
@@ -689,8 +692,6 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                     settings,
                     InputOverlayPointer.DOUBLE_TAP_OPTIONS[which]
                 )
-            }
-            .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
                 emulationFragment?.initInputPointer()
             }
             .show()
@@ -703,9 +704,11 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 valueTo = 150f
                 value = IntSetting.MAIN_CONTROL_SCALE.int.toFloat()
                 stepSize = 1f
-                addOnChangeListener(Slider.OnChangeListener { _: Slider?, progress: Float, _: Boolean ->
-                    dialogBinding.inputScaleValue.text = "${(progress.toInt() + 50)}%"
-                })
+                addOnChangeListener { _: Slider?, value: Float, _: Boolean ->
+                    dialogBinding.inputScaleValue.text = "${(value.toInt() + 50)}%"
+                    IntSetting.MAIN_CONTROL_SCALE.setInt(settings, value.toInt())
+                    emulationFragment?.refreshInputOverlay()
+                }
             }
             inputScaleValue.text =
                 "${(dialogBinding.inputScaleSlider.value.toInt() + 50)}%"
@@ -714,9 +717,11 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 valueTo = 100f
                 value = IntSetting.MAIN_CONTROL_OPACITY.int.toFloat()
                 stepSize = 1f
-                addOnChangeListener(Slider.OnChangeListener { _: Slider?, progress: Float, _: Boolean ->
-                    inputOpacityValue.text = progress.toInt().toString() + "%"
-                })
+                addOnChangeListener { _: Slider?, value: Float, _: Boolean ->
+                    inputOpacityValue.text = value.toInt().toString() + "%"
+                    IntSetting.MAIN_CONTROL_OPACITY.setInt(settings, value.toInt())
+                    emulationFragment?.refreshInputOverlay()
+                }
             }
             inputOpacityValue.text = inputOpacitySlider.value.toInt().toString() + "%"
         }
@@ -724,17 +729,6 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.emulation_control_adjustments)
             .setView(dialogBinding.root)
-            .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
-                IntSetting.MAIN_CONTROL_SCALE.setInt(
-                    settings,
-                    dialogBinding.inputScaleSlider.value.toInt()
-                )
-                IntSetting.MAIN_CONTROL_OPACITY.setInt(
-                    settings,
-                    dialogBinding.inputOpacitySlider.value.toInt()
-                )
-                emulationFragment?.refreshInputOverlay()
-            }
             .setNeutralButton(R.string.default_values) { _: DialogInterface?, _: Int ->
                 IntSetting.MAIN_CONTROL_SCALE.delete(settings)
                 IntSetting.MAIN_CONTROL_OPACITY.delete(settings)
@@ -840,8 +834,6 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 entries.toArray(arrayOf<CharSequence>()), checkedItem
             ) { _: DialogInterface?, indexSelected: Int ->
                 controllerSetting.setInt(settings, values[indexSelected])
-            }
-            .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
                 emulationFragment?.refreshInputOverlay()
             }
             .setNeutralButton(
@@ -858,8 +850,6 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 IntSetting.MAIN_IR_MODE.int
             ) { _: DialogInterface?, indexSelected: Int ->
                 IntSetting.MAIN_IR_MODE.setInt(settings, indexSelected)
-            }
-            .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
                 emulationFragment?.refreshOverlayPointer()
             }
             .show()
