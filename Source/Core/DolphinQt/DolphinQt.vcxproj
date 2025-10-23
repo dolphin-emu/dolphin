@@ -197,6 +197,7 @@
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
     <ClCompile Include="QtUtils\FileOpenEventFilter.cpp" />
     <ClCompile Include="QtUtils\ImageConverter.cpp" />
+    <ClCompile Include="QtUtils\InputSuppressorFocusFilter.cpp" />
     <ClCompile Include="QtUtils\ModalMessageBox.cpp" />
     <ClCompile Include="QtUtils\NonAutodismissibleMenu.cpp" />
     <ClCompile Include="QtUtils\NonDefaultQPushButton.cpp" />
@@ -260,6 +261,7 @@
     <QtMoc Include="QtUtils\ClickableStatusBar.h" />
     <ClInclude Include="QtUtils\DolphinFileDialog.h" />
     <ClInclude Include="QtUtils\ImageConverter.h" />
+    <ClInclude Include="QtUtils\InputSuppressorFocusFilter.h" />
     <ClInclude Include="QtUtils\ModalMessageBox.h" />
     <ClInclude Include="QtUtils\NonAutodismissibleMenu.h" />
     <ClInclude Include="QtUtils\NonDefaultQPushButton.h" />

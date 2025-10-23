@@ -62,6 +62,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/IOS/IOS.h"
+#include "Core/InputSuppressor.h"
 #include "Core/MemTools.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
@@ -1046,7 +1047,8 @@ void UpdateInputGate(bool require_focus, bool require_full_focus)
   // Ignore full focus if we don't require basic focus
   const bool full_focus_passes =
       !require_focus || !require_full_focus || (focus_passes && Host_RendererHasFullFocus());
-  ControlReference::SetInputGate(focus_passes && full_focus_passes);
+  const bool input_suppressed = InputSuppressor::IsSuppressed();
+  ControlReference::SetInputGate(focus_passes && full_focus_passes && !input_suppressed);
 }
 
 CPUThreadGuard::CPUThreadGuard(Core::System& system)

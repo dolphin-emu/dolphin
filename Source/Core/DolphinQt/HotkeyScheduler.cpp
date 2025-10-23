@@ -30,6 +30,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
+#include "Core/InputSuppressor.h"
 #include "Core/State.h"
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
@@ -51,7 +52,6 @@ constexpr const char* DUBOIS_ALGORITHM_SHADER = "dubois";
 
 HotkeyScheduler::HotkeyScheduler() : m_stop_requested(false)
 {
-  HotkeyManagerEmu::Enable(true);
 }
 
 HotkeyScheduler::~HotkeyScheduler()
@@ -160,7 +160,7 @@ void HotkeyScheduler::Run()
     g_controller_interface.SetCurrentInputChannel(ciface::InputChannel::Host);
     g_controller_interface.UpdateInput();
 
-    if (!HotkeyManagerEmu::IsEnabled())
+    if (InputSuppressor::IsSuppressed())
       continue;
 
     Core::System& system = Core::System::GetInstance();

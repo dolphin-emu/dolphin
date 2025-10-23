@@ -33,6 +33,7 @@
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
+#include "DolphinQt/QtUtils/InputSuppressorFocusFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
@@ -258,6 +259,8 @@ int main(int argc, char* argv[])
 
     Settings::Instance().InitDefaultPalette();
     Settings::Instance().ApplyStyle();
+
+    QtUtils::InstallInputSuppressorFocusFilter();
 
     MainWindow win{Core::System::GetInstance(), std::move(boot),
                    static_cast<const char*>(options.get("movie"))};
