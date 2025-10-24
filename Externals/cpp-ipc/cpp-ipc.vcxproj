@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <Import Project="..\..\Source\VSProps\Base.Macros.props" />
+  <Import Project="$(VSPropsDir)Base.Targets.props" />
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{7299DDD3-BBEC-4027-AF30-8DACC5415F96}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="$(VSPropsDir)Configuration.StaticLibrary.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VSPropsDir)Base.props" />
+    <Import Project="$(VSPropsDir)ClDisableAllWarnings.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>cpp-ipc\include;cpp-ipc\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="cpp-ipc\include\libipc\buffer.h" />
+    <ClInclude Include="cpp-ipc\include\libipc\condition.h" />
+    <ClInclude Include="cpp-ipc\include\libipc\def.h" />
+    <ClInclude Include="cpp-ipc\include\libipc\export.h" />
+    <ClInclude Include="cpp-ipc\include\libipc\ipc.h" />
+    <ClInclude Include="cpp-ipc\include\libipc\mutex.h" />
+    <ClInclude Include="cpp-ipc\include\libipc\pool_alloc.h" />
+    <ClInclude Include="cpp-ipc\include\libipc\rw_lock.h" />
+    <ClInclude Include="cpp-ipc\include\libipc\semaphore.h" />
+    <ClInclude Include="cpp-ipc\include\libipc\shm.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\circ\elem_array.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\circ\elem_def.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\memory\alloc.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\memory\allocator_wrapper.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\memory\resource.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\memory\wrapper.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\platform\win\condition.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\platform\win\get_sa.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\platform\win\mutex.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\platform\win\semaphore.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\platform\win\to_tchar.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\platform\detail.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\utility\concept.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\utility\id_pool.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\utility\log.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\utility\pimpl.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\utility\scope_guard.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\utility\utility.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\policy.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\prod_cons.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\queue.h" />
+    <ClInclude Include="cpp-ipc\src\libipc\waiter.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="cpp-ipc\src\libipc\platform\platform.cpp" />
+    <ClCompile Include="cpp-ipc\src\libipc\sync\condition.cpp" />
+    <ClCompile Include="cpp-ipc\src\libipc\sync\mutex.cpp" />
+    <ClCompile Include="cpp-ipc\src\libipc\sync\semaphore.cpp" />
+    <ClCompile Include="cpp-ipc\src\libipc\sync\waiter.cpp" />
+    <ClCompile Include="cpp-ipc\src\libipc\buffer.cpp" />
+    <ClCompile Include="cpp-ipc\src\libipc\ipc.cpp" />
+    <ClCompile Include="cpp-ipc\src\libipc\pool_alloc.cpp" />
+    <ClCompile Include="cpp-ipc\src\libipc\shm.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp-ipc\LICENSE" />
+    <None Include="cpp-ipc\README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
