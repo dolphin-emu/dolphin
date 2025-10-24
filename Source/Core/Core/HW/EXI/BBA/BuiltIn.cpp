@@ -5,6 +5,9 @@
 
 #include <bit>
 #include <optional>
+
+#include <fmt/ranges.h>
+
 #include "SFML/Network/IpAddress.hpp"
 #include "SFML/Network/Socket.hpp"
 
@@ -21,7 +24,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/Network.h"
 #include "Common/ScopeGuard.h"
-#include "Core/HW/EXI/EXI_Device.h"
+
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
 namespace
@@ -84,15 +87,38 @@ bool CEXIETHERNET::BuiltInBBAInterface::Activate()
   // Workaround to get the host IP (might not be accurate)
   // TODO: Fix the JNI crash and use GetSystemDefaultInterface()
   //  - https://pastebin.com/BFpmnxby (see https://dolp.in/pr10920)
-  const u32 ip = sf::IpAddress::resolve(m_local_ip)
-                     .value_or(sf::IpAddress::getLocalAddress().value_or(sf::IpAddress::Any))
-                     .toInteger();
+  const auto ipaddr = sf::IpAddress::resolve(m_local_ip)
+                          .value_or(sf::IpAddress::getLocalAddress().value_or(sf::IpAddress::Any));
+  const u32 ip = ipaddr.toInteger();
+
   m_current_ip = htonl(ip);
+
+  const auto mask_result = Common::GetSubnetMask(std::bit_cast<Common::IPAddress>(m_current_ip));
+  if (!mask_result.has_value())
+    ERROR_LOG_FMT(SP1, "Failed to determine network prefix length, assuming 24.");
+
+  // Fallback to a /24 network prefix.
+  static constexpr Common::IPAddress fallback_subnet_mask = {0xff, 0xff, 0xff, 0x00};
+  m_subnet_mask = mask_result.value_or(fallback_subnet_mask);
+
+  const u32 netmask = ntohl(std::bit_cast<u32>(m_subnet_mask));
+
   m_current_mac = Common::BitCastPtr<Common::MACAddress>(&m_eth_ref->mBbaMem[BBA_NAFR_PAR0]);
   m_arp_table[m_current_ip] = m_current_mac;
-  m_router_ip = (m_current_ip & 0xFFFFFF) | 0x01000000;
+
+  // The router IP is assumed to be the first IP on the network.
+  // TODO: Properly determine the router IP.
+  m_router_ip = htonl((ip & netmask) | 1u);
   m_router_mac = Common::GenerateMacAddress(Common::MACConsumer::BBA);
   m_arp_table[m_router_ip] = m_router_mac;
+
+  const auto network_prefix_length = std::countl_one(netmask);
+  INFO_LOG_FMT(SP1, "Network: {}/{} IP: {} Router: {}",
+               fmt::join(Common::AsU8Span(htonl(ip & netmask)), "."), network_prefix_length,
+               fmt::join(Common::AsU8Span(m_current_ip), "."),
+               fmt::join(Common::AsU8Span(m_router_ip), "."));
+  INFO_LOG_FMT(SP1, "MAC: {} Router MAC: {}", Common::MacAddressToString(m_current_mac),
+               Common::MacAddressToString(m_router_mac));
 
   m_network_ref.Clear();
 
@@ -219,10 +245,9 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& pack
   to.sin_family = IPPROTO_UDP;
   to.sin_port = udp_header.source_port;
 
-  const u8* router_ip_ptr = reinterpret_cast<const u8*>(&m_router_ip);
-  const std::vector<u8> ip_part(router_ip_ptr, router_ip_ptr + sizeof(m_router_ip));
-
-  const std::vector<u8> timeout_24h = {0, 1, 0x51, 0x80};
+  const auto router_ip = Common::AsU8Span(m_router_ip);
+  const u32 broadcast_ip = m_current_ip | ~std::bit_cast<u32>(m_subnet_mask);
+  const u8 timeout_24h[] = {0, 1, 0x51, 0x80};
 
   Common::DHCPPacket reply;
   reply.body = Common::DHCPBody(request.transaction_id, m_current_mac, m_current_ip, m_router_ip);
@@ -233,16 +258,16 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& pack
   (dhcp.options.size() == 0 || dhcp.options[0].size() < 2 || dhcp.options[0].at(2) == 1) ?
       reply.AddOption(53, {2}) :  // default, send a suggestion
       reply.AddOption(53, {5});
-  reply.AddOption(54, ip_part);                                    // dhcp server ip
-  reply.AddOption(51, timeout_24h);                                // lease time 24h
-  reply.AddOption(58, timeout_24h);                                // renewal time
-  reply.AddOption(59, timeout_24h);                                // rebind time
-  reply.AddOption(1, {255, 255, 255, 0});                          // submask
-  reply.AddOption(28, {ip_part[0], ip_part[1], ip_part[2], 255});  // broadcast ip
-  reply.AddOption(6, ip_part);                                     // dns server
-  reply.AddOption(15, {0x6c, 0x61, 0x6e});                         // domain name "lan"
-  reply.AddOption(3, ip_part);                                     // router ip
-  reply.AddOption(255, {});                                        // end
+  reply.AddOption(54, router_ip);                       // dhcp server ip
+  reply.AddOption(51, timeout_24h);                     // lease time 24h
+  reply.AddOption(58, timeout_24h);                     // renewal time
+  reply.AddOption(59, timeout_24h);                     // rebind time
+  reply.AddOption(1, m_subnet_mask);                    // submask
+  reply.AddOption(28, Common::AsU8Span(broadcast_ip));  // broadcast ip
+  reply.AddOption(6, router_ip);                        // dns server
+  reply.AddOption(15, {0x6c, 0x61, 0x6e});              // domain name "lan"
+  reply.AddOption(3, router_ip);                        // router ip
+  reply.AddOption(255, {});                             // end
 
   const Common::UDPPacket response(m_current_mac, m_router_mac, from, to, reply.Build());
 
