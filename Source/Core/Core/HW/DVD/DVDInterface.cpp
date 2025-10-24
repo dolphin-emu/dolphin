@@ -711,13 +711,14 @@ bool DVDInterface::CheckReadPreconditions()
 
   // SegaBoot doesn't read the Disc ID
   if (!m_system.IsTriforce())
+  {
     if (m_drive_state == DriveState::DiscIdNotRead)
     {
       ERROR_LOG_FMT(DVDINTERFACE, "Disc id not read.");
       SetDriveError(DriveError::NoDiscID);
       return false;
     }
-
+  }
   return true;
 }
 

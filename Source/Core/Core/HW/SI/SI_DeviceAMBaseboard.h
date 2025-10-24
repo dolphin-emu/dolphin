@@ -1,4 +1,4 @@
-// Copyright 2017 Dolphin Emulator Project
+// Copyright 2025 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -31,7 +31,7 @@ public:
   void AddData(const char* data);
   void AddData(u32 n);
   void End();
-};  // end class JVSIOMessage
+};
 
 // Triforce (GC-AM) baseboard
 class CSIDevice_AMBaseboard : public ISIDevice

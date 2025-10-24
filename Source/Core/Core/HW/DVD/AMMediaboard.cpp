@@ -1,16 +1,19 @@
-// Copyright 2017 Dolphin Emulator Project
+// Copyright 2025 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/DVD/AMMediaboard.h"
 
 #include <algorithm>
-#include <fmt/format.h>
 #include <string>
+
+#include <fmt/format.h>
+
 #include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
+
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
@@ -27,6 +30,7 @@
 #include "Core/IOS/Network/Socket.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
+
 #include "DiscIO/DirectoryBlob.h"
 
 #if defined(__linux__) or defined(__APPLE__) or defined(__FreeBSD__) or defined(__NetBSD__) or     \
@@ -323,7 +327,7 @@ static s32 NetDIMMConnect(int fd, sockaddr_in* addr, int len)
   // Set socket to non-blocking
   ioctlsocket(fd, FIONBIO, &val);
 
-  int ret = connect(fd, (const sockaddr*)addr, len);
+  int ret = connect(fd, reinterpret_cast<const sockaddr*>(addr), len);
   const int err = WSAGetLastError();
 
   if (ret == SOCKET_ERROR && err == WSAEWOULDBLOCK)
@@ -341,7 +345,8 @@ static s32 NetDIMMConnect(int fd, sockaddr_in* addr, int len)
     {
       int so_error = 0;
       socklen_t optlen = sizeof(so_error);
-      if (getsockopt(fd, SOL_SOCKET, SO_ERROR, (char*)&so_error, &optlen) == 0 && so_error == 0)
+      if (getsockopt(fd, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&so_error), &optlen) == 0 &&
+          so_error == 0)
       {
         s_last_error = SSC_SUCCESS;
         ret = 0;
@@ -726,7 +731,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: closesocket( {}({}) ):{}\n", fd,
                        s_media_buffer_32[2], ret);
 
-        s_sockets[s_media_buffer_32[2]] = SOCKET_ERROR;
+        s_sockets[SocketCheck(s_media_buffer_32[2])] = SOCKET_ERROR;
 
         s_media_buffer_32[1] = ret;
         s_last_error = SSC_SUCCESS;
@@ -786,18 +791,18 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
           len = sizeof(s_network_buffer);
         }
 
-        u8* buffer = (u8*)(s_network_buffer + off);
+        u8* buffer = reinterpret_cast<u8*>(s_network_buffer + off);
 
         if (off >= NetworkBufferAddress4 && off < NetworkBufferAddress4 + sizeof(s_network_buffer))
         {
-          buffer = (u8*)(s_network_buffer + off - NetworkBufferAddress4);
+          buffer = reinterpret_cast<u8*>(s_network_buffer + off - NetworkBufferAddress4);
         }
         else
         {
           PanicAlertFmt("RECV: Buffer overrun:{0} {1} ", off, len);
         }
 
-        const int ret = recv(fd, (char*)buffer, len, 0);
+        const int ret = recv(fd, reinterpret_cast<char*>(buffer), len, 0);
         const int err = WSAGetLastError();
 
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv( {}, 0x{:08x}, {} ):{} {}\n", fd, off, len,
@@ -822,7 +827,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
           ERROR_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: send(error) unhandled destination:{:08x}\n", off);
         }
 
-        const int ret = send(fd, (char*)(s_network_buffer + off), len, 0);
+        const int ret = send(fd, reinterpret_cast<char*>(s_network_buffer + off), len, 0);
         const int err = WSAGetLastError();
 
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: send( {}({}), 0x{:08x}, {} ): {} {}\n", fd,
@@ -864,48 +869,56 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
         fd_set* readfds = nullptr;
         fd_set* writefds = nullptr;
         fd_set* exceptfds = nullptr;
-        timeval* timeout = nullptr;
+        timeval timeout = {};
+        timeval* timeout_src = nullptr;
 
         // Only one of 3, 4, 5 is ever set alongside 6
         if (s_media_buffer_32[3] && s_media_buffer_32[6])
         {
           const u32 ROffset = s_media_buffer_32[6] - NetworkCommandAddress2;
-          readfds = (fd_set*)(s_network_command_buffer + ROffset);
+          readfds = reinterpret_cast<fd_set*>(s_network_command_buffer + ROffset);
           FD_ZERO(readfds);
           FD_SET(fd, readfds);
 
-          timeout =
-              (timeval*)(s_network_command_buffer + s_media_buffer_32[3] - NetworkCommandAddress2);
+          timeout_src = reinterpret_cast<timeval*>(s_network_command_buffer + s_media_buffer_32[3] -
+                                                   NetworkCommandAddress2);
         }
         else if (s_media_buffer_32[4] && s_media_buffer_32[6])
         {
           const u32 WOffset = s_media_buffer_32[6] - NetworkCommandAddress2;
-          writefds = (fd_set*)(s_network_command_buffer + WOffset);
+          writefds = reinterpret_cast<fd_set*>(s_network_command_buffer + WOffset);
           FD_ZERO(writefds);
           FD_SET(fd, writefds);
 
-          timeout =
-              (timeval*)(s_network_command_buffer + s_media_buffer_32[4] - NetworkCommandAddress2);
+          timeout_src = reinterpret_cast<timeval*>(s_network_command_buffer + s_media_buffer_32[4] -
+                                                   NetworkCommandAddress2);
         }
         else if (s_media_buffer_32[5] && s_media_buffer_32[6])
         {
           const u32 EOffset = s_media_buffer_32[6] - NetworkCommandAddress2;
-          exceptfds = (fd_set*)(s_network_command_buffer + EOffset);
+          exceptfds = reinterpret_cast<fd_set*>(s_network_command_buffer + EOffset);
           FD_ZERO(exceptfds);
           FD_SET(fd, exceptfds);
 
-          timeout =
-              (timeval*)(s_network_command_buffer + s_media_buffer_32[5] - NetworkCommandAddress2);
+          timeout_src = reinterpret_cast<timeval*>(s_network_command_buffer + s_media_buffer_32[5] -
+                                                   NetworkCommandAddress2);
+        }
+
+        // Copy timeout if set
+        if (timeout_src)
+        {
+          std::memcpy(&timeout, timeout_src, sizeof(timeval));
         }
 
         // BUG: The game sets timeout to two seconds
         if (AMMediaboard::GetGameType() == KeyOfAvalon)
         {
-          timeout->tv_sec = 0;
-          timeout->tv_usec = 1800;
+          timeout.tv_sec = 0;
+          timeout.tv_usec = 1800;
         }
 
-        const int ret = select(fd + 1, readfds, writefds, exceptfds, timeout);
+        const int ret =
+            select(fd + 1, readfds, writefds, exceptfds, timeout_src ? &timeout : nullptr);
 
         const int err = WSAGetLastError();
 
@@ -913,7 +926,7 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
             AMMEDIABOARD_NET,
             "GC-AM: select( {}({}), 0x{:08x} 0x{:08x} 0x{:08x} 0x{:08x} ):{} {} {}:{} \n", fd,
             s_media_buffer_32[2], s_media_buffer_32[3], s_media_buffer_32[4], s_media_buffer_32[5],
-            s_media_buffer_32[6], ret, err, timeout->tv_sec, timeout->tv_usec);
+            s_media_buffer_32[6], ret, err, timeout.tv_sec, timeout.tv_usec);
         // hexdump( s_network_command_buffer, 0x40 );
 
         s_media_buffer[1] = 0;
@@ -1530,51 +1543,57 @@ u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 address, u32
         fd_set* readfds = nullptr;
         fd_set* writefds = nullptr;
         fd_set* exceptfds = nullptr;
-        timeval* timeout = nullptr;
+        timeval timeout = {};
+        timeval* timeout_src = nullptr;
 
-        // Only one of 3, 4, 5 is ever set alongside 6
+        // Only one of 11, 12, 13 is ever set alongside 14
         if (s_media_buffer_32[11] && s_media_buffer_32[14])
         {
           const u32 ROffset = s_media_buffer_32[14] - NetworkCommandAddress;
-
-          readfds = (fd_set*)(s_network_command_buffer + ROffset);
+          readfds = reinterpret_cast<fd_set*>(s_network_command_buffer + ROffset);
           FD_ZERO(readfds);
           FD_SET(fd, readfds);
 
-          timeout =
-              (timeval*)(s_network_command_buffer + s_media_buffer_32[11] - NetworkCommandAddress);
+          timeout_src = reinterpret_cast<timeval*>(s_network_command_buffer +
+                                                   s_media_buffer_32[11] - NetworkCommandAddress);
         }
         else if (s_media_buffer_32[12] && s_media_buffer_32[14])
         {
           const u32 WOffset = s_media_buffer_32[14] - NetworkCommandAddress;
-          writefds = (fd_set*)(s_network_command_buffer + WOffset);
+          writefds = reinterpret_cast<fd_set*>(s_network_command_buffer + WOffset);
           FD_ZERO(writefds);
           FD_SET(fd, writefds);
 
-          timeout =
-              (timeval*)(s_network_command_buffer + s_media_buffer_32[12] - NetworkCommandAddress);
+          timeout_src = reinterpret_cast<timeval*>(s_network_command_buffer +
+                                                   s_media_buffer_32[12] - NetworkCommandAddress);
         }
         else if (s_media_buffer_32[13] && s_media_buffer_32[14])
         {
           const u32 EOffset = s_media_buffer_32[14] - NetworkCommandAddress;
-          exceptfds = (fd_set*)(s_network_command_buffer + EOffset);
+          exceptfds = reinterpret_cast<fd_set*>(s_network_command_buffer + EOffset);
           FD_ZERO(exceptfds);
           FD_SET(fd, exceptfds);
 
-          timeout =
-              (timeval*)(s_network_command_buffer + s_media_buffer_32[13] - NetworkCommandAddress);
+          timeout_src = reinterpret_cast<timeval*>(s_network_command_buffer +
+                                                   s_media_buffer_32[13] - NetworkCommandAddress);
+        }
+
+        // Copy timeout if set
+        if (timeout_src)
+        {
+          std::memcpy(&timeout, timeout_src, sizeof(timeval));
         }
 
         // BUG?: F-Zero AX Monster calls select with a two second timeout
         // for unknown reasons, which slows down the game a lot
-
         if (AMMediaboard::GetGameType() == FZeroAXMonster)
         {
-          timeout->tv_sec = 0;
-          timeout->tv_usec = 1800;
+          timeout.tv_sec = 0;
+          timeout.tv_usec = 1800;
         }
 
-        const int ret = select(fd + 1, readfds, writefds, exceptfds, timeout);
+        const int ret =
+            select(fd + 1, readfds, writefds, exceptfds, timeout_src ? &timeout : nullptr);
         const int err = WSAGetLastError();
 
         NOTICE_LOG_FMT(AMMEDIABOARD_NET,

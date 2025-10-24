@@ -1,4 +1,4 @@
-// Copyright 2017 Dolphin Emulator Project
+// Copyright 2025 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/SI/SI_DeviceAMBaseboard.h"
@@ -22,6 +22,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
+
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/Config/MainSettings.h"
@@ -49,7 +50,9 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "Core/WiiRoot.h"
+
 #include "DiscIO/Enums.h"
+
 #include "InputCommon/GCPadStatus.h"
 
 namespace SerialInterface

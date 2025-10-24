@@ -1,7 +1,8 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2025 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/EXI/EXI_DeviceBaseboard.h"
+
 #include <algorithm>
 #include <memory>
 #include <optional>
@@ -17,6 +18,7 @@
 #include "Common/IOFile.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
+
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/Config/MainSettings.h"
@@ -40,11 +42,12 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "Core/WiiRoot.h"
+
 #include "DiscIO/Enums.h"
 
-static bool g_interrupt_set = false;
-static u32 g_irq_timer = 0;
-static u32 g_irq_status = 0;
+static bool s_interrupt_set = false;
+static u32 s_irq_timer = 0;
+static u32 s_irq_status = 0;
 
 static u16 CheckSum(u8* data, u32 length)
 {
@@ -65,9 +68,9 @@ void GenerateInterrupt(int flag)
 {
   auto& system = Core::System::GetInstance();
 
-  g_interrupt_set = true;
-  g_irq_timer = 0;
-  g_irq_status = flag;
+  s_interrupt_set = true;
+  s_irq_timer = 0;
+  s_irq_status = flag;
 
   system.GetExpansionInterface().UpdateInterrupts();
 }
@@ -140,11 +143,11 @@ bool CEXIBaseboard::IsPresent() const
 
 bool CEXIBaseboard::IsInterruptSet()
 {
-  if (g_interrupt_set)
+  if (s_interrupt_set)
   {
     DEBUG_LOG_FMT(SP1, "AM-BB: IRQ");
-    if (++g_irq_timer > 12)
-      g_interrupt_set = false;
+    if (++s_irq_timer > 12)
+      s_interrupt_set = false;
     return 1;
   }
   else
@@ -241,12 +244,12 @@ void CEXIBaseboard::TransferByte(u8& byte)
       break;
     case ReadISR:
       NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: ReadISR  :{:02x} {:02x}:{:02x} {:02x}", m_command[1],
-                     m_command[2], 4, g_irq_status);
+                     m_command[2], 4, s_irq_status);
       byte = 0x04;
       break;
     case WriteISR:
       NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: WriteISR :{:02x} {:02x}", m_command[1], m_command[2]);
-      g_irq_status &= ~(m_command[2]);
+      s_irq_status &= ~(m_command[2]);
       byte = 0x04;
       break;
     // 2 byte out
@@ -262,13 +265,13 @@ void CEXIBaseboard::TransferByte(u8& byte)
       NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: WriteLANCNT :{:02x} {:02x}", m_command[1], m_command[2]);
       if ((m_command[1] == 0) && (m_command[2] == 0))
       {
-        g_interrupt_set = true;
-        g_irq_timer = 0;
-        g_irq_status = 0x02;
+        s_interrupt_set = true;
+        s_irq_timer = 0;
+        s_irq_status = 0x02;
       }
       if ((m_command[1] == 2) && (m_command[2] == 1))
       {
-        g_irq_status = 0;
+        s_irq_status = 0;
       }
       byte = 0x08;
       break;
@@ -295,8 +298,8 @@ void CEXIBaseboard::TransferByte(u8& byte)
     case ReadISR:
       if (m_position == 6)
       {
-        byte = g_irq_status;
-        g_interrupt_set = false;
+        byte = s_irq_status;
+        s_interrupt_set = false;
       }
       else
       {
@@ -327,7 +330,7 @@ void CEXIBaseboard::TransferByte(u8& byte)
 void CEXIBaseboard::DoState(PointerWrap& p)
 {
   p.Do(m_position);
-  p.Do(g_interrupt_set);
+  p.Do(s_interrupt_set);
   p.Do(m_command);
 }
 

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <Import Project="..\VSProps\Base.Macros.props" />
   <Import Project="$(VSPropsDir)Base.Targets.props" />
@@ -69,14 +69,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Text Include="$(BuildInfoTemplate)" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Core\HW\DVD\AMMediaboard.cpp" />
-    <ClCompile Include="Core\HW\SI\SI_DeviceAMBaseboard.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Core\HW\DVD\AMMediaboard.h" />
-    <ClInclude Include="Core\HW\SI\SI_DeviceAMBaseboard.h" />
   </ItemGroup>
   <UsingTask TaskName="GetProductVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>

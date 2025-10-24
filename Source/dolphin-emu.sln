@@ -25,7 +25,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Languages", "..\Languages\L
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LZO", "..\Externals\LZO\LZO.vcxproj", "{AB993F38-C31D-4897-B139-A620C42BC565}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LZ4", "..\Externals\lz4\LZ4.vcxproj", "{9092C5CC-3E71-41B3-BF68-4A7BDD8A5476}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lz4", "..\Externals\lz4\LZ4.vcxproj", "{9092C5CC-3E71-41B3-BF68-4A7BDD8A5476}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "miniupnpc", "..\Externals\miniupnpc\miniupnpc.vcxproj", "{31643FDB-1BB8-4965-9DE7-000FC88D35AE}"
 EndProject
