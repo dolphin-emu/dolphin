@@ -18,14 +18,17 @@
 using namespace Arm64Gen;
 using namespace JitCommon;
 
-#define CARRY_IF_NEEDED(inst_without_carry, inst_with_carry, ...)                                  \
+#define CARRY_IF_NEEDED_COND(carry, inst_without_carry, inst_with_carry, ...)                      \
   do                                                                                               \
   {                                                                                                \
-    if (js.op->wantsCA)                                                                            \
+    if ((carry) && js.op->wantsCA)                                                                 \
       inst_with_carry(__VA_ARGS__);                                                                \
     else                                                                                           \
       inst_without_carry(__VA_ARGS__);                                                             \
   } while (0)
+
+#define CARRY_IF_NEEDED(inst_without_carry, inst_with_carry, ...)                                  \
+  CARRY_IF_NEEDED_COND(true, inst_without_carry, inst_with_carry, __VA_ARGS__)
 
 void JitArm64::ComputeRC0(ARM64Reg reg)
 {
@@ -1266,36 +1269,6 @@ void JitArm64::addzex(UGeckoInstruction inst)
     ComputeRC0(gpr.R(d));
 }
 
-void JitArm64::subfx(UGeckoInstruction inst)
-{
-  INSTRUCTION_START
-  JITDISABLE(bJITIntegerOff);
-  FALLBACK_IF(inst.OE);
-
-  int a = inst.RA, b = inst.RB, d = inst.RD;
-
-  if (a == b)
-  {
-    gpr.SetImmediate(d, 0);
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(d));
-  }
-  else if (gpr.IsImm(a) && gpr.IsImm(b))
-  {
-    u32 i = gpr.GetImm(a), j = gpr.GetImm(b);
-    gpr.SetImmediate(d, j - i);
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(d));
-  }
-  else
-  {
-    gpr.BindToRegister(d, d == a || d == b);
-    SUB(gpr.R(d), gpr.R(b), gpr.R(a));
-    if (inst.Rc)
-      ComputeRC0(gpr.R(d));
-  }
-}
-
 void JitArm64::subfex(UGeckoInstruction inst)
 {
   INSTRUCTION_START
@@ -1427,21 +1400,30 @@ void JitArm64::subfex(UGeckoInstruction inst)
     ComputeRC0(gpr.R(d));
 }
 
-void JitArm64::subfcx(UGeckoInstruction inst)
+void JitArm64::subfx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   FALLBACK_IF(inst.OE);
 
-  int a = inst.RA, b = inst.RB, d = inst.RD;
+  const int a = inst.RA, b = inst.RB, d = inst.RD;
+  const bool carry = !(inst.SUBOP10 & (1 << 5));
 
-  if (gpr.IsImm(a) && gpr.IsImm(b))
+  if (a == b)
+  {
+    gpr.SetImmediate(d, 0);
+    if (carry)
+      ComputeCarry(true);
+    if (inst.Rc)
+      ComputeRC0(gpr.GetImm(d));
+  }
+  else if (gpr.IsImm(a) && gpr.IsImm(b))
   {
     u32 a_imm = gpr.GetImm(a), b_imm = gpr.GetImm(b);
 
     gpr.SetImmediate(d, b_imm - a_imm);
-    ComputeCarry(a_imm == 0 || Interpreter::Helper_Carry(b_imm, 0u - a_imm));
-
+    if (carry)
+      ComputeCarry(a_imm == 0 || Interpreter::Helper_Carry(b_imm, 0u - a_imm));
     if (inst.Rc)
       ComputeRC0(gpr.GetImm(d));
   }
@@ -1452,31 +1434,35 @@ void JitArm64::subfcx(UGeckoInstruction inst)
       gpr.BindToRegister(d, false);
       MOV(gpr.R(d), gpr.R(b));
     }
-    ComputeCarry(true);
+    if (carry)
+      ComputeCarry(true);
     if (inst.Rc)
       ComputeRC0(gpr.R(d));
   }
   else if (gpr.IsImm(a) && ((gpr.GetImm(a) & 0xFFF) == gpr.GetImm(a)))
   {
     gpr.BindToRegister(d, d == b);
-    CARRY_IF_NEEDED(SUB, SUBS, gpr.R(d), gpr.R(b), gpr.GetImm(a));
-    ComputeCarry();
+    CARRY_IF_NEEDED_COND(carry, SUB, SUBS, gpr.R(d), gpr.R(b), gpr.GetImm(a));
+    if (carry)
+      ComputeCarry();
     if (inst.Rc)
       ComputeRC0(gpr.R(d));
   }
   else if (gpr.IsImm(a) && ((gpr.GetImm(a) & 0xFFF000) == gpr.GetImm(a)))
   {
     gpr.BindToRegister(d, d == b);
-    CARRY_IF_NEEDED(SUB, SUBS, gpr.R(d), gpr.R(b), gpr.GetImm(a) >> 12, true);
-    ComputeCarry();
+    CARRY_IF_NEEDED_COND(carry, SUB, SUBS, gpr.R(d), gpr.R(b), gpr.GetImm(a) >> 12, true);
+    if (carry)
+      ComputeCarry();
     if (inst.Rc)
       ComputeRC0(gpr.R(d));
   }
   else if (gpr.IsImm(b, 0))
   {
     gpr.BindToRegister(d, d == a);
-    CARRY_IF_NEEDED(NEG, NEGS, gpr.R(d), gpr.R(a));
-    ComputeCarry();
+    CARRY_IF_NEEDED_COND(carry, NEG, NEGS, gpr.R(d), gpr.R(a));
+    if (carry)
+      ComputeCarry();
     if (inst.Rc)
       ComputeRC0(gpr.R(d));
   }
@@ -1485,10 +1471,10 @@ void JitArm64::subfcx(UGeckoInstruction inst)
     gpr.BindToRegister(d, d == a || d == b);
 
     // d = b - a
-    CARRY_IF_NEEDED(SUB, SUBS, gpr.R(d), gpr.R(b), gpr.R(a));
+    CARRY_IF_NEEDED_COND(carry, SUB, SUBS, gpr.R(d), gpr.R(b), gpr.R(a));
 
-    ComputeCarry();
-
+    if (carry)
+      ComputeCarry();
     if (inst.Rc)
       ComputeRC0(gpr.R(d));
   }
