@@ -218,13 +218,14 @@ add_library(videocommon
 target_link_libraries(videocommon
 PUBLIC
   core
+  glslang::glslang
 PRIVATE
   fmt::fmt
   spng::spng
   xxhash::xxhash
   imgui
   implot
-  glslang::glslang
+  glslang::SPIRV
   tinygltf
 )
 

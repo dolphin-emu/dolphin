@@ -12,8 +12,6 @@ PUBLIC
   common
   videocommon
   spirv_cross
-PRIVATE
-  glslang::glslang
 )
 
 if(MSVC)

@@ -653,14 +653,8 @@ dolphin_find_optional_system_library_pkgconfig(FMT
 add_subdirectory(Externals/imgui)
 add_subdirectory(Externals/implot)
 
-# A few distributions (mainly Debian-based ones) distribute glslang without linking it against SPIRV-Tools
-find_package(SPIRV-Tools)
-if(SPIRV-Tools_FOUND)
-  dolphin_find_optional_system_library(glslang Externals/glslang 15.0)
-  target_link_libraries(glslang::glslang INTERFACE SPIRV-Tools)
-else()
-  dolphin_add_bundled_library(glslang OFF Externals/glslang)
-endif()
+dolphin_find_optional_system_library(glslang Externals/glslang 15.0)
+
 # SPIRV-Cross is used on Windows for GLSL to HLSL conversion for the Direct3D 11 and Direct3D 12
 # video backends, and on Apple devices for the Metal video backend.
 if(WIN32 OR APPLE)
