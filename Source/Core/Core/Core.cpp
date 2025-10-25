@@ -457,6 +457,8 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
   const auto init_video = [&] {
     DeclareAsGPUThread();
 
+    AsyncRequests::GetInstance()->SetPassthrough(!system.IsDualCoreMode());
+
     // Must happen on the proper thread for some video backends, e.g. OpenGL.
     return g_video_backend->Initialize(wsi);
   };

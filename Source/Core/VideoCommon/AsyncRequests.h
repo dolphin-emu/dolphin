@@ -26,7 +26,6 @@ public:
       PullEventsInternal();
   }
   void WaitForEmptyQueue();
-  void SetEnable(bool enable);
   void SetPassthrough(bool enable);
 
   template <typename F>
@@ -74,6 +73,5 @@ private:
   std::mutex m_mutex;
   std::condition_variable m_cond;
 
-  bool m_enable = false;
   bool m_passthrough = true;
 };
