@@ -32,8 +32,6 @@ static void PrintUsage()
 
 int main(int argc, char* argv[])
 {
-  Core::DeclareAsHostThread();
-
   if (argc < 2)
   {
     PrintUsage();
