@@ -21,17 +21,9 @@
 #include <unistd.h>
 #endif
 
-#if defined USE_OPROFILE && USE_OPROFILE
-#include <opagent.h>
-#endif
-
 #if defined USE_VTUNE
 #include <jitprofiling.h>
 #pragma comment(lib, "jitprofiling.lib")
-#endif
-
-#if defined USE_OPROFILE && USE_OPROFILE
-static op_agent_t s_agent = nullptr;
 #endif
 
 static File::IOFile s_perf_map_file;
@@ -42,11 +34,6 @@ static bool s_is_enabled = false;
 
 void Init(const std::string& perf_dir)
 {
-#if defined USE_OPROFILE && USE_OPROFILE
-  s_agent = op_open_agent();
-  s_is_enabled = true;
-#endif
-
   if (!perf_dir.empty() || getenv("PERF_BUILDID_DIR"))
   {
     const std::string dir = perf_dir.empty() ? "/tmp" : perf_dir;
@@ -61,11 +48,6 @@ void Init(const std::string& perf_dir)
 
 void Shutdown()
 {
-#if defined USE_OPROFILE && USE_OPROFILE
-  op_close_agent(s_agent);
-  s_agent = nullptr;
-#endif
-
 #ifdef USE_VTUNE
   iJIT_NotifyEvent(iJVM_EVENT_TYPE_SHUTDOWN, nullptr);
 #endif
@@ -83,13 +65,9 @@ bool IsEnabled()
 
 void Register(const void* base_address, u32 code_size, const std::string& symbol_name)
 {
-#if !(defined USE_OPROFILE && USE_OPROFILE) && !defined(USE_VTUNE)
+#ifndef USE_VTUNE
   if (!s_perf_map_file.IsOpen())
     return;
-#endif
-
-#if defined USE_OPROFILE && USE_OPROFILE
-  op_write_native_code(s_agent, symbol_name.c_str(), (u64)base_address, base_address, code_size);
 #endif
 
 #ifdef USE_VTUNE
