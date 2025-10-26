@@ -118,3 +118,7 @@
 	path = Externals/cpp-optparse/cpp-optparse
 	url = https://github.com/weisslj/cpp-optparse.git
 	shallow = true
+[submodule "Externals/bzip2/bzip2"]
+	path = Externals/bzip2/bzip2
+	url = https://gitlab.com/bzip2/bzip2.git
+	shallow = true
