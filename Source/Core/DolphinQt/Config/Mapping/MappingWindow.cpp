@@ -242,23 +242,46 @@ void MappingWindow::UpdateProfileButtonState()
   QString profile_path;
   if (index != -1) profile_path = m_profiles_combo->itemData(index).toString();
 
+  // Init new buttons state (enabled by default)
+  bool load_enabled = true;
+  bool save_enabled = true;
+  bool delete_enabled = true;
+  QString load_tooltip;
+  QString save_tooltip;
+  QString delete_tooltip;
+
+  // Check if mapping is modified
+  Common::IniFile diskIni;
+  diskIni.Load(profile_path.toStdString());
+  Common::IniFile memoryIni;
+  m_controller->SaveConfig(memoryIni.GetOrCreateSection("Profile"));
+  bool mapping_modified = !diskIni.CompareContent(memoryIni);
+  if (!mapping_modified) {
+    load_enabled = false;
+    load_tooltip = tr("Cannot do this action. Reason: No changes between profile file and current mappings");
+    save_enabled = false;
+    save_tooltip = tr("Cannot do this action. Reason: No changes between profile file and current mappings");
+  }
+
   // Make sure save/delete buttons are disabled for built-in profiles
   std::string sys_dir = File::GetSysDirectory();
   sys_dir = ReplaceAll(sys_dir, "\\", DIR_SEP);
   bool builtin = profile_path.startsWith(QString::fromStdString(sys_dir));
-  // Check if mapping is modified
-  Common::IniFile diskIni;
-  diskIni.Load(profile_path.toStdString());
+  if (builtin)
+  {
+    save_enabled = false;
+    delete_enabled = false;
+    save_tooltip = tr("Cannot do this action. Reason: Built-in profile");
+    delete_tooltip = tr("Cannot do this action. Reason: Built-in profile");
+  }
 
-  Common::IniFile memoryIni;
-  m_controller->SaveConfig(memoryIni.GetOrCreateSection("Profile"));
-
-  bool mapping_modified = !diskIni.CompareContent(memoryIni);
-
-  // Update button state
-  m_profiles_load->setEnabled(!builtin && mapping_modified);
-  m_profiles_save->setEnabled(!builtin && mapping_modified);
-  m_profiles_delete->setEnabled(!builtin);
+  // Update buttons state
+  m_profiles_load->setEnabled(load_enabled);
+  m_profiles_load->setToolTip(load_tooltip);
+  m_profiles_save->setEnabled(save_enabled);
+  m_profiles_save->setToolTip(save_tooltip);
+  m_profiles_delete->setEnabled(delete_enabled);
+  m_profiles_delete->setToolTip(delete_tooltip);
 }
 
 void MappingWindow::OnSelectProfile(int)
