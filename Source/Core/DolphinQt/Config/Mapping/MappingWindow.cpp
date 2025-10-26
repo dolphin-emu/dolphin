@@ -213,7 +213,7 @@ void MappingWindow::ConnectWidgets()
   connect(m_profiles_open_folder, &QPushButton::clicked, this, &MappingWindow::OnOpenProfileFolder);
 
   connect(m_profiles_combo, &QComboBox::currentIndexChanged, this, &MappingWindow::OnSelectProfile);
-  connect(m_profiles_combo, &QComboBox::editTextChanged, this,
+  connect(m_profiles_combo, &QComboBox::currentTextChanged, this,
           &MappingWindow::OnProfileTextChanged);
 
   // We currently use the "Close" button as an "Accept" button so we must save on reject.
@@ -237,18 +237,16 @@ void MappingWindow::UpdateProfileIndex()
 
 void MappingWindow::UpdateProfileButtonState()
 {
-  // Make sure save/delete buttons are disabled for built-in profiles
-  bool builtin = false;
-  if (m_profiles_combo->findText(m_profiles_combo->currentText()) != -1)
-  {
-    const QString profile_path = m_profiles_combo->currentData().toString();
-    std::string sys_dir = File::GetSysDirectory();
-    sys_dir = ReplaceAll(sys_dir, "\\", DIR_SEP);
-    builtin = profile_path.startsWith(QString::fromStdString(sys_dir));
-  }
+  // currentData() is not up to date on a currentTextChanged() event, so find profile path from currentText() (which is up to date)
+  const int index = m_profiles_combo->findText(m_profiles_combo->currentText());
+  QString profile_path;
+  if (index != -1) profile_path = m_profiles_combo->itemData(index).toString();
 
+  // Make sure save/delete buttons are disabled for built-in profiles
+  std::string sys_dir = File::GetSysDirectory();
+  sys_dir = ReplaceAll(sys_dir, "\\", DIR_SEP);
+  bool builtin = profile_path.startsWith(QString::fromStdString(sys_dir));
   // Check if mapping is modified
-  const QString profile_path = m_profiles_combo->currentData().toString();
   Common::IniFile diskIni;
   diskIni.Load(profile_path.toStdString());
 
