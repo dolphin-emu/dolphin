@@ -28,9 +28,9 @@ std::string VolumeDisc::GetGameID(const Partition& partition) const
     // Construct game ID from the BTID
     id[0] = 'G';
 
-    memcpy(id + 1, boot_id->gameId + 2, 2);
+    memcpy(id + 1, boot_id->game_id.data() + 2, 2);
 
-    switch (boot_id->regionFlags)
+    switch (boot_id->region_flags)
     {
     default:
     case 0x02:  // JAPAN
@@ -83,7 +83,7 @@ Country VolumeDisc::GetCountry(const Partition& partition) const
   {
     const BootID* boot_id = static_cast<const VolumeGC*>(this)->GetTriforceBootID();
 
-    switch (boot_id->regionFlags)
+    switch (boot_id->region_flags)
     {
     default:
     case 0x02:  // JAPAN
@@ -166,7 +166,7 @@ std::string VolumeDisc::GetInternalName(const Partition& partition) const
   if (GetVolumeType() == Platform::Triforce)
   {
     const BootID* boot_id = static_cast<const VolumeGC*>(this)->GetTriforceBootID();
-    return DecodeString(boot_id->gameName);
+    return DecodeString(boot_id->game_name);
   }
 
   if (!Read(0x20, sizeof(name), reinterpret_cast<u8*>(&name), partition))
