@@ -127,6 +127,17 @@ void AdvancedPane::CreateLayout()
          "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
   timing_group_layout->addWidget(rush_frame_presentation);
 
+  auto* const smooth_early_presentation =
+      // i18n: "Smooth" is a verb
+      new ConfigBool{tr("Smooth Early Presentation"), Config::MAIN_SMOOTH_EARLY_PRESENTATION};
+  smooth_early_presentation->SetDescription(
+      tr("Adaptively adjusts the timing of early frame presentation."
+         "<br><br>This can improve frame pacing with Immediately Present XFB"
+         " and/or Rush Frame Presentation,"
+         " while still maintaining most of the input latency benefits."
+         "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
+  timing_group_layout->addWidget(smooth_early_presentation);
+
   // Make all labels the same width, so that the sliders are aligned.
   const QFontMetrics font_metrics{font()};
   const int label_width = font_metrics.boundingRect(QStringLiteral(" 500% (000.00 VPS)")).width();
