@@ -207,6 +207,7 @@ private:
   float m_config_oc_factor = 1.0f;
   float m_config_oc_inv_factor = 1.0f;
   bool m_config_sync_on_skip_idle = false;
+  bool m_config_rush_frame_presentation = false;
 
   s64 m_throttle_reference_cycle = 0;
   TimePoint m_throttle_reference_time = Clock::now();
@@ -232,6 +233,11 @@ private:
   Common::PrecisionTimer m_precision_gpu_timer;
 
   Common::EventHook m_core_state_changed_hook;
+  Common::EventHook m_frame_hook;
+
+  // Used to optionally minimize throttling for improving input latency.
+  std::atomic_bool m_throttled_after_presentation = false;
+  DT m_max_throttle_skip_time{};
 };
 
 }  // namespace CoreTiming

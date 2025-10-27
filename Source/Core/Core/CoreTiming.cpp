@@ -29,6 +29,7 @@
 #include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VideoEvents.h"
 
 namespace CoreTiming
 {
@@ -113,6 +114,11 @@ void CoreTimingManager::Init()
       ResetThrottle(GetTicks());
     }
   });
+
+  m_throttled_after_presentation = false;
+  m_frame_hook = m_system.GetVideoEvents().after_present_event.Register([this](const PresentInfo&) {
+    m_throttled_after_presentation.store(false, std::memory_order_relaxed);
+  });
 }
 
 void CoreTimingManager::Shutdown()
@@ -124,6 +130,7 @@ void CoreTimingManager::Shutdown()
   ClearPendingEvents();
   UnregisterAllEvents();
   CPUThreadConfigCallback::RemoveConfigChangedCallback(m_registered_config_callback_id);
+  m_frame_hook.reset();
 }
 
 void CoreTimingManager::RefreshConfig()
@@ -134,6 +141,11 @@ void CoreTimingManager::RefreshConfig()
                                                        1.0f);
   m_config_oc_inv_factor = 1.0f / m_config_oc_factor;
   m_config_sync_on_skip_idle = Config::Get(Config::MAIN_SYNC_ON_SKIP_IDLE);
+  m_config_rush_frame_presentation = Config::Get(Config::MAIN_RUSH_FRAME_PRESENTATION);
+
+  // We don't want to skip so much throttling that the audio buffer overfills.
+  m_max_throttle_skip_time =
+      std::chrono::milliseconds{Config::Get(Config::MAIN_AUDIO_BUFFER_SIZE)} / 2;
 
   // A maximum fallback is used to prevent the system from sleeping for
   // too long or going full speed in an attempt to catch up to timings.
@@ -422,6 +434,21 @@ void CoreTimingManager::SleepUntil(TimePoint time_point)
 
 void CoreTimingManager::Throttle(const s64 target_cycle)
 {
+  const TimePoint time = Clock::now();
+
+  const bool already_throttled =
+      m_throttled_after_presentation.exchange(true, std::memory_order_relaxed);
+
+  // If RushFramePresentation is enabled, try to Throttle just once after each presentation.
+  //  This lowers input latency by speeding through to presentation after grabbing input.
+  // Make sure we don't get too far ahead of proper timing though,
+  //  otherwise the emulator unreasonably speeds through loading screens that don't have XFB copies,
+  //  making audio sound terrible.
+  const bool skip_throttle = already_throttled && m_config_rush_frame_presentation &&
+                             ((GetTargetHostTime(target_cycle) - time) < m_max_throttle_skip_time);
+  if (skip_throttle)
+    return;
+
   if (IsSpeedUnlimited())
   {
     ResetThrottle(target_cycle);
@@ -440,8 +467,6 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
   }
 
   TimePoint target_time = CalculateTargetHostTimeInternal(target_cycle);
-
-  const TimePoint time = Clock::now();
 
   const TimePoint min_target = time - m_max_fallback;
 
