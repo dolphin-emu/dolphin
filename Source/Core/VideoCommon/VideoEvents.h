@@ -34,7 +34,6 @@ struct PresentInfo
   PresentReason reason = PresentReason::Immediate;
 
   // The exact emulated time of the when real hardware would have presented this frame
-  // FIXME: Immediate should predict the timestamp of this present
   u64 emulated_timestamp = 0;
 
   // TODO:

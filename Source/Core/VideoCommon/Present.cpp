@@ -215,12 +215,14 @@ void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
   }
 }
 
-void Presenter::ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
+void Presenter::ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height)
 {
+  const u64 ticks = m_next_swap_estimated_ticks;
+
   FetchXFB(xfb_addr, fb_width, fb_stride, fb_height, ticks);
 
   PresentInfo present_info;
-  present_info.emulated_timestamp = ticks;  // TODO: This should be the time of the next VI field
+  present_info.emulated_timestamp = ticks;
   present_info.frame_count = m_frame_count++;
   present_info.reason = PresentInfo::PresentReason::Immediate;
   present_info.present_count = m_present_count++;
@@ -233,6 +235,12 @@ void Presenter::ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_
   ProcessFrameDumping(ticks);
 
   video_events.after_present_event.Trigger(present_info);
+}
+
+void Presenter::SetNextSwapEstimatedTime(u64 ticks, TimePoint host_time)
+{
+  m_next_swap_estimated_ticks = ticks;
+  m_next_swap_estimated_time = host_time;
 }
 
 void Presenter::ProcessFrameDumping(u64 ticks) const
@@ -938,8 +946,10 @@ void Presenter::DoState(PointerWrap& p)
     // This technically counts as the end of the frame
     GetVideoEvents().after_frame_event.Trigger(Core::System::GetInstance());
 
-    ImmediateSwap(m_last_xfb_addr, m_last_xfb_width, m_last_xfb_stride, m_last_xfb_height,
-                  m_last_xfb_ticks);
+    m_next_swap_estimated_ticks = m_last_xfb_ticks;
+    m_next_swap_estimated_time = Clock::now();
+
+    ImmediateSwap(m_last_xfb_addr, m_last_xfb_width, m_last_xfb_stride, m_last_xfb_height);
   }
 }
 
