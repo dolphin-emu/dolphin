@@ -41,7 +41,7 @@ public:
 
   void SetNextSwapEstimatedTime(u64 ticks, TimePoint host_time);
 
-  void Present(std::optional<TimePoint> presentation_time = std::nullopt);
+  void Present(PresentInfo* present_info = nullptr);
   void ClearLastXfbId() { m_last_xfb_id = std::numeric_limits<u64>::max(); }
 
   bool Initialize();
@@ -169,6 +169,13 @@ private:
   u32 m_last_xfb_height = MAX_XFB_HEIGHT;
 
   Common::EventHook m_config_changed;
+
+  // Updates state for the SmoothEarlyPresentation setting if enabled.
+  // Returns the desired presentation time regardless.
+  TimePoint GetUpdatedPresentationTime(TimePoint intended_presentation_time);
+
+  // Used by the SmoothEarlyPresentation setting.
+  DT m_presentation_time_offset{};
 
   // Calculated from the previous swap time and current refresh rate.
   // Can be used for presentation of ImmediateXFB swaps which don't have timing information.
