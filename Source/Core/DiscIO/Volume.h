@@ -8,6 +8,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -143,16 +144,15 @@ public:
   virtual std::array<u8, 20> GetSyncHash() const = 0;
 
 protected:
-  template <u32 N>
-  std::string DecodeString(const char (&data)[N]) const
+  std::string DecodeString(std::span<const char> data) const
   {
     // strnlen to trim NULLs
-    std::string string(data, strnlen(data, sizeof(data)));
+    std::string string(data.data(), strnlen(data.data(), data.size()));
 
     if (GetRegion() == Region::NTSC_J)
       return SHIFTJISToUTF8(string);
-    else
-      return CP1252ToUTF8(string);
+
+    return CP1252ToUTF8(string);
   }
 
   void ReadAndAddToSyncHash(Common::SHA1::Context* context, u64 offset, u64 length,
