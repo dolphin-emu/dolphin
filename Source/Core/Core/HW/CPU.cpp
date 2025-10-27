@@ -109,10 +109,6 @@ void CPUManager::Run()
 {
   auto& power_pc = m_system.GetPowerPC();
 
-  // Updating the host CPU's rounding mode must be done on the CPU thread.
-  // We can't rely on PowerPC::Init doing it, since it's called from EmuThread.
-  PowerPC::RoundingModeUpdated(power_pc.GetPPCState());
-
   // Start a separate time tracker thread
   std::thread timing;
   if (Config::Get(Config::MAIN_TIME_TRACKING))
