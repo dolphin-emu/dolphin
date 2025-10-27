@@ -37,7 +37,9 @@ public:
 
   void ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks,
               TimePoint presentation_time);
-  void ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
+  void ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height);
+
+  void SetNextSwapEstimatedTime(u64 ticks, TimePoint host_time);
 
   void Present(std::optional<TimePoint> presentation_time = std::nullopt);
   void ClearLastXfbId() { m_last_xfb_id = std::numeric_limits<u64>::max(); }
@@ -167,6 +169,11 @@ private:
   u32 m_last_xfb_height = MAX_XFB_HEIGHT;
 
   Common::EventHook m_config_changed;
+
+  // Calculated from the previous swap time and current refresh rate.
+  // Can be used for presentation of ImmediateXFB swaps which don't have timing information.
+  u64 m_next_swap_estimated_ticks = 0;
+  TimePoint m_next_swap_estimated_time{Clock::now()};
 };
 
 }  // namespace VideoCommon
