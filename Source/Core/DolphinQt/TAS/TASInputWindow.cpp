@@ -17,6 +17,8 @@
 #include <QSpinBox>
 #include <QVBoxLayout>
 
+#include "Core/InputSuppressor.h"
+
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
 #include "DolphinQt/Resources.h"
@@ -68,6 +70,11 @@ TASInputWindow::TASInputWindow(QWidget* parent) : QDialog(parent)
 
   m_settings_box = new QGroupBox(tr("Settings"));
   m_settings_box->setLayout(settings_layout);
+
+  // Let users clear the focus from text inputs by clicking somewhere in the window. Without this
+  // the only way to clear the focus (which suppresses hotkeys and controller/Free Look inputs) is
+  // to click on one of the checkboxes.
+  setFocusPolicy(Qt::ClickFocus);
 }
 
 int TASInputWindow::GetTurboPressFrames() const
@@ -237,7 +244,7 @@ std::optional<ControlState> TASInputWindow::GetButton(TASCheckBox* checkbox,
                                                       ControlState controller_state)
 {
   const bool pressed = std::llround(controller_state) > 0;
-  if (m_use_controller->isChecked())
+  if (m_use_controller->isChecked() && !InputSuppressor::IsSuppressed())
     checkbox->OnControllerValueChanged(pressed);
 
   return checkbox->GetValue() ? 1.0 : 0.0;
@@ -248,7 +255,7 @@ std::optional<ControlState> TASInputWindow::GetSpinBox(TASSpinBox* spin, int zer
 {
   const int controller_value = ControllerEmu::MapFloat<int>(controller_state, zero, 0, max);
 
-  if (m_use_controller->isChecked())
+  if (m_use_controller->isChecked() && !InputSuppressor::IsSuppressed())
     spin->OnControllerValueChanged(controller_value);
 
   return ControllerEmu::MapToFloat<ControlState, int>(spin->GetValue(), zero, min, max);
@@ -260,7 +267,7 @@ std::optional<ControlState> TASInputWindow::GetSpinBox(TASSpinBox* spin, int zer
 {
   const int controller_value = static_cast<int>(std::llround(controller_state * scale + zero));
 
-  if (m_use_controller->isChecked())
+  if (m_use_controller->isChecked() && !InputSuppressor::IsSuppressed())
     spin->OnControllerValueChanged(controller_value);
 
   return (spin->GetValue() - zero) / scale;
