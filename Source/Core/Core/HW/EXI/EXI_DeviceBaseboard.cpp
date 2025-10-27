@@ -3,28 +3,19 @@
 
 #include "Core/HW/EXI/EXI_DeviceBaseboard.h"
 
-#include <algorithm>
-#include <memory>
-#include <optional>
+#include <numeric>
 #include <string>
-#include <vector>
 
 #include <fmt/format.h>
 
 #include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
-#include "Core/Config/MainSettings.h"
-#include "Core/Config/SYSCONFSettings.h"
-#include "Core/ConfigLoaders/BaseConfigLoader.h"
-#include "Core/ConfigLoaders/NetPlayConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/AMMediaboard.h"
@@ -35,30 +26,18 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
-#include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Movie.h"
-#include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
-#include "Core/WiiRoot.h"
-
-#include "DiscIO/Enums.h"
 
 static bool s_interrupt_set = false;
 static u32 s_irq_timer = 0;
 static u32 s_irq_status = 0;
 
-static u16 CheckSum(u8* data, u32 length)
+static u16 CheckSum(const u8* data, u32 length)
 {
-  u16 check = 0;
-
-  for (u32 i = 0; i < length; i++)
-  {
-    check += data[i];
-  }
-
-  return check;
+  return std::accumulate(data, data + length, 0);
 }
 
 namespace ExpansionInterface
@@ -75,7 +54,7 @@ void GenerateInterrupt(int flag)
   system.GetExpansionInterface().UpdateInterrupts();
 }
 
-CEXIBaseboard::CEXIBaseboard(Core::System& system) : IEXIDevice(system), m_position(0)
+CEXIBaseboard::CEXIBaseboard(Core::System& system) : IEXIDevice(system)
 {
   std::string backup_filename(fmt::format("{}tribackup_{}.bin", File::GetUserPath(D_TRIUSER_IDX),
                                           SConfig::GetInstance().GetGameID()));
@@ -110,12 +89,12 @@ CEXIBaseboard::CEXIBaseboard(Core::System& system) : IEXIDevice(system), m_posit
       m_backup.ReadBytes(data.data(), data.size());
 
       // Set FIRM version
-      reinterpret_cast<u16&>(data[0x12]) = 0x1703;
-      reinterpret_cast<u16&>(data[0x212]) = 0x1703;
+      Common::BitCastPtr<u16>(data.data() + 0x12) = 0x1703;
+      Common::BitCastPtr<u16>(data.data() + 0x212) = 0x1703;
 
       // Update checksum
-      reinterpret_cast<u16&>(data[0x0A]) = Common::swap16(CheckSum(&data[0xC], 0x1F4));
-      reinterpret_cast<u16&>(data[0x20A]) = Common::swap16(CheckSum(&data[0x20C], 0x1F4));
+      Common::BitCastPtr<u16>(data.data() + 0x0A) = Common::swap16(CheckSum(&data[0xC], 0x1F4));
+      Common::BitCastPtr<u16>(data.data() + 0x20A) = Common::swap16(CheckSum(&data[0x20C], 0x1F4));
 
       m_backup.Seek(0, File::SeekOrigin::Begin);
       m_backup.WriteBytes(data.data(), data.size());
@@ -148,12 +127,10 @@ bool CEXIBaseboard::IsInterruptSet()
     DEBUG_LOG_FMT(SP1, "AM-BB: IRQ");
     if (++s_irq_timer > 12)
       s_interrupt_set = false;
-    return 1;
+    return true;
   }
-  else
-  {
-    return 0;
-  }
+
+  return false;
 }
 
 void CEXIBaseboard::DMAWrite(u32 addr, u32 size)

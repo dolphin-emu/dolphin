@@ -16,11 +16,11 @@ namespace ExpansionInterface
 {
 void GenerateInterrupt(int flag);
 
-class CEXIBaseboard : public IEXIDevice
+class CEXIBaseboard final : public IEXIDevice
 {
 public:
   explicit CEXIBaseboard(Core::System& system);
-  virtual ~CEXIBaseboard();
+  ~CEXIBaseboard() override;
 
   void SetCS(int cs) override;
   bool IsInterruptSet() override;
@@ -46,11 +46,11 @@ private:
     WriteLANCNT = 0xFF,
   };
 
-  u32 m_position;
-  u32 m_backup_dma_offset;
-  u32 m_backup_dma_length;
-  u8 m_command[4];
-  u16 m_backup_offset;
+  u32 m_position = 0;
+  u32 m_backup_dma_offset = 0;
+  u32 m_backup_dma_length = 0;
+  std::array<u8, 4> m_command{};
+  u16 m_backup_offset = 0;
   File::IOFile m_backup;
 
 protected:

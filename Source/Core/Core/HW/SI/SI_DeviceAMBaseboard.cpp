@@ -4,21 +4,14 @@
 #include "Core/HW/SI/SI_DeviceAMBaseboard.h"
 
 #include <algorithm>
-#include <memory>
-#include <optional>
 #include <string>
-#include <vector>
 
 #include <fmt/format.h>
 
 #include "Common/Buffer.h"
-#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/Hash.h"
 #include "Common/IOFile.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
@@ -26,9 +19,6 @@
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/Config/SYSCONFSettings.h"
-#include "Core/ConfigLoaders/BaseConfigLoader.h"
-#include "Core/ConfigLoaders/NetPlayConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -42,27 +32,15 @@
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/SI/SI_DeviceGCController.h"
-#include "Core/HW/Sram.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
-#include "Core/WiiRoot.h"
-
-#include "DiscIO/Enums.h"
 
 #include "InputCommon/GCPadStatus.h"
 
 namespace SerialInterface
 {
-
-JVSIOMessage::JVSIOMessage()
-{
-  m_ptr = 0;
-  m_last_start = 0;
-}
 
 void JVSIOMessage::Start(int node)
 {
@@ -287,7 +265,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
       for (u32 i = 0; i < buffer_length; ++i)
         checksum += buffer[i];
 
-      u8 data_out[0x80]{};
+      std::array<u8, 0x80> data_out{};
       u32 data_offset = 0;
 
       static u32 dip_switch_1 = 0xFE;
@@ -315,11 +293,11 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
           // We read Test/Service from the JVS-I/O SwitchesInput instead
           //
-          // const GCPadStatus PadStatus = Pad::GetStatus(ISIDevice::m_device_number);
+          // const GCPadStatus pad_status = Pad::GetStatus(ISIDevice::m_device_number);
           // baseboard test/service switches
-          // if (PadStatus.button & PAD_BUTTON_Y)	// Test
+          // if (pad_status.button & PAD_BUTTON_Y)	// Test
           //  dip_switch_0 &= ~0x80;
-          // if (PadStatus.button & PAD_BUTTON_X)	// Service
+          // if (pad_status.button & PAD_BUTTON_X)	// Service
           //  dip_switch_0 &= ~0x40;
 
           // Horizontal Scanning Frequency switch
@@ -348,7 +326,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
           data_out[data_offset++] = gcam_command;
           data_out[data_offset++] = 16;
-          memcpy(data_out + data_offset, "AADE-01B98394904", 16);
+          memcpy(data_out.data() + data_offset, "AADE-01B98394904", 16);
 
           data_offset += 16;
           break;
@@ -509,7 +487,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             // Serial - Unknown
             if (AMMediaboard::GetGameType() == GekitouProYakyuu)
             {
-              u32 serial_command = *(u32*)(data_in);
+              const u32 serial_command = Common::BitCastPtr<u32>(data_in);
 
               if (serial_command == 0x00001000)
               {
@@ -582,7 +560,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
                   icco.command = WritePages;
 
-                  ICCardSendReply(&icco, data_out, &data_offset);
+                  ICCardSendReply(&icco, data_out.data(), &data_offset);
                 }
                 data_in += length;
                 break;
@@ -646,7 +624,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               case ICCARDCommand::ReadPage:
               case ICCARDCommand::ReadUseCount:
               {
-                const u16 page = Common::swap16(*(u16*)(data_in + 6));
+                const u16 page = Common::swap16(data_in + 6);
 
                 icco.extlen = 8;
                 icco.length += icco.extlen;
@@ -660,7 +638,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               }
               case ICCARDCommand::WritePage:
               {
-                const u16 page = Common::swap16(*(u16*)(data_in + 8));
+                const u16 page = Common::swap16(data_in + 8);
 
                 // Write only one page
                 if (page == 4)
@@ -678,13 +656,14 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               }
               case ICCARDCommand::DecreaseUseCount:
               {
-                const u16 page = Common::swap16(*(u16*)(data_in + 6));
+                const u16 page = Common::swap16(data_in + 6);
 
                 icco.extlen = 2;
                 icco.length += icco.extlen;
                 icco.pktlen += icco.extlen;
 
-                *(u16*)(m_ic_card_data + 0x28) = *(u16*)(m_ic_card_data + 0x28) - 1;
+                auto ic_card_data = Common::BitCastPtr<u16>(m_ic_card_data + 0x28);
+                ic_card_data = ic_card_data - 1;
 
                 // Counter
                 icco.extdata[0] = m_ic_card_data[0x28];
@@ -696,8 +675,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               }
               case ICCARDCommand::ReadPages:
               {
-                const u16 page = Common::swap16(*(u16*)(data_in + 6));
-                const u16 count = Common::swap16(*(u16*)(data_in + 8));
+                const u16 page = Common::swap16(data_in + 6);
+                const u16 count = Common::swap16(data_in + 8);
 
                 const u32 offs = page * 8;
                 u32 cnt = count * 8;
@@ -721,9 +700,9 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               case ICCARDCommand::WritePages:
               {
                 const u16 pksize = length;
-                const u16 size = Common::swap16(*(u16*)(data_in + 2));
-                const u16 page = Common::swap16(*(u16*)(data_in + 6));
-                const u16 count = Common::swap16(*(u16*)(data_in + 8));
+                const u16 size = Common::swap16(data_in + 2);
+                const u16 page = Common::swap16(data_in + 6);
+                const u16 count = Common::swap16(data_in + 8);
 
                 // We got a complete packet
                 if (pksize - 5 == size)
@@ -872,7 +851,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 break;
               }
 
-              ICCardSendReply(&icco, data_out, &data_offset);
+              ICCardSendReply(&icco, data_out.data(), &data_offset);
 
               data_in += length;
               break;
@@ -884,8 +863,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           {
             // All commands are OR'd with 0x80
             // Last byte is checksum which we don't care about
-            const u32 serial_command =
-                Common::swap32(*(u32*)(data_in + command_offset)) ^ 0x80000000;
+            const u32 serial_command = Common::swap32(data_in + command_offset) ^ 0x80000000;
 
             if (AMMediaboard::GetGameType() == FZeroAX ||
                 AMMediaboard::GetGameType() == FZeroAXMonster)
@@ -914,7 +892,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               }
             }
 
-            command_offset += 4;
+            command_offset += sizeof(u32);
 
             if (AMMediaboard::GetGameType() == FZeroAX ||
                 AMMediaboard::GetGameType() == FZeroAXMonster)
@@ -929,9 +907,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               switch (serial_command >> 24)
               {
               case 0:
-                break;
               case 1:  // Set Maximum?
-                break;
               case 2:
                 break;
 
@@ -955,8 +931,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 {
                   if (serial_interface.GetDeviceType(1) == SerialInterface::SIDEVICE_GC_STEERING)
                   {
-                    const GCPadStatus PadStatus = Pad::GetStatus(1);
-                    if (PadStatus.isConnected)
+                    const GCPadStatus pad_status = Pad::GetStatus(1);
+                    if (pad_status.isConnected)
                     {
                       const ControlState mapped_strength = (double)(m_motor_force_y >> 8) / 127.f;
 
@@ -1003,7 +979,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               m_motor_reply[0] = gcam_command;
               m_motor_reply[1] = length;  // Same out as in size
 
-              memcpy(data_out + data_offset, m_motor_reply, m_motor_reply[1] + 2);
+              memcpy(data_out.data() + data_offset, m_motor_reply, m_motor_reply[1] + 2);
               data_offset += m_motor_reply[1] + 2;
             }
           }
@@ -1027,13 +1003,13 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
                 if (AMMediaboard::GetGameType() == FZeroAX)
                 {
-                  if (read_length > 0x2F)
-                    read_length = 0x2F;
+                  read_length = std::min<u32>(read_length, 0x2F);
                 }
 
                 data_out[data_offset++] = read_length;  // 0x2F (max size per packet)
 
-                memcpy(data_out + data_offset, m_card_read_packet + m_card_read, read_length);
+                memcpy(data_out.data() + data_offset, m_card_read_packet + m_card_read,
+                       read_length);
 
                 data_offset += read_length;
                 m_card_read += read_length;
@@ -1082,9 +1058,6 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 data_out[data_offset++] = 0x00;  // 0x03
                 break;
               case CARDCommand::SetPrintParam:
-                data_out[data_offset++] = 0x00;  // 0x02
-                data_out[data_offset++] = 0x00;  // 0x03
-                break;
               case CARDCommand::RegisterFont:
                 data_out[data_offset++] = 0x00;  // 0x02
                 data_out[data_offset++] = 0x00;  // 0x03
@@ -1092,6 +1065,9 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               case CARDCommand::WriteInfo:
                 data_out[data_offset++] = 0x02;  // 0x02
                 data_out[data_offset++] = 0x00;  // 0x03
+                break;
+                // TODO: CARDCommand::Erase is not handled.
+                ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "CARDCommand::Erase is not handled.");
                 break;
               case CARDCommand::Eject:
                 if (AMMediaboard::GetGameType() == FZeroAX)
@@ -1322,9 +1298,9 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                                      "GC-AM: Command CARD Write: {:02X} {:02X} {:02X} {}", mode,
                                      bitmode, track, m_card_memory_size);
 
-                      const std::string card_filename(
-                          File::GetUserPath(D_TRIUSER_IDX) + "tricard_" +
-                          SConfig::GetInstance().GetGameID().c_str() + ".bin");
+                      const std::string card_filename(File::GetUserPath(D_TRIUSER_IDX) +
+                                                      "tricard_" +
+                                                      SConfig::GetInstance().GetGameID() + ".bin");
 
                       File::IOFile card(card_filename, "wb+");
                       card.WriteBytes(m_card_memory, m_card_memory_size);
@@ -1408,6 +1384,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           const u8* frame = &data_in[0];
           const u8 nr_bytes = frame[3];        // Byte after E0 xx
           const u32 frame_len = nr_bytes + 3;  // Header(2) + length byte + payload + checksum
+
+          // TODO: frame_len isn't checked for buffer overflow.
 
           u8 jvs_buf[0x80];
           memcpy(jvs_buf, frame, frame_len);
@@ -1500,59 +1478,59 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 //
                 // DX Version: 2 Player (22bit) (p2=paddles), 2 Coin slot, 8 Analog-in,
                 // 22 Driver-out
-                message.AddData((void*)"\x01\x02\x12\x00", 4);
-                message.AddData((void*)"\x02\x02\x00\x00", 4);
-                message.AddData((void*)"\x03\x08\x0A\x00", 4);
-                message.AddData((void*)"\x12\x16\x00\x00", 4);
-                message.AddData((void*)"\x00\x00\x00\x00", 4);
+                message.AddData("\x01\x02\x12\x00", 4);
+                message.AddData("\x02\x02\x00\x00", 4);
+                message.AddData("\x03\x08\x0A\x00", 4);
+                message.AddData("\x12\x16\x00\x00", 4);
+                message.AddData("\x00\x00\x00\x00", 4);
                 break;
               case VirtuaStriker3:
                 // 2 Player (13bit), 2 Coin slot, 4 Analog-in, 1 CARD, 8 Driver-out
-                message.AddData((void*)"\x01\x02\x0D\x00", 4);
-                message.AddData((void*)"\x02\x02\x00\x00", 4);
-                message.AddData((void*)"\x10\x01\x00\x00", 4);
-                message.AddData((void*)"\x12\x08\x00\x00", 4);
-                message.AddData((void*)"\x00\x00\x00\x00", 4);
+                message.AddData("\x01\x02\x0D\x00", 4);
+                message.AddData("\x02\x02\x00\x00", 4);
+                message.AddData("\x10\x01\x00\x00", 4);
+                message.AddData("\x12\x08\x00\x00", 4);
+                message.AddData("\x00\x00\x00\x00", 4);
                 break;
               case GekitouProYakyuu:
                 // 2 Player (13bit), 2 Coin slot, 4 Analog-in, 1 CARD, 8 Driver-out
-                message.AddData((void*)"\x01\x02\x0D\x00", 4);
-                message.AddData((void*)"\x02\x02\x00\x00", 4);
-                message.AddData((void*)"\x03\x04\x00\x00", 4);
-                message.AddData((void*)"\x10\x01\x00\x00", 4);
-                message.AddData((void*)"\x12\x08\x00\x00", 4);
-                message.AddData((void*)"\x00\x00\x00\x00", 4);
+                message.AddData("\x01\x02\x0D\x00", 4);
+                message.AddData("\x02\x02\x00\x00", 4);
+                message.AddData("\x03\x04\x00\x00", 4);
+                message.AddData("\x10\x01\x00\x00", 4);
+                message.AddData("\x12\x08\x00\x00", 4);
+                message.AddData("\x00\x00\x00\x00", 4);
                 break;
               case VirtuaStriker4:
               case VirtuaStriker4_2006:
                 // 2 Player (13bit), 1 Coin slot, 4 Analog-in, 1 CARD
-                message.AddData((void*)"\x01\x02\x0D\x00", 4);
-                message.AddData((void*)"\x02\x01\x00\x00", 4);
-                message.AddData((void*)"\x03\x04\x00\x00", 4);
-                message.AddData((void*)"\x10\x01\x00\x00", 4);
-                message.AddData((void*)"\x00\x00\x00\x00", 4);
+                message.AddData("\x01\x02\x0D\x00", 4);
+                message.AddData("\x02\x01\x00\x00", 4);
+                message.AddData("\x03\x04\x00\x00", 4);
+                message.AddData("\x10\x01\x00\x00", 4);
+                message.AddData("\x00\x00\x00\x00", 4);
                 break;
               case KeyOfAvalon:
                 // 1 Player (15bit), 1 Coin slot, 3 Analog-in, Touch, 1 CARD, 1 Driver-out
                 // (Unconfirmed)
-                message.AddData((void*)"\x01\x01\x0F\x00", 4);
-                message.AddData((void*)"\x02\x01\x00\x00", 4);
-                message.AddData((void*)"\x03\x03\x00\x00", 4);
-                message.AddData((void*)"\x06\x10\x10\x01", 4);
-                message.AddData((void*)"\x10\x01\x00\x00", 4);
-                message.AddData((void*)"\x12\x01\x00\x00", 4);
-                message.AddData((void*)"\x00\x00\x00\x00", 4);
+                message.AddData("\x01\x01\x0F\x00", 4);
+                message.AddData("\x02\x01\x00\x00", 4);
+                message.AddData("\x03\x03\x00\x00", 4);
+                message.AddData("\x06\x10\x10\x01", 4);
+                message.AddData("\x10\x01\x00\x00", 4);
+                message.AddData("\x12\x01\x00\x00", 4);
+                message.AddData("\x00\x00\x00\x00", 4);
                 break;
               case MarioKartGP:
               case MarioKartGP2:
               default:
                 // 1 Player (15bit), 1 Coin slot, 3 Analog-in, 1 CARD, 1 Driver-out
-                message.AddData((void*)"\x01\x01\x0F\x00", 4);
-                message.AddData((void*)"\x02\x01\x00\x00", 4);
-                message.AddData((void*)"\x03\x03\x00\x00", 4);
-                message.AddData((void*)"\x10\x01\x00\x00", 4);
-                message.AddData((void*)"\x12\x01\x00\x00", 4);
-                message.AddData((void*)"\x00\x00\x00\x00", 4);
+                message.AddData("\x01\x01\x0F\x00", 4);
+                message.AddData("\x02\x01\x00\x00", 4);
+                message.AddData("\x03\x03\x00\x00", 4);
+                message.AddData("\x10\x01\x00\x00", 4);
+                message.AddData("\x12\x01\x00\x00", 4);
+                message.AddData("\x00\x00\x00\x00", 4);
                 break;
               }
               NOTICE_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0x14, CheckFunctionality");
@@ -1573,10 +1551,10 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
               message.AddData(StatusOkay);
 
-              GCPadStatus PadStatus = Pad::GetStatus(0);
+              GCPadStatus pad_status = Pad::GetStatus(0);
 
               // Test button
-              if (PadStatus.switches & SWITCH_TEST)
+              if (pad_status.switches & SWITCH_TEST)
               {
                 // Trying to access the test menu without SegaBoot present will cause a crash
                 if (AMMediaboard::GetTestMenu())
@@ -1585,7 +1563,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 }
                 else
                 {
-                  PanicAlertFmt("Test menu is disabled due missing SegaBoot");
+                  PanicAlertFmt("Test menu is disabled due to missing SegaBoot");
                 }
               }
               else
@@ -1595,10 +1573,10 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
               for (u32 i = 0; i < player_count; ++i)
               {
-                u8 player_data[3] = {0, 0, 0};
+                u8 player_data[3]{};
 
                 // Service button
-                if (PadStatus.switches & SWITCH_SERVICE)
+                if (pad_status.switches & SWITCH_SERVICE)
                   player_data[0] |= 0x40;
 
                 switch (AMMediaboard::GetGameType())
@@ -1613,32 +1591,32 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                     }
 
                     // Start
-                    if (PadStatus.button & PAD_BUTTON_START)
+                    if (pad_status.button & PAD_BUTTON_START)
                       player_data[0] |= 0x80;
                     // Boost
-                    if (PadStatus.button & PAD_BUTTON_A)
+                    if (pad_status.button & PAD_BUTTON_A)
                       player_data[0] |= 0x02;
                     // View Change 1
-                    if (PadStatus.button & PAD_BUTTON_RIGHT)
+                    if (pad_status.button & PAD_BUTTON_RIGHT)
                       player_data[0] |= 0x20;
                     // View Change 2
-                    if (PadStatus.button & PAD_BUTTON_LEFT)
+                    if (pad_status.button & PAD_BUTTON_LEFT)
                       player_data[0] |= 0x10;
                     // View Change 3
-                    if (PadStatus.button & PAD_BUTTON_UP)
+                    if (pad_status.button & PAD_BUTTON_UP)
                       player_data[0] |= 0x08;
                     // View Change 4
-                    if (PadStatus.button & PAD_BUTTON_DOWN)
+                    if (pad_status.button & PAD_BUTTON_DOWN)
                       player_data[0] |= 0x04;
                     player_data[1] = m_rx_reply & 0xF0;
                   }
                   else if (i == 1)
                   {
                     //  Paddle left
-                    if (PadStatus.button & PAD_BUTTON_X)
+                    if (pad_status.button & PAD_BUTTON_X)
                       player_data[0] |= 0x20;
                     //  Paddle right
-                    if (PadStatus.button & PAD_BUTTON_Y)
+                    if (pad_status.button & PAD_BUTTON_Y)
                       player_data[0] |= 0x10;
 
                     if (m_fzdx_motion_stop)
@@ -1667,22 +1645,22 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                     }
 
                     // Start
-                    if (PadStatus.button & PAD_BUTTON_START)
+                    if (pad_status.button & PAD_BUTTON_START)
                       player_data[0] |= 0x80;
                     // Boost
-                    if (PadStatus.button & PAD_BUTTON_A)
+                    if (pad_status.button & PAD_BUTTON_A)
                       player_data[0] |= 0x02;
                     // View Change 1
-                    if (PadStatus.button & PAD_BUTTON_RIGHT)
+                    if (pad_status.button & PAD_BUTTON_RIGHT)
                       player_data[0] |= 0x20;
                     // View Change 2
-                    if (PadStatus.button & PAD_BUTTON_LEFT)
+                    if (pad_status.button & PAD_BUTTON_LEFT)
                       player_data[0] |= 0x10;
                     // View Change 3
-                    if (PadStatus.button & PAD_BUTTON_UP)
+                    if (pad_status.button & PAD_BUTTON_UP)
                       player_data[0] |= 0x08;
                     // View Change 4
-                    if (PadStatus.button & PAD_BUTTON_DOWN)
+                    if (pad_status.button & PAD_BUTTON_DOWN)
                       player_data[0] |= 0x04;
 
                     player_data[1] = m_rx_reply & 0xF0;
@@ -1690,10 +1668,10 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   else if (i == 1)
                   {
                     //  Paddle left
-                    if (PadStatus.button & PAD_BUTTON_X)
+                    if (pad_status.button & PAD_BUTTON_X)
                       player_data[0] |= 0x20;
                     //  Paddle right
-                    if (PadStatus.button & PAD_BUTTON_Y)
+                    if (pad_status.button & PAD_BUTTON_Y)
                       player_data[0] |= 0x10;
 
                     if (m_fzcc_seatbelt)
@@ -1712,60 +1690,60 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   break;
                 // Controller configuration for Virtua Striker 3 games
                 case VirtuaStriker3:
-                  PadStatus = Pad::GetStatus(i);
+                  pad_status = Pad::GetStatus(i);
                   // Start
-                  if (PadStatus.button & PAD_BUTTON_START)
+                  if (pad_status.button & PAD_BUTTON_START)
                     player_data[0] |= 0x80;
                   // Shoot
-                  if (PadStatus.button & PAD_BUTTON_B)
+                  if (pad_status.button & PAD_BUTTON_B)
                     player_data[0] |= 0x01;
                   // Short Pass
-                  if (PadStatus.button & PAD_BUTTON_A)
+                  if (pad_status.button & PAD_BUTTON_A)
                     player_data[1] |= 0x80;
                   // Long Pass
-                  if (PadStatus.button & PAD_BUTTON_X)
+                  if (pad_status.button & PAD_BUTTON_X)
                     player_data[0] |= 0x02;
                   // Left
-                  if (PadStatus.button & PAD_BUTTON_LEFT)
+                  if (pad_status.button & PAD_BUTTON_LEFT)
                     player_data[0] |= 0x08;
                   // Up
-                  if (PadStatus.button & PAD_BUTTON_UP)
+                  if (pad_status.button & PAD_BUTTON_UP)
                     player_data[0] |= 0x20;
                   // Right
-                  if (PadStatus.button & PAD_BUTTON_RIGHT)
+                  if (pad_status.button & PAD_BUTTON_RIGHT)
                     player_data[0] |= 0x04;
                   // Down
-                  if (PadStatus.button & PAD_BUTTON_DOWN)
+                  if (pad_status.button & PAD_BUTTON_DOWN)
                     player_data[0] |= 0x10;
                   break;
                 // Controller configuration for Virtua Striker 4 games
                 case VirtuaStriker4:
                 case VirtuaStriker4_2006:
                 {
-                  PadStatus = Pad::GetStatus(i);
+                  pad_status = Pad::GetStatus(i);
                   // Start
-                  if (PadStatus.button & PAD_BUTTON_START)
+                  if (pad_status.button & PAD_BUTTON_START)
                     player_data[0] |= 0x80;
                   // Long Pass
-                  if (PadStatus.button & PAD_BUTTON_X)
+                  if (pad_status.button & PAD_BUTTON_X)
                     player_data[0] |= 0x01;
                   // Short Pass
-                  if (PadStatus.button & PAD_BUTTON_A)
+                  if (pad_status.button & PAD_BUTTON_A)
                     player_data[0] |= 0x02;
                   // Shoot
-                  if (PadStatus.button & PAD_BUTTON_B)
+                  if (pad_status.button & PAD_BUTTON_B)
                     player_data[1] |= 0x80;
                   // Dash
-                  if (PadStatus.button & PAD_BUTTON_Y)
+                  if (pad_status.button & PAD_BUTTON_Y)
                     player_data[1] |= 0x40;
                   // Tactics (U)
-                  if (PadStatus.button & PAD_BUTTON_LEFT)
+                  if (pad_status.button & PAD_BUTTON_LEFT)
                     player_data[0] |= 0x20;
                   // Tactics (M)
-                  if (PadStatus.button & PAD_BUTTON_UP)
+                  if (pad_status.button & PAD_BUTTON_UP)
                     player_data[0] |= 0x08;
                   // Tactics (D)
-                  if (PadStatus.button & PAD_BUTTON_RIGHT)
+                  if (pad_status.button & PAD_BUTTON_RIGHT)
                     player_data[0] |= 0x04;
 
                   if (i == 0)
@@ -1773,37 +1751,37 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                     player_data[0] |= 0x10;  // IC-Card Switch ON
 
                     // IC-Card Lock
-                    if (PadStatus.button & PAD_BUTTON_DOWN)
+                    if (pad_status.button & PAD_BUTTON_DOWN)
                       player_data[1] |= 0x20;
                   }
                 }
                 break;
                 // Controller configuration for Gekitou Pro Yakyuu
                 case GekitouProYakyuu:
-                  PadStatus = Pad::GetStatus(i);
+                  pad_status = Pad::GetStatus(i);
                   // Start
-                  if (PadStatus.button & PAD_BUTTON_START)
+                  if (pad_status.button & PAD_BUTTON_START)
                     player_data[0] |= 0x80;
                   //  A
-                  if (PadStatus.button & PAD_BUTTON_B)
+                  if (pad_status.button & PAD_BUTTON_B)
                     player_data[0] |= 0x01;
                   //  B
-                  if (PadStatus.button & PAD_BUTTON_A)
+                  if (pad_status.button & PAD_BUTTON_A)
                     player_data[0] |= 0x02;
                   //  Gekitou
-                  if (PadStatus.button & PAD_TRIGGER_L)
+                  if (pad_status.button & PAD_TRIGGER_L)
                     player_data[1] |= 0x80;
                   // Left
-                  if (PadStatus.button & PAD_BUTTON_LEFT)
+                  if (pad_status.button & PAD_BUTTON_LEFT)
                     player_data[0] |= 0x08;
                   // Up
-                  if (PadStatus.button & PAD_BUTTON_UP)
+                  if (pad_status.button & PAD_BUTTON_UP)
                     player_data[0] |= 0x20;
                   // Right
-                  if (PadStatus.button & PAD_BUTTON_RIGHT)
+                  if (pad_status.button & PAD_BUTTON_RIGHT)
                     player_data[0] |= 0x04;
                   // Down
-                  if (PadStatus.button & PAD_BUTTON_DOWN)
+                  if (pad_status.button & PAD_BUTTON_DOWN)
                     player_data[0] |= 0x10;
                   break;
                 // Controller configuration for Mario Kart and other games
@@ -1812,29 +1790,29 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 case MarioKartGP2:
                 {
                   // Start
-                  if (PadStatus.button & PAD_BUTTON_START)
+                  if (pad_status.button & PAD_BUTTON_START)
                     player_data[0] |= 0x80;
                   // Item button
-                  if (PadStatus.button & PAD_BUTTON_A)
+                  if (pad_status.button & PAD_BUTTON_A)
                     player_data[1] |= 0x20;
                   // VS-Cancel button
-                  if (PadStatus.button & PAD_BUTTON_B)
+                  if (pad_status.button & PAD_BUTTON_B)
                     player_data[1] |= 0x02;
                 }
                 break;
                 case KeyOfAvalon:
                 {
                   // Debug On
-                  if (PadStatus.button & PAD_BUTTON_START)
+                  if (pad_status.button & PAD_BUTTON_START)
                     player_data[0] |= 0x80;
                   // Switch 1
-                  if (PadStatus.button & PAD_BUTTON_A)
+                  if (pad_status.button & PAD_BUTTON_A)
                     player_data[0] |= 0x04;
                   // Switch 2
-                  if (PadStatus.button & PAD_BUTTON_B)
+                  if (pad_status.button & PAD_BUTTON_B)
                     player_data[0] |= 0x08;
                   // Toggle inserted card
-                  if (PadStatus.button & PAD_TRIGGER_L)
+                  if (pad_status.button & PAD_TRIGGER_L)
                   {
                     m_ic_card_status ^= ICCARDStatus::NoCard;
                   }
@@ -1853,12 +1831,12 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               message.AddData(StatusOkay);
               for (u32 i = 0; i < slots; i++)
               {
-                GCPadStatus PadStatus = Pad::GetStatus(i);
-                if ((PadStatus.switches & SWITCH_COIN) && !m_coin_pressed[i])
+                GCPadStatus pad_status = Pad::GetStatus(i);
+                if ((pad_status.switches & SWITCH_COIN) && !m_coin_pressed[i])
                 {
                   m_coin[i]++;
                 }
-                m_coin_pressed[i] = PadStatus.switches & SWITCH_COIN;
+                m_coin_pressed[i] = pad_status.switches & SWITCH_COIN;
                 message.AddData((m_coin[i] >> 8) & 0x3f);
                 message.AddData(m_coin[i] & 0xff);
               }
@@ -1870,7 +1848,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               message.AddData(StatusOkay);
 
               const u32 analogs = *jvs_io++;
-              GCPadStatus PadStatus = Pad::GetStatus(0);
+              GCPadStatus pad_status = Pad::GetStatus(0);
 
               DEBUG_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0x22, AnalogInput: {}",
                             analogs);
@@ -1892,16 +1870,16 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   }
                   message.AddData((u8)0);
 
-                  message.AddData(PadStatus.stickY);
+                  message.AddData(pad_status.stickY);
                   message.AddData((u8)0);
                 }
                 else
                 {
                   // The center for the Y axis is expected to be 78h this adjusts that
-                  message.AddData(PadStatus.stickX - 12);
+                  message.AddData(pad_status.stickX - 12);
                   message.AddData((u8)0);
 
-                  message.AddData(PadStatus.stickY);
+                  message.AddData(pad_status.stickY);
                   message.AddData((u8)0);
                 }
 
@@ -1912,11 +1890,11 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 message.AddData((u8)0);
 
                 // Gas
-                message.AddData(PadStatus.triggerRight);
+                message.AddData(pad_status.triggerRight);
                 message.AddData((u8)0);
 
                 // Brake
-                message.AddData(PadStatus.triggerLeft);
+                message.AddData(pad_status.triggerLeft);
                 message.AddData((u8)0);
 
                 message.AddData((u8)0x80);  // Motion Stop
@@ -1929,16 +1907,16 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               case VirtuaStriker4:
               case VirtuaStriker4_2006:
               {
-                message.AddData(-PadStatus.stickY);
+                message.AddData(-pad_status.stickY);
                 message.AddData((u8)0);
-                message.AddData(PadStatus.stickX);
+                message.AddData(pad_status.stickX);
                 message.AddData((u8)0);
 
-                PadStatus = Pad::GetStatus(1);
+                pad_status = Pad::GetStatus(1);
 
-                message.AddData(-PadStatus.stickY);
+                message.AddData(-pad_status.stickY);
                 message.AddData((u8)0);
-                message.AddData(PadStatus.stickX);
+                message.AddData(pad_status.stickX);
                 message.AddData((u8)0);
               }
               break;
@@ -1946,15 +1924,15 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               case MarioKartGP:
               case MarioKartGP2:
                 // Steering
-                message.AddData(PadStatus.stickX);
+                message.AddData(pad_status.stickX);
                 message.AddData((u8)0);
 
                 // Gas
-                message.AddData(PadStatus.triggerRight);
+                message.AddData(pad_status.triggerRight);
                 message.AddData((u8)0);
 
                 // Brake
-                message.AddData(PadStatus.triggerLeft);
+                message.AddData(pad_status.triggerLeft);
                 message.AddData((u8)0);
                 break;
               }
@@ -1964,17 +1942,17 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             {
               const u32 channel = *jvs_io++;
 
-              const GCPadStatus PadStatus = Pad::GetStatus(0);
+              const GCPadStatus pad_status = Pad::GetStatus(0);
 
-              if (PadStatus.button & PAD_TRIGGER_R)
+              if (pad_status.button & PAD_TRIGGER_R)
               {
                 // Tap at center of screen (~320,240)
-                message.AddData((void*)"\x01\x00\x8C\x01\x95",
+                message.AddData("\x01\x00\x8C\x01\x95",
                                 5);  // X=320 (0x0140), Y=240 (0x00F0)
               }
               else
               {
-                message.AddData((void*)"\x01\xFF\xFF\xFF\xFF", 5);
+                message.AddData("\x01\xFF\xFF\xFF\xFF", 5);
               }
 
               DEBUG_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0x25, PositionInput:{}",
@@ -2035,10 +2013,10 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                     SERIALINTERFACE_JVSIO,
                     "JVS-IO: Command 0x32, GPO: {:02x} {:02x} {} {:02x}{:02x}{:02x} ({:02x})",
                     delay, m_rx_reply, bytes, buf[0], buf[1], buf[2],
-                    Common::swap16(*reinterpret_cast<u16*>(&buf[1])) >> 2);
+                    Common::swap16(buf.data() + 1) >> 2);
 
                 // Handling of the motion seat used in F-Zero AXs DX version
-                switch (Common::swap16(*reinterpret_cast<u16*>(&buf[1])) >> 2)
+                switch (Common::swap16(buf.data() + 1) >> 2)
                 {
                 case 0x70:
                   delay++;
@@ -2117,7 +2095,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
           data_out[data_offset++] = gcam_command;
 
-          const u8* buf = message.m_msg;
+          const u8* buf = message.m_msg.data();
           const u32 len = message.m_ptr;
           data_out[data_offset++] = len;
 

@@ -92,7 +92,7 @@ Region VolumeGC::GetRegion() const
 {
   if (m_is_triforce)
   {
-    switch (m_triforce_header.regionFlags)
+    switch (m_triforce_header.region_flags)
     {
     default:
     case 0x02:  // JAPAN

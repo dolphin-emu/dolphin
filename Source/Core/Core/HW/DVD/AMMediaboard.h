@@ -3,24 +3,9 @@
 
 #pragma once
 
-#include <memory>
-#include <optional>
-#include <string>
-#include <vector>
+#include <array>
 
 #include "Common/CommonTypes.h"
-
-class PointerWrap;
-
-namespace Core
-{
-class System;
-}
-
-namespace File
-{
-class IOFile;
-}
 
 enum GameType
 {
@@ -66,8 +51,6 @@ enum InquiryType
   Version1 = 0x21484100,
   Version2 = 0x29484100,
 };
-
-#define SocketCheck(x) (x <= 0x3F ? x : 0)
 
 namespace AMMediaboard
 {
@@ -228,8 +211,8 @@ enum SocketStatusCodes
 void Init();
 void FirmwareMap(bool on);
 u8* InitDIMM(u32 size);
-void InitKeys(u32 KeyA, u32 KeyB, u32 KeyC);
-u32 ExecuteCommand(std::array<u32, 3>& DICMDBUF, u32* DIIMMBUF, u32 Address, u32 Length);
+void InitKeys(u32 key_a, u32 key_b, u32 key_c);
+u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u32 length);
 u32 GetGameType();
 u32 GetMediaType();
 bool GetTestMenu();

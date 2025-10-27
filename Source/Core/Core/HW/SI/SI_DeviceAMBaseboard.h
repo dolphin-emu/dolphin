@@ -19,12 +19,11 @@ namespace SerialInterface
 class JVSIOMessage
 {
 public:
-  u32 m_ptr;
-  u32 m_last_start;
-  u32 m_csum;
-  u8 m_msg[0x80];
+  u32 m_ptr = 0;
+  u32 m_last_start = 0;
+  u32 m_csum = 0;
+  std::array<u8, 0x80> m_msg;
 
-  JVSIOMessage();
   void Start(int node);
   void AddData(const u8* dst, std::size_t len, int sync);
   void AddData(const void* data, std::size_t len);
