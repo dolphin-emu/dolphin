@@ -67,8 +67,6 @@ static Config::ConfigChangedCallbackID s_config_changed_callback_id;
 
 static void CreateDumpPath(std::string path)
 {
-  if (!path.empty())
-    File::SetUserPath(D_DUMP_IDX, std::move(path));
   File::CreateFullPath(File::GetUserPath(D_DUMPAUDIO_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
@@ -82,18 +80,10 @@ static void CreateDumpPath(std::string path)
 
 static void CreateLoadPath(std::string path)
 {
-  if (!path.empty())
-    File::SetUserPath(D_LOAD_IDX, std::move(path));
   File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
   File::CreateFullPath(File::GetUserPath(D_RIIVOLUTION_IDX));
   File::CreateFullPath(File::GetUserPath(D_GRAPHICSMOD_IDX));
   File::CreateFullPath(File::GetUserPath(D_DYNAMICINPUT_IDX));
-}
-
-static void CreateResourcePackPath(std::string path)
-{
-  if (!path.empty())
-    File::SetUserPath(D_RESOURCEPACK_IDX, std::move(path));
 }
 
 static void CreateWFSPath(const std::string& path)
@@ -104,18 +94,11 @@ static void CreateWFSPath(const std::string& path)
 
 static void InitCustomPaths()
 {
-  File::SetUserPath(D_WIIROOT_IDX, Config::Get(Config::MAIN_FS_PATH));
   CreateLoadPath(Config::Get(Config::MAIN_LOAD_PATH));
   CreateDumpPath(Config::Get(Config::MAIN_DUMP_PATH));
-  CreateResourcePackPath(Config::Get(Config::MAIN_RESOURCEPACK_PATH));
   CreateWFSPath(Config::Get(Config::MAIN_WFS_PATH));
-  File::SetUserPath(F_WIISDCARDIMAGE_IDX, Config::Get(Config::MAIN_WII_SD_CARD_IMAGE_PATH));
-  File::SetUserPath(D_WIISDCARDSYNCFOLDER_IDX,
-                    Config::Get(Config::MAIN_WII_SD_CARD_SYNC_FOLDER_PATH));
   File::CreateFullPath(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX));
 #ifdef HAS_LIBMGBA
-  File::SetUserPath(F_GBABIOS_IDX, Config::Get(Config::MAIN_GBA_BIOS_PATH));
-  File::SetUserPath(D_GBASAVES_IDX, Config::Get(Config::MAIN_GBA_SAVES_PATH));
   File::CreateFullPath(File::GetUserPath(D_GBASAVES_IDX));
 #endif
 }

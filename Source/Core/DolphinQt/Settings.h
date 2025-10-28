@@ -223,8 +223,6 @@ signals:
   void AnalyticsToggled(bool enabled);
   void ReleaseDevices();
   void DevicesChanged();
-  void SDCardInsertionChanged(bool inserted);
-  void USBKeyboardConnectionChanged(bool connected);
   void WiiSpeakMuteChanged(bool muted);
   void EnableGfxModsChanged(bool enabled);
 

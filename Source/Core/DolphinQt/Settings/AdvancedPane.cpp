@@ -4,7 +4,6 @@
 #include "DolphinQt/Settings/AdvancedPane.h"
 
 #include <QCheckBox>
-#include <QComboBox>
 #include <QDateTimeEdit>
 #include <QFontMetrics>
 #include <QFormLayout>
@@ -17,6 +16,9 @@
 #include <QVBoxLayout>
 #include <cmath>
 
+#include "Common/Config/Config.h"
+#include "Common/Config/Enums.h"
+#include "Common/FileUtil.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -26,11 +28,17 @@
 #include "Core/System.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/ConfigControls/ConfigFloatSlider.h"
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
+#include "DolphinQt/QtUtils/AnalyticsPrompt.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
+
+#include "UICommon/UICommon.h"
 
 static const std::map<PowerPC::CPUCore, const char*> CPU_CORE_NAMES = {
     {PowerPC::CPUCore::Interpreter, QT_TR_NOOP("Interpreter (slowest)")},
@@ -64,12 +72,12 @@ void AdvancedPane::CreateLayout()
   cpu_emulation_engine_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
   cpu_options_group_layout->addLayout(cpu_emulation_engine_layout);
 
-  m_cpu_emulation_engine_combobox = new QComboBox(this);
-  cpu_emulation_engine_layout->addRow(tr("CPU Emulation Engine:"), m_cpu_emulation_engine_combobox);
+  std::vector<std::pair<QString, PowerPC::CPUCore>> emulation_engine_choices;
   for (PowerPC::CPUCore cpu_core : PowerPC::AvailableCPUCores())
-  {
-    m_cpu_emulation_engine_combobox->addItem(tr(CPU_CORE_NAMES.at(cpu_core)));
-  }
+    emulation_engine_choices.emplace_back(tr(CPU_CORE_NAMES.at(cpu_core)), cpu_core);
+  m_cpu_emulation_engine_combobox =
+      new ConfigChoiceMap<PowerPC::CPUCore>(emulation_engine_choices, Config::MAIN_CPU_CORE);
+  cpu_emulation_engine_layout->addRow(tr("CPU Emulation Engine:"), m_cpu_emulation_engine_combobox);
 
   m_enable_mmu_checkbox = new ConfigBool(tr("Enable MMU"), Config::MAIN_MMU);
   m_enable_mmu_checkbox->SetDescription(
@@ -284,17 +292,20 @@ void AdvancedPane::CreateLayout()
          "your current system time."
          "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
 
+  auto* reset_group = new QGroupBox(tr("Reset Dolphin Settings"));
+  reset_group->setLayout(new QVBoxLayout());
+  main_layout->addWidget(reset_group);
+
+  m_reset_button = new NonDefaultQPushButton(tr("Reset All Settings"));
+  connect(m_reset_button, &QPushButton::clicked, this, &AdvancedPane::OnResetButtonClicked);
+
+  reset_group->layout()->addWidget(m_reset_button);
+
   main_layout->addStretch(1);
 }
 
 void AdvancedPane::ConnectLayout()
 {
-  connect(m_cpu_emulation_engine_combobox, &QComboBox::currentIndexChanged, [](int index) {
-    const auto cpu_cores = PowerPC::AvailableCPUCores();
-    if (index >= 0 && static_cast<size_t>(index) < cpu_cores.size())
-      Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, cpu_cores[index]);
-  });
-
   m_ram_override_checkbox->setChecked(Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE));
   connect(m_ram_override_checkbox, &QCheckBox::toggled, [this](bool enable_ram_override) {
     Config::SetBaseOrCurrent(Config::MAIN_RAM_OVERRIDE_ENABLE, enable_ram_override);
@@ -317,13 +328,6 @@ void AdvancedPane::Update()
   const bool enable_custom_rtc_widgets =
       Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE) && is_uninitialized;
 
-  const auto available_cpu_cores = PowerPC::AvailableCPUCores();
-  const auto cpu_core = Config::Get(Config::MAIN_CPU_CORE);
-  for (size_t i = 0; i < available_cpu_cores.size(); ++i)
-  {
-    if (available_cpu_cores[i] == cpu_core)
-      m_cpu_emulation_engine_combobox->setCurrentIndex(int(i));
-  }
   m_cpu_emulation_engine_combobox->setEnabled(is_uninitialized);
   m_enable_mmu_checkbox->setEnabled(is_uninitialized);
   m_pause_on_panic_checkbox->setEnabled(is_uninitialized);
@@ -366,4 +370,30 @@ void AdvancedPane::Update()
   initial_date_time.setSecsSinceEpoch(Config::Get(Config::MAIN_CUSTOM_RTC_VALUE));
   m_custom_rtc_datetime->setEnabled(enable_custom_rtc_widgets);
   SignalBlocking(m_custom_rtc_datetime)->setDateTime(initial_date_time);
+
+  m_reset_button->setEnabled(is_uninitialized);
+}
+
+void AdvancedPane::OnResetButtonClicked()
+{
+  if (ModalMessageBox::question(
+          this, tr("Reset Dolphin Settings"),
+          tr("Are you sure you want to restore all Dolphin settings to their default "
+             "values? This action cannot be undone!\n"
+             "All customizations or changes you have made will be lost.\n\n"
+             "Do you want to proceed?"),
+          ModalMessageBox::StandardButtons(ModalMessageBox::Yes | ModalMessageBox::No),
+          ModalMessageBox::No, Qt::WindowModality::WindowModal) == ModalMessageBox::No)
+  {
+    return;
+  }
+
+  SConfig::ResetAllSettings();
+  UICommon::SetUserDirectory(File::GetUserPath(D_USER_IDX));
+
+  emit Settings::Instance().ConfigChanged();
+
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
+  ShowAnalyticsPrompt(this);
+#endif
 }
