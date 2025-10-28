@@ -114,6 +114,10 @@
 	path = Externals/pugixml/pugixml
 	url = https://github.com/zeux/pugixml.git
 	shallow = true
+[submodule "Externals/cpp-ipc/cpp-ipc"]
+	path = Externals/cpp-ipc/cpp-ipc
+	url = https://github.com/mutouyun/cpp-ipc.git
+	shallow = true
 [submodule "Externals/cpp-optparse/cpp-optparse"]
 	path = Externals/cpp-optparse/cpp-optparse
 	url = https://github.com/weisslj/cpp-optparse.git

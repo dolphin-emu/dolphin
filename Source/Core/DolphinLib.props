@@ -962,6 +962,7 @@
     <ClCompile Include="Core\HW\DVD\DVDThread.cpp" />
     <ClCompile Include="Core\HW\DVD\FileMonitor.cpp" />
     <ClCompile Include="Core\HW\EXI\BBA\BuiltIn.cpp" />
+    <ClCompile Include="Core\HW\EXI\BBA\IPC.cpp" />
     <ClCompile Include="Core\HW\EXI\BBA\TAP_Win32.cpp" />
     <ClCompile Include="Core\HW\EXI\BBA\TAPServerConnection.cpp" />
     <ClCompile Include="Core\HW\EXI\BBA\TAPServerBBA.cpp" />
