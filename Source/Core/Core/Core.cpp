@@ -7,6 +7,7 @@
 #include <atomic>
 #include <cstring>
 #include <functional>
+#include <future>
 #include <mutex>
 #include <optional>
 #include <queue>
@@ -100,7 +101,6 @@ static bool s_wants_determinism;
 static std::thread s_emu_thread;
 static std::vector<StateChangedCallbackFunc> s_on_state_changed_callbacks;
 
-static std::thread s_cpu_thread;
 static bool s_is_throttler_temp_disabled = false;
 static bool s_frame_step = false;
 static std::atomic<bool> s_stop_frame_step;
@@ -289,16 +289,6 @@ void Stop(Core::System& system)  // - Hammertime!
   // Stop the CPU
   INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stop CPU"));
   system.GetCPU().Stop();
-
-  if (system.IsDualCoreMode())
-  {
-    // FIFO processing should now exit so that EmuThread()
-    // will continue concurrently with the rest of the commands
-    // in this function. We no longer rely on Postmessage.
-    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Wait for Video Loop to exit ..."));
-
-    system.GetFifo().ExitGpuLoop();
-  }
 }
 
 void DeclareAsCPUThread()
@@ -348,8 +338,6 @@ static void CPUSetInitialExecutionState(bool force_paused = false)
 static void CpuThread(Core::System& system, const std::optional<std::string>& savestate_path,
                       bool delete_savestate)
 {
-  DeclareAsCPUThread();
-
   if (system.IsDualCoreMode())
     Common::SetCurrentThreadName("CPU thread");
   else
@@ -418,17 +406,16 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
 
   if (GDBStub::IsActive())
   {
+    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stopping GDB ..."));
     GDBStub::Deinit();
+    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "GDB stopped."));
     INFO_LOG_FMT(GDB_STUB, "Killed by CPU shutdown");
-    return;
   }
 }
 
 static void FifoPlayerThread(Core::System& system, const std::optional<std::string>& savestate_path,
                              bool delete_savestate)
 {
-  DeclareAsCPUThread();
-
   if (system.IsDualCoreMode())
     Common::SetCurrentThreadName("FIFO player thread");
   else
@@ -459,6 +446,72 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
   }
 }
 
+// Returns a RAII object for video backend initialization and deinitialization.
+// Returns nullptr on failure.
+[[nodiscard]] static auto GetInitializedVideoGuard(Core::System& system,
+                                                   const WindowSystemInfo& wsi)
+{
+  using GuardType = Common::ScopeGuard<Common::MoveOnlyFunction<void()>>;
+  using ReturnType = std::unique_ptr<GuardType>;
+
+  const auto init_video = [&] {
+    DeclareAsGPUThread();
+
+    AsyncRequests::GetInstance()->SetPassthrough(!system.IsDualCoreMode());
+
+    // Must happen on the proper thread for some video backends, e.g. OpenGL.
+    return g_video_backend->Initialize(wsi);
+  };
+
+  const auto deinit_video = [] {
+    // Clear on screen messages that haven't expired
+    OSD::ClearMessages();
+
+    g_video_backend->Shutdown();
+  };
+
+  if (system.IsDualCoreMode())
+  {
+    std::promise<bool> init_from_thread;
+
+    // Spawn the GPU thread.
+    std::thread gpu_thread{[&] {
+      Common::SetCurrentThreadName("Video thread");
+
+      const bool is_init = init_video();
+      init_from_thread.set_value(is_init);
+
+      if (!is_init)
+        return;
+
+      system.GetFifo().RunGpuLoop();
+      INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "Video Loop Ended"));
+
+      deinit_video();
+    }};
+
+    if (init_from_thread.get_future().get())
+    {
+      // Return a scope guard that signals the GPU thread to stop then joins it.
+      return std::make_unique<GuardType>([&, gpu_thread = std::move(gpu_thread)]() mutable {
+        INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Wait for Video Loop to exit ..."));
+        system.GetFifo().ExitGpuLoop();
+        gpu_thread.join();
+        INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "GPU thread stopped."));
+      });
+    }
+
+    gpu_thread.join();
+  }
+  else  // SingleCore mode
+  {
+    if (init_video())
+      return std::make_unique<GuardType>(deinit_video);
+  }
+
+  return ReturnType{};
+}
+
 // Initialize and create emulation thread
 // Call browser: Init():s_emu_thread().
 // See the BootManager.cpp file description for a complete call schedule.
@@ -476,10 +529,9 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
 
   Common::SetCurrentThreadName("Emuthread - Starting");
 
-  DeclareAsGPUThread();
-
-  // For a time this acts as the CPU thread...
+  // This will become the CPU thread.
   DeclareAsCPUThread();
+
   s_frame_step = false;
 
   // If settings have changed since the previous run, notify callbacks.
@@ -550,17 +602,14 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
     system.GetPowerPC().GetDebugInterface().Clear(guard);
   }};
 
-  if (!g_video_backend->Initialize(wsi))
+  // In single-core mode: This holds a video backend shutdown function.
+  // In dual-core mode: This holds a GPU thread stopping function (which does the backend shutdown).
+  const auto video_guard = GetInitializedVideoGuard(system, wsi);
+  if (!video_guard)
   {
     PanicAlertFmt("Failed to initialize video backend!");
     return;
   }
-  Common::ScopeGuard video_guard{[] {
-    // Clear on screen messages that haven't expired
-    OSD::ClearMessages();
-
-    g_video_backend->Shutdown();
-  }};
 
   if (cpu_info.HTT)
     Config::SetBaseOrCurrent(Config::MAIN_DSP_THREAD, cpu_info.num_cores > 4);
@@ -583,12 +632,8 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   system.GetPowerPC().SetMode(PowerPC::CoreMode::Interpreter);
 
   // Determine the CPU thread function
-  void (*cpuThreadFunc)(Core::System& system, const std::optional<std::string>& savestate_path,
-                        bool delete_savestate);
-  if (std::holds_alternative<BootParameters::DFF>(boot->parameters))
-    cpuThreadFunc = FifoPlayerThread;
-  else
-    cpuThreadFunc = CpuThread;
+  const auto cpu_thread_func =
+      std::holds_alternative<BootParameters::DFF>(boot->parameters) ? FifoPlayerThread : CpuThread;
 
   std::optional<DiscIO::Riivolution::SavegameRedirect> savegame_redirect = std::nullopt;
   if (system.IsWii())
@@ -628,42 +673,8 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
 
   UpdateTitle(system);
 
-  // ENTER THE VIDEO THREAD LOOP
-  if (system.IsDualCoreMode())
-  {
-    // This thread, after creating the EmuWindow, spawns a CPU
-    // thread, and then takes over and becomes the video thread
-    Common::SetCurrentThreadName("Video thread");
-    UndeclareAsCPUThread();
-    Common::FPU::LoadDefaultSIMDState();
-
-    // Spawn the CPU thread. The CPU thread will signal the event that boot is complete.
-    s_cpu_thread =
-        std::thread(cpuThreadFunc, std::ref(system), std::ref(savestate_path), delete_savestate);
-
-    // become the GPU thread
-    system.GetFifo().RunGpuLoop();
-
-    // We have now exited the Video Loop
-    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "Video Loop Ended"));
-
-    // Join with the CPU thread.
-    s_cpu_thread.join();
-    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "CPU thread stopped."));
-
-    // Redeclare this thread as the CPU thread, so that the code running in the scope guards doesn't
-    // think we're doing anything unsafe by doing stuff that could race with the CPU thread.
-    DeclareAsCPUThread();
-  }
-  else  // SingleCore mode
-  {
-    // Become the CPU thread
-    cpuThreadFunc(system, savestate_path, delete_savestate);
-  }
-
-  INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stopping GDB ..."));
-  GDBStub::Deinit();
-  INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "GDB stopped."));
+  // Become the CPU thread.
+  cpu_thread_func(system, savestate_path, delete_savestate);
 }
 
 // Set or get the running state

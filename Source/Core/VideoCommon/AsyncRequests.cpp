@@ -42,9 +42,6 @@ void AsyncRequests::QueueEvent(Event&& event)
 {
   m_empty.Clear();
 
-  if (!m_enable)
-    return;
-
   m_queue.push(std::move(event));
 
   auto& system = Core::System::GetInstance();
@@ -55,20 +52,6 @@ void AsyncRequests::WaitForEmptyQueue()
 {
   std::unique_lock<std::mutex> lock(m_mutex);
   m_cond.wait(lock, [this] { return m_queue.empty(); });
-}
-
-void AsyncRequests::SetEnable(bool enable)
-{
-  std::unique_lock<std::mutex> lock(m_mutex);
-  m_enable = enable;
-
-  if (!enable)
-  {
-    // flush the queue on disabling
-    while (!m_queue.empty())
-      m_queue.pop();
-    m_cond.notify_one();
-  }
 }
 
 void AsyncRequests::SetPassthrough(bool enable)
