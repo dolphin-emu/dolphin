@@ -257,7 +257,5 @@ void LoadConfig();
 InputConfig* GetConfig();
 ControllerEmu::ControlGroup* GetHotkeyGroup(HotkeyGroup group);
 void GetStatus(bool ignore_focus);
-bool IsEnabled();
-void Enable(bool enable_toggle);
 bool IsPressed(int Id, bool held);
 }  // namespace HotkeyManagerEmu

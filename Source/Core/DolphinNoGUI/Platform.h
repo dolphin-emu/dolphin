@@ -17,6 +17,7 @@ public:
   bool IsRunning() const { return m_running.IsSet(); }
   bool IsWindowFocused() const { return m_window_focus; }
   bool IsWindowFullscreen() const { return m_window_fullscreen; }
+  bool IsDolphinActive() const { return m_dolphin_active; }
 
   virtual bool Init();
   virtual void SetTitle(const std::string& title);
@@ -56,4 +57,5 @@ protected:
 
   bool m_window_focus = true;  // Should be made atomic if actually implemented
   bool m_window_fullscreen = false;
+  bool m_dolphin_active = false;  // Should be made atomic if actually implemented
 };

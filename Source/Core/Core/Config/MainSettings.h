@@ -53,6 +53,8 @@ namespace Config
 {
 // Main.Core
 
+enum class InputFocusPolicy;
+
 extern const Info<bool> MAIN_SKIP_IPL;
 extern const Info<PowerPC::CPUCore> MAIN_CPU_CORE;
 extern const Info<bool> MAIN_JIT_FOLLOW_BRANCH;
@@ -331,7 +333,7 @@ extern const Info<bool> MAIN_MOVIE_SHOW_OSD;
 
 // Main.Input
 
-extern const Info<bool> MAIN_INPUT_BACKGROUND_INPUT;
+extern const Info<InputFocusPolicy> MAIN_CONTROLLER_FOCUS_POLICY;
 
 // Main.Debug
 

@@ -167,6 +167,11 @@ bool Host::GetTASInputFocus() const
   return m_tas_input_focus;
 }
 
+bool Host::GetDolphinActiveApplication() const
+{
+  return m_dolphin_active_application.load(std::memory_order_relaxed);
+}
+
 bool Host::GetRenderFullscreen()
 {
   return m_render_fullscreen;
@@ -185,6 +190,12 @@ void Host::SetRenderFullscreen(bool fullscreen)
 void Host::SetTASInputFocus(const bool focus)
 {
   m_tas_input_focus = focus;
+}
+
+void Host::SetDolphinActiveApplication(const bool is_active_application)
+{
+  m_dolphin_active_application.store(is_active_application, std::memory_order_relaxed);
+  Settings::Instance().DolphinActiveApplicationChanged(is_active_application);
 }
 
 void Host::ResizeSurface(int new_width, int new_height)
@@ -241,6 +252,11 @@ bool Host_RendererIsFullscreen()
 bool Host_TASInputHasFocus()
 {
   return Host::GetInstance()->GetTASInputFocus();
+}
+
+bool Host_DolphinIsActiveApplication()
+{
+  return Host::GetInstance()->GetDolphinActiveApplication();
 }
 
 void Host_YieldToUI()

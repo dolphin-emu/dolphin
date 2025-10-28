@@ -227,6 +227,8 @@ signals:
   void USBKeyboardConnectionChanged(bool connected);
   void WiiSpeakMuteChanged(bool muted);
   void EnableGfxModsChanged(bool enabled);
+  void DolphinActiveApplicationChanged(bool active);
+  void ControllerFocusPolicyChanged(Config::InputFocusPolicy input_focus_policy);
 
 private:
   Settings();

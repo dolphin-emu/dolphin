@@ -13,7 +13,8 @@ const Info<bool> MAIN_USE_GAME_COVERS{{System::Main, "General", "UseGameCovers"}
 #else
 const Info<bool> MAIN_USE_GAME_COVERS{{System::Main, "General", "UseGameCovers"}, false};
 #endif
-const Info<bool> MAIN_FOCUSED_HOTKEYS{{System::Main, "General", "HotkeysRequireFocus"}, true};
+const Info<HotkeyFocusPolicy> MAIN_HOTKEY_FOCUS_POLICY{
+    {System::Main, "General", "HotkeysRequireFocus"}, HotkeyFocusPolicy::Dolphin};
 const Info<bool> MAIN_RECURSIVE_ISO_PATHS{{System::Main, "General", "RecursiveISOPaths"}, false};
 const Info<std::string> MAIN_CURRENT_STATE_PATH{{System::Main, "General", "CurrentStatePath"}, ""};
 
