@@ -51,6 +51,7 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/QtUtils.h"
+#include "DolphinQt/QtUtils/VerticalTabsTabWidget.h"
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Settings.h"
@@ -61,7 +62,7 @@
 #include "InputCommon/InputConfig.h"
 
 MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
-    : QDialog(parent), m_port(port_num)
+    : QDialog(parent), m_mapping_type(type), m_port(port_num)
 {
   setWindowTitle(tr("Port %1").arg(port_num + 1));
 
@@ -179,7 +180,14 @@ void MappingWindow::CreateMainLayout()
 {
   m_main_layout = new QVBoxLayout();
   m_config_layout = new QHBoxLayout();
-  m_tab_widget = new QTabWidget();
+  if (m_mapping_type == MappingWindow::Type::MAPPING_HOTKEYS)
+  {
+    m_tab_widget = new QtUtils::VerticalTabsTabWidget;
+  }
+  else
+  {
+    m_tab_widget = new QTabWidget;
+  }
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
   m_tab_widget->setTabBarAutoHide(true);
