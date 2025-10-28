@@ -7,7 +7,10 @@
 #include <array>
 #include <utility>
 
-#include <tinygltf/tiny_gltf.h>
+#define TINYGLTF_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <tiny_gltf.h>
 
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
