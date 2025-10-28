@@ -23,6 +23,8 @@ void PerformanceMetrics::Reset()
 
   m_speed = 0;
   m_max_speed = 0;
+
+  m_frame_presentation_offset = DT{};
 }
 
 void PerformanceMetrics::CountFrame()
@@ -96,6 +98,11 @@ double PerformanceMetrics::GetSpeed() const
 double PerformanceMetrics::GetMaxSpeed() const
 {
   return m_max_speed.load(std::memory_order_relaxed);
+}
+
+void PerformanceMetrics::SetLatestFramePresentationOffset(DT offset)
+{
+  m_frame_presentation_offset.store(offset, std::memory_order_relaxed);
 }
 
 void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
@@ -293,6 +300,10 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
                            DT_ms(m_fps_counter.GetDtAvg()).count());
         ImGui::TextColored(ImVec4(r, g, b, 1.0f), " ±:%6.2lfms",
                            DT_ms(m_fps_counter.GetDtStd()).count());
+
+        const auto offset =
+            DT_ms(m_frame_presentation_offset.load(std::memory_order_relaxed)).count();
+        ImGui::TextColored(ImVec4(r, g, b, 1.0f), "ofs:%5.1lfms", offset);
       }
     }
     ImGui::End();
