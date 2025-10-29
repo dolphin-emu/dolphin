@@ -3,6 +3,8 @@ add_library(discio
   Blob.h
   CISOBlob.cpp
   CISOBlob.h
+  CachedBlob.cpp
+  CachedBlob.h
   CompressedBlob.cpp
   CompressedBlob.h
   DirectoryBlob.cpp
