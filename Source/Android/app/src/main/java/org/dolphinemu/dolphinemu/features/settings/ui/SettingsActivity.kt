@@ -98,7 +98,6 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
     override fun onSaveInstanceState(outState: Bundle) {
         // Critical: If super method is not called, rotations will be busted.
         super.onSaveInstanceState(outState)
-        presenter!!.saveState(outState)
         outState.putBoolean(KEY_MAPPING_ALL_DEVICES, isMappingAllDevices)
     }
 

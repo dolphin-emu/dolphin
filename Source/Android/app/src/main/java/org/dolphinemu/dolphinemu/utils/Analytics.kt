@@ -33,8 +33,7 @@ object Analytics {
             BooleanSetting.MAIN_ANALYTICS_ENABLED.setBoolean(settings, enabled)
             BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.setBoolean(settings, true)
 
-            // Context is set to null to avoid toasts
-            settings.saveSettings(null)
+            settings.saveSettings()
         }
     }
 

@@ -2,11 +2,8 @@
 
 package org.dolphinemu.dolphinemu.features.settings.model
 
-import android.content.Context
 import android.text.TextUtils
-import android.widget.Toast
 import org.dolphinemu.dolphinemu.NativeLibrary
-import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.features.input.model.MappingCommon
 import java.io.Closeable
 
@@ -52,14 +49,8 @@ class Settings : Closeable {
         loadSettings(isWii)
     }
 
-    fun saveSettings(context: Context?) {
+    fun saveSettings() {
         if (!isGameSpecific) {
-            if (context != null) Toast.makeText(
-                context,
-                R.string.settings_saved,
-                Toast.LENGTH_SHORT
-            ).show()
-
             MappingCommon.save()
 
             NativeConfig.save(NativeConfig.LAYER_BASE)
@@ -67,13 +58,6 @@ class Settings : Closeable {
             NativeLibrary.ReloadLoggerConfig()
             NativeLibrary.UpdateGCAdapterScanThread()
         } else {
-            // custom game settings
-            if (context != null) {
-                Toast.makeText(
-                    context, context.getString(R.string.settings_saved_game_specific, gameId),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
             NativeConfig.save(NativeConfig.LAYER_LOCAL_GAME)
         }
     }
