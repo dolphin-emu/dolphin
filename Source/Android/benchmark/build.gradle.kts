@@ -8,20 +8,20 @@ plugins {
 
 android {
     namespace = "org.dolphinemu.baselineprofile"
-    compileSdk = 34
+    compileSdk = 36
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
+    kotlin {
+        jvmToolchain(17)
     }
 
     defaultConfig {
         minSdk = 28
-        targetSdk = 34
+        targetSdk = 36
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -29,10 +29,10 @@ android {
     targetProjectPath = ":app"
 
     testOptions.managedDevices.devices {
-        create<ManagedVirtualDevice>("pixel6Api31") {
-            device = "Pixel 6"
-            apiLevel = 31
-            systemImageSource = "google"
+        create<ManagedVirtualDevice>("pixel8Api36") {
+            device = "Pixel 8"
+            apiLevel = 36
+            systemImageSource = "google-atd"
         }
     }
 }
@@ -40,13 +40,13 @@ android {
 // This is the configuration block for the Baseline Profile plugin.
 // You can specify to run the generators on a managed devices or connected devices.
 baselineProfile {
-    managedDevices += "pixel6Api31"
+    managedDevices += "pixel8Api36"
     useConnectedDevices = false
 }
 
 dependencies {
-    implementation("androidx.test.ext:junit:1.1.5")
-    implementation("androidx.test.espresso:espresso-core:3.5.1")
+    implementation("androidx.test.ext:junit:1.3.0")
+    implementation("androidx.test.espresso:espresso-core:3.7.0")
     implementation("androidx.test.uiautomator:uiautomator:2.3.0")
-    implementation("androidx.benchmark:benchmark-macro-junit4:1.2.4")
+    implementation("androidx.benchmark:benchmark-macro-junit4:1.4.1")
 }
