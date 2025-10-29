@@ -673,10 +673,11 @@
     <ClInclude Include="VideoCommon\AbstractShader.h" />
     <ClInclude Include="VideoCommon\AbstractStagingTexture.h" />
     <ClInclude Include="VideoCommon\AbstractTexture.h" />
+    <ClInclude Include="VideoCommon\Assets\AssetListener.h" />
     <ClInclude Include="VideoCommon\Assets\CustomAsset.h" />
+    <ClInclude Include="VideoCommon\Assets\CustomAssetCache.h" />
     <ClInclude Include="VideoCommon\Assets\CustomAssetLibrary.h" />
     <ClInclude Include="VideoCommon\Assets\CustomAssetLoader.h" />
-    <ClInclude Include="VideoCommon\Assets\CustomResourceManager.h" />
     <ClInclude Include="VideoCommon\Assets\CustomTextureData.h" />
     <ClInclude Include="VideoCommon\Assets\DirectFilesystemAssetLibrary.h" />
     <ClInclude Include="VideoCommon\Assets\MaterialAsset.h" />
@@ -752,6 +753,9 @@
     <ClInclude Include="VideoCommon\PostProcessing.h" />
     <ClInclude Include="VideoCommon\Present.h" />
     <ClInclude Include="VideoCommon\RenderState.h" />
+    <ClInclude Include="VideoCommon\Resources\CustomResourceManager.h" />
+    <ClInclude Include="VideoCommon\Resources\Resource.h" />
+    <ClInclude Include="VideoCommon\Resources\TextureDataResource.h" />
     <ClInclude Include="VideoCommon\ShaderCache.h" />
     <ClInclude Include="VideoCommon\ShaderCompileUtils.h" />
     <ClInclude Include="VideoCommon\ShaderGenCommon.h" />
@@ -1340,8 +1344,8 @@
     <ClCompile Include="VideoCommon\AbstractStagingTexture.cpp" />
     <ClCompile Include="VideoCommon\AbstractTexture.cpp" />
     <ClCompile Include="VideoCommon\Assets\CustomAsset.cpp" />
+    <ClCompile Include="VideoCommon\Assets\CustomAssetCache.cpp" />
     <ClCompile Include="VideoCommon\Assets\CustomAssetLoader.cpp" />
-    <ClCompile Include="VideoCommon\Assets\CustomResourceManager.cpp" />
     <ClCompile Include="VideoCommon\Assets\CustomTextureData.cpp" />
     <ClCompile Include="VideoCommon\Assets\DirectFilesystemAssetLibrary.cpp" />
     <ClCompile Include="VideoCommon\Assets\MaterialAsset.cpp" />
@@ -1402,6 +1406,9 @@
     <ClCompile Include="VideoCommon\PostProcessing.cpp" />
     <ClCompile Include="VideoCommon\Present.cpp" />
     <ClCompile Include="VideoCommon\RenderState.cpp" />
+    <ClCompile Include="VideoCommon\Resources\CustomResourceManager.cpp" />
+    <ClCompile Include="VideoCommon\Resources\Resource.cpp" />
+    <ClCompile Include="VideoCommon\Resources\TextureDataResource.cpp" />
     <ClCompile Include="VideoCommon\ShaderCache.cpp" />
     <ClCompile Include="VideoCommon\ShaderCompileUtils.cpp" />
     <ClCompile Include="VideoCommon\ShaderGenCommon.cpp" />

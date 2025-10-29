@@ -10,25 +10,73 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/HookableEvent.h"
 
+#include "VideoCommon/Assets/AssetListener.h"
 #include "VideoCommon/Assets/CustomAsset.h"
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
 #include "VideoCommon/Assets/CustomAssetLoader.h"
-#include "VideoCommon/Assets/CustomTextureData.h"
 
 namespace VideoCommon
 {
-class TextureAsset;
-
-// The resource manager manages custom resources (textures, shaders, meshes)
-// called assets.  These assets are loaded using a priority system,
+// The asset cache manages custom assets (textures, shaders, meshes).
+// These assets are loaded using a priority system,
 // where assets requested more often gets loaded first.  This system
 // also tracks memory usage and if memory usage goes over a calculated limit,
 // then assets will be purged with older assets being targeted first.
-class CustomResourceManager
+class CustomAssetCache
 {
 public:
+  // A generic interface to describe an asset
+  // and load state
+  struct AssetData
+  {
+    std::unique_ptr<CustomAsset> asset;
+
+    std::vector<AssetListener*> listeners;
+
+    CustomAsset::TimeType load_request_time = {};
+    bool has_load_error = false;
+
+    enum class LoadStatus
+    {
+      PendingReload,
+      LoadFinished,
+      Unloaded,
+    };
+    LoadStatus load_status = LoadStatus::PendingReload;
+  };
+
+  template <typename T>
+  T* CreateAsset(const CustomAssetLibrary::AssetID& asset_id,
+                 std::shared_ptr<VideoCommon::CustomAssetLibrary> library, AssetListener* listener)
+  {
+    const auto [it, added] =
+        m_asset_id_to_handle.try_emplace(asset_id, m_asset_handle_to_data.size());
+    if (added)
+    {
+      AssetData asset_data;
+      asset_data.asset = std::make_unique<T>(std::move(library), asset_id, it->second);
+      asset_data.load_request_time = {};
+      asset_data.has_load_error = false;
+
+      m_asset_handle_to_data.insert_or_assign(it->second, std::move(asset_data));
+    }
+
+    auto& asset_data_from_handle = m_asset_handle_to_data[it->second];
+    asset_data_from_handle.listeners.push_back(listener);
+    asset_data_from_handle.load_status = AssetData::LoadStatus::PendingReload;
+
+    return static_cast<T*>(asset_data_from_handle.asset.get());
+  }
+
+  AssetData* GetAssetData(const CustomAssetLibrary::AssetID& asset_id)
+  {
+    const auto it_handle = m_asset_id_to_handle.find(asset_id);
+    if (it_handle == m_asset_id_to_handle.end())
+      return nullptr;
+    return &m_asset_handle_to_data[it_handle->second];
+  }
+
   void Initialize();
   void Shutdown();
 
@@ -37,80 +85,20 @@ public:
   // Request that an asset be reloaded
   void MarkAssetDirty(const CustomAssetLibrary::AssetID& asset_id);
 
-  void XFBTriggered();
+  // Notify the system that we are interested in this asset and
+  // are waiting for it to be loaded
+  void MarkAssetPending(CustomAsset* asset);
 
-  using TextureTimePair = std::pair<std::shared_ptr<CustomTextureData>, CustomAsset::TimeType>;
+  // Notify the system we are interested in this asset and
+  // it has seen activity
+  void MarkAssetActive(CustomAsset* asset);
 
-  // Returns a pair with the custom texture data and the time it was last loaded
-  // Callees are not expected to hold onto the shared_ptr as that will prevent
-  // the resource manager from being able to properly release data
-  TextureTimePair GetTextureDataFromAsset(const CustomAssetLibrary::AssetID& asset_id,
-                                          std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
+  void Update();
 
 private:
-  // A generic interface to describe an assets' type
-  // and load state
-  struct AssetData
-  {
-    std::unique_ptr<CustomAsset> asset;
-    CustomAsset::TimeType load_request_time = {};
-    bool has_load_error = false;
-
-    enum class AssetType
-    {
-      TextureData
-    };
-    AssetType type;
-
-    enum class LoadStatus
-    {
-      PendingReload,
-      LoadFinished,
-      ResourceDataAvailable,
-      Unloaded,
-    };
-    LoadStatus load_status = LoadStatus::PendingReload;
-  };
-
-  // A structure to represent some raw texture data
-  // (this data hasn't hit the GPU yet, used for custom textures)
-  struct InternalTextureDataResource
-  {
-    AssetData* asset_data = nullptr;
-    VideoCommon::TextureAsset* asset = nullptr;
-    std::shared_ptr<CustomTextureData> texture_data;
-  };
-
-  void LoadTextureDataAsset(const CustomAssetLibrary::AssetID& asset_id,
-                            std::shared_ptr<VideoCommon::CustomAssetLibrary> library,
-                            InternalTextureDataResource* resource);
-
   void ProcessDirtyAssets();
   void ProcessLoadedAssets();
   void RemoveAssetsUntilBelowMemoryLimit();
-
-  template <typename T>
-  T* CreateAsset(const CustomAssetLibrary::AssetID& asset_id, AssetData::AssetType asset_type,
-                 std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
-  {
-    const auto [it, added] =
-        m_asset_id_to_handle.try_emplace(asset_id, m_asset_handle_to_data.size());
-
-    if (added)
-    {
-      AssetData asset_data;
-      asset_data.asset = std::make_unique<T>(library, asset_id, it->second);
-      asset_data.type = asset_type;
-      asset_data.load_request_time = {};
-      asset_data.has_load_error = false;
-
-      m_asset_handle_to_data.insert_or_assign(it->second, std::move(asset_data));
-    }
-    auto& asset_data_from_handle = m_asset_handle_to_data[it->second];
-    asset_data_from_handle.load_status = AssetData::LoadStatus::PendingReload;
-
-    return static_cast<T*>(asset_data_from_handle.asset.get());
-  }
 
   // Maintains a priority-sorted list of assets.
   // Used to figure out which assets to load or unload first.
@@ -202,14 +190,10 @@ private:
   // A calculated amount of memory to avoid exceeding.
   u64 m_max_ram_available = 0;
 
-  std::map<CustomAssetLibrary::AssetID, InternalTextureDataResource> m_texture_data_asset_cache;
-
   std::mutex m_dirty_mutex;
   std::set<CustomAssetLibrary::AssetID> m_dirty_assets;
 
   CustomAssetLoader m_asset_loader;
-
-  Common::EventHook m_xfb_event;
 };
 
 }  // namespace VideoCommon

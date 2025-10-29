@@ -1,7 +1,7 @@
 // Copyright 2025 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "VideoCommon/Assets/CustomResourceManager.h"
+#include "VideoCommon/Assets/CustomAssetCache.h"
 
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
@@ -14,7 +14,7 @@
 
 namespace VideoCommon
 {
-void CustomResourceManager::Initialize()
+void CustomAssetCache::Initialize()
 {
   // Use half of available system memory but leave at least 2GiB unused for system stability.
   constexpr size_t must_keep_unused = 2 * size_t(1024 * 1024 * 1024);
@@ -28,19 +28,16 @@ void CustomResourceManager::Initialize()
     ERROR_LOG_FMT(VIDEO, "Not enough system memory for custom resources.");
 
   m_asset_loader.Initialize();
-
-  m_xfb_event =
-      GetVideoEvents().after_frame_event.Register([this](Core::System&) { XFBTriggered(); });
 }
 
-void CustomResourceManager::Shutdown()
+void CustomAssetCache::Shutdown()
 {
   Reset();
 
   m_asset_loader.Shutdown();
 }
 
-void CustomResourceManager::Reset()
+void CustomAssetCache::Reset()
 {
   m_asset_loader.Reset(true);
 
@@ -48,66 +45,27 @@ void CustomResourceManager::Reset()
   m_pending_assets = {};
   m_asset_handle_to_data.clear();
   m_asset_id_to_handle.clear();
-  m_texture_data_asset_cache.clear();
   m_dirty_assets.clear();
   m_ram_used = 0;
 }
 
-void CustomResourceManager::MarkAssetDirty(const CustomAssetLibrary::AssetID& asset_id)
+void CustomAssetCache::MarkAssetDirty(const CustomAssetLibrary::AssetID& asset_id)
 {
   std::lock_guard guard(m_dirty_mutex);
   m_dirty_assets.insert(asset_id);
 }
 
-CustomResourceManager::TextureTimePair CustomResourceManager::GetTextureDataFromAsset(
-    const CustomAssetLibrary::AssetID& asset_id,
-    std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
+void CustomAssetCache::MarkAssetPending(CustomAsset* asset)
 {
-  auto& resource = m_texture_data_asset_cache[asset_id];
-  if (resource.asset_data != nullptr &&
-      resource.asset_data->load_status == AssetData::LoadStatus::ResourceDataAvailable)
-  {
-    m_active_assets.MakeAssetHighestPriority(resource.asset->GetHandle(), resource.asset);
-    return {resource.texture_data, resource.asset->GetLastLoadedTime()};
-  }
-
-  // If there is an error, don't try and load again until the error is fixed
-  if (resource.asset_data != nullptr && resource.asset_data->has_load_error)
-    return {};
-
-  LoadTextureDataAsset(asset_id, std::move(library), &resource);
-  m_active_assets.MakeAssetHighestPriority(resource.asset->GetHandle(), resource.asset);
-
-  return {};
+  m_pending_assets.MakeAssetHighestPriority(asset->GetHandle(), asset);
 }
 
-void CustomResourceManager::LoadTextureDataAsset(
-    const CustomAssetLibrary::AssetID& asset_id,
-    std::shared_ptr<VideoCommon::CustomAssetLibrary> library, InternalTextureDataResource* resource)
+void CustomAssetCache::MarkAssetActive(CustomAsset* asset)
 {
-  if (!resource->asset)
-  {
-    resource->asset =
-        CreateAsset<TextureAsset>(asset_id, AssetData::AssetType::TextureData, std::move(library));
-    resource->asset_data = &m_asset_handle_to_data[resource->asset->GetHandle()];
-  }
-
-  auto texture_data = resource->asset->GetData();
-  if (!texture_data || resource->asset_data->load_status == AssetData::LoadStatus::PendingReload)
-  {
-    // Tell the system we are still interested in loading this asset
-    const auto asset_handle = resource->asset->GetHandle();
-    m_pending_assets.MakeAssetHighestPriority(asset_handle,
-                                              m_asset_handle_to_data[asset_handle].asset.get());
-  }
-  else if (resource->asset_data->load_status == AssetData::LoadStatus::LoadFinished)
-  {
-    resource->texture_data = std::move(texture_data);
-    resource->asset_data->load_status = AssetData::LoadStatus::ResourceDataAvailable;
-  }
+  m_active_assets.MakeAssetHighestPriority(asset->GetHandle(), asset);
 }
 
-void CustomResourceManager::XFBTriggered()
+void CustomAssetCache::Update()
 {
   ProcessDirtyAssets();
   ProcessLoadedAssets();
@@ -127,7 +85,7 @@ void CustomResourceManager::XFBTriggered()
   m_asset_loader.ScheduleAssetsToLoad(m_pending_assets.Elements(), allowed_memory);
 }
 
-void CustomResourceManager::ProcessDirtyAssets()
+void CustomAssetCache::ProcessDirtyAssets()
 {
   decltype(m_dirty_assets) dirty_assets;
 
@@ -154,7 +112,7 @@ void CustomResourceManager::ProcessDirtyAssets()
   }
 }
 
-void CustomResourceManager::ProcessLoadedAssets()
+void CustomAssetCache::ProcessLoadedAssets()
 {
   const auto load_results = m_asset_loader.TakeLoadResults();
 
@@ -189,10 +147,18 @@ void CustomResourceManager::ProcessLoadedAssets()
       m_active_assets.InsertAsset(handle, asset_data.asset.get());
       asset_data.load_status = AssetData::LoadStatus::LoadFinished;
     }
+
+    for (const auto& listener : asset_data.listeners)
+    {
+      if (load_successful)
+        listener->NotifyAssetLoadSuccess();
+      else
+        listener->NotifyAssetLoadFailed();
+    }
   }
 }
 
-void CustomResourceManager::RemoveAssetsUntilBelowMemoryLimit()
+void CustomAssetCache::RemoveAssetsUntilBelowMemoryLimit()
 {
   const u64 threshold_ram = m_max_ram_available * 8 / 10;
 
@@ -209,11 +175,11 @@ void CustomResourceManager::RemoveAssetsUntilBelowMemoryLimit()
 
     AssetData& asset_data = m_asset_handle_to_data[asset->GetHandle()];
 
-    // Remove the resource manager's cached entry with its asset data
-    if (asset_data.type == AssetData::AssetType::TextureData)
+    for (const auto& listener : asset_data.listeners)
     {
-      m_texture_data_asset_cache.erase(asset->GetAssetId());
+      listener->AssetUnloaded();
     }
+
     // Remove the asset's copy
     const std::size_t bytes_unloaded = asset_data.asset->Unload();
     m_ram_used -= bytes_unloaded;

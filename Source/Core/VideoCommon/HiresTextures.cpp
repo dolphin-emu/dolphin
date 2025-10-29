@@ -27,6 +27,7 @@
 #include "VideoCommon/Assets/CustomAsset.h"
 #include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/Resources/CustomResourceManager.h"
 #include "VideoCommon/VideoConfig.h"
 
 constexpr std::string_view s_format_prefix{"tex1_"};
@@ -191,7 +192,7 @@ HiresTexture::HiresTexture(bool has_arbitrary_mipmaps, std::string id)
 {
 }
 
-VideoCommon::CustomResourceManager::TextureTimePair HiresTexture::LoadTexture() const
+VideoCommon::TextureDataResource* HiresTexture::LoadTexture() const
 {
   auto& system = Core::System::GetInstance();
   auto& custom_resource_manager = system.GetCustomResourceManager();
