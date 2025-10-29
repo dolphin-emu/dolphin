@@ -186,10 +186,6 @@ void OnScreenDisplayPane::AddDescriptions()
                  "but the slower it will be to update."
                  "<br><br><dolphin_emphasis>If unsure, leave this "
                  "at 1000ms.</dolphin_emphasis>");
-  static const char TR_LOG_RENDERTIME_DESCRIPTION[] = QT_TR_NOOP(
-      "Logs the render time of every frame to User/Logs/render_time.txt.<br><br>Use this "
-      "feature to measure Dolphin's performance.<br><br><dolphin_emphasis>If "
-      "unsure, leave this unchecked.</dolphin_emphasis>");
 
   static const char TR_SHOW_NETPLAY_PING_DESCRIPTION[] = QT_TR_NOOP(
       "Shows the player's maximum ping while playing on "
