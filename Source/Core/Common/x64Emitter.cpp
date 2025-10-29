@@ -1862,7 +1862,7 @@ void XEmitter::WriteVEXOp4(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, co
   Write8((u8)regOp3 << 4);
 }
 
-void CheckAVXSupport()
+static void CheckAVXSupport()
 {
   if (!cpu_info.bAVX)
     PanicAlertFmt("Trying to use AVX on a system that doesn't support it. Bad programmer.");
