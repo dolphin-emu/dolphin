@@ -16,6 +16,7 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
+#include "VideoCommon/XFMemory.h"
 
 Statistics g_stats;
 
@@ -161,7 +162,8 @@ void Statistics::AddScissorRect()
     clear_scissors = false;
   }
 
-  BPFunctions::ScissorResult scissor = BPFunctions::ComputeScissorRects();
+  BPFunctions::ScissorResult scissor = BPFunctions::ComputeScissorRects(
+      bpmem.scissorTL, bpmem.scissorBR, bpmem.scissorOffset, xfmem.viewport);
   bool add;
   if (scissors.empty())
   {
