@@ -257,7 +257,13 @@ void GameConfigEdit::OpenExternalEditor()
     if (m_read_only)
       return;
 
-    file.open(QIODevice::WriteOnly);
+    if (!file.open(QIODevice::WriteOnly))
+    {
+      ModalMessageBox::warning(this, tr("Error"),
+                               tr("Failed to create the configuration file:\n%1").arg(m_path));
+      return;
+    }
+
     file.close();
   }
 
