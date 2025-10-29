@@ -244,6 +244,9 @@ public:
   void LoadConfig(Common::IniFile::Section* sec);
   void SaveConfig(Common::IniFile::Section* sec);
 
+  std::string GetProfileName() { return m_profile_name; }
+  void SetProfileName(std::string name) { m_profile_name = name; }
+
   bool IsDefaultDeviceConnected() const;
   const ciface::Core::DeviceQualifier& GetDefaultDevice() const;
   void SetDefaultDevice(const std::string& device);
@@ -269,5 +272,6 @@ protected:
 private:
   ciface::Core::DeviceQualifier m_default_device;
   bool m_default_device_is_connected{false};
+  std::string m_profile_name = "";
 };
 }  // namespace ControllerEmu

@@ -39,6 +39,10 @@ class EmulatedController private constructor(private val pointer: Long) : Contro
 
     external fun saveProfile(path: String)
 
+    external fun setProfileName(name: String)
+
+    external fun getProfileName(): String
+
     external fun getProfileKey(): String
 
     external fun getUserProfileDirectoryPath(): String
