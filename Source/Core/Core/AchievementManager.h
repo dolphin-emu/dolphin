@@ -266,10 +266,8 @@ private:
   static void GameTitleEstimateHandler(char* buffer, u32 buffer_size, rc_client_t* client);
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
-  rc_runtime_t m_runtime{};
   rc_client_t* m_client{};
   std::atomic<Core::System*> m_system{};
-  bool m_is_runtime_initialized = false;
   std::unique_ptr<DiscIO::Volume> m_loading_volume;
   Config::ConfigChangedCallbackID m_config_changed_callback_id;
   Badge m_default_player_badge;
@@ -278,7 +276,6 @@ private:
   Badge m_default_locked_badge;
   std::atomic_bool m_background_execution_allowed = true;
   Badge m_player_badge;
-  Hash m_game_hash{};
   Badge m_game_badge;
   bool m_display_welcome_message = false;
   std::unordered_map<AchievementId, Badge> m_unlocked_badges;
