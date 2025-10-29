@@ -15,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ActivityUserDataBinding
 import org.dolphinemu.dolphinemu.dialogs.NotificationDialog
@@ -22,8 +24,11 @@ import org.dolphinemu.dolphinemu.dialogs.TaskDialog
 import org.dolphinemu.dolphinemu.dialogs.UserDataImportWarningDialog
 import org.dolphinemu.dolphinemu.features.DocumentProvider
 import org.dolphinemu.dolphinemu.model.TaskViewModel
+import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.utils.*
+import org.dolphinemu.dolphinemu.utils.ThemeHelper
 import org.dolphinemu.dolphinemu.utils.ThemeHelper.enableScrollTint
+import org.dolphinemu.dolphinemu.utils.ThemeHelper.setCorrectTheme
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -33,10 +38,12 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 import kotlin.system.exitProcess
 
-class UserDataActivity : AppCompatActivity() {
+class UserDataActivity : AppCompatActivity(), ThemeProvider {
     private lateinit var taskViewModel: TaskViewModel
 
     private lateinit var mBinding: ActivityUserDataBinding
+
+    override var themeId: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         taskViewModel = ViewModelProvider(this)[TaskViewModel::class.java]
@@ -73,16 +80,32 @@ class UserDataActivity : AppCompatActivity() {
 
         mBinding.buttonExportUserData.setOnClickListener { exportUserData() }
 
+        mBinding.buttonResetSettings.setOnClickListener { confirmResetSettings() }
+
         setSupportActionBar(mBinding.toolbarUserData)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
         setInsets()
         enableScrollTint(this, mBinding.toolbarUserData, mBinding.appbarUserData)
+
+        if (savedInstanceState == null) {
+            Analytics.checkAnalyticsInit(this)
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
         return true
+    }
+
+    override fun onResume() {
+        setCorrectTheme(this)
+        super.onResume()
+    }
+
+    override fun setTheme(themeId: Int) {
+        super.setTheme(themeId)
+        this.themeId = themeId
     }
 
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -111,6 +134,28 @@ class UserDataActivity : AppCompatActivity() {
             dialog.arguments = arguments
             dialog.show(supportFragmentManager, TaskDialog.TAG)
         }
+    }
+
+    private fun confirmResetSettings() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.reset_dolphin_settings)
+            .setMessage(R.string.reset_dolphin_settings_confirmation)
+            .setPositiveButton(R.string.yes) { _, _ -> resetSettings() }
+            .setNegativeButton(R.string.no, null)
+            .show()
+    }
+
+    private fun resetSettings() {
+        NativeLibrary.ResetDolphinSettings()
+        ThemeHelper.resetThemePreferences(this, false)
+
+        val restartIntent = Intent(this, UserDataActivity::class.java)
+        restartIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+
+        finish()
+        overridePendingTransition(0, 0)
+        startActivity(restartIntent)
+        overridePendingTransition(0, 0)
     }
 
     private fun openFileManager() {

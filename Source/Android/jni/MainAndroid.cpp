@@ -545,6 +545,14 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReloadConfig
   SConfig::GetInstance().LoadSettings();
 }
 
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ResetDolphinSettings(JNIEnv*,
+                                                                                         jclass)
+{
+  HostThreadLock guard;
+  SConfig::ResetAllSettings();
+  UICommon::SetUserDirectory(File::GetUserPath(D_USER_IDX));
+}
+
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_UpdateGCAdapterScanThread(JNIEnv*, jclass)
 {
