@@ -4,6 +4,7 @@
 #include "VideoCommon/TextureCacheBase.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstring>
 #include <memory>
@@ -37,7 +38,6 @@
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractStagingTexture.h"
-#include "VideoCommon/Assets/CustomResourceManager.h"
 #include "VideoCommon/Assets/CustomTextureData.h"
 #include "VideoCommon/Assets/TextureAssetUtils.h"
 #include "VideoCommon/BPMemory.h"
@@ -48,6 +48,7 @@
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Present.h"
+#include "VideoCommon/Resources/CustomResourceManager.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TMEM.h"
@@ -266,9 +267,9 @@ bool TextureCacheBase::DidLinkedAssetsChange(const TCacheEntry& entry)
   if (!entry.hires_texture)
     return false;
 
-  const auto [texture_data, load_time] = entry.hires_texture->LoadTexture();
+  const auto* resource = entry.hires_texture->LoadTexture();
 
-  return load_time > entry.last_load_time;
+  return resource->GetLoadTime() > entry.last_load_time;
 }
 
 RcTcacheEntry TextureCacheBase::ApplyPaletteToEntry(RcTcacheEntry& entry, const u8* palette,
@@ -1569,7 +1570,9 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     if (hires_texture)
     {
       has_arbitrary_mipmaps = hires_texture->HasArbitraryMipmaps();
-      std::tie(custom_texture_data, load_time) = hires_texture->LoadTexture();
+      const auto resource = hires_texture->LoadTexture();
+      load_time = resource->GetLoadTime();
+      custom_texture_data = resource->GetData();
       if (custom_texture_data && !VideoCommon::ValidateTextureData(
                                      hires_texture->GetId(), *custom_texture_data,
                                      texture_info.GetRawWidth(), texture_info.GetRawHeight()))
