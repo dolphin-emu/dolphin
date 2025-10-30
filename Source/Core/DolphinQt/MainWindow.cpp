@@ -156,7 +156,7 @@ static void InstallSignalHandler()
   struct sigaction sa;
   sa.sa_handler = &SignalDaemon::HandleInterrupt;
   sigemptyset(&sa.sa_mask);
-  sa.sa_flags = SA_RESETHAND;
+  sa.sa_flags = SA_RESTART | SA_RESETHAND;
   sigaction(SIGINT, &sa, nullptr);
   sigaction(SIGTERM, &sa, nullptr);
 }

@@ -301,7 +301,7 @@ int main(const int argc, char* argv[])
   struct sigaction sa;
   sa.sa_handler = signal_handler;
   sigemptyset(&sa.sa_mask);
-  sa.sa_flags = SA_RESETHAND;
+  sa.sa_flags = SA_RESTART | SA_RESETHAND;
   sigaction(SIGINT, &sa, nullptr);
   sigaction(SIGTERM, &sa, nullptr);
 #endif
