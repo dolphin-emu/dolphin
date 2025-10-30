@@ -240,7 +240,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
        ".elf"}};
   if (disc_image_extensions.contains(extension))
   {
-    std::unique_ptr<DiscIO::VolumeDisc> disc = DiscIO::CreateDisc(path);
+    std::unique_ptr<DiscIO::VolumeDisc> disc = DiscIO::CreateDiscForCore(path);
     if (disc)
     {
       return std::make_unique<BootParameters>(Disc{std::move(path), std::move(disc), paths},
@@ -469,7 +469,7 @@ static void SetDefaultDisc(DVD::DVDInterface& dvd_interface)
 {
   const std::string default_iso = Config::Get(Config::MAIN_DEFAULT_ISO);
   if (!default_iso.empty())
-    SetDisc(dvd_interface, DiscIO::CreateDisc(default_iso));
+    SetDisc(dvd_interface, DiscIO::CreateDiscForCore(default_iso));
 }
 
 static void CopyDefaultExceptionHandlers(Core::System& system)
@@ -629,7 +629,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       if (ipl.disc)
       {
         NOTICE_LOG_FMT(BOOT, "Inserting disc: {}", ipl.disc->path);
-        SetDisc(system.GetDVDInterface(), DiscIO::CreateDisc(ipl.disc->path),
+        SetDisc(system.GetDVDInterface(), DiscIO::CreateDiscForCore(ipl.disc->path),
                 ipl.disc->auto_disc_change_paths);
       }
       else

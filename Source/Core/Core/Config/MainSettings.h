@@ -66,6 +66,7 @@ extern const Info<int> MAIN_MAX_FALLBACK;
 extern const Info<int> MAIN_TIMING_VARIANCE;
 extern const Info<bool> MAIN_CORRECT_TIME_DRIFT;
 extern const Info<bool> MAIN_CPU_THREAD;
+extern const Info<bool> MAIN_LOAD_GAME_INTO_MEMORY;
 extern const Info<bool> MAIN_SYNC_ON_SKIP_IDLE;
 extern const Info<std::string> MAIN_DEFAULT_ISO;
 extern const Info<bool> MAIN_ENABLE_CHEATS;
