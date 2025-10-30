@@ -3,6 +3,8 @@
 
 #pragma once
 
+#ifdef HAS_LIBMGBA
+
 #include <array>
 #include <condition_variable>
 #include <memory>
@@ -147,3 +149,4 @@ private:
   ::Core::System& m_system;
 };
 }  // namespace HW::GBA
+#endif  // HAS_LIBMGBA
