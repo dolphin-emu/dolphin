@@ -13,7 +13,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/SHA1.h"
-#include "Common/IOFile.h"
+#include "Common/DirectIOFile.h"
 #include "Common/Swap.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/MultithreadedCompressor.h"
@@ -46,7 +46,7 @@ class WIARVZFileReader final : public BlobReader
 public:
   ~WIARVZFileReader() override;
 
-  static std::unique_ptr<WIARVZFileReader> Create(File::IOFile file, const std::string& path);
+  static std::unique_ptr<WIARVZFileReader> Create(File::DirectIOFile file, const std::string& path);
 
   BlobType GetBlobType() const override;
   std::unique_ptr<BlobReader> CopyReader() const override;
@@ -68,8 +68,9 @@ public:
   bool ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset) override;
 
   static ConversionResultCode Convert(BlobReader* infile, const VolumeDisc* infile_volume,
-                                      File::IOFile* outfile, WIARVZCompressionType compression_type,
-                                      int compression_level, int chunk_size, CompressCB callback);
+                                      File::DirectIOFile* outfile,
+                                      WIARVZCompressionType compression_type, int compression_level,
+                                      int chunk_size, CompressCB callback);
 
 private:
   using WiiKey = std::array<u8, 16>;
@@ -188,7 +189,7 @@ private:
   {
   public:
     Chunk();
-    Chunk(File::IOFile* file, u64 offset_in_file, u64 compressed_size, u64 decompressed_size,
+    Chunk(File::DirectIOFile* file, u64 offset_in_file, u64 compressed_size, u64 decompressed_size,
           u32 exception_lists, bool compressed_exception_lists, u32 rvz_packed_size,
           u64 data_offset, std::unique_ptr<Decompressor> decompressor);
 
@@ -216,7 +217,7 @@ private:
     size_t m_in_bytes_read = 0;
 
     std::unique_ptr<Decompressor> m_decompressor = nullptr;
-    File::IOFile* m_file = nullptr;
+    File::DirectIOFile* m_file = nullptr;
     u64 m_offset_in_file = 0;
 
     size_t m_out_bytes_allocated_for_exceptions = 0;
@@ -228,7 +229,7 @@ private:
     u64 m_data_offset = 0;
   };
 
-  explicit WIARVZFileReader(File::IOFile file, const std::string& path);
+  explicit WIARVZFileReader(File::DirectIOFile file, const std::string& path);
   bool Initialize(const std::string& path);
   bool HasDataOverlap() const;
 
@@ -323,7 +324,7 @@ private:
     size_t group_index = 0;
   };
 
-  static bool PadTo4(File::IOFile* file, u64* bytes_written);
+  static bool PadTo4(File::DirectIOFile* file, u64* bytes_written);
   static void AddRawDataEntry(u64 offset, u64 size, int chunk_size, u32* total_groups,
                               std::vector<RawDataEntry>* raw_data_entries,
                               std::vector<DataEntry>* data_entries);
@@ -337,7 +338,7 @@ private:
       std::vector<DataEntry>* data_entries, std::vector<const FileSystem*>* partition_file_systems);
   static std::optional<std::vector<u8>> Compress(Compressor* compressor, const u8* data,
                                                  size_t size);
-  static bool WriteHeader(File::IOFile* file, const u8* data, size_t size, u64 upper_bound,
+  static bool WriteHeader(File::DirectIOFile* file, const u8* data, size_t size, u64 upper_bound,
                           u64* bytes_written, u64* offset_out);
 
   static void SetUpCompressor(std::unique_ptr<Compressor>* compressor,
@@ -354,7 +355,7 @@ private:
                      u64 exception_lists_per_chunk, bool compressed_exception_lists,
                      bool compression);
   static ConversionResultCode Output(std::vector<OutputParametersEntry>* entries,
-                                     File::IOFile* outfile,
+                                     File::DirectIOFile* outfile,
                                      std::map<ReuseID, GroupEntry>* reusable_groups,
                                      std::mutex* reusable_groups_mutex, GroupEntry* group_entry,
                                      u64* bytes_written);
@@ -365,7 +366,7 @@ private:
   bool m_valid;
   WIARVZCompressionType m_compression_type;
 
-  File::IOFile m_file;
+  File::DirectIOFile m_file;
   std::string m_path;
   Chunk m_cached_chunk;
   u64 m_cached_chunk_offset = std::numeric_limits<u64>::max();
