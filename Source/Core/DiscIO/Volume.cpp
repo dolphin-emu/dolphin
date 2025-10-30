@@ -3,7 +3,6 @@
 
 #include "DiscIO/Volume.h"
 
-#include <algorithm>
 #include <map>
 #include <memory>
 #include <optional>
@@ -16,8 +15,11 @@
 #include "Common/Crypto/SHA1.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/IOS/ES/Formats.h"
+
 #include "DiscIO/Blob.h"
+#include "DiscIO/CachedBlob.h"
 #include "DiscIO/DiscUtils.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/VolumeDisc.h"
@@ -109,6 +111,16 @@ std::unique_ptr<VolumeDisc> CreateDisc(const std::string& path)
   return CreateDisc(CreateBlobReader(path));
 }
 
+std::unique_ptr<VolumeDisc> CreateDiscForCore(const std::string& path)
+{
+  auto reader = CreateBlobReader(path);
+
+  if (Config::Get(Config::MAIN_LOAD_GAMES_INTO_MEMORY))
+    reader = CreateScrubbingCachedBlobReader(std::move(reader));
+
+  return CreateDisc(std::move(reader));
+}
+
 static std::unique_ptr<VolumeWAD> TryCreateWAD(std::unique_ptr<BlobReader>& reader)
 {
   if (!reader)
@@ -132,6 +144,16 @@ std::unique_ptr<VolumeWAD> CreateWAD(std::unique_ptr<BlobReader> reader)
 std::unique_ptr<VolumeWAD> CreateWAD(const std::string& path)
 {
   return CreateWAD(CreateBlobReader(path));
+}
+
+std::unique_ptr<VolumeWAD> CreateWADForCore(const std::string& path)
+{
+  auto reader = CreateBlobReader(path);
+
+  if (Config::Get(Config::MAIN_LOAD_GAMES_INTO_MEMORY))
+    reader = CreateCachedBlobReader(std::move(reader));
+
+  return CreateWAD(std::move(reader));
 }
 
 std::unique_ptr<Volume> CreateVolume(std::unique_ptr<BlobReader> reader)
