@@ -68,7 +68,7 @@ JNIEXPORT jdouble JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_CoreDevice_00024Control_getState(JNIEnv* env,
                                                                                      jobject obj)
 {
-  return env, GetControlPointer(env, obj)->ToInput()->GetState();
+  return GetControlPointer(env, obj)->ToInput()->GetState();
 }
 
 JNIEXPORT void JNICALL
