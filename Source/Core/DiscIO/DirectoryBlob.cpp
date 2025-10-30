@@ -4,9 +4,7 @@
 #include "DiscIO/DirectoryBlob.h"
 
 #include <algorithm>
-#include <array>
 #include <cstring>
-#include <locale>
 #include <map>
 #include <memory>
 #include <set>
@@ -17,14 +15,12 @@
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/DirectIOFile.h"
 #include "Common/FileUtil.h"
-#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
-#include "Core/Boot/DolReader.h"
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscUtils.h"
@@ -97,9 +93,8 @@ bool DiscContent::Read(u64* offset, u64* length, u8** buffer, DirectoryBlobReade
     if (std::holds_alternative<ContentFile>(m_content_source))
     {
       const auto& content = std::get<ContentFile>(m_content_source);
-      File::IOFile file(content.m_filename, "rb");
-      if (!file.Seek(content.m_offset + offset_in_content, File::SeekOrigin::Begin) ||
-          !file.ReadBytes(*buffer, bytes_to_read))
+      File::DirectIOFile file(content.m_filename, File::AccessMode::Read);
+      if (!file.OffsetRead(content.m_offset + offset_in_content, *buffer, bytes_to_read))
       {
         return false;
       }
@@ -1013,9 +1008,9 @@ void DirectoryBlobPartition::SetBI2(std::vector<u8> bi2)
 
 u64 DirectoryBlobPartition::SetApploaderFromFile(const std::string& path)
 {
-  File::IOFile file(path, "rb");
+  File::DirectIOFile file(path, File::AccessMode::Read);
   std::vector<u8> apploader(file.GetSize());
-  file.ReadBytes(apploader.data(), apploader.size());
+  file.Read(apploader);
   return SetApploader(std::move(apploader), path);
 }
 
@@ -1256,10 +1251,9 @@ void DirectoryBlobPartition::WriteDirectory(std::vector<u8>* fst_data,
 
 static size_t ReadFileToVector(const std::string& path, std::vector<u8>* vector)
 {
-  File::IOFile file(path, "rb");
-  size_t bytes_read;
-  file.ReadArray<u8>(vector->data(), std::min<u64>(file.GetSize(), vector->size()), &bytes_read);
-  return bytes_read;
+  File::DirectIOFile file(path, File::AccessMode::Read);
+  file.Read(vector->data(), std::min<u64>(file.GetSize(), vector->size()));
+  return file.Tell();
 }
 
 static void PadToAddress(u64 start_address, u64* address, u64* length, u8** buffer)

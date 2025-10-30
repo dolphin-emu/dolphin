@@ -35,6 +35,7 @@
 #endif
 
 #include "Common/Config/Config.h"
+#include "Common/FileUtil.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Version.h"
 #include "Common/WindowSystemInfo.h"

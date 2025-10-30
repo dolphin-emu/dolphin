@@ -15,7 +15,6 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/WiiEncryptionCache.h"
@@ -23,7 +22,6 @@
 namespace File
 {
 struct FSTEntry;
-class IOFile;
 }  // namespace File
 
 namespace DiscIO

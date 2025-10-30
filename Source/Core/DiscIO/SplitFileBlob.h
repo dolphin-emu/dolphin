@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/IOFile.h"
+#include "Common/DirectIOFile.h"
 #include "DiscIO/Blob.h"
 
 namespace DiscIO
@@ -37,7 +37,7 @@ public:
 private:
   struct SingleFile
   {
-    File::IOFile file;
+    File::DirectIOFile file;
     u64 offset;
     u64 size;
   };

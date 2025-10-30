@@ -4,14 +4,13 @@
 #include "DiscIO/Blob.h"
 
 #include <algorithm>
-#include <cstddef>
-#include <limits>
 #include <memory>
 #include <string>
 #include <utility>
 
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
-#include "Common/IOFile.h"
+#include "Common/DirectIOFile.h"
 #include "Common/MsgHandler.h"
 
 #include "DiscIO/CISOBlob.h"
@@ -213,9 +212,9 @@ u32 SectorReader::ReadChunk(u8* buffer, u64 chunk_num)
 
 std::unique_ptr<BlobReader> CreateBlobReader(const std::string& filename)
 {
-  File::IOFile file(filename, "rb");
+  File::DirectIOFile file(filename, File::AccessMode::Read);
   u32 magic;
-  if (!file.ReadArray(&magic, 1))
+  if (!file.Read(Common::AsWritableU8Span(magic)))
     return nullptr;
 
   // Conveniently, every supported file format (except for plain disc images and
