@@ -1,7 +1,3 @@
-[submodule "Externals/Qt"]
-	path = Externals/Qt
-	url = https://github.com/dolphin-emu/ext-win-qt.git
-	shallow = true
 [submodule "Externals/mGBA/mgba"]
 	path = Externals/mGBA/mgba
 	url = https://github.com/mgba-emu/mgba.git
@@ -133,4 +129,8 @@
 [submodule "Externals/wil"]
 	path = Externals/wil
 	url = https://github.com/microsoft/wil.git
+	shallow = true
+[submodule "Externals/Qt"]
+	path = Externals/Qt
+	url = https://github.com/JoshuaVandaele/ext-win-qt.git
 	shallow = true
