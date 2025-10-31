@@ -72,10 +72,10 @@ T Get(const Info<T>& info)
     cached.value = GetUncached(info);
     cached.config_version = config_version;
 
-    info.SetCachedValue(cached);
+    info.TryToSetCachedValue(cached);
   }
 
-  return cached.value;
+  return std::move(cached.value);
 }
 
 template <typename T>
