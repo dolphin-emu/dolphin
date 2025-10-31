@@ -14,13 +14,13 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/System.h"
-#include "VideoCommon/Assets/CustomResourceManager.h"
 #include "VideoCommon/Assets/MaterialAsset.h"
 #include "VideoCommon/Assets/MeshAsset.h"
 #include "VideoCommon/Assets/ShaderAsset.h"
 #include "VideoCommon/Assets/TextureAsset.h"
 #include "VideoCommon/Assets/TextureAssetUtils.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/Resources/CustomResourceManager.h"
 
 namespace VideoCommon
 {
