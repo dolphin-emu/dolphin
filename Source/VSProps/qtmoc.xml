@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ProjectSchemaDefinitions xmlns="http://schemas.microsoft.com/build/2009/properties">
-  <ItemType Name="QtMoc" DisplayName="Qt Meta Object File" />
-  <ContentType Name="QtMoc" DisplayName="Qt Meta Object Compiler" />
-</ProjectSchemaDefinitions>
