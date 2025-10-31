@@ -4,10 +4,10 @@
 #include "Core/IOS/SDIO/SDIOSlot0.h"
 
 #include <cstdio>
-#include <cstring>
 #include <memory>
 #include <vector>
 
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -23,6 +23,20 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/VersionInfo.h"
 #include "Core/System.h"
+
+namespace
+{
+void CorrectCSD(std::array<u32, 4>& csd_out)
+{
+  const std::array<u32, 4> csd_in = csd_out;
+  const auto bytes_in = Common::AsU8Span(csd_in);
+  auto bytes_out = Common::AsWritableU8Span(csd_out);
+  for (int i = 0; i < 15; i++)
+  {
+    bytes_out[(i + 1) ^ 0xC] = bytes_in[i];
+  }
+}
+}  // namespace
 
 namespace IOS::HLE
 {
@@ -615,12 +629,14 @@ std::array<u32, 4> SDIOSlot0Device::GetCSDv1() const
   constexpr u32 crc = 0;
 
   // Form the csd using the description above
-  return {{
+  std::array<u32, 4> description{{
       0x007f003,
       0x5b5f8000 | (c_size >> 2),
       0x3ffc7f80 | (c_size << 30) | (c_size_mult << 15),
       0x07c04001 | (crc << 1),
   }};
+  CorrectCSD(description);
+  return description;
 }
 
 std::array<u32, 4> SDIOSlot0Device::GetCSDv2() const
@@ -672,12 +688,14 @@ std::array<u32, 4> SDIOSlot0Device::GetCSDv2() const
   constexpr u32 crc = 0;
 
   // Form the csd using the description above
-  return {{
+  std::array<u32, 4> description{{
       0x400e005a,
       0x5f590000 | (c_size >> 16),
       0x00007f80 | (c_size << 16),
       0x0a400001 | (crc << 1),
   }};
+  CorrectCSD(description);
+  return description;
 }
 
 u64 SDIOSlot0Device::GetAddressFromRequest(u32 arg) const
