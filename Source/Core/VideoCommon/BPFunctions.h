@@ -76,7 +76,7 @@ struct ScissorResult
       : scissor_tl{.hex = other.scissor_tl.hex}, scissor_br{.hex = other.scissor_br.hex},
         scissor_off{.hex = other.scissor_off.hex}, viewport_left{other.viewport_left},
         viewport_right{other.viewport_right}, viewport_top{other.viewport_top},
-        viewport_bottom{other.viewport_bottom}, m_result{other.m_result}
+        viewport_bottom{other.viewport_bottom}, rectangles{other.rectangles}
   {
   }
   ScissorResult& operator=(const ScissorResult& other)
@@ -90,14 +90,14 @@ struct ScissorResult
     viewport_right = other.viewport_right;
     viewport_top = other.viewport_top;
     viewport_bottom = other.viewport_bottom;
-    m_result = other.m_result;
+    rectangles = other.rectangles;
     return *this;
   }
   ScissorResult(ScissorResult&& other)
       : scissor_tl{.hex = other.scissor_tl.hex}, scissor_br{.hex = other.scissor_br.hex},
         scissor_off{.hex = other.scissor_off.hex}, viewport_left{other.viewport_left},
         viewport_right{other.viewport_right}, viewport_top{other.viewport_top},
-        viewport_bottom{other.viewport_bottom}, m_result{std::move(other.m_result)}
+        viewport_bottom{other.viewport_bottom}, rectangles{std::move(other.rectangles)}
   {
   }
   ScissorResult& operator=(ScissorResult&& other)
@@ -111,7 +111,7 @@ struct ScissorResult
     viewport_right = other.viewport_right;
     viewport_top = other.viewport_top;
     viewport_bottom = other.viewport_bottom;
-    m_result = std::move(other.m_result);
+    rectangles = std::move(other.rectangles);
     return *this;
   }
 
@@ -124,8 +124,7 @@ struct ScissorResult
   float viewport_top;
   float viewport_bottom;
 
-  // Actual result
-  std::vector<ScissorRect> m_result;
+  std::vector<ScissorRect> rectangles;
 
   ScissorRect Best() const;
 

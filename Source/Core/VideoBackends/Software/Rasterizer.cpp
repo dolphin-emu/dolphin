@@ -116,7 +116,7 @@ void ScissorChanged()
 {
   auto scissor_result = BPFunctions::ComputeScissorRects(bpmem.scissorTL, bpmem.scissorBR,
                                                          bpmem.scissorOffset, xfmem.viewport);
-  scissors = std::move(scissor_result.m_result);
+  scissors = std::move(scissor_result.rectangles);
 }
 
 // Returns approximation of log2(f) in s28.4

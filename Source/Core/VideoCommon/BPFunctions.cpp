@@ -131,7 +131,7 @@ ScissorResult::ScissorResult(ScissorPos scissor_top_left, ScissorPos scissor_bot
   RangeList x_ranges = ComputeScissorRanges(left, right, x_off, EFB_WIDTH);
   RangeList y_ranges = ComputeScissorRanges(top, bottom, y_off, EFB_HEIGHT);
 
-  m_result.reserve(x_ranges.size() * y_ranges.size());
+  rectangles.reserve(x_ranges.size() * y_ranges.size());
 
   // Now we need to form actual rectangles from the x and y ranges,
   // which is a simple Cartesian product of x_ranges_clamped and y_ranges_clamped.
@@ -145,12 +145,12 @@ ScissorResult::ScissorResult(ScissorPos scissor_top_left, ScissorPos scissor_bot
     {
       DEBUG_ASSERT(y_range.start < y_range.end);
       DEBUG_ASSERT(static_cast<u32>(y_range.end) <= EFB_HEIGHT);
-      m_result.emplace_back(x_range, y_range);
+      rectangles.emplace_back(x_range, y_range);
     }
   }
 
   auto cmp = [&](const ScissorRect& lhs, const ScissorRect& rhs) { return IsWorse(lhs, rhs); };
-  std::ranges::sort(m_result, cmp);
+  std::ranges::sort(rectangles, cmp);
 }
 
 ScissorRect ScissorResult::Best() const
@@ -158,9 +158,9 @@ ScissorRect ScissorResult::Best() const
   // For now, simply choose the best rectangle (see ScissorResult::IsWorse).
   // This does mean we calculate all rectangles and only choose one, which is not optimal, but this
   // is called infrequently.  Eventually, all backends will support multiple scissor rects.
-  if (!m_result.empty())
+  if (!rectangles.empty())
   {
-    return m_result.back();
+    return rectangles.back();
   }
   else
   {
