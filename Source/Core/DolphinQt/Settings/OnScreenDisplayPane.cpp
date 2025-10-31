@@ -149,8 +149,10 @@ void OnScreenDisplayPane::AddDescriptions()
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_OSD_FONT_SIZE_DESCRIPTION[] = QT_TR_NOOP(
       "Changes the font size of the On-Screen Display. Affects features such as performance "
-      "statistics, frame counter, and netplay chat.<br><br><dolphin_emphasis>If "
-      "unsure, leave this at 13.</dolphin_emphasis>");
+      "statistics, frame counter, and netplay chat."
+      "<br><br>The font can be changed by placing a TTF font file into Dolphin's User/Load "
+      "folder, and renaming it OSD_Font.ttf."
+      "<br><br><dolphin_emphasis>If unsure, leave this at 13.</dolphin_emphasis>");
 
   static const char TR_SHOW_FPS_DESCRIPTION[] =
       QT_TR_NOOP("Shows the number of distinct frames rendered per second as a measure of "
@@ -204,7 +206,7 @@ void OnScreenDisplayPane::AddDescriptions()
                  "savestates.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
   static const char TR_LAG_COUNTER_DESCRIPTION[] = QT_TR_NOOP(
-      "Shows how many frames have occured without controller inputs being checked. Resets to 1 "
+      "Shows how many frames have occurred without controller inputs being checked. Resets to 1 "
       "when inputs are processed. <br><br><dolphin_emphasis>If unsure, leave "
       "this unchecked.</dolphin_emphasis>");
   static const char TR_FRAME_COUNTER_DESCRIPTION[] =
