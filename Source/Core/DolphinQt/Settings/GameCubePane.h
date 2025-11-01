@@ -50,10 +50,13 @@ private:
   bool SetGCIFolder(ExpansionInterface::Slot slot, const QString& path);
   void BrowseAGPRom(ExpansionInterface::Slot slot);
   void SetAGPRom(ExpansionInterface::Slot slot, const QString& filename);
+
+#ifdef HAS_LIBMGBA
   void BrowseGBABios();
   void BrowseGBARom(size_t index);
   void SaveRomPathChanged();
   void BrowseGBASaves();
+#endif  // HAS_LIBMGBA
 
   ConfigBool* m_skip_main_menu;
   ConfigChoice* m_language_combo;

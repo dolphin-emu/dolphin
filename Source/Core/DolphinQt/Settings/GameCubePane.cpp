@@ -665,6 +665,8 @@ void GameCubePane::SetAGPRom(ExpansionInterface::Slot slot, const QString& filen
   LoadSettings();
 }
 
+#ifdef HAS_LIBMGBA
+
 void GameCubePane::BrowseGBABios()
 {
   QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
@@ -698,6 +700,8 @@ void GameCubePane::BrowseGBASaves()
     SaveSettings();
   }
 }
+
+#endif  // HAS_LIBMGBA
 
 void GameCubePane::LoadSettings()
 {

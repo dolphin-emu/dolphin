@@ -1,6 +1,8 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#ifdef HAS_LIBMGBA
+
 #include "DolphinQt/GBAWidget.h"
 
 #include <fmt/format.h>
@@ -615,3 +617,4 @@ void GBAWidgetController::FrameEnded(std::span<const u32> video_buffer)
 {
   m_widget->SetVideoBuffer(video_buffer);
 }
+#endif  // HAS_LIBMGBA
