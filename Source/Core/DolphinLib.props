@@ -145,6 +145,7 @@
     <ClInclude Include="Common\MemoryUtil.h" />
     <ClInclude Include="Common\MinizipUtil.h" />
     <ClInclude Include="Common\MsgHandler.h" />
+    <ClInclude Include="Common\Mutex.h" />
     <ClInclude Include="Common\NandPaths.h" />
     <ClInclude Include="Common\Network.h" />
     <ClInclude Include="Common\PcapFile.h" />
