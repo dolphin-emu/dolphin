@@ -856,7 +856,8 @@ void FramebufferManager::PopulateEFBCache(bool depth, u32 tile_index, bool async
 }
 
 void FramebufferManager::ClearEFB(const MathUtil::Rectangle<int>& rc, bool color_enable,
-                                  bool alpha_enable, bool z_enable, u32 color, u32 z)
+                                  bool alpha_enable, bool z_enable, u32 color, u32 z,
+                                  PixelFormat pixel_format)
 {
   FlushEFBPokes();
   FlagPeekCacheAsOutOfDate();
@@ -870,9 +871,8 @@ void FramebufferManager::ClearEFB(const MathUtil::Rectangle<int>& rc, bool color
   // channel to 0xFF.
   // On backends that don't allow masking Alpha clears, this allows us to use the fast path
   // almost all the time
-  if (bpmem.zcontrol.pixel_format == PixelFormat::RGB565_Z16 ||
-      bpmem.zcontrol.pixel_format == PixelFormat::RGB8_Z24 ||
-      bpmem.zcontrol.pixel_format == PixelFormat::Z24)
+  if (pixel_format == PixelFormat::RGB565_Z16 || pixel_format == PixelFormat::RGB8_Z24 ||
+      pixel_format == PixelFormat::Z24)
   {
     // Force alpha writes, and clear the alpha channel.
     alpha_enable = true;
@@ -880,9 +880,6 @@ void FramebufferManager::ClearEFB(const MathUtil::Rectangle<int>& rc, bool color
   }
 
   g_gfx->ClearRegion(target_rc, color_enable, alpha_enable, z_enable, color, z);
-
-  // Scissor rect must be restored.
-  BPFunctions::SetScissorAndViewport();
 }
 
 bool FramebufferManager::CompileClearPipelines()
