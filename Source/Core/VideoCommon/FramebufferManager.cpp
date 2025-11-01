@@ -337,8 +337,8 @@ AbstractTexture* FramebufferManager::ResolveEFBColorTexture(const MathUtil::Rect
   }
   else
   {
-    m_efb_color_texture->FinishedRendering();
     g_gfx->BeginUtilityDrawing();
+    m_efb_color_texture->FinishedRendering();
     g_gfx->SetAndDiscardFramebuffer(m_efb_color_resolve_framebuffer.get());
     g_gfx->SetPipeline(m_efb_color_resolve_pipeline.get());
     g_gfx->SetTexture(0, m_efb_color_texture.get());
@@ -365,8 +365,8 @@ AbstractTexture* FramebufferManager::ResolveEFBDepthTexture(const MathUtil::Rect
   MathUtil::Rectangle<int> clamped_region = region;
   clamped_region.ClampUL(0, 0, GetEFBWidth(), GetEFBHeight());
 
-  m_efb_depth_texture->FinishedRendering();
   g_gfx->BeginUtilityDrawing();
+  m_efb_depth_texture->FinishedRendering();
   g_gfx->SetAndDiscardFramebuffer(m_efb_depth_resolve_framebuffer.get());
   g_gfx->SetPipeline(IsEFBMultisampled() ? m_efb_depth_resolve_pipeline.get() :
                                            m_efb_depth_cache.copy_pipeline.get());
@@ -389,8 +389,8 @@ bool FramebufferManager::ReinterpretPixelData(EFBReinterpretType convtype)
   // We don't discard here because discarding the framebuffer also throws away the depth
   // buffer, which we want to preserve. If we find this to be hindering performance in the
   // future (e.g. on mobile/tilers), it may be worth discarding only the color buffer.
-  m_efb_color_texture->FinishedRendering();
   g_gfx->BeginUtilityDrawing();
+  m_efb_color_texture->FinishedRendering();
   g_gfx->SetFramebuffer(m_efb_convert_framebuffer.get());
   g_gfx->SetViewportAndScissor(m_efb_framebuffer->GetRect());
   g_gfx->SetPipeline(m_format_conversion_pipelines[static_cast<u32>(convtype)].get());
@@ -807,8 +807,8 @@ void FramebufferManager::PopulateEFBCache(bool depth, u32 tile_index, bool async
     // Downsample from internal resolution to 1x.
     // TODO: This won't produce correct results at IRs above 2x. More samples are required.
     // This is the same issue as with EFB copies.
-    src_texture->FinishedRendering();
     g_gfx->BeginUtilityDrawing();
+    src_texture->FinishedRendering();
 
     const float rcp_src_width = 1.0f / m_efb_framebuffer->GetWidth();
     const float rcp_src_height = 1.0f / m_efb_framebuffer->GetHeight();
