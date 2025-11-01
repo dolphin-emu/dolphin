@@ -251,12 +251,22 @@ void MappingWindow::UpdateProfileButtonState()
   QString delete_tooltip;
 
   // Check if mapping is modified
-  Common::IniFile diskIni;
-  diskIni.Load(profile_path.toStdString());
+  // Load memory mapping
   Common::IniFile memoryIni;
   m_controller->SaveConfig(memoryIni.GetOrCreateSection("Profile"));
-  bool mapping_modified = !diskIni.CompareContent(memoryIni);
-  if (!mapping_modified) {
+
+  // Load disk mapping
+  Common::IniFile diskIni;
+  diskIni.Load(profile_path.toStdString());
+  // Pass the disk mapping through the controller to normalize it
+  m_controller->LoadConfig(diskIni.GetOrCreateSection("Profile"));
+  m_controller->SaveConfig(diskIni.GetOrCreateSection("Profile"));
+  // Restore controller mapping from memory
+  m_controller->LoadConfig(memoryIni.GetOrCreateSection("Profile"));
+  
+  // Compare mappings
+  bool mapping_is_the_same = diskIni.CompareContent(memoryIni);
+  if (mapping_is_the_same) {
     load_enabled = false;
     load_tooltip = tr("Cannot do this action. Reason: No changes between profile file and current mappings");
     save_enabled = false;
