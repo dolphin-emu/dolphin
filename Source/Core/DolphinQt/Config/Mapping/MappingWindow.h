@@ -56,7 +56,7 @@ public:
   bool IsIterativeMappingEnabled() const;
   void ShowExtensionMotionTabs(bool show);
   void ActivateExtensionTab();
-  void OnMappingChange(int source);
+  void OnMappingChange();
 
 signals:
   // Emitted when config has changed so widgets can update to reflect the change.

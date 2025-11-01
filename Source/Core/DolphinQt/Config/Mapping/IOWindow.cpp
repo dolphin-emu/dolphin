@@ -771,7 +771,7 @@ void IOWindow::UpdateExpression(std::string new_expression, UpdateMode mode)
   m_controller->UpdateSingleControlReference(g_controller_interface, m_reference);
 
   // Emit signal that this IOWindow's expression changed.
-  emit OnMappingChange(QString::fromStdString(m_reference->GetExpression()));
+  emit OnMappingChange();
 
   // This is the only place where we need to update the user variables. Keep the first 4 items.
   while (m_variables_combo->count() > 4)

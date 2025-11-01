@@ -663,7 +663,7 @@ void MappingWindow::ActivateExtensionTab()
   m_tab_widget->setCurrentIndex(3);
 }
 
-void MappingWindow::OnMappingChange(int source)
+void MappingWindow::OnMappingChange()
 {
   UpdateProfileButtonState();
 }
