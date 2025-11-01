@@ -11,7 +11,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/AES.h"
-#include "Common/IOFile.h"
+#include "Common/DirectIOFile.h"
 #include "DiscIO/Blob.h"
 
 // This is the file format used for Wii games released on the Wii U eShop.
@@ -41,7 +41,7 @@ static_assert(sizeof(NFSHeader) == 0x200);
 class NFSFileReader final : public BlobReader
 {
 public:
-  static std::unique_ptr<NFSFileReader> Create(File::IOFile first_file,
+  static std::unique_ptr<NFSFileReader> Create(File::DirectIOFile first_file,
                                                const std::string& directory_path);
 
   BlobType GetBlobType() const override { return BlobType::NFS; }
@@ -65,12 +65,13 @@ private:
 
   static bool ReadKey(const std::string& path, const std::string& directory, Key* key_out);
   static std::vector<NFSLBARange> GetLBARanges(const NFSHeader& header);
-  static std::vector<File::IOFile> OpenFiles(const std::string& directory, File::IOFile first_file,
-                                             u64 expected_raw_size, u64* raw_size_out);
+  static std::vector<File::DirectIOFile> OpenFiles(const std::string& directory,
+                                                   File::DirectIOFile first_file,
+                                                   u64 expected_raw_size, u64* raw_size_out);
   static u64 CalculateExpectedRawSize(const std::vector<NFSLBARange>& lba_ranges);
   static u64 CalculateExpectedDataSize(const std::vector<NFSLBARange>& lba_ranges);
 
-  NFSFileReader(std::vector<NFSLBARange> lba_ranges, std::vector<File::IOFile> files, Key key,
+  NFSFileReader(std::vector<NFSLBARange> lba_ranges, std::vector<File::DirectIOFile> files, Key key,
                 u64 raw_size);
 
   u64 ToPhysicalBlockIndex(u64 logical_block_index) const;
@@ -83,7 +84,7 @@ private:
   u64 m_current_logical_block_index = std::numeric_limits<u64>::max();
 
   std::vector<NFSLBARange> m_lba_ranges;
-  std::vector<File::IOFile> m_files;
+  std::vector<File::DirectIOFile> m_files;
   std::unique_ptr<Common::AES::Context> m_aes_context;
   u64 m_raw_size;
   u64 m_data_size;

@@ -51,6 +51,7 @@
     <ClInclude Include="Common\Debug\MemoryPatches.h" />
     <ClInclude Include="Common\Debug\Threads.h" />
     <ClInclude Include="Common\Debug\Watches.h" />
+    <ClInclude Include="Common\DirectIOFile.h" />
     <ClInclude Include="Common\DynamicLibrary.h" />
     <ClInclude Include="Common\ENet.h" />
     <ClInclude Include="Common\EnumFormatter.h" />
@@ -480,6 +481,7 @@
     <ClInclude Include="Core\WiiUtils.h" />
     <ClInclude Include="DiscIO\Blob.h" />
     <ClInclude Include="DiscIO\CISOBlob.h" />
+    <ClInclude Include="DiscIO\CachedBlob.h" />
     <ClInclude Include="DiscIO\CompressedBlob.h" />
     <ClInclude Include="DiscIO\DirectoryBlob.h" />
     <ClInclude Include="DiscIO\DiscExtractor.h" />
@@ -818,6 +820,7 @@
     <ClCompile Include="Common\Crypto\SHA1.cpp" />
     <ClCompile Include="Common\Debug\MemoryPatches.cpp" />
     <ClCompile Include="Common\Debug\Watches.cpp" />
+    <ClCompile Include="Common\DirectIOFile.cpp" />
     <ClCompile Include="Common\DynamicLibrary.cpp" />
     <ClCompile Include="Common\ENet.cpp" />
     <ClCompile Include="Common\FatFsUtil.cpp" />
@@ -1161,6 +1164,7 @@
     <ClCompile Include="Core\WC24PatchEngine.cpp" />
     <ClCompile Include="DiscIO\Blob.cpp" />
     <ClCompile Include="DiscIO\CISOBlob.cpp" />
+    <ClCompile Include="DiscIO\CachedBlob.cpp" />
     <ClCompile Include="DiscIO\CompressedBlob.cpp" />
     <ClCompile Include="DiscIO\DirectoryBlob.cpp" />
     <ClCompile Include="DiscIO\DiscExtractor.cpp" />

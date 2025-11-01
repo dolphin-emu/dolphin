@@ -4,22 +4,20 @@
 #include "DiscIO/CISOBlob.h"
 
 #include <algorithm>
-#include <cstdio>
 #include <memory>
 #include <utility>
 
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
-#include "Common/IOFile.h"
 
 namespace DiscIO
 {
-CISOFileReader::CISOFileReader(File::IOFile file) : m_file(std::move(file))
+CISOFileReader::CISOFileReader(File::DirectIOFile file) : m_file(std::move(file))
 {
   m_size = m_file.GetSize();
 
   CISOHeader header;
-  m_file.Seek(0, File::SeekOrigin::Begin);
-  m_file.ReadArray(&header, 1);
+  m_file.OffsetRead(0, Common::AsWritableU8Span(header));
 
   m_block_size = header.block_size;
 
@@ -28,11 +26,10 @@ CISOFileReader::CISOFileReader(File::IOFile file) : m_file(std::move(file))
     m_ciso_map[idx] = (1 == header.map[idx]) ? count++ : UNUSED_BLOCK_ID;
 }
 
-std::unique_ptr<CISOFileReader> CISOFileReader::Create(File::IOFile file)
+std::unique_ptr<CISOFileReader> CISOFileReader::Create(File::DirectIOFile file)
 {
   CISOHeader header;
-  if (file.Seek(0, File::SeekOrigin::Begin) && file.ReadArray(&header, 1) &&
-      header.magic == CISO_MAGIC)
+  if (file.OffsetRead(0, Common::AsWritableU8Span(header)) && header.magic == CISO_MAGIC)
   {
     return std::unique_ptr<CISOFileReader>(new CISOFileReader(std::move(file)));
   }
@@ -42,7 +39,7 @@ std::unique_ptr<CISOFileReader> CISOFileReader::Create(File::IOFile file)
 
 std::unique_ptr<BlobReader> CISOFileReader::CopyReader() const
 {
-  return Create(m_file.Duplicate("rb"));
+  return Create(m_file);
 }
 
 u64 CISOFileReader::GetDataSize() const
@@ -71,12 +68,8 @@ bool CISOFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
       // calculate the base address
       u64 const file_off = CISO_HEADER_SIZE + m_ciso_map[block] * (u64)m_block_size + data_offset;
 
-      if (!(m_file.Seek(file_off, File::SeekOrigin::Begin) &&
-            m_file.ReadArray(out_ptr, bytes_to_read)))
-      {
-        m_file.ClearError();
+      if (!m_file.OffsetRead(file_off, out_ptr, bytes_to_read))
         return false;
-      }
     }
     else
     {

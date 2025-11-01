@@ -428,7 +428,8 @@ void DVDInterface::EjectDiscCallback(Core::System& system, u64 userdata, s64 cyc
 void DVDInterface::InsertDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   auto& di = system.GetDVDInterface();
-  std::unique_ptr<DiscIO::VolumeDisc> new_disc = DiscIO::CreateDisc(di.m_disc_path_to_insert);
+  std::unique_ptr<DiscIO::VolumeDisc> new_disc =
+      DiscIO::CreateDiscForCore(di.m_disc_path_to_insert);
 
   if (new_disc)
     di.SetDisc(std::move(new_disc), {});
