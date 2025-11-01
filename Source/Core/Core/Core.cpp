@@ -779,43 +779,46 @@ void SaveScreenShot(std::string_view name)
   g_frame_dumper->SaveScreenshot(fmt::format("{}{}.png", GenerateScreenshotFolderPath(), name));
 }
 
-static bool PauseAndLock(Core::System& system, bool do_lock, bool unpause_on_unlock)
+static bool PauseAndLock(Core::System& system)
 {
   // WARNING: PauseAndLock is not fully threadsafe so is only valid on the Host Thread
 
   if (!IsRunning(system))
     return true;
 
-  bool was_unpaused = true;
-  if (do_lock)
-  {
-    // first pause the CPU
-    // This acquires a wrapper mutex and converts the current thread into
-    // a temporary replacement CPU Thread.
-    was_unpaused = system.GetCPU().PauseAndLock(true);
-  }
+  // First pause the CPU.  This acquires a wrapper mutex and converts the current thread into
+  // a temporary replacement CPU Thread.
+  const bool was_unpaused = system.GetCPU().PauseAndLock();
 
   // audio has to come after CPU, because CPU thread can wait for audio thread (m_throttle).
-  system.GetDSP().GetDSPEmulator()->PauseAndLock(do_lock);
+  system.GetDSP().GetDSPEmulator()->PauseAndLock();
 
   // video has to come after CPU, because CPU thread can wait for video thread
   // (s_efbAccessRequested).
-  system.GetFifo().PauseAndLock(do_lock, false);
+  system.GetFifo().PauseAndLock();
 
   ResetRumble();
 
-  // CPU is unlocked last because CPU::PauseAndLock contains the synchronization
-  // mechanism that prevents CPU::Break from racing.
-  if (!do_lock)
-  {
-    // The CPU is responsible for managing the Audio and FIFO state so we use its
-    // mechanism to unpause them. If we unpaused the systems above when releasing
-    // the locks then they could call CPU::Break which would require detecting it
-    // and re-pausing with CPU::SetStepping.
-    was_unpaused = system.GetCPU().PauseAndLock(false, unpause_on_unlock, true);
-  }
-
   return was_unpaused;
+}
+
+static void RestoreStateAndUnlock(Core::System& system, const bool unpause_on_unlock)
+{
+  // WARNING: RestoreStateAndUnlock is not fully threadsafe so is only valid on the Host Thread
+
+  if (!IsRunning(system))
+    return;
+
+  system.GetDSP().GetDSPEmulator()->UnpauseAndUnlock();
+  ResetRumble();
+
+  // CPU is unlocked last because CPU::RestoreStateAndUnlock contains the synchronization mechanism
+  // that prevents CPU::Break from racing.
+  //
+  // The CPU is responsible for managing the Audio and FIFO state so we use its mechanism to unpause
+  // them. If we unpaused the systems above when releasing the locks then they could call CPU::Break
+  // which would require detecting it and re-pausing with CPU::SetStepping.
+  system.GetCPU().RestoreStateAndUnlock(unpause_on_unlock);
 }
 
 void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> function,
@@ -829,7 +832,7 @@ void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> funct
   }
 
   // Pause the CPU (set it to stepping mode).
-  const bool was_running = PauseAndLock(system, true, true);
+  const bool was_running = PauseAndLock(system);
 
   // Queue the job function.
   if (wait_for_completion)
@@ -847,7 +850,7 @@ void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> funct
   }
 
   // Release the CPU thread, and let it execute the callback.
-  PauseAndLock(system, false, was_running);
+  RestoreStateAndUnlock(system, was_running);
 
   // If we're waiting for completion, block until the event fires.
   if (wait_for_completion)
@@ -1064,13 +1067,13 @@ CPUThreadGuard::CPUThreadGuard(Core::System& system)
     : m_system(system), m_was_cpu_thread(IsCPUThread())
 {
   if (!m_was_cpu_thread)
-    m_was_unpaused = PauseAndLock(system, true, true);
+    m_was_unpaused = PauseAndLock(system);
 }
 
 CPUThreadGuard::~CPUThreadGuard()
 {
   if (!m_was_cpu_thread)
-    PauseAndLock(m_system, false, m_was_unpaused);
+    RestoreStateAndUnlock(m_system, m_was_unpaused);
 }
 
 }  // namespace Core

@@ -106,9 +106,9 @@ static void RunWithGPUThreadInactive(std::function<void()> f)
     auto& system = Core::System::GetInstance();
     const bool was_running = Core::GetState(system) == Core::State::Running;
     auto& fifo = system.GetFifo();
-    fifo.PauseAndLock(true, was_running);
+    fifo.PauseAndLock();
     f();
-    fifo.PauseAndLock(false, was_running);
+    fifo.RestoreState(was_running);
   }
   else
   {

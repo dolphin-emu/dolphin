@@ -86,16 +86,18 @@ public:
   // Strictly read-only. A lock is required to change the value.
   const State* GetStatePtr() const;
 
-  // Locks the CPU Thread (waiting for it to become idle).
-  // While this lock is held, the CPU Thread will not perform any action so it is safe to access
-  // PowerPC, CoreTiming, etc. without racing the CPU Thread.
-  // Cannot be used recursively. Must be paired as PauseAndLock(true)/PauseAndLock(false).
-  // Return value for do_lock == true is whether the state was State::Running or not.
-  // Return value for do_lock == false is whether the state was changed *to* State::Running or not.
-  // Cannot be used by System threads as it will deadlock. It is threadsafe otherwise.
-  // "control_adjacent" causes PauseAndLock to behave like SetStepping by modifying the
-  //   state of the Audio and FIFO subsystems as well.
-  bool PauseAndLock(bool do_lock, bool unpause_on_unlock = true, bool control_adjacent = false);
+  // Locks the CPU Thread (waiting for it to become idle). While this lock is held, the CPU Thread
+  // will not perform any action so it is safe to access PowerPC, CoreTiming, etc. without racing
+  // the CPU Thread.
+  //
+  // Cannot be used recursively. Cannot be used by System threads as it will deadlock. It is
+  // threadsafe otherwise.
+  //
+  // Each call to PauseAndLock must be paired with a call to RestoreStateAndUnlock. The return value
+  // for PauseAndLock is whether the state was State::Running or not and should be passed as the
+  // argument to RestoreStateAndUnlock.
+  bool PauseAndLock();
+  void RestoreStateAndUnlock(bool unpause_on_unlock);
 
   // Adds a job to be executed during on the CPU thread. This should be combined with
   // PauseAndLock(), as while the CPU is in the run loop, it won't execute the function.
@@ -122,6 +124,8 @@ private:
   //   deadlock because of the order inversion. (A -> X,Y; B -> Y,X; A waits for
   //   B, B waits for A)
   std::mutex m_stepping_lock;
+  // Protected by m_stepping_lock.
+  bool m_have_fake_cpu_thread = false;
 
   // Primary lock. Protects changing m_state, requesting instruction stepping and
   // pause-and-locking.
