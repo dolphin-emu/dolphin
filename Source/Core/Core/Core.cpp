@@ -113,7 +113,7 @@ static std::atomic<State> s_state = State::Uninitialized;
 static std::unique_ptr<MemoryWatcher> s_memory_watcher;
 #endif
 
-void Callback_FramePresented(const PresentInfo& present_info);
+static void Callback_FramePresented(const PresentInfo& present_info);
 
 struct HostJob
 {
@@ -130,9 +130,6 @@ static thread_local bool tls_is_host_thread = false;
 
 static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot,
                       WindowSystemInfo wsi);
-
-static Common::EventHook s_frame_presented =
-    AfterPresentEvent::Register(&Core::Callback_FramePresented, "Core Frame Presented");
 
 bool GetIsThrottlerTempDisabled()
 {
@@ -660,6 +657,9 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
 
   // This adds the SyncGPU handler to CoreTiming, so now CoreTiming::Advance might block.
   system.GetFifo().Prepare();
+
+  const Common::EventHook frame_presented = GetVideoEvents().after_present_event.Register(
+      &Core::Callback_FramePresented, "Core Frame Presented");
 
   // Setup our core
   if (Config::Get(Config::MAIN_CPU_CORE) != PowerPC::CPUCore::Interpreter)
