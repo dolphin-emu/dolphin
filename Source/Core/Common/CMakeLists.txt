@@ -52,6 +52,8 @@ add_library(common
   Debug/Threads.h
   Debug/Watches.cpp
   Debug/Watches.h
+  DirectIOFile.cpp
+  DirectIOFile.h
   DynamicLibrary.cpp
   DynamicLibrary.h
   ENet.cpp
