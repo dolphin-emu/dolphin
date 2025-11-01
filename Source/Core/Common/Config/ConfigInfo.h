@@ -4,12 +4,12 @@
 #pragma once
 
 #include <mutex>
-#include <shared_mutex>
 #include <string>
 #include <utility>
 
 #include "Common/CommonTypes.h"
 #include "Common/Config/Enums.h"
+#include "Common/Mutex.h"
 #include "Common/TypeUtils.h"
 
 namespace Config
@@ -70,14 +70,14 @@ public:
 
   CachedValue<T> GetCachedValue() const
   {
-    std::shared_lock lk{m_cached_value_mutex};
+    std::lock_guard lk{m_cached_value_mutex};
     return m_cached_value;
   }
 
   template <typename U>
   CachedValue<U> GetCachedValueCasted() const
   {
-    std::shared_lock lk{m_cached_value_mutex};
+    std::lock_guard lk{m_cached_value_mutex};
     return {static_cast<U>(m_cached_value.value), m_cached_value.config_version};
   }
 
@@ -94,6 +94,10 @@ private:
   T m_default_value;
 
   mutable CachedValue<T> m_cached_value;
-  mutable std::shared_mutex m_cached_value_mutex;
+
+  // In testing, this mutex is effectively never contested.
+  // The lock durations are brief and each `Info` object is mostly relevant to one thread.
+  // Common::SpinMutex is ~3x faster than std::shared_mutex when uncontested.
+  mutable Common::SpinMutex m_cached_value_mutex;
 };
 }  // namespace Config
