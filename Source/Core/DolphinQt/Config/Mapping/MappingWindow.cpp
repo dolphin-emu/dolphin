@@ -265,7 +265,7 @@ void MappingWindow::UpdateProfileButtonState()
   m_controller->LoadConfig(memoryIni.GetOrCreateSection("Profile"));
   
   // Compare mappings
-  bool mapping_is_the_same = diskIni.CompareContent(memoryIni);
+  bool mapping_is_the_same = diskIni.CompareValues(memoryIni);
   if (mapping_is_the_same) {
     load_enabled = false;
     load_tooltip = tr("Cannot do this action. Reason: No changes between profile file and current mappings");

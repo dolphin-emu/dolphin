@@ -81,7 +81,7 @@ public:
   IniFile();
   ~IniFile();
 
-  bool CompareContent(IniFile& other) const;
+  bool CompareValues(IniFile& other) const;
 
   /**
    * Loads sections and keys.

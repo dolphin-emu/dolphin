@@ -353,7 +353,7 @@ bool IniFile::Save(const std::string& filename)
 }
 
 
-bool IniFile::CompareContent(IniFile& other) const {
+bool IniFile::CompareValues(IniFile& other) const {
   if (sections.size() != other.sections.size())
     return false;
 
@@ -362,16 +362,7 @@ bool IniFile::CompareContent(IniFile& other) const {
     const Section* os = other.GetSection(s.name);
     if (!os)
       return false;
-
-    // Compare raw lines
-    if (s.m_lines != os->m_lines)
-      return false;
-
-    // Compare key order
-    if (s.keys_order != os->keys_order)
-      return false;
-
-    // Compare values
+    
     if (s.values.size() != os->values.size())
       return false;
 
