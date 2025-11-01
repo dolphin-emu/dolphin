@@ -104,6 +104,7 @@ class Settings : Closeable {
         const val FILE_GFX = "GFX"
         const val FILE_LOGGER = "Logger"
         const val FILE_WIIMOTE = "WiimoteNew"
+        const val FILE_ACHIEVEMENTS = "RetroAchievements"
         const val FILE_GAME_SETTINGS_ONLY = "GameSettingsOnly"
         const val SECTION_INI_ANDROID = "Android"
         const val SECTION_INI_ANDROID_OVERLAY_BUTTONS = "AndroidOverlayButtons"
@@ -122,5 +123,6 @@ class Settings : Closeable {
         const val SECTION_EMULATED_USB_DEVICES = "EmulatedUSBDevices"
         const val SECTION_STEREOSCOPY = "Stereoscopy"
         const val SECTION_ANALYTICS = "Analytics"
+        const val SECTION_ACHIEVEMENTS = "Achievements"
     }
 }
