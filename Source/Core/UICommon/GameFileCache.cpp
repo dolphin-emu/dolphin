@@ -26,7 +26,7 @@
 
 namespace UICommon
 {
-static constexpr u32 CACHE_REVISION = 26;  // Last changed in PR 10084
+static constexpr u32 CACHE_REVISION = 27;  // Last changed in PR 13844
 
 std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
                                           bool recursive_scan)
