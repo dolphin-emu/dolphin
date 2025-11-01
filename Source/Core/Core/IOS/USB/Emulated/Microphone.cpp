@@ -23,7 +23,7 @@
 #include "Core/System.h"
 
 #ifdef _WIN32
-#include <Objbase.h>
+#include <objbase.h>
 #endif
 
 #ifdef ANDROID

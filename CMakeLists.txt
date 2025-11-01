@@ -441,6 +441,10 @@ if(FASTLOG)
   add_definitions(-DDEBUGFAST)
 endif()
 
+if (MINGW)
+  add_definitions(-D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00)
+endif()
+
 if(ENABLE_VTUNE)
   set(VTUNE_DIR "/opt/intel/vtune_amplifier")
   add_definitions(-DUSE_VTUNE)
@@ -763,8 +767,11 @@ else()
   message(STATUS "libsystemd not found, disabling traversal server watchdog support")
 endif()
 
-if (WIN32)
+if (MSVC)
   include_directories(Externals/WIL/include)
+endif()
+
+if (WIN32)
   include_directories(Externals/OpenAL/include)
 endif()
 

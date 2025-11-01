@@ -13,7 +13,9 @@
 #include "AudioCommon/OpenALStream.h"
 #include "AudioCommon/OpenSLESStream.h"
 #include "AudioCommon/PulseAudioStream.h"
+#ifdef _MSC_VER
 #include "AudioCommon/WASAPIStream.h"
+#endif
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/TimeUtil.h"
@@ -40,8 +42,10 @@ static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(std::string_view
     return std::make_unique<PulseAudio>();
   else if (backend == BACKEND_OPENSLES && OpenSLESStream::IsValid())
     return std::make_unique<OpenSLESStream>();
+#ifdef _MSC_VER
   else if (backend == BACKEND_WASAPI && WASAPIStream::IsValid())
     return std::make_unique<WASAPIStream>();
+#endif
   return {};
 }
 
@@ -129,9 +133,10 @@ std::vector<std::string> GetSoundBackends()
     backends.emplace_back(BACKEND_OPENAL);
   if (OpenSLESStream::IsValid())
     backends.emplace_back(BACKEND_OPENSLES);
+#ifdef _MSC_VER
   if (WASAPIStream::IsValid())
     backends.emplace_back(BACKEND_WASAPI);
-
+#endif
   return backends;
 }
 
