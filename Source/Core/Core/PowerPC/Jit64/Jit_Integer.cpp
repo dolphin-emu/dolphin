@@ -381,7 +381,7 @@ bool Jit64::CheckMergedBranch(u32 crf) const
            ((next.OPCD == 19) && (next.SUBOP10 == 528) /* bcctrx */) ||
            ((next.OPCD == 19) && (next.SUBOP10 == 16) /* bclrx */)) &&
           (next.BO & BO_DONT_DECREMENT_FLAG) && !(next.BO & BO_DONT_CHECK_CONDITION) &&
-          static_cast<u32>(next.BI >> 2) == crf);
+          static_cast<u32>(next.BI >> 2) == crf && (next.BI & 3) != 3 - PowerPC::CR_SO_BIT);
 }
 
 void Jit64::DoMergedBranch()
@@ -476,7 +476,7 @@ void Jit64::DoMergedBranchCondition()
     pDontBranch = J_CC(condition ? CC_NE : CC_E, Jump::Near);
     break;
   case PowerPC::CR_SO_BIT:
-    // SO bit, do not branch (we don't emulate SO for cmp).
+    ASSERT_MSG(DYNA_REC, false, "SO isn't supported for branch merging");
     pDontBranch = J(Jump::Near);
     break;
   }
