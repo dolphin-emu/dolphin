@@ -119,7 +119,6 @@ option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 
 option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
 option(FASTLOG "Enable all logs" OFF)
-option(OPROFILING "Enable profiling" OFF)
 
 # TODO: Add DSPSpy
 option(DSPTOOL "Build dsptool" OFF)
@@ -562,16 +561,6 @@ if(ENCODE_FRAMEDUMPS)
     endif()
   else()
     message(STATUS "libav/ffmpeg not found, disabling AVI frame dumps")
-  endif()
-endif()
-
-if(OPROFILING)
-  find_package(OProfile)
-  if(OPROFILE_FOUND)
-    message(STATUS "OProfile found, enabling profiling support")
-    add_definitions(-DUSE_OPROFILE=1)
-  else()
-    message(FATAL_ERROR "OProfile not found. Can't build profiling support.")
   endif()
 endif()
 

@@ -350,10 +350,6 @@ if(USE_UPNP)
   target_link_libraries(common PRIVATE Miniupnpc::miniupnpc)
 endif()
 
-if(OPROFILE_FOUND)
-  target_link_libraries(common PRIVATE OProfile::OProfile)
-endif()
-
 if(ENABLE_LLVM)
   find_package(LLVM CONFIG)
   if(LLVM_FOUND)
