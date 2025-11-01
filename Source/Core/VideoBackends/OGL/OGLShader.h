@@ -29,6 +29,7 @@ public:
   const std::string& GetSource() const { return m_source; }
 
   static std::unique_ptr<OGLShader> CreateFromSource(ShaderStage stage, std::string_view source,
+                                                     VideoCommon::ShaderIncluder* shader_includer,
                                                      std::string_view name);
 
 private:
