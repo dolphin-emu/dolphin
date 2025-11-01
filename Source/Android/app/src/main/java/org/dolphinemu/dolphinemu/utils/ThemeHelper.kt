@@ -142,10 +142,26 @@ object ThemeHelper {
     }
 
     @JvmStatic
+    fun resetThemePreferences(activity: AppCompatActivity, applyImmediately: Boolean = false) {
+        PreferenceManager.getDefaultSharedPreferences(activity.applicationContext)
+            .edit()
+            .remove(CURRENT_THEME)
+            .remove(CURRENT_THEME_MODE)
+            .remove(USE_BLACK_BACKGROUNDS)
+            .apply()
+        activity.delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+        activity.delegate.applyDayNight()
+        if (applyImmediately) {
+            activity.recreate()
+        }
+    }
+
+    @JvmStatic
     fun setCorrectTheme(activity: AppCompatActivity) {
-        val currentTheme = (activity as ThemeProvider).themeId
+        val provider = activity as? ThemeProvider ?: return
+        val currentTheme = provider.themeId
         setTheme(activity)
-        if (currentTheme != (activity as ThemeProvider).themeId) {
+        if (currentTheme != provider.themeId) {
             activity.recreate()
         }
     }

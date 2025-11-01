@@ -454,6 +454,9 @@
     <string name="user_data_import_failure">Failed to import user data.</string>
     <string name="user_data_export_success">Your user data has been exported.</string>
     <string name="user_data_export_failure">Failed to export user data.</string>
+    <string name="reset_dolphin_settings">Reset Dolphin Settings</string>
+    <string name="reset_all_settings">Reset All Settings</string>
+    <string name="reset_dolphin_settings_confirmation">Are you sure you want to restore all Dolphin settings to their default values? This action cannot be undone!\nAll customizations or changes you have made will be lost.\n\nDo you want to proceed?</string>
 
     <!-- Miscellaneous -->
     <string name="yes">Yes</string>
