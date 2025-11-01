@@ -237,10 +237,12 @@ void MappingWindow::UpdateProfileIndex()
 
 void MappingWindow::UpdateProfileButtonState()
 {
-  // currentData() is not up to date on a currentTextChanged() event, so find profile path from currentText() (which is up to date)
+  // currentData() is not up to date on a currentTextChanged() event, so find profile path from
+  // currentText() (which is up to date)
   const int index = m_profiles_combo->findText(m_profiles_combo->currentText());
   QString profile_path;
-  if (index != -1) profile_path = m_profiles_combo->itemData(index).toString();
+  if (index != -1)
+    profile_path = m_profiles_combo->itemData(index).toString();
 
   // Init new buttons state (enabled by default)
   bool load_enabled = true;
@@ -263,14 +265,17 @@ void MappingWindow::UpdateProfileButtonState()
   m_controller->SaveConfig(diskIni.GetOrCreateSection("Profile"));
   // Restore controller mapping from memory
   m_controller->LoadConfig(memoryIni.GetOrCreateSection("Profile"));
-  
+
   // Compare mappings
   bool mapping_is_the_same = diskIni.CompareValues(memoryIni);
-  if (mapping_is_the_same) {
+  if (mapping_is_the_same)
+  {
     load_enabled = false;
-    load_tooltip = tr("Cannot do this action. Reason: No changes between profile file and current mappings");
+    load_tooltip =
+        tr("Cannot do this action. Reason: No changes between profile file and current mappings");
     save_enabled = false;
-    save_tooltip = tr("Cannot do this action. Reason: No changes between profile file and current mappings");
+    save_tooltip =
+        tr("Cannot do this action. Reason: No changes between profile file and current mappings");
   }
 
   // Make sure save/delete buttons are disabled for built-in profiles

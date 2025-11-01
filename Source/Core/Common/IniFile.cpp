@@ -352,8 +352,8 @@ bool IniFile::Save(const std::string& filename)
   return File::RenameSync(temp, filename);
 }
 
-
-bool IniFile::CompareValues(IniFile& other) const {
+bool IniFile::CompareValues(IniFile& other) const
+{
   if (sections.size() != other.sections.size())
     return false;
 
@@ -362,7 +362,7 @@ bool IniFile::CompareValues(IniFile& other) const {
     const Section* os = other.GetSection(s.name);
     if (!os)
       return false;
-    
+
     if (s.values.size() != os->values.size())
       return false;
 
