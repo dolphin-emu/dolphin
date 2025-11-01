@@ -453,6 +453,7 @@ mbedtls_asn1_named_data *mbedtls_asn1_store_named_data(
     } else if (val_len == 0) {
         mbedtls_free(cur->val.p);
         cur->val.p = NULL;
+        cur->val.len = 0;
     } else if (cur->val.len != val_len) {
         /*
          * Enlarge existing value buffer if needed
