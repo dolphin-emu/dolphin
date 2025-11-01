@@ -183,13 +183,16 @@ public:
   // Returns a temporary register for use
   // Requires unlocking after done
   Arm64Gen::ARM64Reg GetReg();
+  Arm64Gen::ARM64Reg GetRegWithPreference(Arm64Gen::ARM64Reg preferred);
 
   class ScopedARM64Reg
   {
   public:
     inline ScopedARM64Reg() = default;
     ScopedARM64Reg(const ScopedARM64Reg&) = delete;
-    explicit inline ScopedARM64Reg(Arm64RegCache& cache) : m_reg(cache.GetReg()), m_gpr(&cache) {}
+    inline ScopedARM64Reg(Arm64RegCache& cache, Arm64Gen::ARM64Reg reg) : m_reg(reg), m_gpr(&cache)
+    {
+    }
     inline ScopedARM64Reg(Arm64Gen::ARM64Reg reg) : m_reg(reg) {}
     inline ScopedARM64Reg(ScopedARM64Reg&& scoped_reg) { *this = std::move(scoped_reg); }
     inline ~ScopedARM64Reg() { Unlock(); }
@@ -235,7 +238,11 @@ public:
 
   // Returns a temporary register
   // Unlocking is implicitly handled through RAII
-  inline ScopedARM64Reg GetScopedReg() { return ScopedARM64Reg(*this); }
+  inline ScopedARM64Reg GetScopedReg() { return ScopedARM64Reg(*this, GetReg()); }
+  inline ScopedARM64Reg GetScopedRegWithPreference(Arm64Gen::ARM64Reg preferred)
+  {
+    return ScopedARM64Reg(*this, GetRegWithPreference(preferred));
+  }
 
   void UpdateLastUsed(BitSet32 regs_used);
 
