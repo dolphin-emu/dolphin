@@ -42,8 +42,12 @@
  */
 int mbedtls_aesni_has_support(unsigned int what)
 {
-    static int done = 0;
-    static unsigned int c = 0;
+    /* To avoid a race condition, tell the compiler that the assignment
+     * `done = 1` and the assignment to `c` may not be reordered.
+     * https://github.com/Mbed-TLS/mbedtls/issues/9840
+     */
+    static volatile int done = 0;
+    static volatile unsigned int c = 0;
 
     if (!done) {
 #if MBEDTLS_AESNI_HAVE_CODE == 2
