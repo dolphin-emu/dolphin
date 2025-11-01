@@ -6,6 +6,7 @@
 #include <QAction>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDesktopServices>
 #include <QDialogButtonBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -14,6 +15,7 @@
 #include <QTabWidget>
 #include <QTimer>
 #include <QToolButton>
+#include <QUrl>
 #include <QVBoxLayout>
 
 #include "Core/HotkeyManager.h"
@@ -144,6 +146,7 @@ void MappingWindow::CreateProfilesLayout()
   m_profiles_load = new NonDefaultQPushButton(tr("Load"));
   m_profiles_save = new NonDefaultQPushButton(tr("Save"));
   m_profiles_delete = new NonDefaultQPushButton(tr("Delete"));
+  m_profiles_open_folder = new NonDefaultQPushButton(tr("Open Folder"));
 
   auto* button_layout = new QHBoxLayout();
 
@@ -155,6 +158,7 @@ void MappingWindow::CreateProfilesLayout()
   button_layout->addWidget(m_profiles_load);
   button_layout->addWidget(m_profiles_save);
   button_layout->addWidget(m_profiles_delete);
+  button_layout->addWidget(m_profiles_open_folder);
   m_profiles_layout->addLayout(button_layout);
 
   m_profiles_box->setLayout(m_profiles_layout);
@@ -206,6 +210,7 @@ void MappingWindow::ConnectWidgets()
   connect(m_profiles_save, &QPushButton::clicked, this, &MappingWindow::OnSaveProfilePressed);
   connect(m_profiles_load, &QPushButton::clicked, this, &MappingWindow::OnLoadProfilePressed);
   connect(m_profiles_delete, &QPushButton::clicked, this, &MappingWindow::OnDeleteProfilePressed);
+  connect(m_profiles_open_folder, &QPushButton::clicked, this, &MappingWindow::OnOpenProfileFolder);
 
   connect(m_profiles_combo, &QComboBox::currentIndexChanged, this, &MappingWindow::OnSelectProfile);
   connect(m_profiles_combo, &QComboBox::editTextChanged, this,
@@ -348,6 +353,14 @@ void MappingWindow::OnSaveProfilePressed()
     PopulateProfileSelection();
     m_profiles_combo->setCurrentIndex(m_profiles_combo->findText(profile_name));
   }
+}
+
+void MappingWindow::OnOpenProfileFolder()
+{
+  std::string path = m_config->GetUserProfileDirectoryPath();
+  File::CreateDirs(path);
+  QUrl url = QUrl::fromLocalFile(QString::fromStdString(path));
+  QDesktopServices::openUrl(url);
 }
 
 void MappingWindow::OnSelectDevice(int)
