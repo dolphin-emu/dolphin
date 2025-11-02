@@ -113,11 +113,11 @@ bool OnScreenUI::RecompileImGuiPipeline()
       g_presenter->GetBackbufferFormat() == AbstractTextureFormat::RGBA16F;
 
   std::unique_ptr<AbstractShader> vertex_shader = g_gfx->CreateShaderFromSource(
-      ShaderStage::Vertex, FramebufferShaderGen::GenerateImGuiVertexShader(),
+      ShaderStage::Vertex, FramebufferShaderGen::GenerateImGuiVertexShader(), nullptr,
       "ImGui vertex shader");
   std::unique_ptr<AbstractShader> pixel_shader = g_gfx->CreateShaderFromSource(
       ShaderStage::Pixel, FramebufferShaderGen::GenerateImGuiPixelShader(linear_space_output),
-      "ImGui pixel shader");
+      nullptr, "ImGui pixel shader");
   if (!vertex_shader || !pixel_shader)
   {
     PanicAlertFmt("Failed to compile ImGui shaders");
@@ -130,7 +130,7 @@ bool OnScreenUI::RecompileImGuiPipeline()
   {
     geometry_shader = g_gfx->CreateShaderFromSource(
         ShaderStage::Geometry, FramebufferShaderGen::GeneratePassthroughGeometryShader(1, 1),
-        "ImGui passthrough geometry shader");
+        nullptr, "ImGui passthrough geometry shader");
     if (!geometry_shader)
     {
       PanicAlertFmt("Failed to compile ImGui geometry shader");
