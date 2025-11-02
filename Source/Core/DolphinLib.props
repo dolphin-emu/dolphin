@@ -755,6 +755,7 @@
     <ClInclude Include="VideoCommon\Present.h" />
     <ClInclude Include="VideoCommon\RenderState.h" />
     <ClInclude Include="VideoCommon\Resources\CustomResourceManager.h" />
+    <ClInclude Include="VideoCommon\Resources\InvalidTextures.h" />
     <ClInclude Include="VideoCommon\Resources\Resource.h" />
     <ClInclude Include="VideoCommon\Resources\TextureDataResource.h" />
     <ClInclude Include="VideoCommon\Resources\TexturePool.h" />
@@ -1410,6 +1411,7 @@
     <ClCompile Include="VideoCommon\Present.cpp" />
     <ClCompile Include="VideoCommon\RenderState.cpp" />
     <ClCompile Include="VideoCommon\Resources\CustomResourceManager.cpp" />
+    <ClCompile Include="VideoCommon\Resources\InvalidTextures.cpp" />
     <ClCompile Include="VideoCommon\Resources\Resource.cpp" />
     <ClCompile Include="VideoCommon\Resources\TextureDataResource.cpp" />
     <ClCompile Include="VideoCommon\Resources\TexturePool.cpp" />
