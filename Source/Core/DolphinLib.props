@@ -747,6 +747,7 @@
     <ClInclude Include="VideoCommon\PerfQueryBase.h" />
     <ClInclude Include="VideoCommon\PerformanceMetrics.h" />
     <ClInclude Include="VideoCommon\PerformanceTracker.h" />
+    <ClInclude Include="VideoCommon\PipelineUtils.h" />
     <ClInclude Include="VideoCommon\PixelEngine.h" />
     <ClInclude Include="VideoCommon\PixelShaderGen.h" />
     <ClInclude Include="VideoCommon\PixelShaderManager.h" />
@@ -1401,6 +1402,7 @@
     <ClCompile Include="VideoCommon\PerfQueryBase.cpp" />
     <ClCompile Include="VideoCommon\PerformanceMetrics.cpp" />
     <ClCompile Include="VideoCommon\PerformanceTracker.cpp" />
+    <ClCompile Include="VideoCommon\PipelineUtils.cpp" />
     <ClCompile Include="VideoCommon\PixelEngine.cpp" />
     <ClCompile Include="VideoCommon\PixelShaderGen.cpp" />
     <ClCompile Include="VideoCommon\PixelShaderManager.cpp" />
