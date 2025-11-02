@@ -110,7 +110,7 @@ public:
 
   // Clears the EFB using shaders.
   void ClearEFB(const MathUtil::Rectangle<int>& rc, bool clear_color, bool clear_alpha,
-                bool clear_z, u32 color, u32 z);
+                bool clear_z, u32 color, u32 z, PixelFormat pixel_format);
 
   AbstractPipeline* GetClearPipeline(bool clear_color, bool clear_alpha, bool clear_z) const;
 

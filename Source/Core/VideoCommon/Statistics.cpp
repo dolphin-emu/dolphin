@@ -16,6 +16,7 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
+#include "VideoCommon/XFMemory.h"
 
 Statistics g_stats;
 
@@ -161,7 +162,8 @@ void Statistics::AddScissorRect()
     clear_scissors = false;
   }
 
-  BPFunctions::ScissorResult scissor = BPFunctions::ComputeScissorRects();
+  BPFunctions::ScissorResult scissor = BPFunctions::ComputeScissorRects(
+      bpmem.scissorTL, bpmem.scissorBR, bpmem.scissorOffset, xfmem.viewport);
   bool add;
   if (scissors.empty())
   {
@@ -311,13 +313,13 @@ void Statistics::DisplayScissor()
       draw_rect(info.viewport_left, info.viewport_top, info.viewport_right, info.viewport_bottom,
                 col);
     }
-    for (size_t i = 0; i < info.m_result.size(); i++)
+    for (size_t i = 0; i < info.rectangles.size(); i++)
     {
       // The last entry in the sorted list of results is the one that is used by hardware backends
-      const u8 new_alpha = (i == info.m_result.size() - 1) ? 0x40 : 0x80;
+      const u8 new_alpha = (i == info.rectangles.size() - 1) ? 0x40 : 0x80;
       const ImU32 new_col = (col & ~IM_COL32_A_MASK) | (new_alpha << IM_COL32_A_SHIFT);
 
-      const auto& r = info.m_result[i];
+      const auto& r = info.rectangles[i];
       draw_list->AddRectFilled(vec(r.rect.left + r.x_off, r.rect.top + r.y_off),
                                vec(r.rect.right + r.x_off, r.rect.bottom + r.y_off), new_col);
     }
@@ -365,14 +367,14 @@ void Statistics::DisplayScissor()
     ImVec2 p2 = ImGui::GetCursorScreenPos();
     // Use a height of 1 since we want this to span two table rows (if possible)
     ImGui::Dummy(ImVec2(EFB_WIDTH * scale_height, 1));
-    for (size_t i = 0; i < info.m_result.size(); i++)
+    for (size_t i = 0; i < info.rectangles.size(); i++)
     {
       // The last entry in the sorted list of results is the one that is used by hardware backends
-      const u8 new_alpha = (i == info.m_result.size() - 1) ? 0x80 : 0x40;
+      const u8 new_alpha = (i == info.rectangles.size() - 1) ? 0x80 : 0x40;
       const ImU32 col = ImGui::GetColorU32(COLORS[index % COLORS.size()]);
       const ImU32 new_col = (col & ~IM_COL32_A_MASK) | (new_alpha << IM_COL32_A_SHIFT);
 
-      const auto& r = info.m_result[i];
+      const auto& r = info.rectangles[i];
       draw_list->AddRectFilled(
           ImVec2(p2.x + r.rect.left * scale_height, p2.y + r.rect.top * scale_height),
           ImVec2(p2.x + r.rect.right * scale_height, p2.y + r.rect.bottom * scale_height), new_col);
@@ -380,7 +382,7 @@ void Statistics::DisplayScissor()
     draw_list->AddRect(
         p2, ImVec2(p2.x + EFB_WIDTH * scale_height, p2.y + EFB_HEIGHT * scale_height), light_grey);
     ImGui::SameLine();
-    ImGui::Text("%d", int(info.m_result.size()));
+    ImGui::Text("%d", int(info.rectangles.size()));
 
     if (show_raw_scissors)
     {
