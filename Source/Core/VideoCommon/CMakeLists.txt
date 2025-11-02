@@ -150,6 +150,8 @@ add_library(videocommon
   RenderState.h
   Resources/CustomResourceManager.cpp
   Resources/CustomResourceManager.h
+  Resources/InvalidTextures.cpp
+  Resources/InvalidTextures.h
   Resources/Resource.cpp
   Resources/Resource.h
   Resources/TextureDataResource.cpp
