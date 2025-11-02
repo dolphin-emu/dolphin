@@ -756,7 +756,10 @@
     <ClInclude Include="VideoCommon\RenderState.h" />
     <ClInclude Include="VideoCommon\Resources\CustomResourceManager.h" />
     <ClInclude Include="VideoCommon\Resources\InvalidTextures.h" />
+    <ClInclude Include="VideoCommon\Resources\MaterialResource.h" />
     <ClInclude Include="VideoCommon\Resources\Resource.h" />
+    <ClInclude Include="VideoCommon\Resources\ShaderResource.h" />
+    <ClInclude Include="VideoCommon\Resources\TextureAndSampler.h" />
     <ClInclude Include="VideoCommon\Resources\TextureDataResource.h" />
     <ClInclude Include="VideoCommon\Resources\TexturePool.h" />
     <ClInclude Include="VideoCommon\ShaderCache.h" />
@@ -1412,7 +1415,10 @@
     <ClCompile Include="VideoCommon\RenderState.cpp" />
     <ClCompile Include="VideoCommon\Resources\CustomResourceManager.cpp" />
     <ClCompile Include="VideoCommon\Resources\InvalidTextures.cpp" />
+    <ClCompile Include="VideoCommon\Resources\MaterialResource.cpp" />
     <ClCompile Include="VideoCommon\Resources\Resource.cpp" />
+    <ClCompile Include="VideoCommon\Resources\ShaderResource.cpp" />
+    <ClCompile Include="VideoCommon\Resources\TextureAndSamplerResource.cpp" />
     <ClCompile Include="VideoCommon\Resources\TextureDataResource.cpp" />
     <ClCompile Include="VideoCommon\Resources\TexturePool.cpp" />
     <ClCompile Include="VideoCommon\ShaderCache.cpp" />
