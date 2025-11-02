@@ -117,8 +117,9 @@ private:
   QComboBox* m_profiles_combo;
   QPushButton* m_profiles_load;
   QPushButton* m_profiles_save;
-  QPushButton* m_profiles_delete;
-  QPushButton* m_profiles_open_folder;
+  QToolButton* m_profile_other_actions;
+  QAction* m_profiles_delete;
+  QAction* m_profiles_open_folder;
 
   // Reset
   QGroupBox* m_reset_box;

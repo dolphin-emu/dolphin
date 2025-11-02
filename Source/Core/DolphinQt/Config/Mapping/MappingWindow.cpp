@@ -145,8 +145,16 @@ void MappingWindow::CreateProfilesLayout()
   m_profiles_combo = new QComboBox();
   m_profiles_load = new NonDefaultQPushButton(tr("Load"));
   m_profiles_save = new NonDefaultQPushButton(tr("Save"));
-  m_profiles_delete = new NonDefaultQPushButton(tr("Delete"));
-  m_profiles_open_folder = new NonDefaultQPushButton(tr("Open Folder"));
+
+  // Other actions
+  m_profile_other_actions = new QToolButton();
+  m_profile_other_actions->setPopupMode(QToolButton::InstantPopup);
+  m_profile_other_actions->setArrowType(Qt::DownArrow);
+  m_profile_other_actions->setStyleSheet(QStringLiteral("QToolButton::menu-indicator { image: none; }")); // remove other arrow
+  m_profiles_delete = new QAction(tr("Delete"), this);
+  m_profiles_open_folder = new QAction(tr("Open Folder"), this);
+  m_profile_other_actions->addAction(m_profiles_delete);
+  m_profile_other_actions->addAction(m_profiles_open_folder);
 
   auto* button_layout = new QHBoxLayout();
 
@@ -157,8 +165,7 @@ void MappingWindow::CreateProfilesLayout()
   m_profiles_layout->addWidget(m_profiles_combo);
   button_layout->addWidget(m_profiles_load);
   button_layout->addWidget(m_profiles_save);
-  button_layout->addWidget(m_profiles_delete);
-  button_layout->addWidget(m_profiles_open_folder);
+  button_layout->addWidget(m_profile_other_actions);
   m_profiles_layout->addLayout(button_layout);
 
   m_profiles_box->setLayout(m_profiles_layout);
@@ -209,8 +216,8 @@ void MappingWindow::ConnectWidgets()
   connect(m_reset_default, &QPushButton::clicked, this, &MappingWindow::OnDefaultFieldsPressed);
   connect(m_profiles_save, &QPushButton::clicked, this, &MappingWindow::OnSaveProfilePressed);
   connect(m_profiles_load, &QPushButton::clicked, this, &MappingWindow::OnLoadProfilePressed);
-  connect(m_profiles_delete, &QPushButton::clicked, this, &MappingWindow::OnDeleteProfilePressed);
-  connect(m_profiles_open_folder, &QPushButton::clicked, this, &MappingWindow::OnOpenProfileFolder);
+  connect(m_profiles_delete, &QAction::triggered, this, &MappingWindow::OnDeleteProfilePressed);
+  connect(m_profiles_open_folder, &QAction::triggered, this, &MappingWindow::OnOpenProfileFolder);
 
   connect(m_profiles_combo, &QComboBox::currentIndexChanged, this, &MappingWindow::OnSelectProfile);
   connect(m_profiles_combo, &QComboBox::currentTextChanged, this,
