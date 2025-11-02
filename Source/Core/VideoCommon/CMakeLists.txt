@@ -152,6 +152,8 @@ add_library(videocommon
   Resources/Resource.h
   Resources/TextureDataResource.cpp
   Resources/TextureDataResource.h
+  Resources/TexturePool.cpp
+  Resources/TexturePool.h
   ShaderCache.cpp
   ShaderCache.h
   ShaderCompileUtils.cpp
