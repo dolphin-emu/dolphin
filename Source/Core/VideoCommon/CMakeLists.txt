@@ -152,8 +152,14 @@ add_library(videocommon
   Resources/CustomResourceManager.h
   Resources/InvalidTextures.cpp
   Resources/InvalidTextures.h
+  Resources/MaterialResource.cpp
+  Resources/MaterialResource.h
   Resources/Resource.cpp
   Resources/Resource.h
+  Resources/ShaderResource.cpp
+  Resources/ShaderResource.h
+  Resources/TextureAndSamplerResource.cpp
+  Resources/TextureAndSamplerResource.h
   Resources/TextureDataResource.cpp
   Resources/TextureDataResource.h
   Resources/TexturePool.cpp
