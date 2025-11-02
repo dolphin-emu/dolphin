@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "ShaderLang.h"
+#include <glslang/Public/ShaderLang.h>
 
 namespace VideoCommon
 {
