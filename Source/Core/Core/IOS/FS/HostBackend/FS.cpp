@@ -374,11 +374,9 @@ void HostFileSystem::DoState(PointerWrap& p)
     handle.host_file.reset();
 
   // The format for the next part of the save state is follows:
-  // 1. bool Movie::WasMovieActiveWhenStateSaved() &&
-  // WiiRoot::WasWiiRootTemporaryDirectoryWhenStateSaved()
+  // 1. bool is_full_nand_in_state (movie active && temporary wii root)
   // 2. Contents of the "/tmp" directory recursively.
-  // 3. u32 size_of_nand_folder_saved_below (or 0, if the root
-  // of the NAND folder is not savestated below).
+  // 3. u32 size_of_nand (or 0, if not is_full_nand_in_state).
   // 4. Contents of the "/" directory recursively (or nothing, if the
   // root of the NAND folder is not save stated).
 
@@ -386,44 +384,42 @@ void HostFileSystem::DoState(PointerWrap& p)
   // and when the directory root is temporary (i.e. WiiSession).
   // If a save state is made during a movie recording and is loaded when no movie is active,
   // then a call to p.DoExternal() will be used to skip over reading the contents of the "/"
-  // directory (it skips over the number of bytes specified by size_of_nand_folder_saved)
+  // directory (it skips over the number of bytes specified by size_of_nand)
 
   auto& movie = Core::System::GetInstance().GetMovie();
-  bool original_save_state_made_during_movie_recording =
-      movie.IsMovieActive() && Core::WiiRootIsTemporary();
-  p.Do(original_save_state_made_during_movie_recording);
 
-  u32 temp_val = 0;
+  const bool is_full_nand_wanted = movie.IsMovieActive() && Core::WiiRootIsTemporary();
+
+  bool is_full_nand_in_state = is_full_nand_wanted;
+  p.Do(is_full_nand_in_state);
 
   if (!p.IsReadMode())
   {
     DoStateWriteOrMeasure(p, "/tmp");
-    u8* previous_position = p.ReserveU32();
-    if (original_save_state_made_during_movie_recording)
+    u8* const nand_size_ptr = p.ReserveU32();
+    if (is_full_nand_in_state)
     {
       DoStateWriteOrMeasure(p, "/");
       if (p.IsWriteMode())
       {
-        u32 size_of_nand = p.GetOffsetFromPreviousPosition(previous_position) - sizeof(u32);
-        memcpy(previous_position, &size_of_nand, sizeof(u32));
+        const u32 size_of_nand = p.GetOffsetFromPreviousPosition(nand_size_ptr) - sizeof(u32);
+        memcpy(nand_size_ptr, &size_of_nand, sizeof(size_of_nand));
       }
     }
   }
   else  // case where we're in read mode.
   {
+    u32 size_of_nand = 0;
     DoStateRead(p, "/tmp");
-    if (!movie.IsMovieActive() || !original_save_state_made_during_movie_recording ||
-        !Core::WiiRootIsTemporary() ||
-        (original_save_state_made_during_movie_recording !=
-         (movie.IsMovieActive() && Core::WiiRootIsTemporary())))
+    if (is_full_nand_in_state && is_full_nand_wanted)
     {
-      (void)p.DoExternal(temp_val);
+      p.Do(size_of_nand);
+      DoStateRead(p, "/");
     }
     else
     {
-      p.Do(temp_val);
-      if (movie.IsMovieActive() && Core::WiiRootIsTemporary())
-        DoStateRead(p, "/");
+      // Skip over any NAND data without using it.
+      (void)p.DoExternal(size_of_nand);
     }
   }
 
