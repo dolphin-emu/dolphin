@@ -8,6 +8,7 @@
 
 #include <fmt/std.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/JsonUtil.h"
@@ -149,6 +150,12 @@ DirectFilesystemAssetLibrary::LoadRasterSurfaceShader(const AssetID& asset_id,
 
   if (!RasterSurfaceShaderData::FromJson(asset_id, root_obj, data))
     return {};
+
+  const std::string graphics_mod_builtin =
+      File::GetSysDirectory() + GRAPHICSMOD_DIR + "/Builtin" + "/Shaders";
+
+  data->shader_includer = std::make_unique<VideoCommon::ShaderIncluder>(
+      PathToString(pixel_shader->second.parent_path()), graphics_mod_builtin);
 
   return LoadInfo{approx_mem_size};
 }
