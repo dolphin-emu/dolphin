@@ -150,7 +150,8 @@ void MappingWindow::CreateProfilesLayout()
   m_profile_other_actions = new QToolButton();
   m_profile_other_actions->setPopupMode(QToolButton::InstantPopup);
   m_profile_other_actions->setArrowType(Qt::DownArrow);
-  m_profile_other_actions->setStyleSheet(QStringLiteral("QToolButton::menu-indicator { image: none; }")); // remove other arrow
+  m_profile_other_actions->setStyleSheet(
+      QStringLiteral("QToolButton::menu-indicator { image: none; }"));  // remove other arrow
   m_profiles_delete = new QAction(tr("Delete"), this);
   m_profiles_open_folder = new QAction(tr("Open Folder"), this);
   m_profile_other_actions->addAction(m_profiles_delete);
