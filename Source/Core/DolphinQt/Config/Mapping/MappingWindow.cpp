@@ -210,6 +210,7 @@ void MappingWindow::ConnectWidgets()
 {
   connect(&Settings::Instance(), &Settings::DevicesChanged, this, &MappingWindow::ConfigChanged);
   connect(this, &MappingWindow::ConfigChanged, this, &MappingWindow::UpdateDeviceList);
+  connect(this, &MappingWindow::ConfigChanged, this, &MappingWindow::OnMappingChange);
   connect(m_devices_combo, &QComboBox::currentIndexChanged, this, &MappingWindow::OnSelectDevice);
 
   connect(m_reset_clear, &QPushButton::clicked, this, &MappingWindow::OnClearFieldsPressed);
