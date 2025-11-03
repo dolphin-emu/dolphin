@@ -5,11 +5,56 @@
 
 #include <algorithm>
 
+#include "Core/Config/MainSettings.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
 
 namespace IOS::HLE::USB
 {
+bool WiiSpeakState::IsSampleOn() const
+{
+  return sample_on;
+}
+
+bool WiiSpeakState::IsMuted() const
+{
+  return mute;
+}
+
+u32 WiiSpeakState::GetDefaultSamplingRate() const
+{
+  return DEFAULT_SAMPLING_RATE;
+}
+
+namespace
+{
+class MicrophoneWiiSpeak final : public Microphone
+{
+public:
+  explicit MicrophoneWiiSpeak(const WiiSpeakState& sampler)
+      : Microphone(sampler, "Wii Speak Worker")
+  {
+  }
+
+private:
+#ifdef HAVE_CUBEB
+  std::string GetInputDeviceId() const override
+  {
+    return Config::Get(Config::MAIN_WII_SPEAK_MICROPHONE);
+  }
+  std::string GetCubebStreamName() const override { return "Dolphin Emulated Wii Speak"; }
+  s16 GetVolumeModifier() const override
+  {
+    return Config::Get(Config::MAIN_WII_SPEAK_VOLUME_MODIFIER);
+  }
+  bool AreSamplesByteSwapped() const override { return true; }
+#endif
+
+  bool IsMicrophoneMuted() const override { return Config::Get(Config::MAIN_WII_SPEAK_MUTED); }
+  u32 GetStreamSize() const override { return BUFF_SIZE_SAMPLES * 500; }
+};
+}  // namespace
+
 WiiSpeak::WiiSpeak()
 {
   m_id = u64(m_vid) << 32 | u64(m_pid) << 16 | u64(9) << 8 | u64(1);
@@ -44,7 +89,10 @@ bool WiiSpeak::Attach()
 
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x}] Opening device", m_vid, m_pid);
   if (!m_microphone)
-    m_microphone = std::make_unique<Microphone>(m_sampler);
+  {
+    m_microphone = std::make_unique<MicrophoneWiiSpeak>(m_sampler);
+    m_microphone->Initialize();
+  }
   m_device_attached = true;
   return true;
 }

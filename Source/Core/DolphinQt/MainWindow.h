@@ -55,6 +55,7 @@ class ToolBar;
 class WatchWidget;
 class WiiTASInputWindow;
 class WiiSpeakWindow;
+class LogitechMicWindow;
 struct WindowSystemInfo;
 
 namespace Core
@@ -177,6 +178,7 @@ private:
   void ShowSkylanderPortal();
   void ShowInfinityBase();
   void ShowWiiSpeakWindow();
+  void ShowLogitechMicWindow();
   void ShowMemcardManager();
   void ShowResourcePackManager();
   void ShowCheatsManager();
@@ -252,6 +254,7 @@ private:
   SkylanderPortalWindow* m_skylander_window = nullptr;
   InfinityBaseWindow* m_infinity_window = nullptr;
   WiiSpeakWindow* m_wii_speak_window = nullptr;
+  LogitechMicWindow* m_logitech_mic_window = nullptr;
   MappingWindow* m_hotkey_window = nullptr;
   FreeLookWindow* m_freelook_window = nullptr;
 
