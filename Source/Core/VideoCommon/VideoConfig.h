@@ -191,6 +191,7 @@ struct VideoConfig final
   VideoConfig() = default;
   void Refresh();
   void VerifyValidity();
+  static void Init();
   static void Shutdown();
 
   // General

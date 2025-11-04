@@ -120,7 +120,7 @@ public:
     bool rich_presence = false;
     int failed_login_code = 0;
   };
-  using UpdateEvent = Common::HookableEvent<"AchievementManagerUpdate", const UpdatedItems&>;
+  Common::HookableEvent<const UpdatedItems&> update_event{"AchievementManagerUpdate"};
 
   static AchievementManager& GetInstance();
   void Init(void* hwnd);
@@ -174,7 +174,7 @@ public:
   std::vector<std::string> GetActiveLeaderboards() const;
 
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
-  using DevMenuUpdateEvent = Common::HookableEvent<"AchievementManagerDevMenuUpdate">;
+  Common::HookableEvent<> dev_menu_update_event{"AchievementManagerDevMenuUpdate"};
   const rc_client_raintegration_menu_t* GetDevelopmentMenu();
   u32 ActivateDevMenuItem(u32 menu_item_id);
   bool CheckForModifications() { return rc_client_raintegration_has_modifications(m_client); }
