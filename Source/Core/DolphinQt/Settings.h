@@ -234,7 +234,7 @@ private:
 
   std::shared_ptr<NetPlay::NetPlayClient> m_client;
   std::shared_ptr<NetPlay::NetPlayServer> m_server;
-  ControllerInterface::HotplugCallbackHandle m_hotplug_callback_handle;
+  Common::EventHook m_hotplug_event_hook;
   Config::ConfigChangedCallbackID m_config_changed_callback_id;
 };
 

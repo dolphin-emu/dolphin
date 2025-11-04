@@ -75,7 +75,7 @@ Settings::Settings()
     }
   });
 
-  m_hotplug_callback_handle = g_controller_interface.RegisterDevicesChangedCallback([this] {
+  m_hotplug_event_hook = g_controller_interface.RegisterDevicesChangedCallback("Settings", [this] {
     if (Core::IsHostThread())
     {
       emit DevicesChanged();
@@ -101,7 +101,7 @@ Settings::~Settings()
 
 void Settings::UnregisterDevicesChangedCallback()
 {
-  g_controller_interface.UnregisterDevicesChangedCallback(m_hotplug_callback_handle);
+  m_hotplug_event_hook.reset();
 }
 
 Settings& Settings::Instance()
