@@ -30,6 +30,10 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_SOURCE_DIR}/CMake/FlagsOverr
 
 project(dolphin-emu)
 
+if (CMAKE_VERSION VERSION_LESS "3.25" AND CMAKE_SYSTEM_NAME MATCHES "Linux")
+  set(LINUX TRUE)
+endif()
+
 if (MSVC)
   if (POLICY CMP0117)
     # cmake is a weird language. You can't do if(not POLICY)
