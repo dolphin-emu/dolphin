@@ -329,7 +329,7 @@ void Presenter::OnBackbufferSet(bool size_changed, bool is_first_set)
   if (size_changed && !is_first_set && g_ActiveConfig.iEFBScale == EFB_SCALE_AUTO_INTEGRAL &&
       m_auto_resolution_scale != AutoIntegralScale())
   {
-    g_framebuffer_manager->RecreateEFBFramebuffer();
+    g_framebuffer_manager->RecreateEFBFramebuffer(g_ActiveConfig.iEFBScale);
   }
   if (size_changed || is_first_set)
   {

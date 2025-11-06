@@ -45,9 +45,9 @@ FramebufferManager::~FramebufferManager()
   DestroyEFBFramebuffer();
 }
 
-bool FramebufferManager::Initialize()
+bool FramebufferManager::Initialize(int efb_scale)
 {
-  if (!CreateEFBFramebuffer())
+  if (!CreateEFBFramebuffer(efb_scale))
   {
     PanicAlertFmt("Failed to create EFB framebuffer");
     return false;
@@ -90,14 +90,14 @@ bool FramebufferManager::Initialize()
   return true;
 }
 
-void FramebufferManager::RecreateEFBFramebuffer()
+void FramebufferManager::RecreateEFBFramebuffer(int efb_scale)
 {
   FlushEFBPokes();
   InvalidatePeekCache(true);
 
   DestroyReadbackFramebuffer();
   DestroyEFBFramebuffer();
-  if (!CreateEFBFramebuffer() || !CreateReadbackFramebuffer())
+  if (!CreateEFBFramebuffer(efb_scale) || !CreateReadbackFramebuffer())
     PanicAlertFmt("Failed to recreate EFB framebuffer");
 }
 
@@ -210,12 +210,12 @@ float FramebufferManager::EFBToScaledYf(float y) const
   return y * ((float)GetEFBHeight() / (float)EFB_HEIGHT);
 }
 
-std::tuple<u32, u32> FramebufferManager::CalculateTargetSize()
+std::tuple<u32, u32> FramebufferManager::CalculateTargetSize(int efb_scale)
 {
-  if (g_ActiveConfig.iEFBScale == EFB_SCALE_AUTO_INTEGRAL)
+  if (efb_scale == EFB_SCALE_AUTO_INTEGRAL)
     m_efb_scale = g_presenter->AutoIntegralScale();
   else
-    m_efb_scale = g_ActiveConfig.iEFBScale;
+    m_efb_scale = efb_scale;
 
   const u32 max_size = g_backend_info.MaxTextureSize;
   if (max_size < EFB_WIDTH * m_efb_scale)
@@ -227,9 +227,9 @@ std::tuple<u32, u32> FramebufferManager::CalculateTargetSize()
   return std::make_tuple(new_efb_width, new_efb_height);
 }
 
-bool FramebufferManager::CreateEFBFramebuffer()
+bool FramebufferManager::CreateEFBFramebuffer(int efb_scale)
 {
-  auto [width, height] = CalculateTargetSize();
+  auto [width, height] = CalculateTargetSize(efb_scale);
 
   const TextureConfig efb_color_texture_config = GetEFBColorTextureConfig(width, height);
   const TextureConfig efb_depth_texture_config = GetEFBDepthTextureConfig(width, height);
