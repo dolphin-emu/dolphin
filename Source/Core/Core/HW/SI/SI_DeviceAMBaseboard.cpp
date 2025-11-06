@@ -52,6 +52,12 @@ void JVSIOMessage::Start(int node)
 
 void JVSIOMessage::AddData(const u8* dst, std::size_t len, int sync = 0)
 {
+  if (m_ptr + len >= 0x80)
+  {
+    PanicAlertFmt("JVSIOMessage overrun!");
+    return;
+  }
+
   while (len--)
   {
     const u8 c = *dst++;
@@ -68,8 +74,6 @@ void JVSIOMessage::AddData(const u8* dst, std::size_t len, int sync = 0)
     if (!sync)
       m_csum += c;
     sync = 0;
-    if (m_ptr >= 0x80)
-      PanicAlertFmt("JVSIOMessage overrun!");
   }
 }
 
@@ -96,31 +100,16 @@ void JVSIOMessage::End()
   AddData(m_csum + len - 2);
 }
 
-static u8 CheckSumXOR(u8* Data, u32 Length)
+static u8 CheckSumXOR(u8* data, u32 length)
 {
   u8 check = 0;
 
-  for (u32 i = 0; i < Length; i++)
+  for (u32 i = 0; i < length; i++)
   {
-    check ^= Data[i];
+    check ^= data[i];
   }
 
   return check;
-}
-
-// Reply has to be delayed due a bug in the parser
-static void swap_buffers(u8* buffer, u32* buffer_length)
-{
-  static u8 last[2][0x80];
-  static u32 lastptr[2];
-
-  memcpy(last[1], buffer, 0x80);   // Save current buffer
-  memcpy(buffer, last[0], 0x80);   // Load previous buffer
-  memcpy(last[0], last[1], 0x80);  // Update history
-
-  lastptr[1] = *buffer_length;  // Swap lengths
-  *buffer_length = lastptr[0];
-  lastptr[0] = lastptr[1];
 }
 
 static const char s_cdr_program_version[] = {"           Version 1.22,2003/09/19,171-8213B"};
@@ -234,6 +223,17 @@ void CSIDevice_AMBaseboard::ICCardSendReply(ICCommand* iccommand, u8* buffer, u3
   }
 
   buffer[(*length)++] = crc;
+}
+
+void CSIDevice_AMBaseboard::SwapBuffers(u8* buffer, u32* buffer_length)
+{
+  memcpy(m_last[1], buffer, 0x80);     // Save current buffer
+  memcpy(buffer, m_last[0], 0x80);     // Load previous buffer
+  memcpy(m_last[0], m_last[1], 0x80);  // Update history
+
+  m_lastptr[1] = *buffer_length;  // Swap lengths
+  *buffer_length = m_lastptr[0];
+  m_lastptr[0] = m_lastptr[1];
 }
 
 int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
@@ -526,15 +526,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               {
                 const u32 size = data_in[1];
 
-                char logptr[1024];
-                char* log = logptr;
-
-                for (u32 i = 0; i < (u32)(data_in[1] + 2); ++i)
-                {
-                  log += sprintf(log, "%02X ", data_in[i]);
-                }
-
-                INFO_LOG_FMT(SERIALINTERFACE_CARD, "Command: {}", logptr);
+                DEBUG_LOG_FMT(SERIALINTERFACE_CARD, "Command: {}", HexDump(data_in, size + 2));
 
                 INFO_LOG_FMT(
                     SERIALINTERFACE_CARD,
@@ -624,7 +616,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               case ICCARDCommand::ReadPage:
               case ICCARDCommand::ReadUseCount:
               {
-                const u16 page = Common::swap16(data_in + 6);
+                const u16 page = Common::swap16(data_in + 6) & 0xFF;  // 255 is max page
 
                 icco.extlen = 8;
                 icco.length += icco.extlen;
@@ -638,7 +630,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               }
               case ICCARDCommand::WritePage:
               {
-                const u16 page = Common::swap16(data_in + 8);
+                const u16 page = Common::swap16(data_in + 8) & 0xFF;  // 255 is max page
 
                 // Write only one page
                 if (page == 4)
@@ -656,7 +648,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               }
               case ICCARDCommand::DecreaseUseCount:
               {
-                const u16 page = Common::swap16(data_in + 6);
+                const u16 page = Common::swap16(data_in + 6) & 0xFF;  // 255 is max page
 
                 icco.extlen = 2;
                 icco.length += icco.extlen;
@@ -675,7 +667,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               }
               case ICCARDCommand::ReadPages:
               {
-                const u16 page = Common::swap16(data_in + 6);
+                const u16 page = Common::swap16(data_in + 6) & 0xFF;  // 255 is max page
                 const u16 count = Common::swap16(data_in + 8);
 
                 const u32 offs = page * 8;
@@ -701,7 +693,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               {
                 const u16 pksize = length;
                 const u16 size = Common::swap16(data_in + 2);
-                const u16 page = Common::swap16(data_in + 6);
+                const u16 page = Common::swap16(data_in + 6) & 0xFF;  // 255 is max page
                 const u16 count = Common::swap16(data_in + 8);
 
                 // We got a complete packet
@@ -713,7 +705,17 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   }
                   else
                   {
-                    memcpy(m_ic_card_data + page * 8, data_in + 13, count * 8);
+                    if (page * 8 + count * 8 > sizeof(m_ic_card_data))
+                    {
+                      ERROR_LOG_FMT(
+                          SERIALINTERFACE_CARD,
+                          "GC-AM: Command 0x31 (IC-CARD) Data overflow: Pages:{} Count:{}({:x})",
+                          page, count, size);
+                    }
+                    else
+                    {
+                      memcpy(m_ic_card_data + page * 8, data_in + 13, count * 8);
+                    }
                   }
 
                   INFO_LOG_FMT(SERIALINTERFACE_CARD,
@@ -877,14 +879,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               INFO_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x31 (SERIAL) Command:{:06x}",
                            serial_command);
 
-              if (/*command == 0xf43200 || */ serial_command == 0x801000)
+              if (serial_command == 0x801000)
               {
-                // u32 PC = m_system.GetPowerPC().GetPPCState().pc;
-
-                // INFO_LOG_FMT(SERIALINTERFACE_AMBB, "GCAM: PC:{:08x}", PC);
-
-                // m_system.GetPowerPC().GetBreakPoints().Add(PC + 8, true, true, std::nullopt);
-
                 data_out[data_offset++] = 0x31;
                 data_out[data_offset++] = 0x02;
                 data_out[data_offset++] = 0xFF;
@@ -1025,7 +1021,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               const u32 command_length_offset = data_offset;
               data_out[data_offset++] = 0x00;  // len
 
-              data_out[data_offset++] = 0x02;  //
+              data_out[data_offset++] = 0x02;
               const u32 checksum_start = data_offset;
 
               data_out[data_offset++] = 0x00;  // 0x00 len
@@ -1382,12 +1378,16 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           static int delay = 0;
 
           const u8* frame = &data_in[0];
-          const u8 nr_bytes = frame[3];        // Byte after E0 xx
-          const u32 frame_len = nr_bytes + 3;  // Header(2) + length byte + payload + checksum
-
-          // TODO: frame_len isn't checked for buffer overflow.
+          const u8 nr_bytes = frame[3];  // Byte after E0 xx
+          u32 frame_len = nr_bytes + 3;  // Header(2) + length byte + payload + checksum
 
           u8 jvs_buf[0x80];
+
+          if (frame_len > sizeof(jvs_buf))
+          {
+            frame_len = sizeof(jvs_buf);
+          }
+
           memcpy(jvs_buf, frame, frame_len);
 
           // Extract node and payload pointers
@@ -2123,18 +2123,15 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
       data_in = buffer;
       data_out[1] = data_offset - 2;
       checksum = 0;
-      char logptr[1024];
-      char* log = logptr;
 
       for (int i = 0; i < 0x7F; ++i)
       {
         checksum += data_in[i] = data_out[i];
-        log += sprintf(log, "%02X", data_in[i]);
       }
       data_in[0x7f] = ~checksum;
-      DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "Command send back: {}", logptr);
+      DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "Command send back: {}", HexDump(data_out.data(), 0x7F));
 
-      swap_buffers(buffer, &buffer_length);
+      SwapBuffers(buffer, &buffer_length);
 
       buffer_position = buffer_length;
       break;

@@ -19,22 +19,90 @@ namespace SerialInterface
 class JVSIOMessage
 {
 public:
-  u32 m_ptr = 0;
-  u32 m_last_start = 0;
-  u32 m_csum = 0;
-  std::array<u8, 0x80> m_msg;
-
   void Start(int node);
   void AddData(const u8* dst, std::size_t len, int sync);
   void AddData(const void* data, std::size_t len);
   void AddData(const char* data);
   void AddData(u32 n);
   void End();
+
+  u32 m_ptr = 0;
+  std::array<u8, 0x80> m_msg;
+
+private:
+  u32 m_last_start = 0;
+  u32 m_csum = 0;
 };
 
 // Triforce (GC-AM) baseboard
 class CSIDevice_AMBaseboard : public ISIDevice
 {
+  enum EButtonCombo
+  {
+    COMBO_NONE = 0,
+    COMBO_ORIGIN,
+    COMBO_RESET
+  };
+
+public:
+  // constructor
+  CSIDevice_AMBaseboard(Core::System& system, SIDevices device, int device_number);
+
+  // run the SI Buffer
+  int RunBuffer(u8* buffer, int request_length) override;
+
+  // Reply has to be delayed due a bug in the parser
+  void SwapBuffers(u8* buffer, u32* buffer_length);
+
+  // return true on new data
+  DataResponse GetData(u32& hi, u32& low) override;
+
+  // send a command directly
+  void SendCommand(u32 command, u8 poll) override;
+
+  virtual GCPadStatus GetPadStatus();
+  virtual u32 MapPadStatus(const GCPadStatus& pad_status);
+  virtual EButtonCombo HandleButtonCombos(const GCPadStatus& pad_status);
+
+  static void HandleMoviePadStatus(Movie::MovieManager& movie, int device_number,
+                                   GCPadStatus* pad_status);
+
+  // Send and Receive pad input from network
+  static bool NetPlay_GetInput(int pad_num, GCPadStatus* status);
+  static int NetPlay_InGamePadToLocalPad(int pad_num);
+
+protected:
+  struct SOrigin
+  {
+    u16 button;
+    u8 origin_stick_x;
+    u8 origin_stick_y;
+    u8 substick_x;
+    u8 substick_y;
+    u8 trigger_left;
+    u8 trigger_right;
+    u8 unk_4;
+    u8 unk_5;
+  };
+
+  // struct to compare input against
+  // Set on connection to perfect neutral values
+  // (standard pad only) Set on button combo to current input state
+  SOrigin m_origin = {};
+
+  // PADAnalogMode
+  // Dunno if we need to do this, game/lib should set it?
+  u8 m_mode = 0x3;
+
+  // Timer to track special button combos:
+  // y, X, start for 3 seconds updates origin with current status
+  //   Technically, the above is only on standard pad, wavebird does not support it for example
+  // b, x, start for 3 seconds triggers reset (PI reset button interrupt)
+  u64 m_timer_button_combo_start = 0;
+  // Type of button combo from the last/current poll
+  EButtonCombo m_last_button_combo = COMBO_NONE;
+  void SetOrigin(const GCPadStatus& pad_status);
+
 private:
   enum BaseBoardCommand
   {
@@ -190,6 +258,9 @@ private:
     };
   };
 
+  u8 m_last[2][0x80];
+  u32 m_lastptr[2];
+
   u16 m_coin[2];
   u32 m_coin_pressed[2];
 
@@ -238,71 +309,6 @@ private:
   bool m_fzcc_service;
 
   void ICCardSendReply(ICCommand* iccommand, u8* buffer, u32* length);
-
-protected:
-  struct SOrigin
-  {
-    u16 button;
-    u8 origin_stick_x;
-    u8 origin_stick_y;
-    u8 substick_x;
-    u8 substick_y;
-    u8 trigger_left;
-    u8 trigger_right;
-    u8 unk_4;
-    u8 unk_5;
-  };
-
-  enum EButtonCombo
-  {
-    COMBO_NONE = 0,
-    COMBO_ORIGIN,
-    COMBO_RESET
-  };
-
-  // struct to compare input against
-  // Set on connection to perfect neutral values
-  // (standard pad only) Set on button combo to current input state
-  SOrigin m_origin = {};
-
-  // PADAnalogMode
-  // Dunno if we need to do this, game/lib should set it?
-  u8 m_mode = 0x3;
-
-  // Timer to track special button combos:
-  // y, X, start for 3 seconds updates origin with current status
-  //   Technically, the above is only on standard pad, wavebird does not support it for example
-  // b, x, start for 3 seconds triggers reset (PI reset button interrupt)
-  u64 m_timer_button_combo_start = 0;
-  // Type of button combo from the last/current poll
-  EButtonCombo m_last_button_combo = COMBO_NONE;
-
-public:
-  // constructor
-  CSIDevice_AMBaseboard(Core::System& system, SIDevices device, int device_number);
-
-  // run the SI Buffer
-  int RunBuffer(u8* buffer, int request_length) override;
-
-  // return true on new data
-  DataResponse GetData(u32& hi, u32& low) override;
-
-  // send a command directly
-  void SendCommand(u32 command, u8 poll) override;
-
-  virtual GCPadStatus GetPadStatus();
-  virtual u32 MapPadStatus(const GCPadStatus& pad_status);
-  virtual EButtonCombo HandleButtonCombos(const GCPadStatus& pad_status);
-
-  static void HandleMoviePadStatus(Movie::MovieManager& movie, int device_number,
-                                   GCPadStatus* pad_status);
-
-  // Send and Receive pad input from network
-  static bool NetPlay_GetInput(int pad_num, GCPadStatus* status);
-  static int NetPlay_InGamePadToLocalPad(int pad_num);
-
-protected:
-  void SetOrigin(const GCPadStatus& pad_status);
 };
 
 }  // namespace SerialInterface

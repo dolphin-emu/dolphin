@@ -105,7 +105,6 @@ CEXIBaseboard::CEXIBaseboard(Core::System& system) : IEXIDevice(system)
 
 CEXIBaseboard::~CEXIBaseboard()
 {
-  m_backup.Close();
 }
 
 void CEXIBaseboard::SetCS(int cs)

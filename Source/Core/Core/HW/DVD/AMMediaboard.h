@@ -52,6 +52,12 @@ enum InquiryType
   Version2 = 0x29484100,
 };
 
+namespace Core
+{
+class CPUThreadGuard;
+class System;
+}  // namespace Core
+
 namespace AMMediaboard
 {
 
@@ -148,10 +154,13 @@ enum MediaBoardAddress : u32
 
   DIMMCommandVersion1 = 0x1F900000,
   DIMMCommandVersion2 = 0x84000000,
+  DIMMCommandVersion2_1 = 0x84000020,
   DIMMCommandVersion2_2 = 0x89000000,
+  DIMMCommandVersion2_2_1 = 0x89000200,
+  DIMMCommandExecute1 = 0x84000040,
   DIMMCommandExecute2 = 0x88000000,
 
-  NetworkCommandAddress = 0x1F800200,
+  NetworkCommandAddress1 = 0x1F800200,
   NetworkCommandAddress2 = 0x89040200,
 
   NetworkBufferAddress1 = 0x1FA00000,
@@ -217,4 +226,5 @@ u32 GetGameType();
 u32 GetMediaType();
 bool GetTestMenu();
 void Shutdown();
+
 };  // namespace AMMediaboard

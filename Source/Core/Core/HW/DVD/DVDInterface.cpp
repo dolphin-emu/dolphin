@@ -341,6 +341,11 @@ void DVDInterface::ResetDrive(bool spinup)
 void DVDInterface::Shutdown()
 {
   m_system.GetDVDThread().Stop();
+
+  if (m_system.IsTriforce())
+  {
+    AMMediaboard::Shutdown();
+  }
 }
 
 static u64 GetDiscEndOffset(const DiscIO::VolumeDisc& disc)
