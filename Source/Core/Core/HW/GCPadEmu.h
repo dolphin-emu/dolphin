@@ -72,9 +72,9 @@ public:
   static constexpr const char* START_BUTTON = "Start";
 
   // Special Triforce buttons
-  static constexpr const char* TEST_BUTTON = "Test";
-  static constexpr const char* SERVICE_BUTTON = "Service";
-  static constexpr const char* COIN_BUTTON = "Coin";
+  static constexpr const char* TEST_BUTTON = _trans("Test");
+  static constexpr const char* SERVICE_BUTTON = _trans("Service");
+  static constexpr const char* COIN_BUTTON = _trans("Coin");
 
   // i18n: The left trigger button (labeled L on real controllers)
   static constexpr const char* L_DIGITAL = _trans("L");

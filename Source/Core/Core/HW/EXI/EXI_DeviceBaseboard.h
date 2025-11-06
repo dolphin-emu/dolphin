@@ -54,6 +54,6 @@ private:
   File::IOFile m_backup;
 
 protected:
-  void TransferByte(u8& _uByte) override;
+  void TransferByte(u8& byte) override;
 };
 }  // namespace ExpansionInterface
