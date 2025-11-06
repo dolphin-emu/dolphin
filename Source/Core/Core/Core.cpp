@@ -289,13 +289,6 @@ void Stop(Core::System& system)  // - Hammertime!
   // Stop the CPU
   INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stop CPU"));
   system.GetCPU().Stop();
-
-  const ExpansionInterface::EXIDeviceType type = Config::Get(Config::MAIN_SERIAL_PORT_1);
-
-  if ((type == ExpansionInterface::EXIDeviceType::Baseboard))
-  {
-    AMMediaboard::Shutdown();
-  }
 }
 
 void DeclareAsCPUThread()

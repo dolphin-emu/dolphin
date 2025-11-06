@@ -516,8 +516,6 @@ void MainWindow::CreateComponents()
   });
   connect(m_breakpoint_widget, &BreakpointWidget::ShowMemory, m_memory_widget,
           &MemoryWidget::SetAddress);
-  connect(m_cheats_manager, &CheatsManager::ShowMemory, m_memory_widget, &MemoryWidget::SetAddress);
-  connect(m_cheats_manager, &CheatsManager::RequestWatch, request_watch);
 }
 
 void MainWindow::ConnectMenuBar()
@@ -1159,9 +1157,7 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
         return;
     }
 
-    /*
-      When booting Triforce games, we need to ensure that the hardware is set up correctly.
-    */
+    // When booting Triforce games, we need to ensure that the hardware is set up correctly.
     const auto volume_type =
         std::get<BootParameters::Disc>(parameters->parameters).volume->GetVolumeType();
 
@@ -1184,15 +1180,20 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
     }
     else
     {
-      /*
-        Some Triforce tools don't include a boot.id file, but they can still be launched.
-      */
-      if (triforce_hardware_sp1 || triforce_hardware_port_1)
+      // Some Triforce tools don't include a boot.id file, but they can still be launched.
+      if (triforce_hardware_sp1)
       {
-        ModalMessageBox::warning(
-            this, tr("Warning"),
-            tr("Non-Triforce games cannot be booted with Triforce hardware attached."),
-            QMessageBox::Ok);
+        ModalMessageBox::warning(this, tr("Warning"),
+                                 tr("Non-Triforce games cannot be booted with Triforce hardware "
+                                    "attached.\nPlease remove the Triforce Baseboard from SP1."),
+                                 QMessageBox::Ok);
+      }
+      if (triforce_hardware_port_1)
+      {
+        ModalMessageBox::warning(this, tr("Warning"),
+                                 tr("Non-Triforce games cannot be booted with Triforce hardware "
+                                    "attached.\nPlease remove the Triforce Baseboard from Port 1."),
+                                 QMessageBox::Ok);
       }
     }
   }
