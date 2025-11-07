@@ -94,8 +94,8 @@ static void TryToSnapToXFBSize(int& width, int& height, int xfb_width, int xfb_h
 
 Presenter::Presenter()
 {
-  m_config_changed = GetVideoEvents().config_changed_event.Register(
-      [this](u32 bits) { ConfigChanged(bits); }, "Presenter");
+  m_config_changed =
+      GetVideoEvents().config_changed_event.Register([this](u32 bits) { ConfigChanged(bits); });
 }
 
 Presenter::~Presenter()

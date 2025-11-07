@@ -120,11 +120,10 @@ bool VertexManagerBase::Initialize()
 {
   auto& video_events = GetVideoEvents();
 
-  m_frame_end_event = video_events.after_frame_event.Register(
-      [this](Core::System&) { OnEndFrame(); }, "VertexManagerBase");
+  m_frame_end_event =
+      video_events.after_frame_event.Register([this](Core::System&) { OnEndFrame(); });
   m_after_present_event = video_events.after_present_event.Register(
-      [this](const PresentInfo& pi) { m_ticks_elapsed = pi.emulated_timestamp; },
-      "VertexManagerBase");
+      [this](const PresentInfo& pi) { m_ticks_elapsed = pi.emulated_timestamp; });
   m_index_generator.Init();
   m_custom_shader_cache = std::make_unique<CustomShaderCache>();
   m_cpu_cull.Init();

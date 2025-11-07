@@ -415,10 +415,9 @@ bool ControllerInterface::IsMouseCenteringRequested() const
 // Returns a handle for later removing the callback.
 
 Common::EventHook
-ControllerInterface::RegisterDevicesChangedCallback(std::string_view name,
-                                                    Common::HookableEvent<>::CallbackType callback)
+ControllerInterface::RegisterDevicesChangedCallback(Common::HookableEvent<>::CallbackType callback)
 {
-  return m_devices_changed_event.Register(std::move(callback), name);
+  return m_devices_changed_event.Register(std::move(callback));
 }
 
 // Invoke all callbacks that were registered

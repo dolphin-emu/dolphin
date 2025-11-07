@@ -500,18 +500,15 @@ void Statistics::DisplayScissor()
 
 void Statistics::Init()
 {
-  s_before_frame_event = GetVideoEvents().before_frame_event.Register([] { g_stats.ResetFrame(); },
-                                                                      "Statistics::ResetFrame");
+  s_before_frame_event = GetVideoEvents().before_frame_event.Register([] { g_stats.ResetFrame(); });
 
-  s_after_frame_event = GetVideoEvents().after_frame_event.Register(
-      [](const Core::System& system) {
-        DolphinAnalytics::Instance().ReportPerformanceInfo({
-            .speed_ratio = system.GetSystemTimers().GetEstimatedEmulationPerformance(),
-            .num_prims = g_stats.this_frame.num_prims + g_stats.this_frame.num_dl_prims,
-            .num_draw_calls = g_stats.this_frame.num_draw_calls,
-        });
-      },
-      "Statistics::PerformanceSample");
+  s_after_frame_event = GetVideoEvents().after_frame_event.Register([](const Core::System& system) {
+    DolphinAnalytics::Instance().ReportPerformanceInfo({
+        .speed_ratio = system.GetSystemTimers().GetEstimatedEmulationPerformance(),
+        .num_prims = g_stats.this_frame.num_prims + g_stats.this_frame.num_dl_prims,
+        .num_draw_calls = g_stats.this_frame.num_draw_calls,
+    });
+  });
 }
 
 void Statistics::Shutdown()

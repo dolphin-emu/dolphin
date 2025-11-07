@@ -115,8 +115,7 @@ public:
   bool IsMouseCenteringRequested() const;
 
   [[nodiscard]] Common::EventHook
-  RegisterDevicesChangedCallback(std::string_view name,
-                                 Common::HookableEvent<>::CallbackType callback);
+  RegisterDevicesChangedCallback(Common::HookableEvent<>::CallbackType callback);
 
   static void SetCurrentInputChannel(ciface::InputChannel);
   static ciface::InputChannel GetCurrentInputChannel();
@@ -128,7 +127,7 @@ private:
 
   void InvokeDevicesChangedCallbacks();
 
-  Common::HookableEvent<> m_devices_changed_event{"Devices Changed"};
+  Common::HookableEvent<> m_devices_changed_event;
 
   mutable std::recursive_mutex m_devices_population_mutex;
   std::atomic<bool> m_is_init;

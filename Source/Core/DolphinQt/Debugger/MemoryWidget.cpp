@@ -429,8 +429,8 @@ void MemoryWidget::hideEvent(QHideEvent* event)
 
 void MemoryWidget::RegisterAfterFrameEventCallback()
 {
-  m_vi_end_field_event = m_system.GetVideoEvents().vi_end_field_event.Register(
-      [this] { AutoUpdateTable(); }, "MemoryWidget");
+  m_vi_end_field_event =
+      m_system.GetVideoEvents().vi_end_field_event.Register([this] { AutoUpdateTable(); });
 }
 
 void MemoryWidget::RemoveAfterFrameEventCallback()

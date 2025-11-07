@@ -18,8 +18,8 @@ std::unique_ptr<AbstractGfx> g_gfx;
 
 AbstractGfx::AbstractGfx()
 {
-  m_config_changed = GetVideoEvents().config_changed_event.Register(
-      [this](u32 bits) { OnConfigChanged(bits); }, "AbstractGfx");
+  m_config_changed =
+      GetVideoEvents().config_changed_event.Register([this](u32 bits) { OnConfigChanged(bits); });
 }
 
 bool AbstractGfx::IsHeadless() const

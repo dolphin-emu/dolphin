@@ -95,8 +95,8 @@ bool GraphicsModManager::Initialize()
     g_ActiveConfig.graphics_mod_config->SetChangeCount(old_game_mod_changes);
     g_graphics_mod_manager->Load(*g_ActiveConfig.graphics_mod_config);
 
-    m_end_of_frame_event = GetVideoEvents().after_frame_event.Register(
-        [this](Core::System&) { EndOfFrame(); }, "ModManager");
+    m_end_of_frame_event =
+        GetVideoEvents().after_frame_event.Register([this](Core::System&) { EndOfFrame(); });
   }
 
   return true;
