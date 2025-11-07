@@ -927,6 +927,7 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to login {} to RetroAchievements server.",
                  Config::Get(Config::RA_USERNAME));
+    Config::SetBaseOrCurrent(Config::RA_API_TOKEN, "");
     instance.update_event.Trigger({.failed_login_code = result});
     return;
   }
@@ -1020,6 +1021,18 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
                     OSD::Duration::VERY_LONG, OSD::Color::RED);
     OSD::AddMessage("Please update Dolphin to a newer version.", OSD::Duration::VERY_LONG,
                     OSD::Color::RED);
+    return;
+  }
+  if (result == RC_LOGIN_REQUIRED || result == RC_INVALID_CREDENTIALS || result == RC_EXPIRED_TOKEN)
+  {
+    WARN_LOG_FMT(ACHIEVEMENTS, "Invalid/expired RetroAchievements API token.");
+    OSD::AddMessage(
+        "You have been logged out from RetroAchievements due to invalid/expired credentials.",
+        OSD::Duration::VERY_LONG, OSD::Color::RED);
+    OSD::AddMessage("Please close the game to log back in before continuing.",
+                    OSD::Duration::VERY_LONG, OSD::Color::RED);
+    Config::SetBaseOrCurrent(Config::RA_API_TOKEN, "");
+    instance.update_event.Trigger(UpdatedItems{.failed_login_code = result});
     return;
   }
 
@@ -1266,7 +1279,7 @@ void AchievementManager::HandleGameCompletedEvent(const rc_client_event_t* clien
     return;
   }
   bool hardcore = rc_client_get_hardcore_enabled(client);
-  OSD::AddMessage(fmt::format("Congratulations! {} has {} {}", user_info->display_name,
+  OSD::AddMessage(fmt::format("Congratulations, {}! You have {} {}", user_info->display_name,
                               hardcore ? "mastered" : "completed", game_info->title),
                   OSD::Duration::VERY_LONG, hardcore ? OSD::Color::YELLOW : OSD::Color::CYAN,
                   &AchievementManager::GetInstance().GetGameBadge());
