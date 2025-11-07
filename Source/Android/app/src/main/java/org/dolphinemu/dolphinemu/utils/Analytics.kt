@@ -49,7 +49,7 @@ object Analytics {
                 return data
             }
         }
-        VolleyUtil.getQueue().add(request)
+        VolleyUtil.queue.add(request)
     }
 
     @Keep
