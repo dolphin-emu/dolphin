@@ -1071,7 +1071,7 @@ namespace wil
 
     // raw COM pointer support
     //
-    // Use these for convenience and to avoid unnecessary AddRef/Release cyles when using raw
+    // Use these for convenience and to avoid unnecessary AddRef/Release cycles when using raw
     // pointers to access STL containers. Specify std::less<> to benefit from operator<.
     //
     // Example: std::set<wil::com_ptr<IUnknown>, std::less<>> set;
@@ -2271,7 +2271,7 @@ namespace wil
     @param stream The stream to seek
     @param offset The position, in bytes from the current position, to seek
     @param from The starting point from which to seek, from the STREAM_SEEK_* set of values
-    @param value Optionally recieves the new absolute position from the stream
+    @param value Optionally receives the new absolute position from the stream
     */
     inline HRESULT stream_seek_nothrow(_In_ IStream* stream, long long offset, unsigned long from, _Out_opt_ unsigned long long* value = nullptr)
     {
@@ -2291,7 +2291,7 @@ namespace wil
     ~~~~
     @param stream The stream whose size is to be returned in `value`
     @param offset The position, in bytes from the start of the stream, to seek to
-    @param value Optionally recieves the new absolute position from the stream
+    @param value Optionally receives the new absolute position from the stream
     */
     inline HRESULT stream_set_position_nothrow(_In_ IStream* stream, unsigned long long offset, _Out_opt_ unsigned long long* value = nullptr)
     {
@@ -2755,7 +2755,7 @@ namespace wil
     }
     ~~~~
     @param source The stream from which to read a string
-    @return An non-null string (but possibly zero lengh) string read from `source`
+    @return An non-null string (but possibly zero length) string read from `source`
     */
     inline wil::unique_cotaskmem_string stream_read_string(_In_ ISequentialStream* source, empty_string_options options = empty_string_options::returns_empty)
     {

@@ -629,7 +629,7 @@ namespace wil
     namespace details
     {
         // The first two attach_to_smart_pointer() overloads are ambiguous when passed a com_ptr_t.
-        // To solve that use this functions return type to elminate the reset form for com_ptr_t.
+        // To solve that use this functions return type to eliminate the reset form for com_ptr_t.
         template <typename T, typename err> wistd::false_type use_reset(wil::com_ptr_t<T, err>*) { return wistd::false_type(); }
         template <typename T> wistd::true_type use_reset(T*) { return wistd::true_type(); }
     }
@@ -2448,7 +2448,7 @@ namespace wil
         };
 
         // SetThreadpoolTimer(timer, nullptr, 0, 0) will cancel any pending callbacks,
-        // then CloseThreadpoolTimer will asynchronusly close the timer if a callback is running.
+        // then CloseThreadpoolTimer will asynchronously close the timer if a callback is running.
         template <typename threadpool_t, PendingCallbackCancellationBehavior cancellationBehavior>
         struct DestroyThreadPoolTimer
         {
@@ -4424,7 +4424,7 @@ namespace wil
         _When_((source != nullptr) && length == static_cast<size_t>(-1), _In_z_)
         PCWSTR source, size_t length) WI_NOEXCEPT
     {
-        WI_ASSERT(source != nullptr); // the HSTRING version of this function does not suport this case
+        WI_ASSERT(source != nullptr); // the HSTRING version of this function does not support this case
         if (length == static_cast<size_t>(-1))
         {
             length = wcslen(source);
@@ -4823,7 +4823,7 @@ namespace wil
         explicit cert_context_t(args_t&&... args) WI_NOEXCEPT : unique_storage(wistd::forward<args_t>(args)...) {}
 
         /** A wrapper around CertEnumCertificatesInStore.
-        CertEnumCertificatesInStore takes ownership of its second paramter in an unclear fashion,
+        CertEnumCertificatesInStore takes ownership of its second parameter in an unclear fashion,
         making it error-prone to use in combination with unique_cert_context. This wrapper helps
         manage the resource correctly while ensuring the GetLastError state set by CertEnumCertificatesInStore.
         is not lost. See MSDN for more information on `CertEnumCertificatesInStore`.
@@ -6907,7 +6907,7 @@ namespace wil
     These types are implicitly convertible from various lock holding types, enabling callers to provide them as
     proof of the lock that they hold.
 
-    The following example is intentially contrived to demonstrate multiple use cases:
+    The following example is intentionally contrived to demonstrate multiple use cases:
       - Methods that require only shared/read access
       - Methods that require only exclusive write access
       - Methods that pass their proof-of-lock to a helper
@@ -6985,7 +6985,7 @@ namespace wil
     {
         // Only those lock types specialized by lock_proof_traits will allow either a write_lock_required or
         // read_lock_required to be constructed. The allows_exclusive value indicates if the type represents an exclusive,
-        // write-safe lock aquisition, or a shared, read-only lock acquisition.
+        // write-safe lock acquisition, or a shared, read-only lock acquisition.
         template<typename T>
         struct lock_proof_traits { };
 

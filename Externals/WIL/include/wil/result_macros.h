@@ -1077,7 +1077,7 @@ namespace wil
     // only allows a single string to be associated with the exception.
     inline HRESULT GetFailureLogString(_Out_writes_(cchDest) _Always_(_Post_z_) PWSTR pszDest, _Pre_satisfies_(cchDest > 0) _In_ size_t cchDest, _In_ FailureInfo const &failure) WI_NOEXCEPT
     {
-        // This function was lenient to empty strings at one point and some callers became dependent on this beahvior
+        // This function was lenient to empty strings at one point and some callers became dependent on this behavior
         if ((cchDest == 0) || (pszDest == nullptr))
         {
             return S_OK;
@@ -3152,7 +3152,7 @@ __WI_POP_WARNINGS
         }
 
         // Runs the given functor, converting any exceptions of the supported types that are known to HRESULTs and returning
-        // that HRESULT.  Does NOT attempt to catch unknown exceptions (which propagate).  Primarily used by SEH exception
+        // that HRESULT.  Does NOT attempt to catch unknown exceptions (which propagate).  Primarily used by SHE exception
         // handling techniques to stop at the point the exception is thrown.
         inline HRESULT ResultFromKnownExceptions(const DiagnosticsInfo& diagnostics, void* returnAddress, SupportedExceptions supported, IFunctor& functor)
         {
@@ -3259,7 +3259,7 @@ __WI_POP_WARNINGS
         __declspec(noinline) inline HRESULT ResultFromException(const DiagnosticsInfo& diagnostics, SupportedExceptions supported, IFunctor& functor) WI_NOEXCEPT
         {
 #ifdef RESULT_DEBUG
-            // We can't do debug SEH handling if the caller also wants a shot at mapping the exceptions
+            // We can't do debug SHE handling if the caller also wants a shot at mapping the exceptions
             // themselves or if the caller doesn't want to fail-fast unknown exceptions
             if ((g_pfnResultFromCaughtException == nullptr) && g_fResultFailFastUnknownExceptions)
             {
@@ -3401,7 +3401,7 @@ __WI_POP_WARNINGS
     //! Assume FunctionWhichMayThrow() has a bug in it where it accidentally does a `throw E_INVALIDARG;`.  This ends up
     //! throwing a `long` as an exception object which is not what the caller intended.  The normal @ref ResultFromException
     //! would fail-fast when this is encountered, but it would do so AFTER FunctionWhichMayThrow() is already off of the
-    //! stack and has been unwound.  Because SEH is used for ResultFromExceptionDebug, the fail-fast occurs with everything
+    //! stack and has been unwound.  Because SHE is used for ResultFromExceptionDebug, the fail-fast occurs with everything
     //! leading up to and including the `throw INVALIDARG;` still on the stack (and easily debuggable).
     //!
     //! The penalty paid for using this, however, is efficiency.  It's far less efficient as a general pattern than either
@@ -3470,7 +3470,7 @@ __WI_POP_WARNINGS
 
         // Returns true if a debugger should be considered to be connected.
         // Modules can force this on through setting g_fIsDebuggerPresent explicitly (useful for live debugging),
-        // they can provide a callback function by setting g_pfnIsDebuggerPresent (useful for kernel debbugging),
+        // they can provide a callback function by setting g_pfnIsDebuggerPresent (useful for kernel debugging),
         // and finally the user-mode check (IsDebuggerPrsent) is checked. IsDebuggerPresent is a fast call
         inline bool IsDebuggerPresent()
         {

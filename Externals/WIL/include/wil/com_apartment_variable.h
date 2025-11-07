@@ -82,7 +82,7 @@ namespace wil
     // "pins" the current module in memory by incrementing the module reference count and leaking that.
     inline void ensure_module_stays_loaded()
     {
-        static INIT_ONCE s_initLeakModule{}; // avoiding magic statics
+        static INIT_ONCE s_initLeakModule{}; // avoiding magic statistics
         wil::init_once_failfast(s_initLeakModule, []()
         {
             HMODULE result{};
