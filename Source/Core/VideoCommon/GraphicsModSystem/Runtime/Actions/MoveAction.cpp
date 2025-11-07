@@ -42,15 +42,15 @@ void MoveAction::DrawImGui()
 {
   if (ImGui::InputFloat("X", &m_position_offset.x))
   {
-    GraphicsModEditor::EditorEvents::ChangeOccurredEvent::Trigger();
+    GraphicsModEditor::GetEditorEvents().change_occurred_event.Trigger();
   }
   if (ImGui::InputFloat("Y", &m_position_offset.y))
   {
-    GraphicsModEditor::EditorEvents::ChangeOccurredEvent::Trigger();
+    GraphicsModEditor::GetEditorEvents().change_occurred_event.Trigger();
   }
   if (ImGui::InputFloat("Z", &m_position_offset.z))
   {
-    GraphicsModEditor::EditorEvents::ChangeOccurredEvent::Trigger();
+    GraphicsModEditor::GetEditorEvents().change_occurred_event.Trigger();
   }
 }
 
