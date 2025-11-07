@@ -21,4 +21,6 @@ class DolphinVibratorManagerCompat(vibrator: Vibrator) : DolphinVibratorManager 
     }
 
     override fun getVibratorIds(): IntArray = vibratorIds
+
+    override fun getDefaultVibrator(): Vibrator = vibrator
 }

@@ -13,4 +13,6 @@ interface DolphinVibratorManager {
     fun getVibrator(vibratorId: Int): Vibrator
 
     fun getVibratorIds(): IntArray
+
+    fun getDefaultVibrator(): Vibrator
 }
