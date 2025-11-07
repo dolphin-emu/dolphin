@@ -84,8 +84,8 @@ bool FramebufferManager::Initialize()
     return false;
   }
 
-  m_end_of_frame_event = GetVideoEvents().after_frame_event.Register(
-      [this](Core::System&) { EndOfFrame(); }, "FramebufferManager");
+  m_end_of_frame_event =
+      GetVideoEvents().after_frame_event.Register([this](Core::System&) { EndOfFrame(); });
 
   return true;
 }

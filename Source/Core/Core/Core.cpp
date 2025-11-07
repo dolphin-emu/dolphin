@@ -658,8 +658,8 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   // This adds the SyncGPU handler to CoreTiming, so now CoreTiming::Advance might block.
   system.GetFifo().Prepare();
 
-  const Common::EventHook frame_presented = GetVideoEvents().after_present_event.Register(
-      &Core::Callback_FramePresented, "Core Frame Presented");
+  const Common::EventHook frame_presented =
+      GetVideoEvents().after_present_event.Register(&Core::Callback_FramePresented);
 
   // Setup our core
   if (Config::Get(Config::MAIN_CPU_CORE) != PowerPC::CPUCore::Interpreter)

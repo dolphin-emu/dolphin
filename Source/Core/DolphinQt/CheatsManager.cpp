@@ -79,8 +79,8 @@ void CheatsManager::UpdateAllCheatSearchWidgetCurrentValues()
 
 void CheatsManager::RegisterAfterFrameEventCallback()
 {
-  m_VI_end_field_event = m_system.GetVideoEvents().vi_end_field_event.Register(
-      [this] { OnFrameEnd(); }, "CheatsManager");
+  m_VI_end_field_event =
+      m_system.GetVideoEvents().vi_end_field_event.Register([this] { OnFrameEnd(); });
 }
 
 void CheatsManager::RemoveAfterFrameEventCallback()

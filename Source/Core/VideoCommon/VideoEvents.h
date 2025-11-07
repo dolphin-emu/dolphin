@@ -69,17 +69,17 @@ struct PresentInfo
 struct VideoEvents
 {
   // Called when certain video config setting are changed
-  Common::HookableEvent<u32> config_changed_event{"ConfigChanged"};
+  Common::HookableEvent<u32> config_changed_event;
 
   // An event called just before the first draw call of a frame
-  Common::HookableEvent<> before_frame_event{"BeforeFrame"};
+  Common::HookableEvent<> before_frame_event;
 
   // An event called after the frame XFB copy begins processing on the host GPU.
   // Useful for "once per frame" usecases.
   // Note: In a few rare cases, games do multiple XFB copies per frame and join them while
   // presenting.
   //       If this matters to your usecase, you should use BeforePresent instead.
-  Common::HookableEvent<Core::System&> after_frame_event{"AfterFrame"};
+  Common::HookableEvent<Core::System&> after_frame_event;
 
   // An event called just as a frame is queued for presentation.
   // The exact timing of this event depends on the "Immediately Present XFB" option.
@@ -89,14 +89,14 @@ struct VideoEvents
   // frame.
   //
   // frame_count: The number of frames
-  Common::HookableEvent<PresentInfo&> before_present_event{"BeforePresent"};
+  Common::HookableEvent<PresentInfo&> before_present_event;
 
   // An event that is triggered after a frame is presented.
   // The exact timing of this event depends on backend/driver support.
-  Common::HookableEvent<PresentInfo&> after_present_event{"AfterPresent"};
+  Common::HookableEvent<PresentInfo&> after_present_event;
 
   // An end of frame event that runs on the CPU thread
-  Common::HookableEvent<> vi_end_field_event{"VIEndField"};
+  Common::HookableEvent<> vi_end_field_event;
 };
 
 VideoEvents& GetVideoEvents();

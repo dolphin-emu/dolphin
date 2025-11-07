@@ -296,7 +296,7 @@ void MenuBar::AddToolsMenu()
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
   m_achievements_dev_menu = tools_menu->addMenu(tr("RetroAchievements Development"));
   m_raintegration_event_hook = AchievementManager::GetInstance().dev_menu_update_event.Register(
-      [this] { QueueOnObject(this, [this] { UpdateAchievementDevelopmentMenu(); }); }, "MenuBar");
+      [this] { QueueOnObject(this, [this] { UpdateAchievementDevelopmentMenu(); }); });
   m_achievements_dev_menu->menuAction()->setVisible(false);
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
   tools_menu->addSeparator();
