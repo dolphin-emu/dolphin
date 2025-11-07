@@ -497,7 +497,7 @@ public final class NativeLibrary
         }
         else
         {
-          AlertMessage.newInstance(caption, text, yesNo, isWarning)
+          AlertMessage.Companion.newInstance(caption, text, yesNo, isWarning)
                   .show(fragmentManager, "AlertMessage");
         }
       });
@@ -513,7 +513,7 @@ public final class NativeLibrary
 
       if (yesNo)
       {
-        result = AlertMessage.getAlertResult();
+        result = AlertMessage.Companion.getAlertResult();
       }
     }
 
