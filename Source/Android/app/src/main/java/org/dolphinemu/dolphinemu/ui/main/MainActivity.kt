@@ -29,7 +29,6 @@ import org.dolphinemu.dolphinemu.fragments.GridOptionDialogFragment
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView
 import org.dolphinemu.dolphinemu.ui.platform.PlatformTab
-import org.dolphinemu.dolphinemu.utils.Action1
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
@@ -257,11 +256,11 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
     override fun showGridOptions() =
         GridOptionDialogFragment().show(supportFragmentManager, "gridOptions")
 
-    private fun forEachPlatformGamesView(action: Action1<PlatformGamesView>) {
+    private fun forEachPlatformGamesView(action: (PlatformGamesView) -> Unit) {
         for (platformTab in PlatformTab.values()) {
             val fragment = getPlatformGamesView(platformTab)
             if (fragment != null) {
-                action.call(fragment)
+                action(fragment)
             }
         }
     }
