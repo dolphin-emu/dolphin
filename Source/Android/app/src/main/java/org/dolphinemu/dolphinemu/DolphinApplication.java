@@ -11,7 +11,6 @@ import org.dolphinemu.dolphinemu.utils.ActivityTracker;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.GCAdapter;
 import org.dolphinemu.dolphinemu.utils.WiimoteAdapter;
-import org.dolphinemu.dolphinemu.utils.VolleyUtil;
 
 public class DolphinApplication extends Application
 {
@@ -25,7 +24,6 @@ public class DolphinApplication extends Application
     application = this;
     sActivityTracker = new ActivityTracker();
     registerActivityLifecycleCallbacks(sActivityTracker);
-    VolleyUtil.init(getApplicationContext());
     System.loadLibrary("main");
 
     GCAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
