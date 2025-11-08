@@ -25,6 +25,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/DirectIOFile.h"
 #ifdef __APPLE__
 #include "Common/DynamicLibrary.h"
 #endif
@@ -668,13 +669,42 @@ std::string CreateTempDir()
 #endif
 }
 
-std::string GetTempFilenameForAtomicWrite(std::string path)
+static auto TryToGetAbsolutePath(std::string path)
 {
   std::error_code error;
   auto absolute_path = fs::absolute(StringToPath(path), error);
   if (!error)
     path = PathToString(absolute_path);
-  return std::move(path) + ".xxx";
+  return path;
+}
+
+std::string GetTempFilenameForAtomicWrite(std::string path)
+{
+  return TryToGetAbsolutePath(std::move(path)) + ".xxx";
+}
+
+std::string CreateTempFileForAtomicWrite(std::string path)
+{
+  path = TryToGetAbsolutePath(std::move(path));
+  while (true)
+  {
+    DirectIOFile file;
+
+    // e.g. "/dir/file.txt" -> "/dir/file.txt.189234789.tmp"
+    const auto timestamp = Clock::now().time_since_epoch().count();
+    std::string tmp_path = fmt::format("{}.{}.tmp", path, timestamp);
+
+    const auto open_result = file.Open(tmp_path, AccessMode::Write, OpenMode::Create);
+    if (open_result.Succeeded())
+      return tmp_path;
+
+    // In the very unlikely case that the file already exists, we will try again.
+    if (open_result.Error() == File::OpenError::AlreadyExists)
+      continue;
+
+    // Failure.
+    return {};
+  }
 }
 
 #if defined(__APPLE__)
