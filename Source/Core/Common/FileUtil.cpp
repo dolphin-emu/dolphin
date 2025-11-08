@@ -1077,4 +1077,34 @@ bool ReadFileToString(const std::string& filename, std::string& str)
   return file.ReadArray(str.data(), str.size());
 }
 
+AtomicWriteHelper::AtomicWriteHelper(DirectIOFile* file, std::string path)
+    : m_path{std::move(path)}, m_temp_path{File::CreateTempFileForAtomicWrite(m_path)},
+      m_file{*file}
+
+{
+  m_file.Open(m_temp_path, File::AccessMode::Write);
+}
+
+AtomicWriteHelper::~AtomicWriteHelper()
+{
+  Delete(m_file, m_temp_path);
+  m_file.Close();
+}
+
+const std::string& AtomicWriteHelper::GetTempPath() const
+{
+  return m_temp_path;
+}
+
+bool AtomicWriteHelper::Finalize()
+{
+  if (Rename(m_file, m_temp_path, m_path))
+  {
+    m_file.Close();
+    return true;
+  }
+
+  return false;
+}
+
 }  // namespace File
