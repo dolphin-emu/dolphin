@@ -222,7 +222,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
 
     override fun onStop() {
         super.onStop()
-        settings.saveSettings(null)
+        settings.saveSettings()
     }
 
     fun onTitleChanged() {

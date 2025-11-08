@@ -496,7 +496,7 @@ std::optional<IPCReply> NetIPTopDevice::IOCtl(const IOCtlRequest& request)
   case IOCTL_SO_GETHOSTID:
     return HandleGetHostIDRequest(request);
   case IOCTL_SO_INETATON:
-    return HandleInetAToNRequest(request);
+    return LaunchAsyncTask(&NetIPTopDevice::HandleInetAToNRequest, request);
   case IOCTL_SO_INETPTON:
     return HandleInetPToNRequest(request);
   case IOCTL_SO_INETNTOP:

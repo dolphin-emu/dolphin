@@ -7,7 +7,10 @@
 
 #include <string>
 
+#include "Hidclass.h"
+
 #include "Common/CommonFuncs.h"
+#include "Common/Logging/Log.h"
 
 namespace Common
 {
@@ -33,6 +36,53 @@ std::wstring GetDeviceProperty(const HDEVINFO& device_info, const PSP_DEVINFO_DA
 
   return std::wstring(unicode_buffer.data());
 }
+
+std::optional<std::wstring> GetPropertyHelper(auto function, auto dev,
+                                              const DEVPROPKEY* requested_property,
+                                              DEVPROPTYPE expected_type)
+{
+  DEVPROPTYPE type{};
+  ULONG buffer_size{};
+
+  if (const auto result = function(dev, requested_property, &type, nullptr, &buffer_size, 0);
+      result != CR_SUCCESS && result != CR_BUFFER_SMALL)
+  {
+    if (result != CR_NO_SUCH_VALUE)
+      WARN_LOG_FMT(COMMON, "CM_Get_DevNode_Property returned: {}", result);
+    return std::nullopt;
+  }
+  if (type != expected_type)
+  {
+    WARN_LOG_FMT(COMMON, "CM_Get_DevNode_Property unexpected type: 0x{:x}", type);
+    return std::nullopt;
+  }
+
+  std::optional<std::wstring> property;
+  // FYI: It's legal to write the null terminator at data()[size()] of std::basic_string.
+  property.emplace(buffer_size / sizeof(WCHAR) - 1, L'\0');
+  if (const auto result = function(dev, requested_property, &type,
+                                   reinterpret_cast<BYTE*>(property->data()), &buffer_size, 0);
+      result != CR_SUCCESS)
+  {
+    ERROR_LOG_FMT(COMMON, "CM_Get_DevNode_Property returned: {}", result);
+    return std::nullopt;
+  }
+  return property;
+}
+
+std::optional<std::wstring> GetDevNodeStringProperty(DEVINST dev,
+                                                     const DEVPROPKEY* requested_property)
+{
+  return GetPropertyHelper(CM_Get_DevNode_Property, dev, requested_property, DEVPROP_TYPE_STRING);
+}
+
+std::optional<std::wstring> GetDeviceInterfaceStringProperty(LPCWSTR iface,
+                                                             const DEVPROPKEY* requested_property)
+{
+  return GetPropertyHelper(CM_Get_Device_Interface_Property, iface, requested_property,
+                           DEVPROP_TYPE_STRING);
+}
+
 }  // namespace Common
 
 #endif

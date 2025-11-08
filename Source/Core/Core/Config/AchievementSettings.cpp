@@ -22,6 +22,10 @@ const Info<bool> RA_UNOFFICIAL_ENABLED{{System::Achievements, "Achievements", "U
 const Info<bool> RA_ENCORE_ENABLED{{System::Achievements, "Achievements", "EncoreEnabled"}, false};
 const Info<bool> RA_SPECTATOR_ENABLED{{System::Achievements, "Achievements", "SpectatorEnabled"},
                                       false};
+const Info<bool> RA_LEADERBOARD_TRACKER_ENABLED{
+    {System::Achievements, "Achievements", "LeaderboardTrackerEnabled"}, true};
+const Info<bool> RA_CHALLENGE_INDICATORS_ENABLED{
+    {System::Achievements, "Achievements", "ChallengeIndicatorsEnabled"}, true};
 const Info<bool> RA_DISCORD_PRESENCE_ENABLED{
     {System::Achievements, "Achievements", "DiscordPresenceEnabled"}, false};
 const Info<bool> RA_PROGRESS_ENABLED{{System::Achievements, "Achievements", "ProgressEnabled"},

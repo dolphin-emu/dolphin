@@ -250,8 +250,8 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
   m_RequestedRecordingEnd = false;
   m_FinishedCb = finishedCb;
 
-  m_end_of_frame_event = AfterFrameEvent::Register(
-      [this](const Core::System& system) {
+  m_end_of_frame_event =
+      m_system.GetVideoEvents().after_frame_event.Register([this](const Core::System& system) {
         const bool was_recording = OpcodeDecoder::g_record_fifo_data;
         OpcodeDecoder::g_record_fifo_data = IsRecording();
 
@@ -270,8 +270,7 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
         const auto& fifo = system.GetCommandProcessor().GetFifo();
         EndFrame(fifo.CPBase.load(std::memory_order_relaxed),
                  fifo.CPEnd.load(std::memory_order_relaxed));
-      },
-      "FifoRecorder::EndFrame");
+      });
 }
 
 void FifoRecorder::RecordInitialVideoMemory()

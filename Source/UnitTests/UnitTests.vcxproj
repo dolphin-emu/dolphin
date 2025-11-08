@@ -53,6 +53,7 @@
     <ClCompile Include="Common\FlagTest.cpp" />
     <ClCompile Include="Common\FloatUtilsTest.cpp" />
     <ClCompile Include="Common\MathUtilTest.cpp" />
+    <ClCompile Include="Common\MutexTest.cpp" />
     <ClCompile Include="Common\NandPathsTest.cpp" />
     <ClCompile Include="Common\SettingsHandlerTest.cpp" />
     <ClCompile Include="Common\SPSCQueueTest.cpp" />

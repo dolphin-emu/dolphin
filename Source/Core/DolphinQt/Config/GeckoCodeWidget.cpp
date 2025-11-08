@@ -10,16 +10,23 @@
 #include <QFontDatabase>
 #include <QFormLayout>
 #include <QHBoxLayout>
+#ifdef USE_RETRO_ACHIEVEMENTS
+#include <QIcon>
+#endif  // USE_RETRO_ACHIEVEMENTS
 #include <QLabel>
 #include <QListWidget>
 #include <QMenu>
 #include <QPushButton>
+#ifdef USE_RETRO_ACHIEVEMENTS
+#include <QStyle>
+#endif  // USE_RETRO_ACHIEVEMENTS
 #include <QTextEdit>
 #include <QVBoxLayout>
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
@@ -31,6 +38,9 @@
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
+#ifdef USE_RETRO_ACHIEVEMENTS
+#include "DolphinQt/Settings.h"
+#endif  // USE_RETRO_ACHIEVEMENTS
 
 GeckoCodeWidget::GeckoCodeWidget(std::string game_id, std::string gametdb_id, u16 game_revision,
                                  bool restart_required)
@@ -158,6 +168,8 @@ void GeckoCodeWidget::ConnectWidgets()
 #ifdef USE_RETRO_ACHIEVEMENTS
   connect(m_hc_warning, &HardcoreWarningWidget::OpenAchievementSettings, this,
           &GeckoCodeWidget::OpenAchievementSettings);
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          &GeckoCodeWidget::UpdateList);
 #endif  // USE_RETRO_ACHIEVEMENTS
 }
 
@@ -224,6 +236,7 @@ void GeckoCodeWidget::EditCode()
     return;
 
   const int index = item->data(Qt::UserRole).toInt();
+  const bool enabled = item->checkState() == Qt::Checked;
 
   m_cheat_code_editor->SetGeckoCode(&m_gecko_codes[index]);
   if (m_cheat_code_editor->exec() == QDialog::Rejected)
@@ -231,6 +244,9 @@ void GeckoCodeWidget::EditCode()
 
   SaveCodes();
   UpdateList();
+
+  if (!m_restart_required && enabled)
+    Gecko::SetActiveCodes(m_gecko_codes, m_game_id, m_game_revision);
 }
 
 void GeckoCodeWidget::RemoveCode()
@@ -355,6 +371,21 @@ void GeckoCodeWidget::UpdateList()
                    Qt::ItemIsDragEnabled);
     item->setCheckState(code.enabled ? Qt::Checked : Qt::Unchecked);
     item->setData(Qt::UserRole, static_cast<int>(i));
+
+#ifdef USE_RETRO_ACHIEVEMENTS
+    const AchievementManager& achievement_manager = AchievementManager::GetInstance();
+
+    if (achievement_manager.IsHardcoreModeActive())
+    {
+      const QIcon approved_icon = style()->standardIcon(QStyle::SP_DialogYesButton);
+      const QIcon warning_icon = style()->standardIcon(QStyle::SP_MessageBoxWarning);
+
+      if (achievement_manager.IsApprovedGeckoCode(code, m_game_id, m_game_revision))
+        item->setIcon(approved_icon);
+      else
+        item->setIcon(warning_icon);
+    }
+#endif  // USE_RETRO_ACHIEVEMENTS
 
     m_code_list->addItem(item);
   }

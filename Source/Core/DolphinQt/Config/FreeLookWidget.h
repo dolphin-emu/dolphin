@@ -5,6 +5,7 @@
 
 #include <QWidget>
 
+class ConfigBool;
 class ConfigChoice;
 class QCheckBox;
 class QPushButton;
@@ -24,7 +25,7 @@ private:
   void LoadSettings();
   void SaveSettings();
 
-  ToolTipCheckBox* m_enable_freelook;
+  ConfigBool* m_enable_freelook;
   ConfigChoice* m_freelook_control_type;
   QPushButton* m_freelook_controller_configure_button;
   QCheckBox* m_freelook_background_input;

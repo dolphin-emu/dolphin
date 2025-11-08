@@ -222,7 +222,7 @@ bool MaterialData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
                             const picojson::object& json, MaterialData* data)
 {
   const auto parse_properties = [&](const char* name,
-                                    std::vector<MaterialProperty>* properties) -> bool {
+                                    std::vector<MaterialProperty>* material_properties) -> bool {
     const auto properties_iter = json.find(name);
     if (properties_iter == json.end())
     {
@@ -237,7 +237,7 @@ bool MaterialData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
     }
     const auto& properties_array = properties_iter->second.get<picojson::array>();
 
-    if (!ParseMaterialProperties(asset_id, properties_array, properties))
+    if (!ParseMaterialProperties(asset_id, properties_array, material_properties))
       return false;
     return true;
   };

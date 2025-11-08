@@ -3,14 +3,12 @@
 
 #pragma once
 
-#include <condition_variable>
+#include <concepts>
 #include <functional>
 #include <future>
-#include <mutex>
-#include <queue>
 
-#include "Common/Flag.h"
 #include "Common/Functional.h"
+#include "Common/SPSCQueue.h"
 
 struct EfbPokeData;
 class PointerWrap;
@@ -20,43 +18,38 @@ class AsyncRequests
 public:
   AsyncRequests();
 
-  void PullEvents()
-  {
-    if (!m_empty.IsSet())
-      PullEventsInternal();
-  }
-  void WaitForEmptyQueue();
-  void SetEnable(bool enable);
-  void SetPassthrough(bool enable);
+  // Called from the Video thread.
+  void PullEvents();
 
-  template <typename F>
+  // The following are called from the CPU thread.
+  void WaitForEmptyQueue();
+
+  template <std::invocable<> F>
   void PushEvent(F&& callback)
   {
-    std::unique_lock<std::mutex> lock(m_mutex);
-
     if (m_passthrough)
     {
-      std::invoke(callback);
+      std::invoke(std::forward<F>(callback));
       return;
     }
 
     QueueEvent(Event{std::forward<F>(callback)});
   }
 
-  template <typename F>
+  template <std::invocable<> F>
   auto PushBlockingEvent(F&& callback) -> std::invoke_result_t<F>
   {
-    std::unique_lock<std::mutex> lock(m_mutex);
-
     if (m_passthrough)
-      return std::invoke(callback);
+      return std::invoke(std::forward<F>(callback));
 
     std::packaged_task task{std::forward<F>(callback)};
     QueueEvent(Event{[&] { task(); }});
 
-    lock.unlock();
     return task.get_future().get();
   }
+
+  // Not thread-safe. Only set during initialization.
+  void SetPassthrough(bool enable);
 
   static AsyncRequests* GetInstance() { return &s_singleton; }
 
@@ -65,15 +58,9 @@ private:
 
   void QueueEvent(Event&& event);
 
-  void PullEventsInternal();
-
   static AsyncRequests s_singleton;
 
-  Common::Flag m_empty;
-  std::queue<Event> m_queue;
-  std::mutex m_mutex;
-  std::condition_variable m_cond;
+  Common::WaitableSPSCQueue<Event> m_queue;
 
-  bool m_enable = false;
   bool m_passthrough = true;
 };

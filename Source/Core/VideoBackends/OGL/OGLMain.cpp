@@ -61,9 +61,9 @@ Make AA apply instantly during gameplay if possible
 
 namespace OGL
 {
-std::string VideoBackend::GetName() const
+std::string VideoBackend::GetConfigName() const
 {
-  return NAME;
+  return CONFIG_NAME;
 }
 
 std::string VideoBackend::GetDisplayName() const

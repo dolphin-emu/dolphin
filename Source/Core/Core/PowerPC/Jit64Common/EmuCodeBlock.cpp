@@ -92,6 +92,13 @@ void EmuCodeBlock::SwitchToNearCode()
   SetCodePtr(m_near_code, m_near_code_end, m_near_code_write_failed);
 }
 
+void EmuCodeBlock::FlushPCBeforeSlowAccess()
+{
+  // PC is used by memory watchpoints (if enabled), profiling where to insert gather pipe
+  // interrupt checks, and printing accurate PC locations in debug logs.
+  MOV(32, PPCSTATE(pc), Imm32(m_jit.js.compilerPC));
+}
+
 FixupBranch EmuCodeBlock::BATAddressLookup(X64Reg addr, X64Reg tmp, const void* bat_table)
 {
   MOV(64, R(tmp), ImmPtr(bat_table));
@@ -386,14 +393,11 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     SetJumpTarget(slow);
   }
 
-  // PC is used by memory watchpoints (if enabled), profiling where to insert gather pipe
-  // interrupt checks, and printing accurate PC locations in debug logs.
-  //
-  // In the case of Jit64AsmCommon routines, we don't know the PC here,
-  // so the caller has to store the PC themselves.
+  // In the case of Jit64AsmCommon routines, the state we want to store here isn't known
+  // when compiling the routine, so the caller has to store it themselves.
   if (!(flags & SAFE_LOADSTORE_NO_UPDATE_PC))
   {
-    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
+    FlushPCBeforeSlowAccess();
   }
 
   size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
@@ -401,16 +405,16 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   switch (accessSize)
   {
   case 64:
-    ABI_CallFunctionPR(PowerPC::ReadU64FromJit, &m_jit.m_mmu, reg_addr);
+    ABI_CallFunctionPR(PowerPC::ReadFromJit<u64>, &m_jit.m_mmu, reg_addr);
     break;
   case 32:
-    ABI_CallFunctionPR(PowerPC::ReadU32FromJit, &m_jit.m_mmu, reg_addr);
+    ABI_CallFunctionPR(PowerPC::ReadFromJit<u32>, &m_jit.m_mmu, reg_addr);
     break;
   case 16:
-    ABI_CallFunctionPR(PowerPC::ReadU16FromJit, &m_jit.m_mmu, reg_addr);
+    ABI_CallFunctionPR(PowerPC::ReadFromJit<u16>, &m_jit.m_mmu, reg_addr);
     break;
   case 8:
-    ABI_CallFunctionPR(PowerPC::ReadU8FromJit, &m_jit.m_mmu, reg_addr);
+    ABI_CallFunctionPR(PowerPC::ReadFromJit<u8>, &m_jit.m_mmu, reg_addr);
     break;
   }
   ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
@@ -457,24 +461,23 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
     return;
   }
 
-  // Helps external systems know which instruction triggered the read.
-  MOV(32, PPCSTATE(pc), Imm32(m_jit.js.compilerPC));
+  FlushPCBeforeSlowAccess();
 
   // Fall back to general-case code.
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
   switch (accessSize)
   {
   case 64:
-    ABI_CallFunctionPC(PowerPC::ReadU64FromJit, &m_jit.m_mmu, address);
+    ABI_CallFunctionPC(PowerPC::ReadFromJit<u64>, &m_jit.m_mmu, address);
     break;
   case 32:
-    ABI_CallFunctionPC(PowerPC::ReadU32FromJit, &m_jit.m_mmu, address);
+    ABI_CallFunctionPC(PowerPC::ReadFromJit<u32>, &m_jit.m_mmu, address);
     break;
   case 16:
-    ABI_CallFunctionPC(PowerPC::ReadU16FromJit, &m_jit.m_mmu, address);
+    ABI_CallFunctionPC(PowerPC::ReadFromJit<u16>, &m_jit.m_mmu, address);
     break;
   case 8:
-    ABI_CallFunctionPC(PowerPC::ReadU8FromJit, &m_jit.m_mmu, address);
+    ABI_CallFunctionPC(PowerPC::ReadFromJit<u8>, &m_jit.m_mmu, address);
     break;
   }
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
@@ -560,14 +563,11 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     SetJumpTarget(slow);
   }
 
-  // PC is used by memory watchpoints (if enabled), profiling where to insert gather pipe
-  // interrupt checks, and printing accurate PC locations in debug logs.
-  //
-  // In the case of Jit64AsmCommon routines, we don't know the PC here,
-  // so the caller has to store the PC themselves.
+  // In the case of Jit64AsmCommon routines, the state we want to store here isn't known
+  // when compiling the routine, so the caller has to store it themselves.
   if (!(flags & SAFE_LOADSTORE_NO_UPDATE_PC))
   {
-    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
+    FlushPCBeforeSlowAccess();
   }
 
   size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
@@ -588,19 +588,19 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   switch (accessSize)
   {
   case 64:
-    ABI_CallFunctionPRR(swap ? PowerPC::WriteU64FromJit : PowerPC::WriteU64SwapFromJit,
+    ABI_CallFunctionPRR(swap ? PowerPC::WriteFromJit<u64> : PowerPC::WriteU64SwapFromJit,
                         &m_jit.m_mmu, reg, reg_addr);
     break;
   case 32:
-    ABI_CallFunctionPRR(swap ? PowerPC::WriteU32FromJit : PowerPC::WriteU32SwapFromJit,
+    ABI_CallFunctionPRR(swap ? PowerPC::WriteFromJit<u32> : PowerPC::WriteU32SwapFromJit,
                         &m_jit.m_mmu, reg, reg_addr);
     break;
   case 16:
-    ABI_CallFunctionPRR(swap ? PowerPC::WriteU16FromJit : PowerPC::WriteU16SwapFromJit,
+    ABI_CallFunctionPRR(swap ? PowerPC::WriteFromJit<u16> : PowerPC::WriteU16SwapFromJit,
                         &m_jit.m_mmu, reg, reg_addr);
     break;
   case 8:
-    ABI_CallFunctionPRR(PowerPC::WriteU8FromJit, &m_jit.m_mmu, reg, reg_addr);
+    ABI_CallFunctionPRR(PowerPC::WriteFromJit<u8>, &m_jit.m_mmu, reg, reg_addr);
     break;
   }
   ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
@@ -663,23 +663,22 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
   }
   else
   {
-    // Helps external systems know which instruction triggered the write
-    MOV(32, PPCSTATE(pc), Imm32(m_jit.js.compilerPC));
+    FlushPCBeforeSlowAccess();
 
     ABI_PushRegistersAndAdjustStack(registersInUse, 0);
     switch (accessSize)
     {
     case 64:
-      ABI_CallFunctionPAC(64, PowerPC::WriteU64FromJit, &m_jit.m_mmu, arg, address);
+      ABI_CallFunctionPAC(64, PowerPC::WriteFromJit<u64>, &m_jit.m_mmu, arg, address);
       break;
     case 32:
-      ABI_CallFunctionPAC(32, PowerPC::WriteU32FromJit, &m_jit.m_mmu, arg, address);
+      ABI_CallFunctionPAC(32, PowerPC::WriteFromJit<u32>, &m_jit.m_mmu, arg, address);
       break;
     case 16:
-      ABI_CallFunctionPAC(16, PowerPC::WriteU16FromJit, &m_jit.m_mmu, arg, address);
+      ABI_CallFunctionPAC(16, PowerPC::WriteFromJit<u16>, &m_jit.m_mmu, arg, address);
       break;
     case 8:
-      ABI_CallFunctionPAC(8, PowerPC::WriteU8FromJit, &m_jit.m_mmu, arg, address);
+      ABI_CallFunctionPAC(8, PowerPC::WriteFromJit<u8>, &m_jit.m_mmu, arg, address);
       break;
     }
     ABI_PopRegistersAndAdjustStack(registersInUse, 0);

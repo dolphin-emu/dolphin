@@ -583,6 +583,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::StopRecording, this, &MainWindow::OnStopRecording);
   connect(m_menu_bar, &MenuBar::ExportRecording, this, &MainWindow::OnExportRecording);
   connect(m_menu_bar, &MenuBar::ShowTASInput, this, &MainWindow::ShowTASInput);
+  connect(m_menu_bar, &MenuBar::ConfigureOSD, this, &MainWindow::ShowOSDWindow);
 
   // View
   connect(m_menu_bar, &MenuBar::ShowList, m_game_list, &GameList::SetListView);
@@ -1327,6 +1328,12 @@ void MainWindow::ShowGeneralWindow()
   m_settings_window->SelectPane(SettingsWindowPaneIndex::General);
 }
 
+void MainWindow::ShowOSDWindow()
+{
+  ShowSettingsWindow();
+  m_settings_window->SelectPane(SettingsWindowPaneIndex::OnScreenDisplay);
+}
+
 void MainWindow::ShowAboutDialog()
 {
   AboutDialog about{this};
@@ -1423,7 +1430,7 @@ void MainWindow::StateLoad()
                             QDir::currentPath() :
                             QString::fromStdString(Config::Get(Config::MAIN_CURRENT_STATE_PATH));
   QString path = DolphinFileDialog::getOpenFileName(
-      this, tr("Select a File"), dialog_path, tr("All Save States (*.sav *.s##);; All Files (*)"));
+      this, tr("Select a File"), dialog_path, tr("All Save States (*.sav *.s??);; All Files (*)"));
   Config::SetBase(Config::MAIN_CURRENT_STATE_PATH, QFileInfo(path).dir().path().toStdString());
   if (!path.isEmpty())
     State::LoadAs(m_system, path.toStdString());
@@ -1435,7 +1442,7 @@ void MainWindow::StateSave()
                             QDir::currentPath() :
                             QString::fromStdString(Config::Get(Config::MAIN_CURRENT_STATE_PATH));
   QString path = DolphinFileDialog::getSaveFileName(
-      this, tr("Select a File"), dialog_path, tr("All Save States (*.sav *.s##);; All Files (*)"));
+      this, tr("Select a File"), dialog_path, tr("All Save States (*.sav *.s??);; All Files (*)"));
   Config::SetBase(Config::MAIN_CURRENT_STATE_PATH, QFileInfo(path).dir().path().toStdString());
   if (!path.isEmpty())
     State::SaveAs(m_system, path.toStdString());

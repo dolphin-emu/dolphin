@@ -72,7 +72,7 @@ u32 MemoryWatcher::ChasePointer(const Core::CPUThreadGuard& guard, const std::st
   u32 value = 0;
   for (u32 offset : m_addresses[line])
   {
-    value = PowerPC::MMU::HostRead_U32(guard, value + offset);
+    value = PowerPC::MMU::HostRead<u32>(guard, value + offset);
     if (!PowerPC::MMU::HostIsRAMAddress(guard, value))
       break;
   }

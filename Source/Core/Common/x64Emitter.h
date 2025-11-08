@@ -444,6 +444,8 @@ public:
     Short,
     Near,
   };
+  static const int SHORT_JMP_LEN = 2;
+  static const int NEAR_JMP_LEN = 5;
 
   // Flow control
   void RET();
@@ -451,7 +453,7 @@ public:
   void UD2();
   [[nodiscard]] FixupBranch J(Jump jump = Jump::Short);
 
-  void JMP(const u8* addr, Jump jump = Jump::Short);
+  void JMP(const u8* addr, bool force_near_padding = false);
   void JMPptr(const OpArg& arg);
   void JMPself();  // infinite loop!
 #ifdef CALL
@@ -875,6 +877,10 @@ public:
   void VPANDN(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VPOR(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VPXOR(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
+
+  void VMOVAPS(const OpArg& arg, X64Reg regOp);
+
+  void VZEROUPPER();
 
   // FMA3
   void VFMADD132PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);

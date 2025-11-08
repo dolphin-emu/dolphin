@@ -42,7 +42,7 @@ private:
 
   QDialogButtonBox* m_buttons;
 
-  QString m_type;
+  Type m_type;
   std::string* m_symbol_name;
   u32* m_symbol_size;
   const u32 m_symbol_address;

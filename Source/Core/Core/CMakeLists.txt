@@ -755,7 +755,7 @@ elseif(UNIX)
 endif()
 
 # Bluez doesn't support all the communication modes on FreeBSD, so only using it on Linux
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+if(LINUX)
   option(ENABLE_BLUEZ "Enables bluetooth support" ON)
   if(ENABLE_BLUEZ)
     find_package(BlueZ)
@@ -795,6 +795,11 @@ if(UNIX)
     MemoryWatcher.cpp
     MemoryWatcher.h
   )
+endif()
+
+if(WIN32 OR LINUX)
+  target_sources(core PRIVATE HW/EXI/BBA/IPC.cpp)
+  target_link_libraries(core PRIVATE cpp-ipc::ipc)
 endif()
 
 if(MSVC)

@@ -8,6 +8,8 @@ Dolphin includes or links code of the following third-party software projects:
    [LGPLv2.1+](http://bochs.sourceforge.net/cgi-bin/lxr/source/COPYING)
 - [bzip2](https://www.sourceware.org/bzip2/):
    [bzip2 license](https://www.sourceware.org/git/?p=bzip2.git;a=blob;f=LICENSE;hb=HEAD) (similar to 3-clause BSD)
+- [cpp-ipc](https://github.com/mutouyun/cpp-ipc):
+   [MIT](https://github.com/mutouyun/cpp-ipc/blob/master/LICENSE)
 - [cubeb](https://github.com/kinetiknz/cubeb):
    [ISC](https://github.com/kinetiknz/cubeb/blob/master/LICENSE)
 - [Discord-RPC](https://github.com/discordapp/discord-rpc):
@@ -31,7 +33,7 @@ Dolphin includes or links code of the following third-party software projects:
 - [libcdio](https://www.gnu.org/software/libcdio/):
    [GPLv3+](http://git.savannah.gnu.org/gitweb/?p=libcdio.git;a=blob_plain;f=COPYING)
 - [libiconv](https://www.gnu.org/software/libiconv/):
-   [LGPLv2+](http://git.savannah.gnu.org/cgit/libiconv.git/tree/COPYING.LIB)
+   [LGPLv2.1+](http://git.savannah.gnu.org/cgit/libiconv.git/tree/COPYING.LIB)
 - [liblzma](https://tukaani.org/xz/):
    [Public domain](https://git.tukaani.org/?p=xz.git;a=blob_plain;f=COPYING;hb=HEAD)
 - [libspng](https://github.com/randy408/libspng):

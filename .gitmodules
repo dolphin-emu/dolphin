@@ -110,3 +110,23 @@
 	path = Externals/glslang/glslang
 	url = https://github.com/KhronosGroup/glslang.git
 	shallow = true
+[submodule "Externals/pugixml/pugixml"]
+	path = Externals/pugixml/pugixml
+	url = https://github.com/zeux/pugixml.git
+	shallow = true
+[submodule "Externals/cpp-ipc/cpp-ipc"]
+	path = Externals/cpp-ipc/cpp-ipc
+	url = https://github.com/mutouyun/cpp-ipc.git
+	shallow = true
+[submodule "Externals/cpp-optparse/cpp-optparse"]
+	path = Externals/cpp-optparse/cpp-optparse
+	url = https://github.com/weisslj/cpp-optparse.git
+	shallow = true
+[submodule "Externals/bzip2/bzip2"]
+	path = Externals/bzip2/bzip2
+	url = https://gitlab.com/bzip2/bzip2.git
+	shallow = true
+[submodule "Externals/imgui/imgui"]
+	path = Externals/imgui/imgui
+	url = https://github.com/ocornut/imgui.git
+	shallow = true

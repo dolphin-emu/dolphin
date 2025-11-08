@@ -71,12 +71,16 @@ private:
                        UpdateSource source);
   void RecreateGUITable();
   void GenerateARCodes();
+  void WriteValue();
   int GetVisibleRowsBeginIndex() const;
   int GetVisibleRowsEndIndex() const;
+  size_t GetTableRowCount() const;
 
   Core::System& m_system;
 
-  std::unique_ptr<Cheats::CheatSearchSessionBase> m_session;
+  // Stores the values used by the "last value" search filter and shown in the Last Value column.
+  // Updated only after clicking the "Search and Filter" button or resetting the table.
+  std::unique_ptr<Cheats::CheatSearchSessionBase> m_last_value_session;
 
   // storage for the 'Current Value' column's data
   std::unordered_map<u32, std::string> m_address_table_current_values;

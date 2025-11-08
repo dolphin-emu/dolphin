@@ -172,7 +172,7 @@ void InputConfig::RegisterHotplugCallback()
 {
   // Update control references on all controllers
   // as configured devices may have been added or removed.
-  m_hotplug_callback_handle = g_controller_interface.RegisterDevicesChangedCallback([this] {
+  m_hotplug_event_hook = g_controller_interface.RegisterDevicesChangedCallback([this] {
     for (auto& controller : m_controllers)
       controller->UpdateReferences(g_controller_interface);
   });
@@ -180,7 +180,7 @@ void InputConfig::RegisterHotplugCallback()
 
 void InputConfig::UnregisterHotplugCallback()
 {
-  g_controller_interface.UnregisterDevicesChangedCallback(m_hotplug_callback_handle);
+  m_hotplug_event_hook.reset();
 }
 
 bool InputConfig::IsControllerControlledByGamepadDevice(int index) const

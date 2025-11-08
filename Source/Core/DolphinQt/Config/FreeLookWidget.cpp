@@ -3,7 +3,6 @@
 
 #include "DolphinQt/Config/FreeLookWidget.h"
 
-#include <QCheckBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
@@ -15,9 +14,9 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
-#include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
 
@@ -32,8 +31,7 @@ void FreeLookWidget::CreateLayout()
 {
   auto* layout = new QVBoxLayout();
 
-  m_enable_freelook = new ToolTipCheckBox(tr("Enable"));
-  m_enable_freelook->setChecked(Config::Get(Config::FREE_LOOK_ENABLED));
+  m_enable_freelook = new ConfigBool(tr("Enable"), Config::FREE_LOOK_ENABLED);
   m_enable_freelook->SetDescription(
       tr("Allows manipulation of the in-game camera.<br><br><dolphin_emphasis>If unsure, "
          "leave this unchecked.</dolphin_emphasis>"));
@@ -67,8 +65,8 @@ void FreeLookWidget::CreateLayout()
   description->setTextInteractionFlags(Qt::TextBrowserInteraction);
   description->setOpenExternalLinks(true);
 
-  m_freelook_background_input = new QCheckBox(tr("Background Input"));
-  m_freelook_background_input->setChecked(Config::Get(Config::FREE_LOOK_BACKGROUND_INPUT));
+  m_freelook_background_input =
+      new ConfigBool(tr("Background Input"), Config::FREE_LOOK_BACKGROUND_INPUT);
 
   auto* hlayout = new QHBoxLayout();
   hlayout->addWidget(new QLabel(tr("Camera 1")));
@@ -87,8 +85,6 @@ void FreeLookWidget::ConnectWidgets()
 {
   connect(m_freelook_controller_configure_button, &QPushButton::clicked, this,
           &FreeLookWidget::OnFreeLookControllerConfigured);
-  connect(m_enable_freelook, &QCheckBox::clicked, this, &FreeLookWidget::SaveSettings);
-  connect(m_freelook_background_input, &QCheckBox::clicked, this, &FreeLookWidget::SaveSettings);
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
     const QSignalBlocker blocker(this);
     LoadSettings();
@@ -109,22 +105,10 @@ void FreeLookWidget::OnFreeLookControllerConfigured()
 void FreeLookWidget::LoadSettings()
 {
   const bool checked = Config::Get(Config::FREE_LOOK_ENABLED);
-  m_enable_freelook->setChecked(checked);
 #ifdef USE_RETRO_ACHIEVEMENTS
   const bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
   m_enable_freelook->setEnabled(!hardcore);
 #endif  // USE_RETRO_ACHIEVEMENTS
-  m_freelook_control_type->setEnabled(checked);
-  m_freelook_controller_configure_button->setEnabled(checked);
-  m_freelook_background_input->setEnabled(checked);
-}
-
-void FreeLookWidget::SaveSettings()
-{
-  const bool checked = m_enable_freelook->isChecked();
-  Config::SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, checked);
-  Config::SetBaseOrCurrent(Config::FREE_LOOK_BACKGROUND_INPUT,
-                           m_freelook_background_input->isChecked());
   m_freelook_control_type->setEnabled(checked);
   m_freelook_controller_configure_button->setEnabled(checked);
   m_freelook_background_input->setEnabled(checked);

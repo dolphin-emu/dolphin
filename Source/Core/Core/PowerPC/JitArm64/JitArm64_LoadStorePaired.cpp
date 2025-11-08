@@ -102,9 +102,7 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   {
     LDR(IndexType::Unsigned, scale_reg, PPC_REG, PPCSTATE_OFF_SPR(SPR_GQR0 + i));
 
-    // Stash PC in case asm routine needs to call into C++
-    MOVI2R(ARM64Reg::W30, js.compilerPC);
-    STR(IndexType::Unsigned, ARM64Reg::W30, PPC_REG, PPCSTATE_OFF(pc));
+    FlushPPCStateBeforeSlowAccess(ARM64Reg::W30, ARM64Reg::Q1);
 
     UBFM(type_reg, scale_reg, 16, 18);   // Type
     UBFM(scale_reg, scale_reg, 24, 29);  // Scale
@@ -260,9 +258,7 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
   {
     LDR(IndexType::Unsigned, scale_reg, PPC_REG, PPCSTATE_OFF_SPR(SPR_GQR0 + i));
 
-    // Stash PC in case asm routine needs to call into C++
-    MOVI2R(ARM64Reg::W30, js.compilerPC);
-    STR(IndexType::Unsigned, ARM64Reg::W30, PPC_REG, PPCSTATE_OFF(pc));
+    FlushPPCStateBeforeSlowAccess(ARM64Reg::W30, ARM64Reg::Q1);
 
     UBFM(type_reg, scale_reg, 0, 2);    // Type
     UBFM(scale_reg, scale_reg, 8, 13);  // Scale

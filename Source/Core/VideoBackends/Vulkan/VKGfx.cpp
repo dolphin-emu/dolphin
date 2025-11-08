@@ -60,9 +60,10 @@ std::unique_ptr<AbstractStagingTexture> VKGfx::CreateStagingTexture(StagingTextu
 }
 
 std::unique_ptr<AbstractShader>
-VKGfx::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
+VKGfx::CreateShaderFromSource(ShaderStage stage, std::string_view source,
+                              VideoCommon::ShaderIncluder* shader_includer, std::string_view name)
 {
-  return VKShader::CreateFromSource(stage, source, name);
+  return VKShader::CreateFromSource(stage, source, shader_includer, name);
 }
 
 std::unique_ptr<AbstractShader> VKGfx::CreateShaderFromBinary(ShaderStage stage, const void* data,

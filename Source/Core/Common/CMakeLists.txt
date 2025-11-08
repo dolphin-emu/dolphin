@@ -97,6 +97,7 @@ add_library(common
   JsonUtil.cpp
   Lazy.h
   LinearDiskCache.h
+  UnixUtil.h
   Logging/ConsoleListener.h
   Logging/Log.h
   Logging/LogManager.cpp
@@ -110,6 +111,7 @@ add_library(common
   MinizipUtil.h
   MsgHandler.cpp
   MsgHandler.h
+  Mutex.h
   NandPaths.cpp
   NandPaths.h
   Network.cpp
@@ -184,7 +186,6 @@ PUBLIC
 PRIVATE
   CURL::libcurl
   FatFs
-  Iconv::Iconv
   spng::spng
   watcher
   ${VTUNE_LIBRARIES}
@@ -342,14 +343,12 @@ endif()
 
 if(WIN32)
   target_sources(common PRIVATE HRWrap.h HRWrap.cpp)
+else()
+  target_link_libraries(common PRIVATE Iconv::Iconv)
 endif()
 
 if(USE_UPNP)
   target_link_libraries(common PRIVATE Miniupnpc::miniupnpc)
-endif()
-
-if(OPROFILE_FOUND)
-  target_link_libraries(common PRIVATE OProfile::OProfile)
 endif()
 
 if(ENABLE_LLVM)

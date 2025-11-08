@@ -102,6 +102,29 @@ void SConfig::LoadSettings()
   Config::Load();
 }
 
+void SConfig::ResetAllSettings()
+{
+  Config::ConfigChangeCallbackGuard config_guard;
+
+  File::Delete(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  File::Delete(File::GetUserPath(F_GFXCONFIG_IDX));
+  File::Delete(File::GetUserPath(F_LOGGERCONFIG_IDX));
+  File::Delete(File::GetUserPath(F_DUALSHOCKUDPCLIENTCONFIG_IDX));
+  File::Delete(File::GetUserPath(F_FREELOOKCONFIG_IDX));
+  File::Delete(File::GetUserPath(F_RETROACHIEVEMENTSCONFIG_IDX));
+  File::Delete(File::GetUserPath(F_WIISYSCONF_IDX));
+
+  for (Config::LayerType layer_type : Config::SEARCH_ORDER)
+  {
+    const std::shared_ptr<Config::Layer> layer = Config::GetLayer(layer_type);
+    if (!layer)
+      continue;
+    layer->DeleteAllKeys();
+  }
+
+  Config::OnConfigChanged();
+}
+
 const std::string SConfig::GetGameID() const
 {
   std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);

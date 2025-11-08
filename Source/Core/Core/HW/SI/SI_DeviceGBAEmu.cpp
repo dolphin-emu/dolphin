@@ -1,6 +1,8 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#ifdef HAS_LIBMGBA
+
 #include "Core/HW/SI/SI_DeviceGBAEmu.h"
 
 #include <vector>
@@ -174,3 +176,4 @@ void CSIDevice_GBAEmu::OnEvent(u64 userdata, s64 cycles_late)
   m_system.GetSerialInterface().ScheduleEvent(m_device_number, num_cycles);
 }
 }  // namespace SerialInterface
+#endif  // HAS_LIBMGBA

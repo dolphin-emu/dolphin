@@ -3,6 +3,8 @@
 
 #pragma once
 
+#ifdef HAS_LIBMGBA
+
 #include <vector>
 
 #include "Core/Host.h"
@@ -26,3 +28,4 @@ private:
   GBAWidgetController* m_widget_controller{};
   std::weak_ptr<HW::GBA::Core> m_core;
 };
+#endif  // HAS_LIBMGBA

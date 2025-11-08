@@ -5,12 +5,13 @@
 
 #include <atomic>
 #include <functional>
-#include <list>
 #include <memory>
 #include <mutex>
 
+#include "Common/HookableEvent.h"
 #include "Common/Matrix.h"
 #include "Common/WindowSystemInfo.h"
+
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/ControllerInterface/InputBackend.h"
 
@@ -64,8 +65,6 @@ enum class InputChannel
 class ControllerInterface : public ciface::Core::DeviceContainer
 {
 public:
-  using HotplugCallbackHandle = std::list<std::function<void()>>::iterator;
-
   enum class WindowChangeReason
   {
     // Application is shutting down
@@ -115,9 +114,8 @@ public:
 
   bool IsMouseCenteringRequested() const;
 
-  HotplugCallbackHandle RegisterDevicesChangedCallback(std::function<void(void)> callback);
-  void UnregisterDevicesChangedCallback(const HotplugCallbackHandle& handle);
-  void InvokeDevicesChangedCallbacks() const;
+  [[nodiscard]] Common::EventHook
+  RegisterDevicesChangedCallback(Common::HookableEvent<>::CallbackType callback);
 
   static void SetCurrentInputChannel(ciface::InputChannel);
   static ciface::InputChannel GetCurrentInputChannel();
@@ -127,9 +125,11 @@ public:
 private:
   void ClearDevices();
 
-  std::list<std::function<void()>> m_devices_changed_callbacks;
+  void InvokeDevicesChangedCallbacks();
+
+  Common::HookableEvent<> m_devices_changed_event;
+
   mutable std::recursive_mutex m_devices_population_mutex;
-  mutable std::mutex m_callbacks_mutex;
   std::atomic<bool> m_is_init;
   // This is now always protected by m_devices_population_mutex, so
   // it doesn't really need to be a counter or atomic anymore (it could be a raw bool),

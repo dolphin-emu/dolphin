@@ -60,7 +60,11 @@ void PadMappingDialog::ConnectWidgets()
   }
   for (const auto& checkbox : m_gba_boxes)
   {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+    connect(checkbox, &QCheckBox::checkStateChanged, this, &PadMappingDialog::OnMappingChanged);
+#else
     connect(checkbox, &QCheckBox::stateChanged, this, &PadMappingDialog::OnMappingChanged);
+#endif
   }
 }
 

@@ -12,13 +12,14 @@
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 std::unique_ptr<AbstractGfx> g_gfx;
 
 AbstractGfx::AbstractGfx()
 {
   m_config_changed =
-      ConfigChangedEvent::Register([this](u32 bits) { OnConfigChanged(bits); }, "AbstractGfx");
+      GetVideoEvents().config_changed_event.Register([this](u32 bits) { OnConfigChanged(bits); });
 }
 
 bool AbstractGfx::IsHeadless() const
@@ -35,7 +36,8 @@ void AbstractGfx::EndUtilityDrawing()
 {
   // Reset framebuffer/scissor/viewport. Pipeline will be reset at next draw.
   g_framebuffer_manager->BindEFBFramebuffer();
-  BPFunctions::SetScissorAndViewport();
+  BPFunctions::SetScissorAndViewport(g_framebuffer_manager.get(), bpmem.scissorTL, bpmem.scissorBR,
+                                     bpmem.scissorOffset, xfmem.viewport);
 }
 
 void AbstractGfx::SetFramebuffer(AbstractFramebuffer* framebuffer)

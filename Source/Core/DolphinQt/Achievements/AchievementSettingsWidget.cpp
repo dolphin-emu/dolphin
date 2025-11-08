@@ -42,6 +42,10 @@ void AchievementSettingsWidget::UpdateData(int login_failed_code)
   {
     switch (login_failed_code)
     {
+    case RC_LOGIN_REQUIRED:
+    case RC_EXPIRED_TOKEN:
+      m_common_login_failed->setText(tr("Logged Out - Credentials Expired"));
+      break;
     case RC_INVALID_CREDENTIALS:
       m_common_login_failed->setText(tr("Login Failed - Invalid Username/Password"));
       break;
@@ -109,6 +113,16 @@ void AchievementSettingsWidget::CreateLayout()
          "submitted to the server.<br><br>If this is on at game launch, it will not be turned off "
          "until game close, because a RetroAchievements session will not be created.<br><br>If "
          "this is off at game launch, it can be toggled freely while the game is running."));
+  m_common_leaderboard_tracker_enabled_input = new ToolTipCheckBox(tr("Show Leaderboard Tracker"));
+  m_common_leaderboard_tracker_enabled_input->SetDescription(
+      tr("Show the on-screen RetroAchievements leaderboard tracker.<br><br>This appears in the "
+         "bottom-right corner while competing in a leaderboard."));
+  m_common_challenge_indicators_enabled_input =
+      new ToolTipCheckBox(tr("Show Challenge Indicators"));
+  m_common_challenge_indicators_enabled_input->SetDescription(
+      tr("Show the on-screen RetroAchievements challenge indicators.<br><br>These appear as "
+         "achievement badges in the bottom-right corner while tracking progress within a "
+         "challenge."));
   m_common_discord_presence_enabled_input = new ToolTipCheckBox(tr("Enable Discord Presence"));
   m_common_discord_presence_enabled_input->SetDescription(
       tr("Use RetroAchievements rich presence in your Discord status.<br><br>Show Current Game on "
@@ -138,6 +152,8 @@ void AchievementSettingsWidget::CreateLayout()
 #ifdef USE_DISCORD_PRESENCE
   m_common_layout->addWidget(m_common_discord_presence_enabled_input);
 #endif  // USE_DISCORD_PRESENCE
+  m_common_layout->addWidget(m_common_leaderboard_tracker_enabled_input);
+  m_common_layout->addWidget(m_common_challenge_indicators_enabled_input);
   m_common_layout->addWidget(m_common_progress_enabled_input);
 
   m_common_layout->setAlignment(Qt::AlignTop);
@@ -158,6 +174,10 @@ void AchievementSettingsWidget::ConnectWidgets()
           &AchievementSettingsWidget::ToggleEncore);
   connect(m_common_spectator_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleSpectator);
+  connect(m_common_leaderboard_tracker_enabled_input, &QCheckBox::toggled, this,
+          &AchievementSettingsWidget::ToggleLeaderboardTracker);
+  connect(m_common_challenge_indicators_enabled_input, &QCheckBox::toggled, this,
+          &AchievementSettingsWidget::ToggleChallengeIndicators);
   connect(m_common_discord_presence_enabled_input, &QCheckBox::toggled, this,
           &AchievementSettingsWidget::ToggleDiscordPresence);
   connect(m_common_progress_enabled_input, &QCheckBox::toggled, this,
@@ -217,6 +237,14 @@ void AchievementSettingsWidget::LoadSettings()
       ->setChecked(Config::Get(Config::RA_SPECTATOR_ENABLED));
   SignalBlocking(m_common_spectator_enabled_input)->setEnabled(enabled);
 
+  SignalBlocking(m_common_leaderboard_tracker_enabled_input)
+      ->setChecked(Config::Get(Config::RA_LEADERBOARD_TRACKER_ENABLED));
+  SignalBlocking(m_common_leaderboard_tracker_enabled_input)->setEnabled(enabled);
+
+  SignalBlocking(m_common_challenge_indicators_enabled_input)
+      ->setChecked(Config::Get(Config::RA_CHALLENGE_INDICATORS_ENABLED));
+  SignalBlocking(m_common_challenge_indicators_enabled_input)->setEnabled(enabled);
+
   SignalBlocking(m_common_discord_presence_enabled_input)
       ->setChecked(Config::Get(Config::RA_DISCORD_PRESENCE_ENABLED));
   SignalBlocking(m_common_discord_presence_enabled_input)
@@ -239,6 +267,10 @@ void AchievementSettingsWidget::SaveSettings()
   Config::SetBaseOrCurrent(Config::RA_ENCORE_ENABLED, m_common_encore_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_SPECTATOR_ENABLED,
                            m_common_spectator_enabled_input->isChecked());
+  Config::SetBaseOrCurrent(Config::RA_LEADERBOARD_TRACKER_ENABLED,
+                           m_common_leaderboard_tracker_enabled_input->isChecked());
+  Config::SetBaseOrCurrent(Config::RA_CHALLENGE_INDICATORS_ENABLED,
+                           m_common_challenge_indicators_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_DISCORD_PRESENCE_ENABLED,
                            m_common_discord_presence_enabled_input->isChecked());
   Config::SetBaseOrCurrent(Config::RA_PROGRESS_ENABLED,
@@ -308,6 +340,16 @@ void AchievementSettingsWidget::ToggleSpectator()
 {
   SaveSettings();
   AchievementManager::GetInstance().SetSpectatorMode();
+}
+
+void AchievementSettingsWidget::ToggleLeaderboardTracker()
+{
+  SaveSettings();
+}
+
+void AchievementSettingsWidget::ToggleChallengeIndicators()
+{
+  SaveSettings();
 }
 
 void AchievementSettingsWidget::ToggleDiscordPresence()

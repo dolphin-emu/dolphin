@@ -108,22 +108,23 @@ CreateShaderObject(ShaderStage stage, ShaderCompiler::SPIRVCodeVector spv, std::
 }
 
 std::unique_ptr<VKShader> VKShader::CreateFromSource(ShaderStage stage, std::string_view source,
+                                                     VideoCommon::ShaderIncluder* shader_includer,
                                                      std::string_view name)
 {
   std::optional<ShaderCompiler::SPIRVCodeVector> spv;
   switch (stage)
   {
   case ShaderStage::Vertex:
-    spv = ShaderCompiler::CompileVertexShader(source);
+    spv = ShaderCompiler::CompileVertexShader(source, shader_includer);
     break;
   case ShaderStage::Geometry:
-    spv = ShaderCompiler::CompileGeometryShader(source);
+    spv = ShaderCompiler::CompileGeometryShader(source, shader_includer);
     break;
   case ShaderStage::Pixel:
-    spv = ShaderCompiler::CompileFragmentShader(source);
+    spv = ShaderCompiler::CompileFragmentShader(source, shader_includer);
     break;
   case ShaderStage::Compute:
-    spv = ShaderCompiler::CompileComputeShader(source);
+    spv = ShaderCompiler::CompileComputeShader(source, shader_includer);
     break;
   default:
     break;

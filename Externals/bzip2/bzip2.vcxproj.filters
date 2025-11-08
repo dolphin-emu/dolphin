@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <ItemGroup>
-    <ClCompile Include="blocksort.c" />
-    <ClCompile Include="bzlib.c" />
-    <ClCompile Include="compress.c" />
-    <ClCompile Include="crctable.c" />
-    <ClCompile Include="decompress.c" />
-    <ClCompile Include="huffman.c" />
-    <ClCompile Include="randtable.c" />
+    <ClCompile Include="bzip2\blocksort.c" />
+    <ClCompile Include="bzip2\bzlib.c" />
+    <ClCompile Include="bzip2\compress.c" />
+    <ClCompile Include="bzip2\crctable.c" />
+    <ClCompile Include="bzip2\decompress.c" />
+    <ClCompile Include="bzip2\huffman.c" />
+    <ClCompile Include="bzip2\randtable.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="bzlib.h" />
-    <ClInclude Include="bzlib_private.h" />
+    <ClInclude Include="bzip2\bzlib.h" />
+    <ClInclude Include="bzip2\bzlib_private.h" />
   </ItemGroup>
 </Project>

@@ -8,14 +8,21 @@
 
 #include <QCursor>
 #include <QHBoxLayout>
+#ifdef USE_RETRO_ACHIEVEMENTS
+#include <QIcon>
+#endif  // USE_RETRO_ACHIEVEMENTS
 #include <QListWidget>
 #include <QMenu>
 #include <QPushButton>
+#ifdef USE_RETRO_ACHIEVEMENTS
+#include <QStyle>
+#endif  // USE_RETRO_ACHIEVEMENTS
 #include <QVBoxLayout>
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 
+#include "Core/AchievementManager.h"
 #include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
 
@@ -23,6 +30,9 @@
 #include "DolphinQt/Config/CheatWarningWidget.h"
 #include "DolphinQt/Config/HardcoreWarningWidget.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#ifdef USE_RETRO_ACHIEVEMENTS
+#include "DolphinQt/Settings.h"
+#endif  // USE_RETRO_ACHIEVEMENTS
 
 ARCodeWidget::ARCodeWidget(std::string game_id, u16 game_revision, bool restart_required)
     : m_game_id(std::move(game_id)), m_game_revision(game_revision),
@@ -90,6 +100,7 @@ void ARCodeWidget::ConnectWidgets()
 #ifdef USE_RETRO_ACHIEVEMENTS
   connect(m_hc_warning, &HardcoreWarningWidget::OpenAchievementSettings, this,
           &ARCodeWidget::OpenAchievementSettings);
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &ARCodeWidget::UpdateList);
 #endif  // USE_RETRO_ACHIEVEMENTS
 
   connect(m_code_list, &QListWidget::itemChanged, this, &ARCodeWidget::OnItemChanged);
@@ -199,6 +210,21 @@ void ARCodeWidget::UpdateList()
     item->setCheckState(ar.enabled ? Qt::Checked : Qt::Unchecked);
     item->setData(Qt::UserRole, static_cast<int>(i));
 
+#ifdef USE_RETRO_ACHIEVEMENTS
+    const AchievementManager& achievement_manager = AchievementManager::GetInstance();
+
+    if (achievement_manager.IsHardcoreModeActive())
+    {
+      const QIcon approved_icon = style()->standardIcon(QStyle::SP_DialogYesButton);
+      const QIcon warning_icon = style()->standardIcon(QStyle::SP_MessageBoxWarning);
+
+      if (achievement_manager.IsApprovedARCode(ar, m_game_id, m_game_revision))
+        item->setIcon(approved_icon);
+      else
+        item->setIcon(warning_icon);
+    }
+#endif  // USE_RETRO_ACHIEVEMENTS
+
     m_code_list->addItem(item);
   }
 
@@ -272,6 +298,8 @@ void ARCodeWidget::OnCodeEditClicked()
     return;
 
   const auto* const selected = items[0];
+  const bool enabled = selected->checkState() == Qt::Checked;
+
   auto& current_ar = m_ar_codes[m_code_list->row(selected)];
 
   if (current_ar.user_defined)
@@ -292,6 +320,9 @@ void ARCodeWidget::OnCodeEditClicked()
 
   SaveCodes();
   UpdateList();
+
+  if (!m_restart_required && enabled)
+    ActionReplay::ApplyCodes(m_ar_codes, m_game_id, m_game_revision);
 }
 
 void ARCodeWidget::OnCodeRemoveClicked()

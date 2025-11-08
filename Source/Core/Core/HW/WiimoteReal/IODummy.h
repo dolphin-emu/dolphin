@@ -13,7 +13,6 @@ public:
   WiimoteScannerDummy() = default;
   ~WiimoteScannerDummy() override = default;
   bool IsReady() const override { return false; }
-  void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override {}
   void Update() override {}
   void RequestStopSearching() override {}
 };

@@ -262,6 +262,8 @@ void MemoryWidget::CreateWidgets()
 
   auto* labels_layout = new QVBoxLayout;
   m_search_labels = new QLineEdit;
+  // i18n: Filter is a verb. Typing into this text box will filter the label list so that only
+  // labels containing the typed text are shown.
   m_search_labels->setPlaceholderText(tr("Filter Label List"));
 
   m_labels_group->setLayout(labels_layout);
@@ -296,11 +298,13 @@ void MemoryWidget::CreateWidgets()
   auto_update_action->setChecked(true);
 
   auto* highlight_update_action =
+      // i18n: Highlight is a verb (this is the label of a checkbox)
       menu_views->addAction(tr("&Highlight recently changed values"), this,
                             [this](bool checked) { m_memory_view->ToggleHighlights(checked); });
   highlight_update_action->setCheckable(true);
   highlight_update_action->setChecked(true);
 
+  // i18n: Highlight is a noun (clicking this lets you select a color)
   menu_views->addAction(tr("Highlight &color"), this,
                         [this] { m_memory_view->SetHighlightColor(); });
 
@@ -425,7 +429,8 @@ void MemoryWidget::hideEvent(QHideEvent* event)
 
 void MemoryWidget::RegisterAfterFrameEventCallback()
 {
-  m_vi_end_field_event = VIEndFieldEvent::Register([this] { AutoUpdateTable(); }, "MemoryWidget");
+  m_vi_end_field_event =
+      m_system.GetVideoEvents().vi_end_field_event.Register([this] { AutoUpdateTable(); });
 }
 
 void MemoryWidget::RemoveAfterFrameEventCallback()

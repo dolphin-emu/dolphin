@@ -145,6 +145,7 @@
     <ClInclude Include="Common\MemoryUtil.h" />
     <ClInclude Include="Common\MinizipUtil.h" />
     <ClInclude Include="Common\MsgHandler.h" />
+    <ClInclude Include="Common\Mutex.h" />
     <ClInclude Include="Common\NandPaths.h" />
     <ClInclude Include="Common\Network.h" />
     <ClInclude Include="Common\PcapFile.h" />
@@ -749,6 +750,7 @@
     <ClInclude Include="VideoCommon\Present.h" />
     <ClInclude Include="VideoCommon\RenderState.h" />
     <ClInclude Include="VideoCommon\ShaderCache.h" />
+    <ClInclude Include="VideoCommon\ShaderCompileUtils.h" />
     <ClInclude Include="VideoCommon\ShaderGenCommon.h" />
     <ClInclude Include="VideoCommon\Spirv.h" />
     <ClInclude Include="VideoCommon\Statistics.h" />
@@ -962,6 +964,7 @@
     <ClCompile Include="Core\HW\DVD\DVDThread.cpp" />
     <ClCompile Include="Core\HW\DVD\FileMonitor.cpp" />
     <ClCompile Include="Core\HW\EXI\BBA\BuiltIn.cpp" />
+    <ClCompile Include="Core\HW\EXI\BBA\IPC.cpp" />
     <ClCompile Include="Core\HW\EXI\BBA\TAP_Win32.cpp" />
     <ClCompile Include="Core\HW\EXI\BBA\TAPServerConnection.cpp" />
     <ClCompile Include="Core\HW\EXI\BBA\TAPServerBBA.cpp" />
@@ -1395,6 +1398,7 @@
     <ClCompile Include="VideoCommon\Present.cpp" />
     <ClCompile Include="VideoCommon\RenderState.cpp" />
     <ClCompile Include="VideoCommon\ShaderCache.cpp" />
+    <ClCompile Include="VideoCommon\ShaderCompileUtils.cpp" />
     <ClCompile Include="VideoCommon\ShaderGenCommon.cpp" />
     <ClCompile Include="VideoCommon\Spirv.cpp" />
     <ClCompile Include="VideoCommon\Statistics.cpp" />

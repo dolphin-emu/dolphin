@@ -5,6 +5,17 @@ set(SDL_TESTS OFF)
 set(SDL_DISABLE_INSTALL ON)
 set(SDL_DISABLE_INSTALL_DOCS ON)
 set(SDL_INSTALL_TESTS OFF)
+set(SDL_UNIX_CONSOLE_BUILD ON)
+
+set(SDL_AUDIO OFF)
+if (NOT APPLE)
+  # Working around cocoa/SDL_tray.m linker errors.
+  set(SDL_VIDEO OFF)
+endif()
+set(SDL_GPU OFF)
+set(SDL_RENDER OFF)
+set(SDL_CAMERA OFF)
+set(SDL_DIALOG OFF)
 
 add_subdirectory(SDL)
 

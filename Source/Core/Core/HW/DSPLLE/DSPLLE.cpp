@@ -287,22 +287,20 @@ u32 DSPLLE::DSP_UpdateRate()
   return 12600;  // TO BE TWEAKED
 }
 
-void DSPLLE::PauseAndLock(bool do_lock)
+void DSPLLE::PauseAndLock()
 {
-  if (do_lock)
-  {
-    m_dsp_thread_mutex.lock();
-  }
-  else
-  {
-    m_dsp_thread_mutex.unlock();
+  m_dsp_thread_mutex.lock();
+}
 
-    if (m_is_dsp_on_thread)
-    {
-      // Signal the DSP thread so it can perform any outstanding work now (if any)
-      m_ppc_event.Wait();
-      m_dsp_event.Set();
-    }
+void DSPLLE::UnpauseAndUnlock()
+{
+  m_dsp_thread_mutex.unlock();
+
+  if (m_is_dsp_on_thread)
+  {
+    // Signal the DSP thread so it can perform any outstanding work now (if any)
+    m_ppc_event.Wait();
+    m_dsp_event.Set();
   }
 }
 }  // namespace DSP::LLE

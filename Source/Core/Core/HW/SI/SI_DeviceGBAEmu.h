@@ -3,6 +3,8 @@
 
 #pragma once
 
+#ifdef HAS_LIBMGBA
+
 #include <memory>
 
 #include "Common/CommonTypes.h"
@@ -47,3 +49,4 @@ private:
   std::shared_ptr<GBAHostInterface> m_gbahost;
 };
 }  // namespace SerialInterface
+#endif  // HAS_LIBMGBA

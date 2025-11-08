@@ -20,6 +20,7 @@
 
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPFunctions.h"
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/FramebufferManager.h"
@@ -30,12 +31,14 @@
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/XFMemory.h"
 
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
 BackendInfo g_backend_info;
 static std::optional<CPUThreadConfigCallback::ConfigChangedCallbackID>
     s_config_changed_callback_id = std::nullopt;
+static Common::EventHook s_check_config_event;
 
 static bool IsVSyncActive(bool enabled)
 {
@@ -64,13 +67,13 @@ void VideoConfig::Refresh()
 
       const bool lock_gpu_thread = Core::IsRunning(system);
       if (lock_gpu_thread)
-        system.GetFifo().PauseAndLock(true, false);
+        system.GetFifo().PauseAndLock();
 
       g_Config.Refresh();
       g_Config.VerifyValidity();
 
       if (lock_gpu_thread)
-        system.GetFifo().PauseAndLock(false, true);
+        system.GetFifo().RestoreState(true);
     };
 
     s_config_changed_callback_id =
@@ -216,8 +219,16 @@ void VideoConfig::VerifyValidity()
   }
 }
 
+void VideoConfig::Init()
+{
+  s_check_config_event =
+      GetVideoEvents().after_frame_event.Register([](Core::System&) { CheckForConfigChanges(); });
+}
+
 void VideoConfig::Shutdown()
 {
+  s_check_config_event.reset();
+
   if (!s_config_changed_callback_id.has_value())
     return;
 
@@ -383,14 +394,12 @@ void CheckForConfigChanges()
   // Viewport and scissor rect have to be reset since they will be scaled differently.
   if (changed_bits & CONFIG_CHANGE_BIT_TARGET_SIZE)
   {
-    BPFunctions::SetScissorAndViewport();
+    BPFunctions::SetScissorAndViewport(g_framebuffer_manager.get(), bpmem.scissorTL,
+                                       bpmem.scissorBR, bpmem.scissorOffset, xfmem.viewport);
   }
 
   // Notify all listeners
-  ConfigChangedEvent::Trigger(changed_bits);
+  GetVideoEvents().config_changed_event.Trigger(changed_bits);
 
   // TODO: Move everything else to the ConfigChanged event
 }
-
-static Common::EventHook s_check_config_event = AfterFrameEvent::Register(
-    [](Core::System&) { CheckForConfigChanges(); }, "CheckForConfigChanges");

@@ -12,7 +12,10 @@
 #include "Common/EnumMap.h"
 #include "Core/HW/EXI/EXI.h"
 
-class QCheckBox;
+class ConfigBool;
+class ConfigChoice;
+class ConfigText;
+class ConfigUserPath;
 class QComboBox;
 class QHBoxLayout;
 class QLabel;
@@ -47,13 +50,16 @@ private:
   bool SetGCIFolder(ExpansionInterface::Slot slot, const QString& path);
   void BrowseAGPRom(ExpansionInterface::Slot slot);
   void SetAGPRom(ExpansionInterface::Slot slot, const QString& filename);
+
+#ifdef HAS_LIBMGBA
   void BrowseGBABios();
   void BrowseGBARom(size_t index);
   void SaveRomPathChanged();
   void BrowseGBASaves();
+#endif  // HAS_LIBMGBA
 
-  QCheckBox* m_skip_main_menu;
-  QComboBox* m_language_combo;
+  ConfigBool* m_skip_main_menu;
+  ConfigChoice* m_language_combo;
 
   Common::EnumMap<QPushButton*, ExpansionInterface::Slot::SP1> m_slot_buttons;
   Common::EnumMap<QComboBox*, ExpansionInterface::Slot::SP1> m_slot_combos;
@@ -71,12 +77,12 @@ private:
   Common::EnumMap<QLabel*, ExpansionInterface::MAX_MEMCARD_SLOT> m_gci_override_labels;
   Common::EnumMap<QLineEdit*, ExpansionInterface::MAX_MEMCARD_SLOT> m_gci_paths;
 
-  QCheckBox* m_gba_threads;
-  QCheckBox* m_gba_save_rom_path;
+  ConfigBool* m_gba_threads;
+  ConfigBool* m_gba_save_rom_path;
   QPushButton* m_gba_browse_bios;
-  QLineEdit* m_gba_bios_edit;
+  ConfigUserPath* m_gba_bios_edit;
   std::array<QPushButton*, 4> m_gba_browse_roms;
-  std::array<QLineEdit*, 4> m_gba_rom_edits;
+  std::array<ConfigText*, 4> m_gba_rom_edits;
   QPushButton* m_gba_browse_saves;
-  QLineEdit* m_gba_saves_edit;
+  ConfigUserPath* m_gba_saves_edit;
 };

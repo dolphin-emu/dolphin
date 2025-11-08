@@ -60,6 +60,11 @@ CEXIETHERNET::CEXIETHERNET(Core::System& system, BBADeviceType type) : IEXIDevic
         this, Config::Get(Config::MAIN_BBA_BUILTIN_DNS), Config::Get(Config::MAIN_BBA_BUILTIN_IP));
     INFO_LOG_FMT(SP1, "Created Built in network interface.");
     break;
+  case BBADeviceType::IPC:
+    mac_addr = Common::GenerateMacAddress(Common::MACConsumer::BBA);  // Always randomize
+    m_network_interface = std::make_unique<IPCBBAInterface>(this);
+    INFO_LOG_FMT(SP1, "Created IPC-based network interface.");
+    break;
   case BBADeviceType::XLINK:
     // TODO start BBA with network link down, bring it up after "connected" response from XLink
 

@@ -87,39 +87,39 @@ struct EffectiveAddressSpaceAccessors : Accessors
   }
   u8 ReadU8(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return PowerPC::MMU::HostRead_U8(guard, address);
+    return PowerPC::MMU::HostRead<u8>(guard, address);
   }
   void WriteU8(const Core::CPUThreadGuard& guard, u32 address, u8 value) override
   {
-    PowerPC::MMU::HostWrite_U8(guard, value, address);
+    PowerPC::MMU::HostWrite<u8>(guard, value, address);
   }
   u16 ReadU16(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return PowerPC::MMU::HostRead_U16(guard, address);
+    return PowerPC::MMU::HostRead<u16>(guard, address);
   }
   void WriteU16(const Core::CPUThreadGuard& guard, u32 address, u16 value) override
   {
-    PowerPC::MMU::HostWrite_U16(guard, value, address);
+    PowerPC::MMU::HostWrite<u16>(guard, value, address);
   }
   u32 ReadU32(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return PowerPC::MMU::HostRead_U32(guard, address);
+    return PowerPC::MMU::HostRead<u32>(guard, address);
   }
   void WriteU32(const Core::CPUThreadGuard& guard, u32 address, u32 value) override
   {
-    PowerPC::MMU::HostWrite_U32(guard, value, address);
+    PowerPC::MMU::HostWrite<u32>(guard, value, address);
   }
   u64 ReadU64(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return PowerPC::MMU::HostRead_U64(guard, address);
+    return PowerPC::MMU::HostRead<u64>(guard, address);
   }
   void WriteU64(const Core::CPUThreadGuard& guard, u32 address, u64 value) override
   {
-    PowerPC::MMU::HostWrite_U64(guard, value, address);
+    PowerPC::MMU::HostWrite<u64>(guard, value, address);
   }
   float ReadF32(const Core::CPUThreadGuard& guard, u32 address) const override
   {
-    return PowerPC::MMU::HostRead_F32(guard, address);
+    return PowerPC::MMU::HostRead<float>(guard, address);
   }
 
   bool Matches(const Core::CPUThreadGuard& guard, u32 haystack_start, const u8* needle_start,

@@ -454,7 +454,7 @@ void RegisterDevicesChangedCallbackIfNeeded(JNIEnv* env, jclass controller_inter
   const jmethodID controller_interface_on_devices_changed =
       env->GetStaticMethodID(global_controller_interface_class, "onDevicesChanged", "()V");
 
-  g_controller_interface.RegisterDevicesChangedCallback(
+  static Common::EventHook event_hook = g_controller_interface.RegisterDevicesChangedCallback(
       [global_controller_interface_class, controller_interface_on_devices_changed] {
         IDCache::GetEnvForThread()->CallStaticVoidMethod(global_controller_interface_class,
                                                          controller_interface_on_devices_changed);

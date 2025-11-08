@@ -25,6 +25,7 @@ using std::isinf;
 using std::isnan;
 #include <expr.h>
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
@@ -34,57 +35,15 @@ using std::isnan;
 #include "Core/System.h"
 
 template <typename T>
-static T HostRead(const Core::CPUThreadGuard& guard, u32 address);
+static T HostRead(const Core::CPUThreadGuard& guard, u32 address)
+{
+  return PowerPC::MMU::HostRead<T>(guard, address);
+}
 
 template <typename T>
-static void HostWrite(const Core::CPUThreadGuard& guard, T var, u32 address);
-
-template <>
-u8 HostRead(const Core::CPUThreadGuard& guard, u32 address)
+static void HostWrite(const Core::CPUThreadGuard& guard, T var, u32 address)
 {
-  return PowerPC::MMU::HostRead_U8(guard, address);
-}
-
-template <>
-u16 HostRead(const Core::CPUThreadGuard& guard, u32 address)
-{
-  return PowerPC::MMU::HostRead_U16(guard, address);
-}
-
-template <>
-u32 HostRead(const Core::CPUThreadGuard& guard, u32 address)
-{
-  return PowerPC::MMU::HostRead_U32(guard, address);
-}
-
-template <>
-u64 HostRead(const Core::CPUThreadGuard& guard, u32 address)
-{
-  return PowerPC::MMU::HostRead_U64(guard, address);
-}
-
-template <>
-void HostWrite(const Core::CPUThreadGuard& guard, u8 var, u32 address)
-{
-  PowerPC::MMU::HostWrite_U8(guard, var, address);
-}
-
-template <>
-void HostWrite(const Core::CPUThreadGuard& guard, u16 var, u32 address)
-{
-  PowerPC::MMU::HostWrite_U16(guard, var, address);
-}
-
-template <>
-void HostWrite(const Core::CPUThreadGuard& guard, u32 var, u32 address)
-{
-  PowerPC::MMU::HostWrite_U32(guard, var, address);
-}
-
-template <>
-void HostWrite(const Core::CPUThreadGuard& guard, u64 var, u32 address)
-{
-  PowerPC::MMU::HostWrite_U64(guard, var, address);
+  PowerPC::MMU::HostWrite<T>(guard, var, address);
 }
 
 template <typename T, typename U = T>
@@ -502,4 +461,27 @@ void Expression::Reporting(const double result) const
 std::string Expression::GetText() const
 {
   return m_text;
+}
+
+void Expression::ComputeRegistersUsed()
+{
+  if (m_has_computed_registers_used)
+    return;
+
+  for (const VarBinding& bind : m_binds)
+  {
+    switch (bind.type)
+    {
+    case VarBindingType::GPR:
+      m_gprs_used[bind.index] = true;
+      break;
+    case VarBindingType::FPR:
+      m_fprs_used[bind.index] = true;
+      break;
+    default:
+      break;
+    }
+  }
+
+  m_has_computed_registers_used = true;
 }

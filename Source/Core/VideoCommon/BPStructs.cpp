@@ -4,7 +4,6 @@
 #include "VideoCommon/BPStructs.h"
 
 #include <algorithm>
-#include <cmath>
 #include <cstring>
 #include <string>
 
@@ -341,6 +340,8 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
           false, false, yScale, s_gammaLUT[PE_copy.gamma], bpmem.triggerEFBCopy.clamp_top,
           bpmem.triggerEFBCopy.clamp_bottom, bpmem.copyfilter.GetCoefficients());
 
+      auto& system = Core::System::GetInstance();
+
       // This is as closest as we have to an "end of the frame"
       // It works 99% of the time.
       // But sometimes games want to render an XFB larger than the EFB's 640x528 pixel resolution
@@ -348,7 +349,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
       // render multiple sub-frames and arrange the XFB copies in next to each-other in main memory
       // so they form a single completed XFB.
       // See https://dolphin-emu.org/blog/2017/11/19/hybridxfb/ for examples and more detail.
-      AfterFrameEvent::Trigger(Core::System::GetInstance());
+      system.GetVideoEvents().after_frame_event.Trigger(system);
 
       // Note: Theoretically, in the future we could track the VI configuration and try to detect
       //       when an XFB is the last XFB copy of a frame. Not only would we get a clean "end of
@@ -356,7 +357,6 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
       //       Might also clean up some issues with games doing XFB copies they don't intend to
       //       display.
 
-      auto& system = Core::System::GetInstance();
       if (g_ActiveConfig.bImmediateXFB)
       {
         // TODO: GetTicks is not sane from the GPU thread.
@@ -381,7 +381,19 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     // Clear the rectangular region after copying it.
     if (PE_copy.clear)
     {
-      ClearScreen(srcRect);
+      const bool color_enable = bpmem.blendmode.color_update != 0;
+      const bool alpha_enable = bpmem.blendmode.alpha_update != 0;
+      const bool z_enable = bpmem.zmode.update_enable != 0;
+      const auto pixel_format = bpmem.zcontrol.pixel_format;
+      const auto color_ar = bpmem.clearcolorAR;
+      const auto color_gb = bpmem.clearcolorGB;
+      const auto z_value = bpmem.clearZValue;
+      ClearScreen(g_framebuffer_manager.get(), srcRect, color_enable, alpha_enable, z_enable,
+                  pixel_format, color_ar, color_gb, z_value);
+
+      // Scissor rect must be restored.
+      BPFunctions::SetScissorAndViewport(g_framebuffer_manager.get(), bpmem.scissorTL,
+                                         bpmem.scissorBR, bpmem.scissorOffset, xfmem.viewport);
     }
 
     return;
@@ -523,7 +535,8 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     return;
 
   case BPMEM_ZCOMPARE:  // Set the Z-Compare and EFB pixel format
-    OnPixelFormatChange();
+    OnPixelFormatChange(g_framebuffer_manager.get(), bpmem.zcontrol.pixel_format,
+                        bpmem.zcontrol.zformat);
     if (bp.changes & 7)
       SetBlendMode();  // dual source could be activated by changing to PIXELFMT_RGBA6_Z24
     pixel_shader_manager.SetZModeControl();
@@ -1355,8 +1368,10 @@ void BPReload()
   // let's not risk actually replaying any writes.
   // note that PixelShaderManager is already covered since it has its own DoState.
   SetGenerationMode();
-  SetScissorAndViewport();
+  BPFunctions::SetScissorAndViewport(g_framebuffer_manager.get(), bpmem.scissorTL, bpmem.scissorBR,
+                                     bpmem.scissorOffset, xfmem.viewport);
   SetDepthMode();
   SetBlendMode();
-  OnPixelFormatChange();
+  OnPixelFormatChange(g_framebuffer_manager.get(), bpmem.zcontrol.pixel_format,
+                      bpmem.zcontrol.zformat);
 }

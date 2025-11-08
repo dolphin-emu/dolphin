@@ -15,6 +15,9 @@
 #endif
 
 #include <SFML/Network.hpp>
+#if defined(WIN32) || (defined(__linux__) && !defined(__ANDROID__))
+#include <libipc/ipc.h>
+#endif
 
 #include "Common/Flag.h"
 #include "Common/Network.h"
@@ -210,6 +213,7 @@ enum class BBADeviceType
   XLINK,
   TAPSERVER,
   BuiltIn,
+  IPC,
 };
 
 class CEXIETHERNET : public IEXIDevice
@@ -472,6 +476,43 @@ private:
     void HandleUDPFrame(const Common::UDPPacket& packet);
     void HandleUPnPClient();
     const Common::MACAddress& ResolveAddress(u32 inet_ip);
+  };
+
+  class IPCBBAInterface : public NetworkInterface
+  {
+  public:
+    explicit IPCBBAInterface(CEXIETHERNET* const eth_ref) : NetworkInterface(eth_ref) {}
+
+#if defined(WIN32) || (defined(__linux__) && !defined(__ANDROID__))
+
+    bool Activate() override;
+    void Deactivate() override;
+    bool IsActivated() override;
+    bool SendFrame(const u8* frame, u32 size) override;
+    bool RecvInit() override;
+    void RecvStart() override;
+    void RecvStop() override;
+
+  private:
+    void ReadThreadHandler();
+
+    bool m_active{};
+    ipc::channel m_channel;
+    std::thread m_read_thread;
+    Common::Flag m_read_enabled;
+    Common::Flag m_read_thread_shutdown;
+
+#else
+
+    bool Activate() override { return false; }
+    void Deactivate() override {}
+    bool IsActivated() override { return false; }
+    bool SendFrame(const u8* const frame, const u32 size) override { return false; }
+    bool RecvInit() override { return false; }
+    void RecvStart() override {}
+    void RecvStop() override {}
+
+#endif
   };
 
   std::unique_ptr<NetworkInterface> m_network_interface;

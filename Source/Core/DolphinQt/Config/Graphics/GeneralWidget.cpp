@@ -57,7 +57,7 @@ void GeneralWidget::CreateWidgets()
   for (auto& backend : VideoBackendBase::GetAvailableBackends())
   {
     options.push_back(std::make_pair(tr(backend->GetDisplayName().c_str()),
-                                     QString::fromStdString(backend->GetName())));
+                                     QString::fromStdString(backend->GetConfigName())));
   }
   m_backend_combo = new ConfigStringChoice(options, Config::MAIN_GFX_BACKEND, m_game_layer);
   m_previous_backend = m_backend_combo->currentIndex();
@@ -108,22 +108,15 @@ void GeneralWidget::CreateWidgets()
   auto* m_options_box = new QGroupBox(tr("Other"));
   auto* m_options_layout = new QGridLayout();
 
-  m_show_ping =
-      new ConfigBool(tr("Show NetPlay Ping"), Config::GFX_SHOW_NETPLAY_PING, m_game_layer);
   m_autoadjust_window_size = new ConfigBool(tr("Auto-Adjust Window Size"),
                                             Config::MAIN_RENDER_WINDOW_AUTOSIZE, m_game_layer);
-  m_show_messages =
-      new ConfigBool(tr("Show NetPlay Messages"), Config::GFX_SHOW_NETPLAY_MESSAGES, m_game_layer);
   m_render_main_window =
       new ConfigBool(tr("Render to Main Window"), Config::MAIN_RENDER_TO_MAIN, m_game_layer);
 
   m_options_box->setLayout(m_options_layout);
 
   m_options_layout->addWidget(m_render_main_window, 0, 0);
-  m_options_layout->addWidget(m_autoadjust_window_size, 1, 0);
-
-  m_options_layout->addWidget(m_show_messages, 0, 1);
-  m_options_layout->addWidget(m_show_ping, 1, 1);
+  m_options_layout->addWidget(m_autoadjust_window_size, 0, 1);
 
   // Other
   auto* shader_compilation_box = new QGroupBox(tr("Shader Compilation"));
@@ -268,13 +261,6 @@ void GeneralWidget::AddDescriptions()
       "if emulation speed is below 100%.<br><br><dolphin_emphasis>If unsure, leave "
       "this "
       "unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_NETPLAY_PING_DESCRIPTION[] = QT_TR_NOOP(
-      "Shows the player's maximum ping while playing on "
-      "NetPlay.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION[] =
-      QT_TR_NOOP("Shows chat messages, buffer changes, and desync alerts "
-                 "while playing NetPlay.<br><br><dolphin_emphasis>If unsure, leave "
-                 "this unchecked.</dolphin_emphasis>");
   static const char TR_SHADER_COMPILE_SPECIALIZED_DESCRIPTION[] =
       QT_TR_NOOP("Ubershaders are never used. Stuttering will occur during shader "
                  "compilation, but GPU demands are low.<br><br>Recommended for low-end hardware. "
@@ -320,11 +306,7 @@ void GeneralWidget::AddDescriptions()
 
   m_enable_fullscreen->SetDescription(tr(TR_FULLSCREEN_DESCRIPTION));
 
-  m_show_ping->SetDescription(tr(TR_SHOW_NETPLAY_PING_DESCRIPTION));
-
   m_autoadjust_window_size->SetDescription(tr(TR_AUTOSIZE_DESCRIPTION));
-
-  m_show_messages->SetDescription(tr(TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION));
 
   m_render_main_window->SetDescription(tr(TR_RENDER_TO_MAINWINDOW_DESCRIPTION));
 

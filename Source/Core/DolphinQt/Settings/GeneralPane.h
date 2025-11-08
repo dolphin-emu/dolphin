@@ -39,6 +39,7 @@ private:
   void LoadConfig();
   void OnSaveConfig();
   void OnEmulationStateChanged(Core::State state);
+  void UpdateDescriptionsUsingHardcoreStatus();
 
   // Widgets
   QVBoxLayout* m_main_layout;

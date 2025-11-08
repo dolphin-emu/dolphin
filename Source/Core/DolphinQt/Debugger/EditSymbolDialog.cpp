@@ -14,11 +14,10 @@
 
 EditSymbolDialog::EditSymbolDialog(QWidget* parent, const u32 symbol_address, u32* symbol_size,
                                    std::string* symbol_name, Type type)
-    : QDialog(parent), m_symbol_name(symbol_name), m_symbol_size(symbol_size),
+    : QDialog(parent), m_type(type), m_symbol_name(symbol_name), m_symbol_size(symbol_size),
       m_symbol_address(symbol_address)
 {
-  m_type = type == Type::Symbol ? tr("Symbol") : tr("Note");
-  setWindowTitle(tr("Edit %1").arg(m_type));
+  setWindowTitle(m_type == Type::Symbol ? tr("Edit Symbol") : tr("Edit Note"));
   CreateWidgets();
   ConnectWidgets();
 }
@@ -29,12 +28,14 @@ void EditSymbolDialog::CreateWidgets()
   m_buttons->addButton(tr("Reset"), QDialogButtonBox::ResetRole);
   m_buttons->addButton(tr("Delete"), QDialogButtonBox::DestructiveRole);
 
-  QLabel* info_label = new QLabel(tr("Editing %1 starting at: %2\nWarning: Must save the symbol "
-                                     "map for changes to be kept.")
-                                      .arg(m_type)
-                                      .arg(QString::number(m_symbol_address, 16)));
+  QLabel* info_label =
+      // i18n: %1 is an address. %2 is a warning message.
+      new QLabel((m_type == Type::Symbol ? tr("Editing symbol starting at: %1\n%2") :
+                                           tr("Editing note starting at: %1\n%2"))
+                     .arg(QString::number(m_symbol_address, 16))
+                     .arg(tr("Warning: Must save the symbol map for changes to be kept.")));
   m_name_edit = new QLineEdit();
-  m_name_edit->setPlaceholderText(tr("%1 name").arg(m_type));
+  m_name_edit->setPlaceholderText(m_type == Type::Symbol ? tr("Symbol name") : tr("Note name"));
 
   auto* size_layout = new QHBoxLayout;
   // i18n: The address where a symbol ends

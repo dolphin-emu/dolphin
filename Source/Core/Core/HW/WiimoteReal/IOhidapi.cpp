@@ -3,15 +3,60 @@
 
 #include "Core/HW/WiimoteReal/IOhidapi.h"
 
-#include <algorithm>
+#if defined(__linux__)
+#include <filesystem>
+#endif
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/HW/WiimoteCommon/WiimoteHid.h"
 
 using namespace WiimoteCommon;
 using namespace WiimoteReal;
+
+#if defined(__linux__)
+// Here we check the currently attached Linux driver just for logging purposes.
+// Maybe in the future we'll be able to bind the desired HID driver somehow.
+static void LogLinuxDriverName(const char* device_path)
+{
+  namespace fs = std::filesystem;
+
+  const auto sys_device = "/sys/class/hidraw" / fs::path(device_path).filename() / "device";
+
+  // "driver" is a symlink to a path that contains the driver name.
+  //  usually /sys/bus/hid/drivers/hid-generic (what we want)
+  //  or this /sys/bus/hid/drivers/wiimote (what we don't want)
+  std::error_code err;
+  const auto sys_driver = fs::canonical(sys_device / "driver", err);
+
+  if (err)
+  {
+    WARN_LOG_FMT(WIIMOTE, "Could not determine current driver of {}. error: {}", device_path,
+                 err.message());
+    return;
+  }
+
+  const auto driver_name = sys_driver.filename();
+  if (driver_name == "wiimote")
+  {
+    // If Linux's 'wiimote' driver is attached, we will be forever fighting with it.
+    // It's not going to work very well.
+
+    // One could write fs::canonical(sys_device).filename() to (sys_driver / "unbind")
+    // And then also write it to "/sys/bus/hid/drivers/hid-generic/bind"
+    // This should create a new hidraw device with the 'hid-generic' driver.
+
+    // But that requires elevated permissions.. Linux is annoying.
+
+    ERROR_LOG_FMT(WIIMOTE, "Wii remote at {} has the Linux 'wiimote' driver attached.",
+                  device_path);
+  }
+  else
+  {
+    DEBUG_LOG_FMT(WIIMOTE, "Wii remote at {} has driver: {}", device_path, driver_name.string());
+  }
+}
+#endif
 
 static bool IsDeviceUsable(const std::string& device_path)
 {
@@ -27,7 +72,7 @@ static bool IsDeviceUsable(const std::string& device_path)
   // Some third-party adapters (DolphinBar) always expose all four Wii Remotes as HIDs
   // even when they are not connected, which causes an endless error loop when we try to use them.
   // Try to write a report to the device to see if this Wii Remote is really usable.
-  static const u8 report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::RequestStatus), 0};
+  static const u8 report[] = {u8(OutputReportID::RequestStatus), 0};
   const int result = hid_write(handle, report, sizeof(report));
   // The DolphinBar uses EPIPE to signal the absence of a Wii Remote connected to this HID.
   if (result == -1 && errno != EPIPE)
@@ -63,24 +108,29 @@ bool WiimoteScannerHidapi::IsReady() const
   return true;
 }
 
-void WiimoteScannerHidapi::FindWiimotes(std::vector<Wiimote*>& wiimotes, Wiimote*& board)
+auto WiimoteScannerHidapi::FindAttachedWiimotes() -> FindResults
 {
-  hid_device_info* list = hid_enumerate(0x0, 0x0);
-  for (hid_device_info* device = list; device; device = device->next)
+  FindResults results;
+
+  hid_device_info* list = hid_enumerate(0x0, 0x0);  // FYI: 0 for all VID/PID.
+  for (hid_device_info* device = list; device != nullptr; device = device->next)
   {
     const std::string name = device->product_string ? WStringToUTF8(device->product_string) : "";
     const bool is_wiimote =
-        IsValidDeviceName(name) || (device->vendor_id == 0x057e &&
-                                    (device->product_id == 0x0306 || device->product_id == 0x0330));
+        IsValidDeviceName(name) || IsKnownDeviceId({device->vendor_id, device->product_id});
     if (!is_wiimote || !IsNewWiimote(device->path) || !IsDeviceUsable(device->path))
       continue;
 
-    auto* wiimote = new WiimoteHidapi(device->path);
+#if defined(__linux__)
+    LogLinuxDriverName(device->path);
+#endif
+
+    auto wiimote = std::make_unique<WiimoteHidapi>(device->path);
     const bool is_balance_board = IsBalanceBoardName(name) || wiimote->IsBalanceBoard();
     if (is_balance_board)
-      board = wiimote;
+      results.balance_boards.emplace_back(std::move(wiimote));
     else
-      wiimotes.push_back(wiimote);
+      results.wii_remotes.emplace_back(std::move(wiimote));
 
     NOTICE_LOG_FMT(WIIMOTE, "Found {} at {}: {} {} ({:04x}:{:04x})",
                    is_balance_board ? "balance board" : "Wiimote", device->path,
@@ -88,9 +138,11 @@ void WiimoteScannerHidapi::FindWiimotes(std::vector<Wiimote*>& wiimotes, Wiimote
                    WStringToUTF8(device->product_string), device->vendor_id, device->product_id);
   }
   hid_free_enumeration(list);
+
+  return results;
 }
 
-WiimoteHidapi::WiimoteHidapi(const std::string& device_path) : m_device_path(device_path)
+WiimoteHidapi::WiimoteHidapi(std::string device_path) : m_device_path(std::move(device_path))
 {
 }
 
@@ -146,6 +198,7 @@ int WiimoteHidapi::IORead(u8* buf)
 
 int WiimoteHidapi::IOWrite(const u8* buf, size_t len)
 {
+  assert(len > 0);
   DEBUG_ASSERT(buf[0] == (WR_SET_REPORT | BT_OUTPUT));
   int result = hid_write(m_handle, buf + 1, len - 1);
   if (result == -1)

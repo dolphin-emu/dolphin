@@ -72,7 +72,7 @@ target_include_directories(minizip PUBLIC minizip-ng minizip-ng/compat)
 
 target_compile_definitions(minizip PRIVATE HAVE_ZLIB ZLIB_COMPAT MZ_ZIP_NO_CRYPTO MZ_ZIP_NO_ENCRYPTION)
 if (UNIX)
-  target_compile_definitions(minizip PRIVATE _POSIX_C_SOURCE=200112L)
+  target_compile_definitions(minizip PRIVATE _POSIX_C_SOURCE=200809L)
   target_compile_definitions(minizip PRIVATE __USE_LARGEFILE64 _LARGEFILE64_SOURCE)
 endif()
 

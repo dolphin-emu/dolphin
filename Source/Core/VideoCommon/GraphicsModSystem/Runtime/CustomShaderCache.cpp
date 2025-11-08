@@ -17,8 +17,8 @@ CustomShaderCache::CustomShaderCache()
   m_async_uber_shader_compiler = g_gfx->CreateAsyncShaderCompiler();
   m_async_uber_shader_compiler->StartWorkerThreads(1);  // TODO
 
-  m_frame_end_handler = AfterFrameEvent::Register([this](Core::System&) { RetrieveAsyncShaders(); },
-                                                  "RetrieveAsyncShaders");
+  m_frame_end_handler = GetVideoEvents().after_frame_event.Register(
+      [this](Core::System&) { RetrieveAsyncShaders(); });
 }
 
 CustomShaderCache::~CustomShaderCache()
@@ -348,7 +348,7 @@ CustomShaderCache::CompilePixelShader(const PixelShaderUid& uid,
 {
   const ShaderCode source_code =
       GeneratePixelShaderCode(m_api_type, m_host_config, uid.GetUidData(), {});
-  return g_gfx->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer(),
+  return g_gfx->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer(), nullptr,
                                        "Custom Pixel Shader");
 }
 
@@ -357,7 +357,7 @@ CustomShaderCache::CompilePixelShader(const UberShader::PixelShaderUid& uid,
                                       const CustomShaderInstance& custom_shaders) const
 {
   const ShaderCode source_code = GenPixelShader(m_api_type, m_host_config, uid.GetUidData());
-  return g_gfx->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer(),
+  return g_gfx->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer(), nullptr,
                                        "Custom Uber Pixel Shader");
 }
 

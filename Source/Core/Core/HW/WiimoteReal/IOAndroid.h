@@ -12,12 +12,18 @@
 
 namespace WiimoteReal
 {
+class WiimoteScannerAndroid;
+
 class WiimoteAndroid final : public Wiimote
 {
+  friend WiimoteScannerAndroid;
+
 public:
   WiimoteAndroid(int index);
   ~WiimoteAndroid() override;
-  std::string GetId() const override { return "Android " + std::to_string(m_mayflash_index); }
+
+  std::string GetId() const override;
+  static std::string GetIdFromDolphinBarIndex(int index);
 
 protected:
   bool ConnectInternal() override;
@@ -29,9 +35,7 @@ protected:
 
 private:
   int m_mayflash_index;
-  bool is_connected = true;
-
-  JNIEnv* m_env;
+  bool is_connected = false;
 
   jmethodID m_input_func;
   jmethodID m_output_func;
@@ -45,7 +49,9 @@ public:
   WiimoteScannerAndroid() = default;
   ~WiimoteScannerAndroid() override = default;
   bool IsReady() const override { return true; }
-  void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
+
+  FindResults FindAttachedWiimotes() override;
+
   void Update() override {}
   void RequestStopSearching() override {}
 };
