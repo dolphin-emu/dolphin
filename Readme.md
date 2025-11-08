@@ -1,12 +1,10 @@
 # Slippi Mainline
 
-This is a WIP effort to port the functionality of https://github.com/project-slippi/Ishiiruka to mainline Dolphin. Currently, we are close enough to upstream main and close to on par with project-slippi/Ishii main. Netplay functionality works everywhere except teams, playback is busted, rust code is hooked up *Last updated 2023-09-01*
+This is a WIP effort to port the functionality of https://github.com/project-slippi/Ishiiruka to Mainline Dolphin. Currently, we are even with upstream release 2506 and with project-slippi/Ishiiruka's main branch. Netplay functionality is cross compatible, playback is WIP, rust code is hooked up *Last updated 2025-11-08*
 
 ## How can I contribute?
 
-The project board is visible here: https://github.com/r2dliu/dolphin/projects/1
-
-Read through the list of issues, and comment on one to claim it. You can also create a new issue if one does not exist already. Create a pull request and then submit it for approval.
+Read through the issues and comment on it to claim it. Discuss the changes with maintainers to ensure they meet expectations. Create a Pull Request with the changes and follow up on any comments until approval and merge.
 
 ### Other questions
 
@@ -29,7 +27,7 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 * OS
     * Windows (10 1903 or higher).
     * Linux.
-    * macOS (11.0 Big Sur or higher).
+    * macOS (13.0 Ventura or higher).
     * Unix-like systems other than Linux are not officially supported but might work.
 * Processor
     * A CPU with SSE2 support.
@@ -37,16 +35,6 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 * Graphics
     * A reasonably modern graphics card (Direct3D 11.1 / OpenGL 3.3).
     * A graphics card that supports Direct3D 11.1 / OpenGL 4.4 is recommended.
-
-### Android
-
-* OS
-    * Android (5.0 Lollipop or higher).
-* Processor
-    * A processor with support for 64-bit applications (either ARMv8 or x86-64).
-* Graphics
-    * A graphics processor that supports OpenGL ES 3.0 or higher. Performance varies heavily with [driver quality](https://dolphin-emu.org/blog/2013/09/26/dolphin-emulator-and-opengl-drivers-hall-fameshame/).
-    * A graphics processor that supports standard desktop OpenGL features is recommended for best performance.
 
 Dolphin can only be installed on devices that satisfy the above requirements. Attempting to install on an unsupported device will fail and display an error message.
 
@@ -60,11 +48,11 @@ missing packages yourself.
 ### Rust
 This fork includes a [Rust submodule](https://github.com/project-slippi/slippi-rust-extensions) that needs to be built and linked to the final executable.
 This means that you will need to install a Rust compiler for your current system; to do this, simply visit 
-[rustup.rs](https://rustup.rs). Once installed, CMake should be able to automatically handle the rest for you.
+[rustup.rs](https://rustup.rs). Once installed, CMake should be able to automatically handle the rest for you. Installing rust via your distro's package manager is workable but we only support rustup since it handles multi toolchain installs better.
 
 ### Windows
 
-Visual Studio 2019 16.3 or later is a hard requirement.
+Visual Studio 2022 or later is a hard requirement.
 Open the folder that contains the base CMakeLists.txt file to build Dolphin on Windows.
 Other compilers might able to build Dolphin on Windows but have not been tested and are not
 recommended to be used. Git and Windows 11 SDK must be installed when building.
@@ -79,7 +67,7 @@ The "Debug" solution configuration is significantly slower, more verbose and les
 
 ## Building for Linux and macOS
 
-Dolphin requires [CMake](https://cmake.org/) for systems other than Windows. 
+Dolphin requires [CMake 3](https://cmake.org/) for systems other than Windows. CMake 4 is unsupported at this time.
 You need a recent version of GCC or Clang with decent c++20 support. CMake will
 inform you if your compiler is too old.
 Many libraries are bundled with Dolphin and used if they're not installed on 
@@ -145,22 +133,6 @@ Or useful for having multiple distinct Dolphin setups for testing/development/TA
 4. `make`
 5. `cp -r ../Overwrite/{Sys,User} Binaries/`
 6. `touch Binaries/portable.txt`
-
-## Building for Android
-
-These instructions assume familiarity with Android development. If you do not have an
-Android dev environment set up, see [AndroidSetup.md](AndroidSetup.md).
-
-Make sure to pull submodules before building:
-```sh
-git submodule update --init --recursive
-```
-
-If using Android Studio, import the Gradle project located in `./Source/Android`.
-
-Android apps are compiled using a build system called Gradle. Dolphin's native component,
-however, is compiled using CMake. The Gradle script will attempt to run a CMake build
-automatically while building the Java code.
 
 ## Uninstalling
 
