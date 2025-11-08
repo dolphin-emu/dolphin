@@ -154,6 +154,17 @@ TEST_F(FileUtilTest, CreateFullPath)
   EXPECT_TRUE(File::IsFile(p3file));
 }
 
+TEST_F(FileUtilTest, CreateTempFileForAtomicWrite)
+{
+  EXPECT_TRUE(File::Exists(File::CreateTempFileForAtomicWrite(m_file_path)));
+
+#if defined(_WIN32)
+  EXPECT_FALSE(File::Exists(File::CreateTempFileForAtomicWrite("C:/con/cant_write_here.txt")));
+#else
+  EXPECT_FALSE(File::Exists(File::CreateTempFileForAtomicWrite("/dev/null/cant_write_here.txt")));
+#endif
+}
+
 TEST_F(FileUtilTest, DirectIOFile)
 {
   static constexpr std::array<u8, 3> u8_test_data = {42, 7, 99};
