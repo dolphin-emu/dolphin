@@ -274,4 +274,34 @@ void OpenFStream(T& fstream, const std::string& filename, std::ios_base::openmod
 #endif
 }
 
+class DirectIOFile;
+
+// This class opens a temporary file next to the given path.
+// Do all your writing to the file, then use Finalize() to rename and close the temporay file.
+// Letting the helper go out of scope while the file is open will instead delete the file.
+class AtomicWriteHelper
+{
+public:
+  explicit AtomicWriteHelper(DirectIOFile* file, std::string path);
+
+  // Moves the temporay file to the target path then closes the file.
+  // Failure to rename leaves the file open and returns false.
+  bool Finalize();
+
+  // If the file is open during destruction, it will be deleted.
+  ~AtomicWriteHelper();
+
+  const std::string& GetTempPath() const;
+
+  AtomicWriteHelper(const AtomicWriteHelper&) = delete;
+  AtomicWriteHelper& operator=(AtomicWriteHelper&&) = delete;
+  AtomicWriteHelper(AtomicWriteHelper&&) = delete;
+  AtomicWriteHelper& operator=(const AtomicWriteHelper&) = delete;
+
+private:
+  const std::string m_path;
+  const std::string m_temp_path;
+  File::DirectIOFile& m_file;
+};
+
 }  // namespace File
