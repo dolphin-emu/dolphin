@@ -32,18 +32,21 @@ import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsFragment.Companion.newInstance
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter
+import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
 import org.dolphinemu.dolphinemu.utils.InsetsHelper
 import org.dolphinemu.dolphinemu.utils.SerializableHelper.serializable
 import org.dolphinemu.dolphinemu.utils.ThemeHelper.enableScrollTint
+import org.dolphinemu.dolphinemu.utils.ThemeHelper.setCorrectTheme
 import org.dolphinemu.dolphinemu.utils.ThemeHelper.setTheme
 
-class SettingsActivity : AppCompatActivity(), SettingsActivityView {
+class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvider {
     private var presenter: SettingsActivityPresenter? = null
     private var dialog: AlertDialog? = null
     private var toolbarLayout: CollapsingToolbarLayout? = null
     private var binding: ActivitySettingsBinding? = null
 
+    override var themeId: Int = 0
     override var isMappingAllDevices = false
 
     override val settings: Settings
@@ -104,6 +107,16 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
     override fun onStart() {
         super.onStart()
         presenter!!.onStart()
+    }
+
+    override fun onResume() {
+        setCorrectTheme(this)
+        super.onResume()
+    }
+
+    override fun setTheme(themeId: Int) {
+        super.setTheme(themeId)
+        this.themeId = themeId
     }
 
     /**

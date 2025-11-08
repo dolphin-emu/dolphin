@@ -308,6 +308,8 @@ public final class NativeLibrary
 
   public static native void ReloadConfig();
 
+  public static native void ResetDolphinSettings();
+
   public static native void UpdateGCAdapterScanThread();
 
   /**
