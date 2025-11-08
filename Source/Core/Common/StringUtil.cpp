@@ -12,9 +12,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iomanip>
-#include <istream>
 #include <iterator>
-#include <limits.h>
 #include <locale>
 #include <sstream>
 #include <string>
@@ -25,18 +23,18 @@
 #include <fmt/ranges.h>
 
 #include "Common/CommonFuncs.h"
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/Swap.h"
 
 #ifdef _WIN32
 #include <Windows.h>
 #include <shellapi.h>
 constexpr u32 CODEPAGE_SHIFT_JIS = 932;
 constexpr u32 CODEPAGE_WINDOWS_1252 = 1252;
+
+#include "Common/Swap.h"
 #else
-#include <errno.h>
+#include <cerrno>
 #include <iconv.h>
 #include <locale.h>
 #endif
@@ -85,8 +83,6 @@ std::string HexDump(const u8* data, size_t size)
 
 bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list args)
 {
-  int writtenCount;
-
 #ifdef _WIN32
   // You would think *printf are simple, right? Iterate on each character,
   // if it's a format specifier handle it properly, etc.
@@ -114,27 +110,25 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
   static _locale_t c_locale = nullptr;
   if (!c_locale)
     c_locale = _create_locale(LC_ALL, "C");
-  writtenCount = _vsnprintf_l(out, outsize, format, c_locale, args);
+  const int written_count = _vsnprintf_l(out, outsize, format, c_locale, args);
 #else
 #if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) && !defined(__NetBSD__)
   locale_t previousLocale = uselocale(GetCLocale());
 #endif
-  writtenCount = vsnprintf(out, outsize, format, args);
+  const int written_count = vsnprintf(out, outsize, format, args);
 #if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) && !defined(__NetBSD__)
   uselocale(previousLocale);
 #endif
 #endif
 
-  if (writtenCount > 0 && writtenCount < outsize)
+  if (written_count > 0 && written_count < outsize)
   {
-    out[writtenCount] = '\0';
+    out[written_count] = '\0';
     return true;
   }
-  else
-  {
-    out[outsize - 1] = '\0';
-    return false;
-  }
+
+  out[outsize - 1] = '\0';
+  return false;
 }
 
 std::string StringFromFormat(const char* format, ...)
@@ -182,7 +176,7 @@ std::string ArrayToString(const u8* data, u32 size, int line_len, bool spaces)
   std::ostringstream oss;
   oss << std::setfill('0') << std::hex;
 
-  for (int line = 0; size; ++data, --size)
+  for (int line = 0; size != 0; ++data, --size)
   {
     oss << std::setw(2) << static_cast<int>(*data);
 
@@ -205,8 +199,8 @@ static std::string_view StripEnclosingChars(std::string_view str, T chars)
 
   if (str.npos != s)
     return str.substr(s, str.find_last_not_of(chars) - s + 1);
-  else
-    return "";
+
+  return "";
 }
 
 // Turns "\n\r\t hello " into "hello" (trims at the start and end but not inside).
@@ -227,8 +221,8 @@ std::string_view StripQuotes(std::string_view s)
 {
   if (!s.empty() && '\"' == s[0] && '\"' == *s.rbegin())
     return s.substr(1, s.size() - 2);
-  else
-    return s;
+
+  return s;
 }
 
 // Turns "\n\rhello" into "  hello".
@@ -305,10 +299,12 @@ bool SplitPath(std::string_view full_path, std::string* path, std::string* filen
   if (full_path.empty())
     return false;
 
-  size_t dir_end = full_path.find_last_of("/"
+  size_t dir_end = full_path.find_last_of(
 // Windows needs the : included for something like just "C:" to be considered a directory
 #ifdef _WIN32
-                                          ":"
+      "/:"
+#else
+      '/'
 #endif
   );
   if (std::string::npos == dir_end)
@@ -351,7 +347,8 @@ std::string WithUnifiedPathSeparators(std::string path)
 
 std::string PathToFileName(std::string_view path)
 {
-  std::string file_name, extension;
+  std::string file_name;
+  std::string extension;
   SplitPath(path, nullptr, &file_name, &extension);
   return file_name + extension;
 }
@@ -485,14 +482,15 @@ std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
 #else
 
 template <typename T>
-std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_view<T> input)
+static std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_view<T> input)
 {
   std::string result;
 
-  iconv_t const conv_desc = iconv_open(tocode, fromcode);
+  auto* const conv_desc = iconv_open(tocode, fromcode);
   if ((iconv_t)-1 == conv_desc)
   {
-    ERROR_LOG_FMT(COMMON, "Iconv initialization failure [{}]: {}", fromcode, strerror(errno));
+    ERROR_LOG_FMT(COMMON, "Iconv initialization failure [{}]: {}", fromcode,
+                  Common::LastStrerrorString());
   }
   else
   {
@@ -502,9 +500,9 @@ std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_v
     std::string out_buffer;
     out_buffer.resize(out_buffer_size);
 
-    auto src_buffer = input.data();
+    auto* src_buffer = input.data();
     size_t src_bytes = in_bytes;
-    auto dst_buffer = out_buffer.data();
+    auto* dst_buffer = out_buffer.data();
     size_t dst_bytes = out_buffer.size();
 
     while (src_bytes != 0)
@@ -525,7 +523,7 @@ std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_v
         }
         else
         {
-          ERROR_LOG_FMT(COMMON, "iconv failure [{}]: {}", fromcode, strerror(errno));
+          ERROR_LOG_FMT(COMMON, "iconv failure [{}]: {}", fromcode, Common::LastStrerrorString());
           break;
         }
       }
@@ -541,7 +539,7 @@ std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_v
 }
 
 template <typename T>
-std::string CodeToUTF8(const char* fromcode, std::basic_string_view<T> input)
+static std::string CodeToUTF8(const char* fromcode, std::basic_string_view<T> input)
 {
   return CodeTo("UTF-8", fromcode, input);
 }
@@ -566,11 +564,9 @@ std::string UTF8ToSHIFTJIS(std::string_view input)
 
 std::string WStringToUTF8(std::wstring_view input)
 {
-  using codecvt = std::conditional_t<sizeof(wchar_t) == 2, std::codecvt_utf8_utf16<wchar_t>,
-                                     std::codecvt_utf8<wchar_t>>;
-
-  std::wstring_convert<codecvt, wchar_t> converter;
-  return converter.to_bytes(input.data(), input.data() + input.size());
+  // Note: Without LE iconv expects a BOM.
+  // The "WCHAR_T" code would be appropriate, but it's apparently not in every iconv implementation.
+  return CodeToUTF8((sizeof(wchar_t) == 2) ? "UTF-16LE" : "UTF-32LE", input);
 }
 
 std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
