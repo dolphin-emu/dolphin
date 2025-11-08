@@ -26,7 +26,6 @@ static jclass s_game_file_cache_class;
 static jfieldID s_game_file_cache_pointer;
 
 static jclass s_analytics_class;
-static jmethodID s_send_analytics_report;
 static jmethodID s_get_analytics_value;
 
 static jclass s_pair_class;
@@ -189,11 +188,6 @@ jmethodID GetFinishEmulationActivity()
 jclass GetAnalyticsClass()
 {
   return s_analytics_class;
-}
-
-jmethodID GetSendAnalyticsReport()
-{
-  return s_send_analytics_report;
 }
 
 jmethodID GetAnalyticsValue()
@@ -623,8 +617,6 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
 
   const jclass analytics_class = env->FindClass("org/dolphinemu/dolphinemu/utils/Analytics");
   s_analytics_class = reinterpret_cast<jclass>(env->NewGlobalRef(analytics_class));
-  s_send_analytics_report =
-      env->GetStaticMethodID(s_analytics_class, "sendReport", "(Ljava/lang/String;[B)V");
   s_get_analytics_value = env->GetStaticMethodID(s_analytics_class, "getValue",
                                                  "(Ljava/lang/String;)Ljava/lang/String;");
   env->DeleteLocalRef(analytics_class);

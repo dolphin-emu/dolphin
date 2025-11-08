@@ -224,8 +224,6 @@ endif()
 
 if(ANDROID)
   target_sources(common PRIVATE
-    AndroidAnalytics.cpp
-    AndroidAnalytics.h
     Logging/ConsoleListenerDroid.cpp
     MemArenaAndroid.cpp
   )

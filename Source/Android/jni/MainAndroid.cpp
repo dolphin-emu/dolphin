@@ -18,7 +18,6 @@
 #include <fmt/format.h>
 #include <jni.h>
 
-#include "Common/AndroidAnalytics.h"
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
@@ -219,24 +218,6 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   env->DeleteLocalRef(j_text);
 
   return result != JNI_FALSE;
-}
-
-static void ReportSend(const std::string& endpoint, const std::string& report)
-{
-  JNIEnv* env = IDCache::GetEnvForThread();
-
-  jbyteArray output_array = env->NewByteArray(report.size());
-  jbyte* output = env->GetByteArrayElements(output_array, nullptr);
-  memcpy(output, report.data(), report.size());
-  env->ReleaseByteArrayElements(output_array, output, 0);
-
-  jstring j_endpoint = ToJString(env, endpoint);
-
-  env->CallStaticVoidMethod(IDCache::GetAnalyticsClass(), IDCache::GetSendAnalyticsReport(),
-                            j_endpoint, output_array);
-
-  env->DeleteLocalRef(output_array);
-  env->DeleteLocalRef(j_endpoint);
 }
 
 static std::string GetAnalyticValue(const std::string& key)
@@ -565,7 +546,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(J
 
   UICommon::CreateDirectories();
   Common::RegisterMsgAlertHandler(&MsgAlert);
-  Common::AndroidSetReportHandler(&ReportSend);
   DolphinAnalytics::AndroidSetGetValFunc(&GetAnalyticValue);
 
   WiimoteReal::InitAdapterClass();

@@ -16,9 +16,10 @@
 #include "Common/WindowsRegistry.h"
 #elif defined(__APPLE__)
 #include <objc/message.h>
-#elif defined(ANDROID)
+#endif
+
+#if defined(ANDROID)
 #include <functional>
-#include "Common/AndroidAnalytics.h"
 #endif
 
 #include "Common/Analytics.h"
@@ -74,11 +75,7 @@ void DolphinAnalytics::ReloadConfig()
   std::unique_ptr<Common::AnalyticsReportingBackend> new_backend;
   if (Config::Get(Config::MAIN_ANALYTICS_ENABLED))
   {
-#if defined(ANDROID)
-    new_backend = std::make_unique<Common::AndroidAnalyticsBackend>(ANALYTICS_ENDPOINT);
-#else
     new_backend = std::make_unique<Common::HttpAnalyticsBackend>(ANALYTICS_ENDPOINT);
-#endif
   }
   m_reporter.SetBackend(std::move(new_backend));
 
