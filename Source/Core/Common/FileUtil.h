@@ -223,6 +223,10 @@ std::string CreateTempDir();
 // Get a filename that can hopefully be atomically renamed to the given path.
 std::string GetTempFilenameForAtomicWrite(std::string path);
 
+// Creates and returns the path to a newly created temporary file next to the given path.
+// Returns an empty string on error, generally caused by lack of write permissions.
+std::string CreateTempFileForAtomicWrite(std::string path);
+
 // Gets a set user directory path
 // Don't call prior to setting the base user directory
 const std::string& GetUserPath(unsigned int dir_index);
