@@ -3,6 +3,8 @@
 
 #include "DolphinQt/Config/LogConfigWidget.h"
 
+#include <array>
+
 #include <QCheckBox>
 #include <QGroupBox>
 #include <QListWidget>
@@ -11,6 +13,7 @@
 #include <QVBoxLayout>
 
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
@@ -47,7 +50,10 @@ void LogConfigWidget::CreateWidgets()
   m_verbosity_warning = new QRadioButton(tr("Warning"));
   m_verbosity_info = new QRadioButton(tr("Info"));
   m_verbosity_debug = new QRadioButton(tr("Debug"));
-  m_verbosity_debug->setVisible(Common::Log::MAX_LOGLEVEL == Common::Log::LogLevel::LDEBUG);
+  if constexpr (Common::Log::MAX_EFFECTIVE_LOGLEVEL < Common::Log::LogLevel::LDEBUG)
+  {
+    m_verbosity_debug->setVisible(false);
+  }
 
   auto* outputs = new QGroupBox(tr("Logger Outputs"));
   auto* outputs_layout = new QVBoxLayout;
@@ -97,12 +103,47 @@ void LogConfigWidget::CreateWidgets()
 
 void LogConfigWidget::ConnectWidgets()
 {
-  // Configuration
-  connect(m_verbosity_notice, &QRadioButton::toggled, this, &LogConfigWidget::SaveSettings);
-  connect(m_verbosity_error, &QRadioButton::toggled, this, &LogConfigWidget::SaveSettings);
-  connect(m_verbosity_warning, &QRadioButton::toggled, this, &LogConfigWidget::SaveSettings);
-  connect(m_verbosity_info, &QRadioButton::toggled, this, &LogConfigWidget::SaveSettings);
-  connect(m_verbosity_debug, &QRadioButton::toggled, this, &LogConfigWidget::SaveSettings);
+  using Common::Log::LogLevel;
+  using ButtonLevelPair = std::pair<QRadioButton*, LogLevel>;
+  const std::array button_level_pairs = {ButtonLevelPair{m_verbosity_notice, LogLevel::LNOTICE},
+                                         ButtonLevelPair{m_verbosity_error, LogLevel::LERROR},
+                                         ButtonLevelPair{m_verbosity_warning, LogLevel::LWARNING},
+                                         ButtonLevelPair{m_verbosity_info, LogLevel::LINFO},
+                                         ButtonLevelPair{m_verbosity_debug, LogLevel::LDEBUG}};
+
+  for (const auto& [button, level] : button_level_pairs)
+  {
+    connect(button, &QRadioButton::clicked, [level](const bool checked) {
+      if (checked)
+      {
+        auto* const log_manager = Common::Log::LogManager::GetInstance();
+        log_manager->SetConfigLogLevel(level);
+      }
+    });
+  }
+  const auto update_verbosity_boldness = [button_level_pairs]() {
+    auto* const log_manager = Common::Log::LogManager::GetInstance();
+    const LogLevel effective_level = log_manager->GetEffectiveLogLevel();
+    for (const auto& [button, level] : button_level_pairs)
+    {
+      QFont font = button->font();
+      if (level == effective_level)
+      {
+        const bool is_base_layer_active =
+            Config::GetActiveLayerForConfig(Common::Log::LOGGER_VERBOSITY) ==
+            Config::LayerType::Base;
+        font.setBold(!is_base_layer_active);
+
+        button->setChecked(true);
+      }
+      else
+      {
+        font.setBold(false);
+      }
+      button->setFont(font);
+    }
+  };
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, update_verbosity_boldness);
 
   connect(m_out_file, &QCheckBox::toggled, this, &LogConfigWidget::SaveSettings);
   connect(m_out_console, &QCheckBox::toggled, this, &LogConfigWidget::SaveSettings);
@@ -137,7 +178,7 @@ void LogConfigWidget::LoadSettings()
   setFloating(settings.value(QStringLiteral("logconfigwidget/floating")).toBool());
 
   // Config - Verbosity
-  const Common::Log::LogLevel verbosity = log_manager->GetLogLevel();
+  const Common::Log::LogLevel verbosity = log_manager->GetEffectiveLogLevel();
   m_verbosity_notice->setChecked(verbosity == Common::Log::LogLevel::LNOTICE);
   m_verbosity_error->setChecked(verbosity == Common::Log::LogLevel::LERROR);
   m_verbosity_warning->setChecked(verbosity == Common::Log::LogLevel::LWARNING);
@@ -174,28 +215,7 @@ void LogConfigWidget::SaveSettings()
   settings.setValue(QStringLiteral("logconfigwidget/geometry"), saveGeometry());
   settings.setValue(QStringLiteral("logconfigwidget/floating"), isFloating());
 
-  // Config - Verbosity
-  auto verbosity = Common::Log::LogLevel::LNOTICE;
-
-  if (m_verbosity_notice->isChecked())
-    verbosity = Common::Log::LogLevel::LNOTICE;
-
-  if (m_verbosity_error->isChecked())
-    verbosity = Common::Log::LogLevel::LERROR;
-
-  if (m_verbosity_warning->isChecked())
-    verbosity = Common::Log::LogLevel::LWARNING;
-
-  if (m_verbosity_info->isChecked())
-    verbosity = Common::Log::LogLevel::LINFO;
-
-  if (m_verbosity_debug->isChecked())
-    verbosity = Common::Log::LogLevel::LDEBUG;
-
   auto* const log_manager = Common::Log::LogManager::GetInstance();
-
-  // Config - Verbosity
-  log_manager->SetLogLevel(verbosity);
 
   // Config - Outputs
   log_manager->EnableListener(Common::Log::LogListener::FILE_LISTENER, m_out_file->isChecked());

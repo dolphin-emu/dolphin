@@ -4,6 +4,7 @@
 #include "Common/Logging/LogManager.h"
 
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <cstdarg>
 #include <cstring>
@@ -156,9 +157,7 @@ LogManager::LogManager()
   RegisterListener(LogListener::CONSOLE_LISTENER, std::make_unique<ConsoleListener>());
 
   // Set up log listeners
-  LogLevel verbosity = Config::Get(LOGGER_VERBOSITY);
-
-  SetLogLevel(verbosity);
+  SetEffectiveLogLevel();
   EnableListener(LogListener::FILE_LISTENER, Config::Get(LOGGER_WRITE_TO_FILE));
   EnableListener(LogListener::CONSOLE_LISTENER, Config::Get(LOGGER_WRITE_TO_CONSOLE));
   EnableListener(LogListener::LOG_WINDOW_LISTENER, Config::Get(LOGGER_WRITE_TO_WINDOW));
@@ -170,9 +169,15 @@ LogManager::LogManager()
   }
 
   m_path_cutoff_point = DeterminePathCutOffPoint();
+
+  m_config_changed_callback_id =
+      Config::AddConfigChangedCallback([this]() { SetEffectiveLogLevel(); });
 }
 
-LogManager::~LogManager() = default;
+LogManager::~LogManager()
+{
+  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
+}
 
 void LogManager::SaveSettings()
 {
@@ -183,7 +188,6 @@ void LogManager::SaveSettings()
                            IsListenerEnabled(LogListener::CONSOLE_LISTENER));
   Config::SetBaseOrCurrent(LOGGER_WRITE_TO_WINDOW,
                            IsListenerEnabled(LogListener::LOG_WINDOW_LISTENER));
-  Config::SetBaseOrCurrent(LOGGER_VERBOSITY, GetLogLevel());
 
   for (const auto& container : m_log)
   {
@@ -228,14 +232,22 @@ void LogManager::LogWithFullPath(LogLevel level, LogType type, const char* file,
   }
 }
 
-LogLevel LogManager::GetLogLevel() const
+LogLevel LogManager::GetEffectiveLogLevel() const
 {
-  return m_level;
+  return m_effective_level.load(std::memory_order_relaxed);
 }
 
-void LogManager::SetLogLevel(LogLevel level)
+void LogManager::SetConfigLogLevel(const LogLevel level)
 {
-  m_level = std::clamp(level, LogLevel::LNOTICE, MAX_LOGLEVEL);
+  Config::SetBaseOrCurrent(LOGGER_VERBOSITY, level);
+  SetEffectiveLogLevel();
+}
+
+void LogManager::SetEffectiveLogLevel()
+{
+  const LogLevel clamped_level =
+      std::clamp(Config::Get(LOGGER_VERBOSITY), LogLevel::LNOTICE, MAX_EFFECTIVE_LOGLEVEL);
+  m_effective_level.store(clamped_level, std::memory_order_relaxed);
 }
 
 void LogManager::SetEnable(LogType type, bool enable)
@@ -245,7 +257,7 @@ void LogManager::SetEnable(LogType type, bool enable)
 
 bool LogManager::IsEnabled(LogType type, LogLevel level) const
 {
-  return m_log[type].m_enable && GetLogLevel() >= level;
+  return m_log[type].m_enable && GetEffectiveLogLevel() >= level;
 }
 
 std::vector<LogManager::LogContainer> LogManager::GetLogTypes()
