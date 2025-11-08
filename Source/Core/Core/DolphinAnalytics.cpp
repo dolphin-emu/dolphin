@@ -58,6 +58,13 @@ DolphinAnalytics::DolphinAnalytics()
 {
   ReloadConfig();
   MakeBaseBuilder();
+
+  m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { ReloadConfig(); });
+}
+
+DolphinAnalytics::~DolphinAnalytics()
+{
+  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
 }
 
 DolphinAnalytics& DolphinAnalytics::Instance()
