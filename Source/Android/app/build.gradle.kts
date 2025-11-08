@@ -145,7 +145,7 @@ dependencies {
     implementation("androidx.tvprovider:tvprovider:1.0.0")
 
     // For REST calls
-    implementation("com.android.volley:volley:1.2.1")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     // For loading game covers from disk and GameTDB
     implementation("io.coil-kt:coil:2.6.0")

@@ -5,14 +5,17 @@ package org.dolphinemu.dolphinemu.utils
 import android.os.Build
 import androidx.annotation.Keep
 import androidx.fragment.app.FragmentActivity
-import com.android.volley.Response
-import com.android.volley.toolbox.StringRequest
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.dolphinemu.dolphinemu.DolphinApplication
 import org.dolphinemu.dolphinemu.dialogs.AnalyticsDialog
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 
 object Analytics {
+    private val client = OkHttpClient()
+
     private const val DEVICE_MANUFACTURER = "DEVICE_MANUFACTURER"
     private const val DEVICE_OS = "DEVICE_OS"
     private const val DEVICE_MODEL = "DEVICE_MODEL"
@@ -40,16 +43,14 @@ object Analytics {
     @Keep
     @JvmStatic
     fun sendReport(endpoint: String, data: ByteArray) {
-        val request: StringRequest = object : StringRequest(
-            Method.POST,
-            endpoint,
-            null,
-            Response.ErrorListener { Log.debug("Failed to send report") }) {
-            override fun getBody(): ByteArray {
-                return data
-            }
-        }
-        VolleyUtil.getQueue().add(request)
+        val req = Request.Builder()
+            .url(endpoint)
+            .post(data.toRequestBody("application/octet-stream".toMediaType()))
+            .build()
+        client.newCall(req).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: java.io.IOException) { Log.debug("Failed to send report") }
+            override fun onResponse(call: Call, response: Response) { response.close() }
+        })
     }
 
     @Keep
