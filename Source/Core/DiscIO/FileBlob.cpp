@@ -5,19 +5,21 @@
 
 #include <algorithm>
 #include <memory>
-#include <string>
 #include <utility>
-#include <vector>
 
+#include "Common/Align.h"
 #include "Common/Assert.h"
+#include "Common/Buffer.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 
+#include "DiscIO/MultithreadedCompressor.h"
+
 namespace DiscIO
 {
-PlainFileReader::PlainFileReader(File::DirectIOFile file) : m_file(std::move(file))
+PlainFileReader::PlainFileReader(File::DirectIOFile file)
+    : m_file(std::move(file)), m_size{m_file.GetSize()}
 {
-  m_size = m_file.GetSize();
 }
 
 std::unique_ptr<PlainFileReader> PlainFileReader::Create(File::DirectIOFile file)
@@ -38,77 +40,53 @@ bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
   return m_file.OffsetRead(offset, out_ptr, nbytes);
 }
 
-bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
-                    const std::string& outfile_path, const CompressCB& callback)
+ConversionResultCode ConvertToPlain(std::unique_ptr<BlobReader> infile, File::DirectIOFile& outfile,
+                                    const CompressCB& callback)
 {
   ASSERT(infile->GetDataSizeType() == DataSizeType::Accurate);
 
-  File::DirectIOFile outfile(outfile_path, File::AccessMode::Write);
-  if (!outfile.IsOpen())
-  {
-    PanicAlertFmtT(
-        "Failed to open the output file \"{0}\".\n"
-        "Check that you have permissions to write the target folder and that the media can "
-        "be written.",
-        outfile_path);
-    return false;
-  }
-
-  constexpr size_t DESIRED_BUFFER_SIZE = 0x80000;
+  constexpr size_t MINIMUM_BUFFER_SIZE = 0x80000;
   u64 buffer_size = infile->GetBlockSize();
   if (buffer_size == 0)
   {
-    buffer_size = DESIRED_BUFFER_SIZE;
+    buffer_size = MINIMUM_BUFFER_SIZE;
   }
   else
   {
-    while (buffer_size < DESIRED_BUFFER_SIZE)
+    while (buffer_size < MINIMUM_BUFFER_SIZE)
       buffer_size *= 2;
   }
 
-  std::vector<u8> buffer(buffer_size);
-  const u64 num_buffers = (infile->GetDataSize() + buffer_size - 1) / buffer_size;
-  int progress_monitor = std::max<int>(1, num_buffers / 100);
-  bool success = true;
+  const u64 total_size = infile->GetDataSize();
 
-  for (u64 i = 0; i < num_buffers; i++)
+  // Avoid fragmentation.
+  if (!Resize(outfile, total_size))
+    return ConversionResultCode::WriteFailed;
+
+  Common::UniqueBuffer<u8> buffer(buffer_size);
+
+  const u64 progress_interval = Common::AlignUp(std::max<u64>(total_size / 100, 1), buffer_size);
+  for (u64 read_pos = 0; read_pos != total_size;)
   {
-    if (i % progress_monitor == 0)
+    if (read_pos % progress_interval == 0)
     {
       const bool was_cancelled =
-          !callback(Common::GetStringT("Unpacking"), (float)i / (float)num_buffers);
+          !callback(Common::GetStringT("Unpacking"), float(read_pos) / float(total_size));
       if (was_cancelled)
-      {
-        success = false;
-        break;
-      }
+        return ConversionResultCode::Canceled;
     }
-    const u64 inpos = i * buffer_size;
-    const u64 sz = std::min(buffer_size, infile->GetDataSize() - inpos);
-    if (!infile->Read(inpos, sz, buffer.data()))
-    {
-      PanicAlertFmtT("Failed to read from the input file \"{0}\".", infile_path);
-      success = false;
-      break;
-    }
-    if (!outfile.Write(buffer.data(), sz))
-    {
-      PanicAlertFmtT("Failed to write the output file \"{0}\".\n"
-                     "Check that you have enough space available on the target drive.",
-                     outfile_path);
-      success = false;
-      break;
-    }
+
+    const u64 read_size = std::min(buffer_size, total_size - read_pos);
+    if (!infile->Read(read_pos, read_size, buffer.data()))
+      return ConversionResultCode::ReadFailed;
+
+    if (!outfile.Write(buffer.data(), read_size))
+      return ConversionResultCode::WriteFailed;
+
+    read_pos += read_size;
   }
 
-  if (!success)
-  {
-    // Remove the incomplete output file.
-    outfile.Close();
-    File::Delete(outfile_path);
-  }
-
-  return success;
+  return ConversionResultCode::Success;
 }
 
 }  // namespace DiscIO
