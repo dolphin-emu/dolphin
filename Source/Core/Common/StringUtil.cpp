@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <codecvt>
 #include <cstdarg>
 #include <cstddef>
@@ -12,7 +13,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <iomanip>
-#include <istream>
 #include <iterator>
 #include <limits.h>
 #include <locale>
@@ -694,5 +694,53 @@ bool CaseInsensitiveLess::operator()(std::string_view a, std::string_view b) con
 std::string BytesToHexString(std::span<const u8> bytes)
 {
   return fmt::format("{:02x}", fmt::join(bytes, ""));
+}
+
+std::string EscapeString(std::string str, std::string_view find_chars,
+                         std::string_view replace_with_chars, char escape_char)
+{
+  assert(find_chars.length() == replace_with_chars.length());
+
+  for (std::size_t pos = 0; pos != str.size(); ++pos)
+  {
+    const char current_char = str[pos];
+    for (std::size_t i = 0; i != find_chars.length(); ++i)
+    {
+      if (current_char == find_chars[i])
+      {
+        str.replace(pos, 0, &escape_char, 1);
+        str[++pos] = replace_with_chars[i];
+        break;
+      }
+    }
+  }
+  return str;
+}
+
+std::string UnescapeString(std::string str, std::string_view original_chars,
+                           std::string_view replaced_chars, char escape_char)
+{
+  assert(original_chars.length() == replaced_chars.length());
+
+  if (str.size() < 2)
+    return str;
+
+  const auto last_pos = str.size() - 1;
+  for (std::size_t pos = 0; pos != last_pos; ++pos)
+  {
+    if (str[pos] != escape_char)
+      continue;
+
+    const char current_char = str[pos + 1];
+    for (std::size_t i = 0; i != replaced_chars.length(); ++i)
+    {
+      if (current_char == replaced_chars[i])
+      {
+        str.replace(pos, 2, original_chars.data() + i, 1);
+        break;
+      }
+    }
+  }
+  return str;
 }
 }  // namespace Common
