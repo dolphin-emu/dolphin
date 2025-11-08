@@ -90,12 +90,11 @@ std::string VideoBackendBase::BadShaderFilename(const char* shader_stage, int co
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
-void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
-                                       u64 ticks)
+void VideoBackendBase::Video_OutputXFB(Core::System& system, u32 xfb_addr, u32 fb_width,
+                                       u32 fb_stride, u32 fb_height, u64 ticks)
 {
   if (m_initialized && g_presenter && !g_ActiveConfig.bImmediateXFB)
   {
-    auto& system = Core::System::GetInstance();
     system.GetFifo().SyncGPU(Fifo::SyncGPUReason::Swap);
 
     const TimePoint presentation_time = system.GetCoreTiming().GetTargetHostTime(ticks);
@@ -105,14 +104,13 @@ void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride
   }
 }
 
-u32 VideoBackendBase::Video_GetQueryResult(PerfQueryType type)
+u32 VideoBackendBase::Video_GetQueryResult(Core::System& system, PerfQueryType type)
 {
   if (!g_perf_query->ShouldEmulate())
   {
     return 0;
   }
 
-  auto& system = Core::System::GetInstance();
   system.GetFifo().SyncGPU(Fifo::SyncGPUReason::PerfQuery);
 
   if (!g_perf_query->IsFlushed())
@@ -123,7 +121,7 @@ u32 VideoBackendBase::Video_GetQueryResult(PerfQueryType type)
   return g_perf_query->GetQueryResult(type);
 }
 
-u16 VideoBackendBase::Video_GetBoundingBox(int index)
+u16 VideoBackendBase::Video_GetBoundingBox(Core::System& system, int index)
 {
   DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::ReadsBoundingBox);
 
@@ -151,7 +149,6 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
     warn_once = false;
   }
 
-  auto& system = Core::System::GetInstance();
   system.GetFifo().SyncGPU(Fifo::SyncGPUReason::BBox);
 
   return AsyncRequests::GetInstance()->PushBlockingEvent(
@@ -249,23 +246,22 @@ void VideoBackendBase::PopulateBackendInfo(const WindowSystemInfo& wsi)
   g_Config.VerifyValidity();
 }
 
-void VideoBackendBase::DoState(PointerWrap& p)
+void VideoBackendBase::DoState(Core::System& system, PointerWrap& p)
 {
-  auto& system = Core::System::GetInstance();
   if (!system.IsDualCoreMode())
   {
-    VideoCommon_DoState(p);
+    VideoCommon_DoState(system, p);
     return;
   }
 
-  AsyncRequests::GetInstance()->PushBlockingEvent([&] { VideoCommon_DoState(p); });
+  AsyncRequests::GetInstance()->PushBlockingEvent([&] { VideoCommon_DoState(system, p); });
 
   // Let the GPU thread sleep after loading the state, so we're not spinning if paused after loading
   // a state. The next GP burst will wake it up again.
   system.GetFifo().GpuMaySleep();
 }
 
-bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
+bool VideoBackendBase::InitializeShared(Core::System& system, std::unique_ptr<AbstractGfx> gfx,
                                         std::unique_ptr<VertexManagerBase> vertex_manager,
                                         std::unique_ptr<PerfQueryBase> perf_query,
                                         std::unique_ptr<BoundingBox> bounding_box)
@@ -273,12 +269,12 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
   // All hardware backends use the default EFBInterface and TextureCacheBase.
   // Only Null and Software backends override them
 
-  return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
+  return InitializeShared(system, std::move(gfx), std::move(vertex_manager), std::move(perf_query),
                           std::move(bounding_box), std::make_unique<HardwareEFBInterface>(),
                           std::make_unique<TextureCacheBase>());
 }
 
-bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
+bool VideoBackendBase::InitializeShared(Core::System& system, std::unique_ptr<AbstractGfx> gfx,
                                         std::unique_ptr<VertexManagerBase> vertex_manager,
                                         std::unique_ptr<PerfQueryBase> perf_query,
                                         std::unique_ptr<BoundingBox> bounding_box,
@@ -315,11 +311,10 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
       !g_graphics_mod_manager->Initialize())
   {
     PanicAlertFmtT("Failed to initialize renderer classes");
-    Shutdown();
+    Shutdown(system);
     return false;
   }
 
-  auto& system = Core::System::GetInstance();
   auto& command_processor = system.GetCommandProcessor();
   command_processor.Init();
   system.GetFifo().Init();
@@ -347,9 +342,8 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
   return true;
 }
 
-void VideoBackendBase::ShutdownShared()
+void VideoBackendBase::ShutdownShared(Core::System& system)
 {
-  auto& system = Core::System::GetInstance();
   system.GetCustomResourceManager().Shutdown();
 
   g_frame_dumper.reset();

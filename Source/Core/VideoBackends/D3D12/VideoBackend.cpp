@@ -24,6 +24,11 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
+namespace Core
+{
+class System;
+}
+
 namespace DX12
 {
 std::string VideoBackend::GetConfigName() const
@@ -104,7 +109,7 @@ void VideoBackend::FillBackendInfo()
   }
 }
 
-bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
+bool VideoBackend::Initialize(Core::System& system, const WindowSystemInfo& wsi)
 {
   if (!DXContext::Create(g_Config.iAdapter, g_Config.bEnableValidationLayer))
   {
@@ -119,7 +124,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   {
     PanicAlertFmtT("Failed to create D3D12 global resources");
     DXContext::Destroy();
-    ShutdownShared();
+    ShutdownShared(system);
     return false;
   }
 
@@ -128,7 +133,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   {
     PanicAlertFmtT("Failed to create D3D swap chain");
     DXContext::Destroy();
-    ShutdownShared();
+    ShutdownShared(system);
     return false;
   }
 
@@ -138,17 +143,17 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   auto perf_query = std::make_unique<DX12::PerfQuery>();
   auto bounding_box = std::make_unique<DX12::D3D12BoundingBox>();
 
-  return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
+  return InitializeShared(system, std::move(gfx), std::move(vertex_manager), std::move(perf_query),
                           std::move(bounding_box));
 }
 
-void VideoBackend::Shutdown()
+void VideoBackend::Shutdown(Core::System& system)
 {
   // Keep the debug runtime happy...
   if (g_gfx)
     Gfx::GetInstance()->ExecuteCommandList(true);
 
-  ShutdownShared();
+  ShutdownShared(system);
   DXContext::Destroy();
 }
 }  // namespace DX12

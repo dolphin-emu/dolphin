@@ -3,15 +3,22 @@
 
 #pragma once
 
+#include <string>
+
 #include "VideoCommon/VideoBackendBase.h"
+
+namespace Core
+{
+class System;
+}
 
 namespace Null
 {
 class VideoBackend final : public VideoBackendBase
 {
 public:
-  bool Initialize(const WindowSystemInfo& wsi) override;
-  void Shutdown() override;
+  bool Initialize(Core::System& system, const WindowSystemInfo& wsi) override;
+  void Shutdown(Core::System& system) override;
 
   std::string GetConfigName() const override { return CONFIG_NAME; }
   std::string GetDisplayName() const override;

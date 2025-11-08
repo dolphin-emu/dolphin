@@ -59,6 +59,11 @@ Make AA apply instantly during gameplay if possible
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
+namespace Core
+{
+class System;
+}
+
 namespace OGL
 {
 std::string VideoBackend::GetConfigName() const
@@ -193,7 +198,7 @@ bool VideoBackend::FillBackendInfo(GLContext* context)
   return true;
 }
 
-bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
+bool VideoBackend::Initialize(Core::System& system, const WindowSystemInfo& wsi)
 {
   std::unique_ptr<GLContext> main_gl_context =
       GLContext::Create(wsi, g_Config.stereo_mode == StereoMode::QuadBuffer, true, false,
@@ -212,13 +217,13 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   auto perf_query = GetPerfQuery(gfx->IsGLES());
   auto bounding_box = std::make_unique<OGLBoundingBox>();
 
-  return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
+  return InitializeShared(system, std::move(gfx), std::move(vertex_manager), std::move(perf_query),
                           std::move(bounding_box));
 }
 
-void VideoBackend::Shutdown()
+void VideoBackend::Shutdown(Core::System& system)
 {
-  ShutdownShared();
+  ShutdownShared(system);
 
   ProgramShaderCache::Shutdown();
   g_sampler_cache.reset();

@@ -29,6 +29,11 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
+namespace Core
+{
+class System;
+}
+
 std::string Metal::VideoBackend::GetConfigName() const
 {
   return CONFIG_NAME;
@@ -63,7 +68,7 @@ static bool WindowSystemTypeSupportsMetal(WindowSystemType type)
   }
 }
 
-bool Metal::VideoBackend::Initialize(const WindowSystemInfo& wsi)
+bool Metal::VideoBackend::Initialize(Core::System& system, const WindowSystemInfo& wsi)
 {
   @autoreleasepool
   {
@@ -125,15 +130,16 @@ bool Metal::VideoBackend::Initialize(const WindowSystemInfo& wsi)
     ObjectCache::Initialize(std::move(adapter));
     g_state_tracker = std::make_unique<StateTracker>();
 
-    return InitializeShared(
-        std::make_unique<Metal::Gfx>(std::move(layer)), std::make_unique<Metal::VertexManager>(),
-        std::make_unique<Metal::PerfQuery>(), std::make_unique<Metal::BoundingBox>());
+    return InitializeShared(system, std::make_unique<Metal::Gfx>(std::move(layer)),
+                            std::make_unique<Metal::VertexManager>(),
+                            std::make_unique<Metal::PerfQuery>(),
+                            std::make_unique<Metal::BoundingBox>());
   }
 }
 
-void Metal::VideoBackend::Shutdown()
+void Metal::VideoBackend::Shutdown(Core::System& system)
 {
-  ShutdownShared();
+  ShutdownShared(system);
 
   g_state_tracker.reset();
   ObjectCache::Shutdown();
