@@ -4,6 +4,7 @@
 #pragma once
 
 #include <functional>
+#include <limits>
 #include <map>
 #include <memory>
 #include <optional>
@@ -17,7 +18,7 @@ namespace Config
 {
 struct ConfigChangedCallbackID
 {
-  size_t id = -1;
+  size_t id = std::numeric_limits<size_t>::max();
 
   bool operator==(const ConfigChangedCallbackID&) const = default;
 };
