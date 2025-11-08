@@ -994,7 +994,7 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
 // then applying anisotropic filtering is equivalent to forced filtering. Point
 // mode textures are usually some sort of 2D UI billboard which will end up
 // misaligned from the correct pixels when filtered anisotropically.
-static bool IsAnisostropicEnhancementSafe(const TexMode0& tm0)
+static bool IsAnisotropicEnhancementSafe(const TexMode0& tm0)
 {
   return !(tm0.min_filter == FilterMode::Near && tm0.mag_filter == FilterMode::Near);
 }
@@ -1028,7 +1028,7 @@ SamplerState TextureCacheBase::GetSamplerState(u32 index, float custom_tex_scale
 
   // Anisotropic filtering option.
   if (g_ActiveConfig.iMaxAnisotropy != AnisotropicFilteringMode::Default &&
-      IsAnisostropicEnhancementSafe(tm0))
+      IsAnisotropicEnhancementSafe(tm0))
   {
     state.tm0.anisotropic_filtering = Common::ToUnderlying(g_ActiveConfig.iMaxAnisotropy);
   }
