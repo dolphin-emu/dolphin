@@ -4,6 +4,7 @@
 #include "DolphinTool/ConvertCommand.h"
 
 #include <cstdlib>
+#include <functional>
 #include <iostream>
 #include <limits>
 #include <optional>
@@ -19,7 +20,6 @@
 #include "DiscIO/DiscUtils.h"
 #include "DiscIO/ScrubbedBlob.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/VolumeDisc.h"
 #include "DiscIO/WIABlob.h"
 #include "UICommon/UICommon.h"
 
@@ -296,17 +296,12 @@ int ConvertCommand(const std::vector<std::string>& args)
     }
   }
 
-  // Perform the conversion
-  const auto NOOP_STATUS_CALLBACK = [](const std::string& text, float percent) { return true; };
-
-  bool success = false;
-
+  DiscIO::ConversionFunction conversion_function;
   switch (format)
   {
   case DiscIO::BlobType::PLAIN:
   {
-    success = DiscIO::ConvertToPlain(blob_reader.get(), input_file_path, output_file_path,
-                                     NOOP_STATUS_CALLBACK);
+    conversion_function = DiscIO::ConvertToPlain;
     break;
   }
 
@@ -320,18 +315,16 @@ int ConvertCommand(const std::vector<std::string>& args)
       else if (volume->GetVolumeType() == DiscIO::Platform::WiiDisc)
         sub_type = 1;
     }
-    success = DiscIO::ConvertToGCZ(blob_reader.get(), input_file_path, output_file_path, sub_type,
-                                   block_size_o.value(), NOOP_STATUS_CALLBACK);
+    conversion_function = std::bind_front(DiscIO::ConvertToGCZ, sub_type, block_size_o.value());
     break;
   }
 
   case DiscIO::BlobType::WIA:
   case DiscIO::BlobType::RVZ:
   {
-    success = DiscIO::ConvertToWIAOrRVZ(blob_reader.get(), input_file_path, output_file_path,
-                                        format == DiscIO::BlobType::RVZ, compression_o.value(),
-                                        compression_level_o.value(), block_size_o.value(),
-                                        NOOP_STATUS_CALLBACK);
+    conversion_function =
+        std::bind_front(DiscIO::ConvertToWIAOrRVZ, format == DiscIO::BlobType::RVZ,
+                        compression_o.value(), compression_level_o.value(), block_size_o.value());
     break;
   }
 
@@ -342,6 +335,10 @@ int ConvertCommand(const std::vector<std::string>& args)
   }
   }
 
+  // Perform the conversion
+  const auto NOOP_STATUS_CALLBACK = [](auto&&...) { return true; };
+  const bool success = DiscIO::ConvertBlob(conversion_function, std::move(blob_reader),
+                                           input_file_path, output_file_path, NOOP_STATUS_CALLBACK);
   if (!success)
   {
     fmt::print(std::cerr, "Error: Conversion failed\n");

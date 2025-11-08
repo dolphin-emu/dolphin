@@ -4,6 +4,7 @@
 #include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -739,25 +740,23 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ConvertD
     return static_cast<bool>(result);
   };
 
-  bool success = false;
-
+  DiscIO::ConversionFunction conversion_function;
   switch (format)
   {
   case DiscIO::BlobType::PLAIN:
-    success = DiscIO::ConvertToPlain(blob_reader.get(), in_path, out_path, callback);
+    conversion_function = DiscIO::ConvertToPlain;
     break;
 
   case DiscIO::BlobType::GCZ:
-    success =
-        DiscIO::ConvertToGCZ(blob_reader.get(), in_path, out_path,
-                             platform == DiscIO::Platform::WiiDisc ? 1 : 0, jBlockSize, callback);
+    conversion_function = std::bind_front(
+        DiscIO::ConvertToGCZ, platform == DiscIO::Platform::WiiDisc ? 1 : 0, jBlockSize);
     break;
 
   case DiscIO::BlobType::WIA:
   case DiscIO::BlobType::RVZ:
-    success = DiscIO::ConvertToWIAOrRVZ(blob_reader.get(), in_path, out_path,
-                                        format == DiscIO::BlobType::RVZ, compression,
-                                        jCompressionLevel, jBlockSize, callback);
+    conversion_function =
+        std::bind_front(DiscIO::ConvertToWIAOrRVZ, format == DiscIO::BlobType::RVZ, compression,
+                        jCompressionLevel, jBlockSize);
     break;
 
   default:
@@ -765,6 +764,8 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ConvertD
     break;
   }
 
+  const bool success =
+      DiscIO::ConvertBlob(conversion_function, std::move(blob_reader), in_path, out_path, callback);
   return static_cast<jboolean>(success);
 }
 

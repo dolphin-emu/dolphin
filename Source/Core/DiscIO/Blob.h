@@ -23,6 +23,11 @@
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 
+namespace File
+{
+class DirectIOFile;
+}
+
 namespace DiscIO
 {
 enum class WIARVZCompressionType : u32;
@@ -194,14 +199,23 @@ std::unique_ptr<BlobReader> CreateBlobReader(const std::string& filename);
 
 using CompressCB = std::function<bool(const std::string& text, float percent)>;
 
-bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
-                  const std::string& outfile_path, u32 sub_type, int sector_size,
-                  const CompressCB& callback);
-bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
-                    const std::string& outfile_path, const CompressCB& callback);
-bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
-                       const std::string& outfile_path, bool rvz,
-                       WIARVZCompressionType compression_type, int compression_level,
-                       int chunk_size, const CompressCB& callback);
+enum class ConversionResultCode;
+
+using ConversionFunction = std::function<ConversionResultCode(
+    std::unique_ptr<BlobReader> infile, File::DirectIOFile& outfile, const CompressCB& callback)>;
+
+// Handles common functionality like opening the output file and displaying error messages.
+bool ConvertBlob(const ConversionFunction& conversion_function, std::unique_ptr<BlobReader> infile,
+                 std::string_view infile_path, const std::string& outfile_path,
+                 const CompressCB& callback);
+
+ConversionResultCode ConvertToGCZ(u32 sub_type, int block_size, std::unique_ptr<BlobReader> infile,
+                                  File::DirectIOFile& outfile, const CompressCB& callback);
+ConversionResultCode ConvertToPlain(std::unique_ptr<BlobReader> infile, File::DirectIOFile& outfile,
+                                    const CompressCB& callback);
+ConversionResultCode ConvertToWIAOrRVZ(bool rvz, WIARVZCompressionType compression_type,
+                                       int compression_level, int chunk_size,
+                                       std::unique_ptr<BlobReader> infile,
+                                       File::DirectIOFile& outfile, const CompressCB& callback);
 
 }  // namespace DiscIO

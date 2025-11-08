@@ -2038,47 +2038,17 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
   return ConversionResultCode::Success;
 }
 
-bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
-                       const std::string& outfile_path, bool rvz,
-                       WIARVZCompressionType compression_type, int compression_level,
-                       int chunk_size, const CompressCB& callback)
+ConversionResultCode ConvertToWIAOrRVZ(bool rvz, WIARVZCompressionType compression_type,
+                                       int compression_level, int chunk_size,
+                                       std::unique_ptr<BlobReader> infile,
+                                       File::DirectIOFile& outfile, const CompressCB& callback)
 {
-  File::DirectIOFile outfile(outfile_path, File::AccessMode::Write);
-  if (!outfile.IsOpen())
-  {
-    PanicAlertFmtT(
-        "Failed to open the output file \"{0}\".\n"
-        "Check that you have permissions to write the target folder and that the media can "
-        "be written.",
-        outfile_path);
-    return false;
-  }
+  auto* const infile_ptr = infile.get();
+  std::unique_ptr<VolumeDisc> infile_volume = CreateDisc(std::move(infile));
 
-  std::unique_ptr<VolumeDisc> infile_volume = CreateDisc(infile_path);
-
-  const auto convert = rvz ? RVZFileReader::Convert : WIAFileReader::Convert;
-  const ConversionResultCode result =
-      convert(infile, infile_volume.get(), &outfile, compression_type, compression_level,
-              chunk_size, callback);
-
-  if (result == ConversionResultCode::ReadFailed)
-    PanicAlertFmtT("Failed to read from the input file \"{0}\".", infile_path);
-
-  if (result == ConversionResultCode::WriteFailed)
-  {
-    PanicAlertFmtT("Failed to write the output file \"{0}\".\n"
-                   "Check that you have enough space available on the target drive.",
-                   outfile_path);
-  }
-
-  if (result != ConversionResultCode::Success)
-  {
-    // Remove the incomplete output file
-    outfile.Close();
-    File::Delete(outfile_path);
-  }
-
-  return result == ConversionResultCode::Success;
+  return std::invoke(rvz ? RVZFileReader::Convert : WIAFileReader::Convert, infile_ptr,
+                     infile_volume.get(), &outfile, compression_type, compression_level, chunk_size,
+                     callback);
 }
 
 template class WIARVZFileReader<false>;
