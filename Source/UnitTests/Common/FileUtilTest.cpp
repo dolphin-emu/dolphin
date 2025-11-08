@@ -194,7 +194,13 @@ TEST_F(FileUtilTest, DirectIOFile)
   // Note: Double Open() currently ASSERTs. It's not obvious if that should succeed or fail.
 
   EXPECT_TRUE(file.Close());
-  EXPECT_FALSE(file.Open(m_file_path, File::AccessMode::Write, File::OpenMode::Create));
+  {
+    // OpenMode::Create properly returns AlreadyExists.
+    const auto open_result =
+        file.Open(m_file_path, File::AccessMode::Write, File::OpenMode::Create);
+    EXPECT_TRUE(!open_result.Succeeded() &&
+                (open_result.Error() == File::OpenError::AlreadyExists));
+  }
 
   EXPECT_TRUE(file.Open(m_file_path, File::AccessMode::Write, File::OpenMode::Existing));
   EXPECT_TRUE(file.Close());
