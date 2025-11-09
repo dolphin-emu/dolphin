@@ -53,8 +53,6 @@ private:
   Resource::ResourceContext
   CreateResourceContext(const CustomAssetLibrary::AssetID& asset_id,
                         std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
-  void ProcessResource(Resource* resource);
-  void ProcessResourceState(Resource* resource);
   CustomAssetCache m_asset_cache;
   TexturePool m_texture_pool;
   Common::AsyncWorkThreadSP m_worker_thread;

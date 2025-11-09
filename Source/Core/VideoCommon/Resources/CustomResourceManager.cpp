@@ -3,8 +3,6 @@
 
 #include "VideoCommon/Resources/CustomResourceManager.h"
 
-#include "Common/Logging/Log.h"
-
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/PipelineUtils.h"
 #include "VideoCommon/Resources/InvalidTextures.h"
@@ -97,7 +95,7 @@ TextureDataResource* CustomResourceManager::GetTextureDataFromAsset(
     resource =
         std::make_unique<TextureDataResource>(CreateResourceContext(asset_id, std::move(library)));
   }
-  ProcessResource(resource.get());
+  resource->Process();
   return resource.get();
 }
 
@@ -111,7 +109,7 @@ MaterialResource* CustomResourceManager::GetMaterialFromAsset(
     resource = std::make_unique<MaterialResource>(
         CreateResourceContext(asset_id, std::move(library)), pipeline_uid);
   }
-  ProcessResource(resource.get());
+  resource->Process();
   return resource.get();
 }
 
@@ -127,7 +125,7 @@ CustomResourceManager::GetShaderFromAsset(const CustomAssetLibrary::AssetID& ass
     resource = std::make_unique<ShaderResource>(CreateResourceContext(asset_id, std::move(library)),
                                                 pipeline_uid, preprocessor_settings, m_host_config);
   }
-  ProcessResource(resource.get());
+  resource->Process();
   return resource.get();
 }
 
@@ -141,7 +139,7 @@ TextureAndSamplerResource* CustomResourceManager::GetTextureAndSamplerFromAsset(
     resource = std::make_unique<TextureAndSamplerResource>(
         CreateResourceContext(asset_id, std::move(library)));
   }
-  ProcessResource(resource.get());
+  resource->Process();
   return resource.get();
 }
 
@@ -160,74 +158,5 @@ Resource::ResourceContext CustomResourceManager::CreateResourceContext(
                                    m_invalid_color_texture.get(),
                                    m_invalid_cubemap_texture.get(),
                                    m_invalid_transparent_texture.get()};
-}
-
-void CustomResourceManager::ProcessResource(Resource* resource)
-{
-  resource->MarkAsActive();
-
-  const auto data_processed = resource->IsDataProcessed();
-  if (data_processed == Resource::TaskComplete::Yes ||
-      data_processed == Resource::TaskComplete::Error)
-  {
-    resource->MarkAsActive();
-    if (data_processed == Resource::TaskComplete::Error)
-      return;
-  }
-
-  ProcessResourceState(resource);
-}
-
-void CustomResourceManager::ProcessResourceState(Resource* resource)
-{
-  const auto current_state = resource->GetState();
-  Resource::State next_state = current_state;
-  Resource::TaskComplete task_complete = Resource::TaskComplete::No;
-  switch (current_state)
-  {
-  case Resource::State::ReloadData:
-    resource->ResetData();
-    task_complete = Resource::TaskComplete::Yes;
-    next_state = Resource::State::CollectingPrimaryData;
-    break;
-  case Resource::State::CollectingPrimaryData:
-    task_complete = resource->CollectPrimaryData();
-    next_state = Resource::State::CollectingDependencyData;
-    if (task_complete == Resource::TaskComplete::No)
-      resource->MarkAsPending();
-    break;
-  case Resource::State::CollectingDependencyData:
-    task_complete = resource->CollectDependencyData();
-    next_state = Resource::State::ProcessingData;
-    break;
-  case Resource::State::ProcessingData:
-    task_complete = resource->ProcessData();
-    next_state = Resource::State::DataAvailable;
-    break;
-  case Resource::State::DataAvailable:
-    // Early out, we're already at our end state
-    return;
-  default:
-    ERROR_LOG_FMT(VIDEO, "Unknown resource state '{}' for resource '{}'",
-                  static_cast<int>(current_state), resource->m_resource_context.primary_asset_id);
-    return;
-  };
-
-  if (task_complete == Resource::TaskComplete::Yes)
-  {
-    resource->m_state = next_state;
-    if (next_state == Resource::State::DataAvailable)
-    {
-      resource->m_data_processed = task_complete;
-    }
-    else
-    {
-      ProcessResourceState(resource);
-    }
-  }
-  else if (task_complete == Resource::TaskComplete::Error)
-  {
-    resource->m_data_processed = task_complete;
-  }
 }
 }  // namespace VideoCommon
