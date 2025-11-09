@@ -64,7 +64,16 @@ WiimoteScannerLinux::WiimoteScannerLinux()
 bool WiimoteScannerLinux::Open()
 {
   if (IsReady())
-    return true;
+  {
+    // Verify that the device socket is still valid (checking for POLLERR).
+    pollfd pfd{.fd = m_device_sock};
+    if (UnixUtil::RetryOnEINTR(poll, &pfd, 1, 0) >= 0 && pfd.revents == 0)
+      return true;
+
+    // This happens if the Bluetooth adapter was unplugged between scans.
+    WARN_LOG_FMT(WIIMOTE, "Existing Bluetooth socket was invalid. Attempting to reopen.");
+    Close();
+  }
 
   // Get the id of the first Bluetooth device.
   m_device_id = hci_get_route(nullptr);
