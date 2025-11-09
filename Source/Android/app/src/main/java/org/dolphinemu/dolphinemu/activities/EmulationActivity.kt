@@ -8,6 +8,8 @@ import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.SparseIntArray
 import android.view.KeyEvent
 import android.view.MenuItem
@@ -61,6 +63,7 @@ import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
+import org.dolphinemu.dolphinemu.utils.RateLimiter
 import org.dolphinemu.dolphinemu.utils.ThemeHelper
 import kotlin.math.roundToInt
 
@@ -87,6 +90,10 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     private lateinit var infinityBinding: DialogNfcFiguresManagerBinding
 
     private lateinit var binding: ActivityEmulationBinding
+
+    private val refreshInputOverlayRateLimiter = RateLimiter(Handler(Looper.getMainLooper()), 100) {
+        emulationFragment?.refreshInputOverlay()
+    }
 
     private val requestChangeDisc = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -729,7 +736,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 addOnChangeListener { _: Slider?, value: Float, _: Boolean ->
                     dialogBinding.inputScaleValue.text = "${(value.toInt() + 50)}%"
                     IntSetting.MAIN_CONTROL_SCALE.setInt(settings, value.toInt())
-                    emulationFragment?.refreshInputOverlay()
+                    refreshInputOverlayRateLimiter.run()
                 }
             }
             inputScaleValue.text =
@@ -742,7 +749,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
                 addOnChangeListener { _: Slider?, value: Float, _: Boolean ->
                     inputOpacityValue.text = value.toInt().toString() + "%"
                     IntSetting.MAIN_CONTROL_OPACITY.setInt(settings, value.toInt())
-                    emulationFragment?.refreshInputOverlay()
+                    refreshInputOverlayRateLimiter.run()
                 }
             }
             inputOpacityValue.text = inputOpacitySlider.value.toInt().toString() + "%"
