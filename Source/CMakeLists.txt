@@ -60,6 +60,13 @@ else()
   if (HAS_FORMAT_WARNING)
     check_and_add_flag(FORMAT_WARNING_TO_ERROR -Werror=format)
   endif()
+
+  # Trigraphs support is generally disabled by default, but some compilers (GCC) may still warn when
+  # one hypothetical trigraph is encountered. The warning is generally not interesting.
+  check_cxx_compiler_flag(-Wtrigraphs HAS_TRIGRAPHS_WARNING)
+  if (HAS_TRIGRAPHS_WARNING)
+    check_and_add_flag(NO_TRIGRAPHS_WARNING -Wno-trigraphs)
+  endif()
 endif()
 
 # These aren't actually needed for C11/C++11
