@@ -288,7 +288,7 @@ int main(const int argc, char* argv[])
     return 1;
   }
 
-  Core::AddOnStateChangedCallback([](const Core::State state) {
+  auto core_state_changed_hook = Core::AddOnStateChangedCallback([](const Core::State state) {
     if (state == Core::State::Uninitialized)
       s_platform->Stop();
   });

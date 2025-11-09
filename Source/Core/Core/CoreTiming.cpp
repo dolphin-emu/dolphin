@@ -106,7 +106,7 @@ void CoreTimingManager::Init()
   m_last_oc_factor = m_config_oc_factor;
   m_globals.last_OC_factor_inverted = m_config_oc_inv_factor;
 
-  m_on_state_changed_handle = Core::AddOnStateChangedCallback([this](Core::State state) {
+  m_core_state_changed_hook = Core::AddOnStateChangedCallback([this](Core::State state) {
     if (state == Core::State::Running)
     {
       // We don't want Throttle to attempt catch-up for all the time lost while paused.
@@ -117,7 +117,7 @@ void CoreTimingManager::Init()
 
 void CoreTimingManager::Shutdown()
 {
-  Core::RemoveOnStateChangedCallback(&m_on_state_changed_handle);
+  m_core_state_changed_hook.reset();
 
   std::lock_guard lk(m_ts_write_lock);
   MoveEvents();

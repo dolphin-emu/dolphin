@@ -236,6 +236,8 @@ private:
   std::shared_ptr<NetPlay::NetPlayServer> m_server;
   Common::EventHook m_hotplug_event_hook;
   Config::ConfigChangedCallbackID m_config_changed_callback_id;
+
+  Common::EventHook m_core_state_changed_hook;
 };
 
 Q_DECLARE_METATYPE(Core::State);
