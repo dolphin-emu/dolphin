@@ -35,7 +35,6 @@ private:
 
   QStackedWidget* m_stacked_panes = nullptr;
   QListWidget* m_navigation_list = nullptr;
-  int m_list_item_padding = 0;
   bool m_handling_theme_change = false;
 };
 
