@@ -68,11 +68,8 @@ StackedSettingsWindow::StackedSettingsWindow(QWidget* parent) : QDialog{parent}
           "QListWidget::item { padding-top: %2px; padding-bottom: %2px; } "
           // Maintain selected item color when unfocused.
           "QListWidget::item:selected { background: palette(highlight); "
-#if !defined(__APPLE__)
           // Prevent text color change on focus loss.
-          // This seems to breaks the nice white text on macOS.
           "color: palette(highlighted-text); "
-#endif
           "} "
           // Remove ugly dotted outline on selected row (Windows and GNOME).
           "* { outline: none; } ")
