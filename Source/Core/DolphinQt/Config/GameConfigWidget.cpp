@@ -3,6 +3,8 @@
 
 #include "DolphinQt/Config/GameConfigWidget.h"
 
+#include <optional>
+
 #include <QFont>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -341,12 +343,24 @@ void GameConfigWidget::SetItalics()
     italics(config);
   for (auto* config : findChildren<ConfigInteger*>())
     italics(config);
-  for (auto* config : findChildren<ConfigRadioInt*>())
-    italics(config);
   for (auto* config : findChildren<ConfigChoice*>())
     italics(config);
   for (auto* config : findChildren<ConfigStringChoice*>())
     italics(config);
+
+  for (auto* const config : findChildren<ConfigRadioInt*>())
+  {
+    const std::optional<int> global_value_opt = m_global_layer->Get<int>(config->GetLocation());
+    if (!global_value_opt.has_value())
+      continue;
+
+    if (global_value_opt.value() != config->GetValue())
+      continue;
+
+    QFont italicized_font = config->font();
+    italicized_font.setItalic(true);
+    config->setFont(italicized_font);
+  }
 
   for (auto* config : findChildren<ConfigComplexChoice*>())
   {
