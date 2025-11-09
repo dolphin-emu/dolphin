@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <limits>
+
 #include "Common/Config/Config.h"
 
 // This file lets you register callbacks like in Common/Config/Config.h, with the difference that
@@ -13,7 +15,7 @@ namespace CPUThreadConfigCallback
 {
 struct ConfigChangedCallbackID
 {
-  size_t id = -1;
+  size_t id = std::numeric_limits<size_t>::max();
 
   bool operator==(const ConfigChangedCallbackID&) const = default;
 };
