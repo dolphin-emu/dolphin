@@ -49,17 +49,8 @@ public:
     Error,
   };
 
-  enum class State
-  {
-    ReloadData,
-    CollectingPrimaryData,
-    CollectingDependencyData,
-    ProcessingData,
-    DataAvailable,
-  };
-
+  void Process();
   TaskComplete IsDataProcessed() const { return m_data_processed; }
-  State GetState() const { return m_state; }
 
   void AddReference(Resource* reference);
   void RemoveReference(Resource* reference);
@@ -71,6 +62,7 @@ protected:
   ResourceContext m_resource_context;
 
 private:
+  void ProcessCurrentTask();
   void NotifyAssetChanged(bool has_error);
   void NotifyAssetUnloaded();
 
@@ -86,7 +78,16 @@ private:
   virtual TaskComplete ProcessData();
 
   TaskComplete m_data_processed = TaskComplete::No;
-  State m_state = State::ReloadData;
+
+  enum class Task
+  {
+    ReloadData,
+    CollectPrimaryData,
+    CollectDependencyData,
+    ProcessData,
+    DataAvailable,
+  };
+  Task m_current_task = Task::ReloadData;
 
   std::unordered_set<Resource*> m_references;
 };
