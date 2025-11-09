@@ -104,8 +104,12 @@ BalloonTip::BalloonTip(PrivateTag, const QString& title, QString message, QWidge
 
     const int max_width = label->screen()->availableGeometry().width() / 3;
     label->setMaximumWidth(max_width);
+
     if (label->sizeHint().width() > max_width)
+    {
       label->setWordWrap(true);
+      label->setMinimumWidth(max_width);
+    }
 
     return label;
   };
