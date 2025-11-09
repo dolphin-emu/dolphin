@@ -39,7 +39,7 @@ StackedSettingsWindow::StackedSettingsWindow(QWidget* parent) : QDialog{parent}
   auto* const layout = new QHBoxLayout{this};
 
   // Calculated value for the padding in our list items.
-  m_list_item_padding = layout->contentsMargins().left() / 2;
+  const int list_item_padding = layout->contentsMargins().left() / 2;
 
   // Eliminate padding around layouts.
   layout->setContentsMargins(QMargins{});
@@ -50,6 +50,31 @@ StackedSettingsWindow::StackedSettingsWindow(QWidget* parent) : QDialog{parent}
   // Ensure list doesn't grow horizontally and is not resized smaller than its contents.
   m_navigation_list->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
   m_navigation_list->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+
+  // FYI: "base" is the window color on Windows and "alternate-base" is very high contrast on macOS.
+  const auto* const list_background =
+#if !defined(__APPLE__)
+      "palette(alternate-base)";
+#else
+      "palette(base)";
+#endif
+
+  m_navigation_list->setStyleSheet(
+      QString::fromUtf8(
+          // Remove border around entire widget and adjust background color.
+          "QListWidget { border: 0; background: %1; } "
+          // Note: padding-left is broken unless border is set, which then breaks colors.
+          // see: https://bugreports.qt.io/browse/QTBUG-122698
+          "QListWidget::item { padding-top: %2px; padding-bottom: %2px; } "
+          // Maintain selected item color when unfocused.
+          "QListWidget::item:selected { background: palette(highlight); "
+          // Prevent text color change on focus loss.
+          "color: palette(highlighted-text); "
+          "} "
+          // Remove ugly dotted outline on selected row (Windows and GNOME).
+          "* { outline: none; } ")
+          .arg(QString::fromUtf8(list_background))
+          .arg(list_item_padding));
 
   UpdateNavigationListStyle();
 
@@ -115,30 +140,6 @@ void StackedSettingsWindow::UpdateNavigationListStyle()
   if (!m_navigation_list)
     return;
 
-  // FYI: "base" is the window color on Windows and "alternate-base" is very high contrast on macOS.
-  const auto* const list_background =
-#if !defined(__APPLE__)
-      "palette(alternate-base)";
-#else
-      "palette(base)";
-#endif
-
-  m_navigation_list->setStyleSheet(
-      QString::fromUtf8(
-          // Remove border around entire widget and adjust background color.
-          "QListWidget { border: 0; background: %1; } "
-          // Note: padding-left is broken unless border is set, which then breaks colors.
-          // see: https://bugreports.qt.io/browse/QTBUG-122698
-          "QListWidget::item { padding-top: %2px; padding-bottom: %2px; } "
-          // Maintain selected item color when unfocused.
-          "QListWidget::item:selected { background: palette(highlight); "
-          // Prevent text color change on focus loss.
-          "color: palette(highlighted-text); "
-          "} "
-          // Remove ugly dotted outline on selected row (Windows and GNOME).
-          "* { outline: none; } ")
-          .arg(QString::fromUtf8(list_background))
-          .arg(m_list_item_padding));
   QPalette list_palette = m_navigation_list->palette();
   const QPalette app_palette = qApp->palette();
 
