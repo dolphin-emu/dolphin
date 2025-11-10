@@ -48,9 +48,14 @@ void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, std::span<u8> value, co
   for (u32 offset = 0; offset < size; ++offset)
   {
     u8 old_value = PowerPC::MMU::HostRead<u8>(guard, address + offset);
+    // The reason why the write is unconditional (that is, why the write occurs even if the value
+    // is the same) is because otherwise, if the game changes the value in memory, there'd be a
+    // brief moment where the cheat value isn't written despite the value becoming different.
+    // Some cheats rely on this not happening (e.g. Mario Party netplay codes).
+    // TODO: Why would the value not be written?
+    PowerPC::MMU::HostWrite<u8>(guard, value[offset], address + offset);
     if (old_value != value[offset])
     {
-      PowerPC::MMU::HostWrite<u8>(guard, value[offset], address + offset);
       should_invalidate_cache = true;
       if (store_existing_value)
         value[offset] = old_value;
