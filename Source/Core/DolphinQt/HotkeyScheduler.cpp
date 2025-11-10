@@ -608,7 +608,7 @@ void HotkeyScheduler::Run()
     const auto stereo_depth = Config::Get(Config::GFX_STEREO_DEPTH);
 
     if (IsHotkey(HK_DECREASE_DEPTH, true))
-      Config::SetCurrent(Config::GFX_STEREO_DEPTH, std::max(stereo_depth - 1, 0));
+      Config::SetCurrent(Config::GFX_STEREO_DEPTH, std::max(stereo_depth - 1, 0.0f));
 
     if (IsHotkey(HK_INCREASE_DEPTH, true))
       Config::SetCurrent(Config::GFX_STEREO_DEPTH,
@@ -617,7 +617,7 @@ void HotkeyScheduler::Run()
     const auto stereo_convergence = Config::Get(Config::GFX_STEREO_CONVERGENCE);
 
     if (IsHotkey(HK_DECREASE_CONVERGENCE, true))
-      Config::SetCurrent(Config::GFX_STEREO_CONVERGENCE, std::max(stereo_convergence - 5, 0));
+      Config::SetCurrent(Config::GFX_STEREO_CONVERGENCE, std::max(stereo_convergence - 5, 0.0f));
 
     if (IsHotkey(HK_INCREASE_CONVERGENCE, true))
       Config::SetCurrent(Config::GFX_STEREO_CONVERGENCE,
