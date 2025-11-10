@@ -296,7 +296,7 @@ def build(config):
                 + python_to_cmake_bool(config["autoupdate"]),
                 '-DDISTRIBUTOR=' + config['distributor'],
                 # Distributable bundles need to be postprocessed to embed dependencies
-                "-DSKIP_POSTPROCESS_BUNDLE=OFF",
+                "-DPOSTPROCESS_BUNDLE=ON",
                 # Always use libraries from Externals to prevent any libraries
                 # installed by Homebrew from leaking in to the app
                 "-DUSE_SYSTEM_LIBS=OFF",
