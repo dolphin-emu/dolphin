@@ -4,7 +4,6 @@
 #include "DiscIO/CompressedBlob.h"
 
 #include <algorithm>
-#include <cstdio>
 #include <cstring>
 #include <memory>
 #include <string>
@@ -19,10 +18,10 @@
 #endif
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
-#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "DiscIO/Blob.h"
@@ -32,22 +31,23 @@
 
 namespace DiscIO
 {
-bool IsGCZBlob(File::IOFile& file);
+bool IsGCZBlob(File::DirectIOFile& file);
 
-CompressedBlobReader::CompressedBlobReader(File::IOFile file, const std::string& filename)
+CompressedBlobReader::CompressedBlobReader(File::DirectIOFile file, const std::string& filename)
     : m_file(std::move(file)), m_file_name(filename)
 {
   m_file_size = m_file.GetSize();
   m_file.Seek(0, File::SeekOrigin::Begin);
-  m_file.ReadArray(&m_header, 1);
+  m_file.Read(Common::AsWritableU8Span(m_header));
 
   SetSectorSize(m_header.block_size);
 
   // cache block pointers and hashes
   m_block_pointers.resize(m_header.num_blocks);
-  m_file.ReadArray(m_block_pointers.data(), m_header.num_blocks);
+  m_file.Read(Common::AsWritableU8Span(m_block_pointers));
+
   m_hashes.resize(m_header.num_blocks);
-  m_file.ReadArray(m_hashes.data(), m_header.num_blocks);
+  m_file.Read(Common::AsWritableU8Span(m_hashes));
 
   m_data_offset = (sizeof(CompressedBlobHeader)) +
                   (sizeof(u64)) * m_header.num_blocks     // skip block pointers
@@ -60,7 +60,7 @@ CompressedBlobReader::CompressedBlobReader(File::IOFile file, const std::string&
   m_zlib_buffer.resize(zlib_buffer_size);
 }
 
-std::unique_ptr<CompressedBlobReader> CompressedBlobReader::Create(File::IOFile file,
+std::unique_ptr<CompressedBlobReader> CompressedBlobReader::Create(File::DirectIOFile file,
                                                                    const std::string& filename)
 {
   if (IsGCZBlob(file))
@@ -74,7 +74,7 @@ CompressedBlobReader::~CompressedBlobReader() = default;
 
 std::unique_ptr<BlobReader> CompressedBlobReader::CopyReader() const
 {
-  return Create(m_file.Duplicate("rb"), m_file_name);
+  return Create(m_file, m_file_name);
 }
 
 // IMPORTANT: Calling this function invalidates all earlier pointers gotten from this function.
@@ -107,12 +107,10 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   // clear unused part of zlib buffer. maybe this can be deleted when it works fully.
   memset(&m_zlib_buffer[comp_block_size], 0, m_zlib_buffer.size() - comp_block_size);
 
-  m_file.Seek(offset, File::SeekOrigin::Begin);
-  if (!m_file.ReadBytes(m_zlib_buffer.data(), comp_block_size))
+  if (!m_file.OffsetRead(offset, m_zlib_buffer.data(), comp_block_size))
   {
     ERROR_LOG_FMT(DISCIO, "The disc image \"{}\" is truncated, some of the data is missing.",
                   m_file_name);
-    m_file.ClearError();
     return false;
   }
 
@@ -241,7 +239,7 @@ static ConversionResult<OutputParameters> Compress(CompressThreadState* state,
   return std::move(output_parameters);
 }
 
-static ConversionResultCode Output(OutputParameters parameters, File::IOFile* outfile,
+static ConversionResultCode Output(OutputParameters parameters, File::DirectIOFile* outfile,
                                    u64* position, std::vector<u64>* offsets, int progress_monitor,
                                    u32 num_blocks, const CompressCB& callback)
 {
@@ -252,7 +250,7 @@ static ConversionResultCode Output(OutputParameters parameters, File::IOFile* ou
 
   *position += parameters.data.size();
 
-  if (!outfile->WriteBytes(parameters.data.data(), parameters.data.size()))
+  if (!outfile->Write(parameters.data))
     return ConversionResultCode::WriteFailed;
 
   if (parameters.block_number % progress_monitor == 0)
@@ -278,8 +276,8 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
 {
   ASSERT(infile->GetDataSizeType() == DataSizeType::Accurate);
 
-  File::IOFile outfile(outfile_path, "wb");
-  if (!outfile)
+  File::DirectIOFile outfile(outfile_path, File::AccessMode::Write);
+  if (!outfile.IsOpen())
   {
     PanicAlertFmtT(
         "Failed to open the output file \"{0}\".\n"
@@ -365,9 +363,9 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
   {
     // Okay, go back and fill in headers
     outfile.Seek(0, File::SeekOrigin::Begin);
-    outfile.WriteArray(&header, 1);
-    outfile.WriteArray(offsets.data(), header.num_blocks);
-    outfile.WriteArray(hashes.data(), header.num_blocks);
+    outfile.Write(Common::AsU8Span(header));
+    outfile.Write(Common::AsU8Span(offsets));
+    outfile.Write(Common::AsU8Span(hashes));
 
     callback(Common::GetStringT("Done compressing disc image."), 1.0f);
   }
@@ -385,15 +383,10 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
   return result == ConversionResultCode::Success;
 }
 
-bool IsGCZBlob(File::IOFile& file)
+bool IsGCZBlob(File::DirectIOFile& file)
 {
-  const u64 position = file.Tell();
-  if (!file.Seek(0, File::SeekOrigin::Begin))
-    return false;
   CompressedBlobHeader header;
-  bool is_gcz = file.ReadArray(&header, 1) && header.magic_cookie == GCZ_MAGIC;
-  file.Seek(position, File::SeekOrigin::Begin);
-  return is_gcz;
+  return file.OffsetRead(0, Common::AsWritableU8Span(header)) && header.magic_cookie == GCZ_MAGIC;
 }
 
 }  // namespace DiscIO

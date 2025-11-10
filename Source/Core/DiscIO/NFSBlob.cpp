@@ -15,9 +15,9 @@
 #include <fmt/format.h>
 
 #include "Common/Align.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/AES.h"
-#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
@@ -39,8 +39,8 @@ bool NFSFileReader::ReadKey(const std::string& path, const std::string& director
   }
 
   const std::string key_path = parent + "code/htk.bin";
-  File::IOFile key_file(key_path, "rb");
-  if (!key_file.ReadBytes(key_out->data(), key_out->size()))
+  File::DirectIOFile key_file(key_path, File::AccessMode::Read);
+  if (!key_file.Read(*key_out))
   {
     ERROR_LOG_FMT(DISCIO, "Failed to read from {}", key_path);
     return false;
@@ -67,13 +67,13 @@ std::vector<NFSLBARange> NFSFileReader::GetLBARanges(const NFSHeader& header)
   return lba_ranges;
 }
 
-std::vector<File::IOFile> NFSFileReader::OpenFiles(const std::string& directory,
-                                                   File::IOFile first_file, u64 expected_raw_size,
-                                                   u64* raw_size_out)
+std::vector<File::DirectIOFile> NFSFileReader::OpenFiles(const std::string& directory,
+                                                         File::DirectIOFile first_file,
+                                                         u64 expected_raw_size, u64* raw_size_out)
 {
   const u64 file_count = Common::AlignUp(expected_raw_size, MAX_FILE_SIZE) / MAX_FILE_SIZE;
 
-  std::vector<File::IOFile> files;
+  std::vector<File::DirectIOFile> files;
   files.reserve(file_count);
 
   *raw_size_out = first_file.GetSize();
@@ -82,8 +82,8 @@ std::vector<File::IOFile> NFSFileReader::OpenFiles(const std::string& directory,
   for (u64 i = 1; i < file_count; ++i)
   {
     const std::string child_path = fmt::format("{}hif_{:06}.nfs", directory, i);
-    File::IOFile child(child_path, "rb");
-    if (!child)
+    File::DirectIOFile child(child_path, File::AccessMode::Read);
+    if (!child.IsOpen())
     {
       ERROR_LOG_FMT(DISCIO, "Failed to open {}", child_path);
       return {};
@@ -123,7 +123,7 @@ u64 NFSFileReader::CalculateExpectedDataSize(const std::vector<NFSLBARange>& lba
   return u64(greatest_block_index) * BLOCK_SIZE;
 }
 
-std::unique_ptr<NFSFileReader> NFSFileReader::Create(File::IOFile first_file,
+std::unique_ptr<NFSFileReader> NFSFileReader::Create(File::DirectIOFile first_file,
                                                      const std::string& path)
 {
   std::string directory, filename, extension;
@@ -136,18 +136,15 @@ std::unique_ptr<NFSFileReader> NFSFileReader::Create(File::IOFile first_file,
     return nullptr;
 
   NFSHeader header;
-  if (!first_file.Seek(0, File::SeekOrigin::Begin) || !first_file.ReadArray(&header, 1) ||
-      header.magic != NFS_MAGIC)
-  {
+  if (!first_file.OffsetRead(0, Common::AsWritableU8Span(header)) || header.magic != NFS_MAGIC)
     return nullptr;
-  }
 
   std::vector<NFSLBARange> lba_ranges = GetLBARanges(header);
 
   const u64 expected_raw_size = CalculateExpectedRawSize(lba_ranges);
 
   u64 raw_size;
-  std::vector<File::IOFile> files =
+  std::vector<File::DirectIOFile> files =
       OpenFiles(directory, std::move(first_file), expected_raw_size, &raw_size);
 
   if (files.empty())
@@ -157,8 +154,8 @@ std::unique_ptr<NFSFileReader> NFSFileReader::Create(File::IOFile first_file,
       new NFSFileReader(std::move(lba_ranges), std::move(files), key, raw_size));
 }
 
-NFSFileReader::NFSFileReader(std::vector<NFSLBARange> lba_ranges, std::vector<File::IOFile> files,
-                             Key key, u64 raw_size)
+NFSFileReader::NFSFileReader(std::vector<NFSLBARange> lba_ranges,
+                             std::vector<File::DirectIOFile> files, Key key, u64 raw_size)
     : m_lba_ranges(std::move(lba_ranges)), m_files(std::move(files)),
       m_aes_context(Common::AES::CreateContextDecrypt(key.data())), m_raw_size(raw_size), m_key(key)
 {
@@ -167,11 +164,7 @@ NFSFileReader::NFSFileReader(std::vector<NFSLBARange> lba_ranges, std::vector<Fi
 
 std::unique_ptr<BlobReader> NFSFileReader::CopyReader() const
 {
-  std::vector<File::IOFile> new_files{};
-  for (const File::IOFile& file : m_files)
-    new_files.push_back(file.Duplicate("rb"));
-  return std::unique_ptr<NFSFileReader>(
-      new NFSFileReader(m_lba_ranges, std::move(new_files), m_key, m_raw_size));
+  return std::unique_ptr<BlobReader>{new NFSFileReader(m_lba_ranges, m_files, m_key, m_raw_size)};
 }
 
 u64 NFSFileReader::GetDataSize() const
@@ -208,6 +201,7 @@ bool NFSFileReader::ReadEncryptedBlock(u64 physical_block_index)
 
   const u64 file_index = physical_block_index / BLOCKS_PER_FILE;
   const u64 block_in_file = physical_block_index % BLOCKS_PER_FILE;
+  const u64 offset_in_file = sizeof(NFSHeader) + block_in_file * BLOCK_SIZE;
 
   if (block_in_file == BLOCKS_PER_FILE - 1)
   {
@@ -217,33 +211,23 @@ bool NFSFileReader::ReadEncryptedBlock(u64 physical_block_index)
     constexpr size_t PART_1_SIZE = BLOCK_SIZE - sizeof(NFSHeader);
     constexpr size_t PART_2_SIZE = sizeof(NFSHeader);
 
-    File::IOFile& file_1 = m_files[file_index];
-    File::IOFile& file_2 = m_files[file_index + 1];
+    File::DirectIOFile& file_1 = m_files[file_index];
+    File::DirectIOFile& file_2 = m_files[file_index + 1];
 
-    if (!file_1.Seek(sizeof(NFSHeader) + block_in_file * BLOCK_SIZE, File::SeekOrigin::Begin) ||
-        !file_1.ReadBytes(m_current_block_encrypted.data(), PART_1_SIZE))
-    {
-      file_1.ClearError();
+    if (!file_1.OffsetRead(offset_in_file, m_current_block_encrypted.data(), PART_1_SIZE))
       return false;
-    }
 
-    if (!file_2.Seek(0, File::SeekOrigin::Begin) ||
-        !file_2.ReadBytes(m_current_block_encrypted.data() + PART_1_SIZE, PART_2_SIZE))
-    {
-      file_2.ClearError();
+    if (!file_2.OffsetRead(0, m_current_block_encrypted.data() + PART_1_SIZE, PART_2_SIZE))
       return false;
-    }
   }
   else
   {
     // Normal case. The read is offset by 0x200 bytes, but it's all within one file.
 
-    File::IOFile& file = m_files[file_index];
+    File::DirectIOFile& file = m_files[file_index];
 
-    if (!file.Seek(sizeof(NFSHeader) + block_in_file * BLOCK_SIZE, File::SeekOrigin::Begin) ||
-        !file.ReadBytes(m_current_block_encrypted.data(), BLOCK_SIZE))
+    if (!file.OffsetRead(offset_in_file, m_current_block_encrypted.data(), BLOCK_SIZE))
     {
-      file.ClearError();
       return false;
     }
   }
