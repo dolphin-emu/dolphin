@@ -3156,6 +3156,10 @@ void ARM64FloatEmitter::DUP(u8 size, ARM64Reg Rd, ARM64Reg Rn, u8 index)
 
   EmitCopy(IsQuad(Rd), 0, imm5, 0, Rd, Rn);
 }
+void ARM64FloatEmitter::EOR(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  EmitThreeSame(1, 0, 3, Rd, Rn, Rm);
+}
 void ARM64FloatEmitter::FABS(u8 size, ARM64Reg Rd, ARM64Reg Rn)
 {
   Emit2RegMisc(IsQuad(Rd), 0, 2 | (size >> 6), 0xF, Rd, Rn);
@@ -3505,6 +3509,53 @@ void ARM64FloatEmitter::UCVTF(ARM64Reg Rd, ARM64Reg Rn, int scale)
   EmitConversion2(sf, 0, false, type, 0, 3, 64 - scale, Rd, Rn);
 }
 
+// Comparison
+void ARM64FloatEmitter::CMEQ(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  EmitThreeSame(1, MathUtil::IntLog2(size) - 3, 0x11, Rd, Rn, Rm);
+}
+void ARM64FloatEmitter::CMEQ(u8 size, ARM64Reg Rd, ARM64Reg Rn)
+{
+  Emit2RegMisc(IsQuad(Rd), 0, MathUtil::IntLog2(size) - 3, 0x9, Rd, Rn);
+}
+void ARM64FloatEmitter::CMGE(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  EmitThreeSame(0, MathUtil::IntLog2(size) - 3, 0x7, Rd, Rn, Rm);
+}
+void ARM64FloatEmitter::CMGE(u8 size, ARM64Reg Rd, ARM64Reg Rn)
+{
+  Emit2RegMisc(IsQuad(Rd), 1, MathUtil::IntLog2(size) - 3, 0x8, Rd, Rn);
+}
+void ARM64FloatEmitter::CMGT(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  EmitThreeSame(0, MathUtil::IntLog2(size) - 3, 0x6, Rd, Rn, Rm);
+}
+void ARM64FloatEmitter::CMGT(u8 size, ARM64Reg Rd, ARM64Reg Rn)
+{
+  Emit2RegMisc(IsQuad(Rd), 0, MathUtil::IntLog2(size) - 3, 0x8, Rd, Rn);
+}
+void ARM64FloatEmitter::CMHI(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  EmitThreeSame(1, MathUtil::IntLog2(size) - 3, 0x6, Rd, Rn, Rm);
+}
+void ARM64FloatEmitter::CMHS(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  EmitThreeSame(1, MathUtil::IntLog2(size) - 3, 0x7, Rd, Rn, Rm);
+}
+void ARM64FloatEmitter::CMLE(u8 size, ARM64Reg Rd, ARM64Reg Rn)
+{
+  Emit2RegMisc(IsQuad(Rd), 1, MathUtil::IntLog2(size) - 3, 0x9, Rd, Rn);
+}
+void ARM64FloatEmitter::CMLT(u8 size, ARM64Reg Rd, ARM64Reg Rn)
+{
+  Emit2RegMisc(IsQuad(Rd), 0, MathUtil::IntLog2(size) - 3, 0xA, Rd, Rn);
+}
+void ARM64FloatEmitter::CMTST(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  EmitThreeSame(0, MathUtil::IntLog2(size) - 3, 0x11, Rd, Rn, Rm);
+}
+
+// Float comparison
 void ARM64FloatEmitter::FCMP(ARM64Reg Rn, ARM64Reg Rm)
 {
   EmitCompare(0, 0, 0, 0, Rn, Rm);
@@ -3664,7 +3715,7 @@ void ARM64FloatEmitter::SHL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift)
 {
   ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must be less than the element size! {} {}",
              shift, src_size);
-  EmitShiftImm(1, 0, src_size | shift, 0b01010, Rd, Rn);
+  EmitShiftImm(IsQuad(Rd), 0, src_size | shift, 0b01010, Rd, Rn);
 }
 
 void ARM64FloatEmitter::SSHLL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift, bool upper)
@@ -3674,11 +3725,18 @@ void ARM64FloatEmitter::SSHLL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift, 
   EmitShiftImm(upper, 0, src_size | shift, 0b10100, Rd, Rn);
 }
 
+void ARM64FloatEmitter::SSHR(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift)
+{
+  ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must be less than the element size! {} {}",
+             shift, src_size);
+  EmitShiftImm(IsQuad(Rd), 0, src_size * 2 - shift, 0b00000, Rd, Rn);
+}
+
 void ARM64FloatEmitter::URSHR(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift)
 {
   ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must be less than the element size! {} {}",
              shift, src_size);
-  EmitShiftImm(1, 1, src_size * 2 - shift, 0b00100, Rd, Rn);
+  EmitShiftImm(IsQuad(Rd), 1, src_size * 2 - shift, 0b00100, Rd, Rn);
 }
 
 void ARM64FloatEmitter::USHLL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift, bool upper)
