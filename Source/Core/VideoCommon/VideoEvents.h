@@ -37,11 +37,11 @@ struct PresentInfo
   // FIXME: Immediate should predict the timestamp of this present
   u64 emulated_timestamp = 0;
 
-  // TODO:
-  // u64 intended_present_time = 0;
+  // The desired presentation time.
+  TimePoint intended_present_time;
 
   // AfterPresent only: The actual time the frame was presented
-  u64 actual_present_time = 0;
+  TimePoint actual_present_time;
 
   enum class PresentTimeAccuracy
   {
