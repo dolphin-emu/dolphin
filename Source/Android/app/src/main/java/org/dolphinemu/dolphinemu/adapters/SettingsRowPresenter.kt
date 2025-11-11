@@ -25,7 +25,7 @@ class SettingsRowPresenter : Presenter() {
         return TvSettingsViewHolder(settingsCard)
     }
 
-    override fun onBindViewHolder(viewHolder: ViewHolder, item: Any) {
+    override fun onBindViewHolder(viewHolder: ViewHolder, item: Any?) {
         val holder = viewHolder as TvSettingsViewHolder
         val context = holder.cardParent.context
         val settingsItem = item as TvSettingsItem
