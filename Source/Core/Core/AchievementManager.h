@@ -309,6 +309,8 @@ private:
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Core/GeckoCode.h"
+#include "Core/ActionReplay.h"
 
 namespace ActionReplay
 {
@@ -336,16 +338,16 @@ public:
 
   constexpr bool IsHardcoreModeActive() { return false; }
 
-  constexpr bool ShouldGeckoCodeBeActivated(const Gecko::GeckoCode& code,
+  bool ShouldGeckoCodeBeActivated(const Gecko::GeckoCode& code,
                                             const std::string& game_id, u16 revision)
   {
-    return true;
+    return code.enabled;
   }
 
-  constexpr bool ShouldARCodeBeActivated(const ActionReplay::ARCode& code,
+  bool ShouldARCodeBeActivated(const ActionReplay::ARCode& code,
                                          const std::string& game_id, u16 revision)
   {
-    return true;
+    return code.enabled;
   }
 
   constexpr void LoadGame(const DiscIO::Volume*) {}
