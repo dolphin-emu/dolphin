@@ -16,6 +16,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
 class AlertMessage : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val emulationActivity: EmulationActivity = NativeLibrary.getEmulationActivity()
+            ?: throw IllegalStateException("EmulationActivity missing while showing alert")
         val args = requireArguments()
         val title = args.getString(ARG_TITLE).orEmpty()
         val message = args.getString(ARG_MESSAGE).orEmpty()
