@@ -44,15 +44,15 @@ namespace SerialInterface
 
 void JVSIOMessage::Start(int node)
 {
-  m_last_start = m_ptr;
-  const u8 hdr[3] = {0xE0, (u8)node, 0};
-  m_csum = 0;
-  AddData(hdr, 3, 1);
+  m_last_start = m_pointer;
+  const u8 header[3] = {0xE0, (u8)node, 0};
+  m_checksum = 0;
+  AddData(header, 3, 1);
 }
 
 void JVSIOMessage::AddData(const u8* dst, std::size_t len, int sync = 0)
 {
-  if (m_ptr + len >= 0x80)
+  if (m_pointer + len >= sizeof(m_message))
   {
     PanicAlertFmt("JVSIOMessage overrun!");
     return;
@@ -63,16 +63,26 @@ void JVSIOMessage::AddData(const u8* dst, std::size_t len, int sync = 0)
     const u8 c = *dst++;
     if (!sync && ((c == 0xE0) || (c == 0xD0)))
     {
-      m_msg[m_ptr++] = 0xD0;
-      m_msg[m_ptr++] = c - 1;
+      if (m_pointer + 2 > sizeof(m_message))
+      {
+        PanicAlertFmt("JVSIOMessage overrun!");
+        break;
+      }
+      m_message[m_pointer++] = 0xD0;
+      m_message[m_pointer++] = c - 1;
     }
     else
     {
-      m_msg[m_ptr++] = c;
+      if (m_pointer >= sizeof(m_message))
+      {
+        PanicAlertFmt("JVSIOMessage overrun!");
+        break;
+      }
+      m_message[m_pointer++] = c;
     }
 
     if (!sync)
-      m_csum += c;
+      m_checksum += c;
     sync = 0;
   }
 }
@@ -95,9 +105,16 @@ void JVSIOMessage::AddData(u32 n)
 
 void JVSIOMessage::End()
 {
-  const u32 len = m_ptr - m_last_start;
-  m_msg[m_last_start + 2] = len - 2;  // assuming len <0xD0
-  AddData(m_csum + len - 2);
+  const u32 len = m_pointer - m_last_start;
+  if (m_last_start + 2 < sizeof(m_message) && len >= 3)
+  {
+    m_message[m_last_start + 2] = len - 2;  // assuming len <0xD0
+    AddData(m_checksum + len - 2);
+  }
+  else
+  {
+    PanicAlertFmt("JVSIOMessage: Not enough space for checksum!");
+  }
 }
 
 static u8 CheckSumXOR(u8* data, u32 length)
@@ -2095,8 +2112,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
           data_out[data_offset++] = gcam_command;
 
-          const u8* buf = message.m_msg.data();
-          const u32 len = message.m_ptr;
+          const u8* buf = message.m_message.data();
+          const u32 len = message.m_pointer;
           data_out[data_offset++] = len;
 
           for (u32 i = 0; i < len; ++i)

@@ -90,9 +90,6 @@ static File::IOFile s_dimm;
 
 static Common::UniqueBuffer<u8> s_dimm_disc;
 
-auto& s_system = Core::System::GetInstance();
-auto& s_memory = s_system.GetMemory();
-
 static u8 s_firmware[2 * 1024 * 1024];
 static u32 s_media_buffer_32[192];
 static u8* const s_media_buffer = reinterpret_cast<u8*>(s_media_buffer_32);
@@ -107,6 +104,56 @@ constexpr char s_allnet_reply[] = {
     "second=12&place_id=1234&setting=0x123&region0=jap&region_name0=japan&region_name1=usa&region_"
     "name2=asia&region_name3=export&end"};
 
+static const MediaBoardRanges s_mediaboard_ranges[] = {
+    {DIMMCommandVersion1, 0x1F900040, s_media_buffer, sizeof(s_media_buffer_32),
+     DIMMCommandVersion1},
+    {DIMMCommandVersion2, 0x84000060, s_media_buffer, sizeof(s_media_buffer_32),
+     DIMMCommandVersion2},
+    {DIMMCommandVersion2_2, 0x89000220, s_media_buffer, sizeof(s_media_buffer_32),
+     DIMMCommandVersion2_2},
+    {NetworkCommandAddress1, NetworkBufferAddress2, s_network_command_buffer,
+     sizeof(s_network_command_buffer), NetworkCommandAddress1},
+    {NetworkCommandAddress2, 0x89060200, s_network_command_buffer, sizeof(s_network_command_buffer),
+     NetworkCommandAddress2},
+    {NetworkBufferAddress1, 0x1FA10000, s_network_buffer, sizeof(s_network_buffer),
+     NetworkBufferAddress1},
+    {NetworkBufferAddress2, 0x1FD10000, s_network_buffer, sizeof(s_network_buffer),
+     NetworkBufferAddress2},
+    {NetworkBufferAddress3, 0x89110000, s_network_buffer, sizeof(s_network_buffer),
+     NetworkBufferAddress3},
+    {NetworkBufferAddress4, 0x89240000, s_network_buffer, sizeof(s_network_buffer),
+     NetworkBufferAddress4},
+    {NetworkBufferAddress5, 0x1FB10000, s_network_buffer, sizeof(s_network_buffer),
+     NetworkBufferAddress5},
+    {AllNetSettings, 0x1F000000, s_allnet_settings, sizeof(s_allnet_settings), AllNetSettings},
+    {AllNetBuffer, 0x89011000, s_allnet_buffer, sizeof(s_allnet_buffer), AllNetBuffer},
+};
+
+static const std::unordered_map<u16, GameType> s_game_map = {
+    {0x4747, FZeroAX},
+    {0x4841, FZeroAXMonster},
+    {0x4B50, MarioKartGP},
+    {0x4B5A, MarioKartGP},
+    {0x4E4A, MarioKartGP2},
+    {0x4E4C, MarioKartGP2},
+    {0x454A, VirtuaStriker3},
+    {0x4559, VirtuaStriker3},
+    {0x4C4A, VirtuaStriker4_2006},
+    {0x4C4B, VirtuaStriker4_2006},
+    {0x4C4C, VirtuaStriker4_2006},
+    {0x484A, VirtuaStriker4},
+    {0x484E, VirtuaStriker4},
+    {0x485A, VirtuaStriker4},
+    {0x4A41, VirtuaStriker4},
+    {0x4A4A, VirtuaStriker4},
+    {0x4658, KeyOfAvalon},
+    {0x4A4E, KeyOfAvalon},
+    {0x4758, GekitouProYakyuu},
+    {0x5342, VirtuaStriker3},
+    {0x3132, VirtuaStriker3},
+    {0x454C, VirtuaStriker3},
+    {0x3030, FirmwareUpdate},
+};
 // Sockets FDs are required to go from 0 to 63.
 // Games use the FD as indexes so we have to workaround it.
 
@@ -121,58 +168,75 @@ static u32 SocketCheck(u32 x)
   return 0;
 }
 
-static bool NetworkCMDBufferCheck(u32 x)
+static bool NetworkCMDBufferCheck(u32 offset, u32 length)
 {
-  if (x < std::size(s_network_command_buffer))
+  if (offset <= std::size(s_network_command_buffer) &&
+      length <= std::size(s_network_command_buffer) - offset)
+  {
     return true;
+  }
 
-  ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Invalid command network buffer offset:{}", x);
+  ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Invalid command buffer range: offset={}, length={}", offset,
+                length);
   return false;
 }
 
-static bool NetworkBufferCheck(u32 x)
+static bool NetworkBufferCheck(u32 offset, u32 length)
 {
-  if (x < std::size(s_network_buffer))
+  if (offset <= std::size(s_network_buffer) && length <= std::size(s_network_buffer) - offset)
+  {
     return true;
+  }
 
-  ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Invalid network buffer offset:{}", x);
+  ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Invalid network buffer range: offset={}, length={}", offset,
+                length);
   return false;
 }
 
-static void NetworkCMDBufferRead(u32 offset, u32 address, u32 length)
+static bool SafeCopyToEmu(Memory::MemoryManager& memory, u32 address, const u8* source,
+                          u64 source_size, u32 offset, u32 length)
 {
-  INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Read NETWORK COMMAND BUFFER ({:08x},{})", offset, length);
-  if (NetworkCMDBufferCheck(offset))
+  if (offset > source_size || length > source_size - offset)
   {
-    s_memory.CopyToEmu(address, s_network_command_buffer + offset, length);
+    ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Read overflow: offset=0x{:08x}, length={}, source_size={}",
+                  offset, length, source_size);
+    return false;
   }
-}
 
-static void NetworkBufferRead(u32 offset, u32 address, u32 length)
-{
-  INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Read NETWORK BUFFER ({:08x},{})", offset, length);
-  if (NetworkBufferCheck(offset))
+  auto span = memory.GetSpanForAddress(address);
+  if (length > span.size())
   {
-    s_memory.CopyToEmu(address, s_network_buffer + offset, length);
+    ERROR_LOG_FMT(AMMEDIABOARD,
+                  "GC-AM: Memory buffer too small: address=0x{:08x}, length={}, span={}", address,
+                  length, span.size());
+    return false;
   }
-}
 
-static void NetworkBufferWrite(u32 offset, u32 address, u32 length)
-{
-  INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Write NETWORK BUFFER ({:08x},{})", offset, length);
-  if (NetworkBufferCheck(offset))
-  {
-    s_memory.CopyFromEmu(s_network_buffer + offset, address, length);
-  }
+  memory.CopyToEmu(address, source + offset, length);
+  return true;
 }
-
-static void NetworkCMDBufferWrite(u32 offset, u32 address, u32 length)
+static bool SafeCopyFromEmu(Memory::MemoryManager& memory, u8* destionation, u32 address,
+                            u64 destionation_size, u32 offset, u32 length)
 {
-  INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Write NETWORK COMMAND BUFFER ({:08x},{})", offset, length);
-  if (NetworkCMDBufferCheck(offset))
+  if (offset > destionation_size || length > destionation_size - offset)
   {
-    s_memory.CopyFromEmu(s_network_command_buffer + offset, address, length);
+    ERROR_LOG_FMT(AMMEDIABOARD,
+                  "GC-AM: Write overflow: offset=0x{:08x}, length={}, destionation_size={}", offset,
+                  length, destionation_size);
+    return false;
   }
+
+  auto span = memory.GetSpanForAddress(address);
+  if (length > span.size())
+  {
+    ERROR_LOG_FMT(AMMEDIABOARD,
+                  "GC-AM: Memory buffer too small: address=0x{:08x}, length={}, span={}", address,
+                  length, span.size());
+    return false;
+  }
+
+  memory.CopyFromEmu(destionation + offset, address, length);
+  return true;
 }
 
 static SOCKET socket_(int af, int type, int protocol)
@@ -209,11 +273,14 @@ static SOCKET accept_(int fd, sockaddr* addr, socklen_t* len)
 
 static inline void PrintMBBuffer(u32 address, u32 length)
 {
+  const auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   for (u32 i = 0; i < length; i += 0x10)
   {
-    INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: {:08x} {:08x} {:08x} {:08x}", s_memory.Read_U32(address + i),
-                 s_memory.Read_U32(address + i + 4), s_memory.Read_U32(address + i + 8),
-                 s_memory.Read_U32(address + i + 12));
+    INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: {:08x} {:08x} {:08x} {:08x}", memory.Read_U32(address + i),
+                 memory.Read_U32(address + i + 4), memory.Read_U32(address + i + 8),
+                 memory.Read_U32(address + i + 12));
   }
 }
 
@@ -310,7 +377,7 @@ u8* InitDIMM(u32 size)
     s_dimm_disc.reset(size);
     if (s_dimm_disc.empty())
     {
-      PanicAlertFmt("Failed to allocate DIMM s_memory.");
+      PanicAlertFmt("Failed to allocate DIMM memory.");
       return nullptr;
     }
   }
@@ -456,15 +523,43 @@ static s32 NetDIMMConnect(int fd, sockaddr_in* addr, int len)
   return ret;
 }
 
-static void FileWriteData(File::IOFile* file, u32 seek_pos, const u8* data, std::size_t length)
+static void FileWriteData(Memory::MemoryManager& memory, File::IOFile* file, u32 seek_pos,
+                          u32 address, std::size_t length)
 {
-  file->Seek(seek_pos, File::SeekOrigin::Begin);
-  file->WriteBytes(data, length);
-  file->Flush();
+  auto span = memory.GetSpanForAddress(address);
+  if (length <= span.size())
+  {
+    file->Seek(seek_pos, File::SeekOrigin::Begin);
+    file->WriteBytes(span.data(), length);
+    file->Flush();
+  }
+  else
+  {
+    ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Write overflow: address=0x{:08x}, length={}, span={}",
+                  address, length, span.size());
+  }
+}
+static void FileReadData(Memory::MemoryManager& memory, File::IOFile* file, u32 seek_pos,
+                         u32 address, std::size_t length)
+{
+  auto span = memory.GetSpanForAddress(address);
+  if (length <= span.size())
+  {
+    file->Seek(seek_pos, File::SeekOrigin::Begin);
+    file->ReadBytes(span.data(), length);
+  }
+  else
+  {
+    ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Read overflow: address=0x{:08x}, length={}, span={}",
+                  address, length, span.size());
+  }
 }
 
 u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u32 length)
 {
+  auto& system = Core::System::GetInstance();
+  auto& memory = system.GetMemory();
+
   dicmd_buf[0] ^= s_gcam_key_a;
   dicmd_buf[1] ^= s_gcam_key_b;
   dicmd_buf[2] ^= s_gcam_key_c;
@@ -481,12 +576,12 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
 
   if (s_gcam_key_a == 0)
   {
-    if (s_memory.Read_U32(0))
+    if (memory.Read_U32(0))
     {
-      HLE::Patch(s_system, 0x813048B8, "OSReport");
-      HLE::Patch(s_system, 0x8130095C, "OSReport");  // Apploader
+      HLE::Patch(system, 0x813048B8, "OSReport");
+      HLE::Patch(system, 0x8130095C, "OSReport");  // Apploader
 
-      InitKeys(s_memory.Read_U32(0), s_memory.Read_U32(4), s_memory.Read_U32(8));
+      InitKeys(memory.Read_U32(0), memory.Read_U32(4), memory.Read_U32(8));
     }
   }
 
@@ -501,10 +596,10 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
   if (offset == 0x0002440)
   {
     // Set by OSResetSystem
-    if (s_memory.Read_U32(0x811FFF00) == 1)
+    if (memory.Read_U32(0x811FFF00) == 1)
     {
       // Don't map firmware while in SegaBoot
-      if (s_memory.Read_U32(0x8006BF70) != 0x0A536567)
+      if (memory.Read_U32(0x8006BF70) != 0x0A536567)
       {
         s_firmware_map = true;
       }
@@ -540,35 +635,35 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       switch (offset)
       {
       case MediaBoardStatus1:
-        s_memory.Write_U16(1, address);
+        memory.Write_U16(1, address);
         break;
       case MediaBoardStatus2:
-        s_memory.Memset(address, 0, length);
+        memory.Memset(address, 0, length);
         break;
       case MediaBoardStatus3:
-        s_memory.Memset(address, 0xFF, length);
+        memory.Memset(address, 0xFF, length);
         // DIMM size (512MB)
-        s_memory.Write_U32_Swap(0x20000000, address);
+        memory.Write_U32_Swap(0x20000000, address);
         // GCAM signature
-        s_memory.Write_U32(0x4743414D, address + 4);
+        memory.Write_U32(0x4743414D, address + 4);
         break;
       case 0x80000100:
-        s_memory.Write_U32_Swap(0x001F1F1F, address);
+        memory.Write_U32_Swap(0x001F1F1F, address);
         break;
       case FirmwareStatus1:
-        s_memory.Write_U32_Swap(0x01FA, address);
+        memory.Write_U32_Swap(0x01FA, address);
         break;
       case FirmwareStatus2:
-        s_memory.Write_U32_Swap(1, address);
+        memory.Write_U32_Swap(1, address);
         break;
       case 0x80000160:
-        s_memory.Write_U32(0x00001E00, address);
+        memory.Write_U32(0x00001E00, address);
         break;
       case 0x80000180:
-        s_memory.Write_U32(0, address);
+        memory.Write_U32(0, address);
         break;
       case 0x800001A0:
-        s_memory.Write_U32(0xFFFFFFFF, address);
+        memory.Write_U32(0xFFFFFFFF, address);
         break;
       default:
         PrintMBBuffer(address, length);
@@ -581,109 +676,57 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
     // Network configuration
     if (offset == 0x00000000 && length == 0x80)
     {
-      s_netcfg.Seek(0, File::SeekOrigin::Begin);
-      s_netcfg.ReadBytes(s_memory.GetSpanForAddress(address).data(), length);
+      FileReadData(memory, &s_netcfg, 0, address, length);
       return 0;
     }
 
-    // media crc check on/off
+    // Media crc check on/off
     if (offset == DIMMExtraSettings && length == 0x20)
     {
-      s_extra.Seek(0, File::SeekOrigin::Begin);
-      s_extra.ReadBytes(s_memory.GetSpanForAddress(address).data(), length);
+      FileReadData(memory, &s_extra, 0, address, length);
       return 0;
     }
 
-    // DIMM s_memory (8MB)
+    // DIMM memory (8MB)
     if (offset >= DIMMMemory && offset < 0x1F800000)
     {
-      const u32 dimm_offset = offset - DIMMMemory;
-      s_dimm.Seek(dimm_offset, File::SeekOrigin::Begin);
-      s_dimm.ReadBytes(s_memory.GetSpanForAddress(address).data(), length);
+      FileReadData(memory, &s_dimm, offset - DIMMMemory, address, length);
+      return 0;
+    }
+
+    // DIMM memory (8MB)
+    if (offset >= DIMMMemory2 && offset < 0xFF800000)
+    {
+      FileReadData(memory, &s_dimm, offset - DIMMMemory2, address, length);
+      return 0;
+    }
+
+    if (offset == NetworkControl && length == 0x20)
+    {
+      FileReadData(memory, &s_netctrl, 0, address, length);
       return 0;
     }
 
     if (offset >= AllNetBuffer && offset < 0x89011000)
     {
       INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Read All.Net Buffer ({:08x},{})", offset, length);
-
       // Fake reply
-      s_memory.CopyToEmu(address, s_allnet_reply, sizeof(s_allnet_reply));
+      SafeCopyToEmu(memory, address, (u8*)s_allnet_reply, sizeof(s_allnet_reply),
+                    offset - AllNetBuffer, sizeof(s_allnet_reply));
       return 0;
     }
 
-    if (offset >= DIMMCommandVersion1 && offset < 0x1F900040 && length == 0x20)
+    for (const auto& range : s_mediaboard_ranges)
     {
-      const u32 dimm_offset = offset - DIMMCommandVersion1;
-
-      s_memory.CopyToEmu(address, s_media_buffer + dimm_offset, length);
-
-      INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Read MEDIA BOARD COMM AREA (1) ({:08x},{})", offset,
-                   length);
-      PrintMBBuffer(address, length);
-      return 0;
-    }
-
-    if (offset == DIMMCommandVersion2 || offset == DIMMCommandVersion2_1 && length == 0x20)
-    {
-      const u32 dimm_offset = offset - DIMMCommandVersion2;
-      s_memory.CopyToEmu(address, s_media_buffer + dimm_offset, length);
-
-      INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Read MEDIA BOARD COMM AREA (2) ({:08x},{})", offset,
-                   length);
-      PrintMBBuffer(address, length);
-      return 0;
-    }
-
-    if (offset == DIMMCommandVersion2_2 || offset == DIMMCommandVersion2_2_1 && length == 0x20)
-    {
-      const u32 dimm_offset = offset - DIMMCommandVersion2_2;
-      s_memory.CopyToEmu(address, s_media_buffer + dimm_offset, length);
-      INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Read MEDIA BOARD COMM AREA (3) ({:08x})", dimm_offset);
-      PrintMBBuffer(address, length);
-      return 0;
-    }
-
-    if (offset >= NetworkBufferAddress4 && offset < 0x89240000)
-    {
-      NetworkBufferRead(offset - NetworkBufferAddress4, address, length);
-      return 0;
-    }
-
-    if (offset >= NetworkBufferAddress5 && offset < 0x1FB10000)
-    {
-      NetworkBufferRead(offset - NetworkBufferAddress5, address, length);
-      return 0;
-    }
-
-    if (offset >= NetworkCommandAddress1 && offset < NetworkBufferAddress2)
-    {
-      NetworkCMDBufferRead(offset - NetworkCommandAddress1, address, length);
-      return 0;
-    }
-
-    if (offset >= NetworkCommandAddress2 && offset < 0x89060200)
-    {
-      NetworkCMDBufferRead(offset - NetworkCommandAddress2, address, length);
-      return 0;
-    }
-
-    if (offset >= NetworkBufferAddress1 && offset < 0x1FA10000)
-    {
-      NetworkBufferRead(offset - NetworkBufferAddress1, address, length);
-      return 0;
-    }
-
-    if (offset >= NetworkBufferAddress2 && offset < 0x1FD10000)
-    {
-      NetworkBufferRead(offset - NetworkBufferAddress2, address, length);
-      return 0;
-    }
-
-    if (offset >= NetworkBufferAddress3 && offset < 0x89110000)
-    {
-      NetworkBufferRead(offset - NetworkBufferAddress3, address, length);
-      return 0;
+      if (offset >= range.start && offset < range.end)
+      {
+        INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Read MediaBoard ({:08x},{:08x},{:08x})", offset,
+                     range.base_offset, length);
+        SafeCopyToEmu(memory, address, range.buffer, range.buffer_size, offset - range.base_offset,
+                      length);
+        PrintMBBuffer(address, length);
+        return 0;
+      }
     }
 
     if (offset == DIMMCommandExecute2)
@@ -734,7 +777,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
           const u32 addr_off = s_media_buffer_32[3] - NetworkCommandAddress2;
           const u32 len_off = s_media_buffer_32[4] - NetworkCommandAddress2;
 
-          if (!NetworkCMDBufferCheck(addr_off) || !NetworkCMDBufferCheck(len_off))
+          if (!NetworkCMDBufferCheck(addr_off, sizeof(sockaddr)) ||
+              !NetworkCMDBufferCheck(len_off, sizeof(u32)))
           {
             break;
           }
@@ -758,7 +802,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         const u32 off = s_media_buffer_32[3] - NetworkCommandAddress2;
         const u32 len = s_media_buffer_32[4];
 
-        if (!NetworkCMDBufferCheck(off))
+        if (!NetworkCMDBufferCheck(off, len))
         {
           break;
         }
@@ -810,7 +854,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         const u32 off = s_media_buffer_32[3] - NetworkCommandAddress2;
         const u32 len = s_media_buffer_32[4];
 
-        if (!NetworkCMDBufferCheck(off))
+        if (!NetworkCMDBufferCheck(off, len))
         {
           break;
         }
@@ -863,22 +907,24 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       case AMMBCommand::Recv:
       {
         const SOCKET fd = s_sockets[SocketCheck(s_media_buffer_32[2])];
-        const u32 off = s_media_buffer_32[3];
-        const auto len = std::min<u32>(s_media_buffer_32[4], sizeof(s_network_buffer));
+        u32 off = s_media_buffer_32[3];
+        auto len = std::min<u32>(s_media_buffer_32[4], sizeof(s_network_buffer));
 
-        u8* buffer = s_network_buffer + off;
-
-        if (off >= NetworkBufferAddress4 && off < NetworkBufferAddress4 + sizeof(s_network_buffer))
+        if (off >= NetworkBufferAddress4 &&
+            off + len <= NetworkBufferAddress4 + sizeof(s_network_buffer))
         {
-          buffer = s_network_buffer + off - NetworkBufferAddress4;
+          off -= NetworkBufferAddress4;
         }
-        else
+        else if (off + len > sizeof(s_network_buffer))
         {
-          ERROR_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv(error) unhandled destination:{:08x}\n", off);
-          buffer = s_network_buffer;
+          ERROR_LOG_FMT(AMMEDIABOARD_NET,
+                        "GC-AM: recv(error) invalid destination or length: off={:08x}, len={}\n",
+                        off, len);
+          off = 0;
+          len = 0;
         }
 
-        const int ret = recv(fd, reinterpret_cast<char*>(buffer), len, 0);
+        int ret = recv(fd, reinterpret_cast<char*>(s_network_buffer + off), len, 0);
         const int err = WSAGetLastError();
 
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv( {}, 0x{:08x}, {} ):{} {}\n", fd, off, len,
@@ -892,16 +938,20 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       {
         const SOCKET fd = s_sockets[SocketCheck(s_media_buffer_32[2])];
         u32 off = s_media_buffer_32[3];
-        const u32 len = s_media_buffer_32[4];
+        auto len = std::min<u32>(s_media_buffer_32[4], sizeof(s_network_buffer));
 
-        if (off >= NetworkBufferAddress3 && off < NetworkBufferAddress3 + sizeof(s_network_buffer))
+        if (off >= NetworkBufferAddress3 &&
+            off + len <= NetworkBufferAddress3 + sizeof(s_network_buffer))
         {
           off -= NetworkBufferAddress3;
         }
-        else
+        else if (off + len > sizeof(s_network_buffer))
         {
-          ERROR_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: send(error) unhandled destination:{:08x}\n", off);
+          ERROR_LOG_FMT(AMMEDIABOARD_NET,
+                        "GC-AM: send(error) unhandled destination or length: {:08x}, len={}", off,
+                        len);
           off = 0;
+          len = 0;
         }
 
         const int ret = send(fd, reinterpret_cast<char*>(s_network_buffer + off), len, 0);
@@ -959,7 +1009,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         if (s_media_buffer_32[6] != 0)
         {
           const u32 fd_set_offset = s_media_buffer_32[6] - NetworkCommandAddress2;
-          if (!NetworkCMDBufferCheck(fd_set_offset + sizeof(fd_set)))
+          if (!NetworkCMDBufferCheck(fd_set_offset, sizeof(fd_set)))
           {
             ERROR_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: Select(error) unhandled destination:{:08x}\n",
                           s_media_buffer_32[6]);
@@ -1017,11 +1067,11 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       case AMMBCommand::SetSockOpt:
       {
         const SOCKET fd = s_sockets[SocketCheck(s_media_buffer_32[2])];
-        const int level = (int)(s_media_buffer_32[3]);
-        const int optname = (int)(s_media_buffer_32[4]);
-        const int optlen = (int)(s_media_buffer_32[6]);
+        const int level = static_cast<int>(s_media_buffer_32[3]);
+        const int optname = static_cast<int>(s_media_buffer_32[4]);
+        const int optlen = static_cast<int>(s_media_buffer_32[6]);
 
-        if (!NetworkCMDBufferCheck(s_media_buffer_32[5] - NetworkCommandAddress2 + optlen))
+        if (!NetworkCMDBufferCheck(s_media_buffer_32[5] - NetworkCommandAddress2, optlen))
         {
           break;
         }
@@ -1097,7 +1147,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       {
         const u32 net_buffer_offset = s_media_buffer_32[2] - NetworkCommandAddress2;
 
-        if (!NetworkCMDBufferCheck(net_buffer_offset))
+        if (!NetworkCMDBufferCheck(net_buffer_offset, 15))
         {
           break;
         }
@@ -1134,35 +1184,9 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
 
       s_media_buffer[3] |= 0x80;  // Command complete flag
 
-      s_memory.Memset(address, 0, length);
+      memory.Memset(address, 0, length);
 
       ExpansionInterface::GenerateInterrupt(0x10);
-      return 0;
-    }
-
-    // DIMM s_memory (8MB)
-    if (offset >= DIMMMemory2 && offset < 0xFF800000)
-    {
-      const u32 dimm_offset = offset - DIMMMemory2;
-      s_dimm.Seek(dimm_offset, File::SeekOrigin::Begin);
-      s_dimm.ReadBytes(s_memory.GetSpanForAddress(address).data(), length);
-      return 0;
-    }
-
-    if (offset >= AllNetSettings && offset < 0x1F000000)
-    {
-      const u32 allnet_offset = offset - AllNetSettings;
-      if (allnet_offset + length < sizeof(s_allnet_settings))
-      {
-        s_memory.CopyToEmu(address, s_allnet_settings + allnet_offset, length);
-      }
-      return 0;
-    }
-
-    if (offset == NetworkControl && length == 0x20)
-    {
-      s_netctrl.Seek(0, File::SeekOrigin::Begin);
-      s_netctrl.ReadBytes(s_memory.GetSpanForAddress(address).data(), length);
       return 0;
     }
 
@@ -1175,13 +1199,21 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
 
     if (s_firmware_map)
     {
-      s_memory.CopyToEmu(address, s_firmware + offset, length);
+      if (!SafeCopyToEmu(memory, address, s_firmware, sizeof(s_firmware), offset, length))
+      {
+        ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Invalid firmware buffer range: offset={}, length={}",
+                      offset, length);
+      }
       return 0;
     }
 
     if (s_dimm_disc.size())
     {
-      s_memory.CopyToEmu(address, s_dimm_disc.data() + offset, length);
+      if (!SafeCopyToEmu(memory, address, s_dimm_disc.data(), s_dimm_disc.size(), offset, length))
+      {
+        ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Invalid DIMM Disc read from: offset={}, length={}",
+                      offset, length);
+      }
       return 0;
     }
 
@@ -1204,11 +1236,11 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
 
     if (s_firmware_map)
     {
-      // Firmware s_memory (2MB)
+      // Firmware memory (2MB)
       if ((offset >= 0x00400000) && (offset <= 0x600000))
       {
         const u32 fwoffset = offset - 0x00400000;
-        s_memory.CopyFromEmu(s_firmware + fwoffset, address, length);
+        memory.CopyFromEmu(s_firmware + fwoffset, address, length);
         return 0;
       }
     }
@@ -1216,101 +1248,59 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
     // Network configuration
     if (offset == 0x00000000 && length == 0x80)
     {
-      FileWriteData(&s_netcfg, 0, s_memory.GetSpanForAddress(address).data(), length);
+      FileWriteData(memory, &s_netcfg, 0, address, length);
       return 0;
     }
 
     // media crc check on/off
     if (offset == DIMMExtraSettings && length == 0x20)
     {
-      FileWriteData(&s_extra, 0, s_memory.GetSpanForAddress(address).data(), length);
+      FileWriteData(memory, &s_extra, 0, address, length);
       return 0;
     }
 
-    // Backup s_memory (8MB)
+    // Backup memory (8MB)
     if (offset >= BackupMemory && offset < 0x00800000)
     {
-      FileWriteData(&s_backup, 0, s_memory.GetSpanForAddress(address).data(), length);
+      FileWriteData(memory, &s_backup, 0, address, length);
       return 0;
     }
 
-    // DIMM s_memory (8MB)
+    // DIMM memory (8MB)
     if (offset >= DIMMMemory && offset < 0x1F800000)
     {
-      const u32 dimm_offset = offset - DIMMMemory;
-      FileWriteData(&s_dimm, dimm_offset, s_memory.GetSpanForAddress(address).data(), length);
+      FileWriteData(memory, &s_dimm, offset - DIMMMemory, address, length);
       return 0;
     }
 
-    if (offset >= AllNetBuffer && offset < 0x89011000)
+    // Firmware Write
+    if (offset >= FirmwareAddress && offset < 0x84818000)
     {
-      const u32 allnet_offset = offset - AllNetBuffer;
-      if (allnet_offset + length < sizeof(s_allnet_settings))
-      {
-        s_memory.CopyFromEmu(s_allnet_buffer + allnet_offset, address, length);
-      }
-      return 0;
-    }
-
-    if (offset >= NetworkCommandAddress1 && offset < 0x1F801240)
-    {
-      NetworkCMDBufferWrite(offset - NetworkCommandAddress1, address, length);
-      return 0;
-    }
-
-    if (offset >= NetworkCommandAddress2 && offset < 0x89060200 && length <= 0x60)
-    {
-      NetworkCMDBufferWrite(offset - NetworkCommandAddress2, address, length);
-      return 0;
-    }
-
-    if (offset >= NetworkBufferAddress1 && offset < 0x1FA20000)
-    {
-      NetworkBufferWrite(offset - NetworkBufferAddress1, address, length);
-      return 0;
-    }
-
-    if (offset >= NetworkBufferAddress2 && offset < 0x1FD10000)
-    {
-      NetworkBufferWrite(offset - NetworkBufferAddress2, address, length);
-      return 0;
-    }
-
-    if (offset >= NetworkBufferAddress3 && offset < 0x89110000)
-    {
-      NetworkBufferWrite(offset - NetworkBufferAddress3, address, length);
-      return 0;
-    }
-
-    if (offset >= DIMMCommandVersion1 && offset < 0x1F900040 && length == 0x20)
-    {
-      const u32 dimm_offset = offset - DIMMCommandVersion1;
-
-      s_memory.CopyFromEmu(s_media_buffer + dimm_offset, address, length);
-      INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Write MEDIA BOARD COMM AREA (1) ({:08x},{})", offset,
-                   length);
+      INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Write Firmware ({:08x})", offset);
       PrintMBBuffer(address, length);
       return 0;
     }
 
-    if (offset == DIMMCommandVersion2 || offset == DIMMCommandVersion2_1 && length == 0x20)
+    // DIMM memory (8MB)
+    if (offset >= DIMMMemory2 && offset < 0xFF800000)
     {
-      const u32 dimm_offset = offset - DIMMCommandVersion2;
+      FileWriteData(memory, &s_dimm, offset - DIMMMemory2, address, length);
+      return 0;
+    }
 
-      s_memory.CopyFromEmu(s_media_buffer + dimm_offset, address, length);
-      INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Write MEDIA BOARD COMM AREA (2) ({:08x},{})", offset,
-                   length);
-      PrintMBBuffer(address, length);
+    if (offset == NetworkControl && length == 0x20)
+    {
+      FileWriteData(memory, &s_netctrl, 0, address, length);
       return 0;
     }
 
     if (offset == DIMMCommandExecute1 && length == 0x20)
     {
-      if (s_memory.Read_U8(address) == 1)
+      if (memory.Read_U8(address) == 1)
       {
         const AMMBCommand ammb_command = Common::BitCastPtr<AMMBCommand>(s_media_buffer + 0x22);
 
-        INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Execute command (2):{0:04X}",
+        INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Execute command: (1):{0:04X}",
                      static_cast<u16>(ammb_command));
 
         memset(s_media_buffer, 0, 0x20);
@@ -1365,41 +1355,19 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         ExpansionInterface::GenerateInterrupt(0x04);
         return 0;
       }
-      return 0;
     }
 
-    if (offset == DIMMCommandVersion2_2 || offset == DIMMCommandVersion2_2_1 && length == 0x20)
+    for (const auto& range : s_mediaboard_ranges)
     {
-      const u32 dimm_offset = offset - DIMMCommandVersion2_2;
-
-      INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Write MEDIA BOARD COMM AREA (3) ({:08x},{})", offset,
-                   length);
-      PrintMBBuffer(address, length);
-
-      s_memory.CopyFromEmu(s_media_buffer + dimm_offset, address, length);
-      return 0;
-    }
-
-    // Firmware Write
-    if (offset >= FirmwareAddress && offset < 0x84818000)
-    {
-      INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Write Firmware ({:08x})", offset);
-      PrintMBBuffer(address, length);
-      return 0;
-    }
-
-    // DIMM s_memory (8MB)
-    if (offset >= DIMMMemory2 && offset < 0xFF800000)
-    {
-      const u32 dimm_offset = offset - DIMMMemory2;
-      FileWriteData(&s_dimm, dimm_offset, s_memory.GetSpanForAddress(address).data(), length);
-      return 0;
-    }
-
-    if (offset == NetworkControl && length == 0x20)
-    {
-      FileWriteData(&s_netctrl, 0, s_memory.GetSpanForAddress(address).data(), length);
-      return 0;
+      if (offset >= range.start && offset < range.end)
+      {
+        INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Write MediaBoard ({:08x},{:08x},{:08x})", offset,
+                     range.base_offset, length);
+        SafeCopyFromEmu(memory, range.buffer, address, range.buffer_size,
+                        offset - range.base_offset, length);
+        PrintMBBuffer(address, length);
+        return 0;
+      }
     }
 
     // Max GC disc offset
@@ -1481,13 +1449,13 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         // 0x04: Network
 
         DEBUG_LOG_FMT(AMMEDIABOARD, "GC-AM: TestHardware: ({:08x})", s_media_buffer_32[11]);
-        // Pointer to a s_memory address that is directly displayed on screen as a string
+        // Pointer to a memory address that is directly displayed on screen as a string
         DEBUG_LOG_FMT(AMMEDIABOARD, "GC-AM:               ({:08x})", s_media_buffer_32[12]);
 
-        // On real s_system it shows the status about the DIMM/GD-ROM here
+        // On real systems it shows the status about the DIMM/GD-ROM here
         // We just show "TEST OK"
-        s_memory.Write_U32(0x54534554, s_media_buffer_32[12]);
-        s_memory.Write_U32(0x004B4F20, s_media_buffer_32[12] + 4);
+        memory.Write_U32(0x54534554, s_media_buffer_32[12]);
+        memory.Write_U32(0x004B4F20, s_media_buffer_32[12] + 4);
 
         s_media_buffer_32[1] = s_media_buffer_32[9];
         break;
@@ -1512,7 +1480,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         const u32 off = s_media_buffer_32[11] - NetworkCommandAddress1;
         const u32 len = s_media_buffer_32[12];
 
-        if (NetworkCMDBufferCheck(off + sizeof(sockaddr_in)))
+        if (NetworkCMDBufferCheck(off, sizeof(sockaddr_in)))
         {
           break;
         }
@@ -1533,22 +1501,24 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       case AMMBCommand::Recv:
       {
         const SOCKET fd = s_sockets[SocketCheck(s_media_buffer_32[10])];
-        const u32 off = s_media_buffer_32[11];
-        const auto len = std::min<u32>(s_media_buffer_32[12], sizeof(s_network_buffer));
+        u32 off = s_media_buffer_32[11];
+        auto len = std::min<u32>(s_media_buffer_32[12], sizeof(s_network_buffer));
 
-        auto* buffer = s_network_buffer + off;
-
-        if (off >= NetworkBufferAddress5 && off < NetworkBufferAddress5 + sizeof(s_network_buffer))
+        if (off >= NetworkBufferAddress5 &&
+            off + len <= NetworkBufferAddress5 + sizeof(s_network_buffer))
         {
-          buffer = s_network_buffer + off - NetworkBufferAddress5;
+          off -= NetworkBufferAddress5;
         }
-        else
+        else if (off + len > sizeof(s_network_buffer))
         {
-          ERROR_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv(error) unhandled destination:{:08x}\n", off);
-          buffer = s_network_buffer;
+          ERROR_LOG_FMT(AMMEDIABOARD_NET,
+                        "GC-AM: recv(error) invalid destination or length: off={:08x}, len={}\n",
+                        off, len);
+          off = 0;
+          len = 0;
         }
 
-        const int ret = recv(fd, reinterpret_cast<char*>(buffer), len, 0);
+        int ret = recv(fd, reinterpret_cast<char*>(s_network_buffer + off), len, 0);
         const int err = WSAGetLastError();
 
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv( {}, 0x{:08x}, {} ):{} {}\n", fd, off, len,
@@ -1562,16 +1532,20 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       {
         const SOCKET fd = s_sockets[SocketCheck(s_media_buffer_32[10])];
         u32 off = s_media_buffer_32[11];
-        const u32 len = s_media_buffer_32[12];
+        auto len = std::min<u32>(s_media_buffer_32[12], sizeof(s_network_buffer));
 
-        if (off >= NetworkBufferAddress1 && off < NetworkBufferAddress1 + sizeof(s_network_buffer))
+        if (off >= NetworkBufferAddress1 &&
+            off + len <= NetworkBufferAddress1 + sizeof(s_network_buffer))
         {
           off -= NetworkBufferAddress1;
         }
-        else
+        else if (off + len > sizeof(s_network_buffer))
         {
-          ERROR_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: send(error) unhandled destination:{:08x}\n", off);
+          ERROR_LOG_FMT(AMMEDIABOARD_NET,
+                        "GC-AM: send(error) unhandled destination or length: {:08x}, len={}", off,
+                        len);
           off = 0;
+          len = 0;
         }
 
         const int ret = send(fd, reinterpret_cast<char*>(s_network_buffer + off), len, 0);
@@ -1617,7 +1591,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         if (s_media_buffer_32[14] != 0)
         {
           const u32 fd_set_offset = s_media_buffer_32[14] - NetworkCommandAddress1;
-          if (!NetworkCMDBufferCheck(fd_set_offset + sizeof(fd_set)))
+          if (!NetworkCMDBufferCheck(fd_set_offset, sizeof(fd_set)))
           {
             ERROR_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: Select(error) unhandled destination:{:08x}\n",
                           s_media_buffer_32[14]);
@@ -1665,7 +1639,6 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
                        "GC-AM: select( {}({}), 0x{:08x} 0x{:08x} 0x{:08x} 0x{:08x} ):{} {} \n", fd,
                        s_media_buffer_32[10], s_media_buffer_32[11], s_media_buffer_32[14],
                        s_media_buffer_32[15], s_media_buffer_32[16], ret, err);
-        // hexdump( NetworkCMDBuffer, 0x40 );
 
         s_media_buffer[1] = 0;
         s_media_buffer_32[1] = ret;
@@ -1674,11 +1647,11 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       case AMMBCommand::SetSockOpt:
       {
         const SOCKET fd = s_sockets[SocketCheck(s_media_buffer_32[10])];
-        const int level = (int)(s_media_buffer_32[11]);
-        const int optname = (int)(s_media_buffer_32[12]);
-        const int optlen = (int)(s_media_buffer_32[14]);
+        const int level = static_cast<int>(s_media_buffer_32[11]);
+        const int optname = static_cast<int>(s_media_buffer_32[12]);
+        const int optlen = static_cast<int>(s_media_buffer_32[14]);
 
-        if (!NetworkCMDBufferCheck(s_media_buffer_32[13] - NetworkCommandAddress1 + optlen))
+        if (!NetworkCMDBufferCheck(s_media_buffer_32[13] - NetworkCommandAddress1, optlen))
         {
           break;
         }
@@ -1701,7 +1674,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       {
         const u32 net_buffer_offset = s_media_buffer_32[10] - NetworkCommandAddress1;
 
-        if (!NetworkCMDBufferCheck(net_buffer_offset))
+        if (!NetworkCMDBufferCheck(net_buffer_offset, 15))
         {
           break;
         }
@@ -1760,7 +1733,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM:        Offset: ({:04x})", off);
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM:                ({:08x})", addr);
 
-        if (!NetworkBufferCheck(off + addr - NetworkBufferAddress2))
+        if (!NetworkBufferCheck(off + addr - NetworkBufferAddress2, 0x20))
         {
           break;
         }
@@ -1822,15 +1795,12 @@ u32 GetMediaType()
   case GekitouProYakyuu:
   case KeyOfAvalon:
     return GDROM;
-    break;
 
   case MarioKartGP:
   case MarioKartGP2:
   case FZeroAXMonster:
     return NAND;
-    break;
   }
-  // Never reached
 }
 
 // This is checking for the real game IDs (See boot.id within the game)
@@ -1839,41 +1809,17 @@ u32 GetGameType()
   u16 triforce_id = 0;
   const std::string& game_id = SConfig::GetInstance().GetGameID();
 
-  if (game_id.length() > 6)
-  {
-    triforce_id = 0x3232;
-  }
-  else
+  if (game_id.length() == 6)
   {
     triforce_id = game_id[1] << 8 | game_id[2];
   }
+  else
+  {
+    triforce_id = 0x454A;  // Fallback (VirtuaStriker3)
+  }
 
-  static const std::unordered_map<u16, GameType> game_map = {{0x4747, FZeroAX},
-                                                             {0x4841, FZeroAXMonster},
-                                                             {0x4B50, MarioKartGP},
-                                                             {0x4B5A, MarioKartGP},
-                                                             {0x4E4A, MarioKartGP2},
-                                                             {0x4E4C, MarioKartGP2},
-                                                             {0x454A, VirtuaStriker3},
-                                                             {0x4559, VirtuaStriker3},
-                                                             {0x4C4A, VirtuaStriker4_2006},
-                                                             {0x4C4B, VirtuaStriker4_2006},
-                                                             {0x4C4C, VirtuaStriker4_2006},
-                                                             {0x484A, VirtuaStriker4},
-                                                             {0x484E, VirtuaStriker4},
-                                                             {0x485A, VirtuaStriker4},
-                                                             {0x4A41, VirtuaStriker4},
-                                                             {0x4A4A, VirtuaStriker4},
-                                                             {0x4658, KeyOfAvalon},
-                                                             {0x4A4E, KeyOfAvalon},
-                                                             {0x4758, GekitouProYakyuu},
-                                                             {0x5342, VirtuaStriker3},
-                                                             {0x3132, VirtuaStriker3},
-                                                             {0x454C, VirtuaStriker3},
-                                                             {0x3030, FirmwareUpdate}};
-
-  auto it = game_map.find(triforce_id);
-  if (it != game_map.end())
+  auto it = s_game_map.find(triforce_id);
+  if (it != s_game_map.end())
   {
     return it->second;
   }

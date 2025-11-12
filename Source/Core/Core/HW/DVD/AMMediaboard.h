@@ -58,6 +58,15 @@ class CPUThreadGuard;
 class System;
 }  // namespace Core
 
+struct MediaBoardRanges
+{
+  u32 start;
+  u32 end;
+  u8* buffer;
+  size_t buffer_size;
+  u32 base_offset;
+};
+
 namespace AMMediaboard
 {
 
@@ -154,9 +163,7 @@ enum MediaBoardAddress : u32
 
   DIMMCommandVersion1 = 0x1F900000,
   DIMMCommandVersion2 = 0x84000000,
-  DIMMCommandVersion2_1 = 0x84000020,
   DIMMCommandVersion2_2 = 0x89000000,
-  DIMMCommandVersion2_2_1 = 0x89000200,
   DIMMCommandExecute1 = 0x84000040,
   DIMMCommandExecute2 = 0x88000000,
 

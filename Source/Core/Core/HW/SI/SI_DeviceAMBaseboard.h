@@ -26,12 +26,12 @@ public:
   void AddData(u32 n);
   void End();
 
-  u32 m_ptr = 0;
-  std::array<u8, 0x80> m_msg;
+  u32 m_pointer = 0;
+  std::array<u8, 0x80> m_message;
 
 private:
   u32 m_last_start = 0;
-  u32 m_csum = 0;
+  u32 m_checksum = 0;
 };
 
 // Triforce (GC-AM) baseboard

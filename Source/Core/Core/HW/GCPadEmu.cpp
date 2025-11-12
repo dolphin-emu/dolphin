@@ -73,7 +73,7 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
   groups.emplace_back(m_triforce = new ControllerEmu::Buttons(TRIFORCE_GROUP));
   for (const char* named_button : {TEST_BUTTON, SERVICE_BUTTON, COIN_BUTTON})
   {
-    m_triforce->AddInput(Translatability::DoNotTranslate, named_button);
+    m_triforce->AddInput(Translatability::Translate, named_button);
   }
 
   // Microphone

@@ -24,9 +24,6 @@
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
-#include "Core/HW/SI/SI.h"
-#include "Core/HW/SI/SI_Device.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Movie.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
@@ -140,9 +137,7 @@ void CEXIBaseboard::DMAWrite(u32 addr, u32 size)
   NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: Backup DMA Write: {:08x} {:x}", addr, size);
 
   m_backup.Seek(m_backup_offset, File::SeekOrigin::Begin);
-
   m_backup.WriteBytes(memory.GetSpanForAddress(addr).data(), size);
-
   m_backup.Flush();
 }
 
@@ -154,9 +149,6 @@ void CEXIBaseboard::DMARead(u32 addr, u32 size)
   NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: Backup DMA Read: {:08x} {:x}", addr, size);
 
   m_backup.Seek(m_backup_offset, File::SeekOrigin::Begin);
-
-  m_backup.Flush();
-
   m_backup.ReadBytes(memory.GetSpanForAddress(addr).data(), size);
 }
 
@@ -264,7 +256,6 @@ void CEXIBaseboard::TransferByte(u8& byte)
     {
     // 1 byte out
     case BackupRead:
-      m_backup.Flush();
       m_backup.ReadBytes(&byte, 1);
       break;
     case DMAOffsetLengthSet:

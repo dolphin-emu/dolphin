@@ -51,7 +51,6 @@
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
-#include "Core/HW/DVD/AMMediaboard.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GBAPad.h"
 #include "Core/HW/GCKeyboard.h"
