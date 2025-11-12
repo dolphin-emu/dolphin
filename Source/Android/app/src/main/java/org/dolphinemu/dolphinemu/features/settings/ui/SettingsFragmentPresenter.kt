@@ -35,6 +35,7 @@ import org.dolphinemu.dolphinemu.model.GpuDriverMetadata
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter
 import org.dolphinemu.dolphinemu.utils.*
 import java.util.*
+import java.util.function.BooleanSupplier
 import kotlin.collections.ArrayList
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -2593,7 +2594,7 @@ class SettingsFragmentPresenter(
             fragmentView.fragmentActivity,
             R.string.wii_converting,
             0,
-            { context.resources.getString(if (f.get()) R.string.wii_convert_success else R.string.wii_convert_failure) }
+            { context.resources.getString(if (f.getAsBoolean()) R.string.wii_convert_success else R.string.wii_convert_failure) }
         )
     }
 

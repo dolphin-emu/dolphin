@@ -2,6 +2,8 @@
 
 package org.dolphinemu.dolphinemu.utils
 
+import java.util.function.BooleanSupplier
+
 object WiiUtils {
     const val RESULT_SUCCESS = 0
     const val RESULT_ERROR = 1
