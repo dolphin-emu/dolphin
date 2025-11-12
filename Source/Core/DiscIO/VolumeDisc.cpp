@@ -30,41 +30,24 @@ std::string VolumeDisc::GetGameID(const Partition& partition) const
 
     memcpy(id + 1, boot_id->game_id.data() + 2, 2);
 
-    switch (boot_id->region_flags)
+    switch (GetCountry())
     {
     default:
-    case 0x02:  // JAPAN
+    case Country::Japan:
       id[3] = 'J';
       break;
-    case 0x08:  // ASIA
+    case Country::Taiwan:
       id[3] = 'W';
       break;
-    case 0x0E:  // USA
+    case Country::USA:
       id[3] = 'E';
       break;
-    case 0x0C:  // EXPORT
+    case Country::Europe:
       id[3] = 'P';
       break;
     }
 
-    // There only seem to be three different makers here,
-    // so we can just check the first char to difference between them.
-    //
-    // NAMCO CORPORATION, SEGA CORPORATION and Hitmaker co,ltd.
-
-    switch (boot_id->manufacturer[0])
-    {
-    case 'N':  // NAMCO CORPORATION
-      id[4] = '8';
-      id[5] = '2';
-      break;
-    default:
-    case 'H':  // Hitmaker co,ltd.
-    case 'S':  // SEGA CORPORATION
-      id[4] = '6';
-      id[5] = 'E';
-      break;
-    }
+    memcpy(id + 4, GetMakerID().c_str(), 2);
 
     return DecodeString(id);
   }
@@ -132,6 +115,11 @@ std::string VolumeDisc::GetMakerID(const Partition& partition) const
   if (GetVolumeType() == Platform::Triforce)
   {
     const BootID* boot_id = static_cast<const VolumeGC*>(this)->GetTriforceBootID();
+
+    // There only seem to be three different makers here,
+    // so we can just check the first char to difference between them.
+    //
+    // NAMCO CORPORATION, SEGA CORPORATION and Hitmaker co,ltd.
 
     switch (boot_id->manufacturer[0])
     {
