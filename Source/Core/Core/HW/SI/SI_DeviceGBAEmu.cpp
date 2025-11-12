@@ -91,11 +91,9 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
   case NextAction::ReceiveResponse:
   {
     m_next_action = NextAction::SendCommand;
-
-    std::vector<u8> response = m_core->GetJoybusResponse();
-    if (response.empty())
+    const auto response_length = m_core->GetJoybusResponse(buffer);
+    if (response_length == 0)
       return -1;
-    std::ranges::copy(response, buffer);
 
 #ifdef _DEBUG
     const Common::Log::LogLevel log_level =
@@ -105,10 +103,10 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
     GENERIC_LOG_FMT(Common::Log::LogType::SERIALINTERFACE, log_level,
                     "{}                              [< {:02x}{:02x}{:02x}{:02x}{:02x}] ({})",
                     m_device_number, buffer[0], buffer[1], buffer[2], buffer[3], buffer[4],
-                    response.size());
+                    response_length);
 #endif
 
-    return static_cast<int>(response.size());
+    return response_length;
   }
   }
 
@@ -169,7 +167,7 @@ void CSIDevice_GBAEmu::DoState(PointerWrap& p)
 
 void CSIDevice_GBAEmu::OnEvent(u64 userdata, s64 cycles_late)
 {
-  m_core->SendJoybusCommand(m_system.GetCoreTiming().GetTicks() + userdata, 0, nullptr, m_keys);
+  m_core->SyncJoybus(m_system.GetCoreTiming().GetTicks() + userdata, m_keys);
 
   const auto num_cycles = userdata + GetSyncInterval(m_system.GetSystemTimers());
   m_system.GetSerialInterface().ScheduleEvent(m_device_number, num_cycles);
