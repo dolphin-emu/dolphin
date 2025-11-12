@@ -6,13 +6,9 @@
 #ifdef HAS_LIBMGBA
 
 #include <array>
-#include <condition_variable>
 #include <memory>
-#include <mutex>
-#include <queue>
 #include <string>
 #include <string_view>
-#include <thread>
 #include <vector>
 
 #define PYCPARSE  // Remove static functions from the header
@@ -22,6 +18,7 @@
 #include <mgba/gba/interface.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/WorkQueueThread.h"
 
 class GBAHostInterface;
 class PointerWrap;
@@ -73,8 +70,9 @@ public:
   void SetForceDisconnect(bool force_disconnect);
   void EReaderQueueCard(std::string_view card_path);
 
+  void SyncJoybus(u64 gc_ticks, u16 keys);
   void SendJoybusCommand(u64 gc_ticks, int transfer_time, u8* buffer, u16 keys);
-  std::vector<u8> GetJoybusResponse();
+  int GetJoybusResponse(u8* data_out);
 
   void ImportState(std::string_view state_path);
   void ExportState(std::string_view state_path);
@@ -86,20 +84,23 @@ public:
   static std::string GetSavePath(std::string_view rom_path, int device_number);
 
 private:
-  void ThreadLoop();
   void RunUntil(u64 gc_ticks);
   void RunFor(u64 gc_ticks);
   void Flush();
 
-  struct Command
+  enum class JoybusEventType : u8
   {
-    u64 ticks;
-    int transfer_time;
-    bool sync_only;
-    std::array<u8, 6> buffer;
-    u16 keys;
+    TimeSync,
+    RunCommand,
   };
-  void RunCommand(Command& command);
+  struct JoybusEvent
+  {
+    u64 run_until_ticks{};
+    u16 keys{};
+    JoybusEventType event_type{};
+  };
+  void PushEvent(JoybusEvent event);
+  void HandleEvent(JoybusEvent event);
 
   bool LoadBIOS(const char* bios_path);
   bool LoadSave(const char* save_path);
@@ -134,17 +135,19 @@ private:
 
   std::weak_ptr<GBAHostInterface> m_host;
 
-  std::unique_ptr<std::thread> m_thread;
-  bool m_exit_loop = false;
-  bool m_idle = false;
-  std::mutex m_queue_mutex;
-  std::condition_variable m_command_cv;
-  std::queue<Command> m_command_queue;
+  // Set by the GC thread before issuing a JoybusEventType::RunCommand.
+  int m_joybus_command_transfer_time{};
+  GBASIOJOYCommand m_joybus_command{};
 
-  std::mutex m_response_mutex;
-  std::condition_variable m_response_cv;
-  bool m_response_ready = false;
-  std::vector<u8> m_response;
+  // Commands are synchronous. This buffer is used for the command and the response.
+  std::array<u8, 5> m_joybus_buffer{};  // State saved.
+
+  // Set by the GBA thread after filling in the above buffer.
+  u8 m_response_size{};  // State saved.
+  std::atomic_bool m_command_pending{};
+
+  // The entire threaded GBA runs within events pushed to this queue.
+  Common::WorkQueueThreadSP<JoybusEvent> m_event_thread;
 
   ::Core::System& m_system;
 };
