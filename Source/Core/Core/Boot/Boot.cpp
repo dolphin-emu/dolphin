@@ -460,7 +460,7 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
 
   ppc_state.pc = 0x81200150;
 
-  PowerPC::MSRUpdated(ppc_state);
+  system.GetPowerPC().MSRUpdated();
 
   return true;
 }
@@ -530,7 +530,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
 
       auto& ppc_state = system.GetPPCState();
 
-      SetupMSR(ppc_state);
+      SetupMSR(system);
       SetupHID(ppc_state, system.IsWii());
       SetupBAT(system, system.IsWii());
       CopyDefaultExceptionHandlers(system);
