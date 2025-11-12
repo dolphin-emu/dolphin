@@ -24,9 +24,9 @@
 #include "Core/ConfigManager.h"
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
+#include "DolphinQt/Config/ConfigControls/ConfigFloatSlider.h"
 #include "DolphinQt/Config/ConfigControls/ConfigInteger.h"
 #include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
-#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/GameConfigEdit.h"
 #include "DolphinQt/Config/Graphics/GraphicsPane.h"
 #include "DolphinQt/QtUtils/QtUtils.h"
@@ -140,25 +140,34 @@ void GameConfigWidget::CreateWidgets()
   auto* stereoscopy_layout = new QGridLayout;
   stereoscopy_box->setLayout(stereoscopy_layout);
 
-  m_depth_slider = new ConfigSlider(100, 200, Config::GFX_STEREO_DEPTH_PERCENTAGE, layer);
-  m_convergence_spin = new ConfigInteger(0, INT32_MAX, Config::GFX_STEREO_CONVERGENCE, layer);
+  m_depth_slider =
+      new ConfigFloatSlider(100, 200, Config::GFX_STEREO_DEPTH_PERCENTAGE, 1.0f, layer);
+  m_convergence_slider =
+      new ConfigFloatSlider(0, 1000, Config::GFX_STEREO_CONVERGENCE, 0.01f, layer);
+  auto* const depth_slider_value = new QLabel();
+  auto* const convergence_slider_value = new QLabel();
   m_use_monoscopic_shadows =
       new ConfigBool(tr("Monoscopic Shadows"), Config::GFX_STEREO_EFB_MONO_DEPTH, layer);
 
   m_depth_slider->SetDescription(
       tr("This value is multiplied with the depth set in the graphics configuration."));
-  m_convergence_spin->SetDescription(
+  m_convergence_slider->SetDescription(
       tr("This value is added to the convergence value set in the graphics configuration."));
   m_use_monoscopic_shadows->SetDescription(
       tr("Use a single depth buffer for both eyes. Needed for a few games."));
 
-  stereoscopy_layout->addWidget(new ConfigSliderLabel(tr("Depth Percentage:"), m_depth_slider), 0,
+  stereoscopy_layout->addWidget(new ConfigFloatLabel(tr("Depth Percentage:"), m_depth_slider), 0,
                                 0);
   stereoscopy_layout->addWidget(m_depth_slider, 0, 1);
-  stereoscopy_layout->addWidget(new ConfigIntegerLabel(tr("Convergence:"), m_convergence_spin), 1,
+  stereoscopy_layout->addWidget(depth_slider_value, 0, 2);
+  stereoscopy_layout->addWidget(new ConfigFloatLabel(tr("Convergence:"), m_convergence_slider), 1,
                                 0);
-  stereoscopy_layout->addWidget(m_convergence_spin, 1, 1);
+  stereoscopy_layout->addWidget(m_convergence_slider, 1, 1);
+  stereoscopy_layout->addWidget(convergence_slider_value, 1, 2);
   stereoscopy_layout->addWidget(m_use_monoscopic_shadows, 2, 0);
+
+  depth_slider_value->setText(QString::asprintf("%.0f%%", m_depth_slider->GetValue()));
+  convergence_slider_value->setText(QString::asprintf("%.2f", m_convergence_slider->GetValue()));
 
   auto* general_layout = new QVBoxLayout;
   general_layout->addWidget(core_box);
@@ -238,6 +247,15 @@ void GameConfigWidget::CreateWidgets()
 
     m_prev_tab_index = index;
   });
+
+  connect(m_depth_slider, &ConfigFloatSlider::valueChanged, this, [this, depth_slider_value] {
+    depth_slider_value->setText(QString::asprintf("%.0f%%", m_depth_slider->GetValue()));
+  });
+  connect(m_convergence_slider, &ConfigFloatSlider::valueChanged, this,
+          [this, convergence_slider_value] {
+            convergence_slider_value->setText(
+                QString::asprintf("%.2f", m_convergence_slider->GetValue()));
+          });
 
   const QString help_msg = tr(
       "Italics mark default game settings, bold marks user settings.\nRight-click to remove user "
@@ -320,7 +338,7 @@ void GameConfigWidget::LoadSettings()
   update_bool(m_emulate_disc_speed, true);
 
   update_int(m_depth_slider);
-  update_int(m_convergence_spin);
+  update_int(m_convergence_slider);
 }
 
 void GameConfigWidget::SetItalics()
@@ -337,7 +355,7 @@ void GameConfigWidget::SetItalics()
 
   for (auto* config : findChildren<ConfigBool*>())
     italics(config);
-  for (auto* config : findChildren<ConfigSlider*>())
+  for (auto* config : findChildren<ConfigFloatSlider*>())
     italics(config);
   for (auto* config : findChildren<ConfigInteger*>())
     italics(config);

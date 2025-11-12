@@ -16,7 +16,7 @@
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
-#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
+#include "DolphinQt/Config/ConfigControls/ConfigFloatSlider.h"
 #include "DolphinQt/Config/GameConfigWidget.h"
 #include "DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.h"
 #include "DolphinQt/Config/Graphics/GraphicsPane.h"
@@ -214,10 +214,12 @@ void EnhancementsWidget::CreateWidgets()
   m_3d_mode = new ConfigChoice({tr("Off"), tr("Side-by-Side"), tr("Top-and-Bottom"), tr("Anaglyph"),
                                 tr("HDMI 3D"), tr("Passive")},
                                Config::GFX_STEREO_MODE, m_game_layer);
-  m_3d_depth =
-      new ConfigSlider(0, Config::GFX_STEREO_DEPTH_MAXIMUM, Config::GFX_STEREO_DEPTH, m_game_layer);
-  m_3d_convergence = new ConfigSlider(0, Config::GFX_STEREO_CONVERGENCE_MAXIMUM,
-                                      Config::GFX_STEREO_CONVERGENCE, m_game_layer, 100);
+  m_3d_depth = new ConfigFloatSlider(0, Config::GFX_STEREO_DEPTH_MAXIMUM, Config::GFX_STEREO_DEPTH,
+                                     1.0f, m_game_layer);
+  m_3d_convergence = new ConfigFloatSlider(0, Config::GFX_STEREO_CONVERGENCE_MAXIMUM,
+                                           Config::GFX_STEREO_CONVERGENCE, 0.01f, m_game_layer);
+  m_3d_depth_value = new QLabel();
+  m_3d_convergence_value = new QLabel();
 
   m_3d_swap_eyes = new ConfigBool(tr("Swap Eyes"), Config::GFX_STEREO_SWAP_EYES, m_game_layer);
 
@@ -226,12 +228,17 @@ void EnhancementsWidget::CreateWidgets()
 
   stereoscopy_layout->addWidget(new QLabel(tr("Stereoscopic 3D Mode:")), 0, 0);
   stereoscopy_layout->addWidget(m_3d_mode, 0, 1);
-  stereoscopy_layout->addWidget(new ConfigSliderLabel(tr("Depth:"), m_3d_depth), 1, 0);
+  stereoscopy_layout->addWidget(new ConfigFloatLabel(tr("Depth:"), m_3d_depth), 1, 0);
   stereoscopy_layout->addWidget(m_3d_depth, 1, 1);
-  stereoscopy_layout->addWidget(new ConfigSliderLabel(tr("Convergence:"), m_3d_convergence), 2, 0);
+  stereoscopy_layout->addWidget(m_3d_depth_value, 1, 2);
+  stereoscopy_layout->addWidget(new ConfigFloatLabel(tr("Convergence:"), m_3d_convergence), 2, 0);
   stereoscopy_layout->addWidget(m_3d_convergence, 2, 1);
+  stereoscopy_layout->addWidget(m_3d_convergence_value, 2, 2);
   stereoscopy_layout->addWidget(m_3d_swap_eyes, 3, 0);
   stereoscopy_layout->addWidget(m_3d_per_eye_resolution, 4, 0);
+
+  m_3d_depth_value->setText(QString::asprintf("%.0f", m_3d_depth->GetValue()));
+  m_3d_convergence_value->setText(QString::asprintf("%.2f", m_3d_convergence->GetValue()));
 
   auto current_stereo_mode = ReadSetting(Config::GFX_STEREO_MODE);
   if (current_stereo_mode != StereoMode::SBS && current_stereo_mode != StereoMode::TAB)
@@ -263,6 +270,12 @@ void EnhancementsWidget::ConnectWidgets()
           &EnhancementsWidget::ConfigureColorCorrection);
   connect(m_configure_post_processing_effect, &QPushButton::clicked, this,
           &EnhancementsWidget::ConfigurePostProcessingShader);
+
+  connect(m_3d_depth, &ConfigFloatSlider::valueChanged, this,
+          [this] { m_3d_depth_value->setText(QString::asprintf("%.0f", m_3d_depth->GetValue())); });
+  connect(m_3d_convergence, &ConfigFloatSlider::valueChanged, this, [this] {
+    m_3d_convergence_value->setText(QString::asprintf("%.2f", m_3d_convergence->GetValue()));
+  });
 }
 
 template <typename T>
