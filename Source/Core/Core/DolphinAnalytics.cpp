@@ -57,10 +57,19 @@ void DolphinAnalytics::AndroidSetGetValFunc(std::function<std::string(std::strin
 
 DolphinAnalytics::DolphinAnalytics()
 {
+  m_last_analytics_enabled = Config::Get(Config::MAIN_ANALYTICS_ENABLED);
+
   ReloadConfig();
   MakeBaseBuilder();
 
-  m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { ReloadConfig(); });
+  m_config_changed_callback_id = Config::AddConfigChangedCallback([this] {
+    bool current_analytics_enabled = Config::Get(Config::MAIN_ANALYTICS_ENABLED);
+    if (m_last_analytics_enabled != current_analytics_enabled)
+    {
+      m_last_analytics_enabled = current_analytics_enabled;
+      ReloadConfig();
+    }
+  });
 }
 
 DolphinAnalytics::~DolphinAnalytics()
@@ -80,7 +89,7 @@ void DolphinAnalytics::ReloadConfig()
 
   // Install the HTTP backend if analytics support is enabled.
   std::unique_ptr<Common::AnalyticsReportingBackend> new_backend;
-  if (Config::Get(Config::MAIN_ANALYTICS_ENABLED))
+  if (m_last_analytics_enabled)
   {
     new_backend = std::make_unique<Common::HttpAnalyticsBackend>(ANALYTICS_ENDPOINT);
   }
