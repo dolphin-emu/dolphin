@@ -305,10 +305,9 @@ void CheckForConfigChanges()
   const auto old_hdr = g_ActiveConfig.bHDR;
 
   UpdateActiveConfig();
-  FreeLook::UpdateActiveConfig();
   g_vertex_manager->OnConfigChange();
 
-  g_freelook_camera.SetControlType(FreeLook::GetActiveConfig().camera_config.control_type);
+  g_freelook_camera.RefreshConfig();
 
   if (g_ActiveConfig.bGraphicMods && !old_graphics_mods_enabled)
   {

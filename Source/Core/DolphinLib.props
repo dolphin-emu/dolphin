@@ -250,7 +250,6 @@
     <ClInclude Include="Core\FifoPlayer\FifoDataFile.h" />
     <ClInclude Include="Core\FifoPlayer\FifoPlayer.h" />
     <ClInclude Include="Core\FifoPlayer\FifoRecorder.h" />
-    <ClInclude Include="Core\FreeLookConfig.h" />
     <ClInclude Include="Core\FreeLookManager.h" />
     <ClInclude Include="Core\GeckoCode.h" />
     <ClInclude Include="Core\GeckoCodeConfig.h" />
@@ -933,7 +932,6 @@
     <ClCompile Include="Core\FifoPlayer\FifoDataFile.cpp" />
     <ClCompile Include="Core\FifoPlayer\FifoPlayer.cpp" />
     <ClCompile Include="Core\FifoPlayer\FifoRecorder.cpp" />
-    <ClCompile Include="Core\FreeLookConfig.cpp" />
     <ClCompile Include="Core\FreeLookManager.cpp" />
     <ClCompile Include="Core\GeckoCode.cpp" />
     <ClCompile Include="Core\GeckoCodeConfig.cpp" />
