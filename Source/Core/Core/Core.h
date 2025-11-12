@@ -16,6 +16,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Functional.h"
+#include "Common/HookableEvent.h"
 
 struct BootParameters;
 struct WindowSystemInfo;
@@ -165,10 +166,8 @@ void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> funct
 
 // for calling back into UI code without introducing a dependency on it in core
 using StateChangedCallbackFunc = std::function<void(Core::State)>;
-// Returns a handle
-int AddOnStateChangedCallback(StateChangedCallbackFunc callback);
-// Also invalidates the handle
-bool RemoveOnStateChangedCallback(int* handle);
+
+[[nodiscard]] Common::EventHook AddOnStateChangedCallback(StateChangedCallbackFunc callback);
 void NotifyStateChanged(Core::State state);
 
 // Run on the Host thread when the factors change. [NOT THREADSAFE]

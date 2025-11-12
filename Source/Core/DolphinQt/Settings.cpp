@@ -50,7 +50,7 @@ static std::unique_ptr<QPalette> s_default_palette;
 Settings::Settings()
 {
   qRegisterMetaType<Core::State>();
-  Core::AddOnStateChangedCallback([this](Core::State new_state) {
+  m_core_state_changed_hook = Core::AddOnStateChangedCallback([this](Core::State new_state) {
     QueueOnObject(this, [this, new_state] {
       // Avoid signal spam while continuously frame stepping. Will still send a signal for the first
       // and last framestep.

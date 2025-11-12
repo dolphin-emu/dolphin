@@ -99,7 +99,7 @@ static bool s_wants_determinism;
 
 // Declarations and definitions
 static std::thread s_emu_thread;
-static std::vector<StateChangedCallbackFunc> s_on_state_changed_callbacks;
+static Common::HookableEvent<Core::State> s_state_changed_event;
 
 static bool s_is_throttler_temp_disabled = false;
 static bool s_frame_step = false;
@@ -930,38 +930,14 @@ void Shutdown(Core::System& system)
   HostDispatchJobs(system);
 }
 
-int AddOnStateChangedCallback(StateChangedCallbackFunc callback)
+Common::EventHook AddOnStateChangedCallback(StateChangedCallbackFunc callback)
 {
-  for (size_t i = 0; i < s_on_state_changed_callbacks.size(); ++i)
-  {
-    if (!s_on_state_changed_callbacks[i])
-    {
-      s_on_state_changed_callbacks[i] = std::move(callback);
-      return int(i);
-    }
-  }
-  s_on_state_changed_callbacks.emplace_back(std::move(callback));
-  return int(s_on_state_changed_callbacks.size()) - 1;
-}
-
-bool RemoveOnStateChangedCallback(int* handle)
-{
-  if (handle && *handle >= 0 && s_on_state_changed_callbacks.size() > static_cast<size_t>(*handle))
-  {
-    s_on_state_changed_callbacks[*handle] = StateChangedCallbackFunc();
-    *handle = -1;
-    return true;
-  }
-  return false;
+  return s_state_changed_event.Register(std::move(callback));
 }
 
 void NotifyStateChanged(Core::State state)
 {
-  for (const StateChangedCallbackFunc& on_state_changed_callback : s_on_state_changed_callbacks)
-  {
-    if (on_state_changed_callback)
-      on_state_changed_callback(state);
-  }
+  s_state_changed_event.Trigger(state);
   g_perf_metrics.OnEmulationStateChanged(state);
 }
 

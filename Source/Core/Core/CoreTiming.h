@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/HookableEvent.h"
 #include "Common/SPSCQueue.h"
 #include "Common/Timer.h"
 #include "Core/CPUThreadConfigCallback.h"
@@ -230,7 +231,7 @@ private:
   Common::PrecisionTimer m_precision_cpu_timer;
   Common::PrecisionTimer m_precision_gpu_timer;
 
-  int m_on_state_changed_handle;
+  Common::EventHook m_core_state_changed_hook;
 };
 
 }  // namespace CoreTiming
