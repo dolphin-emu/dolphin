@@ -143,17 +143,23 @@ bool ElfReader::LoadIntoMemory(Core::System& system, bool only_in_mem1) const
   {
     Elf32_Phdr* p = segments + i;
 
-    INFO_LOG_FMT(BOOT, "Type: {} Vaddr: {:08x} Filesz: {} Memsz: {}", p->p_type, p->p_vaddr,
-                 p->p_filesz, p->p_memsz);
+    INFO_LOG_FMT(BOOT, "Type: {} Vaddr: {:08x} Paddr: {:08x} Filesz: {} Memsz: {}", p->p_type,
+                 p->p_vaddr, p->p_paddr, p->p_filesz, p->p_memsz);
 
     if (p->p_type == PT_LOAD)
     {
-      u32 writeAddr = p->p_vaddr;
+      // Check LMA (paddr) first - some are nonsense, so fall back to VMA (vaddr) if invalid
+      u32 writeAddr = p->p_paddr;
+      if (writeAddr)
+        writeAddr |= 0x80000000;  // map to virtual address
+      else
+        writeAddr = p->p_vaddr;  // LMA is empty, fall back to VMA
+
       const u8* src = GetSegmentPtr(i);
       u32 srcSize = p->p_filesz;
       u32 dstSize = p->p_memsz;
 
-      if (only_in_mem1 && p->p_vaddr >= memory.GetRamSizeReal())
+      if (only_in_mem1 && writeAddr >= memory.GetRamSizeReal())
         continue;
 
       memory.CopyToEmu(writeAddr, src, srcSize);
