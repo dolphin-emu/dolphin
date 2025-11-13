@@ -12,9 +12,9 @@
 #endif
 
 #include <sdkddkver.h>
-#ifndef NTDDI_WIN10_NI
+#ifndef NTDDI_WIN11_GE
 #pragma message("Current WDK_NTDDI_VERSION: " STRINGIFY(WDK_NTDDI_VERSION))
-#error Windows 10.0.22621 SDK or later is required
+#error Windows 10.0.26100.6901 SDK or later is required
 #endif
 
 #undef STRINGIFY
