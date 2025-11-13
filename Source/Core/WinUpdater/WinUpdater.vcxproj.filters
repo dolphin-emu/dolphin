@@ -1,10 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <ItemGroup>
+    <ClCompile Include="..\UpdaterCommon\UpdaterCommon.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Platform.cpp" />
     <ClCompile Include="WinUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="Updater.exe.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\UpdaterCommon\Platform.h" />
+    <ClInclude Include="..\UpdaterCommon\UI.h" />
+    <ClInclude Include="..\UpdaterCommon\UpdaterCommon.h" />
   </ItemGroup>
 </Project>
