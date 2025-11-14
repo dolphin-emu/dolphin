@@ -160,6 +160,17 @@ bool Settings::IsThemeDark()
 void Settings::ApplyStyle()
 {
   const StyleType style_type = GetStyleType();
+
+  {
+    const bool use_fusion{style_type == StyleType::FusionLight ||
+                          style_type == StyleType::FusionDarkGray ||
+                          style_type == StyleType::FusionDark};
+    static const QString s_initial_style_name{QApplication::style()->name()};
+    const QString style_name{use_fusion ? QStringLiteral("fusion") : s_initial_style_name};
+    if (QApplication::style()->name() != style_name)
+      QApplication::setStyle(style_name);
+  }
+
   const QString stylesheet_name = GetUserStyleName();
   QString stylesheet_contents;
 
@@ -174,12 +185,155 @@ void Settings::ApplyStyle()
       stylesheet_contents = QString::fromUtf8(stylesheet.readAll().data());
   }
 
+  QPalette palette;
+
+  if (style_type == StyleType::FusionLight)
+  {
+    palette.setColor(QPalette::All, QPalette::Window, QColor(239, 239, 239));
+    palette.setColor(QPalette::Disabled, QPalette::Window, QColor(239, 239, 239));
+    palette.setColor(QPalette::All, QPalette::WindowText, QColor(0, 0, 0));
+    palette.setColor(QPalette::Disabled, QPalette::WindowText, QColor(190, 190, 190));
+    palette.setColor(QPalette::All, QPalette::Base, QColor(255, 255, 255));
+    palette.setColor(QPalette::Disabled, QPalette::Base, QColor(239, 239, 239));
+    palette.setColor(QPalette::All, QPalette::AlternateBase, QColor(247, 247, 247));
+    palette.setColor(QPalette::Disabled, QPalette::AlternateBase, QColor(247, 247, 247));
+    palette.setColor(QPalette::All, QPalette::ToolTipBase, QColor(255, 255, 220));
+    palette.setColor(QPalette::Disabled, QPalette::ToolTipBase, QColor(255, 255, 220));
+    palette.setColor(QPalette::All, QPalette::ToolTipText, QColor(0, 0, 0));
+    palette.setColor(QPalette::Disabled, QPalette::ToolTipText, QColor(0, 0, 0));
+    palette.setColor(QPalette::All, QPalette::PlaceholderText, QColor(119, 119, 119));
+    palette.setColor(QPalette::Disabled, QPalette::PlaceholderText, QColor(119, 119, 119));
+    palette.setColor(QPalette::All, QPalette::Text, QColor(0, 0, 0));
+    palette.setColor(QPalette::Disabled, QPalette::Text, QColor(190, 190, 190));
+    palette.setColor(QPalette::All, QPalette::Button, QColor(239, 239, 239));
+    palette.setColor(QPalette::Disabled, QPalette::Button, QColor(239, 239, 239));
+    palette.setColor(QPalette::All, QPalette::ButtonText, QColor(0, 0, 0));
+    palette.setColor(QPalette::Disabled, QPalette::ButtonText, QColor(190, 190, 190));
+    palette.setColor(QPalette::All, QPalette::BrightText, QColor(255, 255, 255));
+    palette.setColor(QPalette::Disabled, QPalette::BrightText, QColor(255, 255, 255));
+    palette.setColor(QPalette::All, QPalette::Light, QColor(255, 255, 255));
+    palette.setColor(QPalette::Disabled, QPalette::Light, QColor(255, 255, 255));
+    palette.setColor(QPalette::All, QPalette::Midlight, QColor(202, 202, 202));
+    palette.setColor(QPalette::Disabled, QPalette::Midlight, QColor(202, 202, 202));
+    palette.setColor(QPalette::All, QPalette::Dark, QColor(159, 159, 159));
+    palette.setColor(QPalette::Disabled, QPalette::Dark, QColor(190, 190, 190));
+    palette.setColor(QPalette::All, QPalette::Mid, QColor(184, 184, 184));
+    palette.setColor(QPalette::Disabled, QPalette::Mid, QColor(184, 184, 184));
+    palette.setColor(QPalette::All, QPalette::Shadow, QColor(118, 118, 118));
+    palette.setColor(QPalette::Disabled, QPalette::Shadow, QColor(177, 177, 177));
+    palette.setColor(QPalette::All, QPalette::Highlight, QColor(48, 140, 198));
+    palette.setColor(QPalette::Disabled, QPalette::Highlight, QColor(145, 145, 145));
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+    palette.setColor(QPalette::All, QPalette::Accent, QColor(48, 140, 198));
+    palette.setColor(QPalette::Disabled, QPalette::Accent, QColor(145, 145, 145).darker());
+#endif
+    palette.setColor(QPalette::All, QPalette::HighlightedText, QColor(255, 255, 255));
+    palette.setColor(QPalette::Disabled, QPalette::HighlightedText, QColor(255, 255, 255));
+    palette.setColor(QPalette::All, QPalette::Link, QColor(0, 0, 255));
+    palette.setColor(QPalette::Disabled, QPalette::Link, QColor(0, 0, 255));
+    palette.setColor(QPalette::All, QPalette::LinkVisited, QColor(255, 0, 255));
+    palette.setColor(QPalette::Disabled, QPalette::LinkVisited, QColor(255, 0, 255));
+  }
+  else if (style_type == StyleType::FusionDarkGray)
+  {
+    palette.setColor(QPalette::All, QPalette::Window, QColor(50, 50, 50));
+    palette.setColor(QPalette::Disabled, QPalette::Window, QColor(55, 55, 55));
+    palette.setColor(QPalette::All, QPalette::WindowText, QColor(200, 200, 200));
+    palette.setColor(QPalette::Disabled, QPalette::WindowText, QColor(108, 108, 108));
+    palette.setColor(QPalette::All, QPalette::Base, QColor(25, 25, 25));
+    palette.setColor(QPalette::Disabled, QPalette::Base, QColor(30, 30, 30));
+    palette.setColor(QPalette::All, QPalette::AlternateBase, QColor(38, 38, 38));
+    palette.setColor(QPalette::Disabled, QPalette::AlternateBase, QColor(42, 42, 42));
+    palette.setColor(QPalette::All, QPalette::ToolTipBase, QColor(45, 45, 45));
+    palette.setColor(QPalette::Disabled, QPalette::ToolTipBase, QColor(45, 45, 45));
+    palette.setColor(QPalette::All, QPalette::ToolTipText, QColor(200, 200, 200));
+    palette.setColor(QPalette::Disabled, QPalette::ToolTipText, QColor(200, 200, 200));
+    palette.setColor(QPalette::All, QPalette::PlaceholderText, QColor(90, 90, 90));
+    palette.setColor(QPalette::Disabled, QPalette::PlaceholderText, QColor(90, 90, 90));
+    palette.setColor(QPalette::All, QPalette::Text, QColor(200, 200, 200));
+    palette.setColor(QPalette::Disabled, QPalette::Text, QColor(108, 108, 108));
+    palette.setColor(QPalette::All, QPalette::Button, QColor(54, 54, 54));
+    palette.setColor(QPalette::Disabled, QPalette::Button, QColor(54, 54, 54));
+    palette.setColor(QPalette::All, QPalette::ButtonText, QColor(200, 200, 200));
+    palette.setColor(QPalette::Disabled, QPalette::ButtonText, QColor(108, 108, 108));
+    palette.setColor(QPalette::All, QPalette::BrightText, QColor(75, 75, 75));
+    palette.setColor(QPalette::Disabled, QPalette::BrightText, QColor(255, 255, 255));
+    palette.setColor(QPalette::All, QPalette::Light, QColor(26, 26, 26));
+    palette.setColor(QPalette::Disabled, QPalette::Light, QColor(26, 26, 26));
+    palette.setColor(QPalette::All, QPalette::Midlight, QColor(40, 40, 40));
+    palette.setColor(QPalette::Disabled, QPalette::Midlight, QColor(40, 40, 40));
+    palette.setColor(QPalette::All, QPalette::Dark, QColor(108, 108, 108));
+    palette.setColor(QPalette::Disabled, QPalette::Dark, QColor(108, 108, 108));
+    palette.setColor(QPalette::All, QPalette::Mid, QColor(71, 71, 71));
+    palette.setColor(QPalette::Disabled, QPalette::Mid, QColor(71, 71, 71));
+    palette.setColor(QPalette::All, QPalette::Shadow, QColor(25, 25, 25));
+    palette.setColor(QPalette::Disabled, QPalette::Shadow, QColor(37, 37, 37));
+    palette.setColor(QPalette::All, QPalette::Highlight, QColor(45, 140, 225));
+    palette.setColor(QPalette::Disabled, QPalette::Highlight, QColor(45, 140, 225).darker());
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+    palette.setColor(QPalette::All, QPalette::Accent, QColor(45, 140, 225));
+    palette.setColor(QPalette::Disabled, QPalette::Accent, QColor(45, 140, 225).darker());
+#endif
+    palette.setColor(QPalette::All, QPalette::HighlightedText, QColor(255, 255, 255));
+    palette.setColor(QPalette::Disabled, QPalette::HighlightedText, QColor(40, 40, 40));
+    palette.setColor(QPalette::All, QPalette::Link, QColor(40, 130, 220));
+    palette.setColor(QPalette::Disabled, QPalette::Link, QColor(40, 130, 220).darker());
+    palette.setColor(QPalette::All, QPalette::LinkVisited, QColor(110, 70, 150));
+    palette.setColor(QPalette::Disabled, QPalette::LinkVisited, QColor(110, 70, 150).darker());
+  }
+  else if (style_type == StyleType::FusionDark)
+  {
+    palette.setColor(QPalette::All, QPalette::Window, QColor(22, 22, 22));
+    palette.setColor(QPalette::Disabled, QPalette::Window, QColor(30, 30, 30));
+    palette.setColor(QPalette::All, QPalette::WindowText, QColor(180, 180, 180));
+    palette.setColor(QPalette::Disabled, QPalette::WindowText, QColor(90, 90, 90));
+    palette.setColor(QPalette::All, QPalette::Base, QColor(35, 35, 35));
+    palette.setColor(QPalette::Disabled, QPalette::Base, QColor(30, 30, 30));
+    palette.setColor(QPalette::All, QPalette::AlternateBase, QColor(40, 40, 40));
+    palette.setColor(QPalette::Disabled, QPalette::AlternateBase, QColor(35, 35, 35));
+    palette.setColor(QPalette::All, QPalette::ToolTipBase, QColor(0, 0, 0));
+    palette.setColor(QPalette::Disabled, QPalette::ToolTipBase, QColor(0, 0, 0));
+    palette.setColor(QPalette::All, QPalette::ToolTipText, QColor(170, 170, 170));
+    palette.setColor(QPalette::Disabled, QPalette::ToolTipText, QColor(170, 170, 170));
+    palette.setColor(QPalette::All, QPalette::PlaceholderText, QColor(100, 100, 100));
+    palette.setColor(QPalette::Disabled, QPalette::PlaceholderText, QColor(100, 100, 100));
+    palette.setColor(QPalette::All, QPalette::Text, QColor(200, 200, 200));
+    palette.setColor(QPalette::Disabled, QPalette::Text, QColor(90, 90, 90));
+    palette.setColor(QPalette::All, QPalette::Button, QColor(30, 30, 30));
+    palette.setColor(QPalette::Disabled, QPalette::Button, QColor(20, 20, 20));
+    palette.setColor(QPalette::All, QPalette::ButtonText, QColor(180, 180, 180));
+    palette.setColor(QPalette::Disabled, QPalette::ButtonText, QColor(90, 90, 90));
+    palette.setColor(QPalette::All, QPalette::BrightText, QColor(75, 75, 75));
+    palette.setColor(QPalette::Disabled, QPalette::BrightText, QColor(255, 255, 255));
+    palette.setColor(QPalette::All, QPalette::Light, QColor(0, 0, 0));
+    palette.setColor(QPalette::Disabled, QPalette::Light, QColor(0, 0, 0));
+    palette.setColor(QPalette::All, QPalette::Midlight, QColor(40, 40, 40));
+    palette.setColor(QPalette::Disabled, QPalette::Midlight, QColor(40, 40, 40));
+    palette.setColor(QPalette::All, QPalette::Dark, QColor(90, 90, 90));
+    palette.setColor(QPalette::Disabled, QPalette::Dark, QColor(90, 90, 90));
+    palette.setColor(QPalette::All, QPalette::Mid, QColor(60, 60, 60));
+    palette.setColor(QPalette::Disabled, QPalette::Mid, QColor(60, 60, 60));
+    palette.setColor(QPalette::All, QPalette::Shadow, QColor(10, 10, 10));
+    palette.setColor(QPalette::Disabled, QPalette::Shadow, QColor(20, 20, 20));
+    palette.setColor(QPalette::All, QPalette::Highlight, QColor(35, 130, 200));
+    palette.setColor(QPalette::Disabled, QPalette::Highlight, QColor(35, 130, 200).darker());
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+    palette.setColor(QPalette::All, QPalette::Accent, QColor(35, 130, 200));
+    palette.setColor(QPalette::Disabled, QPalette::Accent, QColor(35, 130, 200).darker());
+#endif
+    palette.setColor(QPalette::All, QPalette::HighlightedText, QColor(240, 240, 240));
+    palette.setColor(QPalette::Disabled, QPalette::HighlightedText, QColor(35, 35, 35));
+    palette.setColor(QPalette::All, QPalette::Link, QColor(40, 130, 220));
+    palette.setColor(QPalette::Disabled, QPalette::Link, QColor(40, 130, 220).darker());
+    palette.setColor(QPalette::All, QPalette::LinkVisited, QColor(110, 70, 150));
+    palette.setColor(QPalette::Disabled, QPalette::LinkVisited, QColor(110, 70, 150).darker());
+  }
 #ifdef _WIN32
   // Unlike other OSes we don't automatically get a default dark theme on Windows.
   // We manually load a dark palette for our included "(Dark)" style,
   //  and for *any* external style when the system is in "Dark" mode.
   // Unfortunately it doesn't seem trivial to load a palette based on the stylesheet itself.
-  if (style_type == StyleType::Dark || (style_type != StyleType::Light && IsSystemDark()))
+  else if (style_type == StyleType::Dark || (style_type != StyleType::Light && IsSystemDark()))
   {
     if (stylesheet_contents.isEmpty())
     {
@@ -188,7 +342,7 @@ void Settings::ApplyStyle()
         stylesheet_contents = QString::fromUtf8(file.readAll().data());
     }
 
-    QPalette palette = qApp->style()->standardPalette();
+    palette = qApp->style()->standardPalette();
     palette.setColor(QPalette::Window, QColor(32, 32, 32));
     palette.setColor(QPalette::WindowText, QColor(220, 220, 220));
     palette.setColor(QPalette::Base, QColor(32, 32, 32));
@@ -202,20 +356,19 @@ void Settings::ApplyStyle()
     palette.setColor(QPalette::HighlightedText, QColor(255, 255, 255));
     palette.setColor(QPalette::Link, QColor(100, 160, 220));
     palette.setColor(QPalette::LinkVisited, QColor(100, 160, 220));
-    qApp->setPalette(palette);
-  }
-  else
-  {
-    // reset any palette changes that may exist from a previously set dark mode
-    if (s_default_palette)
-      qApp->setPalette(*s_default_palette);
   }
 #endif
+  else
+  {
+    if (s_default_palette)
+      palette = *s_default_palette;
+  }
+
+  qApp->setPalette(palette);
 
   // Define tooltips style if not already defined
   if (!stylesheet_contents.contains(QStringLiteral("QToolTip"), Qt::CaseSensitive))
   {
-    const QPalette& palette = qApp->palette();
     QColor window_color;
     QColor text_color;
     QColor unused_text_emphasis_color;
@@ -223,11 +376,14 @@ void Settings::ApplyStyle()
     GetToolTipStyle(window_color, text_color, unused_text_emphasis_color, border_color, palette,
                     palette);
 
+    const int padding{QFontMetrics(QFont()).height() / 2};
+
     const auto tooltip_stylesheet =
-        QStringLiteral("QToolTip { background-color: #%1; color: #%2; padding: 8px; "
-                       "border: 1px; border-style: solid; border-color: #%3; }")
+        QStringLiteral("QToolTip { background-color: #%1; color: #%2; padding: %3px; "
+                       "border: 1px; border-style: solid; border-color: #%4; }")
             .arg(window_color.rgba(), 0, 16)
             .arg(text_color.rgba(), 0, 16)
+            .arg(padding)
             .arg(border_color.rgba(), 0, 16);
     stylesheet_contents.append(QStringLiteral("%1").arg(tooltip_stylesheet));
   }

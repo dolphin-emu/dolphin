@@ -66,9 +66,12 @@ public:
     Light = 1,
     Dark = 2,
     User = 3,
+    FusionLight = 4,
+    FusionDarkGray = 5,
+    FusionDark = 6,
 
     MinValue = 0,
-    MaxValue = 3,
+    MaxValue = 6,
   };
 
   void SetStyleType(StyleType type);
