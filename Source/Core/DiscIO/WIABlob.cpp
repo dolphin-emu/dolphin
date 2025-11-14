@@ -1446,7 +1446,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
               ASSERT(hash_offset <= std::numeric_limits<u16>::max());
 
               HashExceptionEntry& exception = exception_lists[exception_list_index].emplace_back();
-              exception.offset = static_cast<u16>(Common::swap16(hash_offset));
+              exception.offset = Common::swap16(static_cast<u16>(hash_offset));
               std::memcpy(exception.hash.data(), desired_hash, Common::SHA1::DIGEST_LEN);
             }
           };
