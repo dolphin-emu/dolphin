@@ -826,36 +826,21 @@ void JitArm64::dcbx(UGeckoInstruction inst)
     // Load the loop_counter register with the amount of invalidations to execute.
     ADD(loop_counter, WA, 1);
 
-    if (IsDebuggingEnabled())
+    if (IsBranchWatchEnabled())
     {
-      const ARM64Reg branch_watch = EncodeRegTo64(reg_cycle_count);
-      MOVP2R(branch_watch, &m_branch_watch);
-      LDRB(IndexType::Unsigned, WB, branch_watch, Core::BranchWatch::GetOffsetOfRecordingActive());
-      FixupBranch branch_over = CBZ(WB);
-
-      FixupBranch branch_in = B();
-      SwitchToFarCode();
-      SetJumpTarget(branch_in);
-
       const BitSet32 gpr_caller_save =
           gpr.GetCallerSavedUsed() &
           ~BitSet32{DecodeReg(WB), DecodeReg(reg_cycle_count), DecodeReg(reg_downcount)};
       ABI_PushRegisters(gpr_caller_save);
-      const ARM64Reg float_emit_tmp = EncodeRegTo64(WB);
       const BitSet32 fpr_caller_save = fpr.GetCallerSavedUsed();
-      m_float_emit.ABI_PushRegisters(fpr_caller_save, float_emit_tmp);
+      m_float_emit.ABI_PushRegisters(fpr_caller_save, ARM64Reg::X8);
       const PPCAnalyst::CodeOp& op = js.op[2];
       ABI_CallFunction(m_ppc_state.msr.IR ? &Core::BranchWatch::HitVirtualTrue_fk_n :
                                             &Core::BranchWatch::HitPhysicalTrue_fk_n,
-                       branch_watch, Core::FakeBranchWatchCollectionKey{op.address, op.branchTo},
+                       &m_branch_watch, Core::FakeBranchWatchCollectionKey{op.address, op.branchTo},
                        op.inst.hex, WA);
-      m_float_emit.ABI_PopRegisters(fpr_caller_save, float_emit_tmp);
+      m_float_emit.ABI_PopRegisters(fpr_caller_save, ARM64Reg::X8);
       ABI_PopRegisters(gpr_caller_save);
-
-      FixupBranch branch_out = B();
-      SwitchToNearCode();
-      SetJumpTarget(branch_out);
-      SetJumpTarget(branch_over);
     }
   }
 
