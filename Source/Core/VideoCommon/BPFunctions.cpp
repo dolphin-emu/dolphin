@@ -265,6 +265,14 @@ void SetScissorAndViewport(FramebufferManager* frame_buffer_manager, ScissorPos 
     y = static_cast<float>(g_gfx->GetCurrentFramebuffer()->GetHeight()) - y - height;
 
   g_gfx->SetViewport(x, y, width, height, near_depth, far_depth);
+
+  g_gfx->StoreViewportAndScissor(AbstractGfx::ViewportAndScissor{.scissor_rect = converted_rc,
+                                                                 .viewport_x = x,
+                                                                 .viewport_y = y,
+                                                                 .viewport_width = width,
+                                                                 .viewport_height = height,
+                                                                 .viewport_near_depth = near_depth,
+                                                                 .viewport_far_depth = far_depth});
 }
 
 void SetDepthMode()
