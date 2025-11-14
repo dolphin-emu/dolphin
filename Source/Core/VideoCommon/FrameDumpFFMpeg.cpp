@@ -65,6 +65,7 @@ namespace
 {
 AVRational GetTimeBaseForCurrentRefreshRate(s64 max_denominator)
 {
+  // TODO: GetTargetRefreshRate* are not safe from GPU thread.
   auto& vi = Core::System::GetInstance().GetVideoInterface();
   int num;
   int den;
@@ -368,6 +369,7 @@ void FFMpegFrameDump::AddFrame(const FrameData& frame)
   // Calculate presentation timestamp from ticks since start.
   const s64 pts = av_rescale_q(
       frame.state.ticks - m_context->start_ticks,
+      // TODO: GetTicksPerSecond is not safe from GPU thread.
       AVRational{1, int(Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond())},
       m_context->codec->time_base);
 

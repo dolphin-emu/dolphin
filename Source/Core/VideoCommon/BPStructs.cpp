@@ -13,7 +13,6 @@
 #include "Common/EnumMap.h"
 #include "Common/Logging/Log.h"
 
-#include "Core/CoreTiming.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
@@ -359,14 +358,8 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
 
       if (g_ActiveConfig.bImmediateXFB)
       {
-        // TODO: GetTicks is not sane from the GPU thread.
-        // This value is currently used for frame dumping and the custom shader "time_ms" value.
-        // Frame dumping has more calls that aren't sane from the GPU thread.
-        // i.e. Frame dumping is not sane in "Dual Core" mode in general.
-        const u64 ticks = system.GetCoreTiming().GetTicks();
-
         // below div two to convert from bytes to pixels - it expects width, not stride
-        g_presenter->ImmediateSwap(destAddr, destStride / 2, destStride, height, ticks);
+        g_presenter->ImmediateSwap(destAddr, destStride / 2, destStride, height);
       }
       else
       {
