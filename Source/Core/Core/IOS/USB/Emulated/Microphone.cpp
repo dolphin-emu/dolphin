@@ -17,9 +17,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/Swap.h"
-#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
-#include "Core/IOS/USB/Emulated/WiiSpeak.h"
 #include "Core/System.h"
 
 #ifdef _WIN32
@@ -32,14 +30,26 @@
 
 namespace IOS::HLE::USB
 {
-Microphone::Microphone(const WiiSpeakState& sampler) : m_sampler(sampler)
+#ifdef HAVE_CUBEB
+Microphone::Microphone(const MicrophoneState& sampler, const std::string& worker_name)
+    : m_sampler(sampler), m_worker(worker_name)
 {
-  StreamInit();
 }
+#else
+Microphone::Microphone(const MicrophoneState& sampler, const std::string& worker_name)
+    : m_sampler(sampler)
+{
+}
+#endif
 
 Microphone::~Microphone()
 {
   StreamTerminate();
+}
+
+void Microphone::Initialize()
+{
+  StreamInit();
 }
 
 #ifndef HAVE_CUBEB
@@ -63,12 +73,12 @@ void Microphone::StreamInit()
 {
   if (!m_worker.Execute([this] { m_cubeb_ctx = CubebUtils::GetContext(); }))
   {
-    ERROR_LOG_FMT(IOS_USB, "Failed to init Wii Speak stream");
+    ERROR_LOG_FMT(IOS_USB, "Failed to init microphone stream");
     return;
   }
 
   // TODO: Not here but rather inside the WiiSpeak device if possible?
-  StreamStart(m_sampler.DEFAULT_SAMPLING_RATE);
+  StreamStart(m_sampler.GetDefaultSamplingRate());
 }
 
 void Microphone::StreamTerminate()
@@ -108,6 +118,7 @@ void Microphone::StreamStart(u32 sampling_rate)
     params.channels = 1;
     params.layout = CUBEB_LAYOUT_MONO;
 
+    std::lock_guard lock(m_ring_lock);
     u32 minimum_latency;
     if (cubeb_get_min_latency(m_cubeb_ctx.get(), &params, &minimum_latency) != CUBEB_OK)
     {
@@ -115,9 +126,8 @@ void Microphone::StreamStart(u32 sampling_rate)
       minimum_latency = 16;
     }
 
-    cubeb_devid input_device =
-        CubebUtils::GetInputDeviceById(Config::Get(Config::MAIN_WII_SPEAK_MICROPHONE));
-    if (cubeb_stream_init(m_cubeb_ctx.get(), &m_cubeb_stream, "Dolphin Emulated Wii Speak",
+    cubeb_devid input_device = CubebUtils::GetInputDeviceById(GetInputDeviceId());
+    if (cubeb_stream_init(m_cubeb_ctx.get(), &m_cubeb_stream, GetCubebStreamName().c_str(),
                           input_device, &params, nullptr, nullptr,
                           std::max<u32>(16, minimum_latency), CubebDataCallback, StateCallback,
                           this) != CUBEB_OK)
@@ -132,6 +142,8 @@ void Microphone::StreamStart(u32 sampling_rate)
       return;
     }
 
+    m_stream_buffer.resize(GetStreamSize());
+    m_stream_wpos = 0;
     INFO_LOG_FMT(IOS_USB, "started cubeb stream");
   });
 }
@@ -156,12 +168,13 @@ long Microphone::CubebDataCallback(cubeb_stream* stream, void* user_data, const 
   if (Core::GetState(Core::System::GetInstance()) != Core::State::Running)
     return nframes;
 
+  auto* mic = static_cast<Microphone*>(user_data);
+
   // Skip data when HLE Wii Speak is muted
   // TODO: Update cubeb and use cubeb_stream_set_input_mute
-  if (Config::Get(Config::MAIN_WII_SPEAK_MUTED))
+  if (mic->IsMicrophoneMuted())
     return nframes;
 
-  auto* mic = static_cast<Microphone*>(user_data);
   return mic->DataCallback(static_cast<const SampleType*>(input_buffer), nframes);
 }
 
@@ -170,27 +183,29 @@ long Microphone::DataCallback(const SampleType* input_buffer, long nframes)
   std::lock_guard lock(m_ring_lock);
 
   // Skip data if sampling is off or mute is on
-  if (!m_sampler.sample_on || m_sampler.mute)
+  if (!m_sampler.IsSampleOn() || m_sampler.IsMuted())
     return nframes;
 
   std::span<const SampleType> buffer(input_buffer, nframes);
-  const auto gain = ComputeGain(Config::Get(Config::MAIN_WII_SPEAK_VOLUME_MODIFIER));
+  const auto gain = ComputeGain(GetVolumeModifier());
   const auto apply_gain = [gain](SampleType sample) {
     return MathUtil::SaturatingCast<SampleType>(sample * gain);
   };
 
+  const u32 stream_size = GetStreamSize();
+  const bool are_samples_byte_swapped = AreSamplesByteSwapped();
   for (const SampleType le_sample : std::ranges::transform_view(buffer, apply_gain))
   {
     UpdateLoudness(le_sample);
-    m_stream_buffer[m_stream_wpos] = Common::swap16(le_sample);
-    m_stream_wpos = (m_stream_wpos + 1) % STREAM_SIZE;
+    m_stream_buffer[m_stream_wpos] =
+        are_samples_byte_swapped ? Common::swap16(le_sample) : le_sample;
+    m_stream_wpos = (m_stream_wpos + 1) % stream_size;
   }
 
   m_samples_avail += nframes;
-  if (m_samples_avail > STREAM_SIZE)
+  if (m_samples_avail > stream_size)
   {
-    WARN_LOG_FMT(IOS_USB, "Wii Speak ring buffer is full, data will be lost!");
-    m_samples_avail = STREAM_SIZE;
+    m_samples_avail = stream_size;
   }
 
   return nframes;
@@ -201,12 +216,9 @@ u16 Microphone::ReadIntoBuffer(u8* ptr, u32 size)
 {
   static constexpr u32 SINGLE_READ_SIZE = BUFF_SIZE_SAMPLES * sizeof(SampleType);
 
-  // Avoid buffer overflow during memcpy
-  static_assert((STREAM_SIZE % BUFF_SIZE_SAMPLES) == 0,
-                "The STREAM_SIZE isn't a multiple of BUFF_SIZE_SAMPLES");
-
   std::lock_guard lock(m_ring_lock);
 
+  const u32 stream_size = GetStreamSize();
   u8* begin = ptr;
   for (u8* end = begin + size; ptr < end; ptr += SINGLE_READ_SIZE, size -= SINGLE_READ_SIZE)
   {
@@ -218,14 +230,14 @@ u16 Microphone::ReadIntoBuffer(u8* ptr, u32 size)
 
     m_samples_avail -= BUFF_SIZE_SAMPLES;
     m_stream_rpos += BUFF_SIZE_SAMPLES;
-    m_stream_rpos %= STREAM_SIZE;
+    m_stream_rpos %= stream_size;
   }
   return static_cast<u16>(ptr - begin);
 }
 
 u16 Microphone::GetLoudnessLevel() const
 {
-  if (m_sampler.mute || Config::Get(Config::MAIN_WII_SPEAK_MUTED))
+  if (m_sampler.IsMuted() || IsMicrophoneMuted())
     return 0;
   return m_loudness_level;
 }
@@ -365,7 +377,7 @@ void Microphone::Loudness::LogStats()
   const auto crest_factor_db = GetDecibel(crest_factor);
 
   INFO_LOG_FMT(IOS_USB,
-               "Wii Speak loudness stats (sample count: {}/{}):\n"
+               "Microphone loudness stats (sample count: {}/{}):\n"
                " - min={} max={} amplitude={} ({} dB)\n"
                " - rms={} ({} dB) \n"
                " - abs_mean={} ({} dB)\n"

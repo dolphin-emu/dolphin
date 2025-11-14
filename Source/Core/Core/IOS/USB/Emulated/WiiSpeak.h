@@ -13,8 +13,9 @@
 
 namespace IOS::HLE::USB
 {
-struct WiiSpeakState
+class WiiSpeakState final : public MicrophoneState
 {
+public:
   // Use atomic for members concurrently used by the data callback
   std::atomic<bool> sample_on;
   std::atomic<bool> mute;
@@ -24,6 +25,10 @@ struct WiiSpeakState
   bool sp_on;
 
   static constexpr u32 DEFAULT_SAMPLING_RATE = 16000;
+
+  bool IsSampleOn() const override;
+  bool IsMuted() const override;
+  u32 GetDefaultSamplingRate() const override;
 };
 
 class WiiSpeak final : public Device
