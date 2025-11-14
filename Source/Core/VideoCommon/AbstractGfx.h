@@ -10,6 +10,7 @@
 
 #include <array>
 #include <memory>
+#include <optional>
 #include <vector>
 
 class AbstractFramebuffer;
@@ -126,6 +127,23 @@ public:
 
   AbstractFramebuffer* GetCurrentFramebuffer() const { return m_current_framebuffer; }
 
+  struct ViewportAndScissors
+  {
+    MathUtil::Rectangle<int> scissors_rect;
+    float viewport_x;
+    float viewport_y;
+    float viewport_width;
+    float viewport_height;
+    float viewport_near_depth;
+    float viewport_far_depth;
+  };
+
+  // Sets the last viewport and scissors, uses it to restore on 'EndUtilityDrawing'
+  void SetViewportAndScissor(ViewportAndScissors viewport_and_scissors);
+
+  // Gets the last set viewport and scissors
+  const std::optional<ViewportAndScissors>& GetViewportAndScissors() const;
+
   // Sets viewport and scissor to the specified rectangle. rect is assumed to be in framebuffer
   // coordinates, i.e. lower-left origin in OpenGL.
   void SetViewportAndScissor(const MathUtil::Rectangle<int>& rect, float min_depth = 0.0f,
@@ -177,6 +195,7 @@ protected:
 
 private:
   Common::EventHook m_config_changed;
+  std::optional<ViewportAndScissors> m_viewport_and_scissors;
 };
 
 extern std::unique_ptr<AbstractGfx> g_gfx;

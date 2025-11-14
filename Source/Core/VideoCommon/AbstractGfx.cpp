@@ -34,10 +34,21 @@ void AbstractGfx::BeginUtilityDrawing()
 
 void AbstractGfx::EndUtilityDrawing()
 {
-  // Reset framebuffer/scissor/viewport. Pipeline will be reset at next draw.
+  // Reset framebuffer. Pipeline will be reset at next draw.
   g_framebuffer_manager->BindEFBFramebuffer();
-  BPFunctions::SetScissorAndViewport(g_framebuffer_manager.get(), bpmem.scissorTL, bpmem.scissorBR,
-                                     bpmem.scissorOffset, xfmem.viewport);
+
+  // Reset our viewport and scissors to the last stored value if we have it
+  // We might not have one in the scenario where we're doing utility drawing
+  // at the start of launching the software (ex: drawing the compile shaders
+  // before start dialog)
+  if (m_viewport_and_scissors)
+  {
+    SetViewport(m_viewport_and_scissors->viewport_x, m_viewport_and_scissors->viewport_y,
+                m_viewport_and_scissors->viewport_width, m_viewport_and_scissors->viewport_height,
+                m_viewport_and_scissors->viewport_near_depth,
+                m_viewport_and_scissors->viewport_far_depth);
+    SetScissorRect(m_viewport_and_scissors->scissors_rect);
+  }
 }
 
 void AbstractGfx::SetFramebuffer(AbstractFramebuffer* framebuffer)
@@ -85,6 +96,16 @@ void AbstractGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool co
   g_gfx->SetViewportAndScissor(target_rc);
   g_gfx->Draw(0, 3);
   EndUtilityDrawing();
+}
+
+void AbstractGfx::SetViewportAndScissor(ViewportAndScissors viewport_and_scissors)
+{
+  m_viewport_and_scissors = std::move(viewport_and_scissors);
+}
+
+const std::optional<AbstractGfx::ViewportAndScissors>& AbstractGfx::GetViewportAndScissors() const
+{
+  return m_viewport_and_scissors;
 }
 
 void AbstractGfx::SetViewportAndScissor(const MathUtil::Rectangle<int>& rect, float min_depth,
