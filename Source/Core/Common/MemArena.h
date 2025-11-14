@@ -187,6 +187,14 @@ public:
 #endif
   }
 
+  void EnsureMemoryPagesWritable(size_t offset, size_t size)
+  {
+#ifdef _WIN32
+    for (const auto end_offset = offset + size; offset < end_offset; offset += BLOCK_SIZE)
+      EnsureMemoryPageWritable(offset);
+#endif
+  }
+
 private:
   void* m_memory = nullptr;
   size_t m_size = 0;
