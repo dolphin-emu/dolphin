@@ -2,7 +2,6 @@
 
 package org.dolphinemu.dolphinemu.activities
 
-import android.annotation.SuppressLint
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Rect
@@ -53,6 +52,7 @@ import org.dolphinemu.dolphinemu.fragments.EmulationFragment
 import org.dolphinemu.dolphinemu.fragments.MenuFragment
 import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment
 import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment.SaveOrLoad
+import org.dolphinemu.dolphinemu.model.SAVESLOT.*
 import org.dolphinemu.dolphinemu.overlay.InputOverlay
 import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter
@@ -60,6 +60,7 @@ import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
+import org.dolphinemu.dolphinemu.utils.Log
 import org.dolphinemu.dolphinemu.utils.ThemeHelper
 import kotlin.math.roundToInt
 
@@ -456,6 +457,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_ACTION_PAUSE_EMULATION -> {
                 hasUserPausedEmulation = true
                 NativeLibrary.PauseEmulation(false)
+                saveOnExit()
             }
 
             MENU_ACTION_UNPAUSE_EMULATION -> {
@@ -464,22 +466,22 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             }
 
             MENU_ACTION_TAKE_SCREENSHOT -> NativeLibrary.SaveScreenShot()
-            MENU_ACTION_QUICK_SAVE -> NativeLibrary.SaveState(9, false)
-            MENU_ACTION_QUICK_LOAD -> NativeLibrary.LoadState(9)
+            MENU_ACTION_QUICK_SAVE -> NativeLibrary.SaveState(QUICKSAVE.slot, false)
+            MENU_ACTION_QUICK_LOAD -> NativeLibrary.LoadState(QUICKSAVE.slot)
             MENU_ACTION_SAVE_ROOT -> showSubMenu(SaveOrLoad.SAVE)
             MENU_ACTION_LOAD_ROOT -> showSubMenu(SaveOrLoad.LOAD)
-            MENU_ACTION_SAVE_SLOT1 -> NativeLibrary.SaveState(0, false)
-            MENU_ACTION_SAVE_SLOT2 -> NativeLibrary.SaveState(1, false)
-            MENU_ACTION_SAVE_SLOT3 -> NativeLibrary.SaveState(2, false)
-            MENU_ACTION_SAVE_SLOT4 -> NativeLibrary.SaveState(3, false)
-            MENU_ACTION_SAVE_SLOT5 -> NativeLibrary.SaveState(4, false)
-            MENU_ACTION_SAVE_SLOT6 -> NativeLibrary.SaveState(5, false)
-            MENU_ACTION_LOAD_SLOT1 -> NativeLibrary.LoadState(0)
-            MENU_ACTION_LOAD_SLOT2 -> NativeLibrary.LoadState(1)
-            MENU_ACTION_LOAD_SLOT3 -> NativeLibrary.LoadState(2)
-            MENU_ACTION_LOAD_SLOT4 -> NativeLibrary.LoadState(3)
-            MENU_ACTION_LOAD_SLOT5 -> NativeLibrary.LoadState(4)
-            MENU_ACTION_LOAD_SLOT6 -> NativeLibrary.LoadState(5)
+            MENU_ACTION_SAVE_SLOT1 -> NativeLibrary.SaveState(SLOT1.slot, false)
+            MENU_ACTION_SAVE_SLOT2 -> NativeLibrary.SaveState(SLOT2.slot, false)
+            MENU_ACTION_SAVE_SLOT3 -> NativeLibrary.SaveState(SLOT3.slot, false)
+            MENU_ACTION_SAVE_SLOT4 -> NativeLibrary.SaveState(SLOT4.slot, false)
+            MENU_ACTION_SAVE_SLOT5 -> NativeLibrary.SaveState(SLOT5.slot, false)
+            MENU_ACTION_SAVE_SLOT6 -> NativeLibrary.SaveState(SLOT6.slot, false)
+            MENU_ACTION_LOAD_SLOT1 -> NativeLibrary.LoadState(SLOT1.slot)
+            MENU_ACTION_LOAD_SLOT2 -> NativeLibrary.LoadState(SLOT2.slot)
+            MENU_ACTION_LOAD_SLOT3 -> NativeLibrary.LoadState(SLOT3.slot)
+            MENU_ACTION_LOAD_SLOT4 -> NativeLibrary.LoadState(SLOT4.slot)
+            MENU_ACTION_LOAD_SLOT5 -> NativeLibrary.LoadState(SLOT5.slot)
+            MENU_ACTION_LOAD_SLOT6 -> NativeLibrary.LoadState(SLOT6.slot)
             MENU_ACTION_CHANGE_DISC -> {
                 val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
                 intent.addCategory(Intent.CATEGORY_OPENABLE)
@@ -1166,5 +1168,27 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             view.getGlobalVisibleRect(viewBounds)
             return !viewBounds.contains(x.roundToInt(), y.roundToInt())
         }
+    }
+
+     fun saveOnExit() {
+      if (BooleanSetting.MAIN_EXIT_SAVE_AND_LOAD.boolean) {
+        Log.error("[EmulationActivity] Exitsave on Pause")
+        NativeLibrary.SaveState(EXITSAVE.slot, true)
+      }
+    }
+
+     fun loadExitsaveOnStart() {
+      if (BooleanSetting.MAIN_EXIT_SAVE_AND_LOAD.boolean) {
+        while (!NativeLibrary.IsRunningAndUnpaused()){
+          Thread.sleep(10)
+        }
+        Log.error("[EmulationActivity] Load Exitsave on start")
+        val creationTime = NativeLibrary.GetUnixTimeOfStateSlot(EXITSAVE.slot)
+        if (creationTime != 0L) {
+          NativeLibrary.LoadState(EXITSAVE.slot)
+        } else {
+          Log.error("[EmulationActivity] Exitsave-Slot not available")
+        }
+      }
     }
 }
