@@ -251,7 +251,6 @@ private:
 
   static void Request(const rc_api_request_t* request, rc_client_server_callback_t callback,
                       void* callback_data, rc_client_t* client);
-  static u32 MemoryVerifier(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
   static u32 MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
   void FetchBadge(Badge* badge, u32 badge_type, const BadgeNameFunction function,
                   const UpdatedItems callback_data);
@@ -293,8 +292,6 @@ private:
 
   bool m_dll_found = false;
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
-  std::vector<u8> m_cloned_memory;
-  std::recursive_mutex m_memory_lock;
   std::string m_title_estimate;
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
