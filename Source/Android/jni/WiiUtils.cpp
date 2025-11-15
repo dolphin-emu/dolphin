@@ -87,7 +87,7 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_importWiiSa
 {
   const std::string path = GetJString(env, jFile);
   const auto can_overwrite = [&] {
-    const jmethodID get = IDCache::GetBooleanSupplierGet();
+    const jmethodID get = IDCache::GetBooleanSupplierGetAsBoolean();
     return static_cast<bool>(env->CallBooleanMethod(jCanOverwrite, get));
   };
 

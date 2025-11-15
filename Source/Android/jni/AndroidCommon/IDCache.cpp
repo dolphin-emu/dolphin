@@ -52,7 +52,7 @@ static jmethodID s_network_helper_get_network_prefix_length;
 static jmethodID s_network_helper_get_network_gateway;
 
 static jclass s_boolean_supplier_class;
-static jmethodID s_boolean_supplier_get;
+static jmethodID s_boolean_supplier_get_as_boolean;
 
 static jclass s_ar_cheat_class;
 static jfieldID s_ar_cheat_pointer;
@@ -310,9 +310,9 @@ jmethodID GetNetworkHelperGetNetworkGateway()
   return s_network_helper_get_network_gateway;
 }
 
-jmethodID GetBooleanSupplierGet()
+jmethodID GetBooleanSupplierGetAsBoolean()
 {
-  return s_boolean_supplier_get;
+  return s_boolean_supplier_get_as_boolean;
 }
 
 jclass GetARCheatClass()
@@ -669,10 +669,10 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
       env->GetStaticMethodID(s_network_helper_class, "GetNetworkGateway", "()I");
   env->DeleteLocalRef(network_helper_class);
 
-  const jclass boolean_supplier_class =
-      env->FindClass("org/dolphinemu/dolphinemu/utils/BooleanSupplier");
+  const jclass boolean_supplier_class = env->FindClass("java/util/function/BooleanSupplier");
   s_boolean_supplier_class = reinterpret_cast<jclass>(env->NewGlobalRef(boolean_supplier_class));
-  s_boolean_supplier_get = env->GetMethodID(s_boolean_supplier_class, "get", "()Z");
+  s_boolean_supplier_get_as_boolean =
+      env->GetMethodID(s_boolean_supplier_class, "getAsBoolean", "()Z");
   env->DeleteLocalRef(boolean_supplier_class);
 
   const jclass ar_cheat_class =

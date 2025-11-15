@@ -51,7 +51,7 @@ jmethodID GetNetworkHelperGetNetworkIpAddress();
 jmethodID GetNetworkHelperGetNetworkPrefixLength();
 jmethodID GetNetworkHelperGetNetworkGateway();
 
-jmethodID GetBooleanSupplierGet();
+jmethodID GetBooleanSupplierGetAsBoolean();
 
 jclass GetARCheatClass();
 jfieldID GetARCheatPointer();

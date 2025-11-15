@@ -21,7 +21,7 @@ import org.dolphinemu.dolphinemu.fragments.AboutDialogFragment
 import org.dolphinemu.dolphinemu.model.GameFileCache
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
-import org.dolphinemu.dolphinemu.utils.BooleanSupplier
+import java.util.function.BooleanSupplier
 import org.dolphinemu.dolphinemu.utils.CompletableFuture
 import org.dolphinemu.dolphinemu.utils.ContentHandler
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
