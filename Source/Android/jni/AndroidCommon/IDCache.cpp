@@ -662,11 +662,11 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
       env->FindClass("org/dolphinemu/dolphinemu/utils/NetworkHelper");
   s_network_helper_class = reinterpret_cast<jclass>(env->NewGlobalRef(network_helper_class));
   s_network_helper_get_network_ip_address =
-      env->GetStaticMethodID(s_network_helper_class, "GetNetworkIpAddress", "()I");
+      env->GetStaticMethodID(s_network_helper_class, "getNetworkIpAddress", "()I");
   s_network_helper_get_network_prefix_length =
-      env->GetStaticMethodID(s_network_helper_class, "GetNetworkPrefixLength", "()I");
+      env->GetStaticMethodID(s_network_helper_class, "getNetworkPrefixLength", "()I");
   s_network_helper_get_network_gateway =
-      env->GetStaticMethodID(s_network_helper_class, "GetNetworkGateway", "()I");
+      env->GetStaticMethodID(s_network_helper_class, "getNetworkGateway", "()I");
   env->DeleteLocalRef(network_helper_class);
 
   const jclass boolean_supplier_class =
