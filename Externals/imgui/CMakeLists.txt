@@ -10,6 +10,7 @@ set(SRCS
   imgui/imgui_draw.cpp
   imgui/imgui_tables.cpp
   imgui/imgui_widgets.cpp
+  imgui/misc/cpp/imgui_stdlib.cpp
 )
 
 add_library(imgui STATIC ${SRCS})

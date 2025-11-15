@@ -19,6 +19,7 @@ enum class LogicOp : u32;
 
 struct alignas(16) PixelShaderConstants
 {
+  std::array<float4, 4> freelook;
   std::array<int4, 4> colors;
   std::array<int4, 4> kcolors;
   int4 alpha;
@@ -103,6 +104,10 @@ struct alignas(16) VertexShaderConstants
   u32 vertex_offset_posmtx;
   std::array<u32, 2> vertex_offset_colors;
   std::array<u32, 8> vertex_offset_texcoords;
+  // For custom meshes (TODO: move)
+  std::array<float4, 4> custom_transform;
+  // For custom shaders...
+  u32 time_ms;
 };
 
 enum class VSExpand : u32
