@@ -12,6 +12,7 @@
 #include <cstring>
 #include <string>
 #include <thread>
+#include <intrin.h>
 
 #include <fmt/format.h>
 #include <fmt/ranges.h>
@@ -54,6 +55,24 @@ static u64 xgetbv(u32 index)
 }
 
 #else
+
+#ifdef __MINGW32__
+#ifndef _XCR_XFEATURE_ENABLED_MASK
+#define _XCR_XFEATURE_ENABLED_MASK 0
+#endif
+#endif
+
+#if !defined(_MSC_VER)
+static inline unsigned long long my_xgetbv(unsigned int index) {
+    unsigned int eax, edx;
+    __asm__ __volatile__ (
+        "xgetbv"
+        : "=a"(eax), "=d"(edx)
+        : "c"(index));
+    return ((unsigned long long)edx << 32) | eax;
+}
+#define _xgetbv my_xgetbv
+#endif
 
 constexpr u32 XCR_XFEATURE_ENABLED_MASK = _XCR_XFEATURE_ENABLED_MASK;
 
@@ -109,7 +128,7 @@ CPUInfo::CPUInfo()
 
 void CPUInfo::Detect()
 {
-#ifdef _WIN32
+#ifdef _MSC_VER
   WarnIfRunningUnderEmulation();
 #endif
 

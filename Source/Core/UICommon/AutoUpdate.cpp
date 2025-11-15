@@ -19,7 +19,7 @@
 #include "Common/Version.h"
 
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #else
 #include <sys/types.h>
 #include <unistd.h>

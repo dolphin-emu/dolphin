@@ -1,0 +1,62 @@
+diff --git a/src/libipc/platform/win/condition.h b/src/libipc/platform/win/condition.h
+index 9c89633..36c9a20 100644
+--- a/src/libipc/platform/win/condition.h
++++ b/src/libipc/platform/win/condition.h
+@@ -4,7 +4,7 @@
+ #include <string>
+ #include <mutex>
+ 
+-#include <Windows.h>
++#include <windows.h>
+ 
+ #include "libipc/utility/log.h"
+ #include "libipc/utility/scope_guard.h"
+diff --git a/src/libipc/platform/win/mutex.h b/src/libipc/platform/win/mutex.h
+index e9b61cd..f9ab63f 100644
+--- a/src/libipc/platform/win/mutex.h
++++ b/src/libipc/platform/win/mutex.h
+@@ -3,7 +3,7 @@
+ #include <cstdint>
+ #include <system_error>
+ 
+-#include <Windows.h>
++#include <windows.h>
+ 
+ #include "libipc/utility/log.h"
+ 
+diff --git a/src/libipc/platform/win/semaphore.h b/src/libipc/platform/win/semaphore.h
+index 6cf94de..252d78e 100644
+--- a/src/libipc/platform/win/semaphore.h
++++ b/src/libipc/platform/win/semaphore.h
+@@ -2,7 +2,7 @@
+ 
+ #include <cstdint>
+ 
+-#include <Windows.h>
++#include <windows.h>
+ 
+ #include "libipc/utility/log.h"
+ 
+diff --git a/src/libipc/platform/win/shm_win.cpp b/src/libipc/platform/win/shm_win.cpp
+index b19245f..dd70abe 100755
+--- a/src/libipc/platform/win/shm_win.cpp
++++ b/src/libipc/platform/win/shm_win.cpp
+@@ -1,5 +1,5 @@
+ 
+-#include <Windows.h>
++#include <windows.h>
+ 
+ #include <string>
+ #include <utility>
+diff --git a/src/libipc/platform/win/to_tchar.h b/src/libipc/platform/win/to_tchar.h
+index 94bc83e..d344fbd 100755
+--- a/src/libipc/platform/win/to_tchar.h
++++ b/src/libipc/platform/win/to_tchar.h
+@@ -1,6 +1,6 @@
+ #pragma once
+ 
+-#include <Windows.h>
++#include <windows.h>
+ 
+ #include <type_traits>
+ #include <string>
