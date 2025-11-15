@@ -293,8 +293,6 @@ private:
 
   bool m_dll_found = false;
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
-  std::vector<u8> m_cloned_memory;
-  std::recursive_mutex m_memory_lock;
   std::string m_title_estimate;
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
