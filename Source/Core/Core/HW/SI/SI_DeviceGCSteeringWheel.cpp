@@ -34,9 +34,7 @@ int CSIDevice_GCSteeringWheel::RunBuffer(u8* buffer, int request_length)
   case EBufferCommands::CMD_STATUS:
   case EBufferCommands::CMD_RESET:
   {
-    const u32 id = Common::swap32(SI_GC_STEERING);
-    std::memcpy(buffer, &id, sizeof(id));
-    return sizeof(id);
+    return CreateStatusResponse(SI_GC_STEERING, buffer);
   }
   default:
     return CSIDevice_GCController::RunBuffer(buffer, request_length);
