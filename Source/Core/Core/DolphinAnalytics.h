@@ -203,4 +203,5 @@ private:
   std::mutex m_reporter_mutex;
   Common::AnalyticsReporter m_reporter;
   Config::ConfigChangedCallbackID m_config_changed_callback_id{};
+  bool m_last_analytics_enabled = false;
 };
