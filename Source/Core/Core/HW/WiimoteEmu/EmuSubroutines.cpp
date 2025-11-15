@@ -363,6 +363,8 @@ void Wiimote::HandleSpeakerMute(const WiimoteCommon::OutputReportEnableFeature& 
 {
   m_speaker_mute = rpt.enable;
 
+  m_speaker_logic.SetMuted(m_speaker_mute);
+
   if (rpt.ack)
     SendAck(OutputReportID::SpeakerMute, ErrorCode::Success);
 }
@@ -371,27 +373,23 @@ void Wiimote::HandleSpeakerEnable(const WiimoteCommon::OutputReportEnableFeature
 {
   m_status.speaker = rpt.enable;
 
+  m_speaker_logic.SetEnabled(m_status.speaker);
+
   if (rpt.ack)
     SendAck(OutputReportID::SpeakerEnable, ErrorCode::Success);
 }
 
 void Wiimote::HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData& rpt)
 {
-  // TODO: Does speaker_mute stop speaker data processing?
-  // and what about speaker_enable?
-  // (important to keep decoder in proper state)
-  if (!m_speaker_mute)
+  if (rpt.length > std::size(rpt.data))
   {
-    if (rpt.length > std::size(rpt.data))
-    {
-      ERROR_LOG_FMT(WIIMOTE, "Bad speaker data length: {}", rpt.length);
-    }
-    else
-    {
-      // Speaker data reports result in a write to the speaker hardware at offset 0x00.
-      m_i2c_bus.BusWrite(SpeakerLogic::I2C_ADDR, SpeakerLogic::SPEAKER_DATA_OFFSET, rpt.length,
-                         std::data(rpt.data));
-    }
+    ERROR_LOG_FMT(WIIMOTE, "Bad speaker data length: {}", rpt.length);
+  }
+  else
+  {
+    // Speaker data reports result in a write to the speaker hardware at offset 0x00.
+    m_i2c_bus.BusWrite(SpeakerLogic::I2C_ADDR, SpeakerLogic::SPEAKER_DATA_OFFSET, rpt.length,
+                       std::data(rpt.data));
   }
 
   // FYI: Speaker data reports normally do not ACK but I have seen them ACK with error codes
@@ -553,7 +551,12 @@ void Wiimote::DoState(PointerWrap& p)
   m_camera_logic.DoState(p);
 
   if (p.IsReadMode())
+  {
+    m_speaker_logic.SetEnabled(m_status.speaker);
+    m_speaker_logic.SetMuted(m_speaker_mute);
+
     m_camera_logic.SetEnabled(m_status.ir);
+  }
 
   p.Do(m_is_motion_plus_attached);
   p.Do(m_active_extension);
