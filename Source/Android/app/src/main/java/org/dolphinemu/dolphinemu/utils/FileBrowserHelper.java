@@ -17,7 +17,6 @@ import com.nononsenseapps.filepicker.Utils;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.CustomFilePickerActivity;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
-import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -49,7 +48,8 @@ public final class FileBrowserHelper
   public static final HashSet<String> WAD_EXTENSION = new HashSet<>(Collections.singletonList(
           "wad"));
 
-  public static void openDirectoryPicker(FragmentActivity activity, HashSet<String> extensions)
+  public static Intent createDirectoryPickerIntent(FragmentActivity activity,
+          HashSet<String> extensions)
   {
     Intent i = new Intent(activity, CustomFilePickerActivity.class);
 
@@ -60,7 +60,7 @@ public final class FileBrowserHelper
             Environment.getExternalStorageDirectory().getPath());
     i.putExtra(CustomFilePickerActivity.EXTRA_EXTENSIONS, extensions);
 
-    activity.startActivityForResult(i, MainPresenter.REQUEST_DIRECTORY);
+    return i;
   }
 
   @Nullable

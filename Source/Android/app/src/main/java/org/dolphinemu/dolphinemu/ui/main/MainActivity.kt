@@ -2,7 +2,6 @@
 
 package org.dolphinemu.dolphinemu.ui.main
 
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.Menu
@@ -18,7 +17,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout.OnRefreshListener
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.tabs.TabLayout
 import org.dolphinemu.dolphinemu.R
-import org.dolphinemu.dolphinemu.activities.EmulationActivity
 import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter
 import org.dolphinemu.dolphinemu.databinding.ActivityMainBinding
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
@@ -31,7 +29,6 @@ import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView
 import org.dolphinemu.dolphinemu.ui.platform.PlatformTab
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
-import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
 import org.dolphinemu.dolphinemu.utils.InsetsHelper
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler
 import org.dolphinemu.dolphinemu.utils.StartupHandler
@@ -65,7 +62,11 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
         setSupportActionBar(binding.toolbarMain)
 
         // Set up the FAB.
-        binding.buttonAddDirectory.setOnClickListener { presenter.onFabClick() }
+        binding.buttonAddDirectory.setOnClickListener {
+            AfterDirectoryInitializationRunner().runWithLifecycle(this) {
+                presenter.launchFileListActivity()
+            }
+        }
         binding.appbarMain.addOnOffsetChangedListener { appBarLayout: AppBarLayout, verticalOffset: Int ->
             if (verticalOffset == 0) {
                 binding.buttonAddDirectory.extend()
@@ -143,63 +144,6 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
 
     override fun launchSettingsActivity(menuTag: MenuTag?) {
         SettingsActivity.launch(this, menuTag)
-    }
-
-    override fun launchFileListActivity() {
-        if (DirectoryInitialization.preferOldFolderPicker(this)) {
-            FileBrowserHelper.openDirectoryPicker(this, FileBrowserHelper.GAME_EXTENSIONS)
-        } else {
-            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-            startActivityForResult(intent, MainPresenter.REQUEST_DIRECTORY)
-        }
-    }
-
-    override fun launchOpenFileActivity(requestCode: Int) {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-        intent.addCategory(Intent.CATEGORY_OPENABLE)
-        intent.type = "*/*"
-        startActivityForResult(intent, requestCode)
-    }
-
-    /**
-     * @param requestCode An int describing whether the Activity that is returning did so successfully.
-     * @param resultCode  An int describing what Activity is giving us this callback.
-     * @param result      The information the returning Activity is providing us.
-     */
-    override fun onActivityResult(requestCode: Int, resultCode: Int, result: Intent?) {
-        super.onActivityResult(requestCode, resultCode, result)
-
-        // If the user picked a file, as opposed to just backing out.
-        if (resultCode == RESULT_OK) {
-            val uri = result!!.data
-            when (requestCode) {
-                MainPresenter.REQUEST_DIRECTORY -> {
-                    if (DirectoryInitialization.preferOldFolderPicker(this)) {
-                        presenter.onDirectorySelected(FileBrowserHelper.getSelectedPath(result))
-                    } else {
-                        presenter.onDirectorySelected(result)
-                    }
-                }
-
-                MainPresenter.REQUEST_GAME_FILE -> FileBrowserHelper.runAfterExtensionCheck(
-                    this, uri, FileBrowserHelper.GAME_LIKE_EXTENSIONS
-                ) { EmulationActivity.launch(this, result.data.toString(), false) }
-
-                MainPresenter.REQUEST_WAD_FILE -> FileBrowserHelper.runAfterExtensionCheck(
-                    this, uri, FileBrowserHelper.WAD_EXTENSION
-                ) { presenter.installWAD(result.data.toString()) }
-
-                MainPresenter.REQUEST_WII_SAVE_FILE -> FileBrowserHelper.runAfterExtensionCheck(
-                    this, uri, FileBrowserHelper.BIN_EXTENSION
-                ) { presenter.importWiiSave(result.data.toString()) }
-
-                MainPresenter.REQUEST_NAND_BIN_FILE -> FileBrowserHelper.runAfterExtensionCheck(
-                    this, uri, FileBrowserHelper.BIN_EXTENSION
-                ) { presenter.importNANDBin(result.data.toString()) }
-            }
-        } else {
-            MainPresenter.skipRescanningLibrary()
-        }
     }
 
     override fun onRequestPermissionsResult(
