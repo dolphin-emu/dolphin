@@ -123,8 +123,6 @@ add_library(core
   FifoPlayer/FifoPlayer.h
   FifoPlayer/FifoRecorder.cpp
   FifoPlayer/FifoRecorder.h
-  FreeLookConfig.cpp
-  FreeLookConfig.h
   FreeLookManager.cpp
   FreeLookManager.h
   GeckoCode.cpp
