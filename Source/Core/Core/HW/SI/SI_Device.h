@@ -123,7 +123,12 @@ public:
   SIDevices GetDeviceType() const;
 
   // Run the SI Buffer
+  // Return value:
+  //  positive: The response length.
+  //  0: Response not ready, we will try again `TransferInterval()` cycles later.
+  //  -1: No response.
   virtual int RunBuffer(u8* buffer, int request_length);
+
   virtual int TransferInterval();
 
   virtual DataResponse GetData(u32& hi, u32& low) = 0;
@@ -138,6 +143,9 @@ public:
   virtual void OnEvent(u64 userdata, s64 cycles_late);
 
 protected:
+  // Only the three high bytes of `si_device_id` are used.
+  static int CreateStatusResponse(u32 si_device_id, u8* buffer);
+
   Core::System& m_system;
 
   int m_device_number;

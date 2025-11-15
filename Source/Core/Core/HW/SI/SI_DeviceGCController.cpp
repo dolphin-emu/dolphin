@@ -57,9 +57,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   case EBufferCommands::CMD_STATUS:
   case EBufferCommands::CMD_RESET:
   {
-    const u32 id = Common::swap32(SI_GC_CONTROLLER);
-    std::memcpy(buffer, &id, sizeof(id));
-    return sizeof(id);
+    return CreateStatusResponse(SI_GC_CONTROLLER, buffer);
   }
 
   case EBufferCommands::CMD_DIRECT:
