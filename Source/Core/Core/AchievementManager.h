@@ -309,20 +309,12 @@ private:
 #include <string>
 
 #include "Common/CommonTypes.h"
-
-namespace ActionReplay
-{
-struct ARCode;
-}
+#include "Core/ActionReplay.h"
+#include "Core/GeckoCode.h"
 
 namespace DiscIO
 {
 class Volume;
-}
-
-namespace Gecko
-{
-class GeckoCode;
 }
 
 class AchievementManager
@@ -339,13 +331,13 @@ public:
   constexpr bool ShouldGeckoCodeBeActivated(const Gecko::GeckoCode& code,
                                             const std::string& game_id, u16 revision)
   {
-    return true;
+    return code.enabled;
   }
 
   constexpr bool ShouldARCodeBeActivated(const ActionReplay::ARCode& code,
                                          const std::string& game_id, u16 revision)
   {
-    return true;
+    return code.enabled;
   }
 
   constexpr void LoadGame(const DiscIO::Volume*) {}
