@@ -49,7 +49,7 @@ class FramebufferManager final
 {
 public:
   FramebufferManager();
-  virtual ~FramebufferManager();
+  ~FramebufferManager();
 
   // Does not require the framebuffer to be created. Slower than direct queries.
   static AbstractTextureFormat GetEFBColorFormat();
