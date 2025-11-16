@@ -17,6 +17,7 @@
 #include <QSize>
 #include <QStyle>
 #include <QStyleHints>
+#include <QThread>
 #include <QWidget>
 
 #include "AudioCommon/AudioCommon.h"
@@ -76,7 +77,7 @@ Settings::Settings()
   });
 
   m_hotplug_event_hook = g_controller_interface.RegisterDevicesChangedCallback([this] {
-    if (Core::IsHostThread())
+    if (qApp->thread() == QThread::currentThread())
     {
       emit DevicesChanged();
     }

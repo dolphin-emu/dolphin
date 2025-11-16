@@ -189,8 +189,6 @@ static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
 
 int main(const int argc, char* argv[])
 {
-  Core::DeclareAsHostThread();
-
   const auto parser =
       CommandLineParse::CreateParser(CommandLineParse::ParserOptions::OmitGUIOptions);
   parser->add_option("-p", "--platform")
