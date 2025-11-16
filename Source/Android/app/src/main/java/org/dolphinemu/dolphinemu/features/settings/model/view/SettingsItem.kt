@@ -81,9 +81,10 @@ abstract class SettingsItem {
         const val TYPE_STRING_SINGLE_CHOICE = 6
         const val TYPE_SINGLE_CHOICE_DYNAMIC_DESCRIPTIONS = 8
         const val TYPE_FILE_PICKER = 9
-        const val TYPE_RUN_RUNNABLE = 10
-        const val TYPE_STRING = 11
-        const val TYPE_HYPERLINK_HEADER = 12
-        const val TYPE_DATETIME_CHOICE = 13
+        const val TYPE_DIRECTORY_PICKER = 10
+        const val TYPE_RUN_RUNNABLE = 11
+        const val TYPE_STRING = 12
+        const val TYPE_HYPERLINK_HEADER = 13
+        const val TYPE_DATETIME_CHOICE = 14
     }
 }

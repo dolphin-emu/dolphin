@@ -50,14 +50,8 @@ class FigureSlotAdapter(
         }
 
         holder.binding.buttonLoadFigure.setOnClickListener {
-            val loadFigure = Intent(Intent.ACTION_OPEN_DOCUMENT)
-            loadFigure.addCategory(Intent.CATEGORY_OPENABLE)
-            loadFigure.type = "*/*"
             activity.setInfinityFigureData(0, "", figure.position, position)
-            activity.startActivityForResult(
-                loadFigure,
-                EmulationActivity.REQUEST_INFINITY_FIGURE_FILE
-            )
+            activity.requestInfinityFigureFile.launch("*/*")
         }
 
         val inflater = LayoutInflater.from(activity)
@@ -110,28 +104,11 @@ class FigureSlotAdapter(
                 .show()
             createDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 if (binding.infinityNum.text.toString().isNotBlank()) {
-                    val createFigure = Intent(Intent.ACTION_CREATE_DOCUMENT)
-                    createFigure.addCategory(Intent.CATEGORY_OPENABLE)
-                    createFigure.type = "*/*"
                     val num = binding.infinityNum.text.toString().toLong()
                     val name = InfinityConfig.LIST_FIGURES[num]
-                    if (name != null) {
-                        createFigure.putExtra(
-                            Intent.EXTRA_TITLE,
-                            "$name.bin"
-                        )
-                        activity.setInfinityFigureData(num, name, figure.position, position)
-                    } else {
-                        createFigure.putExtra(
-                            Intent.EXTRA_TITLE,
-                            "Unknown(Number: $num).bin"
-                        )
-                        activity.setInfinityFigureData(num, "Unknown", figure.position, position)
-                    }
-                    activity.startActivityForResult(
-                        createFigure,
-                        EmulationActivity.REQUEST_CREATE_INFINITY_FIGURE
-                    )
+                    val title = if (name != null) "$name.bin" else "Unknown(Number: $num).bin"
+                    activity.setInfinityFigureData(num, name ?: "Unknown", figure.position, position)
+                    activity.requestCreateInfinityFigure.launch(title)
                     createDialog.dismiss()
                 } else {
                     Toast.makeText(

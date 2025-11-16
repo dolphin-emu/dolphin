@@ -1,15 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// GPU driver implementation partially based on:
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
-
 package org.dolphinemu.dolphinemu.features.settings.ui
 
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.Menu
@@ -33,7 +28,6 @@ import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsFragment.Companion.newInstance
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter
 import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
-import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
 import org.dolphinemu.dolphinemu.utils.InsetsHelper
 import org.dolphinemu.dolphinemu.utils.SerializableHelper.serializable
 import org.dolphinemu.dolphinemu.utils.ThemeHelper.enableScrollTint
@@ -177,40 +171,6 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvide
         return duration != 0f && transition != 0f
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, result: Intent?) {
-        super.onActivityResult(requestCode, resultCode, result)
-
-        // If the user picked a file, as opposed to just backing out.
-        if (resultCode != RESULT_OK) {
-            return
-        }
-
-        when (requestCode) {
-            MainPresenter.REQUEST_DIRECTORY -> {
-                val path = FileBrowserHelper.getSelectedPath(result)
-                fragment!!.adapter!!.onFilePickerConfirmation(path!!)
-            }
-
-            MainPresenter.REQUEST_GAME_FILE,
-            MainPresenter.REQUEST_SD_FILE,
-            MainPresenter.REQUEST_WAD_FILE,
-            MainPresenter.REQUEST_WII_SAVE_FILE,
-            MainPresenter.REQUEST_NAND_BIN_FILE -> {
-                val uri = canonicalizeIfPossible(result!!.data!!)
-                val validExtensions: Set<String> =
-                    if (requestCode == MainPresenter.REQUEST_GAME_FILE) FileBrowserHelper.GAME_EXTENSIONS else FileBrowserHelper.RAW_EXTENSION
-                var flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                if (requestCode != MainPresenter.REQUEST_GAME_FILE) flags =
-                    flags or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                val takeFlags = flags and result.flags
-                FileBrowserHelper.runAfterExtensionCheck(this, uri, validExtensions) {
-                    contentResolver.takePersistableUriPermission(uri, takeFlags)
-                    fragment!!.adapter!!.onFilePickerConfirmation(uri.toString())
-                }
-            }
-        }
-    }
-
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         ControllerInterface.dispatchKeyEvent(event)
         return super.dispatchKeyEvent(event)
@@ -219,11 +179,6 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvide
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
         ControllerInterface.dispatchGenericMotionEvent(event)
         return super.dispatchGenericMotionEvent(event)
-    }
-
-    private fun canonicalizeIfPossible(uri: Uri): Uri {
-        val canonicalizedUri = contentResolver.canonicalize(uri)
-        return canonicalizedUri ?: uri
     }
 
     override fun showLoading() {

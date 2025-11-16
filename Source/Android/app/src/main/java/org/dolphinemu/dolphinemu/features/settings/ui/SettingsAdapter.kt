@@ -94,7 +94,8 @@ class SettingsAdapter(
                 ListItemMappingBinding.inflate(inflater, parent, false),
                 this
             )
-            SettingsItem.TYPE_FILE_PICKER -> FilePickerViewHolder(
+            SettingsItem.TYPE_FILE_PICKER,
+            SettingsItem.TYPE_DIRECTORY_PICKER -> FilePickerViewHolder(
                 ListItemSettingBinding.inflate(inflater, parent, false),
                 this
             )
@@ -357,6 +358,7 @@ class SettingsAdapter(
     fun onFilePickerDirectoryClick(item: SettingsItem, position: Int) {
         clickedItem = item
         clickedPosition = position
+        val directoryPicker = item as DirectoryPicker
 
         if (!PermissionsHandler.isExternalStorageLegacy()) {
             MaterialAlertDialogBuilder(context)
@@ -364,10 +366,11 @@ class SettingsAdapter(
                 .setPositiveButton(R.string.ok) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
                 .show()
         } else {
-            FileBrowserHelper.openDirectoryPicker(
+            val intent = FileBrowserHelper.createDirectoryPickerIntent(
                 fragmentView.fragmentActivity,
                 FileBrowserHelper.GAME_EXTENSIONS
             )
+            directoryPicker.launcher.launch(intent)
         }
     }
 
@@ -383,7 +386,7 @@ class SettingsAdapter(
             intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, filePicker.getSelectedValue())
         }
 
-        fragmentView.fragmentActivity.startActivityForResult(intent, filePicker.requestType)
+        filePicker.launcher.launch(intent)
     }
 
     fun onDateTimeClick(item: DateTimeChoiceSetting, position: Int) {
