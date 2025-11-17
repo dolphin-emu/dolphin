@@ -118,6 +118,7 @@ add_library(common
   NandPaths.h
   Network.cpp
   Network.h
+  OneShotEvent.h
   PcapFile.cpp
   PcapFile.h
   Profiler.cpp

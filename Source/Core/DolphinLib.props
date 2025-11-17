@@ -149,6 +149,7 @@
     <ClInclude Include="Common\Mutex.h" />
     <ClInclude Include="Common\NandPaths.h" />
     <ClInclude Include="Common\Network.h" />
+    <ClInclude Include="Common\OneShotEvent.h" />
     <ClInclude Include="Common\PcapFile.h" />
     <ClInclude Include="Common\Profiler.h" />
     <ClInclude Include="Common\Projection.h" />
