@@ -47,7 +47,7 @@ modules:
       cxxflags: ""
       cxxflags-override: true
     config-opts:
-      - -DCMAKE_BUILD_TYPE=Release
+      - -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - -DENABLE_ALSA=OFF
       - -DENABLE_SDL=ON
       - -DENABLE_EVDEV=ON
