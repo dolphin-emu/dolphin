@@ -117,7 +117,7 @@ public final class DirectoryInitialization
     if (externalPath == null)
       return null;
 
-    return new File(externalPath, "Emulation/storage/Dolphin");
+    return new File(externalPath, "dolphin-emu");
   }
 
   @Nullable public static File getUserDirectoryPath(Context context)
