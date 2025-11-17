@@ -2181,27 +2181,29 @@ class SettingsFragmentPresenter(
             )
         )
         sl.add(
-            IntSliderSetting(
+            FloatSliderSetting(
                 context,
-                IntSetting.GFX_STEREO_DEPTH,
+                FloatSetting.GFX_STEREO_DEPTH,
                 R.string.stereoscopy_depth,
                 R.string.stereoscopy_depth_description,
-                0,
-                100,
-                "%",
-                1
+                0f,
+                100f,
+                "",
+                1f,
+                false
             )
         )
         sl.add(
-            IntSliderSetting(
+            FloatSliderSetting(
                 context,
-                IntSetting.GFX_STEREO_CONVERGENCE_PERCENTAGE,
+                FloatSetting.GFX_STEREO_CONVERGENCE,
                 R.string.stereoscopy_convergence,
                 R.string.stereoscopy_convergence_description,
-                0,
-                200,
-                "%",
-                1
+                0f,
+                200f,
+                "",
+                0.01f,
+                true
             )
         )
         sl.add(
