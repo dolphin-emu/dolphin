@@ -7,6 +7,7 @@ package org.dolphinemu.dolphinemu.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.widget.Toast;
@@ -15,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.preference.PreferenceManager;
@@ -41,6 +43,9 @@ import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 public final class DirectoryInitialization
 {
   public static final String EXTRA_STATE = "directoryState";
+  public static final String KEY_USER_DIRECTORY_URI = "UserDirectoryUri";
+  public static final int REQUEST_USER_DIRECTORY = 1001;
+  
   private static final MutableLiveData<DirectoryInitializationState> directoryState =
           new MutableLiveData<>(DirectoryInitializationState.NOT_YET_INITIALIZED);
   private static volatile boolean areDirectoriesAvailable = false;
@@ -48,12 +53,14 @@ public final class DirectoryInitialization
   private static String sysPath;
   private static String driverPath;
   private static boolean isUsingLegacyUserDirectory = false;
+  private static Uri userDirectoryUri = null;
 
   public enum DirectoryInitializationState
   {
     NOT_YET_INITIALIZED,
     INITIALIZING,
-    DOLPHIN_DIRECTORIES_INITIALIZED
+    DOLPHIN_DIRECTORIES_INITIALIZED,
+    WAITING_FOR_USER_DIRECTORY_SELECTION
   }
 
   public static void start(Context context)
@@ -72,14 +79,26 @@ public final class DirectoryInitialization
     if (directoryState.getValue() == DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
       return;
 
+    // Check if we need SAF on Android 11+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !isUsingLegacyUserDirectory)
+    {
+      SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+      String uriString = prefs.getString(KEY_USER_DIRECTORY_URI, null);
+      
+      if (uriString == null)
+      {
+        // Need to request user to select directory
+        directoryState.postValue(DirectoryInitializationState.WAITING_FOR_USER_DIRECTORY_SELECTION);
+        return;
+      }
+      
+      userDirectoryUri = Uri.parse(uriString);
+    }
+
     if (!setDolphinUserDirectory(context))
     {
-      ContextCompat.getMainExecutor(context).execute(() ->
-      {
-        Toast.makeText(context, R.string.external_storage_not_mounted, Toast.LENGTH_LONG).show();
-        System.exit(1);
-      });
-      return;
+      // Continue anyway - paths may still work
+      Log.warning("[DirectoryInitialization] setDolphinUserDirectory returned false, continuing anyway");
     }
 
     extractSysDirectory(context);
@@ -98,7 +117,7 @@ public final class DirectoryInitialization
     if (externalPath == null)
       return null;
 
-    return new File(externalPath, "dolphin-emu");
+    return new File(externalPath, "Emulation/storage/Dolphin");
   }
 
   @Nullable public static File getUserDirectoryPath(Context context)
@@ -109,8 +128,19 @@ public final class DirectoryInitialization
     isUsingLegacyUserDirectory =
             preferLegacyUserDirectory(context) && PermissionsHandler.hasWriteAccess(context);
 
-    return isUsingLegacyUserDirectory ? getLegacyUserDirectoryPath() :
-            context.getExternalFilesDir(null);
+    if (isUsingLegacyUserDirectory)
+      return getLegacyUserDirectoryPath();
+    
+    // On Android 11+, always try to use legacy path if it exists
+    // User will need to grant access via SAF
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+    {
+      File legacyPath = getLegacyUserDirectoryPath();
+      if (legacyPath != null)
+        return legacyPath;
+    }
+    
+    return context.getExternalFilesDir(null);
   }
 
   private static boolean setDolphinUserDirectory(Context context)
@@ -119,7 +149,23 @@ public final class DirectoryInitialization
     if (path == null)
       return false;
 
-    userPath = path.getAbsolutePath();
+    // On Android 11+ with SAF, convert URI to real path
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && userDirectoryUri != null)
+    {
+      String realPath = getPathFromUri(context, userDirectoryUri);
+      if (realPath != null)
+      {
+        userPath = realPath;
+      }
+      else
+      {
+        userPath = path.getAbsolutePath();
+      }
+    }
+    else
+    {
+      userPath = path.getAbsolutePath();
+    }
 
     Log.debug("[DirectoryInitialization] User Dir: " + userPath);
     NativeLibrary.SetUserDirectory(userPath);
@@ -137,6 +183,37 @@ public final class DirectoryInitialization
     NativeLibrary.SetCacheDirectory(cacheDir.getPath());
 
     return true;
+  }
+  
+  @Nullable private static String getPathFromUri(Context context, Uri uri)
+  {
+    try
+    {
+      DocumentFile documentFile = DocumentFile.fromTreeUri(context, uri);
+      if (documentFile == null)
+        return null;
+      
+      // Try to get the real path from the URI
+      String path = uri.getPath();
+      if (path != null && path.contains(":"))
+      {
+        String[] parts = path.split(":");
+        if (parts.length >= 2)
+        {
+          String realPath = "/storage/emulated/0/" + parts[1];
+          File file = new File(realPath);
+          if (file.exists() && file.isDirectory())
+          {
+            return realPath;
+          }
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      Log.error("[DirectoryInitialization] Failed to get path from URI: " + e.getMessage());
+    }
+    return null;
   }
 
   private static void extractSysDirectory(Context context)
@@ -366,9 +443,7 @@ public final class DirectoryInitialization
 
   private static boolean preferLegacyUserDirectory(Context context)
   {
-    return PermissionsHandler.isExternalStorageLegacy() &&
-            !PermissionsHandler.isWritePermissionDenied() && isExternalFilesDirEmpty(context) &&
-            legacyUserDirectoryExists();
+    return Build.VERSION.SDK_INT < Build.VERSION_CODES.R;
   }
 
   public static boolean isUsingLegacyUserDirectory()
@@ -413,6 +488,34 @@ public final class DirectoryInitialization
                       BooleanSetting.MAIN_USE_BLACK_BACKGROUNDS.getBoolean())
               .apply();
     }
+  }
+
+  public static void setUserDirectoryUri(Context context, Uri uri)
+  {
+    userDirectoryUri = uri;
+    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    prefs.edit().putString(KEY_USER_DIRECTORY_URI, uri.toString()).apply();
+    
+    // Restart initialization
+    directoryState.setValue(DirectoryInitializationState.NOT_YET_INITIALIZED);
+    start(context);
+  }
+  
+  public static boolean needsUserDirectorySelection()
+  {
+    return directoryState.getValue() == DirectoryInitializationState.WAITING_FOR_USER_DIRECTORY_SELECTION;
+  }
+  
+  public static boolean shouldKeepSplashScreen()
+  {
+    DirectoryInitializationState state = directoryState.getValue();
+    return state != DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED &&
+           state != DirectoryInitializationState.WAITING_FOR_USER_DIRECTORY_SELECTION;
+  }
+  
+  @Nullable public static Uri getUserDirectoryUri()
+  {
+    return userDirectoryUri;
   }
 
   private static native void SetSysDirectory(String path);
