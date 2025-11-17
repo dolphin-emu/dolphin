@@ -1267,53 +1267,55 @@ void JitArm64::subfcx(UGeckoInstruction inst)
 
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.IsImm(a, 0))
+  if (gpr.IsImm(a))
   {
-    if (d != b)
+    const u32 imm = gpr.GetImm(a);
+
+    if (imm == 0)
     {
-      gpr.BindToRegister(d, false);
-      MOV(gpr.R(d), gpr.R(b));
+      if (d != b)
+      {
+        gpr.BindToRegister(d, false);
+        MOV(gpr.R(d), gpr.R(b));
+      }
+      ComputeCarry(true);
+      if (inst.Rc)
+        ComputeRC0(gpr.R(d));
+      return;
     }
-    ComputeCarry(true);
-    if (inst.Rc)
-      ComputeRC0(gpr.R(d));
+
+    const bool low_12 = (imm & 0xFFF) == imm;
+    const bool high_12 = (imm & 0xFFF000) == imm;
+    if (low_12 || high_12)
+    {
+      gpr.BindToRegister(d, d == b);
+      CARRY_IF_NEEDED(SUB, SUBS, gpr.R(d), gpr.R(b), high_12 ? imm >> 12 : imm, high_12);
+      ComputeCarry();
+      if (inst.Rc)
+        ComputeRC0(gpr.R(d));
+      return;
+    }
   }
-  else if (gpr.IsImm(a) && ((gpr.GetImm(a) & 0xFFF) == gpr.GetImm(a)))
-  {
-    gpr.BindToRegister(d, d == b);
-    CARRY_IF_NEEDED(SUB, SUBS, gpr.R(d), gpr.R(b), gpr.GetImm(a));
-    ComputeCarry();
-    if (inst.Rc)
-      ComputeRC0(gpr.R(d));
-  }
-  else if (gpr.IsImm(a) && ((gpr.GetImm(a) & 0xFFF000) == gpr.GetImm(a)))
-  {
-    gpr.BindToRegister(d, d == b);
-    CARRY_IF_NEEDED(SUB, SUBS, gpr.R(d), gpr.R(b), gpr.GetImm(a) >> 12, true);
-    ComputeCarry();
-    if (inst.Rc)
-      ComputeRC0(gpr.R(d));
-  }
-  else if (gpr.IsImm(b, 0))
+
+  if (gpr.IsImm(b, 0))
   {
     gpr.BindToRegister(d, d == a);
     CARRY_IF_NEEDED(NEG, NEGS, gpr.R(d), gpr.R(a));
     ComputeCarry();
     if (inst.Rc)
       ComputeRC0(gpr.R(d));
+    return;
   }
-  else
-  {
-    gpr.BindToRegister(d, d == a || d == b);
 
-    // d = b - a
-    CARRY_IF_NEEDED(SUB, SUBS, gpr.R(d), gpr.R(b), gpr.R(a));
+  gpr.BindToRegister(d, d == a || d == b);
 
-    ComputeCarry();
+  // d = b - a
+  CARRY_IF_NEEDED(SUB, SUBS, gpr.R(d), gpr.R(b), gpr.R(a));
 
-    if (inst.Rc)
-      ComputeRC0(gpr.R(d));
-  }
+  ComputeCarry();
+
+  if (inst.Rc)
+    ComputeRC0(gpr.R(d));
 }
 
 void JitArm64::subfzex(UGeckoInstruction inst)
