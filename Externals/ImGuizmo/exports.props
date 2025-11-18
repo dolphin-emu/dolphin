@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+    <ItemDefinitionGroup>
+        <ClCompile>
+            <AdditionalIncludeDirectories>$(ExternalsDir)imgui/imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <AdditionalIncludeDirectories>$(ExternalsDir)ImGuizmo/ImGuizmo;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+        </ClCompile>
+    </ItemDefinitionGroup>
+    <ItemGroup>
+        <ProjectReference Include="$(ExternalsDir)ImGuizmo\ImGuizmo.vcxproj">
+            <Project>{85BDFE2A-4742-4338-9F06-F25537EBA21E}</Project>
+        </ProjectReference>
+    </ItemGroup>
+</Project>

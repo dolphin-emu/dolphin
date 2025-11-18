@@ -11,6 +11,9 @@ class CustomTextureData;
 struct MaterialData;
 struct MeshData;
 struct RasterSurfaceShaderData;
+struct RasterMaterialData;
+struct RenderTargetData;
+struct TextureData;
 struct TextureAndSamplerData;
 
 // This class provides functionality to load
@@ -44,5 +47,8 @@ public:
 
   // Loads a mesh
   virtual LoadInfo LoadMesh(const AssetID& asset_id, MeshData* data) = 0;
+
+  // Loads a render target
+  virtual LoadInfo LoadRenderTarget(const AssetID& asset_id, RenderTargetData* data) = 0;
 };
 }  // namespace VideoCommon

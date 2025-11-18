@@ -16,6 +16,7 @@
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FramebufferShaderGen.h"
 #include "VideoCommon/Present.h"
+#include "VideoCommon/ShaderCacheUtils.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -37,10 +38,11 @@ ShaderCache::~ShaderCache()
   ClearCaches();
 }
 
-bool ShaderCache::Initialize()
+bool ShaderCache::Initialize(bool force_no_cache)
 {
   m_api_type = g_backend_info.api_type;
   m_host_config.bits = ShaderHostConfig::GetCurrent().bits;
+  m_should_cache = g_ActiveConfig.bShaderCache && !force_no_cache;
 
   if (!CompileSharedPipelines())
     return false;
@@ -56,7 +58,7 @@ void ShaderCache::InitializeShaderCache()
   m_async_shader_compiler->ResizeWorkerThreads(g_ActiveConfig.GetShaderPrecompilerThreads());
 
   // Load shader and UID caches.
-  if (g_ActiveConfig.bShaderCache && m_api_type != APIType::Nothing)
+  if (m_should_cache && m_api_type != APIType::Nothing)
   {
     LoadCaches();
     LoadPipelineUIDCache();
@@ -84,7 +86,7 @@ void ShaderCache::Reload()
   if (!CompileSharedPipelines())
     PanicAlertFmt("Failed to compile shared pipelines after reload.");
 
-  if (g_ActiveConfig.bShaderCache)
+  if (m_should_cache)
     LoadCaches();
 
   // Switch to the precompiling shader configuration while we rebuild.
@@ -125,7 +127,7 @@ const AbstractPipeline* ShaderCache::GetPipelineForUid(const GXPipelineUid& uid)
   std::optional<AbstractPipelineConfig> pipeline_config = GetGXPipelineConfig(uid);
   if (pipeline_config)
     pipeline = g_gfx->CreatePipeline(*pipeline_config);
-  if (g_ActiveConfig.bShaderCache && !exists_in_cache)
+  if (m_should_cache && !exists_in_cache)
     AppendGXPipelineUID(uid);
   return InsertGXPipeline(uid, std::move(pipeline));
 }
@@ -470,7 +472,7 @@ const AbstractShader* ShaderCache::InsertVertexShader(const VertexShaderUid& uid
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && g_backend_info.bSupportsShaderBinaries)
+    if (m_should_cache && g_backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
@@ -492,7 +494,7 @@ const AbstractShader* ShaderCache::InsertVertexUberShader(const UberShader::Vert
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && g_backend_info.bSupportsShaderBinaries)
+    if (m_should_cache && g_backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
@@ -514,7 +516,7 @@ const AbstractShader* ShaderCache::InsertPixelShader(const PixelShaderUid& uid,
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && g_backend_info.bSupportsShaderBinaries)
+    if (m_should_cache && g_backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
@@ -536,7 +538,7 @@ const AbstractShader* ShaderCache::InsertPixelUberShader(const UberShader::Pixel
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && g_backend_info.bSupportsShaderBinaries)
+    if (m_should_cache && g_backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
@@ -563,7 +565,7 @@ const AbstractShader* ShaderCache::CreateGeometryShader(const GeometryShaderUid&
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && g_backend_info.bSupportsShaderBinaries)
+    if (m_should_cache && g_backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
@@ -602,137 +604,6 @@ AbstractPipelineConfig ShaderCache::GetGXPipelineConfig(
   config.blending_state = blending_state;
   config.framebuffer_state = g_framebuffer_manager->GetEFBFramebufferState();
   return config;
-}
-
-/// Edits the UID based on driver bugs and other special configurations
-static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
-{
-  GXPipelineUid out;
-  // TODO: static_assert(std::is_trivially_copyable_v<GXPipelineUid>);
-  // GXPipelineUid is not trivially copyable because RasterizationState and BlendingState aren't
-  // either, but we can pretend it is for now. This will be improved after PR #10848 is finished.
-  memcpy(static_cast<void*>(&out), static_cast<const void*>(&in), sizeof(out));  // copy padding
-  pixel_shader_uid_data* ps = out.ps_uid.GetUidData();
-  BlendingState& blend = out.blending_state;
-
-  if (ps->ztest == EmulatedZ::ForcedEarly && !out.depth_state.update_enable)
-  {
-    // No need to force early depth test if you're not writing z
-    ps->ztest = EmulatedZ::Early;
-  }
-
-  // If framebuffer fetch is available, we can emulate logic ops in the fragment shader
-  // and don't need the below blend approximation
-  if (blend.logic_op_enable && !g_backend_info.bSupportsLogicOp &&
-      !g_backend_info.bSupportsFramebufferFetch)
-  {
-    if (!blend.LogicOpApproximationIsExact())
-      WARN_LOG_FMT(VIDEO,
-                   "Approximating logic op with blending, this will produce incorrect rendering.");
-    if (blend.LogicOpApproximationWantsShaderHelp())
-    {
-      ps->emulate_logic_op_with_blend = true;
-      ps->logic_op_mode = static_cast<u32>(blend.logic_mode.Value());
-    }
-    blend.ApproximateLogicOpWithBlending();
-  }
-
-  const bool benefits_from_ps_dual_source_off =
-      (!g_backend_info.bSupportsDualSourceBlend && g_backend_info.bSupportsFramebufferFetch) ||
-      DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING);
-  if (benefits_from_ps_dual_source_off && !blend.RequiresDualSrc())
-  {
-    // Only use dual-source blending when required on drivers that don't support it very well.
-    ps->no_dual_src = true;
-    blend.use_dual_src = false;
-  }
-
-  if (g_backend_info.bSupportsFramebufferFetch)
-  {
-    bool fbfetch_blend = false;
-    if ((DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z) ||
-         !g_backend_info.bSupportsEarlyZ) &&
-        ps->ztest == EmulatedZ::ForcedEarly)
-    {
-      ps->ztest = EmulatedZ::EarlyWithFBFetch;
-      fbfetch_blend |= static_cast<bool>(out.blending_state.blend_enable);
-      ps->no_dual_src = true;
-    }
-    fbfetch_blend |= blend.logic_op_enable && !g_backend_info.bSupportsLogicOp;
-    fbfetch_blend |= blend.use_dual_src && !g_backend_info.bSupportsDualSourceBlend;
-    if (fbfetch_blend)
-    {
-      ps->no_dual_src = true;
-      if (blend.logic_op_enable)
-      {
-        ps->logic_op_enable = true;
-        ps->logic_op_mode = static_cast<u32>(blend.logic_mode.Value());
-        blend.logic_op_enable = false;
-      }
-      if (blend.blend_enable)
-      {
-        ps->blend_enable = true;
-        ps->blend_src_factor = blend.src_factor;
-        ps->blend_src_factor_alpha = blend.src_factor_alpha;
-        ps->blend_dst_factor = blend.dst_factor;
-        ps->blend_dst_factor_alpha = blend.dst_factor_alpha;
-        ps->blend_subtract = blend.subtract;
-        ps->blend_subtract_alpha = blend.subtract_alpha;
-        blend.blend_enable = false;
-      }
-    }
-  }
-
-  // force dual src off if we can't support it
-  if (!g_backend_info.bSupportsDualSourceBlend)
-  {
-    ps->no_dual_src = true;
-    blend.use_dual_src = false;
-  }
-
-  if (ps->ztest == EmulatedZ::ForcedEarly && !g_backend_info.bSupportsEarlyZ)
-  {
-    // These things should be false
-    ASSERT(!ps->zfreeze);
-    // ZCOMPLOC HACK:
-    // The only way to emulate alpha test + early-z is to force early-z in the shader.
-    // As this isn't available on all drivers and as we can't emulate this feature otherwise,
-    // we are only able to choose which one we want to respect more.
-    // Tests seem to have proven that writing depth even when the alpha test fails is more
-    // important that a reliable alpha test, so we just force the alpha test to always succeed.
-    // At least this seems to be less buggy.
-    ps->ztest = EmulatedZ::EarlyWithZComplocHack;
-  }
-
-  if (g_ActiveConfig.UseVSForLinePointExpand() &&
-      (out.rasterization_state.primitive == PrimitiveType::Points ||
-       out.rasterization_state.primitive == PrimitiveType::Lines))
-  {
-    // All primitives are expanded to triangles in the vertex shader
-    vertex_shader_uid_data* vs = out.vs_uid.GetUidData();
-    const PortableVertexDeclaration& decl = out.vertex_format->GetVertexDeclaration();
-    vs->position_has_3_elems = decl.position.components >= 3;
-    vs->texcoord_elem_count = 0;
-    for (int i = 0; i < 8; i++)
-    {
-      if (decl.texcoords[i].enable)
-      {
-        ASSERT(decl.texcoords[i].components <= 3);
-        vs->texcoord_elem_count |= decl.texcoords[i].components << (i * 2);
-      }
-    }
-    out.vertex_format = nullptr;
-    if (out.rasterization_state.primitive == PrimitiveType::Points)
-      vs->vs_expand = VSExpand::Point;
-    else
-      vs->vs_expand = VSExpand::Line;
-    PrimitiveType prim = g_backend_info.bSupportsPrimitiveRestart ? PrimitiveType::TriangleStrip :
-                                                                    PrimitiveType::Triangles;
-    out.rasterization_state.primitive = prim;
-    out.gs_uid.GetUidData()->primitive_type = static_cast<u32>(prim);
-  }
-
-  return out;
 }
 
 std::optional<AbstractPipelineConfig>
@@ -875,7 +746,7 @@ const AbstractPipeline* ShaderCache::InsertGXPipeline(const GXPipelineUid& confi
   {
     entry.first = std::move(pipeline);
 
-    if (g_ActiveConfig.bShaderCache)
+    if (m_should_cache)
     {
       auto cache_data = entry.first->GetCacheData();
       if (!cache_data.empty())
@@ -901,7 +772,7 @@ ShaderCache::InsertGXUberPipeline(const GXUberPipelineUid& config,
   {
     entry.first = std::move(pipeline);
 
-    if (g_ActiveConfig.bShaderCache)
+    if (m_should_cache)
     {
       auto cache_data = entry.first->GetCacheData();
       if (!cache_data.empty())

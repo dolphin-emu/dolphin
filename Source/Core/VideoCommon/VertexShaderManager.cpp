@@ -12,13 +12,12 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Matrix.h"
+#include "Core/System.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FreeLookCamera.h"
-#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
-#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
@@ -29,7 +28,6 @@
 void VertexShaderManager::Init()
 {
   // Initialize state tracking variables
-  m_projection_graphics_mod_change = false;
 
   constants = {};
 
@@ -124,9 +122,19 @@ void VertexShaderManager::SetProjectionMatrix(XFStateManager& xf_state_manager)
   if (xf_state_manager.DidProjectionChange() || g_freelook_camera.GetController()->IsDirty())
   {
     xf_state_manager.ResetProjection();
-    auto corrected_matrix = LoadProjectionMatrix();
+    auto corrected_matrix = LoadProjectionMatrix() * m_last_camera_modifier;
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
   }
+}
+
+void VertexShaderManager::ForceProjectionMatrixUpdate(XFStateManager& xf_state_manager,
+                                                      const Common::Matrix44& modifier)
+{
+  m_last_camera_modifier = modifier;
+  xf_state_manager.ResetProjection();
+  auto corrected_matrix = LoadProjectionMatrix() * m_last_camera_modifier;
+  memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
+  dirty = true;
 }
 
 bool VertexShaderManager::UseVertexDepthRange()
@@ -161,8 +169,7 @@ bool VertexShaderManager::UseVertexDepthRange()
 
 // Syncs the shader constant buffers with xfmem
 // TODO: A cleaner way to control the matrices without making a mess in the parameters field
-void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
-                                       XFStateManager& xf_state_manager)
+void VertexShaderManager::SetConstants(XFStateManager& xf_state_manager)
 {
   if (constants.missing_color_hex != g_ActiveConfig.iMissingColorValue)
   {
@@ -393,37 +400,11 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
     g_stats.AddScissorRect();
   }
 
-  std::vector<GraphicsModAction*> projection_actions;
-  if (g_ActiveConfig.bGraphicMods)
-  {
-    for (const auto& action : g_graphics_mod_manager->GetProjectionActions(xfmem.projection.type))
-    {
-      projection_actions.push_back(action);
-    }
-
-    for (const auto& texture : textures)
-    {
-      for (const auto& action :
-           g_graphics_mod_manager->GetProjectionTextureActions(xfmem.projection.type, texture))
-      {
-        projection_actions.push_back(action);
-      }
-    }
-  }
-
-  if (xf_state_manager.DidProjectionChange() || g_freelook_camera.GetController()->IsDirty() ||
-      !projection_actions.empty() || m_projection_graphics_mod_change)
+  if (xf_state_manager.DidProjectionChange() || g_freelook_camera.GetController()->IsDirty())
   {
     xf_state_manager.ResetProjection();
-    m_projection_graphics_mod_change = !projection_actions.empty();
 
-    auto corrected_matrix = LoadProjectionMatrix();
-
-    GraphicsModActionData::Projection projection{&corrected_matrix};
-    for (const auto& action : projection_actions)
-    {
-      action->OnProjection(&projection);
-    }
+    auto corrected_matrix = LoadProjectionMatrix() * m_last_camera_modifier;
 
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
     dirty = true;

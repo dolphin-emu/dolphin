@@ -42,6 +42,7 @@
   <Import Project="$(ExternalsDir)FreeSurround\exports.props" />
   <Import Project="$(ExternalsDir)glslang\exports.props" />
   <Import Project="$(ExternalsDir)imgui\exports.props" />
+  <Import Project="$(ExternalsDir)ImGuizmo\exports.props" />
   <Import Project="$(ExternalsDir)implot\exports.props" />
   <Import Project="$(ExternalsDir)liblzma\exports.props" />
   <Import Project="$(ExternalsDir)libspng\exports.props" />

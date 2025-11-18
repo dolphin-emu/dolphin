@@ -1,0 +1,73 @@
+{
+  "pixel_output_targets": [],
+  "properties": [
+    {
+      "type": "rgba",
+      "code_name": "albedo_tint",
+      "description": "",
+      "default": [1.0, 1.0, 1.0, 1.0]
+    },
+    {
+      "type": "float",
+      "code_name": "parallax_scale",
+      "description": "",
+      "default": 0.05
+    },
+    {
+      "type": "float",
+      "code_name": "normal_modifier",
+      "description": "",
+      "default": 1.0
+    },
+    {
+      "type": "float",
+      "code_name": "metallic_modifier",
+      "description": "",
+      "default": 1.0
+    },
+    {
+      "type": "float",
+      "code_name": "roughness_modifier",
+      "description": "",
+      "default": 1.0
+    },
+    {
+      "type": "float",
+      "code_name": "ao_modifier",
+      "description": "",
+      "default": 1.0
+    },
+    {
+      "type": "float",
+      "code_name": "emissive_strength",
+      "description": "",
+      "default": 1.0
+    }
+  ],
+  "samplers": [
+    {
+      "name": "ALBEDO_TEX",
+      "type": 1
+    },
+    {
+      "name": "ARM_TEX",
+      "type": 1
+    },
+    {
+      "name": "ANSIOTROPY_FLOW_TEX",
+      "type": 1
+    },
+    {
+      "name": "EMISSIVE_TEX",
+      "type": 1
+    },
+    {
+      "name": "HEIGHT_TEX",
+      "type": 1
+    },
+    {
+      "name": "NORMAL_TEX",
+      "type": 1
+    }
+  ]
+}
