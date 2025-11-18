@@ -7,6 +7,7 @@
 #include <string_view>
 #include <variant>
 
+#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/VariantUtil.h"
@@ -17,6 +18,7 @@
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModAsset.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
+#include "VideoCommon/GraphicsModSystem/Constants.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionFactory.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
@@ -197,6 +199,8 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
   const auto& mods = config.GetMods();
 
   auto filesystem_library = std::make_shared<VideoCommon::DirectFilesystemAssetLibrary>();
+  filesystem_library->Watch(File::GetSysDirectory() + DOLPHIN_SYSTEM_GRAPHICS_MOD_DIR);
+  filesystem_library->Watch(File::GetUserPath(D_GRAPHICSMOD_IDX));
 
   std::map<std::string, std::vector<GraphicsTargetConfig>> group_to_targets;
   for (const auto& mod : mods)
