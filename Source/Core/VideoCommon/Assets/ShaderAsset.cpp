@@ -255,19 +255,6 @@ bool RasterSurfaceShaderData::FromJson(const VideoCommon::CustomAssetLibrary::As
     if (!ParseShaderProperties(asset_id, properties_array, properties))
       return false;
 
-    for (const auto& [code_name, property] : *properties)
-    {
-      if (source.find(code_name) == std::string::npos)
-      {
-        ERROR_LOG_FMT(
-            VIDEO,
-            "Asset '{}' failed to parse json, the code name '{}' defined in the metadata was not "
-            "found in the source for '{}'",
-            asset_id, code_name, name);
-        return false;
-      }
-    }
-
     return true;
   };
 
