@@ -37,14 +37,20 @@ public:
   TextureDataResource*
   GetTextureDataFromAsset(const CustomAssetLibrary::AssetID& asset_id,
                           std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
-  MaterialResource* GetMaterialFromAsset(const CustomAssetLibrary::AssetID& asset_id,
-                                         const GXPipelineUid& pipeline_uid,
-                                         std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
+  MaterialResource*
+  GetDrawMaterialFromAsset(const CustomAssetLibrary::AssetID& asset_id,
+                           const GXPipelineUid& pipeline_uid,
+                           std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
+  MaterialResource*
+  GetPostProcessingMaterialFromAsset(const CustomAssetLibrary::AssetID& asset_id,
+                                     std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
 
   ShaderResource* GetShaderFromAsset(const CustomAssetLibrary::AssetID& asset_id,
-                                     std::size_t shader_key, const GXPipelineUid& pipeline_uid,
+                                     std::size_t shader_key,
+                                     std::optional<GXPipelineUid> pipeline_uid,
                                      const std::string& preprocessor_settings,
                                      std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
+
   TextureAndSamplerResource*
   GetTextureAndSamplerFromAsset(const CustomAssetLibrary::AssetID& asset_id,
                                 std::shared_ptr<VideoCommon::CustomAssetLibrary> library);
@@ -59,7 +65,7 @@ private:
   std::unique_ptr<AsyncShaderCompiler> m_async_shader_compiler;
 
   using PipelineIdToMaterial = std::map<std::size_t, std::unique_ptr<MaterialResource>>;
-  std::map<CustomAssetLibrary::AssetID, PipelineIdToMaterial> m_material_resources;
+  std::map<CustomAssetLibrary::AssetID, PipelineIdToMaterial> m_draw_material_resources;
 
   using ShaderKeyToShader = std::map<std::size_t, std::unique_ptr<ShaderResource>>;
   std::map<CustomAssetLibrary::AssetID, ShaderKeyToShader> m_shader_resources;
@@ -69,6 +75,9 @@ private:
 
   std::map<CustomAssetLibrary::AssetID, std::unique_ptr<TextureAndSamplerResource>>
       m_texture_sampler_resources;
+
+  std::map<CustomAssetLibrary::AssetID, std::unique_ptr<MaterialResource>>
+      m_postprocessing_material_resources;
 
   ShaderHostConfig m_host_config;
 

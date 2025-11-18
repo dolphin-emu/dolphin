@@ -4,6 +4,7 @@
 #pragma once
 
 #include <atomic>
+#include <optional>
 
 #include "VideoCommon/Resources/Resource.h"
 
@@ -16,7 +17,8 @@ namespace VideoCommon
 class ShaderResource final : public Resource
 {
 public:
-  ShaderResource(Resource::ResourceContext resource_context, const GXPipelineUid& pipeline_uid,
+  ShaderResource(Resource::ResourceContext resource_context,
+                 std::optional<GXPipelineUid> pipeline_uid,
                  const std::string& preprocessor_settings,
                  const ShaderHostConfig& shader_host_config);
 
@@ -61,7 +63,10 @@ private:
   bool m_processing_load_data = false;
 
   ShaderHostConfig m_shader_host_config;
-  GXPipelineUid m_uid;
+
+  // If provided, denotes this shader will be used as a custom draw shader.
+  // If not provided, denotes this will be used as an efb post processing shader.
+  std::optional<GXPipelineUid> m_uid;
   std::string m_preprocessor_settings;
 };
 }  // namespace VideoCommon
