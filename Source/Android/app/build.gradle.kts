@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    kotlin("plugin.serialization") version "1.8.21"
+    kotlin("plugin.serialization") version "2.2.21"
     id("androidx.baselineprofile")
 }
 
