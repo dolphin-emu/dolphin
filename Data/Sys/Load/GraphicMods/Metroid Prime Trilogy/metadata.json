@@ -1,0 +1,23 @@
+{
+	"meta":
+	{
+		"title": "Bloom Texture Definitions",
+    "author": "autofire372"
+  },
+	"groups":
+	[
+		{
+			"name": "Bloom",
+			"targets": [
+				{
+					"type": "efb",
+          "texture_filename": "efb1_n000023_320x224_4"
+        },
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000024_320x224_4"
+				}
+      ]
+    }
+  ]
+}
