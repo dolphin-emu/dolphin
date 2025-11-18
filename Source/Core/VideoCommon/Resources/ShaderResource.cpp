@@ -283,9 +283,9 @@ CompilePixelShader(PixelShaderUid* uid, std::string_view preprocessor_settings, 
 
   // Write out the uniform data
   ShaderCode uniform_code;
-  for (const auto& [name, property] : shader_data->uniform_properties)
+  for (const auto& property : shader_data->uniform_properties)
   {
-    VideoCommon::ShaderProperty::WriteAsShaderCode(uniform_code, name, property);
+    VideoCommon::ShaderProperty::WriteAsShaderCode(uniform_code, property);
   }
   if (!shader_data->uniform_properties.empty())
     uniform_code.Write("\n\n");
@@ -357,9 +357,9 @@ CompileVertexShader(VertexShaderUid* uid, std::string_view preprocessor_settings
 
   // Write out the uniform data
   ShaderCode uniform_code;
-  for (const auto& [name, property] : shader_data.uniform_properties)
+  for (const auto& property : shader_data.uniform_properties)
   {
-    VideoCommon::ShaderProperty::WriteAsShaderCode(uniform_code, name, property);
+    VideoCommon::ShaderProperty::WriteAsShaderCode(uniform_code, property);
   }
   if (!shader_data.uniform_properties.empty())
     uniform_code.Write("\n\n");
