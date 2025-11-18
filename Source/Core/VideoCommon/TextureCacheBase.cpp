@@ -2256,16 +2256,16 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     {
       for (const auto& action : g_graphics_mod_manager->GetXFBActions(info))
       {
-        action->OnXFB();
+        action->BeforeXFB();
       }
     }
     else
     {
       bool skip = false;
-      GraphicsModActionData::EFB efb{tex_w, tex_h, &skip, &scaled_tex_w, &scaled_tex_h};
+      GraphicsModActionData::PreEFB efb{tex_w, tex_h, &skip, &scaled_tex_w, &scaled_tex_h};
       for (const auto& action : g_graphics_mod_manager->GetEFBActions(info))
       {
-        action->OnEFB(&efb);
+        action->BeforeEFB(&efb);
       }
       if (skip == true)
       {

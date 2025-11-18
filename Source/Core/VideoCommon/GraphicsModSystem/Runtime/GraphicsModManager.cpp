@@ -36,11 +36,17 @@ public:
       return;
     m_action_impl->OnDrawStarted(draw_started);
   }
-  void OnEFB(GraphicsModActionData::EFB* efb) override
+  void BeforeEFB(GraphicsModActionData::PreEFB* efb) override
   {
     if (!m_mod.m_enabled)
       return;
-    m_action_impl->OnEFB(efb);
+    m_action_impl->BeforeEFB(efb);
+  }
+  void AfterEFB(GraphicsModActionData::PostEFB* efb) override
+  {
+    if (!m_mod.m_enabled)
+      return;
+    m_action_impl->AfterEFB(efb);
   }
   void OnProjection(GraphicsModActionData::Projection* projection) override
   {
