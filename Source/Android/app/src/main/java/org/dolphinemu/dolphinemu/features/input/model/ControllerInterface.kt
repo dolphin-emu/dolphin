@@ -6,6 +6,7 @@ import android.content.Context
 import android.hardware.input.InputManager
 import android.os.Build
 import android.os.Handler
+import android.os.HandlerThread
 import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -17,7 +18,6 @@ import androidx.annotation.Keep
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import org.dolphinemu.dolphinemu.DolphinApplication
-import org.dolphinemu.dolphinemu.utils.LooperThread
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -26,9 +26,9 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 object ControllerInterface {
     private var inputDeviceListener: InputDeviceListener? = null
-    private lateinit var looperThread: LooperThread
+    private var handlerThread: HandlerThread? = null
 
-    private var inputStateUpdatePending = AtomicBoolean(false)
+    private val inputStateUpdatePending = AtomicBoolean(false)
     private val inputStateVersion = MutableLiveData(0)
     private val devicesVersion = MutableLiveData(0)
 
@@ -132,15 +132,18 @@ object ControllerInterface {
     @Keep
     @JvmStatic
     private fun registerInputDeviceListener() {
-        looperThread = LooperThread("Hotplug thread")
-        looperThread.start()
-
         if (inputDeviceListener == null) {
+            handlerThread = HandlerThread("Hotplug thread").apply { start() }
+            val thread = requireNotNull(handlerThread) { "HandlerThread is not available" }
+
             val im = DolphinApplication.getAppContext()
-                .getSystemService(Context.INPUT_SERVICE) as InputManager?
+                .getSystemService(Context.INPUT_SERVICE) as InputManager
+            val looper = requireNotNull(thread.looper) {
+                "HandlerThread looper is not available"
+            }
 
             inputDeviceListener = InputDeviceListener()
-            im!!.registerInputDeviceListener(inputDeviceListener, Handler(looperThread.looper))
+            im.registerInputDeviceListener(inputDeviceListener, Handler(looper))
         }
     }
 
@@ -149,10 +152,12 @@ object ControllerInterface {
     private fun unregisterInputDeviceListener() {
         if (inputDeviceListener != null) {
             val im = DolphinApplication.getAppContext()
-                .getSystemService(Context.INPUT_SERVICE) as InputManager?
+                .getSystemService(Context.INPUT_SERVICE) as InputManager
 
-            im!!.unregisterInputDeviceListener(inputDeviceListener)
+            im.unregisterInputDeviceListener(inputDeviceListener)
             inputDeviceListener = null
+            handlerThread?.quitSafely()
+            handlerThread = null
         }
     }
 
