@@ -81,9 +81,7 @@ object ControllerInterface {
     }
 
     private external fun dispatchSensorEventNative(
-        deviceQualifier: String,
-        axisName: String,
-        value: Float
+        deviceQualifier: String, axisName: String, value: Float
     ): Boolean
 
     /**
@@ -94,9 +92,7 @@ object ControllerInterface {
      * @param suspended       Whether the sensor is now suspended.
      */
     external fun notifySensorSuspendedState(
-        deviceQualifier: String,
-        axisNames: Array<String>,
-        suspended: Boolean
+        deviceQualifier: String, axisNames: Array<String>, suspended: Boolean
     )
 
     /**
@@ -177,8 +173,9 @@ object ControllerInterface {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val vibratorManager = DolphinApplication.getAppContext()
                 .getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager?
-            if (vibratorManager != null)
+            if (vibratorManager != null) {
                 return DolphinVibratorManagerPassthrough(vibratorManager)
+            }
         }
         val vibrator = DolphinApplication.getAppContext()
             .getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
