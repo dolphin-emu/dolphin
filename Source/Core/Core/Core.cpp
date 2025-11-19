@@ -322,7 +322,6 @@ static void CPUSetInitialExecutionState(bool force_paused = false)
     bool paused = SConfig::GetInstance().bBootToPause || force_paused;
     SetState(system, paused ? State::Paused : State::Running, true, true);
     Host_UpdateDisasmDialog();
-    Host_Message(HostMessageID::WMUserCreate);
   });
 }
 

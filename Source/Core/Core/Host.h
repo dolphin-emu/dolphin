@@ -43,8 +43,6 @@ enum class HostMessageID
 {
   // Begin at 10 in case there is already messages with wParam = 0, 1, 2 and so on
   WMUserStop = 10,
-  WMUserCreate,
-  WMUserSetCursor,
   WMUserJobDispatch,
 };
 
