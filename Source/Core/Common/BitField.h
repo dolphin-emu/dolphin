@@ -129,6 +129,9 @@ public:
   // so that we can use this within unions
   constexpr BitField() = default;
 
+  // Allow copy construction.
+  constexpr BitField(const BitField&) = default;
+
   // We explicitly delete the copy assignment operator here, because the
   // default copy assignment would copy the full storage value, rather than
   // just the bits relevant to this particular bit field.
@@ -382,7 +385,6 @@ public:
   constexpr BitFieldArrayIterator(BitFieldArrayIterator&& other) = default;
   BitFieldArrayIterator& operator=(BitFieldArrayIterator&& other) = default;
 
-public:
   BitFieldArrayIterator& operator++()
   {
     m_index++;
