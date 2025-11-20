@@ -284,24 +284,21 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
     INFO_LOG_FMT(IOS_SD, "{}Read {} Block(s) from {:#010x} bsize {} into {:#010x}!",
                  req.isDMA ? "DMA " : "", req.blocks, req.arg, req.bsize, req.addr);
 
-    if (m_card)
+    const u32 size = req.bsize * req.blocks;
+    const u64 address = GetAddressFromRequest(req.arg);
+
+    if (!m_card.Seek(address, File::SeekOrigin::Begin))
+      ERROR_LOG_FMT(IOS_SD, "Seek failed");
+
+    if (m_card.ReadBytes(memory.GetPointerForRange(req.addr, size), size))
     {
-      const u32 size = req.bsize * req.blocks;
-      const u64 address = GetAddressFromRequest(req.arg);
-
-      if (!m_card.Seek(address, File::SeekOrigin::Begin))
-        ERROR_LOG_FMT(IOS_SD, "Seek failed");
-
-      if (m_card.ReadBytes(memory.GetPointerForRange(req.addr, size), size))
-      {
-        DEBUG_LOG_FMT(IOS_SD, "Outbuffer size {} got {}", rw_buffer_size, size);
-      }
-      else
-      {
-        ERROR_LOG_FMT(IOS_SD, "Read Failed - error: {}, eof: {}", std::ferror(m_card.GetHandle()),
-                      std::feof(m_card.GetHandle()));
-        ret = RET_FAIL;
-      }
+      DEBUG_LOG_FMT(IOS_SD, "Outbuffer size {} got {}", rw_buffer_size, size);
+    }
+    else
+    {
+      ERROR_LOG_FMT(IOS_SD, "Read Failed - error: {}, eof: {}", std::ferror(m_card.GetHandle()),
+                    std::feof(m_card.GetHandle()));
+      ret = RET_FAIL;
     }
   }
     memory.Write_U32(0x900, buffer_out);
@@ -319,7 +316,7 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
       ERROR_LOG_FMT(IOS_SD, "Write attempted while locked.");
       ret = RET_LOCKED;
     }
-    else if (m_card)
+    else
     {
       const u32 size = req.bsize * req.blocks;
       const u64 address = GetAddressFromRequest(req.arg);
@@ -475,24 +472,21 @@ std::optional<IPCReply> SDIOSlot0Device::SendCommand(const IOCtlRequest& request
 IPCReply SDIOSlot0Device::GetStatus(const IOCtlRequest& request)
 {
   // Since IOS does the SD initialization itself, we just say we're always initialized.
-  if (m_card)
+  if (m_card.GetSize() <= SDSC_MAX_SIZE)
   {
-    if (m_card.GetSize() <= SDSC_MAX_SIZE)
+    // No further initialization required.
+    m_status |= CARD_INITIALIZED;
+  }
+  else
+  {
+    // Some IOS versions support SDHC.
+    // Others will work if they are manually initialized (SEND_IF_COND)
+    if (m_sdhc_supported)
     {
-      // No further initialization required.
-      m_status |= CARD_INITIALIZED;
+      // All of the initialization is done internally by IOS, so we get to skip some steps.
+      InitSDHC();
     }
-    else
-    {
-      // Some IOS versions support SDHC.
-      // Others will work if they are manually initialized (SEND_IF_COND)
-      if (m_sdhc_supported)
-      {
-        // All of the initialization is done internally by IOS, so we get to skip some steps.
-        InitSDHC();
-      }
-      m_status |= CARD_SDHC;
-    }
+    m_status |= CARD_SDHC;
   }
 
   // Evaluate whether a card is currently inserted (config value).
