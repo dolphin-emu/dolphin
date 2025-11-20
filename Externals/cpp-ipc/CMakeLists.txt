@@ -1,4 +1,4 @@
-add_subdirectory(cpp-ipc)
+add_subdirectory(cpp-ipc EXCLUDE_FROM_ALL)
 
 dolphin_disable_warnings(ipc)
 
