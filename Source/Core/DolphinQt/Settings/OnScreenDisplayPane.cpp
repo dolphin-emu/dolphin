@@ -46,8 +46,8 @@ void OnScreenDisplayPane::CreateLayout()
   m_show_vps = new ConfigBool(tr("Show VPS"), Config::GFX_SHOW_VPS);
   m_show_vtimes = new ConfigBool(tr("Show VBlank Times"), Config::GFX_SHOW_VTIMES);
   m_show_speed = new ConfigBool(tr("Show % Speed"), Config::GFX_SHOW_SPEED);
-  m_speed_colors = new ConfigBool(tr("Show Speed Colors"), Config::GFX_SHOW_SPEED_COLORS);
   m_show_graph = new ConfigBool(tr("Show Performance Graphs"), Config::GFX_SHOW_GRAPHS);
+  m_speed_colors = new ConfigBool(tr("Show Speed Colors"), Config::GFX_SHOW_SPEED_COLORS);
   auto* const perf_sample_window_label = new QLabel(tr("Performance Sample Window (ms)"));
   m_perf_sample_window = new ConfigInteger(0, 10000, Config::GFX_PERF_SAMP_WINDOW, 100);
   m_perf_sample_window->SetTitle(perf_sample_window_label->text());
@@ -57,8 +57,8 @@ void OnScreenDisplayPane::CreateLayout()
   performance_layout->addWidget(m_show_vps, 1, 0);
   performance_layout->addWidget(m_show_vtimes, 1, 1);
   performance_layout->addWidget(m_show_speed, 2, 0);
-  performance_layout->addWidget(m_speed_colors, 2, 1);
-  performance_layout->addWidget(m_show_graph, 3, 0);
+  performance_layout->addWidget(m_show_graph, 2, 1);
+  performance_layout->addWidget(m_speed_colors, 3, 0);
   performance_layout->addWidget(perf_sample_window_label, 4, 0);
   performance_layout->addWidget(m_perf_sample_window, 4, 1);
 
