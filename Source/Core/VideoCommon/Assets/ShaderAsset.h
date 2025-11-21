@@ -4,11 +4,11 @@
 #pragma once
 
 #include <array>
-#include <map>
 #include <span>
 #include <string>
 #include <string_view>
 #include <variant>
+#include <vector>
 
 #include <picojson.h>
 
@@ -36,10 +36,10 @@ struct ShaderProperty
                              RGB, RGBA>;
   static std::span<const std::string_view> GetValueTypeNames();
   static Value GetDefaultValueFromTypeName(std::string_view name);
-  static void WriteAsShaderCode(ShaderCode& shader_source, std::string_view name,
-                                const ShaderProperty& property);
+  static void WriteAsShaderCode(ShaderCode& shader_source, const ShaderProperty& property);
 
   Value default_value;
+  std::string name;
   std::string description;
 };
 
@@ -53,7 +53,7 @@ struct RasterSurfaceShaderData
   // shader expects to expose.  The key is text
   // expected to be in the shader code and the propery
   // describes various details about the input
-  std::map<std::string, ShaderProperty> uniform_properties;
+  std::vector<ShaderProperty> uniform_properties;
   std::string vertex_source;
   std::string pixel_source;
 
