@@ -174,6 +174,8 @@ void AsyncShaderCompiler::StopWorkerThreads()
     thr.join();
   m_worker_threads.clear();
   m_exit_flag.Clear();
+  m_completed_work.clear();
+  m_pending_work.clear();
 }
 
 bool AsyncShaderCompiler::WorkerThreadInitMainThread(void** param)
