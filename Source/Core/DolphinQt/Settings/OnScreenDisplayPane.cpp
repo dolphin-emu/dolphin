@@ -46,21 +46,21 @@ void OnScreenDisplayPane::CreateLayout()
   m_show_vps = new ConfigBool(tr("Show VPS"), Config::GFX_SHOW_VPS);
   m_show_vtimes = new ConfigBool(tr("Show VBlank Times"), Config::GFX_SHOW_VTIMES);
   m_show_speed = new ConfigBool(tr("Show % Speed"), Config::GFX_SHOW_SPEED);
-  m_speed_colors = new ConfigBool(tr("Show Speed Colors"), Config::GFX_SHOW_SPEED_COLORS);
   m_show_graph = new ConfigBool(tr("Show Performance Graphs"), Config::GFX_SHOW_GRAPHS);
-  m_graph_update_label = new QLabel(tr("Graph Update Rate (ms):"));
-  m_graph_update_rate = new ConfigInteger(0, 10000, Config::GFX_PERF_SAMP_WINDOW, 100);
-  m_graph_update_rate->SetTitle(tr("Performance Sample Window (ms)"));
+  m_speed_colors = new ConfigBool(tr("Show Speed Colors"), Config::GFX_SHOW_SPEED_COLORS);
+  auto* const perf_sample_window_label = new QLabel(tr("Performance Sample Window (ms)"));
+  m_perf_sample_window = new ConfigInteger(0, 10000, Config::GFX_PERF_SAMP_WINDOW, 100);
+  m_perf_sample_window->SetTitle(perf_sample_window_label->text());
 
   performance_layout->addWidget(m_show_fps, 0, 0);
   performance_layout->addWidget(m_show_ftimes, 0, 1);
   performance_layout->addWidget(m_show_vps, 1, 0);
   performance_layout->addWidget(m_show_vtimes, 1, 1);
   performance_layout->addWidget(m_show_speed, 2, 0);
-  performance_layout->addWidget(m_speed_colors, 2, 1);
-  performance_layout->addWidget(m_show_graph, 3, 0);
-  performance_layout->addWidget(m_graph_update_label, 4, 0);
-  performance_layout->addWidget(m_graph_update_rate, 4, 1);
+  performance_layout->addWidget(m_show_graph, 2, 1);
+  performance_layout->addWidget(m_speed_colors, 3, 0);
+  performance_layout->addWidget(perf_sample_window_label, 4, 0);
+  performance_layout->addWidget(m_perf_sample_window, 4, 1);
 
   // Movie
   auto* movie_box = new QGroupBox(tr("Movie Window"));
@@ -118,14 +118,6 @@ void OnScreenDisplayPane::CreateLayout()
 
 void OnScreenDisplayPane::ConnectLayout()
 {
-  // Disable graph options when graph is not visible.
-  m_graph_update_rate->setEnabled(m_show_graph->isChecked());
-  m_graph_update_label->setEnabled(m_show_graph->isChecked());
-  connect(m_show_graph, &QCheckBox::toggled, this, [this](bool checked) {
-    m_graph_update_rate->setEnabled(checked);
-    m_graph_update_label->setEnabled(checked);
-  });
-
   // Disable movie window options when window is closed.
   auto enable_movie_items = [this](bool checked) {
     for (auto* widget :
@@ -235,7 +227,7 @@ void OnScreenDisplayPane::AddDescriptions()
   m_show_vtimes->SetDescription(tr(TR_SHOW_VTIMES_DESCRIPTION));
   m_show_graph->SetDescription(tr(TR_SHOW_GRAPHS_DESCRIPTION));
   m_show_speed->SetDescription(tr(TR_SHOW_SPEED_DESCRIPTION));
-  m_graph_update_rate->SetDescription(tr(TR_PERF_SAMP_WINDOW_DESCRIPTION));
+  m_perf_sample_window->SetDescription(tr(TR_PERF_SAMP_WINDOW_DESCRIPTION));
   m_speed_colors->SetDescription(tr(TR_SHOW_SPEED_COLORS_DESCRIPTION));
 
   m_show_ping->SetDescription(tr(TR_SHOW_NETPLAY_PING_DESCRIPTION));

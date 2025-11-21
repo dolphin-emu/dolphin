@@ -31,8 +31,7 @@ private:
   ConfigBool* m_show_graph;
   ConfigBool* m_show_speed;
   ConfigBool* m_speed_colors;
-  QLabel* m_graph_update_label;
-  ConfigInteger* m_graph_update_rate;
+  ConfigInteger* m_perf_sample_window;
 
   // Movie window
   ConfigBool* m_movie_window;
