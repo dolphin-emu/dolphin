@@ -68,6 +68,19 @@ bool AsyncShaderCompiler::HasCompletedWork()
   return !m_completed_work.empty();
 }
 
+void AsyncShaderCompiler::ClearAllWork()
+{
+  {
+    std::lock_guard<std::mutex> guard(m_pending_work_lock);
+    m_pending_work.clear();
+  }
+
+  {
+    std::lock_guard<std::mutex> guard(m_completed_work_lock);
+    m_completed_work.clear();
+  }
+}
+
 bool AsyncShaderCompiler::WaitUntilCompletion(
     const std::function<void(size_t, size_t)>& progress_callback)
 {
