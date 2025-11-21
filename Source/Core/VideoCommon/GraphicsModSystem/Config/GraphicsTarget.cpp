@@ -10,7 +10,8 @@
 
 namespace
 {
-template <typename T, std::enable_if_t<std::is_base_of_v<FBTarget, T>, int> = 0>
+template <typename T>
+requires std::is_base_of_v<FBTarget, T>
 std::optional<T> DeserializeFBTargetFromConfig(const picojson::object& obj, std::string_view prefix)
 {
   T fb;
