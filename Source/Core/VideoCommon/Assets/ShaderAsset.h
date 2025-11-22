@@ -4,7 +4,7 @@
 #pragma once
 
 #include <array>
-#include <map>
+#include <memory>
 #include <span>
 #include <string>
 #include <string_view>
@@ -13,6 +13,7 @@
 #include <picojson.h>
 
 #include "VideoCommon/Assets/CustomAsset.h"
+#include "VideoCommon/ShaderCompileUtils.h"
 #include "VideoCommon/TextureConfig.h"
 
 class ShaderCode;
@@ -36,15 +37,22 @@ struct ShaderProperty
                              RGB, RGBA>;
   static std::span<const std::string_view> GetValueTypeNames();
   static Value GetDefaultValueFromTypeName(std::string_view name);
-  static void WriteAsShaderCode(ShaderCode& shader_source, std::string_view name,
-                                const ShaderProperty& property);
+  static void WriteAsShaderCode(ShaderCode& shader_source, const ShaderProperty& property);
 
   Value default_value;
+  std::string name;
   std::string description;
 };
 
 struct RasterSurfaceShaderData
 {
+  RasterSurfaceShaderData() = default;
+  RasterSurfaceShaderData(const RasterSurfaceShaderData&) = delete;
+  RasterSurfaceShaderData(RasterSurfaceShaderData&&) = default;
+  ~RasterSurfaceShaderData() = default;
+  RasterSurfaceShaderData& operator=(const RasterSurfaceShaderData&) = delete;
+  RasterSurfaceShaderData& operator=(RasterSurfaceShaderData&&) = default;
+
   static bool FromJson(const CustomAssetLibrary::AssetID& asset_id, const picojson::object& json,
                        RasterSurfaceShaderData* data);
   static void ToJson(picojson::object& obj, const RasterSurfaceShaderData& data);
@@ -53,7 +61,7 @@ struct RasterSurfaceShaderData
   // shader expects to expose.  The key is text
   // expected to be in the shader code and the propery
   // describes various details about the input
-  std::map<std::string, ShaderProperty> uniform_properties;
+  std::vector<ShaderProperty> uniform_properties;
   std::string vertex_source;
   std::string pixel_source;
 
@@ -65,6 +73,8 @@ struct RasterSurfaceShaderData
     bool operator==(const SamplerData&) const = default;
   };
   std::vector<SamplerData> samplers;
+
+  std::unique_ptr<VideoCommon::ShaderIncluder> shader_includer;
 };
 
 class RasterSurfaceShaderAsset final : public CustomLoadableAsset<RasterSurfaceShaderData>

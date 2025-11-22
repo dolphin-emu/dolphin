@@ -1,0 +1,41 @@
+{
+	"meta":
+	{
+		"title": "DOF Blurred",
+		"author": "Dolphin Team",
+		"description": "Blurs the DOF (depth of field)."
+	},
+	"features":
+	[
+		{
+			"group": "DOF",
+			"action": "custom_pipeline",
+			"action_data":
+			{
+				"material_asset": "dolphin_dof_blur_horizontal"
+			}
+		}
+	],
+	"assets": [
+	{
+		"data": {
+			"metadata": "blur.rastershader",
+			"pixel_shader": "blur.ps.glsl",
+			"vertex_shader": "blur.vs.glsl"
+		},
+		"name": "dolphin_dof_blur"
+	},
+	{
+		"data": {
+			"metadata": "blur_horizontal.rastermaterial"
+		},
+		"name": "dolphin_dof_blur_horizontal"
+	},
+	{
+		"data": {
+			"metadata": "blur_vertical.rastermaterial"
+		},
+		"name": "dolphin_dof_blur_vertical"
+	}
+  ]
+}
