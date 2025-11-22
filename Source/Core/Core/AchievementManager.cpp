@@ -71,6 +71,7 @@ void AchievementManager::Init(void* hwnd)
     {
       std::lock_guard lg{m_lock};
       m_client = rc_client_create(MemoryPeeker, Request);
+      rc_client_set_allow_background_memory_reads(m_client, 0);
     }
     std::string host_url = Config::Get(Config::RA_HOST_URL);
     if (!host_url.empty())
@@ -360,7 +361,7 @@ void AchievementManager::DoIdle()
   std::thread([this] {
     while (true)
     {
-      Common::SleepCurrentThread(1000);
+      Common::SleepCurrentThread(100);
       {
         std::lock_guard lg{m_lock};
         Core::System* system = m_system.load(std::memory_order_acquire);
@@ -368,21 +369,26 @@ void AchievementManager::DoIdle()
           return;
         if (!m_background_execution_allowed)
           return;
-        if (!m_client || !IsGameLoaded())
+        if (!m_client || (!IsGameLoaded() && !m_dll_found))
           return;
       }
-      // rc_client_idle peeks at memory to recalculate rich presence and therefore
-      // needs to be on host or CPU thread to access memory.
-      Core::QueueHostJob([this](Core::System& system) {
-        std::lock_guard lg{m_lock};
-        if (Core::GetState(system) != Core::State::Paused)
-          return;
-        if (!m_background_execution_allowed)
-          return;
-        if (!m_client || !IsGameLoaded())
-          return;
-        rc_client_idle(m_client);
-      });
+      // rc_client_idle peeks at memory to recalculate rich presence and perform dev tasks
+      // and therefore needs to be on CPU thread to access memory.
+      Core::System* system = m_system.load(std::memory_order_acquire);
+      Core::RunOnCPUThread(
+          *system,
+          [this]() {
+            std::lock_guard lg{m_lock};
+            Core::System* system = m_system.load(std::memory_order_acquire);
+            if (Core::GetState(*system) != Core::State::Paused)
+              return;
+            if (!m_background_execution_allowed)
+              return;
+            if (!m_client || (!IsGameLoaded() && !m_dll_found))
+              return;
+            rc_client_idle(m_client);
+          },
+          true);
     }
   }).detach();
 }
@@ -1334,8 +1340,6 @@ u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_
     return 0u;
   auto& system = Core::System::GetInstance();
   Core::CPUThreadGuard thread_guard(system);
-  if (address > MEM1_SIZE)
-    address += (MEM2_START - MEM1_SIZE);
   for (u32 num_read = 0; num_read < num_bytes; num_read++)
   {
     auto value = system.GetMMU().HostTryRead<u8>(thread_guard, address + num_read,
@@ -1561,10 +1565,7 @@ void AchievementManager::MemoryPoker(u32 address, u8* buffer, u32 num_bytes, rc_
   if (!system)
     return;
   Core::CPUThreadGuard thread_guard(*system);
-  if (address < MEM1_SIZE)
-    system->GetMemory().CopyToEmu(address, buffer, num_bytes);
-  else
-    system->GetMemory().CopyToEmu(address - MEM1_SIZE + MEM2_START, buffer, num_bytes);
+  system->GetMemory().CopyToEmu(address, buffer, num_bytes);
 }
 
 void AchievementManager::GameTitleEstimateHandler(char* buffer, u32 buffer_size,
