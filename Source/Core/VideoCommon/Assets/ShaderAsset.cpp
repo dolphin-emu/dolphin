@@ -141,10 +141,9 @@ static bool ParseShaderValue(const CustomAssetLibrary::AssetID& asset_id,
   return false;
 }
 
-static bool
-ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
-                      const picojson::array& properties_data,
-                      std::map<std::string, VideoCommon::ShaderProperty>* shader_properties)
+static bool ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
+                                  const picojson::array& properties_data,
+                                  std::vector<ShaderProperty>* shader_properties)
 {
   if (!shader_properties) [[unlikely]]
     return false;
@@ -211,12 +210,12 @@ ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
                     asset_id);
       return false;
     }
-    std::string code_name = code_name_iter->second.to_str();
+    property.name = code_name_iter->second.to_str();
 
     const auto default_iter = property_data_obj.find("default");
     if (default_iter != property_data_obj.end())
     {
-      if (!ParseShaderValue(asset_id, default_iter->second, code_name, type,
+      if (!ParseShaderValue(asset_id, default_iter->second, property.name, type,
                             &property.default_value))
       {
         return false;
@@ -227,7 +226,7 @@ ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
       property.default_value = ShaderProperty::GetDefaultValueFromTypeName(type);
     }
 
-    shader_properties->try_emplace(std::move(code_name), std::move(property));
+    shader_properties->push_back(std::move(property));
   }
 
   return true;
@@ -237,7 +236,7 @@ bool RasterSurfaceShaderData::FromJson(const VideoCommon::CustomAssetLibrary::As
                                        const picojson::object& json, RasterSurfaceShaderData* data)
 {
   const auto parse_properties = [&](const char* name, std::string_view source,
-                                    std::map<std::string, ShaderProperty>* properties) -> bool {
+                                    std::vector<ShaderProperty>* shader_properties) -> bool {
     const auto properties_iter = json.find(name);
     if (properties_iter == json.end())
     {
@@ -252,23 +251,7 @@ bool RasterSurfaceShaderData::FromJson(const VideoCommon::CustomAssetLibrary::As
     }
     const auto& properties_array = properties_iter->second.get<picojson::array>();
 
-    if (!ParseShaderProperties(asset_id, properties_array, properties))
-      return false;
-
-    for (const auto& [code_name, property] : *properties)
-    {
-      if (source.find(code_name) == std::string::npos)
-      {
-        ERROR_LOG_FMT(
-            VIDEO,
-            "Asset '{}' failed to parse json, the code name '{}' defined in the metadata was not "
-            "found in the source for '{}'",
-            asset_id, code_name, name);
-        return false;
-      }
-    }
-
-    return true;
+    return ParseShaderProperties(asset_id, properties_array, shader_properties);
   };
 
   const auto parse_samplers =
@@ -343,11 +326,10 @@ bool RasterSurfaceShaderData::FromJson(const VideoCommon::CustomAssetLibrary::As
 
 void RasterSurfaceShaderData::ToJson(picojson::object& obj, const RasterSurfaceShaderData& data)
 {
-  const auto add_property = [](picojson::array* json_properties, const std::string& name,
-                               const ShaderProperty& property) {
+  const auto add_property = [](picojson::array* json_properties, const ShaderProperty& property) {
     picojson::object json_property;
 
-    json_property.emplace("code_name", name);
+    json_property.emplace("code_name", property.name);
     json_property.emplace("description", property.description);
 
     std::visit(overloaded{[&](s32 default_value) {
@@ -407,9 +389,9 @@ void RasterSurfaceShaderData::ToJson(picojson::object& obj, const RasterSurfaceS
   };
 
   picojson::array json_properties;
-  for (const auto& [name, property] : data.uniform_properties)
+  for (const auto& property : data.uniform_properties)
   {
-    add_property(&json_properties, name, property);
+    add_property(&json_properties, property);
   }
   obj.emplace("properties", std::move(json_properties));
 
@@ -478,22 +460,21 @@ ShaderProperty::Value ShaderProperty::GetDefaultValueFromTypeName(std::string_vi
   return Value{};
 }
 
-void ShaderProperty::WriteAsShaderCode(ShaderCode& shader_source, std::string_view name,
-                                       const ShaderProperty& property)
+void ShaderProperty::WriteAsShaderCode(ShaderCode& shader_source, const ShaderProperty& property)
 {
   const auto write_shader = [&](std::string_view type, u32 element_count) {
     if (element_count == 1)
     {
-      shader_source.Write("{} {};\n", type, name);
+      shader_source.Write("{} {};\n", type, property.name);
     }
     else
     {
-      shader_source.Write("{}{} {};\n", type, element_count, name);
+      shader_source.Write("{}{} {};\n", type, element_count, property.name);
     }
 
     for (std::size_t i = element_count; i < 4; i++)
     {
-      shader_source.Write("{} {}_padding_{};\n", type, name, i + 1);
+      shader_source.Write("{} {}_padding_{};\n", type, property.name, i + 1);
     }
   };
   std::visit(overloaded{[&](s32) { write_shader("int", 1); },
