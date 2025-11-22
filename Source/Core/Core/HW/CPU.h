@@ -63,7 +63,7 @@ public:
   // StepOpcode (Steps one Opcode)
   void StepOpcode(Common::Event* event = nullptr);
 
-  // Enable or Disable Stepping. [Will deadlock if called from a system thread]
+  // Enable or Disable Stepping.
   void SetStepping(bool stepping);
 
   // Breakpoint activation for system threads. Similar to SetStepping(true).
