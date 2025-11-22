@@ -199,7 +199,6 @@ void GeneralWidget::BackendWarning()
 void GeneralWidget::OnEmulationStateChanged(bool running)
 {
   m_backend_combo->setEnabled(!running);
-  m_render_main_window->setEnabled(!running);
   m_enable_fullscreen->setEnabled(!running);
 
   const bool supports_adapters = !g_backend_info.Adapters.empty();
