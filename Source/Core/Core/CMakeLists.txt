@@ -123,6 +123,8 @@ add_library(core
   FifoPlayer/FifoPlayer.h
   FifoPlayer/FifoRecorder.cpp
   FifoPlayer/FifoRecorder.h
+  FloatUtils.cpp
+  FloatUtils.h
   FreeLookConfig.cpp
   FreeLookConfig.h
   FreeLookManager.cpp
