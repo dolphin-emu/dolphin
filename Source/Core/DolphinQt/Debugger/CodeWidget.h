@@ -11,6 +11,7 @@
 
 class BranchWatchDialog;
 class QCloseEvent;
+class QComboBox;
 class QLineEdit;
 class QShowEvent;
 class QSplitter;
@@ -65,6 +66,7 @@ private:
   void UpdateNotes();
 
   void OnPPCSymbolsChanged();
+  void OnSaveAddress();
   void OnSearchAddress();
   void OnSearchSymbols();
   void OnSelectSymbol();
@@ -80,7 +82,8 @@ private:
   PPCSymbolDB& m_ppc_symbol_db;
 
   BranchWatchDialog* m_branch_watch_dialog = nullptr;
-  QLineEdit* m_search_address;
+  QComboBox* m_search_address;
+  QToolButton* m_save_address_btn;
   QToolButton* m_lock_btn;
   QPushButton* m_branch_watch;
 
