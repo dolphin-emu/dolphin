@@ -109,11 +109,11 @@ TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
 }
 
 template <typename T>
-Common::Result<Cheats::SearchErrorCode, std::vector<Cheats::SearchResult<T>>>
-Cheats::NewSearch(const Core::CPUThreadGuard& guard,
-                  const std::vector<Cheats::MemoryRange>& memory_ranges,
-                  PowerPC::RequestedAddressSpace address_space, bool aligned,
-                  const std::function<bool(const T& value)>& validator)
+auto Cheats::NewSearch(const Core::CPUThreadGuard& guard,
+                       const std::vector<Cheats::MemoryRange>& memory_ranges,
+                       PowerPC::RequestedAddressSpace address_space, bool aligned,
+                       const std::function<bool(const T& value)>& validator)
+    -> Common::Result<std::vector<SearchResult<T>>, SearchErrorCode>
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return Cheats::SearchErrorCode::DisabledInHardcoreMode;
@@ -162,11 +162,11 @@ Cheats::NewSearch(const Core::CPUThreadGuard& guard,
 }
 
 template <typename T>
-Common::Result<Cheats::SearchErrorCode, std::vector<Cheats::SearchResult<T>>>
-Cheats::NextSearch(const Core::CPUThreadGuard& guard,
-                   const std::vector<Cheats::SearchResult<T>>& previous_results,
-                   PowerPC::RequestedAddressSpace address_space,
-                   const std::function<bool(const T& new_value, const T& old_value)>& validator)
+auto Cheats::NextSearch(
+    const Core::CPUThreadGuard& guard, const std::vector<Cheats::SearchResult<T>>& previous_results,
+    PowerPC::RequestedAddressSpace address_space,
+    const std::function<bool(const T& new_value, const T& old_value)>& validator)
+    -> Common::Result<std::vector<SearchResult<T>>, SearchErrorCode>
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return Cheats::SearchErrorCode::DisabledInHardcoreMode;
@@ -335,7 +335,7 @@ Cheats::SearchErrorCode Cheats::CheatSearchSession<T>::RunSearch(const Core::CPU
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return Cheats::SearchErrorCode::DisabledInHardcoreMode;
-  Common::Result<SearchErrorCode, std::vector<SearchResult<T>>> result =
+  Common::Result<std::vector<SearchResult<T>>, SearchErrorCode> result =
       Cheats::SearchErrorCode::InvalidParameters;
   if (m_filter_type == FilterType::CompareAgainstSpecificValue)
   {
