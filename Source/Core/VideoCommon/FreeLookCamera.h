@@ -7,7 +7,7 @@
 #include <optional>
 
 #include "Common/Matrix.h"
-#include "Core/FreeLookConfig.h"
+#include "Core/Config/FreeLookSettings.h"
 
 class PointerWrap;
 
@@ -79,7 +79,9 @@ class FreeLookCamera
 {
 public:
   FreeLookCamera();
-  void SetControlType(FreeLook::ControlType type);
+
+  void RefreshConfig();
+
   Common::Matrix44 GetView() const;
   Common::Vec2 GetFieldOfViewMultiplier() const;
 
@@ -90,8 +92,10 @@ public:
   CameraController* GetController() const;
 
 private:
-  std::optional<FreeLook::ControlType> m_current_type;
   std::unique_ptr<CameraController> m_camera_controller;
+
+  bool m_is_enabled{};
+  std::optional<FreeLook::ControlType> m_current_type;
 };
 
 extern FreeLookCamera g_freelook_camera;
