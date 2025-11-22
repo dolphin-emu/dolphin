@@ -68,7 +68,8 @@ DirectIOFile::DirectIOFile(const std::string& path, AccessMode access_mode, Open
   Open(path, access_mode, open_mode);
 }
 
-bool DirectIOFile::Open(const std::string& path, AccessMode access_mode, OpenMode open_mode)
+auto DirectIOFile::Open(const std::string& path, AccessMode access_mode, OpenMode open_mode)
+    -> OpenResult
 {
   ASSERT(!IsOpen());
 
@@ -77,7 +78,7 @@ bool DirectIOFile::Open(const std::string& path, AccessMode access_mode, OpenMod
 
   // This is not a sensible combination. Fail here to not rely on OS-specific behaviors.
   if (access_mode == AccessMode::Read && open_mode == OpenMode::Truncate)
-    return false;
+    return OpenError::InvalidArguments;
 
 #if defined(_WIN32)
   DWORD desired_access = GENERIC_READ | GENERIC_WRITE;
@@ -102,8 +103,8 @@ bool DirectIOFile::Open(const std::string& path, AccessMode access_mode, OpenMod
 
   m_handle = CreateFile(UTF8ToTStr(path).c_str(), desired_access, share_mode, nullptr,
                         creation_disposition, FILE_ATTRIBUTE_NORMAL, nullptr);
-  if (!IsOpen())
-    WARN_LOG_FMT(COMMON, "CreateFile: {}", Common::GetLastErrorString());
+  if (!IsOpen() && GetLastError() == ERROR_FILE_EXISTS)
+    return OpenError::AlreadyExists;
 
 #else
 #if defined(ANDROID)
@@ -128,14 +129,14 @@ bool DirectIOFile::Open(const std::string& path, AccessMode access_mode, OpenMod
     if (open_mode == OpenMode::Existing)
     {
       if (access_mode != AccessMode::Read && !*file_exists)
-        return false;
+        return OpenError::Other;
     }
     else
     {
       if (open_mode == OpenMode::Truncate)
         open_mode_str += 't';
       else if (open_mode == OpenMode::Create && *file_exists)
-        return false;
+        return OpenError::AlreadyExists;
 
       // Modes other than `Existing` may create a file, but "r" won't do that automatically.
       if (access_mode == AccessMode::Read && !*file_exists)
@@ -144,7 +145,7 @@ bool DirectIOFile::Open(const std::string& path, AccessMode access_mode, OpenMod
 
     m_fd = OpenAndroidContent(path, open_mode_str);
 
-    return IsOpen();
+    return IsOpen() ? OpenResult{OpenSuccess{}} : OpenError::Other;
   }
 #endif
   int flags = O_RDWR;
@@ -161,10 +162,12 @@ bool DirectIOFile::Open(const std::string& path, AccessMode access_mode, OpenMod
     flags |= O_CREAT;
 
   m_fd = open(path.c_str(), flags, 0666);
+  if (!IsOpen() && errno == EEXIST)
+    return OpenError::AlreadyExists;
 
 #endif
 
-  return IsOpen();
+  return IsOpen() ? OpenResult{OpenSuccess{}} : OpenError::Other;
 }
 
 bool DirectIOFile::Close()
