@@ -268,6 +268,7 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
             titles[MenuTag.CONFIG_GAME_CUBE] = R.string.gamecube_submenu
             titles[MenuTag.CONFIG_SERIALPORT1] = R.string.serialport1_submenu
             titles[MenuTag.CONFIG_WII] = R.string.wii_submenu
+            titles[MenuTag.CONFIG_ACHIEVEMENTS] = R.string.achievements_submenu
             titles[MenuTag.CONFIG_ADVANCED] = R.string.advanced_submenu
             titles[MenuTag.DEBUG] = R.string.debug_submenu
             titles[MenuTag.GRAPHICS] = R.string.graphics_settings

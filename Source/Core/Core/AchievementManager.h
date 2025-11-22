@@ -121,6 +121,7 @@ public:
     int failed_login_code = 0;
   };
   Common::HookableEvent<const UpdatedItems&> update_event;
+  Common::HookableEvent<int> login_event;
 
   static AchievementManager& GetInstance();
   void Init(void* hwnd);
