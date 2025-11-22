@@ -26,7 +26,6 @@ import org.dolphinemu.dolphinemu.model.GameFileCache
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import org.dolphinemu.dolphinemu.utils.BooleanSupplier
-import org.dolphinemu.dolphinemu.utils.CompletableFuture
 import org.dolphinemu.dolphinemu.utils.ContentHandler
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
@@ -34,7 +33,8 @@ import org.dolphinemu.dolphinemu.utils.PermissionsHandler
 import org.dolphinemu.dolphinemu.utils.ThreadUtil
 import org.dolphinemu.dolphinemu.utils.WiiUtils
 import java.util.Arrays
-import java.util.concurrent.ExecutionException
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicReference
 
 class MainPresenter(private val mainView: MainView, private val activity: FragmentActivity) {
     private var dirToAdd: String? = null
@@ -265,33 +265,34 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
     }
 
     fun importWiiSave(path: String?) {
-        val canOverwriteFuture = CompletableFuture<Boolean>()
         ThreadUtil.runOnThreadAndShowResult(
             activity,
             R.string.import_in_progress,
             0,
             {
                 val canOverwrite = BooleanSupplier {
+                    val latch = CountDownLatch(1)
+                    val decision = AtomicReference<Boolean>()
                     activity.runOnUiThread {
                         MaterialAlertDialogBuilder(activity)
                             .setMessage(R.string.wii_save_exists)
                             .setCancelable(false)
                             .setPositiveButton(R.string.yes) { _: DialogInterface?, _: Int ->
-                                canOverwriteFuture.complete(true)
+                                decision.set(true)
+                                latch.countDown()
                             }
                             .setNegativeButton(R.string.no) { _: DialogInterface?, _: Int ->
-                                canOverwriteFuture.complete(false)
+                                decision.set(false)
+                                latch.countDown()
                             }
                             .show()
                     }
                     try {
-                        return@BooleanSupplier canOverwriteFuture.get()
-                    } catch (e: ExecutionException) {
-                        // Shouldn't happen
-                        throw RuntimeException(e)
+                        latch.await()
                     } catch (e: InterruptedException) {
                         throw RuntimeException(e)
                     }
+                    decision.get() ?: false
                 }
 
                 val message: Int = when (WiiUtils.importWiiSave(path!!, canOverwrite)) {
