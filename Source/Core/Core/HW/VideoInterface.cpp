@@ -886,10 +886,10 @@ void VideoInterfaceManager::EndField(FieldType field, u64 ticks)
 
   // Note: OutputField above doesn't present when using GPU-on-Thread or Early/Immediate XFB,
   //  giving "VBlank" measurements here poor pacing without a Throttle call.
-  // If the user actually wants the data, we'll Throttle to make the numbers nice.
-  const bool is_vblank_data_wanted = g_ActiveConfig.bShowVPS || g_ActiveConfig.bShowVTimes ||
-                                     g_ActiveConfig.bLogRenderTimeToFile ||
-                                     g_ActiveConfig.bShowGraphs;
+  // We'll throttle so long as Immediate XFB isn't enabled.
+  // That setting intends to minimize input latency and throttling would be counterproductive.
+  // The Rush Frame Presentation setting is handled by Throttle itself.
+  const bool is_vblank_data_wanted = !g_ActiveConfig.bImmediateXFB;
   if (is_vblank_data_wanted)
     m_system.GetCoreTiming().Throttle(ticks);
 

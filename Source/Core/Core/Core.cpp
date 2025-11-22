@@ -884,6 +884,10 @@ void Callback_FramePresented(const PresentInfo& present_info)
 {
   g_perf_metrics.CountFrame();
 
+  const auto presentation_offset =
+      present_info.actual_present_time - present_info.intended_present_time;
+  g_perf_metrics.SetLatestFramePresentationOffset(presentation_offset);
+
   if (present_info.reason == PresentInfo::PresentReason::VideoInterfaceDuplicate)
     return;
 
