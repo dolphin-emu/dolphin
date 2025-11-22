@@ -81,8 +81,6 @@ void VideoInterfaceManager::DoState(PointerWrap& p)
   p.Do(m_fb_width);
   p.Do(m_border_hblank);
   p.Do(m_target_refresh_rate);
-  p.Do(m_target_refresh_rate_numerator);
-  p.Do(m_target_refresh_rate_denominator);
   p.Do(m_ticks_last_line_start);
   p.Do(m_half_line_count);
   p.Do(m_half_line_of_next_si_poll);
@@ -734,25 +732,13 @@ void VideoInterfaceManager::UpdateParameters()
 
 void VideoInterfaceManager::UpdateRefreshRate()
 {
-  m_target_refresh_rate_numerator = m_system.GetSystemTimers().GetTicksPerSecond() * 2;
-  m_target_refresh_rate_denominator = GetTicksPerEvenField() + GetTicksPerOddField();
-  m_target_refresh_rate =
-      static_cast<double>(m_target_refresh_rate_numerator) / m_target_refresh_rate_denominator;
+  m_target_refresh_rate = {m_system.GetSystemTimers().GetTicksPerSecond() * 2,
+                           GetTicksPerEvenField() + GetTicksPerOddField()};
 }
 
-double VideoInterfaceManager::GetTargetRefreshRate() const
+MathUtil::Rational<u32> VideoInterfaceManager::GetTargetRefreshRate() const
 {
   return m_target_refresh_rate;
-}
-
-u32 VideoInterfaceManager::GetTargetRefreshRateNumerator() const
-{
-  return m_target_refresh_rate_numerator;
-}
-
-u32 VideoInterfaceManager::GetTargetRefreshRateDenominator() const
-{
-  return m_target_refresh_rate_denominator;
 }
 
 u32 VideoInterfaceManager::GetTicksPerSample() const
