@@ -7,24 +7,30 @@
 
 namespace Common
 {
-template <typename ResultCode, typename T>
+template <typename Expected, typename Unexpected>
 class Result final
 {
 public:
-  Result(ResultCode code) : m_variant{code} {}
-  Result(const T& t) : m_variant{t} {}
-  Result(T&& t) : m_variant{std::move(t)} {}
-  explicit operator bool() const { return Succeeded(); }
-  bool Succeeded() const { return std::holds_alternative<T>(m_variant); }
-  // Must only be called when Succeeded() returns false.
-  ResultCode Error() const { return std::get<ResultCode>(m_variant); }
+  constexpr Result(const Expected& value) : m_variant{value} {}
+  constexpr Result(Expected&& value) : m_variant{std::move(value)} {}
+
+  constexpr Result(const Unexpected& value) : m_variant{value} {}
+  constexpr Result(Unexpected&& value) : m_variant{std::move(value)} {}
+
+  constexpr explicit operator bool() const { return Succeeded(); }
+  constexpr bool Succeeded() const { return std::holds_alternative<Expected>(m_variant); }
+
   // Must only be called when Succeeded() returns true.
-  const T& operator*() const { return std::get<T>(m_variant); }
-  const T* operator->() const { return &std::get<T>(m_variant); }
-  T& operator*() { return std::get<T>(m_variant); }
-  T* operator->() { return &std::get<T>(m_variant); }
+  constexpr const Expected& operator*() const { return std::get<Expected>(m_variant); }
+  constexpr const Expected* operator->() const { return &std::get<Expected>(m_variant); }
+  constexpr Expected& operator*() { return std::get<Expected>(m_variant); }
+  constexpr Expected* operator->() { return &std::get<Expected>(m_variant); }
+
+  // Must only be called when Succeeded() returns false.
+  constexpr Unexpected& Error() { return std::get<Unexpected>(m_variant); }
+  constexpr const Unexpected& Error() const { return std::get<Unexpected>(m_variant); }
 
 private:
-  std::variant<ResultCode, T> m_variant;
+  std::variant<Expected, Unexpected> m_variant;
 };
 }  // namespace Common
