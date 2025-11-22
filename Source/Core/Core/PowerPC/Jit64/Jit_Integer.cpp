@@ -372,11 +372,7 @@ void Jit64::DoMergedBranch()
       MOV(32, PPCSTATE_SPR(SPR_LR), Imm32(nextPC + 4));
 
     const u32 destination = js.op[1].branchTo;
-    if (IsDebuggingEnabled())
-    {
-      // ABI_PARAM1 is safe to use after a GPR flush for an optimization in this function.
-      WriteBranchWatch<true>(nextPC, destination, next, ABI_PARAM1, RSCRATCH, {});
-    }
+    WriteBranchWatch<true>(nextPC, destination, next, {});
     WriteIdleExit(destination);
   }
   else if (next.OPCD == 16)  // bcx
@@ -385,11 +381,7 @@ void Jit64::DoMergedBranch()
       MOV(32, PPCSTATE_SPR(SPR_LR), Imm32(nextPC + 4));
 
     const u32 destination = js.op[1].branchTo;
-    if (IsDebuggingEnabled())
-    {
-      // ABI_PARAM1 is safe to use after a GPR flush for an optimization in this function.
-      WriteBranchWatch<true>(nextPC, destination, next, ABI_PARAM1, RSCRATCH, {});
-    }
+    WriteBranchWatch<true>(nextPC, destination, next, {});
     WriteExit(destination, next.LK, nextPC + 4);
   }
   else if ((next.OPCD == 19) && (next.SUBOP10 == 528))  // bcctrx
@@ -398,11 +390,7 @@ void Jit64::DoMergedBranch()
       MOV(32, PPCSTATE_SPR(SPR_LR), Imm32(nextPC + 4));
     MOV(32, R(RSCRATCH), PPCSTATE_SPR(SPR_CTR));
     AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
-    if (IsDebuggingEnabled())
-    {
-      // ABI_PARAM1 is safe to use after a GPR flush for an optimization in this function.
-      WriteBranchWatchDestInRSCRATCH(nextPC, next, ABI_PARAM1, RSCRATCH2, BitSet32{RSCRATCH});
-    }
+    WriteBranchWatchDestInRSCRATCH(nextPC, next, BitSet32{RSCRATCH});
     WriteExitDestInRSCRATCH(next.LK, nextPC + 4);
   }
   else if ((next.OPCD == 19) && (next.SUBOP10 == 16))  // bclrx
@@ -412,11 +400,7 @@ void Jit64::DoMergedBranch()
       AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
     if (next.LK)
       MOV(32, PPCSTATE_SPR(SPR_LR), Imm32(nextPC + 4));
-    if (IsDebuggingEnabled())
-    {
-      // ABI_PARAM1 is safe to use after a GPR flush for an optimization in this function.
-      WriteBranchWatchDestInRSCRATCH(nextPC, next, ABI_PARAM1, RSCRATCH2, BitSet32{RSCRATCH});
-    }
+    WriteBranchWatchDestInRSCRATCH(nextPC, next, BitSet32{RSCRATCH});
     WriteBLRExit();
   }
   else
@@ -473,17 +457,12 @@ void Jit64::DoMergedBranchCondition()
   {
     gpr.Flush();
     fpr.Flush();
-    if (IsDebuggingEnabled())
-    {
-      // ABI_PARAM1 is safe to use after a GPR flush for an optimization in this function.
-      WriteBranchWatch<false>(nextPC, nextPC + 4, next, ABI_PARAM1, RSCRATCH, {});
-    }
+    WriteBranchWatch<false>(nextPC, nextPC + 4, next, {});
     WriteExit(nextPC + 4);
   }
-  else if (IsDebuggingEnabled())
+  else
   {
-    WriteBranchWatch<false>(nextPC, nextPC + 4, next, RSCRATCH, RSCRATCH2,
-                            CallerSavedRegistersInUse());
+    WriteBranchWatch<false>(nextPC, nextPC + 4, next, CallerSavedRegistersInUse());
   }
 }
 
@@ -525,17 +504,12 @@ void Jit64::DoMergedBranchImmediate(s64 val)
   {
     gpr.Flush();
     fpr.Flush();
-    if (IsDebuggingEnabled())
-    {
-      // ABI_PARAM1 is safe to use after a GPR flush for an optimization in this function.
-      WriteBranchWatch<false>(nextPC, nextPC + 4, next, ABI_PARAM1, RSCRATCH, {});
-    }
+    WriteBranchWatch<false>(nextPC, nextPC + 4, next, {});
     WriteExit(nextPC + 4);
   }
-  else if (IsDebuggingEnabled())
+  else
   {
-    WriteBranchWatch<false>(nextPC, nextPC + 4, next, RSCRATCH, RSCRATCH2,
-                            CallerSavedRegistersInUse());
+    WriteBranchWatch<false>(nextPC, nextPC + 4, next, CallerSavedRegistersInUse());
   }
 }
 
