@@ -439,6 +439,8 @@ add_library(core
   IOS/USB/Emulated/Skylanders/SkylanderFigure.h
   IOS/USB/Emulated/WiiSpeak.cpp
   IOS/USB/Emulated/WiiSpeak.h
+  IOS/USB/Emulated/LogitechMic.cpp
+  IOS/USB/Emulated/LogitechMic.h
   IOS/USB/Host.cpp
   IOS/USB/Host.h
   IOS/USB/OH0/OH0.cpp

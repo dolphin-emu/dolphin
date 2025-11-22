@@ -25,6 +25,7 @@ enum ReturnCode : s32
   IPC_SUCCESS = 0,         // Success
   IPC_EACCES = -1,         // Permission denied
   IPC_EEXIST = -2,         // File exists
+  IPC_STALL = -3,          // Fail stall
   IPC_EINVAL = -4,         // Invalid argument or fd
   IPC_EMAX = -5,           // Too many file descriptors open
   IPC_ENOENT = -6,         // File not found

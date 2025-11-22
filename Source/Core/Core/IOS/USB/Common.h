@@ -29,9 +29,13 @@ enum ControlRequestTypes
   DIR_HOST2DEVICE = 0,
   DIR_DEVICE2HOST = 1,
   TYPE_STANDARD = 0,
+  TYPE_CLASS = 1,
   TYPE_VENDOR = 2,
+  TYPE_RESERVED = 3,
   REC_DEVICE = 0,
   REC_INTERFACE = 1,
+  REC_ENDPOINT = 2,
+  REC_OTHER = 3,
 };
 
 constexpr u16 USBHDR(u8 dir, u8 type, u8 recipient, u8 request)

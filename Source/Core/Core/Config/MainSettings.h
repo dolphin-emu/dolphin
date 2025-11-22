@@ -375,6 +375,14 @@ extern const Info<std::string> MAIN_WII_SPEAK_MICROPHONE;
 extern const Info<bool> MAIN_WII_SPEAK_MUTED;
 extern const Info<s16> MAIN_WII_SPEAK_VOLUME_MODIFIER;
 
+static constexpr std::size_t EMULATED_LOGITECH_MIC_COUNT = 4;
+
+extern const std::array<Info<bool>, EMULATED_LOGITECH_MIC_COUNT> MAIN_EMULATE_LOGITECH_MIC;
+extern const std::array<Info<std::string>, EMULATED_LOGITECH_MIC_COUNT>
+    MAIN_LOGITECH_MIC_MICROPHONE;
+extern const std::array<Info<bool>, EMULATED_LOGITECH_MIC_COUNT> MAIN_LOGITECH_MIC_MUTED;
+extern const std::array<Info<s16>, EMULATED_LOGITECH_MIC_COUNT> MAIN_LOGITECH_MIC_VOLUME_MODIFIER;
+
 // GameCube path utility functions
 
 // Replaces NTSC-K with some other region, and doesn't replace non-NTSC-K regions

@@ -98,6 +98,7 @@ signals:
   void ShowSkylanderPortal();
   void ShowInfinityBase();
   void ShowWiiSpeakWindow();
+  void ShowLogitechMicWindow();
   void ConnectWiiRemote(int id);
 
 #ifdef USE_RETRO_ACHIEVEMENTS
