@@ -4,6 +4,7 @@
 #pragma once
 
 #include <concepts>
+#include <functional>
 #include <memory>
 #include <type_traits>
 
@@ -49,6 +50,19 @@ private:
   };
 
   std::unique_ptr<FuncBase> m_ptr;
+};
+
+// A functor type with an invocable non-type template parameter.
+// e.g. Providing a function pointer will create a functor type that invokes said function.
+// It allows using function pointers in contexts that expect a type, e.g. as a "deleter".
+template <auto Invocable>
+struct InvokerOf
+{
+  template <typename... Args>
+  constexpr auto operator()(Args... args) const
+  {
+    return std::invoke(Invocable, std::forward<Args>(args)...);
+  }
 };
 
 }  // namespace Common

@@ -3,74 +3,34 @@
 
 #pragma once
 
-#include <QCoreApplication>
-#include <QEvent>
-#include <QPointer>
-#include <QThread>
+#include <concepts>
+#include <functional>
 #include <optional>
-#include <type_traits>
-#include <utility>
 
-#include "Common/Event.h"
-#include "DolphinQt/QtUtils/QueueOnObject.h"
+#include <QMetaObject>
 
-class QObject;
+#include "Common/OneShotEvent.h"
 
 // QWidget and subclasses are not thread-safe! This helper takes arbitrary code from any thread,
 // safely runs it on the appropriate GUI thread, waits for it to finish, and returns the result.
 //
-// If the target object is destructed before the code gets to run, the QPointer will be nulled and
-// the function will return nullopt.
+// If the target object is destructed before the code gets to run the function will return nullopt.
 
-template <typename F>
-auto RunOnObject(QObject* object, F&& functor)
+auto RunOnObject(QObject* object, std::invocable<> auto&& functor)
 {
-  using OptionalResultT = std::optional<std::invoke_result_t<F>>;
+  Common::OneShotEvent task_complete;
+  std::optional<decltype(functor())> result;
 
-  // If we queue up a functor on the current thread, it won't run until we return to the event loop,
-  // which means waiting for it to finish will never complete. Instead, run it immediately.
-  if (object->thread() == QThread::currentThread())
-    return OptionalResultT(functor());
+  QMetaObject::invokeMethod(
+      object, [&, guard = Common::ScopedSetter{&task_complete}] { result = functor(); });
 
-  class FnInvokeEvent : public QEvent
-  {
-  public:
-    FnInvokeEvent(F&& functor, QObject* obj, Common::Event& event, OptionalResultT& result)
-        : QEvent(QEvent::None), m_func(std::move(functor)), m_obj(obj), m_event(event),
-          m_result(result)
-    {
-    }
-
-    ~FnInvokeEvent()
-    {
-      if (m_obj)
-      {
-        m_result = m_func();
-      }
-      else
-      {
-        // is already nullopt
-      }
-      m_event.Set();
-    }
-
-  private:
-    F m_func;
-    QPointer<QObject> m_obj;
-    Common::Event& m_event;
-    OptionalResultT& m_result;
-  };
-
-  Common::Event event{};
-  OptionalResultT result = std::nullopt;
-  QCoreApplication::postEvent(object,
-                              new FnInvokeEvent(std::forward<F>(functor), object, event, result));
-  event.Wait();
+  // Wait for the lambda to go out of scope. The result may or may not have been assigned.
+  task_complete.Wait();
   return result;
 }
 
-template <typename Base, typename Type, typename Receiver>
-auto RunOnObject(Receiver* obj, Type Base::* func)
+template <std::derived_from<QObject> Receiver>
+auto RunOnObject(Receiver* obj, auto Receiver::* func)
 {
-  return RunOnObject(obj, [obj, func] { return (obj->*func)(); });
+  return RunOnObject(obj, std::bind(func, obj));
 }
