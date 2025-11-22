@@ -15,6 +15,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/SPSCQueue.h"
+#include "Common/ScopeGuard.h"
 
 #include "Core/AchievementManager.h"
 #include "Core/CPUThreadConfigCallback.h"
@@ -448,6 +449,12 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
                              ((GetTargetHostTime(target_cycle) - time) < m_max_throttle_skip_time);
   if (skip_throttle)
     return;
+
+  // Measure current performance after throttling.
+  Common::ScopeGuard perf_marker{[&] {
+    g_perf_metrics.CountPerformanceMarker(target_cycle,
+                                          m_system.GetSystemTimers().GetTicksPerSecond());
+  }};
 
   if (IsSpeedUnlimited())
   {
