@@ -68,6 +68,7 @@ extern const Info<bool> MAIN_CORRECT_TIME_DRIFT;
 extern const Info<bool> MAIN_RUSH_FRAME_PRESENTATION;
 extern const Info<bool> MAIN_SMOOTH_EARLY_PRESENTATION;
 extern const Info<bool> MAIN_CPU_THREAD;
+extern const Info<bool> MAIN_LOAD_GAME_INTO_MEMORY;
 extern const Info<bool> MAIN_SYNC_ON_SKIP_IDLE;
 extern const Info<std::string> MAIN_DEFAULT_ISO;
 extern const Info<bool> MAIN_ENABLE_CHEATS;
