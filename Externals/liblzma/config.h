@@ -286,7 +286,7 @@
 #define HAVE_VISIBILITY 1
 
 /* Define to 1 if you have the `wcwidth' function. */
-#define HAVE_WCWIDTH 1
+//#define HAVE_WCWIDTH 1
 
 /* Define to 1 if the system has the type `_Bool'. */
 #define HAVE__BOOL 1

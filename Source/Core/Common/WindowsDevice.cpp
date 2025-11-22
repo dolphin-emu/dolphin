@@ -6,11 +6,25 @@
 #include "Common/WindowsDevice.h"
 
 #include <string>
+#include <vector>
 
-#include "Hidclass.h"
+#include "hidclass.h"
 
 #include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
+
+#if defined(__MINGW32__) && !defined(CM_Get_Device_Interface_Property)
+extern "C" {
+CONFIGRET WINAPI CM_Get_Device_Interface_PropertyW(
+    LPCWSTR pszDeviceInterface,
+    const DEVPROPKEY* PropertyKey,
+    DEVPROPTYPE* PropertyType,
+    PBYTE Buffer,
+    PULONG BufferSize,
+    ULONG ulFlags);
+}
+#define CM_Get_Device_Interface_Property CM_Get_Device_Interface_PropertyW
+#endif
 
 namespace Common
 {

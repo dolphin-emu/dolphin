@@ -1,0 +1,39 @@
+diff --git a/src/libipc/platform/win/condition.h b/src/libipc/platform/win/condition.h
+index 9c89633..36c9a20 100644
+--- a/src/libipc/platform/win/condition.h
++++ b/src/libipc/platform/win/condition.h
+@@ -4,7 +4,7 @@
+ #include <string>
+ #include <mutex>
+ 
+-#include <Windows.h>
++#include <windows.h>
+ 
+ #include "libipc/utility/log.h"
+ #include "libipc/utility/scope_guard.h"
+diff --git a/src/libipc/platform/win/mutex.h b/src/libipc/platform/win/mutex.h
+index e9b61cd..f9ab63f 100644
+--- a/src/libipc/platform/win/mutex.h
++++ b/src/libipc/platform/win/mutex.h
+@@ -3,7 +3,7 @@
+ #include <cstdint>
+ #include <system_error>
+ 
+-#include <Windows.h>
++#include <windows.h>
+ 
+ #include "libipc/utility/log.h"
+ 
+diff --git a/src/libipc/platform/win/semaphore.h b/src/libipc/platform/win/semaphore.h
+index 6cf94de..252d78e 100644
+--- a/src/libipc/platform/win/semaphore.h
++++ b/src/libipc/platform/win/semaphore.h
+@@ -2,7 +2,7 @@
+ 
+ #include <cstdint>
+ 
+-#include <Windows.h>
++#include <windows.h>
+ 
+ #include "libipc/utility/log.h"
+ 

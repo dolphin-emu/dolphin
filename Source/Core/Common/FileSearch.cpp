@@ -14,7 +14,7 @@
 #include "Common/StringUtil.h"
 
 #ifdef _MSC_VER
-#include <Windows.h>
+#include <windows.h>
 #else
 #ifdef ANDROID
 #include "jni/AndroidCommon/AndroidCommon.h"
