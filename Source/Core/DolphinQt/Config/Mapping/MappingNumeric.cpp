@@ -21,6 +21,7 @@ MappingDouble::MappingDouble(MappingWidget* parent, ControllerEmu::NumericSettin
   connect(this, &QDoubleSpinBox::valueChanged, this, [this, parent](double value) {
     m_setting.SetValue(value);
     ConfigChanged();
+    parent->OnMappingChange();
     parent->SaveSettings();
   });
 
@@ -83,6 +84,7 @@ MappingBool::MappingBool(MappingWidget* parent, ControllerEmu::NumericSetting<bo
 #endif
     m_setting.SetValue(value != 0);
     ConfigChanged();
+    parent->OnMappingChange();
     parent->SaveSettings();
   });
 
