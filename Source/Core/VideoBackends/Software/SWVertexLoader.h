@@ -13,10 +13,15 @@
 
 #include "VideoCommon/VertexManagerBase.h"
 
+namespace Core
+{
+class system;
+}
+
 class SWVertexLoader final : public VertexManagerBase
 {
 public:
-  SWVertexLoader();
+  SWVertexLoader(Core::System& system);
   ~SWVertexLoader() override;
 
   DataReader PrepareForAdditionalData(OpcodeDecoder::Primitive primitive, u32 count, u32 stride,
@@ -30,4 +35,5 @@ protected:
 
   InputVertexData m_vertex{};
   SetupUnit m_setup_unit;
+  Core::System& m_system;
 };
