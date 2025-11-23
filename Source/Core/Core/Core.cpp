@@ -27,12 +27,12 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/Event.h"
 #include "Common/FPURoundMode.h"
 #include "Common/FatFsUtil.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/OneShotEvent.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
@@ -127,7 +127,6 @@ struct HostJob
 };
 static std::mutex s_host_jobs_lock;
 static std::queue<HostJob> s_host_jobs_queue;
-static Common::Event s_cpu_thread_job_finished;
 
 static thread_local bool tls_is_cpu_thread = false;
 static thread_local bool tls_is_gpu_thread = false;
@@ -841,6 +840,8 @@ void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> funct
     return;
   }
 
+  Common::OneShotEvent cpu_thread_job_finished;
+
   // Pause the CPU (set it to stepping mode).
   const bool was_running = PauseAndLock(system);
 
@@ -853,10 +854,9 @@ void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> funct
   else if (wait_for_completion)
   {
     // Queue the job function followed by triggering the event.
-    s_cpu_thread_job_finished.Reset();
-    system.GetCPU().AddCPUThreadJob([&function] {
+    system.GetCPU().AddCPUThreadJob([&function, &cpu_thread_job_finished] {
       function();
-      s_cpu_thread_job_finished.Set();
+      cpu_thread_job_finished.Set();
     });
   }
   else
@@ -872,7 +872,7 @@ void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> funct
   if (wait_for_completion)
   {
     // Periodically yield to the UI thread, so we don't deadlock.
-    while (!s_cpu_thread_job_finished.WaitFor(std::chrono::milliseconds(10)))
+    while (!cpu_thread_job_finished.WaitFor(std::chrono::milliseconds(10)))
       Host_YieldToUI();
   }
 }
