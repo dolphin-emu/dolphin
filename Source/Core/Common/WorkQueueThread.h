@@ -10,6 +10,7 @@
 #include <thread>
 
 #include "Common/Event.h"
+#include "Common/Functional.h"
 #include "Common/SPSCQueue.h"
 #include "Common/Thread.h"
 
@@ -187,7 +188,7 @@ template <template <typename> typename WorkThread>
 class AsyncWorkThreadBase
 {
 public:
-  using FuncType = std::function<void()>;
+  using FuncType = Common::MoveOnlyFunction<void()>;
 
   AsyncWorkThreadBase() = default;
   explicit AsyncWorkThreadBase(std::string thread_name) { Reset(std::move(thread_name)); }
