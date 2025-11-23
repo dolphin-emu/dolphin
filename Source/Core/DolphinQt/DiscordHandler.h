@@ -42,7 +42,7 @@ private:
   void Run();
   QWidget* m_parent;
   Common::Flag m_stop_requested;
-  Common::Event m_wakeup_event;
+  Common::TimedEvent m_wakeup_event;
   std::thread m_thread;
   std::list<DiscordJoinRequestDialog> m_request_dialogs;
   std::mutex m_request_dialogs_mutex;

@@ -168,7 +168,7 @@ private:
   Common::SPSCQueue<Report> m_read_reports;
   Common::SPSCQueue<TimedReport> m_write_reports;
   // Kick the write thread.
-  Common::Event m_write_event;
+  Common::TimedEvent m_write_event;
 
   bool m_speaker_enabled_in_dolphin_config = false;
   int m_balance_board_dump_port = 0;
@@ -232,7 +232,7 @@ private:
   std::thread m_scan_thread;
   Common::Flag m_scan_thread_running;
   Common::Flag m_populate_devices;
-  Common::Event m_scan_mode_changed_or_population_event;
+  Common::TimedEvent m_scan_mode_changed_or_population_event;
   std::atomic<WiimoteScanMode> m_scan_mode{WiimoteScanMode::DO_NOT_SCAN};
 };
 
