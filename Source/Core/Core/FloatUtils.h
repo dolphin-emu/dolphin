@@ -12,7 +12,8 @@
 
 namespace Core
 {
-template <typename T> constexpr T SNANConstant()
+template <typename T>
+constexpr T SNANConstant()
 {
   return std::numeric_limits<T>::signaling_NaN();
 }

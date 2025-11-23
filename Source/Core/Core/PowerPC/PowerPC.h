@@ -203,15 +203,9 @@ struct PowerPCState
 
   void SetSR(u32 index, u32 value);
 
-  void SetCarry(u32 ca)
-  {
-    xer_ca = ca;
-  }
+  void SetCarry(u32 ca) { xer_ca = ca; }
 
-  u32 GetCarry() const
-  {
-    return xer_ca;
-  }
+  u32 GetCarry() const { return xer_ca; }
 
   UReg_XER GetXER() const
   {
@@ -229,20 +223,11 @@ struct PowerPCState
     xer_so_ov = (new_xer.SO << 1) + new_xer.OV;
   }
 
-  u32 GetXER_SO() const
-  {
-    return xer_so_ov >> 1;
-  }
+  u32 GetXER_SO() const { return xer_so_ov >> 1; }
 
-  void SetXER_SO(bool value)
-  {
-    xer_so_ov |= static_cast<u32>(value) << 1;
-  }
+  void SetXER_SO(bool value) { xer_so_ov |= static_cast<u32>(value) << 1; }
 
-  u32 GetXER_OV() const
-  {
-    return xer_so_ov & 1;
-  }
+  u32 GetXER_OV() const { return xer_so_ov & 1; }
 
   void SetXER_OV(bool value)
   {
