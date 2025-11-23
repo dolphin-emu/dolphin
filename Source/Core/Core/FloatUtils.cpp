@@ -6,6 +6,8 @@
 #include <bit>
 #include <cmath>
 
+namespace Core
+{
 u32 ClassifyDouble(double dvalue)
 {
   const u64 ivalue = std::bit_cast<u64>(dvalue);
@@ -202,3 +204,5 @@ double ApproximateReciprocal(const UReg_FPSCR& fpscr, double val)
   }
   return static_cast<double>(std::bit_cast<float>(result));
 }
+
+}  // namespace Core

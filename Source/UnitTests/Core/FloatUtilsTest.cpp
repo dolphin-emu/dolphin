@@ -14,14 +14,14 @@
 
 TEST(FloatUtils, IsQNAN)
 {
-  EXPECT_TRUE(IsQNAN(std::numeric_limits<double>::quiet_NaN()));
-  EXPECT_FALSE(IsQNAN(SNANConstant<double>()));
+  EXPECT_TRUE(Core::IsQNAN(std::numeric_limits<double>::quiet_NaN()));
+  EXPECT_FALSE(Core::IsQNAN(Core::SNANConstant<double>()));
 }
 
 TEST(FloatUtils, IsSNAN)
 {
-  EXPECT_FALSE(IsSNAN(std::numeric_limits<double>::quiet_NaN()));
-  EXPECT_TRUE(IsSNAN(SNANConstant<double>()));
+  EXPECT_FALSE(Core::IsSNAN(std::numeric_limits<double>::quiet_NaN()));
+  EXPECT_TRUE(Core::IsSNAN(Core::SNANConstant<double>()));
 }
 
 TEST(FloatUtils, FlushToZero)
@@ -34,16 +34,18 @@ TEST(FloatUtils, FlushToZero)
   EXPECT_LT(0.f, s * 2);
   EXPECT_LT(0.0, d * 2);
 
-  EXPECT_EQ(+0.0, FlushToZero(+std::numeric_limits<double>::denorm_min()));
-  EXPECT_EQ(-0.0, FlushToZero(-std::numeric_limits<double>::denorm_min()));
-  EXPECT_EQ(+0.0, FlushToZero(+std::numeric_limits<double>::min() / 2));
-  EXPECT_EQ(-0.0, FlushToZero(-std::numeric_limits<double>::min() / 2));
-  EXPECT_EQ(std::numeric_limits<double>::min(), FlushToZero(std::numeric_limits<double>::min()));
-  EXPECT_EQ(std::numeric_limits<double>::max(), FlushToZero(std::numeric_limits<double>::max()));
+  EXPECT_EQ(+0.0, Core::FlushToZero(+std::numeric_limits<double>::denorm_min()));
+  EXPECT_EQ(-0.0, Core::FlushToZero(-std::numeric_limits<double>::denorm_min()));
+  EXPECT_EQ(+0.0, Core::FlushToZero(+std::numeric_limits<double>::min() / 2));
+  EXPECT_EQ(-0.0, Core::FlushToZero(-std::numeric_limits<double>::min() / 2));
+  EXPECT_EQ(std::numeric_limits<double>::min(),
+            Core::FlushToZero(std::numeric_limits<double>::min()));
+  EXPECT_EQ(std::numeric_limits<double>::max(),
+            Core::FlushToZero(std::numeric_limits<double>::max()));
   EXPECT_EQ(+std::numeric_limits<double>::infinity(),
-            FlushToZero(+std::numeric_limits<double>::infinity()));
+            Core::FlushToZero(+std::numeric_limits<double>::infinity()));
   EXPECT_EQ(-std::numeric_limits<double>::infinity(),
-            FlushToZero(-std::numeric_limits<double>::infinity()));
+            Core::FlushToZero(-std::numeric_limits<double>::infinity()));
 
   // Test all subnormals as well as an equally large set of random normal floats.
   std::default_random_engine engine(0);
@@ -51,16 +53,16 @@ TEST(FloatUtils, FlushToZero)
   for (u32 i = 0; i <= 0x007fffffu; ++i)
   {
     u32 i_tmp = i;
-    EXPECT_EQ(+0.f, FlushToZero(std::bit_cast<float>(i_tmp)));
+    EXPECT_EQ(+0.f, Core::FlushToZero(std::bit_cast<float>(i_tmp)));
 
     i_tmp |= 0x80000000u;
-    EXPECT_EQ(-0.f, FlushToZero(std::bit_cast<float>(i_tmp)));
+    EXPECT_EQ(-0.f, Core::FlushToZero(std::bit_cast<float>(i_tmp)));
 
     i_tmp = dist(engine);
-    EXPECT_EQ(i_tmp, std::bit_cast<u32>(FlushToZero(std::bit_cast<float>(i_tmp))));
+    EXPECT_EQ(i_tmp, std::bit_cast<u32>(Core::FlushToZero(std::bit_cast<float>(i_tmp))));
 
     i_tmp |= 0x80000000u;
-    EXPECT_EQ(i_tmp, std::bit_cast<u32>(FlushToZero(std::bit_cast<float>(i_tmp))));
+    EXPECT_EQ(i_tmp, std::bit_cast<u32>(Core::FlushToZero(std::bit_cast<float>(i_tmp))));
   }
 }
 
@@ -90,7 +92,7 @@ TEST(FloatUtils, ApproximateReciprocalSquareRoot)
 
     u64 expected = expected_values[i];
 
-    u64 actual = std::bit_cast<u64>(ApproximateReciprocalSquareRoot(dvalue));
+    u64 actual = std::bit_cast<u64>(Core::ApproximateReciprocalSquareRoot(dvalue));
 
     EXPECT_EQ(expected, actual);
   }

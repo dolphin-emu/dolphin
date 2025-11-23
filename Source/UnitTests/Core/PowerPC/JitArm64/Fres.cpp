@@ -65,7 +65,7 @@ TEST(JitArm64, Fres)
   {
     const double dvalue = std::bit_cast<double>(ivalue);
 
-    const u64 expected = std::bit_cast<u64>(ApproximateReciprocal(fpscr, dvalue));
+    const u64 expected = std::bit_cast<u64>(Core::ApproximateReciprocal(fpscr, dvalue));
     const u64 actual = test.fres(ivalue);
 
     if (expected != actual)

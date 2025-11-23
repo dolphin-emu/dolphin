@@ -72,7 +72,7 @@ TEST(Jit64, Frsqrte)
   {
     const double dvalue = std::bit_cast<double>(ivalue);
 
-    u64 expected = std::bit_cast<u64>(ApproximateReciprocalSquareRoot(dvalue));
+    u64 expected = std::bit_cast<u64>(Core::ApproximateReciprocalSquareRoot(dvalue));
 
     u64 actual = routines.wrapped_frsqrte(ivalue, fpscr);
 

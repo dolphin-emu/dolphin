@@ -10,8 +10,9 @@
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/Gekko.h"
 
-template <typename T>
-constexpr T SNANConstant()
+namespace Core
+{
+template <typename T> constexpr T SNANConstant()
 {
   return std::numeric_limits<T>::signaling_NaN();
 }
@@ -185,3 +186,5 @@ inline double RoundMantissa(double value)
   u64 rounded_bits = RoundMantissaBits(bits);
   return std::bit_cast<double>(rounded_bits);
 }
+
+}  // namespace Core

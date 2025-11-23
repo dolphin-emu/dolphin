@@ -78,7 +78,7 @@ struct PairedSingle
   // operations simply works easier than creating an entire flag
   // for this specific case
   u64 PS0AsU64() const { return ps0; }
-  u64 PS1AsU64() const { return TruncateMantissaBits(ps1); }
+  u64 PS1AsU64() const { return Core::TruncateMantissaBits(ps1); }
 
   u32 PS0AsU32() const { return static_cast<u32>(ps0); }
   u32 PS1AsU32() const { return static_cast<u32>(ps1); }
@@ -203,9 +203,15 @@ struct PowerPCState
 
   void SetSR(u32 index, u32 value);
 
-  void SetCarry(u32 ca) { xer_ca = ca; }
+  void SetCarry(u32 ca)
+  {
+    xer_ca = ca;
+  }
 
-  u32 GetCarry() const { return xer_ca; }
+  u32 GetCarry() const
+  {
+    return xer_ca;
+  }
 
   UReg_XER GetXER() const
   {
@@ -223,11 +229,20 @@ struct PowerPCState
     xer_so_ov = (new_xer.SO << 1) + new_xer.OV;
   }
 
-  u32 GetXER_SO() const { return xer_so_ov >> 1; }
+  u32 GetXER_SO() const
+  {
+    return xer_so_ov >> 1;
+  }
 
-  void SetXER_SO(bool value) { xer_so_ov |= static_cast<u32>(value) << 1; }
+  void SetXER_SO(bool value)
+  {
+    xer_so_ov |= static_cast<u32>(value) << 1;
+  }
 
-  u32 GetXER_OV() const { return xer_so_ov & 1; }
+  u32 GetXER_OV() const
+  {
+    return xer_so_ov & 1;
+  }
 
   void SetXER_OV(bool value)
   {
