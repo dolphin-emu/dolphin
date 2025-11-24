@@ -179,10 +179,7 @@ public:
   AsyncWorkThreadBase() = default;
   explicit AsyncWorkThreadBase(std::string thread_name) { Reset(std::move(thread_name)); }
 
-  void Reset(std::string thread_name)
-  {
-    m_worker.Reset(std::move(thread_name), std::invoke<FuncType>);
-  }
+  void Reset(std::string thread_name) { m_worker.Reset(std::move(thread_name), {}); }
 
   void Push(FuncType func) { m_worker.Push(std::move(func)); }
 
@@ -198,7 +195,7 @@ public:
   void WaitForCompletion() { m_worker.WaitForCompletion(); }
 
 private:
-  WorkThread<FuncType, MoveOnlyFunction<void(FuncType)>> m_worker;
+  WorkThread<FuncType, InvokerOf<&std::invoke<FuncType>>> m_worker;
 };
 }  // namespace detail
 
