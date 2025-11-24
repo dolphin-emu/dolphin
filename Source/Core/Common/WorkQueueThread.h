@@ -179,10 +179,7 @@ public:
   AsyncWorkThreadBase() = default;
   explicit AsyncWorkThreadBase(std::string thread_name) { Reset(std::move(thread_name)); }
 
-  void Reset(std::string thread_name)
-  {
-    m_worker.Reset(std::move(thread_name), std::invoke<FuncType>);
-  }
+  void Reset(std::string thread_name) { m_worker.Reset(std::move(thread_name), {}); }
 
   void Push(FuncType func) { m_worker.Push(std::move(func)); }
 
@@ -198,7 +195,11 @@ public:
   void WaitForCompletion() { m_worker.WaitForCompletion(); }
 
 private:
-  WorkThread<FuncType, MoveOnlyFunction<void(FuncType)>> m_worker;
+  // Must get a pointer first to work around a NTTP struct MSVC bug.
+  // InvokerOf<&std::invoke<FuncType>> gives a nonsensical compiler error.
+  // Feel free to remove this in the future when it begins to compile.
+  static constexpr auto INVOKE_PTR = &std::invoke<FuncType>;
+  WorkThread<FuncType, InvokerOf<INVOKE_PTR>> m_worker;
 };
 }  // namespace detail
 
