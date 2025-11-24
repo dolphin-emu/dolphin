@@ -10,6 +10,7 @@
 #include <thread>
 
 #include "Common/Event.h"
+#include "Common/Functional.h"
 #include "Common/Mutex.h"
 #include "Common/SPSCQueue.h"
 #include "Common/Thread.h"
@@ -18,12 +19,10 @@ namespace Common
 {
 namespace detail
 {
-template <typename T, bool IsSingleProducer>
+template <typename T, typename FunctionType, bool IsSingleProducer>
 class WorkQueueThreadBase final
 {
 public:
-  using FunctionType = std::function<void(T)>;
-
   WorkQueueThreadBase() = default;
   WorkQueueThreadBase(std::string name, FunctionType function)
   {
@@ -100,7 +99,7 @@ public:
   }
 
 private:
-  using CommandFunction = std::function<void()>;
+  using CommandFunction = MoveOnlyFunction<void()>;
 
   // Blocking.
   void RunCommand(CommandFunction cmd)
@@ -171,11 +170,11 @@ private:
 };
 
 // A WorkQueueThread-like class that takes functions to invoke.
-template <template <typename> typename WorkThread>
+template <template <typename, typename> typename WorkThread>
 class AsyncWorkThreadBase
 {
 public:
-  using FuncType = std::function<void()>;
+  using FuncType = MoveOnlyFunction<void()>;
 
   AsyncWorkThreadBase() = default;
   explicit AsyncWorkThreadBase(std::string thread_name) { Reset(std::move(thread_name)); }
@@ -199,18 +198,18 @@ public:
   void WaitForCompletion() { m_worker.WaitForCompletion(); }
 
 private:
-  WorkThread<FuncType> m_worker;
+  WorkThread<FuncType, MoveOnlyFunction<void(FuncType)>> m_worker;
 };
 }  // namespace detail
 
 // Multiple threads may use the public interface.
-template <typename T>
-using WorkQueueThread = detail::WorkQueueThreadBase<T, false>;
+template <typename T, typename FuncType = MoveOnlyFunction<void(T)>>
+using WorkQueueThread = detail::WorkQueueThreadBase<T, FuncType, false>;
 
 // A "Single Producer" WorkQueueThread.
 // It uses no mutex but only one thread can safely manipulate the queue.
-template <typename T>
-using WorkQueueThreadSP = detail::WorkQueueThreadBase<T, true>;
+template <typename T, typename FuncType = MoveOnlyFunction<void(T)>>
+using WorkQueueThreadSP = detail::WorkQueueThreadBase<T, FuncType, true>;
 
 using AsyncWorkThread = detail::AsyncWorkThreadBase<WorkQueueThread>;
 using AsyncWorkThreadSP = detail::AsyncWorkThreadBase<WorkQueueThreadSP>;
