@@ -10,6 +10,7 @@
 #include <thread>
 
 #include "Common/Event.h"
+#include "Common/Mutex.h"
 #include "Common/SPSCQueue.h"
 #include "Common/Thread.h"
 
@@ -128,19 +129,7 @@ private:
     m_commands.Clear();
   }
 
-  auto GetLockGuard()
-  {
-    struct DummyLockGuard
-    {
-      // Silences unused variable warning.
-      ~DummyLockGuard() { void(); }
-    };
-
-    if constexpr (IsSingleProducer)
-      return DummyLockGuard{};
-    else
-      return std::lock_guard{m_mutex};
-  }
+  auto GetLockGuard() { return std::lock_guard{m_mutex}; }
 
   bool IsRunning() { return m_thread.joinable(); }
 
@@ -177,7 +166,6 @@ private:
   Common::WaitableSPSCQueue<CommandFunction> m_commands;
   Common::Event m_event;
 
-  using DummyMutex = std::type_identity<void>;
   using ProducerMutex = std::conditional_t<IsSingleProducer, DummyMutex, std::recursive_mutex>;
   ProducerMutex m_mutex;
 };
