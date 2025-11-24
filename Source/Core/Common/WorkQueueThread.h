@@ -135,7 +135,7 @@ private:
 
   void ThreadLoop(const std::string& thread_name, const FunctionType& function)
   {
-    Common::SetCurrentThreadName(thread_name.c_str());
+    SetCurrentThreadName(thread_name.c_str());
 
     while (true)
     {
@@ -162,9 +162,9 @@ private:
   }
 
   std::thread m_thread;
-  Common::WaitableSPSCQueue<T> m_items;
-  Common::WaitableSPSCQueue<CommandFunction> m_commands;
-  Common::Event m_event;
+  WaitableSPSCQueue<T> m_items;
+  WaitableSPSCQueue<CommandFunction> m_commands;
+  Event m_event;
 
   using ProducerMutex = std::conditional_t<IsSingleProducer, DummyMutex, std::recursive_mutex>;
   ProducerMutex m_mutex;
