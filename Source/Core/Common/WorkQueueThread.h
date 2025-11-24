@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <concepts>
 #include <functional>
 #include <future>
 #include <mutex>
@@ -183,9 +184,10 @@ public:
 
   void Push(FuncType func) { m_worker.Push(std::move(func)); }
 
-  auto PushBlocking(FuncType func)
+  template <std::invocable<> Func>
+  auto PushBlocking(Func&& func)
   {
-    std::packaged_task task{std::move(func)};
+    std::packaged_task task{std::forward<Func>(func)};
     m_worker.EmplaceItem([&] { task(); });
     return task.get_future().get();
   }
