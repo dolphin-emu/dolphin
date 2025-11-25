@@ -352,7 +352,7 @@ void WiimoteControllersWidget::OnBluetoothPassthroughDeviceChanged(int index)
   // "More Options..." selection
   else if (index == m_bluetooth_adapters->count() - 1)
   {
-    device_info = USBDevicePicker::Run(this, tr("Select A Bluetooth Device"));
+    device_info = USBDevicePicker::Run(this, tr("Select a Bluetooth Device"));
     needs_refresh = true;
   }
   else
