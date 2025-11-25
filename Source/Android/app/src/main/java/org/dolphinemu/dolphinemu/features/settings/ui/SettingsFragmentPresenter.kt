@@ -1014,6 +1014,22 @@ class SettingsFragmentPresenter(
             sl.add(
                 SwitchSetting(
                     context,
+                    BooleanSetting.ACHIEVEMENTS_LEADERBOARD_TRACKER_ENABLED,
+                    R.string.achievements_leaderboard_tracker_enabled,
+                    0
+                )
+            )
+            sl.add(
+                SwitchSetting(
+                    context,
+                    BooleanSetting.ACHIEVEMENTS_CHALLENGE_INDICATORS_ENABLED,
+                    R.string.achievements_challenge_indicators_enabled,
+                    0
+                )
+            )
+            sl.add(
+                SwitchSetting(
+                    context,
                     BooleanSetting.ACHIEVEMENTS_PROGRESS_ENABLED,
                     R.string.achievements_progress_enabled,
                     0

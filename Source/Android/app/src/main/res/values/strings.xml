@@ -961,6 +961,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="achievements_unofficial_enabled">Enable Unofficial Achievements</string>
     <string name="achievements_encore_enabled">Enable Encore Mode</string>
     <string name="achievements_spectator_enabled">Enable Spectator Mode</string>
+    <string name="achievements_leaderboard_tracker_enabled">Show Leaderboard Tracker</string>
+    <string name="achievements_challenge_indicators_enabled">Show Challenge Indicators</string>
     <string name="achievements_progress_enabled">Enable Progress Notifications</string>
     <string name="achievements_username">Username</string>
     <string name="achievements_password">Password</string>

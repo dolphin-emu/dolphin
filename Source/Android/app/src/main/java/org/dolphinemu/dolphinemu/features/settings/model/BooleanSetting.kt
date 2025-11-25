@@ -914,6 +914,18 @@ enum class BooleanSetting(
         "SpectatorEnabled",
         false
     ),
+    ACHIEVEMENTS_LEADERBOARD_TRACKER_ENABLED(
+        Settings.FILE_ACHIEVEMENTS,
+        Settings.SECTION_ACHIEVEMENTS,
+        "LeaderboardTrackerEnabled",
+        true
+    ),
+    ACHIEVEMENTS_CHALLENGE_INDICATORS_ENABLED(
+        Settings.FILE_ACHIEVEMENTS,
+        Settings.SECTION_ACHIEVEMENTS,
+        "ChallengeIndicatorsEnabled",
+        true
+    ),
     ACHIEVEMENTS_PROGRESS_ENABLED(
         Settings.FILE_ACHIEVEMENTS,
         Settings.SECTION_ACHIEVEMENTS,
