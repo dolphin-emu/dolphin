@@ -152,9 +152,10 @@ void Interpreter::ps_res(Interpreter& interpreter, UGeckoInstruction inst)
   const double a = ppc_state.ps[inst.FB].PS0AsDouble();
   const double b = ppc_state.ps[inst.FB].PS1AsReciprocalDouble();
 
-  // The entire process of conditionally handling b doesn't matter
-  // for ps_res, because it never reads the bottom bits of a double
-  // when doing operations on a standard value (not 0, NaN, infinity)
+  // The entire process of conditionally truncating the mantissa bits of the b register
+  // isn't needed, because ps_res never reads those bottom mantissa bits anyways when
+  // doing the operation on a standard input (e.g. not NaN nor Infinity).
+  // That is to say, the operation is 32-bit, compared to rsqrte which is 64-bit.
 
   if (a == 0.0 || b == 0.0)
   {
