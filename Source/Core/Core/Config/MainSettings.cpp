@@ -615,6 +615,27 @@ const Info<bool> MAIN_WII_SPEAK_MUTED{{System::Main, "EmulatedUSBDevices", "WiiS
 const Info<s16> MAIN_WII_SPEAK_VOLUME_MODIFIER{
     {System::Main, "EmulatedUSBDevices", "WiiSpeakVolumeModifier"}, 0};
 
+const std::array<Info<bool>, EMULATED_LOGITECH_MIC_COUNT> MAIN_EMULATE_LOGITECH_MIC{
+    Info<bool>{{System::Main, "EmulatedUSBDevices", "EmulateLogitechMic1"}, false},
+    Info<bool>{{System::Main, "EmulatedUSBDevices", "EmulateLogitechMic2"}, false},
+    Info<bool>{{System::Main, "EmulatedUSBDevices", "EmulateLogitechMic3"}, false},
+    Info<bool>{{System::Main, "EmulatedUSBDevices", "EmulateLogitechMic4"}, false}};
+const std::array<Info<std::string>, EMULATED_LOGITECH_MIC_COUNT> MAIN_LOGITECH_MIC_MICROPHONE{
+    Info<std::string>{{System::Main, "EmulatedUSBDevices", "LogitechMic1Microphone"}, ""},
+    Info<std::string>{{System::Main, "EmulatedUSBDevices", "LogitechMic2Microphone"}, ""},
+    Info<std::string>{{System::Main, "EmulatedUSBDevices", "LogitechMic3Microphone"}, ""},
+    Info<std::string>{{System::Main, "EmulatedUSBDevices", "LogitechMic4Microphone"}, ""}};
+const std::array<Info<bool>, EMULATED_LOGITECH_MIC_COUNT> MAIN_LOGITECH_MIC_MUTED{
+    Info<bool>{{System::Main, "EmulatedUSBDevices", "LogitechMic1Muted"}, false},
+    Info<bool>{{System::Main, "EmulatedUSBDevices", "LogitechMic2Muted"}, false},
+    Info<bool>{{System::Main, "EmulatedUSBDevices", "LogitechMic3Muted"}, false},
+    Info<bool>{{System::Main, "EmulatedUSBDevices", "LogitechMic4Muted"}, false}};
+const std::array<Info<s16>, EMULATED_LOGITECH_MIC_COUNT> MAIN_LOGITECH_MIC_VOLUME_MODIFIER{
+    Info<s16>{{System::Main, "EmulatedUSBDevices", "LogitechMic1VolumeModifier"}, 0},
+    Info<s16>{{System::Main, "EmulatedUSBDevices", "LogitechMic2VolumeModifier"}, 0},
+    Info<s16>{{System::Main, "EmulatedUSBDevices", "LogitechMic3VolumeModifier"}, 0},
+    Info<s16>{{System::Main, "EmulatedUSBDevices", "LogitechMic4VolumeModifier"}, 0}};
+
 // The reason we need this function is because some memory card code
 // expects to get a non-NTSC-K region even if we're emulating an NTSC-K Wii.
 DiscIO::Region ToGameCubeRegion(DiscIO::Region region)
