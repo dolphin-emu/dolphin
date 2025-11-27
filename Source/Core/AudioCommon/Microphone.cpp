@@ -1,7 +1,7 @@
 // Copyright 2025 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "Core/IOS/USB/Emulated/Microphone.h"
+#include "AudioCommon/Microphone.h"
 
 #include <algorithm>
 #include <cmath>
@@ -28,7 +28,7 @@
 #include "jni/AndroidCommon/IDCache.h"
 #endif
 
-namespace IOS::HLE::USB
+namespace AudioCommon
 {
 #ifdef HAVE_CUBEB
 Microphone::Microphone(const MicrophoneState& sampler, const std::string& worker_name)
@@ -385,4 +385,4 @@ void Microphone::Loudness::LogStats()
                samples_count, SAMPLES_NEEDED, peak_min, peak_max, amplitude, amplitude_db, rms,
                rms_db, abs_mean, abs_mean_db, crest_factor, crest_factor_db);
 }
-}  // namespace IOS::HLE::USB
+}  // namespace AudioCommon
