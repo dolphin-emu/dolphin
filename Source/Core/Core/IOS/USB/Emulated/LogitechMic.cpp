@@ -64,7 +64,7 @@ u32 LogitechMicState::GetDefaultSamplingRate() const
 
 namespace
 {
-class MicrophoneLogitech final : public Microphone
+class MicrophoneLogitech final : public AudioCommon::Microphone
 {
 public:
   explicit MicrophoneLogitech(const LogitechMicState& sampler, u8 index)

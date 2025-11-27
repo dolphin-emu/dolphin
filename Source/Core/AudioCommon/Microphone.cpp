@@ -1,7 +1,7 @@
 // Copyright 2025 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "Core/IOS/USB/Emulated/Microphone.h"
+#include "AudioCommon/Microphone.h"
 
 #include <algorithm>
 #include <cmath>
@@ -28,7 +28,7 @@
 #include "jni/AndroidCommon/IDCache.h"
 #endif
 
-namespace IOS::HLE::USB
+namespace AudioCommon
 {
 #ifdef HAVE_CUBEB
 Microphone::Microphone(const MicrophoneState& sampler, std::string worker_name)
@@ -72,7 +72,7 @@ void Microphone::StreamInit()
 {
   if (!m_worker.Execute([this] { m_cubeb_ctx = CubebUtils::GetContext(); }))
   {
-    ERROR_LOG_FMT(IOS_USB, "Failed to init microphone stream");
+    ERROR_LOG_FMT(AUDIO, "Failed to init microphone stream");
     return;
   }
 
@@ -121,7 +121,7 @@ void Microphone::StreamStart(u32 sampling_rate)
     u32 minimum_latency;
     if (cubeb_get_min_latency(m_cubeb_ctx.get(), &params, &minimum_latency) != CUBEB_OK)
     {
-      WARN_LOG_FMT(IOS_USB, "Error getting minimum latency");
+      WARN_LOG_FMT(AUDIO, "Error getting minimum latency");
       minimum_latency = 16;
     }
 
@@ -131,19 +131,19 @@ void Microphone::StreamStart(u32 sampling_rate)
                           std::max<u32>(16, minimum_latency), CubebDataCallback, StateCallback,
                           this) != CUBEB_OK)
     {
-      ERROR_LOG_FMT(IOS_USB, "Error initializing cubeb stream");
+      ERROR_LOG_FMT(AUDIO, "Error initializing cubeb stream");
       return;
     }
 
     if (cubeb_stream_start(m_cubeb_stream) != CUBEB_OK)
     {
-      ERROR_LOG_FMT(IOS_USB, "Error starting cubeb stream");
+      ERROR_LOG_FMT(AUDIO, "Error starting cubeb stream");
       return;
     }
 
     m_stream_buffer.resize(GetStreamSize());
     m_stream_wpos = 0;
-    INFO_LOG_FMT(IOS_USB, "started cubeb stream");
+    INFO_LOG_FMT(AUDIO, "started cubeb stream");
   });
 }
 
@@ -154,7 +154,7 @@ void Microphone::StreamStop()
 
   m_worker.Execute([this] {
     if (cubeb_stream_stop(m_cubeb_stream) != CUBEB_OK)
-      ERROR_LOG_FMT(IOS_USB, "Error stopping cubeb stream");
+      ERROR_LOG_FMT(AUDIO, "Error stopping cubeb stream");
     cubeb_stream_destroy(m_cubeb_stream);
     m_cubeb_stream = nullptr;
   });
@@ -375,7 +375,7 @@ void Microphone::Loudness::LogStats()
   const auto crest_factor = GetCrestFactor();
   const auto crest_factor_db = GetDecibel(crest_factor);
 
-  INFO_LOG_FMT(IOS_USB,
+  INFO_LOG_FMT(AUDIO,
                "Microphone loudness stats (sample count: {}/{}):\n"
                " - min={} max={} amplitude={} ({} dB)\n"
                " - rms={} ({} dB) \n"
@@ -384,4 +384,4 @@ void Microphone::Loudness::LogStats()
                samples_count, SAMPLES_NEEDED, peak_min, peak_max, amplitude, amplitude_db, rms,
                rms_db, abs_mean, abs_mean_db, crest_factor, crest_factor_db);
 }
-}  // namespace IOS::HLE::USB
+}  // namespace AudioCommon
