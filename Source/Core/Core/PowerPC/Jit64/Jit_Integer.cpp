@@ -1172,7 +1172,7 @@ void Jit64::subfx(UGeckoInstruction inst)
 
 void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
 {
-  RCOpArg Ra = gpr.Use(a, RCMode::Read);
+  RCOpArg Ra = gpr.UseNoImm(a, RCMode::Read);
   RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
   RegCache::Realize(Ra, Rd);
 
