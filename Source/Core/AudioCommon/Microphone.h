@@ -19,7 +19,7 @@ struct cubeb;
 struct cubeb_stream;
 #endif
 
-namespace IOS::HLE::USB
+namespace AudioCommon
 {
 class MicrophoneState
 {
@@ -124,4 +124,4 @@ private:
   CubebUtils::CoInitSyncWorker m_worker;
 #endif
 };
-}  // namespace IOS::HLE::USB
+}  // namespace AudioCommon
