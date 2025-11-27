@@ -1,6 +1,8 @@
 // Copyright 2024 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#ifdef USE_RETRO_ACHIEVEMENTS
+
 #include <array>
 #include <map>
 #include <string>
@@ -191,3 +193,5 @@ void ReadVerified(const Common::IniFile& ini, const std::string& filename,
     }
   }
 }
+
+#endif  // USE_RETRO_ACHIEVEMENTS
