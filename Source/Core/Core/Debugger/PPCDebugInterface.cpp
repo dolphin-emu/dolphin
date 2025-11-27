@@ -32,9 +32,6 @@
 void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, std::span<u8> value, const u32 address,
                       bool store_existing_value)
 {
-  if (AchievementManager::GetInstance().IsHardcoreModeActive())
-    return;
-
   if (value.empty())
     return;
 
