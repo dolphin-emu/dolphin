@@ -310,17 +310,22 @@ IPCReply ESDevice::SetUID(u32 uid, const IOCtlVRequest& request)
     return IPCReply(ret);
   }
 
-  const auto tmd = m_core.FindInstalledTMD(title_id);
+  // The IPCReply delay is calculated within FindInstalledTMD.
+  // No clue if this is close to accurate, but our default delay of 4000
+  //  isn't enough time to actually do the work and is too hard to emulate at 100% speed.
+  u64 delay_ticks = 0;
+
+  const auto tmd = m_core.FindInstalledTMD(title_id, Ticks{&delay_ticks});
   if (!tmd.IsValid())
-    return IPCReply(FS_ENOENT);
+    return IPCReply(FS_ENOENT, delay_ticks);
 
   if (!UpdateUIDAndGID(kernel, &uid_sys, tmd))
   {
     ERROR_LOG_FMT(IOS_ES, "SetUID: Failed to get UID for title {:016x}", title_id);
-    return IPCReply(ES_SHORT_READ);
+    return IPCReply(ES_SHORT_READ, delay_ticks);
   }
 
-  return IPCReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS, delay_ticks);
 }
 
 bool ESDevice::LaunchTitle(u64 title_id, HangPPC hang_ppc)
