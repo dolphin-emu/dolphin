@@ -34,6 +34,7 @@ void OnScreenDisplayPane::CreateLayout()
 
   general_layout->addWidget(m_enable_osd, 0, 0);
   general_layout->addWidget(new QLabel(tr("Font Size:")), 1, 0);
+  m_font_size->SetTitle(tr("Font Size"));
   general_layout->addWidget(m_font_size, 1, 1);
 
   // Performance
@@ -48,9 +49,7 @@ void OnScreenDisplayPane::CreateLayout()
   m_show_speed = new ConfigBool(tr("Show % Speed"), Config::GFX_SHOW_SPEED);
   m_show_graph = new ConfigBool(tr("Show Performance Graphs"), Config::GFX_SHOW_GRAPHS);
   m_speed_colors = new ConfigBool(tr("Show Speed Colors"), Config::GFX_SHOW_SPEED_COLORS);
-  auto* const perf_sample_window_label = new QLabel(tr("Performance Sample Window (ms)"));
   m_perf_sample_window = new ConfigInteger(0, 10000, Config::GFX_PERF_SAMP_WINDOW, 100);
-  m_perf_sample_window->SetTitle(perf_sample_window_label->text());
 
   performance_layout->addWidget(m_show_fps, 0, 0);
   performance_layout->addWidget(m_show_ftimes, 0, 1);
@@ -59,7 +58,8 @@ void OnScreenDisplayPane::CreateLayout()
   performance_layout->addWidget(m_show_speed, 2, 0);
   performance_layout->addWidget(m_show_graph, 2, 1);
   performance_layout->addWidget(m_speed_colors, 3, 0);
-  performance_layout->addWidget(perf_sample_window_label, 4, 0);
+  performance_layout->addWidget(new QLabel(tr("Performance Sample Window (ms):")), 4, 0);
+  m_perf_sample_window->SetTitle(tr("Performance Sample Window (ms)"));
   performance_layout->addWidget(m_perf_sample_window, 4, 1);
 
   // Movie
