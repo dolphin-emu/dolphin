@@ -124,6 +124,7 @@ public:
   void FinalizeCarryOverflow(bool oe, bool inv = false);
   void FinalizeCarry(Gen::CCFlags cond);
   void FinalizeCarry(bool ca);
+  void FlushCarry();
   void ComputeRC(preg_t preg, bool needs_test = true, bool needs_sext = true);
   void FinalizeImmediateRC(s32 value);
 
