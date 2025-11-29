@@ -86,8 +86,11 @@ bool DirectIOFile::Open(const std::string& path, AccessMode access_mode, OpenMod
   else if (access_mode == AccessMode::Write)
     desired_access = GENERIC_WRITE;
 
-  // Allow deleting and renaming through our handle.
-  desired_access |= DELETE;
+  if (access_mode != AccessMode::Read)
+  {
+    // Allow deleting and renaming through our handle.
+    desired_access |= DELETE;
+  }
 
   // All sharing is allowed to more closely match default behavior on other OSes.
   constexpr DWORD share_mode = FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE;
