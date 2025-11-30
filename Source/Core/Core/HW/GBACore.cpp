@@ -387,16 +387,18 @@ void Core::SetSIODriver()
     return;
 
   m_sio_driver.core = this;
-  m_sio_driver.init = [](GBASIODriver* driver) {
-    static_cast<SIODriver*>(driver)->core->m_link_enabled = true;
-    return true;
-  };
-  m_sio_driver.handlesMode = [](GBASIODriver* driver, GBASIOMode mode) {
-    return mode == GBA_SIO_JOYBUS;
-  };
+  m_sio_driver.init = [](GBASIODriver*) { return true; };
   m_sio_driver.deinit = [](GBASIODriver* driver) {
     static_cast<SIODriver*>(driver)->core->m_link_enabled = false;
   };
+  m_sio_driver.reset = [](GBASIODriver* driver) {
+    static_cast<SIODriver*>(driver)->core->m_link_enabled = false;
+  };
+  m_sio_driver.setMode = [](GBASIODriver* driver, GBASIOMode mode) {
+    static_cast<SIODriver*>(driver)->core->m_link_enabled = mode == GBA_SIO_JOYBUS;
+  };
+  m_sio_driver.handlesMode = [](GBASIODriver*, GBASIOMode mode) { return mode == GBA_SIO_JOYBUS; };
+  m_sio_driver.connectedDevices = [](GBASIODriver*) { return 1; };
 
   GBASIOSetDriver(&static_cast<::GBA*>(m_core->board)->sio, &m_sio_driver);
 }
