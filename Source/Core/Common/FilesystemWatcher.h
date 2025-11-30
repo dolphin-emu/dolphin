@@ -3,18 +3,16 @@
 
 #pragma once
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
 #include <string_view>
 
-namespace wtr
-{
-inline namespace watcher
+namespace wtr::inline watcher
 {
 class watch;
 }
-}  // namespace wtr
 
 namespace Common
 {
@@ -26,7 +24,9 @@ public:
   FilesystemWatcher();
   virtual ~FilesystemWatcher();
 
-  void Watch(const std::string& path);
+  using StartedCallback = std::function<void(std::string_view)>;
+
+  void Watch(const std::string& path, StartedCallback started_callback = {});
   void Unwatch(const std::string& path);
 
 private:
