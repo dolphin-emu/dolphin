@@ -183,7 +183,7 @@ PUBLIC
   enet::enet
   fmt::fmt
   MbedTLS::mbedtls
-  minizip-ng::minizip-ng
+  MINIZIP::minizip-ng
   sfml-network
 
 PRIVATE
