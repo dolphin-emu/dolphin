@@ -137,6 +137,25 @@ void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
   FinalizeCarry(inv ? CC_NC : CC_C);
 }
 
+void Jit64::FlushCarry()
+{
+  switch (js.carryFlag)
+  {
+  case CarryFlag::InPPCState:
+    break;
+  case CarryFlag::InHostCarry:
+    JitSetCAIf(CC_C);
+    UnlockFlags();
+    break;
+  case CarryFlag::InHostCarryInverted:
+    JitSetCAIf(CC_NC);
+    UnlockFlags();
+    break;
+  }
+
+  js.carryFlag = CarryFlag::InPPCState;
+}
+
 // Be careful; only set needs_test to false if we can be absolutely sure flags don't need
 // to be recalculated and haven't been clobbered. Keep in mind not all instructions set
 // sufficient flags -- for example, the flags from SHL/SHR are *not* sufficient for LT/GT
