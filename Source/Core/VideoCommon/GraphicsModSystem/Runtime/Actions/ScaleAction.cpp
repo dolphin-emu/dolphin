@@ -30,7 +30,7 @@ ScaleAction::ScaleAction(Common::Vec3 scale) : m_scale(scale)
 {
 }
 
-void ScaleAction::OnEFB(GraphicsModActionData::EFB* efb)
+void ScaleAction::BeforeEFB(GraphicsModActionData::PreEFB* efb)
 {
   if (!efb) [[unlikely]]
     return;

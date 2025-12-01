@@ -197,7 +197,12 @@ void MaterialProperty::WriteToMemory(u8*& buffer, const MaterialProperty& proper
           [&](const std::array<float, 2>& value) { write_memory(value.data(), sizeof(float) * 2); },
           [&](const std::array<float, 3>& value) { write_memory(value.data(), sizeof(float) * 3); },
           [&](const std::array<float, 4>& value) { write_memory(value.data(), sizeof(float) * 4); },
-          [&](bool value) { write_memory(&value, sizeof(bool)); }},
+
+          // Bool has the size of an int in the shader
+          [&](bool value) {
+            u32 val = static_cast<u32>(value);
+            write_memory(&val, sizeof(u32));
+          }},
       property.m_value);
 }
 
