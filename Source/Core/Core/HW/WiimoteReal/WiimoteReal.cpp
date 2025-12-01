@@ -185,14 +185,6 @@ void Wiimote::WriteReport(Report rpt)
         return;
       break;
 
-    case OutputReportID::SpeakerEnable:
-      m_speaker_enable = (rpt[2] & 0x4) != 0;
-      break;
-
-    case OutputReportID::SpeakerMute:
-      m_speaker_mute = (rpt[2] & 0x4) != 0;
-      break;
-
     default:
       break;
     }
@@ -283,8 +275,7 @@ void Wiimote::InterruptDataOutput(const u8* data, const u32 size)
       leds_rpt.leds = 0xf;
     }
   }
-  else if (rpt[1] == u8(OutputReportID::SpeakerData) &&
-           (!m_speaker_enabled_in_dolphin_config || !m_speaker_enable || m_speaker_mute))
+  else if (rpt[1] == u8(OutputReportID::SpeakerData) && !m_speaker_enabled_in_dolphin_config)
   {
     rpt.resize(3);
     // Translate undesired speaker data reports into rumble reports.
