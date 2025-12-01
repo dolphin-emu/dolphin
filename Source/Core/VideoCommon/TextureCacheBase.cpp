@@ -4,6 +4,7 @@
 #include "VideoCommon/TextureCacheBase.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstring>
 #include <memory>
@@ -37,7 +38,6 @@
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractStagingTexture.h"
-#include "VideoCommon/Assets/CustomResourceManager.h"
 #include "VideoCommon/Assets/CustomTextureData.h"
 #include "VideoCommon/Assets/TextureAssetUtils.h"
 #include "VideoCommon/BPMemory.h"
@@ -48,6 +48,7 @@
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Present.h"
+#include "VideoCommon/Resources/CustomResourceManager.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TMEM.h"
@@ -266,9 +267,9 @@ bool TextureCacheBase::DidLinkedAssetsChange(const TCacheEntry& entry)
   if (!entry.hires_texture)
     return false;
 
-  const auto [texture_data, load_time] = entry.hires_texture->LoadTexture();
+  const auto* resource = entry.hires_texture->LoadTexture();
 
-  return load_time > entry.last_load_time;
+  return resource->GetLoadTime() > entry.last_load_time;
 }
 
 RcTcacheEntry TextureCacheBase::ApplyPaletteToEntry(RcTcacheEntry& entry, const u8* palette,
@@ -994,7 +995,7 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
 // then applying anisotropic filtering is equivalent to forced filtering. Point
 // mode textures are usually some sort of 2D UI billboard which will end up
 // misaligned from the correct pixels when filtered anisotropically.
-static bool IsAnisostropicEnhancementSafe(const TexMode0& tm0)
+static bool IsAnisotropicEnhancementSafe(const TexMode0& tm0)
 {
   return !(tm0.min_filter == FilterMode::Near && tm0.mag_filter == FilterMode::Near);
 }
@@ -1028,7 +1029,7 @@ SamplerState TextureCacheBase::GetSamplerState(u32 index, float custom_tex_scale
 
   // Anisotropic filtering option.
   if (g_ActiveConfig.iMaxAnisotropy != AnisotropicFilteringMode::Default &&
-      IsAnisostropicEnhancementSafe(tm0))
+      IsAnisotropicEnhancementSafe(tm0))
   {
     state.tm0.anisotropic_filtering = Common::ToUnderlying(g_ActiveConfig.iMaxAnisotropy);
   }
@@ -1569,7 +1570,9 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     if (hires_texture)
     {
       has_arbitrary_mipmaps = hires_texture->HasArbitraryMipmaps();
-      std::tie(custom_texture_data, load_time) = hires_texture->LoadTexture();
+      const auto resource = hires_texture->LoadTexture();
+      load_time = resource->GetLoadTime();
+      custom_texture_data = resource->GetData();
       if (custom_texture_data && !VideoCommon::ValidateTextureData(
                                      hires_texture->GetId(), *custom_texture_data,
                                      texture_info.GetRawWidth(), texture_info.GetRawHeight()))
