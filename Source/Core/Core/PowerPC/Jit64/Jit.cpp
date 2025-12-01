@@ -1284,9 +1284,9 @@ BitSet8 Jit64::ComputeStaticGQRs(const PPCAnalyst::CodeBlock& cb) const
   return cb.m_gqr_used & ~cb.m_gqr_modified;
 }
 
-BitSet32 Jit64::CallerSavedRegistersInUse() const
+BitSet32 Jit64::CallerSavedRegistersInUse(BitSet32 additional_registers) const
 {
-  BitSet32 in_use = gpr.RegistersInUse() | (fpr.RegistersInUse() << 16);
+  BitSet32 in_use = gpr.RegistersInUse() | (fpr.RegistersInUse() << 16) | additional_registers;
   return in_use & ABI_ALL_CALLER_SAVED;
 }
 
