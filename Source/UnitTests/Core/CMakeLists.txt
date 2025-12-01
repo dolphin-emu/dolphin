@@ -23,6 +23,7 @@ if(_M_X86_64)
     PowerPC/DivUtilsTest.cpp
     PowerPC/Jit64Common/ConvertDoubleToSingle.cpp
     PowerPC/Jit64Common/Frsqrte.cpp
+    PowerPC/PPCAnalystTest.cpp
   )
 elseif(_M_ARM_64)
   add_dolphin_test(PowerPCTest
@@ -32,10 +33,12 @@ elseif(_M_ARM_64)
     PowerPC/JitArm64/Fres.cpp
     PowerPC/JitArm64/Frsqrte.cpp
     PowerPC/JitArm64/MovI2R.cpp
+    PowerPC/PPCAnalystTest.cpp
   )
 else()
   add_dolphin_test(PowerPCTest
     PowerPC/DivUtilsTest.cpp
+    PowerPC/PPCAnalystTest.cpp
   )
 endif()
 
