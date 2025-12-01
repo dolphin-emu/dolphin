@@ -281,3 +281,36 @@ TEST(StringUtil, CharacterEncodingConversion)
   // CP1252
   EXPECT_EQ(CP1252ToUTF8("hello \xa5"), "hello ¥");
 }
+
+TEST(StringUtil, SplitString)
+{
+  using V = std::vector<std::string>;
+  const char d = ',';
+  EXPECT_EQ(SplitString("", d), V({""}));
+  EXPECT_EQ(SplitString("a", d), V({"a"}));
+  EXPECT_EQ(SplitString("ab", d), V({"ab"}));
+  EXPECT_EQ(SplitString(",", d), V({"", ""}));
+  EXPECT_EQ(SplitString("a,", d), V({"a", ""}));
+  EXPECT_EQ(SplitString(",b", d), V({"", "b"}));
+  EXPECT_EQ(SplitString("a,b", d), V({"a", "b"}));
+  EXPECT_EQ(SplitString("ab,", d), V({"ab", ""}));
+  EXPECT_EQ(SplitString(",ab", d), V({"", "ab"}));
+  EXPECT_EQ(SplitString("ab,,", d), V({"ab", "", ""}));
+  EXPECT_EQ(SplitString(",ab,", d), V({"", "ab", ""}));
+  EXPECT_EQ(SplitString(",,ab", d), V({"", "", "ab"}));
+  EXPECT_EQ(SplitString("a,,", d), V({"a", "", ""}));
+  EXPECT_EQ(SplitString("a,b,", d), V({"a", "b", ""}));
+  EXPECT_EQ(SplitString("a,,c", d), V({"a", "", "c"}));
+  EXPECT_EQ(SplitString(",b,", d), V({"", "b", ""}));
+  EXPECT_EQ(SplitString(",b,c", d), V({"", "b", "c"}));
+  EXPECT_EQ(SplitString(",,c", d), V({"", "", "c"}));
+  EXPECT_EQ(SplitString(",,", d), V({"", "", ""}));
+  EXPECT_EQ(SplitString("abc", d), V({"abc"}));
+  EXPECT_EQ(SplitString("a,bc", d), V({"a", "bc"}));
+  EXPECT_EQ(SplitString("ab,c", d), V({"ab", "c"}));
+  EXPECT_EQ(SplitString("abc,", d), V({"abc", ""}));
+  EXPECT_EQ(SplitString(",abc", d), V({"", "abc"}));
+  EXPECT_EQ(SplitString("abc,,", d), V({"abc", "", ""}));
+  EXPECT_EQ(SplitString(",abc,", d), V({"", "abc", ""}));
+  EXPECT_EQ(SplitString(",,abc", d), V({"", "", "abc"}));
+}
