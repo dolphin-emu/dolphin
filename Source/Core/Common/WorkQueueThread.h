@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <concepts>
 #include <functional>
 #include <future>
 #include <mutex>
@@ -10,6 +11,8 @@
 #include <thread>
 
 #include "Common/Event.h"
+#include "Common/Functional.h"
+#include "Common/Mutex.h"
 #include "Common/SPSCQueue.h"
 #include "Common/Thread.h"
 
@@ -17,12 +20,10 @@ namespace Common
 {
 namespace detail
 {
-template <typename T, bool IsSingleProducer>
+template <typename T, typename FunctionType, bool IsSingleProducer>
 class WorkQueueThreadBase final
 {
 public:
-  using FunctionType = std::function<void(T)>;
-
   WorkQueueThreadBase() = default;
   WorkQueueThreadBase(std::string name, FunctionType function)
   {
@@ -99,7 +100,7 @@ public:
   }
 
 private:
-  using CommandFunction = std::function<void()>;
+  using CommandFunction = MoveOnlyFunction<void()>;
 
   // Blocking.
   void RunCommand(CommandFunction cmd)
@@ -128,25 +129,13 @@ private:
     m_commands.Clear();
   }
 
-  auto GetLockGuard()
-  {
-    struct DummyLockGuard
-    {
-      // Silences unused variable warning.
-      ~DummyLockGuard() { void(); }
-    };
-
-    if constexpr (IsSingleProducer)
-      return DummyLockGuard{};
-    else
-      return std::lock_guard{m_mutex};
-  }
+  auto GetLockGuard() { return std::lock_guard{m_mutex}; }
 
   bool IsRunning() { return m_thread.joinable(); }
 
   void ThreadLoop(const std::string& thread_name, const FunctionType& function)
   {
-    Common::SetCurrentThreadName(thread_name.c_str());
+    SetCurrentThreadName(thread_name.c_str());
 
     while (true)
     {
@@ -173,35 +162,32 @@ private:
   }
 
   std::thread m_thread;
-  Common::WaitableSPSCQueue<T> m_items;
-  Common::WaitableSPSCQueue<CommandFunction> m_commands;
-  Common::Event m_event;
+  WaitableSPSCQueue<T> m_items;
+  WaitableSPSCQueue<CommandFunction> m_commands;
+  Event m_event;
 
-  using DummyMutex = std::type_identity<void>;
   using ProducerMutex = std::conditional_t<IsSingleProducer, DummyMutex, std::recursive_mutex>;
   ProducerMutex m_mutex;
 };
 
 // A WorkQueueThread-like class that takes functions to invoke.
-template <template <typename> typename WorkThread>
+template <template <typename, typename> typename WorkThread>
 class AsyncWorkThreadBase
 {
 public:
-  using FuncType = std::function<void()>;
+  using FuncType = MoveOnlyFunction<void()>;
 
   AsyncWorkThreadBase() = default;
   explicit AsyncWorkThreadBase(std::string thread_name) { Reset(std::move(thread_name)); }
 
-  void Reset(std::string thread_name)
-  {
-    m_worker.Reset(std::move(thread_name), std::invoke<FuncType>);
-  }
+  void Reset(std::string thread_name) { m_worker.Reset(std::move(thread_name), {}); }
 
   void Push(FuncType func) { m_worker.Push(std::move(func)); }
 
-  auto PushBlocking(FuncType func)
+  template <std::invocable<> Func>
+  auto PushBlocking(Func&& func)
   {
-    std::packaged_task task{std::move(func)};
+    std::packaged_task task{std::forward<Func>(func)};
     m_worker.EmplaceItem([&] { task(); });
     return task.get_future().get();
   }
@@ -211,18 +197,22 @@ public:
   void WaitForCompletion() { m_worker.WaitForCompletion(); }
 
 private:
-  WorkThread<FuncType> m_worker;
+  // Must get a pointer first to work around a NTTP struct MSVC bug.
+  // InvokerOf<&std::invoke<FuncType>> gives a nonsensical compiler error.
+  // Feel free to remove this in the future when it begins to compile.
+  static constexpr auto INVOKE_PTR = &std::invoke<FuncType>;
+  WorkThread<FuncType, InvokerOf<INVOKE_PTR>> m_worker;
 };
 }  // namespace detail
 
 // Multiple threads may use the public interface.
-template <typename T>
-using WorkQueueThread = detail::WorkQueueThreadBase<T, false>;
+template <typename T, typename FuncType = MoveOnlyFunction<void(T)>>
+using WorkQueueThread = detail::WorkQueueThreadBase<T, FuncType, false>;
 
 // A "Single Producer" WorkQueueThread.
 // It uses no mutex but only one thread can safely manipulate the queue.
-template <typename T>
-using WorkQueueThreadSP = detail::WorkQueueThreadBase<T, true>;
+template <typename T, typename FuncType = MoveOnlyFunction<void(T)>>
+using WorkQueueThreadSP = detail::WorkQueueThreadBase<T, FuncType, true>;
 
 using AsyncWorkThread = detail::AsyncWorkThreadBase<WorkQueueThread>;
 using AsyncWorkThreadSP = detail::AsyncWorkThreadBase<WorkQueueThreadSP>;
