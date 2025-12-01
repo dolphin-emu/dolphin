@@ -53,7 +53,9 @@ static VkBufferView CreateTexelBufferView(VkBuffer buffer, VkFormat vk_format)
   return view;
 }
 
-VertexManager::VertexManager() = default;
+VertexManager::VertexManager(Core::System& system) : m_system(system)
+{
+}
 
 VertexManager::~VertexManager()
 {
@@ -204,8 +206,7 @@ void VertexManager::UploadUniforms()
 
 void VertexManager::UpdateVertexShaderConstants()
 {
-  auto& system = Core::System::GetInstance();
-  auto& vertex_shader_manager = system.GetVertexShaderManager();
+  auto& vertex_shader_manager = m_system.GetVertexShaderManager();
 
   if (!vertex_shader_manager.dirty || !ReserveConstantStorage())
     return;
@@ -222,8 +223,7 @@ void VertexManager::UpdateVertexShaderConstants()
 
 void VertexManager::UpdateGeometryShaderConstants()
 {
-  auto& system = Core::System::GetInstance();
-  auto& geometry_shader_manager = system.GetGeometryShaderManager();
+  auto& geometry_shader_manager = m_system.GetGeometryShaderManager();
 
   if (!geometry_shader_manager.dirty || !ReserveConstantStorage())
     return;
@@ -240,8 +240,7 @@ void VertexManager::UpdateGeometryShaderConstants()
 
 void VertexManager::UpdatePixelShaderConstants()
 {
-  auto& system = Core::System::GetInstance();
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  auto& pixel_shader_manager = m_system.GetPixelShaderManager();
 
   if (!ReserveConstantStorage())
     return;
@@ -275,8 +274,7 @@ void VertexManager::UpdatePixelShaderConstants()
 
 bool VertexManager::ReserveConstantStorage()
 {
-  auto& system = Core::System::GetInstance();
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  auto& pixel_shader_manager = m_system.GetPixelShaderManager();
   const u32 custom_constants_size = static_cast<u32>(pixel_shader_manager.custom_constants.size());
 
   if (m_uniform_stream_buffer->ReserveMemory(m_uniform_buffer_reserve_size + custom_constants_size,
@@ -297,8 +295,7 @@ bool VertexManager::ReserveConstantStorage()
 
 void VertexManager::UploadAllConstants()
 {
-  auto& system = Core::System::GetInstance();
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  auto& pixel_shader_manager = m_system.GetPixelShaderManager();
 
   const u32 custom_constants_size = static_cast<u32>(pixel_shader_manager.custom_constants.size());
 
@@ -321,8 +318,8 @@ void VertexManager::UploadAllConstants()
     return;
   }
 
-  auto& vertex_shader_manager = system.GetVertexShaderManager();
-  auto& geometry_shader_manager = system.GetGeometryShaderManager();
+  auto& vertex_shader_manager = m_system.GetVertexShaderManager();
+  auto& geometry_shader_manager = m_system.GetGeometryShaderManager();
 
   // Update bindings
   StateTracker::GetInstance()->SetGXUniformBuffer(

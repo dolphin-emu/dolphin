@@ -6,12 +6,17 @@
 #include "VideoBackends/Metal/MTLUtil.h"
 #include "VideoCommon/VertexManagerBase.h"
 
+namespace Core
+{
+class System;
+};
+
 namespace Metal
 {
 class VertexManager final : public VertexManagerBase
 {
 public:
-  VertexManager();
+  VertexManager(Core::System& system);
   ~VertexManager() override;
 
   void UploadUtilityUniforms(const void* uniforms, u32 uniforms_size) override;
@@ -30,5 +35,6 @@ protected:
 private:
   u32 m_vertex_offset;
   u32 m_base_vertex;
+  Core::System& m_system;
 };
 }  // namespace Metal

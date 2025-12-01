@@ -4,7 +4,13 @@
 #pragma once
 
 #include <string>
+
 #include "VideoCommon/VideoBackendBase.h"
+
+namespace Core
+{
+class System;
+}
 
 class GLContext;
 
@@ -13,8 +19,8 @@ namespace OGL
 class VideoBackend : public VideoBackendBase
 {
 public:
-  bool Initialize(const WindowSystemInfo& wsi) override;
-  void Shutdown() override;
+  bool Initialize(Core::System& system, const WindowSystemInfo& wsi) override;
+  void Shutdown(Core::System& system) override;
 
   std::string GetConfigName() const override;
   std::string GetDisplayName() const override;
