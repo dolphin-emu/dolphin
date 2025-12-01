@@ -45,9 +45,12 @@ void CopyImageRegion(const ImagePixelData& src, ImagePixelData& dst, const Rect&
 std::optional<ImagePixelData> LoadImage(const std::string& path)
 {
   File::IOFile file;
-  file.Open(path, "rb");
+  if (!file.Open(path, "rb"))
+    return std::nullopt;
+
   Common::UniqueBuffer<u8> buffer(file.GetSize());
-  file.ReadBytes(buffer.data(), file.GetSize());
+  if (!file.ReadBytes(buffer.data(), file.GetSize()))
+    return std::nullopt;
 
   ImagePixelData image;
   Common::UniqueBuffer<u8> data;
