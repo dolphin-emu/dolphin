@@ -5,6 +5,7 @@
 
 #include <array>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -180,7 +181,15 @@ struct DHCPPacket
 {
   DHCPPacket();
   DHCPPacket(const std::vector<u8>& data);
-  void AddOption(u8 fnc, const std::vector<u8>& params);
+
+  void AddOption(u8 fnc, std::span<const u8> params);
+
+  template <std::size_t N>
+  void AddOption(u8 fnc, const u8 (&data)[N])
+  {
+    AddOption(fnc, std::span(data));
+  }
+
   std::vector<u8> Build() const;
 
   DHCPBody body;
@@ -272,6 +281,7 @@ std::optional<MACAddress> StringToMacAddress(std::string_view mac_string);
 std::string BluetoothAddressToString(BluetoothAddress bdaddr);
 std::optional<BluetoothAddress> StringToBluetoothAddress(std::string_view str);
 
+std::optional<IPAddress> GetSubnetMask(const IPAddress& address);
 u16 ComputeNetworkChecksum(const void* data, u16 length, u32 initial_value = 0);
 u16 ComputeTCPNetworkChecksum(const IPAddress& from, const IPAddress& to, const void* data,
                               u16 length, u8 protocol);
