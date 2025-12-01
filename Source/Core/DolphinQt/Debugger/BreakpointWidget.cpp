@@ -597,13 +597,14 @@ void BreakpointWidget::OnItemChanged(QTableWidgetItem* item)
 
 void BreakpointWidget::AddBP(u32 addr)
 {
-  AddBP(addr, true, true, {});
+  AddBP(addr, true, true, false, {});
 }
 
-void BreakpointWidget::AddBP(u32 addr, bool break_on_hit, bool log_on_hit, const QString& condition)
+void BreakpointWidget::AddBP(u32 addr, bool break_on_hit, bool log_on_hit, bool log_call_stack,
+                             const QString& condition)
 {
   m_system.GetPowerPC().GetBreakPoints().Add(
-      addr, break_on_hit, log_on_hit,
+      addr, break_on_hit, log_on_hit, log_call_stack,
       !condition.isEmpty() ? Expression::TryParse(condition.toUtf8().constData()) : std::nullopt);
 
   emit Host::GetInstance()->PPCBreakpointsChanged();
@@ -644,7 +645,7 @@ void BreakpointWidget::EditBreakpoint(u32 address, int edit, std::optional<QStri
 }
 
 void BreakpointWidget::AddAddressMBP(u32 addr, bool on_read, bool on_write, bool do_log,
-                                     bool do_break, const QString& condition)
+                                     bool do_break, bool log_call_stack, const QString& condition)
 {
   TMemCheck check;
 
@@ -655,6 +656,7 @@ void BreakpointWidget::AddAddressMBP(u32 addr, bool on_read, bool on_write, bool
   check.is_break_on_write = on_write;
   check.log_on_hit = do_log;
   check.break_on_hit = do_break;
+  check.log_call_stack = log_call_stack;
   check.condition =
       !condition.isEmpty() ? Expression::TryParse(condition.toUtf8().constData()) : std::nullopt;
   {
@@ -666,7 +668,7 @@ void BreakpointWidget::AddAddressMBP(u32 addr, bool on_read, bool on_write, bool
 }
 
 void BreakpointWidget::AddRangedMBP(u32 from, u32 to, bool on_read, bool on_write, bool do_log,
-                                    bool do_break, const QString& condition)
+                                    bool do_break, bool log_call_stack, const QString& condition)
 {
   TMemCheck check;
 
@@ -677,6 +679,7 @@ void BreakpointWidget::AddRangedMBP(u32 from, u32 to, bool on_read, bool on_writ
   check.is_break_on_write = on_write;
   check.log_on_hit = do_log;
   check.break_on_hit = do_break;
+  check.log_call_stack = log_call_stack;
   check.condition =
       !condition.isEmpty() ? Expression::TryParse(condition.toUtf8().constData()) : std::nullopt;
   {
