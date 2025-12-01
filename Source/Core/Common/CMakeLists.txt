@@ -153,6 +153,7 @@ add_library(common
   Timer.h
   TimeUtil.cpp
   TimeUtil.h
+  TransferableSharedMutex.h
   TraversalClient.cpp
   TraversalClient.h
   TraversalProto.h
