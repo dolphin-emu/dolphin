@@ -143,8 +143,7 @@ bool IsGPUThread();
 
 bool WantsDeterminism();
 
-// SetState can't be called by the CPU thread, but can be called by any thread that isn't launched
-// by the emulator core.
+// SetState can be called from any thread.
 void SetState(Core::System& system, State state, bool report_state_change = true,
               bool override_achievement_restrictions = false);
 State GetState(Core::System& system);

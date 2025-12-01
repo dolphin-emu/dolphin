@@ -313,16 +313,12 @@ void UndeclareAsGPUThread()
 }
 
 // For the CPU Thread only.
-static void CPUSetInitialExecutionState(bool force_paused = false)
+static void CPUSetInitialExecutionState(Core::System& system, bool force_paused = false)
 {
   // The CPU starts in stepping state, and will wait until a new state is set before executing.
-  // SetState isn't safe to call from the CPU thread, so we ask the host thread to call it.
-  QueueHostJob([force_paused](Core::System& system) {
-    bool paused = SConfig::GetInstance().bBootToPause || force_paused;
-    SetState(system, paused ? State::Paused : State::Running, true, true);
-    Host_UpdateDisasmDialog();
-    Host_Message(HostMessageID::WMUserCreate);
-  });
+  const bool paused = SConfig::GetInstance().bBootToPause || force_paused;
+  SetState(system, paused ? State::Paused : State::Running, true, true);
+  Host_UpdateDisasmDialog();
 }
 
 // Create the CPU thread, which is a CPU + Video thread in Single Core mode.
@@ -371,7 +367,7 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
     if (!gdb_socket.empty() && !AchievementManager::GetInstance().IsHardcoreModeActive())
     {
       GDBStub::InitLocal(gdb_socket.data());
-      CPUSetInitialExecutionState(true);
+      CPUSetInitialExecutionState(system, true);
     }
     else
 #endif
@@ -380,11 +376,11 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
       if (gdb_port > 0 && !AchievementManager::GetInstance().IsHardcoreModeActive())
       {
         GDBStub::Init(gdb_port);
-        CPUSetInitialExecutionState(true);
+        CPUSetInitialExecutionState(system, true);
       }
       else
       {
-        CPUSetInitialExecutionState();
+        CPUSetInitialExecutionState(system);
       }
     }
   }
@@ -430,7 +426,7 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
       s_state.compare_exchange_strong(expected, State::Running);
     }
 
-    CPUSetInitialExecutionState();
+    CPUSetInitialExecutionState(system);
 
     system.GetCPU().Run();
 
