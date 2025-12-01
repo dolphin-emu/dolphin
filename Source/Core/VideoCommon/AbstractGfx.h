@@ -126,6 +126,20 @@ public:
 
   AbstractFramebuffer* GetCurrentFramebuffer() const { return m_current_framebuffer; }
 
+  struct ViewportAndScissor
+  {
+    MathUtil::Rectangle<int> scissor_rect;
+    float viewport_x;
+    float viewport_y;
+    float viewport_width;
+    float viewport_height;
+    float viewport_near_depth;
+    float viewport_far_depth;
+  };
+
+  // Stores the last viewport and scissor, the stored data is restored in 'EndUtilityDrawing'
+  void StoreViewportAndScissor(const ViewportAndScissor& viewport_and_scissor);
+
   // Sets viewport and scissor to the specified rectangle. rect is assumed to be in framebuffer
   // coordinates, i.e. lower-left origin in OpenGL.
   void SetViewportAndScissor(const MathUtil::Rectangle<int>& rect, float min_depth = 0.0f,
@@ -177,6 +191,7 @@ protected:
 
 private:
   Common::EventHook m_config_changed;
+  ViewportAndScissor m_viewport_and_scissor;
 };
 
 extern std::unique_ptr<AbstractGfx> g_gfx;
