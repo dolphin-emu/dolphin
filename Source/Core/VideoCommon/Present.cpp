@@ -95,8 +95,13 @@ static void TryToSnapToXFBSize(int& width, int& height, int xfb_width, int xfb_h
 
 Presenter::Presenter()
 {
+  auto& video_events = GetVideoEvents();
+
   m_config_changed =
-      GetVideoEvents().config_changed_event.Register([this](u32 bits) { ConfigChanged(bits); });
+      video_events.config_changed_event.Register([this](u32 bits) { ConfigChanged(bits); });
+
+  m_end_field_hook = video_events.vi_end_field_event.Register(
+      [this] { m_immediate_swap_happened_this_field.store(false, std::memory_order_relaxed); });
 }
 
 Presenter::~Presenter()
@@ -108,6 +113,8 @@ Presenter::~Presenter()
 bool Presenter::Initialize()
 {
   UpdateDrawRectangle();
+
+  m_immediate_swap_happened_this_field.store(false, std::memory_order_relaxed);
 
   if (!g_gfx->IsHeadless())
   {
@@ -214,6 +221,12 @@ void Presenter::ViSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
 
 void Presenter::ImmediateSwap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height)
 {
+  if (m_immediate_swap_happened_this_field.exchange(true, std::memory_order_relaxed) &&
+      Config::Get(Config::GFX_HACK_CAP_IMMEDIATE_XFB))
+  {
+    return;
+  }
+
   const u64 ticks = m_next_swap_estimated_ticks;
 
   FetchXFB(xfb_addr, fb_width, fb_stride, fb_height, ticks);
@@ -983,6 +996,8 @@ void Presenter::DoState(PointerWrap& p)
 
     m_next_swap_estimated_ticks = m_last_xfb_ticks;
     m_next_swap_estimated_time = Clock::now();
+
+    m_immediate_swap_happened_this_field.store(false, std::memory_order_relaxed);
 
     ImmediateSwap(m_last_xfb_addr, m_last_xfb_width, m_last_xfb_stride, m_last_xfb_height);
   }

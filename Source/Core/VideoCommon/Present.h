@@ -169,6 +169,7 @@ private:
   u32 m_last_xfb_height = MAX_XFB_HEIGHT;
 
   Common::EventHook m_config_changed;
+  Common::EventHook m_end_field_hook;
 
   // Updates state for the SmoothEarlyPresentation setting if enabled.
   // Returns the desired presentation time regardless.
@@ -181,6 +182,8 @@ private:
   // Can be used for presentation of ImmediateXFB swaps which don't have timing information.
   u64 m_next_swap_estimated_ticks = 0;
   TimePoint m_next_swap_estimated_time{Clock::now()};
+
+  std::atomic_bool m_immediate_swap_happened_this_field{};
 };
 
 }  // namespace VideoCommon
