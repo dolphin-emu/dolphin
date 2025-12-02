@@ -10,6 +10,8 @@ Dolphin includes or links code of the following third-party software projects:
    [bzip2 license](https://www.sourceware.org/git/?p=bzip2.git;a=blob;f=LICENSE;hb=HEAD) (similar to 3-clause BSD)
 - [cpp-ipc](https://github.com/mutouyun/cpp-ipc):
    [MIT](https://github.com/mutouyun/cpp-ipc/blob/master/LICENSE)
+- [Cross-Compatible-FileLock-Windows-and-Linux](https://github.com/KaganCanSit/Cross-Compatible-FileLock-Windows-and-Linux):
+   [MIT](https://github.com/KaganCanSit/Cross-Compatible-FileLock-Windows-and-Linux/blob/main/LICENSE)
 - [cubeb](https://github.com/kinetiknz/cubeb):
    [ISC](https://github.com/kinetiknz/cubeb/blob/master/LICENSE)
 - [Discord-RPC](https://github.com/discordapp/discord-rpc):
@@ -44,6 +46,8 @@ Dolphin includes or links code of the following third-party software projects:
    [University of Illinois/NCSA Open Source license](http://llvm.org/docs/DeveloperPolicy.html#license)
 - [LZO](http://www.oberhumer.com/opensource/lzo/):
    [GPLv2+](http://www.oberhumer.com/opensource/gpl.html)
+- [libzmq](https://github.com/zeromq/libzmq):
+   [MPL 2.0](https://github.com/zeromq/libzmq/blob/master/LICENSE)
 - [mGBA](http://mgba.io)
    [MPL 2.0](https://github.com/mgba-emu/mgba/blob/master/LICENSE)
 - [MiniUPnPc](http://miniupnp.free.fr/):
