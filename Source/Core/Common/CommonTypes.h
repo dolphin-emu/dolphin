@@ -12,6 +12,10 @@
 
 #ifdef _WIN32
 #include <tchar.h>
+#if defined(__MINGW32__)
+#include <windows.h>
+#include <string>
+#endif
 #else
 // For using Windows lock code
 #define TCHAR char
@@ -34,3 +38,37 @@ using DT = Clock::duration;
 using DT_us = std::chrono::duration<double, std::micro>;
 using DT_ms = std::chrono::duration<double, std::milli>;
 using DT_s = std::chrono::duration<double, std::ratio<1>>;
+#if defined(__MINGW32__)
+namespace winrt
+{
+  struct hresult
+  {
+    HRESULT value;
+    constexpr hresult(HRESULT v = 0) noexcept : value(v) {}
+    constexpr operator HRESULT() const noexcept { return value; }
+  };
+
+  struct hresult_error
+  {
+    HRESULT m_hr;
+    explicit hresult_error(HRESULT hr) : m_hr(hr) {}
+    HRESULT code() const noexcept { return m_hr; }
+
+    std::string message() const noexcept
+    {
+      return "HRESULT 0x" + std::to_string(static_cast<unsigned long>(m_hr));
+    }
+  };
+
+  inline void check_hresult(HRESULT hr) noexcept
+  {
+    if (FAILED(hr))
+      std::abort();
+  }
+
+  inline std::string to_string(const std::string& s)
+  {
+    return s;
+  }
+} // namespace winrt
+#endif

@@ -21,7 +21,7 @@
 #include <libusb.h>
 #endif
 #ifdef _WIN32
-#include <SetupAPI.h>
+#include <setupapi.h>
 #include <cfgmgr32.h>
 #include <devpkey.h>
 

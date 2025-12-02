@@ -1,0 +1,23 @@
+diff --git a/src/libipc/platform/win/shm_win.cpp b/src/libipc/platform/win/shm_win.cpp
+index b19245f..dd70abe 100755
+--- a/src/libipc/platform/win/shm_win.cpp
++++ b/src/libipc/platform/win/shm_win.cpp
+@@ -1,5 +1,5 @@
+ 
+-#include <Windows.h>
++#include <windows.h>
+ 
+ #include <string>
+ #include <utility>
+diff --git a/src/libipc/platform/win/to_tchar.h b/src/libipc/platform/win/to_tchar.h
+index 94bc83e..d344fbd 100755
+--- a/src/libipc/platform/win/to_tchar.h
++++ b/src/libipc/platform/win/to_tchar.h
+@@ -1,6 +1,6 @@
+ #pragma once
+ 
+-#include <Windows.h>
++#include <windows.h>
+ 
+ #include <type_traits>
+ #include <string>
