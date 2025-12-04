@@ -31,36 +31,8 @@ ConstantPropagationResult ConstantPropagation::EvaluateInstruction(UGeckoInstruc
 {
   switch (inst.OPCD)
   {
-  case 7:  // mulli
-    return EvaluateMulImm(inst);
-  case 8:  // subfic
-    return EvaluateSubImmCarry(inst);
-  case 12:  // addic
-  case 13:  // addic.
-    return EvaluateAddImmCarry(inst);
-  case 14:  // addi
-  case 15:  // addis
-    return EvaluateAddImm(inst);
-  case 20:  // rlwimix
-    return EvaluateRlwimix(inst);
-  case 21:  // rlwinmx
-    return EvaluateRlwinmxRlwnmx(inst, inst.SH);
-  case 23:  // rlwnmx
-    if (HasGPR(inst.RB))
-      return EvaluateRlwinmxRlwnmx(inst, GetGPR(inst.RB) & 0x1F);
-    else
-      return {};
-  case 24:  // ori
-  case 25:  // oris
-    return EvaluateBitwiseImm(inst, BitOR);
-  case 26:  // xori
-  case 27:  // xoris
-    return EvaluateBitwiseImm(inst, BitXOR);
-  case 28:  // andi
-  case 29:  // andis
-    return EvaluateBitwiseImm(inst, BitAND);
   case 31:
-    return {};
+    return EvaluateTable31(inst, flags);
   default:
     return {};
   }
