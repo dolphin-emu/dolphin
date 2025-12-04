@@ -568,7 +568,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
   u32 crf = inst.CRFD;
   bool merge_branch = CheckMergedBranch(crf);
 
-  gpr.Flush(BitSet32{a, b});
+  gpr.Flush(BitSet32{b});
 
   bool signedCompare;
   RCOpArg comparand;
