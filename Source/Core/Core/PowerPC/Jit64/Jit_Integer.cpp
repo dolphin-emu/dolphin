@@ -562,7 +562,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 {
   // USES_CR
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA;
   int b = inst.RB;
   u32 crf = inst.CRFD;
@@ -694,7 +694,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 void Jit64::boolX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA, s = inst.RS, b = inst.RB;
   bool needs_test = false;
   DEBUG_ASSERT_MSG(DYNA_REC, inst.OPCD == 31, "Invalid boolX");
