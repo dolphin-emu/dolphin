@@ -311,7 +311,7 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop,
 void Jit64::reg_imm(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   u32 d = inst.RD, a = inst.RA, s = inst.RS;
   switch (inst.OPCD)
   {
@@ -694,7 +694,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 void Jit64::boolX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITIntegerOff);
+  FALLBACK_IF(true);
   int a = inst.RA, s = inst.RS, b = inst.RB;
   bool needs_test = false;
   DEBUG_ASSERT_MSG(DYNA_REC, inst.OPCD == 31, "Invalid boolX");
