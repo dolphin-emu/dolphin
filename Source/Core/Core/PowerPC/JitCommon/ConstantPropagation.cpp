@@ -60,7 +60,7 @@ ConstantPropagationResult ConstantPropagation::EvaluateInstruction(UGeckoInstruc
   case 29:  // andis
     return EvaluateBitwiseImm(inst, BitAND);
   case 31:
-    return EvaluateTable31(inst, flags);
+    return {};
   default:
     return {};
   }
