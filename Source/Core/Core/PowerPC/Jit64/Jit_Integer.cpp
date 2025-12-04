@@ -1836,7 +1836,7 @@ void Jit64::addx(UGeckoInstruction inst)
 void Jit64::arithXex(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   bool regsource = !(inst.SUBOP10 & 64);  // addex or subfex
   bool mex = !!(inst.SUBOP10 & 32);       // addmex/subfmex or addzex/subfzex
   bool add = !!(inst.SUBOP10 & 2);        // add or sub
@@ -1909,7 +1909,7 @@ void Jit64::arithXex(UGeckoInstruction inst)
 void Jit64::rlwinmx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA;
   int s = inst.RS;
 
@@ -2011,7 +2011,7 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
 void Jit64::rlwimix(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA;
   int s = inst.RS;
 
@@ -2133,7 +2133,7 @@ void Jit64::rlwimix(UGeckoInstruction inst)
 void Jit64::rlwnmx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, s = inst.RS;
 
   const u32 mask = MakeRotationMask(inst.MB, inst.ME);
@@ -2179,7 +2179,7 @@ void Jit64::rlwnmx(UGeckoInstruction inst)
 void Jit64::negx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA;
   int d = inst.RD;
 
@@ -2201,7 +2201,7 @@ void Jit64::negx(UGeckoInstruction inst)
 void Jit64::srwx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA;
   int b = inst.RB;
   int s = inst.RS;
@@ -2258,7 +2258,7 @@ void Jit64::srwx(UGeckoInstruction inst)
 void Jit64::slwx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA;
   int b = inst.RB;
   int s = inst.RS;
@@ -2335,7 +2335,7 @@ void Jit64::srawx(UGeckoInstruction inst)
 {
   // USES_XER
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA;
   int b = inst.RB;
   int s = inst.RS;
@@ -2435,7 +2435,7 @@ void Jit64::srawx(UGeckoInstruction inst)
 void Jit64::srawix(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA;
   int s = inst.RS;
   int amount = inst.SH;
@@ -2493,7 +2493,7 @@ void Jit64::srawix(UGeckoInstruction inst)
 void Jit64::cntlzwx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA;
   int s = inst.RS;
   bool needs_test = false;
@@ -2525,7 +2525,7 @@ void Jit64::cntlzwx(UGeckoInstruction inst)
 void Jit64::twX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
 
   s32 a = inst.RA;
 
