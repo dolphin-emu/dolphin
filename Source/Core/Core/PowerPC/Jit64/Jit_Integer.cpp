@@ -1041,7 +1041,7 @@ void Jit64::boolX(UGeckoInstruction inst)
 void Jit64::extsXx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA, s = inst.RS;
   int size = inst.SUBOP10 == 922 ? 16 : 8;
 
@@ -1058,7 +1058,7 @@ void Jit64::extsXx(UGeckoInstruction inst)
 void Jit64::subfic(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA, d = inst.RD, imm = inst.SIMM_16;
 
   RCOpArg Ra = gpr.Use(a, RCMode::Read);
@@ -1104,7 +1104,7 @@ void Jit64::subfic(UGeckoInstruction inst)
 void Jit64::subfx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, d = inst.RD;
   const bool carry = !(inst.SUBOP10 & (1 << 5));
 
