@@ -563,10 +563,15 @@ void Jit64::cmpXX(UGeckoInstruction inst)
   // USES_CR
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
+
+  gpr.Flush(BitSet32::AllTrue(32), RegCache::IgnoreDiscardedRegisters::Yes);
+  fpr.Flush(BitSet32::AllTrue(32), RegCache::IgnoreDiscardedRegisters::Yes);
+  m_constant_propagation.Clear();
+
   int a = inst.RA;
   int b = inst.RB;
   u32 crf = inst.CRFD;
-  bool merge_branch = false;
+  bool merge_branch = CheckMergedBranch(crf);
 
   bool signedCompare;
   RCOpArg comparand;
