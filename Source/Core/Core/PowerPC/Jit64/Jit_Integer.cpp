@@ -1245,7 +1245,7 @@ void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
 void Jit64::mulli(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA, d = inst.RD;
   u32 imm = inst.SIMM_16;
 
@@ -1255,7 +1255,7 @@ void Jit64::mulli(UGeckoInstruction inst)
 void Jit64::mullwx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
   if (gpr.IsImm(a) || gpr.IsImm(b))
@@ -1296,7 +1296,7 @@ void Jit64::mullwx(UGeckoInstruction inst)
 void Jit64::mulhwXx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, d = inst.RD;
   bool sign = inst.SUBOP10 == 75;
 
@@ -1337,7 +1337,7 @@ void Jit64::mulhwXx(UGeckoInstruction inst)
 void Jit64::divwux(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
   if (gpr.IsImm(b))
@@ -1449,7 +1449,7 @@ void Jit64::divwux(UGeckoInstruction inst)
 void Jit64::divwx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
   if (gpr.IsImm(a))
@@ -1751,7 +1751,7 @@ void Jit64::divwx(UGeckoInstruction inst)
 void Jit64::addx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  FALLBACK_IF(true);
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, d = inst.RD;
   bool carry = !(inst.SUBOP10 & (1 << 8));
 
