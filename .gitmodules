@@ -130,3 +130,6 @@
 	path = Externals/imgui/imgui
 	url = https://github.com/ocornut/imgui.git
 	shallow = true
+[submodule "Externals/WIL"]
+	path = Externals/WIL
+	url = git@github.com:microsoft/wil.git
