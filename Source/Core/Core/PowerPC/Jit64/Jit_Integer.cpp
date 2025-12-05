@@ -574,8 +574,9 @@ void Jit64::cmpXX(UGeckoInstruction inst)
   {
   // cmp / cmpl
   case 31:
-    gpr.Flush(BitSet32{b});
     signedCompare = (inst.SUBOP10 == 0);
+    if (signedCompare)
+      gpr.Flush(BitSet32{b});
     comparand = signedCompare ? gpr.Use(b, RCMode::Read) : gpr.Bind(b, RCMode::Read);
     RegCache::Realize(comparand);
     break;
