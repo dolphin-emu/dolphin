@@ -569,26 +569,28 @@ void Jit64::cmpXX(UGeckoInstruction inst)
   bool merge_branch = CheckMergedBranch(crf);
 
   bool signedCompare;
-  RCOpArg comparand;
+  RCOpArg Rb;
+  OpArg comparand;
   switch (inst.OPCD)
   {
   // cmp / cmpl
   case 31:
     signedCompare = (inst.SUBOP10 == 0);
-    comparand = signedCompare ? gpr.Use(b, RCMode::Read) : gpr.Bind(b, RCMode::Read);
-    RegCache::Realize(comparand);
+    Rb = signedCompare ? gpr.Use(b, RCMode::Read) : gpr.Bind(b, RCMode::Read);
+    RegCache::Realize(Rb);
+    comparand = Rb;
     break;
 
   // cmpli
   case 10:
     signedCompare = false;
-    comparand = RCOpArg::Imm32((u32)inst.UIMM);
+    comparand = Imm32((u32)inst.UIMM);
     break;
 
   // cmpi
   case 11:
     signedCompare = true;
-    comparand = RCOpArg::Imm32((u32)(s32)(s16)inst.UIMM);
+    comparand = Imm32((u32)(s32)(s16)inst.UIMM);
     break;
 
   default:
@@ -613,7 +615,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 
     if (merge_branch)
     {
-      RegCache::Unlock(comparand);
+      RegCache::Unlock(Rb);
       DoMergedBranchImmediate(compareResult);
     }
 
@@ -629,7 +631,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
     if (merge_branch)
     {
       TEST(64, Ra, Ra);
-      RegCache::Unlock(comparand, Ra);
+      RegCache::Unlock(Ra, Rb);
       DoMergedBranchCondition();
     }
     return;
@@ -659,7 +661,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
     if (!signedCompare && (comparand.Imm32() & 0x80000000U) != 0)
     {
       MOV(32, R(RSCRATCH2), comparand);
-      comparand = RCOpArg::R(RSCRATCH2);
+      comparand = R(RSCRATCH2);
     }
   }
   else
@@ -667,7 +669,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
     if (signedCompare)
     {
       MOVSX(64, 32, RSCRATCH2, comparand);
-      comparand = RCOpArg::R(RSCRATCH2);
+      comparand = R(RSCRATCH2);
     }
   }
 
@@ -686,7 +688,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 
   if (merge_branch)
   {
-    RegCache::Unlock(comparand);
+    RegCache::Unlock(Rb);
     DoMergedBranchCondition();
   }
 }
