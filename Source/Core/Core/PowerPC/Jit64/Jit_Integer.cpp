@@ -568,14 +568,13 @@ void Jit64::cmpXX(UGeckoInstruction inst)
   u32 crf = inst.CRFD;
   bool merge_branch = CheckMergedBranch(crf);
 
-  gpr.Flush(BitSet32{b});
-
   bool signedCompare;
   RCOpArg comparand;
   switch (inst.OPCD)
   {
   // cmp / cmpl
   case 31:
+    gpr.Flush(BitSet32{b});
     signedCompare = (inst.SUBOP10 == 0);
     comparand = signedCompare ? gpr.Use(b, RCMode::Read) : gpr.Bind(b, RCMode::Read);
     RegCache::Realize(comparand);
