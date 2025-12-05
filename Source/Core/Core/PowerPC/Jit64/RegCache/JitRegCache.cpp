@@ -134,15 +134,7 @@ void RCOpArg::Unlock()
 
 bool RCOpArg::IsImm() const
 {
-  if (const preg_t* preg = std::get_if<preg_t>(&contents))
-  {
-    return rc->IsImm(*preg);
-  }
-  else if (std::holds_alternative<u32>(contents))
-  {
-    return true;
-  }
-  return false;
+  return Location().IsImm();
 }
 
 s32 RCOpArg::SImm32() const
