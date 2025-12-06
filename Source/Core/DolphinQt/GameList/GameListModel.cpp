@@ -219,6 +219,10 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
       return tags.join(QStringLiteral(", "));
     }
     break;
+  case Column::ApploaderDate:
+    if (role == Qt::DisplayRole || role == SORT_ROLE)
+      return QString::fromStdString(game.GetApploaderDate());
+    break;
   default:
     break;
   }
@@ -259,6 +263,8 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
     return tr("Time Played");
   case Column::Tags:
     return tr("Tags");
+  case Column::ApploaderDate:
+    return tr("Apploader Date");
   default:
     break;
   }

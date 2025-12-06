@@ -721,6 +721,7 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
       {tr("Block Size"), &Config::MAIN_GAMELIST_COLUMN_BLOCK_SIZE},
       {tr("Compression"), &Config::MAIN_GAMELIST_COLUMN_COMPRESSION},
       {tr("Time Played"), &Config::MAIN_GAMELIST_COLUMN_TIME_PLAYED},
+      {tr("Apploader Date"), &Config::MAIN_GAMELIST_COLUMN_APPLOADER_DATE},
       {tr("Tags"), &Config::MAIN_GAMELIST_COLUMN_TAGS}};
 
   QActionGroup* column_group = new QActionGroup(this);
