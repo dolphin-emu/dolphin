@@ -692,7 +692,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
     DoMergedBranchCondition();
   }
 
-  if (js.compilerPC >= 0x80000000 && js.compilerPC <= 0x801d548c && inst.OPCD == 31 &&
+  if (js.compilerPC >= 0x80000000 && js.compilerPC <= 0x800cbad0 && inst.OPCD == 31 &&
       !signedCompare && !gpr.IsImm(a) && gpr.IsImm(b) && gpr.Imm32(b) != 0 &&
       (gpr.Imm32(b) & 0x80000000U) == 0 && merge_branch)
   {
