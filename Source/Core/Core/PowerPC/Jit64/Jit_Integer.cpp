@@ -692,10 +692,11 @@ void Jit64::cmpXX(UGeckoInstruction inst)
     DoMergedBranchCondition();
   }
 
-  if (!signedCompare && !gpr.IsImm(a) && gpr.IsImm(b) && gpr.Imm32(b) != 0 &&
+  if (inst.OPCD == 31 && !signedCompare && !gpr.IsImm(a) && gpr.IsImm(b) && gpr.Imm32(b) != 0 &&
       (gpr.Imm32(b) & 0x80000000U) == 0 && merge_branch)
   {
     m_constant_propagation.ClearGPR(b);
+    NOTICE_LOG_FMT(DYNA_REC, "cmpl special case at {:#010x}", js.compilerPC);
   }
 }
 
