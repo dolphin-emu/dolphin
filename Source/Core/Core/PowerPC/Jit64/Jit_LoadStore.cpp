@@ -568,12 +568,19 @@ void Jit64::stX(UGeckoInstruction inst)
   {
     RCX64Reg Ra = gpr.Bind(a, update ? RCMode::ReadWrite : RCMode::Read);
     RCOpArg reg_value;
-    if (!gpr.IsImm(s) && WriteClobbersRegValue(accessSize, /* swap */ true))
+    if (WriteClobbersRegValue(accessSize, /* swap */ true))
     {
-      RCOpArg Rs = gpr.Use(s, RCMode::Read);
-      RegCache::Realize(Rs);
-      reg_value = RCOpArg::R(RSCRATCH2);
-      MOV(32, reg_value, Rs);
+      if (gpr.IsImm(s))
+      {
+        reg_value = RCOpArg::Imm32(gpr.Imm32(s));
+      }
+      else
+      {
+        RCOpArg Rs = gpr.Use(s, RCMode::Read);
+        RegCache::Realize(Rs);
+        reg_value = RCOpArg::R(RSCRATCH2);
+        MOV(32, reg_value, Rs);
+      }
     }
     else
     {
