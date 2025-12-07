@@ -1118,7 +1118,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       }
       else
       {
-        if (js.compilerPC == 0x80037408)
+        if (js.compilerPC == 0x80037404)
           gpr.Flush(BitSet32{28}, RegCache::IgnoreDiscardedRegisters::Yes);
 
         const JitCommon::ConstantPropagationResult constant_propagation_result =
