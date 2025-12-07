@@ -1137,9 +1137,6 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
           }
 
           CompileInstruction(op);
-
-          if (js.compilerPC == 0x800373f8)
-            gpr.Flush(BitSet32{28}, RegCache::IgnoreDiscardedRegisters::Yes);
         }
 
         m_constant_propagation.Apply(constant_propagation_result);
@@ -1216,6 +1213,9 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       }
       gpr.Flush(~op.gprInUse & (op.regsIn | op.regsOut));
       fpr.Flush(~op.fprInUse & (op.fregsIn | op.GetFregsOut()));
+
+      if (js.compilerPC == 0x800373f8)
+        gpr.Flush(BitSet32{28}, RegCache::IgnoreDiscardedRegisters::Yes);
 
       if (opinfo->flags & FL_LOADSTORE)
         ++js.numLoadStoreInst;
