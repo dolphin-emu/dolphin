@@ -973,9 +973,6 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
-    if (js.compilerPC == 0x800373f8)
-      gpr.Flush(BitSet32{28}, RegCache::IgnoreDiscardedRegisters::Yes);
-
     PPCAnalyst::CodeOp& op = m_code_buffer[i];
 
     js.compilerPC = op.address;
@@ -1121,6 +1118,9 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       }
       else
       {
+        if (js.compilerPC == 0x80037400)
+          gpr.Flush(BitSet32{28}, RegCache::IgnoreDiscardedRegisters::Yes);
+
         const JitCommon::ConstantPropagationResult constant_propagation_result =
             m_constant_propagation.EvaluateInstruction(op.inst, opinfo->flags);
 
