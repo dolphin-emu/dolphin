@@ -579,8 +579,8 @@ void Jit64::cmpXX(UGeckoInstruction inst)
     Rb = signedCompare ? gpr.Use(b, RCMode::Read) : gpr.Bind(b, RCMode::Read);
     RegCache::Realize(Rb);
     comparand = Rb;
-    if (!signedCompare && !gpr.IsImm(a) && gpr.IsImm(b) && (gpr.Imm32(b) & 0x80000000U) != 0 &&
-        merge_branch)
+    if (!signedCompare && !gpr.IsImm(a) && gpr.IsImm(b) && gpr.Imm32(b) != 0 &&
+        (gpr.Imm32(b) & 0x80000000U) == 0 && merge_branch)
     {
       m_constant_propagation.ClearGPR(b);
     }
