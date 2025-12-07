@@ -989,6 +989,9 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       js.isLastInstruction = true;
     }
 
+    if (js.compilerPC == 0x800373fc)
+      gpr.Flush(BitSet32{28}, RegCache::IgnoreDiscardedRegisters::Yes);
+
     if (i != 0)
     {
       // Gather pipe writes using a non-immediate address are discovered by profiling.
@@ -1213,9 +1216,6 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       }
       gpr.Flush(~op.gprInUse & (op.regsIn | op.regsOut));
       fpr.Flush(~op.fprInUse & (op.fregsIn | op.GetFregsOut()));
-
-      if (js.compilerPC == 0x800373f8)
-        gpr.Flush(BitSet32{28}, RegCache::IgnoreDiscardedRegisters::Yes);
 
       if (opinfo->flags & FL_LOADSTORE)
         ++js.numLoadStoreInst;
