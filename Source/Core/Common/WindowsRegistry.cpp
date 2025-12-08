@@ -46,6 +46,9 @@ bool ReadValue(std::string* value, const std::string& subkey, const std::string&
   return true;
 }
 
+template bool ReadValue(u32* value, const std::string& subkey, const std::string& name);
+template bool ReadValue(u64* value, const std::string& subkey, const std::string& name);
+
 OSVERSIONINFOW GetOSVersion()
 {
   // PEB may have faked data if the binary is launched with "compatibility mode" enabled.
