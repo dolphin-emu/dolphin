@@ -286,7 +286,9 @@
 #define HAVE_VISIBILITY 1
 
 /* Define to 1 if you have the `wcwidth' function. */
+#ifndef __MINGW32__
 #define HAVE_WCWIDTH 1
+#endif
 
 /* Define to 1 if the system has the type `_Bool'. */
 #define HAVE__BOOL 1
