@@ -40,6 +40,9 @@
 #include <objbase.h>  // guid stuff
 #include <shellapi.h>
 #include <shlwapi.h>
+#ifdef __MINGW32__
+#include <share.h>
+#endif
 #else
 #include <dirent.h>
 #include <errno.h>
