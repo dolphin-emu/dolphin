@@ -21,7 +21,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
-#ifndef _WIN32
+#ifndef _MSC_VER
 
 #ifdef __FreeBSD__
 #include <unistd.h>
@@ -109,7 +109,7 @@ CPUInfo::CPUInfo()
 
 void CPUInfo::Detect()
 {
-#ifdef _WIN32
+#ifdef _MSC_VER
   WarnIfRunningUnderEmulation();
 #endif
 
