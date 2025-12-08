@@ -163,13 +163,13 @@ bool LibusbDevice::Attach()
   return true;
 }
 
-bool LibusbDevice::AttachAndChangeInterface(const u8 interface)
+bool LibusbDevice::AttachAndChangeInterface(const u8 iface)
 {
   if (!Attach())
     return false;
 
-  if (interface != m_active_interface)
-    return ChangeInterface(interface) == LIBUSB_SUCCESS;
+  if (iface != m_active_interface)
+    return ChangeInterface(iface) == LIBUSB_SUCCESS;
 
   return true;
 }
@@ -185,11 +185,11 @@ int LibusbDevice::CancelTransfer(const u8 endpoint)
   return IPC_SUCCESS;
 }
 
-int LibusbDevice::ChangeInterface(const u8 interface)
+int LibusbDevice::ChangeInterface(const u8 iface)
 {
   INFO_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Changing interface to {}", m_vid, m_pid,
-               m_active_interface, interface);
-  m_active_interface = interface;
+               m_active_interface, iface);
+  m_active_interface = iface;
   return LIBUSB_SUCCESS;
 }
 
