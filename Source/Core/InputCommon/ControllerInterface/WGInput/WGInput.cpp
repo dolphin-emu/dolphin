@@ -728,7 +728,7 @@ static void HandleAddRemoveEvent(AddRemoveEvent evt)
   {
     ERROR_LOG_FMT(CONTROLLERINTERFACE,
                   "WGInput: Failed to CoInitialize for add/remove controller event: {}",
-                  WStringToUTF8(ex.message()));
+                  winrt::to_string(ex.message()));
     return;
   }
   Common::ScopeGuard coinit_guard([] { winrt::uninit_apartment(); });
@@ -743,8 +743,13 @@ static void HandleAddRemoveEvent(AddRemoveEvent evt)
     RemoveDevice(evt.raw_game_controller);
     break;
   default:
+#ifdef __MINGW32__
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: Invalid add/remove controller event: {}",
+                  static_cast<std::underlying_type_t<decltype(evt.type)>>(evt.type));
+#else
     ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: Invalid add/remove controller event: {}",
                   std::to_underlying(evt.type));
+#endif
   }
 }
 
