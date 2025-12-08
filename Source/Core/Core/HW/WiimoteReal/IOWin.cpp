@@ -158,7 +158,7 @@ static std::optional<std::string> GetParentDeviceDescription(const WCHAR* hid_if
   return std::nullopt;
 }
 
-void EnumerateRadios(std::invocable<EnumerationControl(HANDLE)> auto&& enumeration_callback)
+void EnumerateRadios(std::invocable<HANDLE> auto&& enumeration_callback)
 {
   constexpr BLUETOOTH_FIND_RADIO_PARAMS radio_params{
       .dwSize = sizeof(radio_params),
