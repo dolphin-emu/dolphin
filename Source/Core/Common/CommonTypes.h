@@ -12,7 +12,7 @@
 
 #ifdef _WIN32
 #include <tchar.h>
-#if defined(__MINGW32__)
+#ifdef __MINGW32__
 #include <string>
 #endif
 #else
