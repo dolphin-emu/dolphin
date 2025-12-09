@@ -125,6 +125,33 @@ static jclass s_audio_utils_class;
 static jmethodID s_audio_utils_get_sample_rate;
 static jmethodID s_audio_utils_get_frames_per_buffer;
 
+static jclass s_achievement_bucket_class;
+static jfieldID s_achievement_bucket_label;
+static jfieldID s_achievement_bucket_subset_id;
+static jfieldID s_achievement_bucket_bucket_type;
+static jfieldID s_achievement_bucket_achievements;
+static jmethodID s_achievement_bucket_constructor;
+
+static jclass s_achievement_class;
+static jfieldID s_achievement_title;
+static jfieldID s_achievement_description;
+static jfieldID s_achievement_badge_name;
+static jfieldID s_achievement_measured_progress;
+static jfieldID s_achievement_measured_percent;
+static jfieldID s_achievement_id;
+static jfieldID s_achievement_points;
+static jfieldID s_achievement_unlock_time;
+static jfieldID s_achievement_state;
+static jfieldID s_achievement_category;
+static jfieldID s_achievement_bucket;
+static jfieldID s_achievement_unlocked;
+static jfieldID s_achievement_rarity;
+static jfieldID s_achievement_rarity_hardcore;
+static jfieldID s_achievement_type;
+static jfieldID s_achievement_badge_url;
+static jfieldID s_achievement_badge_locked_url;
+static jmethodID s_achievement_constructor;
+
 namespace IDCache
 {
 JNIEnv* GetEnvForThread()
@@ -575,6 +602,131 @@ jmethodID GetAudioUtilsGetFramesPerBuffer()
   return s_audio_utils_get_frames_per_buffer;
 }
 
+jclass GetAchievementBucketClass()
+{
+  return s_achievement_bucket_class;
+}
+
+jfieldID GetAchievementBucketLabel()
+{
+    return s_achievement_bucket_label;
+}
+
+jfieldID GetAchievementBucketSubsetId()
+{
+    return s_achievement_bucket_subset_id;
+}
+
+jfieldID GetAchievementBucketBucketType()
+{
+    return s_achievement_bucket_bucket_type;
+}
+
+jfieldID GetAchievementBucketAchievements()
+{
+    return s_achievement_bucket_achievements;
+}
+
+jmethodID GetAchievementBucketConstructor()
+{
+  return s_achievement_bucket_constructor;
+}
+
+jclass GetAchievementClass()
+{
+  return s_achievement_class;
+}
+
+jfieldID GetAchievementTitle()
+{
+    return s_achievement_title;
+}
+
+jfieldID GetAchievementDescription()
+{
+    return s_achievement_description;
+}
+
+    jfieldID GetAchievementBadgeName()
+{
+    return s_achievement_badge_name;
+}
+
+    jfieldID GetAchievementMeasuredProgress()
+{
+    return s_achievement_measured_progress;
+}
+
+    jfieldID GetAchievementMeasuredPercent()
+{
+    return s_achievement_measured_percent;
+}
+
+    jfieldID GetAchievementId()
+{
+    return s_achievement_id;
+}
+
+    jfieldID GetAchievementPoints()
+{
+    return s_achievement_points;
+}
+
+    jfieldID GetAchievementUnlockTime()
+{
+    return s_achievement_unlock_time;
+}
+
+    jfieldID GetAchievementState()
+{
+    return s_achievement_state;
+}
+
+    jfieldID GetAchievementCategory()
+{
+    return s_achievement_category;
+}
+
+    jfieldID GetAchievementBucket()
+{
+    return s_achievement_bucket;
+}
+
+    jfieldID GetAchievementUnlocked()
+{
+    return s_achievement_unlocked;
+}
+
+    jfieldID GetAchievementRarity()
+{
+    return s_achievement_rarity;
+}
+
+    jfieldID GetAchievementRarityHardcore()
+{
+    return s_achievement_rarity_hardcore;
+}
+
+    jfieldID GetAchievementType()
+{
+    return s_achievement_type;
+}
+
+    jfieldID GetAchievementBadgeUrl()
+{
+    return s_achievement_badge_url;
+}
+
+    jfieldID GetAchievementBadgeLockedUrl()
+{
+    return s_achievement_badge_locked_url;
+}
+
+jmethodID GetAchievementConstructor()
+{
+  return s_achievement_constructor;
+}
+
 }  // namespace IDCache
 
 extern "C" {
@@ -816,6 +968,43 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
       env->GetStaticMethodID(audio_utils_class, "getFramesPerBuffer", "()I");
   env->DeleteLocalRef(audio_utils_class);
 
+  const jclass achievement_bucket_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/achievements/model/AchievementBucket");
+  s_achievement_bucket_class =
+      reinterpret_cast<jclass>(env->NewGlobalRef(achievement_bucket_class));
+  s_achievement_bucket_label = env->GetFieldID(IDCache::GetAchievementBucketClass(), "label", "Ljava/lang/String;");
+    s_achievement_bucket_subset_id = env->GetFieldID(IDCache::GetAchievementBucketClass(), "subsetId", "I");
+    s_achievement_bucket_bucket_type = env->GetFieldID(IDCache::GetAchievementBucketClass(), "bucketType", "I");
+    s_achievement_bucket_achievements = env->GetFieldID(IDCache::GetAchievementBucketClass(), "achievements", "[Lorg/dolphinemu/dolphinemu/features/achievements/model/Achievement;");
+    s_achievement_bucket_constructor =
+      env->GetMethodID(achievement_bucket_class, "<init>", "(I)V");
+  env->DeleteLocalRef(achievement_bucket_class);
+
+  const jclass achievement_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/achievements/model/Achievement");
+  s_achievement_class =
+      reinterpret_cast<jclass>(env->NewGlobalRef(achievement_class));
+    s_achievement_title = env->GetFieldID(IDCache::GetAchievementClass(), "title", "Ljava/lang/String;");
+    s_achievement_description = env->GetFieldID(IDCache::GetAchievementClass(), "description", "Ljava/lang/String;");
+    s_achievement_badge_name = env->GetFieldID(IDCache::GetAchievementClass(), "badgeName", "Ljava/lang/String;");
+    s_achievement_measured_progress = env->GetFieldID(IDCache::GetAchievementClass(), "measuredProgress", "Ljava/lang/String;");
+    s_achievement_measured_percent = env->GetFieldID(IDCache::GetAchievementClass(), "measuredPercent", "F");
+    s_achievement_id = env->GetFieldID(IDCache::GetAchievementClass(), "id", "I");
+    s_achievement_points = env->GetFieldID(IDCache::GetAchievementClass(), "points", "I");
+    s_achievement_unlock_time = env->GetFieldID(IDCache::GetAchievementClass(), "unlockTime", "Ljava/lang/String;");
+    s_achievement_state = env->GetFieldID(IDCache::GetAchievementClass(), "state", "I");
+    s_achievement_category = env->GetFieldID(IDCache::GetAchievementClass(), "category", "I");
+    s_achievement_bucket = env->GetFieldID(IDCache::GetAchievementClass(), "bucket", "I");
+    s_achievement_unlocked = env->GetFieldID(IDCache::GetAchievementClass(), "unlocked", "I");
+    s_achievement_rarity = env->GetFieldID(IDCache::GetAchievementClass(), "rarity", "F");
+    s_achievement_rarity_hardcore = env->GetFieldID(IDCache::GetAchievementClass(), "rarityHardcore", "F");
+    s_achievement_type = env->GetFieldID(IDCache::GetAchievementClass(), "type", "I");
+    s_achievement_badge_url = env->GetFieldID(IDCache::GetAchievementClass(), "badgeUrl", "Ljava/lang/String;");
+    s_achievement_badge_locked_url = env->GetFieldID(IDCache::GetAchievementClass(), "badgeLockedUrl", "Ljava/lang/String;");
+    s_achievement_constructor =
+      env->GetMethodID(achievement_class, "<init>","()V");
+  env->DeleteLocalRef(achievement_class);
+
   return JNI_VERSION;
 }
 
@@ -853,5 +1042,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_input_detector_class);
   env->DeleteGlobalRef(s_permission_handler_class);
   env->DeleteGlobalRef(s_audio_utils_class);
+  env->DeleteGlobalRef(s_achievement_bucket_class);
+  env->DeleteGlobalRef(s_achievement_class);
 }
 }
