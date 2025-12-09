@@ -9,6 +9,9 @@
 #include <audioclient.h>
 #include <mmdeviceapi.h>
 #include <functiondiscoverykeys_devpkey.h>
+#ifdef __MINGW32__
+#include "Common/WILShim.h"
+#endif
 #include <wil/resource.h>
 // clang-format on
 
