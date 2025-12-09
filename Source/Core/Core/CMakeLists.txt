@@ -809,6 +809,14 @@ if(MSVC)
   target_link_libraries(core PRIVATE use_pch)
 endif()
 
+if(MINGW)
+  target_link_libraries(core
+  PRIVATE
+    bthprops
+    hid
+  )
+endif()
+
 if(USE_RETRO_ACHIEVEMENTS)
   target_link_libraries(core PUBLIC rcheevos)
   target_compile_definitions(core PUBLIC -DUSE_RETRO_ACHIEVEMENTS)
