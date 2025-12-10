@@ -182,7 +182,7 @@ std::from_chars_result FromChars(std::string_view sv, std::floating_point auto& 
 
 std::string TabsToSpaces(int tab_size, std::string str);
 
-std::vector<std::string> SplitString(const std::string& str, char delim);
+std::vector<std::string> SplitString(std::string_view sv, char delim);
 
 // "C:/Windows/winhelp.exe" to "C:/Windows/", "winhelp", ".exe"
 // This requires forward slashes to be used for the path separators, even on Windows.
