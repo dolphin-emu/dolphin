@@ -143,6 +143,7 @@ void Microphone::StreamStart(u32 sampling_rate)
     }
 
     m_stream_buffer.resize(GetStreamSize());
+    m_stream_rpos = 0;
     m_stream_wpos = 0;
     INFO_LOG_FMT(IOS_USB, "started cubeb stream");
   });
@@ -178,6 +179,11 @@ long Microphone::CubebDataCallback(cubeb_stream* stream, void* user_data, const 
   return mic->DataCallback(static_cast<const SampleType*>(input_buffer), nframes);
 }
 
+void Microphone::OnOverflow()
+{
+  m_samples_avail = GetStreamSize();
+}
+
 long Microphone::DataCallback(const SampleType* input_buffer, long nframes)
 {
   std::lock_guard lock(m_ring_lock);
@@ -205,7 +211,7 @@ long Microphone::DataCallback(const SampleType* input_buffer, long nframes)
   m_samples_avail += nframes;
   if (m_samples_avail > stream_size)
   {
-    m_samples_avail = stream_size;
+    OnOverflow();
   }
 
   return nframes;
