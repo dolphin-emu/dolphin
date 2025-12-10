@@ -339,3 +339,10 @@ int wmain(int, wchar_t*[], wchar_t*[])
 
 #undef main
 #endif
+
+#ifdef __MINGW32__
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+{
+  return wmain(__argc, __wargv, nullptr);
+}
+#endif

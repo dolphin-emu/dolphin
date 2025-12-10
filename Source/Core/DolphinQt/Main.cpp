@@ -112,7 +112,9 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
 }
 
 #ifdef _WIN32
+#ifndef main
 #define main app_main
+#endif
 #endif
 
 int main(int argc, char* argv[])
@@ -298,7 +300,7 @@ int main(int argc, char* argv[])
   return retval;
 }
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
 {
   std::vector<std::string> args = Common::CommandLineToUtf8Argv(GetCommandLineW());
