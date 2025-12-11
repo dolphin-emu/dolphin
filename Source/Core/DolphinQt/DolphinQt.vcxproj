@@ -508,15 +508,18 @@
   <!--Copy Exe, Data directory and DLLs which should be located in the executable directory-->
   <ItemGroup>
     <DataSysFiles Include="$(DolphinRootDir)Data\**\Sys\**\*.*" />
-    <DataTxtFiles Include="$(DolphinRootDir)Data\license.txt" />
+    <DataTxtFiles Include="$(DolphinRootDir)\COPYING" />
+    <DataLicenseFiles Include="$(DolphinRootDir)\LICENSES\*.*" />
     <BinaryFiles Include="$(TargetPath)" />
-    <AllInputFiles Include="@(DataSysFiles);@(DataTxtFiles);@(BinaryFiles)" />
+    <AllInputFiles Include="@(DataSysFiles);@(DataTxtFiles);@(DataLicenseFiles);@(BinaryFiles)" />
   </ItemGroup>
   <Target Name="AfterBuild" Inputs="@(AllInputFiles)" Outputs="@(AllInputFiles -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')">
     <Message Text="Copying Data directory..." Importance="High" />
     <RemoveDir Directories="$(BinaryOutputDir)Sys" />
     <Copy SourceFiles="@(DataSysFiles)" DestinationFolder="$(BinaryOutputDir)%(RecursiveDir)" SkipUnchangedFiles="True" />
     <Copy SourceFiles="@(DataTxtFiles)" DestinationFolder="$(BinaryOutputDir)" SkipUnchangedFiles="True" />
+    <RemoveDir Directories="$(BinaryOutputDir)LICENSES" />
+    <Copy SourceFiles="@(DataLicenseFiles)" DestinationFolder="$(BinaryOutputDir)LICENSES" SkipUnchangedFiles="True" />
     <Message Text="Copy: @(BinaryFiles) -&gt; $(BinaryOutputDir)" Importance="High" />
     <Copy SourceFiles="@(BinaryFiles)" DestinationFolder="$(BinaryOutputDir)" />
   </Target>
