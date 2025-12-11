@@ -1,0 +1,445 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "ninja-generator",
+      "generator": "Ninja",
+      "hidden": true
+    },
+    {
+      "name": "visualstudio-generator",
+      "generator": "Visual Studio 18 2026",
+      "toolset": {
+        "value": "v145",
+        "strategy": "set"
+      },
+      "hidden": true
+    },
+
+    {
+      "name": "release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CONFIGURATION_TYPES": "Release"
+      },
+      "hidden": true
+    },
+    {
+      "name": "debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CONFIGURATION_TYPES": "Debug"
+      },
+      "hidden": true
+    },
+
+    {
+      "name": "generic",
+      "binaryDir": "${sourceDir}/build/generic",
+      "toolchainFile": "CMake/DolphinToolchain.cmake",
+      "cacheVariables": {
+        "ARCH": "generic"
+      },
+      "hidden": true
+    },
+    {
+      "name": "x64",
+      "binaryDir": "${sourceDir}/build/x64",
+      "toolchainFile": "CMake/DolphinToolchain.cmake",
+      "cacheVariables": {
+        "ARCH": "x86_64"
+      },
+      "hidden": true
+    },
+    {
+      "name": "arm64",
+      "binaryDir": "${sourceDir}/build/ARM64",
+      "toolchainFile": "CMake/DolphinToolchain.cmake",
+      "cacheVariables": {
+        "ARCH": "arm64"
+      },
+      "hidden": true
+    },
+    {
+      "name": "windows-generic",
+      "inherits": ["generic", "visualstudio-generator"],
+      "hidden": true
+    },
+    {
+      "name": "windows-x64",
+      "inherits": ["x64", "visualstudio-generator"],
+      "architecture": {
+        "value": "x64",
+        "strategy": "set"
+      },
+      "hidden": true
+    },
+    {
+      "name": "windows-arm64",
+      "inherits": ["arm64", "visualstudio-generator"],
+      "architecture": {
+        "value": "arm64",
+        "strategy": "set"
+      },
+      "hidden": true
+    },
+    {
+      "name": "unix-generic",
+      "inherits": ["generic", "ninja-generator"],
+      "hidden": true
+    },
+    {
+      "name": "unix-x64",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "inherits": ["x64", "ninja-generator"],
+      "hidden": true
+    },
+    {
+      "name": "unix-arm64",
+      "architecture": {
+        "value": "arm64",
+        "strategy": "external"
+      },
+      "inherits": ["arm64", "ninja-generator"],
+      "hidden": true
+    },
+
+    {
+      "name": "windows-release-generic",
+      "inherits": ["release", "windows-generic"],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-release-x64",
+      "inherits": ["release", "windows-x64"],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-release-arm64",
+      "inherits": ["release", "windows-arm64"],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-debug-generic",
+      "inherits": ["debug", "windows-generic"],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-debug-x64",
+      "inherits": ["debug", "windows-x64"],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-debug-arm64",
+      "inherits": ["debug", "windows-arm64"],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "unix-release-generic",
+      "inherits": ["release", "unix-generic"],
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "unix-release-x64",
+      "inherits": ["release", "unix-x64"],
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "unix-release-arm64",
+      "inherits": ["release", "unix-arm64"],
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "unix-debug-generic",
+      "inherits": ["debug", "unix-generic"],
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "unix-debug-x64",
+      "inherits": ["debug", "unix-x64"],
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "unix-debug-arm64",
+      "inherits": ["debug", "unix-arm64"],
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-build-release-generic",
+      "displayName": "Release (Generic)",
+      "configurePreset": "windows-release-generic",
+      "configuration": "Release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-build-release-x64",
+      "displayName": "Release (x64)",
+      "configurePreset": "windows-release-x64",
+      "configuration": "Release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-build-release-arm64",
+      "displayName": "Release (ARM64)",
+      "configurePreset": "windows-release-arm64",
+      "configuration": "Release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-build-debug-generic",
+      "displayName": "Debug (Generic)",
+      "configurePreset": "windows-debug-generic",
+      "configuration": "Debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-build-debug-x64",
+      "displayName": "Debug (x64)",
+      "configurePreset": "windows-debug-x64",
+      "configuration": "Debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-build-debug-arm64",
+      "displayName": "Debug (ARM64)",
+      "configurePreset": "windows-debug-arm64",
+      "configuration": "Debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "unix-build-release-generic",
+      "displayName": "Release (Generic)",
+      "configurePreset": "unix-release-generic",
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "unix-build-release-x64",
+      "displayName": "Release (x64)",
+      "configurePreset": "unix-release-x64",
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "unix-build-release-arm64",
+      "displayName": "Release (ARM64)",
+      "configurePreset": "unix-release-arm64",
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "unix-build-debug-generic",
+      "displayName": "Debug (Generic)",
+      "configurePreset": "unix-debug-generic",
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "unix-build-debug-x64",
+      "displayName": "Debug (x64)",
+      "configurePreset": "unix-debug-x64",
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "unix-build-debug-arm64",
+      "displayName": "Debug (ARM64)",
+      "configurePreset": "unix-debug-arm64",
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "windows-release-generic",
+      "displayName": "Release (Generic)",
+      "steps": [
+        { "type": "configure", "name": "windows-release-generic" },
+        { "type": "build", "name": "windows-build-release-generic" }
+      ]
+    },
+    {
+      "name": "windows-release-x64",
+      "displayName": "Release (x64)",
+      "steps": [
+        { "type": "configure", "name": "windows-release-x64" },
+        { "type": "build", "name": "windows-build-release-x64" }
+      ]
+    },
+    {
+      "name": "windows-release-arm64",
+      "displayName": "Release (ARM64)",
+      "steps": [
+        { "type": "configure", "name": "windows-release-arm64" },
+        { "type": "build", "name": "windows-build-release-arm64" }
+      ]
+    },
+    {
+      "name": "windows-debug-generic",
+      "displayName": "Debug (Generic)",
+      "steps": [
+        { "type": "configure", "name": "windows-debug-generic" },
+        { "type": "build", "name": "windows-build-debug-generic" }
+      ]
+    },
+    {
+      "name": "windows-debug-x64",
+      "displayName": "Debug (x64)",
+      "steps": [
+        { "type": "configure", "name": "windows-debug-x64" },
+        { "type": "build", "name": "windows-build-debug-x64" }
+      ]
+    },
+    {
+      "name": "windows-debug-arm64",
+      "displayName": "Debug (ARM64)",
+      "steps": [
+        { "type": "configure", "name": "windows-debug-arm64" },
+        { "type": "build", "name": "windows-build-debug-arm64" }
+      ]
+    },
+    {
+      "name": "unix-release-generic",
+      "displayName": "Release (Generic)",
+      "steps": [
+        { "type": "configure", "name": "unix-release-generic" },
+        { "type": "build", "name": "unix-build-release-generic" }
+      ]
+    },
+    {
+      "name": "unix-release-x64",
+      "displayName": "Release (x64)",
+      "steps": [
+        { "type": "configure", "name": "unix-release-x64" },
+        { "type": "build", "name": "unix-build-release-x64" }
+      ]
+    },
+    {
+      "name": "unix-release-arm64",
+      "displayName": "Release (ARM64)",
+      "steps": [
+        { "type": "configure", "name": "unix-release-arm64" },
+        { "type": "build", "name": "unix-build-release-arm64" }
+      ]
+    },
+    {
+      "name": "unix-debug-generic",
+      "displayName": "Debug (Generic)",
+      "steps": [
+        { "type": "configure", "name": "unix-debug-generic" },
+        { "type": "build", "name": "unix-build-debug-generic" }
+      ]
+    },
+    {
+      "name": "unix-debug-x64",
+      "displayName": "Debug (x64)",
+      "steps": [
+        { "type": "configure", "name": "unix-debug-x64" },
+        { "type": "build", "name": "unix-build-debug-x64" }
+      ]
+    },
+    {
+      "name": "unix-debug-arm64",
+      "displayName": "Debug (ARM64)",
+      "steps": [
+        { "type": "configure", "name": "unix-debug-arm64" },
+        { "type": "build", "name": "unix-build-debug-arm64" }
+      ]
+    }
+  ]
+}
