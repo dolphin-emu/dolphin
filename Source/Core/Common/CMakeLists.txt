@@ -387,7 +387,7 @@ elseif(WIN32)
     )
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/build_info.txt.in"
-    "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/build_info.txt"
+    "${CMAKE_BINARY_DIR}/build_info.txt"
     )
 
   target_link_libraries(common PRIVATE "-INCLUDE:enableCompatPatches")
