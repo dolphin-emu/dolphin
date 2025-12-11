@@ -146,12 +146,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   endif()
 endif()
 
-if(UNIX)
-  # Builds a relocatable binary on Linux.
-  # The Sys folder will need to be copied to the Binaries folder.
-  option(LINUX_LOCAL_DEV "Enable relocatable binary" OFF)
-endif()
-
 list(APPEND CMAKE_MODULE_PATH
   ${CMAKE_CURRENT_SOURCE_DIR}/CMake
 )
@@ -390,12 +384,6 @@ if(ENABLE_LTO)
       set(CMAKE_AR gcc-ar)
       set(CMAKE_RANLIB gcc-ranlib)
     endif()
-  endif()
-endif()
-
-if(UNIX)
-  if(LINUX_LOCAL_DEV)
-    add_definitions(-DLINUX_LOCAL_DEV)
   endif()
 endif()
 
