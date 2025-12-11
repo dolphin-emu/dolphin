@@ -848,7 +848,7 @@ add_subdirectory(Source)
 # Install shared data files
 #
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin|Windows")
-  install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/sys PATTERN)
+  install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/Sys PATTERN)
 endif()
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|OpenBSD|Darwin")
   install(FILES COPYING DESTINATION ${datadir})
