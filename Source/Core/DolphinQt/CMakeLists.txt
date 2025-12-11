@@ -574,13 +574,9 @@ if(GETTEXT_MSGFMT_EXECUTABLE)
 
   foreach(po ${LINGUAS})
     get_filename_component(lang ${po} NAME_WE)
-    if(WIN32)
-      set(mo_dir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Languages)
-      set(mo ${mo_dir}/${lang}.mo)
-    else()
-      set(mo_dir ${CMAKE_CURRENT_BINARY_DIR}/${lang})
-      set(mo ${mo_dir}/dolphin-emu.mo)
-    endif()
+
+    set(mo_dir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Languages/${lang})
+    set(mo ${mo_dir}/dolphin-emu.mo)
 
     target_sources(dolphin-emu PRIVATE ${mo})
     source_group("Localization\\\\Generated" FILES ${mo})
@@ -591,20 +587,11 @@ if(GETTEXT_MSGFMT_EXECUTABLE)
       install(FILES ${mo} DESTINATION share/locale/${lang}/LC_MESSAGES)
     endif()
 
-    if(WIN32)
-      add_custom_command(OUTPUT ${mo}
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${mo_dir}
-        COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
-        DEPENDS ${po}
-      )
-    else()
-      add_custom_command(OUTPUT ${mo}
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${mo_dir}
-        COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE} --quiet --update --backup=none ${po} ${pot_file}
-        COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
-        DEPENDS ${po}
-      )
-    endif()
+    add_custom_command(OUTPUT ${mo}
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${mo_dir}
+      COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
+      DEPENDS ${po}
+    )
   endforeach()
 endif()
 
