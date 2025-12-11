@@ -173,20 +173,11 @@ if(CMAKE_SYSROOT)
   set(ENV{PKG_CONFIG_SYSROOT_DIR} "${CMAKE_SYSROOT}")
 endif()
 
-# Set where the binary files will be built.  The program will not execute from
-# here.  You must run "make install" to install these to the proper location
-# as defined above.
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
-
-if (WIN32)
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Binary)
-
-  if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
-    string(APPEND CMAKE_RUNTIME_OUTPUT_DIRECTORY /x64)
-  elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
-    string(APPEND CMAKE_RUNTIME_OUTPUT_DIRECTORY /ARM64)
-  endif()
-endif()
+# Output directory for the Dolphin binary
+# We need to use a generator expression here to ensure that multi-config generators
+# (like Visual Studio) put the binaries in the right place.
+# See https://cmake.org/cmake/help/v4.2/prop_tgt/RUNTIME_OUTPUT_DIRECTORY.html
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/Binaries>)
 
 # Output directory for PDB files. PDBs are only generated on Windows with MSVC.
 # We set a common directory for all PDBs to avoid littering the Binaries/ directory.
