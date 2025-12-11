@@ -522,6 +522,13 @@ if(WIN32)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf.win" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf"
   )
 
+  if (ENABLE_AUTOUPDATE)
+    # Copy build_info.txt
+    add_custom_command(TARGET dolphin-emu POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_BINARY_DIR}/build_info.txt" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/build_info.txt"
+    )
+  endif()
+
   # Delegate to Qt's official deployment binary on Windows to copy over the necessary Qt-specific libraries, etc.
   get_target_property(MOC_EXECUTABLE_LOCATION Qt6::moc IMPORTED_LOCATION)
   get_filename_component(QT_BINARY_DIRECTORY "${MOC_EXECUTABLE_LOCATION}" DIRECTORY)
