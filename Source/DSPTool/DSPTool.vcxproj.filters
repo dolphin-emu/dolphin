@@ -6,20 +6,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Testdata\dsp_test.bin">
-      <Filter>TestData</Filter>
-    </None>
-    <None Include="Testdata\dsp_test.S">
-      <Filter>TestData</Filter>
-    </None>
-    <None Include="Testdata\hermes.bin">
-      <Filter>TestData</Filter>
-    </None>
-    <None Include="Testdata\hermes.s">
-      <Filter>TestData</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="DSPTool.cpp" />
     <ClCompile Include="StubHost.cpp" />
   </ItemGroup>

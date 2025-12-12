@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup Label="Configuration">
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <PreferredToolArchitecture Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)'=='x64'">x64</PreferredToolArchitecture>
     <PreferredToolArchitecture Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)'=='ARM64'">ARM64</PreferredToolArchitecture>
