@@ -1094,7 +1094,7 @@ void GekkoDisassembler::ps(u32 inst)
 
   case 23:
     m_opcode = "ps_sel";
-    m_operands = fmt::format("p{}>=0?p{}:p{}", FD, FA, FC);
+    m_operands = fmt::format("p{}, p{}>=0?p{}:p{}", FD, FA, FC, FB);
     return;
 
   case 24:
