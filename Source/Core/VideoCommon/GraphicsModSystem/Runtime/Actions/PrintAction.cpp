@@ -10,7 +10,7 @@ void PrintAction::OnDrawStarted(GraphicsModActionData::DrawStarted*)
   INFO_LOG_FMT(VIDEO, "OnDrawStarted Called");
 }
 
-void PrintAction::OnEFB(GraphicsModActionData::EFB* efb)
+void PrintAction::BeforeEFB(GraphicsModActionData::PreEFB* efb)
 {
   if (!efb) [[unlikely]]
     return;
