@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/ConfigManager.h"
 #include "VideoCommon/XFMemory.h"
 
 namespace File
@@ -71,6 +72,7 @@ public:
   u8* GetTexMem() { return m_TexMem.data(); }
   u32 GetRamSizeReal() { return m_ram_size_real; }
   u32 GetExRamSizeReal() { return m_exram_size_real; }
+  const std::string& GetGameId() const { return m_game_id; }
 
   void AddFrame(const FifoFrameInfo& frameInfo);
   const FifoFrameInfo& GetFrame(u32 frame) const { return m_Frames[frame]; }
@@ -101,6 +103,8 @@ private:
   std::array<u8, TEX_MEM_SIZE> m_TexMem{};
   u32 m_ram_size_real = 0;
   u32 m_exram_size_real = 0;
+
+  std::string m_game_id = std::string{DEFAULT_GAME_ID};
 
   u32 m_Flags = 0;
   u32 m_Version = 0;
