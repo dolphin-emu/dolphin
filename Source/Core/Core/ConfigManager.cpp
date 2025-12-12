@@ -435,7 +435,16 @@ struct SetGameMetadata
 
     *region = DiscIO::Region::NTSC_U;
     system.SetIsWii(dff_file->GetIsWii());
-    Host_TitleChanged();
+
+    const std::string& game_id = dff_file->GetGameId();
+    if (game_id == DEFAULT_GAME_ID)
+    {
+      Host_TitleChanged();
+    }
+    else
+    {
+      config->SetRunningGameMetadata(game_id);
+    }
 
     return true;
   }
