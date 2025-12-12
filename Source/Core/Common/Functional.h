@@ -45,7 +45,13 @@ private:
   struct Func : FuncBase
   {
     explicit Func(F&& f) : func{std::forward<F>(f)} {}
-    result_type Invoke(Args... args) override { return func(std::forward<Args>(args)...); }
+    result_type Invoke(Args... args) override
+    {
+      if constexpr (std::is_void_v<result_type>)
+        func(std::forward<Args>(args)...);
+      else
+        return func(std::forward<Args>(args)...);
+    }
     std::decay_t<F> func;
   };
 
