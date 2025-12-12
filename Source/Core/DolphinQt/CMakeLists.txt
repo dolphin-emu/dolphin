@@ -525,7 +525,20 @@ if(WIN32)
   # Delegate to Qt's official deployment binary on Windows to copy over the necessary Qt-specific libraries, etc.
   get_target_property(MOC_EXECUTABLE_LOCATION Qt6::moc IMPORTED_LOCATION)
   get_filename_component(QT_BINARY_DIRECTORY "${MOC_EXECUTABLE_LOCATION}" DIRECTORY)
-  find_program(WINDEPLOYQT_EXE windeployqt HINTS "${QT_BINARY_DIRECTORY}")
+
+  if(MSVC)
+    find_program(WINDEPLOYQT_EXE windeployqt HINTS "${QT_BINARY_DIRECTORY}")
+  endif()
+
+  if(MINGW)
+    find_program(WINDEPLOYQT_EXE
+    NAMES windeployqt6 windeployqt6.exe
+    HINTS
+      "${QT_BINARY_DIRECTORY}"
+      "C:/msys64/mingw64/bin"
+      "$ENV{Qt6_DIR}/bin"
+  )
+  endif()
 
   # Note: We set the PATH for the duration of this command so that the
   #       deployment application is able to locate the Qt libraries to copy.

@@ -1,6 +1,6 @@
 #include "Common/WindowsRegistry.h"
 
-#include <Windows.h>
+#include <windows.h>
 #include <string>
 #include <type_traits>
 #include "Common/StringUtil.h"
@@ -45,6 +45,9 @@ bool ReadValue(std::string* value, const std::string& subkey, const std::string&
   TruncateToCString(value);
   return true;
 }
+
+template bool ReadValue(u32* value, const std::string& subkey, const std::string& name);
+template bool ReadValue(u64* value, const std::string& subkey, const std::string& name);
 
 OSVERSIONINFOW GetOSVersion()
 {

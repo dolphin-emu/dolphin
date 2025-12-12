@@ -6,9 +6,12 @@
 #ifdef _WIN32
 
 // clang-format off
-#include <Windows.h>
+#include <windows.h>
 #include <mmreg.h>
 #include <objbase.h>
+#ifdef __MINGW32__
+#include "Common/WILShim.h"
+#endif
 #include <wil/resource.h>
 // clang-format on
 
