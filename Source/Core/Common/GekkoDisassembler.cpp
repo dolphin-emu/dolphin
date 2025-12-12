@@ -493,7 +493,7 @@ void GekkoDisassembler::trapi(u32 in, unsigned char dmode)
 
   if (cnd != nullptr)
   {
-    m_opcode = fmt::format("t{}{}", dmode ? 'd' : 'w', cnd);
+    m_opcode = fmt::format("t{}{}i", dmode ? 'd' : 'w', cnd);
   }
   else
   {
