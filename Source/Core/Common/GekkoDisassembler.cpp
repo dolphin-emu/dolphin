@@ -918,16 +918,6 @@ void GekkoDisassembler::mtb(u32 in)
   }
 }
 
-void GekkoDisassembler::sradi(u32 in)
-{
-  int s = (int)PPCGETD(in);
-  int a = (int)PPCGETA(in);
-  int bsh = (int)(((in & 2) << 4) + PPCGETB(in));
-
-  m_opcode = fmt::format("sradi{}", (in & 1) ? "." : "");
-  m_operands = fmt::format("{}, {}, {}", regnames[a], regnames[s], bsh);
-}
-
 void GekkoDisassembler::ldst(u32 in, std::string_view name, char reg)
 {
   int s = (int)PPCGETD(in);
@@ -1443,30 +1433,6 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
     ori(in, "andis.");
     break;
 
-  case 30:
-    switch ((in >> 2) & 0x7)
-    {
-    case 0:
-      rld(in, "icl", 0);  // rldicl
-      break;
-    case 1:
-      rld(in, "icr", 0);  // rldicr
-      break;
-    case 2:
-      rld(in, "ic", 0);  // rldic
-      break;
-    case 3:
-      rld(in, "imi", 0);  // rldimi
-      break;
-    case 4:
-      rld(in, in & 2 ? "cl" : "cr", 1);  // rldcl, rldcr
-      break;
-    default:
-      ill(in);
-      break;
-    }
-    break;
-
   case 31:
     switch (PPCGETIDX2(in))
     {
@@ -1811,10 +1777,6 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
 
     case 412:
       dab(in, "orc", 7, 1, 0, -1);
-      break;
-
-    case 413:
-      sradi(in);  // sradi
       break;
 
     case 434:
@@ -2289,18 +2251,6 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
         {
           ill(in);
         }
-        break;
-
-      case 814:
-        fdabc(in, "fctid", 9);
-        break;
-
-      case 815:
-        fdabc(in, "fctidz", 9);
-        break;
-
-      case 846:
-        fdabc(in, "fcfid", 9);
         break;
 
       default:
