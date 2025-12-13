@@ -741,7 +741,8 @@ void EmuCodeBlock::JitClearCA()
 // Abstract between AVX and SSE: automatically handle 3-operand instructions
 void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
                           void (XEmitter::*sseOp)(X64Reg, const OpArg&), X64Reg regOp,
-                          const OpArg& arg1, const OpArg& arg2, bool packed, bool reversible)
+                          const OpArg& arg1, const OpArg& arg2, bool packed, bool reversible,
+                          X64Reg scratch)
 {
   if (arg1.IsSimpleReg(regOp))
   {
@@ -778,19 +779,19 @@ void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
   else
   {
     // The ugly case: Not reversible, and we have regOp == arg2 without AVX or with arg1 == memory
-    if (!arg1.IsSimpleReg(XMM0))
-      MOVAPD(XMM0, arg1);
+    if (!arg1.IsSimpleReg(scratch))
+      MOVAPD(scratch, arg1);
     if (cpu_info.bAVX)
     {
-      (this->*avxOp)(regOp, XMM0, arg2);
+      (this->*avxOp)(regOp, scratch, arg2);
     }
     else
     {
-      (this->*sseOp)(XMM0, arg2);
+      (this->*sseOp)(scratch, arg2);
       if (packed)
-        MOVAPD(regOp, R(XMM0));
+        MOVAPD(regOp, R(scratch));
       else
-        MOVSD(regOp, R(XMM0));
+        MOVSD(regOp, R(scratch));
     }
   }
 }
@@ -798,7 +799,7 @@ void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
 // Abstract between AVX and SSE: automatically handle 3-operand instructions
 void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&, u8),
                           void (XEmitter::*sseOp)(X64Reg, const OpArg&, u8), X64Reg regOp,
-                          const OpArg& arg1, const OpArg& arg2, u8 imm)
+                          const OpArg& arg1, const OpArg& arg2, u8 imm, X64Reg scratch)
 {
   if (arg1.IsSimpleReg(regOp))
   {
@@ -816,18 +817,37 @@ void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&, 
   else
   {
     // The ugly case: regOp == arg2 without AVX, or with arg1 == memory
-    if (!arg1.IsSimpleReg(XMM0))
-      MOVAPD(XMM0, arg1);
+    if (!arg1.IsSimpleReg(scratch))
+      MOVAPD(scratch, arg1);
     if (cpu_info.bAVX)
     {
-      (this->*avxOp)(regOp, XMM0, arg2, imm);
+      (this->*avxOp)(regOp, scratch, arg2, imm);
     }
     else
     {
-      (this->*sseOp)(XMM0, arg2, imm);
-      if (regOp != XMM0)
-        MOVAPD(regOp, R(XMM0));
+      (this->*sseOp)(scratch, arg2, imm);
+      if (regOp != scratch)
+        MOVAPD(regOp, R(scratch));
     }
+  }
+}
+
+// Abstract between AVX and SSE: automatically handle 3-operand instructions
+void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, u8),
+                          void (XEmitter::*sseOp)(X64Reg, u8), X64Reg regOp1, X64Reg regOp2, u8 imm)
+{
+  if (regOp1 == regOp2)
+  {
+    (this->*sseOp)(regOp1, imm);
+  }
+  else if (cpu_info.bAVX)
+  {
+    (this->*avxOp)(regOp1, regOp2, imm);
+  }
+  else
+  {
+    MOVAPD(regOp1, R(regOp2));
+    (this->*sseOp)(regOp1, imm);
   }
 }
 
@@ -842,8 +862,9 @@ void EmuCodeBlock::Force25BitPrecision(X64Reg output, const OpArg& input, X64Reg
 {
   if (m_jit.jo.accurateSinglePrecision)
   {
+    DEBUG_ASSERT(output != tmp);
     // mantissa = (mantissa & ~0xFFFFFFF) + ((mantissa & (1ULL << 27)) << 1);
-    if (input.IsSimpleReg() && cpu_info.bAVX)
+    if (input.IsSimpleReg() && !input.IsSimpleReg(tmp) && cpu_info.bAVX)
     {
       VPAND(tmp, input.GetSimpleReg(), MConst(psRoundBit));
       VPAND(output, input.GetSimpleReg(), MConst(psMantissaTruncate));
