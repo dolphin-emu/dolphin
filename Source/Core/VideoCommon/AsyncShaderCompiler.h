@@ -49,6 +49,9 @@ public:
   bool HasPendingWork();
   bool HasCompletedWork();
 
+  // Clears both pending and completed work
+  void ClearAllWork();
+
   // Calls progress_callback periodically, with completed_items, and total_items.
   // Returns false if interrupted.
   bool WaitUntilCompletion(const std::function<void(size_t, size_t)>& progress_callback);
