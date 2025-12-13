@@ -447,14 +447,14 @@ bool DXContext::CreateCommandLists()
   for (u32 i = 0; i < NUM_COMMAND_LISTS; i++)
   {
     CommandListResources& res = m_command_lists[i];
-    HRESULT hr = m_device->CreateCommandAllocator(
-        D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(res.command_allocator.GetAddressOf()));
+    HRESULT hr = m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                                  IID_PPV_ARGS(&res.command_allocator));
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create command allocator: {}", DX12HRWrap(hr));
     if (FAILED(hr))
       return false;
 
     hr = m_device->CreateCommandList(1, D3D12_COMMAND_LIST_TYPE_DIRECT, res.command_allocator.Get(),
-                                     nullptr, IID_PPV_ARGS(res.command_list.GetAddressOf()));
+                                     nullptr, IID_PPV_ARGS(&res.command_list));
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create command list: {}", DX12HRWrap(hr));
     if (FAILED(hr))
     {

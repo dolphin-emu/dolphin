@@ -6,6 +6,7 @@
 #ifdef _WIN32
 
 // clang-format off
+#include <initguid.h>
 #include <Audioclient.h>
 #include <mmdeviceapi.h>
 #include <functiondiscoverykeys_devpkey.h>
@@ -91,13 +92,13 @@ static void ForEachNamedDevice(const std::function<bool(ComPtr<IMMDevice>, std::
   ComPtr<IMMDeviceEnumerator> enumerator;
 
   result = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
-                            IID_PPV_ARGS(enumerator.GetAddressOf()));
+                            IID_PPV_ARGS(&enumerator));
 
   if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
     return;
 
   ComPtr<IMMDeviceCollection> devices;
-  result = enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, devices.GetAddressOf());
+  result = enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices);
 
   if (!HandleWinAPI("Failed to get available devices", result))
     return;
@@ -108,13 +109,13 @@ static void ForEachNamedDevice(const std::function<bool(ComPtr<IMMDevice>, std::
   for (u32 i = 0; i < count; i++)
   {
     ComPtr<IMMDevice> device;
-    devices->Item(i, device.GetAddressOf());
+    devices->Item(i, &device);
     if (!HandleWinAPI("Failed to get device " + std::to_string(i), result))
       continue;
 
     ComPtr<IPropertyStore> device_properties;
 
-    result = device->OpenPropertyStore(STGM_READ, device_properties.GetAddressOf());
+    result = device->OpenPropertyStore(STGM_READ, &device_properties);
 
     if (!HandleWinAPI("Failed to initialize IPropertyStore", result))
       continue;
@@ -158,9 +159,8 @@ ComPtr<IMMDevice> WASAPIStream::GetDeviceByName(std::string_view name)
 bool WASAPIStream::Init()
 {
   ASSERT(m_enumerator == nullptr);
-  HRESULT const result =
-      CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
-                       IID_PPV_ARGS(m_enumerator.GetAddressOf()));
+  HRESULT const result = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr,
+                                          CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_enumerator));
 
   if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
     return false;
@@ -178,7 +178,7 @@ bool WASAPIStream::SetRunning(bool running)
 
     if (Config::Get(Config::MAIN_WASAPI_DEVICE) == "default")
     {
-      result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, device.GetAddressOf());
+      result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
     }
     else
     {
@@ -189,7 +189,7 @@ bool WASAPIStream::SetRunning(bool running)
       {
         ERROR_LOG_FMT(AUDIO, "Can't find device '{}', falling back to default",
                       Config::Get(Config::MAIN_WASAPI_DEVICE));
-        result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, device.GetAddressOf());
+        result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
       }
     }
 
@@ -199,7 +199,7 @@ bool WASAPIStream::SetRunning(bool running)
     // Show a friendly name in the log
     ComPtr<IPropertyStore> device_properties;
 
-    result = device->OpenPropertyStore(STGM_READ, device_properties.GetAddressOf());
+    result = device->OpenPropertyStore(STGM_READ, &device_properties);
 
     if (!HandleWinAPI("Failed to initialize IPropertyStore", result))
       return false;
@@ -212,8 +212,7 @@ bool WASAPIStream::SetRunning(bool running)
     ComPtr<IAudioClient> audio_client;
 
     // Get IAudioDevice
-    result = device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
-                              reinterpret_cast<LPVOID*>(audio_client.GetAddressOf()));
+    result = device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr, &audio_client);
 
     if (!HandleWinAPI("Failed to activate IAudioClient", result))
       return false;
@@ -249,8 +248,8 @@ bool WASAPIStream::SetRunning(bool running)
         return false;
 
       // Get IAudioDevice
-      result = device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
-                                reinterpret_cast<LPVOID*>(audio_client.ReleaseAndGetAddressOf()));
+      result =
+          device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr, &audio_client);
 
       if (!HandleWinAPI("Failed to reactivate IAudioClient", result))
         return false;
@@ -276,7 +275,7 @@ bool WASAPIStream::SetRunning(bool running)
 
     ComPtr<IAudioRenderClient> audio_renderer;
 
-    result = audio_client->GetService(IID_PPV_ARGS(audio_renderer.GetAddressOf()));
+    result = audio_client->GetService(IID_PPV_ARGS(&audio_renderer));
 
     if (!HandleWinAPI("Failed to get IAudioRenderClient from IAudioClient", result))
       return false;

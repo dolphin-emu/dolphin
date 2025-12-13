@@ -81,13 +81,13 @@ Microsoft::WRL::ComPtr<IDXGIFactory> CreateDXGIFactory(bool debug_device)
   // Use Win8.1 version if available.
   if (create_dxgi_factory2 &&
       SUCCEEDED(create_dxgi_factory2(debug_device ? DXGI_CREATE_FACTORY_DEBUG : 0,
-                                     IID_PPV_ARGS(factory.GetAddressOf()))))
+                                     IID_PPV_ARGS(&factory))))
   {
     return factory;
   }
 
   // Fallback to original version, without debug support.
-  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(factory.ReleaseAndGetAddressOf()));
+  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(&factory));
   if (FAILED(hr))
   {
     PanicAlertFmt("CreateDXGIFactory() failed: {}", Common::HRWrap(hr));
@@ -100,14 +100,14 @@ Microsoft::WRL::ComPtr<IDXGIFactory> CreateDXGIFactory(bool debug_device)
 std::vector<std::string> GetAdapterNames()
 {
   Microsoft::WRL::ComPtr<IDXGIFactory> factory;
-  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(factory.GetAddressOf()));
+  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(&factory));
   if (FAILED(hr))
     return {};
 
   std::vector<std::string> adapters;
   Microsoft::WRL::ComPtr<IDXGIAdapter> adapter;
-  while (factory->EnumAdapters(static_cast<UINT>(adapters.size()),
-                               adapter.ReleaseAndGetAddressOf()) != DXGI_ERROR_NOT_FOUND)
+  while (factory->EnumAdapters(static_cast<UINT>(adapters.size()), &adapter) !=
+         DXGI_ERROR_NOT_FOUND)
   {
     std::string name;
     DXGI_ADAPTER_DESC desc;
@@ -297,12 +297,12 @@ void SetDebugObjectName(IUnknown* resource, std::string_view name)
 
   Microsoft::WRL::ComPtr<ID3D11DeviceChild> child11;
   Microsoft::WRL::ComPtr<ID3D12DeviceChild> child12;
-  if (SUCCEEDED(resource->QueryInterface(IID_PPV_ARGS(child11.GetAddressOf()))))
+  if (SUCCEEDED(resource->QueryInterface(IID_PPV_ARGS(&child11))))
   {
     child11->SetPrivateData(WKPDID_D3DDebugObjectName, static_cast<UINT>(name.length()),
                             name.data());
   }
-  else if (SUCCEEDED(resource->QueryInterface(IID_PPV_ARGS(child12.GetAddressOf()))))
+  else if (SUCCEEDED(resource->QueryInterface(IID_PPV_ARGS(&child12))))
   {
     child12->SetPrivateData(WKPDID_D3DDebugObjectName, static_cast<UINT>(name.length()),
                             name.data());
