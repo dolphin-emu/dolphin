@@ -568,39 +568,38 @@ void Jit64::cmpXX(UGeckoInstruction inst)
   u32 crf = inst.CRFD;
   bool merge_branch = CheckMergedBranch(crf);
 
-  bool signedCompare;
-  RCOpArg comparand;
+  bool signedCompare = false;
+  std::optional<u32> imm_comparand;
   switch (inst.OPCD)
   {
   // cmp / cmpl
   case 31:
     signedCompare = (inst.SUBOP10 == 0);
-    comparand = signedCompare ? gpr.Use(b, RCMode::Read) : gpr.Bind(b, RCMode::Read);
-    RegCache::Realize(comparand);
+    if (gpr.IsImm(b))
+      imm_comparand = gpr.Imm32(b);
     break;
 
   // cmpli
   case 10:
     signedCompare = false;
-    comparand = RCOpArg::Imm32((u32)inst.UIMM);
+    imm_comparand = u32(inst.UIMM);
     break;
 
   // cmpi
   case 11:
     signedCompare = true;
-    comparand = RCOpArg::Imm32((u32)(s32)(s16)inst.UIMM);
+    imm_comparand = u32(s32(s16(inst.UIMM)));
     break;
 
   default:
-    signedCompare = false;  // silence compiler warning
     PanicAlertFmt("cmpXX");
   }
 
-  if (gpr.IsImm(a) && comparand.IsImm())
+  if (gpr.IsImm(a) && imm_comparand.has_value())
   {
     // Both registers contain immediate values, so we can pre-compile the compare result
-    s64 compareResult = signedCompare ? (s64)gpr.SImm32(a) - (s64)comparand.SImm32() :
-                                        (u64)gpr.Imm32(a) - (u64)comparand.Imm32();
+    s64 compareResult = signedCompare ? s64(gpr.SImm32(a)) - s64(s32(*imm_comparand)) :
+                                        u64(gpr.Imm32(a)) - u64(*imm_comparand);
     if (compareResult == (s32)compareResult)
     {
       MOV(64, PPCSTATE_CR(crf), Imm32((u32)compareResult));
@@ -612,15 +611,12 @@ void Jit64::cmpXX(UGeckoInstruction inst)
     }
 
     if (merge_branch)
-    {
-      RegCache::Unlock(comparand);
       DoMergedBranchImmediate(compareResult);
-    }
 
     return;
   }
 
-  if (!gpr.IsImm(a) && !signedCompare && comparand.IsImm() && comparand.Imm32() == 0)
+  if (!gpr.IsImm(a) && !signedCompare && imm_comparand == u32(0))
   {
     RCX64Reg Ra = gpr.Bind(a, RCMode::Read);
     RegCache::Realize(Ra);
@@ -629,10 +625,27 @@ void Jit64::cmpXX(UGeckoInstruction inst)
     if (merge_branch)
     {
       TEST(64, Ra, Ra);
-      RegCache::Unlock(comparand, Ra);
+      RegCache::Unlock(Ra);
       DoMergedBranchCondition();
     }
     return;
+  }
+
+  RCOpArg Rb;
+  OpArg comparand;
+  if (inst.OPCD != 31 || (signedCompare && imm_comparand.has_value()))
+  {
+    comparand = Imm32(*imm_comparand);
+  }
+  else if (imm_comparand != u32(0))
+  {
+    const bool imm_is_inefficient =
+        !signedCompare && imm_comparand.has_value() && (*imm_comparand & 0x80000000U) != 0;
+    Rb = signedCompare ?
+             gpr.Use(b, RCMode::Read) :
+             (imm_is_inefficient ? gpr.Bind(b, RCMode::Read) : gpr.BindOrImm(b, RCMode::Read));
+    RegCache::Realize(Rb);
+    comparand = Rb;
   }
 
   const X64Reg input = RSCRATCH;
@@ -653,25 +666,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
       MOVZX(64, 32, input, Ra);
   }
 
-  if (comparand.IsImm())
-  {
-    // sign extension will ruin this, so store it in a register
-    if (!signedCompare && (comparand.Imm32() & 0x80000000U) != 0)
-    {
-      MOV(32, R(RSCRATCH2), comparand);
-      comparand = RCOpArg::R(RSCRATCH2);
-    }
-  }
-  else
-  {
-    if (signedCompare)
-    {
-      MOVSX(64, 32, RSCRATCH2, comparand);
-      comparand = RCOpArg::R(RSCRATCH2);
-    }
-  }
-
-  if (comparand.IsImm() && comparand.Imm32() == 0)
+  if (imm_comparand == u32(0))
   {
     MOV(64, PPCSTATE_CR(crf), R(input));
     // Place the comparison next to the branch for macro-op fusion
@@ -680,13 +675,31 @@ void Jit64::cmpXX(UGeckoInstruction inst)
   }
   else
   {
+    if (comparand.IsImm())
+    {
+      // sign extension will ruin this, so store it in a register
+      if (!signedCompare && (comparand.Imm32() & 0x80000000U) != 0)
+      {
+        MOV(32, R(RSCRATCH2), comparand);
+        comparand = R(RSCRATCH2);
+      }
+    }
+    else
+    {
+      if (signedCompare)
+      {
+        MOVSX(64, 32, RSCRATCH2, comparand);
+        comparand = R(RSCRATCH2);
+      }
+    }
+
     SUB(64, R(input), comparand);
     MOV(64, PPCSTATE_CR(crf), R(input));
   }
 
   if (merge_branch)
   {
-    RegCache::Unlock(comparand);
+    RegCache::Unlock(Rb);
     DoMergedBranchCondition();
   }
 }
