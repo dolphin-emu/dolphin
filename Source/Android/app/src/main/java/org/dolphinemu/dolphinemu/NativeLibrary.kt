@@ -233,19 +233,17 @@ object NativeLibrary {
      * Saves a game state to the slot number.
      *
      * @param slot The slot location to save state to.
-     * @param wait If false, returns as early as possible. If true, returns once the savestate has been written to disk.
      */
     @JvmStatic
-    external fun SaveState(slot: Int, wait: Boolean)
+    external fun SaveState(slot: Int)
 
     /**
      * Saves a game state to the specified path.
      *
      * @param path The path to save state to.
-     * @param wait If false, returns as early as possible. If true, returns once the savestate has been written to disk.
      */
     @JvmStatic
-    external fun SaveStateAs(path: String, wait: Boolean)
+    external fun SaveStateAs(path: String)
 
     /**
      * Loads a game state from the slot number.

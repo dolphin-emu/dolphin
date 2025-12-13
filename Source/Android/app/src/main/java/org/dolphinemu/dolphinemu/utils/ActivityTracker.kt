@@ -56,10 +56,21 @@ class ActivityTracker : ActivityLifecycleCallbacks {
 
     override fun onActivitySaveInstanceState(activity: Activity, bundle: Bundle) {}
 
+    override fun onActivityPostSaveInstanceState(activity: Activity, bundle: Bundle) {
+        if (DirectoryInitialization.areDolphinDirectoriesReady() &&
+            !activity.isChangingConfigurations
+        ) {
+            flushUnsavedData()
+        }
+    }
+
     override fun onActivityDestroyed(activity: Activity) {}
 
     companion object {
         @JvmStatic
         external fun setBackgroundExecutionAllowedNative(allowed: Boolean)
+
+        @JvmStatic
+        external fun flushUnsavedData()
     }
 }
