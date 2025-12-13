@@ -63,7 +63,7 @@ TEST(JitArm64, Frsqrte)
   {
     const double dvalue = std::bit_cast<double>(ivalue);
 
-    const u64 expected = std::bit_cast<u64>(Common::ApproximateReciprocalSquareRoot(dvalue));
+    const u64 expected = std::bit_cast<u64>(Core::ApproximateReciprocalSquareRoot(dvalue));
     const u64 actual = test.frsqrte(ivalue);
 
     if (expected != actual)
