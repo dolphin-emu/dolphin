@@ -175,7 +175,7 @@ static void DoState(Core::System& system, PointerWrap& p)
 
   // Begin with video backend, so that it gets a chance to clear its caches and writeback modified
   // things to RAM
-  g_video_backend->DoState(p);
+  g_video_backend->DoState(system, p);
   p.DoMarker("video_backend");
 
   // CoreTiming needs to be restored before restoring Hardware because

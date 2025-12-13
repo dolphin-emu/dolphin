@@ -67,7 +67,9 @@ CreateTexelBufferView(ID3D11Buffer* buffer, TexelBufferFormat format, DXGI_FORMA
   return srv;
 }
 
-VertexManager::VertexManager() = default;
+VertexManager::VertexManager(Core::System& system) : m_system(system)
+{
+}
 
 VertexManager::~VertexManager() = default;
 
@@ -262,9 +264,7 @@ void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_in
 
 void VertexManager::UploadUniforms()
 {
-  auto& system = Core::System::GetInstance();
-
-  auto& vertex_shader_manager = system.GetVertexShaderManager();
+  auto& vertex_shader_manager = m_system.GetVertexShaderManager();
   if (vertex_shader_manager.dirty)
   {
     UpdateConstantBuffer(m_vertex_constant_buffer.Get(), &vertex_shader_manager.constants,
@@ -272,7 +272,7 @@ void VertexManager::UploadUniforms()
     vertex_shader_manager.dirty = false;
   }
 
-  auto& geometry_shader_manager = system.GetGeometryShaderManager();
+  auto& geometry_shader_manager = m_system.GetGeometryShaderManager();
   if (geometry_shader_manager.dirty)
   {
     UpdateConstantBuffer(m_geometry_constant_buffer.Get(), &geometry_shader_manager.constants,
@@ -280,7 +280,7 @@ void VertexManager::UploadUniforms()
     geometry_shader_manager.dirty = false;
   }
 
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  auto& pixel_shader_manager = m_system.GetPixelShaderManager();
   if (pixel_shader_manager.dirty)
   {
     UpdateConstantBuffer(m_pixel_constant_buffer.Get(), &pixel_shader_manager.constants,

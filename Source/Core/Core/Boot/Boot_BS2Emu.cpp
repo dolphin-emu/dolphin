@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -372,13 +373,15 @@ bool CBoot::SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType con
   auto entryPos = region_settings.find(SConfig::GetInstance().m_region);
   RegionSetting region_setting = entryPos->second;
 
+  IOS::HLE::EmulationKernel* const ios = system.GetIOS();
+
   std::string serno;
   std::string model = "RVL-001(" + region_setting.area + ")";
-  CreateSystemMenuTitleDirs();
+  CreateSystemMenuTitleDirs(ios->GetESCore());
   const std::string settings_file_path(Common::GetTitleDataPath(Titles::SYSTEM_MENU) +
                                        "/" WII_SETTING);
 
-  const auto fs = system.GetIOS()->GetFS();
+  const auto fs = ios->GetFS();
   {
     Common::SettingsBuffer data;
     const auto file = fs->OpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, settings_file_path,
@@ -515,14 +518,14 @@ bool CBoot::SetupWiiMemory(Core::System& system, IOS::HLE::IOSC::ConsoleType con
   return true;
 }
 
-static void WriteEmptyPlayRecord()
+static void WriteEmptyPlayRecord(IOS::HLE::EmulationKernel* const ios)
 {
-  CreateSystemMenuTitleDirs();
+  CreateSystemMenuTitleDirs(ios->GetESCore());
   const std::string file_path = Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/play_rec.dat";
-  const auto fs = Core::System::GetInstance().GetIOS()->GetFS();
+  const auto file_system = ios->GetFS();
   constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
-  const auto playrec_file = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, file_path,
-                                                  {rw_mode, rw_mode, rw_mode});
+  const auto playrec_file = file_system->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID,
+                                                           file_path, {rw_mode, rw_mode, rw_mode});
   if (!playrec_file)
     return;
   std::vector<u8> empty_record(0x80);
@@ -547,8 +550,10 @@ bool CBoot::EmulatedBS2_Wii(Core::System& system, const Core::CPUThreadGuard& gu
   if (!tmd.IsValid())
     return false;
 
-  WriteEmptyPlayRecord();
-  UpdateStateFlags([](StateFlags* state) {
+  IOS::HLE::EmulationKernel* const pre_boot_ios = system.GetIOS();
+
+  WriteEmptyPlayRecord(pre_boot_ios);
+  UpdateStateFlags(pre_boot_ios, [](StateFlags* const state) {
     state->flags = 0xc1;
     state->type = 0xff;
     state->discstate = 0x01;
@@ -573,14 +578,16 @@ bool CBoot::EmulatedBS2_Wii(Core::System& system, const Core::CPUThreadGuard& gu
   memory.Write_U32(static_cast<u32>(data_partition.offset >> 2), 0x3198);
 
   const s32 ios_override = Config::Get(Config::MAIN_OVERRIDE_BOOT_IOS);
-  const u64 ios = ios_override >= 0 ? Titles::IOS(static_cast<u32>(ios_override)) : tmd.GetIOSId();
+  const u64 ios_id =
+      ios_override >= 0 ? Titles::IOS(static_cast<u32>(ios_override)) : tmd.GetIOSId();
 
   const auto console_type = volume.GetTicket(data_partition).GetConsoleType();
-  if (!SetupWiiMemory(system, console_type) || !system.GetIOS()->BootIOS(ios))
+  if (!SetupWiiMemory(system, console_type) || !pre_boot_ios->BootIOS(ios_id))
     return false;
 
-  auto di =
-      std::static_pointer_cast<IOS::HLE::DIDevice>(system.GetIOS()->GetDeviceByName("/dev/di"));
+  IOS::HLE::EmulationKernel* const post_boot_ios = system.GetIOS();
+
+  auto di = std::static_pointer_cast<IOS::HLE::DIDevice>(post_boot_ios->GetDeviceByName("/dev/di"));
 
   di->InitializeIfFirstTime();
   di->ChangePartition(data_partition);
@@ -613,7 +620,7 @@ bool CBoot::EmulatedBS2_Wii(Core::System& system, const Core::CPUThreadGuard& gu
 
   // Warning: This call will set incorrect running game metadata if our volume parameter
   // doesn't point to the same disc as the one that's inserted in the emulated disc drive!
-  system.GetIOS()->GetESDevice()->DIVerify(tmd, volume.GetTicket(partition));
+  post_boot_ios->GetESDevice()->DIVerify(tmd, volume.GetTicket(partition));
 
   return true;
 }

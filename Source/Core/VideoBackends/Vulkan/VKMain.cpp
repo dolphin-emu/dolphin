@@ -23,6 +23,11 @@
 #include <objc/message.h>
 #endif
 
+namespace Core
+{
+class System;
+}
+
 namespace Vulkan
 {
 void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
@@ -88,7 +93,7 @@ static bool ShouldEnableDebugUtils(bool enable_validation_layers)
   return enable_validation_layers || IsHostGPULoggingEnabled();
 }
 
-bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
+bool VideoBackend::Initialize(Core::System& system, const WindowSystemInfo& wsi)
 {
   if (!LoadVulkanLibrary())
   {
@@ -192,7 +197,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   if (!g_object_cache->Initialize())
   {
     PanicAlertFmt("Failed to initialize Vulkan object cache.");
-    Shutdown();
+    Shutdown(system);
     return false;
   }
 
@@ -204,7 +209,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
     if (!swap_chain)
     {
       PanicAlertFmt("Failed to create Vulkan swap chain.");
-      Shutdown();
+      Shutdown(system);
       return false;
     }
   }
@@ -216,27 +221,27 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   if (!g_command_buffer_mgr->Initialize(swapchain_image_count))
   {
     PanicAlertFmt("Failed to create Vulkan command buffers");
-    Shutdown();
+    Shutdown(system);
     return false;
   }
 
   if (!StateTracker::CreateInstance())
   {
     PanicAlertFmt("Failed to create state tracker");
-    Shutdown();
+    Shutdown(system);
     return false;
   }
 
   auto gfx = std::make_unique<VKGfx>(std::move(swap_chain), wsi.render_surface_scale);
-  auto vertex_manager = std::make_unique<VertexManager>();
+  auto vertex_manager = std::make_unique<VertexManager>(system);
   auto perf_query = std::make_unique<PerfQuery>();
   auto bounding_box = std::make_unique<VKBoundingBox>();
 
-  return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
+  return InitializeShared(system, std::move(gfx), std::move(vertex_manager), std::move(perf_query),
                           std::move(bounding_box));
 }
 
-void VideoBackend::Shutdown()
+void VideoBackend::Shutdown(Core::System& system)
 {
   if (g_vulkan_context)
     vkDeviceWaitIdle(g_vulkan_context->GetDevice());
@@ -244,7 +249,7 @@ void VideoBackend::Shutdown()
   if (g_object_cache)
     g_object_cache->Shutdown();
 
-  ShutdownShared();
+  ShutdownShared(system);
 
   g_object_cache.reset();
   StateTracker::DestroyInstance();
