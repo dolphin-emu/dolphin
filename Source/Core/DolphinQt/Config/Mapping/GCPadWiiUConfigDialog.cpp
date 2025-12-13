@@ -6,10 +6,10 @@
 #include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QLabel>
+#include <QTimer>
 #include <QVBoxLayout>
 
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 
 #include "InputCommon/GCAdapter.h"
@@ -23,27 +23,25 @@ GCPadWiiUConfigDialog::GCPadWiiUConfigDialog(int port, QWidget* parent)
   ConnectWidgets();
 }
 
-GCPadWiiUConfigDialog::~GCPadWiiUConfigDialog()
-{
-  GCAdapter::SetAdapterCallback(nullptr);
-}
-
 void GCPadWiiUConfigDialog::CreateLayout()
 {
   setWindowTitle(tr("GameCube Controller Adapter at Port %1").arg(m_port + 1));
 
   m_layout = new QVBoxLayout();
   m_status_label = new QLabel();
+  m_poll_rate_label = new QLabel;
   m_rumble = new QCheckBox(tr("Enable Rumble"));
   m_simulate_bongos = new QCheckBox(tr("Simulate DK Bongos"));
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
 
   UpdateAdapterStatus();
 
-  auto callback = [this] { QueueOnObject(this, &GCPadWiiUConfigDialog::UpdateAdapterStatus); };
-  GCAdapter::SetAdapterCallback(callback);
+  auto* const timer = new QTimer{this};
+  connect(timer, &QTimer::timeout, this, &GCPadWiiUConfigDialog::UpdateAdapterStatus);
+  timer->start(std::chrono::milliseconds{500});
 
   m_layout->addWidget(m_status_label);
+  m_layout->addWidget(m_poll_rate_label);
   m_layout->addWidget(m_rumble);
   m_layout->addWidget(m_simulate_bongos);
   m_layout->addWidget(m_button_box);
@@ -78,6 +76,12 @@ void GCPadWiiUConfigDialog::UpdateAdapterStatus()
   }
 
   m_status_label->setText(status_text);
+
+  const auto poll_rate = GCAdapter::GetCurrentPollRate();
+  if (poll_rate != 0)
+    m_poll_rate_label->setText(tr("Poll Rate: %1 Hz").arg(poll_rate, 0, 'f', 2));
+  else
+    m_poll_rate_label->clear();
 
   m_rumble->setEnabled(detected);
   m_simulate_bongos->setEnabled(detected);

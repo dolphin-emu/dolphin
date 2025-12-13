@@ -163,6 +163,8 @@ static std::optional<Config::ConfigChangedCallbackID> s_config_callback_id = std
 static bool s_is_adapter_wanted = false;
 static std::array<bool, SerialInterface::MAX_SI_CHANNELS> s_config_rumble_enabled{};
 
+static std::atomic<double> s_adapter_poll_rate{};
+
 static void ReadThreadFunc()
 {
   Common::SetCurrentThreadName("GCAdapter Read Thread");
@@ -198,6 +200,11 @@ static void ReadThreadFunc()
 
   // Reset rumble once on initial reading
   ResetRumble();
+
+  // Measure poll rate for display in UI.
+  constexpr int POLL_RATE_MEASUREMENT_SAMPLE_COUNT = 50;
+  auto poll_rate_measurement_start_time = Clock::now();
+  int poll_rate_measurement_count = 0;
 
   while (s_read_adapter_thread_running.IsSet())
   {
@@ -242,6 +249,19 @@ static void ReadThreadFunc()
     }
 #endif
 
+    // Update poll rate measurement.
+    if (++poll_rate_measurement_count == POLL_RATE_MEASUREMENT_SAMPLE_COUNT)
+    {
+      const auto now = Clock::now();
+
+      const auto poll_rate =
+          POLL_RATE_MEASUREMENT_SAMPLE_COUNT / DT_s(now - poll_rate_measurement_start_time).count();
+      s_adapter_poll_rate.store(poll_rate, std::memory_order_relaxed);
+
+      poll_rate_measurement_start_time = now;
+      poll_rate_measurement_count = 0;
+    }
+
     Common::YieldCPU();
   }
 
@@ -258,6 +278,8 @@ static void ReadThreadFunc()
   s_fd = 0;
   s_detected = false;
 #endif
+
+  s_adapter_poll_rate.store(0.0, std::memory_order_relaxed);
 
   NOTICE_LOG_FMT(CONTROLLERINTERFACE, "GCAdapter read thread stopped");
 }
@@ -1011,6 +1033,11 @@ bool IsDetected(const char** error_message)
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
   return s_detected;
 #endif
+}
+
+double GetCurrentPollRate()
+{
+  return s_adapter_poll_rate.load(std::memory_order_relaxed);
 }
 
 }  // namespace GCAdapter
