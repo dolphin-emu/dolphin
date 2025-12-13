@@ -3,12 +3,9 @@
 
 #include "VideoCommon/HiresTextures.h"
 
-#include <algorithm>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <string_view>
-#include <thread>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -20,11 +17,10 @@
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/OneShotEvent.h"
 #include "Common/StringUtil.h"
-#include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/System.h"
-#include "VideoCommon/Assets/CustomAsset.h"
 #include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
@@ -97,7 +93,9 @@ void HiresTexture::Update()
   for (const auto& texture_directory : texture_directories)
   {
     // Watch this directory for any texture reloads
-    s_file_library->Watch(texture_directory);
+    Common::OneShotEvent started;
+    s_file_library->Watch(texture_directory, [&](std::string_view) { started.Set(); });
+    started.Wait();
 
     const auto texture_paths =
         Common::DoFileSearch({texture_directory}, extensions, /*recursive*/ true);
