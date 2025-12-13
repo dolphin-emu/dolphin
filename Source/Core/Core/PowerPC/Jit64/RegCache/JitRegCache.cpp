@@ -132,47 +132,6 @@ void RCOpArg::Unlock()
   contents = std::monostate{};
 }
 
-bool RCOpArg::IsImm() const
-{
-  if (const preg_t* preg = std::get_if<preg_t>(&contents))
-  {
-    return rc->IsImm(*preg);
-  }
-  else if (std::holds_alternative<u32>(contents))
-  {
-    return true;
-  }
-  return false;
-}
-
-s32 RCOpArg::SImm32() const
-{
-  if (const preg_t* preg = std::get_if<preg_t>(&contents))
-  {
-    return rc->SImm32(*preg);
-  }
-  else if (const u32* imm = std::get_if<u32>(&contents))
-  {
-    return static_cast<s32>(*imm);
-  }
-  ASSERT(false);
-  return 0;
-}
-
-u32 RCOpArg::Imm32() const
-{
-  if (const preg_t* preg = std::get_if<preg_t>(&contents))
-  {
-    return rc->Imm32(*preg);
-  }
-  else if (const u32* imm = std::get_if<u32>(&contents))
-  {
-    return *imm;
-  }
-  ASSERT(false);
-  return 0;
-}
-
 RCX64Reg::RCX64Reg() = default;
 
 RCX64Reg::RCX64Reg(RegCache* rc_, preg_t preg) : rc(rc_), contents(preg)
