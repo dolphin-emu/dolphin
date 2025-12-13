@@ -318,8 +318,10 @@ WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, 
   }
 }
 
-void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
+void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base, bool writeable)
 {
+  void* result;
+
   if (m_memory_functions.m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
   {
     WindowsMemoryRegion* const region = EnsureSplitRegionForMapping(base, size);
@@ -329,10 +331,10 @@ void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
       return nullptr;
     }
 
-    void* rv = static_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(
+    result = static_cast<PMapViewOfFile3>(m_memory_functions.m_address_MapViewOfFile3)(
         m_memory_handle, nullptr, base, offset, size, MEM_REPLACE_PLACEHOLDER, PAGE_READWRITE,
         nullptr, 0);
-    if (rv)
+    if (result)
     {
       region->m_is_mapped = true;
     }
@@ -342,11 +344,37 @@ void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
 
       // revert the split, if any
       JoinRegionsAfterUnmap(base, size);
+
+      return nullptr;
     }
-    return rv;
+  }
+  else
+  {
+    result =
+        MapViewOfFileEx(m_memory_handle, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size, base);
+
+    if (!result)
+      return nullptr;
   }
 
-  return MapViewOfFileEx(m_memory_handle, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size, base);
+  if (!writeable)
+  {
+    // If we want to use PAGE_READONLY for now while still being able to switch to PAGE_READWRITE
+    // later, we have to call MapViewOfFile with PAGE_READWRITE and then switch to PAGE_READONLY.
+    ChangeMappingProtection(base, size, writeable);
+  }
+
+  return result;
+}
+
+bool MemArena::ChangeMappingProtection(void* view, size_t size, bool writeable)
+{
+  DWORD old_protect;
+  const int retval =
+      VirtualProtect(view, size, writeable ? PAGE_READWRITE : PAGE_READONLY, &old_protect);
+  if (retval == 0)
+    PanicAlertFmt("VirtualProtect failed: {}", GetLastErrorString());
+  return retval != 0;
 }
 
 bool MemArena::JoinRegionsAfterUnmap(void* start_address, size_t size)
@@ -436,6 +464,21 @@ void MemArena::UnmapFromMemoryRegion(void* view, size_t size)
   }
 
   UnmapViewOfFile(view);
+}
+
+size_t MemArena::GetPageSize() const
+{
+  SYSTEM_INFO si;
+  GetSystemInfo(&si);
+
+  if (!m_memory_functions.m_address_MapViewOfFile3)
+  {
+    // In this case, we can only map pages that are 64K aligned.
+    // See https://devblogs.microsoft.com/oldnewthing/20031008-00/?p=42223
+    return std::max<size_t>(si.dwPageSize, 64 * 1024);
+  }
+
+  return si.dwPageSize;
 }
 
 LazyMemoryRegion::LazyMemoryRegion()

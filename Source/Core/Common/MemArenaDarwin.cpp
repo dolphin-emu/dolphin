@@ -3,6 +3,8 @@
 
 #include "Common/MemArena.h"
 
+#include <unistd.h>
+
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 
@@ -121,7 +123,7 @@ void MemArena::ReleaseMemoryRegion()
   m_region_size = 0;
 }
 
-void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
+void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base, bool writeable)
 {
   if (m_shm_address == 0)
   {
@@ -130,11 +132,13 @@ void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
   }
 
   vm_address_t address = reinterpret_cast<vm_address_t>(base);
-  constexpr vm_prot_t prot = VM_PROT_READ | VM_PROT_WRITE;
+  vm_prot_t prot = VM_PROT_READ;
+  if (writeable)
+    prot |= VM_PROT_WRITE;
 
   kern_return_t retval =
       vm_map(mach_task_self(), &address, size, 0, VM_FLAGS_FIXED | VM_FLAGS_OVERWRITE, m_shm_entry,
-             offset, false, prot, prot, VM_INHERIT_DEFAULT);
+             offset, false, prot, VM_PROT_READ | VM_PROT_WRITE, VM_INHERIT_DEFAULT);
   if (retval != KERN_SUCCESS)
   {
     ERROR_LOG_FMT(MEMMAP, "MapInMemoryRegion failed: vm_map returned {0:#x}", retval);
@@ -142,6 +146,20 @@ void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
   }
 
   return reinterpret_cast<void*>(address);
+}
+
+bool MemArena::ChangeMappingProtection(void* view, size_t size, bool writeable)
+{
+  vm_address_t address = reinterpret_cast<vm_address_t>(view);
+  vm_prot_t prot = VM_PROT_READ;
+  if (writeable)
+    prot |= VM_PROT_WRITE;
+
+  kern_return_t retval = vm_protect(mach_task_self(), address, size, false, prot);
+  if (retval != KERN_SUCCESS)
+    ERROR_LOG_FMT(MEMMAP, "ChangeMappingProtection failed: vm_protect returned {0:#x}", retval);
+
+  return retval == KERN_SUCCESS;
 }
 
 void MemArena::UnmapFromMemoryRegion(void* view, size_t size)
@@ -161,6 +179,11 @@ void MemArena::UnmapFromMemoryRegion(void* view, size_t size)
   {
     ERROR_LOG_FMT(MEMMAP, "UnmapFromMemoryRegion failed: vm_prot returned {0:#x}", retval);
   }
+}
+
+size_t MemArena::GetPageSize() const
+{
+  return getpagesize();
 }
 
 LazyMemoryRegion::LazyMemoryRegion() = default;
