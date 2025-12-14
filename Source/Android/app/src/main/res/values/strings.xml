@@ -24,6 +24,10 @@
     <string name="wiimote_extension_3">Wii Remote Extension 4</string>
 
     <string name="real_balance_board">Real Balance Board</string>
+    <string name="dualshockudp_client">DualshockUDP Client (Background Input)</string>
+    <string name="dualshockudp_entries">DualshockUDP Server Info (Alternate Input Source)</string>
+    <string name="dualshockudp_entries_description">Description:IP:Port;</string>
+
 
     <string name="wiimote">Wii Remote</string>
     <string name="wiimote_general">Buttons</string>
@@ -120,6 +124,7 @@
     <string name="wiimote_scanning_description">Leave this on if you are using a DolphinBar for real Wii Remote support.</string>
     <string name="wiimote_speaker">Wii Remote Speaker</string>
     <string name="wiimote_speaker_description">Enable sound output through the speaker on a real Wii Remote (DolphinBar required).</string>
+    <string name="dualshockudp_client_description">DSU protocol enables the use of input and motion data from compatible sources, like PlayStation, Nintendo Switch and Steam controllers.</string>
     <string name="override_region_settings">Allow Mismatched Region Settings</string>
     <string name="auto_disc_change">Change Discs Automatically</string>
     <string name="fallback_region">Fallback Region</string>

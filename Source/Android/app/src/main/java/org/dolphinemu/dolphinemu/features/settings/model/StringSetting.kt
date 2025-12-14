@@ -92,6 +92,13 @@ enum class StringSetting(
         Settings.SECTION_ACHIEVEMENTS,
         "ApiToken",
         ""
+    ),
+
+    SERVERS(
+        Settings.FILE_DUALSHOCKUDPCLIENT,
+        Settings.SECTION_INI_SERVER,
+        "Entries",
+        ""
     );
 
     override val isOverridden: Boolean

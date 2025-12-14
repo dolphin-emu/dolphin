@@ -931,6 +931,13 @@ enum class BooleanSetting(
         Settings.SECTION_ACHIEVEMENTS,
         "ProgressEnabled",
         true
+    ),
+
+    SERVERS_ENABLED(
+        Settings.FILE_DUALSHOCKUDPCLIENT,
+        Settings.SECTION_INI_SERVER,
+        key = "Enabled",
+        false
     );
 
     override val isOverridden: Boolean

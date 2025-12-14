@@ -57,6 +57,8 @@
 #include "DiscIO/Volume.h"
 
 #include "InputCommon/GCAdapter.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 
 #include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
@@ -562,6 +564,17 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(J
   UICommon::InitControllers(WindowSystemInfo(WindowSystemType::Android, nullptr, nullptr, nullptr));
 
   AchievementManager::GetInstance().Init(nullptr);
+
+  // Start a background thread to periodically update controller input (every 10ms).
+  // This ensures Android keeps controller state updated even without a dedicated input loop.
+  std::thread([]() {
+    while (true)
+    {
+      g_controller_interface.SetCurrentInputChannel(ciface::InputChannel::Host);
+      g_controller_interface.UpdateInput();
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+  }).detach();
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReportStartToAnalytics(JNIEnv*,

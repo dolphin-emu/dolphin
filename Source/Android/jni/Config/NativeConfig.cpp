@@ -52,6 +52,10 @@ static Config::Location GetLocation(JNIEnv* env, jstring file, jstring section, 
   {
     system = Config::System::Achievements;
   }
+  else if (decoded_file == "DualShockUDPClient")
+  {
+    system = Config::System::DualShockUDPClient;
+  }
   else
   {
     ASSERT(false);
