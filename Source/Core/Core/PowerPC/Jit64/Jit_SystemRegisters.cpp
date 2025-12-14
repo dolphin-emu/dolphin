@@ -287,7 +287,7 @@ void Jit64::mtspr(UGeckoInstruction inst)
     FixupBranch dont_reset_icache = J_CC(CC_NC);
     BitSet32 regs = CallerSavedRegistersInUse();
     ABI_PushRegistersAndAdjustStack(regs, 0);
-    ABI_CallFunctionPP(DoICacheReset, &m_ppc_state, &m_system.GetJitInterface());
+    ABI_CallFunction(DoICacheReset, &m_ppc_state, &m_system.GetJitInterface());
     ABI_PopRegistersAndAdjustStack(regs, 0);
     SetJumpTarget(dont_reset_icache);
     return;
