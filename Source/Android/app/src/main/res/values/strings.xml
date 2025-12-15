@@ -24,7 +24,7 @@
     <string name="wiimote_extension_3">Wii Remote Extension 4</string>
 
     <string name="real_balance_board">Real Balance Board</string>
-    <string name="dualshockudp_client">DualshockUDP Client (Background Input)</string>
+    <string name="dualshockudp_client">DSU Input</string>
     <string name="dualshockudp_entries">DualshockUDP Server Info (Alternate Input Source)</string>
     <string name="dualshockudp_entries_description">Description:IP:Port;</string>
 

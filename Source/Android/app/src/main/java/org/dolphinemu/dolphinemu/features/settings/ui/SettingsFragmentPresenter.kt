@@ -1423,22 +1423,11 @@ class SettingsFragmentPresenter(
             }
         }, R.string.real_balance_board, 0))
 
-        sl.add(SwitchSetting(context, object : AbstractBooleanSetting {
-            override val isOverridden: Boolean = BooleanSetting.SERVERS_ENABLED.isOverridden
-
-            override val isRuntimeEditable: Boolean =
-                BooleanSetting.SERVERS_ENABLED.isRuntimeEditable
-
-            override fun delete(settings: Settings): Boolean {
-                return BooleanSetting.SERVERS_ENABLED.delete(settings)
-            }
-
-            override val boolean: Boolean get() = BooleanSetting.SERVERS_ENABLED.boolean;
-
-            override fun setBoolean(settings: Settings, newValue: Boolean) {
-                BooleanSetting.SERVERS_ENABLED.setBoolean(settings, if (newValue) true else false);
-            }
-        }, R.string.dualshockudp_client, R.string.dualshockudp_client_description))
+        sl.add(SwitchSetting(context,
+            BooleanSetting.SERVERS_ENABLED,
+            R.string.dualshockudp_client,
+            R.string.dualshockudp_client_description)
+        )
 
         sl.add(
             InputStringSetting(

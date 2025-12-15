@@ -6,6 +6,9 @@
 #include "Common/Logging/Log.h"
 #include "Core/AchievementManager.h"
 
+// Minimal bridge to notify native code to pause/resume background input updates.
+extern "C" void SetBackgroundInputExecutionAllowed(bool allowed);
+
 extern "C" {
 
 JNIEXPORT void JNICALL
@@ -17,5 +20,6 @@ Java_org_dolphinemu_dolphinemu_utils_ActivityTracker_setBackgroundExecutionAllow
 
   INFO_LOG_FMT(CORE, "SetBackgroundExecutionAllowed {}", allowed);
   AchievementManager::GetInstance().SetBackgroundExecutionAllowed(allowed);
+  SetBackgroundInputExecutionAllowed(static_cast<bool>(allowed));
 }
 }
