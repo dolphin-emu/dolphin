@@ -6,8 +6,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/AchievementManager.h"
 
-// Minimal bridge to notify native code to pause/resume background input updates.
-extern "C" void SetBackgroundInputExecutionAllowed(bool allowed);
+#include "Input/DSUInput.h"
 
 extern "C" {
 

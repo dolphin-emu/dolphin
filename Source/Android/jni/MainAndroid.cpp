@@ -9,7 +9,6 @@
 #include <optional>
 #include <string>
 #include <thread>
-#include <atomic>
 #include <utility>
 #include <vector>
 
@@ -70,6 +69,7 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 #include "jni/Host.h"
+#include "Input/DSUInput.h"
 
 namespace
 {
@@ -88,8 +88,6 @@ bool s_need_nonblocking_alert_msg;
 
 Common::Flag s_is_booting;
 bool s_game_metadata_is_valid = false;
-// When false, the controller-update thread will pause updates to save battery.
-std::atomic<bool> s_background_execution_allowed{true};
 }  // Anonymous namespace
 
 void UpdatePointer()
@@ -567,23 +565,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(J
 
   AchievementManager::GetInstance().Init(nullptr);
 
-  // Start a background thread to periodically update controller input (every 10ms).
-  // The thread checks `s_background_execution_allowed` and pauses updates when
-  // background execution is disallowed (to save battery).
-  std::thread([]() {
-    while (true)
-    {
-      if (!s_background_execution_allowed.load())
-      {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        continue;
-      }
-
-      g_controller_interface.SetCurrentInputChannel(ciface::InputChannel::Host);
-      g_controller_interface.UpdateInput();
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-  }).detach();
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReportStartToAnalytics(JNIEnv*,
@@ -598,12 +579,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GenerateNewS
   DolphinAnalytics::Instance().GenerateNewIdentity();
 }
 
-// Called from Java-side ActivityTracker native shim to allow/disable background
-// controller updates. Kept minimal: just flip the flag the thread checks.
-extern "C" void SetBackgroundInputExecutionAllowed(bool allowed)
-{
-  s_background_execution_allowed.store(allowed);
-}
 
 // Returns the scale factor for imgui rendering.
 // Based on the scaledDensity of the device's display metrics.
