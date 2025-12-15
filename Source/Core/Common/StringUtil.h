@@ -180,8 +180,6 @@ std::from_chars_result FromChars(std::string_view sv, std::floating_point auto& 
 }
 }  // namespace Common
 
-std::string TabsToSpaces(int tab_size, std::string str);
-
 std::vector<std::string> SplitString(const std::string& str, char delim);
 
 // "C:/Windows/winhelp.exe" to "C:/Windows/", "winhelp", ".exe"

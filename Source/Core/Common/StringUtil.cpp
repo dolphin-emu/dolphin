@@ -16,7 +16,6 @@
 #include <locale>
 #include <sstream>
 #include <string>
-#include <type_traits>
 #include <vector>
 
 #include <fmt/format.h>
@@ -363,17 +362,6 @@ std::vector<std::string> SplitString(const std::string& str, const char delim)
 
   output.pop_back();
   return output;
-}
-
-std::string TabsToSpaces(int tab_size, std::string str)
-{
-  const std::string spaces(tab_size, ' ');
-
-  size_t i = 0;
-  while (str.npos != (i = str.find('\t')))
-    str.replace(i, 1, spaces);
-
-  return str;
 }
 
 std::string ReplaceAll(std::string result, std::string_view src, std::string_view dest)
