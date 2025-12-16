@@ -11,7 +11,6 @@
 
 namespace
 {
-std::atomic<bool> s_background_execution_allowed{true};
 std::thread s_background_thread;
 std::mutex s_background_thread_mutex;
 std::atomic<bool> s_background_thread_should_stop{false};
@@ -30,8 +29,6 @@ static void BackgroundThreadMain()
 
 void SetBackgroundInputExecutionAllowed(bool allowed)
 {
-  s_background_execution_allowed.store(allowed);
-
   if (allowed)
   {
     std::lock_guard<std::mutex> lock(s_background_thread_mutex);
