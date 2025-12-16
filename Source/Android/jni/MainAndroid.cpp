@@ -57,7 +57,6 @@
 #include "DiscIO/Volume.h"
 
 #include "InputCommon/GCAdapter.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
@@ -69,7 +68,6 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 #include "jni/Host.h"
-#include "Input/DSUInput.h"
 
 namespace
 {
@@ -564,7 +562,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(J
   UICommon::InitControllers(WindowSystemInfo(WindowSystemType::Android, nullptr, nullptr, nullptr));
 
   AchievementManager::GetInstance().Init(nullptr);
-
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReportStartToAnalytics(JNIEnv*,
