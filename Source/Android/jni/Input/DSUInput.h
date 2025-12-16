@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include <stdbool.h>
 
 // Enable/disable background input execution. When enabled a background thread
 // may be created to poll controller input; when disabled the thread will be
