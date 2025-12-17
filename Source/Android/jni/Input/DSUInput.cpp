@@ -1,7 +1,7 @@
 // Copyright 2025 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "DSUInput.h"
+#include "jni/Input/DSUInput.h"
 
 #include <thread>
 #include <mutex>
