@@ -6,7 +6,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/AchievementManager.h"
 
-#include "Input/DSUInput.h"
+#include "jni/Input/DSUInput.h"
 
 extern "C" {
 
