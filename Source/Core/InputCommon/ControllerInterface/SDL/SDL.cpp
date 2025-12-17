@@ -18,6 +18,10 @@
 #include "Common/ScopeGuard.h"
 #include "Common/Thread.h"
 
+#include "Core/Config/MainSettings.h"
+#include "Core/HW/SI/SI.h"
+#include "Core/HW/SI/SI_Device.h"
+
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/SDL/SDLGamepad.h"
 
@@ -144,6 +148,21 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
   // It also works around a possibly related random hang on a IDirectInputDevice8_Acquire
   //  call within SDL.
   SDL_SetHint(SDL_HINT_JOYSTICK_DIRECTINPUT, "0");
+
+  // Disable SDL's GC Adapter handling when we want to handle it ourselves.
+  bool is_gc_adapter_configured = false;
+  for (int i = 0; i != SerialInterface::MAX_SI_CHANNELS; ++i)
+  {
+    if (Config::Get(Config::GetInfoForSIDevice(i)) == SerialInterface::SIDEVICE_WIIU_ADAPTER)
+    {
+      is_gc_adapter_configured = true;
+      break;
+    }
+  }
+  // TODO: This hint should be adjusted when the config changes,
+  //  but SDL requires it be set before joystick initialization,
+  //  and ControllerInterface isn't prepared for SDL to spontaneously re-initialize itself.
+  SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_GAMECUBE, is_gc_adapter_configured ? "0" : "1");
 
   m_hotplug_thread = std::thread([this] {
     Common::SetCurrentThreadName("SDL Hotplug Thread");
