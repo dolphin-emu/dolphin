@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-26 20:51+0100\n"
+"POT-Creation-Date: 2025-12-20 20:43+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Mewster <mewster92@gmail.com>, 2023-2025\n"
 "Language-Team: Italian (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -2669,7 +2669,7 @@ msgid "Error synchronizing cheat codes!"
 msgstr "Errore sincronizzando i cheat code!"
 
 #: Source/Core/Core/PowerPC/CachedInterpreter/CachedInterpreter.cpp:338
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:864
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:865
 #: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:1052
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
@@ -6846,11 +6846,11 @@ msgstr "Le mod grafiche sono attualmente disabilitate."
 msgid "Post-Processing Shader Configuration"
 msgstr "Configura shader di post-processing"
 
-#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:38
+#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:29
 msgid "Only approved codes will be applied in hardcore mode."
 msgstr "Solo i codici approvati verranno applicati nella modalità hardcore."
 
-#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:39
+#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:32
 msgid "Achievement Settings"
 msgstr "Impostazioni achievement"
 
@@ -7760,7 +7760,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:355
 msgid "Select a Bluetooth Device"
-msgstr ""
+msgstr "Seleziona un dispositivo Bluetooth"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:387
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
@@ -10133,7 +10133,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:28
 msgid "Logitech USB Microphone Manager"
-msgstr ""
+msgstr "Manager microfono USB Logitech"
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:46
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:47
@@ -10142,7 +10142,7 @@ msgstr "Alcune impostazioni non si possono cambiare ad emulazione avviata."
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:65
 msgid "Emulate Logitech USB Mic %1"
-msgstr ""
+msgstr "Emula microfono USB Logitech %1"
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:75
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:60
@@ -10152,7 +10152,7 @@ msgstr "Configurazione microfono"
 #. i18n: %1 is a number from 1 to 4.
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:81
 msgid "Microphone %1 Configuration"
-msgstr ""
+msgstr "Configurazione microfono %1"
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:84
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:63
@@ -11524,7 +11524,7 @@ msgstr "&Wii Speak"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:284
 msgid "&Logitech USB Microphone"
-msgstr ""
+msgstr "Microfono USB &Logitech"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:289
 msgid "Start &NetPlay..."

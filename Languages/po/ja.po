@@ -22,7 +22,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-26 20:51+0100\n"
+"POT-Creation-Date: 2025-12-20 20:43+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Nekokabu <nekokabu@gmail.com>, 2024-2025\n"
 "Language-Team: Japanese (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -2652,7 +2652,7 @@ msgid "Error synchronizing cheat codes!"
 msgstr "チートコードの同期中にエラーが発生しました！"
 
 #: Source/Core/Core/PowerPC/CachedInterpreter/CachedInterpreter.cpp:338
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:864
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:865
 #: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:1052
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
@@ -3303,19 +3303,19 @@ msgstr ""
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1371
 msgid "Dolphin is unable to verify unlicensed discs."
-msgstr "Dolphin is unable to verify unlicensed discs."
+msgstr "Dolphin は非公式ライセンス品のディスクを検証できません。"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1378
 msgid ""
 "Dolphin is unable to verify typical TGC files properly, since they are not "
 "dumps of actual discs."
 msgstr ""
-"Dolphin is unable to verify typical TGC files properly, since they are not "
-"dumps of actual discs."
+"Dolphin は、実際のディスクのダンプではない一般的な TGC ファイルを正しく検証で"
+"きません。"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1386
 msgid "Dolphin is currently unable to verify Triforce games."
-msgstr ""
+msgstr "Dolphin は現在、Triforce ゲームを検証できません。"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1396
 msgid ""
@@ -6695,11 +6695,11 @@ msgstr "グラフィックMODは現在無効になっています。"
 msgid "Post-Processing Shader Configuration"
 msgstr "ポストプロセスシェーダーの設定"
 
-#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:38
+#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:29
 msgid "Only approved codes will be applied in hardcore mode."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:39
+#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:32
 msgid "Achievement Settings"
 msgstr "実績の設定"
 
@@ -11259,7 +11259,7 @@ msgstr "Wii セーブデータのインポート..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:352
 msgid "Import Wii Saves..."
-msgstr ""
+msgstr "Wii セーブデータのインポート(複数)..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:354
 msgid "Export All Wii Saves"
@@ -11835,7 +11835,7 @@ msgid ""
 "a valid Wii save."
 msgstr ""
 "セーブファイルのインポートに失敗しました。指定されたファイルは破損している"
-"か、有効な Wiiセーブファイルではありません。"
+"か、有効な Wiiセーブデータではありません。"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1213
 msgid ""
@@ -11871,6 +11871,8 @@ msgid ""
 "%1: Failed to import save file. The given file appears to be corrupted or is "
 "not a valid Wii save."
 msgstr ""
+"%1: セーブファイルのインポートに失敗しました。指定されたファイルは破損してい"
+"るか、有効なWiiセーブデータではありません。"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1289
 msgid ""
@@ -14226,11 +14228,11 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:32
 msgid "Show Messages"
-msgstr ""
+msgstr "メッセージを表示"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:36
 msgid "Font Size:"
-msgstr ""
+msgstr "フォントサイズ:"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:40
 msgid "Performance Statistics"
@@ -14335,6 +14337,11 @@ msgid ""
 "renaming it OSD_Font.ttf.<br><br><dolphin_emphasis>If unsure, leave this at "
 "13.</dolphin_emphasis>"
 msgstr ""
+"オンスクリーンディスプレイのフォントサイズを変更します。パフォーマンス統計、"
+"フレームカウンター、ネットプレイチャットなどの機能に影響します。<br><br>フォ"
+"ントを変更するには、TTFフォントファイルをDolphinのUser/Loadフォルダに配置し、"
+"OSD_Font.ttfに名前を変更してください。<br><br><dolphin_emphasis>よく分からな"
+"ければ、、13のままにしておいてください。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:150
 msgid ""

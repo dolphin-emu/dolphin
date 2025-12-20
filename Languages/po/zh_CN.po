@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-26 20:51+0100\n"
+"POT-Creation-Date: 2025-12-20 20:43+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: 天绝星 <c.cejhb@gmail.com>, 2015-2025\n"
 "Language-Team: Chinese (China) (http://app.transifex.com/dolphinemu/dolphin-"
@@ -2594,7 +2594,7 @@ msgid "Error synchronizing cheat codes!"
 msgstr "同步保存金手指代码时出错！"
 
 #: Source/Core/Core/PowerPC/CachedInterpreter/CachedInterpreter.cpp:338
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:864
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:865
 #: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:1052
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
@@ -6514,11 +6514,11 @@ msgstr "图形模组当前已禁用。"
 msgid "Post-Processing Shader Configuration"
 msgstr "后处理着色器配置"
 
-#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:38
+#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:29
 msgid "Only approved codes will be applied in hardcore mode."
 msgstr "只有获得认可的代码才能在硬核模式下使用。"
 
-#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:39
+#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:32
 msgid "Achievement Settings"
 msgstr "成就设置"
 
@@ -7421,7 +7421,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:355
 msgid "Select a Bluetooth Device"
-msgstr ""
+msgstr "选择一个蓝牙设备"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:387
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
@@ -9737,7 +9737,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:28
 msgid "Logitech USB Microphone Manager"
-msgstr ""
+msgstr "罗技 USB 麦克风管理器"
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:46
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:47
@@ -9746,7 +9746,7 @@ msgstr "模拟正在运行时某些设置无法更改。"
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:65
 msgid "Emulate Logitech USB Mic %1"
-msgstr ""
+msgstr "模拟罗技 USB 麦克风 %1"
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:75
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:60
@@ -9756,7 +9756,7 @@ msgstr "麦克风配置"
 #. i18n: %1 is a number from 1 to 4.
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:81
 msgid "Microphone %1 Configuration"
-msgstr ""
+msgstr "麦克风 %1 配置"
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:84
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:63
@@ -11098,7 +11098,7 @@ msgstr "Wii 语音(&W)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:284
 msgid "&Logitech USB Microphone"
-msgstr ""
+msgstr "罗技 USB 麦克风(&L)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:289
 msgid "Start &NetPlay..."

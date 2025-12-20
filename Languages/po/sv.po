@@ -17,9 +17,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-26 20:51+0100\n"
+"POT-Creation-Date: 2025-12-20 20:43+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
-"Last-Translator: Daniel Nylander <po@danielnylander.se>, 2025\n"
+"Last-Translator: JosJuice, 2015-2025\n"
 "Language-Team: Swedish (http://app.transifex.com/dolphinemu/dolphin-emu/"
 "language/sv/)\n"
 "Language: sv\n"
@@ -2661,7 +2661,7 @@ msgid "Error synchronizing cheat codes!"
 msgstr "Ett fel uppstod med att synkronisera fuskkoder!"
 
 #: Source/Core/Core/PowerPC/CachedInterpreter/CachedInterpreter.cpp:338
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:864
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:865
 #: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:1052
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
@@ -3540,7 +3540,7 @@ msgstr "Rank %1"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:47
 msgid "Logged Out - Credentials Expired"
-msgstr ""
+msgstr "Utloggad - Inloggningen har gått ut"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:50
 msgid "Login Failed - Invalid Username/Password"
@@ -3686,17 +3686,19 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:116
 msgid "Show Leaderboard Tracker"
-msgstr ""
+msgstr "Visa ledartavlor"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:118
 msgid ""
 "Show the on-screen RetroAchievements leaderboard tracker.<br><br>This "
 "appears in the bottom-right corner while competing in a leaderboard."
 msgstr ""
+"Visa RetroAchievements ledartavla.<br><br>Denna visas i nedre högra hörnet "
+"när man tävlar i en utmaning."
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:121
 msgid "Show Challenge Indicators"
-msgstr ""
+msgstr "Visa utmaningsindikatorer"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:123
 msgid ""
@@ -3704,6 +3706,9 @@ msgid ""
 "appear as achievement badges in the bottom-right corner while tracking "
 "progress within a challenge."
 msgstr ""
+"Visa indikatorer för RetroAchievements-utmaningar på skärmen.<br><br> Dessa "
+"visas som prestationsmärken i det nedre högra hörnet medan du följer "
+"framstegen inom en utmaning."
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:126
 msgid "Enable Discord Presence"
@@ -6827,11 +6832,11 @@ msgstr "Grafikmoddar är avstängda."
 msgid "Post-Processing Shader Configuration"
 msgstr "Efterbehandlingsshaderkonfiguration"
 
-#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:38
+#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:29
 msgid "Only approved codes will be applied in hardcore mode."
 msgstr "Endast godkända koder kommer att användas i hardcore-läget."
 
-#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:39
+#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:32
 msgid "Achievement Settings"
 msgstr "Prestationsinställningar"
 
@@ -7610,7 +7615,7 @@ msgstr "Gränssnitt"
 
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:197
 msgid "On-Screen Display"
-msgstr ""
+msgstr "Skärmvisning"
 
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:198
 msgid "Audio"
@@ -7741,7 +7746,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:355
 msgid "Select a Bluetooth Device"
-msgstr ""
+msgstr "Välj en Bluetooth-enhet"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:387
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
@@ -10099,7 +10104,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:28
 msgid "Logitech USB Microphone Manager"
-msgstr ""
+msgstr "Hanterare för Logitech USB-mikrofon"
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:46
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:47
@@ -10108,7 +10113,7 @@ msgstr "Vissa inställningar kan inte ändras när emuleringen körs."
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:65
 msgid "Emulate Logitech USB Mic %1"
-msgstr ""
+msgstr "Emulera Logitech USB-mikrofon %1"
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:75
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:60
@@ -10118,7 +10123,7 @@ msgstr "Mikrofonkonfiguration"
 #. i18n: %1 is a number from 1 to 4.
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:81
 msgid "Microphone %1 Configuration"
-msgstr ""
+msgstr "Konfiguration för mikrofon %1"
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:84
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:63
@@ -11314,7 +11319,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/MainWindow.cpp:986
 msgid "Do you want to stop the current emulation?"
-msgstr "Vill du stoppa den aktuella emuleringen?"
+msgstr "Vill du stoppa emuleringen?"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1164
 msgid "Failed to init core"
@@ -11323,7 +11328,7 @@ msgstr "Misslyckades att initialisera kärnan"
 #: Source/Core/DolphinQt/MainWindow.cpp:1448
 #: Source/Core/DolphinQt/MainWindow.cpp:1460
 msgid "All Save States (*.sav *.s??);; All Files (*)"
-msgstr ""
+msgstr "Alla sparade tillstånd (*.sav *.s??);; Alla filer (*)"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1578
 #: Source/Core/DolphinQt/MainWindow.cpp:1645
@@ -11477,7 +11482,7 @@ msgstr "&Wii Speak"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:284
 msgid "&Logitech USB Microphone"
-msgstr ""
+msgstr "&Logitech USB-mikrofon"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:289
 msgid "Start &NetPlay..."
@@ -11887,11 +11892,11 @@ msgstr "Pausa vid slutet av inspelningar"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:850
 msgid "Enable Movie Window"
-msgstr ""
+msgstr "Aktivera filmfönster"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:856
 msgid "Customize Movie Window"
-msgstr ""
+msgstr "Anpassa filmfönster"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:860
 msgid "Dump Frames"
@@ -13402,6 +13407,11 @@ msgid ""
 "Presentation, while still maintaining most of the input latency benefits."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Justerar tiden för tidig bildpresentation adaptivt.<br><br> Detta kan "
+"förbättra bildtakten med Immediately Present XFB och/eller Rush Frame "
+"Presentation, samtidigt som de flesta fördelarna med ingångsfördröjningen "
+"bibehålls.<br><br><dolphin_emphasis>Om du är osäker kan du lämna detta "
+"omarkerat.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:145
 msgid "Clock Override"
@@ -14280,6 +14290,8 @@ msgid ""
 "<dolphin_emphasis>When Hardcore Mode is enabled, Speed Limit values less "
 "than 100% will be treated as 100%.</dolphin_emphasis>"
 msgstr ""
+"<dolphin_emphasis>När Hardcore-läget är aktiverat kommer värden för "
+"hastighetsbegränsning under 100% att behandlas som 100%.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:484
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:287
@@ -14320,15 +14332,15 @@ msgstr "(Mörk)"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:160
 msgid "(Fusion Light)"
-msgstr ""
+msgstr "(Fusion ljus)"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:162
 msgid "(Fusion Dark Gray)"
-msgstr ""
+msgstr "(Fusion mörkgrå)"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:164
 msgid "(Fusion Dark)"
-msgstr ""
+msgstr "(Fusion mörk)"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:174
 msgid "Use Built-In Database of Game Names"
@@ -14718,6 +14730,11 @@ msgid ""
 "renaming it OSD_Font.ttf.<br><br><dolphin_emphasis>If unsure, leave this at "
 "13.</dolphin_emphasis>"
 msgstr ""
+"Ändrar teckenstorleken på skärmen. Påverkar funktioner som "
+"prestandastatistik, bildräknare och netplay-chatt.<br><br>Typsnittet kan "
+"ändras genom att placera en TTF-typsnittsfil i Dolphins mapp User/Load och "
+"döpa om den till OSD_Font.ttf.<br><br><dolphin_emphasis>Om du är osäker kan "
+"du lämna detta på 13.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:150
 msgid ""
@@ -14835,6 +14852,9 @@ msgid ""
 "savestates.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
+"Visar hur många gånger inmatningsinspelningen har skrivits över med hjälp av "
+"sparade tillstånd.<br><br><dolphin_emphasis>Om du är osäker kan du lämna "
+"detta omarkerat.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:201
 msgid ""
@@ -14842,24 +14862,34 @@ msgid ""
 "Resets to 1 when inputs are processed. <br><br><dolphin_emphasis>If unsure, "
 "leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Visar hur många bildrutor som har passerat utan att styrenhetens ingångar "
+"har kontrollerats. Återställs till 1 när ingångarna har bearbetats. "
+"<br><br><dolphin_emphasis>Om du är osäker kan du lämna detta omarkerat.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:205
 msgid ""
 "Shows how many frames have passed. <br><br><dolphin_emphasis>If unsure, "
 "leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Visar hur många bildrutor som har passerat. <br><br><dolphin_emphasis>Om du "
+"är osäker kan du lämna detta omarkerat.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:208
 msgid ""
 "Shows the controls currently being input.<br><br><dolphin_emphasis>If "
 "unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Visar kontrollerna som matas in just nu. <br><br><dolphin_emphasis>Om du är "
+"osäker kan du lämna detta omarkerat.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:211
 msgid ""
 "Shows current system time.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"Visar aktuell systemtid.<br><br><dolphin_emphasis>Om du är osäker kan du "
+"lämna detta omarkerat.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:215
 msgid ""

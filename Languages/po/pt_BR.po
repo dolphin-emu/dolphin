@@ -46,7 +46,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-26 20:51+0100\n"
+"POT-Creation-Date: 2025-12-20 20:43+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Mateus B. Cassiano <mbc07@live.com>, 2017,2021-2025\n"
 "Language-Team: Portuguese (Brazil) (http://app.transifex.com/dolphinemu/"
@@ -2708,7 +2708,7 @@ msgid "Error synchronizing cheat codes!"
 msgstr "Erro ao sincronizar os códigos de trapaça!"
 
 #: Source/Core/Core/PowerPC/CachedInterpreter/CachedInterpreter.cpp:338
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:864
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:865
 #: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:1052
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
@@ -5235,11 +5235,11 @@ msgstr "Taxa de Bits (kbps):"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:152
 msgid "PNG Compression Level:"
-msgstr "PNG Compression Level:"
+msgstr "Nível de Compressão do PNG:"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:153
 msgid "PNG Compression Level"
-msgstr "Nível da Compressão do PNG"
+msgstr "Nível de Compressão do PNG"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:157
 msgid "Misc"
@@ -6915,11 +6915,11 @@ msgstr "Os mods gráficos estão desativados no momento."
 msgid "Post-Processing Shader Configuration"
 msgstr "Configurações do Shader de Pós-Processamento"
 
-#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:38
+#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:29
 msgid "Only approved codes will be applied in hardcore mode."
 msgstr "Somente códigos aprovados serão aplicados no modo hardcore."
 
-#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:39
+#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:32
 msgid "Achievement Settings"
 msgstr "Configurações das Conquistas"
 
@@ -7830,7 +7830,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:355
 msgid "Select a Bluetooth Device"
-msgstr ""
+msgstr "Selecionar um Dispositivo Bluetooth"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:387
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
@@ -10203,7 +10203,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:28
 msgid "Logitech USB Microphone Manager"
-msgstr ""
+msgstr "Gerenciador de Microfones USB Logitech"
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:46
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:47
@@ -10214,7 +10214,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:65
 msgid "Emulate Logitech USB Mic %1"
-msgstr ""
+msgstr "Emular Microfone USB Logitech %1"
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:75
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:60
@@ -10224,7 +10224,7 @@ msgstr "Configuração do Microfone"
 #. i18n: %1 is a number from 1 to 4.
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:81
 msgid "Microphone %1 Configuration"
-msgstr ""
+msgstr "Configuração do Microfone %1"
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:84
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:63
@@ -11600,7 +11600,7 @@ msgstr "&Wii Speak"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:284
 msgid "&Logitech USB Microphone"
-msgstr ""
+msgstr "Microfone USB &Logitech"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:289
 msgid "Start &NetPlay..."

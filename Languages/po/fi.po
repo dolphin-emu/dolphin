@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-26 20:51+0100\n"
+"POT-Creation-Date: 2025-12-20 20:43+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Aleksi, 2023-2025\n"
 "Language-Team: Finnish (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -1357,7 +1357,7 @@ msgstr "Mikrofoni"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:99
 msgid "Broadband Adapter (TAP)"
-msgstr "Broadband-sovitin (TAP)"
+msgstr "Laajakaistasovitin (TAP)"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:100
 msgid "Triforce Baseboard"
@@ -1377,15 +1377,15 @@ msgstr "Advance Game Port"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:104
 msgid "Broadband Adapter (XLink Kai)"
-msgstr "Broadband-sovitin (XLink Kai)"
+msgstr "Laajakaistasovitin (XLink Kai)"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:105
 msgid "Broadband Adapter (tapserver)"
-msgstr "Broadband-sovitin (tapserver)"
+msgstr "Laajakaistasovitin (tapserver)"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:106
 msgid "Broadband Adapter (HLE)"
-msgstr "Broadband-sovitin (HLE)"
+msgstr "Laajakaistasovitin (HLE)"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:107
 msgid "Modem Adapter (tapserver)"
@@ -1393,7 +1393,7 @@ msgstr "Modeemisovitin (tap-palvelin)"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:108
 msgid "Broadband Adapter (IPC)"
-msgstr ""
+msgstr "Laajakaistasovitin (IPC)"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:132
 msgid "<Nothing>"
@@ -2661,7 +2661,7 @@ msgid "Error synchronizing cheat codes!"
 msgstr "Virhe huijauskoodien synkronoinnissa!"
 
 #: Source/Core/Core/PowerPC/CachedInterpreter/CachedInterpreter.cpp:338
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:864
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:865
 #: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:1052
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
@@ -3525,7 +3525,7 @@ msgstr "Taso %1"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:47
 msgid "Logged Out - Credentials Expired"
-msgstr ""
+msgstr "Sisäänkirjautuminen vanheni"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:50
 msgid "Login Failed - Invalid Username/Password"
@@ -3676,17 +3676,19 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:116
 msgid "Show Leaderboard Tracker"
-msgstr ""
+msgstr "Näytä tulostaulukon seuranta"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:118
 msgid ""
 "Show the on-screen RetroAchievements leaderboard tracker.<br><br>This "
 "appears in the bottom-right corner while competing in a leaderboard."
 msgstr ""
+"Näyttää ruudun päällä RetroAchievements-tulosten seurannan.<br><br>Taulukko "
+"näkyy alaoikeassa nurkassa, kun kilpailet sijoituksista."
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:121
 msgid "Show Challenge Indicators"
-msgstr ""
+msgstr "Näytä haasteilmaisimet"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:123
 msgid ""
@@ -3694,6 +3696,8 @@ msgid ""
 "appear as achievement badges in the bottom-right corner while tracking "
 "progress within a challenge."
 msgstr ""
+"Näyttää ruudun päälle RetroAchievements-haasteilmaisimet.<br><br>Ne näkyvät "
+"ansiomerkkeinä alaoikeassa kulmassa, kun seuraat haasteiden edistymistä."
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:126
 msgid "Enable Discord Presence"
@@ -4100,7 +4104,7 @@ msgstr "Luo Action Replay -koodi(t)"
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:512
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:602
 msgid "Write value"
-msgstr ""
+msgstr "Kirjoita arvo"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:572
 msgid "Multiple errors occurred while generating AR codes."
@@ -4129,11 +4133,11 @@ msgstr "Arvo:"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:608
 msgid "Invalid value."
-msgstr ""
+msgstr "Arvo ei kelpaa."
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:620
 msgid "There was an error writing (some) values."
-msgstr ""
+msgstr "Joidenkin arvojen kirjoitus epäonnistui."
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:657
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:47
@@ -4424,11 +4428,11 @@ msgstr "Vaihtoehtoiset syötelähteet"
 
 #: Source/Core/DolphinQt/Config/ConfigControls/ConfigUserPath.cpp:45
 msgid "Empty Value"
-msgstr ""
+msgstr "Tyhjä arvo"
 
 #: Source/Core/DolphinQt/Config/ConfigControls/ConfigUserPath.cpp:46
 msgid "This field cannot be left empty. Please enter a value."
-msgstr ""
+msgstr "Tämä kenttä ei voi olla tyhjä. Valitse jokin arvo"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.cpp:30
 msgid "DSU Client"
@@ -4826,6 +4830,8 @@ msgid ""
 "Failed to create the configuration file:\n"
 "%1"
 msgstr ""
+"Määritystiedoston luonti epäonnistui:\n"
+"%1"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:273
 msgid ""
@@ -6839,11 +6845,11 @@ msgstr "Grafiikkamodit ovat tällä hetkellä pois päältä."
 msgid "Post-Processing Shader Configuration"
 msgstr "Jälkikäsittelyvarjostimen asetukset"
 
-#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:38
+#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:29
 msgid "Only approved codes will be applied in hardcore mode."
 msgstr "Vain erikseen hyväksyttyjä koodeja voi käyttää hardcore-tilassa."
 
-#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:39
+#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:32
 msgid "Achievement Settings"
 msgstr "Saavutusasetukset"
 
@@ -7353,7 +7359,7 @@ msgstr "Poista"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:156
 msgid "Open Folder"
-msgstr ""
+msgstr "Avaa kansio"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:285
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:324
@@ -7622,7 +7628,7 @@ msgstr "Käyttöliittymä"
 
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:197
 msgid "On-Screen Display"
-msgstr ""
+msgstr "Ruudunpäällinen näkymä"
 
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:198
 msgid "Audio"
@@ -7692,7 +7698,7 @@ msgstr "Automaattinen"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:146
 msgid "More Options..."
-msgstr ""
+msgstr "Lisää asetuksia..."
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:192
 msgid "Wii Remotes"
@@ -7753,7 +7759,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:355
 msgid "Select a Bluetooth Device"
-msgstr ""
+msgstr "Valitse Bluetooth-laite"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:387
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
@@ -9133,7 +9139,7 @@ msgstr "Loppuun jatkaminen onnistui!"
 
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:20
 msgid "Edit Symbol"
-msgstr ""
+msgstr "Muokkaa symbolia"
 
 #. i18n: %1 is an address. %2 is a warning message.
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:33
@@ -9141,24 +9147,28 @@ msgid ""
 "Editing symbol starting at: %1\n"
 "%2"
 msgstr ""
+"Symbolia muokataan kohdassa %1\n"
+"%2"
 
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:34
 msgid ""
 "Editing note starting at: %1\n"
 "%2"
 msgstr ""
+"Muistiinpanoa muokataan kohdassa %1\n"
+"%2"
 
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:36
 msgid "Warning: Must save the symbol map for changes to be kept."
-msgstr ""
+msgstr "Varoitus: Symbolikartta on tallennettava, jotta muutokset säilyvät.."
 
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:38
 msgid "Symbol name"
-msgstr ""
+msgstr "Symbolin nimi"
 
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:38
 msgid "Note name"
-msgstr ""
+msgstr "Muistiinpanon nimi"
 
 #. i18n: The address where a symbol ends
 #: Source/Core/DolphinQt/Debugger/EditSymbolDialog.cpp:42
@@ -10108,7 +10118,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:28
 msgid "Logitech USB Microphone Manager"
-msgstr ""
+msgstr "Logitechin USB-mikrofonin muokkaus"
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:46
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:47
@@ -10117,7 +10127,7 @@ msgstr "Kaikkia asetuksia ei voida muuttaa emuloinnin ollessa käynnissä."
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:65
 msgid "Emulate Logitech USB Mic %1"
-msgstr ""
+msgstr "Emuloi Logitechin USB-mikrofonia %1"
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:75
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:60
@@ -10127,7 +10137,7 @@ msgstr "Mikrofonin asetukset"
 #. i18n: %1 is a number from 1 to 4.
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:81
 msgid "Microphone %1 Configuration"
-msgstr ""
+msgstr "%1. mikrofonin määritys"
 
 #: Source/Core/DolphinQt/EmulatedUSB/LogitechMicWindow.cpp:84
 #: Source/Core/DolphinQt/EmulatedUSB/WiiSpeakWindow.cpp:63
@@ -11336,7 +11346,7 @@ msgstr "Ytimen alustus epäonnistui"
 #: Source/Core/DolphinQt/MainWindow.cpp:1448
 #: Source/Core/DolphinQt/MainWindow.cpp:1460
 msgid "All Save States (*.sav *.s??);; All Files (*)"
-msgstr ""
+msgstr "Kaikki tilatallennukset (*.sav *.s??);; Kaikki tiedostot (*)"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1578
 #: Source/Core/DolphinQt/MainWindow.cpp:1645
@@ -11490,7 +11500,7 @@ msgstr "&Wii Speak"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:284
 msgid "&Logitech USB Microphone"
-msgstr ""
+msgstr "&Logitechin USB-mikrofoni"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:289
 msgid "Start &NetPlay..."
@@ -11900,11 +11910,11 @@ msgstr "Keskeytä nauhoituksen loputtua"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:850
 msgid "Enable Movie Window"
-msgstr ""
+msgstr "Ota nauhoiteikkuna käyttöön"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:856
 msgid "Customize Movie Window"
-msgstr ""
+msgstr "Määritä nauhoiteikkuna"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:860
 msgid "Dump Frames"
@@ -13385,7 +13395,7 @@ msgstr ""
 #. i18n: "Rush" is a verb
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:119
 msgid "Rush Frame Presentation"
-msgstr ""
+msgstr "Kiirehdi kehysten esitystä"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:121
 msgid ""
@@ -13396,11 +13406,19 @@ msgid ""
 "of at least 80 ms is recommended to ensure full effect."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Rajoittaa viivettä syötteen ja kehysesityksen välillä. Emulointia "
+"nopeutetaan hetkellisesti kehyksen esitykseen asti, jolloin kehykset näkyvät "
+"aiemmin, mikä vähentää syöteviivettä.<br><br>Asetuksen valitseminen "
+"heikentää yleisesti ottaen kehysten rytmistä.<br>Asetus voidaan valita joko "
+"välittömän XFB-esityksen kanssa tai ilman.<br>Täyden vaikutuksen "
+"saavuttamiseksi suositellaan 80 ms:n äänipuskuria."
+"<br><br><dolphin_emphasis>Ellet ole varma, jätä tämä valitsematta.</"
+"dolphin_emphasis>"
 
 #. i18n: "Smooth" is a verb
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:132
 msgid "Smooth Early Presentation"
-msgstr ""
+msgstr "Tasoita kehysten aikaistettua esitystä"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:134
 msgid ""
@@ -13409,6 +13427,12 @@ msgid ""
 "Presentation, while still maintaining most of the input latency benefits."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Säätää kehysten aikaistettua esitystä mukautuvasti.<br><br>Asetus voi "
+"parantaa kehysten rytmitystä, kun välitön XFB-esitys ja/tai kehysesityksen "
+"kiirehdintä ovat valittuna. Kun myös tämä asetus on valittu, jäljempänä "
+"mainittujen hyöty syöteviiveen kannalta säilyy enimmäkseen."
+"<br><br><dolphin_emphasis>Ellet ole varma, jätä tämä valitsematta.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:145
 msgid "Clock Override"
@@ -13528,11 +13552,11 @@ msgstr ""
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:319
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:404
 msgid "Reset Dolphin Settings"
-msgstr ""
+msgstr "Nollaa Dolphinin asetukset"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:323
 msgid "Reset All Settings"
-msgstr ""
+msgstr "Nollaa kaikki asetukset"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:405
 msgid ""
@@ -13542,6 +13566,11 @@ msgid ""
 "\n"
 "Do you want to proceed?"
 msgstr ""
+"Oletko varma, että haluat palauttaa Dolphinin asetukset oletusarvoihinsa? "
+"Toimintoa ei voi kumota!\n"
+"Kaikki tekemäsi muutokset unohtuvat.\n"
+"\n"
+"Haluatko jatkaa?"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:38
 msgid "%1%"
@@ -13777,7 +13806,7 @@ msgstr "Viive"
 #. interface (physical) like a serial number. "MAC" should be kept in translations.
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:39
 msgid "Enter new Broadband Adapter MAC address:"
-msgstr "Syötä uusi Broadband-sovittimen MAC-osoite:"
+msgstr "Syötä uusi laajakaistasovittimen MAC-osoite:"
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:42
 msgid ""
@@ -13791,7 +13820,7 @@ msgstr ""
 #. interface (physical) like a serial number. "MAC" should be kept in translations.
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:48
 msgid "Broadband Adapter MAC Address"
-msgstr "Broadband-sovittimen MAC-osoit"
+msgstr "Laajakaistasovittimen MAC-osoite"
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:59
 msgid "Destination (address:port):"
@@ -13834,7 +13863,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:83
 msgid "Broadband Adapter DNS setting"
-msgstr "Broadband-sovittimen DNS-asetukset"
+msgstr "Laajakaistasovittimen DNS-asetukset"
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:87
 msgid "Enter IP address of device running the XLink Kai Client:"
@@ -13854,7 +13883,7 @@ msgstr "XLink Kai BBA -kohdeosoite"
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:133
 msgid "Broadband Adapter Error"
-msgstr "Broadband-sovittimen virhe"
+msgstr "Laajakaistasovittimen virhe"
 
 #. i18n: MAC stands for Media Access Control. A MAC address uniquely identifies a network
 #. interface (physical) like a serial number. "MAC" should be kept in translations.
@@ -14295,6 +14324,8 @@ msgid ""
 "<dolphin_emphasis>When Hardcore Mode is enabled, Speed Limit values less "
 "than 100% will be treated as 100%.</dolphin_emphasis>"
 msgstr ""
+"<dolphin_emphasis>Kun Hardcore-tila on käytössä, alle 100 %:n "
+"nopeusrajoitukset tulkitaan poikkeuksellisesti 100 %:ksi.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:484
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:287
@@ -14335,15 +14366,15 @@ msgstr "(Tumma)"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:160
 msgid "(Fusion Light)"
-msgstr ""
+msgstr "(Fusion Vaalea)"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:162
 msgid "(Fusion Dark Gray)"
-msgstr ""
+msgstr "(Fusion Tummanharmaa)"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:164
 msgid "(Fusion Dark)"
-msgstr ""
+msgstr "(Fusion Tumma)"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:174
 msgid "Use Built-In Database of Game Names"
@@ -14627,11 +14658,11 @@ msgstr "Tyyli"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:32
 msgid "Show Messages"
-msgstr ""
+msgstr "Näytä viestit"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:36
 msgid "Font Size:"
-msgstr ""
+msgstr "Kirjasinkoko:"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:40
 msgid "Performance Statistics"
@@ -14672,11 +14703,11 @@ msgstr "Suorituskyvyn otosikkuna (ms)"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:66
 msgid "Movie Window"
-msgstr ""
+msgstr "Nauhoiteikkuna"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:70
 msgid "Show Movie Window"
-msgstr ""
+msgstr "Näytä nauhoiteikkuna"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:72
 msgid "Show Rerecord Counter"
@@ -14700,7 +14731,7 @@ msgstr "Näytä järjestelmän kellonaika"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:86
 msgid "Netplay"
-msgstr ""
+msgstr "Nettipeli"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:90
 msgid "Show NetPlay Ping"
@@ -14708,7 +14739,7 @@ msgstr "Näytä nettipelin vasteaika"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:91
 msgid "Show NetPlay Chat"
-msgstr ""
+msgstr "Näytä nettipelin keskustelu"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:101
 msgid "Show Statistics"
@@ -14736,6 +14767,11 @@ msgid ""
 "renaming it OSD_Font.ttf.<br><br><dolphin_emphasis>If unsure, leave this at "
 "13.</dolphin_emphasis>"
 msgstr ""
+"Muuttaa ruudunpäällisen näkymän kirjasinkokoa. Asetus vaikuttaa muun muassa "
+"suorituskykytilastonäkymään, kehyslaskuriin ja nettipelin keskusteluun."
+"<br><br>Kirjasinta voi muutaa tallentamalla Dolphinin User/Load-kansioon TTF-"
+"kirjasintiedoston, jonka nimen on oltava OSD_Font.ttf."
+"<br><br><dolphin_emphasis>Ellet ole varma, valitse 13.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:150
 msgid ""
@@ -14843,6 +14879,9 @@ msgid ""
 "window. <br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
+"Näyttää ikkunan, jossa voi näkyä nauhoitteisiin liittyviä tietoja. Muut "
+"asetukset valitsevat, mitä ikkunassa näkyy.<br><br><dolphin_emphasis>Ellet "
+"ole varma, jätä tämä valitsematta..</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:197
 msgid ""
@@ -14850,6 +14889,9 @@ msgid ""
 "savestates.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
+"Näyttää, montako kertaa nauhoitteen osia on korvattu käyttämällä "
+"tilantallennuksia.<br><br><dolphin_emphasis>Ellet ole varma, jätä tämä "
+"valitsematta.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:201
 msgid ""
@@ -14857,24 +14899,34 @@ msgid ""
 "Resets to 1 when inputs are processed. <br><br><dolphin_emphasis>If unsure, "
 "leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Näyttää montako kehystä on kulunut ilman, että peli on tarkistanut ohjainten "
+"syötteitä. Palaa arvoon 1, kun syötteitä käsitellään."
+"<br><br><dolphin_emphasis>Ellet ole varma, jätä tämä valitsematta.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:205
 msgid ""
 "Shows how many frames have passed. <br><br><dolphin_emphasis>If unsure, "
 "leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Näyttää, montako kehystä on kulunut.<br><br><dolphin_emphasis>Ellet ole "
+"varma, jätä tämä valitsematta.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:208
 msgid ""
 "Shows the controls currently being input.<br><br><dolphin_emphasis>If "
 "unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Näyttää, mitä syötettä ohjaimet tuottavat.<br><br><dolphin_emphasis>Ellet "
+"ole varma, jätä tämä valitsematta.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:211
 msgid ""
 "Shows current system time.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
+"Näyttää järjestelmän nykyisen kellonajan.<br><br><dolphin_emphasis>Ellet ole "
+"varma, jätä tämä valitsematta.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:215
 msgid ""
@@ -14954,7 +15006,7 @@ msgstr "WFS-polku:"
 
 #: Source/Core/DolphinQt/Settings/USBDevicePicker.cpp:51
 msgid "Select"
-msgstr ""
+msgstr "Valitse"
 
 #: Source/Core/DolphinQt/Settings/USBDevicePicker.cpp:60
 msgid "Enter USB device ID"

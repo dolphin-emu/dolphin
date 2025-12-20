@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-26 20:51+0100\n"
+"POT-Creation-Date: 2025-12-20 20:43+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: mansoor <asseryma@hotmail.com>, 2013,2015-2025\n"
 "Language-Team: Arabic (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -39,7 +39,7 @@ msgstr "كتب إلى ”{0}“."
 
 #: Source/Android/jni/WiiUtils.cpp:114
 msgid "The decryption keys need to be appended to the NAND backup file."
-msgstr ""
+msgstr "NAND يجب إرفاق مفاتيح فك التشفير بملف النسخ الاحتياطي"
 
 #: Source/Core/AudioCommon/OpenALStream.cpp:99
 msgid "OpenAL: can't find sound devices"
@@ -2509,7 +2509,7 @@ msgid "Error synchronizing cheat codes!"
 msgstr "خطأ في مزامنة الرموز"
 
 #: Source/Core/Core/PowerPC/CachedInterpreter/CachedInterpreter.cpp:338
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:864
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:865
 #: Source/Core/Core/PowerPC/JitArm64/Jit.cpp:1052
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
@@ -3346,7 +3346,7 @@ msgstr "الترتيب %1"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:47
 msgid "Logged Out - Credentials Expired"
-msgstr ""
+msgstr "تسجيل الخروج - انتهت صلاحية بيانات الاعتماد"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:50
 msgid "Login Failed - Invalid Username/Password"
@@ -3457,7 +3457,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:116
 msgid "Show Leaderboard Tracker"
-msgstr ""
+msgstr "عرض متتبع قائمة المتصدرين"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:118
 msgid ""
@@ -3467,7 +3467,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:121
 msgid "Show Challenge Indicators"
-msgstr ""
+msgstr "عرض مؤشرات التحدي"
 
 #: Source/Core/DolphinQt/Achievements/AchievementSettingsWidget.cpp:123
 msgid ""
@@ -3878,7 +3878,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:572
 msgid "Multiple errors occurred while generating AR codes."
-msgstr ""
+msgstr "AR حدثت أخطاء متعددة أثناء إنشاء رموز"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:579
 msgid "Can only generate AR code for values in virtual memory."
@@ -3903,11 +3903,11 @@ msgstr "القيمة"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:608
 msgid "Invalid value."
-msgstr ""
+msgstr "قيمة غير صالحة."
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:620
 msgid "There was an error writing (some) values."
-msgstr ""
+msgstr "حدث خطأ أثناء كتابة (بعض) القيم."
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:657
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:47
@@ -4196,11 +4196,11 @@ msgstr "مصادر الإدخال البديلة"
 
 #: Source/Core/DolphinQt/Config/ConfigControls/ConfigUserPath.cpp:45
 msgid "Empty Value"
-msgstr ""
+msgstr "قيمة فارغة"
 
 #: Source/Core/DolphinQt/Config/ConfigControls/ConfigUserPath.cpp:46
 msgid "This field cannot be left empty. Please enter a value."
-msgstr ""
+msgstr "لا يمكن ترك هذا الحقل فارغًا. يرجى إدخال قيمة."
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.cpp:30
 msgid "DSU Client"
@@ -4584,6 +4584,8 @@ msgid ""
 "Failed to create the configuration file:\n"
 "%1"
 msgstr ""
+"فشل إنشاء ملف الإعدادات:\n"
+"%1"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:273
 msgid ""
@@ -6189,11 +6191,11 @@ msgstr "تعديلات الرسومات معطلة حاليا"
 msgid "Post-Processing Shader Configuration"
 msgstr "إعداد تظليل ما بعد المعالجة"
 
-#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:38
+#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:29
 msgid "Only approved codes will be applied in hardcore mode."
 msgstr "سيتم تطبيق الشفرات المعتمدة فقط في وضع الصعوبة العالية."
 
-#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:39
+#: Source/Core/DolphinQt/Config/HardcoreWarningWidget.cpp:32
 msgid "Achievement Settings"
 msgstr "إعدادات الإنجاز"
 
@@ -6470,11 +6472,11 @@ msgstr "إعداد الإخراج"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:288
 msgid "Insert Input"
-msgstr ""
+msgstr "إدراج الإدخال"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:288
 msgid "Insert Output"
-msgstr ""
+msgstr "إدراج الإخراج"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:289
 msgid "Detect Input"
@@ -6701,7 +6703,7 @@ msgstr "حذف"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:156
 msgid "Open Folder"
-msgstr ""
+msgstr "فتح المجلد"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:285
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:324
@@ -7099,7 +7101,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:355
 msgid "Select a Bluetooth Device"
-msgstr ""
+msgstr "حدد جهاز البلوتوث"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:387
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
@@ -7450,19 +7452,19 @@ msgstr "أداة مراقبة الفرع"
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:251
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:585
 msgid "Start Branch Watch"
-msgstr ""
+msgstr "بدء مراقبة الفرع"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:256
 msgid "Clear Branch Watch"
-msgstr ""
+msgstr "مسح مراقبة الفرع"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:260
 msgid "Code Path Was Taken"
-msgstr ""
+msgstr "تم أخذ مسار الرمز"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:265
 msgid "Code Path Not Taken"
-msgstr ""
+msgstr "مسار الرمز غير مأخوذ"
 
 #: Source/Core/DolphinQt/Debugger/BranchWatchDialog.cpp:276
 msgid "Tool Controls"
@@ -9525,7 +9527,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:235
 msgid "Open FIFO Log"
-msgstr ""
+msgstr "FIFO فتح سجل"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:236
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:247
@@ -9534,7 +9536,7 @@ msgstr "Dolphin FIFO Log (*.dff)"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:246
 msgid "Save FIFO Log"
-msgstr ""
+msgstr "FIFO حفظ سجل"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:258
 msgid "Failed to save FIFO log."
@@ -9831,7 +9833,7 @@ msgstr "نوع الضغط"
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:259
 #: Source/Core/DolphinQt/MenuBar.cpp:723
 msgid "Time Played"
-msgstr "الوقت الذي تم لعبه"
+msgstr "الوقت الذي لعبت فيه"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:1148
 msgid "New tag"
@@ -10540,7 +10542,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1811
 msgid "Select NAND Backup"
-msgstr ""
+msgstr "NAND تحديد نسخة احتياطية"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1812
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
@@ -11245,7 +11247,7 @@ msgstr "%1 تحميل قائمة نظام وي"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1163
 msgid "Select Title to Install to NAND"
-msgstr ""
+msgstr "NAND حدد العنوان المراد تثبيته على"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1164
 msgid "WAD files (*.wad)"
@@ -12525,7 +12527,7 @@ msgstr "VBI تمكين تجاوز تردد"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:219
 msgid "%1% (%2 VPS)"
-msgstr ""
+msgstr "%1% (%2 VPS)"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:226
 msgid ""
@@ -13515,7 +13517,7 @@ msgstr "عرض الرسائل"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:36
 msgid "Font Size:"
-msgstr "حجم الخط:"
+msgstr ":حجم الخط"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:40
 msgid "Performance Statistics"
@@ -13813,7 +13815,7 @@ msgstr "مسار WFS"
 
 #: Source/Core/DolphinQt/Settings/USBDevicePicker.cpp:51
 msgid "Select"
-msgstr ""
+msgstr "اختر"
 
 #: Source/Core/DolphinQt/Settings/USBDevicePicker.cpp:60
 msgid "Enter USB device ID"
