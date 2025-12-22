@@ -20,7 +20,7 @@ public:
 
   void Display();
   void AppendChat(std::string message, Color color);
-  void SendMessage();
+  void SendChatMessage();
   void Activate();
 
 private:
