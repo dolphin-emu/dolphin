@@ -77,7 +77,7 @@ PUBLIC
 
 PRIVATE
   fmt::fmt
-  minizip-ng::minizip-ng
+  MINIZIP::minizip-ng
   pugixml
   ZLIB::ZLIB
 )
