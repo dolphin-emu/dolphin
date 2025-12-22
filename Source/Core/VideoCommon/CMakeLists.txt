@@ -8,13 +8,14 @@ add_library(videocommon
   AbstractStagingTexture.h
   AbstractTexture.cpp
   AbstractTexture.h
+  Assets/AssetListener.h
   Assets/CustomAsset.cpp
   Assets/CustomAsset.h
+  Assets/CustomAssetCache.cpp
+  Assets/CustomAssetCache.h
   Assets/CustomAssetLibrary.h
   Assets/CustomAssetLoader.cpp
   Assets/CustomAssetLoader.h
-  Assets/CustomResourceManager.cpp
-  Assets/CustomResourceManager.h
   Assets/CustomTextureData.cpp
   Assets/CustomTextureData.h
   Assets/DirectFilesystemAssetLibrary.cpp
@@ -133,6 +134,8 @@ add_library(videocommon
   PerformanceMetrics.h
   PerformanceTracker.cpp
   PerformanceTracker.h
+  PipelineUtils.cpp
+  PipelineUtils.h
   PixelEngine.cpp
   PixelEngine.h
   PixelShaderGen.cpp
@@ -145,6 +148,22 @@ add_library(videocommon
   Present.h
   RenderState.cpp
   RenderState.h
+  Resources/CustomResourceManager.cpp
+  Resources/CustomResourceManager.h
+  Resources/InvalidTextures.cpp
+  Resources/InvalidTextures.h
+  Resources/MaterialResource.cpp
+  Resources/MaterialResource.h
+  Resources/Resource.cpp
+  Resources/Resource.h
+  Resources/ShaderResource.cpp
+  Resources/ShaderResource.h
+  Resources/TextureAndSamplerResource.cpp
+  Resources/TextureAndSamplerResource.h
+  Resources/TextureDataResource.cpp
+  Resources/TextureDataResource.h
+  Resources/TexturePool.cpp
+  Resources/TexturePool.h
   ShaderCache.cpp
   ShaderCache.h
   ShaderCompileUtils.cpp

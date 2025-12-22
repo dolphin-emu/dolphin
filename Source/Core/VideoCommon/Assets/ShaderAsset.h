@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <memory>
 #include <span>
 #include <string>
 #include <string_view>
@@ -13,6 +14,7 @@
 #include <picojson.h>
 
 #include "VideoCommon/Assets/CustomAsset.h"
+#include "VideoCommon/ShaderCompileUtils.h"
 #include "VideoCommon/TextureConfig.h"
 
 class ShaderCode;
@@ -45,6 +47,13 @@ struct ShaderProperty
 
 struct RasterSurfaceShaderData
 {
+  RasterSurfaceShaderData() = default;
+  RasterSurfaceShaderData(const RasterSurfaceShaderData&) = delete;
+  RasterSurfaceShaderData(RasterSurfaceShaderData&&) = default;
+  ~RasterSurfaceShaderData() = default;
+  RasterSurfaceShaderData& operator=(const RasterSurfaceShaderData&) = delete;
+  RasterSurfaceShaderData& operator=(RasterSurfaceShaderData&&) = default;
+
   static bool FromJson(const CustomAssetLibrary::AssetID& asset_id, const picojson::object& json,
                        RasterSurfaceShaderData* data);
   static void ToJson(picojson::object& obj, const RasterSurfaceShaderData& data);
@@ -65,6 +74,8 @@ struct RasterSurfaceShaderData
     bool operator==(const SamplerData&) const = default;
   };
   std::vector<SamplerData> samplers;
+
+  std::unique_ptr<VideoCommon::ShaderIncluder> shader_includer;
 };
 
 class RasterSurfaceShaderAsset final : public CustomLoadableAsset<RasterSurfaceShaderData>
