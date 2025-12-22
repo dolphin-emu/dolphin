@@ -485,6 +485,7 @@
     <ClInclude Include="Core\WiiUtils.h" />
     <ClInclude Include="DiscIO\Blob.h" />
     <ClInclude Include="DiscIO\CISOBlob.h" />
+    <ClInclude Include="DiscIO\CachedBlob.h" />
     <ClInclude Include="DiscIO\CompressedBlob.h" />
     <ClInclude Include="DiscIO\DirectoryBlob.h" />
     <ClInclude Include="DiscIO\DiscExtractor.h" />
@@ -1170,6 +1171,7 @@
     <ClCompile Include="Core\WC24PatchEngine.cpp" />
     <ClCompile Include="DiscIO\Blob.cpp" />
     <ClCompile Include="DiscIO\CISOBlob.cpp" />
+    <ClCompile Include="DiscIO\CachedBlob.cpp" />
     <ClCompile Include="DiscIO\CompressedBlob.cpp" />
     <ClCompile Include="DiscIO\DirectoryBlob.cpp" />
     <ClCompile Include="DiscIO\DiscExtractor.cpp" />
