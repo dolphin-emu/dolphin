@@ -278,12 +278,13 @@ void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
         if (intersection_start < intersection_end)
         {
           // Found an overlapping region; map it.
+          u32 mapped_logical_address = logical_address + intersection_start - translated_address;
+          u32 mapped_size = intersection_end - intersection_start;
 
           if (m_is_fastmem_arena_initialized)
           {
             u32 position = physical_region.shm_position + intersection_start - mapping_address;
-            u8* base = m_logical_base + logical_address + intersection_start - translated_address;
-            u32 mapped_size = intersection_end - intersection_start;
+            u8* base = m_logical_base + mapped_logical_address;
 
             void* mapped_pointer = m_arena.MapInMemoryRegion(position, mapped_size, base);
             if (!mapped_pointer)
@@ -297,8 +298,10 @@ void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
             m_logical_mapped_entries.push_back({mapped_pointer, mapped_size});
           }
 
-          m_logical_page_mappings[i] =
-              *physical_region.out_pointer + intersection_start - mapping_address;
+          u32 bat_index = mapped_logical_address / PowerPC::BAT_PAGE_SIZE;
+          u8* target_address = *physical_region.out_pointer + intersection_start - mapping_address;
+          for (u32 j = 0; j < mapped_size / PowerPC::BAT_PAGE_SIZE; ++j)
+            m_logical_page_mappings[bat_index + j] = target_address + j * PowerPC::BAT_PAGE_SIZE;
         }
       }
     }
