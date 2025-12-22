@@ -284,7 +284,7 @@ static bool TryInstallTranslator(const QString& exact_language_code)
 #elif defined LINUX_LOCAL_DEV
         fmt::format("{}/../Source/Core/DolphinQt/{}/dolphin-emu.mo", File::GetExeDirectory(), lang)
 #else
-        fmt::format("{}/../locale/{}/LC_MESSAGES/dolphin-emu.mo", DATA_DIR, lang)
+        fmt::format("{}/locale/{}/LC_MESSAGES/dolphin-emu.mo", DATA_ROOT_DIR, lang)
 #endif
         ;
 
