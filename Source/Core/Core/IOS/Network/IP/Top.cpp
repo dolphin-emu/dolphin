@@ -786,8 +786,8 @@ IPCReply NetIPTopDevice::HandleGetPeerNameRequest(const IOCtlRequest& request)
 
 IPCReply NetIPTopDevice::HandleGetHostIDRequest(const IOCtlRequest& request)
 {
-  const DefaultInterface interface = GetSystemDefaultInterfaceOrFallback();
-  const u32 host_ip = ntohl(interface.inet.s_addr);
+  const DefaultInterface net_interface = GetSystemDefaultInterfaceOrFallback();
+  const u32 host_ip = ntohl(net_interface.inet.s_addr);
   INFO_LOG_FMT(IOS_NET, "IOCTL_SO_GETHOSTID = {}.{}.{}.{}", host_ip >> 24, (host_ip >> 16) & 0xFF,
                (host_ip >> 8) & 0xFF, host_ip & 0xFF);
   return IPCReply(host_ip);
@@ -1159,10 +1159,10 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
     // XXX: this isn't exactly right; the buffer can be larger than 12 bytes,
     // in which case, depending on some interface settings, SO can write 12 more bytes
     memory.Write_U32(0xC, request.io_vectors[1].address);
-    const DefaultInterface interface = GetSystemDefaultInterfaceOrFallback();
-    memory.Write_U32(ntohl(interface.inet.s_addr), request.io_vectors[0].address);
-    memory.Write_U32(ntohl(interface.netmask.s_addr), request.io_vectors[0].address + 4);
-    memory.Write_U32(ntohl(interface.broadcast.s_addr), request.io_vectors[0].address + 8);
+    const DefaultInterface net_interface = GetSystemDefaultInterfaceOrFallback();
+    memory.Write_U32(ntohl(net_interface.inet.s_addr), request.io_vectors[0].address);
+    memory.Write_U32(ntohl(net_interface.netmask.s_addr), request.io_vectors[0].address + 4);
+    memory.Write_U32(ntohl(net_interface.broadcast.s_addr), request.io_vectors[0].address + 8);
     break;
   }
 
@@ -1174,8 +1174,8 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
 
   case 0x4006:  // get routing table
   {
-    const DefaultInterface interface = GetSystemDefaultInterfaceOrFallback();
-    for (InterfaceRouting route : interface.routing_table)
+    const DefaultInterface net_interface = GetSystemDefaultInterfaceOrFallback();
+    for (InterfaceRouting route : net_interface.routing_table)
     {
       memory.Write_U32(ntohl(route.destination.s_addr), request.io_vectors[0].address + param5);
       memory.Write_U32(ntohl(route.netmask.s_addr), request.io_vectors[0].address + param5 + 4);

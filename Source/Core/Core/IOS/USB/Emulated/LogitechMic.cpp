@@ -161,13 +161,13 @@ bool LogitechMic::Attach()
   return true;
 }
 
-bool LogitechMic::AttachAndChangeInterface(const u8 interface)
+bool LogitechMic::AttachAndChangeInterface(const u8 iface)
 {
   if (!Attach())
     return false;
 
-  if (interface != m_active_interface)
-    return ChangeInterface(interface) == 0;
+  if (iface != m_active_interface)
+    return ChangeInterface(iface) == 0;
 
   return true;
 }
@@ -180,17 +180,17 @@ int LogitechMic::CancelTransfer(const u8 endpoint)
   return IPC_SUCCESS;
 }
 
-int LogitechMic::ChangeInterface(const u8 interface)
+int LogitechMic::ChangeInterface(const u8 iface)
 {
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}:{}] Changing interface to {}", m_vid, m_pid, m_index,
-                m_active_interface, interface);
-  m_active_interface = interface;
+                m_active_interface, iface);
+  m_active_interface = iface;
   return 0;
 }
 
-int LogitechMic::GetNumberOfAltSettings(u8 interface)
+int LogitechMic::GetNumberOfAltSettings(u8 iface)
 {
-  if (interface == 1)
+  if (iface == 1)
     return 2;
 
   return 0;
