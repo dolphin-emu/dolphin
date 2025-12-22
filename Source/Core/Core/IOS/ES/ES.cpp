@@ -256,11 +256,10 @@ IPCReply ESDevice::GetTitleId(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-static bool UpdateUIDAndGID(EmulationKernel& kernel, const ES::TMDReader& tmd)
+static bool UpdateUIDAndGID(EmulationKernel& kernel, ES::UIDSys* uid_sys, const ES::TMDReader& tmd)
 {
-  ES::UIDSys uid_sys{kernel.GetFSCore()};
   const u64 title_id = tmd.GetTitleId();
-  const u32 uid = uid_sys.GetOrInsertUIDForTitle(title_id);
+  const u32 uid = uid_sys->GetOrInsertUIDForTitle(title_id);
   if (uid == 0)
   {
     ERROR_LOG_FMT(IOS_ES, "Failed to get UID for title {:016x}", title_id);
@@ -271,11 +270,10 @@ static bool UpdateUIDAndGID(EmulationKernel& kernel, const ES::TMDReader& tmd)
   return true;
 }
 
-static ReturnCode CheckIsAllowedToSetUID(EmulationKernel& kernel, const u32 caller_uid,
-                                         const ES::TMDReader& active_tmd)
+static ReturnCode CheckIsAllowedToSetUID(EmulationKernel& kernel, ES::UIDSys* uid_sys,
+                                         const u32 caller_uid, const ES::TMDReader& active_tmd)
 {
-  ES::UIDSys uid_map{kernel.GetFSCore()};
-  const u32 system_menu_uid = uid_map.GetOrInsertUIDForTitle(Titles::SYSTEM_MENU);
+  const u32 system_menu_uid = uid_sys->GetOrInsertUIDForTitle(Titles::SYSTEM_MENU);
   if (!system_menu_uid)
     return ES_SHORT_READ;
 
@@ -303,24 +301,31 @@ IPCReply ESDevice::SetUID(u32 uid, const IOCtlVRequest& request)
 
   const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
 
-  const s32 ret = CheckIsAllowedToSetUID(GetEmulationKernel(), uid, m_core.m_title_context.tmd);
+  auto& kernel = GetEmulationKernel();
+  ES::UIDSys uid_sys{kernel.GetFSCore()};
+  const s32 ret = CheckIsAllowedToSetUID(kernel, &uid_sys, uid, m_core.m_title_context.tmd);
   if (ret < 0)
   {
     ERROR_LOG_FMT(IOS_ES, "SetUID: Permission check failed with error {}", ret);
     return IPCReply(ret);
   }
 
-  const auto tmd = m_core.FindInstalledTMD(title_id);
-  if (!tmd.IsValid())
-    return IPCReply(FS_ENOENT);
+  // The IPCReply delay is calculated within FindInstalledTMD.
+  // No clue if this is close to accurate, but our default delay of 4000
+  //  isn't enough time to actually do the work and is too hard to emulate at 100% speed.
+  u64 delay_ticks = 0;
 
-  if (!UpdateUIDAndGID(GetEmulationKernel(), tmd))
+  const auto tmd = m_core.FindInstalledTMD(title_id, Ticks{&delay_ticks});
+  if (!tmd.IsValid())
+    return IPCReply(FS_ENOENT, delay_ticks);
+
+  if (!UpdateUIDAndGID(kernel, &uid_sys, tmd))
   {
     ERROR_LOG_FMT(IOS_ES, "SetUID: Failed to get UID for title {:016x}", title_id);
-    return IPCReply(ES_SHORT_READ);
+    return IPCReply(ES_SHORT_READ, delay_ticks);
   }
 
-  return IPCReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS, delay_ticks);
 }
 
 bool ESDevice::LaunchTitle(u64 title_id, HangPPC hang_ppc)
@@ -436,8 +441,10 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
   // To keep track of the PPC title launch, a temporary launch file (LAUNCH_FILE_PATH) is used
   // to store the title ID of the title to launch and its TMD.
   // The launch file not existing means an IOS reload is required.
-  if (const auto launch_file_fd = GetEmulationKernel().GetFSCore().Open(
-          PID_KERNEL, PID_KERNEL, LAUNCH_FILE_PATH, FS::Mode::Read, {}, &ticks);
+  auto& kernel = GetEmulationKernel();
+  auto& fs_core = kernel.GetFSCore();
+  if (const auto launch_file_fd =
+          fs_core.Open(PID_KERNEL, PID_KERNEL, LAUNCH_FILE_PATH, FS::Mode::Read, {}, &ticks);
       launch_file_fd.Get() < 0)
   {
     if (WriteLaunchFile(tmd, &ticks) != IPC_SUCCESS)
@@ -456,7 +463,7 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
 
   // Otherwise, assume that the PPC title can now be launched directly.
   // Unlike IOS, we won't bother checking the title ID in the launch file. (It's not useful.)
-  GetEmulationKernel().GetFSCore().DeleteFile(PID_KERNEL, PID_KERNEL, LAUNCH_FILE_PATH, &ticks);
+  fs_core.DeleteFile(PID_KERNEL, PID_KERNEL, LAUNCH_FILE_PATH, &ticks);
   WriteSystemFile(SPACE_FILE_PATH, std::vector<u8>(SPACE_FILE_SIZE), &ticks);
 
   m_core.m_title_context.Update(tmd, ticket, DiscIO::Platform::WiiWAD);
@@ -464,7 +471,8 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
 
   // Note: the UID/GID is also updated for IOS titles, but since we have no guarantee IOS titles
   // are installed, we can only do this for PPC titles.
-  if (!UpdateUIDAndGID(GetEmulationKernel(), m_core.m_title_context.tmd))
+  ES::UIDSys uid_sys{fs_core};
+  if (!UpdateUIDAndGID(kernel, &uid_sys, m_core.m_title_context.tmd))
   {
     m_core.m_title_context.Clear();
     INFO_LOG_FMT(IOS_ES, "LaunchPPCTitle: Title context changed: (none)");
@@ -837,7 +845,8 @@ ReturnCode ESDevice::DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& 
   // XXX: We are supposed to verify the TMD and ticket here, but cannot because
   // this may cause issues with custom/patched games.
 
-  const auto fs = GetEmulationKernel().GetFS();
+  auto& kernel = GetEmulationKernel();
+  const auto fs = kernel.GetFS();
   if (!m_core.FindInstalledTMD(tmd.GetTitleId()).IsValid())
   {
     if (const ReturnCode ret = WriteTmdForDiVerify(fs.get(), tmd))
@@ -847,7 +856,8 @@ ReturnCode ESDevice::DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& 
     }
   }
 
-  if (!UpdateUIDAndGID(GetEmulationKernel(), m_core.m_title_context.tmd))
+  ES::UIDSys uid_sys{kernel.GetFSCore()};
+  if (!UpdateUIDAndGID(kernel, &uid_sys, m_core.m_title_context.tmd))
   {
     return ES_SHORT_READ;
   }
@@ -856,8 +866,8 @@ ReturnCode ESDevice::DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& 
   // Might already exist, so we only need to check whether the second operation succeeded.
   constexpr FS::Modes data_dir_modes{FS::Mode::ReadWrite, FS::Mode::None, FS::Mode::None};
   fs->CreateDirectory(PID_KERNEL, PID_KERNEL, data_dir, 0, data_dir_modes);
-  return FS::ConvertResult(fs->SetMetadata(0, data_dir, GetEmulationKernel().GetUidForPPC(),
-                                           GetEmulationKernel().GetGidForPPC(), 0, data_dir_modes));
+  return FS::ConvertResult(fs->SetMetadata(0, data_dir, kernel.GetUidForPPC(),
+                                           kernel.GetGidForPPC(), 0, data_dir_modes));
 }
 
 ReturnCode ESCore::CheckStreamKeyPermissions(const u32 uid, const u8* ticket_view,
