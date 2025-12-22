@@ -52,7 +52,7 @@ static std::vector<ActionReplay::AREntry> ResultToAREntries(u32 addr, const Chea
   return codes;
 }
 
-Common::Result<Cheats::GenerateActionReplayCodeErrorCode, ActionReplay::ARCode>
+Common::Result<ActionReplay::ARCode, Cheats::GenerateActionReplayCodeErrorCode>
 Cheats::GenerateActionReplayCode(const Cheats::CheatSearchSessionBase& session, size_t index)
 {
   if (index >= session.GetResultCount())

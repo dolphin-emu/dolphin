@@ -49,7 +49,7 @@ enum class ResultCode
 };
 
 template <typename T>
-using Result = Common::Result<ResultCode, T>;
+using Result = Common::Result<T, ResultCode>;
 
 using Uid = u32;
 using Gid = u16;
