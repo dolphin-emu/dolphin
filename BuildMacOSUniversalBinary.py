@@ -295,6 +295,8 @@ def build(config):
                 "-DENABLE_AUTOUPDATE="
                 + python_to_cmake_bool(config["autoupdate"]),
                 '-DDISTRIBUTOR=' + config['distributor'],
+                # Distributable bundles need to be postprocessed to embed dependencies
+                "-DPOSTPROCESS_BUNDLE=ON",
                 # Always use libraries from Externals to prevent any libraries
                 # installed by Homebrew from leaking in to the app
                 "-DUSE_SYSTEM_LIBS=OFF",
