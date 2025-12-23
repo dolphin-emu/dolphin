@@ -90,6 +90,65 @@ NullTerminatedStringList<WCHAR> GetDeviceInterfaceList(LPGUID iface_class_guid, 
   }
 }
 
+static __callback DWORD OnDevicesChanged(_In_ HCMNOTIFICATION notify_handle, _In_opt_ PVOID context,
+                                         _In_ CM_NOTIFY_ACTION action,
+                                         _In_reads_bytes_(event_data_size)
+                                             PCM_NOTIFY_EVENT_DATA event_data,
+                                         _In_ DWORD event_data_size)
+{
+  auto& callback = *static_cast<DeviceChangeNotification::CallbackType*>(context);
+  switch (action)
+  {
+  case CM_NOTIFY_ACTION_DEVICEINTERFACEARRIVAL:
+    callback(DeviceChangeNotification::EventType::Arrival);
+    break;
+  case CM_NOTIFY_ACTION_DEVICEINTERFACEREMOVAL:
+    callback(DeviceChangeNotification::EventType::Removal);
+    break;
+  default:
+    break;
+  }
+  return ERROR_SUCCESS;
+}
+
+DeviceChangeNotification::DeviceChangeNotification() = default;
+
+DeviceChangeNotification::~DeviceChangeNotification()
+{
+  Unregister();
+}
+
+void DeviceChangeNotification::Register(CallbackType callback)
+{
+  Unregister();
+  m_callback = std::move(callback);
+
+  CM_NOTIFY_FILTER notify_filter{
+      .cbSize = sizeof(notify_filter),
+      .FilterType = CM_NOTIFY_FILTER_TYPE_DEVICEINTERFACE,
+      .u{.DeviceInterface{.ClassGuid = GUID_DEVINTERFACE_HID}},
+  };
+  const CONFIGRET cfg_rv =
+      CM_Register_Notification(&notify_filter, &m_callback, OnDevicesChanged, &m_notify_handle);
+  if (cfg_rv != CR_SUCCESS)
+  {
+    ERROR_LOG_FMT(COMMON, "CM_Register_Notification failed: {:x}", cfg_rv);
+  }
+}
+
+void DeviceChangeNotification::Unregister()
+{
+  if (m_notify_handle == nullptr)
+    return;
+
+  const CONFIGRET cfg_rv = CM_Unregister_Notification(m_notify_handle);
+  if (cfg_rv != CR_SUCCESS)
+  {
+    ERROR_LOG_FMT(COMMON, "CM_Unregister_Notification failed: {:x}", cfg_rv);
+  }
+  m_notify_handle = nullptr;
+}
+
 }  // namespace Common
 
 #endif

@@ -24,7 +24,6 @@
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
-#include "Common/WindowsDevice.h"
 
 #include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
@@ -328,7 +327,12 @@ void WiimoteScannerWindows::RemoveRememberedWiimotes()
   NOTICE_LOG_FMT(WIIMOTE, "Removed remembered Wiimotes: {}", forget_count);
 }
 
-WiimoteScannerWindows::WiimoteScannerWindows() = default;
+WiimoteScannerWindows::WiimoteScannerWindows()
+{
+  m_device_change_notification.Register([this](Common::DeviceChangeNotification::EventType) {
+    m_devices_changed.store(true, std::memory_order_release);
+  });
+}
 
 void WiimoteScannerWindows::Update()
 {
@@ -576,9 +580,9 @@ int WiimoteWindows::IOWrite(const u8* buf, size_t len)
   return write_result;
 }
 
-auto WiimoteScannerWindows::FindWiimoteHIDDevices() -> FindResults
+static std::vector<WiimoteScannerWindows::EnumeratedWiimoteInterface> GetAllWiimoteHIDInterfaces()
 {
-  FindResults results;
+  std::vector<WiimoteScannerWindows::EnumeratedWiimoteInterface> results;
 
   // Enumerate connected HID interfaces IDs.
   auto class_guid = GUID_DEVINTERFACE_HID;
@@ -586,14 +590,6 @@ auto WiimoteScannerWindows::FindWiimoteHIDDevices() -> FindResults
 
   for (auto* hid_iface : Common::GetDeviceInterfaceList(&class_guid, nullptr, flags))
   {
-    // TODO: WiimoteWindows::GetId() does a redundant conversion.
-    const auto hid_iface_utf8 = WStringToUTF8(hid_iface);
-    DEBUG_LOG_FMT(WIIMOTE, "Found HID interface: {}", hid_iface_utf8);
-
-    // Are we already using this device?
-    if (!IsNewWiimote(hid_iface_utf8))
-      continue;
-
     // When connected via Bluetooth, this has a proper name like "Nintendo RVL-CNT-01".
     const auto parent_description = GetParentDeviceDescription(hid_iface);
 
@@ -650,6 +646,27 @@ auto WiimoteScannerWindows::FindWiimoteHIDDevices() -> FindResults
     }
 
     // Once here, we are confident that this is a Wii device.
+    results.push_back({hid_iface, is_balance_board});
+  }
+
+  return results;
+}
+
+auto WiimoteScannerWindows::FindWiimoteHIDDevices() -> FindResults
+{
+  if (m_devices_changed.exchange(false, std::memory_order_acquire))
+  {
+    m_wiimote_hid_interfaces = GetAllWiimoteHIDInterfaces();
+    INFO_LOG_FMT(WIIMOTE, "Found {} HID interface(s).", m_wiimote_hid_interfaces.size());
+  }
+
+  FindResults results;
+
+  for (auto& [hid_iface, is_balance_board] : m_wiimote_hid_interfaces)
+  {
+    // Are we already using this device?
+    if (!IsNewWiimote(WStringToUTF8(hid_iface)))
+      continue;
 
     DEBUG_LOG_FMT(WIIMOTE, "Creating WiimoteWindows");
 
