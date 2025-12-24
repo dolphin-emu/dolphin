@@ -51,11 +51,14 @@ struct CodeOp  // 16B
   bool canCauseException = false;
   bool skipLRStack = false;
   bool skip = false;  // followed BL-s for example
-  BitSet8 crInUse;
+  BitSet8 crWillBeRead;
+  BitSet8 crWillBeWritten;
   BitSet8 crDiscardable;
   // which registers are still needed after this instruction in this block
-  BitSet32 fprInUse;
-  BitSet32 gprInUse;
+  BitSet32 gprWillBeRead;
+  BitSet32 gprWillBeWritten;
+  BitSet32 fprWillBeRead;
+  BitSet32 fprWillBeWritten;
   // which registers have values which are known to be unused after this instruction
   BitSet32 gprDiscardable;
   BitSet32 fprDiscardable;
@@ -93,6 +96,14 @@ struct BlockStats
 struct BlockRegStats
 {
   bool any;
+
+#ifdef _M_ARM_64
+  // For JITs that can load and store pairs of adjacent registers in one operation, each set bit in
+  // these bitsets provides a hint that that register and the register immediately afterwards are a
+  // good candidate for being loaded/stored as a pair.
+  BitSet32 load_pairs;
+  BitSet32 store_pairs;
+#endif
 };
 
 using CodeBuffer = std::vector<CodeOp>;
@@ -125,8 +136,23 @@ struct CodeBlock
   // Which GQRs this block modifies, if any.
   BitSet8 m_gqr_modified;
 
-  // Which GPRs this block reads from before defining, if any.
+  // Which GPRs this block reads from before writing to, if any.
   BitSet32 m_gpr_inputs;
+
+  // Which GPRs this block writes to, if any.
+  BitSet32 m_gpr_outputs;
+
+  // Which FPRs this block reads from before writing to, if any.
+  BitSet32 m_fpr_inputs;
+
+  // Which FPRs this block writes to, if any.
+  BitSet32 m_fpr_outputs;
+
+  // Which CRs this block reads from before writing to, if any.
+  BitSet8 m_cr_inputs;
+
+  // Which CRs this block writes to, if any.
+  BitSet8 m_cr_outputs;
 
   // Which memory locations are occupied by this block.
   std::set<u32> m_physical_addresses;
@@ -213,5 +239,21 @@ bool AnalyzeFunction(const Core::CPUThreadGuard& guard, u32 startAddr, Common::S
                      u32 max_size = 0);
 bool ReanalyzeFunction(const Core::CPUThreadGuard& guard, u32 start_addr, Common::Symbol& func,
                        u32 max_size = 0);
+
+// The below functions are for internal use, but are exposed for the sake of unit tests.
+
+// For each even-length run of bits in candidates & mask, unsets those bits in candidates, and
+// sets every second corresponding bit in out (corresponding to the first half of each pair).
+// Returns the number of bits that were removed from candidates.
+//
+// Odd-length runs are left for later, because how to assign pairs is only unambiguous for
+// even-length runs. To arbitrarily choose an assignment of pairs for odd-length runs,
+// call OddLengthRunsToEvenLengthRuns after calling this, then call this again.
+size_t FindRegisterPairs(BitSet32* candidates, BitSet32* out, BitSet32 mask = BitSet32(0xFFFFFFFF));
+
+// Discards one bit from each run of bits, turning odd-length runs into even-length runs.
+// (Also turns even-length runs into odd-length runs, which is probably not something you want.
+// You should remove all even-length runs before calling this.)
+void OddLengthRunsToEvenLengthRuns(BitSet32* candidates);
 
 }  // namespace PPCAnalyst
