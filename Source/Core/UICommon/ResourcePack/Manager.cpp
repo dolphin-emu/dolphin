@@ -32,7 +32,7 @@ bool Init()
 {
   packs.clear();
   const std::vector<std::string> pack_list =
-      Common::DoFileSearch({File::GetUserPath(D_RESOURCEPACK_IDX)}, {".zip"});
+      Common::DoFileSearch(File::GetUserPath(D_RESOURCEPACK_IDX), ".zip");
 
   Common::IniFile file = GetPackConfig();
 

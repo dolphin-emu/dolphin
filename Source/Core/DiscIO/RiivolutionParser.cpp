@@ -399,7 +399,7 @@ std::vector<Patch> GenerateRiivolutionPatchesFromConfig(const std::string& root_
   const std::optional<Config> config = ParseConfigFile(
       fmt::format("{}/riivolution/config/{}.xml", root_directory, game_id.substr(0, 4)));
 
-  for (const std::string& path : Common::DoFileSearch({root_directory + "riivolution"}, {".xml"}))
+  for (const std::string& path : Common::DoFileSearch(root_directory + "riivolution", ".xml"))
   {
     std::optional<Disc> parsed = ParseFile(path);
     if (!parsed || !parsed->IsValidForGame(game_id, revision, disc_number))
