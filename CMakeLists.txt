@@ -658,6 +658,13 @@ if(NOT (WIN32 AND _M_ARM_64))
   add_definitions(-DHAS_OPENGL)
 endif()
 
+if(NOT WIN32)
+  if(ANDROID)
+    set(USE_SYSTEM_Iconv OFF)
+  endif()
+  dolphin_find_optional_system_library(Iconv Externals/libiconv 1.14)
+endif()
+
 dolphin_find_optional_system_library(pugixml Externals/pugixml)
 
 dolphin_find_optional_system_library_pkgconfig(ENET libenet>=1.3.18 enet::enet Externals/enet)
@@ -717,15 +724,6 @@ endif()
 dolphin_find_optional_system_library(MBEDTLS Externals/mbedtls 2.28)
 
 dolphin_find_optional_system_library(CURL Externals/curl)
-
-if(NOT WIN32)
-  if(NOT ANDROID)
-    dolphin_find_optional_system_library(Iconv Externals/libiconv 1.14)
-  else()
-    message(STATUS "Using static iconv from Externals")
-    add_subdirectory(Externals/libiconv EXCLUDE_FROM_ALL)
-  endif()
-endif()
 
 if(NOT ANDROID)
   dolphin_find_optional_system_library(HIDAPI Externals/hidapi)
