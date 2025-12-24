@@ -191,6 +191,7 @@ PRIVATE
   FatFs
   spng::spng
   watcher
+  ZLIB::ZLIB
   ${VTUNE_LIBRARIES}
 )
 
