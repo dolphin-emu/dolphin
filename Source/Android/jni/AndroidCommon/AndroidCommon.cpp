@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <ios>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -49,9 +50,13 @@ std::vector<std::string> JStringArrayToVector(JNIEnv* env, jobjectArray array)
   return result;
 }
 
-jobjectArray VectorToJStringArray(JNIEnv* env, const std::vector<std::string>& vector)
+jobjectArray SpanToJStringArray(JNIEnv* env, std::span<const std::string_view> span)
 {
-  return VectorToJObjectArray(env, vector, IDCache::GetStringClass(), ToJString);
+  return SpanToJObjectArray(env, span, IDCache::GetStringClass(), ToJString);
+}
+jobjectArray SpanToJStringArray(JNIEnv* env, std::span<const std::string> span)
+{
+  return SpanToJObjectArray(env, span, IDCache::GetStringClass(), ToJString);
 }
 
 bool IsPathAndroidContent(std::string_view uri)
@@ -193,13 +198,13 @@ std::vector<std::string> GetAndroidContentChildNames(std::string_view uri)
 }
 
 std::vector<std::string> DoFileSearchAndroidContent(std::string_view directory,
-                                                    const std::vector<std::string>& extensions,
+                                                    std::span<const std::string_view> extensions,
                                                     bool recursive)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
   jstring j_directory = ToJString(env, directory);
-  jobjectArray j_extensions = VectorToJStringArray(env, extensions);
+  jobjectArray j_extensions = SpanToJStringArray(env, extensions);
 
   jobjectArray j_result = reinterpret_cast<jobjectArray>(env->CallStaticObjectMethod(
       IDCache::GetContentHandlerClass(), IDCache::GetContentHandlerDoFileSearch(), j_directory,

@@ -109,7 +109,7 @@ void RiivolutionBootWidget::LoadMatchingXMLs()
 {
   const std::string& riivolution_dir = File::GetUserPath(D_RIIVOLUTION_IDX);
   const auto config = LoadConfigXML(riivolution_dir);
-  for (const std::string& path : Common::DoFileSearch({riivolution_dir + "riivolution"}, {".xml"}))
+  for (const std::string& path : Common::DoFileSearch(riivolution_dir + "riivolution", ".xml"))
   {
     auto parsed = DiscIO::Riivolution::ParseFile(path);
     if (!parsed || !parsed->IsValidForGame(m_game_id, m_revision, m_disc_number))
