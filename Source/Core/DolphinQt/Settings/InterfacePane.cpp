@@ -16,7 +16,6 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
-#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
 #include "Core/AchievementManager.h"
@@ -33,8 +32,6 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
-
-#include "UICommon/GameFile.h"
 
 static ConfigStringChoice* MakeLanguageComboBox()
 {
