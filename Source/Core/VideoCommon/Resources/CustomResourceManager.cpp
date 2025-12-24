@@ -31,7 +31,10 @@ void CustomResourceManager::Initialize()
 void CustomResourceManager::Shutdown()
 {
   if (m_async_shader_compiler)
+  {
     m_async_shader_compiler->StopWorkerThreads();
+    m_async_shader_compiler->ClearAllWork();
+  }
 
   m_asset_cache.Shutdown();
   m_worker_thread.Shutdown();
@@ -41,6 +44,8 @@ void CustomResourceManager::Shutdown()
 void CustomResourceManager::Reset()
 {
   m_material_resources.clear();
+  m_mesh_resources.clear();
+  m_render_target_resources.clear();
   m_shader_resources.clear();
   m_texture_data_resources.clear();
   m_texture_sampler_resources.clear();
@@ -63,6 +68,30 @@ void CustomResourceManager::MarkAssetDirty(const CustomAssetLibrary::AssetID& as
 void CustomResourceManager::XFBTriggered()
 {
   m_asset_cache.Update();
+
+  /*for (auto& [id, texture_resource] : m_texture_sampler_resources)
+  {
+    // Hack to get access to resource internals
+    Resource* resource = &texture_resource;
+
+    // Unload our GPU data and
+    // tell texture and references to trigger a reload
+    // on next usage
+    resource->NotifyAssetUnloaded();
+    resource->NotifyAssetChanged(false);
+  }
+
+  for (auto& [id, shader_resource] : m_shader_resources)
+  {
+    // Hack to get access to resource internals
+    Resource* resource = &shader_resource;
+
+    // Unload our GPU data and
+    // tell shader and references to trigger a reload
+    // on next usage
+    resource->NotifyAssetUnloaded();
+    resource->NotifyAssetChanged(false);
+  }*/
 }
 
 void CustomResourceManager::SetHostConfig(const ShaderHostConfig& host_config)
@@ -138,6 +167,35 @@ TextureAndSamplerResource* CustomResourceManager::GetTextureAndSamplerFromAsset(
   {
     resource = std::make_unique<TextureAndSamplerResource>(
         CreateResourceContext(asset_id, std::move(library)));
+  }
+  resource->Process();
+  return resource.get();
+}
+
+RenderTargetResource* CustomResourceManager::GetRenderTargetFromAsset(
+    const CustomAssetLibrary::AssetID& asset_id,
+    std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
+{
+  auto& resource = m_render_target_resources[asset_id];
+  if (resource == nullptr)
+  {
+    resource =
+        std::make_unique<RenderTargetResource>(CreateResourceContext(asset_id, std::move(library)));
+  }
+  resource->Process();
+  return resource.get();
+}
+
+MeshResource*
+CustomResourceManager::GetMeshFromAsset(const CustomAssetLibrary::AssetID& asset_id,
+                                        const GXPipelineUid& pipeline_uid,
+                                        std::shared_ptr<VideoCommon::CustomAssetLibrary> library)
+{
+  auto& resource = m_mesh_resources[asset_id][PipelineToHash(pipeline_uid)];
+  if (resource == nullptr)
+  {
+    resource = std::make_unique<MeshResource>(CreateResourceContext(asset_id, std::move(library)),
+                                              pipeline_uid);
   }
   resource->Process();
   return resource.get();

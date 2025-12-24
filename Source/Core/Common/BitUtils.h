@@ -227,6 +227,22 @@ private:
   T m_bit;
 };
 
+// A const only version of FlagBit
+template <typename T>
+class ConstFlagBit
+{
+public:
+  ConstFlagBit(const std::underlying_type_t<T>& bits, T bit) : m_bits(bits), m_bit(bit) {}
+  explicit operator bool() const
+  {
+    return (m_bits & static_cast<std::underlying_type_t<T>>(m_bit)) != 0;
+  }
+
+private:
+  const std::underlying_type_t<T>& m_bits;
+  T m_bit;
+};
+
 template <typename T>
 class Flags
 {
@@ -240,6 +256,7 @@ public:
     }
   }
   FlagBit<T> operator[](T bit) { return FlagBit(m_hex, bit); }
+  ConstFlagBit<T> operator[](T bit) const { return ConstFlagBit(m_hex, bit); }
 
   std::underlying_type_t<T> m_hex = 0;
 };
