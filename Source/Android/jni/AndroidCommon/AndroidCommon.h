@@ -17,10 +17,6 @@ jstring ToJString(JNIEnv* env, std::string_view str);
 std::vector<std::string> JStringArrayToVector(JNIEnv* env, jobjectArray array);
 jobjectArray SpanToJStringArray(JNIEnv* env, std::span<const std::string_view> span);
 jobjectArray SpanToJStringArray(JNIEnv* env, std::span<const std::string> span);
-inline jobjectArray VectorToJStringArray(JNIEnv* env, const std::vector<std::string>& vector)
-{
-  return SpanToJStringArray(env, vector);
-}
 
 template <typename T, typename F>
 jobjectArray SpanToJObjectArray(JNIEnv* env, std::span<const T> span, jclass clazz, F f)
