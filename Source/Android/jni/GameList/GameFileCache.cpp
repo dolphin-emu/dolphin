@@ -46,7 +46,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCach
 JNIEXPORT jobjectArray JNICALL
 Java_org_dolphinemu_dolphinemu_model_GameFileCache_getIsoPaths(JNIEnv* env, jclass)
 {
-  return VectorToJStringArray(env, Config::GetIsoPaths());
+  return SpanToJStringArray(env, Config::GetIsoPaths());
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_setIsoPaths(
