@@ -419,6 +419,19 @@ private:
   GuestRegInfo GetGuestCR(size_t preg);
   GuestRegInfo GetGuestByIndex(size_t index);
 
+  constexpr bool IsIndexGPR(size_t index)
+  {
+    // We do not need to test for `index >= GUEST_GPR_OFFSET` because
+    // GUEST_GPR_OFFSET is always 0. This otherwise raises a warning.
+    static_assert(GUEST_GPR_OFFSET == 0);
+    return index < GUEST_GPR_OFFSET + GUEST_GPR_COUNT;
+  }
+
+  constexpr bool IsIndexCR(size_t index)
+  {
+    return index >= GUEST_CR_OFFSET && index < GUEST_CR_OFFSET + GUEST_CR_COUNT;
+  }
+
   Arm64Gen::ARM64Reg BindForRead(size_t index);
   void SetImmediateInternal(size_t index, u32 imm, bool dirty);
   void BindForWrite(size_t index, bool will_read, bool will_write = true);
