@@ -40,7 +40,7 @@ public:
 
     // Call
     MOVQ_xmm(XMM0, R(ABI_PARAM1));
-    ABI_CallFunction(raw_cdts);
+    QuickCallFunction(raw_cdts);
     MOV(32, R(ABI_RETURN), R(RSCRATCH));
 
     ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, 16);

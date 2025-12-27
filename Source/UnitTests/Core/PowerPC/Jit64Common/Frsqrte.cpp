@@ -47,7 +47,7 @@ public:
 
     // Call
     MOVQ_xmm(XMM0, R(ABI_PARAM1));
-    ABI_CallFunction(raw_frsqrte);
+    QuickCallFunction(raw_frsqrte);
     MOVQ_xmm(R(ABI_RETURN), XMM0);
 
     ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, 16);

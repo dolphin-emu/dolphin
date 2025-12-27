@@ -319,19 +319,13 @@ void Jit64::dcbx(UGeckoInstruction inst)
       SwitchToFarCode();
       SetJumpTarget(branch_in);
 
-      // Assert RSCRATCH2 won't be clobbered before it is moved from.
-      static_assert(RSCRATCH2 != ABI_PARAM1);
-
       ABI_PushRegistersAndAdjustStack(bw_caller_save, 0);
-      MOV(64, R(ABI_PARAM1), R(bw_reg_a));
-      // RSCRATCH2 holds the amount of faked branch watch hits. Move RSCRATCH2 first, because
-      // ABI_PARAM2 clobbers RSCRATCH2 on Windows and ABI_PARAM3 clobbers RSCRATCH2 on Linux!
-      MOV(32, R(ABI_PARAM4), R(RSCRATCH2));
+      const auto function = m_ppc_state.msr.IR ? &Core::BranchWatch::HitVirtualTrue_fk_n :
+                                                 &Core::BranchWatch::HitPhysicalTrue_fk_n;
       const PPCAnalyst::CodeOp& op = js.op[2];
-      MOV(64, R(ABI_PARAM2), Imm64(Core::FakeBranchWatchCollectionKey{op.address, op.branchTo}));
-      MOV(32, R(ABI_PARAM3), Imm32(op.inst.hex));
-      ABI_CallFunction(m_ppc_state.msr.IR ? &Core::BranchWatch::HitVirtualTrue_fk_n :
-                                            &Core::BranchWatch::HitPhysicalTrue_fk_n);
+      ABI_CallFunction(function, CallFunctionArg(64, bw_reg_a),
+                       u64(Core::FakeBranchWatchCollectionKey{op.address, op.branchTo}),
+                       op.inst.hex, CallFunctionArg(32, RSCRATCH2));
       ABI_PopRegistersAndAdjustStack(bw_caller_save, 0);
 
       FixupBranch branch_out = J(Jump::Near);
@@ -398,13 +392,14 @@ void Jit64::dcbx(UGeckoInstruction inst)
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
   if (make_loop)
   {
-    ABI_CallFunctionPRR(JitInterface::InvalidateICacheLinesFromJIT, &m_system.GetJitInterface(),
-                        effective_address, loop_counter);
+    ABI_CallFunction(JitInterface::InvalidateICacheLinesFromJIT, &m_system.GetJitInterface(),
+                     CallFunctionArg(32, X64Reg(effective_address)),
+                     CallFunctionArg(32, X64Reg(loop_counter)));
   }
   else
   {
-    ABI_CallFunctionPR(JitInterface::InvalidateICacheLineFromJIT, &m_system.GetJitInterface(),
-                       effective_address);
+    ABI_CallFunction(JitInterface::InvalidateICacheLineFromJIT, &m_system.GetJitInterface(),
+                     CallFunctionArg(32, X64Reg(effective_address)));
   }
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
   asm_routines.ResetStack(*this);
@@ -494,7 +489,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
   FlushPCBeforeSlowAccess();
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-  ABI_CallFunctionPR(PowerPC::ClearDCacheLineFromJit, &m_mmu, RSCRATCH);
+  ABI_CallFunction(PowerPC::ClearDCacheLineFromJit, &m_mmu, CallFunctionArg(32, RSCRATCH));
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 
   if (emit_fast_path)

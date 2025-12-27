@@ -79,6 +79,7 @@
   </ItemGroup>
   <!--Arch-specific tests-->
   <ItemGroup Condition="'$(Platform)'=='x64'">
+    <ClCompile Include="Common\x64ABITest.cpp" />
     <ClCompile Include="Common\x64EmitterTest.cpp" />
     <ClCompile Include="Core\PowerPC\Jit64Common\ConvertDoubleToSingle.cpp" />
     <ClCompile Include="Core\PowerPC\Jit64Common\Frsqrte.cpp" />
