@@ -256,7 +256,7 @@ bool RasterSurfaceShaderData::FromJson(const VideoCommon::CustomAssetLibrary::As
 
   const auto parse_samplers =
       [&](const char* name,
-          std::vector<VideoCommon::RasterSurfaceShaderData::SamplerData>* samplers) -> bool {
+          std::vector<VideoCommon::RasterSurfaceShaderData::SamplerData>* samplers_out) -> bool {
     const auto samplers_iter = json.find(name);
     if (samplers_iter == json.end())
     {
@@ -309,7 +309,7 @@ bool RasterSurfaceShaderData::FromJson(const VideoCommon::CustomAssetLibrary::As
                       asset_id);
         return false;
       }
-      samplers->push_back(std::move(sampler));
+      samplers_out->push_back(std::move(sampler));
     }
 
     return true;
