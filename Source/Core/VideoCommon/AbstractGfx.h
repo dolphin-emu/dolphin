@@ -129,12 +129,12 @@ public:
   struct ViewportAndScissor
   {
     MathUtil::Rectangle<int> scissor_rect;
-    float viewport_x;
-    float viewport_y;
-    float viewport_width;
-    float viewport_height;
-    float viewport_near_depth;
-    float viewport_far_depth;
+    float viewport_x = 0;
+    float viewport_y = 0;
+    float viewport_width = 0;
+    float viewport_height = 0;
+    float viewport_near_depth = 0;
+    float viewport_far_depth = 0;
   };
 
   // Stores the last viewport and scissor, the stored data is restored in 'EndUtilityDrawing'
