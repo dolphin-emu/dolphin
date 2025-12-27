@@ -19,6 +19,7 @@
 
 #include "Core/AchievementManager.h"
 #include "Core/CPUThreadConfigCallback.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/SystemTimers.h"
@@ -117,9 +118,11 @@ void CoreTimingManager::Init()
   });
 
   m_throttled_after_presentation = false;
-  m_frame_hook = m_system.GetVideoEvents().after_present_event.Register([this](const PresentInfo&) {
-    m_throttled_after_presentation.store(false, std::memory_order_relaxed);
-  });
+  m_frame_hook =
+      m_system.GetVideoEvents().after_present_event.Register([this](const PresentInfo& info) {
+        m_throttled_after_presentation.store(false, std::memory_order_relaxed);
+        m_last_presentation_delay.store(Clock::now() - info.intended_present_time);
+      });
 }
 
 void CoreTimingManager::Shutdown()
@@ -164,7 +167,10 @@ void CoreTimingManager::RefreshConfig()
     OSD::AddMessage("Minimum speed is 100% in Hardcore Mode");
   }
 
-  UpdateSpeedLimit(GetTicks(), Config::Get(Config::MAIN_EMULATION_SPEED));
+  m_sync_to_host_refresh_rate =
+      Config::Get(Config::GFX_VSYNC) && Config::Get(Config::MAIN_SYNC_TO_HOST_REFRESH_RATE);
+
+  UpdateSpeedLimit(GetTicks());
 
   m_use_precision_timer = Config::Get(Config::MAIN_PRECISION_FRAME_TIMING);
 }
@@ -463,6 +469,20 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
     return;
   }
 
+  // Adjust throttle based on last presentation if "Sync to Host Refresh Rate" is active.
+  const auto last_delay = m_last_presentation_delay.exchange({});
+  if (m_sync_to_host_refresh_rate)
+  {
+    constexpr auto maximum_presentation_delay = std::chrono::milliseconds{8};
+    // If the presentation delay was greater than this maximum,
+    //  then core has run too far ahead of being synced with the display.
+    // We adjust the throttle to be just a bit faster than the display.
+    if (last_delay > maximum_presentation_delay)
+    {
+      m_throttle_reference_time += last_delay - maximum_presentation_delay;
+    }
+  }
+
   // Push throttle reference values forward by exact seconds.
   // This avoids drifting from cumulative rounding errors.
   {
@@ -494,9 +514,15 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
   SleepUntil(target_time);
 }
 
-void CoreTimingManager::UpdateSpeedLimit(s64 cycle, double new_speed)
+void CoreTimingManager::UpdateSpeedLimit(s64 cycle)
 {
-  m_emulation_speed = new_speed;
+  double new_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
+
+  // Run 1% faster with "Sync to Host Refresh Rate".
+  // ~59.94 FPS games will attempt to run at ~60.53 FPS.
+  // Throttle will then periodically slow Core to match a display's ~60 Hz.
+  if (m_sync_to_host_refresh_rate)
+    new_speed *= 1.01;
 
   const u32 new_clock_per_sec =
       std::lround(m_system.GetSystemTimers().GetTicksPerSecond() * new_speed);
@@ -517,6 +543,7 @@ void CoreTimingManager::ResetThrottle(s64 cycle)
 {
   m_throttle_reference_cycle = cycle;
   m_throttle_reference_time = Clock::now();
+  m_last_presentation_delay.store({});
 }
 
 void CoreTimingManager::UpdateVISkip(TimePoint current_time, TimePoint target_time)
@@ -560,7 +587,7 @@ void CoreTimingManager::AdjustEventQueueTimes(u32 new_ppc_clock, u32 old_ppc_clo
 {
   const s64 ticks = m_globals.global_timer;
 
-  UpdateSpeedLimit(ticks, m_emulation_speed);
+  UpdateSpeedLimit(ticks);
 
   g_perf_metrics.AdjustClockSpeed(ticks, new_ppc_clock, old_ppc_clock);
 

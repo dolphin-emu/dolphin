@@ -217,10 +217,10 @@ private:
   DT m_max_fallback = {};
   DT m_max_variance = {};
   bool m_correct_time_drift = false;
-  double m_emulation_speed = 1.0;
+  bool m_sync_to_host_refresh_rate;
 
   bool IsSpeedUnlimited() const;
-  void UpdateSpeedLimit(s64 cycle, double new_speed);
+  void UpdateSpeedLimit(s64 cycle);
   void ResetThrottle(s64 cycle);
   TimePoint CalculateTargetHostTimeInternal(s64 target_cycle);
   void UpdateVISkip(TimePoint current_time, TimePoint target_time);
@@ -238,6 +238,9 @@ private:
   // Used to optionally minimize throttling for improving input latency.
   std::atomic_bool m_throttled_after_presentation = false;
   DT m_max_throttle_skip_time{};
+
+  // Set from GPU thread. Used for "Sync to Host Refresh Rate".
+  std::atomic<DT> m_last_presentation_delay{};
 };
 
 }  // namespace CoreTiming
