@@ -31,7 +31,10 @@ void CustomResourceManager::Initialize()
 void CustomResourceManager::Shutdown()
 {
   if (m_async_shader_compiler)
+  {
     m_async_shader_compiler->StopWorkerThreads();
+    m_async_shader_compiler->ClearAllWork();
+  }
 
   m_asset_cache.Shutdown();
   m_worker_thread.Shutdown();
