@@ -108,6 +108,17 @@ if(WIN32)
     ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp
     ControllerInterface/ForceFeedback/ForceFeedbackDevice.h
   )
+  if(MINGW)
+    set_source_files_properties(
+      ControllerInterface/WGInput/WGInput.cpp
+      PROPERTIES COMPILE_OPTIONS "-fexceptions"
+    )
+    target_link_libraries(inputcommon
+      PRIVATE
+      dinput8
+      cfgmgr32
+    )
+  endif()
 elseif(APPLE)
   target_sources(inputcommon PRIVATE
     ControllerInterface/Quartz/Quartz.h

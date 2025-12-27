@@ -18,3 +18,7 @@ if(MSVC)
   # Add precompiled header
   target_link_libraries(winupdater PRIVATE use_pch)
 endif()
+
+if(MINGW)
+  target_link_options(winupdater PRIVATE -municode)
+endif()

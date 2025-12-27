@@ -713,3 +713,7 @@ if(USE_RETRO_ACHIEVEMENTS)
     target_compile_definitions(dolphin-emu PRIVATE -DRC_CLIENT_SUPPORTS_RAINTEGRATION)
   endif()
 endif()
+
+if(MINGW)
+  target_link_options(dolphin-emu PRIVATE -municode)
+endif()
