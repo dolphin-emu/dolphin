@@ -7,13 +7,13 @@
 #include <memory>
 #include <vector>
 
+#include "AudioCommon/Microphone.h"
 #include "Common/CommonTypes.h"
 #include "Core/IOS/USB/Common.h"
-#include "Core/IOS/USB/Emulated/Microphone.h"
 
 namespace IOS::HLE::USB
 {
-class WiiSpeakState final : public MicrophoneState
+class WiiSpeakState final : public AudioCommon::MicrophoneState
 {
 public:
   // Use atomic for members concurrently used by the data callback
@@ -89,7 +89,7 @@ private:
   u8 m_active_interface = 0;
   bool m_device_attached = false;
   bool init = false;
-  std::unique_ptr<Microphone> m_microphone{};
+  std::unique_ptr<AudioCommon::Microphone> m_microphone{};
   const DeviceDescriptor m_device_descriptor{0x12,  0x1,    0x200,  0,   0,   0,   0x10,
                                              0x57E, 0x0308, 0x0214, 0x1, 0x2, 0x0, 0x1};
   const std::vector<ConfigDescriptor> m_config_descriptor{
