@@ -156,6 +156,11 @@ struct IsoMessage : TransferCommand
   u8 endpoint = 0;
   using TransferCommand::TransferCommand;
   void SetPacketReturnValue(size_t packet_num, u16 return_value) const;
+  u16 SetPacketsReturnValueFromSize(u16 data_size) const;
+
+private:
+  inline void SetPacketReturnValue(size_t packet_num, u16 return_value,
+                                   Memory::MemoryManager& memory) const;
 };
 
 class Device
