@@ -81,6 +81,8 @@ public:
   IniFile();
   ~IniFile();
 
+  bool CompareValues(IniFile& other) const;
+
   /**
    * Loads sections and keys.
    * @param filename filename of the ini file which should be loaded
