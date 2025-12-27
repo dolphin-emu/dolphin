@@ -258,7 +258,12 @@ MainWindow::MainWindow(Core::System& system, std::unique_ptr<BootParameters> boo
           });
 #endif
 
+  connect(m_cheats_manager, &CheatsManager::OpenGeneralSettings, this,
+          &MainWindow::ShowGeneralWindow);
+
 #ifdef USE_RETRO_ACHIEVEMENTS
+  connect(m_cheats_manager, &CheatsManager::OpenAchievementSettings, this,
+          &MainWindow::ShowAchievementSettings);
   connect(m_game_list, &GameList::OpenAchievementSettings, this,
           &MainWindow::ShowAchievementSettings);
 #endif  // USE_RETRO_ACHIEVEMENTS
@@ -1140,6 +1145,46 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
     {
       if (!NKitWarningDialog::ShowUnlessDisabled())
         return;
+    }
+
+    // When booting Triforce games, we need to ensure that the hardware is set up correctly.
+    const auto volume_type =
+        std::get<BootParameters::Disc>(parameters->parameters).volume->GetVolumeType();
+
+    const bool triforce_hardware_sp1 =
+        Config::Get(Config::MAIN_SERIAL_PORT_1) == ExpansionInterface::EXIDeviceType::Baseboard;
+    const bool triforce_hardware_port_1 = Config::Get(Config::GetInfoForSIDevice(0)) ==
+                                          SerialInterface::SIDevices::SIDEVICE_AM_BASEBOARD;
+
+    if (volume_type == DiscIO::Platform::Triforce)
+    {
+      if (!triforce_hardware_sp1 || !triforce_hardware_port_1)
+      {
+        ModalMessageBox::critical(
+            this, tr("Error"),
+            tr("To boot a Triforce game, SP1 and Port 1 must be set to Triforce Baseboard."),
+            QMessageBox::Ok);
+        HideRenderWidget();
+        return;
+      }
+    }
+    else
+    {
+      // Some Triforce tools don't include a boot.id file, but they can still be launched.
+      if (triforce_hardware_sp1)
+      {
+        ModalMessageBox::warning(this, tr("Warning"),
+                                 tr("Non-Triforce games cannot be booted with Triforce hardware "
+                                    "attached.\nPlease remove the Triforce Baseboard from SP1."),
+                                 QMessageBox::Ok);
+      }
+      if (triforce_hardware_port_1)
+      {
+        ModalMessageBox::warning(this, tr("Warning"),
+                                 tr("Non-Triforce games cannot be booted with Triforce hardware "
+                                    "attached.\nPlease remove the Triforce Baseboard from Port 1."),
+                                 QMessageBox::Ok);
+      }
     }
   }
 
