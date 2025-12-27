@@ -4,18 +4,10 @@
 #pragma once
 
 #include <memory>
-#include <optional>
 #include <span>
-#include <string>
-#include <string_view>
-#include <vector>
 
-#include "VideoCommon/AbstractTexture.h"
+#include "Common/CommonTypes.h"
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
-#include "VideoCommon/Assets/MaterialAsset.h"
-#include "VideoCommon/Assets/ShaderAsset.h"
-#include "VideoCommon/Assets/TextureAsset.h"
-#include "VideoCommon/ShaderGenCommon.h"
 
 struct CustomPipeline
 {
