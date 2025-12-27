@@ -3,35 +3,11 @@
 
 #include "VideoCommon/GraphicsModSystem/Runtime/CustomPipeline.h"
 
-#include <algorithm>
-#include <array>
-#include <variant>
+#include <memory>
+#include <span>
 
-#include "Common/Contains.h"
-#include "Common/Logging/Log.h"
-#include "Common/VariantUtil.h"
-
-#include "VideoCommon/AbstractGfx.h"
-
-namespace
-{
-bool IsQualifier(std::string_view value)
-{
-  static constexpr std::array<std::string_view, 7> qualifiers = {
-      "attribute", "const", "highp", "lowp", "mediump", "uniform", "varying",
-  };
-  return Common::Contains(qualifiers, value);
-}
-
-bool IsBuiltInMacro(std::string_view value)
-{
-  static constexpr std::array<std::string_view, 5> built_in = {
-      "__LINE__", "__FILE__", "__VERSION__", "GL_core_profile", "GL_compatibility_profile",
-  };
-  return Common::Contains(built_in, value);
-}
-
-}  // namespace
+#include "Common/CommonTypes.h"
+#include "VideoCommon/Assets/CustomAssetLibrary.h"
 
 void CustomPipeline::UpdatePixelData(std::shared_ptr<VideoCommon::CustomAssetLibrary>,
                                      std::span<const u32>,
