@@ -182,12 +182,9 @@ Arm64GPRCache::GuestRegInfo Arm64GPRCache::GetGuestCR(size_t preg)
 
 Arm64GPRCache::GuestRegInfo Arm64GPRCache::GetGuestByIndex(size_t index)
 {
-  // We do not need to test for `index >= GUEST_GPR_OFFSET` because
-  // GUEST_GPR_OFFSET is always 0. This otherwise raises a warning.
-  static_assert(GUEST_GPR_OFFSET == 0);
-  if (index < GUEST_GPR_OFFSET + GUEST_GPR_COUNT)
+  if (IsIndexGPR(index))
     return GetGuestGPR(index - GUEST_GPR_OFFSET);
-  if (index >= GUEST_CR_OFFSET && index < GUEST_CR_OFFSET + GUEST_CR_COUNT)
+  if (IsIndexCR(index))
     return GetGuestCR(index - GUEST_CR_OFFSET);
   ASSERT_MSG(DYNA_REC, false, "Invalid index for guest register");
   return GetGuestGPR(0);
@@ -198,7 +195,7 @@ void Arm64GPRCache::FlushRegister(size_t index, FlushMode mode, ARM64Reg tmp_reg
   GuestRegInfo guest_reg = GetGuestByIndex(index);
   OpArg& reg = guest_reg.reg;
   size_t bitsize = guest_reg.bitsize;
-  const bool is_gpr = index >= GUEST_GPR_OFFSET && index < GUEST_GPR_OFFSET + GUEST_GPR_COUNT;
+  const bool is_gpr = IsIndexGPR(index);
 
   if (reg.IsInHostRegister())
   {
@@ -349,7 +346,7 @@ ARM64Reg Arm64GPRCache::BindForRead(size_t index)
   GuestRegInfo guest_reg = GetGuestByIndex(index);
   OpArg& reg = guest_reg.reg;
   size_t bitsize = guest_reg.bitsize;
-  const bool is_gpr = index >= GUEST_GPR_OFFSET && index < GUEST_GPR_OFFSET + GUEST_GPR_COUNT;
+  const bool is_gpr = IsIndexGPR(index);
 
   IncrementAllUsed();
   reg.ResetLastUsed();
@@ -392,7 +389,7 @@ void Arm64GPRCache::BindForWrite(size_t index, bool will_read, bool will_write)
   GuestRegInfo guest_reg = GetGuestByIndex(index);
   OpArg& reg = guest_reg.reg;
   const size_t bitsize = guest_reg.bitsize;
-  const bool is_gpr = index >= GUEST_GPR_OFFSET && index < GUEST_GPR_OFFSET + GUEST_GPR_COUNT;
+  const bool is_gpr = IsIndexGPR(index);
 
   reg.ResetLastUsed();
 
