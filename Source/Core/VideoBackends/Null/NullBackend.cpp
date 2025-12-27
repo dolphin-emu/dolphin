@@ -19,6 +19,11 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
+namespace Core
+{
+class System;
+}
+
 namespace Null
 {
 void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
@@ -65,16 +70,16 @@ void VideoBackend::InitBackendInfo(const WindowSystemInfo& wsi)
   g_backend_info.AAModes = {1};
 }
 
-bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
+bool VideoBackend::Initialize(Core::System& system, const WindowSystemInfo& wsi)
 {
-  return InitializeShared(std::make_unique<NullGfx>(), std::make_unique<VertexManager>(),
+  return InitializeShared(system, std::make_unique<NullGfx>(), std::make_unique<VertexManager>(),
                           std::make_unique<PerfQuery>(), std::make_unique<NullBoundingBox>(),
                           std::make_unique<NullEFBInterface>(), std::make_unique<TextureCache>());
 }
 
-void VideoBackend::Shutdown()
+void VideoBackend::Shutdown(Core::System& system)
 {
-  ShutdownShared();
+  ShutdownShared(system);
 }
 
 std::string VideoBackend::GetDisplayName() const
