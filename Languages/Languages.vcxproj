@@ -25,7 +25,7 @@
     <MoFilesDst Include="@(MoFiles -> '$(BinaryOutputDir)Languages\%(Filename)%(Extension)')" />
   </ItemGroup>
   <Target Name="MsgFmtCompile" BeforeTargets="BuildGenerateSources" Inputs="@(PoFiles)" Outputs="@(MoFiles)">
-    <Exec Command='$(msgfmt) -o "$(OutDir)%(PoFiles.Filename).mo" "@(PoFiles)"' />
+    <Exec Command="$(msgfmt) -o &quot;$(OutDir)%(PoFiles.Filename).mo&quot; &quot;@(PoFiles)&quot;" />
   </Target>
   <Target Name="MsgFmtCopy" AfterTargets="MsgFmtCompile" Inputs="@(MoFiles)" Outputs="@(MoFilesDst)">
     <Copy SourceFiles="@(MoFiles)" DestinationFiles="@(MoFilesDst)" SkipUnchangedFiles="true" />

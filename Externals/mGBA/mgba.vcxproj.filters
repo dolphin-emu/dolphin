@@ -283,7 +283,16 @@
     <ClCompile Include="mgba\src\util\elf-read.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mgba\src\util\export.c">
+    <ClCompile Include="mgba\src\util\geometry.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\image.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\image\export.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\util\image\png-io.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mgba\src\util\patch.c">
@@ -296,9 +305,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mgba\src\util\patch-ups.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mgba\src\util\png-io.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mgba\src\util\ring-fifo.c">
@@ -425,6 +431,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mgba\src\feature\updater.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mgba\src\feature\video-backend.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mgba\src\feature\video-logger.c">
