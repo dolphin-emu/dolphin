@@ -1334,8 +1334,6 @@ u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_
     return 0u;
   auto& system = Core::System::GetInstance();
   Core::CPUThreadGuard thread_guard(system);
-  if (address > MEM1_SIZE)
-    address += (MEM2_START - MEM1_SIZE);
   for (u32 num_read = 0; num_read < num_bytes; num_read++)
   {
     auto value = system.GetMMU().HostTryRead<u8>(thread_guard, address + num_read,
@@ -1561,10 +1559,7 @@ void AchievementManager::MemoryPoker(u32 address, u8* buffer, u32 num_bytes, rc_
   if (!system)
     return;
   Core::CPUThreadGuard thread_guard(*system);
-  if (address < MEM1_SIZE)
-    system->GetMemory().CopyToEmu(address, buffer, num_bytes);
-  else
-    system->GetMemory().CopyToEmu(address - MEM1_SIZE + MEM2_START, buffer, num_bytes);
+  system->GetMemory().CopyToEmu(address, buffer, num_bytes);
 }
 
 void AchievementManager::GameTitleEstimateHandler(char* buffer, u32 buffer_size,
