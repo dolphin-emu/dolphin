@@ -9,6 +9,7 @@
 #include <set>
 #include <span>
 #include <string>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
@@ -161,6 +162,16 @@ public:
   }
 
 private:
+  enum class HostPageType
+  {
+    // 4K or smaller
+    SmallPages,
+    // 8K or larger
+    LargePages,
+    // Required APIs aren't available, or the page size isn't a power of 2
+    Unsupported,
+  };
+
   // Base is a pointer to the base of the memory map. Yes, some MMU tricks
   // are used to set up a full GC or Wii memory map in process memory.
   // In 64-bit, this might point to "high memory" (above the 32-bit limit),
@@ -212,7 +223,9 @@ private:
   // The MemArena class
   Common::MemArena m_arena;
 
-  const size_t m_page_size;
+  const u32 m_page_size;
+  const u32 m_guest_pages_per_host_page;
+  const HostPageType m_host_page_type;
 
   // Dolphin allocates memory to represent four regions:
   // - 32MB RAM (actually 24MB on hardware), available on GameCube and Wii
@@ -261,8 +274,26 @@ private:
   std::array<void*, PowerPC::BAT_PAGE_COUNT> m_physical_page_mappings{};
   std::array<void*, PowerPC::BAT_PAGE_COUNT> m_logical_page_mappings{};
 
+  // If the host page size is larger than the guest page size, these two maps are used
+  // to keep track of which guest pages can be combined and mapped as one host page.
+  static constexpr u32 INVALID_MAPPING = 0xFFFFFFFF;
+  std::map<u32, std::vector<u32>> m_large_readable_pages;
+  std::map<u32, std::vector<u32>> m_large_writeable_pages;
+
   Core::System& m_system;
 
+  static HostPageType GetHostPageTypeForPageSize(u32 page_size);
+
   void InitMMIO(bool is_wii);
+
+  void TryAddLargePageTableMapping(u32 logical_address, u32 translated_address, bool writeable);
+  bool TryAddLargePageTableMapping(u32 logical_address, u32 translated_address,
+                                   std::map<u32, std::vector<u32>>& map);
+  bool CanCreateHostMappingForGuestPages(const std::vector<u32>& entries) const;
+  void AddHostPageTableMapping(u32 logical_address, u32 translated_address, bool writeable,
+                               u32 logical_size);
+  void RemoveLargePageTableMapping(u32 logical_address);
+  void RemoveLargePageTableMapping(u32 logical_address, std::map<u32, std::vector<u32>>& map);
+  void RemoveHostPageTableMappings(const std::set<u32>& mappings);
 };
 }  // namespace Memory

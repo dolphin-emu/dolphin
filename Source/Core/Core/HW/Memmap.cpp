@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <cstring>
 #include <map>
 #include <memory>
@@ -44,11 +45,21 @@
 namespace Memory
 {
 MemoryManager::MemoryManager(Core::System& system)
-    : m_page_size(m_arena.GetPageSize()), m_system(system)
+    : m_page_size(static_cast<u32>(m_arena.GetPageSize())),
+      m_guest_pages_per_host_page(m_page_size / PowerPC::HW_PAGE_SIZE),
+      m_host_page_type(GetHostPageTypeForPageSize(m_page_size)), m_system(system)
 {
 }
 
 MemoryManager::~MemoryManager() = default;
+
+MemoryManager::HostPageType MemoryManager::GetHostPageTypeForPageSize(u32 page_size)
+{
+  if (!std::has_single_bit(page_size))
+    return HostPageType::Unsupported;
+
+  return page_size > PowerPC::HW_PAGE_SIZE ? HostPageType::LargePages : HostPageType::SmallPages;
+}
 
 void MemoryManager::InitMMIO(bool is_wii)
 {
@@ -312,10 +323,69 @@ void MemoryManager::UpdateDBATMappings(const PowerPC::BatTable& dbat_table)
 
 void MemoryManager::AddPageTableMapping(u32 logical_address, u32 translated_address, bool writeable)
 {
-  if (!m_is_fastmem_arena_initialized || m_page_size > PowerPC::HW_PAGE_SIZE)
+  if (!m_is_fastmem_arena_initialized)
     return;
 
-  constexpr u32 logical_size = PowerPC::HW_PAGE_SIZE;
+  switch (m_host_page_type)
+  {
+  case HostPageType::SmallPages:
+    return AddHostPageTableMapping(logical_address, translated_address, writeable,
+                                   PowerPC::HW_PAGE_SIZE);
+  case HostPageType::LargePages:
+    return TryAddLargePageTableMapping(logical_address, translated_address, writeable);
+  default:
+    return;
+  }
+}
+
+void MemoryManager::TryAddLargePageTableMapping(u32 logical_address, u32 translated_address,
+                                                bool writeable)
+{
+  const bool add_readable =
+      TryAddLargePageTableMapping(logical_address, translated_address, m_large_readable_pages);
+
+  const bool add_writeable =
+      writeable &&
+      TryAddLargePageTableMapping(logical_address, translated_address, m_large_writeable_pages);
+
+  if (add_readable || add_writeable)
+  {
+    AddHostPageTableMapping(logical_address & ~(m_page_size - 1),
+                            translated_address & ~(m_page_size - 1), add_writeable, m_page_size);
+  }
+}
+
+bool MemoryManager::TryAddLargePageTableMapping(u32 logical_address, u32 translated_address,
+                                                std::map<u32, std::vector<u32>>& map)
+{
+  std::vector<u32>& entries = map[logical_address & ~(m_page_size - 1)];
+
+  if (entries.empty())
+    entries = std::vector<u32>(m_guest_pages_per_host_page, INVALID_MAPPING);
+
+  entries[(logical_address & (m_page_size - 1)) / PowerPC::HW_PAGE_SIZE] = translated_address;
+
+  return CanCreateHostMappingForGuestPages(entries);
+}
+
+bool MemoryManager::CanCreateHostMappingForGuestPages(const std::vector<u32>& entries) const
+{
+  const u32 translated_address = entries[0];
+  if ((translated_address & (m_page_size - 1)) != 0)
+    return false;
+
+  for (size_t i = 1; i < m_guest_pages_per_host_page; ++i)
+  {
+    if (entries[i] != translated_address + i * PowerPC::HW_PAGE_SIZE)
+      return false;
+  }
+
+  return true;
+}
+
+void MemoryManager::AddHostPageTableMapping(u32 logical_address, u32 translated_address,
+                                            bool writeable, u32 logical_size)
+{
   for (const auto& physical_region : m_physical_regions)
   {
     if (!physical_region.active)
@@ -367,9 +437,45 @@ void MemoryManager::AddPageTableMapping(u32 logical_address, u32 translated_addr
 
 void MemoryManager::RemovePageTableMappings(const std::set<u32>& mappings)
 {
-  if (m_page_size > PowerPC::HW_PAGE_SIZE)
+  switch (m_host_page_type)
+  {
+  case HostPageType::SmallPages:
+    return RemoveHostPageTableMappings(mappings);
+  case HostPageType::LargePages:
+    for (u32 logical_address : mappings)
+      RemoveLargePageTableMapping(logical_address);
     return;
+  default:
+    return;
+  }
+}
 
+void MemoryManager::RemoveLargePageTableMapping(u32 logical_address)
+{
+  RemoveLargePageTableMapping(logical_address, m_large_readable_pages);
+  RemoveLargePageTableMapping(logical_address, m_large_writeable_pages);
+
+  const u32 aligned_logical_address = logical_address & ~(m_page_size - 1);
+  const auto it = m_page_table_mapped_entries.find(aligned_logical_address);
+  if (it != m_page_table_mapped_entries.end())
+  {
+    const LogicalMemoryView& entry = it->second;
+    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
+
+    m_page_table_mapped_entries.erase(it);
+  }
+}
+
+void MemoryManager::RemoveLargePageTableMapping(u32 logical_address,
+                                                std::map<u32, std::vector<u32>>& map)
+{
+  const auto it = map.find(logical_address & ~(m_page_size - 1));
+  if (it != map.end())
+    it->second[(logical_address & (m_page_size - 1)) / PowerPC::HW_PAGE_SIZE] = INVALID_MAPPING;
+}
+
+void MemoryManager::RemoveHostPageTableMappings(const std::set<u32>& mappings)
+{
   if (mappings.empty())
     return;
 
@@ -389,6 +495,8 @@ void MemoryManager::RemoveAllPageTableMappings()
     m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
   }
   m_page_table_mapped_entries.clear();
+  m_large_readable_pages.clear();
+  m_large_writeable_pages.clear();
 }
 
 void MemoryManager::DoState(PointerWrap& p)
@@ -485,6 +593,9 @@ void MemoryManager::ShutdownFastmemArena()
   m_page_table_mapped_entries.clear();
 
   m_arena.ReleaseMemoryRegion();
+
+  m_large_readable_pages.clear();
+  m_large_writeable_pages.clear();
 
   m_fastmem_arena = nullptr;
   m_fastmem_arena_size = 0;
