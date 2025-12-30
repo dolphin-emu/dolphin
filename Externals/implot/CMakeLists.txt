@@ -20,3 +20,6 @@ target_link_libraries(implot
   PRIVATE imgui
   PRIVATE fmt::fmt
 )
+
+# https://github.com/epezent/implot/pull/565
+target_compile_options(implot PRIVATE -include "${CMAKE_CURRENT_SOURCE_DIR}/implot_isnan_fix.h")
