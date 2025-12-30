@@ -786,7 +786,7 @@ endif()
 
 add_subdirectory(Externals/watcher)
 
-if(WIN32 OR LINUX)
+if(NOT ANDROID AND NOT APPLE)
   add_subdirectory(Externals/cpp-ipc)
 endif()
 
