@@ -95,6 +95,7 @@ public:
 
   // Init and Shutdown
   bool IsInitialized() const { return m_is_initialized; }
+  void InitMMIO(Core::System& system);
   void Init();
   void Shutdown();
   bool InitFastmemArena();
@@ -282,8 +283,6 @@ private:
   Core::System& m_system;
 
   static HostPageType GetHostPageTypeForPageSize(u32 page_size);
-
-  void InitMMIO(bool is_wii);
 
   void TryAddLargePageTableMapping(u32 logical_address, u32 translated_address, bool writeable);
   bool TryAddLargePageTableMapping(u32 logical_address, u32 translated_address,

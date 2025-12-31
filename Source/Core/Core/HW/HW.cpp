@@ -58,6 +58,8 @@ void Init(Core::System& system, const Sram* override_sram)
     system.GetWiiIPC().Init();
     IOS::HLE::Init(system);  // Depends on Memory
   }
+
+  system.GetMemory().InitMMIO(system);
 }
 
 void Shutdown(Core::System& system)
