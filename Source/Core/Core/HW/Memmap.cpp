@@ -12,6 +12,7 @@
 #include <array>
 #include <bit>
 #include <cstring>
+#include <fmt/format.h>
 #include <map>
 #include <memory>
 #include <set>
@@ -99,6 +100,7 @@ void MemoryManager::Init()
       return Config::Get(Config::MAIN_MEM2_SIZE);
     return Memory::MEM2_SIZE_RETAIL;
   };
+  fmt::println(stderr, "MemoryManager::Init 1");
   m_ram_size_real = get_mem1_size();
   m_ram_size = MathUtil::NextPowerOf2(GetRamSizeReal());
   m_ram_mask = GetRamSize() - 1;
@@ -110,6 +112,7 @@ void MemoryManager::Init()
   m_exram_size = MathUtil::NextPowerOf2(GetExRamSizeReal());
   m_exram_mask = GetExRamSize() - 1;
 
+  fmt::println(stderr, "MemoryManager::Init 2");
   m_physical_regions[0] = PhysicalMemoryRegion{
       &m_ram, 0x00000000, GetRamSize(), PhysicalMemoryRegion::ALWAYS, 0, false};
   m_physical_regions[1] = PhysicalMemoryRegion{
@@ -119,6 +122,7 @@ void MemoryManager::Init()
   m_physical_regions[3] = PhysicalMemoryRegion{
       &m_exram, 0x10000000, GetExRamSize(), PhysicalMemoryRegion::WII_ONLY, 0, false};
 
+  fmt::println(stderr, "MemoryManager::Init 3");
   const bool wii = m_system.IsWii();
   const bool mmu = m_system.IsMMUMode();
 
@@ -128,35 +132,46 @@ void MemoryManager::Init()
   u32 mem_size = 0;
   for (PhysicalMemoryRegion& region : m_physical_regions)
   {
+    fmt::println(stderr, "MemoryManager::Init 4");
     if (!wii && (region.flags & PhysicalMemoryRegion::WII_ONLY))
       continue;
+    fmt::println(stderr, "MemoryManager::Init 5");
     if (!fake_vmem && (region.flags & PhysicalMemoryRegion::FAKE_VMEM))
       continue;
+    fmt::println(stderr, "MemoryManager::Init 6");
 
     region.shm_position = mem_size;
     region.active = true;
     mem_size += region.size;
   }
+  fmt::println(stderr, "MemoryManager::Init 7");
   m_arena.GrabSHMSegment(mem_size, "dolphin-emu");
 
+  fmt::println(stderr, "MemoryManager::Init 8");
   m_physical_page_mappings.fill(nullptr);
 
   // Create an anonymous view of the physical memory
   for (const PhysicalMemoryRegion& region : m_physical_regions)
   {
+    fmt::println(stderr, "MemoryManager::Init 9");
     if (!region.active)
       continue;
 
+    fmt::println(stderr, "MemoryManager::Init 10");
     *region.out_pointer = (u8*)m_arena.CreateView(region.shm_position, region.size);
+    fmt::println(stderr, "MemoryManager::Init CreateView results: {} CreateView({}, {})",
+                 fmt::ptr(*region.out_pointer), region.shm_position, region.size);
 
     if (!*region.out_pointer)
     {
+      fmt::println(stderr, "MemoryManager::Init 11");
       PanicAlertFmt(
           "Memory::Init(): Failed to create view for physical region at 0x{:08X} (size 0x{:08X}).",
           region.physical_address, region.size);
       exit(0);
     }
 
+    fmt::println(stderr, "MemoryManager::Init 12");
     for (u32 i = 0; i < region.size; i += PowerPC::BAT_PAGE_SIZE)
     {
       const size_t index = (i + region.physical_address) >> PowerPC::BAT_INDEX_SHIFT;
@@ -164,13 +179,16 @@ void MemoryManager::Init()
     }
   }
 
+  fmt::println(stderr, "MemoryManager::Init 13");
   m_physical_page_mappings_base = reinterpret_cast<u8*>(m_physical_page_mappings.data());
   m_logical_page_mappings_base = reinterpret_cast<u8*>(m_logical_page_mappings.data());
 
+  fmt::println(stderr, "MemoryManager::Init 14");
   Clear();
 
   INFO_LOG_FMT(MEMMAP, "Memory system initialized. RAM at {}", fmt::ptr(m_ram));
   m_is_initialized = true;
+  fmt::println(stderr, "MemoryManager::Init 15");
 }
 
 bool MemoryManager::IsAddressInFastmemArea(const u8* address) const
@@ -323,6 +341,7 @@ void MemoryManager::UpdateDBATMappings(const PowerPC::BatTable& dbat_table)
 
 void MemoryManager::AddPageTableMapping(u32 logical_address, u32 translated_address, bool writeable)
 {
+  fmt::println(stderr, "AddPageTableMapping {:08x} -> {:08x}", logical_address, translated_address);
   switch (m_host_page_type)
   {
   case HostPageType::SmallPages:
@@ -383,6 +402,8 @@ bool MemoryManager::CanCreateHostMappingForGuestPages(std::vector<u32>& entries)
 void MemoryManager::AddHostPageTableMapping(u32 logical_address, u32 translated_address,
                                             bool writeable, u32 logical_size)
 {
+  fmt::println(stderr, "AddHostPageTableMapping {:08x} -> {:08x} (size {})", logical_address,
+               translated_address, logical_size);
   for (const auto& physical_region : m_physical_regions)
   {
     if (!physical_region.active)
@@ -452,6 +473,7 @@ void MemoryManager::RemovePageTableMappings(const std::set<u32>& mappings)
 
 void MemoryManager::RemoveLargePageTableMapping(u32 logical_address)
 {
+  fmt::println(stderr, "RemoveLargePageTableMapping 1 {:08x}", logical_address);
   RemoveLargePageTableMapping(logical_address, m_large_readable_pages);
   RemoveLargePageTableMapping(logical_address, m_large_writeable_pages);
 
@@ -459,6 +481,7 @@ void MemoryManager::RemoveLargePageTableMapping(u32 logical_address)
   const auto it = m_page_table_mapped_entries.find(aligned_logical_address);
   if (it != m_page_table_mapped_entries.end())
   {
+    fmt::println(stderr, "RemoveLargePageTableMapping 3 {:08x}", aligned_logical_address);
     const LogicalMemoryView& entry = it->second;
     m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
 
@@ -471,7 +494,10 @@ void MemoryManager::RemoveLargePageTableMapping(u32 logical_address,
 {
   const auto it = map.find(logical_address & ~(m_page_size - 1));
   if (it != map.end())
+  {
+    fmt::println(stderr, "RemoveLargePageTableMapping 2 {:08x}", logical_address);
     it->second[(logical_address & (m_page_size - 1)) / PowerPC::HW_PAGE_SIZE] = INVALID_MAPPING;
+  }
 }
 
 void MemoryManager::RemoveHostPageTableMappings(const std::set<u32>& mappings)
@@ -483,13 +509,17 @@ void MemoryManager::RemoveHostPageTableMappings(const std::set<u32>& mappings)
     const auto& [logical_address, entry] = pair;
     const bool remove = mappings.contains(logical_address);
     if (remove)
+    {
+      fmt::println(stderr, "RemoveHostPageTableMappings {:08x}", logical_address);
       m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
+    }
     return remove;
   });
 }
 
 void MemoryManager::RemoveAllPageTableMappings()
 {
+  fmt::println(stderr, "RemoveAllPageTableMappings");
   for (const auto& [logical_address, entry] : m_page_table_mapped_entries)
   {
     m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
@@ -605,12 +635,23 @@ void MemoryManager::ShutdownFastmemArena()
 
 void MemoryManager::Clear()
 {
+  fmt::println(stderr, "MemoryManager::Clear 1 {} {}", fmt::ptr(m_ram), GetRamSize());
   if (m_ram)
     memset(m_ram, 0, GetRamSize());
+  fmt::println(stderr, "MemoryManager::Clear 2 {} {}", fmt::ptr(m_l1_cache), GetL1CacheSize());
   if (m_l1_cache)
     memset(m_l1_cache, 0, GetL1CacheSize());
+  fmt::println(stderr, "MemoryManager::Clear 3 {} {}", fmt::ptr(m_fake_vmem), GetFakeVMemSize());
   if (m_fake_vmem)
-    memset(m_fake_vmem, 0, GetFakeVMemSize());
+  {
+    size_t fake_vmem_size = GetFakeVMemSize();
+    for (size_t i = 0; i < fake_vmem_size; i += PowerPC::HW_PAGE_SIZE)
+    {
+      fmt::println(stderr, "MemoryManager::Clear {}", fmt::ptr(m_fake_vmem + i));
+      memset(m_fake_vmem + i, 0, PowerPC::HW_PAGE_SIZE);
+    }
+  }
+  fmt::println(stderr, "MemoryManager::Clear 4 {} {}", fmt::ptr(m_exram), GetExRamSize());
   if (m_exram)
     memset(m_exram, 0, GetExRamSize());
 }
