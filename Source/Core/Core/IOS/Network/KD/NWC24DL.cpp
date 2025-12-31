@@ -241,6 +241,11 @@ u64 NWC24Dl::GetLastSubtaskDownloadTime(u16 entry_index, u8 subtask_id) const
          Common::swap32(m_data.entries[entry_index].server_dl_interval) * SECONDS_PER_MINUTE;
 }
 
+NWC24Dl::EntryType NWC24Dl::GetEntryType(u16 entry_index) const
+{
+  return m_data.entries[entry_index].type;
+}
+
 u32 NWC24Dl::Magic() const
 {
   ASSERT(!IsDisabled());

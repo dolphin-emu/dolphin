@@ -32,7 +32,8 @@ public:
   NetKDRequestDevice(EmulationKernel& ios, const std::string& device_name,
                      const std::shared_ptr<NetKDTimeDevice>& time_device);
   IPCReply HandleNWC24DownloadNowEx(const IOCtlRequest& request);
-  NWC24::ErrorCode KDDownload(const u16 entry_index, const std::optional<u8> subtask_id);
+  NWC24::ErrorCode KDDownload(const u16 entry_index, const std::optional<u8> subtask_id,
+                              bool* is_mail);
   IPCReply HandleNWC24CheckMailNow(const IOCtlRequest& request);
   ~NetKDRequestDevice() override;
 
@@ -89,6 +90,7 @@ private:
   };
 
   IPCReply HandleNWC24SendMailNow(const IOCtlRequest& request);
+  IPCReply HandleNWC24SaveMailNow(const IOCtlRequest& request);
   NWC24::ErrorCode KDCheckMail(u32* mail_flag, u32* interval);
   IPCReply HandleRequestRegisterUserId(const IOCtlRequest& request);
   NWC24::ErrorCode KDSendMail();
@@ -110,6 +112,7 @@ private:
   static constexpr u32 DEFAULT_SCHEDULER_SPAN_MINUTES = 11;
   static constexpr u32 MAX_MAIL_RECEIVE_SIZE = 1578040;
   static constexpr char TEMP_MAIL_PATH[] = "/" WII_WC24CONF_DIR "/mbox/recvtmp.msg";
+  static constexpr char TEMP_DL_MAIL_PATH[] = "/" WII_WC24CONF_DIR "/mbox/dlcnt.bin";
 
   NWC24::NWC24Config m_config;
   NWC24::NWC24Dl m_dl_list;
@@ -131,6 +134,7 @@ private:
   bool m_handle_mail;
   Common::Event m_shutdown_event;
   std::mutex m_scheduler_lock;
+  std::mutex m_save_mail_lock;
   std::thread m_scheduler_timer_thread;
 };
 }  // namespace IOS::HLE

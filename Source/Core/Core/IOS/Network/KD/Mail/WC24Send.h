@@ -50,9 +50,6 @@ public:
   u32 GetNextEntryIndex() const;
   std::optional<u32> GetNextFreeEntryIndex() const;
 
-  void AddRegistrationMessages(const WC24FriendList& friend_list, u64 sender,
-                               std::string_view email);
-
 private:
   static constexpr u32 MAX_ENTRIES = 127;
   static constexpr u32 SEND_LIST_SIZE = 16384;

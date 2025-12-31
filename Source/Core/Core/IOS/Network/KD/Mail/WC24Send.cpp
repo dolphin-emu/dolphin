@@ -206,59 +206,6 @@ std::optional<u32> WC24SendList::GetNextFreeEntryIndex() const
   return std::nullopt;
 }
 
-void WC24SendList::AddRegistrationMessages(const WC24FriendList& friend_list, u64 sender,
-                                           std::string_view email)
-{
-  ASSERT(!IsDisabled());
-  // It is possible that the user composed a message before SendMail was called.
-  ReadSendList();
-
-  const std::vector<u64> unconfirmed_friends = friend_list.GetUnconfirmedFriends();
-  for (const u64 code : unconfirmed_friends)
-  {
-    const u32 entry_index = GetNextEntryIndex();
-    const u32 msg_id = GetNextEntryId();
-    m_data.entries[entry_index].id = Common::swap32(msg_id);
-
-    const std::time_t t = std::time(nullptr);
-
-    const std::string formatted_message =
-        fmt::format(MAIL_REGISTRATION_STRING, sender, code, email, fmt::gmtime(t));
-    const std::span message{reinterpret_cast<const u8*>(formatted_message.data()),
-                            formatted_message.size()};
-    const ErrorCode reply = WriteToVFF(SEND_BOX_PATH, GetMailPath(entry_index), m_fs, message);
-
-    if (reply != WC24_OK)
-    {
-      ERROR_LOG_FMT(IOS_WC24, "Error writing registration message to VFF");
-      return;
-    }
-
-    NOTICE_LOG_FMT(IOS_WC24, "Issued registration message for Wii Friend: {}", code);
-
-    // Update the header and some fields in the body
-    m_data.entries[entry_index].msg_size = Common::swap32(static_cast<u32>(message.size()));
-    m_data.header.number_of_mail = Common::swap32(GetNumberOfMail() + 1);
-    m_data.header.next_entry_id = Common::swap32(msg_id + 1);
-    m_data.header.total_size_of_messages =
-        Common::swap32(m_data.header.total_size_of_messages) + static_cast<u32>(message.size());
-
-    const std::optional<u32> next_entry_index = GetNextFreeEntryIndex();
-    if (!next_entry_index)
-    {
-      // If there are no free entries, we overwrite the first entry.
-      m_data.header.next_entry_offset = Common::swap32(128);
-    }
-    else
-    {
-      m_data.header.next_entry_offset = CalculateFileOffset(next_entry_index.value());
-    }
-  }
-
-  // Only flush on success.
-  WriteSendList();
-}
-
 std::string_view WC24SendList::GetMailFlag() const
 {
   ASSERT(!IsDisabled());

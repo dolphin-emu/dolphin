@@ -187,7 +187,7 @@ void WC24ReceiveList::SetMessageOffset(u32 index, u32 offset)
 void WC24ReceiveList::SetEncodedMessageLength(u32 index, u32 size)
 {
   ASSERT(!IsDisabled());
-  m_data.entries[index].encoded_length = Common::swap32(size);
+  m_data.entries[index].encoded_length = Common::swap32(size + 2);
 }
 
 void WC24ReceiveList::SetMessageLength(u32 index, u32 size)

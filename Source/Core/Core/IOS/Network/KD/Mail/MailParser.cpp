@@ -9,6 +9,7 @@
 #include "Core/IOS/Network/KD/Mail/MailCommon.h"
 
 #include <chrono>
+#include <fmt/ranges.h>
 #include <regex>
 
 namespace IOS::HLE::NWC24::Mail
@@ -41,7 +42,7 @@ MailParser::MailParser(const std::string& boundary, const u32 num_of_mail,
 
 ErrorCode MailParser::Parse(std::string_view buf)
 {
-  m_parser.feed(reinterpret_cast<const char*>(buf.data()), buf.size());
+  m_parser.feed(buf.data(), buf.size());
 
   if (m_parser.hasError())
   {
@@ -55,7 +56,6 @@ ErrorCode MailParser::Parse(std::string_view buf)
 std::vector<u8> MailParser::GetMessageData(u32 index) const
 {
   std::vector<u8> data{m_message_data[index].begin(), m_message_data[index].end()};
-  data.resize(Common::AlignUp(data.size(), 32));
   return data;
 }
 
@@ -115,7 +115,7 @@ std::string MailParser::GetHeaderValue(u32 index, std::string_view key,
 
         // Remove the header key and join the rest of the strings
         key_value.erase(key_value.begin());
-        val = StripWhitespace(JoinStrings(key_value, ":"));
+        val = StripWhitespace(fmt::to_string(fmt::join(key_value, ":")));
         break;
       }
     }
@@ -335,7 +335,8 @@ ErrorCode MailParser::ParseMultipartField(const MailParser* parent, u32 parent_i
                                           static_cast<u32>(m_content_type));
 
   std::string message = GetMessage(multipart_index, IsMultipart{true});
-  m_receive_list->SetMultipartField(receive_index, multipart_index - 1, offset, message.size());
+  // Multipart Parser strips the last carriage return, we need to include it in the size.
+  m_receive_list->SetMultipartField(receive_index, multipart_index - 1, offset, message.size() + 2);
 
   // Remove the newlines and base64 padding.
   const u32 padding = std::count(message.begin(), message.end(), '=');

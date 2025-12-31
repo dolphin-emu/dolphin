@@ -66,7 +66,7 @@ public:
   u64 GetSender() const;
 
 private:
-  static void EmptyCallback(const char* buffer, size_t start, size_t end, void* user_data){};
+  static void EmptyCallback(const char* buffer, size_t start, size_t end, void* user_data) {}
   ErrorCode ParseMultipartField(const MailParser* parent, u32 parent_index, u32 multipart_index,
                                 u32 receive_index);
 
