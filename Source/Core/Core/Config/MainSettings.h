@@ -210,8 +210,6 @@ extern const Info<std::string> MAIN_WFS_PATH;
 extern const Info<bool> MAIN_SHOW_LAG;
 extern const Info<bool> MAIN_SHOW_FRAME_COUNT;
 extern const Info<std::string> MAIN_WIRELESS_MAC;
-extern const Info<std::string> MAIN_GDB_SOCKET;
-extern const Info<int> MAIN_GDB_PORT;
 extern const Info<int> MAIN_ISO_PATH_COUNT;
 extern const Info<std::string> MAIN_SKYLANDERS_PATH;
 std::vector<std::string> GetIsoPaths();

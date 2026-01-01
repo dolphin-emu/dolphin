@@ -520,8 +520,6 @@ add_library(core
   PowerPC/JitCommon/JitCache.h
   PowerPC/JitInterface.cpp
   PowerPC/JitInterface.h
-  PowerPC/GDBStub.cpp
-  PowerPC/GDBStub.h
   PowerPC/MMU.cpp
   PowerPC/MMU.h
   PowerPC/PowerPC.cpp

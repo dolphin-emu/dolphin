@@ -8,7 +8,6 @@
 #include <queue>
 
 #include "AudioCommon/AudioCommon.h"
-#include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -17,7 +16,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
-#include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "Core/TimePlayed.h"
@@ -123,7 +121,6 @@ void CPUManager::Run()
     ExecutePendingJobs(state_lock);
     CPUThreadConfigCallback::CheckForConfigChanges();
 
-    Common::Event gdb_step_sync_event;
     switch (m_state)
     {
     case State::Running:
@@ -156,30 +153,9 @@ void CPUManager::Run()
 
     case State::Stepping:
       // Wait for step command.
-      m_state_cpu_cvar.wait(state_lock, [this, &state_lock, &gdb_step_sync_event] {
+      m_state_cpu_cvar.wait(state_lock, [this, &state_lock] {
         ExecutePendingJobs(state_lock);
         CPUThreadConfigCallback::CheckForConfigChanges();
-        state_lock.unlock();
-        if (GDBStub::IsActive() && GDBStub::HasControl())
-        {
-          if (!GDBStub::JustConnected())
-            GDBStub::SendSignal(GDBStub::Signal::Sigtrap);
-          GDBStub::ProcessCommands(true);
-          // If we are still going to step, emulate the fact we just sent a step command
-          if (GDBStub::HasControl())
-          {
-            // Make sure the previous step by gdb was serviced
-            if (m_state_cpu_step_instruction_sync &&
-                m_state_cpu_step_instruction_sync != &gdb_step_sync_event)
-            {
-              m_state_cpu_step_instruction_sync->Set();
-            }
-
-            m_state_cpu_step_instruction = true;
-            m_state_cpu_step_instruction_sync = &gdb_step_sync_event;
-          }
-        }
-        state_lock.lock();
         return m_state_cpu_step_instruction || !IsStepping();
       });
       if (!IsStepping())
