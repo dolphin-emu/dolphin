@@ -22,18 +22,21 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="SDL\include\SDL3\SDL_begin_code.h" />
-    <ClInclude Include="SDL\include\SDL3\SDL_camera.h" />
-    <ClInclude Include="SDL\include\SDL3\SDL_close_code.h" />
     <ClInclude Include="SDL\include\SDL3\SDL.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_assert.h" />
+    <ClInclude Include="SDL\include\SDL3\SDL_asyncio.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_atomic.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_audio.h" />
+    <ClInclude Include="SDL\include\SDL3\SDL_begin_code.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_bits.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_blendmode.h" />
+    <ClInclude Include="SDL\include\SDL3\SDL_camera.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_clipboard.h" />
+    <ClInclude Include="SDL\include\SDL3\SDL_close_code.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_copying.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_cpuinfo.h" />
+    <ClInclude Include="SDL\include\SDL3\SDL_dialog.h" />
+    <ClInclude Include="SDL\include\SDL3\SDL_dlopennote.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_egl.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_endian.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_error.h" />
@@ -43,9 +46,11 @@
     <ClInclude Include="SDL\include\SDL3\SDL_gpu.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_guid.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_haptic.h" />
-    <ClInclude Include="SDL\include\SDL3\SDL_hints.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_hidapi.h" />
-    <ClInclude Include="SDL\include\SDL3\SDL_asyncio.h" />
+    <ClInclude Include="SDL\include\SDL3\SDL_hints.h" />
+    <ClInclude Include="SDL\include\SDL3\SDL_init.h" />
+    <ClInclude Include="SDL\include\SDL3\SDL_intrin.h" />
+    <ClInclude Include="SDL\include\SDL3\SDL_iostream.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_joystick.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_keyboard.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_keycode.h" />
@@ -53,11 +58,13 @@
     <ClInclude Include="SDL\include\SDL3\SDL_locale.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_log.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_main.h" />
+    <ClInclude Include="SDL\include\SDL3\SDL_main_impl.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_messagebox.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_metal.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_misc.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_mouse.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_mutex.h" />
+    <ClInclude Include="SDL\include\SDL3\SDL_oldnames.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_opengl.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_opengl_glext.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_opengles.h" />
@@ -76,7 +83,6 @@
     <ClInclude Include="SDL\include\SDL3\SDL_rect.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_render.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_revision.h" />
-    <ClInclude Include="SDL\include\SDL3\SDL_iostream.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_scancode.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_sensor.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_stdinc.h" />
@@ -98,6 +104,7 @@
     <ClInclude Include="SDL\include\SDL3\SDL_time.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_timer.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_touch.h" />
+    <ClInclude Include="SDL\include\SDL3\SDL_tray.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_version.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_video.h" />
     <ClInclude Include="SDL\include\SDL3\SDL_vulkan.h" />
@@ -113,6 +120,7 @@
     <ClInclude Include="SDL\src\audio\wasapi\SDL_wasapi.h" />
     <ClInclude Include="SDL\src\camera\SDL_camera_c.h" />
     <ClInclude Include="SDL\src\camera\SDL_syscamera.h" />
+    <ClInclude Include="SDL\src\core\SDL_core_unsupported.h" />
     <ClInclude Include="SDL\src\core\windows\SDL_directx.h" />
     <ClInclude Include="SDL\src\core\windows\SDL_gameinput.h" />
     <ClInclude Include="SDL\src\core\windows\SDL_hid.h" />
@@ -145,13 +153,16 @@
     <ClInclude Include="SDL\src\io\SDL_sysasyncio.h" />
     <ClInclude Include="SDL\src\haptic\SDL_haptic_c.h" />
     <ClInclude Include="SDL\src\haptic\SDL_syshaptic.h" />
+    <ClInclude Include="SDL\src\haptic\SDL_hidapihaptic.h" />
     <ClInclude Include="SDL\src\haptic\windows\SDL_dinputhaptic_c.h" />
     <ClInclude Include="SDL\src\haptic\windows\SDL_windowshaptic_c.h" />
+    <ClInclude Include="SDL\src\haptic\hidapi\SDL_hidapihaptic_c.h" />
     <ClInclude Include="SDL\src\hidapi\hidapi\hidapi.h" />
     <ClInclude Include="SDL\src\hidapi\SDL_hidapi_c.h" />
     <ClInclude Include="SDL\src\joystick\controller_type.h" />
     <ClInclude Include="SDL\src\joystick\hidapi\SDL_hidapijoystick_c.h" />
     <ClInclude Include="SDL\src\joystick\hidapi\SDL_hidapi_rumble.h" />
+    <ClInclude Include="SDL\src\joystick\hidapi\SDL_report_descriptor.h" />
     <ClInclude Include="SDL\src\joystick\SDL_gamepad_c.h" />
     <ClInclude Include="SDL\src\joystick\SDL_gamepad_db.h" />
     <ClInclude Include="SDL\src\joystick\SDL_joystick_c.h" />
@@ -186,7 +197,6 @@
     <ClInclude Include="SDL\src\render\software\SDL_drawline.h" />
     <ClInclude Include="SDL\src\render\software\SDL_drawpoint.h" />
     <ClInclude Include="SDL\src\render\software\SDL_render_sw_c.h" />
-    <ClInclude Include="SDL\src\render\software\SDL_rotate.h" />
     <ClInclude Include="SDL\src\render\software\SDL_triangle.h" />
     <ClInclude Include="SDL\src\render\vulkan\SDL_shaders_vulkan.h" />
     <ClInclude Include="SDL\src\SDL_assert_c.h" />
@@ -266,9 +276,11 @@
     <ClInclude Include="SDL\src\video\SDL_pixels_c.h" />
     <ClInclude Include="SDL\src\video\SDL_rect_c.h" />
     <ClInclude Include="SDL\src\video\SDL_RLEaccel_c.h" />
+    <ClInclude Include="SDL\src\video\SDL_rotate.h" />
     <ClInclude Include="SDL\src\video\SDL_stb_c.h" />
     <ClInclude Include="SDL\src\video\SDL_surface_c.h" />
     <ClInclude Include="SDL\src\video\SDL_sysvideo.h" />
+    <ClInclude Include="SDL\src\video\SDL_video_unsupported.h" />
     <ClInclude Include="SDL\src\video\SDL_vulkan_internal.h" />
     <ClInclude Include="SDL\src\video\SDL_yuv_c.h" />
     <ClInclude Include="SDL\src\video\windows\SDL_msctf.h" />
@@ -313,19 +325,14 @@
     <ClCompile Include="SDL\src\audio\SDL_wave.c" />
     <ClCompile Include="SDL\src\audio\wasapi\SDL_wasapi.c" />
     <ClCompile Include="SDL\src\core\SDL_core_unsupported.c" />
-    <ClCompile Include="SDL\src\core\windows\SDL_gameinput.c" />
+    <ClCompile Include="SDL\src\core\windows\SDL_gameinput.cpp" />
     <ClCompile Include="SDL\src\core\windows\SDL_hid.c" />
     <ClCompile Include="SDL\src\core\windows\SDL_immdevice.c" />
     <ClCompile Include="SDL\src\core\windows\SDL_windows.c" />
     <ClCompile Include="SDL\src\core\windows\SDL_xinput.c" />
     <ClCompile Include="SDL\src\cpuinfo\SDL_cpuinfo.c" />
     <ClCompile Include="SDL\src\dialog\windows\SDL_windowsdialog.c" />
-    <ClCompile Include="SDL\src\dynapi\SDL_dynapi.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="SDL\src\dynapi\SDL_dynapi.c" />
     <ClCompile Include="SDL\src\events\SDL_categories.c" />
     <ClCompile Include="SDL\src\events\SDL_clipboardevents.c" />
     <ClCompile Include="SDL\src\events\SDL_displayevents.c" />
@@ -345,28 +352,39 @@
     <ClCompile Include="SDL\src\haptic\SDL_haptic.c" />
     <ClCompile Include="SDL\src\haptic\windows\SDL_dinputhaptic.c" />
     <ClCompile Include="SDL\src\haptic\windows\SDL_windowshaptic.c" />
+    <ClCompile Include="SDL\src\haptic\hidapi\SDL_hidapihaptic.c" />
+    <ClCompile Include="SDL\src\haptic\hidapi\SDL_hidapihaptic_lg4ff.c" />
     <ClCompile Include="SDL\src\hidapi\SDL_hidapi.c" />
     <ClCompile Include="SDL\src\joystick\controller_type.c" />
     <ClCompile Include="SDL\src\joystick\dummy\SDL_sysjoystick.c" />
-    <ClCompile Include="SDL\src\joystick\gdk\SDL_gameinputjoystick.c" />
+    <ClCompile Include="SDL\src\joystick\gdk\SDL_gameinputjoystick.cpp" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapijoystick.c" />
+    <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_8bitdo.c" />
+    <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_flydigi.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_combined.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_gamecube.c" />
+    <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_gip.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_luna.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_ps3.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_ps4.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_ps5.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_rumble.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_shield.c" />
+    <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_sinput.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_stadia.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_steam.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_steam_hori.c" />
+    <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_steam_triton.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_steamdeck.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_switch.c" />
+    <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_switch2.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_wii.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_xbox360.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_xbox360w.c" />
     <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_xboxone.c" />
+    <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_lg4ff.c" />
+    <ClCompile Include="SDL\src\joystick\hidapi\SDL_hidapi_zuiki.c" />
+    <ClCompile Include="SDL\src\joystick\hidapi\SDL_report_descriptor.c" />
     <ClCompile Include="SDL\src\joystick\SDL_gamepad.c" />
     <ClCompile Include="SDL\src\joystick\SDL_joystick.c" />
     <ClCompile Include="SDL\src\joystick\SDL_steam_virtual_gamepad.c" />
@@ -380,6 +398,7 @@
     <ClCompile Include="SDL\src\loadso\windows\SDL_sysloadso.c" />
     <ClCompile Include="SDL\src\locale\SDL_locale.c" />
     <ClCompile Include="SDL\src\locale\windows\SDL_syslocale.c" />
+    <ClCompile Include="SDL\src\misc\SDL_libusb.c" />
     <ClCompile Include="SDL\src\misc\SDL_url.c" />
     <ClCompile Include="SDL\src\misc\windows\SDL_sysurl.c" />
     <ClCompile Include="SDL\src\power\SDL_power.c" />
@@ -408,7 +427,6 @@
     <ClCompile Include="SDL\src\render\software\SDL_drawline.c" />
     <ClCompile Include="SDL\src\render\software\SDL_drawpoint.c" />
     <ClCompile Include="SDL\src\render\software\SDL_render_sw.c" />
-    <ClCompile Include="SDL\src\render\software\SDL_rotate.c" />
     <ClCompile Include="SDL\src\render\software\SDL_triangle.c" />
     <ClCompile Include="SDL\src\SDL.c" />
     <ClCompile Include="SDL\src\SDL_assert.c" />
@@ -479,6 +497,7 @@
     <ClCompile Include="SDL\src\video\SDL_pixels.c" />
     <ClCompile Include="SDL\src\video\SDL_rect.c" />
     <ClCompile Include="SDL\src\video\SDL_RLEaccel.c" />
+    <ClCompile Include="SDL\src\video\SDL_rotate.c" />
     <ClCompile Include="SDL\src\video\SDL_stb.c" />
     <ClCompile Include="SDL\src\video\SDL_stretch.c" />
     <ClCompile Include="SDL\src\video\SDL_surface.c" />
@@ -486,12 +505,11 @@
     <ClCompile Include="SDL\src\video\SDL_video_unsupported.c" />
     <ClCompile Include="SDL\src\video\SDL_vulkan_utils.c" />
     <ClCompile Include="SDL\src\video\SDL_yuv.c" />
-    <ClCompile Include="SDL\src\video\windows\SDL_surface_utils.c" />
     <ClCompile Include="SDL\src\video\windows\SDL_windowsclipboard.c" />
     <ClCompile Include="SDL\src\video\windows\SDL_windowsevents.c" />
     <ClCompile Include="SDL\src\video\windows\SDL_windowsframebuffer.c" />
     <ClCompile Include="SDL\src\video\windows\SDL_windowskeyboard.c" />
-    <ClCompile Include="SDL\src\video\windows\SDL_windowsgameinput.c" />
+    <ClCompile Include="SDL\src\video\windows\SDL_windowsgameinput.cpp" />
     <ClCompile Include="SDL\src\video\windows\SDL_windowsmessagebox.c" />
     <ClCompile Include="SDL\src\video\windows\SDL_windowsmodes.c" />
     <ClCompile Include="SDL\src\video\windows\SDL_windowsmouse.c" />
