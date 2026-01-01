@@ -121,7 +121,7 @@ void Arm64RegCache::FlushMostStaleRegister()
     }
   }
 
-  FlushRegister(most_stale_preg, FlushMode::All, ARM64Reg::INVALID_REG);
+  FlushRegister(most_stale_preg, FlushMode::Full, ARM64Reg::INVALID_REG);
 }
 
 void Arm64RegCache::DiscardRegister(size_t preg)
@@ -140,8 +140,9 @@ Arm64GPRCache::Arm64GPRCache() : Arm64RegCache(GUEST_GPR_COUNT + GUEST_CR_COUNT)
 {
 }
 
-void Arm64GPRCache::Start(PPCAnalyst::BlockRegStats& stats)
+void Arm64GPRCache::Start(const PPCAnalyst::BlockRegStats& stats)
 {
+  m_reg_stats = &stats;
 }
 
 // Returns if a register is set as an immediate. Only valid for guest GPRs.
@@ -203,10 +204,14 @@ void Arm64GPRCache::FlushRegister(size_t index, FlushMode mode, ARM64Reg tmp_reg
     if (!reg.IsInPPCState())
       m_emit->STR(IndexType::Unsigned, host_reg, PPC_REG, u32(guest_reg.ppc_offset));
 
-    if (mode == FlushMode::All)
+    if (mode == FlushMode::Full)
     {
       UnlockRegister(EncodeRegTo32(host_reg));
       reg.Flush();
+    }
+    else if (mode == FlushMode::Undirty)
+    {
+      reg.SetDirty(false);
     }
   }
   else if (is_gpr && IsImm(index - GUEST_GPR_OFFSET))
@@ -244,8 +249,10 @@ void Arm64GPRCache::FlushRegister(size_t index, FlushMode mode, ARM64Reg tmp_reg
       }
     }
 
-    if (mode == FlushMode::All)
+    if (mode == FlushMode::Full)
       reg.Flush();
+    else if (mode == FlushMode::Undirty)
+      reg.SetDirty(false);
   }
 }
 
@@ -270,10 +277,10 @@ void Arm64GPRCache::FlushRegisters(BitSet32 regs, FlushMode mode, ARM64Reg tmp_r
       const bool reg2_imm = IsImm(i + 1);
       const bool reg1_zero = reg1_imm && GetImm(i) == 0;
       const bool reg2_zero = reg2_imm && GetImm(i + 1) == 0;
-      const bool flush_all = mode == FlushMode::All;
+      const bool can_allocate_reg = mode != FlushMode::MaintainState;
       if (!reg1.IsInPPCState() && !reg2.IsInPPCState() &&
-          (reg1.IsInHostRegister() || (reg1_imm && (reg1_zero || flush_all))) &&
-          (reg2.IsInHostRegister() || (reg2_imm && (reg2_zero || flush_all))))
+          (reg1.IsInHostRegister() || (reg1_imm && (reg1_zero || can_allocate_reg))) &&
+          (reg2.IsInHostRegister() || (reg2_imm && (reg2_zero || can_allocate_reg))))
       {
         const size_t ppc_offset = GetGuestByIndex(i).ppc_offset;
         if (ppc_offset <= 252)
@@ -281,7 +288,7 @@ void Arm64GPRCache::FlushRegisters(BitSet32 regs, FlushMode mode, ARM64Reg tmp_r
           ARM64Reg RX1 = reg1_zero ? ARM64Reg::WZR : BindForRead(i);
           ARM64Reg RX2 = reg2_zero ? ARM64Reg::WZR : BindForRead(i + 1);
           m_emit->STP(IndexType::Signed, RX1, RX2, PPC_REG, u32(ppc_offset));
-          if (flush_all)
+          if (mode == FlushMode::Full)
           {
             if (reg1.IsInHostRegister())
               UnlockRegister(reg1.GetReg());
@@ -289,6 +296,11 @@ void Arm64GPRCache::FlushRegisters(BitSet32 regs, FlushMode mode, ARM64Reg tmp_r
               UnlockRegister(reg2.GetReg());
             reg1.Flush();
             reg2.Flush();
+          }
+          else if (mode == FlushMode::Undirty)
+          {
+            reg1.SetDirty(false);
+            reg2.SetDirty(false);
           }
           ++iter;
           continue;
@@ -368,6 +380,53 @@ ARM64Reg Arm64GPRCache::BindForRead(size_t index)
     ARM64Reg host_reg = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
     reg.Load(host_reg);
     reg.SetDirty(false);
+
+    // Load two registers at once if we have an opportunity to
+    if (index >= GUEST_GPR_OFFSET && index < GUEST_GPR_OFFSET + GUEST_GPR_COUNT &&
+        GetUnlockedRegisterCount() > 0)
+    {
+      const size_t gpr_index = index - GUEST_GPR_OFFSET;
+      const BitSet32 gpr_will_be_read = m_jit->js.op->gprWillBeRead | m_jit->js.op->regsIn;
+
+      if (gpr_index != 0 && m_reg_stats->load_pairs[gpr_index - 1] &&
+          gpr_will_be_read[gpr_index - 1])
+      {
+        const GuestRegInfo& guest_reg_2 = GetGuestGPR(gpr_index - 1);
+        OpArg& reg_2 = guest_reg_2.reg;
+        DEBUG_ASSERT(guest_reg_2.bitsize == bitsize);
+
+        if (!reg_2.IsInHostRegister() && reg_2.IsInPPCState() && guest_reg_2.ppc_offset <= 252)
+        {
+          ARM64Reg host_reg_2 = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
+          reg_2.Load(host_reg_2);
+          reg_2.SetDirty(false);
+
+          m_emit->LDP(IndexType::Signed, host_reg_2, host_reg, PPC_REG,
+                      u32(guest_reg_2.ppc_offset));
+          return host_reg;
+        }
+      }
+
+      if (gpr_index + 1 < GUEST_GPR_COUNT && m_reg_stats->load_pairs[gpr_index] &&
+          gpr_will_be_read[gpr_index + 1] && guest_reg.ppc_offset <= 252)
+      {
+        const GuestRegInfo& guest_reg_2 = GetGuestGPR(gpr_index + 1);
+        OpArg& reg_2 = guest_reg_2.reg;
+        DEBUG_ASSERT(guest_reg_2.bitsize == bitsize);
+
+        if (!reg_2.IsInHostRegister() && reg_2.IsInPPCState())
+        {
+          ARM64Reg host_reg_2 = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
+          reg_2.Load(host_reg_2);
+          reg_2.SetDirty(false);
+
+          m_emit->LDP(IndexType::Signed, host_reg, host_reg_2, PPC_REG, u32(guest_reg.ppc_offset));
+          return host_reg;
+        }
+      }
+    }
+
+    // Otherwise, just load this register
     m_emit->LDR(IndexType::Unsigned, host_reg, PPC_REG, u32(guest_reg.ppc_offset));
     return host_reg;
   }
@@ -395,28 +454,15 @@ void Arm64GPRCache::BindForWrite(size_t index, bool will_read, bool will_write)
 
   if (!reg.IsInHostRegister())
   {
-    if (is_gpr && IsImm(index - GUEST_GPR_OFFSET))
-    {
-      const ARM64Reg host_reg = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
-      if (will_read || !will_write)
-      {
-        // TODO: Emitting this instruction when (!will_read && !will_write) would be unnecessary if
-        // we had some way to indicate to Flush that the immediate value should be written to
-        // ppcState even though there is a host register allocated
-        m_emit->MOVI2R(host_reg, GetImm(index - GUEST_GPR_OFFSET));
-      }
-      reg.Load(host_reg);
-    }
+    // TODO: This special case would be unnecessary if we had some way to indicate to Flush that
+    // an immediate value should be written to m_ppc_state even though a host register is allocated
+    const bool is_imm = is_gpr && IsImm(index - GUEST_GPR_OFFSET);
+    const bool special_case = is_imm && !will_write;
+
+    if (will_read || special_case)
+      BindForRead(index);
     else
-    {
-      ASSERT_MSG(DYNA_REC, !will_read || reg.IsInPPCState(), "Attempted to load a discarded value");
-      const ARM64Reg host_reg = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
-      reg.Load(host_reg);
-      reg.SetDirty(will_write);
-      if (will_read)
-        m_emit->LDR(IndexType::Unsigned, host_reg, PPC_REG, u32(guest_reg.ppc_offset));
-      return;
-    }
+      reg.Load(bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg()));
   }
 
   if (will_write)
@@ -497,7 +543,7 @@ void Arm64GPRCache::FlushByHost(ARM64Reg host_reg, ARM64Reg tmp_reg)
     const OpArg& reg = m_guest_registers[i];
     if (reg.IsInHostRegister() && DecodeReg(reg.GetReg()) == DecodeReg(host_reg))
     {
-      FlushRegister(i, FlushMode::All, tmp_reg);
+      FlushRegister(i, FlushMode::Full, tmp_reg);
       return;
     }
   }
@@ -508,6 +554,11 @@ constexpr size_t GUEST_FPR_COUNT = 32;
 
 Arm64FPRCache::Arm64FPRCache() : Arm64RegCache(GUEST_FPR_COUNT)
 {
+}
+
+void Arm64FPRCache::Start(const PPCAnalyst::BlockRegStats& stats)
+{
+  m_reg_stats = &stats;
 }
 
 void Arm64FPRCache::Flush(FlushMode mode, ARM64Reg tmp_reg,
@@ -788,7 +839,7 @@ void Arm64FPRCache::FlushByHost(ARM64Reg host_reg, ARM64Reg tmp_reg)
 
     if (reg.IsInHostRegister() && reg.GetReg() == host_reg)
     {
-      FlushRegister(i, FlushMode::All, tmp_reg);
+      FlushRegister(i, FlushMode::Full, tmp_reg);
       return;
     }
   }
@@ -816,6 +867,22 @@ void Arm64FPRCache::FlushRegister(size_t preg, FlushMode mode, ARM64Reg tmp_reg)
   const ARM64Reg host_reg = reg.GetReg();
   const bool dirty = !reg.IsInPPCState();
   RegType type = reg.GetFPRType();
+
+  if (mode == FlushMode::Undirty)
+  {
+    switch (type)
+    {
+    case RegType::Single:
+    case RegType::DuplicatedSingle:
+    case RegType::LowerPairSingle:
+      // In this situation, skip flushing. It's usually better to wait until later instead to avoid
+      // extra conversions. We can revisit this decision in the future if the register cache gets
+      // the ability to store both the single and double versions of a value simultaneously.
+      return;
+    default:
+      break;
+    }
+  }
 
   bool allocated_tmp_reg = false;
   if (tmp_reg != ARM64Reg::INVALID_REG)
@@ -868,10 +935,14 @@ void Arm64FPRCache::FlushRegister(size_t preg, FlushMode mode, ARM64Reg tmp_reg)
                         static_cast<s32>(PPCSTATE_OFF_PS0(preg)));
     }
 
-    if (mode == FlushMode::All)
+    if (mode == FlushMode::Full)
     {
       UnlockRegister(host_reg);
       reg.Flush();
+    }
+    else if (mode == FlushMode::Undirty)
+    {
+      reg.SetDirty(false);
     }
   }
   else if (type == RegType::Duplicated)
@@ -892,10 +963,14 @@ void Arm64FPRCache::FlushRegister(size_t preg, FlushMode mode, ARM64Reg tmp_reg)
       }
     }
 
-    if (mode == FlushMode::All)
+    if (mode == FlushMode::Full)
     {
       UnlockRegister(host_reg);
       reg.Flush();
+    }
+    else if (mode == FlushMode::Undirty)
+    {
+      reg.SetDirty(false);
     }
   }
 

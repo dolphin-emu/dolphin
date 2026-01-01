@@ -198,7 +198,10 @@ void Jit64::ComputeRC(preg_t preg, bool needs_test, bool needs_sext)
       // We don't want to do this if a test is needed though, because it would interrupt macro-op
       // fusion.
       arg.Unlock();
-      gpr.Flush(~js.op->gprInUse);
+      gpr.Flush(~(js.op->gprWillBeRead | js.op->gprWillBeWritten) &
+                    (js.op->regsIn | js.op->regsOut),
+                RegCache::FlushMode::Full);
+      gpr.Flush(~js.op->gprWillBeWritten & js.op->regsOut, RegCache::FlushMode::Undirty);
     }
     DoMergedBranchCondition();
   }

@@ -374,7 +374,8 @@ void RegCache::Discard(BitSet32 pregs)
   }
 }
 
-void RegCache::Flush(BitSet32 pregs, IgnoreDiscardedRegisters ignore_discarded_registers)
+void RegCache::Flush(BitSet32 pregs, FlushMode mode,
+                     IgnoreDiscardedRegisters ignore_discarded_registers)
 {
   ASSERT_MSG(DYNA_REC, std::ranges::none_of(m_xregs, &X64CachedReg::IsLocked),
              "Someone forgot to unlock a X64 reg");
@@ -386,7 +387,7 @@ void RegCache::Flush(BitSet32 pregs, IgnoreDiscardedRegisters ignore_discarded_r
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction is in progress for {}!",
                i);
 
-    StoreFromRegister(i, FlushMode::Full, ignore_discarded_registers);
+    StoreFromRegister(i, mode, ignore_discarded_registers);
   }
 }
 
@@ -659,7 +660,7 @@ void RegCache::Realize(preg_t preg)
 
   if (m_constraints[preg].ShouldBeRevertable())
   {
-    StoreFromRegister(preg, FlushMode::MaintainState);
+    StoreFromRegister(preg, FlushMode::Undirty);
     do_bind();
     m_regs[preg].SetRevertable();
     return;
