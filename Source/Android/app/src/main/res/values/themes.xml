@@ -13,7 +13,7 @@
     </style>
 
     <!-- Base theme -->
-    <style name="Theme.Dolphin" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.Dolphin" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
         <item name="colorPrimary">@color/dolphin_primary</item>
         <item name="colorOnPrimary">@color/dolphin_onPrimary</item>
         <item name="colorPrimaryContainer">@color/dolphin_primaryContainer</item>
