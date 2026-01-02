@@ -24,7 +24,6 @@
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/AbstractTexture.h"
-#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/ShaderCompileUtils.h"
@@ -387,9 +386,9 @@ PostProcessing::~PostProcessing()
 static std::vector<std::string> GetShaders(const std::string& sub_dir = "")
 {
   std::vector<std::string> paths =
-      Common::DoFileSearch({File::GetUserPath(D_SHADERS_IDX) + sub_dir,
-                            File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir},
-                           {".glsl"});
+      Common::DoFileSearch({{File::GetUserPath(D_SHADERS_IDX) + sub_dir,
+                             File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir}},
+                           ".glsl");
   std::vector<std::string> result;
   for (std::string path : paths)
   {

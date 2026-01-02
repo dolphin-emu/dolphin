@@ -58,7 +58,7 @@ void TextureDumper::DumpTexture(const ::AbstractTexture& texture, std::string ba
     if (!File::IsDirectory(dump_dir))
       File::CreateDir(dump_dir);
 
-    for (auto& filename : Common::DoFileSearch({dump_dir}, {".png"}, true))
+    for (auto& filename : Common::DoFileSearch(dump_dir, ".png", true))
     {
       std::string name;
       SplitPath(filename, nullptr, &name, nullptr);

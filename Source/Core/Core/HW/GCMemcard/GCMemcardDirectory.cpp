@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <chrono>
 #include <cstring>
-#include <memory>
 #include <mutex>
 #include <string>
 #include <string_view>
@@ -26,7 +25,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
-#include "Common/Timer.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SessionSettings.h"
@@ -134,7 +132,7 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
     game_code = Common::swap32(reinterpret_cast<const u8*>(game_id.c_str()));
 
   std::vector<Memcard::DEntry> loaded_saves;
-  for (const std::string& file_name : Common::DoFileSearch({directory}, {".gci"}))
+  for (const std::string& file_name : Common::DoFileSearch(directory, ".gci"))
   {
     File::IOFile gci_file(file_name, "rb");
     if (!gci_file)
@@ -190,7 +188,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, ExpansionIn
   }
 
   const bool current_game_only = Config::Get(Config::SESSION_GCI_FOLDER_CURRENT_GAME_ONLY);
-  const std::vector<std::string> filenames = Common::DoFileSearch({m_save_directory}, {".gci"});
+  const std::vector<std::string> filenames = Common::DoFileSearch(m_save_directory, ".gci");
 
   // split up into files for current games we should definitely load,
   // and files for other games that we don't care too much about
