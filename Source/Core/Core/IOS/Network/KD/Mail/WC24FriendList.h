@@ -27,14 +27,25 @@ class WC24FriendList final
 {
 public:
   explicit WC24FriendList(std::shared_ptr<FS::FileSystem> fs);
+
+  enum class FriendStatus : u32
+  {
+    None,
+    Unconfirmed,
+    Confirmed,
+    Declined
+  };
+
   static u64 ConvertEmailToFriendCode(std::string_view email);
 
   void ReadFriendList();
   bool CheckFriendList() const;
   void WriteFriendList() const;
 
-  bool DoesFriendExist(u64 friend_id) const;
+  bool IsFriend(u64 friend_id) const;
+  bool IsFriendEstablished(u64 code) const;
   std::vector<u64> GetUnconfirmedFriends() const;
+  void SetFriendStatus(u64 code, FriendStatus status);
 
 private:
   static constexpr u32 FRIEND_LIST_MAGIC = 0x5763466C;  // WcFl
@@ -57,14 +68,6 @@ private:
     None,
     Wii,
     Email
-  };
-
-  enum class FriendStatus : u32
-  {
-    None,
-    Unconfirmed,
-    Confirmed,
-    Declined
   };
 
   struct FriendListEntry final

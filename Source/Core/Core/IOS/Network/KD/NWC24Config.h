@@ -20,6 +20,7 @@ enum ErrorCode : s32
   WC24_OK = 0,
   WC24_ERR_FATAL = -1,
   WC24_ERR_INVALID_VALUE = -3,
+  WC24_ERR_NOT_SUPPORTED = -4,
   WC24_ERR_NULL = -5,
   WC24_ERR_NOT_FOUND = -13,
   WC24_ERR_BROKEN = -14,
@@ -27,6 +28,7 @@ enum ErrorCode : s32
   WC24_ERR_FILE_CLOSE = -17,
   WC24_ERR_FILE_READ = -18,
   WC24_ERR_FILE_WRITE = -19,
+  WC24_ERR_FORMAT = -24,
   WC24_ERR_NETWORK = -31,
   WC24_ERR_SERVER = -32,
   WC24_ERR_ID_NOT_GENERATED = -34,
@@ -76,6 +78,8 @@ public:
   std::string GetCheckURL() const;
   std::string GetSendURL() const;
   std::string_view GetPassword() const;
+  std::string GetDeleteURL() const;
+  std::string GetReceiveURL() const;
 
   NWC24CreationStage CreationStage() const;
   void SetCreationStage(NWC24CreationStage creation_stage);
@@ -90,7 +94,7 @@ public:
   u64 Id() const;
   void SetId(u64 nwc24_id);
 
-  const char* Email() const;
+  std::string_view GetEmail() const;
   void SetEmail(const char* email);
 
   std::string GetAccountURL() const;
