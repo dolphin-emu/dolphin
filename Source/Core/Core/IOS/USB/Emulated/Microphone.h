@@ -8,6 +8,7 @@
 #include <memory>
 #include <mutex>
 #include <type_traits>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 

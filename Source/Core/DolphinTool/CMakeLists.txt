@@ -26,5 +26,9 @@ if(MSVC)
   target_link_libraries(dolphin-tool PRIVATE use_pch)
 endif()
 
+if(MINGW)
+  target_link_options(dolphin-tool PRIVATE -municode)
+endif()
+
 set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} dolphin-tool)
 install(TARGETS dolphin-tool RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

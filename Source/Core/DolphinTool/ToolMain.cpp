@@ -8,6 +8,10 @@
 #include <string_view>
 #include <vector>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
