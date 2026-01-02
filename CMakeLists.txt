@@ -584,10 +584,6 @@ if(UNIX)
   add_definitions(-DUSE_MEMORYWATCHER=1)
 endif()
 
-if(ENABLE_SDL)
-  dolphin_find_optional_system_library(SDL3 Externals/SDL 3.2.0)
-endif()
-
 if(ENABLE_ANALYTICS)
   message(STATUS "Enabling analytics collection (subject to end-user opt-in)")
   add_definitions(-DUSE_ANALYTICS=1)
@@ -712,6 +708,10 @@ endif()
 if(NOT ANDROID)
   dolphin_find_optional_system_library(LibUSB Externals/libusb)
   add_definitions(-D__LIBUSB__)
+endif()
+
+if(ENABLE_SDL)
+  dolphin_find_optional_system_library(SDL3 Externals/SDL 3.2.0)
 endif()
 
 dolphin_find_optional_system_library(SFML Externals/SFML 3.0 COMPONENTS Network System)

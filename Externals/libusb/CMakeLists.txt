@@ -125,4 +125,15 @@ check_include_files(sys/timerfd.h HAVE_TIMERFD)
 check_include_files(unistd.h HAVE_UNISTD_H)
 
 configure_file(config.h.in config.h)
-add_library(LibUSB::LibUSB ALIAS usb)
+
+# We don't create an ALIAS here so that dependencies (SDL) that try_compile libusb
+# don't fail due to LibUSB::LibUSB being an alias target
+add_library(LibUSB::LibUSB INTERFACE IMPORTED GLOBAL)
+target_link_libraries(LibUSB::LibUSB
+  INTERFACE
+    usb
+)
+target_include_directories(LibUSB::LibUSB
+  INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/libusb/libusb
+)
