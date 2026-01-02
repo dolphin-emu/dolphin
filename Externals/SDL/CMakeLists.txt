@@ -15,6 +15,11 @@ set(SDL_CAMERA OFF)
 set(SDL_DIALOG OFF)
 set(SDL_TRAY OFF)
 
+if(LibUSB_TYPE STREQUAL Bundled)
+  set(LibUSB_FOUND TRUE)
+  set(SDL_HIDAPI_LIBUSB_SHARED OFF)
+endif()
+
 add_subdirectory(SDL)
 
 if (TARGET SDL3)
