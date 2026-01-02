@@ -621,7 +621,12 @@ static std::vector<WiimoteScannerWindows::EnumeratedWiimoteInterface> GetAllWiim
       else if (IsWiimoteName(*parent_description))
       {
         is_relevant_description = true;
-        is_balance_board = false;
+
+        // For some reason, a Balance Board `BusReportedDeviceDesc` is "Nintendo RVL-CNT-01".
+        // TODO: Additional device tree shenanigans will be needed to observe "Nintendo RVL-WBC-01".
+        // The easiest way might be to find a BT device instance with a matching BDADDR.
+        // For now, we'll just always force the `Wiimote::IsBalanceBoard` check.
+        // is_balance_board = false;
       }
       else if (*parent_description == dolphinbar_device_description)
       {
