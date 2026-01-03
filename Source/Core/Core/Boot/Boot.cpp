@@ -690,14 +690,15 @@ void StateFlags::UpdateChecksum()
   checksum = std::accumulate(flag_data.cbegin(), flag_data.cend(), 0U);
 }
 
-void UpdateStateFlags(std::function<void(StateFlags*)> update_function)
+void UpdateStateFlags(IOS::HLE::EmulationKernel* const ios,
+                      std::function<void(StateFlags*)> update_function)
 {
-  CreateSystemMenuTitleDirs();
+  CreateSystemMenuTitleDirs(ios->GetESCore());
   const std::string file_path = Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/" WII_STATE;
-  const auto fs = Core::System::GetInstance().GetIOS()->GetFS();
+  const auto file_system = ios->GetFS();
   constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
-  const auto file = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, file_path,
-                                          {rw_mode, rw_mode, rw_mode});
+  const auto file = file_system->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, file_path,
+                                                   {rw_mode, rw_mode, rw_mode});
   if (!file)
     return;
 
@@ -712,10 +713,9 @@ void UpdateStateFlags(std::function<void(StateFlags*)> update_function)
   file->Write(&state, 1);
 }
 
-void CreateSystemMenuTitleDirs()
+void CreateSystemMenuTitleDirs(const IOS::HLE::ESCore& es_core)
 {
-  const auto& es = Core::System::GetInstance().GetIOS()->GetESCore();
-  es.CreateTitleDirectories(Titles::SYSTEM_MENU, IOS::SYSMENU_GID);
+  es_core.CreateTitleDirectories(Titles::SYSTEM_MENU, IOS::SYSMENU_GID);
 }
 
 void AddRiivolutionPatches(BootParameters* boot_params,
