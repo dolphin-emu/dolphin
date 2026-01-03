@@ -597,10 +597,6 @@ if(UNIX)
   add_definitions(-DUSE_MEMORYWATCHER=1)
 endif()
 
-if(ENABLE_SDL)
-  dolphin_find_optional_system_library(SDL3 Externals/SDL 3.2.0)
-endif()
-
 if(ENABLE_ANALYTICS)
   message(STATUS "Enabling analytics collection (subject to end-user opt-in)")
   add_definitions(-DUSE_ANALYTICS=1)
@@ -673,6 +669,13 @@ if(NOT WIN32 OR (NOT (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")))
   add_definitions(-DHAS_OPENGL)
 endif()
 
+if(NOT WIN32)
+  if(ANDROID)
+    set(USE_SYSTEM_Iconv OFF)
+  endif()
+  dolphin_find_optional_system_library(Iconv Externals/libiconv 1.14)
+endif()
+
 dolphin_find_optional_system_library(pugixml Externals/pugixml)
 
 dolphin_find_optional_system_library_pkgconfig(ENET libenet>=1.3.18 enet::enet Externals/enet)
@@ -716,10 +719,12 @@ if(ENABLE_CUBEB)
 endif()
 
 if(NOT ANDROID)
-  dolphin_find_optional_system_library_pkgconfig(
-    LibUSB libusb-1.0 LibUSB::LibUSB Externals/libusb
-  )
+  dolphin_find_optional_system_library(LibUSB Externals/libusb)
   add_definitions(-D__LIBUSB__)
+endif()
+
+if(ENABLE_SDL)
+  dolphin_find_optional_system_library(SDL3 Externals/SDL 3.2.0)
 endif()
 
 dolphin_find_optional_system_library(SFML Externals/SFML 3.0 COMPONENTS Network System)
@@ -732,15 +737,6 @@ endif()
 dolphin_find_optional_system_library(MBEDTLS Externals/mbedtls 2.28)
 
 dolphin_find_optional_system_library(CURL Externals/curl)
-
-if(NOT WIN32)
-  if(NOT ANDROID)
-    dolphin_find_optional_system_library(Iconv Externals/libiconv 1.14)
-  else()
-    message(STATUS "Using static iconv from Externals")
-    add_subdirectory(Externals/libiconv EXCLUDE_FROM_ALL)
-  endif()
-endif()
 
 if(NOT ANDROID)
   dolphin_find_optional_system_library(HIDAPI Externals/hidapi)
