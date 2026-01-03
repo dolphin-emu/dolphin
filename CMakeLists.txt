@@ -710,9 +710,7 @@ if(ENABLE_CUBEB)
 endif()
 
 if(NOT ANDROID)
-  dolphin_find_optional_system_library_pkgconfig(
-    LibUSB libusb-1.0 LibUSB::LibUSB Externals/libusb
-  )
+  dolphin_find_optional_system_library(LibUSB Externals/libusb)
   add_definitions(-D__LIBUSB__)
 endif()
 
