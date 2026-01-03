@@ -68,7 +68,6 @@
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PatchEngine.h"
-#include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
@@ -361,29 +360,7 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
     s_state.compare_exchange_strong(expected, State::Running);
   }
 
-  {
-#ifndef _WIN32
-    std::string gdb_socket = Config::Get(Config::MAIN_GDB_SOCKET);
-    if (!gdb_socket.empty() && !AchievementManager::GetInstance().IsHardcoreModeActive())
-    {
-      GDBStub::InitLocal(gdb_socket.data());
-      CPUSetInitialExecutionState(system, true);
-    }
-    else
-#endif
-    {
-      int gdb_port = Config::Get(Config::MAIN_GDB_PORT);
-      if (gdb_port > 0 && !AchievementManager::GetInstance().IsHardcoreModeActive())
-      {
-        GDBStub::Init(gdb_port);
-        CPUSetInitialExecutionState(system, true);
-      }
-      else
-      {
-        CPUSetInitialExecutionState(system);
-      }
-    }
-  }
+  CPUSetInitialExecutionState(system);
 
   // Enter CPU run loop. When we leave it - we are done.
   system.GetCPU().Run();
@@ -394,14 +371,6 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
 
   if (exception_handler)
     EMM::UninstallExceptionHandler();
-
-  if (GDBStub::IsActive())
-  {
-    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stopping GDB ..."));
-    GDBStub::Deinit();
-    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "GDB stopped."));
-    INFO_LOG_FMT(GDB_STUB, "Killed by CPU shutdown");
-  }
 }
 
 static void FifoPlayerThread(Core::System& system, const std::optional<std::string>& savestate_path,

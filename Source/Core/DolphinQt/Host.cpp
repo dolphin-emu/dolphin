@@ -273,12 +273,6 @@ void Host_PPCSymbolsChanged()
   QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->PPCSymbolsChanged(); });
 }
 
-void Host_PPCBreakpointsChanged()
-{
-  QueueOnObject(QApplication::instance(),
-                [] { emit Host::GetInstance()->PPCBreakpointsChanged(); });
-}
-
 void Host_RequestRenderWindowSize(int w, int h)
 {
   emit Host::GetInstance()->RequestRenderSize(w, h);

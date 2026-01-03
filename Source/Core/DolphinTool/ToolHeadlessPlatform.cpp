@@ -25,10 +25,6 @@ void Host_PPCSymbolsChanged()
 {
 }
 
-void Host_PPCBreakpointsChanged()
-{
-}
-
 bool Host_UIBlocksControllerState()
 {
   return false;
