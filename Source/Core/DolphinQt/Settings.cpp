@@ -162,15 +162,13 @@ void Settings::ApplyStyle()
 {
   const StyleType style_type = GetStyleType();
 
-  {
-    const bool use_fusion{style_type == StyleType::FusionLight ||
-                          style_type == StyleType::FusionDarkGray ||
-                          style_type == StyleType::FusionDark};
-    static const QString s_initial_style_name{QApplication::style()->name()};
-    const QString style_name{use_fusion ? QStringLiteral("fusion") : s_initial_style_name};
-    if (QApplication::style()->name() != style_name)
-      QApplication::setStyle(style_name);
-  }
+  const bool use_fusion{style_type == StyleType::FusionLight ||
+                        style_type == StyleType::FusionDarkGray ||
+                        style_type == StyleType::FusionDark};
+  static const QString s_initial_style_name{QApplication::style()->name()};
+  const QString style_name{use_fusion ? QStringLiteral("fusion") : s_initial_style_name};
+  if (QApplication::style()->name() != style_name)
+    QApplication::setStyle(style_name);
 
   const QString stylesheet_name = GetUserStyleName();
   QString stylesheet_contents;
@@ -387,6 +385,26 @@ void Settings::ApplyStyle()
             .arg(padding)
             .arg(border_color.rgba(), 0, 16);
     stylesheet_contents.append(QStringLiteral("%1").arg(tooltip_stylesheet));
+  }
+
+  // For Fusion, define group box style if not already defined.
+  if (style_name.compare(QStringLiteral("fusion"), Qt::CaseInsensitive) == 0 &&
+      !stylesheet_contents.contains(QStringLiteral("QGroupBox")))
+  {
+    stylesheet_contents.append(QStringLiteral("QGroupBox {"
+                                              " margin-top: 0.6em;"
+                                              " padding-top: 0.5em;"
+                                              " padding-bottom: 0;"
+                                              " padding-left: 1px;"
+                                              " padding-right: 1px;"
+                                              "} "
+                                              "QGroupBox::title {"
+                                              " subcontrol-origin: margin;"
+                                              " subcontrol-position: top left;"
+                                              " left: 0.7em;"
+                                              " padding-top: 1px;"
+                                              " min-width: 0;"
+                                              "}"));
   }
 
   qApp->setStyleSheet(stylesheet_contents);
