@@ -1052,7 +1052,13 @@ void HandleWiimoteSourceChange(unsigned int index)
 
   {
     const Core::CPUThreadGuard guard(Core::System::GetInstance());
-    if (auto removed_wiimote = std::move(g_wiimotes[index]))
+    auto removed_wiimote = std::move(g_wiimotes[index]);
+
+    // The Wiimote pool isn't currently designed to handle Balance Boards.
+    // Refactoring will be needed to differentiate between remotes/boards.
+    const bool is_balance_board = index == WIIMOTE_BALANCE_BOARD;
+
+    if (removed_wiimote != nullptr && !is_balance_board)
       AddWiimoteToPool(std::move(removed_wiimote));
   }
   g_controller_interface.PlatformPopulateDevices([] { ProcessWiimotePool(); });
