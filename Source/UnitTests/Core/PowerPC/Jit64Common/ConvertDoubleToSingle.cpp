@@ -64,7 +64,8 @@ TEST(Jit64, ConvertDoubleToSingle)
     const u32 expected = ConvertToSingle(input);
     const u32 actual = routines.wrapped_cdts(input);
 
-    fmt::print("{:016x} -> {:08x} == {:08x}\n", input, actual, expected);
+    if (expected != actual)
+      fmt::print("{:016x} -> {:08x} == {:08x}\n", input, actual, expected);
 
     EXPECT_EQ(expected, actual);
   }
