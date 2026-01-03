@@ -46,6 +46,7 @@
     <ClCompile Include="Common\CommonFuncsTest.cpp" />
     <ClCompile Include="Common\Crypto\EcTest.cpp" />
     <ClCompile Include="Common\Crypto\SHA1Test.cpp" />
+    <ClCompile Include="Common\CWDemanglerTest.cpp" />
     <ClCompile Include="Common\EnumFormatterTest.cpp" />
     <ClCompile Include="Common\EventTest.cpp" />
     <ClCompile Include="Common\FileUtilTest.cpp" />
