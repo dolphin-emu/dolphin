@@ -494,7 +494,7 @@ void RegisterWidget::PopulateTable()
       31, 5, RegisterType::pt_hashmask, "Hash Mask",
       [this] {
         const auto& ppc_state = m_system.GetPPCState();
-        return (ppc_state.pagetable_hashmask << 6) | ppc_state.pagetable_base;
+        return ppc_state.pagetable_mask | ppc_state.pagetable_base;
       },
       nullptr);
 

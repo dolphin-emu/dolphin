@@ -178,7 +178,7 @@ struct PowerPCState
   std::array<std::array<TLBEntry, TLB_SIZE / TLB_WAYS>, NUM_TLBS> tlb;
 
   u32 pagetable_base = 0;
-  u32 pagetable_hashmask = 0;
+  u32 pagetable_mask = 0;
 
   InstructionCache iCache;
   bool m_enable_dcache = false;

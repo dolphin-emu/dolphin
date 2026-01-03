@@ -1216,7 +1216,7 @@ void MMU::SDRUpdated()
     WARN_LOG_FMT(POWERPC, "Invalid HTABORG: htaborg=0x{:08x} htabmask=0x{:08x}", htaborg, htabmask);
 
   m_ppc_state.pagetable_base = htaborg << 16;
-  m_ppc_state.pagetable_hashmask = ((htabmask << 10) | 0x3ff);
+  m_ppc_state.pagetable_mask = (htabmask << 16) | 0xffc0;
 }
 
 void MMU::SRUpdated()
@@ -1363,7 +1363,7 @@ MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress add
       pte1.H = 1;
     }
 
-    u32 pteg_addr = ((hash & m_ppc_state.pagetable_hashmask) << 6) | m_ppc_state.pagetable_base;
+    u32 pteg_addr = ((hash << 6) & m_ppc_state.pagetable_mask) | m_ppc_state.pagetable_base;
 
     for (int i = 0; i < 8; i++, pteg_addr += 8)
     {

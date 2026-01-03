@@ -94,7 +94,7 @@ void PowerPCManager::DoState(PointerWrap& p)
   p.DoArray(m_ppc_state.spr);
   p.DoArray(m_ppc_state.tlb);
   p.Do(m_ppc_state.pagetable_base);
-  p.Do(m_ppc_state.pagetable_hashmask);
+  p.Do(m_ppc_state.pagetable_mask);
 
   p.Do(m_ppc_state.reserve);
   p.Do(m_ppc_state.reserve_address);
@@ -274,7 +274,7 @@ void PowerPCManager::Init(CPUCore cpu_core)
 void PowerPCManager::Reset()
 {
   m_ppc_state.pagetable_base = 0;
-  m_ppc_state.pagetable_hashmask = 0;
+  m_ppc_state.pagetable_mask = 0;
   m_ppc_state.tlb = {};
 
   ResetRegisters();
