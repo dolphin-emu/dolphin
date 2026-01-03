@@ -164,7 +164,7 @@ void CoreTimingManager::RefreshConfig()
     OSD::AddMessage("Minimum speed is 100% in Hardcore Mode");
   }
 
-  UpdateSpeedLimit(GetTicks(), Config::Get(Config::MAIN_EMULATION_SPEED));
+  UpdateSpeedLimit(GetTicks());
 
   m_use_precision_timer = Config::Get(Config::MAIN_PRECISION_FRAME_TIMING);
 }
@@ -433,8 +433,16 @@ void CoreTimingManager::SleepUntil(TimePoint time_point)
   }
 }
 
+void CoreTimingManager::AdjustThrottleReferenceTime(DT adjustment)
+{
+  m_throttle_reference_time_adjustment.fetch_add(adjustment.count());
+}
+
 void CoreTimingManager::Throttle(const s64 target_cycle)
 {
+  m_throttle_reference_time +=
+      DT{m_throttle_reference_time_adjustment.exchange(0, std::memory_order_relaxed)};
+
   const TimePoint time = Clock::now();
 
   const bool already_throttled =
@@ -494,10 +502,9 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
   SleepUntil(target_time);
 }
 
-void CoreTimingManager::UpdateSpeedLimit(s64 cycle, double new_speed)
+void CoreTimingManager::UpdateSpeedLimit(s64 cycle)
 {
-  m_emulation_speed = new_speed;
-
+  const auto new_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
   const u32 new_clock_per_sec =
       std::lround(m_system.GetSystemTimers().GetTicksPerSecond() * new_speed);
 
@@ -517,6 +524,7 @@ void CoreTimingManager::ResetThrottle(s64 cycle)
 {
   m_throttle_reference_cycle = cycle;
   m_throttle_reference_time = Clock::now();
+  m_throttle_reference_time_adjustment.store(0, std::memory_order_relaxed);
 }
 
 void CoreTimingManager::UpdateVISkip(TimePoint current_time, TimePoint target_time)
@@ -560,7 +568,7 @@ void CoreTimingManager::AdjustEventQueueTimes(u32 new_ppc_clock, u32 old_ppc_clo
 {
   const s64 ticks = m_globals.global_timer;
 
-  UpdateSpeedLimit(ticks, m_emulation_speed);
+  UpdateSpeedLimit(ticks);
 
   g_perf_metrics.AdjustClockSpeed(ticks, new_ppc_clock, old_ppc_clock);
 
