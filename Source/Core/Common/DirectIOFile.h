@@ -8,6 +8,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
+#include "Common/Result.h"
 
 namespace File
 {
@@ -39,6 +40,17 @@ enum class OpenMode
   Create,
 };
 
+enum class OpenError
+{
+  AlreadyExists,  // May be returned when using `OpenMode::Create`.
+  InvalidArguments,
+  Other,
+};
+
+enum class OpenSuccess;
+
+using OpenResult = Common::Result<OpenError, OpenSuccess>;
+
 // This file wrapper avoids use of the underlying system file position.
 // It keeps track of its own file position and read/write calls directly use it.
 // This makes copied handles entirely thread safe.
@@ -57,8 +69,8 @@ public:
   explicit DirectIOFile(const std::string& path, AccessMode access_mode,
                         OpenMode open_mode = OpenMode::Default);
 
-  bool Open(const std::string& path, AccessMode access_mode,
-            OpenMode open_mode = OpenMode::Default);
+  OpenResult Open(const std::string& path, AccessMode access_mode,
+                  OpenMode open_mode = OpenMode::Default);
 
   bool Close();
 
