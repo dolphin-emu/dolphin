@@ -13,8 +13,8 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
-#ifdef _MSC_VER
-#include <Windows.h>
+#ifdef _WIN32
+#include <windows.h>
 #else
 #ifdef ANDROID
 #include "jni/AndroidCommon/AndroidCommon.h"
