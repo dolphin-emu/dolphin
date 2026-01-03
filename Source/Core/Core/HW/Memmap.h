@@ -85,6 +85,8 @@ public:
   u8* GetPhysicalPageMappingsBase() const { return m_physical_page_mappings_base; }
   u8* GetLogicalPageMappingsBase() const { return m_logical_page_mappings_base; }
 
+  u32 GetHostPageSize() const { return m_page_size; }
+
   // FIXME: these should not return their address, but AddressSpace wants that
   u8*& GetRAM() { return m_ram; }
   u8*& GetEXRAM() { return m_exram; }
