@@ -784,7 +784,9 @@ if (USE_RETRO_ACHIEVEMENTS)
 	add_subdirectory(Externals/rcheevos)
 endif()
 
-add_subdirectory(Externals/watcher)
+dolphin_find_optional_system_library_pkgconfig(
+  WATCHER watcher watcher Externals/watcher
+)
 
 if(NOT ANDROID AND NOT APPLE)
   add_subdirectory(Externals/cpp-ipc)
