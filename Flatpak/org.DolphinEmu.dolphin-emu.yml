@@ -1,6 +1,6 @@
 app-id: org.DolphinEmu.dolphin-emu
 runtime: org.kde.Platform
-runtime-version: '6.8'
+runtime-version: '6.10'
 sdk: org.kde.Sdk
 command: dolphin-emu-wrapper
 rename-desktop-file: dolphin-emu.desktop
