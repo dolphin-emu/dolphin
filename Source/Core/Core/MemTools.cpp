@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fmt/format.h>
 #include <vector>
 
 #include "Common/Assert.h"
@@ -264,6 +265,7 @@ static struct sigaction old_sa_bus;
 
 static void sigsegv_handler(int sig, siginfo_t* info, void* raw_context)
 {
+  fmt::println(stderr, "sigsegv_handler 1");
   if (sig != SIGSEGV
 #if defined(__APPLE__)
       && sig != SIGBUS
@@ -271,13 +273,16 @@ static void sigsegv_handler(int sig, siginfo_t* info, void* raw_context)
   )
   {
     // We are not interested in other signals - handle it as usual.
+    fmt::println(stderr, "sigsegv_handler 2");
     return;
   }
+  fmt::println(stderr, "sigsegv_handler 3");
   auto* const context = static_cast<ucontext_t*>(raw_context);
   const int sicode = info->si_code;
   if (sicode != SEGV_MAPERR && sicode != SEGV_ACCERR)
   {
     // Huh? Return.
+    fmt::println(stderr, "sigsegv_handler 4");
     return;
   }
   const auto bad_address = reinterpret_cast<uintptr_t>(info->si_addr);
@@ -291,9 +296,11 @@ static void sigsegv_handler(int sig, siginfo_t* info, void* raw_context)
 #else
   SContext* const ctx = &context->uc_mcontext;
 #endif
+  fmt::println(stderr, "sigsegv_handler 5");
   if (Core::System::GetInstance().GetJitInterface().HandleFault(bad_address, ctx))
     return;
 
+  fmt::println(stderr, "sigsegv_handler 6");
   // If JIT didn't handle the signal, restore the original handler and invoke it.
   const auto& old_sa =
 #if defined(__APPLE__)
@@ -302,6 +309,7 @@ static void sigsegv_handler(int sig, siginfo_t* info, void* raw_context)
                         old_sa_segv;
 
   sigaction(sig, &old_sa, nullptr);
+  fmt::println(stderr, "sigsegv_handler 7");
   raise(sig);
 }
 

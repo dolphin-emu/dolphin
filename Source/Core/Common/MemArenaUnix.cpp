@@ -30,16 +30,22 @@ MemArena::~MemArena() = default;
 
 void MemArena::GrabSHMSegment(size_t size, std::string_view base_name)
 {
+  fmt::println(stderr, "GrabSHMSegment 1");
   const std::string file_name = fmt::format("/{}.{}", base_name, getpid());
   m_shm_fd = shm_open(file_name.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
   if (m_shm_fd == -1)
   {
-    ERROR_LOG_FMT(MEMMAP, "shm_open failed: {}", strerror(errno));
+    fmt::println(stderr, "GrabSHMSegment 2!!!!!");
+    PanicAlertFmt("shm_open failed: {}", strerror(errno));
     return;
   }
+  fmt::println(stderr, "GrabSHMSegment 3");
   shm_unlink(file_name.c_str());
   if (ftruncate(m_shm_fd, size) < 0)
-    ERROR_LOG_FMT(MEMMAP, "Failed to allocate low memory space");
+  {
+    fmt::println(stderr, "GrabSHMSegment 4!!!!!");
+    PanicAlertFmt("Failed to allocate low memory space");
+  }
 }
 
 void MemArena::ReleaseSHMSegment()
@@ -49,14 +55,17 @@ void MemArena::ReleaseSHMSegment()
 
 void* MemArena::CreateView(s64 offset, size_t size)
 {
+  fmt::println(stderr, "CreateView 1");
   void* retval = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, m_shm_fd, offset);
   if (retval == MAP_FAILED)
   {
+    fmt::println(stderr, "CreateView 2!!!!!");
     NOTICE_LOG_FMT(MEMMAP, "mmap failed");
     return nullptr;
   }
   else
   {
+    fmt::println(stderr, "CreateView 3");
     return retval;
   }
 }
@@ -89,9 +98,13 @@ void MemArena::ReleaseMemoryRegion()
   }
 }
 
-void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
+void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base, bool writeable)
 {
-  void* retval = mmap(base, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, m_shm_fd, offset);
+  int prot = PROT_READ;
+  if (writeable)
+    prot |= PROT_WRITE;
+
+  void* retval = mmap(base, size, prot, MAP_SHARED | MAP_FIXED, m_shm_fd, offset);
   if (retval == MAP_FAILED)
   {
     NOTICE_LOG_FMT(MEMMAP, "mmap failed");
@@ -103,11 +116,28 @@ void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
   }
 }
 
+bool MemArena::ChangeMappingProtection(void* view, size_t size, bool writeable)
+{
+  int prot = PROT_READ;
+  if (writeable)
+    prot |= PROT_WRITE;
+
+  int retval = mprotect(view, size, prot);
+  if (retval != 0)
+    NOTICE_LOG_FMT(MEMMAP, "mprotect failed");
+  return retval == 0;
+}
+
 void MemArena::UnmapFromMemoryRegion(void* view, size_t size)
 {
   void* retval = mmap(view, size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
   if (retval == MAP_FAILED)
     NOTICE_LOG_FMT(MEMMAP, "mmap failed");
+}
+
+size_t MemArena::GetPageSize() const
+{
+  return sysconf(_SC_PAGESIZE);
 }
 
 LazyMemoryRegion::LazyMemoryRegion() = default;
