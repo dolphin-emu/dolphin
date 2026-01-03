@@ -502,16 +502,16 @@ class SettingsFragmentPresenter(
 
             override val isOverridden: Boolean
                 get() = BooleanSetting.MAIN_DSP_HLE.isOverridden ||
-                        BooleanSetting.MAIN_DSP_JIT.isOverridden
+                    BooleanSetting.MAIN_DSP_JIT.isOverridden
 
             override val isRuntimeEditable: Boolean
                 get() = BooleanSetting.MAIN_DSP_HLE.isRuntimeEditable &&
-                        BooleanSetting.MAIN_DSP_JIT.isRuntimeEditable
+                    BooleanSetting.MAIN_DSP_JIT.isRuntimeEditable
 
             override fun delete(settings: Settings): Boolean {
                 // Not short circuiting
                 return BooleanSetting.MAIN_DSP_HLE.delete(settings) and
-                        BooleanSetting.MAIN_DSP_JIT.delete(settings)
+                    BooleanSetting.MAIN_DSP_JIT.delete(settings)
             }
         }
 
@@ -962,8 +962,8 @@ class SettingsFragmentPresenter(
                         0,
                         false
                     ) {
-                      fragmentView.showDialogFragment(LoginDialog(this))
-                      loadSettingsList()
+                        fragmentView.showDialogFragment(LoginDialog(this))
+                        loadSettingsList()
                     })
             } else {
                 sl.add(
@@ -975,8 +975,8 @@ class SettingsFragmentPresenter(
                         0,
                         false
                     ) {
-                      logout()
-                      loadSettingsList()
+                        logout()
+                        loadSettingsList()
                     })
             }
             sl.add(
@@ -1073,16 +1073,16 @@ class SettingsFragmentPresenter(
 
             override val isOverridden: Boolean
                 get() = BooleanSetting.MAIN_SYNC_ON_SKIP_IDLE.isOverridden ||
-                        BooleanSetting.MAIN_SYNC_GPU.isOverridden
+                    BooleanSetting.MAIN_SYNC_GPU.isOverridden
 
             override val isRuntimeEditable: Boolean
                 get() = BooleanSetting.MAIN_SYNC_ON_SKIP_IDLE.isRuntimeEditable &&
-                        BooleanSetting.MAIN_SYNC_GPU.isRuntimeEditable
+                    BooleanSetting.MAIN_SYNC_GPU.isRuntimeEditable
 
             override fun delete(settings: Settings): Boolean {
                 // Not short circuiting
                 return BooleanSetting.MAIN_SYNC_ON_SKIP_IDLE.delete(settings) and
-                        BooleanSetting.MAIN_SYNC_GPU.delete(settings)
+                    BooleanSetting.MAIN_SYNC_GPU.delete(settings)
             }
         }
 
@@ -1422,6 +1422,21 @@ class SettingsFragmentPresenter(
                 IntSetting.WIIMOTE_BB_SOURCE.setInt(settings, if (newValue) 2 else 0)
             }
         }, R.string.real_balance_board, 0))
+
+        sl.add(SwitchSetting(context,
+            BooleanSetting.SERVERS_ENABLED,
+            R.string.dualshockudp_client,
+            R.string.dualshockudp_client_description)
+        )
+
+        sl.add(
+            InputStringSetting(
+                context,
+                StringSetting.SERVERS,
+                R.string.dualshockudp_entries,
+                R.string.dualshockudp_entries_description
+            )
+        )
     }
 
     private fun addGraphicsSettings(sl: ArrayList<SettingsItem>) {
@@ -2189,7 +2204,7 @@ class SettingsFragmentPresenter(
                 BooleanSetting.MAIN_DEBUG_JIT_ENABLE_PROFILING,
                 R.string.debug_jit_enable_block_profiling,
                 0
-           )
+            )
         )
         sl.add(
             RunRunnable(
@@ -2355,6 +2370,7 @@ class SettingsFragmentPresenter(
                     addControllerMappingSettings(sl, gcPad, null)
                 }
             }
+
             7 -> {
                 // Emulated keyboard controller
                 val gcKeyboard = EmulatedController.getGcKeyboard(gcPadNumber)
@@ -2367,6 +2383,7 @@ class SettingsFragmentPresenter(
                     addControllerMappingSettings(sl, gcKeyboard, null)
                 }
             }
+
             12 -> {
                 // Adapter
                 sl.add(
@@ -2585,11 +2602,11 @@ class SettingsFragmentPresenter(
      * @param groupTypeFilter If this is non-null, only groups whose types match this are considered.
      */
     private fun addControllerMappingSettings(
-      sl: ArrayList<SettingsItem>,
-      controller: EmulatedController,
-      groupTypeFilter: Set<Int>?
+        sl: ArrayList<SettingsItem>,
+        controller: EmulatedController,
+        groupTypeFilter: Set<Int>?
     ) {
-      addContainerMappingSettings(sl, controller, controller, groupTypeFilter)
+        addContainerMappingSettings(sl, controller, controller, groupTypeFilter)
     }
 
     /**
@@ -2684,7 +2701,7 @@ class SettingsFragmentPresenter(
         val defaultDevice = controller.getDefaultDevice()
 
         hasOldControllerSettings = defaultDevice.startsWith("Android/") &&
-                defaultDevice.endsWith("/Touchscreen")
+            defaultDevice.endsWith("/Touchscreen")
 
         fragmentView.setOldControllerSettingsWarningVisibility(hasOldControllerSettings)
     }
