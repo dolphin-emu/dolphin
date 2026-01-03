@@ -80,15 +80,12 @@ void Jit64::WriteBranchWatch(u32 origin, u32 destination, UGeckoInstruction inst
   SetJumpTarget(branch_in);
 
   ABI_PushRegistersAndAdjustStack(caller_save, 0);
-  // Some call sites have an optimization to use ABI_PARAM1 as a scratch register.
-  if (reg_a != ABI_PARAM1)
-    MOV(64, R(ABI_PARAM1), R(reg_a));
-  MOV(64, R(ABI_PARAM2), Imm64(Core::FakeBranchWatchCollectionKey{origin, destination}));
-  MOV(32, R(ABI_PARAM3), Imm32(inst.hex));
-  ABI_CallFunction(m_ppc_state.msr.IR ? (condition ? &Core::BranchWatch::HitVirtualTrue_fk :
-                                                     &Core::BranchWatch::HitVirtualFalse_fk) :
-                                        (condition ? &Core::BranchWatch::HitPhysicalTrue_fk :
-                                                     &Core::BranchWatch::HitPhysicalFalse_fk));
+  const auto function = m_ppc_state.msr.IR ? (condition ? &Core::BranchWatch::HitVirtualTrue_fk :
+                                                          &Core::BranchWatch::HitVirtualFalse_fk) :
+                                             (condition ? &Core::BranchWatch::HitPhysicalTrue_fk :
+                                                          &Core::BranchWatch::HitPhysicalFalse_fk);
+  ABI_CallFunction(function, CallFunctionArg(64, reg_a),
+                   u64(Core::FakeBranchWatchCollectionKey{origin, destination}), inst.hex);
   ABI_PopRegistersAndAdjustStack(caller_save, 0);
 
   FixupBranch branch_out = J(Jump::Near);
@@ -110,18 +107,11 @@ void Jit64::WriteBranchWatchDestInRSCRATCH(u32 origin, UGeckoInstruction inst, X
   SwitchToFarCode();
   SetJumpTarget(branch_in);
 
-  // Assert RSCRATCH won't be clobbered before it is moved from.
-  static_assert(ABI_PARAM1 != RSCRATCH);
-
   ABI_PushRegistersAndAdjustStack(caller_save, 0);
-  // Some call sites have an optimization to use ABI_PARAM1 as a scratch register.
-  if (reg_a != ABI_PARAM1)
-    MOV(64, R(ABI_PARAM1), R(reg_a));
-  MOV(32, R(ABI_PARAM3), R(RSCRATCH));
-  MOV(32, R(ABI_PARAM2), Imm32(origin));
-  MOV(32, R(ABI_PARAM4), Imm32(inst.hex));
-  ABI_CallFunction(m_ppc_state.msr.IR ? &Core::BranchWatch::HitVirtualTrue :
-                                        &Core::BranchWatch::HitPhysicalTrue);
+  const auto function =
+      m_ppc_state.msr.IR ? &Core::BranchWatch::HitVirtualTrue : &Core::BranchWatch::HitPhysicalTrue;
+  ABI_CallFunction(function, CallFunctionArg(64, reg_a), origin, CallFunctionArg(32, RSCRATCH),
+                   inst.hex);
   ABI_PopRegistersAndAdjustStack(caller_save, 0);
 
   FixupBranch branch_out = J(Jump::Near);

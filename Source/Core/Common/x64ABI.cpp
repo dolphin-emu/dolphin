@@ -3,6 +3,11 @@
 
 #include "Common/x64ABI.h"
 
+#include <algorithm>
+#include <array>
+#include <optional>
+
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 
@@ -38,6 +43,75 @@ void XEmitter::ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_
   *shadowp = shadow;
   *subtractionp = subtraction;
   *xmm_offsetp = subtraction - xmm_base_subtraction;
+}
+
+// This is using a hand-rolled algorithm. The goal is zero memory allocations, not necessarily
+// the best JIT-time time complexity. (The number of moves is usually very small.)
+void XEmitter::ParallelMoves(RegisterMove* begin, RegisterMove* end,
+                             std::array<u8, 16>* source_reg_uses,
+                             std::array<u8, 16>* destination_reg_uses)
+{
+  while (begin != end)
+  {
+    bool removed_moves_during_this_loop_iteration = false;
+
+    RegisterMove* move = end;
+    while (move != begin)
+    {
+      RegisterMove* prev_move = move;
+      --move;
+      if ((*source_reg_uses)[move->destination] == 0)
+      {
+        if (move->bits == move->extend_bits || (!move->signed_move && move->bits == 32))
+          MOV(move->bits, R(move->destination), move->source);
+        else if (move->signed_move)
+          MOVSX(move->extend_bits, move->bits, move->destination, move->source);
+        else
+          MOVZX(32, move->bits, move->destination, move->source);
+
+        (*destination_reg_uses)[move->destination]++;
+        if (const std::optional<X64Reg> base_reg = move->source.GetBaseReg())
+          (*source_reg_uses)[*base_reg]--;
+        if (const std::optional<X64Reg> index_reg = move->source.GetIndexReg())
+          (*source_reg_uses)[*index_reg]--;
+
+        std::move(prev_move, end, move);
+        --end;
+        removed_moves_during_this_loop_iteration = true;
+      }
+    }
+
+    if (!removed_moves_during_this_loop_iteration)
+    {
+      // We need to break a cycle using a temporary register.
+
+      const BitSet32 temp_reg_candidates = ABI_ALL_CALLER_SAVED & ABI_ALL_GPRS;
+      const auto temp_reg =
+          std::find_if(temp_reg_candidates.begin(), temp_reg_candidates.end(), [&](int reg) {
+            return (*source_reg_uses)[reg] == 0 && (*destination_reg_uses)[reg] == 0;
+          });
+      ASSERT_MSG(COMMON, temp_reg != temp_reg_candidates.end(), "Out of registers");
+
+      const X64Reg source = begin->destination;
+      const X64Reg destination = static_cast<X64Reg>(*temp_reg);
+
+      const bool need_64_bit_move = std::any_of(begin, end, [source](const RegisterMove& m) {
+        return (m.source.GetBaseReg() == source || m.source.GetIndexReg() == source) &&
+               (m.source.scale != SCALE_NONE || m.bits == 64);
+      });
+
+      MOV(need_64_bit_move ? 64 : 32, R(destination), R(source));
+      (*source_reg_uses)[destination] = (*source_reg_uses)[source];
+      (*source_reg_uses)[source] = 0;
+
+      std::for_each(begin, end, [source, destination](RegisterMove& m) {
+        if (m.source.GetBaseReg() == source)
+          m.source.offsetOrBaseReg = destination;
+        if (m.source.GetIndexReg() == source)
+          m.source.indexReg = destination;
+      });
+    }
+  }
 }
 
 size_t XEmitter::ABI_PushRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignment,

@@ -190,8 +190,7 @@ void Jit64AsmRoutineManager::Generate()
   {
     // Ok, no block, let's call the slow dispatcher
     ABI_PushRegistersAndAdjustStack({}, 0);
-    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(&m_jit)));
-    ABI_CallFunction(JitBase::Dispatch);
+    ABI_CallFunction(JitBase::Dispatch, &m_jit);
     ABI_PopRegistersAndAdjustStack({}, 0);
 
     TEST(64, R(ABI_RETURN), R(ABI_RETURN));
@@ -210,9 +209,7 @@ void Jit64AsmRoutineManager::Generate()
   ResetStack(*this);
 
   ABI_PushRegistersAndAdjustStack({}, 0);
-  MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(&m_jit)));
-  MOV(32, R(ABI_PARAM2), PPCSTATE(pc));
-  ABI_CallFunction(JitTrampoline);
+  ABI_CallFunction(JitTrampoline, &m_jit, CallFunctionArg(32, PPCSTATE(pc)));
   ABI_PopRegistersAndAdjustStack({}, 0);
 
   // If jitting triggered an ISI exception, MSR.DR may have changed

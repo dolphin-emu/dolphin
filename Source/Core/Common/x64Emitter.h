@@ -5,9 +5,12 @@
 
 #pragma once
 
+#include <array>
+#include <concepts>
 #include <cstddef>
 #include <cstring>
 #include <functional>
+#include <optional>
 #include <tuple>
 #include <type_traits>
 
@@ -15,6 +18,7 @@
 #include "Common/BitSet.h"
 #include "Common/CodeBlock.h"
 #include "Common/CommonTypes.h"
+#include "Common/SmallVector.h"
 #include "Common/x64ABI.h"
 
 namespace Gen
@@ -226,6 +230,39 @@ struct OpArg
   }
 
 private:
+  constexpr std::optional<X64Reg> GetBaseReg() const
+  {
+    switch (scale)
+    {
+    case SCALE_NONE:
+    case SCALE_1:
+    case SCALE_2:
+    case SCALE_4:
+    case SCALE_8:
+    case SCALE_ATREG:
+      return static_cast<X64Reg>(offsetOrBaseReg);
+    default:
+      return std::nullopt;
+    }
+  }
+
+  constexpr std::optional<X64Reg> GetIndexReg() const
+  {
+    switch (scale)
+    {
+    case SCALE_1:
+    case SCALE_2:
+    case SCALE_4:
+    case SCALE_8:
+    case SCALE_NOBASE_2:
+    case SCALE_NOBASE_4:
+    case SCALE_NOBASE_8:
+      return static_cast<X64Reg>(indexReg);
+    default:
+      return std::nullopt;
+    }
+  }
+
   void WriteREX(XEmitter* emit, int opBits, int bits, int customOp = -1) const;
   void WriteVEX(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp, int mmmmm,
                 int W = 0) const;
@@ -327,6 +364,15 @@ class XEmitter
 {
   friend struct OpArg;  // for Write8 etc
 private:
+  struct RegisterMove
+  {
+    OpArg source;
+    bool signed_move;
+    int extend_bits;
+    int bits;
+    X64Reg destination;
+  };
+
   // Pointer to memory where code will be emitted to.
   u8* code = nullptr;
 
@@ -376,6 +422,11 @@ private:
 
   void ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size,
                               size_t* shadowp, size_t* subtractionp, size_t* xmm_offsetp);
+
+  // This function solves the "parallel moves" problem that's common in compilers.
+  // The arguments are mutated!
+  void ParallelMoves(RegisterMove* begin, RegisterMove* end, std::array<u8, 16>* source_reg_uses,
+                     std::array<u8, 16>* destination_reg_uses);
 
 protected:
   void Write8(u8 value);
@@ -988,10 +1039,10 @@ public:
   void RDTSC();
 
   // Utility functions
-  // The difference between this and CALL is that this aligns the stack
-  // where appropriate.
+
+  // Calls a function without setting up arguments or aligning the stack.
   template <typename FunctionPointer>
-  void ABI_CallFunction(FunctionPointer func)
+  void QuickCallFunction(FunctionPointer func)
   {
     static_assert(std::is_pointer<FunctionPointer>() &&
                       std::is_function<std::remove_pointer_t<FunctionPointer>>(),
@@ -1013,167 +1064,177 @@ public:
     }
   }
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionC16(FunctionPointer func, u16 param1)
+  struct CallFunctionArg
   {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
-    ABI_CallFunction(func);
-  }
+    template <std::integral T>
+    CallFunctionArg(T imm)
+        : bits(sizeof(T) > 4 ? 64 : 32),
+          op_arg(sizeof(T) > 4 ? Imm64(imm) : Imm32(std::is_signed_v<T> ? s32(imm) : u32(imm)))
+    {
+    }
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionCC16(FunctionPointer func, u32 param1, u16 param2)
-  {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
-    MOV(32, R(ABI_PARAM2), Imm32(param2));
-    ABI_CallFunction(func);
-  }
+    CallFunctionArg(const void* imm) : bits(64), op_arg(Imm64(reinterpret_cast<u64>(imm))) {}
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionC(FunctionPointer func, u32 param1)
-  {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
-    ABI_CallFunction(func);
-  }
+    CallFunctionArg(int bits_, const OpArg& op_arg_) : bits(bits_), op_arg(op_arg_) {}
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionCC(FunctionPointer func, u32 param1, u32 param2)
-  {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
-    MOV(32, R(ABI_PARAM2), Imm32(param2));
-    ABI_CallFunction(func);
-  }
+    CallFunctionArg(int bits_, const X64Reg reg) : bits(bits_), op_arg(R(reg)) {}
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionCP(FunctionPointer func, u32 param1, const void* param2)
-  {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
-    MOV(64, R(ABI_PARAM2), Imm64(reinterpret_cast<u64>(param2)));
-    ABI_CallFunction(func);
-  }
+    int bits;
+    OpArg op_arg;
+  };
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionCCC(FunctionPointer func, u32 param1, u32 param2, u32 param3)
+  // Calls a function using the given arguments. This doesn't adjust the stack; you can do that
+  // using ABI_PushRegistersAndAdjustStack and ABI_PopRegistersAndAdjustStack.
+  template <typename FuncRet, typename... FuncArgs, std::convertible_to<CallFunctionArg>... Args>
+  void ABI_CallFunction(FuncRet (*func)(FuncArgs...), Args... args)
   {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
-    MOV(32, R(ABI_PARAM2), Imm32(param2));
-    MOV(32, R(ABI_PARAM3), Imm32(param3));
-    ABI_CallFunction(func);
-  }
+    static_assert(sizeof...(FuncArgs) == sizeof...(Args), "Wrong number of arguments");
+    static_assert(sizeof...(FuncArgs) <= ABI_PARAMS.size(),
+                  "Passing arguments on the stack is not supported");
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionCCP(FunctionPointer func, u32 param1, u32 param2, const void* param3)
-  {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
-    MOV(32, R(ABI_PARAM2), Imm32(param2));
-    MOV(64, R(ABI_PARAM3), Imm64(reinterpret_cast<u64>(param3)));
-    ABI_CallFunction(func);
-  }
+    if constexpr (!std::is_void_v<FuncRet>)
+      static_assert(sizeof(FuncRet) <= 8, "Return types larger than 8 bytes are not supported");
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionCCCP(FunctionPointer func, u32 param1, u32 param2, u32 param3,
-                            const void* param4)
-  {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
-    MOV(32, R(ABI_PARAM2), Imm32(param2));
-    MOV(32, R(ABI_PARAM3), Imm32(param3));
-    MOV(64, R(ABI_PARAM4), Imm64(reinterpret_cast<u64>(param4)));
-    ABI_CallFunction(func);
-  }
+    std::array<u8, 16> source_reg_uses{};
+    std::array<u8, 16> destination_reg_uses{};
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionP(FunctionPointer func, const void* param1)
-  {
-    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
-    ABI_CallFunction(func);
-  }
+    [[maybe_unused]]
+    constexpr auto type_bits = []<typename FuncArg>() {
+      if constexpr (std::is_reference_v<FuncArg>)
+        return sizeof(void*) * 8;
+      else
+        return sizeof(FuncArg) * 8;
+    };
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionPP(FunctionPointer func, const void* param1, const void* param2)
-  {
-    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
-    MOV(64, R(ABI_PARAM2), Imm64(reinterpret_cast<u64>(param2)));
-    ABI_CallFunction(func);
-  }
+    [[maybe_unused]]
+    const auto check_argument = [&]<typename FuncArg>(const CallFunctionArg& arg) {
+      static_assert(std::is_trivially_copyable_v<FuncArg> || std::is_reference_v<FuncArg> ||
+                        std::is_member_pointer_v<FuncArg>,
+                    "Parameter types must be trivially copyable, reference, or pointer");
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionPC(FunctionPointer func, const void* param1, u32 param2)
-  {
-    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
-    MOV(32, R(ABI_PARAM2), Imm32(param2));
-    ABI_CallFunction(func);
-  }
+      static_assert(!std::is_floating_point_v<FuncArg>,
+                    "Floating point parameter types are not supported");
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionPPC(FunctionPointer func, const void* param1, const void* param2, u32 param3)
-  {
-    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
-    MOV(64, R(ABI_PARAM2), Imm64(reinterpret_cast<u64>(param2)));
-    MOV(32, R(ABI_PARAM3), Imm32(param3));
-    ABI_CallFunction(func);
-  }
+      static_assert(type_bits.template operator()<FuncArg>() <= 64,
+                    "Parameter types larger than 8 bytes are not supported");
 
-  // Pass a register as a parameter.
-  template <typename FunctionPointer>
-  void ABI_CallFunctionR(FunctionPointer func, X64Reg reg1)
-  {
-    if (reg1 != ABI_PARAM1)
-      MOV(32, R(ABI_PARAM1), R(reg1));
-    ABI_CallFunction(func);
-  }
+      if (const std::optional<X64Reg> base_reg = arg.op_arg.GetBaseReg())
+        source_reg_uses[*base_reg]++;
 
-  // Pass a pointer and register as a parameter.
-  template <typename FunctionPointer>
-  void ABI_CallFunctionPR(FunctionPointer func, const void* ptr, X64Reg reg1)
-  {
-    if (reg1 != ABI_PARAM2)
-      MOV(64, R(ABI_PARAM2), R(reg1));
-    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(ptr)));
-    ABI_CallFunction(func);
-  }
+      if (const std::optional<X64Reg> index_reg = arg.op_arg.GetIndexReg())
+        source_reg_uses[*index_reg]++;
+    };
 
-  // Pass two registers as parameters.
-  template <typename FunctionPointer>
-  void ABI_CallFunctionRR(FunctionPointer func, X64Reg reg1, X64Reg reg2)
-  {
-    MOVTwo(64, ABI_PARAM1, reg1, 0, ABI_PARAM2, reg2);
-    ABI_CallFunction(func);
-  }
+    (check_argument.template operator()<FuncArgs>(args), ...);
 
-  // Pass a pointer and two registers as parameters.
-  template <typename FunctionPointer>
-  void ABI_CallFunctionPRR(FunctionPointer func, const void* ptr, X64Reg reg1, X64Reg reg2)
-  {
-    MOVTwo(64, ABI_PARAM2, reg1, 0, ABI_PARAM3, reg2);
-    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(ptr)));
-    ABI_CallFunction(func);
-  }
+    {
+      Common::SmallVector<RegisterMove, sizeof...(Args)> pending_moves;
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionAC(int bits, FunctionPointer func, const Gen::OpArg& arg1, u32 param2)
-  {
-    if (!arg1.IsSimpleReg(ABI_PARAM1))
-      MOV(bits, R(ABI_PARAM1), arg1);
-    MOV(32, R(ABI_PARAM2), Imm32(param2));
-    ABI_CallFunction(func);
-  }
+      size_t i = 0;
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionPAC(int bits, FunctionPointer func, const void* ptr1, const Gen::OpArg& arg2,
-                           u32 param3)
-  {
-    if (!arg2.IsSimpleReg(ABI_PARAM2))
-      MOV(bits, R(ABI_PARAM2), arg2);
-    MOV(32, R(ABI_PARAM3), Imm32(param3));
-    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(ptr1)));
-    ABI_CallFunction(func);
-  }
+      [[maybe_unused]]
+      const auto handle_non_imm_argument = [&]<typename FuncArg>(const CallFunctionArg& arg) {
+        if (!arg.op_arg.IsImm())
+        {
+          // When types that are 32 bits or smaller are stored in a register, bits 32-63 of the
+          // register can contain garbage. However, the System V ABI doesn't specify any rules
+          // for bits 8-31 and 16-31 for char and short respectively. (It does specify that _Bool
+          // must contain zeroes in bits 1-7 but can contain garbage in bits 8-31.) Apple's ABI
+          // documentation says that zero/sign extending is required for char and short, and GCC and
+          // Clang seem to assume that it's required. The situation on Windows is currently unknown.
+          // Let's assume that it's required on all platforms.
+          constexpr int func_arg_bits = std::max(32, int(type_bits.template operator()<FuncArg>()));
+          const bool extend = arg.bits < func_arg_bits;
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionA(int bits, FunctionPointer func, const Gen::OpArg& arg1)
-  {
-    if (!arg1.IsSimpleReg(ABI_PARAM1))
-      MOV(bits, R(ABI_PARAM1), arg1);
-    ABI_CallFunction(func);
+          const X64Reg destination_reg = ABI_PARAMS[i];
+
+          if (arg.op_arg.IsSimpleReg(destination_reg) && !extend)
+          {
+            // The value is already in the right register.
+            destination_reg_uses[destination_reg]++;
+            source_reg_uses[destination_reg]--;
+          }
+          else if (source_reg_uses[destination_reg] == 0)
+          {
+            // The destination register isn't used as the source of another move.
+            // We can go ahead and do the move right away.
+            if (!extend || (!std::is_signed_v<FuncArg> && arg.bits == 32))
+              MOV(arg.bits, R(destination_reg), arg.op_arg);
+            else if (std::is_signed_v<FuncArg>)
+              MOVSX(func_arg_bits, arg.bits, destination_reg, arg.op_arg);
+            else
+              MOVZX(32, arg.bits, destination_reg, arg.op_arg);
+
+            destination_reg_uses[destination_reg]++;
+            if (const std::optional<X64Reg> base_reg = arg.op_arg.GetBaseReg())
+              source_reg_uses[*base_reg]--;
+            if (const std::optional<X64Reg> index_reg = arg.op_arg.GetIndexReg())
+              source_reg_uses[*index_reg]--;
+          }
+          else
+          {
+            // The destination register is used as the source of a move we haven't gotten to yet.
+            // Let's record that we need to deal with this move later.
+            pending_moves.emplace_back(arg.op_arg, std::is_signed_v<FuncArg>, func_arg_bits,
+                                       arg.bits, destination_reg);
+          }
+        }
+
+        ++i;
+      };
+
+      (handle_non_imm_argument.template operator()<FuncArgs>(args), ...);
+
+      if (!pending_moves.empty())
+      {
+        ParallelMoves(pending_moves.data(), pending_moves.data() + pending_moves.size(),
+                      &source_reg_uses, &destination_reg_uses);
+      }
+    }
+
+    {
+      size_t i = 0;
+
+      [[maybe_unused]]
+      const auto handle_imm_argument = [&]<typename FuncArg>(const CallFunctionArg& arg) {
+        OpArg op_arg = arg.op_arg;
+
+        // Extend 8 -> 32 and 16 -> 32
+        if (op_arg.scale == SCALE_IMM8)
+        {
+          if (std::is_signed_v<FuncArg>)
+            op_arg = Imm32(s32(op_arg.SImm8()));
+          else
+            op_arg = Imm32(op_arg.Imm8());
+        }
+        else if (op_arg.scale == SCALE_IMM16)
+        {
+          if (std::is_signed_v<FuncArg>)
+            op_arg = Imm32(s32(op_arg.SImm16()));
+          else
+            op_arg = Imm32(op_arg.Imm16());
+        }
+
+        // Extend 32 -> 64
+        if (op_arg.scale == SCALE_IMM32 && std::is_signed_v<FuncArg> &&
+            type_bits.template operator()<FuncArg>() > 32)
+        {
+          op_arg = Imm64(s64(op_arg.SImm32()));
+        }
+
+        // Emit the MOV
+        if (op_arg.scale == SCALE_IMM32)
+          MOV(32, R(ABI_PARAMS[i]), op_arg);
+        else if (op_arg.scale == SCALE_IMM64)
+          MOV(64, R(ABI_PARAMS[i]), op_arg);
+
+        ++i;
+      };
+
+      (handle_imm_argument.template operator()<FuncArgs>(args), ...);
+    }
+
+    QuickCallFunction(func);
   }
 
   // Helper method for ABI functions related to calling functions. May be used by itself as well.
@@ -1192,17 +1253,18 @@ public:
   // Unfortunately, calling operator() directly is undefined behavior in C++
   // (this method might be a thunk in the case of multi-inheritance) so we
   // have to go through a trampoline function.
-  template <typename T, typename... Args>
-  static T CallLambdaTrampoline(const std::function<T(Args...)>* f, Args... args)
+  template <typename FuncRet, typename... FuncArgs>
+  static FuncRet CallLambdaTrampoline(const std::function<FuncRet(FuncArgs...)>* f,
+                                      FuncArgs... args)
   {
     return (*f)(args...);
   }
 
-  template <typename T, typename... Args>
-  void ABI_CallLambdaPC(const std::function<T(Args...)>* f, void* p1, u32 p2)
+  template <typename FuncRet, typename... FuncArgs, std::convertible_to<CallFunctionArg>... Args>
+  void ABI_CallLambda(const std::function<FuncRet(FuncArgs...)>* f, Args... args)
   {
-    auto trampoline = &XEmitter::CallLambdaTrampoline<T, Args...>;
-    ABI_CallFunctionPPC(trampoline, reinterpret_cast<const void*>(f), p1, p2);
+    auto trampoline = &XEmitter::CallLambdaTrampoline<FuncRet, FuncArgs...>;
+    ABI_CallFunction(trampoline, reinterpret_cast<const void*>(f), args...);
   }
 };  // class XEmitter
 

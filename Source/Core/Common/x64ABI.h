@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <array>
+
 #include "Common/BitSet.h"
 #include "Common/x64Reg.h"
 
@@ -24,34 +26,46 @@
 // Callee-save:  RBX RBP R12 R13 R14 R15
 // Parameters:   RDI RSI RDX RCX R8 R9
 
-#define ABI_ALL_FPRS BitSet32(0xffff0000)
-#define ABI_ALL_GPRS BitSet32(0x0000ffff)
+namespace Gen
+{
+
+constexpr BitSet32 ABI_ALL_FPRS(0xffff0000);
+constexpr BitSet32 ABI_ALL_GPRS(0x0000ffff);
 
 #ifdef _WIN32  // 64-bit Windows - the really exotic calling convention
 
-#define ABI_PARAM1 RCX
-#define ABI_PARAM2 RDX
-#define ABI_PARAM3 R8
-#define ABI_PARAM4 R9
+constexpr X64Reg ABI_PARAM1 = RCX;
+constexpr X64Reg ABI_PARAM2 = RDX;
+constexpr X64Reg ABI_PARAM3 = R8;
+constexpr X64Reg ABI_PARAM4 = R9;
+
+constexpr std::array<X64Reg, 4> ABI_PARAMS = {ABI_PARAM1, ABI_PARAM2, ABI_PARAM3, ABI_PARAM4};
 
 // xmm0-xmm15 use the upper 16 bits in the functions that push/pop registers.
-#define ABI_ALL_CALLER_SAVED                                                                       \
-  (BitSet32{RAX, RCX, RDX, R8, R9, R10, R11, XMM0 + 16, XMM1 + 16, XMM2 + 16, XMM3 + 16,           \
-            XMM4 + 16, XMM5 + 16})
-#else  // 64-bit Unix / OS X
+constexpr BitSet32 ABI_ALL_CALLER_SAVED{RAX,       RCX,       RDX,       R8,        R9,
+                                        R10,       R11,       XMM0 + 16, XMM1 + 16, XMM2 + 16,
+                                        XMM3 + 16, XMM4 + 16, XMM5 + 16};
 
-#define ABI_PARAM1 RDI
-#define ABI_PARAM2 RSI
-#define ABI_PARAM3 RDX
-#define ABI_PARAM4 RCX
-#define ABI_PARAM5 R8
-#define ABI_PARAM6 R9
+#else   // 64-bit Unix / OS X
+
+constexpr X64Reg ABI_PARAM1 = RDI;
+constexpr X64Reg ABI_PARAM2 = RSI;
+constexpr X64Reg ABI_PARAM3 = RDX;
+constexpr X64Reg ABI_PARAM4 = RCX;
+constexpr X64Reg ABI_PARAM5 = R8;
+constexpr X64Reg ABI_PARAM6 = R9;
+
+constexpr std::array<X64Reg, 6> ABI_PARAMS = {ABI_PARAM1, ABI_PARAM2, ABI_PARAM3,
+                                              ABI_PARAM4, ABI_PARAM5, ABI_PARAM6};
 
 // FIXME: avoid pushing all 16 XMM registers when possible? most functions we call probably
 // don't actually clobber them.
-#define ABI_ALL_CALLER_SAVED (BitSet32{RAX, RCX, RDX, RDI, RSI, R8, R9, R10, R11} | ABI_ALL_FPRS)
+constexpr BitSet32 ABI_ALL_CALLER_SAVED(BitSet32{RAX, RCX, RDX, RDI, RSI, R8, R9, R10, R11} |
+                                        ABI_ALL_FPRS);
 #endif  // _WIN32
 
-#define ABI_ALL_CALLEE_SAVED (~ABI_ALL_CALLER_SAVED)
+constexpr BitSet32 ABI_ALL_CALLEE_SAVED(~ABI_ALL_CALLER_SAVED);
 
-#define ABI_RETURN RAX
+constexpr X64Reg ABI_RETURN = RAX;
+
+};  // namespace Gen

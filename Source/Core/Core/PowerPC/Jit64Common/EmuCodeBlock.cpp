@@ -280,7 +280,7 @@ private:
   void CallLambda(int sbits, const std::function<T(Core::System&, u32)>* lambda)
   {
     m_code->ABI_PushRegistersAndAdjustStack(m_registers_in_use, 0);
-    m_code->ABI_CallLambdaPC(lambda, m_system, m_address);
+    m_code->ABI_CallLambda(lambda, m_system, m_address);
     m_code->ABI_PopRegistersAndAdjustStack(m_registers_in_use, 0);
     MoveOpArgToReg(sbits, R(ABI_RETURN));
   }
@@ -405,16 +405,16 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   switch (accessSize)
   {
   case 64:
-    ABI_CallFunctionPR(PowerPC::ReadFromJit<u64>, &m_jit.m_mmu, reg_addr);
+    ABI_CallFunction(PowerPC::ReadFromJit<u64>, &m_jit.m_mmu, CallFunctionArg(32, reg_addr));
     break;
   case 32:
-    ABI_CallFunctionPR(PowerPC::ReadFromJit<u32>, &m_jit.m_mmu, reg_addr);
+    ABI_CallFunction(PowerPC::ReadFromJit<u32>, &m_jit.m_mmu, CallFunctionArg(32, reg_addr));
     break;
   case 16:
-    ABI_CallFunctionPR(PowerPC::ReadFromJit<u16>, &m_jit.m_mmu, reg_addr);
+    ABI_CallFunction(PowerPC::ReadFromJit<u16>, &m_jit.m_mmu, CallFunctionArg(32, reg_addr));
     break;
   case 8:
-    ABI_CallFunctionPR(PowerPC::ReadFromJit<u8>, &m_jit.m_mmu, reg_addr);
+    ABI_CallFunction(PowerPC::ReadFromJit<u8>, &m_jit.m_mmu, CallFunctionArg(32, reg_addr));
     break;
   }
   ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
@@ -468,16 +468,16 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
   switch (accessSize)
   {
   case 64:
-    ABI_CallFunctionPC(PowerPC::ReadFromJit<u64>, &m_jit.m_mmu, address);
+    ABI_CallFunction(PowerPC::ReadFromJit<u64>, &m_jit.m_mmu, address);
     break;
   case 32:
-    ABI_CallFunctionPC(PowerPC::ReadFromJit<u32>, &m_jit.m_mmu, address);
+    ABI_CallFunction(PowerPC::ReadFromJit<u32>, &m_jit.m_mmu, address);
     break;
   case 16:
-    ABI_CallFunctionPC(PowerPC::ReadFromJit<u16>, &m_jit.m_mmu, address);
+    ABI_CallFunction(PowerPC::ReadFromJit<u16>, &m_jit.m_mmu, address);
     break;
   case 8:
-    ABI_CallFunctionPC(PowerPC::ReadFromJit<u8>, &m_jit.m_mmu, address);
+    ABI_CallFunction(PowerPC::ReadFromJit<u8>, &m_jit.m_mmu, address);
     break;
   }
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
@@ -573,34 +573,23 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
   ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
 
-  // If the input is an immediate, we need to put it in a register.
-  X64Reg reg;
-  if (reg_value.IsImm())
-  {
-    reg = reg_addr == ABI_PARAM1 ? RSCRATCH : ABI_PARAM1;
-    MOV(accessSize, R(reg), reg_value);
-  }
-  else
-  {
-    reg = reg_value.GetSimpleReg();
-  }
-
   switch (accessSize)
   {
   case 64:
-    ABI_CallFunctionPRR(swap ? PowerPC::WriteFromJit<u64> : PowerPC::WriteU64SwapFromJit,
-                        &m_jit.m_mmu, reg, reg_addr);
+    ABI_CallFunction(swap ? PowerPC::WriteFromJit<u64> : PowerPC::WriteU64SwapFromJit, &m_jit.m_mmu,
+                     CallFunctionArg(accessSize, reg_value), CallFunctionArg(32, reg_addr));
     break;
   case 32:
-    ABI_CallFunctionPRR(swap ? PowerPC::WriteFromJit<u32> : PowerPC::WriteU32SwapFromJit,
-                        &m_jit.m_mmu, reg, reg_addr);
+    ABI_CallFunction(swap ? PowerPC::WriteFromJit<u32> : PowerPC::WriteU32SwapFromJit, &m_jit.m_mmu,
+                     CallFunctionArg(accessSize, reg_value), CallFunctionArg(32, reg_addr));
     break;
   case 16:
-    ABI_CallFunctionPRR(swap ? PowerPC::WriteFromJit<u16> : PowerPC::WriteU16SwapFromJit,
-                        &m_jit.m_mmu, reg, reg_addr);
+    ABI_CallFunction(swap ? PowerPC::WriteFromJit<u16> : PowerPC::WriteU16SwapFromJit, &m_jit.m_mmu,
+                     CallFunctionArg(accessSize, reg_value), CallFunctionArg(32, reg_addr));
     break;
   case 8:
-    ABI_CallFunctionPRR(PowerPC::WriteFromJit<u8>, &m_jit.m_mmu, reg, reg_addr);
+    ABI_CallFunction(PowerPC::WriteFromJit<u8>, &m_jit.m_mmu,
+                     CallFunctionArg(accessSize, reg_value), CallFunctionArg(32, reg_addr));
     break;
   }
   ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
@@ -669,16 +658,20 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
     switch (accessSize)
     {
     case 64:
-      ABI_CallFunctionPAC(64, PowerPC::WriteFromJit<u64>, &m_jit.m_mmu, arg, address);
+      ABI_CallFunction(PowerPC::WriteFromJit<u64>, &m_jit.m_mmu, CallFunctionArg(accessSize, arg),
+                       address);
       break;
     case 32:
-      ABI_CallFunctionPAC(32, PowerPC::WriteFromJit<u32>, &m_jit.m_mmu, arg, address);
+      ABI_CallFunction(PowerPC::WriteFromJit<u32>, &m_jit.m_mmu, CallFunctionArg(accessSize, arg),
+                       address);
       break;
     case 16:
-      ABI_CallFunctionPAC(16, PowerPC::WriteFromJit<u16>, &m_jit.m_mmu, arg, address);
+      ABI_CallFunction(PowerPC::WriteFromJit<u16>, &m_jit.m_mmu, CallFunctionArg(accessSize, arg),
+                       address);
       break;
     case 8:
-      ABI_CallFunctionPAC(8, PowerPC::WriteFromJit<u8>, &m_jit.m_mmu, arg, address);
+      ABI_CallFunction(PowerPC::WriteFromJit<u8>, &m_jit.m_mmu, CallFunctionArg(accessSize, arg),
+                       address);
       break;
     }
     ABI_PopRegistersAndAdjustStack(registersInUse, 0);
