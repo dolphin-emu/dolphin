@@ -12,7 +12,7 @@ class PrintAction final : public GraphicsModAction
 public:
   static constexpr std::string_view factory_name = "print";
   void OnDrawStarted(GraphicsModActionData::DrawStarted*) override;
-  void OnEFB(GraphicsModActionData::EFB*) override;
+  void BeforeEFB(GraphicsModActionData::PreEFB*) override;
   void OnProjection(GraphicsModActionData::Projection*) override;
   void OnProjectionAndTexture(GraphicsModActionData::Projection*) override;
   void OnTextureLoad(GraphicsModActionData::TextureLoad*) override;
