@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <optional>
 #include <vector>
 
@@ -14,8 +15,11 @@
 #include <Hidclass.h>
 #include <Hidsdi.h>
 #include <initguid.h>
-// initguid.h must be included before Devpkey.h
-#include <Devpkey.h>
+#include <wtypes.h>
+// initguid.h must be included before devpkey.h
+#include <devpkey.h>
+// wtypes.h must be included before propkey.h
+#include <propkey.h>
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
@@ -125,7 +129,7 @@ std::optional<USBUtils::DeviceInfo> GetDeviceInfo(const WCHAR* hid_iface)
   return USBUtils::DeviceInfo{attributes.VendorID, attributes.ProductID};
 }
 
-static std::optional<std::string> GetParentDeviceDescription(const WCHAR* hid_iface)
+static std::optional<DEVINST> GetInst(const WCHAR* hid_iface)
 {
   auto dev_inst_id =
       Common::GetDeviceInterfaceStringProperty(hid_iface, &DEVPKEY_Device_InstanceId);
@@ -141,6 +145,11 @@ static std::optional<std::string> GetParentDeviceDescription(const WCHAR* hid_if
     return std::nullopt;
   }
 
+  return dev_inst;
+}
+
+static std::optional<DEVINST> GetParentInst(DEVINST dev_inst)
+{
   DEVINST parent_inst{};
   if (CM_Get_Parent(&parent_inst, dev_inst, 0) != CR_SUCCESS)
   {
@@ -148,13 +157,39 @@ static std::optional<std::string> GetParentDeviceDescription(const WCHAR* hid_if
     return std::nullopt;
   }
 
-  const auto description =
-      Common::GetDevNodeStringProperty(parent_inst, &DEVPKEY_Device_BusReportedDeviceDesc);
+  return parent_inst;
+}
 
-  if (description.has_value())
-    return WStringToUTF8(*description);
+static std::optional<std::string> GetBluetoothName(DEVINST dev_inst)
+{
+  // Association Endpoint ID.
+  const auto aep_id_key = std::bit_cast<DEVPROPKEY>(PKEY_Devices_Aep_AepId);
 
-  return std::nullopt;
+  // This provides a string like "Bluetooth#Bluetoothbc:fc:e7:2d:83:72-d8:6b:f7:32:db:46".
+  const auto aep_id = Common::GetDevNodeStringProperty(dev_inst, &aep_id_key);
+  if (!aep_id.has_value())
+    return std::nullopt;
+
+  // Traverse all siblings and find the "Bluetooth" class device with a matching AepID.
+  const auto parent_inst = GetParentInst(dev_inst);
+  if (!parent_inst.has_value())
+    return std::nullopt;
+
+  DEVINST child;
+  if (CM_Get_Child(&child, *parent_inst, 0) != CR_SUCCESS)
+    return std::nullopt;
+
+  while (true)
+  {
+    if (Common::GetDevNodeStringProperty(child, &DEVPKEY_Device_Class) == L"Bluetooth" &&
+        *aep_id == Common::GetDevNodeStringProperty(child, &aep_id_key))
+    {
+      return Common::GetDevNodeStringProperty(child, &DEVPKEY_NAME).transform(WStringToUTF8);
+    }
+
+    if (CM_Get_Sibling(&child, child, 0) != CR_SUCCESS)
+      return std::nullopt;
+  }
 }
 
 void EnumerateRadios(std::invocable<HANDLE> auto&& enumeration_callback)
@@ -590,11 +625,21 @@ static std::vector<WiimoteScannerWindows::EnumeratedWiimoteInterface> GetAllWiim
 
   for (auto* hid_iface : Common::GetDeviceInterfaceList(&class_guid, nullptr, flags))
   {
-    // When connected via Bluetooth, this has a proper name like "Nintendo RVL-CNT-01".
-    const auto parent_description = GetParentDeviceDescription(hid_iface);
+    DEBUG_LOG_FMT(WIIMOTE, "Found HID interface.");
 
-    if (parent_description.has_value())
-      DEBUG_LOG_FMT(WIIMOTE, "HID description: {}", *parent_description);
+    const auto parent_inst = GetInst(hid_iface).and_then(GetParentInst);
+
+    // This provies a proper name like "Nintendo RVL-CNT-01" or "Nintendo RVL-WBC-01".
+    const auto bluetooth_name = parent_inst.and_then(GetBluetoothName);
+    DEBUG_LOG_FMT(WIIMOTE, " BluetoothName: {}", bluetooth_name.value_or("<error>"));
+
+    // For some reason, a Balance Board `BusReportedDeviceDesc` is "Nintendo RVL-CNT-01".
+    const auto device_description =
+        parent_inst
+            .and_then(std::bind_back(Common::GetDevNodeStringProperty,
+                                     &DEVPKEY_Device_BusReportedDeviceDesc))
+            .transform(WStringToUTF8);
+    DEBUG_LOG_FMT(WIIMOTE, " BusReportedDeviceDesc: {}", device_description.value_or("<error>"));
 
     // Mayflash has confirmed in email that every revision of the DolphinBar
     //  advertises this descriptor and a VID:PID of 057e:0306.
@@ -611,27 +656,24 @@ static std::vector<WiimoteScannerWindows::EnumeratedWiimoteInterface> GetAllWiim
     std::optional<bool> is_balance_board;
 
     bool is_relevant_description = false;
-    if (parent_description.has_value())
+    if (bluetooth_name.has_value())
     {
-      if (IsBalanceBoardName(*parent_description))
+      if (IsWiimoteName(*bluetooth_name))
+      {
+        is_relevant_description = true;
+        is_balance_board = false;
+      }
+      else if (IsBalanceBoardName(*bluetooth_name))
       {
         is_relevant_description = true;
         is_balance_board = true;
       }
-      else if (IsWiimoteName(*parent_description))
-      {
-        is_relevant_description = true;
-
-        // For some reason, a Balance Board `BusReportedDeviceDesc` is "Nintendo RVL-CNT-01".
-        // TODO: Additional device tree shenanigans will be needed to observe "Nintendo RVL-WBC-01".
-        // The easiest way might be to find a BT device instance with a matching BDADDR.
-        // For now, we'll just always force the `Wiimote::IsBalanceBoard` check.
-        // is_balance_board = false;
-      }
-      else if (*parent_description == dolphinbar_device_description)
-      {
-        is_relevant_description = true;
-      }
+    }
+    else if (device_description.has_value() &&
+             (*device_description == dolphinbar_device_description ||
+              IsValidDeviceName(*device_description)))
+    {
+      is_relevant_description = true;
     }
 
     // Whelp, if the description didn't match, let's check the VID/PID ?
