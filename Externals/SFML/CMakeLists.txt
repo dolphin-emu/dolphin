@@ -1,25 +1,25 @@
 set(SRC_NETWORK
-	SFML/src/SFML/Network/Http.cpp
-	SFML/src/SFML/Network/IpAddress.cpp
-	SFML/src/SFML/Network/Packet.cpp
-	SFML/src/SFML/Network/Socket.cpp
-	SFML/src/SFML/Network/SocketSelector.cpp
-	SFML/src/SFML/Network/TcpListener.cpp
-	SFML/src/SFML/Network/TcpSocket.cpp
-	SFML/src/SFML/Network/UdpSocket.cpp
+  SFML/src/SFML/Network/Http.cpp
+  SFML/src/SFML/Network/IpAddress.cpp
+  SFML/src/SFML/Network/Packet.cpp
+  SFML/src/SFML/Network/Socket.cpp
+  SFML/src/SFML/Network/SocketSelector.cpp
+  SFML/src/SFML/Network/TcpListener.cpp
+  SFML/src/SFML/Network/TcpSocket.cpp
+  SFML/src/SFML/Network/UdpSocket.cpp
 )
 
 if(WIN32)
-	list(APPEND SRC_NETWORK SFML/src/SFML/Network/Win32/SocketImpl.cpp)
+  list(APPEND SRC_NETWORK SFML/src/SFML/Network/Win32/SocketImpl.cpp)
 else()
-	list(APPEND SRC_NETWORK SFML/src/SFML/Network/Unix/SocketImpl.cpp)
+  list(APPEND SRC_NETWORK SFML/src/SFML/Network/Unix/SocketImpl.cpp)
 endif()
 
 set(SRC_SYSTEM
-	SFML/src/SFML/System/Err.cpp
-	SFML/include/SFML/System/String.hpp
-	SFML/src/SFML/System/String.cpp
-	SFML/src/SFML/System/Utils.cpp
+  SFML/src/SFML/System/Err.cpp
+  SFML/include/SFML/System/String.hpp
+  SFML/src/SFML/System/String.cpp
+  SFML/src/SFML/System/Utils.cpp
 )
 
 add_library(sfml-network STATIC ${SRC_NETWORK})

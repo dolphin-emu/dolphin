@@ -5,8 +5,8 @@ include(GNUInstallDirs)
 
 # format
 file(GLOB_RECURSE ALL_SOURCE_FILES
-    include/*.h
-    src/*.cpp src/*.h src/*.c
+  include/*.h
+  src/*.cpp src/*.h src/*.c
 )
 
 # add subdirs

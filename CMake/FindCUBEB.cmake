@@ -4,7 +4,7 @@ mark_as_advanced(CUBEB_INCLUDE_DIR CUBEB_LIBRARY)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(CUBEB DEFAULT_MSG
-	CUBEB_INCLUDE_DIR CUBEB_LIBRARY)
+  CUBEB_INCLUDE_DIR CUBEB_LIBRARY)
 
 if(CUBEB_FOUND AND NOT TARGET cubeb::cubeb)
   add_library(cubeb::cubeb UNKNOWN IMPORTED)

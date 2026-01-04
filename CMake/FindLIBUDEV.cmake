@@ -5,17 +5,17 @@
 #  LIBUDEV_LIBRARIES - The libraries needed to use LIBUDEV
 
 FIND_PATH(
-    LIBUDEV_INCLUDE_DIR libudev.h
-    /usr/include
-    /usr/local/include
-    ${LIBUDEV_PATH_INCLUDES}
+  LIBUDEV_INCLUDE_DIR libudev.h
+  /usr/include
+  /usr/local/include
+  ${LIBUDEV_PATH_INCLUDES}
 )
 
 FIND_LIBRARY(
-    LIBUDEV_LIBRARY
-    NAMES udev libudev
-    PATHS ${ADDITIONAL_LIBRARY_PATHS}
-        ${LIBUDEV_PATH_LIB}
+  LIBUDEV_LIBRARY
+  NAMES udev libudev
+  PATHS ${ADDITIONAL_LIBRARY_PATHS}
+    ${LIBUDEV_PATH_LIB}
 )
 
 set(LIBUDEV_LIBRARIES ${LIBUDEV_LIBRARY} )

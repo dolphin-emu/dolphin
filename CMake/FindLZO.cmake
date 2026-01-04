@@ -4,7 +4,7 @@ mark_as_advanced(LZO_INCLUDE_DIR LZO_LIBRARY)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(LZO DEFAULT_MSG
-	LZO_INCLUDE_DIR LZO_LIBRARY)
+  LZO_INCLUDE_DIR LZO_LIBRARY)
 
 if(LZO_FOUND AND NOT TARGET LZO::LZO)
   add_library(LZO::LZO UNKNOWN IMPORTED)

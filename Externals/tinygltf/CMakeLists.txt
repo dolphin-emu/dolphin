@@ -3,7 +3,7 @@ target_compile_definitions(tinygltf PUBLIC TINYGLTF_NOEXCEPTION)
 target_compile_definitions(tinygltf PUBLIC TINYGLTF_NO_EXTERNAL_IMAGE)
 target_compile_definitions(tinygltf PUBLIC TINYGLTF_USE_CPP14)
 if (NOT MSVC)
-	target_compile_features(tinygltf PRIVATE cxx_std_20)
+  target_compile_features(tinygltf PRIVATE cxx_std_20)
 endif()
 target_sources(tinygltf PRIVATE
   tinygltf/tiny_gltf.cc)
