@@ -27,16 +27,6 @@ std::unique_ptr<Metal::ObjectCache> Metal::g_object_cache;
 static void SetupDepthStencil(
     MRCOwned<id<MTLDepthStencilState>> (&dss)[Metal::DepthStencilSelector::N_VALUES]);
 
-Metal::ObjectCache::ObjectCache()
-{
-  m_internal = std::make_unique<Internal>();
-  SetupDepthStencil(m_dss);
-}
-
-Metal::ObjectCache::~ObjectCache()
-{
-}
-
 void Metal::ObjectCache::Initialize(MRCOwned<id<MTLDevice>> device)
 {
   g_device = std::move(device);
@@ -553,6 +543,16 @@ public:
     m_shaders.erase(it);
   }
 };
+
+Metal::ObjectCache::ObjectCache()
+{
+  m_internal = std::make_unique<Internal>();
+  SetupDepthStencil(m_dss);
+}
+
+Metal::ObjectCache::~ObjectCache()
+{
+}
 
 std::unique_ptr<AbstractPipeline>
 Metal::ObjectCache::CreatePipeline(const AbstractPipelineConfig& config)
