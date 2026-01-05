@@ -1,8 +1,3 @@
-if(POLICY CMP0084)
-  # Disable trying to search for Qt3/4 if what we actually want is not found
-  cmake_policy(SET CMP0084 NEW)
-endif()
-
 if (MSVC)
   if(_M_ARM_64)
     list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.5.1/ARM64")
