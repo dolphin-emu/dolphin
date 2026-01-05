@@ -15,6 +15,7 @@
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
+#include "Core/HW/Memmap.h"
 #include "Core/System.h"
 
 namespace DSP::HLE
@@ -136,10 +137,8 @@ void ASndUCode::HandleMail(u32 mail)
       DMAInVoiceData();  // first do_dma call
       // second do_dma call
       auto& memory = m_dsphle->GetSystem().GetMemory();
-      for (u32 i = 0; i < NUM_OUTPUT_SAMPLES * 2; i++)
-      {
-        m_output_buffer[i] = HLEMemory_Read_U16(memory, m_current_voice.out_buf + i * sizeof(u16));
-      }
+      memory.CopyFromEmuSwapped(m_output_buffer.data(), m_current_voice.out_buf,
+                                sizeof(m_output_buffer));
       DoMixing(DSP_SYNC);
       // Mail is handled by DoMixing()
       break;
@@ -161,10 +160,8 @@ void ASndUCode::HandleMail(u32 mail)
     {
       DEBUG_LOG_FMT(DSPHLE, "ASndUCode - MAIN_SEND_SAMPLES: {:08x}", mail);
       auto& memory = m_dsphle->GetSystem().GetMemory();
-      for (u32 i = 0; i < NUM_OUTPUT_SAMPLES * 2; i++)
-      {
-        HLEMemory_Write_U16(memory, m_current_voice.out_buf + i * sizeof(u16), m_output_buffer[i]);
-      }
+      memory.CopyToEmuSwapped(m_current_voice.out_buf, m_output_buffer.data(),
+                              sizeof(m_output_buffer));
       m_mail_handler.PushMail(DSP_SYNC, true);
       break;
     }
@@ -205,52 +202,52 @@ void ASndUCode::HandleMail(u32 mail)
 void ASndUCode::DMAInVoiceData()
 {
   auto& memory = m_dsphle->GetSystem().GetMemory();
-  m_current_voice.out_buf = HLEMemory_Read_U32(memory, m_voice_addr);
-  m_current_voice.delay_samples = HLEMemory_Read_U32(memory, m_voice_addr + 4);
-  u32 new_flags = HLEMemory_Read_U32(memory, m_voice_addr + 8);
+  m_current_voice.out_buf = memory.Read_U32(m_voice_addr);
+  m_current_voice.delay_samples = memory.Read_U32(m_voice_addr + 4);
+  u32 new_flags = memory.Read_U32(m_voice_addr + 8);
   if (m_current_voice.flags != new_flags)
     DEBUG_LOG_FMT(DSPHLE, "ASndUCode - flags: {:08x}", new_flags);
   m_current_voice.flags = new_flags;
-  m_current_voice.start_addr = HLEMemory_Read_U32(memory, m_voice_addr + 12);
-  m_current_voice.end_addr = HLEMemory_Read_U32(memory, m_voice_addr + 16);
-  m_current_voice.freq = HLEMemory_Read_U32(memory, m_voice_addr + 20);
-  m_current_voice.left = HLEMemory_Read_U16(memory, m_voice_addr + 24);
-  m_current_voice.right = HLEMemory_Read_U16(memory, m_voice_addr + 26);
-  m_current_voice.counter = HLEMemory_Read_U32(memory, m_voice_addr + 28);
-  m_current_voice.volume_l = HLEMemory_Read_U16(memory, m_voice_addr + 32);
-  m_current_voice.volume_r = HLEMemory_Read_U16(memory, m_voice_addr + 34);
-  m_current_voice.start_addr2 = HLEMemory_Read_U32(memory, m_voice_addr + 36);
-  m_current_voice.end_addr2 = HLEMemory_Read_U32(memory, m_voice_addr + 40);
-  m_current_voice.volume2_l = HLEMemory_Read_U16(memory, m_voice_addr + 44);
-  m_current_voice.volume2_r = HLEMemory_Read_U16(memory, m_voice_addr + 46);
-  m_current_voice.backup_addr = HLEMemory_Read_U32(memory, m_voice_addr + 48);
-  m_current_voice.tick_counter = HLEMemory_Read_U32(memory, m_voice_addr + 52);
-  m_current_voice.cb = HLEMemory_Read_U32(memory, m_voice_addr + 56);
-  m_current_voice._pad = HLEMemory_Read_U32(memory, m_voice_addr + 60);
+  m_current_voice.start_addr = memory.Read_U32(m_voice_addr + 12);
+  m_current_voice.end_addr = memory.Read_U32(m_voice_addr + 16);
+  m_current_voice.freq = memory.Read_U32(m_voice_addr + 20);
+  m_current_voice.left = memory.Read_U16(m_voice_addr + 24);
+  m_current_voice.right = memory.Read_U16(m_voice_addr + 26);
+  m_current_voice.counter = memory.Read_U32(m_voice_addr + 28);
+  m_current_voice.volume_l = memory.Read_U16(m_voice_addr + 32);
+  m_current_voice.volume_r = memory.Read_U16(m_voice_addr + 34);
+  m_current_voice.start_addr2 = memory.Read_U32(m_voice_addr + 36);
+  m_current_voice.end_addr2 = memory.Read_U32(m_voice_addr + 40);
+  m_current_voice.volume2_l = memory.Read_U16(m_voice_addr + 44);
+  m_current_voice.volume2_r = memory.Read_U16(m_voice_addr + 46);
+  m_current_voice.backup_addr = memory.Read_U32(m_voice_addr + 48);
+  m_current_voice.tick_counter = memory.Read_U32(m_voice_addr + 52);
+  m_current_voice.cb = memory.Read_U32(m_voice_addr + 56);
+  m_current_voice._pad = memory.Read_U32(m_voice_addr + 60);
 }
 
 void ASndUCode::DMAOutVoiceData()
 {
   auto& memory = m_dsphle->GetSystem().GetMemory();
-  HLEMemory_Write_U32(memory, m_voice_addr, m_current_voice.out_buf);
-  HLEMemory_Write_U32(memory, m_voice_addr + 4, m_current_voice.delay_samples);
-  HLEMemory_Write_U32(memory, m_voice_addr + 8, m_current_voice.flags);
-  HLEMemory_Write_U32(memory, m_voice_addr + 12, m_current_voice.start_addr);
-  HLEMemory_Write_U32(memory, m_voice_addr + 16, m_current_voice.end_addr);
-  HLEMemory_Write_U32(memory, m_voice_addr + 20, m_current_voice.freq);
-  HLEMemory_Write_U16(memory, m_voice_addr + 24, m_current_voice.left);
-  HLEMemory_Write_U16(memory, m_voice_addr + 26, m_current_voice.right);
-  HLEMemory_Write_U32(memory, m_voice_addr + 28, m_current_voice.counter);
-  HLEMemory_Write_U16(memory, m_voice_addr + 32, m_current_voice.volume_l);
-  HLEMemory_Write_U16(memory, m_voice_addr + 34, m_current_voice.volume_r);
-  HLEMemory_Write_U32(memory, m_voice_addr + 36, m_current_voice.start_addr2);
-  HLEMemory_Write_U32(memory, m_voice_addr + 40, m_current_voice.end_addr2);
-  HLEMemory_Write_U16(memory, m_voice_addr + 44, m_current_voice.volume2_l);
-  HLEMemory_Write_U16(memory, m_voice_addr + 46, m_current_voice.volume2_r);
-  HLEMemory_Write_U32(memory, m_voice_addr + 48, m_current_voice.backup_addr);
-  HLEMemory_Write_U32(memory, m_voice_addr + 52, m_current_voice.tick_counter);
-  HLEMemory_Write_U32(memory, m_voice_addr + 56, m_current_voice.cb);
-  HLEMemory_Write_U32(memory, m_voice_addr + 60, m_current_voice._pad);
+  memory.Write_U32(m_current_voice.out_buf, m_voice_addr);
+  memory.Write_U32(m_current_voice.delay_samples, m_voice_addr + 4);
+  memory.Write_U32(m_current_voice.flags, m_voice_addr + 8);
+  memory.Write_U32(m_current_voice.start_addr, m_voice_addr + 12);
+  memory.Write_U32(m_current_voice.end_addr, m_voice_addr + 16);
+  memory.Write_U32(m_current_voice.freq, m_voice_addr + 20);
+  memory.Write_U16(m_current_voice.left, m_voice_addr + 24);
+  memory.Write_U16(m_current_voice.right, m_voice_addr + 26);
+  memory.Write_U32(m_current_voice.counter, m_voice_addr + 28);
+  memory.Write_U16(m_current_voice.volume_l, m_voice_addr + 32);
+  memory.Write_U16(m_current_voice.volume_r, m_voice_addr + 34);
+  memory.Write_U32(m_current_voice.start_addr2, m_voice_addr + 36);
+  memory.Write_U32(m_current_voice.end_addr2, m_voice_addr + 40);
+  memory.Write_U16(m_current_voice.volume2_l, m_voice_addr + 44);
+  memory.Write_U16(m_current_voice.volume2_r, m_voice_addr + 46);
+  memory.Write_U32(m_current_voice.backup_addr, m_voice_addr + 48);
+  memory.Write_U32(m_current_voice.tick_counter, m_voice_addr + 52);
+  memory.Write_U32(m_current_voice.cb, m_voice_addr + 56);
+  memory.Write_U32(m_current_voice._pad, m_voice_addr + 60);
 }
 
 void ASndUCode::DoMixing(u32 return_mail)
@@ -461,10 +458,7 @@ void ASndUCode::DMAInSampleData()
   // jump_load_smp_dma is used, the address is expected to already be aligned.
   const u32 addr = m_current_voice.start_addr & ~INPUT_SAMPLE_BUFFER_BYTE_MASK;
   auto& memory = m_dsphle->GetSystem().GetMemory();
-  for (u16 i = 0; i < INPUT_SAMPLE_BUFFER_SIZE_WORDS; i++)
-  {
-    m_input_sample_buffer[i] = HLEMemory_Read_U16(memory, addr + i * sizeof(u16));
-  }
+  memory.CopyFromEmuSwapped(m_input_sample_buffer.data(), addr, INPUT_SAMPLE_BUFFER_SIZE_BYTES);
 }
 
 void ASndUCode::DMAInSampleDataAssumeAligned()
@@ -474,10 +468,7 @@ void ASndUCode::DMAInSampleDataAssumeAligned()
   // (which is set to an address from sample_selector). We can just treat it as a function though.
   const u32 addr = m_current_voice.start_addr;
   auto& memory = m_dsphle->GetSystem().GetMemory();
-  for (u16 i = 0; i < INPUT_SAMPLE_BUFFER_SIZE_WORDS; i++)
-  {
-    m_input_sample_buffer[i] = HLEMemory_Read_U16(memory, addr + i * sizeof(u16));
-  }
+  memory.CopyFromEmuSwapped(m_input_sample_buffer.data(), addr, INPUT_SAMPLE_BUFFER_SIZE_BYTES);
 }
 
 std::pair<s16, s16> ASndUCode::ReadSampleMono8Bits() const

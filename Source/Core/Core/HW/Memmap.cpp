@@ -555,6 +555,13 @@ u64 MemoryManager::Read_U64(u32 address) const
   return Common::swap64(value);
 }
 
+u32 MemoryManager::Read_U32_Swap(u32 address) const
+{
+  u32 value = 0;
+  CopyFromEmu(&value, address, sizeof(value));
+  return value;
+}
+
 void MemoryManager::Write_U8(u8 value, u32 address)
 {
   CopyToEmu(address, &value, sizeof(value));

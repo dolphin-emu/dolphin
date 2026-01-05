@@ -97,6 +97,7 @@ public:
 
   // Debugger Helper
   u8* GetARAMPtr() const;
+  u32 GetARAMSize() const;
 
   void UpdateAudioDMA();
   void UpdateDSPSlice(int cycles);
