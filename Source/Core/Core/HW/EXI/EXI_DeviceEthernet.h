@@ -15,7 +15,7 @@
 #endif
 
 #include <SFML/Network.hpp>
-#if !defined(__ANDROID__) && !defined(__APPLE__)
+#ifdef HAVE_CPPIPC
 #include <libipc/ipc.h>
 #endif
 
@@ -483,7 +483,7 @@ private:
   public:
     explicit IPCBBAInterface(CEXIETHERNET* const eth_ref) : NetworkInterface(eth_ref) {}
 
-#if !defined(__ANDROID__) && !defined(__APPLE__)
+#ifdef HAVE_CPPIPC
 
     bool Activate() override;
     void Deactivate() override;

@@ -799,7 +799,7 @@ if(UNIX)
   )
 endif()
 
-if(NOT ANDROID AND NOT APPLE)
+if(TARGET cpp-ipc::ipc)
   target_sources(core PRIVATE HW/EXI/BBA/IPC.cpp)
   target_link_libraries(core PRIVATE cpp-ipc::ipc)
 endif()
