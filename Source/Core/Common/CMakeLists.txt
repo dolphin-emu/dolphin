@@ -156,7 +156,6 @@ add_library(common
   TraversalClient.h
   TraversalProto.h
   TypeUtils.h
-  Unreachable.h
   UPnP.cpp
   UPnP.h
   VariantUtil.h

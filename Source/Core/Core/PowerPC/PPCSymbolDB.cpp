@@ -20,7 +20,6 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Common/Unreachable.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/DebugInterface.h"
@@ -558,7 +557,7 @@ bool PPCSymbolDB::LoadMap(const Core::CPUThreadGuard& guard, std::string filenam
       break;
     default:
       // Should never happen
-      Common::Unreachable();
+      std::unreachable();
       break;
     }
 

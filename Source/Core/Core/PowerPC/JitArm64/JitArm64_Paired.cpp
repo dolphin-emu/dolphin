@@ -3,11 +3,12 @@
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 
+#include <utility>
+
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/StringUtil.h"
-#include "Common/Unreachable.h"
 
 #include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
@@ -343,7 +344,7 @@ void JitArm64::ps_sel(UGeckoInstruction inst)
     else if (d == c)
       m_float_emit.BIF(VD, VB, V0);
     else
-      Common::Unreachable();
+      std::unreachable();
   }
 
   ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c)),
