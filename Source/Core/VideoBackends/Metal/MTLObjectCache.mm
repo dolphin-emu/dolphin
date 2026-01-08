@@ -27,16 +27,6 @@ std::unique_ptr<Metal::ObjectCache> Metal::g_object_cache;
 static void SetupDepthStencil(
     MRCOwned<id<MTLDepthStencilState>> (&dss)[Metal::DepthStencilSelector::N_VALUES]);
 
-Metal::ObjectCache::ObjectCache()
-{
-  m_internal = std::make_unique<Internal>();
-  SetupDepthStencil(m_dss);
-}
-
-Metal::ObjectCache::~ObjectCache()
-{
-}
-
 void Metal::ObjectCache::Initialize(MRCOwned<id<MTLDevice>> device)
 {
   g_device = std::move(device);
@@ -553,6 +543,17 @@ public:
     m_shaders.erase(it);
   }
 };
+
+Metal::ObjectCache::ObjectCache()
+{
+  m_internal = std::make_unique<Internal>();
+  SetupDepthStencil(m_dss);
+}
+
+// This is defined here instead of the header so that the definition of Internal is visible when
+// m_internal is destroyed, preventing a compile error caused by calling unique_ptr's destructor
+// with an incomplete type.
+Metal::ObjectCache::~ObjectCache() = default;
 
 std::unique_ptr<AbstractPipeline>
 Metal::ObjectCache::CreatePipeline(const AbstractPipelineConfig& config)

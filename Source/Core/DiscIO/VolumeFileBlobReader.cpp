@@ -33,6 +33,11 @@ VolumeFileBlobReader::VolumeFileBlobReader(const Volume& volume, const Partition
 {
 }
 
+// This is defined here instead of the header so that the definition of FileInfo is visible when
+// m_file_info is destroyed, preventing a compile error caused by calling unique_ptr's destructor
+// with an incomplete type.
+VolumeFileBlobReader::~VolumeFileBlobReader() = default;
+
 std::unique_ptr<BlobReader> VolumeFileBlobReader::CopyReader() const
 {
   ASSERT_MSG(DISCIO, false, "Unimplemented");
