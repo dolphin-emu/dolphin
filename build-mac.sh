@@ -2,7 +2,7 @@
 # build-mac.sh
 
 QT_BREW_PATH=$(brew --prefix qt@6)
-CMAKE_FLAGS="-DQT_DIR=${QT_BREW_PATH}/lib/cmake/Qt6 -DENABLE_NOGUI=false"
+CMAKE_FLAGS="-DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DQT_DIR=${QT_BREW_PATH}/lib/cmake/Qt6 -DENABLE_NOGUI=false"
 
 # For some reason the system xxhash library doesn't get properly linked,
 # at least on my M1. The clang command gets -lxxhash, but probably needs
