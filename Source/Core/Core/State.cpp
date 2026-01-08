@@ -22,7 +22,6 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Contains.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -259,7 +258,7 @@ static int GetEmptySlot(const std::vector<SlotWithTimestamp>& used_slots)
 {
   for (int i = 1; i <= (int)NUM_STATES; i++)
   {
-    if (!Common::Contains(used_slots, i, &SlotWithTimestamp::slot))
+    if (!std::ranges::contains(used_slots, i, &SlotWithTimestamp::slot))
       return i;
   }
   return -1;

@@ -38,13 +38,13 @@ if (COMPILER STREQUAL "GNU")
   set(COMPILER "GCC") # prefer printing GCC instead of GNU
 endif()
 
-# Enforce minimum compiler versions that support the c++20 features we use
-set (GCC_min_version 11)
-set (Clang_min_version 14)
-set (AppleClang_min_version 14.0.3)
-set (min_xcode_version "14.0") # corresponding xcode version for AppleClang_min_version
-set (MSVC_min_version 14.32)
-set (min_vs_version "2022 17.2.3") # corresponding Visual Studio version for MSVC_min_version
+# Enforce minimum compiler versions that support the c++23 features we use
+set (GCC_min_version 13)
+set (Clang_min_version 19)
+set (AppleClang_min_version 16.0.3)
+set (min_xcode_version "16.2") # corresponding xcode version for AppleClang_min_version
+set (MSVC_min_version 19.34)
+set (min_vs_version "2022 17.4") # corresponding Visual Studio version for MSVC_min_version
 
 message(STATUS "Using ${COMPILER} ${CMAKE_CXX_COMPILER_VERSION}")
 

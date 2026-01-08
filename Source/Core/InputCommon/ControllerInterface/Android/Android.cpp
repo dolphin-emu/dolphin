@@ -18,7 +18,6 @@
 #include <jni.h>
 
 #include "Common/Assert.h"
-#include "Common/Contains.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
@@ -1154,7 +1153,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_notifySe
 
   for (ciface::Core::Device::Input* input : device->Inputs())
   {
-    if (Common::Contains(axis_names, input->GetName()))
+    if (std::ranges::contains(axis_names, input->GetName()))
     {
       auto casted_input = static_cast<ciface::Android::AndroidSensorAxis*>(input);
       casted_input->NotifyIsSuspended(static_cast<bool>(suspended));

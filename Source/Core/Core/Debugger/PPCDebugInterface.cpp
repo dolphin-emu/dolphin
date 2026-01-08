@@ -13,7 +13,6 @@
 #include <fmt/format.h>
 
 #include "Common/Align.h"
-#include "Common/Contains.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/StringUtil.h"
 
@@ -254,7 +253,7 @@ Common::Debug::Threads PPCDebugInterface::GetThreads(const Core::CPUThreadGuard&
   const auto insert_threads = [&guard, &threads, &visited_addrs](u32 addr, auto get_next_addr) {
     while (addr != 0 && PowerPC::MMU::HostIsRAMAddress(guard, addr))
     {
-      if (Common::Contains(visited_addrs, addr))
+      if (std::ranges::contains(visited_addrs, addr))
         break;
       visited_addrs.push_back(addr);
       auto thread = std::make_unique<Core::Debug::OSThreadView>(guard, addr);

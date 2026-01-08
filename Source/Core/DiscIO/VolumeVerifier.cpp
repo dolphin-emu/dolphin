@@ -24,7 +24,6 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/Contains.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
@@ -148,7 +147,7 @@ RedumpVerifier::DownloadStatus RedumpVerifier::DownloadDatfile(const std::string
       return DownloadStatus::FailButOldCacheAvailable;
 
     const bool system_not_available_match =
-        Common::ContainsSubrange(*result, "System \"" + system + "\" doesn't exist.");
+        std::ranges::contains_subrange(*result, "System \"" + system + "\" doesn't exist.");
     return system_not_available_match ? DownloadStatus::SystemNotAvailable : DownloadStatus::Fail;
   }
 
@@ -458,18 +457,18 @@ std::vector<Partition> VolumeVerifier::CheckPartitions()
       types.emplace_back(*type);
   }
 
-  if (!Common::Contains(types, PARTITION_UPDATE))
+  if (!std::ranges::contains(types, PARTITION_UPDATE))
     AddProblem(Severity::Low, Common::GetStringT("The update partition is missing."));
 
-  const bool has_data_partition = Common::Contains(types, PARTITION_DATA);
+  const bool has_data_partition = std::ranges::contains(types, PARTITION_DATA);
   if (!m_is_datel && !has_data_partition)
     AddProblem(Severity::High, Common::GetStringT("The data partition is missing."));
 
-  const bool has_channel_partition = Common::Contains(types, PARTITION_CHANNEL);
+  const bool has_channel_partition = std::ranges::contains(types, PARTITION_CHANNEL);
   if (ShouldHaveChannelPartition() && !has_channel_partition)
     AddProblem(Severity::Medium, Common::GetStringT("The channel partition is missing."));
 
-  const bool has_install_partition = Common::Contains(types, PARTITION_INSTALL);
+  const bool has_install_partition = std::ranges::contains(types, PARTITION_INSTALL);
   if (ShouldHaveInstallPartition() && !has_install_partition)
     AddProblem(Severity::High, Common::GetStringT("The install partition is missing."));
 

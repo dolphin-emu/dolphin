@@ -10,7 +10,6 @@
 #include <array>
 #include <fmt/format.h>
 
-#include "Common/Contains.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
@@ -87,7 +86,7 @@ static void LoadPatchSection(const Common::IniFile& ini)
 static bool IsWC24Channel()
 {
   const auto& sconfig = SConfig::GetInstance();
-  return Common::Contains(s_wc24_channels, sconfig.GetTitleID());
+  return std::ranges::contains(s_wc24_channels, sconfig.GetTitleID());
 }
 
 static void LoadPatches()
