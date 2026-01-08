@@ -4,6 +4,7 @@
 #include "Core/CheatSearch.h"
 
 #include <bit>
+#include <expected>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -113,19 +114,19 @@ auto Cheats::NewSearch(const Core::CPUThreadGuard& guard,
                        const std::vector<Cheats::MemoryRange>& memory_ranges,
                        PowerPC::RequestedAddressSpace address_space, bool aligned,
                        const std::function<bool(const T& value)>& validator)
-    -> Common::Result<std::vector<SearchResult<T>>, SearchErrorCode>
+    -> std::expected<std::vector<SearchResult<T>>, SearchErrorCode>
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
-    return Cheats::SearchErrorCode::DisabledInHardcoreMode;
+    return std::unexpected{Cheats::SearchErrorCode::DisabledInHardcoreMode};
   auto& system = guard.GetSystem();
   std::vector<Cheats::SearchResult<T>> results;
   const Core::State core_state = Core::GetState(system);
   if (core_state != Core::State::Running && core_state != Core::State::Paused)
-    return Cheats::SearchErrorCode::NoEmulationActive;
+    return std::unexpected{Cheats::SearchErrorCode::NoEmulationActive};
 
   const auto& ppc_state = system.GetPPCState();
   if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
-    return Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
+    return std::unexpected{Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible};
 
   for (const Cheats::MemoryRange& range : memory_ranges)
   {
@@ -166,19 +167,19 @@ auto Cheats::NextSearch(
     const Core::CPUThreadGuard& guard, const std::vector<Cheats::SearchResult<T>>& previous_results,
     PowerPC::RequestedAddressSpace address_space,
     const std::function<bool(const T& new_value, const T& old_value)>& validator)
-    -> Common::Result<std::vector<SearchResult<T>>, SearchErrorCode>
+    -> std::expected<std::vector<SearchResult<T>>, SearchErrorCode>
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
-    return Cheats::SearchErrorCode::DisabledInHardcoreMode;
+    return std::unexpected{Cheats::SearchErrorCode::DisabledInHardcoreMode};
   auto& system = guard.GetSystem();
   std::vector<Cheats::SearchResult<T>> results;
   const Core::State core_state = Core::GetState(system);
   if (core_state != Core::State::Running && core_state != Core::State::Paused)
-    return Cheats::SearchErrorCode::NoEmulationActive;
+    return std::unexpected{Cheats::SearchErrorCode::NoEmulationActive};
 
   const auto& ppc_state = system.GetPPCState();
   if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
-    return Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
+    return std::unexpected{Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible};
 
   for (const auto& previous_result : previous_results)
   {
@@ -335,8 +336,8 @@ Cheats::SearchErrorCode Cheats::CheatSearchSession<T>::RunSearch(const Core::CPU
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return Cheats::SearchErrorCode::DisabledInHardcoreMode;
-  Common::Result<std::vector<SearchResult<T>>, SearchErrorCode> result =
-      Cheats::SearchErrorCode::InvalidParameters;
+  std::expected<std::vector<SearchResult<T>>, SearchErrorCode> result =
+      std::unexpected{Cheats::SearchErrorCode::InvalidParameters};
   if (m_filter_type == FilterType::CompareAgainstSpecificValue)
   {
     if (!m_value)
@@ -376,14 +377,14 @@ Cheats::SearchErrorCode Cheats::CheatSearchSession<T>::RunSearch(const Core::CPU
     }
   }
 
-  if (result.Succeeded())
+  if (result.has_value())
   {
     m_search_results = std::move(*result);
     m_first_search_done = true;
     return Cheats::SearchErrorCode::Success;
   }
 
-  return result.Error();
+  return result.error();
 }
 
 template <typename T>

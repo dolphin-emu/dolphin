@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <cstring>
+#include <expected>
 #include <limits>
 #include <map>
 #include <memory>
@@ -1578,7 +1579,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
     if (state->compressor)
     {
       if (!state->compressor->Start(entry.exception_lists.size() + entry.main_data.size()))
-        return ConversionResultCode::InternalError;
+        return std::unexpected{ConversionResultCode::InternalError};
     }
 
     if (!entry.exception_lists.empty())
@@ -1588,7 +1589,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
         if (!state->compressor->Compress(entry.exception_lists.data(),
                                          entry.exception_lists.size()))
         {
-          return ConversionResultCode::InternalError;
+          return std::unexpected{ConversionResultCode::InternalError};
         }
       }
       else
@@ -1601,7 +1602,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
           if (!state->compressor->AddPrecedingDataOnlyForPurgeHashing(entry.exception_lists.data(),
                                                                       entry.exception_lists.size()))
           {
-            return ConversionResultCode::InternalError;
+            return std::unexpected{ConversionResultCode::InternalError};
           }
         }
       }
@@ -1610,9 +1611,9 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
     if (state->compressor)
     {
       if (!state->compressor->Compress(entry.main_data.data(), entry.main_data.size()))
-        return ConversionResultCode::InternalError;
+        return std::unexpected{ConversionResultCode::InternalError};
       if (!state->compressor->End())
-        return ConversionResultCode::InternalError;
+        return std::unexpected{ConversionResultCode::InternalError};
     }
 
     bool compressed = !!state->compressor;

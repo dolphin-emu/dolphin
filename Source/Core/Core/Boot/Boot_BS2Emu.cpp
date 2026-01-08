@@ -526,7 +526,7 @@ static void WriteEmptyPlayRecord()
   if (!playrec_file)
     return;
   std::vector<u8> empty_record(0x80);
-  playrec_file->Write(empty_record.data(), empty_record.size());
+  (void)playrec_file->Write(empty_record.data(), empty_record.size());
 }
 
 // __________________________________________________________________________________________________

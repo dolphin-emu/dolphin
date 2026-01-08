@@ -33,7 +33,7 @@ static ReturnCode WriteTicket(FS::FileSystem* fs, const ES::TicketReader& ticket
   fs->CreateFullPath(PID_KERNEL, PID_KERNEL, path, 0, ticket_modes);
   const auto file = fs->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, path, ticket_modes);
   if (!file)
-    return FS::ConvertResult(file.Error());
+    return FS::ConvertResult(file.error());
 
   const std::vector<u8>& raw_ticket = ticket.GetBytes();
   return file->Write(raw_ticket.data(), raw_ticket.size()) ? IPC_SUCCESS : ES_EIO;
@@ -472,7 +472,7 @@ static bool HasAllRequiredContents(Kernel& ios, const ES::TMDReader& tmd)
     // Note: the import hasn't been finalised yet, so the whole title directory
     // is still in /import, not /title.
     const std::string path = GetImportContentPath(title_id, content.id);
-    return ios.GetFS()->GetMetadata(PID_KERNEL, PID_KERNEL, path).Succeeded();
+    return ios.GetFS()->GetMetadata(PID_KERNEL, PID_KERNEL, path).has_value();
   });
 }
 
@@ -640,7 +640,7 @@ ReturnCode ESCore::DeleteTitleContent(u64 title_id) const
   const std::string content_dir = Common::GetTitleContentPath(title_id);
   const auto files = m_ios.GetFS()->ReadDirectory(PID_KERNEL, PID_KERNEL, content_dir);
   if (!files)
-    return FS::ConvertResult(files.Error());
+    return FS::ConvertResult(files.error());
 
   for (const std::string& file_name : *files)
   {

@@ -4,7 +4,7 @@
 #include "Core/IOS/FS/HostBackend/FS.h"
 
 #include <algorithm>
-#include <cmath>
+#include <expected>
 #include <optional>
 #include <string_view>
 #include <type_traits>
@@ -652,17 +652,17 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid uid, Gid gid,
                                                                const std::string& path)
 {
   if (!IsValidPath(path))
-    return ResultCode::Invalid;
+    return std::unexpected{ResultCode::Invalid};
 
   const FstEntry* entry = GetFstEntryForPath(path);
   if (!entry)
-    return ResultCode::NotFound;
+    return std::unexpected{ResultCode::NotFound};
 
   if (!entry->CheckPermission(uid, gid, Mode::Read))
-    return ResultCode::AccessDenied;
+    return std::unexpected{ResultCode::AccessDenied};
 
   if (entry->data.is_file)
-    return ResultCode::Invalid;
+    return std::unexpected{ResultCode::Invalid};
 
   const std::string host_path = BuildFilename(path).host_path;
   File::FSTEntry host_entry = File::ScanDirectoryTree(host_path, false);
@@ -712,19 +712,19 @@ Result<Metadata> HostFileSystem::GetMetadata(Uid uid, Gid gid, const std::string
   else
   {
     if (!IsValidNonRootPath(path))
-      return ResultCode::Invalid;
+      return std::unexpected{ResultCode::Invalid};
 
     const auto split_path = SplitPathAndBasename(path);
     const FstEntry* parent = GetFstEntryForPath(split_path.parent);
     if (!parent)
-      return ResultCode::NotFound;
+      return std::unexpected{ResultCode::NotFound};
     if (!parent->CheckPermission(uid, gid, Mode::Read))
-      return ResultCode::AccessDenied;
+      return std::unexpected{ResultCode::AccessDenied};
     entry = GetFstEntryForPath(path);
   }
 
   if (!entry)
-    return ResultCode::NotFound;
+    return std::unexpected{ResultCode::NotFound};
 
   Metadata metadata = entry->data;
   metadata.size = File::GetSize(BuildFilename(path).host_path);
@@ -780,7 +780,7 @@ Result<NandStats> HostFileSystem::GetNandStats()
 {
   const auto root_stats = GetDirectoryStats("/");
   if (!root_stats)
-    return root_stats.Error();  // TODO: is this right? can this fail on hardware?
+    return std::unexpected{root_stats.error()};  // TODO: is this right? can this fail on hardware?
 
   NandStats stats{};
   stats.cluster_size = CLUSTER_SIZE;
@@ -798,7 +798,7 @@ Result<DirectoryStats> HostFileSystem::GetDirectoryStats(const std::string& wii_
 {
   const auto result = GetExtendedDirectoryStats(wii_path);
   if (!result)
-    return result.Error();
+    return std::unexpected{result.error()};
 
   DirectoryStats stats{};
   stats.used_inodes = static_cast<u32>(std::min<u64>(result->used_inodes, TOTAL_INODES));
@@ -810,14 +810,14 @@ Result<ExtendedDirectoryStats>
 HostFileSystem::GetExtendedDirectoryStats(const std::string& wii_path)
 {
   if (!IsValidPath(wii_path))
-    return ResultCode::Invalid;
+    return std::unexpected{ResultCode::Invalid};
 
   ExtendedDirectoryStats stats{};
   std::string path(BuildFilename(wii_path).host_path);
   File::FileInfo info(path);
   if (!info.Exists())
   {
-    return ResultCode::NotFound;
+    return std::unexpected{ResultCode::NotFound};
   }
   if (info.IsDirectory())
   {
@@ -830,7 +830,7 @@ HostFileSystem::GetExtendedDirectoryStats(const std::string& wii_path)
   }
   else
   {
-    return ResultCode::Invalid;
+    return std::unexpected{ResultCode::Invalid};
   }
   return stats;
 }

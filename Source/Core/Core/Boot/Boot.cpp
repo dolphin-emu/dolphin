@@ -703,13 +703,13 @@ void UpdateStateFlags(std::function<void(StateFlags*)> update_function)
 
   StateFlags state{};
   if (file->GetStatus()->size == sizeof(StateFlags))
-    file->Read(&state, 1);
+    (void)file->Read(&state, 1);
 
   update_function(&state);
   state.UpdateChecksum();
 
-  file->Seek(0, IOS::HLE::FS::SeekMode::Set);
-  file->Write(&state, 1);
+  (void)file->Seek(0, IOS::HLE::FS::SeekMode::Set);
+  (void)file->Write(&state, 1);
 }
 
 void CreateSystemMenuTitleDirs()
