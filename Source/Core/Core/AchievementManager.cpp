@@ -1503,6 +1503,7 @@ void AchievementManager::LoadIntegrationCallback(int result, const char* error_m
   case RC_OK:
     INFO_LOG_FMT(ACHIEVEMENTS, "RAIntegration.dll found.");
     instance.m_dll_found = true;
+    rc_client_set_allow_background_memory_reads(instance.m_client, 0);
     rc_client_raintegration_set_event_handler(instance.m_client, RAIntegrationEventHandler);
     rc_client_raintegration_set_write_memory_function(instance.m_client, MemoryPoker);
     rc_client_raintegration_set_get_game_name_function(instance.m_client, GameTitleEstimateHandler);
