@@ -16,10 +16,10 @@
 #include <sstream>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/EnumUtils.h"
 #include "Common/TypeUtils.h"
 
 std::string StringFromFormatV(const char* format, va_list args);
@@ -157,7 +157,7 @@ std::string ValueToString(s64 value);
 std::string ValueToString(bool value);
 std::string ValueToString(Common::Enum auto value)
 {
-  return ValueToString(Common::ToUnderlying(value));
+  return ValueToString(std::to_underlying(value));
 }
 
 // Generates an hexdump-like representation of a binary data blob.

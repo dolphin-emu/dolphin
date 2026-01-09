@@ -56,7 +56,6 @@
     <ClInclude Include="Common\ENet.h" />
     <ClInclude Include="Common\EnumFormatter.h" />
     <ClInclude Include="Common\EnumMap.h" />
-    <ClInclude Include="Common\EnumUtils.h" />
     <ClInclude Include="Common\Event.h" />
     <ClInclude Include="Common\FatFsUtil.h" />
     <ClInclude Include="Common\FileSearch.h" />

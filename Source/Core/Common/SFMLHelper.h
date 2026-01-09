@@ -5,8 +5,9 @@
 
 #include <SFML/Network/Packet.hpp>
 
+#include <utility>
+
 #include "Common/CommonTypes.h"
-#include "Common/EnumUtils.h"
 #include "Common/Swap.h"
 #include "Common/TypeUtils.h"
 
@@ -17,7 +18,7 @@ sf::Packet& operator>>(sf::Packet& packet, Common::BigEndianValue<u64>& data);
 template <Common::Enum Enum>
 sf::Packet& operator<<(sf::Packet& packet, Enum e)
 {
-  packet << Common::ToUnderlying(e);
+  packet << std::to_underlying(e);
   return packet;
 }
 

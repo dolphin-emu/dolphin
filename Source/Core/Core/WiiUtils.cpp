@@ -22,7 +22,6 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Contains.h"
-#include "Common/EnumUtils.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
@@ -80,7 +79,7 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
     if (ret != IOS::HLE::IOSC_FAIL_CHECKVALUE)
     {
       PanicAlertFmtT("WAD installation failed: Could not initialise title import (error {0}).",
-                     Common::ToUnderlying(ret));
+                     std::to_underlying(ret));
     }
     return false;
   }
@@ -546,7 +545,7 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   auto& es = m_ios.GetESCore();
   if ((ret = es.ImportTicket(ticket.first, ticket.second)) < 0)
   {
-    ERROR_LOG_FMT(CORE, "Failed to import ticket: error {}", Common::ToUnderlying(ret));
+    ERROR_LOG_FMT(CORE, "Failed to import ticket: error {}", std::to_underlying(ret));
     return UpdateResult::ImportFailed;
   }
 
@@ -578,7 +577,7 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   IOS::HLE::ESCore::Context context;
   if ((ret = es.ImportTitleInit(context, tmd.first.GetBytes(), tmd.second)) < 0)
   {
-    ERROR_LOG_FMT(CORE, "Failed to initialise title import: error {}", Common::ToUnderlying(ret));
+    ERROR_LOG_FMT(CORE, "Failed to initialise title import: error {}", std::to_underlying(ret));
     return UpdateResult::ImportFailed;
   }
 
@@ -597,7 +596,7 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
       if ((ret = es.ImportContentBegin(context, title.id, content.id)) < 0)
       {
         ERROR_LOG_FMT(CORE, "Failed to initialise import for content {:08x}: error {}", content.id,
-                      Common::ToUnderlying(ret));
+                      std::to_underlying(ret));
         return UpdateResult::ImportFailed;
       }
 
@@ -622,7 +621,7 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   if ((all_contents_imported && (ret = es.ImportTitleDone(context)) < 0) ||
       (!all_contents_imported && (ret = es.ImportTitleCancel(context)) < 0))
   {
-    ERROR_LOG_FMT(CORE, "Failed to finalise title import: error {}", Common::ToUnderlying(ret));
+    ERROR_LOG_FMT(CORE, "Failed to finalise title import: error {}", std::to_underlying(ret));
     return UpdateResult::ImportFailed;
   }
 

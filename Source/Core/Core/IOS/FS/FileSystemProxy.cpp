@@ -6,11 +6,11 @@
 #include <algorithm>
 #include <cstring>
 #include <string_view>
+#include <utility>
 
 #include <fmt/format.h>
 
 #include "Common/ChunkFile.h"
-#include "Common/EnumUtils.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
@@ -120,7 +120,7 @@ static void LogResult(ResultCode code, fmt::format_string<Args...> format, Args&
       code == ResultCode::Success ? Common::Log::LogLevel::LINFO : Common::Log::LogLevel::LERROR;
 
   GENERIC_LOG_FMT(Common::Log::LogType::IOS_FS, type, "Command: {}: Result {}", command,
-                  Common::ToUnderlying(ConvertResult(code)));
+                  std::to_underlying(ConvertResult(code)));
 }
 
 template <typename T, typename... Args>

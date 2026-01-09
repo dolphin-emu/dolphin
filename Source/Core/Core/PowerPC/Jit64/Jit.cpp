@@ -7,6 +7,7 @@
 #include <span>
 #include <sstream>
 #include <string>
+#include <utility>
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
@@ -17,7 +18,6 @@
 #endif
 
 #include "Common/CommonTypes.h"
-#include "Common/EnumUtils.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/HostDisassembler.h"
 #include "Common/IOFile.h"
@@ -1071,7 +1071,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         ABI_CallFunctionP(PowerPC::CheckAndHandleBreakPointsFromJIT, &power_pc);
         ABI_PopRegistersAndAdjustStack({}, 0);
         MOV(64, R(RSCRATCH), ImmPtr(cpu.GetStatePtr()));
-        CMP(32, MatR(RSCRATCH), Imm32(Common::ToUnderlying(CPU::State::Running)));
+        CMP(32, MatR(RSCRATCH), Imm32(std::to_underlying(CPU::State::Running)));
         FixupBranch noBreakpoint = J_CC(CC_E);
 
         Cleanup();

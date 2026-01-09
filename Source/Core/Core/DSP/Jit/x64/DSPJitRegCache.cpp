@@ -4,9 +4,9 @@
 #include "Core/DSP/Jit/x64/DSPJitRegCache.h"
 
 #include <cstddef>
+#include <utility>
 
 #include "Common/Assert.h"
-#include "Common/EnumUtils.h"
 #include "Common/Logging/Log.h"
 
 #include "Core/DSP/DSPCore.h"
@@ -367,38 +367,38 @@ void DSPJitRegCache::FlushRegs()
   }
 
   ASSERT_MSG(DSPLLE, m_xregs[RSP].guest_reg == DSP_REG_STATIC, "wrong xreg state for {}",
-             Common::ToUnderlying(RSP));
+             std::to_underlying(RSP));
   ASSERT_MSG(DSPLLE, m_xregs[RBX].guest_reg == DSP_REG_STATIC, "wrong xreg state for {}",
-             Common::ToUnderlying(RBX));
+             std::to_underlying(RBX));
   ASSERT_MSG(DSPLLE, m_xregs[RBP].guest_reg == DSP_REG_NONE, "wrong xreg state for {}",
-             Common::ToUnderlying(RBP));
+             std::to_underlying(RBP));
   ASSERT_MSG(DSPLLE, m_xregs[RSI].guest_reg == DSP_REG_NONE, "wrong xreg state for {}",
-             Common::ToUnderlying(RSI));
+             std::to_underlying(RSI));
   ASSERT_MSG(DSPLLE, m_xregs[RDI].guest_reg == DSP_REG_NONE, "wrong xreg state for {}",
-             Common::ToUnderlying(RDI));
+             std::to_underlying(RDI));
 #ifdef STATIC_REG_ACCS
   ASSERT_MSG(DSPLLE, m_xregs[R8].guest_reg == DSP_REG_STATIC, "wrong xreg state for {}",
-             Common::ToUnderlying(R8));
+             std::to_underlying(R8));
   ASSERT_MSG(DSPLLE, m_xregs[R9].guest_reg == DSP_REG_STATIC, "wrong xreg state for {}",
-             Common::ToUnderlying(R9));
+             std::to_underlying(R9));
 #else
   ASSERT_MSG(DSPLLE, m_xregs[R8].guest_reg == DSP_REG_NONE, "wrong xreg state for {}",
-             Common::ToUnderlying(R8));
+             std::to_underlying(R8));
   ASSERT_MSG(DSPLLE, m_xregs[R9].guest_reg == DSP_REG_NONE, "wrong xreg state for {}",
-             Common::ToUnderlying(R9));
+             std::to_underlying(R9));
 #endif
   ASSERT_MSG(DSPLLE, m_xregs[R10].guest_reg == DSP_REG_NONE, "wrong xreg state for {}",
-             Common::ToUnderlying(R10));
+             std::to_underlying(R10));
   ASSERT_MSG(DSPLLE, m_xregs[R11].guest_reg == DSP_REG_NONE, "wrong xreg state for {}",
-             Common::ToUnderlying(R11));
+             std::to_underlying(R11));
   ASSERT_MSG(DSPLLE, m_xregs[R12].guest_reg == DSP_REG_NONE, "wrong xreg state for {}",
-             Common::ToUnderlying(R12));
+             std::to_underlying(R12));
   ASSERT_MSG(DSPLLE, m_xregs[R13].guest_reg == DSP_REG_NONE, "wrong xreg state for {}",
-             Common::ToUnderlying(R13));
+             std::to_underlying(R13));
   ASSERT_MSG(DSPLLE, m_xregs[R14].guest_reg == DSP_REG_NONE, "wrong xreg state for {}",
-             Common::ToUnderlying(R14));
+             std::to_underlying(R14));
   ASSERT_MSG(DSPLLE, m_xregs[R15].guest_reg == DSP_REG_STATIC, "wrong xreg state for {}",
-             Common::ToUnderlying(R15));
+             std::to_underlying(R15));
 
   m_use_ctr = 0;
 }
@@ -985,14 +985,14 @@ void DSPJitRegCache::SpillXReg(X64Reg reg)
   {
     ASSERT_MSG(DSPLLE, !m_regs[m_xregs[reg].guest_reg].used,
                "to be spilled host reg {:#x} (guest reg {:#x}) still in use!",
-               Common::ToUnderlying(reg), m_xregs[reg].guest_reg);
+               std::to_underlying(reg), m_xregs[reg].guest_reg);
 
     MovToMemory(m_xregs[reg].guest_reg);
   }
   else
   {
     ASSERT_MSG(DSPLLE, m_xregs[reg].guest_reg == DSP_REG_NONE,
-               "to be spilled host reg {:#x} still in use!", Common::ToUnderlying(reg));
+               "to be spilled host reg {:#x} still in use!", std::to_underlying(reg));
   }
 }
 
@@ -1037,7 +1037,7 @@ void DSPJitRegCache::GetXReg(X64Reg reg)
 {
   if (m_xregs[reg].guest_reg == DSP_REG_STATIC)
   {
-    ERROR_LOG_FMT(DSPLLE, "Trying to get statically used XReg {}", Common::ToUnderlying(reg));
+    ERROR_LOG_FMT(DSPLLE, "Trying to get statically used XReg {}", std::to_underlying(reg));
     return;
   }
 
@@ -1053,7 +1053,7 @@ void DSPJitRegCache::PutXReg(X64Reg reg)
 {
   if (m_xregs[reg].guest_reg == DSP_REG_STATIC)
   {
-    ERROR_LOG_FMT(DSPLLE, "Trying to put statically used XReg {}", Common::ToUnderlying(reg));
+    ERROR_LOG_FMT(DSPLLE, "Trying to put statically used XReg {}", std::to_underlying(reg));
     return;
   }
 

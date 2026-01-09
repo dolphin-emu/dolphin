@@ -5,9 +5,9 @@
 
 #include <cstring>
 #include <type_traits>
+#include <utility>
 
 #include "Common/ChunkFile.h"
-#include "Common/EnumUtils.h"
 #include "Common/Logging/Log.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/System.h"
@@ -112,7 +112,7 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
       WARN_LOG_FMT(VIDEO,
                    "CP MATINDEX_A: an exact value of {:02x} was expected "
                    "but instead a value of {:02x} was seen",
-                   Common::ToUnderlying(MATINDEX_A), sub_cmd);
+                   std::to_underlying(MATINDEX_A), sub_cmd);
     }
 
     matrix_index_a.Hex = value;
@@ -125,7 +125,7 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
       WARN_LOG_FMT(VIDEO,
                    "CP MATINDEX_B: an exact value of {:02x} was expected "
                    "but instead a value of {:02x} was seen",
-                   Common::ToUnderlying(MATINDEX_B), sub_cmd);
+                   std::to_underlying(MATINDEX_B), sub_cmd);
     }
 
     matrix_index_b.Hex = value;
@@ -138,7 +138,7 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
       WARN_LOG_FMT(VIDEO,
                    "CP VCD_LO: an exact value of {:02x} was expected "
                    "but instead a value of {:02x} was seen",
-                   Common::ToUnderlying(VCD_LO), sub_cmd);
+                   std::to_underlying(VCD_LO), sub_cmd);
     }
 
     vtx_desc.low.Hex = value;
@@ -151,7 +151,7 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
       WARN_LOG_FMT(VIDEO,
                    "CP VCD_HI: an exact value of {:02x} was expected "
                    "but instead a value of {:02x} was seen",
-                   Common::ToUnderlying(VCD_HI), sub_cmd);
+                   std::to_underlying(VCD_HI), sub_cmd);
     }
 
     vtx_desc.high.Hex = value;

@@ -7,6 +7,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <fmt/format.h>
@@ -27,7 +28,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Crypto/SHA1.h"
-#include "Common/EnumUtils.h"
 #include "Common/Random.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
@@ -396,7 +396,7 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-gfx-multisamples", Config::Get(Config::GFX_MSAA));
   builder.AddData("cfg-gfx-ssaa", Config::Get(Config::GFX_SSAA));
   builder.AddData("cfg-gfx-anisotropy",
-                  Common::ToUnderlying(Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY)));
+                  std::to_underlying(Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY)));
   builder.AddData("cfg-gfx-vsync", Config::Get(Config::GFX_VSYNC));
   builder.AddData("cfg-gfx-aspect-ratio", static_cast<int>(Config::Get(Config::GFX_ASPECT_RATIO)));
   builder.AddData("cfg-gfx-efb-access", Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE));
