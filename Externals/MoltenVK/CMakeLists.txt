@@ -1,22 +1,19 @@
 include(ExternalProject)
 
-set(MOLTENVK_VERSION "v1.2.8")
+set(MOLTENVK_VERSION "v1.4.1")
+set(MOLTENVK_ARCHIVE_HASH "5ea0c259df7ded9a275444820f09cced54d6e5a7c7a31d262de62a5cdb7e15cf")
+set(MOLTENVK_ARCHIVE_URL "https://github.com/KhronosGroup/MoltenVK/releases/download/${MOLTENVK_VERSION}/MoltenVK-macos.tar")
 
 ExternalProject_Add(MoltenVK
-  GIT_REPOSITORY https://github.com/KhronosGroup/MoltenVK.git
-  GIT_TAG ${MOLTENVK_VERSION}
+    URL "${MOLTENVK_ARCHIVE_URL}"
+    URL_HASH "SHA256=${MOLTENVK_ARCHIVE_HASH}"
 
-  CONFIGURE_COMMAND ${CMAKE_CURRENT_LIST_DIR}/configure.sh <LOG_DIR> <SOURCE_DIR> ${MOLTENVK_VERSION}
+    PATCH_COMMAND ""
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ""
 
-  PATCH_COMMAND ${CMAKE_CURRENT_LIST_DIR}/patch.sh ${CMAKE_SOURCE_DIR}/Externals/MoltenVK/patches/ ${MOLTENVK_VERSION}
+    BUILD_BYPRODUCTS <SOURCE_DIR>/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib
 
-  BUILD_COMMAND make -C <SOURCE_DIR> macos
-  BUILD_IN_SOURCE ON
-  BUILD_BYPRODUCTS <SOURCE_DIR>/Package/Release/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib
-
-  INSTALL_COMMAND ""
-
-  LOG_CONFIGURE ON
-  LOG_BUILD ON
-  LOG_OUTPUT_ON_FAILURE ON
+    LOG_DOWNLOAD ON
 )
