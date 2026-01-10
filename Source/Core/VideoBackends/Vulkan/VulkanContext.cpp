@@ -8,6 +8,7 @@
 #include <cstring>
 
 #include "Common/Assert.h"
+#include "Common/CommonFuncs.h"
 #include "Common/Contains.h"
 #include "Common/Logging/Log.h"
 
@@ -1058,8 +1059,23 @@ void VulkanContext::InitDriverDetails()
   if (driver_id == VK_DRIVER_ID_MOLTENVK)
     driver = DriverDetails::DRIVER_PORTABILITY;
 
-  DriverDetails::Init(DriverDetails::API_VULKAN, vendor, driver,
-                      static_cast<double>(m_device_info.driverVersion),
+  double version = 0.0;
+
+#ifdef __APPLE__
+  // m_device_info.driverVersion returns the current MoltenVK version, which isn't
+  // very helpful for our use case. Since graphics drivers are bundled with macOS,
+  // let's use the current macOS version as the "driver version". The format below
+  // matches what is used in the Metal backend.
+  const std::optional<Common::MacOSVersion> mac_version = Common::GetMacOSVersion();
+  if (mac_version)
+  {
+    version = mac_version->major_version * 100 + mac_version->minor_version;
+  }
+#else
+  version = static_cast<double>(m_device_info.driverVersion);
+#endif
+
+  DriverDetails::Init(DriverDetails::API_VULKAN, vendor, driver, version,
                       DriverDetails::Family::UNKNOWN, std::move(device_name));
 }
 
