@@ -61,4 +61,17 @@ std::string GetWin32ErrorString(unsigned long error_code);
 // Obtains a full path to the specified module.
 std::optional<std::wstring> GetModuleName(void* hInstance);
 #endif
+
+#ifdef __APPLE__
+struct MacOSVersion  // NSOperatingSystemVersion
+{
+  s64 major_version;  // NSInteger majorVersion
+  s64 minor_version;  // NSInteger minorVersion
+  s64 patch_version;  // NSInteger patchVersion
+};
+
+// Helper function to get the current macOS version, which is easy to do with
+// from Objective-C code, but a little harder from C++.
+std::optional<MacOSVersion> GetMacOSVersion();
+#endif
 }  // namespace Common
