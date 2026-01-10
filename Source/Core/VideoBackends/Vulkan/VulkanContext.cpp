@@ -11,6 +11,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/Contains.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/VideoCommon.h"
@@ -451,7 +452,6 @@ void VulkanContext::PopulateBackendInfo(BackendInfo* backend_info)
   backend_info->bSupportsBPTCTextures = false;              // Dependent on features.
   backend_info->bSupportsLogicOp = false;                   // Dependent on features.
   backend_info->bSupportsLargePoints = false;               // Dependent on features.
-  backend_info->bSupportsFramebufferFetch = false;          // Dependent on OS and features.
   backend_info->bSupportsCoarseDerivatives = true;          // Assumed support.
   backend_info->bSupportsTextureQueryLevels = true;         // Assumed support.
   backend_info->bSupportsLodBiasInSampler = false;          // Dependent on OS.
@@ -511,17 +511,6 @@ void VulkanContext::PopulateBackendInfoFeatures(BackendInfo* backend_info, VkPhy
   backend_info->bSupportsLargePoints =
       info.largePoints && info.pointSizeRange[0] <= 1.0f && info.pointSizeRange[1] >= 16;
 
-  std::string device_name = info.deviceName;
-  u32 vendor_id = info.vendorID;
-  bool is_moltenvk = info.driverID == VK_DRIVER_ID_MOLTENVK;
-
-  // Only Apple family GPUs support framebuffer fetch.
-  // We currently use a hacked MoltenVK to implement this, so don't attempt outside of MVK
-  if (is_moltenvk && (vendor_id == 0x106B || device_name.find("Apple") != std::string::npos))
-  {
-    backend_info->bSupportsFramebufferFetch = true;
-  }
-
   // Our usage of primitive restart appears to be broken on AMD's binary drivers.
   // Seems to be fine on GCN Gen 1-2, unconfirmed on GCN Gen 3, causes driver resets on GCN Gen 4.
   if (DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVE_RESTART))
@@ -535,6 +524,14 @@ void VulkanContext::PopulateBackendInfoFeatures(BackendInfo* backend_info, VkPhy
   // Dynamic sampler indexing locks up Intel GPUs on MoltenVK/Metal
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING))
     backend_info->bSupportsDynamicSamplerIndexing = false;
+
+  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z))
+  {
+    PanicAlertFmtT(
+        "You are attempting to use the Vulkan backend on an unsupported operating system. "
+        "To prevent visual glitches and artifacts, you must either switch to the Metal "
+        "backend or update to macOS 14 (Sonoma) or newer.");
+  }
 }
 
 void VulkanContext::PopulateBackendInfoMultisampleModes(BackendInfo* backend_info,
