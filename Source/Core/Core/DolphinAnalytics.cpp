@@ -15,12 +15,14 @@
 #if defined(_WIN32)
 #include <Windows.h>
 #include "Common/WindowsRegistry.h"
-#elif defined(__APPLE__)
-#include <objc/message.h>
 #endif
 
 #if defined(ANDROID)
 #include <functional>
+#endif
+
+#if defined(__APPLE__)
+#include "Common/CommonFuncs.h"
 #endif
 
 #include "Common/Analytics.h"
@@ -300,32 +302,10 @@ void DolphinAnalytics::MakeBaseBuilder()
 #elif defined(__APPLE__)
   builder.AddData("os-type", "osx");
 
-  // id processInfo = [NSProcessInfo processInfo]
-  id processInfo = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(
-      objc_getClass("NSProcessInfo"), sel_getUid("processInfo"));
-  if (processInfo)
-  {
-    struct OSVersion  // NSOperatingSystemVersion
-    {
-      s64 major_version;  // NSInteger majorVersion
-      s64 minor_version;  // NSInteger minorVersion
-      s64 patch_version;  // NSInteger patchVersion
-    };
-    // Under arm64, we need to call objc_msgSend to receive a struct.
-    // On x86_64, we need to explicitly call objc_msgSend_stret for a struct.
-#ifdef _M_ARM_64
-#define msgSend objc_msgSend
-#else
-#define msgSend objc_msgSend_stret
-#endif
-    // NSOperatingSystemVersion version = [processInfo operatingSystemVersion]
-    OSVersion version = reinterpret_cast<OSVersion (*)(id, SEL)>(msgSend)(
-        processInfo, sel_getUid("operatingSystemVersion"));
-#undef msgSend
-    builder.AddData("osx-ver-major", version.major_version);
-    builder.AddData("osx-ver-minor", version.minor_version);
-    builder.AddData("osx-ver-bugfix", version.patch_version);
-  }
+  Common::MacOSVersion version = Common::GetMacOSVersion();
+  builder.AddData("osx-ver-major", version.major);
+  builder.AddData("osx-ver-minor", version.minor);
+  builder.AddData("osx-ver-bugfix", version.patch);
 #elif defined(__linux__)
   builder.AddData("os-type", "linux");
 #elif defined(__FreeBSD__)
