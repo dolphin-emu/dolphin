@@ -775,6 +775,8 @@ add_subdirectory(Externals/watcher)
 
 if(NOT ANDROID AND NOT APPLE)
   add_subdirectory(Externals/cpp-ipc)
+elseif(APPLE)
+  add_subdirectory(Externals/libzmq)
 endif()
 
 ########################################
