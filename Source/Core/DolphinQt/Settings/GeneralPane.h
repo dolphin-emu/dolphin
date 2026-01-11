@@ -5,7 +5,11 @@
 
 #include <QWidget>
 
+#include "Common/CommonTypes.h"
+
 class ConfigBool;
+template <typename T>
+class ConfigChoiceMap;
 class QCheckBox;
 class QComboBox;
 class QLabel;
@@ -20,6 +24,11 @@ class ToolTipPushButton;
 namespace Core
 {
 enum class State;
+}
+
+namespace DiscIO
+{
+enum class Region;
 }
 
 class GeneralPane final : public QWidget
@@ -45,7 +54,7 @@ private:
   QVBoxLayout* m_main_layout;
   ToolTipComboBox* m_combobox_speedlimit;
   ToolTipComboBox* m_combobox_update_track;
-  ToolTipComboBox* m_combobox_fallback_region;
+  ConfigChoiceMap<DiscIO::Region>* m_combobox_fallback_region;
   ConfigBool* m_checkbox_dualcore;
   ConfigBool* m_checkbox_cheats;
   ConfigBool* m_checkbox_load_games_into_memory;

@@ -25,6 +25,7 @@
 #include "Core/System.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipPushButton.h"
@@ -44,11 +45,6 @@ constexpr int AUTO_UPDATE_DEV_INDEX = 2;
 constexpr const char* AUTO_UPDATE_DISABLE_STRING = "";
 constexpr const char* AUTO_UPDATE_BETA_STRING = "beta";
 constexpr const char* AUTO_UPDATE_DEV_STRING = "dev";
-
-constexpr int FALLBACK_REGION_NTSCJ_INDEX = 0;
-constexpr int FALLBACK_REGION_NTSCU_INDEX = 1;
-constexpr int FALLBACK_REGION_PAL_INDEX = 2;
-constexpr int FALLBACK_REGION_NTSCK_INDEX = 3;
 
 GeneralPane::GeneralPane(QWidget* parent) : QWidget(parent)
 {
@@ -125,7 +121,6 @@ void GeneralPane::ConnectLayout()
 
   connect(m_combobox_fallback_region, &QComboBox::currentIndexChanged, this,
           &GeneralPane::OnSaveConfig);
-  connect(&Settings::Instance(), &Settings::FallbackRegionChanged, this, &GeneralPane::LoadConfig);
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   connect(&Settings::Instance(), &Settings::AnalyticsToggled, this, &GeneralPane::LoadConfig);
@@ -227,11 +222,14 @@ void GeneralPane::CreateFallbackRegion()
   fallback_region_dropdown_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
   fallback_region_group_layout->addLayout(fallback_region_dropdown_layout);
 
-  m_combobox_fallback_region = new ToolTipComboBox();
+  std::vector<std::pair<QString, DiscIO::Region>> fallback_choices{
+      {tr("NTSC-J"), DiscIO::Region::NTSC_J},
+      {tr("NTSC-U"), DiscIO::Region::NTSC_U},
+      {tr("PAL"), DiscIO::Region::PAL},
+      {tr("NTSC-K"), DiscIO::Region::NTSC_K},
+  };
+  m_combobox_fallback_region = new ConfigChoiceMap(fallback_choices, Config::MAIN_FALLBACK_REGION);
   fallback_region_dropdown_layout->addRow(tr("Fallback Region:"), m_combobox_fallback_region);
-
-  for (const QString& option : {tr("NTSC-J"), tr("NTSC-U"), tr("PAL"), tr("NTSC-K")})
-    m_combobox_fallback_region->addItem(option);
 }
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
@@ -279,18 +277,6 @@ void GeneralPane::LoadConfig()
   int selection = qRound(Config::Get(Config::MAIN_EMULATION_SPEED) * 10);
   if (selection < m_combobox_speedlimit->count())
     SignalBlocking(m_combobox_speedlimit)->setCurrentIndex(selection);
-
-  const auto fallback = Settings::Instance().GetFallbackRegion();
-  if (fallback == DiscIO::Region::NTSC_J)
-    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_NTSCJ_INDEX);
-  else if (fallback == DiscIO::Region::NTSC_U)
-    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_NTSCU_INDEX);
-  else if (fallback == DiscIO::Region::PAL)
-    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_PAL_INDEX);
-  else if (fallback == DiscIO::Region::NTSC_K)
-    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_NTSCK_INDEX);
-  else
-    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_NTSCJ_INDEX);
 }
 
 static QString UpdateTrackFromIndex(int index)
@@ -308,31 +294,6 @@ static QString UpdateTrackFromIndex(int index)
   case AUTO_UPDATE_DEV_INDEX:
     value = QString::fromStdString(AUTO_UPDATE_DEV_STRING);
     break;
-  }
-
-  return value;
-}
-
-static DiscIO::Region UpdateFallbackRegionFromIndex(int index)
-{
-  DiscIO::Region value = DiscIO::Region::Unknown;
-
-  switch (index)
-  {
-  case FALLBACK_REGION_NTSCJ_INDEX:
-    value = DiscIO::Region::NTSC_J;
-    break;
-  case FALLBACK_REGION_NTSCU_INDEX:
-    value = DiscIO::Region::NTSC_U;
-    break;
-  case FALLBACK_REGION_PAL_INDEX:
-    value = DiscIO::Region::PAL;
-    break;
-  case FALLBACK_REGION_NTSCK_INDEX:
-    value = DiscIO::Region::NTSC_K;
-    break;
-  default:
-    value = DiscIO::Region::NTSC_J;
   }
 
   return value;
@@ -357,8 +318,6 @@ void GeneralPane::OnSaveConfig()
   Settings::Instance().SetAnalyticsEnabled(m_checkbox_enable_analytics->isChecked());
   DolphinAnalytics::Instance().ReloadConfig();
 #endif
-  Settings::Instance().SetFallbackRegion(
-      UpdateFallbackRegionFromIndex(m_combobox_fallback_region->currentIndex()));
 
   settings.SaveSettings();
 }
