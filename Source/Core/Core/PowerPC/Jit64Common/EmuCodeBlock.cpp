@@ -355,7 +355,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     {
       NOP(padding);
     }
-    info.len = static_cast<u32>(GetCodePtr() - info.start);
+    info.len = static_cast<u16>(GetCodePtr() - info.start);
 
     js.fastmemLoadStore = mov.address;
     return;
@@ -527,7 +527,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     {
       NOP(padding);
     }
-    info.len = static_cast<u32>(GetCodePtr() - info.start);
+    info.len = static_cast<u16>(GetCodePtr() - info.start);
 
     js.fastmemLoadStore = mov.address;
 
