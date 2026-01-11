@@ -20,6 +20,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/AchievementManager.h"
+#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/Core.h"
@@ -91,16 +92,17 @@ static ConfigStringChoice* MakeLanguageComboBox()
 InterfacePane::InterfacePane(QWidget* parent) : QWidget(parent)
 {
   CreateLayout();
-  UpdateShowDebuggingCheckbox();
   LoadUserStyle();
   ConnectLayout();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          &InterfacePane::UpdateShowDebuggingCheckbox);
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           &InterfacePane::OnEmulationStateChanged);
+  connect(&Settings::Instance(), &Settings::HardcoreModeChanged, this,
+          &InterfacePane::OnHardcoreModeChanged);
 
   OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
+  OnHardcoreModeChanged(Config::Get(Config::RA_ENABLED) &&
+                        Config::Get(Config::RA_HARDCORE_ENABLED));
 }
 
 void InterfacePane::CreateLayout()
@@ -176,7 +178,8 @@ void InterfacePane::CreateUI()
   m_checkbox_use_covers =
       new ConfigBool(tr("Download Game Covers from GameTDB.com for Use in Grid Mode"),
                      Config::MAIN_USE_GAME_COVERS);
-  m_checkbox_show_debugging_ui = new ToolTipCheckBox(tr("Enable Debugging UI"));
+  m_checkbox_show_debugging_ui =
+      new ConfigBool(tr("Enable Debugging UI"), Config::MAIN_ENABLE_DEBUGGING);
   m_checkbox_focused_hotkeys =
       new ConfigBool(tr("Hotkeys Require Window Focus"), Config::MAIN_FOCUSED_HOTKEYS);
   m_checkbox_disable_screensaver =
@@ -248,8 +251,9 @@ void InterfacePane::ConnectLayout()
           &Settings::GameListRefreshRequested);
   connect(m_checkbox_use_covers, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::MetadataRefreshRequested);
-  connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, &Settings::Instance(),
-          &Settings::SetDebugModeEnabled);
+  connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, &Settings::Instance(), [] {
+    emit Settings::Instance().DebugModeToggled(Config::Get(Config::MAIN_ENABLE_DEBUGGING));
+  });
   connect(m_combobox_theme, &QComboBox::currentIndexChanged, &Settings::Instance(),
           &Settings::ThemeChanged);
   connect(m_combobox_userstyle, &QComboBox::currentIndexChanged, this,
@@ -266,32 +270,6 @@ void InterfacePane::ConnectLayout()
           &Settings::CursorVisibilityChanged);
   connect(m_checkbox_lock_mouse, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::LockCursorChanged);
-}
-
-void InterfacePane::UpdateShowDebuggingCheckbox()
-{
-  SignalBlocking(m_checkbox_show_debugging_ui)
-      ->setChecked(Settings::Instance().IsDebugModeEnabled());
-
-  static constexpr char TR_SHOW_DEBUGGING_UI_DESCRIPTION[] = QT_TR_NOOP(
-      "Shows Dolphin's debugging user interface. This lets you view and modify a game's code and "
-      "memory contents, set debugging breakpoints, examine network requests, and more."
-      "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-  static constexpr char TR_DISABLED_IN_HARDCORE_DESCRIPTION[] =
-      QT_TR_NOOP("<dolphin_emphasis>Disabled in Hardcore Mode.</dolphin_emphasis>");
-
-  bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
-  SignalBlocking(m_checkbox_show_debugging_ui)->setEnabled(!hardcore);
-  if (hardcore)
-  {
-    m_checkbox_show_debugging_ui->SetDescription(tr("%1<br><br>%2")
-                                                     .arg(tr(TR_SHOW_DEBUGGING_UI_DESCRIPTION))
-                                                     .arg(tr(TR_DISABLED_IN_HARDCORE_DESCRIPTION)));
-  }
-  else
-  {
-    m_checkbox_show_debugging_ui->SetDescription(tr(TR_SHOW_DEBUGGING_UI_DESCRIPTION));
-  }
 }
 
 void InterfacePane::LoadUserStyle()
@@ -332,6 +310,11 @@ void InterfacePane::OnEmulationStateChanged(Core::State state)
   m_checkbox_time_tracking->setEnabled(uninitialized);
 }
 
+void InterfacePane::OnHardcoreModeChanged(bool enabled)
+{
+  m_checkbox_show_debugging_ui->setEnabled(!enabled);
+}
+
 void InterfacePane::AddDescriptions()
 {
   static constexpr char TR_TITLE_DATABASE_DESCRIPTION[] = QT_TR_NOOP(
@@ -347,6 +330,11 @@ void InterfacePane::AddDescriptions()
       "Sets the language displayed by Dolphin's user interface."
       "<br><br>Changes to this setting only take effect once Dolphin is restarted."
       "<br><br><dolphin_emphasis>If unsure, select &lt;System Language&gt;.</dolphin_emphasis>");
+  static constexpr char TR_SHOW_DEBUGGING_UI_DESCRIPTION[] = QT_TR_NOOP(
+      "Shows Dolphin's debugging user interface. This lets you view and modify a game's code and "
+      "memory contents, set debugging breakpoints, examine network requests, and more."
+      "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
+      "<br><br><dolphin_emphasis>Disabled in Hardcore Mode.</dolphin_emphasis>");
   static constexpr char TR_FOCUSED_HOTKEYS_DESCRIPTION[] =
       QT_TR_NOOP("Requires the render window to be focused for hotkeys to take effect."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
@@ -406,6 +394,8 @@ void InterfacePane::AddDescriptions()
 
   m_combobox_language->SetTitle(tr("Language"));
   m_combobox_language->SetDescription(tr(TR_LANGUAGE_DESCRIPTION));
+
+  m_checkbox_show_debugging_ui->SetDescription(tr(TR_SHOW_DEBUGGING_UI_DESCRIPTION));
 
   m_checkbox_focused_hotkeys->SetDescription(tr(TR_FOCUSED_HOTKEYS_DESCRIPTION));
 

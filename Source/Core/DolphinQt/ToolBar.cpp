@@ -53,7 +53,7 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
           [this] { m_refresh_action->setEnabled(true); });
 
   OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
-  OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
+  OnDebugModeToggled(Config::IsDebuggingEnabled());
 }
 
 void ToolBar::OnEmulationStateChanged(Core::State state)

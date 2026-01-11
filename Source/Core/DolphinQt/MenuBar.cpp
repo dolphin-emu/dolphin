@@ -171,7 +171,7 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   UpdateStateSlotMenu();
   UpdateToolsMenu(state);
 
-  OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
+  OnDebugModeToggled(Config::IsDebuggingEnabled());
 }
 
 void MenuBar::OnConfigChanged()

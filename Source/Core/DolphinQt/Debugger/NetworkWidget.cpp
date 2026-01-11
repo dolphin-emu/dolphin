@@ -147,7 +147,7 @@ NetworkWidget::NetworkWidget(QWidget* parent) : QDockWidget(parent)
   setWindowTitle(tr("Network"));
   setObjectName(QStringLiteral("network"));
 
-  setHidden(!Settings::Instance().IsNetworkVisible() || !Settings::Instance().IsDebugModeEnabled());
+  setHidden(!Settings::Instance().IsNetworkVisible() || !Config::IsDebuggingEnabled());
 
   setAllowedAreas(Qt::AllDockWidgetAreas);
 

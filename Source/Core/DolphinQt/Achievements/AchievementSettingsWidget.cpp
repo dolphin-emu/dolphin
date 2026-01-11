@@ -287,6 +287,8 @@ void AchievementSettingsWidget::ToggleRAIntegration()
     instance.Init(reinterpret_cast<void*>(winId()));
   else
     instance.Shutdown();
+  emit Settings::Instance().HardcoreModeChanged(Config::Get(Config::RA_ENABLED) &&
+                                                Config::Get(Config::RA_HARDCORE_ENABLED));
 }
 
 void AchievementSettingsWidget::Login()
@@ -324,6 +326,7 @@ void AchievementSettingsWidget::ToggleHardcore()
     }
   }
   SaveSettings();
+  emit Settings::Instance().HardcoreModeChanged(Config::Get(Config::RA_HARDCORE_ENABLED));
 }
 
 void AchievementSettingsWidget::ToggleUnofficial()

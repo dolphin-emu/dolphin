@@ -5,8 +5,6 @@
 
 #include <QWidget>
 
-#include "Common/CommonTypes.h"
-
 class ConfigBool;
 template <typename T>
 class ConfigChoiceMap;
