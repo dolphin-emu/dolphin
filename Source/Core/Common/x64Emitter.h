@@ -113,8 +113,8 @@ struct OpArg
   // dummy op arg, used for storage
   constexpr OpArg() = default;
   constexpr OpArg(u64 offset_, int scale_, X64Reg rm_reg = RAX, X64Reg scaled_reg = RAX)
-      : scale{static_cast<u8>(scale_)}, offsetOrBaseReg{static_cast<u16>(rm_reg)},
-        indexReg{static_cast<u16>(scaled_reg)}, offset{offset_}
+      : offset{offset_}, offsetOrBaseReg{static_cast<u16>(rm_reg)},
+        indexReg{static_cast<u16>(scaled_reg)}, scale{static_cast<u8>(scale_)}
   {
   }
   constexpr bool operator==(const OpArg& b) const
@@ -234,11 +234,11 @@ private:
   void WriteSingleByteOp(XEmitter* emit, u8 op, X64Reg operandReg, int bits);
   void WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& operand, int bits) const;
 
-  u8 scale = 0;
+  u64 offset = 0;  // Also used to store immediates.
   u16 offsetOrBaseReg = 0;
   u16 indexReg = 0;
-  u64 offset = 0;  // Also used to store immediates.
   u16 operandReg = 0;
+  u8 scale = 0;
 };
 
 template <typename T>
