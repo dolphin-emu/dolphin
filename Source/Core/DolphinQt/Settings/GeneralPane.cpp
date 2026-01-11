@@ -101,7 +101,7 @@ void GeneralPane::ConnectLayout()
   connect(m_checkbox_cheats, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::EnableCheatsChanged);
 #ifdef USE_DISCORD_PRESENCE
-  connect(m_checkbox_discord_presence, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
+  connect(m_checkbox_discord_presence, &QCheckBox::toggled, this, &Discord::SetDiscordPresence);
 #endif
 
   if (AutoUpdateChecker::SystemSupportsAutoUpdates())
@@ -161,7 +161,8 @@ void GeneralPane::CreateBasic()
   basic_group_layout->addWidget(m_checkbox_auto_disc_change);
 
 #ifdef USE_DISCORD_PRESENCE
-  m_checkbox_discord_presence = new ToolTipCheckBox(tr("Show Current Game on Discord"));
+  m_checkbox_discord_presence =
+      new ConfigBool(tr("Show Current Game on Discord"), Config::MAIN_USE_DISCORD_PRESENCE);
   basic_group_layout->addWidget(m_checkbox_discord_presence);
 #endif
 
@@ -270,10 +271,6 @@ void GeneralPane::LoadConfig()
       ->setChecked(Settings::Instance().IsAnalyticsEnabled());
 #endif
 
-#ifdef USE_DISCORD_PRESENCE
-  SignalBlocking(m_checkbox_discord_presence)
-      ->setChecked(Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
-#endif
   int selection = qRound(Config::Get(Config::MAIN_EMULATION_SPEED) * 10);
   if (selection < m_combobox_speedlimit->count())
     SignalBlocking(m_combobox_speedlimit)->setCurrentIndex(selection);
@@ -309,10 +306,6 @@ void GeneralPane::OnSaveConfig()
     Settings::Instance().SetAutoUpdateTrack(
         UpdateTrackFromIndex(m_combobox_update_track->currentIndex()));
   }
-
-#ifdef USE_DISCORD_PRESENCE
-  Discord::SetDiscordPresenceEnabled(m_checkbox_discord_presence->isChecked());
-#endif
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   Settings::Instance().SetAnalyticsEnabled(m_checkbox_enable_analytics->isChecked());
