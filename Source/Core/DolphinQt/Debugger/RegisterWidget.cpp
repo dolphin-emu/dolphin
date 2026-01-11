@@ -27,8 +27,7 @@ RegisterWidget::RegisterWidget(QWidget* parent)
   setWindowTitle(tr("Registers"));
   setObjectName(QStringLiteral("registers"));
 
-  setHidden(!Settings::Instance().IsRegistersVisible() ||
-            !Settings::Instance().IsDebugModeEnabled());
+  setHidden(!Settings::Instance().IsRegistersVisible() || !Config::IsDebuggingEnabled());
 
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
