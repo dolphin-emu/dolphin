@@ -773,8 +773,10 @@ endif()
 
 add_subdirectory(Externals/watcher)
 
-if(NOT ANDROID AND NOT APPLE)
+# Any other platform or BSD is currently unsupported by cpp-ipc
+if(WIN32 OR LINUX OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "QNX")
   add_subdirectory(Externals/cpp-ipc)
+  add_definitions(-DHAVE_CPPIPC)
 endif()
 
 ########################################

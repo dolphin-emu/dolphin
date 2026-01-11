@@ -143,7 +143,7 @@ void GameCubePane::CreateWidgets()
            EXIDeviceType::EthernetXLink,
            EXIDeviceType::EthernetTapServer,
            EXIDeviceType::EthernetBuiltIn,
-#if !defined(__APPLE__)
+#ifdef HAVE_CPPIPC
            EXIDeviceType::EthernetIPC,
 #endif
            EXIDeviceType::ModemTapServer,
