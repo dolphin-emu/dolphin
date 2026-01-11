@@ -304,26 +304,17 @@ std::string CreateSecretFromIPAddress(const std::string& ip_address, int port)
 void Shutdown()
 {
 #ifdef USE_DISCORD_PRESENCE
-  if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
-    return;
-
   Discord_ClearPresence();
   Discord_Shutdown();
 #endif
 }
 
-void SetDiscordPresenceEnabled(bool enabled)
+void SetDiscordPresence()
 {
-  if (Config::Get(Config::MAIN_USE_DISCORD_PRESENCE) == enabled)
-    return;
-
-  if (Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
-    Discord::Shutdown();
-
-  Config::SetBase(Config::MAIN_USE_DISCORD_PRESENCE, enabled);
-
   if (Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
     Discord::Init();
+  else
+    Discord::Shutdown();
 }
 
 }  // namespace Discord
