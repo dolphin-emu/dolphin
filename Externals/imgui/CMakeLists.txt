@@ -16,9 +16,9 @@ add_library(imgui STATIC ${SRCS})
 dolphin_disable_warnings(imgui)
 
 target_include_directories(imgui
-    PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/imgui"
+  PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/imgui"
 )
 
 target_compile_definitions(imgui
@@ -27,6 +27,6 @@ target_compile_definitions(imgui
 )
 
 target_link_libraries(imgui
-PRIVATE
-  fmt::fmt
+  PRIVATE
+    fmt::fmt
 )

@@ -76,7 +76,7 @@ add_definitions(-D__STDC_CONSTANT_MACROS)
 
 check_symbol_exists(elf_aux_info sys/auxv.h HAVE_ELF_AUX_INFO)
 if(HAVE_ELF_AUX_INFO)
-    add_definitions(-DHAVE_ELF_AUX_INFO)
+  add_definitions(-DHAVE_ELF_AUX_INFO)
 endif()
 
 add_subdirectory(Core)
