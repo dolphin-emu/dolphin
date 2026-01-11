@@ -20,6 +20,9 @@ template <typename... Args>
 inline void Register(const void* base_address, u32 code_size, fmt::format_string<Args...> format,
                      Args&&... args)
 {
+  if (!IsEnabled())
+    return;
+
   Register(base_address, code_size, fmt::format(format, std::forward<Args>(args)...));
 }
 
@@ -27,6 +30,9 @@ template <typename... Args>
 inline void Register(const void* start, const void* end, fmt::format_string<Args...> format,
                      Args&&... args)
 {
+  if (!IsEnabled())
+    return;
+
   u32 code_size = (u32)((const char*)end - (const char*)start);
   Register(start, code_size, fmt::format(format, std::forward<Args>(args)...));
 }
