@@ -11,6 +11,7 @@
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 
+#include "Common/Assert.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -360,17 +361,18 @@ InputConfig* HotkeyManager::GetConfig() const
 
 void HotkeyManager::GetInput(HotkeyStatus* kb, bool ignore_focus)
 {
+  std::array<u32, 32> bitmasks;
+  for (size_t key = 0; key < bitmasks.size(); key++)
+    bitmasks[key] = static_cast<u32>(1 << key);
+
   const auto lock = GetStateLock();
   for (std::size_t group = 0; group < s_groups_info.size(); group++)
   {
     if (s_groups_info[group].ignore_focus != ignore_focus)
       continue;
 
-    const int group_count = (s_groups_info[group].last - s_groups_info[group].first) + 1;
-    std::vector<u32> bitmasks(group_count);
-    for (size_t key = 0; key < bitmasks.size(); key++)
-      bitmasks[key] = static_cast<u32>(1 << key);
-
+    const size_t group_count = (s_groups_info[group].last - s_groups_info[group].first) + 1;
+    ASSERT(group_count <= bitmasks.size());
     kb->button[group] = 0;
     m_keys[group]->GetState(&kb->button[group], bitmasks.data());
   }
