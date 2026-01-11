@@ -112,13 +112,6 @@ void GeneralPane::ConnectLayout()
             &GeneralPane::LoadConfig);
   }
 
-  // Advanced
-  connect(m_combobox_speedlimit, &QComboBox::currentIndexChanged, [this] {
-    Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED,
-                             m_combobox_speedlimit->currentIndex() * 0.1f);
-    Config::Save();
-  });
-
   connect(m_combobox_fallback_region, &QComboBox::currentIndexChanged, this,
           &GeneralPane::OnSaveConfig);
 
@@ -171,9 +164,8 @@ void GeneralPane::CreateBasic()
   speed_limit_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
   basic_group_layout->addLayout(speed_limit_layout);
 
-  m_combobox_speedlimit = new ToolTipComboBox();
-
-  m_combobox_speedlimit->addItem(tr("Unlimited"));
+  std::vector<std::pair<QString, float>> speedlimit_choices{};
+  speedlimit_choices.emplace_back(tr("Unlimited"), 0.0f);
   for (int i = 10; i <= 200; i += 10)  // from 10% to 200%
   {
     QString str;
@@ -182,8 +174,12 @@ void GeneralPane::CreateBasic()
     else
       str = tr("%1% (Normal Speed)").arg(i);
 
-    m_combobox_speedlimit->addItem(str);
+    const float value = static_cast<float>(i) / 100.0f;
+    speedlimit_choices.emplace_back(str, value);
   }
+
+  m_combobox_speedlimit =
+      new ConfigChoiceMap<float>(speedlimit_choices, Config::MAIN_EMULATION_SPEED);
 
   speed_limit_layout->addRow(tr("&Speed Limit:"), m_combobox_speedlimit);
 }
@@ -270,10 +266,6 @@ void GeneralPane::LoadConfig()
   SignalBlocking(m_checkbox_enable_analytics)
       ->setChecked(Settings::Instance().IsAnalyticsEnabled());
 #endif
-
-  int selection = qRound(Config::Get(Config::MAIN_EMULATION_SPEED) * 10);
-  if (selection < m_combobox_speedlimit->count())
-    SignalBlocking(m_combobox_speedlimit)->setCurrentIndex(selection);
 }
 
 static QString UpdateTrackFromIndex(int index)
