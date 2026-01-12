@@ -13,11 +13,11 @@
 // big.
 struct TrampolineInfo final
 {
-  // The start of the store operation that failed -- we will patch a JMP here
-  u8* start = nullptr;
+  // The near code offset for the store operation that failed -- we will patch a JMP here
+  u32 start_offset = 0;
 
-  // The start + len = end of the store operation (points to the next instruction)
-  u16 len = 0;
+  // The length of the store operation (start_offset + length points to the next instruction)
+  u16 length = 0;
 
   // Original SafeLoadXXX/SafeStoreXXX flags
   u8 flags = 0;
