@@ -198,18 +198,18 @@ bool Jit64::BackPatch(SContext* ctx)
   js.trampolineExceptionHandler = exceptionHandler;
   js.compilerPC = info.pc;
 
+  u8* start = region + info.start_offset;
+  u8* end = start + info.length;
+
   // Generate the trampoline.
-  const u8* trampoline = trampolines.GenerateTrampoline(info);
+  const u8* trampoline = trampolines.GenerateTrampoline(info, end);
   js.generatingTrampoline = false;
   js.trampolineExceptionHandler = nullptr;
 
-  u8* start = info.start;
-
   // Patch the original memory operation.
-  XEmitter emitter(start, start + info.len);
+  XEmitter emitter(start, end);
   emitter.JMP(trampoline);
   // NOPs become dead code
-  const u8* end = info.start + info.len;
   for (const u8* i = emitter.GetCodePtr(); i < end; ++i)
     emitter.INT3();
 

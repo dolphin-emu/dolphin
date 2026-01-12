@@ -341,7 +341,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     info.pc = js.compilerPC;
     info.inst = inst;
     info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
-    info.start = backpatchStart;
+    info.start_offset = static_cast<u32>(backpatchStart - region);
     info.read = true;
     info.op_reg = reg_value;
     info.op_arg = opAddress;
@@ -356,7 +356,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     {
       NOP(padding);
     }
-    info.len = static_cast<u16>(GetCodePtr() - info.start);
+    info.length = static_cast<u16>(GetCodePtr() - backpatchStart);
 
     js.fastmemLoadStore = mov.address;
     return;
@@ -516,7 +516,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     info.pc = js.compilerPC;
     info.inst = inst;
     info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
-    info.start = backpatchStart;
+    info.start_offset = static_cast<u32>(backpatchStart - region);
     info.read = false;
     info.op_arg = reg_value;
     info.op_reg = reg_addr;
@@ -530,7 +530,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     {
       NOP(padding);
     }
-    info.len = static_cast<u16>(GetCodePtr() - info.start);
+    info.length = static_cast<u16>(GetCodePtr() - backpatchStart);
 
     js.fastmemLoadStore = mov.address;
 
