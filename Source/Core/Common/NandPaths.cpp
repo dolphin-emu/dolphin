@@ -11,7 +11,6 @@
 #include <fmt/ranges.h>
 
 #include "Common/CommonTypes.h"
-#include "Common/Contains.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
@@ -119,7 +118,7 @@ bool IsTitlePath(const std::string& path, std::optional<FromWhichRoot> from, u64
 static bool IsIllegalCharacter(char c)
 {
   static constexpr char illegal_chars[] = {'\"', '*', '/', ':', '<', '>', '?', '\\', '|', '\x7f'};
-  return static_cast<unsigned char>(c) <= 0x1F || Common::Contains(illegal_chars, c);
+  return static_cast<unsigned char>(c) <= 0x1F || std::ranges::contains(illegal_chars, c);
 }
 
 std::string EscapeFileName(const std::string& filename)

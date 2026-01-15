@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <array>
 
-#include "Common/Contains.h"
 #include "Core/Config/WiimoteSettings.h"
 
 namespace ConfigLoaders
@@ -16,7 +15,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
   static constexpr std::array systems_not_saveable = {Config::System::GCPad, Config::System::WiiPad,
                                                       Config::System::GCKeyboard};
 
-  if (!Common::Contains(systems_not_saveable, config_location.system))
+  if (!std::ranges::contains(systems_not_saveable, config_location.system))
   {
     return true;
   }

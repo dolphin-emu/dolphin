@@ -3,6 +3,7 @@
 
 #include "DolphinQt/Settings.h"
 
+#include <algorithm>
 #include <atomic>
 #include <memory>
 
@@ -23,7 +24,6 @@
 #include "AudioCommon/AudioCommon.h"
 
 #include "Common/Config/Config.h"
-#include "Common/Contains.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
@@ -457,7 +457,7 @@ void Settings::AddPath(const QString& qpath)
   std::string path = qpath.toStdString();
   std::vector<std::string> paths = Config::GetIsoPaths();
 
-  if (Common::Contains(paths, path))
+  if (std::ranges::contains(paths, path))
     return;
 
   paths.emplace_back(path);

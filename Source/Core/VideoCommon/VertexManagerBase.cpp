@@ -3,13 +3,13 @@
 
 #include "VideoCommon/VertexManagerBase.h"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <memory>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Contains.h"
 #include "Common/EnumMap.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
@@ -584,7 +584,7 @@ void VertexManagerBase::Flush()
         const auto cache_entry = g_texture_cache->Load(TextureInfo::FromStage(i));
         if (cache_entry)
         {
-          if (!Common::Contains(texture_names, cache_entry->texture_info_name))
+          if (!std::ranges::contains(texture_names, cache_entry->texture_info_name))
           {
             texture_names.push_back(cache_entry->texture_info_name);
             texture_units.push_back(i);

@@ -43,7 +43,6 @@
 #include <QUrl>
 
 #include "Common/CommonPaths.h"
-#include "Common/Contains.h"
 #include "Common/FileUtil.h"
 
 #include "Core/Config/MainSettings.h"
@@ -838,7 +837,7 @@ bool GameList::AddShortcutToDesktop()
   // Sanitize the string by removing all characters that cannot be used in NTFS file names
   std::erase_if(game_name, [](char ch) {
     static constexpr char illegal_characters[] = {'<', '>', ':', '\"', '/', '\\', '|', '?', '*'};
-    return Common::Contains(illegal_characters, ch);
+    return std::ranges::contains(illegal_characters, ch);
   });
 
   std::wstring desktop_path = std::wstring(desktop.get()) + UTF8ToTStr("\\" + game_name + ".lnk");

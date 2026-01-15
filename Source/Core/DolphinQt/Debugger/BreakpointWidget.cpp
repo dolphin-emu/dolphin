@@ -3,6 +3,8 @@
 
 #include "DolphinQt/Debugger/BreakpointWidget.h"
 
+#include <algorithm>
+
 #include <QApplication>
 #include <QHeaderView>
 #include <QInputDialog>
@@ -16,7 +18,6 @@
 #include <QToolBar>
 #include <QVBoxLayout>
 
-#include "Common/Contains.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
@@ -521,7 +522,7 @@ void BreakpointWidget::OnContextMenu(const QPoint& pos)
   if (!is_memory_breakpoint)
   {
     const auto& inst_breakpoints = m_system.GetPowerPC().GetBreakPoints().GetBreakPoints();
-    if (!Common::Contains(inst_breakpoints, bp_address, &TBreakPoint::address))
+    if (!std::ranges::contains(inst_breakpoints, bp_address, &TBreakPoint::address))
       return;
 
     menu->addAction(tr("Show in Code"), [this, bp_address] { emit ShowCode(bp_address); });
@@ -534,7 +535,7 @@ void BreakpointWidget::OnContextMenu(const QPoint& pos)
   else
   {
     const auto& memory_breakpoints = m_system.GetPowerPC().GetMemChecks().GetMemChecks();
-    if (!Common::Contains(memory_breakpoints, bp_address, &TMemCheck::start_address))
+    if (!std::ranges::contains(memory_breakpoints, bp_address, &TMemCheck::start_address))
       return;
 
     menu->addAction(tr("Show in Memory"), [this, bp_address] { emit ShowMemory(bp_address); });

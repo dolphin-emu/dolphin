@@ -7,7 +7,6 @@
 #include <chrono>
 #include <regex>
 
-#include "Common/Contains.h"
 #include "Common/Event.h"
 #include "Core/Core.h"
 #include "Core/Debugger/PPCDebugInterface.h"
@@ -255,9 +254,9 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, bool first_hit)
   // The reg_itr will be used later for erasing.
   auto reg_itr = std::ranges::find(m_reg_autotrack, instr.reg0);
   const bool match_reg123 =
-      (!instr.reg1.empty() && Common::Contains(m_reg_autotrack, instr.reg1)) ||
-      (!instr.reg2.empty() && Common::Contains(m_reg_autotrack, instr.reg2)) ||
-      (!instr.reg3.empty() && Common::Contains(m_reg_autotrack, instr.reg3));
+      (!instr.reg1.empty() && std::ranges::contains(m_reg_autotrack, instr.reg1)) ||
+      (!instr.reg2.empty() && std::ranges::contains(m_reg_autotrack, instr.reg2)) ||
+      (!instr.reg3.empty() && std::ranges::contains(m_reg_autotrack, instr.reg3));
   const bool match_reg0 = reg_itr != m_reg_autotrack.end();
 
   if (!match_reg0 && !match_reg123 && !mem_hit)

@@ -8,7 +8,6 @@
 #include <cstring>
 
 #include "Common/Assert.h"
-#include "Common/Contains.h"
 #include "Common/Logging/Log.h"
 
 #include "VideoCommon/DriverDetails.h"
@@ -168,12 +167,12 @@ bool VulkanContext::CheckValidationLayerAvailablility()
   res = vkEnumerateInstanceLayerProperties(&layer_count, layer_list.data());
   ASSERT(res == VK_SUCCESS);
 
-  bool supports_validation_layers = Common::Contains(
+  bool supports_validation_layers = std::ranges::contains(
       layer_list, std::string_view{VALIDATION_LAYER_NAME}, &VkLayerProperties::layerName);
 
   bool supports_debug_utils =
-      Common::Contains(extension_list, std::string_view{VK_EXT_DEBUG_UTILS_EXTENSION_NAME},
-                       &VkExtensionProperties::extensionName);
+      std::ranges::contains(extension_list, std::string_view{VK_EXT_DEBUG_UTILS_EXTENSION_NAME},
+                            &VkExtensionProperties::extensionName);
 
   if (!supports_debug_utils && supports_validation_layers)
   {
@@ -192,8 +191,8 @@ bool VulkanContext::CheckValidationLayerAvailablility()
                                                  extension_list.data());
     ASSERT(res == VK_SUCCESS);
     supports_debug_utils =
-        Common::Contains(extension_list, std::string_view{VK_EXT_DEBUG_UTILS_EXTENSION_NAME},
-                         &VkExtensionProperties::extensionName);
+        std::ranges::contains(extension_list, std::string_view{VK_EXT_DEBUG_UTILS_EXTENSION_NAME},
+                              &VkExtensionProperties::extensionName);
   }
 
   // Check for both VK_EXT_debug_utils and VK_LAYER_KHRONOS_validation
@@ -324,10 +323,10 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
 
   auto AddExtension = [&](const char* name, bool required) {
     bool extension_supported =
-        Common::Contains(available_extension_list, std::string_view{name},
-                         &VkExtensionProperties::extensionName) ||
-        Common::Contains(validation_layer_extension_list, std::string_view{name},
-                         &VkExtensionProperties::extensionName);
+        std::ranges::contains(available_extension_list, std::string_view{name},
+                              &VkExtensionProperties::extensionName) ||
+        std::ranges::contains(validation_layer_extension_list, std::string_view{name},
+                              &VkExtensionProperties::extensionName);
 
     if (extension_supported)
     {
@@ -638,8 +637,8 @@ bool VulkanContext::SelectDeviceExtensions(bool enable_surface)
     INFO_LOG_FMT(VIDEO, "Available extension: {}", extension_properties.extensionName);
 
   auto AddExtension = [&](const char* name, bool required) {
-    if (Common::Contains(available_extension_list, std::string_view{name},
-                         &VkExtensionProperties::extensionName))
+    if (std::ranges::contains(available_extension_list, std::string_view{name},
+                              &VkExtensionProperties::extensionName))
     {
       INFO_LOG_FMT(VIDEO, "Enabling extension: {}", name);
       m_device_extensions.push_back(name);
