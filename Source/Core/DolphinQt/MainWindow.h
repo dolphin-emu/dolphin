@@ -216,6 +216,8 @@ private:
   void EjectDisc();
 
   void OpenUserFolder();
+  void OpenConfigFolder();
+  void OpenCacheFolder();
 
   QStringList PromptFileNames();
 

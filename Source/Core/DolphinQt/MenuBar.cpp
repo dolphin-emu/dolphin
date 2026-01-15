@@ -260,6 +260,18 @@ void MenuBar::AddFileMenu()
   m_open_user_folder =
       file_menu->addAction(tr("Open &User Folder"), this, &MenuBar::OpenUserFolder);
 
+  const std::string user_path = File::GetUserPath(D_USER_IDX);
+  if (user_path + CONFIG_DIR DIR_SEP != File::GetUserPath(D_CONFIG_IDX))
+  {
+    m_open_config_folder =
+        file_menu->addAction(tr("Open &Config Folder"), this, &MenuBar::OpenConfigFolder);
+  }
+  if (user_path + CACHE_DIR DIR_SEP != File::GetUserPath(D_CACHE_IDX))
+  {
+    m_open_cache_folder =
+        file_menu->addAction(tr("Open C&ache Folder"), this, &MenuBar::OpenCacheFolder);
+  }
+
   file_menu->addSeparator();
 
   m_exit_action = file_menu->addAction(tr("E&xit"), this, &MenuBar::Exit);
