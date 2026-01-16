@@ -261,18 +261,52 @@ TEST(StringUtil, CaseInsensitiveContains_OverlappingMatches)
 
 TEST(StringUtil, CharacterEncodingConversion)
 {
+  const std::string utf8_variety = "🎮 hello ¥ᚼᛒ﹏🐬";
+  const std::u16string utf16_variety = u"🎮 hello ¥ᚼᛒ﹏🐬";
+
+  // UTF-16 -> UTF-8
+  const std::string utf8_replacement_char = "\xef\xbf\xbd";
+
+  // Unmatched high surrogate.
+  EXPECT_EQ(UTF16ToUTF8(u"\xd800" + utf16_variety), utf8_replacement_char + utf8_variety);
+  EXPECT_EQ(UTF16ToUTF8(utf16_variety + u"\xdbff"), utf8_variety + utf8_replacement_char);
+
+  // Unmatched low surrogate.
+  EXPECT_EQ(UTF16ToUTF8(u"\xdc00" + utf16_variety), utf8_replacement_char + utf8_variety);
+  EXPECT_EQ(UTF16ToUTF8(utf16_variety + u"\xdfff"), utf8_variety + utf8_replacement_char);
+
+  // UTF-8 -> UTF-16
+  const std::u16string utf16_replacement_char = u"\xfffd";
+
+  // Unexpected bytes.
+  EXPECT_EQ(UTF8ToUTF16("\x80" + utf8_variety), utf16_replacement_char + utf16_variety);
+  EXPECT_EQ(UTF8ToUTF16("\xf8" + utf8_variety), utf16_replacement_char + utf16_variety);
+
+  // Overlong encodings.
+  EXPECT_EQ(UTF8ToUTF16("\xc0\x8a" + utf8_variety), utf16_replacement_char + utf16_variety);
+  EXPECT_EQ(UTF8ToUTF16("\xe0\x81\x8a" + utf8_variety), utf16_replacement_char + utf16_variety);
+  EXPECT_EQ(UTF8ToUTF16("\xf0\x81\x81\x8a" + utf8_variety), utf16_replacement_char + utf16_variety);
+
+  // Non-terminated character sequences.
+  EXPECT_EQ(UTF8ToUTF16("\xa0" + utf8_variety), utf16_replacement_char + utf16_variety);
+  EXPECT_EQ(UTF8ToUTF16("\xc0\xf0"), utf16_replacement_char + utf16_replacement_char);
+  EXPECT_EQ(UTF8ToUTF16(utf8_variety + "\xf0\x9f"), utf16_variety + utf16_replacement_char);
+  EXPECT_EQ(UTF8ToUTF16("\xf0\x9fZ"), utf16_replacement_char + u"Z");
+
+  // Code point greater than U+10FFFF.
+  EXPECT_EQ(UTF8ToUTF16("\xf7\x80\x80\x80" + utf8_variety), utf16_replacement_char + utf16_variety);
+
+  // Decoded surrogate code points are rejected.
+  EXPECT_EQ(UTF8ToUTF16("\xed\xb6\x81" + utf8_variety), utf16_replacement_char + utf16_variety);
+
   // wstring
   EXPECT_EQ(WStringToUTF8(L"hello 🐬"), "hello 🐬");
 
-  // UTF-16
-  EXPECT_EQ(UTF16ToUTF8(u"hello 🐬"), "hello 🐬");
-  EXPECT_EQ(UTF8ToUTF16("hello 🐬"), u"hello 🐬");
-
   // UTF-16BE
-  char16_t utf16be_str[] = u"hello 🐬";
+  auto utf16be_str = utf16_variety;
   for (auto& c : utf16be_str)
     c = Common::swap16(c);
-  EXPECT_EQ(UTF16BEToUTF8(utf16be_str, 99), "hello 🐬");
+  EXPECT_EQ(UTF16BEToUTF8(utf16be_str.c_str(), 99), utf8_variety);
 
   // Shift JIS
   EXPECT_EQ(SHIFTJISToUTF8("\x83\x43\x83\x8b\x83\x4a"), "イルカ");

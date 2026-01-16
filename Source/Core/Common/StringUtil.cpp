@@ -5,7 +5,7 @@
 
 #include <algorithm>
 #include <array>
-#include <codecvt>
+#include <cassert>
 #include <cstdarg>
 #include <cstddef>
 #include <cstdio>
@@ -13,7 +13,6 @@
 #include <cstring>
 #include <iomanip>
 #include <iterator>
-#include <locale>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -391,6 +390,245 @@ size_t StringUTF8CodePointCount(std::string_view str)
   return str.size() - std::ranges::count_if(str, [](char c) -> bool { return (c & 0xC0) == 0x80; });
 }
 
+constexpr char32_t UNICODE_REPLACEMENT_CHARACTER = 0xfffd;
+constexpr char32_t UNICODE_LAST_CODE_POINT = 0x10ffff;
+
+constexpr u16 UNICODE_HIGH_SURROGATE = 0xd800;
+constexpr u16 UNICODE_LOW_SURROGATE = 0xdc00;
+
+constexpr u16 SURROGATE_VALUE_MASK = 0x3ffu;
+
+static constexpr bool IsSurrogateCodePoint(char32_t code_point)
+{
+  return (code_point & 0xf800u) == UNICODE_HIGH_SURROGATE;
+}
+
+template <std::integral CharType>
+requires(sizeof(CharType) == 1)
+class UTF8Decoder
+{
+public:
+  constexpr explicit UTF8Decoder(std::span<const CharType> chars)
+      : m_ptr{chars.data()}, m_end_ptr{m_ptr + chars.size()}
+  {
+  }
+
+  auto RemainingCodeUnits() const { return m_end_ptr - m_ptr; }
+
+  constexpr char32_t operator()()
+  {
+    assert(RemainingCodeUnits() > 0);
+
+    const u8 first_code_unit = *m_ptr;
+    ++m_ptr;
+
+    switch (std::countl_one(first_code_unit))
+    {
+    case 0:  // ASCII.
+      return first_code_unit;
+    case 2:
+      return FinishReadingSequence<2, 0x80>(first_code_unit);
+    case 3:
+    {
+      const u32 code_point = FinishReadingSequence<3, 0x800>(first_code_unit);
+      if (!IsSurrogateCodePoint(code_point))
+        return code_point;
+      break;
+    }
+    case 4:
+    {
+      const u32 code_point = FinishReadingSequence<4, 0x10000>(first_code_unit);
+      if (code_point <= UNICODE_LAST_CODE_POINT)
+        return code_point;
+      break;
+    }
+    default:
+      break;
+    }
+
+    return UNICODE_REPLACEMENT_CHARACTER;
+  }
+
+private:
+  template <u32 ByteCount, u32 FirstValidCodePoint>
+  constexpr u32 FinishReadingSequence(u8 first_code_unit)
+  {
+    // Remove the leading one bits.
+    u32 code_point = first_code_unit & (0x7fu >> ByteCount);
+
+    for (u32 byte_count = ByteCount - 1; byte_count != 0; --byte_count)
+    {
+      if (RemainingCodeUnits() == 0)
+        return UNICODE_REPLACEMENT_CHARACTER;
+
+      const auto code_unit = u8(*m_ptr);
+
+      if (!IsContinuationByte(code_unit))
+        return UNICODE_REPLACEMENT_CHARACTER;
+
+      ++m_ptr;
+
+      code_point = (code_point << 6u) | (code_unit & 0x3fu);
+    }
+
+    // Overlong encoding.
+    if (code_point < FirstValidCodePoint)
+      return UNICODE_REPLACEMENT_CHARACTER;
+
+    return code_point;
+  }
+
+  static constexpr bool IsContinuationByte(u8 code_unit) { return std::countl_one(code_unit) == 1; }
+
+  const CharType* m_ptr;
+  const CharType* const m_end_ptr;
+};
+
+class UTF8Encoder
+{
+public:
+  static constexpr u32 GetMaxUnitsPerCodePoint() { return 4; }
+
+  // `ptr` should point to at least 4 bytes.
+  // Returns the number of written code units (bytes).
+  template <std::integral CharType>
+  requires(sizeof(CharType) == 1)
+  constexpr u32 operator()(char32_t code_point, CharType* ptr)
+  {
+    // ASCII.
+    if (code_point < 0x80u)
+    {
+      *ptr = u8(code_point);
+      return 1;
+    }
+
+    if (code_point < 0x800u)
+      return WriteSequence<2>(code_point, ptr);
+
+    if (code_point < 0x10000u)
+      return WriteSequence<3>(code_point, ptr);
+
+    if (code_point <= UNICODE_LAST_CODE_POINT)
+      return WriteSequence<4>(code_point, ptr);
+
+    return (*this)(UNICODE_REPLACEMENT_CHARACTER, ptr);
+  }
+
+private:
+  template <u32 ByteCount>
+  static constexpr u32 WriteSequence(u32 code_point, auto* ptr)
+  {
+    *ptr = u8((0xf0u << (4 - ByteCount)) | (code_point >> (6 * (ByteCount - 1))));
+
+    for (u32 i = ByteCount - 1; i != 0; --i)
+    {
+      ptr[i] = u8(0x80u | (code_point & 0x3fu));
+      code_point >>= 6;
+    }
+
+    return ByteCount;
+  }
+};
+
+template <std::integral CharType>
+requires(sizeof(CharType) == 2)
+class UTF16Decoder
+{
+public:
+  constexpr explicit UTF16Decoder(std::span<const CharType> chars)
+      : m_ptr{chars.data()}, m_end_ptr{m_ptr + chars.size()}
+  {
+  }
+
+  auto RemainingCodeUnits() const { return m_end_ptr - m_ptr; }
+
+  constexpr char32_t operator()()
+  {
+    assert(RemainingCodeUnits() > 0);
+
+    const u16 first_code_unit = *m_ptr;
+    ++m_ptr;
+
+    // Single code unit.
+    if (!IsSurrogateCodePoint(first_code_unit))
+      return first_code_unit;
+
+    // Unexpected low surrogate.
+    if (first_code_unit >= UNICODE_LOW_SURROGATE)
+      return UNICODE_REPLACEMENT_CHARACTER;
+
+    // High surrogate at end of data.
+    if (RemainingCodeUnits() == 0)
+      return UNICODE_REPLACEMENT_CHARACTER;
+
+    const u16 second_code_unit = *m_ptr;
+
+    // High surrogate not followed by low surrogate.
+    if ((second_code_unit & u16(~SURROGATE_VALUE_MASK)) != UNICODE_LOW_SURROGATE)
+      return UNICODE_REPLACEMENT_CHARACTER;
+
+    ++m_ptr;
+
+    // We have a surrogate pair.
+    return (u32(first_code_unit & SURROGATE_VALUE_MASK) << 10u) +
+           u32(second_code_unit & SURROGATE_VALUE_MASK) + 0x10000u;
+  }
+
+private:
+  const CharType* m_ptr;
+  const CharType* const m_end_ptr;
+};
+
+class UTF16Encoder
+{
+public:
+  static constexpr u32 GetMaxUnitsPerCodePoint() { return 2; }
+
+  // `ptr` should point to at least 2 code units.
+  // Returns the number of written code units.
+  template <std::integral CharType>
+  requires(sizeof(CharType) == 2)
+  constexpr u32 operator()(char32_t code_point, CharType* ptr)
+  {
+    if (code_point < 0x10000u)
+    {
+      *ptr = u16(code_point);
+      return 1;
+    }
+
+    if (code_point > UNICODE_LAST_CODE_POINT)
+      return (*this)(UNICODE_REPLACEMENT_CHARACTER, ptr);
+
+    // Create surrogate pair.
+    const u32 value = code_point - 0x10000;
+    ptr[0] = u16(((value >> 10u) & SURROGATE_VALUE_MASK) | UNICODE_HIGH_SURROGATE);
+    ptr[1] = u16((value & SURROGATE_VALUE_MASK) | UNICODE_LOW_SURROGATE);
+    return 2;
+  }
+};
+
+template <typename Decoder, typename Encoder, typename ResultCharType, typename InputCharType>
+static constexpr std::basic_string<ResultCharType>
+ReEncodeString(std::basic_string_view<InputCharType> input)
+{
+  Decoder decoder{input};
+  Encoder encoder;
+
+  const auto max_code_units = input.size() * encoder.GetMaxUnitsPerCodePoint();
+
+  std::basic_string<ResultCharType> result;
+  result.resize_and_overwrite(max_code_units, [&](ResultCharType* buf, std::size_t) {
+    auto* position = buf;
+
+    while (decoder.RemainingCodeUnits() != 0)
+      position += encoder(decoder(), position);
+
+    return position - buf;
+  });
+
+  return result;
+}
+
 #ifdef _WIN32
 
 static std::wstring CPToUTF16(u32 code_page, std::string_view input)
@@ -567,14 +805,12 @@ std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
 
 std::string UTF16ToUTF8(std::u16string_view input)
 {
-  std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
-  return converter.to_bytes(input.data(), input.data() + input.size());
+  return ReEncodeString<UTF16Decoder<char16_t>, UTF8Encoder, char>(input);
 }
 
 std::u16string UTF8ToUTF16(std::string_view input)
 {
-  std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
-  return converter.from_bytes(input.data(), input.data() + input.size());
+  return ReEncodeString<UTF8Decoder<char>, UTF16Encoder, char16_t>(input);
 }
 
 // This is a replacement for path::u8path, which is deprecated starting with C++20.
