@@ -114,7 +114,7 @@ void LogitechMicWindow::CreateMicrophoneConfigurationGroup(QVBoxLayout* main_lay
 
     m_mic_device_comboboxes[index] = new QComboBox();
 #ifndef HAVE_CUBEB
-    m_combobox_microphone[index]->addItem(
+    m_mic_device_comboboxes[index]->addItem(
         QLatin1String("(%1)").arg(tr("Audio backend unsupported")), QString{});
 #else
     m_mic_device_comboboxes[index]->addItem(
