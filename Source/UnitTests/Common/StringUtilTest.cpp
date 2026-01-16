@@ -261,6 +261,14 @@ TEST(StringUtil, CaseInsensitiveContains_OverlappingMatches)
 
 TEST(StringUtil, CharacterEncodingConversion)
 {
+  // Invalid sequences shouldn't crash or throw.
+  WStringToUTF8(L"\xdbff\xdbff");
+  UTF16ToUTF8(u"\xdbff\xdbff");
+  UTF16ToUTF8(u"\xdbff");
+  UTF8ToUTF16("\x80");
+  UTF8ToUTF16("\xc2");
+  UTF8ToSHIFTJIS("\x80");
+
   // wstring
   EXPECT_EQ(WStringToUTF8(L"hello 🐬"), "hello 🐬");
 
