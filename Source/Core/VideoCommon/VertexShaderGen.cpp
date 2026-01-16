@@ -5,6 +5,7 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/ConstantManager.h"
 #include "VideoCommon/LightingShaderGen.h"
@@ -356,6 +357,13 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
   ShaderCode input_extract;
 
+  // Enable gl_Layer output from vertex shader when using VS layer output for stereo
+  if (host_config.stereo && !host_config.backend_geometry_shaders &&
+      host_config.backend_vs_layer_output)
+  {
+    out.Write("#extension GL_ARB_shader_viewport_layer_array : require\n");
+  }
+
   out.Write("{}", s_lighting_struct);
 
   // uniforms
@@ -371,7 +379,12 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     out.Write("}} custom_uniforms;\n");
   }
 
-  if (uid_data->vs_expand != VSExpand::None)
+  // Include GSBlock when:
+  // 1. VS expand is enabled (line/point expansion), or
+  // 2. Stereo is enabled but geometry shaders are not available (VS layer output stereo)
+  const bool needs_gs_block = uid_data->vs_expand != VSExpand::None ||
+                              (host_config.stereo && !host_config.backend_geometry_shaders);
+  if (needs_gs_block)
   {
     out.Write("UBO_BINDING(std140, 4) uniform GSBlock {{\n");
     out.Write("{}", s_geometry_shader_uniforms);
@@ -537,6 +550,13 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       out.Write("VARYING_LOCATION({}) {} out float3 WorldPos;\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa));
     }
+    // VS layer output stereo: pass layer to pixel shader via varying
+    // Only when geometry shaders are not available (otherwise GS handles layer)
+    if (host_config.stereo && !host_config.backend_geometry_shaders &&
+        host_config.backend_vs_layer_output)
+    {
+      out.Write("VARYING_LOCATION({}) flat out int layer;\n", counter++);
+    }
   }
 
   // Note: this is done after to ensure above global variables are accessible
@@ -700,6 +720,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   out.Write("\to.pos = vec4(dot(" I_PROJECTION "[0], vertex_output.position), dot(" I_PROJECTION
             "[1], vertex_output.position), dot(" I_PROJECTION
             "[2], vertex_output.position), dot(" I_PROJECTION "[3], vertex_output.position));\n");
+
   for (u32 i = 0; i < uid_data->numTexGens; ++i)
   {
     out.Write("\to.tex{0} = vertex_output.texture_coord_{0};\n", i);
@@ -869,6 +890,18 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   {
     out.Write("gl_ClipDistance[0] = clipDist0;\n"
               "gl_ClipDistance[1] = clipDist1;\n");
+  }
+
+  // VS layer output stereo: use instancing to select layer, apply stereo offset
+  // This renders to 2 separate layers like the geometry shader path
+  if (host_config.stereo && !host_config.backend_geometry_shaders &&
+      host_config.backend_vs_layer_output)
+  {
+    out.Write("// VS layer output stereo via instancing\n");
+    out.Write("gl_Layer = gl_InstanceID;\n");
+    out.Write("layer = gl_InstanceID;\n");  // Pass layer to pixel shader via varying
+    out.Write("float stereo_offset = " I_STEREOPARAMS "[gl_InstanceID];\n");
+    out.Write("o.pos.x += stereo_offset * (o.pos.w - " I_STEREOPARAMS ".z);\n");
   }
 
   // Vulkan NDC space has Y pointing down (right-handed NDC space).

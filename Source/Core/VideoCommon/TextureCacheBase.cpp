@@ -2301,8 +2301,11 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   RcTcacheEntry entry;
   if (copy_to_vram)
   {
+    const u32 texture_width = scaled_tex_w;
+    const u32 texture_layers = g_framebuffer_manager->GetEFBLayers();
+
     // create the texture
-    const TextureConfig config(scaled_tex_w, scaled_tex_h, 1, g_framebuffer_manager->GetEFBLayers(),
+    const TextureConfig config(texture_width, scaled_tex_h, 1, texture_layers,
                                1, AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget,
                                AbstractTextureType::Texture_2DArray);
     entry = AllocateCacheEntry(config);
@@ -2824,14 +2827,38 @@ void TextureCacheBase::CopyEFBToCacheEntry(RcTcacheEntry& entry, bool is_depth_c
   // Flush EFB pokes first, as they're expected to be included.
   g_framebuffer_manager->FlushEFBPokes();
 
-  // Get the pipeline which we will be using. If the compilation failed, this will be null.
-  const AbstractPipeline* copy_pipeline = g_shader_cache->GetEFBCopyToVRAMPipeline(
-      TextureConversionShaderGen::GetShaderUid(dst_format, is_depth_copy, is_intensity,
-                                               scale_by_half, 1.0f / gamma, filter_coefficients));
-  if (!copy_pipeline)
+  // Check if we need VS layer stereo (Vulkan with VK_EXT_shader_viewport_index_layer)
+  // This allows instanced drawing with gl_Layer output to copy both layers at once
+  const bool use_vs_layer_stereo = !g_backend_info.bSupportsGeometryShaders &&
+                                   g_backend_info.bSupportsVSLayerOutput &&
+                                   g_framebuffer_manager->GetEFBLayers() > 1;
+
+  // Get the pipeline which we will be using.
+  const AbstractPipeline* copy_pipeline = nullptr;
+
+  if (use_vs_layer_stereo)
   {
-    WARN_LOG_FMT(VIDEO, "Skipping EFB copy to VRAM due to missing pipeline.");
-    return;
+    // VS layer stereo: use shader with gl_Layer output for instanced drawing
+    copy_pipeline = g_shader_cache->GetEFBCopyToVRAMPipeline(
+        TextureConversionShaderGen::GetShaderUid(dst_format, is_depth_copy, is_intensity,
+                                                 scale_by_half, 1.0f / gamma, filter_coefficients,
+                                                 true));  // vs_layer_stereo=true
+    if (!copy_pipeline)
+    {
+      WARN_LOG_FMT(VIDEO, "Skipping EFB copy to VRAM due to missing VS layer stereo pipeline.");
+      return;
+    }
+  }
+  else
+  {
+    copy_pipeline = g_shader_cache->GetEFBCopyToVRAMPipeline(
+        TextureConversionShaderGen::GetShaderUid(dst_format, is_depth_copy, is_intensity,
+                                                 scale_by_half, 1.0f / gamma, filter_coefficients));
+    if (!copy_pipeline)
+    {
+      WARN_LOG_FMT(VIDEO, "Skipping EFB copy to VRAM due to missing pipeline.");
+      return;
+    }
   }
 
   const auto scaled_src_rect = g_framebuffer_manager->ConvertEFBRectangle(src_rect);
@@ -2853,7 +2880,7 @@ void TextureCacheBase::CopyEFBToCacheEntry(RcTcacheEntry& entry, bool is_depth_c
     float clamp_top;
     float clamp_bottom;
     float pixel_height;
-    u32 padding;
+    float src_layer;  // Source layer for geometry shader path
   };
   Uniforms uniforms;
   const float rcp_efb_width = 1.0f / static_cast<float>(g_framebuffer_manager->GetEFBWidth());
@@ -2875,10 +2902,13 @@ void TextureCacheBase::CopyEFBToCacheEntry(RcTcacheEntry& entry, bool is_depth_c
   const u32 bottom_coord = (clamp_bottom ? framebuffer_rect.bottom : efb_height) - 1;
   uniforms.clamp_bottom = (static_cast<float>(bottom_coord) + .5f) * rcp_efb_height;
   uniforms.pixel_height = g_ActiveConfig.bCopyEFBScaled ? rcp_efb_height : 1.0f / EFB_HEIGHT;
-  uniforms.padding = 0;
-  g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
+  uniforms.src_layer = 0.0f;
 
-  // Use the copy pipeline to render the VRAM copy.
+  // Standard path: single draw copies all layers
+  // - With geometry shader: GS duplicates to both layers
+  // - With VS layer output: instanced draw (2 instances) with gl_Layer selection
+  // - Otherwise: single layer copy
+  g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
   g_gfx->SetAndDiscardFramebuffer(entry->framebuffer.get());
   g_gfx->SetViewportAndScissor(entry->framebuffer->GetRect());
   g_gfx->SetPipeline(copy_pipeline);

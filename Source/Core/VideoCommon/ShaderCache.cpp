@@ -1264,11 +1264,37 @@ ShaderCache::GetEFBCopyToVRAMPipeline(const TextureConversionShaderGen::TCShader
   if (iter != m_efb_copy_to_vram_pipelines.end())
     return iter->second.get();
 
-  auto shader_code = TextureConversionShaderGen::GeneratePixelShader(m_api_type, uid.GetUidData());
-  auto shader = g_gfx->CreateShaderFromSource(
-      ShaderStage::Pixel, shader_code.GetBuffer(), nullptr,
+  auto pixel_shader_code =
+      TextureConversionShaderGen::GeneratePixelShader(m_api_type, uid.GetUidData());
+  auto pixel_shader = g_gfx->CreateShaderFromSource(
+      ShaderStage::Pixel, pixel_shader_code.GetBuffer(), nullptr,
       fmt::format("EFB copy to VRAM pixel shader: {}", *uid.GetUidData()));
-  if (!shader)
+  if (!pixel_shader)
+  {
+    m_efb_copy_to_vram_pipelines.emplace(uid, nullptr);
+    return nullptr;
+  }
+
+  // Select or generate vertex shader based on vs_layer_stereo
+  const AbstractShader* vertex_shader = nullptr;
+  std::unique_ptr<AbstractShader> generated_vertex_shader;
+  if (uid.GetUidData()->vs_layer_stereo)
+  {
+    // VS layer stereo: generate vertex shader with instanced layer output
+    auto vertex_shader_code =
+        TextureConversionShaderGen::GenerateVertexShader(m_api_type, uid.GetUidData());
+    generated_vertex_shader = g_gfx->CreateShaderFromSource(
+        ShaderStage::Vertex, vertex_shader_code.GetBuffer(), nullptr,
+        "EFB copy vertex shader (VS layer stereo)");
+    vertex_shader = generated_vertex_shader.get();
+  }
+  else
+  {
+    // Normal mode: use the shared vertex shader
+    vertex_shader = m_efb_copy_vertex_shader.get();
+  }
+
+  if (!vertex_shader)
   {
     m_efb_copy_to_vram_pipelines.emplace(uid, nullptr);
     return nullptr;
@@ -1276,10 +1302,10 @@ ShaderCache::GetEFBCopyToVRAMPipeline(const TextureConversionShaderGen::TCShader
 
   AbstractPipelineConfig config = {};
   config.vertex_format = nullptr;
-  config.vertex_shader = m_efb_copy_vertex_shader.get();
+  config.vertex_shader = vertex_shader;
   config.geometry_shader =
       UseGeometryShaderForEFBCopies() ? m_texcoord_geometry_shader.get() : nullptr;
-  config.pixel_shader = shader.get();
+  config.pixel_shader = pixel_shader.get();
   config.rasterization_state = RenderState::GetNoCullRasterizationState(PrimitiveType::Triangles);
   config.depth_state = RenderState::GetNoDepthTestingDepthState();
   config.blending_state = RenderState::GetNoBlendingBlendState();
@@ -1326,9 +1352,15 @@ bool ShaderCache::CompileSharedPipelines()
   m_texture_copy_vertex_shader = g_gfx->CreateShaderFromSource(
       ShaderStage::Vertex, FramebufferShaderGen::GenerateTextureCopyVertexShader(), nullptr,
       "Texture copy vertex shader");
-  m_efb_copy_vertex_shader = g_gfx->CreateShaderFromSource(
-      ShaderStage::Vertex, TextureConversionShaderGen::GenerateVertexShader(m_api_type).GetBuffer(),
-      nullptr, "EFB copy vertex shader");
+  // Compile normal EFB copy vertex shader
+  // VS layer stereo variants are generated on-demand in GetEFBCopyToVRAMPipeline
+  {
+    TextureConversionShaderGen::UidData uid_data = {};
+    m_efb_copy_vertex_shader = g_gfx->CreateShaderFromSource(
+        ShaderStage::Vertex,
+        TextureConversionShaderGen::GenerateVertexShader(m_api_type, &uid_data).GetBuffer(),
+        nullptr, "EFB copy vertex shader");
+  }
   if (!m_screen_quad_vertex_shader || !m_texture_copy_vertex_shader || !m_efb_copy_vertex_shader)
     return false;
 

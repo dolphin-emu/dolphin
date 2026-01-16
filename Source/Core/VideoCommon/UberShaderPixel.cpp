@@ -160,6 +160,13 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       out.Write("VARYING_LOCATION({}) {} in float3 WorldPos;\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa));
     }
+    // VS layer output stereo: receive layer from vertex shader via varying
+    // Only when geometry shaders are not available (otherwise GS handles layer)
+    if (stereo && !host_config.backend_geometry_shaders &&
+        host_config.backend_vs_layer_output)
+    {
+      out.Write("VARYING_LOCATION({}) flat in int layer;\n", counter++);
+    }
   }
 
   // Uniform index -> texture coordinates
@@ -597,6 +604,11 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   {
     if (host_config.backend_gl_layer_in_fs)
       out.Write("\tint layer = gl_Layer;\n");
+    // Otherwise, layer is a flat varying from geometry shader - already in scope
+  }
+  else if (stereo && host_config.backend_vs_layer_output)
+  {
+    // VS layer stereo: layer is a flat varying from vertex shader - already in scope
   }
   else
   {

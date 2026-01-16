@@ -179,6 +179,7 @@ union ShaderHostConfig
   BitField<27, 1, bool, u32> backend_dynamic_vertex_loader;
   BitField<28, 1, bool, u32> backend_vs_point_line_expand;
   BitField<29, 1, bool, u32> backend_gl_layer_in_fs;
+  BitField<30, 1, bool, u32> backend_vs_layer_output;
 
   static ShaderHostConfig GetCurrent();
 };

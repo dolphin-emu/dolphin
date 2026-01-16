@@ -21,6 +21,7 @@
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/FramebufferManager.h"
@@ -209,10 +210,11 @@ void VideoConfig::VerifyValidity()
 
   if (stereo_mode != StereoMode::Off)
   {
-    if (!g_backend_info.bSupportsGeometryShaders)
+    if (!g_backend_info.bSupportsGeometryShaders && !g_backend_info.bSupportsVSLayerOutput)
     {
       OSD::AddMessage(
-          "Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.",
+          "Stereoscopic 3D isn't supported by your GPU, support for geometry shaders "
+          "or VS layer output is required.",
           10000);
       stereo_mode = StereoMode::Off;
     }
@@ -288,6 +290,9 @@ void CheckForConfigChanges()
 {
   const ShaderHostConfig old_shader_host_config = ShaderHostConfig::GetCurrent();
   const StereoMode old_stereo = g_ActiveConfig.stereo_mode;
+  const float old_stereo_depth = g_ActiveConfig.stereo_depth;
+  const float old_stereo_convergence = g_ActiveConfig.stereo_convergence;
+  const bool old_stereo_swap_eyes = g_ActiveConfig.bStereoSwapEyes;
   const u32 old_multisamples = g_ActiveConfig.iMultisamples;
   const auto old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
   const int old_efb_access_tile_size = g_ActiveConfig.iEFBAccessTileSize;
@@ -358,8 +363,22 @@ void CheckForConfigChanges()
   if (old_hdr != g_ActiveConfig.bHDR)
     changed_bits |= CONFIG_CHANGE_BIT_HDR;
 
+  // Check if stereo settings changed (depth, convergence, swap eyes)
+  // If so, we need to trigger SetProjectionChanged to recalculate stereoparams
+  const bool stereo_settings_changed =
+      (old_stereo != g_ActiveConfig.stereo_mode) ||
+      (old_stereo_depth != g_ActiveConfig.stereo_depth) ||
+      (old_stereo_convergence != g_ActiveConfig.stereo_convergence) ||
+      (old_stereo_swap_eyes != g_ActiveConfig.bStereoSwapEyes);
+
+  if (stereo_settings_changed && g_ActiveConfig.stereo_mode != StereoMode::Off)
+  {
+    auto& system = Core::System::GetInstance();
+    system.GetGeometryShaderManager().SetProjectionChanged();
+  }
+
   // No changes?
-  if (changed_bits == 0)
+  if (changed_bits == 0 && !stereo_settings_changed)
     return;
 
   float old_scale = g_framebuffer_manager->GetEFBScale();

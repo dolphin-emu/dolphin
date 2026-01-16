@@ -13,7 +13,8 @@ namespace TextureConversionShaderGen
 {
 TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_intensity,
                          bool scale_by_half, float gamma_rcp,
-                         const std::array<u32, 3>& filter_coefficients)
+                         const std::array<u32, 3>& filter_coefficients,
+                         bool vs_layer_stereo)
 {
   TCShaderUid out;
 
@@ -48,6 +49,7 @@ TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_i
   uid_data->copy_filter_can_overflow = TextureCacheBase::CopyFilterCanOverflow(filter_coefficients);
   // If the gamma is needed, then include that too.
   uid_data->apply_gamma = gamma_rcp != 1.0f;
+  uid_data->vs_layer_stereo = vs_layer_stereo;
 
   return out;
 }
@@ -60,12 +62,20 @@ static void WriteHeader(APIType api_type, ShaderCode& out)
             "  float gamma_rcp;\n"
             "  float2 clamp_tb;\n"
             "  float pixel_height;\n"
+            "  float src_layer;\n"  // Source layer for geometry shader path
             "}};\n");
 }
 
-ShaderCode GenerateVertexShader(APIType api_type)
+ShaderCode GenerateVertexShader(APIType api_type, const UidData* uid_data)
 {
   ShaderCode out;
+
+  // For VS layer stereo, declare the extension for gl_Layer output from vertex shader
+  if (uid_data->vs_layer_stereo)
+  {
+    out.Write("#extension GL_ARB_shader_viewport_layer_array : require\n");
+  }
+
   WriteHeader(api_type, out);
 
   if (g_backend_info.bSupportsGeometryShaders)
@@ -84,7 +94,22 @@ ShaderCode GenerateVertexShader(APIType api_type)
   out.Write("  v_tex0 = float3(float((id << 1) & 2), float(id & 2), 0.0f);\n");
   out.Write(
       "  opos = float4(v_tex0.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), 0.0f, 1.0f);\n");
-  out.Write("  v_tex0 = float3(src_offset + (src_size * v_tex0.xy), 0.0f);\n");
+
+  // Calculate source UV coordinates
+  out.Write("  float2 src_uv = src_offset + (src_size * v_tex0.xy);\n");
+
+  // VS layer stereo: use gl_InstanceID to select both source and destination layer
+  // This allows copying both layers in a single draw call with 2 instances
+  if (uid_data->vs_layer_stereo)
+  {
+    out.Write("  gl_Layer = gl_InstanceID;\n");
+    out.Write("  v_tex0 = float3(src_uv, float(gl_InstanceID));\n");
+  }
+  else
+  {
+    // Use src_layer for array layer selection (for backends with geometry shaders)
+    out.Write("  v_tex0 = float3(src_uv, src_layer);\n");
+  }
 
   // NDC space is flipped in Vulkan
   if (api_type == APIType::Vulkan)
