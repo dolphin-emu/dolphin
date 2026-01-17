@@ -13,8 +13,7 @@ namespace TextureConversionShaderGen
 {
 TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_intensity,
                          bool scale_by_half, float gamma_rcp,
-                         const std::array<u32, 3>& filter_coefficients,
-                         bool vs_layer_stereo)
+                         const std::array<u32, 3>& filter_coefficients, bool vs_layer_stereo)
 {
   TCShaderUid out;
 

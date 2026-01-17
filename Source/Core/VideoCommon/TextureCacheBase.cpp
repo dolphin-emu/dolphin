@@ -2305,8 +2305,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     const u32 texture_layers = g_framebuffer_manager->GetEFBLayers();
 
     // create the texture
-    const TextureConfig config(texture_width, scaled_tex_h, 1, texture_layers,
-                               1, AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget,
+    const TextureConfig config(texture_width, scaled_tex_h, 1, texture_layers, 1,
+                               AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget,
                                AbstractTextureType::Texture_2DArray);
     entry = AllocateCacheEntry(config);
     if (entry)

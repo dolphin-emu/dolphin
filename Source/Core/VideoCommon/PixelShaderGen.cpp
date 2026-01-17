@@ -896,8 +896,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     }
     // VS layer output stereo: receive layer from vertex shader via varying
     // Only when geometry shaders are not available (otherwise GS handles layer)
-    if (stereo && !host_config.backend_geometry_shaders &&
-        host_config.backend_vs_layer_output)
+    if (stereo && !host_config.backend_geometry_shaders && host_config.backend_vs_layer_output)
     {
       out.Write("VARYING_LOCATION({}) flat in int layer;\n", counter++);
     }

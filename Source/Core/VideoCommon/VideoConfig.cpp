@@ -21,11 +21,11 @@
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FreeLookCamera.h"
+#include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -212,10 +212,9 @@ void VideoConfig::VerifyValidity()
   {
     if (!g_backend_info.bSupportsGeometryShaders && !g_backend_info.bSupportsVSLayerOutput)
     {
-      OSD::AddMessage(
-          "Stereoscopic 3D isn't supported by your GPU, support for geometry shaders "
-          "or VS layer output is required.",
-          10000);
+      OSD::AddMessage("Stereoscopic 3D isn't supported by your GPU, support for geometry shaders "
+                      "or VS layer output is required.",
+                      10000);
       stereo_mode = StereoMode::Off;
     }
   }

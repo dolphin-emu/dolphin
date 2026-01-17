@@ -352,8 +352,8 @@ void EnhancementsWidget::OnBackendChanged()
   m_hdr->setEnabled(g_backend_info.bSupportsHDROutput);
 
   // Stereoscopy
-  const bool supports_stereoscopy = g_backend_info.bSupportsGeometryShaders ||
-                                    g_backend_info.bSupportsVSLayerOutput;
+  const bool supports_stereoscopy =
+      g_backend_info.bSupportsGeometryShaders || g_backend_info.bSupportsVSLayerOutput;
   m_3d_mode->setEnabled(supports_stereoscopy);
   m_3d_convergence->setEnabled(supports_stereoscopy);
   m_3d_depth->setEnabled(supports_stereoscopy);

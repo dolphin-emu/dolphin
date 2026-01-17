@@ -1283,9 +1283,9 @@ ShaderCache::GetEFBCopyToVRAMPipeline(const TextureConversionShaderGen::TCShader
     // VS layer stereo: generate vertex shader with instanced layer output
     auto vertex_shader_code =
         TextureConversionShaderGen::GenerateVertexShader(m_api_type, uid.GetUidData());
-    generated_vertex_shader = g_gfx->CreateShaderFromSource(
-        ShaderStage::Vertex, vertex_shader_code.GetBuffer(), nullptr,
-        "EFB copy vertex shader (VS layer stereo)");
+    generated_vertex_shader =
+        g_gfx->CreateShaderFromSource(ShaderStage::Vertex, vertex_shader_code.GetBuffer(), nullptr,
+                                      "EFB copy vertex shader (VS layer stereo)");
     vertex_shader = generated_vertex_shader.get();
   }
   else
