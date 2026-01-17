@@ -302,6 +302,9 @@ void SetUserDirectory(std::string custom_path)
   }
 
   std::string user_path;
+  std::optional<std::string> application_state_path;
+  std::optional<std::string> config_path;
+  std::optional<std::string> cache_path;
 #ifdef _WIN32
   // Detect where the User directory is. There are five different cases
   // (on top of the command line flag, which overrides all this):
@@ -309,19 +312,27 @@ void SetUserDirectory(std::string custom_path)
   //    -> Use GetExeDirectory()\User
   // 2. HKCU\Software\Dolphin Emulator\LocalUserConfig exists and is true
   //    -> Use GetExeDirectory()\User
-  // 3. HKCU\Software\Dolphin Emulator\UserConfigPath exists
+  // 3. HKCU\Software\Dolphin Emulator\UserConfigPath exists and isn't the same as
+  //    AppData\Roaming
   //    -> Use this as the user directory path
-  // 4. My Documents\Dolphin Emulator exists (default user folder before PR 10708)
+  // 4. My Documents\Dolphin Emulator exists (default user folder before PR 10708) and
+  //    AppData\Roaming\Dolphin Emulator doesn't exist
   //    -> Use this as the user directory path
   // 5. AppData\Roaming exists
   //    -> Use AppData\Roaming\Dolphin Emulator as the User directory path
+  //    5.1 AppData\Local exists, and AppData\Roaming\Dolphin Emulator\Cache doesn't exist (default
+  //        cache folder before PR 13721)
+  //        -> Use AppData\Local\Dolphin Emulator as the Application State and Cache directory paths
   // 6. Default
   //    -> Use GetExeDirectory()\User
 
   // Get AppData path in case we need it.
+  std::optional<std::string> appdata_path;
   wil::unique_cotaskmem_string appdata;
   bool appdata_found = SUCCEEDED(
       SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, appdata.put()));
+  if (appdata_found)
+    appdata_path = TStrToUTF8(appdata.get()) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
 
   // Check our registry keys
   wil::unique_hkey hkey;
@@ -364,17 +375,30 @@ void SetUserDirectory(std::string custom_path)
   {
     user_path = File::GetExeDirectory() + DIR_SEP PORTABLE_USER_DIR DIR_SEP;
   }
-  else if (configPath)  // Case 3
+  else if (configPath && appdata_path && *appdata_path != TStrToUTF8(configPath.get()))  // Case 3
   {
     user_path = TStrToUTF8(configPath.get());
   }
-  else if (old_user_folder && File::Exists(old_user_folder.value()))  // Case 4
+  else if (old_user_folder && File::Exists(old_user_folder.value()) && !appdata_path)  // Case 4
   {
     user_path = old_user_folder.value();
   }
   else if (appdata_found)  // Case 5
   {
-    user_path = TStrToUTF8(appdata.get()) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
+    user_path = *appdata_path;
+
+    wil::unique_cotaskmem_string localappdata;
+    const bool localappdata_found = SUCCEEDED(
+        SHGetKnownFolderPath(FOLDERID_LocalAppData, KF_FLAG_DEFAULT, nullptr, localappdata.put()));
+
+    if (localappdata_found && !File::Exists(*appdata_path + CACHE_DIR DIR_SEP))  // Case 5.1
+    {
+      const std::string localappdata_path =
+          TStrToUTF8(localappdata.get()) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
+
+      application_state_path = localappdata_path;
+      cache_path = localappdata_path + CACHE_DIR DIR_SEP;
+    }
 
     // Set the UserConfigPath value in the registry for backwards compatibility with older Dolphin
     // builds, which will look for the default User directory in Documents. If we set this key,
@@ -445,32 +469,38 @@ void SetUserDirectory(std::string custom_path)
       if (File::Exists("/.flatpak-info") || !File::Exists(user_path))
       {
         const char* data_home = getenv("XDG_DATA_HOME");
-        std::string data_path =
+        user_path =
             std::string(data_home && data_home[0] == '/' ? data_home :
                                                            (home_path + ".local" DIR_SEP "share")) +
             DIR_SEP NORMAL_USER_DIR DIR_SEP;
 
         const char* config_home = getenv("XDG_CONFIG_HOME");
-        std::string config_path =
-            std::string(config_home && config_home[0] == '/' ? config_home :
-                                                               (home_path + ".config")) +
-            DIR_SEP NORMAL_USER_DIR DIR_SEP;
+        config_path = std::string(config_home && config_home[0] == '/' ? config_home :
+                                                                         (home_path + ".config")) +
+                      DIR_SEP NORMAL_USER_DIR DIR_SEP;
 
         const char* cache_home = getenv("XDG_CACHE_HOME");
-        std::string cache_path =
+        cache_path =
             std::string(cache_home && cache_home[0] == '/' ? cache_home : (home_path + ".cache")) +
             DIR_SEP NORMAL_USER_DIR DIR_SEP;
 
-        File::SetUserPath(D_USER_IDX, data_path);
-        File::SetUserPath(D_CONFIG_IDX, config_path);
-        File::SetUserPath(D_CACHE_IDX, cache_path);
-        return;
+        const char* state_home = getenv("XDG_STATE_HOME");
+        application_state_path = std::string(state_home && state_home[0] == '/' ?
+                                                 state_home :
+                                                 (home_path + ".local" DIR_SEP "state")) +
+                                 DIR_SEP NORMAL_USER_DIR DIR_SEP;
       }
     }
 #endif
   }
 #endif
   File::SetUserPath(D_USER_IDX, std::move(user_path));
+  if (config_path)
+    File::SetUserPath(D_CONFIG_IDX, std::move(*config_path));
+  if (cache_path)
+    File::SetUserPath(D_CACHE_IDX, std::move(*cache_path));
+  if (application_state_path)
+    File::SetUserPath(D_APPLICATIONSTATE_IDX, std::move(*application_state_path));
 }
 
 bool TriggerSTMPowerEvent()

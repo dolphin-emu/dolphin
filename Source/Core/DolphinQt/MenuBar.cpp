@@ -271,6 +271,10 @@ void MenuBar::AddFileMenu()
     m_open_cache_folder =
         file_menu->addAction(tr("Open C&ache Folder"), this, &MenuBar::OpenCacheFolder);
   }
+  if (user_path != File::GetUserPath(D_APPLICATIONSTATE_IDX))
+  {
+    file_menu->addAction(tr("Open Application &State Folder"), this, &MenuBar::OpenAppStateFolder);
+  }
 
   file_menu->addSeparator();
 
