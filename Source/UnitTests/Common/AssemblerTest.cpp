@@ -2258,7 +2258,7 @@ TEST(Assembler, InvalidNumericLabels)
   res = Assemble(forward_directive, 0);
   EXPECT_TRUE(IsFailure(res) &&
               GetFailure(res).message ==
-                  "Forward label references not supported in fully resolved expressons")
+                  "Forward label references not supported in fully resolved expressions")
       << GetFailure(res).message;
   res = Assemble(missing_backward_directive, 0);
   EXPECT_TRUE(IsFailure(res) && GetFailure(res).message == "No numeric label '0' found above here")

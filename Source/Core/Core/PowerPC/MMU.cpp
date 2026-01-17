@@ -129,7 +129,7 @@ static void EFB_Write(u32 data, u32 addr)
   if (addr & 0x00800000)
   {
     // It's possible to do a z-tested write to EFB by writing a 64bit value to this address range.
-    // Not much is known, but let's at least get some loging.
+    // Not much is known, but let's at least get some logging.
     ERROR_LOG_FMT(MEMMAP, "Unimplemented Z+Color EFB write. {:08x} @ {:#010x}", data, addr);
   }
   else if (addr & 0x00400000)

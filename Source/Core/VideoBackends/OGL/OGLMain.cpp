@@ -133,7 +133,7 @@ bool VideoBackend::FillBackendInfo(GLContext* context)
   g_backend_info.bSupportsPipelineCacheData = false;
   g_backend_info.bSupportsLodBiasInSampler = true;
   g_backend_info.bSupportsPartialMultisampleResolve = true;
-  // Unneccessary since OGL doesn't use pipelines
+  // Unnecessary since OGL doesn't use pipelines
   g_backend_info.bSupportsDynamicVertexLoader = false;
 
   // TODO: There is a bug here, if texel buffers or SSBOs/atomics are not supported the graphics

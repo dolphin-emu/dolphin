@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 // TODO(ector): Tons of pshufb optimization of the loads/stores, for SSSE3+, possibly SSE4, only.
-// Should give a very noticable speed boost to paired single heavy code.
+// Should give a very noticeable speed boost to paired single heavy code.
 
 #include "Core/PowerPC/Jit64/Jit.h"
 

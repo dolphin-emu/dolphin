@@ -153,7 +153,7 @@ bool CPUCull::AreAllVerticesCulled(VertexLoaderBase* loader, OpcodeDecoder::Prim
         Common::AllocateAlignedMemory(new_size * sizeof(TransformedVertex), 32)));
   }
 
-  // transform functions need the projection matrix to tranform to clip space
+  // transform functions need the projection matrix to transform to clip space
   auto& system = Core::System::GetInstance();
   system.GetVertexShaderManager().SetProjectionMatrix(system.GetXFStateManager());
 

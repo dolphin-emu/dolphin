@@ -98,7 +98,7 @@ struct BranchWatchSelectionValueType
   BranchWatchCollection::value_type* collection_ptr;
   bool is_virtual;
   bool condition;
-  // This is moreso a GUI thing, but it works best in the Core code for multiple reasons.
+  // This is more so a GUI thing, but it works best in the Core code for multiple reasons.
   Inspection inspection;
 };
 

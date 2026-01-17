@@ -7,7 +7,7 @@
 
 // UniqueBuffer<T> and SharedBuffer<T> are a lighter alternative to std::vector<T>.
 // The main benefit is that elements are not value-initialized like in vector.
-// That can be quite a bit of unecessary overhead when allocating a large buffer.
+// That can be quite a bit of unnecessary overhead when allocating a large buffer.
 
 namespace Common
 {

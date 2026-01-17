@@ -129,7 +129,7 @@ void SWGfx::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 {
   // BPFunctions calls SetScissorRect with the "best" scissor rect whenever the viewport or scissor
   // changes.  However, the software renderer is actually able to use multiple scissor rects (which
-  // is necessary in a few renderering edge cases, such as with Major Minor's Majestic March).
+  // is necessary in a few rendering edge cases, such as with Major Minor's Majestic March).
   // Thus, we use this as a signal to update the list of scissor rects, but ignore the parameter.
   Rasterizer::ScissorChanged();
 }

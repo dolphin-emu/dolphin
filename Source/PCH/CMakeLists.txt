@@ -2,7 +2,7 @@
 # Instead of having one PCH per module, dolphin has one PCH shared between all modules.
 # So we need to implement PCH manually, rather than using the PCH support built into cmake
 
-# linking against this interface libary will cause targets to enable PCH
+# linking against this interface library will cause targets to enable PCH
 add_library(use_pch INTERFACE)
 
 # Uncomment this return to disable PCH

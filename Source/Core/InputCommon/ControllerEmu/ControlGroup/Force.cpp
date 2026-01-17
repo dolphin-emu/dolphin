@@ -28,7 +28,7 @@ Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType
              {_trans("Distance"),
               // i18n: The symbol/abbreviation for centimeters.
               _trans("cm"),
-              // i18n: Refering to emulated wii remote swing movement.
+              // i18n: Referring to emulated wii remote swing movement.
               _trans("Distance of travel from neutral position.")},
              50, 1, 100);
 
@@ -42,7 +42,7 @@ Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType
              {_trans("Speed"),
               // i18n: The symbol/abbreviation for meters per second.
               _trans("m/s"),
-              // i18n: Refering to emulated wii remote swing movement.
+              // i18n: Referring to emulated wii remote swing movement.
               _trans("Peak velocity of outward swing movements.")},
              16, 1, 40);
 
@@ -51,7 +51,7 @@ Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType
              {_trans("Return Speed"),
               // i18n: The symbol/abbreviation for meters per second.
               _trans("m/s"),
-              // i18n: Refering to emulated wii remote swing movement.
+              // i18n: Referring to emulated wii remote swing movement.
               _trans("Peak velocity of movements to neutral position.")},
              2, 1, 40);
 
@@ -59,7 +59,7 @@ Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType
              {_trans("Angle"),
               // i18n: The symbol/abbreviation for degrees (unit of angular measure).
               _trans("°"),
-              // i18n: Refering to emulated wii remote swing movement.
+              // i18n: Referring to emulated wii remote swing movement.
               _trans("Rotation applied at extremities of swing.")},
              90, 1, 180);
 }
@@ -141,7 +141,7 @@ Shake::Shake(const std::string& name_, ControlState default_intensity_scale)
              {_trans("Intensity"),
               // i18n: The symbol/abbreviation for centimeters.
               _trans("cm"),
-              // i18n: Refering to emulated wii remote movement.
+              // i18n: Referring to emulated wii remote movement.
               _trans("Total travel distance.")},
              10 * default_intensity_scale, -50, 50);
 
@@ -151,7 +151,7 @@ Shake::Shake(const std::string& name_, ControlState default_intensity_scale)
              {_trans("Frequency"),
               // i18n: The symbol/abbreviation for hertz (cycles per second).
               _trans("Hz"),
-              // i18n: Refering to emulated wii remote movement.
+              // i18n: Referring to emulated wii remote movement.
               _trans("Number of shakes per second.")},
              6, 1, 20);
 }

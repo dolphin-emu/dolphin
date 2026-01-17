@@ -316,7 +316,7 @@ bool SwapChain::ChangeSurface(void* native_handle)
 {
   DestroySwapChain();
   m_wsi.render_surface = native_handle;
-  // We only keep the swap chain settings (HDR/Stereo) that had successfully applied beofre
+  // We only keep the swap chain settings (HDR/Stereo) that had successfully applied before
   return CreateSwapChain(m_stereo, m_hdr);
 }
 

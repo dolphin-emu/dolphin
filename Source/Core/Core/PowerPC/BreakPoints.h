@@ -67,7 +67,7 @@ public:
   void AddFromStrings(const TBreakPointsStr& bp_strings);
 
   bool IsAddressBreakPoint(u32 address) const;
-  bool IsBreakPointEnable(u32 adresss) const;
+  bool IsBreakPointEnable(u32 address) const;
   // Get the breakpoint in this address (for most purposes)
   const TBreakPoint* GetBreakpoint(u32 address) const;
   // Get the breakpoint in this address (ignore temporary breakpoint, e.g. for editing purposes)

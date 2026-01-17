@@ -20,7 +20,7 @@ struct TextureSamplerValue
   // If 'Asset' is used, the sampler is pulled
   // directly from the asset properties
   // If 'TextureHash' is chosen, the sampler is pulled
-  // from the game with the cooresponding texture hash
+  // from the game with the corresponding texture hash
   enum class SamplerOrigin
   {
     Asset,

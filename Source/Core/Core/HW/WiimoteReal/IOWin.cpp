@@ -629,7 +629,7 @@ static std::vector<WiimoteScannerWindows::EnumeratedWiimoteInterface> GetAllWiim
 
     const auto parent_inst = GetInst(hid_iface).and_then(GetParentInst);
 
-    // This provies a proper name like "Nintendo RVL-CNT-01" or "Nintendo RVL-WBC-01".
+    // This provides a proper name like "Nintendo RVL-CNT-01" or "Nintendo RVL-WBC-01".
     const auto bluetooth_name = parent_inst.and_then(GetBluetoothName);
     DEBUG_LOG_FMT(WIIMOTE, " BluetoothName: {}", bluetooth_name.value_or("<error>"));
 

@@ -42,7 +42,7 @@ struct FileHeader
   u32 flags;
   u64 texMemOffset;
   u32 texMemSize;
-  // These are for overriden RAM sizes.  Otherwise the FIFO Player
+  // These are for overridden RAM sizes.  Otherwise the FIFO Player
   // will crash and burn with mismatched settings.  See PR #8722.
   u32 mem1_size;
   u32 mem2_size;
@@ -136,7 +136,7 @@ bool FifoDataFile::Save(const std::string& filename)
   FileHeader header;
   header.fileId = FILE_ID;
   header.file_version = VERSION_NUMBER;
-  // Maintain backwards compatability so long as the RAM sizes aren't overridden.
+  // Maintain backwards compatibility so long as the RAM sizes aren't overridden.
   if (Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
     header.min_loader_version = MIN_LOADER_VERSION_FOR_RAM_OVERRIDE;
   else

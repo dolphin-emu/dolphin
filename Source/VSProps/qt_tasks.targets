@@ -437,7 +437,7 @@
                             var readyDependents = dependentsOf[workItem.Key]
                                 // ...that have not yet been queued...
                                 .Where(x => postponedItems.Contains(x)
-                                    // ...and whose dependending items have all terminated.
+                                    // ...and whose depending items have all terminated.
                                     && workItems[x].DependsOn.All(y => terminated.Contains(y)));
 
                             if (QtDebug && readyDependents.Any()) {

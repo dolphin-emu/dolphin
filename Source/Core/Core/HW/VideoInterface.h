@@ -203,7 +203,7 @@ union UVIFBInfoRegister
     // POFF only seems to exist in the top reg. XOFF, unknown.
     u32 XOFF : 4;  // Horizontal Offset of the left-most pixel within the first word of the fetched
                    // picture
-    u32 POFF : 1;  // Page offest: 1: fb address is (address>>5)
+    u32 POFF : 1;  // Page offset: 1: fb address is (address>>5)
     u32 CLRPOFF : 3;  // ? setting bit 31 clears POFF
   };
 };

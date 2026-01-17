@@ -1394,7 +1394,7 @@ Type NormalizeSkylanderType(Type type)
   case Type::Trap:
   case Type::Vehicle:
   case Type::Unknown:
-    // until these get seperate data logic (except unknown and item since items don't save data and
+    // until these get separate data logic (except unknown and item since items don't save data and
     // unknown is unknown)
     return Type::Unknown;
   }

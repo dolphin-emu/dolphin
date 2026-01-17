@@ -103,7 +103,7 @@ void PatchFixedFunctions(Core::System& system)
   // Not part of the binary itself, but either we or Gecko OS might insert
   // this, and it doesn't clear the icache properly.
   Patch(system, Gecko::ENTRY_POINT, "GeckoCodehandler");
-  // This has to always be installed even if cheats are not enabled because of the possiblity of
+  // This has to always be installed even if cheats are not enabled because of the possibility of
   // loading a savestate where PC is inside the code handler while cheats are disabled.
   Patch(system, Gecko::HLE_TRAMPOLINE_ADDRESS, "GeckoHandlerReturnTrampoline");
 }

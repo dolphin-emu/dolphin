@@ -108,7 +108,7 @@ std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, u1
         if (opc.params[j].mask == 0x003f)
         {
           // Left and right shifts function essentially as a single shift by a 7-bit signed value,
-          // but are split into two intructions for clarity.
+          // but are split into two instructions for clarity.
           buf += fmt::format("#{}", (val & 0x20) != 0 ? (int(val) - 64) : int(val));
         }
         else

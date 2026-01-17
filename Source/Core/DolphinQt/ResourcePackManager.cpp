@@ -162,7 +162,7 @@ void ResourcePackManager::RepopulateTable()
   SelectionChanged();
 }
 
-// Revert the indicies as to be more intuitive for users
+// Revert the indices as to be more intuitive for users
 int ResourcePackManager::GetResourcePackIndex(QTableWidgetItem* item) const
 {
   return m_table_widget->rowCount() - 1 - item->row();

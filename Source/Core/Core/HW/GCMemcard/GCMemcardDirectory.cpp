@@ -575,7 +575,7 @@ s32 GCMemcardDirectory::DirectoryWrite(u32 dest_address, u32 length, const u8* s
     // first 58 bytes should always be 0xff
     // needed to update the update ctr, checksums
     // could check for writes to the 6 important bytes but doubtful that it improves performance
-    // noticably
+    // noticeably
     memcpy((u8*)(dest) + offset, src_address, length);
     SyncSaves();
   }

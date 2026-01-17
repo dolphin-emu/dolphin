@@ -42,7 +42,7 @@ StreamBuffer::~StreamBuffer()
  * The next three functions are to create/delete/use the OpenGL synchronization.
  * ARB_sync (OpenGL 3.2) is used and required.
  *
- * To reduce overhead, the complete buffer is splitted up into SYNC_POINTS chunks.
+ * To reduce overhead, the complete buffer is split up into SYNC_POINTS chunks.
  * For each of this chunks, there is a fence which checks if this chunk is still in use.
  *
  * As our API allows to alloc more memory then it has to use, we have to catch how much is already

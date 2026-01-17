@@ -263,7 +263,7 @@ ReadHandlingMethod<T>* ReadToLarger(Mapping* mmio, u32 larger_addr, u32 shift)
   });
 }
 
-// Inplementation of the ReadHandler and WriteHandler class. There is a lot of
+// Implementation of the ReadHandler and WriteHandler class. There is a lot of
 // redundant code between these two classes but trying to abstract it away
 // brings more trouble than it fixes.
 template <typename T>

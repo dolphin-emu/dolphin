@@ -891,7 +891,7 @@ void Metal::StateTracker::PrepareCompute()
   {
     m_dirty_textures &= ~pipe->GetTextures();
     // Since there's two sets of textures, it's likely there'll be a few in each
-    // Check each set separately to avoid doing too many unneccessary bindings
+    // Check each set separately to avoid doing too many unnecessary bindings
     constexpr u32 lo_mask = (1 << VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS) - 1;
     if (u32 lo = dirty & lo_mask)
     {

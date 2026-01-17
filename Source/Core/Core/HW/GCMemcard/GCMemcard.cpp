@@ -165,10 +165,10 @@ std::pair<GCMemcardErrorCode, std::optional<GCMemcard>> GCMemcard::Open(std::str
   //
   // This rule only applies for errors within a single block! That is, invalid checksums for both
   // types, and free block mismatch for the BATs. Once two valid blocks have been selected but it
-  // later turns out they do not match eachother (eg. claimed block count of a file in the directory
-  // does not match the actual block count arrived at by following BAT), the card will be treated as
-  // corrupted, even if perhaps a different combination of the two blocks would result in a valid
-  // memory card.
+  // later turns out they do not match each other (eg. claimed block count of a file in the
+  // directory does not match the actual block count arrived at by following BAT), the card will be
+  // treated as corrupted, even if perhaps a different combination of the two blocks would result in
+  // a valid memory card.
 
   // can return invalid checksum, data in unused area
   GCMemcardErrorCode dir_block_0_error_code = card.m_directory_blocks[0].CheckForErrors();
@@ -821,7 +821,7 @@ GCMemcardRemoveFileRetVal GCMemcard::RemoveFile(u8 index)  // index in the direc
 
   // TODO: Deleting a file via the GC BIOS sometimes leaves behind an extra updated directory block
   // here that has an empty file with the filename "Broken File000" where the actual deleted file
-  // was. Determine when exactly this happens and if this is neccessary for anything.
+  // was. Determine when exactly this happens and if this is necessary for anything.
 
   memset(reinterpret_cast<u8*>(&UpdatedDir.m_dir_entries[index]), 0xFF, DENTRY_SIZE);
   UpdatedDir.m_update_counter = UpdatedDir.m_update_counter + 1;

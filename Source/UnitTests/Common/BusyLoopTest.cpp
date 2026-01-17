@@ -32,7 +32,7 @@ TEST(BusyLoopTest, MultiThreaded)
     {
       // We normally have to call Wakeup to assure the Event is triggered.
       // But this check is for an internal feature of the BlockingLoop.
-      // It's implemented to fall back to a busy loop regulary.
+      // It's implemented to fall back to a busy loop regularly.
       // If we're in the busy loop, the payload (and so the Event) is called all the time.
       // loop.Wakeup();
       e.Wait();

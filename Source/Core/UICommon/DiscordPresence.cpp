@@ -274,7 +274,7 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
   std::string secret_final;
   if (type != SecretType::Empty)
   {
-    // Declearing party_id or secret_final here will deallocate the variable before passing the
+    // Declaring party_id or secret_final here will deallocate the variable before passing the
     // values over to Discord_UpdatePresence.
 
     const size_t secret_length = secret.length();

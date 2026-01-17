@@ -965,7 +965,7 @@ void VertexManagerBase::OnDraw()
 
 void VertexManagerBase::OnCPUEFBAccess()
 {
-  // Check this isn't another access without any draws inbetween.
+  // Check this isn't another access without any draws in between.
   if (!m_cpu_accesses_this_frame.empty() && m_cpu_accesses_this_frame.back() == m_draw_counter)
     return;
 

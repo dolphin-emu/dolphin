@@ -81,7 +81,7 @@ void CommonAsmRoutines::GenConvertDoubleToSingle()
     PAND(XMM0, MConst(double_bottom_bits));
     PSRLQ(XMM0, 29);
 
-    // OR them togther
+    // OR them together
     POR(XMM0, R(XMM1));
     MOVD_xmm(R(RSCRATCH), XMM0);
   }

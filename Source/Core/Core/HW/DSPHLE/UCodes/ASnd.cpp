@@ -31,7 +31,7 @@ constexpr u32 MAIL_INPUT_NEXT_SAMPLES = 0x0222;
 // "send the samples for the internal buffer to the external buffer"
 constexpr u32 MAIN_SEND_SAMPLES = 0x0666;
 // "special: to dump the IROM Datas (remember disable others functions from the interrupt vector to
-// use) (CMBH+0x8000) countain the address of IROM" (not used)
+// use) (CMBH+0x8000) contains the address of IROM" (not used)
 constexpr u32 MAIL_ROM_DUMP_WORD = 0x0777;
 // "Used for test" (not used)
 constexpr u32 MAIL_TEST = 0x0888;

@@ -844,7 +844,7 @@ void GekkoIRPlugin::EvalTerminalAbs(Terminal type, const AssemblerToken& tok)
 
   case Terminal::NumLabFwd:
     m_owner->EmitErrorHere(
-        fmt::format("Forward label references not supported in fully resolved expressons"));
+        fmt::format("Forward label references not supported in fully resolved expressions"));
     break;
 
   case Terminal::NumLabBwd:
