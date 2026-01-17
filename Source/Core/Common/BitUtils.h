@@ -11,9 +11,9 @@
 #include <initializer_list>
 #include <span>
 #include <type_traits>
+#include <utility>
 
 #include "Common/CommonTypes.h"
-#include "Common/EnumUtils.h"
 
 namespace Common
 {
@@ -237,8 +237,8 @@ public:
       m_hex |= static_cast<std::underlying_type_t<T>>(bit);
     }
   }
-  auto operator[](T bit) { return FlagBit(&m_hex, Common::ToUnderlying(bit)); }
-  auto operator[](T bit) const { return FlagBit(&m_hex, Common::ToUnderlying(bit)); }
+  auto operator[](T bit) { return FlagBit(&m_hex, std::to_underlying(bit)); }
+  auto operator[](T bit) const { return FlagBit(&m_hex, std::to_underlying(bit)); }
 
   std::underlying_type_t<T> m_hex = 0;
 };

@@ -3,6 +3,8 @@
 
 #include "VideoCommon/Resources/MaterialResource.h"
 
+#include <utility>
+
 #include <xxh3.h>
 
 #include "Common/VariantUtil.h"
@@ -30,7 +32,7 @@ SamplerState CalculateSamplerAnisotropy(const SamplerState& initial_sampler)
   if (g_ActiveConfig.iMaxAnisotropy != AnisotropicFilteringMode::Default &&
       IsAnisotropicEnhancementSafe(state.tm0))
   {
-    state.tm0.anisotropic_filtering = Common::ToUnderlying(g_ActiveConfig.iMaxAnisotropy);
+    state.tm0.anisotropic_filtering = std::to_underlying(g_ActiveConfig.iMaxAnisotropy);
   }
 
   if (state.tm0.anisotropic_filtering != 0)

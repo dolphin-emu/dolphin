@@ -3,6 +3,8 @@
 
 #include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
 
+#include <utility>
+
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -10,7 +12,6 @@
 #include <QVBoxLayout>
 
 #include "Common/CommonTypes.h"
-#include "Common/EnumUtils.h"
 
 #include "Core/Config/GraphicsSettings.h"
 
@@ -47,14 +48,14 @@ EnhancementsWidget::EnhancementsWidget(GraphicsPane* gfx_pane)
   });
 }
 
-constexpr int ANISO_1x = Common::ToUnderlying(AnisotropicFilteringMode::Force1x);
-constexpr int ANISO_2X = Common::ToUnderlying(AnisotropicFilteringMode::Force2x);
-constexpr int ANISO_4X = Common::ToUnderlying(AnisotropicFilteringMode::Force4x);
-constexpr int ANISO_8X = Common::ToUnderlying(AnisotropicFilteringMode::Force8x);
-constexpr int ANISO_16X = Common::ToUnderlying(AnisotropicFilteringMode::Force16x);
-constexpr int FILTERING_DEFAULT = Common::ToUnderlying(TextureFilteringMode::Default);
-constexpr int FILTERING_NEAREST = Common::ToUnderlying(TextureFilteringMode::Nearest);
-constexpr int FILTERING_LINEAR = Common::ToUnderlying(TextureFilteringMode::Linear);
+constexpr int ANISO_1x = std::to_underlying(AnisotropicFilteringMode::Force1x);
+constexpr int ANISO_2X = std::to_underlying(AnisotropicFilteringMode::Force2x);
+constexpr int ANISO_4X = std::to_underlying(AnisotropicFilteringMode::Force4x);
+constexpr int ANISO_8X = std::to_underlying(AnisotropicFilteringMode::Force8x);
+constexpr int ANISO_16X = std::to_underlying(AnisotropicFilteringMode::Force16x);
+constexpr int FILTERING_DEFAULT = std::to_underlying(TextureFilteringMode::Default);
+constexpr int FILTERING_NEAREST = std::to_underlying(TextureFilteringMode::Nearest);
+constexpr int FILTERING_LINEAR = std::to_underlying(TextureFilteringMode::Linear);
 
 void EnhancementsWidget::CreateWidgets()
 {

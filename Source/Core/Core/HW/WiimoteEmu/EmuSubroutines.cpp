@@ -5,11 +5,11 @@
 
 #include <cmath>
 #include <iterator>
+#include <utility>
 
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/EnumUtils.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
@@ -208,7 +208,7 @@ void Wiimote::HandleExtensionSwap(ExtensionNumber desired_extension_number,
     else
     {
       INFO_LOG_FMT(WIIMOTE, "Switching to Extension {} (Wiimote {} in slot {})",
-                   Common::ToUnderlying(desired_extension_number), m_index, m_bt_device_index);
+                   std::to_underlying(desired_extension_number), m_index, m_bt_device_index);
 
       m_active_extension = desired_extension_number;
     }

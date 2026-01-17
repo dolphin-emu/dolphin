@@ -12,7 +12,6 @@
 
 #include "Common/Align.h"
 #include "Common/Crypto/SHA1.h"
-#include "Common/EnumUtils.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Core/CommonTitles.h"
@@ -73,7 +72,7 @@ ReturnCode ESCore::ImportTicket(const std::vector<u8>& ticket_bytes,
     if (ret < 0)
     {
       ERROR_LOG_FMT(IOS_ES, "ImportTicket: Failed to unpersonalise ticket for {:016x} ({})",
-                    ticket.GetTitleId(), Common::ToUnderlying(ret));
+                    ticket.GetTitleId(), std::to_underlying(ret));
       return ret;
     }
   }
@@ -163,7 +162,7 @@ ReturnCode ESCore::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes,
   if (ret != IPC_SUCCESS)
   {
     ERROR_LOG_FMT(IOS_ES, "ImportTmd: VerifyContainer failed with error {}",
-                  Common::ToUnderlying(ret));
+                  std::to_underlying(ret));
     return ret;
   }
 
@@ -177,8 +176,7 @@ ReturnCode ESCore::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes,
                       &context.title_import_export.key_handle);
   if (ret != IPC_SUCCESS)
   {
-    ERROR_LOG_FMT(IOS_ES, "ImportTmd: InitBackupKey failed with error {}",
-                  Common::ToUnderlying(ret));
+    ERROR_LOG_FMT(IOS_ES, "ImportTmd: InitBackupKey failed with error {}", std::to_underlying(ret));
     return ret;
   }
 

@@ -14,7 +14,6 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/EnumUtils.h"
 #include "Common/Logging/Log.h"
 #include "Common/Timer.h"
 
@@ -662,8 +661,8 @@ std::shared_ptr<Device> EmulationKernel::GetDeviceByFileDescriptor(const u32 fd)
 std::optional<IPCReply> EmulationKernel::OpenDevice(OpenRequest& request)
 {
   const s32 new_fd = GetFreeDeviceID();
-  INFO_LOG_FMT(IOS, "Opening {} (mode {}, fd {})", request.path,
-               Common::ToUnderlying(request.flags), new_fd);
+  INFO_LOG_FMT(IOS, "Opening {} (mode {}, fd {})", request.path, std::to_underlying(request.flags),
+               new_fd);
   if (new_fd < 0 || new_fd >= IPC_MAX_FDS)
   {
     ERROR_LOG_FMT(IOS, "Couldn't get a free fd, too many open files");
@@ -749,7 +748,7 @@ std::optional<IPCReply> EmulationKernel::HandleIPCCommand(const Request& request
     ret = device->IOCtlV(IOCtlVRequest{GetSystem(), request.address});
     break;
   default:
-    ASSERT_MSG(IOS, false, "Unexpected command: {:#x}", Common::ToUnderlying(request.command));
+    ASSERT_MSG(IOS, false, "Unexpected command: {:#x}", std::to_underlying(request.command));
     ret = IPCReply{IPC_EINVAL, 978_tbticks};
     break;
   }

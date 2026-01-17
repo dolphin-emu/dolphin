@@ -3,6 +3,8 @@
 
 #include "DolphinQt/Config/SettingsWindow.h"
 
+#include <utility>
+
 #include <QApplication>
 #include <QColor>
 #include <QDialogButtonBox>
@@ -13,8 +15,6 @@
 #include <QStackedWidget>
 #include <QTabWidget>
 #include <QVBoxLayout>
-
-#include "Common/EnumUtils.h"
 
 #include "DolphinQt/Config/ControllersPane.h"
 #include "DolphinQt/Config/Graphics/GraphicsPane.h"
@@ -206,5 +206,5 @@ SettingsWindow::SettingsWindow(MainWindow* parent) : StackedSettingsWindow{paren
 
 void SettingsWindow::SelectPane(SettingsWindowPaneIndex index)
 {
-  ActivatePane(Common::ToUnderlying(index));
+  ActivatePane(std::to_underlying(index));
 }

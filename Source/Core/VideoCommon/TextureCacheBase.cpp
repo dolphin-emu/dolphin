@@ -21,7 +21,6 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/EnumUtils.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
@@ -1031,7 +1030,7 @@ SamplerState TextureCacheBase::GetSamplerState(u32 index, float custom_tex_scale
   if (g_ActiveConfig.iMaxAnisotropy != AnisotropicFilteringMode::Default &&
       IsAnisotropicEnhancementSafe(tm0))
   {
-    state.tm0.anisotropic_filtering = Common::ToUnderlying(g_ActiveConfig.iMaxAnisotropy);
+    state.tm0.anisotropic_filtering = std::to_underlying(g_ActiveConfig.iMaxAnisotropy);
   }
 
   if (state.tm0.anisotropic_filtering != 0)

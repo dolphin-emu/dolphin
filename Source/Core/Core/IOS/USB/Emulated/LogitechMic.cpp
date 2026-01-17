@@ -4,6 +4,7 @@
 #include "Core/IOS/USB/Emulated/LogitechMic.h"
 
 #include <algorithm>
+#include <utility>
 
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/Memmap.h"
@@ -208,12 +209,12 @@ static constexpr u32 USBGETAID(u8 cs, u8 request, u16 index)
 
 static constexpr u32 USBGETAID(FeatureUnitControlSelector cs, RequestCode request, u16 index)
 {
-  return USBGETAID(Common::ToUnderlying(cs), Common::ToUnderlying(request), index);
+  return USBGETAID(std::to_underlying(cs), std::to_underlying(request), index);
 }
 
 static constexpr u32 USBGETAID(EndpointControlSelector cs, RequestCode request, u16 index)
 {
-  return USBGETAID(Common::ToUnderlying(cs), Common::ToUnderlying(request), index);
+  return USBGETAID(std::to_underlying(cs), std::to_underlying(request), index);
 }
 
 int LogitechMic::GetAudioControl(std::unique_ptr<CtrlMessage>& cmd)
@@ -228,7 +229,7 @@ int LogitechMic::GetAudioControl(std::unique_ptr<CtrlMessage>& cmd)
   DEBUG_LOG_FMT(IOS_USB,
                 "GetAudioControl: bCs={:02x} bCn={:02x} bRequestType={:02x} bRequest={:02x} "
                 "bIndex={:02x} aid={:08x}",
-                Common::ToUnderlying(cs), cn, cmd->request_type, Common::ToUnderlying(request),
+                std::to_underlying(cs), cn, cmd->request_type, std::to_underlying(request),
                 cmd->index, aid);
   switch (aid)
   {
@@ -281,7 +282,7 @@ int LogitechMic::GetAudioControl(std::unique_ptr<CtrlMessage>& cmd)
     WARN_LOG_FMT(IOS_USB,
                  "GetAudioControl: Unknown request: bCs={:02x} bCn={:02x} bRequestType={:02x} "
                  "bRequest={:02x} bIndex={:02x} aid={:08x}",
-                 Common::ToUnderlying(cs), cn, cmd->request_type, Common::ToUnderlying(request),
+                 std::to_underlying(cs), cn, cmd->request_type, std::to_underlying(request),
                  cmd->index, aid);
     break;
   }
@@ -301,7 +302,7 @@ int LogitechMic::SetAudioControl(std::unique_ptr<CtrlMessage>& cmd)
   DEBUG_LOG_FMT(IOS_USB,
                 "SetAudioControl: bCs={:02x} bCn={:02x} bRequestType={:02x} bRequest={:02x} "
                 "bIndex={:02x} aid={:08x}",
-                Common::ToUnderlying(cs), cn, cmd->request_type, Common::ToUnderlying(request),
+                std::to_underlying(cs), cn, cmd->request_type, std::to_underlying(request),
                 cmd->index, aid);
   switch (aid)
   {
@@ -344,7 +345,7 @@ int LogitechMic::SetAudioControl(std::unique_ptr<CtrlMessage>& cmd)
     WARN_LOG_FMT(IOS_USB,
                  "SetAudioControl: Unknown request: bCs={:02x} bCn={:02x} bRequestType={:02x} "
                  "bRequest={:02x} bIndex={:02x} aid={:08x}",
-                 Common::ToUnderlying(cs), cn, cmd->request_type, Common::ToUnderlying(request),
+                 std::to_underlying(cs), cn, cmd->request_type, std::to_underlying(request),
                  cmd->index, aid);
     break;
   }
@@ -364,7 +365,7 @@ int LogitechMic::EndpointAudioControl(std::unique_ptr<CtrlMessage>& cmd)
   DEBUG_LOG_FMT(IOS_USB,
                 "EndpointAudioControl: bCs={:02x} bCn={:02x} bRequestType={:02x} bRequest={:02x} "
                 "bIndex={:02x} aid:{:08x}",
-                Common::ToUnderlying(cs), cn, cmd->request_type, Common::ToUnderlying(request),
+                std::to_underlying(cs), cn, cmd->request_type, std::to_underlying(request),
                 cmd->index, aid);
   switch (aid)
   {
@@ -406,7 +407,7 @@ int LogitechMic::EndpointAudioControl(std::unique_ptr<CtrlMessage>& cmd)
     WARN_LOG_FMT(IOS_USB,
                  "SetAudioControl: Unknown request: bCs={:02x} bCn={:02x} bRequestType={:02x} "
                  "bRequest={:02x} bIndex={:02x} aid={:08x}",
-                 Common::ToUnderlying(cs), cn, cmd->request_type, Common::ToUnderlying(request),
+                 std::to_underlying(cs), cn, cmd->request_type, std::to_underlying(request),
                  cmd->index, aid);
     break;
   }
@@ -544,7 +545,7 @@ static constexpr std::array<u8, 121> FULL_DESCRIPTOR = {
 
 static constexpr u16 LogitechUSBHDR(u8 dir, u8 type, u8 recipient, RequestCode request)
 {
-  return USBHDR(dir, type, recipient, Common::ToUnderlying(request));
+  return USBHDR(dir, type, recipient, std::to_underlying(request));
 }
 
 int LogitechMic::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)

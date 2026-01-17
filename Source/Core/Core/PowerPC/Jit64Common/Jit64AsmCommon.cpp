@@ -4,10 +4,10 @@
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 
 #include <array>
+#include <utility>
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
-#include "Common/EnumUtils.h"
 #include "Common/FloatUtils.h"
 #include "Common/Intrinsics.h"
 #include "Common/JitRegister.h"
@@ -368,7 +368,7 @@ const u8* CommonAsmRoutines::GenQuantizedStoreRuntime(bool single, EQuantizeType
   GenQuantizedStore(single, type, -1);
   RET();
   Common::JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedStore_{}_{}",
-                                Common::ToUnderlying(type), single);
+                                std::to_underlying(type), single);
 
   return load;
 }
@@ -400,7 +400,7 @@ const u8* CommonAsmRoutines::GenQuantizedLoadRuntime(bool single, EQuantizeType 
   GenQuantizedLoad(single, type, -1);
   RET();
   Common::JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedLoad_{}_{}",
-                                Common::ToUnderlying(type), single);
+                                std::to_underlying(type), single);
 
   return load;
 }

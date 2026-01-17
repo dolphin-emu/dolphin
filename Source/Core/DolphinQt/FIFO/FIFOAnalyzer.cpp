@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <bit>
 #include <ranges>
+#include <utility>
 
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -20,7 +21,6 @@
 #include <QTreeWidgetItem>
 
 #include "Common/Assert.h"
-#include "Common/EnumUtils.h"
 #include "Common/Swap.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 
@@ -264,7 +264,7 @@ public:
     const u32 object_prim_size = num_vertices * vertex_size;
 
     const u8 opcode =
-        0x80 | Common::ToUnderlying(primitive) << OpcodeDecoder::GX_PRIMITIVE_SHIFT | vat;
+        0x80 | std::to_underlying(primitive) << OpcodeDecoder::GX_PRIMITIVE_SHIFT | vat;
     text = QStringLiteral("PRIMITIVE %1 (%2)  %3 vertices %4 bytes/vertex %5 total bytes")
                .arg(QString::fromStdString(name))
                .arg(opcode, 2, 16, QLatin1Char('0'))

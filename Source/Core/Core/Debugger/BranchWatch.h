@@ -8,10 +8,10 @@
 #include <cstdio>
 #include <functional>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/EnumUtils.h"
 #include "Core/PowerPC/Gekko.h"
 
 namespace Core
@@ -71,15 +71,15 @@ enum class BranchWatchSelectionInspection : u8
 constexpr BranchWatchSelectionInspection operator|(BranchWatchSelectionInspection lhs,
                                                    BranchWatchSelectionInspection rhs)
 {
-  return static_cast<BranchWatchSelectionInspection>(Common::ToUnderlying(lhs) |
-                                                     Common::ToUnderlying(rhs));
+  return static_cast<BranchWatchSelectionInspection>(std::to_underlying(lhs) |
+                                                     std::to_underlying(rhs));
 }
 
 constexpr BranchWatchSelectionInspection operator&(BranchWatchSelectionInspection lhs,
                                                    BranchWatchSelectionInspection rhs)
 {
-  return static_cast<BranchWatchSelectionInspection>(Common::ToUnderlying(lhs) &
-                                                     Common::ToUnderlying(rhs));
+  return static_cast<BranchWatchSelectionInspection>(std::to_underlying(lhs) &
+                                                     std::to_underlying(rhs));
 }
 
 constexpr BranchWatchSelectionInspection& operator|=(BranchWatchSelectionInspection& self,

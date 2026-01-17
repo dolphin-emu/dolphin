@@ -12,7 +12,6 @@
 #include "Common/Assert.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
-#include "Common/EnumUtils.h"
 #include "Common/MsgHandler.h"
 #include "Common/VariantUtil.h"
 #include "Common/x64Emitter.h"
@@ -325,7 +324,7 @@ void RegCache::Discard(BitSet32 pregs)
   for (preg_t i : pregs)
   {
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsLocked(), "Someone forgot to unlock PPC reg {} (X64 reg {}).",
-               i, Common::ToUnderlying(RX(i)));
+               i, std::to_underlying(RX(i)));
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction is in progress for {}!",
                i);
 
@@ -341,7 +340,7 @@ void RegCache::Flush(BitSet32 pregs, IgnoreDiscardedRegisters ignore_discarded_r
   for (preg_t i : pregs)
   {
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsLocked(), "Someone forgot to unlock PPC reg {} (X64 reg {}).",
-               i, Common::ToUnderlying(RX(i)));
+               i, std::to_underlying(RX(i)));
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction is in progress for {}!",
                i);
 
@@ -410,7 +409,7 @@ BitSet32 RegCache::RegistersInUse() const
 void RegCache::FlushX(X64Reg reg)
 {
   ASSERT_MSG(DYNA_REC, reg < m_xregs.size(), "Flushing non-existent reg {}",
-             Common::ToUnderlying(reg));
+             std::to_underlying(reg));
   ASSERT(!m_xregs[reg].IsLocked());
   if (!m_xregs[reg].IsFree())
   {
@@ -448,7 +447,7 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
                                     [xr](const auto& r) {
                                       return r.IsInHostRegister() && r.GetHostRegister() == xr;
                                     }),
-               "Xreg {} already bound", Common::ToUnderlying(xr));
+               "Xreg {} already bound", std::to_underlying(xr));
 
     m_regs[i].SetInHostRegister(xr, makeDirty);
   }
@@ -464,7 +463,7 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
     DiscardImm(i);
 
   ASSERT_MSG(DYNA_REC, !m_xregs[RX(i)].IsLocked(),
-             "WTF, this reg ({} -> {}) should have been flushed", i, Common::ToUnderlying(RX(i)));
+             "WTF, this reg ({} -> {}) should have been flushed", i, std::to_underlying(RX(i)));
 }
 
 void RegCache::StoreFromRegister(preg_t i, FlushMode mode,
