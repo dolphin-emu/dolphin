@@ -1721,32 +1721,36 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
       dst_buffer += decoded_texture_size;
     }
 
-    for (u32 level = 1; level != texLevels; ++level)
+    for (const auto& mip_level : texture_info.GetMipMapLevels())
     {
-      auto mip_level = texture_info.GetMipMapLevel(level - 1);
-      if (!mip_level)
+      if (!mip_level.IsDataValid())
+      {
+        ERROR_LOG_FMT(VIDEO, "Trying to use an invalid mipmap address {:#010x}",
+                      texture_info.GetRawAddress());
         continue;
+      }
 
       if (!decode_on_gpu ||
-          !DecodeTextureOnGPU(entry, level, mip_level->GetData(), mip_level->GetTextureSize(),
-                              texture_info.GetTextureFormat(), mip_level->GetRawWidth(),
-                              mip_level->GetRawHeight(), mip_level->GetExpandedWidth(),
-                              mip_level->GetExpandedHeight(),
+          !DecodeTextureOnGPU(entry, mip_level.GetLevel(), mip_level.GetData(),
+                              mip_level.GetTextureSize(), texture_info.GetTextureFormat(),
+                              mip_level.GetRawWidth(), mip_level.GetRawHeight(),
+                              mip_level.GetExpandedWidth(), mip_level.GetExpandedHeight(),
                               creation_info.bytes_per_block *
-                                  (mip_level->GetExpandedWidth() / texture_info.GetBlockWidth()),
+                                  (mip_level.GetExpandedWidth() / texture_info.GetBlockWidth()),
                               texture_info.GetTlutAddress(), texture_info.GetTlutFormat()))
       {
         // No need to call CheckTempSize here, as the whole buffer is preallocated at the beginning
         const u32 decoded_mip_size =
-            mip_level->GetExpandedWidth() * sizeof(u32) * mip_level->GetExpandedHeight();
-        TexDecoder_Decode(dst_buffer, mip_level->GetData(), mip_level->GetExpandedWidth(),
-                          mip_level->GetExpandedHeight(), texture_info.GetTextureFormat(),
+            mip_level.GetExpandedWidth() * sizeof(u32) * mip_level.GetExpandedHeight();
+        TexDecoder_Decode(dst_buffer, mip_level.GetData(), mip_level.GetExpandedWidth(),
+                          mip_level.GetExpandedHeight(), texture_info.GetTextureFormat(),
                           texture_info.GetTlutAddress(), texture_info.GetTlutFormat());
-        entry->texture->Load(level, mip_level->GetRawWidth(), mip_level->GetRawHeight(),
-                             mip_level->GetExpandedWidth(), dst_buffer, decoded_mip_size);
+        entry->texture->Load(mip_level.GetLevel(), mip_level.GetRawWidth(),
+                             mip_level.GetRawHeight(), mip_level.GetExpandedWidth(), dst_buffer,
+                             decoded_mip_size);
 
-        arbitrary_mip_detector.AddLevel(mip_level->GetRawWidth(), mip_level->GetRawHeight(),
-                                        mip_level->GetExpandedWidth(), dst_buffer);
+        arbitrary_mip_detector.AddLevel(mip_level.GetRawWidth(), mip_level.GetRawHeight(),
+                                        mip_level.GetExpandedWidth(), dst_buffer);
 
         dst_buffer += decoded_mip_size;
       }
