@@ -5,6 +5,7 @@
 
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
+#include "Common/EnumFormatter.h"
 
 struct BPMemory;
 
@@ -26,6 +27,17 @@ enum class PrimitiveType : u32
   Lines,
   Triangles,
   TriangleStrip,
+};
+template <>
+struct fmt::formatter<PrimitiveType> : EnumFormatter<PrimitiveType::TriangleStrip>
+{
+  static constexpr array_type names = {
+      "Points",
+      "Lines",
+      "Triangles",
+      "TriangleStrip",
+  };
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 union RasterizationState
