@@ -47,7 +47,6 @@ foreach(sb ${STORYBOARDS})
   set(input  ${CMAKE_CURRENT_SOURCE_DIR}/${sb})
   add_custom_command(TARGET MacUpdater POST_BUILD
     COMMAND ${IBTOOL} --errors --warnings --notices --output-format human-readable-text --compile ${output} ${input}
-    DEPENDS ${input}
     COMMENT "Compiling Storyboard ${sb}...")
 endforeach()
 
