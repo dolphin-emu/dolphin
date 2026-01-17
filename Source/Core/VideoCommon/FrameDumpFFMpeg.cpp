@@ -67,11 +67,8 @@ AVRational GetTimeBaseForCurrentRefreshRate(s64 max_denominator)
 {
   // TODO: GetTargetRefreshRate* are not safe from GPU thread.
   auto& vi = Core::System::GetInstance().GetVideoInterface();
-  int num;
-  int den;
-  av_reduce(&num, &den, int(vi.GetTargetRefreshRateDenominator()),
-            int(vi.GetTargetRefreshRateNumerator()), max_denominator);
-  return AVRational{num, den};
+  const auto time_base = vi.GetTargetRefreshRate().Inverted().Approximated(max_denominator);
+  return AVRational(int(time_base.numerator), int(time_base.denominator));
 }
 
 void InitAVCodec()
