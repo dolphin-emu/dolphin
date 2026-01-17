@@ -65,11 +65,6 @@ bool IsEnabled()
 
 void Register(const void* base_address, u32 code_size, const std::string& symbol_name)
 {
-#ifndef USE_VTUNE
-  if (!s_perf_map_file.IsOpen())
-    return;
-#endif
-
 #ifdef USE_VTUNE
   iJIT_Method_Load jmethod = {0};
   jmethod.method_id = iJIT_GetNewMethodID();
