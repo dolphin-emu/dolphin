@@ -75,26 +75,25 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
   const u32 d = inst.FD;
   const u32 op5 = inst.SUBOP5;
 
-  const bool use_c = op5 >= 25;  // fmul and all kind of fmaddXX
+  const bool use_c = op5 >= 25;  // fmul and all kinds of fmaddXX
   const bool use_b = op5 != 25;  // fmul uses no B
   const bool fma = use_b && use_c;
   const bool negate_result = (op5 & ~0x1) == 30;
 
   const bool output_is_single = inst.OPCD == 59;
-  const bool inaccurate_fma = op5 > 25 && !Config::Get(Config::SESSION_USE_FMA);
-  const bool round_c = use_c && output_is_single && !js.op->fprIsSingle[inst.FC];
+  const bool inaccurate_fma = fma && !Config::Get(Config::SESSION_USE_FMA);
+  const bool round_c = use_c && output_is_single && !js.op->fprIsSingle[c];
 
   const auto inputs_are_singles_func = [&] {
     return fpr.IsSingle(a, true) && (!use_b || fpr.IsSingle(b, true)) &&
            (!use_c || fpr.IsSingle(c, true));
   };
-  const bool inputs_are_singles = inputs_are_singles_func();
 
-  const bool single = inputs_are_singles && output_is_single;
+  const bool single = inputs_are_singles_func() && output_is_single && !inaccurate_fma;
   const RegType type = single ? RegType::LowerPairSingle : RegType::LowerPair;
-  const RegType type_out =
-      output_is_single ? (inputs_are_singles ? RegType::DuplicatedSingle : RegType::Duplicated) :
-                         RegType::LowerPair;
+  const RegType type_out = output_is_single ?
+                               (single ? RegType::DuplicatedSingle : RegType::Duplicated) :
+                               RegType::LowerPair;
   const auto reg_encoder = single ? EncodeRegToSingle : EncodeRegToDouble;
 
   const ARM64Reg VA = reg_encoder(fpr.R(a, type));
@@ -109,7 +108,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     ARM64Reg rounded_c_reg = VC;
     if (round_c)
     {
-      ASSERT_MSG(DYNA_REC, !inputs_are_singles, "Tried to apply 25-bit precision to single");
+      ASSERT_MSG(DYNA_REC, !single, "Tried to apply 25-bit precision to single");
 
       V0Q = fpr.GetScopedReg();
       rounded_c_reg = reg_encoder(V0Q);
@@ -249,7 +248,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
 
   if (output_is_single)
   {
-    ASSERT_MSG(DYNA_REC, inputs_are_singles == inputs_are_singles_func(),
+    ASSERT_MSG(DYNA_REC, single == inputs_are_singles_func(),
                "Register allocation turned singles into doubles in the middle of fp_arith");
 
     fpr.FixSinglePrecision(d);

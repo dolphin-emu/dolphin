@@ -94,16 +94,17 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
   const bool negate_result = (op5 & ~0x1) == 30;
   const bool msub = op5 == 28 || op5 == 30;
 
-  const auto singles_func = [&] {
+  const bool inaccurate_fma = fma && !Config::Get(Config::SESSION_USE_FMA);
+  const bool round_c = use_c && !js.op->fprIsSingle[c];
+
+  const auto inputs_are_singles_func = [&] {
     return fpr.IsSingle(a) && (!use_b || fpr.IsSingle(b)) && (!use_c || fpr.IsSingle(c));
   };
-  const bool singles = singles_func();
 
-  const bool inaccurate_fma = !Config::Get(Config::SESSION_USE_FMA);
-  const bool round_c = use_c && !js.op->fprIsSingle[inst.FC];
-  const RegType type = singles ? RegType::Single : RegType::Register;
-  const u8 size = singles ? 32 : 64;
-  const auto reg_encoder = singles ? EncodeRegToDouble : EncodeRegToQuad;
+  const bool single = inputs_are_singles_func() && !inaccurate_fma;
+  const RegType type = single ? RegType::Single : RegType::Register;
+  const u8 size = single ? 32 : 64;
+  const auto reg_encoder = single ? EncodeRegToDouble : EncodeRegToQuad;
 
   const ARM64Reg VA = reg_encoder(fpr.R(a, type));
   const ARM64Reg VB = use_b ? reg_encoder(fpr.R(b, type)) : ARM64Reg::INVALID_REG;
@@ -118,7 +119,7 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
     ARM64Reg rounded_c_reg = VC;
     if (round_c)
     {
-      ASSERT_MSG(DYNA_REC, !singles, "Tried to apply 25-bit precision to single");
+      ASSERT_MSG(DYNA_REC, !single, "Tried to apply 25-bit precision to single");
 
       V0Q = fpr.GetScopedReg();
       rounded_c_reg = reg_encoder(V0Q);
@@ -234,7 +235,7 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
     FixupBranch nan_fixup;
     if (m_accurate_nans)
     {
-      const ARM64Reg nan_temp_reg = singles ? EncodeRegToSingle(V0Q) : EncodeRegToDouble(V0Q);
+      const ARM64Reg nan_temp_reg = single ? EncodeRegToSingle(V0Q) : EncodeRegToDouble(V0Q);
       const ARM64Reg nan_temp_reg_paired = reg_encoder(V0Q);
 
       // Check if we need to handle NaNs
@@ -300,7 +301,7 @@ void JitArm64::ps_arith(UGeckoInstruction inst)
       SetJumpTarget(nan_fixup);
   }
 
-  ASSERT_MSG(DYNA_REC, singles == singles_func(),
+  ASSERT_MSG(DYNA_REC, single == inputs_are_singles_func(),
              "Register allocation turned singles into doubles in the middle of ps_arith");
 
   fpr.FixSinglePrecision(d);
