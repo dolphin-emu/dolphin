@@ -36,7 +36,6 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
-#include "VideoCommon/TextureInfo.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -569,7 +568,7 @@ void VertexManagerBase::Flush()
     {
       for (const u32 i : used_textures)
       {
-        const auto cache_entry = g_texture_cache->Load(TextureInfo::FromStage(i));
+        const auto cache_entry = g_texture_cache->Load(i);
         if (!cache_entry)
           continue;
         const float custom_tex_scale = cache_entry->GetWidth() / float(cache_entry->native_width);
@@ -581,7 +580,7 @@ void VertexManagerBase::Flush()
     {
       for (const u32 i : used_textures)
       {
-        const auto cache_entry = g_texture_cache->Load(TextureInfo::FromStage(i));
+        const auto cache_entry = g_texture_cache->Load(i);
         if (cache_entry)
         {
           if (!Common::Contains(texture_names, cache_entry->texture_info_name))
