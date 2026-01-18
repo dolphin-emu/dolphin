@@ -1231,9 +1231,9 @@ private:
   std::vector<Level> levels;
 };
 
-TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture_info)
+TCacheEntry* TextureCacheBase::Load(u32 stage)
 {
-  if (auto entry = LoadImpl(texture_info, false))
+  if (auto entry = LoadImpl(stage, false))
   {
     if (!DidLinkedAssetsChange(*entry))
     {
@@ -1241,19 +1241,18 @@ TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture_info)
     }
 
     InvalidateTexture(GetTexCacheIter(entry));
-    return LoadImpl(texture_info, true);
+    return LoadImpl(stage, true);
   }
 
   return nullptr;
 }
 
-TCacheEntry* TextureCacheBase::LoadImpl(const TextureInfo& texture_info, bool force_reload)
+TCacheEntry* TextureCacheBase::LoadImpl(u32 stage, bool force_reload)
 {
   // if this stage was not invalidated by changes to texture registers, keep the current texture
-  if (!force_reload && TMEM::IsValid(texture_info.GetStage()) &&
-      m_bound_textures[texture_info.GetStage()])
+  if (!force_reload && TMEM::IsValid(stage) && m_bound_textures[stage])
   {
-    TCacheEntry* entry = m_bound_textures[texture_info.GetStage()].get();
+    TCacheEntry* entry = m_bound_textures[stage].get();
     // If the TMEM configuration is such that this texture is more or less guaranteed to still
     // be in TMEM, then we know we can reuse the old entry without even hashing the memory
     //
@@ -1263,7 +1262,7 @@ TCacheEntry* TextureCacheBase::LoadImpl(const TextureInfo& texture_info, bool fo
     //
     // Spyro: A Hero's Tail is known for (deliberately?) using such overwritten textures
     // in it's bloom effect, which breaks without giving it the invalidated texture.
-    if (TMEM::IsCached(texture_info.GetStage()))
+    if (TMEM::IsCached(stage))
     {
       return entry;
     }
@@ -1276,6 +1275,7 @@ TCacheEntry* TextureCacheBase::LoadImpl(const TextureInfo& texture_info, bool fo
     }
   }
 
+  const TextureInfo texture_info = TextureInfo::FromStage(stage);
   auto entry = GetTexture(g_ActiveConfig.iSafeTextureCache_ColorSamples, texture_info);
 
   if (!entry)
