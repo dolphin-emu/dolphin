@@ -7,11 +7,13 @@
 
 #include "Core/ARDecrypt.h"
 
-#include <algorithm>
 #include <array>
 #include <bit>
+#include <cassert>
 #include <cstring>
+#include <expected>
 #include <string>
+#include <utility>
 #include <vector>
 
 #ifdef _WIN32
@@ -209,45 +211,43 @@ constexpr Seeds genseeds = [] {
   return seeds;
 }();
 
-static void getcode(const u32* src, u32* addr, u32* val)
+static std::pair<u32, u32> GetCode(const u32* src)
 {
-  *addr = Common::swap32(src[0]);
-  *val = Common::swap32(src[1]);
+  return {Common::swap32(src[0]), Common::swap32(src[1])};
 }
 
-static void setcode(u32* dst, u32 addr, u32 val)
+static void SetCode(u32* dst, u32 addr, u32 val)
 {
   dst[0] = Common::swap32(addr);
   dst[1] = Common::swap32(val);
 }
 
-static u16 gencrc16(const u32* codes, u16 size)
+// This looks like a nibble-wise CRC-16/KERMIT.
+static constexpr u16 GetCRC16(std::span<const u32> codes)
 {
   u16 ret = 0;
 
-  if (size > 0)
+  for (u32 code : codes)
   {
-    for (u8 tmp = 0; tmp < size; ++tmp)
+    for (u32 i = 0; i != 4; ++i)
     {
-      for (int i = 0; i < 4; ++i)
-      {
-        u8 tmp2 = ((codes[tmp] >> (i << 3)) ^ ret);
-        ret = ((crctable0[(tmp2 >> 4) & 0x0F] ^ crctable1[tmp2 & 0x0F]) ^ (ret >> 8));
-      }
+      const u8 tmp = ((code >> (i << 3)) ^ ret);
+      ret = ((crctable0[(tmp >> 4) & 0x0F] ^ crctable1[tmp & 0x0F]) ^ (ret >> 8));
     }
   }
+
   return ret;
 }
 
-static u8 verifycode(const u32* codes, u16 size)
+static constexpr u8 VerifyCode(std::span<const u32> codes)
 {
-  u16 tmp = gencrc16(codes, size);
+  const u16 tmp = GetCRC16(codes);
   return (((tmp >> 12) ^ (tmp >> 8) ^ (tmp >> 4) ^ tmp) & 0x0F);
 }
 
-static void unscramble1(u32* addr, u32* val)
+static void Unscramble1(u32* addr, u32* val)
 {
-  u32 tmp;
+  u32 tmp = 0;
 
   *val = std::rotl(*val, 4);
 
@@ -272,9 +272,9 @@ static void unscramble1(u32* addr, u32* val)
   *val ^= tmp;
 }
 
-static void unscramble2(u32* addr, u32* val)
+static void Unscramble2(u32* addr, u32* val)
 {
-  u32 tmp;
+  u32 tmp = 0;
 
   *val = std::rotr(*val, 1);
 
@@ -299,18 +299,15 @@ static void unscramble2(u32* addr, u32* val)
   *addr = std::rotr((*addr ^ tmp), 4);
 }
 
-static void decryptcode(const u32* seeds, u32* code)
+static void DecryptCode(const Seeds& seeds, u32* code)
 {
-  u32 addr, val;
-  u32 tmp, tmp2;
-  int i = 0;
+  auto [addr, val] = GetCode(code);
+  Unscramble1(&addr, &val);
 
-  getcode(code, &addr, &val);
-  unscramble1(&addr, &val);
-  while (i < 32)
+  for (u32 i = 0; i < 32;)
   {
-    tmp = (std::rotr(val, 4) ^ seeds[i++]);
-    tmp2 = (val ^ seeds[i++]);
+    u32 tmp = (std::rotr(val, 4) ^ seeds[i++]);
+    u32 tmp2 = (val ^ seeds[i++]);
     addr ^= (table6[tmp & 0x3F] ^ table4[(tmp >> 8) & 0x3F] ^ table2[(tmp >> 16) & 0x3F] ^
              table0[(tmp >> 24) & 0x3F] ^ table7[tmp2 & 0x3F] ^ table5[(tmp2 >> 8) & 0x3F] ^
              table3[(tmp2 >> 16) & 0x3F] ^ table1[(tmp2 >> 24) & 0x3F]);
@@ -321,16 +318,16 @@ static void decryptcode(const u32* seeds, u32* code)
             table0[(tmp >> 24) & 0x3F] ^ table7[tmp2 & 0x3F] ^ table5[(tmp2 >> 8) & 0x3F] ^
             table3[(tmp2 >> 16) & 0x3F] ^ table1[(tmp2 >> 24) & 0x3F]);
   }
-  unscramble2(&addr, &val);
-  setcode(code, val, addr);
+  Unscramble2(&addr, &val);
+  SetCode(code, val, addr);
 }
 
-static bool getbitstring(u32* ctrl, u32* out, u8 len)
+static bool GetBitString(u32* ctrl, u32* out, u8 len)
 {
   u32 tmp = (ctrl[0] + (ctrl[1] << 2));
 
   *out = 0;
-  while (len--)
+  while (len-- != 0)
   {
     if (ctrl[2] > 0x1F)
     {
@@ -348,155 +345,139 @@ static bool getbitstring(u32* ctrl, u32* out, u8 len)
   return true;
 }
 
-static bool batchdecrypt(u32* codes, u16 size)
+static std::optional<GameIDAndRegion> BatchDecrypt(std::span<u32> codes)
 {
-  u32* ptr = codes;
-  std::array<u32, 4> tmparray{};
+  const auto size = u32(codes.size());
+
+  assert((size & 1) == 0);
+  assert(size != 0);
+
+  for (u32 i = 0; i < size; i += 2)
+    DecryptCode(genseeds, codes.data() + i);
+
+  const u32 tmp = codes[0];
+  codes[0] &= 0x0FFFFFFF;
+  if ((tmp >> 28) != VerifyCode(codes))
+    return std::nullopt;
+
+  std::array<u32, 4> tmparray = {
+      codes[0],
+      0,
+      4,  // Skip crc
+      size,
+  };
+
   std::array<u32, 8> tmparray2{};
-
-  // Not required
-  // if (size & 1) return 0;
-  // if (!size) return 0;
-
-  u32 tmp = (size >> 1);
-  while (tmp--)
-  {
-    decryptcode(genseeds.data(), ptr);
-    ptr += 2;
-  }
-
-  tmparray[0] = *codes;
-  tmparray[1] = 0;
-  tmparray[2] = 4;  // Skip crc
-  tmparray[3] = size;
-  getbitstring(tmparray.data(), &tmparray2[1], 11);  // Game id
-  getbitstring(tmparray.data(), &tmparray2[2], 17);  // Code id
-  getbitstring(tmparray.data(), &tmparray2[3], 1);   // Master code
-  getbitstring(tmparray.data(), &tmparray2[4], 1);   // Unknown
-  getbitstring(tmparray.data(), &tmparray2[5], 2);   // Region
+  GetBitString(tmparray.data(), &tmparray2[1], 11);  // Game id
+  GetBitString(tmparray.data(), &tmparray2[2], 17);  // Code id
+  GetBitString(tmparray.data(), &tmparray2[3], 1);   // Master code
+  GetBitString(tmparray.data(), &tmparray2[4], 1);   // Unknown
+  GetBitString(tmparray.data(), &tmparray2[5], 2);   // Region
 
   // Grab gameid and region from the last decrypted code
   // TODO: Maybe check this against Dolphin's GameID? - "code is for wrong game" type msg
-  // gameid = tmparray2[1];
-  // region = tmparray2[5];
-
-  tmp = codes[0];
-  codes[0] &= 0x0FFFFFFF;
-  if ((tmp >> 28) != verifycode(codes, size))
-  {
-    return false;
-  }
-
-  return true;
+  return GameIDAndRegion{tmparray2[1], tmparray2[5]};
 
   // Unfinished (so says Parasyte :p )
 }
 
-static int GetVal(const char* flt, char chr)
+static u32 GetVal(char chr)
 {
-  int ret = (int)(strchr(flt, chr) - flt);
+  const auto ret = u32(strchr(filter, Common::ToUpper(chr)) - filter);
   switch (ret)
   {
   case 32:  // 'I'
   case 33:  // 'L'
-    ret = 1;
+    return 1;
     break;
   case 34:  // 'O'
-    ret = 0;
+    return 0;
     break;
   case 35:  // 'S'
-    ret = 5;
+    return 5;
     break;
+  default:
+    return ret;
   }
-  return ret;
 }
 
-static int alphatobin(u32* dst, const std::vector<std::string>& alpha, int size)
+// Returns a vector of converted lines or an index where conversion failed.
+static std::expected<std::vector<u32>, std::size_t>
+ConvertAlphaToBinary(const std::span<const std::string>& alpha)
 {
-  int j = 0;
-  int ret = 0;
-  int org = size + 1;
-  u32 bin[2];
-  u8 parity;
+  std::vector<u32> result;
+  result.reserve(alpha.size() * 2);
 
-  for (; size; --size)
+  std::size_t current_index = 0;
+  for (const auto& line : alpha)
   {
-    bin[0] = 0;
-    for (int i = 0; i < 6; i++)
-    {
-      bin[0] |= (GetVal(filter, alpha[j >> 1][i]) << (((5 - i) * 5) + 2));
-    }
-    bin[0] |= (GetVal(filter, alpha[j >> 1][6]) >> 3);
-    dst[j++] = bin[0];
+    assert(line.size() == 13);
 
-    bin[1] = 0;
-    for (int i = 0; i < 6; i++)
+    u32 value_a = GetVal(line[6]) >> 3;
+    u32 value_b = GetVal(line[12]) >> 1;
+    for (u32 i = 0; i != 6; ++i)
     {
-      bin[1] |= (GetVal(filter, alpha[j >> 1][i + 6]) << (((5 - i) * 5) + 4));
+      value_a |= (GetVal(line[i]) << (((5 - i) * 5) + 2));
+      value_b |= (GetVal(line[i + 6]) << (((5 - i) * 5) + 4));
     }
-    bin[1] |= (GetVal(filter, alpha[j >> 1][12]) >> 1);
-    dst[j++] = bin[1];
+    result.emplace_back(value_a);
+    result.emplace_back(value_b);
 
-    // verify parity bit
-    int k = 0;
-    parity = 0;
-    for (int i = 0; i < 64; i++)
-    {
-      if (i == 32)
-      {
-        k++;
-      }
-      parity ^= (bin[k] >> (i - (k << 5)));
-    }
-    if ((parity & 1) != (GetVal(filter, alpha[(j - 2) >> 1][12]) & 1))
-    {
-      ret = (org - size);
-    }
+    const u32 parity = std::popcount(value_a ^ value_b);
+    if ((parity & 1) != (GetVal(line[12]) & 1))
+      return std::unexpected{current_index};
+
+    ++current_index;
   }
 
-  return ret;
+  return std::move(result);
 }
 
-void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
+std::optional<GameIDAndRegion> DecryptARCode(std::span<const std::string> encrypted_lines,
+                                             std::vector<AREntry>* result)
 {
-  std::array<u32, 1200> uCodes{};
+  if (encrypted_lines.empty())
+    return std::nullopt;
 
-  for (std::string& s : vCodes)
+  auto conversion_result = ConvertAlphaToBinary(encrypted_lines);
+  if (!conversion_result.has_value())
   {
-    Common::ToUpper(&s);
-  }
-
-  const u32 ret = alphatobin(uCodes.data(), vCodes, (int)vCodes.size());
-  if (ret)
-  {
-    // Return value is index + 1, 0 being the success flag value.
     PanicAlertFmtT(
         "Action Replay Code Decryption Error:\nParity Check Failed\n\nCulprit Code:\n{0}",
-        vCodes[ret - 1]);
+        encrypted_lines[conversion_result.error()]);
+    return std::nullopt;
   }
-  else if (!batchdecrypt(uCodes.data(), (u16)vCodes.size() << 1))
-  {
-    // Commented out since we just send the code anyways and hope for the best XD
-    // PanicAlertFmt("Action Replay Code Decryption Error:\nCRC Check Failed\n\n"
-    //               "First Code in Block (should be verification code):\n{}",
-    //               vCodes[0]);
 
-    for (size_t i = 0; i < (vCodes.size() << 1); i += 2)
+  auto& codes = *conversion_result;
+  const auto decrypted_result = BatchDecrypt(codes);
+  if (!decrypted_result.has_value())
+  {
+    ERROR_LOG_FMT(ACTIONREPLAY,
+                  "Decryption Error: CRC Check Failed. "
+                  "First Code in Block (should be verification code): {}",
+                  encrypted_lines[0]);
+
+    for (size_t i = 0; i < codes.size(); i += 2)
     {
-      ops->emplace_back(uCodes[i], uCodes[i + 1]);
-      // PanicAlertFmt("Decrypted AR Code without verification code:\n{:08X} {:08X}", uCodes[i],
-      //               uCodes[i + 1]);
+      result->emplace_back(codes[i], codes[i + 1]);
+      WARN_LOG_FMT(ACTIONREPLAY, "Decrypted AR Code without verification code: {:08X} {:08X}",
+                   codes[i], codes[i + 1]);
     }
   }
   else
   {
+    INFO_LOG_FMT(ACTIONREPLAY, "Decrypted AR Code: GameID:{:08X} Region:{}",
+                 decrypted_result->game_id, decrypted_result->region);
+
     // Skip passing the verification code back
-    for (size_t i = 2; i < (vCodes.size() << 1); i += 2)
+    for (size_t i = 2; i < codes.size(); i += 2)
     {
-      ops->emplace_back(uCodes[i], uCodes[i + 1]);
-      // PanicAlertFmt("Decrypted AR Code:\n{:08X} {:08X}", uCodes[i], uCodes[i+1]);
+      result->emplace_back(codes[i], codes[i + 1]);
+      DEBUG_LOG_FMT(ACTIONREPLAY, "Decrypted AR Code: {:08X} {:08X}", codes[i], codes[i + 1]);
     }
   }
+
+  return decrypted_result;
 }
 
 }  // namespace ActionReplay
