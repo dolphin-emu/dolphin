@@ -34,6 +34,10 @@ static bool s_is_enabled = false;
 
 void Init(const std::string& perf_dir)
 {
+#ifdef USE_VTUNE
+  s_is_enabled = true;
+#endif
+
   if (!perf_dir.empty() || getenv("PERF_BUILDID_DIR"))
   {
     const std::string dir = perf_dir.empty() ? "/tmp" : perf_dir;
