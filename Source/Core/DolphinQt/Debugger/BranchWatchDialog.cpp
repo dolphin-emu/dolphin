@@ -34,7 +34,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
-#include "Common/Unreachable.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/BranchWatch.h"
@@ -1217,7 +1216,7 @@ QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index) const
     return m_mnu_table_context_symbol;
   }
   static_assert(Column::NumberOfColumns == 8);
-  Common::Unreachable();
+  std::unreachable();
 }
 
 void BranchWatchDialog::RefreshVisibleContextMenuActions(bool core_initialized) const

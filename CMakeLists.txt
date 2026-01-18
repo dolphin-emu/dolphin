@@ -39,11 +39,11 @@ if (COMPILER STREQUAL "GNU")
 endif()
 
 # Enforce minimum compiler versions that support the c++23 features we use
-set (GCC_min_version 11)
-set (Clang_min_version 14)
+set (GCC_min_version 12)
+set (Clang_min_version 15)
 set (AppleClang_min_version 14.0.3)
-set (min_xcode_version "14.0") # corresponding xcode version for AppleClang_min_version
-set (MSVC_min_version 19.30)
+set (min_xcode_version "14.3") # corresponding xcode version for AppleClang_min_version
+set (MSVC_min_version 19.32)
 set (min_vs_version "2022 17.2.3") # corresponding Visual Studio version for MSVC_min_version
 
 message(STATUS "Using ${COMPILER} ${CMAKE_CXX_COMPILER_VERSION}")
