@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <expected>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -12,7 +13,6 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/Result.h"
 #include "Core/PowerPC/MMU.h"
 
 namespace Core
@@ -116,7 +116,7 @@ std::vector<u8> GetValueAsByteVector(const SearchValue& value);
 // Do a new search across the given memory region in the given address space, only keeping values
 // for which the given validator returns true.
 template <typename T>
-Common::Result<std::vector<SearchResult<T>>, SearchErrorCode>
+std::expected<std::vector<SearchResult<T>>, SearchErrorCode>
 NewSearch(const Core::CPUThreadGuard& guard, const std::vector<MemoryRange>& memory_ranges,
           PowerPC::RequestedAddressSpace address_space, bool aligned,
           const std::function<bool(const T& value)>& validator);
@@ -124,7 +124,7 @@ NewSearch(const Core::CPUThreadGuard& guard, const std::vector<MemoryRange>& mem
 // Refresh the values for the given results in the given address space, only keeping values for
 // which the given validator returns true.
 template <typename T>
-Common::Result<std::vector<SearchResult<T>>, SearchErrorCode>
+std::expected<std::vector<SearchResult<T>>, SearchErrorCode>
 NextSearch(const Core::CPUThreadGuard& guard, const std::vector<SearchResult<T>>& previous_results,
            PowerPC::RequestedAddressSpace address_space,
            const std::function<bool(const T& new_value, const T& old_value)>& validator);

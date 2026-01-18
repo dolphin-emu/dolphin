@@ -553,7 +553,7 @@ void CheatSearchWidget::GenerateARCodes()
     }
     else
     {
-      const auto new_error_code = result.Error();
+      const auto new_error_code = result.error();
       if (!error_code.has_value())
       {
         error_code = new_error_code;

@@ -96,7 +96,7 @@ TEST_F(FileSystemTest, EssentialDirectories)
   for (const std::string path :
        {"/sys", "/ticket", "/title", "/shared1", "/shared2", "/tmp", "/import", "/meta"})
   {
-    EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, path).Succeeded()) << path;
+    EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, path).has_value()) << path;
   }
 }
 
@@ -109,7 +109,7 @@ TEST_F(FileSystemTest, CreateFile)
   ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, PATH, ArbitraryAttribute, modes), ResultCode::Success);
 
   const Result<Metadata> stats = m_fs->GetMetadata(Uid{0}, Gid{0}, PATH);
-  ASSERT_TRUE(stats.Succeeded());
+  ASSERT_TRUE(stats.has_value());
   EXPECT_TRUE(stats->is_file);
   EXPECT_EQ(stats->size, 0u);
   EXPECT_EQ(stats->uid, 0u);
@@ -120,7 +120,7 @@ TEST_F(FileSystemTest, CreateFile)
   ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, PATH, 0, modes), ResultCode::AlreadyExists);
 
   const Result<std::vector<std::string>> tmp_files = m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp");
-  ASSERT_TRUE(tmp_files.Succeeded());
+  ASSERT_TRUE(tmp_files.has_value());
   EXPECT_EQ(std::ranges::count(*tmp_files, "f"), 1u);
 
   // Test invalid paths
@@ -141,7 +141,7 @@ TEST_F(FileSystemTest, CreateDirectory)
             ResultCode::Success);
 
   const Result<Metadata> stats = m_fs->GetMetadata(Uid{0}, Gid{0}, PATH);
-  ASSERT_TRUE(stats.Succeeded());
+  ASSERT_TRUE(stats.has_value());
   EXPECT_FALSE(stats->is_file);
   EXPECT_EQ(stats->uid, 0u);
   EXPECT_EQ(stats->gid, 0);
@@ -149,7 +149,7 @@ TEST_F(FileSystemTest, CreateDirectory)
   EXPECT_EQ(stats->attribute, ArbitraryAttribute);
 
   const Result<std::vector<std::string>> children = m_fs->ReadDirectory(Uid{0}, Gid{0}, PATH);
-  ASSERT_TRUE(children.Succeeded());
+  ASSERT_TRUE(children.has_value());
   EXPECT_TRUE(children->empty());
 
   EXPECT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, PATH, 0, modes), ResultCode::AlreadyExists);
@@ -161,9 +161,9 @@ TEST_F(FileSystemTest, CreateDirectory)
 
 TEST_F(FileSystemTest, Delete)
 {
-  EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp").Succeeded());
+  EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp").has_value());
   EXPECT_EQ(m_fs->Delete(Uid{0}, Gid{0}, "/tmp"), ResultCode::Success);
-  EXPECT_EQ(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp").Error(), ResultCode::NotFound);
+  EXPECT_EQ(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp").error(), ResultCode::NotFound);
 
   // Test recursive directory deletion.
   ASSERT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, "/sys/1", 0, modes), ResultCode::Success);
@@ -173,7 +173,7 @@ TEST_F(FileSystemTest, Delete)
 
   // Leave a file open. Deletion should fail while the file is in use.
   auto handle = std::make_optional(m_fs->OpenFile(Uid{0}, Gid{0}, "/sys/1/2/3", Mode::Read));
-  ASSERT_TRUE(handle->Succeeded());
+  ASSERT_TRUE(handle->has_value());
   EXPECT_EQ(m_fs->Delete(Uid{0}, Gid{0}, "/sys/1/2/3"), ResultCode::InUse);
   // A directory that contains a file that is in use is considered to be in use,
   // so this should fail too.
@@ -187,12 +187,12 @@ TEST_F(FileSystemTest, Delete)
 
 TEST_F(FileSystemTest, Rename)
 {
-  EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp").Succeeded());
+  EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp").has_value());
 
   EXPECT_EQ(m_fs->Rename(Uid{0}, Gid{0}, "/tmp", "/test"), ResultCode::Success);
 
-  EXPECT_EQ(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp").Error(), ResultCode::NotFound);
-  EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/test").Succeeded());
+  EXPECT_EQ(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp").error(), ResultCode::NotFound);
+  EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/test").has_value());
 
   // Rename /test back to /tmp.
   EXPECT_EQ(m_fs->Rename(Uid{0}, Gid{0}, "/test", "/tmp"), ResultCode::Success);
@@ -213,9 +213,9 @@ TEST_F(FileSystemTest, RenameWithExistingTargetDirectory)
   ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/d2/file", 0, modes), ResultCode::Success);
   EXPECT_EQ(m_fs->Rename(Uid{0}, Gid{0}, "/tmp/d", "/tmp/d2"), ResultCode::Success);
 
-  EXPECT_EQ(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp/d").Error(), ResultCode::NotFound);
+  EXPECT_EQ(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp/d").error(), ResultCode::NotFound);
   const Result<std::vector<std::string>> children = m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp/d2");
-  ASSERT_TRUE(children.Succeeded());
+  ASSERT_TRUE(children.has_value());
   EXPECT_TRUE(children->empty());
 }
 
@@ -230,8 +230,8 @@ TEST_F(FileSystemTest, RenameWithExistingTargetFile)
   std::vector<u8> read_buffer(TEST_DATA.size());
   {
     const Result<FileHandle> file = m_fs->OpenFile(Uid{0}, Gid{0}, source_path, Mode::ReadWrite);
-    ASSERT_TRUE(file.Succeeded());
-    ASSERT_TRUE(file->Write(TEST_DATA.data(), TEST_DATA.size()).Succeeded());
+    ASSERT_TRUE(file.has_value());
+    ASSERT_TRUE(file->Write(TEST_DATA.data(), TEST_DATA.size()).has_value());
   }
 
   // Create the test target file and leave it empty.
@@ -240,11 +240,11 @@ TEST_F(FileSystemTest, RenameWithExistingTargetFile)
   // Rename /sys/f2 to /tmp/f2 and check that f1 replaced f2.
   EXPECT_EQ(m_fs->Rename(Uid{0}, Gid{0}, source_path, dest_path), ResultCode::Success);
 
-  ASSERT_FALSE(m_fs->GetMetadata(Uid{0}, Gid{0}, source_path).Succeeded());
-  EXPECT_EQ(m_fs->GetMetadata(Uid{0}, Gid{0}, source_path).Error(), ResultCode::NotFound);
+  ASSERT_FALSE(m_fs->GetMetadata(Uid{0}, Gid{0}, source_path).has_value());
+  EXPECT_EQ(m_fs->GetMetadata(Uid{0}, Gid{0}, source_path).error(), ResultCode::NotFound);
 
   const Result<Metadata> metadata = m_fs->GetMetadata(Uid{0}, Gid{0}, dest_path);
-  ASSERT_TRUE(metadata.Succeeded());
+  ASSERT_TRUE(metadata.has_value());
   EXPECT_TRUE(metadata->is_file);
   EXPECT_EQ(metadata->size, TEST_DATA.size());
 }
@@ -253,7 +253,7 @@ TEST_F(FileSystemTest, GetDirectoryStats)
 {
   auto check_stats = [this](const u32 clusters, const u32 inodes) {
     const Result<DirectoryStats> stats = m_fs->GetDirectoryStats("/tmp");
-    ASSERT_TRUE(stats.Succeeded());
+    ASSERT_TRUE(stats.has_value());
     EXPECT_EQ(stats->used_clusters, clusters);
     EXPECT_EQ(stats->used_inodes, inodes);
   };
@@ -266,7 +266,7 @@ TEST_F(FileSystemTest, GetDirectoryStats)
 
   {
     const Result<FileHandle> file = m_fs->OpenFile(Uid{0}, Gid{0}, "/tmp/file", Mode::Write);
-    file->Write(std::vector<u8>(20).data(), 20);
+    (void)file->Write(std::vector<u8>(20).data(), 20);
   }
   // The file should now take up one cluster.
   check_stats(1u, 2u);
@@ -277,16 +277,16 @@ TEST_F(FileSystemTest, GetDirectoryStats)
 TEST_F(FileSystemTest, NonExistingFiles)
 {
   const Result<Metadata> metadata = m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/foo");
-  ASSERT_FALSE(metadata.Succeeded());
-  EXPECT_EQ(metadata.Error(), ResultCode::NotFound);
+  ASSERT_FALSE(metadata.has_value());
+  EXPECT_EQ(metadata.error(), ResultCode::NotFound);
 
   const Result<FileHandle> file = m_fs->OpenFile(Uid{0}, Gid{0}, "/tmp/foo", Mode::Read);
-  ASSERT_FALSE(file.Succeeded());
-  EXPECT_EQ(file.Error(), ResultCode::NotFound);
+  ASSERT_FALSE(file.has_value());
+  EXPECT_EQ(file.error(), ResultCode::NotFound);
 
   const Result<std::vector<std::string>> children = m_fs->ReadDirectory(Uid{0}, Gid{0}, "/foo");
-  ASSERT_FALSE(children.Succeeded());
-  EXPECT_EQ(children.Error(), ResultCode::NotFound);
+  ASSERT_FALSE(children.has_value());
+  EXPECT_EQ(children.error(), ResultCode::NotFound);
 }
 
 TEST_F(FileSystemTest, Seek)
@@ -296,7 +296,7 @@ TEST_F(FileSystemTest, Seek)
   ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f", 0, modes), ResultCode::Success);
 
   const Result<FileHandle> file = m_fs->OpenFile(Uid{0}, Gid{0}, "/tmp/f", Mode::ReadWrite);
-  ASSERT_TRUE(file.Succeeded());
+  ASSERT_TRUE(file.has_value());
 
   // An empty file should have a size of exactly 0 bytes.
   EXPECT_EQ(file->GetStatus()->size, 0u);
@@ -304,14 +304,14 @@ TEST_F(FileSystemTest, Seek)
   EXPECT_EQ(file->GetStatus()->offset, 0u);
 
   // Write some dummy data.
-  ASSERT_TRUE(file->Write(TEST_DATA.data(), TEST_DATA.size()).Succeeded());
+  ASSERT_TRUE(file->Write(TEST_DATA.data(), TEST_DATA.size()).has_value());
   EXPECT_EQ(file->GetStatus()->size, TEST_DATA.size());
   EXPECT_EQ(file->GetStatus()->offset, TEST_DATA.size());
 
   auto seek_and_check = [&file](const u32 offset, const SeekMode mode,
                                 const u32 expected_position) {
     const Result<u32> new_offset = file->Seek(offset, mode);
-    ASSERT_TRUE(new_offset.Succeeded());
+    ASSERT_TRUE(new_offset.has_value());
     EXPECT_EQ(*new_offset, expected_position);
     EXPECT_EQ(file->GetStatus()->offset, expected_position);
   };
@@ -324,8 +324,8 @@ TEST_F(FileSystemTest, Seek)
 
   // Test past-EOF seeks.
   const Result<u32> new_position = file->Seek(11, SeekMode::Set);
-  ASSERT_FALSE(new_position.Succeeded());
-  EXPECT_EQ(new_position.Error(), ResultCode::Invalid);
+  ASSERT_FALSE(new_position.has_value());
+  EXPECT_EQ(new_position.error(), ResultCode::Invalid);
 }
 
 TEST_F(FileSystemTest, WriteAndSimpleReadback)
@@ -336,14 +336,14 @@ TEST_F(FileSystemTest, WriteAndSimpleReadback)
   ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f", 0, modes), ResultCode::Success);
 
   const Result<FileHandle> file = m_fs->OpenFile(Uid{0}, Gid{0}, "/tmp/f", Mode::ReadWrite);
-  ASSERT_TRUE(file.Succeeded());
+  ASSERT_TRUE(file.has_value());
 
   // Write some test data.
-  ASSERT_TRUE(file->Write(TEST_DATA.data(), TEST_DATA.size()).Succeeded());
+  ASSERT_TRUE(file->Write(TEST_DATA.data(), TEST_DATA.size()).has_value());
 
   // Now read it back and make sure it is identical.
-  ASSERT_TRUE(file->Seek(0, SeekMode::Set).Succeeded());
-  ASSERT_TRUE(file->Read(read_buffer.data(), read_buffer.size()).Succeeded());
+  ASSERT_TRUE(file->Seek(0, SeekMode::Set).has_value());
+  ASSERT_TRUE(file->Read(read_buffer.data(), read_buffer.size()).has_value());
   EXPECT_EQ(TEST_DATA, read_buffer);
 }
 
@@ -356,31 +356,31 @@ TEST_F(FileSystemTest, WriteAndRead)
   ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f", 0, modes), ResultCode::Success);
 
   Result<FileHandle> tmp_handle = m_fs->OpenFile(Uid{0}, Gid{0}, "/tmp/f", Mode::ReadWrite);
-  ASSERT_TRUE(tmp_handle.Succeeded());
+  ASSERT_TRUE(tmp_handle.has_value());
   const Fd fd = tmp_handle->Release();
 
   // Try to read from an empty file. This should do nothing.
   // See https://github.com/dolphin-emu/dolphin/pull/4942
   Result<u32> read_result = m_fs->ReadBytesFromFile(fd, buffer.data(), TEST_DATA_SIZE);
-  EXPECT_TRUE(read_result.Succeeded());
+  EXPECT_TRUE(read_result.has_value());
   EXPECT_EQ(*read_result, 0u);
   EXPECT_EQ(m_fs->GetFileStatus(fd)->offset, 0u);
 
-  ASSERT_TRUE(m_fs->WriteBytesToFile(fd, TEST_DATA.data(), TEST_DATA_SIZE).Succeeded());
+  ASSERT_TRUE(m_fs->WriteBytesToFile(fd, TEST_DATA.data(), TEST_DATA_SIZE).has_value());
   EXPECT_EQ(m_fs->GetFileStatus(fd)->offset, TEST_DATA.size());
 
   // Try to read past EOF while we are at the end of the file. This should do nothing too.
   read_result = m_fs->ReadBytesFromFile(fd, buffer.data(), TEST_DATA_SIZE);
-  EXPECT_TRUE(read_result.Succeeded());
+  EXPECT_TRUE(read_result.has_value());
   EXPECT_EQ(*read_result, 0u);
   EXPECT_EQ(m_fs->GetFileStatus(fd)->offset, TEST_DATA.size());
 
   // Go back to the start and try to read past EOF. This should read the entire file until EOF.
-  ASSERT_TRUE(m_fs->SeekFile(fd, 0, SeekMode::Set).Succeeded());
+  ASSERT_TRUE(m_fs->SeekFile(fd, 0, SeekMode::Set).has_value());
   const u32 LARGER_TEST_DATA_SIZE = TEST_DATA_SIZE + 10;
   std::vector<u8> larger_buffer(LARGER_TEST_DATA_SIZE);
   read_result = m_fs->ReadBytesFromFile(fd, larger_buffer.data(), LARGER_TEST_DATA_SIZE);
-  EXPECT_TRUE(read_result.Succeeded());
+  EXPECT_TRUE(read_result.has_value());
   EXPECT_EQ(*read_result, TEST_DATA.size());
   EXPECT_EQ(m_fs->GetFileStatus(fd)->offset, TEST_DATA.size());
 }
@@ -391,15 +391,15 @@ TEST_F(FileSystemTest, MultipleHandles)
 
   {
     const Result<FileHandle> file = m_fs->OpenFile(Uid{0}, Gid{0}, "/tmp/f", Mode::ReadWrite);
-    ASSERT_TRUE(file.Succeeded());
+    ASSERT_TRUE(file.has_value());
     // Fill it with 10 zeroes.
-    ASSERT_TRUE(file->Write(std::vector<u8>(10).data(), 10).Succeeded());
+    ASSERT_TRUE(file->Write(std::vector<u8>(10).data(), 10).has_value());
   }
 
   const Result<FileHandle> file1 = m_fs->OpenFile(Uid{0}, Gid{0}, "/tmp/f", Mode::ReadWrite);
   const Result<FileHandle> file2 = m_fs->OpenFile(Uid{0}, Gid{0}, "/tmp/f", Mode::ReadWrite);
-  ASSERT_TRUE(file1.Succeeded());
-  ASSERT_TRUE(file2.Succeeded());
+  ASSERT_TRUE(file1.has_value());
+  ASSERT_TRUE(file2.has_value());
 
   // Write some test data using one handle and make sure the data is seen by the other handle
   // (see issue 2917, 5232 and 8702 and https://github.com/dolphin-emu/dolphin/pull/2649).
@@ -407,12 +407,12 @@ TEST_F(FileSystemTest, MultipleHandles)
 
   const std::vector<u8> TEST_DATA{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}};
   EXPECT_EQ(file1->GetStatus()->offset, 0u);
-  ASSERT_TRUE(file1->Write(TEST_DATA.data(), TEST_DATA.size()).Succeeded());
+  ASSERT_TRUE(file1->Write(TEST_DATA.data(), TEST_DATA.size()).has_value());
   EXPECT_EQ(file1->GetStatus()->offset, 10u);
 
   std::vector<u8> read_buffer(TEST_DATA.size());
   EXPECT_EQ(file2->GetStatus()->offset, 0u);
-  ASSERT_TRUE(file2->Read(read_buffer.data(), read_buffer.size()).Succeeded());
+  ASSERT_TRUE(file2->Read(read_buffer.data(), read_buffer.size()).has_value());
   EXPECT_EQ(file2->GetStatus()->offset, 10u);
   EXPECT_EQ(TEST_DATA, read_buffer);
 }
@@ -424,8 +424,8 @@ TEST_F(FileSystemTest, ReadDirectoryOnFile)
   ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f", 0, modes), ResultCode::Success);
 
   const Result<std::vector<std::string>> result = m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp/f");
-  ASSERT_FALSE(result.Succeeded());
-  EXPECT_EQ(result.Error(), ResultCode::Invalid);
+  ASSERT_FALSE(result.has_value());
+  EXPECT_EQ(result.error(), ResultCode::Invalid);
 }
 
 TEST_F(FileSystemTest, ReadDirectoryOrdering)
@@ -447,7 +447,7 @@ TEST_F(FileSystemTest, ReadDirectoryOrdering)
   // Verify that ReadDirectory returns a file list that is ordered by descending creation date
   // (issue 10234).
   const Result<std::vector<std::string>> result = m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp/o");
-  ASSERT_TRUE(result.Succeeded());
+  ASSERT_TRUE(result.has_value());
   ASSERT_EQ(result->size(), file_names.size());
   EXPECT_TRUE(std::equal(result->begin(), result->end(), file_names.rbegin()));
 }
@@ -458,7 +458,7 @@ TEST_F(FileSystemTest, CreateFullPath)
 
   // Parent directories should be created by CreateFullPath.
   for (const std::string path : {"/tmp", "/tmp/a", "/tmp/a/b", "/tmp/a/b/c"})
-    EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, path).Succeeded());
+    EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, path).has_value());
 
   // If parent directories already exist, the call should still succeed.
   EXPECT_EQ(m_fs->CreateFullPath(Uid{0}, Gid{0}, "/tmp/a/b/c/d", 0, modes), ResultCode::Success);

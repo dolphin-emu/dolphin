@@ -4,6 +4,7 @@
 #include "Core/IOS/FS/FileSystem.h"
 
 #include <algorithm>
+#include <expected>
 
 #include "Common/Assert.h"
 #include "Common/FileUtil.h"
@@ -100,7 +101,7 @@ Result<FileHandle> FileSystem::CreateAndOpenFile(Uid uid, Gid gid, const std::st
 
   const ResultCode result = CreateFile(uid, gid, path, 0, modes);
   if (result != ResultCode::Success)
-    return result;
+    return std::unexpected{result};
 
   return OpenFile(uid, gid, path, Mode::ReadWrite);
 }
@@ -117,8 +118,8 @@ ResultCode FileSystem::CreateFullPath(Uid uid, Gid gid, const std::string& path,
 
     const std::string subpath = path.substr(0, position);
     const Result<Metadata> metadata = GetMetadata(uid, gid, subpath);
-    if (!metadata && metadata.Error() != ResultCode::NotFound)
-      return metadata.Error();
+    if (!metadata && metadata.error() != ResultCode::NotFound)
+      return metadata.error();
     if (metadata && metadata->is_file)
       return ResultCode::Invalid;
 

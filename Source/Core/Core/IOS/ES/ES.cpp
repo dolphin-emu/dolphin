@@ -161,7 +161,7 @@ void ESDevice::FinishInit()
     if (launch_file)
     {
       u64 id;
-      if (launch_file->Read(&id, 1).Succeeded())
+      if (launch_file->Read(&id, 1).has_value())
         pending_launch_title_id = id;
     }
   }
@@ -811,7 +811,7 @@ static ReturnCode WriteTmdForDiVerify(FS::FileSystem* fs, const ES::TMDReader& t
   {
     const auto file = fs->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, temp_path, internal_modes);
     if (!file)
-      return FS::ConvertResult(file.Error());
+      return FS::ConvertResult(file.error());
     if (!file->Write(tmd.GetBytes().data(), tmd.GetBytes().size()))
       return ES_EIO;
   }
@@ -1039,7 +1039,7 @@ ReturnCode ESCore::ReadCertStore(std::vector<u8>* buffer) const
   const auto store_file =
       m_ios.GetFS()->OpenFile(PID_KERNEL, PID_KERNEL, CERT_STORE_PATH, FS::Mode::Read);
   if (!store_file)
-    return FS::ConvertResult(store_file.Error());
+    return FS::ConvertResult(store_file.error());
 
   buffer->resize(store_file->GetStatus()->size);
   if (!store_file->Read(buffer->data(), buffer->size()))
