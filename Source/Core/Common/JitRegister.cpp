@@ -42,11 +42,13 @@ void Init(const std::string& perf_dir)
   {
     const std::string dir = perf_dir.empty() ? "/tmp" : perf_dir;
     const std::string filename = fmt::format("{}/perf-{}.map", dir, getpid());
-    s_perf_map_file.Open(filename, "w");
-    // Disable buffering in order to avoid missing some mappings
-    // if the event of a crash:
-    std::setvbuf(s_perf_map_file.GetHandle(), nullptr, _IONBF, 0);
-    s_is_enabled = true;
+    if (s_perf_map_file.Open(filename, "w"))
+    {
+      // Disable buffering in order to avoid missing some mappings
+      // in the event of a crash:
+      std::setvbuf(s_perf_map_file.GetHandle(), nullptr, _IONBF, 0);
+      s_is_enabled = true;
+    }
   }
 }
 
