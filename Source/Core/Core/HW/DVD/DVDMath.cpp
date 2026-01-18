@@ -52,7 +52,7 @@ constexpr double LONG_SEEK_VELOCITY_INVERSE = 4.5;  // inverse: s/m
 // In practice this yields good-enough numbers as a more exact formula
 // involving the integral over a polar equation (too complex to describe here)
 // or the approximation of a DVD as a set of concentric circles (which is a
-// better approximation, but makes futher derivations more complicated than
+// better approximation, but makes further derivations more complicated than
 // they need to be).
 //
 // From the area approximation, we end up with this formula:

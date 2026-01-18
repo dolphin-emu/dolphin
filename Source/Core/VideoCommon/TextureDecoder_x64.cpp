@@ -1006,7 +1006,7 @@ static void TexDecoder_DecodeImpl_RGBA8_SSSE3(u32* dst, const u8* src, int width
                                               TextureFormat texformat, const u8* tlut,
                                               TLUTFormat tlutfmt, int Wsteps4, int Wsteps8)
 {
-  // xsacha optimized with SSSE3 instrinsics
+  // xsacha optimized with SSSE3 intrinsics
   // Produces a ~30% speed improvement over SSE2 implementation
   for (int y = 0; y < height; y += 4)
   {
@@ -1212,7 +1212,7 @@ static void TexDecoder_DecodeImpl_CMPR(u32* dst, const u8* src, int width, int h
         int cmp1 = _mm_extract_epi16(cmprgb0rgb1, 4);
 
         // green:
-        // NOTE: We start with the larger number of bits (6) firts for G and shift the mask down
+        // NOTE: We start with the larger number of bits (6) first for G and shift the mask down
         // 1 bit to get a 5-bit mask later for R and B components.
         // low6mask == _mm_set_epi32(0x0000FC00, 0x0000FC00, 0x0000FC00, 0x0000FC00)
         const __m128i low6mask = _mm_slli_epi32(_mm_srli_epi32(allFFs128, 24 + 2), 8 + 2);

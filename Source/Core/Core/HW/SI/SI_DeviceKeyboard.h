@@ -36,7 +36,7 @@ private:
 
   KeyArray MapKeys(const KeyboardStatus& key_status) const;
 
-  // Internal counter synchonizing GC and keyboard
+  // Internal counter synchronizing GC and keyboard
   u8 m_counter = 0;
 };
 }  // namespace SerialInterface

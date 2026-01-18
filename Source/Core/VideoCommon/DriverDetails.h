@@ -325,7 +325,7 @@ enum Bug
 
   // BUG: Some driver and Apple Silicon GPU combinations have problems with fragment discard when
   // early depth test is enabled. Discarded fragments may appear corrupted (Super Mario Sunshine,
-  // Sonic Adventure 2: Battle, Phantasy Star Online Epsiodes 1 & 2, etc).
+  // Sonic Adventure 2: Battle, Phantasy Star Online Episodes 1 & 2, etc).
   // Affected devices: Apple Silicon GPUs of Apple family 4 and newer.
   // Started version: -1
   // Ended version: -1

@@ -31,7 +31,7 @@ enum ExtensionNumber : u8
 class ExtensionPort
 {
 public:
-  // The real wiimote reads extension data from i2c slave 0x52 addres 0x00:
+  // The real wiimote reads extension data from i2c slave 0x52 address 0x00:
   static constexpr u8 REPORT_I2C_SLAVE = 0x52;
   static constexpr u8 REPORT_I2C_ADDR = 0x00;
 

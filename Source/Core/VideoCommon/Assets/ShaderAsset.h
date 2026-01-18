@@ -60,7 +60,7 @@ struct RasterSurfaceShaderData
 
   // These shader properties describe the input that the
   // shader expects to expose.  The key is text
-  // expected to be in the shader code and the propery
+  // expected to be in the shader code and the property
   // describes various details about the input
   std::vector<ShaderProperty> uniform_properties;
   std::string vertex_source;

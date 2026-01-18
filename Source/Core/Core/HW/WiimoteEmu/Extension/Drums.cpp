@@ -163,7 +163,7 @@ void Drums::Update(const DesiredExtensionState& target_state)
 
       velocity = desired_state.softness;
 
-      // A drum-pad hit causes the relevent bit to be triggered for the next 10 frames.
+      // A drum-pad hit causes the relevant bit to be triggered for the next 10 frames.
       constexpr u8 HIT_FRAME_COUNT = 10;
 
       m_pad_remaining_frames[i] = HIT_FRAME_COUNT;
@@ -178,7 +178,7 @@ void Drums::Update(const DesiredExtensionState& target_state)
   drum_data.velocity4 = velocity >> 4;
 
   // Figure out which drum-pad bits to send.
-  // Note: Relevent bits are not set until after velocity data has been sent.
+  // Note: Relevant bits are not set until after velocity data has been sent.
   // My drums never exposed simultaneous hits. One pad bit was always sent before the other.
   for (std::size_t i = 0; i != drum_pad_bitmasks.size(); ++i)
   {

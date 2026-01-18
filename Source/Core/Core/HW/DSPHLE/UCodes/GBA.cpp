@@ -95,7 +95,7 @@ void GBAUCode::HandleMail(u32 mail)
   {
     PrepareBootUCode(mail);
     // The GBA ucode ignores the first 3 mails (mram_dest_addr, mram_size, mram_dram_addr)
-    // but we currently don't handle that (they're read when they shoudln't be, but DSP HLE doesn't
+    // but we currently don't handle that (they're read when they shouldn't be, but DSP HLE doesn't
     // implement them so it's fine).
     return;
   }
@@ -106,7 +106,7 @@ void GBAUCode::HandleMail(u32 mail)
   {
     if (mail == REQUEST_MAIL)
     {
-      INFO_LOG_FMT(DSPHLE, "GBAUCode - Recieved request mail");
+      INFO_LOG_FMT(DSPHLE, "GBAUCode - Received request mail");
       m_mail_state = MailState::WaitingForAddress;
     }
     else

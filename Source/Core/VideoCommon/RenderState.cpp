@@ -76,7 +76,7 @@ static DstBlendFactor RemoveDstAlphaUsage(DstBlendFactor factor)
 }
 
 // We separate the blending parameter for rgb and alpha. For blending
-// the alpha component, CLR and ALPHA are indentical. So just always
+// the alpha component, CLR and ALPHA are identical. So just always
 // use ALPHA as this makes it easier for the backends to use the second
 // alpha value of dual source blending.
 static DstBlendFactor RemoveSrcColorUsage(DstBlendFactor factor)

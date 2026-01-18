@@ -331,7 +331,7 @@ bool BackupFile(const std::string& path)
   LogToFile("Backing up existing %s to .bak.\n", path.c_str());
   if (!File::Rename(path, backup_path))
   {
-    LogToFile("Cound not rename %s to %s for backup.\n", path.c_str(), backup_path.c_str());
+    LogToFile("Could not rename %s to %s for backup.\n", path.c_str(), backup_path.c_str());
     return false;
   }
   return true;

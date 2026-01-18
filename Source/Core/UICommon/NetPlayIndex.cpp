@@ -289,7 +289,7 @@ std::optional<std::string> NetPlaySession::DecryptID(std::string_view password) 
   if (password.empty())
     return {};
 
-  // If the length of an encrypted session id is not divisble by two, it's invalid
+  // If the length of an encrypted session id is not divisible by two, it's invalid
   if (server_id.empty() || server_id.size() % 2 != 0)
     return {};
 

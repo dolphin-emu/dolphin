@@ -315,7 +315,7 @@ void FifoPlayer::SetFileLoadedCallback(CallbackFunc callback)
 {
   m_FileLoadedCb = std::move(callback);
 
-  // Trigger the callback immediatly if the file is already loaded.
+  // Trigger the callback immediately if the file is already loaded.
   if (GetFile() != nullptr)
   {
     m_FileLoadedCb();

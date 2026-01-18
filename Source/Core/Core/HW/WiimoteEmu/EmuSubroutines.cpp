@@ -305,7 +305,7 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
     auto const bytes_written = m_i2c_bus.BusWrite(wd.slave_address, (u8)address, wd.size, wd.data);
     if (bytes_written != wd.size)
     {
-      // A real wiimote gives error 7 for failed write to i2c bus (mainly a non-existant slave)
+      // A real wiimote gives error 7 for failed write to i2c bus (mainly a non-existent slave)
       error_code = ErrorCode::Nack;
     }
   }
@@ -463,7 +463,7 @@ bool Wiimote::ProcessReadDataRequest()
       // error code 8
 
       // The real Wiimote generate an error for the first
-      // request to 0x1770 if we dont't replicate that the game will never
+      // request to 0x1770 if we don't replicate that the game will never
       // read the calibration data at the beginning of Eeprom.
       error_code = ErrorCode::InvalidAddress;
     }

@@ -89,7 +89,7 @@ void AudioPane::CreateWidgets()
   const QFontMetrics font_metrics{font()};
   const int label_width = font_metrics.boundingRect(GetVolumeLabelText(100)).width();
   // Ensure the label is at least as wide as the QGroupBox title.
-  // This prevents [-Volume] title uglyness on Windows.
+  // This prevents [-Volume] title ugliness on Windows.
   const int title_width = font_metrics.boundingRect(volume_box->title()).width();
   m_volume_indicator->setFixedWidth(std::max(label_width, title_width));
 

@@ -131,7 +131,7 @@ void InterfacePane::CreateUI()
   m_combobox_language = MakeLanguageComboBox();
   combobox_layout->addRow(tr("&Language:"), m_combobox_language);
 
-  // List avalable themes
+  // List available themes
   auto theme_paths =
       Common::DoFileSearch({File::GetUserPath(D_THEMES_IDX), File::GetSysDirectory() + THEMES_DIR});
   std::vector<std::string> theme_names;

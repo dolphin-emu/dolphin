@@ -792,7 +792,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   // There are two different ways to do this, when the depth range is oversized, we process
   // the depth range in the vertex shader, if not we let the host driver handle it.
   //
-  // Adjust z for the depth range. We're using an equation which incorperates a depth inversion,
+  // Adjust z for the depth range. We're using an equation which incorporates a depth inversion,
   // so we can map the console -1..0 range to the 0..1 range used in the depth buffer.
   // We have to handle the depth range in the vertex shader instead of after the perspective
   // divide, because some games will use a depth range larger than what is allowed by the
@@ -804,7 +804,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   if (!host_config.backend_clip_control)
   {
     // If the graphics API doesn't support a depth range of 0..1, then we need to map z to
-    // the -1..1 range. Unfortunately we have to use a substraction, which is a lossy floating-point
+    // the -1..1 range. Unfortunately we have to use a subtraction, which is a lossy floating-point
     // operation that can introduce a round-trip error.
     out.Write("o.pos.z = o.pos.z * 2.0 - o.pos.w;\n");
   }

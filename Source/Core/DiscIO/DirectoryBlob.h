@@ -48,7 +48,7 @@ struct ContentFile
 typedef std::shared_ptr<std::vector<u8>> ContentMemory;
 
 // Content chunk that loads data from a DirectoryBlobReader.
-// Intented for representing a partition within a disc.
+// Intended for representing a partition within a disc.
 struct ContentPartition
 {
   // Offset from the start of the partition for the first byte represented by this chunk.

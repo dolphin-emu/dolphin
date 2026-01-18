@@ -491,7 +491,7 @@ float VideoInterfaceManager::GetAspectRatio() const
   // but it's only 4:3 if the picture fill the entire active area.
   // All games configure VideoInterface to add padding in both the horizontal and vertical
   // directions and most games also do a slight horizontal scale.
-  // This means that XFB never fills the entire active area and is therefor almost never 4:3
+  // This means that XFB never fills the entire active area and is therefore almost never 4:3
 
   // To work out the correct aspect ratio of the XFB, we need to know how VideoInterface's
   // currently configured active area compares to the active area of a stock PAL or NTSC
@@ -980,7 +980,7 @@ void VideoInterfaceManager::Update(u64 ticks)
     m_ticks_last_line_start = ticks;
   }
 
-  // TODO: Findout why skipping interrupts acts as a frameskip
+  // TODO: Find out why skipping interrupts acts as a frameskip
   if (core_timing.GetVISkip())
     return;
 

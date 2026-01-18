@@ -198,7 +198,7 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(
 }
 
 // The shortcut_widget argument needs to specify the container widget that will be hidden/shown.
-// This is done to avoid ambigous shortcuts
+// This is done to avoid ambiguous shortcuts
 TASSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int default_, int max,
                                                   QKeySequence shortcut_key_sequence,
                                                   Qt::Orientation orientation,

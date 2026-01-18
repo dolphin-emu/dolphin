@@ -628,7 +628,7 @@ std::tuple<float, float> Presenter::ApplyStandardAspectCrop(float width, float h
   // For the custom (relative) case, we want to crop from the native aspect ratio
   // to the specific target one, as they likely have a small difference
   case AspectMode::Custom:
-  // There should be no cropping needed in the custom strech case,
+  // There should be no cropping needed in the custom stretch case,
   // as output should always exactly match the target aspect ratio
   case AspectMode::CustomStretch:
     expected_aspect = g_ActiveConfig.GetCustomAspectRatio();

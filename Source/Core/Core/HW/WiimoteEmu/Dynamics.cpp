@@ -67,7 +67,7 @@ Common::Quaternion ComplementaryFilter(const Common::Quaternion& gyroscope,
 
   const auto cos_angle = normalized_accel.Dot(gyro_vec);
 
-  // If gyro to accel angle difference is betwen 0 and 180 degrees we make an adjustment.
+  // If gyro to accel angle difference is between 0 and 180 degrees we make an adjustment.
   const auto abs_cos_angle = std::abs(cos_angle);
   if (abs_cos_angle > 0 && abs_cos_angle < 1)
   {

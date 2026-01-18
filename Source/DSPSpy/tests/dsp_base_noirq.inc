@@ -236,7 +236,7 @@ dma_copy:
 	si		@DMBL, #0xfeeb
 	si		@DIRQ, #0x0001
 
-; wait for the CPU to recieve our response before we execute the next op
+; wait for the CPU to receive our response before we execute the next op
 	call	0x8078
 	andi	$ac0.m, #0x7fff
 	lrs		$ac1.m, @CMBL

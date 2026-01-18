@@ -314,7 +314,7 @@ bool CaseInsensitiveContains(std::string_view haystack, std::string_view needle)
 // 'std::less'-like comparison function object type for case-insensitive strings.
 struct CaseInsensitiveLess
 {
-  using is_transparent = void;  // Allow heterogenous lookup.
+  using is_transparent = void;  // Allow heterogeneous lookup.
   bool operator()(std::string_view a, std::string_view b) const;
 };
 

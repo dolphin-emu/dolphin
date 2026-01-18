@@ -182,7 +182,8 @@ int WiimoteHidapi::IORead(u8* buf)
 {
   int timeout = 200;  // ms
   int result = hid_read_timeout(m_handle, buf + 1, MAX_PAYLOAD - 1, timeout);
-  // TODO: If and once we use hidapi across plaforms, change our internal API to clean up this mess.
+  // TODO: If and once we use hidapi across platforms, change our internal API to clean up this
+  // mess.
   if (result == -1)
   {
     ERROR_LOG_FMT(WIIMOTE, "Failed to read from {}.", m_device_path);

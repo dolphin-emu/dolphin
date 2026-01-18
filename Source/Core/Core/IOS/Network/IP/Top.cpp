@@ -388,7 +388,7 @@ static std::optional<DefaultInterface> GetSystemDefaultInterface()
   const u32 prefix_length = GetNetworkPrefixLength();
   const u32 netmask = (1 << prefix_length) - 1;
   const u32 gateway = GetNetworkGateway();
-  // this isnt fully correct, but this will make calls to get the routing table at least return the
+  // this isn't fully correct, but this will make calls to get the routing table at least return the
   // gateway
   if (routing_table.empty())
     routing_table = {{0, 0, 0, gateway}};
@@ -433,7 +433,7 @@ static std::optional<DefaultInterface> GetSystemDefaultInterface()
     if (iface->ifa_addr && iface->ifa_addr->sa_family == AF_INET &&
         get_addr(iface->ifa_addr).s_addr == default_interface_address->s_addr)
     {
-      // this isnt fully correct, but this will make calls to get the routing table at least return
+      // this isn't fully correct, but this will make calls to get the routing table at least return
       // the gateway
       if (routing_table.empty())
         routing_table = {{0, {}, {}, get_addr(iface->ifa_dstaddr)}};

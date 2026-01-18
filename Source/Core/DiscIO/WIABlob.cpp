@@ -1792,7 +1792,7 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
 
     // Compared to WIA, RVZ adds an extra member to the GroupEntry struct. This added data usually
     // compresses well, so we'll assume the compression ratio for RVZ GroupEntries is 9 / 16 or
-    // better. This constant is somehwat arbitrarily chosen, but no games were found that get a
+    // better. This constant is somewhat arbitrarily chosen, but no games were found that get a
     // worse compression ratio than that. There are some games that get a worse ratio than 1 / 2,
     // such as Metroid: Other M (PAL) with the default settings.
     if (RVZ && compression_type > WIARVZCompressionType::Purge)

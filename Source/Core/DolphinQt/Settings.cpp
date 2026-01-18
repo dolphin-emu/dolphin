@@ -414,7 +414,7 @@ void Settings::SetStyleType(StyleType type)
 {
   GetQSettings().setValue(QStringLiteral("userstyle/styletype"), static_cast<int>(type));
 
-  // also set the old setting so that the config is correctly intepreted by older Dolphin builds
+  // also set the old setting so that the config is correctly interpreted by older Dolphin builds
   GetQSettings().setValue(QStringLiteral("userstyle/enabled"), type == StyleType::User);
 }
 

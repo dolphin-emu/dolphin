@@ -908,7 +908,7 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
       g_ActiveConfig.color_correction.fSDRDisplayCustomGamma;
   // scRGB (RGBA16F) expects linear values as opposed to sRGB gamma
   builtin_uniforms.linear_space_output = m_framebuffer_format == AbstractTextureFormat::RGBA16F;
-  // Implies ouput values can be beyond the 0-1 range
+  // Implies output values can be beyond the 0-1 range
   builtin_uniforms.hdr_output = m_framebuffer_format == AbstractTextureFormat::RGBA16F;
   builtin_uniforms.hdr_paper_white_nits = g_ActiveConfig.color_correction.fHDRPaperWhiteNits;
   // A value of 1 1 1 usually matches 80 nits in HDR

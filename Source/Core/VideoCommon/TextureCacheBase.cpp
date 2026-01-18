@@ -569,7 +569,7 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
   auto ShouldSaveEntry = [](const RcTcacheEntry& entry) {
     // We skip non-copies as they can be decoded from RAM when the state is loaded.
     // Storing them would duplicate data in the save state file, adding to decompression time.
-    // We also need to store invalidated entires, as they can't be restored from RAM.
+    // We also need to store invalidated entries, as they can't be restored from RAM.
     return entry->IsCopy() || entry->invalidated;
   };
   auto AddCacheEntryToMap = [&entry_map, &entries_to_save](const RcTcacheEntry& entry) -> u32 {
@@ -1257,7 +1257,7 @@ TCacheEntry* TextureCacheBase::LoadImpl(const TextureInfo& texture_info, bool fo
     // If the TMEM configuration is such that this texture is more or less guaranteed to still
     // be in TMEM, then we know we can reuse the old entry without even hashing the memory
     //
-    // It's possible this texture has already been overwritten in emulated memory and therfore
+    // It's possible this texture has already been overwritten in emulated memory and therefore
     // invalidated from our texture cache, but we want to use it anyway to approximate the
     // result of the game using an overwritten texture cached in TMEM.
     //
@@ -2471,7 +2471,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
 
   if (OpcodeDecoder::g_record_fifo_data)
   {
-    // Mark the memory behind this efb copy as dynamicly generated for the Fifo log
+    // Mark the memory behind this efb copy as dynamically generated for the Fifo log
     u32 address = dstAddr;
     for (u32 i = 0; i < num_blocks_y; i++)
     {
@@ -2690,7 +2690,7 @@ TextureCacheBase::FindMatchingTextureFromPool(const TextureConfig& config)
   // Find a texture from the pool that does not have a frameCount of FRAMECOUNT_INVALID.
   // This prevents a texture from being used twice in a single frame with different data,
   // which potentially means that a driver has to maintain two copies of the texture anyway.
-  // Render-target textures are fine through, as they have to be generated in a seperated pass.
+  // Render-target textures are fine through, as they have to be generated in a separate pass.
   // As non-render-target textures are usually static, this should not matter much.
   auto range = m_texture_pool.equal_range(config);
   auto matching_iter = std::find_if(range.first, range.second, [](const auto& iter) {

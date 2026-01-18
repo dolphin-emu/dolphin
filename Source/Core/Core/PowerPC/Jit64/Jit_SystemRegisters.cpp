@@ -595,7 +595,7 @@ void Jit64::crXXX(UGeckoInstruction inst)
   JITDISABLE(bJITSystemRegistersOff);
   DEBUG_ASSERT_MSG(DYNA_REC, inst.OPCD == 19, "Invalid crXXX");
 
-  // TODO(merry): Futher optimizations can be performed here. For example,
+  // TODO(merry): Further optimizations can be performed here. For example,
   // instead of extracting each CR field bit then setting it, the operation
   // could be performed on the internal format directly instead and the
   // relevant bit result can be masked out.

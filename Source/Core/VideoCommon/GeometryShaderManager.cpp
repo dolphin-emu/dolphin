@@ -18,7 +18,7 @@ void GeometryShaderManager::Init()
 {
   constants = {};
 
-  // Init any intial constants which aren't zero when bpmem is zero.
+  // Init any initial constants which aren't zero when bpmem is zero.
   SetViewportChanged();
   SetProjectionChanged();
 

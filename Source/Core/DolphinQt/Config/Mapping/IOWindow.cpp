@@ -821,7 +821,7 @@ static void PaintStateIndicator(QPainter& painter, const QRect& region, ControlS
   QRect meter_region = region;
   meter_region.setWidth(region.width() * std::clamp(state, 0.0, 1.0));
 
-  // Create a temporary indicator object to retreive color constants.
+  // Create a temporary indicator object to retrieve color constants.
   MappingIndicator indicator;
 
   // Normal text.

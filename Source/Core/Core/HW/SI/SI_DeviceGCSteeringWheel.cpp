@@ -77,7 +77,7 @@ DataResponse CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
                                      GCPadStatus::MAIN_STICK_CENTER_Y - pad_status.stickY);
 
     // We must double these values because we are mapping half of a stick range to a 0..255 value.
-    // We're only getting half the precison we could potentially have,
+    // We're only getting half the precision we could potentially have,
     // but we'll have to redesign our GameCube controller input to fix that.
 
     // All 8 bits (Accelerate)

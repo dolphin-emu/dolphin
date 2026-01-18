@@ -42,7 +42,7 @@ public:
   // Fence "counters" are used to track which commands have been completed by the GPU.
   // If the last completed fence counter is greater or equal to N, it means that the work
   // associated counter N has been completed by the GPU. The value of N to associate with
-  // commands can be retreived by calling GetCurrentFenceCounter().
+  // commands can be retrieved by calling GetCurrentFenceCounter().
   u64 GetCompletedFenceCounter() const { return m_completed_fence_counter; }
 
   // Gets the fence that will be signaled when the currently executing command buffer is

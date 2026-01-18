@@ -139,7 +139,7 @@ constexpr std::array<u8, 256> s_key_codes_azerty{
     0x55,  // Multiply
     0x57,  // Add
     0x00,  // Separator
-    0x56,  // Substract
+    0x56,  // Subtract
     0x63,  // Decimal
     0x54,  // Divide
     // F1 -> F12
