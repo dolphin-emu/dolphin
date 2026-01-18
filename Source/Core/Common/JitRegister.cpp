@@ -79,7 +79,7 @@ void Register(const void* base_address, u32 code_size, const std::string& symbol
 #endif
 
   // Linux perf /tmp/perf-$pid.map:
-  if (!s_perf_map_file.IsOpen())
+  if (!s_perf_map_file)
     return;
 
   const auto entry = fmt::format("{} {:x} {}\n", fmt::ptr(base_address), code_size, symbol_name);
