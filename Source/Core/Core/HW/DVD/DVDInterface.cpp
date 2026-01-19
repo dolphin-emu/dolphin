@@ -321,7 +321,7 @@ void DVDInterface::ResetDrive(bool spinup)
   else if (!spinup)
   {
     // Wii hardware tests indicate that this is used when ejecting and inserting a new disc, or
-    // performing a reset without spin up.
+    // performing a reset without spin-up.
     SetDriveState(DriveState::DiscChangeDetected);
   }
   else

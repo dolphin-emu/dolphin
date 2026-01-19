@@ -241,7 +241,7 @@ private:
 
   union ICCommand
   {
-    u8 data[81 + 4 + 4 + 4];
+    u8 data[81 + 4 + 4 + 4] = {};
 
     struct
     {
@@ -258,55 +258,61 @@ private:
     };
   };
 
-  u8 m_last[2][0x80];
-  u32 m_lastptr[2];
+  u8 m_last[2][0x80] = {};
+  u32 m_lastptr[2] = {};
 
-  u16 m_coin[2];
-  u32 m_coin_pressed[2];
+  u16 m_coin[2] = {};
+  u32 m_coin_pressed[2] = {};
 
-  u8 m_ic_card_data[2048];
-  u16 m_ic_card_state;
+  u8 m_ic_card_data[2048] = {};
 
-  u16 m_ic_card_status;
-  u16 m_ic_card_session;
-  u8 m_ic_write_buffer[512];
-  u32 m_ic_write_offset;
-  u32 m_ic_write_size;
+  // Setup IC-card
+  u16 m_ic_card_state = 0x20;
+  u16 m_ic_card_status = ICCARDStatus::Okay;
+  u16 m_ic_card_session = 0x23;
 
-  u8 m_card_memory[0xD0];
-  u8 m_card_read_packet[0xDB];
-  u8 m_card_buffer[0x100];
-  u32 m_card_memory_size;
-  bool m_card_is_inserted;
-  u32 m_card_command;
-  u32 m_card_clean;
-  u32 m_card_write_length;
-  u32 m_card_wrote;
-  u32 m_card_read_length;
-  u32 m_card_read;
-  u32 m_card_bit;
-  bool m_card_shutter;
-  u32 m_card_state_call_count;
-  u8 m_card_offset;
+  u8 m_ic_write_buffer[512] = {};
+  u32 m_ic_write_offset = 0;
+  u32 m_ic_write_size = 0;
 
-  u32 m_wheel_init;
+  u8 m_card_memory[0xD0] = {};
+  u8 m_card_read_packet[0xDB] = {};
+  u8 m_card_buffer[0x100] = {};
 
-  u32 m_motor_init;
-  u8 m_motor_reply[64];
-  s16 m_motor_force_y;
+  // Setup CARD
+  u32 m_card_memory_size = 0;
+  bool m_card_is_inserted = false;
+
+  u32 m_card_command = 0;
+  u32 m_card_clean = 0;
+  u32 m_card_write_length = 0;
+  u32 m_card_wrote = 0;
+  u32 m_card_read_length = 0;
+  u32 m_card_read = 0;
+  u32 m_card_bit = 0;
+  bool m_card_shutter = true;  // Open
+  u32 m_card_state_call_count = 0;
+  u8 m_card_offset = 0;
+
+  // Serial
+  u32 m_wheel_init = 0;
+
+  u32 m_motor_init = 0;
+  u8 m_motor_reply[64] = {};
+  s16 m_motor_force_y = 0;
 
   // F-Zero AX (DX)
-  bool m_fzdx_seatbelt;
-  bool m_fzdx_motion_stop;
-  bool m_fzdx_sensor_right;
-  bool m_fzdx_sensor_left;
-  u8 m_rx_reply;
+  bool m_fzdx_seatbelt = true;
+  bool m_fzdx_motion_stop = false;
+  bool m_fzdx_sensor_right = false;
+  bool m_fzdx_sensor_left = false;
+  u8 m_rx_reply = 0xF0;
 
   // F-Zero AX (CyCraft)
-  bool m_fzcc_seatbelt;
-  bool m_fzcc_sensor;
-  bool m_fzcc_emergency;
-  bool m_fzcc_service;
+  bool m_fzcc_seatbelt = true;
+  bool m_fzcc_sensor = false;
+  bool m_fzcc_emergency = false;
+  bool m_fzcc_service = false;
 
   void ICCardSendReply(ICCommand* iccommand, u8* buffer, u32* length);
 };
