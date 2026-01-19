@@ -4,6 +4,7 @@
 #include "Core/HW/SI/SI_DeviceAMBaseboard.h"
 
 #include <algorithm>
+#include <numeric>
 #include <string>
 
 #include <fmt/format.h>
@@ -41,7 +42,6 @@
 
 namespace SerialInterface
 {
-
 void JVSIOMessage::Start(int node)
 {
   m_last_start = m_pointer;
@@ -89,7 +89,7 @@ void JVSIOMessage::AddData(const u8* dst, std::size_t len, int sync = 0)
 
 void JVSIOMessage::AddData(const void* data, std::size_t len)
 {
-  AddData((const u8*)data, len);
+  AddData(static_cast<const u8*>(data), len);
 }
 
 void JVSIOMessage::AddData(const char* data)
@@ -117,21 +117,14 @@ void JVSIOMessage::End()
   }
 }
 
-static u8 CheckSumXOR(u8* data, u32 length)
+static constexpr u8 CheckSumXOR(const u8* data, u32 length)
 {
-  u8 check = 0;
-
-  for (u32 i = 0; i < length; i++)
-  {
-    check ^= data[i];
-  }
-
-  return check;
+  return std::accumulate(data, data + length, u8{}, std::bit_xor());
 }
 
-static const char s_cdr_program_version[] = {"           Version 1.22,2003/09/19,171-8213B"};
-static const char s_cdr_boot_version[] = {"           Version 1.04,2003/06/17,171-8213B"};
-static const u8 s_cdr_card_data[] = {
+static constexpr char s_cdr_program_version[] = {"           Version 1.22,2003/09/19,171-8213B"};
+static constexpr char s_cdr_boot_version[] = {"           Version 1.04,2003/06/17,171-8213B"};
+static constexpr u8 s_cdr_card_data[] = {
     0x00, 0x6E, 0x00, 0x00, 0x01, 0x00, 0x00, 0x06, 0x00, 0x00, 0x07, 0x00, 0x00, 0x0B,
     0x00, 0x00, 0x0E, 0x00, 0x00, 0x10, 0x00, 0x00, 0x17, 0x00, 0x00, 0x19, 0x00, 0x00,
     0x1A, 0x00, 0x00, 0x1B, 0x00, 0x00, 0x1D, 0x00, 0x00, 0x1F, 0x00, 0x00, 0x20, 0x00,
@@ -139,29 +132,16 @@ static const u8 s_cdr_card_data[] = {
     0x00, 0x00, 0x2C, 0x00, 0x00, 0x2F, 0x00, 0x00, 0x34, 0x00, 0x00, 0x35, 0x00, 0x00,
     0x37, 0x00, 0x00, 0x38, 0x00, 0x00, 0x39, 0x00, 0x00, 0x3D, 0x00};
 
-const static u8 s_region_flags[] = "\x00\x00\x30\x00"
-                                   //   "\x01\xfe\x00\x00"  // JAPAN
-                                   "\x02\xfd\x00\x00"  // USA
-                                   //"\x03\xfc\x00\x00"  // export
-                                   "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff";
+const constexpr u8 s_region_flags[] = "\x00\x00\x30\x00"
+                                      //   "\x01\xfe\x00\x00"  // JAPAN
+                                      "\x02\xfd\x00\x00"  // USA
+                                      //"\x03\xfc\x00\x00"  // export
+                                      "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff";
 // AM-Baseboard device on SI
 CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(Core::System& system, SIDevices device,
                                              int device_number)
     : ISIDevice(system, device, device_number)
 {
-  std::ranges::fill(m_coin, 0);
-
-  // Setup IC-card
-  m_ic_card_state = 0x20;
-  m_ic_card_status = ICCARDStatus::Okay;
-  m_ic_card_session = 0x23;
-
-  m_ic_write_size = 0;
-  m_ic_write_offset = 0;
-
-  memset(m_ic_write_buffer, 0, sizeof(m_ic_write_buffer));
-  memset(m_ic_card_data, 0, sizeof(m_ic_card_data));
-
   // Card ID
   m_ic_card_data[0x20] = 0x95;
   m_ic_card_data[0x21] = 0x71;
@@ -180,44 +160,6 @@ CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(Core::System& system, SIDevices dev
   // Use count
   m_ic_card_data[0x28] = 0xFF;
   m_ic_card_data[0x29] = 0xFF;
-
-  // Setup CARD
-  m_card_memory_size = 0;
-  m_card_is_inserted = false;
-
-  m_card_offset = 0;
-  m_card_command = 0;
-  m_card_clean = 0;
-
-  m_card_write_length = 0;
-  m_card_wrote = 0;
-
-  m_card_read_length = 0;
-  m_card_read = 0;
-
-  m_card_bit = 0;
-  m_card_shutter = true;  // Open
-  m_card_state_call_count = 0;
-
-  // Serial
-  m_wheel_init = 0;
-
-  m_motor_init = 0;
-  m_motor_force_y = 0;
-
-  m_fzdx_seatbelt = true;
-  m_fzdx_motion_stop = false;
-  m_fzdx_sensor_right = false;
-  m_fzdx_sensor_left = false;
-
-  m_rx_reply = 0xF0;
-
-  m_fzcc_seatbelt = true;
-  m_fzcc_sensor = false;
-  m_fzcc_emergency = false;
-  m_fzcc_service = false;
-
-  memset(m_motor_reply, 0, sizeof(m_motor_reply));
 }
 
 constexpr u32 SI_XFER_LENGTH_MASK = 0x7f;
@@ -1177,7 +1119,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                         if (m_card_state_call_count > 10)
                         {
                           if (m_card_bit & 2)
-                            m_card_bit &= ~2;
+                            m_card_bit &= ~2u;
                           else
                             m_card_bit |= 2;
 
@@ -1400,10 +1342,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
           u8 jvs_buf[0x80];
 
-          if (frame_len > sizeof(jvs_buf))
-          {
-            frame_len = sizeof(jvs_buf);
-          }
+          frame_len = std::min<u32>(frame_len, sizeof(jvs_buf));
 
           memcpy(jvs_buf, frame, frame_len);
 
@@ -1555,7 +1494,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             case JVSIOCommand::MainID:
               while (*jvs_io++)
               {
-              };
+              }
               message.AddData(StatusOkay);
               break;
             case JVSIOCommand::SwitchesInput:
@@ -2099,7 +2038,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               NOTICE_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0xF1, SetAddress: node={}",
                              node);
               message.AddData(node == 1);
-              dip_switch_1 &= ~1;
+              dip_switch_1 &= ~1u;
               break;
             default:
               ERROR_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Unhandled: node={}, command={:02x}",
@@ -2180,13 +2119,11 @@ CSIDevice_AMBaseboard::EButtonCombo
 CSIDevice_AMBaseboard::HandleButtonCombos(const GCPadStatus& pad_status)
 {
   // Keep track of the special button combos (embedded in controller hardware... :( )
-  EButtonCombo temp_combo;
+  EButtonCombo temp_combo = COMBO_NONE;
   if ((pad_status.button & 0xff00) == (PAD_BUTTON_Y | PAD_BUTTON_X | PAD_BUTTON_START))
     temp_combo = COMBO_ORIGIN;
   else if ((pad_status.button & 0xff00) == (PAD_BUTTON_B | PAD_BUTTON_X | PAD_BUTTON_START))
     temp_combo = COMBO_RESET;
-  else
-    temp_combo = COMBO_NONE;
 
   if (temp_combo != m_last_button_combo)
   {

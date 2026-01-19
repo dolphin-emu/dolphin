@@ -4,7 +4,6 @@
 #include "Core/HW/DVD/AMMediaboard.h"
 
 #include <algorithm>
-#include <cstdint>
 #include <string>
 #include <unordered_map>
 
@@ -32,8 +31,6 @@
 #include "Core/IOS/Network/Socket.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
-
-#include "DiscIO/DirectoryBlob.h"
 
 #if defined(__linux__) or defined(__APPLE__) or defined(__FreeBSD__) or defined(__NetBSD__) or     \
     defined(__HAIKU__)
@@ -215,14 +212,14 @@ static bool SafeCopyToEmu(Memory::MemoryManager& memory, u32 address, const u8* 
   memory.CopyToEmu(address, source + offset, length);
   return true;
 }
-static bool SafeCopyFromEmu(Memory::MemoryManager& memory, u8* destionation, u32 address,
-                            u64 destionation_size, u32 offset, u32 length)
+static bool SafeCopyFromEmu(Memory::MemoryManager& memory, u8* destination, u32 address,
+                            u64 destination_size, u32 offset, u32 length)
 {
-  if (offset > destionation_size || length > destionation_size - offset)
+  if (offset > destination_size || length > destination_size - offset)
   {
     ERROR_LOG_FMT(AMMEDIABOARD,
-                  "GC-AM: Write overflow: offset=0x{:08x}, length={}, destionation_size={}", offset,
-                  length, destionation_size);
+                  "GC-AM: Write overflow: offset=0x{:08x}, length={}, destination_size={}", offset,
+                  length, destination_size);
     return false;
   }
 
@@ -235,13 +232,13 @@ static bool SafeCopyFromEmu(Memory::MemoryManager& memory, u8* destionation, u32
     return false;
   }
 
-  memory.CopyFromEmu(destionation + offset, address, length);
+  memory.CopyFromEmu(destination + offset, address, length);
   return true;
 }
 
 static SOCKET socket_(int af, int type, int protocol)
 {
-  for (u32 i = 1; i < 64; ++i)
+  for (u32 i = 1; i < std::size(s_sockets); ++i)
   {
     if (s_sockets[i] == SOCKET_ERROR)
     {
@@ -256,7 +253,7 @@ static SOCKET socket_(int af, int type, int protocol)
 
 static SOCKET accept_(int fd, sockaddr* addr, socklen_t* len)
 {
-  for (u32 i = 1; i < 64; ++i)
+  for (u32 i = 1; i < std::size(s_sockets); ++i)
   {
     if (s_sockets[i] == SOCKET_ERROR)
     {
@@ -711,8 +708,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
     {
       INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Read All.Net Buffer ({:08x},{})", offset, length);
       // Fake reply
-      SafeCopyToEmu(memory, address, (u8*)s_allnet_reply, sizeof(s_allnet_reply),
-                    offset - AllNetBuffer, sizeof(s_allnet_reply));
+      SafeCopyToEmu(memory, address, reinterpret_cast<const u8*>(s_allnet_reply),
+                    sizeof(s_allnet_reply), offset - AllNetBuffer, sizeof(s_allnet_reply));
       return 0;
     }
 
@@ -1239,8 +1236,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       // Firmware memory (2MB)
       if ((offset >= 0x00400000) && (offset <= 0x600000))
       {
-        const u32 fwoffset = offset - 0x00400000;
-        memory.CopyFromEmu(s_firmware + fwoffset, address, length);
+        const u32 fw_offset = offset - 0x00400000;
+        memory.CopyFromEmu(s_firmware + fw_offset, address, length);
         return 0;
       }
     }
@@ -1843,7 +1840,7 @@ void Shutdown()
   s_dimm_disc.clear();
 
   // Close all sockets
-  for (u32 i = 1; i < 64; ++i)
+  for (u32 i = 1; i < std::size(s_sockets); ++i)
   {
     if (s_sockets[i] != SOCKET_ERROR)
     {
