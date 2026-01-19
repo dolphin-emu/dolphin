@@ -7,6 +7,7 @@
 #include <QWidget>
 
 #include "Core/PowerPC/PowerPC.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 
 class ConfigBool;
 template <typename T>
@@ -34,6 +35,7 @@ public:
 private:
   void CreateLayout();
   void ConnectLayout();
+  void UpdateShowDebuggingCheckbox();
   void Update();
 
   void OnResetButtonClicked();
@@ -42,6 +44,7 @@ private:
   ConfigBool* m_enable_mmu_checkbox;
   ConfigBool* m_pause_on_panic_checkbox;
   ConfigBool* m_accurate_cpu_cache_checkbox;
+  ToolTipCheckBox* m_checkbox_show_debugging_ui;
   ConfigBool* m_cpu_clock_override_checkbox;
   ConfigFloatSlider* m_cpu_clock_override_slider;
   QLabel* m_cpu_label;
@@ -49,6 +52,7 @@ private:
   ConfigBool* m_vi_rate_override_checkbox;
   ConfigFloatSlider* m_vi_rate_override_slider;
   QLabel* m_vi_label;
+  ConfigBool* m_vi_skip;
 
   ConfigBool* m_custom_rtc_checkbox;
   QDateTimeEdit* m_custom_rtc_datetime;

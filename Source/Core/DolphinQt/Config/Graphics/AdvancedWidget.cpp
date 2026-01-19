@@ -9,17 +9,12 @@
 #include <QVBoxLayout>
 
 #include "Core/Config/GraphicsSettings.h"
-#include "Core/Config/SYSCONFSettings.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/System.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/ConfigControls/ConfigInteger.h"
 #include "DolphinQt/Config/GameConfigWidget.h"
 #include "DolphinQt/Config/Graphics/GraphicsPane.h"
-#include "DolphinQt/Settings.h"
 
 #include "VideoCommon/VideoConfig.h"
 
@@ -30,14 +25,10 @@ AdvancedWidget::AdvancedWidget(GraphicsPane* gfx_pane) : m_game_layer{gfx_pane->
   AddDescriptions();
 
   connect(gfx_pane, &GraphicsPane::BackendChanged, this, &AdvancedWidget::OnBackendChanged);
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
-    OnEmulationStateChanged(state != Core::State::Uninitialized);
-  });
-  connect(m_manual_texture_sampling, &QCheckBox::toggled,
-          [gfx_pane] { emit gfx_pane->UseFastTextureSamplingChanged(); });
+  connect(m_gpu_texture_decoding, &QCheckBox::toggled,
+          [gfx_pane] { emit gfx_pane->UseGPUTextureDecodingChanged(); });
 
-  OnBackendChanged();
-  OnEmulationStateChanged(!Core::IsUninitialized(Core::System::GetInstance()));
+  OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
 }
 
 void AdvancedWidget::CreateWidgets()
@@ -71,13 +62,10 @@ void AdvancedWidget::CreateWidgets()
   auto* utility_layout = new QGridLayout();
   utility_box->setLayout(utility_layout);
 
-  m_load_custom_textures =
-      new ConfigBool(tr("Load Custom Textures"), Config::GFX_HIRES_TEXTURES, m_game_layer);
-  m_prefetch_custom_textures = new ConfigBool(tr("Prefetch Custom Textures"),
-                                              Config::GFX_CACHE_HIRES_TEXTURES, m_game_layer);
-  m_prefetch_custom_textures->setEnabled(m_load_custom_textures->isChecked());
   m_dump_efb_target = new ConfigBool(tr("Dump EFB Target"), Config::GFX_DUMP_EFB_TARGET);
   m_dump_xfb_target = new ConfigBool(tr("Dump XFB Target"), Config::GFX_DUMP_XFB_TARGET);
+  m_save_texture_cache_state = new ConfigBool(
+      tr("Save Texture Cache to State"), Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE, m_game_layer);
 
   if (local_edit)
   {
@@ -88,17 +76,12 @@ void AdvancedWidget::CreateWidgets()
 
   m_disable_vram_copies = new ConfigBool(tr("Disable EFB VRAM Copies"),
                                          Config::GFX_HACK_DISABLE_COPY_TO_VRAM, m_game_layer);
-  m_enable_graphics_mods =
-      new ConfigBool(tr("Enable Graphics Mods"), Config::GFX_MODS_ENABLE, m_game_layer);
 
-  utility_layout->addWidget(m_load_custom_textures, 0, 0);
-  utility_layout->addWidget(m_prefetch_custom_textures, 0, 1);
+  utility_layout->addWidget(m_save_texture_cache_state, 0, 0);
+  utility_layout->addWidget(m_disable_vram_copies, 0, 1);
 
-  utility_layout->addWidget(m_disable_vram_copies, 1, 0);
-  utility_layout->addWidget(m_enable_graphics_mods, 1, 1);
-
-  utility_layout->addWidget(m_dump_efb_target, 2, 0);
-  utility_layout->addWidget(m_dump_xfb_target, 2, 1);
+  utility_layout->addWidget(m_dump_efb_target, 1, 0);
+  utility_layout->addWidget(m_dump_xfb_target, 1, 1);
 
   // Texture dumping
   auto* texture_dump_box = new QGroupBox(tr("Texture Dumping"));
@@ -158,48 +141,26 @@ void AdvancedWidget::CreateWidgets()
   auto* misc_layout = new QGridLayout();
   misc_box->setLayout(misc_layout);
 
-  m_enable_cropping = new ConfigBool(tr("Crop"), Config::GFX_CROP, m_game_layer);
-  m_enable_prog_scan =
-      new ConfigBool(tr("Enable Progressive Scan"), Config::SYSCONF_PROGRESSIVE_SCAN, m_game_layer);
   m_backend_multithreading = new ConfigBool(tr("Backend Multithreading"),
                                             Config::GFX_BACKEND_MULTITHREADING, m_game_layer);
   m_prefer_vs_for_point_line_expansion = new ConfigBool(
       // i18n: VS is short for vertex shaders.
       tr("Prefer VS for Point/Line Expansion"), Config::GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION,
       m_game_layer);
+  m_gpu_texture_decoding = new ConfigBool(tr("GPU Texture Decoding"),
+                                          Config::GFX_ENABLE_GPU_TEXTURE_DECODING, m_game_layer);
   m_cpu_cull = new ConfigBool(tr("Cull Vertices on the CPU"), Config::GFX_CPU_CULL, m_game_layer);
 
-  misc_layout->addWidget(m_enable_cropping, 0, 0);
-  misc_layout->addWidget(m_enable_prog_scan, 0, 1);
-  misc_layout->addWidget(m_backend_multithreading, 1, 0);
-  misc_layout->addWidget(m_prefer_vs_for_point_line_expansion, 1, 1);
-  misc_layout->addWidget(m_cpu_cull, 2, 0);
-#ifdef _WIN32
-  m_borderless_fullscreen =
-      new ConfigBool(tr("Borderless Fullscreen"), Config::GFX_BORDERLESS_FULLSCREEN, m_game_layer);
-
-  misc_layout->addWidget(m_borderless_fullscreen, 2, 1);
-#endif
-
-  // Experimental.
-  auto* experimental_box = new QGroupBox(tr("Experimental"));
-  auto* experimental_layout = new QGridLayout();
-  experimental_box->setLayout(experimental_layout);
-
-  m_defer_efb_access_invalidation = new ConfigBool(
-      tr("Defer EFB Cache Invalidation"), Config::GFX_HACK_EFB_DEFER_INVALIDATION, m_game_layer);
-  m_manual_texture_sampling = new ConfigBool(
-      tr("Manual Texture Sampling"), Config::GFX_HACK_FAST_TEXTURE_SAMPLING, m_game_layer, true);
-
-  experimental_layout->addWidget(m_defer_efb_access_invalidation, 0, 0);
-  experimental_layout->addWidget(m_manual_texture_sampling, 0, 1);
+  misc_layout->addWidget(m_backend_multithreading, 0, 0);
+  misc_layout->addWidget(m_prefer_vs_for_point_line_expansion, 0, 1);
+  misc_layout->addWidget(m_gpu_texture_decoding, 1, 0);
+  misc_layout->addWidget(m_cpu_cull, 1, 1);
 
   main_layout->addWidget(debugging_box);
   main_layout->addWidget(utility_box);
   main_layout->addWidget(texture_dump_box);
   main_layout->addWidget(dump_box);
   main_layout->addWidget(misc_box);
-  main_layout->addWidget(experimental_box);
   main_layout->addStretch();
 
   setLayout(main_layout);
@@ -207,31 +168,30 @@ void AdvancedWidget::CreateWidgets()
 
 void AdvancedWidget::ConnectWidgets()
 {
-  connect(m_load_custom_textures, &QCheckBox::toggled, this,
-          [this](bool checked) { m_prefetch_custom_textures->setEnabled(checked); });
   connect(m_dump_textures, &QCheckBox::toggled, this, [this](bool checked) {
     m_dump_mip_textures->setEnabled(checked);
     m_dump_base_textures->setEnabled(checked);
   });
-  connect(m_enable_graphics_mods, &QCheckBox::toggled, this,
-          [](bool checked) { emit Settings::Instance().EnableGfxModsChanged(checked); });
 #if defined(HAVE_FFMPEG)
   connect(m_dump_use_lossless, &QCheckBox::toggled, this,
           [this](bool checked) { m_dump_bitrate->setEnabled(!checked); });
 #endif
 }
 
-void AdvancedWidget::OnBackendChanged()
+void AdvancedWidget::OnBackendChanged(const QString& backend_name)
 {
   m_backend_multithreading->setEnabled(g_backend_info.bSupportsMultithreading);
   m_prefer_vs_for_point_line_expansion->setEnabled(g_backend_info.bSupportsGeometryShaders &&
                                                    g_backend_info.bSupportsVSLinePointExpand);
-  AddDescriptions();
-}
 
-void AdvancedWidget::OnEmulationStateChanged(bool running)
-{
-  m_enable_prog_scan->setEnabled(!running);
+  const bool gpu_texture_decoding = g_backend_info.bSupportsGPUTextureDecoding;
+  m_gpu_texture_decoding->setEnabled(gpu_texture_decoding);
+  const QString tooltip = tr("%1 doesn't support this feature on your system.")
+                              .arg(tr(backend_name.toStdString().c_str()));
+
+  m_gpu_texture_decoding->setToolTip(!gpu_texture_decoding ? tooltip : QString{});
+
+  AddDescriptions();
 }
 
 void AdvancedWidget::AddDescriptions()
@@ -266,14 +226,6 @@ void AdvancedWidget::AddDescriptions()
       "User/Dump/Textures/&lt;game_id&gt;/.  This includes arbitrary base textures if 'Arbitrary "
       "Mipmap Detection' is enabled in Enhancements.<br><br><dolphin_emphasis>If unsure, leave "
       "this checked.</dolphin_emphasis>");
-  static const char TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION[] =
-      QT_TR_NOOP("Loads custom textures from User/Load/Textures/&lt;game_id&gt;/ and "
-                 "User/Load/DynamicInputTextures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If "
-                 "unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
-      "Caches custom textures to system RAM on startup.<br><br>This can require exponentially "
-      "more RAM but fixes possible stuttering.<br><br><dolphin_emphasis>If unsure, leave this "
-      "unchecked.</dolphin_emphasis>");
   static const char TR_DUMP_EFB_DESCRIPTION[] =
       QT_TR_NOOP("Dumps the contents of EFB copies to User/Dump/Textures/.<br><br>"
                  "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
@@ -284,9 +236,11 @@ void AdvancedWidget::AddDescriptions()
       QT_TR_NOOP("Disables the VRAM copy of the EFB, forcing a round-trip to RAM. Inhibits all "
                  "upscaling.<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
-  static const char TR_LOAD_GRAPHICS_MODS_DESCRIPTION[] =
-      QT_TR_NOOP("Loads graphics mods from User/Load/GraphicsMods/.<br><br><dolphin_emphasis>If "
-                 "unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_SAVE_TEXTURE_CACHE_TO_STATE_DESCRIPTION[] =
+      QT_TR_NOOP("Includes the contents of the embedded frame buffer (EFB) and upscaled EFB copies "
+                 "in save states. Fixes missing and/or non-upscaled textures/objects when loading "
+                 "states at the cost of additional save/load time.<br><br><dolphin_emphasis>If "
+                 "unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_FRAME_DUMPS_RESOLUTION_TYPE_DESCRIPTION[] = QT_TR_NOOP(
       "Selects how frame dumps (videos) and screenshots are going to be captured.<br>If the game "
       "or window resolution change during a recording, multiple video files might be created.<br>"
@@ -318,14 +272,6 @@ void AdvancedWidget::AddDescriptions()
                  "However, for PNG files, levels between 3 and 6 are generally about as good as "
                  "level 9 but finish in significantly less time.<br><br>"
                  "<dolphin_emphasis>If unsure, leave this at 6.</dolphin_emphasis>");
-  static const char TR_CROPPING_DESCRIPTION[] = QT_TR_NOOP(
-      "Crops the picture from its native aspect ratio (which rarely exactly matches 4:3 or 16:9),"
-      " to the specific user target aspect ratio (e.g. 4:3 or 16:9).<br><br>"
-      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_PROGRESSIVE_SCAN_DESCRIPTION[] = QT_TR_NOOP(
-      "Enables progressive scan if supported by the emulated software. Most games don't have "
-      "any issue with this.<br><br><dolphin_emphasis>If unsure, leave this "
-      "unchecked.</dolphin_emphasis>");
   static const char TR_BACKEND_MULTITHREADING_DESCRIPTION[] =
       QT_TR_NOOP("Enables multithreaded command submission in backends where supported. Enabling "
                  "this option may result in a performance improvement on systems with more than "
@@ -336,36 +282,16 @@ void AdvancedWidget::AddDescriptions()
                  "for expanding points and lines, selects the vertex shader for the job.  May "
                  "affect performance."
                  "<br><br>%1");
+  static const char TR_GPU_DECODING_DESCRIPTION[] = QT_TR_NOOP(
+      "Enables texture decoding using the GPU instead of the CPU.<br><br>This may result in "
+      "performance gains in some scenarios, or on systems where the CPU is the "
+      "bottleneck.<br><br>If this setting is enabled, Arbitrary Mipmap Detection will be "
+      "disabled.<br><br>"
+      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_CPU_CULL_DESCRIPTION[] =
       QT_TR_NOOP("Cull vertices on the CPU to reduce the number of draw calls required.  "
                  "May affect performance and draw statistics.<br><br>"
                  "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION[] = QT_TR_NOOP(
-      "Defers invalidation of the EFB access cache until a GPU synchronization command "
-      "is executed. If disabled, the cache will be invalidated with every draw call. "
-      "<br><br>May improve performance in some games which rely on CPU EFB Access at the cost "
-      "of stability.<br><br><dolphin_emphasis>If unsure, leave this "
-      "unchecked.</dolphin_emphasis>");
-  static const char TR_MANUAL_TEXTURE_SAMPLING_DESCRIPTION[] = QT_TR_NOOP(
-      "Use a manual implementation of texture sampling instead of the graphics backend's built-in "
-      "functionality.<br><br>"
-      "This setting can fix graphical issues in some games on certain GPUs, most commonly vertical "
-      "lines on FMVs. In addition to this, enabling Manual Texture Sampling will allow for correct "
-      "emulation of texture wrapping special cases (at 1x IR or when scaled EFB is disabled, and "
-      "with custom textures disabled) and better emulates Level of Detail calculation.<br><br>"
-      "This comes at the cost of potentially worse performance, especially at higher internal "
-      "resolutions.<br><br>If this setting is enabled, the Texture Filtering setting will be "
-      "disabled."
-      "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-
-#ifdef _WIN32
-  static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
-      "Implements fullscreen mode with a borderless window spanning the whole screen instead of "
-      "using exclusive mode. Allows for faster transitions between fullscreen and windowed mode, "
-      "but slightly increases input latency, makes movement less smooth and slightly decreases "
-      "performance.<br><br><dolphin_emphasis>If unsure, leave this "
-      "unchecked.</dolphin_emphasis>");
-#endif
 
   static const char IF_UNSURE_UNCHECKED[] =
       QT_TR_NOOP("<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
@@ -377,19 +303,15 @@ void AdvancedWidget::AddDescriptions()
   m_dump_textures->SetDescription(tr(TR_DUMP_TEXTURE_DESCRIPTION));
   m_dump_mip_textures->SetDescription(tr(TR_DUMP_MIP_TEXTURE_DESCRIPTION));
   m_dump_base_textures->SetDescription(tr(TR_DUMP_BASE_TEXTURE_DESCRIPTION));
-  m_load_custom_textures->SetDescription(tr(TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION));
-  m_prefetch_custom_textures->SetDescription(tr(TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION));
   m_dump_efb_target->SetDescription(tr(TR_DUMP_EFB_DESCRIPTION));
   m_dump_xfb_target->SetDescription(tr(TR_DUMP_XFB_DESCRIPTION));
   m_disable_vram_copies->SetDescription(tr(TR_DISABLE_VRAM_COPIES_DESCRIPTION));
-  m_enable_graphics_mods->SetDescription(tr(TR_LOAD_GRAPHICS_MODS_DESCRIPTION));
+  m_save_texture_cache_state->SetDescription(tr(TR_SAVE_TEXTURE_CACHE_TO_STATE_DESCRIPTION));
   m_frame_dumps_resolution_type->SetDescription(tr(TR_FRAME_DUMPS_RESOLUTION_TYPE_DESCRIPTION));
 #ifdef HAVE_FFMPEG
   m_dump_use_lossless->SetDescription(tr(TR_USE_LOSSLESS_DESCRIPTION));
 #endif
   m_png_compression_level->SetDescription(tr(TR_PNG_COMPRESSION_LEVEL_DESCRIPTION));
-  m_enable_cropping->SetDescription(tr(TR_CROPPING_DESCRIPTION));
-  m_enable_prog_scan->SetDescription(tr(TR_PROGRESSIVE_SCAN_DESCRIPTION));
   m_backend_multithreading->SetDescription(tr(TR_BACKEND_MULTITHREADING_DESCRIPTION));
   QString vsexpand_extra;
   if (!g_backend_info.bSupportsGeometryShaders)
@@ -402,10 +324,6 @@ void AdvancedWidget::AddDescriptions()
     vsexpand_extra = tr(IF_UNSURE_UNCHECKED);
   m_prefer_vs_for_point_line_expansion->SetDescription(
       tr(TR_PREFER_VS_FOR_POINT_LINE_EXPANSION_DESCRIPTION).arg(vsexpand_extra));
+  m_gpu_texture_decoding->SetDescription(tr(TR_GPU_DECODING_DESCRIPTION));
   m_cpu_cull->SetDescription(tr(TR_CPU_CULL_DESCRIPTION));
-#ifdef _WIN32
-  m_borderless_fullscreen->SetDescription(tr(TR_BORDERLESS_FULLSCREEN_DESCRIPTION));
-#endif
-  m_defer_efb_access_invalidation->SetDescription(tr(TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION));
-  m_manual_texture_sampling->SetDescription(tr(TR_MANUAL_TEXTURE_SAMPLING_DESCRIPTION));
 }

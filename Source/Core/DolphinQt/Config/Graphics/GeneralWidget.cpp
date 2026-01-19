@@ -35,7 +35,7 @@
 GeneralWidget::GeneralWidget(GraphicsPane* gfx_pane) : m_game_layer{gfx_pane->GetConfigLayer()}
 {
   CreateWidgets();
-  ConnectWidgets();
+  ConnectWidgets(gfx_pane);
   AddDescriptions();
 
   connect(gfx_pane, &GraphicsPane::BackendChanged, this, &GeneralWidget::OnBackendChanged);
@@ -74,9 +74,16 @@ void GeneralWidget::CreateWidgets()
   ToggleCustomAspectRatio(m_aspect_combo->currentIndex());
 
   m_adapter_combo = new ToolTipComboBox;
+  m_skip_duplicate_xfbs = new ConfigBool(tr("Skip Presenting Duplicate Frames"),
+                                         Config::GFX_HACK_SKIP_DUPLICATE_XFBS, m_game_layer);
   m_enable_vsync = new ConfigBool(tr("V-Sync"), Config::GFX_VSYNC, m_game_layer);
   m_enable_fullscreen =
       new ConfigBool(tr("Start in Fullscreen"), Config::MAIN_FULLSCREEN, m_game_layer);
+  m_enable_cropping = new ConfigBool(tr("Crop"), Config::GFX_CROP, m_game_layer);
+#ifdef _WIN32
+  m_borderless_fullscreen =
+      new ConfigBool(tr("Borderless Fullscreen"), Config::GFX_BORDERLESS_FULLSCREEN, m_game_layer);
+#endif
 
   video_layout->addWidget(new QLabel(tr("Backend:")), 0, 0);
   video_layout->addWidget(m_backend_combo, 0, 1, 1, -1);
@@ -93,8 +100,6 @@ void GeneralWidget::CreateWidgets()
 
   auto* const basic_grid = new QGridLayout;
   video_layout->addLayout(basic_grid, video_layout->rowCount(), 0, 1, -1);
-  basic_grid->addWidget(m_enable_vsync, 0, 0);
-  basic_grid->addWidget(m_enable_fullscreen, 0, 1);
 
   auto* const precision_timing =
       new ConfigBool(tr("Precision Frame Timing"), Config::MAIN_PRECISION_FRAME_TIMING);
@@ -102,11 +107,26 @@ void GeneralWidget::CreateWidgets()
       tr("Uses high resolution timers and \"busy waiting\" for improved frame pacing."
          "<br><br>This will marginally increase power usage."
          "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"));
-  basic_grid->addWidget(precision_timing, 1, 0);
+  basic_grid->addWidget(precision_timing, 0, 0);
+  basic_grid->addWidget(m_skip_duplicate_xfbs, 0, 1);
+  basic_grid->addWidget(m_enable_vsync, 1, 0);
+  basic_grid->addWidget(m_enable_fullscreen, 1, 1);
+  basic_grid->addWidget(m_enable_cropping, 2, 0);
+#ifdef _WIN32
+  basic_grid->addWidget(m_borderless_fullscreen, 2, 1);
+#endif
 
   // Other
   auto* m_options_box = new QGroupBox(tr("Other"));
   auto* m_options_layout = new QGridLayout();
+
+  m_enable_graphics_mods =
+      new ConfigBool(tr("Enable Graphics Mods"), Config::GFX_MODS_ENABLE, m_game_layer);
+  m_load_custom_textures =
+      new ConfigBool(tr("Load Custom Textures"), Config::GFX_HIRES_TEXTURES, m_game_layer);
+  m_prefetch_custom_textures = new ConfigBool(tr("Prefetch Custom Textures"),
+                                              Config::GFX_CACHE_HIRES_TEXTURES, m_game_layer);
+  m_prefetch_custom_textures->setEnabled(m_load_custom_textures->isChecked());
 
   m_autoadjust_window_size = new ConfigBool(tr("Auto-Adjust Window Size"),
                                             Config::MAIN_RENDER_WINDOW_AUTOSIZE, m_game_layer);
@@ -117,6 +137,9 @@ void GeneralWidget::CreateWidgets()
 
   m_options_layout->addWidget(m_render_main_window, 0, 0);
   m_options_layout->addWidget(m_autoadjust_window_size, 0, 1);
+  m_options_layout->addWidget(m_load_custom_textures, 1, 0);
+  m_options_layout->addWidget(m_prefetch_custom_textures, 1, 1);
+  m_options_layout->addWidget(m_enable_graphics_mods, 2, 0);
 
   // Other
   auto* shader_compilation_box = new QGroupBox(tr("Shader Compilation"));
@@ -146,9 +169,11 @@ void GeneralWidget::CreateWidgets()
   main_layout->addStretch();
 
   setLayout(main_layout);
+
+  UpdateSkipPresentingDuplicateFramesEnabled();
 }
 
-void GeneralWidget::ConnectWidgets()
+void GeneralWidget::ConnectWidgets(GraphicsPane* gfx_pane)
 {
   // Video Backend
   connect(m_backend_combo, &QComboBox::currentIndexChanged, this, &GeneralWidget::BackendWarning);
@@ -158,6 +183,21 @@ void GeneralWidget::ConnectWidgets()
   });
   connect(m_aspect_combo, &QComboBox::currentIndexChanged, this,
           &GeneralWidget::ToggleCustomAspectRatio);
+  connect(gfx_pane, &GraphicsPane::UpdateSkipPresentingDuplicateFramesEnabled, this,
+          [this] { UpdateSkipPresentingDuplicateFramesEnabled(); });
+  connect(m_enable_graphics_mods, &QCheckBox::toggled, this,
+          [](bool checked) { emit Settings::Instance().EnableGfxModsChanged(checked); });
+  connect(m_load_custom_textures, &QCheckBox::toggled, this,
+          [this](bool checked) { m_prefetch_custom_textures->setEnabled(checked); });
+}
+
+template <typename T>
+T GeneralWidget::ReadSetting(const Config::Info<T>& setting) const
+{
+  if (m_game_layer != nullptr)
+    return m_game_layer->Get(setting);
+  else
+    return Config::Get(setting);
 }
 
 void GeneralWidget::ToggleCustomAspectRatio(int index)
@@ -230,13 +270,43 @@ void GeneralWidget::AddDescriptions()
       QT_TR_NOOP("Uses the entire screen for rendering.<br><br>If disabled, a "
                  "render window will be created instead.<br><br><dolphin_emphasis>If "
                  "unsure, leave this unchecked.</dolphin_emphasis>");
+#ifdef _WIN32
+  static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
+      "Implements fullscreen mode with a borderless window spanning the whole screen instead of "
+      "using exclusive mode. Allows for faster transitions between fullscreen and windowed mode, "
+      "but slightly increases input latency, makes movement less smooth and slightly decreases "
+      "performance.<br><br><dolphin_emphasis>If unsure, leave this "
+      "unchecked.</dolphin_emphasis>");
+#endif
+  static const char TR_CROPPING_DESCRIPTION[] = QT_TR_NOOP(
+      "Crops the picture from its native aspect ratio (which rarely exactly matches 4:3 or 16:9),"
+      " to the specific user target aspect ratio (e.g. 4:3 or 16:9).<br><br>"
+      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_AUTOSIZE_DESCRIPTION[] =
       QT_TR_NOOP("Automatically adjusts the window size to the internal resolution.<br><br>"
                  "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_LOAD_GRAPHICS_MODS_DESCRIPTION[] =
+      QT_TR_NOOP("Loads graphics mods from User/Load/GraphicsMods/.<br><br><dolphin_emphasis>If "
+                 "unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION[] =
+      QT_TR_NOOP("Loads custom textures from User/Load/Textures/&lt;game_id&gt;/ and "
+                 "User/Load/DynamicInputTextures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If "
+                 "unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
+      "Caches custom textures to system RAM on startup.<br><br>This can require exponentially "
+      "more RAM but fixes possible stuttering.<br><br><dolphin_emphasis>If unsure, leave this "
+      "unchecked.</dolphin_emphasis>");
   static const char TR_RENDER_TO_MAINWINDOW_DESCRIPTION[] =
       QT_TR_NOOP("Uses the main Dolphin window for rendering rather than "
                  "a separate render window.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
+  static const char TR_SKIP_DUPLICATE_XFBS_DESCRIPTION[] = QT_TR_NOOP(
+      "Skips presentation of duplicate frames (XFB copies) in 25fps/30fps games. "
+      "This may improve performance on low-end devices, while making frame pacing less consistent."
+      "<br><br>Disable this option for optimal frame pacing."
+      "<br><br>This setting is unavailable when Immediately Present XFB or VBI Skip is "
+      "enabled. In those cases, duplicate frames are never presented."
+      "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_ASPECT_RATIO_DESCRIPTION[] = QT_TR_NOOP(
       "Selects which aspect ratio to use for displaying the game."
       "<br><br>The aspect ratio of the image sent out by the original consoles varied depending on "
@@ -306,9 +376,23 @@ void GeneralWidget::AddDescriptions()
 
   m_enable_fullscreen->SetDescription(tr(TR_FULLSCREEN_DESCRIPTION));
 
+#ifdef _WIN32
+  m_borderless_fullscreen->SetDescription(tr(TR_BORDERLESS_FULLSCREEN_DESCRIPTION));
+#endif
+
+  m_enable_cropping->SetDescription(tr(TR_CROPPING_DESCRIPTION));
+
   m_autoadjust_window_size->SetDescription(tr(TR_AUTOSIZE_DESCRIPTION));
 
+  m_enable_graphics_mods->SetDescription(tr(TR_LOAD_GRAPHICS_MODS_DESCRIPTION));
+
+  m_load_custom_textures->SetDescription(tr(TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION));
+
+  m_prefetch_custom_textures->SetDescription(tr(TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION));
+
   m_render_main_window->SetDescription(tr(TR_RENDER_TO_MAINWINDOW_DESCRIPTION));
+
+  m_skip_duplicate_xfbs->SetDescription(tr(TR_SKIP_DUPLICATE_XFBS_DESCRIPTION));
 
   m_shader_compilation_mode[0]->SetDescription(tr(TR_SHADER_COMPILE_SPECIALIZED_DESCRIPTION));
 
@@ -352,4 +436,12 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
                                       tr(TR_ADAPTER_AVAILABLE_DESCRIPTION) :
                                       tr(TR_ADAPTER_UNAVAILABLE_DESCRIPTION)
                                           .arg(tr(g_video_backend->GetDisplayName().c_str())));
+}
+
+void GeneralWidget::UpdateSkipPresentingDuplicateFramesEnabled()
+{
+  // If Immediate XFB is on, there's no point to skipping duplicate XFB copies as immediate presents
+  // when the XFB is created, therefore all XFB copies will be unique.
+  m_skip_duplicate_xfbs->setDisabled(ReadSetting(Config::GFX_HACK_IMMEDIATE_XFB) ||
+                                     ReadSetting(Config::GFX_HACK_VI_SKIP));
 }

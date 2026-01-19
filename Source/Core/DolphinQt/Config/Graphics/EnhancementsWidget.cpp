@@ -61,10 +61,10 @@ void EnhancementsWidget::CreateWidgets()
 {
   auto* main_layout = new QVBoxLayout;
 
-  // Enhancements
-  auto* enhancements_box = new QGroupBox(tr("Enhancements"));
-  auto* enhancements_layout = new QGridLayout();
-  enhancements_box->setLayout(enhancements_layout);
+  // Internal Resolution
+  auto* ir_box = new QGroupBox(tr("Internal Resolution"));
+  auto* ir_layout = new QGridLayout();
+  ir_box->setLayout(ir_layout);
 
   QStringList resolution_options{tr("Auto (Multiple of 640x528)"), tr("Native (640x528)")};
   // From 2x up.
@@ -110,6 +110,44 @@ void EnhancementsWidget::CreateWidgets()
   m_antialiasing_combo = new ConfigComplexChoice(Config::GFX_MSAA, Config::GFX_SSAA, m_game_layer);
   m_antialiasing_combo->Add(tr("None"), (u32)1, false);
 
+  m_output_resampling_combo = new ConfigChoice(
+      {tr("Default"), tr("Bilinear"), tr("Bicubic: B-Spline"), tr("Bicubic: Mitchell-Netravali"),
+       tr("Bicubic: Catmull-Rom"), tr("Sharp Bilinear"), tr("Area Sampling")},
+      Config::GFX_ENHANCE_OUTPUT_RESAMPLING, m_game_layer);
+
+  m_scaled_efb_copy =
+      new ConfigBool(tr("Scaled EFB Copy"), Config::GFX_HACK_COPY_EFB_SCALED, m_game_layer);
+  m_arbitrary_mipmap_detection =
+      new ConfigBool(tr("Arbitrary Mipmap Detection"),
+                     Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION, m_game_layer);
+  m_arbitrary_mipmap_detection->setEnabled(!ReadSetting(Config::GFX_ENABLE_GPU_TEXTURE_DECODING));
+  m_vertex_rounding =
+      new ConfigBool(tr("Vertex Rounding"), Config::GFX_HACK_VERTEX_ROUNDING, m_game_layer);
+
+  int row = 0;
+  ir_layout->addWidget(new QLabel(tr("Internal Resolution:")), row, 0);
+  ir_layout->addWidget(m_ir_combo, row, 1, 1, -1);
+  ++row;
+
+  ir_layout->addWidget(new QLabel(tr("Anti-Aliasing:")), row, 0);
+  ir_layout->addWidget(m_antialiasing_combo, row, 1, 1, -1);
+  ++row;
+
+  ir_layout->addWidget(new QLabel(tr("Output Resampling:")), row, 0);
+  ir_layout->addWidget(m_output_resampling_combo, row, 1, 1, -1);
+  ++row;
+
+  ir_layout->addWidget(m_scaled_efb_copy, row, 0);
+  ir_layout->addWidget(m_arbitrary_mipmap_detection, row, 1);
+  ++row;
+
+  ir_layout->addWidget(m_vertex_rounding, row, 0);
+
+  // Enhancements
+  auto* enhancements_box = new QGroupBox(tr("Enhancements"));
+  auto* enhancements_layout = new QGridLayout();
+  enhancements_box->setLayout(enhancements_layout);
+
   m_texture_filtering_combo =
       new ConfigComplexChoice(Config::GFX_ENHANCE_MAX_ANISOTROPY,
                               Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING, m_game_layer);
@@ -131,11 +169,6 @@ void EnhancementsWidget::CreateWidgets()
   m_texture_filtering_combo->Refresh();
   m_texture_filtering_combo->setEnabled(ReadSetting(Config::GFX_HACK_FAST_TEXTURE_SAMPLING));
 
-  m_output_resampling_combo = new ConfigChoice(
-      {tr("Default"), tr("Bilinear"), tr("Bicubic: B-Spline"), tr("Bicubic: Mitchell-Netravali"),
-       tr("Bicubic: Catmull-Rom"), tr("Sharp Bilinear"), tr("Area Sampling")},
-      Config::GFX_ENHANCE_OUTPUT_RESAMPLING, m_game_layer);
-
   m_configure_color_correction = new ToolTipPushButton(tr("Configure"));
 
   // The post-processing effect "(off)" has the config value "", so we need to use the constructor
@@ -147,39 +180,17 @@ void EnhancementsWidget::CreateWidgets()
   m_configure_post_processing_effect = new NonDefaultQPushButton(tr("Configure"));
   m_configure_post_processing_effect->setDisabled(true);
 
-  m_scaled_efb_copy =
-      new ConfigBool(tr("Scaled EFB Copy"), Config::GFX_HACK_COPY_EFB_SCALED, m_game_layer);
   m_per_pixel_lighting =
       new ConfigBool(tr("Per-Pixel Lighting"), Config::GFX_ENABLE_PIXEL_LIGHTING, m_game_layer);
-
-  m_widescreen_hack =
-      new ConfigBool(tr("Widescreen Hack"), Config::GFX_WIDESCREEN_HACK, m_game_layer);
-  m_disable_fog = new ConfigBool(tr("Disable Fog"), Config::GFX_DISABLE_FOG, m_game_layer);
   m_force_24bit_color =
       new ConfigBool(tr("Force 24-Bit Color"), Config::GFX_ENHANCE_FORCE_TRUE_COLOR, m_game_layer);
   m_disable_copy_filter = new ConfigBool(tr("Disable Copy Filter"),
                                          Config::GFX_ENHANCE_DISABLE_COPY_FILTER, m_game_layer);
-  m_arbitrary_mipmap_detection =
-      new ConfigBool(tr("Arbitrary Mipmap Detection"),
-                     Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION, m_game_layer);
-  m_arbitrary_mipmap_detection->setEnabled(!ReadSetting(Config::GFX_ENABLE_GPU_TEXTURE_DECODING));
   m_hdr = new ConfigBool(tr("HDR Post-Processing"), Config::GFX_ENHANCE_HDR_OUTPUT, m_game_layer);
 
-  int row = 0;
-  enhancements_layout->addWidget(new QLabel(tr("Internal Resolution:")), row, 0);
-  enhancements_layout->addWidget(m_ir_combo, row, 1, 1, -1);
-  ++row;
-
-  enhancements_layout->addWidget(new QLabel(tr("Anti-Aliasing:")), row, 0);
-  enhancements_layout->addWidget(m_antialiasing_combo, row, 1, 1, -1);
-  ++row;
-
+  row = 0;
   enhancements_layout->addWidget(new QLabel(tr("Texture Filtering:")), row, 0);
   enhancements_layout->addWidget(m_texture_filtering_combo, row, 1, 1, -1);
-  ++row;
-
-  enhancements_layout->addWidget(new QLabel(tr("Output Resampling:")), row, 0);
-  enhancements_layout->addWidget(m_output_resampling_combo, row, 1, 1, -1);
   ++row;
 
   enhancements_layout->addWidget(new QLabel(tr("Color Correction:")), row, 0);
@@ -187,23 +198,17 @@ void EnhancementsWidget::CreateWidgets()
   ++row;
 
   enhancements_layout->addWidget(new QLabel(tr("Post-Processing Effect:")), row, 0);
-  enhancements_layout->addWidget(m_post_processing_effect, row, 1);
-  enhancements_layout->addWidget(m_configure_post_processing_effect, row, 2);
-  ++row;
-
-  enhancements_layout->addWidget(m_scaled_efb_copy, row, 0);
-  enhancements_layout->addWidget(m_per_pixel_lighting, row, 1, 1, -1);
-  ++row;
-
-  enhancements_layout->addWidget(m_widescreen_hack, row, 0);
-  enhancements_layout->addWidget(m_force_24bit_color, row, 1, 1, -1);
-  ++row;
-
-  enhancements_layout->addWidget(m_disable_fog, row, 0);
-  enhancements_layout->addWidget(m_arbitrary_mipmap_detection, row, 1, 1, -1);
+  auto* post_process_config_layout = new QHBoxLayout();
+  post_process_config_layout->addWidget(m_post_processing_effect);
+  post_process_config_layout->addWidget(m_configure_post_processing_effect);
+  enhancements_layout->addLayout(post_process_config_layout, row, 1);
   ++row;
 
   enhancements_layout->addWidget(m_disable_copy_filter, row, 0);
+  enhancements_layout->addWidget(m_force_24bit_color, row, 1, 1, -1);
+  ++row;
+
+  enhancements_layout->addWidget(m_per_pixel_lighting, row, 0);
   enhancements_layout->addWidget(m_hdr, row, 1, 1, -1);
   ++row;
 
@@ -245,6 +250,7 @@ void EnhancementsWidget::CreateWidgets()
   if (current_stereo_mode != StereoMode::SBS && current_stereo_mode != StereoMode::TAB)
     m_3d_per_eye_resolution->hide();
 
+  main_layout->addWidget(ir_box);
   main_layout->addWidget(enhancements_box);
   main_layout->addWidget(stereoscopy_box);
   main_layout->addStretch();
@@ -511,28 +517,12 @@ void EnhancementsWidget::AddDescriptions()
   static const char TR_POSTPROCESSING_DESCRIPTION[] =
       QT_TR_NOOP("Applies a post-processing effect after rendering a frame.<br><br "
                  "/><dolphin_emphasis>If unsure, select (off).</dolphin_emphasis>");
-  static const char TR_SCALED_EFB_COPY_DESCRIPTION[] =
-      QT_TR_NOOP("Greatly increases the quality of textures generated using render-to-texture "
-                 "effects.<br><br>Slightly increases GPU load and causes relatively few graphical "
-                 "issues. Raising the internal resolution will improve the effect of this setting. "
-                 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_PER_PIXEL_LIGHTING_DESCRIPTION[] = QT_TR_NOOP(
       "Calculates lighting of 3D objects per-pixel rather than per-vertex, smoothing out the "
       "appearance of lit polygons and making individual triangles less noticeable.<br><br "
       "/>Rarely "
       "causes slowdowns or graphical issues.<br><br><dolphin_emphasis>If unsure, leave "
       "this unchecked.</dolphin_emphasis>");
-  static const char TR_WIDESCREEN_HACK_DESCRIPTION[] = QT_TR_NOOP(
-      "Forces the game to output graphics at any aspect ratio by expanding the view frustum "
-      "without stretching the image.<br>This is a hack, and its results will vary widely game "
-      "to game (it often causes the UI to stretch).<br>"
-      "Game-specific AR/Gecko-code aspect ratio patches are preferable over this if available."
-      "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_REMOVE_FOG_DESCRIPTION[] =
-      QT_TR_NOOP("Makes distant objects more visible by removing fog, thus increasing the overall "
-                 "detail.<br><br>Disabling fog will break some games which rely on proper fog "
-                 "emulation.<br><br><dolphin_emphasis>If unsure, leave this "
-                 "unchecked.</dolphin_emphasis>");
   static const char TR_3D_MODE_DESCRIPTION[] = QT_TR_NOOP(
       "Selects the stereoscopic 3D mode. Stereoscopy allows a better feeling "
       "of depth if the necessary hardware is present. Heavily decreases "
@@ -565,6 +555,18 @@ void EnhancementsWidget::AddDescriptions()
       "effect on performance, but may result in a sharper image. Causes few "
       "graphical issues.<br><br><dolphin_emphasis>If unsure, leave this "
       "checked.</dolphin_emphasis>");
+  static const char TR_HDR_DESCRIPTION[] = QT_TR_NOOP(
+      "Enables scRGB HDR output (if supported by your graphics backend and monitor)."
+      " Fullscreen might be required."
+      "<br><br>This gives post process shaders more room for accuracy, allows \"AutoHDR\" "
+      "post-process shaders to work, and allows to fully display the PAL and NTSC-J color spaces."
+      "<br><br>Note that games still render in SDR internally."
+      "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_SCALED_EFB_COPY_DESCRIPTION[] =
+      QT_TR_NOOP("Greatly increases the quality of textures generated using render-to-texture "
+                 "effects.<br><br>Slightly increases GPU load and causes relatively few graphical "
+                 "issues. Raising the internal resolution will improve the effect of this setting. "
+                 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_ARBITRARY_MIPMAP_DETECTION_DESCRIPTION[] = QT_TR_NOOP(
       "Enables detection of arbitrary mipmaps, which some games use for special distance-based "
       "effects.<br><br>May have false positives that result in blurry textures at increased "
@@ -573,13 +575,11 @@ void EnhancementsWidget::AddDescriptions()
       "reduce stutter in games that frequently load new textures.<br><br>This setting is disabled "
       "when GPU Texture Decoding is enabled.<br><br><dolphin_emphasis>If unsure, leave this "
       "unchecked.</dolphin_emphasis>");
-  static const char TR_HDR_DESCRIPTION[] = QT_TR_NOOP(
-      "Enables scRGB HDR output (if supported by your graphics backend and monitor)."
-      " Fullscreen might be required."
-      "<br><br>This gives post process shaders more room for accuracy, allows \"AutoHDR\" "
-      "post-process shaders to work, and allows to fully display the PAL and NTSC-J color spaces."
-      "<br><br>Note that games still render in SDR internally."
-      "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_VERTEX_ROUNDING_DESCRIPTION[] = QT_TR_NOOP(
+      "Rounds 2D vertices to whole pixels and rounds the viewport size to a whole number.<br><br>"
+      "Fixes graphical problems in some games at higher internal resolutions. This setting has no "
+      "effect when native internal resolution is used.<br><br>"
+      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_ir_combo->SetTitle(tr("Internal Resolution"));
   m_ir_combo->SetDescription(tr(TR_INTERNAL_RESOLUTION_DESCRIPTION));
@@ -599,21 +599,19 @@ void EnhancementsWidget::AddDescriptions()
   m_post_processing_effect->SetTitle(tr("Post-Processing Effect"));
   m_post_processing_effect->SetDescription(tr(TR_POSTPROCESSING_DESCRIPTION));
 
-  m_scaled_efb_copy->SetDescription(tr(TR_SCALED_EFB_COPY_DESCRIPTION));
-
   m_per_pixel_lighting->SetDescription(tr(TR_PER_PIXEL_LIGHTING_DESCRIPTION));
-
-  m_widescreen_hack->SetDescription(tr(TR_WIDESCREEN_HACK_DESCRIPTION));
-
-  m_disable_fog->SetDescription(tr(TR_REMOVE_FOG_DESCRIPTION));
 
   m_force_24bit_color->SetDescription(tr(TR_FORCE_24BIT_DESCRIPTION));
 
   m_disable_copy_filter->SetDescription(tr(TR_DISABLE_COPY_FILTER_DESCRIPTION));
 
+  m_hdr->SetDescription(tr(TR_HDR_DESCRIPTION));
+
+  m_scaled_efb_copy->SetDescription(tr(TR_SCALED_EFB_COPY_DESCRIPTION));
+
   m_arbitrary_mipmap_detection->SetDescription(tr(TR_ARBITRARY_MIPMAP_DETECTION_DESCRIPTION));
 
-  m_hdr->SetDescription(tr(TR_HDR_DESCRIPTION));
+  m_vertex_rounding->SetDescription(tr(TR_VERTEX_ROUNDING_DESCRIPTION));
 
   m_3d_mode->SetTitle(tr("Stereoscopic 3D Mode"));
   m_3d_mode->SetDescription(tr(TR_3D_MODE_DESCRIPTION));
