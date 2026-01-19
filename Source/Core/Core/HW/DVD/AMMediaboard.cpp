@@ -95,6 +95,8 @@ static u8 s_network_buffer[512 * 1024];
 static u8 s_allnet_buffer[4096];
 static u8 s_allnet_settings[0x8500];
 
+static constexpr std::size_t MAX_IPV4_STRING_LENGTH = 15;
+
 constexpr char s_allnet_reply[] = {
     "uri=http://"
     "sega.com&host=sega.com&nickname=sega&name=sega&year=2025&month=08&day=16&hour=21&minute=10&"
@@ -874,7 +876,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         const char* ip_address = reinterpret_cast<char*>(s_network_command_buffer);
 
         // IP address shouldn't be longer than 15
-        if (strnlen(ip_address, 15) > 15)
+        // TODO: Shouldn't this look at 16 characters for lack of null-termination?
+        if (strnlen(ip_address, MAX_IPV4_STRING_LENGTH) > MAX_IPV4_STRING_LENGTH)
         {
           ERROR_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: Invalid size for address: InetAddr():{}\n",
                         strlen(ip_address));
@@ -1049,7 +1052,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         }
 
         const int ret =
-            select(fd + 1, readfds, writefds, exceptfds, timeout_src ? &timeout : nullptr);
+            select(fd + 1, readfds, writefds, exceptfds, timeout_offset ? &timeout : nullptr);
 
         const int err = WSAGetLastError();
 
@@ -1147,7 +1150,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       {
         const u32 net_buffer_offset = s_media_buffer_32[2] - NetworkCommandAddress2;
 
-        if (!NetworkCMDBufferCheck(net_buffer_offset, 15))
+        if (!NetworkCMDBufferCheck(net_buffer_offset, MAX_IPV4_STRING_LENGTH))
         {
           break;
         }
@@ -1156,7 +1159,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
             reinterpret_cast<char*>(s_network_command_buffer + net_buffer_offset);
 
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: modifyMyIPaddr({})\n",
-                       fmt::string_view(ip_address, 15));
+                       fmt::string_view(ip_address, MAX_IPV4_STRING_LENGTH));
         break;
       }
       case AMMBCommand::GetLastError:
@@ -1678,7 +1681,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       {
         const u32 net_buffer_offset = s_media_buffer_32[10] - NetworkCommandAddress1;
 
-        if (!NetworkCMDBufferCheck(net_buffer_offset, 15))
+        if (!NetworkCMDBufferCheck(net_buffer_offset, MAX_IPV4_STRING_LENGTH))
         {
           break;
         }
@@ -1687,7 +1690,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
             reinterpret_cast<char*>(s_network_command_buffer + net_buffer_offset);
 
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: modifyMyIPaddr({})\n",
-                       fmt::string_view(ip_address, 15));
+                       fmt::string_view(ip_address, MAX_IPV4_STRING_LENGTH));
       }
       break;
       // Empty reply
