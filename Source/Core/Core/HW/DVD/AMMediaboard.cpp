@@ -994,7 +994,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         fd_set* exceptfds = nullptr;
 
         timeval timeout = {};
-        u8* timeout_src = nullptr;
+        std::optional<u32> timeout_offset;
 
         fd_set fds;
         FD_ZERO(&fds);
@@ -1016,24 +1016,27 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
           if (s_media_buffer_32[3] != 0)
           {
             readfds = &fds;
-            timeout_src = s_network_command_buffer + s_media_buffer_32[3] - NetworkCommandAddress2;
+            timeout_offset = s_media_buffer_32[3] - NetworkCommandAddress2;
           }
           else if (s_media_buffer_32[4] != 0)
           {
             writefds = &fds;
-            timeout_src = s_network_command_buffer + s_media_buffer_32[4] - NetworkCommandAddress2;
+            timeout_offset = s_media_buffer_32[4] - NetworkCommandAddress2;
           }
           else if (s_media_buffer_32[5] != 0)
           {
             exceptfds = &fds;
-            timeout_src = s_network_command_buffer + s_media_buffer_32[5] - NetworkCommandAddress2;
+            timeout_offset = s_media_buffer_32[5] - NetworkCommandAddress2;
           }
         }
 
         // Copy timeout if set
-        if (timeout_src != nullptr)
+        if (timeout_offset.has_value())
         {
-          std::memcpy(&timeout, timeout_src, sizeof(timeval));
+          if (!NetworkCMDBufferCheck(*timeout_offset, sizeof(timeval)))
+            break;
+
+          std::memcpy(&timeout, s_network_command_buffer + *timeout_offset, sizeof(timeval));
         }
 
         // BUG: The game sets timeout to two seconds
@@ -1235,6 +1238,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       if ((offset >= 0x00400000) && (offset <= 0x600000))
       {
         const u32 fw_offset = offset - 0x00400000;
+        // TODO: Bounds checking for s_firmware
         memory.CopyFromEmu(s_firmware + fw_offset, address, length);
         return 0;
       }
@@ -1576,7 +1580,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         fd_set* exceptfds = nullptr;
 
         timeval timeout = {};
-        u8* timeout_src = nullptr;
+        std::optional<u32> timeout_offset;
 
         fd_set fds;
         FD_ZERO(&fds);
@@ -1598,24 +1602,27 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
           if (s_media_buffer_32[11] != 0)
           {
             readfds = &fds;
-            timeout_src = s_network_command_buffer + s_media_buffer_32[11] - NetworkCommandAddress1;
+            timeout_offset = s_media_buffer_32[11] - NetworkCommandAddress1;
           }
           else if (s_media_buffer_32[12] != 0)
           {
             writefds = &fds;
-            timeout_src = s_network_command_buffer + s_media_buffer_32[12] - NetworkCommandAddress1;
+            timeout_offset = s_media_buffer_32[12] - NetworkCommandAddress1;
           }
           else if (s_media_buffer_32[13] != 0)
           {
             exceptfds = &fds;
-            timeout_src = s_network_command_buffer + s_media_buffer_32[13] - NetworkCommandAddress1;
+            timeout_offset = s_media_buffer_32[13] - NetworkCommandAddress1;
           }
         }
 
         // Copy timeout if set
-        if (timeout_src != nullptr)
+        if (timeout_offset.has_value())
         {
-          std::memcpy(&timeout, timeout_src, sizeof(timeval));
+          if (!NetworkCMDBufferCheck(*timeout_offset, sizeof(timeval)))
+            break;
+
+          std::memcpy(&timeout, s_network_command_buffer + *timeout_offset, sizeof(timeval));
         }
 
         // BUG?: F-Zero AX Monster calls select with a two second timeout
@@ -1627,7 +1634,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         }
 
         const int ret =
-            select(fd + 1, readfds, writefds, exceptfds, timeout_src ? &timeout : nullptr);
+            select(fd + 1, readfds, writefds, exceptfds, timeout_offset ? &timeout : nullptr);
         const int err = WSAGetLastError();
 
         NOTICE_LOG_FMT(AMMEDIABOARD_NET,
