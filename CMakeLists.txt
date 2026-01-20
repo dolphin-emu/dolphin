@@ -1,13 +1,9 @@
 ########################################
 # General setup
 #
-cmake_minimum_required(VERSION 3.20...4.2.1)
+cmake_minimum_required(VERSION 3.25...4.2.1)
 
 cmake_policy(SET CMP0080 OLD) # allow using BundleUtilities at configure time
-
-if (POLICY CMP0141)
-  cmake_policy(SET CMP0141 NEW) # MSVC debug information format flags are selected by an abstraction.
-endif()
 
 # Minimum OS X version.
 # This is inserted into the Info.plist as well.
@@ -22,10 +18,6 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_SOURCE_DIR}/CMake/FlagsOverr
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 project(dolphin-emu)
-
-if (CMAKE_VERSION VERSION_LESS "3.25" AND CMAKE_SYSTEM_NAME MATCHES "Linux")
-  set(LINUX TRUE)
-endif()
 
 if (MSVC)
   set(CMAKE_C_STANDARD 99)
