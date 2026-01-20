@@ -97,7 +97,7 @@ android {
     externalNativeBuild {
         cmake {
             path = file("../../../CMakeLists.txt")
-            version = "3.22.1+"
+            version = "3.25.0+"
         }
     }
     namespace = "org.dolphinemu.dolphinemu"
