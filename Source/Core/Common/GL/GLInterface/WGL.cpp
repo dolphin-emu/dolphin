@@ -113,6 +113,18 @@ typedef HGLRC(WINAPI* PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC hDC, HGLRC hShareCo
 #define ERROR_INVALID_PROFILE_ARB 0x2096
 #endif /* WGL_ARB_create_context_profile */
 
+#ifndef WGL_ARB_extensions_string
+#define WGL_ARB_extensions_string 1
+typedef const char*(WINAPI* PFNWGLGETEXTENSIONSSTRINGARBPROC)(HDC hdc);
+#endif /* WGL_ARB_extensions_string */
+
+// Per https://registry.khronos.org/OpenGL/extensions/EXT/WGL_EXT_create_context_es2_profile.txt
+// this is equivalent to WGL_EXT_create_context_es_profile (it can create any ES context)
+#ifndef WGL_EXT_create_context_es2_profile
+#define WGL_EXT_create_context_es2_profile 1
+#define WGL_CONTEXT_ES2_PROFILE_BIT_EXT 0x00000004
+#endif /* WGL_EXT_create_context_es2_profile */
+
 #ifndef WGL_EXT_swap_control
 #define WGL_EXT_swap_control 1
 typedef BOOL(WINAPI* PFNWGLSWAPINTERVALEXTPROC)(int interval);
@@ -127,6 +139,7 @@ static PFNWGLCREATEPBUFFERARBPROC wglCreatePbufferARB = nullptr;
 static PFNWGLGETPBUFFERDCARBPROC wglGetPbufferDCARB = nullptr;
 static PFNWGLRELEASEPBUFFERDCARBPROC wglReleasePbufferDCARB = nullptr;
 static PFNWGLDESTROYPBUFFERARBPROC wglDestroyPbufferARB = nullptr;
+static PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB = nullptr;
 
 static void LoadWGLExtensions()
 {
@@ -144,6 +157,8 @@ static void LoadWGLExtensions()
       reinterpret_cast<PFNWGLRELEASEPBUFFERDCARBPROC>(wglGetProcAddress("wglReleasePbufferDCARB"));
   wglDestroyPbufferARB =
       reinterpret_cast<PFNWGLDESTROYPBUFFERARBPROC>(wglGetProcAddress("wglGetPbufferDCARB"));
+  wglGetExtensionsStringARB = reinterpret_cast<PFNWGLGETEXTENSIONSSTRINGARBPROC>(
+      wglGetProcAddress("wglGetExtensionsStringARB"));
 }
 
 static void ClearWGLExtensionPointers()
@@ -155,6 +170,7 @@ static void ClearWGLExtensionPointers()
   wglGetPbufferDCARB = nullptr;
   wglReleasePbufferDCARB = nullptr;
   wglDestroyPbufferARB = nullptr;
+  wglGetExtensionsStringARB = nullptr;
 }
 
 GLContextWGL::~GLContextWGL()
@@ -301,9 +317,6 @@ bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
     return false;
   }
 
-  // WGL only supports desktop GL, for now.
-  m_opengl_mode = Mode::OpenGL;
-
   if (core)
   {
     // Make the fallback context current, temporarily.
@@ -318,7 +331,7 @@ bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
     LoadWGLExtensions();
 
     // Attempt creating a core context.
-    HGLRC core_context = CreateCoreContext(m_dc, nullptr);
+    HGLRC core_context = CreateCoreContext(m_dc, nullptr, &m_opengl_mode);
 
     // Switch out the temporary context before continuing, regardless of whether we got a core
     // context. If we didn't get a core context, the caller expects that the context is not current.
@@ -351,7 +364,7 @@ std::unique_ptr<GLContext> GLContextWGL::CreateSharedContext()
   if (!CreatePBuffer(m_dc, 1, 1, &pbuffer, &dc))
     return nullptr;
 
-  HGLRC rc = CreateCoreContext(dc, m_rc);
+  HGLRC rc = CreateCoreContext(dc, m_rc, &m_opengl_mode);
   if (!rc)
   {
     wglReleasePbufferDCARB(static_cast<HPBUFFERARB>(pbuffer), dc);
@@ -368,7 +381,35 @@ std::unique_ptr<GLContext> GLContextWGL::CreateSharedContext()
   return context;
 }
 
-HGLRC GLContextWGL::CreateCoreContext(HDC dc, HGLRC share_context)
+bool GLContextWGL::CheckForGLES(HDC dc)
+{
+  if (!wglGetExtensionsStringARB)
+  {
+    WARN_LOG_FMT(VIDEO, "Missing wglGetExtensionsStringARB extension; disabling GLES");
+    return false;
+  }
+
+  bool has_es_ext = false;
+  std::string tmp;
+  std::istringstream buffer(wglGetExtensionsStringARB(dc));
+  while (buffer >> tmp)
+  {
+    if (tmp == "WGL_EXT_create_context_es2_profile")
+    {
+      has_es_ext = true;
+      break;
+    }
+  }
+  if (!has_es_ext)
+  {
+    WARN_LOG_FMT(VIDEO, "Missing WGL_EXT_create_context_es2_profile extension; disabling GLES");
+    return false;
+  }
+
+  return true;
+}
+
+HGLRC GLContextWGL::CreateCoreContext(HDC dc, HGLRC share_context, Mode* mode)
 {
   if (!wglCreateContextAttribsARB)
   {
@@ -376,11 +417,29 @@ HGLRC GLContextWGL::CreateCoreContext(HDC dc, HGLRC share_context)
     return nullptr;
   }
 
+  int profile_mask = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+
+  if (*mode == Mode::Detect)
+  {
+    *mode = Mode::OpenGL;
+  }
+  else if (*mode == Mode::OpenGLES)
+  {
+    if (CheckForGLES(dc))
+    {
+      profile_mask = WGL_CONTEXT_ES2_PROFILE_BIT_EXT;
+    }
+    else
+    {
+      *mode = Mode::OpenGL;
+    }
+  }
+
   for (const auto& version : s_desktop_opengl_versions)
   {
     // Construct list of attributes. Prefer a forward-compatible, core context.
     std::array<int, 5 * 2> attribs = {WGL_CONTEXT_PROFILE_MASK_ARB,
-                                      WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+                                      profile_mask,
 #ifdef _DEBUG
                                       WGL_CONTEXT_FLAGS_ARB,
                                       WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB |
@@ -400,12 +459,14 @@ HGLRC GLContextWGL::CreateCoreContext(HDC dc, HGLRC share_context)
     HGLRC core_context = wglCreateContextAttribsARB(dc, share_context, attribs.data());
     if (core_context)
     {
-      INFO_LOG_FMT(VIDEO, "WGL: Created a GL {}.{} core context", version.first, version.second);
+      INFO_LOG_FMT(VIDEO, "WGL: Created a GL{} {}.{} core context",
+                   *mode == Mode::OpenGLES ? "ES" : "", version.first, version.second);
       return core_context;
     }
   }
 
-  WARN_LOG_FMT(VIDEO, "Unable to create a core OpenGL context of an acceptable version");
+  WARN_LOG_FMT(VIDEO, "Unable to create a core OpenGL{} context of an acceptable version",
+               *mode == Mode::OpenGLES ? "ES" : "");
   return nullptr;
 }
 
