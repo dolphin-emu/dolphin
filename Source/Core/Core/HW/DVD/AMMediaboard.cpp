@@ -214,6 +214,7 @@ static bool SafeCopyToEmu(Memory::MemoryManager& memory, u32 address, const u8* 
   memory.CopyToEmu(address, source + offset, length);
   return true;
 }
+
 static bool SafeCopyFromEmu(Memory::MemoryManager& memory, u8* destination, u32 address,
                             u64 destination_size, u32 offset, u32 length)
 {
@@ -453,6 +454,11 @@ static s32 NetDIMMConnect(int fd, sockaddr_in* addr, int len)
   // Key of Avalon Client
   if (addr->sin_addr.s_addr == inet_addr("192.168.13.1"))
   {
+    // Unlike the other addresses, this one isn't converted to loopback
+    // because the server and client can't run on the same system.
+    //
+    // NOTE: Due to lack of touch-screen support, it's not in a playable state.
+    // TODO: Make the IP configurable.
     addr->sin_addr.s_addr = inet_addr("10.0.0.45");
   }
 
@@ -538,6 +544,7 @@ static void FileWriteData(Memory::MemoryManager& memory, File::IOFile* file, u32
                   address, length, span.size());
   }
 }
+
 static void FileReadData(Memory::MemoryManager& memory, File::IOFile* file, u32 seek_pos,
                          u32 address, std::size_t length)
 {
@@ -782,11 +789,18 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
             break;
           }
 
+          // TODO: Check that the current implementation is correct. Currently, `len=0`,
+          // so `accept()` might not write to `addr` properly. It might be missing the
+          // following (assuming the code, address and endianness are correct):
+          //
+          // // socklen_t might be larger than u32
+          // const u32 addr_len = Common::BitCastPtr<u32>(s_network_command_buffer + len_off);
+          // len = addr_len;
           ret = NetDIMMAccept(fd, &addr, &len);
           if (len)
           {
-            memcpy((s_network_command_buffer + addr_off), &addr, len);
-            memcpy((s_network_command_buffer + len_off), &len, sizeof(int));
+            memcpy(s_network_command_buffer + addr_off, &addr, len);
+            memcpy(s_network_command_buffer + len_off, &len, sizeof(int));
           }
         }
 
@@ -1016,6 +1030,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
             break;
           }
 
+          // TODO: Ensure host's fd_set is compatible with Triforce's
           Common::BitCastPtr<fd_set>(s_network_command_buffer + fd_set_offset) = fds;
 
           if (s_media_buffer_32[3] != 0)
@@ -1073,17 +1088,17 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         const int level = static_cast<int>(s_media_buffer_32[3]);
         const int optname = static_cast<int>(s_media_buffer_32[4]);
         const int optlen = static_cast<int>(s_media_buffer_32[6]);
+        const u32 optval_offset = s_media_buffer_32[5] - NetworkCommandAddress2;
 
-        if (!NetworkCMDBufferCheck(s_media_buffer_32[5] - NetworkCommandAddress2, optlen))
+        if (!NetworkCMDBufferCheck(optval_offset, optlen))
         {
           break;
         }
 
-        const char* optval = reinterpret_cast<char*>(s_network_command_buffer +
-                                                     s_media_buffer_32[5] - NetworkCommandAddress2);
+        const char* optval = reinterpret_cast<char*>(s_network_command_buffer + optval_offset);
 
+        // TODO: Ensure parameters are compatible with host's setsockopt
         const int ret = setsockopt(fd, level, optname, optval, optlen);
-
         const int err = WSAGetLastError();
 
         NOTICE_LOG_FMT(AMMEDIABOARD_NET,
@@ -1240,7 +1255,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
     if (s_firmware_map)
     {
       // Firmware memory (2MB)
-      if ((offset >= 0x00400000) && (offset <= 0x600000))
+      if (offset >= 0x00400000 && offset <= 0x600000)
       {
         const u32 fw_offset = offset - 0x00400000;
         // TODO: Bounds checking for s_firmware
@@ -1602,6 +1617,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
             break;
           }
 
+          // TODO: Ensure host's fd_set is compatible with Triforce's
           Common::BitCastPtr<fd_set>(s_network_command_buffer + fd_set_offset) = fds;
 
           if (s_media_buffer_32[11] != 0)
@@ -1657,15 +1673,16 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         const int level = static_cast<int>(s_media_buffer_32[11]);
         const int optname = static_cast<int>(s_media_buffer_32[12]);
         const int optlen = static_cast<int>(s_media_buffer_32[14]);
+        const u32 optval_offset = s_media_buffer_32[13] - NetworkCommandAddress1;
 
-        if (!NetworkCMDBufferCheck(s_media_buffer_32[13] - NetworkCommandAddress1, optlen))
+        if (!NetworkCMDBufferCheck(optval_offset, optlen))
         {
           break;
         }
 
-        const char* optval = reinterpret_cast<char*>(
-            s_network_command_buffer + s_media_buffer_32[13] - NetworkCommandAddress1);
+        const char* optval = reinterpret_cast<char*>(s_network_command_buffer + optval_offset);
 
+        // TODO: Ensure parameters are compatible with host's setsockopt
         const int ret = setsockopt(fd, level, optname, optval, optlen);
         const int err = WSAGetLastError();
 
@@ -1745,7 +1762,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
           break;
         }
 
-        const u8* data = s_network_buffer + off + addr - NetworkBufferAddress2;
+        const u8* data = s_network_buffer + (off + addr - NetworkBufferAddress2);
 
         for (u32 i = 0; i < 0x20; i += 0x10)
         {

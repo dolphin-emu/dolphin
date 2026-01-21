@@ -281,7 +281,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
         case GCAMCommand::SerialNumber:
         {
           NOTICE_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x11, {:02x} (READ SERIAL NR)",
-                         *data_in++);
+                         *data_in);
+          data_in++;
 
           data_out[data_offset++] = gcam_command;
           data_out[data_offset++] = 16;
@@ -310,7 +311,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           break;
         case GCAMCommand::FirmVersion:
           NOTICE_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x15, {:02x} (READ FIRM VERSION)",
-                         *data_in++);
+                         *data_in);
+          data_in++;
 
           data_out[data_offset++] = gcam_command;
           data_out[data_offset++] = 0x02;
@@ -320,7 +322,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           break;
         case GCAMCommand::FPGAVersion:
           NOTICE_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x16, {:02x} (READ FPGA VERSION)",
-                         *data_in++);
+                         *data_in);
+          data_in++;
 
           data_out[data_offset++] = gcam_command;
           data_out[data_offset++] = 0x02;
@@ -1021,6 +1024,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 data_out[data_offset++] = 0x02;  // 0x02
                 data_out[data_offset++] = 0x00;  // 0x03
                 break;
+              case CARDCommand::Erase:
                 // TODO: CARDCommand::Erase is not handled.
                 ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "CARDCommand::Erase is not handled.");
                 break;

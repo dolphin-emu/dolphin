@@ -289,8 +289,9 @@ void DVDInterface::Init()
 
     // The Triforce IPL expects the cover to be closed
     m_DICVR.Hex = 0;
-    m_DICFG.Hex |= 8; /* The Triforce IPL checks this bit
-                       to set the physical memory to either 50MB(unset) or 24MB(set)  */
+    // The Triforce IPL checks this bit to set the physical memory to
+    // either 50MB(unset) or 24MB(set)
+    m_DICFG.Hex |= 8;
   }
 }
 

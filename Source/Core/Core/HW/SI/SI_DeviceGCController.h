@@ -3,11 +3,8 @@
 
 #pragma once
 
-#include <SFML/Network.hpp>
 #include <array>
 
-#include "Common/CommonTypes.h"
-#include "Common/Flag.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "InputCommon/GCPadStatus.h"
