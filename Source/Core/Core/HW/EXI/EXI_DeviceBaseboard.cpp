@@ -80,7 +80,7 @@ CEXIBaseboard::CEXIBaseboard(Core::System& system) : IEXIDevice(system)
   if (AMMediaboard::GetGameType() == VirtuaStriker4 ||
       AMMediaboard::GetGameType() == GekitouProYakyuu)
   {
-    if (m_backup.GetSize())
+    if (m_backup.GetSize() >= 0x20C + 0x1F4)
     {
       Common::UniqueBuffer<u8> data(m_backup.GetSize());
       m_backup.ReadBytes(data.data(), data.size());
@@ -133,11 +133,18 @@ void CEXIBaseboard::DMAWrite(u32 addr, u32 size)
 {
   const auto& system = Core::System::GetInstance();
   const auto& memory = system.GetMemory();
+  auto span = memory.GetSpanForAddress(addr);
 
+  if (span.size() < size)
+  {
+    ERROR_LOG_FMT(SP1, "AM-BB: Backup DMA Write overflow: address=0x{:08x}, length={}, span={}",
+                  addr, size, span.size());
+    return;
+  }
   NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: Backup DMA Write: {:08x} {:x}", addr, size);
 
   m_backup.Seek(m_backup_offset, File::SeekOrigin::Begin);
-  m_backup.WriteBytes(memory.GetSpanForAddress(addr).data(), size);
+  m_backup.WriteBytes(span.data(), size);
   m_backup.Flush();
 }
 
@@ -145,11 +152,18 @@ void CEXIBaseboard::DMARead(u32 addr, u32 size)
 {
   const auto& system = Core::System::GetInstance();
   const auto& memory = system.GetMemory();
+  auto span = memory.GetSpanForAddress(addr);
 
+  if (span.size() < size)
+  {
+    ERROR_LOG_FMT(SP1, "AM-BB: Backup DMA Read overflow: address=0x{:08x}, length={}, span={}",
+                  addr, size, span.size());
+    return;
+  }
   NOTICE_LOG_FMT(SP1, "AM-BB: COMMAND: Backup DMA Read: {:08x} {:x}", addr, size);
 
   m_backup.Seek(m_backup_offset, File::SeekOrigin::Begin);
-  m_backup.ReadBytes(memory.GetSpanForAddress(addr).data(), size);
+  m_backup.ReadBytes(span.data(), size);
 }
 
 void CEXIBaseboard::TransferByte(u8& byte)

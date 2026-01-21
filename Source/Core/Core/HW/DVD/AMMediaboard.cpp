@@ -14,6 +14,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
+#include "Common/Network.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
@@ -245,7 +246,14 @@ static SOCKET socket_(int af, int type, int protocol)
   {
     if (s_sockets[i] == SOCKET_ERROR)
     {
-      s_sockets[i] = socket(af, type, protocol);
+      const s32 host_fd = socket(af, type, protocol);
+      if (host_fd < 0)
+      {
+        ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: failed to create socket ({})",
+                      Common::StrNetworkError());
+        return SOCKET_ERROR;
+      }
+      s_sockets[i] = host_fd;
       return i;
     }
   }
@@ -372,14 +380,11 @@ u8* InitDIMM(u32 size)
   if (size == 0)
     return nullptr;
 
+  s_dimm_disc.reset(size);
   if (s_dimm_disc.empty())
   {
-    s_dimm_disc.reset(size);
-    if (s_dimm_disc.empty())
-    {
-      PanicAlertFmt("Failed to allocate DIMM memory.");
-      return nullptr;
-    }
+    PanicAlertFmt("Failed to allocate DIMM memory.");
+    return nullptr;
   }
 
   s_firmware_map = false;
@@ -409,6 +414,8 @@ static s32 NetDIMMAccept(int fd, sockaddr* addr, socklen_t* len)
       return client_sock;
     }
 
+    ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: accept() failed in NetDIMMAccept ({})",
+                  Common::StrNetworkError());
     s_last_error = SOCKET_ERROR;
     return SOCKET_ERROR;
   }
@@ -420,7 +427,8 @@ static s32 NetDIMMAccept(int fd, sockaddr* addr, socklen_t* len)
   }
   else
   {
-    // select() failed
+    ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: select() failed in NetDIMMAccept ({})",
+                  Common::StrNetworkError());
     s_last_error = SOCKET_ERROR;
   }
 
@@ -494,6 +502,8 @@ static s32 NetDIMMConnect(int fd, sockaddr_in* addr, int len)
       }
       else
       {
+        ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: getsockopt() failed in NetDIMMConnect ({})",
+                      Common::StrNetworkError());
         s_last_error = SOCKET_ERROR;
         ret = SOCKET_ERROR;
       }
@@ -506,7 +516,8 @@ static s32 NetDIMMConnect(int fd, sockaddr_in* addr, int len)
     }
     else
     {
-      // select() failed
+      ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: select() failed in NetDIMMConnect ({})",
+                    Common::StrNetworkError());
       s_last_error = SOCKET_ERROR;
       ret = SOCKET_ERROR;
     }
@@ -514,6 +525,8 @@ static s32 NetDIMMConnect(int fd, sockaddr_in* addr, int len)
   else if (ret == SOCKET_ERROR)
   {
     // Immediate failure (e.g. WSAECONNREFUSED)
+    ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: NetDIMMConnect failed, connect() = {} ({})", err,
+                  Common::DecodeNetworkError(err));
     s_last_error = ret;
   }
   else
@@ -799,8 +812,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
           ret = NetDIMMAccept(fd, &addr, &len);
           if (len)
           {
-            memcpy(s_network_command_buffer + addr_off, &addr, len);
-            memcpy(s_network_command_buffer + len_off, &len, sizeof(int));
+            memcpy(s_network_command_buffer + addr_off, &addr, sizeof(sockaddr));
+            memcpy(s_network_command_buffer + len_off, &len, sizeof(u32));
           }
         }
 
@@ -815,7 +828,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         const u32 off = s_media_buffer_32[3] - NetworkCommandAddress2;
         const u32 len = s_media_buffer_32[4];
 
-        if (!NetworkCMDBufferCheck(off, len))
+        if (!NetworkCMDBufferCheck(off, std::max<u32>(sizeof(sockaddr_in), len)))
         {
           break;
         }
@@ -836,7 +849,12 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         const int err = WSAGetLastError();
 
         if (ret < 0)
-          PanicAlertFmt("Socket Bind Failed with{0}", err);
+        {
+          const auto err_msg = Common::DecodeNetworkError(err);
+          PanicAlertFmt("Failed to bind socket (error {}: {})", err, err_msg);
+          ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: AMMBCommand::Bind failed, bind() = {} ({})", err,
+                        err_msg);
+        }
 
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: bind( {}, ({},{:08x}:{}), {} ):{} ({})\n", fd,
                        addr.sin_family, addr.sin_addr.s_addr, Common::swap16(addr.sin_port), len,
@@ -867,7 +885,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         const u32 off = s_media_buffer_32[3] - NetworkCommandAddress2;
         const u32 len = s_media_buffer_32[4];
 
-        if (!NetworkCMDBufferCheck(off, len))
+        if (!NetworkCMDBufferCheck(off, std::max<u32>(sizeof(sockaddr_in), len)))
         {
           break;
         }
