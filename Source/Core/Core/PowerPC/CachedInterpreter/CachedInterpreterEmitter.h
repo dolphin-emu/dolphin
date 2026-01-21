@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <bit>
 #include <cstddef>
 #include <iosfwd>
 #include <type_traits>
@@ -33,7 +34,7 @@ protected:
   template <class Operands>
   static AnyCallback AnyCallbackCast(Callback<Operands> callback)
   {
-    return reinterpret_cast<AnyCallback>(callback);
+    return std::bit_cast<AnyCallback>(callback);
   }
   static consteval AnyCallback AnyCallbackCast(AnyCallback callback) { return callback; }
 
@@ -45,7 +46,7 @@ protected:
   template <class Operands>
   static AnyDisassemble AnyDisassembleCast(Disassemble<Operands> disassemble)
   {
-    return reinterpret_cast<AnyDisassemble>(disassemble);
+    return std::bit_cast<AnyDisassemble>(disassemble);
   }
   static consteval AnyDisassemble AnyDisassembleCast(AnyDisassemble disassemble)
   {
