@@ -235,7 +235,20 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
       data_out[data_offset++] = 1;
 
       u8* data_in = buffer + 2;
-      const u8* data_in_end = buffer + buffer[buffer_position] + 2;
+      u8* const data_in_end = buffer + buffer[buffer_position] + 2;
+
+      // Helper to check that iterating over data n times is safe,
+      // i.e. *data++ at most lead to data.end()
+      auto validate_data_in_out = [&](u32 n_in, u32 n_out, std::string_view command) -> bool {
+        if (data_in + n_in > data_in_end)
+          ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: data_in overflow in {}", command);
+        else if (data_offset + n_out > data_out.size())
+          ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: data_out overflow in {}", command);
+        else
+          return true;
+        data_in = data_in_end;
+        return false;
+      };
 
       while (data_in < data_in_end)
       {
@@ -244,6 +257,9 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
         {
         case GCAMCommand::StatusSwitches:
         {
+          if (!validate_data_in_out(1, 4, "StatusSwitches"))
+            break;
+
           const u8 status = *data_in++;
           DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x10, {:02x} (READ STATUS&SWITCHES)",
                         status);
@@ -281,6 +297,9 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
         }
         case GCAMCommand::SerialNumber:
         {
+          if (!validate_data_in_out(1, 18, "SerialNumber"))
+            break;
+
           NOTICE_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x11, {:02x} (READ SERIAL NR)",
                          *data_in);
           data_in++;
@@ -293,6 +312,9 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           break;
         }
         case GCAMCommand::Unknown_12:
+          if (!validate_data_in_out(2, 2, "Unknown_12"))
+            break;
+
           NOTICE_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x12, {:02x} {:02x}", data_in[0],
                          data_in[1]);
 
@@ -302,6 +324,9 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           data_in += 2;
           break;
         case GCAMCommand::Unknown_14:
+          if (!validate_data_in_out(2, 2, "Unknown_14"))
+            break;
+
           NOTICE_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x14, {:02x} {:02x}", data_in[0],
                          data_in[1]);
 
@@ -311,6 +336,9 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           data_in += 2;
           break;
         case GCAMCommand::FirmVersion:
+          if (!validate_data_in_out(1, 4, "FirmVersion"))
+            break;
+
           NOTICE_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x15, {:02x} (READ FIRM VERSION)",
                          *data_in);
           data_in++;
@@ -322,6 +350,9 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           data_out[data_offset++] = 0x26;
           break;
         case GCAMCommand::FPGAVersion:
+          if (!validate_data_in_out(1, 4, "FPGAVersion"))
+            break;
+
           NOTICE_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x16, {:02x} (READ FPGA VERSION)",
                          *data_in);
           data_in++;
@@ -334,6 +365,9 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           break;
         case GCAMCommand::RegionSettings:
         {
+          if (!validate_data_in_out(5, 0x16, "RegionSettings"))
+            break;
+
           // Used by SegaBoot for region checks (dev mode skips this check)
           // In some games this also controls the displayed language
           NOTICE_LOG_FMT(SERIALINTERFACE_AMBB,
@@ -353,6 +387,9 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
         // Note: Always sends three bytes even though size is set to two
         case GCAMCommand::Unknown_21:
         {
+          if (!validate_data_in_out(4, 0, "Unknown_21"))
+            break;
+
           DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x21, {:02x}, {:02x}, {:02x}, {:02x}",
                         data_in[0], data_in[1], data_in[2], data_in[3]);
           data_in += 4;
@@ -362,14 +399,24 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
         // Note: Always sends six bytes
         case GCAMCommand::Unknown_22:
         {
+          if (!validate_data_in_out(7, 0, "Unknown_22"))
+            break;
+
           DEBUG_LOG_FMT(
               SERIALINTERFACE_AMBB,
               "GC-AM: Command 0x22, {:02x}, {:02x}, {:02x}, {:02x}, {:02x}, {:02x}, {:02x}",
               data_in[0], data_in[1], data_in[2], data_in[3], data_in[4], data_in[5], data_in[6]);
-          data_in += data_in[0] + 1;
+
+          const u32 in_size = data_in[0] + 1;
+          if (!validate_data_in_out(in_size, 0, "Unknown_22"))
+            break;
+          data_in += in_size;
         }
         break;
         case GCAMCommand::Unknown_23:
+          if (!validate_data_in_out(2, 2, "Unknown_23"))
+            break;
+
           DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x23, {:02x} {:02x}", data_in[0],
                         data_in[1]);
 
@@ -379,6 +426,9 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           data_in += 2;
           break;
         case GCAMCommand::Unknown_24:
+          if (!validate_data_in_out(2, 2, "Unknown_24"))
+            break;
+
           DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x24, {:02x} {:02x}", data_in[0],
                         data_in[1]);
 
@@ -389,9 +439,15 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           break;
         case GCAMCommand::SerialA:
         {
+          if (!validate_data_in_out(1, 0, "SerialA"))
+            break;
+
           u32 length = *data_in++;
           if (length)
           {
+            if (!validate_data_in_out(13, 0, "SerialA"))
+              break;
+
             INFO_LOG_FMT(SERIALINTERFACE_AMBB,
                          "GC-AM: Command 0x31, {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} "
                          "{:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}",
@@ -403,6 +459,9 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             if (AMMediaboard::GetGameType() == MarioKartGP ||
                 AMMediaboard::GetGameType() == MarioKartGP2)
             {
+              if (!validate_data_in_out(10, 2, "SerialA (Wheel)"))
+                break;
+
               INFO_LOG_FMT(SERIALINTERFACE_AMBB,
                            "GC-AM: Command 0x31, (WHEEL) {:02x}{:02x} {:02x}{:02x} {:02x} {:02x} "
                            "{:02x} {:02x} {:02x} {:02x}",
@@ -415,12 +474,16 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               switch (m_wheel_init)
               {
               case 0:
+                if (!validate_data_in_out(0, 3, "SerialA (Wheel)"))
+                  break;
                 data_out[data_offset++] = 'E';  // Error
                 data_out[data_offset++] = '0';
                 data_out[data_offset++] = '0';
                 m_wheel_init++;
                 break;
               case 1:
+                if (!validate_data_in_out(0, 3, "SerialA (Wheel)"))
+                  break;
                 data_out[data_offset++] = 'C';  // Power Off
                 data_out[data_offset++] = '0';
                 data_out[data_offset++] = '6';
@@ -431,6 +494,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 }
                 break;
               case 2:
+                if (!validate_data_in_out(0, 3, "SerialA (Wheel)"))
+                  break;
                 data_out[data_offset++] = 'C';  // Power On
                 data_out[data_offset++] = '0';
                 data_out[data_offset++] = '1';
@@ -442,7 +507,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               // u16 CenteringForce= ptr(6);
               // u16 FrictionForce = ptr(8);
               // u16 Roll          = ptr(10);
-
+              if (!validate_data_in_out(length, 0, "SerialA (Wheel)"))
+                break;
               data_in += length;
               break;
             }
@@ -450,10 +516,14 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             // Serial - Unknown
             if (AMMediaboard::GetGameType() == GekitouProYakyuu)
             {
+              if (!validate_data_in_out(sizeof(u32), 0, "SerialA (Unknown)"))
+                break;
               const u32 serial_command = Common::BitCastPtr<u32>(data_in);
 
               if (serial_command == 0x00001000)
               {
+                if (!validate_data_in_out(0, 5, "SerialA (Unknown)"))
+                  break;
                 data_out[data_offset++] = gcam_command;
                 data_out[data_offset++] = 0x03;
                 data_out[data_offset++] = 1;
@@ -461,6 +531,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 data_out[data_offset++] = 3;
               }
 
+              if (!validate_data_in_out(length, 0, "SerialA (Unknown)"))
+                break;
               data_in += length;
               break;
             }
@@ -470,6 +542,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 AMMediaboard::GetGameType() == VirtuaStriker4_2006 ||
                 AMMediaboard::GetGameType() == KeyOfAvalon)
             {
+              if (!validate_data_in_out(2, 0, "SerialA (IC-CARD)"))
+                break;
               u32 serial_command = data_in[1];
 
               ICCommand icco;
@@ -496,6 +570,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                     "GC-AM: Command 25 (IC-CARD) Write Pages: Off:{:x} Size:{:x} PSize:{:x}",
                     m_ic_write_offset, m_ic_write_size, size);
 
+                if (!validate_data_in_out(2 + size, 0, "SerialA (IC-CARD)"))
+                  break;
                 memcpy(m_ic_write_buffer + m_ic_write_offset, data_in + 2, size);
 
                 m_ic_write_offset += size;
@@ -517,6 +593,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
                   ICCardSendReply(&icco, data_out.data(), &data_offset);
                 }
+                if (!validate_data_in_out(length, 0, "SerialA (IC-CARD)"))
+                  break;
                 data_in += length;
                 break;
               }
@@ -579,6 +657,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               case ICCARDCommand::ReadPage:
               case ICCARDCommand::ReadUseCount:
               {
+                if (!validate_data_in_out(8, 0, "SerialA (IC-CARD)"))
+                  break;
                 const u16 page = Common::swap16(data_in + 6) & 0xFF;  // 255 is max page
 
                 icco.extlen = 8;
@@ -593,6 +673,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               }
               case ICCARDCommand::WritePage:
               {
+                if (!validate_data_in_out(10, 0, "SerialA (IC-CARD)"))
+                  break;
                 const u16 page = Common::swap16(data_in + 8) & 0xFF;  // 255 is max page
 
                 // Write only one page
@@ -602,6 +684,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 }
                 else
                 {
+                  if (!validate_data_in_out(18, 0, "SerialA (IC-CARD)"))
+                    break;
                   memcpy(m_ic_card_data + page * 8, data_in + 10, 8);
                 }
 
@@ -611,6 +695,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               }
               case ICCARDCommand::DecreaseUseCount:
               {
+                if (!validate_data_in_out(8, 0, "SerialA (IC-CARD)"))
+                  break;
                 const u16 page = Common::swap16(data_in + 6) & 0xFF;  // 255 is max page
 
                 icco.extlen = 2;
@@ -630,6 +716,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               }
               case ICCARDCommand::ReadPages:
               {
+                if (!validate_data_in_out(10, 0, "SerialA (IC-CARD)"))
+                  break;
                 const u16 page = Common::swap16(data_in + 6) & 0xFF;  // 255 is max page
                 const u16 count = Common::swap16(data_in + 8);
 
@@ -654,6 +742,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               }
               case ICCARDCommand::WritePages:
               {
+                if (!validate_data_in_out(10, 0, "SerialA (IC-CARD)"))
+                  break;
                 const u16 pksize = length;
                 const u16 size = Common::swap16(data_in + 2);
                 const u16 page = Common::swap16(data_in + 6) & 0xFF;  // 255 is max page
@@ -677,6 +767,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                     }
                     else
                     {
+                      if (!validate_data_in_out(13 + count * 8, 0, "SerialA (IC-CARD)"))
+                        break;
                       memcpy(m_ic_card_data + page * 8, data_in + 13, count * 8);
                     }
                   }
@@ -688,6 +780,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 // VirtuaStriker 4 splits the writes over multiple packets
                 else
                 {
+                  if (!validate_data_in_out(2 + pksize, 0, "SerialA (IC-CARD)"))
+                    break;
                   memcpy(m_ic_write_buffer, data_in + 2, pksize);
                   m_ic_write_offset += pksize;
                   m_ic_write_size = size;
@@ -696,6 +790,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               }
               default:
                 // Handle Deck Reader commands
+                if (!validate_data_in_out(1, 0, "SerialA (DECK READER)"))
+                  break;
                 serial_command = data_in[0];
                 icco.command = serial_command;
                 icco.flag = 0;
@@ -805,6 +901,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
                   break;
                 default:
+                  if (!validate_data_in_out(14, 0, "SerialA (DECK READER)"))
+                    break;
                   WARN_LOG_FMT(SERIALINTERFACE_CARD,
                                "GC-AM: Command 0x31 (IC-Card) {:02x} {:02x} {:02x} {:02x} {:02x} "
                                "{:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}",
@@ -816,8 +914,12 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 break;
               }
 
+              if (!validate_data_in_out(0, icco.pktlen + 2, "SerialA (IC-CARD)"))
+                break;
               ICCardSendReply(&icco, data_out.data(), &data_offset);
 
+              if (!validate_data_in_out(2, 0, "SerialA (IC-CARD)"))
+                break;
               data_in += length;
               break;
             }
@@ -828,6 +930,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           {
             // All commands are OR'd with 0x80
             // Last byte is checksum which we don't care about
+            if (!validate_data_in_out(command_offset + 4, 0, "SerialA"))
+              break;
             const u32 serial_command = Common::swap32(data_in + command_offset) ^ 0x80000000;
 
             if (AMMediaboard::GetGameType() == FZeroAX ||
@@ -844,6 +948,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
               if (serial_command == 0x801000)
               {
+                if (!validate_data_in_out(0, 4, "SerialA"))
+                  break;
                 data_out[data_offset++] = 0x31;
                 data_out[data_offset++] = 0x02;
                 data_out[data_offset++] = 0xFF;
@@ -927,6 +1033,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
           if (length == 0)
           {
+            if (!validate_data_in_out(length, 2, "SerialA"))
+              break;
             data_out[data_offset++] = gcam_command;
             data_out[data_offset++] = 0x00;
           }
@@ -938,18 +1046,30 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               m_motor_reply[0] = gcam_command;
               m_motor_reply[1] = length;  // Same out as in size
 
-              memcpy(data_out.data() + data_offset, m_motor_reply, m_motor_reply[1] + 2);
-              data_offset += m_motor_reply[1] + 2;
+              const u32 reply_size = m_motor_reply[1] + 2;
+              if (!validate_data_in_out(length, reply_size, "SerialA"))
+                break;
+
+              memcpy(data_out.data() + data_offset, m_motor_reply, reply_size);
+              data_offset += reply_size;
             }
           }
 
+          if (!validate_data_in_out(length, 0, "SerialA"))
+          {
+            break;
+          }
           data_in += length;
           break;
         }
         case GCAMCommand::SerialB:
         {
           DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 32 (CARD-Interface)");
+          if (!validate_data_in_out(1, 0, "SerialB"))
+            break;
           const u32 length = *data_in++;
+          if (!validate_data_in_out(length, 0, "SerialB"))
+            break;
           if (length)
           {
             // Send Card Reply
@@ -957,6 +1077,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             {
               if (m_card_read_length)
               {
+                if (!validate_data_in_out(0, 1, "SerialB"))
+                  break;
                 data_out[data_offset++] = gcam_command;
                 u32 read_length = m_card_read_length - m_card_read;
 
@@ -965,8 +1087,12 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   read_length = std::min<u32>(read_length, 0x2F);
                 }
 
+                if (!validate_data_in_out(0, 1, "SerialB"))
+                  break;
                 data_out[data_offset++] = read_length;  // 0x2F (max size per packet)
 
+                if (!validate_data_in_out(0, read_length, "SerialB"))
+                  break;
                 memcpy(data_out.data() + data_offset, m_card_read_packet + m_card_read,
                        read_length);
 
@@ -979,6 +1105,9 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 data_in += length;
                 break;
               }
+
+              if (!validate_data_in_out(0, 5, "SerialB"))
+                break;
 
               data_out[data_offset++] = gcam_command;
               const u32 command_length_offset = data_offset;
@@ -994,10 +1123,14 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               switch (CARDCommand(m_card_command))
               {
               case CARDCommand::Init:
+                if (!validate_data_in_out(0, 2, "SerialB"))
+                  break;
                 data_out[data_offset++] = 0x00;  // 0x02
                 data_out[data_offset++] = 0x30;  // 0x03
                 break;
               case CARDCommand::GetState:
+                if (!validate_data_in_out(0, 2, "SerialB"))
+                  break;
                 data_out[data_offset++] = 0x20 | m_card_bit;  // 0x02
 
                 // bit 0: Please take your card
@@ -1005,23 +1138,33 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 data_out[data_offset++] = 0x00;  // 0x03
                 break;
               case CARDCommand::Read:
+                if (!validate_data_in_out(0, 2, "SerialB"))
+                  break;
                 data_out[data_offset++] = 0x02;  // 0x02
                 data_out[data_offset++] = 0x53;  // 0x03
                 break;
               case CARDCommand::IsPresent:
+                if (!validate_data_in_out(0, 2, "SerialB"))
+                  break;
                 data_out[data_offset++] = 0x22;  // 0x02
                 data_out[data_offset++] = 0x30;  // 0x03
                 break;
               case CARDCommand::Write:
+                if (!validate_data_in_out(0, 2, "SerialB"))
+                  break;
                 data_out[data_offset++] = 0x02;  // 0x02
                 data_out[data_offset++] = 0x00;  // 0x03
                 break;
               case CARDCommand::SetPrintParam:
               case CARDCommand::RegisterFont:
+                if (!validate_data_in_out(0, 2, "SerialB"))
+                  break;
                 data_out[data_offset++] = 0x00;  // 0x02
                 data_out[data_offset++] = 0x00;  // 0x03
                 break;
               case CARDCommand::WriteInfo:
+                if (!validate_data_in_out(0, 2, "SerialB"))
+                  break;
                 data_out[data_offset++] = 0x02;  // 0x02
                 data_out[data_offset++] = 0x00;  // 0x03
                 break;
@@ -1030,6 +1173,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "CARDCommand::Erase is not handled.");
                 break;
               case CARDCommand::Eject:
+                if (!validate_data_in_out(0, 2, "SerialB"))
+                  break;
                 if (AMMediaboard::GetGameType() == FZeroAX)
                 {
                   data_out[data_offset++] = 0x01;  // 0x02
@@ -1041,19 +1186,27 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 data_out[data_offset++] = 0x30;  // 0x03
                 break;
               case CARDCommand::Clean:
+                if (!validate_data_in_out(0, 2, "SerialB"))
+                  break;
                 data_out[data_offset++] = 0x02;  // 0x02
                 data_out[data_offset++] = 0x00;  // 0x03
                 break;
               case CARDCommand::Load:
+                if (!validate_data_in_out(0, 2, "SerialB"))
+                  break;
                 data_out[data_offset++] = 0x02;  // 0x02
                 data_out[data_offset++] = 0x30;  // 0x03
                 break;
               case CARDCommand::SetShutter:
+                if (!validate_data_in_out(0, 2, "SerialB"))
+                  break;
                 data_out[data_offset++] = 0x00;  // 0x02
                 data_out[data_offset++] = 0x00;  // 0x03
                 break;
               }
 
+              if (!validate_data_in_out(0, 3, "SerialB"))
+                break;
               data_out[data_offset++] = 0x30;  // 0x04
               data_out[data_offset++] = 0x00;  // 0x05
 
@@ -1061,10 +1214,14 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
               data_out[checksum_start] = data_offset - checksum_start;  // 0x00 len
 
+              if (!validate_data_in_out(0, 1, "SerialB"))
+                break;
               data_out[data_offset] = 0;  // 0x07
               for (u32 i = 0; i < data_out[checksum_start]; ++i)
                 data_out[data_offset] ^= data_out[checksum_start + i];
 
+              if (!validate_data_in_out(0, 2, "SerialB"))
+                break;
               data_offset++;
 
               data_out[command_length_offset] = data_out[checksum_start] + 2;
@@ -1315,6 +1472,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 }
               }
 
+              if (!validate_data_in_out(0, 3, "SerialB"))
+                break;
               data_out[data_offset++] = 0x32;
               data_out[data_offset++] = 0x01;  // len
               data_out[data_offset++] = 0x06;  // OK
@@ -1322,6 +1481,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           }
           else
           {
+            if (!validate_data_in_out(0, 2, "SerialB"))
+              break;
             data_out[data_offset++] = gcam_command;
             data_out[data_offset++] = 0x00;  // len
           }
@@ -1331,6 +1492,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
         case GCAMCommand::JVSIOA:
         case GCAMCommand::JVSIOB:
         {
+          if (!validate_data_in_out(7, 0, "JVSIO"))
+            break;
           DEBUG_LOG_FMT(
               SERIALINTERFACE_JVSIO,
               "GC-AM: Command {:02x}, {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} (JVS IO)",
@@ -2067,11 +2230,22 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           break;
         }
         case GCAMCommand::Unknown_60:
+        {
+          if (!validate_data_in_out(3, 0, "Unknown_60"))
+            break;
+
           NOTICE_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x60, {:02x} {:02x} {:02x}",
                          data_in[0], data_in[1], data_in[2]);
-          data_in += data_in[0] + 1;
-          break;
+
+          const u32 in_size = data_in[0] + 1;
+          if (!validate_data_in_out(in_size, 0, "Unknown_60"))
+            break;
+          data_in += in_size;
+        }
+        break;
         default:
+          if (!validate_data_in_out(5, 0, fmt::format("Unknown_{}", gcam_command)))
+            break;
           ERROR_LOG_FMT(SERIALINTERFACE_AMBB,
                         "GC-AM: Command {:02x} (unknown) {:02x} {:02x} {:02x} {:02x} {:02x}",
                         gcam_command, data_in[0], data_in[1], data_in[2], data_in[3], data_in[4]);
@@ -2085,12 +2259,20 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
       data_out[1] = data_offset - 2;
       checksum = 0;
 
-      for (int i = 0; i < 0x7F; ++i)
+      if (buffer_length >= 0x80)
       {
-        checksum += data_in[i] = data_out[i];
+        for (int i = 0; i < 0x7F; ++i)
+        {
+          checksum += data_in[i] = data_out[i];
+        }
+        data_in[0x7f] = ~checksum;
+        DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "Command send back: {}",
+                      HexDump(data_out.data(), 0x7F));
       }
-      data_in[0x7f] = ~checksum;
-      DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "Command send back: {}", HexDump(data_out.data(), 0x7F));
+      else
+      {
+        ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: overflow in GCAM_Command's checksum");
+      }
 
       SwapBuffers(buffer, &buffer_length);
 
