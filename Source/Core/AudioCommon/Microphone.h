@@ -18,7 +18,7 @@ struct cubeb;
 struct cubeb_stream;
 #endif
 
-namespace IOS::HLE::USB
+namespace AudioCommon
 {
 class MicrophoneState
 {
@@ -49,6 +49,7 @@ public:
 
 protected:
   static constexpr u32 BUFF_SIZE_SAMPLES = 32;
+  u32 m_samples_avail = 0;
 
 private:
 #ifdef HAVE_CUBEB
@@ -58,6 +59,7 @@ private:
   virtual std::string GetCubebStreamName() const = 0;
   virtual s16 GetVolumeModifier() const = 0;
   virtual bool AreSamplesByteSwapped() const = 0;
+  virtual void OnOverflow();
 #endif
 
   long DataCallback(const SampleType* input_buffer, long nframes);
@@ -73,7 +75,6 @@ private:
   std::vector<SampleType> m_stream_buffer{};
   u32 m_stream_wpos = 0;
   u32 m_stream_rpos = 0;
-  u32 m_samples_avail = 0;
 
   // TODO: Find how this level is calculated on real hardware
   std::atomic<u16> m_loudness_level = 0;
@@ -123,4 +124,4 @@ private:
   CubebUtils::CoInitSyncWorker m_worker;
 #endif
 };
-}  // namespace IOS::HLE::USB
+}  // namespace AudioCommon

@@ -8,6 +8,7 @@
   <ItemGroup>
     <ClInclude Include="AudioCommon\AudioCommon.h" />
     <ClInclude Include="AudioCommon\Enums.h" />
+    <ClInclude Include="AudioCommon\Microphone.h" />
     <ClInclude Include="AudioCommon\Mixer.h" />
     <ClInclude Include="AudioCommon\NullSoundStream.h" />
     <ClInclude Include="AudioCommon\OpenALStream.h" />
@@ -411,7 +412,6 @@
     <ClInclude Include="Core\IOS\USB\Common.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Infinity.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\LogitechMic.h" />
-    <ClInclude Include="Core\IOS\USB\Emulated\Microphone.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Skylanders\Skylander.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Skylanders\SkylanderCrypto.h" />
     <ClInclude Include="Core\IOS\USB\Emulated\Skylanders\SkylanderFigure.h" />
@@ -805,6 +805,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AudioCommon\AudioCommon.cpp" />
+    <ClCompile Include="AudioCommon\Microphone.cpp" />
     <ClCompile Include="AudioCommon\Mixer.cpp" />
     <ClCompile Include="AudioCommon\NullSoundStream.cpp" />
     <ClCompile Include="AudioCommon\OpenALStream.cpp" />
@@ -1104,7 +1105,6 @@
     <ClCompile Include="Core\IOS\USB\Common.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Infinity.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\LogitechMic.cpp" />
-    <ClCompile Include="Core\IOS\USB\Emulated\Microphone.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Skylanders\Skylander.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Skylanders\SkylanderCrypto.cpp" />
     <ClCompile Include="Core\IOS\USB\Emulated\Skylanders\SkylanderFigure.cpp" />
