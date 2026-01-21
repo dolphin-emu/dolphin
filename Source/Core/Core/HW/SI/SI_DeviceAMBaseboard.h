@@ -239,23 +239,20 @@ private:
     ProgramVersion = 0x76,
   };
 
-  union ICCommand
+  // NOTE: Used to be an union with `u8 data[81 + 4 + 4 + 4]`
+  // TODO: Should the struct be packed?
+  struct ICCommand
   {
-    u8 data[81 + 4 + 4 + 4] = {};
+    u32 pktcmd : 8;
+    u32 pktlen : 8;
+    u32 fixed : 8;
+    u32 command : 8;
+    u32 flag : 8;
+    u32 length : 8;
+    u32 status : 16;
 
-    struct
-    {
-      u32 pktcmd : 8;
-      u32 pktlen : 8;
-      u32 fixed : 8;
-      u32 command : 8;
-      u32 flag : 8;
-      u32 length : 8;
-      u32 status : 16;
-
-      u8 extdata[81];
-      u32 extlen;
-    };
+    u8 extdata[81];
+    u32 extlen;
   };
 
   u8 m_last[2][0x80] = {};
