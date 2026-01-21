@@ -34,6 +34,9 @@
   <provides>
     <binary>dolphin-emu</binary>
     <id>dolphin-emu.desktop</id>
+    <!-- Dolphin natively supports the two Wiimote revisions 057E:0306 and 057E:0330 -->
+    <modalias>usb:v057Ep0306d*</modalias>
+    <modalias>usb:v057Ep0330d*</modalias>
   </provides>
   <releases>
     <release version="${DOLPHIN_WC_DESCRIBE}" date="${DOLPHIN_WC_BUILD_DATE}"/>
