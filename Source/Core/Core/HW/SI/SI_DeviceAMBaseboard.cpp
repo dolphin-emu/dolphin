@@ -174,11 +174,12 @@ void CSIDevice_AMBaseboard::ICCardSendReply(ICCommand* iccommand, u8* buffer, u3
 {
   iccommand->status = Common::swap16(iccommand->status);
 
-  const u8 crc = CheckSumXOR(iccommand->data + 2, iccommand->pktlen - 1);
+  const auto iccommand_data = reinterpret_cast<const u8*>(iccommand);
+  const u8 crc = CheckSumXOR(iccommand_data + 2, iccommand->pktlen - 1);
 
   for (u32 i = 0; i < iccommand->pktlen + 1; ++i)
   {
-    buffer[(*length)++] = iccommand->data[i];
+    buffer[(*length)++] = iccommand_data[i];
   }
 
   buffer[(*length)++] = crc;
