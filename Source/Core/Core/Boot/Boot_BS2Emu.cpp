@@ -237,6 +237,11 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
 
     // Load game into RAM, like on the actual Triforce
     u8* dimm = AMMediaboard::InitDIMM(disc_size);
+    if (!dimm)
+    {
+      ERROR_LOG_FMT(BOOT, "AMMediaboard::InitDIMM failed");
+      return false;
+    }
 
     volume.Read(0, disc_size, dimm, DiscIO::PARTITION_NONE);
 
