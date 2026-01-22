@@ -10,6 +10,7 @@
 #include "Core/Debugger/BranchWatch.h"
 #include "Core/HLE/HLE.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
@@ -140,6 +141,18 @@ void Interpreter::HLEFunction(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::rfi(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
+
+  if (ppc_state.ibat_update_pending)
+  {
+    interpreter.m_mmu.IBATUpdated();
+    ppc_state.ibat_update_pending = false;
+  }
+
+  if (ppc_state.dbat_update_pending)
+  {
+    interpreter.m_mmu.DBATUpdated();
+    ppc_state.dbat_update_pending = false;
+  }
 
   if (ppc_state.msr.PR)
   {

@@ -173,6 +173,19 @@ void Interpreter::mfsrin(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::mtmsr(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
+
+  if (ppc_state.ibat_update_pending)
+  {
+    interpreter.m_mmu.IBATUpdated();
+    ppc_state.ibat_update_pending = false;
+  }
+
+  if (ppc_state.dbat_update_pending)
+  {
+    interpreter.m_mmu.DBATUpdated();
+    ppc_state.dbat_update_pending = false;
+  }
+
   if (ppc_state.msr.PR)
   {
     GenerateProgramException(ppc_state, ProgramExceptionCause::PrivilegedInstruction);
@@ -383,8 +396,8 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
     if (old_value != ppc_state.spr[index])
     {
       INFO_LOG_FMT(POWERPC, "HID4 updated {:x} {:x}", old_value, ppc_state.spr[index]);
-      interpreter.m_mmu.IBATUpdated();
-      interpreter.m_mmu.DBATUpdated();
+      ppc_state.ibat_update_pending = true;
+      ppc_state.dbat_update_pending = true;
     }
     break;
 
@@ -466,7 +479,7 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
     if (old_value != ppc_state.spr[index])
     {
       INFO_LOG_FMT(POWERPC, "DBAT updated {} {:x} {:x}", index, old_value, ppc_state.spr[index]);
-      interpreter.m_mmu.DBATUpdated();
+      ppc_state.dbat_update_pending = true;
     }
     break;
 
@@ -489,7 +502,7 @@ void Interpreter::mtspr(Interpreter& interpreter, UGeckoInstruction inst)
     if (old_value != ppc_state.spr[index])
     {
       INFO_LOG_FMT(POWERPC, "IBAT updated {} {:x} {:x}", index, old_value, ppc_state.spr[index]);
-      interpreter.m_mmu.IBATUpdated();
+      ppc_state.ibat_update_pending = true;
     }
     break;
 
@@ -612,7 +625,21 @@ void Interpreter::mcrf(Interpreter& interpreter, UGeckoInstruction inst)
 
 void Interpreter::isync(Interpreter& interpreter, UGeckoInstruction inst)
 {
-  // shouldn't do anything
+  // useful hook for lazy updating of BATs
+
+  auto& ppc_state = interpreter.m_ppc_state;
+
+  if (ppc_state.ibat_update_pending && ppc_state.msr.IR)
+  {
+    interpreter.m_mmu.IBATUpdated();
+    ppc_state.ibat_update_pending = false;
+  }
+
+  if (ppc_state.dbat_update_pending && ppc_state.msr.DR)
+  {
+    interpreter.m_mmu.DBATUpdated();
+    ppc_state.dbat_update_pending = false;
+  }
 }
 
 // the following commands read from FPSCR
