@@ -246,6 +246,13 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: data_out overflow in {}", command);
         else
           return true;
+        ERROR_LOG_FMT(SERIALINTERFACE_AMBB,
+                      "Overflow details:\n"
+                      " - data_in(begin={}, current={}, end={}, n_in={})\n"
+                      " - data_out(offset={}, size={}, n_out={})\n"
+                      " - buffer(position={}, length={})",
+                      fmt::ptr(buffer + 2), fmt::ptr(data_in), fmt::ptr(data_in_end), n_in,
+                      data_offset, data_out.size(), n_out, buffer_position, buffer_length);
         data_in = data_in_end;
         return false;
       };
@@ -445,15 +452,11 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           u32 length = *data_in++;
           if (length)
           {
-            if (!validate_data_in_out(13, 0, "SerialA"))
+            if (!validate_data_in_out(length, 0, "SerialA"))
               break;
 
-            INFO_LOG_FMT(SERIALINTERFACE_AMBB,
-                         "GC-AM: Command 0x31, {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} "
-                         "{:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}",
-                         length, data_in[0], data_in[1], data_in[2], data_in[3], data_in[4],
-                         data_in[5], data_in[6], data_in[7], data_in[8], data_in[9], data_in[10],
-                         data_in[11], data_in[12]);
+            INFO_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x31, length=0x{:02x}, hexdump:\n{}",
+                         length, HexDump(data_in, length));
 
             // Serial - Wheel
             if (AMMediaboard::GetGameType() == MarioKartGP ||
@@ -563,6 +566,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               {
                 const u32 size = data_in[1];
 
+                if (!validate_data_in_out(size + 2, 0, "SerialA (IC-CARD)"))
+                  break;
                 DEBUG_LOG_FMT(SERIALINTERFACE_CARD, "Command: {}", HexDump(data_in, size + 2));
 
                 INFO_LOG_FMT(
@@ -570,8 +575,6 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                     "GC-AM: Command 25 (IC-CARD) Write Pages: Off:{:x} Size:{:x} PSize:{:x}",
                     m_ic_write_offset, m_ic_write_size, size);
 
-                if (!validate_data_in_out(2 + size, 0, "SerialA (IC-CARD)"))
-                  break;
                 memcpy(m_ic_write_buffer + m_ic_write_offset, data_in + 2, size);
 
                 m_ic_write_offset += size;
@@ -1492,13 +1495,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
         case GCAMCommand::JVSIOA:
         case GCAMCommand::JVSIOB:
         {
-          if (!validate_data_in_out(7, 0, "JVSIO"))
+          if (!validate_data_in_out(4, 0, "JVSIO"))
             break;
-          DEBUG_LOG_FMT(
-              SERIALINTERFACE_JVSIO,
-              "GC-AM: Command {:02x}, {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} (JVS IO)",
-              gcam_command, data_in[0], data_in[1], data_in[2], data_in[3], data_in[4], data_in[5],
-              data_in[6]);
 
           JVSIOMessage message;
 
@@ -1511,6 +1509,11 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           u8 jvs_buf[0x80];
 
           frame_len = std::min<u32>(frame_len, sizeof(jvs_buf));
+
+          if (!validate_data_in_out(frame_len, 0, "JVSIO"))
+            break;
+          DEBUG_LOG_FMT(SERIALINTERFACE_JVSIO, "GC-AM: Command {:02x} (JVS IO), hexdump:\n{}",
+                        gcam_command, HexDump(data_in, frame_len));
 
           memcpy(jvs_buf, frame, frame_len);
 
