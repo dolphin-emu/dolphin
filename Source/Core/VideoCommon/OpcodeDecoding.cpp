@@ -230,11 +230,9 @@ public:
     ASSERT(size >= 1);
     if constexpr (!is_preprocess)
     {
-      // Display lists get added directly into the FIFO stream since this same callback is used to
-      // process them.
-      if (g_record_fifo_data && static_cast<Opcode>(data[0]) != Opcode::GX_CMD_CALL_DL)
+      if (g_record_fifo_data)
       {
-        Core::System::GetInstance().GetFifoRecorder().WriteGPCommand(data, size);
+        Core::System::GetInstance().GetFifoRecorder().WriteGPCommand(data, size, m_in_display_list);
       }
     }
   }
