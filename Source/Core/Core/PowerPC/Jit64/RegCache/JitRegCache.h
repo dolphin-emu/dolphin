@@ -122,8 +122,11 @@ class RegCache
 public:
   enum class FlushMode
   {
+    // All dirty registers get written back, and all registers get removed from the cache.
     Full,
-    MaintainState,
+    // All dirty registers get written back and get set as no longer dirty.
+    // No registers are removed from the cache.
+    Undirty,
   };
 
   enum class IgnoreDiscardedRegisters
@@ -176,7 +179,7 @@ public:
 
   RCForkGuard Fork();
   void Discard(BitSet32 pregs);
-  void Flush(BitSet32 pregs = BitSet32::AllTrue(32),
+  void Flush(BitSet32 pregs = BitSet32::AllTrue(32), FlushMode mode = FlushMode::Full,
              IgnoreDiscardedRegisters ignore_discarded_registers = IgnoreDiscardedRegisters::No);
   void Reset(BitSet32 pregs);
   void Revert();
