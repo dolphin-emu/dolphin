@@ -58,4 +58,5 @@ inline Digest CalculateDigest(const std::array<T, Size>& msg)
 }
 
 std::string DigestToString(const Digest& digest);
+std::string DigestToSource(const Digest& digest);
 }  // namespace Common::SHA1

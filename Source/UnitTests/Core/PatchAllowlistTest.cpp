@@ -20,6 +20,7 @@
 #include "Common/IOFile.h"
 #include "Common/IniFile.h"
 #include "Common/JsonUtil.h"
+#include "Core/AchievementApprovedHash.h"
 #include "Core/AchievementManager.h"
 #include "Core/ActionReplay.h"
 #include "Core/CheatCodes.h"
@@ -131,12 +132,12 @@ TEST(PatchAllowlist, VerifyHashes)
   auto context = Common::SHA1::CreateContext();
   context->Update(new_allowlist_str);
   auto digest = context->Finish();
-  if (digest != AchievementManager::APPROVED_LIST_HASH)
+  if (digest != APPROVED_LIST_HASH)
   {
     ADD_FAILURE() << "Approved list hash does not match the one in AchievementMananger."
                   << std::endl
                   << "Please update APPROVED_LIST_HASH to the following:" << std::endl
-                  << Common::SHA1::DigestToString(digest);
+                  << Common::SHA1::DigestToSource(digest);
   }
   // Compare with old allowlist
   static constexpr std::string_view APPROVED_LIST_FILENAME = "ApprovedInis.json";
