@@ -9,7 +9,6 @@
 #include <QVBoxLayout>
 
 #include "Core/Config/MainSettings.h"
-#include "Core/Core.h"
 
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"

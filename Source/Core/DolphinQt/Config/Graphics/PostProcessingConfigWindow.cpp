@@ -22,7 +22,6 @@
 
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/Present.h"
-#include "VideoCommon/VideoConfig.h"
 
 using ConfigurationOption = VideoCommon::PostProcessingConfiguration::ConfigurationOption;
 using OptionType = ConfigurationOption::OptionType;

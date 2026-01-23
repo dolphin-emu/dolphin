@@ -4,12 +4,9 @@
 #include "Core/HW/SI/SI_DeviceGCSteeringWheel.h"
 
 #include <algorithm>
-#include <cmath>
-#include <cstring>
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/Swap.h"
 #include "Core/HW/GCPad.h"
 
 namespace SerialInterface

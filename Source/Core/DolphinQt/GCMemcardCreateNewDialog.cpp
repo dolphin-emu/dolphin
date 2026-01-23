@@ -11,7 +11,6 @@
 #include <QRadioButton>
 
 #include "Common/FileUtil.h"
-#include "Common/MsgHandler.h"
 #include "Common/Timer.h"
 
 #include "Core/HW/EXI/EXI_DeviceIPL.h"

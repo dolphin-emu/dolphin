@@ -40,7 +40,6 @@
 #include "Core/HW/HW.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"

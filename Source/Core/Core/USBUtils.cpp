@@ -14,7 +14,6 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <fmt/xchar.h>
 #ifdef HAVE_LIBUDEV
 #include <libudev.h>
 #endif
@@ -27,6 +26,8 @@
 #include <initguid.h>
 // initguid.h must be included before usbiodef.h
 #include <usbiodef.h>
+
+#include <fmt/xchar.h>
 
 #include "Common/StringUtil.h"
 #include "Common/WindowsDevice.h"

@@ -12,7 +12,6 @@
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoConfig.h"
-#include "VideoCommon/XFMemory.h"
 
 std::unique_ptr<AbstractGfx> g_gfx;
 

@@ -3,22 +3,7 @@
 
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/CustomPipelineAction.h"
 
-#include <algorithm>
-#include <array>
-#include <optional>
-
-#include <fmt/format.h>
-
-#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
-#include "Common/VariantUtil.h"
-#include "Core/System.h"
-
-#include "VideoCommon/AbstractGfx.h"
-#include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
-#include "VideoCommon/ShaderGenCommon.h"
-#include "VideoCommon/TextureCacheBase.h"
 
 std::unique_ptr<CustomPipelineAction>
 CustomPipelineAction::Create(std::shared_ptr<VideoCommon::CustomAssetLibrary> library)

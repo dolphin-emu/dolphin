@@ -5,7 +5,6 @@
 
 #include <vector>
 
-#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
@@ -13,9 +12,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputProfile.h"
 

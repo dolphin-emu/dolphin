@@ -11,7 +11,6 @@
 
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64/RegCache/CachedReg.h"
-#include "Core/PowerPC/PPCAnalyst.h"
 
 class Jit64;
 enum class RCMode;

@@ -3,8 +3,6 @@
 
 #include "DolphinQt/RenderWidget.h"
 
-#include <array>
-
 #include <QApplication>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -31,9 +29,7 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-#include "VideoCommon/OnScreenUI.h"
 #include "VideoCommon/Present.h"
-#include "VideoCommon/VideoConfig.h"
 
 #ifdef _WIN32
 #include <Windows.h>

@@ -3,8 +3,6 @@
 
 #include "InputCommon/ControllerInterface/SteamDeck/SteamDeck.h"
 
-#include <type_traits>
-
 #include <hidapi.h>
 
 #include "Common/CommonTypes.h"

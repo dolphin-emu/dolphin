@@ -5,11 +5,9 @@
 
 #include <algorithm>
 #include <array>
-#include <cctype>
 #include <cstring>
 #include <iterator>
 #include <locale>
-#include <mbedtls/config.h>
 #include <mbedtls/md.h>
 #include <mutex>
 #include <thread>

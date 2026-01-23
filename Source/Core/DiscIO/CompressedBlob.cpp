@@ -26,7 +26,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "DiscIO/Blob.h"
-#include "DiscIO/DiscScrubber.h"
 #include "DiscIO/MultithreadedCompressor.h"
 #include "DiscIO/Volume.h"
 

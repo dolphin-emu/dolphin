@@ -3,7 +3,6 @@
 
 #include "Core/HW/ProcessorInterface.h"
 
-#include <cstdio>
 #include <memory>
 
 #include "Common/Assert.h"

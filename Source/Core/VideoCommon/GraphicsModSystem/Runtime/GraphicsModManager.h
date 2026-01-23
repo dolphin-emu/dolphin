@@ -10,10 +10,10 @@
 #include <unordered_set>
 #include <vector>
 
+#include "Common/HookableEvent.h"
+
 #include "VideoCommon/GraphicsModSystem/Runtime/FBInfo.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModAction.h"
-#include "VideoCommon/TextureInfo.h"
-#include "VideoCommon/VideoEvents.h"
 #include "VideoCommon/XFMemory.h"
 
 class GraphicsModGroupConfig;

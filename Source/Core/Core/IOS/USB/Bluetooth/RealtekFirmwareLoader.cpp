@@ -10,8 +10,6 @@
 
 #include <algorithm>
 
-#include <fmt/format.h>
-
 #include "Common/BitUtils.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"

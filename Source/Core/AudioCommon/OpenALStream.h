@@ -3,15 +3,15 @@
 
 #pragma once
 
-#include <thread>
-
 #include "AudioCommon/SoundStream.h"
-#include "Common/Event.h"
 
 #ifdef _WIN32
 #include <al.h>
 #include <alc.h>
 #include <alext.h>
+#include <thread>
+
+#include "Common/Event.h"
 
 // OpenAL requires a minimum of two buffers, three or more recommended
 #define OAL_BUFFERS 3

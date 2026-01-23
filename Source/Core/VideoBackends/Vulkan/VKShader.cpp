@@ -4,7 +4,6 @@
 #include "VideoBackends/Vulkan/VKShader.h"
 
 #include "Common/Align.h"
-#include "Common/Assert.h"
 
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/ShaderCompiler.h"

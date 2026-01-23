@@ -11,9 +11,9 @@
 #include <QSettings>
 
 #include "Common/Config/Config.h"
+#include "Common/HookableEvent.h"
 #include "Core/Config/MainSettings.h"
 #include "DiscIO/Enums.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace Core
 {

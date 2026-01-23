@@ -11,7 +11,6 @@
 #include "VideoBackends/Vulkan/VKPipeline.h"
 #include "VideoBackends/Vulkan/VKShader.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
-#include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/Constants.h"
 

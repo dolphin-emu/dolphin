@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
-#include <locale>
 #include <map>
 #include <memory>
 #include <optional>
@@ -14,11 +13,8 @@
 #include <string_view>
 #include <vector>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "DiscIO/DiscUtils.h"
 #include "DiscIO/Filesystem.h"

@@ -7,9 +7,6 @@
 
 #include <fmt/format.h>
 #include <optional>
-#include <signal.h>
-#include <stdint.h>
-#include <stdio.h>
 #include <string.h>
 #ifdef _WIN32
 #include <WinSock2.h>
@@ -26,10 +23,8 @@ typedef SSIZE_T ssize_t;
 #endif
 
 #include "Common/Assert.h"
-#include "Common/Event.h"
 #include "Common/Logging/Log.h"
 #include "Common/SocketContext.h"
-#include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"

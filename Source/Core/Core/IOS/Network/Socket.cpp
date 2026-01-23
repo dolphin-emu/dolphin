@@ -16,7 +16,6 @@
 #include <sys/select.h>
 #endif
 
-#include "Common/BitUtils.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Network.h"

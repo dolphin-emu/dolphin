@@ -3,10 +3,10 @@
 
 #pragma once
 
+#ifdef _WIN32
 #include <optional>
+#endif
 #include <string>
-
-#include "Common/CommonTypes.h"
 
 #ifndef _WIN32
 

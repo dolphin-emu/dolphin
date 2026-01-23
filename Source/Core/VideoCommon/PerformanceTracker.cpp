@@ -12,7 +12,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
-#include "Core/Core.h"
 #include "VideoCommon/VideoConfig.h"
 
 static constexpr double SAMPLE_RC_RATIO = 0.25;

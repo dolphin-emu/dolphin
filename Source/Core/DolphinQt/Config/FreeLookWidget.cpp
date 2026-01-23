@@ -9,10 +9,7 @@
 #include <QVBoxLayout>
 
 #include "Core/AchievementManager.h"
-#include "Core/Config/AchievementSettings.h"
 #include "Core/Config/FreeLookSettings.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"

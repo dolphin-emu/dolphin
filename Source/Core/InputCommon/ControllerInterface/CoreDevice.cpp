@@ -13,7 +13,6 @@
 #include <fmt/format.h>
 
 #include "Common/MathUtil.h"
-#include "Common/Thread.h"
 
 namespace ciface::Core
 {

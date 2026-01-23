@@ -73,7 +73,6 @@
 
 #if !defined(_WIN32)
 #include <sys/socket.h>
-#include <sys/types.h>
 #ifdef __HAIKU__
 #define _BSD_SOURCE
 #include <bsd/ifaddrs.h>

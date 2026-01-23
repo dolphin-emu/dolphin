@@ -8,8 +8,6 @@
 #pragma comment(lib, "qwave")
 #endif
 
-#include "Core/ConfigManager.h"
-
 namespace Common
 {
 #if defined(_WIN32)

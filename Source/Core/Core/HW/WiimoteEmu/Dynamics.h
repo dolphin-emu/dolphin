@@ -3,19 +3,15 @@
 
 #pragma once
 
-#include <array>
-
 #include "Common/MathUtil.h"
 #include "Common/Matrix.h"
-#include "Core/HW/WiimoteCommon/DataReport.h"
-#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
+#include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Force.h"
 #include "InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.h"
 #include "InputCommon/ControllerEmu/ControlGroup/IMUCursor.h"
 #include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
-#include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 namespace WiimoteEmu
 {

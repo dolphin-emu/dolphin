@@ -3,7 +3,6 @@
 
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 
-#include <algorithm>
 #include <array>
 #include <cstring>
 #include <iterator>

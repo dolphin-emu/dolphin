@@ -11,7 +11,6 @@
 
 #include "Common/Common.h"
 #include "Common/HttpRequest.h"
-#include "Common/Thread.h"
 #include "Common/Version.h"
 
 #include "Core/Config/NetplaySettings.h"

@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <cstring>
-#include <mutex>
 #include <type_traits>
 
 #include "Common/Assert.h"

@@ -3,8 +3,6 @@
 
 #include "Core/HW/DSPHLE/UCodes/ROM.h"
 
-#include <string>
-
 #ifdef _WIN32
 #include <Windows.h>
 #endif

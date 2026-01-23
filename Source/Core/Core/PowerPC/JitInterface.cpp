@@ -3,16 +3,12 @@
 
 #include "Core/PowerPC/JitInterface.h"
 
-#include <algorithm>
 #include <string>
 #include <unordered_set>
-
-#include <fmt/format.h>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/MsgHandler.h"
 
 #include "Core/Core.h"
 #include "Core/PowerPC/CPUCoreBase.h"

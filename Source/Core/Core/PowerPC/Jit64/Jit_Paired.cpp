@@ -5,8 +5,6 @@
 
 #include <optional>
 
-#include "Common/CPUDetect.h"
-#include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"

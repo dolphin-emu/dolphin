@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <atomic>
-#include <cstring>
 #include <functional>
 #include <future>
 #include <mutex>
@@ -27,7 +26,6 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/FPURoundMode.h"
 #include "Common/FatFsUtil.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"

@@ -3,12 +3,9 @@
 
 #include "VideoBackends/Vulkan/VKPerfQuery.h"
 
-#include <algorithm>
 #include <cstring>
-#include <functional>
 
 #include "Common/Assert.h"
-#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"

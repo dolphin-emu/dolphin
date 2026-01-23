@@ -19,11 +19,8 @@
 #include <QTableWidget>
 #include <QtGlobal>
 
-#include <fmt/printf.h>
-
 #include "Common/Align.h"
 #include "Common/BitUtils.h"
-#include "Common/FloatUtils.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/Core.h"

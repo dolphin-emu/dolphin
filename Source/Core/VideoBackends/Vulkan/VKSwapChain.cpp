@@ -7,7 +7,6 @@
 #include <cstdint>
 
 #include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
 #include "Common/Contains.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"

@@ -7,8 +7,6 @@
 #include <optional>
 #include <string>
 
-#include <fmt/printf.h>
-
 #include <QButtonGroup>
 #include <QCheckBox>
 #include <QComboBox>
@@ -27,7 +25,6 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
-#include "Common/BitUtils.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Core/ConfigManager.h"

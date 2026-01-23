@@ -25,7 +25,6 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
-#include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderBase.h"

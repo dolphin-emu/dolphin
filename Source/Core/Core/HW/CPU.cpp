@@ -8,7 +8,6 @@
 #include <queue>
 
 #include "AudioCommon/AudioCommon.h"
-#include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"

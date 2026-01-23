@@ -5,8 +5,6 @@
 
 #include <QDockWidget>
 
-#include "Common/CommonTypes.h"
-
 class QCheckBox;
 class QCloseEvent;
 class QComboBox;

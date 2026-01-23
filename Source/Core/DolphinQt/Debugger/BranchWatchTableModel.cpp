@@ -3,7 +3,6 @@
 
 #include "DolphinQt/Debugger/BranchWatchTableModel.h"
 
-#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <utility>

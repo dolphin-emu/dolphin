@@ -3,7 +3,6 @@
 
 #include "DiscIO/VolumeGC.h"
 
-#include <cstddef>
 #include <map>
 #include <memory>
 #include <optional>
@@ -16,8 +15,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscExtractor.h"

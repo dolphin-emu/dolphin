@@ -18,7 +18,6 @@
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/Movie.h"
-#include "Core/NetPlayClient.h"
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
 

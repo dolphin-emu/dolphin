@@ -17,8 +17,6 @@
 #include "DolphinQt/Config/ConfigControls/ConfigFloatSlider.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
-#include "VideoCommon/VideoConfig.h"
-
 ColorCorrectionConfigWindow::ColorCorrectionConfigWindow(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("Color Correction Configuration"));

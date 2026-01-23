@@ -16,7 +16,6 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 
 constexpr size_t WaveFileWriter::BUFFER_SIZE;
 

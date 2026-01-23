@@ -26,27 +26,21 @@ typedef pollfd pollfd_t;
 #else
 #include <sys/fcntl.h>
 #endif
-#include <errno.h>
 #include <net/if.h>
 #include <netinet/in.h>
 #include <poll.h>
-#include <string.h>
 
 typedef struct pollfd pollfd_t;
 #else
-#include <errno.h>
 #include <netinet/in.h>
 #include <sys/fcntl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #endif
 
-#include <algorithm>
 #include <chrono>
-#include <cstdio>
 #include <list>
 #include <optional>
-#include <string>
 #include <string_view>
 #include <unordered_map>
 #include <utility>

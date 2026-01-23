@@ -3,8 +3,6 @@
 
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
-#include <cstring>
-
 #include "Common/CommonTypes.h"
 
 #include "Core/HW/Wiimote.h"

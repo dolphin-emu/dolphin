@@ -11,7 +11,6 @@
 #include <thread>
 #include <utility>
 
-#include <fmt/format.h>
 #include <libusb.h>
 
 #include "Common/BitUtils.h"

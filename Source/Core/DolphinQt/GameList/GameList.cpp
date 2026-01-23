@@ -22,8 +22,6 @@
 #include <cmath>
 #include <utility>
 
-#include <fmt/format.h>
-
 #include <QDesktopServices>
 #include <QDir>
 #include <QErrorMessage>
@@ -42,8 +40,9 @@
 #include <QTableView>
 #include <QUrl>
 
-#include "Common/CommonPaths.h"
+#ifdef _WIN32
 #include "Common/Contains.h"
+#endif
 #include "Common/FileUtil.h"
 
 #include "Core/Config/MainSettings.h"
@@ -55,7 +54,6 @@
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
 
-#include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 
 #include "DolphinQt/Config/PropertiesDialog.h"
@@ -67,7 +65,6 @@
 #include "DolphinQt/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonAutodismissibleMenu.h"
-#include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/WiiUpdate.h"

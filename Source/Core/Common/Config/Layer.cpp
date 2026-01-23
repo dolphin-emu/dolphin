@@ -3,12 +3,6 @@
 
 #include "Common/Config/Layer.h"
 
-#include <algorithm>
-#include <cstring>
-#include <map>
-
-#include "Common/Config/Config.h"
-
 namespace Config
 {
 ConfigLayerLoader::ConfigLayerLoader(LayerType layer) : m_layer(layer)

@@ -3,17 +3,11 @@
 
 #include "Core/PowerPC/Jit64Common/TrampolineCache.h"
 
-#include <string>
-
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
 #include "Common/MsgHandler.h"
 #include "Common/x64Emitter.h"
-#include "Core/PowerPC/Jit64/Jit.h"
-#include "Core/PowerPC/Jit64Common/Jit64Constants.h"
-#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/Jit64Common/TrampolineInfo.h"
-#include "Core/PowerPC/PowerPC.h"
 
 #ifdef _WIN32
 #include <windows.h>

@@ -12,20 +12,16 @@
 
 #include "Core/System.h"
 
-#include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/VKGfx.h"
 #include "VideoBackends/Vulkan/VKStreamBuffer.h"
-#include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
-#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
-#include "VideoCommon/VideoConfig.h"
 
 namespace Vulkan
 {

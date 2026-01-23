@@ -11,8 +11,6 @@
 #include <QSpinBox>
 #include <QVBoxLayout>
 
-#include "Common/CommonTypes.h"
-
 #include "Core/HW/GBAPad.h"
 #include "Core/HW/GBAPadEmu.h"
 

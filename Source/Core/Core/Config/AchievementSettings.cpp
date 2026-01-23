@@ -6,8 +6,6 @@
 
 #include <string>
 
-#include "Common/Config/Config.h"
-
 namespace Config
 {
 // Configuration Information

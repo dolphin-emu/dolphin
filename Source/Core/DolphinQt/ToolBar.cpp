@@ -10,7 +10,6 @@
 #include <QIcon>
 
 #include "Core/Core.h"
-#include "Core/NetPlayProto.h"
 #include "Core/System.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Resources.h"

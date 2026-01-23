@@ -4,7 +4,6 @@
 #include "DolphinTool/ExtractCommand.h"
 
 #include <filesystem>
-#include <future>
 #include <iostream>
 
 #include <fmt/format.h>

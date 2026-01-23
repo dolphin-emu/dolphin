@@ -4,12 +4,9 @@
 #include "Core/IOS/Network/KD/VFF/VFFUtil.h"
 
 #include <algorithm>
-#include <cmath>
 #include <limits>
 #include <utility>
 #include <vector>
-
-#include <fmt/format.h>
 
 // Does not compile if diskio.h is included first.
 // clang-format off

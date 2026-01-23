@@ -11,7 +11,6 @@
 #include <vector>
 
 #include <OptionParser.h>
-#include <fmt/format.h>
 #include <fmt/ostream.h>
 
 #include "Common/CommonTypes.h"
@@ -19,7 +18,6 @@
 #include "DiscIO/DiscUtils.h"
 #include "DiscIO/ScrubbedBlob.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/VolumeDisc.h"
 #include "DiscIO/WIABlob.h"
 #include "UICommon/UICommon.h"
 

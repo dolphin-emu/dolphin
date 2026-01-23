@@ -24,7 +24,6 @@
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/MotionPlus.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/System.h"
 
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"

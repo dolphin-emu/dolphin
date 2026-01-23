@@ -4,7 +4,6 @@
 #include "VideoCommon/CommandProcessor.h"
 
 #include <atomic>
-#include <cstring>
 #include <fmt/format.h>
 
 #include "Common/Assert.h"

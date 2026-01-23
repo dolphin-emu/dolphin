@@ -8,7 +8,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 

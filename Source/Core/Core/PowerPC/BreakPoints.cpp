@@ -18,7 +18,7 @@
 #include "Core/PowerPC/Expression.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
-#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/System.h"
 
 BreakPoints::BreakPoints(Core::System& system) : m_system(system)

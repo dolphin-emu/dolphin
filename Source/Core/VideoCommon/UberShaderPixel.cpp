@@ -7,7 +7,6 @@
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/DriverDetails.h"
-#include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/UberShaderCommon.h"

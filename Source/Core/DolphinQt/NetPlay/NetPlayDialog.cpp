@@ -23,11 +23,11 @@
 #include <QTextBrowser>
 
 #include <algorithm>
-#include <sstream>
 
+#ifdef HAS_LIBMGBA
 #include <fmt/ranges.h>
+#endif
 
-#include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
@@ -35,7 +35,6 @@
 
 #include "Core/Boot/Boot.h"
 #include "Core/Config/GraphicsSettings.h"
-#include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -65,7 +64,6 @@
 
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/NetPlayGolfUI.h"
-#include "VideoCommon/VideoConfig.h"
 
 namespace
 {

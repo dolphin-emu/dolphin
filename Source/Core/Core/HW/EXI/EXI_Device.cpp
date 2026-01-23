@@ -6,7 +6,6 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
-#include "Common/MsgHandler.h"
 #include "Core/HW/EXI/EXI_DeviceAD16.h"
 #include "Core/HW/EXI/EXI_DeviceAGP.h"
 #include "Core/HW/EXI/EXI_DeviceBaseboard.h"

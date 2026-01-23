@@ -30,8 +30,6 @@
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
 #include "Common/VariantUtil.h"
 
 #include "Core/Config/MainSettings.h"

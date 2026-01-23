@@ -11,11 +11,11 @@
 #include "Common/Common.h"
 #include "Common/Config/Config.h"
 
+#include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 
 #include "Core/HW/WiimoteEmu/Camera.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
-#include "Core/HW/WiimoteEmu/Encryption.h"
 #include "Core/HW/WiimoteEmu/ExtensionPort.h"
 #include "Core/HW/WiimoteEmu/I2CBus.h"
 #include "Core/HW/WiimoteEmu/MotionPlus.h"

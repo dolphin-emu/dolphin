@@ -20,7 +20,6 @@
 #include <QTableView>
 #include <QVBoxLayout>
 
-#include <fmt/format.h>
 #include <fmt/ostream.h>
 
 #include "Common/CommonFuncs.h"

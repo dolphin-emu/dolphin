@@ -4,7 +4,6 @@
 #include "DiscIO/DiscUtils.h"
 
 #include <algorithm>
-#include <locale>
 #include <optional>
 #include <string>
 #include <vector>

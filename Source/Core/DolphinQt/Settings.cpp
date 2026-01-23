@@ -25,7 +25,6 @@
 #include "Common/Config/Config.h"
 #include "Common/Contains.h"
 #include "Common/FileUtil.h"
-#include "Common/StringUtil.h"
 
 #include "Core/AchievementManager.h"
 #include "Core/Config/GraphicsSettings.h"
@@ -37,11 +36,9 @@
 #include "Core/NetPlayServer.h"
 #include "Core/System.h"
 
-#include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/InputConfig.h"
 
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/NetPlayGolfUI.h"

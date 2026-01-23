@@ -19,7 +19,6 @@
 #include <QVBoxLayout>
 
 #include "AudioCommon/AudioCommon.h"
-#include "AudioCommon/Enums.h"
 #include "AudioCommon/WASAPIStream.h"
 
 #include "Core/Config/MainSettings.h"
@@ -27,10 +26,8 @@
 #include "Core/System.h"
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
-#include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 
-#include "DolphinQt/Config/SettingsWindow.h"
 #include "DolphinQt/Settings.h"
 
 static QString GetVolumeLabelText(int volume_level)

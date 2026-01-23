@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <bit>
-#include <cstring>
 
 #include "Common/CommonTypes.h"
 #include "Common/FloatUtils.h"
@@ -17,7 +16,6 @@
 
 #include "../TestValues.h"
 
-#include <fmt/format.h>
 #include <gtest/gtest.h>
 
 namespace

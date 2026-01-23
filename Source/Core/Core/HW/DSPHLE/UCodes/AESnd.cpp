@@ -10,7 +10,6 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
-#include "Common/Swap.h"
 #include "Core/DSP/DSPAccelerator.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"

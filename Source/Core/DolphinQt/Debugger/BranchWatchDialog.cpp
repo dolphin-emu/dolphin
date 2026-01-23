@@ -29,7 +29,6 @@
 #include <QVariant>
 #include <fmt/format.h>
 
-#include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"

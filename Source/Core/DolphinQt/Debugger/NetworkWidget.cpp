@@ -19,7 +19,6 @@
 #include <winsock2.h>
 #else
 #include <sys/socket.h>
-#include <sys/types.h>
 #endif
 
 #include "Common/FileUtil.h"

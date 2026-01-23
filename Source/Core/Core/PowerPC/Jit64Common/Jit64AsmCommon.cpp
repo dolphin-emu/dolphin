@@ -14,10 +14,8 @@
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
-#include "Core/PowerPC/PowerPC.h"
 
 #define QUANTIZED_REGS_TO_SAVE                                                                     \
   (ABI_ALL_CALLER_SAVED & ~BitSet32{RSCRATCH, RSCRATCH2, RSCRATCH_EXTRA, XMM0 + 16, XMM1 + 16})

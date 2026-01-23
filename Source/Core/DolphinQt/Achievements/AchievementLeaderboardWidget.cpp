@@ -12,12 +12,8 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/AchievementManager.h"
-#include "Core/Config/AchievementSettings.h"
-#include "Core/Config/MainSettings.h"
-#include "Core/Core.h"
 
 #include "DolphinQt/QtUtils/ClearLayoutRecursively.h"
-#include "DolphinQt/Settings.h"
 
 AchievementLeaderboardWidget::AchievementLeaderboardWidget(QWidget* parent) : QWidget(parent)
 {

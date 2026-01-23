@@ -3,7 +3,6 @@
 
 #include "Core/IOS/USB/Emulated/Skylanders/SkylanderFigure.h"
 
-#include <algorithm>
 #include <array>
 #include <cstring>
 #include <span>

@@ -5,7 +5,6 @@
 
 #include "Core/HW/DSPHLE/UCodes/AXWii.h"
 
-#include <algorithm>
 #include <array>
 
 #include "Common/ChunkFile.h"

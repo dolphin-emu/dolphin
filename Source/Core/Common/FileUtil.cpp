@@ -3,28 +3,24 @@
 
 #include "Common/FileUtil.h"
 
-#include <algorithm>
-#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <fcntl.h>
 #include <filesystem>
-#include <fstream>
 #include <limits.h>
 #include <stack>
 #include <string>
-#include <sys/stat.h>
 #include <system_error>
-#include <thread>
 #include <vector>
 
-#include "Common/Assert.h"
-#include "Common/Common.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#ifdef ANDROID
+#include "Common/Assert.h"
+#endif
 #ifdef __APPLE__
 #include "Common/DynamicLibrary.h"
 #endif
@@ -41,8 +37,6 @@
 #include <objbase.h>  // guid stuff
 #include <shellapi.h>
 #else
-#include <dirent.h>
-#include <errno.h>
 #include <libgen.h>
 #include <stdlib.h>
 #include <unistd.h>

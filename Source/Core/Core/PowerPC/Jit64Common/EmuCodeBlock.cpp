@@ -4,7 +4,6 @@
 #include "Core/PowerPC/Jit64Common/EmuCodeBlock.h"
 
 #include <functional>
-#include <limits>
 
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"

@@ -3,7 +3,6 @@
 
 #include "Core/HW/EXI/EXI_DeviceBaseboard.h"
 
-#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"

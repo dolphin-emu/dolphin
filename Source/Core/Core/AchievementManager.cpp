@@ -5,12 +5,9 @@
 
 #include "Core/AchievementManager.h"
 
-#include <cctype>
 #include <memory>
 
 #include <fmt/format.h>
-
-#include <rcheevos/include/rc_api_info.h>
 
 #include "Common/BitUtils.h"
 #include "Common/CommonPaths.h"

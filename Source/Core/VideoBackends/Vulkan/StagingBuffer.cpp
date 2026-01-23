@@ -3,7 +3,6 @@
 
 #include "VideoBackends/Vulkan/StagingBuffer.h"
 
-#include <algorithm>
 #include <cstring>
 
 #include "Common/Assert.h"

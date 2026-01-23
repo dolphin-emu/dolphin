@@ -8,7 +8,6 @@
 #include <fmt/format.h>
 
 #include "Common/CommonPaths.h"
-#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 
 #include "Core/Config/AchievementSettings.h"

@@ -4,7 +4,6 @@
 #include "Common/FatFsUtil.h"
 
 #include <algorithm>
-#include <cmath>
 #include <cstdlib>
 #include <mutex>
 #include <string>

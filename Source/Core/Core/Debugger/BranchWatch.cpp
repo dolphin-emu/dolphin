@@ -8,8 +8,6 @@
 #include <cstdio>
 #include <functional>
 
-#include <fmt/format.h>
-
 #include "Common/Assert.h"
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"

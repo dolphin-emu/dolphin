@@ -5,8 +5,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cctype>
-#include <functional>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -17,7 +15,6 @@
 #include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
-#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileSystemProxy.h"
