@@ -308,7 +308,7 @@ void JitArm64::GenerateFres()
   RET();
 
   SetJumpTarget(complex);
-  TST(ARM64Reg::X1, LogicalImm(Core::DOUBLE_SIGN | Core::DOUBLE_EXP, GPRSize::B64));
+  TST(ARM64Reg::X1, LogicalImm(Core::DOUBLE_EXP | Core::DOUBLE_FRAC, GPRSize::B64));
   FixupBranch nonzero = B(CCFlags::CC_NEQ);
 
   LDR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
