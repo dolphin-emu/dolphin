@@ -11,7 +11,6 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
-#include "Common/FloatUtils.h"
 #include "Common/JitRegister.h"
 #include "Common/MathUtil.h"
 
@@ -291,11 +290,11 @@ void JitArm64::GenerateFres()
   UBFX(ARM64Reg::X2, ARM64Reg::X1, 52, 11);  // Grab the exponent
   m_float_emit.FMOV(ARM64Reg::X0, ARM64Reg::D0);
   AND(ARM64Reg::X3, ARM64Reg::X1, LogicalImm(Core::DOUBLE_SIGN, GPRSize::B64));
-  CMP(ARM64Reg::X2, 895);
-  FixupBranch small_exponent = B(CCFlags::CC_LO);
-
-  CMP(ARM64Reg::X2, 1148);
-  FixupBranch large_exponent = B(CCFlags::CC_HI);
+  SUB(ARM64Reg::X2, ARM64Reg::X2, 895);
+  CMP(ARM64Reg::X2, 1148 - 895);
+  // Take the complex path for very large/small exponents.
+  // This also will apply to 0
+  FixupBranch complex = B(CCFlags::CC_HI);  // if (exp < 895 || exp >= 1149)
 
   UBFX(ARM64Reg::X2, ARM64Reg::X1, 47, 5);  // Grab upper part of mantissa
   MOVP2R(ARM64Reg::X3, &Core::fres_expected);
@@ -308,24 +307,27 @@ void JitArm64::GenerateFres()
   ORR(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X1, ArithOption(ARM64Reg::X1, ShiftType::LSL, 29));
   RET();
 
-  SetJumpTarget(small_exponent);
-  TST(ARM64Reg::X1, LogicalImm(Core::DOUBLE_EXP | Core::DOUBLE_FRAC, GPRSize::B64));
-  FixupBranch zero = B(CCFlags::CC_EQ);
-  MOVI2R(ARM64Reg::X4, std::bit_cast<u64>(static_cast<double>(std::numeric_limits<float>::max())));
-  ORR(ARM64Reg::X0, ARM64Reg::X3, ARM64Reg::X4);
-  RET();
-
   SetJumpTarget(zero);
   LDR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
   FixupBranch skip_set_zx = TBNZ(ARM64Reg::W4, 26);
   ORRI2R(ARM64Reg::W4, ARM64Reg::W4, FPSCR_FX | FPSCR_ZX, ARM64Reg::W2);
   STR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
+  // As of now, the JIT does not check for ZE
   SetJumpTarget(skip_set_zx);
-  RET();
 
-  SetJumpTarget(large_exponent);
-  CMP(ARM64Reg::X2, 0x7FF);
-  CSEL(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X3, CCFlags::CC_EQ);
+  SetJumpTarget(complex);
+  ADD(ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(fpscr));
+
+  BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
+  BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+
+  ABI_PushRegisters(regs_in_use);
+  m_float_emit.ABI_PushRegisters(fprs_in_use, ARM64Reg::X30);
+  // `val` will still be in D0, like needed for this call
+  ABI_CallFunction(&Core::ApproximateReciprocal, ARM64Reg::X0);
+  ABI_PopRegisters(regs_in_use);
+  m_float_emit.ABI_PopRegisters(fprs_in_use, ARM64Reg::X30);
+  ABI_PopRegisters(regs_in_use);
   RET();
 }
 

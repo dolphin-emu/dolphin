@@ -4,7 +4,6 @@
 #include <bit>
 
 #include "Common/CommonTypes.h"
-#include "Common/FloatUtils.h"
 #include "Common/ScopeGuard.h"
 #include "Common/x64ABI.h"
 #include "Core/Core.h"
@@ -68,7 +67,7 @@ TEST(Jit64, Fres)
   {
     const double dvalue = std::bit_cast<double>(ivalue);
 
-    const u64 expected = std::bit_cast<u64>(Common::ApproximateReciprocal(dvalue));
+    const u64 expected = std::bit_cast<u64>(Core::ApproximateReciprocal(fpscr, dvalue));
     const u64 actual = test.wrapped_fres(ivalue, fpscr);
 
     if (expected != actual)

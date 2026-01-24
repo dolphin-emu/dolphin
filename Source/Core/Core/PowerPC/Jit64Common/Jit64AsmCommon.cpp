@@ -8,7 +8,6 @@
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
-#include "Common/FloatUtils.h"
 #include "Common/Intrinsics.h"
 #include "Common/JitRegister.h"
 #include "Common/x64ABI.h"
@@ -269,7 +268,7 @@ void CommonAsmRoutines::GenFres()
   // Exception flags for zero input.
   SetJumpTarget(zero);
   TEST(32, PPCSTATE(fpscr), Imm32(FPSCR_ZX));
-  FixupBranch skip_set_fx1 = J_CC(CC_NZ);
+  FixupBranch skip_set_fx1 = J_CC(CC_NZ);  // As of now, the JIT does not check for ZE
   OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX | FPSCR_ZX));
   SetJumpTarget(skip_set_fx1);
 
