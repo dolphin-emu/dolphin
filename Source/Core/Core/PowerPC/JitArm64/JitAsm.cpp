@@ -327,7 +327,8 @@ void JitArm64::GenerateFres()
   ABI_PushRegisters(regs_in_use);
   m_float_emit.ABI_PushRegisters(fprs_in_use, ARM64Reg::X30);
   // `val` will still be in D0, like needed for this call
-  ABI_CallFunction(&Core::ApproximateReciprocal, ARM64Reg::X0);
+  // TEMPORARY!!! SHOULD BE OKAY FOR TESTING BUT PROBABLY NOT GOOD TO KEEP!!!
+  QuickCallFunction(ARM64Reg::X8, &Core::ApproximateReciprocal);
   ABI_PopRegisters(regs_in_use);
   m_float_emit.ABI_PopRegisters(fprs_in_use, ARM64Reg::X30);
   ABI_PopRegisters(regs_in_use);
