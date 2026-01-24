@@ -4,11 +4,9 @@
 #include "Core/ConfigManager.h"
 
 #include <algorithm>
-#include <climits>
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <sstream>
 #include <string>
 #include <string_view>
 #include <variant>
@@ -19,7 +17,6 @@
 
 #include "AudioCommon/AudioCommon.h"
 
-#include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -27,13 +24,10 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/Version.h"
 
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
-#include "Core/CommonTitles.h"
 #include "Core/Config/DefaultLocale.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
@@ -54,7 +48,6 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "Core/TitleDatabase.h"
 #include "Core/WC24PatchEngine.h"
@@ -536,7 +529,7 @@ Common::IniFile SConfig::LoadGameIni() const
   return LoadGameIni(GetGameID(), m_revision);
 }
 
-Common::IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional<u16> revision)
+Common::IniFile SConfig::LoadDefaultGameIni(std::string_view id, std::optional<u16> revision)
 {
   Common::IniFile game_ini;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
@@ -544,7 +537,7 @@ Common::IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional
   return game_ini;
 }
 
-Common::IniFile SConfig::LoadLocalGameIni(const std::string& id, std::optional<u16> revision)
+Common::IniFile SConfig::LoadLocalGameIni(std::string_view id, std::optional<u16> revision)
 {
   Common::IniFile game_ini;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
@@ -552,7 +545,7 @@ Common::IniFile SConfig::LoadLocalGameIni(const std::string& id, std::optional<u
   return game_ini;
 }
 
-Common::IniFile SConfig::LoadGameIni(const std::string& id, std::optional<u16> revision)
+Common::IniFile SConfig::LoadGameIni(std::string_view id, std::optional<u16> revision)
 {
   Common::IniFile game_ini;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
