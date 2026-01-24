@@ -42,6 +42,8 @@ class TMDReader;
 
 struct BootParameters;
 
+static constexpr std::string_view DEFAULT_GAME_ID = "00000000";
+
 struct SConfig
 {
   // Settings
