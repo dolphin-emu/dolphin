@@ -308,30 +308,30 @@ void JitArm64::GenerateFres()
   RET();
 
   SetJumpTarget(complex);
-  AND(ARM64Reg::X0, ARM64Reg::X0, LogicalImm(Core::DOUBLE_SIGN | Core::DOUBLE_EXP, GPRSize::B64));
+  TST(ARM64Reg::X1, LogicalImm(Core::DOUBLE_SIGN | Core::DOUBLE_EXP, GPRSize::B64));
   FixupBranch nonzero = B(CCFlags::CC_NEQ);
 
   LDR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
   FixupBranch skip_set_zx = TBNZ(ARM64Reg::W4, 26);
   ORRI2R(ARM64Reg::W4, ARM64Reg::W4, FPSCR_FX | FPSCR_ZX, ARM64Reg::W2);
   STR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
-  // As of now, the JIT does not check for ZE
   SetJumpTarget(skip_set_zx);
+  // X0 will already be the proper infinity
+  RET();
 
   SetJumpTarget(nonzero);
   ADD(ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(fpscr));
 
-  BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
-  BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+  // X0 - X4 are acknowledged to be clobbered by this function,
+  // with X0 being the return value, making it particularly undesirable to pop after
+  // the function call concludes
+  BitSet32 gprs_to_push = CALLER_SAVED_GPRS & ~BitSet32{0, 1, 2, 3, 4};
 
-  ABI_PushRegisters(regs_in_use);
-  m_float_emit.ABI_PushRegisters(fprs_in_use, ARM64Reg::X30);
-  // `val` will still be in D0, like needed for this call
-  // TEMPORARY!!! SHOULD BE OKAY FOR TESTING BUT PROBABLY NOT GOOD TO KEEP!!!
-  QuickCallFunction(ARM64Reg::X8, &Core::ApproximateReciprocal);
-  ABI_PopRegisters(regs_in_use);
-  m_float_emit.ABI_PopRegisters(fprs_in_use, ARM64Reg::X30);
-  ABI_PopRegisters(regs_in_use);
+  ABI_PushRegisters(gprs_to_push);
+  m_float_emit.ABI_PushRegisters(CALLER_SAVED_FPRS, ARM64Reg::X30);
+  ABI_CallFunction(&Core::ApproximateReciprocalBits, ARM64Reg::X0, ARM64Reg::X1);
+  m_float_emit.ABI_PopRegisters(CALLER_SAVED_FPRS, ARM64Reg::X30);
+  ABI_PopRegisters(gprs_to_push);
   RET();
 }
 

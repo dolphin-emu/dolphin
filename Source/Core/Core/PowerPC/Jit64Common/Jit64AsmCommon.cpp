@@ -268,7 +268,7 @@ void CommonAsmRoutines::GenFres()
   // Exception flags for zero input.
   SetJumpTarget(zero);
   TEST(32, PPCSTATE(fpscr), Imm32(FPSCR_ZX));
-  FixupBranch skip_set_fx1 = J_CC(CC_NZ);  // As of now, the JIT does not check for ZE
+  FixupBranch skip_set_fx1 = J_CC(CC_NZ);
   OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX | FPSCR_ZX));
   SetJumpTarget(skip_set_fx1);
 
