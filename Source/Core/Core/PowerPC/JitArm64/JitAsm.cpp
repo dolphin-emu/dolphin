@@ -307,7 +307,10 @@ void JitArm64::GenerateFres()
   ORR(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X1, ArithOption(ARM64Reg::X1, ShiftType::LSL, 29));
   RET();
 
-  SetJumpTarget(zero);
+  SetJumpTarget(complex);
+  AND(ARM64Reg::X0, ARM64Reg::X0, LogicalImm(Core::DOUBLE_SIGN | Core::DOUBLE_EXP, GPRSize::B64));
+  FixupBranch nonzero = B(CCFlags::CC_NEQ);
+
   LDR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
   FixupBranch skip_set_zx = TBNZ(ARM64Reg::W4, 26);
   ORRI2R(ARM64Reg::W4, ARM64Reg::W4, FPSCR_FX | FPSCR_ZX, ARM64Reg::W2);
@@ -315,7 +318,7 @@ void JitArm64::GenerateFres()
   // As of now, the JIT does not check for ZE
   SetJumpTarget(skip_set_zx);
 
-  SetJumpTarget(complex);
+  SetJumpTarget(nonzero);
   ADD(ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(fpscr));
 
   BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
