@@ -12,13 +12,13 @@
 
 #include <rcheevos/include/rc_api_info.h>
 
-#include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
+#include "Common/HttpRequest.h"
 #include "Common/IOFile.h"
-#include "Common/Image.h"
+#include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
@@ -33,7 +33,6 @@
 #include "Core/GeckoCode.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
-#include "Core/Host.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/System.h"
@@ -414,7 +413,7 @@ bool AchievementManager::IsHardcoreModeActive() const
 }
 
 template <typename T>
-void AchievementManager::FilterApprovedIni(std::vector<T>& codes, const std::string& game_id,
+void AchievementManager::FilterApprovedIni(std::vector<T>& codes, std::string_view game_id,
                                            u16 revision) const
 {
   if (codes.empty())
@@ -443,7 +442,7 @@ void AchievementManager::FilterApprovedIni(std::vector<T>& codes, const std::str
 }
 
 template <typename T>
-bool AchievementManager::ShouldCodeBeActivated(const T& code, const std::string& game_id,
+bool AchievementManager::ShouldCodeBeActivated(const T& code, std::string_view game_id,
                                                u16 revision) const
 {
   if (!code.enabled)
@@ -470,8 +469,7 @@ bool AchievementManager::ShouldCodeBeActivated(const T& code, const std::string&
 }
 
 template <typename T>
-bool AchievementManager::IsApprovedCode(const T& code, const std::string& game_id,
-                                        u16 revision) const
+bool AchievementManager::IsApprovedCode(const T& code, std::string_view game_id, u16 revision) const
 {
   // Approved codes list failed to hash
   if (!m_ini_root->is<picojson::value::object>())
@@ -536,42 +534,42 @@ Common::SHA1::Digest AchievementManager::GetCodeHash(const ActionReplay::ARCode&
 }
 
 void AchievementManager::FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches,
-                                               const std::string& game_id, u16 revision) const
+                                               std::string_view game_id, u16 revision) const
 {
   FilterApprovedIni(patches, game_id, revision);
 }
 
 void AchievementManager::FilterApprovedGeckoCodes(std::vector<Gecko::GeckoCode>& codes,
-                                                  const std::string& game_id, u16 revision) const
+                                                  std::string_view game_id, u16 revision) const
 {
   FilterApprovedIni(codes, game_id, revision);
 }
 
 void AchievementManager::FilterApprovedARCodes(std::vector<ActionReplay::ARCode>& codes,
-                                               const std::string& game_id, u16 revision) const
+                                               std::string_view game_id, u16 revision) const
 {
   FilterApprovedIni(codes, game_id, revision);
 }
 
 bool AchievementManager::ShouldGeckoCodeBeActivated(const Gecko::GeckoCode& code,
-                                                    const std::string& game_id, u16 revision) const
+                                                    std::string_view game_id, u16 revision) const
 {
   return ShouldCodeBeActivated(code, game_id, revision);
 }
 
 bool AchievementManager::ShouldARCodeBeActivated(const ActionReplay::ARCode& code,
-                                                 const std::string& game_id, u16 revision) const
+                                                 std::string_view game_id, u16 revision) const
 {
   return ShouldCodeBeActivated(code, game_id, revision);
 }
 
-bool AchievementManager::IsApprovedGeckoCode(const Gecko::GeckoCode& code,
-                                             const std::string& game_id, u16 revision) const
+bool AchievementManager::IsApprovedGeckoCode(const Gecko::GeckoCode& code, std::string_view game_id,
+                                             u16 revision) const
 {
   return IsApprovedCode(code, game_id, revision);
 }
 bool AchievementManager::IsApprovedARCode(const ActionReplay::ARCode& code,
-                                          const std::string& game_id, u16 revision) const
+                                          std::string_view game_id, u16 revision) const
 {
   return IsApprovedCode(code, game_id, revision);
 }
