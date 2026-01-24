@@ -305,7 +305,7 @@ bool ResourcePack::Uninstall(const std::string& path)
 
     while (dir.length() > (path + TEXTURE_PATH).length())
     {
-      auto is_empty = Common::DoFileSearch({dir}).empty();
+      const auto is_empty = Common::DoFileSearch(dir).empty();
 
       if (is_empty)
         File::DeleteDir(dir);

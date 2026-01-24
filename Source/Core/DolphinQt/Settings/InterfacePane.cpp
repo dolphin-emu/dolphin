@@ -16,7 +16,6 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
-#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
 #include "Core/AchievementManager.h"
@@ -33,8 +32,6 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
-
-#include "UICommon/GameFile.h"
 
 static ConfigStringChoice* MakeLanguageComboBox()
 {
@@ -132,8 +129,8 @@ void InterfacePane::CreateUI()
   combobox_layout->addRow(tr("&Language:"), m_combobox_language);
 
   // List available themes
-  auto theme_paths =
-      Common::DoFileSearch({File::GetUserPath(D_THEMES_IDX), File::GetSysDirectory() + THEMES_DIR});
+  auto theme_paths = Common::DoFileSearch(
+      {{File::GetUserPath(D_THEMES_IDX), File::GetSysDirectory() + THEMES_DIR}});
   std::vector<std::string> theme_names;
   theme_names.reserve(theme_paths.size());
   std::ranges::transform(theme_paths, std::back_inserter(theme_names), PathToFileName);
@@ -147,7 +144,7 @@ void InterfacePane::CreateUI()
   m_label_userstyle = new QLabel(tr("Style:"));
   combobox_layout->addRow(m_label_userstyle, m_combobox_userstyle);
 
-  auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
+  auto userstyle_search_results = Common::DoFileSearch(File::GetUserPath(D_STYLES_IDX));
 
   m_combobox_userstyle->addItem(tr("(System)"), static_cast<int>(Settings::StyleType::System));
 

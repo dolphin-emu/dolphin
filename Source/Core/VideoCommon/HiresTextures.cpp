@@ -3,15 +3,11 @@
 
 #include "VideoCommon/HiresTextures.h"
 
-#include <algorithm>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <string_view>
-#include <thread>
 #include <unordered_map>
 #include <utility>
-#include <vector>
 #include <xxhash.h>
 
 #include <fmt/format.h>
@@ -21,10 +17,8 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/System.h"
-#include "VideoCommon/Assets/CustomAsset.h"
 #include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/Resources/CustomResourceManager.h"
@@ -93,7 +87,7 @@ void HiresTexture::Update()
   const std::string& game_id = SConfig::GetInstance().GetGameID();
   const std::set<std::string> texture_directories =
       GetTextureDirectoriesWithGameId(File::GetUserPath(D_HIRESTEXTURES_IDX), game_id);
-  const std::vector<std::string> extensions{".png", ".dds"};
+  constexpr auto extensions = std::to_array<std::string_view>({".png", ".dds"});
 
   for (const auto& texture_directory : texture_directories)
   {
@@ -101,7 +95,7 @@ void HiresTexture::Update()
     s_file_library->Watch(texture_directory);
 
     const auto texture_paths =
-        Common::DoFileSearch({texture_directory}, extensions, /*recursive*/ true);
+        Common::DoFileSearch(texture_directory, extensions, /*recursive*/ true);
 
     bool failed_insert = false;
     for (auto& path : texture_paths)
@@ -227,7 +221,7 @@ std::set<std::string> GetTextureDirectoriesWithGameId(const std::string& root_di
   };
 
   // Look for any other directories that might be specific to the given gameid
-  const auto files = Common::DoFileSearch({root_directory}, {".txt"}, true);
+  const auto files = Common::DoFileSearch(root_directory, ".txt", true);
   for (const auto& file : files)
   {
     if (match_gameid_or_all(file))
