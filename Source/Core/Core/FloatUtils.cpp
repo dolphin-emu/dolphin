@@ -209,8 +209,8 @@ double ApproximateReciprocal(const UReg_FPSCR& fpscr, double val)
 u64 ApproximateReciprocalBits(const UReg_FPSCR& fpscr, u64 integral)
 {
   // Casting to a double is still done due to e.g. `isnan` checks in the actual function
-  const f64 val = std::bit_cast<f64>(integral);
-  const f64 result = ApproximateReciprocal(fpscr, val);
+  const double val = std::bit_cast<double>(integral);
+  const double result = ApproximateReciprocal(fpscr, val);
   return std::bit_cast<u64>(result);
 }
 

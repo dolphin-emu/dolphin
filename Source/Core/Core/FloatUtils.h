@@ -105,6 +105,7 @@ extern const std::array<BaseAndDec, 32> fres_expected;
 // PowerPC approximation algorithms
 double ApproximateReciprocalSquareRoot(double val);
 double ApproximateReciprocal(const UReg_FPSCR& fpscr, double val);
+u64 ApproximateReciprocalBits(const UReg_FPSCR& fpscr, u64 integral);
 
 // Instructions which move data without performing operations round a bit weirdly
 // Specifically they rounding the mantissa to be like that of a 32-bit float,
