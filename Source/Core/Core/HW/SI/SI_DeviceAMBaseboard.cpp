@@ -1502,7 +1502,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
           static int delay = 0;
 
-          const u8* frame = &data_in[0];
+          const u8* const frame = &data_in[0];
           const u8 nr_bytes = frame[3];  // Byte after E0 xx
           u32 frame_len = nr_bytes + 3;  // Header(2) + length byte + payload + checksum
 
@@ -1520,15 +1520,34 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           // Extract node and payload pointers
           u8 node = jvs_buf[2];
           u8* jvs_io = jvs_buf + 4;                 // First payload byte
-          const u8* jvs_end = jvs_buf + frame_len;  // One byte before checksum
+          u8* const jvs_end = jvs_buf + frame_len;  // One byte before checksum
+          u8* const jvs_begin = jvs_io;
 
           message.Start(0);
           message.AddData(1);
 
+          // Helper to check that iterating over jvs_io n times is safe,
+          // i.e. *jvs_io++ at most lead to jvs_end
+          auto validate_jvs_io = [&](u32 n, std::string_view command) -> bool {
+            if (jvs_io + n > jvs_end)
+              ERROR_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: overflow in {}", command);
+            else
+              return true;
+            ERROR_LOG_FMT(SERIALINTERFACE_JVSIO,
+                          "Overflow details:\n"
+                          " - jvs_io(begin={}, current={}, end={}, n={})\n"
+                          " - delay={}, node={}\n"
+                          " - frame(begin={}, len={})",
+                          fmt::ptr(jvs_begin), fmt::ptr(jvs_io), fmt::ptr(jvs_end), n, delay, node,
+                          fmt::ptr(frame), frame_len);
+            jvs_io = jvs_end;
+            return false;
+          };
+
           // Now iterate over the payload
           while (jvs_io < jvs_end)
           {
-            int jvsio_command = *jvs_io++;
+            const u8 jvsio_command = *jvs_io++;
             DEBUG_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO:node={}, command={:02x}", node,
                           jvsio_command);
 
@@ -1663,15 +1682,25 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               NOTICE_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0x14, CheckFunctionality");
               break;
             case JVSIOCommand::MainID:
-              while (*jvs_io++)
+            {
+              const u8* const main_id = jvs_io;
+              while (jvs_io < jvs_end && *jvs_io++)
               {
+              }
+              if (main_id < jvs_io)
+              {
+                DEBUG_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command MainId:\n{}",
+                              HexDump(main_id, jvs_io - main_id));
               }
               message.AddData(StatusOkay);
               break;
+            }
             case JVSIOCommand::SwitchesInput:
             {
-              u32 player_count = *jvs_io++;
-              u32 player_byte_count = *jvs_io++;
+              if (!validate_jvs_io(2, "SwitchesInput"))
+                break;
+              const u32 player_count = *jvs_io++;
+              const u32 player_byte_count = *jvs_io++;
 
               DEBUG_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO:  Command 0x20, SwitchInputs: {} {}",
                             player_count, player_byte_count);
@@ -1954,6 +1983,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             }
             case JVSIOCommand::CoinInput:
             {
+              if (!validate_jvs_io(1, "CoinInput"))
+                break;
               const u32 slots = *jvs_io++;
               message.AddData(StatusOkay);
               for (u32 i = 0; i < slots; i++)
@@ -1972,6 +2003,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             }
             case JVSIOCommand::AnalogInput:
             {
+              if (!validate_jvs_io(1, "AnalogInput"))
+                break;
               message.AddData(StatusOkay);
 
               const u32 analogs = *jvs_io++;
@@ -2067,6 +2100,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             }
             case JVSIOCommand::PositionInput:
             {
+              if (!validate_jvs_io(1, "PositionInput"))
+                break;
               const u32 channel = *jvs_io++;
 
               const GCPadStatus pad_status = Pad::GetStatus(0);
@@ -2088,6 +2123,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             }
             case JVSIOCommand::CoinSubOutput:
             {
+              if (!validate_jvs_io(3, "CoinSubOutput"))
+                break;
               const u32 slot = *jvs_io++;
               const u8 coinh = *jvs_io++;
               const u8 coinl = *jvs_io++;
@@ -2100,6 +2137,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             }
             case JVSIOCommand::GeneralDriverOutput:
             {
+              if (!validate_jvs_io(1, "GeneralDriverOutput"))
+                break;
               const u32 bytes = *jvs_io++;
 
               if (bytes)
@@ -2109,6 +2148,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 // The lamps are controlled via this
                 if (AMMediaboard::GetGameType() == MarioKartGP)
                 {
+                  if (!validate_jvs_io(1, "GeneralDriverOutput (MarioKartGP)"))
+                    break;
                   const u32 status = *jvs_io++;
                   if (status & 4)
                   {
@@ -2129,6 +2170,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   break;
                 }
 
+                if (!validate_jvs_io(bytes, "GeneralDriverOutput"))
+                  break;
                 Common::UniqueBuffer<u8> buf(bytes);
 
                 for (u32 i = 0; i < bytes; ++i)
@@ -2165,6 +2208,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             }
             case JVSIOCommand::CoinAddOutput:
             {
+              if (!validate_jvs_io(3, "CoinAddOutput"))
+                break;
               const u32 slot = *jvs_io++;
               const u8 coinh = *jvs_io++;
               const u8 coinl = *jvs_io++;
@@ -2177,10 +2222,15 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             }
             case JVSIOCommand::NAMCOCommand:
             {
+              if (!validate_jvs_io(1, "NAMCOCommand"))
+                break;
               const u32 namco_command = *jvs_io++;
 
               if (namco_command == 0x18)
-              {  // ID check
+              {
+                if (!validate_jvs_io(4, "NAMCOCommand(0x18) / ID check"))
+                  break;
+                // ID check
                 jvs_io += 4;
                 message.AddData(StatusOkay);
                 message.AddData(0xff);
@@ -2193,6 +2243,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               break;
             }
             case JVSIOCommand::Reset:
+              if (!validate_jvs_io(1, "Reset"))
+                break;
               if (*jvs_io++ == 0xD9)
               {
                 NOTICE_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0xF0, Reset");
@@ -2205,6 +2257,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               dip_switch_1 |= 1;
               break;
             case JVSIOCommand::SetAddress:
+              if (!validate_jvs_io(1, "SetAddress"))
+                break;
               node = *jvs_io++;
               NOTICE_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0xF1, SetAddress: node={}",
                              node);
@@ -2220,16 +2274,21 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
           message.End();
 
+          if (!validate_data_in_out(0, 2, "JVSIO"))
+            break;
           data_out[data_offset++] = gcam_command;
 
           const u8* buf = message.m_message.data();
           const u32 len = message.m_pointer;
           data_out[data_offset++] = len;
+          const u32 in_size = frame[0] + 1;
 
+          if (!validate_data_in_out(in_size, len, "JVSIO"))
+            break;
           for (u32 i = 0; i < len; ++i)
             data_out[data_offset++] = buf[i];
 
-          data_in += frame[0] + 1;
+          data_in += in_size;
           break;
         }
         case GCAMCommand::Unknown_60:
