@@ -26,13 +26,12 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "DiscIO/Blob.h"
-#include "DiscIO/DiscScrubber.h"
 #include "DiscIO/MultithreadedCompressor.h"
 #include "DiscIO/Volume.h"
 
 namespace DiscIO
 {
-bool IsGCZBlob(File::DirectIOFile& file);
+static bool IsGCZBlob(File::DirectIOFile& file);
 
 CompressedBlobReader::CompressedBlobReader(File::DirectIOFile file, const std::string& filename)
     : m_file(std::move(file)), m_file_name(filename)
@@ -271,22 +270,10 @@ static ConversionResultCode Output(OutputParameters parameters, File::DirectIOFi
   return ConversionResultCode::Success;
 }
 
-bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
-                  const std::string& outfile_path, u32 sub_type, int block_size,
-                  const CompressCB& callback)
+ConversionResultCode ConvertToGCZ(u32 sub_type, int block_size, std::unique_ptr<BlobReader> infile,
+                                  File::DirectIOFile& outfile, const CompressCB& callback)
 {
   ASSERT(infile->GetDataSizeType() == DataSizeType::Accurate);
-
-  File::DirectIOFile outfile(outfile_path, File::AccessMode::Write);
-  if (!outfile.IsOpen())
-  {
-    PanicAlertFmtT(
-        "Failed to open the output file \"{0}\".\n"
-        "Check that you have permissions to write the target folder and that the media can "
-        "be written.",
-        outfile_path);
-    return false;
-  }
 
   callback(Common::GetStringT("Files opened, ready to compress."), 0);
 
@@ -353,35 +340,21 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
   header.compressed_data_size = position;
 
   const ConversionResultCode result = compressor.GetStatus();
-
-  if (result != ConversionResultCode::Success)
-  {
-    // Remove the incomplete output file.
-    outfile.Close();
-    File::Delete(outfile_path);
-  }
-  else
+  if (result == ConversionResultCode::Success)
   {
     // Okay, go back and fill in headers
     outfile.Seek(0, File::SeekOrigin::Begin);
-    outfile.Write(Common::AsU8Span(header));
-    outfile.Write(Common::AsU8Span(offsets));
-    outfile.Write(Common::AsU8Span(hashes));
+    const auto headers_written = outfile.Write(Common::AsU8Span(header)) &&
+                                 outfile.Write(Common::AsU8Span(offsets)) &&
+                                 outfile.Write(Common::AsU8Span(hashes));
+
+    if (!headers_written)
+      return ConversionResultCode::WriteFailed;
 
     callback(Common::GetStringT("Done compressing disc image."), 1.0f);
   }
 
-  if (result == ConversionResultCode::ReadFailed)
-    PanicAlertFmtT("Failed to read from the input file \"{0}\".", infile_path);
-
-  if (result == ConversionResultCode::WriteFailed)
-  {
-    PanicAlertFmtT("Failed to write the output file \"{0}\".\n"
-                   "Check that you have enough space available on the target drive.",
-                   outfile_path);
-  }
-
-  return result == ConversionResultCode::Success;
+  return result;
 }
 
 bool IsGCZBlob(File::DirectIOFile& file)
