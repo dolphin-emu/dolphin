@@ -55,7 +55,6 @@ bool Host_TASInputHasFocus();
 
 void Host_Message(HostMessageID id);
 void Host_PPCSymbolsChanged();
-void Host_PPCBreakpointsChanged();
 void Host_RequestRenderWindowSize(int width, int height);
 void Host_UpdateDisasmDialog();
 void Host_JitCacheInvalidation();

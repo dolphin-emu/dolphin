@@ -118,7 +118,6 @@ LogManager::LogManager()
   m_log[LogType::EXPANSIONINTERFACE] = {"EXI", "Expansion Interface"};
   m_log[LogType::FILEMON] = {"FileMon", "File Monitor"};
   m_log[LogType::FRAMEDUMP] = {"FRAMEDUMP", "FrameDump"};
-  m_log[LogType::GDB_STUB] = {"GDB_STUB", "GDB Stub"};
   m_log[LogType::GPFIFO] = {"GP", "GatherPipe FIFO"};
   m_log[LogType::HOST_GPU] = {"Host GPU", "Host GPU"};
   m_log[LogType::HSP] = {"HSP", "High-Speed Port (HSP)"};
