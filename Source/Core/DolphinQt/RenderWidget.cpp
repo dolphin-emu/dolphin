@@ -3,8 +3,6 @@
 
 #include "DolphinQt/RenderWidget.h"
 
-#include <array>
-
 #include <QApplication>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -17,6 +15,7 @@
 #include <QPalette>
 #include <QScreen>
 #include <QTimer>
+#include <QVBoxLayout>
 #include <QWindow>
 
 #include "Core/Config/MainSettings.h"
@@ -31,34 +30,49 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-#include "VideoCommon/OnScreenUI.h"
 #include "VideoCommon/Present.h"
-#include "VideoCommon/VideoConfig.h"
 
 #ifdef _WIN32
 #include <Windows.h>
 #include <dwmapi.h>
 #endif
 
-RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
+RenderWindow::RenderWindow(QWidget* parent, RenderWidget* render_widget, const QString& title)
+    : QWidget{parent}
 {
-  setWindowTitle(QStringLiteral("Dolphin"));
+  setWindowTitle(title);
   setWindowIcon(Resources::GetAppIcon());
   setWindowRole(QStringLiteral("renderer"));
   setAcceptDrops(true);
+
+  auto* const layout = new QVBoxLayout{this};
+  layout->setContentsMargins(QMargins{});
+  layout->addWidget(render_widget);
+
+  connect(Host::GetInstance(), &Host::RequestTitle, this, &QWidget::setWindowTitle);
+}
+
+RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
+{
+  hide();
 
   QPalette p;
   p.setColor(QPalette::Window, Qt::black);
   setPalette(p);
 
-  connect(Host::GetInstance(), &Host::RequestTitle, this, &RenderWidget::setWindowTitle);
   connect(Host::GetInstance(), &Host::RequestRenderSize, this, [this](int w, int h) {
-    if (!Config::Get(Config::MAIN_RENDER_WINDOW_AUTOSIZE) || isFullScreen() || isMaximized())
+    if (!Config::Get(Config::MAIN_RENDER_WINDOW_AUTOSIZE))
       return;
 
-    const auto dpr = window()->windowHandle()->screen()->devicePixelRatio();
+    auto* const parent_window = window();
+    if (parent_window->isFullScreen() || parent_window->isMaximized())
+      return;
 
-    resize(w / dpr, h / dpr);
+    const auto desired_size = QSize{w, h} / int(parent_window->screen()->devicePixelRatio());
+    const auto adjustment = desired_size - size();
+
+    // Grow or shrink the parent window to achieve the desired render widget size.
+    parent_window->resize(parent_window->size() + adjustment);
   });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
@@ -96,6 +110,9 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   // We need a native window to render into.
   setAttribute(Qt::WA_NativeWindow);
   setAttribute(Qt::WA_PaintOnScreen);
+
+  // Allow click to stop unwanted "Render to Main Window" keyboard input UI interaction.
+  setFocusPolicy(Qt::ClickFocus);
 }
 
 QPaintEngine* RenderWidget::paintEngine() const
@@ -138,6 +155,7 @@ void RenderWidget::OnHandleChanged(void* handle)
 {
   if (handle)
   {
+    // TODO: does this work properly with RenderWindow?
 #ifdef _WIN32
     // Remove rounded corners from the render window on Windows 11
     const DWM_WINDOW_CORNER_PREFERENCE corner_preference = DWMWCP_DONOTROUND;
@@ -189,6 +207,7 @@ void RenderWidget::OnKeepOnTopChanged(bool top)
   setWindowFlags(top ? windowFlags() | Qt::WindowStaysOnTopHint :
                        windowFlags() & ~Qt::WindowStaysOnTopHint);
 
+  // TODO: eliminate this..
   m_dont_lock_cursor_on_show = true;
   if (was_visible)
     show();
@@ -206,17 +225,6 @@ void RenderWidget::HandleCursorTimer()
   {
     setCursor(Qt::BlankCursor);
   }
-}
-
-void RenderWidget::showFullScreen()
-{
-  QWidget::showFullScreen();
-
-  QScreen* screen = window()->windowHandle()->screen();
-
-  const auto dpr = screen->devicePixelRatio();
-
-  emit SizeChanged(width() * dpr, height() * dpr);
 }
 
 // Lock the cursor within the window/widget internal borders, including the aspect ratio if wanted
@@ -384,10 +392,6 @@ bool RenderWidget::event(QEvent* event)
     SetCursorLocked(false);
     break;
   case QEvent::MouseButtonPress:
-
-    // Grab focus to stop unwanted keyboard input UI interaction.
-    setFocus();
-
     if (isActiveWindow())
     {
       // Lock the cursor with any mouse button click (behave the same as window focus change).
@@ -468,6 +472,7 @@ bool RenderWidget::event(QEvent* event)
     emit FocusChanged(false);
     break;
   case QEvent::Move:
+    // TODO: we probably have to listen to the parent event for this to work properly..
     SetCursorLocked(m_cursor_locked);
     break;
 
@@ -505,9 +510,6 @@ bool RenderWidget::event(QEvent* event)
     // Lock the mouse again when fullscreen changes (we might have missed some events)
     SetCursorLocked(m_cursor_locked || (isFullScreen() && Settings::Instance().GetLockCursor()));
     emit StateChanged(isFullScreen());
-    break;
-  case QEvent::Close:
-    emit Closed();
     break;
   default:
     break;

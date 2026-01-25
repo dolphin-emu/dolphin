@@ -12,7 +12,6 @@
 
 namespace ControllerEmu
 {
-class ControllerEmu;
 class Buttons;
 }  // namespace ControllerEmu
 

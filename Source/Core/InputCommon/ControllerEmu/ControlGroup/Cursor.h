@@ -29,7 +29,7 @@ public:
 
   // Modifies the state
   StateData GetState(bool adjusted);
-  StateData GetState(bool adjusted, const ControllerEmu::InputOverrideFunction& override_func);
+  StateData GetState(bool adjusted, const InputOverrideFunction& override_func);
 
   // Yaw movement in radians.
   ControlState GetTotalYaw() const;

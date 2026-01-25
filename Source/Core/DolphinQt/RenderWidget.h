@@ -17,7 +17,6 @@ public:
   explicit RenderWidget(QWidget* parent = nullptr);
 
   bool event(QEvent* event) override;
-  void showFullScreen();
   QPaintEngine* paintEngine() const override;
   bool IsCursorLocked() const { return m_cursor_locked; }
   void SetCursorLockedOnNextActivation(bool locked = true);
@@ -26,7 +25,6 @@ public:
 
 signals:
   void EscapePressed();
-  void Closed();
   void HandleChanged(void* handle);
   void StateChanged(bool fullscreen);
   void SizeChanged(int new_width, int new_height);
@@ -56,4 +54,10 @@ private:
   bool m_dont_lock_cursor_on_show = false;
   bool m_waiting_for_message_box = false;
   bool m_should_unpause_on_focus = false;
+};
+
+class RenderWindow final : public QWidget
+{
+public:
+  RenderWindow(QWidget* parent, RenderWidget* render_widget, const QString& title);
 };
