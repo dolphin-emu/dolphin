@@ -15,6 +15,11 @@ set(SDL_CAMERA OFF)
 set(SDL_DIALOG OFF)
 set(SDL_TRAY OFF)
 
+if(CCACHE_BIN)
+  set(SDL_CCACHE ON)
+  set(CCACHE_BINARY ${CCACHE_BIN})
+endif()
+
 add_subdirectory(SDL)
 
 if (TARGET SDL3)
