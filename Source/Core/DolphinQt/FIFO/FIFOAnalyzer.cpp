@@ -30,7 +30,6 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/OpcodeDecoding.h"
-#include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/XFStructs.h"
 
 // Values range from 0 to number of frames - 1

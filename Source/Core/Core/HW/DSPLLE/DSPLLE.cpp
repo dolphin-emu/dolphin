@@ -13,10 +13,8 @@
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-#include "Common/MemoryUtil.h"
 #include "Common/Thread.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/DSP/DSPAccelerator.h"
 #include "Core/DSP/DSPCaptureLogger.h"
@@ -26,7 +24,6 @@
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
 #include "Core/DSP/Jit/DSPEmitterBase.h"
 #include "Core/HW/Memmap.h"
-#include "Core/Host.h"
 
 namespace DSP::LLE
 {

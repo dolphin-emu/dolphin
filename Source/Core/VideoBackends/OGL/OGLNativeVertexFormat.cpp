@@ -3,7 +3,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
-#include "Common/GL/GLUtil.h"
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/OGL/OGLGfx.h"

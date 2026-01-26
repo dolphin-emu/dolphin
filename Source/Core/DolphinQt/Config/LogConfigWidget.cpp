@@ -12,11 +12,8 @@
 #include <QRadioButton>
 #include <QVBoxLayout>
 
-#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
-
-#include "Core/ConfigManager.h"
 
 #include "DolphinQt/Settings.h"
 

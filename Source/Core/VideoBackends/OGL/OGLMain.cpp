@@ -54,7 +54,6 @@ Make AA apply instantly during gameplay if possible
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/SamplerCache.h"
 
-#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"

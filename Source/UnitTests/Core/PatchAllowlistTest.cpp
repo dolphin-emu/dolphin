@@ -3,7 +3,6 @@
 
 #ifdef USE_RETRO_ACHIEVEMENTS
 
-#include <array>
 #include <map>
 #include <string>
 #include <string_view>
@@ -17,12 +16,10 @@
 #include "Common/CommonPaths.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/FileUtil.h"
-#include "Common/IOFile.h"
 #include "Common/IniFile.h"
 #include "Common/JsonUtil.h"
 #include "Core/AchievementManager.h"
 #include "Core/ActionReplay.h"
-#include "Core/CheatCodes.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PatchEngine.h"

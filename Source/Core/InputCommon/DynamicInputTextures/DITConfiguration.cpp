@@ -4,18 +4,15 @@
 #include "InputCommon/DynamicInputTextures/DITConfiguration.h"
 
 #include <optional>
-#include <sstream>
 #include <string>
 
 #include <picojson.h>
 
-#include "Common/CommonPaths.h"
 #include "Common/IniFile.h"
 #include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
-#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/DynamicInputTextures/DITSpecification.h"
 #include "InputCommon/ImageOperations.h"
 

@@ -11,8 +11,6 @@
 #ifndef _WIN32
 #include <netinet/in.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 #else
 #include <WinSock2.h>
 #endif

@@ -3,8 +3,6 @@
 
 #include "Core/HW/EXI/EXI_DeviceModem.h"
 
-#include "Common/Logging/Log.h"
-
 namespace ExpansionInterface
 {
 

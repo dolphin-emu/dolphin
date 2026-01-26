@@ -5,7 +5,6 @@
 
 #include <string>
 
-#include "Common/Config/Config.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Config

@@ -9,17 +9,13 @@
 
 #ifdef USE_DISCORD_PRESENCE
 
-#include <algorithm>
 #include <ctime>
-#include <set>
 #include <string>
 
 #include <discord_rpc.h>
 #include <fmt/format.h>
 
 #include "Common/Hash.h"
-#include "Common/HttpRequest.h"
-#include "Common/StringUtil.h"
 
 #include "Core/AchievementManager.h"
 #include "Core/Config/AchievementSettings.h"

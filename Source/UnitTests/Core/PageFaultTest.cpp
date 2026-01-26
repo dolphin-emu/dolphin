@@ -2,11 +2,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <chrono>
-#include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/ScopeGuard.h"
-#include "Common/Timer.h"
 #include "Core/Core.h"
 #include "Core/MemTools.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"

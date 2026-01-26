@@ -15,7 +15,6 @@
 
 #include "../TestValues.h"
 
-#include <fmt/format.h>
 #include <gtest/gtest.h>
 
 namespace

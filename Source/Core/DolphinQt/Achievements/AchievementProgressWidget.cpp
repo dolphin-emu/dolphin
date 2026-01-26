@@ -11,16 +11,10 @@
 #include <QString>
 #include <QVBoxLayout>
 
-#include <rcheevos/include/rc_api_runtime.h>
-
 #include "Core/AchievementManager.h"
-#include "Core/Config/AchievementSettings.h"
-#include "Core/Config/MainSettings.h"
-#include "Core/Core.h"
 
 #include "DolphinQt/Achievements/AchievementBox.h"
 #include "DolphinQt/QtUtils/ClearLayoutRecursively.h"
-#include "DolphinQt/Settings.h"
 
 AchievementProgressWidget::AchievementProgressWidget(QWidget* parent) : QWidget(parent)
 {

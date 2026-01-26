@@ -3,8 +3,6 @@
 
 #include "VideoCommon/GeometryShaderManager.h"
 
-#include <cstring>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"

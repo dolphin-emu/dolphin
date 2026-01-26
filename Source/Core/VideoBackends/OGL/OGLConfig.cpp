@@ -13,10 +13,7 @@
 #include "Common/Assert.h"
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
-#include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
-
-#include "Core/Config/GraphicsSettings.h"
 
 #include "VideoBackends/OGL/OGLTexture.h"
 

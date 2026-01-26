@@ -3,7 +3,6 @@
 
 #include "Common/Assembler/GekkoAssembler.h"
 
-#include <algorithm>
 #include <array>
 #include <string>
 #include <vector>

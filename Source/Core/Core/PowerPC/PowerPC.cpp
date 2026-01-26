@@ -6,8 +6,6 @@
 #include <algorithm>
 #include <bit>
 #include <cstring>
-#include <type_traits>
-#include <vector>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"

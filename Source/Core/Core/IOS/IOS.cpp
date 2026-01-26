@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <array>
-#include <deque>
 #include <map>
 #include <memory>
 #include <string>

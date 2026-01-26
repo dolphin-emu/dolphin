@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "Common/Assert.h"
+#include "Common/CommonTypes.h"
 
 ConstantPool::ConstantPool() = default;
 

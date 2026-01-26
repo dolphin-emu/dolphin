@@ -4,7 +4,6 @@
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 
 #include <array>
-#include <cstring>
 
 #include "Common/Assert.h"
 #include "Common/Common.h"

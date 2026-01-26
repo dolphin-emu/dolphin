@@ -10,12 +10,9 @@
 #include <queue>
 #include <thread>
 
-#include <SFML/Network.hpp>
-
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
-#include "Common/Swap.h"
 #include "Common/Thread.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/SI/SI_Device.h"

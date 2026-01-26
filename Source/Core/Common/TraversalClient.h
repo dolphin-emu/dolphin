@@ -12,7 +12,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/ENet.h"
-#include "Common/Thread.h"
 #include "Common/TraversalProto.h"
 
 namespace Common

@@ -10,7 +10,6 @@
 #include <unistd.h>
 
 #include "Common/FileUtil.h"
-#include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/MMU.h"
 
 MemoryWatcher::MemoryWatcher()

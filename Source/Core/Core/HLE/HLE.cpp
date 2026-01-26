@@ -8,7 +8,6 @@
 #include <map>
 
 #include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
@@ -17,7 +16,6 @@
 #include "Core/HLE/HLE_OS.h"
 #include "Core/HW/Memmap.h"
 #include "Core/Host.h"
-#include "Core/IOS/ES/ES.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"

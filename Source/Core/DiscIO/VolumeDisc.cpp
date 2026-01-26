@@ -6,7 +6,6 @@
 #include <memory>
 #include <optional>
 #include <string>
-#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/SHA1.h"

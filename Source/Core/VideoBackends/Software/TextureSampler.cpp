@@ -4,7 +4,6 @@
 #include "VideoBackends/Software/TextureSampler.h"
 
 #include <algorithm>
-#include <cmath>
 #include <span>
 
 #include "Common/CommonTypes.h"

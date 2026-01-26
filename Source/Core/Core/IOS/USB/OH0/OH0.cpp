@@ -4,10 +4,6 @@
 #include "Core/IOS/USB/OH0/OH0.h"
 
 #include <algorithm>
-#include <cstring>
-#include <istream>
-#include <sstream>
-#include <tuple>
 #include <utility>
 
 #include "Common/ChunkFile.h"

@@ -3,7 +3,6 @@
 
 #include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 
-#include <algorithm>
 #include <vector>
 
 #include <fmt/std.h>

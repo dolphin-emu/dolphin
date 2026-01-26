@@ -12,11 +12,9 @@
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPCodeUtil.h"
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/Jit/x64/DSPEmitter.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"
 #include "Core/HW/Memmap.h"
-#include "Core/Host.h"
 #include "Core/System.h"
 #include "VideoCommon/OnScreenDisplay.h"
 

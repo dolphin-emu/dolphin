@@ -17,7 +17,6 @@
 
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/Expression.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt/Debugger/BreakpointWidget.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 

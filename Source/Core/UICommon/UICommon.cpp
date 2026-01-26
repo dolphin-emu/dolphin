@@ -6,10 +6,8 @@
 #include <algorithm>
 #include <clocale>
 #include <cmath>
-#include <iomanip>
 #include <locale>
 #include <memory>
-#include <sstream>
 #ifdef _WIN32
 #include <shlobj.h>  // for SHGetFolderPath
 
@@ -22,11 +20,9 @@
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
@@ -42,7 +38,6 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
 #include "Core/System.h"
-#include "Core/USBUtils.h"
 #include "Core/WiiRoot.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"

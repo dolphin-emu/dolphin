@@ -11,10 +11,8 @@
 #include <bluetooth/hci_lib.h>
 #include <bluetooth/l2cap.h>
 
-#include <sys/eventfd.h>
 #include <sys/ioctl.h>
 #include <sys/poll.h>
-#include <sys/signalfd.h>
 
 #include <unistd.h>
 

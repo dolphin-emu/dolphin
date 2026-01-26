@@ -11,7 +11,6 @@
 #define GCADAPTER_USE_ANDROID_IMPLEMENTATION true
 #endif
 
-#include <algorithm>
 #include <array>
 #include <mutex>
 #include <optional>

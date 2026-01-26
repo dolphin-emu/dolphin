@@ -5,7 +5,6 @@
 
 #include <bit>
 
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"

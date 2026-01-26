@@ -16,7 +16,6 @@
 #endif
 
 #include "Common/ScopeGuard.h"
-#include "Common/StringUtil.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/Core.h"
@@ -29,8 +28,6 @@
 #include "UICommon/DiscordPresence.h"
 #endif
 #include "UICommon/UICommon.h"
-
-#include "VideoCommon/VideoBackendBase.h"
 
 static std::unique_ptr<Platform> s_platform;
 

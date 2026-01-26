@@ -4,7 +4,6 @@
 #include "DiscIO/RiivolutionPatcher.h"
 
 #include <algorithm>
-#include <locale>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -18,7 +17,6 @@
 #include "Core/Core.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/Memmap.h"
-#include "Core/IOS/FS/FileSystem.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/System.h"
 #include "DiscIO/DirectoryBlob.h"

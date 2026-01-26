@@ -5,7 +5,6 @@
 
 #include <map>
 
-#include "Common/Logging/LogManager.h"
 #include "Core/DolphinAnalytics.h"
 
 namespace DriverDetails

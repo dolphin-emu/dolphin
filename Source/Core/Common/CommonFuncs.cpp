@@ -6,7 +6,6 @@
 #include <cstddef>
 #include <cstring>
 #include <errno.h>
-#include <type_traits>
 
 #ifdef _WIN32
 #include <windows.h>

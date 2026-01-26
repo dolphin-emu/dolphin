@@ -7,7 +7,6 @@
 #include <array>
 #include <cstddef>
 #include <cstring>
-#include <memory>
 #include <optional>
 #include <string>
 #include <utility>
@@ -21,12 +20,10 @@
 #include <fmt/format.h>
 
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
 #include "Common/ScopeGuard.h"
-#include "Common/StringUtil.h"
 
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
@@ -49,7 +46,6 @@
 #include <netinet/in.h>
 #include <resolv.h>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
 #endif
 

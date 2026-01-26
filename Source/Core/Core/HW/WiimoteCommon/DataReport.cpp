@@ -5,7 +5,6 @@
 
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
-#include "Common/MathUtil.h"
 
 namespace WiimoteCommon
 {

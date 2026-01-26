@@ -22,7 +22,6 @@
 #include "Common/HostDisassembler.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Common/x64ABI.h"
 #include "Core/Core.h"

@@ -7,7 +7,6 @@
 #include <sstream>
 #include <utility>
 
-#include <fmt/format.h>
 #include <fmt/ostream.h>
 
 #include "Common/CommonTypes.h"

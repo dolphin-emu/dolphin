@@ -17,9 +17,10 @@
 #include <fmt/ranges.h>
 
 #include "Common/CommonTypes.h"
-#include "Common/Intrinsics.h"
-#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#ifdef _WIN32
+#include "Common/MsgHandler.h"
+#endif
 
 #ifndef _WIN32
 

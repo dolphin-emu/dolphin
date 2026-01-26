@@ -6,7 +6,6 @@
 #include <map>
 #include <string>
 
-#include "Common/Assert.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"

@@ -7,7 +7,9 @@
 #include <vector>
 
 #include "AudioCommon/SoundStream.h"
+#ifdef _WIN32
 #include "Common/WorkQueueThread.h"
+#endif
 
 #ifdef HAVE_CUBEB
 #include <cubeb/cubeb.h>

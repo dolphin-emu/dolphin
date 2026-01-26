@@ -12,7 +12,6 @@
 
 #include <optional>
 #include <utility>
-#include <vector>
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"

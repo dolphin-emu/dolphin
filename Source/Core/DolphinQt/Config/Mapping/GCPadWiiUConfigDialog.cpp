@@ -10,7 +10,6 @@
 #include <QVBoxLayout>
 
 #include "Core/Config/MainSettings.h"
-#include "DolphinQt/QtUtils/QueueOnObject.h"
 
 #include "InputCommon/GCAdapter.h"
 

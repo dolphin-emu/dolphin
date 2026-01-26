@@ -3,7 +3,6 @@
 
 #include "VideoBackends/Software/VideoBackend.h"
 
-#include <cstring>
 #include <memory>
 #include <string>
 #include <utility>

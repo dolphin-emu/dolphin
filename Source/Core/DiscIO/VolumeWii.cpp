@@ -22,7 +22,6 @@
 #include "Common/Crypto/AES.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
-#include "Common/Swap.h"
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscExtractor.h"

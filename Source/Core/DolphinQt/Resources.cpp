@@ -13,8 +13,6 @@
 
 #include "Core/Config/MainSettings.h"
 
-#include "DolphinQt/Settings.h"
-
 bool Resources::m_svg_supported;
 QList<QIcon> Resources::m_platforms;
 QList<QIcon> Resources::m_countries;

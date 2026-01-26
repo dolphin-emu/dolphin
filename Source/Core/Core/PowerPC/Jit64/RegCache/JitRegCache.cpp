@@ -12,13 +12,11 @@
 #include "Common/Assert.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
-#include "Common/MsgHandler.h"
 #include "Common/VariantUtil.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/RegCache/CachedReg.h"
 #include "Core/PowerPC/Jit64/RegCache/RCMode.h"
-#include "Core/PowerPC/PowerPC.h"
 
 using namespace Gen;
 using namespace PowerPC;

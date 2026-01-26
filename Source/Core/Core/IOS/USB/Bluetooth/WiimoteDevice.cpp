@@ -4,9 +4,7 @@
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 
 #include <cstring>
-#include <memory>
 #include <utility>
-#include <vector>
 
 #include <fmt/format.h>
 
@@ -15,7 +13,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/Core.h"
 #include "Core/HW/WII_IPC.h"

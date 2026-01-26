@@ -4,7 +4,6 @@
 
 #include "Core/DSP/DSPDisassembler.h"
 
-#include <algorithm>
 #include <limits>
 #include <string>
 #include <utility>

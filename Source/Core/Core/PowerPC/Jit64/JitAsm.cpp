@@ -16,7 +16,6 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
 using namespace Gen;

@@ -3,13 +3,11 @@
 
 #pragma once
 
-#include <cstdint>
 #include <string>
 #include <utility>
 
 #include <fmt/format.h>
 
-#include "Common/FormatUtil.h"
 #include "Common/Logging/Log.h"
 
 namespace Common

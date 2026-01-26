@@ -6,7 +6,6 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 #include "Core/HW/DSP.h"
 
 namespace DSP::HLE

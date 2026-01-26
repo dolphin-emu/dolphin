@@ -7,7 +7,6 @@
 #include <array>
 #include <cstddef>
 #include <cstdio>
-#include <vector>
 
 #include <fmt/format.h>
 
@@ -17,9 +16,6 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Projection.h"
-#include "Common/StringUtil.h"
-
-#include "Core/PowerPC/PowerPC.h"
 
 namespace PPCTables
 {

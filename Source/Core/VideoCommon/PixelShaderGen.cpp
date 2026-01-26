@@ -3,11 +3,6 @@
 
 #include "VideoCommon/PixelShaderGen.h"
 
-#include <algorithm>
-#include <cmath>
-#include <cstdio>
-#include <fmt/format.h>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
@@ -16,9 +11,7 @@
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/LightingShaderGen.h"
-#include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/RenderState.h"
-#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"  // for texture projection mode

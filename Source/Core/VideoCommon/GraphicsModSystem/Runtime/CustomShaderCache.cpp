@@ -5,6 +5,7 @@
 
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VideoEvents.h"
 
 CustomShaderCache::CustomShaderCache()
 {

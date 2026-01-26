@@ -12,9 +12,7 @@
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
-#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
-#include "VideoCommon/XFStateManager.h"
 
 // We really want things like c.w * a.x - a.w * c.x to stay symmetric, so they cancel to zero on
 // degenerate triangles.  Make sure the compiler doesn't optimize in fmas where not requested.

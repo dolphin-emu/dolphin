@@ -9,7 +9,6 @@
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/PatchEngine.h"

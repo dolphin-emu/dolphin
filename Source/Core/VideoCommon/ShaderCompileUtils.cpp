@@ -3,7 +3,6 @@
 
 #include "VideoCommon/ShaderCompileUtils.h"
 
-#include <fstream>
 #include <ranges>
 
 #include "Common/FileUtil.h"

@@ -7,12 +7,10 @@
 #include <type_traits>
 #include <utility>
 
-#include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/System.h"
 #include "VideoCommon/CommandProcessor.h"
-#include "VideoCommon/VertexLoaderManager.h"
 
 // CP state
 CPState g_main_cp_state;

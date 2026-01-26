@@ -17,7 +17,6 @@
 #include "Common/Assembler/AssemblerShared.h"
 #include "Common/Assembler/GekkoParser.h"
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
 
 namespace Common::GekkoAssembler::detail
 {

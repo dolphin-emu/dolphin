@@ -6,18 +6,15 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
-#include <cstdarg>
 #include <cstring>
-#include <locale>
+#include <fstream>
 #include <memory>
 #include <mutex>
-#include <ostream>
 #include <string>
 
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 
-#include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/ConsoleListener.h"

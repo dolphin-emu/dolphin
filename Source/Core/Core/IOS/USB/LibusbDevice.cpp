@@ -10,7 +10,6 @@
 #include <map>
 #include <memory>
 #include <mutex>
-#include <ranges>
 #include <utility>
 #include <vector>
 
@@ -19,7 +18,6 @@
 #include "Common/Assert.h"
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"

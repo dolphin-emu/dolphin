@@ -4,6 +4,7 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include <algorithm>
+#include <fstream>
 #include <memory>
 #include <optional>
 #include <string_view>
@@ -22,6 +23,7 @@
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
 
+#include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"

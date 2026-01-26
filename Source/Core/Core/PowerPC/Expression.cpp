@@ -5,8 +5,7 @@
 
 #include <algorithm>
 #include <array>
-#include <cstdlib>
-#include <fmt/format.h>
+#include <cmath>
 #include <optional>
 #include <string>
 #include <string_view>

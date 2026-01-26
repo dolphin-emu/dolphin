@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <map>
-#include <queue>
 #include <string>
 #include <vector>
 
@@ -14,8 +13,6 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
-#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HLE/HLE.h"

@@ -11,7 +11,6 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-#include "Common/MathUtil.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/MMU.h"

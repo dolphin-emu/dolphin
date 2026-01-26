@@ -7,9 +7,7 @@
 
 #include "AudioCommon/CubebUtils.h"
 #include "Common/CommonTypes.h"
-#include "Common/Event.h"
 #include "Common/Logging/Log.h"
-#include "Common/ScopeGuard.h"
 #include "Core/Config/MainSettings.h"
 
 #ifdef _WIN32

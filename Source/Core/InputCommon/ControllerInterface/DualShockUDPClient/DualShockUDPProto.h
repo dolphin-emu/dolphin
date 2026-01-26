@@ -9,6 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Hash.h"
+#include "Common/Logging/Log.h"
 
 namespace ciface::DualShockUDPClient::Proto
 {

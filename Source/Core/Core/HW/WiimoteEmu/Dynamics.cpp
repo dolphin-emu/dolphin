@@ -10,7 +10,6 @@
 #include "Common/MathUtil.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Force.h"
 #include "InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.h"

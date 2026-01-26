@@ -4,7 +4,6 @@
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
 #include <cmath>
-#include <limits>
 #include <utility>
 
 #include "Common/CommonTypes.h"

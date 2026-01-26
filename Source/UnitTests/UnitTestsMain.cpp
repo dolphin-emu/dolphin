@@ -2,11 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Based on gtest_main.cc
 
-#include <cstdio>
-#include <fmt/format.h>
-
 #include "Common/MsgHandler.h"
-#include "Core/Core.h"
 
 #include "gtest/gtest.h"
 

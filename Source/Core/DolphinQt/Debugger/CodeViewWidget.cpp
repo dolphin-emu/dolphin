@@ -27,7 +27,6 @@
 
 #include "Common/Assert.h"
 #include "Common/GekkoDisassembler.h"
-#include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "Core/Debugger/CodeTrace.h"
 #include "Core/Debugger/PPCDebugInterface.h"

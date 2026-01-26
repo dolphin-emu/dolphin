@@ -3,7 +3,6 @@
 
 #include "Core/Debugger/OSThread.h"
 
-#include <algorithm>
 #include <fmt/format.h>
 
 #include "Core/PowerPC/MMU.h"

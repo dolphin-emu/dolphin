@@ -5,11 +5,9 @@
 
 #include <cstddef>
 #include <fstream>
-#include <functional>
 #include <string>
 #include <string_view>
 #include <unordered_map>
-#include <utility>
 
 #include <fmt/format.h>
 
@@ -17,7 +15,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Enums.h"
 
 namespace Core

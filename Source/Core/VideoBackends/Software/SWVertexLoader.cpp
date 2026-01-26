@@ -8,7 +8,6 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
 
 #include "Core/System.h"
 
@@ -22,9 +21,7 @@
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OpcodeDecoding.h"
-#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
-#include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"

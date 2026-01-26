@@ -3,10 +3,6 @@
 
 #include "VideoCommon/TextureDecoder.h"
 
-#include <algorithm>
-#include <cmath>
-#include <cstring>
-
 #ifdef CHECK
 #include "Common/Assert.h"
 #endif

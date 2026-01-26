@@ -26,9 +26,10 @@
 #pragma comment(lib, "libittnotify.lib")
 #endif
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#ifdef _WIN32
 #include "Common/StringUtil.h"
+#endif
 
 namespace Common
 {

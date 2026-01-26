@@ -3,7 +3,6 @@
 
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
-#include <cmath>
 #include <iterator>
 #include <utility>
 
@@ -16,6 +15,7 @@
 
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
 
 namespace WiimoteEmu

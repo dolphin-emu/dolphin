@@ -3,9 +3,7 @@
 
 #include "DolphinQt/NetPlay/ChunkedProgressDialog.h"
 
-#include <algorithm>
 #include <cmath>
-#include <functional>
 
 #include <fmt/format.h>
 

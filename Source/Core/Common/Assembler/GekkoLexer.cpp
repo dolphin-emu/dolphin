@@ -3,7 +3,6 @@
 
 #include "Common/Assembler/GekkoLexer.h"
 
-#include "Common/Assert.h"
 #include "Common/StringUtil.h"
 
 #include <iterator>

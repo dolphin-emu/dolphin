@@ -7,7 +7,6 @@
 #include <cstring>
 
 #include "Common/Assert.h"
-#include "Common/MsgHandler.h"
 #include "VideoCommon/AbstractTexture.h"
 
 AbstractStagingTexture::AbstractStagingTexture(StagingTextureType type, const TextureConfig& c)

@@ -5,7 +5,6 @@
 
 #include <cstring>
 
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"

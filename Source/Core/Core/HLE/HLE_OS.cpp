@@ -11,7 +11,6 @@
 #include <fmt/format.h>
 #include <fmt/printf.h>
 
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"

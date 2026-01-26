@@ -14,14 +14,10 @@
 #include "Common/Assert.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 
-#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/GCPadStatus.h"
 
 // clang-format off
 constexpr std::array<const char*, NUM_HOTKEYS> s_hotkey_labels{{

@@ -4,7 +4,6 @@
 #include "Core/IOS/SDIO/SDIOSlot0.h"
 
 #include <cstdio>
-#include <cstring>
 #include <memory>
 #include <vector>
 
@@ -17,7 +16,6 @@
 
 #include "Core/CPUThreadConfigCallback.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/Config/SessionSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/IOS.h"

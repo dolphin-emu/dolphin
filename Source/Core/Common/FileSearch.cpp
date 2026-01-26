@@ -13,12 +13,8 @@
 
 #ifdef _MSC_VER
 #include <Windows.h>
-#else
-#ifdef ANDROID
+#elifdef ANDROID
 #include "jni/AndroidCommon/AndroidCommon.h"
-#endif
-
-#include <cstring>
 #endif
 
 namespace fs = std::filesystem;

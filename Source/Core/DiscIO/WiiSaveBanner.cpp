@@ -3,14 +3,12 @@
 
 #include "DiscIO/WiiSaveBanner.h"
 
-#include <fmt/format.h>
 #include <iterator>
 #include <string>
 #include <vector>
 
 #include "Common/ColorUtil.h"
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"

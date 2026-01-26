@@ -12,8 +12,6 @@
 #include <QPushButton>
 #include <QTimer>
 
-#include "Core/ConfigManager.h"
-
 #include "DolphinQt/Settings.h"
 
 // Delay in ms between calls of UpdateLog()

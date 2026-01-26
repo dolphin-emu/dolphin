@@ -3,10 +3,6 @@
 
 #include "VideoBackends/Vulkan/VKStreamBuffer.h"
 
-#include <algorithm>
-#include <cstdint>
-#include <functional>
-
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/MsgHandler.h"

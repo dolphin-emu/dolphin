@@ -15,7 +15,6 @@
 
 #include "Core/ConfigManager.h"
 
-#include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/WiiSaveBanner.h"

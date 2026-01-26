@@ -3,16 +3,10 @@
 
 #include "Core/MemTools.h"
 
-#include <cstdio>
 #include <cstdlib>
-#include <cstring>
-#include <vector>
 
-#include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
-#include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
-#include "Common/Thread.h"
 
 #include "Core/MachineContext.h"
 #include "Core/PowerPC/JitInterface.h"
@@ -23,6 +17,13 @@
 #endif
 #ifndef _WIN32
 #include <unistd.h>  // Needed for _POSIX_VERSION
+#endif
+
+#ifdef _WIN32
+#include "Common/Assert.h"
+#endif
+#if defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
+#include "Common/Thread.h"
 #endif
 
 #if defined(__APPLE__)

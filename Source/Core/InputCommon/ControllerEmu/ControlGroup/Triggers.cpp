@@ -5,12 +5,9 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <memory>
 #include <optional>
 #include <string>
 
-#include "Common/Common.h"
-#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 

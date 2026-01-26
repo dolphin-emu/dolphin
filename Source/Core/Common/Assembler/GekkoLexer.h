@@ -8,7 +8,6 @@
 #include <deque>
 #include <optional>
 #include <string_view>
-#include <type_traits>
 #include <vector>
 
 #include "Common/Assembler/AssemblerShared.h"

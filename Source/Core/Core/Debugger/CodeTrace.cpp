@@ -8,7 +8,6 @@
 #include <regex>
 
 #include "Common/Contains.h"
-#include "Common/Event.h"
 #include "Core/Core.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/HW/CPU.h"

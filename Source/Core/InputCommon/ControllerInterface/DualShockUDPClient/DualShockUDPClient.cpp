@@ -20,7 +20,6 @@
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
-#include "Core/CoreTiming.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPProto.h"
 #include "SFML/Network/IpAddress.hpp"
