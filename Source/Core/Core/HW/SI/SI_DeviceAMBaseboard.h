@@ -251,7 +251,7 @@ private:
     u32 length : 8;
     u32 status : 16;
 
-    u8 extdata[81];
+    u8 extdata[81] = {};
     u32 extlen;
   };
 

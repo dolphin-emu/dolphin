@@ -242,7 +242,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
       auto validate_data_in_out = [&](u32 n_in, u32 n_out, std::string_view command) -> bool {
         if (data_in + n_in > data_in_end)
           ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: data_in overflow in {}", command);
-        else if (data_offset + n_out > data_out.size())
+        else if (std::size_t{data_offset} + n_out > data_out.size())
           ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: data_out overflow in {}", command);
         else
           return true;
@@ -449,7 +449,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           if (!validate_data_in_out(1, 0, "SerialA"))
             break;
 
-          u32 length = *data_in++;
+          const u32 length = *data_in++;
           if (length)
           {
             if (!validate_data_in_out(length, 0, "SerialA"))
@@ -575,6 +575,16 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                     "GC-AM: Command 25 (IC-CARD) Write Pages: Off:{:x} Size:{:x} PSize:{:x}",
                     m_ic_write_offset, m_ic_write_size, size);
 
+                if (std::size_t{m_ic_write_offset} + size > sizeof(m_ic_write_buffer))
+                {
+                  ERROR_LOG_FMT(SERIALINTERFACE_CARD,
+                                "GC-AM: Command 25 (IC-CARD) m_ic_write_buffer overflow:\n"
+                                " - m_ic_write_buffer(offset={}, size={})\n"
+                                " - size={}\n",
+                                m_ic_write_offset, sizeof(m_ic_write_buffer), size);
+                  data_in = data_in_end;
+                  break;
+                }
                 memcpy(m_ic_write_buffer + m_ic_write_offset, data_in + 2, size);
 
                 m_ic_write_offset += size;
@@ -586,6 +596,19 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   const u16 page = m_ic_write_buffer[5];
                   const u16 count = m_ic_write_buffer[7];
 
+                  if ((page * 8 + count * 8) > sizeof(m_ic_card_data) ||
+                      (10 + count * 8) > sizeof(m_ic_write_buffer))
+                  {
+                    ERROR_LOG_FMT(SERIALINTERFACE_CARD,
+                                  "GC-AM: Command 25 (IC-CARD) Write Pages overflow:\n"
+                                  " - m_ic_card_data(offset={}, size={})\n"
+                                  " - m_ic_write_buffer(offset={}, size={})\n"
+                                  " - size={}, page={}, count={}\n",
+                                  page * 8, sizeof(m_ic_card_data), 10, sizeof(m_ic_write_buffer),
+                                  count * 8, page, count);
+                    data_in = data_in_end;
+                    break;
+                  }
                   memcpy(m_ic_card_data + page * 8, m_ic_write_buffer + 10, count * 8);
 
                   INFO_LOG_FMT(SERIALINTERFACE_CARD,
@@ -594,6 +617,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
                   icco.command = WritePages;
 
+                  if (!validate_data_in_out(0, icco.pktlen + 2, "SerialA (IC-CARD)"))
+                    break;
                   ICCardSendReply(&icco, data_out.data(), &data_offset);
                 }
                 if (!validate_data_in_out(length, 0, "SerialA (IC-CARD)"))
@@ -728,7 +753,17 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 u32 cnt = count * 8;
 
                 // Limit read size to not overwrite the reply buffer
-                if (cnt > (u32)0x50 - data_offset)
+                const std::size_t reply_buffer_size = sizeof(icco.extdata) - 1;
+                if (data_offset > reply_buffer_size)
+                {
+                  ERROR_LOG_FMT(SERIALINTERFACE_CARD,
+                                "GC-AM: Command 31 (IC-CARD) Read Pages overflow:"
+                                " offset={} > buffer_size={}",
+                                data_offset, reply_buffer_size);
+                  data_in = data_in_end;
+                  break;
+                }
+                if (cnt > reply_buffer_size - data_offset)
                 {
                   cnt = 5 * 8;
                 }
@@ -737,6 +772,15 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 icco.length += icco.extlen;
                 icco.pktlen += icco.extlen;
 
+                if (offs + cnt > sizeof(icco.extdata))
+                {
+                  ERROR_LOG_FMT(SERIALINTERFACE_CARD,
+                                "GC-AM: Command 31 (IC-CARD) Read Pages overflow:"
+                                " offset={} + count={} > buffer_size={}",
+                                offs, cnt, sizeof(icco.extdata));
+                  data_in = data_in_end;
+                  break;
+                }
                 memcpy(icco.extdata, m_ic_card_data + offs, cnt);
 
                 INFO_LOG_FMT(SERIALINTERFACE_CARD,
@@ -965,6 +1009,16 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             if (AMMediaboard::GetGameType() == FZeroAX ||
                 AMMediaboard::GetGameType() == FZeroAXMonster)
             {
+              if (command_offset + 5 >= std::size(m_motor_reply))
+              {
+                ERROR_LOG_FMT(
+                    SERIALINTERFACE_AMBB,
+                    "GC-AM: Command 0x31 (MOTOR) overflow: offset={} >= motor_reply_size={}",
+                    command_offset + 5, std::size(m_motor_reply));
+                data_in = data_in_end;
+                break;
+              }
+
               // Status
               m_motor_reply[command_offset + 2] = 0;
               m_motor_reply[command_offset + 3] = 0;
@@ -1053,6 +1107,14 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               if (!validate_data_in_out(length, reply_size, "SerialA"))
                 break;
 
+              if (reply_size > sizeof(m_motor_reply))
+              {
+                ERROR_LOG_FMT(SERIALINTERFACE_AMBB,
+                              "GC-AM: Command SerialA, reply_size={} too big for m_motor_reply",
+                              reply_size);
+                data_in = data_in_end;
+                break;
+              }
               memcpy(data_out.data() + data_offset, m_motor_reply, reply_size);
               data_offset += reply_size;
             }
@@ -1096,6 +1158,17 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
                 if (!validate_data_in_out(0, read_length, "SerialB"))
                   break;
+                if (std::size_t{m_card_read} + read_length > sizeof(m_card_read_packet))
+                {
+                  ERROR_LOG_FMT(SERIALINTERFACE_AMBB,
+                                "GC-AM: Command SerialB, m_card_read_packet overflow:\n"
+                                " - m_card_read_packet = {}\n"
+                                " - m_card_read = {}\n"
+                                " - read_length = {}",
+                                fmt::ptr(m_card_read_packet), m_card_read, read_length);
+                  data_in = data_in_end;
+                  break;
+                }
                 memcpy(data_out.data() + data_offset, m_card_read_packet + m_card_read,
                        read_length);
 
@@ -1223,7 +1296,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               for (u32 i = 0; i < data_out[checksum_start]; ++i)
                 data_out[data_offset] ^= data_out[checksum_start + i];
 
-              if (!validate_data_in_out(0, 2, "SerialB"))
+              if (!validate_data_in_out(0, 1, "SerialB"))
                 break;
               data_offset++;
 
@@ -1231,6 +1304,19 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             }
             else
             {
+              if (!validate_data_in_out(length, 0, "SerialB"))
+                break;
+              if (std::size_t{m_card_offset} + length > std::size(m_card_buffer))
+              {
+                ERROR_LOG_FMT(SERIALINTERFACE_AMBB,
+                              "GC-AM: Command SerialB, m_card_buffer overflow:\n"
+                              " - m_card_buffer = {}\n"
+                              " - m_card_offset = {}\n"
+                              " - length = {}",
+                              fmt::ptr(m_card_buffer), m_card_offset, length);
+                data_in = data_in_end;
+                break;
+              }
               for (u32 i = 0; i < length; ++i)
                 m_card_buffer[m_card_offset + i] = data_in[i];
 
@@ -1269,8 +1355,18 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                         if (File::Exists(card_filename))
                         {
                           File::IOFile card(card_filename, "rb+");
-                          m_card_memory_size = (u32)card.GetSize();
-
+                          m_card_memory_size = static_cast<u32>(card.GetSize());
+                          if (m_card_memory_size > sizeof(m_card_memory))
+                          {
+                            ERROR_LOG_FMT(SERIALINTERFACE_CARD,
+                                          "GC-AM: Command CARD GetState overflow:\n"
+                                          " - file name = {}\n"
+                                          " - file size = {}\n"
+                                          " - card size = {}",
+                                          card_filename, m_card_memory_size, sizeof(m_card_memory));
+                            data_in = data_in_end;
+                            break;
+                          }
                           card.ReadBytes(m_card_memory, m_card_memory_size);
                           card.Close();
 
@@ -1304,7 +1400,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
                         if (File::Exists(card_filename))
                         {
-                          m_card_memory_size = (u32)File::GetSize(card_filename);
+                          m_card_memory_size = static_cast<u32>(File::GetSize(card_filename));
                           if (m_card_memory_size)
                           {
                             if (AMMediaboard::GetGameType() == FZeroAX)
@@ -1329,7 +1425,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                       break;
                     case CARDCommand::Load:
                     {
-                      u8 mode = m_card_buffer[6];
+                      const u8 mode = m_card_buffer[6];
                       NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD Load({:02X})",
                                      mode);
                       break;
@@ -1350,7 +1446,6 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
                       // Prepare read packet
                       memset(m_card_read_packet, 0, 0xDB);
-                      u32 packet_offset = 0;
 
                       const std::string card_filename(
                           fmt::format("{}tricard_{}.bin", File::GetUserPath(D_TRIUSER_IDX),
@@ -1361,43 +1456,59 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                         File::IOFile card(card_filename, "rb+");
                         if (m_card_memory_size == 0)
                         {
-                          m_card_memory_size = (u32)card.GetSize();
+                          m_card_memory_size = static_cast<u32>(card.GetSize());
                         }
 
+                        if (m_card_memory_size > sizeof(m_card_memory))
+                        {
+                          ERROR_LOG_FMT(SERIALINTERFACE_CARD,
+                                        "GC-AM: Command CARD Read overflow:\n"
+                                        " - file name = {}\n"
+                                        " - file size = {}\n"
+                                        " - card size = {}",
+                                        card_filename, m_card_memory_size, sizeof(m_card_memory));
+                          data_in = data_in_end;
+                          break;
+                        }
                         card.ReadBytes(m_card_memory, m_card_memory_size);
                         card.Close();
 
                         m_card_is_inserted = true;
                       }
 
-                      m_card_read_packet[packet_offset++] = 0x02;  // SUB CMD
-                      m_card_read_packet[packet_offset++] = 0x00;  // SUB CMDLen
+                      m_card_read_packet[0] = 0x02;  // SUB CMD
+                      m_card_read_packet[1] = 0x00;  // SUB CMDLen
 
-                      m_card_read_packet[packet_offset++] = 0x33;  // CARD CMD
+                      m_card_read_packet[2] = 0x33;  // CARD CMD
 
                       if (m_card_is_inserted)  // CARD Status
                       {
-                        m_card_read_packet[packet_offset++] = 0x31;
+                        m_card_read_packet[3] = 0x31;
                       }
                       else
                       {
-                        m_card_read_packet[packet_offset++] = 0x30;
+                        m_card_read_packet[3] = 0x30;
                       }
 
-                      m_card_read_packet[packet_offset++] = 0x30;
-                      m_card_read_packet[packet_offset++] = 0x30;
+                      m_card_read_packet[4] = 0x30;
+                      m_card_read_packet[5] = 0x30;
 
+                      u32 packet_offset = 6;
                       // Data reply
+                      static_assert(sizeof(m_card_read_packet) >= sizeof(m_card_memory) + 6);
                       memcpy(m_card_read_packet + packet_offset, m_card_memory, m_card_memory_size);
                       packet_offset += m_card_memory_size;
 
+                      static_assert(sizeof(m_card_read_packet) >= sizeof(m_card_memory) + 7);
                       m_card_read_packet[packet_offset++] = 0x03;
 
                       m_card_read_packet[1] = packet_offset - 1;  // SUB CMDLen
 
+                      static_assert(sizeof(m_card_read_packet) >= sizeof(m_card_memory) + 8);
                       for (u32 i = 0; i < packet_offset - 1; ++i)
                         m_card_read_packet[packet_offset] ^= m_card_read_packet[1 + i];
 
+                      static_assert(sizeof(m_card_read_packet) >= sizeof(m_card_memory) + 9);
                       packet_offset++;
 
                       m_card_read_length = packet_offset;
@@ -1411,7 +1522,18 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                       const u8 track = m_card_buffer[8];
 
                       m_card_memory_size = m_card_buffer[1] - 9;
+                      if (m_card_memory_size > sizeof(m_card_memory))
+                      {
+                        ERROR_LOG_FMT(SERIALINTERFACE_CARD,
+                                      "GC-AM: Command CARD Write overflow:\n"
+                                      " - write size = {}\n"
+                                      " - card size = {}",
+                                      m_card_memory_size, sizeof(m_card_memory));
+                        data_in = data_in_end;
+                        break;
+                      }
 
+                      static_assert(sizeof(m_card_buffer) >= sizeof(m_card_memory) + 9);
                       memcpy(m_card_memory, m_card_buffer + 9, m_card_memory_size);
 
                       NOTICE_LOG_FMT(SERIALINTERFACE_CARD,
