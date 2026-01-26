@@ -17,6 +17,7 @@
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/GBA.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
+#include "Core/HW/Memmap.h"
 #include "Core/System.h"
 
 namespace DSP::HLE
@@ -470,32 +471,27 @@ void ZeldaUCode::RunPendingCommands()
       m_renderer.SetVPBBaseAddress(Read32());
 
       auto& memory = m_dsphle->GetSystem().GetMemory();
-      u16* data_ptr = (u16*)HLEMemory_Get_Pointer(memory, Read32());
+      u32 address = Read32();
 
-      std::array<s16, 0x100> resampling_coeffs;
-      for (size_t i = 0; i < 0x100; ++i)
-        resampling_coeffs[i] = Common::swap16(data_ptr[i]);
+      std::array<s16, 0x100> resampling_coeffs{};
+      memory.CopyFromEmuSwapped(resampling_coeffs.data(), address, sizeof(resampling_coeffs));
       m_renderer.SetResamplingCoeffs(std::move(resampling_coeffs));
 
-      std::array<s16, 0x100> const_patterns;
-      for (size_t i = 0; i < 0x100; ++i)
-        const_patterns[i] = Common::swap16(data_ptr[0x100 + i]);
+      std::array<s16, 0x100> const_patterns{};
+      memory.CopyFromEmuSwapped(const_patterns.data(), address + 0x200, sizeof(const_patterns));
       m_renderer.SetConstPatterns(std::move(const_patterns));
 
       // The sine table is only used for Dolby mixing
       // which the light protocol doesn't support.
       if ((m_flags & LIGHT_PROTOCOL) == 0)
       {
-        std::array<s16, 0x80> sine_table;
-        for (size_t i = 0; i < 0x80; ++i)
-          sine_table[i] = Common::swap16(data_ptr[0x200 + i]);
+        std::array<s16, 0x80> sine_table{};
+        memory.CopyFromEmuSwapped(sine_table.data(), address + 0x400, sizeof(sine_table));
         m_renderer.SetSineTable(std::move(sine_table));
       }
 
-      u16* afc_coeffs_ptr = (u16*)HLEMemory_Get_Pointer(memory, Read32());
-      std::array<s16, 0x20> afc_coeffs;
-      for (size_t i = 0; i < 0x20; ++i)
-        afc_coeffs[i] = Common::swap16(afc_coeffs_ptr[i]);
+      std::array<s16, 0x20> afc_coeffs{};
+      memory.CopyFromEmuSwapped(afc_coeffs.data(), Read32(), sizeof(afc_coeffs));
       m_renderer.SetAfcCoeffs(std::move(afc_coeffs));
 
       m_renderer.SetReverbPBBaseAddress(Read32());
@@ -1087,13 +1083,11 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
   };
 
   auto& memory = m_system.GetMemory();
-  u16* rpb_base_ptr = (u16*)HLEMemory_Get_Pointer(memory, m_reverb_pb_base_addr);
   for (u16 rpb_idx = 0; rpb_idx < 4; ++rpb_idx)
   {
     ReverbPB rpb;
-    u16* rpb_raw_ptr = reinterpret_cast<u16*>(&rpb);
-    for (size_t i = 0; i < sizeof(ReverbPB) / 2; ++i)
-      rpb_raw_ptr[i] = Common::swap16(rpb_base_ptr[rpb_idx * sizeof(ReverbPB) / 2 + i]);
+    u32 rpb_addr = m_reverb_pb_base_addr + rpb_idx * sizeof(ReverbPB);
+    memory.CopyFromEmuSwapped(reinterpret_cast<u16*>(&rpb), rpb_addr, sizeof(ReverbPB));
 
     if (!rpb.enabled)
       continue;
@@ -1101,7 +1095,6 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
     u16 mram_buffer_idx = m_reverb_pb_frames_count[rpb_idx];
 
     u32 mram_addr = rpb.GetCircularBufferBase() + mram_buffer_idx * 0x50 * sizeof(s16);
-    s16* mram_ptr = (s16*)HLEMemory_Get_Pointer(memory, mram_addr);
 
     if (!post_rendering)
     {
@@ -1111,8 +1104,7 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
       for (u16 i = 0; i < 8; ++i)
         buffer[i] = (*last8_samples_buffers[rpb_idx])[i];
 
-      for (u16 i = 0; i < 0x50; ++i)
-        buffer[8 + i] = Common::swap16(mram_ptr[i]);
+      memory.CopyFromEmuSwapped(&buffer[8], mram_addr, 0x50 * sizeof(s16));
 
       for (u16 i = 0; i < 8; ++i)
         (*last8_samples_buffers[rpb_idx])[i] = buffer[0x50 + i];
@@ -1161,8 +1153,7 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
       MixingBuffer* buffer = reverb_buffers[rpb_idx];
 
       // Upload the reverb data to RAM.
-      for (auto sample : *buffer)
-        *mram_ptr++ = Common::swap16(sample);
+      memory.CopyToEmuSwapped(mram_addr, buffer->data(), sizeof(*buffer));
 
       mram_buffer_idx = (mram_buffer_idx + 1) % rpb.circular_buffer_size;
       m_reverb_pb_frames_count[rpb_idx] = mram_buffer_idx;
@@ -1427,15 +1418,10 @@ void ZeldaAudioRenderer::FinalizeFrame()
   ApplyVolumeInPlace_4_12(&m_buf_front_right, m_output_volume);
 
   auto& memory = m_system.GetMemory();
-  u16* ram_left_buffer = (u16*)HLEMemory_Get_Pointer(memory, m_output_lbuf_addr);
-  u16* ram_right_buffer = (u16*)HLEMemory_Get_Pointer(memory, m_output_rbuf_addr);
-  for (size_t i = 0; i < m_buf_front_left.size(); ++i)
-  {
-    ram_left_buffer[i] = Common::swap16(m_buf_front_left[i]);
-    ram_right_buffer[i] = Common::swap16(m_buf_front_right[i]);
-  }
-  m_output_lbuf_addr += sizeof(u16) * (u32)m_buf_front_left.size();
-  m_output_rbuf_addr += sizeof(u16) * (u32)m_buf_front_right.size();
+  memory.CopyToEmuSwapped(m_output_lbuf_addr, m_buf_front_left.data(), sizeof(m_buf_front_left));
+  memory.CopyToEmuSwapped(m_output_rbuf_addr, m_buf_front_right.data(), sizeof(m_buf_front_right));
+  m_output_lbuf_addr += sizeof(m_buf_front_left);
+  m_output_rbuf_addr += sizeof(m_buf_front_right);
 
   // TODO: Some more Dolby mixing.
 
@@ -1448,16 +1434,14 @@ void ZeldaAudioRenderer::FetchVPB(u16 voice_id, VPB* vpb)
 {
   auto& memory = m_system.GetMemory();
   u16* vpb_words = (u16*)vpb;
-  u16* ram_vpbs = (u16*)HLEMemory_Get_Pointer(memory, m_vpb_base_addr);
 
   // A few versions of the UCode have VPB of size 0x80 (vs. the standard
   // 0xC0). The whole 0x40-0x80 part is gone. Handle that by moving things
   // around.
-  size_t vpb_size = (m_flags & TINY_VPB) ? 0x80 : 0xC0;
+  u32 vpb_size = ((m_flags & TINY_VPB) ? 0x80 : 0xC0) * sizeof(u16);
 
-  size_t base_idx = voice_id * vpb_size;
-  for (size_t i = 0; i < vpb_size; ++i)
-    vpb_words[i] = Common::swap16(ram_vpbs[base_idx + i]);
+  u32 base_idx = voice_id * vpb_size;
+  memory.CopyFromEmuSwapped(vpb_words, m_vpb_base_addr + base_idx, vpb_size);
 
   if (m_flags & TINY_VPB)
     vpb->Uncompress();
@@ -1467,17 +1451,15 @@ void ZeldaAudioRenderer::StoreVPB(u16 voice_id, VPB* vpb)
 {
   auto& memory = m_system.GetMemory();
   u16* vpb_words = (u16*)vpb;
-  u16* ram_vpbs = (u16*)HLEMemory_Get_Pointer(memory, m_vpb_base_addr);
 
-  size_t vpb_size = (m_flags & TINY_VPB) ? 0x80 : 0xC0;
-  size_t base_idx = voice_id * vpb_size;
+  u32 vpb_size = ((m_flags & TINY_VPB) ? 0x80 : 0xC0) * sizeof(u16);
+  u32 base_idx = voice_id * vpb_size;
 
   if (m_flags & TINY_VPB)
     vpb->Compress();
 
   // Only the first 0x80 words are transferred back - the rest is read-only.
-  for (size_t i = 0; i < vpb_size - 0x40; ++i)
-    ram_vpbs[base_idx + i] = Common::swap16(vpb_words[i]);
+  memory.CopyToEmuSwapped(m_vpb_base_addr + base_idx, vpb_words, vpb_size - 0x80);
 }
 
 void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
@@ -1649,12 +1631,21 @@ void ZeldaAudioRenderer::Resample(VPB* vpb, const s16* src, MixingBuffer* dst)
   vpb->current_pos_frac = pos & 0xFFF;
 }
 
-void* ZeldaAudioRenderer::GetARAMPtr(u32 offset) const
+static u8* GetARAMPointerForRange(const Core::System& system, u32 aram_base_addr, u32 offset,
+                                  size_t size)
 {
-  if (m_system.IsWii())
-    return HLEMemory_Get_Pointer(m_system.GetMemory(), m_aram_base_addr + offset);
+  if (system.IsWii())
+  {
+    const auto& memory = system.GetMemory();
+    return memory.GetPointerForRange(aram_base_addr + offset, size);
+  }
   else
-    return reinterpret_cast<u8*>(m_system.GetDSP().GetARAMPtr()) + offset;
+  {
+    const auto& dsp = system.GetDSP();
+    if (offset >= dsp.GetARAMSize() || size > dsp.GetARAMSize() - offset)
+      return nullptr;
+    return system.GetDSP().GetARAMPtr() + offset;
+  }
 }
 
 template <typename T>
@@ -1691,8 +1682,9 @@ void ZeldaAudioRenderer::DownloadPCMSamplesFromARAM(s16* dst, VPB* vpb, u16 requ
       vpb->SetCurrentARAMAddr(vpb->GetBaseAddress() + vpb->GetCurrentPosition() * sizeof(T));
     }
 
-    T* src_ptr = (T*)GetARAMPtr(vpb->GetCurrentARAMAddr());
     u16 samples_to_download = std::min(vpb->GetRemainingLength(), (u32)requested_samples_count);
+    T* src_ptr = reinterpret_cast<T*>(GetARAMPointerForRange(
+        m_system, m_aram_base_addr, vpb->GetCurrentARAMAddr(), samples_to_download * sizeof(T)));
 
     for (u16 i = 0; i < samples_to_download; ++i)
       *dst++ = Common::FromBigEndian<T>(*src_ptr++) << (16 - 8 * sizeof(T));
@@ -1826,7 +1818,8 @@ void ZeldaAudioRenderer::DownloadAFCSamplesFromARAM(s16* dst, VPB* vpb, u16 requ
 void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
 {
   u32 addr = vpb->GetCurrentARAMAddr();
-  u8* src = (u8*)GetARAMPtr(addr);
+  u8* src = (u8*)GetARAMPointerForRange(m_system, m_aram_base_addr, addr,
+                                        block_count * vpb->samples_source_type);
   vpb->SetCurrentARAMAddr(addr + (u32)block_count * vpb->samples_source_type);
 
   for (size_t b = 0; b < block_count; ++b)
@@ -1883,39 +1876,39 @@ void ZeldaAudioRenderer::DownloadRawSamplesFromMRAM(s16* dst, VPB* vpb, u16 requ
 {
   auto& memory = m_system.GetMemory();
   u32 addr = vpb->GetBaseAddress() + vpb->current_position_h * sizeof(u16);
-  s16* src_ptr = (s16*)HLEMemory_Get_Pointer(memory, addr);
 
-  if (requested_samples_count > vpb->GetRemainingLength())
+  u32 remaining_length = vpb->GetRemainingLength();
+  if (requested_samples_count > remaining_length)
   {
     s16 last_sample = 0;
-    for (u16 i = 0; i < vpb->GetRemainingLength(); ++i)
-      *dst++ = last_sample = Common::swap16(*src_ptr++);
-    for (u16 i = vpb->GetRemainingLength(); i < requested_samples_count; ++i)
+    if (remaining_length != 0)
+    {
+      memory.CopyFromEmuSwapped(dst, addr, remaining_length * sizeof(s16));
+      last_sample = dst[remaining_length - 1];
+    }
+    for (u16 i = remaining_length; i < requested_samples_count; ++i)
       *dst++ = last_sample;
 
-    vpb->current_position_h += vpb->GetRemainingLength();
+    vpb->current_position_h += remaining_length;
     vpb->SetRemainingLength(0);
     vpb->done = true;
   }
   else
   {
-    vpb->SetRemainingLength(vpb->GetRemainingLength() - requested_samples_count);
+    vpb->SetRemainingLength(remaining_length - requested_samples_count);
     vpb->samples_before_loop = vpb->loop_start_position_h - vpb->current_position_h;
     if (requested_samples_count <= vpb->samples_before_loop)
     {
-      for (u16 i = 0; i < requested_samples_count; ++i)
-        *dst++ = Common::swap16(*src_ptr++);
+      memory.CopyFromEmuSwapped(dst, addr, requested_samples_count * sizeof(s16));
       vpb->current_position_h += requested_samples_count;
     }
     else
     {
-      for (u16 i = 0; i < vpb->samples_before_loop; ++i)
-        *dst++ = Common::swap16(*src_ptr++);
+      memory.CopyFromEmuSwapped(dst, addr, vpb->samples_before_loop * sizeof(s16));
       vpb->SetBaseAddress(vpb->GetLoopAddress());
-      src_ptr = (s16*)HLEMemory_Get_Pointer(memory, vpb->GetLoopAddress());
-      for (u16 i = vpb->samples_before_loop; i < requested_samples_count; ++i)
-        *dst++ = Common::swap16(*src_ptr++);
       vpb->current_position_h = requested_samples_count - vpb->samples_before_loop;
+      memory.CopyFromEmuSwapped(dst + vpb->samples_before_loop, vpb->GetLoopAddress(),
+                                vpb->current_position_h * sizeof(s16));
     }
   }
 }

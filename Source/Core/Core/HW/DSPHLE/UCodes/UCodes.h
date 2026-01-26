@@ -23,23 +23,6 @@ class DSPHLE;
 #define UCODE_INIT_AUDIO_SYSTEM 0x00000001
 #define UCODE_NULL 0xFFFFFFFF
 
-u8 HLEMemory_Read_U8(Memory::MemoryManager& memory, u32 address);
-void HLEMemory_Write_U8(Memory::MemoryManager& memory, u32 address, u8 value);
-
-u16 HLEMemory_Read_U16LE(Memory::MemoryManager& memory, u32 address);
-u16 HLEMemory_Read_U16(Memory::MemoryManager& memory, u32 address);
-
-void HLEMemory_Write_U16LE(Memory::MemoryManager& memory, u32 address, u16 value);
-void HLEMemory_Write_U16(Memory::MemoryManager& memory, u32 address, u16 value);
-
-u32 HLEMemory_Read_U32LE(Memory::MemoryManager& memory, u32 address);
-u32 HLEMemory_Read_U32(Memory::MemoryManager& memory, u32 address);
-
-void HLEMemory_Write_U32LE(Memory::MemoryManager& memory, u32 address, u32 value);
-void HLEMemory_Write_U32(Memory::MemoryManager& memory, u32 address, u32 value);
-
-void* HLEMemory_Get_Pointer(Memory::MemoryManager& memory, u32 address);
-
 class UCodeInterface
 {
 public:

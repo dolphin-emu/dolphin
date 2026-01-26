@@ -123,6 +123,7 @@ public:
   u16 Read_U16(u32 address) const;
   u32 Read_U32(u32 address) const;
   u64 Read_U64(u32 address) const;
+  u32 Read_U32_Swap(u32 address) const;
   void Write_U8(u8 var, u32 address);
   void Write_U16(u16 var, u32 address);
   void Write_U32(u32 var, u32 address);
