@@ -70,7 +70,6 @@ bool InputConfig::LoadConfig()
   {
     int n = 0;
 
-    std::vector<std::string> controller_names;
     for (auto& controller : m_controllers)
     {
       Common::IniFile::Section config;
@@ -92,7 +91,6 @@ bool InputConfig::LoadConfig()
       }
       controller->LoadConfig(&config);
       controller->UpdateReferences(g_controller_interface);
-      controller_names.push_back(controller->GetName());
 
       // Next profile
       n++;
@@ -125,11 +123,9 @@ void InputConfig::SaveConfig()
   Common::IniFile inifile;
   inifile.Load(ini_filename);
 
-  std::vector<std::string> controller_names;
   for (auto& controller : m_controllers)
   {
     controller->SaveConfig(inifile.GetOrCreateSection(controller->GetName()));
-    controller_names.push_back(controller->GetName());
   }
 
   inifile.Save(ini_filename);
