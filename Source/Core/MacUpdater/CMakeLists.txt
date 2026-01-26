@@ -53,7 +53,7 @@ endforeach()
 include(DolphinInjectVersionInfo)
 dolphin_inject_version_info(MacUpdater)
 
-if(NOT SKIP_POSTPROCESS_BUNDLE)
+if(POSTPROCESS_BUNDLE)
   # Update library references to make the bundle portable
   include(DolphinPostprocessBundle)
   dolphin_postprocess_bundle(MacUpdater)

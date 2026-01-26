@@ -671,7 +671,7 @@ if(APPLE)
     endif()
   endif()
 
-  if(NOT SKIP_POSTPROCESS_BUNDLE)
+  if(POSTPROCESS_BUNDLE)
     # Update library references to make the bundle portable
     include(DolphinPostprocessBundle)
     dolphin_postprocess_bundle(dolphin-emu)
