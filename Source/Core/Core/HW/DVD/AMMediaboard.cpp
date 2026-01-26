@@ -394,7 +394,7 @@ u8* InitDIMM(u32 size)
 static s32 NetDIMMAccept(int fd, sockaddr* addr, socklen_t* len)
 {
   SOCKET client_sock = INVALID_SOCKET;
-  fd_set readfds;
+  fd_set readfds{};
 
   FD_ZERO(&readfds);
   FD_SET(fd, &readfds);
@@ -481,7 +481,7 @@ static s32 NetDIMMConnect(int fd, sockaddr_in* addr, int len)
 
   if (ret == SOCKET_ERROR && err == WSAEWOULDBLOCK)
   {
-    fd_set writefds;
+    fd_set writefds{};
     FD_ZERO(&writefds);
     FD_SET(fd, &writefds);
 
@@ -941,13 +941,14 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         const SOCKET fd = s_sockets[SocketCheck(s_media_buffer_32[2])];
         u32 off = s_media_buffer_32[3];
         auto len = std::min<u32>(s_media_buffer_32[4], sizeof(s_network_buffer));
+        const u64 off_len = u64(off) + len;
 
         if (off >= NetworkBufferAddress4 &&
-            off + len <= NetworkBufferAddress4 + sizeof(s_network_buffer))
+            off_len <= NetworkBufferAddress4 + sizeof(s_network_buffer))
         {
           off -= NetworkBufferAddress4;
         }
-        else if (off + len > sizeof(s_network_buffer))
+        else if (off_len > sizeof(s_network_buffer))
         {
           ERROR_LOG_FMT(AMMEDIABOARD_NET,
                         "GC-AM: recv(error) invalid destination or length: off={:08x}, len={}\n",
@@ -971,13 +972,14 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         const SOCKET fd = s_sockets[SocketCheck(s_media_buffer_32[2])];
         u32 off = s_media_buffer_32[3];
         auto len = std::min<u32>(s_media_buffer_32[4], sizeof(s_network_buffer));
+        const u64 off_len = u64(off) + len;
 
         if (off >= NetworkBufferAddress3 &&
-            off + len <= NetworkBufferAddress3 + sizeof(s_network_buffer))
+            off_len <= NetworkBufferAddress3 + sizeof(s_network_buffer))
         {
           off -= NetworkBufferAddress3;
         }
-        else if (off + len > sizeof(s_network_buffer))
+        else if (off_len > sizeof(s_network_buffer))
         {
           ERROR_LOG_FMT(AMMEDIABOARD_NET,
                         "GC-AM: send(error) unhandled destination or length: {:08x}, len={}", off,
@@ -1033,7 +1035,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         timeval timeout = {};
         std::optional<u32> timeout_offset;
 
-        fd_set fds;
+        fd_set fds{};
         FD_ZERO(&fds);
         FD_SET(fd, &fds);
 
@@ -1276,8 +1278,11 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       if (offset >= 0x00400000 && offset <= 0x600000)
       {
         const u32 fw_offset = offset - 0x00400000;
-        // TODO: Bounds checking for s_firmware
-        memory.CopyFromEmu(s_firmware + fw_offset, address, length);
+        if (!SafeCopyFromEmu(memory, s_firmware, address, sizeof(s_firmware), fw_offset, length))
+        {
+          ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Invalid firmware write: offset={}, length={}",
+                        fw_offset, length);
+        }
         return 0;
       }
     }
@@ -1540,13 +1545,14 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         const SOCKET fd = s_sockets[SocketCheck(s_media_buffer_32[10])];
         u32 off = s_media_buffer_32[11];
         auto len = std::min<u32>(s_media_buffer_32[12], sizeof(s_network_buffer));
+        const u64 off_len = u64(off) + len;
 
         if (off >= NetworkBufferAddress5 &&
-            off + len <= NetworkBufferAddress5 + sizeof(s_network_buffer))
+            off_len <= NetworkBufferAddress5 + sizeof(s_network_buffer))
         {
           off -= NetworkBufferAddress5;
         }
-        else if (off + len > sizeof(s_network_buffer))
+        else if (off_len > sizeof(s_network_buffer))
         {
           ERROR_LOG_FMT(AMMEDIABOARD_NET,
                         "GC-AM: recv(error) invalid destination or length: off={:08x}, len={}\n",
@@ -1570,13 +1576,14 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         const SOCKET fd = s_sockets[SocketCheck(s_media_buffer_32[10])];
         u32 off = s_media_buffer_32[11];
         auto len = std::min<u32>(s_media_buffer_32[12], sizeof(s_network_buffer));
+        const u64 off_len = u64(off) + len;
 
         if (off >= NetworkBufferAddress1 &&
-            off + len <= NetworkBufferAddress1 + sizeof(s_network_buffer))
+            off_len <= NetworkBufferAddress1 + sizeof(s_network_buffer))
         {
           off -= NetworkBufferAddress1;
         }
-        else if (off + len > sizeof(s_network_buffer))
+        else if (off_len > sizeof(s_network_buffer))
         {
           ERROR_LOG_FMT(AMMEDIABOARD_NET,
                         "GC-AM: send(error) unhandled destination or length: {:08x}, len={}", off,
@@ -1620,7 +1627,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         timeval timeout = {};
         std::optional<u32> timeout_offset;
 
-        fd_set fds;
+        fd_set fds{};
         FD_ZERO(&fds);
         FD_SET(fd, &fds);
 
@@ -1737,8 +1744,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         break;
       case AMMBCommand::SetupLink:
       {
-        sockaddr_in addra;
-        sockaddr_in addrb;
+        sockaddr_in addra{};
+        sockaddr_in addrb{};
 
         addra.sin_addr.s_addr = s_media_buffer_32[12];
         addrb.sin_addr.s_addr = s_media_buffer_32[13];
