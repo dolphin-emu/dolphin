@@ -269,8 +269,8 @@ void OGLTexture::ResolveFromTexture(const AbstractTexture* src,
                                     const MathUtil::Rectangle<int>& rect, u32 layer, u32 level)
 {
   const OGLTexture* srcentry = static_cast<const OGLTexture*>(src);
-  DEBUG_ASSERT(m_config.samples > 1 && m_config.width == srcentry->m_config.width &&
-               m_config.height == srcentry->m_config.height && m_config.samples == 1);
+  DEBUG_ASSERT(m_config.samples == 1 && m_config.width == srcentry->m_config.width &&
+               m_config.height == srcentry->m_config.height && srcentry->m_config.samples > 1);
   DEBUG_ASSERT(rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&
                rect.top + rect.GetHeight() <= static_cast<int>(srcentry->m_config.height));
   BlitFramebuffer(const_cast<OGLTexture*>(srcentry), rect, layer, level, rect, layer, level);
