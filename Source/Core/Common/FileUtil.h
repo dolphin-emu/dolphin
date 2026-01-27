@@ -26,11 +26,12 @@ enum
 {
   D_USER_IDX,
   D_GCUSER_IDX,
-  D_WIIROOT_IDX,          // always points to User/Wii or global user-configured directory
-  D_SESSION_WIIROOT_IDX,  // may point to minimal temporary directory for determinism
-  D_CONFIG_IDX,           // global settings
-  D_GAMESETTINGS_IDX,     // user-specified settings which override both the global and the default
-                          // settings (per game)
+  D_WIIROOT_IDX,           // always points to User/Wii or global user-configured directory
+  D_SESSION_WIIROOT_IDX,   // may point to minimal temporary directory for determinism
+  D_CONFIG_IDX,            // global settings
+  D_APPLICATIONSTATE_IDX,  // data that is not portable (window positions, open recent, etc.)
+  D_GAMESETTINGS_IDX,      // user-specified settings which override both the global and the default
+                           // settings (per game)
   D_SKYLANDERS_IDX,
 
   D_MAPS_IDX,
@@ -97,6 +98,7 @@ enum
   F_FREELOOKCONFIG_IDX,
   F_GBABIOS_IDX,
   F_RETROACHIEVEMENTSCONFIG_IDX,
+  F_QSETTINGSCONFIG_IDX,
   NUM_PATH_INDICES
 };
 

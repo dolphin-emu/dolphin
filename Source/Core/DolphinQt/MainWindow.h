@@ -218,6 +218,7 @@ private:
   void OpenUserFolder();
   void OpenConfigFolder();
   void OpenCacheFolder();
+  void OpenAppStateFolder();
 
   QStringList PromptFileNames();
 
