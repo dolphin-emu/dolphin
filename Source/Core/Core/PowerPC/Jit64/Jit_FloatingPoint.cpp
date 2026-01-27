@@ -558,7 +558,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 
       const BitSet32 registers_in_use = registers_to_save(scratch_registers_to_save);
       ABI_PushRegistersAndAdjustStack(registers_in_use, 0);
-      ABI_CallFunction(static_cast<double (*)(double, double, double)>(&std::fma));
+      QuickCallFunction(static_cast<double (*)(double, double, double)>(&std::fma));
       ABI_PopRegistersAndAdjustStack(registers_in_use, 0);
     }
 
