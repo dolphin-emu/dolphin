@@ -31,6 +31,7 @@ enum class BooleanSetting(
         false
     ),
     MAIN_AUDIO_FILL_GAPS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "AudioFillGaps", true),
+    MAIN_AUDIO_PRESERVE_PITCH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "AudioPreservePitch", false),
     MAIN_BBA_XLINK_CHAT_OSD(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_CORE,

@@ -71,7 +71,7 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
       static_cast<double>(FIXED_SAMPLE_RATE_DIVIDEND) / m_input_sample_rate_divisor;
 
   const double emulation_speed = m_mixer->m_config_emulation_speed;
-  if (0 < emulation_speed && emulation_speed != 1.0)
+  if (!m_mixer->m_config_audio_preserve_pitch && 0 < emulation_speed && emulation_speed != 1.0)
     in_sample_rate *= emulation_speed;
 
   const double base = static_cast<double>(1 << GRANULE_FRAC_BITS);
@@ -430,6 +430,7 @@ void Mixer::StopLogDSPAudio()
 void Mixer::RefreshConfig()
 {
   m_config_emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
+  m_config_audio_preserve_pitch = Config::Get(Config::MAIN_AUDIO_PRESERVE_PITCH);
   m_config_fill_audio_gaps = Config::Get(Config::MAIN_AUDIO_FILL_GAPS);
   m_config_audio_buffer_ms = Config::Get(Config::MAIN_AUDIO_BUFFER_SIZE);
 }
