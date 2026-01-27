@@ -20,6 +20,11 @@ if(CCACHE_BIN)
   set(CCACHE_BINARY ${CCACHE_BIN})
 endif()
 
+if(LibUSB_TYPE STREQUAL Bundled)
+  set(LibUSB_FOUND TRUE)
+  set(SDL_HIDAPI_LIBUSB_SHARED OFF)
+endif()
+
 add_subdirectory(SDL)
 
 if (TARGET SDL3)

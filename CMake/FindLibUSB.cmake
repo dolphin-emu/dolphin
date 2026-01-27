@@ -11,8 +11,15 @@
 if(ANDROID)
   set(LIBUSB_FOUND FALSE CACHE INTERNAL "libusb-1.0 found")
   message(STATUS "libusb-1.0 not found.")
-elseif (NOT LIBUSB_FOUND)
-  pkg_check_modules (LIBUSB_PKG libusb-1.0)
+  return()
+endif()
+
+if(TARGET LibUSB::LibUSB)
+  return()
+endif()
+
+if(NOT LIBUSB_FOUND)
+  pkg_check_modules(LIBUSB_PKG libusb-1.0)
 
   find_path(LIBUSB_INCLUDE_DIR NAMES libusb.h
     PATHS
@@ -30,21 +37,19 @@ elseif (NOT LIBUSB_FOUND)
     /usr/local/lib
   )
 
-  if(LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARIES)
-    set(LIBUSB_FOUND TRUE CACHE INTERNAL "libusb-1.0 found")
-    message(STATUS "Found libusb-1.0: ${LIBUSB_INCLUDE_DIR}, ${LIBUSB_LIBRARIES}")
-  else(LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARIES)
-    set(LIBUSB_FOUND FALSE CACHE INTERNAL "libusb-1.0 found")
-    message(STATUS "libusb-1.0 not found.")
-  endif(LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARIES)
-
   mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARIES)
-endif ()
-if(LIBUSB_FOUND AND NOT TARGET LibUSB::LibUSB)
+endif()
+
+
+if(LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARIES)
   add_library(LibUSB::LibUSB UNKNOWN IMPORTED)
   set_target_properties(LibUSB::LibUSB PROPERTIES
     IMPORTED_LOCATION "${LIBUSB_LIBRARIES}"
     INTERFACE_INCLUDE_DIRECTORIES "${LIBUSB_INCLUDE_DIR}"
   )
+  set(LIBUSB_FOUND TRUE CACHE INTERNAL "libusb-1.0 found")
+  message(STATUS "Found libusb-1.0: ${LIBUSB_INCLUDE_DIR}, ${LIBUSB_LIBRARIES}")
+else()
+  set(LIBUSB_FOUND FALSE CACHE INTERNAL "libusb-1.0 found")
+  message(STATUS "libusb-1.0 not found.")
 endif()
-
