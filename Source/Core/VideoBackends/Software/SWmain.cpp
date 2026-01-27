@@ -22,6 +22,11 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
+namespace Core
+{
+class System;
+}
+
 namespace SW
 {
 class PerfQuery : public PerfQueryBase
@@ -89,7 +94,7 @@ void VideoSoftware::InitBackendInfo(const WindowSystemInfo& wsi)
   g_backend_info.AAModes = {1};
 }
 
-bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)
+bool VideoSoftware::Initialize(Core::System& system, const WindowSystemInfo& wsi)
 {
   std::unique_ptr<SWOGLWindow> window = SWOGLWindow::Create(wsi);
   if (!window)
@@ -98,14 +103,14 @@ bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)
   Clipper::Init();
   Rasterizer::Init();
 
-  return InitializeShared(std::make_unique<SWGfx>(std::move(window)),
-                          std::make_unique<SWVertexLoader>(), std::make_unique<PerfQuery>(),
+  return InitializeShared(system, std::make_unique<SWGfx>(std::move(window)),
+                          std::make_unique<SWVertexLoader>(system), std::make_unique<PerfQuery>(),
                           std::make_unique<SWBoundingBox>(), std::make_unique<SWEFBInterface>(),
                           std::make_unique<TextureCache>());
 }
 
-void VideoSoftware::Shutdown()
+void VideoSoftware::Shutdown(Core::System& system)
 {
-  ShutdownShared();
+  ShutdownShared(system);
 }
 }  // namespace SW

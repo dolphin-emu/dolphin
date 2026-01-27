@@ -15,11 +15,12 @@
 
 bool CBoot::BootNANDTitle(Core::System& system, const u64 title_id)
 {
-  UpdateStateFlags([](StateFlags* state) {
+  IOS::HLE::EmulationKernel* const ios = system.GetIOS();
+  UpdateStateFlags(ios, [](StateFlags* const state) {
     state->type = 0x04;  // TYPE_NANDBOOT
   });
 
-  auto es = system.GetIOS()->GetESDevice();
+  auto es = ios->GetESDevice();
   const IOS::ES::TicketReader ticket = es->GetCore().FindSignedTicket(title_id);
   auto console_type = IOS::HLE::IOSC::ConsoleType::Retail;
   if (ticket.IsValid())

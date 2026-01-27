@@ -27,7 +27,7 @@
 #include "VideoCommon/XFMemory.h"
 #include "VideoCommon/XFStateManager.h"
 
-void VideoCommon_DoState(PointerWrap& p)
+void VideoCommon_DoState(Core::System& system, PointerWrap& p)
 {
   bool software = false;
   p.Do(software);
@@ -63,7 +63,6 @@ void VideoCommon_DoState(PointerWrap& p)
   p.DoMarker("TMEM");
 
   // FIFO
-  auto& system = Core::System::GetInstance();
   system.GetFifo().DoState(p);
   p.DoMarker("Fifo");
 

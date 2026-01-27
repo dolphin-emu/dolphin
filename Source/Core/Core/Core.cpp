@@ -454,14 +454,14 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
     AsyncRequests::GetInstance()->SetPassthrough(!system.IsDualCoreMode());
 
     // Must happen on the proper thread for some video backends, e.g. OpenGL.
-    return g_video_backend->Initialize(wsi);
+    return g_video_backend->Initialize(system, wsi);
   };
 
-  const auto deinit_video = [] {
+  auto deinit_video = [&] {
     // Clear on screen messages that haven't expired
     OSD::ClearMessages();
 
-    g_video_backend->Shutdown();
+    g_video_backend->Shutdown(system);
   };
 
   if (system.IsDualCoreMode())
@@ -469,7 +469,11 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
     std::promise<bool> init_from_thread;
 
     // Spawn the GPU thread.
-    std::thread gpu_thread{[&] {
+    // Capture deinit_video by value to prevent a reference to it from being used by gpu_thread
+    // after GetInitializedVideoGuard returns. init_video doesn't need to be captured by value
+    // because it's only used before init_from_thread is set, while GetInitializedVideoGuard waits
+    // on init_from_thread below and can only return after that.
+    std::thread gpu_thread{[&, deinit_video] {
       Common::SetCurrentThreadName("Video thread");
 
       const bool is_init = init_video();
@@ -500,7 +504,7 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
   else  // SingleCore mode
   {
     if (init_video())
-      return std::make_unique<GuardType>(deinit_video);
+      return std::make_unique<GuardType>(std::move(deinit_video));
   }
 
   return ReturnType{};
