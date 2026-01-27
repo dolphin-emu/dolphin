@@ -157,8 +157,11 @@ public:
   // Directly accessed by the JIT.
   Globals& GetGlobals() { return m_globals; }
 
+  // Callable from any thread. Takes effect on the next Throttle call.
+  void AdjustThrottleReferenceTime(DT adjustment);
+
   // Throttle the CPU to the specified target cycle.
-  void Throttle(const s64 target_cycle);
+  void Throttle(s64 target_cycle);
 
   // May be used from CPU or GPU thread.
   void SleepUntil(TimePoint time_point);
@@ -211,16 +214,17 @@ private:
 
   s64 m_throttle_reference_cycle = 0;
   TimePoint m_throttle_reference_time = Clock::now();
+  std::atomic<DT::rep> m_throttle_reference_time_adjustment{};
+
   u32 m_throttle_adj_clock_per_sec = 0;
   bool m_throttle_disable_vi_int = false;
 
   DT m_max_fallback = {};
   DT m_max_variance = {};
   bool m_correct_time_drift = false;
-  double m_emulation_speed = 1.0;
 
   bool IsSpeedUnlimited() const;
-  void UpdateSpeedLimit(s64 cycle, double new_speed);
+  void UpdateSpeedLimit(s64 cycle);
   void ResetThrottle(s64 cycle);
   TimePoint CalculateTargetHostTimeInternal(s64 target_cycle);
   void UpdateVISkip(TimePoint current_time, TimePoint target_time);
