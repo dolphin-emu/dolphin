@@ -188,6 +188,8 @@
     <string name="audio_buffer_size_description">Controls the number of audio samples buffered. Lower values reduce latency but may cause more crackling or stuttering. If unsure, set this to 80 ms.</string>
     <string name="audio_fill_gaps">Fill Audio Gaps</string>
     <string name="audio_fill_gaps_description">Repeat existing audio during lag spikes to prevent stuttering. If unsure, leave this checked.</string>
+    <string name="audio_preserve_pitch">Preserve Audio Pitch</string>
+    <string name="audio_preserve_pitch_description">Keeps audio at normal pitch when changing emulation speed. Without this, audio pitch changes proportionally with speed. If unsure, leave this unchecked.</string>
     <string name="audio_volume">Audio Volume</string>
 
     <!-- Path Settings -->
