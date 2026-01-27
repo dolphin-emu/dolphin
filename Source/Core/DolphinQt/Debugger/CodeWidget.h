@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <QComboBox>
 #include <QDockWidget>
 #include <QString>
 
@@ -11,6 +12,7 @@
 
 class BranchWatchDialog;
 class QCloseEvent;
+class QComboBox;
 class QLineEdit;
 class QShowEvent;
 class QSplitter;
@@ -28,6 +30,21 @@ namespace Core
 class System;
 }
 class PPCSymbolDB;
+
+class DeleteAddressEventFilter final : public QObject
+{
+  Q_OBJECT
+public:
+  explicit DeleteAddressEventFilter(QComboBox* combo_box)
+      : QObject(combo_box), m_combo_box(combo_box)
+  {
+  }
+  using QObject::QObject;
+
+private:
+  QComboBox* m_combo_box;
+  bool eventFilter(QObject* object, QEvent* event) override;
+};
 
 class CodeWidget : public QDockWidget
 {
@@ -65,6 +82,7 @@ private:
   void UpdateNotes();
 
   void OnPPCSymbolsChanged();
+  void OnSaveAddress();
   void OnSearchAddress();
   void OnSearchSymbols();
   void OnSelectSymbol();
@@ -80,7 +98,8 @@ private:
   PPCSymbolDB& m_ppc_symbol_db;
 
   BranchWatchDialog* m_branch_watch_dialog = nullptr;
-  QLineEdit* m_search_address;
+  QComboBox* m_search_address;
+  QToolButton* m_save_address_btn;
   QToolButton* m_lock_btn;
   QPushButton* m_branch_watch;
 
