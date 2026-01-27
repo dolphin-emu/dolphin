@@ -77,6 +77,16 @@ CPUCoreBase* JitInterface::GetCore() const
   return m_jit.get();
 }
 
+#ifndef _ARCH_32
+bool JitInterface::WantsPageTableMappings() const
+{
+  if (!m_jit)
+    return false;
+
+  return m_jit->WantsPageTableMappings();
+}
+#endif
+
 void JitInterface::UpdateMembase()
 {
   if (!m_jit)

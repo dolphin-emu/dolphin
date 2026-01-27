@@ -217,6 +217,8 @@ public:
 
   virtual const CommonAsmRoutinesBase* GetAsmRoutines() = 0;
 
+  virtual bool WantsPageTableMappings() const;
+
   virtual bool HandleFault(uintptr_t access_address, SContext* ctx) = 0;
   bool HandleStackFault();
 
