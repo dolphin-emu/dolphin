@@ -181,6 +181,8 @@ add_library(core
   HW/DSPLLE/DSPSymbols.h
   HW/DVD/DVDInterface.cpp
   HW/DVD/DVDInterface.h
+  HW/DVD/AMMediaboard.cpp
+  HW/DVD/AMMediaboard.h
   HW/DVD/DVDMath.cpp
   HW/DVD/DVDMath.h
   HW/DVD/DVDThread.cpp
@@ -274,6 +276,8 @@ add_library(core
   HW/SI/SI_DeviceGCSteeringWheel.h
   HW/SI/SI_DeviceKeyboard.cpp
   HW/SI/SI_DeviceKeyboard.h
+  HW/SI/SI_DeviceAMBaseboard.cpp
+  HW/SI/SI_DeviceAMBaseboard.h
   HW/SI/SI_DeviceNull.cpp
   HW/SI/SI_DeviceNull.h
   HW/SI/SI.cpp
