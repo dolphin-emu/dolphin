@@ -13,7 +13,7 @@
 #include <fmt/format.h>
 
 #if defined(_WIN32)
-#include <Windows.h>
+#include <windows.h>
 #include "Common/WindowsRegistry.h"
 #elif defined(__APPLE__)
 #include <objc/message.h>

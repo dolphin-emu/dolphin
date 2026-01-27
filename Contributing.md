@@ -200,6 +200,8 @@ Summary:
 - The preferred form of the increment and decrement operator in for-loops is prefix-form (e.g. `++var`).
 
 ## <a name="cpp-code-headers"></a>Headers
+- All includes should be in lowercase.
+  - `#include <windows.h>`
 - If a header is not necessary in a certain source file, remove them.
 - If you find duplicate includes of a certain header, remove it.
 - When declaring includes in a source file, make sure they follow the given pattern:
