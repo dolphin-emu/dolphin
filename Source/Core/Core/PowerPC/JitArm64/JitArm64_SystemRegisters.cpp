@@ -227,8 +227,8 @@ void JitArm64::mtmsr(UGeckoInstruction inst)
   if (!imm_value)
     MSRUpdated(gpr.R(inst.RS));
 
-  gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-  fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+  gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
+  fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
 
   WriteExceptionExit(js.compilerPC + 4, true);
 }
@@ -393,8 +393,8 @@ void JitArm64::twx(UGeckoInstruction inst)
 
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
   {
-    gpr.Flush(FlushMode::All, WA);
-    fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+    gpr.Flush(FlushMode::Full, WA);
+    fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
     WriteExit(js.compilerPC + 4);
   }
 }
@@ -740,15 +740,12 @@ void JitArm64::mfcr(UGeckoInstruction inst)
     CMP(CR, ARM64Reg::ZR);
     CSEL(WA, WC, WA, CC_GT);
 
-    // To reduce register pressure and to avoid getting a pipeline-unfriendly long run of stores
-    // after this instruction, flush registers that would be flushed after this instruction anyway.
-    //
-    // There's no point in ensuring we flush two registers at the same time, because the offset in
-    // ppcState for CRs is too large to be encoded into an STP instruction.
+    // To reduce register pressure, flush registers that would be flushed after this instruction
+    // anyway.
     if (js.op->crDiscardable[i])
       gpr.DiscardCRRegisters(BitSet8{i});
-    else if (!js.op->crInUse[i])
-      gpr.StoreCRRegisters(BitSet8{i}, WC);
+    else if (!(js.op->crWillBeRead | js.op->crWillBeWritten)[i])
+      gpr.FlushCRRegisters(BitSet8{i}, FlushMode::Full, WC);
   }
 }
 
