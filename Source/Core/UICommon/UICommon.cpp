@@ -60,6 +60,7 @@
 namespace UICommon
 {
 static Config::ConfigChangedCallbackID s_config_changed_callback_id;
+static Common::HookableEvent<> s_flush_unsaved_data_event_hook;
 
 static void CreateDumpPath(std::string path)
 {
@@ -155,6 +156,17 @@ void Shutdown()
   g_Config.Shutdown();
   SConfig::Shutdown();
   Config::Shutdown();
+}
+
+[[nodiscard]] Common::EventHook AddFlushUnsavedDataCallback(std::function<void()> callback)
+{
+  return s_flush_unsaved_data_event_hook.Register(std::move(callback));
+}
+
+void FlushUnsavedData()
+{
+  INFO_LOG_FMT(CORE, "Flushing unsaved data...");
+  s_flush_unsaved_data_event_hook.Trigger();
 }
 
 void InitControllers(const WindowSystemInfo& wsi)
