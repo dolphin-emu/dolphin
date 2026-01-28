@@ -112,6 +112,8 @@ void WiiPane::CreateMisc()
   misc_settings_group->setLayout(misc_settings_group_layout);
   m_main_layout->addWidget(misc_settings_group);
   m_pal60_mode_checkbox = new ConfigBool(tr("Use PAL60 Mode (EuRGB60)"), Config::SYSCONF_PAL60);
+  m_prog_scan_checkbox =
+      new ConfigBool(tr("Enable Progressive Scan"), Config::SYSCONF_PROGRESSIVE_SCAN);
   m_screensaver_checkbox = new ConfigBool(tr("Enable Screen Saver"), Config::SYSCONF_SCREENSAVER);
   m_wiilink_checkbox =
       new ConfigBool(tr("Enable WiiConnect24 via WiiLink"), Config::MAIN_WII_WIILINK_ENABLE);
@@ -141,6 +143,10 @@ void WiiPane::CreateMisc()
   m_pal60_mode_checkbox->SetDescription(
       tr("Sets the Wii display mode to 60Hz (480i) instead of 50Hz "
          "(576i) for PAL games.\nMay not work for all games."));
+  m_prog_scan_checkbox->SetDescription(
+      tr("Enables progressive scan if supported by the emulated software. Most games don't have "
+         "any issue with this.<br><br><dolphin_emphasis>If unsure, leave this "
+         "unchecked.</dolphin_emphasis>"));
   m_screensaver_checkbox->SetDescription(tr("Dims the screen after five minutes of inactivity."));
   m_wiilink_checkbox->SetDescription(tr(
       "Enables the WiiLink service for WiiConnect24 channels.\nWiiLink is an alternate provider "
@@ -150,16 +156,29 @@ void WiiPane::CreateMisc()
   m_connect_keyboard_checkbox->SetDescription(
       tr("May cause slow down in Wii Menu and some games."));
 
-  misc_settings_group_layout->addWidget(m_pal60_mode_checkbox, 0, 0, 1, 1);
-  misc_settings_group_layout->addWidget(m_connect_keyboard_checkbox, 0, 1, 1, 1);
-  misc_settings_group_layout->addWidget(m_screensaver_checkbox, 1, 0, 1, 1);
-  misc_settings_group_layout->addWidget(m_wiilink_checkbox, 1, 1, 1, 1);
-  misc_settings_group_layout->addWidget(m_aspect_ratio_choice_label, 2, 0, 1, 1);
-  misc_settings_group_layout->addWidget(m_aspect_ratio_choice, 2, 1, 1, 1);
-  misc_settings_group_layout->addWidget(m_system_language_choice_label, 3, 0, 1, 1);
-  misc_settings_group_layout->addWidget(m_system_language_choice, 3, 1, 1, 1);
-  misc_settings_group_layout->addWidget(m_sound_mode_choice_label, 4, 0, 1, 1);
-  misc_settings_group_layout->addWidget(m_sound_mode_choice, 4, 1, 1, 1);
+  int row = 0;
+  misc_settings_group_layout->addWidget(m_pal60_mode_checkbox, row, 0, 1, 1);
+  misc_settings_group_layout->addWidget(m_prog_scan_checkbox, row, 1, 1, 1);
+  ++row;
+
+  misc_settings_group_layout->addWidget(m_connect_keyboard_checkbox, row, 0, 1, 1);
+  misc_settings_group_layout->addWidget(m_screensaver_checkbox, row, 1, 1, 1);
+  ++row;
+
+  misc_settings_group_layout->addWidget(m_wiilink_checkbox, row, 0, 1, 1);
+  ++row;
+
+  misc_settings_group_layout->addWidget(m_aspect_ratio_choice_label, row, 0, 1, 1);
+  misc_settings_group_layout->addWidget(m_aspect_ratio_choice, row, 1, 1, 1);
+  ++row;
+
+  misc_settings_group_layout->addWidget(m_system_language_choice_label, row, 0, 1, 1);
+  misc_settings_group_layout->addWidget(m_system_language_choice, row, 1, 1, 1);
+  ++row;
+
+  misc_settings_group_layout->addWidget(m_sound_mode_choice_label, row, 0, 1, 1);
+  misc_settings_group_layout->addWidget(m_sound_mode_choice, row, 1, 1, 1);
+  ++row;
 }
 
 void WiiPane::CreateSDCard()
@@ -334,6 +353,7 @@ void WiiPane::OnEmulationStateChanged(bool running)
 {
   m_screensaver_checkbox->setEnabled(!running);
   m_pal60_mode_checkbox->setEnabled(!running);
+  m_prog_scan_checkbox->setEnabled(!running);
   m_system_language_choice->setEnabled(!running);
   m_aspect_ratio_choice->setEnabled(!running);
   m_sound_mode_choice->setEnabled(!running);

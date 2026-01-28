@@ -22,6 +22,7 @@ public:
 
 signals:
   void BackendChanged(const QString& backend);
+  void UpdateSkipPresentingDuplicateFramesEnabled();
   void UseFastTextureSamplingChanged();
   void UseGPUTextureDecodingChanged();
 

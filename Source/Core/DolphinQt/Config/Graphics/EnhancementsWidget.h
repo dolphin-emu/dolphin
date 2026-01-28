@@ -45,21 +45,22 @@ private:
   void ConfigureColorCorrection();
   void ConfigurePostProcessingShader();
 
-  // Enhancements
+  // Internal Resolution
   ConfigChoice* m_ir_combo;
   ConfigComplexChoice* m_antialiasing_combo;
-  ConfigComplexChoice* m_texture_filtering_combo;
   ConfigChoice* m_output_resampling_combo;
+  ConfigBool* m_scaled_efb_copy;
+  ConfigBool* m_arbitrary_mipmap_detection;
+  ConfigBool* m_vertex_rounding;
+
+  // Enhancements
+  ConfigComplexChoice* m_texture_filtering_combo;
   ConfigStringChoice* m_post_processing_effect;
   ToolTipPushButton* m_configure_color_correction;
   QPushButton* m_configure_post_processing_effect;
-  ConfigBool* m_scaled_efb_copy;
-  ConfigBool* m_per_pixel_lighting;
-  ConfigBool* m_widescreen_hack;
-  ConfigBool* m_disable_fog;
-  ConfigBool* m_force_24bit_color;
   ConfigBool* m_disable_copy_filter;
-  ConfigBool* m_arbitrary_mipmap_detection;
+  ConfigBool* m_force_24bit_color;
+  ConfigBool* m_per_pixel_lighting;
   ConfigBool* m_hdr;
 
   // Stereoscopy
