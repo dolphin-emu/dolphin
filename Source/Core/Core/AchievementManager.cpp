@@ -4,6 +4,7 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 
 #include "Core/AchievementManager.h"
+#include "Core/AchievementApprovedHash.h"
 
 #include <memory>
 

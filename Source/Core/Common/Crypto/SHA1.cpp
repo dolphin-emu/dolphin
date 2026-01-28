@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <array>
+#include <fmt/ranges.h>
 #include <memory>
 
 #include <mbedtls/sha1.h>
@@ -390,17 +391,11 @@ Digest CalculateDigest(const u8* msg, size_t len)
 
 std::string DigestToString(const Digest& digest)
 {
-  static constexpr std::array<char, 16> lookup = {'0', '1', '2', '3', '4', '5', '6', '7',
-                                                  '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-  std::string hash;
-  hash.reserve(digest.size() * 2);
-  for (size_t i = 0; i < digest.size(); ++i)
-  {
-    const u8 upper = static_cast<u8>((digest[i] >> 4) & 0xf);
-    const u8 lower = static_cast<u8>(digest[i] & 0xf);
-    hash.push_back(lookup[upper]);
-    hash.push_back(lookup[lower]);
-  }
-  return hash;
+  return fmt::format("{:02X}", fmt::join(digest, ""));
+}
+
+std::string DigestToSource(const Digest& digest)
+{
+  return fmt::format("{{{:#04x}}}", fmt::join(digest, ", "));
 }
 }  // namespace Common::SHA1
