@@ -137,6 +137,8 @@ add_library(common
   SettingsHandler.h
   SFMLHelper.cpp
   SFMLHelper.h
+  ShiftJIS.cpp
+  ShiftJIS.h
   SmallVector.h
   SocketContext.cpp
   SocketContext.h

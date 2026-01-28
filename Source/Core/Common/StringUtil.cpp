@@ -24,6 +24,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/ShiftJIS.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -394,9 +395,6 @@ size_t StringUTF8CodePointCount(std::string_view str)
   return str.size() - std::ranges::count_if(str, [](char c) -> bool { return (c & 0xC0) == 0x80; });
 }
 
-constexpr char32_t UNICODE_REPLACEMENT_CHARACTER = 0xfffd;
-constexpr char32_t UNICODE_LAST_CODE_POINT = 0x10ffff;
-
 constexpr u16 UNICODE_HIGH_SURROGATE = 0xd800;
 constexpr u16 UNICODE_LOW_SURROGATE = 0xdc00;
 
@@ -482,6 +480,60 @@ public:
         0x2013, 0x2014, 0x02dc, 0x2122, 0x0161, 0x203a, 0x0153, unused, 0x017e, 0x0178};
 
     return values_from_80_to_9f[code_unit - 0x80u];
+  }
+};
+
+template <SizedIntegral<1> CharType>
+class ShiftJISDecoder : public CodeUnitReader<CharType>
+{
+public:
+  using CodeUnitReader<CharType>::CodeUnitReader;
+
+  constexpr char32_t operator()()
+  {
+    const u8 first_code_unit = this->ReadCodeUnit();
+    char32_t code_point = Common::DecodeSingleByteShiftJIS(first_code_unit);
+
+    if (code_point != UNICODE_REPLACEMENT_CHARACTER)
+      return code_point;
+
+    if (this->RemainingCodeUnits() == 0)
+      return UNICODE_REPLACEMENT_CHARACTER;
+
+    code_point = Common::DecodeDoubleByteShiftJIS(first_code_unit, this->PeekCodeUnit());
+
+    if (code_point != UNICODE_REPLACEMENT_CHARACTER)
+      this->AdvanceReader();
+
+    return code_point;
+  }
+};
+
+class ShiftJISEncoder
+{
+public:
+  static constexpr u32 GetMaxUnitsPerCodePoint() { return 2; }
+
+  // `ptr` should point to at least 2 bytes.
+  // Returns the number of written code units (bytes).
+  constexpr u32 operator()(char32_t code_point, SizedIntegral<1> auto* ptr)
+  {
+    const u16 shift_jis_code = Common::EncodeShiftJIS(code_point);
+
+    if (shift_jis_code < 0x100u)
+    {
+      *ptr = u8(shift_jis_code);
+      return 1;
+    }
+
+    // Encode a '?' symbol for unsupported code points.
+    // FYI: Shift JIS does not support Unicode "Specials".
+    if (shift_jis_code == u16(-1))
+      return (*this)('?', ptr);
+
+    ptr[0] = u8(shift_jis_code >> 8u);
+    ptr[1] = u8(shift_jis_code);
+    return 2;
   }
 };
 
@@ -740,16 +792,6 @@ static std::string UTF16ToCP(u32 code_page, std::wstring_view input)
   return output;
 }
 
-std::string SHIFTJISToUTF8(std::string_view input)
-{
-  return WStringToUTF8(CPToUTF16(CODEPAGE_SHIFT_JIS, input));
-}
-
-std::string UTF8ToSHIFTJIS(std::string_view input)
-{
-  return UTF16ToCP(CODEPAGE_SHIFT_JIS, UTF8ToWString(input));
-}
-
 #else
 
 template <typename T>
@@ -815,22 +857,21 @@ static std::string CodeToUTF8(const char* fromcode, std::basic_string_view<T> in
   return CodeTo("UTF-8", fromcode, input);
 }
 
-std::string SHIFTJISToUTF8(std::string_view input)
-{
-  // return CodeToUTF8("CP932", input);
-  return CodeToUTF8("SJIS", input);
-}
-
-std::string UTF8ToSHIFTJIS(std::string_view input)
-{
-  return CodeTo("SJIS", "UTF-8", input);
-}
-
 #endif
 
 std::string CP1252ToUTF8(std::string_view input)
 {
   return ReEncodeString<CP1252Decoder<char>, UTF8Encoder, char>(input);
+}
+
+std::string SHIFTJISToUTF8(std::string_view input)
+{
+  return ReEncodeString<ShiftJISDecoder<char>, UTF8Encoder, char>(input);
+}
+
+std::string UTF8ToSHIFTJIS(std::string_view input)
+{
+  return ReEncodeString<UTF8Decoder<char>, ShiftJISEncoder, char>(input);
 }
 
 std::string WStringToUTF8(std::wstring_view input)
