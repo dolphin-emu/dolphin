@@ -152,8 +152,6 @@ public:
   bool GetCheatsEnabled() const;
 
   // Debug
-  void SetDebugModeEnabled(bool enabled);
-  bool IsDebugModeEnabled() const;
   void SetRegistersVisible(bool enabled);
   bool IsRegistersVisible() const;
   void SetThreadsVisible(bool enabled);
@@ -178,10 +176,6 @@ public:
   // Auto-Update
   QString GetAutoUpdateTrack() const;
   void SetAutoUpdateTrack(const QString& mode);
-
-  // Fallback Region
-  DiscIO::Region GetFallbackRegion() const;
-  void SetFallbackRegion(const DiscIO::Region& region);
 
   // Analytics
   bool IsAnalyticsEnabled() const;
@@ -222,12 +216,12 @@ signals:
   void DebugModeToggled(bool enabled);
   void DebugFontChanged(const QFont& font);
   void AutoUpdateTrackChanged(const QString& mode);
-  void FallbackRegionChanged(const DiscIO::Region& region);
   void AnalyticsToggled(bool enabled);
   void ReleaseDevices();
   void DevicesChanged();
   void WiiSpeakMuteChanged(bool muted);
   void EnableGfxModsChanged(bool enabled);
+  void HardcoreModeChanged(bool enabled);
 
 private:
   Settings();
