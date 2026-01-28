@@ -430,6 +430,13 @@ if(FASTLOG)
   add_definitions(-DDEBUGFAST)
 endif()
 
+if (MINGW)
+  add_definitions(
+    -D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00
+    -DWINDOWS_FOUNDATION_UNIVERSALAPICONTRACT_VERSION=0x50000
+  )
+endif()
+
 if(ENABLE_VTUNE)
   set(VTUNE_DIR "/opt/intel/vtune_amplifier")
   add_definitions(-DUSE_VTUNE)
