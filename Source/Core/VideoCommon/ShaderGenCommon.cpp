@@ -45,6 +45,7 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
   bits.backend_dynamic_vertex_loader = g_backend_info.bSupportsDynamicVertexLoader;
   bits.backend_vs_point_line_expand = g_ActiveConfig.UseVSForLinePointExpand();
   bits.backend_gl_layer_in_fs = g_backend_info.bSupportsGLLayerInFS;
+  bits.backend_vs_layer_output = g_backend_info.bSupportsVSLayerOutput;
   return bits;
 }
 
