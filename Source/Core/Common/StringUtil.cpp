@@ -21,23 +21,15 @@
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 
+#if defined(_WIN32)
+#include <shellapi.h>
+
 #include "Common/CommonFuncs.h"
+#endif
+
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/ShiftJIS.h"
-
-#ifdef _WIN32
-#include <Windows.h>
-#include <shellapi.h>
-constexpr u32 CODEPAGE_SHIFT_JIS = 932;
-constexpr u32 CODEPAGE_WINDOWS_1252 = 1252;
-
-#include "Common/Swap.h"
-#else
-#include <cerrno>
-#include <iconv.h>
-#include <locale.h>
-#endif
 
 template <typename T, int ByteSize>
 concept SizedIntegral = std::integral<T> && sizeof(T) == ByteSize;
@@ -748,116 +740,6 @@ ReEncodeString(std::basic_string_view<InputCharType> input)
 
   return result;
 }
-
-#ifdef _WIN32
-
-static std::wstring CPToUTF16(u32 code_page, std::string_view input)
-{
-  auto const size =
-      MultiByteToWideChar(code_page, 0, input.data(), static_cast<int>(input.size()), nullptr, 0);
-
-  std::wstring output;
-  output.resize(size);
-
-  if (size == 0 ||
-      size != MultiByteToWideChar(code_page, 0, input.data(), static_cast<int>(input.size()),
-                                  &output[0], static_cast<int>(output.size())))
-  {
-    output.clear();
-  }
-
-  return output;
-}
-
-static std::string UTF16ToCP(u32 code_page, std::wstring_view input)
-{
-  if (input.empty())
-    return {};
-
-  // "If cchWideChar [input buffer size] is set to 0, the function fails." -MSDN
-  auto const size = WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
-                                        nullptr, 0, nullptr, nullptr);
-
-  std::string output(size, '\0');
-
-  if (size != WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
-                                  output.data(), static_cast<int>(output.size()), nullptr, nullptr))
-  {
-    const DWORD error_code = GetLastError();
-    ERROR_LOG_FMT(COMMON, "WideCharToMultiByte Error in String '{}': {}", WStringToUTF8(input),
-                  error_code);
-    return {};
-  }
-
-  return output;
-}
-
-#else
-
-template <typename T>
-static std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_view<T> input)
-{
-  std::string result;
-
-  auto* const conv_desc = iconv_open(tocode, fromcode);
-  if ((iconv_t)-1 == conv_desc)
-  {
-    ERROR_LOG_FMT(COMMON, "Iconv initialization failure [{}]: {}", fromcode,
-                  Common::LastStrerrorString());
-  }
-  else
-  {
-    size_t const in_bytes = sizeof(T) * input.size();
-    size_t const out_buffer_size = 4 * in_bytes;
-
-    std::string out_buffer;
-    out_buffer.resize(out_buffer_size);
-
-    auto* src_buffer = input.data();
-    size_t src_bytes = in_bytes;
-    auto* dst_buffer = out_buffer.data();
-    size_t dst_bytes = out_buffer.size();
-
-    while (src_bytes != 0)
-    {
-      size_t const iconv_result =
-          iconv(conv_desc, const_cast<char**>(reinterpret_cast<const char**>(&src_buffer)),
-                &src_bytes, &dst_buffer, &dst_bytes);
-      if ((size_t)-1 == iconv_result)
-      {
-        if (EILSEQ == errno || EINVAL == errno)
-        {
-          // Try to skip the bad character
-          if (src_bytes != 0)
-          {
-            --src_bytes;
-            ++src_buffer;
-          }
-        }
-        else
-        {
-          ERROR_LOG_FMT(COMMON, "iconv failure [{}]: {}", fromcode, Common::LastStrerrorString());
-          break;
-        }
-      }
-    }
-
-    out_buffer.resize(out_buffer_size - dst_bytes);
-    out_buffer.swap(result);
-
-    iconv_close(conv_desc);
-  }
-
-  return result;
-}
-
-template <typename T>
-static std::string CodeToUTF8(const char* fromcode, std::basic_string_view<T> input)
-{
-  return CodeTo("UTF-8", fromcode, input);
-}
-
-#endif
 
 std::string CP1252ToUTF8(std::string_view input)
 {
