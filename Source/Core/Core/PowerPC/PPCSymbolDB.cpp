@@ -67,40 +67,39 @@ void PPCSymbolDB::AddKnownSymbol(const Core::CPUThreadGuard& guard, u32 startAdd
                                  Common::Symbol::Type type, XFuncMap* functions,
                                  XFuncPtrMap* checksum_to_function)
 {
-  auto iter = functions->find(startAddr);
-  if (iter != functions->end())
+  const auto [iter, inserted] = functions->try_emplace(startAddr, name);
+
+  Common::Symbol& symbol = iter->second;
+  symbol.object_name = object_name;
+  symbol.type = type;
+
+  if (!inserted)
   {
     // already got it, let's just update name, checksum & size to be sure.
-    Common::Symbol* tempfunc = &iter->second;
-    tempfunc->Rename(name);
-    tempfunc->object_name = object_name;
-    tempfunc->hash = HashSignatureDB::ComputeCodeChecksum(guard, startAddr, startAddr + size - 4);
-    tempfunc->type = type;
-    tempfunc->size = size;
+    symbol.Rename(name);
+    symbol.hash = HashSignatureDB::ComputeCodeChecksum(guard, startAddr, startAddr + size - 4);
+    symbol.size = size;
   }
   else
   {
     // new symbol. run analyze.
-    auto& new_symbol = functions->emplace(startAddr, name).first->second;
-    new_symbol.object_name = object_name;
-    new_symbol.type = type;
-    new_symbol.address = startAddr;
+    symbol.address = startAddr;
 
-    if (new_symbol.type == Common::Symbol::Type::Function)
+    if (symbol.type == Common::Symbol::Type::Function)
     {
-      PPCAnalyst::AnalyzeFunction(guard, startAddr, new_symbol, size);
+      PPCAnalyst::AnalyzeFunction(guard, startAddr, symbol, size);
       // Do not truncate symbol when a size is expected
-      if (size != 0 && new_symbol.size != size)
+      if (size != 0 && symbol.size != size)
       {
         WARN_LOG_FMT(SYMBOLS, "Analysed symbol ({}) size mismatch, {} expected but {} computed",
-                     name, size, new_symbol.size);
-        new_symbol.size = size;
+                     name, size, symbol.size);
+        symbol.size = size;
       }
-      (*checksum_to_function)[new_symbol.hash].insert(&new_symbol);
+      (*checksum_to_function)[symbol.hash].insert(&symbol);
     }
     else
     {
-      new_symbol.size = size;
+      symbol.size = size;
     }
   }
 }
@@ -113,24 +112,14 @@ void PPCSymbolDB::AddKnownNote(u32 start_addr, u32 size, const std::string& name
 
 void PPCSymbolDB::AddKnownNote(u32 start_addr, u32 size, const std::string& name, XNoteMap* notes)
 {
-  auto iter = notes->find(start_addr);
+  const auto [iter, inserted] = notes->try_emplace(start_addr);
 
-  if (iter != notes->end())
-  {
-    // Already got it, just update the name and size.
-    Common::Note* tempfunc = &iter->second;
-    tempfunc->name = name;
-    tempfunc->size = size;
-  }
-  else
-  {
-    Common::Note tf;
-    tf.name = name;
-    tf.address = start_addr;
-    tf.size = size;
+  Common::Note& note = iter->second;
+  note.name = name;
+  note.size = size;
 
-    (*notes)[start_addr] = tf;
-  }
+  if (inserted)
+    note.address = start_addr;
 }
 
 void PPCSymbolDB::DetermineNoteLayers()
