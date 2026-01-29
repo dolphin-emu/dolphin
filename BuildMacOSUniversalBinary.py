@@ -301,8 +301,7 @@ def build(config):
                 # installed by Homebrew from leaking in to the app
                 "-DUSE_SYSTEM_LIBS=OFF",
                 # However, we should still use the macOS provided versions of
-                # iconv, bzip2, and curl
-                "-DUSE_SYSTEM_ICONV=ON",
+                # bzip2 and curl
                 "-DUSE_SYSTEM_BZIP2=ON",
                 "-DUSE_SYSTEM_CURL=ON"
             ],
