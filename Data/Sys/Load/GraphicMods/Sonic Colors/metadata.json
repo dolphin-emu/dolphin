@@ -2,7 +2,7 @@
 	"meta":
 	{
 		"title": "Bloom Texture Definitions",
-		"author": "Silent Hell"
+		"author": "Silent Hell, FrankyBuster"
 	},
 	"groups":
 	[
@@ -15,15 +15,7 @@
 				},
 				{
 					"type": "efb",
-					"texture_filename": "efb1_n000008_160x120_6"
-				},
-				{
-					"type": "efb",
 					"texture_filename": "efb1_n000009_80x60_6"
-				},
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n000010_80x60_6"
 				},
 				{
 					"type": "efb",
@@ -31,19 +23,7 @@
 				},
 				{
 					"type": "efb",
-					"texture_filename": "efb1_n000012_40x30_6"
-				},
-				{
-					"type": "efb",
 					"texture_filename": "efb1_n000013_20x15_6"
-				},
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n000014_20x15_6"
-				},
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n000015_160x120_6"
 				}
 			]
 		}
