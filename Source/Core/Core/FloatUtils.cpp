@@ -152,7 +152,7 @@ const std::array<BaseAndDec, 32> fres_expected = {{
     {0x110800, -0x11a}, {0x0ca000, -0x11a}, {0x083800, -0x108}, {0x041800, -0x106},
 }};
 
-// Variation of `ApproximateReciprocal`, operating on the bits rather than the raw value
+// Raw function used by the JITs for fres and ps_res
 u64 ApproximateReciprocalBits(const UReg_FPSCR& fpscr, const u64 integral)
 {
   // Convert into a float when possible

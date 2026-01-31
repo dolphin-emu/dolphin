@@ -275,7 +275,8 @@ void CommonAsmRoutines::GenFres()
   SetJumpTarget(complex);
   ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
   LEA(64, ABI_PARAM1, PPCSTATE(fpscr));
-  ABI_CallFunction(Core::ApproximateReciprocal);
+  ABI_CallFunctionRR(Core::ApproximateReciprocalBits, ABI_PARAM1, RSCRATCH);
+  MOVQ_xmm(XMM0, R(ABI_RETURN));
   ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
   RET();
 
