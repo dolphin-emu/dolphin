@@ -80,9 +80,10 @@ CEXIBaseboard::CEXIBaseboard(Core::System& system) : IEXIDevice(system)
   if (AMMediaboard::GetGameType() == VirtuaStriker4 ||
       AMMediaboard::GetGameType() == GekitouProYakyuu)
   {
-    if (m_backup.GetSize() >= 0x20C + 0x1F4)
+    const u64 backup_size = m_backup.GetSize();
+    if (backup_size >= 0x20C + 0x1F4)
     {
-      Common::UniqueBuffer<u8> data(m_backup.GetSize());
+      Common::UniqueBuffer<u8> data(backup_size);
       m_backup.ReadBytes(data.data(), data.size());
 
       // Set FIRM version

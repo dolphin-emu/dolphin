@@ -235,14 +235,30 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
       data_out[data_offset++] = 1;
 
       u8* data_in = buffer + 2;
-      u8* const data_in_end = buffer + buffer[buffer_position] + 2;
+      if (buffer_position >= buffer_length)
+      {
+        ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: buffer overflow (position={}, length={})",
+                      buffer_position, buffer_length);
+        buffer_position = buffer_length;
+        break;
+      }
+
+      const u32 requested_size = buffer[buffer_position] + 2;
+      if (requested_size > buffer_length)
+      {
+        ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: requested size ({}) bigger than buffer's ({})",
+                      requested_size, buffer_length);
+        buffer_position = buffer_length;
+        break;
+      }
+      u8* const data_in_end = buffer + requested_size;
 
       // Helper to check that iterating over data n times is safe,
       // i.e. *data++ at most lead to data.end()
       auto validate_data_in_out = [&](u32 n_in, u32 n_out, std::string_view command) -> bool {
         if (data_in + n_in > data_in_end)
           ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: data_in overflow in {}", command);
-        else if (std::size_t{data_offset} + n_out > data_out.size())
+        else if (u64{data_offset} + n_out > data_out.size())
           ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: data_out overflow in {}", command);
         else
           return true;
@@ -575,7 +591,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                     "GC-AM: Command 25 (IC-CARD) Write Pages: Off:{:x} Size:{:x} PSize:{:x}",
                     m_ic_write_offset, m_ic_write_size, size);
 
-                if (std::size_t{m_ic_write_offset} + size > sizeof(m_ic_write_buffer))
+                if (u64{m_ic_write_offset} + size > sizeof(m_ic_write_buffer))
                 {
                   ERROR_LOG_FMT(SERIALINTERFACE_CARD,
                                 "GC-AM: Command 25 (IC-CARD) m_ic_write_buffer overflow:\n"
@@ -1158,7 +1174,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
                 if (!validate_data_in_out(0, read_length, "SerialB"))
                   break;
-                if (std::size_t{m_card_read} + read_length > sizeof(m_card_read_packet))
+                if (u64{m_card_read} + read_length > sizeof(m_card_read_packet))
                 {
                   ERROR_LOG_FMT(SERIALINTERFACE_AMBB,
                                 "GC-AM: Command SerialB, m_card_read_packet overflow:\n"
@@ -1306,7 +1322,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
             {
               if (!validate_data_in_out(length, 0, "SerialB"))
                 break;
-              if (std::size_t{m_card_offset} + length > std::size(m_card_buffer))
+              if (u64{m_card_offset} + length > std::size(m_card_buffer))
               {
                 ERROR_LOG_FMT(SERIALINTERFACE_AMBB,
                               "GC-AM: Command SerialB, m_card_buffer overflow:\n"
@@ -1474,6 +1490,16 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                         card.Close();
 
                         m_card_is_inserted = true;
+                      }
+                      else if (m_card_memory_size > sizeof(m_card_memory))
+                      {
+                        ERROR_LOG_FMT(SERIALINTERFACE_CARD,
+                                      "GC-AM: Command CARD Read overflow:\n"
+                                      " - requested size = {}\n"
+                                      " - card size = {}",
+                                      m_card_memory_size, sizeof(m_card_memory));
+                        data_in = data_in_end;
+                        break;
                       }
 
                       m_card_read_packet[0] = 0x02;  // SUB CMD
