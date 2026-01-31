@@ -1061,6 +1061,7 @@ void MenuBar::AddSymbolsMenu()
   generate->addAction(tr("Address"), this, &MenuBar::GenerateSymbolsFromAddress);
   generate->addAction(tr("Signature Database"), this, &MenuBar::GenerateSymbolsFromSignatureDB);
   generate->addAction(tr("RSO Modules"), this, &MenuBar::GenerateSymbolsFromRSO);
+  m_debugger_show_demangled_names = m_symbols->addAction(tr("Show &Demangled Names"));
   m_symbols->addSeparator();
 
   m_symbols->addAction(tr("&Load Symbol Map"), this, &MenuBar::LoadSymbolMap);
@@ -1084,6 +1085,13 @@ void MenuBar::AddSymbolsMenu()
   m_symbols->addSeparator();
 
   m_symbols->addAction(tr("&Patch HLE Functions"), this, &MenuBar::PatchHLEFunctions);
+
+  m_debugger_show_demangled_names->setCheckable(true);
+  m_debugger_show_demangled_names->setChecked(Settings::Instance().IsShowDemangledNames());
+  connect(m_debugger_show_demangled_names, &QAction::toggled, &Settings::Instance(),
+          &Settings::SetShowDemangledNames);
+  connect(&Settings::Instance(), &Settings::ShowDemangledNamesChanged,
+          m_debugger_show_demangled_names, &QAction::setChecked);
 }
 
 void MenuBar::UpdateToolsMenu(const Core::State state)

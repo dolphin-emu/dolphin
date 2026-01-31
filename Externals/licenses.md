@@ -12,6 +12,8 @@ Dolphin includes or links code of the following third-party software projects:
    [MIT](https://github.com/mutouyun/cpp-ipc/blob/master/LICENSE)
 - [cubeb](https://github.com/kinetiknz/cubeb):
    [ISC](https://github.com/kinetiknz/cubeb/blob/master/LICENSE)
+- [cwdemangle](https://github.com/encounter/cwdemangle)
+   [CC0-1.0](https://github.com/encounter/cwdemangle/blob/main/LICENSE)
 - [Discord-RPC](https://github.com/discordapp/discord-rpc):
    [MIT](https://github.com/discordapp/discord-rpc/blob/master/LICENSE)
 - [ENet](http://enet.bespin.org/):
