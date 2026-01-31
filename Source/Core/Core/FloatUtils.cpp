@@ -171,12 +171,6 @@ u64 ApproximateReciprocalBits(const UReg_FPSCR& fpscr, const u64 integral)
   // Special case huge or NaN-ish numbers
   if (signless >= huge_float)
   {
-    if (integral == 0x47d0000000000000)
-    {
-      // An extremely temporary test to see if this function is even reached
-      return huge_float;
-    }
-
     // The value is NaN if, disregarding the sign, its exponent is maximized,
     // and its mantissa is nonzero
     const bool is_nan = (integral & ~DOUBLE_SIGN) > DOUBLE_EXP;
