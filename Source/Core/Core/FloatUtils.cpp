@@ -138,6 +138,9 @@ double ApproximateReciprocalSquareRoot(double val)
   return std::bit_cast<double>(integral);
 }
 
+// TODO: This can be made more efficient by pre-shifting the results
+// for double precision, but this requires adjusting all JITs and
+// the denormal case.
 const std::array<BaseAndDec, 32> fres_expected = {{
     {0xfff000, -0x3e1}, {0xf07000, -0x3a7}, {0xe1d400, -0x371}, {0xd41000, -0x340},
     {0xc71000, -0x313}, {0xbac400, -0x2ea}, {0xaf2000, -0x2c4}, {0xa41000, -0x2a0},
@@ -149,69 +152,77 @@ const std::array<BaseAndDec, 32> fres_expected = {{
     {0x110800, -0x11a}, {0x0ca000, -0x11a}, {0x083800, -0x108}, {0x041800, -0x106},
 }};
 
-// Used by fres and ps_res.
-double ApproximateReciprocal(const UReg_FPSCR& fpscr, double val)
+// Variation of `ApproximateReciprocal`, operating on the bits rather than the raw value
+u64 ApproximateReciprocalBits(const UReg_FPSCR& fpscr, const u64 integral)
 {
-  const u64 integral = std::bit_cast<u64>(val);
-
   // Convert into a float when possible
   const u64 signless = integral & ~DOUBLE_SIGN;
   const u32 mantissa =
       static_cast<u32>((integral & DOUBLE_FRAC) >> (DOUBLE_FRAC_WIDTH - FLOAT_FRAC_WIDTH));
-  const u32 sign = static_cast<u32>((integral >> 32) & FLOAT_SIGN);
   const s32 exponent = static_cast<s32>((integral & DOUBLE_EXP) >> DOUBLE_FRAC_WIDTH) - 0x380;
 
   // The largest floats possible just return 0
   const u64 huge_float = fpscr.NI ? 0x47d0000000000000ULL : 0x4940000000000000ULL;
 
-  // Special case 0
+  // Special case 0 returns infinity
   if (signless == 0)
-    return std::copysign(std::numeric_limits<double>::infinity(), val);
+    return DOUBLE_EXP | (integral & DOUBLE_SIGN);
 
   // Special case huge or NaN-ish numbers
   if (signless >= huge_float)
   {
-    if (!std::isnan(val))
-      return std::copysign(0.0, val);
-    return MakeQuiet(val);
+    // The value is NaN if, disregarding the sign, its exponent is maximized,
+    // and its mantissa is nonzero
+    const bool is_nan = (integral & ~DOUBLE_SIGN) > DOUBLE_EXP;
+
+    if (!is_nan)
+      return integral & DOUBLE_SIGN;
+    return integral | DOUBLE_QBIT;
   }
 
   // Special case small inputs
   if (exponent < -1)
-    return std::copysign(std::numeric_limits<float>::max(), val);
+  {
+    // Return the largest finite value for a float!
+    const u64 float_max = 0x47efffffe0000000ULL;
+    return float_max | (integral & DOUBLE_SIGN);
+  }
 
   const s32 new_exponent = 253 - exponent;
 
   const u32 i = static_cast<u32>(mantissa >> 8);
   const auto& entry = fres_expected[i / 1024];
-  const u32 new_mantissa = static_cast<u32>(entry.m_base + entry.m_dec * (i % 1024)) / 2;
+  u32 new_mantissa = static_cast<u32>(entry.m_base + entry.m_dec * (i % 1024)) / 2;
 
-  u32 result = sign | (static_cast<u32>(new_exponent) << FLOAT_FRAC_WIDTH) | new_mantissa;
   if (new_exponent <= 0)
   {
     // Result is subnormal so format it properly!
     if (fpscr.NI)
     {
       // Flush to 0 if inexact
-      result = sign;
+      return integral & DOUBLE_SIGN;
     }
     else
     {
       // Shift by the exponent amount
       u32 shift = 1 + static_cast<u32>(-new_exponent);
-      result = sign | (((1 << FLOAT_FRAC_WIDTH) | new_mantissa) >> shift);
+      new_mantissa = (new_mantissa >> shift) << shift;
     }
   }
-  return static_cast<double>(std::bit_cast<float>(result));
+
+  // Convert the result back to a double format!
+  u64 double_result = (integral & DOUBLE_SIGN) | (static_cast<u64>(new_exponent + 0x380) << 52) |
+                      (static_cast<u64>(new_mantissa) << (DOUBLE_FRAC_WIDTH - FLOAT_FRAC_WIDTH));
+
+  return double_result;
 }
 
-// Variation of `ApproximateReciprocal`, operating on the bits rather than the raw value
-u64 ApproximateReciprocalBits(const UReg_FPSCR& fpscr, u64 integral)
+// Used by fres and ps_res.
+double ApproximateReciprocal(const UReg_FPSCR& fpscr, const double val)
 {
-  // Casting to a double is still done due to e.g. `isnan` checks in the actual function
-  const double val = std::bit_cast<double>(integral);
-  const double result = ApproximateReciprocal(fpscr, val);
-  return std::bit_cast<u64>(result);
+  const u64 integral = std::bit_cast<u64>(val);
+  const u64 result = ApproximateReciprocalBits(fpscr, integral);
+  return std::bit_cast<double>(result);
 }
 
 }  // namespace Core

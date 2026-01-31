@@ -323,8 +323,7 @@ void JitArm64::GenerateFres()
   ADD(ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(fpscr));
 
   // X0 - X4 are acknowledged to be clobbered by this function,
-  // with X0 being the return value, making it particularly undesirable to pop after
-  // the function call concludes
+  // though they would not normally be pushed to the stack anyways
   BitSet32 gprs_to_push = CALLER_SAVED_GPRS & ~BitSet32{0, 1, 2, 3, 4};
 
   ABI_PushRegisters(gprs_to_push);
