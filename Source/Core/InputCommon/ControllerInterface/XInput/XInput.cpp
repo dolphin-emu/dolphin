@@ -146,7 +146,7 @@ void Init()
     if (!hXInput)
     {
       // Drop back to DXSDK June 2010 version. Requires DX June 2010 redist.
-      hXInput = ::LoadLibrary(TEXT("xinput1_3.dll"));
+      hXInput = ::LoadLibrary(L"xinput1_3.dll");
       if (!hXInput)
       {
         return;

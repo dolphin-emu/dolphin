@@ -211,28 +211,6 @@ std::u16string UTF8ToUTF16(std::string_view input);
 
 std::wstring UTF8ToWString(std::string_view str);
 
-#ifdef _UNICODE
-inline std::string TStrToUTF8(std::wstring_view str)
-{
-  return WStringToUTF8(str);
-}
-
-inline std::wstring UTF8ToTStr(std::string_view str)
-{
-  return UTF8ToWString(str);
-}
-#else
-inline std::string TStrToUTF8(std::string_view str)
-{
-  return str;
-}
-
-inline std::string UTF8ToTStr(std::string_view str)
-{
-  return str;
-}
-#endif
-
 #endif
 
 std::filesystem::path StringToPath(std::string_view path);
