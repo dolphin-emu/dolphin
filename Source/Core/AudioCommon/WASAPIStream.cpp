@@ -123,7 +123,7 @@ static void ForEachNamedDevice(const std::function<bool(ComPtr<IMMDevice>, std::
     wil::unique_prop_variant device_name;
     device_properties->GetValue(PKEY_Device_FriendlyName, device_name.addressof());
 
-    if (!callback(std::move(device), TStrToUTF8(device_name.pwszVal)))
+    if (!callback(std::move(device), WStringToUTF8(device_name.pwszVal)))
       break;
   }
 }
@@ -207,7 +207,7 @@ bool WASAPIStream::SetRunning(bool running)
     wil::unique_prop_variant device_name;
     device_properties->GetValue(PKEY_Device_FriendlyName, device_name.addressof());
 
-    INFO_LOG_FMT(AUDIO, "Using audio endpoint '{}'", TStrToUTF8(device_name.pwszVal));
+    INFO_LOG_FMT(AUDIO, "Using audio endpoint '{}'", WStringToUTF8(device_name.pwszVal));
 
     ComPtr<IAudioClient> audio_client;
 

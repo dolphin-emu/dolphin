@@ -70,11 +70,12 @@ bool IOFile::Open(const std::string& filename, const char openmode[],
 #ifdef _WIN32
   if (sh == SharedAccess::Default)
   {
-    m_good = _tfopen_s(&m_file, UTF8ToTStr(filename).c_str(), UTF8ToTStr(openmode).c_str()) == 0;
+    m_good =
+        _wfopen_s(&m_file, UTF8ToWString(filename).c_str(), UTF8ToWString(openmode).c_str()) == 0;
   }
   else if (sh == SharedAccess::Read)
   {
-    m_file = _tfsopen(UTF8ToTStr(filename).c_str(), UTF8ToTStr(openmode).c_str(), SH_DENYWR);
+    m_file = _wfsopen(UTF8ToWString(filename).c_str(), UTF8ToWString(openmode).c_str(), SH_DENYWR);
     m_good = m_file != nullptr;
   }
 #else
