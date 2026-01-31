@@ -291,7 +291,7 @@ void JitArm64::GenerateFres()
   m_float_emit.FMOV(ARM64Reg::X0, ARM64Reg::D0);
   AND(ARM64Reg::X3, ARM64Reg::X1, LogicalImm(Core::DOUBLE_SIGN, GPRSize::B64));
   SUB(ARM64Reg::X2, ARM64Reg::X2, 895);
-  CMP(ARM64Reg::X2, 1147 - 895);  // Temporary extremely dumb test
+  CMP(ARM64Reg::X2, 1148 - 895);
   // Take the complex path for very large/small exponents.
   // This also will apply to 0
   FixupBranch complex = B(CCFlags::CC_HI);  // if (exp < 895 || exp >= 1149)
