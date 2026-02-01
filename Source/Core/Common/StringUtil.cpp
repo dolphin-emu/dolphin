@@ -439,6 +439,31 @@ private:
 };
 
 template <SizedIntegral<1> CharType>
+class CP1252Decoder : public CodeUnitReader<CharType>
+{
+public:
+  using CodeUnitReader<CharType>::CodeUnitReader;
+
+  constexpr char32_t operator()()
+  {
+    const u8 code_unit = this->ReadCodeUnit();
+
+    // ISO/IEC 8859-1 "extended ASCII" equivalent values.
+    if (code_unit < 0x80u || code_unit > 0x9fu)
+      return code_unit;
+
+    static constexpr auto unused = UNICODE_REPLACEMENT_CHARACTER;
+
+    static constexpr std::array<u16, 0x20> values_from_80_to_9f = {
+        0x20ac, unused, 0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021, 0x02c6, 0x2030, 0x0160,
+        0x2039, 0x0152, unused, 0x017d, unused, unused, 0x2018, 0x2019, 0x201c, 0x201d, 0x2022,
+        0x2013, 0x2014, 0x02dc, 0x2122, 0x0161, 0x203a, 0x0153, unused, 0x017e, 0x0178};
+
+    return values_from_80_to_9f[code_unit - 0x80u];
+  }
+};
+
+template <SizedIntegral<1> CharType>
 class UTF8Decoder : public CodeUnitReader<CharType>
 {
 public:
@@ -702,11 +727,6 @@ std::string UTF8ToSHIFTJIS(std::string_view input)
   return UTF16ToCP(CODEPAGE_SHIFT_JIS, UTF8ToWString(input));
 }
 
-std::string CP1252ToUTF8(std::string_view input)
-{
-  return WStringToUTF8(CPToUTF16(CODEPAGE_WINDOWS_1252, input));
-}
-
 std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
 {
   const char16_t* str_end = std::find(str, str + max_size, '\0');
@@ -780,13 +800,6 @@ static std::string CodeToUTF8(const char* fromcode, std::basic_string_view<T> in
   return CodeTo("UTF-8", fromcode, input);
 }
 
-std::string CP1252ToUTF8(std::string_view input)
-{
-  // return CodeToUTF8("CP1252//TRANSLIT", input);
-  // return CodeToUTF8("CP1252//IGNORE", input);
-  return CodeToUTF8("CP1252", input);
-}
-
 std::string SHIFTJISToUTF8(std::string_view input)
 {
   // return CodeToUTF8("CP932", input);
@@ -812,6 +825,11 @@ std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
 }
 
 #endif
+
+std::string CP1252ToUTF8(std::string_view input)
+{
+  return ReEncodeString<CP1252Decoder<char>, UTF8Encoder, char>(input);
+}
 
 std::string UTF16ToUTF8(std::u16string_view input)
 {
