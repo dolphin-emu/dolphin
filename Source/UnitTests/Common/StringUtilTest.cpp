@@ -463,5 +463,5 @@ TEST(StringUtil, CharacterEncodingConversion)
   EXPECT_EQ(UTF8ToSHIFTJIS("イルカ"), "\x83\x43\x83\x8b\x83\x4a");
 
   // CP1252
-  EXPECT_EQ(CP1252ToUTF8("hello \xa5"), "hello ¥");
+  EXPECT_EQ(CP1252ToUTF8("hello \x81\x80\xa2\x9f"), "hello " + utf8_replacement_char + "€¢Ÿ");
 }
