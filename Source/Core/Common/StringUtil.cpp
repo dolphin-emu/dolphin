@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cwchar>
 #include <iomanip>
 #include <iterator>
 #include <sstream>
@@ -659,6 +660,14 @@ public:
   }
 };
 
+#if WCHAR_MAX == 0xffff || WCHAR_MAX == 0x7fff
+using WCharDecoder = UTF16Decoder<wchar_t>;
+using WCharEncoder = UTF16Encoder;
+#else
+using WCharDecoder = UTF32Decoder<wchar_t>;
+using WCharEncoder = UTF32Encoder;
+#endif
+
 template <typename Decoder, typename Encoder, typename ResultCharType, typename InputCharType>
 static constexpr std::basic_string<ResultCharType>
 ReEncodeString(std::basic_string_view<InputCharType> input)
@@ -726,16 +735,6 @@ static std::string UTF16ToCP(u32 code_page, std::wstring_view input)
   }
 
   return output;
-}
-
-std::wstring UTF8ToWString(std::string_view input)
-{
-  return CPToUTF16(CP_UTF8, input);
-}
-
-std::string WStringToUTF8(std::wstring_view input)
-{
-  return UTF16ToCP(CP_UTF8, input);
 }
 
 std::string SHIFTJISToUTF8(std::string_view input)
@@ -832,13 +831,6 @@ std::string UTF8ToSHIFTJIS(std::string_view input)
   return CodeTo("SJIS", "UTF-8", input);
 }
 
-std::string WStringToUTF8(std::wstring_view input)
-{
-  // Note: Without LE iconv expects a BOM.
-  // The "WCHAR_T" code would be appropriate, but it's apparently not in every iconv implementation.
-  return CodeToUTF8((sizeof(wchar_t) == 2) ? "UTF-16LE" : "UTF-32LE", input);
-}
-
 std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
 {
   const char16_t* str_end = std::find(str, str + max_size, '\0');
@@ -850,6 +842,16 @@ std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
 std::string CP1252ToUTF8(std::string_view input)
 {
   return ReEncodeString<CP1252Decoder<char>, UTF8Encoder, char>(input);
+}
+
+std::string WStringToUTF8(std::wstring_view input)
+{
+  return ReEncodeString<WCharDecoder, UTF8Encoder, char>(input);
+}
+
+std::wstring UTF8ToWString(std::string_view input)
+{
+  return ReEncodeString<UTF8Decoder<char>, WCharEncoder, wchar_t>(input);
 }
 
 std::string UTF16ToUTF8(std::u16string_view input)

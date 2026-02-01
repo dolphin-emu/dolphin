@@ -235,13 +235,12 @@ std::string CP1252ToUTF8(std::string_view input);
 std::string SHIFTJISToUTF8(std::string_view input);
 std::string UTF8ToSHIFTJIS(std::string_view input);
 std::string WStringToUTF8(std::wstring_view input);
+std::wstring UTF8ToWString(std::string_view input);
 std::string UTF16BEToUTF8(const char16_t* str, size_t max_size);  // Stops at \0
 std::string UTF16ToUTF8(std::u16string_view input);
 std::u16string UTF8ToUTF16(std::string_view input);
 
 #ifdef _WIN32
-
-std::wstring UTF8ToWString(std::string_view str);
 
 #ifdef _UNICODE
 inline std::string TStrToUTF8(std::wstring_view str)
