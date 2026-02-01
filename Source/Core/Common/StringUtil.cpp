@@ -407,7 +407,7 @@ static constexpr bool IsSurrogateCodePoint(char32_t code_point)
   return (code_point & 0xf800u) == UNICODE_HIGH_SURROGATE;
 }
 
-template <typename CharType>
+template <typename CharType, auto TransformFunction = std::identity{}>
 class CodeUnitReader
 {
 public:
@@ -429,7 +429,7 @@ protected:
   constexpr auto PeekCodeUnit() const
   {
     assert(RemainingCodeUnits() > 0);
-    return *m_ptr;
+    return TransformFunction(*m_ptr);
   }
 
   constexpr void AdvanceReader() { ++m_ptr; }
@@ -598,11 +598,11 @@ private:
   }
 };
 
-template <SizedIntegral<2> CharType>
-class UTF16Decoder : public CodeUnitReader<CharType>
+template <SizedIntegral<2> CharType, auto TransformFunction = std::identity{}>
+class UTF16Decoder : public CodeUnitReader<CharType, TransformFunction>
 {
 public:
-  using CodeUnitReader<CharType>::CodeUnitReader;
+  using CodeUnitReader<CharType, TransformFunction>::CodeUnitReader;
 
   constexpr char32_t operator()()
   {
@@ -633,6 +633,9 @@ public:
            u32(second_code_unit & SURROGATE_VALUE_MASK) + 0x10000u;
   }
 };
+
+template <typename CharType>
+using UTF16BEDecoder = UTF16Decoder<CharType, std::byteswap<CharType>>;
 
 class UTF16Encoder
 {
@@ -747,14 +750,6 @@ std::string UTF8ToSHIFTJIS(std::string_view input)
   return UTF16ToCP(CODEPAGE_SHIFT_JIS, UTF8ToWString(input));
 }
 
-std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
-{
-  const char16_t* str_end = std::find(str, str + max_size, '\0');
-  std::wstring result(static_cast<size_t>(str_end - str), '\0');
-  std::transform(str, str_end, result.begin(), static_cast<u16 (&)(u16)>(Common::swap16));
-  return WStringToUTF8(result);
-}
-
 #else
 
 template <typename T>
@@ -831,12 +826,6 @@ std::string UTF8ToSHIFTJIS(std::string_view input)
   return CodeTo("SJIS", "UTF-8", input);
 }
 
-std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
-{
-  const char16_t* str_end = std::find(str, str + max_size, '\0');
-  return CodeToUTF8("UTF-16BE", std::u16string_view(str, static_cast<size_t>(str_end - str)));
-}
-
 #endif
 
 std::string CP1252ToUTF8(std::string_view input)
@@ -852,6 +841,13 @@ std::string WStringToUTF8(std::wstring_view input)
 std::wstring UTF8ToWString(std::string_view input)
 {
   return ReEncodeString<UTF8Decoder<char>, WCharEncoder, wchar_t>(input);
+}
+
+std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
+{
+  const char16_t* str_end = std::find(str, str + max_size, '\0');
+  return ReEncodeString<UTF16BEDecoder<char16_t>, UTF8Encoder, char>(
+      std::basic_string_view{str, str_end});
 }
 
 std::string UTF16ToUTF8(std::u16string_view input)
