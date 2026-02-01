@@ -438,6 +438,27 @@ private:
   const CharType* const m_end_ptr;
 };
 
+template <SizedIntegral<4> CharType>
+class UTF32Decoder : public CodeUnitReader<CharType>
+{
+public:
+  using CodeUnitReader<CharType>::CodeUnitReader;
+
+  constexpr char32_t operator()() { return this->ReadCodeUnit(); }
+};
+
+class UTF32Encoder
+{
+public:
+  static constexpr u32 GetMaxUnitsPerCodePoint() { return 1; }
+
+  constexpr u32 operator()(char32_t code_point, SizedIntegral<4> auto* ptr)
+  {
+    *ptr = code_point;
+    return 1;
+  }
+};
+
 template <SizedIntegral<1> CharType>
 class CP1252Decoder : public CodeUnitReader<CharType>
 {
