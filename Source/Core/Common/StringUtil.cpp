@@ -37,6 +37,9 @@ constexpr u32 CODEPAGE_WINDOWS_1252 = 1252;
 #include <locale.h>
 #endif
 
+template <typename T, int ByteSize>
+concept SizedIntegral = std::integral<T> && sizeof(T) == ByteSize;
+
 #if !defined(_WIN32) && !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) &&       \
     !defined(__NetBSD__)
 static locale_t GetCLocale()
@@ -403,24 +406,47 @@ static constexpr bool IsSurrogateCodePoint(char32_t code_point)
   return (code_point & 0xf800u) == UNICODE_HIGH_SURROGATE;
 }
 
-template <std::integral CharType>
-requires(sizeof(CharType) == 1)
-class UTF8Decoder
+template <typename CharType>
+class CodeUnitReader
 {
 public:
-  constexpr explicit UTF8Decoder(std::span<const CharType> chars)
+  constexpr explicit CodeUnitReader(std::span<const CharType> chars)
       : m_ptr{chars.data()}, m_end_ptr{m_ptr + chars.size()}
   {
   }
 
-  auto RemainingCodeUnits() const { return m_end_ptr - m_ptr; }
+  constexpr auto RemainingCodeUnits() const { return m_end_ptr - m_ptr; }
+
+protected:
+  constexpr auto ReadCodeUnit()
+  {
+    const auto result = PeekCodeUnit();
+    AdvanceReader();
+    return result;
+  }
+
+  constexpr auto PeekCodeUnit() const
+  {
+    assert(RemainingCodeUnits() > 0);
+    return *m_ptr;
+  }
+
+  constexpr void AdvanceReader() { ++m_ptr; }
+
+private:
+  const CharType* m_ptr;
+  const CharType* const m_end_ptr;
+};
+
+template <SizedIntegral<1> CharType>
+class UTF8Decoder : public CodeUnitReader<CharType>
+{
+public:
+  using CodeUnitReader<CharType>::CodeUnitReader;
 
   constexpr char32_t operator()()
   {
-    assert(RemainingCodeUnits() > 0);
-
-    const u8 first_code_unit = *m_ptr;
-    ++m_ptr;
+    const u8 first_code_unit = this->ReadCodeUnit();
 
     switch (std::countl_one(first_code_unit))
     {
@@ -458,15 +484,15 @@ private:
 
     for (u32 byte_count = ByteCount - 1; byte_count != 0; --byte_count)
     {
-      if (RemainingCodeUnits() == 0)
+      if (this->RemainingCodeUnits() == 0)
         return UNICODE_REPLACEMENT_CHARACTER;
 
-      const auto code_unit = u8(*m_ptr);
+      const u8 code_unit = this->PeekCodeUnit();
 
       if (!IsContinuationByte(code_unit))
         return UNICODE_REPLACEMENT_CHARACTER;
 
-      ++m_ptr;
+      this->AdvanceReader();
 
       code_point = (code_point << 6u) | (code_unit & 0x3fu);
     }
@@ -479,9 +505,6 @@ private:
   }
 
   static constexpr bool IsContinuationByte(u8 code_unit) { return std::countl_one(code_unit) == 1; }
-
-  const CharType* m_ptr;
-  const CharType* const m_end_ptr;
 };
 
 class UTF8Encoder
@@ -491,9 +514,7 @@ public:
 
   // `ptr` should point to at least 4 bytes.
   // Returns the number of written code units (bytes).
-  template <std::integral CharType>
-  requires(sizeof(CharType) == 1)
-  constexpr u32 operator()(char32_t code_point, CharType* ptr)
+  constexpr u32 operator()(char32_t code_point, SizedIntegral<1> auto* ptr)
   {
     // ASCII.
     if (code_point < 0x80u)
@@ -530,24 +551,15 @@ private:
   }
 };
 
-template <std::integral CharType>
-requires(sizeof(CharType) == 2)
-class UTF16Decoder
+template <SizedIntegral<2> CharType>
+class UTF16Decoder : public CodeUnitReader<CharType>
 {
 public:
-  constexpr explicit UTF16Decoder(std::span<const CharType> chars)
-      : m_ptr{chars.data()}, m_end_ptr{m_ptr + chars.size()}
-  {
-  }
-
-  auto RemainingCodeUnits() const { return m_end_ptr - m_ptr; }
+  using CodeUnitReader<CharType>::CodeUnitReader;
 
   constexpr char32_t operator()()
   {
-    assert(RemainingCodeUnits() > 0);
-
-    const u16 first_code_unit = *m_ptr;
-    ++m_ptr;
+    const u16 first_code_unit = this->ReadCodeUnit();
 
     // Single code unit.
     if (!IsSurrogateCodePoint(first_code_unit))
@@ -558,25 +570,21 @@ public:
       return UNICODE_REPLACEMENT_CHARACTER;
 
     // High surrogate at end of data.
-    if (RemainingCodeUnits() == 0)
+    if (this->RemainingCodeUnits() == 0)
       return UNICODE_REPLACEMENT_CHARACTER;
 
-    const u16 second_code_unit = *m_ptr;
+    const u16 second_code_unit = this->PeekCodeUnit();
 
     // High surrogate not followed by low surrogate.
     if ((second_code_unit & u16(~SURROGATE_VALUE_MASK)) != UNICODE_LOW_SURROGATE)
       return UNICODE_REPLACEMENT_CHARACTER;
 
-    ++m_ptr;
+    this->AdvanceReader();
 
     // We have a surrogate pair.
     return (u32(first_code_unit & SURROGATE_VALUE_MASK) << 10u) +
            u32(second_code_unit & SURROGATE_VALUE_MASK) + 0x10000u;
   }
-
-private:
-  const CharType* m_ptr;
-  const CharType* const m_end_ptr;
 };
 
 class UTF16Encoder
@@ -586,9 +594,7 @@ public:
 
   // `ptr` should point to at least 2 code units.
   // Returns the number of written code units.
-  template <std::integral CharType>
-  requires(sizeof(CharType) == 2)
-  constexpr u32 operator()(char32_t code_point, CharType* ptr)
+  constexpr u32 operator()(char32_t code_point, SizedIntegral<2> auto* ptr)
   {
     if (code_point < 0x10000u)
     {
