@@ -4,7 +4,7 @@
 #pragma once
 
 #include <map>
-#include <vector>
+#include <span>
 
 #include <QDialog>
 
@@ -23,7 +23,7 @@ class ChunkedProgressDialog : public QDialog
 public:
   explicit ChunkedProgressDialog(QWidget* parent);
 
-  void show(const QString& title, u64 data_size, const std::vector<int>& players);
+  void show(const QString& title, u64 data_size, std::span<const int> players);
   void SetProgress(int pid, u64 progress);
 
   void reject() override;

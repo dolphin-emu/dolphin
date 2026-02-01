@@ -7,7 +7,6 @@
 #include <limits>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include <fmt/format.h>
 
@@ -23,7 +22,7 @@ DSPDisassembler::DSPDisassembler(const AssemblerSettings& settings) : settings_(
 {
 }
 
-bool DSPDisassembler::Disassemble(const std::vector<u16>& code, std::string& text)
+bool DSPDisassembler::Disassemble(std::span<const u16> code, std::string& text)
 {
   if (code.size() > std::numeric_limits<u16>::max())
   {
@@ -140,7 +139,7 @@ std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, u1
   return buf;
 }
 
-bool DSPDisassembler::DisassembleOpcode(const std::vector<u16>& code, u16* pc, std::string& dest)
+bool DSPDisassembler::DisassembleOpcode(std::span<const u16> code, u16* pc, std::string& dest)
 {
   return DisassembleOpcode(code.data(), code.size(), pc, dest);
 }

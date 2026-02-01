@@ -8,7 +8,6 @@
 #include <map>
 #include <memory>
 #include <optional>
-#include <ranges>
 #include <span>
 #include <string>
 #include <type_traits>
@@ -93,7 +92,7 @@ void Volume::AddTMDToSyncHash(Common::SHA1::Context* context, const Partition& p
     AddToSyncHash(context, content);
 }
 
-std::map<Language, std::string> Volume::ReadWiiNames(const std::vector<char16_t>& data)
+std::map<Language, std::string> Volume::ReadWiiNames(std::span<const char16_t> data)
 {
   std::map<Language, std::string> names;
   for (size_t i = 0; i < NUMBER_OF_LANGUAGES; ++i)

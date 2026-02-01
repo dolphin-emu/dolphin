@@ -117,7 +117,7 @@ std::vector<u8> GetValueAsByteVector(const SearchValue& value);
 // for which the given validator returns true.
 template <typename T>
 std::expected<std::vector<SearchResult<T>>, SearchErrorCode>
-NewSearch(const Core::CPUThreadGuard& guard, const std::vector<MemoryRange>& memory_ranges,
+NewSearch(const Core::CPUThreadGuard& guard, std::span<const MemoryRange> memory_ranges,
           PowerPC::RequestedAddressSpace address_space, bool aligned,
           const std::function<bool(const T& value)>& validator);
 
@@ -125,7 +125,7 @@ NewSearch(const Core::CPUThreadGuard& guard, const std::vector<MemoryRange>& mem
 // which the given validator returns true.
 template <typename T>
 std::expected<std::vector<SearchResult<T>>, SearchErrorCode>
-NextSearch(const Core::CPUThreadGuard& guard, const std::vector<SearchResult<T>>& previous_results,
+NextSearch(const Core::CPUThreadGuard& guard, std::span<const SearchResult<T>> previous_results,
            PowerPC::RequestedAddressSpace address_space,
            const std::function<bool(const T& new_value, const T& old_value)>& validator);
 

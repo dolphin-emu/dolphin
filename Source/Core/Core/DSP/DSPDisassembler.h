@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include <span>
 #include <string>
-#include <vector>
 
 #include "Common/CommonTypes.h"
 
@@ -32,11 +32,11 @@ class DSPDisassembler
 public:
   explicit DSPDisassembler(const AssemblerSettings& settings);
 
-  bool Disassemble(const std::vector<u16>& code, std::string& text);
+  bool Disassemble(std::span<const u16> code, std::string& text);
 
   // Disassembles the given opcode at pc and increases pc by the opcode's size.
   // The PC is wrapped such that 0x0000 and 0x8000 both point to the start of the buffer.
-  bool DisassembleOpcode(const std::vector<u16>& code, u16* pc, std::string& dest);
+  bool DisassembleOpcode(std::span<const u16> code, u16* pc, std::string& dest);
   bool DisassembleOpcode(const u16* binbuf, size_t binbuf_size, u16* pc, std::string& dest);
 
 private:

@@ -213,7 +213,7 @@ static std::vector<u8> ParseHash(const char* str)
   return hash;
 }
 
-std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanDatfile(const std::vector<u8>& data,
+std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanDatfile(std::span<const u8> data,
                                                                         const std::string& system)
 {
   pugi::xml_document doc;

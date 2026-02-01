@@ -124,9 +124,9 @@ bool CEXIETHERNET::BuiltInBBAInterface::IsActivated()
   return m_active;
 }
 
-void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(const std::vector<u8>& data)
+void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(std::vector<u8> data)
 {
-  m_queue_data[m_queue_write] = data;
+  m_queue_data[m_queue_write] = std::move(data);
   const u8 next_write_index = (m_queue_write + 1) & 15;
   if (next_write_index != m_queue_read)
     m_queue_write = next_write_index;
@@ -178,7 +178,7 @@ void CEXIETHERNET::BuiltInBBAInterface::PollData(std::size_t* datasize)
       // Otherwise, enqueue it
       const auto socket_data = TryGetDataFromSocket(&net_ref);
       if (socket_data.has_value())
-        WriteToQueue(*socket_data);
+        WriteToQueue(std::move(*socket_data));
     }
     else
     {
@@ -220,7 +220,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& pack
   const u8* router_ip_ptr = reinterpret_cast<const u8*>(&m_router_ip);
   const std::vector<u8> ip_part(router_ip_ptr, router_ip_ptr + sizeof(m_router_ip));
 
-  const std::vector<u8> timeout_24h = {0, 1, 0x51, 0x80};
+  constexpr auto timeout_24h = std::to_array<u8>({0, 1, 0x51, 0x80});
 
   Common::DHCPPacket reply;
   reply.body = Common::DHCPBody(request.transaction_id, m_current_mac, m_current_ip, m_router_ip);
@@ -666,8 +666,7 @@ bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
     case IPPROTO_IGMP:
     {
       // Acknowledge IGMP packet
-      const std::vector<u8> data(frame, frame + size);
-      WriteToQueue(data);
+      WriteToQueue({frame, frame + size});
       break;
     }
 

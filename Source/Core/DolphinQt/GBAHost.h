@@ -5,7 +5,7 @@
 
 #ifdef HAS_LIBMGBA
 
-#include <vector>
+#include <span>
 
 #include "Core/Host.h"
 
@@ -22,7 +22,7 @@ public:
   explicit GBAHost(std::weak_ptr<HW::GBA::Core> core);
   ~GBAHost() override;
   void GameChanged() override;
-  void FrameEnded(const std::vector<u32>& video_buffer) override;
+  void FrameEnded(std::span<const u32> video_buffer) override;
 
 private:
   GBAWidgetController* m_widget_controller{};

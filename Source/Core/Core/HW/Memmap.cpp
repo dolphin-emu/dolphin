@@ -369,7 +369,7 @@ bool MemoryManager::TryAddLargePageTableMapping(u32 logical_address, u32 transla
   return CanCreateHostMappingForGuestPages(entries);
 }
 
-bool MemoryManager::CanCreateHostMappingForGuestPages(const std::vector<u32>& entries) const
+bool MemoryManager::CanCreateHostMappingForGuestPages(std::span<const u32> entries) const
 {
   const u32 translated_address = entries[0];
   if ((translated_address & (m_page_size - 1)) != 0)

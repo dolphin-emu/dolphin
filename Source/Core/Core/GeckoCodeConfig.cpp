@@ -231,7 +231,7 @@ static void SaveGeckoCode(std::vector<std::string>& lines, const GeckoCode& gcod
     lines.push_back('*' + note);
 }
 
-void SaveCodes(Common::IniFile& inifile, const std::vector<GeckoCode>& gcodes)
+void SaveCodes(Common::IniFile& inifile, std::span<const GeckoCode> gcodes)
 {
   std::vector<std::string> lines;
   std::vector<std::string> enabled_lines;

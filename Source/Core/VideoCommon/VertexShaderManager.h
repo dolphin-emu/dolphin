@@ -4,10 +4,9 @@
 #pragma once
 
 #include <array>
+#include <span>
 #include <string>
-#include <vector>
 
-#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
 #include "VideoCommon/ConstantManager.h"
@@ -26,7 +25,7 @@ public:
 
   // constant management
   void SetProjectionMatrix(XFStateManager& xf_state_manager);
-  void SetConstants(const std::vector<std::string>& textures, XFStateManager& xf_state_manager);
+  void SetConstants(std::span<const std::string> textures, XFStateManager& xf_state_manager);
 
   // data: 3 floats representing the X, Y and Z vertex model coordinates and the posmatrix index.
   // out:  4 floats which will be initialized with the corresponding clip space coordinates

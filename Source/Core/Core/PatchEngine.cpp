@@ -149,7 +149,7 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>* patches,
   }
 }
 
-void SavePatchSection(Common::IniFile* local_ini, const std::vector<Patch>& patches)
+void SavePatchSection(Common::IniFile* local_ini, std::span<const Patch> patches)
 {
   std::vector<std::string> lines;
   std::vector<std::string> lines_enabled;

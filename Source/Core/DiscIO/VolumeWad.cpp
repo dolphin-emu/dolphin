@@ -7,6 +7,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 #include <utility>
 #include <vector>
@@ -149,7 +150,7 @@ std::vector<u64> VolumeWAD::GetContentOffsets() const
 }
 
 bool VolumeWAD::CheckContentIntegrity(const IOS::ES::Content& content,
-                                      const std::vector<u8>& encrypted_data,
+                                      std::span<const u8> encrypted_data,
                                       const IOS::ES::TicketReader& ticket) const
 {
   if (encrypted_data.size() != Common::AlignUp(content.size, 0x40))

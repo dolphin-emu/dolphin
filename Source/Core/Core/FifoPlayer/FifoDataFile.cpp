@@ -389,8 +389,7 @@ bool FifoDataFile::GetFlag(u32 flag) const
   return !!(m_Flags & flag);
 }
 
-u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate>& memUpdates,
-                                     File::IOFile& file)
+u64 FifoDataFile::WriteMemoryUpdates(std::span<const MemoryUpdate> memUpdates, File::IOFile& file)
 {
   // Add space for memory update list
   u64 updateListOffset = file.Tell();

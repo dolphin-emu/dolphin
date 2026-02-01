@@ -13,7 +13,7 @@
 
 #include <gtest/gtest.h>
 
-static bool RoundTrippableDisassemble(const std::vector<u16>& code, std::string& text)
+static bool RoundTrippableDisassemble(std::span<const u16> code, std::string& text)
 {
   DSP::AssemblerSettings settings;
   settings.ext_separator = '\'';
@@ -29,7 +29,7 @@ static bool RoundTrippableDisassemble(const std::vector<u16>& code, std::string&
 
 // This test goes from text ASM to binary to text ASM and once again back to binary.
 // Then the two binaries are compared.
-static bool RoundTrip(const std::vector<u16>& code1)
+static bool RoundTrip(std::span<const u16> code1)
 {
   std::vector<u16> code2;
   std::string text;
@@ -90,7 +90,7 @@ static bool SuperTrip(const char* asm_code)
 }
 
 // Assembles asm_code, and verifies that it matches code1.
-static bool AssembleAndCompare(const char* asm_code, const std::vector<u16>& code1)
+static bool AssembleAndCompare(const char* asm_code, std::span<const u16> code1)
 {
   std::vector<u16> code2;
   if (!DSP::Assemble(asm_code, code2))

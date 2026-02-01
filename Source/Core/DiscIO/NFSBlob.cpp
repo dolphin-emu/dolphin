@@ -105,7 +105,7 @@ std::vector<File::DirectIOFile> NFSFileReader::OpenFiles(const std::string& dire
   return files;
 }
 
-u64 NFSFileReader::CalculateExpectedRawSize(const std::vector<NFSLBARange>& lba_ranges)
+u64 NFSFileReader::CalculateExpectedRawSize(std::span<const NFSLBARange> lba_ranges)
 {
   u64 total_blocks = 0;
   for (const NFSLBARange& range : lba_ranges)
@@ -114,7 +114,7 @@ u64 NFSFileReader::CalculateExpectedRawSize(const std::vector<NFSLBARange>& lba_
   return sizeof(NFSHeader) + total_blocks * BLOCK_SIZE;
 }
 
-u64 NFSFileReader::CalculateExpectedDataSize(const std::vector<NFSLBARange>& lba_ranges)
+u64 NFSFileReader::CalculateExpectedDataSize(std::span<const NFSLBARange> lba_ranges)
 {
   u32 greatest_block_index = 0;
   for (const NFSLBARange& range : lba_ranges)

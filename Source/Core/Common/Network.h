@@ -4,7 +4,9 @@
 #pragma once
 
 #include <array>
+#include <initializer_list>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -183,8 +185,12 @@ static_assert(sizeof(DHCPBody) == DHCPBody::SIZE);
 struct DHCPPacket
 {
   DHCPPacket();
-  DHCPPacket(const std::vector<u8>& data);
-  void AddOption(u8 fnc, const std::vector<u8>& params);
+  DHCPPacket(std::span<const u8> data);
+  void AddOption(u8 fnc, std::span<const u8> params);
+  void AddOption(u8 fnc, std::initializer_list<u8> params)
+  {
+    AddOption(fnc, {params.begin(), params.end()});
+  }
   std::vector<u8> Build() const;
 
   DHCPBody body;
