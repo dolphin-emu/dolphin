@@ -451,6 +451,7 @@ TEST(StringUtil, CharacterEncodingConversion)
 
   // wstring
   EXPECT_EQ(WStringToUTF8(L"hello 🐬"), "hello 🐬");
+  EXPECT_EQ(UTF8ToWString("hello 🐬"), L"hello 🐬");
 
   // UTF-16BE
   auto utf16be_str = utf16_variety;
