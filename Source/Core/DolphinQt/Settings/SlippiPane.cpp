@@ -312,6 +312,7 @@ void SlippiPane::SetForceNetplayPort(bool checked)
 void SlippiPane::ToggleJukebox(bool checked)
 {
   Config::SetBase(Config::SLIPPI_ENABLE_JUKEBOX, checked);
+  m_music_volume_slider->setDisabled(!checked);
 
   if (Core::GetState(Core::System::GetInstance()) == Core::State::Running)
   {
