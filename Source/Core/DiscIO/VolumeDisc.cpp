@@ -18,7 +18,7 @@ namespace DiscIO
 {
 std::string VolumeDisc::GetGameID(const Partition& partition) const
 {
-  char id[6];
+  char id[6]{};
 
   if (GetVolumeType() == Platform::Triforce)
   {
@@ -47,7 +47,8 @@ std::string VolumeDisc::GetGameID(const Partition& partition) const
       break;
     }
 
-    memcpy(id + 4, GetMakerID().c_str(), 2);
+    const std::string maker_id{GetMakerID()};
+    memcpy(id + 4, maker_id.c_str(), std::min<std::size_t>(maker_id.size(), 2));
 
     return DecodeString(id);
   }

@@ -258,8 +258,8 @@ private:
   u8 m_last[2][0x80] = {};
   u32 m_lastptr[2] = {};
 
-  u16 m_coin[2] = {};
-  u32 m_coin_pressed[2] = {};
+  std::array<u16, 2> m_coin{};
+  std::array<u32, 2> m_coin_pressed{};
 
   u8 m_ic_card_data[2048] = {};
 

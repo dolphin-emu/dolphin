@@ -1341,128 +1341,40 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               // Check if we got a complete command
               if (m_card_buffer[0] == 0x02)
               {
-                if (m_card_buffer[1] == m_card_offset - 2)
+                if (m_card_offset < 2)
                 {
-                  if (m_card_buffer[m_card_offset - 2] == 0x03)
+                  ERROR_LOG_FMT(
+                      SERIALINTERFACE_AMBB,
+                      "GC-AM: Command SerialB, m_card_buffer overflow (m_card_offset < 2):\n"
+                      " - m_card_buffer = {}\n"
+                      " - m_card_offset = {}\n"
+                      " - length = {}",
+                      fmt::ptr(m_card_buffer), m_card_offset, length);
+                  data_in = data_in_end;
+                  break;
+                }
+                if (const u32 offset = m_card_offset - 2;
+                    m_card_buffer[1] == offset && m_card_buffer[offset] == 0x03)
+                {
+                  m_card_command = m_card_buffer[2];
+
+                  switch (CARDCommand(m_card_command))
                   {
-                    m_card_command = m_card_buffer[2];
+                  case CARDCommand::Init:
+                    NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD Init");
 
-                    switch (CARDCommand(m_card_command))
+                    m_card_write_length = 0;
+                    m_card_bit = 0;
+                    m_card_memory_size = 0;
+                    m_card_state_call_count = 0;
+                    break;
+                  case CARDCommand::GetState:
+                  {
+                    NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD GetState({:02X})",
+                                   m_card_bit);
+
+                    if (m_card_memory_size == 0)
                     {
-                    case CARDCommand::Init:
-                      NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD Init");
-
-                      m_card_write_length = 0;
-                      m_card_bit = 0;
-                      m_card_memory_size = 0;
-                      m_card_state_call_count = 0;
-                      break;
-                    case CARDCommand::GetState:
-                    {
-                      NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD GetState({:02X})",
-                                     m_card_bit);
-
-                      if (m_card_memory_size == 0)
-                      {
-                        const std::string card_filename(
-                            fmt::format("{}tricard_{}.bin", File::GetUserPath(D_TRIUSER_IDX),
-                                        SConfig::GetInstance().GetGameID()));
-
-                        if (File::Exists(card_filename))
-                        {
-                          File::IOFile card(card_filename, "rb+");
-                          m_card_memory_size = static_cast<u32>(card.GetSize());
-                          if (m_card_memory_size > sizeof(m_card_memory))
-                          {
-                            ERROR_LOG_FMT(SERIALINTERFACE_CARD,
-                                          "GC-AM: Command CARD GetState overflow:\n"
-                                          " - file name = {}\n"
-                                          " - file size = {}\n"
-                                          " - card size = {}",
-                                          card_filename, m_card_memory_size, sizeof(m_card_memory));
-                            data_in = data_in_end;
-                            break;
-                          }
-                          card.ReadBytes(m_card_memory, m_card_memory_size);
-                          card.Close();
-
-                          m_card_is_inserted = true;
-                        }
-                      }
-
-                      if (AMMediaboard::GetGameType() == FZeroAX && m_card_memory_size)
-                      {
-                        m_card_state_call_count++;
-                        if (m_card_state_call_count > 10)
-                        {
-                          if (m_card_bit & 2)
-                            m_card_bit &= ~2u;
-                          else
-                            m_card_bit |= 2;
-
-                          m_card_state_call_count = 0;
-                        }
-                      }
-
-                      if (m_card_clean == 1)
-                      {
-                        m_card_clean = 2;
-                      }
-                      else if (m_card_clean == 2)
-                      {
-                        const std::string card_filename(
-                            fmt::format("{}tricard_{}.bin", File::GetUserPath(D_TRIUSER_IDX),
-                                        SConfig::GetInstance().GetGameID()));
-
-                        if (File::Exists(card_filename))
-                        {
-                          m_card_memory_size = static_cast<u32>(File::GetSize(card_filename));
-                          if (m_card_memory_size)
-                          {
-                            if (AMMediaboard::GetGameType() == FZeroAX)
-                            {
-                              m_card_bit = 2;
-                            }
-                            else
-                            {
-                              m_card_bit = 1;
-                            }
-                          }
-                        }
-                        m_card_clean = 0;
-                      }
-                      break;
-                    }
-                    case CARDCommand::IsPresent:
-                      NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD IsPresent");
-                      break;
-                    case CARDCommand::RegisterFont:
-                      NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD RegisterFont");
-                      break;
-                    case CARDCommand::Load:
-                    {
-                      const u8 mode = m_card_buffer[6];
-                      NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD Load({:02X})",
-                                     mode);
-                      break;
-                    }
-                    case CARDCommand::Clean:
-                      NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD Clean");
-                      m_card_clean = 1;
-                      break;
-                    case CARDCommand::Read:
-                    {
-                      const u8 mode = m_card_buffer[6];
-                      const u8 bitmode = m_card_buffer[7];
-                      const u8 track = m_card_buffer[8];
-
-                      NOTICE_LOG_FMT(SERIALINTERFACE_CARD,
-                                     "GC-AM: Command CARD Read({:02X},{:02X},{:02X})", mode,
-                                     bitmode, track);
-
-                      // Prepare read packet
-                      memset(m_card_read_packet, 0, 0xDB);
-
                       const std::string card_filename(
                           fmt::format("{}tricard_{}.bin", File::GetUserPath(D_TRIUSER_IDX),
                                       SConfig::GetInstance().GetGameID()));
@@ -1470,15 +1382,11 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                       if (File::Exists(card_filename))
                       {
                         File::IOFile card(card_filename, "rb+");
-                        if (m_card_memory_size == 0)
-                        {
-                          m_card_memory_size = static_cast<u32>(card.GetSize());
-                        }
-
+                        m_card_memory_size = static_cast<u32>(card.GetSize());
                         if (m_card_memory_size > sizeof(m_card_memory))
                         {
                           ERROR_LOG_FMT(SERIALINTERFACE_CARD,
-                                        "GC-AM: Command CARD Read overflow:\n"
+                                        "GC-AM: Command CARD GetState overflow:\n"
                                         " - file name = {}\n"
                                         " - file size = {}\n"
                                         " - card size = {}",
@@ -1491,135 +1399,235 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
                         m_card_is_inserted = true;
                       }
-                      else if (m_card_memory_size > sizeof(m_card_memory))
-                      {
-                        ERROR_LOG_FMT(SERIALINTERFACE_CARD,
-                                      "GC-AM: Command CARD Read overflow:\n"
-                                      " - requested size = {}\n"
-                                      " - card size = {}",
-                                      m_card_memory_size, sizeof(m_card_memory));
-                        data_in = data_in_end;
-                        break;
-                      }
-
-                      m_card_read_packet[0] = 0x02;  // SUB CMD
-                      m_card_read_packet[1] = 0x00;  // SUB CMDLen
-
-                      m_card_read_packet[2] = 0x33;  // CARD CMD
-
-                      if (m_card_is_inserted)  // CARD Status
-                      {
-                        m_card_read_packet[3] = 0x31;
-                      }
-                      else
-                      {
-                        m_card_read_packet[3] = 0x30;
-                      }
-
-                      m_card_read_packet[4] = 0x30;
-                      m_card_read_packet[5] = 0x30;
-
-                      u32 packet_offset = 6;
-                      // Data reply
-                      static_assert(sizeof(m_card_read_packet) >= sizeof(m_card_memory) + 6);
-                      memcpy(m_card_read_packet + packet_offset, m_card_memory, m_card_memory_size);
-                      packet_offset += m_card_memory_size;
-
-                      static_assert(sizeof(m_card_read_packet) >= sizeof(m_card_memory) + 7);
-                      m_card_read_packet[packet_offset++] = 0x03;
-
-                      m_card_read_packet[1] = packet_offset - 1;  // SUB CMDLen
-
-                      static_assert(sizeof(m_card_read_packet) >= sizeof(m_card_memory) + 8);
-                      for (u32 i = 0; i < packet_offset - 1; ++i)
-                        m_card_read_packet[packet_offset] ^= m_card_read_packet[1 + i];
-
-                      static_assert(sizeof(m_card_read_packet) >= sizeof(m_card_memory) + 9);
-                      packet_offset++;
-
-                      m_card_read_length = packet_offset;
-                      m_card_read = 0;
-                      break;
                     }
-                    case CARDCommand::Write:
-                    {
-                      const u8 mode = m_card_buffer[6];
-                      const u8 bitmode = m_card_buffer[7];
-                      const u8 track = m_card_buffer[8];
 
-                      m_card_memory_size = m_card_buffer[1] - 9;
+                    if (AMMediaboard::GetGameType() == FZeroAX && m_card_memory_size)
+                    {
+                      m_card_state_call_count++;
+                      if (m_card_state_call_count > 10)
+                      {
+                        if (m_card_bit & 2)
+                          m_card_bit &= ~2u;
+                        else
+                          m_card_bit |= 2;
+
+                        m_card_state_call_count = 0;
+                      }
+                    }
+
+                    if (m_card_clean == 1)
+                    {
+                      m_card_clean = 2;
+                    }
+                    else if (m_card_clean == 2)
+                    {
+                      const std::string card_filename(
+                          fmt::format("{}tricard_{}.bin", File::GetUserPath(D_TRIUSER_IDX),
+                                      SConfig::GetInstance().GetGameID()));
+
+                      if (File::Exists(card_filename))
+                      {
+                        m_card_memory_size = static_cast<u32>(File::GetSize(card_filename));
+                        if (m_card_memory_size)
+                        {
+                          if (AMMediaboard::GetGameType() == FZeroAX)
+                          {
+                            m_card_bit = 2;
+                          }
+                          else
+                          {
+                            m_card_bit = 1;
+                          }
+                        }
+                      }
+                      m_card_clean = 0;
+                    }
+                    break;
+                  }
+                  case CARDCommand::IsPresent:
+                    NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD IsPresent");
+                    break;
+                  case CARDCommand::RegisterFont:
+                    NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD RegisterFont");
+                    break;
+                  case CARDCommand::Load:
+                  {
+                    const u8 mode = m_card_buffer[6];
+                    NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD Load({:02X})", mode);
+                    break;
+                  }
+                  case CARDCommand::Clean:
+                    NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD Clean");
+                    m_card_clean = 1;
+                    break;
+                  case CARDCommand::Read:
+                  {
+                    const u8 mode = m_card_buffer[6];
+                    const u8 bitmode = m_card_buffer[7];
+                    const u8 track = m_card_buffer[8];
+
+                    NOTICE_LOG_FMT(SERIALINTERFACE_CARD,
+                                   "GC-AM: Command CARD Read({:02X},{:02X},{:02X})", mode, bitmode,
+                                   track);
+
+                    // Prepare read packet
+                    memset(m_card_read_packet, 0, 0xDB);
+
+                    const std::string card_filename(
+                        fmt::format("{}tricard_{}.bin", File::GetUserPath(D_TRIUSER_IDX),
+                                    SConfig::GetInstance().GetGameID()));
+
+                    if (File::Exists(card_filename))
+                    {
+                      File::IOFile card(card_filename, "rb+");
+                      if (m_card_memory_size == 0)
+                      {
+                        m_card_memory_size = static_cast<u32>(card.GetSize());
+                      }
+
                       if (m_card_memory_size > sizeof(m_card_memory))
                       {
                         ERROR_LOG_FMT(SERIALINTERFACE_CARD,
-                                      "GC-AM: Command CARD Write overflow:\n"
-                                      " - write size = {}\n"
+                                      "GC-AM: Command CARD Read overflow:\n"
+                                      " - file name = {}\n"
+                                      " - file size = {}\n"
                                       " - card size = {}",
-                                      m_card_memory_size, sizeof(m_card_memory));
+                                      card_filename, m_card_memory_size, sizeof(m_card_memory));
                         data_in = data_in_end;
                         break;
                       }
-
-                      static_assert(sizeof(m_card_buffer) >= sizeof(m_card_memory) + 9);
-                      memcpy(m_card_memory, m_card_buffer + 9, m_card_memory_size);
-
-                      NOTICE_LOG_FMT(SERIALINTERFACE_CARD,
-                                     "GC-AM: Command CARD Write: {:02X} {:02X} {:02X} {}", mode,
-                                     bitmode, track, m_card_memory_size);
-
-                      const std::string card_filename(File::GetUserPath(D_TRIUSER_IDX) +
-                                                      "tricard_" +
-                                                      SConfig::GetInstance().GetGameID() + ".bin");
-
-                      File::IOFile card(card_filename, "wb+");
-                      card.WriteBytes(m_card_memory, m_card_memory_size);
+                      card.ReadBytes(m_card_memory, m_card_memory_size);
                       card.Close();
 
-                      m_card_bit = 2;
+                      m_card_is_inserted = true;
+                    }
+                    else if (m_card_memory_size > sizeof(m_card_memory))
+                    {
+                      ERROR_LOG_FMT(SERIALINTERFACE_CARD,
+                                    "GC-AM: Command CARD Read overflow:\n"
+                                    " - requested size = {}\n"
+                                    " - card size = {}",
+                                    m_card_memory_size, sizeof(m_card_memory));
+                      data_in = data_in_end;
+                      break;
+                    }
 
-                      m_card_state_call_count = 0;
-                      break;
+                    m_card_read_packet[0] = 0x02;  // SUB CMD
+                    m_card_read_packet[1] = 0x00;  // SUB CMDLen
+
+                    m_card_read_packet[2] = 0x33;  // CARD CMD
+
+                    if (m_card_is_inserted)  // CARD Status
+                    {
+                      m_card_read_packet[3] = 0x31;
                     }
-                    case CARDCommand::SetPrintParam:
-                      NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD SetPrintParam");
-                      break;
-                    case CARDCommand::WriteInfo:
-                      NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD WriteInfo");
-                      break;
-                    case CARDCommand::Erase:
-                      NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD Erase");
-                      break;
-                    case CARDCommand::Eject:
-                      NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD Eject");
-                      if (AMMediaboard::GetGameType() != FZeroAX)
-                      {
-                        m_card_bit = 0;
-                      }
-                      break;
-                    case CARDCommand::SetShutter:
-                      NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD SetShutter");
-                      if (AMMediaboard::GetGameType() != FZeroAX)
-                      {
-                        m_card_bit = 0;
-                      }
-                      // Close
-                      if (m_card_buffer[6] == 0x30)
-                      {
-                        m_card_shutter = false;
-                      }
-                      // Open
-                      else if (m_card_buffer[6] == 0x31)
-                      {
-                        m_card_shutter = true;
-                      }
-                      break;
-                    default:
-                      ERROR_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: CARD:Unhandled command!");
-                      ERROR_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: CARD:[{:08X}]", m_card_command);
-                      // hexdump( m_card_buffer, m_card_offset );
-                      break;
+                    else
+                    {
+                      m_card_read_packet[3] = 0x30;
                     }
-                    m_card_offset = 0;
+
+                    m_card_read_packet[4] = 0x30;
+                    m_card_read_packet[5] = 0x30;
+
+                    u32 packet_offset = 6;
+                    // Data reply
+                    static_assert(sizeof(m_card_read_packet) >= sizeof(m_card_memory) + 6);
+                    memcpy(m_card_read_packet + packet_offset, m_card_memory, m_card_memory_size);
+                    packet_offset += m_card_memory_size;
+
+                    static_assert(sizeof(m_card_read_packet) >= sizeof(m_card_memory) + 7);
+                    m_card_read_packet[packet_offset++] = 0x03;
+
+                    m_card_read_packet[1] = packet_offset - 1;  // SUB CMDLen
+
+                    static_assert(sizeof(m_card_read_packet) >= sizeof(m_card_memory) + 8);
+                    for (u32 i = 0; i < packet_offset - 1; ++i)
+                      m_card_read_packet[packet_offset] ^= m_card_read_packet[1 + i];
+
+                    static_assert(sizeof(m_card_read_packet) >= sizeof(m_card_memory) + 9);
+                    packet_offset++;
+
+                    m_card_read_length = packet_offset;
+                    m_card_read = 0;
+                    break;
                   }
+                  case CARDCommand::Write:
+                  {
+                    const u8 mode = m_card_buffer[6];
+                    const u8 bitmode = m_card_buffer[7];
+                    const u8 track = m_card_buffer[8];
+
+                    m_card_memory_size = m_card_buffer[1] - 9;
+                    if (m_card_memory_size > sizeof(m_card_memory))
+                    {
+                      ERROR_LOG_FMT(SERIALINTERFACE_CARD,
+                                    "GC-AM: Command CARD Write overflow:\n"
+                                    " - write size = {}\n"
+                                    " - card size = {}",
+                                    m_card_memory_size, sizeof(m_card_memory));
+                      data_in = data_in_end;
+                      break;
+                    }
+
+                    static_assert(sizeof(m_card_buffer) >= sizeof(m_card_memory) + 9);
+                    memcpy(m_card_memory, m_card_buffer + 9, m_card_memory_size);
+
+                    NOTICE_LOG_FMT(SERIALINTERFACE_CARD,
+                                   "GC-AM: Command CARD Write: {:02X} {:02X} {:02X} {}", mode,
+                                   bitmode, track, m_card_memory_size);
+
+                    const std::string card_filename(File::GetUserPath(D_TRIUSER_IDX) + "tricard_" +
+                                                    SConfig::GetInstance().GetGameID() + ".bin");
+
+                    File::IOFile card(card_filename, "wb+");
+                    card.WriteBytes(m_card_memory, m_card_memory_size);
+                    card.Close();
+
+                    m_card_bit = 2;
+
+                    m_card_state_call_count = 0;
+                    break;
+                  }
+                  case CARDCommand::SetPrintParam:
+                    NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD SetPrintParam");
+                    break;
+                  case CARDCommand::WriteInfo:
+                    NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD WriteInfo");
+                    break;
+                  case CARDCommand::Erase:
+                    NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD Erase");
+                    break;
+                  case CARDCommand::Eject:
+                    NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD Eject");
+                    if (AMMediaboard::GetGameType() != FZeroAX)
+                    {
+                      m_card_bit = 0;
+                    }
+                    break;
+                  case CARDCommand::SetShutter:
+                    NOTICE_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: Command CARD SetShutter");
+                    if (AMMediaboard::GetGameType() != FZeroAX)
+                    {
+                      m_card_bit = 0;
+                    }
+                    // Close
+                    if (m_card_buffer[6] == 0x30)
+                    {
+                      m_card_shutter = false;
+                    }
+                    // Open
+                    else if (m_card_buffer[6] == 0x31)
+                    {
+                      m_card_shutter = true;
+                    }
+                    break;
+                  default:
+                    ERROR_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: CARD:Unhandled command!");
+                    ERROR_LOG_FMT(SERIALINTERFACE_CARD, "GC-AM: CARD:[{:08X}]", m_card_command);
+                    // hexdump( m_card_buffer, m_card_offset );
+                    break;
+                  }
+                  m_card_offset = 0;
                 }
               }
 
@@ -1877,7 +1885,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
               for (u32 i = 0; i < player_count; ++i)
               {
-                u8 player_data[3]{};
+                std::array<u8, 3> player_data{};
 
                 // Service button
                 if (pad_status.switches & SWITCH_SERVICE)
@@ -2124,7 +2132,14 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 break;
                 }
 
-                for (u32 j = 0; j < player_byte_count; ++j)
+                if (player_byte_count > player_data.size())
+                {
+                  WARN_LOG_FMT(SERIALINTERFACE_JVSIO,
+                               "JVS-IO:  Command 0x20, SwitchInputs: invalid player_byte_count={}",
+                               player_byte_count);
+                }
+                const u32 data_size = std::min(player_byte_count, u32(player_data.size()));
+                for (u32 j = 0; j < data_size; ++j)
                   message.AddData(player_data[j]);
               }
               break;
@@ -2135,7 +2150,15 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 break;
               const u32 slots = *jvs_io++;
               message.AddData(StatusOkay);
-              for (u32 i = 0; i < slots; i++)
+              static_assert(std::tuple_size<decltype(m_coin)>{} == 2 &&
+                            std::tuple_size<decltype(m_coin_pressed)>{} == 2);
+              if (slots > 2)
+              {
+                WARN_LOG_FMT(SERIALINTERFACE_JVSIO,
+                             "JVS-IO: Command 0x21, CoinInput: invalid slots {}", slots);
+              }
+              const u32 max_slots = std::min(slots, 2u);
+              for (u32 i = 0; i < max_slots; i++)
               {
                 GCPadStatus pad_status = Pad::GetStatus(i);
                 if ((pad_status.switches & SWITCH_COIN) && !m_coin_pressed[i])
@@ -2277,7 +2300,15 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               const u8 coinh = *jvs_io++;
               const u8 coinl = *jvs_io++;
 
-              m_coin[slot] -= (coinh << 8) | coinl;
+              if (slot < m_coin.size())
+              {
+                m_coin[slot] -= (coinh << 8) | coinl;
+              }
+              else
+              {
+                WARN_LOG_FMT(SERIALINTERFACE_JVSIO,
+                             "JVS-IO: Command 0x30, CoinSubOutput: invalid slot {}", slot);
+              }
 
               message.AddData(StatusOkay);
               DEBUG_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0x30, CoinSubOutput: {}", slot);
@@ -2318,23 +2349,18 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   break;
                 }
 
-                if (!validate_jvs_io(bytes, "GeneralDriverOutput"))
+                if (!validate_jvs_io(std::max(bytes, 3u), "GeneralDriverOutput"))
                   break;
-                Common::UniqueBuffer<u8> buf(bytes);
 
-                for (u32 i = 0; i < bytes; ++i)
-                {
-                  buf[i] = *jvs_io++;
-                }
-
-                INFO_LOG_FMT(
-                    SERIALINTERFACE_JVSIO,
-                    "JVS-IO: Command 0x32, GPO: {:02x} {:02x} {} {:02x}{:02x}{:02x} ({:02x})",
-                    delay, m_rx_reply, bytes, buf[0], buf[1], buf[2],
-                    Common::swap16(buf.data() + 1) >> 2);
+                const u16 seat_state = Common::swap16(jvs_io + 1) >> 2;
+                INFO_LOG_FMT(SERIALINTERFACE_JVSIO,
+                             "JVS-IO: Command 0x32, GPO: delay=0x{:02x}, rx_reply=0x{:02x},"
+                             " seat_state=0x{:04x}, bytes={}, buffer:\n{}",
+                             delay, m_rx_reply, seat_state, bytes, HexDump(jvs_io, bytes));
+                jvs_io += bytes;
 
                 // Handling of the motion seat used in F-Zero AXs DX version
-                switch (Common::swap16(buf.data() + 1) >> 2)
+                switch (seat_state)
                 {
                 case 0x70:
                   delay++;
