@@ -362,9 +362,17 @@ void JitBaseBlockCache::ErasePhysicalRange(u32 address, u32 length)
       {
         // If the block overlaps, also remove all other occupied slots in the other macro blocks.
         // This will leak empty macro blocks, but they may be reused or cleared later on.
+        u32 previous_masked_addr = start->first;
         for (u32 addr : block->physical_addresses)
-          if ((addr & BLOCK_RANGE_MAP_MASK) != start->first)
-            block_range_map[addr & BLOCK_RANGE_MAP_MASK].erase(block);
+        {
+          const u32 masked_addr = addr & BLOCK_RANGE_MAP_MASK;
+          if (masked_addr != previous_masked_addr)
+          {
+            previous_masked_addr = masked_addr;
+            if (masked_addr != start->first)
+              block_range_map[masked_addr].erase(block);
+          }
+        }
 
         // And remove the block.
         DestroyBlock(*block);
