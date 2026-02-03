@@ -171,6 +171,7 @@
     <ClInclude Include="Common\Thread.h" />
     <ClInclude Include="Common\Timer.h" />
     <ClInclude Include="Common\TimeUtil.h" />
+    <ClInclude Include="Common\TransferableSharedMutex.h" />
     <ClInclude Include="Common\TraversalClient.h" />
     <ClInclude Include="Common\TraversalProto.h" />
     <ClInclude Include="Common\TypeUtils.h" />

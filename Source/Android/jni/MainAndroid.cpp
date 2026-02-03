@@ -310,19 +310,17 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_eglBindAPI(J
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveState(JNIEnv*, jclass,
-                                                                              jint slot,
-                                                                              jboolean wait)
+                                                                              jint slot)
 {
   HostThreadLock guard;
-  State::Save(Core::System::GetInstance(), slot, wait);
+  State::Save(Core::System::GetInstance(), slot);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveStateAs(JNIEnv* env, jclass,
-                                                                                jstring path,
-                                                                                jboolean wait)
+                                                                                jstring path)
 {
   HostThreadLock guard;
-  State::SaveAs(Core::System::GetInstance(), GetJString(env, path), wait);
+  State::SaveAs(Core::System::GetInstance(), GetJString(env, path));
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadState(JNIEnv*, jclass,
