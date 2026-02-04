@@ -452,10 +452,27 @@ void JitArm64::MSRUpdated(u32 msr)
     MOVI2R(WA, feature_flags);
     STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(feature_flags));
   }
+
+  // Call PageTableUpdatedFromJit if needed
+  if (UReg_MSR(msr).DR)
+  {
+    gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+    fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+
+    auto WA = gpr.GetScopedReg();
+
+    static_assert(PPCSTATE_OFF(pagetable_update_pending) < 0x1000);
+    LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(pagetable_update_pending));
+    FixupBranch update_not_pending = CBZ(WA);
+    ABI_CallFunction(&PowerPC::MMU::PageTableUpdatedFromJit, &m_system.GetMMU());
+    SetJumpTarget(update_not_pending);
+  }
 }
 
 void JitArm64::MSRUpdated(ARM64Reg msr)
 {
+  constexpr LogicalImm dr_bit(1ULL << UReg_MSR{}.DR.StartBit(), GPRSize::B32);
+
   auto WA = gpr.GetScopedReg();
   ARM64Reg XA = EncodeRegTo64(WA);
 
@@ -463,7 +480,7 @@ void JitArm64::MSRUpdated(ARM64Reg msr)
   auto& memory = m_system.GetMemory();
   MOVP2R(MEM_REG, jo.fastmem ? memory.GetLogicalBase() : memory.GetLogicalPageMappingsBase());
   MOVP2R(XA, jo.fastmem ? memory.GetPhysicalBase() : memory.GetPhysicalPageMappingsBase());
-  TST(msr, LogicalImm(1 << (31 - 27), GPRSize::B32));
+  TST(msr, dr_bit);
   CSEL(MEM_REG, MEM_REG, XA, CCFlags::CC_NEQ);
   STR(IndexType::Unsigned, MEM_REG, PPC_REG, PPCSTATE_OFF(mem_ptr));
 
@@ -477,6 +494,18 @@ void JitArm64::MSRUpdated(ARM64Reg msr)
   if (other_feature_flags != 0)
     ORR(WA, WA, LogicalImm(other_feature_flags, GPRSize::B32));
   STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(feature_flags));
+
+  // Call PageTableUpdatedFromJit if needed
+  MOV(WA, msr);
+  gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+  fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+  FixupBranch dr_unset = TBZ(WA, dr_bit);
+  static_assert(PPCSTATE_OFF(pagetable_update_pending) < 0x1000);
+  LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(pagetable_update_pending));
+  FixupBranch update_not_pending = CBZ(WA);
+  ABI_CallFunction(&PowerPC::MMU::PageTableUpdatedFromJit, &m_system.GetMMU());
+  SetJumpTarget(update_not_pending);
+  SetJumpTarget(dr_unset);
 }
 
 void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return,

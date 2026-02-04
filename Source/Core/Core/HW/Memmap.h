@@ -4,7 +4,9 @@
 #pragma once
 
 #include <array>
+#include <map>
 #include <memory>
+#include <set>
 #include <span>
 #include <string>
 #include <vector>
@@ -83,6 +85,8 @@ public:
   u8* GetPhysicalPageMappingsBase() const { return m_physical_page_mappings_base; }
   u8* GetLogicalPageMappingsBase() const { return m_logical_page_mappings_base; }
 
+  u32 GetHostPageSize() const { return m_page_size; }
+
   // FIXME: these should not return their address, but AddressSpace wants that
   u8*& GetRAM() { return m_ram; }
   u8*& GetEXRAM() { return m_exram; }
@@ -93,13 +97,17 @@ public:
 
   // Init and Shutdown
   bool IsInitialized() const { return m_is_initialized; }
+  void InitMMIO(Core::System& system);
   void Init();
   void Shutdown();
   bool InitFastmemArena();
   void ShutdownFastmemArena();
   void DoState(PointerWrap& p);
 
-  void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table);
+  void UpdateDBATMappings(const PowerPC::BatTable& dbat_table);
+  void AddPageTableMapping(u32 logical_address, u32 translated_address, bool writeable);
+  void RemovePageTableMappings(const std::set<u32>& mappings);
+  void RemoveAllPageTableMappings();
 
   void Clear();
 
@@ -157,6 +165,16 @@ public:
   }
 
 private:
+  enum class HostPageType
+  {
+    // 4K or smaller
+    SmallPages,
+    // 8K or larger
+    LargePages,
+    // Required APIs aren't available, or the page size isn't a power of 2
+    Unsupported,
+  };
+
   // Base is a pointer to the base of the memory map. Yes, some MMU tricks
   // are used to set up a full GC or Wii memory map in process memory.
   // In 64-bit, this might point to "high memory" (above the 32-bit limit),
@@ -208,6 +226,10 @@ private:
   // The MemArena class
   Common::MemArena m_arena;
 
+  const u32 m_page_size;
+  const u32 m_guest_pages_per_host_page;
+  const HostPageType m_host_page_type;
+
   // Dolphin allocates memory to represent four regions:
   // - 32MB RAM (actually 24MB on hardware), available on GameCube and Wii
   // - 64MB "EXRAM", RAM only available on Wii
@@ -248,13 +270,31 @@ private:
   // TODO: Do we want to handle the mirrors of the GC RAM?
   std::array<PhysicalMemoryRegion, 4> m_physical_regions{};
 
-  std::vector<LogicalMemoryView> m_logical_mapped_entries;
+  // The key is the logical address
+  std::map<u32, LogicalMemoryView> m_dbat_mapped_entries;
+  std::map<u32, LogicalMemoryView> m_page_table_mapped_entries;
 
   std::array<void*, PowerPC::BAT_PAGE_COUNT> m_physical_page_mappings{};
   std::array<void*, PowerPC::BAT_PAGE_COUNT> m_logical_page_mappings{};
 
+  // If the host page size is larger than the guest page size, these two maps are used
+  // to keep track of which guest pages can be combined and mapped as one host page.
+  static constexpr u32 INVALID_MAPPING = 0xFFFFFFFF;
+  std::map<u32, std::vector<u32>> m_large_readable_pages;
+  std::map<u32, std::vector<u32>> m_large_writeable_pages;
+
   Core::System& m_system;
 
-  void InitMMIO(bool is_wii);
+  static HostPageType GetHostPageTypeForPageSize(u32 page_size);
+
+  void TryAddLargePageTableMapping(u32 logical_address, u32 translated_address, bool writeable);
+  bool TryAddLargePageTableMapping(u32 logical_address, u32 translated_address,
+                                   std::map<u32, std::vector<u32>>& map);
+  bool CanCreateHostMappingForGuestPages(const std::vector<u32>& entries) const;
+  void AddHostPageTableMapping(u32 logical_address, u32 translated_address, bool writeable,
+                               u32 logical_size);
+  void RemoveLargePageTableMapping(u32 logical_address);
+  void RemoveLargePageTableMapping(u32 logical_address, std::map<u32, std::vector<u32>>& map);
+  void RemoveHostPageTableMappings(const std::set<u32>& mappings);
 };
 }  // namespace Memory

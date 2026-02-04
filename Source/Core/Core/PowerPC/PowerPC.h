@@ -122,6 +122,9 @@ struct PowerPCState
   u32 pc = 0;  // program counter
   u32 npc = 0;
 
+  // Storage for the stack pointer of the BLR optimization.
+  u8* stored_stack_pointer = nullptr;
+
   // gather pipe pointer for JIT access
   u8* gather_pipe_ptr = nullptr;
   u8* gather_pipe_base_ptr = nullptr;
@@ -157,6 +160,14 @@ struct PowerPCState
   // lscbx
   u16 xer_stringctrl = 0;
 
+  // Reservation monitor for lwarx and its friend stwcxd. These two don't really need to be
+  // this early in the struct, but due to how the padding works out, they fit nicely here.
+  u32 reserve_address;
+  bool reserve;
+
+  bool pagetable_update_pending = false;
+  bool m_enable_dcache = false;
+
 #ifdef _M_X86_64
   // This member exists only for the purpose of an assertion that its offset <= 0x100.
   std::tuple<> above_fits_in_first_0x100;
@@ -164,36 +175,27 @@ struct PowerPCState
   alignas(16) PairedSingle ps[32];
 #endif
 
-  u32 sr[16]{};  // Segment registers.
+  std::array<u32, 16> sr{};  // Segment registers.
 
   // special purpose registers - controls quantizers, DMA, and lots of other misc extensions.
   // also for power management, but we don't care about that.
   // JitArm64 needs 64-bit alignment for SPR_TL.
   alignas(8) u32 spr[1024]{};
 
-  // Storage for the stack pointer of the BLR optimization.
-  u8* stored_stack_pointer = nullptr;
   u8* mem_ptr = nullptr;
+
+  u32 pagetable_base = 0;
+  u32 pagetable_mask = 0;
 
   std::array<std::array<TLBEntry, TLB_SIZE / TLB_WAYS>, NUM_TLBS> tlb;
 
-  u32 pagetable_base = 0;
-  u32 pagetable_hashmask = 0;
-
   InstructionCache iCache;
-  bool m_enable_dcache = false;
   Cache dCache;
-
-  // Reservation monitor for lwarx and its friend stwcxd.
-  bool reserve;
-  u32 reserve_address;
 
   void UpdateCR1()
   {
     cr.SetField(1, (fpscr.FX << 3) | (fpscr.FEX << 2) | (fpscr.VX << 1) | fpscr.OX);
   }
-
-  void SetSR(u32 index, u32 value);
 
   void SetCarry(u32 ca) { xer_ca = ca; }
 

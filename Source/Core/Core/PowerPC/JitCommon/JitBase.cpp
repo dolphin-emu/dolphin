@@ -19,6 +19,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/MemTools.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
@@ -120,6 +121,8 @@ bool JitBase::DoesConfigNeedRefresh() const
 
 void JitBase::RefreshConfig()
 {
+  const bool wanted_page_table_mappings = WantsPageTableMappings();
+
   for (const auto& [member, config_info] : JIT_SETTINGS)
     this->*member = Config::Get(*config_info);
 
@@ -141,6 +144,18 @@ void JitBase::RefreshConfig()
   jo.memcheck = m_system.IsMMUMode() || m_system.IsPauseOnPanicMode() || any_watchpoints;
   jo.fp_exceptions = m_enable_float_exceptions;
   jo.div_by_zero_exceptions = m_enable_div_by_zero_exceptions;
+
+  if (!wanted_page_table_mappings && WantsPageTableMappings())
+  {
+    // Mustn't call this if we're still initializing
+    if (Core::IsRunning(m_system))
+      m_system.GetMMU().PageTableUpdated();
+  }
+}
+
+bool JitBase::WantsPageTableMappings() const
+{
+  return jo.fastmem;
 }
 
 void JitBase::InitFastmemArena()
