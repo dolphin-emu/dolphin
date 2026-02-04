@@ -117,7 +117,7 @@ void Interpreter::rti(const UDSPInstruction opc)
     return;
 
   auto& state = m_dsp_core.DSPState();
-  state.r.sr = state.PopStack(StackRegister::Data);
+  OpWriteRegister(DSP_REG_SR, state.PopStack(StackRegister::Data));
   state.pc = state.PopStack(StackRegister::Call);
 }
 
