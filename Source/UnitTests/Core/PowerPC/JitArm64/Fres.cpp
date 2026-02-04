@@ -77,7 +77,8 @@ TEST(JitArm64, Fres)
       const u64 actual = test.fres(ivalue);
 
       if (expected != actual)
-        fmt::print("{:016x} -> {:016x} == {:016x}\n", ivalue, actual, expected);
+        fmt::print("{:016x} -> {:016x} == {:016x} (FPSCR {:08x})\n", ivalue, actual, expected,
+                   fpscr_hex);
 
       EXPECT_EQ(expected, actual);
     }
