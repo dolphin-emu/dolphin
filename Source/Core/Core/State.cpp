@@ -496,11 +496,9 @@ static void SaveAsFromCore(Core::System& system, std::string filename)
 void SaveAs(Core::System& system, std::string filename)
 {
   Core::RunOnCPUThread(
-      system,
-      [&system, filename = std::move(filename), lock = GetStateSaveTaskLock()]() mutable {
+      system, [&system, filename = std::move(filename), lock = GetStateSaveTaskLock()]() mutable {
         SaveAsFromCore(system, std::move(filename));
-      },
-      false);
+      });
 }
 
 static bool GetVersionFromLZO(StateHeader& header, File::IOFile& f)
@@ -873,12 +871,9 @@ void LoadAs(Core::System& system, std::string filename)
   if (!CheckIfStateLoadIsAllowed(system))
     return;
 
-  Core::RunOnCPUThread(
-      system,
-      [&system, filename = std::move(filename)]() mutable {
-        LoadAsFromCore(system, std::move(filename));
-      },
-      false);
+  Core::RunOnCPUThread(system, [&system, filename = std::move(filename)]() mutable {
+    LoadAsFromCore(system, std::move(filename));
+  });
 }
 
 void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback)
@@ -919,45 +914,39 @@ void LoadLastSaved(Core::System& system, int i)
   if (!CheckIfStateLoadIsAllowed(system))
     return;
 
-  Core::RunOnCPUThread(
-      system,
-      [&system, i] {
-        // Data must reach the filesystem for up to date "UsedSlots".
-        s_compress_and_dump_thread.WaitForCompletion();
+  Core::RunOnCPUThread(system, [&system, i] {
+    // Data must reach the filesystem for up to date "UsedSlots".
+    s_compress_and_dump_thread.WaitForCompletion();
 
-        std::vector<SlotWithTimestamp> used_slots = GetUsedSlotsWithTimestamp();
-        if (std::size_t(i) > used_slots.size())
-        {
-          Core::DisplayMessage("State doesn't exist", 2000);
-          return;
-        }
+    std::vector<SlotWithTimestamp> used_slots = GetUsedSlotsWithTimestamp();
+    if (std::size_t(i) > used_slots.size())
+    {
+      Core::DisplayMessage("State doesn't exist", 2000);
+      return;
+    }
 
-        std::ranges::stable_sort(used_slots, std::ranges::greater{}, &SlotWithTimestamp::timestamp);
-        LoadAsFromCore(system, MakeStateFilename(used_slots[i].slot));
-      },
-      false);
+    std::ranges::stable_sort(used_slots, std::ranges::greater{}, &SlotWithTimestamp::timestamp);
+    LoadAsFromCore(system, MakeStateFilename(used_slots[i].slot));
+  });
 }
 
 void SaveFirstSaved(Core::System& system)
 {
-  Core::RunOnCPUThread(
-      system,
-      [&system, lock = GetStateSaveTaskLock()] {
-        // Data must reach the filesystem for up to date "UsedSlots".
-        s_compress_and_dump_thread.WaitForCompletion();
+  Core::RunOnCPUThread(system, [&system, lock = GetStateSaveTaskLock()] {
+    // Data must reach the filesystem for up to date "UsedSlots".
+    s_compress_and_dump_thread.WaitForCompletion();
 
-        std::vector<SlotWithTimestamp> used_slots = GetUsedSlotsWithTimestamp();
-        auto slot = GetEmptySlot(used_slots);
-        if (!slot.has_value())
-        {
-          // overwrite the oldest state
-          std::ranges::stable_sort(used_slots, {}, &SlotWithTimestamp::timestamp);
-          slot = used_slots.front().slot;
-        }
+    std::vector<SlotWithTimestamp> used_slots = GetUsedSlotsWithTimestamp();
+    auto slot = GetEmptySlot(used_slots);
+    if (!slot.has_value())
+    {
+      // overwrite the oldest state
+      std::ranges::stable_sort(used_slots, {}, &SlotWithTimestamp::timestamp);
+      slot = used_slots.front().slot;
+    }
 
-        SaveAsFromCore(system, MakeStateFilename(*slot));
-      },
-      false);
+    SaveAsFromCore(system, MakeStateFilename(*slot));
+  });
 }
 
 // Load the last state before loading the state
@@ -966,36 +955,33 @@ void UndoLoadState(Core::System& system)
   if (!CheckIfStateLoadIsAllowed(system))
     return;
 
-  Core::RunOnCPUThread(
-      system,
-      [&system] {
-        if (s_undo_load_buffer.empty())
-        {
-          PanicAlertFmtT("There is nothing to undo!");
-          return;
-        }
+  Core::RunOnCPUThread(system, [&system] {
+    if (s_undo_load_buffer.empty())
+    {
+      PanicAlertFmtT("There is nothing to undo!");
+      return;
+    }
 
-        auto& movie = system.GetMovie();
-        if (movie.IsMovieActive())
-        {
-          // Note: Only the CPU thread writes to "undo.dtm".
-          const std::string dtmpath = File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm";
-          if (File::Exists(dtmpath))
-          {
-            LoadFromBuffer(system, s_undo_load_buffer);
-            movie.LoadInput(dtmpath);
-          }
-          else
-          {
-            PanicAlertFmtT("No undo.dtm found, aborting undo load state to prevent movie desyncs");
-          }
-        }
-        else
-        {
-          LoadFromBuffer(system, s_undo_load_buffer);
-        }
-      },
-      false);
+    auto& movie = system.GetMovie();
+    if (movie.IsMovieActive())
+    {
+      // Note: Only the CPU thread writes to "undo.dtm".
+      const std::string dtmpath = File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm";
+      if (File::Exists(dtmpath))
+      {
+        LoadFromBuffer(system, s_undo_load_buffer);
+        movie.LoadInput(dtmpath);
+      }
+      else
+      {
+        PanicAlertFmtT("No undo.dtm found, aborting undo load state to prevent movie desyncs");
+      }
+    }
+    else
+    {
+      LoadFromBuffer(system, s_undo_load_buffer);
+    }
+  });
 }
 
 // Load the state that the last save state overwritten on
