@@ -254,9 +254,8 @@ bool Core::Start(u64 gc_ticks)
 
   if (Config::Get(Config::MAIN_GBA_THREADS))
   {
-    m_idle = true;
-    m_exit_loop = false;
-    m_thread = std::make_unique<std::thread>([this] { ThreadLoop(); });
+    m_event_thread.Reset(fmt::format("GBA{}", m_device_number + 1),
+                         std::bind_front(&Core::HandleEvent, this));
   }
 
   return true;
@@ -264,17 +263,8 @@ bool Core::Start(u64 gc_ticks)
 
 void Core::Stop()
 {
-  if (m_thread)
-  {
-    Flush();
-    m_exit_loop = true;
-    {
-      std::lock_guard<std::mutex> lock(m_queue_mutex);
-      m_command_cv.notify_one();
-    }
-    m_thread->join();
-    m_thread.reset();
-  }
+  m_event_thread.Shutdown();
+
   if (m_core)
   {
     mCoreConfigDeinit(&m_core->config);
@@ -481,103 +471,76 @@ void Core::SetupEvent()
   m_event.priority = 0x80;
 }
 
+void Core::SyncJoybus(u64 gc_ticks, u16 keys)
+{
+  PushEvent({
+      .run_until_ticks = gc_ticks,
+      .keys = keys,
+      .event_type = JoybusEventType::TimeSync,
+  });
+}
+
 void Core::SendJoybusCommand(u64 gc_ticks, int transfer_time, u8* buffer, u16 keys)
 {
   if (!IsStarted())
     return;
 
-  Command command{};
-  command.ticks = gc_ticks;
-  command.transfer_time = transfer_time;
-  command.sync_only = buffer == nullptr;
-  if (buffer)
-    std::copy_n(buffer, command.buffer.size(), command.buffer.begin());
-  command.keys = keys;
+  m_joybus_command_transfer_time = transfer_time;
+  m_joybus_command = GBASIOJOYCommand(buffer[0]);
+  std::copy_n(buffer + 1, m_joybus_buffer.size(), m_joybus_buffer.data());
 
-  if (m_thread)
-  {
-    std::lock_guard<std::mutex> lock(m_queue_mutex);
-    m_command_queue.push(command);
-    m_idle = false;
-    m_command_cv.notify_one();
-  }
-  else
-  {
-    RunCommand(command);
-  }
+  m_command_pending.store(true, std::memory_order_relaxed);
+
+  PushEvent({
+      .run_until_ticks = gc_ticks,
+      .keys = keys,
+      .event_type = JoybusEventType::RunCommand,
+  });
 }
 
-std::vector<u8> Core::GetJoybusResponse()
+int Core::GetJoybusResponse(u8* data_out)
 {
-  if (!IsStarted())
-    return {};
+  m_command_pending.wait(true, std::memory_order_acquire);
 
-  if (m_thread)
-  {
-    std::unique_lock<std::mutex> lock(m_response_mutex);
-    m_response_cv.wait(lock, [&] { return m_response_ready; });
-  }
-  m_response_ready = false;
-  return m_response;
+  std::copy_n(m_joybus_buffer.data(), m_response_size, data_out);
+  return m_response_size;
 }
 
 void Core::Flush()
 {
-  if (!IsStarted() || !m_thread)
+  m_event_thread.WaitForCompletion();
+}
+
+void Core::PushEvent(JoybusEvent event)
+{
+  if (m_event_thread.IsRunning())
+    m_event_thread.Push(event);
+  else
+    HandleEvent(event);
+}
+
+void Core::HandleEvent(JoybusEvent event)
+{
+  m_keys = event.keys;
+  RunUntil(event.run_until_ticks);
+
+  if (event.event_type != JoybusEventType::RunCommand)
     return;
-  std::unique_lock<std::mutex> lock(m_queue_mutex);
-  m_response_cv.wait(lock, [&] { return m_idle; });
-}
 
-void Core::ThreadLoop()
-{
-  Common::SetCurrentThreadName(fmt::format("GBA{}", m_device_number + 1).c_str());
-  std::unique_lock<std::mutex> queue_lock(m_queue_mutex);
-  while (true)
+  if (m_link_enabled && !m_force_disconnect)
   {
-    m_command_cv.wait(queue_lock, [&] { return !m_command_queue.empty() || m_exit_loop; });
-    if (m_exit_loop)
-      break;
-    Command command{m_command_queue.front()};
-    m_command_queue.pop();
-    queue_lock.unlock();
-
-    RunCommand(command);
-
-    queue_lock.lock();
-    if (m_command_queue.empty())
-      m_idle = true;
-    m_response_cv.notify_one();
+    m_response_size =
+        u8(GBASIOJOYSendCommand(&m_sio_driver, m_joybus_command, m_joybus_buffer.data()));
   }
-}
-
-void Core::RunCommand(Command& command)
-{
-  m_keys = command.keys;
-  RunUntil(command.ticks);
-  if (!command.sync_only)
+  else
   {
-    m_response.clear();
-    if (m_link_enabled && !m_force_disconnect)
-    {
-      int recvd = GBASIOJOYSendCommand(
-          &m_sio_driver, static_cast<GBASIOJOYCommand>(command.buffer[0]), &command.buffer[1]);
-      std::copy_n(command.buffer.begin() + 1, recvd, std::back_inserter(m_response));
-    }
-
-    if (m_thread && !m_response_ready)
-    {
-      std::lock_guard<std::mutex> response_lock(m_response_mutex);
-      m_response_ready = true;
-      m_response_cv.notify_one();
-    }
-    else
-    {
-      m_response_ready = true;
-    }
+    m_response_size = 0;
   }
-  if (command.transfer_time)
-    RunFor(command.transfer_time);
+
+  m_command_pending.store(false, std::memory_order_release);
+  m_command_pending.notify_one();
+
+  RunFor(m_joybus_command_transfer_time);
 }
 
 void Core::RunUntil(u64 gc_ticks)
@@ -700,8 +663,8 @@ void Core::DoState(PointerWrap& p)
   p.Do(m_gc_ticks_remainder);
   p.Do(m_keys);
   p.Do(m_link_enabled);
-  p.Do(m_response_ready);
-  p.Do(m_response);
+  p.Do(m_response_size);
+  p.Do(m_joybus_buffer);
 
   std::vector<u8> core_state;
   core_state.resize(m_core->stateSize(m_core));

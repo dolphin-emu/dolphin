@@ -98,6 +98,8 @@ public:
       m_items.WaitForEmpty();
   }
 
+  bool IsRunning() { return m_thread.joinable(); }
+
 private:
   using CommandFunction = std::function<void()>;
 
@@ -141,8 +143,6 @@ private:
     else
       return std::lock_guard{m_mutex};
   }
-
-  bool IsRunning() { return m_thread.joinable(); }
 
   void ThreadLoop(const std::string& thread_name, const FunctionType& function)
   {
