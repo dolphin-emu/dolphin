@@ -55,7 +55,7 @@ constexpr int PADDING_HEIGHT = 5;
 
 namespace UI
 {
-bool InitWindow()
+static bool InitWindow()
 {
   InitCommonControls();
 
@@ -206,7 +206,7 @@ void SetDescription(const std::string& text)
   SetWindowText(label_handle, UTF8ToWString(text).c_str());
 }
 
-void MessageLoop()
+static void MessageLoop()
 {
   HRESULT result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 
