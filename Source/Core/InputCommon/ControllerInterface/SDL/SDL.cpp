@@ -143,12 +143,6 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
   // Disable DualSense Player LEDs; We already colorize the Primary LED
   SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, "0");
 
-  // Disabling DirectInput support apparently solves hangs on shutdown for users with
-  //  "8BitDo Ultimate 2" controllers.
-  // It also works around a possibly related random hang on a IDirectInputDevice8_Acquire
-  //  call within SDL.
-  SDL_SetHint(SDL_HINT_JOYSTICK_DIRECTINPUT, "0");
-
   // Disable SDL's GC Adapter handling when we want to handle it ourselves.
   bool is_gc_adapter_configured = false;
   for (int i = 0; i != SerialInterface::MAX_SI_CHANNELS; ++i)
