@@ -153,6 +153,8 @@ const std::array<BaseAndDec, 32> fres_expected = {{
 }};
 
 // Raw function used by the JITs for fres and ps_res
+// Because of this narrow usage, it could be specialized to not check certain conditions,
+// but at least for now for the sake of conciseness it's not going to matter enough.
 u64 ApproximateReciprocalBits(const UReg_FPSCR& fpscr, const u64 integral)
 {
   // Convert into a float when possible

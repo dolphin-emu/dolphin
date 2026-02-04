@@ -308,18 +308,15 @@ void JitArm64::GenerateFres()
   RET();
 
   SetJumpTarget(complex);
+  // Check for 0 and -0
   TST(ARM64Reg::X1, LogicalImm(Core::DOUBLE_EXP | Core::DOUBLE_FRAC, GPRSize::B64));
-  FixupBranch nonzero = B(CCFlags::CC_NEQ);
+  FixupBranch zero = B(CCFlags::CC_EQ);
+  // Check for infinities and NaNs
+  // Much smaller exponents could fall back earlier, but precisely when would need to be tested
+  CMP(ARM64Reg::X2, 0x7ff - 895);
+  FixupBranch nonfinite = B(CCFlags::CC_EQ);
 
-  LDR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
-  FixupBranch skip_set_zx = TBNZ(ARM64Reg::W4, 26);
-  ORRI2R(ARM64Reg::W4, ARM64Reg::W4, FPSCR_FX | FPSCR_ZX, ARM64Reg::W2);
-  STR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
-  SetJumpTarget(skip_set_zx);
-  // X0 will already be the proper infinity
-  RET();
-
-  SetJumpTarget(nonzero);
+  // Fall back for more complex cases!
   ADD(ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(fpscr));
 
   // X0 - X4 are acknowledged to be clobbered by this function,
@@ -331,6 +328,19 @@ void JitArm64::GenerateFres()
   ABI_CallFunction(&Core::ApproximateReciprocalBits, ARM64Reg::X0, ARM64Reg::X1);
   m_float_emit.ABI_PopRegisters(CALLER_SAVED_FPRS, ARM64Reg::X30);
   ABI_PopRegisters(gprs_to_push);
+  RET();
+
+  SetJumpTarget(zero);
+  LDR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
+  FixupBranch skip_set_zx = TBNZ(ARM64Reg::W4, 26);
+  ORRI2R(ARM64Reg::W4, ARM64Reg::W4, FPSCR_FX | FPSCR_ZX, ARM64Reg::W2);
+  STR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
+  SetJumpTarget(skip_set_zx);
+  // X0 will already be the proper infinity
+  RET();
+
+  SetJumpTarget(nonfinite);
+  // X0 will already contain whatever correct value, NaN or 0
   RET();
 }
 
