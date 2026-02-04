@@ -2349,17 +2349,24 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                   break;
                 }
 
-                if (!validate_jvs_io(std::max(bytes, 3u), "GeneralDriverOutput"))
+                if (!validate_jvs_io(bytes, "GeneralDriverOutput"))
                   break;
 
-                const u16 seat_state = Common::swap16(jvs_io + 1) >> 2;
                 INFO_LOG_FMT(SERIALINTERFACE_JVSIO,
                              "JVS-IO: Command 0x32, GPO: delay=0x{:02x}, rx_reply=0x{:02x},"
-                             " seat_state=0x{:04x}, bytes={}, buffer:\n{}",
-                             delay, m_rx_reply, seat_state, bytes, HexDump(jvs_io, bytes));
-                jvs_io += bytes;
+                             " bytes={}, buffer:\n{}",
+                             delay, m_rx_reply, bytes, HexDump(jvs_io, bytes));
+
+                if (bytes < 3)
+                {
+                  jvs_io += bytes;
+                  break;
+                }
 
                 // Handling of the motion seat used in F-Zero AXs DX version
+                const u16 seat_state = Common::swap16(jvs_io + 1) >> 2;
+                jvs_io += bytes;
+
                 switch (seat_state)
                 {
                 case 0x70:
