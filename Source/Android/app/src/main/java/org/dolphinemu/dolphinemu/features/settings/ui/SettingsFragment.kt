@@ -324,4 +324,10 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
             return fragment
         }
     }
+    override fun showShaderOptionsFragment(shaderName: String) {
+        parentFragmentManager.beginTransaction()
+            .replace(id, ShaderOptionsFragment.newInstance(shaderName))
+            .addToBackStack(null)
+            .commit()
+    }
 }

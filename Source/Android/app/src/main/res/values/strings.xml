@@ -401,6 +401,8 @@
     <string name="misc_settings">Misc Settings</string>
     <string name="emulate_disc_speed">Emulate Disc Speed</string>
     <string name="emulate_disc_speed_description">Enable emulated disc speed. Disabling this can cause crashes and other problems in some games.</string>
+    <string name="configure">Configure</string>
+
 
     <!-- Log Configuration -->
     <string name="log_submenu">Log</string>

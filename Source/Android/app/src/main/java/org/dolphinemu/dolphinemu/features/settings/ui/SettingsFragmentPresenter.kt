@@ -1576,16 +1576,52 @@ class SettingsFragmentPresenter(
         val shaderListEntries = arrayOf(context.getString(R.string.off), *shaderList)
         val shaderListValues = arrayOf("", *shaderList)
 
+        val postProcessingShaderSetting: AbstractStringSetting = object : AbstractStringSetting {
+            override val isOverridden: Boolean
+                get() = StringSetting.GFX_ENHANCE_POST_SHADER.isOverridden
+            override val isRuntimeEditable: Boolean
+                get() = StringSetting.GFX_ENHANCE_POST_SHADER.isRuntimeEditable
+
+            override fun delete(settings: Settings): Boolean {
+                val result = StringSetting.GFX_ENHANCE_POST_SHADER.delete(settings)
+                // Reload settings to show/hide the configure button
+                loadSettingsList()
+                return result
+            }
+
+            override val string: String
+                get() = StringSetting.GFX_ENHANCE_POST_SHADER.string
+
+            override fun setString(settings: Settings, newValue: String) {
+                StringSetting.GFX_ENHANCE_POST_SHADER.setString(settings, newValue)
+                // Reload settings to show/hide the configure button
+                loadSettingsList()
+            }
+        }
+
         sl.add(
             StringSingleChoiceSetting(
                 context,
-                StringSetting.GFX_ENHANCE_POST_SHADER,
+                postProcessingShaderSetting,
                 R.string.post_processing_shader,
                 0,
                 shaderListEntries,
                 shaderListValues
             )
         )
+
+        // Add a configure button if the selected shader has options
+        val selectedShader = postProcessingShaderSetting.string
+        if (selectedShader.isNotEmpty()) {
+            val options = PostProcessing.getShaderOptions(selectedShader)
+            if (options != null && options.options.isNotEmpty()) {
+                sl.add(
+                    RunRunnable(context, R.string.configure, 0, 0, 0, false) {
+                        fragmentView.showShaderOptionsFragment(selectedShader)
+                    }
+                )
+            }
+        }
 
         sl.add(
             SwitchSetting(
