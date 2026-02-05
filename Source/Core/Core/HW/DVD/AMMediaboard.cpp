@@ -70,6 +70,8 @@ static int WSAGetLastError()
 namespace AMMediaboard
 {
 
+using Common::SEND_FLAGS;
+
 static bool s_firmware_map = false;
 static bool s_test_menu = false;
 static SOCKET s_fd_namco_cam = 0;
@@ -253,6 +255,9 @@ static SOCKET socket_(int af, int type, int protocol)
                       Common::StrNetworkError());
         return SOCKET_ERROR;
       }
+
+      Common::SetPlatformSocketOptions(host_fd);
+
       s_sockets[i] = host_fd;
       return i;
     }
@@ -988,7 +993,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
           len = 0;
         }
 
-        const int ret = send(fd, reinterpret_cast<char*>(s_network_buffer + off), len, 0);
+        const int ret = send(fd, reinterpret_cast<char*>(s_network_buffer + off), len, SEND_FLAGS);
         const int err = WSAGetLastError();
 
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: send( {}({}), 0x{:08x}, {} ): {} {}\n", fd,
@@ -1592,7 +1597,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
           len = 0;
         }
 
-        const int ret = send(fd, reinterpret_cast<char*>(s_network_buffer + off), len, 0);
+        const int ret = send(fd, reinterpret_cast<char*>(s_network_buffer + off), len, SEND_FLAGS);
         const int err = WSAGetLastError();
 
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: send( {}({}), 0x{:08x}, {} ): {} {}\n", fd,
