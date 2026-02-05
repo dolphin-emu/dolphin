@@ -894,6 +894,21 @@ static void AMMBCommandSetSockOpt(u32 parameter_offset, u32 network_buffer_base)
   s_media_buffer_32[1] = ret;
 }
 
+static void AMMBCommandModifyMyIPaddr(u32 parameter_offset, u32 network_buffer_base)
+{
+  const u32 net_buffer_offset = s_media_buffer_32[parameter_offset] - network_buffer_base;
+
+  if (!NetworkCMDBufferCheck(net_buffer_offset, MAX_IPV4_STRING_LENGTH))
+  {
+    return;
+  }
+
+  const char* ip_address = reinterpret_cast<char*>(s_network_command_buffer + net_buffer_offset);
+
+  NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: modifyMyIPaddr({})",
+                 fmt::string_view(ip_address, MAX_IPV4_STRING_LENGTH));
+}
+
 static void FileWriteData(Memory::MemoryManager& memory, File::IOFile* file, u32 seek_pos,
                           u32 address, std::size_t length)
 {
@@ -1324,21 +1339,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         break;
       }
       case AMMBCommand::ModifyMyIPaddr:
-      {
-        const u32 net_buffer_offset = s_media_buffer_32[2] - NetworkCommandAddress2;
-
-        if (!NetworkCMDBufferCheck(net_buffer_offset, MAX_IPV4_STRING_LENGTH))
-        {
-          break;
-        }
-
-        const char* ip_address =
-            reinterpret_cast<char*>(s_network_command_buffer + net_buffer_offset);
-
-        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: modifyMyIPaddr({})\n",
-                       fmt::string_view(ip_address, MAX_IPV4_STRING_LENGTH));
+        AMMBCommandModifyMyIPaddr(2, NetworkCommandAddress2);
         break;
-      }
       case AMMBCommand::GetLastError:
       {
         const auto fd = GetHostSocket(GuestSocket(s_media_buffer_32[2]));
@@ -1665,21 +1667,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         AMMBCommandSetSockOpt(10, NetworkCommandAddress1);
         break;
       case AMMBCommand::ModifyMyIPaddr:
-      {
-        const u32 net_buffer_offset = s_media_buffer_32[10] - NetworkCommandAddress1;
-
-        if (!NetworkCMDBufferCheck(net_buffer_offset, MAX_IPV4_STRING_LENGTH))
-        {
-          break;
-        }
-
-        const char* ip_address =
-            reinterpret_cast<char*>(s_network_command_buffer + net_buffer_offset);
-
-        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: modifyMyIPaddr({})\n",
-                       fmt::string_view(ip_address, MAX_IPV4_STRING_LENGTH));
-      }
-      break;
+        AMMBCommandModifyMyIPaddr(10, NetworkCommandAddress1);
+        break;
       // Empty reply
       case AMMBCommand::InitLink:
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: InitLink");
