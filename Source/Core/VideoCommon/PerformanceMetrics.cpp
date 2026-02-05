@@ -143,6 +143,9 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
   // the layout to default. Hopefully users aren't changing window sizes or resolutions too often.
   const ImGuiCond set_next_position_condition =
       (display_size_changed || !movable_overlays) ? ImGuiCond_Always : ImGuiCond_FirstUseEver;
+  // Reset the graph size when changing resolutions, and otherwise let the user manually resize it.
+  const ImGuiCond set_next_size_condition =
+      display_size_changed ? ImGuiCond_Always : ImGuiCond_FirstUseEver;
 
   float window_y = window_padding;
   float window_x = display_size.x - window_padding;
@@ -187,7 +190,7 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
     // Position in the top-right corner of the screen.
     ImGui::SetNextWindowPos(ImVec2(window_x, window_y), set_next_position_condition,
                             ImVec2(1.0f, 0.0f));
-    ImGui::SetNextWindowSize(ImVec2(graph_width, graph_height), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(graph_width, graph_height), set_next_size_condition);
     ImGui::SetNextWindowBgAlpha(bg_alpha);
     if (ImGui::Begin("PerformanceGraphs", nullptr, graph_flags))
     {
