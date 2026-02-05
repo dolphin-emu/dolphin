@@ -236,7 +236,7 @@ class SettingsAdapter(
 
         textSliderValue = binding.textValue
         textSliderValue!!.text = if (item.showDecimal) {
-            String.format("%.2f", seekbarProgress)
+            String.format(Locale.US, "%.2f", seekbarProgress)
         } else {
             seekbarProgress.toInt().toString()
         }
@@ -531,7 +531,7 @@ class SettingsAdapter(
     override fun onValueChange(slider: Slider, progress: Float, fromUser: Boolean) {
         seekbarProgress = progress
         textSliderValue!!.text = if ((clickedItem as SliderSetting).showDecimal) {
-            String.format("%.2f", seekbarProgress)
+            String.format(Locale.US, "%.2f", seekbarProgress)
         } else {
             seekbarProgress.toInt().toString()
         }
