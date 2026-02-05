@@ -11,24 +11,28 @@
 
 extern "C" {
 
+// NOLINTNEXTLINE(cert-dcl51-cpp)
 JNIEXPORT jobjectArray JNICALL
 Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_getShaderList(JNIEnv *env,
                                                                                     jclass) {
     return SpanToJStringArray(env, VideoCommon::PostProcessing::GetShaderList());
 }
 
+// NOLINTNEXTLINE(cert-dcl51-cpp)
 JNIEXPORT jobjectArray JNICALL
 Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_getAnaglyphShaderList(
         JNIEnv *env, jclass) {
     return SpanToJStringArray(env, VideoCommon::PostProcessing::GetAnaglyphShaderList());
 }
 
+// NOLINTNEXTLINE(cert-dcl51-cpp)
 JNIEXPORT jobjectArray JNICALL
 Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_getPassiveShaderList(
         JNIEnv *env, jclass) {
     return SpanToJStringArray(env, VideoCommon::PostProcessing::GetPassiveShaderList());
 }
 
+// NOLINTNEXTLINE(cert-dcl51-cpp)
 JNIEXPORT jobject JNICALL
 Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_getShaderOptions(
         JNIEnv *env, jclass, jstring name) {
@@ -84,20 +88,28 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_getShaderO
                 break;
 
             case VideoCommon::PostProcessingConfiguration::ConfigurationOption::OptionType::Float: {
-                jfloatArray values = env->NewFloatArray(static_cast<jsize>(option.m_float_values.size()));
-                env->SetFloatArrayRegion(values, 0, static_cast<jsize>(option.m_float_values.size()),
+                jfloatArray values = env->NewFloatArray(
+                        static_cast<jsize>(option.m_float_values.size()));
+                env->SetFloatArrayRegion(values, 0,
+                                         static_cast<jsize>(option.m_float_values.size()),
                                          option.m_float_values.data());
 
-                jfloatArray min_values = env->NewFloatArray(static_cast<jsize>(option.m_float_min_values.size()));
-                env->SetFloatArrayRegion(min_values, 0, static_cast<jsize>(option.m_float_min_values.size()),
+                jfloatArray min_values = env->NewFloatArray(
+                        static_cast<jsize>(option.m_float_min_values.size()));
+                env->SetFloatArrayRegion(min_values, 0,
+                                         static_cast<jsize>(option.m_float_min_values.size()),
                                          option.m_float_min_values.data());
 
-                jfloatArray max_values = env->NewFloatArray(static_cast<jsize>(option.m_float_max_values.size()));
-                env->SetFloatArrayRegion(max_values, 0, static_cast<jsize>(option.m_float_max_values.size()),
+                jfloatArray max_values = env->NewFloatArray(
+                        static_cast<jsize>(option.m_float_max_values.size()));
+                env->SetFloatArrayRegion(max_values, 0,
+                                         static_cast<jsize>(option.m_float_max_values.size()),
                                          option.m_float_max_values.data());
 
-                jfloatArray step_values = env->NewFloatArray(static_cast<jsize>(option.m_float_step_values.size()));
-                env->SetFloatArrayRegion(step_values, 0, static_cast<jsize>(option.m_float_step_values.size()),
+                jfloatArray step_values = env->NewFloatArray(
+                        static_cast<jsize>(option.m_float_step_values.size()));
+                env->SetFloatArrayRegion(step_values, 0,
+                                         static_cast<jsize>(option.m_float_step_values.size()),
                                          option.m_float_step_values.data());
 
                 java_option = env->NewObject(float_class, float_constructor, gui_name, option_name,
@@ -107,20 +119,28 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_getShaderO
             }
 
             case VideoCommon::PostProcessingConfiguration::ConfigurationOption::OptionType::Integer: {
-                jintArray values = env->NewIntArray(static_cast<jsize>(option.m_integer_values.size()));
-                env->SetIntArrayRegion(values, 0, static_cast<jsize>(option.m_integer_values.size()),
+                jintArray values = env->NewIntArray(
+                        static_cast<jsize>(option.m_integer_values.size()));
+                env->SetIntArrayRegion(values, 0,
+                                       static_cast<jsize>(option.m_integer_values.size()),
                                        option.m_integer_values.data());
 
-                jintArray min_values = env->NewIntArray(static_cast<jsize>(option.m_integer_min_values.size()));
-                env->SetIntArrayRegion(min_values, 0, static_cast<jsize>(option.m_integer_min_values.size()),
+                jintArray min_values = env->NewIntArray(
+                        static_cast<jsize>(option.m_integer_min_values.size()));
+                env->SetIntArrayRegion(min_values, 0,
+                                       static_cast<jsize>(option.m_integer_min_values.size()),
                                        option.m_integer_min_values.data());
 
-                jintArray max_values = env->NewIntArray(static_cast<jsize>(option.m_integer_max_values.size()));
-                env->SetIntArrayRegion(max_values, 0, static_cast<jsize>(option.m_integer_max_values.size()),
+                jintArray max_values = env->NewIntArray(
+                        static_cast<jsize>(option.m_integer_max_values.size()));
+                env->SetIntArrayRegion(max_values, 0,
+                                       static_cast<jsize>(option.m_integer_max_values.size()),
                                        option.m_integer_max_values.data());
 
-                jintArray step_values = env->NewIntArray(static_cast<jsize>(option.m_integer_step_values.size()));
-                env->SetIntArrayRegion(step_values, 0, static_cast<jsize>(option.m_integer_step_values.size()),
+                jintArray step_values = env->NewIntArray(
+                        static_cast<jsize>(option.m_integer_step_values.size()));
+                env->SetIntArrayRegion(step_values, 0,
+                                       static_cast<jsize>(option.m_integer_step_values.size()),
                                        option.m_integer_step_values.data());
 
                 java_option =
@@ -143,6 +163,7 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_getShaderO
     return env->NewObject(shader_options_class, shader_options_constructor, options_list);
 }
 
+// NOLINTNEXTLINE(cert-dcl51-cpp)
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_setShaderOption__Ljava_lang_String_2Ljava_lang_String_2Z(
         JNIEnv *env, jclass, jstring shader_name, jstring option_name, jboolean value) {
@@ -159,8 +180,9 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_setShaderO
     config.SaveOptionsConfiguration();
 }
 
-JNIEXPORT void
-JNICALLJava_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_setShaderOption__Ljava_lang_String_2Ljava_lang_String_2_3F(
+// NOLINTNEXTLINE(cert-dcl51-cpp)
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_setShaderOption__Ljava_lang_String_2Ljava_lang_String_2_3F(
         JNIEnv *env, jclass, jstring shader_name, jstring option_name, jfloatArray values) {
     const char *shader_name_chars = env->GetStringUTFChars(shader_name, nullptr);
     const std::string shader_name_str(shader_name_chars);
@@ -180,6 +202,7 @@ JNICALLJava_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_set
     config.SaveOptionsConfiguration();
 }
 
+// NOLINTNEXTLINE(cert-dcl51-cpp)
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_setShaderOption__Ljava_lang_String_2Ljava_lang_String_2_3I(
         JNIEnv *env, jclass, jstring shader_name, jstring option_name, jintArray values) {
