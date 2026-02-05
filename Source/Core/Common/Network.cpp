@@ -9,8 +9,9 @@
 #include <vector>
 
 #ifndef _WIN32
+#include <cstring>
 #include <netinet/in.h>
-#include <string.h>
+#include <sys/socket.h>
 #else
 #include <WinSock2.h>
 #endif
@@ -19,6 +20,7 @@
 
 #include "Common/BitUtils.h"
 #include "Common/CommonFuncs.h"
+#include "Common/Logging/Log.h"
 #include "Common/Random.h"
 #include "Common/StringUtil.h"
 
@@ -586,4 +588,18 @@ const char* StrNetworkError()
 #endif
   return DecodeNetworkError(error_code);
 }
+
+bool SetPlatformSocketOptions(int fd [[maybe_unused]])
+{
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+  int opt_no_sigpipe = 1;
+  if (setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &opt_no_sigpipe, sizeof(opt_no_sigpipe)) < 0)
+  {
+    ERROR_LOG_FMT(COMMON, "Failed to set SO_NOSIGPIPE on socket: {}", StrNetworkError());
+    return false;
+  }
+#endif
+  return true;
+}
+
 }  // namespace Common
