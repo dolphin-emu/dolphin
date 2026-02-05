@@ -701,6 +701,34 @@ static s32 NetDIMMConnect(GuestSocket guest_socket, sockaddr_in* addr, int len)
   return ret;
 }
 
+static void AMMBCommandRecv(u32 parameter_offset, u32 network_buffer_base)
+{
+  const auto fd = GetHostSocket(GuestSocket(s_media_buffer_32[parameter_offset]));
+  u32 off = s_media_buffer_32[parameter_offset + 1];
+  auto len = std::min<u32>(s_media_buffer_32[parameter_offset + 2], sizeof(s_network_buffer));
+  const u64 off_len = u64(off) + len;
+
+  if (off >= network_buffer_base && off_len <= network_buffer_base + sizeof(s_network_buffer))
+  {
+    off -= network_buffer_base;
+  }
+  else if (off_len > sizeof(s_network_buffer))
+  {
+    ERROR_LOG_FMT(AMMEDIABOARD_NET,
+                  "GC-AM: recv(error) invalid destination or length: off={:08x}, len={}", off, len);
+    off = 0;
+    len = 0;
+  }
+
+  int ret = recv(fd, reinterpret_cast<char*>(s_network_buffer + off), len, 0);
+  const int err = WSAGetLastError();
+
+  NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv( {}, 0x{:08x}, {} ):{} {}", fd, off, len, ret, err);
+
+  s_media_buffer[1] = s_media_buffer[8];
+  s_media_buffer_32[1] = ret;
+}
+
 static void AMMBCommandSend(u32 parameter_offset, u32 network_buffer_base)
 {
   const auto guest_socket = GuestSocket(s_media_buffer_32[parameter_offset]);
@@ -1229,36 +1257,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         break;
       }
       case AMMBCommand::Recv:
-      {
-        const auto fd = GetHostSocket(GuestSocket(s_media_buffer_32[2]));
-        u32 off = s_media_buffer_32[3];
-        auto len = std::min<u32>(s_media_buffer_32[4], sizeof(s_network_buffer));
-        const u64 off_len = u64(off) + len;
-
-        if (off >= NetworkBufferAddress4 &&
-            off_len <= NetworkBufferAddress4 + sizeof(s_network_buffer))
-        {
-          off -= NetworkBufferAddress4;
-        }
-        else if (off_len > sizeof(s_network_buffer))
-        {
-          ERROR_LOG_FMT(AMMEDIABOARD_NET,
-                        "GC-AM: recv(error) invalid destination or length: off={:08x}, len={}\n",
-                        off, len);
-          off = 0;
-          len = 0;
-        }
-
-        int ret = recv(fd, reinterpret_cast<char*>(s_network_buffer + off), len, 0);
-        const int err = WSAGetLastError();
-
-        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv( {}, 0x{:08x}, {} ):{} {}\n", fd, off, len,
-                       ret, err);
-
-        s_media_buffer[1] = s_media_buffer[8];
-        s_media_buffer_32[1] = ret;
+        AMMBCommandRecv(2, NetworkBufferAddress4);
         break;
-      }
       case AMMBCommand::Send:
         AMMBCommandSend(2, NetworkBufferAddress3);
         break;
@@ -1650,36 +1650,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         AMMBCommandConnect(10, NetworkCommandAddress1);
         break;
       case AMMBCommand::Recv:
-      {
-        const auto fd = GetHostSocket(GuestSocket(s_media_buffer_32[10]));
-        u32 off = s_media_buffer_32[11];
-        auto len = std::min<u32>(s_media_buffer_32[12], sizeof(s_network_buffer));
-        const u64 off_len = u64(off) + len;
-
-        if (off >= NetworkBufferAddress5 &&
-            off_len <= NetworkBufferAddress5 + sizeof(s_network_buffer))
-        {
-          off -= NetworkBufferAddress5;
-        }
-        else if (off_len > sizeof(s_network_buffer))
-        {
-          ERROR_LOG_FMT(AMMEDIABOARD_NET,
-                        "GC-AM: recv(error) invalid destination or length: off={:08x}, len={}\n",
-                        off, len);
-          off = 0;
-          len = 0;
-        }
-
-        int ret = recv(fd, reinterpret_cast<char*>(s_network_buffer + off), len, 0);
-        const int err = WSAGetLastError();
-
-        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv( {}, 0x{:08x}, {} ):{} {}\n", fd, off, len,
-                       ret, err);
-
-        s_media_buffer[1] = s_media_buffer[8];
-        s_media_buffer_32[1] = ret;
-      }
-      break;
+        AMMBCommandRecv(10, NetworkBufferAddress5);
+        break;
       case AMMBCommand::Send:
         AMMBCommandSend(10, NetworkBufferAddress1);
         break;
