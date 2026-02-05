@@ -110,7 +110,7 @@ class SettingsFragmentPresenter(
             MenuTag.CONFIG_PATHS -> addPathsSettings(sl)
             MenuTag.CONFIG_GAME_CUBE -> addGameCubeSettings(sl)
             MenuTag.CONFIG_WII -> addWiiSettings(sl)
-            MenuTag.CONFIG_ACHIEVEMENTS -> addAchievementSettings(sl);
+            MenuTag.CONFIG_ACHIEVEMENTS -> addAchievementSettings(sl)
             MenuTag.CONFIG_ADVANCED -> addAdvancedSettings(sl)
             MenuTag.GRAPHICS -> addGraphicsSettings(sl)
             MenuTag.CONFIG_SERIALPORT1 -> addSerialPortSubSettings(sl, serialPort1Type)
