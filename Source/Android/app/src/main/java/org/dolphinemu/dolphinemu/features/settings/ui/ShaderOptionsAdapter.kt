@@ -10,8 +10,11 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.features.settings.model.PostProcessing
 
-class ShaderOptionsAdapter(private val shaderName: String, private val options: List<PostProcessing.ShaderOption>) :
-    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class ShaderOptionsAdapter(
+    private val shaderName: String,
+    private val options: List<PostProcessing.ShaderOption>
+) :
+    BaseSettingsAdapter<RecyclerView.ViewHolder>() {
 
     override fun getItemViewType(position: Int): Int {
         return options[position].type
@@ -24,10 +27,12 @@ class ShaderOptionsAdapter(private val shaderName: String, private val options: 
                 val view = inflater.inflate(R.layout.list_item_shader_option_boolean, parent, false)
                 BoolViewHolder(view)
             }
+
             1 -> {
                 val view = inflater.inflate(R.layout.list_item_shader_option_float, parent, false)
                 FloatViewHolder(view)
             }
+
             else -> {
                 val view = inflater.inflate(R.layout.list_item_shader_option_integer, parent, false)
                 IntViewHolder(view)

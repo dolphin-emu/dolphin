@@ -21,10 +21,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import org.dolphinemu.dolphinemu.R
@@ -36,7 +34,7 @@ import org.dolphinemu.dolphinemu.utils.SerializableHelper.serializable
 import java.util.*
 import kotlin.collections.ArrayList
 
-class SettingsFragment : Fragment(), SettingsFragmentView {
+class SettingsFragment : BaseSettingsFragment(), SettingsFragmentView {
     private lateinit var presenter: SettingsFragmentPresenter
     private var activityView: SettingsActivityView? = null
 
@@ -63,6 +61,10 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
         }
     }
 
+    override fun getLayoutId() = R.layout.fragment_settings
+
+    override fun getRecyclerViewId() = R.id.list_settings
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
@@ -86,20 +88,18 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentSettingsBinding.inflate(inflater, container, false)
-        return binding!!.root
+        val view = super.onCreateView(inflater, container, savedInstanceState)
+        binding = FragmentSettingsBinding.bind(view!!)
+        return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         if (titles.containsKey(menuTag)) {
             activityView!!.setToolbarTitle(getString(titles[menuTag]!!))
         }
 
-        val manager = LinearLayoutManager(activity)
-
-        val recyclerView = binding!!.listSettings
         recyclerView.adapter = adapter
-        recyclerView.layoutManager = manager
 
         val divider = SettingsDividerItemDecoration(requireActivity())
         recyclerView.addItemDecoration(divider)
@@ -201,7 +201,7 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
         if (presenter.gpuDriver == null) {
             return
         }
-        val msg = "${presenter.gpuDriver!!.name} ${presenter.gpuDriver!!.driverVersion}"
+        val msg = "${'$'}{presenter.gpuDriver!!.name} ${'$'}{presenter.gpuDriver!!.driverVersion}"
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.gpu_driver_dialog_title))
@@ -309,7 +309,7 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
         }
 
         @JvmStatic
-        fun newInstance(menuTag: MenuTag?, gameId: String?, extras: Bundle?): Fragment {
+        fun newInstance(menuTag: MenuTag?, gameId: String?, extras: Bundle?): SettingsFragment {
             val fragment = SettingsFragment()
 
             val arguments = Bundle()
@@ -324,6 +324,7 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
             return fragment
         }
     }
+
     override fun showShaderOptionsFragment(shaderName: String) {
         parentFragmentManager.beginTransaction()
             .replace(id, ShaderOptionsFragment.newInstance(shaderName))

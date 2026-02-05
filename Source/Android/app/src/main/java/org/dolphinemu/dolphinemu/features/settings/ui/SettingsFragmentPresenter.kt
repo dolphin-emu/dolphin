@@ -970,8 +970,8 @@ class SettingsFragmentPresenter(
                         0,
                         false
                     ) {
-                      fragmentView.showDialogFragment(LoginDialog(this))
-                      loadSettingsList()
+                        fragmentView.showDialogFragment(LoginDialog(this))
+                        loadSettingsList()
                     })
             } else {
                 sl.add(
@@ -983,8 +983,8 @@ class SettingsFragmentPresenter(
                         0,
                         false
                     ) {
-                      logout()
-                      loadSettingsList()
+                        logout()
+                        loadSettingsList()
                     })
             }
             sl.add(
@@ -2233,7 +2233,7 @@ class SettingsFragmentPresenter(
                 BooleanSetting.MAIN_DEBUG_JIT_ENABLE_PROFILING,
                 R.string.debug_jit_enable_block_profiling,
                 0
-           )
+            )
         )
         sl.add(
             RunRunnable(
@@ -2399,6 +2399,7 @@ class SettingsFragmentPresenter(
                     addControllerMappingSettings(sl, gcPad, null)
                 }
             }
+
             7 -> {
                 // Emulated keyboard controller
                 val gcKeyboard = EmulatedController.getGcKeyboard(gcPadNumber)
@@ -2411,6 +2412,7 @@ class SettingsFragmentPresenter(
                     addControllerMappingSettings(sl, gcKeyboard, null)
                 }
             }
+
             12 -> {
                 // Adapter
                 sl.add(
@@ -2629,11 +2631,11 @@ class SettingsFragmentPresenter(
      * @param groupTypeFilter If this is non-null, only groups whose types match this are considered.
      */
     private fun addControllerMappingSettings(
-      sl: ArrayList<SettingsItem>,
-      controller: EmulatedController,
-      groupTypeFilter: Set<Int>?
+        sl: ArrayList<SettingsItem>,
+        controller: EmulatedController,
+        groupTypeFilter: Set<Int>?
     ) {
-      addContainerMappingSettings(sl, controller, controller, groupTypeFilter)
+        addContainerMappingSettings(sl, controller, controller, groupTypeFilter)
     }
 
     /**

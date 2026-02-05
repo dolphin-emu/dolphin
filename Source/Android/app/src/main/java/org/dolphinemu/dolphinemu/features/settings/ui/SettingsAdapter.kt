@@ -17,7 +17,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.MaterialDatePicker
@@ -49,7 +48,7 @@ class SettingsAdapter(
     private val fragmentView: SettingsFragmentView,
     private val context: Context
 ) :
-    RecyclerView.Adapter<SettingViewHolder>(), DialogInterface.OnClickListener,
+    BaseSettingsAdapter<SettingViewHolder>(), DialogInterface.OnClickListener,
     Slider.OnChangeListener {
     private var settingsList: ArrayList<SettingsItem>? = null
     private var clickedItem: SettingsItem? = null
