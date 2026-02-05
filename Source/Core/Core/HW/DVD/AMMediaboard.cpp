@@ -701,6 +701,21 @@ static s32 NetDIMMConnect(GuestSocket guest_socket, sockaddr_in* addr, int len)
   return ret;
 }
 
+static void AMMBCommandSocket(u32 parameter_offset)
+{
+  // Protocol is not sent
+  const u32 af = s_media_buffer_32[parameter_offset];
+  const u32 type = s_media_buffer_32[parameter_offset + 1];
+
+  const GuestSocket guest_socket = socket_(af, type, IPPROTO_TCP);
+
+  NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: socket( {}, {}, IPPROTO_TCP ):{}", af, type,
+                 u32(guest_socket));
+
+  s_media_buffer[1] = 0;
+  s_media_buffer_32[1] = u32(guest_socket);
+}
+
 static void AMMBCommandClosesocket(u32 parameter_offset)
 {
   const auto guest_socket = GuestSocket(s_media_buffer_32[parameter_offset]);
@@ -1246,20 +1261,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         break;
       }
       case AMMBCommand::Socket:
-      {
-        // Protocol is not sent
-        const u32 af = s_media_buffer_32[2];
-        const u32 type = s_media_buffer_32[3];
-
-        const GuestSocket guest_socket = socket_(af, type, IPPROTO_TCP);
-
-        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: socket( {}, {}, IPPROTO_TCP ):{}\n", af, type,
-                       u32(guest_socket));
-
-        s_media_buffer[1] = 0;
-        s_media_buffer_32[1] = u32(guest_socket);
+        AMMBCommandSocket(2);
         break;
-      }
       case AMMBCommand::Select:
         AMMBCommandSelect(2, NetworkCommandAddress2);
         break;
@@ -1707,20 +1710,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       }
       break;
       case AMMBCommand::Socket:
-      {
-        // Protocol is not sent
-        const u32 af = s_media_buffer_32[10];
-        const u32 type = s_media_buffer_32[11];
-
-        const GuestSocket guest_socket = socket_(af, type, IPPROTO_TCP);
-
-        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: socket( {}, {}, IPPROTO_TCP ):{}\n", af, type,
-                       u32(guest_socket));
-
-        s_media_buffer[1] = 0;
-        s_media_buffer_32[1] = u32(guest_socket);
-      }
-      break;
+        AMMBCommandSocket(10);
+        break;
       case AMMBCommand::Select:
         AMMBCommandSelect(10, NetworkCommandAddress1);
         break;
