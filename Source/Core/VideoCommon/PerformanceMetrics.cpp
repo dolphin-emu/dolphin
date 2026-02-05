@@ -211,7 +211,7 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
                                                                    2000.0};
 
       clamp_window_position();
-      window_y += ImGui::GetWindowHeight();
+      window_y += ImGui::GetWindowHeight() + window_padding;
 
       const DT vblank_time = m_vps_counter.GetDtAvg() + 2 * m_vps_counter.GetDtStd();
       const DT frame_time = m_fps_counter.GetDtAvg() + 2 * m_fps_counter.GetDtStd();
