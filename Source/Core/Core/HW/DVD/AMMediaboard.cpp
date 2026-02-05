@@ -795,6 +795,32 @@ static void AMMBCommandSelect(u32 parameter_offset, u32 network_buffer_base)
   s_media_buffer_32[1] = ret;
 }
 
+static void AMMBCommandSetSockOpt(u32 parameter_offset, u32 network_buffer_base)
+{
+  const auto fd = GetHostSocket(GuestSocket(s_media_buffer_32[parameter_offset]));
+  const int level = static_cast<int>(s_media_buffer_32[parameter_offset + 1]);
+  const int optname = static_cast<int>(s_media_buffer_32[parameter_offset + 2]);
+  const u32 optval_offset = s_media_buffer_32[parameter_offset + 3] - network_buffer_base;
+  const int optlen = static_cast<int>(s_media_buffer_32[parameter_offset + 4]);
+
+  if (!NetworkCMDBufferCheck(optval_offset, optlen))
+  {
+    return;
+  }
+
+  const char* optval = reinterpret_cast<char*>(s_network_command_buffer + optval_offset);
+
+  // TODO: Ensure parameters are compatible with host's setsockopt
+  const int ret = setsockopt(fd, level, optname, optval, optlen);
+  const int err = WSAGetLastError();
+
+  NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: setsockopt( {:d}, {:04x}, {}, {:p}, {} ):{:d} ({})", fd,
+                 level, optname, optval, optlen, ret, err);
+
+  s_media_buffer[1] = s_media_buffer[8];
+  s_media_buffer_32[1] = ret;
+}
+
 static void FileWriteData(Memory::MemoryManager& memory, File::IOFile* file, u32 seek_pos,
                           u32 address, std::size_t length)
 {
@@ -1238,32 +1264,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         AMMBCommandSelect(2, NetworkCommandAddress2);
         break;
       case AMMBCommand::SetSockOpt:
-      {
-        const auto fd = GetHostSocket(GuestSocket(s_media_buffer_32[2]));
-        const int level = static_cast<int>(s_media_buffer_32[3]);
-        const int optname = static_cast<int>(s_media_buffer_32[4]);
-        const int optlen = static_cast<int>(s_media_buffer_32[6]);
-        const u32 optval_offset = s_media_buffer_32[5] - NetworkCommandAddress2;
-
-        if (!NetworkCMDBufferCheck(optval_offset, optlen))
-        {
-          break;
-        }
-
-        const char* optval = reinterpret_cast<char*>(s_network_command_buffer + optval_offset);
-
-        // TODO: Ensure parameters are compatible with host's setsockopt
-        const int ret = setsockopt(fd, level, optname, optval, optlen);
-        const int err = WSAGetLastError();
-
-        NOTICE_LOG_FMT(AMMEDIABOARD_NET,
-                       "GC-AM: setsockopt( {:d}, {:04x}, {}, {:p}, {} ):{:d} ({})\n", fd, level,
-                       optname, optval, optlen, ret, err);
-
-        s_media_buffer[1] = s_media_buffer[8];
-        s_media_buffer_32[1] = ret;
+        AMMBCommandSetSockOpt(2, NetworkCommandAddress2);
         break;
-      }
       case AMMBCommand::SetTimeOuts:
       {
         const auto fd = GetHostSocket(GuestSocket(s_media_buffer_32[2]));
@@ -1723,32 +1725,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         AMMBCommandSelect(10, NetworkCommandAddress1);
         break;
       case AMMBCommand::SetSockOpt:
-      {
-        const auto fd = GetHostSocket(GuestSocket(s_media_buffer_32[10]));
-        const int level = static_cast<int>(s_media_buffer_32[11]);
-        const int optname = static_cast<int>(s_media_buffer_32[12]);
-        const int optlen = static_cast<int>(s_media_buffer_32[14]);
-        const u32 optval_offset = s_media_buffer_32[13] - NetworkCommandAddress1;
-
-        if (!NetworkCMDBufferCheck(optval_offset, optlen))
-        {
-          break;
-        }
-
-        const char* optval = reinterpret_cast<char*>(s_network_command_buffer + optval_offset);
-
-        // TODO: Ensure parameters are compatible with host's setsockopt
-        const int ret = setsockopt(fd, level, optname, optval, optlen);
-        const int err = WSAGetLastError();
-
-        NOTICE_LOG_FMT(AMMEDIABOARD_NET,
-                       "GC-AM: setsockopt( {:d}, {:04x}, {}, {:p}, {} ):{:d} ({})\n", fd, level,
-                       optname, optval, optlen, ret, err);
-
-        s_media_buffer[1] = s_media_buffer[8];
-        s_media_buffer_32[1] = ret;
-      }
-      break;
+        AMMBCommandSetSockOpt(10, NetworkCommandAddress1);
+        break;
       case AMMBCommand::ModifyMyIPaddr:
       {
         const u32 net_buffer_offset = s_media_buffer_32[10] - NetworkCommandAddress1;
