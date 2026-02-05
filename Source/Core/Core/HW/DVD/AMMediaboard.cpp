@@ -38,6 +38,8 @@
 
 #include <unistd.h>
 
+#include "Common/UnixUtil.h"
+
 static constexpr auto* closesocket = close;
 static auto ioctlsocket(auto... args)
 {
@@ -48,6 +50,7 @@ static constexpr int WSAEWOULDBLOCK = 10035;
 static constexpr int SOCKET_ERROR = -1;
 
 using SOCKET = int;
+using WSAPOLLFD = pollfd;
 
 static constexpr SOCKET INVALID_SOCKET = SOCKET(~0);
 
@@ -471,96 +474,24 @@ u8* InitDIMM(u32 size)
   return s_dimm_disc.data();
 }
 
-// Also updates the nfds value.
-static fd_set GetHostFdSetFromGuestFdSet(SOCKET* nfds_ptr, int guest_nfds,
-                                         const void* guest_fds_ptr)
+static int PlatformPoll(std::span<WSAPOLLFD> pfds, std::chrono::milliseconds timeout)
 {
-  fd_set result_fds;
-  FD_ZERO(&result_fds);
-
-  if (guest_fds_ptr == nullptr)
-    return result_fds;
-
-  GuestFdSet guest_fds;
-  std::memcpy(&guest_fds, guest_fds_ptr, sizeof(guest_fds));
-
-  auto nfds = *nfds_ptr;
-
-  for (int guest_fd = FIRST_VALID_FD; guest_fd < guest_nfds; ++guest_fd)
-  {
-    if (!guest_fds.IsFdSet(GuestSocket(guest_fd)))
-      continue;
-
-    const auto host_socket = GetHostSocket(GuestSocket(guest_fd));
-    if (host_socket == INVALID_SOCKET)
-    {
-      ERROR_LOG_FMT(AMMEDIABOARD, "GetHostFdSetFromGuestFdSet: INVALID_SOCKET");
-      continue;
-    }
-
-    if (host_socket >= FD_SETSIZE)
-    {
-      ERROR_LOG_FMT(AMMEDIABOARD, "GetHostFdSetFromGuestFdSet: host_socket >= FD_SETSIZE");
-      continue;
-    }
-
-    FD_SET(host_socket, &result_fds);
-    nfds = std::max(nfds, host_socket + 1);
-  }
-
-  *nfds_ptr = nfds;
-  return result_fds;
-}
-
-static void WriteGuestFdSetFromHostFdSet(void* guest_fds_ptr, int nfds, const fd_set* fds)
-{
-  if (guest_fds_ptr == nullptr)
-    return;
-
-  GuestFdSet guest_fds;
-
-  for (int fd = 0; fd < nfds; ++fd)
-  {
-    if (!FD_ISSET(fd, fds))
-      continue;
-
-    guest_fds.SetFd(GetGuestSocket(fd));
-  }
-
-  std::memcpy(guest_fds_ptr, &guest_fds, sizeof(guest_fds));
-}
-
-static auto EmulateSelect(int guest_nfds, void* guest_readfds_ptr, void* guest_writefds_ptr,
-                          void* guest_exceptfds_ptr, timeval* timeout)
-{
-  // TODO: Emulate using poll or similar on Linux.
-
-  SOCKET nfds = 0;
-  fd_set readfds = GetHostFdSetFromGuestFdSet(&nfds, guest_nfds, guest_readfds_ptr);
-  fd_set writefds = GetHostFdSetFromGuestFdSet(&nfds, guest_nfds, guest_writefds_ptr);
-  fd_set exceptfds = GetHostFdSetFromGuestFdSet(&nfds, guest_nfds, guest_exceptfds_ptr);
-
-  const auto result = select(nfds, &readfds, &writefds, &exceptfds, timeout);
-
-  WriteGuestFdSetFromHostFdSet(guest_readfds_ptr, nfds, &readfds);
-  WriteGuestFdSetFromHostFdSet(guest_writefds_ptr, nfds, &writefds);
-  WriteGuestFdSetFromHostFdSet(guest_exceptfds_ptr, nfds, &exceptfds);
-
-  return result;
+#if defined(_WIN32)
+  return WSAPoll(pfds.data(), ULONG(pfds.size()), INT(timeout.count()));
+#else
+  return UnixUtil::RetryOnEINTR(poll, pfds.data(), pfds.size(), timeout.count());
+#endif
 }
 
 static GuestSocket NetDIMMAccept(GuestSocket guest_socket, sockaddr* addr, socklen_t* len)
 {
-  GuestFdSet readfds;
-  readfds.SetFd(guest_socket);
+  WSAPOLLFD pfds[1]{{.fd = GetHostSocket(guest_socket), .events = POLLIN}};
 
-  timeval timeout{
-      .tv_usec = 10000,  // 10 milliseconds
-  };
+  constexpr auto timeout = std::chrono::milliseconds{10};
 
-  const int result = EmulateSelect(SOCKET(guest_socket) + 1, &readfds, nullptr, nullptr, &timeout);
+  const int result = PlatformPoll(pfds, timeout);
 
-  if (result > 0 && readfds.IsFdSet(guest_socket))
+  if (result > 0 && (pfds[0].revents & POLLIN) != 0)
   {
     const auto client_sock = accept_(GetHostSocket(guest_socket), addr, len);
     if (client_sock == INVALID_GUEST_SOCKET)
@@ -581,7 +512,7 @@ static GuestSocket NetDIMMAccept(GuestSocket guest_socket, sockaddr* addr, sockl
   }
   else
   {
-    ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: select() failed in NetDIMMAccept ({})",
+    ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: poll() failed in NetDIMMAccept ({})",
                   Common::StrNetworkError());
     s_last_error = SOCKET_ERROR;
   }
@@ -825,9 +756,57 @@ static void AMMBCommandConnect(u32 parameter_offset, u32 network_buffer_base)
   s_media_buffer_32[1] = ret;
 }
 
+// Expects a pointer to a GuestFdSet or nullptr.
+static void FillPollFdsFromGuestFdSet(std::span<WSAPOLLFD> pfds, const void* guest_fds_ptr,
+                                      short requested_events)
+{
+  if (guest_fds_ptr == nullptr)
+    return;
+
+  GuestFdSet guest_fds;
+  std::memcpy(&guest_fds, guest_fds_ptr, sizeof(guest_fds));
+
+  u32 index = 0;
+  for (auto& pfd : pfds)
+  {
+    const auto guest_socket = GuestSocket(index);
+    if (guest_fds.IsFdSet(guest_socket))
+    {
+      pfd.fd = GetHostSocket(guest_socket);
+      pfd.events |= requested_events;
+    }
+
+    ++index;
+  }
+}
+
+// Expects a pointer to a GuestFdSet or nullptr.
+static void WriteGuestFdSetFromPollFds(void* guest_fds_ptr, std::span<const WSAPOLLFD> fds,
+                                       short returned_events)
+{
+  if (guest_fds_ptr == nullptr)
+    return;
+
+  GuestFdSet guest_fds;
+
+  for (const auto& fd : fds)
+  {
+    if ((fd.revents & returned_events) == 0)
+      continue;
+
+    const auto guest_socket = GetGuestSocket(fd.fd);
+    if (guest_socket == INVALID_GUEST_SOCKET)
+      continue;
+
+    guest_fds.SetFd(guest_socket);
+  }
+
+  std::memcpy(guest_fds_ptr, &guest_fds, sizeof(guest_fds));
+}
+
 static void AMMBCommandSelect(u32 parameter_offset, u32 network_buffer_base)
 {
-  const auto guest_nfds = int(s_media_buffer_32[parameter_offset]);
+  u32 nfds = int(s_media_buffer_32[parameter_offset]);
 
   const u32 readfds_offset = s_media_buffer_32[parameter_offset + 1];
   auto* const guest_readfds_ptr =
@@ -845,22 +824,55 @@ static void AMMBCommandSelect(u32 parameter_offset, u32 network_buffer_base)
   auto* const guest_timeout_ptr =
       GetSafePtr(s_network_command_buffer, network_buffer_base, timeout_offset, sizeof(TimeVal));
 
-  timeval timeout{};
+  if (nfds > std::size(s_sockets))
+  {
+    ERROR_LOG_FMT(AMMEDIABOARD, "AMMBCommandSelect: Unexpected nfds: {}", nfds);
+    nfds = std::size(s_sockets);
+  }
+
+  std::chrono::milliseconds timeout{-1};
   if (guest_timeout_ptr != nullptr)
   {
     TimeVal guest_timeout;
     std::memcpy(&guest_timeout, guest_timeout_ptr, sizeof(guest_timeout));
 
-    timeout.tv_sec = guest_timeout.seconds;
-    timeout.tv_usec = guest_timeout.microseconds;
+    timeout = duration_cast<std::chrono::milliseconds>(
+        std::chrono::seconds(guest_timeout.seconds) +
+        std::chrono::microseconds(guest_timeout.microseconds));
   }
 
-  NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: select( {}, 0x{:08x} 0x{:08x} 0x{:08x} 0x{:08x} ) {}:{}",
-                 guest_nfds, readfds_offset, writefds_offset, exceptfds_offset, timeout_offset,
-                 guest_timeout_ptr ? timeout.tv_sec : 0, guest_timeout_ptr ? timeout.tv_usec : 0);
+  if (timeout < std::chrono::milliseconds{})
+  {
+    // TODO: We should have a way to break out of any timeout on shutdown.
+    // e.g. include a "wakeup" socket in each `poll` call.
+    WARN_LOG_FMT(AMMEDIABOARD, "AMMBCommandSelect: Infinite timout!");
+  }
 
-  const int ret = EmulateSelect(guest_nfds, guest_readfds_ptr, guest_writefds_ptr,
-                                guest_exceptfds_ptr, (guest_timeout_ptr ? &timeout : nullptr));
+  NOTICE_LOG_FMT(
+      AMMEDIABOARD_NET, "GC-AM: select( {}, 0x{:08x} 0x{:08x} 0x{:08x} 0x{:08x} ) timeout={}", nfds,
+      readfds_offset, writefds_offset, exceptfds_offset, timeout_offset, timeout.count());
+
+  // Fill with the host sockets for each guest socket less-than `nfds` in each GuestFdSet.
+  std::vector<WSAPOLLFD> pollfds(nfds, WSAPOLLFD{.fd = INVALID_SOCKET});
+
+  FillPollFdsFromGuestFdSet(pollfds, guest_readfds_ptr, POLLIN);
+  FillPollFdsFromGuestFdSet(pollfds, guest_writefds_ptr, POLLOUT);
+  FillPollFdsFromGuestFdSet(pollfds, guest_exceptfds_ptr, POLLPRI);
+
+  // Erase "INVALID" entries and also entries that weren't in any GuestFdSet.
+  std::erase_if(pollfds, [](const WSAPOLLFD& fd) { return fd.fd == INVALID_SOCKET; });
+
+  // TODO: There may be some edge cases where
+  // poll's (POLLIN,POLLOUT,POLLPRI) don't map 1:1 with select's (readfds,writefds,exceptfds).
+
+  const int ret = PlatformPoll(pollfds, timeout);
+
+  if (ret >= 0)
+  {
+    WriteGuestFdSetFromPollFds(guest_readfds_ptr, pollfds, POLLIN);
+    WriteGuestFdSetFromPollFds(guest_writefds_ptr, pollfds, POLLOUT);
+    WriteGuestFdSetFromPollFds(guest_exceptfds_ptr, pollfds, POLLPRI);
+  }
 
   NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: select result: {}", ret);
 
