@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <libudev.h>
 #include <sys/eventfd.h>
+#include <sys/poll.h>
 #include <unistd.h>
 
 #include "Common/Assert.h"
@@ -21,6 +22,7 @@
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
+#include "Common/UnixUtil.h"
 #include "Common/WorkQueueThread.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -343,15 +345,13 @@ void InputBackend::HotplugThreadFunc()
 
   while (m_hotplug_thread_running.IsSet())
   {
-    fd_set fds;
+    std::array<pollfd, 2> pollfds{
+        pollfd{.fd = monitor_fd, .events = POLLIN},
+        pollfd{.fd = m_wakeup_eventfd, .events = POLLIN},
+    };
 
-    FD_ZERO(&fds);
-    FD_SET(monitor_fd, &fds);
-    FD_SET(m_wakeup_eventfd, &fds);
-
-    const int ret =
-        select(std::max(monitor_fd, m_wakeup_eventfd) + 1, &fds, nullptr, nullptr, nullptr);
-    if (ret < 1 || !FD_ISSET(monitor_fd, &fds))
+    UnixUtil::RetryOnEINTR(poll, pollfds.data(), pollfds.size(), -1);
+    if (pollfds[0].revents == 0)
       continue;
 
     udev_device* const dev = udev_monitor_receive_device(monitor);
@@ -415,7 +415,7 @@ void InputBackend::StopHotplugThread()
     return;
   }
 
-  // Write something to efd so that select() stops blocking.
+  // Write something to efd so that poll() stops blocking.
   const uint64_t value = 1;
   static_cast<void>(!write(m_wakeup_eventfd, &value, sizeof(uint64_t)));
 
