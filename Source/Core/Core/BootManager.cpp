@@ -118,7 +118,7 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
         case DiscIO::Region::NTSC_K:
           Config::SetCurrent(Config::SYSCONF_COUNTRY, 0x88);  // South Korea
           break;
-        case DiscIO::Region::Unknown:
+        default:
           break;
         }
       }
