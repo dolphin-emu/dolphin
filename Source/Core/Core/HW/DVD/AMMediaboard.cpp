@@ -485,7 +485,8 @@ static int PlatformPoll(std::span<WSAPOLLFD> pfds, std::chrono::milliseconds tim
 
 static GuestSocket NetDIMMAccept(GuestSocket guest_socket, sockaddr* addr, socklen_t* len)
 {
-  WSAPOLLFD pfds[1]{{.fd = GetHostSocket(guest_socket), .events = POLLIN}};
+  const auto host_socket = GetHostSocket(guest_socket);
+  WSAPOLLFD pfds[1]{{.fd = host_socket, .events = POLLIN}};
 
   constexpr auto timeout = std::chrono::milliseconds{10};
 
@@ -493,7 +494,7 @@ static GuestSocket NetDIMMAccept(GuestSocket guest_socket, sockaddr* addr, sockl
 
   if (result > 0 && (pfds[0].revents & POLLIN) != 0)
   {
-    const auto client_sock = accept_(GetHostSocket(guest_socket), addr, len);
+    const auto client_sock = accept_(host_socket, addr, len);
     if (client_sock == INVALID_GUEST_SOCKET)
     {
       ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: accept() failed in NetDIMMAccept ({})",
@@ -753,6 +754,51 @@ static void AMMBCommandConnect(u32 parameter_offset, u32 network_buffer_base)
                  ret);
 
   s_media_buffer[1] = s_media_buffer[8];
+  s_media_buffer_32[1] = ret;
+}
+
+static void AMMBCommandAccept(u32 parameter_offset, u32 network_buffer_base)
+{
+  const auto guest_socket = GuestSocket(s_media_buffer_32[parameter_offset]);
+  const u32 addr_off = s_media_buffer_32[parameter_offset + 1];
+  const u32 addrlen_off = s_media_buffer_32[parameter_offset + 2];
+
+  u32 ret{};
+
+  // Either both parameters should be provided, or neither.
+  if ((addr_off != 0) != (addrlen_off != 0))
+  {
+    WARN_LOG_FMT(AMMEDIABOARD_NET, "AMMBCommandAccept: Unexpected parameters: {}, {}, {}",
+                 u32(guest_socket), addr_off, addrlen_off);
+
+    // TODO: Not hardware tested.
+    s_last_error = SSC_EFAULT;
+    ret = SOCKET_ERROR;
+  }
+  else
+  {
+    sockaddr addr;
+    socklen_t addrlen = sizeof(addr);
+    ret = u32(NetDIMMAccept(guest_socket, &addr, &addrlen));
+
+    NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: accept( {} ):{}", u32(guest_socket), u32(ret));
+
+    auto* const addrlen_ptr =
+        GetSafePtr(s_network_command_buffer, network_buffer_base, addrlen_off, sizeof(u32));
+    if (addrlen_ptr != nullptr)
+    {
+      // Read the buffer size.
+      addrlen = std::min<socklen_t>(addrlen, Common::BitCastPtr<u32>(addrlen_ptr));
+      // Write out the proper length.
+      Common::BitCastPtr<u32>(addrlen_ptr) = sizeof(addr);
+
+      auto* const addr_ptr =
+          GetSafePtr(s_network_command_buffer, network_buffer_base, addr_off, addrlen);
+      if (addr_ptr != nullptr)
+        memcpy(addr_ptr, &addr, addrlen);
+    }
+  }
+
   s_media_buffer_32[1] = ret;
 }
 
@@ -1160,48 +1206,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         s_media_buffer[4] = 1;
         break;
       case AMMBCommand::Accept:
-      {
-        const auto guest_socket = GuestSocket(s_media_buffer_32[2]);
-        GuestSocket ret = INVALID_GUEST_SOCKET;
-        sockaddr addr;
-        socklen_t len = 0;
-
-        // Handle optional parameters
-        if (s_media_buffer_32[3] == 0 || s_media_buffer_32[4] == 0)
-        {
-          ret = NetDIMMAccept(guest_socket, nullptr, nullptr);
-        }
-        else
-        {
-          const u32 addr_off = s_media_buffer_32[3] - NetworkCommandAddress2;
-          const u32 len_off = s_media_buffer_32[4] - NetworkCommandAddress2;
-
-          if (!NetworkCMDBufferCheck(addr_off, sizeof(sockaddr)) ||
-              !NetworkCMDBufferCheck(len_off, sizeof(u32)))
-          {
-            break;
-          }
-
-          // TODO: Check that the current implementation is correct. Currently, `len=0`,
-          // so `accept()` might not write to `addr` properly. It might be missing the
-          // following (assuming the code, address and endianness are correct):
-          //
-          // // socklen_t might be larger than u32
-          // const u32 addr_len = Common::BitCastPtr<u32>(s_network_command_buffer + len_off);
-          // len = addr_len;
-          ret = NetDIMMAccept(guest_socket, &addr, &len);
-          if (len)
-          {
-            memcpy(s_network_command_buffer + addr_off, &addr, sizeof(sockaddr));
-            memcpy(s_network_command_buffer + len_off, &len, sizeof(u32));
-          }
-        }
-
-        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: accept( {}({}) ):{}", u32(guest_socket),
-                       u32(guest_socket), u32(ret));
-        s_media_buffer_32[1] = u32(ret);
+        AMMBCommandAccept(2, NetworkCommandAddress2);
         break;
-      }
       case AMMBCommand::Bind:
       {
         const auto fd = GetHostSocket(GuestSocket(s_media_buffer_32[2]));
