@@ -773,8 +773,8 @@ WiiSocket::ConnectingState WiiSocket::GetConnectingState() const
     FD_ZERO(&read_fds);
     FD_ZERO(&write_fds);
     FD_ZERO(&except_fds);
-    FD_SET(fd, &write_fds);
-    FD_SET(fd, &except_fds);
+    Common::Safe_FD_SET(fd, &write_fds);
+    Common::Safe_FD_SET(fd, &except_fds);
 
     if (select(nfds, &read_fds, &write_fds, &except_fds, &t) < 0)
     {
@@ -1007,9 +1007,9 @@ void WiiSockMan::Update()
     const WiiSocket& sock = socket_iter->second;
     if (sock.IsValid())
     {
-      FD_SET(sock.fd, &read_fds);
-      FD_SET(sock.fd, &write_fds);
-      FD_SET(sock.fd, &except_fds);
+      Common::Safe_FD_SET(sock.fd, &read_fds);
+      Common::Safe_FD_SET(sock.fd, &write_fds);
+      Common::Safe_FD_SET(sock.fd, &except_fds);
       nfds = std::max(nfds, sock.fd + 1);
       ++socket_iter;
     }

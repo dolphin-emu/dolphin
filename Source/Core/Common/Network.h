@@ -10,8 +10,13 @@
 #include <type_traits>
 #include <vector>
 
-#if defined(__linux__) || defined(__HAIKU__)
+#if defined(_WIN32)
+#include <winsock2.h>
+#else
+#include <sys/select.h>
 #include <sys/socket.h>
+
+#include "Common/Logging/Log.h"
 #endif
 
 #include "Common/CommonTypes.h"
@@ -317,5 +322,21 @@ static constexpr int SEND_FLAGS = MSG_NOSIGNAL;
 #else
 static constexpr int SEND_FLAGS = 0;
 #endif
+
+// TODO: Don't use FD_SET and select().
+// See WARNING at https://www.man7.org/linux/man-pages/man2/select.2.html
+constexpr void Safe_FD_SET(auto fd, fd_set* fds)
+{
+#if !defined(_WIN32)
+  // On non-Windows, fd_set is a bitset and socket values must be within [0, FD_SETSIZE).
+  if (fd < 0 || fd >= FD_SETSIZE)
+  {
+    ERROR_LOG_FMT(COMMON, "FD_SET: Invalid socket: {}", fd);
+    return;
+  }
+#endif
+
+  FD_SET(fd, fds);
+}
 
 }  // namespace Common
