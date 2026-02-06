@@ -170,8 +170,11 @@ void PerformanceMetrics::DrawImGuiStats(const float backbuffer_scale)
       ImGui::SetWindowPos(ImVec2(clamped_window_x, clamped_window_y), ImGuiCond_Always);
   };
 
-  const float graph_width = display_size.x / 4.0;
-  const float graph_height = display_size.y / 4.0;
+  const float min_auto_graph_width = 200.f * backbuffer_scale + 2.f * window_padding;
+  const float min_auto_graph_height = 144.f * backbuffer_scale + 2.f * window_padding;
+
+  const float graph_width = std::max(min_auto_graph_width, display_size.x / 4.f);
+  const float graph_height = std::max(min_auto_graph_height, display_size.y / 4.f);
 
   const bool stack_vertically = !g_ActiveConfig.bShowGraphs;
 
