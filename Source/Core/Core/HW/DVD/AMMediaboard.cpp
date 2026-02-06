@@ -488,7 +488,8 @@ static GuestSocket NetDIMMAccept(GuestSocket guest_socket, sockaddr* addr, sockl
   const auto host_socket = GetHostSocket(guest_socket);
   WSAPOLLFD pfds[1]{{.fd = host_socket, .events = POLLIN}};
 
-  constexpr auto timeout = std::chrono::milliseconds{10};
+  // FYI: Currently using a 0ms timeout to make accept calls always non-blocking.
+  constexpr auto timeout = std::chrono::milliseconds{0};
 
   const int result = PlatformPoll(pfds, timeout);
 
