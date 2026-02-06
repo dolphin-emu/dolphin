@@ -1,7 +1,7 @@
+#include "VideoCommon/PostProcessing.h"
 #include <jni.h>
 #include <string>
 #include <vector>
-#include "VideoCommon/PostProcessing.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 
 extern "C" {
@@ -28,9 +28,10 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_getPassive
 }
 
 JNIEXPORT jobject JNICALL
-Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_getShaderOptions(JNIEnv* env,
-                                                                                       jclass,
-                                                                                       jstring name)
+Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_getShaderOptions(
+        JNIEnv* env,
+        jclass,
+        jstring name)
 {
     const char* name_chars = env->GetStringUTFChars(name, nullptr);
     const std::string shader_name_str(name_chars);
