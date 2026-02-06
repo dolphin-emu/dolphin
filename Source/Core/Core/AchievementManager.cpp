@@ -931,22 +931,8 @@ void AchievementManager::LoginCallback(int result, const char* error_message, rc
   std::string config_username = Config::Get(Config::RA_USERNAME);
   if (config_username != user->username)
   {
-    if (Common::CaseInsensitiveEquals(config_username, user->username))
-    {
-      INFO_LOG_FMT(ACHIEVEMENTS,
-                   "Case mismatch between site {} and local {}; updating local config.",
-                   user->username, Config::Get(Config::RA_USERNAME));
-      Config::SetBaseOrCurrent(Config::RA_USERNAME, user->username);
-    }
-    else
-    {
-      INFO_LOG_FMT(ACHIEVEMENTS, "Attempted to login prior user {}; current user is {}.",
-                   user->username, Config::Get(Config::RA_USERNAME));
-      rc_client_logout(client);
-      instance.update_event.Trigger({.failed_login_code = RC_INVALID_STATE});
-      instance.login_event.Trigger(RC_INVALID_STATE);
-      return;
-    }
+    INFO_LOG_FMT(ACHIEVEMENTS, "Username alias {} -> {}.", config_username, user->username);
+    Config::SetBaseOrCurrent(Config::RA_USERNAME, user->username);
   }
   instance.login_event.Trigger(RC_OK);
 
