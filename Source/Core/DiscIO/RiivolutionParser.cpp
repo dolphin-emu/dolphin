@@ -313,7 +313,7 @@ std::vector<Patch> Disc::GeneratePatches(const std::string& game_id) const
         replacements.emplace_back(std::pair{"{$__region}", game_region});
         replacements.emplace_back(std::pair{"{$__maker}", game_developer});
         for (const auto& param : patch_ref.m_params)
-          replacements.emplace_back(std::pair{"{$" + param.first + "}", param.second});
+          replacements.emplace_back("{$" + param.first + "}", param.second);
 
         Patch& new_patch = active_patches.emplace_back(*patch);
         new_patch.m_root = replace_variables(new_patch.m_root, replacements);
