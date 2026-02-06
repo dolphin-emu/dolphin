@@ -20,12 +20,14 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/System.h"
+#include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
 WiiSpeakWindow::WiiSpeakWindow(QWidget* parent) : QWidget(parent)
 {
   // i18n: Window for managing the Wii Speak microphone
   setWindowTitle(tr("Wii Speak Manager"));
+  setWindowIcon(Resources::GetAppIcon());
   setObjectName(QStringLiteral("wii_speak_manager"));
   setMinimumSize(QSize(700, 200));
 
