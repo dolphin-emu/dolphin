@@ -556,37 +556,30 @@ static s32 NetDIMMConnect(GuestSocket guest_socket, sockaddr_in* addr, int len)
 
   addr->sin_family = Common::swap16(addr->sin_family);
 
-  const auto fd = GetHostSocket(guest_socket);
+  const auto host_socket = GetHostSocket(guest_socket);
 
   u_long val = 1;
   // Set socket to non-blocking
-  ioctlsocket(fd, FIONBIO, &val);
+  ioctlsocket(host_socket, FIONBIO, &val);
 
-  int ret = connect(fd, reinterpret_cast<const sockaddr*>(addr), len);
+  int ret = connect(host_socket, reinterpret_cast<const sockaddr*>(addr), len);
   const int err = WSAGetLastError();
 
   if (ret == SOCKET_ERROR && err == WSAEWOULDBLOCK)
   {
-    fd_set writefds{};
-    FD_ZERO(&writefds);
-    FD_SET(fd, &writefds);
+    WSAPOLLFD pfds[1]{{.fd = host_socket, .events = POLLOUT}};
 
-    timeval timeout{};
-    timeout.tv_sec = 0;
-    timeout.tv_usec = s_timeouts[0];
+    const auto timeout =
+        duration_cast<std::chrono::milliseconds>(std::chrono::microseconds{s_timeouts[0]});
 
-    // TODO: Don't use select on Linux.
-    if (fd >= FD_SETSIZE)
-    {
-      ERROR_LOG_FMT(AMMEDIABOARD, "NetDIMMConnect: fd >= FD_SETSIZE");
-    }
+    ret = PlatformPoll(pfds, timeout);
 
-    ret = select(fd + 1, nullptr, &writefds, nullptr, &timeout);
-    if (ret > 0 && FD_ISSET(fd, &writefds))
+    if (ret > 0 && (pfds[0].revents & POLLOUT) != 0)
     {
       int so_error = 0;
       socklen_t optlen = sizeof(so_error);
-      if (getsockopt(fd, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&so_error), &optlen) == 0 &&
+      if (getsockopt(host_socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&so_error),
+                     &optlen) == 0 &&
           so_error == 0)
       {
         s_last_error = SSC_SUCCESS;
@@ -608,7 +601,7 @@ static s32 NetDIMMConnect(GuestSocket guest_socket, sockaddr_in* addr, int len)
     }
     else
     {
-      ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: select() failed in NetDIMMConnect ({})",
+      ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: poll() failed in NetDIMMConnect ({})",
                     Common::StrNetworkError());
       s_last_error = SOCKET_ERROR;
       ret = SOCKET_ERROR;
@@ -628,7 +621,7 @@ static s32 NetDIMMConnect(GuestSocket guest_socket, sockaddr_in* addr, int len)
 
   // Restore blocking mode
   val = 0;
-  ioctlsocket(fd, FIONBIO, &val);
+  ioctlsocket(host_socket, FIONBIO, &val);
 
   return ret;
 }
