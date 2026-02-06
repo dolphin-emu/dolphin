@@ -11,28 +11,28 @@
 
 extern "C" {
 
-// NOLINTNEXTLINE(cert-dcl51-cpp)
+
 JNIEXPORT jobjectArray JNICALL
 Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_getShaderList(JNIEnv *env,
                                                                                     jclass) {
     return SpanToJStringArray(env, VideoCommon::PostProcessing::GetShaderList());
 }
 
-// NOLINTNEXTLINE(cert-dcl51-cpp)
+
 JNIEXPORT jobjectArray JNICALL
 Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_getAnaglyphShaderList(
         JNIEnv *env, jclass) {
     return SpanToJStringArray(env, VideoCommon::PostProcessing::GetAnaglyphShaderList());
 }
 
-// NOLINTNEXTLINE(cert-dcl51-cpp)
+
 JNIEXPORT jobjectArray JNICALL
 Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_getPassiveShaderList(
         JNIEnv *env, jclass) {
     return SpanToJStringArray(env, VideoCommon::PostProcessing::GetPassiveShaderList());
 }
 
-// NOLINTNEXTLINE(cert-dcl51-cpp)
+
 JNIEXPORT jobject JNICALL
 Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_getShaderOptions(
         JNIEnv *env, jclass, jstring name) {
@@ -163,7 +163,7 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_getShaderO
     return env->NewObject(shader_options_class, shader_options_constructor, options_list);
 }
 
-// NOLINTNEXTLINE(cert-dcl51-cpp)
+
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_setShaderOption__Ljava_lang_String_2Ljava_lang_String_2Z(
         JNIEnv *env, jclass, jstring shader_name, jstring option_name, jboolean value) {
@@ -180,7 +180,7 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_setShaderO
     config.SaveOptionsConfiguration();
 }
 
-// NOLINTNEXTLINE(cert-dcl51-cpp)
+
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_setShaderOption__Ljava_lang_String_2Ljava_lang_String_2_3F(
         JNIEnv *env, jclass, jstring shader_name, jstring option_name, jfloatArray values) {
@@ -202,7 +202,7 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_setShaderO
     config.SaveOptionsConfiguration();
 }
 
-// NOLINTNEXTLINE(cert-dcl51-cpp)
+
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_setShaderOption__Ljava_lang_String_2Ljava_lang_String_2_3I(
         JNIEnv *env, jclass, jstring shader_name, jstring option_name, jintArray values) {
