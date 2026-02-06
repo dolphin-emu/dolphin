@@ -1152,29 +1152,15 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
         return;
     }
 
-    // When booting Triforce games, we need to ensure that the hardware is set up correctly.
     const auto volume_type =
         std::get<BootParameters::Disc>(parameters->parameters).volume->GetVolumeType();
-
-    const bool triforce_hardware_sp1 =
-        Config::Get(Config::MAIN_SERIAL_PORT_1) == ExpansionInterface::EXIDeviceType::Baseboard;
-    const bool triforce_hardware_port_1 = Config::Get(Config::GetInfoForSIDevice(0)) ==
-                                          SerialInterface::SIDevices::SIDEVICE_AM_BASEBOARD;
-
-    if (volume_type == DiscIO::Platform::Triforce)
+    if (volume_type != DiscIO::Platform::Triforce)
     {
-      if (!triforce_hardware_sp1 || !triforce_hardware_port_1)
-      {
-        ModalMessageBox::critical(
-            this, tr("Error"),
-            tr("To boot a Triforce game, SP1 and Port 1 must be set to Triforce Baseboard."),
-            QMessageBox::Ok);
-        HideRenderWidget();
-        return;
-      }
-    }
-    else
-    {
+      const bool triforce_hardware_sp1 =
+          Config::Get(Config::MAIN_SERIAL_PORT_1) == ExpansionInterface::EXIDeviceType::Baseboard;
+      const bool triforce_hardware_port_1 = Config::Get(Config::GetInfoForSIDevice(0)) ==
+                                            SerialInterface::SIDevices::SIDEVICE_AM_BASEBOARD;
+
       // Some Triforce tools don't include a boot.id file, but they can still be launched.
       if (triforce_hardware_sp1)
       {
