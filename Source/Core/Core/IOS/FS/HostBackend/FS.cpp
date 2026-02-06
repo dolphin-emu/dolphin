@@ -225,12 +225,12 @@ void HostFileSystem::SaveFst()
     File::IOFile file{temp_path, "wb"};
     if (!file.WriteArray(to_write.data(), to_write.size()))
     {
-      PanicAlertFmt("IOS_FS: Failed to write new FST");
+      ERROR_LOG_FMT(IOS_FS, "Failed to write new FST");
       return;
     }
   }
   if (!File::Rename(temp_path, dest_path))
-    PanicAlertFmt("IOS_FS: Failed to rename temporary FST file");
+    ERROR_LOG_FMT(IOS_FS, "Failed to rename temporary FST file");
 }
 
 HostFileSystem::FstEntry* HostFileSystem::GetFstEntryForPath(const std::string& path)

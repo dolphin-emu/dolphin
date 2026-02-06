@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
     private lateinit var menu: Menu
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen().setKeepOnScreenCondition { !DirectoryInitialization.areDolphinDirectoriesReady() }
+        installSplashScreen().setKeepOnScreenCondition { DirectoryInitialization.shouldKeepSplashScreen() }
 
         ThemeHelper.setTheme(this)
         enableEdgeToEdge()
@@ -88,12 +88,20 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
             AfterDirectoryInitializationRunner()
                 .runWithLifecycle(this) { setPlatformTabsAndStartGameFileCacheService() }
         }
+        
+        // Observe directory state to handle SAF request after initialization
+        DirectoryInitialization.getDolphinDirectoriesState().observe(this) { state ->
+            if (state == DirectoryInitialization.DirectoryInitializationState.WAITING_FOR_USER_DIRECTORY_SELECTION) {
+                requestUserDirectorySelection()
+            }
+        }
     }
 
     override fun onResume() {
         ThemeHelper.setCorrectTheme(this)
 
         super.onResume()
+        
         if (DirectoryInitialization.shouldStart(this)) {
             DirectoryInitialization.start(this)
             AfterDirectoryInitializationRunner()
@@ -101,6 +109,12 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
         }
 
         presenter.onResume()
+    }
+    
+    private fun requestUserDirectorySelection() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+        intent.putExtra("android.content.extra.SHOW_ADVANCED", true)
+        startActivityForResult(intent, DirectoryInitialization.REQUEST_USER_DIRECTORY)
     }
 
     override fun onStop() {
@@ -144,6 +158,77 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
 
     override fun launchSettingsActivity(menuTag: MenuTag?) {
         SettingsActivity.launch(this, menuTag)
+    }
+
+    override fun launchFileListActivity() {
+        if (DirectoryInitialization.preferOldFolderPicker(this)) {
+            FileBrowserHelper.openDirectoryPicker(this, FileBrowserHelper.GAME_EXTENSIONS)
+        } else {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+            startActivityForResult(intent, MainPresenter.REQUEST_DIRECTORY)
+        }
+    }
+
+    override fun launchOpenFileActivity(requestCode: Int) {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        intent.type = "*/*"
+        startActivityForResult(intent, requestCode)
+    }
+
+    /**
+     * @param requestCode An int describing whether the Activity that is returning did so successfully.
+     * @param resultCode  An int describing what Activity is giving us this callback.
+     * @param result      The information the returning Activity is providing us.
+     */
+    override fun onActivityResult(requestCode: Int, resultCode: Int, result: Intent?) {
+        super.onActivityResult(requestCode, resultCode, result)
+
+        // Handle user directory selection for SAF
+        if (requestCode == DirectoryInitialization.REQUEST_USER_DIRECTORY) {
+            if (resultCode == RESULT_OK && result?.data != null) {
+                val uri = result.data!!
+                val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                contentResolver.takePersistableUriPermission(uri, takeFlags)
+                DirectoryInitialization.setUserDirectoryUri(this, uri)
+            } else {
+                // User cancelled, can't continue
+                finish()
+            }
+            return
+        }
+
+        // If the user picked a file, as opposed to just backing out.
+        if (resultCode == RESULT_OK) {
+            val uri = result!!.data
+            when (requestCode) {
+                MainPresenter.REQUEST_DIRECTORY -> {
+                    if (DirectoryInitialization.preferOldFolderPicker(this)) {
+                        presenter.onDirectorySelected(FileBrowserHelper.getSelectedPath(result))
+                    } else {
+                        presenter.onDirectorySelected(result)
+                    }
+                }
+
+                MainPresenter.REQUEST_GAME_FILE -> FileBrowserHelper.runAfterExtensionCheck(
+                    this, uri, FileBrowserHelper.GAME_LIKE_EXTENSIONS
+                ) { EmulationActivity.launch(this, result.data.toString(), false) }
+
+                MainPresenter.REQUEST_WAD_FILE -> FileBrowserHelper.runAfterExtensionCheck(
+                    this, uri, FileBrowserHelper.WAD_EXTENSION
+                ) { presenter.installWAD(result.data.toString()) }
+
+                MainPresenter.REQUEST_WII_SAVE_FILE -> FileBrowserHelper.runAfterExtensionCheck(
+                    this, uri, FileBrowserHelper.BIN_EXTENSION
+                ) { presenter.importWiiSave(result.data.toString()) }
+
+                MainPresenter.REQUEST_NAND_BIN_FILE -> FileBrowserHelper.runAfterExtensionCheck(
+                    this, uri, FileBrowserHelper.BIN_EXTENSION
+                ) { presenter.importNANDBin(result.data.toString()) }
+            }
+        } else {
+            MainPresenter.skipRescanningLibrary()
+        }
     }
 
     override fun onRequestPermissionsResult(
