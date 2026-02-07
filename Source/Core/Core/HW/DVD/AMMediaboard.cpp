@@ -372,9 +372,9 @@ static inline void PrintMBBuffer(u32 address, u32 length)
 
   for (u32 i = 0; i < length; i += 0x10)
   {
-    INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: {:08x} {:08x} {:08x} {:08x}", memory.Read_U32(address + i),
-                 memory.Read_U32(address + i + 4), memory.Read_U32(address + i + 8),
-                 memory.Read_U32(address + i + 12));
+    DEBUG_LOG_FMT(AMMEDIABOARD, "GC-AM: {:08x} {:08x} {:08x} {:08x}", memory.Read_U32(address + i),
+                  memory.Read_U32(address + i + 4), memory.Read_U32(address + i + 8),
+                  memory.Read_U32(address + i + 12));
   }
 }
 
@@ -790,8 +790,7 @@ static void AMMBCommandClosesocket(u32 parameter_offset)
 
   const int ret = closesocket(fd);
 
-  NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: closesocket( {}({}) ):{}", fd,
-                 s_media_buffer_32[parameter_offset], ret);
+  NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: closesocket( {}({}) ):{}", fd, u32(guest_socket), ret);
 
   if (u32(guest_socket) < std::size(s_sockets))
     s_sockets[u32(guest_socket)] = SOCKET_ERROR;
@@ -858,7 +857,7 @@ static void AMMBCommandAccept(u32 parameter_offset, u32 network_buffer_base)
     socklen_t addrlen = sizeof(addr);
     ret = u32(NetDIMMAccept(guest_socket, &addr, &addrlen));
 
-    NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: accept( {} ):{}", u32(guest_socket), u32(ret));
+    NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: accept( {} ):{}", u32(guest_socket), int(ret));
 
     auto* const addrlen_ptr =
         GetSafePtr(s_network_command_buffer, network_buffer_base, addrlen_off, sizeof(u32));
@@ -947,11 +946,8 @@ static void AMMBCommandSelect(u32 parameter_offset, u32 network_buffer_base)
   auto* const guest_timeout_ptr =
       GetSafePtr(s_network_command_buffer, network_buffer_base, timeout_offset, sizeof(TimeVal));
 
-  if (nfds > std::size(s_sockets))
-  {
-    ERROR_LOG_FMT(AMMEDIABOARD, "AMMBCommandSelect: Unexpected nfds: {}", nfds);
-    nfds = std::size(s_sockets);
-  }
+  // Games sometimes send 256 (the bit size of GuestFdSet).
+  nfds = std::min<u32>(nfds, std::size(s_sockets));
 
   std::chrono::milliseconds timeout{-1};
   if (guest_timeout_ptr != nullptr)
@@ -987,6 +983,8 @@ static void AMMBCommandSelect(u32 parameter_offset, u32 network_buffer_base)
 
   // TODO: There may be some edge cases where
   // poll's (POLLIN,POLLOUT,POLLPRI) don't map 1:1 with select's (readfds,writefds,exceptfds).
+
+  INFO_LOG_FMT(AMMEDIABOARD, "AMMBCommandSelect: Polling with socket count: {}", pollfds.size());
 
   const int ret = PlatformPoll(pollfds, timeout);
 
@@ -1242,8 +1240,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
     {
       if (offset >= range.start && offset < range.end)
       {
-        INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Read MediaBoard ({:08x},{:08x},{:08x})", offset,
-                     range.base_offset, length);
+        DEBUG_LOG_FMT(AMMEDIABOARD, "GC-AM: Read MediaBoard ({:08x},{:08x},{:08x})", offset,
+                      range.base_offset, length);
         SafeCopyToEmu(memory, address, range.buffer, range.buffer_size, offset - range.base_offset,
                       length);
         PrintMBBuffer(address, length);
@@ -1338,7 +1336,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
                         err_msg);
         }
 
-        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: bind( {}, ({},{:08x}:{}), {} ):{} ({})\n", fd,
+        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: bind( {}, ({},{:08x}:{}), {} ):{} ({})", fd,
                        addr.sin_family, addr.sin_addr.s_addr, Common::swap16(addr.sin_port), len,
                        ret, err);
 
@@ -1360,13 +1358,13 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         // TODO: Shouldn't this look at 16 characters for lack of null-termination?
         if (strnlen(ip_address, MAX_IPV4_STRING_LENGTH) > MAX_IPV4_STRING_LENGTH)
         {
-          ERROR_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: Invalid size for address: InetAddr():{}\n",
+          ERROR_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: Invalid size for address: InetAddr():{}",
                         strlen(ip_address));
           break;
         }
 
         const u32 ip = inet_addr(ip_address);
-        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: InetAddr( {} )\n", ip_address);
+        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: InetAddr( {} )", ip_address);
 
         s_media_buffer[1] = s_media_buffer[8];
         s_media_buffer_32[1] = Common::swap32(ip);
@@ -1379,7 +1377,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
 
         const int ret = listen(fd, backlog);
 
-        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: listen( {}, {} ):{:d}\n", fd, backlog, ret);
+        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: listen( {}, {} ):{:d}", fd, backlog, ret);
 
         s_media_buffer[1] = s_media_buffer[8];
         s_media_buffer_32[1] = ret;
@@ -1402,7 +1400,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         break;
       case AMMBCommand::SetTimeOuts:
       {
-        const auto fd = GetHostSocket(GuestSocket(s_media_buffer_32[2]));
+        const auto guest_socket = GuestSocket(s_media_buffer_32[2]);
+        const auto host_socket = GetHostSocket(guest_socket);
         const u32 timeout_a = s_media_buffer_32[3];
         const u32 timeout_b = s_media_buffer_32[4];
         const u32 timeout_c = s_media_buffer_32[5];
@@ -1413,29 +1412,30 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
 
         int ret = SOCKET_ERROR;
 
-        if (fd != INVALID_SOCKET)
+        if (host_socket != INVALID_SOCKET)
         {
-          ret = setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&timeout_b),
-                           sizeof(int));
+          ret = setsockopt(host_socket, SOL_SOCKET, SO_SNDTIMEO,
+                           reinterpret_cast<const char*>(&timeout_b), sizeof(int));
           if (ret < 0)
           {
             ret = WSAGetLastError();
           }
           else
           {
-            ret = setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&timeout_c),
-                             sizeof(int));
+            ret = setsockopt(host_socket, SOL_SOCKET, SO_RCVTIMEO,
+                             reinterpret_cast<const char*>(&timeout_c), sizeof(int));
             if (ret < 0)
               ret = WSAGetLastError();
           }
 
-          NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: SetTimeOuts( {:d}, {}, {}, {} ):{}\n", fd,
-                         timeout_a, timeout_b, timeout_c, ret);
+          INFO_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: SetTimeOuts( {}({}), {}, {}, {} ):{}", host_socket,
+                       int(guest_socket), timeout_a, timeout_b, timeout_c, ret);
         }
         else
         {
-          ERROR_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: Invalid Socket: SetTimeOuts( {}, {}, {} ):{}\n",
-                        timeout_a, timeout_b, timeout_c, ret);
+          ERROR_LOG_FMT(AMMEDIABOARD_NET,
+                        "GC-AM: Invalid Socket: SetTimeOuts( {}({}), {}, {}, {} ):{}", host_socket,
+                        int(guest_socket), timeout_a, timeout_b, timeout_c, ret);
         }
 
         s_media_buffer[1] = s_media_buffer[8];
@@ -1446,7 +1446,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       {
         const u32 value = s_media_buffer_32[2];
 
-        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: GetParambyDHCPExec({})\n", value);
+        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: GetParambyDHCPExec({})", value);
 
         s_media_buffer[1] = 0;
         s_media_buffer_32[1] = 0;
@@ -1459,7 +1459,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       {
         const auto fd = GetHostSocket(GuestSocket(s_media_buffer_32[2]));
 
-        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: GetLastError( {}({}) ):{}\n", fd,
+        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: GetLastError( {}({}) ):{}", fd,
                        s_media_buffer_32[2], s_last_error);
 
         s_media_buffer[1] = s_media_buffer[8];
@@ -1661,8 +1661,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
     {
       if (offset >= range.start && offset < range.end)
       {
-        INFO_LOG_FMT(AMMEDIABOARD, "GC-AM: Write MediaBoard ({:08x},{:08x},{:08x})", offset,
-                     range.base_offset, length);
+        DEBUG_LOG_FMT(AMMEDIABOARD, "GC-AM: Write MediaBoard ({:08x},{:08x},{:08x})", offset,
+                      range.base_offset, length);
         SafeCopyFromEmu(memory, range.buffer, address, range.buffer_size,
                         offset - range.base_offset, length);
         PrintMBBuffer(address, length);
