@@ -223,6 +223,7 @@
     <ClCompile Include="Settings\GeneralPane.cpp" />
     <ClCompile Include="Settings\InterfacePane.cpp" />
     <ClCompile Include="Settings\OnScreenDisplayPane.cpp" />
+    <ClCompile Include="Settings\TriforceBaseboardSettingsDialog.cpp" />
     <ClCompile Include="Settings\PathPane.cpp" />
     <ClCompile Include="Settings\USBDevicePicker.cpp" />
     <ClCompile Include="Settings\WiiPane.cpp" />
@@ -439,6 +440,7 @@
     <QtMoc Include="Settings\GeneralPane.h" />
     <QtMoc Include="Settings\InterfacePane.h" />
     <QtMoc Include="Settings\PathPane.h" />
+    <QtMoc Include="Settings\TriforceBaseboardSettingsDialog.h" />
     <QtMoc Include="Settings\USBDevicePicker.h" />
     <QtMoc Include="Settings\WiiPane.h" />
     <QtMoc Include="SkylanderPortal\SkylanderPortalWindow.h" />
