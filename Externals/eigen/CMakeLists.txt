@@ -1,0 +1,4 @@
+add_library(eigen INTERFACE IMPORTED GLOBAL)
+set_target_properties(eigen PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_LIST_DIR}/eigen/
+)

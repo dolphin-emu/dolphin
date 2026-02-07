@@ -334,6 +334,8 @@ PRIVATE
   implot
   glslang::SPIRV
   tinygltf
+  eigen
+  libigl
 )
 
 if(_M_X86_64)
