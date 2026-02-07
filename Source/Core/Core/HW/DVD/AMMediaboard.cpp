@@ -271,6 +271,22 @@ static constexpr u8* GetSafePtr(std::span<u8> buffer, u32 buffer_base, u32 offse
   return nullptr;
 }
 
+static constexpr std::string_view GetSafeString(std::span<u8> buffer, u32 buffer_base, u32 offset,
+                                                u32 max_length)
+{
+  auto* const ptr = GetSafePtr(buffer, buffer_base, offset, 0);
+
+  if (ptr == nullptr)
+    return {};
+
+  // Don't exceed max_length or end of buffer.
+  const auto adjusted_length =
+      std::min<std::size_t>(max_length, buffer.data() + buffer.size() - ptr);
+  const auto length = strnlen(reinterpret_cast<char*>(ptr), adjusted_length);
+
+  return {reinterpret_cast<char*>(ptr), length};
+}
+
 static bool NetworkBufferCheck(u32 offset, u32 length)
 {
   if (offset <= std::size(s_network_buffer) && length <= std::size(s_network_buffer) - offset)
@@ -1029,17 +1045,11 @@ static void AMMBCommandSetSockOpt(u32 parameter_offset, u32 network_buffer_base)
 
 static void AMMBCommandModifyMyIPaddr(u32 parameter_offset, u32 network_buffer_base)
 {
-  const u32 net_buffer_offset = s_media_buffer_32[parameter_offset] - network_buffer_base;
+  const u32 ip_address_offset = s_media_buffer_32[parameter_offset];
+  const auto ip_address_str = GetSafeString(s_network_command_buffer, network_buffer_base,
+                                            ip_address_offset, MAX_IPV4_STRING_LENGTH);
 
-  if (!NetworkCMDBufferCheck(net_buffer_offset, MAX_IPV4_STRING_LENGTH))
-  {
-    return;
-  }
-
-  const char* ip_address = reinterpret_cast<char*>(s_network_command_buffer + net_buffer_offset);
-
-  NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: modifyMyIPaddr({})",
-                 fmt::string_view(ip_address, MAX_IPV4_STRING_LENGTH));
+  NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: modifyMyIPaddr({})", ip_address_str);
 }
 
 static void FileWriteData(Memory::MemoryManager& memory, File::IOFile* file, u32 seek_pos,
