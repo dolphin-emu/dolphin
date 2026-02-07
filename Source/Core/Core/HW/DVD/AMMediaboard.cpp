@@ -112,6 +112,20 @@ struct GuestFdSet
 };
 static_assert(sizeof(GuestFdSet) == 32);
 
+// This seems to be based on VxWorks sockaddr_in.
+struct GuestSocketAddress
+{
+  // Seemingly always zero or random values ? Game bug ?
+  // This is the struct size in VxWorks.
+  u8 unknown_value;
+
+  u8 ip_family;
+  u16 port;  // Network byte order.
+  Common::IPAddress ip_address;
+  std::array<u8, 8> padding;
+};
+static_assert(sizeof(GuestSocketAddress) == 16);
+
 static bool s_firmware_map = false;
 static bool s_test_menu = false;
 static std::array<u32, 3> s_timeouts = {20000, 20000, 20000};
@@ -622,13 +636,8 @@ static IPOverrides GetIPOverrides()
   return result;
 }
 
-static std::optional<Common::IPv4Port> GetAdjustedIPv4PortFromConfig(in_addr addr, u16 port)
+static std::optional<Common::IPv4Port> GetAdjustedIPv4PortFromConfig(Common::IPv4Port subject)
 {
-  Common::IPv4Port subject{
-      .ip_address = std::bit_cast<Common::IPAddress>(addr),
-      .port = port,
-  };
-
   // TODO: We should parse this elsewhere to avoid repeated string manipulations.
   for (auto&& override : GetIPOverrides())
   {
@@ -639,22 +648,30 @@ static std::optional<Common::IPv4Port> GetAdjustedIPv4PortFromConfig(in_addr add
   return std::nullopt;
 }
 
-static s32 NetDIMMConnect(GuestSocket guest_socket, sockaddr_in* addr, int len)
+static s32 NetDIMMConnect(GuestSocket guest_socket, const GuestSocketAddress& guest_addr)
 {
-  INFO_LOG_FMT(AMMEDIABOARD, "NetDIMMConnect: {}:{}", inet_ntoa(addr->sin_addr),
-               ntohs(addr->sin_port));
+  INFO_LOG_FMT(AMMEDIABOARD, "NetDIMMConnect: {}:{}",
+               Common::IPAddressToString(guest_addr.ip_address), ntohs(guest_addr.port));
 
-  const auto adjusted_ipv4port = GetAdjustedIPv4PortFromConfig(addr->sin_addr, addr->sin_port);
+  sockaddr_in addr{
+      .sin_family = guest_addr.ip_family,
+  };
+
+  const auto adjusted_ipv4port =
+      GetAdjustedIPv4PortFromConfig({guest_addr.ip_address, guest_addr.port});
   if (adjusted_ipv4port.has_value())
   {
-    addr->sin_addr = std::bit_cast<in_addr>(adjusted_ipv4port->ip_address);
-    addr->sin_port = adjusted_ipv4port->port;
+    addr.sin_addr = std::bit_cast<in_addr>(adjusted_ipv4port->ip_address);
+    addr.sin_port = adjusted_ipv4port->port;
     INFO_LOG_FMT(AMMEDIABOARD, "NetDIMMConnect: Overriding to: {}:{}",
                  Common::IPAddressToString(adjusted_ipv4port->ip_address),
                  ntohs(adjusted_ipv4port->port));
   }
-
-  addr->sin_family = Common::swap16(addr->sin_family);
+  else
+  {
+    addr.sin_addr = std::bit_cast<in_addr>(guest_addr.ip_address);
+    addr.sin_port = guest_addr.port;
+  }
 
   const auto host_socket = GetHostSocket(guest_socket);
 
@@ -662,7 +679,7 @@ static s32 NetDIMMConnect(GuestSocket guest_socket, sockaddr_in* addr, int len)
   // Set socket to non-blocking
   ioctlsocket(host_socket, FIONBIO, &val);
 
-  int ret = connect(host_socket, reinterpret_cast<const sockaddr*>(addr), len);
+  int ret = connect(host_socket, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
   const int err = WSAGetLastError();
 
   if (ret == SOCKET_ERROR && err == WSAEWOULDBLOCK)
@@ -821,29 +838,26 @@ static void AMMBCommandConnect(u32 parameter_offset, u32 network_buffer_base)
   const u32 addr_offset = s_media_buffer_32[parameter_offset + 1];
   const u32 len = s_media_buffer_32[parameter_offset + 2];
 
-  if (len != sizeof(sockaddr_in))
+  GuestSocketAddress addr;
+
+  if (len != sizeof(addr))
   {
     ERROR_LOG_FMT(AMMEDIABOARD_NET, "AMMBCommandConnect: Unexpected length: {}", len);
     return;
   }
 
-  sockaddr_in addr;
   const auto* addr_ptr =
       GetSafePtr(s_network_command_buffer, network_buffer_base, addr_offset, sizeof(addr));
-
   if (addr_ptr == nullptr)
-  {
-    ERROR_LOG_FMT(AMMEDIABOARD_NET, "AMMBCommandConnect: Bad address offset: {}", addr_offset);
     return;
-  }
 
   memcpy(&addr, addr_ptr, sizeof(addr));
 
-  const int ret = NetDIMMConnect(guest_socket, &addr, len);
+  const int ret = NetDIMMConnect(guest_socket, addr);
 
-  NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: connect( {}, ({},{}:{}), {} ):{}", u32(guest_socket),
-                 addr.sin_family, inet_ntoa(addr.sin_addr), Common::swap16(addr.sin_port), len,
-                 ret);
+  NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: connect( {}, ({},{},{}:{}), {} ):{}", u32(guest_socket),
+                 addr.struct_size, addr.ip_family, Common::IPAddressToString(addr.ip_address),
+                 ntohs(addr.port), len, ret);
 
   s_media_buffer[1] = s_media_buffer[8];
   s_media_buffer_32[1] = ret;
@@ -1295,47 +1309,59 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         break;
       case AMMBCommand::Bind:
       {
-        const auto fd = GetHostSocket(GuestSocket(s_media_buffer_32[2]));
-        const u32 off = s_media_buffer_32[3] - NetworkCommandAddress2;
+        const auto host_socket = GetHostSocket(GuestSocket(s_media_buffer_32[2]));
+        const u32 addr_offset = s_media_buffer_32[3];
         const u32 len = s_media_buffer_32[4];
 
-        if (!NetworkCMDBufferCheck(off, std::max<u32>(sizeof(sockaddr_in), len)))
+        GuestSocketAddress guest_addr;
+
+        if (len != sizeof(guest_addr))
         {
+          ERROR_LOG_FMT(AMMEDIABOARD_NET, "AMMBCommand::Bind: Unexpected length: {}", len);
           break;
         }
 
-        sockaddr_in addr;
-        memcpy(&addr, s_network_command_buffer + off, sizeof(sockaddr_in));
+        const auto* addr_ptr = GetSafePtr(s_network_command_buffer, NetworkCommandAddress2,
+                                          addr_offset, sizeof(guest_addr));
+        if (addr_ptr == nullptr)
+          break;
 
-        addr.sin_family = Common::swap16(addr.sin_family);
+        memcpy(&guest_addr, addr_ptr, sizeof(guest_addr));
 
         // Triforce titles typically rely on hardcoded IP addresses.
         // Our config allows this to be overriden.
 
-        INFO_LOG_FMT(AMMEDIABOARD, "AMMBCommand::Bind: {}:{}", inet_ntoa(addr.sin_addr),
-                     ntohs(addr.sin_port));
+        INFO_LOG_FMT(AMMEDIABOARD, "AMMBCommand::Bind: {}, {}, {}:{}", guest_addr.struct_size,
+                     guest_addr.ip_family, Common::IPAddressToString(guest_addr.ip_address),
+                     ntohs(guest_addr.port));
 
         // Apply "BindIP" if it's valid.
         const auto override_bind_ip = inet_addr(Config::Get(Config::MAIN_TRIFORCE_BIND_IP).c_str());
         if (override_bind_ip != INADDR_NONE)
         {
-          addr.sin_addr.s_addr = override_bind_ip;
+          guest_addr.ip_address = std::bit_cast<Common::IPAddress>(override_bind_ip);
           INFO_LOG_FMT(AMMEDIABOARD, "AMMBCommand::Bind: Overriding IP to: {}",
-                       Common::IPAddressToString(std::bit_cast<Common::IPAddress>(addr.sin_addr)));
+                       Common::IPAddressToString(guest_addr.ip_address));
         }
 
         // Apply "IPOverrides" in case config wants ports adjusted.
-        const auto adjusted_ipv4port = GetAdjustedIPv4PortFromConfig(addr.sin_addr, addr.sin_port);
+        const auto adjusted_ipv4port =
+            GetAdjustedIPv4PortFromConfig({guest_addr.ip_address, guest_addr.port});
         if (adjusted_ipv4port.has_value())
         {
-          addr.sin_addr = std::bit_cast<in_addr>(adjusted_ipv4port->ip_address);
-          addr.sin_port = adjusted_ipv4port->port;
+          guest_addr.ip_address = adjusted_ipv4port->ip_address;
+          guest_addr.port = adjusted_ipv4port->port;
           INFO_LOG_FMT(AMMEDIABOARD, "AMMBCommand::Bind: Overriding to: {}:{}",
-                       Common::IPAddressToString(std::bit_cast<Common::IPAddress>(addr.sin_addr)),
-                       ntohs(addr.sin_port));
+                       Common::IPAddressToString(guest_addr.ip_address), ntohs(guest_addr.port));
         }
 
-        const int ret = bind(fd, reinterpret_cast<const sockaddr*>(&addr), len);
+        sockaddr_in addr{
+            .sin_family = guest_addr.ip_family,
+            .sin_port = guest_addr.port,
+            .sin_addr = std::bit_cast<in_addr>(guest_addr.ip_address),
+        };
+
+        const int ret = bind(host_socket, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
         const int err = WSAGetLastError();
 
         if (ret < 0)
@@ -1346,9 +1372,9 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
                         err_msg);
         }
 
-        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: bind( {}, ({},{:08x}:{}), {} ):{} ({})", fd,
-                       addr.sin_family, addr.sin_addr.s_addr, Common::swap16(addr.sin_port), len,
-                       ret, err);
+        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: bind( {}, ({},{:08x}:{}), {} ):{} ({})",
+                       host_socket, addr.sin_family, addr.sin_addr.s_addr,
+                       Common::swap16(addr.sin_port), len, ret, err);
 
         s_media_buffer_32[1] = ret;
         s_last_error = SSC_SUCCESS;
@@ -1802,11 +1828,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         break;
       case AMMBCommand::SetupLink:
       {
-        sockaddr_in addra{};
-        sockaddr_in addrb{};
-
-        addra.sin_addr.s_addr = s_media_buffer_32[12];
-        addrb.sin_addr.s_addr = s_media_buffer_32[13];
+        const auto addra = std::bit_cast<Common::IPAddress>(s_media_buffer_32[12]);
+        const auto addrb = std::bit_cast<Common::IPAddress>(s_media_buffer_32[13]);
 
         const u16 size = s_media_buffer[0x24] | s_media_buffer[0x25] << 8;
         const u16 port = Common::swap16(s_media_buffer[0x27] | s_media_buffer[0x26] << 8);
@@ -1818,9 +1841,10 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM:LinkNum:({:02x})", s_media_buffer[0x28]);
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM:        ({:02x})", s_media_buffer[0x2A]);
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM:        ({:04x})", unknown);
-        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM:   IP:  ({})", inet_ntoa(addra.sin_addr));  // IP ?
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM:   IP:  ({})",
-                       inet_ntoa(addrb.sin_addr));  // Target IP
+                       Common::IPAddressToString(addra));  // IP ?
+        NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM:   IP:  ({})",
+                       Common::IPAddressToString(addrb));  // Target IP
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM:        ({:08x})",
                        Common::swap32(s_media_buffer_32[14]));  // some RAM address
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM:        ({:08x})",
