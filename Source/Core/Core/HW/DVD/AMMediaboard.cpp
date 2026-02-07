@@ -4,6 +4,8 @@
 #include "Core/HW/DVD/AMMediaboard.h"
 
 #include <algorithm>
+#include <bit>
+#include <ranges>
 #include <string>
 #include <unordered_map>
 
@@ -18,6 +20,7 @@
 
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HLE/HLE.h"
@@ -521,38 +524,118 @@ static GuestSocket NetDIMMAccept(GuestSocket guest_socket, sockaddr* addr, sockl
   return INVALID_GUEST_SOCKET;
 }
 
+std::optional<std::pair<std::string_view, std::string_view>> ParseIPOverride(std::string_view str)
+{
+  // Ignore everything after a space. Future proofing to allow for a comment/description string.
+  const auto ip_pair_str = std::string_view{str.begin(), std::ranges::find(str, ' ')};
+
+  const auto parts = SplitStringIntoArray<2>(ip_pair_str, '=');
+  if (parts.has_value())
+    return std::make_pair((*parts)[0], (*parts)[1]);
+
+  return std::nullopt;
+}
+
+struct IPAddressOverride
+{
+  Common::IPv4PortRange match;
+  Common::IPv4PortRange replacement;
+
+  // Caller should check if it matches first!
+  Common::IPv4Port ApplyOverride(Common::IPv4Port subject) const
+  {
+    const auto replacement_first_ip_u32 = replacement.first.GetIPAddressValue();
+    const auto ip_count = 1u + u64(replacement.last.GetIPAddressValue()) - replacement_first_ip_u32;
+    const auto result_ip =
+        u32(replacement_first_ip_u32 +
+            ((subject.GetIPAddressValue() - match.first.GetIPAddressValue()) % ip_count));
+
+    Common::IPv4Port result{
+        .ip_address = std::bit_cast<Common::IPAddress>(Common::BigEndianValue(result_ip)),
+    };
+
+    const auto replacement_first_port_u16 = replacement.first.GetPortValue();
+    const auto port_count = 1u + u32(replacement.last.GetPortValue()) - replacement_first_port_u16;
+
+    if (port_count == 65536)
+    {
+      // If the replacement includes all ports then don't alter the port.
+      // This allows "1.1.1.1:80=2.2.2.2" to do the obvious thing.
+      // This logic could probably be better.
+      // Ranges of different sizes will be weird in general.
+
+      result.port = subject.port;
+    }
+    else
+    {
+      const auto result_port =
+          u16(replacement_first_port_u16 +
+              ((subject.GetPortValue() - match.first.GetPortValue()) % port_count));
+      result.port = std::bit_cast<u16>(Common::BigEndianValue(result_port));
+    }
+
+    return result;
+  }
+};
+
+using IPOverrides = std::vector<IPAddressOverride>;
+static IPOverrides GetIPOverrides()
+{
+  IPOverrides result;
+
+  const auto ip_overrides_str = Config::Get(Config::MAIN_TRIFORCE_IP_OVERRIDES);
+  for (auto&& ip_pair : ip_overrides_str | std::views::split(','))
+  {
+    const auto ip_pair_str = std::string_view{ip_pair};
+    const auto parts = ParseIPOverride(ip_pair_str);
+    if (parts.has_value())
+    {
+      const auto match = Common::StringToIPv4PortRange(parts->first);
+      const auto replacement = Common::StringToIPv4PortRange(parts->second);
+
+      if (match.has_value() && replacement.has_value())
+      {
+        result.emplace_back(*match, *replacement);
+        continue;
+      }
+
+      ERROR_LOG_FMT(AMMEDIABOARD, "Bad IP pair string: {}", ip_pair_str);
+    }
+  }
+
+  return result;
+}
+
+static std::optional<Common::IPv4Port> GetAdjustedIPv4PortFromConfig(in_addr addr, u16 port)
+{
+  Common::IPv4Port subject{
+      .ip_address = std::bit_cast<Common::IPAddress>(addr),
+      .port = port,
+  };
+
+  // TODO: We should parse this elsewhere to avoid repeated string manipulations.
+  for (auto&& override : GetIPOverrides())
+  {
+    if (override.match.IsMatch(subject))
+      return override.ApplyOverride(subject);
+  }
+
+  return std::nullopt;
+}
+
 static s32 NetDIMMConnect(GuestSocket guest_socket, sockaddr_in* addr, int len)
 {
-  // All.Net Connect IP
-  if (addr->sin_addr.s_addr == inet_addr("192.168.150.16"))
-  {
-    addr->sin_addr.s_addr = inet_addr("127.0.0.1");
-  }
+  INFO_LOG_FMT(AMMEDIABOARD, "NetDIMMConnect: {}:{}", inet_ntoa(addr->sin_addr),
+               ntohs(addr->sin_port));
 
-  // CyCraft Connect IP
-  if (addr->sin_addr.s_addr == inet_addr("192.168.11.111"))
+  const auto adjusted_ipv4port = GetAdjustedIPv4PortFromConfig(addr->sin_addr, addr->sin_port);
+  if (adjusted_ipv4port.has_value())
   {
-    addr->sin_addr.s_addr = inet_addr("127.0.0.1");
-  }
-
-  // NAMCO Camera ( IPs are: 192.168.29.104-108 )
-  if ((addr->sin_addr.s_addr & 0xFFFFFF00) == 0xC0A81D00)
-  {
-    addr->sin_addr.s_addr = inet_addr("127.0.0.1");
-
-    // BUG: An invalid family value is being used
-    addr->sin_family = htons(AF_INET);
-  }
-
-  // Key of Avalon Client
-  if (addr->sin_addr.s_addr == inet_addr("192.168.13.1"))
-  {
-    // Unlike the other addresses, this one isn't converted to loopback
-    // because the server and client can't run on the same system.
-    //
-    // NOTE: Due to lack of touch-screen support, it's not in a playable state.
-    // TODO: Make the IP configurable.
-    addr->sin_addr.s_addr = inet_addr("10.0.0.45");
+    addr->sin_addr = std::bit_cast<in_addr>(adjusted_ipv4port->ip_address);
+    addr->sin_port = adjusted_ipv4port->port;
+    INFO_LOG_FMT(AMMEDIABOARD, "NetDIMMConnect: Overriding to: {}:{}",
+                 Common::IPAddressToString(adjusted_ipv4port->ip_address),
+                 ntohs(adjusted_ipv4port->port));
   }
 
   addr->sin_family = Common::swap16(addr->sin_family);
@@ -1219,11 +1302,30 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         addr.sin_family = Common::swap16(addr.sin_family);
 
         // Triforce titles typically rely on hardcoded IP addresses.
-        // This behavior has been modified to bind to the wildcard address instead.
-        //
-        // addr.sin_addr.s_addr = htonl(addr.sin_addr.s_addr);
+        // Our config allows this to be overriden.
 
-        addr.sin_addr.s_addr = INADDR_ANY;
+        INFO_LOG_FMT(AMMEDIABOARD, "AMMBCommand::Bind: {}:{}", inet_ntoa(addr.sin_addr),
+                     ntohs(addr.sin_port));
+
+        // Apply "BindIP" if it's valid.
+        const auto override_bind_ip = inet_addr(Config::Get(Config::MAIN_TRIFORCE_BIND_IP).c_str());
+        if (override_bind_ip != INADDR_NONE)
+        {
+          addr.sin_addr.s_addr = override_bind_ip;
+          INFO_LOG_FMT(AMMEDIABOARD, "AMMBCommand::Bind: Overriding IP to: {}",
+                       Common::IPAddressToString(std::bit_cast<Common::IPAddress>(addr.sin_addr)));
+        }
+
+        // Apply "IPOverrides" in case config wants ports adjusted.
+        const auto adjusted_ipv4port = GetAdjustedIPv4PortFromConfig(addr.sin_addr, addr.sin_port);
+        if (adjusted_ipv4port.has_value())
+        {
+          addr.sin_addr = std::bit_cast<in_addr>(adjusted_ipv4port->ip_address);
+          addr.sin_port = adjusted_ipv4port->port;
+          INFO_LOG_FMT(AMMEDIABOARD, "AMMBCommand::Bind: Overriding to: {}:{}",
+                       Common::IPAddressToString(std::bit_cast<Common::IPAddress>(addr.sin_addr)),
+                       ntohs(addr.sin_port));
+        }
 
         const int ret = bind(fd, reinterpret_cast<const sockaddr*>(&addr), len);
         const int err = WSAGetLastError();

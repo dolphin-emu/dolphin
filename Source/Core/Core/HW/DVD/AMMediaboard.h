@@ -4,6 +4,9 @@
 #pragma once
 
 #include <array>
+#include <optional>
+#include <string_view>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 
@@ -233,5 +236,7 @@ u32 GetGameType();
 u32 GetMediaType();
 bool GetTestMenu();
 void Shutdown();
+
+std::optional<std::pair<std::string_view, std::string_view>> ParseIPOverride(std::string_view str);
 
 };  // namespace AMMediaboard
