@@ -259,6 +259,29 @@ TEST(StringUtil, CaseInsensitiveContains_OverlappingMatches)
   EXPECT_TRUE(Common::CaseInsensitiveContains("ababababa", "bABa"));
 }
 
+TEST(StringUtil, SplitStringIntoArray)
+{
+  constexpr auto subject0 = "";
+  EXPECT_FALSE(SplitStringIntoArray<2>(subject0, '.').has_value());
+
+  constexpr auto subject1 = "hello";
+  EXPECT_FALSE(SplitStringIntoArray<2>(subject1, '.').has_value());
+
+  constexpr auto subject2 = "hello.world";
+  const auto split2 = SplitStringIntoArray<2>(subject2, '.');
+  EXPECT_TRUE(split2.has_value() && split2->at(1) == "world");
+  EXPECT_FALSE(SplitStringIntoArray<3>(subject2, '.').has_value());
+
+  constexpr auto subject3 = "hello.universe.";
+  EXPECT_FALSE(SplitStringIntoArray<2>(subject3, '.').has_value());
+  const auto split3 = SplitStringIntoArray<3>(subject3, '.');
+  EXPECT_TRUE(split3.has_value() && split3->at(2) == "");
+  EXPECT_FALSE(SplitStringIntoArray<4>(subject3, '.').has_value());
+
+  constexpr auto subject4 = "=";
+  EXPECT_TRUE(SplitStringIntoArray<2>(subject4, '=').has_value());
+}
+
 TEST(StringUtil, CharacterEncodingConversion)
 {
   // wstring
