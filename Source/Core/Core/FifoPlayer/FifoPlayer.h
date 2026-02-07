@@ -82,6 +82,7 @@ struct AnalyzedFrameInfo
 {
   std::vector<FramePart> parts;
   Common::EnumMap<u32, FramePartType::EFBCopy> part_type_counts;
+  std::vector<MemoryUpdate> memory_updates;
 
   void AddPart(FramePartType type, u32 start, u32 end, const CPState& cpmem)
   {
@@ -146,7 +147,8 @@ private:
   CPU::State AdvanceFrame();
 
   void WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo& info);
-  void WriteFramePart(const FramePart& part, u32* next_mem_update, const FifoFrameInfo& frame);
+  void WriteFramePart(const FramePart& part, u32* next_mem_update, const FifoFrameInfo& frame,
+                      const AnalyzedFrameInfo& info);
 
   void WriteAllMemoryUpdates();
   void WriteMemory(const MemoryUpdate& memUpdate);
