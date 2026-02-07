@@ -634,7 +634,7 @@ bool SetCurrentDir(const std::string& directory)
 std::string CreateTempDir()
 {
 #ifdef _WIN32
-  TCHAR temp[MAX_PATH];
+  WCHAR temp[MAX_PATH];
   if (!GetTempPath(MAX_PATH, temp))
     return "";
 
@@ -648,7 +648,7 @@ std::string CreateTempDir()
   {
     return "";
   }
-  std::string dir = TStrToUTF8(temp) + "/" + TStrToUTF8(tguid);
+  std::string dir = WStringToUTF8(temp) + "/" + WStringToUTF8(tguid);
   if (!CreateDir(dir))
     return "";
   dir = ReplaceAll(dir, "\\", DIR_SEP);

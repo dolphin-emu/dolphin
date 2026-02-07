@@ -256,7 +256,7 @@ template <typename T>
 void OpenFStream(T& fstream, const std::string& filename, std::ios_base::openmode openmode)
 {
 #ifdef _WIN32
-  fstream.open(UTF8ToTStr(filename).c_str(), openmode);
+  fstream.open(UTF8ToWString(filename).c_str(), openmode);
 #else
 #ifdef ANDROID
   // Unfortunately it seems like the non-standard __open is the only way to use a file descriptor

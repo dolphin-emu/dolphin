@@ -333,21 +333,21 @@ void SetUserDirectory(std::string custom_path)
   // Check our registry keys
   wil::unique_hkey hkey;
   DWORD local = 0;
-  std::unique_ptr<TCHAR[]> configPath;
-  if (RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("Software\\Dolphin Emulator"), 0, KEY_QUERY_VALUE,
+  std::unique_ptr<WCHAR[]> configPath;
+  if (RegOpenKeyEx(HKEY_CURRENT_USER, L"Software\\Dolphin Emulator", 0, KEY_QUERY_VALUE,
                    hkey.put()) == ERROR_SUCCESS)
   {
     DWORD size = sizeof(local);
-    if (RegQueryValueEx(hkey.get(), TEXT("LocalUserConfig"), nullptr, nullptr,
+    if (RegQueryValueEx(hkey.get(), L"LocalUserConfig", nullptr, nullptr,
                         reinterpret_cast<LPBYTE>(&local), &size) != ERROR_SUCCESS)
     {
       local = 0;
     }
 
     size = 0;
-    RegQueryValueEx(hkey.get(), TEXT("UserConfigPath"), nullptr, nullptr, nullptr, &size);
-    configPath = std::make_unique<TCHAR[]>(size / sizeof(TCHAR));
-    if (RegQueryValueEx(hkey.get(), TEXT("UserConfigPath"), nullptr, nullptr,
+    RegQueryValueEx(hkey.get(), L"UserConfigPath", nullptr, nullptr, nullptr, &size);
+    configPath = std::make_unique<WCHAR[]>(size / sizeof(WCHAR));
+    if (RegQueryValueEx(hkey.get(), L"UserConfigPath", nullptr, nullptr,
                         reinterpret_cast<LPBYTE>(configPath.get()), &size) != ERROR_SUCCESS)
     {
       configPath.reset();
@@ -364,7 +364,7 @@ void SetUserDirectory(std::string custom_path)
   std::optional<std::string> old_user_folder;
   if (documents_found)
   {
-    old_user_folder = TStrToUTF8(documents.get()) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
+    old_user_folder = WStringToUTF8(documents.get()) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
   }
 
   if (local)  // Case 1-2
@@ -373,7 +373,7 @@ void SetUserDirectory(std::string custom_path)
   }
   else if (configPath)  // Case 3
   {
-    user_path = TStrToUTF8(configPath.get());
+    user_path = WStringToUTF8(configPath.get());
   }
   else if (old_user_folder && File::Exists(old_user_folder.value()))  // Case 4
   {
@@ -381,15 +381,15 @@ void SetUserDirectory(std::string custom_path)
   }
   else if (appdata_found)  // Case 5
   {
-    user_path = TStrToUTF8(appdata.get()) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
+    user_path = WStringToUTF8(appdata.get()) + DIR_SEP NORMAL_USER_DIR DIR_SEP;
 
     // Set the UserConfigPath value in the registry for backwards compatibility with older Dolphin
     // builds, which will look for the default User directory in Documents. If we set this key,
     // they will use this as the User directory instead.
     // (If we're in this case, then this key doesn't exist, so it's OK to set it.)
     std::wstring wstr_path = UTF8ToWString(user_path);
-    RegSetKeyValueW(HKEY_CURRENT_USER, TEXT("Software\\Dolphin Emulator"), TEXT("UserConfigPath"),
-                    REG_SZ, wstr_path.c_str(),
+    RegSetKeyValueW(HKEY_CURRENT_USER, L"Software\\Dolphin Emulator", L"UserConfigPath", REG_SZ,
+                    wstr_path.c_str(),
                     static_cast<DWORD>((wstr_path.size() + 1) * sizeof(wchar_t)));
   }
   else  // Case 6

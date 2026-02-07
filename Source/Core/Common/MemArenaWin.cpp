@@ -122,7 +122,7 @@ void MemArena::GrabSHMSegment(size_t size, std::string_view base_name)
   const std::string name = fmt::format("{}.{}", base_name, GetCurrentProcessId());
   m_memory_handle =
       CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, GetHighDWORD(size),
-                        GetLowDWORD(size), UTF8ToTStr(name).c_str());
+                        GetLowDWORD(size), UTF8ToWString(name).c_str());
 }
 
 void MemArena::ReleaseSHMSegment()
