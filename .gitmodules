@@ -137,3 +137,9 @@
 	path = Externals/wil
 	url = https://github.com/microsoft/wil.git
 	shallow = true
+[submodule "Externals/eigen/eigen"]
+	path = Externals/eigen/eigen
+	url = https://gitlab.com/libeigen/eigen.git
+[submodule "Externals/libigl/libigl"]
+	path = Externals/libigl/libigl
+	url = https://github.com/libigl/libigl.git
