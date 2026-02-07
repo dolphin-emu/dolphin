@@ -268,6 +268,29 @@ struct NetworkErrorState
 #endif
 };
 
+struct IPv4Port
+{
+  IPAddress ip_address;
+  u16 port;  // Network byte order.
+
+  // These convert to host byte order.
+  u32 GetIPAddressValue() const;
+  u16 GetPortValue() const;
+};
+
+struct IPv4PortRange
+{
+  IPv4Port first;
+  IPv4Port last;
+
+  bool IsMatch(IPv4Port subject) const;
+};
+
+std::string IPAddressToString(IPAddress ip_address);
+
+// Syntax is: first_ip[-last_ip|/network_prefix_length][:first_port[-last_port]]
+std::optional<IPv4PortRange> StringToIPv4PortRange(std::string_view subject);
+
 MACAddress GenerateMacAddress(MACConsumer type);
 
 std::string MacAddressToString(const MACAddress& mac);

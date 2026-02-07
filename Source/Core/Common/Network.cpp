@@ -17,15 +17,189 @@
 #endif
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "Common/BitUtils.h"
 #include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
 #include "Common/Random.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 
 namespace Common
 {
+
+static constexpr auto GetMaskFromNetworkPrefixLength(u32 network_prefix_length)
+{
+  return (network_prefix_length == 0) ?
+             u32(0) :
+             u32(BigEndianValue(u32(-1) >> (32 - network_prefix_length)));
+}
+
+u32 IPv4Port::GetIPAddressValue() const
+{
+  return std::bit_cast<Common::BigEndianValue<u32>>(ip_address);
+}
+
+u16 IPv4Port::GetPortValue() const
+{
+  return std::bit_cast<Common::BigEndianValue<u16>>(port);
+}
+
+bool IPv4PortRange::IsMatch(IPv4Port subject) const
+{
+  const u32 ip_u32 = subject.GetIPAddressValue();
+  const u16 port_u16 = subject.GetPortValue();
+
+  return ip_u32 >= first.GetIPAddressValue() && ip_u32 <= last.GetIPAddressValue() &&
+         port_u16 >= first.GetPortValue() && port_u16 <= last.GetPortValue();
+}
+
+std::string IPAddressToString(IPAddress ip_address)
+{
+  return fmt::format("{}", fmt::join(ip_address, "."));
+}
+
+std::optional<IPv4PortRange> StringToIPv4PortRange(std::string_view subject)
+{
+  // TODO: This could be optimized and improved a lot.
+
+  auto read_pos = std::ranges::find_first_of(subject, std::string_view{"-/:"});
+
+  const auto first_ip_octets = SplitStringIntoArray<4>({subject.begin(), read_pos}, '.');
+
+  if (!first_ip_octets.has_value())
+    return std::nullopt;  // Wrong number of octets.
+
+  std::optional<IPv4PortRange> result;
+  result.emplace();
+
+  for (u32 i = 0; i != result->first.ip_address.size(); ++i)
+  {
+    if (!TryParse(std::string((*first_ip_octets)[i]), &result->first.ip_address[i]))
+      return std::nullopt;  // Bad octet.
+  }
+
+  if (read_pos == subject.end())
+  {
+    // Last IP and ports not specified.
+    result->last.ip_address = result->first.ip_address;
+    result->first.port = 0;
+    result->last.port = u16(-1);
+    return result;
+  }
+
+  if (*read_pos == '-')
+  {
+    // Read last IP.
+    ++read_pos;
+
+    const auto last_ip_end = std::ranges::find(read_pos, subject.end(), ':');
+    const auto last_ip_octets = SplitString({read_pos, last_ip_end}, '.');
+
+    // Copy octets from first_ip when less than 4 are specified.
+    // FYI: This currently allows for syntax like: 10.0.0.1-7.255
+    // I don't know if it's desirable or not to allow 2 or 3 octets on the last IP.
+    const std::size_t octet_share_count = 4 - last_ip_octets.size();
+
+    if (octet_share_count >= 4)
+      return std::nullopt;  // Too many octets.
+
+    std::copy_n(result->first.ip_address.begin(), octet_share_count,
+                result->last.ip_address.begin());
+
+    std::size_t i = octet_share_count;
+    for (auto&& octet_str : last_ip_octets)
+    {
+      if (!TryParse(octet_str, &result->last.ip_address[i]))
+        return std::nullopt;  // Bad octet.
+      ++i;
+    }
+
+    if (result->first.ip_address > result->last.ip_address)
+      return std::nullopt;  // Reversed range.
+
+    read_pos = last_ip_end;
+  }
+  else if (*read_pos == '/')
+  {
+    // Read network prefix length.
+    ++read_pos;
+
+    u32 network_prefix_length{};
+    const auto [parse_end, ec] = FromChars({read_pos, subject.end()}, network_prefix_length);
+
+    if (ec != std::errc{} || network_prefix_length > 32)
+      return std::nullopt;  // Bad network prefix.
+
+    read_pos += parse_end - std::to_address(read_pos);  // Working around MSVC iterators..
+
+    const auto net_mask = GetMaskFromNetworkPrefixLength(network_prefix_length);
+    const auto first_ip_address_u32 = std::bit_cast<u32>(result->first.ip_address) & net_mask;
+    result->first.ip_address = std::bit_cast<IPAddress>(first_ip_address_u32);
+    result->last.ip_address = std::bit_cast<IPAddress>(first_ip_address_u32 | ~net_mask);
+  }
+  else
+  {
+    // Last IP not specified.
+    result->last.ip_address = result->first.ip_address;
+  }
+
+  if (read_pos == subject.end())
+  {
+    // Ports not specified.
+    result->first.port = 0;
+    result->last.port = u16(-1);
+    return result;
+  }
+
+  if (*read_pos != ':')
+    return std::nullopt;  // Unexpected character.
+
+  u16 first_port_u16{};
+  {
+    // Read first port.
+    ++read_pos;
+
+    const auto [parse_end, ec] = FromChars({read_pos, subject.end()}, first_port_u16);
+    if (ec != std::errc{})
+      return std::nullopt;  // Bad first port.
+
+    result->first.port = std::bit_cast<u16>(Common::BigEndianValue(first_port_u16));
+
+    read_pos += parse_end - std::to_address(read_pos);  // Working around MSVC iterators..
+  }
+
+  if (read_pos == subject.end())
+  {
+    // Last port not specified.
+    result->last.port = result->first.port;
+    return result;
+  }
+
+  if (*read_pos != '-')
+    return std::nullopt;  // Unexpected character.
+
+  u16 first_last_u16{};
+  {
+    // Read last port.
+    ++read_pos;
+
+    const auto [parse_end, ec] = FromChars({read_pos, subject.end()}, first_last_u16);
+    if (ec != std::errc{} || first_last_u16 < first_port_u16)
+      return std::nullopt;  // Bad last port.
+
+    result->last.port = std::bit_cast<u16>(Common::BigEndianValue(first_last_u16));
+
+    read_pos += parse_end - std::to_address(read_pos);  // Working around MSVC iterators..
+  }
+
+  if (read_pos != subject.end())
+    return std::nullopt;
+
+  return result;
+}
+
 MACAddress GenerateMacAddress(const MACConsumer type)
 {
   constexpr std::array<u8, 3> oui_bba{{0x00, 0x09, 0xbf}};
