@@ -174,7 +174,7 @@ static const MediaBoardRanges s_mediaboard_ranges[] = {
      NetworkBufferAddress1},
     {NetworkBufferAddress2, 0x1FD10000, s_network_buffer, sizeof(s_network_buffer),
      NetworkBufferAddress2},
-    {NetworkBufferAddress3, 0x89110000, s_network_buffer, sizeof(s_network_buffer),
+    {NetworkBufferAddress3, 0x89150000, s_network_buffer, sizeof(s_network_buffer),
      NetworkBufferAddress3},
     {NetworkBufferAddress4, 0x89240000, s_network_buffer, sizeof(s_network_buffer),
      NetworkBufferAddress4},
