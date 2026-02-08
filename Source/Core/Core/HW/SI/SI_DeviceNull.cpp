@@ -15,9 +15,9 @@ int CSIDevice_Null::RunBuffer(u8* buffer, int request_length)
   return -1;
 }
 
-DataResponse CSIDevice_Null::GetData(u32& hi, u32& low)
+bool CSIDevice_Null::GetData(u32& hi, u32& low)
 {
-  return DataResponse::ErrorNoResponse;
+  return false;
 }
 
 void CSIDevice_Null::SendCommand(u32 command, u8 poll)

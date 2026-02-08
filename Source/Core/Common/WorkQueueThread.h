@@ -3,228 +3,170 @@
 
 #pragma once
 
+#include <atomic>
+#include <condition_variable>
 #include <functional>
-#include <future>
-#include <mutex>
+#include <queue>
 #include <string>
+#include <string_view>
 #include <thread>
 
-#include "Common/Event.h"
-#include "Common/SPSCQueue.h"
 #include "Common/Thread.h"
+
+// A thread that executes the given function for every item placed into its queue.
 
 namespace Common
 {
-namespace detail
-{
-template <typename T, bool IsSingleProducer>
-class WorkQueueThreadBase final
+template <typename T>
+class WorkQueueThread
 {
 public:
-  using FunctionType = std::function<void(T)>;
-
-  WorkQueueThreadBase() = default;
-  WorkQueueThreadBase(std::string name, FunctionType function)
+  WorkQueueThread() = default;
+  WorkQueueThread(const std::string_view name, std::function<void(T)> function)
   {
-    Reset(std::move(name), std::move(function));
+    Reset(name, std::move(function));
   }
-  ~WorkQueueThreadBase() { Shutdown(); }
+  ~WorkQueueThread() { Shutdown(); }
 
   // Shuts the current work thread down (if any) and starts a new thread with the given function
   // Note: Some consumers of this API push items to the queue before starting the thread.
-  void Reset(std::string name, FunctionType function)
+  void Reset(const std::string_view name, std::function<void(T)> function)
   {
-    auto lg = GetLockGuard();
     Shutdown();
-    m_thread = std::thread(std::bind_front(&WorkQueueThreadBase::ThreadLoop, this), std::move(name),
-                           std::move(function));
+    std::lock_guard lg(m_lock);
+    m_thread_name = name;
+    m_shutdown = false;
+    m_function = std::move(function);
+    m_thread = std::thread(&WorkQueueThread::ThreadLoop, this);
   }
 
   // Adds an item to the work queue
   template <typename... Args>
   void EmplaceItem(Args&&... args)
   {
-    auto lg = GetLockGuard();
-    m_items.Emplace(std::forward<Args>(args)...);
-    m_event.Set();
-  }
-  void Push(T&& item) { EmplaceItem(std::move(item)); }
-  void Push(const T& item) { EmplaceItem(item); }
-
-  // Empties the queue, skipping all work.
-  // Blocks until the current work is cancelled.
-  void Cancel()
-  {
-    auto lg = GetLockGuard();
-
-    // Fast path avoids round trip thread communication and saves ~20us.
-    if (m_items.Empty())
+    std::lock_guard lg(m_lock);
+    if (m_shutdown)
       return;
 
-    RunCommand([&] { m_items.Clear(); });
+    m_items.emplace(std::forward<Args>(args)...);
+    m_idle = false;
+    m_worker_cond_var.notify_one();
   }
 
-  // Tells the worker thread to stop when its queue is empty.
-  // Blocks until the worker thread exits. Does nothing if thread isn't running.
-  void Shutdown()
+  // Adds an item to the work queue
+  void Push(T&& item)
   {
-    auto lg = GetLockGuard();
-    WaitForCompletion();
-    StopThread();
+    std::lock_guard lg(m_lock);
+    if (m_shutdown)
+      return;
+
+    m_items.push(std::move(item));
+    m_idle = false;
+    m_worker_cond_var.notify_one();
   }
 
-  // Tells the worker thread to stop immediately, potentially leaving work in the queue.
-  // Blocks until the worker thread exits. Does nothing if thread isn't running.
-  void Stop()
+  // Adds an item to the work queue
+  void Push(const T& item)
   {
-    auto lg = GetLockGuard();
-    StopThread();
+    std::lock_guard lg(m_lock);
+    if (m_shutdown)
+      return;
+
+    m_items.push(item);
+    m_idle = false;
+    m_worker_cond_var.notify_one();
   }
 
-  // Stops the worker thread ASAP and empties the queue.
-  void StopAndCancel()
+  // Empties the queue
+  // If the worker polls IsCanceling(), it can abort it's work when Cancelling
+  void Cancel()
   {
-    auto lg = GetLockGuard();
-    Stop();
-    Cancel();
+    std::unique_lock lg(m_lock);
+    if (m_shutdown)
+      return;
+
+    m_cancelling = true;
+    m_items = std::queue<T>();
+    m_worker_cond_var.notify_one();
+  }
+
+  // Tells the worker to shut down when it's queue is empty
+  // Blocks until the worker thread exits.
+  // If cancel is true, will Cancel before before telling the worker to exit
+  // Otherwise, all currently queued items will complete before the worker exits
+  void Shutdown(bool cancel = false)
+  {
+    {
+      std::unique_lock lg(m_lock);
+      if (m_shutdown || !m_thread.joinable())
+        return;
+
+      if (cancel)
+      {
+        m_cancelling = true;
+        m_items = std::queue<T>();
+      }
+
+      m_shutdown = true;
+      m_worker_cond_var.notify_one();
+    }
+
+    m_thread.join();
   }
 
   // Blocks until all items in the queue have been processed (or cancelled)
-  // Does nothing if thread isn't running.
   void WaitForCompletion()
   {
-    auto lg = GetLockGuard();
-    if (IsRunning())
-      m_items.WaitForEmpty();
+    std::unique_lock lg(m_lock);
+    // don't check m_shutdown, because it gets set to request a shutdown, and we want to wait until
+    // after the shutdown completes.
+    // We also check m_cancelling, because we want to ensure the worker acknowledges our cancel.
+    if (m_idle && !m_cancelling.load())
+      return;
+
+    m_wait_cond_var.wait(lg, [&] { return m_idle && !m_cancelling; });
   }
+
+  // If the worker polls IsCanceling(), it can abort its work when Cancelling
+  bool IsCancelling() const { return m_cancelling.load(); }
 
 private:
-  using CommandFunction = std::function<void()>;
-
-  // Blocking.
-  void RunCommand(CommandFunction cmd)
+  void ThreadLoop()
   {
-    if (!IsRunning())
-    {
-      std::invoke(cmd);
-      return;
-    }
-
-    m_commands.Emplace(std::move(cmd));
-    m_event.Set();
-    m_commands.WaitForEmpty();
-  }
-
-  // Stop immediately.
-  void StopThread()
-  {
-    if (!m_thread.joinable())
-      return;
-
-    // empty-function shutdown signal.
-    m_commands.Emplace(CommandFunction{});
-    m_event.Set();
-    m_thread.join();
-    m_commands.Clear();
-  }
-
-  auto GetLockGuard()
-  {
-    struct DummyLockGuard
-    {
-      // Silences unused variable warning.
-      ~DummyLockGuard() { void(); }
-    };
-
-    if constexpr (IsSingleProducer)
-      return DummyLockGuard{};
-    else
-      return std::lock_guard{m_mutex};
-  }
-
-  bool IsRunning() { return m_thread.joinable(); }
-
-  void ThreadLoop(const std::string& thread_name, const FunctionType& function)
-  {
-    Common::SetCurrentThreadName(thread_name.c_str());
+    Common::SetCurrentThreadName(m_thread_name.c_str());
 
     while (true)
     {
-      while (!m_commands.Empty())
+      std::unique_lock lg(m_lock);
+      while (m_items.empty())
       {
-        CommandFunction& command = m_commands.Front();
-        // empty-function shutdown signal.
-        if (!command)
+        m_idle = true;
+        m_cancelling = false;
+        m_wait_cond_var.notify_all();
+        if (m_shutdown)
           return;
 
-        std::invoke(command);
-        m_commands.Pop();
+        m_worker_cond_var.wait(
+            lg, [&] { return !m_items.empty() || m_shutdown || m_cancelling.load(); });
       }
+      T item{std::move(m_items.front())};
+      m_items.pop();
+      lg.unlock();
 
-      if (m_items.Empty())
-      {
-        m_event.Wait();
-        continue;
-      }
-
-      function(std::move(m_items.Front()));
-      m_items.Pop();
+      m_function(std::move(item));
     }
   }
 
+  std::function<void(T)> m_function;
+  std::string m_thread_name;
   std::thread m_thread;
-  Common::WaitableSPSCQueue<T> m_items;
-  Common::WaitableSPSCQueue<CommandFunction> m_commands;
-  Common::Event m_event;
-
-  using DummyMutex = std::type_identity<void>;
-  using ProducerMutex = std::conditional_t<IsSingleProducer, DummyMutex, std::recursive_mutex>;
-  ProducerMutex m_mutex;
+  std::mutex m_lock;
+  std::queue<T> m_items;
+  std::condition_variable m_wait_cond_var;
+  std::condition_variable m_worker_cond_var;
+  std::atomic<bool> m_cancelling = false;
+  bool m_idle = true;
+  bool m_shutdown = false;
 };
-
-// A WorkQueueThread-like class that takes functions to invoke.
-template <template <typename> typename WorkThread>
-class AsyncWorkThreadBase
-{
-public:
-  using FuncType = std::function<void()>;
-
-  AsyncWorkThreadBase() = default;
-  explicit AsyncWorkThreadBase(std::string thread_name) { Reset(std::move(thread_name)); }
-
-  void Reset(std::string thread_name)
-  {
-    m_worker.Reset(std::move(thread_name), std::invoke<FuncType>);
-  }
-
-  void Push(FuncType func) { m_worker.Push(std::move(func)); }
-
-  auto PushBlocking(FuncType func)
-  {
-    std::packaged_task task{std::move(func)};
-    m_worker.EmplaceItem([&] { task(); });
-    return task.get_future().get();
-  }
-
-  void Cancel() { m_worker.Cancel(); }
-  void Shutdown() { m_worker.Shutdown(); }
-  void WaitForCompletion() { m_worker.WaitForCompletion(); }
-
-private:
-  WorkThread<FuncType> m_worker;
-};
-}  // namespace detail
-
-// Multiple threads may use the public interface.
-template <typename T>
-using WorkQueueThread = detail::WorkQueueThreadBase<T, false>;
-
-// A "Single Producer" WorkQueueThread.
-// It uses no mutex but only one thread can safely manipulate the queue.
-template <typename T>
-using WorkQueueThreadSP = detail::WorkQueueThreadBase<T, true>;
-
-using AsyncWorkThread = detail::AsyncWorkThreadBase<WorkQueueThread>;
-using AsyncWorkThreadSP = detail::AsyncWorkThreadBase<WorkQueueThreadSP>;
 
 }  // namespace Common

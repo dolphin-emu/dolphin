@@ -34,7 +34,7 @@ class CheatsManager : public QDialog
   Q_OBJECT
 public:
   explicit CheatsManager(Core::System& system, QWidget* parent = nullptr);
-  ~CheatsManager() override;
+  ~CheatsManager();
 
 signals:
   void OpenGeneralSettings();

@@ -4,10 +4,8 @@
 #pragma once
 
 #include <fmt/format.h>
-
 #include <functional>
 #include <memory>
-#include <optional>
 #include <utility>
 
 #include "Common/CommonTypes.h"
@@ -15,7 +13,6 @@
 struct libusb_config_descriptor;
 struct libusb_context;
 struct libusb_device;
-struct libusb_device_handle;
 
 namespace LibusbUtils
 {
@@ -56,11 +53,6 @@ struct ErrorWrap
   const char* GetStrError() const;
   const char* GetName() const;
 };
-
-// Returns the UTF-16 descriptor converted to UTF-8 or returns nullopt on error.
-std::optional<std::string> GetStringDescriptor(libusb_device_handle* dev_handle,
-                                               uint8_t desc_index);
-
 }  // namespace LibusbUtils
 
 template <>

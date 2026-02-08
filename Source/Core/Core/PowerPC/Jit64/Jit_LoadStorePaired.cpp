@@ -10,6 +10,7 @@
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
+#include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Gen;
@@ -33,8 +34,6 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
   int i = indexed ? inst.Ix : inst.I;
   int w = indexed ? inst.Wx : inst.W;
   FALLBACK_IF(!a);
-
-  FlushRegistersBeforeSlowAccess();
 
   RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
   RCOpArg Ra = update ? gpr.Bind(a, RCMode::ReadWrite) : gpr.Use(a, RCMode::Read);
@@ -70,8 +69,8 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
     }
     else
     {
-      FlushPCBeforeSlowAccess();
-
+      // Stash PC in case asm routine needs to call into C++
+      MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
       // We know what GQR is here, so we can load RSCRATCH2 and call into the store method directly
       // with just the scale bits.
       MOV(32, R(RSCRATCH2), Imm32(gqrValue & 0x3F00));
@@ -84,8 +83,8 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
   }
   else
   {
-    FlushPCBeforeSlowAccess();
-
+    // Stash PC in case asm routine needs to call into C++
+    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
     // Some games (e.g. Dirt 2) incorrectly set the unused bits which breaks the lookup table code.
     // Hence, we need to mask out the unused bits. The layout of the GQR register is
     // UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we have to AND with
@@ -125,8 +124,6 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
   int w = indexed ? inst.Wx : inst.W;
   FALLBACK_IF(!a);
 
-  FlushRegistersBeforeSlowAccess();
-
   RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
   RCX64Reg Ra = gpr.Bind(a, update ? RCMode::ReadWrite : RCMode::Read);
   RCOpArg Rb = indexed ? gpr.Use(b, RCMode::Read) : RCOpArg::Imm32((u32)offset);
@@ -147,8 +144,8 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
   }
   else
   {
-    FlushPCBeforeSlowAccess();
-
+    // Stash PC in case asm routine needs to call into C++
+    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
     // Get the high part of the GQR register
     OpArg gqr = PPCSTATE_SPR(SPR_GQR0 + i);
     gqr.AddMemOffset(2);

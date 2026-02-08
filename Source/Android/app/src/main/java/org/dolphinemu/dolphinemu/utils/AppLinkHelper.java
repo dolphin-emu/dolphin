@@ -6,7 +6,7 @@ import android.net.Uri;
 
 import androidx.annotation.StringDef;
 
-import org.dolphinemu.dolphinemu.ui.platform.PlatformTab;
+import org.dolphinemu.dolphinemu.ui.platform.Platform;
 
 import java.util.List;
 
@@ -33,9 +33,9 @@ public class AppLinkHelper
             .build();
   }
 
-  public static Uri buildBrowseUri(PlatformTab platformTab)
+  public static Uri buildBrowseUri(Platform platform)
   {
-    return Uri.parse(URI_VIEW).buildUpon().appendPath(platformTab.getIdString()).build();
+    return Uri.parse(URI_VIEW).buildUpon().appendPath(platform.getIdString()).build();
   }
 
   public static AppLinkAction extractAction(Uri uri)

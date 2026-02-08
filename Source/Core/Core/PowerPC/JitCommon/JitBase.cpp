@@ -19,7 +19,6 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/MemTools.h"
-#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
@@ -58,7 +57,7 @@
 // After resetting the stack to the top, we call _resetstkoflw() to restore
 // the guard page at the 256kb mark.
 
-const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 24> JitBase::JIT_SETTINGS{{
+const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 23> JitBase::JIT_SETTINGS{{
     {&JitBase::bJITOff, &Config::MAIN_DEBUG_JIT_OFF},
     {&JitBase::bJITLoadStoreOff, &Config::MAIN_DEBUG_JIT_LOAD_STORE_OFF},
     {&JitBase::bJITLoadStorelXzOff, &Config::MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF},
@@ -80,7 +79,6 @@ const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 24> JitB
     {&JitBase::m_low_dcbz_hack, &Config::MAIN_LOW_DCBZ_HACK},
     {&JitBase::m_fprf, &Config::MAIN_FPRF},
     {&JitBase::m_accurate_nans, &Config::MAIN_ACCURATE_NANS},
-    {&JitBase::m_accurate_fmadds, &Config::MAIN_ACCURATE_FMADDS},
     {&JitBase::m_fastmem_enabled, &Config::MAIN_FASTMEM},
     {&JitBase::m_accurate_cpu_cache_enabled, &Config::MAIN_ACCURATE_CPU_CACHE},
 }};
@@ -121,8 +119,6 @@ bool JitBase::DoesConfigNeedRefresh() const
 
 void JitBase::RefreshConfig()
 {
-  const bool wanted_page_table_mappings = WantsPageTableMappings();
-
   for (const auto& [member, config_info] : JIT_SETTINGS)
     this->*member = Config::Get(*config_info);
 
@@ -144,18 +140,6 @@ void JitBase::RefreshConfig()
   jo.memcheck = m_system.IsMMUMode() || m_system.IsPauseOnPanicMode() || any_watchpoints;
   jo.fp_exceptions = m_enable_float_exceptions;
   jo.div_by_zero_exceptions = m_enable_div_by_zero_exceptions;
-
-  if (!wanted_page_table_mappings && WantsPageTableMappings())
-  {
-    // Mustn't call this if we're still initializing
-    if (Core::IsRunning(m_system))
-      m_system.GetMMU().PageTableUpdated();
-  }
-}
-
-bool JitBase::WantsPageTableMappings() const
-{
-  return jo.fastmem;
 }
 
 void JitBase::InitFastmemArena()

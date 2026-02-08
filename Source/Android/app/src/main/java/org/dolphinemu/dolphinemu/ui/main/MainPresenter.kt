@@ -2,13 +2,9 @@
 
 package org.dolphinemu.dolphinemu.ui.main
 
-import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
-import android.net.Uri
 import androidx.activity.ComponentActivity
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -26,6 +22,7 @@ import org.dolphinemu.dolphinemu.model.GameFileCache
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import org.dolphinemu.dolphinemu.utils.BooleanSupplier
+import org.dolphinemu.dolphinemu.utils.CompletableFuture
 import org.dolphinemu.dolphinemu.utils.ContentHandler
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
@@ -33,80 +30,15 @@ import org.dolphinemu.dolphinemu.utils.PermissionsHandler
 import org.dolphinemu.dolphinemu.utils.ThreadUtil
 import org.dolphinemu.dolphinemu.utils.WiiUtils
 import java.util.Arrays
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.ExecutionException
 
 class MainPresenter(private val mainView: MainView, private val activity: FragmentActivity) {
     private var dirToAdd: String? = null
 
-    private val requestDirectory = activity.registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result: ActivityResult ->
-        val intent = result.data
-        if (result.resultCode == Activity.RESULT_OK && intent != null) {
-            if (DirectoryInitialization.preferOldFolderPicker(activity)) {
-                onDirectorySelected(FileBrowserHelper.getSelectedPath(intent))
-            } else {
-                onDirectorySelected(intent)
-            }
-        } else {
-            skipRescanningLibrary()
-        }
-    }
-
-    private val requestGameFile = activity.registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        if (uri != null) {
-            FileBrowserHelper.runAfterExtensionCheck(
-                activity, uri, FileBrowserHelper.GAME_LIKE_EXTENSIONS
-            ) { EmulationActivity.launch(activity, uri.toString(), false) }
-        } else {
-            skipRescanningLibrary()
-        }
-    }
-
-    private val requestWadFile = activity.registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        if (uri != null) {
-            FileBrowserHelper.runAfterExtensionCheck(
-                activity, uri, FileBrowserHelper.WAD_EXTENSION
-            ) { installWAD(uri.toString()) }
-        } else {
-            skipRescanningLibrary()
-        }
-    }
-
-    private val requestWiiSaveFile = activity.registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        if (uri != null) {
-            FileBrowserHelper.runAfterExtensionCheck(
-                activity, uri, FileBrowserHelper.BIN_EXTENSION
-            ) { importWiiSave(uri.toString()) }
-        } else {
-            skipRescanningLibrary()
-        }
-    }
-
-    private val requestNandBinFile = activity.registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        if (uri != null) {
-            FileBrowserHelper.runAfterExtensionCheck(
-                activity, uri, FileBrowserHelper.BIN_EXTENSION
-            ) { importNANDBin(uri.toString()) }
-        } else {
-            skipRescanningLibrary()
-        }
-    }
-
     fun onCreate() {
         // Ask the user to grant write permission if relevant and not already granted
-        if (DirectoryInitialization.isWaitingForWriteAccess(activity)) {
+        if (DirectoryInitialization.isWaitingForWriteAccess(activity))
             PermissionsHandler.requestWritePermission(activity)
-        }
 
         val versionName = BuildConfig.VERSION_NAME
         mainView.setVersionString(versionName)
@@ -118,83 +50,76 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
         GameFileCacheManager.isRescanning().observe(activity, refreshObserver)
     }
 
-    fun launchFileListActivity() {
-        val intent = if (DirectoryInitialization.preferOldFolderPicker(activity)) {
-            FileBrowserHelper.createDirectoryPickerIntent(
-                activity,
-                FileBrowserHelper.GAME_EXTENSIONS,
-            )
-        } else {
-            Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-        }
-        requestDirectory.launch(intent)
+    fun onFabClick() {
+        AfterDirectoryInitializationRunner().runWithLifecycle(activity) { mainView.launchFileListActivity() }
     }
 
-    fun handleOptionSelection(itemId: Int, activity: ComponentActivity): Boolean = when (itemId) {
-        R.id.menu_settings -> {
-            mainView.launchSettingsActivity(MenuTag.SETTINGS)
-            true
-        }
+    fun handleOptionSelection(itemId: Int, activity: ComponentActivity): Boolean =
+        when (itemId) {
+            R.id.menu_settings -> {
+                mainView.launchSettingsActivity(MenuTag.SETTINGS)
+                true
+            }
 
-        R.id.menu_grid_options -> {
-            mainView.showGridOptions()
-            true
-        }
+            R.id.menu_grid_options -> {
+                mainView.showGridOptions()
+                true
+            }
 
-        R.id.menu_refresh -> {
-            mainView.setRefreshing(true)
-            GameFileCacheManager.startRescan()
-            true
-        }
+            R.id.menu_refresh -> {
+                mainView.setRefreshing(true)
+                GameFileCacheManager.startRescan()
+                true
+            }
 
-        R.id.button_add_directory -> {
-            AfterDirectoryInitializationRunner().runWithLifecycle(activity) { launchFileListActivity() }
-            true
-        }
+            R.id.button_add_directory -> {
+                AfterDirectoryInitializationRunner().runWithLifecycle(activity) { mainView.launchFileListActivity() }
+                true
+            }
 
-        R.id.menu_open_file -> {
-            requestGameFile.launch("*/*")
-            true
-        }
+            R.id.menu_open_file -> {
+                mainView.launchOpenFileActivity(REQUEST_GAME_FILE)
+                true
+            }
 
-        R.id.menu_load_wii_system_menu -> {
-            launchWiiSystemMenu()
-            true
-        }
+            R.id.menu_load_wii_system_menu -> {
+                launchWiiSystemMenu()
+                true
+            }
 
-        R.id.menu_online_system_update -> {
-            AfterDirectoryInitializationRunner().runWithLifecycle(activity) { launchOnlineUpdate() }
-            true
-        }
+            R.id.menu_online_system_update -> {
+                AfterDirectoryInitializationRunner().runWithLifecycle(activity) { launchOnlineUpdate() }
+                true
+            }
 
-        R.id.menu_install_wad -> {
-            AfterDirectoryInitializationRunner().runWithLifecycle(
-                activity
-            ) { requestWadFile.launch("*/*") }
-            true
-        }
+            R.id.menu_install_wad -> {
+                AfterDirectoryInitializationRunner().runWithLifecycle(
+                    activity
+                ) { mainView.launchOpenFileActivity(REQUEST_WAD_FILE) }
+                true
+            }
 
-        R.id.menu_import_wii_save -> {
-            AfterDirectoryInitializationRunner().runWithLifecycle(
-                activity
-            ) { requestWiiSaveFile.launch("*/*") }
-            true
-        }
+            R.id.menu_import_wii_save -> {
+                AfterDirectoryInitializationRunner().runWithLifecycle(
+                    activity
+                ) { mainView.launchOpenFileActivity(REQUEST_WII_SAVE_FILE) }
+                true
+            }
 
-        R.id.menu_import_nand_backup -> {
-            AfterDirectoryInitializationRunner().runWithLifecycle(
-                activity
-            ) { requestNandBinFile.launch("*/*") }
-            true
-        }
+            R.id.menu_import_nand_backup -> {
+                AfterDirectoryInitializationRunner().runWithLifecycle(
+                    activity
+                ) { mainView.launchOpenFileActivity(REQUEST_NAND_BIN_FILE) }
+                true
+            }
 
-        R.id.menu_about -> {
-            showAboutDialog()
-            false
-        }
+            R.id.menu_about -> {
+                showAboutDialog()
+                false
+            }
 
-        else -> false
-    }
+            else -> false
+        }
 
     fun onResume() {
         if (dirToAdd != null) {
@@ -225,25 +150,24 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
         val recursive = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.boolean
         val childNames = ContentHandler.getChildNames(uri, recursive)
         if (Arrays.stream(childNames).noneMatch {
-                FileBrowserHelper.GAME_EXTENSIONS.contains(
-                    FileBrowserHelper.getExtension(
-                        it, false
+                FileBrowserHelper.GAME_EXTENSIONS
+                    .contains(FileBrowserHelper.getExtension(it, false))
+            }) {
+            MaterialAlertDialogBuilder(activity)
+                .setMessage(
+                    activity.getString(
+                        R.string.wrong_file_extension_in_directory,
+                        FileBrowserHelper.setToSortedDelimitedString(FileBrowserHelper.GAME_EXTENSIONS)
                     )
                 )
-            }) {
-            MaterialAlertDialogBuilder(activity).setMessage(
-                activity.getString(
-                    R.string.wrong_file_extension_in_directory,
-                    FileBrowserHelper.setToSortedDelimitedString(FileBrowserHelper.GAME_EXTENSIONS)
-                )
-            ).setPositiveButton(android.R.string.ok, null).show()
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
         }
 
         val contentResolver = activity.contentResolver
         val canonicalizedUri = contentResolver.canonicalize(uri)
-        if (canonicalizedUri != null) {
+        if (canonicalizedUri != null)
             uri = canonicalizedUri
-        }
 
         val takeFlags = result.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION
         activity.contentResolver.takePersistableUriPermission(uri, takeFlags)
@@ -253,7 +177,10 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
 
     fun installWAD(path: String?) {
         ThreadUtil.runOnThreadAndShowResult(
-            activity, R.string.import_in_progress, 0, {
+            activity,
+            R.string.import_in_progress,
+            0,
+            {
                 val success = WiiUtils.installWAD(path!!)
                 val message =
                     if (success) R.string.wad_install_success else R.string.wad_install_failure
@@ -262,28 +189,33 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
     }
 
     fun importWiiSave(path: String?) {
+        val canOverwriteFuture = CompletableFuture<Boolean>()
         ThreadUtil.runOnThreadAndShowResult(
-            activity, R.string.import_in_progress, 0, {
+            activity,
+            R.string.import_in_progress,
+            0,
+            {
                 val canOverwrite = BooleanSupplier {
-                    val latch = CountDownLatch(1)
-                    val decision = AtomicReference<Boolean>()
                     activity.runOnUiThread {
-                        MaterialAlertDialogBuilder(activity).setMessage(R.string.wii_save_exists)
+                        MaterialAlertDialogBuilder(activity)
+                            .setMessage(R.string.wii_save_exists)
                             .setCancelable(false)
                             .setPositiveButton(R.string.yes) { _: DialogInterface?, _: Int ->
-                                decision.set(true)
-                                latch.countDown()
-                            }.setNegativeButton(R.string.no) { _: DialogInterface?, _: Int ->
-                                decision.set(false)
-                                latch.countDown()
-                            }.show()
+                                canOverwriteFuture.complete(true)
+                            }
+                            .setNegativeButton(R.string.no) { _: DialogInterface?, _: Int ->
+                                canOverwriteFuture.complete(false)
+                            }
+                            .show()
                     }
                     try {
-                        latch.await()
+                        return@BooleanSupplier canOverwriteFuture.get()
+                    } catch (e: ExecutionException) {
+                        // Shouldn't happen
+                        throw RuntimeException(e)
                     } catch (e: InterruptedException) {
                         throw RuntimeException(e)
                     }
-                    decision.get() ?: false
                 }
 
                 val message: Int = when (WiiUtils.importWiiSave(path!!, canOverwrite)) {
@@ -298,18 +230,23 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
     }
 
     fun importNANDBin(path: String?) {
-        MaterialAlertDialogBuilder(activity).setMessage(R.string.nand_import_warning)
+        MaterialAlertDialogBuilder(activity)
+            .setMessage(R.string.nand_import_warning)
             .setNegativeButton(R.string.no) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
             .setPositiveButton(R.string.yes) { dialog: DialogInterface, _: Int ->
                 dialog.dismiss()
                 ThreadUtil.runOnThreadAndShowResult(
-                    activity, R.string.import_in_progress, R.string.do_not_close_app, {
+                    activity,
+                    R.string.import_in_progress,
+                    R.string.do_not_close_app,
+                    {
                         // ImportNANDBin unfortunately doesn't provide any result value...
                         // It does however show a panic alert if something goes wrong.
                         WiiUtils.importNANDBin(path!!)
                         null
                     })
-            }.show()
+            }
+            .show()
     }
 
     private fun launchOnlineUpdate() {
@@ -319,7 +256,8 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
             launchUpdateProgressBarFragment(activity)
         } else {
             SystemMenuNotInstalledDialogFragment().show(
-                activity.supportFragmentManager, SystemMenuNotInstalledDialogFragment.TAG
+                activity.supportFragmentManager,
+                SystemMenuNotInstalledDialogFragment.TAG
             )
         }
     }
@@ -330,7 +268,8 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
                 EmulationActivity.launchSystemMenu(activity)
             } else {
                 SystemMenuNotInstalledDialogFragment().show(
-                    activity.supportFragmentManager, SystemMenuNotInstalledDialogFragment.TAG
+                    activity.supportFragmentManager,
+                    SystemMenuNotInstalledDialogFragment.TAG
                 )
             }
         }
@@ -341,6 +280,14 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
     }
 
     companion object {
+        const val REQUEST_DIRECTORY = 1
+        const val REQUEST_GAME_FILE = 2
+        const val REQUEST_SD_FILE = 3
+        const val REQUEST_WAD_FILE = 4
+        const val REQUEST_WII_SAVE_FILE = 5
+        const val REQUEST_NAND_BIN_FILE = 6
+        const val REQUEST_GPU_DRIVER = 7
+
         private var shouldRescanLibrary = true
 
         @JvmStatic
@@ -357,9 +304,8 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
 
         private fun launchUpdateProgressBarFragment(activity: FragmentActivity) {
             val progressBarFragment = SystemUpdateProgressBarDialogFragment()
-            progressBarFragment.show(
-                activity.supportFragmentManager, SystemUpdateProgressBarDialogFragment.TAG
-            )
+            progressBarFragment
+                .show(activity.supportFragmentManager, SystemUpdateProgressBarDialogFragment.TAG)
             progressBarFragment.isCancelable = false
         }
     }

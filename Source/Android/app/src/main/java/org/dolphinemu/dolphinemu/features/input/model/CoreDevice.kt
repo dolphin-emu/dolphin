@@ -18,8 +18,6 @@ class CoreDevice private constructor(private val pointer: Long) {
     @Keep
     inner class Control private constructor(private val pointer: Long) {
         external fun getName(): String
-
-        external fun getState(): Double
     }
 
     protected external fun finalize()

@@ -131,7 +131,7 @@ private:
     USIChannelIn_Lo in_lo{};
     std::unique_ptr<ISIDevice> device;
 
-    bool has_recent_device_unplug = false;
+    bool has_recent_device_change = false;
   };
 
   // SI Poll: Controls how often a device is polled

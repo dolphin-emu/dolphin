@@ -3,6 +3,8 @@
 
 #include "VideoCommon/VideoState.h"
 
+#include <cstring>
+
 #include "Common/ChunkFile.h"
 #include "Core/System.h"
 #include "VideoCommon/BPMemory.h"

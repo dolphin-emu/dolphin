@@ -5,6 +5,7 @@
 
 #include <array>
 #include <span>
+#include <string>
 
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"

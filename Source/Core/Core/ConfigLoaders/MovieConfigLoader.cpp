@@ -14,7 +14,9 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/Config/SessionSettings.h"
+#include "Core/ConfigManager.h"
 #include "Core/Movie.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace PowerPC
 {

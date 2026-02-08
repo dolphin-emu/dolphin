@@ -12,11 +12,11 @@ BPMemory bpmem;
 bool BlendMode::UseLogicOp() const
 {
   // Blending overrides the logicop bit.
-  if (blend_enable || !logic_op_enable)
+  if (blendenable || !logicopenable)
     return false;
 
   // Fast path for Kirby's Return to Dreamland, they use it with dstAlpha.
-  if (logic_mode == LogicOp::NoOp)
+  if (logicmode == LogicOp::NoOp)
     return false;
 
   return true;

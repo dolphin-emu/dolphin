@@ -42,10 +42,11 @@
  *   constexpr formatter() : EnumFormatter(names) {}
  * };
  */
-template <Common::Enum auto last_member>
+template <auto last_member>
 class EnumFormatter
 {
   using T = decltype(last_member);
+  static_assert(std::is_enum_v<T>);
 
 public:
   constexpr auto parse(fmt::format_parse_context& ctx)

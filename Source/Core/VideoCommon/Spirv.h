@@ -8,7 +8,7 @@
 #include <string_view>
 #include <vector>
 
-#include <glslang/Public/ShaderLang.h>
+#include "ShaderLang.h"
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/VideoCommon.h"
@@ -21,21 +21,17 @@ using CodeVector = std::vector<CodeType>;
 
 // Compile a vertex shader to SPIR-V.
 std::optional<CodeVector> CompileVertexShader(std::string_view source_code, APIType api_type,
-                                              glslang::EShTargetLanguageVersion language_version,
-                                              glslang::TShader::Includer* shader_includer);
+                                              glslang::EShTargetLanguageVersion language_version);
 
 // Compile a geometry shader to SPIR-V.
 std::optional<CodeVector> CompileGeometryShader(std::string_view source_code, APIType api_type,
-                                                glslang::EShTargetLanguageVersion language_version,
-                                                glslang::TShader::Includer* shader_includer);
+                                                glslang::EShTargetLanguageVersion language_version);
 
 // Compile a fragment shader to SPIR-V.
 std::optional<CodeVector> CompileFragmentShader(std::string_view source_code, APIType api_type,
-                                                glslang::EShTargetLanguageVersion language_version,
-                                                glslang::TShader::Includer* shader_includer);
+                                                glslang::EShTargetLanguageVersion language_version);
 
 // Compile a compute shader to SPIR-V.
 std::optional<CodeVector> CompileComputeShader(std::string_view source_code, APIType api_type,
-                                               glslang::EShTargetLanguageVersion language_version,
-                                               glslang::TShader::Includer* shader_includer);
+                                               glslang::EShTargetLanguageVersion language_version);
 }  // namespace SPIRV

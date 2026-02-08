@@ -80,12 +80,12 @@ bool VertexManager::Initialize()
                              D3D11_BIND_INDEX_BUFFER | D3D11_BIND_VERTEX_BUFFER,
                              D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-  for (auto& buffer : m_buffers)
+  for (int i = 0; i < BUFFER_COUNT; i++)
   {
-    HRESULT hr = D3D::device->CreateBuffer(&bufdesc, nullptr, &buffer);
+    HRESULT hr = D3D::device->CreateBuffer(&bufdesc, nullptr, &m_buffers[i]);
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create buffer: {}", DX11HRWrap(hr));
-    if (buffer)
-      D3DCommon::SetDebugObjectName(buffer.Get(), "Buffer of VertexManager");
+    if (m_buffers[i])
+      D3DCommon::SetDebugObjectName(m_buffers[i].Get(), "Buffer of VertexManager");
   }
 
   m_vertex_constant_buffer = AllocateConstantBuffer(sizeof(VertexShaderConstants));
@@ -290,23 +290,24 @@ void VertexManager::UploadUniforms()
 
   if (pixel_shader_manager.custom_constants_dirty)
   {
-    if (m_last_custom_buffer_size < pixel_shader_manager.custom_constants.size())
+    if (m_last_custom_pixel_buffer_size < pixel_shader_manager.custom_constants.size())
     {
-      m_custom_constant_buffer =
+      m_custom_pixel_constant_buffer =
           AllocateConstantBuffer(static_cast<u32>(pixel_shader_manager.custom_constants.size()));
     }
-    UpdateConstantBuffer(m_custom_constant_buffer.Get(),
+    UpdateConstantBuffer(m_custom_pixel_constant_buffer.Get(),
                          pixel_shader_manager.custom_constants.data(),
                          static_cast<u32>(pixel_shader_manager.custom_constants.size()));
-    m_last_custom_buffer_size = pixel_shader_manager.custom_constants.size();
+    m_last_custom_pixel_buffer_size = pixel_shader_manager.custom_constants.size();
     pixel_shader_manager.custom_constants_dirty = false;
   }
 
   D3D::stateman->SetPixelConstants(
       m_pixel_constant_buffer.Get(),
-      g_ActiveConfig.bEnablePixelLighting ? m_vertex_constant_buffer.Get() : nullptr);
+      g_ActiveConfig.bEnablePixelLighting ? m_vertex_constant_buffer.Get() : nullptr,
+      pixel_shader_manager.custom_constants.empty() ? nullptr :
+                                                      m_custom_pixel_constant_buffer.Get());
   D3D::stateman->SetVertexConstants(m_vertex_constant_buffer.Get());
   D3D::stateman->SetGeometryConstants(m_geometry_constant_buffer.Get());
-  D3D::stateman->SetCustomConstants(m_custom_constant_buffer.Get());
 }
 }  // namespace DX11

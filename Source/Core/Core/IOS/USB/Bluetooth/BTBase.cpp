@@ -3,6 +3,7 @@
 
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 
+#include <memory>
 #include <string>
 #include <vector>
 

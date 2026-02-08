@@ -3,26 +3,26 @@
 
 #pragma once
 
-#include <SFML/Network/Packet.hpp>
+#include <type_traits>
 
-#include <utility>
+#include <SFML/Network/Packet.hpp>
 
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
-#include "Common/TypeUtils.h"
 
 sf::Packet& operator>>(sf::Packet& packet, Common::BigEndianValue<u16>& data);
 sf::Packet& operator>>(sf::Packet& packet, Common::BigEndianValue<u32>& data);
 sf::Packet& operator>>(sf::Packet& packet, Common::BigEndianValue<u64>& data);
 
-template <Common::Enum Enum>
+template <typename Enum, std::enable_if_t<std::is_enum_v<Enum>>* = nullptr>
 sf::Packet& operator<<(sf::Packet& packet, Enum e)
 {
-  packet << std::to_underlying(e);
+  using Underlying = std::underlying_type_t<Enum>;
+  packet << static_cast<Underlying>(e);
   return packet;
 }
 
-template <Common::Enum Enum>
+template <typename Enum, std::enable_if_t<std::is_enum_v<Enum>>* = nullptr>
 sf::Packet& operator>>(sf::Packet& packet, Enum& e)
 {
   using Underlying = std::underlying_type_t<Enum>;

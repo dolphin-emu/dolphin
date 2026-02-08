@@ -29,10 +29,12 @@
 #include <QVariant>
 #include <fmt/format.h>
 
+#include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
+#include "Common/Unreachable.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/BranchWatch.h"
@@ -45,6 +47,7 @@
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -77,19 +80,19 @@ public:
   [[noreturn]] void setSourceModel(QAbstractItemModel* source_model) override { Crash(); }
   bool filterAcceptsRow(int source_row, const QModelIndex& source_parent) const override;
 
-  template <bool BranchWatchProxyModel::* member>
+  template <bool BranchWatchProxyModel::*member>
   void OnToggled(bool enabled)
   {
     this->*member = enabled;
     invalidateRowsFilter();
   }
-  template <QString BranchWatchProxyModel::* member>
+  template <QString BranchWatchProxyModel::*member>
   void OnSymbolTextChanged(const QString& text)
   {
     this->*member = text;
     invalidateRowsFilter();
   }
-  template <std::optional<u32> BranchWatchProxyModel::* member>
+  template <std::optional<u32> BranchWatchProxyModel::*member>
   void OnAddressTextChanged(const QString& text)
   {
     bool ok = false;
@@ -197,7 +200,7 @@ BranchWatchDialog::BranchWatchDialog(Core::System& system, Core::BranchWatch& br
     : QDialog(parent), m_system(system), m_branch_watch(branch_watch), m_code_widget(code_widget)
 {
   setWindowTitle(tr("Branch Watch Tool"));
-  setWindowFlags(windowFlags() | Qt::WindowMinMaxButtonsHint);
+  setWindowFlags((windowFlags() | Qt::WindowMinMaxButtonsHint) & ~Qt::WindowContextHelpButtonHint);
 
   // Branch Watch Table
   m_table_view = new QTableView(nullptr);
@@ -1215,7 +1218,7 @@ QMenu* BranchWatchDialog::GetTableContextMenu(const QModelIndex& index) const
     return m_mnu_table_context_symbol;
   }
   static_assert(Column::NumberOfColumns == 8);
-  std::unreachable();
+  Common::Unreachable();
 }
 
 void BranchWatchDialog::RefreshVisibleContextMenuActions(bool core_initialized) const

@@ -3,6 +3,8 @@
 
 #include "Core/HW/HSP/HSP_DeviceNull.h"
 
+#include <cstring>
+
 #include "Core/HW/HSP/HSP.h"
 
 namespace HSP

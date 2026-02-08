@@ -1,16 +1,14 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    kotlin("plugin.serialization") version "2.2.21"
+    kotlin("plugin.serialization") version "1.8.21"
     id("androidx.baselineprofile")
 }
 
 @Suppress("UnstableApiUsage")
 android {
-    compileSdkVersion = "android-36"
-    ndkVersion = "29.0.14206865"
+    compileSdkVersion = "android-34"
+    ndkVersion = "27.0.12077973"
 
     buildFeatures {
         viewBinding = true
@@ -25,10 +23,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlin {
-        compilerOptions {
-            jvmTarget = JvmTarget.fromTarget("17")
-        }
+    kotlinOptions {
+        jvmTarget = "17"
     }
 
     lint {
@@ -44,7 +40,7 @@ android {
     defaultConfig {
         applicationId = "org.dolphinemu.dolphinemu"
         minSdk = 21
-        targetSdk = 36
+        targetSdk = 34
 
         versionCode = getBuildVersionCode()
 
@@ -126,36 +122,36 @@ android {
 
 dependencies {
     baselineProfile(project(":benchmark"))
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
-    implementation("androidx.core:core-ktx:1.17.0")
-    implementation("androidx.appcompat:appcompat:1.7.1")
+    implementation("androidx.core:core-ktx:1.13.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.cardview:cardview:1.0.0")
-    implementation("androidx.recyclerview:recyclerview:1.4.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.2.1")
-    implementation("androidx.fragment:fragment-ktx:1.8.9")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("androidx.fragment:fragment-ktx:1.6.2")
     implementation("androidx.slidingpanelayout:slidingpanelayout:1.2.0")
-    implementation("com.google.android.material:material:1.13.0")
-    implementation("androidx.core:core-splashscreen:1.2.0")
+    implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.preference:preference-ktx:1.2.1")
-    implementation("androidx.profileinstaller:profileinstaller:1.4.1")
+    implementation("androidx.profileinstaller:profileinstaller:1.3.1")
 
     // Kotlin extensions for lifecycle components
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
 
     // Android TV UI libraries.
-    implementation("androidx.leanback:leanback:1.2.0")
-    implementation("androidx.tvprovider:tvprovider:1.1.0")
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation("androidx.leanback:leanback:1.0.0")
+    implementation("androidx.tvprovider:tvprovider:1.0.0")
+
+    // For REST calls
+    implementation("com.android.volley:volley:1.2.1")
 
     // For loading game covers from disk and GameTDB
-    implementation("io.coil-kt:coil:2.7.0")
+    implementation("io.coil-kt:coil:2.6.0")
 
     // For loading custom GPU drivers
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     implementation("com.nononsenseapps:filepicker:4.2.1")
 }

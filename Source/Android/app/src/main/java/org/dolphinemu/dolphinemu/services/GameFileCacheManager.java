@@ -13,7 +13,6 @@ import org.dolphinemu.dolphinemu.features.settings.model.ConfigChangedCallback;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
-import org.dolphinemu.dolphinemu.ui.platform.PlatformTab;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 
 import java.util.ArrayList;
@@ -47,18 +46,18 @@ public final class GameFileCacheManager
     return sGameFiles;
   }
 
-  public static List<GameFile> getGameFilesForPlatformTab(PlatformTab platformTab)
+  public static List<GameFile> getGameFilesForPlatform(Platform platform)
   {
     GameFile[] allGames = sGameFiles.getValue();
-    ArrayList<GameFile> platformTabGames = new ArrayList<>();
+    ArrayList<GameFile> platformGames = new ArrayList<>();
     for (GameFile game : allGames)
     {
-      if (Platform.fromInt(game.getPlatform()).toPlatformTab() == platformTab)
+      if (Platform.fromNativeInt(game.getPlatform()) == platform)
       {
-        platformTabGames.add(game);
+        platformGames.add(game);
       }
     }
-    return platformTabGames;
+    return platformGames;
   }
 
   public static GameFile getGameFileByGameId(String gameId)

@@ -11,7 +11,6 @@
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
-#include "Core/HW/Memmap.h"
 #include "Core/System.h"
 
 namespace DSP::HLE
@@ -19,23 +18,23 @@ namespace DSP::HLE
 void ProcessGBACrypto(Memory::MemoryManager& memory, u32 address)
 {
   // Nonce challenge (first read from GBA, hence already little-endian)
-  const u32 challenge = memory.Read_U32_Swap(address);
+  const u32 challenge = HLEMemory_Read_U32LE(memory, address);
 
   // Palette of pulsing logo on GBA during transmission [0,6]
-  const u32 logo_palette = memory.Read_U32(address + 4);
+  const u32 logo_palette = HLEMemory_Read_U32(memory, address + 4);
 
   // Speed and direction of palette interpolation [-4,4]
-  const u32 logo_speed_32 = memory.Read_U32(address + 8);
+  const u32 logo_speed_32 = HLEMemory_Read_U32(memory, address + 8);
 
   // Length of JoyBoot program to upload
-  const u32 length = memory.Read_U32(address + 12);
+  const u32 length = HLEMemory_Read_U32(memory, address + 12);
 
   // Address to return results to game
-  const u32 dest_addr = memory.Read_U32(address + 16);
+  const u32 dest_addr = HLEMemory_Read_U32(memory, address + 16);
 
   // Unwrap key from challenge using 'sedo' magic number (to encrypt JoyBoot program)
   const u32 key = challenge ^ 0x6f646573;
-  memory.Write_U32(key, dest_addr);
+  HLEMemory_Write_U32(memory, dest_addr, key);
 
   // Pack palette parameters
   u16 palette_speed_coded;
@@ -63,7 +62,7 @@ void ProcessGBACrypto(Memory::MemoryManager& memory, u32 address)
 
   // Wrap with 'Kawa' or 'sedo' (Kawasedo is the author of the BIOS cipher)
   t3 ^= ((t3 & 0x200) != 0 ? 0x6f646573 : 0x6177614b);
-  memory.Write_U32(t3, dest_addr + 4);
+  HLEMemory_Write_U32(memory, dest_addr + 4, t3);
 
   // Done!
   DEBUG_LOG_FMT(DSPHLE,
@@ -86,7 +85,7 @@ void GBAUCode::Update()
   // check if we have something to send
   if (m_mail_handler.HasPending())
   {
-    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(INT_DSP);
+    m_dsphle->GetSystem().GetDSP().GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
   }
 }
 
@@ -96,7 +95,7 @@ void GBAUCode::HandleMail(u32 mail)
   {
     PrepareBootUCode(mail);
     // The GBA ucode ignores the first 3 mails (mram_dest_addr, mram_size, mram_dram_addr)
-    // but we currently don't handle that (they're read when they shouldn't be, but DSP HLE doesn't
+    // but we currently don't handle that (they're read when they shoudln't be, but DSP HLE doesn't
     // implement them so it's fine).
     return;
   }
@@ -107,7 +106,7 @@ void GBAUCode::HandleMail(u32 mail)
   {
     if (mail == REQUEST_MAIL)
     {
-      INFO_LOG_FMT(DSPHLE, "GBAUCode - Received request mail");
+      INFO_LOG_FMT(DSPHLE, "GBAUCode - Recieved request mail");
       m_mail_state = MailState::WaitingForAddress;
     }
     else

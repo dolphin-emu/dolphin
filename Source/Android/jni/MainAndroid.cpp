@@ -18,6 +18,7 @@
 #include <fmt/format.h>
 #include <jni.h>
 
+#include "Common/AndroidAnalytics.h"
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
@@ -33,7 +34,6 @@
 #include "Common/Version.h"
 #include "Common/WindowSystemInfo.h"
 
-#include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/CommonTitles.h"
@@ -110,6 +110,10 @@ void Host_PPCBreakpointsChanged()
 {
 }
 
+void Host_RefreshDSPDebuggerWindow()
+{
+}
+
 bool Host_UIBlocksControllerState()
 {
   return false;
@@ -156,6 +160,10 @@ void Host_JitCacheInvalidation()
 }
 
 void Host_JitProfileDataWiped()
+{
+}
+
+void Host_UpdateMainFrame()
 {
 }
 
@@ -221,6 +229,24 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   return result != JNI_FALSE;
 }
 
+static void ReportSend(const std::string& endpoint, const std::string& report)
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+
+  jbyteArray output_array = env->NewByteArray(report.size());
+  jbyte* output = env->GetByteArrayElements(output_array, nullptr);
+  memcpy(output, report.data(), report.size());
+  env->ReleaseByteArrayElements(output_array, output, 0);
+
+  jstring j_endpoint = ToJString(env, endpoint);
+
+  env->CallStaticVoidMethod(IDCache::GetAnalyticsClass(), IDCache::GetSendAnalyticsReport(),
+                            j_endpoint, output_array);
+
+  env->DeleteLocalRef(output_array);
+  env->DeleteLocalRef(j_endpoint);
+}
+
 static std::string GetAnalyticValue(const std::string& key)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
@@ -245,12 +271,10 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_UnPauseEmula
   Core::SetState(Core::System::GetInstance(), Core::State::Running);
 }
 
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_PauseEmulation(
-    JNIEnv*, jclass, bool override_achievement_restrictions)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_PauseEmulation(JNIEnv*, jclass)
 {
   HostThreadLock guard;
-  Core::SetState(Core::System::GetInstance(), Core::State::Paused, true,
-                 override_achievement_restrictions);
+  Core::SetState(Core::System::GetInstance(), Core::State::Paused);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulation(JNIEnv*, jclass)
@@ -310,17 +334,19 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_eglBindAPI(J
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveState(JNIEnv*, jclass,
-                                                                              jint slot)
+                                                                              jint slot,
+                                                                              jboolean wait)
 {
   HostThreadLock guard;
-  State::Save(Core::System::GetInstance(), slot);
+  State::Save(Core::System::GetInstance(), slot, wait);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveStateAs(JNIEnv* env, jclass,
-                                                                                jstring path)
+                                                                                jstring path,
+                                                                                jboolean wait)
 {
   HostThreadLock guard;
-  State::SaveAs(Core::System::GetInstance(), GetJString(env, path));
+  State::SaveAs(Core::System::GetInstance(), GetJString(env, path), wait);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadState(JNIEnv*, jclass,
@@ -399,7 +425,7 @@ Java_org_dolphinemu_dolphinemu_NativeLibrary_GetDefaultGraphicsBackendConfigName
 
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetMaxLogLevel(JNIEnv*, jclass)
 {
-  return static_cast<jint>(Common::Log::MAX_EFFECTIVE_LOGLEVEL);
+  return static_cast<jint>(Common::Log::MAX_LOGLEVEL);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WipeJitBlockProfilingData(
@@ -525,14 +551,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReloadConfig
   SConfig::GetInstance().LoadSettings();
 }
 
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ResetDolphinSettings(JNIEnv*,
-                                                                                         jclass)
-{
-  HostThreadLock guard;
-  SConfig::ResetAllSettings();
-  UICommon::SetUserDirectory(File::GetUserPath(D_USER_IDX));
-}
-
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_UpdateGCAdapterScanThread(JNIEnv*, jclass)
 {
@@ -553,13 +571,12 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(J
 
   UICommon::CreateDirectories();
   Common::RegisterMsgAlertHandler(&MsgAlert);
+  Common::AndroidSetReportHandler(&ReportSend);
   DolphinAnalytics::AndroidSetGetValFunc(&GetAnalyticValue);
 
   WiimoteReal::InitAdapterClass();
   UICommon::Init();
   UICommon::InitControllers(WindowSystemInfo(WindowSystemType::Android, nullptr, nullptr, nullptr));
-
-  AchievementManager::GetInstance().Init(nullptr);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReportStartToAnalytics(JNIEnv*,

@@ -11,6 +11,8 @@
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/ColorUtil.h"
+#include "Common/CommonFuncs.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
@@ -163,10 +165,10 @@ std::pair<GCMemcardErrorCode, std::optional<GCMemcard>> GCMemcard::Open(std::str
   //
   // This rule only applies for errors within a single block! That is, invalid checksums for both
   // types, and free block mismatch for the BATs. Once two valid blocks have been selected but it
-  // later turns out they do not match each other (eg. claimed block count of a file in the
-  // directory does not match the actual block count arrived at by following BAT), the card will be
-  // treated as corrupted, even if perhaps a different combination of the two blocks would result in
-  // a valid memory card.
+  // later turns out they do not match eachother (eg. claimed block count of a file in the directory
+  // does not match the actual block count arrived at by following BAT), the card will be treated as
+  // corrupted, even if perhaps a different combination of the two blocks would result in a valid
+  // memory card.
 
   // can return invalid checksum, data in unused area
   GCMemcardErrorCode dir_block_0_error_code = card.m_directory_blocks[0].CheckForErrors();
@@ -287,7 +289,7 @@ const BlockAlloc& GCMemcard::GetActiveBat() const
 void GCMemcard::UpdateDirectory(const Directory& directory)
 {
   // overwrite inactive dir with given data, then set active dir to written block
-  const int new_directory_index = m_active_directory == 0 ? 1 : 0;
+  int new_directory_index = m_active_directory == 0 ? 1 : 0;
   m_directory_blocks[new_directory_index] = directory;
   m_active_directory = new_directory_index;
 }
@@ -295,7 +297,7 @@ void GCMemcard::UpdateDirectory(const Directory& directory)
 void GCMemcard::UpdateBat(const BlockAlloc& bat)
 {
   // overwrite inactive BAT with given data, then set active BAT to written block
-  const int new_bat_index = m_active_bat == 0 ? 1 : 0;
+  int new_bat_index = m_active_bat == 0 ? 1 : 0;
   m_bat_blocks[new_bat_index] = bat;
   m_active_bat = new_bat_index;
 }
@@ -331,7 +333,7 @@ static std::pair<u16, u16> CalculateMemcardChecksums(const u8* data, size_t size
 
   for (size_t i = 0; i < size; i += 2)
   {
-    const u16 d = Common::swap16(&data[i]);
+    u16 d = Common::swap16(&data[i]);
     csum += d;
     inv_csum += static_cast<u16>(d ^ 0xffff);
   }
@@ -432,7 +434,7 @@ u16 GCMemcard::DEntry_FirstBlock(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return 0xFFFF;
 
-  const u16 block = GetActiveDirectory().m_dir_entries[index].m_first_block;
+  u16 block = GetActiveDirectory().m_dir_entries[index].m_first_block;
   if (block > (u16)m_size_blocks)
     return 0xFFFF;
   return block;
@@ -443,7 +445,7 @@ u16 GCMemcard::DEntry_BlockCount(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return 0xFFFF;
 
-  const u16 blocks = GetActiveDirectory().m_dir_entries[index].m_block_count;
+  u16 blocks = GetActiveDirectory().m_dir_entries[index].m_block_count;
   if (blocks > (u16)m_size_blocks)
     return 0xFFFF;
   return blocks;
@@ -592,7 +594,7 @@ bool BlockAlloc::ClearBlocks(u16 starting_block, u16 block_count)
   }
   if (starting_block > 0)
   {
-    const size_t length = blocks.size();
+    size_t length = blocks.size();
     if (length != block_count)
     {
       return false;
@@ -613,7 +615,7 @@ void BlockAlloc::FixChecksums()
 
 u16 BlockAlloc::AssignBlocksContiguous(u16 length)
 {
-  const u16 starting = m_last_allocated_block + 1;
+  u16 starting = m_last_allocated_block + 1;
   if (length > m_free_blocks)
     return 0xFFFF;
   u16 current = starting;
@@ -751,7 +753,7 @@ GCMemcardImportFileRetVal GCMemcard::ImportFile(const Savefile& savefile)
   UpdatedDir.m_update_counter = UpdatedDir.m_update_counter + 1;
   UpdateDirectory(UpdatedDir);
 
-  const int fileBlocks = direntry.m_block_count;
+  int fileBlocks = direntry.m_block_count;
 
   std::vector<GCMBlock> blocks = savefile.blocks;
   FZEROGX_MakeSaveGameValid(m_header_block, direntry, blocks);
@@ -806,8 +808,8 @@ GCMemcardRemoveFileRetVal GCMemcard::RemoveFile(u8 index)  // index in the direc
   if (index >= DIRLEN)
     return GCMemcardRemoveFileRetVal::DELETE_FAIL;
 
-  const u16 startingblock = GetActiveDirectory().m_dir_entries[index].m_first_block;
-  const u16 numberofblocks = GetActiveDirectory().m_dir_entries[index].m_block_count;
+  u16 startingblock = GetActiveDirectory().m_dir_entries[index].m_first_block;
+  u16 numberofblocks = GetActiveDirectory().m_dir_entries[index].m_block_count;
 
   BlockAlloc UpdatedBat = GetActiveBat();
   if (!UpdatedBat.ClearBlocks(startingblock, numberofblocks))
@@ -819,7 +821,7 @@ GCMemcardRemoveFileRetVal GCMemcard::RemoveFile(u8 index)  // index in the direc
 
   // TODO: Deleting a file via the GC BIOS sometimes leaves behind an extra updated directory block
   // here that has an empty file with the filename "Broken File000" where the actual deleted file
-  // was. Determine when exactly this happens and if this is necessary for anything.
+  // was. Determine when exactly this happens and if this is neccessary for anything.
 
   memset(reinterpret_cast<u8*>(&UpdatedDir.m_dir_entries[index]), 0xFF, DENTRY_SIZE);
   UpdatedDir.m_update_counter = UpdatedDir.m_update_counter + 1;
@@ -951,7 +953,7 @@ std::optional<std::vector<GCMemcardAnimationFrameRGBA8>> GCMemcard::ReadAnimRGBA
 
   // now that we have determined the data length, fetch the actual data from the save file
   // if anything is sketchy, bail so we don't access out of bounds
-  const auto save_data_bytes = GetSaveDataBytes(index, image_offset, data_length);
+  auto save_data_bytes = GetSaveDataBytes(index, image_offset, data_length);
   if (!save_data_bytes || save_data_bytes->size() != data_length)
     return std::nullopt;
 
@@ -1020,9 +1022,9 @@ bool GCMemcard::Format(u8* card_data, const CardFlashId& flash_id, u16 size_mbit
   if (!card_data)
     return false;
 
-  const Header header(flash_id, size_mbits, shift_jis, rtc_bias, sram_language, format_time);
-  const Directory dir;
-  const BlockAlloc bat(size_mbits);
+  Header header(flash_id, size_mbits, shift_jis, rtc_bias, sram_language, format_time);
+  Directory dir;
+  BlockAlloc bat(size_mbits);
 
   std::memcpy(&card_data[BLOCK_SIZE * 0], &header, BLOCK_SIZE);
   std::memcpy(&card_data[BLOCK_SIZE * 1], &dir, BLOCK_SIZE);

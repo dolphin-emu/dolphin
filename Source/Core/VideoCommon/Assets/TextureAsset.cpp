@@ -153,8 +153,8 @@ bool ParseSampler(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
   return true;
 }
 }  // namespace
-bool TextureAndSamplerData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
-                                     const picojson::object& json, TextureAndSamplerData* data)
+bool TextureData::FromJson(const CustomAssetLibrary::AssetID& asset_id,
+                           const picojson::object& json, TextureData* data)
 {
   const auto type_iter = json.find("type");
   if (type_iter == json.end())
@@ -176,20 +176,16 @@ bool TextureAndSamplerData::FromJson(const CustomAssetLibrary::AssetID& asset_id
 
   if (type == "texture2d")
   {
-    data->type = AbstractTextureType::Texture_2D;
+    data->m_type = TextureData::Type::Type_Texture2D;
 
-    if (!ParseSampler(asset_id, json, &data->sampler))
+    if (!ParseSampler(asset_id, json, &data->m_sampler))
     {
       return false;
     }
   }
   else if (type == "texturecube")
   {
-    data->type = AbstractTextureType::Texture_CubeMap;
-  }
-  else if (type == "texture2darray")
-  {
-    data->type = AbstractTextureType::Texture_2DArray;
+    data->m_type = TextureData::Type::Type_TextureCube;
   }
   else
   {
@@ -203,22 +199,21 @@ bool TextureAndSamplerData::FromJson(const CustomAssetLibrary::AssetID& asset_id
   return true;
 }
 
-void TextureAndSamplerData::ToJson(picojson::object* obj, const TextureAndSamplerData& data)
+void TextureData::ToJson(picojson::object* obj, const TextureData& data)
 {
   if (!obj) [[unlikely]]
     return;
 
   auto& json_obj = *obj;
-  switch (data.type)
+  switch (data.m_type)
   {
-  case AbstractTextureType::Texture_2D:
+  case TextureData::Type::Type_Texture2D:
     json_obj.emplace("type", "texture2d");
     break;
-  case AbstractTextureType::Texture_CubeMap:
+  case TextureData::Type::Type_TextureCube:
     json_obj.emplace("type", "texturecube");
     break;
-  case AbstractTextureType::Texture_2DArray:
-    json_obj.emplace("type", "texture2darray");
+  case TextureData::Type::Type_Undefined:
     break;
   };
 
@@ -248,22 +243,22 @@ void TextureAndSamplerData::ToJson(picojson::object* obj, const TextureAndSample
   };
 
   picojson::object wrap_mode;
-  wrap_mode.emplace("u", wrap_mode_to_string(data.sampler.tm0.wrap_u));
-  wrap_mode.emplace("v", wrap_mode_to_string(data.sampler.tm0.wrap_v));
+  wrap_mode.emplace("u", wrap_mode_to_string(data.m_sampler.tm0.wrap_u));
+  wrap_mode.emplace("v", wrap_mode_to_string(data.m_sampler.tm0.wrap_v));
   json_obj.emplace("wrap_mode", wrap_mode);
 
   picojson::object filter_mode;
-  filter_mode.emplace("min", filter_mode_to_string(data.sampler.tm0.min_filter));
-  filter_mode.emplace("mag", filter_mode_to_string(data.sampler.tm0.mag_filter));
-  filter_mode.emplace("mipmap", filter_mode_to_string(data.sampler.tm0.mipmap_filter));
+  filter_mode.emplace("min", filter_mode_to_string(data.m_sampler.tm0.min_filter));
+  filter_mode.emplace("mag", filter_mode_to_string(data.m_sampler.tm0.mag_filter));
+  filter_mode.emplace("mipmap", filter_mode_to_string(data.m_sampler.tm0.mipmap_filter));
   json_obj.emplace("filter_mode", filter_mode);
 }
 
-CustomAssetLibrary::LoadInfo TextureAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
+CustomAssetLibrary::LoadInfo GameTextureAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
 {
-  auto potential_data = std::make_shared<CustomTextureData>();
-  const auto loaded_info = m_owning_library->LoadTexture(asset_id, potential_data.get());
-  if (loaded_info.bytes_loaded == 0)
+  auto potential_data = std::make_shared<TextureData>();
+  const auto loaded_info = m_owning_library->LoadGameTexture(asset_id, potential_data.get());
+  if (loaded_info.m_bytes_loaded == 0)
     return {};
   {
     std::lock_guard lk(m_data_lock);
@@ -273,18 +268,74 @@ CustomAssetLibrary::LoadInfo TextureAsset::LoadImpl(const CustomAssetLibrary::As
   return loaded_info;
 }
 
-CustomAssetLibrary::LoadInfo
-TextureAndSamplerAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)
+bool GameTextureAsset::Validate(u32 native_width, u32 native_height) const
 {
-  auto potential_data = std::make_shared<TextureAndSamplerData>();
-  const auto loaded_info = m_owning_library->LoadTexture(asset_id, potential_data.get());
-  if (loaded_info.bytes_loaded == 0)
-    return {};
+  std::lock_guard lk(m_data_lock);
+
+  if (!m_loaded)
   {
-    std::lock_guard lk(m_data_lock);
-    m_loaded = true;
-    m_data = std::move(potential_data);
+    ERROR_LOG_FMT(VIDEO,
+                  "Game texture can't be validated for asset '{}' because it is not loaded yet.",
+                  GetAssetId());
+    return false;
   }
-  return loaded_info;
+
+  if (m_data->m_texture.m_slices.empty())
+  {
+    ERROR_LOG_FMT(VIDEO,
+                  "Game texture can't be validated for asset '{}' because no data was available.",
+                  GetAssetId());
+    return false;
+  }
+
+  if (m_data->m_texture.m_slices.size() > 1)
+  {
+    ERROR_LOG_FMT(
+        VIDEO,
+        "Game texture can't be validated for asset '{}' because it has more slices than expected.",
+        GetAssetId());
+    return false;
+  }
+
+  const auto& slice = m_data->m_texture.m_slices[0];
+  if (slice.m_levels.empty())
+  {
+    ERROR_LOG_FMT(
+        VIDEO,
+        "Game texture can't be validated for asset '{}' because first slice has no data available.",
+        GetAssetId());
+    return false;
+  }
+
+  // Verify that the aspect ratio of the texture hasn't changed, as this could have
+  // side-effects.
+  const VideoCommon::CustomTextureData::ArraySlice::Level& first_mip = slice.m_levels[0];
+  if (first_mip.width * native_height != first_mip.height * native_width)
+  {
+    // Note: this feels like this should return an error but
+    // for legacy reasons this is only a notice that something *could*
+    // go wrong
+    WARN_LOG_FMT(
+        VIDEO,
+        "Invalid custom texture size {}x{} for game texture asset '{}'. The aspect differs "
+        "from the native size {}x{}.",
+        first_mip.width, first_mip.height, GetAssetId(), native_width, native_height);
+  }
+
+  // Same deal if the custom texture isn't a multiple of the native size.
+  if (native_width != 0 && native_height != 0 &&
+      (first_mip.width % native_width || first_mip.height % native_height))
+  {
+    // Note: this feels like this should return an error but
+    // for legacy reasons this is only a notice that something *could*
+    // go wrong
+    WARN_LOG_FMT(
+        VIDEO,
+        "Invalid custom texture size {}x{} for game texture asset '{}'. Please use an integer "
+        "upscaling factor based on the native size {}x{}.",
+        first_mip.width, first_mip.height, GetAssetId(), native_width, native_height);
+  }
+
+  return true;
 }
 }  // namespace VideoCommon

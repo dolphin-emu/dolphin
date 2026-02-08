@@ -4,7 +4,6 @@
 #include "VideoCommon/VideoConfig.h"
 
 #include <algorithm>
-#include <optional>
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
@@ -20,7 +19,6 @@
 
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPFunctions.h"
-#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/FramebufferManager.h"
@@ -31,14 +29,11 @@
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexManagerBase.h"
-#include "VideoCommon/XFMemory.h"
 
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
 BackendInfo g_backend_info;
-static std::optional<CPUThreadConfigCallback::ConfigChangedCallbackID>
-    s_config_changed_callback_id = std::nullopt;
-static Common::EventHook s_check_config_event;
+static bool s_has_registered_callback = false;
 
 static bool IsVSyncActive(bool enabled)
 {
@@ -55,29 +50,27 @@ void UpdateActiveConfig()
 
 void VideoConfig::Refresh()
 {
-  if (!s_config_changed_callback_id.has_value())
+  if (!s_has_registered_callback)
   {
     // There was a race condition between the video thread and the host thread here, if
     // corrections need to be made by VerifyValidity(). Briefly, the config will contain
     // invalid values. Instead, pause the video thread first, update the config and correct
     // it, then resume emulation, after which the video thread will detect the config has
     // changed and act accordingly.
-    const auto config_changed_callback = [] {
+    CPUThreadConfigCallback::AddConfigChangedCallback([]() {
       auto& system = Core::System::GetInstance();
 
       const bool lock_gpu_thread = Core::IsRunning(system);
       if (lock_gpu_thread)
-        system.GetFifo().PauseAndLock();
+        system.GetFifo().PauseAndLock(true, false);
 
       g_Config.Refresh();
       g_Config.VerifyValidity();
 
       if (lock_gpu_thread)
-        system.GetFifo().RestoreState(true);
-    };
-
-    s_config_changed_callback_id =
-        CPUThreadConfigCallback::AddConfigChangedCallback(config_changed_callback);
+        system.GetFifo().PauseAndLock(false, true);
+    });
+    s_has_registered_callback = true;
   }
 
   bVSync = Config::Get(Config::GFX_VSYNC);
@@ -162,12 +155,12 @@ void VideoConfig::Refresh()
 
   stereo_mode = Config::Get(Config::GFX_STEREO_MODE);
   stereo_per_eye_resolution_full = Config::Get(Config::GFX_STEREO_PER_EYE_RESOLUTION_FULL);
-  stereo_depth = Config::Get(Config::GFX_STEREO_DEPTH) *
-                 Config::Get(Config::GFX_STEREO_DEPTH_PERCENTAGE) * 0.00001f;
-  stereo_convergence = Config::Get(Config::GFX_STEREO_CONVERGENCE) *
-                       Config::Get(Config::GFX_STEREO_CONVERGENCE_PERCENTAGE) * 0.01f;
+  iStereoDepth = Config::Get(Config::GFX_STEREO_DEPTH);
+  iStereoConvergencePercentage = Config::Get(Config::GFX_STEREO_CONVERGENCE_PERCENTAGE);
   bStereoSwapEyes = Config::Get(Config::GFX_STEREO_SWAP_EYES);
+  iStereoConvergence = Config::Get(Config::GFX_STEREO_CONVERGENCE);
   bStereoEFBMonoDepth = Config::Get(Config::GFX_STEREO_EFB_MONO_DEPTH);
+  iStereoDepthPercentage = Config::Get(Config::GFX_STEREO_DEPTH_PERCENTAGE);
 
   bEFBAccessEnable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
   bEFBAccessDeferInvalidation = Config::Get(Config::GFX_HACK_EFB_DEFER_INVALIDATION);
@@ -217,23 +210,6 @@ void VideoConfig::VerifyValidity()
       stereo_mode = StereoMode::Off;
     }
   }
-}
-
-void VideoConfig::Init()
-{
-  s_check_config_event =
-      GetVideoEvents().after_frame_event.Register([](Core::System&) { CheckForConfigChanges(); });
-}
-
-void VideoConfig::Shutdown()
-{
-  s_check_config_event.reset();
-
-  if (!s_config_changed_callback_id.has_value())
-    return;
-
-  CPUThreadConfigCallback::RemoveConfigChangedCallback(*s_config_changed_callback_id);
-  s_config_changed_callback_id.reset();
 }
 
 bool VideoConfig::UsingUberShaders() const
@@ -305,9 +281,10 @@ void CheckForConfigChanges()
   const auto old_hdr = g_ActiveConfig.bHDR;
 
   UpdateActiveConfig();
+  FreeLook::UpdateActiveConfig();
   g_vertex_manager->OnConfigChange();
 
-  g_freelook_camera.RefreshConfig();
+  g_freelook_camera.SetControlType(FreeLook::GetActiveConfig().camera_config.control_type);
 
   if (g_ActiveConfig.bGraphicMods && !old_graphics_mods_enabled)
   {
@@ -368,7 +345,7 @@ void CheckForConfigChanges()
   if (changed_bits & (CONFIG_CHANGE_BIT_MULTISAMPLES | CONFIG_CHANGE_BIT_STEREO_MODE |
                       CONFIG_CHANGE_BIT_TARGET_SIZE | CONFIG_CHANGE_BIT_HDR))
   {
-    g_framebuffer_manager->RecreateEFBFramebuffer(g_ActiveConfig.iEFBScale);
+    g_framebuffer_manager->RecreateEFBFramebuffer();
   }
 
   if (old_scale != g_framebuffer_manager->GetEFBScale())
@@ -393,12 +370,14 @@ void CheckForConfigChanges()
   // Viewport and scissor rect have to be reset since they will be scaled differently.
   if (changed_bits & CONFIG_CHANGE_BIT_TARGET_SIZE)
   {
-    BPFunctions::SetScissorAndViewport(g_framebuffer_manager.get(), bpmem.scissorTL,
-                                       bpmem.scissorBR, bpmem.scissorOffset, xfmem.viewport);
+    BPFunctions::SetScissorAndViewport();
   }
 
   // Notify all listeners
-  GetVideoEvents().config_changed_event.Trigger(changed_bits);
+  ConfigChangedEvent::Trigger(changed_bits);
 
   // TODO: Move everything else to the ConfigChanged event
 }
+
+static Common::EventHook s_check_config_event = AfterFrameEvent::Register(
+    [](Core::System&) { CheckForConfigChanges(); }, "CheckForConfigChanges");

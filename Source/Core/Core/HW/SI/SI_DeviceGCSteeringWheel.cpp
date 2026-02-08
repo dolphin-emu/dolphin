@@ -4,9 +4,12 @@
 #include "Core/HW/SI/SI_DeviceGCSteeringWheel.h"
 
 #include <algorithm>
+#include <cmath>
+#include <cstring>
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/Swap.h"
 #include "Core/HW/GCPad.h"
 
 namespace SerialInterface
@@ -31,18 +34,20 @@ int CSIDevice_GCSteeringWheel::RunBuffer(u8* buffer, int request_length)
   case EBufferCommands::CMD_STATUS:
   case EBufferCommands::CMD_RESET:
   {
-    return CreateStatusResponse(SI_GC_STEERING, buffer);
+    u32 id = Common::swap32(SI_GC_STEERING);
+    std::memcpy(buffer, &id, sizeof(id));
+    return sizeof(id);
   }
   default:
     return CSIDevice_GCController::RunBuffer(buffer, request_length);
   }
 }
 
-DataResponse CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
+bool CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
 {
   if (m_mode == 6)
   {
-    const GCPadStatus pad_status = GetPadStatus();
+    GCPadStatus pad_status = GetPadStatus();
 
     hi = (u32)((u8)pad_status.stickX);  // Steering
     hi |= 0x800;                        // Pedal connected flag
@@ -74,7 +79,7 @@ DataResponse CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
                                      GCPadStatus::MAIN_STICK_CENTER_Y - pad_status.stickY);
 
     // We must double these values because we are mapping half of a stick range to a 0..255 value.
-    // We're only getting half the precision we could potentially have,
+    // We're only getting half the precison we could potentially have,
     // but we'll have to redesign our GameCube controller input to fix that.
 
     // All 8 bits (Accelerate)
@@ -90,7 +95,7 @@ DataResponse CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
     return CSIDevice_GCController::GetData(hi, low);
   }
 
-  return DataResponse::Success;
+  return true;
 }
 
 void CSIDevice_GCSteeringWheel::SendCommand(u32 command, u8 poll)

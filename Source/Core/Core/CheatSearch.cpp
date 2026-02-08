@@ -4,7 +4,6 @@
 #include "Core/CheatSearch.h"
 
 #include <bit>
-#include <expected>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -101,32 +100,124 @@ std::vector<u8> Cheats::GetValueAsByteVector(const Cheats::SearchValue& value)
   }
 }
 
+namespace
+{
 template <typename T>
 static std::optional<PowerPC::ReadResult<T>>
 TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space);
+
+template <>
+std::optional<PowerPC::ReadResult<u8>>
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
                                PowerPC::RequestedAddressSpace space)
 {
-  return PowerPC::MMU::HostTryRead<T>(guard, addr, space);
+  return PowerPC::MMU::HostTryReadU8(guard, addr, space);
 }
 
+template <>
+std::optional<PowerPC::ReadResult<u16>>
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space)
+{
+  return PowerPC::MMU::HostTryReadU16(guard, addr, space);
+}
+
+template <>
+std::optional<PowerPC::ReadResult<u32>>
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space)
+{
+  return PowerPC::MMU::HostTryReadU32(guard, addr, space);
+}
+
+template <>
+std::optional<PowerPC::ReadResult<u64>>
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space)
+{
+  return PowerPC::MMU::HostTryReadU64(guard, addr, space);
+}
+
+template <>
+std::optional<PowerPC::ReadResult<s8>>
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space)
+{
+  auto tmp = PowerPC::MMU::HostTryReadU8(guard, addr, space);
+  if (!tmp)
+    return std::nullopt;
+  return PowerPC::ReadResult<s8>(tmp->translated, std::bit_cast<s8>(tmp->value));
+}
+
+template <>
+std::optional<PowerPC::ReadResult<s16>>
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space)
+{
+  auto tmp = PowerPC::MMU::HostTryReadU16(guard, addr, space);
+  if (!tmp)
+    return std::nullopt;
+  return PowerPC::ReadResult<s16>(tmp->translated, std::bit_cast<s16>(tmp->value));
+}
+
+template <>
+std::optional<PowerPC::ReadResult<s32>>
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space)
+{
+  auto tmp = PowerPC::MMU::HostTryReadU32(guard, addr, space);
+  if (!tmp)
+    return std::nullopt;
+  return PowerPC::ReadResult<s32>(tmp->translated, std::bit_cast<s32>(tmp->value));
+}
+
+template <>
+std::optional<PowerPC::ReadResult<s64>>
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space)
+{
+  auto tmp = PowerPC::MMU::HostTryReadU64(guard, addr, space);
+  if (!tmp)
+    return std::nullopt;
+  return PowerPC::ReadResult<s64>(tmp->translated, std::bit_cast<s64>(tmp->value));
+}
+
+template <>
+std::optional<PowerPC::ReadResult<float>>
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space)
+{
+  return PowerPC::MMU::HostTryReadF32(guard, addr, space);
+}
+
+template <>
+std::optional<PowerPC::ReadResult<double>>
+TryReadValueFromEmulatedMemory(const Core::CPUThreadGuard& guard, u32 addr,
+                               PowerPC::RequestedAddressSpace space)
+{
+  return PowerPC::MMU::HostTryReadF64(guard, addr, space);
+}
+}  // namespace
+
 template <typename T>
-auto Cheats::NewSearch(const Core::CPUThreadGuard& guard,
-                       const std::vector<Cheats::MemoryRange>& memory_ranges,
-                       PowerPC::RequestedAddressSpace address_space, bool aligned,
-                       const std::function<bool(const T& value)>& validator)
-    -> std::expected<std::vector<SearchResult<T>>, SearchErrorCode>
+Common::Result<Cheats::SearchErrorCode, std::vector<Cheats::SearchResult<T>>>
+Cheats::NewSearch(const Core::CPUThreadGuard& guard,
+                  const std::vector<Cheats::MemoryRange>& memory_ranges,
+                  PowerPC::RequestedAddressSpace address_space, bool aligned,
+                  const std::function<bool(const T& value)>& validator)
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
-    return std::unexpected{Cheats::SearchErrorCode::DisabledInHardcoreMode};
+    return Cheats::SearchErrorCode::DisabledInHardcoreMode;
   auto& system = guard.GetSystem();
   std::vector<Cheats::SearchResult<T>> results;
   const Core::State core_state = Core::GetState(system);
   if (core_state != Core::State::Running && core_state != Core::State::Paused)
-    return std::unexpected{Cheats::SearchErrorCode::NoEmulationActive};
+    return Cheats::SearchErrorCode::NoEmulationActive;
 
   const auto& ppc_state = system.GetPPCState();
   if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
-    return std::unexpected{Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible};
+    return Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
 
   for (const Cheats::MemoryRange& range : memory_ranges)
   {
@@ -163,23 +254,23 @@ auto Cheats::NewSearch(const Core::CPUThreadGuard& guard,
 }
 
 template <typename T>
-auto Cheats::NextSearch(
-    const Core::CPUThreadGuard& guard, const std::vector<Cheats::SearchResult<T>>& previous_results,
-    PowerPC::RequestedAddressSpace address_space,
-    const std::function<bool(const T& new_value, const T& old_value)>& validator)
-    -> std::expected<std::vector<SearchResult<T>>, SearchErrorCode>
+Common::Result<Cheats::SearchErrorCode, std::vector<Cheats::SearchResult<T>>>
+Cheats::NextSearch(const Core::CPUThreadGuard& guard,
+                   const std::vector<Cheats::SearchResult<T>>& previous_results,
+                   PowerPC::RequestedAddressSpace address_space,
+                   const std::function<bool(const T& new_value, const T& old_value)>& validator)
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
-    return std::unexpected{Cheats::SearchErrorCode::DisabledInHardcoreMode};
+    return Cheats::SearchErrorCode::DisabledInHardcoreMode;
   auto& system = guard.GetSystem();
   std::vector<Cheats::SearchResult<T>> results;
   const Core::State core_state = Core::GetState(system);
   if (core_state != Core::State::Running && core_state != Core::State::Paused)
-    return std::unexpected{Cheats::SearchErrorCode::NoEmulationActive};
+    return Cheats::SearchErrorCode::NoEmulationActive;
 
   const auto& ppc_state = system.GetPPCState();
   if (address_space == PowerPC::RequestedAddressSpace::Virtual && !ppc_state.msr.DR)
-    return std::unexpected{Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible};
+    return Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
 
   for (const auto& previous_result : previous_results)
   {
@@ -336,8 +427,8 @@ Cheats::SearchErrorCode Cheats::CheatSearchSession<T>::RunSearch(const Core::CPU
 {
   if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return Cheats::SearchErrorCode::DisabledInHardcoreMode;
-  std::expected<std::vector<SearchResult<T>>, SearchErrorCode> result =
-      std::unexpected{Cheats::SearchErrorCode::InvalidParameters};
+  Common::Result<SearchErrorCode, std::vector<SearchResult<T>>> result =
+      Cheats::SearchErrorCode::InvalidParameters;
   if (m_filter_type == FilterType::CompareAgainstSpecificValue)
   {
     if (!m_value)
@@ -377,14 +468,14 @@ Cheats::SearchErrorCode Cheats::CheatSearchSession<T>::RunSearch(const Core::CPU
     }
   }
 
-  if (result.has_value())
+  if (result.Succeeded())
   {
     m_search_results = std::move(*result);
     m_first_search_done = true;
     return Cheats::SearchErrorCode::Success;
   }
 
-  return result.error();
+  return result.Error();
 }
 
 template <typename T>
@@ -504,23 +595,6 @@ template <typename T>
 bool Cheats::CheatSearchSession<T>::WasFirstSearchDone() const
 {
   return m_first_search_done;
-}
-
-template <typename T>
-bool Cheats::CheatSearchSession<T>::WriteValue(const Core::CPUThreadGuard& guard,
-                                               std::span<u32> addresses) const
-{
-  if (!m_value)
-    return false;
-
-  T value = m_value.value();
-  bool result = true;
-  for (auto address : addresses)
-  {
-    if (!PowerPC::MMU::HostTryWrite<T>(guard, value, address, m_address_space).has_value())
-      result = false;
-  }
-  return result;
 }
 
 template <typename T>

@@ -8,27 +8,40 @@
 
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
-#include <jni.h>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
-#include "jni/AndroidCommon/IDCache.h"
 
-void OpenSLESStream::BQPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void* context)
-{
-  reinterpret_cast<OpenSLESStream*>(context)->PushSamples(bq);
-}
+// engine interfaces
+static SLObjectItf engineObject;
+static SLEngineItf engineEngine;
+static SLObjectItf outputMixObject;
 
-void OpenSLESStream::PushSamples(SLAndroidSimpleBufferQueueItf bq)
+// buffer queue player interfaces
+static SLObjectItf bqPlayerObject = nullptr;
+static SLPlayItf bqPlayerPlay;
+static SLAndroidSimpleBufferQueueItf bqPlayerBufferQueue;
+static SLVolumeItf bqPlayerVolume;
+static Mixer* g_mixer;
+#define BUFFER_SIZE 512
+#define BUFFER_SIZE_IN_SAMPLES (BUFFER_SIZE / 2)
+
+// Double buffering.
+static short buffer[2][BUFFER_SIZE];
+static int curBuffer = 0;
+
+static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void* context)
 {
-  ASSERT(bq == m_bq_player_buffer_queue);
+  ASSERT(bq == bqPlayerBufferQueue);
+  ASSERT(nullptr == context);
 
   // Render to the fresh buffer
-  m_mixer->Mix(m_buffer[m_current_buffer].data(), m_frames_per_buffer);
-  SLresult result = (*bq)->Enqueue(bq, m_buffer[m_current_buffer].data(), m_bytes_per_buffer);
-  m_current_buffer ^= 1;  // Switch buffer
+  g_mixer->Mix(reinterpret_cast<short*>(buffer[curBuffer]), BUFFER_SIZE_IN_SAMPLES);
+  SLresult result =
+      (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, buffer[curBuffer], sizeof(buffer[0]));
+  curBuffer ^= 1;  // Switch buffer
 
   // Comment from sample code:
   // the most likely other result is SL_RESULT_BUFFER_INSUFFICIENT,
@@ -38,78 +51,61 @@ void OpenSLESStream::PushSamples(SLAndroidSimpleBufferQueueItf bq)
 
 bool OpenSLESStream::Init()
 {
-  JNIEnv* env = IDCache::GetEnvForThread();
-  jclass audio_utils = IDCache::GetAudioUtilsClass();
-  const SLuint32 sample_rate =
-      env->CallStaticIntMethod(audio_utils, IDCache::GetAudioUtilsGetSampleRate());
-  m_frames_per_buffer =
-      env->CallStaticIntMethod(audio_utils, IDCache::GetAudioUtilsGetFramesPerBuffer());
-
-  INFO_LOG_FMT(AUDIO, "OpenSLES configuration: {} Hz, {} frames per buffer", sample_rate,
-               m_frames_per_buffer);
-
-  constexpr SLuint32 channels = 2;
-  const SLuint32 samples_per_buffer = m_frames_per_buffer * channels;
-  m_bytes_per_buffer = m_frames_per_buffer * channels * sizeof(m_buffer[0][0]);
-
-  for (std::vector<short>& buffer : m_buffer)
-    buffer.resize(samples_per_buffer);
-
   SLresult result;
   // create engine
-  result = slCreateEngine(&m_engine_object, 0, nullptr, 0, nullptr, nullptr);
+  result = slCreateEngine(&engineObject, 0, nullptr, 0, nullptr, nullptr);
   ASSERT(SL_RESULT_SUCCESS == result);
-  result = (*m_engine_object)->Realize(m_engine_object, SL_BOOLEAN_FALSE);
+  result = (*engineObject)->Realize(engineObject, SL_BOOLEAN_FALSE);
   ASSERT(SL_RESULT_SUCCESS == result);
-  result = (*m_engine_object)->GetInterface(m_engine_object, SL_IID_ENGINE, &m_engine_engine);
+  result = (*engineObject)->GetInterface(engineObject, SL_IID_ENGINE, &engineEngine);
   ASSERT(SL_RESULT_SUCCESS == result);
-  result = (*m_engine_engine)->CreateOutputMix(m_engine_engine, &m_output_mix_object, 0, 0, 0);
+  result = (*engineEngine)->CreateOutputMix(engineEngine, &outputMixObject, 0, 0, 0);
   ASSERT(SL_RESULT_SUCCESS == result);
-  result = (*m_output_mix_object)->Realize(m_output_mix_object, SL_BOOLEAN_FALSE);
+  result = (*outputMixObject)->Realize(outputMixObject, SL_BOOLEAN_FALSE);
   ASSERT(SL_RESULT_SUCCESS == result);
 
   SLDataLocator_AndroidSimpleBufferQueue loc_bufq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
-  SLDataFormat_PCM format_pcm = {
-      SL_DATAFORMAT_PCM,           channels,
-      sample_rate * 1000,          SL_PCMSAMPLEFORMAT_FIXED_16,
-      SL_PCMSAMPLEFORMAT_FIXED_16, SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
-      SL_BYTEORDER_LITTLEENDIAN};
+  SLDataFormat_PCM format_pcm = {SL_DATAFORMAT_PCM,
+                                 2,
+                                 m_mixer->GetSampleRate() * 1000,
+                                 SL_PCMSAMPLEFORMAT_FIXED_16,
+                                 SL_PCMSAMPLEFORMAT_FIXED_16,
+                                 SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
+                                 SL_BYTEORDER_LITTLEENDIAN};
 
   SLDataSource audioSrc = {&loc_bufq, &format_pcm};
 
   // configure audio sink
-  SLDataLocator_OutputMix loc_outmix = {SL_DATALOCATOR_OUTPUTMIX, m_output_mix_object};
+  SLDataLocator_OutputMix loc_outmix = {SL_DATALOCATOR_OUTPUTMIX, outputMixObject};
   SLDataSink audioSnk = {&loc_outmix, nullptr};
 
   // create audio player
   const SLInterfaceID ids[2] = {SL_IID_BUFFERQUEUE, SL_IID_VOLUME};
   const SLboolean req[2] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
-  result = (*m_engine_engine)
-               ->CreateAudioPlayer(m_engine_engine, &m_bq_player_object, &audioSrc, &audioSnk, 2,
-                                   ids, req);
+  result =
+      (*engineEngine)
+          ->CreateAudioPlayer(engineEngine, &bqPlayerObject, &audioSrc, &audioSnk, 2, ids, req);
   ASSERT(SL_RESULT_SUCCESS == result);
 
-  result = (*m_bq_player_object)->Realize(m_bq_player_object, SL_BOOLEAN_FALSE);
+  result = (*bqPlayerObject)->Realize(bqPlayerObject, SL_BOOLEAN_FALSE);
   ASSERT(SL_RESULT_SUCCESS == result);
-  result = (*m_bq_player_object)->GetInterface(m_bq_player_object, SL_IID_PLAY, &m_bq_player_play);
-  ASSERT(SL_RESULT_SUCCESS == result);
-  result = (*m_bq_player_object)
-               ->GetInterface(m_bq_player_object, SL_IID_BUFFERQUEUE, &m_bq_player_buffer_queue);
+  result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_PLAY, &bqPlayerPlay);
   ASSERT(SL_RESULT_SUCCESS == result);
   result =
-      (*m_bq_player_object)->GetInterface(m_bq_player_object, SL_IID_VOLUME, &m_bq_player_volume);
+      (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_BUFFERQUEUE, &bqPlayerBufferQueue);
   ASSERT(SL_RESULT_SUCCESS == result);
-  result = (*m_bq_player_buffer_queue)
-               ->RegisterCallback(m_bq_player_buffer_queue, BQPlayerCallback, this);
+  result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_VOLUME, &bqPlayerVolume);
   ASSERT(SL_RESULT_SUCCESS == result);
-  result = (*m_bq_player_play)->SetPlayState(m_bq_player_play, SL_PLAYSTATE_PLAYING);
+  result = (*bqPlayerBufferQueue)->RegisterCallback(bqPlayerBufferQueue, bqPlayerCallback, nullptr);
+  ASSERT(SL_RESULT_SUCCESS == result);
+  result = (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
   ASSERT(SL_RESULT_SUCCESS == result);
 
   // Render and enqueue a first buffer.
-  m_current_buffer ^= 1;
+  curBuffer ^= 1;
+  g_mixer = m_mixer.get();
 
-  result = (*m_bq_player_buffer_queue)
-               ->Enqueue(m_bq_player_buffer_queue, m_buffer[0].data(), m_bytes_per_buffer);
+  result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, buffer[0], sizeof(buffer[0]));
   if (SL_RESULT_SUCCESS != result)
     return false;
 
@@ -118,39 +114,39 @@ bool OpenSLESStream::Init()
 
 OpenSLESStream::~OpenSLESStream()
 {
-  if (m_bq_player_object != nullptr)
+  if (bqPlayerObject != nullptr)
   {
-    (*m_bq_player_object)->Destroy(m_bq_player_object);
-    m_bq_player_object = nullptr;
-    m_bq_player_play = nullptr;
-    m_bq_player_buffer_queue = nullptr;
-    m_bq_player_volume = nullptr;
+    (*bqPlayerObject)->Destroy(bqPlayerObject);
+    bqPlayerObject = nullptr;
+    bqPlayerPlay = nullptr;
+    bqPlayerBufferQueue = nullptr;
+    bqPlayerVolume = nullptr;
   }
 
-  if (m_output_mix_object != nullptr)
+  if (outputMixObject != nullptr)
   {
-    (*m_output_mix_object)->Destroy(m_output_mix_object);
-    m_output_mix_object = nullptr;
+    (*outputMixObject)->Destroy(outputMixObject);
+    outputMixObject = nullptr;
   }
 
-  if (m_engine_object != nullptr)
+  if (engineObject != nullptr)
   {
-    (*m_engine_object)->Destroy(m_engine_object);
-    m_engine_object = nullptr;
-    m_engine_engine = nullptr;
+    (*engineObject)->Destroy(engineObject);
+    engineObject = nullptr;
+    engineEngine = nullptr;
   }
 }
 
 bool OpenSLESStream::SetRunning(bool running)
 {
   SLuint32 new_state = running ? SL_PLAYSTATE_PLAYING : SL_PLAYSTATE_PAUSED;
-  return (*m_bq_player_play)->SetPlayState(m_bq_player_play, new_state) == SL_RESULT_SUCCESS;
+  return (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, new_state) == SL_RESULT_SUCCESS;
 }
 
 void OpenSLESStream::SetVolume(int volume)
 {
   const SLmillibel attenuation =
       volume <= 0 ? SL_MILLIBEL_MIN : static_cast<SLmillibel>(2000 * std::log10(volume / 100.0f));
-  (*m_bq_player_volume)->SetVolumeLevel(m_bq_player_volume, attenuation);
+  (*bqPlayerVolume)->SetVolumeLevel(bqPlayerVolume, attenuation);
 }
 #endif  // HAVE_OPENSL_ES

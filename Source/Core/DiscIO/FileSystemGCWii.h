@@ -3,8 +3,10 @@
 
 #pragma once
 
+#include <cstddef>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -17,7 +19,7 @@ namespace DiscIO
 class VolumeDisc;
 struct Partition;
 
-class FileInfoGCWii final : public FileInfo
+class FileInfoGCWii : public FileInfo
 {
 public:
   // None of the constructors take ownership of FST pointers
@@ -82,7 +84,7 @@ private:
   u32 m_total_file_infos;
 };
 
-class FileSystemGCWii final : public FileSystem
+class FileSystemGCWii : public FileSystem
 {
 public:
   FileSystemGCWii(const VolumeDisc* volume, const Partition& partition);

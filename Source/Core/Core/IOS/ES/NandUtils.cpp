@@ -5,6 +5,8 @@
 
 #include <algorithm>
 #include <array>
+#include <cctype>
+#include <functional>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -15,6 +17,7 @@
 #include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileSystemProxy.h"
@@ -195,7 +198,7 @@ ESCore::GetStoredContentsFromTMD(const ES::TMDReader& tmd,
 
                  // Check whether the content file exists.
                  const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, path, FS::Mode::Read);
-                 if (!file.has_value())
+                 if (!file.Succeeded())
                    return false;
 
                  // If content hash checks are disabled, all we have to do is check for existence.
@@ -234,7 +237,7 @@ static bool DeleteDirectoriesIfEmpty(FS::FileSystem* fs, const std::string& path
   {
     const auto directory = fs->ReadDirectory(PID_KERNEL, PID_KERNEL, path.substr(0, position));
     if ((directory && directory->empty()) ||
-        (!directory && directory.error() != FS::ResultCode::NotFound))
+        (!directory && directory.Error() != FS::ResultCode::NotFound))
     {
       if (fs->Delete(PID_KERNEL, PID_KERNEL, path.substr(0, position)) != FS::ResultCode::Success)
         return false;
@@ -265,7 +268,7 @@ bool ESCore::CreateTitleDirectories(u64 title_id, u16 group_id) const
 
   const std::string data_dir = Common::GetTitleDataPath(title_id);
   const auto data_dir_contents = fs->ReadDirectory(PID_KERNEL, PID_KERNEL, data_dir);
-  if (!data_dir_contents && (data_dir_contents.error() != FS::ResultCode::NotFound ||
+  if (!data_dir_contents && (data_dir_contents.Error() != FS::ResultCode::NotFound ||
                              fs->CreateDirectory(PID_KERNEL, PID_KERNEL, data_dir, 0,
                                                  data_dir_modes) != FS::ResultCode::Success))
   {

@@ -4,6 +4,8 @@
 #include "DiscIO/VolumeWad.h"
 
 #include <algorithm>
+#include <cstddef>
+#include <cstring>
 #include <map>
 #include <memory>
 #include <optional>
@@ -17,6 +19,7 @@
 #include "Common/Crypto/AES.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Core/IOS/IOSC.h"
 #include "DiscIO/Blob.h"

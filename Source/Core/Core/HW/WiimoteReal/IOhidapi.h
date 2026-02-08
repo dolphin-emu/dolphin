@@ -13,7 +13,7 @@ namespace WiimoteReal
 class WiimoteHidapi final : public Wiimote
 {
 public:
-  explicit WiimoteHidapi(std::string device_path);
+  explicit WiimoteHidapi(const std::string& device_path);
   ~WiimoteHidapi() override;
   std::string GetId() const override { return m_device_path; }
 
@@ -26,7 +26,7 @@ protected:
   int IOWrite(const u8* buf, size_t len) override;
 
 private:
-  const std::string m_device_path;
+  std::string m_device_path;
   hid_device* m_handle = nullptr;
 };
 
@@ -34,11 +34,9 @@ class WiimoteScannerHidapi final : public WiimoteScannerBackend
 {
 public:
   WiimoteScannerHidapi();
-  ~WiimoteScannerHidapi() override;
+  ~WiimoteScannerHidapi();
   bool IsReady() const override;
-
-  FindResults FindAttachedWiimotes() override;
-
+  void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
   void Update() override {}                // not needed for hidapi
   void RequestStopSearching() override {}  // not needed for hidapi
 };

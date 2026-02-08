@@ -4,14 +4,16 @@
 #pragma once
 
 #include <atomic>
-#include <expected>
 #include <functional>
 #include <memory>
 #include <thread>
 #include <utility>
+#include <variant>
+#include <vector>
 
 #include "Common/Assert.h"
 #include "Common/Event.h"
+#include "Common/Result.h"
 
 namespace DiscIO
 {
@@ -25,7 +27,7 @@ enum class ConversionResultCode
 };
 
 template <typename T>
-using ConversionResult = std::expected<T, ConversionResultCode>;
+using ConversionResult = Common::Result<ConversionResultCode, T>;
 
 // This class starts a number of compression threads and one output thread.
 // The set_up_compress_thread_state function is called at the start of each compression thread.
@@ -165,7 +167,7 @@ private:
       }
       else
       {
-        SetError(result.error());
+        SetError(result.Error());
       }
 
       state->compress_done_event.Set();

@@ -7,7 +7,6 @@
         <dict>
             <key>CFBundleTypeExtensions</key>
             <array>
-                <string>bin</string>
                 <string>ciso</string>
                 <string>dol</string>
                 <string>elf</string>
@@ -49,8 +48,6 @@
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>CSResourcesFileMapped</key>
-    <true/>
-    <key>UIDesignRequiresCompatibility</key>
     <true/>
 </dict>
 </plist>

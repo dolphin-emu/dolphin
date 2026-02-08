@@ -9,8 +9,6 @@
 #include <string_view>
 #include <vector>
 
-#include "Common/BitSet.h"
-
 struct expr;
 struct expr_var_list;
 
@@ -43,18 +41,6 @@ public:
 
   std::string GetText() const;
 
-  BitSet32 GetGPRsUsed()
-  {
-    ComputeRegistersUsed();
-    return m_gprs_used;
-  }
-
-  BitSet32 GetFPRsUsed()
-  {
-    ComputeRegistersUsed();
-    return m_fprs_used;
-  }
-
 private:
   enum class SynchronizeDirection
   {
@@ -83,16 +69,10 @@ private:
   void SynchronizeBindings(Core::System& system, SynchronizeDirection dir) const;
   void Reporting(const double result) const;
 
-  void ComputeRegistersUsed();
-
   std::string m_text;
   ExprPointer m_expr;
   ExprVarListPointer m_vars;
   std::vector<VarBinding> m_binds;
-
-  BitSet32 m_gprs_used;
-  BitSet32 m_fprs_used;
-  bool m_has_computed_registers_used = false;
 };
 
 inline bool EvaluateCondition(Core::System& system, const std::optional<Expression>& condition)

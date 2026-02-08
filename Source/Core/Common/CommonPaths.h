@@ -70,6 +70,7 @@
 #define DUMP_DEBUG_BRANCHWATCH_DIR "BranchWatch"
 #define DUMP_DEBUG_JITBLOCKS_DIR "JitBlocks"
 #define LOGS_DIR "Logs"
+#define MAIL_LOGS_DIR "Mail"
 #define SHADERS_DIR "Shaders"
 #define WII_SYSCONF_DIR "shared2" DIR_SEP "sys"
 #define WII_WC24CONF_DIR "shared2" DIR_SEP "wc24"
@@ -86,10 +87,8 @@
 #define RESOURCEPACK_DIR "ResourcePacks"
 #define DYNAMICINPUT_DIR "DynamicInputTextures"
 #define GRAPHICSMOD_DIR "GraphicMods"
-#define FIRMWARE_DIR "Firmware"
 #define WIISDSYNC_DIR "WiiSDSync"
 #define ASSEMBLY_DIR "SavedAssembly"
-#define WIIBANNERS_DIR "WiiBanners"
 
 // This one is only used to remove it if it was present
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"

@@ -18,8 +18,8 @@
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModAsset.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionFactory.h"
+#include "VideoCommon/TextureInfo.h"
 #include "VideoCommon/VideoConfig.h"
-#include "VideoCommon/VideoEvents.h"
 
 std::unique_ptr<GraphicsModManager> g_graphics_mod_manager;
 
@@ -96,7 +96,7 @@ bool GraphicsModManager::Initialize()
     g_graphics_mod_manager->Load(*g_ActiveConfig.graphics_mod_config);
 
     m_end_of_frame_event =
-        GetVideoEvents().after_frame_event.Register([this](Core::System&) { EndOfFrame(); });
+        AfterFrameEvent::Register([this](Core::System&) { EndOfFrame(); }, "ModManager");
   }
 
   return true;
@@ -197,13 +197,14 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
   {
     for (const GraphicsTargetGroupConfig& group : mod.m_groups)
     {
-      if (const bool inserted = m_groups.insert(group.m_name).second; !inserted)
+      if (m_groups.contains(group.m_name))
       {
         WARN_LOG_FMT(
             VIDEO,
             "Specified graphics mod group '{}' for mod '{}' is already specified by another mod.",
             group.m_name, mod.m_title);
       }
+      m_groups.insert(group.m_name);
 
       const auto internal_group = fmt::format("{}.{}", mod.m_title, group.m_name);
       for (const GraphicsTargetConfig& target : group.m_targets)

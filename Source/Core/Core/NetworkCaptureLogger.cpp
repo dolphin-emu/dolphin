@@ -4,7 +4,9 @@
 #include "Core/NetworkCaptureLogger.h"
 
 #include <array>
+#include <cerrno>
 #include <cstring>
+#include <iterator>
 
 #include <fmt/chrono.h>
 #include <fmt/format.h>
@@ -14,7 +16,6 @@
 #include "Common/Network.h"
 #include "Common/PcapFile.h"
 #include "Common/ScopeGuard.h"
-#include "Common/TimeUtil.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 
@@ -81,7 +82,7 @@ PCAPSSLCaptureLogger::PCAPSSLCaptureLogger()
 {
   const std::string filepath =
       fmt::format("{}{} {:%Y-%m-%d %Hh%Mm%Ss}.pcap", File::GetUserPath(D_DUMPSSL_IDX),
-                  SConfig::GetInstance().GetGameID(), *Common::LocalTime(std::time(nullptr)));
+                  SConfig::GetInstance().GetGameID(), fmt::localtime(std::time(nullptr)));
   m_file = std::make_unique<Common::PCAP>(
       new File::IOFile(filepath, "wb", File::SharedAccess::Read), Common::PCAP::LinkType::Ethernet);
 }

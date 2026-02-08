@@ -29,7 +29,7 @@ class NetPlayBrowser : public QDialog
   Q_OBJECT
 public:
   explicit NetPlayBrowser(QWidget* parent = nullptr);
-  ~NetPlayBrowser() override;
+  ~NetPlayBrowser();
 
   void accept() override;
 signals:

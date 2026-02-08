@@ -2,7 +2,6 @@
 
 package org.dolphinemu.dolphinemu.utils;
 
-import android.app.Activity;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
@@ -12,7 +11,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 
 import androidx.fragment.app.FragmentActivity;
-import androidx.lifecycle.LifecycleOwner;
 import androidx.preference.PreferenceManager;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
@@ -24,7 +22,7 @@ import java.util.Objects;
 
 public final class StartupHandler
 {
-  private static final String SESSION_TIMESTAMP = "SESSION_TIMESTAMP";
+  public static final String LAST_CLOSED = "LAST_CLOSED";
 
   public static void HandleInit(FragmentActivity parent)
   {
@@ -90,38 +88,29 @@ public final class StartupHandler
     return null;
   }
 
-  private static Instant getSessionTimestamp(Context context)
-  {
-    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-    long timestamp = preferences.getLong(SESSION_TIMESTAMP, 0);
-    return Instant.ofEpochMilli(timestamp);
-  }
-
   /**
-   * Called on activity stop / to set timestamp to "now".
+   * There isn't a good way to determine a new session. setSessionTime is called if the main
+   * activity goes into the background.
    */
-  public static void updateSessionTimestamp(Context context)
+  public static void setSessionTime(Context context)
   {
     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
     SharedPreferences.Editor sPrefsEditor = preferences.edit();
-    sPrefsEditor.putLong(SESSION_TIMESTAMP, Instant.now().toEpochMilli());
+    sPrefsEditor.putLong(LAST_CLOSED, System.currentTimeMillis());
     sPrefsEditor.apply();
   }
 
   /**
-   * Called on activity start. Generates analytics start event if it's a fresh start of the app, or
-   * if it's a start after a long period of the app not being used (during which time the process
-   * may be restarted for power/memory saving reasons, although app state persists).
+   * Called to determine if we treat this activity start as a new session.
    */
-  public static void reportStartToAnalytics(Context context, boolean firstStart)
+  public static void checkSessionReset(Context context)
   {
-    final Instant sessionTimestamp = getSessionTimestamp(context);
-    final Instant now = Instant.now();
-    if (firstStart || now.isAfter(sessionTimestamp.plus(6, ChronoUnit.HOURS)))
+    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+    long lastOpen = preferences.getLong(LAST_CLOSED, 0);
+    final Instant current = Instant.now();
+    final Instant lastOpened = Instant.ofEpochMilli(lastOpen);
+    if (current.isAfter(lastOpened.plus(6, ChronoUnit.HOURS)))
     {
-      // Just in case: ensure start event won't be accidentally sent too often.
-      updateSessionTimestamp(context);
-
       new AfterDirectoryInitializationRunner().runWithoutLifecycle(
               NativeLibrary::ReportStartToAnalytics);
     }

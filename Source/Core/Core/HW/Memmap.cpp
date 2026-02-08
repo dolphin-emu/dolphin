@@ -10,11 +10,8 @@
 
 #include <algorithm>
 #include <array>
-#include <bit>
 #include <cstring>
-#include <map>
 #include <memory>
-#include <set>
 #include <span>
 #include <tuple>
 
@@ -44,44 +41,33 @@
 
 namespace Memory
 {
-MemoryManager::MemoryManager(Core::System& system)
-    : m_page_size(static_cast<u32>(m_arena.GetPageSize())),
-      m_guest_pages_per_host_page(m_page_size / PowerPC::HW_PAGE_SIZE),
-      m_host_page_type(GetHostPageTypeForPageSize(m_page_size)), m_system(system)
+MemoryManager::MemoryManager(Core::System& system) : m_system(system)
 {
 }
 
 MemoryManager::~MemoryManager() = default;
 
-MemoryManager::HostPageType MemoryManager::GetHostPageTypeForPageSize(u32 page_size)
-{
-  if (!std::has_single_bit(page_size))
-    return HostPageType::Unsupported;
-
-  return page_size > PowerPC::HW_PAGE_SIZE ? HostPageType::LargePages : HostPageType::SmallPages;
-}
-
-void MemoryManager::InitMMIO(Core::System& system)
+void MemoryManager::InitMMIO(bool is_wii)
 {
   m_mmio_mapping = std::make_unique<MMIO::Mapping>();
 
-  system.GetCommandProcessor().RegisterMMIO(m_mmio_mapping.get(), 0x0C000000);
-  system.GetPixelEngine().RegisterMMIO(m_mmio_mapping.get(), 0x0C001000);
-  system.GetVideoInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C002000);
-  system.GetProcessorInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C003000);
-  system.GetMemoryInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C004000);
-  system.GetDSP().RegisterMMIO(m_mmio_mapping.get(), 0x0C005000);
-  system.GetDVDInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006000, false);
-  system.GetSerialInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006400);
-  system.GetExpansionInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006800);
-  system.GetAudioInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006C00);
-  if (system.IsWii())
+  m_system.GetCommandProcessor().RegisterMMIO(m_mmio_mapping.get(), 0x0C000000);
+  m_system.GetPixelEngine().RegisterMMIO(m_mmio_mapping.get(), 0x0C001000);
+  m_system.GetVideoInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C002000);
+  m_system.GetProcessorInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C003000);
+  m_system.GetMemoryInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C004000);
+  m_system.GetDSP().RegisterMMIO(m_mmio_mapping.get(), 0x0C005000);
+  m_system.GetDVDInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006000, false);
+  m_system.GetSerialInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006400);
+  m_system.GetExpansionInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006800);
+  m_system.GetAudioInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0C006C00);
+  if (is_wii)
   {
-    system.GetWiiIPC().RegisterMMIO(m_mmio_mapping.get(), 0x0D000000);
-    system.GetDVDInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006000, true);
-    system.GetSerialInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006400);
-    system.GetExpansionInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006800);
-    system.GetAudioInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006C00);
+    m_system.GetWiiIPC().RegisterMMIO(m_mmio_mapping.get(), 0x0D000000);
+    m_system.GetDVDInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006000, true);
+    m_system.GetSerialInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006400);
+    m_system.GetExpansionInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006800);
+    m_system.GetAudioInterface().RegisterMMIO(m_mmio_mapping.get(), 0x0D006C00);
   }
 }
 
@@ -165,6 +151,8 @@ void MemoryManager::Init()
   m_physical_page_mappings_base = reinterpret_cast<u8*>(m_physical_page_mappings.data());
   m_logical_page_mappings_base = reinterpret_cast<u8*>(m_logical_page_mappings.data());
 
+  InitMMIO(wii);
+
   Clear();
 
   INFO_LOG_FMT(MEMMAP, "Memory system initialized. RAM at {}", fmt::ptr(m_ram));
@@ -228,8 +216,8 @@ bool MemoryManager::InitFastmemArena()
     if (!region.active)
       continue;
 
-    void* base = m_physical_base + region.physical_address;
-    void* view = m_arena.MapInMemoryRegion(region.shm_position, region.size, base, true);
+    u8* base = m_physical_base + region.physical_address;
+    u8* view = (u8*)m_arena.MapInMemoryRegion(region.shm_position, region.size, base);
 
     if (base != view)
     {
@@ -245,15 +233,13 @@ bool MemoryManager::InitFastmemArena()
   return true;
 }
 
-void MemoryManager::UpdateDBATMappings(const PowerPC::BatTable& dbat_table)
+void MemoryManager::UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
 {
-  for (const auto& [logical_address, entry] : m_dbat_mapped_entries)
+  for (auto& entry : m_logical_mapped_entries)
   {
     m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
   }
-  m_dbat_mapped_entries.clear();
-
-  RemoveAllPageTableMappings();
+  m_logical_mapped_entries.clear();
 
   m_logical_page_mappings.fill(nullptr);
 
@@ -262,24 +248,9 @@ void MemoryManager::UpdateDBATMappings(const PowerPC::BatTable& dbat_table)
     if (dbat_table[i] & PowerPC::BAT_PHYSICAL_BIT)
     {
       u32 logical_address = i << PowerPC::BAT_INDEX_SHIFT;
+      // TODO: Merge adjacent mappings to make this faster.
       u32 logical_size = PowerPC::BAT_PAGE_SIZE;
       u32 translated_address = dbat_table[i] & PowerPC::BAT_RESULT_MASK;
-
-      while (i + 1 < dbat_table.size())
-      {
-        if (!(dbat_table[i + 1] & PowerPC::BAT_PHYSICAL_BIT))
-        {
-          ++i;
-          break;
-        }
-
-        if ((dbat_table[i + 1] & PowerPC::BAT_RESULT_MASK) != translated_address + logical_size)
-          break;
-
-        ++i;
-        logical_size += PowerPC::BAT_PAGE_SIZE;
-      }
-
       for (const auto& physical_region : m_physical_regions)
       {
         if (!physical_region.active)
@@ -299,16 +270,16 @@ void MemoryManager::UpdateDBATMappings(const PowerPC::BatTable& dbat_table)
             u8* base = m_logical_base + logical_address + intersection_start - translated_address;
             u32 mapped_size = intersection_end - intersection_start;
 
-            void* mapped_pointer = m_arena.MapInMemoryRegion(position, mapped_size, base, true);
+            void* mapped_pointer = m_arena.MapInMemoryRegion(position, mapped_size, base);
             if (!mapped_pointer)
             {
-              PanicAlertFmt("Memory::UpdateDBATMappings(): Failed to map memory region at 0x{:08X} "
-                            "(size 0x{:08X}) into logical fastmem region at 0x{:08X}.",
-                            intersection_start, mapped_size, logical_address);
-              continue;
+              PanicAlertFmt(
+                  "Memory::UpdateLogicalMemory(): Failed to map memory region at 0x{:08X} "
+                  "(size 0x{:08X}) into logical fastmem region at 0x{:08X}.",
+                  intersection_start, mapped_size, logical_address);
+              exit(0);
             }
-            m_dbat_mapped_entries.emplace(logical_address,
-                                          LogicalMemoryView{mapped_pointer, mapped_size});
+            m_logical_mapped_entries.push_back({mapped_pointer, mapped_size});
           }
 
           m_logical_page_mappings[i] =
@@ -317,184 +288,6 @@ void MemoryManager::UpdateDBATMappings(const PowerPC::BatTable& dbat_table)
       }
     }
   }
-}
-
-void MemoryManager::AddPageTableMapping(u32 logical_address, u32 translated_address, bool writeable)
-{
-  if (!m_is_fastmem_arena_initialized)
-    return;
-
-  switch (m_host_page_type)
-  {
-  case HostPageType::SmallPages:
-    return AddHostPageTableMapping(logical_address, translated_address, writeable,
-                                   PowerPC::HW_PAGE_SIZE);
-  case HostPageType::LargePages:
-    return TryAddLargePageTableMapping(logical_address, translated_address, writeable);
-  default:
-    return;
-  }
-}
-
-void MemoryManager::TryAddLargePageTableMapping(u32 logical_address, u32 translated_address,
-                                                bool writeable)
-{
-  const bool add_readable =
-      TryAddLargePageTableMapping(logical_address, translated_address, m_large_readable_pages);
-
-  const bool add_writeable =
-      writeable &&
-      TryAddLargePageTableMapping(logical_address, translated_address, m_large_writeable_pages);
-
-  if (add_readable || add_writeable)
-  {
-    AddHostPageTableMapping(logical_address & ~(m_page_size - 1),
-                            translated_address & ~(m_page_size - 1), add_writeable, m_page_size);
-  }
-}
-
-bool MemoryManager::TryAddLargePageTableMapping(u32 logical_address, u32 translated_address,
-                                                std::map<u32, std::vector<u32>>& map)
-{
-  std::vector<u32>& entries = map[logical_address & ~(m_page_size - 1)];
-
-  if (entries.empty())
-    entries = std::vector<u32>(m_guest_pages_per_host_page, INVALID_MAPPING);
-
-  entries[(logical_address & (m_page_size - 1)) / PowerPC::HW_PAGE_SIZE] = translated_address;
-
-  return CanCreateHostMappingForGuestPages(entries);
-}
-
-bool MemoryManager::CanCreateHostMappingForGuestPages(const std::vector<u32>& entries) const
-{
-  const u32 translated_address = entries[0];
-  if ((translated_address & (m_page_size - 1)) != 0)
-    return false;
-
-  for (size_t i = 1; i < m_guest_pages_per_host_page; ++i)
-  {
-    if (entries[i] != translated_address + i * PowerPC::HW_PAGE_SIZE)
-      return false;
-  }
-
-  return true;
-}
-
-void MemoryManager::AddHostPageTableMapping(u32 logical_address, u32 translated_address,
-                                            bool writeable, u32 logical_size)
-{
-  for (const auto& physical_region : m_physical_regions)
-  {
-    if (!physical_region.active)
-      continue;
-
-    const u32 mapping_address = physical_region.physical_address;
-    const u32 mapping_end = mapping_address + physical_region.size;
-    const u32 intersection_start = std::max(mapping_address, translated_address);
-    const u32 intersection_end = std::min(mapping_end, translated_address + logical_size);
-    if (intersection_start >= intersection_end)
-      continue;
-
-    // Found an overlapping region; map it.
-    const u32 position = physical_region.shm_position + intersection_start - mapping_address;
-    u8* const base = m_logical_base + logical_address + intersection_start - translated_address;
-    const u32 mapped_size = intersection_end - intersection_start;
-
-    const auto it = m_page_table_mapped_entries.find(logical_address);
-    if (it != m_page_table_mapped_entries.end())
-    {
-      // Update the protection of an existing mapping.
-      if (it->second.mapped_pointer == base && it->second.mapped_size == mapped_size)
-      {
-        if (!m_arena.ChangeMappingProtection(base, mapped_size, writeable))
-        {
-          PanicAlertFmt("Memory::AddPageTableMapping(): Failed to change protection for memory "
-                        "region at 0x{:08X} (size 0x{:08X}, logical fastmem region at 0x{:08X}).",
-                        intersection_start, mapped_size, logical_address);
-        }
-      }
-    }
-    else
-    {
-      // Create a new mapping.
-      void* const mapped_pointer =
-          m_arena.MapInMemoryRegion(position, mapped_size, base, writeable);
-      if (!mapped_pointer)
-      {
-        PanicAlertFmt("Memory::AddPageTableMapping(): Failed to map memory region at 0x{:08X} "
-                      "(size 0x{:08X}) into logical fastmem region at 0x{:08X}.",
-                      intersection_start, mapped_size, logical_address);
-        continue;
-      }
-      m_page_table_mapped_entries.emplace(logical_address,
-                                          LogicalMemoryView{mapped_pointer, mapped_size});
-    }
-  }
-}
-
-void MemoryManager::RemovePageTableMappings(const std::set<u32>& mappings)
-{
-  switch (m_host_page_type)
-  {
-  case HostPageType::SmallPages:
-    return RemoveHostPageTableMappings(mappings);
-  case HostPageType::LargePages:
-    for (u32 logical_address : mappings)
-      RemoveLargePageTableMapping(logical_address);
-    return;
-  default:
-    return;
-  }
-}
-
-void MemoryManager::RemoveLargePageTableMapping(u32 logical_address)
-{
-  RemoveLargePageTableMapping(logical_address, m_large_readable_pages);
-  RemoveLargePageTableMapping(logical_address, m_large_writeable_pages);
-
-  const u32 aligned_logical_address = logical_address & ~(m_page_size - 1);
-  const auto it = m_page_table_mapped_entries.find(aligned_logical_address);
-  if (it != m_page_table_mapped_entries.end())
-  {
-    const LogicalMemoryView& entry = it->second;
-    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
-
-    m_page_table_mapped_entries.erase(it);
-  }
-}
-
-void MemoryManager::RemoveLargePageTableMapping(u32 logical_address,
-                                                std::map<u32, std::vector<u32>>& map)
-{
-  const auto it = map.find(logical_address & ~(m_page_size - 1));
-  if (it != map.end())
-    it->second[(logical_address & (m_page_size - 1)) / PowerPC::HW_PAGE_SIZE] = INVALID_MAPPING;
-}
-
-void MemoryManager::RemoveHostPageTableMappings(const std::set<u32>& mappings)
-{
-  if (mappings.empty())
-    return;
-
-  std::erase_if(m_page_table_mapped_entries, [this, &mappings](const auto& pair) {
-    const auto& [logical_address, entry] = pair;
-    const bool remove = mappings.contains(logical_address);
-    if (remove)
-      m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
-    return remove;
-  });
-}
-
-void MemoryManager::RemoveAllPageTableMappings()
-{
-  for (const auto& [logical_address, entry] : m_page_table_mapped_entries)
-  {
-    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
-  }
-  m_page_table_mapped_entries.clear();
-  m_large_readable_pages.clear();
-  m_large_writeable_pages.clear();
 }
 
 void MemoryManager::DoState(PointerWrap& p)
@@ -578,22 +371,13 @@ void MemoryManager::ShutdownFastmemArena()
     m_arena.UnmapFromMemoryRegion(base, region.size);
   }
 
-  for (const auto& [logical_address, entry] : m_dbat_mapped_entries)
+  for (auto& entry : m_logical_mapped_entries)
   {
     m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
   }
-  m_dbat_mapped_entries.clear();
-
-  for (const auto& [logical_address, entry] : m_page_table_mapped_entries)
-  {
-    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
-  }
-  m_page_table_mapped_entries.clear();
+  m_logical_mapped_entries.clear();
 
   m_arena.ReleaseMemoryRegion();
-
-  m_large_readable_pages.clear();
-  m_large_writeable_pages.clear();
 
   m_fastmem_arena = nullptr;
   m_fastmem_arena_size = 0;
@@ -754,13 +538,6 @@ u64 MemoryManager::Read_U64(u32 address) const
   u64 value = 0;
   CopyFromEmu(&value, address, sizeof(value));
   return Common::swap64(value);
-}
-
-u32 MemoryManager::Read_U32_Swap(u32 address) const
-{
-  u32 value = 0;
-  CopyFromEmu(&value, address, sizeof(value));
-  return value;
 }
 
 void MemoryManager::Write_U8(u8 value, u32 address)

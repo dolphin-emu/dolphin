@@ -5,19 +5,16 @@
 
 #include <QDialog>
 
-#include "DolphinQt/Config/SettingsWindow.h"
-
 namespace UICommon
 {
 class GameFile;
 }
 
-class PropertiesDialog final : public StackedSettingsWindow
+class PropertiesDialog final : public QDialog
 {
   Q_OBJECT
 public:
   explicit PropertiesDialog(QWidget* parent, const UICommon::GameFile& game);
-  const std::string& GetFilePath() const { return m_filepath; }
 
 signals:
   void OpenGeneralSettings();
@@ -25,7 +22,4 @@ signals:
 #ifdef USE_RETRO_ACHIEVEMENTS
   void OpenAchievementSettings();
 #endif  // USE_RETRO_ACHIEVEMENTS
-
-private:
-  const std::string m_filepath;
 };

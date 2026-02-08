@@ -5,6 +5,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
+#include <cstring>
 #include <iomanip>
 #include <ios>
 #include <sstream>
@@ -27,8 +29,10 @@ std::string Profiler::s_lazy_result;
 int Profiler::s_lazy_delay = 0;
 
 Profiler::Profiler(const std::string& name)
-    : m_name(name), m_usecs(0), m_usecs_min(UINT64_MAX), m_usecs_max(0), m_usecs_quad(0), m_calls(0)
+    : m_name(name), m_usecs(0), m_usecs_min(UINT64_MAX), m_usecs_max(0), m_usecs_quad(0),
+      m_calls(0), m_depth(0)
 {
+  m_time = Common::Timer::NowUs();
   s_max_length = std::max<u32>(s_max_length, u32(m_name.length()));
 
   std::lock_guard<std::mutex> lk(s_mutex);
@@ -93,23 +97,22 @@ std::string Profiler::ToString()
   return s_lazy_result;
 }
 
-void Profiler::Start(u64* time, int* depth)
+void Profiler::Start()
 {
-  if ((*depth)++ == 0)
+  if (!m_depth++)
   {
-    *time = Common::Timer::NowUs();
+    m_time = Common::Timer::NowUs();
   }
 }
 
-void Profiler::Stop(u64* time, int* depth)
+void Profiler::Stop()
 {
-  if (--(*depth) == 0)
+  if (!--m_depth)
   {
     u64 end = Common::Timer::NowUs();
 
-    u64 diff = end - *time;
+    u64 diff = end - m_time;
 
-    std::lock_guard lk(m_mutex);
     m_usecs += diff;
     m_usecs_min = std::min(m_usecs_min, diff);
     m_usecs_max = std::max(m_usecs_max, diff);
@@ -120,8 +123,6 @@ void Profiler::Stop(u64* time, int* depth)
 
 std::string Profiler::Read()
 {
-  std::lock_guard lk(m_mutex);
-
   double avg = 0;
   double stdev = 0;
   double time_rel = 0;

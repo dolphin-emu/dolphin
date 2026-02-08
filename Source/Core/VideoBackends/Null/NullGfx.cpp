@@ -53,7 +53,6 @@ public:
 
 std::unique_ptr<AbstractShader>
 NullGfx::CreateShaderFromSource(ShaderStage stage, [[maybe_unused]] std::string_view source,
-                                [[maybe_unused]] VideoCommon::ShaderIncluder* shader_includer,
                                 [[maybe_unused]] std::string_view name)
 {
   return std::make_unique<NullShader>(stage);

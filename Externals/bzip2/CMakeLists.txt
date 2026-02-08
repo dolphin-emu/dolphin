@@ -1,10 +1,9 @@
 project(bzip2 C)
 
-# TODO: Use bzip2 1.1.0's native support for CMake static builds once it releases.
-
 include(CheckTypeSize)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
+include(CheckCSourceCompiles)
 
 check_include_file(sys/types.h HAVE_SYS_TYPES_H)
 check_include_file(stdint.h    HAVE_STDINT_H)
@@ -16,24 +15,24 @@ set(CMAKE_REQUIRED_DEFINITIONS -D_LARGEFILE64_SOURCE=1)
 # in CMake 2.4.x does not automatically do so and we want
 # compatibility with CMake 2.4.x.
 if(HAVE_SYS_TYPES_H)
-  list(APPEND CMAKE_REQUIRED_DEFINITIONS -DHAVE_SYS_TYPES_H)
+    list(APPEND CMAKE_REQUIRED_DEFINITIONS -DHAVE_SYS_TYPES_H)
 endif()
 if(HAVE_STDINT_H)
-  list(APPEND CMAKE_REQUIRED_DEFINITIONS -DHAVE_STDINT_H)
+    list(APPEND CMAKE_REQUIRED_DEFINITIONS -DHAVE_STDINT_H)
 endif()
 if(HAVE_STDDEF_H)
-  list(APPEND CMAKE_REQUIRED_DEFINITIONS -DHAVE_STDDEF_H)
+    list(APPEND CMAKE_REQUIRED_DEFINITIONS -DHAVE_STDDEF_H)
 endif()
 check_type_size(off64_t OFF64_T)
 if(HAVE_OFF64_T)
-  add_definitions(-D_LARGEFILE64_SOURCE=1)
+   add_definitions(-D_LARGEFILE64_SOURCE=1)
 endif()
 set(CMAKE_REQUIRED_DEFINITIONS) # clear variable
 
 # Check for fseeko
 check_function_exists(fseeko HAVE_FSEEKO)
 if(NOT HAVE_FSEEKO)
-  add_definitions(-DNO_FSEEKO)
+    add_definitions(-DNO_FSEEKO)
 endif()
 
 #
@@ -41,12 +40,12 @@ endif()
 #
 check_include_file(unistd.h HAVE_UNISTD_H)
 if(HAVE_UNISTD_H)
-  add_definitions(-DHAVE_UNISTD_H)
+    add_definitions(-DHAVE_UNISTD_H)
 endif()
 
 if(MSVC)
-  add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
-  add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
+    add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
+    add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
 endif()
 
 #============================================================================
@@ -54,19 +53,19 @@ endif()
 #============================================================================
 
 set(BZIP2_PUBLIC_HDRS
-  bzip2/bzlib.h
+    bzlib.h
 )
 set(BZIP2_PRIVATE_HDRS
-  bzip2/bzlib_private.h
+    bzlib_private.h
 )
 set(BZIP2_SRCS
-  bzip2/blocksort.c
-  bzip2/huffman.c
-  bzip2/crctable.c
-  bzip2/randtable.c
-  bzip2/compress.c
-  bzip2/decompress.c
-  bzip2/bzlib.c
+    blocksort.c
+    huffman.c
+    crctable.c
+    randtable.c
+    compress.c
+    decompress.c
+    bzlib.c
 )
 
 add_library(bzip2 STATIC ${BZIP2_SRCS} ${BZIP2_PUBLIC_HDRS} ${BZIP2_PRIVATE_HDRS})
@@ -75,5 +74,5 @@ dolphin_disable_warnings(bzip2)
 
 target_include_directories(bzip2
 PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/bzip2
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )

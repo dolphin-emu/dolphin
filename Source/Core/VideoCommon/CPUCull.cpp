@@ -12,7 +12,9 @@
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
+#include "VideoCommon/XFStateManager.h"
 
 // We really want things like c.w * a.x - a.w * c.x to stay symmetric, so they cancel to zero on
 // degenerate triangles.  Make sure the compiler doesn't optimize in fmas where not requested.
@@ -151,19 +153,19 @@ bool CPUCull::AreAllVerticesCulled(VertexLoaderBase* loader, OpcodeDecoder::Prim
         Common::AllocateAlignedMemory(new_size * sizeof(TransformedVertex), 32)));
   }
 
-  // transform functions need the projection matrix to transform to clip space
+  // transform functions need the projection matrix to tranform to clip space
   auto& system = Core::System::GetInstance();
   system.GetVertexShaderManager().SetProjectionMatrix(system.GetXFStateManager());
 
   static constexpr Common::EnumMap<CullMode, CullMode::All> cullmode_invert = {
       CullMode::None, CullMode::Front, CullMode::Back, CullMode::All};
 
-  CullMode cull_mode = bpmem.genMode.cull_mode;
+  CullMode cullmode = bpmem.genMode.cullmode;
   if (xfmem.viewport.ht > 0)  // See videosoftware Clipper.cpp:IsBackface
-    cull_mode = cullmode_invert[cull_mode];
+    cullmode = cullmode_invert[cullmode];
   const TransformFunction transform = m_transform_table[posHas3Elems][perVertexPosMtx];
   transform(m_transform_buffer.get(), src, stride, count);
-  const CullFunction cull = m_cull_table[primitive][cull_mode];
+  const CullFunction cull = m_cull_table[primitive][cullmode];
   return cull(m_transform_buffer.get(), count);
 }
 

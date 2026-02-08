@@ -5,17 +5,13 @@
 
 #include <QWidget>
 
-#include "Common/CommonTypes.h"
-
-class ConfigBool;
-template <typename T>
-class ConfigChoiceMap;
-class ConfigChoiceU32;
-class ConfigSliderU32;
-class ConfigUserPath;
+class QCheckBox;
+class QComboBox;
 class QLabel;
+class QLineEdit;
 class QListWidget;
 class QPushButton;
+class QSlider;
 class QString;
 class QVBoxLayout;
 
@@ -34,6 +30,8 @@ private:
   void CreateWhitelistedUSBPassthroughDevices();
   void CreateWiiRemoteSettings();
 
+  void LoadConfig();
+  void OnSaveConfig();
   void OnEmulationStateChanged(bool running);
 
   void ValidateSelectionState();
@@ -42,30 +40,32 @@ private:
   void OnUSBWhitelistRemoveButton();
 
   void BrowseSDRaw();
+  void SetSDRaw(const QString& path);
   void BrowseSDSyncFolder();
+  void SetSDSyncFolder(const QString& path);
 
   // Widgets
   QVBoxLayout* m_main_layout;
 
   // Misc Settings
-  ConfigBool* m_screensaver_checkbox;
-  ConfigBool* m_pal60_mode_checkbox;
-  ConfigBool* m_connect_keyboard_checkbox;
-  ConfigBool* m_wiilink_checkbox;
-  ConfigChoiceU32* m_system_language_choice;
+  QCheckBox* m_screensaver_checkbox;
+  QCheckBox* m_pal60_mode_checkbox;
+  QCheckBox* m_connect_keyboard_checkbox;
+  QCheckBox* m_wiilink_checkbox;
+  QComboBox* m_system_language_choice;
   QLabel* m_system_language_choice_label;
-  ConfigChoiceMap<bool>* m_aspect_ratio_choice;
+  QComboBox* m_aspect_ratio_choice;
   QLabel* m_aspect_ratio_choice_label;
-  ConfigChoiceU32* m_sound_mode_choice;
+  QComboBox* m_sound_mode_choice;
   QLabel* m_sound_mode_choice_label;
 
   // SD Card Settings
-  ConfigBool* m_sd_card_checkbox;
-  ConfigBool* m_allow_sd_writes_checkbox;
-  ConfigBool* m_sync_sd_folder_checkbox;
-  ConfigChoiceMap<u64>* m_sd_card_size_combo;
-  ConfigUserPath* m_sd_raw_edit;
-  ConfigUserPath* m_sd_sync_folder_edit;
+  QCheckBox* m_sd_card_checkbox;
+  QCheckBox* m_allow_sd_writes_checkbox;
+  QCheckBox* m_sync_sd_folder_checkbox;
+  QComboBox* m_sd_card_size_combo;
+  QLineEdit* m_sd_raw_edit;
+  QLineEdit* m_sd_sync_folder_edit;
   QPushButton* m_sd_pack_button;
   QPushButton* m_sd_unpack_button;
 
@@ -76,10 +76,10 @@ private:
 
   // Wii Remote Settings
   QLabel* m_wiimote_sensor_position_label;
-  ConfigChoiceMap<u32>* m_wiimote_ir_sensor_position;
-  ConfigSliderU32* m_wiimote_ir_sensitivity;
+  QComboBox* m_wiimote_ir_sensor_position;
+  QSlider* m_wiimote_ir_sensitivity;
   QLabel* m_wiimote_ir_sensitivity_label;
-  ConfigSliderU32* m_wiimote_speaker_volume;
+  QSlider* m_wiimote_speaker_volume;
   QLabel* m_wiimote_speaker_volume_label;
-  ConfigBool* m_wiimote_motor;
+  QCheckBox* m_wiimote_motor;
 };

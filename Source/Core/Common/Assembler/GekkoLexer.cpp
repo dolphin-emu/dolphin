@@ -3,6 +3,7 @@
 
 #include "Common/Assembler/GekkoLexer.h"
 
+#include "Common/Assert.h"
 #include "Common/StringUtil.h"
 
 #include <iterator>
@@ -200,9 +201,6 @@ std::optional<T> EvalIntegral(TokenType tp, std::string_view val)
     return T{2};
   case TokenType::So:
     return T{3};
-  case TokenType::NumLabFwd:
-  case TokenType::NumLabBwd:
-    return std::accumulate(val.begin(), val.end() - 1, T{0}, dec_step);
   default:
     return std::nullopt;
   }
@@ -725,9 +723,9 @@ AssemblerToken Lexer::LexSingle() const
   }
   else if (h == '0')
   {
-    const char nextch = Peek();
+    const char imm_type = Peek();
 
-    if (nextch == 'x')
+    if (imm_type == 'x')
     {
       token_type = TokenType::HexadecimalLit;
       Step();
@@ -735,32 +733,20 @@ AssemblerToken Lexer::LexSingle() const
       {
       }
     }
-    else if (nextch == 'b')
+    else if (imm_type == 'b')
     {
+      token_type = TokenType::BinaryLit;
       Step();
-      if (!IsBinary(Peek()))
+      for (char c = Peek(); IsBinary(c); c = Step().Peek())
       {
-        token_type = TokenType::NumLabBwd;
-      }
-      else
-      {
-        token_type = TokenType::BinaryLit;
-        for (char c = Peek(); IsBinary(c); c = Step().Peek())
-        {
-        }
       }
     }
-    else if (IsOctal(nextch))
+    else if (IsOctal(imm_type))
     {
       token_type = TokenType::OctalLit;
       for (char c = Peek(); IsOctal(c); c = Step().Peek())
       {
       }
-    }
-    else if (nextch == 'f')
-    {
-      Step();
-      token_type = TokenType::NumLabFwd;
     }
     else
     {
@@ -772,22 +758,7 @@ AssemblerToken Lexer::LexSingle() const
     for (char c = Peek(); std::isdigit(c); c = Step().Peek())
     {
     }
-    switch (Peek())
-    {
-    case 'f':
-      token_type = TokenType::NumLabFwd;
-      Step();
-      break;
-
-    case 'b':
-      token_type = TokenType::NumLabBwd;
-      Step();
-      break;
-
-    default:
-      token_type = TokenType::DecimalLit;
-      break;
-    }
+    token_type = TokenType::DecimalLit;
   }
   else if (h == '<' || h == '>')
   {

@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <array>
+#include <locale>
 #include <optional>
 #include <string>
 #include <string_view>

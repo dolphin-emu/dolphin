@@ -3,12 +3,13 @@
 
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 
+#include <algorithm>
 #include <array>
+#include <list>
 #include <map>
 #include <optional>
 #include <sstream>
 #include <string>
-#include <string_view>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -21,6 +22,7 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
@@ -30,7 +32,7 @@
 namespace ConfigLoaders
 {
 // Returns all possible filenames in ascending order of priority
-std::vector<std::string> GetGameIniFilenames(std::string_view id, std::optional<u16> revision)
+std::vector<std::string> GetGameIniFilenames(const std::string& id, std::optional<u16> revision)
 {
   std::vector<std::string> filenames;
 
@@ -42,18 +44,18 @@ std::vector<std::string> GetGameIniFilenames(std::string_view id, std::optional<
   if (id.length() == 6)
   {
     // INIs that match the system code (unique for each Virtual Console system)
-    filenames.push_back(fmt::format("{}.ini", id.substr(0, 1)));
+    filenames.push_back(id.substr(0, 1) + ".ini");
 
     // INIs that match all regions
-    filenames.push_back(fmt::format("{}.ini", id.substr(0, 3)));
+    filenames.push_back(id.substr(0, 3) + ".ini");
   }
 
   // Regular INIs
-  filenames.push_back(fmt::format("{}.ini", id));
+  filenames.push_back(id + ".ini");
 
   // INIs with specific revisions
   if (revision)
-    filenames.push_back(fmt::format("{}r{}.ini", id, *revision));
+    filenames.push_back(id + fmt::format("r{}", *revision) + ".ini");
 
   return filenames;
 }
@@ -311,7 +313,7 @@ void INIGameConfigLayerLoader::Save(Config::Layer* layer)
 
   // Try to save to the revision specific INI first, if it exists.
   const std::string gameini_with_rev =
-      fmt::format("{}{}r{}.ini", File::GetUserPath(D_GAMESETTINGS_IDX), m_id, m_revision);
+      File::GetUserPath(D_GAMESETTINGS_IDX) + m_id + fmt::format("r{}", m_revision) + ".ini";
   if (File::Exists(gameini_with_rev))
   {
     ini.Save(gameini_with_rev);
@@ -320,7 +322,7 @@ void INIGameConfigLayerLoader::Save(Config::Layer* layer)
 
   // Otherwise, save to the game INI. We don't try any INI broader than that because it will
   // likely cause issues with cheat codes and game patches.
-  const std::string gameini = fmt::format("{}{}.ini", File::GetUserPath(D_GAMESETTINGS_IDX), m_id);
+  const std::string gameini = File::GetUserPath(D_GAMESETTINGS_IDX) + m_id + ".ini";
   ini.Save(gameini);
 }
 

@@ -16,12 +16,21 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoEvents.h"
-#include "VideoCommon/XFMemory.h"
 
 Statistics g_stats;
 
-static Common::EventHook s_before_frame_event;
-static Common::EventHook s_after_frame_event;
+static Common::EventHook s_before_frame_event =
+    BeforeFrameEvent::Register([] { g_stats.ResetFrame(); }, "Statistics::ResetFrame");
+
+static Common::EventHook s_after_frame_event = AfterFrameEvent::Register(
+    [](const Core::System& system) {
+      DolphinAnalytics::Instance().ReportPerformanceInfo({
+          .speed_ratio = system.GetSystemTimers().GetEstimatedEmulationPerformance(),
+          .num_prims = g_stats.this_frame.num_prims + g_stats.this_frame.num_dl_prims,
+          .num_draw_calls = g_stats.this_frame.num_draw_calls,
+      });
+    },
+    "Statistics::PerformanceSample");
 
 static bool clear_scissors;
 
@@ -152,8 +161,7 @@ void Statistics::AddScissorRect()
     clear_scissors = false;
   }
 
-  BPFunctions::ScissorResult scissor = BPFunctions::ComputeScissorRects(
-      bpmem.scissorTL, bpmem.scissorBR, bpmem.scissorOffset, xfmem.viewport);
+  BPFunctions::ScissorResult scissor = BPFunctions::ComputeScissorRects();
   bool add;
   if (scissors.empty())
   {
@@ -303,19 +311,19 @@ void Statistics::DisplayScissor()
       draw_rect(info.viewport_left, info.viewport_top, info.viewport_right, info.viewport_bottom,
                 col);
     }
-    for (size_t i = 0; i < info.rectangles.size(); i++)
+    for (size_t i = 0; i < info.m_result.size(); i++)
     {
       // The last entry in the sorted list of results is the one that is used by hardware backends
-      const u8 new_alpha = (i == info.rectangles.size() - 1) ? 0x40 : 0x80;
+      const u8 new_alpha = (i == info.m_result.size() - 1) ? 0x40 : 0x80;
       const ImU32 new_col = (col & ~IM_COL32_A_MASK) | (new_alpha << IM_COL32_A_SHIFT);
 
-      const auto& r = info.rectangles[i];
+      const auto& r = info.m_result[i];
       draw_list->AddRectFilled(vec(r.rect.left + r.x_off, r.rect.top + r.y_off),
                                vec(r.rect.right + r.x_off, r.rect.bottom + r.y_off), new_col);
     }
   };
   constexpr auto NUM_SCISSOR_COLUMNS = 8;
-  const auto draw_scissor_table_header = [&] {
+  const auto draw_scissor_table_header = [&]() {
     ImGui::TableSetupColumn("#");
     ImGui::TableSetupColumn("x0");
     ImGui::TableSetupColumn("y0");
@@ -357,14 +365,14 @@ void Statistics::DisplayScissor()
     ImVec2 p2 = ImGui::GetCursorScreenPos();
     // Use a height of 1 since we want this to span two table rows (if possible)
     ImGui::Dummy(ImVec2(EFB_WIDTH * scale_height, 1));
-    for (size_t i = 0; i < info.rectangles.size(); i++)
+    for (size_t i = 0; i < info.m_result.size(); i++)
     {
       // The last entry in the sorted list of results is the one that is used by hardware backends
-      const u8 new_alpha = (i == info.rectangles.size() - 1) ? 0x80 : 0x40;
+      const u8 new_alpha = (i == info.m_result.size() - 1) ? 0x80 : 0x40;
       const ImU32 col = ImGui::GetColorU32(COLORS[index % COLORS.size()]);
       const ImU32 new_col = (col & ~IM_COL32_A_MASK) | (new_alpha << IM_COL32_A_SHIFT);
 
-      const auto& r = info.rectangles[i];
+      const auto& r = info.m_result[i];
       draw_list->AddRectFilled(
           ImVec2(p2.x + r.rect.left * scale_height, p2.y + r.rect.top * scale_height),
           ImVec2(p2.x + r.rect.right * scale_height, p2.y + r.rect.bottom * scale_height), new_col);
@@ -372,7 +380,7 @@ void Statistics::DisplayScissor()
     draw_list->AddRect(
         p2, ImVec2(p2.x + EFB_WIDTH * scale_height, p2.y + EFB_HEIGHT * scale_height), light_grey);
     ImGui::SameLine();
-    ImGui::Text("%d", int(info.rectangles.size()));
+    ImGui::Text("%d", int(info.m_result.size()));
 
     if (show_raw_scissors)
     {
@@ -405,7 +413,7 @@ void Statistics::DisplayScissor()
     }
   };
   constexpr auto NUM_VIEWPORT_COLUMNS = 5;
-  const auto draw_viewport_table_header = [&] {
+  const auto draw_viewport_table_header = [&]() {
     ImGui::TableSetupColumn("#");
     ImGui::TableSetupColumn("vx0");
     ImGui::TableSetupColumn("vy0");
@@ -496,23 +504,4 @@ void Statistics::DisplayScissor()
   }
 
   ImGui::End();
-}
-
-void Statistics::Init()
-{
-  s_before_frame_event = GetVideoEvents().before_frame_event.Register([] { g_stats.ResetFrame(); });
-
-  s_after_frame_event = GetVideoEvents().after_frame_event.Register([](const Core::System& system) {
-    DolphinAnalytics::Instance().ReportPerformanceInfo({
-        .speed_ratio = system.GetSystemTimers().GetEstimatedEmulationPerformance(),
-        .num_prims = g_stats.this_frame.num_prims + g_stats.this_frame.num_dl_prims,
-        .num_draw_calls = g_stats.this_frame.num_draw_calls,
-    });
-  });
-}
-
-void Statistics::Shutdown()
-{
-  s_before_frame_event.reset();
-  s_after_frame_event.reset();
 }

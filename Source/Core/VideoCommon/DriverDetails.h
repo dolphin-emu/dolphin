@@ -325,7 +325,7 @@ enum Bug
 
   // BUG: Some driver and Apple Silicon GPU combinations have problems with fragment discard when
   // early depth test is enabled. Discarded fragments may appear corrupted (Super Mario Sunshine,
-  // Sonic Adventure 2: Battle, Phantasy Star Online Episodes 1 & 2, etc).
+  // Sonic Adventure 2: Battle, Phantasy Star Online Epsiodes 1 & 2, etc).
   // Affected devices: Apple Silicon GPUs of Apple family 4 and newer.
   // Started version: -1
   // Ended version: -1
@@ -342,14 +342,7 @@ enum Bug
   // Affected devices: Adreno
   // Started Version: -1
   // Ended Version: -1
-  BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY,
-
-  // BUG: Incorrect implementation of VK_EXT_depth_clamp_control causes incorrect depth values to
-  // be written to the depth buffer.
-  // Affected devices: Official AMD (RADV is unaffected)
-  // Started Version: -1
-  // Ended Version: -1
-  BUG_BROKEN_DEPTH_CLAMP_CONTROL
+  BUG_SLOW_OPTIMAL_IMAGE_TO_BUFFER_COPY
 };
 
 // Initializes our internal vendor, device family, and driver version

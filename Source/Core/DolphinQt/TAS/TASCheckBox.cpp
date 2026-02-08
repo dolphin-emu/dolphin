@@ -15,11 +15,7 @@ TASCheckBox::TASCheckBox(const QString& text, TASInputWindow* parent)
 {
   setTristate(true);
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  connect(this, &TASCheckBox::checkStateChanged, this, &TASCheckBox::OnUIValueChanged);
-#else
   connect(this, &TASCheckBox::stateChanged, this, &TASCheckBox::OnUIValueChanged);
-#endif
 }
 
 bool TASCheckBox::GetValue() const
@@ -62,11 +58,7 @@ void TASCheckBox::mousePressEvent(QMouseEvent* event)
   setCheckState(Qt::PartiallyChecked);
 }
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-void TASCheckBox::OnUIValueChanged(Qt::CheckState new_value)
-#else
 void TASCheckBox::OnUIValueChanged(int new_value)
-#endif
 {
   m_state.OnUIValueChanged(new_value);
 }

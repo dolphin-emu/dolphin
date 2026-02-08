@@ -1,29 +1,23 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// GPU driver implementation partially based on:
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
-
 package org.dolphinemu.dolphinemu.features.settings.ui
 
-import android.app.Activity
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -31,6 +25,8 @@ import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.FragmentSettingsBinding
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem
+import org.dolphinemu.dolphinemu.ui.main.MainActivity
+import org.dolphinemu.dolphinemu.ui.main.MainPresenter
 import org.dolphinemu.dolphinemu.utils.GpuDriverInstallResult
 import org.dolphinemu.dolphinemu.utils.SerializableHelper.serializable
 import java.util.*
@@ -47,21 +43,9 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
 
     override var adapter: SettingsAdapter? = null
 
-    override val activityResultLaunchers: SettingsActivityResultLaunchers =
-        SettingsActivityResultLaunchers(this) { adapter }
-
     private var oldControllerSettingsWarningHeight = 0
 
     private var binding: FragmentSettingsBinding? = null
-
-    private val requestGpuDriver = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result: ActivityResult ->
-        val uri = result.data?.data
-        if (result.resultCode == Activity.RESULT_OK && uri != null) {
-            presenter.installDriver(uri)
-        }
-    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -130,6 +114,10 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
 
     override fun showSettingsList(settingsList: ArrayList<SettingsItem>) {
         adapter!!.setSettings(settingsList)
+    }
+
+    override fun loadDefaultSettings() {
+        presenter.loadDefaultSettings()
     }
 
     override fun loadSubMenu(menuKey: MenuTag) {
@@ -201,7 +189,7 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
         if (presenter.gpuDriver == null) {
             return
         }
-        val msg = "${presenter.gpuDriver!!.name} ${presenter.gpuDriver!!.driverVersion}"
+        val msg = "${presenter!!.gpuDriver!!.name} ${presenter!!.gpuDriver!!.driverVersion}"
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.gpu_driver_dialog_title))
@@ -216,16 +204,28 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
             .show()
     }
 
-    override fun getFragmentLifecycle(): Lifecycle {
-        return lifecycle
-    }
-
     private fun askForDriverFile() {
         val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             type = "application/zip"
         }
-        requestGpuDriver.launch(intent)
+        startActivityForResult(intent, MainPresenter.REQUEST_GPU_DRIVER)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        // If the user picked a file, as opposed to just backing out.
+        if (resultCode != AppCompatActivity.RESULT_OK) {
+            return
+        }
+
+        if (requestCode != MainPresenter.REQUEST_GPU_DRIVER) {
+            return
+        }
+
+        val uri = data?.data ?: return
+        presenter.installDriver(uri)
     }
 
     override fun onDriverInstallDone(result: GpuDriverInstallResult) {
@@ -268,7 +268,6 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
             titles[MenuTag.CONFIG_GAME_CUBE] = R.string.gamecube_submenu
             titles[MenuTag.CONFIG_SERIALPORT1] = R.string.serialport1_submenu
             titles[MenuTag.CONFIG_WII] = R.string.wii_submenu
-            titles[MenuTag.CONFIG_ACHIEVEMENTS] = R.string.achievements_submenu
             titles[MenuTag.CONFIG_ADVANCED] = R.string.advanced_submenu
             titles[MenuTag.DEBUG] = R.string.debug_submenu
             titles[MenuTag.GRAPHICS] = R.string.graphics_settings

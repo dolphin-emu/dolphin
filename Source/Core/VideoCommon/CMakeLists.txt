@@ -8,11 +8,9 @@ add_library(videocommon
   AbstractStagingTexture.h
   AbstractTexture.cpp
   AbstractTexture.h
-  Assets/AssetListener.h
   Assets/CustomAsset.cpp
   Assets/CustomAsset.h
-  Assets/CustomAssetCache.cpp
-  Assets/CustomAssetCache.h
+  Assets/CustomAssetLibrary.cpp
   Assets/CustomAssetLibrary.h
   Assets/CustomAssetLoader.cpp
   Assets/CustomAssetLoader.h
@@ -28,12 +26,6 @@ add_library(videocommon
   Assets/ShaderAsset.h
   Assets/TextureAsset.cpp
   Assets/TextureAsset.h
-  Assets/TextureAssetUtils.cpp
-  Assets/TextureAssetUtils.h
-  Assets/TextureSamplerValue.cpp
-  Assets/TextureSamplerValue.h
-  Assets/Types.h
-  Assets/WatchableFilesystemAssetLibrary.h
   AsyncRequests.cpp
   AsyncRequests.h
   AsyncShaderCompiler.cpp
@@ -134,8 +126,6 @@ add_library(videocommon
   PerformanceMetrics.h
   PerformanceTracker.cpp
   PerformanceTracker.h
-  PipelineUtils.cpp
-  PipelineUtils.h
   PixelEngine.cpp
   PixelEngine.h
   PixelShaderGen.cpp
@@ -148,26 +138,8 @@ add_library(videocommon
   Present.h
   RenderState.cpp
   RenderState.h
-  Resources/CustomResourceManager.cpp
-  Resources/CustomResourceManager.h
-  Resources/InvalidTextures.cpp
-  Resources/InvalidTextures.h
-  Resources/MaterialResource.cpp
-  Resources/MaterialResource.h
-  Resources/Resource.cpp
-  Resources/Resource.h
-  Resources/ShaderResource.cpp
-  Resources/ShaderResource.h
-  Resources/TextureAndSamplerResource.cpp
-  Resources/TextureAndSamplerResource.h
-  Resources/TextureDataResource.cpp
-  Resources/TextureDataResource.h
-  Resources/TexturePool.cpp
-  Resources/TexturePool.h
   ShaderCache.cpp
   ShaderCache.h
-  ShaderCompileUtils.cpp
-  ShaderCompileUtils.h
   ShaderGenCommon.cpp
   ShaderGenCommon.h
   Spirv.cpp
@@ -239,14 +211,13 @@ add_library(videocommon
 target_link_libraries(videocommon
 PUBLIC
   core
-  glslang::glslang
 PRIVATE
   fmt::fmt
   spng::spng
   xxhash::xxhash
   imgui
   implot
-  glslang::SPIRV
+  glslang
   tinygltf
 )
 
@@ -288,6 +259,16 @@ if(FFmpeg_FOUND)
     )
   endif()
 endif()
+
+# Silence warnings on glslang by flagging it as a system include
+target_include_directories(videocommon
+SYSTEM PUBLIC
+  ${CMAKE_SOURCE_DIR}/Externals/glslang/glslang/Public
+SYSTEM PRIVATE
+  ${CMAKE_SOURCE_DIR}/Externals/glslang/StandAlone
+  ${CMAKE_SOURCE_DIR}/Externals/glslang/SPIRV
+  ${CMAKE_SOURCE_DIR}/Externals/glslang
+)
 
 if(MSVC)
   # Add precompiled header

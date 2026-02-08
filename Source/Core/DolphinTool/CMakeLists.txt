@@ -11,14 +11,7 @@ add_executable(dolphin-tool
   ToolMain.cpp
 )
 
-if (WIN32)
-  target_sources(dolphin-tool PRIVATE DolphinTool.exe.manifest DolphinTool.rc)
-
-  set_target_properties(dolphin-tool PROPERTIES
-    DEBUG_POSTFIX    D
-    OUTPUT_NAME      DolphinTool
-  )
-endif()
+set_target_properties(dolphin-tool PROPERTIES OUTPUT_NAME dolphin-tool)
 
 target_link_libraries(dolphin-tool
 PRIVATE

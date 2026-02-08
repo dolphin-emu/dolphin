@@ -28,7 +28,4 @@ bool DeviceConnected(int chan);
 void ResetDeviceType(int chan);
 bool UseAdapter();
 
-// Callable from any thread. Returns 0 when the adapter is not detected.
-double GetCurrentPollRate();
-
 }  // namespace GCAdapter

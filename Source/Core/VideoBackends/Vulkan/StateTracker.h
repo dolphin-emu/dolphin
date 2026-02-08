@@ -66,7 +66,7 @@ public:
   void SetViewport(const VkViewport& viewport);
   void SetScissor(const VkRect2D& scissor);
 
-  // Binds all dirty state to the command buffer.
+  // Binds all dirty state to the commmand buffer.
   // If this returns false, you should not issue the draw.
   bool Bind();
 

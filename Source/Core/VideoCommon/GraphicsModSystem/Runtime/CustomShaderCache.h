@@ -3,12 +3,13 @@
 
 #pragma once
 
+#include <array>
 #include <list>
 #include <map>
 #include <memory>
 #include <optional>
-
-#include "Common/HookableEvent.h"
+#include <string>
+#include <string_view>
 
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
@@ -17,6 +18,7 @@
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/UberShaderPixel.h"
+#include "VideoCommon/VideoEvents.h"
 
 struct CustomShaderInstance
 {

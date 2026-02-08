@@ -7,7 +7,6 @@
 #include <deque>
 
 #include "Common/CommonTypes.h"
-#include "Core/Core.h"
 #include "VideoCommon/PerformanceTracker.h"
 
 namespace Core
@@ -30,7 +29,6 @@ public:
 
   void CountFrame();
   void CountVBlank();
-  void OnEmulationStateChanged(Core::State state);
 
   // Call from CPU thread.
   void CountThrottleSleep(DT sleep);
@@ -43,9 +41,6 @@ public:
   double GetSpeed() const;
   double GetMaxSpeed() const;
 
-  // Call from any thread.
-  void SetLatestFramePresentationOffset(DT offset);
-
   // ImGui Functions
   void DrawImGuiStats(const float backbuffer_scale);
 
@@ -57,8 +52,6 @@ private:
 
   std::atomic<double> m_speed{};
   std::atomic<double> m_max_speed{};
-
-  std::atomic<DT> m_frame_presentation_offset{};
 
   struct PerfSample
   {

@@ -4,11 +4,11 @@ AccessModifierOffset: -2
 AlignAfterOpenBracket: Align
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
-AlignEscapedNewlines:  Right
+AlignEscapedNewlinesLeft: false
 AlignOperands:   true
 AlignTrailingComments: true
 AllowAllParametersOfDeclarationOnNextLine: true
-AllowShortBlocksOnASingleLine: Never
+AllowShortBlocksOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: InlineOnly
 AllowShortIfStatementsOnASingleLine: false
@@ -16,7 +16,7 @@ AllowShortLoopsOnASingleLine: false
 AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
-BreakTemplateDeclarations: Yes
+AlwaysBreakTemplateDeclarations: true
 BinPackArguments: true
 BinPackParameters: true
 BraceWrapping:
@@ -54,7 +54,6 @@ IncludeCategories:
 IndentCaseLabels: false
 IndentWidth:     2
 IndentWrappedFunctionNames: false
-InsertNewlineAtEOF: true
 KeepEmptyLinesAtTheStartOfBlocks: false
 MacroBlockBegin: ''
 MacroBlockEnd:   ''
@@ -68,9 +67,7 @@ PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 60
 PointerAlignment: Left
 ReflowComments:  true
-RemoveSemicolon: true
-RequiresClausePosition: WithPreceding
-SortIncludes:    CaseSensitive
+SortIncludes:    true
 SpaceAfterCStyleCast: false
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeParens: ControlStatements
@@ -82,8 +79,6 @@ SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
 Standard:        Latest
-StatementAttributeLikeMacros:
-  - emit
 TabWidth:        2
 UseTab:          Never
 ---
@@ -98,3 +93,4 @@ ObjCSpaceBeforeProtocolList: true
 BraceWrapping:
   AfterObjCDeclaration: true
 ...
+

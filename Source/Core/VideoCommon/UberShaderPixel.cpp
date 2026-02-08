@@ -7,6 +7,7 @@
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/UberShaderCommon.h"
@@ -25,11 +26,11 @@ PixelShaderUid GetPixelShaderUid()
   uid_data->early_depth = bpmem.GetEmulatedZ() == EmulatedZ::Early &&
                           (g_ActiveConfig.bFastDepthCalc ||
                            bpmem.alpha_test.TestResult() == AlphaTestResult::Undetermined) &&
-                          !(bpmem.zmode.test_enable && bpmem.genMode.zfreeze);
+                          !(bpmem.zmode.testenable && bpmem.genMode.zfreeze);
   uid_data->per_pixel_depth =
       (bpmem.ztex2.op != ZTexOp::Disabled && bpmem.GetEmulatedZ() == EmulatedZ::Late) ||
-      (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.test_enable && !uid_data->early_depth) ||
-      (bpmem.zmode.test_enable && bpmem.genMode.zfreeze);
+      (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !uid_data->early_depth) ||
+      (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
   uid_data->uint_output = bpmem.blendmode.UseLogicOp();
 
   return out;
@@ -398,7 +399,9 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "    D = D << scale;\n"
               "  }}\n"
               "\n"
-              "  // This rounding bias is not added when the scale is divide by 2\n"
+              "  // TODO: Is this rounding bias still added when the scale is divide by 2?  "
+              "Currently we "
+              "do not apply it.\n"
               "  if (scale != 3u)\n"
               "    lerp = lerp + (op ? 127 : 128);\n"
               "\n"
@@ -554,7 +557,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   out.Write("}}\n"
             "\n");
 
-  // Since the fixed-point texture coordinate variables aren't global, we need to pass
+  // Since the fixed-point texture coodinate variables aren't global, we need to pass
   // them to the select function.  This applies to all backends.
   if (numTexgen > 0)
   {

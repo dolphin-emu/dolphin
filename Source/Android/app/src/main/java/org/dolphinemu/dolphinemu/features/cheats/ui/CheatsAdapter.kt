@@ -43,17 +43,17 @@ class CheatsAdapter(
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
             CheatItem.TYPE_CHEAT -> {
-                val listItemCheatBinding = ListItemCheatBinding.inflate(inflater, parent, false)
+                val listItemCheatBinding = ListItemCheatBinding.inflate(inflater)
                 addViewListeners(listItemCheatBinding.getRoot())
                 CheatViewHolder(listItemCheatBinding)
             }
             CheatItem.TYPE_HEADER -> {
-                val listItemHeaderBinding = ListItemHeaderBinding.inflate(inflater, parent, false)
+                val listItemHeaderBinding = ListItemHeaderBinding.inflate(inflater)
                 addViewListeners(listItemHeaderBinding.root)
                 HeaderViewHolder(listItemHeaderBinding)
             }
             CheatItem.TYPE_ACTION -> {
-                val listItemSubmenuBinding = ListItemSubmenuBinding.inflate(inflater, parent, false)
+                val listItemSubmenuBinding = ListItemSubmenuBinding.inflate(inflater)
                 addViewListeners(listItemSubmenuBinding.root)
                 ActionViewHolder(listItemSubmenuBinding)
             }

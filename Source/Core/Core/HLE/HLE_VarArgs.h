@@ -9,6 +9,7 @@
 #include "Common/CommonTypes.h"
 
 #include "Core/PowerPC/MMU.h"
+#include "Core/PowerPC/PowerPC.h"
 
 namespace Core
 {
@@ -18,14 +19,15 @@ class System;
 
 namespace HLE::SystemVABI
 {
+// SFINAE
 template <typename T>
-concept ArgPointer = std::is_union_v<T> || std::is_class_v<T>;
+constexpr bool IS_ARG_POINTER = std::is_union<T>() || std::is_class<T>();
 template <typename T>
-concept ArgWord = std::is_pointer_v<T> || (std::is_integral_v<T> && sizeof(T) <= 4);
+constexpr bool IS_WORD = std::is_pointer<T>() || (std::is_integral<T>() && sizeof(T) <= 4);
 template <typename T>
-concept ArgDoubleWord = std::is_integral_v<T> && sizeof(T) == 8;
+constexpr bool IS_DOUBLE_WORD = std::is_integral<T>() && sizeof(T) == 8;
 template <typename T>
-concept ArgReal = std::is_floating_point_v<T>;
+constexpr bool IS_ARG_REAL = std::is_floating_point<T>();
 
 // See System V ABI (SVR4) for more details
 //  -> 3-18 Parameter Passing
@@ -45,7 +47,7 @@ public:
   virtual ~VAList();
 
   // 0 - arg_ARGPOINTER
-  template <ArgPointer T>
+  template <typename T, typename std::enable_if_t<IS_ARG_POINTER<T>>* = nullptr>
   T GetArg()
   {
     T obj;
@@ -53,14 +55,14 @@ public:
 
     for (size_t i = 0; i < sizeof(T); i += 1, addr += 1)
     {
-      reinterpret_cast<u8*>(&obj)[i] = PowerPC::MMU::HostRead<u8>(m_guard, addr);
+      reinterpret_cast<u8*>(&obj)[i] = PowerPC::MMU::HostRead_U8(m_guard, addr);
     }
 
     return obj;
   }
 
   // 1 - arg_WORD
-  template <ArgWord T>
+  template <typename T, typename std::enable_if_t<IS_WORD<T>>* = nullptr>
   T GetArg()
   {
     static_assert(!std::is_pointer<T>(), "VAList doesn't support pointers");
@@ -74,7 +76,7 @@ public:
     else
     {
       m_stack = Common::AlignUp(m_stack, 4);
-      value = PowerPC::MMU::HostRead<u32>(m_guard, m_stack);
+      value = PowerPC::MMU::HostRead_U32(m_guard, m_stack);
       m_stack += 4;
     }
 
@@ -82,7 +84,7 @@ public:
   }
 
   // 2 - arg_DOUBLEWORD
-  template <ArgDoubleWord T>
+  template <typename T, typename std::enable_if_t<IS_DOUBLE_WORD<T>>* = nullptr>
   T GetArg()
   {
     u64 value;
@@ -97,7 +99,7 @@ public:
     else
     {
       m_stack = Common::AlignUp(m_stack, 8);
-      value = PowerPC::MMU::HostRead<u64>(m_guard, m_stack);
+      value = PowerPC::MMU::HostRead_U64(m_guard, m_stack);
       m_stack += 8;
     }
 
@@ -105,7 +107,7 @@ public:
   }
 
   // 3 - arg_ARGREAL
-  template <ArgReal T>
+  template <typename T, typename std::enable_if_t<IS_ARG_REAL<T>>* = nullptr>
   T GetArg()
   {
     double value;
@@ -118,7 +120,7 @@ public:
     else
     {
       m_stack = Common::AlignUp(m_stack, 8);
-      value = PowerPC::MMU::HostRead<double>(m_guard, m_stack);
+      value = PowerPC::MMU::HostRead_F64(m_guard, m_stack);
       m_stack += 8;
     }
 
@@ -155,7 +157,7 @@ class VAListStruct : public VAList
 {
 public:
   explicit VAListStruct(const Core::CPUThreadGuard& guard, u32 address);
-  ~VAListStruct() override = default;
+  ~VAListStruct() = default;
 
 private:
   struct svr4_va_list

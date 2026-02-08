@@ -4,7 +4,6 @@ package org.dolphinemu.dolphinemu.features.settings.ui
 
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.Lifecycle
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem
 import org.dolphinemu.dolphinemu.utils.GpuDriverInstallResult
@@ -15,9 +14,10 @@ import org.dolphinemu.dolphinemu.utils.GpuDriverInstallResult
  */
 interface SettingsFragmentView {
     /**
-     * Called when a Settings object becomes available.
+     * Called by the containing Activity to notify the Fragment that an
+     * asynchronous load operation completed.
      *
-     * @param settings The settings that this Fragment should access.
+     * @param settings The (possibly null) result of the ini load operation.
      */
     fun onSettingsFileLoaded(settings: Settings)
 
@@ -29,6 +29,12 @@ interface SettingsFragmentView {
     fun showSettingsList(settingsList: ArrayList<SettingsItem>)
 
     /**
+     * Called by the containing Activity when an asynchronous load operation fails.
+     * Instructs the Fragment to load the settings screen with defaults selected.
+     */
+    fun loadDefaultSettings()
+
+    /**
      * @return The Fragment's containing activity.
      */
     val fragmentActivity: FragmentActivity
@@ -37,11 +43,6 @@ interface SettingsFragmentView {
      * @return The Fragment's SettingsAdapter.
      */
     val adapter: SettingsAdapter?
-
-    /**
-     * The activity result launchers to use for asking the user to pick a directory or file.
-     */
-    val activityResultLaunchers: SettingsActivityResultLaunchers
 
     /**
      * Tell the Fragment to tell the containing Activity to show a new
@@ -94,9 +95,12 @@ interface SettingsFragmentView {
      * @param value   The current value of the Setting.
      */
     fun hasMenuTagActionForValue(menuTag: MenuTag, value: Int): Boolean
-
     /**
-     * Controls whether the input mapping dialog should detect inputs from all devices,
+     * Returns whether the input mapping dialog should detect inputs from all devices,
+     * not just the device configured for the controller.
+     */
+    /**
+     * Sets whether the input mapping dialog should detect inputs from all devices,
      * not just the device configured for the controller.
      */
     var isMappingAllDevices: Boolean
@@ -125,9 +129,4 @@ interface SettingsFragmentView {
      * Shows a dialog asking the user to install or uninstall a GPU driver
      */
     fun showGpuDriverDialog()
-
-    /**
-     * Returns the Lifecycle for the Fragment.
-     */
-    fun getFragmentLifecycle(): Lifecycle
 }

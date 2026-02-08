@@ -36,9 +36,9 @@ struct PowerPCState;
 }  // namespace PowerPC
 class PPCSymbolDB;
 
-// #define JIT_LOG_GENERATED_CODE  // Enables logging of generated code
-// #define JIT_LOG_GPR             // Enables logging of the PPC general purpose regs
-// #define JIT_LOG_FPR             // Enables logging of the PPC floating point regs
+//#define JIT_LOG_GENERATED_CODE  // Enables logging of generated code
+//#define JIT_LOG_GPR             // Enables logging of the PPC general purpose regs
+//#define JIT_LOG_FPR             // Enables logging of the PPC floating point regs
 
 // Use these to control the instruction selection
 // #define INSTRUCTION_START FallBackToInterpreter(inst); return;
@@ -158,7 +158,6 @@ protected:
   bool m_low_dcbz_hack = false;
   bool m_fprf = false;
   bool m_accurate_nans = false;
-  bool m_accurate_fmadds = false;
   bool m_fastmem_enabled = false;
   bool m_accurate_cpu_cache_enabled = false;
 
@@ -166,7 +165,7 @@ protected:
   bool m_cleanup_after_stackfault = false;
   u8* m_stack_guard = nullptr;
 
-  static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 24> JIT_SETTINGS;
+  static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 23> JIT_SETTINGS;
 
   bool DoesConfigNeedRefresh() const;
   void RefreshConfig();
@@ -198,7 +197,7 @@ public:
   JitBase& operator=(JitBase&&) = delete;
   ~JitBase() override;
 
-  bool IsProfilingEnabled() const { return m_enable_profiling && m_enable_debugging; }
+  bool IsProfilingEnabled() const { return m_enable_profiling; }
   bool IsDebuggingEnabled() const { return m_enable_debugging; }
 
   static const u8* Dispatch(JitBase& jit);
@@ -216,8 +215,6 @@ public:
   virtual std::size_t DisassembleFarCode(const JitBlock& block, std::ostream& stream) const = 0;
 
   virtual const CommonAsmRoutinesBase* GetAsmRoutines() = 0;
-
-  virtual bool WantsPageTableMappings() const;
 
   virtual bool HandleFault(uintptr_t access_address, SContext* ctx) = 0;
   bool HandleStackFault();

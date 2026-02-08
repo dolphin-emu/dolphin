@@ -5,6 +5,7 @@
 
 #include <fmt/format.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"

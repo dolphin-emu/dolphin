@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
+#include <set>
 #include <string>
 
 #include <fmt/format.h>
@@ -20,6 +21,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 
 namespace Common
 {
@@ -87,13 +89,9 @@ void MemArena::ReleaseMemoryRegion()
   }
 }
 
-void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base, bool writeable)
+void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
 {
-  int prot = PROT_READ;
-  if (writeable)
-    prot |= PROT_WRITE;
-
-  void* retval = mmap(base, size, prot, MAP_SHARED | MAP_FIXED, m_shm_fd, offset);
+  void* retval = mmap(base, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, m_shm_fd, offset);
   if (retval == MAP_FAILED)
   {
     NOTICE_LOG_FMT(MEMMAP, "mmap failed");
@@ -105,28 +103,11 @@ void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base, bool writ
   }
 }
 
-bool MemArena::ChangeMappingProtection(void* view, size_t size, bool writeable)
-{
-  int prot = PROT_READ;
-  if (writeable)
-    prot |= PROT_WRITE;
-
-  int retval = mprotect(view, size, prot);
-  if (retval != 0)
-    NOTICE_LOG_FMT(MEMMAP, "mprotect failed");
-  return retval == 0;
-}
-
 void MemArena::UnmapFromMemoryRegion(void* view, size_t size)
 {
   void* retval = mmap(view, size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
   if (retval == MAP_FAILED)
     NOTICE_LOG_FMT(MEMMAP, "mmap failed");
-}
-
-size_t MemArena::GetPageSize() const
-{
-  return sysconf(_SC_PAGESIZE);
 }
 
 LazyMemoryRegion::LazyMemoryRegion() = default;

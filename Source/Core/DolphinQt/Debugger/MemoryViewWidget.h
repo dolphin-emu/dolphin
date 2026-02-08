@@ -24,8 +24,6 @@ class CPUThreadGuard;
 class System;
 }  // namespace Core
 
-class PPCSymbolDB;
-
 // Captures direct editing of the table.
 class TableEditDelegate : public QStyledItemDelegate
 {
@@ -78,15 +76,7 @@ public:
     Full,
     Addresses,
     Values,
-    Symbols,
     Auto,
-  };
-
-  enum class EditSymbolType
-  {
-    AddNote,
-    EditNote,
-    EditRegion,
   };
 
   explicit MemoryViewWidget(Core::System& system, QWidget* parent = nullptr);
@@ -94,7 +84,6 @@ public:
   void CreateTable();
   void UpdateDispatcher(UpdateType type = UpdateType::Addresses);
   void Update();
-  void UpdateSymbols();
   void UpdateOnFrameEnd();
   void GetValues();
   void UpdateFont(const QFont& font);
@@ -109,7 +98,6 @@ public:
   void SetBPType(BPType type);
   void SetAddress(u32 address);
   void SetFocus() const;
-  void ShowSymbols(bool enable);
 
   void SetBPLoggingEnabled(bool enabled);
 
@@ -120,7 +108,6 @@ signals:
   void ActivateSearch();
 
 private:
-  void OnEditSymbol(EditSymbolType type, u32 addr);
   void OnContextMenu(const QPoint& pos);
   void OnCopyAddress(u32 addr);
   void OnCopyHex(u32 addr);
@@ -129,11 +116,9 @@ private:
   void UpdateColumns();
   void ScrollbarActionTriggered(int action);
   void ScrollbarSliderReleased();
-
   std::optional<QString> ValueToString(const Core::CPUThreadGuard& guard, u32 address, Type type);
 
   Core::System& m_system;
-  PPCSymbolDB& m_ppc_symbol_db;
 
   MemoryViewTable* m_table;
   QScrollBar* m_scrollbar;
@@ -152,7 +137,6 @@ private:
   int m_alignment = 16;
   int m_data_columns;
   bool m_dual_view = false;
-  bool m_show_symbols = true;
   std::mutex m_updating;
   QColor m_highlight_color = QColor(120, 255, 255, 100);
 

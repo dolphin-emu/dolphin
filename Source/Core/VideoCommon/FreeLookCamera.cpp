@@ -4,12 +4,17 @@
 #include "VideoCommon/FreeLookCamera.h"
 
 #include <algorithm>
+#include <math.h>
 
 #include <fmt/format.h>
 
+#include "Common/MathUtil.h"
+
 #include "Common/ChunkFile.h"
-#include "Common/Config/Config.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
+
+#include "VideoCommon/VideoCommon.h"
 
 FreeLookCamera g_freelook_camera;
 
@@ -255,28 +260,27 @@ float CameraControllerInput::GetSpeed() const
 
 FreeLookCamera::FreeLookCamera()
 {
-  RefreshConfig();
+  SetControlType(FreeLook::ControlType::SixAxis);
 }
 
-void FreeLookCamera::RefreshConfig()
+void FreeLookCamera::SetControlType(FreeLook::ControlType type)
 {
-  m_is_enabled = Config::Get(Config::FREE_LOOK_ENABLED);
-  const auto type = Config::Get(Config::FL1_CONTROL_TYPE);
-
-  if (m_current_type == type)
+  if (m_current_type && *m_current_type == type)
+  {
     return;
+  }
 
-  if (type == FreeLook::ControlType::Orbital)
+  if (type == FreeLook::ControlType::SixAxis)
+  {
+    m_camera_controller = std::make_unique<SixAxisController>();
+  }
+  else if (type == FreeLook::ControlType::Orbital)
   {
     m_camera_controller = std::make_unique<OrbitalController>();
   }
   else if (type == FreeLook::ControlType::FPS)
   {
     m_camera_controller = std::make_unique<FPSController>();
-  }
-  else
-  {
-    m_camera_controller = std::make_unique<SixAxisController>();
   }
 
   m_current_type = type;
@@ -326,7 +330,7 @@ void FreeLookCamera::DoState(PointerWrap& p)
 
 bool FreeLookCamera::IsActive() const
 {
-  return m_is_enabled;
+  return FreeLook::GetActiveConfig().enabled;
 }
 
 CameraController* FreeLookCamera::GetController() const

@@ -235,7 +235,7 @@ protected:
 class EmulatedController : public ControlGroupContainer
 {
 public:
-  ~EmulatedController() override;
+  virtual ~EmulatedController();
 
   virtual InputConfig* GetConfig() const = 0;
 

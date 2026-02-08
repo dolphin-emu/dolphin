@@ -60,13 +60,13 @@ public:
   Core::DeviceRemoval UpdateInput() override;
 
   Joystick(const LPDIRECTINPUTDEVICE8 device);
-  ~Joystick() override;
+  ~Joystick();
 
   std::string GetName() const override;
   std::string GetSource() const override;
   int GetSortPriority() const override { return -3; }
 
-  bool IsValid() const final;
+  bool IsValid() const final override;
 
 private:
   const LPDIRECTINPUTDEVICE8 m_device;

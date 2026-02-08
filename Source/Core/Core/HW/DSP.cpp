@@ -603,9 +603,4 @@ u8* DSPManager::GetARAMPtr() const
   return m_aram.ptr;
 }
 
-u32 DSPManager::GetARAMSize() const
-{
-  return m_aram.size;
-}
-
 }  // end of namespace DSP

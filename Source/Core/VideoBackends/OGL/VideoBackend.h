@@ -16,12 +16,12 @@ public:
   bool Initialize(const WindowSystemInfo& wsi) override;
   void Shutdown() override;
 
-  std::string GetConfigName() const override;
+  std::string GetName() const override;
   std::string GetDisplayName() const override;
 
   void InitBackendInfo(const WindowSystemInfo& wsi) override;
 
-  static constexpr const char* CONFIG_NAME = "OGL";
+  static constexpr const char* NAME = "OGL";
 
 private:
   bool InitializeGLExtensions(GLContext* context);

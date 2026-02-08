@@ -73,17 +73,17 @@ namespace Common
 #define PPCLSH 21
 #define PPCIDX2SH 1
 
-#define PPCGETIDX(x) (((x) & PPCIDXMASK) >> PPCIDXSH)
-#define PPCGETD(x) (((x) & PPCDMASK) >> PPCDSH)
-#define PPCGETA(x) (((x) & PPCAMASK) >> PPCASH)
-#define PPCGETB(x) (((x) & PPCBMASK) >> PPCBSH)
-#define PPCGETC(x) (((x) & PPCCMASK) >> PPCCSH)
-#define PPCGETM(x) (((x) & PPCMMASK) >> PPCMSH)
-#define PPCGETCRD(x) (((x) & PPCCRDMASK) >> PPCCRDSH)
-#define PPCGETCRA(x) (((x) & PPCCRAMASK) >> PPCCRASH)
-#define PPCGETL(x) (((x) & PPCLMASK) >> PPCLSH)
-#define PPCGETIDX2(x) (((x) & PPCIDX2MASK) >> PPCIDX2SH)
-#define PPCGETSTRM(x) (((x) & PPCSTRM) >> PPCDSH)
+#define PPCGETIDX(x) (((x)&PPCIDXMASK) >> PPCIDXSH)
+#define PPCGETD(x) (((x)&PPCDMASK) >> PPCDSH)
+#define PPCGETA(x) (((x)&PPCAMASK) >> PPCASH)
+#define PPCGETB(x) (((x)&PPCBMASK) >> PPCBSH)
+#define PPCGETC(x) (((x)&PPCCMASK) >> PPCCSH)
+#define PPCGETM(x) (((x)&PPCMMASK) >> PPCMSH)
+#define PPCGETCRD(x) (((x)&PPCCRDMASK) >> PPCCRDSH)
+#define PPCGETCRA(x) (((x)&PPCCRAMASK) >> PPCCRASH)
+#define PPCGETL(x) (((x)&PPCLMASK) >> PPCLSH)
+#define PPCGETIDX2(x) (((x)&PPCIDX2MASK) >> PPCIDX2SH)
+#define PPCGETSTRM(x) (((x)&PPCSTRM) >> PPCDSH)
 
 constexpr std::array<const char*, 32> trap_condition{
     nullptr, "lgt",   "llt",   nullptr, "eq",    "lge",   "lle",   nullptr,
@@ -203,7 +203,7 @@ static std::string spr_name(int i)
   case 9:
     return "CTR";
   case 18:
-    return "DSISR";
+    return "DSIR";
   case 19:
     return "DAR";
   case 22:
@@ -214,10 +214,6 @@ static std::string spr_name(int i)
     return "SRR0";
   case 27:
     return "SRR1";
-  case 268:
-    return "TBLr";
-  case 269:
-    return "TBUr";
   case 272:
     return "SPRG0";
   case 273:
@@ -228,10 +224,6 @@ static std::string spr_name(int i)
     return "SPRG3";
   case 282:
     return "EAR";
-  case 284:
-    return "TBLw";
-  case 285:
-    return "TBUw";
   case 287:
     return "PVR";
   case 528:
@@ -266,38 +258,6 @@ static std::string spr_name(int i)
     return "DBAT3U";
   case 543:
     return "DBAT3L";
-  case 560:
-    return "IBAT4U";
-  case 561:
-    return "IBAT4L";
-  case 562:
-    return "IBAT5U";
-  case 563:
-    return "IBAT5L";
-  case 564:
-    return "IBAT6U";
-  case 565:
-    return "IBAT6L";
-  case 566:
-    return "IBAT7U";
-  case 567:
-    return "IBAT7L";
-  case 568:
-    return "DBAT4U";
-  case 569:
-    return "DBAT4L";
-  case 570:
-    return "DBAT5U";
-  case 571:
-    return "DBAT5L";
-  case 572:
-    return "DBAT6U";
-  case 573:
-    return "DBAT6L";
-  case 574:
-    return "DBAT7U";
-  case 575:
-    return "DBAT7L";
   case 912:
     return "GQR0";
   case 913:
@@ -319,9 +279,9 @@ static std::string spr_name(int i)
   case 921:
     return "WPAR";
   case 922:
-    return "DMAU";
+    return "DMA_U";
   case 923:
-    return "DMAL";
+    return "DMA_L";
   case 924:
     return "ECID_U";
   case 925:
@@ -368,14 +328,10 @@ static std::string spr_name(int i)
     return "IABR";
   case 1011:
     return "HID4";
-  case 1012:
-    return "TDCL";
   case 1013:
     return "DABR";
   case 1017:
     return "L2CR";
-  case 1018:
-    return "TDCH";
   case 1019:
     return "ICTC";
   case 1020:
@@ -493,7 +449,7 @@ void GekkoDisassembler::trapi(u32 in, unsigned char dmode)
 
   if (cnd != nullptr)
   {
-    m_opcode = fmt::format("t{}{}i", dmode ? 'd' : 'w', cnd);
+    m_opcode = fmt::format("t{}{}", dmode ? 'd' : 'w', cnd);
   }
   else
   {
@@ -918,6 +874,16 @@ void GekkoDisassembler::mtb(u32 in)
   }
 }
 
+void GekkoDisassembler::sradi(u32 in)
+{
+  int s = (int)PPCGETD(in);
+  int a = (int)PPCGETA(in);
+  int bsh = (int)(((in & 2) << 4) + PPCGETB(in));
+
+  m_opcode = fmt::format("sradi{}", (in & 1) ? "." : "");
+  m_operands = fmt::format("{}, {}, {}", regnames[a], regnames[s], bsh);
+}
+
 void GekkoDisassembler::ldst(u32 in, std::string_view name, char reg)
 {
   int s = (int)PPCGETD(in);
@@ -1084,7 +1050,7 @@ void GekkoDisassembler::ps(u32 inst)
 
   case 23:
     m_opcode = "ps_sel";
-    m_operands = fmt::format("p{}, p{}>=0?p{}:p{}", FD, FA, FC, FB);
+    m_operands = fmt::format("p{}>=0?p{}:p{}", FD, FA, FC);
     return;
 
   case 24:
@@ -1433,6 +1399,30 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
     ori(in, "andis.");
     break;
 
+  case 30:
+    switch ((in >> 2) & 0x7)
+    {
+    case 0:
+      rld(in, "icl", 0);  // rldicl
+      break;
+    case 1:
+      rld(in, "icr", 0);  // rldicr
+      break;
+    case 2:
+      rld(in, "ic", 0);  // rldic
+      break;
+    case 3:
+      rld(in, "imi", 0);  // rldimi
+      break;
+    case 4:
+      rld(in, in & 2 ? "cl" : "cr", 1);  // rldcl, rldcr
+      break;
+    default:
+      ill(in);
+      break;
+    }
+    break;
+
   case 31:
     switch (PPCGETIDX2(in))
     {
@@ -1777,6 +1767,10 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
 
     case 412:
       dab(in, "orc", 7, 1, 0, -1);
+      break;
+
+    case 413:
+      sradi(in);  // sradi
       break;
 
     case 434:
@@ -2251,6 +2245,18 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
         {
           ill(in);
         }
+        break;
+
+      case 814:
+        fdabc(in, "fctid", 9);
+        break;
+
+      case 815:
+        fdabc(in, "fctidz", 9);
+        break;
+
+      case 846:
+        fdabc(in, "fcfid", 9);
         break;
 
       default:

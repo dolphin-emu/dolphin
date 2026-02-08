@@ -10,11 +10,6 @@
 
 #include "Common/CommonTypes.h"
 
-namespace VideoCommon
-{
-class ShaderIncluder;
-}
-
 namespace Vulkan::ShaderCompiler
 {
 // SPIR-V compiled code type
@@ -22,18 +17,14 @@ using SPIRVCodeType = u32;
 using SPIRVCodeVector = std::vector<SPIRVCodeType>;
 
 // Compile a vertex shader to SPIR-V.
-std::optional<SPIRVCodeVector> CompileVertexShader(std::string_view source_code,
-                                                   VideoCommon::ShaderIncluder* shader_includer);
+std::optional<SPIRVCodeVector> CompileVertexShader(std::string_view source_code);
 
 // Compile a geometry shader to SPIR-V.
-std::optional<SPIRVCodeVector> CompileGeometryShader(std::string_view source_code,
-                                                     VideoCommon::ShaderIncluder* shader_includer);
+std::optional<SPIRVCodeVector> CompileGeometryShader(std::string_view source_code);
 
 // Compile a fragment shader to SPIR-V.
-std::optional<SPIRVCodeVector> CompileFragmentShader(std::string_view source_code,
-                                                     VideoCommon::ShaderIncluder* shader_includer);
+std::optional<SPIRVCodeVector> CompileFragmentShader(std::string_view source_code);
 
 // Compile a compute shader to SPIR-V.
-std::optional<SPIRVCodeVector> CompileComputeShader(std::string_view source_code,
-                                                    VideoCommon::ShaderIncluder* shader_includer);
+std::optional<SPIRVCodeVector> CompileComputeShader(std::string_view source_code);
 }  // namespace Vulkan::ShaderCompiler

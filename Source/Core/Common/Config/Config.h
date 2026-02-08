@@ -4,7 +4,7 @@
 #pragma once
 
 #include <functional>
-#include <limits>
+#include <map>
 #include <memory>
 #include <optional>
 #include <string>
@@ -17,7 +17,7 @@ namespace Config
 {
 struct ConfigChangedCallbackID
 {
-  size_t id = std::numeric_limits<size_t>::max();
+  size_t id = -1;
 
   bool operator==(const ConfigChangedCallbackID&) const = default;
 };
@@ -29,9 +29,9 @@ void AddLayer(std::unique_ptr<ConfigLayerLoader> loader);
 std::shared_ptr<Layer> GetLayer(LayerType layer);
 void RemoveLayer(LayerType layer);
 
-// Returns an ID that should be passed to RemoveConfigChangedCallback() when the callback is no
-// longer needed. The callback may be called from any thread.
-[[nodiscard]] ConfigChangedCallbackID AddConfigChangedCallback(ConfigChangedCallback func);
+// Returns an ID that can be passed to RemoveConfigChangedCallback().
+// The callback may be called from any thread.
+ConfigChangedCallbackID AddConfigChangedCallback(ConfigChangedCallback func);
 void RemoveConfigChangedCallback(ConfigChangedCallbackID callback_id);
 void OnConfigChanged();
 
@@ -72,10 +72,10 @@ T Get(const Info<T>& info)
     cached.value = GetUncached(info);
     cached.config_version = config_version;
 
-    info.TryToSetCachedValue(cached);
+    info.SetCachedValue(cached);
   }
 
-  return std::move(cached.value);
+  return cached.value;
 }
 
 template <typename T>

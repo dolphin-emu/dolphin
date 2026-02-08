@@ -6,6 +6,7 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
+#include "Core/State.h"
 #include "Core/System.h"
 
 Platform::~Platform() = default;
@@ -23,7 +24,7 @@ void Platform::UpdateRunningFlag()
 {
   if (m_shutdown_requested.TestAndClear())
   {
-    const auto& system = Core::System::GetInstance();
+    auto& system = Core::System::GetInstance();
     const auto ios = system.GetIOS();
     const auto stm = ios ? ios->GetDeviceByName("/dev/stm/eventhook") : nullptr;
     if (!m_tried_graceful_shutdown.IsSet() && stm &&

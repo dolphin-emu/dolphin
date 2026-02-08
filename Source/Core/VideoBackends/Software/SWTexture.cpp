@@ -5,6 +5,8 @@
 
 #include <cstring>
 
+#include "Common/Assert.h"
+
 #include "VideoBackends/Software/CopyRegion.h"
 #include "VideoBackends/Software/SWGfx.h"
 

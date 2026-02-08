@@ -35,10 +35,11 @@ void NetPlayChatUI::Display()
   }
 
   ImGui::BeginChild("Scrolling", ImVec2(0, -30 * scale), true, ImGuiWindowFlags_None);
-  for (const auto& [text, color] : m_messages)
+  for (const auto& msg : m_messages)
   {
+    auto c = msg.second;
     ImGui::PushTextWrapPos(0.0f);
-    ImGui::TextColored(ImVec4(color[0], color[1], color[2], 1.0f), "%s", text.c_str());
+    ImGui::TextColored(ImVec4(c[0], c[1], c[2], 1.0f), "%s", msg.first.c_str());
     ImGui::PopTextWrapPos();
   }
 
@@ -59,7 +60,7 @@ void NetPlayChatUI::Display()
   if (ImGui::InputText("##NetplayMessageBuffer", m_message_buf, IM_ARRAYSIZE(m_message_buf),
                        ImGuiInputTextFlags_EnterReturnsTrue))
   {
-    SendChatMessage();
+    SendMessage();
   }
 
   if (m_activate)
@@ -73,7 +74,7 @@ void NetPlayChatUI::Display()
   ImGui::SameLine();
 
   if (ImGui::Button("Send"))
-    SendChatMessage();
+    SendMessage();
 
   ImGui::End();
 }
@@ -90,7 +91,7 @@ void NetPlayChatUI::AppendChat(std::string message, Color color)
     m_scroll_to_bottom = true;
 }
 
-void NetPlayChatUI::SendChatMessage()
+void NetPlayChatUI::SendMessage()
 {
   // Check whether the input field is empty
   if (m_message_buf[0] != '\0')

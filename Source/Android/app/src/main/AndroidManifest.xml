@@ -14,9 +14,6 @@
         android:name="android.hardware.gamepad"
         android:required="false"/>
     <uses-feature
-        android:name="android.hardware.microphone"
-        android:required="false"/>
-    <uses-feature
         android:name="android.software.leanback"
         android:required="false"/>
 
@@ -28,8 +25,9 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="com.android.providers.tv.permission.READ_EPG_DATA"/>
     <uses-permission android:name="com.android.providers.tv.permission.WRITE_EPG_DATA"/>
-    <uses-permission android:name="android.permission.VIBRATE"/>
-    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission
+        android:name="android.permission.VIBRATE"
+        android:required="false"/>
 
     <application
         android:name=".DolphinApplication"
@@ -37,14 +35,14 @@
         android:icon="@mipmap/ic_launcher"
         android:requestLegacyExternalStorage="true"
         android:preserveLegacyExternalStorage="true"
-        android:enableOnBackInvokedCallback="false"
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_rules"
         android:dataExtractionRules="@xml/backup_rules_api_31"
         android:supportsRtl="true"
         android:isGame="true"
         android:banner="@drawable/banner_tv"
-        android:hasFragileUserData="true">
+        android:hasFragileUserData="true"
+        android:extractNativeLibs="true">
         <meta-data
             android:name="android.max_aspect"
             android:value="2.1"/>

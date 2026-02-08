@@ -19,6 +19,8 @@ add_library(uicommon
   ResourcePack/ResourcePack.h
   UICommon.cpp
   UICommon.h
+  USBUtils.cpp
+  USBUtils.h
 )
 
 target_link_libraries(uicommon
@@ -26,7 +28,7 @@ PUBLIC
   common
   core
   cpp-optparse
-  MINIZIP::minizip-ng
+  minizip::minizip
   pugixml
 
 PRIVATE

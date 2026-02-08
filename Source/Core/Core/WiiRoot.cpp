@@ -18,6 +18,7 @@
 #include "Common/StringUtil.h"
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/IOS/ES/ES.h"
@@ -299,7 +300,7 @@ static bool CopySysmenuFilesToFS(FS::FileSystem* fs, const std::string& host_sou
     else
     {
       // Do not overwrite any existing files.
-      if (fs->GetMetadata(IOS::SYSMENU_UID, IOS::SYSMENU_UID, nand_path).has_value())
+      if (fs->GetMetadata(IOS::SYSMENU_UID, IOS::SYSMENU_UID, nand_path).Succeeded())
         continue;
 
       File::IOFile host_file{host_path, "rb"};

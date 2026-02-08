@@ -18,13 +18,13 @@ public:
   void Hide();
 
 signals:
-  void Search(const QString& search);
+  void Search(const QString& serach);
 
 private:
   void CreateWidgets();
   void ConnectWidgets();
 
-  bool eventFilter(QObject* object, QEvent* event) final;
+  bool eventFilter(QObject* object, QEvent* event) final override;
 
   QLineEdit* m_search_edit;
   QPushButton* m_close_button;

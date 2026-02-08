@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include <map>
 #include <sstream>
 #include <string>
@@ -19,6 +20,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPDisassembler.h"

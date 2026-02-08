@@ -63,8 +63,6 @@ enum class Terminal
   Eq,
   So,
   Dot,
-  NumLabFwd,
-  NumLabBwd,
 };
 
 enum class ParenType
@@ -113,7 +111,6 @@ public:
   virtual void OnCloseParen(ParenType type) {}
   virtual void OnError() {}
   virtual void OnLabelDecl(std::string_view name) {}
-  virtual void OnNumericLabelDecl(std::string_view name, u32 parse_num) {}
   virtual void OnVarDecl(std::string_view name) {}
 
 protected:

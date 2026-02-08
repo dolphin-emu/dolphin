@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.divider.MaterialDividerItemDecoration
+import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.DialogInputProfilesBinding
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag
 import org.dolphinemu.dolphinemu.utils.SerializableHelper.serializable
@@ -44,8 +45,11 @@ class ProfileDialog : BottomSheetDialogFragment() {
         divider.isLastItemDecorated = false
         binding.profileList.addItemDecoration(divider)
 
-        BottomSheetBehavior.from<View>(view.parent as View).state =
-            BottomSheetBehavior.STATE_EXPANDED
+        // You can't expand a bottom sheet with a controller/remote/other non-touch devices
+        val behavior: BottomSheetBehavior<View> = BottomSheetBehavior.from(view.parent as View)
+        if (!resources.getBoolean(R.bool.hasTouch)) {
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        }
     }
 
     override fun onDestroyView() {

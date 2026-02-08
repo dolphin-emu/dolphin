@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <mutex>
 #include <type_traits>
 
 #include "Common/Assert.h"
@@ -55,6 +56,11 @@ public:
   OPCODE_CALLBACK(void OnCommand(const u8* data, u32 size));
 
   OPCODE_CALLBACK(CPState& GetCPState()) { return m_cpmem; }
+
+  OPCODE_CALLBACK(u32 GetVertexSize(u8 vat))
+  {
+    return VertexLoaderBase::GetVertexSize(GetCPState().vtx_desc, GetCPState().vtx_attr[vat]);
+  }
 
   bool m_start_of_primitives = false;
   bool m_end_of_primitives = false;
@@ -214,7 +220,7 @@ class FifoPlayer::CPUCore final : public CPUCoreBase
 public:
   explicit CPUCore(FifoPlayer* parent) : m_parent(parent) {}
   CPUCore(const CPUCore&) = delete;
-  ~CPUCore() override {}
+  ~CPUCore() {}
   CPUCore& operator=(const CPUCore&) = delete;
 
   void Init() override
@@ -256,6 +262,7 @@ public:
 
       case CPU::State::Stepping:
         cpu.Break();
+        Host_UpdateMainFrame();
         break;
 
       case CPU::State::Running:
@@ -314,7 +321,7 @@ void FifoPlayer::SetFileLoadedCallback(CallbackFunc callback)
 {
   m_FileLoadedCb = std::move(callback);
 
-  // Trigger the callback immediately if the file is already loaded.
+  // Trigger the callback immediatly if the file is already loaded.
   if (GetFile() != nullptr)
   {
     m_FileLoadedCb();
@@ -643,7 +650,7 @@ void FifoPlayer::LoadMemory()
     HID4(ppc_state).SBE = 1;
   }
 
-  m_system.GetPowerPC().MSRUpdated();
+  PowerPC::MSRUpdated(ppc_state);
 
   auto& mmu = m_system.GetMMU();
   mmu.DBATUpdated();
@@ -705,12 +712,12 @@ void FifoPlayer::LoadTextureMemory()
 
 void FifoPlayer::WriteCP(u32 address, u16 value)
 {
-  m_system.GetMMU().Write<u16>(value, 0xCC000000 | address);
+  m_system.GetMMU().Write_U16(value, 0xCC000000 | address);
 }
 
 void FifoPlayer::WritePI(u32 address, u32 value)
 {
-  m_system.GetMMU().Write<u32>(value, 0xCC003000 | address);
+  m_system.GetMMU().Write_U32(value, 0xCC003000 | address);
 }
 
 void FifoPlayer::FlushWGP()
@@ -809,13 +816,13 @@ bool FifoPlayer::ShouldLoadXF(u8 reg)
 bool FifoPlayer::IsIdleSet() const
 {
   CommandProcessor::UCPStatusReg status =
-      m_system.GetMMU().Read<u16>(0xCC000000 | CommandProcessor::STATUS_REGISTER);
+      m_system.GetMMU().Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
   return status.CommandIdle;
 }
 
 bool FifoPlayer::IsHighWatermarkSet() const
 {
   CommandProcessor::UCPStatusReg status =
-      m_system.GetMMU().Read<u16>(0xCC000000 | CommandProcessor::STATUS_REGISTER);
+      m_system.GetMMU().Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
   return status.OverflowHiWatermark;
 }

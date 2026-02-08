@@ -10,6 +10,8 @@
 
 #include <hidclass.h>
 
+#include <mutex>
+
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
@@ -18,6 +20,7 @@
 
 #pragma comment(lib, "OneCoreUAP.Lib")
 
+static std::mutex s_populate_mutex;
 // TODO is this really needed?
 static Common::Flag s_first_populate_devices_asked;
 static HCMNOTIFICATION s_notify_handle;
@@ -28,7 +31,7 @@ class InputBackend final : public ciface::InputBackend
 {
 public:
   InputBackend(ControllerInterface* controller_interface);
-  ~InputBackend() override;
+  ~InputBackend();
 
   void PopulateDevices() override;
   void HandleWindowChange() override;
@@ -49,6 +52,7 @@ _Pre_satisfies_(EventDataSize >= sizeof(CM_NOTIFY_EVENT_DATA)) static DWORD CALL
     // listen for it.
     if (s_first_populate_devices_asked.IsSet())
     {
+      std::lock_guard lk_population(s_populate_mutex);
       // TODO: we could easily use the message passed alongside this event, which tells
       // whether a device was added or removed, to avoid removing old, still connected, devices
       g_controller_interface.PlatformPopulateDevices([&] {
@@ -92,18 +96,17 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
 
 void InputBackend::PopulateDevices()
 {
-  g_controller_interface.PlatformPopulateDevices([this] {
-    s_first_populate_devices_asked.Set();
-    ciface::DInput::PopulateDevices(GetHWND());
-    ciface::XInput::PopulateDevices();
-    ciface::WGInput::PopulateDevices();
-  });
+  std::lock_guard lk_population(s_populate_mutex);
+  s_first_populate_devices_asked.Set();
+  ciface::DInput::PopulateDevices(GetHWND());
+  ciface::XInput::PopulateDevices();
+  ciface::WGInput::PopulateDevices();
 }
 
 void InputBackend::HandleWindowChange()
 {
-  g_controller_interface.PlatformPopulateDevices(
-      [this] { ciface::DInput::ChangeWindow(GetHWND()); });
+  std::lock_guard lk_population(s_populate_mutex);
+  ciface::DInput::ChangeWindow(GetHWND());
 }
 
 InputBackend::~InputBackend()

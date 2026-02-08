@@ -15,7 +15,6 @@ namespace DiscIO
 enum class Platform
 {
   GameCubeDisc = 0,
-  Triforce,
   WiiDisc,
   WiiWAD,
   ELFOrDOL,

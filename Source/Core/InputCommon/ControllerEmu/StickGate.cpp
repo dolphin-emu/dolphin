@@ -34,7 +34,7 @@ std::optional<double> GetRayLineIntersection(Common::DVec2 ray, Common::DVec2 po
   const auto dot = diff.Dot({-ray.y, ray.x});
   if (std::abs(dot) < 0.00001)
   {
-    // Both points are on top of each other.
+    // Both points are on top of eachother.
     return std::nullopt;
   }
 
@@ -169,7 +169,7 @@ ControlState ReshapableInput::GetCalibrationDataRadiusAtAngle(const CalibrationD
                              GetPointFromAngleAndLength(sample1_angle, data[sample1_index]),
                              GetPointFromAngleAndLength(sample2_angle, data[sample2_index]));
 
-  // Intersection has no value when points are on top of each other.
+  // Intersection has no value when points are on top of eachother.
   return intersection.value_or(data[sample1_index]);
 }
 

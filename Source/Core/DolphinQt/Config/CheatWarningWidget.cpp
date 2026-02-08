@@ -13,7 +13,6 @@
 #include "Core/Core.h"
 #include "Core/System.h"
 
-#include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/Settings.h"
 
 CheatWarningWidget::CheatWarningWidget(const std::string& game_id, bool restart_required,
@@ -34,17 +33,28 @@ CheatWarningWidget::CheatWarningWidget(const std::string& game_id, bool restart_
 
 void CheatWarningWidget::CreateWidgets()
 {
+  auto* icon = new QLabel;
+
+  const auto size = 1.5 * QFontMetrics(font()).height();
+
+  QPixmap warning_icon = style()->standardIcon(QStyle::SP_MessageBoxWarning).pixmap(size, size);
+
+  icon->setPixmap(warning_icon);
+
   m_text = new QLabel();
   m_config_button = new QPushButton(tr("Configure Dolphin"));
 
   m_config_button->setHidden(true);
 
-  auto* const layout = new QHBoxLayout{this};
+  auto* layout = new QHBoxLayout;
 
-  layout->addWidget(QtUtils::CreateIconWarning(this, QStyle::SP_MessageBoxWarning, m_text));
+  layout->addWidget(icon);
+  layout->addWidget(m_text, 1);
   layout->addWidget(m_config_button);
 
   layout->setContentsMargins(0, 0, 0, 0);
+
+  setLayout(layout);
 }
 
 void CheatWarningWidget::Update(bool running)

@@ -20,6 +20,10 @@ interface MainView {
 
     fun launchSettingsActivity(menuTag: MenuTag?)
 
+    fun launchFileListActivity()
+
+    fun launchOpenFileActivity(requestCode: Int)
+
     /**
      * Shows or hides the loading indicator.
      */

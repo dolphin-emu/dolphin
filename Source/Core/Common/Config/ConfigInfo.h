@@ -4,16 +4,23 @@
 #pragma once
 
 #include <mutex>
+#include <shared_mutex>
 #include <string>
+#include <type_traits>
 #include <utility>
 
 #include "Common/CommonTypes.h"
 #include "Common/Config/Enums.h"
-#include "Common/Mutex.h"
-#include "Common/TypeUtils.h"
 
 namespace Config
 {
+namespace detail
+{
+// std::underlying_type may only be used with enum types, so make sure T is an enum type first.
+template <typename T>
+using UnderlyingType = typename std::enable_if_t<std::is_enum<T>{}, std::underlying_type<T>>::type;
+}  // namespace detail
+
 struct Location
 {
   System system{};
@@ -35,58 +42,75 @@ template <typename T>
 class Info
 {
 public:
-  constexpr Info(Location location, T default_value)
-      : m_location{std::move(location)}, m_default_value{default_value},
-        m_cached_value{std::move(default_value), 0}
+  constexpr Info(const Location& location, const T& default_value)
+      : m_location{location}, m_default_value{default_value}, m_cached_value{default_value, 0}
   {
   }
 
-  Info(const Info<T>& other)
-      : m_location{other.m_location}, m_default_value{other.m_default_value},
-        m_cached_value(other.GetCachedValue())
+  Info(const Info<T>& other) { *this = other; }
+
+  // Not thread-safe
+  Info(Info<T>&& other) { *this = std::move(other); }
+
+  // Make it easy to convert Info<Enum> into Info<UnderlyingType<Enum>>
+  // so that enum settings can still easily work with code that doesn't care about the enum values.
+  template <typename Enum,
+            std::enable_if_t<std::is_same<T, detail::UnderlyingType<Enum>>::value>* = nullptr>
+  Info(const Info<Enum>& other)
   {
+    *this = other;
+  }
+
+  Info<T>& operator=(const Info<T>& other)
+  {
+    m_location = other.GetLocation();
+    m_default_value = other.GetDefaultValue();
+    m_cached_value = other.GetCachedValue();
+    return *this;
+  }
+
+  // Not thread-safe
+  Info<T>& operator=(Info<T>&& other)
+  {
+    m_location = std::move(other.m_location);
+    m_default_value = std::move(other.m_default_value);
+    m_cached_value = std::move(other.m_cached_value);
+    return *this;
   }
 
   // Make it easy to convert Info<Enum> into Info<UnderlyingType<Enum>>
   // so that enum settings can still easily work with code that doesn't care about the enum values.
-  template <Common::TypedEnum<T> Enum>
-  Info(const Info<Enum>& other)
-      : m_location{other.GetLocation()}, m_default_value{static_cast<T>(other.GetDefaultValue())},
-        m_cached_value(other.template GetCachedValueCasted<T>())
+  template <typename Enum,
+            std::enable_if_t<std::is_same<T, detail::UnderlyingType<Enum>>::value>* = nullptr>
+  Info<T>& operator=(const Info<Enum>& other)
   {
+    m_location = other.GetLocation();
+    m_default_value = static_cast<T>(other.GetDefaultValue());
+    m_cached_value = other.template GetCachedValueCasted<T>();
+    return *this;
   }
-
-  ~Info() = default;
-
-  // Assignments after construction would require more locking to be thread safe.
-  // It seems unnecessary to have this functionality anyways.
-  Info& operator=(const Info&) = delete;
-  Info& operator=(Info&&) = delete;
-  // Moves are also unnecessary and would be thread unsafe without additional locking.
-  Info(Info&&) = delete;
 
   constexpr const Location& GetLocation() const { return m_location; }
   constexpr const T& GetDefaultValue() const { return m_default_value; }
 
   CachedValue<T> GetCachedValue() const
   {
-    std::lock_guard lk{m_cached_value_mutex};
+    std::shared_lock lock(m_cached_value_mutex);
     return m_cached_value;
   }
 
   template <typename U>
   CachedValue<U> GetCachedValueCasted() const
   {
-    std::lock_guard lk{m_cached_value_mutex};
-    return {static_cast<U>(m_cached_value.value), m_cached_value.config_version};
+    std::shared_lock lock(m_cached_value_mutex);
+    return CachedValue<U>{static_cast<U>(m_cached_value.value), m_cached_value.config_version};
   }
 
-  // Only updates if the provided config_version is newer.
-  void TryToSetCachedValue(CachedValue<T> new_value) const
+  void SetCachedValue(const CachedValue<T>& cached_value) const
   {
-    std::lock_guard lk{m_cached_value_mutex};
-    if (new_value.config_version > m_cached_value.config_version)
-      m_cached_value = std::move(new_value);
+    std::unique_lock lock(m_cached_value_mutex);
+    if (m_cached_value.config_version < cached_value.config_version)
+      m_cached_value = cached_value;
   }
 
 private:
@@ -94,10 +118,6 @@ private:
   T m_default_value;
 
   mutable CachedValue<T> m_cached_value;
-
-  // In testing, this mutex is effectively never contested.
-  // The lock durations are brief and each `Info` object is mostly relevant to one thread.
-  // Common::SpinMutex is ~3x faster than std::shared_mutex when uncontested.
-  mutable Common::SpinMutex m_cached_value_mutex;
+  mutable std::shared_mutex m_cached_value_mutex;
 };
 }  // namespace Config

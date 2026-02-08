@@ -3,8 +3,6 @@ add_library(discio
   Blob.h
   CISOBlob.cpp
   CISOBlob.h
-  CachedBlob.cpp
-  CachedBlob.h
   CompressedBlob.cpp
   CompressedBlob.h
   DirectoryBlob.cpp
@@ -77,7 +75,7 @@ PUBLIC
 
 PRIVATE
   fmt::fmt
-  MINIZIP::minizip-ng
+  minizip::minizip
   pugixml
   ZLIB::ZLIB
 )

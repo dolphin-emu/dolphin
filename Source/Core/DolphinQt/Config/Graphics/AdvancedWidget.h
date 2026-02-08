@@ -8,7 +8,8 @@
 class ConfigBool;
 class ConfigChoice;
 class ConfigInteger;
-class GraphicsPane;
+class GameConfigWidget;
+class GraphicsWindow;
 
 namespace Config
 {
@@ -19,7 +20,8 @@ class AdvancedWidget final : public QWidget
 {
   Q_OBJECT
 public:
-  explicit AdvancedWidget(GraphicsPane* gfx_pane);
+  explicit AdvancedWidget(GraphicsWindow* parent);
+  AdvancedWidget(GameConfigWidget* parent, Config::Layer* layer);
 
 private:
   void CreateWidgets();
@@ -30,8 +32,18 @@ private:
 
   // Debugging
   ConfigBool* m_enable_wireframe;
+  ConfigBool* m_show_statistics;
+  ConfigBool* m_show_proj_statistics;
   ConfigBool* m_enable_format_overlay;
   ConfigBool* m_enable_api_validation;
+  ConfigBool* m_show_fps;
+  ConfigBool* m_show_ftimes;
+  ConfigBool* m_show_vps;
+  ConfigBool* m_show_vtimes;
+  ConfigBool* m_show_graphs;
+  ConfigBool* m_show_speed;
+  ConfigBool* m_show_speed_colors;
+  ConfigInteger* m_perf_samp_window;
   ConfigBool* m_log_render_time;
 
   // Utility

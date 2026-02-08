@@ -10,6 +10,7 @@
 
 #include <filesystem>
 
+#include "Common/Assembler/GekkoParser.h"
 #include "Common/StringUtil.h"
 #include "DolphinQt/Debugger/GekkoSyntaxHighlight.h"
 

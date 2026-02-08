@@ -5,6 +5,8 @@
 
 #include <vector>
 
+#include "Common/Logging/Log.h"
+
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StagingBuffer.h"

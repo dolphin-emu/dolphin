@@ -9,11 +9,13 @@
 #include <vector>
 
 #include <OptionParser.h>
+#include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <picojson.h>
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
+#include "DiscIO/VolumeDisc.h"
 
 namespace DolphinTool
 {

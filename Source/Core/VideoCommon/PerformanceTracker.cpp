@@ -12,6 +12,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
+#include "Core/Core.h"
 #include "VideoCommon/VideoConfig.h"
 
 static constexpr double SAMPLE_RC_RATIO = 0.25;
@@ -22,7 +23,15 @@ PerformanceTracker::PerformanceTracker(const std::optional<std::string> log_name
                                        const std::optional<DT> sample_window_duration)
     : m_log_name{log_name}, m_sample_window_duration{sample_window_duration}
 {
+  m_on_state_changed_handle =
+      Core::AddOnStateChangedCallback([this](Core::State state) { m_is_last_time_sane = false; });
+
   Reset();
+}
+
+PerformanceTracker::~PerformanceTracker()
+{
+  Core::RemoveOnStateChangedCallback(&m_on_state_changed_handle);
 }
 
 void PerformanceTracker::Reset()
@@ -124,11 +133,6 @@ DT PerformanceTracker::GetDtStd() const
 DT PerformanceTracker::GetLastRawDt() const
 {
   return m_last_raw_dt;
-}
-
-void PerformanceTracker::InvalidateLastTime()
-{
-  m_is_last_time_sane = false;
 }
 
 void PerformanceTracker::ImPlotPlotLines(const char* label) const

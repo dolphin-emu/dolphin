@@ -13,8 +13,10 @@
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/MemoryUtil.h"
 #include "Common/Thread.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/DSP/DSPAccelerator.h"
 #include "Core/DSP/DSPCaptureLogger.h"
@@ -24,6 +26,7 @@
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
 #include "Core/DSP/Jit/DSPEmitterBase.h"
 #include "Core/HW/Memmap.h"
+#include "Core/Host.h"
 
 namespace DSP::LLE
 {
@@ -158,6 +161,7 @@ bool DSPLLE::Initialize(bool wii, bool dsp_thread)
     m_dsp_thread = std::thread(DSPThread, this);
   }
 
+  Host_RefreshDSPDebuggerWindow();
   return true;
 }
 
@@ -284,20 +288,22 @@ u32 DSPLLE::DSP_UpdateRate()
   return 12600;  // TO BE TWEAKED
 }
 
-void DSPLLE::PauseAndLock()
+void DSPLLE::PauseAndLock(bool do_lock)
 {
-  m_dsp_thread_mutex.lock();
-}
-
-void DSPLLE::UnpauseAndUnlock()
-{
-  m_dsp_thread_mutex.unlock();
-
-  if (m_is_dsp_on_thread)
+  if (do_lock)
   {
-    // Signal the DSP thread so it can perform any outstanding work now (if any)
-    m_ppc_event.Wait();
-    m_dsp_event.Set();
+    m_dsp_thread_mutex.lock();
+  }
+  else
+  {
+    m_dsp_thread_mutex.unlock();
+
+    if (m_is_dsp_on_thread)
+    {
+      // Signal the DSP thread so it can perform any outstanding work now (if any)
+      m_ppc_event.Wait();
+      m_dsp_event.Set();
+    }
   }
 }
 }  // namespace DSP::LLE

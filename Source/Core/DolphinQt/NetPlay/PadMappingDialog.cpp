@@ -17,6 +17,7 @@
 
 PadMappingDialog::PadMappingDialog(QWidget* parent) : QDialog(parent)
 {
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
   setWindowTitle(tr("Assign Controllers"));
 
   CreateWidgets();
@@ -60,18 +61,14 @@ void PadMappingDialog::ConnectWidgets()
   }
   for (const auto& checkbox : m_gba_boxes)
   {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-    connect(checkbox, &QCheckBox::checkStateChanged, this, &PadMappingDialog::OnMappingChanged);
-#else
     connect(checkbox, &QCheckBox::stateChanged, this, &PadMappingDialog::OnMappingChanged);
-#endif
   }
 }
 
 int PadMappingDialog::exec()
 {
-  const auto client = Settings::Instance().GetNetPlayClient();
-  const auto server = Settings::Instance().GetNetPlayServer();
+  auto client = Settings::Instance().GetNetPlayClient();
+  auto server = Settings::Instance().GetNetPlayServer();
   // Load Settings
   m_players = client->GetPlayers();
   m_pad_mapping = server->GetPadMapping();
@@ -90,7 +87,7 @@ int PadMappingDialog::exec()
 
   for (auto& combo_group : {m_gc_boxes, m_wii_boxes})
   {
-    const bool gc = combo_group == m_gc_boxes;
+    bool gc = combo_group == m_gc_boxes;
     for (size_t i = 0; i < combo_group.size(); i++)
     {
       auto& combo = combo_group[i];
@@ -134,8 +131,8 @@ void PadMappingDialog::OnMappingChanged()
 {
   for (unsigned int i = 0; i < m_wii_boxes.size(); i++)
   {
-    const int gc_id = m_gc_boxes[i]->currentIndex();
-    const int wii_id = m_wii_boxes[i]->currentIndex();
+    int gc_id = m_gc_boxes[i]->currentIndex();
+    int wii_id = m_wii_boxes[i]->currentIndex();
 
     m_pad_mapping[i] = gc_id > 0 ? m_players[gc_id - 1]->pid : 0;
     m_gba_config[i].enabled = m_gba_boxes[i]->isChecked();

@@ -15,8 +15,6 @@
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCKeyboardEmu.h"
 
-#include "DolphinQt/QtUtils/QtUtils.h"
-
 GCKeyboardEmu::GCKeyboardEmu(MappingWindow* window) : MappingWidget(window)
 {
   CreateMainLayout();
@@ -24,24 +22,32 @@ GCKeyboardEmu::GCKeyboardEmu(MappingWindow* window) : MappingWidget(window)
 
 void GCKeyboardEmu::CreateMainLayout()
 {
-  auto* const vbox_layout = new QVBoxLayout{this};
+  const auto vbox_layout = new QVBoxLayout;
 
-  auto* const warning_text =
+  const auto warning_layout = new QHBoxLayout;
+  vbox_layout->addLayout(warning_layout);
+
+  const auto warning_icon = new QLabel;
+  const auto size = QFontMetrics(font()).height() * 3 / 2;
+  warning_icon->setPixmap(style()->standardIcon(QStyle::SP_MessageBoxWarning).pixmap(size, size));
+  warning_layout->addWidget(warning_icon);
+
+  const auto warning_text =
       new QLabel(tr("You are configuring a \"Keyboard Controller\". "
                     "This device is exclusively for \"Phantasy Star Online Episode I & II\". "
                     "If you are unsure, turn back now and configure a \"Standard Controller\"."));
   warning_text->setWordWrap(true);
+  warning_layout->addWidget(warning_text, 1);
 
-  vbox_layout->addWidget(
-      QtUtils::CreateIconWarning(this, QStyle::SP_MessageBoxWarning, warning_text));
-
-  auto* const layout = new QHBoxLayout;
+  const auto layout = new QHBoxLayout;
 
   using KG = KeyboardGroup;
   for (auto kbg : {KG::Kb0x, KG::Kb1x, KG::Kb2x, KG::Kb3x, KG::Kb4x, KG::Kb5x})
     layout->addWidget(CreateGroupBox(QString{}, Keyboard::GetGroup(GetPort(), kbg)));
 
   vbox_layout->addLayout(layout);
+
+  setLayout(vbox_layout);
 }
 
 void GCKeyboardEmu::LoadSettings()

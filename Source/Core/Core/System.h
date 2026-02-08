@@ -5,8 +5,6 @@
 
 #include <memory>
 
-#include "VideoCommon/VideoEvents.h"
-
 class GeometryShaderManager;
 class Interpreter;
 class JitInterface;
@@ -58,8 +56,7 @@ class GPFifoManager;
 namespace IOS::HLE
 {
 class EmulationKernel;
-class USBScanner;
-}  // namespace IOS::HLE
+}
 namespace HSP
 {
 class HSPManager;
@@ -110,8 +107,8 @@ class SystemTimersManager;
 }
 namespace VideoCommon
 {
-class CustomResourceManager;
-}  // namespace VideoCommon
+class CustomAssetLoader;
+}
 namespace VideoInterface
 {
 class VideoInterfaceManager;
@@ -144,12 +141,10 @@ public:
   bool IsMMUMode() const { return m_mmu_enabled; }
   bool IsPauseOnPanicMode() const { return m_pause_on_panic_enabled; }
   bool IsMIOS() const { return m_is_mios; }
-  bool IsTriforce() const { return m_is_triforce; }
   bool IsWii() const { return m_is_wii; }
   bool IsBranchWatchIgnoreApploader() { return m_branch_watch_ignore_apploader; }
 
   void SetIsMIOS(bool is_mios) { m_is_mios = is_mios; }
-  void SetIsTriforce(bool is_triforce) { m_is_triforce = is_triforce; }
   void SetIsWii(bool is_wii) { m_is_wii = is_wii; }
   void SetIsBranchWatchIgnoreApploader(bool enable) { m_branch_watch_ignore_apploader = enable; }
 
@@ -195,12 +190,10 @@ public:
   SerialInterface::SerialInterfaceManager& GetSerialInterface() const;
   Sram& GetSRAM() const;
   SystemTimers::SystemTimersManager& GetSystemTimers() const;
-  IOS::HLE::USBScanner& GetUSBScanner() const;
   VertexShaderManager& GetVertexShaderManager() const;
   XFStateManager& GetXFStateManager() const;
   VideoInterface::VideoInterfaceManager& GetVideoInterface() const;
-  VideoCommon::CustomResourceManager& GetCustomResourceManager() const;
-  VideoEvents& GetVideoEvents() const;
+  VideoCommon::CustomAssetLoader& GetCustomAssetLoader() const;
 
 private:
   System();
@@ -212,7 +205,6 @@ private:
   bool m_mmu_enabled = false;
   bool m_pause_on_panic_enabled = false;
   bool m_is_mios = false;
-  bool m_is_triforce = false;
   bool m_is_wii = false;
   bool m_branch_watch_ignore_apploader = false;
 };

@@ -15,14 +15,14 @@
 
 namespace DiscIO
 {
-PlainFileReader::PlainFileReader(File::DirectIOFile file) : m_file(std::move(file))
+PlainFileReader::PlainFileReader(File::IOFile file) : m_file(std::move(file))
 {
   m_size = m_file.GetSize();
 }
 
-std::unique_ptr<PlainFileReader> PlainFileReader::Create(File::DirectIOFile file)
+std::unique_ptr<PlainFileReader> PlainFileReader::Create(File::IOFile file)
 {
-  if (file.IsOpen())
+  if (file)
     return std::unique_ptr<PlainFileReader>(new PlainFileReader(std::move(file)));
 
   return nullptr;
@@ -30,21 +30,29 @@ std::unique_ptr<PlainFileReader> PlainFileReader::Create(File::DirectIOFile file
 
 std::unique_ptr<BlobReader> PlainFileReader::CopyReader() const
 {
-  return Create(m_file);
+  return Create(m_file.Duplicate("rb"));
 }
 
 bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 {
-  return m_file.OffsetRead(offset, out_ptr, nbytes);
+  if (m_file.Seek(offset, File::SeekOrigin::Begin) && m_file.ReadBytes(out_ptr, nbytes))
+  {
+    return true;
+  }
+  else
+  {
+    m_file.ClearError();
+    return false;
+  }
 }
 
 bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
-                    const std::string& outfile_path, const CompressCB& callback)
+                    const std::string& outfile_path, CompressCB callback)
 {
   ASSERT(infile->GetDataSizeType() == DataSizeType::Accurate);
 
-  File::DirectIOFile outfile(outfile_path, File::AccessMode::Write);
-  if (!outfile.IsOpen())
+  File::IOFile outfile(outfile_path, "wb");
+  if (!outfile)
   {
     PanicAlertFmtT(
         "Failed to open the output file \"{0}\".\n"
@@ -91,7 +99,7 @@ bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
       success = false;
       break;
     }
-    if (!outfile.Write(buffer.data(), sz))
+    if (!outfile.WriteBytes(buffer.data(), sz))
     {
       PanicAlertFmtT("Failed to write the output file \"{0}\".\n"
                      "Check that you have enough space available on the target drive.",

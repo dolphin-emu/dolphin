@@ -12,6 +12,7 @@
 #include <fmt/format.h>
 
 #include "Common/ChunkFile.h"
+#include "Common/EnumUtils.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
@@ -95,7 +96,7 @@ ESCore::ESCore(Kernel& ios) : m_ios(ios)
     if (result != FS::ResultCode::Success && result != FS::ResultCode::AlreadyExists)
     {
       ERROR_LOG_FMT(IOS_ES, "Failed to create {}: error {}", directory.path,
-                    std::to_underlying(FS::ConvertResult(result)));
+                    Common::ToUnderlying(FS::ConvertResult(result)));
     }
 
     // Now update the UID/GID and other attributes.
@@ -161,7 +162,7 @@ void ESDevice::FinishInit()
     if (launch_file)
     {
       u64 id;
-      if (launch_file->Read(&id, 1).has_value())
+      if (launch_file->Read(&id, 1).Succeeded())
         pending_launch_title_id = id;
     }
   }
@@ -255,10 +256,11 @@ IPCReply ESDevice::GetTitleId(const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-static bool UpdateUIDAndGID(EmulationKernel& kernel, ES::UIDSys* uid_sys, const ES::TMDReader& tmd)
+static bool UpdateUIDAndGID(EmulationKernel& kernel, const ES::TMDReader& tmd)
 {
+  ES::UIDSys uid_sys{kernel.GetFSCore()};
   const u64 title_id = tmd.GetTitleId();
-  const u32 uid = uid_sys->GetOrInsertUIDForTitle(title_id);
+  const u32 uid = uid_sys.GetOrInsertUIDForTitle(title_id);
   if (uid == 0)
   {
     ERROR_LOG_FMT(IOS_ES, "Failed to get UID for title {:016x}", title_id);
@@ -269,10 +271,11 @@ static bool UpdateUIDAndGID(EmulationKernel& kernel, ES::UIDSys* uid_sys, const 
   return true;
 }
 
-static ReturnCode CheckIsAllowedToSetUID(EmulationKernel& kernel, ES::UIDSys* uid_sys,
-                                         const u32 caller_uid, const ES::TMDReader& active_tmd)
+static ReturnCode CheckIsAllowedToSetUID(EmulationKernel& kernel, const u32 caller_uid,
+                                         const ES::TMDReader& active_tmd)
 {
-  const u32 system_menu_uid = uid_sys->GetOrInsertUIDForTitle(Titles::SYSTEM_MENU);
+  ES::UIDSys uid_map{kernel.GetFSCore()};
+  const u32 system_menu_uid = uid_map.GetOrInsertUIDForTitle(Titles::SYSTEM_MENU);
   if (!system_menu_uid)
     return ES_SHORT_READ;
 
@@ -300,31 +303,24 @@ IPCReply ESDevice::SetUID(u32 uid, const IOCtlVRequest& request)
 
   const u64 title_id = memory.Read_U64(request.in_vectors[0].address);
 
-  auto& kernel = GetEmulationKernel();
-  ES::UIDSys uid_sys{kernel.GetFSCore()};
-  const s32 ret = CheckIsAllowedToSetUID(kernel, &uid_sys, uid, m_core.m_title_context.tmd);
+  const s32 ret = CheckIsAllowedToSetUID(GetEmulationKernel(), uid, m_core.m_title_context.tmd);
   if (ret < 0)
   {
     ERROR_LOG_FMT(IOS_ES, "SetUID: Permission check failed with error {}", ret);
     return IPCReply(ret);
   }
 
-  // The IPCReply delay is calculated within FindInstalledTMD.
-  // No clue if this is close to accurate, but our default delay of 4000
-  //  isn't enough time to actually do the work and is too hard to emulate at 100% speed.
-  u64 delay_ticks = 0;
-
-  const auto tmd = m_core.FindInstalledTMD(title_id, Ticks{&delay_ticks});
+  const auto tmd = m_core.FindInstalledTMD(title_id);
   if (!tmd.IsValid())
-    return IPCReply(FS_ENOENT, delay_ticks);
+    return IPCReply(FS_ENOENT);
 
-  if (!UpdateUIDAndGID(kernel, &uid_sys, tmd))
+  if (!UpdateUIDAndGID(GetEmulationKernel(), tmd))
   {
     ERROR_LOG_FMT(IOS_ES, "SetUID: Failed to get UID for title {:016x}", title_id);
-    return IPCReply(ES_SHORT_READ, delay_ticks);
+    return IPCReply(ES_SHORT_READ);
   }
 
-  return IPCReply(IPC_SUCCESS, delay_ticks);
+  return IPCReply(IPC_SUCCESS);
 }
 
 bool ESDevice::LaunchTitle(u64 title_id, HangPPC hang_ppc)
@@ -440,10 +436,8 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
   // To keep track of the PPC title launch, a temporary launch file (LAUNCH_FILE_PATH) is used
   // to store the title ID of the title to launch and its TMD.
   // The launch file not existing means an IOS reload is required.
-  auto& kernel = GetEmulationKernel();
-  auto& fs_core = kernel.GetFSCore();
-  if (const auto launch_file_fd =
-          fs_core.Open(PID_KERNEL, PID_KERNEL, LAUNCH_FILE_PATH, FS::Mode::Read, {}, &ticks);
+  if (const auto launch_file_fd = GetEmulationKernel().GetFSCore().Open(
+          PID_KERNEL, PID_KERNEL, LAUNCH_FILE_PATH, FS::Mode::Read, {}, &ticks);
       launch_file_fd.Get() < 0)
   {
     if (WriteLaunchFile(tmd, &ticks) != IPC_SUCCESS)
@@ -462,7 +456,7 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
 
   // Otherwise, assume that the PPC title can now be launched directly.
   // Unlike IOS, we won't bother checking the title ID in the launch file. (It's not useful.)
-  fs_core.DeleteFile(PID_KERNEL, PID_KERNEL, LAUNCH_FILE_PATH, &ticks);
+  GetEmulationKernel().GetFSCore().DeleteFile(PID_KERNEL, PID_KERNEL, LAUNCH_FILE_PATH, &ticks);
   WriteSystemFile(SPACE_FILE_PATH, std::vector<u8>(SPACE_FILE_SIZE), &ticks);
 
   m_core.m_title_context.Update(tmd, ticket, DiscIO::Platform::WiiWAD);
@@ -470,8 +464,7 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
 
   // Note: the UID/GID is also updated for IOS titles, but since we have no guarantee IOS titles
   // are installed, we can only do this for PPC titles.
-  ES::UIDSys uid_sys{fs_core};
-  if (!UpdateUIDAndGID(kernel, &uid_sys, m_core.m_title_context.tmd))
+  if (!UpdateUIDAndGID(GetEmulationKernel(), m_core.m_title_context.tmd))
   {
     m_core.m_title_context.Clear();
     INFO_LOG_FMT(IOS_ES, "LaunchPPCTitle: Title context changed: (none)");
@@ -486,7 +479,9 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
   if (!Core::IsRunning(system))
     return BootstrapPPC();
 
-  AchievementManager::GetInstance().LoadGame(nullptr);
+  INFO_LOG_FMT(ACHIEVEMENTS,
+               "WAD and NAND formats not currently supported by Achievement Manager.");
+  AchievementManager::GetInstance().CloseGame();
 
   core_timing.RemoveEvent(s_bootstrap_ppc_for_launch_event);
   core_timing.ScheduleEvent(ticks, s_bootstrap_ppc_for_launch_event);
@@ -811,7 +806,7 @@ static ReturnCode WriteTmdForDiVerify(FS::FileSystem* fs, const ES::TMDReader& t
   {
     const auto file = fs->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, temp_path, internal_modes);
     if (!file)
-      return FS::ConvertResult(file.error());
+      return FS::ConvertResult(file.Error());
     if (!file->Write(tmd.GetBytes().data(), tmd.GetBytes().size()))
       return ES_EIO;
   }
@@ -844,8 +839,7 @@ ReturnCode ESDevice::DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& 
   // XXX: We are supposed to verify the TMD and ticket here, but cannot because
   // this may cause issues with custom/patched games.
 
-  auto& kernel = GetEmulationKernel();
-  const auto fs = kernel.GetFS();
+  const auto fs = GetEmulationKernel().GetFS();
   if (!m_core.FindInstalledTMD(tmd.GetTitleId()).IsValid())
   {
     if (const ReturnCode ret = WriteTmdForDiVerify(fs.get(), tmd))
@@ -855,8 +849,7 @@ ReturnCode ESDevice::DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& 
     }
   }
 
-  ES::UIDSys uid_sys{kernel.GetFSCore()};
-  if (!UpdateUIDAndGID(kernel, &uid_sys, m_core.m_title_context.tmd))
+  if (!UpdateUIDAndGID(GetEmulationKernel(), m_core.m_title_context.tmd))
   {
     return ES_SHORT_READ;
   }
@@ -865,8 +858,8 @@ ReturnCode ESDevice::DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& 
   // Might already exist, so we only need to check whether the second operation succeeded.
   constexpr FS::Modes data_dir_modes{FS::Mode::ReadWrite, FS::Mode::None, FS::Mode::None};
   fs->CreateDirectory(PID_KERNEL, PID_KERNEL, data_dir, 0, data_dir_modes);
-  return FS::ConvertResult(fs->SetMetadata(0, data_dir, kernel.GetUidForPPC(),
-                                           kernel.GetGidForPPC(), 0, data_dir_modes));
+  return FS::ConvertResult(fs->SetMetadata(0, data_dir, GetEmulationKernel().GetUidForPPC(),
+                                           GetEmulationKernel().GetGidForPPC(), 0, data_dir_modes));
 }
 
 ReturnCode ESCore::CheckStreamKeyPermissions(const u32 uid, const u8* ticket_view,
@@ -1039,7 +1032,7 @@ ReturnCode ESCore::ReadCertStore(std::vector<u8>* buffer) const
   const auto store_file =
       m_ios.GetFS()->OpenFile(PID_KERNEL, PID_KERNEL, CERT_STORE_PATH, FS::Mode::Read);
   if (!store_file)
-    return FS::ConvertResult(store_file.error());
+    return FS::ConvertResult(store_file.Error());
 
   buffer->resize(store_file->GetStatus()->size);
   if (!store_file->Read(buffer->data(), buffer->size()))
@@ -1115,7 +1108,7 @@ ReturnCode ESCore::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   if (ret != IPC_SUCCESS)
   {
     ERROR_LOG_FMT(IOS_ES, "VerifyContainer: IOSC_ImportCertificate(ca) failed with error {}",
-                  std::to_underlying(ret));
+                  Common::ToUnderlying(ret));
     return ret;
   }
 
@@ -1131,7 +1124,7 @@ ReturnCode ESCore::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   if (ret != IPC_SUCCESS)
   {
     ERROR_LOG_FMT(IOS_ES, "VerifyContainer: IOSC_ImportCertificate(issuer) failed with error {}",
-                  std::to_underlying(ret));
+                  Common::ToUnderlying(ret));
     return ret;
   }
 
@@ -1141,7 +1134,7 @@ ReturnCode ESCore::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   if (ret != IPC_SUCCESS)
   {
     ERROR_LOG_FMT(IOS_ES, "VerifyContainer: IOSC_VerifyPublicKeySign failed with error {}",
-                  std::to_underlying(ret));
+                  Common::ToUnderlying(ret));
     return ret;
   }
 
@@ -1151,13 +1144,13 @@ ReturnCode ESCore::VerifyContainer(VerifyContainerType type, VerifyMode mode,
     if (ret != IPC_SUCCESS)
     {
       ERROR_LOG_FMT(IOS_ES, "VerifyContainer: Writing the issuer cert failed with return code {}",
-                    std::to_underlying(ret));
+                    Common::ToUnderlying(ret));
     }
 
     ret = WriteNewCertToStore(ca_cert);
     if (ret != IPC_SUCCESS)
       ERROR_LOG_FMT(IOS_ES, "VerifyContainer: Writing the CA cert failed with return code {}",
-                    std::to_underlying(ret));
+                    Common::ToUnderlying(ret));
   }
 
   if (ret == IPC_SUCCESS && issuer_handle_out)

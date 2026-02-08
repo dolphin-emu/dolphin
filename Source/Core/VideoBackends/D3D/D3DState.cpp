@@ -59,7 +59,6 @@ void StateManager::Apply()
 
   const bool dirtyConstants = m_dirtyFlags.test(DirtyFlag_PixelConstants) ||
                               m_dirtyFlags.test(DirtyFlag_VertexConstants) ||
-                              m_dirtyFlags.test(DirtyFlag_CustomConstants) ||
                               m_dirtyFlags.test(DirtyFlag_GeometryConstants);
   const bool dirtyShaders = m_dirtyFlags.test(DirtyFlag_PixelShader) ||
                             m_dirtyFlags.test(DirtyFlag_VertexShader) ||
@@ -70,12 +69,18 @@ void StateManager::Apply()
   if (dirtyConstants)
   {
     if (m_current.pixelConstants[0] != m_pending.pixelConstants[0] ||
-        m_current.pixelConstants[1] != m_pending.pixelConstants[1])
+        m_current.pixelConstants[1] != m_pending.pixelConstants[1] ||
+        m_current.pixelConstants[2] != m_pending.pixelConstants[2])
     {
-      D3D::context->PSSetConstantBuffers(0, 1, &m_pending.pixelConstants[0]);
-      D3D::context->PSSetConstantBuffers(1, 1, &m_pending.pixelConstants[1]);
+      u32 count = 1;
+      if (m_pending.pixelConstants[1])
+        count++;
+      if (m_pending.pixelConstants[2])
+        count++;
+      D3D::context->PSSetConstantBuffers(0, count, m_pending.pixelConstants.data());
       m_current.pixelConstants[0] = m_pending.pixelConstants[0];
       m_current.pixelConstants[1] = m_pending.pixelConstants[1];
+      m_current.pixelConstants[2] = m_pending.pixelConstants[2];
     }
 
     if (m_current.vertexConstants != m_pending.vertexConstants)
@@ -83,13 +88,6 @@ void StateManager::Apply()
       D3D::context->VSSetConstantBuffers(0, 1, &m_pending.vertexConstants);
       D3D::context->VSSetConstantBuffers(1, 1, &m_pending.vertexConstants);
       m_current.vertexConstants = m_pending.vertexConstants;
-    }
-
-    if (m_current.customConstants != m_pending.customConstants)
-    {
-      D3D::context->PSSetConstantBuffers(2, 1, &m_pending.customConstants);
-      D3D::context->VSSetConstantBuffers(2, 1, &m_pending.customConstants);
-      m_current.customConstants = m_pending.customConstants;
     }
 
     if (m_current.geometryConstants != m_pending.geometryConstants)
@@ -353,7 +351,7 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
   }
 
   ComPtr<ID3D11SamplerState> res;
-  HRESULT hr = D3D::device->CreateSamplerState(&sampdc, &res);
+  HRESULT hr = D3D::device->CreateSamplerState(&sampdc, res.GetAddressOf());
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Creating D3D sampler state failed: {}", DX11HRWrap(hr));
   return m_sampler.emplace(state, std::move(res)).first->second.Get();
 }
@@ -365,16 +363,16 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   if (it != m_blend.end())
     return it->second.Get();
 
-  if (state.logic_op_enable && g_backend_info.bSupportsLogicOp)
+  if (state.logicopenable && g_backend_info.bSupportsLogicOp)
   {
     D3D11_BLEND_DESC1 desc = {};
     D3D11_RENDER_TARGET_BLEND_DESC1& tdesc = desc.RenderTarget[0];
-    if (state.color_update)
+    if (state.colorupdate)
       tdesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN |
                                     D3D11_COLOR_WRITE_ENABLE_BLUE;
     else
       tdesc.RenderTargetWriteMask = 0;
-    if (state.alpha_update)
+    if (state.alphaupdate)
       tdesc.RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
 
     static constexpr std::array<D3D11_LOGIC_OP, 16> logic_ops = {
@@ -384,10 +382,10 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
          D3D11_LOGIC_OP_COPY_INVERTED, D3D11_LOGIC_OP_OR_INVERTED, D3D11_LOGIC_OP_NAND,
          D3D11_LOGIC_OP_SET}};
     tdesc.LogicOpEnable = TRUE;
-    tdesc.LogicOp = logic_ops[u32(state.logic_mode.Value())];
+    tdesc.LogicOp = logic_ops[u32(state.logicmode.Value())];
 
     ComPtr<ID3D11BlendState1> res;
-    HRESULT hr = D3D::device1->CreateBlendState1(&desc, &res);
+    HRESULT hr = D3D::device1->CreateBlendState1(&desc, res.GetAddressOf());
     if (SUCCEEDED(hr))
     {
       return m_blend.emplace(state.hex, std::move(res)).first->second.Get();
@@ -400,17 +398,17 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   desc.IndependentBlendEnable = FALSE;
 
   D3D11_RENDER_TARGET_BLEND_DESC& tdesc = desc.RenderTarget[0];
-  tdesc.BlendEnable = state.blend_enable;
+  tdesc.BlendEnable = state.blendenable;
 
-  if (state.color_update)
+  if (state.colorupdate)
     tdesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN |
                                   D3D11_COLOR_WRITE_ENABLE_BLUE;
   else
     tdesc.RenderTargetWriteMask = 0;
-  if (state.alpha_update)
+  if (state.alphaupdate)
     tdesc.RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
 
-  const bool use_dual_source = state.use_dual_src;
+  const bool use_dual_source = state.usedualsrc;
   const std::array<D3D11_BLEND, 8> src_factors = {
       {D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_DEST_COLOR, D3D11_BLEND_INV_DEST_COLOR,
        use_dual_source ? D3D11_BLEND_SRC1_ALPHA : D3D11_BLEND_SRC_ALPHA,
@@ -422,15 +420,15 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
        use_dual_source ? D3D11_BLEND_INV_SRC1_ALPHA : D3D11_BLEND_INV_SRC_ALPHA,
        D3D11_BLEND_DEST_ALPHA, D3D11_BLEND_INV_DEST_ALPHA}};
 
-  tdesc.SrcBlend = src_factors[u32(state.src_factor.Value())];
-  tdesc.SrcBlendAlpha = src_factors[u32(state.src_factor_alpha.Value())];
-  tdesc.DestBlend = dst_factors[u32(state.dst_factor.Value())];
-  tdesc.DestBlendAlpha = dst_factors[u32(state.dst_factor_alpha.Value())];
+  tdesc.SrcBlend = src_factors[u32(state.srcfactor.Value())];
+  tdesc.SrcBlendAlpha = src_factors[u32(state.srcfactoralpha.Value())];
+  tdesc.DestBlend = dst_factors[u32(state.dstfactor.Value())];
+  tdesc.DestBlendAlpha = dst_factors[u32(state.dstfactoralpha.Value())];
   tdesc.BlendOp = state.subtract ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
-  tdesc.BlendOpAlpha = state.subtract_alpha ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
+  tdesc.BlendOpAlpha = state.subtractAlpha ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
 
   ComPtr<ID3D11BlendState> res;
-  HRESULT hr = D3D::device->CreateBlendState(&desc, &res);
+  HRESULT hr = D3D::device->CreateBlendState(&desc, res.GetAddressOf());
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Creating D3D blend state failed: {}", DX11HRWrap(hr));
   return m_blend.emplace(state.hex, std::move(res)).first->second.Get();
 }
@@ -447,11 +445,11 @@ ID3D11RasterizerState* StateCache::Get(RasterizationState state)
 
   D3D11_RASTERIZER_DESC desc = {};
   desc.FillMode = D3D11_FILL_SOLID;
-  desc.CullMode = cull_modes[u32(state.cull_mode.Value())];
+  desc.CullMode = cull_modes[u32(state.cullmode.Value())];
   desc.ScissorEnable = TRUE;
 
   ComPtr<ID3D11RasterizerState> res;
-  HRESULT hr = D3D::device->CreateRasterizerState(&desc, &res);
+  HRESULT hr = D3D::device->CreateRasterizerState(&desc, res.GetAddressOf());
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Creating D3D rasterizer state failed: {}", DX11HRWrap(hr));
   return m_raster.emplace(state.hex, std::move(res)).first->second.Get();
 }
@@ -478,11 +476,11 @@ ID3D11DepthStencilState* StateCache::Get(DepthState state)
       D3D11_COMPARISON_GREATER_EQUAL, D3D11_COMPARISON_LESS,    D3D11_COMPARISON_NOT_EQUAL,
       D3D11_COMPARISON_LESS_EQUAL,    D3D11_COMPARISON_ALWAYS};
 
-  if (state.test_enable)
+  if (state.testenable)
   {
     depthdc.DepthEnable = TRUE;
     depthdc.DepthWriteMask =
-        state.update_enable ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
+        state.updateenable ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
     depthdc.DepthFunc = d3dCmpFuncs[u32(state.func.Value())];
   }
   else
@@ -493,7 +491,7 @@ ID3D11DepthStencilState* StateCache::Get(DepthState state)
   }
 
   ComPtr<ID3D11DepthStencilState> res;
-  HRESULT hr = D3D::device->CreateDepthStencilState(&depthdc, &res);
+  HRESULT hr = D3D::device->CreateDepthStencilState(&depthdc, res.GetAddressOf());
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Creating D3D depth stencil state failed: {}", DX11HRWrap(hr));
   return m_depth.emplace(state.hex, std::move(res)).first->second.Get();
 }

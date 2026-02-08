@@ -11,7 +11,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/Swap.h"
 #include "Core/HW/SI/SI_DeviceDanceMat.h"
 #include "Core/HW/SI/SI_DeviceGBA.h"
 #ifdef HAS_LIBMGBA
@@ -88,21 +87,12 @@ void ISIDevice::OnEvent(u64 userdata, s64 cycles_late)
 {
 }
 
-int ISIDevice::CreateStatusResponse(u32 si_device_id, u8* buffer)
-{
-  constexpr int RESPONSE_LENGTH = 3;
-
-  Common::BigEndianValue<u32> id(si_device_id);
-  std::memcpy(buffer, &id, RESPONSE_LENGTH);
-  return RESPONSE_LENGTH;
-}
-
 int SIDevice_GetGBATransferTime(const SystemTimers::SystemTimersManager& timers,
                                 EBufferCommands cmd)
 {
   u64 gc_bytes_transferred = 1;
   u64 gba_bytes_transferred = 1;
-  const u64 stop_bits_ns = GC_STOP_BIT_NS + GBA_STOP_BIT_NS;
+  u64 stop_bits_ns = GC_STOP_BIT_NS + GBA_STOP_BIT_NS;
 
   switch (cmd)
   {

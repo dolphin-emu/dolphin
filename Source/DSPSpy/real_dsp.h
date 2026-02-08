@@ -5,11 +5,11 @@
 
 #include "dsp_interface.h"
 
-class RealDSP final : public IDSP
+class RealDSP : public IDSP
 {
 public:
-  void Init() override;
-  void Reset() override;
-  u32 CheckMailTo() override;
-  void SendMailTo(u32 mail) override;
+  virtual void Init();
+  virtual void Reset();
+  virtual u32 CheckMailTo();
+  virtual void SendMailTo(u32 mail);
 };

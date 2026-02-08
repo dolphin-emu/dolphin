@@ -45,6 +45,7 @@ ControllerEmu::InputOverrideFunction InputOverrider::GetInputOverrideFunction() 
 
 TASInputWindow::TASInputWindow(QWidget* parent) : QDialog(parent)
 {
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
   setWindowIcon(Resources::GetAppIcon());
 
   QGridLayout* settings_layout = new QGridLayout;
@@ -198,7 +199,7 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(
 }
 
 // The shortcut_widget argument needs to specify the container widget that will be hidden/shown.
-// This is done to avoid ambiguous shortcuts
+// This is done to avoid ambigous shortcuts
 TASSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int default_, int max,
                                                   QKeySequence shortcut_key_sequence,
                                                   Qt::Orientation orientation,

@@ -46,6 +46,7 @@ RiivolutionBootWidget::RiivolutionBootWidget(std::string game_id, std::optional<
       m_base_game_path(std::move(base_game_path))
 {
   setWindowTitle(tr("Start with Riivolution Patches"));
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   CreateWidgets();
   ConnectWidgets();
@@ -109,7 +110,7 @@ void RiivolutionBootWidget::LoadMatchingXMLs()
 {
   const std::string& riivolution_dir = File::GetUserPath(D_RIIVOLUTION_IDX);
   const auto config = LoadConfigXML(riivolution_dir);
-  for (const std::string& path : Common::DoFileSearch(riivolution_dir + "riivolution", ".xml"))
+  for (const std::string& path : Common::DoFileSearch({riivolution_dir + "riivolution"}, {".xml"}))
   {
     auto parsed = DiscIO::Riivolution::ParseFile(path);
     if (!parsed || !parsed->IsValidForGame(m_game_id, m_revision, m_disc_number))
@@ -186,7 +187,7 @@ void RiivolutionBootWidget::MakeGUIForParsedFile(std::string path, std::string r
   xml_root_layout->addWidget(xml_root_line_edit, 0);
   xml_root_layout->addWidget(xml_root_open, 0);
   disc_layout->addLayout(xml_root_layout);
-  connect(xml_root_open, &QPushButton::clicked, this, [this, xml_root_line_edit, disc_index] {
+  connect(xml_root_open, &QPushButton::clicked, this, [this, xml_root_line_edit, disc_index]() {
     QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
         this, tr("Select the Virtual SD Card Root"), xml_root_line_edit->text()));
     if (!dir.isEmpty())

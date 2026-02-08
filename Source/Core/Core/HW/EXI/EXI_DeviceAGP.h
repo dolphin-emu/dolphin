@@ -18,7 +18,7 @@ class CEXIAgp : public IEXIDevice
 {
 public:
   CEXIAgp(Core::System& system, const Slot slot);
-  ~CEXIAgp() override;
+  virtual ~CEXIAgp() override;
   bool IsPresent() const override { return true; }
   void ImmWrite(u32 _uData, u32 _uSize) override;
   u32 ImmRead(u32 _uSize) override;

@@ -30,7 +30,9 @@ enum class EXIDeviceType : int
   AD16,
   Microphone,
   Ethernet,
-  Baseboard,
+  // Was used for Triforce in the past, but the implementation is no longer in Dolphin.
+  // It's kept here so that values below will stay constant.
+  AMBaseboard,
   Gecko,
   // Only used when creating a device by EXIDevice_Create.
   // Converted to MemoryCard internally.
@@ -40,7 +42,6 @@ enum class EXIDeviceType : int
   EthernetTapServer,
   EthernetBuiltIn,
   ModemTapServer,
-  EthernetIPC,
   None = 0xFF
 };
 
@@ -87,7 +88,7 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, EXIDeviceType
 
 template <>
 struct fmt::formatter<ExpansionInterface::EXIDeviceType>
-    : EnumFormatter<ExpansionInterface::EXIDeviceType::EthernetIPC>
+    : EnumFormatter<ExpansionInterface::EXIDeviceType::ModemTapServer>
 {
   static constexpr array_type names = {
       _trans("Dummy"),
@@ -97,7 +98,7 @@ struct fmt::formatter<ExpansionInterface::EXIDeviceType>
       _trans("AD16"),
       _trans("Microphone"),
       _trans("Broadband Adapter (TAP)"),
-      _trans("Triforce Baseboard"),
+      _trans("Triforce AM Baseboard"),
       _trans("USB Gecko"),
       _trans("GCI Folder"),
       _trans("Advance Game Port"),
@@ -105,7 +106,6 @@ struct fmt::formatter<ExpansionInterface::EXIDeviceType>
       _trans("Broadband Adapter (tapserver)"),
       _trans("Broadband Adapter (HLE)"),
       _trans("Modem Adapter (tapserver)"),
-      _trans("Broadband Adapter (IPC)"),
   };
 
   constexpr formatter() : EnumFormatter(names) {}

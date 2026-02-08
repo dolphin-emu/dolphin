@@ -17,6 +17,8 @@ static constexpr auto X_None = None;
 #include "Core/State.h"
 #include "Core/System.h"
 
+#include <climits>
+#include <cstdio>
 #include <cstring>
 #include <thread>
 

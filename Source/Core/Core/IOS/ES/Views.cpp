@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Common/Logging/Log.h"
+#include "Common/NandPaths.h"
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"

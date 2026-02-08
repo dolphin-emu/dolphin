@@ -48,10 +48,6 @@ static Config::Location GetLocation(JNIEnv* env, jstring file, jstring section, 
   {
     system = Config::System::GameSettingsOnly;
   }
-  else if (decoded_file == "RetroAchievements")
-  {
-    system = Config::System::Achievements;
-  }
   else
   {
     ASSERT(false);

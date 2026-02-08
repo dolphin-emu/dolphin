@@ -234,7 +234,7 @@ public:
   ESDevice(ESDevice&& other) = delete;
   ESDevice& operator=(const ESDevice& other) = delete;
   ESDevice& operator=(ESDevice&& other) = delete;
-  ~ESDevice() override;
+  ~ESDevice();
 
   static void InitializeEmulationState(CoreTiming::CoreTimingManager& core_timing);
   static void FinalizeEmulationState();

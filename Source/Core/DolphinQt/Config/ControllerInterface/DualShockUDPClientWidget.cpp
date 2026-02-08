@@ -14,6 +14,7 @@
 #include "Common/Config/Config.h"
 #include "DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPClient.h"
 
 DualShockUDPClientWidget::DualShockUDPClientWidget()
@@ -111,6 +112,7 @@ void DualShockUDPClientWidget::OnServerAdded()
   DualShockUDPClientAddServerDialog add_server_dialog(this);
   connect(&add_server_dialog, &DualShockUDPClientAddServerDialog::accepted, this,
           &DualShockUDPClientWidget::RefreshServerList);
+  SetQWidgetWindowDecorations(&add_server_dialog);
   add_server_dialog.exec();
 }
 

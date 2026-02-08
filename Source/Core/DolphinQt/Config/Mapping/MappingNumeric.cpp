@@ -7,6 +7,9 @@
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 MappingDouble::MappingDouble(MappingWidget* parent, ControllerEmu::NumericSetting<double>* setting)
     : QDoubleSpinBox(parent), m_setting(*setting)
 {
@@ -73,11 +76,7 @@ MappingBool::MappingBool(MappingWidget* parent, ControllerEmu::NumericSetting<bo
   if (const auto ui_description = m_setting.GetUIDescription())
     setToolTip(tr(ui_description));
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  connect(this, &QCheckBox::checkStateChanged, this, [this, parent](Qt::CheckState value) {
-#else
   connect(this, &QCheckBox::stateChanged, this, [this, parent](int value) {
-#endif
     m_setting.SetValue(value != 0);
     ConfigChanged();
     parent->SaveSettings();

@@ -36,6 +36,7 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/TextureInfo.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -117,12 +118,11 @@ VertexManagerBase::~VertexManagerBase() = default;
 
 bool VertexManagerBase::Initialize()
 {
-  auto& video_events = GetVideoEvents();
-
   m_frame_end_event =
-      video_events.after_frame_event.Register([this](Core::System&) { OnEndFrame(); });
-  m_after_present_event = video_events.after_present_event.Register(
-      [this](const PresentInfo& pi) { m_ticks_elapsed = pi.emulated_timestamp; });
+      AfterFrameEvent::Register([this](Core::System&) { OnEndFrame(); }, "VertexManagerBase");
+  m_after_present_event = AfterPresentEvent::Register(
+      [this](const PresentInfo& pi) { m_ticks_elapsed = pi.emulated_timestamp; },
+      "VertexManagerBase");
   m_index_generator.Init();
   m_custom_shader_cache = std::make_unique<CustomShaderCache>();
   m_cpu_cull.Init();
@@ -442,7 +442,7 @@ void VertexManagerBase::Flush()
   if (m_draw_counter == 0)
   {
     // This is more or less the start of the Frame
-    GetVideoEvents().before_frame_event.Trigger();
+    BeforeFrameEvent::Trigger();
   }
 
   if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens ||
@@ -459,11 +459,13 @@ void VertexManagerBase::Flush()
     // eventually simulate the behavior we have test cases for it.
     if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens)
     {
-      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::MismatchedGPUTexGensBetweenXFAndBP);
+      DolphinAnalytics::Instance().ReportGameQuirk(
+          GameQuirk::MISMATCHED_GPU_TEXGENS_BETWEEN_XF_AND_BP);
     }
     if (xfmem.numChan.numColorChans != bpmem.genMode.numcolchans)
     {
-      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::MismatchedGPUColorsBetweenXFAndBP);
+      DolphinAnalytics::Instance().ReportGameQuirk(
+          GameQuirk::MISMATCHED_GPU_COLORS_BETWEEN_XF_AND_BP);
     }
 
     return;
@@ -472,8 +474,8 @@ void VertexManagerBase::Flush()
 #if defined(_DEBUG) || defined(DEBUGFAST)
   PRIM_LOG("frame{}:\n texgen={}, numchan={}, dualtex={}, ztex={}, cole={}, alpe={}, ze={}",
            g_ActiveConfig.iSaveTargetId, xfmem.numTexGen.numTexGens, xfmem.numChan.numColorChans,
-           xfmem.dualTexTrans.enabled, bpmem.ztex2.op.Value(), bpmem.blendmode.color_update.Value(),
-           bpmem.blendmode.alpha_update.Value(), bpmem.zmode.update_enable.Value());
+           xfmem.dualTexTrans.enabled, bpmem.ztex2.op.Value(), bpmem.blendmode.colorupdate.Value(),
+           bpmem.blendmode.alphaupdate.Value(), bpmem.zmode.updateenable.Value());
 
   for (u32 i = 0; i < xfmem.numChan.numColorChans; ++i)
   {
@@ -568,7 +570,7 @@ void VertexManagerBase::Flush()
     {
       for (const u32 i : used_textures)
       {
-        const auto cache_entry = g_texture_cache->Load(i);
+        const auto cache_entry = g_texture_cache->Load(TextureInfo::FromStage(i));
         if (!cache_entry)
           continue;
         const float custom_tex_scale = cache_entry->GetWidth() / float(cache_entry->native_width);
@@ -580,7 +582,7 @@ void VertexManagerBase::Flush()
     {
       for (const u32 i : used_textures)
       {
-        const auto cache_entry = g_texture_cache->Load(i);
+        const auto cache_entry = g_texture_cache->Load(TextureInfo::FromStage(i));
         if (cache_entry)
         {
           if (!Common::Contains(texture_names, cache_entry->texture_info_name))
@@ -964,7 +966,7 @@ void VertexManagerBase::OnDraw()
 
 void VertexManagerBase::OnCPUEFBAccess()
 {
-  // Check this isn't another access without any draws in between.
+  // Check this isn't another access without any draws inbetween.
   if (!m_cpu_accesses_this_frame.empty() && m_cpu_accesses_this_frame.back() == m_draw_counter)
     return;
 

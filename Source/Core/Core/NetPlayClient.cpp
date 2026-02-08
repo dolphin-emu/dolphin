@@ -7,6 +7,7 @@
 #include <array>
 #include <cstddef>
 #include <cstring>
+#include <fstream>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -30,6 +31,7 @@
 #include "Common/NandPaths.h"
 #include "Common/QoSSession.h"
 #include "Common/SFMLHelper.h"
+#include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
 
@@ -56,20 +58,26 @@
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/HW/WiiSaveStructs.h"
-#include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/FS/HostBackend/FS.h"
+#include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/Uids.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayCommon.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/SyncIdentifier.h"
 #include "Core/System.h"
 #include "DiscIO/Blob.h"
 
+#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/GCAdapter.h"
+#include "InputCommon/InputConfig.h"
 #include "UICommon/GameFile.h"
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace NetPlay
 {
@@ -854,8 +862,6 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     packet >> m_net_settings.allow_sd_writes;
     packet >> m_net_settings.oc_enable;
     packet >> m_net_settings.oc_factor;
-    packet >> m_net_settings.vi_oc_enable;
-    packet >> m_net_settings.vi_oc_factor;
 
     for (auto slot : ExpansionInterface::SLOTS)
       packet >> m_net_settings.exi_device[slot];
@@ -2384,8 +2390,8 @@ void NetPlayClient::RequestGolfControl()
 std::string NetPlayClient::GetCurrentGolfer()
 {
   std::lock_guard lkp(m_crit.players);
-  if (const auto it = m_players.find(m_current_golfer); it != m_players.end())
-    return it->second.name;
+  if (m_players.contains(m_current_golfer))
+    return m_players[m_current_golfer].name;
   return "";
 }
 
@@ -2588,7 +2594,7 @@ void NetPlayClient::ComputeGameDigest(const SyncIdentifier& sync_identifier)
 
   if (m_game_digest_thread.joinable())
     m_game_digest_thread.join();
-  m_game_digest_thread = std::thread([this, file] {
+  m_game_digest_thread = std::thread([this, file]() {
     std::string sum = SHA1Sum(file, [&](int progress) {
       sf::Packet packet;
       packet << MessageID::GameDigestProgress;

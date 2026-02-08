@@ -3,16 +3,11 @@
 
 #pragma once
 
-#include "Common/Config/ConfigInfo.h"
+#include "Common/Config/Config.h"
 
 namespace FreeLook
 {
-enum class ControlType : int
-{
-  SixAxis,
-  FPS,
-  Orbital
-};
+enum class ControlType : int;
 }
 
 namespace Config

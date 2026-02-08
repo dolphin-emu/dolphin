@@ -19,19 +19,7 @@ namespace Common
 {
 std::string RootUserPath(FromWhichRoot from)
 {
-  int idx{};
-  switch (from)
-  {
-  case FromWhichRoot::Configured:
-    idx = D_WIIROOT_IDX;
-    break;
-  case FromWhichRoot::Session:
-    idx = D_SESSION_WIIROOT_IDX;
-    break;
-  case FromWhichRoot::Banners:
-    idx = D_BANNERS_WIIROOT_IDX;
-    break;
-  }
+  int idx = from == FromWhichRoot::Configured ? D_WIIROOT_IDX : D_SESSION_WIIROOT_IDX;
   std::string dir = File::GetUserPath(idx);
   dir.pop_back();  // remove trailing path separator
   return dir;

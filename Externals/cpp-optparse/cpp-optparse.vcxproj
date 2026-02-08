@@ -16,10 +16,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-    <ClCompile Include="cpp-optparse\OptionParser.cpp" />
+    <ClCompile Include="OptionParser.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cpp-optparse\OptionParser.h" />
+    <ClInclude Include="OptionParser.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

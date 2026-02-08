@@ -72,8 +72,7 @@ enum X64Reg
   XMM14,
   XMM15,
 
-  // Use the bit 0x100 to distinguish XMM and YMM registers.
-  YMM0 = 0x100,
+  YMM0 = 0,
   YMM1,
   YMM2,
   YMM3,

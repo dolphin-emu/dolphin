@@ -6,8 +6,6 @@ import android.content.Context
 import android.hardware.input.InputManager
 import android.os.Build
 import android.os.Handler
-import android.os.HandlerThread
-import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -15,10 +13,8 @@ import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.annotation.Keep
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import org.dolphinemu.dolphinemu.DolphinApplication
-import java.util.concurrent.atomic.AtomicBoolean
+import org.dolphinemu.dolphinemu.utils.LooperThread
 
 /**
  * This class interfaces with the native ControllerInterface,
@@ -26,17 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 object ControllerInterface {
     private var inputDeviceListener: InputDeviceListener? = null
-    private var handlerThread: HandlerThread? = null
-
-    private val inputStateUpdatePending = AtomicBoolean(false)
-    private val inputStateVersion = MutableLiveData(0)
-    private val devicesVersion = MutableLiveData(0)
-
-    val inputStateChanged: LiveData<Int>
-        get() = inputStateVersion
-
-    val devicesChanged: LiveData<Int>
-        get() = devicesVersion
+    private lateinit var looperThread: LooperThread
 
     /**
      * Activities which want to pass on inputs to native code
@@ -45,13 +31,7 @@ object ControllerInterface {
      * @return true if the emulator core seems to be interested in this event.
      * false if the event should be passed on to the default dispatchKeyEvent.
      */
-    fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        val result = dispatchKeyEventNative(event)
-        onInputStateChanged()
-        return result
-    }
-
-    private external fun dispatchKeyEventNative(event: KeyEvent): Boolean
+    external fun dispatchKeyEvent(event: KeyEvent): Boolean
 
     /**
      * Activities which want to pass on inputs to native code
@@ -60,13 +40,7 @@ object ControllerInterface {
      * @return true if the emulator core seems to be interested in this event.
      * false if the event should be passed on to the default dispatchGenericMotionEvent.
      */
-    fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
-        val result = dispatchGenericMotionEventNative(event)
-        onInputStateChanged()
-        return result
-    }
-
-    private external fun dispatchGenericMotionEventNative(event: MotionEvent): Boolean
+    external fun dispatchGenericMotionEvent(event: MotionEvent): Boolean
 
     /**
      * [DolphinSensorEventListener] calls this for each axis of a received SensorEvent.
@@ -74,14 +48,10 @@ object ControllerInterface {
      * @return true if the emulator core seems to be interested in this event.
      * false if the sensor can be suspended to save battery.
      */
-    fun dispatchSensorEvent(deviceQualifier: String, axisName: String, value: Float): Boolean {
-        val result = dispatchSensorEventNative(deviceQualifier, axisName, value)
-        onInputStateChanged()
-        return result
-    }
-
-    private external fun dispatchSensorEventNative(
-        deviceQualifier: String, axisName: String, value: Float
+    external fun dispatchSensorEvent(
+        deviceQualifier: String,
+        axisName: String,
+        value: Float
     ): Boolean
 
     /**
@@ -92,7 +62,9 @@ object ControllerInterface {
      * @param suspended       Whether the sensor is now suspended.
      */
     external fun notifySensorSuspendedState(
-        deviceQualifier: String, axisNames: Array<String>, suspended: Boolean
+        deviceQualifier: String,
+        axisNames: Array<String>,
+        suspended: Boolean
     )
 
     /**
@@ -104,42 +76,18 @@ object ControllerInterface {
 
     external fun getDevice(deviceString: String): CoreDevice?
 
-    private fun onInputStateChanged() {
-        // When a single SensorEvent is dispatched, this method is likely to get called many times.
-        // For the sake of performance, let's batch input state updates so that observers only have
-        // to process one update.
-        if (!inputStateUpdatePending.getAndSet(true)) {
-            Handler(Looper.getMainLooper()).post {
-                if (inputStateUpdatePending.getAndSet(false)) {
-                    inputStateVersion.value = inputStateVersion.value?.plus(1)
-                }
-            }
-        }
-    }
-
-    @Keep
-    @JvmStatic
-    private fun onDevicesChanged() {
-        Handler(Looper.getMainLooper()).post {
-            devicesVersion.value = devicesVersion.value?.plus(1)
-        }
-    }
-
     @Keep
     @JvmStatic
     private fun registerInputDeviceListener() {
-        if (inputDeviceListener == null) {
-            handlerThread = HandlerThread("Hotplug thread").apply { start() }
-            val thread = requireNotNull(handlerThread) { "HandlerThread is not available" }
+        looperThread = LooperThread("Hotplug thread")
+        looperThread.start()
 
+        if (inputDeviceListener == null) {
             val im = DolphinApplication.getAppContext()
-                .getSystemService(Context.INPUT_SERVICE) as InputManager
-            val looper = requireNotNull(thread.looper) {
-                "HandlerThread looper is not available"
-            }
+                .getSystemService(Context.INPUT_SERVICE) as InputManager?
 
             inputDeviceListener = InputDeviceListener()
-            im.registerInputDeviceListener(inputDeviceListener, Handler(looper))
+            im!!.registerInputDeviceListener(inputDeviceListener, Handler(looperThread.looper))
         }
     }
 
@@ -148,12 +96,10 @@ object ControllerInterface {
     private fun unregisterInputDeviceListener() {
         if (inputDeviceListener != null) {
             val im = DolphinApplication.getAppContext()
-                .getSystemService(Context.INPUT_SERVICE) as InputManager
+                .getSystemService(Context.INPUT_SERVICE) as InputManager?
 
-            im.unregisterInputDeviceListener(inputDeviceListener)
+            im!!.unregisterInputDeviceListener(inputDeviceListener)
             inputDeviceListener = null
-            handlerThread?.quitSafely()
-            handlerThread = null
         }
     }
 
@@ -173,9 +119,8 @@ object ControllerInterface {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val vibratorManager = DolphinApplication.getAppContext()
                 .getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager?
-            if (vibratorManager != null) {
+            if (vibratorManager != null)
                 return DolphinVibratorManagerPassthrough(vibratorManager)
-            }
         }
         val vibrator = DolphinApplication.getAppContext()
             .getSystemService(Context.VIBRATOR_SERVICE) as Vibrator

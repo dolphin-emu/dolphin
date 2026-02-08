@@ -16,7 +16,7 @@ void PixelShaderManager::Init()
 {
   constants = {};
 
-  // Init any initial constants which aren't zero when bpmem is zero.
+  // Init any intial constants which aren't zero when bpmem is zero.
   m_fog_range_adjusted_changed = true;
   m_viewport_changed = false;
 
@@ -51,9 +51,9 @@ void PixelShaderManager::Init()
     constants.konst[10][component] = 0;
     constants.konst[11][component] = 0;
 
-    // Annoyingly, alpha reads zero values for the .rgb colors (officially
+    // Annoyingly, alpha reads zero values for the .rgb colors (offically
     // defined as invalid)
-    // If it wasn't for this, we could just use one of the first 3 columns
+    // If it wasn't for this, we could just use one of the first 3 colunms
     // instead of
     // wasting an entire 4th column just for alpha.
     if (component == 3)
@@ -162,7 +162,7 @@ void PixelShaderManager::SetConstants()
   {
     // Destination alpha is only enabled if alpha writes are enabled. Force entire uniform to zero
     // when disabled.
-    u32 dstalpha = bpmem.blendmode.alpha_update && bpmem.dstalpha.enable &&
+    u32 dstalpha = bpmem.blendmode.alphaupdate && bpmem.dstalpha.enable &&
                            bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24 ?
                        bpmem.dstalpha.hex :
                        0;
@@ -468,29 +468,29 @@ void PixelShaderManager::SetBlendModeChanged()
   }
   BlendingState state = {};
   state.Generate(bpmem);
-  if (constants.blend_enable != state.blend_enable)
+  if (constants.blend_enable != state.blendenable)
   {
-    constants.blend_enable = state.blend_enable;
+    constants.blend_enable = state.blendenable;
     dirty = true;
   }
-  if (constants.blend_src_factor != state.src_factor)
+  if (constants.blend_src_factor != state.srcfactor)
   {
-    constants.blend_src_factor = state.src_factor;
+    constants.blend_src_factor = state.srcfactor;
     dirty = true;
   }
-  if (constants.blend_src_factor_alpha != state.src_factor_alpha)
+  if (constants.blend_src_factor_alpha != state.srcfactoralpha)
   {
-    constants.blend_src_factor_alpha = state.src_factor_alpha;
+    constants.blend_src_factor_alpha = state.srcfactoralpha;
     dirty = true;
   }
-  if (constants.blend_dst_factor != state.dst_factor)
+  if (constants.blend_dst_factor != state.dstfactor)
   {
-    constants.blend_dst_factor = state.dst_factor;
+    constants.blend_dst_factor = state.dstfactor;
     dirty = true;
   }
-  if (constants.blend_dst_factor_alpha != state.dst_factor_alpha)
+  if (constants.blend_dst_factor_alpha != state.dstfactoralpha)
   {
-    constants.blend_dst_factor_alpha = state.dst_factor_alpha;
+    constants.blend_dst_factor_alpha = state.dstfactoralpha;
     dirty = true;
   }
   if (constants.blend_subtract != state.subtract)
@@ -498,19 +498,19 @@ void PixelShaderManager::SetBlendModeChanged()
     constants.blend_subtract = state.subtract;
     dirty = true;
   }
-  if (constants.blend_subtract_alpha != state.subtract_alpha)
+  if (constants.blend_subtract_alpha != state.subtractAlpha)
   {
-    constants.blend_subtract_alpha = state.subtract_alpha;
+    constants.blend_subtract_alpha = state.subtractAlpha;
     dirty = true;
   }
-  if (constants.logic_op_enable != state.logic_op_enable)
+  if (constants.logic_op_enable != state.logicopenable)
   {
-    constants.logic_op_enable = state.logic_op_enable;
+    constants.logic_op_enable = state.logicopenable;
     dirty = true;
   }
-  if (constants.logic_op_mode != state.logic_mode)
+  if (constants.logic_op_mode != state.logicmode)
   {
-    constants.logic_op_mode = state.logic_mode;
+    constants.logic_op_mode = state.logicmode;
     dirty = true;
   }
   m_dest_alpha_dirty = true;

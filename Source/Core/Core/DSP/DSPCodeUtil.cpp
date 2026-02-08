@@ -4,6 +4,7 @@
 #include "Core/DSP/DSPCodeUtil.h"
 
 #include <algorithm>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -12,7 +13,9 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
+#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
 #include "Core/DSP/DSPAssembler.h"

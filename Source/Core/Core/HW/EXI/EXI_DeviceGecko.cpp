@@ -12,6 +12,7 @@
 
 #include <fmt/format.h>
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"

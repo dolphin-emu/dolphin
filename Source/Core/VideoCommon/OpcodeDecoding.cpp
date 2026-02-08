@@ -29,6 +29,7 @@
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/XFMemory.h"
 #include "VideoCommon/XFStateManager.h"
+#include "VideoCommon/XFStructs.h"
 
 namespace OpcodeDecoder
 {

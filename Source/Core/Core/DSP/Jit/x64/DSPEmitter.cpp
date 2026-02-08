@@ -99,9 +99,9 @@ void DSPEmitter::ClearIRAMandDSPJITCodespaceReset()
   m_dsp_core.DSPState().reset_dspjit_codespace = false;
 }
 
-static u32 CheckExceptionsThunk(DSPCore& dsp)
+static void CheckExceptionsThunk(DSPCore& dsp)
 {
-  return dsp.CheckExceptions() ? 1u : 0u;
+  dsp.CheckExceptions();
 }
 
 // Must go out of block if exception is detected
@@ -116,11 +116,8 @@ void DSPEmitter::checkExceptions(u32 retval)
   DSPJitRegCache c(m_gpr);
   m_gpr.SaveRegs();
   ABI_CallFunctionP(CheckExceptionsThunk, &m_dsp_core);
-  TEST(32, R(ABI_RETURN), R(ABI_RETURN));
-  FixupBranch skip_return = J_CC(CC_Z, Jump::Short);
   MOV(32, R(EAX), Imm32(retval));
-  JMP(m_return_dispatcher);
-  SetJumpTarget(skip_return);
+  JMP(m_return_dispatcher, Jump::Near);
   m_gpr.LoadRegs(false);
   m_gpr.FlushRegs(c, false);
 
@@ -293,7 +290,7 @@ void DSPEmitter::Compile(u16 start_addr)
       {
         MOV(16, R(EAX), Imm16(m_block_size[start_addr]));
       }
-      JMP(m_return_dispatcher);
+      JMP(m_return_dispatcher, Jump::Near);
       m_gpr.LoadRegs(false);
       m_gpr.FlushRegs(c, false);
 
@@ -329,7 +326,7 @@ void DSPEmitter::Compile(u16 start_addr)
         {
           MOV(16, R(EAX), Imm16(m_block_size[start_addr]));
         }
-        JMP(m_return_dispatcher);
+        JMP(m_return_dispatcher, Jump::Near);
         m_gpr.LoadRegs(false);
         m_gpr.FlushRegs(c, false);
 
@@ -392,7 +389,7 @@ void DSPEmitter::Compile(u16 start_addr)
   {
     MOV(16, R(EAX), Imm16(m_block_size[start_addr]));
   }
-  JMP(m_return_dispatcher);
+  JMP(m_return_dispatcher, Jump::Near);
 }
 
 void DSPEmitter::CompileCurrent(DSPEmitter& emitter)

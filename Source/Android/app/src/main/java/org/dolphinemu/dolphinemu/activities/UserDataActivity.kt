@@ -11,14 +11,10 @@ import android.os.Bundle
 import android.provider.DocumentsContract
 import android.view.View
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ActivityUserDataBinding
 import org.dolphinemu.dolphinemu.dialogs.NotificationDialog
@@ -26,11 +22,8 @@ import org.dolphinemu.dolphinemu.dialogs.TaskDialog
 import org.dolphinemu.dolphinemu.dialogs.UserDataImportWarningDialog
 import org.dolphinemu.dolphinemu.features.DocumentProvider
 import org.dolphinemu.dolphinemu.model.TaskViewModel
-import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.utils.*
-import org.dolphinemu.dolphinemu.utils.ThemeHelper
 import org.dolphinemu.dolphinemu.utils.ThemeHelper.enableScrollTint
-import org.dolphinemu.dolphinemu.utils.ThemeHelper.setCorrectTheme
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -40,45 +33,10 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 import kotlin.system.exitProcess
 
-class UserDataActivity : AppCompatActivity(), ThemeProvider {
+class UserDataActivity : AppCompatActivity() {
     private lateinit var taskViewModel: TaskViewModel
 
     private lateinit var mBinding: ActivityUserDataBinding
-
-    override var themeId: Int = 0
-    private val requestImport = registerForActivityResult(
-        ActivityResultContracts.OpenDocument()
-    ) { uri: Uri? ->
-        if (uri != null) {
-            val arguments = Bundle()
-            arguments.putString(
-                UserDataImportWarningDialog.KEY_URI_RESULT,
-                uri.toString()
-            )
-
-            val dialog = UserDataImportWarningDialog()
-            dialog.arguments = arguments
-            dialog.show(supportFragmentManager, UserDataImportWarningDialog.TAG)
-        }
-    }
-
-    private val requestExport = registerForActivityResult(
-        ActivityResultContracts.CreateDocument("application/zip")
-    ) { uri: Uri? ->
-        if (uri != null) {
-            taskViewModel.clear()
-            taskViewModel.task = { exportUserData(uri) }
-
-            val arguments = Bundle()
-            arguments.putInt(TaskDialog.KEY_TITLE, R.string.export_in_progress)
-            arguments.putInt(TaskDialog.KEY_MESSAGE, 0)
-            arguments.putBoolean(TaskDialog.KEY_CANCELLABLE, true)
-
-            val dialog = TaskDialog()
-            dialog.arguments = arguments
-            dialog.show(supportFragmentManager, TaskDialog.TAG)
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         taskViewModel = ViewModelProvider(this)[TaskViewModel::class.java]
@@ -115,17 +73,11 @@ class UserDataActivity : AppCompatActivity(), ThemeProvider {
 
         mBinding.buttonExportUserData.setOnClickListener { exportUserData() }
 
-        mBinding.buttonResetSettings.setOnClickListener { confirmResetSettings() }
-
         setSupportActionBar(mBinding.toolbarUserData)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
         setInsets()
         enableScrollTint(this, mBinding.toolbarUserData, mBinding.appbarUserData)
-
-        if (savedInstanceState == null) {
-            Analytics.checkAnalyticsInit(this)
-        }
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -133,36 +85,32 @@ class UserDataActivity : AppCompatActivity(), ThemeProvider {
         return true
     }
 
-    override fun onResume() {
-        setCorrectTheme(this)
-        super.onResume()
-    }
+    public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
 
-    override fun setTheme(themeId: Int) {
-        super.setTheme(themeId)
-        this.themeId = themeId
-    }
+        if (requestCode == REQUEST_CODE_IMPORT && resultCode == RESULT_OK) {
+            val arguments = Bundle()
+            arguments.putString(
+                UserDataImportWarningDialog.KEY_URI_RESULT,
+                data!!.data!!.toString()
+            )
 
-    private fun confirmResetSettings() {
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.reset_dolphin_settings)
-            .setMessage(R.string.reset_dolphin_settings_confirmation)
-            .setPositiveButton(R.string.yes) { _, _ -> resetSettings() }
-            .setNegativeButton(R.string.no, null)
-            .show()
-    }
+            val dialog = UserDataImportWarningDialog()
+            dialog.arguments = arguments
+            dialog.show(supportFragmentManager, UserDataImportWarningDialog.TAG)
+        } else if (requestCode == REQUEST_CODE_EXPORT && resultCode == RESULT_OK) {
+            taskViewModel.clear()
+            taskViewModel.task = { exportUserData(data!!.data!!) }
 
-    private fun resetSettings() {
-        NativeLibrary.ResetDolphinSettings()
-        ThemeHelper.resetThemePreferences(this, false)
+            val arguments = Bundle()
+            arguments.putInt(TaskDialog.KEY_TITLE, R.string.export_in_progress)
+            arguments.putInt(TaskDialog.KEY_MESSAGE, 0)
+            arguments.putBoolean(TaskDialog.KEY_CANCELLABLE, true)
 
-        val restartIntent = Intent(this, UserDataActivity::class.java)
-        restartIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-
-        finish()
-        overridePendingTransition(0, 0)
-        startActivity(restartIntent)
-        overridePendingTransition(0, 0)
+            val dialog = TaskDialog()
+            dialog.arguments = arguments
+            dialog.show(supportFragmentManager, TaskDialog.TAG)
+        }
     }
 
     private fun openFileManager() {
@@ -223,14 +171,15 @@ class UserDataActivity : AppCompatActivity(), ThemeProvider {
     }
 
     private fun importUserData() {
-        requestImport.launch(arrayOf("application/zip"))
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+        intent.type = "application/zip"
+        startActivityForResult(intent, REQUEST_CODE_IMPORT)
     }
 
     fun importUserData(source: Uri): Int {
         try {
-            if (!isDolphinUserDataBackup(source)) {
+            if (!isDolphinUserDataBackup(source))
                 return R.string.user_data_import_invalid_file
-            }
 
             taskViewModel.onResultDismiss = {
                 // Restart the app to apply the imported user data.
@@ -325,7 +274,10 @@ class UserDataActivity : AppCompatActivity(), ThemeProvider {
     }
 
     private fun exportUserData() {
-        requestExport.launch("dolphin-emu.zip")
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
+        intent.type = "application/zip"
+        intent.putExtra(Intent.EXTRA_TITLE, "dolphin-emu.zip")
+        startActivityForResult(intent, REQUEST_CODE_EXPORT)
     }
 
     private fun exportUserData(destination: Uri): Int {
@@ -388,6 +340,9 @@ class UserDataActivity : AppCompatActivity(), ThemeProvider {
     }
 
     companion object {
+        private const val REQUEST_CODE_IMPORT = 0
+        private const val REQUEST_CODE_EXPORT = 1
+
         private const val BUFFER_SIZE = 64 * 1024
 
         @JvmStatic

@@ -6,7 +6,7 @@ target_include_directories(hidapi PUBLIC hidapi-src/hidapi)
 
 if(APPLE)
   target_sources(hidapi PRIVATE hidapi-src/mac/hid.c)
-elseif(WIN32)
+elseif(MSVC)
   target_sources(hidapi PRIVATE hidapi-src/windows/hid.c)
 else()
   find_package(LIBUDEV)

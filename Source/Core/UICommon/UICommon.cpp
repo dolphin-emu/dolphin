@@ -6,8 +6,10 @@
 #include <algorithm>
 #include <clocale>
 #include <cmath>
+#include <iomanip>
 #include <locale>
 #include <memory>
+#include <sstream>
 #ifdef _WIN32
 #include <shlobj.h>  // for SHGetFolderPath
 
@@ -20,9 +22,11 @@
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
+#include "Common/IniFile.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
@@ -44,10 +48,7 @@
 #include "InputCommon/GCAdapter.h"
 
 #include "UICommon/DiscordPresence.h"
-
-#include "VideoCommon/Statistics.h"
-#include "VideoCommon/VideoBackendBase.h"
-#include "VideoCommon/VideoConfig.h"
+#include "UICommon/USBUtils.h"
 
 #ifdef HAVE_QTDBUS
 #include "UICommon/DBusUtils.h"
@@ -57,10 +58,11 @@
 #include <IOKit/pwr_mgt/IOPMLib.h>
 #endif
 
+#include "VideoCommon/VideoBackendBase.h"
+
 namespace UICommon
 {
 static Config::ConfigChangedCallbackID s_config_changed_callback_id;
-static Common::HookableEvent<> s_flush_unsaved_data_event_hook;
 
 static void CreateDumpPath(std::string path)
 {
@@ -128,19 +130,14 @@ void Init()
   Core::RestoreWiiSettings(Core::RestoreReason::CrashRecovery);
 
   Config::Init();
-  const auto config_changed_callback = [] {
-    InitCustomPaths();
-    RefreshConfig();
-  };
-  s_config_changed_callback_id = Config::AddConfigChangedCallback(config_changed_callback);
+  Config::AddConfigChangedCallback(InitCustomPaths);
   Config::AddLayer(ConfigLoaders::GenerateBaseConfigLoader());
   SConfig::Init();
-  g_Config.Init();
   Discord::Init();
   Common::Log::LogManager::Init();
   VideoBackendBase::ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
-  Statistics::Init();
 
+  s_config_changed_callback_id = Config::AddConfigChangedCallback(RefreshConfig);
   RefreshConfig();
 }
 
@@ -148,25 +145,12 @@ void Shutdown()
 {
   Config::RemoveConfigChangedCallback(s_config_changed_callback_id);
 
-  Statistics::Shutdown();
   GCAdapter::Shutdown();
   WiimoteReal::Shutdown();
   Common::Log::LogManager::Shutdown();
   Discord::Shutdown();
-  g_Config.Shutdown();
   SConfig::Shutdown();
   Config::Shutdown();
-}
-
-[[nodiscard]] Common::EventHook AddFlushUnsavedDataCallback(std::function<void()> callback)
-{
-  return s_flush_unsaved_data_event_hook.Register(std::move(callback));
-}
-
-void FlushUnsavedData()
-{
-  INFO_LOG_FMT(CORE, "Flushing unsaved data...");
-  s_flush_unsaved_data_event_hook.Trigger();
 }
 
 void InitControllers(const WindowSystemInfo& wsi)
@@ -282,6 +266,7 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + JAP_DIR DIR_SEP);
   File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
   File::CreateFullPath(File::GetUserPath(D_GRAPHICSMOD_IDX));
+  File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
   File::CreateFullPath(File::GetUserPath(D_MAPS_IDX));
   File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
   File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
@@ -289,7 +274,6 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_RETROACHIEVEMENTSCACHE_IDX));
   File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
   File::CreateFullPath(File::GetUserPath(D_ASM_ROOT_IDX));
-  File::CreateFullPath(File::GetUserPath(D_WFSROOT_IDX));
 #ifndef ANDROID
   File::CreateFullPath(File::GetUserPath(D_THEMES_IDX));
   File::CreateFullPath(File::GetUserPath(D_STYLES_IDX));

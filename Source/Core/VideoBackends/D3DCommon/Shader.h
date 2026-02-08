@@ -13,15 +13,14 @@ namespace D3DCommon
 class Shader : public AbstractShader
 {
 public:
-  ~Shader() override;
+  virtual ~Shader() override;
 
   const BinaryData& GetByteCode() const { return m_bytecode; }
 
   BinaryData GetBinary() const override;
 
   static std::optional<BinaryData> CompileShader(D3D_FEATURE_LEVEL feature_level, ShaderStage stage,
-                                                 std::string_view source,
-                                                 VideoCommon::ShaderIncluder* shader_includer);
+                                                 std::string_view source);
 
   static BinaryData CreateByteCode(const void* data, size_t length);
 

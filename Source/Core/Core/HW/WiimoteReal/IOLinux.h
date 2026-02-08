@@ -4,10 +4,8 @@
 #pragma once
 
 #if defined(__linux__) && HAVE_BLUEZ
+#include <bluetooth/bluetooth.h>
 
-#include <atomic>
-
-#include "Common/Network.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 namespace WiimoteReal
@@ -15,10 +13,14 @@ namespace WiimoteReal
 class WiimoteLinux final : public Wiimote
 {
 public:
-  explicit WiimoteLinux(Common::BluetoothAddress bdaddr);
+  WiimoteLinux(bdaddr_t bdaddr);
   ~WiimoteLinux() override;
-
-  std::string GetId() const override;
+  std::string GetId() const override
+  {
+    char bdaddr_str[18] = {};
+    ba2str(&m_bdaddr, bdaddr_str);
+    return bdaddr_str;
+  }
 
 protected:
   bool ConnectInternal() override;
@@ -29,10 +31,11 @@ protected:
   int IOWrite(u8 const* buf, size_t len) override;
 
 private:
-  const Common::BluetoothAddress m_bdaddr;
-  const int m_wakeup_fd{-1};  // Used to kick the read thread.
-  int m_cmd_sock{-1};         // Command socket
-  int m_int_sock{-1};         // Interrupt socket
+  bdaddr_t m_bdaddr;  // Bluetooth address
+  int m_cmd_sock;     // Command socket
+  int m_int_sock;     // Interrupt socket
+  int m_wakeup_pipe_w;
+  int m_wakeup_pipe_r;
 };
 
 class WiimoteScannerLinux final : public WiimoteScannerBackend
@@ -40,26 +43,16 @@ class WiimoteScannerLinux final : public WiimoteScannerBackend
 public:
   WiimoteScannerLinux();
   ~WiimoteScannerLinux() override;
-
   bool IsReady() const override;
-
-  // FYI: This backend only supports connecting remotes just found via Bluetooth inquiry.
-  FindResults FindNewWiimotes() override;
-
-  void Update() override;
-  void RequestStopSearching() override;
-
+  void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
+  void Update() override {}                // not needed on Linux
+  void RequestStopSearching() override {}  // not needed on Linux
 private:
-  bool Open();
-  void Close();
+  int m_device_id;
+  int m_device_sock;
 
-  int m_device_id{-1};
-  int m_device_sock{-1};
-
-  // FYI: Atomic because UI calls IsReady.
-  std::atomic<bool> m_is_device_open{};
+  void AddAutoConnectAddresses(std::vector<Wiimote*>&);
 };
-
 }  // namespace WiimoteReal
 
 #else

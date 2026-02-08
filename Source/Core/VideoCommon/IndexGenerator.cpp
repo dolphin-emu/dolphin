@@ -3,6 +3,8 @@
 
 #include "VideoCommon/IndexGenerator.h"
 
+#include <array>
+#include <cstddef>
 #include <cstring>
 
 #include "Common/CommonTypes.h"

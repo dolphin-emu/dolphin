@@ -1,5 +1,4 @@
 import com.android.build.api.dsl.ManagedVirtualDevice
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.test")
@@ -16,10 +15,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlin {
-        compilerOptions {
-            jvmTarget = JvmTarget.fromTarget("17")
-        }
+    kotlinOptions {
+        jvmTarget = "17"
     }
 
     defaultConfig {
@@ -48,8 +45,8 @@ baselineProfile {
 }
 
 dependencies {
-    implementation("androidx.test.ext:junit:1.3.0")
-    implementation("androidx.test.espresso:espresso-core:3.7.0")
+    implementation("androidx.test.ext:junit:1.1.5")
+    implementation("androidx.test.espresso:espresso-core:3.5.1")
     implementation("androidx.test.uiautomator:uiautomator:2.3.0")
-    implementation("androidx.benchmark:benchmark-macro-junit4:1.4.1")
+    implementation("androidx.benchmark:benchmark-macro-junit4:1.2.4")
 }

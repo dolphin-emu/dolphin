@@ -24,25 +24,33 @@
 #include "DolphinQt/Config/ConfigControls/ConfigInteger.h"
 #include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
 #include "DolphinQt/Config/GameConfigWidget.h"
-#include "DolphinQt/Config/Graphics/GraphicsPane.h"
+#include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-GeneralWidget::GeneralWidget(GraphicsPane* gfx_pane) : m_game_layer{gfx_pane->GetConfigLayer()}
+GeneralWidget::GeneralWidget(GraphicsWindow* parent)
 {
   CreateWidgets();
   ConnectWidgets();
   AddDescriptions();
 
-  connect(gfx_pane, &GraphicsPane::BackendChanged, this, &GeneralWidget::OnBackendChanged);
+  connect(parent, &GraphicsWindow::BackendChanged, this, &GeneralWidget::OnBackendChanged);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
   OnEmulationStateChanged(!Core::IsUninitialized(Core::System::GetInstance()));
+}
+
+GeneralWidget::GeneralWidget(GameConfigWidget* parent, Config::Layer* layer) : m_game_layer(layer)
+{
+  CreateWidgets();
+  ConnectWidgets();
+  AddDescriptions();
 }
 
 void GeneralWidget::CreateWidgets()
@@ -57,7 +65,7 @@ void GeneralWidget::CreateWidgets()
   for (auto& backend : VideoBackendBase::GetAvailableBackends())
   {
     options.push_back(std::make_pair(tr(backend->GetDisplayName().c_str()),
-                                     QString::fromStdString(backend->GetConfigName())));
+                                     QString::fromStdString(backend->GetName())));
   }
   m_backend_combo = new ConfigStringChoice(options, Config::MAIN_GFX_BACKEND, m_game_layer);
   m_previous_backend = m_backend_combo->currentIndex();
@@ -71,8 +79,6 @@ void GeneralWidget::CreateWidgets()
                                             Config::GFX_CUSTOM_ASPECT_RATIO_WIDTH, m_game_layer);
   m_custom_aspect_height = new ConfigInteger(1, MAX_CUSTOM_ASPECT_RATIO_RESOLUTION,
                                              Config::GFX_CUSTOM_ASPECT_RATIO_HEIGHT, m_game_layer);
-  ToggleCustomAspectRatio(m_aspect_combo->currentIndex());
-
   m_adapter_combo = new ToolTipComboBox;
   m_enable_vsync = new ConfigBool(tr("V-Sync"), Config::GFX_VSYNC, m_game_layer);
   m_enable_fullscreen =
@@ -108,15 +114,22 @@ void GeneralWidget::CreateWidgets()
   auto* m_options_box = new QGroupBox(tr("Other"));
   auto* m_options_layout = new QGridLayout();
 
+  m_show_ping =
+      new ConfigBool(tr("Show NetPlay Ping"), Config::GFX_SHOW_NETPLAY_PING, m_game_layer);
   m_autoadjust_window_size = new ConfigBool(tr("Auto-Adjust Window Size"),
                                             Config::MAIN_RENDER_WINDOW_AUTOSIZE, m_game_layer);
+  m_show_messages =
+      new ConfigBool(tr("Show NetPlay Messages"), Config::GFX_SHOW_NETPLAY_MESSAGES, m_game_layer);
   m_render_main_window =
       new ConfigBool(tr("Render to Main Window"), Config::MAIN_RENDER_TO_MAIN, m_game_layer);
 
   m_options_box->setLayout(m_options_layout);
 
   m_options_layout->addWidget(m_render_main_window, 0, 0);
-  m_options_layout->addWidget(m_autoadjust_window_size, 0, 1);
+  m_options_layout->addWidget(m_autoadjust_window_size, 1, 0);
+
+  m_options_layout->addWidget(m_show_messages, 0, 1);
+  m_options_layout->addWidget(m_show_ping, 1, 1);
 
   // Other
   auto* shader_compilation_box = new QGroupBox(tr("Shader Compilation"));
@@ -156,17 +169,14 @@ void GeneralWidget::ConnectWidgets()
     Config::SetBaseOrCurrent(Config::GFX_ADAPTER, index);
     emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   });
-  connect(m_aspect_combo, &QComboBox::currentIndexChanged, this,
-          &GeneralWidget::ToggleCustomAspectRatio);
-}
-
-void GeneralWidget::ToggleCustomAspectRatio(int index)
-{
-  const bool is_custom_aspect_ratio = (index == static_cast<int>(AspectMode::Custom)) ||
-                                      (index == static_cast<int>(AspectMode::CustomStretch));
-  m_custom_aspect_label->setHidden(!is_custom_aspect_ratio);
-  m_custom_aspect_width->setHidden(!is_custom_aspect_ratio);
-  m_custom_aspect_height->setHidden(!is_custom_aspect_ratio);
+  connect(m_aspect_combo, qOverload<int>(&QComboBox::currentIndexChanged), this, [&](int index) {
+    const bool is_custom_aspect_ratio = (index == static_cast<int>(AspectMode::Custom)) ||
+                                        (index == static_cast<int>(AspectMode::CustomStretch));
+    m_custom_aspect_label->setHidden(!is_custom_aspect_ratio);
+    m_custom_aspect_width->setHidden(!is_custom_aspect_ratio);
+    m_custom_aspect_height->setHidden(!is_custom_aspect_ratio);
+  });
+  m_aspect_combo->currentIndexChanged(m_aspect_combo->currentIndex());
 }
 
 void GeneralWidget::BackendWarning()
@@ -184,6 +194,7 @@ void GeneralWidget::BackendWarning()
       confirm_sw.setWindowTitle(tr("Confirm backend change"));
       confirm_sw.setText(tr(warningMessage->c_str()));
 
+      SetQWidgetWindowDecorations(&confirm_sw);
       if (confirm_sw.exec() != QMessageBox::Yes)
       {
         m_backend_combo->setCurrentIndex(m_previous_backend);
@@ -261,6 +272,13 @@ void GeneralWidget::AddDescriptions()
       "if emulation speed is below 100%.<br><br><dolphin_emphasis>If unsure, leave "
       "this "
       "unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_NETPLAY_PING_DESCRIPTION[] = QT_TR_NOOP(
+      "Shows the player's maximum ping while playing on "
+      "NetPlay.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION[] =
+      QT_TR_NOOP("Shows chat messages, buffer changes, and desync alerts "
+                 "while playing NetPlay.<br><br><dolphin_emphasis>If unsure, leave "
+                 "this unchecked.</dolphin_emphasis>");
   static const char TR_SHADER_COMPILE_SPECIALIZED_DESCRIPTION[] =
       QT_TR_NOOP("Ubershaders are never used. Stuttering will occur during shader "
                  "compilation, but GPU demands are low.<br><br>Recommended for low-end hardware. "
@@ -306,7 +324,11 @@ void GeneralWidget::AddDescriptions()
 
   m_enable_fullscreen->SetDescription(tr(TR_FULLSCREEN_DESCRIPTION));
 
+  m_show_ping->SetDescription(tr(TR_SHOW_NETPLAY_PING_DESCRIPTION));
+
   m_autoadjust_window_size->SetDescription(tr(TR_AUTOSIZE_DESCRIPTION));
+
+  m_show_messages->SetDescription(tr(TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION));
 
   m_render_main_window->SetDescription(tr(TR_RENDER_TO_MAINWINDOW_DESCRIPTION));
 

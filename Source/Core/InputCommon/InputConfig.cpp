@@ -5,6 +5,7 @@
 
 #include <vector>
 
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
@@ -12,7 +13,9 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputProfile.h"
 
@@ -70,6 +73,7 @@ bool InputConfig::LoadConfig()
   {
     int n = 0;
 
+    std::vector<std::string> controller_names;
     for (auto& controller : m_controllers)
     {
       Common::IniFile::Section config;
@@ -91,6 +95,7 @@ bool InputConfig::LoadConfig()
       }
       controller->LoadConfig(&config);
       controller->UpdateReferences(g_controller_interface);
+      controller_names.push_back(controller->GetName());
 
       // Next profile
       n++;
@@ -123,9 +128,11 @@ void InputConfig::SaveConfig()
   Common::IniFile inifile;
   inifile.Load(ini_filename);
 
+  std::vector<std::string> controller_names;
   for (auto& controller : m_controllers)
   {
     controller->SaveConfig(inifile.GetOrCreateSection(controller->GetName()));
+    controller_names.push_back(controller->GetName());
   }
 
   inifile.Save(ini_filename);
@@ -165,7 +172,7 @@ void InputConfig::RegisterHotplugCallback()
 {
   // Update control references on all controllers
   // as configured devices may have been added or removed.
-  m_hotplug_event_hook = g_controller_interface.RegisterDevicesChangedCallback([this] {
+  m_hotplug_callback_handle = g_controller_interface.RegisterDevicesChangedCallback([this] {
     for (auto& controller : m_controllers)
       controller->UpdateReferences(g_controller_interface);
   });
@@ -173,7 +180,7 @@ void InputConfig::RegisterHotplugCallback()
 
 void InputConfig::UnregisterHotplugCallback()
 {
-  m_hotplug_event_hook.reset();
+  g_controller_interface.UnregisterDevicesChangedCallback(m_hotplug_callback_handle);
 }
 
 bool InputConfig::IsControllerControlledByGamepadDevice(int index) const

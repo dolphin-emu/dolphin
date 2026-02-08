@@ -30,6 +30,7 @@
 #include "Common/Lazy.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/CommonTitles.h"
 #include "Core/HW/WiiSaveStructs.h"

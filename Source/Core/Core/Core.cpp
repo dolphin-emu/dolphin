@@ -5,10 +5,9 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cstring>
 #include <functional>
-#include <future>
 #include <mutex>
-#include <optional>
 #include <queue>
 #include <utility>
 #include <variant>
@@ -26,15 +25,15 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Event.h"
+#include "Common/FPURoundMode.h"
 #include "Common/FatFsUtil.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/OneShotEvent.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
-#include "Common/TimeUtil.h"
 #include "Common/Version.h"
 
 #include "Core/AchievementManager.h"
@@ -83,6 +82,7 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
 
+#include "VideoCommon/Assets/CustomAssetLoader.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/FrameDumper.h"
@@ -97,16 +97,12 @@ static bool s_wants_determinism;
 
 // Declarations and definitions
 static std::thread s_emu_thread;
-static Common::HookableEvent<Core::State> s_state_changed_event;
+static std::vector<StateChangedCallbackFunc> s_on_state_changed_callbacks;
 
+static std::thread s_cpu_thread;
 static bool s_is_throttler_temp_disabled = false;
 static bool s_frame_step = false;
 static std::atomic<bool> s_stop_frame_step;
-
-// Threads other than the CPU thread must hold this when taking on the role of the CPU thread.
-// The CPU thread is not required to hold this when doing normal work, but must hold it if writing
-// to s_state.
-static std::recursive_mutex s_core_mutex;
 
 // The value Paused is never stored in this variable. The core is considered to be in
 // the Paused state if this variable is Running and the CPU reports that it's stepping.
@@ -116,7 +112,7 @@ static std::atomic<State> s_state = State::Uninitialized;
 static std::unique_ptr<MemoryWatcher> s_memory_watcher;
 #endif
 
-static void Callback_FramePresented(const PresentInfo& present_info);
+void Callback_FramePresented(const PresentInfo& present_info);
 
 struct HostJob
 {
@@ -125,12 +121,17 @@ struct HostJob
 };
 static std::mutex s_host_jobs_lock;
 static std::queue<HostJob> s_host_jobs_queue;
+static Common::Event s_cpu_thread_job_finished;
 
 static thread_local bool tls_is_cpu_thread = false;
 static thread_local bool tls_is_gpu_thread = false;
+static thread_local bool tls_is_host_thread = false;
 
 static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot,
                       WindowSystemInfo wsi);
+
+static Common::EventHook s_frame_presented =
+    AfterPresentEvent::Register(&Core::Callback_FramePresented, "Core Frame Presented");
 
 bool GetIsThrottlerTempDisabled()
 {
@@ -208,6 +209,11 @@ bool IsGPUThread()
   return tls_is_gpu_thread;
 }
 
+bool IsHostThread()
+{
+  return tls_is_host_thread;
+}
+
 bool WantsDeterminism()
 {
   return s_wants_determinism;
@@ -217,8 +223,6 @@ bool WantsDeterminism()
 // BootManager.cpp
 bool Init(Core::System& system, std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 {
-  std::lock_guard lock(s_core_mutex);
-
   if (s_emu_thread.joinable())
   {
     if (!IsUninitialized(system))
@@ -236,6 +240,8 @@ bool Init(Core::System& system, std::unique_ptr<BootParameters> boot, const Wind
 
   INFO_LOG_FMT(BOOT, "Starting core = {} mode", system.IsWii() ? "Wii" : "GameCube");
   INFO_LOG_FMT(BOOT, "CPU Thread separate = {}", system.IsDualCoreMode() ? "Yes" : "No");
+
+  Host_UpdateMainFrame();  // Disable any menus or buttons at boot
 
   // Manually reactivate the video backend in case a GameINI overrides the video backend setting.
   VideoBackendBase::PopulateBackendInfo(wsi);
@@ -264,19 +270,15 @@ static void ResetRumble()
 // Called from GUI thread
 void Stop(Core::System& system)  // - Hammertime!
 {
-  {
-    std::lock_guard lock(s_core_mutex);
-
-    const State state = s_state.load();
-    if (state == State::Stopping || state == State::Uninitialized)
-      return;
-
-    s_state.store(State::Stopping);
-  }
-
-  NotifyStateChanged(State::Stopping);
+  const State state = s_state.load();
+  if (state == State::Stopping || state == State::Uninitialized)
+    return;
 
   AchievementManager::GetInstance().CloseGame();
+
+  s_state.store(State::Stopping);
+
+  CallOnStateChangedCallbacks(State::Stopping);
 
   // Dump left over jobs
   HostDispatchJobs(system);
@@ -288,6 +290,16 @@ void Stop(Core::System& system)  // - Hammertime!
   // Stop the CPU
   INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stop CPU"));
   system.GetCPU().Stop();
+
+  if (system.IsDualCoreMode())
+  {
+    // FIFO processing should now exit so that EmuThread()
+    // will continue concurrently with the rest of the commands
+    // in this function. We no longer rely on Postmessage.
+    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Wait for Video Loop to exit ..."));
+
+    system.GetFifo().ExitGpuLoop();
+  }
 }
 
 void DeclareAsCPUThread()
@@ -310,19 +322,36 @@ void UndeclareAsGPUThread()
   tls_is_gpu_thread = false;
 }
 
+void DeclareAsHostThread()
+{
+  tls_is_host_thread = true;
+}
+
+void UndeclareAsHostThread()
+{
+  tls_is_host_thread = false;
+}
+
 // For the CPU Thread only.
-static void CPUSetInitialExecutionState(Core::System& system, bool force_paused = false)
+static void CPUSetInitialExecutionState(bool force_paused = false)
 {
   // The CPU starts in stepping state, and will wait until a new state is set before executing.
-  const bool paused = SConfig::GetInstance().bBootToPause || force_paused;
-  SetState(system, paused ? State::Paused : State::Running, true, true);
-  Host_UpdateDisasmDialog();
+  // SetState must be called on the host thread, so we defer it for later.
+  QueueHostJob([force_paused](Core::System& system) {
+    bool paused = SConfig::GetInstance().bBootToPause || force_paused;
+    SetState(system, paused ? State::Paused : State::Running, true, true);
+    Host_UpdateDisasmDialog();
+    Host_UpdateMainFrame();
+    Host_Message(HostMessageID::WMUserCreate);
+  });
 }
 
 // Create the CPU thread, which is a CPU + Video thread in Single Core mode.
 static void CpuThread(Core::System& system, const std::optional<std::string>& savestate_path,
                       bool delete_savestate)
 {
+  DeclareAsCPUThread();
+
   if (system.IsDualCoreMode())
     Common::SetCurrentThreadName("CPU thread");
   else
@@ -350,14 +379,10 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
       File::Delete(*savestate_path);
   }
 
-  {
-    std::unique_lock core_lock(s_core_mutex);
-
-    // If s_state is Starting, change it to Running. But if it's already been set to Stopping
-    // because another thread called Stop, don't change it.
-    State expected = State::Starting;
-    s_state.compare_exchange_strong(expected, State::Running);
-  }
+  // If s_state is Starting, change it to Running. But if it's already been set to Stopping
+  // by the host thread, don't change it.
+  State expected = State::Starting;
+  s_state.compare_exchange_strong(expected, State::Running);
 
   {
 #ifndef _WIN32
@@ -365,7 +390,7 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
     if (!gdb_socket.empty() && !AchievementManager::GetInstance().IsHardcoreModeActive())
     {
       GDBStub::InitLocal(gdb_socket.data());
-      CPUSetInitialExecutionState(system, true);
+      CPUSetInitialExecutionState(true);
     }
     else
 #endif
@@ -374,11 +399,11 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
       if (gdb_port > 0 && !AchievementManager::GetInstance().IsHardcoreModeActive())
       {
         GDBStub::Init(gdb_port);
-        CPUSetInitialExecutionState(system, true);
+        CPUSetInitialExecutionState(true);
       }
       else
       {
-        CPUSetInitialExecutionState(system);
+        CPUSetInitialExecutionState();
       }
     }
   }
@@ -395,16 +420,17 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
 
   if (GDBStub::IsActive())
   {
-    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stopping GDB ..."));
     GDBStub::Deinit();
-    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "GDB stopped."));
     INFO_LOG_FMT(GDB_STUB, "Killed by CPU shutdown");
+    return;
   }
 }
 
 static void FifoPlayerThread(Core::System& system, const std::optional<std::string>& savestate_path,
                              bool delete_savestate)
 {
+  DeclareAsCPUThread();
+
   if (system.IsDualCoreMode())
     Common::SetCurrentThreadName("FIFO player thread");
   else
@@ -415,17 +441,12 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
   {
     system.GetPowerPC().InjectExternalCPUCore(cpu_core.get());
 
-    {
-      std::lock_guard core_lock(s_core_mutex);
+    // If s_state is Starting, change it to Running. But if it's already been set to Stopping
+    // by the host thread, don't change it.
+    State expected = State::Starting;
+    s_state.compare_exchange_strong(expected, State::Running);
 
-      // If s_state is Starting, change it to Running. But if it's already been set to Stopping
-      // because another thread called Stop, don't change it.
-      State expected = State::Starting;
-      s_state.compare_exchange_strong(expected, State::Running);
-    }
-
-    CPUSetInitialExecutionState(system);
-
+    CPUSetInitialExecutionState();
     system.GetCPU().Run();
 
     system.GetPowerPC().InjectExternalCPUCore(nullptr);
@@ -440,95 +461,27 @@ static void FifoPlayerThread(Core::System& system, const std::optional<std::stri
   }
 }
 
-// Returns a RAII object for video backend initialization and deinitialization.
-// Returns nullptr on failure.
-[[nodiscard]] static auto GetInitializedVideoGuard(Core::System& system,
-                                                   const WindowSystemInfo& wsi)
-{
-  using GuardType = Common::ScopeGuard<Common::MoveOnlyFunction<void()>>;
-  using ReturnType = std::unique_ptr<GuardType>;
-
-  const auto init_video = [&] {
-    DeclareAsGPUThread();
-
-    AsyncRequests::GetInstance()->SetPassthrough(!system.IsDualCoreMode());
-
-    // Must happen on the proper thread for some video backends, e.g. OpenGL.
-    return g_video_backend->Initialize(wsi);
-  };
-
-  const auto deinit_video = [] {
-    // Clear on screen messages that haven't expired
-    OSD::ClearMessages();
-
-    g_video_backend->Shutdown();
-  };
-
-  if (system.IsDualCoreMode())
-  {
-    std::promise<bool> init_from_thread;
-
-    // Spawn the GPU thread.
-    std::thread gpu_thread{[&] {
-      Common::SetCurrentThreadName("Video thread");
-
-      const bool is_init = init_video();
-      init_from_thread.set_value(is_init);
-
-      if (!is_init)
-        return;
-
-      system.GetFifo().RunGpuLoop();
-      INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "Video Loop Ended"));
-
-      deinit_video();
-    }};
-
-    if (init_from_thread.get_future().get())
-    {
-      // Return a scope guard that signals the GPU thread to stop then joins it.
-      return std::make_unique<GuardType>([&, gpu_thread = std::move(gpu_thread)]() mutable {
-        INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Wait for Video Loop to exit ..."));
-        system.GetFifo().ExitGpuLoop();
-        gpu_thread.join();
-        INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "GPU thread stopped."));
-      });
-    }
-
-    gpu_thread.join();
-  }
-  else  // SingleCore mode
-  {
-    if (init_video())
-      return std::make_unique<GuardType>(deinit_video);
-  }
-
-  return ReturnType{};
-}
-
 // Initialize and create emulation thread
 // Call browser: Init():s_emu_thread().
 // See the BootManager.cpp file description for a complete call schedule.
 static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot,
                       WindowSystemInfo wsi)
 {
-  NotifyStateChanged(State::Starting);
+  CallOnStateChangedCallbacks(State::Starting);
   Common::ScopeGuard flag_guard{[] {
-    {
-      std::lock_guard lock(s_core_mutex);
-      s_state.store(State::Uninitialized);
-    }
+    s_state.store(State::Uninitialized);
 
-    NotifyStateChanged(State::Uninitialized);
+    CallOnStateChangedCallbacks(State::Uninitialized);
 
     INFO_LOG_FMT(CONSOLE, "Stop\t\t---- Shutdown complete ----");
   }};
 
   Common::SetCurrentThreadName("Emuthread - Starting");
 
-  // This will become the CPU thread.
-  DeclareAsCPUThread();
+  DeclareAsGPUThread();
 
+  // For a time this acts as the CPU thread...
+  DeclareAsCPUThread();
   s_frame_step = false;
 
   // If settings have changed since the previous run, notify callbacks.
@@ -552,13 +505,14 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
                         Config::Get(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC);
   if (sync_sd_folder)
   {
-    sync_sd_folder = Common::SyncSDFolderToSDImage([] { return false; }, Core::WantsDeterminism());
+    sync_sd_folder =
+        Common::SyncSDFolderToSDImage([]() { return false; }, Core::WantsDeterminism());
   }
 
   Common::ScopeGuard sd_folder_sync_guard{[sync_sd_folder] {
     if (sync_sd_folder && Config::Get(Config::MAIN_ALLOW_SD_WRITES))
     {
-      const bool sync_ok = Common::SyncSDImageToSDFolder([] { return false; });
+      const bool sync_ok = Common::SyncSDImageToSDFolder([]() { return false; });
       if (!sync_ok)
       {
         PanicAlertFmtT(
@@ -573,6 +527,9 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   // Wiimote input config is loaded in OnESTitleChanged
 
   FreeLook::LoadInputConfig();
+
+  system.GetCustomAssetLoader().Init();
+  Common::ScopeGuard asset_loader_guard([&system] { system.GetCustomAssetLoader().Shutdown(); });
 
   system.GetMovie().Init(*boot);
   Common::ScopeGuard movie_guard([&system] { system.GetMovie().Shutdown(); });
@@ -599,14 +556,17 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
     system.GetPowerPC().GetDebugInterface().Clear(guard);
   }};
 
-  // In single-core mode: This holds a video backend shutdown function.
-  // In dual-core mode: This holds a GPU thread stopping function (which does the backend shutdown).
-  const auto video_guard = GetInitializedVideoGuard(system, wsi);
-  if (!video_guard)
+  if (!g_video_backend->Initialize(wsi))
   {
     PanicAlertFmt("Failed to initialize video backend!");
     return;
   }
+  Common::ScopeGuard video_guard{[] {
+    // Clear on screen messages that haven't expired
+    OSD::ClearMessages();
+
+    g_video_backend->Shutdown();
+  }};
 
   if (cpu_info.HTT)
     Config::SetBaseOrCurrent(Config::MAIN_DSP_THREAD, cpu_info.num_cores > 4);
@@ -629,8 +589,12 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   system.GetPowerPC().SetMode(PowerPC::CoreMode::Interpreter);
 
   // Determine the CPU thread function
-  const auto cpu_thread_func =
-      std::holds_alternative<BootParameters::DFF>(boot->parameters) ? FifoPlayerThread : CpuThread;
+  void (*cpuThreadFunc)(Core::System & system, const std::optional<std::string>& savestate_path,
+                        bool delete_savestate);
+  if (std::holds_alternative<BootParameters::DFF>(boot->parameters))
+    cpuThreadFunc = FifoPlayerThread;
+  else
+    cpuThreadFunc = CpuThread;
 
   std::optional<DiscIO::Riivolution::SavegameRedirect> savegame_redirect = std::nullopt;
   if (system.IsWii())
@@ -658,9 +622,6 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
   // This adds the SyncGPU handler to CoreTiming, so now CoreTiming::Advance might block.
   system.GetFifo().Prepare();
 
-  const Common::EventHook frame_presented =
-      GetVideoEvents().after_present_event.Register(&Core::Callback_FramePresented);
-
   // Setup our core
   if (Config::Get(Config::MAIN_CPU_CORE) != PowerPC::CPUCore::Interpreter)
   {
@@ -673,54 +634,84 @@ static void EmuThread(Core::System& system, std::unique_ptr<BootParameters> boot
 
   UpdateTitle(system);
 
-  // Become the CPU thread.
-  cpu_thread_func(system, savestate_path, delete_savestate);
+  // ENTER THE VIDEO THREAD LOOP
+  if (system.IsDualCoreMode())
+  {
+    // This thread, after creating the EmuWindow, spawns a CPU
+    // thread, and then takes over and becomes the video thread
+    Common::SetCurrentThreadName("Video thread");
+    UndeclareAsCPUThread();
+    Common::FPU::LoadDefaultSIMDState();
+
+    // Spawn the CPU thread. The CPU thread will signal the event that boot is complete.
+    s_cpu_thread =
+        std::thread(cpuThreadFunc, std::ref(system), std::ref(savestate_path), delete_savestate);
+
+    // become the GPU thread
+    system.GetFifo().RunGpuLoop();
+
+    // We have now exited the Video Loop
+    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "Video Loop Ended"));
+
+    // Join with the CPU thread.
+    s_cpu_thread.join();
+    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "CPU thread stopped."));
+
+    // Redeclare this thread as the CPU thread, so that the code running in the scope guards doesn't
+    // think we're doing anything unsafe by doing stuff that could race with the CPU thread.
+    DeclareAsCPUThread();
+  }
+  else  // SingleCore mode
+  {
+    // Become the CPU thread
+    cpuThreadFunc(system, savestate_path, delete_savestate);
+  }
+
+  INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stopping GDB ..."));
+  GDBStub::Deinit();
+  INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "GDB stopped."));
 }
 
 // Set or get the running state
 
 void SetState(Core::System& system, State state, bool report_state_change,
-              bool override_achievement_restrictions)
+              bool initial_execution_state)
 {
+  // State cannot be controlled until the CPU Thread is operational
+  if (s_state.load() != State::Running)
+    return;
+
+  switch (state)
   {
-    std::lock_guard lock(s_core_mutex);
-
-    // State cannot be controlled until the CPU Thread is operational
-    if (s_state.load() != State::Running)
+  case State::Paused:
+#ifdef USE_RETRO_ACHIEVEMENTS
+    if (!initial_execution_state && !AchievementManager::GetInstance().CanPause())
       return;
-
-    switch (state)
-    {
-    case State::Paused:
-#ifdef USE_RETRO_ACHIEVEMENTS
-      if (!override_achievement_restrictions && !AchievementManager::GetInstance().CanPause())
-        return;
 #endif  // USE_RETRO_ACHIEVEMENTS
-      // NOTE: GetState() will return State::Paused immediately, even before anything has
-      //   stopped (including the CPU).
-      system.GetCPU().SetStepping(true);  // Break
-      Wiimote::Pause();
-      ResetRumble();
+    // NOTE: GetState() will return State::Paused immediately, even before anything has
+    //   stopped (including the CPU).
+    system.GetCPU().SetStepping(true);  // Break
+    Wiimote::Pause();
+    ResetRumble();
 #ifdef USE_RETRO_ACHIEVEMENTS
-      AchievementManager::GetInstance().DoIdle();
+    AchievementManager::GetInstance().DoIdle();
 #endif  // USE_RETRO_ACHIEVEMENTS
-      break;
-    case State::Running:
-    {
-      system.GetCPU().SetStepping(false);
-      Wiimote::Resume();
-      break;
-    }
-    default:
-      PanicAlertFmt("Invalid state");
-      break;
-    }
+    break;
+  case State::Running:
+  {
+    system.GetCPU().SetStepping(false);
+    Wiimote::Resume();
+    break;
+  }
+  default:
+    PanicAlertFmt("Invalid state");
+    break;
   }
 
   // Certain callers only change the state momentarily. Sending a callback for them causes
   // unwanted updates, such as the Pause/Play button flickering between states on frame advance.
   if (report_state_change)
-    NotifyStateChanged(GetState(system));
+    CallOnStateChangedCallbacks(GetState(system));
 }
 
 State GetState(Core::System& system)
@@ -746,17 +737,15 @@ static std::string GenerateScreenshotFolderPath()
   return path;
 }
 
-static std::optional<std::string> GenerateScreenshotName()
+static std::string GenerateScreenshotName()
 {
   // append gameId, path only contains the folder here.
   const std::string path_prefix =
       GenerateScreenshotFolderPath() + SConfig::GetInstance().GetGameID();
 
   const std::time_t cur_time = std::time(nullptr);
-  const auto local_time = Common::LocalTime(cur_time);
-  if (!local_time)
-    return std::nullopt;
-  const std::string base_name = fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}", path_prefix, *local_time);
+  const std::string base_name =
+      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}", path_prefix, fmt::localtime(cur_time));
 
   // First try a filename without any suffixes, if already exists then append increasing numbers
   std::string name = fmt::format("{}.png", base_name);
@@ -772,9 +761,7 @@ static std::optional<std::string> GenerateScreenshotName()
 void SaveScreenShot()
 {
   const Core::CPUThreadGuard guard(Core::System::GetInstance());
-  std::optional<std::string> name = GenerateScreenshotName();
-  if (name)
-    g_frame_dumper->SaveScreenshot(*name);
+  g_frame_dumper->SaveScreenshot(GenerateScreenshotName());
 }
 
 void SaveScreenShot(std::string_view name)
@@ -783,72 +770,82 @@ void SaveScreenShot(std::string_view name)
   g_frame_dumper->SaveScreenshot(fmt::format("{}{}.png", GenerateScreenshotFolderPath(), name));
 }
 
-static bool PauseAndLock(Core::System& system)
+static bool PauseAndLock(Core::System& system, bool do_lock, bool unpause_on_unlock)
 {
-  s_core_mutex.lock();
+  // WARNING: PauseAndLock is not fully threadsafe so is only valid on the Host Thread
 
   if (!IsRunning(system))
     return true;
 
-  // First pause the CPU.  This acquires a wrapper mutex and converts the current thread into
-  // a temporary replacement CPU Thread.
-  const bool was_unpaused = system.GetCPU().PauseAndLock();
+  bool was_unpaused = true;
+  if (do_lock)
+  {
+    // first pause the CPU
+    // This acquires a wrapper mutex and converts the current thread into
+    // a temporary replacement CPU Thread.
+    was_unpaused = system.GetCPU().PauseAndLock(true);
+  }
 
   // audio has to come after CPU, because CPU thread can wait for audio thread (m_throttle).
-  system.GetDSP().GetDSPEmulator()->PauseAndLock();
+  system.GetDSP().GetDSPEmulator()->PauseAndLock(do_lock);
 
   // video has to come after CPU, because CPU thread can wait for video thread
   // (s_efbAccessRequested).
-  system.GetFifo().PauseAndLock();
+  system.GetFifo().PauseAndLock(do_lock, false);
 
   ResetRumble();
+
+  // CPU is unlocked last because CPU::PauseAndLock contains the synchronization
+  // mechanism that prevents CPU::Break from racing.
+  if (!do_lock)
+  {
+    // The CPU is responsible for managing the Audio and FIFO state so we use its
+    // mechanism to unpause them. If we unpaused the systems above when releasing
+    // the locks then they could call CPU::Break which would require detecting it
+    // and re-pausing with CPU::SetStepping.
+    was_unpaused = system.GetCPU().PauseAndLock(false, unpause_on_unlock, true);
+  }
 
   return was_unpaused;
 }
 
-static void RestoreStateAndUnlock(Core::System& system, const bool unpause_on_unlock)
+void RunOnCPUThread(Core::System& system, std::function<void()> function, bool wait_for_completion)
 {
-  Common::ScopeGuard scope_guard([] { s_core_mutex.unlock(); });
-
-  if (!IsRunning(system))
-    return;
-
-  system.GetDSP().GetDSPEmulator()->UnpauseAndUnlock();
-  ResetRumble();
-
-  // CPU is unlocked last because CPU::RestoreStateAndUnlock contains the synchronization mechanism
-  // that prevents CPU::Break from racing.
-  //
-  // The CPU is responsible for managing the Audio and FIFO state so we use its mechanism to unpause
-  // them. If we unpaused the systems above when releasing the locks then they could call CPU::Break
-  // which would require detecting it and re-pausing with CPU::SetStepping.
-  system.GetCPU().RestoreStateAndUnlock(unpause_on_unlock);
-}
-
-void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> function)
-{
-  if (IsCPUThread())
+  // If the CPU thread is not running, assume there is no active CPU thread we can race against.
+  if (!IsRunning(system) || IsCPUThread())
   {
     function();
     return;
   }
 
   // Pause the CPU (set it to stepping mode).
-  const bool was_running = PauseAndLock(system);
+  const bool was_running = PauseAndLock(system, true, true);
 
-  if (!IsRunning(system))
+  // Queue the job function.
+  if (wait_for_completion)
   {
-    // If the core hasn't been started, there is no active CPU thread we can race against.
-    function();
+    // Trigger the event after executing the function.
+    s_cpu_thread_job_finished.Reset();
+    system.GetCPU().AddCPUThreadJob([&function]() {
+      function();
+      s_cpu_thread_job_finished.Set();
+    });
   }
   else
   {
-    // Queue the job function.
     system.GetCPU().AddCPUThreadJob(std::move(function));
   }
 
   // Release the CPU thread, and let it execute the callback.
-  RestoreStateAndUnlock(system, was_running);
+  PauseAndLock(system, false, was_running);
+
+  // If we're waiting for completion, block until the event fires.
+  if (wait_for_completion)
+  {
+    // Periodically yield to the UI thread, so we don't deadlock.
+    while (!s_cpu_thread_job_finished.WaitFor(std::chrono::milliseconds(10)))
+      Host_YieldToUI();
+  }
 }
 
 // --- Callbacks for backends / engine ---
@@ -857,10 +854,6 @@ void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> funct
 void Callback_FramePresented(const PresentInfo& present_info)
 {
   g_perf_metrics.CountFrame();
-
-  const auto presentation_offset =
-      present_info.actual_present_time - present_info.intended_present_time;
-  g_perf_metrics.SetLatestFramePresentationOffset(presentation_offset);
 
   if (present_info.reason == PresentInfo::PresentReason::VideoInterfaceDuplicate)
     return;
@@ -884,7 +877,7 @@ void Callback_NewField(Core::System& system)
     {
       s_frame_step = false;
       system.GetCPU().Break();
-      NotifyStateChanged(Core::GetState(system));
+      CallOnStateChangedCallbacks(Core::GetState(system));
     }
   }
 
@@ -924,21 +917,42 @@ void Shutdown(Core::System& system)
   HostDispatchJobs(system);
 }
 
-Common::EventHook AddOnStateChangedCallback(StateChangedCallbackFunc callback)
+int AddOnStateChangedCallback(StateChangedCallbackFunc callback)
 {
-  return s_state_changed_event.Register(std::move(callback));
+  for (size_t i = 0; i < s_on_state_changed_callbacks.size(); ++i)
+  {
+    if (!s_on_state_changed_callbacks[i])
+    {
+      s_on_state_changed_callbacks[i] = std::move(callback);
+      return int(i);
+    }
+  }
+  s_on_state_changed_callbacks.emplace_back(std::move(callback));
+  return int(s_on_state_changed_callbacks.size()) - 1;
 }
 
-void NotifyStateChanged(Core::State state)
+bool RemoveOnStateChangedCallback(int* handle)
 {
-  s_state_changed_event.Trigger(state);
-  g_perf_metrics.OnEmulationStateChanged(state);
+  if (handle && *handle >= 0 && s_on_state_changed_callbacks.size() > static_cast<size_t>(*handle))
+  {
+    s_on_state_changed_callbacks[*handle] = StateChangedCallbackFunc();
+    *handle = -1;
+    return true;
+  }
+  return false;
+}
+
+void CallOnStateChangedCallbacks(Core::State state)
+{
+  for (const StateChangedCallbackFunc& on_state_changed_callback : s_on_state_changed_callbacks)
+  {
+    if (on_state_changed_callback)
+      on_state_changed_callback(state);
+  }
 }
 
 void UpdateWantDeterminism(Core::System& system, bool initial)
 {
-  const Core::CPUThreadGuard guard(system);
-
   // For now, this value is not itself configurable.  Instead, individual
   // settings that depend on it, such as GPU determinism mode. should have
   // override options for testing,
@@ -947,6 +961,7 @@ void UpdateWantDeterminism(Core::System& system, bool initial)
   {
     NOTICE_LOG_FMT(COMMON, "Want determinism <- {}", new_want_determinism ? "true" : "false");
 
+    const Core::CPUThreadGuard guard(system);
     s_wants_determinism = new_want_determinism;
     const auto ios = system.GetIOS();
     if (ios)
@@ -1008,9 +1023,6 @@ void DoFrameStep(Core::System& system)
     OSD::AddMessage("Frame stepping is disabled in RetroAchievements hardcore mode");
     return;
   }
-
-  std::lock_guard lock(s_core_mutex);
-
   if (GetState(system) == State::Paused)
   {
     // if already paused, frame advance for 1 frame
@@ -1041,13 +1053,13 @@ CPUThreadGuard::CPUThreadGuard(Core::System& system)
     : m_system(system), m_was_cpu_thread(IsCPUThread())
 {
   if (!m_was_cpu_thread)
-    m_was_unpaused = PauseAndLock(system);
+    m_was_unpaused = PauseAndLock(system, true, true);
 }
 
 CPUThreadGuard::~CPUThreadGuard()
 {
   if (!m_was_cpu_thread)
-    RestoreStateAndUnlock(m_system, m_was_unpaused);
+    PauseAndLock(m_system, false, m_was_unpaused);
 }
 
 }  // namespace Core

@@ -6,9 +6,9 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/Assets/CustomAssetLibrary.h"
 
-#include <atomic>
 #include <memory>
 #include <mutex>
+#include <optional>
 
 namespace VideoCommon
 {
@@ -17,47 +17,42 @@ namespace VideoCommon
 class CustomAsset
 {
 public:
-  using ClockType = std::chrono::steady_clock;
-  using TimeType = ClockType::time_point;
-
   CustomAsset(std::shared_ptr<CustomAssetLibrary> library,
-              const CustomAssetLibrary::AssetID& asset_id, u64 session_id);
+              const CustomAssetLibrary::AssetID& asset_id);
   virtual ~CustomAsset() = default;
   CustomAsset(const CustomAsset&) = delete;
   CustomAsset(CustomAsset&&) = delete;
   CustomAsset& operator=(const CustomAsset&) = delete;
   CustomAsset& operator=(CustomAsset&&) = delete;
 
-  // Loads the asset from the library returning the number of bytes loaded
-  std::size_t Load();
+  // Loads the asset from the library returning a pass/fail result
+  bool Load();
 
-  // Unloads the asset data, resets the bytes loaded and
-  // returns the number of bytes unloaded
-  std::size_t Unload();
+  // Queries the last time the asset was modified or standard epoch time
+  // if the asset hasn't been modified yet
+  // Note: not thread safe, expected to be called by the loader
+  CustomAssetLibrary::TimeType GetLastWriteTime() const;
 
   // Returns the time that the data was last loaded
-  TimeType GetLastLoadedTime() const;
+  const CustomAssetLibrary::TimeType& GetLastLoadedTime() const;
 
   // Returns an id that uniquely identifies this asset
   const CustomAssetLibrary::AssetID& GetAssetId() const;
 
-  // Returns an id that is unique to this game session
-  // This is a faster form to hash and can be used
-  // as an index
-  std::size_t GetHandle() const;
+  // A rough estimate of how much space this asset
+  // will take in memroy
+  std::size_t GetByteSizeInMemory() const;
 
 protected:
   const std::shared_ptr<CustomAssetLibrary> m_owning_library;
 
 private:
   virtual CustomAssetLibrary::LoadInfo LoadImpl(const CustomAssetLibrary::AssetID& asset_id) = 0;
-  virtual void UnloadImpl() = 0;
   CustomAssetLibrary::AssetID m_asset_id;
-  std::size_t m_handle;
 
   mutable std::mutex m_info_lock;
   std::size_t m_bytes_loaded = 0;
-  std::atomic<TimeType> m_last_loaded_time = {};
+  CustomAssetLibrary::TimeType m_last_loaded_time = {};
 };
 
 // An abstract class that is expected to
@@ -88,14 +83,6 @@ protected:
   bool m_loaded = false;
   mutable std::mutex m_data_lock;
   std::shared_ptr<UnderlyingType> m_data;
-
-private:
-  void UnloadImpl() override
-  {
-    std::lock_guard lk(m_data_lock);
-    m_loaded = false;
-    m_data.reset();
-  }
 };
 
 // A helper struct that contains
@@ -109,7 +96,7 @@ template <typename AssetType>
 struct CachedAsset
 {
   std::shared_ptr<AssetType> m_asset;
-  CustomAsset::TimeType m_cached_write_time;
+  VideoCommon::CustomAssetLibrary::TimeType m_cached_write_time;
 };
 
 }  // namespace VideoCommon

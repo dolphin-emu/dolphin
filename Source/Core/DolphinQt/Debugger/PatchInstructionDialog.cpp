@@ -14,6 +14,7 @@
 PatchInstructionDialog::PatchInstructionDialog(QWidget* parent, u32 address, u32 value)
     : QDialog(parent), m_address(address)
 {
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
   setWindowModality(Qt::WindowModal);
   setWindowTitle(tr("Instruction"));
 

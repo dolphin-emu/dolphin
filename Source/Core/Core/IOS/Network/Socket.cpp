@@ -16,6 +16,7 @@
 #include <sys/select.h>
 #endif
 
+#include "Common/BitUtils.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Network.h"
@@ -963,9 +964,8 @@ s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
 
 s32 WiiSockMan::GetHostSocket(s32 wii_fd) const
 {
-  auto socket_entry = WiiSockets.find(wii_fd);
-  if (socket_entry != WiiSockets.end())
-    return socket_entry->second.fd;
+  if (WiiSockets.contains(wii_fd))
+    return WiiSockets.at(wii_fd).fd;
   return -EBADF;
 }
 

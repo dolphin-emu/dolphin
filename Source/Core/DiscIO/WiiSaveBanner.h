@@ -17,6 +17,7 @@ public:
   static constexpr u32 BANNER_HEIGHT = 64;
 
   explicit WiiSaveBanner(u64 title_id);
+  explicit WiiSaveBanner(const std::string& path);
 
   bool IsValid() const { return m_valid; }
   const std::string& GetPath() const { return m_path; }

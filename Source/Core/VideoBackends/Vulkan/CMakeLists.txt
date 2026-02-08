@@ -43,6 +43,8 @@ PUBLIC
   videocommon
 
 PRIVATE
+  # Link against glslang, the other necessary libraries are referenced by the executable.
+  glslang
   xxhash::xxhash
 )
 

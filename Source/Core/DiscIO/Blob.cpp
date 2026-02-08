@@ -4,13 +4,14 @@
 #include "DiscIO/Blob.h"
 
 #include <algorithm>
+#include <cstddef>
+#include <limits>
 #include <memory>
 #include <string>
 #include <utility>
 
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
-#include "Common/DirectIOFile.h"
+#include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
 
 #include "DiscIO/CISOBlob.h"
@@ -77,7 +78,9 @@ void SectorReader::SetChunkSize(int block_cnt)
   SetSectorSize(m_block_size);
 }
 
-SectorReader::~SectorReader() = default;
+SectorReader::~SectorReader()
+{
+}
 
 const SectorReader::Cache* SectorReader::FindCacheLine(u64 block_num)
 {
@@ -212,9 +215,9 @@ u32 SectorReader::ReadChunk(u8* buffer, u64 chunk_num)
 
 std::unique_ptr<BlobReader> CreateBlobReader(const std::string& filename)
 {
-  File::DirectIOFile file(filename, File::AccessMode::Read);
+  File::IOFile file(filename, "rb");
   u32 magic;
-  if (!file.Read(Common::AsWritableU8Span(magic)))
+  if (!file.ReadArray(&magic, 1))
     return nullptr;
 
   // Conveniently, every supported file format (except for plain disc images and

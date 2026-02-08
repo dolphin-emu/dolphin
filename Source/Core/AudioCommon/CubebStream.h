@@ -3,13 +3,13 @@
 
 #pragma once
 
+#include <cstddef>
+#include <functional>
 #include <memory>
 #include <vector>
 
 #include "AudioCommon/SoundStream.h"
-#ifdef _WIN32
 #include "Common/WorkQueueThread.h"
-#endif
 
 #ifdef HAVE_CUBEB
 #include <cubeb/cubeb.h>
@@ -39,7 +39,7 @@ private:
   std::vector<float> m_floatstereo_buffer;
 
 #ifdef _WIN32
-  Common::AsyncWorkThread m_work_queue;
+  Common::WorkQueueThread<std::function<void()>> m_work_queue;
   bool m_coinit_success = false;
   bool m_should_couninit = false;
 #endif

@@ -27,6 +27,16 @@ std::unique_ptr<Metal::ObjectCache> Metal::g_object_cache;
 static void SetupDepthStencil(
     MRCOwned<id<MTLDepthStencilState>> (&dss)[Metal::DepthStencilSelector::N_VALUES]);
 
+Metal::ObjectCache::ObjectCache()
+{
+  m_internal = std::make_unique<Internal>();
+  SetupDepthStencil(m_dss);
+}
+
+Metal::ObjectCache::~ObjectCache()
+{
+}
+
 void Metal::ObjectCache::Initialize(MRCOwned<id<MTLDevice>> device)
 {
   g_device = std::move(device);
@@ -220,7 +230,7 @@ static MTLCullMode Convert(CullMode cull)
   }
 }
 
-static MTLBlendFactor Convert(DstBlendFactor factor, bool use_dual_src)
+static MTLBlendFactor Convert(DstBlendFactor factor, bool usedualsrc)
 {
   // clang-format off
   switch (factor)
@@ -229,9 +239,9 @@ static MTLBlendFactor Convert(DstBlendFactor factor, bool use_dual_src)
   case DstBlendFactor::One:         return MTLBlendFactorOne;
   case DstBlendFactor::SrcClr:      return MTLBlendFactorSourceColor;
   case DstBlendFactor::InvSrcClr:   return MTLBlendFactorOneMinusSourceColor;
-  case DstBlendFactor::SrcAlpha:    return use_dual_src ? MTLBlendFactorSource1Alpha
+  case DstBlendFactor::SrcAlpha:    return usedualsrc ? MTLBlendFactorSource1Alpha
                                                       : MTLBlendFactorSourceAlpha;
-  case DstBlendFactor::InvSrcAlpha: return use_dual_src ? MTLBlendFactorOneMinusSource1Alpha
+  case DstBlendFactor::InvSrcAlpha: return usedualsrc ? MTLBlendFactorOneMinusSource1Alpha
                                                       : MTLBlendFactorOneMinusSourceAlpha;
   case DstBlendFactor::DstAlpha:    return MTLBlendFactorDestinationAlpha;
   case DstBlendFactor::InvDstAlpha: return MTLBlendFactorOneMinusDestinationAlpha;
@@ -239,7 +249,7 @@ static MTLBlendFactor Convert(DstBlendFactor factor, bool use_dual_src)
   // clang-format on
 }
 
-static MTLBlendFactor Convert(SrcBlendFactor factor, bool use_dual_src)
+static MTLBlendFactor Convert(SrcBlendFactor factor, bool usedualsrc)
 {
   // clang-format off
   switch (factor)
@@ -248,9 +258,9 @@ static MTLBlendFactor Convert(SrcBlendFactor factor, bool use_dual_src)
   case SrcBlendFactor::One:         return MTLBlendFactorOne;
   case SrcBlendFactor::DstClr:      return MTLBlendFactorDestinationColor;
   case SrcBlendFactor::InvDstClr:   return MTLBlendFactorOneMinusDestinationColor;
-  case SrcBlendFactor::SrcAlpha:    return use_dual_src ? MTLBlendFactorSource1Alpha
+  case SrcBlendFactor::SrcAlpha:    return usedualsrc ? MTLBlendFactorSource1Alpha
                                                       : MTLBlendFactorSourceAlpha;
-  case SrcBlendFactor::InvSrcAlpha: return use_dual_src ? MTLBlendFactorOneMinusSource1Alpha
+  case SrcBlendFactor::InvSrcAlpha: return usedualsrc ? MTLBlendFactorOneMinusSource1Alpha
                                                       : MTLBlendFactorOneMinusSourceAlpha;
   case SrcBlendFactor::DstAlpha:    return MTLBlendFactorDestinationAlpha;
   case SrcBlendFactor::InvDstAlpha: return MTLBlendFactorOneMinusDestinationAlpha;
@@ -306,19 +316,19 @@ public:
       framebuffer.samples = cfg.framebuffer_state.samples.Value();
       framebuffer.additional_color_attachment_count =
           cfg.framebuffer_state.additional_color_attachment_count.Value();
-      blend.color_update = cfg.blending_state.color_update.Value();
-      blend.alpha_update = cfg.blending_state.alpha_update.Value();
-      if (cfg.blending_state.blend_enable)
+      blend.colorupdate = cfg.blending_state.colorupdate.Value();
+      blend.alphaupdate = cfg.blending_state.alphaupdate.Value();
+      if (cfg.blending_state.blendenable)
       {
         // clang-format off
-        blend.blend_enable = true;
-        blend.use_dual_src     = cfg.blending_state.use_dual_src.Value();
-        blend.src_factor      = cfg.blending_state.src_factor.Value();
-        blend.dst_factor      = cfg.blending_state.dst_factor.Value();
-        blend.src_factor_alpha = cfg.blending_state.src_factor_alpha.Value();
-        blend.dst_factor_alpha = cfg.blending_state.dst_factor_alpha.Value();
+        blend.blendenable = true;
+        blend.usedualsrc     = cfg.blending_state.usedualsrc.Value();
+        blend.srcfactor      = cfg.blending_state.srcfactor.Value();
+        blend.dstfactor      = cfg.blending_state.dstfactor.Value();
+        blend.srcfactoralpha = cfg.blending_state.srcfactoralpha.Value();
+        blend.dstfactoralpha = cfg.blending_state.dstfactoralpha.Value();
         blend.subtract       = cfg.blending_state.subtract.Value();
-        blend.subtract_alpha  = cfg.blending_state.subtract_alpha.Value();
+        blend.subtractAlpha  = cfg.blending_state.subtractAlpha.Value();
         // clang-format on
       }
 
@@ -393,21 +403,21 @@ public:
           [[desc colorAttachments] objectAtIndexedSubscript:0];
       BlendingState bs = config.blending_state;
       MTLColorWriteMask mask = MTLColorWriteMaskNone;
-      if (bs.color_update)
+      if (bs.colorupdate)
         mask |= MTLColorWriteMaskRed | MTLColorWriteMaskGreen | MTLColorWriteMaskBlue;
-      if (bs.alpha_update)
+      if (bs.alphaupdate)
         mask |= MTLColorWriteMaskAlpha;
       [color0 setWriteMask:mask];
-      if (bs.blend_enable)
+      if (bs.blendenable)
       {
         // clang-format off
         [color0 setBlendingEnabled:YES];
-        [color0 setSourceRGBBlendFactor:       Convert(bs.src_factor,      bs.use_dual_src)];
-        [color0 setSourceAlphaBlendFactor:     Convert(bs.src_factor_alpha, bs.use_dual_src)];
-        [color0 setDestinationRGBBlendFactor:  Convert(bs.dst_factor,      bs.use_dual_src)];
-        [color0 setDestinationAlphaBlendFactor:Convert(bs.dst_factor_alpha, bs.use_dual_src)];
+        [color0 setSourceRGBBlendFactor:       Convert(bs.srcfactor,      bs.usedualsrc)];
+        [color0 setSourceAlphaBlendFactor:     Convert(bs.srcfactoralpha, bs.usedualsrc)];
+        [color0 setDestinationRGBBlendFactor:  Convert(bs.dstfactor,      bs.usedualsrc)];
+        [color0 setDestinationAlphaBlendFactor:Convert(bs.dstfactoralpha, bs.usedualsrc)];
         [color0 setRgbBlendOperation:  bs.subtract      ? MTLBlendOperationReverseSubtract : MTLBlendOperationAdd];
-        [color0 setAlphaBlendOperation:bs.subtract_alpha ? MTLBlendOperationReverseSubtract : MTLBlendOperationAdd];
+        [color0 setAlphaBlendOperation:bs.subtractAlpha ? MTLBlendOperationReverseSubtract : MTLBlendOperationAdd];
         // clang-format on
       }
       FramebufferState fs = config.framebuffer_state;
@@ -451,15 +461,15 @@ public:
           fmt::println(file, "Sample Count: {}", fs.samples);
           if (u32 cnt = fs.additional_color_attachment_count)
             fmt::println(file, "Additional Color Attachments: {}", cnt);
-          if (bs.color_update && bs.alpha_update)
+          if (bs.colorupdate && bs.alphaupdate)
             fmt::println(file, "Write Color, Alpha");
-          else if (bs.color_update)
+          else if (bs.colorupdate)
             fmt::println(file, "Write Color");
-          else if (bs.alpha_update)
+          else if (bs.alphaupdate)
             fmt::println(file, "Write Alpha");
           else
             fmt::println(file, "Write None");
-          if (bs.blend_enable)
+          if (bs.blendenable)
           {
             auto print_blend = [file](const char* name, SrcBlendFactor src, DstBlendFactor dst,
                                       bool subtract) {
@@ -468,9 +478,9 @@ public:
               else
                 fmt::println(file, "{}: src * {} + dst * {}", name, src, dst);
             };
-            print_blend("Color Blend", bs.src_factor, bs.dst_factor, bs.subtract);
-            print_blend("Alpha Blend", bs.src_factor_alpha, bs.dst_factor_alpha, bs.subtract_alpha);
-            fmt::println(file, "Blend Dual Source: {}", bs.use_dual_src ? "true" : "false");
+            print_blend("Color Blend", bs.srcfactor, bs.dstfactor, bs.subtract);
+            print_blend("Alpha Blend", bs.srcfactoralpha, bs.dstfactoralpha, bs.subtractAlpha);
+            fmt::println(file, "Blend Dual Source: {}", bs.usedualsrc ? "true" : "false");
           }
           else
           {
@@ -544,17 +554,6 @@ public:
   }
 };
 
-Metal::ObjectCache::ObjectCache()
-{
-  m_internal = std::make_unique<Internal>();
-  SetupDepthStencil(m_dss);
-}
-
-// This is defined here instead of the header so that the definition of Internal is visible when
-// m_internal is destroyed, preventing a compile error caused by calling unique_ptr's destructor
-// with an incomplete type.
-Metal::ObjectCache::~ObjectCache() = default;
-
 std::unique_ptr<AbstractPipeline>
 Metal::ObjectCache::CreatePipeline(const AbstractPipelineConfig& config)
 {
@@ -563,7 +562,7 @@ Metal::ObjectCache::CreatePipeline(const AbstractPipelineConfig& config)
     return nullptr;
   return std::make_unique<Pipeline>(config, std::move(pipeline.first), pipeline.second,
                                     Convert(config.rasterization_state.primitive),
-                                    Convert(config.rasterization_state.cull_mode),
+                                    Convert(config.rasterization_state.cullmode),
                                     config.depth_state, config.usage);
 }
 

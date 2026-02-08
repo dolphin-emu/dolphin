@@ -11,14 +11,17 @@
 #include <QPushButton>
 
 #include "Common/Assert.h"
+#include "Common/FileUtil.h"
 #include "Common/Flag.h"
 
+#include "Core/Core.h"
 #include "Core/WiiUtils.h"
 
 #include "DiscIO/NANDImporter.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 
 namespace WiiUpdate
 {
@@ -93,6 +96,7 @@ static WiiUtils::UpdateResult ShowProgress(QWidget* parent, Callable function, A
   UpdateProgressDialog dialog{parent};
   dialog.setLabelText(QObject::tr("Preparing to update...\nThis can take a while."));
   dialog.setWindowTitle(QObject::tr("Updating"));
+  dialog.setWindowFlags(dialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
   // QProgressDialog doesn't set its minimum size correctly.
   dialog.setMinimumSize(360, 150);
 
@@ -127,6 +131,7 @@ static WiiUtils::UpdateResult ShowProgress(QWidget* parent, Callable function, A
     return res;
   });
 
+  SetQWidgetWindowDecorations(&dialog);
   dialog.exec();
   return result.get();
 }

@@ -15,8 +15,6 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.AdapterView.OnItemClickListener
 import android.widget.ArrayAdapter
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -80,15 +78,6 @@ class ConvertFragment : Fragment(), View.OnClickListener {
 
     private var _binding: FragmentConvertBinding? = null
     val binding get() = _binding!!
-
-    private val requestSaveFile = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result: ActivityResult ->
-        val uri = result.data?.data
-        if (result.resultCode == Activity.RESULT_OK && uri != null) {
-            convert(uri.toString())
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -440,7 +429,13 @@ class ConvertFragment : Fragment(), View.OnClickListener {
             DocumentsContract.EXTRA_INITIAL_URI,
             originalPath
         )
-        requestSaveFile.launch(intent)
+        startActivityForResult(intent, REQUEST_CODE_SAVE_FILE)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == REQUEST_CODE_SAVE_FILE && resultCode == Activity.RESULT_OK) {
+            convert(data!!.data.toString())
+        }
     }
 
     private fun convert(outPath: String) {
@@ -519,6 +514,8 @@ class ConvertFragment : Fragment(), View.OnClickListener {
         private const val KEY_COMPRESSION = "convert_compression"
         private const val KEY_COMPRESSION_LEVEL = "convert_compression_level"
         private const val KEY_REMOVE_JUNK_DATA = "remove_junk_data"
+
+        private const val REQUEST_CODE_SAVE_FILE = 0
 
         private const val BLOB_TYPE_ISO = 0
         private const val BLOB_TYPE_GCZ = 3

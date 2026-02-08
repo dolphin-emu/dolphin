@@ -5,11 +5,11 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLUtil.h"
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/OGL/OGLConfig.h"
 #include "VideoBackends/OGL/OGLGfx.h"
+#include "VideoBackends/OGL/SamplerCache.h"
 
 #include "VideoCommon/VideoConfig.h"
 
@@ -269,8 +269,8 @@ void OGLTexture::ResolveFromTexture(const AbstractTexture* src,
                                     const MathUtil::Rectangle<int>& rect, u32 layer, u32 level)
 {
   const OGLTexture* srcentry = static_cast<const OGLTexture*>(src);
-  DEBUG_ASSERT(m_config.samples == 1 && m_config.width == srcentry->m_config.width &&
-               m_config.height == srcentry->m_config.height && srcentry->m_config.samples > 1);
+  DEBUG_ASSERT(m_config.samples > 1 && m_config.width == srcentry->m_config.width &&
+               m_config.height == srcentry->m_config.height && m_config.samples == 1);
   DEBUG_ASSERT(rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&
                rect.top + rect.GetHeight() <= static_cast<int>(srcentry->m_config.height));
   BlitFramebuffer(const_cast<OGLTexture*>(srcentry), rect, layer, level, rect, layer, level);
@@ -593,7 +593,7 @@ void OGLStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect,
   glTexSubImage3D(target, 0, dst_rect.left, dst_rect.top, dst_layer, dst_rect.GetWidth(),
                   dst_rect.GetHeight(), 1, GetGLFormatForTextureFormat(dst->GetFormat()),
                   GetGLTypeForTextureFormat(dst->GetFormat()), reinterpret_cast<void*>(src_offset));
-  glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
   // If we support buffer storage, create a fence for synchronization.

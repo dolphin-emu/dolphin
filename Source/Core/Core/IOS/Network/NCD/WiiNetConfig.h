@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <string>
 #include "Common/CommonTypes.h"
 
 namespace Memory

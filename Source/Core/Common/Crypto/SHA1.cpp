@@ -3,7 +3,6 @@
 
 #include "SHA1.h"
 
-#include <algorithm>
 #include <array>
 #include <memory>
 
@@ -41,18 +40,18 @@ public:
     mbedtls_sha1_init(&ctx);
     ASSERT(!mbedtls_sha1_starts_ret(&ctx));
   }
-  ~ContextMbed() override { mbedtls_sha1_free(&ctx); }
-  void Update(const u8* msg, size_t len) override
+  ~ContextMbed() { mbedtls_sha1_free(&ctx); }
+  virtual void Update(const u8* msg, size_t len) override
   {
     ASSERT(!mbedtls_sha1_update_ret(&ctx, msg, len));
   }
-  Digest Finish() override
+  virtual Digest Finish() override
   {
     Digest digest;
     ASSERT(!mbedtls_sha1_finish_ret(&ctx, digest.data()));
     return digest;
   }
-  bool HwAccelerated() const override { return false; }
+  virtual bool HwAccelerated() const override { return false; }
 
 private:
   mbedtls_sha1_context ctx{};
@@ -68,76 +67,75 @@ protected:
   virtual void ProcessBlock(const u8* msg) = 0;
   virtual Digest GetDigest() = 0;
 
-  void Update(const u8* msg, size_t len) override
+  virtual void Update(const u8* msg, size_t len) override
   {
-    m_msg_length += len;
+    if (len == 0)
+      return;
+    msg_len += len;
 
-    // Block has some partial data. Copy msg into it.
-    if (m_block_position != 0)
+    if (block_used)
     {
-      const size_t count_to_fill_block = m_block.size() - m_block_position;
-
-      // Not enough to fill block.
-      if (len < count_to_fill_block)
+      if (block_used + len >= block.size())
       {
-        std::copy_n(msg, len, m_block.data() + m_block_position);
-
-        m_block_position += len;
+        size_t rem = block.size() - block_used;
+        std::memcpy(&block[block_used], msg, rem);
+        ProcessBlock(&block[0]);
+        block_used = 0;
+        msg += rem;
+        len -= rem;
+      }
+      else
+      {
+        std::memcpy(&block[block_used], msg, len);
+        block_used += len;
         return;
       }
-
-      std::copy_n(msg, count_to_fill_block, m_block.data() + m_block_position);
-      ProcessBlock(m_block.data());
-
-      msg += count_to_fill_block;
-      len -= count_to_fill_block;
-      m_block_position = 0;
     }
-
-    // Our block is empty. We can process msg blocks directly, avoiding unnecessary copies.
-    while (len >= m_block.size())
+    while (len >= BLOCK_LEN)
     {
       ProcessBlock(msg);
-
-      msg += m_block.size();
-      len -= m_block.size();
+      msg += BLOCK_LEN;
+      len -= BLOCK_LEN;
     }
-
-    // Copy any remaining partial data into block.
-    std::copy_n(msg, len, m_block.data() + m_block_position);
-    m_block_position += len;
+    if (len)
+    {
+      std::memcpy(&block[0], msg, len);
+      block_used = len;
+    }
   }
 
-  Digest Finish() override
+  virtual Digest Finish() override
   {
-    // m_block_position is guaranteed < BLOCK_LEN
-    m_block[m_block_position++] = 0x80;
+    // block_used is guaranteed < BLOCK_LEN
+    block[block_used++] = 0x80;
 
     constexpr size_t MSG_LEN_POS = BLOCK_LEN - sizeof(u64);
-
-    if (m_block_position > MSG_LEN_POS)
+    if (block_used > MSG_LEN_POS)
     {
       // Pad current block and process it
-      std::fill(m_block.begin() + m_block_position, m_block.end(), 0x00);
-      ProcessBlock(m_block.data());
-      m_block_position = 0;
+      std::memset(&block[block_used], 0, BLOCK_LEN - block_used);
+      ProcessBlock(&block[0]);
+
+      // Pad a new block
+      std::memset(&block[0], 0, MSG_LEN_POS);
+    }
+    else
+    {
+      // Pad current block
+      std::memset(&block[block_used], 0, MSG_LEN_POS - block_used);
     }
 
-    // Pad block.
-    std::fill(m_block.data() + m_block_position, m_block.data() + MSG_LEN_POS, 0x00);
-    m_block_position = MSG_LEN_POS;
+    Common::BigEndianValue<u64> msg_bitlen(msg_len * 8);
+    std::memcpy(&block[MSG_LEN_POS], &msg_bitlen, sizeof(msg_bitlen));
 
-    // Write the message length.
-    const Common::BigEndianValue<u64> msg_bit_length{m_msg_length * CHAR_BIT};
-    Update(reinterpret_cast<const u8*>(&msg_bit_length), sizeof(msg_bit_length));
+    ProcessBlock(&block[0]);
 
     return GetDigest();
   }
 
-private:
-  alignas(64) std::array<u8, BLOCK_LEN> m_block{};
-  size_t m_block_position{};
-  size_t m_msg_length{};
+  alignas(64) std::array<u8, BLOCK_LEN> block{};
+  size_t block_used{};
+  size_t msg_len{};
 };
 
 template <typename ValueType, size_t Size>
@@ -204,7 +202,7 @@ private:
   }
 
   ATTRIBUTE_TARGET("sha")
-  void ProcessBlock(const u8* msg) override
+  virtual void ProcessBlock(const u8* msg) override
   {
     // There are 80 rounds with 4 bytes per round, giving 0x140 byte work space, but we can keep
     // active state in just 0x40 bytes.
@@ -248,7 +246,7 @@ private:
     // clang-format on
   }
 
-  Digest GetDigest() override
+  virtual Digest GetDigest() override
   {
     Digest digest;
     _mm_storeu_si128((__m128i*)&digest[0], byterev_16B(state[0]));
@@ -257,7 +255,7 @@ private:
     return digest;
   }
 
-  bool HwAccelerated() const override { return true; }
+  virtual bool HwAccelerated() const override { return true; }
 
   std::array<XmmReg, 2> state{};
 };

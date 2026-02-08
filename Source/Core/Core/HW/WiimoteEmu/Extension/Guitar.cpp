@@ -4,6 +4,7 @@
 #include "Core/HW/WiimoteEmu/Extension/Guitar.h"
 
 #include <array>
+#include <cstring>
 #include <map>
 
 #include "Common/Assert.h"

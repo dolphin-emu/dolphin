@@ -143,7 +143,7 @@ static void LoadWGLExtensions()
   wglReleasePbufferDCARB =
       reinterpret_cast<PFNWGLRELEASEPBUFFERDCARBPROC>(wglGetProcAddress("wglReleasePbufferDCARB"));
   wglDestroyPbufferARB =
-      reinterpret_cast<PFNWGLDESTROYPBUFFERARBPROC>(wglGetProcAddress("wglDestroyPbufferARB"));
+      reinterpret_cast<PFNWGLDESTROYPBUFFERARBPROC>(wglGetProcAddress("wglGetPbufferDCARB"));
 }
 
 static void ClearWGLExtensionPointers()

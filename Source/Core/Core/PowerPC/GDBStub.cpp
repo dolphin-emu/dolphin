@@ -7,6 +7,9 @@
 
 #include <fmt/format.h>
 #include <optional>
+#include <signal.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 #ifdef _WIN32
 #include <WinSock2.h>
@@ -23,15 +26,16 @@ typedef SSIZE_T ssize_t;
 #endif
 
 #include "Common/Assert.h"
+#include "Common/Event.h"
 #include "Common/Logging/Log.h"
 #include "Common/SocketContext.h"
+#include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCCache.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
@@ -168,12 +172,12 @@ static void RemoveBreakpoint(BreakpointType type, u32 addr, u32 len)
   else
   {
     auto& memchecks = Core::System::GetInstance().GetPowerPC().GetMemChecks();
-    DelayedMemCheckUpdate delayed_update(&memchecks);
     while (memchecks.GetMemCheck(addr, len) != nullptr)
     {
-      delayed_update |= memchecks.Remove(addr);
+      memchecks.Remove(addr, false);
       INFO_LOG_FMT(GDB_STUB, "gdb: removed a memcheck: {:08x} bytes at {:08x}", len, addr);
     }
+    memchecks.Update();
   }
   Host_PPCBreakpointsChanged();
 }
@@ -644,7 +648,6 @@ static void WriteRegister()
   else if (id >= 71 && id < 87)
   {
     ppc_state.sr[id - 71] = re32hex(bufptr);
-    system.GetMMU().SRUpdated();
   }
   else if (id >= 88 && id < 104)
   {
@@ -659,7 +662,7 @@ static void WriteRegister()
       break;
     case 65:
       ppc_state.msr.Hex = re32hex(bufptr);
-      system.GetPowerPC().MSRUpdated();
+      PowerPC::MSRUpdated(ppc_state);
       break;
     case 66:
       ppc_state.cr.Set(re32hex(bufptr));
@@ -681,7 +684,6 @@ static void WriteRegister()
       break;
     case 104:
       ppc_state.spr[SPR_SDR] = re32hex(bufptr);
-      system.GetMMU().SDRUpdated();
       break;
     case 105:
       ppc_state.spr[SPR_ASR] = re64hex(bufptr);
@@ -866,7 +868,7 @@ static void Step()
 {
   auto& system = Core::System::GetInstance();
   system.GetCPU().SetStepping(true);
-  Core::NotifyStateChanged(Core::State::Paused);
+  Core::CallOnStateChangedCallbacks(Core::State::Paused);
 }
 
 static bool AddBreakpoint(BreakpointType type, u32 addr, u32 len)

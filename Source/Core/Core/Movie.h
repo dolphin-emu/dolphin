@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <cstring>
 #include <mutex>
 #include <optional>
 #include <string>

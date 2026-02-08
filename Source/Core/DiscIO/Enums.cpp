@@ -6,6 +6,7 @@
 #include <map>
 #include <string>
 
+#include "Common/Assert.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -116,16 +117,16 @@ std::string GetName(Region region, bool translate)
 
   switch (region)
   {
-  case Region::NTSC_J:
+  case DiscIO::Region::NTSC_J:
     name = _trans("NTSC-J");
     break;
-  case Region::NTSC_U:
+  case DiscIO::Region::NTSC_U:
     name = _trans("NTSC-U");
     break;
-  case Region::PAL:
+  case DiscIO::Region::PAL:
     name = _trans("PAL");
     break;
-  case Region::NTSC_K:
+  case DiscIO::Region::NTSC_K:
     name = _trans("NTSC-K");
     break;
   default:
@@ -138,8 +139,7 @@ std::string GetName(Region region, bool translate)
 
 bool IsDisc(Platform volume_type)
 {
-  return volume_type == Platform::GameCubeDisc || volume_type == Platform::Triforce ||
-         volume_type == Platform::WiiDisc;
+  return volume_type == Platform::GameCubeDisc || volume_type == Platform::WiiDisc;
 }
 
 bool IsWii(Platform volume_type)

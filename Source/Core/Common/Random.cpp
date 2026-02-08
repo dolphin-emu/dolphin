@@ -7,7 +7,6 @@
 #include <mbedtls/hmac_drbg.h>
 
 #include "Common/Assert.h"
-#include "Common/CommonTypes.h"
 
 namespace Common::Random
 {

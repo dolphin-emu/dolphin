@@ -29,55 +29,55 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
-void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, std::span<u8> value, const u32 address,
+void ApplyMemoryPatch(const Core::CPUThreadGuard& guard, Common::Debug::MemoryPatch& patch,
                       bool store_existing_value)
 {
-  if (value.empty())
+  if (AchievementManager::GetInstance().IsHardcoreModeActive())
     return;
 
-  const std::size_t size = value.size();
+  if (patch.value.empty())
+    return;
+
+  const u32 address = patch.address;
+  const std::size_t size = patch.value.size();
   if (!PowerPC::MMU::HostIsRAMAddress(guard, address))
     return;
 
   auto& power_pc = guard.GetSystem().GetPowerPC();
-
-  bool should_invalidate_cache = false;
   for (u32 offset = 0; offset < size; ++offset)
   {
-    u8 old_value = PowerPC::MMU::HostRead<u8>(guard, address + offset);
-    if (old_value != value[offset])
+    if (store_existing_value)
     {
-      PowerPC::MMU::HostWrite<u8>(guard, value[offset], address + offset);
-      should_invalidate_cache = true;
-      if (store_existing_value)
-        value[offset] = old_value;
+      const u8 value = PowerPC::MMU::HostRead_U8(guard, address + offset);
+      PowerPC::MMU::HostWrite_U8(guard, patch.value[offset], address + offset);
+      patch.value[offset] = value;
+    }
+    else
+    {
+      PowerPC::MMU::HostWrite_U8(guard, patch.value[offset], address + offset);
     }
 
     if (((address + offset) % 4) == 3)
-    {
-      if (should_invalidate_cache)
-        power_pc.ScheduleInvalidateCacheThreadSafe(Common::AlignDown(address + offset, 4));
-      should_invalidate_cache = false;
-    }
+      power_pc.ScheduleInvalidateCacheThreadSafe(Common::AlignDown(address + offset, 4));
   }
-  if (should_invalidate_cache)
+  if (((address + size) % 4) != 0)
   {
     power_pc.ScheduleInvalidateCacheThreadSafe(
-        Common::AlignDown(address + static_cast<u32>(size) - 1, 4));
+        Common::AlignDown(address + static_cast<u32>(size), 4));
   }
 }
 
 void PPCPatches::ApplyExistingPatch(const Core::CPUThreadGuard& guard, std::size_t index)
 {
   auto& patch = m_patches[index];
-  ApplyMemoryPatch(guard, patch.value, patch.address, false);
+  ApplyMemoryPatch(guard, patch, false);
 }
 
 void PPCPatches::Patch(const Core::CPUThreadGuard& guard, std::size_t index)
 {
   auto& patch = m_patches[index];
   if (patch.type == Common::Debug::MemoryPatch::ApplyType::Once)
-    ApplyMemoryPatch(guard, patch.value, patch.address);
+    ApplyMemoryPatch(guard, patch);
   else
     PatchEngine::AddMemoryPatch(index);
 }
@@ -242,7 +242,7 @@ Common::Debug::Threads PPCDebugInterface::GetThreads(const Core::CPUThreadGuard&
   constexpr u32 ACTIVE_QUEUE_HEAD_ADDR = 0x800000dc;
   if (!PowerPC::MMU::HostIsRAMAddress(guard, ACTIVE_QUEUE_HEAD_ADDR))
     return threads;
-  const u32 active_queue_head = PowerPC::MMU::HostRead<u32>(guard, ACTIVE_QUEUE_HEAD_ADDR);
+  const u32 active_queue_head = PowerPC::MMU::HostRead_U32(guard, ACTIVE_QUEUE_HEAD_ADDR);
   if (!PowerPC::MMU::HostIsRAMAddress(guard, active_queue_head))
     return threads;
 
@@ -323,7 +323,7 @@ std::string PPCDebugInterface::GetRawMemoryString(const Core::CPUThreadGuard& gu
 
 u32 PPCDebugInterface::ReadMemory(const Core::CPUThreadGuard& guard, u32 address) const
 {
-  return PowerPC::MMU::HostRead<u32>(guard, address);
+  return PowerPC::MMU::HostRead_U32(guard, address);
 }
 
 u32 PPCDebugInterface::ReadExtraMemory(const Core::CPUThreadGuard& guard, int memory,
@@ -332,7 +332,7 @@ u32 PPCDebugInterface::ReadExtraMemory(const Core::CPUThreadGuard& guard, int me
   switch (memory)
   {
   case 0:
-    return PowerPC::MMU::HostRead<u32>(guard, address);
+    return PowerPC::MMU::HostRead_U32(guard, address);
   case 1:
   {
     const auto& dsp = guard.GetSystem().GetDSP();
@@ -439,7 +439,7 @@ u32 PPCDebugInterface::GetColor(const Core::CPUThreadGuard* guard, u32 address) 
 }
 // =============
 
-std::string PPCDebugInterface::GetDescription(u32 address) const
+std::string_view PPCDebugInterface::GetDescription(u32 address) const
 {
   return m_ppc_symbol_db.GetDescription(address);
 }

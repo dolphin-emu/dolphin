@@ -3,12 +3,13 @@
 
 #pragma once
 
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <string_view>
 
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLExtensions/GLExtensions.h"
+#include "Common/GL/GLUtil.h"
 #include "VideoCommon/AbstractShader.h"
 
 namespace OGL
@@ -28,7 +29,6 @@ public:
   const std::string& GetSource() const { return m_source; }
 
   static std::unique_ptr<OGLShader> CreateFromSource(ShaderStage stage, std::string_view source,
-                                                     VideoCommon::ShaderIncluder* shader_includer,
                                                      std::string_view name);
 
 private:

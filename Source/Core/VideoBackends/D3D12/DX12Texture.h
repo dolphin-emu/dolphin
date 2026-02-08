@@ -20,7 +20,7 @@ namespace DX12
 class DXTexture final : public AbstractTexture
 {
 public:
-  ~DXTexture() override;
+  ~DXTexture();
 
   static std::unique_ptr<DXTexture> Create(const TextureConfig& config, std::string_view name);
   static std::unique_ptr<DXTexture> CreateAdopted(ID3D12Resource* resource);
@@ -43,7 +43,7 @@ public:
 
   void TransitionToState(D3D12_RESOURCE_STATES state) const;
 
-  // Destroys the resource backing this texture. The resource must not be in use by the GPU.
+  // Destoys the resource backing this texture. The resource must not be in use by the GPU.
   void DestroyResource();
 
 private:
@@ -110,7 +110,7 @@ private:
 class DXStagingTexture final : public AbstractStagingTexture
 {
 public:
-  ~DXStagingTexture() override;
+  ~DXStagingTexture();
 
   void CopyFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& src_rect,
                        u32 src_layer, u32 src_level,

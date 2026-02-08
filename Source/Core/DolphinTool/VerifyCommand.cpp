@@ -8,8 +8,10 @@
 #include <vector>
 
 #include <OptionParser.h>
+#include <fmt/format.h>
 #include <fmt/ostream.h>
 
+#include "Common/StringUtil.h"
 #include "Core/AchievementManager.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeVerifier.h"

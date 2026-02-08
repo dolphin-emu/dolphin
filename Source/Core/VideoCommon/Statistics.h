@@ -87,9 +87,6 @@ struct Statistics
   void Display() const;
   void DisplayProj() const;
   void DisplayScissor();
-
-  static void Init();
-  static void Shutdown();
 };
 
 extern Statistics g_stats;

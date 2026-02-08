@@ -4,11 +4,14 @@
 #include "Core/IOS/MIOS.h"
 
 #include <cstring>
+#include <utility>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
+#include "Common/Swap.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -68,17 +71,17 @@ bool Load(Core::System& system)
   auto& ppc_symbol_db = power_pc.GetSymbolDB();
 
   // Load symbols for the IPL if they exist.
-  bool symbols_changed = ppc_symbol_db.Clear();
-
+  if (!ppc_symbol_db.IsEmpty())
+  {
+    ppc_symbol_db.Clear();
+    Host_PPCSymbolsChanged();
+  }
   if (ppc_symbol_db.LoadMap(guard, File::GetUserPath(D_MAPS_IDX) + "mios-ipl.map"))
   {
     ::HLE::Clear();
     ::HLE::PatchFunctions(system);
-    symbols_changed = true;
-  }
-
-  if (symbols_changed)
     Host_PPCSymbolsChanged();
+  }
 
   const PowerPC::CoreMode core_mode = power_pc.GetMode();
   power_pc.SetMode(PowerPC::CoreMode::Interpreter);
@@ -86,7 +89,7 @@ bool Load(Core::System& system)
   PowerPC::PowerPCState& ppc_state = power_pc.GetPPCState();
   ppc_state.msr.Hex = 0;
   ppc_state.pc = 0x3400;
-  power_pc.MSRUpdated();
+  PowerPC::MSRUpdated(ppc_state);
 
   NOTICE_LOG_FMT(IOS, "Loaded MIOS and bootstrapped PPC.");
 

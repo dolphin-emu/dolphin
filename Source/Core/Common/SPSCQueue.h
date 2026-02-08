@@ -6,117 +6,104 @@
 // a simple lockless thread-safe,
 // single producer, single consumer queue
 
+#include <algorithm>
 #include <atomic>
-#include <cassert>
+#include <cstddef>
 
-#include "Common/TypeUtils.h"
+#include "Common/CommonTypes.h"
 
 namespace Common
 {
-
-namespace detail
-{
-template <typename T, bool IncludeWaitFunctionality>
-class SPSCQueueBase final
+template <typename T, bool NeedSize = true>
+class SPSCQueue
 {
 public:
-  SPSCQueueBase() = default;
-  ~SPSCQueueBase()
+  SPSCQueue() : m_size(0) { m_write_ptr = m_read_ptr = new ElementPtr(); }
+  ~SPSCQueue()
   {
-    Clear();
+    // this will empty out the whole queue
     delete m_read_ptr;
   }
 
-  SPSCQueueBase(const SPSCQueueBase&) = delete;
-  SPSCQueueBase& operator=(const SPSCQueueBase&) = delete;
-
-  std::size_t Size() const { return m_size.load(std::memory_order_acquire); }
-  bool Empty() const { return Size() == 0; }
-
-  // The following are only safe from the "producer thread":
-  void Push(const T& arg) { Emplace(arg); }
-  void Push(T&& arg) { Emplace(std::move(arg)); }
-  template <typename... Args>
-  void Emplace(Args&&... args)
+  u32 Size() const
   {
-    m_write_ptr->value.Construct(std::forward<Args>(args)...);
+    static_assert(NeedSize, "using Size() on SPSCQueue without NeedSize");
+    return m_size.load();
+  }
 
-    Node* const new_ptr = new Node;
-    m_write_ptr->next = new_ptr;
+  bool Empty() const { return !m_read_ptr->next.load(); }
+  T& Front() const { return m_read_ptr->current; }
+  template <typename Arg>
+  void Push(Arg&& t)
+  {
+    // create the element, add it to the queue
+    m_write_ptr->current = std::forward<Arg>(t);
+    // set the next pointer to a new element ptr
+    // then advance the write pointer
+    ElementPtr* new_ptr = new ElementPtr();
+    m_write_ptr->next.store(new_ptr, std::memory_order_release);
     m_write_ptr = new_ptr;
-
-    AdjustSize(1);
+    if (NeedSize)
+      m_size++;
   }
-
-  void WaitForEmpty() requires(IncludeWaitFunctionality)
-  {
-    while (const std::size_t old_size = Size())
-      m_size.wait(old_size, std::memory_order_acquire);
-  }
-
-  // The following are only safe from the "consumer thread":
-  T& Front() { return m_read_ptr->value.Ref(); }
-  const T& Front() const { return m_read_ptr->value.Ref(); }
 
   void Pop()
   {
-    assert(!Empty());
-
-    m_read_ptr->value.Destroy();
-
-    Node* const old_node = m_read_ptr;
-    m_read_ptr = old_node->next;
-    delete old_node;
-
-    AdjustSize(-1);
+    if (NeedSize)
+      m_size--;
+    ElementPtr* tmpptr = m_read_ptr;
+    // advance the read pointer
+    m_read_ptr = tmpptr->next.load();
+    // set the next element to nullptr to stop the recursive deletion
+    tmpptr->next.store(nullptr);
+    delete tmpptr;  // this also deletes the element
   }
 
-  bool Pop(T& result)
+  bool Pop(T& t)
   {
     if (Empty())
       return false;
 
-    result = std::move(Front());
-    Pop();
+    if (NeedSize)
+      m_size--;
+
+    ElementPtr* tmpptr = m_read_ptr;
+    m_read_ptr = tmpptr->next.load(std::memory_order_acquire);
+    t = std::move(tmpptr->current);
+    tmpptr->next.store(nullptr);
+    delete tmpptr;
     return true;
   }
 
-  void WaitForData() requires(IncludeWaitFunctionality)
-  {
-    m_size.wait(0, std::memory_order_acquire);
-  }
-
+  // not thread-safe
   void Clear()
   {
-    while (!Empty())
-      Pop();
+    m_size.store(0);
+    delete m_read_ptr;
+    m_write_ptr = m_read_ptr = new ElementPtr();
   }
 
 private:
-  struct Node
+  // stores a pointer to element
+  // and a pointer to the next ElementPtr
+  class ElementPtr
   {
-    ManuallyConstructedValue<T> value;
-    Node* next;
+  public:
+    ElementPtr() : next(nullptr) {}
+    ~ElementPtr()
+    {
+      ElementPtr* next_ptr = next.load();
+
+      if (next_ptr)
+        delete next_ptr;
+    }
+
+    T current{};
+    std::atomic<ElementPtr*> next;
   };
 
-  Node* m_write_ptr = new Node;
-  Node* m_read_ptr = m_write_ptr;
-
-  void AdjustSize(std::size_t value)
-  {
-    m_size.fetch_add(value, std::memory_order_release);
-    if constexpr (IncludeWaitFunctionality)
-      m_size.notify_one();
-  }
-
-  std::atomic<std::size_t> m_size = 0;
+  ElementPtr* m_write_ptr;
+  ElementPtr* m_read_ptr;
+  std::atomic<u32> m_size;
 };
-}  // namespace detail
-
-template <typename T>
-using SPSCQueue = detail::SPSCQueueBase<T, false>;
-
-template <typename T>
-using WaitableSPSCQueue = detail::SPSCQueueBase<T, true>;
-
 }  // namespace Common

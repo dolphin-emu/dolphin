@@ -4,7 +4,7 @@
 #include "Core/IOS/FS/HostBackend/FS.h"
 
 #include <algorithm>
-#include <expected>
+#include <cmath>
 #include <optional>
 #include <string_view>
 #include <type_traits>
@@ -42,8 +42,6 @@ HostFileSystem::HostFilename HostFileSystem::BuildFilename(const std::string& wi
       return HostFilename{redirect.target_path + Common::EscapePath(relative_to_redirect), true};
     }
   }
-
-  ASSERT(!m_root_path.empty());
 
   if (wii_path.starts_with("/"))
     return HostFilename{m_root_path + Common::EscapePath(wii_path), false};
@@ -374,9 +372,11 @@ void HostFileSystem::DoState(PointerWrap& p)
     handle.host_file.reset();
 
   // The format for the next part of the save state is follows:
-  // 1. bool is_full_nand_in_state (movie active && temporary wii root)
+  // 1. bool Movie::WasMovieActiveWhenStateSaved() &&
+  // WiiRoot::WasWiiRootTemporaryDirectoryWhenStateSaved()
   // 2. Contents of the "/tmp" directory recursively.
-  // 3. u32 size_of_nand (or 0, if not is_full_nand_in_state).
+  // 3. u32 size_of_nand_folder_saved_below (or 0, if the root
+  // of the NAND folder is not savestated below).
   // 4. Contents of the "/" directory recursively (or nothing, if the
   // root of the NAND folder is not save stated).
 
@@ -384,42 +384,44 @@ void HostFileSystem::DoState(PointerWrap& p)
   // and when the directory root is temporary (i.e. WiiSession).
   // If a save state is made during a movie recording and is loaded when no movie is active,
   // then a call to p.DoExternal() will be used to skip over reading the contents of the "/"
-  // directory (it skips over the number of bytes specified by size_of_nand)
+  // directory (it skips over the number of bytes specified by size_of_nand_folder_saved)
 
   auto& movie = Core::System::GetInstance().GetMovie();
+  bool original_save_state_made_during_movie_recording =
+      movie.IsMovieActive() && Core::WiiRootIsTemporary();
+  p.Do(original_save_state_made_during_movie_recording);
 
-  const bool is_full_nand_wanted = movie.IsMovieActive() && Core::WiiRootIsTemporary();
-
-  bool is_full_nand_in_state = is_full_nand_wanted;
-  p.Do(is_full_nand_in_state);
+  u32 temp_val = 0;
 
   if (!p.IsReadMode())
   {
     DoStateWriteOrMeasure(p, "/tmp");
-    u8* const nand_size_ptr = p.ReserveU32();
-    if (is_full_nand_in_state)
+    u8* previous_position = p.ReserveU32();
+    if (original_save_state_made_during_movie_recording)
     {
       DoStateWriteOrMeasure(p, "/");
       if (p.IsWriteMode())
       {
-        const u32 size_of_nand = p.GetOffsetFromPreviousPosition(nand_size_ptr) - sizeof(u32);
-        memcpy(nand_size_ptr, &size_of_nand, sizeof(size_of_nand));
+        u32 size_of_nand = p.GetOffsetFromPreviousPosition(previous_position) - sizeof(u32);
+        memcpy(previous_position, &size_of_nand, sizeof(u32));
       }
     }
   }
   else  // case where we're in read mode.
   {
-    u32 size_of_nand = 0;
     DoStateRead(p, "/tmp");
-    if (is_full_nand_in_state && is_full_nand_wanted)
+    if (!movie.IsMovieActive() || !original_save_state_made_during_movie_recording ||
+        !Core::WiiRootIsTemporary() ||
+        (original_save_state_made_during_movie_recording !=
+         (movie.IsMovieActive() && Core::WiiRootIsTemporary())))
     {
-      p.Do(size_of_nand);
-      DoStateRead(p, "/");
+      (void)p.DoExternal(temp_val);
     }
     else
     {
-      // Skip over any NAND data without using it.
-      (void)p.DoExternal(size_of_nand);
+      p.Do(temp_val);
+      if (movie.IsMovieActive() && Core::WiiRootIsTemporary())
+        DoStateRead(p, "/");
     }
   }
 
@@ -652,17 +654,17 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid uid, Gid gid,
                                                                const std::string& path)
 {
   if (!IsValidPath(path))
-    return std::unexpected{ResultCode::Invalid};
+    return ResultCode::Invalid;
 
   const FstEntry* entry = GetFstEntryForPath(path);
   if (!entry)
-    return std::unexpected{ResultCode::NotFound};
+    return ResultCode::NotFound;
 
   if (!entry->CheckPermission(uid, gid, Mode::Read))
-    return std::unexpected{ResultCode::AccessDenied};
+    return ResultCode::AccessDenied;
 
   if (entry->data.is_file)
-    return std::unexpected{ResultCode::Invalid};
+    return ResultCode::Invalid;
 
   const std::string host_path = BuildFilename(path).host_path;
   File::FSTEntry host_entry = File::ScanDirectoryTree(host_path, false);
@@ -712,19 +714,19 @@ Result<Metadata> HostFileSystem::GetMetadata(Uid uid, Gid gid, const std::string
   else
   {
     if (!IsValidNonRootPath(path))
-      return std::unexpected{ResultCode::Invalid};
+      return ResultCode::Invalid;
 
     const auto split_path = SplitPathAndBasename(path);
     const FstEntry* parent = GetFstEntryForPath(split_path.parent);
     if (!parent)
-      return std::unexpected{ResultCode::NotFound};
+      return ResultCode::NotFound;
     if (!parent->CheckPermission(uid, gid, Mode::Read))
-      return std::unexpected{ResultCode::AccessDenied};
+      return ResultCode::AccessDenied;
     entry = GetFstEntryForPath(path);
   }
 
   if (!entry)
-    return std::unexpected{ResultCode::NotFound};
+    return ResultCode::NotFound;
 
   Metadata metadata = entry->data;
   metadata.size = File::GetSize(BuildFilename(path).host_path);
@@ -780,7 +782,7 @@ Result<NandStats> HostFileSystem::GetNandStats()
 {
   const auto root_stats = GetDirectoryStats("/");
   if (!root_stats)
-    return std::unexpected{root_stats.error()};  // TODO: is this right? can this fail on hardware?
+    return root_stats.Error();  // TODO: is this right? can this fail on hardware?
 
   NandStats stats{};
   stats.cluster_size = CLUSTER_SIZE;
@@ -798,7 +800,7 @@ Result<DirectoryStats> HostFileSystem::GetDirectoryStats(const std::string& wii_
 {
   const auto result = GetExtendedDirectoryStats(wii_path);
   if (!result)
-    return std::unexpected{result.error()};
+    return result.Error();
 
   DirectoryStats stats{};
   stats.used_inodes = static_cast<u32>(std::min<u64>(result->used_inodes, TOTAL_INODES));
@@ -810,14 +812,14 @@ Result<ExtendedDirectoryStats>
 HostFileSystem::GetExtendedDirectoryStats(const std::string& wii_path)
 {
   if (!IsValidPath(wii_path))
-    return std::unexpected{ResultCode::Invalid};
+    return ResultCode::Invalid;
 
   ExtendedDirectoryStats stats{};
   std::string path(BuildFilename(wii_path).host_path);
   File::FileInfo info(path);
   if (!info.Exists())
   {
-    return std::unexpected{ResultCode::NotFound};
+    return ResultCode::NotFound;
   }
   if (info.IsDirectory())
   {
@@ -830,7 +832,7 @@ HostFileSystem::GetExtendedDirectoryStats(const std::string& wii_path)
   }
   else
   {
-    return std::unexpected{ResultCode::Invalid};
+    return ResultCode::Invalid;
   }
   return stats;
 }

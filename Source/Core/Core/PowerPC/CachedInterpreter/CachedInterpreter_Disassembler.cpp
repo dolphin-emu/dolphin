@@ -8,6 +8,7 @@
 #include <mutex>
 #include <utility>
 
+#include <fmt/format.h>
 #include <fmt/ostream.h>
 
 #include "Core/HLE/HLE.h"
@@ -118,7 +119,7 @@ std::size_t CachedInterpreter::Disassemble(const JitBlock& block, std::ostream& 
 
 #undef LOOKUP_KV
 
-  std::call_once(s_sorted_lookup_flag, [] {
+  std::call_once(s_sorted_lookup_flag, []() {
     const auto end = std::ranges::sort(sorted_lookup, {}, &LookupKV::first);
     ASSERT_MSG(DYNA_REC, std::ranges::adjacent_find(sorted_lookup, {}, &LookupKV::first) == end,
                "Sorted lookup should not contain duplicate keys.");

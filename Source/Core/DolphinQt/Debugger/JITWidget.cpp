@@ -20,6 +20,7 @@
 #include <QTableView>
 #include <QVBoxLayout>
 
+#include <fmt/format.h>
 #include <fmt/ostream.h>
 
 #include "Common/CommonFuncs.h"
@@ -61,7 +62,7 @@ public:
 
   // Always connected slots (external signals)
   void OnSymbolTextChanged(const QString& text);
-  template <std::optional<u32> JitBlockProxyModel::* member>
+  template <std::optional<u32> JitBlockProxyModel::*member>
   void OnAddressTextChanged(const QString& text);
 
 private:
@@ -80,7 +81,7 @@ void JitBlockProxyModel::OnSymbolTextChanged(const QString& text)
   invalidateRowsFilter();
 }
 
-template <std::optional<u32> JitBlockProxyModel::* member>
+template <std::optional<u32> JitBlockProxyModel::*member>
 void JitBlockProxyModel::OnAddressTextChanged(const QString& text)
 {
   bool ok = false;

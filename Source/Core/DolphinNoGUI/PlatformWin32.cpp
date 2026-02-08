@@ -3,13 +3,16 @@
 
 #include "DolphinNoGUI/Platform.h"
 
+#include "Common/MsgHandler.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/State.h"
 #include "Core/System.h"
 
 #include <Windows.h>
 #include <climits>
+#include <cstdio>
 #include <dwmapi.h>
 
 #include "VideoCommon/Present.h"
@@ -17,7 +20,7 @@
 
 namespace
 {
-class PlatformWin32 final : public Platform
+class PlatformWin32 : public Platform
 {
 public:
   ~PlatformWin32() override;
@@ -26,14 +29,14 @@ public:
   void SetTitle(const std::string& string) override;
   void MainLoop() override;
 
-  WindowSystemInfo GetWindowSystemInfo() const override;
+  WindowSystemInfo GetWindowSystemInfo() const;
 
 private:
   static constexpr TCHAR WINDOW_CLASS_NAME[] = _T("DolphinNoGUI");
 
   static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-  static bool RegisterRenderWindowClass();
+  bool RegisterRenderWindowClass();
   bool CreateRenderWindow();
   void UpdateWindowPosition();
   void ProcessEvents();
@@ -63,7 +66,7 @@ bool PlatformWin32::RegisterRenderWindowClass()
   wc.hInstance = GetModuleHandle(nullptr);
   wc.hIcon = LoadIcon(nullptr, IDI_ICON1);
   wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-  wc.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
+  wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
   wc.lpszMenuName = nullptr;
   wc.lpszClassName = WINDOW_CLASS_NAME;
   wc.hIconSm = LoadIcon(nullptr, IDI_ICON1);
@@ -165,8 +168,7 @@ void PlatformWin32::ProcessEvents()
   }
 }
 
-LRESULT PlatformWin32::WndProc(const HWND hwnd, const UINT msg, const WPARAM wParam,
-                               const LPARAM lParam)
+LRESULT PlatformWin32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   PlatformWin32* platform = reinterpret_cast<PlatformWin32*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
   switch (msg)
@@ -183,7 +185,7 @@ LRESULT PlatformWin32::WndProc(const HWND hwnd, const UINT msg, const WPARAM wPa
     if (hwnd)
     {
       // Remove rounded corners from the render window on Windows 11
-      constexpr DWM_WINDOW_CORNER_PREFERENCE corner_preference = DWMWCP_DONOTROUND;
+      const DWM_WINDOW_CORNER_PREFERENCE corner_preference = DWMWCP_DONOTROUND;
       DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &corner_preference,
                             sizeof(corner_preference));
     }

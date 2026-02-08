@@ -8,10 +8,10 @@
 
 #include "Common/Assert.h"
 #include "Common/MsgHandler.h"
+#include "Common/Thread.h"
 
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/Constants.h"
-#include "vulkan/vulkan_core.h"
 
 namespace Vulkan
 {
@@ -32,9 +32,9 @@ CommandBufferManager::~CommandBufferManager()
   DestroyCommandBuffers();
 }
 
-bool CommandBufferManager::Initialize(size_t swapchain_image_count)
+bool CommandBufferManager::Initialize()
 {
-  if (!CreateCommandBuffers(swapchain_image_count))
+  if (!CreateCommandBuffers())
     return false;
 
   if (m_use_threaded_submission && !CreateSubmitThread())
@@ -43,7 +43,7 @@ bool CommandBufferManager::Initialize(size_t swapchain_image_count)
   return true;
 }
 
-bool CommandBufferManager::CreateCommandBuffers(size_t swapchain_image_count)
+bool CommandBufferManager::CreateCommandBuffers()
 {
   static constexpr VkSemaphoreCreateInfo semaphore_create_info = {
       VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO, nullptr, 0};
@@ -95,17 +95,11 @@ bool CommandBufferManager::CreateCommandBuffers(size_t swapchain_image_count)
     }
   }
 
-  m_present_semaphores.reserve(swapchain_image_count);
-  for (uint32_t i = 0; i < swapchain_image_count; i++)
+  res = vkCreateSemaphore(device, &semaphore_create_info, nullptr, &m_present_semaphore);
+  if (res != VK_SUCCESS)
   {
-    VkSemaphore present_semaphore;
-    res = vkCreateSemaphore(device, &semaphore_create_info, nullptr, &present_semaphore);
-    if (res != VK_SUCCESS)
-    {
-      LOG_VULKAN_ERROR(res, "vkCreateSemaphore failed: ");
-      return false;
-    }
-    m_present_semaphores.push_back(present_semaphore);
+    LOG_VULKAN_ERROR(res, "vkCreateSemaphore failed: ");
+    return false;
   }
 
   // Activate the first command buffer. BeginCommandBuffer moves forward, so start with the last
@@ -146,10 +140,7 @@ void CommandBufferManager::DestroyCommandBuffers()
     }
   }
 
-  for (VkSemaphore present_semaphore : m_present_semaphores)
-  {
-    vkDestroySemaphore(device, present_semaphore, nullptr);
-  }
+  vkDestroySemaphore(device, m_present_semaphore, nullptr);
 }
 
 VkDescriptorPool CommandBufferManager::CreateDescriptorPool(u32 max_descriptor_sets)
@@ -423,7 +414,7 @@ void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
   if (present_swap_chain != VK_NULL_HANDLE)
   {
     submit_info.signalSemaphoreCount = 1;
-    submit_info.pSignalSemaphores = &m_present_semaphores[present_image_index];
+    submit_info.pSignalSemaphores = &m_present_semaphore;
   }
 
   VkResult res =
@@ -442,13 +433,14 @@ void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
     VkPresentInfoKHR present_info = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
                                      nullptr,
                                      1,
-                                     &m_present_semaphores[present_image_index],
+                                     &m_present_semaphore,
                                      1,
                                      &present_swap_chain,
                                      &present_image_index,
                                      nullptr};
 
     m_last_present_result = vkQueuePresentKHR(g_vulkan_context->GetPresentQueue(), &present_info);
+    m_last_present_done.Set();
     if (m_last_present_result != VK_SUCCESS)
     {
       // VK_ERROR_OUT_OF_DATE_KHR is not fatal, just means we need to recreate our swap chain.
@@ -513,35 +505,36 @@ void CommandBufferManager::DeferBufferViewDestruction(VkBufferView object)
 {
   CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
   cmd_buffer_resources.cleanup_resources.push_back(
-      [object] { vkDestroyBufferView(g_vulkan_context->GetDevice(), object, nullptr); });
+      [object]() { vkDestroyBufferView(g_vulkan_context->GetDevice(), object, nullptr); });
 }
 
 void CommandBufferManager::DeferBufferDestruction(VkBuffer buffer, VmaAllocation alloc)
 {
   CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
-  cmd_buffer_resources.cleanup_resources.push_back(
-      [buffer, alloc] { vmaDestroyBuffer(g_vulkan_context->GetMemoryAllocator(), buffer, alloc); });
+  cmd_buffer_resources.cleanup_resources.push_back([buffer, alloc]() {
+    vmaDestroyBuffer(g_vulkan_context->GetMemoryAllocator(), buffer, alloc);
+  });
 }
 
 void CommandBufferManager::DeferFramebufferDestruction(VkFramebuffer object)
 {
   CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
   cmd_buffer_resources.cleanup_resources.push_back(
-      [object] { vkDestroyFramebuffer(g_vulkan_context->GetDevice(), object, nullptr); });
+      [object]() { vkDestroyFramebuffer(g_vulkan_context->GetDevice(), object, nullptr); });
 }
 
 void CommandBufferManager::DeferImageDestruction(VkImage image, VmaAllocation alloc)
 {
   CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
   cmd_buffer_resources.cleanup_resources.push_back(
-      [image, alloc] { vmaDestroyImage(g_vulkan_context->GetMemoryAllocator(), image, alloc); });
+      [image, alloc]() { vmaDestroyImage(g_vulkan_context->GetMemoryAllocator(), image, alloc); });
 }
 
 void CommandBufferManager::DeferImageViewDestruction(VkImageView object)
 {
   CmdBufferResources& cmd_buffer_resources = GetCurrentCmdBufferResources();
   cmd_buffer_resources.cleanup_resources.push_back(
-      [object] { vkDestroyImageView(g_vulkan_context->GetDevice(), object, nullptr); });
+      [object]() { vkDestroyImageView(g_vulkan_context->GetDevice(), object, nullptr); });
 }
 
 std::unique_ptr<CommandBufferManager> g_command_buffer_mgr;

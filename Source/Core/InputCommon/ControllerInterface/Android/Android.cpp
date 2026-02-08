@@ -442,25 +442,6 @@ std::shared_ptr<ciface::Core::Device> FindDevice(jint device_id)
   return device;
 }
 
-void RegisterDevicesChangedCallbackIfNeeded(JNIEnv* env, jclass controller_interface_class)
-{
-  static bool registered = false;
-  if (registered)
-    return;
-  registered = true;
-
-  const jclass global_controller_interface_class =
-      reinterpret_cast<jclass>(env->NewGlobalRef(controller_interface_class));
-  const jmethodID controller_interface_on_devices_changed =
-      env->GetStaticMethodID(global_controller_interface_class, "onDevicesChanged", "()V");
-
-  static Common::EventHook event_hook = g_controller_interface.RegisterDevicesChangedCallback(
-      [global_controller_interface_class, controller_interface_on_devices_changed] {
-        IDCache::GetEnvForThread()->CallStaticVoidMethod(global_controller_interface_class,
-                                                         controller_interface_on_devices_changed);
-      });
-}
-
 }  // namespace
 
 namespace ciface::Android
@@ -922,8 +903,6 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
 
   env->CallStaticVoidMethod(s_controller_interface_class,
                             s_controller_interface_register_input_device_listener);
-
-  RegisterDevicesChangedCallbackIfNeeded(env, s_controller_interface_class);
 }
 
 InputBackend::~InputBackend()
@@ -1023,7 +1002,7 @@ void InputBackend::PopulateDevices()
 extern "C" {
 
 JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatchKeyEventNative(
+Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatchKeyEvent(
     JNIEnv* env, jclass, jobject key_event)
 {
   const jint action = env->CallIntMethod(key_event, s_key_event_get_action);
@@ -1067,7 +1046,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
 }
 
 JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatchGenericMotionEventNative(
+Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatchGenericMotionEvent(
     JNIEnv* env, jclass, jobject motion_event)
 {
   const jint device_id = env->CallIntMethod(motion_event, s_input_event_get_device_id);
@@ -1111,7 +1090,7 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
 }
 
 JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatchSensorEventNative(
+Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatchSensorEvent(
     JNIEnv* env, jclass, jstring j_device_qualifier, jstring j_axis_name, jfloat value)
 {
   ciface::Core::DeviceQualifier device_qualifier;
@@ -1173,7 +1152,7 @@ JNIEXPORT jobjectArray JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_getAllDeviceStrings(
     JNIEnv* env, jclass)
 {
-  return SpanToJStringArray(env, g_controller_interface.GetAllDeviceStrings());
+  return VectorToJStringArray(env, g_controller_interface.GetAllDeviceStrings());
 }
 
 JNIEXPORT jobject JNICALL

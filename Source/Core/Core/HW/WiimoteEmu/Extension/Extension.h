@@ -120,7 +120,7 @@ protected:
   using EncryptedExtension::EncryptedExtension;
 
 private:
-  void UpdateEncryptionKey() final;
+  void UpdateEncryptionKey() final override;
 };
 
 class Extension3rdParty : public EncryptedExtension
@@ -129,7 +129,7 @@ protected:
   using EncryptedExtension::EncryptedExtension;
 
 private:
-  void UpdateEncryptionKey() final;
+  void UpdateEncryptionKey() final override;
 };
 
 }  // namespace WiimoteEmu

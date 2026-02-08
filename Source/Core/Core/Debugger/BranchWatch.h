@@ -8,10 +8,10 @@
 #include <cstdio>
 #include <functional>
 #include <unordered_map>
-#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumUtils.h"
 #include "Core/PowerPC/Gekko.h"
 
 namespace Core
@@ -71,15 +71,15 @@ enum class BranchWatchSelectionInspection : u8
 constexpr BranchWatchSelectionInspection operator|(BranchWatchSelectionInspection lhs,
                                                    BranchWatchSelectionInspection rhs)
 {
-  return static_cast<BranchWatchSelectionInspection>(std::to_underlying(lhs) |
-                                                     std::to_underlying(rhs));
+  return static_cast<BranchWatchSelectionInspection>(Common::ToUnderlying(lhs) |
+                                                     Common::ToUnderlying(rhs));
 }
 
 constexpr BranchWatchSelectionInspection operator&(BranchWatchSelectionInspection lhs,
                                                    BranchWatchSelectionInspection rhs)
 {
-  return static_cast<BranchWatchSelectionInspection>(std::to_underlying(lhs) &
-                                                     std::to_underlying(rhs));
+  return static_cast<BranchWatchSelectionInspection>(Common::ToUnderlying(lhs) &
+                                                     Common::ToUnderlying(rhs));
 }
 
 constexpr BranchWatchSelectionInspection& operator|=(BranchWatchSelectionInspection& self,
@@ -98,7 +98,7 @@ struct BranchWatchSelectionValueType
   BranchWatchCollection::value_type* collection_ptr;
   bool is_virtual;
   bool condition;
-  // This is more so a GUI thing, but it works best in the Core code for multiple reasons.
+  // This is moreso a GUI thing, but it works best in the Core code for multiple reasons.
   Inspection inspection;
 };
 
@@ -260,9 +260,6 @@ private:
       return GetCollectionV(condition);
     return GetCollectionP(condition);
   }
-
-  void IsolateOverwrittenShared(const CPUThreadGuard& guard,
-                                const std::function<bool(u32, u32)>& compare_func);
 
   std::size_t m_blacklist_size = 0;
   Phase m_recording_phase = Phase::Blacklist;

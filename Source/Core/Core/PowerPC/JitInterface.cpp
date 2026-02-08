@@ -3,12 +3,16 @@
 
 #include "Core/PowerPC/JitInterface.h"
 
+#include <algorithm>
 #include <string>
 #include <unordered_set>
+
+#include <fmt/format.h>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
 
 #include "Core/Core.h"
 #include "Core/PowerPC/CPUCoreBase.h"
@@ -76,16 +80,6 @@ CPUCoreBase* JitInterface::GetCore() const
 {
   return m_jit.get();
 }
-
-#ifndef _ARCH_32
-bool JitInterface::WantsPageTableMappings() const
-{
-  if (!m_jit)
-    return false;
-
-  return m_jit->WantsPageTableMappings();
-}
-#endif
 
 void JitInterface::UpdateMembase()
 {
@@ -336,8 +330,7 @@ void JitInterface::CompileExceptionCheck(ExceptionType type)
 
       // Check in case the code has been replaced since: do we need to do this?
       const OpType optype =
-          PPCTables::GetOpInfo(PowerPC::MMU::HostRead<u32>(guard, ppc_state.pc), ppc_state.pc)
-              ->type;
+          PPCTables::GetOpInfo(PowerPC::MMU::HostRead_U32(guard, ppc_state.pc), ppc_state.pc)->type;
       if (optype != OpType::Store && optype != OpType::StoreFP && optype != OpType::StorePS)
         return;
     }

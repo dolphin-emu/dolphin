@@ -26,7 +26,7 @@ class FIFOAnalyzer final : public QWidget
 
 public:
   explicit FIFOAnalyzer(FifoPlayer& fifo_player);
-  ~FIFOAnalyzer() override;
+  ~FIFOAnalyzer();
 
   void Update();
 

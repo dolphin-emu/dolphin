@@ -4,7 +4,6 @@
 #pragma once
 
 #include <charconv>
-#include <concepts>
 #include <cstdarg>
 #include <cstddef>
 #include <cstdlib>
@@ -16,11 +15,25 @@
 #include <sstream>
 #include <string>
 #include <type_traits>
-#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/TypeUtils.h"
+
+namespace detail
+{
+template <typename T>
+constexpr bool IsBooleanEnum()
+{
+  if constexpr (std::is_enum_v<T>)
+  {
+    return std::is_same_v<std::underlying_type_t<T>, bool>;
+  }
+  else
+  {
+    return false;
+  }
+}
+}  // namespace detail
 
 std::string StringFromFormatV(const char* format, va_list args);
 
@@ -60,8 +73,9 @@ void TruncateToCString(std::string* s);
 bool TryParse(const std::string& str, bool* output);
 
 template <typename T>
-requires(std::is_integral_v<T> || (std::is_enum_v<T> && !Common::BooleanEnum<T>))
-bool TryParse(const std::string& str, T* output, int base = 0)
+requires(std::is_integral_v<T> ||
+         (std::is_enum_v<T> && !detail::IsBooleanEnum<T>())) bool TryParse(const std::string& str,
+                                                                           T* output, int base = 0)
 {
   char* end_ptr = nullptr;
 
@@ -98,8 +112,8 @@ bool TryParse(const std::string& str, T* output, int base = 0)
   return true;
 }
 
-template <Common::BooleanEnum T>
-bool TryParse(const std::string& str, T* output)
+template <typename T>
+requires(detail::IsBooleanEnum<T>()) bool TryParse(const std::string& str, T* output)
 {
   bool value;
   if (!TryParse(str, &value))
@@ -109,7 +123,7 @@ bool TryParse(const std::string& str, T* output)
   return true;
 }
 
-template <std::floating_point T>
+template <typename T, std::enable_if_t<std::is_floating_point_v<T>>* = nullptr>
 bool TryParse(std::string str, T* const output)
 {
   // Replace commas with dots.
@@ -155,9 +169,10 @@ std::string ValueToString(double value);
 std::string ValueToString(int value);
 std::string ValueToString(s64 value);
 std::string ValueToString(bool value);
-std::string ValueToString(Common::Enum auto value)
+template <typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
+std::string ValueToString(T value)
 {
-  return ValueToString(std::to_underlying(value));
+  return ValueToString(static_cast<std::underlying_type_t<T>>(value));
 }
 
 // Generates an hexdump-like representation of a binary data blob.
@@ -165,13 +180,15 @@ std::string HexDump(const u8* data, size_t size);
 
 namespace Common
 {
-std::from_chars_result FromChars(std::string_view sv, std::integral auto& value, int base = 10)
+template <typename T, typename std::enable_if_t<std::is_integral_v<T>>* = nullptr>
+std::from_chars_result FromChars(std::string_view sv, T& value, int base = 10)
 {
   const char* const first = sv.data();
   const char* const last = first + sv.size();
   return std::from_chars(first, last, value, base);
 }
-std::from_chars_result FromChars(std::string_view sv, std::floating_point auto& value,
+template <typename T, typename std::enable_if_t<std::is_floating_point_v<T>>* = nullptr>
+std::from_chars_result FromChars(std::string_view sv, T& value,
                                  std::chars_format fmt = std::chars_format::general)
 {
   const char* const first = sv.data();
@@ -179,6 +196,8 @@ std::from_chars_result FromChars(std::string_view sv, std::floating_point auto& 
   return std::from_chars(first, last, value, fmt);
 }
 }  // namespace Common
+
+std::string TabsToSpaces(int tab_size, std::string str);
 
 std::vector<std::string> SplitString(const std::string& str, char delim);
 
@@ -199,13 +218,13 @@ std::string PathToFileName(std::string_view path);
 void StringPopBackIf(std::string* s, char c);
 size_t StringUTF8CodePointCount(std::string_view str);
 
-std::string CP1252ToUTF8(std::string_view input);
-std::string SHIFTJISToUTF8(std::string_view input);
-std::string UTF8ToSHIFTJIS(std::string_view input);
-std::string WStringToUTF8(std::wstring_view input);
+std::string CP1252ToUTF8(std::string_view str);
+std::string SHIFTJISToUTF8(std::string_view str);
+std::string UTF8ToSHIFTJIS(std::string_view str);
+std::string WStringToUTF8(std::wstring_view str);
 std::string UTF16BEToUTF8(const char16_t* str, size_t max_size);  // Stops at \0
-std::string UTF16ToUTF8(std::u16string_view input);
-std::u16string UTF8ToUTF16(std::string_view input);
+std::string UTF16ToUTF8(std::u16string_view str);
+std::u16string UTF8ToUTF16(std::string_view str);
 
 #ifdef _WIN32
 
@@ -309,12 +328,11 @@ std::string GetEscapedHtml(std::string html);
 void ToLower(std::string* str);
 void ToUpper(std::string* str);
 bool CaseInsensitiveEquals(std::string_view a, std::string_view b);
-bool CaseInsensitiveContains(std::string_view haystack, std::string_view needle);
 
 // 'std::less'-like comparison function object type for case-insensitive strings.
 struct CaseInsensitiveLess
 {
-  using is_transparent = void;  // Allow heterogeneous lookup.
+  using is_transparent = void;  // Allow heterogenous lookup.
   bool operator()(std::string_view a, std::string_view b) const;
 };
 

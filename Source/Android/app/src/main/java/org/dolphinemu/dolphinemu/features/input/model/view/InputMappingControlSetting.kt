@@ -18,9 +18,6 @@ class InputMappingControlSetting(var control: Control, val controller: EmulatedC
             controller.updateSingleControlReference(controlReference)
         }
 
-    val state: Double
-        get() = controlReference.getState()
-
     fun clearValue() {
         value = ""
     }

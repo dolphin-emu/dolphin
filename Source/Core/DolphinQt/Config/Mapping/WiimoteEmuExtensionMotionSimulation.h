@@ -5,6 +5,8 @@
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
+#include "Core/HW/WiimoteEmu/ExtensionPort.h"
+
 class QGroupBox;
 class QHBoxLayout;
 

@@ -16,7 +16,7 @@ import androidx.tvprovider.media.tv.TvContractCompat;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameFile;
-import org.dolphinemu.dolphinemu.ui.platform.PlatformTab;
+import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.AppLinkHelper;
 import org.dolphinemu.dolphinemu.utils.TvUtil;
 
@@ -96,12 +96,12 @@ public class SyncProgramsJobService extends JobService
         for (Long channelId : params)
         {
           Channel channel = TvUtil.getChannelById(context, channelId);
-          for (PlatformTab platformTab : PlatformTab.values())
+          for (Platform platform : Platform.values())
           {
             if (channel != null &&
-                    channel.getAppLinkIntentUri().equals(AppLinkHelper.buildBrowseUri(platformTab)))
+                    channel.getAppLinkIntentUri().equals(AppLinkHelper.buildBrowseUri(platform)))
             {
-              getGamesByPlatform(platformTab);
+              getGamesByPlatform(platform);
               syncPrograms(channelId);
             }
           }
@@ -110,9 +110,9 @@ public class SyncProgramsJobService extends JobService
       return true;
     }
 
-    private void getGamesByPlatform(PlatformTab platformTab)
+    private void getGamesByPlatform(Platform platform)
     {
-      updatePrograms = GameFileCacheManager.getGameFilesForPlatformTab(platformTab);
+      updatePrograms = GameFileCacheManager.getGameFilesForPlatform(platform);
     }
 
     private void syncPrograms(long channelId)

@@ -7,7 +7,10 @@
 #include <array>
 #include <cstdio>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 #include "Core/IOS/FS/FileSystem.h"
@@ -63,29 +66,29 @@ void SysConf::Load()
 
 bool SysConf::LoadFromFile(const IOS::HLE::FS::FileHandle& file)
 {
-  (void)file.Seek(4, IOS::HLE::FS::SeekMode::Set);
+  file.Seek(4, IOS::HLE::FS::SeekMode::Set);
   u16 number_of_entries;
-  (void)file.Read(&number_of_entries, 1);
+  file.Read(&number_of_entries, 1);
   number_of_entries = Common::swap16(number_of_entries);
 
   std::vector<u16> offsets(number_of_entries);
   for (u16& offset : offsets)
   {
-    (void)file.Read(&offset, 1);
+    file.Read(&offset, 1);
     offset = Common::swap16(offset);
   }
 
   for (const u16 offset : offsets)
   {
-    (void)file.Seek(offset, IOS::HLE::FS::SeekMode::Set);
+    file.Seek(offset, IOS::HLE::FS::SeekMode::Set);
 
     // Metadata
     u8 description = 0;
-    (void)file.Read(&description, 1);
+    file.Read(&description, 1);
     const Entry::Type type = static_cast<Entry::Type>((description & 0xe0) >> 5);
     const u8 name_length = (description & 0x1f) + 1;
     std::string name(name_length, '\0');
-    (void)file.Read(name.data(), name.size());
+    file.Read(&name[0], name.size());
 
     // Data
     std::vector<u8> data;
@@ -94,7 +97,7 @@ bool SysConf::LoadFromFile(const IOS::HLE::FS::FileHandle& file)
     case Entry::Type::BigArray:
     {
       u16 data_length = 0;
-      (void)file.Read(&data_length, 1);
+      file.Read(&data_length, 1);
       // The stored u16 is length - 1, not length.
       data.resize(Common::swap16(data_length) + 1);
       break;
@@ -102,7 +105,7 @@ bool SysConf::LoadFromFile(const IOS::HLE::FS::FileHandle& file)
     case Entry::Type::SmallArray:
     {
       u8 data_length = 0;
-      (void)file.Read(&data_length, 1);
+      file.Read(&data_length, 1);
       data.resize(data_length + 1);
       break;
     }
@@ -119,7 +122,7 @@ bool SysConf::LoadFromFile(const IOS::HLE::FS::FileHandle& file)
       return false;
     }
 
-    (void)file.Read(data.data(), data.size());
+    file.Read(data.data(), data.size());
     AddEntry({type, name, std::move(data)});
   }
   return true;

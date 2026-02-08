@@ -5,7 +5,10 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <functional>
+#include <list>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <unordered_set>
 #include <utility>
@@ -23,14 +26,14 @@
 
 namespace UICommon
 {
-static constexpr u32 CACHE_REVISION = 26;  // Last changed in PR 10084
+static constexpr u32 CACHE_REVISION = 25;  // Last changed in PR 12702
 
-std::vector<std::string> FindAllGamePaths(std::span<const std::string_view> directories_to_scan,
+std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
                                           bool recursive_scan)
 {
-  constexpr auto search_extensions =
-      std::to_array<std::string_view>({".gcm", ".tgc", ".bin", ".iso", ".ciso", ".gcz", ".wbfs",
-                                       ".wia", ".rvz", ".nfs", ".wad", ".dol", ".elf", ".json"});
+  static const std::vector<std::string> search_extensions = {
+      ".gcm", ".tgc", ".iso", ".ciso", ".gcz", ".wbfs", ".wia",
+      ".rvz", ".nfs", ".wad", ".dol",  ".elf", ".json"};
 
   // TODO: We could process paths iteratively as they are found
   return Common::DoFileSearch(directories_to_scan, search_extensions, recursive_scan);

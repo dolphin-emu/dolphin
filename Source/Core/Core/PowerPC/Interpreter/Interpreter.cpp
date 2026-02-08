@@ -12,12 +12,15 @@
 #include "Common/CommonTypes.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
+#include "Core/Host.h"
+#include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCTables.h"
@@ -99,7 +102,7 @@ void Interpreter::Trace(const UGeckoInstruction& inst)
                 "INTER PC: {:08x} SRR0: {:08x} SRR1: {:08x} CRval: {:016x} "
                 "FPSCR: {:08x} MSR: {:08x} LR: {:08x} {} {:08x} {}",
                 m_ppc_state.pc, SRR0(m_ppc_state), SRR1(m_ppc_state), m_ppc_state.cr.fields[0],
-                m_ppc_state.fpscr.Hex, m_ppc_state.msr.Hex, m_ppc_state.spr[SPR_LR], regs, inst.hex,
+                m_ppc_state.fpscr.Hex, m_ppc_state.msr.Hex, m_ppc_state.spr[8], regs, inst.hex,
                 ppc_inst);
 }
 
@@ -214,7 +217,7 @@ void Interpreter::SingleStep()
   }
 }
 
-// #define SHOW_HISTORY
+//#define SHOW_HISTORY
 #ifdef SHOW_HISTORY
 static std::vector<u32> s_pc_vec;
 static std::vector<u32> s_pc_block_vec;
@@ -290,7 +293,7 @@ void Interpreter::unknown_instruction(Interpreter& interpreter, UGeckoInstructio
   Core::CPUThreadGuard guard(system);
 
   const u32 last_pc = interpreter.m_last_pc;
-  const u32 opcode = PowerPC::MMU::HostRead<u32>(guard, last_pc);
+  const u32 opcode = PowerPC::MMU::HostRead_U32(guard, last_pc);
   const std::string disasm = Common::GekkoDisassembler::Disassemble(opcode, last_pc);
   NOTICE_LOG_FMT(POWERPC, "Last PC = {:08x} : {}", last_pc, disasm);
   Dolphin_Debugger::PrintCallstack(guard, Common::Log::LogType::POWERPC,

@@ -3,7 +3,11 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 
+#include <memory>
 #include <string>
+
+#include "Common/Common.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
 {

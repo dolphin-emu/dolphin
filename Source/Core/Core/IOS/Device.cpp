@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <map>
 
+#include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"

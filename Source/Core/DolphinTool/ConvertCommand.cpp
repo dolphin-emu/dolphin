@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <OptionParser.h>
+#include <fmt/format.h>
 #include <fmt/ostream.h>
 
 #include "Common/CommonTypes.h"
@@ -18,6 +19,7 @@
 #include "DiscIO/DiscUtils.h"
 #include "DiscIO/ScrubbedBlob.h"
 #include "DiscIO/Volume.h"
+#include "DiscIO/VolumeDisc.h"
 #include "DiscIO/WIABlob.h"
 #include "UICommon/UICommon.h"
 
@@ -154,7 +156,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   const bool scrub = static_cast<bool>(options.get("scrub"));
 
   // Open the volume
-  const std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateDisc(input_file_path);
+  std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateDisc(input_file_path);
   if (!volume)
   {
     if (scrub)
@@ -247,7 +249,7 @@ int ConvertCommand(const std::vector<std::string>& args)
   }
 
   // --compress, --compress_level
-  const std::optional<DiscIO::WIARVZCompressionType> compression_o =
+  std::optional<DiscIO::WIARVZCompressionType> compression_o =
       ParseCompressionTypeString(options["compression"]);
 
   std::optional<int> compression_level_o;

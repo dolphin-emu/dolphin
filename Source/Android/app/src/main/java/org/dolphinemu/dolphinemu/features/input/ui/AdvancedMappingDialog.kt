@@ -3,8 +3,6 @@
 package org.dolphinemu.dolphinemu.features.input.ui
 
 import android.content.Context
-import android.view.KeyEvent
-import android.view.MotionEvent
 import android.view.View
 import android.widget.AdapterView
 import android.widget.AdapterView.OnItemClickListener
@@ -25,7 +23,7 @@ class AdvancedMappingDialog(
     private val controlReference: ControlReference,
     private val controller: EmulatedController
 ) : AlertDialog(context), OnItemClickListener {
-    private lateinit var devices: Array<String>
+    private val devices: Array<String> = ControllerInterface.getAllDeviceStrings()
     private val controlAdapter: AdvancedMappingControlAdapter
     private lateinit var selectedDevice: String
 
@@ -36,9 +34,12 @@ class AdvancedMappingDialog(
 
         binding.dropdownDevice.onItemClickListener = this
 
-        controlAdapter = AdvancedMappingControlAdapter(lifecycle, controlReference.isInput()) {
-            control: String -> onControlClicked(control)
-        }
+        val deviceAdapter =
+            ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, devices)
+        binding.dropdownDevice.setAdapter(deviceAdapter)
+
+        controlAdapter =
+            AdvancedMappingControlAdapter { control: String -> onControlClicked(control) }
         binding.listControl.adapter = controlAdapter
         binding.listControl.layoutManager = LinearLayoutManager(context)
 
@@ -48,38 +49,14 @@ class AdvancedMappingDialog(
 
         binding.editExpression.setText(controlReference.getExpression())
 
-        ControllerInterface.devicesChanged.observe(this) {
-            onDevicesChanged()
-            setSelectedDevice(selectedDevice)
-        }
-
-        onDevicesChanged()
         selectDefaultDevice()
     }
 
-    var expression: String
+    val expression: String
         get() = binding.editExpression.text.toString()
-        set(value) = binding.editExpression.setText(value)
 
     override fun onItemClick(adapterView: AdapterView<*>?, view: View, position: Int, id: Long) =
         setSelectedDevice(devices[position])
-
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        ControllerInterface.dispatchKeyEvent(event)
-        return super.dispatchKeyEvent(event)
-    }
-
-    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
-        ControllerInterface.dispatchGenericMotionEvent(event)
-        return super.dispatchGenericMotionEvent(event)
-    }
-
-    private fun onDevicesChanged() {
-        devices = ControllerInterface.getAllDeviceStrings()
-        binding.dropdownDevice.setAdapter(
-            ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, devices)
-        )
-    }
 
     private fun setSelectedDevice(deviceString: String) {
         selectedDevice = deviceString
@@ -94,7 +71,7 @@ class AdvancedMappingDialog(
     }
 
     private fun setControls(controls: Array<CoreDevice.Control>) =
-        controlAdapter.setControls(controls)
+        controlAdapter.setControls(controls.map { it.getName() }.toTypedArray())
 
     private fun onControlClicked(control: String) {
         val expression =

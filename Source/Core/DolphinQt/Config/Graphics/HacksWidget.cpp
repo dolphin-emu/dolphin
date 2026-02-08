@@ -15,20 +15,27 @@
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/GameConfigWidget.h"
-#include "DolphinQt/Config/Graphics/GraphicsPane.h"
+#include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 
 #include "VideoCommon/VideoConfig.h"
 
-HacksWidget::HacksWidget(GraphicsPane* gfx_pane) : m_game_layer{gfx_pane->GetConfigLayer()}
+HacksWidget::HacksWidget(GraphicsWindow* parent)
 {
   CreateWidgets();
   ConnectWidgets();
   AddDescriptions();
 
-  connect(gfx_pane, &GraphicsPane::BackendChanged, this, &HacksWidget::OnBackendChanged);
+  connect(parent, &GraphicsWindow::BackendChanged, this, &HacksWidget::OnBackendChanged);
   OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   connect(m_gpu_texture_decoding, &QCheckBox::toggled,
-          [gfx_pane] { emit gfx_pane->UseGPUTextureDecodingChanged(); });
+          [parent] { emit parent->UseGPUTextureDecodingChanged(); });
+}
+
+HacksWidget::HacksWidget(GameConfigWidget* parent, Config::Layer* layer) : m_game_layer(layer)
+{
+  CreateWidgets();
+  ConnectWidgets();
+  AddDescriptions();
 }
 
 void HacksWidget::CreateWidgets()
@@ -140,16 +147,6 @@ void HacksWidget::OnBackendChanged(const QString& backend_name)
 
 void HacksWidget::ConnectWidgets()
 {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  connect(m_store_efb_copies, &QCheckBox::checkStateChanged,
-          [this](Qt::CheckState) { UpdateDeferEFBCopiesEnabled(); });
-  connect(m_store_xfb_copies, &QCheckBox::checkStateChanged,
-          [this](Qt::CheckState) { UpdateDeferEFBCopiesEnabled(); });
-  connect(m_immediate_xfb, &QCheckBox::checkStateChanged,
-          [this](Qt::CheckState) { UpdateSkipPresentingDuplicateFramesEnabled(); });
-  connect(m_vi_skip, &QCheckBox::checkStateChanged,
-          [this](Qt::CheckState) { UpdateSkipPresentingDuplicateFramesEnabled(); });
-#else
   connect(m_store_efb_copies, &QCheckBox::stateChanged,
           [this](int) { UpdateDeferEFBCopiesEnabled(); });
   connect(m_store_xfb_copies, &QCheckBox::stateChanged,
@@ -158,7 +155,6 @@ void HacksWidget::ConnectWidgets()
           [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
   connect(m_vi_skip, &QCheckBox::stateChanged,
           [this](int) { UpdateSkipPresentingDuplicateFramesEnabled(); });
-#endif
 }
 
 void HacksWidget::AddDescriptions()
@@ -200,16 +196,12 @@ void HacksWidget::AddDescriptions()
   static const char TR_IMMEDIATE_XFB_DESCRIPTION[] = QT_TR_NOOP(
       "Displays XFB copies as soon as they are created, instead of waiting for "
       "scanout.<br><br>Can cause graphical defects in some games if the game doesn't "
-      "expect all XFB copies to be displayed. However, turning this setting on reduces latency."
-      "<br><br>Enabling this also forces an effect equivalent to the "
-      "Skip Presenting Duplicate Frames setting."
-      "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+      "expect all XFB copies to be displayed. However, turning this setting on reduces "
+      "latency.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_SKIP_DUPLICATE_XFBS_DESCRIPTION[] = QT_TR_NOOP(
       "Skips presentation of duplicate frames (XFB copies) in 25fps/30fps games. "
       "This may improve performance on low-end devices, while making frame pacing less consistent."
       "<br><br>Disable this option for optimal frame pacing."
-      "<br><br>This setting is unavailable when Immediately Present XFB or VBI Skip is "
-      "enabled. In those cases, duplicate frames are never presented."
       "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_GPU_DECODING_DESCRIPTION[] = QT_TR_NOOP(
       "Enables texture decoding using the GPU instead of the CPU.<br><br>This may result in "
@@ -238,8 +230,6 @@ void HacksWidget::AddDescriptions()
   static const char TR_VI_SKIP_DESCRIPTION[] =
       QT_TR_NOOP("Skips Vertical Blank Interrupts when lag is detected, allowing for "
                  "smooth audio playback when emulation speed is not 100%. <br><br>"
-                 "Enabling this also forces the effect of the"
-                 " Skip Presenting Duplicate Frames setting.<br><br>"
                  "<dolphin_emphasis>WARNING: Can cause freezes and compatibility "
                  "issues.</dolphin_emphasis> <br><br>"
                  "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
@@ -273,5 +263,12 @@ void HacksWidget::UpdateSkipPresentingDuplicateFramesEnabled()
 {
   // If Immediate XFB is on, there's no point to skipping duplicate XFB copies as immediate presents
   // when the XFB is created, therefore all XFB copies will be unique.
-  m_skip_duplicate_xfbs->setDisabled(m_immediate_xfb->isChecked() || m_vi_skip->isChecked());
+  // This setting is also required for VI skip to work.
+
+  const bool disabled = m_immediate_xfb->isChecked() || m_vi_skip->isChecked();
+
+  if (disabled)
+    m_skip_duplicate_xfbs->setChecked(true);
+
+  m_skip_duplicate_xfbs->setEnabled(!disabled);
 }

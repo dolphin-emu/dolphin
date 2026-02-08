@@ -4,6 +4,7 @@
 #include "Core/HW/WiimoteEmu/Extension/Turntable.h"
 
 #include <array>
+#include <cstring>
 
 #include "Common/Assert.h"
 #include "Common/Common.h"

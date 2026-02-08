@@ -13,7 +13,7 @@ class GCMemcardCreateNewDialog : public QDialog
   Q_OBJECT
 public:
   explicit GCMemcardCreateNewDialog(QWidget* parent = nullptr);
-  ~GCMemcardCreateNewDialog() override;
+  ~GCMemcardCreateNewDialog();
 
   std::string GetMemoryCardPath() const;
 

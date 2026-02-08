@@ -26,6 +26,7 @@
 #include "Core/System.h"
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -158,6 +159,7 @@ void InfinityBaseWindow::LoadFigure(FigureUIPosition slot)
 void InfinityBaseWindow::CreateFigure(FigureUIPosition slot)
 {
   CreateFigureDialog create_dlg(this, slot);
+  SetQWidgetWindowDecorations(&create_dlg);
   if (create_dlg.exec() == CreateFigureDialog::Accepted)
   {
     LoadFigurePath(slot, create_dlg.GetFilePath());
@@ -266,7 +268,7 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, FigureUIPosition slot) :
     }
   });
 
-  connect(buttons, &QDialogButtonBox::accepted, this, [=, this] {
+  connect(buttons, &QDialogButtonBox::accepted, this, [=, this]() {
     bool ok_char = false;
     const u32 char_number = edit_num->text().toULong(&ok_char);
     if (!ok_char)

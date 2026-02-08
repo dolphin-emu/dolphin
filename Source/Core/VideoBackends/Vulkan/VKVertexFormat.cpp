@@ -6,6 +6,7 @@
 #include "Common/Assert.h"
 #include "Common/EnumMap.h"
 
+#include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 
 #include "VideoCommon/VertexLoaderManager.h"

@@ -9,37 +9,34 @@
 #include <chrono>
 #include <ctime>
 #include <functional>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <set>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
-#include <picojson.h>
-
 #include <rcheevos/include/rc_api_runtime.h>
 #include <rcheevos/include/rc_api_user.h>
 #include <rcheevos/include/rc_client.h>
-#include <rcheevos/include/rc_hash.h>
 #include <rcheevos/include/rc_runtime.h>
 
 #include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
-#include "Common/HookableEvent.h"
+#include "Common/Event.h"
+#include "Common/HttpRequest.h"
+#include "Common/JsonUtil.h"
 #include "Common/Lazy.h"
 #include "Common/WorkQueueThread.h"
 #include "DiscIO/Volume.h"
 #include "VideoCommon/Assets/CustomTextureData.h"
 
-#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
-#include <rcheevos/include/rc_client_raintegration.h>
-#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
-
 namespace Core
 {
+class CPUThreadGuard;
 class System;
 }  // namespace Core
 
@@ -83,8 +80,8 @@ public:
   static constexpr std::string_view BLUE = "#0B71C1";
   static constexpr std::string_view APPROVED_LIST_FILENAME = "ApprovedInis.json";
   static const inline Common::SHA1::Digest APPROVED_LIST_HASH = {
-      0x7D, 0x96, 0x3E, 0x00, 0x30, 0x1C, 0x7D, 0x0E, 0x72, 0x09,
-      0xE1, 0xF0, 0xF3, 0x51, 0x6D, 0x5C, 0xB3, 0x68, 0xAD, 0x79};
+      0x4F, 0x45, 0xB7, 0xA3, 0xC4, 0x6E, 0xAF, 0x80, 0x58, 0xA5,
+      0x53, 0x99, 0xF8, 0x05, 0xC3, 0x83, 0x22, 0xA4, 0x5F, 0x65};
 
   struct LeaderboardEntry
   {
@@ -113,14 +110,14 @@ public:
     bool rich_presence = false;
     int failed_login_code = 0;
   };
-  Common::HookableEvent<const UpdatedItems&> update_event;
-  Common::HookableEvent<int> login_event;
+  using UpdateCallback = std::function<void(const UpdatedItems&)>;
 
   static AchievementManager& GetInstance();
-  void Init(void* hwnd);
+  void Init();
+  void SetUpdateCallback(UpdateCallback callback);
   void Login(const std::string& password);
   bool HasAPIToken() const;
-  void LoadGame(const DiscIO::Volume* volume);
+  void LoadGame(const std::string& file_path, const DiscIO::Volume* volume);
   bool IsGameLoaded() const;
   void SetBackgroundExecutionAllowed(bool allowed);
 
@@ -137,20 +134,16 @@ public:
   std::recursive_mutex& GetLock();
   bool IsHardcoreModeActive() const;
 
-  void FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches, std::string_view game_id,
+  void FilterApprovedPatches(std::vector<PatchEngine::Patch>& patches, const std::string& game_id,
                              u16 revision) const;
-  void FilterApprovedGeckoCodes(std::vector<Gecko::GeckoCode>& codes, std::string_view game_id,
+  void FilterApprovedGeckoCodes(std::vector<Gecko::GeckoCode>& codes, const std::string& game_id,
                                 u16 revision) const;
-  void FilterApprovedARCodes(std::vector<ActionReplay::ARCode>& codes, std::string_view game_id,
+  void FilterApprovedARCodes(std::vector<ActionReplay::ARCode>& codes, const std::string& game_id,
                              u16 revision) const;
-  bool ShouldGeckoCodeBeActivated(const Gecko::GeckoCode& code, std::string_view game_id,
-                                  u16 revision) const;
-  bool ShouldARCodeBeActivated(const ActionReplay::ARCode& code, std::string_view game_id,
-                               u16 revision) const;
-  bool IsApprovedGeckoCode(const Gecko::GeckoCode& code, std::string_view game_id,
+  bool CheckApprovedGeckoCode(const Gecko::GeckoCode& code, const std::string& game_id,
+                              u16 revision) const;
+  bool CheckApprovedARCode(const ActionReplay::ARCode& code, const std::string& game_id,
                            u16 revision) const;
-  bool IsApprovedARCode(const ActionReplay::ARCode& code, std::string_view game_id,
-                        u16 revision) const;
 
   void SetSpectatorMode();
   std::string_view GetPlayerDisplayName() const;
@@ -158,6 +151,7 @@ public:
   const Badge& GetPlayerBadge() const;
   std::string_view GetGameDisplayName() const;
   rc_client_t* GetClient();
+  rc_api_fetch_game_data_response_t* GetGameData();
   const Badge& GetGameBadge() const;
   const Badge& GetAchievementBadge(AchievementId id, bool locked) const;
   const LeaderboardStatus* GetLeaderboardInfo(AchievementId leaderboard_id);
@@ -166,13 +160,6 @@ public:
   void ResetChallengesUpdated();
   const std::unordered_set<AchievementId>& GetActiveChallenges() const;
   std::vector<std::string> GetActiveLeaderboards() const;
-
-#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
-  Common::HookableEvent<> dev_menu_update_event;
-  const rc_client_raintegration_menu_t* GetDevelopmentMenu();
-  u32 ActivateDevMenuItem(u32 menu_item_id);
-  bool CheckForModifications() { return rc_client_raintegration_has_modifications(m_client); }
-#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
 
   void DoState(PointerWrap& p);
 
@@ -191,13 +178,12 @@ private:
 
   static picojson::value LoadApprovedList();
 
-  static void* FilereaderOpen(const char* path_utf8);
+  static void* FilereaderOpenByFilepath(const char* path_utf8);
+  static void* FilereaderOpenByVolume(const char* path_utf8);
   static void FilereaderSeek(void* file_handle, int64_t offset, int origin);
   static int64_t FilereaderTell(void* file_handle);
   static size_t FilereaderRead(void* file_handle, void* buffer, size_t requested_bytes);
   static void FilereaderClose(void* file_handle);
-
-  static u32 FindConsoleID(const DiscIO::Platform& platform);
 
   void LoadDefaultBadges();
   static void LoginCallback(int result, const char* error_message, rc_client_t* client,
@@ -216,11 +202,9 @@ private:
   void SetHardcoreMode();
 
   template <typename T>
-  void FilterApprovedIni(std::vector<T>& codes, std::string_view game_id, u16 revision) const;
+  void FilterApprovedIni(std::vector<T>& codes, const std::string& game_id, u16 revision) const;
   template <typename T>
-  bool ShouldCodeBeActivated(const T& code, std::string_view game_id, u16 revision) const;
-  template <typename T>
-  bool IsApprovedCode(const T& code, std::string_view game_id, u16 revision) const;
+  bool CheckApprovedCode(const T& code, const std::string& game_id, u16 revision) const;
   Common::SHA1::Digest GetCodeHash(const PatchEngine::Patch& patch) const;
   Common::SHA1::Digest GetCodeHash(const Gecko::GeckoCode& code) const;
   Common::SHA1::Digest GetCodeHash(const ActionReplay::ARCode& code) const;
@@ -245,30 +229,28 @@ private:
 
   static void Request(const rc_api_request_t* request, rc_client_server_callback_t callback,
                       void* callback_data, rc_client_t* client);
+  static u32 MemoryVerifier(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
   static u32 MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
   void FetchBadge(Badge* badge, u32 badge_type, const BadgeNameFunction function,
                   const UpdatedItems callback_data);
   static void EventHandler(const rc_client_event_t* event, rc_client_t* client);
 
-#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
-  static void LoadIntegrationCallback(int result, const char* error_message, rc_client_t* client,
-                                      void* userdata);
-  static void RAIntegrationEventHandler(const rc_client_raintegration_event_t* event,
-                                        rc_client_t* client);
-  static void MemoryPoker(u32 address, u8* buffer, u32 num_bytes, rc_client_t* client);
-  static void GameTitleEstimateHandler(char* buffer, u32 buffer_size, rc_client_t* client);
-#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
-
+  rc_runtime_t m_runtime{};
   rc_client_t* m_client{};
   std::atomic<Core::System*> m_system{};
+  bool m_is_runtime_initialized = false;
+  UpdateCallback m_update_callback = [](const UpdatedItems&) {};
   std::unique_ptr<DiscIO::Volume> m_loading_volume;
-  Config::ConfigChangedCallbackID m_config_changed_callback_id;
   Badge m_default_player_badge;
   Badge m_default_game_badge;
   Badge m_default_unlocked_badge;
   Badge m_default_locked_badge;
   std::atomic_bool m_background_execution_allowed = true;
   Badge m_player_badge;
+  Hash m_game_hash{};
+  u32 m_game_id = 0;
+  rc_api_fetch_game_data_response_t m_game_data{};
+  bool m_is_game_loaded = false;
   Badge m_game_badge;
   bool m_display_welcome_message = false;
   std::unordered_map<AchievementId, Badge> m_unlocked_badges;
@@ -284,13 +266,8 @@ private:
   std::unordered_set<AchievementId> m_active_challenges;
   std::vector<rc_client_leaderboard_tracker_t> m_active_leaderboards;
 
-  bool m_dll_found = false;
-#ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
-  std::string m_title_estimate;
-#endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
-
-  Common::AsyncWorkThread m_queue;
-  Common::AsyncWorkThread m_image_queue;
+  Common::WorkQueueThread<std::function<void()>> m_queue;
+  Common::WorkQueueThread<std::function<void()>> m_image_queue;
   mutable std::recursive_mutex m_lock;
   std::recursive_mutex m_filereader_lock;
 };  // class AchievementManager
@@ -299,13 +276,19 @@ private:
 
 #include <string>
 
-#include "Common/CommonTypes.h"
-#include "Core/ActionReplay.h"
-#include "Core/GeckoCode.h"
+namespace ActionReplay
+{
+struct ARCode;
+}
 
 namespace DiscIO
 {
 class Volume;
+}
+
+namespace Gecko
+{
+class GeckoCode;
 }
 
 class AchievementManager
@@ -319,19 +302,17 @@ public:
 
   constexpr bool IsHardcoreModeActive() { return false; }
 
-  constexpr bool ShouldGeckoCodeBeActivated(const Gecko::GeckoCode& code, std::string_view game_id,
-                                            u16 revision)
+  constexpr bool CheckApprovedGeckoCode(const Gecko::GeckoCode& code, const std::string& game_id)
   {
-    return code.enabled;
-  }
+    return true;
+  };
 
-  constexpr bool ShouldARCodeBeActivated(const ActionReplay::ARCode& code, std::string_view game_id,
-                                         u16 revision)
+  constexpr bool CheckApprovedARCode(const ActionReplay::ARCode& code, const std::string& game_id)
   {
-    return code.enabled;
-  }
+    return true;
+  };
 
-  constexpr void LoadGame(const DiscIO::Volume*) {}
+  constexpr void LoadGame(const std::string&, const DiscIO::Volume*) {}
 
   constexpr void SetBackgroundExecutionAllowed(bool allowed) {}
 

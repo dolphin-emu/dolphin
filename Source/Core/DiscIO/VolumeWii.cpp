@@ -22,6 +22,7 @@
 #include "Common/Crypto/AES.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
+#include "Common/Swap.h"
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscExtractor.h"
@@ -158,7 +159,9 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
   }
 }
 
-VolumeWii::~VolumeWii() = default;
+VolumeWii::~VolumeWii()
+{
+}
 
 bool VolumeWii::Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const
 {
@@ -517,7 +520,7 @@ bool VolumeWii::HashGroup(const std::array<u8, BLOCK_DATA_SIZE> in[BLOCKS_PER_GR
     if (read_function && success)
       success = read_function(i);
 
-    hash_futures[i] = std::async(std::launch::async, [&in, &out, &hash_futures, success, i] {
+    hash_futures[i] = std::async(std::launch::async, [&in, &out, &hash_futures, success, i]() {
       const size_t h1_base = Common::AlignDown(i, 8);
 
       if (success)

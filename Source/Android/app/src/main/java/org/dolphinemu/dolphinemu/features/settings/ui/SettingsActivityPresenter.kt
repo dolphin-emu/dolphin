@@ -13,6 +13,7 @@ class SettingsActivityPresenter(
     private val activityView: SettingsActivityView,
     var settings: Settings?
 ) {
+    private var shouldSave = false
     private var menuTag: MenuTag? = null
     private var gameId: String? = null
     private var revision = 0
@@ -32,6 +33,7 @@ class SettingsActivityPresenter(
         this.revision = revision
         this.isWii = isWii
         this.activity = activity
+        shouldSave = savedInstanceState != null && savedInstanceState.getBoolean(KEY_SHOULD_SAVE)
     }
 
     fun onDestroy() {
@@ -72,16 +74,18 @@ class SettingsActivityPresenter(
     }
 
     fun onStop(finishing: Boolean) {
-        if (settings != null && finishing && settings!!.areSettingsLoaded()) {
-            Log.debug("[SettingsActivity] Settings activity stopping. Ensuring settings are saved.")
-            settings!!.saveSettings()
+        if (settings != null && finishing && shouldSave) {
+            Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...")
+            settings!!.saveSettings(activity)
         }
     }
 
     fun onSettingChanged() {
-        if (settings != null && settings!!.areSettingsLoaded()) {
-            settings!!.saveSettings()
-        }
+        shouldSave = true
+    }
+
+    fun saveState(outState: Bundle) {
+        outState.putBoolean(KEY_SHOULD_SAVE, shouldSave)
     }
 
     fun onMenuTagAction(menuTag: MenuTag, value: Int) {
@@ -135,5 +139,9 @@ class SettingsActivityPresenter(
             // Not disabled
             value != 0
         } else false
+    }
+
+    companion object {
+        private const val KEY_SHOULD_SAVE = "should_save"
     }
 }

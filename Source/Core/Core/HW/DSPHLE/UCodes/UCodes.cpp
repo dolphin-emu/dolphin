@@ -5,6 +5,7 @@
 
 #include <cstring>
 #include <memory>
+#include <string>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -33,6 +34,95 @@
 
 namespace DSP::HLE
 {
+constexpr bool ExramRead(u32 address)
+{
+  return (address & 0x10000000) != 0;
+}
+
+u8 HLEMemory_Read_U8(Memory::MemoryManager& memory, u32 address)
+{
+  if (ExramRead(address))
+    return memory.GetEXRAM()[address & memory.GetExRamMask()];
+
+  return memory.GetRAM()[address & memory.GetRamMask()];
+}
+
+void HLEMemory_Write_U8(Memory::MemoryManager& memory, u32 address, u8 value)
+{
+  if (ExramRead(address))
+    memory.GetEXRAM()[address & memory.GetExRamMask()] = value;
+  else
+    memory.GetRAM()[address & memory.GetRamMask()] = value;
+}
+
+u16 HLEMemory_Read_U16LE(Memory::MemoryManager& memory, u32 address)
+{
+  u16 value;
+
+  if (ExramRead(address))
+    std::memcpy(&value, &memory.GetEXRAM()[address & memory.GetExRamMask()], sizeof(u16));
+  else
+    std::memcpy(&value, &memory.GetRAM()[address & memory.GetRamMask()], sizeof(u16));
+
+  return value;
+}
+
+u16 HLEMemory_Read_U16(Memory::MemoryManager& memory, u32 address)
+{
+  return Common::swap16(HLEMemory_Read_U16LE(memory, address));
+}
+
+void HLEMemory_Write_U16LE(Memory::MemoryManager& memory, u32 address, u16 value)
+{
+  if (ExramRead(address))
+    std::memcpy(&memory.GetEXRAM()[address & memory.GetExRamMask()], &value, sizeof(u16));
+  else
+    std::memcpy(&memory.GetRAM()[address & memory.GetRamMask()], &value, sizeof(u16));
+}
+
+void HLEMemory_Write_U16(Memory::MemoryManager& memory, u32 address, u16 value)
+{
+  HLEMemory_Write_U16LE(memory, address, Common::swap16(value));
+}
+
+u32 HLEMemory_Read_U32LE(Memory::MemoryManager& memory, u32 address)
+{
+  u32 value;
+
+  if (ExramRead(address))
+    std::memcpy(&value, &memory.GetEXRAM()[address & memory.GetExRamMask()], sizeof(u32));
+  else
+    std::memcpy(&value, &memory.GetRAM()[address & memory.GetRamMask()], sizeof(u32));
+
+  return value;
+}
+
+u32 HLEMemory_Read_U32(Memory::MemoryManager& memory, u32 address)
+{
+  return Common::swap32(HLEMemory_Read_U32LE(memory, address));
+}
+
+void HLEMemory_Write_U32LE(Memory::MemoryManager& memory, u32 address, u32 value)
+{
+  if (ExramRead(address))
+    std::memcpy(&memory.GetEXRAM()[address & memory.GetExRamMask()], &value, sizeof(u32));
+  else
+    std::memcpy(&memory.GetRAM()[address & memory.GetRamMask()], &value, sizeof(u32));
+}
+
+void HLEMemory_Write_U32(Memory::MemoryManager& memory, u32 address, u32 value)
+{
+  HLEMemory_Write_U32LE(memory, address, Common::swap32(value));
+}
+
+void* HLEMemory_Get_Pointer(Memory::MemoryManager& memory, u32 address)
+{
+  if (ExramRead(address))
+    return &memory.GetEXRAM()[address & memory.GetExRamMask()];
+
+  return &memory.GetRAM()[address & memory.GetRamMask()];
+}
+
 UCodeInterface::UCodeInterface(DSPHLE* dsphle, u32 crc)
     : m_mail_handler(dsphle->AccessMailHandler()), m_dsphle(dsphle), m_crc(crc)
 {
@@ -94,12 +184,16 @@ void UCodeInterface::PrepareBootUCode(u32 mail)
     m_upload_setup_in_progress = false;
 
     auto& memory = m_dsphle->GetSystem().GetMemory();
-    const u8* pointer =
-        memory.GetPointerForRange(m_next_ucode.iram_mram_addr, m_next_ucode.iram_size);
-    const u32 ector_crc = Common::HashEctor(pointer, m_next_ucode.iram_size);
+    const u32 ector_crc = Common::HashEctor(
+        static_cast<u8*>(HLEMemory_Get_Pointer(memory, m_next_ucode.iram_mram_addr)),
+        m_next_ucode.iram_size);
 
     if (Config::Get(Config::MAIN_DUMP_UCODE))
-      DumpDSPCode(pointer, m_next_ucode.iram_size, ector_crc);
+    {
+      const u8* pointer =
+          memory.GetPointerForRange(m_next_ucode.iram_mram_addr, m_next_ucode.iram_size);
+      DSP::DumpDSPCode(pointer, m_next_ucode.iram_size, ector_crc);
+    }
 
     DEBUG_LOG_FMT(DSPHLE, "PrepareBootUCode {:#010x}", ector_crc);
     DEBUG_LOG_FMT(DSPHLE, "DRAM -> MRAM: src {:04x} dst {:08x} size {:04x}",

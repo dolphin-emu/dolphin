@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"

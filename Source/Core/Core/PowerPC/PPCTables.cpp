@@ -7,6 +7,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdio>
+#include <vector>
 
 #include <fmt/format.h>
 
@@ -16,6 +17,9 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Projection.h"
+#include "Common/StringUtil.h"
+
+#include "Core/PowerPC/PowerPC.h"
 
 namespace PPCTables
 {
@@ -232,8 +236,7 @@ constexpr std::array<GekkoOPTemplate, 13> s_table19{{
     {150, "isync", OpType::InstructionCache, 1, FL_NO_REORDER},
     {0, "mcrf", OpType::System, 1, FL_SET_CRn | FL_READ_CRn},
 
-    {50, "rfi", OpType::System, 2,
-     FL_ENDBLOCK | FL_CHECKEXCEPTIONS | FL_PROGRAMEXCEPTION | FL_SET_MSR},
+    {50, "rfi", OpType::System, 2, FL_ENDBLOCK | FL_CHECKEXCEPTIONS | FL_PROGRAMEXCEPTION},
 }};
 
 constexpr std::array<GekkoOPTemplate, 107> s_table31{{
@@ -367,7 +370,7 @@ constexpr std::array<GekkoOPTemplate, 107> s_table31{{
     {83, "mfmsr", OpType::System, 1, FL_OUT_D | FL_PROGRAMEXCEPTION},
     {144, "mtcrf", OpType::System, 1, FL_IN_S | FL_SET_ALL_CR | FL_READ_ALL_CR},
     {146, "mtmsr", OpType::System, 1,
-     FL_IN_S | FL_ENDBLOCK | FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION | FL_SET_MSR},
+     FL_IN_S | FL_ENDBLOCK | FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION},
     {210, "mtsr", OpType::System, 1, FL_IN_S | FL_PROGRAMEXCEPTION},
     {242, "mtsrin", OpType::System, 1, FL_IN_SB | FL_PROGRAMEXCEPTION},
     {339, "mfspr", OpType::SPR, 1, FL_OUT_D | FL_PROGRAMEXCEPTION},
@@ -504,11 +507,13 @@ struct Tables
 
 static std::array<GekkoOPStats, TOTAL_INSTRUCTION_COUNT> s_all_instructions_stats;
 
-constexpr Tables s_tables = []() consteval {
+constexpr Tables s_tables = []() consteval
+{
   Tables tables{};
 
   u32 counter = 0;
-  auto make_info = [&](const GekkoOPTemplate& inst) consteval -> u32 {
+  auto make_info = [&](const GekkoOPTemplate& inst) consteval->u32
+  {
     ASSERT(counter < TOTAL_INSTRUCTION_COUNT);
     GekkoOPInfo* info = &tables.all_instructions[counter];
     info->opname = inst.opname;
@@ -604,7 +609,8 @@ constexpr Tables s_tables = []() consteval {
 
   ASSERT(counter == TOTAL_INSTRUCTION_COUNT);
   return tables;
-}();
+}
+();
 
 const GekkoOPInfo* GetOpInfo(UGeckoInstruction inst, u32 pc)
 {

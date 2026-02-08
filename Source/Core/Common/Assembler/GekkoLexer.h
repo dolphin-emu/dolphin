@@ -8,6 +8,7 @@
 #include <deque>
 #include <optional>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
 #include "Common/Assembler/AssemblerShared.h"
@@ -36,8 +37,6 @@ enum class TokenType
   Gt,
   Eq,
   So,
-  NumLabFwd,
-  NumLabBwd,
   // EOL signifies boundaries between instructions, a la ';'
   Eol,
   Eof,

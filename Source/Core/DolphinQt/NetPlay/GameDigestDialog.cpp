@@ -21,7 +21,7 @@
 static QString GetPlayerNameFromPID(int pid)
 {
   QString player_name = QObject::tr("Invalid Player ID");
-  const auto client = Settings::Instance().GetNetPlayClient();
+  auto client = Settings::Instance().GetNetPlayClient();
   if (!client)
     return player_name;
 
@@ -70,13 +70,13 @@ void GameDigestDialog::show(const QString& title)
 {
   m_progress_box->setTitle(title);
 
-  for (const auto& pair : m_progress_bars)
+  for (auto& pair : m_progress_bars)
   {
     m_progress_layout->removeWidget(pair.second);
     pair.second->deleteLater();
   }
 
-  for (const auto& pair : m_status_labels)
+  for (auto& pair : m_status_labels)
   {
     m_progress_layout->removeWidget(pair.second);
     pair.second->deleteLater();
@@ -87,7 +87,7 @@ void GameDigestDialog::show(const QString& title)
   m_results.clear();
   m_check_label->setText(QString::fromStdString(""));
 
-  const auto client = Settings::Instance().GetNetPlayClient();
+  auto client = Settings::Instance().GetNetPlayClient();
   if (!client)
     return;
 
@@ -142,7 +142,7 @@ void GameDigestDialog::SetResult(int pid, const std::string& result)
 
   m_results.push_back(result);
 
-  const auto client = Settings::Instance().GetNetPlayClient();
+  auto client = Settings::Instance().GetNetPlayClient();
   if (client && m_results.size() >= client->GetPlayers().size())
   {
     if (std::ranges::adjacent_find(m_results, std::ranges::not_equal_to{}) == m_results.end())
@@ -163,7 +163,7 @@ void GameDigestDialog::SetResult(int pid, const std::string& result)
 
 void GameDigestDialog::reject()
 {
-  const auto server = Settings::Instance().GetNetPlayServer();
+  auto server = Settings::Instance().GetNetPlayServer();
 
   if (server)
     server->AbortGameDigest();

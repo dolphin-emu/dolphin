@@ -4,7 +4,10 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
 #include <type_traits>
+
+#include "Common/CommonTypes.h"
 
 namespace Common::Random
 {

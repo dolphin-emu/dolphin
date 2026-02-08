@@ -20,11 +20,6 @@ AbstractTexture::AbstractTexture(const TextureConfig& c) : m_config(c)
 {
 }
 
-AbstractTexture::operator ImTextureRef() const
-{
-  return ImTextureRef(reinterpret_cast<AbstractTexture::imgui_texture_id>(this));
-}
-
 void AbstractTexture::FinishedRendering()
 {
 }

@@ -137,7 +137,8 @@ QLineEdit* ThreadWidget::CreateLineEdit() const
 {
   QLineEdit* line_edit = new QLineEdit(QStringLiteral("00000000"));
   line_edit->setReadOnly(true);
-  line_edit->setAlignment(Qt::AlignVCenter | Qt::AlignRight);
+  line_edit->setFixedWidth(
+      line_edit->fontMetrics().boundingRect(QStringLiteral(" 00000000 ")).width());
   return line_edit;
 }
 
@@ -145,8 +146,6 @@ QGroupBox* ThreadWidget::CreateContextGroup()
 {
   QGroupBox* context_group = new QGroupBox(tr("Thread context"));
   QGridLayout* context_layout = new QGridLayout;
-  context_layout->setColumnStretch(0, 1);
-  context_layout->setColumnStretch(1, 1);
   context_group->setLayout(context_layout);
   context_layout->addWidget(new QLabel(tr("Current context")), 0, 0);
   m_current_context = CreateLineEdit();
@@ -165,8 +164,6 @@ QGroupBox* ThreadWidget::CreateActiveThreadQueueGroup()
 {
   QGroupBox* thread_queue_group = new QGroupBox(tr("Active thread queue"));
   auto* thread_queue_layout = new QGridLayout;
-  thread_queue_layout->setColumnStretch(0, 1);
-  thread_queue_layout->setColumnStretch(1, 1);
   thread_queue_group->setLayout(thread_queue_layout);
   thread_queue_layout->addWidget(new QLabel(tr("Head")), 0, 0);
   m_queue_head = CreateLineEdit();
@@ -277,7 +274,7 @@ void ThreadWidget::Update()
   };
   const auto format_hex_from = [&format_hex](const Core::CPUThreadGuard& guard, u32 addr) {
     addr =
-        PowerPC::MMU::HostIsRAMAddress(guard, addr) ? PowerPC::MMU::HostRead<u32>(guard, addr) : 0;
+        PowerPC::MMU::HostIsRAMAddress(guard, addr) ? PowerPC::MMU::HostRead_U32(guard, addr) : 0;
     return format_hex(addr);
   };
   const auto get_state = [](u16 thread_state) {
@@ -463,7 +460,7 @@ void ThreadWidget::UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
     m_callstack_table->setItem(i, 0, new QTableWidgetItem(format_hex(sp)));
     if (PowerPC::MMU::HostIsRAMAddress(guard, sp + 4))
     {
-      const u32 lr_save = PowerPC::MMU::HostRead<u32>(guard, sp + 4);
+      const u32 lr_save = PowerPC::MMU::HostRead_U32(guard, sp + 4);
       m_callstack_table->setItem(i, 2, new QTableWidgetItem(format_hex(lr_save)));
       m_callstack_table->setItem(
           i, 3,
@@ -474,7 +471,7 @@ void ThreadWidget::UpdateThreadCallstack(const Core::CPUThreadGuard& guard,
     {
       m_callstack_table->setItem(i, 2, new QTableWidgetItem(QStringLiteral("--------")));
     }
-    sp = PowerPC::MMU::HostRead<u32>(guard, sp);
+    sp = PowerPC::MMU::HostRead_U32(guard, sp);
     m_callstack_table->setItem(i, 1, new QTableWidgetItem(format_hex(sp)));
   }
 }

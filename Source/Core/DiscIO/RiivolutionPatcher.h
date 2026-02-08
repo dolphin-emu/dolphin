@@ -45,7 +45,7 @@ public:
   ResolveSavegameRedirectPath(std::string_view external_relative_path) = 0;
 };
 
-class FileDataLoaderHostFS final : public FileDataLoader
+class FileDataLoaderHostFS : public FileDataLoader
 {
 public:
   // sd_root should be an absolute path to the folder representing our virtual SD card
@@ -65,8 +65,7 @@ public:
   ResolveSavegameRedirectPath(std::string_view external_relative_path) override;
 
 private:
-  std::optional<std::string>
-  MakeAbsoluteFromRelative(std::string_view external_relative_path) const;
+  std::optional<std::string> MakeAbsoluteFromRelative(std::string_view external_relative_path);
 
   std::string m_sd_root;
   std::string m_patch_root;

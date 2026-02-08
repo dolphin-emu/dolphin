@@ -33,7 +33,8 @@ private:
       EnumMap<EnumMap<EnumMap<u32, TexComponentCount::ST>, ComponentFormat::InvalidFloat7>,
               VertexComponentFormat::Index16>;
 
-  static constexpr SizeTable s_table_size = []() consteval {
+  static constexpr SizeTable s_table_size = []() consteval
+  {
     SizeTable table{};
 
     using VCF = VertexComponentFormat;
@@ -67,5 +68,6 @@ private:
     table[VCF::Index16][FMT::InvalidFloat7] = {2, 2};
 
     return table;
-  }();
+  }
+  ();
 };

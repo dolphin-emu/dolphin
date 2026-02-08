@@ -3,10 +3,9 @@
 
 #pragma once
 
-#ifdef _WIN32
 #include <optional>
-#endif
 #include <string>
+#include "Common/CommonTypes.h"
 
 #ifndef _WIN32
 
@@ -45,9 +44,8 @@ namespace Common
 // strerror_r wrapper to handle XSI and GNU versions.
 const char* StrErrorWrapper(int error, char* buffer, std::size_t length);
 
-// Wrapper functions to get strerror(errno) string, which itself is not threadsafe.
-// These functions might change the error code.
-std::string StrerrorString(int error);
+// Wrapper function to get last strerror(errno) string.
+// This function might change the error code.
 std::string LastStrerrorString();
 
 #ifdef _WIN32

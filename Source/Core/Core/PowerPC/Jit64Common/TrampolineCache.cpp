@@ -3,11 +3,17 @@
 
 #include "Core/PowerPC/Jit64Common/TrampolineCache.h"
 
+#include <string>
+
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
 #include "Common/MsgHandler.h"
 #include "Common/x64Emitter.h"
+#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64Common/Jit64Constants.h"
+#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/Jit64Common/TrampolineInfo.h"
+#include "Core/PowerPC/PowerPC.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -40,7 +46,7 @@ const u8* TrampolineCache::GenerateReadTrampoline(const TrampolineInfo& info)
   SafeLoadToReg(info.op_reg, info.op_arg, info.accessSize << 3, info.offset, info.registersInUse,
                 info.signExtend, info.flags | SAFE_LOADSTORE_FORCE_SLOW_ACCESS);
 
-  JMP(info.start + info.len);
+  JMP(info.start + info.len, Jump::Near);
 
   Common::JitRegister::Register(trampoline, GetCodePtr(), "JIT_ReadTrampoline_{:x}", info.pc);
   return trampoline;
@@ -59,7 +65,7 @@ const u8* TrampolineCache::GenerateWriteTrampoline(const TrampolineInfo& info)
   SafeWriteRegToReg(info.op_arg, info.op_reg, info.accessSize << 3, info.offset,
                     info.registersInUse, info.flags | SAFE_LOADSTORE_FORCE_SLOW_ACCESS);
 
-  JMP(info.start + info.len);
+  JMP(info.start + info.len, Jump::Near);
 
   Common::JitRegister::Register(trampoline, GetCodePtr(), "JIT_WriteTrampoline_{:x}", info.pc);
   return trampoline;

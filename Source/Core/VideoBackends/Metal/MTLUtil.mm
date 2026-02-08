@@ -13,7 +13,6 @@
 
 #include "VideoCommon/Constants.h"
 #include "VideoCommon/DriverDetails.h"
-#include "VideoCommon/ShaderCompileUtils.h"
 #include "VideoCommon/Spirv.h"
 
 Metal::DeviceFeatures Metal::g_features;
@@ -263,11 +262,15 @@ void Metal::Util::PopulateBackendInfoFeatures(const VideoConfig& config, Backend
   backend_info->bSupportsST3CTextures = true;
   backend_info->bSupportsBPTCTextures = true;
 #else
-  backend_info->bSupportsDepthClamp = [device supportsFamily:MTLGPUFamilyApple4];
-
+  bool supports_apple4 = false;
   bool supports_bcn = false;
+  if (@available(iOS 13, *))
+    supports_apple4 = [device supportsFamily:MTLGPUFamilyApple4];
+  else
+    supports_apple4 = [device supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily4_v1];
   if (@available(iOS 16.4, *))
     supports_bcn = [device supportsBCTextureCompression];
+  backend_info->bSupportsDepthClamp = supports_apple4;
   backend_info->bSupportsST3CTextures = supports_bcn;
   backend_info->bSupportsBPTCTextures = supports_bcn;
 
@@ -292,8 +295,9 @@ void Metal::Util::PopulateBackendInfoFeatures(const VideoConfig& config, Backend
   case TriState::Auto:
 #if TARGET_OS_OSX
     g_features.manual_buffer_upload = false;
-    if (![device hasUnifiedMemory])
-      g_features.manual_buffer_upload = true;
+    if (@available(macOS 10.15, *))
+      if (![device hasUnifiedMemory])
+        g_features.manual_buffer_upload = true;
 #else
     // All iOS devices have unified memory
     g_features.manual_buffer_upload = false;
@@ -301,8 +305,14 @@ void Metal::Util::PopulateBackendInfoFeatures(const VideoConfig& config, Backend
     break;
   }
 
-  g_features.subgroup_ops =
-      [device supportsFamily:MTLGPUFamilyMac2] || [device supportsFamily:MTLGPUFamilyApple7];
+  g_features.subgroup_ops = false;
+  if (@available(macOS 10.15, iOS 13, *))
+  {
+    // Requires SIMD-scoped reduction operations
+    g_features.subgroup_ops =
+        [device supportsFamily:MTLGPUFamilyMac2] || [device supportsFamily:MTLGPUFamilyApple7];
+    backend_info->bSupportsFramebufferFetch = [device supportsFamily:MTLGPUFamilyApple1];
+  }
   if (g_features.subgroup_ops)
   {
     DetectionResult result = DetectInvertedIsHelper(device);
@@ -313,13 +323,11 @@ void Metal::Util::PopulateBackendInfoFeatures(const VideoConfig& config, Backend
         DriverDetails::OverrideBug(DriverDetails::BUG_INVERTED_IS_HELPER, is_helper_inverted);
     }
   }
-
-  backend_info->bSupportsFramebufferFetch = [device supportsFamily:MTLGPUFamilyApple1];
 #if TARGET_OS_OSX
-  if (vendor == DriverDetails::VENDOR_INTEL)
-    backend_info->bSupportsFramebufferFetch |= DetectIntelGPUFBFetch(device);
+  if (@available(macOS 11, *))
+    if (vendor == DriverDetails::VENDOR_INTEL)
+      backend_info->bSupportsFramebufferFetch |= DetectIntelGPUFBFetch(device);
 #endif
-
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING))
     backend_info->bSupportsDynamicSamplerIndexing = false;
 }
@@ -491,9 +499,8 @@ MakeResourceBinding(spv::ExecutionModel stage, u32 set, u32 binding,  //
   return resource;
 }
 
-std::optional<std::string>
-Metal::Util::TranslateShaderToMSL(ShaderStage stage, std::string_view source,
-                                  VideoCommon::ShaderIncluder* shader_includer)
+std::optional<std::string> Metal::Util::TranslateShaderToMSL(ShaderStage stage,
+                                                             std::string_view source)
 {
   std::string full_source;
 
@@ -516,19 +523,16 @@ Metal::Util::TranslateShaderToMSL(ShaderStage stage, std::string_view source,
   switch (stage)
   {
   case ShaderStage::Vertex:
-    code = SPIRV::CompileVertexShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_5,
-                                      shader_includer);
+    code = SPIRV::CompileVertexShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_5);
     break;
   case ShaderStage::Geometry:
     PanicAlertFmt("Tried to compile geometry shader for Metal, but Metal doesn't support them!");
     break;
   case ShaderStage::Pixel:
-    code = SPIRV::CompileFragmentShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_5,
-                                        shader_includer);
+    code = SPIRV::CompileFragmentShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_5);
     break;
   case ShaderStage::Compute:
-    code = SPIRV::CompileComputeShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_5,
-                                       shader_includer);
+    code = SPIRV::CompileComputeShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_5);
     break;
   }
   if (!code.has_value())
@@ -566,7 +570,14 @@ Metal::Util::TranslateShaderToMSL(ShaderStage stage, std::string_view source,
 
   spirv_cross::CompilerMSL compiler(std::move(*code));
 
-  options.set_msl_version(2, 3);
+  if (@available(macOS 11, iOS 14, *))
+    options.set_msl_version(2, 3);
+  else if (@available(macOS 10.15, iOS 13, *))
+    options.set_msl_version(2, 2);
+  else if (@available(macOS 10.14, iOS 12, *))
+    options.set_msl_version(2, 1);
+  else
+    options.set_msl_version(2, 0);
   options.use_framebuffer_fetch_subpasses = true;
   compiler.set_msl_options(options);
 

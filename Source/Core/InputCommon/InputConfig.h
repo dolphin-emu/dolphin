@@ -58,7 +58,7 @@ public:
   void GenerateControllerTextures();
 
 private:
-  Common::EventHook m_hotplug_event_hook;
+  ControllerInterface::HotplugCallbackHandle m_hotplug_callback_handle;
   std::vector<std::unique_ptr<ControllerEmu::EmulatedController>> m_controllers;
   const std::string m_ini_name;
   const std::string m_gui_name;

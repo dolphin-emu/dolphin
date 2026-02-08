@@ -26,6 +26,7 @@ public:
   ParallelProgressDialog(Args&&... args) : m_dialog{std::forward<Args>(args)...}
   {
     setParent(m_dialog.parent());
+    m_dialog.setWindowFlags(m_dialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ConnectSignalsAndSlots();
   }
 

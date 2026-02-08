@@ -5,6 +5,7 @@
 
 #include <array>
 #include <cstring>
+#include <memory>
 #include <vector>
 
 #include <mbedtls/md.h>

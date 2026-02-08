@@ -7,17 +7,25 @@
 #include <cstddef>
 
 #include "Common/CommonTypes.h"
-#include "Common/Matrix.h"
+#include "VideoBackends/Software/Vec3.h"
+
+struct Vec4
+{
+  float x;
+  float y;
+  float z;
+  float w;
+};
 
 struct InputVertexData
 {
   u8 posMtx;
   std::array<u8, 8> texMtx;
 
-  Common::Vec3 position;
-  std::array<Common::Vec3, 3> normal;
+  Vec3 position;
+  std::array<Vec3, 3> normal;
   std::array<std::array<u8, 4>, 2> color;
-  std::array<Common::Vec2, 8> texCoords;
+  std::array<std::array<float, 2>, 8> texCoords;
 };
 
 struct OutputVertexData
@@ -31,12 +39,12 @@ struct OutputVertexData
     ALP_C
   };
 
-  Common::Vec3 mvPosition = {};
-  Common::Vec4 projectedPosition = {};
-  Common::Vec3 screenPosition = {};
-  std::array<Common::Vec3, 3> normal{};
+  Vec3 mvPosition = {};
+  Vec4 projectedPosition = {};
+  Vec3 screenPosition = {};
+  std::array<Vec3, 3> normal{};
   std::array<std::array<u8, 4>, 2> color{};
-  std::array<Common::Vec3, 8> texCoords{};
+  std::array<Vec3, 8> texCoords{};
 
   void Lerp(float t, const OutputVertexData* a, const OutputVertexData* b)
   {

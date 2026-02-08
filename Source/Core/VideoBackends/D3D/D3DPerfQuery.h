@@ -13,7 +13,7 @@ class PerfQuery : public PerfQueryBase
 {
 public:
   PerfQuery();
-  ~PerfQuery() override;
+  ~PerfQuery();
 
   void EnableQuery(PerfQueryGroup group) override;
   void DisableQuery(PerfQueryGroup group) override;

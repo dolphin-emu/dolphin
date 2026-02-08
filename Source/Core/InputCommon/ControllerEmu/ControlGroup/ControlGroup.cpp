@@ -13,9 +13,8 @@
 
 namespace ControllerEmu
 {
-ControlGroup::ControlGroup(const std::string& name_, const GroupType type_,
-                           DefaultValue default_value_)
-    : ControlGroup{name_, name_, type_, default_value_}
+ControlGroup::ControlGroup(std::string name_, const GroupType type_, DefaultValue default_value_)
+    : name(name_), ui_name(std::move(name_)), type(type_), default_value(default_value_)
 {
 }
 
@@ -24,12 +23,6 @@ ControlGroup::ControlGroup(std::string name_, std::string ui_name_, const GroupT
     : name(std::move(name_)), ui_name(std::move(ui_name_)), type(type_),
       default_value(default_value_)
 {
-  if (default_value_ != DefaultValue::AlwaysEnabled)
-  {
-    enabled_setting = std::make_unique<NumericSetting<bool>>(
-        &enabled, NumericSettingDetails{_trans("Enabled")},
-        (default_value_ == DefaultValue::Enabled), false, true);
-  }
 }
 
 void ControlGroup::AddVirtualNotchSetting(SettingValue<double>* value, double max_virtual_notch_deg)
@@ -60,8 +53,8 @@ void ControlGroup::LoadConfig(Common::IniFile::Section* sec, const std::string& 
   const std::string group(base + name + "/");
 
   // enabled
-  if (HasEnabledSetting())
-    enabled_setting->LoadFromIni(*sec, group);
+  if (default_value != DefaultValue::AlwaysEnabled)
+    sec->Get(group + "Enabled", &enabled, default_value != DefaultValue::Disabled);
 
   for (auto& setting : numeric_settings)
     setting->LoadFromIni(*sec, group);
@@ -86,8 +79,7 @@ void ControlGroup::SaveConfig(Common::IniFile::Section* sec, const std::string& 
   const std::string group(base + name + "/");
 
   // enabled
-  if (HasEnabledSetting())
-    enabled_setting->SaveToIni(*sec, group);
+  sec->Set(group + "Enabled", enabled, default_value != DefaultValue::Disabled);
 
   for (auto& setting : numeric_settings)
     setting->SaveToIni(*sec, group);
@@ -107,9 +99,6 @@ void ControlGroup::SaveConfig(Common::IniFile::Section* sec, const std::string& 
 
 void ControlGroup::UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env)
 {
-  if (HasEnabledSetting())
-    enabled_setting->GetInputReference().UpdateReference(env);
-
   for (auto& control : controls)
     control->control_ref->UpdateReference(env);
 
@@ -135,11 +124,6 @@ void ControlGroup::AddInput(Translatability translate, std::string name_, std::s
 void ControlGroup::AddOutput(Translatability translate, std::string name_)
 {
   controls.emplace_back(std::make_unique<Output>(translate, std::move(name_)));
-}
-
-bool ControlGroup::HasEnabledSetting() const
-{
-  return enabled_setting != nullptr;
 }
 
 }  // namespace ControllerEmu

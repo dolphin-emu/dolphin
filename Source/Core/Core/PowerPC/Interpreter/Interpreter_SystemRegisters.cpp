@@ -181,7 +181,7 @@ void Interpreter::mtmsr(Interpreter& interpreter, UGeckoInstruction inst)
 
   ppc_state.msr.Hex = ppc_state.gpr[inst.RS];
 
-  interpreter.m_system.GetPowerPC().MSRUpdated();
+  PowerPC::MSRUpdated(ppc_state);
 
   // FE0/FE1 may have been set
   CheckFPExceptions(ppc_state);
@@ -203,8 +203,7 @@ void Interpreter::mtsr(Interpreter& interpreter, UGeckoInstruction inst)
 
   const u32 index = inst.SR;
   const u32 value = ppc_state.gpr[inst.RS];
-  ppc_state.sr[index] = value;
-  interpreter.m_system.GetMMU().SRUpdated();
+  ppc_state.SetSR(index, value);
 }
 
 void Interpreter::mtsrin(Interpreter& interpreter, UGeckoInstruction inst)
@@ -218,8 +217,7 @@ void Interpreter::mtsrin(Interpreter& interpreter, UGeckoInstruction inst)
 
   const u32 index = (ppc_state.gpr[inst.RB] >> 28) & 0xF;
   const u32 value = ppc_state.gpr[inst.RS];
-  ppc_state.sr[index] = value;
-  interpreter.m_system.GetMMU().SRUpdated();
+  ppc_state.SetSR(index, value);
 }
 
 void Interpreter::mftb(Interpreter& interpreter, UGeckoInstruction inst)

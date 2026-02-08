@@ -96,7 +96,7 @@ private:
   }
 
   std::string FetchWordChars();
-  Token GetDelimitedToken(TokenType type, char delimiter);
+  Token GetDelimitedToken(TokenType type, char delimeter);
   Token GetDelimitedLiteral();
   Token GetVariable();
   Token GetFullyQualifiedControl();

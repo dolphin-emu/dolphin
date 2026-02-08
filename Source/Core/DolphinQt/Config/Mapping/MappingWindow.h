@@ -85,7 +85,6 @@ private:
   void OnDeleteProfilePressed();
   void OnLoadProfilePressed();
   void OnSaveProfilePressed();
-  void OnOpenProfileFolder();
   void UpdateProfileIndex();
   void UpdateProfileButtonState();
   void PopulateProfileSelection();
@@ -116,9 +115,7 @@ private:
   QComboBox* m_profiles_combo;
   QPushButton* m_profiles_load;
   QPushButton* m_profiles_save;
-  QToolButton* m_profile_other_actions;
-  QAction* m_profiles_delete;
-  QAction* m_profiles_open_folder;
+  QPushButton* m_profiles_delete;
 
   // Reset
   QGroupBox* m_reset_box;

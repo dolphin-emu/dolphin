@@ -57,7 +57,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View {
         _binding = FragmentEmulationBinding.inflate(inflater, container, false)
         return binding.root
@@ -96,9 +98,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     override fun onResume() {
         super.onResume()
-        if (NativeLibrary.IsGameMetadataValid()) {
+        if (NativeLibrary.IsGameMetadataValid())
             inputOverlay?.refreshControls()
-        }
 
         AfterDirectoryInitializationRunner().runWithLifecycle(this) {
             run(emulationActivity!!.isActivityRecreated)
@@ -108,7 +109,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     override fun onPause() {
         if (NativeLibrary.IsRunningAndUnpaused() && !NativeLibrary.IsShowingAlertMessage()) {
             Log.debug("[EmulationFragment] Pausing emulation.")
-            NativeLibrary.PauseEmulation(true)
+            NativeLibrary.PauseEmulation()
         }
         super.onPause()
     }
@@ -125,7 +126,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     fun toggleInputOverlayVisibility(settings: Settings?) {
         BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.setBoolean(
-            settings!!, !BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.boolean
+            settings!!,
+            !BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.boolean
         )
 
         inputOverlay?.refreshControls()
@@ -206,20 +208,14 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             val emulationThread = Thread({
                 if (loadPreviousTemporaryState) {
                     Log.debug("[EmulationFragment] Starting emulation thread from previous state.")
-                    val paths = requireNotNull(gamePaths) {
-                        "Cannot start emulation without any game paths"
-                    }
-                    NativeLibrary.Run(paths, riivolution, temporaryStateFilePath, true)
+                    NativeLibrary.Run(gamePaths, riivolution, temporaryStateFilePath, true)
                 }
                 if (launchSystemMenu) {
                     Log.debug("[EmulationFragment] Starting emulation thread for the Wii Menu.")
                     NativeLibrary.RunSystemMenu()
                 } else {
                     Log.debug("[EmulationFragment] Starting emulation thread.")
-                    val paths = requireNotNull(gamePaths) {
-                        "Cannot start emulation without any game paths"
-                    }
-                    NativeLibrary.Run(paths, riivolution)
+                    NativeLibrary.Run(gamePaths, riivolution)
                 }
                 EmulationActivity.stopIgnoringLaunchRequests()
             }, "NativeEmulation")
@@ -232,7 +228,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
     }
 
-    fun saveTemporaryState() = NativeLibrary.SaveStateAs(temporaryStateFilePath)
+    fun saveTemporaryState() = NativeLibrary.SaveStateAs(temporaryStateFilePath, true)
 
     private val temporaryStateFilePath: String
         get() = "${requireContext().filesDir}${File.separator}temp.sav"
@@ -243,7 +239,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         private const val KEY_SYSTEM_MENU = "systemMenu"
 
         fun newInstance(
-            gamePaths: Array<String>?, riivolution: Boolean, systemMenu: Boolean
+            gamePaths: Array<String>?,
+            riivolution: Boolean,
+            systemMenu: Boolean
         ): EmulationFragment {
             val args = Bundle()
             args.apply {

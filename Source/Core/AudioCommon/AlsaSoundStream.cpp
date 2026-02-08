@@ -5,6 +5,7 @@
 
 #include <mutex>
 
+#include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
 

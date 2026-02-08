@@ -5,9 +5,6 @@
 
 bool NullSound::Init()
 {
-  // Make Mixer aware that audio output is disabled.
-  GetMixer()->SetSampleRate(0);
-
   return true;
 }
 

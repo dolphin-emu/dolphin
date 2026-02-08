@@ -19,17 +19,19 @@ set_target_properties(MacUpdater PROPERTIES
   MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
   OUTPUT_NAME "Dolphin Updater")
 
+target_compile_options(MacUpdater PRIVATE -x objective-c++)
+
 # Copy icon into the bundle
 target_sources(MacUpdater PRIVATE "${CMAKE_SOURCE_DIR}/Data/Dolphin.icns")
 set_source_files_properties("${CMAKE_SOURCE_DIR}/Data/Dolphin.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
 target_link_libraries(MacUpdater PRIVATE
-  "-framework Cocoa"
-  "-framework AppKit"
-  "-framework CoreData"
-  "-framework Foundation"
-  uicommon
-  updatercommon
+    "-framework Cocoa"
+    "-framework AppKit"
+    "-framework CoreData"
+    "-framework Foundation"
+    uicommon
+    updatercommon
 )
 
 # Compile storyboards (Adapted from https://gitlab.kitware.com/cmake/community/wikis/doc/tutorials/OSX-InterfaceBuilderFiles)
@@ -47,13 +49,14 @@ foreach(sb ${STORYBOARDS})
   set(input  ${CMAKE_CURRENT_SOURCE_DIR}/${sb})
   add_custom_command(TARGET MacUpdater POST_BUILD
     COMMAND ${IBTOOL} --errors --warnings --notices --output-format human-readable-text --compile ${output} ${input}
+    DEPENDS ${input}
     COMMENT "Compiling Storyboard ${sb}...")
 endforeach()
 
 include(DolphinInjectVersionInfo)
 dolphin_inject_version_info(MacUpdater)
 
-if(POSTPROCESS_BUNDLE)
+if(NOT SKIP_POSTPROCESS_BUNDLE)
   # Update library references to make the bundle portable
   include(DolphinPostprocessBundle)
   dolphin_postprocess_bundle(MacUpdater)

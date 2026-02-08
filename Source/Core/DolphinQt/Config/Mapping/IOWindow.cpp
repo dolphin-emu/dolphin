@@ -3,7 +3,6 @@
 
 #include "DolphinQt/Config/Mapping/IOWindow.h"
 
-#include <array>
 #include <optional>
 
 #include <QBrush>
@@ -29,6 +28,7 @@
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/QtUtils/BlockUserInputFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
@@ -114,7 +114,7 @@ QTextCharFormat GetCommentCharFormat()
 ControlExpressionSyntaxHighlighter::ControlExpressionSyntaxHighlighter(QTextDocument* parent)
     : QObject(parent)
 {
-  connect(parent, &QTextDocument::contentsChanged, this, [this, parent] { Highlight(parent); });
+  connect(parent, &QTextDocument::contentsChanged, this, [this, parent]() { Highlight(parent); });
 }
 
 void QComboBoxWithMouseWheelDisabled::wheelEvent(QWheelEvent* event)
@@ -259,6 +259,8 @@ IOWindow::IOWindow(MappingWindow* window, ControllerEmu::EmulatedController* con
     : QDialog(window), m_reference(ref), m_original_expression(ref->GetExpression()),
       m_controller(controller), m_type(type)
 {
+  SetQWidgetWindowDecorations(this);
+
   CreateMainLayout();
 
   connect(window, &MappingWindow::Update, this, &IOWindow::Update);
@@ -266,6 +268,7 @@ IOWindow::IOWindow(MappingWindow* window, ControllerEmu::EmulatedController* con
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, &IOWindow::ConfigChanged);
 
   setWindowTitle(type == IOWindow::Type::Input ? tr("Configure Input") : tr("Configure Output"));
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   ConfigChanged();
 
@@ -533,7 +536,7 @@ void IOWindow::ConnectWidgets()
     m_detect_button->setText(tr("[ Press Now ]"));
     m_input_detector = std::make_unique<ciface::Core::InputDetector>();
     const auto lock = m_controller->GetStateLock();
-    m_input_detector->Start(g_controller_interface, std::array{m_devq.ToString()});
+    m_input_detector->Start(g_controller_interface, {m_devq.ToString()});
     QtUtils::InstallKeyboardBlocker(m_detect_button, this, &IOWindow::DetectInputComplete);
   });
   connect(this, &IOWindow::DetectInputComplete,
@@ -821,7 +824,7 @@ static void PaintStateIndicator(QPainter& painter, const QRect& region, ControlS
   QRect meter_region = region;
   meter_region.setWidth(region.width() * std::clamp(state, 0.0, 1.0));
 
-  // Create a temporary indicator object to retrieve color constants.
+  // Create a temporary indicator object to retreive color constants.
   MappingIndicator indicator;
 
   // Normal text.

@@ -3,6 +3,8 @@
 
 #include "DolphinQt/RenderWidget.h"
 
+#include <array>
+
 #include <QApplication>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -29,7 +31,9 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "VideoCommon/OnScreenUI.h"
 #include "VideoCommon/Present.h"
+#include "VideoCommon/VideoConfig.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -380,10 +384,6 @@ bool RenderWidget::event(QEvent* event)
     SetCursorLocked(false);
     break;
   case QEvent::MouseButtonPress:
-
-    // Grab focus to stop unwanted keyboard input UI interaction.
-    setFocus();
-
     if (isActiveWindow())
     {
       // Lock the cursor with any mouse button click (behave the same as window focus change).

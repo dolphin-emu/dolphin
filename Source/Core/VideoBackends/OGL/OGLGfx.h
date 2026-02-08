@@ -17,7 +17,7 @@ class OGLGfx final : public AbstractGfx
 {
 public:
   OGLGfx(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scale);
-  ~OGLGfx() override;
+  ~OGLGfx();
 
   bool IsHeadless() const override;
 
@@ -25,10 +25,8 @@ public:
                                                  std::string_view name) override;
   std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
-  std::unique_ptr<AbstractShader>
-  CreateShaderFromSource(ShaderStage stage, std::string_view source,
-                         VideoCommon::ShaderIncluder* shader_includer,
-                         std::string_view name) override;
+  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage, std::string_view source,
+                                                         std::string_view name) override;
   std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage, const void* data,
                                                          size_t length,
                                                          std::string_view name) override;
@@ -69,9 +67,9 @@ public:
   void WaitForGPUIdle() override;
   void OnConfigChanged(u32 bits) override;
 
-  void SelectLeftBuffer() override;
-  void SelectRightBuffer() override;
-  void SelectMainBuffer() override;
+  virtual void SelectLeftBuffer() override;
+  virtual void SelectRightBuffer() override;
+  virtual void SelectMainBuffer() override;
 
   std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler() override;
 

@@ -29,9 +29,9 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
-std::string Metal::VideoBackend::GetConfigName() const
+std::string Metal::VideoBackend::GetName() const
 {
-  return CONFIG_NAME;
+  return NAME;
 }
 
 std::string Metal::VideoBackend::GetDisplayName() const

@@ -7,11 +7,14 @@
 #include <fmt/ranges.h>
 
 #include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/ScopeGuard.h"
 
 #include "Core/Config/FreeLookSettings.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/FreeLookConfig.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
@@ -19,6 +22,7 @@
 #include "InputCommon/InputConfig.h"
 
 #include "VideoCommon/FreeLookCamera.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 namespace
 {
@@ -321,6 +325,7 @@ InputConfig* GetInputConfig()
 void Shutdown()
 {
   s_config.UnregisterHotplugCallback();
+
   s_config.ClearControllers();
 }
 
@@ -333,7 +338,7 @@ void Initialize()
 
   s_config.RegisterHotplugCallback();
 
-  g_freelook_camera.RefreshConfig();
+  FreeLook::GetConfig().Refresh();
 
   s_config.LoadConfig();
 }

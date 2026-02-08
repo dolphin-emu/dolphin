@@ -27,6 +27,7 @@ NANDRepairDialog::NANDRepairDialog(const WiiUtils::NANDCheckResult& result, QWid
     : QDialog(parent)
 {
   setWindowTitle(tr("NAND Check"));
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
   setWindowIcon(Resources::GetAppIcon());
 
   QVBoxLayout* main_layout = new QVBoxLayout();

@@ -84,6 +84,7 @@ public final class DirectoryInitialization
 
     extractSysDirectory(context);
     NativeLibrary.Initialize();
+    NativeLibrary.ReportStartToAnalytics();
 
     areDirectoriesAvailable = true;
 

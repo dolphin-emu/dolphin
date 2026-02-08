@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <concepts>
+#include <type_traits>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -111,19 +111,15 @@ public:
   // Get the current CP state.  Needed for vertex decoding; will also be mutated for CP commands.
   virtual CPState& GetCPState() = 0;
 
-  virtual u32 GetVertexSize(u8 vat)
-  {
-    const CPState& cpmem = GetCPState();
-    return VertexLoaderBase::GetVertexSize(cpmem.vtx_desc, cpmem.vtx_attr[vat]);
-  }
+  virtual u32 GetVertexSize(u8 vat) = 0;
 #endif
 };
 
 namespace detail
 {
 // Main logic; split so that the main RunCommand can call OnCommand with the returned size.
-static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available,
-                                           std::derived_from<Callback> auto& callback)
+template <typename T, typename = std::enable_if_t<std::is_base_of_v<Callback, T>>>
+static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& callback)
 {
   if (available < 1)
     return 0;
@@ -253,8 +249,8 @@ static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available,
 }
 }  // namespace detail
 
-DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available,
-                                    std::derived_from<Callback> auto& callback)
+template <typename T, typename = std::enable_if_t<std::is_base_of_v<Callback, T>>>
+DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& callback)
 {
   const u32 size = detail::RunCommand(data, available, callback);
   if (size > 0)
@@ -264,8 +260,8 @@ DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available,
   return size;
 }
 
-DOLPHIN_FORCE_INLINE u32 Run(const u8* data, u32 available,
-                             std::derived_from<Callback> auto& callback)
+template <typename T, typename = std::enable_if_t<std::is_base_of_v<Callback, T>>>
+DOLPHIN_FORCE_INLINE u32 Run(const u8* data, u32 available, T& callback)
 {
   u32 size = 0;
   while (size < available)

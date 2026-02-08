@@ -9,10 +9,12 @@
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 
 #include "InputCommon/DynamicInputTextures/DITConfiguration.h"
 #include "InputCommon/ImageOperations.h"
 #include "VideoCommon/HiresTextures.h"
+#include "VideoCommon/TextureCacheBase.h"
 
 namespace InputCommon
 {
@@ -30,7 +32,7 @@ void DynamicInputTextureManager::Load()
 
   for (const auto& dynamic_input_directory : dynamic_input_directories)
   {
-    const auto json_files = Common::DoFileSearch(dynamic_input_directory, ".json");
+    const auto json_files = Common::DoFileSearch({dynamic_input_directory}, {".json"});
     for (auto& file : json_files)
     {
       m_configuration.emplace_back(file);

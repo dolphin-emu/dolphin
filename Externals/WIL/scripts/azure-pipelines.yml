@@ -1,0 +1,45 @@
+# Windows Implementation Library Pipeline
+
+trigger:
+- master
+
+jobs:
+- job: BuildAndTest
+  timeoutInMinutes: 360
+
+  pool:
+    vmImage: 'windows-2022'
+
+  steps:
+  - script: |
+      choco install llvm
+      if %ERRORLEVEL% NEQ 0 goto :eof
+      echo ##vso[task.setvariable variable=PATH]%PATH%;C:\Program Files\LLVM\bin
+    displayName: 'Install Clang'
+
+  - script: |
+      call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsamd64_x86.bat"
+      if %ERRORLEVEL% NEQ 0 goto :eof
+      
+      call scripts\init_all.cmd --fast
+      if %ERRORLEVEL% NEQ 0 goto :eof
+      
+      call scripts\build_all.cmd
+    displayName: 'Build x86'
+
+  - script: |
+      call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+      if %ERRORLEVEL% NEQ 0 goto :eof
+      
+      call scripts\init_all.cmd --fast
+      if %ERRORLEVEL% NEQ 0 goto :eof
+      
+      call scripts\build_all.cmd
+    displayName: 'Build x64'
+
+  # NOTE: We run the tests in the 32-bit cross-tools window out of convenience as this adds all necessary directories to
+  # the PATH that are necessary for finding the ASan/UBSan DLLs
+  - script: |
+      call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsamd64_x86.bat""
+      call scripts\runtests.cmd ~[LocalOnly]
+    displayName: 'Run Tests'

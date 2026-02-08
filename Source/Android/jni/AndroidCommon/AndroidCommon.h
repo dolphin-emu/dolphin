@@ -4,7 +4,6 @@
 #pragma once
 
 #include <ios>
-#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -15,28 +14,20 @@ std::string GetJString(JNIEnv* env, jstring jstr);
 jstring ToJString(JNIEnv* env, std::string_view str);
 
 std::vector<std::string> JStringArrayToVector(JNIEnv* env, jobjectArray array);
-jobjectArray SpanToJStringArray(JNIEnv* env, std::span<const std::string_view> span);
-jobjectArray SpanToJStringArray(JNIEnv* env, std::span<const std::string> span);
+jobjectArray VectorToJStringArray(JNIEnv* env, const std::vector<std::string>& vector);
 
 template <typename T, typename F>
-jobjectArray SpanToJObjectArray(JNIEnv* env, std::span<const T> span, jclass clazz, F f)
+jobjectArray VectorToJObjectArray(JNIEnv* env, const std::vector<T>& vector, jclass clazz, F f)
 {
-  const auto span_size = static_cast<jsize>(span.size());
-  jobjectArray result = env->NewObjectArray(span_size, clazz, nullptr);
-  for (jsize i = 0; i < span_size; ++i)
+  const auto vector_size = static_cast<jsize>(vector.size());
+  jobjectArray result = env->NewObjectArray(vector_size, clazz, nullptr);
+  for (jsize i = 0; i < vector_size; ++i)
   {
-    jobject obj = f(env, span[i]);
+    jobject obj = f(env, vector[i]);
     env->SetObjectArrayElement(result, i, obj);
     env->DeleteLocalRef(obj);
   }
   return result;
-}
-
-template <typename T, typename F>
-inline jobjectArray VectorToJObjectArray(JNIEnv* env, const std::vector<T>& vector, jclass clazz,
-                                         F f)
-{
-  return SpanToJObjectArray(env, std::span(vector), clazz, f);
 }
 
 // Returns true if the given path should be opened as Android content instead of a normal file.
@@ -64,7 +55,7 @@ std::string GetAndroidContentDisplayName(std::string_view uri);
 std::vector<std::string> GetAndroidContentChildNames(std::string_view uri);
 
 std::vector<std::string> DoFileSearchAndroidContent(std::string_view directory,
-                                                    std::span<const std::string_view> extensions,
+                                                    const std::vector<std::string>& extensions,
                                                     bool recursive);
 
 int GetNetworkIpAddress();

@@ -5,8 +5,10 @@
 
 #include <iterator>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "DiscIO/Volume.h"

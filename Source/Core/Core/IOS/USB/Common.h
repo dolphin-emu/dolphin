@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -28,13 +29,9 @@ enum ControlRequestTypes
   DIR_HOST2DEVICE = 0,
   DIR_DEVICE2HOST = 1,
   TYPE_STANDARD = 0,
-  TYPE_CLASS = 1,
   TYPE_VENDOR = 2,
-  TYPE_RESERVED = 3,
   REC_DEVICE = 0,
   REC_INTERFACE = 1,
-  REC_ENDPOINT = 2,
-  REC_OTHER = 3,
 };
 
 constexpr u16 USBHDR(u8 dir, u8 type, u8 recipient, u8 request)
@@ -109,8 +106,6 @@ struct TransferCommand
   {
   }
   virtual ~TransferCommand() = default;
-
-  EmulationKernel& GetEmulationKernel() const;
   // Called after a transfer has completed to reply to the IPC request.
   // This can be overridden for additional processing before replying.
   virtual void OnTransferComplete(s32 return_value) const;
@@ -169,7 +164,7 @@ public:
   virtual DeviceDescriptor GetDeviceDescriptor() const = 0;
   virtual std::vector<ConfigDescriptor> GetConfigurations() const = 0;
   virtual std::vector<InterfaceDescriptor> GetInterfaces(u8 config) const = 0;
-  virtual std::vector<EndpointDescriptor> GetEndpoints(u8 config, u8 iface, u8 alt) const = 0;
+  virtual std::vector<EndpointDescriptor> GetEndpoints(u8 config, u8 interface, u8 alt) const = 0;
 
   virtual std::string GetErrorName(int error_code) const;
   /// Ensure the device is ready to use.
@@ -178,10 +173,10 @@ public:
   ///
   /// This may reset the active alt setting, so prefer using Attach when interface changes
   /// are unnecessary (e.g. for control requests).
-  virtual bool AttachAndChangeInterface(u8 iface) = 0;
+  virtual bool AttachAndChangeInterface(u8 interface) = 0;
   virtual int CancelTransfer(u8 endpoint) = 0;
-  virtual int ChangeInterface(u8 iface) = 0;
-  virtual int GetNumberOfAltSettings(u8 iface) = 0;
+  virtual int ChangeInterface(u8 interface) = 0;
+  virtual int GetNumberOfAltSettings(u8 interface) = 0;
   virtual int SetAltSetting(u8 alt_setting) = 0;
   virtual int SubmitTransfer(std::unique_ptr<CtrlMessage> message) = 0;
   virtual int SubmitTransfer(std::unique_ptr<BulkMessage> message) = 0;

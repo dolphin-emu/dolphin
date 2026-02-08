@@ -9,9 +9,11 @@
 #include <QVBoxLayout>
 
 #include "Core/Config/MainSettings.h"
+#include "Core/Core.h"
 
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
@@ -58,6 +60,7 @@ void CommonControllersWidget::OnControllerInterfaceConfigure()
   ControllerInterfaceWindow* window = new ControllerInterfaceWindow(this);
   window->setAttribute(Qt::WA_DeleteOnClose, true);
   window->setWindowModality(Qt::WindowModality::WindowModal);
+  SetQWidgetWindowDecorations(window);
   window->show();
 }
 

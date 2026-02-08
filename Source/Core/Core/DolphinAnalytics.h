@@ -11,7 +11,6 @@
 
 #include "Common/Analytics.h"
 #include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
 
 #if defined(ANDROID)
 #include <functional>
@@ -22,86 +21,86 @@
 enum class GameQuirk
 {
   // Several Wii DI commands that are rarely/never used and not implemented by Dolphin
-  UsesDVDLowStopLaser,
-  UsesDVDLowOffset,
-  UsesDVDLowReadDiskBCA,  // NSMBW known to use this
-  UsesDVDLowRequestDiscStatus,
-  UsesDVDLowRequestRetryNumber,
-  UsesDVDLowSerMeasControl,
+  USES_DVD_LOW_STOP_LASER,
+  USES_DVD_LOW_OFFSET,
+  USES_DVD_LOW_READ_DISK_BCA,  // NSMBW known to use this
+  USES_DVD_LOW_REQUEST_DISC_STATUS,
+  USES_DVD_LOW_REQUEST_RETRY_NUMBER,
+  USES_DVD_LOW_SER_MEAS_CONTROL,
 
   // Dolphin only implements the simple DVDLowOpenPartition, not any of the variants where some
   // already-read data is provided
-  UsesDifferentPartitionCommand,
+  USES_DIFFERENT_PARTITION_COMMAND,
 
   // IOS has implementations for ioctls 0x85 and 0x89 and a stub for 0x87, but
   // DVDLowMaskCoverInterrupt/DVDLowUnmaskCoverInterrupt/DVDLowUnmaskStatusInterrupts
   // are all stubbed on the PPC side so they presumably will never be used.
   // (DVDLowClearCoverInterrupt is used, though)
-  UsesDIInterruptMaskCommand,
+  USES_DI_INTERRUPT_MASK_COMMAND,
 
   // Some games configure a mismatched number of texture coordinates or colors between the transform
   // and TEV/BP stages of the rendering pipeline. Currently, Dolphin just skips over these objects
   // as the hardware renderers are not equipped to handle the case where the registers between
   // stages are mismatched.
-  MismatchedGPUTexGensBetweenXFAndBP,
-  MismatchedGPUColorsBetweenXFAndBP,
+  MISMATCHED_GPU_TEXGENS_BETWEEN_XF_AND_BP,
+  MISMATCHED_GPU_COLORS_BETWEEN_XF_AND_BP,
 
   // The WD module can be configured to operate in six different modes.
   // In practice, only mode 1 (DS communications) and mode 3 (AOSS access point scanning)
   // are used by games and the system menu respectively.
-  UsesUncommonWDMode,
+  USES_UNCOMMON_WD_MODE,
 
-  UsesWDUnimplementedIOCtl,
+  USES_WD_UNIMPLEMENTED_IOCTL,
 
   // Some games use invalid/unknown graphics commands (see e.g. bug 10931).
   // These are different from unknown opcodes: it is known that a BP/CP/XF command is being used,
   // but the command itself is not understood.
-  UsesUnknownBPCommand,
-  UsesUnknownCPCommand,
-  UsesUnknownXFCommand,
+  USES_UNKNOWN_BP_COMMAND,
+  USES_UNKNOWN_CP_COMMAND,
+  USES_UNKNOWN_XF_COMMAND,
   // YAGCD and Dolphin's implementation disagree about what is valid in some cases
-  UsesMaybeInvalidCPCommand,
+  USES_MAYBE_INVALID_CP_COMMAND,
   // These commands are used by a few games (e.g. bug 12461), and seem to relate to perf queries.
   // Track them separately.
-  UsesCPPerfCommand,
+  USES_CP_PERF_COMMAND,
 
   // We don't implement all AX features yet.
-  UsesUnimplementedAXCommand,
-  UsesAXInitialTimeDelay,
-  UsesAXWiimoteLowPass,
-  UsesAXWiimoteBiquad,
+  USES_UNIMPLEMENTED_AX_COMMAND,
+  USES_AX_INITIAL_TIME_DELAY,
+  USES_AX_WIIMOTE_LOWPASS,
+  USES_AX_WIIMOTE_BIQUAD,
 
   // We don't implement XFMEM_CLIPDISABLE yet.
-  SetsXFClipDisableBit0,
-  SetsXFClipDisableBit1,
-  SetsXFClipDisableBit2,
+  SETS_XF_CLIPDISABLE_BIT_0,
+  SETS_XF_CLIPDISABLE_BIT_1,
+  SETS_XF_CLIPDISABLE_BIT_2,
 
   // Similar to the XF-BP mismatch, CP and XF might be configured with different vertex formats.
   // Real hardware seems to hang in this case, so games probably don't do this, but it would
   // be good to know if anything does it.
-  MismatchedGPUColorsBetweenCPAndXF,
-  MismatchedGPUNormalsBetweenCPAndXF,
-  MismatchedGPUTexCoordsBetweenCPAndXF,
+  MISMATCHED_GPU_COLORS_BETWEEN_CP_AND_XF,
+  MISMATCHED_GPU_NORMALS_BETWEEN_CP_AND_XF,
+  MISMATCHED_GPU_TEX_COORDS_BETWEEN_CP_AND_XF,
   // Both CP and XF have normally-identical matrix index information.  We currently always
   // use the CP one in the hardware renderers and the XF one in the software renderer,
   // but testing is needed to find out which of these is actually used for what.
-  MismatchedGPUMatrixIndicesBetweenCPAndXF,
+  MISMATCHED_GPU_MATRIX_INDICES_BETWEEN_CP_AND_XF,
 
   // Only a few games use the Bounding Box feature. Note that every game initializes the bounding
   // box registers (using BPMEM_CLEARBBOX1/BPMEM_CLEARBBOX2) on startup, as part of the SDK, but
   // only a few read them (from PE_BBOX_LEFT etc.)
-  ReadsBoundingBox,
+  READS_BOUNDING_BOX,
 
   // A few games use invalid vertex component formats, but the two known cases (Fifa Street and
   // Def Jam: Fight for New York, see https://bugs.dolphin-emu.org/issues/12719) only use invalid
   // normal formats and lighting is disabled in those cases, so it doesn't end up mattering.
   // It's possible other games use invalid formats, possibly on other vertex components.
-  InvalidPositionComponentFormat,
-  InvalidNormalComponentFormat,
-  InvalidTextureCoordinateComponentFormat,
-  InvalidColorComponentFormat,
+  INVALID_POSITION_COMPONENT_FORMAT,
+  INVALID_NORMAL_COMPONENT_FORMAT,
+  INVALID_TEXTURE_COORDINATE_COMPONENT_FORMAT,
+  INVALID_COLOR_COMPONENT_FORMAT,
 
-  Count,
+  COUNT,
 };
 
 class DolphinAnalytics
@@ -109,9 +108,6 @@ class DolphinAnalytics
 public:
   // Performs lazy-initialization of a singleton and returns the instance.
   static DolphinAnalytics& Instance();
-  DolphinAnalytics(const DolphinAnalytics&) = delete;
-  DolphinAnalytics& operator=(const DolphinAnalytics&) = delete;
-  ~DolphinAnalytics();
 
 #if defined(ANDROID)
   // Get value from java.
@@ -190,7 +186,7 @@ private:
   std::vector<PerformanceSample> m_performance_samples;
 
   // What quirks have already been reported about the current game.
-  std::array<bool, static_cast<size_t>(GameQuirk::Count)> m_reported_quirks;
+  std::array<bool, static_cast<size_t>(GameQuirk::COUNT)> m_reported_quirks;
 
   // Builder that contains all non variable data that should be sent with all
   // reports.
@@ -202,6 +198,4 @@ private:
 
   std::mutex m_reporter_mutex;
   Common::AnalyticsReporter m_reporter;
-  Config::ConfigChangedCallbackID m_config_changed_callback_id{};
-  bool m_last_analytics_enabled = false;
 };

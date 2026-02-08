@@ -6,8 +6,6 @@
 #pragma once
 
 #include <array>
-#include <string>
-#include <vector>
 
 extern "C" {
 #include <X11/Xlib.h>
@@ -41,20 +39,15 @@ private:
     friend class KeyboardMouse;
 
   public:
-    Key(std::string name, KeyCode keycode, const char* keyboard);
-
     std::string GetName() const override { return m_keyname; }
+    Key(Display* display, KeyCode keycode, const char* keyboard);
     ControlState GetState() const override;
 
-    static const char* GetNameForKeyCode(Display* display, KeyCode keycode);
-
   private:
-    void AddKeyCode(KeyCode);
-    bool IsKeyCodePressed(KeyCode) const;
-
-    const std::string m_keyname;
+    std::string m_keyname;
+    Display* const m_display;
     const char* const m_keyboard;
-    std::vector<KeyCode> m_keycodes;
+    const KeyCode m_keycode;
   };
 
   class Button : public Input

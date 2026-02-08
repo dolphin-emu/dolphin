@@ -120,12 +120,11 @@ Metal::Gfx::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture
 
 // MARK: Pipeline Creation
 
-std::unique_ptr<AbstractShader>
-Metal::Gfx::CreateShaderFromSource(ShaderStage stage, std::string_view source,
-                                   VideoCommon::ShaderIncluder* shader_includer,
-                                   std::string_view name)
+std::unique_ptr<AbstractShader> Metal::Gfx::CreateShaderFromSource(ShaderStage stage,
+                                                                   std::string_view source,
+                                                                   std::string_view name)
 {
-  std::optional<std::string> msl = Util::TranslateShaderToMSL(stage, source, shader_includer);
+  std::optional<std::string> msl = Util::TranslateShaderToMSL(stage, source);
   if (!msl.has_value())
   {
     PanicAlertFmt("Failed to convert shader {} to MSL", name);

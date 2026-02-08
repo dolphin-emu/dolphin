@@ -6,7 +6,6 @@
 #ifdef USE_RETRO_ACHIEVEMENTS
 #include <QDialog>
 
-#include "Common/HookableEvent.h"
 #include "Core/AchievementManager.h"
 
 class AchievementHeaderWidget;
@@ -36,8 +35,6 @@ private:
   AchievementProgressWidget* m_progress_widget;
   AchievementLeaderboardWidget* m_leaderboard_widget;
   QDialogButtonBox* m_button_box;
-
-  Common::EventHook m_event_hook;
 };
 
 #endif  // USE_RETRO_ACHIEVEMENTS

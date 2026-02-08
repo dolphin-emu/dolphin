@@ -1,3 +1,8 @@
+if(POLICY CMP0084)
+  # Disable trying to search for Qt3/4 if what we actually want is not found
+  cmake_policy(SET CMP0084 NEW)
+endif()
+
 if (MSVC)
   if(_M_ARM_64)
     list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.5.1/ARM64")
@@ -10,13 +15,6 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg)
-
-if (Qt6_VERSION VERSION_GREATER_EQUAL 6.10.0)
-  # GuiPrivate is needed to #include qplatformnativeinterface.h in MainWindow.cpp with Qt 6.10+.
-  set(NEED_QT_GUI_PRIVATE_COMPONENT ON)
-  find_package(Qt6 REQUIRED COMPONENTS GuiPrivate)
-endif()
-
 message(STATUS "Found Qt version ${Qt6_VERSION}")
 
 set_property(TARGET Qt6::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
@@ -63,10 +61,6 @@ add_executable(dolphin-emu
   Config/ConfigControls/ConfigFloatSlider.h
   Config/ConfigControls/ConfigSlider.cpp
   Config/ConfigControls/ConfigSlider.h
-  Config/ConfigControls/ConfigText.cpp
-  Config/ConfigControls/ConfigText.h
-  Config/ConfigControls/ConfigUserPath.cpp
-  Config/ConfigControls/ConfigUserPath.h
   Config/ControllerInterface/ControllerInterfaceWindow.cpp
   Config/ControllerInterface/ControllerInterfaceWindow.h
   Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp
@@ -75,8 +69,8 @@ add_executable(dolphin-emu
   Config/ControllerInterface/DualShockUDPClientWidget.h
   Config/ControllerInterface/ServerStringValidator.cpp
   Config/ControllerInterface/ServerStringValidator.h
-  Config/ControllersPane.cpp
-  Config/ControllersPane.h
+  Config/ControllersWindow.cpp
+  Config/ControllersWindow.h
   Config/FilesystemWidget.cpp
   Config/FilesystemWidget.h
   Config/FreeLookWidget.cpp
@@ -99,8 +93,8 @@ add_executable(dolphin-emu
   Config/Graphics/EnhancementsWidget.h
   Config/Graphics/GeneralWidget.cpp
   Config/Graphics/GeneralWidget.h
-  Config/Graphics/GraphicsPane.cpp
-  Config/Graphics/GraphicsPane.h
+  Config/Graphics/GraphicsWindow.cpp
+  Config/Graphics/GraphicsWindow.h
   Config/Graphics/HacksWidget.cpp
   Config/Graphics/HacksWidget.h
   Config/Graphics/ColorCorrectionConfigWindow.cpp
@@ -227,8 +221,6 @@ add_executable(dolphin-emu
   Debugger/CodeViewWidget.h
   Debugger/CodeWidget.cpp
   Debugger/CodeWidget.h
-  Debugger/EditSymbolDialog.cpp
-  Debugger/EditSymbolDialog.h
   Debugger/GekkoSyntaxHighlight.cpp
   Debugger/GekkoSyntaxHighlight.h
   Debugger/JitBlockTableModel.cpp
@@ -255,10 +247,6 @@ add_executable(dolphin-emu
   DiscordHandler.h
   DiscordJoinRequestDialog.cpp
   DiscordJoinRequestDialog.h
-  EmulatedUSB/WiiSpeakWindow.cpp
-  EmulatedUSB/WiiSpeakWindow.h
-  EmulatedUSB/LogitechMicWindow.cpp
-  EmulatedUSB/LogitechMicWindow.h
   FIFO/FIFOAnalyzer.cpp
   FIFO/FIFOAnalyzer.h
   FIFO/FIFOPlayerWindow.cpp
@@ -294,8 +282,6 @@ add_executable(dolphin-emu
   NetPlay/GameDigestDialog.h
   NetPlay/GameListDialog.cpp
   NetPlay/GameListDialog.h
-  NetPlay/ClickBlurLabel.cpp
-  NetPlay/ClickBlurLabel.h
   NetPlay/NetPlayBrowser.cpp
   NetPlay/NetPlayBrowser.h
   NetPlay/NetPlayDialog.cpp
@@ -308,8 +294,6 @@ add_executable(dolphin-emu
   NANDRepairDialog.h
   NKitWarningDialog.cpp
   NKitWarningDialog.h
-  QtUtils/AnalyticsPrompt.cpp
-  QtUtils/AnalyticsPrompt.h
   QtUtils/AspectRatioWidget.cpp
   QtUtils/AspectRatioWidget.h
   QtUtils/BlockUserInputFilter.cpp
@@ -330,8 +314,6 @@ add_executable(dolphin-emu
   QtUtils/ImageConverter.h
   QtUtils/ModalMessageBox.cpp
   QtUtils/ModalMessageBox.h
-  QtUtils/NonAutodismissibleMenu.cpp
-  QtUtils/NonAutodismissibleMenu.h
   QtUtils/NonDefaultQPushButton.cpp
   QtUtils/NonDefaultQPushButton.h
   QtUtils/ParallelProgressDialog.h
@@ -372,12 +354,10 @@ add_executable(dolphin-emu
   Settings/GeneralPane.h
   Settings/InterfacePane.cpp
   Settings/InterfacePane.h
-  Settings/OnScreenDisplayPane.cpp
-  Settings/OnScreenDisplayPane.h
   Settings/PathPane.cpp
   Settings/PathPane.h
-  Settings/USBDevicePicker.cpp
-  Settings/USBDevicePicker.h
+  Settings/USBDeviceAddToWhitelistDialog.cpp
+  Settings/USBDeviceAddToWhitelistDialog.h
   Settings/WiiPane.cpp
   Settings/WiiPane.h
   SkylanderPortal/SkylanderModifyDialog.cpp
@@ -452,13 +432,6 @@ PRIVATE
   implot
 )
 
-if (NEED_QT_GUI_PRIVATE_COMPONENT)
-  target_link_libraries(dolphin-emu
-  PRIVATE
-    Qt6::GuiPrivate
-  )
-endif()
-
 if (WIN32)
   target_link_libraries(dolphin-emu
   PRIVATE
@@ -516,13 +489,6 @@ if(WIN32)
   add_custom_command(TARGET dolphin-emu POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf.win" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf"
   )
-
-  if (ENABLE_AUTOUPDATE)
-    # Copy build_info.txt
-    add_custom_command(TARGET dolphin-emu POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_BINARY_DIR}/build_info.txt" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/build_info.txt"
-    )
-  endif()
 
   # Delegate to Qt's official deployment binary on Windows to copy over the necessary Qt-specific libraries, etc.
   get_target_property(MOC_EXECUTABLE_LOCATION Qt6::moc IMPORTED_LOCATION)
@@ -600,7 +566,7 @@ if(GETTEXT_MSGFMT_EXECUTABLE)
     else()
       add_custom_command(OUTPUT ${mo}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${mo_dir}
-        COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE} --quiet --update --backup=none ${po} ${pot_file}
+        COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE} --quiet --update --backup=none -s ${po} ${pot_file}
         COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
         DEPENDS ${po}
       )
@@ -671,7 +637,7 @@ if(APPLE)
     endif()
   endif()
 
-  if(POSTPROCESS_BUNDLE)
+  if(NOT SKIP_POSTPROCESS_BUNDLE)
     # Update library references to make the bundle portable
     include(DolphinPostprocessBundle)
     dolphin_postprocess_bundle(dolphin-emu)
@@ -711,7 +677,4 @@ endif()
 if(USE_RETRO_ACHIEVEMENTS)
   target_link_libraries(dolphin-emu PRIVATE rcheevos)
   target_compile_definitions(dolphin-emu PRIVATE -DUSE_RETRO_ACHIEVEMENTS)
-  if(RC_CLIENT_SUPPORTS_RAINTEGRATION)
-    target_compile_definitions(dolphin-emu PRIVATE -DRC_CLIENT_SUPPORTS_RAINTEGRATION)
-  endif()
 endif()

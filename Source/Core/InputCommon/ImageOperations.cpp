@@ -5,9 +5,12 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
+#include <stack>
 #include <string>
 #include <vector>
 
+#include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Image.h"
 
@@ -45,15 +48,12 @@ void CopyImageRegion(const ImagePixelData& src, ImagePixelData& dst, const Rect&
 std::optional<ImagePixelData> LoadImage(const std::string& path)
 {
   File::IOFile file;
-  if (!file.Open(path, "rb"))
-    return std::nullopt;
-
-  Common::UniqueBuffer<u8> buffer(file.GetSize());
-  if (!file.ReadBytes(buffer.data(), file.GetSize()))
-    return std::nullopt;
+  file.Open(path, "rb");
+  std::vector<u8> buffer(file.GetSize());
+  file.ReadBytes(buffer.data(), file.GetSize());
 
   ImagePixelData image;
-  Common::UniqueBuffer<u8> data;
+  std::vector<u8> data;
   if (!Common::LoadPNG(buffer, &data, &image.width, &image.height))
     return std::nullopt;
 
@@ -74,20 +74,19 @@ std::optional<ImagePixelData> LoadImage(const std::string& path)
 
 bool WriteImage(const std::string& path, const ImagePixelData& image)
 {
-  Common::UniqueBuffer<u8> buffer;
-  buffer.reset(image.width * image.height * 4);
+  std::vector<u8> buffer;
+  buffer.reserve(image.width * image.height * 4);
 
-  std::size_t buffer_index = 0;
   for (u32 y = 0; y < image.height; ++y)
   {
     for (u32 x = 0; x < image.width; ++x)
     {
       const auto index = x + y * image.width;
       const auto pixel = image.pixels[index];
-      buffer[buffer_index++] = pixel.r;
-      buffer[buffer_index++] = pixel.g;
-      buffer[buffer_index++] = pixel.b;
-      buffer[buffer_index++] = pixel.a;
+      buffer.push_back(pixel.r);
+      buffer.push_back(pixel.g);
+      buffer.push_back(pixel.b);
+      buffer.push_back(pixel.a);
     }
   }
 

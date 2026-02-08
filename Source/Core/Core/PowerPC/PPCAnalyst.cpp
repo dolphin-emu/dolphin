@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <map>
+#include <queue>
 #include <string>
 #include <vector>
 
@@ -13,6 +14,8 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HLE/HLE.h"
@@ -343,10 +346,10 @@ static void FindFunctionsFromHandlers(const Core::CPUThreadGuard& guard, PPCSymb
     if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex, entry.first))
     {
       // Check if this function is already mapped
-      const Common::Symbol* f = func_db->AddFunction(guard, entry.first);
+      Common::Symbol* f = func_db->AddFunction(guard, entry.first);
       if (!f)
         continue;
-      func_db->RenameSymbol(*f, entry.second);
+      f->Rename(entry.second);
     }
   }
 }
@@ -356,8 +359,8 @@ static void FindFunctionsAfterReturnInstruction(const Core::CPUThreadGuard& guar
 {
   std::vector<u32> funcAddrs;
 
-  func_db->ForEachSymbol(
-      [&](const Common::Symbol& symbol) { funcAddrs.push_back(symbol.address + symbol.size); });
+  for (const auto& func : func_db->Symbols())
+    funcAddrs.push_back(func.second.address + func.second.size);
 
   auto& mmu = guard.GetSystem().GetMMU();
   for (u32& location : funcAddrs)
@@ -377,7 +380,7 @@ static void FindFunctionsAfterReturnInstruction(const Core::CPUThreadGuard& guar
       if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex, location))
       {
         // check if this function is already mapped
-        const Common::Symbol* f = func_db->AddFunction(guard, location);
+        Common::Symbol* f = func_db->AddFunction(guard, location);
         if (!f)
           break;
         else
@@ -404,45 +407,45 @@ void FindFunctions(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr
   int numLeafs = 0, numNice = 0, numUnNice = 0;
   int numTimer = 0, numRFI = 0, numStraightLeaf = 0;
   int leafSize = 0, niceSize = 0, unniceSize = 0;
-  func_db->ForEachSymbolWithMutation([&](Common::Symbol& f) {
-    if (f.address == 4)
+  for (auto& func : func_db->AccessSymbols())
+  {
+    if (func.second.address == 4)
     {
       WARN_LOG_FMT(SYMBOLS, "Weird function");
+      continue;
+    }
+    AnalyzeFunction2(func_db, &(func.second));
+    Common::Symbol& f = func.second;
+    if (f.name.substr(0, 3) == "zzz")
+    {
+      if (f.flags & Common::FFLAG_LEAF)
+        f.Rename(f.name + "_leaf");
+      if (f.flags & Common::FFLAG_STRAIGHT)
+        f.Rename(f.name + "_straight");
+    }
+    if (f.flags & Common::FFLAG_LEAF)
+    {
+      numLeafs++;
+      leafSize += f.size;
+    }
+    else if (f.flags & Common::FFLAG_ONLYCALLSNICELEAFS)
+    {
+      numNice++;
+      niceSize += f.size;
     }
     else
     {
-      AnalyzeFunction2(func_db, &f);
-      if (f.name.substr(0, 3) == "zzz")
-      {
-        if (f.flags & Common::FFLAG_LEAF)
-          f.Rename(f.name + "_leaf");
-        if (f.flags & Common::FFLAG_STRAIGHT)
-          f.Rename(f.name + "_straight");
-      }
-      if (f.flags & Common::FFLAG_LEAF)
-      {
-        numLeafs++;
-        leafSize += f.size;
-      }
-      else if (f.flags & Common::FFLAG_ONLYCALLSNICELEAFS)
-      {
-        numNice++;
-        niceSize += f.size;
-      }
-      else
-      {
-        numUnNice++;
-        unniceSize += f.size;
-      }
-
-      if (f.flags & Common::FFLAG_TIMERINSTRUCTIONS)
-        numTimer++;
-      if (f.flags & Common::FFLAG_RFI)
-        numRFI++;
-      if ((f.flags & Common::FFLAG_STRAIGHT) && (f.flags & Common::FFLAG_LEAF))
-        numStraightLeaf++;
+      numUnNice++;
+      unniceSize += f.size;
     }
-  });
+
+    if (f.flags & Common::FFLAG_TIMERINSTRUCTIONS)
+      numTimer++;
+    if (f.flags & Common::FFLAG_RFI)
+      numRFI++;
+    if ((f.flags & Common::FFLAG_STRAIGHT) && (f.flags & Common::FFLAG_LEAF))
+      numStraightLeaf++;
+  }
   if (numLeafs == 0)
     leafSize = 0;
   else

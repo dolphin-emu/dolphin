@@ -23,6 +23,7 @@
 
 CheatCodeEditor::CheatCodeEditor(QWidget* parent) : QDialog(parent)
 {
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
   setWindowTitle(tr("Cheat Code Editor"));
 
   CreateWidgets();

@@ -15,10 +15,10 @@
 #include "Core/Core.h"
 #include "Core/Debugger/CodeTrace.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 RegisterWidget::RegisterWidget(QWidget* parent)
@@ -177,7 +177,7 @@ void RegisterWidget::ShowContextMenu()
       const std::string type_string =
           fmt::format("{}{}", type == RegisterType::gpr ? "r" : "f", m_table->currentItem()->row());
       menu->addAction(tr("Run until hit (ignoring breakpoints)"),
-                      [this, type_string] { AutoStep(type_string); });
+                      [this, type_string]() { AutoStep(type_string); });
     }
 
     for (auto* action : {view_hex, view_int, view_uint, view_float, view_double})
@@ -309,6 +309,7 @@ void RegisterWidget::AutoStep(const std::string& reg) const
       break;
 
     // Can keep running and try again after a time out.
+    SetQWidgetWindowDecorations(&msgbox);
     msgbox.exec();
     if (msgbox.clickedButton() != (QAbstractButton*)run_button)
       break;
@@ -406,10 +407,7 @@ void RegisterWidget::PopulateTable()
     AddRegister(
         i, 7, RegisterType::sr, "SR" + std::to_string(i),
         [this, i] { return m_system.GetPPCState().sr[i]; },
-        [this, i](u64 value) {
-          m_system.GetPPCState().sr[i] = value;
-          m_system.GetMMU().SRUpdated();
-        });
+        [this, i](u64 value) { m_system.GetPPCState().sr[i] = value; });
   }
 
   // Special registers
@@ -453,7 +451,7 @@ void RegisterWidget::PopulateTable()
       23, 5, RegisterType::msr, "MSR", [this] { return m_system.GetPPCState().msr.Hex; },
       [this](u64 value) {
         m_system.GetPPCState().msr.Hex = value;
-        m_system.GetPowerPC().MSRUpdated();
+        PowerPC::MSRUpdated(m_system.GetPPCState());
       });
 
   // SRR 0-1
@@ -494,7 +492,7 @@ void RegisterWidget::PopulateTable()
       31, 5, RegisterType::pt_hashmask, "Hash Mask",
       [this] {
         const auto& ppc_state = m_system.GetPPCState();
-        return ppc_state.pagetable_mask | ppc_state.pagetable_base;
+        return (ppc_state.pagetable_hashmask << 6) | ppc_state.pagetable_base;
       },
       nullptr);
 

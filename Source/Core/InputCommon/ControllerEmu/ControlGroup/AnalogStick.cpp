@@ -3,12 +3,15 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 
+#include <cmath>
 #include <optional>
 
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 
+#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
+#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
@@ -48,6 +51,13 @@ AnalogStick::StateData AnalogStick::GetState() const
 
 AnalogStick::StateData AnalogStick::GetState(const InputOverrideFunction& override_func) const
 {
+  bool override_occurred = false;
+  return GetState(override_func, &override_occurred);
+}
+
+AnalogStick::StateData AnalogStick::GetState(const InputOverrideFunction& override_func,
+                                             bool* override_occurred) const
+{
   StateData state = GetState();
   if (!override_func)
     return state;
@@ -55,11 +65,13 @@ AnalogStick::StateData AnalogStick::GetState(const InputOverrideFunction& overri
   if (const std::optional<ControlState> x_override = override_func(name, X_INPUT_OVERRIDE, state.x))
   {
     state.x = *x_override;
+    *override_occurred = true;
   }
 
   if (const std::optional<ControlState> y_override = override_func(name, Y_INPUT_OVERRIDE, state.y))
   {
     state.y = *y_override;
+    *override_occurred = true;
   }
 
   return state;

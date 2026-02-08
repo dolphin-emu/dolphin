@@ -5,8 +5,8 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstring>
-#include <fstream>
 #include <memory>
 #include <numeric>
 #include <optional>
@@ -17,6 +17,7 @@
 
 #include <fmt/ranges.h>
 
+#include "Common/Align.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -235,11 +236,10 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
 #endif
 
   static const std::unordered_set<std::string> disc_image_extensions = {
-      {".gcm", ".bin", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".wia", ".rvz", ".nfs", ".dol",
-       ".elf"}};
+      {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".wia", ".rvz", ".nfs", ".dol", ".elf"}};
   if (disc_image_extensions.contains(extension))
   {
-    std::unique_ptr<DiscIO::VolumeDisc> disc = DiscIO::CreateDiscForCore(path);
+    std::unique_ptr<DiscIO::VolumeDisc> disc = DiscIO::CreateDisc(path);
     if (disc)
     {
       return std::make_unique<BootParameters>(Disc{std::move(path), std::move(disc), paths},
@@ -353,6 +353,39 @@ bool CBoot::DVDReadDiscID(Core::System& system, const DiscIO::VolumeDisc& disc, 
   return true;
 }
 
+// Get map file paths for the active title.
+bool CBoot::FindMapFile(std::string* existing_map_file, std::string* writable_map_file)
+{
+  const std::string& game_id = SConfig::GetInstance().m_debugger_game_id;
+  std::string path = File::GetUserPath(D_MAPS_IDX) + game_id + ".map";
+
+  if (writable_map_file)
+    *writable_map_file = path;
+
+  if (File::Exists(path))
+  {
+    if (existing_map_file)
+      *existing_map_file = std::move(path);
+
+    return true;
+  }
+
+  return false;
+}
+
+bool CBoot::LoadMapFromFilename(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_symbol_db)
+{
+  std::string strMapFilename;
+  bool found = FindMapFile(&strMapFilename, nullptr);
+  if (found && ppc_symbol_db.LoadMap(guard, strMapFilename))
+  {
+    Host_PPCSymbolsChanged();
+    return true;
+  }
+
+  return false;
+}
+
 // If ipl.bin is not found, this function does *some* of what BS1 does:
 // loading IPL(BS2) and jumping to it.
 // It does not initialize the hardware or anything else like BS1 does.
@@ -373,7 +406,6 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
   constexpr u32 PAL_v1_0 = 0x4F319F43;
   // DOL-101(EUR) (PAL Revision 1.2)
   constexpr u32 PAL_v1_2 = 0xAD1B7F16;
-  constexpr u32 Triforce = 0xD1883221;  // The Triforce's special IPL
 
   // Load the IPL ROM dump, limited to 2MiB which is the size of the official IPLs.
   constexpr size_t max_ipl_size = 2 * 1024 * 1024;
@@ -405,8 +437,6 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
     pal_ipl = true;
     known_ipl = true;
     break;
-  case Triforce:
-    known_ipl = true;
   default:
     PanicAlertFmtT("The IPL file is not a known good dump. (CRC32: {0:x})", ipl_hash);
     break;
@@ -459,7 +489,7 @@ bool CBoot::Load_BS2(Core::System& system, const std::string& boot_rom_filename)
 
   ppc_state.pc = 0x81200150;
 
-  system.GetPowerPC().MSRUpdated();
+  PowerPC::MSRUpdated(ppc_state);
 
   return true;
 }
@@ -468,7 +498,7 @@ static void SetDefaultDisc(DVD::DVDInterface& dvd_interface)
 {
   const std::string default_iso = Config::Get(Config::MAIN_DEFAULT_ISO);
   if (!default_iso.empty())
-    SetDisc(dvd_interface, DiscIO::CreateDiscForCore(default_iso));
+    SetDisc(dvd_interface, DiscIO::CreateDisc(default_iso));
 }
 
 static void CopyDefaultExceptionHandlers(Core::System& system)
@@ -489,6 +519,12 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
                    std::unique_ptr<BootParameters> boot)
 {
   SConfig& config = SConfig::GetInstance();
+
+  if (auto& ppc_symbol_db = system.GetPPCSymbolDB(); !ppc_symbol_db.IsEmpty())
+  {
+    ppc_symbol_db.Clear();
+    Host_PPCSymbolsChanged();
+  }
 
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
   system.GetVideoInterface().Preset(DiscIO::IsNTSC(config.m_region) ||
@@ -529,7 +565,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
 
       auto& ppc_state = system.GetPPCState();
 
-      SetupMSR(system);
+      SetupMSR(ppc_state);
       SetupHID(ppc_state, system.IsWii());
       SetupBAT(system, system.IsWii());
       CopyDefaultExceptionHandlers(system);
@@ -557,13 +593,13 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
         SetupGCMemory(system, guard);
       }
 
+      AchievementManager::GetInstance().LoadGame(executable.path, nullptr);
+
       if (!executable.reader->LoadIntoMemory(system))
       {
         PanicAlertFmtT("Failed to load the executable to memory.");
         return false;
       }
-
-      AchievementManager::GetInstance().LoadGame(nullptr);
 
       SConfig::OnTitleDirectlyBooted(guard);
 
@@ -571,18 +607,11 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
 
       const std::string filename = PathToFileName(executable.path);
 
-      auto& ppc_symbol_db = system.GetPPCSymbolDB();
-      bool symbols_changed = ppc_symbol_db.Clear();
-
-      if (executable.reader->LoadSymbols(guard, ppc_symbol_db, filename))
+      if (executable.reader->LoadSymbols(guard, system.GetPPCSymbolDB(), filename))
       {
-        symbols_changed = true;
+        Host_PPCSymbolsChanged();
         HLE::PatchFunctions(system);
       }
-
-      if (symbols_changed)
-        Host_PPCSymbolsChanged();
-
       return true;
     }
 
@@ -591,8 +620,6 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       SetDefaultDisc(system.GetDVDInterface());
       if (!Boot_WiiWAD(system, wad))
         return false;
-
-      AchievementManager::GetInstance().LoadGame(&wad);
 
       SConfig::OnTitleDirectlyBooted(guard);
       return true;
@@ -603,8 +630,6 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       SetDefaultDisc(system.GetDVDInterface());
       if (!BootNANDTitle(system, nand_title.id))
         return false;
-
-      AchievementManager::GetInstance().LoadGame(nullptr);
 
       SConfig::OnTitleDirectlyBooted(guard);
       return true;
@@ -628,12 +653,8 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       if (ipl.disc)
       {
         NOTICE_LOG_FMT(BOOT, "Inserting disc: {}", ipl.disc->path);
-        SetDisc(system.GetDVDInterface(), DiscIO::CreateDiscForCore(ipl.disc->path),
+        SetDisc(system.GetDVDInterface(), DiscIO::CreateDisc(ipl.disc->path),
                 ipl.disc->auto_disc_change_paths);
-      }
-      else
-      {
-        AchievementManager::GetInstance().LoadGame(nullptr);
       }
 
       SConfig::OnTitleDirectlyBooted(guard);
@@ -643,7 +664,6 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
     bool operator()(const BootParameters::DFF& dff) const
     {
       NOTICE_LOG_FMT(BOOT, "Booting DFF: {}", dff.dff_path);
-      AchievementManager::GetInstance().LoadGame(nullptr);
       return system.GetFifoPlayer().Open(dff.dff_path);
     }
 
@@ -702,13 +722,13 @@ void UpdateStateFlags(std::function<void(StateFlags*)> update_function)
 
   StateFlags state{};
   if (file->GetStatus()->size == sizeof(StateFlags))
-    (void)file->Read(&state, 1);
+    file->Read(&state, 1);
 
   update_function(&state);
   state.UpdateChecksum();
 
-  (void)file->Seek(0, IOS::HLE::FS::SeekMode::Set);
-  (void)file->Write(&state, 1);
+  file->Seek(0, IOS::HLE::FS::SeekMode::Set);
+  file->Write(&state, 1);
 }
 
 void CreateSystemMenuTitleDirs()

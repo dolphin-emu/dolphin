@@ -22,22 +22,20 @@ class DSPHLE;
 class AESndAccelerator final : public Accelerator
 {
 public:
-  explicit AESndAccelerator(DSPManager& dsp);
+  explicit AESndAccelerator(DSP::DSPManager& dsp);
   AESndAccelerator(const AESndAccelerator&) = delete;
   AESndAccelerator(AESndAccelerator&&) = delete;
   AESndAccelerator& operator=(const AESndAccelerator&) = delete;
   AESndAccelerator& operator=(AESndAccelerator&&) = delete;
-  ~AESndAccelerator() override;
+  ~AESndAccelerator();
 
 protected:
-  void OnRawReadEndException() override {}
-  void OnRawWriteEndException() override {}
-  void OnSampleReadEndException() override;
+  void OnEndException() override;
   u8 ReadMemory(u32 address) override;
   void WriteMemory(u32 address, u8 value) override;
 
 private:
-  DSPManager& m_dsp;
+  DSP::DSPManager& m_dsp;
 };
 
 class AESndUCode final : public UCodeInterface

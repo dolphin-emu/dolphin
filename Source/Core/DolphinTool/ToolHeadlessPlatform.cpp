@@ -1,9 +1,17 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <cstdio>
+#include <thread>
+
 #include <memory>
 #include <string>
 
+#include "Common/Flag.h"
+#include "Common/WindowSystemInfo.h"
+
+#include "Core/Core.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/Host.h"
 
 // Begin stubs needed to satisfy Core dependencies
@@ -18,6 +26,10 @@ void Host_PPCSymbolsChanged()
 }
 
 void Host_PPCBreakpointsChanged()
+{
+}
+
+void Host_RefreshDSPDebuggerWindow()
 {
 }
 
@@ -58,6 +70,10 @@ void Host_JitCacheInvalidation()
 }
 
 void Host_JitProfileDataWiped()
+{
+}
+
+void Host_UpdateMainFrame()
 {
 }
 

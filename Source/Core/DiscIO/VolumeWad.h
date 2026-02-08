@@ -23,7 +23,7 @@ enum class Language;
 enum class Region;
 enum class Platform;
 
-class VolumeWAD final : public Volume
+class VolumeWAD : public Volume
 {
 public:
   VolumeWAD(std::unique_ptr<BlobReader> reader);

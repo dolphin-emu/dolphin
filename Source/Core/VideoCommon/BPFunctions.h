@@ -12,9 +12,7 @@
 
 #include "Common/MathUtil.h"
 #include "VideoCommon/BPMemory.h"
-
-class FramebufferManager;
-struct Viewport;
+struct XFMemory;
 
 namespace BPFunctions
 {
@@ -69,14 +67,13 @@ struct ScissorRect
 // under [Settings] to True in GFX.ini.
 struct ScissorResult
 {
-  ScissorResult(ScissorPos scissor_top_left, ScissorPos scissor_bottom_right,
-                ScissorOffset scissor_offset, const Viewport& viewport);
+  ScissorResult(const BPMemory& bpmem, const XFMemory& xfmem);
   ~ScissorResult() = default;
   ScissorResult(const ScissorResult& other)
       : scissor_tl{.hex = other.scissor_tl.hex}, scissor_br{.hex = other.scissor_br.hex},
         scissor_off{.hex = other.scissor_off.hex}, viewport_left{other.viewport_left},
         viewport_right{other.viewport_right}, viewport_top{other.viewport_top},
-        viewport_bottom{other.viewport_bottom}, rectangles{other.rectangles}
+        viewport_bottom{other.viewport_bottom}, m_result{other.m_result}
   {
   }
   ScissorResult& operator=(const ScissorResult& other)
@@ -90,14 +87,14 @@ struct ScissorResult
     viewport_right = other.viewport_right;
     viewport_top = other.viewport_top;
     viewport_bottom = other.viewport_bottom;
-    rectangles = other.rectangles;
+    m_result = other.m_result;
     return *this;
   }
   ScissorResult(ScissorResult&& other)
       : scissor_tl{.hex = other.scissor_tl.hex}, scissor_br{.hex = other.scissor_br.hex},
         scissor_off{.hex = other.scissor_off.hex}, viewport_left{other.viewport_left},
         viewport_right{other.viewport_right}, viewport_top{other.viewport_top},
-        viewport_bottom{other.viewport_bottom}, rectangles{std::move(other.rectangles)}
+        viewport_bottom{other.viewport_bottom}, m_result{std::move(other.m_result)}
   {
   }
   ScissorResult& operator=(ScissorResult&& other)
@@ -111,7 +108,7 @@ struct ScissorResult
     viewport_right = other.viewport_right;
     viewport_top = other.viewport_top;
     viewport_bottom = other.viewport_bottom;
-    rectangles = std::move(other.rectangles);
+    m_result = std::move(other.m_result);
     return *this;
   }
 
@@ -124,7 +121,8 @@ struct ScissorResult
   float viewport_top;
   float viewport_bottom;
 
-  std::vector<ScissorRect> rectangles;
+  // Actual result
+  std::vector<ScissorRect> m_result;
 
   ScissorRect Best() const;
 
@@ -148,31 +146,21 @@ struct ScissorResult
   }
 
 private:
-  ScissorResult(ScissorPos scissor_top_left, ScissorPos scissor_bottom_right,
-                ScissorOffset scissor_offset, std::pair<float, float> viewport_x,
+  ScissorResult(const BPMemory& bpmem, std::pair<float, float> viewport_x,
                 std::pair<float, float> viewport_y);
 
   int GetViewportArea(const ScissorRect& rect) const;
   bool IsWorse(const ScissorRect& lhs, const ScissorRect& rhs) const;
 };
 
-ScissorResult ComputeScissorRects(ScissorPos scissor_top_left, ScissorPos scissor_bottom_right,
-                                  ScissorOffset scissor_offset, const Viewport& viewport);
+ScissorResult ComputeScissorRects();
 
 void FlushPipeline();
 void SetGenerationMode();
-void SetScissorAndViewport(FramebufferManager* frame_buffer_manager, ScissorPos scissor_top_left,
-                           ScissorPos scissor_bottom_right, ScissorOffset scissor_offset,
-                           Viewport viewport);
+void SetScissorAndViewport();
 void SetDepthMode();
 void SetBlendMode();
-
-// Returns true if the EFB was triggered to clear
-bool ClearScreen(FramebufferManager* frame_buffer_manager, const MathUtil::Rectangle<int>& rc,
-                 bool color_enable, bool alpha_enable, bool z_enable, PixelFormat pixel_format,
-                 u32 clear_color_ar, u32 clear_color_gb, u32 clear_z_value);
-
-void OnPixelFormatChange(FramebufferManager* frame_buffer_manager, PixelFormat pixel_format,
-                         DepthFormat z_format);
+void ClearScreen(const MathUtil::Rectangle<int>& rc);
+void OnPixelFormatChange();
 void SetInterlacingMode(const BPCmd& bp);
 }  // namespace BPFunctions

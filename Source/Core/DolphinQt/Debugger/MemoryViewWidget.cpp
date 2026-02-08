@@ -19,17 +19,18 @@
 #include <QTableWidget>
 #include <QtGlobal>
 
+#include <fmt/printf.h>
+
 #include "Common/Align.h"
 #include "Common/BitUtils.h"
+#include "Common/FloatUtils.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/Core.h"
 #include "Core/HW/AddressSpace.h"
 #include "Core/PowerPC/BreakPoints.h"
-#include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
-#include "DolphinQt/Debugger/EditSymbolDialog.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
@@ -195,7 +196,7 @@ private:
 };
 
 MemoryViewWidget::MemoryViewWidget(Core::System& system, QWidget* parent)
-    : QWidget(parent), m_system(system), m_ppc_symbol_db(m_system.GetPPCSymbolDB())
+    : QWidget(parent), m_system(system)
 {
   auto* layout = new QHBoxLayout();
   layout->setContentsMargins(0, 0, 0, 0);
@@ -219,8 +220,6 @@ MemoryViewWidget::MemoryViewWidget(Core::System& system, QWidget* parent)
   this->setLayout(layout);
 
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &MemoryViewWidget::UpdateFont);
-  connect(Host::GetInstance(), &Host::PPCSymbolsChanged, this,
-          [this] { UpdateDispatcher(UpdateType::Symbols); });
   connect(Host::GetInstance(), &Host::PPCBreakpointsChanged, this,
           &MemoryViewWidget::UpdateBreakpointTags);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
@@ -348,9 +347,6 @@ void MemoryViewWidget::UpdateDispatcher(UpdateType type)
     if (Core::GetState(m_system) == Core::State::Paused)
       GetValues();
     UpdateColumns();
-    [[fallthrough]];
-  case UpdateType::Symbols:
-    UpdateSymbols();
     break;
   case UpdateType::Auto:
     // Values were captured on CPU thread while doing a callback.
@@ -375,7 +371,7 @@ void MemoryViewWidget::CreateTable()
   // Span is the number of unique memory values covered in one row.
   const int data_span = m_bytes_per_row / GetTypeSize(m_type);
   m_data_columns = m_dual_view ? data_span * 2 : data_span;
-  const int total_columns = MISC_COLUMNS + m_data_columns + (m_show_symbols ? 1 : 0);
+  const int total_columns = MISC_COLUMNS + m_data_columns;
 
   const int rows =
       std::round((m_table->height() / static_cast<float>(m_table->rowHeight(0))) - 0.25);
@@ -444,15 +440,6 @@ void MemoryViewWidget::CreateTable()
 
       m_table->setItem(i, c + MISC_COLUMNS, item.clone());
     }
-
-    if (!m_show_symbols)
-      continue;
-
-    // Symbols
-    auto* description_item = new QTableWidgetItem(QStringLiteral("-"));
-    description_item->setFlags(Qt::ItemIsEnabled);
-
-    m_table->setItem(i, m_table->columnCount() - 1, description_item);
   }
 
   // Update column width
@@ -486,7 +473,7 @@ void MemoryViewWidget::Update()
   const int data_span = m_bytes_per_row / GetTypeSize(m_type);
 
   m_address_range.first = row_address;
-  m_address_range.second = row_address + m_table->rowCount() * m_bytes_per_row;
+  m_address_range.second = row_address + m_table->rowCount() * m_bytes_per_row - 1;
 
   for (int i = 0; i < m_table->rowCount(); i++, row_address += m_bytes_per_row)
   {
@@ -513,9 +500,6 @@ void MemoryViewWidget::Update()
       item->setBackground(Qt::transparent);
       item->setData(USER_ROLE_VALID_ADDRESS, false);
     }
-
-    if (m_show_symbols)
-      m_table->item(i, m_table->columnCount() - 1)->setData(USER_ROLE_CELL_ADDRESS, row_address);
   }
 
   UpdateBreakpointTags();
@@ -592,34 +576,6 @@ void MemoryViewWidget::UpdateColumns()
   }
 }
 
-void MemoryViewWidget::UpdateSymbols()
-{
-  if (!m_show_symbols)
-    return;
-
-  // Update symbols
-  for (int i = 0; i < m_table->rowCount(); i++)
-  {
-    auto* item = m_table->item(i, m_table->columnCount() - 1);
-    if (!item)
-      continue;
-
-    const u32 address = item->data(USER_ROLE_CELL_ADDRESS).toUInt();
-    const Common::Note* note = m_ppc_symbol_db.GetNoteFromAddr(address);
-
-    std::string desc;
-    if (note == nullptr)
-      desc = m_ppc_symbol_db.GetDescription(address);
-    else
-      desc = note->name;
-
-    item->setText(QString::fromStdString(" " + desc));
-  }
-
-  if (m_show_symbols)
-    m_table->resizeColumnToContents(m_table->columnCount() - 1);
-}
-
 // Always runs on CPU thread from a callback.
 void MemoryViewWidget::UpdateOnFrameEnd()
 {
@@ -655,13 +611,9 @@ void MemoryViewWidget::GetValues()
   // Grab memory values as QStrings
   Core::CPUThreadGuard guard(m_system);
 
-  const u32 type_size = static_cast<u32>(GetTypeSize(m_type));
-  const auto& [range_begin, range_end] = m_address_range;
-  const u32 address_count = (range_end - range_begin) / type_size;
-
-  for (u32 i = 0; i < address_count; ++i)
+  for (u32 address = m_address_range.first; address <= m_address_range.second;
+       address += GetTypeSize(m_type))
   {
-    const u32 address = range_begin + i * type_size;
     m_values.insert(std::pair(address, ValueToString(guard, address, m_type)));
 
     if (m_dual_view)
@@ -932,11 +884,7 @@ std::vector<u8> MemoryViewWidget::ConvertTextToBytes(Type type, QStringView inpu
     // Confirm it is only hex bytes
     const QRegularExpression is_hex(QStringLiteral("^([0-9A-F]{2})*$"),
                                     QRegularExpression::CaseInsensitiveOption);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
-    const QRegularExpressionMatch match = is_hex.matchView(input_text);
-#else
     const QRegularExpressionMatch match = is_hex.match(input_text);
-#endif
     good = match.hasMatch();
     if (good)
     {
@@ -981,7 +929,7 @@ void MemoryViewWidget::ToggleHighlights(bool enabled)
   }
   else
   {
-    // Treated as being interchangeable with Qt::transparent.
+    // Treated as being interchangable with Qt::transparent.
     m_highlight_color.setAlpha(0);
 
     // Immediately remove highlights when paused.
@@ -1058,7 +1006,6 @@ void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
 
   {
     const Core::CPUThreadGuard guard(m_system);
-    DelayedMemCheckUpdate delayed_update(&memchecks);
 
     for (int i = 0; i < breaks; i++)
     {
@@ -1077,14 +1024,16 @@ void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
         check.log_on_hit = m_do_log;
         check.break_on_hit = true;
 
-        delayed_update |= memchecks.Add(std::move(check));
+        memchecks.Add(std::move(check), false);
       }
       else if (check_ptr != nullptr)
       {
         // Using the pointer fixes misaligned breakpoints (0x11 breakpoint in 0x10 aligned view).
-        delayed_update |= memchecks.Remove(check_ptr->start_address);
+        memchecks.Remove(check_ptr->start_address, false);
       }
     }
+
+    memchecks.Update();
   }
 
   emit Host::GetInstance()->PPCBreakpointsChanged();
@@ -1104,78 +1053,6 @@ void MemoryViewWidget::OnCopyHex(u32 addr)
 
   QApplication::clipboard()->setText(
       QStringLiteral("%1").arg(value, sizeof(u64) * 2, 16, QLatin1Char('0')).left(length * 2));
-}
-
-void MemoryViewWidget::ShowSymbols(bool enable)
-{
-  m_show_symbols = enable;
-  UpdateDispatcher(UpdateType::Full);
-}
-
-void MemoryViewWidget::OnEditSymbol(EditSymbolType type, u32 addr)
-{
-  // Add Note and Add Region use these values.
-  std::string name = "";
-  std::string object_name = "";
-  u32 size = GetTypeSize(m_type);
-  u32 address = addr;
-  EditSymbolDialog::Type dialog_type = EditSymbolDialog::Type::Note;
-
-  // Add and edit region are tied to the same context menu action.
-  if (type == EditSymbolType::EditRegion)
-  {
-    // If symbol doesn't exist, it's safe to add a new region.
-    const Common::Symbol* const symbol = m_ppc_symbol_db.GetSymbolFromAddr(addr);
-    dialog_type = EditSymbolDialog::Type::Symbol;
-
-    if (symbol != nullptr)
-    {
-      // Leave the more specialized function editing to code widget.
-      if (symbol->type != Common::Symbol::Type::Data)
-        return;
-
-      // Edit data region.
-      name = symbol->name;
-      object_name = symbol->object_name;
-      size = symbol->size;
-      address = symbol->address;
-    }
-  }
-  else if (type == EditSymbolType::EditNote)
-  {
-    const Common::Note* note = m_ppc_symbol_db.GetNoteFromAddr(addr);
-    if (note == nullptr)
-      return;
-
-    name = note->name;
-    size = note->size;
-    address = note->address;
-  }
-
-  EditSymbolDialog dialog(this, address, &size, &name, dialog_type);
-
-  if (dialog.exec() != QDialog::Accepted)
-    return;
-
-  if (dialog.DeleteRequested())
-  {
-    if (type == EditSymbolType::EditRegion)
-      m_ppc_symbol_db.DeleteFunction(address);
-    else
-      m_ppc_symbol_db.DeleteNote(address);
-  }
-  else if (type == EditSymbolType::EditRegion)
-  {
-    m_ppc_symbol_db.AddKnownSymbol(Core::CPUThreadGuard{m_system}, address, size, name, object_name,
-                                   Common::Symbol::Type::Data);
-  }
-  else
-  {
-    m_ppc_symbol_db.AddKnownNote(address, size, name);
-    m_ppc_symbol_db.DetermineNoteLayers();
-  }
-
-  emit Host::GetInstance()->PPCSymbolsChanged();
 }
 
 void MemoryViewWidget::OnContextMenu(const QPoint& pos)
@@ -1205,21 +1082,6 @@ void MemoryViewWidget::OnContextMenu(const QPoint& pos)
     QApplication::clipboard()->setText(item_selected->text());
   });
   copy_value->setEnabled(item_has_value);
-
-  menu->addSeparator();
-
-  auto* note_add_action = menu->addAction(
-      tr("Add Note"), this, [this, addr] { OnEditSymbol(EditSymbolType::AddNote, addr); });
-  auto* note_edit_action = menu->addAction(
-      tr("Edit Note"), this, [this, addr] { OnEditSymbol(EditSymbolType::EditNote, addr); });
-  menu->addAction(tr("Add or edit region label"), this,
-                  [this, addr] { OnEditSymbol(EditSymbolType::EditRegion, addr); });
-
-  auto* note = m_ppc_symbol_db.GetNoteFromAddr(addr);
-  note_edit_action->setEnabled(note != nullptr);
-  // A note cannot be added on top of the starting address of another note.
-  if (note != nullptr && note->address == addr)
-    note_add_action->setEnabled(false);
 
   menu->addSeparator();
 

@@ -4,9 +4,11 @@
 #include "Core/IOS/Network/KD/VFF/VFFUtil.h"
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
-#include <utility>
 #include <vector>
+
+#include <fmt/format.h>
 
 // Does not compile if diskio.h is included first.
 // clang-format off
@@ -15,6 +17,7 @@
 // clang-format on
 
 #include "Common/Align.h"
+#include "Common/EnumUtils.h"
 #include "Common/FatFsUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
@@ -209,7 +212,7 @@ static ErrorCode WriteFile(const std::string& filename, std::span<const u8> tmp_
     if (write_error_code != FR_OK)
     {
       ERROR_LOG_FMT(IOS_WC24, "Failed to write file {} to VFF: {}", filename,
-                    std::to_underlying(write_error_code));
+                    Common::ToUnderlying(write_error_code));
       return WC24_ERR_FILE_WRITE;
     }
 
@@ -302,7 +305,7 @@ ErrorCode WriteToVFF(const std::string& path, const std::string& filename,
 {
   VffFatFsCallbacks callbacks;
   ErrorCode return_value;
-  Common::RunInFatFsContext(callbacks, [&] {
+  Common::RunInFatFsContext(callbacks, [&]() {
     auto temp = fs->OpenFile(PID_KD, PID_KD, path, FS::Mode::ReadWrite);
     if (!temp)
     {
@@ -357,7 +360,7 @@ ErrorCode ReadFromVFF(const std::string& path, const std::string& filename,
 {
   VffFatFsCallbacks callbacks;
   ErrorCode return_value;
-  Common::RunInFatFsContext(callbacks, [&] {
+  Common::RunInFatFsContext(callbacks, [&]() {
     auto temp = fs->OpenFile(PID_KD, PID_KD, path, FS::Mode::ReadWrite);
     if (!temp)
     {
@@ -408,7 +411,7 @@ ErrorCode DeleteFileFromVFF(const std::string& path, const std::string& filename
 {
   VffFatFsCallbacks callbacks;
   ErrorCode return_value;
-  Common::RunInFatFsContext(callbacks, [&] {
+  Common::RunInFatFsContext(callbacks, [&]() {
     auto temp = fs->OpenFile(PID_KD, PID_KD, path, FS::Mode::ReadWrite);
     if (!temp)
     {

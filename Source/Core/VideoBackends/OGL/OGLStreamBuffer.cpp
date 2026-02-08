@@ -4,12 +4,14 @@
 #include "VideoBackends/OGL/OGLStreamBuffer.h"
 
 #include "Common/Align.h"
+#include "Common/GL/GLUtil.h"
 #include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
 
 #include "VideoBackends/OGL/OGLConfig.h"
 
 #include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 namespace OGL
 {
@@ -40,7 +42,7 @@ StreamBuffer::~StreamBuffer()
  * The next three functions are to create/delete/use the OpenGL synchronization.
  * ARB_sync (OpenGL 3.2) is used and required.
  *
- * To reduce overhead, the complete buffer is split up into SYNC_POINTS chunks.
+ * To reduce overhead, the complete buffer is splitted up into SYNC_POINTS chunks.
  * For each of this chunks, there is a fence which checks if this chunk is still in use.
  *
  * As our API allows to alloc more memory then it has to use, we have to catch how much is already
@@ -140,7 +142,7 @@ public:
     glBufferData(m_buffertype, m_size, nullptr, GL_STREAM_DRAW);
   }
 
-  ~MapAndOrphan() override {}
+  ~MapAndOrphan() {}
   std::pair<u8*, u32> Map(u32 size) override
   {
     if (m_iterator + size >= m_size)
@@ -179,7 +181,7 @@ public:
     glBufferData(m_buffertype, m_size, nullptr, GL_STREAM_DRAW);
   }
 
-  ~MapAndSync() override { DeleteFences(); }
+  ~MapAndSync() { DeleteFences(); }
   std::pair<u8*, u32> Map(u32 size) override
   {
     AllocMemory(size);
@@ -232,7 +234,7 @@ public:
                                   (coherent ? GL_MAP_COHERENT_BIT : GL_MAP_FLUSH_EXPLICIT_BIT));
   }
 
-  ~BufferStorage() override
+  ~BufferStorage()
   {
     DeleteFences();
     glUnmapBuffer(m_buffertype);
@@ -278,7 +280,7 @@ public:
     glBindBuffer(m_buffertype, m_buffer);
   }
 
-  ~PinnedMemory() override
+  ~PinnedMemory()
   {
     DeleteFences();
     glBindBuffer(m_buffertype, 0);
@@ -313,7 +315,7 @@ public:
     m_pointer = new u8[m_size];
   }
 
-  ~BufferSubData() override { delete[] m_pointer; }
+  ~BufferSubData() { delete[] m_pointer; }
   std::pair<u8*, u32> Map(u32 size) override { return std::make_pair(m_pointer, 0); }
   void Unmap(u32 used_size) override { glBufferSubData(m_buffertype, 0, used_size, m_pointer); }
   u8* m_pointer;
@@ -333,7 +335,7 @@ public:
     m_pointer = new u8[m_size];
   }
 
-  ~BufferData() override { delete[] m_pointer; }
+  ~BufferData() { delete[] m_pointer; }
   std::pair<u8*, u32> Map(u32 size) override { return std::make_pair(m_pointer, 0); }
   void Unmap(u32 used_size) override
   {

@@ -5,10 +5,12 @@
 
 #include <fmt/format.h>
 
+#include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 ShaderHostConfig ShaderHostConfig::GetCurrent()
 {

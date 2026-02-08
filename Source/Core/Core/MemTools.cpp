@@ -3,10 +3,16 @@
 
 #include "Core/MemTools.h"
 
+#include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <vector>
 
+#include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
+#include "Common/Thread.h"
 
 #include "Core/MachineContext.h"
 #include "Core/PowerPC/JitInterface.h"
@@ -17,13 +23,6 @@
 #endif
 #ifndef _WIN32
 #include <unistd.h>  // Needed for _POSIX_VERSION
-#endif
-
-#ifdef _WIN32
-#include "Common/Assert.h"
-#endif
-#if defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
-#include "Common/Thread.h"
 #endif
 
 #if defined(__APPLE__)
@@ -259,51 +258,73 @@ bool IsExceptionHandlerSupported()
 #elif defined(_POSIX_VERSION) && !defined(_M_GENERIC)
 
 static struct sigaction old_sa_segv;
-#if defined(__APPLE__)
 static struct sigaction old_sa_bus;
-#endif
 
 static void sigsegv_handler(int sig, siginfo_t* info, void* raw_context)
 {
-  if (sig != SIGSEGV
-#if defined(__APPLE__)
-      && sig != SIGBUS
-#endif
-  )
+  if (sig != SIGSEGV && sig != SIGBUS)
   {
     // We are not interested in other signals - handle it as usual.
     return;
   }
-  auto* const context = static_cast<ucontext_t*>(raw_context);
-  const int sicode = info->si_code;
+  ucontext_t* context = (ucontext_t*)raw_context;
+  int sicode = info->si_code;
   if (sicode != SEGV_MAPERR && sicode != SEGV_ACCERR)
   {
     // Huh? Return.
     return;
   }
-  const auto bad_address = reinterpret_cast<uintptr_t>(info->si_addr);
+  uintptr_t bad_address = (uintptr_t)info->si_addr;
 
 // Get all the information we can out of the context.
 #ifdef __OpenBSD__
-  SContext* const ctx = context;
-#elif defined(__APPLE__)
-  // `uc_mcontext` is already a pointer here.
-  SContext* const ctx = context->uc_mcontext;
+  ucontext_t* ctx = context;
 #else
-  SContext* const ctx = &context->uc_mcontext;
+  mcontext_t* ctx = &context->uc_mcontext;
 #endif
-  if (Core::System::GetInstance().GetJitInterface().HandleFault(bad_address, ctx))
-    return;
-
-  // If JIT didn't handle the signal, restore the original handler and invoke it.
-  const auto& old_sa =
-#if defined(__APPLE__)
-      (sig == SIGBUS) ? old_sa_bus :
+  // assume it's not a write
+  if (!Core::System::GetInstance().GetJitInterface().HandleFault(bad_address,
+#ifdef __APPLE__
+                                                                 *ctx
+#else
+                                                                 ctx
 #endif
-                        old_sa_segv;
+                                                                 ))
+  {
+    // retry and crash
+    // According to the sigaction man page, if sa_flags "SA_SIGINFO" is set to the sigaction
+    // function pointer, otherwise sa_handler contains one of:
+    // SIG_DEF: The 'default' action is performed
+    // SIG_IGN: The signal is ignored
+    // Any other value is a function pointer to a signal handler
 
-  sigaction(sig, &old_sa, nullptr);
-  raise(sig);
+    struct sigaction* old_sa;
+    if (sig == SIGSEGV)
+    {
+      old_sa = &old_sa_segv;
+    }
+    else
+    {
+      old_sa = &old_sa_bus;
+    }
+
+    if (old_sa->sa_flags & SA_SIGINFO)
+    {
+      old_sa->sa_sigaction(sig, info, raw_context);
+      return;
+    }
+    if (old_sa->sa_handler == SIG_DFL)
+    {
+      signal(sig, SIG_DFL);
+      return;
+    }
+    if (old_sa->sa_handler == SIG_IGN)
+    {
+      // Ignore signal
+      return;
+    }
+    old_sa->sa_handler(sig);
+  }
 }
 
 void InstallExceptionHandler()
@@ -316,9 +337,10 @@ void InstallExceptionHandler()
 #endif
   signal_stack.ss_size = SIGSTKSZ;
   signal_stack.ss_flags = 0;
-  if (sigaltstack(&signal_stack, nullptr) != 0)
-    PanicAlertFmt("sigaltstack failed: {}", Common::LastStrerrorString());
-  struct sigaction sa{};
+  if (sigaltstack(&signal_stack, nullptr))
+    PanicAlertFmt("sigaltstack failed");
+  struct sigaction sa;
+  sa.sa_handler = nullptr;
   sa.sa_sigaction = &sigsegv_handler;
   sa.sa_flags = SA_SIGINFO;
   sigemptyset(&sa.sa_mask);
@@ -330,8 +352,7 @@ void InstallExceptionHandler()
 
 void UninstallExceptionHandler()
 {
-  stack_t signal_stack;
-  stack_t old_stack;
+  stack_t signal_stack, old_stack;
   signal_stack.ss_flags = SS_DISABLE;
   if (!sigaltstack(&signal_stack, &old_stack) && !(old_stack.ss_flags & SS_DISABLE))
   {

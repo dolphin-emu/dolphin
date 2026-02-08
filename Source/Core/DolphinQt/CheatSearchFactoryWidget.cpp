@@ -18,12 +18,14 @@
 
 #include "Common/StringUtil.h"
 #include "Core/CheatSearch.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/System.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 CheatSearchFactoryWidget::CheatSearchFactoryWidget()
 {
@@ -38,7 +40,7 @@ Q_DECLARE_METATYPE(Cheats::DataType);
 
 void CheatSearchFactoryWidget::CreateWidgets()
 {
-  auto* const layout = new QVBoxLayout{this};
+  auto* layout = new QVBoxLayout();
 
   auto* address_space_group = new QGroupBox(tr("Address Space"));
   auto* address_space_layout = new QVBoxLayout();
@@ -122,6 +124,8 @@ void CheatSearchFactoryWidget::CreateWidgets()
   layout->addWidget(m_new_search);
 
   layout->addStretch();
+
+  WrapInScrollArea(this, layout);
 }
 
 void CheatSearchFactoryWidget::ConnectWidgets()

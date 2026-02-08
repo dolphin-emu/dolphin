@@ -9,6 +9,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/Swap.h"
 #include "Core/HW/GCKeyboard.h"
 #include "InputCommon/KeyboardStatus.h"
 
@@ -34,7 +35,9 @@ int CSIDevice_Keyboard::RunBuffer(u8* buffer, int request_length)
   case EBufferCommands::CMD_STATUS:
   case EBufferCommands::CMD_RESET:
   {
-    return CreateStatusResponse(SI_GC_KEYBOARD, buffer);
+    u32 id = Common::swap32(SI_GC_KEYBOARD);
+    std::memcpy(buffer, &id, sizeof(id));
+    return sizeof(id);
   }
 
   case EBufferCommands::CMD_DIRECT_KB:
@@ -65,7 +68,7 @@ KeyboardStatus CSIDevice_Keyboard::GetKeyboardStatus() const
   return Keyboard::GetStatus(m_device_number);
 }
 
-DataResponse CSIDevice_Keyboard::GetData(u32& hi, u32& low)
+bool CSIDevice_Keyboard::GetData(u32& hi, u32& low)
 {
   const KeyboardStatus key_status = GetKeyboardStatus();
   const KeyArray key = MapKeys(key_status);
@@ -74,7 +77,7 @@ DataResponse CSIDevice_Keyboard::GetData(u32& hi, u32& low)
   hi = m_counter << 24;
   low = key[0] << 24 | key[1] << 16 | key[2] << 8 | checksum;
 
-  return DataResponse::Success;
+  return true;
 }
 
 void CSIDevice_Keyboard::SendCommand(u32 command, u8 poll)

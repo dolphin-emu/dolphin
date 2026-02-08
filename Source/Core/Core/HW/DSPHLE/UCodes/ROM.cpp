@@ -3,6 +3,8 @@
 
 #include "Core/HW/DSPHLE/UCodes/ROM.h"
 
+#include <string>
+
 #ifdef _WIN32
 #include <Windows.h>
 #endif
@@ -17,7 +19,6 @@
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
-#include "Core/HW/Memmap.h"
 #include "Core/System.h"
 
 namespace DSP::HLE
@@ -95,12 +96,15 @@ void ROMUCode::HandleMail(u32 mail)
 void ROMUCode::BootUCode()
 {
   auto& memory = m_dsphle->GetSystem().GetMemory();
-  const u8* pointer =
-      memory.GetPointerForRange(m_current_ucode.m_ram_address, m_current_ucode.m_length);
-  const u32 ector_crc = Common::HashEctor(pointer, m_current_ucode.m_length);
+  const u32 ector_crc = Common::HashEctor(
+      static_cast<u8*>(HLEMemory_Get_Pointer(memory, m_current_ucode.m_ram_address)),
+      m_current_ucode.m_length);
 
   if (Config::Get(Config::MAIN_DUMP_UCODE))
-    DumpDSPCode(pointer, m_current_ucode.m_length, ector_crc);
+  {
+    DSP::DumpDSPCode(static_cast<u8*>(HLEMemory_Get_Pointer(memory, m_current_ucode.m_ram_address)),
+                     m_current_ucode.m_length, ector_crc);
+  }
 
   INFO_LOG_FMT(DSPHLE, "CurrentUCode SOURCE Addr: {:#010x}", m_current_ucode.m_ram_address);
   INFO_LOG_FMT(DSPHLE, "CurrentUCode Length:      {:#010x}", m_current_ucode.m_length);

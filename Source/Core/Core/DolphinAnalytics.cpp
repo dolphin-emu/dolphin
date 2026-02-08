@@ -7,7 +7,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <fmt/format.h>
@@ -17,10 +16,9 @@
 #include "Common/WindowsRegistry.h"
 #elif defined(__APPLE__)
 #include <objc/message.h>
-#endif
-
-#if defined(ANDROID)
+#elif defined(ANDROID)
 #include <functional>
+#include "Common/AndroidAnalytics.h"
 #endif
 
 #include "Common/Analytics.h"
@@ -28,10 +26,10 @@
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Crypto/SHA1.h"
+#include "Common/EnumUtils.h"
 #include "Common/Random.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
-#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/GCPad.h"
@@ -58,24 +56,8 @@ void DolphinAnalytics::AndroidSetGetValFunc(std::function<std::string(std::strin
 
 DolphinAnalytics::DolphinAnalytics()
 {
-  m_last_analytics_enabled = Config::Get(Config::MAIN_ANALYTICS_ENABLED);
-
   ReloadConfig();
   MakeBaseBuilder();
-
-  m_config_changed_callback_id = Config::AddConfigChangedCallback([this] {
-    bool current_analytics_enabled = Config::Get(Config::MAIN_ANALYTICS_ENABLED);
-    if (m_last_analytics_enabled != current_analytics_enabled)
-    {
-      m_last_analytics_enabled = current_analytics_enabled;
-      ReloadConfig();
-    }
-  });
-}
-
-DolphinAnalytics::~DolphinAnalytics()
-{
-  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
 }
 
 DolphinAnalytics& DolphinAnalytics::Instance()
@@ -90,9 +72,13 @@ void DolphinAnalytics::ReloadConfig()
 
   // Install the HTTP backend if analytics support is enabled.
   std::unique_ptr<Common::AnalyticsReportingBackend> new_backend;
-  if (m_last_analytics_enabled)
+  if (Config::Get(Config::MAIN_ANALYTICS_ENABLED))
   {
+#if defined(ANDROID)
+    new_backend = std::make_unique<Common::AndroidAnalyticsBackend>(ANALYTICS_ENDPOINT);
+#else
     new_backend = std::make_unique<Common::HttpAnalyticsBackend>(ANALYTICS_ENDPOINT);
+#endif
   }
   m_reporter.SetBackend(std::move(new_backend));
 
@@ -187,7 +173,7 @@ constexpr std::array GAME_QUIRKS_NAMES{
     "invalid-texture-coordinate-component-format",
     "invalid-color-component-format",
 };
-static_assert(GAME_QUIRKS_NAMES.size() == static_cast<u32>(GameQuirk::Count),
+static_assert(GAME_QUIRKS_NAMES.size() == static_cast<u32>(GameQuirk::COUNT),
               "Game quirks names and enum definition are out of sync.");
 
 void DolphinAnalytics::ReportGameQuirk(GameQuirk quirk)
@@ -343,9 +329,9 @@ void DolphinAnalytics::MakeBaseBuilder()
   m_base_builder = builder;
 }
 
-static const char* GetShaderCompilationMode()
+static const char* GetShaderCompilationMode(const VideoConfig& video_config)
 {
-  switch (Config::Get(Config::GFX_SHADER_COMPILATION_MODE))
+  switch (video_config.iShaderCompilationMode)
   {
   case ShaderCompilationMode::AsynchronousUberShaders:
     return "async-ubershaders";
@@ -357,11 +343,6 @@ static const char* GetShaderCompilationMode()
   default:
     return "sync";
   }
-}
-
-static bool UseVertexRounding()
-{
-  return Config::Get(Config::GFX_HACK_VERTEX_ROUNDING) && Config::Get(Config::GFX_EFB_SCALE) != 1;
 }
 
 void DolphinAnalytics::MakePerGameBuilder()
@@ -384,49 +365,41 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-audio-backend", Config::Get(Config::MAIN_AUDIO_BACKEND));
   builder.AddData("cfg-oc-enable", Config::Get(Config::MAIN_OVERCLOCK_ENABLE));
   builder.AddData("cfg-oc-factor", Config::Get(Config::MAIN_OVERCLOCK));
-  builder.AddData("cfg-vi-oc-enable", Config::Get(Config::MAIN_VI_OVERCLOCK_ENABLE));
-  builder.AddData("cfg-vi-oc-factor", Config::Get(Config::MAIN_VI_OVERCLOCK));
   builder.AddData("cfg-render-to-main", Config::Get(Config::MAIN_RENDER_TO_MAIN));
   if (g_video_backend)
   {
-    builder.AddData("cfg-video-backend", g_video_backend->GetConfigName());
+    builder.AddData("cfg-video-backend", g_video_backend->GetName());
   }
 
   // Video configuration.
-  builder.AddData("cfg-gfx-multisamples", Config::Get(Config::GFX_MSAA));
-  builder.AddData("cfg-gfx-ssaa", Config::Get(Config::GFX_SSAA));
-  builder.AddData("cfg-gfx-anisotropy",
-                  std::to_underlying(Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY)));
-  builder.AddData("cfg-gfx-vsync", Config::Get(Config::GFX_VSYNC));
-  builder.AddData("cfg-gfx-aspect-ratio", static_cast<int>(Config::Get(Config::GFX_ASPECT_RATIO)));
-  builder.AddData("cfg-gfx-efb-access", Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE));
-  builder.AddData("cfg-gfx-efb-copy-format-changes",
-                  Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES));
-  builder.AddData("cfg-gfx-efb-copy-ram", !Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM));
-  builder.AddData("cfg-gfx-xfb-copy-ram", !Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM));
-  builder.AddData("cfg-gfx-defer-efb-copies", Config::Get(Config::GFX_HACK_DEFER_EFB_COPIES));
-  // Note: Incorrectly inverted. Keeping as-is to not break analytics history.
-  builder.AddData("cfg-gfx-immediate-xfb", !Config::Get(Config::GFX_HACK_IMMEDIATE_XFB));
-  builder.AddData("cfg-gfx-efb-copy-scaled", Config::Get(Config::GFX_HACK_COPY_EFB_SCALED));
-  builder.AddData("cfg-gfx-internal-resolution", Config::Get(Config::GFX_EFB_SCALE));
-  builder.AddData("cfg-gfx-tc-samples", Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES));
-  builder.AddData("cfg-gfx-stereo-mode", static_cast<int>(Config::Get(Config::GFX_STEREO_MODE)));
+  builder.AddData("cfg-gfx-multisamples", g_Config.iMultisamples);
+  builder.AddData("cfg-gfx-ssaa", g_Config.bSSAA);
+  builder.AddData("cfg-gfx-anisotropy", Common::ToUnderlying(g_Config.iMaxAnisotropy));
+  builder.AddData("cfg-gfx-vsync", g_Config.bVSync);
+  builder.AddData("cfg-gfx-aspect-ratio", static_cast<int>(g_Config.aspect_mode));
+  builder.AddData("cfg-gfx-efb-access", g_Config.bEFBAccessEnable);
+  builder.AddData("cfg-gfx-efb-copy-format-changes", g_Config.bEFBEmulateFormatChanges);
+  builder.AddData("cfg-gfx-efb-copy-ram", !g_Config.bSkipEFBCopyToRam);
+  builder.AddData("cfg-gfx-xfb-copy-ram", !g_Config.bSkipXFBCopyToRam);
+  builder.AddData("cfg-gfx-defer-efb-copies", g_Config.bDeferEFBCopies);
+  builder.AddData("cfg-gfx-immediate-xfb", !g_Config.bImmediateXFB);
+  builder.AddData("cfg-gfx-efb-copy-scaled", g_Config.bCopyEFBScaled);
+  builder.AddData("cfg-gfx-internal-resolution", g_Config.iEFBScale);
+  builder.AddData("cfg-gfx-tc-samples", g_Config.iSafeTextureCache_ColorSamples);
+  builder.AddData("cfg-gfx-stereo-mode", static_cast<int>(g_Config.stereo_mode));
   builder.AddData("cfg-gfx-stereo-per-eye-resolution-full",
-                  Config::Get(Config::GFX_STEREO_PER_EYE_RESOLUTION_FULL));
-  // Note: An int for some reason. Keeping as-is to not break analytics history.
-  builder.AddData("cfg-gfx-hdr", static_cast<int>(Config::Get(Config::GFX_ENHANCE_HDR_OUTPUT)));
-  builder.AddData("cfg-gfx-per-pixel-lighting", Config::Get(Config::GFX_ENABLE_PIXEL_LIGHTING));
-  builder.AddData("cfg-gfx-shader-compilation-mode", GetShaderCompilationMode());
-  builder.AddData("cfg-gfx-wait-for-shaders",
-                  Config::Get(Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING));
-  builder.AddData("cfg-gfx-fast-depth", Config::Get(Config::GFX_FAST_DEPTH_CALC));
-  builder.AddData("cfg-gfx-vertex-rounding", UseVertexRounding());
+                  g_Config.stereo_per_eye_resolution_full);
+  builder.AddData("cfg-gfx-hdr", static_cast<int>(g_Config.bHDR));
+  builder.AddData("cfg-gfx-per-pixel-lighting", g_Config.bEnablePixelLighting);
+  builder.AddData("cfg-gfx-shader-compilation-mode", GetShaderCompilationMode(g_Config));
+  builder.AddData("cfg-gfx-wait-for-shaders", g_Config.bWaitForShadersBeforeStarting);
+  builder.AddData("cfg-gfx-fast-depth", g_Config.bFastDepthCalc);
+  builder.AddData("cfg-gfx-vertex-rounding", g_Config.UseVertexRounding());
 
   // GPU features.
-  const int adapter_index = Config::Get(Config::GFX_ADAPTER);
-  if (adapter_index < static_cast<int>(g_backend_info.Adapters.size()))
+  if (g_Config.iAdapter < static_cast<int>(g_backend_info.Adapters.size()))
   {
-    builder.AddData("gpu-adapter", g_backend_info.Adapters[adapter_index]);
+    builder.AddData("gpu-adapter", g_backend_info.Adapters[g_Config.iAdapter]);
   }
   else if (!g_backend_info.AdapterName.empty())
   {

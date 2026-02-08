@@ -6,8 +6,8 @@
 class QLayout;
 class QWidget;
 
-// Puts the given widget in a QScrollArea and returns that.
-QWidget* GetWrappedWidget(QWidget* wrapped_widget);
+QWidget* GetWrappedWidget(QWidget* wrapped_widget, QWidget* to_resize = nullptr,
+                          int margin_width = 50, int margin_height = 50);
 
-// Wrap wrapped_layout in a QScrollArea and fill the parent widget with it.
-void WrapInScrollArea(QWidget* parent, QLayout* wrapped_layout);
+// Wrap wrapped_layout in a QScrollArea and fill the parent widget with it
+void WrapInScrollArea(QWidget* parent, QLayout* wrapped_layout, QWidget* to_resize = nullptr);

@@ -39,6 +39,7 @@ private:
   std::vector<u8> GetDeviceEntry(const USB::Device& device) const;
   void OnDeviceChange(ChangeEvent, std::shared_ptr<USB::Device>) override;
   bool ShouldAddDevice(const USB::Device& device) const override;
+  ScanThread& GetScanThread() override { return m_scan_thread; }
 
   static constexpr u32 VERSION = 0x40001;
   static constexpr u8 HID_CLASS = 0x03;
@@ -52,5 +53,7 @@ private:
   // IOS device IDs <=> USB device IDs
   std::map<s32, u64> m_ios_ids;
   std::map<u64, s32> m_device_ids;
+
+  ScanThread m_scan_thread{this};
 };
 }  // namespace IOS::HLE

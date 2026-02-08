@@ -36,10 +36,8 @@ public:
   CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
                     std::vector<AbstractTexture*> additional_color_attachments) override;
 
-  std::unique_ptr<AbstractShader>
-  CreateShaderFromSource(ShaderStage stage, std::string_view source,
-                         VideoCommon::ShaderIncluder* shader_includer,
-                         std::string_view name) override;
+  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage, std::string_view source,
+                                                         std::string_view name) override;
   std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage, const void* data,
                                                          size_t length,
                                                          std::string_view name) override;
@@ -114,7 +112,7 @@ private:
     DirtyState_PS_UAV = (1 << 7),
     DirtyState_PS_CBV = (1 << 8),
     DirtyState_VS_CBV = (1 << 9),
-    DirtyState_CUS_CBV = (1 << 10),
+    DirtyState_PS_CUS_CBV = (1 << 10),
     DirtyState_GS_CBV = (1 << 11),
     DirtyState_SRV_Descriptor = (1 << 12),
     DirtyState_Sampler_Descriptor = (1 << 13),
@@ -131,7 +129,7 @@ private:
     DirtyState_All =
         DirtyState_Framebuffer | DirtyState_Pipeline | DirtyState_Textures | DirtyState_Samplers |
         DirtyState_Viewport | DirtyState_ScissorRect | DirtyState_ComputeImageTexture |
-        DirtyState_PS_UAV | DirtyState_PS_CBV | DirtyState_VS_CBV | DirtyState_CUS_CBV |
+        DirtyState_PS_UAV | DirtyState_PS_CBV | DirtyState_VS_CBV | DirtyState_PS_CUS_CBV |
         DirtyState_GS_CBV | DirtyState_SRV_Descriptor | DirtyState_Sampler_Descriptor |
         DirtyState_UAV_Descriptor | DirtyState_VertexBuffer | DirtyState_IndexBuffer |
         DirtyState_PrimitiveTopology | DirtyState_RootSignature | DirtyState_ComputeRootSignature |

@@ -28,9 +28,9 @@
 
 namespace DX11
 {
-std::string VideoBackend::GetConfigName() const
+std::string VideoBackend::GetName() const
 {
-  return CONFIG_NAME;
+  return NAME;
 }
 
 std::string VideoBackend::GetDisplayName() const

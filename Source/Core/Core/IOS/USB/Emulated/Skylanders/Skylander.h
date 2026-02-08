@@ -72,17 +72,17 @@ extern const std::map<const std::pair<const u16, const u16>, SkyData> list_skyla
 class SkylanderUSB final : public Device
 {
 public:
-  SkylanderUSB();
-  ~SkylanderUSB() override;
+  SkylanderUSB(EmulationKernel& ios);
+  ~SkylanderUSB();
   DeviceDescriptor GetDeviceDescriptor() const override;
   std::vector<ConfigDescriptor> GetConfigurations() const override;
   std::vector<InterfaceDescriptor> GetInterfaces(u8 config) const override;
-  std::vector<EndpointDescriptor> GetEndpoints(u8 config, u8 iface, u8 alt) const override;
+  std::vector<EndpointDescriptor> GetEndpoints(u8 config, u8 interface, u8 alt) const override;
   bool Attach() override;
-  bool AttachAndChangeInterface(u8 iface) override;
+  bool AttachAndChangeInterface(u8 interface) override;
   int CancelTransfer(u8 endpoint) override;
-  int ChangeInterface(u8 iface) override;
-  int GetNumberOfAltSettings(u8 iface) override;
+  int ChangeInterface(u8 interface) override;
+  int GetNumberOfAltSettings(u8 interface) override;
   int SetAltSetting(u8 alt_setting) override;
   int SubmitTransfer(std::unique_ptr<CtrlMessage> message) override;
   int SubmitTransfer(std::unique_ptr<BulkMessage> message) override;
@@ -92,6 +92,7 @@ public:
                         s32 expected_count, u64 expected_time_us);
 
 private:
+  EmulationKernel& m_ios;
   u16 m_vid = 0;
   u16 m_pid = 0;
   u8 m_active_interface = 0;

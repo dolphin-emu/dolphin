@@ -5,8 +5,9 @@
 
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
-#include "Common/GL/GLUtil.h"
 #include "Common/Logging/LogManager.h"
+
+#include "Core/Config/GraphicsSettings.h"
 
 #include "VideoBackends/OGL/OGLConfig.h"
 #include "VideoBackends/OGL/OGLPipeline.h"
@@ -17,6 +18,7 @@
 
 #include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -229,10 +231,9 @@ OGLGfx::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* de
 }
 
 std::unique_ptr<AbstractShader>
-OGLGfx::CreateShaderFromSource(ShaderStage stage, std::string_view source,
-                               VideoCommon::ShaderIncluder* shader_includer, std::string_view name)
+OGLGfx::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
 {
-  return OGLShader::CreateFromSource(stage, source, shader_includer, name);
+  return OGLShader::CreateFromSource(stage, source, name);
 }
 
 std::unique_ptr<AbstractShader>
@@ -365,11 +366,11 @@ void OGLGfx::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer, const Clea
   // Restore color/depth mask.
   if (framebuffer->HasColorBuffer())
   {
-    glColorMask(m_current_blend_state.color_update, m_current_blend_state.color_update,
-                m_current_blend_state.color_update, m_current_blend_state.alpha_update);
+    glColorMask(m_current_blend_state.colorupdate, m_current_blend_state.colorupdate,
+                m_current_blend_state.colorupdate, m_current_blend_state.alphaupdate);
   }
   if (framebuffer->HasDepthBuffer())
-    glDepthMask(m_current_depth_state.update_enable);
+    glDepthMask(m_current_depth_state.updateenable);
 }
 
 void OGLGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool colorEnable,
@@ -399,11 +400,11 @@ void OGLGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool colorEn
   // Restore color/depth mask.
   if (colorEnable || alphaEnable)
   {
-    glColorMask(m_current_blend_state.color_update, m_current_blend_state.color_update,
-                m_current_blend_state.color_update, m_current_blend_state.alpha_update);
+    glColorMask(m_current_blend_state.colorupdate, m_current_blend_state.colorupdate,
+                m_current_blend_state.colorupdate, m_current_blend_state.alphaupdate);
   }
   if (zEnable)
-    glDepthMask(m_current_depth_state.update_enable);
+    glDepthMask(m_current_depth_state.updateenable);
 }
 
 bool OGLGfx::BindBackbuffer(const ClearColor& clear_color)
@@ -509,11 +510,11 @@ void OGLGfx::ApplyRasterizationState(const RasterizationState state)
     return;
 
   // none, ccw, cw, ccw
-  if (state.cull_mode != CullMode::None)
+  if (state.cullmode != CullMode::None)
   {
     // TODO: GX_CULL_ALL not supported, yet!
     glEnable(GL_CULL_FACE);
-    glFrontFace(state.cull_mode == CullMode::Front ? GL_CCW : GL_CW);
+    glFrontFace(state.cullmode == CullMode::Front ? GL_CCW : GL_CW);
   }
   else
   {
@@ -531,10 +532,10 @@ void OGLGfx::ApplyDepthState(const DepthState state)
   const GLenum glCmpFuncs[8] = {GL_NEVER,   GL_LESS,     GL_EQUAL,  GL_LEQUAL,
                                 GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS};
 
-  if (state.test_enable)
+  if (state.testenable)
   {
     glEnable(GL_DEPTH_TEST);
-    glDepthMask(state.update_enable ? GL_TRUE : GL_FALSE);
+    glDepthMask(state.updateenable ? GL_TRUE : GL_FALSE);
     glDepthFunc(glCmpFuncs[u32(state.func.Value())]);
   }
   else
@@ -554,7 +555,7 @@ void OGLGfx::ApplyBlendingState(const BlendingState state)
   if (m_current_blend_state == state)
     return;
 
-  bool useDualSource = state.use_dual_src;
+  bool useDualSource = state.usedualsrc;
 
   const GLenum src_factors[8] = {GL_ZERO,
                                  GL_ONE,
@@ -575,7 +576,7 @@ void OGLGfx::ApplyBlendingState(const BlendingState state)
                                  GL_DST_ALPHA,
                                  GL_ONE_MINUS_DST_ALPHA};
 
-  if (state.blend_enable)
+  if (state.blendenable)
     glEnable(GL_BLEND);
   else
     glDisable(GL_BLEND);
@@ -585,12 +586,12 @@ void OGLGfx::ApplyBlendingState(const BlendingState state)
   // driver issues?). See https://bugs.dolphin-emu.org/issues/10120 : "Sonic
   // Adventure 2 Battle: graphics crash when loading first Dark level"
   GLenum equation = state.subtract ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
-  GLenum equationAlpha = state.subtract_alpha ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
+  GLenum equationAlpha = state.subtractAlpha ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
   glBlendEquationSeparate(equation, equationAlpha);
-  glBlendFuncSeparate(src_factors[u32(state.src_factor.Value())],
-                      dst_factors[u32(state.dst_factor.Value())],
-                      src_factors[u32(state.src_factor_alpha.Value())],
-                      dst_factors[u32(state.dst_factor_alpha.Value())]);
+  glBlendFuncSeparate(src_factors[u32(state.srcfactor.Value())],
+                      dst_factors[u32(state.dstfactor.Value())],
+                      src_factors[u32(state.srcfactoralpha.Value())],
+                      dst_factors[u32(state.dstfactoralpha.Value())]);
 
   const GLenum logic_op_codes[16] = {
       GL_CLEAR,         GL_AND,         GL_AND_REVERSE, GL_COPY,  GL_AND_INVERTED, GL_NOOP,
@@ -600,10 +601,10 @@ void OGLGfx::ApplyBlendingState(const BlendingState state)
   // Logic ops aren't available in GLES3
   if (!IsGLES())
   {
-    if (state.logic_op_enable)
+    if (state.logicopenable)
     {
       glEnable(GL_COLOR_LOGIC_OP);
-      glLogicOp(logic_op_codes[u32(state.logic_mode.Value())]);
+      glLogicOp(logic_op_codes[u32(state.logicmode.Value())]);
     }
     else
     {
@@ -611,7 +612,7 @@ void OGLGfx::ApplyBlendingState(const BlendingState state)
     }
   }
 
-  glColorMask(state.color_update, state.color_update, state.color_update, state.alpha_update);
+  glColorMask(state.colorupdate, state.colorupdate, state.colorupdate, state.alphaupdate);
   m_current_blend_state = state;
 }
 

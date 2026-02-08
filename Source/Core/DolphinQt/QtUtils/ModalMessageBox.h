@@ -13,18 +13,14 @@ public:
 
   static int critical(QWidget* parent, const QString& title, const QString& text,
                       StandardButtons buttons = Ok, StandardButton default_button = NoButton,
-                      Qt::WindowModality modality = Qt::WindowModal,
-                      const QString& detailed_text = QString());
+                      Qt::WindowModality modality = Qt::WindowModal);
   static int information(QWidget* parent, const QString& title, const QString& text,
                          StandardButtons buttons = Ok, StandardButton default_button = NoButton,
-                         Qt::WindowModality modality = Qt::WindowModal,
-                         const QString& detailedText = QString());
+                         Qt::WindowModality modality = Qt::WindowModal);
   static int question(QWidget* parent, const QString& title, const QString& text,
                       StandardButtons buttons = Yes | No, StandardButton default_button = NoButton,
-                      Qt::WindowModality modality = Qt::WindowModal,
-                      const QString& detailedText = QString());
+                      Qt::WindowModality modality = Qt::WindowModal);
   static int warning(QWidget* parent, const QString& title, const QString& text,
                      StandardButtons buttons = Ok, StandardButton default_button = NoButton,
-                     Qt::WindowModality modality = Qt::WindowModal,
-                     const QString& detailedText = QString());
+                     Qt::WindowModality modality = Qt::WindowModal);
 };

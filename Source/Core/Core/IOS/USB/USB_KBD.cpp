@@ -139,7 +139,7 @@ constexpr std::array<u8, 256> s_key_codes_azerty{
     0x55,  // Multiply
     0x57,  // Add
     0x00,  // Separator
-    0x56,  // Subtract
+    0x56,  // Substract
     0x63,  // Decimal
     0x54,  // Divide
     // F1 -> F12
@@ -177,8 +177,8 @@ constexpr std::array<u8, 256> s_key_codes_azerty{};
 }  // Anonymous namespace
 
 USB_KBD::MessageData::MessageData(MessageType type, u8 modifiers_, PressedKeyData pressed_keys_)
-    : msg_type{Common::swap32(static_cast<u32>(type))}, modifiers{modifiers_},
-      pressed_keys{pressed_keys_}
+    : msg_type{Common::swap32(static_cast<u32>(type))}, modifiers{modifiers_}, pressed_keys{
+                                                                                   pressed_keys_}
 {
 }
 

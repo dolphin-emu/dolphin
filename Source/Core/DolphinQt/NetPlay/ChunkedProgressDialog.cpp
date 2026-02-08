@@ -3,7 +3,9 @@
 
 #include "DolphinQt/NetPlay/ChunkedProgressDialog.h"
 
+#include <algorithm>
 #include <cmath>
+#include <functional>
 
 #include <fmt/format.h>
 
@@ -23,7 +25,7 @@
 static QString GetPlayerNameFromPID(int pid)
 {
   QString player_name = QObject::tr("Invalid Player ID");
-  const auto client = Settings::Instance().GetNetPlayClient();
+  auto client = Settings::Instance().GetNetPlayClient();
   if (!client)
     return player_name;
 
@@ -43,6 +45,7 @@ ChunkedProgressDialog::ChunkedProgressDialog(QWidget* parent) : QDialog(parent)
   CreateWidgets();
   ConnectWidgets();
   setWindowTitle(tr("Data Transfer"));
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 void ChunkedProgressDialog::CreateWidgets()
@@ -70,13 +73,13 @@ void ChunkedProgressDialog::show(const QString& title, const u64 data_size,
   m_progress_box->setTitle(title);
   m_data_size = data_size;
 
-  for (const auto& pair : m_progress_bars)
+  for (auto& pair : m_progress_bars)
   {
     m_progress_layout->removeWidget(pair.second);
     pair.second->deleteLater();
   }
 
-  for (const auto& pair : m_status_labels)
+  for (auto& pair : m_status_labels)
   {
     m_progress_layout->removeWidget(pair.second);
     pair.second->deleteLater();
@@ -85,7 +88,7 @@ void ChunkedProgressDialog::show(const QString& title, const u64 data_size,
   m_progress_bars.clear();
   m_status_labels.clear();
 
-  const auto client = Settings::Instance().GetNetPlayClient();
+  auto client = Settings::Instance().GetNetPlayClient();
   if (!client)
     return;
 
@@ -139,7 +142,7 @@ void ChunkedProgressDialog::SetProgress(const int pid, const u64 progress)
 
 void ChunkedProgressDialog::reject()
 {
-  const auto server = Settings::Instance().GetNetPlayServer();
+  auto server = Settings::Instance().GetNetPlayServer();
 
   if (server)
     server->AbortGameStart();

@@ -11,12 +11,13 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/SmallVector.h"
-#include "Core/System.h"
 
+#include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/EFBInterface.h"
 #include "VideoCommon/FramebufferManager.h"
+#include "VideoCommon/RenderState.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
@@ -97,18 +98,18 @@ static RangeList ComputeScissorRanges(int start, int end, int offset, int efb_di
 }
 }  // namespace
 
-ScissorResult::ScissorResult(ScissorPos scissor_top_left, ScissorPos scissor_bottom_right,
-                             ScissorOffset scissor_offset, const Viewport& viewport)
-    : ScissorResult(scissor_top_left, scissor_bottom_right, scissor_offset,
-                    std::minmax(viewport.xOrig - viewport.wd, viewport.xOrig + viewport.wd),
-                    std::minmax(viewport.yOrig - viewport.ht, viewport.yOrig + viewport.ht))
+ScissorResult::ScissorResult(const BPMemory& bpmemory, const XFMemory& xfmemory)
+    : ScissorResult(bpmemory,
+                    std::minmax(xfmemory.viewport.xOrig - xfmemory.viewport.wd,
+                                xfmemory.viewport.xOrig + xfmemory.viewport.wd),
+                    std::minmax(xfmemory.viewport.yOrig - xfmemory.viewport.ht,
+                                xfmemory.viewport.yOrig + xfmemory.viewport.ht))
 {
 }
-ScissorResult::ScissorResult(ScissorPos scissor_top_left, ScissorPos scissor_bottom_right,
-                             ScissorOffset scissor_offset, std::pair<float, float> viewport_x,
+ScissorResult::ScissorResult(const BPMemory& bpmemory, std::pair<float, float> viewport_x,
                              std::pair<float, float> viewport_y)
-    : scissor_tl{.hex = scissor_top_left.hex}, scissor_br{.hex = scissor_bottom_right.hex},
-      scissor_off{.hex = scissor_offset.hex}, viewport_left(viewport_x.first),
+    : scissor_tl{.hex = bpmemory.scissorTL.hex}, scissor_br{.hex = bpmemory.scissorBR.hex},
+      scissor_off{.hex = bpmemory.scissorOffset.hex}, viewport_left(viewport_x.first),
       viewport_right(viewport_x.second), viewport_top(viewport_y.first),
       viewport_bottom(viewport_y.second)
 {
@@ -131,7 +132,7 @@ ScissorResult::ScissorResult(ScissorPos scissor_top_left, ScissorPos scissor_bot
   RangeList x_ranges = ComputeScissorRanges(left, right, x_off, EFB_WIDTH);
   RangeList y_ranges = ComputeScissorRanges(top, bottom, y_off, EFB_HEIGHT);
 
-  rectangles.reserve(x_ranges.size() * y_ranges.size());
+  m_result.reserve(x_ranges.size() * y_ranges.size());
 
   // Now we need to form actual rectangles from the x and y ranges,
   // which is a simple Cartesian product of x_ranges_clamped and y_ranges_clamped.
@@ -145,12 +146,12 @@ ScissorResult::ScissorResult(ScissorPos scissor_top_left, ScissorPos scissor_bot
     {
       DEBUG_ASSERT(y_range.start < y_range.end);
       DEBUG_ASSERT(static_cast<u32>(y_range.end) <= EFB_HEIGHT);
-      rectangles.emplace_back(x_range, y_range);
+      m_result.emplace_back(x_range, y_range);
     }
   }
 
   auto cmp = [&](const ScissorRect& lhs, const ScissorRect& rhs) { return IsWorse(lhs, rhs); };
-  std::ranges::sort(rectangles, cmp);
+  std::ranges::sort(m_result, cmp);
 }
 
 ScissorRect ScissorResult::Best() const
@@ -158,9 +159,9 @@ ScissorRect ScissorResult::Best() const
   // For now, simply choose the best rectangle (see ScissorResult::IsWorse).
   // This does mean we calculate all rectangles and only choose one, which is not optimal, but this
   // is called infrequently.  Eventually, all backends will support multiple scissor rects.
-  if (!rectangles.empty())
+  if (!m_result.empty())
   {
-    return rectangles.back();
+    return m_result.back();
   }
   else
   {
@@ -171,28 +172,23 @@ ScissorRect ScissorResult::Best() const
   }
 }
 
-ScissorResult ComputeScissorRects(ScissorPos scissor_top_left, ScissorPos scissor_bottom_right,
-                                  ScissorOffset scissor_offset, const Viewport& viewport)
+ScissorResult ComputeScissorRects()
 {
-  return ScissorResult{scissor_top_left, scissor_bottom_right, scissor_offset, viewport};
+  return ScissorResult{bpmem, xfmem};
 }
 
-void SetScissorAndViewport(FramebufferManager* frame_buffer_manager, ScissorPos scissor_top_left,
-                           ScissorPos scissor_bottom_right, ScissorOffset scissor_offset,
-                           Viewport viewport)
+void SetScissorAndViewport()
 {
-  const auto result = BPFunctions::ComputeScissorRects(scissor_top_left, scissor_bottom_right,
-                                                       scissor_offset, viewport);
-  auto native_rc = result.Best();
+  auto native_rc = ComputeScissorRects().Best();
 
-  auto target_rc = frame_buffer_manager->ConvertEFBRectangle(native_rc.rect);
+  auto target_rc = g_framebuffer_manager->ConvertEFBRectangle(native_rc.rect);
   auto converted_rc = g_gfx->ConvertFramebufferRectangle(target_rc, g_gfx->GetCurrentFramebuffer());
   g_gfx->SetScissorRect(converted_rc);
 
-  float raw_x = (viewport.xOrig - native_rc.x_off) - viewport.wd;
-  float raw_y = (viewport.yOrig - native_rc.y_off) + viewport.ht;
-  float raw_width = 2.0f * viewport.wd;
-  float raw_height = -2.0f * viewport.ht;
+  float raw_x = (xfmem.viewport.xOrig - native_rc.x_off) - xfmem.viewport.wd;
+  float raw_y = (xfmem.viewport.yOrig - native_rc.y_off) + xfmem.viewport.ht;
+  float raw_width = 2.0f * xfmem.viewport.wd;
+  float raw_height = -2.0f * xfmem.viewport.ht;
   if (g_ActiveConfig.UseVertexRounding())
   {
     // Round the viewport to match full 1x IR pixels as well.
@@ -203,12 +199,12 @@ void SetScissorAndViewport(FramebufferManager* frame_buffer_manager, ScissorPos 
     raw_height = std::round(raw_height);
   }
 
-  float x = frame_buffer_manager->EFBToScaledXf(raw_x);
-  float y = frame_buffer_manager->EFBToScaledYf(raw_y);
-  float width = frame_buffer_manager->EFBToScaledXf(raw_width);
-  float height = frame_buffer_manager->EFBToScaledYf(raw_height);
-  float min_depth = (viewport.farZ - viewport.zRange) / 16777216.0f;
-  float max_depth = viewport.farZ / 16777216.0f;
+  float x = g_framebuffer_manager->EFBToScaledXf(raw_x);
+  float y = g_framebuffer_manager->EFBToScaledYf(raw_y);
+  float width = g_framebuffer_manager->EFBToScaledXf(raw_width);
+  float height = g_framebuffer_manager->EFBToScaledYf(raw_height);
+  float min_depth = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
+  float max_depth = xfmem.viewport.farZ / 16777216.0f;
   if (width < 0.f)
   {
     x += width;
@@ -220,27 +216,32 @@ void SetScissorAndViewport(FramebufferManager* frame_buffer_manager, ScissorPos 
     height *= -1;
   }
 
+  // The maximum depth that is written to the depth buffer should never exceed this value.
+  // This is necessary because we use a 2^24 divisor for all our depth values to prevent
+  // floating-point round-trip errors. However the console GPU doesn't ever write a value
+  // to the depth buffer that exceeds 2^24 - 1.
+  constexpr float GX_MAX_DEPTH = 16777215.0f / 16777216.0f;
   if (!g_backend_info.bSupportsDepthClamp)
   {
     // There's no way to support oversized depth ranges in this situation. Let's just clamp the
     // range to the maximum value supported by the console GPU and hope for the best.
-    min_depth = std::clamp(min_depth, 0.0f, MAX_EFB_DEPTH);
-    max_depth = std::clamp(max_depth, 0.0f, MAX_EFB_DEPTH);
+    min_depth = std::clamp(min_depth, 0.0f, GX_MAX_DEPTH);
+    max_depth = std::clamp(max_depth, 0.0f, GX_MAX_DEPTH);
   }
 
   if (VertexShaderManager::UseVertexDepthRange())
   {
     // We need to ensure depth values are clamped the maximum value supported by the console GPU.
     // Taking into account whether the depth range is inverted or not.
-    if (viewport.zRange < 0.0f && g_backend_info.bSupportsReversedDepthRange)
+    if (xfmem.viewport.zRange < 0.0f && g_backend_info.bSupportsReversedDepthRange)
     {
-      min_depth = MAX_EFB_DEPTH;
+      min_depth = GX_MAX_DEPTH;
       max_depth = 0.0f;
     }
     else
     {
       min_depth = 0.0f;
-      max_depth = MAX_EFB_DEPTH;
+      max_depth = GX_MAX_DEPTH;
     }
   }
 
@@ -265,14 +266,6 @@ void SetScissorAndViewport(FramebufferManager* frame_buffer_manager, ScissorPos 
     y = static_cast<float>(g_gfx->GetCurrentFramebuffer()->GetHeight()) - y - height;
 
   g_gfx->SetViewport(x, y, width, height, near_depth, far_depth);
-
-  g_gfx->StoreViewportAndScissor(AbstractGfx::ViewportAndScissor{.scissor_rect = converted_rc,
-                                                                 .viewport_x = x,
-                                                                 .viewport_y = y,
-                                                                 .viewport_width = width,
-                                                                 .viewport_height = height,
-                                                                 .viewport_near_depth = near_depth,
-                                                                 .viewport_far_depth = far_depth});
 }
 
 void SetDepthMode()
@@ -303,21 +296,24 @@ void SetBlendMode()
     - convert the RGBA8 color to RGBA6/RGB8/RGB565 and convert it to RGBA8 again
     - convert the Z24 depth value to Z16 and back to Z24
 */
-bool ClearScreen(FramebufferManager* frame_buffer_manager, const MathUtil::Rectangle<int>& rc,
-                 bool color_enable, bool alpha_enable, bool z_enable, PixelFormat pixel_format,
-                 u32 clear_color_ar, u32 clear_color_gb, u32 clear_z_value)
+void ClearScreen(const MathUtil::Rectangle<int>& rc)
 {
+  bool colorEnable = (bpmem.blendmode.colorupdate != 0);
+  bool alphaEnable = (bpmem.blendmode.alphaupdate != 0);
+  bool zEnable = (bpmem.zmode.updateenable != 0);
+  auto pixel_format = bpmem.zcontrol.pixel_format;
+
   // (1): Disable unused color channels
   if (pixel_format == PixelFormat::RGB8_Z24 || pixel_format == PixelFormat::RGB565_Z16 ||
       pixel_format == PixelFormat::Z24)
   {
-    alpha_enable = false;
+    alphaEnable = false;
   }
 
-  if (color_enable || alpha_enable || z_enable)
+  if (colorEnable || alphaEnable || zEnable)
   {
-    u32 color = (clear_color_ar << 16) | clear_color_gb;
-    u32 z = clear_z_value;
+    u32 color = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
+    u32 z = bpmem.clearZValue;
 
     // (2) drop additional accuracy
     if (pixel_format == PixelFormat::RGBA6_Z24)
@@ -329,16 +325,11 @@ bool ClearScreen(FramebufferManager* frame_buffer_manager, const MathUtil::Recta
       color = RGBA8ToRGB565ToRGBA8(color);
       z = Z24ToZ16ToZ24(z);
     }
-    frame_buffer_manager->ClearEFB(rc, color_enable, alpha_enable, z_enable, color, z,
-                                   pixel_format);
-    return true;
+    g_framebuffer_manager->ClearEFB(rc, colorEnable, alphaEnable, zEnable, color, z);
   }
-
-  return false;
 }
 
-void OnPixelFormatChange(FramebufferManager* frame_buffer_manager, PixelFormat pixel_format,
-                         DepthFormat z_format)
+void OnPixelFormatChange()
 {
   // TODO : Check for Z compression format change
   // When using 16bit Z, the game may enable a special compression format which we might need to
@@ -356,11 +347,11 @@ void OnPixelFormatChange(FramebufferManager* frame_buffer_manager, PixelFormat p
   if (!g_ActiveConfig.bEFBEmulateFormatChanges)
     return;
 
-  const auto old_format = frame_buffer_manager->GetPrevPixelFormat();
-  const auto new_format = pixel_format;
-  frame_buffer_manager->StorePixelFormat(new_format);
+  const auto old_format = g_framebuffer_manager->GetPrevPixelFormat();
+  const auto new_format = bpmem.zcontrol.pixel_format;
+  g_framebuffer_manager->StorePixelFormat(new_format);
 
-  DEBUG_LOG_FMT(VIDEO, "pixelfmt: pixel={}, zc={}", new_format, z_format);
+  DEBUG_LOG_FMT(VIDEO, "pixelfmt: pixel={}, zc={}", new_format, bpmem.zcontrol.zformat);
 
   // no need to reinterpret pixel data in these cases
   if (new_format == old_format || old_format == PixelFormat::INVALID_FMT)

@@ -8,19 +8,19 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/DirectIOFile.h"
+#include "Common/IOFile.h"
 #include "DiscIO/Blob.h"
 
 namespace DiscIO
 {
 static constexpr u32 WBFS_MAGIC = 0x53464257;  // "WBFS" (byteswapped to little endian)
 
-class WbfsFileReader final : public BlobReader
+class WbfsFileReader : public BlobReader
 {
 public:
-  ~WbfsFileReader() override;
+  ~WbfsFileReader();
 
-  static std::unique_ptr<WbfsFileReader> Create(File::DirectIOFile file, const std::string& path);
+  static std::unique_ptr<WbfsFileReader> Create(File::IOFile file, const std::string& path);
 
   BlobType GetBlobType() const override { return BlobType::WBFS; }
   std::unique_ptr<BlobReader> CopyReader() const override;
@@ -37,22 +37,22 @@ public:
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 
 private:
-  WbfsFileReader(File::DirectIOFile file, const std::string& path = "");
+  WbfsFileReader(File::IOFile file, const std::string& path = "");
 
   void OpenAdditionalFiles(const std::string& path);
-  bool AddFileToList(File::DirectIOFile file);
+  bool AddFileToList(File::IOFile file);
   bool ReadHeader();
 
-  File::DirectIOFile& SeekToCluster(u64 offset, u64* available);
-  bool IsGood() const { return m_good; }
+  File::IOFile& SeekToCluster(u64 offset, u64* available);
+  bool IsGood() { return m_good; }
   struct FileEntry
   {
-    FileEntry(File::DirectIOFile file_, u64 base_address_, u64 size_)
+    FileEntry(File::IOFile file_, u64 base_address_, u64 size_)
         : file(std::move(file_)), base_address(base_address_), size(size_)
     {
     }
 
-    File::DirectIOFile file;
+    File::IOFile file;
     u64 base_address;
     u64 size;
   };

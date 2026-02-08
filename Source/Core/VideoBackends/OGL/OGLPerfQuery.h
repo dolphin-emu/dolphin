@@ -18,7 +18,7 @@ class PerfQuery : public PerfQueryBase
 {
 public:
   PerfQuery();
-  ~PerfQuery() override {}
+  ~PerfQuery() {}
   void EnableQuery(PerfQueryGroup group) override;
   void DisableQuery(PerfQueryGroup group) override;
   void ResetQuery() override;
@@ -50,7 +50,7 @@ class PerfQueryGL : public PerfQuery
 {
 public:
   PerfQueryGL(GLenum query_type);
-  ~PerfQueryGL() override;
+  ~PerfQueryGL();
 
   void EnableQuery(PerfQueryGroup group) override;
   void DisableQuery(PerfQueryGroup group) override;
@@ -68,7 +68,7 @@ class PerfQueryGLESNV : public PerfQuery
 {
 public:
   PerfQueryGLESNV();
-  ~PerfQueryGLESNV() override;
+  ~PerfQueryGLESNV();
 
   void EnableQuery(PerfQueryGroup group) override;
   void DisableQuery(PerfQueryGroup group) override;

@@ -39,7 +39,7 @@ class ConstantHandlingMethod : public ReadHandlingMethod<T>
 {
 public:
   explicit ConstantHandlingMethod(T value) : value_(value) {}
-  ~ConstantHandlingMethod() override = default;
+  virtual ~ConstantHandlingMethod() = default;
   void AcceptReadVisitor(ReadHandlingMethodVisitor<T>& v) const override
   {
     v.VisitConstant(value_);
@@ -62,7 +62,7 @@ class NopHandlingMethod : public WriteHandlingMethod<T>
 {
 public:
   NopHandlingMethod() {}
-  ~NopHandlingMethod() override = default;
+  virtual ~NopHandlingMethod() = default;
   void AcceptWriteVisitor(WriteHandlingMethodVisitor<T>& v) const override { v.VisitNop(); }
 };
 template <typename T>
@@ -79,7 +79,7 @@ class DirectHandlingMethod : public ReadHandlingMethod<T>, public WriteHandlingM
 {
 public:
   DirectHandlingMethod(T* addr, u32 mask) : addr_(addr), mask_(mask) {}
-  ~DirectHandlingMethod() override = default;
+  virtual ~DirectHandlingMethod() = default;
   void AcceptReadVisitor(ReadHandlingMethodVisitor<T>& v) const override
   {
     v.VisitDirect(addr_, mask_);
@@ -122,7 +122,7 @@ public:
   {
   }
 
-  ~ComplexHandlingMethod() override = default;
+  virtual ~ComplexHandlingMethod() = default;
   void AcceptReadVisitor(ReadHandlingMethodVisitor<T>& v) const override
   {
     v.VisitComplex(&read_lambda_);
@@ -175,7 +175,7 @@ ReadHandlingMethod<T>* InvalidRead()
   return ComplexRead<T>([](Core::System&, u32 addr) {
     ERROR_LOG_FMT(MEMMAP, "Trying to read {} bits from an invalid MMIO (addr={:08x})",
                   8 * sizeof(T), addr);
-    return 0;
+    return -1;
   });
 }
 template <typename T>
@@ -263,7 +263,7 @@ ReadHandlingMethod<T>* ReadToLarger(Mapping* mmio, u32 larger_addr, u32 shift)
   });
 }
 
-// Implementation of the ReadHandler and WriteHandler class. There is a lot of
+// Inplementation of the ReadHandler and WriteHandler class. There is a lot of
 // redundant code between these two classes but trying to abstract it away
 // brings more trouble than it fixes.
 template <typename T>

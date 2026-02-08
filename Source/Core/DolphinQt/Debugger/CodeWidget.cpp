@@ -16,10 +16,7 @@
 #include <QPushButton>
 #include <QSplitter>
 #include <QStyleHints>
-#include <QTabWidget>
 #include <QTableWidget>
-#include <QToolButton>
-#include <QVBoxLayout>
 #include <QWidget>
 
 #include "Common/Event.h"
@@ -32,7 +29,7 @@
 #include "Core/System.h"
 #include "DolphinQt/Debugger/BranchWatchDialog.h"
 #include "DolphinQt/Host.h"
-#include "DolphinQt/Resources.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 static const QString BOX_SPLITTER_STYLESHEET = QStringLiteral(
@@ -63,7 +60,7 @@ CodeWidget::CodeWidget(QWidget* parent)
           [this](bool visible) { setHidden(!visible); });
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
-    if (!m_lock_btn->isChecked() && Core::GetState(m_system) == Core::State::Paused)
+    if (Core::GetState(m_system) == Core::State::Paused)
       SetAddress(m_system.GetPPCState().pc, CodeViewWidget::SetAddressUpdate::WithoutUpdate);
     Update();
   });
@@ -111,16 +108,8 @@ void CodeWidget::CreateWidgets()
   auto* top_layout = new QHBoxLayout;
   m_search_address = new QLineEdit;
   m_search_address->setPlaceholderText(tr("Search Address"));
-
-  m_lock_btn = new QToolButton();
-  m_lock_btn->setIcon(Resources::GetThemeIcon("pause"));
-  m_lock_btn->setCheckable(true);
-  m_lock_btn->setMinimumSize(24, 24);
-  m_lock_btn->setToolTip(tr("When enabled, prevents automatic updates to the code view."));
   m_branch_watch = new QPushButton(tr("Branch Watch"));
-
   top_layout->addWidget(m_search_address);
-  top_layout->addWidget(m_lock_btn);
   top_layout->addWidget(m_branch_watch);
 
   auto* right_layout = new QVBoxLayout;
@@ -131,7 +120,7 @@ void CodeWidget::CreateWidgets()
   m_box_splitter = new QSplitter(Qt::Vertical);
   m_box_splitter->setStyleSheet(BOX_SPLITTER_STYLESHEET);
 
-  auto add_search_line_edit = [this](const QString& name, QWidget* list_widget) {
+  auto add_search_line_edit = [this](const QString& name, QListWidget* list_widget) {
     auto* widget = new QWidget;
     auto* line_layout = new QGridLayout;
     auto* label = new QLabel(name);
@@ -150,12 +139,8 @@ void CodeWidget::CreateWidgets()
   m_search_callstack = add_search_line_edit(tr("Callstack"), m_callstack_list);
 
   // Symbols
-  auto* symbols_tab = new QTabWidget;
   m_symbols_list = new QListWidget;
-  m_note_list = new QListWidget;
-  symbols_tab->addTab(m_symbols_list, tr("Symbols"));
-  symbols_tab->addTab(m_note_list, tr("Notes"));
-  m_search_symbols = add_search_line_edit(tr("Symbols"), symbols_tab);
+  m_search_symbols = add_search_line_edit(tr("Symbols"), m_symbols_list);
 
   // Function calls
   m_function_calls_list = new QListWidget;
@@ -201,20 +186,19 @@ void CodeWidget::ConnectWidgets()
 
   connect(m_search_address, &QLineEdit::textChanged, this, &CodeWidget::OnSearchAddress);
   connect(m_search_address, &QLineEdit::returnPressed, this, &CodeWidget::OnSearchAddress);
-  connect(m_lock_btn, &QPushButton::toggled, m_code_view, &CodeViewWidget::OnLockAddress);
   connect(m_search_symbols, &QLineEdit::textChanged, this, &CodeWidget::OnSearchSymbols);
-  connect(m_search_calls, &QLineEdit::textChanged, this, [this] {
+  connect(m_search_calls, &QLineEdit::textChanged, this, [this]() {
     if (const Common::Symbol* symbol = m_ppc_symbol_db.GetSymbolFromAddr(m_code_view->GetAddress()))
       UpdateFunctionCalls(symbol);
   });
-  connect(m_search_callers, &QLineEdit::textChanged, this, [this] {
+  connect(m_search_callers, &QLineEdit::textChanged, this, [this]() {
     if (const Common::Symbol* symbol = m_ppc_symbol_db.GetSymbolFromAddr(m_code_view->GetAddress()))
       UpdateFunctionCallers(symbol);
   });
   connect(m_search_callstack, &QLineEdit::textChanged, this, &CodeWidget::UpdateCallstack);
 
   connect(m_branch_watch, &QPushButton::clicked, this, &CodeWidget::OnBranchWatchDialog);
-  connect(m_note_list, &QListWidget::itemPressed, this, &CodeWidget::OnSelectNote);
+
   connect(m_symbols_list, &QListWidget::itemPressed, this, &CodeWidget::OnSelectSymbol);
   connect(m_callstack_list, &QListWidget::itemPressed, this, &CodeWidget::OnSelectCallstack);
   connect(m_function_calls_list, &QListWidget::itemPressed, this,
@@ -238,6 +222,7 @@ void CodeWidget::OnBranchWatchDialog()
     m_branch_watch_dialog = new BranchWatchDialog(m_system, m_system.GetPowerPC().GetBranchWatch(),
                                                   m_ppc_symbol_db, this, this);
   }
+  SetQWidgetWindowDecorations(m_branch_watch_dialog);
   m_branch_watch_dialog->show();
   m_branch_watch_dialog->raise();
   m_branch_watch_dialog->activateWindow();
@@ -251,12 +236,12 @@ void CodeWidget::OnSetCodeAddress(u32 address)
 void CodeWidget::OnPPCSymbolsChanged()
 {
   UpdateSymbols();
-  UpdateNotes();
   UpdateCallstack();
-
-  const Common::Symbol* symbol = m_ppc_symbol_db.GetSymbolFromAddr(m_code_view->GetAddress());
-  UpdateFunctionCalls(symbol);
-  UpdateFunctionCallers(symbol);
+  if (const Common::Symbol* symbol = m_ppc_symbol_db.GetSymbolFromAddr(m_code_view->GetAddress()))
+  {
+    UpdateFunctionCalls(symbol);
+    UpdateFunctionCallers(symbol);
+  }
 }
 
 void CodeWidget::ActivateSearchAddress()
@@ -294,7 +279,6 @@ void CodeWidget::OnSearchSymbols()
 {
   m_symbol_filter = m_search_symbols->text();
   UpdateSymbols();
-  UpdateNotes();
 }
 
 void CodeWidget::OnSelectSymbol()
@@ -312,17 +296,6 @@ void CodeWidget::OnSelectSymbol()
   UpdateFunctionCallers(symbol);
 
   m_code_view->setFocus();
-}
-
-void CodeWidget::OnSelectNote()
-{
-  const auto items = m_note_list->selectedItems();
-  if (items.isEmpty())
-    return;
-
-  const u32 address = items[0]->data(Qt::UserRole).toUInt();
-
-  m_code_view->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithUpdate);
 }
 
 void CodeWidget::OnSelectCallstack()
@@ -383,6 +356,9 @@ void CodeWidget::Update()
   m_code_view->Update();
   m_code_view->setFocus();
 
+  if (!symbol)
+    return;
+
   UpdateFunctionCalls(symbol);
   UpdateFunctionCallers(symbol);
 }
@@ -423,13 +399,14 @@ void CodeWidget::UpdateSymbols()
                                 m_symbols_list->selectedItems()[0]->text();
   m_symbols_list->clear();
 
-  m_ppc_symbol_db.ForEachSymbol([&](const Common::Symbol& symbol) {
-    QString name = QString::fromStdString(symbol.name);
+  for (const auto& symbol : m_ppc_symbol_db.Symbols())
+  {
+    QString name = QString::fromStdString(symbol.second.name);
 
     // If the symbol has an object name, add it to the entry name.
-    if (!symbol.object_name.empty())
+    if (!symbol.second.object_name.empty())
     {
-      name += QString::fromStdString(fmt::format(" ({})", symbol.object_name));
+      name += QString::fromStdString(fmt::format(" ({})", symbol.second.object_name));
     }
 
     auto* item = new QListWidgetItem(name);
@@ -437,47 +414,21 @@ void CodeWidget::UpdateSymbols()
       item->setSelected(true);
 
     // Disable non-function symbols as you can't do anything with them.
-    if (symbol.type != Common::Symbol::Type::Function)
+    if (symbol.second.type != Common::Symbol::Type::Function)
       item->setFlags(Qt::NoItemFlags);
 
-    item->setData(Qt::UserRole, symbol.address);
+    item->setData(Qt::UserRole, symbol.second.address);
 
     if (name.contains(m_symbol_filter, Qt::CaseInsensitive))
       m_symbols_list->addItem(item);
-  });
+  }
 
   m_symbols_list->sortItems();
-}
-
-void CodeWidget::UpdateNotes()
-{
-  const QString selection = m_note_list->selectedItems().isEmpty() ?
-                                QStringLiteral("") :
-                                m_note_list->selectedItems()[0]->text();
-  m_note_list->clear();
-
-  m_ppc_symbol_db.ForEachNote([&](const Common::Note& note) {
-    const QString name = QString::fromStdString(note.name);
-
-    auto* item = new QListWidgetItem(name);
-    if (name == selection)
-      item->setSelected(true);
-
-    item->setData(Qt::UserRole, note.address);
-
-    if (name.toUpper().indexOf(m_symbol_filter.toUpper()) != -1)
-      m_note_list->addItem(item);
-  });
-
-  m_note_list->sortItems();
 }
 
 void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
 {
   m_function_calls_list->clear();
-  if (symbol == nullptr)
-    return;
-
   const QString filter = m_search_calls->text();
 
   for (const auto& call : symbol->calls)
@@ -512,9 +463,6 @@ void CodeWidget::UpdateFunctionCalls(const Common::Symbol* symbol)
 void CodeWidget::UpdateFunctionCallers(const Common::Symbol* symbol)
 {
   m_function_callers_list->clear();
-  if (symbol == nullptr)
-    return;
-
   const QString filter = m_search_callers->text();
 
   for (const auto& caller : symbol->callers)
@@ -603,7 +551,7 @@ static bool WillInstructionReturn(Core::System& system, UGeckoInstruction inst)
   const auto& ppc_state = system.GetPPCState();
   bool counter = (inst.BO_2 >> 2 & 1) != 0 || (CTR(ppc_state) != 0) != ((inst.BO_2 >> 1 & 1) != 0);
   bool condition = inst.BO_2 >> 4 != 0 || ppc_state.cr.GetBit(inst.BI_2) == (inst.BO_2 >> 3 & 1);
-  bool isBclr = inst.OPCD_7 == 0b010011 && inst.XO == 16;
+  bool isBclr = inst.OPCD_7 == 0b010011 && (inst.hex >> 1 & 0b10000) != 0;
   return isBclr && counter && condition && !inst.LK_3;
 }
 
@@ -619,8 +567,8 @@ void CodeWidget::StepOut()
   clock::time_point timeout = clock::now() + std::chrono::seconds(5);
 
   auto& power_pc = m_system.GetPowerPC();
+  auto& ppc_state = power_pc.GetPPCState();
   {
-    auto& ppc_state = power_pc.GetPPCState();
     Core::CPUThreadGuard guard(m_system);
 
     PowerPC::CoreMode old_mode = power_pc.GetMode();

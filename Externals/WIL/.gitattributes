@@ -1,0 +1,2 @@
+# Disable CRLF-mapping for all files in the depot.
+* -text

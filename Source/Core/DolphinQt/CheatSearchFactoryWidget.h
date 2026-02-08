@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include <QWidget>
 
 #include "Core/CheatSearch.h"

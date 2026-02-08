@@ -4,6 +4,7 @@
 #include "VideoBackends/Vulkan/VKShader.h"
 
 #include "Common/Align.h"
+#include "Common/Assert.h"
 
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
@@ -107,23 +108,22 @@ CreateShaderObject(ShaderStage stage, ShaderCompiler::SPIRVCodeVector spv, std::
 }
 
 std::unique_ptr<VKShader> VKShader::CreateFromSource(ShaderStage stage, std::string_view source,
-                                                     VideoCommon::ShaderIncluder* shader_includer,
                                                      std::string_view name)
 {
   std::optional<ShaderCompiler::SPIRVCodeVector> spv;
   switch (stage)
   {
   case ShaderStage::Vertex:
-    spv = ShaderCompiler::CompileVertexShader(source, shader_includer);
+    spv = ShaderCompiler::CompileVertexShader(source);
     break;
   case ShaderStage::Geometry:
-    spv = ShaderCompiler::CompileGeometryShader(source, shader_includer);
+    spv = ShaderCompiler::CompileGeometryShader(source);
     break;
   case ShaderStage::Pixel:
-    spv = ShaderCompiler::CompileFragmentShader(source, shader_includer);
+    spv = ShaderCompiler::CompileFragmentShader(source);
     break;
   case ShaderStage::Compute:
-    spv = ShaderCompiler::CompileComputeShader(source, shader_includer);
+    spv = ShaderCompiler::CompileComputeShader(source);
     break;
   default:
     break;

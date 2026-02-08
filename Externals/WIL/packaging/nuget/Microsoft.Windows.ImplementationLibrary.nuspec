@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.Windows.ImplementationLibrary</id>
+    <version>0.0.0</version>
+    <title>Windows Implementation Library</title>
+    <authors>Microsoft</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>The Windows Implementation Libraries (wil) were created to improve productivity and solve problems commonly seen by Windows developers.</description>
+    <tags>windows utility wil native</tags>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
+    <license type="file">LICENSE</license>
+    <projectUrl>https://github.com/Microsoft/wil</projectUrl>
+  </metadata>
+  <files>
+    <file src="..\..\LICENSE"/>
+    <file src="..\..\ThirdPartyNotices.txt"/>
+    <file src="..\..\include\**" target="include\" />
+    <file src="..\..\natvis\wil.natvis" target="natvis\" />
+    <file src="Microsoft.Windows.ImplementationLibrary.targets" target="build\native\" />
+  </files>
+</package>

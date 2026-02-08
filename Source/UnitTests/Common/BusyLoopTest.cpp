@@ -1,6 +1,7 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <atomic>
 #include <thread>
 
 #include <gtest/gtest.h>
@@ -15,7 +16,7 @@ TEST(BusyLoopTest, MultiThreaded)
   for (int i = 0; i < 10; i++)
   {
     loop.Prepare();
-    std::thread loop_thread([&] { loop.Run([&] { e.Set(); }); });
+    std::thread loop_thread([&]() { loop.Run([&]() { e.Set(); }); });
 
     // Ping - Pong
     for (int j = 0; j < 10; j++)
@@ -31,7 +32,7 @@ TEST(BusyLoopTest, MultiThreaded)
     {
       // We normally have to call Wakeup to assure the Event is triggered.
       // But this check is for an internal feature of the BlockingLoop.
-      // It's implemented to fall back to a busy loop regularly.
+      // It's implemented to fall back to a busy loop regulary.
       // If we're in the busy loop, the payload (and so the Event) is called all the time.
       // loop.Wakeup();
       e.Wait();

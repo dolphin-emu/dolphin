@@ -20,8 +20,6 @@ class AbstractFramebuffer;
 
 namespace VideoCommon
 {
-class ShaderIncluder;
-
 class PostProcessingConfiguration
 {
 public:
@@ -70,7 +68,6 @@ public:
   void SaveOptionsConfiguration();
   const std::string& GetShader() const { return m_current_shader; }
   const std::string& GetShaderCode() const { return m_current_shader_code; }
-  ShaderIncluder* GetShaderIncluder() { return m_shader_includer.get(); }
   bool IsDirty() const { return m_any_options_dirty; }
   void SetDirty(bool dirty) { m_any_options_dirty = dirty; }
   bool HasOptions() const { return m_options.size() > 0; }
@@ -84,7 +81,6 @@ public:
 
 private:
   bool m_any_options_dirty = false;
-  std::unique_ptr<ShaderIncluder> m_shader_includer;
   std::string m_current_shader;
   std::string m_current_shader_code;
   ConfigMap m_options;

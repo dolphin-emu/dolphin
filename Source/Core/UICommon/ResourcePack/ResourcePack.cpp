@@ -8,9 +8,7 @@
 
 #include <mz.h>
 #include <mz_os.h>
-#include <mz_strm.h>
-#include <mz_zip.h>
-#include <mz_zip_rw.h>
+#include <unzip.h>
 
 #include "Common/CommonPaths.h"
 #include "Common/Contains.h"
@@ -30,45 +28,34 @@ constexpr char TEXTURE_PATH[] = HIRES_TEXTURES_DIR DIR_SEP;
 
 ResourcePack::ResourcePack(const std::string& path) : m_path(path)
 {
-  void* zip_reader = mz_zip_reader_create();
-  if (!zip_reader)
-  {
-    m_valid = false;
-    m_error = "Failed to create zip reader";
-    return;
-  }
+  auto file = unzOpen(path.c_str());
+  Common::ScopeGuard file_guard{[&] { unzClose(file); }};
 
-  Common::ScopeGuard file_guard{[&] { mz_zip_reader_delete(&zip_reader); }};
-
-  if (mz_zip_reader_open_file(zip_reader, path.c_str()) != MZ_OK)
+  if (file == nullptr)
   {
     m_valid = false;
     m_error = "Failed to open resource pack";
     return;
   }
 
-  if (mz_zip_reader_locate_entry(zip_reader, "manifest.json", 0) != MZ_OK)
+  if (unzLocateFile(file, "manifest.json", 0) == UNZ_END_OF_LIST_OF_FILE)
   {
     m_valid = false;
     m_error = "Resource pack is missing a manifest.";
     return;
   }
 
-  mz_zip_file* manifest_info;
-  if (mz_zip_reader_entry_get_info(zip_reader, &manifest_info) != MZ_OK)
-  {
-    m_valid = false;
-    m_error = "Failed to access manifest.json";
-    return;
-  }
+  unz_file_info64 manifest_info{};
+  unzGetCurrentFileInfo64(file, &manifest_info, nullptr, 0, nullptr, 0, nullptr, 0);
 
-  std::string manifest_contents(manifest_info->uncompressed_size, '\0');
-  if (!Common::ReadFileFromZip(zip_reader, &manifest_contents))
+  std::string manifest_contents(manifest_info.uncompressed_size, '\0');
+  if (!Common::ReadFileFromZip(file, &manifest_contents))
   {
     m_valid = false;
     m_error = "Failed to read manifest.json";
     return;
   }
+  unzCloseCurrentFile(file);
 
   m_manifest = std::make_shared<Manifest>(manifest_contents);
   if (!m_manifest->IsValid())
@@ -78,14 +65,14 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
     return;
   }
 
-  if (mz_zip_reader_locate_entry(zip_reader, "logo.png", 0) == MZ_OK)
+  if (unzLocateFile(file, "logo.png", 0) != UNZ_END_OF_LIST_OF_FILE)
   {
-    mz_zip_file* logo_info;
-    mz_zip_reader_entry_get_info(zip_reader, &logo_info);
+    unz_file_info64 logo_info{};
+    unzGetCurrentFileInfo64(file, &logo_info, nullptr, 0, nullptr, 0, nullptr, 0);
 
-    m_logo_data.resize(logo_info->uncompressed_size);
+    m_logo_data.resize(logo_info.uncompressed_size);
 
-    if (!Common::ReadFileFromZip(zip_reader, &m_logo_data))
+    if (!Common::ReadFileFromZip(file, &m_logo_data))
     {
       m_valid = false;
       m_error = "Failed to read logo.png";
@@ -93,19 +80,21 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
     }
   }
 
-  mz_zip_reader_goto_first_entry(zip_reader);
+  unzGoToFirstFile(file);
 
   do
   {
-    mz_zip_file* texture_info;
-    mz_zip_reader_entry_get_info(zip_reader, &texture_info);
-    std::string filename(texture_info->filename);
+    std::string filename(256, '\0');
 
-    if (!filename.starts_with("textures/") || texture_info->uncompressed_size == 0)
+    unz_file_info64 texture_info{};
+    unzGetCurrentFileInfo64(file, &texture_info, filename.data(), static_cast<u16>(filename.size()),
+                            nullptr, 0, nullptr, 0);
+
+    if (!filename.starts_with("textures/") || texture_info.uncompressed_size == 0)
       continue;
 
     // If a texture is compressed and the manifest doesn't state that, abort.
-    if (!m_manifest->IsCompressed() && texture_info->compression_method != 0)
+    if (!m_manifest->IsCompressed() && texture_info.compression_method != 0)
     {
       m_valid = false;
       m_error = "Texture " + filename + " is compressed!";
@@ -113,7 +102,7 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
     }
 
     m_textures.push_back(filename.substr(9));
-  } while (mz_zip_reader_goto_next_entry(zip_reader) != MZ_END_OF_LIST);
+  } while (unzGoToNextFile(file) != UNZ_END_OF_LIST_OF_FILE);
 }
 
 bool ResourcePack::IsValid() const
@@ -154,35 +143,29 @@ bool ResourcePack::Install(const std::string& path)
     return false;
   }
 
-  void* zip_reader = mz_zip_reader_create();
-  if (!zip_reader)
-  {
-    m_valid = false;
-    m_error = "Failed to create zip reader";
-    return false;
-  }
-
-  Common::ScopeGuard file_guard{[&] { mz_zip_reader_delete(&zip_reader); }};
-
-  if (mz_zip_reader_open_file(zip_reader, m_path.c_str()) != MZ_OK)
+  auto file = unzOpen(m_path.c_str());
+  if (file == nullptr)
   {
     m_valid = false;
     m_error = "Failed to open resource pack";
     return false;
   }
+  Common::ScopeGuard file_guard{[&] { unzClose(file); }};
 
-  if (mz_zip_reader_goto_first_entry(zip_reader) != MZ_OK)
+  if (unzGoToFirstFile(file) != MZ_OK)
     return false;
 
+  std::string texture_zip_path;
   do
   {
-    mz_zip_file* texture_info{};
-    if (mz_zip_reader_entry_get_info(zip_reader, &texture_info) != MZ_OK)
+    texture_zip_path.resize(UINT16_MAX + 1, '\0');
+    unz_file_info64 texture_info{};
+    if (unzGetCurrentFileInfo64(file, &texture_info, texture_zip_path.data(), UINT16_MAX, nullptr,
+                                0, nullptr, 0) != MZ_OK)
     {
       return false;
     }
-
-    const std::string texture_zip_path = texture_info->filename;
+    TruncateToCString(&texture_zip_path);
 
     const std::string texture_zip_path_prefix = "textures/";
     if (!texture_zip_path.starts_with(texture_zip_path_prefix))
@@ -220,9 +203,9 @@ bool ResourcePack::Install(const std::string& path)
       return false;
     }
 
-    const size_t data_size = static_cast<size_t>(texture_info->uncompressed_size);
+    const size_t data_size = static_cast<size_t>(texture_info.uncompressed_size);
     auto data = std::make_unique<u8[]>(data_size);
-    if (!Common::ReadFileFromZip(zip_reader, data.get(), data_size))
+    if (!Common::ReadFileFromZip(file, data.get(), data_size))
     {
       m_error = "Failed to read texture " + texture;
       return false;
@@ -239,8 +222,7 @@ bool ResourcePack::Install(const std::string& path)
       m_error = "Failed to write " + texture;
       return false;
     }
-
-  } while (mz_zip_reader_goto_next_entry(zip_reader) == MZ_OK);
+  } while (unzGoToNextFile(file) == MZ_OK);
 
   SetInstalled(*this, true);
   return true;
@@ -304,7 +286,7 @@ bool ResourcePack::Uninstall(const std::string& path)
 
     while (dir.length() > (path + TEXTURE_PATH).length())
     {
-      const auto is_empty = Common::DoFileSearch(dir).empty();
+      auto is_empty = Common::DoFileSearch({dir}).empty();
 
       if (is_empty)
         File::DeleteDir(dir);

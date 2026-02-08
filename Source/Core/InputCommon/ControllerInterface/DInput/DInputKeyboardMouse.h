@@ -97,7 +97,7 @@ public:
   Core::DeviceRemoval UpdateInput() override;
 
   KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device, const LPDIRECTINPUTDEVICE8 mo_device);
-  ~KeyboardMouse() override;
+  ~KeyboardMouse();
 
   std::string GetName() const override;
   std::string GetSource() const override;

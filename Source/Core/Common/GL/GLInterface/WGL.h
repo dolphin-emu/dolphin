@@ -10,9 +10,9 @@
 class GLContextWGL final : public GLContext
 {
 public:
-  ~GLContextWGL() override;
+  ~GLContextWGL();
 
-  bool IsHeadless() const override;
+  bool IsHeadless() const;
 
   std::unique_ptr<GLContext> CreateSharedContext() override;
 

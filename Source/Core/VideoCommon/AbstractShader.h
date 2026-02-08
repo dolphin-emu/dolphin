@@ -9,14 +9,6 @@
 
 #include "Common/CommonTypes.h"
 
-// Note: not directly used in this file
-// but done here to avoid specifying in
-// every derived class that needs it
-namespace VideoCommon
-{
-class ShaderIncluder;
-}
-
 enum class ShaderStage
 {
   Vertex,

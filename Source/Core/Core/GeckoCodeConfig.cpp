@@ -3,6 +3,7 @@
 
 #include "Core/GeckoCodeConfig.h"
 
+#include <algorithm>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -10,6 +11,7 @@
 
 #include "Common/HttpRequest.h"
 #include "Common/IniFile.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/CheatCodes.h"
 

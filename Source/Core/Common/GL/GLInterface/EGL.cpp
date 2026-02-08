@@ -4,6 +4,7 @@
 #include "Common/GL/GLInterface/EGL.h"
 
 #include <array>
+#include <cstdlib>
 #include <sstream>
 #include <vector>
 

@@ -6,6 +6,7 @@
 #include <chrono>
 #include <optional>
 
+#include "Common/CommonTypes.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 class CameraControllerInput;

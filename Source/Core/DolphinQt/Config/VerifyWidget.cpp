@@ -21,6 +21,7 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeVerifier.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
+#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Settings.h"
 
 VerifyWidget::VerifyWidget(std::shared_ptr<DiscIO::Volume> volume) : m_volume(std::move(volume))
@@ -120,13 +121,8 @@ void VerifyWidget::ConnectWidgets()
 {
   connect(m_verify_button, &QPushButton::clicked, this, &VerifyWidget::Verify);
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  connect(m_md5_checkbox, &QCheckBox::checkStateChanged, this, &VerifyWidget::UpdateRedumpEnabled);
-  connect(m_sha1_checkbox, &QCheckBox::checkStateChanged, this, &VerifyWidget::UpdateRedumpEnabled);
-#else
   connect(m_md5_checkbox, &QCheckBox::stateChanged, this, &VerifyWidget::UpdateRedumpEnabled);
   connect(m_sha1_checkbox, &QCheckBox::stateChanged, this, &VerifyWidget::UpdateRedumpEnabled);
-#endif
 }
 
 static void SetHash(QLineEdit* line_edit, const std::vector<u8>& hash)
@@ -184,6 +180,7 @@ void VerifyWidget::Verify()
                    progress.Reset();
                    return verifier.GetResult();
                  });
+  SetQWidgetWindowDecorations(progress.GetRaw());
   progress.GetRaw()->exec();
 
   std::optional<DiscIO::VolumeVerifier::Result> result = future.get();
