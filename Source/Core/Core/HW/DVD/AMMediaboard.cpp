@@ -689,6 +689,10 @@ static s32 NetDIMMConnect(GuestSocket guest_socket, const GuestSocketAddress& gu
       connect(host_socket, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
   const int err = WSAGetLastError();
 
+  INFO_LOG_FMT(AMMEDIABOARD_NET, "NetDIMMConnect: connect( {}({}), ({},{}:{}) ):{} ({})",
+               host_socket, u32(guest_socket), addr.sin_family, inet_ntoa(addr.sin_addr),
+               Common::swap16(addr.sin_port), connect_result, err);
+
   if (connect_result == 0) [[unlikely]]
   {
     // Immediate success.
@@ -859,10 +863,6 @@ static void AMMBCommandConnect(u32 parameter_offset, u32 network_buffer_base)
   memcpy(&addr, addr_ptr, sizeof(addr));
 
   const int ret = NetDIMMConnect(guest_socket, addr);
-
-  INFO_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: connect( {}, ({},{},{}:{}), {} ):{}", u32(guest_socket),
-               addr.struct_size, addr.ip_family, Common::IPAddressToString(addr.ip_address),
-               ntohs(addr.port), len, ret);
 
   s_media_buffer[1] = s_media_buffer[8];
   s_media_buffer_32[1] = ret;
@@ -1314,7 +1314,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         break;
       case AMMBCommand::Bind:
       {
-        const auto host_socket = GetHostSocket(GuestSocket(s_media_buffer_32[2]));
+        const auto guest_socket = GuestSocket(s_media_buffer_32[2]);
+        const auto host_socket = GetHostSocket(guest_socket);
         const u32 addr_offset = s_media_buffer_32[3];
         const u32 len = s_media_buffer_32[4];
 
@@ -1366,10 +1367,15 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
             .sin_addr = std::bit_cast<in_addr>(guest_addr.ip_address),
         };
 
-        const int ret = bind(host_socket, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
+        const int bind_result =
+            bind(host_socket, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
         const int err = WSAGetLastError();
 
-        if (ret < 0)
+        INFO_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: bind( {}({}), ({},{}:{}) ):{} ({})", host_socket,
+                     u32(guest_socket), addr.sin_family, inet_ntoa(addr.sin_addr),
+                     Common::swap16(addr.sin_port), bind_result, err);
+
+        if (bind_result < 0)
         {
           const auto err_msg = Common::DecodeNetworkError(err);
           PanicAlertFmt("Failed to bind socket (error {}: {})", err, err_msg);
@@ -1377,11 +1383,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
                         err_msg);
         }
 
-        INFO_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: bind( {}, ({},{:08x}:{}), {} ):{} ({})", host_socket,
-                     addr.sin_family, addr.sin_addr.s_addr, Common::swap16(addr.sin_port), len, ret,
-                     err);
-
-        s_media_buffer_32[1] = ret;
+        s_media_buffer_32[1] = bind_result;
         s_last_error = SSC_SUCCESS;
         break;
       }
