@@ -813,13 +813,13 @@ static void AMMBCommandSend(u32 parameter_offset, u32 network_buffer_base)
 
 static void AMMBCommandSocket(u32 parameter_offset)
 {
-  // Protocol is not sent
-  const u32 af = s_media_buffer_32[parameter_offset];
+  // Protocol is not sent (determined automatically).
+  const u32 domain = s_media_buffer_32[parameter_offset];
   const u32 type = s_media_buffer_32[parameter_offset + 1];
 
-  const GuestSocket guest_socket = socket_(af, type, IPPROTO_TCP);
+  const GuestSocket guest_socket = socket_(int(domain), int(type), 0);
 
-  NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: socket( {}, {} ):{}", af, type, u32(guest_socket));
+  NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: socket( {}, {} ):{}", domain, type, u32(guest_socket));
 
   s_media_buffer[1] = 0;
   s_media_buffer_32[1] = u32(guest_socket);
