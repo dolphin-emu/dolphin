@@ -169,7 +169,7 @@ private:
   // MMIO block ID.
   //
   // Each array contains NUM_MMIOS / sizeof (AccessType) because larger
-  // access types mean less possible adresses (assuming aligned only
+  // access types mean less possible addresses (assuming aligned only
   // accesses).
   template <typename Unit>
   struct HandlerArray

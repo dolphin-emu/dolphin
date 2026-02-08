@@ -6,16 +6,15 @@
 #include <cstddef>
 #include <map>
 #include <optional>
-#include <tuple>
 
 #include <rangeset/rangesizeset.h>
 
 #include "Common/Arm64Emitter.h"
 
-#include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/JitArm64/JitArm64Cache.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitArmCommon/BackPatch.h"
+#include "Core/PowerPC/JitCommon/ConstantPropagation.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -34,6 +33,8 @@ public:
 
   void Init() override;
   void Shutdown() override;
+
+  JitCommon::ConstantPropagation& GetConstantPropagation() { return m_constant_propagation; }
 
   JitBaseBlockCache* GetBlockCache() override { return &blocks; }
   bool IsInCodeSpace(const u8* ptr) const { return IsInSpace(ptr); }
@@ -111,7 +112,6 @@ public:
   void rlwimix(UGeckoInstruction inst);
   void subfex(UGeckoInstruction inst);
   void subfzex(UGeckoInstruction inst);
-  void subfcx(UGeckoInstruction inst);
   void subfic(UGeckoInstruction inst);
   void addex(UGeckoInstruction inst);
   void divwux(UGeckoInstruction inst);
@@ -122,9 +122,7 @@ public:
   void mcrf(UGeckoInstruction inst);
   void mcrxr(UGeckoInstruction inst);
   void mfsr(UGeckoInstruction inst);
-  void mtsr(UGeckoInstruction inst);
   void mfsrin(UGeckoInstruction inst);
-  void mtsrin(UGeckoInstruction inst);
   void twx(UGeckoInstruction inst);
   void mfspr(UGeckoInstruction inst);
   void mftb(UGeckoInstruction inst);
@@ -273,11 +271,17 @@ protected:
   // !emitting_routine && mode != AlwaysSlowAccess && !jo.fastmem:                X30
   // !emitting_routine && mode == Auto && jo.fastmem:                             X30
   //
-  // Furthermore, any callee-saved register which isn't marked in gprs_to_push/fprs_to_push
-  // may be clobbered if mode != AlwaysFastAccess.
+  // Furthermore:
+  // - Any callee-saved register which isn't marked in gprs_to_push/fprs_to_push may be
+  //   clobbered if mode != AlwaysFastAccess.
+  // - If !emitting_routine && mode != AlwaysFastAccess && jo.memcheck, X30 must not
+  //   contain a guest register.
   void EmitBackpatchRoutine(u32 flags, MemAccessMode mode, Arm64Gen::ARM64Reg RS,
                             Arm64Gen::ARM64Reg addr, BitSet32 gprs_to_push = BitSet32(0),
                             BitSet32 fprs_to_push = BitSet32(0), bool emitting_routine = false);
+
+  // temp_gpr must be a valid register, but temp_fpr can be INVALID_REG.
+  void FlushPPCStateBeforeSlowAccess(Arm64Gen::ARM64Reg temp_gpr, Arm64Gen::ARM64Reg temp_fpr);
 
   // Loadstore routines
   void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update);
@@ -318,6 +322,8 @@ protected:
   void GenerateConvertDoubleToSingle();
   void GenerateConvertSingleToDouble();
   void GenerateFPRF(bool single);
+  void GenerateFmaddsEft();
+  void GeneratePsMaddEft();
   void GenerateQuantizedLoads();
   void GenerateQuantizedStores();
 
@@ -370,13 +376,14 @@ protected:
 
   void ComputeRC0(Arm64Gen::ARM64Reg reg);
   void ComputeRC0(u32 imm);
+  void GenerateConstantOverflow(bool overflow);
   void ComputeCarry(Arm64Gen::ARM64Reg reg);  // reg must contain 0 or 1
   void ComputeCarry(bool carry);
   void ComputeCarry();
   void LoadCarry();
   void FlushCarry();
 
-  void reg_imm(u32 d, u32 a, u32 value, u32 (*do_op)(u32, u32),
+  void reg_imm(u32 d, u32 a, u32 value,
                void (ARM64XEmitter::*op)(Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, u64,
                                          Arm64Gen::ARM64Reg),
                bool Rc = false);
@@ -389,6 +396,8 @@ protected:
   std::map<const u8*, FastmemArea> m_fault_to_handler{};
   Arm64GPRCache gpr;
   Arm64FPRCache fpr;
+
+  JitCommon::ConstantPropagation m_constant_propagation;
 
   JitArm64BlockCache blocks{*this};
 

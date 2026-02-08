@@ -4,9 +4,7 @@
 #include "DiscIO/DirectoryBlob.h"
 
 #include <algorithm>
-#include <array>
 #include <cstring>
-#include <locale>
 #include <map>
 #include <memory>
 #include <set>
@@ -17,14 +15,12 @@
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/DirectIOFile.h"
 #include "Common/FileUtil.h"
-#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
-#include "Core/Boot/DolReader.h"
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscUtils.h"
@@ -97,9 +93,8 @@ bool DiscContent::Read(u64* offset, u64* length, u8** buffer, DirectoryBlobReade
     if (std::holds_alternative<ContentFile>(m_content_source))
     {
       const auto& content = std::get<ContentFile>(m_content_source);
-      File::IOFile file(content.m_filename, "rb");
-      if (!file.Seek(content.m_offset + offset_in_content, File::SeekOrigin::Begin) ||
-          !file.ReadBytes(*buffer, bytes_to_read))
+      File::DirectIOFile file(content.m_filename, File::AccessMode::Read);
+      if (!file.OffsetRead(content.m_offset + offset_in_content, *buffer, bytes_to_read))
       {
         return false;
       }
@@ -240,13 +235,13 @@ static bool PathCharactersEqual(char a, char b)
   return a == b || (IsDirectorySeparator(a) && IsDirectorySeparator(b));
 }
 
-static bool PathEndsWith(const std::string& path, const std::string& suffix)
+static bool PathEndsWith(const std::string& path, const std::string_view suffix)
 {
   if (suffix.size() > path.size())
     return false;
 
   std::string::const_iterator path_iterator = path.cend() - suffix.size();
-  std::string::const_iterator suffix_iterator = suffix.cbegin();
+  std::string_view::const_iterator suffix_iterator = suffix.cbegin();
   while (path_iterator != path.cend())
   {
     if (!PathCharactersEqual(*path_iterator, *suffix_iterator))
@@ -264,7 +259,7 @@ static bool IsValidDirectoryBlob(const std::string& dol_path, std::string* parti
   if (!PathEndsWith(dol_path, "/sys/main.dol"))
     return false;
 
-  const size_t chars_to_remove = std::string("sys/main.dol").size();
+  static constexpr size_t chars_to_remove = std::string_view("sys/main.dol").size();
   *partition_root = dol_path.substr(0, dol_path.size() - chars_to_remove);
 
   if (File::GetSize(*partition_root + "sys/boot.bin") < 0x20)
@@ -339,9 +334,30 @@ static bool IsMainDolForNonGamePartition(const std::string& path)
   return false;  // volume_path is the game partition's /sys/main.dol
 }
 
+static bool IsBootBin(const std::string& path)
+{
+  static constexpr std::string_view boot_bin = "/sys/boot.bin";
+  if (!PathEndsWith(path, boot_bin))
+    return false;
+
+  const std::string partition_root = path.substr(0, path.size() - boot_bin.size());
+  return File::Exists(partition_root + "/sys/main.dol");
+}
+
+static bool IsHeaderBin(const std::string& path)
+{
+  static constexpr std::string_view header_bin = "/disc/header.bin";
+  if (!PathEndsWith(path, header_bin))
+    return false;
+
+  const std::string partition_root = path.substr(0, path.size() - header_bin.size());
+  return File::Exists(partition_root + "/sys/main.dol");
+}
+
 bool ShouldHideFromGameList(const std::string& volume_path)
 {
-  return IsInFilesDirectory(volume_path) || IsMainDolForNonGamePartition(volume_path);
+  return IsInFilesDirectory(volume_path) || IsMainDolForNonGamePartition(volume_path) ||
+         IsBootBin(volume_path) || IsHeaderBin(volume_path);
 }
 
 std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::string& dol_path)
@@ -354,7 +370,7 @@ std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::stri
 }
 
 std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(
-    std::unique_ptr<DiscIO::VolumeDisc> volume,
+    std::unique_ptr<VolumeDisc> volume,
     const std::function<void(std::vector<FSTBuilderNode>* fst_nodes)>& sys_callback,
     const std::function<void(std::vector<FSTBuilderNode>* fst_nodes, FSTBuilderNode* dol_node)>&
         fst_callback)
@@ -414,7 +430,7 @@ DirectoryBlobReader::DirectoryBlobReader(const std::string& game_partition_root,
 }
 
 DirectoryBlobReader::DirectoryBlobReader(
-    std::unique_ptr<DiscIO::VolumeDisc> volume,
+    std::unique_ptr<VolumeDisc> volume,
     const std::function<void(std::vector<FSTBuilderNode>* fst_nodes)>& sys_callback,
     const std::function<void(std::vector<FSTBuilderNode>* fst_nodes, FSTBuilderNode* dol_node)>&
         fst_callback)
@@ -699,7 +715,7 @@ void DirectoryBlobReader::SetPartitionHeader(DirectoryBlobPartition* partition,
   constexpr u32 TMD_OFFSET = 0x2c0;
   constexpr u32 H3_OFFSET = 0x4000;
 
-  const std::optional<DiscIO::Partition>& wrapped_partition = partition->GetWrappedPartition();
+  const std::optional<Partition>& wrapped_partition = partition->GetWrappedPartition();
   const std::string& partition_root = partition->GetRootDirectory();
 
   u64 ticket_size;
@@ -797,8 +813,7 @@ void DirectoryBlobReader::SetPartitionHeader(DirectoryBlobPartition* partition,
     partition->SetKey(ticket.GetTitleKey());
 }
 
-static void GenerateBuilderNodesFromFileSystem(const DiscIO::VolumeDisc& volume,
-                                               const DiscIO::Partition& partition,
+static void GenerateBuilderNodesFromFileSystem(const VolumeDisc& volume, const Partition& partition,
                                                std::vector<FSTBuilderNode>* nodes,
                                                const FileInfo& parent_info)
 {
@@ -875,7 +890,7 @@ static std::vector<u8> ExtractNodeToVector(std::vector<FSTBuilderNode>* nodes, v
 }
 
 DirectoryBlobPartition::DirectoryBlobPartition(
-    DiscIO::VolumeDisc* volume, const DiscIO::Partition& partition, std::optional<bool> is_wii,
+    VolumeDisc* volume, const Partition& partition, std::optional<bool> is_wii,
     const std::function<void(std::vector<FSTBuilderNode>* fst_nodes)>& sys_callback,
     const std::function<void(std::vector<FSTBuilderNode>* fst_nodes, FSTBuilderNode* dol_node)>&
         fst_callback,
@@ -993,9 +1008,9 @@ void DirectoryBlobPartition::SetBI2(std::vector<u8> bi2)
 
 u64 DirectoryBlobPartition::SetApploaderFromFile(const std::string& path)
 {
-  File::IOFile file(path, "rb");
+  File::DirectIOFile file(path, File::AccessMode::Read);
   std::vector<u8> apploader(file.GetSize());
-  file.ReadBytes(apploader.data(), apploader.size());
+  file.Read(apploader);
   return SetApploader(std::move(apploader), path);
 }
 
@@ -1167,7 +1182,7 @@ void DirectoryBlobPartition::WriteEntryData(std::vector<u8>* fst_data, u32* entr
 
   (*fst_data)[(*entry_offset)++] = (name_offset >> 16) & 0xff;
   (*fst_data)[(*entry_offset)++] = (name_offset >> 8) & 0xff;
-  (*fst_data)[(*entry_offset)++] = (name_offset)&0xff;
+  (*fst_data)[(*entry_offset)++] = (name_offset) & 0xff;
 
   Write32((u32)(data_offset >> address_shift), *entry_offset, fst_data);
   *entry_offset += 4;
@@ -1236,10 +1251,9 @@ void DirectoryBlobPartition::WriteDirectory(std::vector<u8>* fst_data,
 
 static size_t ReadFileToVector(const std::string& path, std::vector<u8>* vector)
 {
-  File::IOFile file(path, "rb");
-  size_t bytes_read;
-  file.ReadArray<u8>(vector->data(), std::min<u64>(file.GetSize(), vector->size()), &bytes_read);
-  return bytes_read;
+  File::DirectIOFile file(path, File::AccessMode::Read);
+  file.Read(vector->data(), std::min<u64>(file.GetSize(), vector->size()));
+  return file.Tell();
 }
 
 static void PadToAddress(u64 start_address, u64* address, u64* length, u8** buffer)

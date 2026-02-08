@@ -26,12 +26,8 @@ void RpcConnection::Open()
         return;
     }
 
-    if (state == State::Disconnected) {
-        if (connection->Open()) {
-        }
-        else {
-            return;
-        }
+    if (state == State::Disconnected && !connection->Open()) {
+        return;
     }
 
     if (state == State::SentHandshake) {

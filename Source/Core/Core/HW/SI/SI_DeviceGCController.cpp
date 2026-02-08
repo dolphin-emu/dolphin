@@ -3,13 +3,10 @@
 
 #include "Core/HW/SI/SI_DeviceGCController.h"
 
-#include <cstring>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/GCPad.h"
@@ -44,7 +41,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   // For debug logging only
   ISIDevice::RunBuffer(buffer, request_length);
 
-  GCPadStatus pad_status = GetPadStatus();
+  const GCPadStatus pad_status = GetPadStatus();
   if (!pad_status.isConnected)
     return -1;
 
@@ -57,9 +54,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   case EBufferCommands::CMD_STATUS:
   case EBufferCommands::CMD_RESET:
   {
-    u32 id = Common::swap32(SI_GC_CONTROLLER);
-    std::memcpy(buffer, &id, sizeof(id));
-    return sizeof(id);
+    return CreateStatusResponse(SI_GC_CONTROLLER, buffer);
   }
 
   case EBufferCommands::CMD_DIRECT:
@@ -79,7 +74,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   {
     INFO_LOG_FMT(SERIALINTERFACE, "PAD - Get Origin");
 
-    u8* calibration = reinterpret_cast<u8*>(&m_origin);
+    const u8* calibration = reinterpret_cast<u8*>(&m_origin);
     for (int i = 0; i < (int)sizeof(SOrigin); i++)
     {
       buffer[i] = *calibration++;
@@ -92,7 +87,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   {
     INFO_LOG_FMT(SERIALINTERFACE, "PAD - Recalibrate");
 
-    u8* calibration = reinterpret_cast<u8*>(&m_origin);
+    const u8* calibration = reinterpret_cast<u8*>(&m_origin);
     for (int i = 0; i < (int)sizeof(SOrigin); i++)
     {
       buffer[i] = *calibration++;
@@ -101,7 +96,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   }
 
   // GameID packet, no response needed, nothing to do
-  // On real hardware, this is used to configure the BlueRetro controler
+  // On real hardware, this is used to configure the BlueRetro controller
   // adapter, while licensed accessories ignore this command.
   case EBufferCommands::CMD_SET_GAME_ID:
   {
@@ -170,12 +165,12 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
 // [00?SYXBA] [1LRZUDRL] [x] [y] [cx] [cy] [l] [r]
 //  |\_ ERR_LATCH (error latched - check SISR)
 //  |_ ERR_STATUS (error on last GetData or SendCmd?)
-bool CSIDevice_GCController::GetData(u32& hi, u32& low)
+DataResponse CSIDevice_GCController::GetData(u32& hi, u32& low)
 {
   GCPadStatus pad_status = GetPadStatus();
 
   if (!pad_status.isConnected)
-    return false;
+    return DataResponse::ErrorNoResponse;
 
   if (HandleButtonCombos(pad_status) == COMBO_ORIGIN)
     pad_status.button |= PAD_GET_ORIGIN;
@@ -227,7 +222,7 @@ bool CSIDevice_GCController::GetData(u32& hi, u32& low)
     low |= pad_status.substickX << 24;  // All 8 bits
   }
 
-  return true;
+  return DataResponse::Success;
 }
 
 u32 CSIDevice_GCController::MapPadStatus(const GCPadStatus& pad_status)
@@ -343,7 +338,7 @@ CSIDevice_TaruKonga::CSIDevice_TaruKonga(Core::System& system, SIDevices device,
 {
 }
 
-bool CSIDevice_TaruKonga::GetData(u32& hi, u32& low)
+DataResponse CSIDevice_TaruKonga::GetData(u32& hi, u32& low)
 {
   CSIDevice_GCController::GetData(hi, low);
 
@@ -351,7 +346,7 @@ bool CSIDevice_TaruKonga::GetData(u32& hi, u32& low)
   // and all buttons except: A, B, X, Y, Start, R
   hi &= HI_BUTTON_MASK;
 
-  return true;
+  return DataResponse::Success;
 }
 
 }  // namespace SerialInterface

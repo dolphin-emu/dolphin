@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <expected>
 #include <memory>
 #include <optional>
 #include <string>
@@ -15,7 +16,6 @@
 #endif
 
 #include "Common/CommonTypes.h"
-#include "Common/Result.h"
 
 class PointerWrap;
 
@@ -49,7 +49,7 @@ enum class ResultCode
 };
 
 template <typename T>
-using Result = Common::Result<ResultCode, T>;
+using Result = std::expected<T, ResultCode>;
 
 using Uid = u32;
 using Gid = u16;
@@ -289,9 +289,9 @@ Result<size_t> FileHandle::Read(T* ptr, size_t count) const
   const Result<u32> bytes = m_fs->ReadBytesFromFile(*m_fd, reinterpret_cast<u8*>(ptr),
                                                     static_cast<u32>(sizeof(T) * count));
   if (!bytes)
-    return bytes.Error();
+    return bytes;
   if (*bytes != sizeof(T) * count)
-    return ResultCode::ShortRead;
+    return std::unexpected{ResultCode::ShortRead};
   return count;
 }
 
@@ -301,7 +301,7 @@ Result<size_t> FileHandle::Write(const T* ptr, size_t count) const
   const auto result = m_fs->WriteBytesToFile(*m_fd, reinterpret_cast<const u8*>(ptr),
                                              static_cast<u32>(sizeof(T) * count));
   if (!result)
-    return result.Error();
+    return result;
   return count;
 }
 

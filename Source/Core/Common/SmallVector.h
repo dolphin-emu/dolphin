@@ -7,8 +7,12 @@
 #include <cstddef>
 #include <utility>
 
+#include "Common/TypeUtils.h"
+
 namespace Common
 {
+
+// TODO C++26: Replace with std::inplace_vector.
 
 // An std::vector-like container that uses no heap allocations but is limited to a maximum size.
 template <typename T, size_t MaxSize>
@@ -59,13 +63,13 @@ public:
   value_type& emplace_back(Args&&... args)
   {
     assert(m_size < MaxSize);
-    return *::new (&m_array[m_size++ * sizeof(value_type)]) value_type{std::forward<Args>(args)...};
+    return m_array[m_size++].Construct(std::forward<Args>(args)...);
   }
 
   void pop_back()
   {
     assert(m_size > 0);
-    std::destroy_at(data() + --m_size);
+    m_array[--m_size].Destroy();
   }
 
   value_type& operator[](size_t i)
@@ -79,11 +83,11 @@ public:
     return data()[i];
   }
 
-  auto data() { return std::launder(reinterpret_cast<value_type*>(m_array.data())); }
+  auto data() { return m_array.data()->Ptr(); }
   auto begin() { return data(); }
   auto end() { return data() + m_size; }
 
-  auto data() const { return std::launder(reinterpret_cast<const value_type*>(m_array.data())); }
+  auto data() const { return m_array.data()->Ptr(); }
   auto begin() const { return data(); }
   auto end() const { return data() + m_size; }
 
@@ -106,7 +110,7 @@ public:
   void clear() { resize(0); }
 
 private:
-  alignas(value_type) std::array<std::byte, MaxSize * sizeof(value_type)> m_array;
+  std::array<ManuallyConstructedValue<T>, MaxSize> m_array;
   size_t m_size = 0;
 };
 

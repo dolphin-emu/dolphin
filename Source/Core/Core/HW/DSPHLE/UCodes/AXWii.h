@@ -49,12 +49,12 @@ protected:
   // Convert a mixer_control bitfield to our internal representation for that
   // value. Required because that bitfield has a different meaning in some
   // versions of AX.
-  AXMixControl ConvertMixerControl(u32 mixer_control);
+  static AXMixControl ConvertMixerControl(u32 mixer_control);
 
   // Generate a volume ramp from vol1 to vol2, interpolating n volume values.
   // Uses floating point arithmetic, which isn't exactly what the UCode does,
   // but this gives better precision and nicer code.
-  void GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nvals);
+  static void GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nvals);
 
   void HandleCommandList() override;
 

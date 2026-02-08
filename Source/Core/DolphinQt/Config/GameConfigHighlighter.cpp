@@ -5,6 +5,10 @@
 
 #include <QBrush>
 #include <QColor>
+#include <QRegularExpression>
+#include <QTextBlock>
+#include <QTextCharFormat>
+#include <QTextDocument>
 
 #include "DolphinQt/Settings.h"
 
@@ -16,7 +20,7 @@ struct HighlightingRule
 
 GameConfigHighlighter::~GameConfigHighlighter() = default;
 
-GameConfigHighlighter::GameConfigHighlighter(QTextDocument* parent) : QSyntaxHighlighter(parent)
+GameConfigHighlighter::GameConfigHighlighter(QTextDocument* parent) : QObject(parent)
 {
   const bool is_dark_theme = Settings::Instance().IsThemeDark();
 
@@ -65,17 +69,42 @@ GameConfigHighlighter::GameConfigHighlighter(QTextDocument* parent) : QSyntaxHig
       HighlightingRule{QRegularExpression(QStringLiteral("^\\$.*")), comment_format});
   m_rules.emplace_back(
       HighlightingRule{QRegularExpression(QStringLiteral("^\\*.*")), comment_format});
+
+  // Highlight block on change.
+  // We're manually highlighting blocks because QSyntaxHighlighter
+  // hangs with large (>2MB) files for some reason.
+  connect(parent, &QTextDocument::contentsChange, this,
+          [this, parent](const int pos, int /* removed */, const int added) {
+            QTextBlock block = parent->findBlock(pos);
+            const auto pos_end = pos + added;
+            while (block.isValid() && block.position() <= pos_end)
+            {
+              HighlightBlock(block);
+              block = block.next();
+            }
+          });
+
+  // Highlight all blocks right now.
+  for (QTextBlock block = parent->begin(); block.isValid(); block = block.next())
+    HighlightBlock(block);
 }
 
-void GameConfigHighlighter::highlightBlock(const QString& text)
+void GameConfigHighlighter::HighlightBlock(const QTextBlock& block)
 {
+  QList<QTextLayout::FormatRange> format_ranges;
+
   for (const auto& rule : m_rules)
   {
-    auto it = rule.pattern.globalMatch(text);
+    auto it = rule.pattern.globalMatch(block.text());
     while (it.hasNext())
     {
-      auto match = it.next();
-      setFormat(match.capturedStart(), match.capturedLength(), rule.format);
+      const auto match = it.next();
+      format_ranges.emplace_back(QTextLayout::FormatRange{.start = int(match.capturedStart()),
+                                                          .length = int(match.capturedLength()),
+                                                          .format = rule.format});
     }
   }
+
+  block.layout()->clearFormats();
+  block.layout()->setFormats(format_ranges);
 }

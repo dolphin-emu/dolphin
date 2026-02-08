@@ -7,7 +7,6 @@
 #include <array>
 #include <cstddef>
 #include <cstring>
-#include <memory>
 #include <optional>
 #include <string>
 #include <utility>
@@ -21,12 +20,10 @@
 #include <fmt/format.h>
 
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
 #include "Common/ScopeGuard.h"
-#include "Common/StringUtil.h"
 
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
@@ -49,7 +46,6 @@
 #include <netinet/in.h>
 #include <resolv.h>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
 #endif
 
@@ -256,7 +252,7 @@ static std::vector<InterfaceRouting> GetSystemInterfaceRouting()
   }
 
   // read response
-  int msg_len = 0;
+  unsigned int msg_len = 0;
   msg_buffer.fill(0);
 
   do
@@ -270,9 +266,10 @@ static std::vector<InterfaceRouting> GetSystemInterfaceRouting()
     }
 
     nl_msg = reinterpret_cast<nlmsghdr*>(buf_ptr);
-    if (NLMSG_OK(nl_msg, read_len) == 0)
+    if (NLMSG_OK(nl_msg, static_cast<unsigned int>(read_len)) == 0)
     {
-      ERROR_LOG_FMT(IOS_NET, "Received netlink error response ({})", NLMSG_OK(nl_msg, read_len));
+      ERROR_LOG_FMT(IOS_NET, "Received netlink error response ({})",
+                    NLMSG_OK(nl_msg, static_cast<unsigned int>(read_len)));
       return {};
     }
 
@@ -387,7 +384,7 @@ static std::optional<DefaultInterface> GetSystemDefaultInterface()
   const u32 prefix_length = GetNetworkPrefixLength();
   const u32 netmask = (1 << prefix_length) - 1;
   const u32 gateway = GetNetworkGateway();
-  // this isnt fully correct, but this will make calls to get the routing table at least return the
+  // this isn't fully correct, but this will make calls to get the routing table at least return the
   // gateway
   if (routing_table.empty())
     routing_table = {{0, 0, 0, gateway}};
@@ -415,7 +412,7 @@ static std::optional<DefaultInterface> GetSystemDefaultInterface()
   };
 
   auto get_addr = [](const sockaddr* addr) {
-    return reinterpret_cast<const sockaddr_in*>(addr)->sin_addr.s_addr;
+    return reinterpret_cast<const sockaddr_in*>(addr)->sin_addr;
   };
 
   const auto default_interface_address = get_default_address();
@@ -430,12 +427,12 @@ static std::optional<DefaultInterface> GetSystemDefaultInterface()
   for (const ifaddrs* iface = iflist; iface; iface = iface->ifa_next)
   {
     if (iface->ifa_addr && iface->ifa_addr->sa_family == AF_INET &&
-        get_addr(iface->ifa_addr) == default_interface_address->s_addr)
+        get_addr(iface->ifa_addr).s_addr == default_interface_address->s_addr)
     {
-      // this isnt fully correct, but this will make calls to get the routing table at least return
+      // this isn't fully correct, but this will make calls to get the routing table at least return
       // the gateway
       if (routing_table.empty())
-        routing_table = {{0, 0, 0, get_addr(iface->ifa_dstaddr)}};
+        routing_table = {{0, {}, {}, get_addr(iface->ifa_dstaddr)}};
 
       return DefaultInterface{get_addr(iface->ifa_addr), get_addr(iface->ifa_netmask),
                               get_addr(iface->ifa_broadaddr), routing_table};
@@ -495,7 +492,7 @@ std::optional<IPCReply> NetIPTopDevice::IOCtl(const IOCtlRequest& request)
   case IOCTL_SO_GETHOSTID:
     return HandleGetHostIDRequest(request);
   case IOCTL_SO_INETATON:
-    return HandleInetAToNRequest(request);
+    return LaunchAsyncTask(&NetIPTopDevice::HandleInetAToNRequest, request);
   case IOCTL_SO_INETPTON:
     return HandleInetPToNRequest(request);
   case IOCTL_SO_INETNTOP:
@@ -785,8 +782,8 @@ IPCReply NetIPTopDevice::HandleGetPeerNameRequest(const IOCtlRequest& request)
 
 IPCReply NetIPTopDevice::HandleGetHostIDRequest(const IOCtlRequest& request)
 {
-  const DefaultInterface interface = GetSystemDefaultInterfaceOrFallback();
-  const u32 host_ip = ntohl(interface.inet.s_addr);
+  const DefaultInterface net_interface = GetSystemDefaultInterfaceOrFallback();
+  const u32 host_ip = ntohl(net_interface.inet.s_addr);
   INFO_LOG_FMT(IOS_NET, "IOCTL_SO_GETHOSTID = {}.{}.{}.{}", host_ip >> 24, (host_ip >> 16) & 0xFF,
                (host_ip >> 8) & 0xFF, host_ip & 0xFF);
   return IPCReply(host_ip);
@@ -1158,10 +1155,10 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
     // XXX: this isn't exactly right; the buffer can be larger than 12 bytes,
     // in which case, depending on some interface settings, SO can write 12 more bytes
     memory.Write_U32(0xC, request.io_vectors[1].address);
-    const DefaultInterface interface = GetSystemDefaultInterfaceOrFallback();
-    memory.Write_U32(ntohl(interface.inet.s_addr), request.io_vectors[0].address);
-    memory.Write_U32(ntohl(interface.netmask.s_addr), request.io_vectors[0].address + 4);
-    memory.Write_U32(ntohl(interface.broadcast.s_addr), request.io_vectors[0].address + 8);
+    const DefaultInterface net_interface = GetSystemDefaultInterfaceOrFallback();
+    memory.Write_U32(ntohl(net_interface.inet.s_addr), request.io_vectors[0].address);
+    memory.Write_U32(ntohl(net_interface.netmask.s_addr), request.io_vectors[0].address + 4);
+    memory.Write_U32(ntohl(net_interface.broadcast.s_addr), request.io_vectors[0].address + 8);
     break;
   }
 
@@ -1173,8 +1170,8 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
 
   case 0x4006:  // get routing table
   {
-    const DefaultInterface interface = GetSystemDefaultInterfaceOrFallback();
-    for (InterfaceRouting route : interface.routing_table)
+    const DefaultInterface net_interface = GetSystemDefaultInterfaceOrFallback();
+    for (InterfaceRouting route : net_interface.routing_table)
     {
       memory.Write_U32(ntohl(route.destination.s_addr), request.io_vectors[0].address + param5);
       memory.Write_U32(ntohl(route.netmask.s_addr), request.io_vectors[0].address + param5 + 4);

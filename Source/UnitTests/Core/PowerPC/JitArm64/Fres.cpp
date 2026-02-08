@@ -6,6 +6,7 @@
 
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
+#include "Common/FloatUtils.h"
 #include "Common/ScopeGuard.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
@@ -15,6 +16,7 @@
 
 #include "../TestValues.h"
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 
 namespace

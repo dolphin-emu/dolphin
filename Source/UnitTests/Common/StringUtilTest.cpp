@@ -2,10 +2,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <gtest/gtest.h>
+
 #include <string>
 #include <vector>
 
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 
 TEST(StringUtil, StringPopBackIf)
 {
@@ -57,7 +59,7 @@ static void DoRoundTripTest(const std::vector<T>& data)
   for (const T& e : data)
   {
     const std::string s = ValueToString(e);
-    T out;
+    T out = T();
     EXPECT_TRUE(TryParse(s, &out));
     EXPECT_EQ(e, out);
   }
@@ -225,3 +227,57 @@ TEST(StringUtil, SplitPathWindowsPathWithDriveLetter)
   EXPECT_EQ(extension, "");
 }
 #endif
+
+TEST(StringUtil, CaseInsensitiveContains_BasicMatches)
+{
+  EXPECT_TRUE(Common::CaseInsensitiveContains("hello world", "hello"));
+  EXPECT_TRUE(Common::CaseInsensitiveContains("hello world", "world"));
+  EXPECT_TRUE(Common::CaseInsensitiveContains("HELLO WORLD", "hello"));
+  EXPECT_TRUE(Common::CaseInsensitiveContains("HeLLo WoRLd", "WORLD"));
+}
+
+TEST(StringUtil, CaseInsensitiveContains_SubstringNotFound)
+{
+  EXPECT_FALSE(Common::CaseInsensitiveContains("hello world", "hey"));
+}
+
+TEST(StringUtil, CaseInsensitiveContains_EmptyStrings)
+{
+  EXPECT_TRUE(Common::CaseInsensitiveContains("", ""));
+  EXPECT_TRUE(Common::CaseInsensitiveContains("hello", ""));
+  EXPECT_FALSE(Common::CaseInsensitiveContains("", "world"));
+}
+
+TEST(StringUtil, CaseInsensitiveContains_EntireStringMatch)
+{
+  EXPECT_TRUE(Common::CaseInsensitiveContains("Test", "TEST"));
+}
+
+TEST(StringUtil, CaseInsensitiveContains_OverlappingMatches)
+{
+  EXPECT_TRUE(Common::CaseInsensitiveContains("aaaaaa", "aa"));
+  EXPECT_TRUE(Common::CaseInsensitiveContains("ababababa", "bABa"));
+}
+
+TEST(StringUtil, CharacterEncodingConversion)
+{
+  // wstring
+  EXPECT_EQ(WStringToUTF8(L"hello 🐬"), "hello 🐬");
+
+  // UTF-16
+  EXPECT_EQ(UTF16ToUTF8(u"hello 🐬"), "hello 🐬");
+  EXPECT_EQ(UTF8ToUTF16("hello 🐬"), u"hello 🐬");
+
+  // UTF-16BE
+  char16_t utf16be_str[] = u"hello 🐬";
+  for (auto& c : utf16be_str)
+    c = Common::swap16(c);
+  EXPECT_EQ(UTF16BEToUTF8(utf16be_str, 99), "hello 🐬");
+
+  // Shift JIS
+  EXPECT_EQ(SHIFTJISToUTF8("\x83\x43\x83\x8b\x83\x4a"), "イルカ");
+  EXPECT_EQ(UTF8ToSHIFTJIS("イルカ"), "\x83\x43\x83\x8b\x83\x4a");
+
+  // CP1252
+  EXPECT_EQ(CP1252ToUTF8("hello \xa5"), "hello ¥");
+}

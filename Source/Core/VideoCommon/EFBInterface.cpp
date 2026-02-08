@@ -4,10 +4,7 @@
 #include "VideoCommon/EFBInterface.h"
 
 #include <algorithm>
-#include <cmath>
 #include <memory>
-
-#include <fmt/format.h>
 
 #include "Common/MsgHandler.h"
 

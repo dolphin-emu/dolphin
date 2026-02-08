@@ -33,7 +33,7 @@ public:
   VKTexture(const TextureConfig& tex_config, VmaAllocation alloc, VkImage image,
             std::string_view name, VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED,
             ComputeImageLayout compute_layout = ComputeImageLayout::Undefined);
-  ~VKTexture();
+  ~VKTexture() override;
 
   static VkFormat GetLinearFormat(VkFormat format);
   static VkFormat GetVkFormatForHostTextureFormat(AbstractTextureFormat format);
@@ -69,6 +69,7 @@ public:
 
   void TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout new_layout) const;
   void TransitionToLayout(VkCommandBuffer command_buffer, ComputeImageLayout new_layout) const;
+  void PrepareForRenderPass(VkCommandBuffer command_buffer) const;
 
 private:
   bool CreateView(VkImageViewType type);
@@ -78,6 +79,7 @@ private:
   VkImageView m_view = VK_NULL_HANDLE;
   mutable VkImageLayout m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
   mutable ComputeImageLayout m_compute_layout = ComputeImageLayout::Undefined;
+  mutable bool m_written_since_last_layout_change = false;
   std::string m_name;
 };
 
@@ -93,7 +95,7 @@ public:
                    std::unique_ptr<StagingBuffer> buffer, VkImage linear_image,
                    VmaAllocation linear_image_alloc);
 
-  ~VKStagingTexture();
+  ~VKStagingTexture() override;
 
   void CopyFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& src_rect,
                        u32 src_layer, u32 src_level,
@@ -141,6 +143,7 @@ public:
 
   void Unbind();
   void TransitionForRender();
+  void PrepareForRenderPass();
 
   void SetAndClear(const VkRect2D& rect, const VkClearValue& color_value,
                    const VkClearValue& depth_value);

@@ -33,7 +33,7 @@ class NullStagingTexture final : public AbstractStagingTexture
 {
 public:
   explicit NullStagingTexture(StagingTextureType type, const TextureConfig& config);
-  ~NullStagingTexture();
+  ~NullStagingTexture() override;
 
   void CopyFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& src_rect,
                        u32 src_layer, u32 src_level,

@@ -60,10 +60,6 @@ DEFAULT_CONFIG = {
     # permissions needed for ARM builds
     "codesign_identity":  "-",
 
-    # Minimum macOS version for each architecture slice
-    "arm64_mac_os_deployment_target":  "11.0.0",
-    "x86_64_mac_os_deployment_target": "10.15.0",
-
     # CMake Generator to use for building
     "generator": "Unix Makefiles",
     "build_type": "Release",
@@ -145,11 +141,6 @@ def parse_args(conf=DEFAULT_CONFIG):
              f"--{arch}_qt5_path",
              help=f"Install path for {arch} qt5 libraries",
              default=conf[arch+"_qt5_path"])
-
-        parser.add_argument(
-             f"--{arch}_mac_os_deployment_target",
-             help=f"Deployment architecture for {arch} slice",
-             default=conf[arch+"_mac_os_deployment_target"])
 
     return vars(parser.parse_args())
 
@@ -297,14 +288,15 @@ def build(config):
                 "-DCMAKE_PREFIX_PATH="+prefix_path,
                 "-DCMAKE_SYSTEM_PROCESSOR="+arch,
                 "-DCMAKE_IGNORE_PATH="+ignore_path,
-                "-DCMAKE_OSX_DEPLOYMENT_TARGET="
-                + config[arch+"_mac_os_deployment_target"],
+                "-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0.0",
                 "-DMACOS_CODE_SIGNING_IDENTITY="
                 + config["codesign_identity"],
                 '-DMACOS_CODE_SIGNING="ON"',
                 "-DENABLE_AUTOUPDATE="
                 + python_to_cmake_bool(config["autoupdate"]),
                 '-DDISTRIBUTOR=' + config['distributor'],
+                # Distributable bundles need to be postprocessed to embed dependencies
+                "-DPOSTPROCESS_BUNDLE=ON",
                 # Always use libraries from Externals to prevent any libraries
                 # installed by Homebrew from leaking in to the app
                 "-DUSE_SYSTEM_LIBS=OFF",

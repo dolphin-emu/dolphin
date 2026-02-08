@@ -16,7 +16,7 @@ class PerformanceTracker
 public:
   PerformanceTracker(const std::optional<std::string> log_name = std::nullopt,
                      const std::optional<DT> sample_window_duration = std::nullopt);
-  ~PerformanceTracker();
+  ~PerformanceTracker() = default;
 
   PerformanceTracker(const PerformanceTracker&) = delete;
   PerformanceTracker& operator=(const PerformanceTracker&) = delete;
@@ -39,6 +39,7 @@ public:
   DT GetDtAvg() const;
   DT GetDtStd() const;
   DT GetLastRawDt() const;
+  void InvalidateLastTime();
 
 private:
   void LogRenderTimeToFile(DT val);
@@ -46,8 +47,6 @@ private:
   void HandleRawDt(DT value);
   void PushFront(DT value);
   void PopBack();
-
-  int m_on_state_changed_handle;
 
   // Name of log file and file stream
   std::optional<std::string> m_log_name;
@@ -59,7 +58,7 @@ private:
 
   // Push'd from Count()
   //  and Pop'd from UpdateStats()
-  Common::SPSCQueue<DT, false> m_raw_dts;
+  Common::SPSCQueue<DT> m_raw_dts;
   std::atomic<DT> m_last_raw_dt = DT::zero();
 
   // Amount of time to sample dt's over (defaults to config)

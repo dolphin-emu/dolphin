@@ -9,6 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Hash.h"
+#include "Common/Logging/Log.h"
 
 namespace ciface::DualShockUDPClient::Proto
 {
@@ -240,7 +241,7 @@ struct Message
   std::optional<ToMsgType> CheckAndCastTo()
   {
     const u32 crc32_in_header = m_message.header.crc32;
-    // zero out the crc32 in the packet once we got it since that's whats needed for calculation
+    // zero out the crc32 in the packet once we got it since that's what's needed for calculation
     m_message.header.crc32 = 0;
     const u32 crc32_calculated =
         Common::ComputeCRC32(reinterpret_cast<const u8*>(&m_message), sizeof(ToMsgType));

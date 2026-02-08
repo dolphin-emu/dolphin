@@ -36,16 +36,16 @@ find_package(PkgConfig)
 pkg_check_modules(PC_EGL egl)
 
 if (PC_EGL_FOUND)
-    set(EGL_DEFINITIONS ${PC_EGL_CFLAGS_OTHER})
+  set(EGL_DEFINITIONS ${PC_EGL_CFLAGS_OTHER})
 endif ()
 
 find_path(EGL_INCLUDE_DIRS NAMES EGL/egl.h
-    HINTS ${PC_EGL_INCLUDEDIR} ${PC_EGL_INCLUDE_DIRS}
+  HINTS ${PC_EGL_INCLUDEDIR} ${PC_EGL_INCLUDE_DIRS}
 )
 
 set(EGL_NAMES ${EGL_NAMES} egl EGL)
 find_library(EGL_LIBRARIES NAMES ${EGL_NAMES}
-    HINTS ${PC_EGL_LIBDIR} ${PC_EGL_LIBRARY_DIRS}
+  HINTS ${PC_EGL_LIBDIR} ${PC_EGL_LIBRARY_DIRS}
 )
 
 include(FindPackageHandleStandardArgs)

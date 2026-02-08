@@ -25,6 +25,26 @@ void ConfigChoice::OnConfigChanged()
   setCurrentIndex(ReadValue(m_setting));
 }
 
+ConfigChoiceU32::ConfigChoiceU32(const QStringList& options, const Config::Info<u32>& setting,
+                                 Config::Layer* layer)
+    : ConfigControl(setting.GetLocation(), layer), m_setting(setting)
+{
+  addItems(options);
+  setCurrentIndex(ReadValue(setting));
+
+  connect(this, &QComboBox::currentIndexChanged, this, &ConfigChoiceU32::Update);
+}
+
+void ConfigChoiceU32::Update(int choice)
+{
+  SaveValue(m_setting, (u32)choice);
+}
+
+void ConfigChoiceU32::OnConfigChanged()
+{
+  setCurrentIndex(ReadValue(m_setting));
+}
+
 ConfigStringChoice::ConfigStringChoice(const std::vector<std::string>& options,
                                        const Config::Info<std::string>& setting,
                                        Config::Layer* layer)
@@ -45,8 +65,8 @@ ConfigStringChoice::ConfigStringChoice(const std::vector<std::pair<QString, QStr
   for (const auto& [option_text, option_data] : options)
     addItem(option_text, option_data);
 
-  connect(this, &QComboBox::currentIndexChanged, this, &ConfigStringChoice::Update);
   Load();
+  connect(this, &QComboBox::currentIndexChanged, this, &ConfigStringChoice::Update);
 }
 
 void ConfigStringChoice::Update(int index)
@@ -190,4 +210,4 @@ void ConfigComplexChoice::mousePressEvent(QMouseEvent* event)
   {
     QComboBox::mousePressEvent(event);
   }
-};
+}

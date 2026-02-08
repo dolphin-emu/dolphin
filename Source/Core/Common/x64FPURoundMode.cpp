@@ -3,9 +3,6 @@
 
 #include "Common/FPURoundMode.h"
 
-#include <cfenv>
-
-#include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Intrinsics.h"
 

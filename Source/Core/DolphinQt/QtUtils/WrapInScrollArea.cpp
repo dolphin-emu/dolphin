@@ -7,43 +7,59 @@
 #include <QLayout>
 #include <QPalette>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QVBoxLayout>
 #include <QWidget>
 
-QWidget* GetWrappedWidget(QWidget* wrapped_widget, QWidget* to_resize, int margin_width,
-                          int margin_height)
+namespace
 {
-  auto* scroll = new QScrollArea;
-  scroll->setWidget(wrapped_widget);
-  scroll->setWidgetResizable(true);
-  scroll->setFrameStyle(QFrame::NoFrame);
 
-  if (to_resize != nullptr)
+// This scroll area prefers the size of its underlying widget.
+class HintingScrollArea final : public QScrollArea
+{
+public:
+  HintingScrollArea()
   {
-    // For some reason width() is bigger than it needs to be.
-    auto min_size = wrapped_widget->minimumSizeHint();
-    int recommended_width = min_size.width() + margin_width;
-    int recommended_height = min_size.height() + margin_height;
+    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    setWidgetResizable(true);
 
-    to_resize->resize(std::max(recommended_width, to_resize->width()),
-                      std::max(recommended_height, to_resize->height()));
+    // Make things not look horrendous on Windows.
+    setFrameStyle(QFrame::NoFrame);
   }
 
+  QSize sizeHint() const override
+  {
+    // Including the scrollbars in our hint can prevent
+    //  a window undersized in one direction gaining unnecessary scrolling in both directions.
+    const auto scrollbar_padding =
+        QSize{verticalScrollBar()->sizeHint().width(), horizontalScrollBar()->sizeHint().height()};
+
+    const auto size_hint = widget()->sizeHint();
+
+    return size_hint + scrollbar_padding;
+  }
+};
+
+}  // namespace
+
+QWidget* GetWrappedWidget(QWidget* wrapped_widget)
+{
+  auto* const scroll = new HintingScrollArea;
+  scroll->setWidget(wrapped_widget);
+
+  // Workaround for transparency issues on macOS. Not sure if this is still needed.
   scroll->viewport()->setAutoFillBackground(false);
   wrapped_widget->setAutoFillBackground(false);
 
   return scroll;
 }
 
-void WrapInScrollArea(QWidget* parent, QLayout* wrapped_layout, QWidget* to_resize)
+void WrapInScrollArea(QWidget* parent, QLayout* wrapped_layout)
 {
-  if (to_resize == nullptr)
-    to_resize = parent;
-
   auto* widget = new QWidget;
   widget->setLayout(wrapped_layout);
 
-  auto* scroll_area = GetWrappedWidget(widget, to_resize, 0, 0);
+  auto* scroll_area = GetWrappedWidget(widget);
 
   auto* scroll_layout = new QVBoxLayout;
   scroll_layout->addWidget(scroll_area);

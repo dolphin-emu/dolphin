@@ -5,8 +5,6 @@
 
 #include <algorithm>
 #include <filesystem>
-#include <functional>
-#include <iterator>
 #include <system_error>
 
 #include "Common/CommonPaths.h"
@@ -15,22 +13,16 @@
 
 #ifdef _MSC_VER
 #include <Windows.h>
-#else
-#ifdef ANDROID
+#elifdef ANDROID
 #include "jni/AndroidCommon/AndroidCommon.h"
-#endif
-
-#include <cstring>
-#include "Common/CommonFuncs.h"
-#include "Common/FileUtil.h"
 #endif
 
 namespace fs = std::filesystem;
 
 namespace Common
 {
-std::vector<std::string> DoFileSearch(const std::vector<std::string>& directories,
-                                      const std::vector<std::string>& exts, bool recursive)
+std::vector<std::string> DoFileSearch(std::span<const std::string_view> directories,
+                                      std::span<const std::string_view> exts, bool recursive)
 {
   const bool accept_all = exts.empty();
 

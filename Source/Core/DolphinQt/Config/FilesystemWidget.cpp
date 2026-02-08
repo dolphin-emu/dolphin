@@ -6,12 +6,12 @@
 #include <QApplication>
 #include <QCoreApplication>
 #include <QFileInfo>
+#include <QGridLayout>
 #include <QHeaderView>
 #include <QMenu>
 #include <QStandardItemModel>
 #include <QStyleFactory>
 #include <QTreeView>
-#include <QVBoxLayout>
 
 #include <future>
 
@@ -25,7 +25,6 @@
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/Resources.h"
 
 #include "UICommon/UICommon.h"
@@ -55,7 +54,10 @@ FilesystemWidget::~FilesystemWidget() = default;
 
 void FilesystemWidget::CreateWidgets()
 {
-  auto* layout = new QVBoxLayout;
+  // Note: At least with KDE Plasma,
+  //  QTreeView takes on an ugly square-corner style when alone in a QVBoxLayout.
+  // QGridLayout does not produce this problem.
+  auto* const layout = new QGridLayout{this};
 
   m_tree_model = new QStandardItemModel(0, 2);
   m_tree_model->setHorizontalHeaderLabels({tr("Name"), tr("Size")});
@@ -70,6 +72,7 @@ void FilesystemWidget::CreateWidgets()
   header->setSectionResizeMode(0, QHeaderView::Stretch);
   header->setSectionResizeMode(1, QHeaderView::ResizeToContents);
   header->setStretchLastSection(false);
+  header->setDefaultAlignment(Qt::AlignCenter);
 
 // Windows: Set style to (old) windows, which draws branch lines
 #ifdef _WIN32
@@ -78,8 +81,6 @@ void FilesystemWidget::CreateWidgets()
 #endif
 
   layout->addWidget(m_tree_view);
-
-  setLayout(layout);
 }
 
 void FilesystemWidget::ConnectWidgets()
@@ -365,7 +366,6 @@ void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, cons
     dialog.Reset();
   });
 
-  SetQWidgetWindowDecorations(dialog.GetRaw());
   dialog.GetRaw()->exec();
   future.get();
 }

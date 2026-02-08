@@ -1,28 +1,25 @@
 // Copyright 2020 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <cstdlib>
+#include <cstring>
 #include <optional>
-#include "Core/HW/EXI/EXI_DeviceEthernet.h"
-#include "SFML/Network/IpAddress.hpp"
 
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2ipdef.h>
 #else
-#include <fcntl.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <sys/un.h>
 #include <unistd.h>
 #endif
 
-#include <cstdlib>
-#include <cstring>
-
-#include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
+#include "Common/Network.h"
 #include "Common/StringUtil.h"
-#include "Core/HW/EXI/EXI_Device.h"
+#include "Core/HW/EXI/BBA/TAPServerConnection.h"
+#include "SFML/Network/IpAddress.hpp"
 
 namespace ExpansionInterface
 {

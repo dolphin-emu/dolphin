@@ -4,7 +4,6 @@
 #include "VideoCommon/BPStructs.h"
 
 #include <algorithm>
-#include <cmath>
 #include <cstring>
 #include <string>
 
@@ -14,7 +13,6 @@
 #include "Common/EnumMap.h"
 #include "Common/Logging/Log.h"
 
-#include "Core/CoreTiming.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
@@ -99,10 +97,11 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
   switch (bp.address)
   {
   case BPMEM_GENMODE:  // Set the Generation Mode
-    PRIM_LOG("genmode: texgen={}, col={}, multisampling={}, tev={}, cullmode={}, ind={}, zfeeze={}",
-             bpmem.genMode.numtexgens, bpmem.genMode.numcolchans, bpmem.genMode.multisampling,
-             bpmem.genMode.numtevstages + 1, bpmem.genMode.cullmode, bpmem.genMode.numindstages,
-             bpmem.genMode.zfreeze);
+    PRIM_LOG(
+        "genmode: texgen={}, col={}, multisampling={}, tev={}, cull_mode={}, ind={}, zfeeze={}",
+        bpmem.genMode.numtexgens, bpmem.genMode.numcolchans, bpmem.genMode.multisampling,
+        bpmem.genMode.numtevstages + 1, bpmem.genMode.cull_mode, bpmem.genMode.numindstages,
+        bpmem.genMode.zfreeze);
 
     if (bp.changes)
       pixel_shader_manager.SetGenModeChanged();
@@ -144,8 +143,8 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     geometry_shader_manager.SetLinePtWidthChanged();
     return;
   case BPMEM_ZMODE:  // Depth Control
-    PRIM_LOG("zmode: test={}, func={}, upd={}", bpmem.zmode.testenable, bpmem.zmode.func,
-             bpmem.zmode.updateenable);
+    PRIM_LOG("zmode: test={}, func={}, upd={}", bpmem.zmode.test_enable, bpmem.zmode.func,
+             bpmem.zmode.update_enable);
     SetDepthMode();
     pixel_shader_manager.SetZModeControl();
     return;
@@ -153,9 +152,10 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     if (bp.changes & 0xFFFF)
     {
       PRIM_LOG("blendmode: en={}, open={}, colupd={}, alphaupd={}, dst={}, src={}, sub={}, mode={}",
-               bpmem.blendmode.blendenable, bpmem.blendmode.logicopenable,
-               bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate, bpmem.blendmode.dstfactor,
-               bpmem.blendmode.srcfactor, bpmem.blendmode.subtract, bpmem.blendmode.logicmode);
+               bpmem.blendmode.blend_enable, bpmem.blendmode.logic_op_enable,
+               bpmem.blendmode.color_update, bpmem.blendmode.alpha_update,
+               bpmem.blendmode.dst_factor, bpmem.blendmode.src_factor, bpmem.blendmode.subtract,
+               bpmem.blendmode.logic_mode);
 
       SetBlendMode();
 
@@ -339,6 +339,8 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
           false, false, yScale, s_gammaLUT[PE_copy.gamma], bpmem.triggerEFBCopy.clamp_top,
           bpmem.triggerEFBCopy.clamp_bottom, bpmem.copyfilter.GetCoefficients());
 
+      auto& system = Core::System::GetInstance();
+
       // This is as closest as we have to an "end of the frame"
       // It works 99% of the time.
       // But sometimes games want to render an XFB larger than the EFB's 640x528 pixel resolution
@@ -346,7 +348,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
       // render multiple sub-frames and arrange the XFB copies in next to each-other in main memory
       // so they form a single completed XFB.
       // See https://dolphin-emu.org/blog/2017/11/19/hybridxfb/ for examples and more detail.
-      AfterFrameEvent::Trigger(Core::System::GetInstance());
+      system.GetVideoEvents().after_frame_event.Trigger(system);
 
       // Note: Theoretically, in the future we could track the VI configuration and try to detect
       //       when an XFB is the last XFB copy of a frame. Not only would we get a clean "end of
@@ -354,17 +356,10 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
       //       Might also clean up some issues with games doing XFB copies they don't intend to
       //       display.
 
-      auto& system = Core::System::GetInstance();
       if (g_ActiveConfig.bImmediateXFB)
       {
-        // TODO: GetTicks is not sane from the GPU thread.
-        // This value is currently used for frame dumping and the custom shader "time_ms" value.
-        // Frame dumping has more calls that aren't sane from the GPU thread.
-        // i.e. Frame dumping is not sane in "Dual Core" mode in general.
-        const u64 ticks = system.GetCoreTiming().GetTicks();
-
         // below div two to convert from bytes to pixels - it expects width, not stride
-        g_presenter->ImmediateSwap(destAddr, destStride / 2, destStride, height, ticks);
+        g_presenter->ImmediateSwap(destAddr, destStride / 2, destStride, height);
       }
       else
       {
@@ -379,7 +374,19 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     // Clear the rectangular region after copying it.
     if (PE_copy.clear)
     {
-      ClearScreen(srcRect);
+      const bool color_enable = bpmem.blendmode.color_update != 0;
+      const bool alpha_enable = bpmem.blendmode.alpha_update != 0;
+      const bool z_enable = bpmem.zmode.update_enable != 0;
+      const auto pixel_format = bpmem.zcontrol.pixel_format;
+      const auto color_ar = bpmem.clearcolorAR;
+      const auto color_gb = bpmem.clearcolorGB;
+      const auto z_value = bpmem.clearZValue;
+      ClearScreen(g_framebuffer_manager.get(), srcRect, color_enable, alpha_enable, z_enable,
+                  pixel_format, color_ar, color_gb, z_value);
+
+      // Scissor rect must be restored.
+      BPFunctions::SetScissorAndViewport(g_framebuffer_manager.get(), bpmem.scissorTL,
+                                         bpmem.scissorBR, bpmem.scissorOffset, xfmem.viewport);
     }
 
     return;
@@ -521,7 +528,8 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     return;
 
   case BPMEM_ZCOMPARE:  // Set the Z-Compare and EFB pixel format
-    OnPixelFormatChange();
+    OnPixelFormatChange(g_framebuffer_manager.get(), bpmem.zcontrol.pixel_format,
+                        bpmem.zcontrol.zformat);
     if (bp.changes & 7)
       SetBlendMode();  // dual source could be activated by changing to PIXELFMT_RGBA6_Z24
     pixel_shader_manager.SetZModeControl();
@@ -783,7 +791,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     break;
   }
 
-  DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_UNKNOWN_BP_COMMAND);
+  DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesUnknownBPCommand);
   WARN_LOG_FMT(VIDEO, "Unknown BP opcode: address = {:#010x} value = {:#010x}", bp.address,
                bp.newvalue);
 }
@@ -1353,8 +1361,10 @@ void BPReload()
   // let's not risk actually replaying any writes.
   // note that PixelShaderManager is already covered since it has its own DoState.
   SetGenerationMode();
-  SetScissorAndViewport();
+  BPFunctions::SetScissorAndViewport(g_framebuffer_manager.get(), bpmem.scissorTL, bpmem.scissorBR,
+                                     bpmem.scissorOffset, xfmem.viewport);
   SetDepthMode();
   SetBlendMode();
-  OnPixelFormatChange();
+  OnPixelFormatChange(g_framebuffer_manager.get(), bpmem.zcontrol.pixel_format,
+                      bpmem.zcontrol.zformat);
 }

@@ -24,7 +24,7 @@ public:
   explicit RiivolutionBootWidget(std::string game_id, std::optional<u16> revision,
                                  std::optional<u8> disc, std::string base_game_path,
                                  QWidget* parent = nullptr);
-  ~RiivolutionBootWidget();
+  ~RiivolutionBootWidget() override;
 
   bool ShouldBoot() const { return m_should_boot; }
   std::vector<DiscIO::Riivolution::Patch>& GetPatches() { return m_patches; }

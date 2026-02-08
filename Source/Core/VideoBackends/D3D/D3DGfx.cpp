@@ -71,9 +71,10 @@ Gfx::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth
 }
 
 std::unique_ptr<AbstractShader>
-Gfx::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
+Gfx::CreateShaderFromSource(ShaderStage stage, std::string_view source,
+                            VideoCommon::ShaderIncluder* shader_includer, std::string_view name)
 {
-  auto bytecode = DXShader::CompileShader(D3D::feature_level, stage, source);
+  auto bytecode = DXShader::CompileShader(D3D::feature_level, stage, source, shader_includer);
   if (!bytecode)
     return nullptr;
 

@@ -7,10 +7,13 @@
 #include <bit>
 #include <climits>
 #include <cstddef>
-#include <cstdint>
 #include <cstring>
 #include <initializer_list>
+#include <span>
 #include <type_traits>
+#include <utility>
+
+#include "Common/CommonTypes.h"
 
 namespace Common
 {
@@ -117,8 +120,8 @@ constexpr Result ExtractBits(const T src) noexcept
 template <typename T>
 constexpr bool IsValidLowMask(const T mask) noexcept
 {
-  static_assert(std::is_integral<T>::value, "Mask must be an integral type.");
-  static_assert(std::is_unsigned<T>::value, "Signed masks can introduce hard to find bugs.");
+  static_assert(std::is_integral_v<T>, "Mask must be an integral type.");
+  static_assert(std::is_unsigned_v<T>, "Signed masks can introduce hard to find bugs.");
 
   // Can be efficiently determined without looping or bit counting. It's the counterpart
   // to https://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
@@ -138,11 +141,10 @@ public:
   explicit BitCastPtrType(PtrType* ptr) : m_ptr(ptr) {}
 
   // Enable operator= only for pointers to non-const data
-  template <typename S>
-  inline typename std::enable_if<std::is_same<S, T>() && !std::is_const<PtrType>()>::type
-  operator=(const S& source)
+  auto& operator=(const T& source) requires(!std::is_const_v<PtrType>)
   {
     std::memcpy(m_ptr, &source, sizeof(source));
+    return *this;
   }
 
   inline operator T() const
@@ -152,14 +154,27 @@ public:
     return result;
   }
 
+  inline auto operator[](std::size_t index) const
+  {
+    using S = std::conditional_t<std::is_const<PtrType>::value, const std::byte, std::byte>;
+    S* const target = reinterpret_cast<S*>(m_ptr) + index * sizeof(T);
+    return BitCastPtrType<T, S>{target};
+  }
+
 private:
   PtrType* m_ptr;
 };
 
 // Provides an aliasing-safe alternative to reinterpret_cast'ing pointers to structs
 // Conversion constructor and operator= provided for a convenient syntax.
-// Usage: MyStruct s = BitCastPtr<MyStruct>(some_ptr);
+// Usage:
+// MyStruct s = BitCastPtr<MyStruct>(some_ptr);
 // BitCastPtr<MyStruct>(some_ptr) = s;
+//
+// Array example:
+// BitCastPtr<MyStruct> unaligned_array(unaligned_ptr);
+// MyStruct s = unaligned_array[2];
+// unaligned_array[2] = s;
 template <typename T, typename PtrType>
 inline auto BitCastPtr(PtrType* ptr) noexcept -> BitCastPtrType<T, PtrType>
 {
@@ -194,23 +209,20 @@ template <typename T>
 class FlagBit
 {
 public:
-  FlagBit(std::underlying_type_t<T>& bits, T bit) : m_bits(bits), m_bit(bit) {}
-  explicit operator bool() const
-  {
-    return (m_bits & static_cast<std::underlying_type_t<T>>(m_bit)) != 0;
-  }
-  FlagBit& operator=(const bool rhs)
+  FlagBit(T* bits, std::type_identity_t<T> bit) : m_bits(*bits), m_bit(bit) {}
+  explicit operator bool() const { return (m_bits & m_bit) != 0; }
+  FlagBit& operator=(const bool rhs) requires(!std::is_const_v<T>)
   {
     if (rhs)
-      m_bits |= static_cast<std::underlying_type_t<T>>(m_bit);
+      m_bits |= m_bit;
     else
-      m_bits &= ~static_cast<std::underlying_type_t<T>>(m_bit);
+      m_bits &= ~m_bit;
     return *this;
   }
 
 private:
-  std::underlying_type_t<T>& m_bits;
-  T m_bit;
+  T& m_bits;
+  const T m_bit;
 };
 
 template <typename T>
@@ -225,7 +237,8 @@ public:
       m_hex |= static_cast<std::underlying_type_t<T>>(bit);
     }
   }
-  FlagBit<T> operator[](T bit) { return FlagBit(m_hex, bit); }
+  auto operator[](T bit) { return FlagBit(&m_hex, std::to_underlying(bit)); }
+  auto operator[](T bit) const { return FlagBit(&m_hex, std::to_underlying(bit)); }
 
   std::underlying_type_t<T> m_hex = 0;
 };
@@ -240,4 +253,37 @@ T ExpandValue(T value, size_t left_shift_amount)
   return (value << left_shift_amount) |
          (T(-ExtractBit<0>(value)) >> (BitSize<T>() - left_shift_amount));
 }
+
+// Convert a contiguous range of a trivially-copyable type to a `span<const u8>`
+template <std::ranges::contiguous_range T>
+requires(std::is_trivially_copyable_v<std::ranges::range_value_t<T>>)
+constexpr auto AsU8Span(const T& range)
+{
+  return std::span{reinterpret_cast<const u8*>(range.data()), range.size() * sizeof(*range.data())};
+}
+
+// Convert a contiguous range of a non-const trivially-copyable type to a `span<u8>`
+template <std::ranges::contiguous_range T>
+requires(std::is_trivially_copyable_v<std::ranges::range_value_t<T>>)
+constexpr auto AsWritableU8Span(T& range)
+{
+  return std::span{reinterpret_cast<u8*>(range.data()), range.size() * sizeof(*range.data())};
+}
+
+// Convert a trivially-copyable object to a `span<const u8>`
+template <typename T>
+requires(!std::ranges::contiguous_range<T> && std::is_trivially_copyable_v<T>)
+constexpr auto AsU8Span(const T& obj)
+{
+  return std::span{reinterpret_cast<const u8*>(std::addressof(obj)), sizeof(obj)};
+}
+
+// Convert a non-const trivially-copyable object to a `span<u8>`
+template <typename T>
+requires(!std::ranges::contiguous_range<T> && std::is_trivially_copyable_v<T>)
+constexpr auto AsWritableU8Span(T& obj)
+{
+  return std::span{reinterpret_cast<u8*>(std::addressof(obj)), sizeof(obj)};
+}
+
 }  // namespace Common

@@ -13,8 +13,6 @@
 
 #include "Core/Config/MainSettings.h"
 
-#include "DolphinQt/Settings.h"
-
 bool Resources::m_svg_supported;
 QList<QIcon> Resources::m_platforms;
 QList<QIcon> Resources::m_countries;
@@ -80,7 +78,7 @@ void Resources::Init()
   m_svg_supported = QImageReader::supportedImageFormats().contains("svg");
 
   for (std::string_view platform :
-       {"Platform_Gamecube", "Platform_Wii", "Platform_Wad", "Platform_File"})
+       {"Platform_Gamecube", "Platform_Triforce", "Platform_Wii", "Platform_Wad", "Platform_File"})
   {
     m_platforms.append(GetResourceIcon(platform));
   }

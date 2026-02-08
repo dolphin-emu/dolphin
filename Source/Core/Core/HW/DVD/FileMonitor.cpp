@@ -3,7 +3,6 @@
 
 #include "Core/HW/DVD/FileMonitor.h"
 
-#include <algorithm>
 #include <memory>
 #include <string>
 #include <unordered_set>

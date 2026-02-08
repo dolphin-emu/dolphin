@@ -15,8 +15,6 @@
 #include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
-#include "VideoCommon/DriverDetails.h"
-
 namespace Vulkan
 {
 VKPipeline::VKPipeline(const AbstractPipelineConfig& config, VkPipeline pipeline,
@@ -55,8 +53,8 @@ GetVulkanRasterizationState(const RasterizationState& state)
       depth_clamp,           // VkBool32                                  depthClampEnable
       VK_FALSE,              // VkBool32                                  rasterizerDiscardEnable
       VK_POLYGON_MODE_FILL,  // VkPolygonMode                             polygonMode
-      cull_modes[u32(state.cullmode.Value())],  // VkCullModeFlags        cullMode
-      VK_FRONT_FACE_CLOCKWISE,                  // VkFrontFace            frontFace
+      cull_modes[u32(state.cull_mode.Value())],  // VkCullModeFlags        cullMode
+      VK_FRONT_FACE_CLOCKWISE,                   // VkFrontFace            frontFace
       VK_FALSE,  // VkBool32                                              depthBiasEnable
       0.0f,      // float                                                 depthBiasConstantFactor
       0.0f,      // float                                                 depthBiasClamp
@@ -120,17 +118,17 @@ static VkPipelineDepthStencilStateCreateInfo GetVulkanDepthStencilState(const De
 
   return {
       VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,  // VkStructureType sType
-      nullptr,             // const void*                               pNext
-      0,                   // VkPipelineDepthStencilStateCreateFlags    flags
-      state.testenable,    // VkBool32                                  depthTestEnable
-      state.updateenable,  // VkBool32                                  depthWriteEnable
-      compare_op,          // VkCompareOp                               depthCompareOp
-      VK_FALSE,            // VkBool32                                  depthBoundsTestEnable
-      VK_FALSE,            // VkBool32                                  stencilTestEnable
-      {},                  // VkStencilOpState                          front
-      {},                  // VkStencilOpState                          back
-      0.0f,                // float                                     minDepthBounds
-      1.0f                 // float                                     maxDepthBounds
+      nullptr,              // const void*                               pNext
+      0,                    // VkPipelineDepthStencilStateCreateFlags    flags
+      state.test_enable,    // VkBool32                                  depthTestEnable
+      state.update_enable,  // VkBool32                                  depthWriteEnable
+      compare_op,           // VkCompareOp                               depthCompareOp
+      VK_FALSE,             // VkBool32                                  depthBoundsTestEnable
+      VK_FALSE,             // VkBool32                                  stencilTestEnable
+      {},                   // VkStencilOpState                          front
+      {},                   // VkStencilOpState                          back
+      0.0f,                 // float                                     minDepthBounds
+      1.0f                  // float                                     maxDepthBounds
   };
 }
 
@@ -139,11 +137,11 @@ GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage 
 {
   VkPipelineColorBlendAttachmentState vk_state = {};
 
-  bool use_dual_source = state.usedualsrc;
+  bool use_dual_source = state.use_dual_src;
 
-  vk_state.blendEnable = static_cast<VkBool32>(state.blendenable);
+  vk_state.blendEnable = static_cast<VkBool32>(state.blend_enable);
   vk_state.colorBlendOp = state.subtract ? VK_BLEND_OP_REVERSE_SUBTRACT : VK_BLEND_OP_ADD;
-  vk_state.alphaBlendOp = state.subtractAlpha ? VK_BLEND_OP_REVERSE_SUBTRACT : VK_BLEND_OP_ADD;
+  vk_state.alphaBlendOp = state.subtract_alpha ? VK_BLEND_OP_REVERSE_SUBTRACT : VK_BLEND_OP_ADD;
 
   if (use_dual_source)
   {
@@ -160,10 +158,10 @@ GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage 
         VK_BLEND_FACTOR_DST_ALPHA,  VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
     };
 
-    vk_state.srcColorBlendFactor = src_factors[state.srcfactor];
-    vk_state.srcAlphaBlendFactor = src_factors[state.srcfactoralpha];
-    vk_state.dstColorBlendFactor = dst_factors[state.dstfactor];
-    vk_state.dstAlphaBlendFactor = dst_factors[state.dstfactoralpha];
+    vk_state.srcColorBlendFactor = src_factors[state.src_factor];
+    vk_state.srcAlphaBlendFactor = src_factors[state.src_factor_alpha];
+    vk_state.dstColorBlendFactor = dst_factors[state.dst_factor];
+    vk_state.dstAlphaBlendFactor = dst_factors[state.dst_factor_alpha];
   }
   else
   {
@@ -181,13 +179,13 @@ GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage 
         VK_BLEND_FACTOR_DST_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
     };
 
-    vk_state.srcColorBlendFactor = src_factors[state.srcfactor];
-    vk_state.srcAlphaBlendFactor = src_factors[state.srcfactoralpha];
-    vk_state.dstColorBlendFactor = dst_factors[state.dstfactor];
-    vk_state.dstAlphaBlendFactor = dst_factors[state.dstfactoralpha];
+    vk_state.srcColorBlendFactor = src_factors[state.src_factor];
+    vk_state.srcAlphaBlendFactor = src_factors[state.src_factor_alpha];
+    vk_state.dstColorBlendFactor = dst_factors[state.dst_factor];
+    vk_state.dstAlphaBlendFactor = dst_factors[state.dst_factor_alpha];
   }
 
-  if (state.colorupdate)
+  if (state.color_update)
   {
     vk_state.colorWriteMask =
         VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT;
@@ -197,7 +195,7 @@ GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage 
     vk_state.colorWriteMask = 0;
   }
 
-  if (state.alphaupdate)
+  if (state.alpha_update)
     vk_state.colorWriteMask |= VK_COLOR_COMPONENT_A_BIT;
 
   return vk_state;
@@ -214,7 +212,7 @@ GetVulkanColorBlendState(const BlendingState& state,
        VK_LOGIC_OP_NOR, VK_LOGIC_OP_EQUIVALENT, VK_LOGIC_OP_INVERT, VK_LOGIC_OP_OR_REVERSE,
        VK_LOGIC_OP_COPY_INVERTED, VK_LOGIC_OP_OR_INVERTED, VK_LOGIC_OP_NAND, VK_LOGIC_OP_SET}};
 
-  VkBool32 vk_logic_op_enable = static_cast<VkBool32>(state.logicopenable);
+  VkBool32 vk_logic_op_enable = static_cast<VkBool32>(state.logic_op_enable);
   if (vk_logic_op_enable && !g_backend_info.bSupportsLogicOp)
   {
     // At the time of writing, Adreno and Mali drivers didn't support logic ops.
@@ -224,7 +222,7 @@ GetVulkanColorBlendState(const BlendingState& state,
   }
 
   VkLogicOp vk_logic_op =
-      vk_logic_op_enable ? vk_logic_ops[u32(state.logicmode.Value())] : VK_LOGIC_OP_CLEAR;
+      vk_logic_op_enable ? vk_logic_ops[u32(state.logic_mode.Value())] : VK_LOGIC_OP_CLEAR;
 
   VkPipelineColorBlendStateCreateInfo vk_state = {
       VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,  // VkStructureType sType
@@ -368,12 +366,19 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
       GetVulkanColorBlendState(config.blending_state, blend_attachment_states.data(),
                                static_cast<uint32_t>(blend_attachment_states.size()));
 
+  static const VkDepthClampRangeEXT clamp_range = {0.0f, MAX_EFB_DEPTH};
+  static const VkPipelineViewportDepthClampControlCreateInfoEXT depth_clamp_state = {
+      VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_DEPTH_CLAMP_CONTROL_CREATE_INFO_EXT, nullptr,
+      VK_DEPTH_CLAMP_MODE_USER_DEFINED_RANGE_EXT,  // VkDepthClampModeEXT            depthClampMode
+      &clamp_range  // const VkDepthClampRangeEXT*    pDepthClampRange
+  };
+
   // This viewport isn't used, but needs to be specified anyway.
   static const VkViewport viewport = {0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
   static const VkRect2D scissor = {{0, 0}, {1, 1}};
   static const VkPipelineViewportStateCreateInfo viewport_state = {
       VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-      nullptr,
+      g_backend_info.bSupportsUnrestrictedDepthRange ? &depth_clamp_state : nullptr,
       0,          // VkPipelineViewportStateCreateFlags    flags;
       1,          // uint32_t                              viewportCount
       &viewport,  // const VkViewport*                     pViewports

@@ -144,7 +144,7 @@ bool DeserializeDesiredState(DesiredWiimoteState* state, const SerializedWiimote
     return false;
   }
 
-  const size_t expected_size = [&]() {
+  const size_t expected_size = [&] {
     size_t s = 1;
     if (has_buttons && has_accel)
       s += 5;

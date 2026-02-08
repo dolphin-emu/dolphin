@@ -10,15 +10,18 @@
 #include "Common/MathUtil.h"
 #include "VideoCommon/TextureConfig.h"
 
+struct ImTextureRef;
+
 class AbstractTexture
 {
 public:
   explicit AbstractTexture(const TextureConfig& c);
   virtual ~AbstractTexture() = default;
 
-  // Support implicit conversion between AbstractTexture and ImTextureId
+  // Support implicit conversion between AbstractTexture and ImTextureId and ImTextureRef.
   using imgui_texture_id = unsigned long long;
   operator imgui_texture_id() const { return reinterpret_cast<imgui_texture_id>(this); }
+  operator ImTextureRef() const;
 
   virtual void CopyRectangleFromTexture(const AbstractTexture* src,
                                         const MathUtil::Rectangle<int>& src_rect, u32 src_layer,

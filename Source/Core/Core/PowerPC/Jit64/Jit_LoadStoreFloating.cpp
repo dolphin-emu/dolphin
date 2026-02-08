@@ -7,7 +7,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
-#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
+#include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 
 using namespace Gen;
 
@@ -29,6 +29,8 @@ void Jit64::lfXXX(UGeckoInstruction inst)
   int b = inst.RB;
 
   FALLBACK_IF(!indexed && !a);
+
+  FlushRegistersBeforeSlowAccess();
 
   s32 offset = 0;
   RCOpArg addr = gpr.Bind(a, update ? RCMode::ReadWrite : RCMode::Read);
@@ -102,6 +104,8 @@ void Jit64::stfXXX(UGeckoInstruction inst)
   int accessSize = single ? 32 : 64;
 
   FALLBACK_IF(update && jo.memcheck && indexed && a == b);
+
+  FlushRegistersBeforeSlowAccess();
 
   if (single)
   {
@@ -195,6 +199,8 @@ void Jit64::stfiwx(UGeckoInstruction inst)
   int s = inst.RS;
   int a = inst.RA;
   int b = inst.RB;
+
+  FlushRegistersBeforeSlowAccess();
 
   RCOpArg Ra = a ? gpr.Use(a, RCMode::Read) : RCOpArg::Imm32(0);
   RCOpArg Rb = gpr.Use(b, RCMode::Read);

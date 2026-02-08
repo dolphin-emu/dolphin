@@ -10,7 +10,6 @@
 #include <optional>
 #include <string>
 #include <string_view>
-#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Core/CoreTiming.h"
@@ -153,7 +152,7 @@ class EmulationKernel final : public Kernel
 {
 public:
   EmulationKernel(Core::System& system, u64 ios_title_id);
-  ~EmulationKernel();
+  ~EmulationKernel() override;
 
   // Get a resource manager by name.
   // This only works for devices which are part of the device map.

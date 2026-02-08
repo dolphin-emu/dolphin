@@ -51,7 +51,7 @@ public:
 
   std::string GetName() const override { return m_name; }
 
-  ControlState GetState() const final override { return ControlState(m_value) / m_extent; }
+  ControlState GetState() const final { return ControlState(m_value) / m_extent; }
 
 protected:
   const T& m_value;
@@ -737,7 +737,7 @@ void Device::ProcessExtensionID(u8 id_0, u8 id_4, u8 id_5)
   }
   else
   {
-    // This is a normal occurance before extension initialization.
+    // This is a normal occurrence before extension initialization.
     DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Unknown extension: {} {} {}.", id_0, id_4, id_5);
     m_extension_id = ExtensionID::Unsupported;
   }
@@ -1328,7 +1328,7 @@ void Device::IRState::ProcessData(const DataReportManipulator& manipulator)
   if (points.Count() >= 2)
   {
     const auto variance = points.PopulationVariance();
-    // Adjusts Y coorinate to match horizontal FOV.
+    // Adjusts Y coordinate to match horizontal FOV.
     const auto separation =
         Common::Vec2(std::sqrt(variance.x), std::sqrt(variance.y)) /
         Common::Vec2(WiimoteEmu::CameraLogic::CAMERA_RES_X,

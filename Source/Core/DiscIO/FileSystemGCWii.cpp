@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
-#include <locale>
 #include <map>
 #include <memory>
 #include <optional>
@@ -14,11 +13,8 @@
 #include <string_view>
 #include <vector>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "DiscIO/DiscUtils.h"
 #include "DiscIO/Filesystem.h"
@@ -247,7 +243,7 @@ FileSystemGCWii::FileSystemGCWii(const VolumeDisc* volume, const Partition& part
 
   // 128 MiB is more than the total amount of RAM in a Wii.
   // No file system should use anywhere near that much.
-  static const u32 ARBITRARY_FILE_SYSTEM_SIZE_LIMIT = 128 * 1024 * 1024;
+  static constexpr u32 ARBITRARY_FILE_SYSTEM_SIZE_LIMIT = 128 * 1024 * 1024;
   if (*fst_size > ARBITRARY_FILE_SYSTEM_SIZE_LIMIT)
   {
     // Without this check, Dolphin can crash by trying to allocate too much

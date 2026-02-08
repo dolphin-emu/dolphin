@@ -28,7 +28,7 @@ constexpr u16 LegalNitroChannelMask = 0b0011'1111'1111'1110u;
 
 u16 SelectWifiChannel(u16 enabled_channels_mask, u16 current_channel)
 {
-  const Common::BitSet<u16> enabled_channels{enabled_channels_mask & LegalChannelMask};
+  const Common::BitSet<u16> enabled_channels(enabled_channels_mask & LegalChannelMask);
   u16 next_channel = current_channel;
   for (int i = 0; i < 16; ++i)
   {
@@ -198,7 +198,7 @@ std::optional<IPCReply> NetWDCommandDevice::Open(const OpenRequest& request)
     if (mode != WD::Mode::DSCommunications && mode != WD::Mode::AOSSAccessPointScan)
     {
       ERROR_LOG_FMT(IOS_NET, "Unsupported WD operating mode: {}", mode);
-      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_UNCOMMON_WD_MODE);
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesUncommonWDMode);
       return IPCReply(s32(ResultCode::UnavailableCommand));
     }
 
@@ -390,7 +390,7 @@ std::optional<IPCReply> NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_WD_CHANGE_GAMEINFO:
   case IOCTLV_WD_CHANGE_VTSF:
   default:
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_WD_UNIMPLEMENTED_IOCTL);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesWDUnimplementedIOCtl);
     request.Dump(GetSystem(), GetDeviceName(), Common::Log::LogType::IOS_NET,
                  Common::Log::LogLevel::LWARNING);
   }

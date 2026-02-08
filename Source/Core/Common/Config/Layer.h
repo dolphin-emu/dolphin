@@ -18,12 +18,13 @@ namespace Config
 // Setting a key to an object of this type will delete the key.
 struct DefaultState
 {
-  friend constexpr bool operator==(DefaultState, DefaultState) { return true; };
+  friend constexpr bool operator==(DefaultState, DefaultState) { return true; }
 };
 
 namespace detail
 {
-template <typename T, std::enable_if_t<!std::is_enum<T>::value>* = nullptr>
+template <typename T>
+requires(!Common::Enum<T>)
 std::optional<T> TryParse(const std::string& str_value)
 {
   T value;
@@ -32,7 +33,7 @@ std::optional<T> TryParse(const std::string& str_value)
   return value;
 }
 
-template <typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
+template <Common::Enum T>
 std::optional<T> TryParse(const std::string& str_value)
 {
   const auto result = TryParse<std::underlying_type_t<T>>(str_value);

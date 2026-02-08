@@ -21,12 +21,15 @@ add_dolphin_test(SkylandersTest IOS/USB/SkylandersTest.cpp)
 if(_M_X86_64)
   add_dolphin_test(PowerPCTest
     PowerPC/DivUtilsTest.cpp
+    PowerPC/PageTableHostMappingTest.cpp
     PowerPC/Jit64Common/ConvertDoubleToSingle.cpp
+    PowerPC/Jit64Common/Fres.cpp
     PowerPC/Jit64Common/Frsqrte.cpp
   )
 elseif(_M_ARM_64)
   add_dolphin_test(PowerPCTest
     PowerPC/DivUtilsTest.cpp
+    PowerPC/PageTableHostMappingTest.cpp
     PowerPC/JitArm64/ConvertSingleDouble.cpp
     PowerPC/JitArm64/FPRF.cpp
     PowerPC/JitArm64/Fres.cpp
@@ -36,9 +39,11 @@ elseif(_M_ARM_64)
 else()
   add_dolphin_test(PowerPCTest
     PowerPC/DivUtilsTest.cpp
+    PowerPC/PageTableHostMappingTest.cpp
   )
 endif()
 
 target_sources(PowerPCTest PRIVATE
   PowerPC/TestValues.h
+  StubJit.h
 )

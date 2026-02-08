@@ -20,7 +20,6 @@
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
-#include "Core/CoreTiming.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPProto.h"
 #include "SFML/Network/IpAddress.hpp"
@@ -71,11 +70,8 @@ private:
         : m_name(name), m_input(input), m_range(range), m_offset(offset)
     {
     }
-    std::string GetName() const final override { return m_name; }
-    ControlState GetState() const final override
-    {
-      return (ControlState(m_input) + m_offset) / m_range;
-    }
+    std::string GetName() const final { return m_name; }
+    ControlState GetState() const final { return (ControlState(m_input) + m_offset) / m_range; }
 
   private:
     const char* m_name;
@@ -203,7 +199,7 @@ class InputBackend final : public ciface::InputBackend
 {
 public:
   InputBackend(ControllerInterface* controller_interface);
-  ~InputBackend();
+  ~InputBackend() override;
   void PopulateDevices() override;
 
 private:

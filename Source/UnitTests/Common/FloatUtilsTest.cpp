@@ -49,7 +49,7 @@ TEST(FloatUtils, FlushToZero)
 
   // Test all subnormals as well as an equally large set of random normal floats.
   std::default_random_engine engine(0);
-  std::uniform_int_distribution<u32> dist(0x00800000u, 0x7fffffffu);
+  std::uniform_int_distribution dist(0x00800000u, 0x7fffffffu);
   for (u32 i = 0; i <= 0x007fffffu; ++i)
   {
     u32 i_tmp = i;

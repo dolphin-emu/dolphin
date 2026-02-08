@@ -13,7 +13,6 @@
 #include <fmt/format.h>
 
 #include "Common/MathUtil.h"
-#include "Common/Thread.h"
 
 namespace ciface::Core
 {
@@ -391,7 +390,7 @@ InputDetector::InputDetector() : m_start_time{}, m_state{}
 }
 
 void InputDetector::Start(const DeviceContainer& container,
-                          const std::vector<std::string>& device_strings)
+                          std::span<const std::string> device_strings)
 
 {
   m_start_time = Clock::now();

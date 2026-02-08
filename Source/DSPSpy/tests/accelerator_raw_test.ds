@@ -1,0 +1,112 @@
+incdir  "tests"
+include "dsp_base.inc"
+
+; To use: set up a buffer in main_spy,
+; then modify the start, current, and ending addresses
+; and verify things look correct
+loop_read_test:
+  ; Set the sample format
+  sr @FORMAT, $AC0.H
+
+  ; Test parameters
+  lri $AC0.M, #0x0000 ; start
+  lri $AC0.L, #0x0000 ; start
+  lri $AC1.M, #0x0000 ; end
+  lri $AC1.L, #0x0011 ; end
+
+  ; pred scale, coefs, etc do not matter for raw
+
+  ; Set the starting and current address
+  srs @ACSAH, $AC0.M
+  srs @ACCAH, $AC0.M
+  srs @ACSAL, $AC0.L
+  srs @ACCAL, $AC0.L
+  ; Set the ending address
+  srs @ACEAH, $AC1.M
+  srs @ACEAL, $AC1.L
+
+  call load_hw_reg_to_regs
+  call send_back ; check the accelerator regs before a read
+
+  bloopi #4, end_of_read_loop
+    lr $IX3, @ACDRAW ; Raw reads
+    call load_hw_reg_to_regs
+    call send_back ; after a read
+    nop
+end_of_read_loop:
+    nop
+    ret
+
+loop_write_test:
+  ; Set the sample format
+  sr @FORMAT, $AC0.H
+
+  ; Test parameters
+  lri $AC0.M, #0x0000 ; start
+  lri $AC0.L, #0x0000 ; start
+  lri $AC1.M, #0x0000 ; end
+  lri $AC1.L, #0x0011 ; end
+
+  ; pred scale, coefs, etc do not matter for raw
+
+  ; Set the starting and current address
+  srs @ACSAH, $AC0.M
+  srs @ACCAH, $AC0.M
+  srs @ACSAL, $AC0.L
+  srs @ACCAL, $AC0.L
+  ; Set the ending address
+  srs @ACEAH, $AC1.M
+  srs @ACEAL, $AC1.L
+
+  call load_hw_reg_to_regs
+  call send_back ; check the accelerator regs before a write
+
+  bloopi #4, end_of_write_loop
+    sr @ACDRAW, $IX3 ; Raw writes
+    call load_hw_reg_to_regs
+    call send_back ; after a write
+    nop
+end_of_write_loop:
+    nop
+    ret
+
+test_main:
+lri $AC0.H, #0x00 ; 4-bit
+call loop_read_test
+lri $AC0.H, #0x01 ; 8-bit
+call loop_read_test
+lri $AC0.H, #0x02 ; 16-bit
+call loop_read_test
+lri $AC0.H, #0x00 ; "4-bit", but all writes are 16-bits
+call loop_write_test
+lri $AC0.H, #0x01 ; "8-bit", but all writes are 16-bits
+call loop_write_test
+lri $AC0.H, #0x02 ; 16-bit
+call loop_write_test
+jmp end_of_test
+
+load_hw_reg_to_regs:
+  lr $AR0, @FORMAT
+  lr $AR1, @0xffd2 ; unknown
+  lr $AR2, @PRED_SCALE
+  lr $AR3, @YN1
+  lr $IX0, @YN2
+  lr $IX1, @ACIN
+
+  lri $AC0.H, #0
+  lrs $AC0.M, @ACSAH
+  lrs $AC0.L, @ACSAL
+
+  lri $AC1.H, #0
+  lrs $AC1.M, @ACEAH
+  lrs $AC1.L, @ACEAL
+
+  lrs $AX0.H, @ACCAH
+  lrs $AX0.L, @ACCAL
+  lrs $AX1.H, @ACCAH
+  lrs $AX1.L, @ACCAL
+
+  lrs $AX1.H, @ACCAH
+  lrs $AX1.L, @ACCAL
+
+  ret

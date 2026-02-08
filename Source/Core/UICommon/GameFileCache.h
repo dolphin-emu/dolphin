@@ -19,7 +19,7 @@ namespace UICommon
 {
 class GameFile;
 
-std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
+std::vector<std::string> FindAllGamePaths(std::span<const std::string_view> directories_to_scan,
                                           bool recursive_scan);
 
 class GameFileCache

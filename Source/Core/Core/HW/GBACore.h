@@ -3,6 +3,8 @@
 
 #pragma once
 
+#ifdef HAS_LIBMGBA
+
 #include <array>
 #include <condition_variable>
 #include <memory>
@@ -19,6 +21,7 @@
 #include <mgba/core/core.h>
 #include <mgba/gba/interface.h>
 
+#include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
 
 class GBAHostInterface;
@@ -38,6 +41,7 @@ struct SIODriver : GBASIODriver
 struct AVStream : mAVStream
 {
   Core* core;
+  Common::UniqueBuffer<s16> sample_buffer;
 };
 
 struct CoreInfo
@@ -104,7 +108,7 @@ private:
 
   void SetSIODriver();
   void SetVideoBuffer();
-  void SetSampleRates();
+  void SetAudioBufferSize();
   void AddCallbacks();
   void SetAVStream();
   void SetupEvent();
@@ -147,3 +151,4 @@ private:
   ::Core::System& m_system;
 };
 }  // namespace HW::GBA
+#endif  // HAS_LIBMGBA

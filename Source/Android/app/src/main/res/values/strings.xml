@@ -67,8 +67,6 @@
     <string name="graphics_settings">Graphics Settings</string>
     <string name="gcpad_settings">GameCube Input</string>
     <string name="wiimote_settings">Wii Input</string>
-    <string name="settings_saved">Saved settings to INI files</string>
-    <string name="settings_saved_game_specific">Saved settings for %1$s</string>
 
     <!-- General Preference Fragment -->
     <string name="general_submenu">General</string>
@@ -77,6 +75,7 @@
     <string name="enable_cheats">Enable Cheats</string>
     <string name="speed_limit">Speed Limit (0% = Unlimited)</string>
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
+    <string name="achievements_submenu">RetroAchievements</string>
     <string name="gamecube_submenu">GameCube</string>
     <string name="ipl_settings">IPL Settings</string>
     <string name="skip_main_menu">Skip Main Menu</string>
@@ -153,6 +152,8 @@
     <string name="panic_handlers_description">Show a message box when a potentially serious error has occurred. Disabling this may avoid annoying and non-fatal messages, but it may result in major crashes having no explanation at all.</string>
     <string name="osd_messages">Show On-Screen Display Messages</string>
     <string name="osd_messages_description">Display messages over the emulation screen area. These messages include memory card writes, video backend and CPU information, and JIT cache clearing.</string>
+    <string name="time_tracking">Enable Play Time Tracking</string>
+    <string name="time_tracking_description">Tracks the time you spend playing games and shows it in the game details.</string>
     <string name="download_game_covers">Download Game Covers from GameTDB.com</string>
     <string name="show_titles_in_game_list">Show Titles</string>
     <string name="change_theme">Change App Theme</string>
@@ -187,6 +188,8 @@
     <string name="audio_buffer_size_description">Controls the number of audio samples buffered. Lower values reduce latency but may cause more crackling or stuttering. If unsure, set this to 80 ms.</string>
     <string name="audio_fill_gaps">Fill Audio Gaps</string>
     <string name="audio_fill_gaps_description">Repeat existing audio during lag spikes to prevent stuttering. If unsure, leave this checked.</string>
+    <string name="audio_preserve_pitch">Preserve Audio Pitch</string>
+    <string name="audio_preserve_pitch_description">Keeps audio at normal pitch when changing emulation speed. Without this, audio pitch changes proportionally with speed. If unsure, leave this unchecked.</string>
     <string name="audio_volume">Audio Volume</string>
 
     <!-- Path Settings -->
@@ -374,7 +377,7 @@
     <string name="enable_cpu_cache_description">Enables emulation of the CPU write-back cache. Enabling will have a significant impact on performance. This should be left disabled unless absolutely needed.</string>
     <string name="clock_override">Clock Override</string>
     <string name="overclock_enable">Override Emulated CPU Clock Speed</string>
-    <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device. Lower values make games run at a lower framerate, increasing emulation speed, but reducing the emulated console\'s performance.</string>
+    <string name="overclock_enable_description">On games that have an unstable frame rate despite full emulation speed, higher values can improve their performance, requiring a powerful device. Lower values reduce the emulated console\'s performance, but improve the emulation speed.</string>
     <string name="overclock_title">Emulated CPU Clock Speed</string>
     <string name="overclock_title_description">Adjusts the emulated CPU\'s clock rate if \"Override Emulated CPU Clock Speed\" is enabled.</string>
     <string name="memory_override">Memory Override</string>
@@ -383,6 +386,10 @@
     <string name="main_mem1_size">MEM1 Size</string>
     <string name="main_mem2_size">MEM2 Size</string>
     <string name="gpu_options">GPU Options</string>
+    <string name="vi_overclock_enable">Override VBI Frequency</string>
+    <string name="vi_overclock_enable_description">Makes games run at a different frame rate, making the emulation less demanding when lowered, or improving smoothness when increased. This may affect gameplay speed, as it is often tied to the frame rate.</string>
+    <string name="vi_overclock_title">VBI Frequency</string>
+    <string name="vi_overclock_title_description">Adjusts the VBI frequency rate if \"Override VBI Frequency\" is enabled.\nAlso adjusts the emulated CPU\'s clock speed, to keep it relatively the same.</string>
     <string name="synchronize_gpu_thread">Synchronize GPU Thread</string>
     <string name="synchronize_gpu_thread_description">Synchronizing the GPU thread reduces the risk of games crashing or becoming unstable with dual core enabled, but can also reduce the performance gain of dual core. If unsure, select \"On Idle Skipping\". Selecting \"Never\" is risky and not recommended!</string>
     <string name="custom_rtc_options">Custom RTC Options</string>
@@ -450,6 +457,9 @@
     <string name="user_data_import_failure">Failed to import user data.</string>
     <string name="user_data_export_success">Your user data has been exported.</string>
     <string name="user_data_export_failure">Failed to export user data.</string>
+    <string name="reset_dolphin_settings">Reset Dolphin Settings</string>
+    <string name="reset_all_settings">Reset All Settings</string>
+    <string name="reset_dolphin_settings_confirmation">Are you sure you want to restore all Dolphin settings to their default values? This action cannot be undone!\nAll customizations or changes you have made will be lost.\n\nDo you want to proceed?</string>
 
     <!-- Miscellaneous -->
     <string name="yes">Yes</string>
@@ -517,6 +527,7 @@
     <string name="game_ini_junk_question">The settings file for this game contains extraneous data added by an old version of Dolphin. This will likely prevent global settings from working as intended.\n\nWould you like to fix this by deleting the settings file for this game? All game-specific settings and cheats that you have added will be removed. This cannot be undone.</string>
 
     <!-- Game Details Screen -->
+    <string name="game_details_time_played">Played for %1$dh %2$dm</string>
     <string name="game_details_country">Country</string>
     <string name="game_details_company">Company</string>
     <string name="game_details_game_id">Game ID</string>
@@ -941,4 +952,24 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="incompatible_figure_selected">Incompatible Figure Selected</string>
     <string name="select_compatible_figure">Please select a compatible figure file</string>
 
+    <string name="emulate_wii_speak">Wii Speak</string>
+    <string name="mute_wii_speak">Mute Wii Speak</string>
+    <string name="wii_speak_permission_warning">Missing Microphone Permission</string>
+    <string name="wii_speak_permission_warning_description">Wii Speak emulation requires microphone permission. You might need to restart the game for the permission to be effective.</string>
+
+    <!-- Achievements -->
+    <string name="achievements_enabled">Enable Achievements</string>
+    <string name="achievements_hardcore_enabled">Enable Hardcore Mode</string>
+    <string name="achievements_unofficial_enabled">Enable Unofficial Achievements</string>
+    <string name="achievements_encore_enabled">Enable Encore Mode</string>
+    <string name="achievements_spectator_enabled">Enable Spectator Mode</string>
+    <string name="achievements_leaderboard_tracker_enabled">Show Leaderboard Tracker</string>
+    <string name="achievements_challenge_indicators_enabled">Show Challenge Indicators</string>
+    <string name="achievements_progress_enabled">Enable Progress Notifications</string>
+    <string name="achievements_username">Username</string>
+    <string name="achievements_password">Password</string>
+    <string name="achievements_login">Log In</string>
+    <string name="achievements_logout">Log Out</string>
+    <string name="achievements_login_in_progress">Logging In</string>
+    <string name="achievements_login_failed">Login Failed</string>
 </resources>

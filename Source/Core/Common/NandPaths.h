@@ -14,6 +14,7 @@ enum class FromWhichRoot
 {
   Configured,  // not related to currently running game - use D_WIIROOT_IDX
   Session,     // request from currently running game - use D_SESSION_WIIROOT_IDX
+  Banners,     // fallback for Wii savegame banners - use D_BANNERS_WIIROOT_IDX
 };
 
 std::string RootUserPath(FromWhichRoot from);

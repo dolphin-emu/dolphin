@@ -459,6 +459,7 @@ void VulkanContext::PopulateBackendInfo(BackendInfo* backend_info)
   backend_info->bSupportsDynamicVertexLoader = true;        // Assumed support.
   backend_info->bSupportsVSLinePointExpand = true;          // Assumed support.
   backend_info->bSupportsHDROutput = true;                  // Assumed support.
+  backend_info->bSupportsUnrestrictedDepthRange = false;    // Dependent on features.
 }
 
 void VulkanContext::PopulateBackendInfoAdapters(BackendInfo* backend_info, const GPUList& gpu_list)
@@ -662,6 +663,16 @@ bool VulkanContext::SelectDeviceExtensions(bool enable_surface)
 
   AddExtension(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, false);
   AddExtension(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME, false);
+
+  if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DEPTH_CLAMP_CONTROL))
+  {
+    // Unrestricted depth range is one of the few extensions that changes the behavior
+    // of Vulkan just by being enabled, so we rely on lazy evaluation to ensure it is
+    // not enabled unless depth clamp control is supported.
+    g_backend_info.bSupportsUnrestrictedDepthRange =
+        AddExtension(VK_EXT_DEPTH_CLAMP_CONTROL_EXTENSION_NAME, false) &&
+        AddExtension(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME, false);
+  }
 
   return true;
 }

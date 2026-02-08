@@ -5,7 +5,6 @@
 
 #include <array>
 #include <bit>
-#include <map>
 #include <mutex>
 #include <span>
 #include <vector>
@@ -15,7 +14,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/Random.h"
 #include "Common/StringUtil.h"
-#include "Common/Timer.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
@@ -137,7 +135,7 @@ static constexpr std::array<u8, 32> SHA1_CONSTANT = {
 static constexpr std::array<u8, 16> BLANK_BLOCK = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-InfinityUSB::InfinityUSB(EmulationKernel& ios) : m_ios(ios)
+InfinityUSB::InfinityUSB()
 {
   m_vid = 0x0E6F;
   m_pid = 0x0129;
@@ -168,7 +166,7 @@ std::vector<InterfaceDescriptor> InfinityUSB::GetInterfaces(u8 config) const
   return m_interface_descriptor;
 }
 
-std::vector<EndpointDescriptor> InfinityUSB::GetEndpoints(u8 config, u8 interface, u8 alt) const
+std::vector<EndpointDescriptor> InfinityUSB::GetEndpoints(u8 config, u8 iface, u8 alt) const
 {
   return m_endpoint_descriptor;
 }
@@ -184,13 +182,13 @@ bool InfinityUSB::Attach()
   return true;
 }
 
-bool InfinityUSB::AttachAndChangeInterface(const u8 interface)
+bool InfinityUSB::AttachAndChangeInterface(const u8 iface)
 {
   if (!Attach())
     return false;
 
-  if (interface != m_active_interface)
-    return ChangeInterface(interface) == 0;
+  if (iface != m_active_interface)
+    return ChangeInterface(iface) == 0;
 
   return true;
 }
@@ -203,15 +201,15 @@ int InfinityUSB::CancelTransfer(const u8 endpoint)
   return IPC_SUCCESS;
 }
 
-int InfinityUSB::ChangeInterface(const u8 interface)
+int InfinityUSB::ChangeInterface(const u8 iface)
 {
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Changing interface to {}", m_vid, m_pid,
-                m_active_interface, interface);
-  m_active_interface = interface;
+                m_active_interface, iface);
+  m_active_interface = iface;
   return 0;
 }
 
-int InfinityUSB::GetNumberOfAltSettings(u8 interface)
+int InfinityUSB::GetNumberOfAltSettings(u8 iface)
 {
   return 0;
 }
@@ -241,7 +239,7 @@ int InfinityUSB::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
   DEBUG_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Interrupt: length={:04x} endpoint={:02x}", m_vid,
                 m_pid, m_active_interface, cmd->length, cmd->endpoint);
 
-  auto& system = m_ios.GetSystem();
+  auto& system = cmd->GetEmulationKernel().GetSystem();
   auto& memory = system.GetMemory();
   auto& infinity_base = system.GetInfinityBase();
   u8* buf = memory.GetPointerForRange(cmd->data_address, cmd->length);

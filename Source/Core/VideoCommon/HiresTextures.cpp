@@ -3,15 +3,11 @@
 
 #include "VideoCommon/HiresTextures.h"
 
-#include <algorithm>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <string_view>
-#include <thread>
 #include <unordered_map>
 #include <utility>
-#include <vector>
 #include <xxhash.h>
 
 #include <fmt/format.h>
@@ -21,13 +17,11 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/System.h"
-#include "VideoCommon/Assets/CustomAsset.h"
-#include "VideoCommon/Assets/CustomAssetLoader.h"
 #include "VideoCommon/Assets/DirectFilesystemAssetLibrary.h"
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/Resources/CustomResourceManager.h"
 #include "VideoCommon/VideoConfig.h"
 
 constexpr std::string_view s_format_prefix{"tex1_"};
@@ -93,14 +87,15 @@ void HiresTexture::Update()
   const std::string& game_id = SConfig::GetInstance().GetGameID();
   const std::set<std::string> texture_directories =
       GetTextureDirectoriesWithGameId(File::GetUserPath(D_HIRESTEXTURES_IDX), game_id);
-  const std::vector<std::string> extensions{".png", ".dds"};
-
-  auto& system = Core::System::GetInstance();
+  constexpr auto extensions = std::to_array<std::string_view>({".png", ".dds"});
 
   for (const auto& texture_directory : texture_directories)
   {
+    // Watch this directory for any texture reloads
+    s_file_library->Watch(texture_directory);
+
     const auto texture_paths =
-        Common::DoFileSearch({texture_directory}, extensions, /*recursive*/ true);
+        Common::DoFileSearch(texture_directory, extensions, /*recursive*/ true);
 
     bool failed_insert = false;
     for (auto& path : texture_paths)
@@ -130,10 +125,10 @@ void HiresTexture::Update()
 
           if (g_ActiveConfig.bCacheHiresTextures)
           {
-            auto hires_texture = std::make_shared<HiresTexture>(
-                has_arbitrary_mipmaps,
-                system.GetCustomAssetLoader().LoadGameTexture(filename, s_file_library));
-            s_hires_texture_cache.try_emplace(filename, std::move(hires_texture));
+            auto hires_texture =
+                std::make_shared<HiresTexture>(has_arbitrary_mipmaps, std::move(filename));
+            static_cast<void>(hires_texture->LoadTexture());
+            s_hires_texture_cache.try_emplace(hires_texture->GetId(), hires_texture);
           }
         }
       }
@@ -167,7 +162,7 @@ void HiresTexture::Clear()
 
 std::shared_ptr<HiresTexture> HiresTexture::Search(const TextureInfo& texture_info)
 {
-  const auto [base_filename, has_arb_mipmaps] = GetNameArbPair(texture_info);
+  auto [base_filename, has_arb_mipmaps] = GetNameArbPair(texture_info);
   if (base_filename == "")
     return nullptr;
 
@@ -177,22 +172,25 @@ std::shared_ptr<HiresTexture> HiresTexture::Search(const TextureInfo& texture_in
   }
   else
   {
-    auto& system = Core::System::GetInstance();
-    auto hires_texture = std::make_shared<HiresTexture>(
-        has_arb_mipmaps,
-        system.GetCustomAssetLoader().LoadGameTexture(base_filename, s_file_library));
+    auto hires_texture = std::make_shared<HiresTexture>(has_arb_mipmaps, std::move(base_filename));
     if (g_ActiveConfig.bCacheHiresTextures)
     {
-      s_hires_texture_cache.try_emplace(base_filename, hires_texture);
+      s_hires_texture_cache.try_emplace(hires_texture->GetId(), hires_texture);
     }
     return hires_texture;
   }
 }
 
-HiresTexture::HiresTexture(bool has_arbitrary_mipmaps,
-                           std::shared_ptr<VideoCommon::GameTextureAsset> asset)
-    : m_has_arbitrary_mipmaps(has_arbitrary_mipmaps), m_game_texture(std::move(asset))
+HiresTexture::HiresTexture(bool has_arbitrary_mipmaps, std::string id)
+    : m_has_arbitrary_mipmaps(has_arbitrary_mipmaps), m_id(std::move(id))
 {
+}
+
+VideoCommon::TextureDataResource* HiresTexture::LoadTexture() const
+{
+  auto& system = Core::System::GetInstance();
+  auto& custom_resource_manager = system.GetCustomResourceManager();
+  return custom_resource_manager.GetTextureDataFromAsset(m_id, s_file_library);
 }
 
 std::set<std::string> GetTextureDirectoriesWithGameId(const std::string& root_directory,
@@ -223,7 +221,7 @@ std::set<std::string> GetTextureDirectoriesWithGameId(const std::string& root_di
   };
 
   // Look for any other directories that might be specific to the given gameid
-  const auto files = Common::DoFileSearch({root_directory}, {".txt"}, true);
+  const auto files = Common::DoFileSearch(root_directory, ".txt", true);
   for (const auto& file : files)
   {
     if (match_gameid_or_all(file))

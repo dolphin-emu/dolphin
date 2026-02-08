@@ -31,15 +31,22 @@
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
+#ifdef HAS_LIBMGBA
 #include "Core/NetPlayServer.h"
+#endif
 #include "Core/System.h"
 
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
+#ifdef HAS_LIBMGBA
+#include "DolphinQt/Config/ConfigControls/ConfigText.h"
+#include "DolphinQt/Config/ConfigControls/ConfigUserPath.h"
+#endif
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/GCMemcardManager.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/BroadbandAdapterSettingsDialog.h"
@@ -65,7 +72,7 @@ void GameCubePane::CreateWidgets()
   QVBoxLayout* ipl_box_layout = new QVBoxLayout(ipl_box);
   ipl_box->setLayout(ipl_box_layout);
 
-  m_skip_main_menu = new QCheckBox(tr("Skip Main Menu"), ipl_box);
+  m_skip_main_menu = new ConfigBool(tr("Skip Main Menu"), Config::MAIN_SKIP_IPL);
   ipl_box_layout->addWidget(m_skip_main_menu);
 
   QFormLayout* ipl_language_layout = new QFormLayout;
@@ -73,17 +80,11 @@ void GameCubePane::CreateWidgets()
   ipl_language_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
   ipl_box_layout->addLayout(ipl_language_layout);
 
-  m_language_combo = new QComboBox(ipl_box);
-  m_language_combo->setCurrentIndex(-1);
-  ipl_language_layout->addRow(tr("System Language:"), m_language_combo);
+  const QStringList language_list{tr("English"), tr("German"),  tr("French"),
+                                  tr("Spanish"), tr("Italian"), tr("Dutch")};
 
-  // Add languages
-  for (const auto& entry : {std::make_pair(tr("English"), 0), std::make_pair(tr("German"), 1),
-                            std::make_pair(tr("French"), 2), std::make_pair(tr("Spanish"), 3),
-                            std::make_pair(tr("Italian"), 4), std::make_pair(tr("Dutch"), 5)})
-  {
-    m_language_combo->addItem(entry.first, entry.second);
-  }
+  m_language_combo = new ConfigChoice(language_list, Config::MAIN_GC_LANGUAGE);
+  ipl_language_layout->addRow(tr("System Language:"), m_language_combo);
 
   // Device Settings
   QGroupBox* device_box = new QGroupBox(tr("Device Settings"), this);
@@ -146,6 +147,9 @@ void GameCubePane::CreateWidgets()
            EXIDeviceType::EthernetXLink,
            EXIDeviceType::EthernetTapServer,
            EXIDeviceType::EthernetBuiltIn,
+#ifdef HAVE_CPPIPC
+           EXIDeviceType::EthernetIPC,
+#endif
            EXIDeviceType::ModemTapServer,
        })
   {
@@ -195,11 +199,12 @@ void GameCubePane::CreateWidgets()
   gba_box->setLayout(gba_layout);
   int gba_row = 0;
 
-  m_gba_threads = new QCheckBox(tr("Run GBA Cores in Dedicated Threads"));
+  m_gba_threads =
+      new ConfigBool(tr("Run GBA Cores in Dedicated Threads"), Config::MAIN_GBA_THREADS);
   gba_layout->addWidget(m_gba_threads, gba_row, 0, 1, -1);
   gba_row++;
 
-  m_gba_bios_edit = new QLineEdit();
+  m_gba_bios_edit = new ConfigUserPath(F_GBABIOS_IDX, Config::MAIN_GBA_BIOS_PATH);
   m_gba_browse_bios = new NonDefaultQPushButton(QStringLiteral("..."));
   gba_layout->addWidget(new QLabel(tr("BIOS:")), gba_row, 0);
   gba_layout->addWidget(m_gba_bios_edit, gba_row, 1);
@@ -208,7 +213,7 @@ void GameCubePane::CreateWidgets()
 
   for (size_t i = 0; i < m_gba_rom_edits.size(); ++i)
   {
-    m_gba_rom_edits[i] = new QLineEdit();
+    m_gba_rom_edits[i] = new ConfigText(Config::MAIN_GBA_ROM_PATHS[i]);
     m_gba_browse_roms[i] = new NonDefaultQPushButton(QStringLiteral("..."));
     gba_layout->addWidget(new QLabel(tr("Port %1 ROM:").arg(i + 1)), gba_row, 0);
     gba_layout->addWidget(m_gba_rom_edits[i], gba_row, 1);
@@ -216,11 +221,12 @@ void GameCubePane::CreateWidgets()
     gba_row++;
   }
 
-  m_gba_save_rom_path = new QCheckBox(tr("Save in Same Directory as the ROM"));
+  m_gba_save_rom_path =
+      new ConfigBool(tr("Save in Same Directory as the ROM"), Config::MAIN_GBA_SAVES_IN_ROM_PATH);
   gba_layout->addWidget(m_gba_save_rom_path, gba_row, 0, 1, -1);
   gba_row++;
 
-  m_gba_saves_edit = new QLineEdit();
+  m_gba_saves_edit = new ConfigUserPath(D_GBASAVES_IDX, Config::MAIN_GBA_SAVES_PATH);
   m_gba_browse_saves = new NonDefaultQPushButton(QStringLiteral("..."));
   gba_layout->addWidget(new QLabel(tr("Saves:")), gba_row, 0);
   gba_layout->addWidget(m_gba_saves_edit, gba_row, 1);
@@ -241,10 +247,6 @@ void GameCubePane::CreateWidgets()
 
 void GameCubePane::ConnectWidgets()
 {
-  // IPL Settings
-  connect(m_skip_main_menu, &QCheckBox::stateChanged, this, &GameCubePane::SaveSettings);
-  connect(m_language_combo, &QComboBox::currentIndexChanged, this, &GameCubePane::SaveSettings);
-
   // Device Settings
   for (ExpansionInterface::Slot slot : GUI_SLOTS)
   {
@@ -273,15 +275,16 @@ void GameCubePane::ConnectWidgets()
 
 #ifdef HAS_LIBMGBA
   // GBA Settings
-  connect(m_gba_threads, &QCheckBox::stateChanged, this, &GameCubePane::SaveSettings);
-  connect(m_gba_bios_edit, &QLineEdit::editingFinished, this, &GameCubePane::SaveSettings);
   connect(m_gba_browse_bios, &QPushButton::clicked, this, &GameCubePane::BrowseGBABios);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(m_gba_save_rom_path, &QCheckBox::checkStateChanged, this,
+          &GameCubePane::SaveRomPathChanged);
+#else
   connect(m_gba_save_rom_path, &QCheckBox::stateChanged, this, &GameCubePane::SaveRomPathChanged);
-  connect(m_gba_saves_edit, &QLineEdit::editingFinished, this, &GameCubePane::SaveSettings);
+#endif
   connect(m_gba_browse_saves, &QPushButton::clicked, this, &GameCubePane::BrowseGBASaves);
   for (size_t i = 0; i < m_gba_browse_roms.size(); ++i)
   {
-    connect(m_gba_rom_edits[i], &QLineEdit::editingFinished, this, &GameCubePane::SaveSettings);
     connect(m_gba_browse_roms[i], &QPushButton::clicked, this, [this, i] { BrowseGBARom(i); });
   }
 #endif
@@ -381,28 +384,24 @@ void GameCubePane::OnConfigPressed(ExpansionInterface::Slot slot)
   {
     // TODO: convert MappingWindow to use Slot?
     MappingWindow dialog(this, MappingWindow::Type::MAPPING_GC_MICROPHONE, static_cast<int>(slot));
-    SetQWidgetWindowDecorations(&dialog);
     dialog.exec();
     return;
   }
   case ExpansionInterface::EXIDeviceType::Ethernet:
   {
     BroadbandAdapterSettingsDialog dialog(this, BroadbandAdapterSettingsDialog::Type::Ethernet);
-    SetQWidgetWindowDecorations(&dialog);
     dialog.exec();
     return;
   }
   case ExpansionInterface::EXIDeviceType::EthernetXLink:
   {
     BroadbandAdapterSettingsDialog dialog(this, BroadbandAdapterSettingsDialog::Type::XLinkKai);
-    SetQWidgetWindowDecorations(&dialog);
     dialog.exec();
     return;
   }
   case ExpansionInterface::EXIDeviceType::EthernetTapServer:
   {
     BroadbandAdapterSettingsDialog dialog(this, BroadbandAdapterSettingsDialog::Type::TapServer);
-    SetQWidgetWindowDecorations(&dialog);
     dialog.exec();
     return;
   }
@@ -410,14 +409,12 @@ void GameCubePane::OnConfigPressed(ExpansionInterface::Slot slot)
   {
     BroadbandAdapterSettingsDialog dialog(this,
                                           BroadbandAdapterSettingsDialog::Type::ModemTapServer);
-    SetQWidgetWindowDecorations(&dialog);
     dialog.exec();
     return;
   }
   case ExpansionInterface::EXIDeviceType::EthernetBuiltIn:
   {
     BroadbandAdapterSettingsDialog dialog(this, BroadbandAdapterSettingsDialog::Type::BuiltIn);
-    SetQWidgetWindowDecorations(&dialog);
     dialog.exec();
     return;
   }
@@ -672,40 +669,35 @@ void GameCubePane::SetAGPRom(ExpansionInterface::Slot slot, const QString& filen
   LoadSettings();
 }
 
+#ifdef HAS_LIBMGBA
+
 void GameCubePane::BrowseGBABios()
 {
   QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
-      this, tr("Select GBA BIOS"), QString::fromStdString(File::GetUserPath(F_GBABIOS_IDX)),
+      this, tr("Select GBA BIOS"), QString::fromStdString(Config::Get(Config::MAIN_GBA_BIOS_PATH)),
       tr("All Files (*)")));
   if (!file.isEmpty())
-  {
-    m_gba_bios_edit->setText(file);
-    SaveSettings();
-  }
+    m_gba_bios_edit->SetTextAndUpdate(file);
 }
 
 void GameCubePane::BrowseGBARom(size_t index)
 {
   QString file = QString::fromStdString(GetOpenGBARom({}));
   if (!file.isEmpty())
-  {
-    m_gba_rom_edits[index]->setText(file);
-    SaveSettings();
-  }
+    m_gba_rom_edits[index]->SetTextAndUpdate(file);
 }
 
 void GameCubePane::SaveRomPathChanged()
 {
   m_gba_saves_edit->setEnabled(!m_gba_save_rom_path->isChecked());
   m_gba_browse_saves->setEnabled(!m_gba_save_rom_path->isChecked());
-  SaveSettings();
 }
 
 void GameCubePane::BrowseGBASaves()
 {
   QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
       this, tr("Select GBA Saves Path"),
-      QString::fromStdString(File::GetUserPath(D_GBASAVES_IDX))));
+      QString::fromStdString(Config::Get(Config::MAIN_GBA_SAVES_PATH))));
   if (!dir.isEmpty())
   {
     m_gba_saves_edit->setText(dir);
@@ -713,13 +705,10 @@ void GameCubePane::BrowseGBASaves()
   }
 }
 
+#endif  // HAS_LIBMGBA
+
 void GameCubePane::LoadSettings()
 {
-  // IPL Settings
-  SignalBlocking(m_skip_main_menu)->setChecked(Config::Get(Config::MAIN_SKIP_IPL));
-  SignalBlocking(m_language_combo)
-      ->setCurrentIndex(m_language_combo->findData(Config::Get(Config::MAIN_GC_LANGUAGE)));
-
   bool have_menu = false;
 
   for (const std::string dir : {USA_DIR, JAP_DIR, EUR_DIR})
@@ -733,8 +722,8 @@ void GameCubePane::LoadSettings()
     }
   }
 
-  m_skip_main_menu->setEnabled(have_menu);
-  m_skip_main_menu->setToolTip(have_menu ? QString{} : tr("Put IPL ROMs in User/GC/<region>."));
+  m_skip_main_menu->setEnabled(have_menu || !m_skip_main_menu->isChecked());
+  m_skip_main_menu->SetDescription(have_menu ? QString{} : tr("Put IPL ROMs in User/GC/<region>."));
 
   // Device Settings
   for (ExpansionInterface::Slot slot : GUI_SLOTS)
@@ -755,30 +744,11 @@ void GameCubePane::LoadSettings()
     SignalBlocking(m_gci_paths[slot])
         ->setText(QString::fromStdString(Config::GetGCIFolderPath(slot, std::nullopt)));
   }
-
-#ifdef HAS_LIBMGBA
-  // GBA Settings
-  SignalBlocking(m_gba_threads)->setChecked(Config::Get(Config::MAIN_GBA_THREADS));
-  SignalBlocking(m_gba_bios_edit)
-      ->setText(QString::fromStdString(File::GetUserPath(F_GBABIOS_IDX)));
-  SignalBlocking(m_gba_save_rom_path)->setChecked(Config::Get(Config::MAIN_GBA_SAVES_IN_ROM_PATH));
-  SignalBlocking(m_gba_saves_edit)
-      ->setText(QString::fromStdString(File::GetUserPath(D_GBASAVES_IDX)));
-  for (size_t i = 0; i < m_gba_rom_edits.size(); ++i)
-  {
-    SignalBlocking(m_gba_rom_edits[i])
-        ->setText(QString::fromStdString(Config::Get(Config::MAIN_GBA_ROM_PATHS[i])));
-  }
-#endif
 }
 
 void GameCubePane::SaveSettings()
 {
   Config::ConfigChangeCallbackGuard config_guard;
-
-  // IPL Settings
-  Config::SetBaseOrCurrent(Config::MAIN_SKIP_IPL, m_skip_main_menu->isChecked());
-  Config::SetBaseOrCurrent(Config::MAIN_GC_LANGUAGE, m_language_combo->currentData().toInt());
 
   auto& system = Core::System::GetInstance();
   // Device Settings
@@ -801,18 +771,6 @@ void GameCubePane::SaveSettings()
   // GBA Settings
   if (!NetPlay::IsNetPlayRunning())
   {
-    Config::SetBaseOrCurrent(Config::MAIN_GBA_THREADS, m_gba_threads->isChecked());
-    Config::SetBaseOrCurrent(Config::MAIN_GBA_BIOS_PATH, m_gba_bios_edit->text().toStdString());
-    Config::SetBaseOrCurrent(Config::MAIN_GBA_SAVES_IN_ROM_PATH, m_gba_save_rom_path->isChecked());
-    Config::SetBaseOrCurrent(Config::MAIN_GBA_SAVES_PATH, m_gba_saves_edit->text().toStdString());
-    File::SetUserPath(F_GBABIOS_IDX, Config::Get(Config::MAIN_GBA_BIOS_PATH));
-    File::SetUserPath(D_GBASAVES_IDX, Config::Get(Config::MAIN_GBA_SAVES_PATH));
-    for (size_t i = 0; i < m_gba_rom_edits.size(); ++i)
-    {
-      Config::SetBaseOrCurrent(Config::MAIN_GBA_ROM_PATHS[i],
-                               m_gba_rom_edits[i]->text().toStdString());
-    }
-
     auto server = Settings::Instance().GetNetPlayServer();
     if (server)
       server->SetGBAConfig(server->GetGBAConfig(), true);

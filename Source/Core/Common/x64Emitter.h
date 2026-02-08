@@ -113,8 +113,8 @@ struct OpArg
   // dummy op arg, used for storage
   constexpr OpArg() = default;
   constexpr OpArg(u64 offset_, int scale_, X64Reg rm_reg = RAX, X64Reg scaled_reg = RAX)
-      : scale{static_cast<u8>(scale_)}, offsetOrBaseReg{static_cast<u16>(rm_reg)},
-        indexReg{static_cast<u16>(scaled_reg)}, offset{offset_}
+      : offset{offset_}, offsetOrBaseReg{static_cast<u16>(rm_reg)},
+        indexReg{static_cast<u16>(scaled_reg)}, scale{static_cast<u8>(scale_)}
   {
   }
   constexpr bool operator==(const OpArg& b) const
@@ -234,11 +234,11 @@ private:
   void WriteSingleByteOp(XEmitter* emit, u8 op, X64Reg operandReg, int bits);
   void WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& operand, int bits) const;
 
-  u8 scale = 0;
+  u64 offset = 0;  // Also used to store immediates.
   u16 offsetOrBaseReg = 0;
   u16 indexReg = 0;
-  u64 offset = 0;  // Also used to store immediates.
   u16 operandReg = 0;
+  u8 scale = 0;
 };
 
 template <typename T>
@@ -444,6 +444,8 @@ public:
     Short,
     Near,
   };
+  static const int SHORT_JMP_LEN = 2;
+  static const int NEAR_JMP_LEN = 5;
 
   // Flow control
   void RET();
@@ -451,7 +453,7 @@ public:
   void UD2();
   [[nodiscard]] FixupBranch J(Jump jump = Jump::Short);
 
-  void JMP(const u8* addr, Jump jump = Jump::Short);
+  void JMP(const u8* addr, bool force_near_padding = false);
   void JMPptr(const OpArg& arg);
   void JMPself();  // infinite loop!
 #ifdef CALL
@@ -799,19 +801,19 @@ public:
   void PSHUFLW(X64Reg dest, const OpArg& arg, u8 shuffle);
   void PSHUFHW(X64Reg dest, const OpArg& arg, u8 shuffle);
 
-  void PSRLW(X64Reg reg, int shift);
-  void PSRLD(X64Reg reg, int shift);
-  void PSRLQ(X64Reg reg, int shift);
+  void PSRLW(X64Reg reg, u8 shift);
+  void PSRLD(X64Reg reg, u8 shift);
+  void PSRLQ(X64Reg reg, u8 shift);
   void PSRLQ(X64Reg reg, const OpArg& arg);
-  void PSRLDQ(X64Reg reg, int shift);
+  void PSRLDQ(X64Reg reg, u8 shift);
 
-  void PSLLW(X64Reg reg, int shift);
-  void PSLLD(X64Reg reg, int shift);
-  void PSLLQ(X64Reg reg, int shift);
-  void PSLLDQ(X64Reg reg, int shift);
+  void PSLLW(X64Reg reg, u8 shift);
+  void PSLLD(X64Reg reg, u8 shift);
+  void PSLLQ(X64Reg reg, u8 shift);
+  void PSLLDQ(X64Reg reg, u8 shift);
 
-  void PSRAW(X64Reg reg, int shift);
-  void PSRAD(X64Reg reg, int shift);
+  void PSRAW(X64Reg reg, u8 shift);
+  void PSRAD(X64Reg reg, u8 shift);
 
   // SSE4: data type conversions
   void PMOVSXBW(X64Reg dest, const OpArg& arg);
@@ -833,6 +835,9 @@ public:
   void BLENDVPD(X64Reg dest, const OpArg& arg);
   void BLENDPS(X64Reg dest, const OpArg& arg, u8 blend);
   void BLENDPD(X64Reg dest, const OpArg& arg, u8 blend);
+
+  // SSE4: compare instructions
+  void PCMPEQQ(X64Reg dest, const OpArg& arg);
 
   // AVX
   void VADDSS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
@@ -875,6 +880,12 @@ public:
   void VPANDN(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VPOR(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VPXOR(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
+
+  void VPSLLQ(X64Reg regOp1, X64Reg regOp2, u8 shift);
+
+  void VMOVAPS(const OpArg& arg, X64Reg regOp);
+
+  void VZEROUPPER();
 
   // FMA3
   void VFMADD132PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);

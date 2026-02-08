@@ -4,21 +4,19 @@
 #define VMA_IMPLEMENTATION
 #include "VideoBackends/Vulkan/VulkanLoader.h"
 
-#include <atomic>
-#include <cstdarg>
-#include <cstdlib>
-
 #if defined(ANDROID)
 #include <adrenotools/driver.h>
 #include <dlfcn.h>
 #endif
 
-#include "Common/CommonFuncs.h"
 #include "Common/DynamicLibrary.h"
+#if defined(__APPLE__)
 #include "Common/FileUtil.h"
-#include "Common/StringUtil.h"
+#elif defined(ANDROID) && _M_ARM_64
+#include "Common/FileUtil.h"
 
 #include "VideoCommon/VideoConfig.h"
+#endif
 
 #define VULKAN_MODULE_ENTRY_POINT(name, required) PFN_##name name;
 #define VULKAN_INSTANCE_ENTRY_POINT(name, required) PFN_##name name;

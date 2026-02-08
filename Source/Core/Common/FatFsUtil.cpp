@@ -4,7 +4,6 @@
 #include "Common/FatFsUtil.h"
 
 #include <algorithm>
-#include <cmath>
 #include <cstdlib>
 #include <mutex>
 #include <string>
@@ -25,6 +24,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
+#include "Common/TimeUtil.h"
 
 #include "Core/Config/MainSettings.h"
 
@@ -95,12 +95,7 @@ int SDCardDiskIOCtl(File::IOFile* image, u8 pdrv, u8 cmd, void* buff)
 u32 GetSystemTimeFAT()
 {
   const std::time_t time = std::time(nullptr);
-  std::tm tm;
-#ifdef _WIN32
-  localtime_s(&tm, &time);
-#else
-  localtime_r(&time, &tm);
-#endif
+  std::tm tm = *Common::LocalTime(time);
 
   DWORD fattime = 0;
   fattime |= (tm.tm_year - 80) << 25;

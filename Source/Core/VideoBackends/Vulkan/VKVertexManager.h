@@ -18,7 +18,7 @@ class VertexManager : public VertexManagerBase
 {
 public:
   VertexManager();
-  ~VertexManager();
+  ~VertexManager() override;
 
   bool Initialize() override;
 

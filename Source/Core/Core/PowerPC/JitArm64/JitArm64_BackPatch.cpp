@@ -21,6 +21,7 @@
 #include "Core/PowerPC/JitArmCommon/BackPatch.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 using namespace Arm64Gen;
 
@@ -171,6 +172,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
 
     const ARM64Reg temp_gpr = ARM64Reg::W1;
     const int temp_gpr_index = DecodeReg(temp_gpr);
+    const ARM64Reg temp_fpr = fprs_to_push[0] ? ARM64Reg::INVALID_REG : ARM64Reg::Q0;
 
     BitSet32 gprs_to_push_early = {};
     if (memcheck)
@@ -189,16 +191,10 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
     ABI_PushRegisters(gprs_to_push & ~gprs_to_push_early);
     m_float_emit.ABI_PushRegisters(fprs_to_push, ARM64Reg::X30);
 
-    // PC is used by memory watchpoints (if enabled), profiling where to insert gather pipe
-    // interrupt checks, and printing accurate PC locations in debug logs.
-    //
-    // In the case of JitAsm routines, we don't know the PC here,
-    // so the caller has to store the PC themselves.
+    // In the case of JitAsm routines, the state we want to store here isn't known
+    // when compiling the routine, so the caller has to store it themselves.
     if (!emitting_routine)
-    {
-      MOVI2R(ARM64Reg::W30, js.compilerPC);
-      STR(IndexType::Unsigned, ARM64Reg::W30, PPC_REG, PPCSTATE_OFF(pc));
-    }
+      FlushPPCStateBeforeSlowAccess(ARM64Reg::W30, temp_fpr);
 
     if (flags & BackPatchInfo::FLAG_STORE)
     {
@@ -226,22 +222,22 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
 
       if (access_size == 64)
       {
-        ABI_CallFunction(reverse ? &PowerPC::WriteU64SwapFromJit : &PowerPC::WriteU64FromJit,
+        ABI_CallFunction(reverse ? &PowerPC::WriteU64SwapFromJit : &PowerPC::WriteFromJit<u64>,
                          &m_mmu, src_reg, ARM64Reg::W2);
       }
       else if (access_size == 32)
       {
-        ABI_CallFunction(reverse ? &PowerPC::WriteU32SwapFromJit : &PowerPC::WriteU32FromJit,
+        ABI_CallFunction(reverse ? &PowerPC::WriteU32SwapFromJit : &PowerPC::WriteFromJit<u32>,
                          &m_mmu, src_reg, ARM64Reg::W2);
       }
       else if (access_size == 16)
       {
-        ABI_CallFunction(reverse ? &PowerPC::WriteU16SwapFromJit : &PowerPC::WriteU16FromJit,
+        ABI_CallFunction(reverse ? &PowerPC::WriteU16SwapFromJit : &PowerPC::WriteFromJit<u16>,
                          &m_mmu, src_reg, ARM64Reg::W2);
       }
       else
       {
-        ABI_CallFunction(&PowerPC::WriteU8FromJit, &m_mmu, src_reg, ARM64Reg::W2);
+        ABI_CallFunction(&PowerPC::WriteFromJit<u8>, &m_mmu, src_reg, ARM64Reg::W2);
       }
     }
     else if (flags & BackPatchInfo::FLAG_ZERO_256)
@@ -251,13 +247,13 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
     else
     {
       if (access_size == 64)
-        ABI_CallFunction(&PowerPC::ReadU64FromJit, &m_mmu, ARM64Reg::W1);
+        ABI_CallFunction(&PowerPC::ReadFromJit<u64>, &m_mmu, ARM64Reg::W1);
       else if (access_size == 32)
-        ABI_CallFunction(&PowerPC::ReadU32FromJit, &m_mmu, ARM64Reg::W1);
+        ABI_CallFunction(&PowerPC::ReadFromJit<u32>, &m_mmu, ARM64Reg::W1);
       else if (access_size == 16)
-        ABI_CallFunction(&PowerPC::ReadU16FromJit, &m_mmu, ARM64Reg::W1);
+        ABI_CallFunction(&PowerPC::ReadFromJit<u16>, &m_mmu, ARM64Reg::W1);
       else
-        ABI_CallFunction(&PowerPC::ReadU8FromJit, &m_mmu, ARM64Reg::W1);
+        ABI_CallFunction(&PowerPC::ReadFromJit<u8>, &m_mmu, ARM64Reg::W1);
     }
 
     m_float_emit.ABI_PopRegisters(fprs_to_push, ARM64Reg::X30);
@@ -265,7 +261,6 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
 
     if (memcheck)
     {
-      const ARM64Reg temp_fpr = fprs_to_push[0] ? ARM64Reg::INVALID_REG : ARM64Reg::Q0;
       const u64 early_push_count = (gprs_to_push & gprs_to_push_early).Count();
       const u64 early_push_size = Common::AlignUp(early_push_count, 2) * 8;
 
@@ -313,6 +308,22 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
       RET(ARM64Reg::X30);
       SwitchToNearCode();
     }
+  }
+}
+
+void JitArm64::FlushPPCStateBeforeSlowAccess(ARM64Reg temp_gpr, ARM64Reg temp_fpr)
+{
+  // PC is used by memory watchpoints (if enabled), profiling where to insert gather pipe
+  // interrupt checks, and printing accurate PC locations in debug logs.
+  MOVI2R(temp_gpr, js.compilerPC);
+  STR(IndexType::Unsigned, temp_gpr, PPC_REG, PPCSTATE_OFF(pc));
+
+  // Register values can be used by memory watchpoint conditions.
+  MemChecks& mem_checks = m_system.GetPowerPC().GetMemChecks();
+  if (mem_checks.HasAny())
+  {
+    gpr.StoreRegisters(mem_checks.GetGPRsUsedInConditions(), temp_gpr, FlushMode::MaintainState);
+    fpr.StoreRegisters(mem_checks.GetFPRsUsedInConditions(), temp_fpr, FlushMode::MaintainState);
   }
 }
 

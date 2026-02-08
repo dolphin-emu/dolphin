@@ -4,18 +4,17 @@
 #include "Common/Logging/LogManager.h"
 
 #include <algorithm>
+#include <atomic>
 #include <chrono>
-#include <cstdarg>
 #include <cstring>
-#include <locale>
+#include <fstream>
+#include <memory>
 #include <mutex>
-#include <ostream>
 #include <string>
 
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 
-#include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/ConsoleListener.h"
@@ -151,13 +150,11 @@ LogManager::LogManager()
   m_log[LogType::WII_IPC] = {"WII_IPC", "WII IPC"};
 
   RegisterListener(LogListener::FILE_LISTENER,
-                   new FileLogListener(File::GetUserPath(F_MAINLOG_IDX)));
-  RegisterListener(LogListener::CONSOLE_LISTENER, new ConsoleListener());
+                   std::make_unique<FileLogListener>(File::GetUserPath(F_MAINLOG_IDX)));
+  RegisterListener(LogListener::CONSOLE_LISTENER, std::make_unique<ConsoleListener>());
 
   // Set up log listeners
-  LogLevel verbosity = Config::Get(LOGGER_VERBOSITY);
-
-  SetLogLevel(verbosity);
+  SetEffectiveLogLevel();
   EnableListener(LogListener::FILE_LISTENER, Config::Get(LOGGER_WRITE_TO_FILE));
   EnableListener(LogListener::CONSOLE_LISTENER, Config::Get(LOGGER_WRITE_TO_CONSOLE));
   EnableListener(LogListener::LOG_WINDOW_LISTENER, Config::Get(LOGGER_WRITE_TO_WINDOW));
@@ -169,13 +166,14 @@ LogManager::LogManager()
   }
 
   m_path_cutoff_point = DeterminePathCutOffPoint();
+
+  m_config_changed_callback_id =
+      Config::AddConfigChangedCallback([this]() { SetEffectiveLogLevel(); });
 }
 
 LogManager::~LogManager()
 {
-  // The log window listener pointer is owned by the GUI code.
-  delete m_listeners[LogListener::CONSOLE_LISTENER];
-  delete m_listeners[LogListener::FILE_LISTENER];
+  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
 }
 
 void LogManager::SaveSettings()
@@ -187,7 +185,6 @@ void LogManager::SaveSettings()
                            IsListenerEnabled(LogListener::CONSOLE_LISTENER));
   Config::SetBaseOrCurrent(LOGGER_WRITE_TO_WINDOW,
                            IsListenerEnabled(LogListener::LOG_WINDOW_LISTENER));
-  Config::SetBaseOrCurrent(LOGGER_VERBOSITY, GetLogLevel());
 
   for (const auto& container : m_log)
   {
@@ -232,14 +229,22 @@ void LogManager::LogWithFullPath(LogLevel level, LogType type, const char* file,
   }
 }
 
-LogLevel LogManager::GetLogLevel() const
+LogLevel LogManager::GetEffectiveLogLevel() const
 {
-  return m_level;
+  return m_effective_level.load(std::memory_order_relaxed);
 }
 
-void LogManager::SetLogLevel(LogLevel level)
+void LogManager::SetConfigLogLevel(const LogLevel level)
 {
-  m_level = std::clamp(level, LogLevel::LNOTICE, MAX_LOGLEVEL);
+  Config::SetBaseOrCurrent(LOGGER_VERBOSITY, level);
+  SetEffectiveLogLevel();
+}
+
+void LogManager::SetEffectiveLogLevel()
+{
+  const LogLevel clamped_level =
+      std::clamp(Config::Get(LOGGER_VERBOSITY), LogLevel::LNOTICE, MAX_EFFECTIVE_LOGLEVEL);
+  m_effective_level.store(clamped_level, std::memory_order_relaxed);
 }
 
 void LogManager::SetEnable(LogType type, bool enable)
@@ -249,7 +254,7 @@ void LogManager::SetEnable(LogType type, bool enable)
 
 bool LogManager::IsEnabled(LogType type, LogLevel level) const
 {
-  return m_log[type].m_enable && GetLogLevel() >= level;
+  return m_log[type].m_enable && GetEffectiveLogLevel() >= level;
 }
 
 std::vector<LogManager::LogContainer> LogManager::GetLogTypes()
@@ -273,9 +278,9 @@ const char* LogManager::GetFullName(LogType type) const
   return m_log[type].m_full_name;
 }
 
-void LogManager::RegisterListener(LogListener::LISTENER id, LogListener* listener)
+void LogManager::RegisterListener(LogListener::LISTENER id, std::unique_ptr<LogListener> listener)
 {
-  m_listeners[id] = listener;
+  m_listeners[id] = std::move(listener);
 }
 
 void LogManager::EnableListener(LogListener::LISTENER id, bool enable)
@@ -289,23 +294,22 @@ bool LogManager::IsListenerEnabled(LogListener::LISTENER id) const
 }
 
 // Singleton. Ugh.
-static LogManager* s_log_manager;
+static std::unique_ptr<LogManager> s_log_manager;
 
 LogManager* LogManager::GetInstance()
 {
-  return s_log_manager;
+  return s_log_manager.get();
 }
 
 void LogManager::Init()
 {
-  s_log_manager = new LogManager();
+  s_log_manager = std::unique_ptr<LogManager>(new LogManager());
 }
 
 void LogManager::Shutdown()
 {
   if (s_log_manager)
     s_log_manager->SaveSettings();
-  delete s_log_manager;
-  s_log_manager = nullptr;
+  s_log_manager.reset();
 }
 }  // namespace Common::Log

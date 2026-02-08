@@ -116,7 +116,7 @@ public:
 
   NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog,
                 const std::string& name, const NetTraversalConfig& traversal_config);
-  ~NetPlayClient();
+  ~NetPlayClient() override;
 
   std::vector<const Player*> GetPlayers();
   const NetSettings& GetNetSettings() const;
@@ -196,7 +196,7 @@ protected:
     std::recursive_mutex async_queue_write;
   } m_crit;
 
-  Common::SPSCQueue<AsyncQueueEntry, false> m_async_queue;
+  Common::SPSCQueue<AsyncQueueEntry> m_async_queue;
 
   std::array<Common::SPSCQueue<GCPadStatus>, 4> m_pad_buffer;
   std::array<Common::SPSCQueue<WiimoteEmu::SerializedWiimoteState>, 4> m_wiimote_buffer;

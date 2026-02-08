@@ -1,12 +1,12 @@
-cmake_minimum_required (VERSION 3.2.0)
+cmake_minimum_required (VERSION 3.2.0...4.1.1)
 project (DiscordRPC)
 
 include(GNUInstallDirs)
 
 # format
 file(GLOB_RECURSE ALL_SOURCE_FILES
-    include/*.h
-    src/*.cpp src/*.h src/*.c
+  include/*.h
+  src/*.cpp src/*.h src/*.c
 )
 
 # add subdirs

@@ -13,6 +13,7 @@
 #include "Common/Lazy.h"
 #include "Core/NetPlayClient.h"
 #include "DolphinQt/GameList/GameListModel.h"
+#include "DolphinQt/NetPlay/ClickBlurLabel.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
 class BootSessionData;
@@ -40,7 +41,7 @@ public:
 
   explicit NetPlayDialog(const GameListModel& game_list_model,
                          StartGameCallback start_game_callback, QWidget* parent = nullptr);
-  ~NetPlayDialog();
+  ~NetPlayDialog() override;
 
   void show(std::string nickname, bool use_traversal);
   void reject() override;
@@ -127,7 +128,7 @@ private:
   // Players
   QGroupBox* m_players_box;
   QComboBox* m_room_box;
-  QLabel* m_hostcode_label;
+  ClickBlurLabel* m_hostcode_label;
   QPushButton* m_hostcode_action_button;
   QTableWidget* m_players_list;
   QPushButton* m_kick_button;

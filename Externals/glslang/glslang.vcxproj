@@ -4,9 +4,19 @@
   <Import Project="$(VSPropsDir)Base.Targets.props" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D178061B-84D3-44F9-BEED-EFD18D9033F0}</ProjectGuid>
+    <Keyword>MakeFileProj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <Import Project="$(VSPropsDir)Configuration.StaticLibrary.props" />
+  <Import Project="override.props" />
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Label="PropertySheets">
@@ -14,120 +24,73 @@
     <Import Project="$(VSPropsDir)Base.props" />
     <Import Project="$(VSPropsDir)ClDisableAllWarnings.props" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros">
+    <CmakeGenerator>"Visual Studio $(VisualStudioVersion.Substring(0,2))"</CmakeGenerator>
+    <DevCmdArch Condition="'$(Platform)'=='x64'">amd64</DevCmdArch>
+	<DevCmdArch Condition="'$(Platform)'=='ARM64'">arm64</DevCmdArch>
+    <CmakeReleaseCLI>call vsdevcmd.bat -arch=$(DevCmdArch)
+      cmake -G $(CmakeGenerator) -A $(Platform) -DCMAKE_BUILD_TYPE="Release" -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DGLSLANG_TESTS=OFF -DENABLE_GLSLANG_BINARIES=OFF -DBUILD_EXTERNAL=OFF -DENABLE_SPVREMAPPER=OFF -DENABLE_HLSL=OFF -DENABLE_OPT=OFF -DENABLE_EXCEPTIONS=OFF -S glslang -B "$(BuildRootDir)tmp\$(ProjectName)-$(Configuration)-$(Platform)"
+    </CmakeReleaseCLI>
+    <CmakeDebugCLI>call vsdevcmd.bat -arch=$(DevCmdArch)
+      cmake -G $(CmakeGenerator) -A $(Platform) -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDebug -DGLSLANG_TESTS=OFF -DENABLE_GLSLANG_BINARIES=OFF -DBUILD_EXTERNAL=OFF -DENABLE_SPVREMAPPER=OFF -DENABLE_HLSL=OFF -DENABLE_OPT=OFF -DENABLE_EXCEPTIONS=OFF -S glslang -B "$(BuildRootDir)tmp\$(ProjectName)-$(Configuration)-$(Platform)"
+    </CmakeDebugCLI>
+    <CmakeCopyCLI>
+      echo Copying..
+      if not exist "$(BuildRootDir)$(Platform)\$(Configuration)\$(ProjectName)\bin\" mkdir -p "$(BuildRootDir)$(Platform)\$(Configuration)\$(ProjectName)\bin\"
+      copy "$(BuildRootDir)tmp\$(ProjectName)-$(Configuration)-$(Platform)\SPIRV\$(CONFIGURATION)\*.lib" "$(BuildRootDir)$(Platform)\$(Configuration)\$(ProjectName)\bin"
+      copy "$(BuildRootDir)tmp\$(ProjectName)-$(Configuration)-$(Platform)\glslang\OSDependent\Windows\$(CONFIGURATION)\*.lib" "$(BuildRootDir)$(Platform)\$(Configuration)\$(ProjectName)\bin"
+      copy "$(BuildRootDir)tmp\$(ProjectName)-$(Configuration)-$(Platform)\glslang\$(CONFIGURATION)\*.lib" "$(BuildRootDir)$(Platform)\$(Configuration)\$(ProjectName)\bin"
+    </CmakeCopyCLI>
+    <CmakeCleanCLI>
+      echo Cleaning..
+      rmdir /s /q "$(BuildRootDir)$(Platform)\$(Configuration)\$(ProjectName)\bin\"
+      rmdir /s /q "$(BuildRootDir)tmp\$(ProjectName)-$(Configuration)-$(Platform)"
+    </CmakeCleanCLI>
+    <PropsAbsPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\override.props'))</PropsAbsPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <OutDir>$(BuildRootDir)$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>$(BuildRootDir)tmp\$(ProjectName)-$(Configuration)-$(Platform)\</IntDir>
+    <NMakeBuildCommandLine>
+      $(CmakeReleaseCLI)
+      msbuild.exe "$(IntDir)\ALL_BUILD.vcxproj" /t:build /p:Configuration=Release /p:ForceImportBeforeCppTargets="$(PropsAbsPath)" /m
+      $(CmakeCopyCLI)
+    </NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>
+      $(CmakeReleaseCLI)
+      msbuild.exe "$(IntDir)\ALL_BUILD.vcxproj" /t:rebuild /p:Configuration=Release /p:ForceImportBeforeCppTargets="$(PropsAbsPath)" /m
+      $(CmakeCopyCLI)
+    </NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>
+      $(CmakeReleaseCLI)
+      msbuild.exe "$(IntDir)\ALL_BUILD.vcxproj" /t:clean /p:Configuration=Release /p:ForceImportBeforeCppTargets="$(PropsAbsPath)" /m
+      $(CmakeCleanCLI)
+    </NMakeCleanCommandLine>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <OutDir>$(BuildRootDir)$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>$(BuildRootDir)tmp\$(ProjectName)-$(Configuration)-$(Platform)\</IntDir>
+    <NMakeBuildCommandLine>
+      $(CmakeDebugCLI)
+      msbuild.exe "$(IntDir)\ALL_BUILD.vcxproj" /t:build /p:Configuration=Debug /p:ForceImportBeforeCppTargets="$(PropsAbsPath)" /m
+      $(CmakeCopyCLI)
+    </NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>
+      $(CmakeDebugCLI)
+      msbuild.exe "$(IntDir)\ALL_BUILD.vcxproj" /t:rebuild /p:Configuration=Debug /p:ForceImportBeforeCppTargets="$(PropsAbsPath)" /m
+      $(CmakeCopyCLI)
+    </NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>
+      $(CmakeDebugCLI)
+      msbuild.exe "$(IntDir)\ALL_BUILD.vcxproj" /t:clean /p:Configuration=Debug /p:ForceImportBeforeCppTargets="$(PropsAbsPath)" /m
+      $(CmakeCleanCLI)
+    </NMakeCleanCommandLine>
+  </PropertyGroup>
   <ItemDefinitionGroup>
-    <ClCompile>
-      <AdditionalIncludeDirectories>.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="glslang\GenericCodeGen\CodeGen.cpp" />
-    <ClCompile Include="glslang\GenericCodeGen\Link.cpp" />
-    <!--<ClCompile Include="glslang\HLSL\hlslAttributes.cpp" />
-    <ClCompile Include="glslang\HLSL\hlslGrammar.cpp" />
-    <ClCompile Include="glslang\HLSL\hlslOpMap.cpp" />
-    <ClCompile Include="glslang\HLSL\hlslParseables.cpp" />
-    <ClCompile Include="glslang\HLSL\hlslParseHelper.cpp" />
-    <ClCompile Include="glslang\HLSL\hlslScanContext.cpp" />
-    <ClCompile Include="glslang\HLSL\hlslTokenStream.cpp" />-->
-    <ClCompile Include="glslang\MachineIndependent\attribute.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\Constant.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\glslang_tab.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\InfoSink.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\Initialize.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\Intermediate.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\intermOut.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\IntermTraverse.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\iomapper.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\limits.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\linkValidate.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\parseConst.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\ParseContextBase.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\ParseHelper.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\PoolAlloc.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\preprocessor\Pp.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\preprocessor\PpAtom.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\preprocessor\PpContext.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\preprocessor\PpScanner.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\preprocessor\PpTokens.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\propagateNoContraction.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\reflection.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\RemoveTree.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\Scan.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\ShaderLang.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\SpirvIntrinsics.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\SymbolTable.cpp" />
-    <ClCompile Include="glslang\MachineIndependent\Versions.cpp" />
-    <ClCompile Include="glslang\OSDependent\Windows\ossource.cpp" />
-    <ClCompile Include="OGLCompilersDLL\InitializeDll.cpp" />
-    <ClCompile Include="SPIRV\disassemble.cpp" />
-    <ClCompile Include="SPIRV\doc.cpp" />
-    <ClCompile Include="SPIRV\GlslangToSpv.cpp" />
-    <ClCompile Include="SPIRV\InReadableOrder.cpp" />
-    <ClCompile Include="SPIRV\Logger.cpp" />
-    <ClCompile Include="SPIRV\SpvBuilder.cpp" />
-    <ClCompile Include="SPIRV\SpvPostProcess.cpp" />
-    <ClCompile Include="SPIRV\SPVRemapper.cpp" />
-    <ClCompile Include="StandAlone\ResourceLimits.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <!--<ClInclude Include="glslang\HLSL\hlslAttributes.h" />
-    <ClInclude Include="glslang\HLSL\hlslGrammar.h" />
-    <ClInclude Include="glslang\HLSL\hlslOpMap.h" />
-    <ClInclude Include="glslang\HLSL\hlslParseables.h" />
-    <ClInclude Include="glslang\HLSL\hlslParseHelper.h" />
-    <ClInclude Include="glslang\HLSL\hlslScanContext.h" />
-    <ClInclude Include="glslang\HLSL\hlslTokens.h" />
-    <ClInclude Include="glslang\HLSL\hlslTokenStream.h" />
-    <ClInclude Include="glslang\HLSL\pch.h" />-->
-    <ClInclude Include="glslang\Include\arrays.h" />
-    <ClInclude Include="glslang\Include\BaseTypes.h" />
-    <ClInclude Include="glslang\Include\Common.h" />
-    <ClInclude Include="glslang\Include\ConstantUnion.h" />
-    <ClInclude Include="glslang\Include\InfoSink.h" />
-    <ClInclude Include="glslang\Include\InitializeGlobals.h" />
-    <ClInclude Include="glslang\Include\intermediate.h" />
-    <ClInclude Include="glslang\Include\PoolAlloc.h" />
-    <ClInclude Include="glslang\Include\revision.h" />
-    <ClInclude Include="glslang\Include\ShHandle.h" />
-    <ClInclude Include="glslang\Include\SpirvIntrinsics.h" />
-    <ClInclude Include="glslang\Include\Types.h" />
-    <ClInclude Include="glslang\MachineIndependent\attribute.h" />
-    <ClInclude Include="glslang\MachineIndependent\glslang_tab.cpp.h" />
-    <ClInclude Include="glslang\MachineIndependent\gl_types.h" />
-    <ClInclude Include="glslang\MachineIndependent\Initialize.h" />
-    <ClInclude Include="glslang\MachineIndependent\iomapper.h" />
-    <ClInclude Include="glslang\MachineIndependent\LiveTraverser.h" />
-    <ClInclude Include="glslang\MachineIndependent\localintermediate.h" />
-    <ClInclude Include="glslang\MachineIndependent\ParseHelper.h" />
-    <ClInclude Include="glslang\MachineIndependent\parseVersions.h" />
-    <ClInclude Include="glslang\MachineIndependent\preprocessor\PpContext.h" />
-    <ClInclude Include="glslang\MachineIndependent\preprocessor\PpTokens.h" />
-    <ClInclude Include="glslang\MachineIndependent\propagateNoContraction.h" />
-    <ClInclude Include="glslang\MachineIndependent\reflection.h" />
-    <ClInclude Include="glslang\MachineIndependent\RemoveTree.h" />
-    <ClInclude Include="glslang\MachineIndependent\Scan.h" />
-    <ClInclude Include="glslang\MachineIndependent\ScanContext.h" />
-    <ClInclude Include="glslang\MachineIndependent\SymbolTable.h" />
-    <ClInclude Include="glslang\MachineIndependent\Versions.h" />
-    <ClInclude Include="glslang\OSDependent\osinclude.h" />
-    <ClInclude Include="glslang\Public\ShaderLang.h" />
-    <ClInclude Include="OGLCompilersDLL\InitializeDll.h" />
-    <ClInclude Include="SPIRV\disassemble.h" />
-    <ClInclude Include="SPIRV\doc.h" />
-    <ClInclude Include="SPIRV\GLSL.std.450.h" />
-    <ClInclude Include="SPIRV\GlslangToSpv.h" />
-    <ClInclude Include="SPIRV\Logger.h" />
-    <ClInclude Include="SPIRV\NonSemanticDebugPrintf.h" />
-    <ClInclude Include="SPIRV\spirv.hpp" />
-    <ClInclude Include="SPIRV\SpvBuilder.h" />
-    <ClInclude Include="SPIRV\spvIR.h" />
-    <ClInclude Include="SPIRV\SPVRemapper.h" />
-    <ClInclude Include="StandAlone\ResourceLimits.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="glslang\MachineIndependent\glslang.y" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

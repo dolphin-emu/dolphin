@@ -131,6 +131,11 @@ void VertexShaderManager::SetProjectionMatrix(XFStateManager& xf_state_manager)
 
 bool VertexShaderManager::UseVertexDepthRange()
 {
+  // Backend has full support for unrestricted depth ranges including the ability to clamp the
+  // final depth value to MAX_EFB_DEPTH.
+  if (g_backend_info.bSupportsUnrestrictedDepthRange)
+    return false;
+
   // We can't compute the depth range in the vertex shader if we don't support depth clamp.
   if (!g_backend_info.bSupportsDepthClamp)
     return false;
@@ -383,7 +388,8 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures,
     }
 
     dirty = true;
-    BPFunctions::SetScissorAndViewport();
+    BPFunctions::SetScissorAndViewport(g_framebuffer_manager.get(), bpmem.scissorTL,
+                                       bpmem.scissorBR, bpmem.scissorOffset, xfmem.viewport);
     g_stats.AddScissorRect();
   }
 

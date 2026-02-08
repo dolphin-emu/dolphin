@@ -63,6 +63,7 @@ private:
   {
     RET_OK,
     RET_FAIL,
+    RET_LOCKED = -10,
     RET_EVENT_REGISTER,  // internal state only - not actually returned
   };
 
@@ -70,7 +71,8 @@ private:
   enum
   {
     CARD_NOT_EXIST = 0,
-    CARD_INSERTED = 1,
+    CARD_INSERTED = 0x1,
+    CARD_LOCKED = 0x4,
     CARD_INITIALIZED = 0x10000,
     CARD_SDHC = 0x100000,
   };

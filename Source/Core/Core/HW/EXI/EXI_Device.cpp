@@ -6,9 +6,9 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
-#include "Common/MsgHandler.h"
 #include "Core/HW/EXI/EXI_DeviceAD16.h"
 #include "Core/HW/EXI/EXI_DeviceAGP.h"
+#include "Core/HW/EXI/EXI_DeviceBaseboard.h"
 #include "Core/HW/EXI/EXI_DeviceDummy.h"
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 #include "Core/HW/EXI/EXI_DeviceGecko.h"
@@ -159,6 +159,10 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, const EXIDevi
     result = std::make_unique<CEXIETHERNET>(system, BBADeviceType::BuiltIn);
     break;
 
+  case EXIDeviceType::EthernetIPC:
+    result = std::make_unique<CEXIETHERNET>(system, BBADeviceType::IPC);
+    break;
+
   case EXIDeviceType::ModemTapServer:
     result = std::make_unique<CEXIModem>(system, ModemDeviceType::TAPSERVER);
     break;
@@ -171,7 +175,10 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, const EXIDevi
     result = std::make_unique<CEXIAgp>(system, slot);
     break;
 
-  case EXIDeviceType::AMBaseboard:
+  case EXIDeviceType::Baseboard:
+    result = std::make_unique<CEXIBaseboard>(system);
+    break;
+
   case EXIDeviceType::None:
   default:
     result = std::make_unique<IEXIDevice>(system);

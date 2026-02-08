@@ -15,7 +15,7 @@
 #include "DiscIO/Enums.h"
 
 // Uncomment this to write the system data of the memorycard from directory to disc
-//#define _WRITE_MC_HEADER 1
+// #define _WRITE_MC_HEADER 1
 void MigrateFromMemcardFile(const std::string& directory_name, ExpansionInterface::Slot card_slot,
                             DiscIO::Region region);
 
@@ -24,7 +24,7 @@ class GCMemcardDirectory : public MemoryCardBase
 public:
   GCMemcardDirectory(const std::string& directory, ExpansionInterface::Slot slot,
                      const Memcard::HeaderData& header_data, u32 game_id);
-  ~GCMemcardDirectory();
+  ~GCMemcardDirectory() override;
 
   GCMemcardDirectory(const GCMemcardDirectory&) = delete;
   GCMemcardDirectory& operator=(const GCMemcardDirectory&) = delete;

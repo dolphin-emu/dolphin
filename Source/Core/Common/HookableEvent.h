@@ -3,113 +3,142 @@
 
 #pragma once
 
-#include "Common/Logging/Log.h"
-#include "Common/StringLiteral.h"
-
+#include <algorithm>
 #include <functional>
 #include <memory>
 #include <mutex>
-#include <string>
-#include <string_view>
 #include <vector>
+
+#include "Common/Logging/Log.h"
 
 namespace Common
 {
 struct HookBase
 {
-  virtual ~HookBase() = default;
-
-protected:
-  HookBase() = default;
-
-  // This shouldn't be copied. And since we always wrap it in unique_ptr, no need to move it either
-  HookBase(const HookBase&) = delete;
-  HookBase(HookBase&&) = delete;
-  HookBase& operator=(const HookBase&) = delete;
-  HookBase& operator=(HookBase&&) = delete;
+  // A pure virtual destructor makes this class abstract to prevent accidental "slicing".
+  virtual ~HookBase() = 0;
 };
+inline HookBase::~HookBase() = default;
 
 // EventHook is a handle a registered listener holds.
 // When the handle is destroyed, the HookableEvent will automatically remove the listener.
+// If the handle outlives the HookableEvent, the link will be properly disconnected.
 using EventHook = std::unique_ptr<HookBase>;
 
 // A hookable event system.
 //
-// Define Events in a header as:
+// Define Events as:
 //
-//     using MyLoveyEvent = HookableEvent<"My lovely event", std::string, u32>;
+//   HookableEvent<std::string, u32> my_lovely_event;
 //
 // Register listeners anywhere you need them as:
-//    EventHook myHook = MyLoveyEvent::Register([](std::string foo, u32 bar) {
+//
+//   EventHook my_hook = my_lovely_event.Register([](std::string foo, u32 bar) {
 //       fmt::print("I've been triggered with {} and {}", foo, bar)
-//   }, "NameOfHook");
+//   });
 //
 // The hook will be automatically unregistered when the EventHook object goes out of scope.
 // Trigger events by calling Trigger as:
 //
-//   MyLoveyEvent::Trigger("Hello world", 42);
+//   my_lovely_event.Trigger("Hello world", 42);
 //
-template <StringLiteral EventName, typename... CallbackArgs>
+
+template <typename... CallbackArgs>
 class HookableEvent
 {
 public:
   using CallbackType = std::function<void(CallbackArgs...)>;
 
-private:
-  struct HookImpl final : public HookBase
+  // Returns a handle that will unregister the listener when destroyed.
+  [[nodiscard]] EventHook Register(CallbackType callback)
   {
-    ~HookImpl() override { HookableEvent::Remove(this); }
-    HookImpl(CallbackType callback, std::string name)
-        : m_fn(std::move(callback)), m_name(std::move(name))
+    DEBUG_LOG_FMT(COMMON, "Registering event hook handler");
+    std::lock_guard lg(m_storage->listeners_mutex);
+
+    auto& new_listener =
+        m_storage->listeners.emplace_back(std::make_unique<Listener>(std::move(callback)));
+
+    return std::make_unique<HookImpl>(m_storage, new_listener.get());
+  }
+
+  // Invokes all registered callbacks.
+  // Hooks added from within a callback will be invoked.
+  // Hooks removed from within a callback will be skipped,
+  //  but destruction of the hook's callback will be delayed until Trigger() completes.
+  void Trigger(const CallbackArgs&... args)
+  {
+    std::lock_guard lg(m_storage->listeners_mutex);
+    m_storage->is_triggering = true;
+
+    // Avoiding an actual iterator because the container may be modified.
+    for (std::size_t i = 0; i != m_storage->listeners.size(); ++i)
     {
+      auto& listener = m_storage->listeners[i];
+
+      if (listener->is_pending_removal)
+        continue;
+
+      std::invoke(listener->callback, args...);
     }
-    CallbackType m_fn;
-    std::string m_name;
+
+    m_storage->is_triggering = false;
+    std::erase_if(m_storage->listeners, std::mem_fn(&Listener::is_pending_removal));
+  }
+
+private:
+  struct Listener
+  {
+    const CallbackType callback;
+    bool is_pending_removal{};
   };
 
   struct Storage
   {
-    std::recursive_mutex m_mutex;
-    std::vector<HookImpl*> m_listeners;
+    std::recursive_mutex listeners_mutex;
+    std::vector<std::unique_ptr<Listener>> listeners;
+    bool is_triggering{};
   };
 
-  // We use the "Construct On First Use" idiom to avoid the static initialization order fiasco.
-  // https://isocpp.org/wiki/faq/ctors#static-init-order
-  static Storage& GetStorage()
+  struct HookImpl final : HookBase
   {
-    static Storage storage;
-    return storage;
-  }
+    HookImpl(std::weak_ptr<Storage> storage, Listener* listener)
+        : weak_storage{std::move(storage)}, listener_ptr{listener}
+    {
+    }
 
-  static void Remove(HookImpl* handle)
-  {
-    auto& storage = GetStorage();
-    std::lock_guard lock(storage.m_mutex);
+    ~HookImpl() override
+    {
+      const auto storage = weak_storage.lock();
+      if (storage == nullptr)
+      {
+        DEBUG_LOG_FMT(COMMON, "Handler outlived event hook");
+        return;
+      }
 
-    std::erase(storage.m_listeners, handle);
-  }
+      DEBUG_LOG_FMT(COMMON, "Removing event hook handler");
 
-public:
-  // Returns a handle that will unregister the listener when destroyed.
-  [[nodiscard]] static EventHook Register(CallbackType callback, std::string name)
-  {
-    auto& storage = GetStorage();
-    std::lock_guard lock(storage.m_mutex);
+      std::lock_guard lg(storage->listeners_mutex);
 
-    DEBUG_LOG_FMT(COMMON, "Registering {} handler at {} event hook", name, EventName.value);
-    auto handle = std::make_unique<HookImpl>(std::move(callback), std::move(name));
-    storage.m_listeners.push_back(handle.get());
-    return handle;
-  }
+      if (storage->is_triggering)
+      {
+        // Just mark our listener for removal.
+        // Trigger() will erase it for us.
+        listener_ptr->is_pending_removal = true;
+      }
+      else
+      {
+        // Remove our listener.
+        storage->listeners.erase(std::ranges::find_if(
+            storage->listeners, [&](auto& ptr) { return ptr.get() == listener_ptr; }));
+      }
+    }
 
-  static void Trigger(const CallbackArgs&... args)
-  {
-    auto& storage = GetStorage();
-    std::lock_guard lock(storage.m_mutex);
+    const std::weak_ptr<Storage> weak_storage;
+    Listener* const listener_ptr;  // "owned" by the above Storage.
+  };
 
-    for (const auto& handle : storage.m_listeners)
-      handle->m_fn(args...);
-  }
+  // shared_ptr storage allows hooks to forget their connection if they outlive the event itself.
+  std::shared_ptr<Storage> m_storage{std::make_shared<Storage>()};
 };
 
 }  // namespace Common

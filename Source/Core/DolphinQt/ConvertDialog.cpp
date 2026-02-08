@@ -5,14 +5,13 @@
 
 #include <algorithm>
 #include <filesystem>
-#include <functional>
 #include <future>
 #include <memory>
 #include <utility>
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QGridLayout>
+#include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
 #include <QList>
@@ -31,7 +30,6 @@
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
 
@@ -42,10 +40,9 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   ASSERT(!m_files.empty());
 
   setWindowTitle(tr("Convert"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-  QGridLayout* grid_layout = new QGridLayout;
-  grid_layout->setColumnStretch(1, 1);
+  auto* const form_layout = new QFormLayout;
+  form_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
   m_format = new QComboBox;
   m_format->addItem(QStringLiteral("ISO"), static_cast<int>(DiscIO::BlobType::PLAIN));
@@ -57,34 +54,23 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   {
     m_format->setCurrentIndex(m_format->count() - 1);
   }
-  grid_layout->addWidget(new QLabel(tr("Format:")), 0, 0);
-  grid_layout->addWidget(m_format, 0, 1);
+  form_layout->addRow(tr("Format:"), m_format);
 
   m_block_size = new QComboBox;
-  grid_layout->addWidget(new QLabel(tr("Block Size:")), 1, 0);
-  grid_layout->addWidget(m_block_size, 1, 1);
+  form_layout->addRow(tr("Block Size:"), m_block_size);
 
   m_compression = new QComboBox;
-  grid_layout->addWidget(new QLabel(tr("Compression:")), 2, 0);
-  grid_layout->addWidget(m_compression, 2, 1);
+  form_layout->addRow(tr("Compression:"), m_compression);
 
   m_compression_level = new QComboBox;
-  grid_layout->addWidget(new QLabel(tr("Compression Level:")), 3, 0);
-  grid_layout->addWidget(m_compression_level, 3, 1);
+  form_layout->addRow(tr("Compression Level:"), m_compression_level);
 
   m_scrub = new QCheckBox;
-  grid_layout->addWidget(new QLabel(tr("Remove Junk Data (Irreversible):")), 4, 0);
-  grid_layout->addWidget(m_scrub, 4, 1);
+  form_layout->addRow(tr("Remove Junk Data (Irreversible):"), m_scrub);
 
-  QPushButton* convert_button = new QPushButton(tr("Convert..."));
+  auto* const convert_button = new QPushButton(tr("Convert..."));
 
-  QVBoxLayout* options_layout = new QVBoxLayout;
-  options_layout->addLayout(grid_layout);
-  options_layout->addWidget(convert_button);
-  QGroupBox* options_group = new QGroupBox(tr("Options"));
-  options_group->setLayout(options_layout);
-
-  QLabel* info_text = new QLabel(
+  auto* const info_text = new QLabel(
       tr("ISO: A simple and robust format which is supported by many programs. It takes up more "
          "space than any other format.\n\n"
          "GCZ: A basic compressed format which is compatible with most versions of Dolphin and "
@@ -96,17 +82,20 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
          "RVZ: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later. "
          "It can efficiently compress both junk data and encrypted Wii data."));
   info_text->setWordWrap(true);
+  info_text->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
-  QVBoxLayout* info_layout = new QVBoxLayout;
+  auto* const options_group = new QGroupBox(tr("Options"));
+  auto* const options_layout = new QVBoxLayout{options_group};
+  options_layout->addLayout(form_layout);
+  options_layout->addWidget(convert_button);
+
+  auto* const info_group = new QGroupBox(tr("Info"));
+  auto* const info_layout = new QVBoxLayout{info_group};
   info_layout->addWidget(info_text);
-  QGroupBox* info_group = new QGroupBox(tr("Info"));
-  info_group->setLayout(info_layout);
 
-  QVBoxLayout* main_layout = new QVBoxLayout;
+  auto* const main_layout = new QVBoxLayout{this};
   main_layout->addWidget(options_group);
-  main_layout->addWidget(info_group);
-
-  setLayout(main_layout);
+  main_layout->addWidget(info_group, 1);
 
   connect(m_format, &QComboBox::currentIndexChanged, this, &ConvertDialog::OnFormatChanged);
   connect(m_compression, &QComboBox::currentIndexChanged, this,
@@ -284,7 +273,6 @@ bool ConvertDialog::ShowAreYouSureDialog(const QString& text)
   warning.setInformativeText(text);
   warning.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
 
-  SetQWidgetWindowDecorations(&warning);
   return warning.exec() == QMessageBox::Yes;
 }
 
@@ -409,7 +397,6 @@ void ConvertDialog::Convert()
                                     .arg(dst_info.fileName()));
         confirm_replace.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
 
-        SetQWidgetWindowDecorations(&confirm_replace);
         if (confirm_replace.exec() == QMessageBox::No)
           continue;
       }
@@ -520,7 +507,6 @@ void ConvertDialog::Convert()
         break;
       }
 
-      SetQWidgetWindowDecorations(progress_dialog.GetRaw());
       progress_dialog.GetRaw()->exec();
       if (!success.get())
       {

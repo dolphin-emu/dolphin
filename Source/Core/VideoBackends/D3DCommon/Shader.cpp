@@ -8,8 +8,8 @@
 #include <string_view>
 
 #include <fmt/format.h>
+#include <glslang/SPIRV/disassemble.h>
 #include <wrl/client.h>
-#include "disassemble.h"
 #include "spirv_hlsl.hpp"
 
 #include "Common/Assert.h"
@@ -20,6 +20,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 
+#include "VideoCommon/ShaderCompileUtils.h"
 #include "VideoCommon/Spirv.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -35,6 +36,9 @@ namespace
 constexpr std::string_view SHADER_HEADER = R"(
   // Target GLSL 4.5.
   #version 450 core
+
+  #extension GL_ARB_shading_language_include : enable
+
   #define ATTRIBUTE_LOCATION(x) layout(location = x)
   #define FRAGMENT_OUTPUT_LOCATION(x) layout(location = x)
   #define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y) layout(location = x, index = y)
@@ -107,14 +111,16 @@ std::optional<std::string> GetHLSLFromSPIRV(SPIRV::CodeVector spv, D3D_FEATURE_L
   return compiler.compile();
 }
 
-std::optional<SPIRV::CodeVector> GetSpirv(ShaderStage stage, std::string_view source)
+std::optional<SPIRV::CodeVector> GetSpirv(ShaderStage stage, std::string_view source,
+                                          glslang::TShader::Includer* shader_includer)
 {
   switch (stage)
   {
   case ShaderStage::Vertex:
   {
     const auto full_source = fmt::format("{}{}", SHADER_HEADER, source);
-    return SPIRV::CompileVertexShader(full_source, APIType::D3D, glslang::EShTargetSpv_1_0);
+    return SPIRV::CompileVertexShader(full_source, APIType::D3D, glslang::EShTargetSpv_1_0,
+                                      shader_includer);
   }
 
   case ShaderStage::Geometry:
@@ -126,13 +132,15 @@ std::optional<SPIRV::CodeVector> GetSpirv(ShaderStage stage, std::string_view so
   case ShaderStage::Pixel:
   {
     const auto full_source = fmt::format("{}{}", SHADER_HEADER, source);
-    return SPIRV::CompileFragmentShader(full_source, APIType::D3D, glslang::EShTargetSpv_1_0);
+    return SPIRV::CompileFragmentShader(full_source, APIType::D3D, glslang::EShTargetSpv_1_0,
+                                        shader_includer);
   }
 
   case ShaderStage::Compute:
   {
     const auto full_source = fmt::format("{}{}", COMPUTE_SHADER_HEADER, source);
-    return SPIRV::CompileComputeShader(full_source, APIType::D3D, glslang::EShTargetSpv_1_0);
+    return SPIRV::CompileComputeShader(full_source, APIType::D3D, glslang::EShTargetSpv_1_0,
+                                       shader_includer);
   }
   };
 
@@ -140,13 +148,14 @@ std::optional<SPIRV::CodeVector> GetSpirv(ShaderStage stage, std::string_view so
 }
 
 std::optional<std::string> GetHLSL(D3D_FEATURE_LEVEL feature_level, ShaderStage stage,
-                                   std::string_view source)
+                                   std::string_view source,
+                                   VideoCommon::ShaderIncluder* shader_includer)
 {
   if (stage == ShaderStage::Geometry)
   {
     return std::string{source};
   }
-  else if (const auto spirv = GetSpirv(stage, source))
+  else if (const auto spirv = GetSpirv(stage, source, shader_includer))
   {
     return GetHLSLFromSPIRV(std::move(*spirv), feature_level);
   }
@@ -230,10 +239,11 @@ static const char* GetCompileTarget(D3D_FEATURE_LEVEL feature_level, ShaderStage
   }
 }
 
-std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL feature_level,
-                                                        ShaderStage stage, std::string_view source)
+std::optional<Shader::BinaryData>
+Shader::CompileShader(D3D_FEATURE_LEVEL feature_level, ShaderStage stage, std::string_view source,
+                      VideoCommon::ShaderIncluder* shader_includer)
 {
-  const auto hlsl = GetHLSL(feature_level, stage, source);
+  const auto hlsl = GetHLSL(feature_level, stage, source, shader_includer);
   if (!hlsl)
     return std::nullopt;
 
@@ -260,7 +270,7 @@ std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL featur
     file << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
     file << "Video Backend: " + g_video_backend->GetDisplayName();
 
-    if (const auto spirv = GetSpirv(stage, source))
+    if (const auto spirv = GetSpirv(stage, source, shader_includer))
     {
       file << "\nOriginal Source: \n";
       file << source << std::endl;

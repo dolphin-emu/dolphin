@@ -21,7 +21,6 @@ DiscordJoinRequestDialog::DiscordJoinRequestDialog(QWidget* parent, const std::s
     : QDialog(parent), m_user_id(id), m_close_timestamp(std::time(nullptr) + s_max_lifetime_seconds)
 {
   setWindowTitle(tr("Request to Join Your Party"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   QPixmap avatar_pixmap;
 

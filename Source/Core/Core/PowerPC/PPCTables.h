@@ -67,6 +67,7 @@ enum InstructionFlags : u64
   FL_READ_ALL_CR = (1ull << 38),  // Reads every CR.
   FL_SET_CRx = FL_SET_CR0 | FL_SET_CR1 | FL_SET_CRn | FL_SET_ALL_CR,
   FL_READ_CRx = FL_READ_CRn | FL_READ_CR_BI | FL_READ_ALL_CR,
+  FL_SET_MSR = (1ull << 39),
 };
 
 enum class OpType

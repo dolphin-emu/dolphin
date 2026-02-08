@@ -127,13 +127,6 @@ enum class IntSetting(
         0
     ),
     GFX_STEREO_MODE(Settings.FILE_GFX, Settings.SECTION_STEREOSCOPY, "StereoMode", 0),
-    GFX_STEREO_DEPTH(Settings.FILE_GFX, Settings.SECTION_STEREOSCOPY, "StereoDepth", 20),
-    GFX_STEREO_CONVERGENCE_PERCENTAGE(
-        Settings.FILE_GFX,
-        Settings.SECTION_STEREOSCOPY,
-        "StereoConvergencePercentage",
-        100
-    ),
     GFX_PERF_SAMP_WINDOW(
         Settings.FILE_GFX,
         Settings.SECTION_GFX_SETTINGS,

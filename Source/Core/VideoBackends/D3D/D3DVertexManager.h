@@ -20,7 +20,7 @@ class D3DVertexFormat : public NativeVertexFormat
 {
 public:
   D3DVertexFormat(const PortableVertexDeclaration& vtx_decl);
-  ~D3DVertexFormat();
+  ~D3DVertexFormat() override;
   ID3D11InputLayout* GetInputLayout(const void* vs_bytecode, size_t vs_bytecode_size);
 
 private:
@@ -36,9 +36,9 @@ class VertexManager : public VertexManagerBase
 {
 public:
   VertexManager();
-  ~VertexManager();
+  ~VertexManager() override;
 
-  bool Initialize();
+  bool Initialize() override;
 
   void UploadUtilityUniforms(const void* uniforms, u32 uniforms_size) override;
   bool UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
@@ -68,8 +68,8 @@ private:
   ComPtr<ID3D11Buffer> m_geometry_constant_buffer = nullptr;
   ComPtr<ID3D11Buffer> m_pixel_constant_buffer = nullptr;
 
-  ComPtr<ID3D11Buffer> m_custom_pixel_constant_buffer = nullptr;
-  std::size_t m_last_custom_pixel_buffer_size = 0;
+  ComPtr<ID3D11Buffer> m_custom_constant_buffer = nullptr;
+  std::size_t m_last_custom_buffer_size = 0;
 
   ComPtr<ID3D11Buffer> m_texel_buffer = nullptr;
   std::array<ComPtr<ID3D11ShaderResourceView>, NUM_TEXEL_BUFFER_FORMATS> m_texel_buffer_views;

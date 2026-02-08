@@ -11,7 +11,6 @@
 #include "VideoBackends/Vulkan/VKPipeline.h"
 #include "VideoBackends/Vulkan/VKShader.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
-#include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/Constants.h"
 
@@ -288,6 +287,7 @@ void StateTracker::BeginRenderPass()
 
   m_current_render_pass = m_framebuffer->GetLoadRenderPass();
   m_framebuffer_render_area = m_framebuffer->GetRect();
+  m_framebuffer->PrepareForRenderPass();
 
   VkRenderPassBeginInfo begin_info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
                                       nullptr,
@@ -337,6 +337,7 @@ void StateTracker::BeginClearRenderPass(const VkRect2D& area, const VkClearValue
 
   m_current_render_pass = m_framebuffer->GetClearRenderPass();
   m_framebuffer_render_area = area;
+  m_framebuffer->PrepareForRenderPass();
 
   VkRenderPassBeginInfo begin_info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
                                       nullptr,
@@ -496,8 +497,8 @@ void StateTracker::UpdateGXDescriptorSet()
         continue;
       }
 
-      // If custom pixel shaders haven't been used, their buffer range is 0
-      if (i == UBO_DESCRIPTOR_SET_BINDING_PS_CUST && m_bindings.gx_ubo_bindings[i].range == 0)
+      // If custom shaders haven't been used, their buffer range is 0
+      if (i == UBO_DESCRIPTOR_SET_BINDING_CUST && m_bindings.gx_ubo_bindings[i].range == 0)
       {
         continue;
       }

@@ -24,6 +24,7 @@
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/Assets/CustomAsset.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/TextureInfo.h"
@@ -167,8 +168,8 @@ struct TCacheEntry
 
   std::string texture_info_name = "";
 
-  std::vector<VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>> linked_game_texture_assets;
-  std::vector<VideoCommon::CachedAsset<VideoCommon::CustomAsset>> linked_asset_dependencies;
+  VideoCommon::CustomAsset::TimeType last_load_time;
+  std::shared_ptr<HiresTexture> hires_texture;
 
   explicit TCacheEntry(std::unique_ptr<AbstractTexture> tex,
                        std::unique_ptr<AbstractFramebuffer> fb);
@@ -276,7 +277,7 @@ public:
   void Invalidate();
   void ReleaseToPool(TCacheEntry* entry);
 
-  TCacheEntry* Load(const TextureInfo& texture_info);
+  TCacheEntry* Load(u32 stage);
   RcTcacheEntry GetTexture(const int textureCacheSafetyColorSampleSize,
                            const TextureInfo& texture_info);
   RcTcacheEntry GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
@@ -345,17 +346,16 @@ private:
 
   static bool DidLinkedAssetsChange(const TCacheEntry& entry);
 
-  TCacheEntry* LoadImpl(const TextureInfo& texture_info, bool force_reload);
+  TCacheEntry* LoadImpl(u32 stage, bool force_reload);
 
   bool CreateUtilityTextures();
 
   void SetBackupConfig(const VideoConfig& config);
 
-  RcTcacheEntry
-  CreateTextureEntry(const TextureCreationInfo& creation_info, const TextureInfo& texture_info,
-                     int safety_color_sample_size,
-                     std::vector<std::shared_ptr<VideoCommon::TextureData>> assets_data,
-                     bool custom_arbitrary_mipmaps, bool skip_texture_dump);
+  RcTcacheEntry CreateTextureEntry(const TextureCreationInfo& creation_info,
+                                   const TextureInfo& texture_info, int safety_color_sample_size,
+                                   VideoCommon::CustomTextureData* custom_texture_data,
+                                   bool custom_arbitrary_mipmaps, bool skip_texture_dump);
 
   RcTcacheEntry GetXFBFromCache(u32 address, u32 width, u32 height, u32 stride);
 
@@ -464,7 +464,7 @@ private:
   void OnFrameEnd();
 
   Common::EventHook m_frame_event =
-      AfterFrameEvent::Register([this](Core::System&) { OnFrameEnd(); }, "TextureCache");
+      GetVideoEvents().after_frame_event.Register([this](Core::System&) { OnFrameEnd(); });
 
   VideoCommon::TextureUtils::TextureDumper m_texture_dumper;
 };

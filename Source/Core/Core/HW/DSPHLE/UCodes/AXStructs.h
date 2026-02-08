@@ -195,7 +195,7 @@ struct PBLowPassFilter
   u16 on;
   s16 yn1;
   u16 a0;
-  u16 b0;
+  s16 b0;
 };
 
 struct AXPB

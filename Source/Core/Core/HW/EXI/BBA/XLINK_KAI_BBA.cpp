@@ -1,17 +1,12 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "Common/Assert.h"
 #include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-#include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
 #include "SFML/Network/IpAddress.hpp"
 #include "VideoCommon/OnScreenDisplay.h"
-
-#include <SFML/Network.hpp>
 
 #include <cstring>
 #include <optional>
@@ -113,7 +108,7 @@ bool CEXIETHERNET::XLinkNetworkInterface::SendFrame(const u8* frame, u32 size)
       m_bba_failure_notified = true;
     }
 
-    // Return true because this isnt an error dolphin needs to handle
+    // Return true because this isn't an error dolphin needs to handle
     return true;
   }
 
@@ -160,7 +155,7 @@ void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(
       ERROR_LOG_FMT(SP1, "Failed to read from BBA, err={}", bytes_read);
     }
 
-    // Make sure *anything* was recieved before going any further
+    // Make sure *anything* was received before going any further
     if (bytes_read < 1)
       continue;
 
@@ -193,7 +188,7 @@ void CEXIETHERNET::XLinkNetworkInterface::ReadThreadHandler(
         }
       }
     }
-    // Otherwise we recieved control data or junk
+    // Otherwise we received control data or junk
     else
     {
       const std::string control_msg(self->m_in_frame, self->m_in_frame + bytes_read);

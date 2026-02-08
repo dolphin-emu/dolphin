@@ -142,10 +142,10 @@ irq5:
 	si		@DMBL, #0x0000
 	si		@DIRQ, #0x0001
 	lri		$ac0.m, #0xbbbb
-	sr		@0xffda, $ac0.m ; pred scale
-	sr		@0xffdb, $ac0.m ; yn1
-	lr		$ix2, @ARAM
-	sr		@0xffdc, $ac0.m ; yn2
+	sr		@PRED_SCALE, $ac0.m
+	sr		@YN1, $ac0.m
+	lr		$ix2, @ACDSAMP
+	sr		@YN2, $ac0.m
 	rti
 irq6:
 	lri		$ac0.m, #0x0006
@@ -236,7 +236,7 @@ dma_copy:
 	si		@DMBL, #0xfeeb
 	si		@DIRQ, #0x0001
 
-; wait for the CPU to recieve our response before we execute the next op
+; wait for the CPU to receive our response before we execute the next op
 	call	0x8078
 	andi	$ac0.m, #0x7fff
 	lrs		$ac1.m, @CMBL

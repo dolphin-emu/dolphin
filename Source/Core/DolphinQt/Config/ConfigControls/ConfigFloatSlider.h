@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <QLabel>
+
 #include "DolphinQt/Config/ConfigControls/ConfigControl.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipSlider.h"
 
@@ -28,4 +30,10 @@ private:
   float m_minimum;
   float m_step;
   const Config::Info<float> m_setting;
+};
+
+class ConfigFloatLabel final : public QLabel
+{
+public:
+  ConfigFloatLabel(const QString& text, ConfigFloatSlider* widget);
 };

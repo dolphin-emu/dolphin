@@ -49,7 +49,7 @@ class FramebufferManager final
 {
 public:
   FramebufferManager();
-  virtual ~FramebufferManager();
+  ~FramebufferManager();
 
   // Does not require the framebuffer to be created. Slower than direct queries.
   static AbstractTextureFormat GetEFBColorFormat();
@@ -85,10 +85,10 @@ public:
   float EFBToScaledYf(float y) const;
 
   // First-time setup.
-  bool Initialize();
+  bool Initialize(int efb_scale);
 
   // Recreate EFB framebuffers, call when the EFB size (IR) changes.
-  void RecreateEFBFramebuffer();
+  void RecreateEFBFramebuffer(int efb_scale);
 
   // Recompile shaders, use when MSAA mode changes.
   void RecompileShaders();
@@ -110,7 +110,7 @@ public:
 
   // Clears the EFB using shaders.
   void ClearEFB(const MathUtil::Rectangle<int>& rc, bool clear_color, bool clear_alpha,
-                bool clear_z, u32 color, u32 z);
+                bool clear_z, u32 color, u32 z, PixelFormat pixel_format);
 
   AbstractPipeline* GetClearPipeline(bool clear_color, bool clear_alpha, bool clear_z) const;
 
@@ -160,7 +160,7 @@ protected:
     bool needs_flush;
   };
 
-  bool CreateEFBFramebuffer();
+  bool CreateEFBFramebuffer(int efb_scale);
   void DestroyEFBFramebuffer();
 
   bool CompileConversionPipelines();
@@ -189,7 +189,7 @@ protected:
   void DrawPokeVertices(const EFBPokeVertex* vertices, u32 vertex_count,
                         const AbstractPipeline* pipeline);
 
-  std::tuple<u32, u32> CalculateTargetSize();
+  std::tuple<u32, u32> CalculateTargetSize(int efb_scale);
 
   void DoLoadState(PointerWrap& p);
   void DoSaveState(PointerWrap& p);

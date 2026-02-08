@@ -2,14 +2,16 @@
 
 package org.dolphinemu.dolphinemu.features.settings.model
 
-import android.content.Context
 import android.text.TextUtils
-import android.widget.Toast
 import org.dolphinemu.dolphinemu.NativeLibrary
-import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.features.input.model.MappingCommon
 import java.io.Closeable
 
+/**
+ * Represents a set of settings stored in the native part of Dolphin.
+ *
+ * A set of settings can be either the global settings, or game settings for a particular game.
+ */
 class Settings : Closeable {
     private var gameId: String = ""
     private var revision = 0
@@ -47,14 +49,8 @@ class Settings : Closeable {
         loadSettings(isWii)
     }
 
-    fun saveSettings(context: Context?) {
+    fun saveSettings() {
         if (!isGameSpecific) {
-            if (context != null) Toast.makeText(
-                context,
-                R.string.settings_saved,
-                Toast.LENGTH_SHORT
-            ).show()
-
             MappingCommon.save()
 
             NativeConfig.save(NativeConfig.LAYER_BASE)
@@ -62,13 +58,6 @@ class Settings : Closeable {
             NativeLibrary.ReloadLoggerConfig()
             NativeLibrary.UpdateGCAdapterScanThread()
         } else {
-            // custom game settings
-            if (context != null) {
-                Toast.makeText(
-                    context, context.getString(R.string.settings_saved_game_specific, gameId),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
             NativeConfig.save(NativeConfig.LAYER_LOCAL_GAME)
         }
     }
@@ -115,6 +104,7 @@ class Settings : Closeable {
         const val FILE_GFX = "GFX"
         const val FILE_LOGGER = "Logger"
         const val FILE_WIIMOTE = "WiimoteNew"
+        const val FILE_ACHIEVEMENTS = "RetroAchievements"
         const val FILE_GAME_SETTINGS_ONLY = "GameSettingsOnly"
         const val SECTION_INI_ANDROID = "Android"
         const val SECTION_INI_ANDROID_OVERLAY_BUTTONS = "AndroidOverlayButtons"
@@ -133,5 +123,6 @@ class Settings : Closeable {
         const val SECTION_EMULATED_USB_DEVICES = "EmulatedUSBDevices"
         const val SECTION_STEREOSCOPY = "Stereoscopy"
         const val SECTION_ANALYTICS = "Analytics"
+        const val SECTION_ACHIEVEMENTS = "Achievements"
     }
 }

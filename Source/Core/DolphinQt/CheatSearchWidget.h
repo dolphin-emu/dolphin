@@ -5,19 +5,13 @@
 
 #include <QWidget>
 
-#include <functional>
-#include <optional>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/ActionReplay.h"
 #include "Core/CheatSearch.h"
 
-namespace ActionReplay
-{
-struct ARCode;
-}
 namespace Core
 {
 class System;
@@ -57,7 +51,7 @@ public:
 signals:
   void ActionReplayCodeGenerated(const ActionReplay::ARCode& ar_code);
   void RequestWatch(QString name, u32 address);
-  void ShowMemory(const u32 address);
+  void ShowMemory(u32 address);
 
 private:
   void CreateWidgets();
@@ -77,12 +71,16 @@ private:
                        UpdateSource source);
   void RecreateGUITable();
   void GenerateARCodes();
+  void WriteValue();
   int GetVisibleRowsBeginIndex() const;
   int GetVisibleRowsEndIndex() const;
+  size_t GetTableRowCount() const;
 
   Core::System& m_system;
 
-  std::unique_ptr<Cheats::CheatSearchSessionBase> m_session;
+  // Stores the values used by the "last value" search filter and shown in the Last Value column.
+  // Updated only after clicking the "Search and Filter" button or resetting the table.
+  std::unique_ptr<Cheats::CheatSearchSessionBase> m_last_value_session;
 
   // storage for the 'Current Value' column's data
   std::unordered_map<u32, std::string> m_address_table_current_values;

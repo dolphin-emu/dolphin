@@ -177,9 +177,11 @@ if(ENABLE_SDL)
   target_sources(inputcommon PRIVATE
     ControllerInterface/SDL/SDL.cpp
     ControllerInterface/SDL/SDL.h
+    ControllerInterface/SDL/SDLGamepad.cpp
+    ControllerInterface/SDL/SDLGamepad.h
   )
-  target_link_libraries(inputcommon PRIVATE SDL2::SDL2)
-  target_compile_definitions(inputcommon PUBLIC HAVE_SDL2=1)
+  target_link_libraries(inputcommon PRIVATE SDL3::SDL3)
+  target_compile_definitions(inputcommon PUBLIC HAVE_SDL3=1)
 endif()
 
 if(MSVC)

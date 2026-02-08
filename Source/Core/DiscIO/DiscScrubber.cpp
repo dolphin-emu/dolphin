@@ -3,15 +3,11 @@
 
 #include "DiscIO/DiscScrubber.h"
 
-#include <algorithm>
 #include <cstddef>
-#include <memory>
 #include <optional>
-#include <string>
 #include <vector>
 
 #include "Common/Align.h"
-#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
@@ -125,7 +121,7 @@ bool DiscScrubber::ParseDisc(const Volume& disc)
   // Mark the header as used - it's mostly 0s anyways
   MarkAsUsed(0, 0x50000);
 
-  for (const DiscIO::Partition& partition : disc.GetPartitions())
+  for (const Partition& partition : disc.GetPartitions())
   {
     u32 tmd_size;
     u64 tmd_offset;
@@ -222,7 +218,7 @@ bool DiscScrubber::ParsePartitionData(const Volume& disc, const Partition& parti
 
 void DiscScrubber::ParseFileSystemData(u64 partition_data_offset, const FileInfo& directory)
 {
-  for (const DiscIO::FileInfo& file_info : directory)
+  for (const FileInfo& file_info : directory)
   {
     DEBUG_LOG_FMT(DISCIO, "Scrubbing {}", file_info.GetPath());
     if (file_info.IsDirectory())

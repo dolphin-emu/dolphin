@@ -7,7 +7,6 @@
 #include <cstring>
 
 #include "Common/Assert.h"
-#include "Common/MsgHandler.h"
 
 void CachedInterpreterEmitter::Write(AnyCallback callback, const void* operands, std::size_t size)
 {

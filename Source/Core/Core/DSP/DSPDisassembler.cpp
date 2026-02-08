@@ -4,15 +4,14 @@
 
 #include "Core/DSP/DSPDisassembler.h"
 
-#include <algorithm>
 #include <limits>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
-#include "Common/EnumUtils.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
@@ -108,7 +107,7 @@ std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, u1
         if (opc.params[j].mask == 0x003f)
         {
           // Left and right shifts function essentially as a single shift by a 7-bit signed value,
-          // but are split into two intructions for clarity.
+          // but are split into two instructions for clarity.
           buf += fmt::format("#{}", (val & 0x20) != 0 ? (int(val) - 64) : int(val));
         }
         else
@@ -133,8 +132,7 @@ std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, u1
       break;
 
     default:
-      ERROR_LOG_FMT(DSPLLE, "Unknown parameter type: {:x}",
-                    Common::ToUnderlying(opc.params[j].type));
+      ERROR_LOG_FMT(DSPLLE, "Unknown parameter type: {:x}", std::to_underlying(opc.params[j].type));
       break;
     }
   }

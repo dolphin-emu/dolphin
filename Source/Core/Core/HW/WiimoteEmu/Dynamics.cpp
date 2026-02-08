@@ -10,7 +10,6 @@
 #include "Common/MathUtil.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Force.h"
 #include "InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.h"
@@ -67,7 +66,7 @@ Common::Quaternion ComplementaryFilter(const Common::Quaternion& gyroscope,
 
   const auto cos_angle = normalized_accel.Dot(gyro_vec);
 
-  // If gyro to accel angle difference is betwen 0 and 180 degrees we make an adjustment.
+  // If gyro to accel angle difference is between 0 and 180 degrees we make an adjustment.
   const auto abs_cos_angle = std::abs(cos_angle);
   if (abs_cos_angle > 0 && abs_cos_angle < 1)
   {
@@ -311,7 +310,7 @@ void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_gr
   const auto ang_vel = imu_gyroscope_group->GetState();
 
   // Reset if pointing is disabled or we have no gyro data.
-  if (!imu_ir_group->enabled || !ang_vel.has_value())
+  if (!imu_ir_group->enabled.GetValue() || !ang_vel.has_value())
   {
     *state = {};
     return;

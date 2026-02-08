@@ -98,16 +98,16 @@ public:
     FreeCodeSpace();
   }
 
-  u64 ConvertSingleToDouble(u32 value) { return convert_single_to_double_lower(value); }
+  u64 ConvertSingleToDouble(const u32 value) const { return convert_single_to_double_lower(value); }
 
-  Pair<u64> ConvertSingleToDouble(u32 value1, u32 value2)
+  Pair<u64> ConvertSingleToDouble(const u32 value1, const u32 value2) const
   {
     return convert_single_to_double_pair(value1, value2);
   }
 
-  u32 ConvertDoubleToSingle(u64 value) { return convert_double_to_single_lower(value); }
+  u32 ConvertDoubleToSingle(const u64 value) const { return convert_double_to_single_lower(value); }
 
-  Pair<u32> ConvertDoubleToSingle(u64 value1, u64 value2)
+  Pair<u32> ConvertDoubleToSingle(const u64 value1, const u64 value2) const
   {
     return convert_double_to_single_pair(value1, value2);
   }

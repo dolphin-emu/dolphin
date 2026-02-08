@@ -204,6 +204,22 @@ std::optional<IPCReply> USBV5ResourceManager::HandleDeviceIOCtl(const IOCtlReque
   return handler(*device);
 }
 
+IPCReply USBV5ResourceManager::GetUSBVersion(const IOCtlRequest& request) const
+{
+  static constexpr u32 VERSION = 0x50001;
+
+  if (request.buffer_in != 0 || request.buffer_in_size != 0 || request.buffer_out == 0 ||
+      request.buffer_out_size != 0x20)
+  {
+    return IPCReply(IPC_EINVAL);
+  }
+
+  auto& system = GetSystem();
+  auto& memory = system.GetMemory();
+  memory.Write_U32(VERSION, request.buffer_out);
+  return IPCReply(IPC_SUCCESS);
+}
+
 void USBV5ResourceManager::OnDeviceChange(const ChangeEvent event,
                                           std::shared_ptr<USB::Device> device)
 {

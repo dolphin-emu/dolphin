@@ -72,8 +72,9 @@ public class GamePropertiesDialog extends DialogFragment
             requireArguments().getBoolean(ARG_SHOULD_ALLOW_CONVERSION);
 
     final boolean isDisc = platform == Platform.GAMECUBE.toInt() ||
-            platform == Platform.WII.toInt();
-    final boolean isWii = platform != Platform.GAMECUBE.toInt();
+            platform == Platform.TRIFORCE.toInt() || platform == Platform.WII.toInt();
+    final boolean isWii = platform == Platform.WII.toInt() ||
+            platform == Platform.WIIWARE.toInt();
 
     AlertDialogItemsBuilder itemsBuilder = new AlertDialogItemsBuilder(requireContext());
 
@@ -92,7 +93,7 @@ public class GamePropertiesDialog extends DialogFragment
         {
           settings.loadSettings();
           StringSetting.MAIN_DEFAULT_ISO.setString(settings, path);
-          settings.saveSettings(getContext());
+          settings.saveSettings();
         }
       });
     }

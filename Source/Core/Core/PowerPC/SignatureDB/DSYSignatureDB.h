@@ -8,7 +8,7 @@
 class DSYSignatureDB final : public HashSignatureDB
 {
 public:
-  ~DSYSignatureDB() = default;
+  ~DSYSignatureDB() override = default;
   bool Load(const std::string& file_path) override;
   bool Save(const std::string& file_path) const override;
 };

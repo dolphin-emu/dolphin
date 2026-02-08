@@ -57,7 +57,7 @@ public:
   explicit StateTracker();
   ~StateTracker();
 
-  Framebuffer* GetCurrentFramebuffer() { return m_current_framebuffer; };
+  Framebuffer* GetCurrentFramebuffer() { return m_current_framebuffer; }
   void SetCurrentFramebuffer(Framebuffer* framebuffer);
   void BeginClearRenderPass(MTLClearColor color, float depth);
   void BeginRenderPass(MTLLoadAction load_action);

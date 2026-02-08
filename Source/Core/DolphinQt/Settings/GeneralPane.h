@@ -39,6 +39,7 @@ private:
   void LoadConfig();
   void OnSaveConfig();
   void OnEmulationStateChanged(Core::State state);
+  void UpdateDescriptionsUsingHardcoreStatus();
 
   // Widgets
   QVBoxLayout* m_main_layout;
@@ -47,6 +48,7 @@ private:
   ToolTipComboBox* m_combobox_fallback_region;
   ConfigBool* m_checkbox_dualcore;
   ConfigBool* m_checkbox_cheats;
+  ConfigBool* m_checkbox_load_games_into_memory;
   ConfigBool* m_checkbox_override_region_settings;
   ConfigBool* m_checkbox_auto_disc_change;
 #ifdef USE_DISCORD_PRESENCE

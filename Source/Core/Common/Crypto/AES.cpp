@@ -4,7 +4,6 @@
 #include "Common/Crypto/AES.h"
 
 #include <array>
-#include <bit>
 #include <memory>
 
 #include <mbedtls/aes.h>
@@ -46,8 +45,7 @@ public:
       ASSERT(!mbedtls_aes_setkey_dec(&ctx, key, 128));
   }
 
-  virtual bool Crypt(const u8* iv, u8* iv_out, const u8* buf_in, u8* buf_out,
-                     size_t len) const override
+  bool Crypt(const u8* iv, u8* iv_out, const u8* buf_in, u8* buf_out, size_t len) const override
   {
     std::array<u8, BLOCK_SIZE> iv_tmp{};
     if (iv)
@@ -206,8 +204,7 @@ public:
       _mm_storeu_si128(&((__m128i*)buf_out)[d], block[d]);
   }
 
-  virtual bool Crypt(const u8* iv, u8* iv_out, const u8* buf_in, u8* buf_out,
-                     size_t len) const override
+  bool Crypt(const u8* iv, u8* iv_out, const u8* buf_in, u8* buf_out, size_t len) const override
   {
     if (len % BLOCK_SIZE)
       return false;

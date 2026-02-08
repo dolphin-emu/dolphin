@@ -29,27 +29,27 @@ WidescreenManager::WidescreenManager()
                  "Invalid suggested aspect ratio mode: only Auto, 4:3 and 16:9 are supported");
   }
 
-  m_config_changed = ConfigChangedEvent::Register(
-      [this](u32 bits) {
-        if (bits & (CONFIG_CHANGE_BIT_ASPECT_RATIO))
-        {
-          // If the widescreen flag isn't being overridden by any settings,
-          // reset it to default if heuristic aren't running or to the last
-          // heuristic value if they were running.
-          if (std::optional<bool> is_game_widescreen = GetWidescreenOverride())
-            m_is_game_widescreen = *is_game_widescreen;
-          else
-            m_is_game_widescreen = (m_heuristic_state == HeuristicState::Active_Found_Anamorphic);
-        }
-      },
-      "Widescreen");
+  auto& system = Core::System::GetInstance();
+  auto& video_events = system.GetVideoEvents();
+
+  m_config_changed = video_events.config_changed_event.Register([this](u32 bits) {
+    if (bits & (CONFIG_CHANGE_BIT_ASPECT_RATIO))
+    {
+      // If the widescreen flag isn't being overridden by any settings,
+      // reset it to default if heuristic aren't running or to the last
+      // heuristic value if they were running.
+      if (std::optional<bool> is_game_widescreen = GetWidescreenOverride())
+        m_is_game_widescreen = *is_game_widescreen;
+      else
+        m_is_game_widescreen = (m_heuristic_state == HeuristicState::Active_Found_Anamorphic);
+    }
+  });
 
   // VertexManager doesn't maintain statistics in Wii mode.
-  auto& system = Core::System::GetInstance();
   if (!system.IsWii())
   {
-    m_update_widescreen = AfterFrameEvent::Register(
-        [this](Core::System&) { UpdateWidescreenHeuristic(); }, "WideScreen Heuristic");
+    m_update_widescreen = video_events.after_frame_event.Register(
+        [this](Core::System&) { UpdateWidescreenHeuristic(); });
   }
 }
 

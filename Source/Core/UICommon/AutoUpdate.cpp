@@ -9,9 +9,6 @@
 #include <fmt/format.h>
 #include <picojson.h>
 
-#include "Common/CommonFuncs.h"
-#include "Common/CommonPaths.h"
-#include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -21,7 +18,6 @@
 #ifdef _WIN32
 #include <Windows.h>
 #else
-#include <sys/types.h>
 #include <unistd.h>
 #endif
 
@@ -31,6 +27,9 @@
 
 #if defined(_WIN32) || defined(__APPLE__)
 #define OS_SUPPORTS_UPDATER
+#include "Common/CommonFuncs.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
 #endif
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
@@ -79,9 +78,9 @@ std::string MakeUpdaterCommandLine(const std::map<std::string, std::string>& fla
   return cmdline;
 }
 
-#ifdef __APPLE__
 void CleanupFromPreviousUpdate()
 {
+#ifdef __APPLE__
   // Remove the relocated updater file.
   File::DeleteDirRecursively(UpdaterPath(true));
 
@@ -90,9 +89,12 @@ void CleanupFromPreviousUpdate()
   // version with an embedded updater, it won't delete the folder structure of the bundle, so
   // we should clean those leftovers up.
   File::DeleteDirRecursively(File::GetExeDirectory() + DIR_SEP + "Dolphin Updater.app");
-}
 #endif
 
+  // Updater.log was moved from GetExeDirectory() to GetUserPath(D_LOGS_IDX) in 5.0-14529.
+  File::Delete(File::GetExeDirectory() + DIR_SEP + "Updater.log",
+               File::IfAbsentBehavior::NoConsoleWarning);
+}
 #endif
 
 // This ignores i18n because most of the text in there (change descriptions) is only going to be
@@ -190,7 +192,7 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
   if (!SystemSupportsAutoUpdates() || update_track.empty())
     return;
 
-#ifdef __APPLE__
+#ifdef OS_SUPPORTS_UPDATER
   CleanupFromPreviousUpdate();
 #endif
 

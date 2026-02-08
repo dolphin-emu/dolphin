@@ -7,8 +7,6 @@
 #include <optional>
 #include <string>
 
-#include <fmt/printf.h>
-
 #include <QButtonGroup>
 #include <QCheckBox>
 #include <QComboBox>
@@ -17,6 +15,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListWidget>
 #include <QMenuBar>
 #include <QPushButton>
 #include <QRegularExpression>
@@ -26,12 +25,12 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
-#include "Common/BitUtils.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/AddressSpace.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/System.h"
 #include "DolphinQt/Debugger/MemoryViewWidget.h"
 #include "DolphinQt/Host.h"
@@ -41,7 +40,7 @@
 using Type = MemoryViewWidget::Type;
 
 MemoryWidget::MemoryWidget(Core::System& system, QWidget* parent)
-    : QDockWidget(parent), m_system(system)
+    : QDockWidget(parent), m_system(system), m_ppc_symbol_db(system.GetPPCSymbolDB())
 {
   setWindowTitle(tr("Memory"));
   setObjectName(QStringLiteral("memory"));
@@ -58,7 +57,7 @@ MemoryWidget::MemoryWidget(Core::System& system, QWidget* parent)
   // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
   // according to Settings
   setFloating(settings.value(QStringLiteral("memorywidget/floating")).toBool());
-  m_splitter->restoreState(settings.value(QStringLiteral("codewidget/splitter")).toByteArray());
+  m_splitter->restoreState(settings.value(QStringLiteral("memorywidget/splitter")).toByteArray());
 
   connect(&Settings::Instance(), &Settings::MemoryVisibilityChanged, this,
           [this](bool visible) { setHidden(!visible); });
@@ -247,6 +246,27 @@ void MemoryWidget::CreateWidgets()
   bp_layout->addWidget(m_bp_log_check);
   bp_layout->setSpacing(1);
 
+  // Notes
+  m_labels_group = new QGroupBox(tr("Labels"));
+  auto* symbols_box = new QTabWidget;
+  m_note_list = new QListWidget;
+  m_data_list = new QListWidget;
+  m_symbols_list = new QListWidget;
+  symbols_box->addTab(m_note_list, tr("Notes"));
+  symbols_box->addTab(m_data_list, tr("Data"));
+  symbols_box->addTab(m_symbols_list, tr("Symbols"));
+  m_symbols_list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+  auto* labels_layout = new QVBoxLayout;
+  m_search_labels = new QLineEdit;
+  // i18n: Filter is a verb. Typing into this text box will filter the label list so that only
+  // labels containing the typed text are shown.
+  m_search_labels->setPlaceholderText(tr("Filter Label List"));
+
+  m_labels_group->setLayout(labels_layout);
+  labels_layout->addWidget(symbols_box);
+  labels_layout->addWidget(m_search_labels);
+
   // Sidebar
   auto* sidebar = new QWidget;
   auto* sidebar_layout = new QVBoxLayout;
@@ -262,8 +282,9 @@ void MemoryWidget::CreateWidgets()
                          &MemoryWidget::OnSetValueFromFile);
   menubar->addMenu(menu_import);
 
+  // View Menu
   auto* auto_update_action =
-      menu_views->addAction(tr("Auto update memory values"), this, [this](bool checked) {
+      menu_views->addAction(tr("&Auto update memory values"), this, [this](bool checked) {
         m_auto_update_enabled = checked;
         if (checked)
           RegisterAfterFrameEventCallback();
@@ -274,13 +295,24 @@ void MemoryWidget::CreateWidgets()
   auto_update_action->setChecked(true);
 
   auto* highlight_update_action =
-      menu_views->addAction(tr("Highlight recently changed values"), this,
+      // i18n: Highlight is a verb (this is the label of a checkbox)
+      menu_views->addAction(tr("&Highlight recently changed values"), this,
                             [this](bool checked) { m_memory_view->ToggleHighlights(checked); });
   highlight_update_action->setCheckable(true);
   highlight_update_action->setChecked(true);
 
-  menu_views->addAction(tr("Highlight color"), this,
+  // i18n: Highlight is a noun (clicking this lets you select a color)
+  menu_views->addAction(tr("Highlight &color"), this,
                         [this] { m_memory_view->SetHighlightColor(); });
+
+  auto* show_notes =
+      menu_views->addAction(tr("&Show symbols and notes"), this, [this](bool checked) {
+        m_labels_visible = checked;
+        m_memory_view->ShowSymbols(checked);
+        UpdateNotes();
+      });
+  show_notes->setCheckable(true);
+  show_notes->setChecked(true);
 
   QMenu* menu_export = new QMenu(tr("&Export"), menubar);
   menu_export->addAction(tr("Dump &MRAM"), this, &MemoryWidget::OnDumpMRAM);
@@ -306,6 +338,7 @@ void MemoryWidget::CreateWidgets()
   sidebar_layout->addWidget(address_space_group);
   sidebar_layout->addItem(new QSpacerItem(1, 10));
   sidebar_layout->addWidget(bp_group);
+  sidebar_layout->addWidget(m_labels_group);
   sidebar_layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 
   // Splitter
@@ -327,6 +360,7 @@ void MemoryWidget::CreateWidgets()
   auto* widget = new QWidget;
   widget->setLayout(layout);
   setWidget(widget);
+  UpdateNotes();
 }
 
 void MemoryWidget::ConnectWidgets()
@@ -359,6 +393,12 @@ void MemoryWidget::ConnectWidgets()
 
   connect(m_base_check, &QCheckBox::toggled, this, &MemoryWidget::ValidateAndPreviewInputValue);
   connect(m_bp_log_check, &QCheckBox::toggled, this, &MemoryWidget::OnBPLogChanged);
+
+  for (auto* list : {m_symbols_list, m_data_list, m_note_list})
+    connect(list, &QListWidget::itemClicked, this, &MemoryWidget::OnSelectLabel);
+
+  connect(Host::GetInstance(), &Host::PPCSymbolsChanged, this, &MemoryWidget::RefreshLabelBox);
+  connect(m_search_labels, &QLineEdit::textChanged, this, &MemoryWidget::RefreshLabelBox);
   connect(m_memory_view, &MemoryViewWidget::ShowCode, this, &MemoryWidget::ShowCode);
   connect(m_memory_view, &MemoryViewWidget::RequestWatch, this, &MemoryWidget::RequestWatch);
   connect(m_memory_view, &MemoryViewWidget::ActivateSearch, this,
@@ -386,7 +426,8 @@ void MemoryWidget::hideEvent(QHideEvent* event)
 
 void MemoryWidget::RegisterAfterFrameEventCallback()
 {
-  m_vi_end_field_event = VIEndFieldEvent::Register([this] { AutoUpdateTable(); }, "MemoryWidget");
+  m_vi_end_field_event =
+      m_system.GetVideoEvents().vi_end_field_event.Register([this] { AutoUpdateTable(); });
 }
 
 void MemoryWidget::RemoveAfterFrameEventCallback()
@@ -618,12 +659,26 @@ void MemoryWidget::ValidateAndPreviewInputValue()
   if (input_type != Type::ASCII)
     input_text.remove(QLatin1Char(' '));
 
-  if (m_base_check->isChecked())
+  if (input_type == Type::HexString)
   {
+    // Hex strings are parsed using QByteArray::fromHex which doesn't expect a 0x prefix. If the
+    // user has inserted one, remove it.
+    if (input_text.startsWith(QStringLiteral("0x"), Qt::CaseInsensitive))
+      input_text.remove(0, 2);
+  }
+  else if (m_base_check->isChecked())
+  {
+    // Add 0x to the front of the input (after the '-', if present), but only if the user didn't
+    // already do so.
     if (input_text.startsWith(QLatin1Char('-')))
-      input_text.insert(1, QStringLiteral("0x"));
-    else
+    {
+      if (!input_text.startsWith(QStringLiteral("-0x"), Qt::CaseInsensitive))
+        input_text.insert(1, QStringLiteral("0x"));
+    }
+    else if (!input_text.startsWith(QStringLiteral("0x"), Qt::CaseInsensitive))
+    {
       input_text.prepend(QStringLiteral("0x"));
+    }
   }
 
   QFont font;
@@ -779,6 +834,98 @@ void MemoryWidget::OnSetValueFromFile()
     accessors->WriteU8(guard, target_addr.address++, b);
 
   Update();
+}
+
+void MemoryWidget::RefreshLabelBox()
+{
+  if (!m_labels_visible || m_ppc_symbol_db.IsEmpty())
+  {
+    m_labels_group->hide();
+    return;
+  }
+
+  m_labels_group->show();
+
+  UpdateSymbols();
+  UpdateNotes();
+}
+
+void MemoryWidget::OnSelectLabel()
+{
+  QList<QListWidgetItem*> items;
+  if (m_note_list->isVisible())
+    items = m_note_list->selectedItems();
+  else if (m_symbols_list->isVisible())
+    items = m_symbols_list->selectedItems();
+  else if (m_data_list->isVisible())
+    items = m_data_list->selectedItems();
+
+  if (items.isEmpty())
+    return;
+
+  const u32 address = items[0]->data(Qt::UserRole).toUInt();
+
+  SetAddress(address);
+}
+
+void MemoryWidget::UpdateSymbols()
+{
+  const QString selection = m_symbols_list->selectedItems().isEmpty() ?
+                                QString{} :
+                                m_symbols_list->selectedItems()[0]->text();
+  m_symbols_list->clear();
+  m_data_list->clear();
+
+  m_ppc_symbol_db.ForEachSymbol([&](const Common::Symbol& symbol) {
+    QString name = QString::fromStdString(symbol.name);
+
+    // If the symbol has an object name, add it to the entry name.
+    if (!symbol.object_name.empty())
+    {
+      name += QString::fromStdString(fmt::format(" ({})", symbol.object_name));
+    }
+
+    auto* item = new QListWidgetItem(name);
+    if (name == selection)
+      item->setSelected(true);
+
+    item->setData(Qt::UserRole, symbol.address);
+
+    if (!name.contains(m_search_labels->text(), Qt::CaseInsensitive))
+      return;
+
+    if (symbol.type != Common::Symbol::Type::Function)
+      m_data_list->addItem(item);
+    else
+      m_symbols_list->addItem(item);
+  });
+
+  m_symbols_list->sortItems();
+}
+
+void MemoryWidget::UpdateNotes()
+{
+  // Save selection to re-apply.
+  const QString selection = m_note_list->selectedItems().isEmpty() ?
+                                QStringLiteral("") :
+                                m_note_list->selectedItems()[0]->text();
+  m_note_list->clear();
+
+  m_ppc_symbol_db.ForEachNote([&](const Common::Note& note) {
+    const QString name = QString::fromStdString(note.name);
+
+    auto* item = new QListWidgetItem(name);
+    if (name == selection)
+      item->setSelected(true);
+
+    item->setData(Qt::UserRole, note.address);
+
+    // Filter notes based on the search text.
+    if (name.contains(m_search_labels->text(), Qt::CaseInsensitive))
+      m_note_list->addItem(item);
+  });
+
+  m_note_list->sortItems();
 }
 
 static void DumpArray(const std::string& filename, const u8* data, size_t length)

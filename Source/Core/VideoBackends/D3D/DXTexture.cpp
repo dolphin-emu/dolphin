@@ -50,7 +50,7 @@ std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config, std::s
       D3D11_USAGE_DEFAULT, 0, config.samples, 0,
       config.type == AbstractTextureType::Texture_CubeMap ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0);
   ComPtr<ID3D11Texture2D> d3d_texture;
-  HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, d3d_texture.GetAddressOf());
+  HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, &d3d_texture);
   if (FAILED(hr))
   {
     PanicAlertFmt("Failed to create {}x{}x{} D3D backing texture: {}", config.width, config.height,
@@ -119,7 +119,7 @@ bool DXTexture::CreateSRV()
       m_texture.Get(), dimension, D3DCommon::GetSRVFormatForAbstractFormat(m_config.format), 0,
       m_config.levels, 0, m_config.layers);
   DEBUG_ASSERT(!m_srv);
-  HRESULT hr = D3D::device->CreateShaderResourceView(m_texture.Get(), &desc, m_srv.GetAddressOf());
+  HRESULT hr = D3D::device->CreateShaderResourceView(m_texture.Get(), &desc, &m_srv);
   if (FAILED(hr))
   {
     PanicAlertFmt("Failed to create {}x{}x{} D3D SRV: {}", m_config.width, m_config.height,
@@ -136,7 +136,7 @@ bool DXTexture::CreateUAV()
       m_texture.Get(), D3D11_UAV_DIMENSION_TEXTURE2DARRAY,
       D3DCommon::GetSRVFormatForAbstractFormat(m_config.format), 0, 0, m_config.layers);
   DEBUG_ASSERT(!m_uav);
-  HRESULT hr = D3D::device->CreateUnorderedAccessView(m_texture.Get(), &desc, m_uav.GetAddressOf());
+  HRESULT hr = D3D::device->CreateUnorderedAccessView(m_texture.Get(), &desc, &m_uav);
   if (FAILED(hr))
   {
     PanicAlertFmt("Failed to create {}x{}x{} D3D UAV: {}", m_config.width, m_config.height,
@@ -174,8 +174,8 @@ void DXTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
                                    u32 layer, u32 level)
 {
   const DXTexture* srcentry = static_cast<const DXTexture*>(src);
-  DEBUG_ASSERT(m_config.samples > 1 && m_config.width == srcentry->m_config.width &&
-               m_config.height == srcentry->m_config.height && m_config.samples == 1);
+  DEBUG_ASSERT(m_config.samples == 1 && m_config.width == srcentry->m_config.width &&
+               m_config.height == srcentry->m_config.height && srcentry->m_config.samples > 1);
   DEBUG_ASSERT(rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&
                rect.top + rect.GetHeight() <= static_cast<int>(srcentry->m_config.height));
 
@@ -211,6 +211,7 @@ std::unique_ptr<DXStagingTexture> DXStagingTexture::Create(StagingTextureType ty
 {
   D3D11_USAGE usage;
   UINT cpu_flags;
+  UINT bind_flags = 0;
   if (type == StagingTextureType::Readback)
   {
     usage = D3D11_USAGE_STAGING;
@@ -220,6 +221,7 @@ std::unique_ptr<DXStagingTexture> DXStagingTexture::Create(StagingTextureType ty
   {
     usage = D3D11_USAGE_DYNAMIC;
     cpu_flags = D3D11_CPU_ACCESS_WRITE;
+    bind_flags = D3D11_BIND_SHADER_RESOURCE;
   }
   else
   {
@@ -228,10 +230,10 @@ std::unique_ptr<DXStagingTexture> DXStagingTexture::Create(StagingTextureType ty
   }
 
   CD3D11_TEXTURE2D_DESC desc(D3DCommon::GetDXGIFormatForAbstractFormat(config.format, false),
-                             config.width, config.height, 1, 1, 0, usage, cpu_flags);
+                             config.width, config.height, 1, 1, bind_flags, usage, cpu_flags);
 
   ComPtr<ID3D11Texture2D> texture;
-  HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, texture.GetAddressOf());
+  HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, &texture);
   ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create staging texture: {}", DX11HRWrap(hr));
   if (FAILED(hr))
     return nullptr;
@@ -317,7 +319,7 @@ bool DXStagingTexture::Map()
   if (m_type == StagingTextureType::Readback)
     map_type = D3D11_MAP_READ;
   else if (m_type == StagingTextureType::Upload)
-    map_type = D3D11_MAP_WRITE;
+    map_type = D3D11_MAP_WRITE_DISCARD;
   else
     map_type = D3D11_MAP_READ_WRITE;
 
@@ -442,8 +444,8 @@ DXFramebuffer::Create(DXTexture* color_attachment, DXTexture* depth_attachment,
                                              D3D11_RTV_DIMENSION_TEXTURE2DARRAY,
         D3DCommon::GetRTVFormatForAbstractFormat(color_attachment->GetFormat(), false), 0, 0,
         color_attachment->GetLayers());
-    HRESULT hr = D3D::device->CreateRenderTargetView(color_attachment->GetD3DTexture(), &desc,
-                                                     rtv.GetAddressOf());
+    HRESULT hr =
+        D3D::device->CreateRenderTargetView(color_attachment->GetD3DTexture(), &desc, &rtv);
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create render target view for framebuffer: {}",
                DX11HRWrap(hr));
     if (FAILED(hr))
@@ -456,7 +458,7 @@ DXFramebuffer::Create(DXTexture* color_attachment, DXTexture* depth_attachment,
     {
       desc.Format = integer_format;
       hr = D3D::device->CreateRenderTargetView(color_attachment->GetD3DTexture(), &desc,
-                                               integer_rtv.GetAddressOf());
+                                               &integer_rtv);
       ASSERT_MSG(VIDEO, SUCCEEDED(hr),
                  "Failed to create integer render target view for framebuffer: {}", DX11HRWrap(hr));
     }
@@ -473,7 +475,7 @@ DXFramebuffer::Create(DXTexture* color_attachment, DXTexture* depth_attachment,
         0, 0, 1);
     HRESULT hr = D3D::device->CreateRenderTargetView(
         static_cast<DXTexture*>(additional_color_attachment)->GetD3DTexture(), &desc,
-        additional_rtv.GetAddressOf());
+        &additional_rtv);
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Create render target view for framebuffer: {}",
                DX11HRWrap(hr));
     if (FAILED(hr))
@@ -489,8 +491,8 @@ DXFramebuffer::Create(DXTexture* color_attachment, DXTexture* depth_attachment,
                                                          D3D11_DSV_DIMENSION_TEXTURE2DARRAY,
         D3DCommon::GetDSVFormatForAbstractFormat(depth_attachment->GetFormat()), 0, 0,
         depth_attachment->GetLayers(), 0);
-    HRESULT hr = D3D::device->CreateDepthStencilView(depth_attachment->GetD3DTexture(), &desc,
-                                                     dsv.GetAddressOf());
+    HRESULT hr =
+        D3D::device->CreateDepthStencilView(depth_attachment->GetD3DTexture(), &desc, &dsv);
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create depth stencil view for framebuffer: {}",
                DX11HRWrap(hr));
     if (FAILED(hr))

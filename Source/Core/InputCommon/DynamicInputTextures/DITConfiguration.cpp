@@ -4,18 +4,15 @@
 #include "InputCommon/DynamicInputTextures/DITConfiguration.h"
 
 #include <optional>
-#include <sstream>
 #include <string>
 
 #include <picojson.h>
 
-#include "Common/CommonPaths.h"
 #include "Common/IniFile.h"
 #include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
-#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/DynamicInputTextures/DITSpecification.h"
 #include "InputCommon/ImageOperations.h"
 
@@ -150,7 +147,15 @@ void Configuration::GenerateTexture(const Common::IniFile& file,
       }
       else
       {
-        const auto host_key_image = LoadImage(m_base_path + input_image_iter->second);
+        const std::string full_image_path = m_base_path + input_image_iter->second;
+        const auto host_key_image = LoadImage(full_image_path);
+        if (!host_key_image)
+        {
+          ERROR_LOG_FMT(VIDEO,
+                        "Failed to load image '{}' needed for dynamic input texture generation",
+                        full_image_path);
+          continue;
+        }
 
         for (const auto& rect : rects)
         {

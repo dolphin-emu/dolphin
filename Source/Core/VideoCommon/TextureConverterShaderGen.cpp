@@ -3,7 +3,6 @@
 
 #include "VideoCommon/TextureConverterShaderGen.h"
 
-#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureCacheBase.h"

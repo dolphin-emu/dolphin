@@ -17,7 +17,7 @@ class LogConfigWidget final : public QDockWidget
   Q_OBJECT
 public:
   explicit LogConfigWidget(QWidget* parent = nullptr);
-  ~LogConfigWidget();
+  ~LogConfigWidget() override;
 
 protected:
   void closeEvent(QCloseEvent* event) override;

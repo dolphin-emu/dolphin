@@ -3,13 +3,15 @@
 
 #include "Core/HW/SI/SI.h"
 
-#include <algorithm>
 #include <array>
-#include <atomic>
 #include <cstring>
-#include <iomanip>
 #include <memory>
-#include <sstream>
+
+#if defined(_DEBUG)
+#include <vector>
+
+#include "Common/StringUtil.h"
+#endif
 
 #include "Common/BitField.h"
 #include "Common/ChunkFile.h"
@@ -90,7 +92,7 @@ void SerialInterfaceManager::ChangeDeviceCallback(Core::System& system, u64 user
 {
   // The purpose of this callback is to simply re-enable device changes.
   auto& si = system.GetSerialInterface();
-  si.m_channel[user_data].has_recent_device_change = false;
+  si.m_channel[user_data].has_recent_device_unplug = false;
 }
 
 void SerialInterfaceManager::UpdateInterrupts()
@@ -147,9 +149,12 @@ void SerialInterfaceManager::RunSIBuffer(u64 user_data, s64 cycles_late)
   {
     const s32 request_length = ConvertSILengthField(m_com_csr.OUTLNGTH);
     const s32 expected_response_length = ConvertSILengthField(m_com_csr.INLNGTH);
-    const std::vector<u8> request_copy(m_si_buffer.data(), m_si_buffer.data() + request_length);
 
-    const std::unique_ptr<ISIDevice>& device = m_channel[m_com_csr.CHANNEL].device;
+#if defined(_DEBUG)
+    const std::vector<u8> request_copy(m_si_buffer.data(), m_si_buffer.data() + request_length);
+#endif
+
+    auto* const device = m_channel[m_com_csr.CHANNEL].device.get();
     const s32 actual_response_length = device->RunBuffer(m_si_buffer.data(), request_length);
 
     DEBUG_LOG_FMT(SERIALINTERFACE,
@@ -159,15 +164,16 @@ void SerialInterfaceManager::RunSIBuffer(u64 user_data, s64 cycles_late)
                   actual_response_length);
     if (actual_response_length > 0 && expected_response_length != actual_response_length)
     {
-      std::ostringstream ss;
-      for (u8 b : request_copy)
-      {
-        ss << std::hex << std::setw(2) << std::setfill('0') << (int)b << ' ';
-      }
-      DEBUG_LOG_FMT(
+#if defined(_DEBUG)
+      WARN_LOG_FMT(
           SERIALINTERFACE,
           "RunSIBuffer: expected_response_length({}) != actual_response_length({}): request: {}",
-          expected_response_length, actual_response_length, ss.str());
+          expected_response_length, actual_response_length, Common::BytesToHexString(request_copy));
+#else
+      WARN_LOG_FMT(SERIALINTERFACE,
+                   "RunSIBuffer: expected_response_length({}) != actual_response_length({})",
+                   expected_response_length, actual_response_length);
+#endif
     }
 
     // TODO:
@@ -201,9 +207,9 @@ void SerialInterfaceManager::DoState(PointerWrap& p)
     p.Do(m_channel[i].in_hi.hex);
     p.Do(m_channel[i].in_lo.hex);
     p.Do(m_channel[i].out.hex);
-    p.Do(m_channel[i].has_recent_device_change);
+    p.Do(m_channel[i].has_recent_device_unplug);
 
-    std::unique_ptr<ISIDevice>& device = m_channel[i].device;
+    const std::unique_ptr<ISIDevice>& device = m_channel[i].device;
     SIDevices type = device->GetDeviceType();
     p.Do(type);
 
@@ -225,7 +231,7 @@ void SerialInterfaceManager::DoState(PointerWrap& p)
 template <int device_number>
 void SerialInterfaceManager::DeviceEventCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
-  auto& si = system.GetSerialInterface();
+  const auto& si = system.GetSerialInterface();
   si.m_channel[device_number].device->OnEvent(userdata, cyclesLate);
 }
 
@@ -269,7 +275,7 @@ void SerialInterfaceManager::Init()
     m_channel[i].out.hex = 0;
     m_channel[i].in_hi.hex = 0;
     m_channel[i].in_lo.hex = 0;
-    m_channel[i].has_recent_device_change = false;
+    m_channel[i].has_recent_device_unplug = false;
 
     auto& movie = m_system.GetMovie();
     if (movie.IsMovieActive())
@@ -282,7 +288,7 @@ void SerialInterfaceManager::Init()
       }
       else if (movie.IsUsingPad(i))
       {
-        SIDevices current = Config::Get(Config::GetInfoForSIDevice(i));
+        const SIDevices current = Config::Get(Config::GetInfoForSIDevice(i));
         // GC pad-compatible devices can be used for both playing and recording
         if (movie.IsUsingBongo(i))
           m_desired_device_types[i] = SIDEVICE_GC_TARUKONGA;
@@ -331,7 +337,7 @@ void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     const u32 address = base | static_cast<u32>(io_buffer_base + i);
 
     mmio->Register(address, MMIO::ComplexRead<u32>([i](Core::System& system, u32) {
-                     auto& si = system.GetSerialInterface();
+                     const auto& si = system.GetSerialInterface();
                      u32 val;
                      std::memcpy(&val, &si.m_si_buffer[i], sizeof(val));
                      return Common::swap32(val);
@@ -347,7 +353,7 @@ void SerialInterfaceManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     const u32 address = base | static_cast<u32>(io_buffer_base + i);
 
     mmio->Register(address, MMIO::ComplexRead<u16>([i](Core::System& system, u32) {
-                     auto& si = system.GetSerialInterface();
+                     const auto& si = system.GetSerialInterface();
                      u16 val;
                      std::memcpy(&val, &si.m_si_buffer[i], sizeof(val));
                      return Common::swap16(val);
@@ -487,7 +493,7 @@ void SerialInterfaceManager::RemoveDevice(int device_number)
 
 void SerialInterfaceManager::AddDevice(std::unique_ptr<ISIDevice> device)
 {
-  int device_number = device->GetDeviceNumber();
+  const int device_number = device->GetDeviceNumber();
 
   // Delete the old device
   RemoveDevice(device_number);
@@ -511,7 +517,7 @@ void SerialInterfaceManager::ChangeDeviceDeterministic(SIDevices device, int cha
 {
   if (channel < 0 || channel >= MAX_SI_CHANNELS)
     return;
-  if (m_channel[channel].has_recent_device_change)
+  if (m_channel[channel].has_recent_device_unplug)
     return;
 
   if (GetDeviceType(channel) != SIDEVICE_NONE)
@@ -520,18 +526,20 @@ void SerialInterfaceManager::ChangeDeviceDeterministic(SIDevices device, int cha
     device = SIDEVICE_NONE;
   }
 
+  // TODO: Resetting this state may not be necessary or accurate.
   m_channel[channel].out.hex = 0;
   m_channel[channel].in_hi.hex = 0;
   m_channel[channel].in_lo.hex = 0;
 
-  SetNoResponse(channel);
-
   AddDevice(device, channel);
 
-  // Prevent additional device changes on this channel for one second.
-  m_channel[channel].has_recent_device_change = true;
-  m_system.GetCoreTiming().ScheduleEvent(m_system.GetSystemTimers().GetTicksPerSecond(),
-                                         m_event_type_change_device, channel);
+  if (device == SIDEVICE_NONE)
+  {
+    // Prevent additional device changes on this channel for one second.
+    m_channel[channel].has_recent_device_unplug = true;
+    m_system.GetCoreTiming().ScheduleEvent(m_system.GetSystemTimers().GetTicksPerSecond(),
+                                           m_event_type_change_device, channel);
+  }
 }
 
 void SerialInterfaceManager::UpdateDevices()
@@ -562,15 +570,18 @@ void SerialInterfaceManager::UpdateDevices()
   {
     // ERRLATCH bit is maintained.
     u32 errlatch = m_channel[i].in_hi.ERRLATCH.Value();
-    if (m_channel[i].device->GetData(m_channel[i].in_hi.hex, m_channel[i].in_lo.hex))
+    switch (m_channel[i].device->GetData(m_channel[i].in_hi.hex, m_channel[i].in_lo.hex))
     {
+    case DataResponse::Success:
       m_status_reg.hex |= GetRDSTBit(i);
-    }
-    else
-    {
+      break;
+    case DataResponse::ErrorNoResponse:
+      SetNoResponse(i);
+      [[fallthrough]];
+    case DataResponse::NoData:
       errlatch = 1;
       m_channel[i].in_hi.ERRSTAT = 1;
-      SetNoResponse(i);
+      break;
     }
 
     m_channel[i].in_hi.ERRLATCH = errlatch;

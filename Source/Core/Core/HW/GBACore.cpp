@@ -1,21 +1,27 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#ifdef HAS_LIBMGBA
+
 #include "Core/HW/GBACore.h"
 
 #define PYCPARSE  // Remove static functions from the header
 #include <mgba/core/interface.h>
 #undef PYCPARSE
 #include <mgba-util/vfs.h>
-#include <mgba/core/blip_buf.h>
 #include <mgba/core/log.h>
 #include <mgba/core/timing.h>
 #include <mgba/internal/gb/gb.h>
 #include <mgba/internal/gba/gba.h>
 
+#include <mz.h>
+#include <mz_strm.h>
+#include <mz_zip.h>
+#include <mz_zip_rw.h>
+
 #include "AudioCommon/AudioCommon.h"
+
 #include "Common/ChunkFile.h"
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Crypto/SHA1.h"
@@ -24,6 +30,7 @@
 #include "Common/MinizipUtil.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Thread.h"
+
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -40,8 +47,7 @@ mLogger s_stub_logger = {
     [](mLogger*, int category, mLogLevel level, const char* format, va_list args) {}, nullptr};
 }  // namespace
 
-constexpr auto SAMPLES = 512;
-constexpr auto SAMPLE_RATE = 48000;
+constexpr size_t AUDIO_BUFFER_SIZE = 512;
 
 // libmGBA does not return the correct frequency for some GB models
 static u32 GetCoreFrequency(mCore* core)
@@ -88,21 +94,26 @@ static VFile* OpenROM_Archive(const char* path)
 static VFile* OpenROM_Zip(const char* path)
 {
   VFile* vf{};
-  unzFile zip = unzOpen(path);
-  if (!zip)
+  void* zip_reader = mz_zip_reader_create();
+  if (!zip_reader)
+    return {};
+
+  Common::ScopeGuard file_guard{[&] { mz_zip_reader_delete(&zip_reader); }};
+
+  if (mz_zip_reader_open_file(zip_reader, path) != MZ_OK)
     return nullptr;
+
   do
   {
-    unz_file_info info{};
-    if (unzGetCurrentFileInfo(zip, &info, nullptr, 0, nullptr, 0, nullptr, 0) != UNZ_OK ||
-        !info.uncompressed_size)
+    mz_zip_file* info;
+    if (mz_zip_reader_entry_get_info(zip_reader, &info) != MZ_OK || !info->uncompressed_size)
       continue;
 
-    std::vector<u8> buffer(info.uncompressed_size);
-    if (!Common::ReadFileFromZip(zip, &buffer))
+    std::vector<u8> buffer(info->uncompressed_size);
+    if (!Common::ReadFileFromZip(zip_reader, &buffer))
       continue;
 
-    vf = VFileMemChunk(buffer.data(), info.uncompressed_size);
+    vf = VFileMemChunk(buffer.data(), info->uncompressed_size);
     if (mCoreIsCompatible(vf) == mPLATFORM_GBA)
     {
       vf->seek(vf, 0, SEEK_SET);
@@ -111,8 +122,7 @@ static VFile* OpenROM_Zip(const char* path)
 
     vf->close(vf);
     vf = nullptr;
-  } while (unzGoToNextFile(zip) == UNZ_OK);
-  unzClose(zip);
+  } while (mz_zip_reader_goto_next_entry(zip_reader) != MZ_END_OF_LIST);
   return vf;
 }
 
@@ -215,9 +225,9 @@ bool Core::Start(u64 gc_ticks)
     }
     rom_guard.Dismiss();
 
-    std::array<char, 17> game_title{};
-    m_core->getGameTitle(m_core, game_title.data());
-    m_game_title = game_title.data();
+    mGameInfo info;
+    m_core->getGameInfo(m_core, &info);
+    m_game_title = info.title;
 
     m_save_path = NetPlay::IsNetPlayRunning() ? NetPlay::GetGBASavePath(m_device_number) :
                                                 GetSavePath(m_rom_path, m_device_number);
@@ -231,7 +241,7 @@ bool Core::Start(u64 gc_ticks)
 
   SetSIODriver();
   SetVideoBuffer();
-  SetSampleRates();
+  SetAudioBufferSize();
   AddCallbacks();
   SetAVStream();
   SetupEvent();
@@ -376,18 +386,21 @@ void Core::SetSIODriver()
   if (m_core->platform(m_core) != mPLATFORM_GBA)
     return;
 
-  GBASIOJOYCreate(&m_sio_driver);
-  GBASIOSetDriver(&static_cast<::GBA*>(m_core->board)->sio, &m_sio_driver, SIO_JOYBUS);
-
   m_sio_driver.core = this;
-  m_sio_driver.load = [](GBASIODriver* driver) {
-    static_cast<SIODriver*>(driver)->core->m_link_enabled = true;
-    return true;
-  };
-  m_sio_driver.unload = [](GBASIODriver* driver) {
+  m_sio_driver.init = [](GBASIODriver*) { return true; };
+  m_sio_driver.deinit = [](GBASIODriver* driver) {
     static_cast<SIODriver*>(driver)->core->m_link_enabled = false;
-    return true;
   };
+  m_sio_driver.reset = [](GBASIODriver* driver) {
+    static_cast<SIODriver*>(driver)->core->m_link_enabled = false;
+  };
+  m_sio_driver.setMode = [](GBASIODriver* driver, GBASIOMode mode) {
+    static_cast<SIODriver*>(driver)->core->m_link_enabled = mode == GBA_SIO_JOYBUS;
+  };
+  m_sio_driver.handlesMode = [](GBASIODriver*, GBASIOMode mode) { return mode == GBA_SIO_JOYBUS; };
+  m_sio_driver.connectedDevices = [](GBASIODriver*) { return 1; };
+
+  GBASIOSetDriver(&static_cast<::GBA*>(m_core->board)->sio, &m_sio_driver);
 }
 
 void Core::SetVideoBuffer()
@@ -400,15 +413,9 @@ void Core::SetVideoBuffer()
     host->GameChanged();
 }
 
-void Core::SetSampleRates()
+void Core::SetAudioBufferSize()
 {
-  m_core->setAudioBufferSize(m_core, SAMPLES);
-  blip_set_rates(m_core->getAudioChannel(m_core, 0), m_core->frequency(m_core), SAMPLE_RATE);
-  blip_set_rates(m_core->getAudioChannel(m_core, 1), m_core->frequency(m_core), SAMPLE_RATE);
-
-  SoundStream* sound_stream = m_system.GetSoundStream();
-  sound_stream->GetMixer()->SetGBAInputSampleRateDivisors(
-      m_device_number, Mixer::FIXED_SAMPLE_RATE_DIVIDEND / SAMPLE_RATE);
+  m_core->setAudioBufferSize(m_core, AUDIO_BUFFER_SIZE);
 }
 
 void Core::AddCallbacks()
@@ -435,14 +442,26 @@ void Core::SetAVStream()
     auto core = static_cast<AVStream*>(stream)->core;
     core->SetVideoBuffer();
   };
-  m_stream.postAudioBuffer = [](mAVStream* stream, blip_t* left, blip_t* right) {
-    auto core = static_cast<AVStream*>(stream)->core;
-    std::vector<s16> buffer(SAMPLES * 2);
-    blip_read_samples(left, &buffer[0], SAMPLES, 1);
-    blip_read_samples(right, &buffer[1], SAMPLES, 1);
+  m_stream.audioRateChanged = [](mAVStream* stream, unsigned rate) {
+    auto* core = static_cast<AVStream*>(stream)->core;
+    auto* const sound_stream = core->m_system.GetSoundStream();
+    sound_stream->GetMixer()->SetGBAInputSampleRateDivisors(
+        core->m_device_number, Mixer::FIXED_SAMPLE_RATE_DIVIDEND / rate);
+  };
+  m_stream.postAudioBuffer = [](mAVStream* stream, mAudioBuffer* audio_buffer) {
+    size_t sample_count = mAudioBufferAvailable(audio_buffer);
+    const size_t required_buffer_size = sample_count * audio_buffer->channels;
 
-    SoundStream* sound_stream = core->m_system.GetSoundStream();
-    sound_stream->GetMixer()->PushGBASamples(core->m_device_number, &buffer[0], SAMPLES);
+    auto* const av_stream = static_cast<AVStream*>(stream);
+    if (required_buffer_size > av_stream->sample_buffer.size())
+      av_stream->sample_buffer.reset(required_buffer_size);
+
+    sample_count = mAudioBufferRead(audio_buffer, av_stream->sample_buffer.data(), sample_count);
+
+    auto* const core = av_stream->core;
+    auto* const sound_stream = core->m_system.GetSoundStream();
+    sound_stream->GetMixer()->PushGBASamples(core->m_device_number, av_stream->sample_buffer.data(),
+                                             sample_count);
   };
   m_core->setAVStream(m_core, &m_stream);
 }
@@ -723,9 +742,9 @@ bool Core::GetRomInfo(const char* rom_path, std::array<u8, 20>& hash, std::strin
     return false;
   }
 
-  std::array<char, 17> game_title{};
-  core->getGameTitle(core, game_title.data());
-  title = game_title.data();
+  mGameInfo info;
+  core->getGameInfo(core, &info);
+  title = info.title;
 
   core->deinit(core);
   return true;
@@ -745,3 +764,4 @@ std::string Core::GetSavePath(std::string_view rom_path, int device_number)
   return save_path;
 }
 }  // namespace HW::GBA
+#endif  // HAS_LIBMGBA

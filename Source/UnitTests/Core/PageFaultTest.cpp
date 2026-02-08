@@ -2,16 +2,15 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <chrono>
-#include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/ScopeGuard.h"
-#include "Common/Timer.h"
 #include "Core/Core.h"
 #include "Core/MemTools.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/System.h"
+
+#include "StubJit.h"
 
 // include order is important
 #include <gtest/gtest.h>  // NOLINT
@@ -25,27 +24,12 @@ enum
 #endif
 };
 
-class PageFaultFakeJit : public JitBase
+class PageFaultFakeJit : public StubJit
 {
 public:
-  explicit PageFaultFakeJit(Core::System& system) : JitBase(system) {}
+  explicit PageFaultFakeJit(Core::System& system) : StubJit(system) {}
 
-  // CPUCoreBase methods
-  void Init() override {}
-  void Shutdown() override {}
-  void ClearCache() override {}
-  void Run() override {}
-  void SingleStep() override {}
-  const char* GetName() const override { return nullptr; }
-  // JitBase methods
-  JitBaseBlockCache* GetBlockCache() override { return nullptr; }
-  void Jit(u32 em_address) override {}
-  void EraseSingleBlock(const JitBlock&) override {}
-  std::vector<MemoryStats> GetMemoryStats() const override { return {}; }
-  std::size_t DisassembleNearCode(const JitBlock&, std::ostream&) const override { return 0; }
-  std::size_t DisassembleFarCode(const JitBlock&, std::ostream&) const override { return 0; }
-  const CommonAsmRoutinesBase* GetAsmRoutines() override { return nullptr; }
-  virtual bool HandleFault(uintptr_t access_address, SContext* ctx) override
+  bool HandleFault(uintptr_t access_address, SContext* ctx) override
   {
     m_pre_unprotect_time = std::chrono::high_resolution_clock::now();
     Common::UnWriteProtectMemory(m_data, PAGE_GRAN, /*allowExecute*/ false);
@@ -92,8 +76,8 @@ TEST(PageFault, PageFault)
   perform_invalid_access(data);
   auto end = std::chrono::high_resolution_clock::now();
 
-  auto difference_in_nanoseconds = [](auto start, auto end) {
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+  auto difference_in_nanoseconds = [](auto diff_start, auto diff_end) {
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(diff_end - diff_start).count();
   };
 
   EMM::UninstallExceptionHandler();

@@ -3,7 +3,8 @@
 
 #include "VideoCommon/UberShaderCommon.h"
 
-#include "Common/EnumUtils.h"
+#include <utility>
+
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/VideoCommon.h"
@@ -120,11 +121,11 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, std::string_view wor
   out.Write("  if ({} != 0u) {{\n", BitfieldExtract<&LitChannel::enablelighting>("alphareg"));
   out.Write("    if ({} != 0u) {{\n", BitfieldExtract<&LitChannel::ambsource>("alphareg"));
   out.Write("      if ((components & ({}u << chan)) != 0u) // VB_HAS_COL0\n",
-            Common::ToUnderlying(VB_HAS_COL0));
+            std::to_underlying(VB_HAS_COL0));
   out.Write("        lacc.w = int(round(((chan == 0u) ? {}.w : {}.w) * 255.0));\n", in_color_0_var,
             in_color_1_var);
   out.Write("      else if ((components & {}u) != 0u) // VB_HAS_COLO0\n",
-            Common::ToUnderlying(VB_HAS_COL0));
+            std::to_underlying(VB_HAS_COL0));
   out.Write("        lacc.w = int(round({}.w * 255.0));\n", in_color_0_var);
   out.Write("      else\n"
             "        lacc.w = 255;\n"

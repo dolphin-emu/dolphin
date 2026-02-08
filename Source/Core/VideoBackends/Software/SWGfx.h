@@ -16,7 +16,7 @@ public:
   ~SWGfx() override;
 
   bool IsHeadless() const override;
-  virtual bool SupportsUtilityDrawing() const override;
+  bool SupportsUtilityDrawing() const override;
 
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config,
                                                  std::string_view name) override;
@@ -28,8 +28,10 @@ public:
 
   bool BindBackbuffer(const ClearColor& clear_color = {}) override;
 
-  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage, std::string_view source,
-                                                         std::string_view name) override;
+  std::unique_ptr<AbstractShader>
+  CreateShaderFromSource(ShaderStage stage, std::string_view source,
+                         VideoCommon::ShaderIncluder* shader_includer,
+                         std::string_view name) override;
   std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage, const void* data,
                                                          size_t length,
                                                          std::string_view name) override;

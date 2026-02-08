@@ -4,7 +4,6 @@
 #include "Core/IOS/ES/ES.h"
 
 #include <cstdio>
-#include <string>
 #include <vector>
 
 #include "Common/Logging/Log.h"

@@ -74,13 +74,13 @@ map = read_map(sys.argv[1])
 def lookup(address):
     i = 0
     j = len(map)
-    while(True):
-        if (j < i):
+    while True:
+        if j < i:
             return "JIT_PPC_[unknown]"
         k = round((j + i) // 2)
-        if (address < map[k].start):
+        if address < map[k].start:
             j = k - 1
-        elif (address >= map[k].end):
+        elif address >= map[k].end:
             i = k + 1
         else:
             return "JIT_PPC_" + map[k].name

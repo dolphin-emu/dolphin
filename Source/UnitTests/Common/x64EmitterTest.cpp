@@ -4,7 +4,6 @@
 #include <cstring>
 #include <disasm.h>  // From Bochs, fallback included in Externals.
 #include <gtest/gtest.h>
-#include <map>
 #include <memory>
 #include <vector>
 
@@ -194,7 +193,7 @@ protected:
 
   void ExpectBytes(const std::vector<u8> expected_bytes)
   {
-    const std::vector<u8> code_bytes(code_buffer, emitter->GetWritableCodePtr());
+    const std::vector code_bytes(code_buffer, emitter->GetWritableCodePtr());
 
     EXPECT_EQ(expected_bytes, code_bytes);
 
@@ -298,12 +297,14 @@ TEST_F(x64EmitterTest, POP_Register)
 TEST_F(x64EmitterTest, JMP)
 {
   emitter->NOP(1);
-  emitter->JMP(code_buffer, XEmitter::Jump::Short);
+  emitter->JMP(code_buffer);
   ExpectBytes({/* nop */ 0x90, /* short jmp */ 0xeb, /* offset -3 */ 0xfd});
 
-  emitter->NOP(1);
-  emitter->JMP(code_buffer, XEmitter::Jump::Near);
-  ExpectBytes({/* nop */ 0x90, /* near jmp */ 0xe9, /* offset -6 */ 0xfa, 0xff, 0xff, 0xff});
+  emitter->NOP(0x90);
+  const u8* after_nops = emitter->GetCodePtr();
+  ResetCodeBuffer();
+  emitter->JMP(after_nops);
+  ExpectBytes({/* near jmp */ 0xe9, /* offset */ 0x8B, 0, 0, 0});
 }
 
 TEST_F(x64EmitterTest, JMPptr_Register)

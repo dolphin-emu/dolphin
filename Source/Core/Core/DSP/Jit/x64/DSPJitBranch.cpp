@@ -109,7 +109,7 @@ void DSPEmitter::WriteBranchExit()
   {
     MOV(16, R(EAX), Imm16(m_block_size[m_start_address]));
   }
-  JMP(m_return_dispatcher, Jump::Near);
+  JMP(m_return_dispatcher);
   m_gpr.LoadRegs(false);
   m_gpr.FlushRegs(c, false);
 }
@@ -130,7 +130,7 @@ void DSPEmitter::WriteBlockLink(u16 dest)
 
       SUB(16, R(ECX), Imm16(m_block_size[m_start_address]));
       MOV(16, MatR(RAX), R(ECX));
-      JMP(m_block_links[dest], Jump::Near);
+      JMP(m_block_links[dest]);
       SetJumpTarget(notEnoughCycles);
     }
     else

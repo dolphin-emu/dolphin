@@ -14,7 +14,6 @@
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
-#include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Common/Timer.h"
@@ -296,7 +295,7 @@ void CEXIIPL::TransferByte(u8& data)
     DEBUG_LOG_FMT(EXPANSIONINTERFACE, "IPL-DEV data {} {:08x} {:02x}",
                   m_command.is_write() ? "write" : "read", address, data);
 
-    auto UartFifoAccess = [&]() {
+    auto UartFifoAccess = [&] {
       if (m_command.is_write())
       {
         if (data != '\0')

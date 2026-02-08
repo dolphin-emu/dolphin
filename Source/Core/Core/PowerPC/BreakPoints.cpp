@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
@@ -17,7 +18,7 @@
 #include "Core/PowerPC/Expression.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
-#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/System.h"
 
 BreakPoints::BreakPoints(Core::System& system) : m_system(system)
@@ -252,6 +253,7 @@ MemChecks::TMemChecksStr MemChecks::GetStrings() const
 void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
 {
   const Core::CPUThreadGuard guard(m_system);
+  DelayedMemCheckUpdate delayed_update(this);
 
   for (const std::string& mc_string : mc_strings)
   {
@@ -279,13 +281,11 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
       mc.condition = Expression::TryParse(condition);
     }
 
-    Add(std::move(mc), false);
+    delayed_update |= Add(std::move(mc));
   }
-
-  Update();
 }
 
-void MemChecks::Add(TMemCheck memory_check, bool update)
+DelayedMemCheckUpdate MemChecks::Add(TMemCheck memory_check)
 {
   const Core::CPUThreadGuard guard(m_system);
 
@@ -304,8 +304,7 @@ void MemChecks::Add(TMemCheck memory_check, bool update)
     m_mem_checks.emplace_back(std::move(memory_check));
   }
 
-  if (update)
-    Update();
+  return DelayedMemCheckUpdate(this, true);
 }
 
 bool MemChecks::ToggleEnable(u32 address)
@@ -319,20 +318,17 @@ bool MemChecks::ToggleEnable(u32 address)
   return true;
 }
 
-bool MemChecks::Remove(u32 address, bool update)
+DelayedMemCheckUpdate MemChecks::Remove(u32 address)
 {
   const auto iter = std::ranges::find(m_mem_checks, address, &TMemCheck::start_address);
 
   if (iter == m_mem_checks.cend())
-    return false;
+    return DelayedMemCheckUpdate(this, false);
 
   const Core::CPUThreadGuard guard(m_system);
   m_mem_checks.erase(iter);
 
-  if (update)
-    Update();
-
-  return true;
+  return DelayedMemCheckUpdate(this, true);
 }
 
 void MemChecks::Clear()
@@ -346,14 +342,40 @@ void MemChecks::Update()
 {
   const Core::CPUThreadGuard guard(m_system);
 
-  // Clear the JIT cache so it can switch the watchpoint-compatible mode.
-  if (m_mem_breakpoints_set != HasAny())
+  const bool registers_changed = UpdateRegistersUsedInConditions();
+
+  // If we've added a first memcheck, clear the JIT cache so it can switch to watchpoint-compatible
+  // code. Or, if we've added a memcheck whose condition wants to read from a new register, clear
+  // the JIT cache to make the slow memory access code flush that register. And conversely, if the
+  // aforementioned functionality is no longer needed, clear the JIT cache to switch to faster code.
+  if (registers_changed || m_mem_breakpoints_set != HasAny())
   {
     m_system.GetJitInterface().ClearCache(guard);
     m_mem_breakpoints_set = HasAny();
   }
 
   m_system.GetMMU().DBATUpdated();
+}
+
+bool MemChecks::UpdateRegistersUsedInConditions()
+{
+  BitSet32 gprs_used, fprs_used;
+  for (TMemCheck& mem_check : m_mem_checks)
+  {
+    if (mem_check.condition)
+    {
+      gprs_used |= mem_check.condition->GetGPRsUsed();
+      fprs_used |= mem_check.condition->GetFPRsUsed();
+    }
+  }
+
+  const bool registers_changed =
+      gprs_used != m_gprs_used_in_conditions || fprs_used != m_fprs_used_in_conditions;
+
+  m_gprs_used_in_conditions = gprs_used;
+  m_fprs_used_in_conditions = fprs_used;
+
+  return registers_changed;
 }
 
 TMemCheck* MemChecks::GetMemCheck(u32 address, size_t size)

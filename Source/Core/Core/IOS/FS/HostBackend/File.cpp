@@ -4,6 +4,7 @@
 #include "Core/IOS/FS/HostBackend/FS.h"
 
 #include <algorithm>
+#include <expected>
 #include <memory>
 
 #include "Common/FileUtil.h"
@@ -78,26 +79,26 @@ Result<FileHandle> HostFileSystem::OpenFile(Uid, Gid, const std::string& path, M
 {
   Handle* handle = AssignFreeHandle();
   if (!handle)
-    return ResultCode::NoFreeHandle;
+    return std::unexpected{ResultCode::NoFreeHandle};
 
   const std::string host_path = BuildFilename(path).host_path;
   if (File::IsDirectory(host_path))
   {
     *handle = Handle{};
-    return ResultCode::Invalid;
+    return std::unexpected{ResultCode::Invalid};
   }
 
   if (!File::IsFile(host_path))
   {
     *handle = Handle{};
-    return ResultCode::NotFound;
+    return std::unexpected{ResultCode::NotFound};
   }
 
   handle->host_file = OpenHostFile(host_path);
   if (!handle->host_file)
   {
     *handle = Handle{};
-    return ResultCode::AccessDenied;
+    return std::unexpected{ResultCode::AccessDenied};
   }
 
   handle->wii_path = path;
@@ -122,10 +123,10 @@ Result<u32> HostFileSystem::ReadBytesFromFile(Fd fd, u8* ptr, u32 count)
 {
   Handle* handle = GetHandleFromFd(fd);
   if (!handle || !handle->host_file->IsOpen())
-    return ResultCode::Invalid;
+    return std::unexpected{ResultCode::Invalid};
 
   if ((u8(handle->mode) & u8(Mode::Read)) == 0)
-    return ResultCode::AccessDenied;
+    return std::unexpected{ResultCode::AccessDenied};
 
   const u32 file_size = static_cast<u32>(handle->host_file->GetSize());
   // IOS has this check in the read request handler.
@@ -137,7 +138,7 @@ Result<u32> HostFileSystem::ReadBytesFromFile(Fd fd, u8* ptr, u32 count)
   const u32 actually_read = static_cast<u32>(fread(ptr, 1, count, handle->host_file->GetHandle()));
 
   if (actually_read != count && ferror(handle->host_file->GetHandle()))
-    return ResultCode::AccessDenied;
+    return std::unexpected{ResultCode::AccessDenied};
 
   // IOS returns the number of bytes read and adds that value to the seek position,
   // instead of adding the *requested* read length.
@@ -149,15 +150,15 @@ Result<u32> HostFileSystem::WriteBytesToFile(Fd fd, const u8* ptr, u32 count)
 {
   Handle* handle = GetHandleFromFd(fd);
   if (!handle || !handle->host_file->IsOpen())
-    return ResultCode::Invalid;
+    return std::unexpected{ResultCode::Invalid};
 
   if ((u8(handle->mode) & u8(Mode::Write)) == 0)
-    return ResultCode::AccessDenied;
+    return std::unexpected{ResultCode::AccessDenied};
 
   // File might be opened twice, need to seek before we read
   handle->host_file->Seek(handle->file_offset, File::SeekOrigin::Begin);
   if (!handle->host_file->WriteBytes(ptr, count))
-    return ResultCode::AccessDenied;
+    return std::unexpected{ResultCode::AccessDenied};
 
   handle->file_offset += count;
   return count;
@@ -167,7 +168,7 @@ Result<u32> HostFileSystem::SeekFile(Fd fd, std::uint32_t offset, SeekMode mode)
 {
   Handle* handle = GetHandleFromFd(fd);
   if (!handle || !handle->host_file->IsOpen())
-    return ResultCode::Invalid;
+    return std::unexpected{ResultCode::Invalid};
 
   u32 new_position = 0;
   switch (mode)
@@ -182,12 +183,12 @@ Result<u32> HostFileSystem::SeekFile(Fd fd, std::uint32_t offset, SeekMode mode)
     new_position = handle->host_file->GetSize() + offset;
     break;
   default:
-    return ResultCode::Invalid;
+    return std::unexpected{ResultCode::Invalid};
   }
 
   // This differs from POSIX behaviour which allows seeking past the end of the file.
   if (handle->host_file->GetSize() < new_position)
-    return ResultCode::Invalid;
+    return std::unexpected{ResultCode::Invalid};
 
   handle->file_offset = new_position;
   return handle->file_offset;
@@ -197,7 +198,7 @@ Result<FileStatus> HostFileSystem::GetFileStatus(Fd fd)
 {
   const Handle* handle = GetHandleFromFd(fd);
   if (!handle || !handle->host_file->IsOpen())
-    return ResultCode::Invalid;
+    return std::unexpected{ResultCode::Invalid};
 
   FileStatus status;
   status.size = handle->host_file->GetSize();

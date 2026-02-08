@@ -3,13 +3,13 @@
 
 #include "Core/CheatGeneration.h"
 
+#include <expected>
 #include <vector>
 
 #include <fmt/format.h>
 
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
-#include "Common/Result.h"
 #include "Common/Swap.h"
 
 #include "Core/ActionReplay.h"
@@ -52,20 +52,20 @@ static std::vector<ActionReplay::AREntry> ResultToAREntries(u32 addr, const Chea
   return codes;
 }
 
-Common::Result<Cheats::GenerateActionReplayCodeErrorCode, ActionReplay::ARCode>
+std::expected<ActionReplay::ARCode, Cheats::GenerateActionReplayCodeErrorCode>
 Cheats::GenerateActionReplayCode(const Cheats::CheatSearchSessionBase& session, size_t index)
 {
   if (index >= session.GetResultCount())
-    return Cheats::GenerateActionReplayCodeErrorCode::IndexOutOfRange;
+    return std::unexpected{Cheats::GenerateActionReplayCodeErrorCode::IndexOutOfRange};
 
   if (session.GetResultValueState(index) != Cheats::SearchResultValueState::ValueFromVirtualMemory)
-    return Cheats::GenerateActionReplayCodeErrorCode::NotVirtualMemory;
+    return std::unexpected{Cheats::GenerateActionReplayCodeErrorCode::NotVirtualMemory};
 
   u32 address = session.GetResultAddress(index);
 
   // check if the address is actually addressable by the ActionReplay system
   if (((address & 0x01ff'ffffu) | 0x8000'0000u) != address)
-    return Cheats::GenerateActionReplayCodeErrorCode::InvalidAddress;
+    return std::unexpected{Cheats::GenerateActionReplayCodeErrorCode::InvalidAddress};
 
   ActionReplay::ARCode ar_code;
   ar_code.enabled = true;

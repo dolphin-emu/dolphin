@@ -5,11 +5,9 @@
 
 #include <array>
 #include <cstring>
-#include <string>
 
 #include "Common/BitSet.h"
 #include "Common/CPUDetect.h"
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/Intrinsics.h"
 #include "Common/JitRegister.h"
@@ -125,7 +123,7 @@ void VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute,
 
   X64Reg coords = XMM0;
 
-  const auto write_zfreeze = [&]() {  // zfreeze
+  const auto write_zfreeze = [&] {  // zfreeze
     if (native_format == &m_native_vtx_decl.position)
     {
       CMP(32, R(remaining_reg), Imm8(3));

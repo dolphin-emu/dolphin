@@ -29,7 +29,7 @@ class Device final : public Core::Device
 {
 public:
   Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote);
-  ~Device();
+  ~Device() override;
 
   std::string GetName() const override;
   std::string GetSource() const override;

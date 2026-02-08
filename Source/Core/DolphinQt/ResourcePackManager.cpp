@@ -14,7 +14,6 @@
 #include "Common/FileUtil.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "UICommon/ResourcePack/Manager.h"
 
 ResourcePackManager::ResourcePackManager(QWidget* widget) : QDialog(widget)
@@ -24,7 +23,6 @@ ResourcePackManager::ResourcePackManager(QWidget* widget) : QDialog(widget)
   RepopulateTable();
 
   setWindowTitle(tr("Resource Pack Manager"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   resize(QSize(900, 600));
 }
@@ -164,7 +162,7 @@ void ResourcePackManager::RepopulateTable()
   SelectionChanged();
 }
 
-// Revert the indicies as to be more intuitive for users
+// Revert the indices as to be more intuitive for users
 int ResourcePackManager::GetResourcePackIndex(QTableWidgetItem* item) const
 {
   return m_table_widget->rowCount() - 1 - item->row();
@@ -242,7 +240,6 @@ void ResourcePackManager::Remove()
   box.setIcon(QMessageBox::Warning);
   box.setStandardButtons(QMessageBox::Yes | QMessageBox::Abort);
 
-  SetQWidgetWindowDecorations(&box);
   if (box.exec() != QMessageBox::Yes)
     return;
 

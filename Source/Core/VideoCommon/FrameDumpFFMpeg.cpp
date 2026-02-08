@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/FrameDumpFFMpeg.h"
+#include "Common/TimeUtil.h"
 
 #if defined(__FreeBSD__)
 #define __STDC_CONSTANT_MACROS 1
@@ -62,13 +63,14 @@ struct FrameDumpContext
 
 namespace
 {
-AVRational GetTimeBaseForCurrentRefreshRate()
+AVRational GetTimeBaseForCurrentRefreshRate(s64 max_denominator)
 {
+  // TODO: GetTargetRefreshRate* are not safe from GPU thread.
   auto& vi = Core::System::GetInstance().GetVideoInterface();
   int num;
   int den;
   av_reduce(&num, &den, int(vi.GetTargetRefreshRateDenominator()),
-            int(vi.GetTargetRefreshRateNumerator()), std::numeric_limits<int>::max());
+            int(vi.GetTargetRefreshRateNumerator()), max_denominator);
   return AVRational{num, den};
 }
 
@@ -124,11 +126,15 @@ std::string GetDumpPath(const std::string& extension, std::time_t time, u32 inde
   if (!dump_path.empty())
     return dump_path;
 
+  const auto local_time = Common::LocalTime(time);
+  if (!local_time)
+    return "";
+
   const std::string path_prefix =
       File::GetUserPath(D_DUMPFRAMES_IDX) + SConfig::GetInstance().GetGameID();
 
   const std::string base_name =
-      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}_{}", path_prefix, fmt::localtime(time), index);
+      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}_{}", path_prefix, *local_time, index);
 
   const std::string path = fmt::format("{}.{}", base_name, extension);
 
@@ -248,11 +254,16 @@ bool FFMpegFrameDump::CreateVideoFile()
     return false;
   }
 
+  m_max_denominator = std::numeric_limits<s64>::max();
+
   // Force XVID FourCC for better compatibility when using H.263
   if (codec->id == AV_CODEC_ID_MPEG4)
+  {
     m_context->codec->codec_tag = MKTAG('X', 'V', 'I', 'D');
+    m_max_denominator = std::numeric_limits<unsigned short>::max();
+  }
 
-  const auto time_base = GetTimeBaseForCurrentRefreshRate();
+  const auto time_base = GetTimeBaseForCurrentRefreshRate(m_max_denominator);
 
   INFO_LOG_FMT(FRAMEDUMP, "Creating video file: {} x {} @ {}/{} fps", m_context->width,
                m_context->height, time_base.den, time_base.num);
@@ -358,6 +369,7 @@ void FFMpegFrameDump::AddFrame(const FrameData& frame)
   // Calculate presentation timestamp from ticks since start.
   const s64 pts = av_rescale_q(
       frame.state.ticks - m_context->start_ticks,
+      // TODO: GetTicksPerSecond is not safe from GPU thread.
       AVRational{1, int(Core::System::GetInstance().GetSystemTimers().GetTicksPerSecond())},
       m_context->codec->time_base);
 
@@ -535,7 +547,7 @@ FrameState FFMpegFrameDump::FetchState(u64 ticks, int frame_number) const
   state.frame_number = frame_number;
   state.savestate_index = m_savestate_index;
 
-  const auto time_base = GetTimeBaseForCurrentRefreshRate();
+  const auto time_base = GetTimeBaseForCurrentRefreshRate(m_max_denominator);
   state.refresh_rate_num = time_base.den;
   state.refresh_rate_den = time_base.num;
   return state;

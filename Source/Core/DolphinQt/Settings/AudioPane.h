@@ -66,5 +66,6 @@ private:
 
   // Misc Settings
   ConfigBool* m_audio_fill_gaps;
+  ConfigBool* m_audio_preserve_pitch;
   ConfigBool* m_speed_up_mute_enable;
 };

@@ -36,8 +36,8 @@
 #include <windows.h>
 #include <stdlib.h>
 #include <winioctl.h>
-#define TAP_WIN32_MIN_MAJOR 9
-#define TAP_WIN32_MIN_MINOR 0
+constexpr int TAP_WIN32_MIN_MAJOR = 9;
+constexpr int TAP_WIN32_MIN_MINOR = 0;
 
 //=============
 // TAP IOCTLs

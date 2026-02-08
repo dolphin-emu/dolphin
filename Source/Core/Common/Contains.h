@@ -5,22 +5,32 @@
 
 #include <algorithm>
 #include <iterator>
+#include <version>
 
 namespace Common
 {
+#if defined(__cpp_lib_ranges_contains) && __cpp_lib_ranges_contains >= 202202L
+
+// Use the standard library functions if available (C++23)
+inline constexpr auto& Contains = std::ranges::contains;
+inline constexpr auto& ContainsSubrange = std::ranges::contains_subrange;
+
+#else
+// TODO C++23: This old implementation likely isn't needed once migrated to C++23. Remove them or
+// this file itself. Ad hoc implementations for C++20
 struct ContainsFn
 {
   template <std::input_iterator I, std::sentinel_for<I> S, class T, class Proj = std::identity>
-  requires std::indirect_binary_predicate < std::ranges::equal_to, std::projected<I, Proj>,
-  const T* > constexpr bool operator()(I first, S last, const T& value, Proj proj = {}) const
+  requires std::indirect_binary_predicate<std::ranges::equal_to, std::projected<I, Proj>, const T*>
+  constexpr bool operator()(I first, S last, const T& value, Proj proj = {}) const
   {
     return std::ranges::find(std::move(first), last, value, std::move(proj)) != last;
   }
 
   template <std::ranges::input_range R, class T, class Proj = std::identity>
-  requires std::indirect_binary_predicate < std::ranges::equal_to,
-      std::projected<std::ranges::iterator_t<R>, Proj>,
-  const T* > constexpr bool operator()(R&& r, const T& value, Proj proj = {}) const
+  requires std::indirect_binary_predicate<
+      std::ranges::equal_to, std::projected<std::ranges::iterator_t<R>, Proj>, const T*>
+  constexpr bool operator()(R&& r, const T& value, Proj proj = {}) const
   {
     return (*this)(std::ranges::begin(r), std::ranges::end(r), value, std::move(proj));
   }
@@ -54,8 +64,8 @@ struct ContainsSubrangeFn
   }
 };
 
-// TODO C++23: Replace with std::ranges::contains.
 inline constexpr ContainsFn Contains{};
-// TODO C++23: Replace with std::ranges::contains_subrange.
 inline constexpr ContainsSubrangeFn ContainsSubrange{};
+
+#endif
 }  // namespace Common

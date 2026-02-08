@@ -250,7 +250,7 @@ void OpArg::WriteVEX(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp
   int X = !(indexReg & 8);
   int B = !(offsetOrBaseReg & 8);
 
-  int vvvv = (regOp2 == X64Reg::INVALID_REG) ? 0xf : (regOp2 ^ 0xf);
+  u8 vvvv = (regOp2 == X64Reg::INVALID_REG) ? 0xf : (regOp2 ^ 0xf);
 
   // do we need any VEX fields that only appear in the three-byte form?
   if (X == 1 && B == 1 && W == 0 && mmmmm == 1)
@@ -343,7 +343,7 @@ void OpArg::WriteRest(XEmitter* emit, int extraBytes, X64Reg _operandReg,
   if (SIB)
     oreg = 4;
 
-  emit->WriteModRM(mod, _operandReg & 7, oreg & 7);
+  emit->WriteModRM(mod, _operandReg, oreg);
 
   if (SIB)
   {
@@ -412,26 +412,30 @@ void XEmitter::Rex(int w, int r, int x, int b)
     Write8(rx);
 }
 
-void XEmitter::JMP(const u8* addr, const Jump jump)
+void XEmitter::JMP(const u8* addr, bool force_near_padding)
 {
   u64 fn = (u64)addr;
-  if (jump == Jump::Short)
+  s64 distance = (s64)(fn - ((u64)code + SHORT_JMP_LEN));
+  if (distance < -0x80 || distance >= 0x80)
   {
-    s64 distance = (s64)(fn - ((u64)code + 2));
-    ASSERT_MSG(DYNA_REC, distance >= -0x80 && distance < 0x80,
-               "Jump::Short target too far away ({}), needs Jump::Near", distance);
-    // 8 bits will do
-    Write8(0xEB);
-    Write8((u8)(s8)distance);
+    distance = (s64)(fn - ((u64)code + NEAR_JMP_LEN));
+    ASSERT_MSG(DYNA_REC, distance >= -0x80000000LL && distance < 0x80000000LL,
+               "Jump target too far away ({}), needs indirect register", distance);
+    Write8(0xE9);
+    Write32((u32)(s32)distance);
   }
   else
   {
-    s64 distance = (s64)(fn - ((u64)code + 5));
-
-    ASSERT_MSG(DYNA_REC, distance >= -0x80000000LL && distance < 0x80000000LL,
-               "Jump::Near target too far away ({}), needs indirect register", distance);
-    Write8(0xE9);
-    Write32((u32)(s32)distance);
+    Write8(0xEB);
+    Write8((u8)(s8)distance);
+    if (force_near_padding)
+    {
+      for (int i = 0; i < NEAR_JMP_LEN - SHORT_JMP_LEN; i++)
+      {
+        // INT3 is more efficient than NOP if never executed, as it stops CPU speculation.
+        INT3();
+      }
+    }
   }
 }
 
@@ -1844,8 +1848,9 @@ void XEmitter::WriteVEXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, con
 {
   int mmmmm = GetVEXmmmmm(op);
   int pp = GetVEXpp(opPrefix);
-  // FIXME: we currently don't support 256-bit instructions, and "size" is not the vector size here
-  arg.WriteVEX(this, regOp1, regOp2, 0, pp, mmmmm, W);
+  // Note that mixing an XMM register with a YMM register is invalid, which isn't checked here.
+  int L = (regOp1 != INVALID_REG && regOp1 & 0x100) || (regOp2 != INVALID_REG && regOp2 & 0x100);
+  arg.WriteVEX(this, regOp1, regOp2, L, pp, mmmmm, W);
   Write8(op & 0xFF);
   arg.WriteRest(this, extrabytes, regOp1);
 }
@@ -1857,19 +1862,23 @@ void XEmitter::WriteVEXOp4(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, co
   Write8((u8)regOp3 << 4);
 }
 
-void XEmitter::WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg,
-                          int W, int extrabytes)
+static void CheckAVXSupport()
 {
   if (!cpu_info.bAVX)
     PanicAlertFmt("Trying to use AVX on a system that doesn't support it. Bad programmer.");
+}
+
+void XEmitter::WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg,
+                          int W, int extrabytes)
+{
+  CheckAVXSupport();
   WriteVEXOp(opPrefix, op, regOp1, regOp2, arg, W, extrabytes);
 }
 
 void XEmitter::WriteAVXOp4(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg,
                            X64Reg regOp3, int W)
 {
-  if (!cpu_info.bAVX)
-    PanicAlertFmt("Trying to use AVX on a system that doesn't support it. Bad programmer.");
+  CheckAVXSupport();
   WriteVEXOp4(opPrefix, op, regOp1, regOp2, arg, regOp3, W);
 }
 
@@ -2510,19 +2519,19 @@ void XEmitter::PUNPCKLQDQ(X64Reg dest, const OpArg& arg)
   WriteSSEOp(0x66, 0x6C, dest, arg);
 }
 
-void XEmitter::PSRLW(X64Reg reg, int shift)
+void XEmitter::PSRLW(X64Reg reg, u8 shift)
 {
   WriteSSEOp(0x66, 0x71, (X64Reg)2, R(reg));
   Write8(shift);
 }
 
-void XEmitter::PSRLD(X64Reg reg, int shift)
+void XEmitter::PSRLD(X64Reg reg, u8 shift)
 {
   WriteSSEOp(0x66, 0x72, (X64Reg)2, R(reg));
   Write8(shift);
 }
 
-void XEmitter::PSRLQ(X64Reg reg, int shift)
+void XEmitter::PSRLQ(X64Reg reg, u8 shift)
 {
   WriteSSEOp(0x66, 0x73, (X64Reg)2, R(reg));
   Write8(shift);
@@ -2533,38 +2542,38 @@ void XEmitter::PSRLQ(X64Reg reg, const OpArg& arg)
   WriteSSEOp(0x66, 0xd3, reg, arg);
 }
 
-void XEmitter::PSRLDQ(X64Reg reg, int shift)
+void XEmitter::PSRLDQ(X64Reg reg, u8 shift)
 {
   WriteSSEOp(0x66, 0x73, (X64Reg)3, R(reg));
   Write8(shift);
 }
 
-void XEmitter::PSLLW(X64Reg reg, int shift)
+void XEmitter::PSLLW(X64Reg reg, u8 shift)
 {
   WriteSSEOp(0x66, 0x71, (X64Reg)6, R(reg));
   Write8(shift);
 }
 
-void XEmitter::PSLLD(X64Reg reg, int shift)
+void XEmitter::PSLLD(X64Reg reg, u8 shift)
 {
   WriteSSEOp(0x66, 0x72, (X64Reg)6, R(reg));
   Write8(shift);
 }
 
-void XEmitter::PSLLQ(X64Reg reg, int shift)
+void XEmitter::PSLLQ(X64Reg reg, u8 shift)
 {
   WriteSSEOp(0x66, 0x73, (X64Reg)6, R(reg));
   Write8(shift);
 }
 
-void XEmitter::PSLLDQ(X64Reg reg, int shift)
+void XEmitter::PSLLDQ(X64Reg reg, u8 shift)
 {
   WriteSSEOp(0x66, 0x73, (X64Reg)7, R(reg));
   Write8(shift);
 }
 
 // WARNING not REX compatible
-void XEmitter::PSRAW(X64Reg reg, int shift)
+void XEmitter::PSRAW(X64Reg reg, u8 shift)
 {
   if (reg > 7)
     PanicAlertFmt("The PSRAW-emitter does not support regs above 7");
@@ -2576,7 +2585,7 @@ void XEmitter::PSRAW(X64Reg reg, int shift)
 }
 
 // WARNING not REX compatible
-void XEmitter::PSRAD(X64Reg reg, int shift)
+void XEmitter::PSRAD(X64Reg reg, u8 shift)
 {
   if (reg > 7)
     PanicAlertFmt("The PSRAD-emitter does not support regs above 7");
@@ -2684,6 +2693,11 @@ void XEmitter::BLENDPD(X64Reg dest, const OpArg& arg, u8 blend)
 {
   WriteSSE41Op(0x66, 0x3A0D, dest, arg, 1);
   Write8(blend);
+}
+
+void XEmitter::PCMPEQQ(X64Reg dest, const OpArg& arg)
+{
+  WriteSSE41Op(0x66, 0x3829, dest, arg);
 }
 
 void XEmitter::PAND(X64Reg dest, const OpArg& arg)
@@ -3027,6 +3041,25 @@ void XEmitter::VPOR(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
 void XEmitter::VPXOR(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x66, 0xEF, regOp1, regOp2, arg);
+}
+
+void XEmitter::VPSLLQ(X64Reg regOp1, X64Reg regOp2, u8 shift)
+{
+  WriteAVXOp(0x66, 0x73, (X64Reg)6, regOp1, R(regOp2));
+  Write8(shift);
+}
+
+void XEmitter::VMOVAPS(const OpArg& arg, X64Reg regOp)
+{
+  WriteAVXOp(0x00, 0x29, regOp, X64Reg::INVALID_REG, arg);
+}
+
+void XEmitter::VZEROUPPER()
+{
+  CheckAVXSupport();
+  Write8(0xC5);
+  Write8(0xF8);
+  Write8(0x77);
 }
 
 void XEmitter::VFMADD132PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)

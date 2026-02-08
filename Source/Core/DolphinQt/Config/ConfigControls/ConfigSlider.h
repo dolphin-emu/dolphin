@@ -11,6 +11,7 @@
 #include "DolphinQt/Config/ConfigControls/ConfigControl.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipSlider.h"
 
+#include "Common/CommonTypes.h"
 #include "Common/Config/ConfigInfo.h"
 
 class ConfigSlider final : public ConfigControl<ToolTipSlider>
@@ -36,6 +37,25 @@ private:
 
   // Mappings for slider ticks to config values. Identity mapping is assumed if this is empty.
   std::vector<int> m_tick_values;
+};
+
+class ConfigSliderU32 final : public ConfigControl<ToolTipSlider>
+{
+  Q_OBJECT
+public:
+  ConfigSliderU32(u32 minimum, u32 maximum, const Config::Info<u32>& setting, u32 scale = 1);
+  ConfigSliderU32(u32 minimum, u32 maximum, const Config::Info<u32>& setting, Config ::Layer* layer,
+                  u32 scale = 1);
+
+  void Update(u32 value);
+
+protected:
+  void OnConfigChanged() override;
+
+private:
+  const Config::Info<u32> m_setting;
+
+  u32 m_scale = 1;
 };
 
 class ConfigSliderLabel final : public QLabel

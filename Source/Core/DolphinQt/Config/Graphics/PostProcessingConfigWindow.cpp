@@ -22,7 +22,6 @@
 
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/Present.h"
-#include "VideoCommon/VideoConfig.h"
 
 using ConfigurationOption = VideoCommon::PostProcessingConfiguration::ConfigurationOption;
 using OptionType = ConfigurationOption::OptionType;
@@ -42,11 +41,12 @@ PostProcessingConfigWindow::PostProcessingConfigWindow(EnhancementsWidget* paren
   }
 
   setWindowTitle(tr("Post-Processing Shader Configuration"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   PopulateGroups();
   Create();
   ConnectWidgets();
+
+  adjustSize();
 }
 
 PostProcessingConfigWindow::~PostProcessingConfigWindow()

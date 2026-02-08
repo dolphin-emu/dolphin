@@ -17,12 +17,9 @@
 #include "DolphinQt/Config/ConfigControls/ConfigFloatSlider.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
-#include "VideoCommon/VideoConfig.h"
-
 ColorCorrectionConfigWindow::ColorCorrectionConfigWindow(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("Color Correction Configuration"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   Create();
   ConnectWidgets();
@@ -156,8 +153,8 @@ void ColorCorrectionConfigWindow::Create()
   layout->addStretch();
   layout->addWidget(m_button_box);
 
-  setLayout(layout);
   WrapInScrollArea(this, layout);
+  adjustSize();
 }
 
 void ColorCorrectionConfigWindow::ConnectWidgets()

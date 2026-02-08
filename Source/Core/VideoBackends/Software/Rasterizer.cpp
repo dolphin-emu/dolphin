@@ -18,6 +18,7 @@
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/XFMemory.h"
 
 namespace Rasterizer
 {
@@ -113,7 +114,9 @@ void Init()
 
 void ScissorChanged()
 {
-  scissors = std::move(BPFunctions::ComputeScissorRects().m_result);
+  auto scissor_result = BPFunctions::ComputeScissorRects(bpmem.scissorTL, bpmem.scissorBR,
+                                                         bpmem.scissorOffset, xfmem.viewport);
+  scissors = std::move(scissor_result.rectangles);
 }
 
 // Returns approximation of log2(f) in s28.4
@@ -153,7 +156,7 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
   {
     // TODO: Test if perf regs are incremented even if test is disabled
     EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_INPUT_ZCOMPLOC);
-    if (bpmem.zmode.testenable)
+    if (bpmem.zmode.test_enable)
     {
       // early z
       if (!EfbInterface::ZCompare(x, y, z))
@@ -173,12 +176,8 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
   {
     for (int comp = 0; comp < 4; comp++)
     {
-      u16 color = (u16)ColorSlopes[i][comp].GetValue(x, y);
-
-      // clamp color value to 0
-      u16 mask = ~(color >> 8);
-
-      tev.Color[i][comp] = color & mask;
+      const float color = ColorSlopes[i][comp].GetValue(x, y);
+      tev.Color[i][comp] = (u8)std::clamp<float>(color, 0.0f, 255.0f);
     }
   }
 
@@ -392,11 +391,12 @@ static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertex
 
   for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
   {
-    for (int comp = 0; comp < 3; comp++)
-    {
-      TexSlopes[i][comp] = Slope(v0->texCoords[i][comp] * w[0], v1->texCoords[i][comp] * w[1],
-                                 v2->texCoords[i][comp] * w[2], ctx);
-    }
+    TexSlopes[i][0] =
+        Slope(v0->texCoords[i].x * w[0], v1->texCoords[i].x * w[1], v2->texCoords[i].x * w[2], ctx);
+    TexSlopes[i][1] =
+        Slope(v0->texCoords[i].y * w[0], v1->texCoords[i].y * w[1], v2->texCoords[i].y * w[2], ctx);
+    TexSlopes[i][2] =
+        Slope(v0->texCoords[i].z * w[0], v1->texCoords[i].z * w[1], v2->texCoords[i].z * w[2], ctx);
   }
 
   // Half-edge constants

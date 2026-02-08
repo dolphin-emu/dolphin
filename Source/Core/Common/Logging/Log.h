@@ -5,7 +5,6 @@
 
 #include <cstddef>
 #include <fmt/format.h>
-#include <string_view>
 #include "Common/FormatUtil.h"
 
 namespace Common::Log
@@ -82,9 +81,9 @@ enum class LogLevel : int
 };
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-constexpr auto MAX_LOGLEVEL = Common::Log::LogLevel::LDEBUG;
+constexpr auto MAX_EFFECTIVE_LOGLEVEL = Common::Log::LogLevel::LDEBUG;
 #else
-constexpr auto MAX_LOGLEVEL = Common::Log::LogLevel::LINFO;
+constexpr auto MAX_EFFECTIVE_LOGLEVEL = Common::Log::LogLevel::LINFO;
 #endif  // logging
 
 static const char LOG_LEVEL_TO_CHAR[7] = "-NEWID";
@@ -114,7 +113,7 @@ void GenericLogFmt(LogLevel level, LogType type, const char* file, int line, con
 #define GENERIC_LOG_FMT(t, v, format, ...)                                                         \
   do                                                                                               \
   {                                                                                                \
-    if (v <= Common::Log::MAX_LOGLEVEL)                                                            \
+    if (v <= Common::Log::MAX_EFFECTIVE_LOGLEVEL)                                                  \
     {                                                                                              \
       /* Use a macro-like name to avoid shadowing warnings */                                      \
       constexpr auto GENERIC_LOG_FMT_N = Common::CountFmtReplacementFields(format);                \

@@ -11,8 +11,6 @@
 #ifndef _WIN32
 #include <netinet/in.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 #else
 #include <WinSock2.h>
 #endif
@@ -84,6 +82,21 @@ std::optional<MACAddress> StringToMacAddress(std::string_view mac_string)
     return std::nullopt;
 
   return std::make_optional(mac);
+}
+
+std::string BluetoothAddressToString(BluetoothAddress bdaddr)
+{
+  std::ranges::reverse(bdaddr);
+  return MacAddressToString(std::bit_cast<MACAddress>(bdaddr));
+}
+
+std::optional<BluetoothAddress> StringToBluetoothAddress(std::string_view str)
+{
+  auto result = StringToMacAddress(str);
+  if (!result)
+    return std::nullopt;
+  std::ranges::reverse(*result);
+  return std::bit_cast<BluetoothAddress>(*result);
 }
 
 EthernetHeader::EthernetHeader() = default;

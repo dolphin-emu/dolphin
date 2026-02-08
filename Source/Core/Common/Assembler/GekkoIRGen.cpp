@@ -17,7 +17,6 @@
 #include "Common/Assembler/AssemblerShared.h"
 #include "Common/Assembler/GekkoParser.h"
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
 
 namespace Common::GekkoAssembler::detail
 {
@@ -31,7 +30,7 @@ public:
   {
     m_active_block = &m_output_result.blocks.emplace_back(base_addr);
   }
-  virtual ~GekkoIRPlugin() = default;
+  ~GekkoIRPlugin() override = default;
 
   void OnDirectivePre(GekkoDirective directive) override;
   void OnDirectivePost(GekkoDirective directive) override;
@@ -46,6 +45,7 @@ public:
   void OnLoaddr(std::string_view id) override;
   void OnCloseParen(ParenType type) override;
   void OnLabelDecl(std::string_view name) override;
+  void OnNumericLabelDecl(std::string_view name, u32 num) override;
   void OnVarDecl(std::string_view name) override;
   void PostParseAction() override;
 
@@ -75,6 +75,7 @@ public:
   void AddAbsoluteAddressConv();
   void AddLiteral(u32 lit);
   void AddSymbolResolve(std::string_view sym, bool absolute);
+  void AddNumLabelSymResolve(std::string_view sym, u32 num);
 
   void RunFixups();
 
@@ -97,6 +98,8 @@ private:
   u64* m_active_var;
   size_t m_operand_scan_begin;
 
+  // Ordered top-to-bottom, stores (label number, address)
+  std::vector<std::pair<u32, u32>> m_numlabs;
   std::map<std::string, u32, std::less<>> m_labels;
   std::map<std::string, u64, std::less<>> m_constants;
   std::set<std::string> m_symset;
@@ -352,27 +355,30 @@ void GekkoIRPlugin::OnCloseParen(ParenType type)
 void GekkoIRPlugin::OnLabelDecl(std::string_view name)
 {
   const std::string name_str(name);
-  if (m_symset.contains(name_str))
+  if (const bool inserted = m_symset.insert(name_str).second; !inserted)
   {
     m_owner->EmitErrorHere(fmt::format("Label/Constant {} is already defined", name));
     return;
   }
 
   m_labels[name_str] = m_active_block->BlockEndAddress();
-  m_symset.insert(name_str);
+}
+
+void GekkoIRPlugin::OnNumericLabelDecl(std::string_view, u32 num)
+{
+  m_numlabs.emplace_back(num, m_active_block->BlockEndAddress());
 }
 
 void GekkoIRPlugin::OnVarDecl(std::string_view name)
 {
   const std::string name_str(name);
-  if (m_symset.contains(name_str))
+  if (const bool inserted = m_symset.insert(name_str).second; !inserted)
   {
     m_owner->EmitErrorHere(fmt::format("Label/Constant {} is already defined", name));
     return;
   }
 
   m_active_var = &m_constants[name_str];
-  m_symset.insert(name_str);
 }
 
 void GekkoIRPlugin::PostParseAction()
@@ -495,16 +501,15 @@ void GekkoIRPlugin::AddBinaryEvaluator(u32 (*evaluator)(u32, u32))
   m_fixup_stack.pop();
   std::function<u32()> lhs = std::move(m_fixup_stack.top());
   m_fixup_stack.pop();
-  m_fixup_stack.emplace([evaluator, lhs = std::move(lhs), rhs = std::move(rhs)]() {
-    return evaluator(lhs(), rhs());
-  });
+  m_fixup_stack.emplace(
+      [evaluator, lhs = std::move(lhs), rhs = std::move(rhs)] { return evaluator(lhs(), rhs()); });
 }
 
 void GekkoIRPlugin::AddUnaryEvaluator(u32 (*evaluator)(u32))
 {
   std::function<u32()> sub = std::move(m_fixup_stack.top());
   m_fixup_stack.pop();
-  m_fixup_stack.emplace([evaluator, sub = std::move(sub)]() { return evaluator(sub()); });
+  m_fixup_stack.emplace([evaluator, sub = std::move(sub)] { return evaluator(sub()); });
 }
 
 void GekkoIRPlugin::AddAbsoluteAddressConv()
@@ -548,6 +553,35 @@ void GekkoIRPlugin::AddSymbolResolve(std::string_view sym, bool absolute)
         if (var_it != m_constants.end())
         {
           return static_cast<u32>(var_it->second);
+        }
+
+        m_owner->error = std::move(err_on_fail);
+        return u32{0};
+      });
+}
+
+void GekkoIRPlugin::AddNumLabelSymResolve(std::string_view sym, u32 num)
+{
+  const u32 source_address = m_active_block->BlockEndAddress();
+  AssemblerError err_on_fail = AssemblerError{
+      fmt::format("No numeric label '{}' found below here", num),
+      m_owner->lexer.CurrentLine(),
+      m_owner->lexer.LineNumber(),
+      // Lexer should currently point to the label, as it hasn't been eaten yet
+      m_owner->lexer.ColNumber(),
+      sym.size(),
+  };
+
+  // Searching forward only
+  size_t search_start_idx = static_cast<size_t>(m_numlabs.size());
+  m_fixup_stack.emplace(
+      [this, num, source_address, search_start_idx, err_on_fail = std::move(err_on_fail)] {
+        for (size_t i = search_start_idx; i < m_numlabs.size(); i++)
+        {
+          if (num == m_numlabs[i].first)
+          {
+            return m_numlabs[i].second - source_address;
+          }
         }
 
         m_owner->error = std::move(err_on_fail);
@@ -715,6 +749,33 @@ void GekkoIRPlugin::EvalTerminalRel(Terminal type, const AssemblerToken& tok)
     break;
   }
 
+  case Terminal::NumLabFwd:
+  {
+    std::optional<u32> val = tok.EvalToken<u32>();
+    ASSERT(val.has_value());
+    AddNumLabelSymResolve(tok.token_val, *val);
+    break;
+  }
+
+  case Terminal::NumLabBwd:
+  {
+    std::optional<u32> mval = tok.EvalToken<u32>();
+    ASSERT(mval.has_value());
+    u32 val = *mval;
+    if (auto label_it = std::find_if(m_numlabs.rbegin(), m_numlabs.rend(),
+                                     [val](std::pair<u32, u32> p) { return p.first == val; });
+        label_it != m_numlabs.rend())
+    {
+      AddLiteral(label_it->second - CurrentAddress());
+    }
+    else
+    {
+      m_owner->EmitErrorHere(fmt::format("No numeric label '{}' found above here", val));
+      return;
+    }
+    break;
+  }
+
   // Parser should disallow this from happening
   default:
     ASSERT(false);
@@ -777,6 +838,31 @@ void GekkoIRPlugin::EvalTerminalAbs(Terminal type, const AssemblerToken& tok)
           fmt::format("Undefined reference to Label/Constant '{}'", tok.ValStr()));
       return;
     }
+    break;
+  }
+
+  case Terminal::NumLabFwd:
+    m_owner->EmitErrorHere(
+        fmt::format("Forward label references not supported in fully resolved expressions"));
+    break;
+
+  case Terminal::NumLabBwd:
+  {
+    std::optional<u32> mval = tok.EvalToken<u32>();
+    ASSERT(mval.has_value());
+    u32 val = *mval;
+    if (auto label_it = std::find_if(m_numlabs.rbegin(), m_numlabs.rend(),
+                                     [val](std::pair<u32, u32> p) { return p.first == val; });
+        label_it != m_numlabs.rend())
+    {
+      m_eval_stack.push_back(label_it->second);
+    }
+    else
+    {
+      m_owner->EmitErrorHere(fmt::format("No numeric label '{}' found above here", val));
+      return;
+    }
+
     break;
   }
 

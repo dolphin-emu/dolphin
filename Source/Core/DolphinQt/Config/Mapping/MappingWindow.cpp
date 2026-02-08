@@ -6,6 +6,7 @@
 #include <QAction>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDesktopServices>
 #include <QDialogButtonBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -14,6 +15,7 @@
 #include <QTabWidget>
 #include <QTimer>
 #include <QToolButton>
+#include <QUrl>
 #include <QVBoxLayout>
 
 #include "Core/HotkeyManager.h"
@@ -50,7 +52,7 @@
 #include "DolphinQt/Config/Mapping/WiimoteEmuMotionControlIMU.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
+#include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Settings.h"
@@ -64,7 +66,6 @@ MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
     : QDialog(parent), m_port(port_num)
 {
   setWindowTitle(tr("Port %1").arg(port_num + 1));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   CreateDevicesLayout();
   CreateProfilesLayout();
@@ -96,6 +97,8 @@ MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
                   [] { HotkeyManagerEmu::Enable(false); });
 
   MappingCommon::CreateMappingProcessor(this);
+
+  QtUtils::AdjustSizeWithinScreen(this);
 }
 
 void MappingWindow::CreateDevicesLayout()
@@ -142,7 +145,17 @@ void MappingWindow::CreateProfilesLayout()
   m_profiles_combo = new QComboBox();
   m_profiles_load = new NonDefaultQPushButton(tr("Load"));
   m_profiles_save = new NonDefaultQPushButton(tr("Save"));
-  m_profiles_delete = new NonDefaultQPushButton(tr("Delete"));
+
+  // Other actions
+  m_profile_other_actions = new QToolButton();
+  m_profile_other_actions->setPopupMode(QToolButton::InstantPopup);
+  m_profile_other_actions->setArrowType(Qt::DownArrow);
+  m_profile_other_actions->setStyleSheet(
+      QStringLiteral("QToolButton::menu-indicator { image: none; }"));  // remove other arrow
+  m_profiles_delete = new QAction(tr("Delete"), this);
+  m_profiles_open_folder = new QAction(tr("Open Folder"), this);
+  m_profile_other_actions->addAction(m_profiles_delete);
+  m_profile_other_actions->addAction(m_profiles_open_folder);
 
   auto* button_layout = new QHBoxLayout();
 
@@ -153,7 +166,7 @@ void MappingWindow::CreateProfilesLayout()
   m_profiles_layout->addWidget(m_profiles_combo);
   button_layout->addWidget(m_profiles_load);
   button_layout->addWidget(m_profiles_save);
-  button_layout->addWidget(m_profiles_delete);
+  button_layout->addWidget(m_profile_other_actions);
   m_profiles_layout->addLayout(button_layout);
 
   m_profiles_box->setLayout(m_profiles_layout);
@@ -204,7 +217,8 @@ void MappingWindow::ConnectWidgets()
   connect(m_reset_default, &QPushButton::clicked, this, &MappingWindow::OnDefaultFieldsPressed);
   connect(m_profiles_save, &QPushButton::clicked, this, &MappingWindow::OnSaveProfilePressed);
   connect(m_profiles_load, &QPushButton::clicked, this, &MappingWindow::OnLoadProfilePressed);
-  connect(m_profiles_delete, &QPushButton::clicked, this, &MappingWindow::OnDeleteProfilePressed);
+  connect(m_profiles_delete, &QAction::triggered, this, &MappingWindow::OnDeleteProfilePressed);
+  connect(m_profiles_open_folder, &QAction::triggered, this, &MappingWindow::OnOpenProfileFolder);
 
   connect(m_profiles_combo, &QComboBox::currentIndexChanged, this, &MappingWindow::OnSelectProfile);
   connect(m_profiles_combo, &QComboBox::editTextChanged, this,
@@ -269,7 +283,6 @@ void MappingWindow::OnDeleteProfilePressed()
     error.setIcon(QMessageBox::Critical);
     error.setWindowTitle(tr("Error"));
     error.setText(tr("The profile '%1' does not exist").arg(profile_name));
-    SetQWidgetWindowDecorations(&error);
     error.exec();
     return;
   }
@@ -282,7 +295,6 @@ void MappingWindow::OnDeleteProfilePressed()
   confirm.setInformativeText(tr("This cannot be undone!"));
   confirm.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
 
-  SetQWidgetWindowDecorations(&confirm);
   if (confirm.exec() != QMessageBox::Yes)
   {
     return;
@@ -310,7 +322,6 @@ void MappingWindow::OnLoadProfilePressed()
     error.setIcon(QMessageBox::Critical);
     error.setWindowTitle(tr("Error"));
     error.setText(tr("The profile '%1' does not exist").arg(m_profiles_combo->currentText()));
-    SetQWidgetWindowDecorations(&error);
     error.exec();
     return;
   }
@@ -350,6 +361,14 @@ void MappingWindow::OnSaveProfilePressed()
     PopulateProfileSelection();
     m_profiles_combo->setCurrentIndex(m_profiles_combo->findText(profile_name));
   }
+}
+
+void MappingWindow::OnOpenProfileFolder()
+{
+  std::string path = m_config->GetUserProfileDirectoryPath();
+  File::CreateDirs(path);
+  QUrl url = QUrl::fromLocalFile(QString::fromStdString(path));
+  QDesktopServices::openUrl(url);
 }
 
 void MappingWindow::OnSelectDevice(int)
@@ -515,7 +534,7 @@ void MappingWindow::PopulateProfileSelection()
   m_profiles_combo->clear();
 
   const std::string profiles_path = m_config->GetUserProfileDirectoryPath();
-  for (const auto& filename : Common::DoFileSearch({profiles_path}, {".ini"}))
+  for (const auto& filename : Common::DoFileSearch(profiles_path, ".ini"))
   {
     std::string basename;
     SplitPath(filename, nullptr, &basename, nullptr);
@@ -525,8 +544,7 @@ void MappingWindow::PopulateProfileSelection()
 
   m_profiles_combo->insertSeparator(m_profiles_combo->count());
 
-  for (const auto& filename :
-       Common::DoFileSearch({m_config->GetSysProfileDirectoryPath()}, {".ini"}))
+  for (const auto& filename : Common::DoFileSearch(m_config->GetSysProfileDirectoryPath(), ".ini"))
   {
     std::string basename;
     SplitPath(filename, nullptr, &basename, nullptr);
@@ -543,7 +561,7 @@ void MappingWindow::PopulateProfileSelection()
 
 QWidget* MappingWindow::AddWidget(const QString& name, QWidget* widget)
 {
-  QWidget* wrapper = GetWrappedWidget(widget, this, 150, 210);
+  auto* const wrapper = GetWrappedWidget(widget);
   m_tab_widget->addTab(wrapper, name);
   return wrapper;
 }

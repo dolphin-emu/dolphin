@@ -11,6 +11,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/Config/GraphicsSettings.h"
+
 #include "VideoBackends/Software/CopyRegion.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/LookUpTables.h"
@@ -309,8 +311,8 @@ static u32 GetDestinationFactor(u8* srcClr, u8* dstClr, DstBlendFactor mode)
 
 static void BlendColor(u8* srcClr, u8* dstClr)
 {
-  u32 srcFactor = GetSourceFactor(srcClr, dstClr, bpmem.blendmode.srcfactor);
-  u32 dstFactor = GetDestinationFactor(srcClr, dstClr, bpmem.blendmode.dstfactor);
+  u32 srcFactor = GetSourceFactor(srcClr, dstClr, bpmem.blendmode.src_factor);
+  u32 dstFactor = GetDestinationFactor(srcClr, dstClr, bpmem.blendmode.dst_factor);
 
   for (int i = 0; i < 4; i++)
   {
@@ -395,7 +397,7 @@ static void SubtractBlend(u8* srcClr, u8* dstClr)
 
 static void Dither(u16 x, u16 y, u8* color)
 {
-  // No blending for RGB8 mode
+  // No dithering for RGB8 mode
   if (!bpmem.blendmode.dither || bpmem.zcontrol.pixel_format != PixelFormat::RGBA6_Z24)
     return;
 
@@ -414,16 +416,16 @@ void BlendTev(u16 x, u16 y, u8* color)
 
   u8* dstClrPtr = (u8*)&dstClr;
 
-  if (bpmem.blendmode.blendenable)
+  if (bpmem.blendmode.blend_enable)
   {
     if (bpmem.blendmode.subtract)
       SubtractBlend(color, dstClrPtr);
     else
       BlendColor(color, dstClrPtr);
   }
-  else if (bpmem.blendmode.logicopenable)
+  else if (bpmem.blendmode.logic_op_enable)
   {
-    LogicBlend(*((u32*)color), &dstClr, bpmem.blendmode.logicmode);
+    LogicBlend(*((u32*)color), &dstClr, bpmem.blendmode.logic_mode);
   }
   else
   {
@@ -433,15 +435,15 @@ void BlendTev(u16 x, u16 y, u8* color)
   if (bpmem.dstalpha.enable)
     dstClrPtr[ALP_C] = bpmem.dstalpha.alpha;
 
-  if (bpmem.blendmode.colorupdate)
+  if (bpmem.blendmode.color_update)
   {
     Dither(x, y, dstClrPtr);
-    if (bpmem.blendmode.alphaupdate)
+    if (bpmem.blendmode.alpha_update)
       SetPixelAlphaColor(offset, dstClrPtr);
     else
       SetPixelColorOnly(offset, dstClrPtr);
   }
-  else if (bpmem.blendmode.alphaupdate)
+  else if (bpmem.blendmode.alpha_update)
   {
     SetPixelAlphaOnly(offset, dstClrPtr[ALP_C]);
   }
@@ -450,14 +452,14 @@ void BlendTev(u16 x, u16 y, u8* color)
 void SetColor(u16 x, u16 y, u8* color)
 {
   u32 offset = GetColorOffset(x, y);
-  if (bpmem.blendmode.colorupdate)
+  if (bpmem.blendmode.color_update)
   {
-    if (bpmem.blendmode.alphaupdate)
+    if (bpmem.blendmode.alpha_update)
       SetPixelAlphaColor(offset, color);
     else
       SetPixelColorOnly(offset, color);
   }
-  else if (bpmem.blendmode.alphaupdate)
+  else if (bpmem.blendmode.alpha_update)
   {
     SetPixelAlphaOnly(offset, color[ALP_C]);
   }
@@ -465,7 +467,7 @@ void SetColor(u16 x, u16 y, u8* color)
 
 void SetDepth(u16 x, u16 y, u32 depth)
 {
-  if (bpmem.zmode.updateenable)
+  if (bpmem.zmode.update_enable)
     SetPixelDepth(GetDepthOffset(x, y), depth);
 }
 
@@ -494,10 +496,25 @@ static u32 VerticalFilter(const std::array<u32, 3>& colors,
     //   * Coefficients 2, 3 and 4 sample from the current pixel.
     //   * Coefficients 0 and 1 sample from the pixel above this one
     //   * Coefficients 5 and 6 sample from the pixel below this one
-    int sum =
-        in_colors[0][i] * (filterCoefficients[0] + filterCoefficients[1]) +
-        in_colors[1][i] * (filterCoefficients[2] + filterCoefficients[3] + filterCoefficients[4]) +
-        in_colors[2][i] * (filterCoefficients[5] + filterCoefficients[6]);
+    //
+    // We normally don't implement enhancements in the software renderer.
+    // However, disabling the copy filter is useful for debugging.
+    const bool disable_copy_filter = Config::Get(Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
+    int sum;
+    if (disable_copy_filter)
+    {
+      sum =
+          in_colors[1][i] * (filterCoefficients[0] + filterCoefficients[1] + filterCoefficients[2] +
+                             filterCoefficients[3] + filterCoefficients[4] + filterCoefficients[5] +
+                             filterCoefficients[6]);
+    }
+    else
+    {
+      sum = in_colors[0][i] * (filterCoefficients[0] + filterCoefficients[1]) +
+            in_colors[1][i] *
+                (filterCoefficients[2] + filterCoefficients[3] + filterCoefficients[4]) +
+            in_colors[2][i] * (filterCoefficients[5] + filterCoefficients[6]);
+    }
 
     // TODO: this clamping behavior appears to be correct, but isn't confirmed on hardware.
     out_color[i] = std::min(255, sum >> 6);  // clamp larger values to 255
@@ -685,7 +702,7 @@ bool ZCompare(u16 x, u16 y, u32 z)
     break;
   }
 
-  if (pass && bpmem.zmode.updateenable)
+  if (pass && bpmem.zmode.update_enable)
   {
     SetPixelDepth(offset, z);
   }

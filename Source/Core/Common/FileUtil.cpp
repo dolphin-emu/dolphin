@@ -3,28 +3,24 @@
 
 #include "Common/FileUtil.h"
 
-#include <algorithm>
-#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <fcntl.h>
 #include <filesystem>
-#include <fstream>
 #include <limits.h>
 #include <stack>
 #include <string>
-#include <sys/stat.h>
 #include <system_error>
-#include <thread>
 #include <vector>
 
-#include "Common/Assert.h"
-#include "Common/Common.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#ifdef ANDROID
+#include "Common/Assert.h"
+#endif
 #ifdef __APPLE__
 #include "Common/DynamicLibrary.h"
 #endif
@@ -41,8 +37,6 @@
 #include <objbase.h>  // guid stuff
 #include <shellapi.h>
 #else
-#include <dirent.h>
-#include <errno.h>
 #include <libgen.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -442,12 +436,7 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
 
   auto path_to_physical_name = [](const fs::path& path) {
 #ifdef _WIN32
-    // TODO Ideally this would not be needed - dolphin really should not have code directly mucking
-    // about with directory separators (for host paths - emulated paths may require it) and instead
-    // use fs::path to interact with them.
-    auto wpath = path.wstring();
-    std::ranges::replace(wpath, L'\\', L'/');
-    return WStringToUTF8(wpath);
+    return WStringToUTF8(path.generic_wstring());
 #else
     return PathToString(path);
 #endif
@@ -533,9 +522,9 @@ bool DeleteDirRecursively(const std::string& directory)
 
   std::error_code error;
   const std::uintmax_t num_removed = std::filesystem::remove_all(StringToPath(directory), error);
-  const bool success = num_removed != 0 && !error;
+  const bool success = num_removed != static_cast<std::uintmax_t>(-1) && !error;
   if (!success)
-    ERROR_LOG_FMT(COMMON, "{}: {} failed {}", __func__, directory, error.message());
+    ERROR_LOG_FMT(COMMON, "{}: {} failed. {}", __func__, directory, error.message());
   return success;
 }
 
@@ -877,7 +866,6 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_DUMPDEBUG_JITBLOCKS_IDX] =
         s_user_paths[D_DUMPDEBUG_IDX] + DUMP_DEBUG_JITBLOCKS_DIR DIR_SEP;
     s_user_paths[D_LOGS_IDX] = s_user_paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
-    s_user_paths[D_MAILLOGS_IDX] = s_user_paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
     s_user_paths[D_THEMES_IDX] = s_user_paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
     s_user_paths[D_STYLES_IDX] = s_user_paths[D_USER_IDX] + STYLES_DIR DIR_SEP;
     s_user_paths[D_PIPES_IDX] = s_user_paths[D_USER_IDX] + PIPES_DIR DIR_SEP;
@@ -886,6 +874,9 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_RESOURCEPACK_IDX] = s_user_paths[D_USER_IDX] + RESOURCEPACK_DIR DIR_SEP;
     s_user_paths[D_DYNAMICINPUT_IDX] = s_user_paths[D_LOAD_IDX] + DYNAMICINPUT_DIR DIR_SEP;
     s_user_paths[D_GRAPHICSMOD_IDX] = s_user_paths[D_LOAD_IDX] + GRAPHICSMOD_DIR DIR_SEP;
+    s_user_paths[D_BANNERS_WIIROOT_IDX] = s_user_paths[D_LOAD_IDX] + WIIBANNERS_DIR DIR_SEP;
+    s_user_paths[D_FIRMWARE_IDX] = s_user_paths[D_LOAD_IDX] + FIRMWARE_DIR DIR_SEP;
+    s_user_paths[D_WIISYSCONF_IDX] = s_user_paths[D_WIIROOT_IDX] + WII_SYSCONF_DIR DIR_SEP;
     s_user_paths[D_WIISDCARDSYNCFOLDER_IDX] = s_user_paths[D_LOAD_IDX] + WIISDSYNC_DIR DIR_SEP;
     s_user_paths[F_DOLPHINCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
     s_user_paths[F_GCPADCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GCPAD_CONFIG;
@@ -905,6 +896,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[F_FAKEVMEMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
     s_user_paths[F_GCSRAM_IDX] = s_user_paths[D_GCUSER_IDX] + GC_SRAM;
     s_user_paths[F_WIISDCARDIMAGE_IDX] = s_user_paths[D_LOAD_IDX] + WII_SD_CARD_IMAGE;
+    s_user_paths[F_WIISYSCONF_IDX] = s_user_paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
 
     s_user_paths[D_MEMORYWATCHER_IDX] = s_user_paths[D_USER_IDX] + MEMORYWATCHER_DIR DIR_SEP;
     s_user_paths[F_MEMORYWATCHERLOCATIONS_IDX] =
@@ -968,7 +960,6 @@ static void RebuildUserDirectories(unsigned int dir_index)
     break;
 
   case D_LOGS_IDX:
-    s_user_paths[D_MAILLOGS_IDX] = s_user_paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
     s_user_paths[F_MAINLOG_IDX] = s_user_paths[D_LOGS_IDX] + MAIN_LOG;
     break;
 
@@ -977,6 +968,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_RIIVOLUTION_IDX] = s_user_paths[D_LOAD_IDX] + RIIVOLUTION_DIR DIR_SEP;
     s_user_paths[D_DYNAMICINPUT_IDX] = s_user_paths[D_LOAD_IDX] + DYNAMICINPUT_DIR DIR_SEP;
     s_user_paths[D_GRAPHICSMOD_IDX] = s_user_paths[D_LOAD_IDX] + GRAPHICSMOD_DIR DIR_SEP;
+    s_user_paths[D_BANNERS_WIIROOT_IDX] = s_user_paths[D_LOAD_IDX] + WIIBANNERS_DIR DIR_SEP;
     break;
   }
 }

@@ -17,7 +17,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/IOFile.h"
+#include "Common/DirectIOFile.h"
 #include "DiscIO/Blob.h"
 
 namespace DiscIO
@@ -40,12 +40,12 @@ struct CompressedBlobHeader  // 32 bytes
   u32 num_blocks;
 };
 
-class CompressedBlobReader : public SectorReader
+class CompressedBlobReader final : public SectorReader
 {
 public:
-  static std::unique_ptr<CompressedBlobReader> Create(File::IOFile file,
+  static std::unique_ptr<CompressedBlobReader> Create(File::DirectIOFile file,
                                                       const std::string& filename);
-  ~CompressedBlobReader();
+  ~CompressedBlobReader() override;
 
   const CompressedBlobHeader& GetHeader() const { return m_header; }
 
@@ -65,13 +65,13 @@ public:
   bool GetBlock(u64 block_num, u8* out_ptr) override;
 
 private:
-  CompressedBlobReader(File::IOFile file, const std::string& filename);
+  CompressedBlobReader(File::DirectIOFile file, const std::string& filename);
 
   CompressedBlobHeader m_header;
   std::vector<u64> m_block_pointers;
   std::vector<u32> m_hashes;
   int m_data_offset;
-  File::IOFile m_file;
+  File::DirectIOFile m_file;
   u64 m_file_size;
   std::vector<u8> m_zlib_buffer;
   std::string m_file_name;

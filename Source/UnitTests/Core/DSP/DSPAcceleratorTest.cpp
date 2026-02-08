@@ -17,13 +17,15 @@ public:
   {
     std::array<s16, 16> coefs{};
     m_accov_raised = false;
-    return Read(coefs.data());
+    return ReadSample(coefs.data());
   }
 
   bool EndExceptionRaised() const { return m_accov_raised; }
 
 protected:
-  void OnEndException() override
+  void OnRawReadEndException() override {}
+  void OnRawWriteEndException() override {}
+  void OnSampleReadEndException() override
   {
     EXPECT_TRUE(m_reads_stopped);
     m_accov_raised = true;

@@ -5,13 +5,13 @@
 
 #include <algorithm>
 #include <cstring>
+#include <expected>
 #include <string_view>
+#include <utility>
 
 #include <fmt/format.h>
 
 #include "Common/ChunkFile.h"
-#include "Common/EnumUtils.h"
-#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
@@ -120,13 +120,13 @@ static void LogResult(ResultCode code, fmt::format_string<Args...> format, Args&
       code == ResultCode::Success ? Common::Log::LogLevel::LINFO : Common::Log::LogLevel::LERROR;
 
   GENERIC_LOG_FMT(Common::Log::LogType::IOS_FS, type, "Command: {}: Result {}", command,
-                  Common::ToUnderlying(ConvertResult(code)));
+                  std::to_underlying(ConvertResult(code)));
 }
 
 template <typename T, typename... Args>
 static void LogResult(const Result<T>& result, fmt::format_string<Args...> format, Args&&... args)
 {
-  const auto result_code = result.Succeeded() ? ResultCode::Success : result.Error();
+  const auto result_code = result.has_value() ? ResultCode::Success : result.error();
   LogResult(result_code, format, std::forward<Args>(args)...);
 }
 
@@ -202,7 +202,7 @@ FSCore::ScopedFd FSCore::Open(FS::Uid uid, FS::Gid gid, const std::string& path,
   auto backend_fd = m_ios.GetFS()->OpenFile(uid, gid, path, mode);
   LogResult(backend_fd, "OpenFile({})", path);
   if (!backend_fd)
-    return {this, ConvertResult(backend_fd.Error()), ticks};
+    return {this, ConvertResult(backend_fd.error()), ticks};
 
   auto& handle = m_fd_map[fd] = {gid, uid, backend_fd->Release()};
   std::strncpy(handle.name.data(), path.c_str(), handle.name.size());
@@ -347,7 +347,7 @@ s32 FSCore::Read(u64 fd, u8* data, u32 size, std::optional<u32> ipc_buffer_addr,
     LogResult(result, "Read({}, 0x{:08x}, {})", handle.name.data(), *ipc_buffer_addr, size);
 
   if (!result)
-    return ConvertResult(result.Error());
+    return ConvertResult(result.error());
 
   return *result;
 }
@@ -378,7 +378,7 @@ s32 FSCore::Write(u64 fd, const u8* data, u32 size, std::optional<u32> ipc_buffe
     LogResult(result, "Write({}, 0x{:08x}, {})", handle.name.data(), *ipc_buffer_addr, size);
 
   if (!result)
-    return ConvertResult(result.Error());
+    return ConvertResult(result.error());
 
   return *result;
 }
@@ -401,7 +401,7 @@ s32 FSCore::Seek(u64 fd, u32 offset, FS::SeekMode mode, Ticks ticks)
   const Result<u32> result = m_ios.GetFS()->SeekFile(handle.fs_fd, offset, mode);
   LogResult(result, "Seek({}, 0x{:08x}, {})", handle.name.data(), offset, static_cast<int>(mode));
   if (!result)
-    return ConvertResult(result.Error());
+    return ConvertResult(result.error());
   return *result;
 }
 
@@ -437,7 +437,7 @@ template <typename T>
 static Result<T> GetParams(Memory::MemoryManager& memory, const IOCtlRequest& request)
 {
   if (request.buffer_in_size < sizeof(T))
-    return ResultCode::Invalid;
+    return std::unexpected{ResultCode::Invalid};
 
   T params;
   memory.CopyFromEmu(&params, request.buffer_in, sizeof(params));
@@ -513,7 +513,7 @@ IPCReply FSDevice::GetStats(const Handle& handle, const IOCtlRequest& request)
   const Result<NandStats> stats = m_ios.GetFS()->GetNandStats();
   LogResult(stats, "GetNandStats");
   if (!stats)
-    return IPCReply(ConvertResult(stats.Error()));
+    return IPCReply(ConvertResult(stats.error()));
 
   auto& system = GetSystem();
   auto& memory = system.GetMemory();
@@ -534,7 +534,7 @@ IPCReply FSDevice::CreateDirectory(const Handle& handle, const IOCtlRequest& req
 {
   const auto params = GetParams<ISFSParams>(GetSystem().GetMemory(), request);
   if (!params)
-    return GetFSReply(ConvertResult(params.Error()));
+    return GetFSReply(ConvertResult(params.error()));
 
   const ResultCode result = m_ios.GetFS()->CreateDirectory(handle.uid, handle.gid, params->path,
                                                            params->attribute, params->modes);
@@ -579,7 +579,7 @@ IPCReply FSDevice::ReadDirectory(const Handle& handle, const IOCtlVRequest& requ
       m_ios.GetFS()->ReadDirectory(handle.uid, handle.gid, directory);
   LogResult(list, "ReadDirectory({})", directory);
   if (!list)
-    return GetFSReply(ConvertResult(list.Error()));
+    return GetFSReply(ConvertResult(list.error()));
 
   if (!file_list_address)
   {
@@ -603,7 +603,7 @@ IPCReply FSDevice::SetAttribute(const Handle& handle, const IOCtlRequest& reques
 {
   const auto params = GetParams<ISFSParams>(GetSystem().GetMemory(), request);
   if (!params)
-    return GetFSReply(ConvertResult(params.Error()));
+    return GetFSReply(ConvertResult(params.error()));
 
   const ResultCode result = m_ios.GetFS()->SetMetadata(
       handle.uid, params->path, params->uid, params->gid, params->attribute, params->modes);
@@ -624,7 +624,7 @@ IPCReply FSDevice::GetAttribute(const Handle& handle, const IOCtlRequest& reques
   const Result<Metadata> metadata = m_ios.GetFS()->GetMetadata(handle.uid, handle.gid, path);
   LogResult(metadata, "GetMetadata({})", path);
   if (!metadata)
-    return GetFSReply(ConvertResult(metadata.Error()), ticks);
+    return GetFSReply(ConvertResult(metadata.error()), ticks);
 
   // Yes, the other members aren't copied at all. Actually, IOS does not even memset
   // the struct at all, which means uninitialised bytes from the stack are returned.
@@ -703,7 +703,7 @@ IPCReply FSDevice::CreateFile(const Handle& handle, const IOCtlRequest& request)
 {
   const auto params = GetParams<ISFSParams>(GetSystem().GetMemory(), request);
   if (!params)
-    return GetFSReply(ConvertResult(params.Error()));
+    return GetFSReply(ConvertResult(params.error()));
   return MakeIPCReply([&](Ticks ticks) {
     return ConvertResult(
         m_core.CreateFile(handle.uid, handle.gid, params->path, params->attribute, params->modes));
@@ -714,7 +714,7 @@ IPCReply FSDevice::SetFileVersionControl(const Handle& handle, const IOCtlReques
 {
   const auto params = GetParams<ISFSParams>(GetSystem().GetMemory(), request);
   if (!params)
-    return GetFSReply(ConvertResult(params.Error()));
+    return GetFSReply(ConvertResult(params.error()));
 
   // FS_SetFileVersionControl(ctx->uid, params->path, params->attribute)
   ERROR_LOG_FMT(IOS_FS, "SetFileVersionControl({}, {:#x}): Stubbed", params->path,
@@ -730,7 +730,7 @@ IPCReply FSDevice::GetFileStats(const Handle& handle, const IOCtlRequest& reques
   return MakeIPCReply([&](Ticks ticks) {
     const Result<FileStatus> status = m_core.GetFileStatus(request.fd, ticks);
     if (!status)
-      return ConvertResult(status.Error());
+      return ConvertResult(status.error());
 
     auto& system = GetSystem();
     auto& memory = system.GetMemory();
@@ -748,7 +748,7 @@ FS::Result<FS::FileStatus> FSCore::GetFileStatus(u64 fd, Ticks ticks)
   ticks.Add(IPC_OVERHEAD_TICKS);
   const auto& handle = m_fd_map[fd];
   if (handle.fs_fd == INVALID_FD)
-    return ResultCode::Invalid;
+    return std::unexpected{ResultCode::Invalid};
 
   auto status = m_ios.GetFS()->GetFileStatus(handle.fs_fd);
   LogResult(status, "GetFileStatus({})", handle.name.data());
@@ -770,7 +770,7 @@ IPCReply FSDevice::GetUsage(const Handle& handle, const IOCtlVRequest& request)
   const Result<DirectoryStats> stats = m_ios.GetFS()->GetDirectoryStats(directory);
   LogResult(stats, "GetDirectoryStats({})", directory);
   if (!stats)
-    return GetFSReply(ConvertResult(stats.Error()));
+    return GetFSReply(ConvertResult(stats.error()));
 
   memory.Write_U32(stats->used_clusters, request.io_vectors[0].address);
   memory.Write_U32(stats->used_inodes, request.io_vectors[1].address);

@@ -145,16 +145,16 @@ extern const Info<float> GFX_CC_HDR_PAPER_WHITE_NITS;
 
 extern const Info<StereoMode> GFX_STEREO_MODE;
 extern const Info<bool> GFX_STEREO_PER_EYE_RESOLUTION_FULL;
-extern const Info<int> GFX_STEREO_DEPTH;
-extern const Info<int> GFX_STEREO_CONVERGENCE_PERCENTAGE;
+extern const Info<float> GFX_STEREO_DEPTH;
+extern const Info<float> GFX_STEREO_CONVERGENCE_PERCENTAGE;
 extern const Info<bool> GFX_STEREO_SWAP_EYES;
-extern const Info<int> GFX_STEREO_CONVERGENCE;
+extern const Info<float> GFX_STEREO_CONVERGENCE;
 extern const Info<bool> GFX_STEREO_EFB_MONO_DEPTH;
-extern const Info<int> GFX_STEREO_DEPTH_PERCENTAGE;
+extern const Info<float> GFX_STEREO_DEPTH_PERCENTAGE;
 
 // Stereoscopy pseudo-limits for consistent behavior between enhancements tab and hotkeys.
-static constexpr int GFX_STEREO_DEPTH_MAXIMUM = 100;
-static constexpr int GFX_STEREO_CONVERGENCE_MAXIMUM = 200;
+static constexpr float GFX_STEREO_DEPTH_MAXIMUM = 100;
+static constexpr float GFX_STEREO_CONVERGENCE_MAXIMUM = 200;
 
 // Graphics.Hacks
 
@@ -168,6 +168,7 @@ extern const Info<bool> GFX_HACK_SKIP_XFB_COPY_TO_RAM;
 extern const Info<bool> GFX_HACK_DISABLE_COPY_TO_VRAM;
 extern const Info<bool> GFX_HACK_DEFER_EFB_COPIES;
 extern const Info<bool> GFX_HACK_IMMEDIATE_XFB;
+extern const Info<bool> GFX_HACK_CAP_IMMEDIATE_XFB;
 extern const Info<bool> GFX_HACK_SKIP_DUPLICATE_XFBS;
 extern const Info<bool> GFX_HACK_EARLY_XFB_OUTPUT;
 extern const Info<bool> GFX_HACK_COPY_EFB_SCALED;

@@ -13,10 +13,7 @@
 #include "Common/Assert.h"
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
-#include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
-
-#include "Core/Config/GraphicsSettings.h"
 
 #include "VideoBackends/OGL/OGLTexture.h"
 
@@ -274,7 +271,7 @@ bool PopulateConfig(GLContext* m_main_gl_context)
 
     if (!GLExtensions::Supports("GL_ARB_sampler_objects"))
     {
-      // Our sampler cache uses this extension. It could easyly be workaround and it's by far the
+      // Our sampler cache uses this extension. It could easily be workaround and it's by far the
       // highest requirement, but it seems that no driver lacks support for it.
       PanicAlertFmtT("GPU: OGL ERROR: Need GL_ARB_sampler_objects.\n"
                      "GPU: Does your video card support OpenGL 3.3?");

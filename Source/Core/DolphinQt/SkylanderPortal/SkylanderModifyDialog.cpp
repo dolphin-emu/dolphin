@@ -18,7 +18,6 @@
 #include "Core/System.h"
 
 #include "DolphinQt/QtUtils/QtUtils.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 
 SkylanderModifyDialog::SkylanderModifyDialog(QWidget* parent, u8 slot)
     : QDialog(parent), m_slot(slot)
@@ -106,8 +105,6 @@ SkylanderModifyDialog::SkylanderModifyDialog(QWidget* parent, u8 slot)
   layout->addWidget(m_buttons);
 
   this->setLayout(layout);
-
-  SetQWidgetWindowDecorations(this);
 
   if (should_show)
   {
@@ -213,7 +210,7 @@ void SkylanderModifyDialog::PopulateSkylanderOptions(QVBoxLayout* layout)
   layout->addLayout(hbox_last_reset);
   layout->addLayout(hbox_last_placed);
 
-  connect(m_buttons, &QDialogButtonBox::accepted, this, [=, this]() {
+  connect(m_buttons, &QDialogButtonBox::accepted, this, [=, this] {
     if (!edit_money->hasAcceptableInput())
     {
       QMessageBox::warning(this, tr("Incorrect money value!"),
@@ -326,7 +323,7 @@ bool SkylanderModifyDialog::PopulateTrophyOptions(QVBoxLayout* layout)
     layout->addLayout(hbox);
   }
 
-  connect(m_buttons, &QDialogButtonBox::accepted, this, [=, this]() {
+  connect(m_buttons, &QDialogButtonBox::accepted, this, [=, this] {
     m_figure_data.trophy_data.unlocked_villains = 0x0;
     for (size_t i = 0; i < MAX_VILLAINS; ++i)
       m_figure_data.trophy_data.unlocked_villains |=

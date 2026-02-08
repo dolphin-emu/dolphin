@@ -20,7 +20,7 @@ public:
   explicit DolReader(const std::string& filename);
   explicit DolReader(File::IOFile file);
   explicit DolReader(std::vector<u8> buffer);
-  ~DolReader();
+  ~DolReader() override;
 
   bool IsValid() const override { return m_is_valid; }
   bool IsWii() const override { return m_is_wii; }

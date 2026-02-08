@@ -52,7 +52,8 @@ public:
   void Shutdown();
   void Prepare();  // Must be called from the CPU thread.
   void DoState(PointerWrap& f);
-  void PauseAndLock(bool do_lock, bool unpause_on_unlock);
+  void PauseAndLock();
+  void RestoreState(bool was_running);
   void UpdateWantDeterminism(bool want);
   bool UseDeterministicGPUThread() const { return m_use_deterministic_gpu_thread; }
   bool UseSyncGPU() const { return m_config_sync_gpu; }

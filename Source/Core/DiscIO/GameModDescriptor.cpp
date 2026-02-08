@@ -23,7 +23,7 @@ static std::string MakeAbsolute(const std::string& directory, const std::string&
 
 std::optional<GameModDescriptor> ParseGameModDescriptorFile(const std::string& filename)
 {
-  ::File::IOFile f(filename, "rb");
+  File::IOFile f(filename, "rb");
   if (!f)
     return std::nullopt;
 
@@ -212,7 +212,7 @@ bool WriteGameModDescriptorFile(const std::string& filename, const GameModDescri
   if (json.empty())
     return false;
 
-  ::File::IOFile f(filename, "wb");
+  File::IOFile f(filename, "wb");
   if (!f)
     return false;
 

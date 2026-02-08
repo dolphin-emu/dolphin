@@ -54,7 +54,8 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
           nullptr;
 
   // Only use the integer RTV if logic op is supported, and enabled.
-  const bool use_logic_op = config.blending_state.logicopenable && g_backend_info.bSupportsLogicOp;
+  const bool use_logic_op =
+      config.blending_state.logic_op_enable && g_backend_info.bSupportsLogicOp;
 
   return std::make_unique<DXPipeline>(config, input_layout, vertex_shader->GetD3DVertexShader(),
                                       geometry_shader ? geometry_shader->GetD3DGeometryShader() :

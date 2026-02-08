@@ -9,7 +9,6 @@ import org.dolphinemu.dolphinemu.databinding.ListItemSettingBinding
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter
-import org.dolphinemu.dolphinemu.ui.main.MainPresenter
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
 
@@ -57,7 +56,7 @@ class FilePickerViewHolder(
         }
 
         val position = bindingAdapterPosition
-        if (setting.requestType == MainPresenter.REQUEST_DIRECTORY) {
+        if (setting.type == SettingsItem.TYPE_DIRECTORY_PICKER) {
             adapter.onFilePickerDirectoryClick(setting, position)
         } else {
             adapter.onFilePickerFileClick(setting, position)

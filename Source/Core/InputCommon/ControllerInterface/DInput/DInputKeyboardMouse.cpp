@@ -144,7 +144,8 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
   mouse_caps.dwSize = sizeof(mouse_caps);
   m_mo_device->GetCapabilities(&mouse_caps);
   // mouse buttons
-  for (u8 i = 0; i < mouse_caps.dwButtons; ++i)
+  // We don't use caps here due to reporting inconsistencies
+  for (u8 i = 0; i < std::size(m_state_in.mouse.rgbButtons); ++i)
     AddInput(new Button(i, m_state_in.mouse.rgbButtons[i]));
   // mouse axes
   for (unsigned int i = 0; i < mouse_caps.dwAxes; ++i)

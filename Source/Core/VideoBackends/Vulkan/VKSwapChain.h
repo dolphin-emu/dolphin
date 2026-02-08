@@ -39,6 +39,7 @@ public:
   u32 GetHeight() const { return m_height; }
   u32 GetCurrentImageIndex() const { return m_current_swap_chain_image_index; }
   bool IsCurrentImageValid() const { return m_current_swap_chain_image_is_valid; }
+  size_t GetSwapChainImageCount() const { return m_swap_chain_images.size(); }
   VkImage GetCurrentImage() const
   {
     return m_swap_chain_images[m_current_swap_chain_image_index].image;

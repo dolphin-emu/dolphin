@@ -30,7 +30,7 @@ import org.dolphinemu.dolphinemu.fragments.GridOptionDialogFragment
 import org.dolphinemu.dolphinemu.model.GameFile
 import org.dolphinemu.dolphinemu.model.TvSettingsItem
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager
-import org.dolphinemu.dolphinemu.ui.platform.Platform
+import org.dolphinemu.dolphinemu.ui.platform.PlatformTab
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler
@@ -76,17 +76,11 @@ class TvMainActivity : FragmentActivity(), MainView, OnRefreshListener {
         presenter.onResume()
     }
 
-    override fun onStart() {
-        super.onStart()
-        StartupHandler.checkSessionReset(this)
-    }
-
     override fun onStop() {
         super.onStop()
         if (isChangingConfigurations) {
             MainPresenter.skipRescanningLibrary()
         }
-        StartupHandler.setSessionTime(this)
     }
 
     private fun setupUI() {
@@ -131,22 +125,6 @@ class TvMainActivity : FragmentActivity(), MainView, OnRefreshListener {
         SettingsActivity.launch(this, menuTag)
     }
 
-    override fun launchFileListActivity() {
-        if (DirectoryInitialization.preferOldFolderPicker(this)) {
-            FileBrowserHelper.openDirectoryPicker(this, FileBrowserHelper.GAME_EXTENSIONS)
-        } else {
-            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-            startActivityForResult(intent, MainPresenter.REQUEST_DIRECTORY)
-        }
-    }
-
-    override fun launchOpenFileActivity(requestCode: Int) {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-        intent.addCategory(Intent.CATEGORY_OPENABLE)
-        intent.type = "*/*"
-        startActivityForResult(intent, requestCode)
-    }
-
     /**
      * Shows or hides the loading indicator.
      */
@@ -169,49 +147,6 @@ class TvMainActivity : FragmentActivity(), MainView, OnRefreshListener {
 
     override fun showGridOptions() {
         GridOptionDialogFragment().show(supportFragmentManager, "gridOptions")
-    }
-
-    /**
-     * Callback from AddDirectoryActivity. Applies any changes necessary to the GameGridActivity.
-     *
-     * @param requestCode An int describing whether the Activity that is returning did so successfully.
-     * @param resultCode  An int describing what Activity is giving us this callback.
-     * @param result      The information the returning Activity is providing us.
-     */
-    override fun onActivityResult(requestCode: Int, resultCode: Int, result: Intent?) {
-        super.onActivityResult(requestCode, resultCode, result)
-
-        // If the user picked a file, as opposed to just backing out.
-        if (resultCode == RESULT_OK) {
-            val uri = result!!.data
-            when (requestCode) {
-                MainPresenter.REQUEST_DIRECTORY -> {
-                    if (DirectoryInitialization.preferOldFolderPicker(this)) {
-                        presenter.onDirectorySelected(FileBrowserHelper.getSelectedPath(result))
-                    } else {
-                        presenter.onDirectorySelected(result)
-                    }
-                }
-
-                MainPresenter.REQUEST_GAME_FILE -> FileBrowserHelper.runAfterExtensionCheck(
-                    this, uri, FileBrowserHelper.GAME_LIKE_EXTENSIONS
-                ) { EmulationActivity.launch(this, result.data.toString(), false) }
-
-                MainPresenter.REQUEST_WAD_FILE -> FileBrowserHelper.runAfterExtensionCheck(
-                    this, uri, FileBrowserHelper.WAD_EXTENSION
-                ) { presenter.installWAD(result.data.toString()) }
-
-                MainPresenter.REQUEST_WII_SAVE_FILE -> FileBrowserHelper.runAfterExtensionCheck(
-                    this, uri, FileBrowserHelper.BIN_EXTENSION
-                ) { presenter.importWiiSave(result.data.toString()) }
-
-                MainPresenter.REQUEST_NAND_BIN_FILE -> FileBrowserHelper.runAfterExtensionCheck(
-                    this, uri, FileBrowserHelper.BIN_EXTENSION
-                ) { presenter.importNANDBin(result.data.toString()) }
-            }
-        } else {
-            MainPresenter.skipRescanningLibrary()
-        }
     }
 
     override fun onRequestPermissionsResult(
@@ -246,9 +181,11 @@ class TvMainActivity : FragmentActivity(), MainView, OnRefreshListener {
             GameFileCacheManager.startLoad()
         }
 
-        for (platform in Platform.values()) {
-            val row =
-                buildGamesRow(platform, GameFileCacheManager.getGameFilesForPlatform(platform))
+        for (platformTab in PlatformTab.values()) {
+            val row = buildGamesRow(
+                platformTab,
+                GameFileCacheManager.getGameFilesForPlatformTab(platformTab)
+            )
 
             // Add row to the adapter only if it is not empty.
             if (row != null) {
@@ -261,7 +198,7 @@ class TvMainActivity : FragmentActivity(), MainView, OnRefreshListener {
         browseFragment!!.adapter = rowsAdapter
     }
 
-    private fun buildGamesRow(platform: Platform, gameFiles: Collection<GameFile?>): ListRow? {
+    private fun buildGamesRow(platformTab: PlatformTab, gameFiles: Collection<GameFile?>): ListRow? {
         // If there are no games, don't return a Row.
         if (gameFiles.isEmpty()) {
             return null
@@ -275,7 +212,7 @@ class TvMainActivity : FragmentActivity(), MainView, OnRefreshListener {
         gameRows.add(row)
 
         // Create a header for this row.
-        val header = HeaderItem(platform.toInt().toLong(), getString(platform.headerName))
+        val header = HeaderItem(platformTab.toInt().toLong(), getString(platformTab.headerName))
 
         // Create the row, passing it the filled adapter and the header, and give it to the master adapter.
         return ListRow(header, row)

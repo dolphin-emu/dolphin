@@ -87,5 +87,5 @@ u64 GetBiggestReferencedOffset(const Volume& volume);
 u64 GetBiggestReferencedOffset(const Volume& volume, const std::vector<Partition>& partitions);
 
 bool IsGCZBlockSizeLegacyCompatible(int block_size, u64 file_size);
-bool IsDiscImageBlockSizeValid(int block_size, DiscIO::BlobType format);
+bool IsDiscImageBlockSizeValid(int block_size, BlobType format);
 }  // namespace DiscIO

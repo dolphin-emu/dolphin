@@ -1,17 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// GPU driver implementation partially based on:
-// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
-
 package org.dolphinemu.dolphinemu.features.settings.ui
 
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.Menu
+import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -22,26 +19,28 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.appbar.CollapsingToolbarLayout
-import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ActivitySettingsBinding
+import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsFragment.Companion.newInstance
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter
-import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
+import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.utils.InsetsHelper
 import org.dolphinemu.dolphinemu.utils.SerializableHelper.serializable
 import org.dolphinemu.dolphinemu.utils.ThemeHelper.enableScrollTint
+import org.dolphinemu.dolphinemu.utils.ThemeHelper.setCorrectTheme
 import org.dolphinemu.dolphinemu.utils.ThemeHelper.setTheme
 
-class SettingsActivity : AppCompatActivity(), SettingsActivityView {
+class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvider {
     private var presenter: SettingsActivityPresenter? = null
     private var dialog: AlertDialog? = null
     private var toolbarLayout: CollapsingToolbarLayout? = null
     private var binding: ActivitySettingsBinding? = null
 
+    override var themeId: Int = 0
     override var isMappingAllDevices = false
 
     override val settings: Settings
@@ -96,13 +95,22 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
     override fun onSaveInstanceState(outState: Bundle) {
         // Critical: If super method is not called, rotations will be busted.
         super.onSaveInstanceState(outState)
-        presenter!!.saveState(outState)
         outState.putBoolean(KEY_MAPPING_ALL_DEVICES, isMappingAllDevices)
     }
 
     override fun onStart() {
         super.onStart()
         presenter!!.onStart()
+    }
+
+    override fun onResume() {
+        setCorrectTheme(this)
+        super.onResume()
+    }
+
+    override fun setTheme(themeId: Int) {
+        super.setTheme(themeId)
+        this.themeId = themeId
     }
 
     /**
@@ -163,43 +171,14 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         return duration != 0f && transition != 0f
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, result: Intent?) {
-        super.onActivityResult(requestCode, resultCode, result)
-
-        // If the user picked a file, as opposed to just backing out.
-        if (resultCode != RESULT_OK) {
-            return
-        }
-
-        when (requestCode) {
-            MainPresenter.REQUEST_DIRECTORY -> {
-                val path = FileBrowserHelper.getSelectedPath(result)
-                fragment!!.adapter!!.onFilePickerConfirmation(path!!)
-            }
-
-            MainPresenter.REQUEST_GAME_FILE,
-            MainPresenter.REQUEST_SD_FILE,
-            MainPresenter.REQUEST_WAD_FILE,
-            MainPresenter.REQUEST_WII_SAVE_FILE,
-            MainPresenter.REQUEST_NAND_BIN_FILE -> {
-                val uri = canonicalizeIfPossible(result!!.data!!)
-                val validExtensions: Set<String> =
-                    if (requestCode == MainPresenter.REQUEST_GAME_FILE) FileBrowserHelper.GAME_EXTENSIONS else FileBrowserHelper.RAW_EXTENSION
-                var flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                if (requestCode != MainPresenter.REQUEST_GAME_FILE) flags =
-                    flags or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                val takeFlags = flags and result.flags
-                FileBrowserHelper.runAfterExtensionCheck(this, uri, validExtensions) {
-                    contentResolver.takePersistableUriPermission(uri, takeFlags)
-                    fragment!!.adapter!!.onFilePickerConfirmation(uri.toString())
-                }
-            }
-        }
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        ControllerInterface.dispatchKeyEvent(event)
+        return super.dispatchKeyEvent(event)
     }
 
-    private fun canonicalizeIfPossible(uri: Uri): Uri {
-        val canonicalizedUri = contentResolver.canonicalize(uri)
-        return canonicalizedUri ?: uri
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        ControllerInterface.dispatchGenericMotionEvent(event)
+        return super.dispatchGenericMotionEvent(event)
     }
 
     override fun showLoading() {
@@ -228,11 +207,6 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
     override fun onSettingsFileLoaded(settings: Settings) {
         val fragment: SettingsFragmentView? = fragment
         fragment?.onSettingsFileLoaded(settings)
-    }
-
-    override fun onSettingsFileNotFound() {
-        val fragment: SettingsFragmentView? = fragment
-        fragment?.loadDefaultSettings()
     }
 
     override fun showToastMessage(message: String) {

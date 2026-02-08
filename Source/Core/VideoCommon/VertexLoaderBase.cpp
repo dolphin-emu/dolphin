@@ -7,16 +7,12 @@
 #include <bit>
 #include <cstring>
 #include <memory>
-#include <string>
 #include <vector>
 
-#include <fmt/format.h>
 #include <fmt/ranges.h>
 
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
 #include "VideoCommon/VertexLoader.h"

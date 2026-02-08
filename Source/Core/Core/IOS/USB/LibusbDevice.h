@@ -4,7 +4,6 @@
 #pragma once
 
 #if defined(__LIBUSB__)
-#include <cstddef>
 #include <functional>
 #include <map>
 #include <memory>
@@ -26,19 +25,18 @@ namespace IOS::HLE::USB
 class LibusbDevice final : public Device
 {
 public:
-  LibusbDevice(EmulationKernel& ios, libusb_device* device,
-               const libusb_device_descriptor& device_descriptor);
-  ~LibusbDevice();
+  LibusbDevice(libusb_device* device, const libusb_device_descriptor& device_descriptor);
+  ~LibusbDevice() override;
   DeviceDescriptor GetDeviceDescriptor() const override;
   std::vector<ConfigDescriptor> GetConfigurations() const override;
   std::vector<InterfaceDescriptor> GetInterfaces(u8 config) const override;
-  std::vector<EndpointDescriptor> GetEndpoints(u8 config, u8 interface, u8 alt) const override;
+  std::vector<EndpointDescriptor> GetEndpoints(u8 config, u8 iface, u8 alt) const override;
   std::string GetErrorName(int error_code) const override;
   bool Attach() override;
-  bool AttachAndChangeInterface(u8 interface) override;
+  bool AttachAndChangeInterface(u8 iface) override;
   int CancelTransfer(u8 endpoint) override;
-  int ChangeInterface(u8 interface) override;
-  int GetNumberOfAltSettings(u8 interface) override;
+  int ChangeInterface(u8 iface) override;
+  int GetNumberOfAltSettings(u8 iface) override;
   int SetAltSetting(u8 alt_setting) override;
   int SubmitTransfer(std::unique_ptr<CtrlMessage> message) override;
   int SubmitTransfer(std::unique_ptr<BulkMessage> message) override;
@@ -46,13 +44,14 @@ public:
   int SubmitTransfer(std::unique_ptr<IsoMessage> message) override;
 
 private:
-  EmulationKernel& m_ios;
-
   std::vector<LibusbUtils::ConfigDescriptor> m_config_descriptors;
   u16 m_vid = 0;
   u16 m_pid = 0;
+  u16 m_spoofed_vid = 0;
+  u16 m_spoofed_pid = 0;
   u8 m_active_interface = 0;
   bool m_device_attached = false;
+  bool m_needs_playstation_rock_band_3_instrument_control_transfer = false;
 
   libusb_device* m_device = nullptr;
   libusb_device_handle* m_handle = nullptr;
@@ -71,6 +70,9 @@ private:
   std::map<u8, TransferEndpoint> m_transfer_endpoints;
   static void CtrlTransferCallback(libusb_transfer* transfer);
   static void TransferCallback(libusb_transfer* transfer);
+
+  void DisguisePlayStationDevice();
+  int SubmitPlayStationRockBand3InstrumentControlTransfer();
 
   int ClaimAllInterfaces(u8 config_num) const;
   int ReleaseAllInterfaces(u8 config_num) const;

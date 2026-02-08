@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/Expression.h"
 
@@ -66,7 +67,7 @@ public:
   void AddFromStrings(const TBreakPointsStr& bp_strings);
 
   bool IsAddressBreakPoint(u32 address) const;
-  bool IsBreakPointEnable(u32 adresss) const;
+  bool IsBreakPointEnable(u32 address) const;
   // Get the breakpoint in this address (for most purposes)
   const TBreakPoint* GetBreakpoint(u32 address) const;
   // Get the breakpoint in this address (ignore temporary breakpoint, e.g. for editing purposes)
@@ -97,6 +98,8 @@ private:
   Core::System& m_system;
 };
 
+class DelayedMemCheckUpdate;
+
 // Memory breakpoints
 class MemChecks
 {
@@ -115,20 +118,64 @@ public:
   TMemChecksStr GetStrings() const;
   void AddFromStrings(const TMemChecksStr& mc_strings);
 
-  void Add(TMemCheck memory_check, bool update = true);
+  DelayedMemCheckUpdate Add(TMemCheck memory_check);
 
   bool ToggleEnable(u32 address);
 
   TMemCheck* GetMemCheck(u32 address, size_t size = 1);
   bool OverlapsMemcheck(u32 address, u32 length) const;
-  bool Remove(u32 address, bool update = true);
+  DelayedMemCheckUpdate Remove(u32 address);
 
   void Update();
   void Clear();
   bool HasAny() const { return !m_mem_checks.empty(); }
 
+  BitSet32 GetGPRsUsedInConditions() { return m_gprs_used_in_conditions; }
+  BitSet32 GetFPRsUsedInConditions() { return m_fprs_used_in_conditions; }
+
 private:
+  // Returns whether any change was made
+  bool UpdateRegistersUsedInConditions();
+
   TMemChecks m_mem_checks;
   Core::System& m_system;
+  BitSet32 m_gprs_used_in_conditions;
+  BitSet32 m_fprs_used_in_conditions;
   bool m_mem_breakpoints_set = false;
+};
+
+class DelayedMemCheckUpdate final
+{
+public:
+  DelayedMemCheckUpdate(MemChecks* memchecks, bool update_needed = false)
+      : m_memchecks(memchecks), m_update_needed(update_needed)
+  {
+  }
+
+  DelayedMemCheckUpdate(const DelayedMemCheckUpdate&) = delete;
+  DelayedMemCheckUpdate(DelayedMemCheckUpdate&& other) = delete;
+  DelayedMemCheckUpdate& operator=(const DelayedMemCheckUpdate&) = delete;
+  DelayedMemCheckUpdate& operator=(DelayedMemCheckUpdate&& other) = delete;
+
+  ~DelayedMemCheckUpdate()
+  {
+    if (m_update_needed)
+      m_memchecks->Update();
+  }
+
+  DelayedMemCheckUpdate& operator|=(DelayedMemCheckUpdate&& other)
+  {
+    if (m_memchecks == other.m_memchecks)
+    {
+      m_update_needed |= other.m_update_needed;
+      other.m_update_needed = false;
+    }
+    return *this;
+  }
+
+  operator bool() const { return m_update_needed; }
+
+private:
+  MemChecks* m_memchecks;
+  bool m_update_needed;
 };

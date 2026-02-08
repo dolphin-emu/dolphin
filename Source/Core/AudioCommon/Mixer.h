@@ -3,11 +3,9 @@
 
 #pragma once
 
-#include <algorithm>
 #include <array>
 #include <atomic>
 #include <bit>
-#include <cmath>
 
 #include "AudioCommon/SurroundDecoder.h"
 #include "AudioCommon/WaveFile.h"
@@ -37,6 +35,10 @@ public:
   void PushGBASamples(std::size_t device_number, const s16* samples, std::size_t num_samples);
 
   u32 GetSampleRate() const { return m_output_sample_rate; }
+  void SetSampleRate(u32 output_sample_rate) { m_output_sample_rate = output_sample_rate; }
+
+  // Note: NullSoundStream sets the sample rate to 0.
+  bool IsOutputSampleRateValid() const { return m_output_sample_rate != 0; }
 
   void SetDMAInputSampleRateDivisor(u32 rate_divisor);
   void SetStreamInputSampleRateDivisor(u32 rate_divisor);
@@ -126,11 +128,12 @@ private:
     std::array<Granule, MAX_GRANULE_QUEUE_SIZE> m_queue;
     std::atomic<std::size_t> m_queue_head{0};
     std::atomic<std::size_t> m_queue_tail{0};
+    std::atomic<bool> m_queue_fading{false};
     std::atomic<bool> m_queue_looping{false};
     float m_fade_volume = 1.0;
 
     void Enqueue();
-    void Dequeue(Granule* granule);
+    bool Dequeue(Granule* granule);
 
     // Volume ranges from 0-256
     std::atomic<s32> m_LVolume{256};
@@ -160,6 +163,7 @@ private:
   bool m_log_dsp_audio = false;
 
   float m_config_emulation_speed;
+  bool m_config_audio_preserve_pitch;
   bool m_config_fill_audio_gaps;
   int m_config_audio_buffer_ms;
 

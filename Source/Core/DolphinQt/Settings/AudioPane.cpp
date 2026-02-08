@@ -19,7 +19,6 @@
 #include <QVBoxLayout>
 
 #include "AudioCommon/AudioCommon.h"
-#include "AudioCommon/Enums.h"
 #include "AudioCommon/WASAPIStream.h"
 
 #include "Core/Config/MainSettings.h"
@@ -27,11 +26,14 @@
 #include "Core/System.h"
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
-#include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
 #include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 
-#include "DolphinQt/Config/SettingsWindow.h"
 #include "DolphinQt/Settings.h"
+
+static QString GetVolumeLabelText(int volume_level)
+{
+  return QWidget::tr("%1%").arg(volume_level);
+}
 
 AudioPane::AudioPane()
 {
@@ -67,16 +69,26 @@ void AudioPane::CreateWidgets()
   dsp_layout->addWidget(m_dsp_combo, Qt::AlignLeft);
 
   auto* volume_box = new QGroupBox(tr("Volume"));
-  auto* volume_layout = new QVBoxLayout;
+  auto* volume_layout = new QVBoxLayout{volume_box};
+
   m_volume_slider = new ConfigSlider(0, 100, Config::MAIN_AUDIO_VOLUME);
-  m_volume_indicator = new QLabel(tr("%1 %").arg(m_volume_slider->value()));
-
-  volume_box->setLayout(volume_layout);
-
   m_volume_slider->setOrientation(Qt::Vertical);
 
+  // Volume indicator text label.
+  m_volume_indicator = new QLabel;
   m_volume_indicator->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
-  m_volume_indicator->setFixedWidth(QFontMetrics(font()).boundingRect(tr("%1 %").arg(100)).width());
+  auto update_volume_label = [this]() {
+    m_volume_indicator->setText(GetVolumeLabelText(m_volume_slider->value()));
+  };
+  update_volume_label();
+  connect(m_volume_slider, &QSlider::valueChanged, this, std::move(update_volume_label));
+
+  const QFontMetrics font_metrics{font()};
+  const int label_width = font_metrics.boundingRect(GetVolumeLabelText(100)).width();
+  // Ensure the label is at least as wide as the QGroupBox title.
+  // This prevents [-Volume] title ugliness on Windows.
+  const int title_width = font_metrics.boundingRect(volume_box->title()).width();
+  m_volume_indicator->setFixedWidth(std::max(label_width, title_width));
 
   volume_layout->addWidget(m_volume_slider, 0, Qt::AlignHCenter);
   volume_layout->addWidget(m_volume_indicator, 0, Qt::AlignHCenter);
@@ -92,8 +104,7 @@ void AudioPane::CreateWidgets()
     translated_backends.reserve(backends.size());
     for (const std::string& backend : backends)
     {
-      translated_backends.push_back(
-          std::make_pair(tr(backend.c_str()), QString::fromStdString(backend)));
+      translated_backends.emplace_back(tr(backend.c_str()), QString::fromStdString(backend));
     }
     m_backend_combo = new ConfigStringChoice(translated_backends, Config::MAIN_AUDIO_BACKEND);
   }
@@ -166,8 +177,12 @@ void AudioPane::CreateWidgets()
 
   // Set initial value display
   audio_buffer_size_label->setText(tr("%1 ms").arg(audio_buffer_size->value()));
+  audio_buffer_size_label->setFixedWidth(QFontMetrics(font()).boundingRect(tr(" 000 ms")).width());
 
   m_audio_fill_gaps = new ConfigBool(tr("Fill Audio Gaps"), Config::MAIN_AUDIO_FILL_GAPS);
+
+  m_audio_preserve_pitch =
+      new ConfigBool(tr("Preserve Audio Pitch"), Config::MAIN_AUDIO_PRESERVE_PITCH);
 
   m_speed_up_mute_enable = new ConfigBool(tr("Mute When Disabling Speed Limit"),
                                           Config::MAIN_AUDIO_MUTE_ON_DISABLED_SPEED_LIMIT);
@@ -180,8 +195,9 @@ void AudioPane::CreateWidgets()
 
   playback_layout->addLayout(buffer_layout, 0, 0);
   playback_layout->addWidget(m_audio_fill_gaps, 1, 0);
-  playback_layout->addWidget(m_speed_up_mute_enable, 2, 0);
-  playback_layout->setRowStretch(3, 1);
+  playback_layout->addWidget(m_audio_preserve_pitch, 2, 0);
+  playback_layout->addWidget(m_speed_up_mute_enable, 3, 0);
+  playback_layout->setRowStretch(4, 1);
   playback_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
   auto* const main_vbox_layout = new QVBoxLayout;
@@ -203,10 +219,8 @@ void AudioPane::ConnectWidgets()
   connect(m_backend_combo, &QComboBox::currentIndexChanged, this, &AudioPane::OnBackendChanged);
   connect(m_dolby_pro_logic, &ConfigBool::toggled, this, &AudioPane::OnDspChanged);
   connect(m_dsp_combo, &ConfigComplexChoice::currentIndexChanged, this, &AudioPane::OnDspChanged);
-  connect(m_volume_slider, &QSlider::valueChanged, this, [this](int value) {
-    m_volume_indicator->setText(tr("%1%").arg(value));
-    AudioCommon::UpdateSoundStream(Core::System::GetInstance());
-  });
+  connect(m_volume_slider, &QSlider::valueChanged, this,
+          [] { AudioCommon::UpdateSoundStream(Core::System::GetInstance()); });
 
   if (m_latency_control_supported)
   {
@@ -307,6 +321,10 @@ void AudioPane::AddDescriptions()
   static const char TR_FILL_AUDIO_GAPS_DESCRIPTION[] = QT_TR_NOOP(
       "Repeat existing audio during lag spikes to prevent stuttering.<br><br><dolphin_emphasis>If "
       "unsure, leave this checked.</dolphin_emphasis>");
+  static const char TR_PRESERVE_AUDIO_PITCH_DESCRIPTION[] = QT_TR_NOOP(
+      "Keeps audio at normal pitch when changing emulation speed. Without this, audio pitch "
+      "changes proportionally with speed.<br><br><dolphin_emphasis>If unsure, leave this "
+      "unchecked.</dolphin_emphasis>");
   static const char TR_SPEED_UP_MUTE_DESCRIPTION[] =
       QT_TR_NOOP("Mutes the audio when overriding the emulation speed limit (default hotkey: Tab). "
                  "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
@@ -347,4 +365,7 @@ void AudioPane::AddDescriptions()
 
   m_audio_fill_gaps->SetTitle(tr("Fill Audio Gaps"));
   m_audio_fill_gaps->SetDescription(tr(TR_FILL_AUDIO_GAPS_DESCRIPTION));
+
+  m_audio_preserve_pitch->SetTitle(tr("Preserve Audio Pitch"));
+  m_audio_preserve_pitch->SetDescription(tr(TR_PRESERVE_AUDIO_PITCH_DESCRIPTION));
 }

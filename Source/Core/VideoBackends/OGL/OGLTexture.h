@@ -8,7 +8,7 @@
 #include <string_view>
 #include <vector>
 
-#include "Common/GL/GLUtil.h"
+#include "Common/GL/GLExtensions/GLExtensions.h"
 
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
@@ -20,7 +20,7 @@ class OGLTexture final : public AbstractTexture
 {
 public:
   explicit OGLTexture(const TextureConfig& tex_config, std::string_view name);
-  ~OGLTexture();
+  ~OGLTexture() override;
 
   void CopyRectangleFromTexture(const AbstractTexture* src,
                                 const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
@@ -71,7 +71,7 @@ class OGLStagingTexture final : public AbstractStagingTexture
 {
 public:
   OGLStagingTexture() = delete;
-  ~OGLStagingTexture();
+  ~OGLStagingTexture() override;
 
   void CopyFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& src_rect,
                        u32 src_layer, u32 src_level,

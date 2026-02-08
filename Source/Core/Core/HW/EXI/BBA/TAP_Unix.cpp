@@ -9,20 +9,15 @@
 #include <unistd.h>
 #endif
 
-#include <fmt/format.h>
-
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/HW/EXI/EXI_Device.h"
 
 #ifdef __linux__
 #include <fcntl.h>
 #include <linux/if_tun.h>
 #include <net/if.h>
-#include <netinet/in.h>
 #include <sys/ioctl.h>
 #include <sys/select.h>
-#include <sys/socket.h>
 #endif
 
 namespace ExpansionInterface

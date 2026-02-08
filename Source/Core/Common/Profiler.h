@@ -19,8 +19,8 @@ public:
 
   static std::string ToString();
 
-  void Start();
-  void Stop();
+  void Start(u64* time, int* depth);
+  void Stop(u64* time, int* depth);
   std::string Read();
 
   bool operator<(const Profiler& b) const;
@@ -35,28 +35,34 @@ private:
   static std::string s_lazy_result;
   static int s_lazy_delay;
 
+  std::mutex m_mutex;
   std::string m_name;
   u64 m_usecs;
   u64 m_usecs_min;
   u64 m_usecs_max;
   u64 m_usecs_quad;
   u64 m_calls;
-  u64 m_time;
-  int m_depth;
 };
 
 class ProfilerExecuter
 {
 public:
-  ProfilerExecuter(Profiler* _p) : m_p(_p) { m_p->Start(); }
-  ~ProfilerExecuter() { m_p->Stop(); }
+  ProfilerExecuter(Profiler* profiler, u64* time, int* depth)
+      : m_profiler(profiler), m_time(time), m_depth(depth)
+  {
+    m_profiler->Start(m_time, m_depth);
+  }
+  ~ProfilerExecuter() { m_profiler->Stop(m_time, m_depth); }
 
 private:
-  Profiler* m_p;
+  Profiler* m_profiler;
+  u64* m_time;
+  int* m_depth;
 };
 }  // namespace Common
 
-// Warning: This profiler isn't thread safe. Only profile functions which doesn't run simultaneously
 #define PROFILE(name)                                                                              \
   static Common::Profiler prof_gen(name);                                                          \
-  Common::ProfilerExecuter prof_e(&prof_gen);
+  static thread_local u64 prof_time;                                                               \
+  static thread_local int prof_depth;                                                              \
+  Common::ProfilerExecuter prof_e(&prof_gen, &prof_time, &prof_depth);

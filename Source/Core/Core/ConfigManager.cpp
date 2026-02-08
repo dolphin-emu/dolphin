@@ -4,11 +4,9 @@
 #include "Core/ConfigManager.h"
 
 #include <algorithm>
-#include <climits>
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <sstream>
 #include <string>
 #include <string_view>
 #include <variant>
@@ -19,7 +17,6 @@
 
 #include "AudioCommon/AudioCommon.h"
 
-#include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -27,13 +24,10 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/Version.h"
 
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
-#include "Core/CommonTitles.h"
 #include "Core/Config/DefaultLocale.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
@@ -54,7 +48,6 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "Core/TitleDatabase.h"
 #include "Core/WC24PatchEngine.h"
@@ -102,6 +95,29 @@ void SConfig::LoadSettings()
   Config::Load();
 }
 
+void SConfig::ResetAllSettings()
+{
+  Config::ConfigChangeCallbackGuard config_guard;
+
+  File::Delete(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  File::Delete(File::GetUserPath(F_GFXCONFIG_IDX));
+  File::Delete(File::GetUserPath(F_LOGGERCONFIG_IDX));
+  File::Delete(File::GetUserPath(F_DUALSHOCKUDPCLIENTCONFIG_IDX));
+  File::Delete(File::GetUserPath(F_FREELOOKCONFIG_IDX));
+  File::Delete(File::GetUserPath(F_RETROACHIEVEMENTSCONFIG_IDX));
+  File::Delete(File::GetUserPath(F_WIISYSCONF_IDX));
+
+  for (Config::LayerType layer_type : Config::SEARCH_ORDER)
+  {
+    const std::shared_ptr<Config::Layer> layer = Config::GetLayer(layer_type);
+    if (!layer)
+      continue;
+    layer->DeleteAllKeys();
+  }
+
+  Config::OnConfigChanged();
+}
+
 const std::string SConfig::GetGameID() const
 {
   std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
@@ -126,6 +142,12 @@ const std::string SConfig::GetTitleDescription() const
   return m_title_description;
 }
 
+std::string SConfig::GetTriforceID() const
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  return m_triforce_id;
+}
+
 u64 SConfig::GetTitleID() const
 {
   std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
@@ -141,7 +163,7 @@ u16 SConfig::GetRevision() const
 void SConfig::ResetRunningGameMetadata()
 {
   std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
-  SetRunningGameMetadata("00000000", "", 0, 0, DiscIO::Region::Unknown);
+  SetRunningGameMetadata("00000000", "", "", 0, 0, DiscIO::Region::Unknown);
 }
 
 void SConfig::SetRunningGameMetadata(const DiscIO::Volume& volume,
@@ -150,14 +172,14 @@ void SConfig::SetRunningGameMetadata(const DiscIO::Volume& volume,
   std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
   if (partition == volume.GetGamePartition())
   {
-    SetRunningGameMetadata(volume.GetGameID(), volume.GetGameTDBID(),
+    SetRunningGameMetadata(volume.GetGameID(), volume.GetGameTDBID(), volume.GetTriforceID(),
                            volume.GetTitleID().value_or(0), volume.GetRevision().value_or(0),
                            volume.GetRegion());
   }
   else
   {
     SetRunningGameMetadata(volume.GetGameID(partition), volume.GetGameTDBID(partition),
-                           volume.GetTitleID(partition).value_or(0),
+                           volume.GetTriforceID(), volume.GetTitleID(partition).value_or(0),
                            volume.GetRevision(partition).value_or(0), volume.GetRegion());
   }
 }
@@ -175,25 +197,28 @@ void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Plat
       !Core::System::GetInstance().GetDVDInterface().UpdateRunningGameMetadata(tmd_title_id))
   {
     // If not launching a disc game, just read everything from the TMD.
-    SetRunningGameMetadata(tmd.GetGameID(), tmd.GetGameTDBID(), tmd_title_id, tmd.GetTitleVersion(),
-                           tmd.GetRegion());
+    SetRunningGameMetadata(tmd.GetGameID(), tmd.GetGameTDBID(), "", tmd_title_id,
+                           tmd.GetTitleVersion(), tmd.GetRegion());
   }
 }
 
 void SConfig::SetRunningGameMetadata(const std::string& game_id)
 {
   std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
-  SetRunningGameMetadata(game_id, "", 0, 0, DiscIO::Region::Unknown);
+  SetRunningGameMetadata(game_id, "", "", 0, 0, DiscIO::Region::Unknown);
 }
 
 void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
-                                     u64 title_id, u16 revision, DiscIO::Region region)
+                                     std::string triforce_id, u64 title_id, u16 revision,
+                                     DiscIO::Region region)
 {
   std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
   const bool was_changed = m_game_id != game_id || m_gametdb_id != gametdb_id ||
-                           m_title_id != title_id || m_revision != revision;
+                           m_triforce_id != triforce_id || m_title_id != title_id ||
+                           m_revision != revision;
   m_game_id = game_id;
   m_gametdb_id = gametdb_id;
+  m_triforce_id = triforce_id;
   m_title_id = title_id;
   m_revision = revision;
 
@@ -226,7 +251,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   const Core::TitleDatabase title_database;
   auto& system = Core::System::GetInstance();
   const DiscIO::Language language = GetLanguageAdjustedForRegion(system.IsWii(), region);
-  m_title_name = title_database.GetTitleName(m_gametdb_id, language);
+  m_title_name = title_database.GetTitleName(m_gametdb_id, m_triforce_id, language);
   m_title_description = title_database.Describe(m_gametdb_id, language);
   NOTICE_LOG_FMT(CORE, "Active title: {}", m_title_description);
   Host_TitleChanged();
@@ -262,12 +287,9 @@ void SConfig::OnTitleDirectlyBooted(const Core::CPUThreadGuard& guard)
     return;
 
   auto& ppc_symbol_db = system.GetPPCSymbolDB();
-  if (!ppc_symbol_db.IsEmpty())
-  {
-    ppc_symbol_db.Clear();
+
+  if (ppc_symbol_db.LoadMapOnBoot(guard))
     Host_PPCSymbolsChanged();
-  }
-  CBoot::LoadMapFromFilename(guard, ppc_symbol_db);
   HLE::Reload(system);
 
   PatchEngine::Reload(system);
@@ -298,6 +320,7 @@ void SConfig::LoadDefaults()
 
   auto& system = Core::System::GetInstance();
   system.SetIsWii(false);
+  system.SetIsTriforce(false);
 
   ResetRunningGameMetadata();
 }
@@ -321,6 +344,7 @@ struct SetGameMetadata
   {
     *region = disc.volume->GetRegion();
     system.SetIsWii(disc.volume->GetVolumeType() == DiscIO::Platform::WiiDisc);
+    system.SetIsTriforce(disc.volume->GetVolumeType() == DiscIO::Platform::Triforce);
     config->m_disc_booted_from_game_list = true;
     config->SetRunningGameMetadata(*disc.volume, disc.volume->GetGamePartition());
     return true;
@@ -404,7 +428,16 @@ struct SetGameMetadata
 
     *region = DiscIO::Region::NTSC_U;
     system.SetIsWii(dff_file->GetIsWii());
-    Host_TitleChanged();
+
+    const std::string& game_id = dff_file->GetGameId();
+    if (game_id == DEFAULT_GAME_ID)
+    {
+      Host_TitleChanged();
+    }
+    else
+    {
+      config->SetRunningGameMetadata(game_id);
+    }
 
     return true;
   }
@@ -496,7 +529,7 @@ Common::IniFile SConfig::LoadGameIni() const
   return LoadGameIni(GetGameID(), m_revision);
 }
 
-Common::IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional<u16> revision)
+Common::IniFile SConfig::LoadDefaultGameIni(std::string_view id, std::optional<u16> revision)
 {
   Common::IniFile game_ini;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
@@ -504,7 +537,7 @@ Common::IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional
   return game_ini;
 }
 
-Common::IniFile SConfig::LoadLocalGameIni(const std::string& id, std::optional<u16> revision)
+Common::IniFile SConfig::LoadLocalGameIni(std::string_view id, std::optional<u16> revision)
 {
   Common::IniFile game_ini;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
@@ -512,7 +545,7 @@ Common::IniFile SConfig::LoadLocalGameIni(const std::string& id, std::optional<u
   return game_ini;
 }
 
-Common::IniFile SConfig::LoadGameIni(const std::string& id, std::optional<u16> revision)
+Common::IniFile SConfig::LoadGameIni(std::string_view id, std::optional<u16> revision)
 {
   Common::IniFile game_ini;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))

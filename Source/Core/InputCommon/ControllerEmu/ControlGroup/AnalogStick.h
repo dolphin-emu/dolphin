@@ -17,12 +17,11 @@ public:
   AnalogStick(const char* name, std::unique_ptr<StickGate>&& stick_gate);
   AnalogStick(const char* name, const char* ui_name, std::unique_ptr<StickGate>&& stick_gate);
 
-  ReshapeData GetReshapableState(bool adjusted) const final override;
+  ReshapeData GetReshapableState(bool adjusted) const final;
   ControlState GetGateRadiusAtAngle(double ang) const override;
 
   StateData GetState() const;
   StateData GetState(const InputOverrideFunction& override_func) const;
-  StateData GetState(const InputOverrideFunction& override_func, bool* override_occurred) const;
 
 private:
   Control* GetModifierInput() const override;

@@ -10,9 +10,10 @@
 #include <QRadioButton>
 #include <QSettings>
 
+#include "Common/Config/Config.h"
+#include "Common/HookableEvent.h"
 #include "Core/Config/MainSettings.h"
 #include "DiscIO/Enums.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace Core
 {
@@ -43,7 +44,7 @@ public:
   Settings(Settings&&) = delete;
   Settings& operator=(Settings&&) = delete;
 
-  ~Settings();
+  ~Settings() override;
 
   void UnregisterDevicesChangedCallback();
 
@@ -65,9 +66,12 @@ public:
     Light = 1,
     Dark = 2,
     User = 3,
+    FusionLight = 4,
+    FusionDarkGray = 5,
+    FusionDark = 6,
 
     MinValue = 0,
-    MaxValue = 3,
+    MaxValue = 6,
   };
 
   void SetStyleType(StyleType type);
@@ -117,6 +121,9 @@ public:
   void SetSDCardInserted(bool inserted);
   bool IsUSBKeyboardConnected() const;
   void SetUSBKeyboardConnected(bool connected);
+
+  bool IsWiiSpeakMuted() const;
+  void SetWiiSpeakMuted(bool muted);
 
   void SetIsContinuouslyFrameStepping(bool is_stepping);
   bool GetIsContinuouslyFrameStepping() const;
@@ -219,10 +226,8 @@ signals:
   void AnalyticsToggled(bool enabled);
   void ReleaseDevices();
   void DevicesChanged();
-  void SDCardInsertionChanged(bool inserted);
-  void USBKeyboardConnectionChanged(bool connected);
+  void WiiSpeakMuteChanged(bool muted);
   void EnableGfxModsChanged(bool enabled);
-  void HardcoreStateChanged();
 
 private:
   Settings();
@@ -232,7 +237,10 @@ private:
 
   std::shared_ptr<NetPlay::NetPlayClient> m_client;
   std::shared_ptr<NetPlay::NetPlayServer> m_server;
-  ControllerInterface::HotplugCallbackHandle m_hotplug_callback_handle;
+  Common::EventHook m_hotplug_event_hook;
+  Config::ConfigChangedCallbackID m_config_changed_callback_id;
+
+  Common::EventHook m_core_state_changed_hook;
 };
 
 Q_DECLARE_METATYPE(Core::State);

@@ -3,20 +3,19 @@
 
 #pragma once
 
-#include <cstdio>
 #include <memory>
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/IOFile.h"
+#include "Common/DirectIOFile.h"
 #include "DiscIO/Blob.h"
 
 namespace DiscIO
 {
-class PlainFileReader : public BlobReader
+class PlainFileReader final : public BlobReader
 {
 public:
-  static std::unique_ptr<PlainFileReader> Create(File::IOFile file);
+  static std::unique_ptr<PlainFileReader> Create(File::DirectIOFile file);
 
   BlobType GetBlobType() const override { return BlobType::PLAIN; }
   std::unique_ptr<BlobReader> CopyReader() const override;
@@ -33,9 +32,9 @@ public:
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 
 private:
-  PlainFileReader(File::IOFile file);
+  PlainFileReader(File::DirectIOFile file);
 
-  File::IOFile m_file;
+  File::DirectIOFile m_file;
   u64 m_size;
 };
 

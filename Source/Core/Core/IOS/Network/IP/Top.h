@@ -120,7 +120,7 @@ private:
   IPCReply HandleICMPPingRequest(const IOCtlVRequest& request);
 
   Common::SocketContext m_socket_context;
-  Common::WorkQueueThread<AsyncTask> m_work_queue;
+  Common::WorkQueueThreadSP<AsyncTask> m_work_queue;
   std::mutex m_async_reply_lock;
   std::queue<AsyncReply> m_async_replies;
 };

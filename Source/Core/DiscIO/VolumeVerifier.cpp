@@ -5,16 +5,17 @@
 
 #include <algorithm>
 #include <future>
-#include <limits>
 #include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
-#include <unordered_set>
 
 #include <mbedtls/md5.h>
+#include <mz.h>
+#include <mz_strm.h>
+#include <mz_zip.h>
+#include <mz_zip_rw.h>
 #include <pugixml.hpp>
-#include <unzip.h>
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
@@ -65,7 +66,7 @@ void RedumpVerifier::Start(const Volume& volume)
   m_disc_number = volume.GetDiscNumber().value_or(0);
   m_size = volume.GetDataSize();
 
-  const DiscIO::Platform platform = volume.GetVolumeType();
+  const Platform platform = volume.GetVolumeType();
 
   m_future = std::async(std::launch::async, [this, platform]() -> std::vector<PotentialMatch> {
     std::string system;
@@ -157,25 +158,28 @@ RedumpVerifier::DownloadStatus RedumpVerifier::DownloadDatfile(const std::string
 
 std::vector<u8> RedumpVerifier::ReadDatfile(const std::string& system)
 {
-  unzFile file = unzOpen(GetPathForSystem(system).c_str());
-  if (!file)
+  void* zip_reader = mz_zip_reader_create();
+  if (!zip_reader)
     return {};
 
-  Common::ScopeGuard file_guard{[&] { unzClose(file); }};
+  Common::ScopeGuard file_guard{[&] { mz_zip_reader_delete(&zip_reader); }};
+
+  if (mz_zip_reader_open_file(zip_reader, GetPathForSystem(system).c_str()) != MZ_OK)
+    return {};
 
   // Check that the zip file contains exactly one file
-  if (unzGoToFirstFile(file) != UNZ_OK)
+  if (mz_zip_reader_goto_first_entry(zip_reader) != MZ_OK)
     return {};
-  if (unzGoToNextFile(file) != UNZ_END_OF_LIST_OF_FILE)
+  if (mz_zip_reader_goto_next_entry(zip_reader) != MZ_END_OF_LIST)
     return {};
 
   // Read the file
-  if (unzGoToFirstFile(file) != UNZ_OK)
+  if (mz_zip_reader_goto_first_entry(zip_reader) != MZ_OK)
     return {};
-  unz_file_info file_info;
-  unzGetCurrentFileInfo(file, &file_info, nullptr, 0, nullptr, 0, nullptr, 0);
-  std::vector<u8> data(file_info.uncompressed_size);
-  if (!Common::ReadFileFromZip(file, &data))
+  mz_zip_file* file_info;
+  mz_zip_reader_entry_get_info(zip_reader, &file_info);
+  std::vector<u8> data(file_info->uncompressed_size);
+  if (!Common::ReadFileFromZip(zip_reader, data.data(), file_info->uncompressed_size))
     return {};
 
   return data;
@@ -402,6 +406,7 @@ void VolumeVerifier::Start()
 
   m_is_tgc = m_volume.GetBlobType() == BlobType::TGC;
   m_is_datel = m_volume.IsDatelDisc();
+  m_is_triforce = m_volume.GetVolumeType() == Platform::Triforce;
   m_is_not_retail = (m_volume.GetVolumeType() == Platform::WiiDisc && !m_volume.HasWiiHashes()) ||
                     IsDebugSigned();
 
@@ -624,7 +629,7 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
   if (blank_contents)
     return false;
 
-  const DiscIO::FileSystem* filesystem = m_volume.GetFileSystem(partition);
+  const FileSystem* filesystem = m_volume.GetFileSystem(partition);
   if (!filesystem)
   {
     if (m_is_datel)
@@ -755,7 +760,7 @@ void VolumeVerifier::CheckVolumeSize()
   u64 volume_size = m_volume.GetDataSize();
   const bool is_disc = IsDisc(m_volume.GetVolumeType());
   const bool should_be_dual_layer = is_disc && ShouldBeDualLayer();
-  bool volume_size_roughly_known = m_data_size_type != DiscIO::DataSizeType::UpperBound;
+  bool volume_size_roughly_known = m_data_size_type != DataSizeType::UpperBound;
 
   if (should_be_dual_layer && m_biggest_referenced_offset <= SL_DVD_R_SIZE)
   {
@@ -766,7 +771,7 @@ void VolumeVerifier::CheckVolumeSize()
                    "This problem generally only exists in illegal copies of games."));
   }
 
-  if (m_data_size_type != DiscIO::DataSizeType::Accurate)
+  if (m_data_size_type != DataSizeType::Accurate)
   {
     AddProblem(Severity::Low,
                Common::GetStringT("The format that the disc image is saved in does not "
@@ -799,7 +804,7 @@ void VolumeVerifier::CheckVolumeSize()
   // The reason why this condition is checking for m_data_size_type != UpperBound instead of
   // m_data_size_type == Accurate is because we want to show the warning about input recordings and
   // NetPlay for NFS disc images (which are the only disc images that have it set to LowerBound).
-  if (is_disc && m_data_size_type != DiscIO::DataSizeType::UpperBound && !m_is_tgc)
+  if (is_disc && m_data_size_type != DataSizeType::UpperBound && !m_is_tgc)
   {
     const Platform platform = m_volume.GetVolumeType();
     const bool should_be_gc_size = platform == Platform::GameCubeDisc || m_is_datel;
@@ -1018,7 +1023,7 @@ void VolumeVerifier::CheckSuperPaperMario()
   // bytes are zeroes like in good dumps, the game works correctly, but otherwise it can freeze
   // (depending on the exact values of the extra bytes). https://bugs.dolphin-emu.org/issues/11900
 
-  const DiscIO::Partition partition = m_volume.GetGamePartition();
+  const Partition partition = m_volume.GetGamePartition();
   const FileSystem* fs = m_volume.GetFileSystem(partition);
   if (!fs)
     return;
@@ -1370,6 +1375,13 @@ void VolumeVerifier::Finish()
     m_result.summary_text =
         Common::GetStringT("Dolphin is unable to verify typical TGC files properly, "
                            "since they are not dumps of actual discs.");
+    return;
+  }
+
+  if (m_is_triforce)
+  {
+    m_result.summary_text =
+        Common::GetStringT("Dolphin is currently unable to verify Triforce games.");
     return;
   }
 

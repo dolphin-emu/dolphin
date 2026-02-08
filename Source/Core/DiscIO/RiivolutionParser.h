@@ -224,7 +224,7 @@ std::optional<Disc> ParseString(std::string_view xml, std::string xml_path);
 std::vector<Patch> GenerateRiivolutionPatchesFromGameModDescriptor(
     const GameModDescriptorRiivolution& descriptor, const std::string& game_id,
     std::optional<u16> revision, std::optional<u8> disc_number);
-std::vector<Patch> GenerateRiivolutionPatchesFromConfig(const std::string root_directory,
+std::vector<Patch> GenerateRiivolutionPatchesFromConfig(const std::string& root_directory,
                                                         const std::string& game_id,
                                                         std::optional<u16> revision,
                                                         std::optional<u8> disc_number);

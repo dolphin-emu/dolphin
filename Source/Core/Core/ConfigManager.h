@@ -3,16 +3,11 @@
 
 #pragma once
 
-#include <limits>
 #include <mutex>
 #include <optional>
-#include <set>
 #include <string>
 #include <string_view>
-#include <utility>
-#include <vector>
 
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
 namespace Common
@@ -42,6 +37,8 @@ class TMDReader;
 
 struct BootParameters;
 
+static constexpr std::string_view DEFAULT_GAME_ID = "00000000";
+
 struct SConfig
 {
   // Settings
@@ -67,6 +64,7 @@ struct SConfig
   const std::string GetGameTDBID() const;
   const std::string GetTitleName() const;
   const std::string GetTitleDescription() const;
+  std::string GetTriforceID() const;
   u64 GetTitleID() const;
   u16 GetRevision() const;
   void ResetRunningGameMetadata();
@@ -94,9 +92,9 @@ struct SConfig
   Common::IniFile LoadLocalGameIni() const;
   Common::IniFile LoadGameIni() const;
 
-  static Common::IniFile LoadDefaultGameIni(const std::string& id, std::optional<u16> revision);
-  static Common::IniFile LoadLocalGameIni(const std::string& id, std::optional<u16> revision);
-  static Common::IniFile LoadGameIni(const std::string& id, std::optional<u16> revision);
+  static Common::IniFile LoadDefaultGameIni(std::string_view id, std::optional<u16> revision);
+  static Common::IniFile LoadLocalGameIni(std::string_view id, std::optional<u16> revision);
+  static Common::IniFile LoadGameIni(std::string_view id, std::optional<u16> revision);
 
   SConfig(const SConfig&) = delete;
   SConfig& operator=(const SConfig&) = delete;
@@ -108,6 +106,8 @@ struct SConfig
 
   // Load settings
   void LoadSettings();
+
+  static void ResetAllSettings();
 
   // Return the permanent and somewhat globally used instance of this struct
   static SConfig& GetInstance() { return (*m_Instance); }
@@ -121,13 +121,15 @@ private:
   static void ReloadTextures(Core::System& system);
 
   void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
-                              u64 title_id, u16 revision, DiscIO::Region region);
+                              std::string triforce_id, u64 title_id, u16 revision,
+                              DiscIO::Region region);
 
   static SConfig* m_Instance;
   mutable std::recursive_mutex m_metadata_lock;
 
   std::string m_game_id;
   std::string m_gametdb_id;
+  std::string m_triforce_id;
   std::string m_title_name;
   std::string m_title_description;
   u64 m_title_id;

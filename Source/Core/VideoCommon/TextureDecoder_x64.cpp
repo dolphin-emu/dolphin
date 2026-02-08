@@ -3,10 +3,6 @@
 
 #include "VideoCommon/TextureDecoder.h"
 
-#include <algorithm>
-#include <cmath>
-#include <cstring>
-
 #ifdef CHECK
 #include "Common/Assert.h"
 #endif
@@ -37,7 +33,7 @@ static inline u32 DecodePixel_RGB565(u16 val)
   int r, g, b, a;
   r = Convert5To8((val >> 11) & 0x1f);
   g = Convert6To8((val >> 5) & 0x3f);
-  b = Convert5To8((val)&0x1f);
+  b = Convert5To8((val) & 0x1f);
   a = 0xFF;
   return r | (g << 8) | (b << 16) | (a << 24);
 }
@@ -49,7 +45,7 @@ static inline u32 DecodePixel_RGB5A3(u16 val)
   {
     r = Convert5To8((val >> 10) & 0x1f);
     g = Convert5To8((val >> 5) & 0x1f);
-    b = Convert5To8((val)&0x1f);
+    b = Convert5To8((val) & 0x1f);
     a = 0xFF;
   }
   else
@@ -57,7 +53,7 @@ static inline u32 DecodePixel_RGB5A3(u16 val)
     a = Convert3To8((val >> 12) & 0x7);
     r = Convert4To8((val >> 8) & 0xf);
     g = Convert4To8((val >> 4) & 0xf);
-    b = Convert4To8((val)&0xf);
+    b = Convert4To8((val) & 0xf);
   }
   return r | (g << 8) | (b << 16) | (a << 24);
 }
@@ -1006,7 +1002,7 @@ static void TexDecoder_DecodeImpl_RGBA8_SSSE3(u32* dst, const u8* src, int width
                                               TextureFormat texformat, const u8* tlut,
                                               TLUTFormat tlutfmt, int Wsteps4, int Wsteps8)
 {
-  // xsacha optimized with SSSE3 instrinsics
+  // xsacha optimized with SSSE3 intrinsics
   // Produces a ~30% speed improvement over SSE2 implementation
   for (int y = 0; y < height; y += 4)
   {
@@ -1212,7 +1208,7 @@ static void TexDecoder_DecodeImpl_CMPR(u32* dst, const u8* src, int width, int h
         int cmp1 = _mm_extract_epi16(cmprgb0rgb1, 4);
 
         // green:
-        // NOTE: We start with the larger number of bits (6) firts for G and shift the mask down
+        // NOTE: We start with the larger number of bits (6) first for G and shift the mask down
         // 1 bit to get a 5-bit mask later for R and B components.
         // low6mask == _mm_set_epi32(0x0000FC00, 0x0000FC00, 0x0000FC00, 0x0000FC00)
         const __m128i low6mask = _mm_slli_epi32(_mm_srli_epi32(allFFs128, 24 + 2), 8 + 2);

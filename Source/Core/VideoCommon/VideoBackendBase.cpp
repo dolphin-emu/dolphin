@@ -21,6 +21,8 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/DolphinAnalytics.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/HW/VideoInterface.h"
 #include "Core/System.h"
 
 // TODO: ugly
@@ -56,6 +58,7 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Present.h"
+#include "VideoCommon/Resources/CustomResourceManager.h"
 #include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
@@ -85,23 +88,42 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 std::string VideoBackendBase::BadShaderFilename(const char* shader_stage, int counter)
 {
   return fmt::format("{}bad_{}_{}_{}.txt", File::GetUserPath(D_DUMP_IDX), shader_stage,
-                     g_video_backend->GetName(), counter);
+                     g_video_backend->GetConfigName(), counter);
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
 void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
                                        u64 ticks)
 {
-  if (m_initialized && g_presenter && !g_ActiveConfig.bImmediateXFB)
+  if (!m_initialized || !g_presenter)
+    return;
+
+  auto& system = Core::System::GetInstance();
+  auto& core_timing = system.GetCoreTiming();
+
+  if (!g_ActiveConfig.bImmediateXFB)
   {
-    auto& system = Core::System::GetInstance();
     system.GetFifo().SyncGPU(Fifo::SyncGPUReason::Swap);
 
-    const TimePoint presentation_time = system.GetCoreTiming().GetTargetHostTime(ticks);
+    const TimePoint presentation_time = core_timing.GetTargetHostTime(ticks);
     AsyncRequests::GetInstance()->PushEvent([=] {
       g_presenter->ViSwap(xfb_addr, fb_width, fb_stride, fb_height, ticks, presentation_time);
     });
   }
+
+  // Inform the Presenter of the next estimated swap time.
+
+  auto& vi = system.GetVideoInterface();
+  const s64 refresh_rate_den = vi.GetTargetRefreshRateDenominator();
+  const s64 refresh_rate_num = vi.GetTargetRefreshRateNumerator();
+
+  const auto next_swap_estimated_ticks =
+      ticks + (system.GetSystemTimers().GetTicksPerSecond() * refresh_rate_den / refresh_rate_num);
+  const auto next_swap_estimated_time = core_timing.GetTargetHostTime(next_swap_estimated_ticks);
+
+  AsyncRequests::GetInstance()->PushEvent([=] {
+    g_presenter->SetNextSwapEstimatedTime(next_swap_estimated_ticks, next_swap_estimated_time);
+  });
 }
 
 u32 VideoBackendBase::Video_GetQueryResult(PerfQueryType type)
@@ -124,7 +146,7 @@ u32 VideoBackendBase::Video_GetQueryResult(PerfQueryType type)
 
 u16 VideoBackendBase::Video_GetBoundingBox(int index)
 {
-  DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::READS_BOUNDING_BOX);
+  DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::ReadsBoundingBox);
 
   if (!g_ActiveConfig.bBBoxEnable)
   {
@@ -168,7 +190,7 @@ static VideoBackendBase* GetDefaultVideoBackend()
 std::string VideoBackendBase::GetDefaultBackendConfigName()
 {
   auto* default_backend = GetDefaultVideoBackend();
-  return default_backend ? default_backend->GetName() : "";
+  return default_backend ? default_backend->GetConfigName() : "";
 }
 
 std::string VideoBackendBase::GetDefaultBackendDisplayName()
@@ -221,7 +243,7 @@ void VideoBackendBase::ActivateBackend(const std::string& name)
     g_video_backend = GetDefaultVideoBackend();
 
   const auto& backends = GetAvailableBackends();
-  const auto iter = std::ranges::find(backends, name, &VideoBackendBase::GetName);
+  const auto iter = std::ranges::find(backends, name, &VideoBackendBase::GetConfigName);
 
   if (iter == backends.end())
     return;
@@ -309,7 +331,8 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
 
   if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
       !g_perf_query->Initialize() || !g_presenter->Initialize() ||
-      !g_framebuffer_manager->Initialize() || !g_texture_cache->Initialize() ||
+      !g_framebuffer_manager->Initialize(g_ActiveConfig.iEFBScale) ||
+      !g_texture_cache->Initialize() ||
       (g_backend_info.bSupportsBBox && !g_bounding_box->Initialize()) ||
       !g_graphics_mod_manager->Initialize())
   {
@@ -341,12 +364,16 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
   }
 
   g_shader_cache->InitializeShaderCache();
+  system.GetCustomResourceManager().Initialize();
 
   return true;
 }
 
 void VideoBackendBase::ShutdownShared()
 {
+  auto& system = Core::System::GetInstance();
+  system.GetCustomResourceManager().Shutdown();
+
   g_frame_dumper.reset();
   g_presenter.reset();
 
@@ -364,12 +391,10 @@ void VideoBackendBase::ShutdownShared()
   g_vertex_manager.reset();
   g_efb_interface.reset();
   g_widescreen.reset();
-  g_presenter.reset();
   g_gfx.reset();
 
   m_initialized = false;
 
-  auto& system = Core::System::GetInstance();
   VertexLoaderManager::Clear();
   system.GetFifo().Shutdown();
 }

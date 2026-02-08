@@ -76,13 +76,21 @@ protected:
   template <typename T>
   const T ReadValue(const Config::Info<T>& setting) const
   {
+    // For loading game specific settings.  If the game setting doesn't exist, load the current
+    // global setting. There's no way to know what game is being edited, so GlobalGame settings
+    // can't be shown, but otherwise would be good to include.
     if (m_layer != nullptr)
-      return m_layer->Get(setting);
+    {
+      if (m_layer->Exists(m_location))
+        return m_layer->Get(setting);
+      else
+        return Config::GetBase(setting);
+    }
 
     return Config::Get(setting);
   }
 
-  virtual void OnConfigChanged(){};
+  virtual void OnConfigChanged() {}
 
 private:
   bool IsConfigLocal() const

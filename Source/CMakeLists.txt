@@ -16,7 +16,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 endif()
 
 if (NOT MSVC)
-  set(CMAKE_CXX_STANDARD 20)
+  set(CMAKE_CXX_STANDARD 23)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
   set(CMAKE_CXX_EXTENSIONS OFF)
 endif()
@@ -60,6 +60,13 @@ else()
   if (HAS_FORMAT_WARNING)
     check_and_add_flag(FORMAT_WARNING_TO_ERROR -Werror=format)
   endif()
+
+  # Trigraphs support is generally disabled by default, but some compilers (GCC) may still warn when
+  # one hypothetical trigraph is encountered. The warning is generally not interesting.
+  check_cxx_compiler_flag(-Wtrigraphs HAS_TRIGRAPHS_WARNING)
+  if (HAS_TRIGRAPHS_WARNING)
+    check_and_add_flag(NO_TRIGRAPHS_WARNING -Wno-trigraphs)
+  endif()
 endif()
 
 # These aren't actually needed for C11/C++11
@@ -69,7 +76,7 @@ add_definitions(-D__STDC_CONSTANT_MACROS)
 
 check_symbol_exists(elf_aux_info sys/auxv.h HAVE_ELF_AUX_INFO)
 if(HAVE_ELF_AUX_INFO)
-    add_definitions(-DHAVE_ELF_AUX_INFO)
+  add_definitions(-DHAVE_ELF_AUX_INFO)
 endif()
 
 add_subdirectory(Core)
