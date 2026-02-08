@@ -153,6 +153,8 @@ static u8 s_network_buffer[512 * 1024];
 static u8 s_allnet_buffer[4096];
 static u8 s_allnet_settings[0x8500];
 
+static Common::IPAddress s_game_modified_ip_address;
+
 // Fake loading the game to have a chance to enter test mode
 static u32 s_board_status = LoadingGameProgram;
 static u32 s_load_progress = 80;
@@ -445,6 +447,8 @@ void Init()
   std::ranges::fill(s_sockets, SOCKET_ERROR);
   std::ranges::fill(s_allnet_buffer, 0);
   std::ranges::fill(s_allnet_settings, 0);
+
+  s_game_modified_ip_address = {};
 
   s_board_status = LoadingGameProgram;
   s_load_progress = 80;
@@ -1069,6 +1073,9 @@ static void AMMBCommandModifyMyIPaddr(u32 parameter_offset, u32 network_buffer_b
                                             ip_address_offset, MAX_IPV4_STRING_LENGTH);
 
   NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: modifyMyIPaddr({})", ip_address_str);
+
+  if (const auto parse_result = Common::StringToIPv4PortRange(ip_address_str))
+    s_game_modified_ip_address = parse_result->first.ip_address;
 }
 
 static void FileWriteData(Memory::MemoryManager& memory, File::IOFile* file, u32 seek_pos,
@@ -2010,6 +2017,8 @@ void DoState(PointerWrap& p)
   p.Do(s_network_buffer);
   p.Do(s_allnet_buffer);
   p.Do(s_allnet_settings);
+
+  p.Do(s_game_modified_ip_address);
 
   p.Do(s_board_status);
   p.Do(s_load_progress);
