@@ -25,6 +25,7 @@
 
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
@@ -146,6 +147,13 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
     {
       Config::SetCurrent(Config::GetInfoForSIDevice(0),
                          SerialInterface::SIDevices::SIDEVICE_AM_BASEBOARD);
+    }
+
+    // Mario Kart Arcade GP has widescreen heuristic issues.
+    // All Triforce games are 4:3 so we'll just disable the heuristic for now.
+    if (GetActiveLayerForConfig(Config::GFX_SUGGESTED_ASPECT_RATIO) == Config::LayerType::Base)
+    {
+      Config::SetCurrent(Config::GFX_SUGGESTED_ASPECT_RATIO, AspectMode::ForceStandard);
     }
   }
 
