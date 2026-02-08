@@ -233,17 +233,8 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
   if (system.IsTriforce())
   {
     auto& memory = system.GetMemory();
-    const u32 disc_size = volume.GetDataSize();
 
-    // Load game into RAM, like on the actual Triforce
-    u8* dimm = AMMediaboard::InitDIMM(disc_size);
-    if (!dimm)
-    {
-      ERROR_LOG_FMT(BOOT, "AMMediaboard::InitDIMM failed");
-      return false;
-    }
-
-    volume.Read(0, disc_size, dimm, DiscIO::PARTITION_NONE);
+    AMMediaboard::InitDIMM(volume);
 
     // Triforce disc register obfuscation
     AMMediaboard::InitKeys(memory.Read_U32(0), memory.Read_U32(4), memory.Read_U32(8));

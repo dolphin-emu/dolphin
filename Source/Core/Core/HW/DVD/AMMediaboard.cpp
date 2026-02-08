@@ -11,7 +11,6 @@
 
 #include <fmt/format.h>
 
-#include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -36,6 +35,8 @@
 #include "Core/IOS/Network/Socket.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
+
+#include "DiscIO/CachedBlob.h"
 
 #if defined(__linux__) or defined(__APPLE__) or defined(__FreeBSD__) or defined(__NetBSD__) or     \
     defined(__HAIKU__)
@@ -142,7 +143,7 @@ static File::IOFile s_extra;
 static File::IOFile s_backup;
 static File::IOFile s_dimm;
 
-static Common::UniqueBuffer<u8> s_dimm_disc;
+static std::unique_ptr<DiscIO::BlobReader> s_dimm_disc;
 
 static u8 s_firmware[2 * 1024 * 1024];
 static u32 s_media_buffer_32[192];
@@ -499,20 +500,10 @@ void Init()
   s_test_menu = true;
 }
 
-u8* InitDIMM(u32 size)
+void InitDIMM(const DiscIO::Volume& volume)
 {
-  if (size == 0)
-    return nullptr;
-
-  s_dimm_disc.reset(size);
-  if (s_dimm_disc.empty())
-  {
-    PanicAlertFmt("Failed to allocate DIMM memory.");
-    return nullptr;
-  }
-
-  s_firmware_map = false;
-  return s_dimm_disc.data();
+  // Load game into RAM, like on the actual Triforce.
+  s_dimm_disc = DiscIO::CreateCachedBlobReader(volume.GetBlobReader().CopyReader());
 }
 
 static int PlatformPoll(std::span<WSAPOLLFD> pfds, std::chrono::milliseconds timeout)
@@ -1556,13 +1547,13 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       return 0;
     }
 
-    if (s_dimm_disc.size())
+    if (const auto span = memory.GetSpanForAddress(address); span.size() < length)
     {
-      if (!SafeCopyToEmu(memory, address, s_dimm_disc.data(), s_dimm_disc.size(), offset, length))
-      {
-        ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Invalid DIMM Disc read from: offset={}, length={}",
-                      offset, length);
-      }
+      ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Invalid DIMM Disc read from: offset={}, length={}",
+                    offset, length);
+    }
+    else if (s_dimm_disc->Read(offset, length, span.data()))
+    {
       return 0;
     }
 
@@ -1996,7 +1987,8 @@ void Shutdown()
   s_extra.Close();
   s_backup.Close();
   s_dimm.Close();
-  s_dimm_disc.clear();
+
+  s_dimm_disc.reset();
 
   CloseAllSockets();
 }
