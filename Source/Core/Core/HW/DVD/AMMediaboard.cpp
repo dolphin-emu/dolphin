@@ -152,6 +152,10 @@ static u8 s_network_buffer[512 * 1024];
 static u8 s_allnet_buffer[4096];
 static u8 s_allnet_settings[0x8500];
 
+// Fake loading the game to have a chance to enter test mode
+static u32 s_board_status = LoadingGameProgram;
+static u32 s_load_progress = 80;
+
 static constexpr std::size_t MAX_IPV4_STRING_LENGTH = 15;
 
 constexpr char s_allnet_reply[] = {
@@ -440,6 +444,9 @@ void Init()
   std::ranges::fill(s_sockets, SOCKET_ERROR);
   std::ranges::fill(s_allnet_buffer, 0);
   std::ranges::fill(s_allnet_settings, 0);
+
+  s_board_status = LoadingGameProgram;
+  s_load_progress = 80;
 
   s_firmware_map = false;
   s_test_menu = false;
@@ -1746,19 +1753,15 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         break;
       case AMMBCommand::GetMediaBoardStatus:
       {
-        // Fake loading the game to have a chance to enter test mode
-        static u32 status = LoadingGameProgram;
-        static u32 progress = 80;
-
-        s_media_buffer_32[1] = status;
-        s_media_buffer_32[2] = progress;
-        if (progress < 100)
+        s_media_buffer_32[1] = s_board_status;
+        s_media_buffer_32[2] = s_load_progress;
+        if (s_load_progress < 100)
         {
-          progress++;
+          s_load_progress++;
         }
         else
         {
-          status = LoadedGameProgram;
+          s_board_status = LoadedGameProgram;
         }
       }
       break;
@@ -1974,6 +1977,18 @@ bool GetTestMenu()
   return s_test_menu;
 }
 
+static void CloseAllSockets()
+{
+  for (u32 i = FIRST_VALID_FD; i < std::size(s_sockets); ++i)
+  {
+    if (s_sockets[i] != SOCKET_ERROR)
+    {
+      closesocket(s_sockets[i]);
+      s_sockets[i] = SOCKET_ERROR;
+    }
+  }
+}
+
 void Shutdown()
 {
   s_netcfg.Close();
@@ -1983,12 +1998,63 @@ void Shutdown()
   s_dimm.Close();
   s_dimm_disc.clear();
 
-  // Close all sockets
-  for (u32 i = FIRST_VALID_FD; i < std::size(s_sockets); ++i)
+  CloseAllSockets();
+}
+
+void DoState(PointerWrap& p)
+{
+  p.Do(s_firmware_map);
+  p.Do(s_test_menu);
+  p.Do(s_timeouts);
+  p.Do(s_last_error);
+  p.Do(s_gcam_key_a);
+  p.Do(s_gcam_key_b);
+  p.Do(s_gcam_key_c);
+  p.Do(s_firmware);
+  p.Do(s_media_buffer_32);
+  p.Do(s_network_command_buffer);
+  p.Do(s_network_buffer);
+  p.Do(s_allnet_buffer);
+  p.Do(s_allnet_settings);
+
+  p.Do(s_board_status);
+  p.Do(s_load_progress);
+
+  // TODO: Handle the files better.
+  // Data corruption is probably currently possible.
+
+  // s_netcfg
+  // s_netctrl
+  // s_extra
+  // s_backup
+  // s_dimm
+
+  // TODO: Handle sockets better.
+  // For now, we just recreate a TCP socket for any socket that existed.
+  // We should probably re-bind sockets and handle UDP sockets.
+
+  GuestFdSet created_sockets{};
+  if (p.IsWriteMode() || p.IsVerifyMode())
   {
-    if (s_sockets[i] != SOCKET_ERROR)
+    for (u32 i = FIRST_VALID_FD; i < std::size(s_sockets); ++i)
     {
-      closesocket(s_sockets[i]);
+      if (s_sockets[i] != SOCKET_ERROR)
+        created_sockets.SetFd(GuestSocket(i));
+    }
+  }
+
+  p.Do(created_sockets);
+
+  if (p.IsReadMode())
+  {
+    CloseAllSockets();
+
+    for (u32 i = FIRST_VALID_FD; i < std::size(s_sockets); ++i)
+    {
+      if (!created_sockets.IsFdSet(GuestSocket(i)))
+        continue;
+
+      s_sockets[i] = socket(AF_INET, SOCK_STREAM, 0);
     }
   }
 }

@@ -228,9 +228,6 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
       std::array<u8, 0x80> data_out{};
       u32 data_offset = 0;
 
-      static u32 dip_switch_1 = 0xFE;
-      static u32 dip_switch_0 = 0xFF;
-
       data_out[data_offset++] = 1;
       data_out[data_offset++] = 1;
 
@@ -304,18 +301,18 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
           if (AMMediaboard::GetGameType() == FZeroAX ||
               AMMediaboard::GetGameType() == FZeroAXMonster)
           {
-            dip_switch_0 &= ~0x20;
+            m_dip_switch_0 &= ~0x20;
           }
 
           // Disable camera in MKGP1/2
           if (AMMediaboard::GetGameType() == MarioKartGP ||
               AMMediaboard::GetGameType() == MarioKartGP2)
           {
-            dip_switch_0 &= ~0x10;
+            m_dip_switch_0 &= ~0x10;
           }
 
-          data_out[data_offset++] = dip_switch_0;
-          data_out[data_offset++] = dip_switch_1;
+          data_out[data_offset++] = m_dip_switch_0;
+          data_out[data_offset++] = m_dip_switch_1;
           break;
         }
         case GCAMCommand::SerialNumber:
@@ -1656,8 +1653,6 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 
           JVSIOMessage message;
 
-          static int delay = 0;
-
           const u8* const frame = &data_in[0];
           const u8 nr_bytes = frame[3];  // Byte after E0 xx
           u32 frame_len = nr_bytes + 3;  // Header(2) + length byte + payload + checksum
@@ -1694,8 +1689,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                           " - jvs_io(begin={}, current={}, end={}, n={})\n"
                           " - delay={}, node={}\n"
                           " - frame(begin={}, len={})",
-                          fmt::ptr(jvs_begin), fmt::ptr(jvs_io), fmt::ptr(jvs_end), n, delay, node,
-                          fmt::ptr(frame), frame_len);
+                          fmt::ptr(jvs_begin), fmt::ptr(jvs_io), fmt::ptr(jvs_end), n, m_delay,
+                          node, fmt::ptr(frame), frame_len);
             jvs_io = jvs_end;
             return false;
           };
@@ -2355,7 +2350,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 INFO_LOG_FMT(SERIALINTERFACE_JVSIO,
                              "JVS-IO: Command 0x32, GPO: delay=0x{:02x}, rx_reply=0x{:02x},"
                              " bytes={}, buffer:\n{}",
-                             delay, m_rx_reply, bytes, HexDump(jvs_io, bytes));
+                             m_delay, m_rx_reply, bytes, HexDump(jvs_io, bytes));
 
                 if (bytes < 3)
                 {
@@ -2370,8 +2365,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
                 switch (seat_state)
                 {
                 case 0x70:
-                  delay++;
-                  if ((delay % 10) == 0)
+                  m_delay++;
+                  if ((m_delay % 10) == 0)
                   {
                     m_rx_reply = 0xFB;
                   }
@@ -2429,13 +2424,13 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               if (*jvs_io++ == 0xD9)
               {
                 NOTICE_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0xF0, Reset");
-                delay = 0;
+                m_delay = 0;
                 m_wheel_init = 0;
                 m_ic_card_state = 0x20;
               }
               message.AddData(StatusOkay);
 
-              dip_switch_1 |= 1;
+              m_dip_switch_1 |= 1;
               break;
             case JVSIOCommand::SetAddress:
               if (!validate_jvs_io(1, "SetAddress"))
@@ -2444,7 +2439,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               NOTICE_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Command 0xF1, SetAddress: node={}",
                              node);
               message.AddData(node == 1);
-              dip_switch_1 &= ~1u;
+              m_dip_switch_1 &= ~1u;
               break;
             default:
               ERROR_LOG_FMT(SERIALINTERFACE_JVSIO, "JVS-IO: Unhandled: node={}, command={:02x}",
@@ -2737,6 +2732,75 @@ GCPadStatus CSIDevice_AMBaseboard::GetPadStatus()
     SetOrigin(pad_status);
 
   return pad_status;
+}
+
+void CSIDevice_AMBaseboard::DoState(PointerWrap& p)
+{
+  p.Do(m_origin);
+  p.Do(m_mode);
+  p.Do(m_timer_button_combo_start);
+  p.Do(m_last_button_combo);
+
+  p.Do(m_last);
+  p.Do(m_lastptr);
+
+  p.Do(m_coin);
+  p.Do(m_coin_pressed);
+
+  p.Do(m_ic_card_data);
+
+  // Setup IC-card
+  p.Do(m_ic_card_state);
+  p.Do(m_ic_card_status);
+  p.Do(m_ic_card_session);
+
+  p.Do(m_ic_write_buffer);
+  p.Do(m_ic_write_offset);
+  p.Do(m_ic_write_size);
+
+  p.Do(m_card_memory);
+  p.Do(m_card_read_packet);
+  p.Do(m_card_buffer);
+
+  // Setup CARD
+  p.Do(m_card_memory_size);
+  p.Do(m_card_is_inserted);
+
+  p.Do(m_card_command);
+  p.Do(m_card_clean);
+  p.Do(m_card_write_length);
+  p.Do(m_card_wrote);
+  p.Do(m_card_read_length);
+  p.Do(m_card_read);
+  p.Do(m_card_bit);
+  p.Do(m_card_shutter);
+  p.Do(m_card_state_call_count);
+  p.Do(m_card_offset);
+
+  // Serial
+  p.Do(m_wheel_init);
+
+  p.Do(m_motor_init);
+  p.Do(m_motor_reply);
+  p.Do(m_motor_force_y);
+
+  // F-Zero AX (DX)
+  p.Do(m_fzdx_seatbelt);
+  p.Do(m_fzdx_motion_stop);
+  p.Do(m_fzdx_sensor_right);
+  p.Do(m_fzdx_sensor_left);
+  p.Do(m_rx_reply);
+
+  // F-Zero AX (CyCraft)
+  p.Do(m_fzcc_seatbelt);
+  p.Do(m_fzcc_sensor);
+  p.Do(m_fzcc_emergency);
+  p.Do(m_fzcc_service);
+
+  p.Do(m_dip_switch_1);
+  p.Do(m_dip_switch_0);
+
+  p.Do(m_delay);
 }
 
 }  // namespace SerialInterface

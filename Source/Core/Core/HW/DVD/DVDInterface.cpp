@@ -124,6 +124,12 @@ void DVDInterface::DoState(PointerWrap& p)
   m_system.GetDVDThread().DoState(p);
 
   m_adpcm_decoder.DoState(p);
+
+  if (m_system.IsTriforce())
+  {
+    AMMediaboard::DoState(p);
+    p.DoMarker("AMMediaboard");
+  }
 }
 
 size_t DVDInterface::ProcessDTKSamples(s16* target_samples, size_t target_block_count,

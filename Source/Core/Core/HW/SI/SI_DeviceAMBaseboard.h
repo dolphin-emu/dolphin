@@ -71,6 +71,8 @@ public:
   static bool NetPlay_GetInput(int pad_num, GCPadStatus* status);
   static int NetPlay_InGamePadToLocalPad(int pad_num);
 
+  void DoState(PointerWrap&) override;
+
 protected:
   struct SOrigin
   {
@@ -310,6 +312,11 @@ private:
   bool m_fzcc_sensor = false;
   bool m_fzcc_emergency = false;
   bool m_fzcc_service = false;
+
+  u32 m_dip_switch_1 = 0xFE;
+  u32 m_dip_switch_0 = 0xFF;
+
+  int m_delay = 0;
 
   void ICCardSendReply(ICCommand* iccommand, u8* buffer, u32* length);
 };

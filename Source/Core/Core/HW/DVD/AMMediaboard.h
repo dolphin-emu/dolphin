@@ -8,6 +8,7 @@
 #include <string_view>
 #include <utility>
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 
 enum GameType
@@ -236,6 +237,7 @@ u32 GetGameType();
 u32 GetMediaType();
 bool GetTestMenu();
 void Shutdown();
+void DoState(PointerWrap& p);
 
 std::optional<std::pair<std::string_view, std::string_view>> ParseIPOverride(std::string_view str);
 
