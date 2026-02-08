@@ -207,10 +207,10 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
   u32 buffer_position = 0;
   while (buffer_position < buffer_length)
   {
-    BaseBoardCommand command = static_cast<BaseBoardCommand>(buffer[buffer_position]);
+    const auto bb_command = static_cast<BaseBoardCommand>(buffer[buffer_position]);
     buffer_position++;
 
-    switch (command)
+    switch (bb_command)
     {
     case BaseBoardCommand::GCAM_Reset:  // Returns ID and dip switches
     {
@@ -2523,7 +2523,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
     }
     default:
     {
-      ERROR_LOG_FMT(SERIALINTERFACE, "Unknown SI command (0x{:08x})", (u32)command);
+      ERROR_LOG_FMT(SERIALINTERFACE, "Unknown SI command (0x{:08x})", (u32)bb_command);
       PanicAlertFmt("SI: Unknown command");
       buffer_position = buffer_length;
     }
