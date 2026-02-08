@@ -124,7 +124,7 @@ private:
   PIMAGE_DATA_DIRECTORY directories;
 };
 
-void CompatPatchesInstall(LdrWatcher* watcher)
+static void CompatPatchesInstall(LdrWatcher* watcher)
 {
   watcher->Install({{L"EZFRD64.dll", L"811EZFRD64.DLL"}, [](const LdrDllLoadEvent& event) {
                       // *EZFRD64 is included in software packages for cheapo third-party gamepads

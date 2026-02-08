@@ -59,7 +59,7 @@ void LogToFile(const char* fmt, ...)
   va_end(args);
 }
 
-bool ProgressCallback(s64 total, s64 now, s64, s64)
+static bool ProgressCallback(s64 total, s64 now, s64, s64)
 {
   UI::SetCurrentProgress(static_cast<int>(now), static_cast<int>(total));
   return true;
@@ -78,7 +78,7 @@ std::string HexEncode(const u8* buffer, size_t size)
   return out;
 }
 
-bool HexDecode(const std::string& hex, u8* buffer, size_t size)
+static bool HexDecode(const std::string& hex, u8* buffer, size_t size)
 {
   if (hex.size() != size * 2)
     return false;
@@ -107,7 +107,7 @@ bool HexDecode(const std::string& hex, u8* buffer, size_t size)
   return true;
 }
 
-std::optional<std::string> GzipInflate(const std::string& data)
+static std::optional<std::string> GzipInflate(const std::string& data)
 {
   z_stream zstrm;
   zstrm.zalloc = nullptr;
@@ -155,7 +155,7 @@ Manifest::Hash ComputeHash(const std::string& contents)
   return out;
 }
 
-bool VerifySignature(const std::string& data, const std::string& b64_signature)
+static bool VerifySignature(const std::string& data, const std::string& b64_signature)
 {
   u8 signature[64];  // ed25519 sig size.
   size_t sig_size;
@@ -174,7 +174,7 @@ bool VerifySignature(const std::string& data, const std::string& b64_signature)
                         pub_key.data());
 }
 
-void FlushLog()
+static void FlushLog()
 {
   log_file.Flush();
   log_file.Close();
@@ -204,8 +204,8 @@ void TodoList::Log() const
   }
 }
 
-bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download,
-                     const std::string& content_base_url, const std::string& temp_path)
+static bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download,
+                            const std::string& content_base_url, const std::string& temp_path)
 {
   Common::HttpRequest req(std::chrono::seconds(30), ProgressCallback);
 
@@ -266,14 +266,14 @@ bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download,
   return true;
 }
 
-bool PlatformVersionCheck(const std::vector<TodoList::UpdateOp>& to_update,
-                          const std::string& install_base_path, const std::string& temp_dir)
+static bool PlatformVersionCheck(const std::vector<TodoList::UpdateOp>& to_update,
+                                 const std::string& install_base_path, const std::string& temp_dir)
 {
   UI::SetDescription("Checking platform...");
   return Platform::VersionCheck(to_update, install_base_path, temp_dir);
 }
 
-TodoList ComputeActionsToDo(Manifest this_manifest, Manifest next_manifest)
+static TodoList ComputeActionsToDo(Manifest this_manifest, Manifest next_manifest)
 {
   TodoList todo;
 
@@ -317,7 +317,7 @@ TodoList ComputeActionsToDo(Manifest this_manifest, Manifest next_manifest)
   return todo;
 }
 
-void CleanUpTempDir(const std::string& temp_dir, const TodoList& todo)
+static void CleanUpTempDir(const std::string& temp_dir, const TodoList& todo)
 {
   // This is best-effort cleanup, we ignore most errors.
   for (const auto& download : todo.to_download)
@@ -325,7 +325,7 @@ void CleanUpTempDir(const std::string& temp_dir, const TodoList& todo)
   File::DeleteDir(temp_dir);
 }
 
-bool BackupFile(const std::string& path)
+static bool BackupFile(const std::string& path)
 {
   std::string backup_path = path + ".bak";
   LogToFile("Backing up existing %s to .bak.\n", path.c_str());
@@ -337,8 +337,8 @@ bool BackupFile(const std::string& path)
   return true;
 }
 
-bool DeleteObsoleteFiles(const std::vector<TodoList::DeleteOp>& to_delete,
-                         const std::string& install_base_path)
+static bool DeleteObsoleteFiles(const std::vector<TodoList::DeleteOp>& to_delete,
+                                const std::string& install_base_path)
 {
   for (const auto& op : to_delete)
   {
@@ -370,8 +370,8 @@ bool DeleteObsoleteFiles(const std::vector<TodoList::DeleteOp>& to_delete,
   return true;
 }
 
-bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
-                 const std::string& install_base_path, const std::string& temp_path)
+static bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
+                        const std::string& install_base_path, const std::string& temp_path)
 {
 #ifdef _WIN32
   const auto self_path = std::filesystem::path(Common::GetModuleName(nullptr).value());
@@ -479,8 +479,8 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
   return true;
 }
 
-bool PerformUpdate(const TodoList& todo, const std::string& install_base_path,
-                   const std::string& content_base_url, const std::string& temp_path)
+static bool PerformUpdate(const TodoList& todo, const std::string& install_base_path,
+                          const std::string& content_base_url, const std::string& temp_path)
 {
   LogToFile("Starting download step...\n");
   if (!DownloadContent(todo.to_download, content_base_url, temp_path))
@@ -505,7 +505,7 @@ bool PerformUpdate(const TodoList& todo, const std::string& install_base_path,
   return true;
 }
 
-void FatalError(const std::string& message)
+static void FatalError(const std::string& message)
 {
   LogToFile("%s\n", message.c_str());
 
@@ -513,7 +513,7 @@ void FatalError(const std::string& message)
   UI::Error(message);
 }
 
-std::optional<Manifest> ParseManifest(const std::string& manifest)
+static std::optional<Manifest> ParseManifest(const std::string& manifest)
 {
   Manifest parsed;
   size_t pos = 0;
@@ -556,7 +556,7 @@ std::optional<Manifest> ParseManifest(const std::string& manifest)
 }
 
 // Not showing a progress bar here because this part is just too quick
-std::optional<Manifest> FetchAndParseManifest(const std::string& url)
+static std::optional<Manifest> FetchAndParseManifest(const std::string& url)
 {
   Common::HttpRequest http;
 
@@ -614,7 +614,7 @@ struct Options
   std::optional<std::string> log_file;
 };
 
-std::optional<Options> ParseCommandLine(std::vector<std::string>& args)
+static std::optional<Options> ParseCommandLine(std::vector<std::string>& args)
 {
   using optparse::OptionParser;
 

@@ -23,7 +23,7 @@ Gfx::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
   return std::make_unique<D3DVertexFormat>(vtx_decl);
 }
 
-DXGI_FORMAT VarToD3D(ComponentFormat t, int size, bool integer)
+static DXGI_FORMAT VarToD3D(ComponentFormat t, int size, bool integer)
 {
   using FormatMap = Common::EnumMap<DXGI_FORMAT, ComponentFormat::InvalidFloat7>;
   static constexpr auto f = [](FormatMap a) { return a; };  // Deduction helper
