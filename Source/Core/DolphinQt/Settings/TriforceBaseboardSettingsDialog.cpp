@@ -4,7 +4,6 @@
 #include "DolphinQt/Settings/TriforceBaseboardSettingsDialog.h"
 
 #include <QDialogButtonBox>
-#include <QFormLayout>
 #include <QGroupBox>
 #include <QHeaderView>
 #include <QLineEdit>
@@ -22,30 +21,28 @@
 
 #include "DolphinQt/QtUtils/QtUtils.h"
 
+static constexpr int COLUMN_EMULATED = 0;
+static constexpr int COLUMN_REAL = 1;
+static constexpr int COLUMN_DESCRIPTION = 2;
+
 TriforceBaseboardSettingsDialog::TriforceBaseboardSettingsDialog(QWidget* parent) : QDialog{parent}
 {
   setWindowTitle(tr("Triforce Baseboard"));
-
-  connect(this, &TriforceBaseboardSettingsDialog::accepted, this,
-          &TriforceBaseboardSettingsDialog::SaveConfig);
 
   auto* const dialog_layout = new QVBoxLayout{this};
 
   auto* const ip_override_group = new QGroupBox{tr("IP Address Overrides")};
   dialog_layout->addWidget(ip_override_group);
 
-  auto* const ip_override_layout = new QFormLayout{ip_override_group};
-
-  m_bind_ip_edit = new QLineEdit;
-  ip_override_layout->addRow(tr("Bind IP: "), m_bind_ip_edit);
+  auto* const ip_override_layout = new QVBoxLayout{ip_override_group};
 
   m_ip_overrides_table = new QTableWidget;
-  ip_override_layout->addRow(tr("IP Overrides: "), m_ip_overrides_table);
+  ip_override_layout->addWidget(m_ip_overrides_table);
 
+  m_ip_overrides_table->setColumnCount(3);
+  m_ip_overrides_table->setHorizontalHeaderLabels({tr("Emulated"), tr("Real"), tr("Description")});
   m_ip_overrides_table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-
-  m_ip_overrides_table->setColumnCount(2);
-  m_ip_overrides_table->setHorizontalHeaderLabels({tr("Match"), tr("Replacement")});
+  m_ip_overrides_table->setSizeAdjustPolicy(QTableWidget::AdjustToContents);
 
   m_ip_overrides_table->setEditTriggers(QAbstractItemView::DoubleClicked |
                                         QAbstractItemView::EditKeyPressed);
@@ -57,10 +54,17 @@ TriforceBaseboardSettingsDialog::TriforceBaseboardSettingsDialog(QWidget* parent
   connect(load_default_button, &QPushButton::clicked, this,
           &TriforceBaseboardSettingsDialog::LoadDefault);
 
+  auto* const clear_button = new QPushButton(tr("Clear"));
+  connect(clear_button, &QPushButton::clicked, this, &TriforceBaseboardSettingsDialog::OnClear);
+
   button_box->addButton(load_default_button, QDialogButtonBox::ActionRole);
+  button_box->addButton(clear_button, QDialogButtonBox::ActionRole);
 
   connect(button_box, &QDialogButtonBox::accepted, this, &TriforceBaseboardSettingsDialog::accept);
   connect(button_box, &QDialogButtonBox::rejected, this, &TriforceBaseboardSettingsDialog::reject);
+
+  connect(this, &TriforceBaseboardSettingsDialog::accepted, this,
+          &TriforceBaseboardSettingsDialog::SaveConfig);
 
   connect(m_ip_overrides_table, &QTableWidget::itemChanged, this, [this](QTableWidgetItem* item) {
     const int row_count = m_ip_overrides_table->rowCount();
@@ -70,12 +74,11 @@ TriforceBaseboardSettingsDialog::TriforceBaseboardSettingsDialog(QWidget* parent
       if (!item->text().isEmpty())
         m_ip_overrides_table->insertRow(row_count);
     }
-    else
+    else if (item->column() != COLUMN_DESCRIPTION && item->text().isEmpty())
     {
       // Just remove inner rows that have text erased.
       // This UX could be less weird, but it's good enough for now.
-      if (item->text().isEmpty())
-        m_ip_overrides_table->removeRow(item->row());
+      m_ip_overrides_table->removeRow(item->row());
     }
   });
 
@@ -86,8 +89,6 @@ TriforceBaseboardSettingsDialog::TriforceBaseboardSettingsDialog(QWidget* parent
 
 void TriforceBaseboardSettingsDialog::LoadConfig()
 {
-  m_bind_ip_edit->setText(QString::fromUtf8(Config::Get(Config::MAIN_TRIFORCE_BIND_IP)));
-
   m_ip_overrides_table->setRowCount(0);
 
   // Add the final empty row.
@@ -99,8 +100,8 @@ void TriforceBaseboardSettingsDialog::LoadConfig()
   for (auto&& ip_pair : ip_overrides_str | std::views::split(','))
   {
     const auto ip_pair_str = std::string_view{ip_pair};
-    const auto parts = AMMediaboard::ParseIPOverride(ip_pair_str);
-    if (!parts.has_value())
+    const auto parsed = AMMediaboard::ParseIPOverride(ip_pair_str);
+    if (!parsed.has_value())
     {
       ERROR_LOG_FMT(COMMON, "Bad IP pair string: {}", ip_pair_str);
       continue;
@@ -108,8 +109,12 @@ void TriforceBaseboardSettingsDialog::LoadConfig()
 
     m_ip_overrides_table->insertRow(row);
 
-    m_ip_overrides_table->setItem(row, 0, new QTableWidgetItem(QString::fromUtf8(parts->first)));
-    m_ip_overrides_table->setItem(row, 1, new QTableWidgetItem(QString::fromUtf8(parts->second)));
+    m_ip_overrides_table->setItem(row, COLUMN_EMULATED,
+                                  new QTableWidgetItem(QString::fromUtf8(parsed->original)));
+    m_ip_overrides_table->setItem(row, COLUMN_REAL,
+                                  new QTableWidgetItem(QString::fromUtf8(parsed->replacement)));
+    m_ip_overrides_table->setItem(row, COLUMN_DESCRIPTION,
+                                  new QTableWidgetItem(QString::fromUtf8(parsed->description)));
 
     ++row;
   }
@@ -117,28 +122,31 @@ void TriforceBaseboardSettingsDialog::LoadConfig()
 
 void TriforceBaseboardSettingsDialog::SaveConfig()
 {
-  Config::SetBaseOrCurrent(Config::MAIN_TRIFORCE_BIND_IP, m_bind_ip_edit->text().toStdString());
-
   // Ignore our empty row.
   const int row_count = m_ip_overrides_table->rowCount() - 1;
 
   std::vector<std::string> replacements(row_count);
   for (int row = 0; row < row_count; ++row)
   {
+    auto* const original_item = m_ip_overrides_table->item(row, COLUMN_EMULATED);
+    auto* const replacement_item = m_ip_overrides_table->item(row, COLUMN_REAL);
+
     // Skip incomplete rows.
-    if (m_ip_overrides_table->item(row, 0) == nullptr ||
-        m_ip_overrides_table->item(row, 1) == nullptr)
-    {
+    if (original_item == nullptr || replacement_item == nullptr)
       continue;
-    }
 
-    replacements[row] =
-        std::string(StripWhitespace(m_ip_overrides_table->item(row, 0)->text().toStdString())) +
-        "=" +
-        std::string(StripWhitespace(m_ip_overrides_table->item(row, 1)->text().toStdString()));
+    replacements[row] = fmt::format("{}={}", StripWhitespace(original_item->text().toStdString()),
+                                    replacement_item->text().toStdString());
+
+    auto* const description_item = m_ip_overrides_table->item(row, COLUMN_DESCRIPTION);
+    if (description_item == nullptr)
+      continue;
+
+    const auto description = description_item->text().toStdString();
+
+    if (!description.empty())
+      (replacements[row] += ' ') += description;
   }
-
-  // TODO: Ideally we'd remove duplicates based on the first IP.
 
   Config::SetBaseOrCurrent(Config::MAIN_TRIFORCE_IP_OVERRIDES,
                            fmt::format("{}", fmt::join(replacements, ",")));
@@ -147,8 +155,14 @@ void TriforceBaseboardSettingsDialog::SaveConfig()
 void TriforceBaseboardSettingsDialog::LoadDefault()
 {
   // This alters the config before "OK" is pressed. Bad UX..
-  Config::SetBaseOrCurrent(Config::MAIN_TRIFORCE_BIND_IP, Config::DefaultState{});
+
   Config::SetBaseOrCurrent(Config::MAIN_TRIFORCE_IP_OVERRIDES, Config::DefaultState{});
 
+  LoadConfig();
+}
+
+void TriforceBaseboardSettingsDialog::OnClear()
+{
+  Config::SetBaseOrCurrent(Config::MAIN_TRIFORCE_IP_OVERRIDES, "");
   LoadConfig();
 }

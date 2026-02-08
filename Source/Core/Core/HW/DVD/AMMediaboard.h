@@ -7,7 +7,6 @@
 #include <optional>
 #include <span>
 #include <string_view>
-#include <utility>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -243,6 +242,12 @@ bool GetTestMenu();
 void Shutdown();
 void DoState(PointerWrap& p);
 
-std::optional<std::pair<std::string_view, std::string_view>> ParseIPOverride(std::string_view str);
+struct ParsedIPOverride
+{
+  std::string_view original;
+  std::string_view replacement;
+  std::string_view description;
+};
+std::optional<ParsedIPOverride> ParseIPOverride(std::string_view str);
 
 };  // namespace AMMediaboard
