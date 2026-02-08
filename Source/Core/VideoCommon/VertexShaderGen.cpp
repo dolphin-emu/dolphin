@@ -358,8 +358,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   ShaderCode input_extract;
 
   // Enable gl_Layer output from vertex shader when using VS layer output for stereo
-  if (host_config.stereo && !host_config.backend_geometry_shaders &&
-      host_config.backend_vs_layer_output)
+  if (host_config.GeneratesStereoFromVS())
   {
     out.Write("#extension GL_ARB_shader_viewport_layer_array : require\n");
   }
@@ -382,8 +381,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   // Include GSBlock when:
   // 1. VS expand is enabled (line/point expansion), or
   // 2. Stereo is enabled but geometry shaders are not available (VS layer output stereo)
-  const bool needs_gs_block = uid_data->vs_expand != VSExpand::None ||
-                              (host_config.stereo && !host_config.backend_geometry_shaders);
+  const bool needs_gs_block =
+      uid_data->vs_expand != VSExpand::None || host_config.GeneratesStereoFromVS();
   if (needs_gs_block)
   {
     out.Write("UBO_BINDING(std140, 4) uniform GSBlock {{\n");
@@ -552,8 +551,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
     // VS layer output stereo: pass layer to pixel shader via varying
     // Only when geometry shaders are not available (otherwise GS handles layer)
-    if (host_config.stereo && !host_config.backend_geometry_shaders &&
-        host_config.backend_vs_layer_output)
+    if (host_config.GeneratesStereoFromVS())
     {
       out.Write("VARYING_LOCATION({}) flat out int layer;\n", counter++);
     }
@@ -894,8 +892,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
   // VS layer output stereo: use instancing to select layer, apply stereo offset
   // This renders to 2 separate layers like the geometry shader path
-  if (host_config.stereo && !host_config.backend_geometry_shaders &&
-      host_config.backend_vs_layer_output)
+  if (host_config.GeneratesStereoFromVS())
   {
     out.Write("// VS layer output stereo via instancing\n");
     out.Write("gl_Layer = gl_InstanceID;\n");

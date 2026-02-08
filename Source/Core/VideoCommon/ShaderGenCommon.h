@@ -182,6 +182,11 @@ union ShaderHostConfig
   BitField<30, 1, bool, u32> backend_vs_layer_output;
 
   static ShaderHostConfig GetCurrent();
+
+  bool GeneratesStereoFromVS() const
+  {
+    return stereo && !backend_geometry_shaders && backend_vs_layer_output;
+  }
 };
 
 // Gets the filename of the specified type of cache object (e.g. vertex shader, pipeline).

@@ -162,7 +162,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     }
     // VS layer output stereo: receive layer from vertex shader via varying
     // Only when geometry shaders are not available (otherwise GS handles layer)
-    if (stereo && !host_config.backend_geometry_shaders && host_config.backend_vs_layer_output)
+    if (host_config.GeneratesStereoFromVS())
     {
       out.Write("VARYING_LOCATION({}) flat in int layer;\n", counter++);
     }
@@ -605,7 +605,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       out.Write("\tint layer = gl_Layer;\n");
     // Otherwise, layer is a flat varying from geometry shader - already in scope
   }
-  else if (stereo && host_config.backend_vs_layer_output)
+  else if (host_config.GeneratesStereoFromVS())
   {
     // VS layer stereo: layer is a flat varying from vertex shader - already in scope
   }
