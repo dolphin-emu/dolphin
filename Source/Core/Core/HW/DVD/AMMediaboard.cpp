@@ -17,6 +17,7 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
+#include "Common/ScopeGuard.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
@@ -675,72 +676,79 @@ static s32 NetDIMMConnect(GuestSocket guest_socket, const GuestSocketAddress& gu
 
   const auto host_socket = GetHostSocket(guest_socket);
 
-  u_long val = 1;
   // Set socket to non-blocking
-  ioctlsocket(host_socket, FIONBIO, &val);
+  {
+    u_long val = 1;
+    ioctlsocket(host_socket, FIONBIO, &val);
+  }
+  // Restore blocking mode
+  Common::ScopeGuard guard{[&] {
+    u_long val = 0;
+    ioctlsocket(host_socket, FIONBIO, &val);
+  }};
 
-  int ret = connect(host_socket, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
+  const int connect_result =
+      connect(host_socket, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
   const int err = WSAGetLastError();
 
-  if (ret == SOCKET_ERROR && err == WSAEWOULDBLOCK)
+  if (connect_result == 0) [[unlikely]]
   {
-    WSAPOLLFD pfds[1]{{.fd = host_socket, .events = POLLOUT}};
-
-    const auto timeout =
-        duration_cast<std::chrono::milliseconds>(std::chrono::microseconds{s_timeouts[0]});
-
-    ret = PlatformPoll(pfds, timeout);
-
-    if (ret > 0 && (pfds[0].revents & POLLOUT) != 0)
-    {
-      int so_error = 0;
-      socklen_t optlen = sizeof(so_error);
-      if (getsockopt(host_socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&so_error),
-                     &optlen) == 0 &&
-          so_error == 0)
-      {
-        s_last_error = SSC_SUCCESS;
-        ret = 0;
-      }
-      else
-      {
-        ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: getsockopt() failed in NetDIMMConnect ({})",
-                      Common::StrNetworkError());
-        s_last_error = SOCKET_ERROR;
-        ret = SOCKET_ERROR;
-      }
-    }
-    else if (ret == 0)
-    {
-      // Timeout
-      s_last_error = SSC_EWOULDBLOCK;
-      ret = SOCKET_ERROR;
-    }
-    else
-    {
-      ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: poll() failed in NetDIMMConnect ({})",
-                    Common::StrNetworkError());
-      s_last_error = SOCKET_ERROR;
-      ret = SOCKET_ERROR;
-    }
+    // Immediate success.
+    s_last_error = SSC_SUCCESS;
+    return 0;
   }
-  else if (ret == SOCKET_ERROR)
+
+  if (err != WSAEWOULDBLOCK)
   {
     // Immediate failure (e.g. WSAECONNREFUSED)
-    ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: NetDIMMConnect failed, connect() = {} ({})", err,
-                  Common::DecodeNetworkError(err));
-    s_last_error = ret;
+    WARN_LOG_FMT(AMMEDIABOARD, "NetDIMMConnect: connect: {} ({})", err,
+                 Common::DecodeNetworkError(err));
+
+    s_last_error = SOCKET_ERROR;
+    return SOCKET_ERROR;
   }
-  else
+
+  WSAPOLLFD pfds[1]{{.fd = host_socket, .events = POLLOUT}};
+
+  const auto timeout =
+      duration_cast<std::chrono::milliseconds>(std::chrono::microseconds{s_timeouts[0]});
+
+  const int poll_result = PlatformPoll(pfds, timeout);
+
+  if (poll_result < 0) [[unlikely]]
+  {
+    // Poll failure.
+    ERROR_LOG_FMT(AMMEDIABOARD, "NetDIMMConnect: PlatformPoll: {}", Common::StrNetworkError());
+
+    s_last_error = SOCKET_ERROR;
+    return SOCKET_ERROR;
+  }
+
+  if ((pfds[0].revents & POLLOUT) == 0)
+  {
+    // Timeout.
+    s_last_error = SSC_EWOULDBLOCK;
+    return SOCKET_ERROR;
+  }
+
+  int so_error = 0;
+  socklen_t optlen = sizeof(so_error);
+  const int getsockopt_result =
+      getsockopt(host_socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&so_error), &optlen);
+
+  if (getsockopt_result != 0) [[unlikely]]
+  {
+    // getsockopt failure.
+    ERROR_LOG_FMT(AMMEDIABOARD, "NetDIMMConnect: getsockopt: {}", Common::StrNetworkError());
+  }
+  else if (so_error == 0)
   {
     s_last_error = SSC_SUCCESS;
+    return 0;
   }
 
-  // Restore blocking mode
-  val = 0;
-  ioctlsocket(host_socket, FIONBIO, &val);
-
-  return ret;
+  s_last_error = SOCKET_ERROR;
+  return SOCKET_ERROR;
 }
 
 static void AMMBCommandRecv(u32 parameter_offset, u32 network_buffer_base)
@@ -1498,6 +1506,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: GetLastError( {}({}) ):{}", fd,
                        s_media_buffer_32[2], s_last_error);
 
+        // Good enough, assuming it's called for the same socket right after an error.
+        // TODO: Implement something similar per socket.
         s_media_buffer[1] = s_media_buffer[8];
         s_media_buffer_32[1] = s_last_error;
       }
