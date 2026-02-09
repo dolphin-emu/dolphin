@@ -75,6 +75,11 @@ static int WSAGetLastError()
 
 #endif
 
+MediaBoardRange::MediaBoardRange(u32 start_, u32 size_, std::span<u8> buffer_)
+    : start{start_}, end{start_ + size_}, buffer{buffer_.data()}, buffer_size{buffer_.size()}
+{
+}
+
 namespace AMMediaboard
 {
 
@@ -145,13 +150,13 @@ static File::IOFile s_dimm;
 
 static std::unique_ptr<DiscIO::BlobReader> s_dimm_disc;
 
-static u8 s_firmware[2 * 1024 * 1024];
-static u32 s_media_buffer_32[192];
-static u8* const s_media_buffer = reinterpret_cast<u8*>(s_media_buffer_32);
-static u8 s_network_command_buffer[0x4FFE00];
-static u8 s_network_buffer[512 * 1024];
-static u8 s_allnet_buffer[4096];
-static u8 s_allnet_settings[0x8500];
+static std::array<u8, 0x200000> s_firmware;
+static std::array<u32, 0xc0> s_media_buffer_32;
+static u8* const s_media_buffer = reinterpret_cast<u8*>(s_media_buffer_32.data());
+static std::array<u8, 0x4ffe00> s_network_command_buffer;
+static std::array<u8, 0x80000> s_network_buffer;
+static std::array<u8, 0x1000> s_allnet_buffer;
+static std::array<u8, 0x8500> s_allnet_settings;
 
 static Common::IPAddress s_game_modified_ip_address;
 
@@ -167,29 +172,19 @@ constexpr char s_allnet_reply[] = {
     "second=12&place_id=1234&setting=0x123&region0=jap&region_name0=japan&region_name1=usa&region_"
     "name2=asia&region_name3=export&end"};
 
-static const MediaBoardRanges s_mediaboard_ranges[] = {
-    {DIMMCommandVersion1, 0x1F900040, s_media_buffer, sizeof(s_media_buffer_32),
-     DIMMCommandVersion1},
-    {DIMMCommandVersion2, 0x84000060, s_media_buffer, sizeof(s_media_buffer_32),
-     DIMMCommandVersion2},
-    {DIMMCommandVersion2_2, 0x89000220, s_media_buffer, sizeof(s_media_buffer_32),
-     DIMMCommandVersion2_2},
-    {NetworkCommandAddress1, 0x1F801240, s_network_command_buffer, sizeof(s_network_command_buffer),
-     NetworkCommandAddress1},
-    {NetworkCommandAddress2, 0x89060200, s_network_command_buffer, sizeof(s_network_command_buffer),
-     NetworkCommandAddress2},
-    {NetworkBufferAddress1, 0x1FA10000, s_network_buffer, sizeof(s_network_buffer),
-     NetworkBufferAddress1},
-    {NetworkBufferAddress2, 0x1FD10000, s_network_buffer, sizeof(s_network_buffer),
-     NetworkBufferAddress2},
-    {NetworkBufferAddress3, 0x89150000, s_network_buffer, sizeof(s_network_buffer),
-     NetworkBufferAddress3},
-    {NetworkBufferAddress4, 0x89240000, s_network_buffer, sizeof(s_network_buffer),
-     NetworkBufferAddress4},
-    {NetworkBufferAddress5, 0x1FB10000, s_network_buffer, sizeof(s_network_buffer),
-     NetworkBufferAddress5},
-    {AllNetSettings, 0x1F000000, s_allnet_settings, sizeof(s_allnet_settings), AllNetSettings},
-    {AllNetBuffer, 0x89011000, s_allnet_buffer, sizeof(s_allnet_buffer), AllNetBuffer},
+static const MediaBoardRange s_mediaboard_ranges[] = {
+    {DIMMCommandVersion1, 0x40, Common::AsWritableU8Span(s_media_buffer_32)},
+    {DIMMCommandVersion2, 0x60, Common::AsWritableU8Span(s_media_buffer_32)},
+    {DIMMCommandVersion2_2, 0x220, Common::AsWritableU8Span(s_media_buffer_32)},
+    {NetworkCommandAddress1, 0x1040, s_network_command_buffer},
+    {NetworkCommandAddress2, 0x20000, s_network_command_buffer},
+    {NetworkBufferAddress1, 0x10000, s_network_buffer},
+    {NetworkBufferAddress2, 0x10000, s_network_buffer},
+    {NetworkBufferAddress3, 0x50000, s_network_buffer},
+    {NetworkBufferAddress4, 0xc0000, s_network_buffer},
+    {NetworkBufferAddress5, 0x10000, s_network_buffer},
+    {AllNetSettings, 0x8000, s_allnet_settings},
+    {AllNetBuffer, 0x1000, s_allnet_buffer},
 };
 
 static const std::unordered_map<u16, GameType> s_game_map = {
@@ -499,7 +494,7 @@ void Init()
   }
 
   const u64 length = std::min<u64>(sega_boot.GetSize(), sizeof(s_firmware));
-  sega_boot.ReadBytes(s_firmware, length);
+  sega_boot.ReadBytes(s_firmware.data(), length);
 
   s_test_menu = true;
 }
@@ -776,7 +771,7 @@ static void AMMBCommandRecv(u32 parameter_offset, u32 network_buffer_base)
     len = 0;
   }
 
-  int ret = recv(fd, reinterpret_cast<char*>(s_network_buffer + off), len, 0);
+  int ret = recv(fd, reinterpret_cast<char*>(s_network_buffer.data() + off), len, 0);
   const int err = WSAGetLastError();
 
   DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv( {}, 0x{:08x}, {} ):{} {}", fd, off, len, ret, err);
@@ -805,7 +800,7 @@ static void AMMBCommandSend(u32 parameter_offset, u32 network_buffer_base)
     len = 0;
   }
 
-  const int ret = send(fd, reinterpret_cast<char*>(s_network_buffer + off), len, SEND_FLAGS);
+  const int ret = send(fd, reinterpret_cast<char*>(s_network_buffer.data() + off), len, SEND_FLAGS);
   const int err = WSAGetLastError();
 
   DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: send( {}({}), 0x{:08x}, {} ): {} {}", fd,
@@ -1053,7 +1048,7 @@ static void AMMBCommandSetSockOpt(u32 parameter_offset, u32 network_buffer_base)
     return;
   }
 
-  const char* optval = reinterpret_cast<char*>(s_network_command_buffer + optval_offset);
+  const char* optval = reinterpret_cast<char*>(s_network_command_buffer.data() + optval_offset);
 
   // TODO: Ensure parameters are compatible with host's setsockopt
   const int ret = setsockopt(fd, level, optname, optval, optlen);
@@ -1223,7 +1218,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         break;
       default:
         PrintMBBuffer(address, length);
-        PanicAlertFmtT("Unhandled Media Board Read:{0:08x}", offset);
+        PanicAlertFmtT("Unhandled Media Board Read: offset={0:08x} length={0:08x}", offset, length);
         break;
       }
       return 0;
@@ -1277,8 +1272,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       if (offset >= range.start && offset < range.end)
       {
         DEBUG_LOG_FMT(AMMEDIABOARD, "GC-AM: Read MediaBoard ({:08x},{:08x},{:08x})", offset,
-                      range.base_offset, length);
-        SafeCopyToEmu(memory, address, range.buffer, range.buffer_size, offset - range.base_offset,
+                      range.start, length);
+        SafeCopyToEmu(memory, address, range.buffer, range.buffer_size, offset - range.start,
                       length);
         PrintMBBuffer(address, length);
         return 0;
@@ -1402,7 +1397,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         break;
       case AMMBCommand::InetAddr:
       {
-        const char* ip_address = reinterpret_cast<char*>(s_network_command_buffer);
+        const char* ip_address = reinterpret_cast<char*>(s_network_command_buffer.data());
 
         // IP address shouldn't be longer than 15
         // TODO: Shouldn't this look at 16 characters for lack of null-termination?
@@ -1542,13 +1537,13 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
     // Max GC disc offset
     if (offset >= 0x57058000)
     {
-      PanicAlertFmtT("Unhandled Media Board Read:{0:08x}", offset);
+      PanicAlertFmtT("Unhandled Media Board Read: offset={0:08x} length={0:08x}", offset, length);
       return 0;
     }
 
     if (s_firmware_map)
     {
-      if (!SafeCopyToEmu(memory, address, s_firmware, sizeof(s_firmware), offset, length))
+      if (!SafeCopyToEmu(memory, address, s_firmware.data(), s_firmware.size(), offset, length))
       {
         ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Invalid firmware buffer range: offset={}, length={}",
                       offset, length);
@@ -1589,7 +1584,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       if (offset >= 0x00400000 && offset <= 0x600000)
       {
         const u32 fw_offset = offset - 0x00400000;
-        if (!SafeCopyFromEmu(memory, s_firmware, address, sizeof(s_firmware), fw_offset, length))
+        if (!SafeCopyFromEmu(memory, s_firmware.data(), address, s_firmware.size(), fw_offset,
+                             length))
         {
           ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Invalid firmware write: offset={}, length={}",
                         fw_offset, length);
@@ -1715,9 +1711,9 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       if (offset >= range.start && offset < range.end)
       {
         DEBUG_LOG_FMT(AMMEDIABOARD, "GC-AM: Write MediaBoard ({:08x},{:08x},{:08x})", offset,
-                      range.base_offset, length);
-        SafeCopyFromEmu(memory, range.buffer, address, range.buffer_size,
-                        offset - range.base_offset, length);
+                      range.start, length);
+        SafeCopyFromEmu(memory, range.buffer, address, range.buffer_size, offset - range.start,
+                        length);
         PrintMBBuffer(address, length);
         return 0;
       }
@@ -1727,7 +1723,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
     if (offset >= 0x57058000)
     {
       PrintMBBuffer(address, length);
-      PanicAlertFmtT("Unhandled Media Board Write:{0:08x}", offset);
+      PanicAlertFmtT("Unhandled Media Board Write: offset={0:08x} length={0:08x}", offset, length);
     }
     break;
   case AMMBDICommand::Execute:
@@ -1882,7 +1878,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
           break;
         }
 
-        const u8* data = s_network_buffer + (off + addr - NetworkBufferAddress2);
+        const u8* data = s_network_buffer.data() + (off + addr - NetworkBufferAddress2);
 
         for (u32 i = 0; i < 0x20; i += 0x10)
         {
