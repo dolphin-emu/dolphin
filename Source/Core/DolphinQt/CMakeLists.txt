@@ -314,6 +314,8 @@ add_executable(dolphin-emu
   QtUtils/AspectRatioWidget.h
   QtUtils/BlockUserInputFilter.cpp
   QtUtils/BlockUserInputFilter.h
+  QtUtils/CameraWidget.cpp
+  QtUtils/CameraWidget.h
   QtUtils/ClearLayoutRecursively.cpp
   QtUtils/ClearLayoutRecursively.h
   QtUtils/ClickableStatusBar.h

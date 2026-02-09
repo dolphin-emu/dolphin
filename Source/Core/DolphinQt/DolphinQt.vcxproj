@@ -195,6 +195,7 @@
     <ClCompile Include="QtUtils\AnalyticsPrompt.cpp" />
     <ClCompile Include="QtUtils\AspectRatioWidget.cpp" />
     <ClCompile Include="QtUtils\BlockUserInputFilter.cpp" />
+    <ClCompile Include="QtUtils\CameraWidget.cpp" />
     <ClCompile Include="QtUtils\ClearLayoutRecursively.cpp" />
     <ClCompile Include="QtUtils\DolphinFileDialog.cpp" />
     <ClCompile Include="QtUtils\DoubleClickEventFilter.cpp" />
@@ -419,6 +420,7 @@
     <QtMoc Include="QtUtils\AnalyticsPrompt.h" />
     <QtMoc Include="QtUtils\AspectRatioWidget.h" />
     <QtMoc Include="QtUtils\BlockUserInputFilter.h" />
+    <QtMoc Include="QtUtils\CameraWidget.h" />
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
     <QtMoc Include="QtUtils\ElidedButton.h" />
     <QtMoc Include="QtUtils\FileOpenEventFilter.h" />
@@ -503,6 +505,7 @@
   <Import Project="$(ExternalsDir)picojson\exports.props" />
   <Import Project="$(ExternalsDir)rcheevos\exports.props" />
   <Import Project="$(ExternalsDir)SFML\exports.props" />
+  <Import Project="$(ExternalsDir)stb\exports.props" />
   <Import Project="$(ExternalsDir)xxhash\exports.props" />
   <Import Project="$(ExternalsDir)zstd\exports.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
