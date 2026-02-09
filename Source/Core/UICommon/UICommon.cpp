@@ -33,6 +33,7 @@
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/Triforce/Camera.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HotkeyManager.h"
 #include "Core/IOS/IOS.h"
@@ -140,6 +141,7 @@ void Init()
   Common::Log::LogManager::Init();
   VideoBackendBase::ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
   Statistics::Init();
+  Triforce::Camera::GetInstance().Init();
 
   RefreshConfig();
 }
@@ -148,6 +150,7 @@ void Shutdown()
 {
   Config::RemoveConfigChangedCallback(s_config_changed_callback_id);
 
+  Triforce::Camera::GetInstance().Shutdown();
   Statistics::Shutdown();
   GCAdapter::Shutdown();
   WiimoteReal::Shutdown();

@@ -295,6 +295,8 @@ add_library(core
   HW/StreamADPCM.h
   HW/SystemTimers.cpp
   HW/SystemTimers.h
+  HW/Triforce/Camera.cpp
+  HW/Triforce/Camera.h
   HW/Triforce/DeckReader.cpp
   HW/Triforce/DeckReader.h
   HW/Triforce/FZeroAX.cpp
@@ -692,6 +694,7 @@ PUBLIC
   MbedTLS::mbedtls
   pugixml
   sfml-network
+  stb
   videonull
   videoogl
   videosoftware

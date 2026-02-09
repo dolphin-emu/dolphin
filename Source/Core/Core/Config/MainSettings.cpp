@@ -700,6 +700,21 @@ static std::string GetDefaultTriforceIPRedirections()
 
 const Info<std::string> MAIN_TRIFORCE_IP_REDIRECTIONS{
     {System::Main, "Core", "TriforceIPRedirections"}, GetDefaultTriforceIPRedirections()};
+const Info<bool> MAIN_TRIFORCE_INTEGRATED_CAMERA{{System::Main, "Core", "TriforceIntegratedCamera"},
+                                                 true};
+const Info<std::string> MAIN_TRIFORCE_INTEGRATED_CAMERA_DEVICE{
+    {System::Main, "Core", "TriforceIntegratedCameraDevice"}, ""};
+const Info<std::string> MAIN_TRIFORCE_INTEGRATED_CAMERA_STATIC_IMAGE{
+    {System::Main, "Core", "TriforceIntegratedCameraStaticImage"},
+// Android crashes at the "Sys directory has not been set" ASSERT if we try to use GetSysDirectory.
+#ifndef ANDROID
+    File::GetSysDirectory() + "Resources/default_camera_feed.jpg"
+#else
+    ""
+#endif
+};
+const Info<std::string> MAIN_TRIFORCE_INTEGRATED_CAMERA_SERVER_IP{
+    {System::Main, "Core", "TriforceIntegratedCameraServerIp"}, "127.0.0.1"};
 
 // Main.WiimoteAudioRouting
 
