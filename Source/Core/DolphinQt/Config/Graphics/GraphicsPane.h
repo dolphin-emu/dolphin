@@ -23,7 +23,7 @@ public:
 signals:
   void BackendChanged(const QString& backend);
   void UseFastTextureSamplingChanged();
-  void UseGPUTextureDecodingChanged();
+  void UpdateGPUTextureDecoding();
 
 private:
   void CreateMainLayout();
