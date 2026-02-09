@@ -55,6 +55,21 @@ bool IPv4PortRange::IsMatch(IPv4Port subject) const
          port_u16 >= first.GetPortValue() && port_u16 <= last.GetPortValue();
 }
 
+std::string IPv4PortRange::ToString() const
+{
+  const std::string ip_range = first.ip_address == last.ip_address ?
+                                   Common::IPAddressToString(first.ip_address) :
+                                   fmt::format("{}-{}", Common::IPAddressToString(first.ip_address),
+                                               Common::IPAddressToString(last.ip_address));
+
+  if (first.port == 0)
+    return ip_range;
+  else if (first.port == last.port)
+    return fmt::format("{}:{}", ip_range, first.GetPortValue());
+  else
+    return fmt::format("{}:{}-{}", ip_range, first.GetPortValue(), last.GetPortValue());
+}
+
 std::string IPAddressToString(IPAddress ip_address)
 {
   return fmt::format("{}", fmt::join(ip_address, "."));

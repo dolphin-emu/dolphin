@@ -284,6 +284,7 @@ struct IPv4PortRange
   IPv4Port last;
 
   bool IsMatch(IPv4Port subject) const;
+  std::string ToString() const;
 };
 
 std::string IPAddressToString(IPAddress ip_address);

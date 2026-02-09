@@ -21,9 +21,13 @@
 #include <sys/socket.h>
 #endif
 
+#include <bit>
+
 #include "Common/FileUtil.h"
+#include "Common/Network.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#include "Core/HW/DVD/AMMediaboard.h"
 #include "Core/IOS/Network/SSL.h"
 #include "Core/IOS/Network/Socket.h"
 #include "Core/System.h"
@@ -138,6 +142,49 @@ QTableWidgetItem* GetSocketName(s32 host_fd)
     return new QTableWidgetItem(sock_name);
 
   return new QTableWidgetItem(QStringLiteral("%1->%2").arg(sock_name).arg(peer_name));
+}
+
+QTableWidgetItem* GetSocketRedirections(s32 host_fd, const AMMediaboard::IPOverrides& ip_overrides)
+{
+  if (host_fd < 0 || ip_overrides.empty())
+    return new QTableWidgetItem();
+
+  sockaddr_in sock_addr;
+  socklen_t sock_addr_len = sizeof(sockaddr_in);
+  if (getsockname(host_fd, reinterpret_cast<sockaddr*>(&sock_addr), &sock_addr_len) != 0)
+    return new QTableWidgetItem();
+  const Common::IPv4Port sock_ip_port{std::bit_cast<Common::IPAddress>(sock_addr.sin_addr),
+                                      sock_addr.sin_port};
+
+  sockaddr_in peer_addr;
+  socklen_t peer_addr_len = sizeof(sockaddr_in);
+  bool has_peer =
+      getpeername(host_fd, reinterpret_cast<sockaddr*>(&peer_addr), &peer_addr_len) == 0;
+  const Common::IPv4Port peer_ip_port =
+      has_peer ? Common::IPv4Port{std::bit_cast<Common::IPAddress>(peer_addr.sin_addr),
+                                  peer_addr.sin_port} :
+                 Common::IPv4Port{};
+
+  QStringList sock_rules;
+  QStringList peer_rules;
+  for (const auto& rule : ip_overrides)
+  {
+    if (rule.replacement.IsMatch(sock_ip_port))
+      sock_rules << QString::fromStdString(rule.ToString());
+    if (!has_peer)
+      continue;
+    if (rule.replacement.IsMatch(peer_ip_port))
+      peer_rules << QString::fromStdString(rule.ToString());
+  }
+
+  if (sock_rules.isEmpty() && peer_rules.isEmpty())
+    return new QTableWidgetItem();
+  if (peer_rules.isEmpty())
+    return new QTableWidgetItem(sock_rules.join(QStringLiteral("\n")));
+  return new QTableWidgetItem(QStringLiteral("Sock rules:\n%1\n"
+                                             "\nPeer rules:%2")
+                                  .arg(sock_rules.join(QStringLiteral("\n")))
+                                  .arg(peer_rules.join(QStringLiteral("\n"))));
 }
 }  // namespace
 
@@ -254,24 +301,12 @@ void NetworkWidget::ConnectWidgets()
   });
 }
 
-void NetworkWidget::Update()
+void NetworkWidget::UpdateWiiSocketTable(Core::System& system)
 {
-  if (!isVisible())
-    return;
-
-  auto& system = Core::System::GetInstance();
-  if (Core::GetState(system) != Core::State::Paused)
-  {
-    m_socket_table->setDisabled(true);
-    m_ssl_table->setDisabled(true);
-    return;
-  }
-
-  m_socket_table->setDisabled(false);
-  m_ssl_table->setDisabled(false);
-
-  // needed because there's a race condition on the IOS instance otherwise
-  const Core::CPUThreadGuard guard(system);
+  // Show Wii socket blocking state
+  m_socket_table->showColumn(4);
+  // Hide Triforce IP overrides
+  m_socket_table->hideColumn(6);
 
   auto* ios = system.GetIOS();
   if (!ios)
@@ -281,7 +316,6 @@ void NetworkWidget::Update()
   if (!socket_manager)
     return;
 
-  m_socket_table->setRowCount(0);
   for (s32 wii_fd = 0; wii_fd < IOS::HLE::WII_SOCKET_FD_MAX; wii_fd++)
   {
     m_socket_table->insertRow(wii_fd);
@@ -293,9 +327,7 @@ void NetworkWidget::Update()
     m_socket_table->setItem(wii_fd, 4, GetSocketBlocking(*socket_manager, wii_fd));
     m_socket_table->setItem(wii_fd, 5, GetSocketName(host_fd));
   }
-  m_socket_table->resizeColumnsToContents();
 
-  m_ssl_table->setRowCount(0);
   for (s32 ssl_id = 0; ssl_id < IOS::HLE::NET_SSL_MAXINSTANCES; ssl_id++)
   {
     m_ssl_table->insertRow(ssl_id);
@@ -312,6 +344,58 @@ void NetworkWidget::Update()
     m_ssl_table->setItem(ssl_id, 3, GetSocketState(host_fd));
     m_ssl_table->setItem(ssl_id, 4, GetSocketName(host_fd));
   }
+}
+
+void NetworkWidget::UpdateTriforceSocketTable()
+{
+  // No easy way to get socket blocking state on Windows
+  m_socket_table->hideColumn(4);
+  // Show active IP overrides
+  m_socket_table->showColumn(6);
+  const auto ip_overrides = AMMediaboard::GetIPOverrides();
+  for (s32 triforce_fd = 0; triforce_fd < AMMediaboard::SOCKET_FD_MAX; triforce_fd++)
+  {
+    m_socket_table->insertRow(triforce_fd);
+    const s32 host_fd = AMMediaboard::DebuggerGetSocket(triforce_fd);
+    m_socket_table->setItem(triforce_fd, 0, new QTableWidgetItem(QString::number(triforce_fd)));
+    m_socket_table->setItem(triforce_fd, 1, GetSocketDomain(host_fd));
+    m_socket_table->setItem(triforce_fd, 2, GetSocketType(host_fd));
+    m_socket_table->setItem(triforce_fd, 3, GetSocketState(host_fd));
+    m_socket_table->setItem(triforce_fd, 4, new QTableWidgetItem(QTableWidget::tr("Unknown")));
+    m_socket_table->setItem(triforce_fd, 5, GetSocketName(host_fd));
+    m_socket_table->setItem(triforce_fd, 6, GetSocketRedirections(host_fd, ip_overrides));
+  }
+}
+
+void NetworkWidget::Update()
+{
+  if (!isVisible())
+    return;
+
+  auto& system = Core::System::GetInstance();
+  if (Core::GetState(system) != Core::State::Paused)
+  {
+    m_socket_table->setDisabled(true);
+    m_ssl_table->setDisabled(true);
+    return;
+  }
+
+  // needed because there's a race condition on the IOS instance otherwise
+  const Core::CPUThreadGuard guard(system);
+  m_socket_table->setDisabled(false);
+  m_socket_table->setRowCount(0);
+  m_ssl_table->setRowCount(0);
+  if (system.IsTriforce())
+  {
+    UpdateTriforceSocketTable();
+  }
+  else if (system.IsWii())
+  {
+    m_ssl_table->setDisabled(false);
+    UpdateWiiSocketTable(system);
+  }
+  m_socket_table->resizeColumnsToContents();
+  m_socket_table->resizeRowsToContents();
   m_ssl_table->resizeColumnsToContents();
 
   const bool is_pcap = Config::Get(Config::MAIN_NETWORK_DUMP_AS_PCAP);
@@ -348,7 +432,8 @@ QGroupBox* NetworkWidget::CreateSocketTableGroup()
 
   m_socket_table = new QTableWidget();
   // i18n: FD stands for file descriptor (and in this case refers to sockets, not regular files)
-  QStringList header{tr("FD"), tr("Domain"), tr("Type"), tr("State"), tr("Blocking"), tr("Name")};
+  QStringList header{tr("FD"),       tr("Domain"), tr("Type"),        tr("State"),
+                     tr("Blocking"), tr("Name"),   tr("Redirections")};
   m_socket_table->setColumnCount(static_cast<int>(header.size()));
 
   m_socket_table->setHorizontalHeaderLabels(header);
