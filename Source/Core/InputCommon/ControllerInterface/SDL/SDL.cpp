@@ -135,19 +135,31 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
 {
   EnableSDLLogging();
 
-  SDL_SetHint(SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "1");
+  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_ENHANCED_REPORTS) == "")
+    Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "1");
 
   // We have our own WGI backend. Enabling SDL's WGI handling creates even more redundant devices.
-  SDL_SetHint(SDL_HINT_JOYSTICK_WGI, "0");
+  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_WGI) == "")
+    Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_WGI, "0");
 
   // Disable DualSense Player LEDs; We already colorize the Primary LED
-  SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, "0");
+  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED) == "")
+    Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, "0");
 
   // Disabling DirectInput support apparently solves hangs on shutdown for users with
-  //  "8BitDo Ultimate 2" controllers.
+  //  "8BitDo Ultimate 2" controllers, however, it also breaks hotplug support for Dual Sense
+  //  and DS4 Controllers, so we leave it enabled for now.
   // It also works around a possibly related random hang on a IDirectInputDevice8_Acquire
   //  call within SDL.
-  SDL_SetHint(SDL_HINT_JOYSTICK_DIRECTINPUT, "0");
+  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_DIRECTINPUT) == "")
+    Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_DIRECTINPUT, "1");
+
+  // Pre-populate the default Joy-Con hints so they can be easily changed
+  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS) == "")
+    Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS, "1");
+
+  if (Config::Get(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS) == "")
+    Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS, "0");
 
   // Disable SDL's GC Adapter handling when we want to handle it ourselves.
   bool is_gc_adapter_configured = false;
@@ -163,6 +175,18 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
   //  but SDL requires it be set before joystick initialization,
   //  and ControllerInterface isn't prepared for SDL to spontaneously re-initialize itself.
   SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_GAMECUBE, is_gc_adapter_configured ? "0" : "1");
+
+  // Load all the hints from the config file
+  std::shared_ptr<Config::Layer> layer = Config::GetLayer(Config::LayerType::Base);
+  const Config::Section& section = layer->GetSection(Config::System::Main, "SDL_Hints");
+  for (auto& row_data : section)
+  {
+    const Config::Location& location = row_data.first;
+    const std::optional<std::string>& value = row_data.second;
+
+    if (value)
+      SDL_SetHint(location.key.c_str(), value->c_str());
+  }
 
   m_hotplug_thread = std::thread([this] {
     Common::SetCurrentThreadName("SDL Hotplug Thread");

@@ -69,6 +69,8 @@ add_executable(dolphin-emu
   Config/ConfigControls/ConfigUserPath.h
   Config/ControllerInterface/ControllerInterfaceWindow.cpp
   Config/ControllerInterface/ControllerInterfaceWindow.h
+  Config/SDLHints/SDLHintsWindow.cpp
+  Config/SDLHints/SDLHintsWindow.h
   Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp
   Config/ControllerInterface/DualShockUDPClientAddServerDialog.h
   Config/ControllerInterface/DualShockUDPClientWidget.cpp

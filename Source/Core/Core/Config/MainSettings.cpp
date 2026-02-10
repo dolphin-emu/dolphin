@@ -525,6 +525,23 @@ const Info<bool> MAIN_MOVIE_SHOW_OSD{{System::Main, "Movie", "ShowMovieWindow"},
 
 const Info<bool> MAIN_INPUT_BACKGROUND_INPUT{{System::Main, "Input", "BackgroundInput"}, false};
 
+// Main.SDL_Hints
+
+// Defaults for these values are written in SDL.cpp so they appear in the config file, and thus show
+// up in the SDL Hints config window (default values defined here would not be written).
+const Info<std::string> MAIN_SDL_HINT_JOYSTICK_ENHANCED_REPORTS{
+    {System::Main, "SDL_Hints", "SDL_JOYSTICK_ENHANCED_REPORTS"}, ""};
+const Info<std::string> MAIN_SDL_HINT_JOYSTICK_WGI{{System::Main, "SDL_Hints", "SDL_JOYSTICK_WGI"},
+                                                   ""};
+const Info<std::string> MAIN_SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED{
+    {System::Main, "SDL_Hints", "SDL_JOYSTICK_HIDAPI_PS5_PLAYER_LED"}, ""};
+const Info<std::string> MAIN_SDL_HINT_JOYSTICK_DIRECTINPUT{
+    {System::Main, "SDL_Hints", "SDL_JOYSTICK_DIRECTINPUT"}, ""};
+const Info<std::string> MAIN_SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS{
+    {System::Main, "SDL_Hints", "SDL_JOYSTICK_HIDAPI_COMBINE_JOY_CONS"}, ""};
+const Info<std::string> MAIN_SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS{
+    {System::Main, "SDL_Hints", "SDL_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS"}, ""};
+
 // Main.Debug
 
 const Info<bool> MAIN_DEBUG_JIT_OFF{{System::Main, "Debug", "JitOff"}, false};
