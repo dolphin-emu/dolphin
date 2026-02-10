@@ -1209,6 +1209,10 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     IntializeSpeculativeConstants();
   }
 
+  BitSet32 previous_gpr_in_use{};
+  BitSet32 previous_fpr_in_use{};
+  BitSet8 previous_cr_in_use{};
+
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
@@ -1231,209 +1235,218 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       fpr_used[op.fregOut] = true;
     fpr.UpdateLastUsed(fpr_used);
 
-    if (i != 0)
+    if (js.skipInstructions != 0)
     {
-      // Gather pipe writes using a non-immediate address are discovered by profiling.
-      const u32 prev_address = m_code_buffer[i - 1].address;
-      bool gatherPipeIntCheck = js.fifoWriteAddresses.contains(prev_address);
-
-      if (jo.optimizeGatherPipe &&
-          (js.fifoBytesSinceCheck >= GPFifo::GATHER_PIPE_SIZE || js.mustCheckFifo))
-      {
-        js.fifoBytesSinceCheck = 0;
-        js.mustCheckFifo = false;
-
-        gpr.Lock(ARM64Reg::W30);
-        BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
-        BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
-        regs_in_use[DecodeReg(ARM64Reg::W30)] = false;
-
-        ABI_PushRegisters(regs_in_use);
-        m_float_emit.ABI_PushRegisters(fprs_in_use, ARM64Reg::X30);
-        ABI_CallFunction(&GPFifo::FastCheckGatherPipe, &m_system.GetGPFifo());
-        m_float_emit.ABI_PopRegisters(fprs_in_use, ARM64Reg::X30);
-        ABI_PopRegisters(regs_in_use);
-
-        gpr.Unlock(ARM64Reg::W30);
-        gatherPipeIntCheck = true;
-      }
-      // Gather pipe writes can generate an exception; add an exception check.
-      // TODO: This doesn't really match hardware; the CP interrupt is
-      // asynchronous.
-      if (jo.optimizeGatherPipe && gatherPipeIntCheck)
-      {
-        auto WA = gpr.GetScopedReg();
-        ARM64Reg XA = EncodeRegTo64(WA);
-
-        LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
-        FixupBranch no_ext_exception = TBZ(WA, MathUtil::IntLog2(EXCEPTION_EXTERNAL_INT));
-        FixupBranch exception = B();
-        SwitchToFarCode();
-        const u8* done_here = GetCodePtr();
-        FixupBranch exit = B();
-        SetJumpTarget(exception);
-        LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(msr));
-        TBZ(WA, 15, done_here);  // MSR.EE
-        LDR(IndexType::Unsigned, WA, XA,
-            MOVPage2R(XA, &m_system.GetProcessorInterface().m_interrupt_cause));
-        constexpr u32 cause_mask = ProcessorInterface::INT_CAUSE_CP |
-                                   ProcessorInterface::INT_CAUSE_PE_TOKEN |
-                                   ProcessorInterface::INT_CAUSE_PE_FINISH;
-        TST(WA, LogicalImm(cause_mask, GPRSize::B32));
-        B(CC_EQ, done_here);
-
-        gpr.Flush(FlushMode::MaintainState, WA);
-        fpr.Flush(FlushMode::MaintainState, ARM64Reg::INVALID_REG);
-        WriteExceptionExit(js.compilerPC, true, true);
-        SwitchToNearCode();
-        SetJumpTarget(no_ext_exception);
-        SetJumpTarget(exit);
-      }
-    }
-
-    if (HandleFunctionHooking(op.address))
-      break;
-
-    if (op.skip)
-    {
-      if (IsDebuggingEnabled())
-      {
-        // The only thing that currently sets op.skip is the BLR following optimization.
-        // If any non-branch instruction starts setting that too, this will need to be changed.
-        ASSERT(op.inst.hex == 0x4e800020);
-        const auto bw_reg_a = gpr.GetScopedReg(), bw_reg_b = gpr.GetScopedReg();
-        const BitSet32 gpr_caller_save =
-            gpr.GetCallerSavedUsed() & ~BitSet32{DecodeReg(bw_reg_a), DecodeReg(bw_reg_b)};
-        WriteBranchWatch<true>(op.address, op.branchTo, op.inst, bw_reg_a, bw_reg_b,
-                               gpr_caller_save, fpr.GetCallerSavedUsed());
-      }
+      js.skipInstructions--;
     }
     else
     {
-      if (IsDebuggingEnabled() && !cpu.IsStepping() &&
-          m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(op.address))
+      if (i != 0)
       {
-        FlushCarry();
-        gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-        fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+        // Gather pipe writes using a non-immediate address are discovered by profiling.
+        const u32 prev_address = m_code_buffer[i - 1].address;
+        bool gatherPipeIntCheck = js.fifoWriteAddresses.contains(prev_address);
 
-        static_assert(PPCSTATE_OFF(pc) <= 252);
-        static_assert(PPCSTATE_OFF(pc) + 4 == PPCSTATE_OFF(npc));
-
-        MOVI2R(DISPATCHER_PC, op.address);
-        STP(IndexType::Signed, DISPATCHER_PC, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-        ABI_CallFunction(&PowerPC::CheckAndHandleBreakPointsFromJIT, &m_system.GetPowerPC());
-
-        LDR(IndexType::Unsigned, ARM64Reg::W0, ARM64Reg::X0,
-            MOVPage2R(ARM64Reg::X0, cpu.GetStatePtr()));
-        static_assert(std::to_underlying(CPU::State::Running) == 0);
-        FixupBranch no_breakpoint = CBZ(ARM64Reg::W0);
-
-        Cleanup();
-        if (IsProfilingEnabled())
+        if (jo.optimizeGatherPipe &&
+            (js.fifoBytesSinceCheck >= GPFifo::GATHER_PIPE_SIZE || js.mustCheckFifo))
         {
-          ABI_CallFunction(&JitBlock::ProfileData::EndProfiling, b->profile_data.get(),
-                           js.downcountAmount);
+          js.fifoBytesSinceCheck = 0;
+          js.mustCheckFifo = false;
+
+          gpr.Lock(ARM64Reg::W30);
+          BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
+          BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+          regs_in_use[DecodeReg(ARM64Reg::W30)] = false;
+
+          ABI_PushRegisters(regs_in_use);
+          m_float_emit.ABI_PushRegisters(fprs_in_use, ARM64Reg::X30);
+          ABI_CallFunction(&GPFifo::FastCheckGatherPipe, &m_system.GetGPFifo());
+          m_float_emit.ABI_PopRegisters(fprs_in_use, ARM64Reg::X30);
+          ABI_PopRegisters(regs_in_use);
+
+          gpr.Unlock(ARM64Reg::W30);
+          gatherPipeIntCheck = true;
         }
-        DoDownCount();
-        B(dispatcher_exit);
-
-        SetJumpTarget(no_breakpoint);
-      }
-
-      if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
-      {
-        FixupBranch b1;
-        // This instruction uses FPU - needs to add FP exception bailout
+        // Gather pipe writes can generate an exception; add an exception check.
+        // TODO: This doesn't really match hardware; the CP interrupt is
+        // asynchronous.
+        if (jo.optimizeGatherPipe && gatherPipeIntCheck)
         {
           auto WA = gpr.GetScopedReg();
-          LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(msr));
-          b1 = TBNZ(WA, 13);  // Test FP enabled bit
+          ARM64Reg XA = EncodeRegTo64(WA);
 
-          FixupBranch far_addr = B();
+          LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
+          FixupBranch no_ext_exception = TBZ(WA, MathUtil::IntLog2(EXCEPTION_EXTERNAL_INT));
+          FixupBranch exception = B();
           SwitchToFarCode();
-          SetJumpTarget(far_addr);
+          const u8* done_here = GetCodePtr();
+          FixupBranch exit = B();
+          SetJumpTarget(exception);
+          LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(msr));
+          TBZ(WA, 15, done_here);  // MSR.EE
+          LDR(IndexType::Unsigned, WA, XA,
+              MOVPage2R(XA, &m_system.GetProcessorInterface().m_interrupt_cause));
+          constexpr u32 cause_mask = ProcessorInterface::INT_CAUSE_CP |
+                                     ProcessorInterface::INT_CAUSE_PE_TOKEN |
+                                     ProcessorInterface::INT_CAUSE_PE_FINISH;
+          TST(WA, LogicalImm(cause_mask, GPRSize::B32));
+          B(CC_EQ, done_here);
 
           gpr.Flush(FlushMode::MaintainState, WA);
           fpr.Flush(FlushMode::MaintainState, ARM64Reg::INVALID_REG);
-
-          LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
-          ORR(WA, WA, LogicalImm(EXCEPTION_FPU_UNAVAILABLE, GPRSize::B32));
-          STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
+          WriteExceptionExit(js.compilerPC, true, true);
+          SwitchToNearCode();
+          SetJumpTarget(no_ext_exception);
+          SetJumpTarget(exit);
         }
-
-        WriteExceptionExit(js.compilerPC, false, true);
-
-        SwitchToNearCode();
-
-        SetJumpTarget(b1);
-
-        js.firstFPInstructionFound = true;
       }
 
-      if (bJITRegisterCacheOff)
-      {
-        FlushCarry();
-        gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-        fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-        m_constant_propagation.Clear();
+      if (HandleFunctionHooking(op.address))
+        break;
 
-        CompileInstruction(op);
+      if (op.skip)
+      {
+        if (IsDebuggingEnabled())
+        {
+          // The only thing that currently sets op.skip is the BLR following optimization.
+          // If any non-branch instruction starts setting that too, this will need to be changed.
+          ASSERT(op.inst.hex == 0x4e800020);
+          const auto bw_reg_a = gpr.GetScopedReg(), bw_reg_b = gpr.GetScopedReg();
+          const BitSet32 gpr_caller_save =
+              gpr.GetCallerSavedUsed() & ~BitSet32{DecodeReg(bw_reg_a), DecodeReg(bw_reg_b)};
+          WriteBranchWatch<true>(op.address, op.branchTo, op.inst, bw_reg_a, bw_reg_b,
+                                 gpr_caller_save, fpr.GetCallerSavedUsed());
+        }
       }
       else
       {
-        const JitCommon::ConstantPropagationResult constant_propagation_result =
-            m_constant_propagation.EvaluateInstruction(op.inst, opinfo->flags);
+        if (IsDebuggingEnabled() && !cpu.IsStepping() &&
+            m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(op.address))
+        {
+          FlushCarry();
+          gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+          fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
 
-        if (!constant_propagation_result.instruction_fully_executed)
+          static_assert(PPCSTATE_OFF(pc) <= 252);
+          static_assert(PPCSTATE_OFF(pc) + 4 == PPCSTATE_OFF(npc));
+
+          MOVI2R(DISPATCHER_PC, op.address);
+          STP(IndexType::Signed, DISPATCHER_PC, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+          ABI_CallFunction(&PowerPC::CheckAndHandleBreakPointsFromJIT, &m_system.GetPowerPC());
+
+          LDR(IndexType::Unsigned, ARM64Reg::W0, ARM64Reg::X0,
+              MOVPage2R(ARM64Reg::X0, cpu.GetStatePtr()));
+          static_assert(std::to_underlying(CPU::State::Running) == 0);
+          FixupBranch no_breakpoint = CBZ(ARM64Reg::W0);
+
+          Cleanup();
+          if (IsProfilingEnabled())
+          {
+            ABI_CallFunction(&JitBlock::ProfileData::EndProfiling, b->profile_data.get(),
+                             js.downcountAmount);
+          }
+          DoDownCount();
+          B(dispatcher_exit);
+
+          SetJumpTarget(no_breakpoint);
+        }
+
+        if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
+        {
+          FixupBranch b1;
+          // This instruction uses FPU - needs to add FP exception bailout
+          {
+            auto WA = gpr.GetScopedReg();
+            LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(msr));
+            b1 = TBNZ(WA, 13);  // Test FP enabled bit
+
+            FixupBranch far_addr = B();
+            SwitchToFarCode();
+            SetJumpTarget(far_addr);
+
+            gpr.Flush(FlushMode::MaintainState, WA);
+            fpr.Flush(FlushMode::MaintainState, ARM64Reg::INVALID_REG);
+
+            LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
+            ORR(WA, WA, LogicalImm(EXCEPTION_FPU_UNAVAILABLE, GPRSize::B32));
+            STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
+          }
+
+          WriteExceptionExit(js.compilerPC, false, true);
+
+          SwitchToNearCode();
+
+          SetJumpTarget(b1);
+
+          js.firstFPInstructionFound = true;
+        }
+
+        if (bJITRegisterCacheOff)
+        {
+          FlushCarry();
+          gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+          fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+          m_constant_propagation.Clear();
+
           CompileInstruction(op);
-
-        m_constant_propagation.Apply(constant_propagation_result);
-
-        if (constant_propagation_result.gpr >= 0)
-        {
-          // Mark the GPR as dirty in the register cache
-          gpr.SetImmediate(constant_propagation_result.gpr, constant_propagation_result.gpr_value);
         }
-
-        if (constant_propagation_result.instruction_fully_executed)
+        else
         {
-          if (constant_propagation_result.carry)
-            ComputeCarry(*constant_propagation_result.carry);
+          const JitCommon::ConstantPropagationResult constant_propagation_result =
+              m_constant_propagation.EvaluateInstruction(op.inst, opinfo->flags);
 
-          if (constant_propagation_result.overflow)
-            GenerateConstantOverflow(*constant_propagation_result.overflow);
+          if (!constant_propagation_result.instruction_fully_executed)
+            CompileInstruction(op);
 
-          if (constant_propagation_result.compute_rc)
-            ComputeRC0(constant_propagation_result.gpr_value);
+          m_constant_propagation.Apply(constant_propagation_result);
+
+          if (constant_propagation_result.gpr >= 0)
+          {
+            // Mark the GPR as dirty in the register cache
+            gpr.SetImmediate(constant_propagation_result.gpr,
+                             constant_propagation_result.gpr_value);
+          }
+
+          if (constant_propagation_result.instruction_fully_executed)
+          {
+            if (constant_propagation_result.carry)
+              ComputeCarry(*constant_propagation_result.carry);
+
+            if (constant_propagation_result.overflow)
+              GenerateConstantOverflow(*constant_propagation_result.overflow);
+
+            if (constant_propagation_result.compute_rc)
+              ComputeRC0(constant_propagation_result.gpr_value);
+          }
         }
       }
-
-      js.fpr_is_store_safe = op.fprIsStoreSafeAfterInst;
-
-      if (!CanMergeNextInstructions(1) || js.op[1].opinfo->type != ::OpType::Integer)
-        FlushCarry();
-
-      // If we have a register that will never be used again, discard or flush it.
-      if (!bJITRegisterCacheOff)
-      {
-        gpr.DiscardRegisters(op.gprDiscardable);
-        fpr.DiscardRegisters(op.fprDiscardable);
-        gpr.DiscardCRRegisters(op.crDiscardable);
-      }
-      gpr.StoreRegisters(~op.gprInUse & (op.regsIn | op.regsOut));
-      fpr.StoreRegisters(~op.fprInUse & (op.fregsIn | op.GetFregsOut()));
-      gpr.StoreCRRegisters(~op.crInUse & (op.crIn | op.crOut));
-
-      if (opinfo->flags & FL_LOADSTORE)
-        ++js.numLoadStoreInst;
-
-      if (opinfo->flags & FL_USE_FPU)
-        ++js.numFloatingPointInst;
     }
 
-    i += js.skipInstructions;
-    js.skipInstructions = 0;
+    if (opinfo->flags & FL_LOADSTORE)
+      ++js.numLoadStoreInst;
+
+    if (opinfo->flags & FL_USE_FPU)
+      ++js.numFloatingPointInst;
+
+    js.fpr_is_store_safe = op.fprIsStoreSafeAfterInst;
+
+    if (!CanMergeNextInstructions(1) || js.op[1].opinfo->type != ::OpType::Integer)
+      FlushCarry();
+
+    // If we have a register that will never be used again, discard or flush it.
+    if (!bJITRegisterCacheOff)
+    {
+      gpr.DiscardRegisters(op.gprDiscardable);
+      fpr.DiscardRegisters(op.fprDiscardable);
+      gpr.DiscardCRRegisters(op.crDiscardable);
+    }
+    gpr.StoreRegisters(~op.gprInUse & previous_gpr_in_use);
+    fpr.StoreRegisters(~op.fprInUse & previous_fpr_in_use);
+    gpr.StoreCRRegisters(~op.crInUse & previous_cr_in_use);
+
+    previous_gpr_in_use = op.gprInUse;
+    previous_fpr_in_use = op.fprInUse;
+    previous_cr_in_use = op.crInUse;
   }
 
   if (code_block.m_broken)
