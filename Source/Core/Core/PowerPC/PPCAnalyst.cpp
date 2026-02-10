@@ -4,6 +4,7 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 
 #include <algorithm>
+#include <bit>
 #include <map>
 #include <string>
 #include <vector>
@@ -806,6 +807,12 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
   // Clear register stats
   block->m_gpa->any = true;
   block->m_fpa->any = false;
+#ifdef _M_ARM_64
+  block->m_gpa->load_pairs = {};
+  block->m_gpa->store_pairs = {};
+  block->m_fpa->load_pairs = {};
+  block->m_fpa->store_pairs = {};
+#endif
 
   // Set the blocks start address
   block->m_address = address;
@@ -983,8 +990,9 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
   // wants flags, to be safe.
   bool wantsFPRF = true;
   bool wantsCA = true;
-  BitSet8 crInUse, crDiscardable;
-  BitSet32 gprBlockInputs, gprInUse, fprInUse, gprDiscardable, fprDiscardable, fprInXmm;
+  BitSet8 crWillBeRead, crWillBeWritten, crDiscardable;
+  BitSet32 gprWillBeRead, gprWillBeWritten, fprWillBeRead, fprWillBeWritten, gprDiscardable,
+      fprDiscardable, fprInXmm;
   for (int i = block->m_num_instructions - 1; i >= 0; i--)
   {
     CodeOp& op = code[i];
@@ -1011,28 +1019,38 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     wantsCA |= opWantsCA || may_exit_block;
     wantsFPRF &= !op.outputFPRF || opWantsFPRF;
     wantsCA &= !op.outputCA || opWantsCA;
-    op.gprInUse = gprInUse;
-    op.fprInUse = fprInUse;
-    op.crInUse = crInUse;
+    op.gprWillBeRead = gprWillBeRead;
+    op.gprWillBeWritten = gprWillBeWritten;
+    op.fprWillBeRead = fprWillBeRead;
+    op.fprWillBeWritten = fprWillBeWritten;
+    op.crWillBeRead = crWillBeRead;
+    op.crWillBeWritten = crWillBeWritten;
     op.gprDiscardable = gprDiscardable;
     op.fprDiscardable = fprDiscardable;
     op.crDiscardable = crDiscardable;
     op.fprInXmm = fprInXmm;
-    gprBlockInputs &= ~op.regsOut;
-    gprBlockInputs |= op.regsIn;
-    gprInUse |= op.regsIn | op.regsOut;
-    fprInUse |= op.fregsIn | op.GetFregsOut();
-    crInUse |= op.crIn | op.crOut;
+    gprWillBeRead &= ~op.regsOut;
+    gprWillBeRead |= op.regsIn;
+    gprWillBeWritten |= op.regsOut;
+    fprWillBeRead &= ~op.GetFregsOut();
+    fprWillBeRead |= op.fregsIn;
+    fprWillBeWritten |= op.GetFregsOut();
+    crWillBeRead &= ~op.crOut;
+    crWillBeRead |= op.crIn;
+    crWillBeWritten |= op.crOut;
 
     if (strncmp(op.opinfo->opname, "stfd", 4))
       fprInXmm |= op.fregsIn;
 
     if (hle || breakpoint)
     {
-      gprInUse = BitSet32{};
-      fprInUse = BitSet32{};
+      gprWillBeRead = BitSet32{};
+      gprWillBeWritten = BitSet32{};
+      fprWillBeRead = BitSet32{};
+      fprWillBeWritten = BitSet32{};
       fprInXmm = BitSet32{};
-      crInUse = BitSet8{};
+      crWillBeRead = BitSet8{};
+      crWillBeWritten = BitSet8{};
       gprDiscardable = BitSet32{};
       fprDiscardable = BitSet32{};
       crDiscardable = BitSet8{};
@@ -1053,6 +1071,24 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       crDiscardable &= ~op.crIn;
     }
   }
+
+#ifdef _M_ARM_64
+  BitSet32 gpr_load_pair_candidates = gprWillBeRead;
+  FindRegisterPairs(&gpr_load_pair_candidates, &block->m_gpa->load_pairs);
+
+  BitSet32 fpr_load_pair_candidates = fprWillBeRead;
+  FindRegisterPairs(&fpr_load_pair_candidates, &block->m_fpa->load_pairs);
+
+  BitSet32 gpr_store_pair_candidates = gprWillBeWritten;
+  FindRegisterPairs(&gpr_store_pair_candidates, &block->m_gpa->store_pairs);
+  OddLengthRunsToEvenLengthRuns(&gpr_store_pair_candidates);
+  FindRegisterPairs(&gpr_store_pair_candidates, &block->m_gpa->store_pairs);
+
+  BitSet32 fpr_store_pair_candidates = fprWillBeWritten;
+  FindRegisterPairs(&fpr_store_pair_candidates, &block->m_fpa->store_pairs);
+  OddLengthRunsToEvenLengthRuns(&fpr_store_pair_candidates);
+  FindRegisterPairs(&fpr_store_pair_candidates, &block->m_fpa->store_pairs);
+#endif
 
   // Forward scan, for flags that need the other direction for calculation.
   BitSet32 fprIsSingle, fprIsDuplicated, fprIsStoreSafe;
@@ -1145,11 +1181,84 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       if (gqr >= 0 && gqr <= 7)
         gqrModified[gqr] = true;
     }
+
+#ifdef _M_ARM_64
+    // Make JitArm64 wait with storing one half of a pair until the other half is ready to be stored
+    op.gprWillBeWritten |= (op.gprWillBeWritten & block->m_gpa->store_pairs) << 1 |
+                           ((op.gprWillBeWritten >> 1) & block->m_gpa->store_pairs);
+    // Equivalent calculations for fprWillBeWritten and crWillBeWritten are left out because
+    // JitArm64 isn't able to use STP when flushing those
+
+    // As a tie-break for odd-length runs of registers to assign load pairs for, if an instruction
+    // that's early in a block has two adjacent registers as inputs, prefer putting those registers
+    // in the same load pair. This is intended to let the host CPU start doing useful work as soon
+    // as possible.
+    if (FindRegisterPairs(&gpr_load_pair_candidates, &block->m_gpa->load_pairs, op.regsIn) != 0)
+    {
+      // If the odd-length run was long, it will now have been split into two shorter runs, with a
+      // gap in between. One of the new runs is even-length, so let's run FindRegisterPairs again.
+      FindRegisterPairs(&gpr_load_pair_candidates, &block->m_gpa->load_pairs);
+    }
+    if (FindRegisterPairs(&fpr_load_pair_candidates, &block->m_fpa->load_pairs, op.fregsIn) != 0)
+    {
+      // If the odd-length run was long, it will now have been split into two shorter runs, with a
+      // gap in between. One of the new runs is even-length, so let's run FindRegisterPairs again.
+      FindRegisterPairs(&fpr_load_pair_candidates, &block->m_fpa->load_pairs);
+    }
+#endif
   }
+
   block->m_gqr_used = gqrUsed;
   block->m_gqr_modified = gqrModified;
-  block->m_gpr_inputs = gprBlockInputs;
+  block->m_gpr_inputs = gprWillBeRead;
+  block->m_gpr_outputs = gprWillBeWritten;
+  block->m_fpr_inputs = fprWillBeRead;
+  block->m_fpr_outputs = fprWillBeWritten;
+  block->m_cr_inputs = crWillBeRead;
+  block->m_cr_outputs = crWillBeWritten;
+
+#ifdef _M_ARM_64
+  OddLengthRunsToEvenLengthRuns(&fpr_load_pair_candidates);
+  FindRegisterPairs(&fpr_load_pair_candidates, &block->m_fpa->load_pairs);
+
+  OddLengthRunsToEvenLengthRuns(&fpr_load_pair_candidates);
+  FindRegisterPairs(&fpr_load_pair_candidates, &block->m_fpa->load_pairs);
+#endif
+
   return address;
+}
+
+size_t FindRegisterPairs(BitSet32* candidates, BitSet32* out, BitSet32 mask)
+{
+  u64 candidates_to_check = candidates->m_val & mask.m_val;
+  size_t shift = 32;
+  size_t registers_handled = 0;
+
+  while (candidates_to_check != 0)
+  {
+    const int zero_count = std::countl_zero(u32(candidates_to_check));
+    shift -= zero_count;
+    candidates_to_check <<= zero_count;
+
+    const int one_count = std::countl_one(u32(candidates_to_check));
+    shift -= one_count;
+    candidates_to_check <<= one_count;
+
+    if ((one_count & 1) == 0)
+    {
+      const u32 ones = static_cast<u32>(((1ULL << one_count) - 1));
+      *candidates &= ~BitSet32(ones << shift);
+      *out |= BitSet32((ones & 0x55555555) << shift);
+      registers_handled += ones;
+    }
+  }
+
+  return registers_handled;
+}
+
+void OddLengthRunsToEvenLengthRuns(BitSet32* candidates)
+{
+  *candidates &= *candidates >> 1;
 }
 
 }  // namespace PPCAnalyst

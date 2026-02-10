@@ -257,8 +257,8 @@ void JitArm64::Shutdown()
 void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 {
   FlushCarry();
-  gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG, IgnoreDiscardedRegisters::Yes);
-  fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG, IgnoreDiscardedRegisters::Yes);
+  gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG, IgnoreDiscardedRegisters::Yes);
+  fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG, IgnoreDiscardedRegisters::Yes);
 
   if (js.op->canEndBlock)
   {
@@ -322,8 +322,8 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 void JitArm64::HLEFunction(u32 hook_index)
 {
   FlushCarry();
-  gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-  fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+  gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
+  fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
 
   ABI_CallFunction(&HLE::ExecuteFromJIT, js.compilerPC, hook_index, &m_system);
 }
@@ -456,8 +456,8 @@ void JitArm64::MSRUpdated(u32 msr)
   // Call PageTableUpdatedFromJit if needed
   if (UReg_MSR(msr).DR)
   {
-    gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-    fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+    gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
+    fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
 
     auto WA = gpr.GetScopedReg();
 
@@ -497,8 +497,8 @@ void JitArm64::MSRUpdated(ARM64Reg msr)
 
   // Call PageTableUpdatedFromJit if needed
   MOV(WA, msr);
-  gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-  fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+  gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
+  fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
   FixupBranch dr_unset = TBZ(WA, dr_bit);
   static_assert(PPCSTATE_OFF(pagetable_update_pending) < 0x1000);
   LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(pagetable_update_pending));
@@ -1209,6 +1209,13 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     IntializeSpeculativeConstants();
   }
 
+  BitSet32 previous_op_gpr_will_be_written = code_block.m_gpr_outputs;
+  BitSet32 previous_op_gpr_will_be_used = code_block.m_gpr_inputs | previous_op_gpr_will_be_written;
+  BitSet32 previous_op_fpr_will_be_written = code_block.m_fpr_outputs;
+  BitSet32 previous_op_fpr_will_be_used = code_block.m_fpr_inputs | previous_op_fpr_will_be_written;
+  BitSet8 previous_op_cr_will_be_written = code_block.m_cr_outputs;
+  BitSet8 previous_op_cr_will_be_used = code_block.m_cr_inputs | previous_op_cr_will_be_written;
+
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
@@ -1314,8 +1321,8 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
           m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(op.address))
       {
         FlushCarry();
-        gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-        fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+        gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
+        fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
 
         static_assert(PPCSTATE_OFF(pc) <= 252);
         static_assert(PPCSTATE_OFF(pc) + 4 == PPCSTATE_OFF(npc));
@@ -1374,8 +1381,8 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       if (bJITRegisterCacheOff)
       {
         FlushCarry();
-        gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-        fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+        gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
+        fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
         m_constant_propagation.Clear();
 
         CompileInstruction(op);
@@ -1414,16 +1421,39 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       if (!CanMergeNextInstructions(1) || js.op[1].opinfo->type != ::OpType::Integer)
         FlushCarry();
 
-      // If we have a register that will never be used again, discard or flush it.
+      // If a register won't be used again in this block, or its value will never be needed again,
+      // flush or discard it respectively.
+      //
+      // To improve JIT-time performance, we use some extra bitwise math to skip trying to flush
+      // registers that can't have changed state during the current PPC instruction.
+
       if (!bJITRegisterCacheOff)
       {
         gpr.DiscardRegisters(op.gprDiscardable);
         fpr.DiscardRegisters(op.fprDiscardable);
         gpr.DiscardCRRegisters(op.crDiscardable);
       }
-      gpr.StoreRegisters(~op.gprInUse & (op.regsIn | op.regsOut));
-      fpr.StoreRegisters(~op.fprInUse & (op.fregsIn | op.GetFregsOut()));
-      gpr.StoreCRRegisters(~op.crInUse & (op.crIn | op.crOut));
+
+      const BitSet32 gpr_will_be_used = op.gprWillBeRead | op.gprWillBeWritten;
+      const BitSet32 fpr_will_be_used = op.fprWillBeRead | op.fprWillBeWritten;
+      const BitSet8 cr_will_be_used = op.crWillBeRead | op.crWillBeWritten;
+
+      gpr.FlushRegisters(~op.gprWillBeWritten & previous_op_gpr_will_be_written,
+                         FlushMode::Undirty);
+      fpr.FlushRegisters(~op.fprWillBeWritten & previous_op_fpr_will_be_written,
+                         FlushMode::Undirty);
+      gpr.FlushCRRegisters(~op.crWillBeWritten & previous_op_cr_will_be_written,
+                           FlushMode::Undirty);
+      gpr.FlushRegisters(~gpr_will_be_used & previous_op_gpr_will_be_used, FlushMode::Full);
+      fpr.FlushRegisters(~fpr_will_be_used & previous_op_fpr_will_be_used, FlushMode::Full);
+      gpr.FlushCRRegisters(~cr_will_be_used & previous_op_cr_will_be_used, FlushMode::Full);
+
+      previous_op_gpr_will_be_written = op.gprWillBeWritten;
+      previous_op_gpr_will_be_used = gpr_will_be_used;
+      previous_op_fpr_will_be_written = op.fprWillBeWritten;
+      previous_op_fpr_will_be_used = fpr_will_be_used;
+      previous_op_cr_will_be_written = op.crWillBeWritten;
+      previous_op_cr_will_be_used = cr_will_be_used;
 
       if (opinfo->flags & FL_LOADSTORE)
         ++js.numLoadStoreInst;
@@ -1438,8 +1468,8 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
   if (code_block.m_broken)
   {
-    gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-    fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+    gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
+    fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
     WriteExit(nextPC);
   }
 
