@@ -317,6 +317,9 @@
     <ClInclude Include="Core\HW\HSP\HSP_DeviceARAMExpansion.h" />
     <ClInclude Include="Core\HW\HSP\HSP_DeviceNull.h" />
     <ClInclude Include="Core\HW\HW.h" />
+    <ClInclude Include="Core\HW\MagCard\C1231BR.h" />
+    <ClInclude Include="Core\HW\MagCard\C1231LR.h" />
+    <ClInclude Include="Core\HW\MagCard\MagneticCardReader.h" />
     <ClInclude Include="Core\HW\Memmap.h" />
     <ClInclude Include="Core\HW\MemoryInterface.h" />
     <ClInclude Include="Core\HW\MMIO.h" />
@@ -1015,6 +1018,9 @@
     <ClCompile Include="Core\HW\HSP\HSP_DeviceARAMExpansion.cpp" />
     <ClCompile Include="Core\HW\HSP\HSP_DeviceNull.cpp" />
     <ClCompile Include="Core\HW\HW.cpp" />
+    <ClCompile Include="Core\HW\MagCard\C1231BR.cpp" />
+    <ClCompile Include="Core\HW\MagCard\C1231LR.cpp" />
+    <ClCompile Include="Core\HW\MagCard\MagneticCardReader.cpp" />
     <ClCompile Include="Core\HW\Memmap.cpp" />
     <ClCompile Include="Core\HW\MemoryInterface.cpp" />
     <ClCompile Include="Core\HW\MMIO.cpp" />

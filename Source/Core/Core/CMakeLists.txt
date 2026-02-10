@@ -254,6 +254,12 @@ add_library(core
   HW/HSP/HSP_DeviceNull.h
   HW/HW.cpp
   HW/HW.h
+  HW/MagCard/C1231BR.cpp
+  HW/MagCard/C1231BR.h
+  HW/MagCard/C1231LR.cpp
+  HW/MagCard/C1231LR.h
+  HW/MagCard/MagneticCardReader.cpp
+  HW/MagCard/MagneticCardReader.h
   HW/Memmap.cpp
   HW/Memmap.h
   HW/MemoryInterface.cpp

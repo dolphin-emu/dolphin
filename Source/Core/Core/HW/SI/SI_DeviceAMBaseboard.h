@@ -4,7 +4,9 @@
 #pragma once
 
 #include "Core/HW/GCPad.h"
+#include "Core/HW/MagCard/MagneticCardReader.h"
 #include "Core/HW/SI/SI_Device.h"
+
 #include "InputCommon/GCPadStatus.h"
 
 namespace Movie
@@ -274,24 +276,13 @@ private:
   u32 m_ic_write_offset = 0;
   u32 m_ic_write_size = 0;
 
-  u8 m_card_memory[0xD0] = {};
-  u8 m_card_read_packet[0xDB] = {};
-  u8 m_card_buffer[0x100] = {};
+  // Magnetic Card Reader
+  MagCard::MagneticCardReader::Settings m_mag_card_settings;
 
-  // Setup CARD
-  u32 m_card_memory_size = 0;
-  bool m_card_is_inserted = false;
+  std::vector<u8> m_mag_card_in_buffer;
+  std::vector<u8> m_mag_card_out_buffer;
 
-  u32 m_card_command = 0;
-  u32 m_card_clean = 0;
-  u32 m_card_write_length = 0;
-  u32 m_card_wrote = 0;
-  u32 m_card_read_length = 0;
-  u32 m_card_read = 0;
-  u32 m_card_bit = 0;
-  bool m_card_shutter = true;  // Open
-  u32 m_card_state_call_count = 0;
-  u8 m_card_offset = 0;
+  std::unique_ptr<MagCard::MagneticCardReader> m_mag_card_reader;
 
   // Serial
   u32 m_wheel_init = 0;
