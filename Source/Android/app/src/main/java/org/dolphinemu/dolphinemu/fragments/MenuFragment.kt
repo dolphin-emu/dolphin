@@ -19,6 +19,7 @@ import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.activities.EmulationActivity
 import org.dolphinemu.dolphinemu.databinding.FragmentIngameMenuBinding
+import org.dolphinemu.dolphinemu.features.achievements.model.AchievementProgressViewModel
 import org.dolphinemu.dolphinemu.features.settings.model.AchievementModel
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
@@ -115,6 +116,7 @@ class MenuFragment : Fragment(), View.OnClickListener {
     override fun onResume() {
         super.onResume()
         val savestatesEnabled = BooleanSetting.MAIN_ENABLE_SAVESTATES.boolean
+        val hasAchievements = AchievementProgressViewModel.isGameLoaded()
         val hardcoreEnabled = AchievementModel.isHardcoreModeActive()
         val savestateVisibility = if (savestatesEnabled) View.VISIBLE else View.GONE
         binding.menuQuicksave.visibility = savestateVisibility
@@ -125,6 +127,7 @@ class MenuFragment : Fragment(), View.OnClickListener {
         // will block the load and send a message to the screen.
         binding.menuQuickload.paint.isStrikeThruText = hardcoreEnabled
         binding.menuEmulationLoadRoot.paint.isStrikeThruText = hardcoreEnabled
+        binding.menuAchievements.visibility = if (hasAchievements) View.VISIBLE else View.GONE
     }
 
     override fun onDestroyView() {
@@ -185,6 +188,10 @@ class MenuFragment : Fragment(), View.OnClickListener {
             buttonsActionsMap.append(
                 R.id.menu_emulation_load_root,
                 EmulationActivity.MENU_ACTION_LOAD_ROOT
+            )
+            buttonsActionsMap.append(
+                R.id.menu_achievements,
+                EmulationActivity.MENU_ACTION_ACHIEVEMENTS
             )
             buttonsActionsMap.append(
                 R.id.menu_overlay_controls,

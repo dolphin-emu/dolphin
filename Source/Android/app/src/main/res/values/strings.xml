@@ -606,6 +606,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_screenshot">Take Screenshot</string>
     <string name="emulation_savestate">Save State</string>
     <string name="emulation_loadstate">Load State</string>
+    <string name="emulation_achievements">Achievements</string>
     <string name="emulation_exit">Exit Emulation</string>
     <string name="emulation_state_slot">Slot %1$d\n\n%2$s</string>
     <string name="emulation_state_slot_empty">Slot %1$d\n\nEmpty</string>
@@ -958,6 +959,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="wii_speak_permission_warning_description">Wii Speak emulation requires microphone permission. You might need to restart the game for the permission to be effective.</string>
 
     <!-- Achievements -->
+    <string name="achievements">Achievements</string>
     <string name="achievements_enabled">Enable Achievements</string>
     <string name="achievements_hardcore_enabled">Enable Hardcore Mode</string>
     <string name="achievements_unofficial_enabled">Enable Unofficial Achievements</string>
@@ -972,4 +974,5 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="achievements_logout">Log Out</string>
     <string name="achievements_login_in_progress">Logging In</string>
     <string name="achievements_login_failed">Login Failed</string>
+    <string name="achievements_progress">Achievements</string>
 </resources>
