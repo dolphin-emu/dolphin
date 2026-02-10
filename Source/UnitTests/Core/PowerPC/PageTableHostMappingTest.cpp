@@ -681,13 +681,13 @@ TEST_F(PageTableHostMappingTest, RC)
 
   // Automatically set R=1, C=0
   for (u32 i = 0; i < s_minimum_mapping_size; i += PowerPC::HW_PAGE_SIZE)
-    mmu.Read<u32>(0x101f0000 + i);
+    mmu.Read<u32>(0x101f0000 + i, UGeckoInstruction{});
   ExpectReadOnlyMapped(0x101f0000, 0x001f0000);
   expect_rc(1, 0);
 
   // Automatically set R=1, C=1
   for (u32 i = 0; i < s_minimum_mapping_size; i += PowerPC::HW_PAGE_SIZE)
-    mmu.Write<u32>(0x12345678, 0x101f0000 + i);
+    mmu.Write<u32>(0x12345678, 0x101f0000 + i, UGeckoInstruction{});
   ExpectMapped(0x101f0000, 0x001f0000);
   expect_rc(1, 1);
 
@@ -698,7 +698,7 @@ TEST_F(PageTableHostMappingTest, RC)
 
   // Automatically set R=1, C=1
   for (u32 i = 0; i < s_minimum_mapping_size; i += PowerPC::HW_PAGE_SIZE)
-    mmu.Write<u32>(0x12345678, 0x101f0000 + i);
+    mmu.Write<u32>(0x12345678, 0x101f0000 + i, UGeckoInstruction{});
   ExpectMapped(0x101f0000, 0x001f0000);
   expect_rc(1, 1);
 }
