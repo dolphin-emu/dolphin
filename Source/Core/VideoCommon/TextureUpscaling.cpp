@@ -607,14 +607,24 @@ std::string TextureUpscaling::GeneratePassPixelShader(const ShaderPass& pass,
   ss << pass.glsl_code << "\n";
 
   // Wrap hook() -> main()
-  // For the last pass, preserve alpha from the source texture.
-  // Anime4K shaders are designed for video (no alpha) and corrupt alpha
-  // with scalar additions. Game textures have meaningful alpha channels.
+  // For the last pass, we may need to fix alpha:
+  // - CNN/GAN "Depth-to-Space" passes produce neural network values in alpha
+  //   that have no relation to the source alpha → override from source.
+  // - DoG/DTD/Original passes do "HOOKED_tex(pos) + correction", where the
+  //   correction also beneficially sharpens alpha edges → keep as-is.
   if (is_last_pass)
   {
+    // Detect neural network shaders by checking for "Depth-to-Space" in the
+    // pass description (CNN/GAN final passes always use this).
+    const bool is_neural_network =
+        pass.desc.find("Depth-to-Space") != std::string::npos;
+
     ss << "void main() {\n";
     ss << "  vec4 result = hook();\n";
-    ss << "  result.a = HOOKED_tex(HOOKED_pos).a;\n";
+    if (is_neural_network)
+    {
+      ss << "  result.a = HOOKED_tex(HOOKED_pos).a;\n";
+    }
     ss << "  ocol0 = result;\n";
     ss << "}\n";
   }
