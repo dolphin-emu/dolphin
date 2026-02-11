@@ -1,4 +1,5 @@
 add_library(core
+  AchievementApprovedHash.h
   AchievementManager.cpp
   AchievementManager.h
   ActionReplay.cpp
