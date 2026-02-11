@@ -29,30 +29,31 @@ private:
   ConfigBool* m_ignore_format_changes;
   ConfigBool* m_store_efb_copies;
   ConfigBool* m_defer_efb_copies;
+  ConfigBool* m_defer_efb_access_invalidation;
 
   // Texture Cache
-  ConfigSliderLabel* m_accuracy_label;
-  ConfigSlider* m_accuracy;
-  ConfigBool* m_gpu_texture_decoding;
+  ConfigSliderLabel* m_texture_accuracy_label;
+  ConfigSlider* m_texture_accuracy;
 
   // External Framebuffer
   ConfigBool* m_store_xfb_copies;
   ConfigBool* m_immediate_xfb;
-  ConfigBool* m_skip_duplicate_xfbs;
 
   // Other
   ConfigBool* m_fast_depth_calculation;
+  ConfigBool* m_fast_texture_sampling;
   ConfigBool* m_disable_bounding_box;
-  ConfigBool* m_vertex_rounding;
-  ConfigBool* m_vi_skip;
-  ConfigBool* m_save_texture_cache_state;
+
+  // Enhancements
+  ConfigBool* m_widescreen_hack;
+  ConfigBool* m_disable_fog;
 
   Config::Layer* m_game_layer = nullptr;
 
   void CreateWidgets();
-  void ConnectWidgets();
+  void ConnectWidgets(GraphicsPane* gfx_pane);
   void AddDescriptions();
 
+  void UpdateSkipEFBCPUEnabled();
   void UpdateDeferEFBCopiesEnabled();
-  void UpdateSkipPresentingDuplicateFramesEnabled();
 };
