@@ -311,6 +311,7 @@ extern const Info<bool> MAIN_GAMELIST_COLUMN_FILE_FORMAT;
 extern const Info<bool> MAIN_GAMELIST_COLUMN_BLOCK_SIZE;
 extern const Info<bool> MAIN_GAMELIST_COLUMN_COMPRESSION;
 extern const Info<bool> MAIN_GAMELIST_COLUMN_TIME_PLAYED;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_APPLOADER_DATE;
 extern const Info<bool> MAIN_GAMELIST_COLUMN_TAGS;
 
 // Main.FifoPlayer

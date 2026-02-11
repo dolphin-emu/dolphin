@@ -496,7 +496,8 @@ const Info<bool> MAIN_GAMELIST_COLUMN_COMPRESSION{{System::Main, "GameList", "Co
 const Info<bool> MAIN_GAMELIST_COLUMN_TIME_PLAYED{{System::Main, "GameList", "ColumnTimePlayed"},
                                                   true};
 const Info<bool> MAIN_GAMELIST_COLUMN_TAGS{{System::Main, "GameList", "ColumnTags"}, false};
-
+const Info<bool> MAIN_GAMELIST_COLUMN_APPLOADER_DATE{
+    {System::Main, "GameList", "ColumnApploaderDate"}, true};
 // Main.FifoPlayer
 
 const Info<bool> MAIN_FIFOPLAYER_LOOP_REPLAY{{System::Main, "FifoPlayer", "LoopReplay"}, true};
