@@ -20,6 +20,8 @@
 
 #ifdef HAVE_CUBEB
 #include "Core/HW/EXI/EXI_DeviceMic.h"
+#else
+#include "Common/MsgHandler.h"
 #endif
 
 namespace ExpansionInterface
