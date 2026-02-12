@@ -4,8 +4,10 @@
 #include "Core/DolphinAnalytics.h"
 
 #include <array>
+#include <chrono>
 #include <memory>
 #include <mutex>
+#include <random>
 #include <string>
 #include <utility>
 #include <vector>
@@ -29,7 +31,6 @@
 #include "Common/Config/Config.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/Random.h"
-#include "Common/Timer.h"
 #include "Common/Version.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
@@ -46,6 +47,25 @@
 namespace
 {
 constexpr char ANALYTICS_ENDPOINT[] = "https://analytics.dolphin-emu.org/report";
+
+using namespace std::chrono_literals;
+
+// Performance sampling configuration constants.
+//
+// 5min after startup + rand(0, 3min) jitter time, sample performance for 100 frames in a row.
+// Each sampling thereafter happens 30min + rand(0, 3min) after the previous one.
+static constexpr int NUM_PERFORMANCE_SAMPLES_PER_REPORT = 100;
+static constexpr auto PERFORMANCE_SAMPLING_BASE_INITIAL_WAIT = 5min;
+static constexpr auto PERFORMANCE_SAMPLING_BASE_INTERVAL_WAIT = 30min;
+static constexpr std::chrono::microseconds PERFORMANCE_SAMPLING_WAIT_MAX_JITTER = 3min;
+
+std::chrono::microseconds GetWaitJitter()
+{
+  std::random_device device;
+  std::uniform_int_distribution<> distribution(0, PERFORMANCE_SAMPLING_WAIT_MAX_JITTER.count());
+
+  return std::chrono::microseconds(distribution(device));
+}
 }  // namespace
 
 #if defined(ANDROID)
@@ -250,21 +270,18 @@ void DolphinAnalytics::InitializePerformanceSampling()
   m_performance_samples.clear();
   m_sampling_performance_info = false;
 
-  u64 wait_us =
-      PERFORMANCE_SAMPLING_INITIAL_WAIT_TIME_SECS * 1000000 +
-      Common::Random::GenerateValue<u64>() % (PERFORMANCE_SAMPLING_WAIT_TIME_JITTER_SECS * 1000000);
-  m_sampling_next_start_us = Common::Timer::NowUs() + wait_us;
+  m_sampling_next_start_time =
+      std::chrono::steady_clock::now() + PERFORMANCE_SAMPLING_BASE_INITIAL_WAIT + GetWaitJitter();
 }
 
 bool DolphinAnalytics::ShouldStartPerformanceSampling()
 {
-  if (Common::Timer::NowUs() < m_sampling_next_start_us)
+  const auto now = std::chrono::steady_clock::now();
+  if (now < m_sampling_next_start_time)
     return false;
 
-  u64 wait_us =
-      PERFORMANCE_SAMPLING_INTERVAL_SECS * 1000000 +
-      Common::Random::GenerateValue<u64>() % (PERFORMANCE_SAMPLING_WAIT_TIME_JITTER_SECS * 1000000);
-  m_sampling_next_start_us = Common::Timer::NowUs() + wait_us;
+  m_sampling_next_start_time = now + PERFORMANCE_SAMPLING_BASE_INTERVAL_WAIT + GetWaitJitter();
+
   return true;
 }
 
