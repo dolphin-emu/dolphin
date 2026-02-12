@@ -10,12 +10,26 @@
 
 namespace IOS::HLE::NWC24::Mail
 {
+// Friend code used by Nintendo to send announcements.
+static constexpr u64 NINTENDO_FRIEND_CODE = 9999999900000000ULL;
+
 constexpr u32 MAIL_LIST_MAGIC = 0x57635466;  // WcTf
 
 inline u32 CalculateFileOffset(u32 index)
 {
   return Common::swap32(128 + (index * 128));
 }
+
+constexpr u32 PackData(u32 one, u32 two)
+{
+  return (one & 0xFFFFF) | two << 20;
+}
+
+enum class FlagOP
+{
+  Or,
+  And
+};
 
 #pragma pack(push, 1)
 struct MailListHeader final
@@ -55,7 +69,7 @@ struct MailListEntry final
   u64 from_friend_code;
   u32 minutes_since_1900;
   u32 padding;
-  u8 always_1;
+  u8 number_of_recipients;
   u8 number_of_multipart_entries;
   u16 app_group;
   u32 packed_from;

@@ -24,6 +24,7 @@
 #include "Core/CommonTitles.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/FS/FileSystem.h"
+#include "Core/IOS/Network/KD/Mail/MailParser.h"
 #include "Core/IOS/Network/KD/NetKDTime.h"
 #include "Core/IOS/Network/KD/VFF/VFFUtil.h"
 #include "Core/IOS/Network/Socket.h"
@@ -154,7 +155,8 @@ s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, HardwareModel h
 NetKDRequestDevice::NetKDRequestDevice(EmulationKernel& ios, const std::string& device_name,
                                        const std::shared_ptr<NetKDTimeDevice>& time_device)
     : EmulationDevice(ios, device_name), m_config{ios.GetFS()}, m_dl_list{ios.GetFS()},
-      m_send_list{ios.GetFS()}, m_friend_list{ios.GetFS()}, m_time_device{time_device}
+      m_send_list{ios.GetFS()}, m_receive_list{ios.GetFS()}, m_friend_list{ios.GetFS()},
+      m_time_device{time_device}
 {
   // Enable all NWC24 permissions
   m_scheduler_buffer[1] = Common::swap32(-1);
@@ -256,10 +258,18 @@ void NetKDRequestDevice::SchedulerWorker(const SchedulerEvent event)
       return;
     }
 
-    code = KDDownload(entry_index, subtask_id);
+    bool is_mail{};
+    code = KDDownload(entry_index, subtask_id, &is_mail);
     if (code != NWC24::WC24_OK)
     {
       LogError(ErrorType::KD_Download, code);
+      return;
+    }
+
+    code = KDSaveMail();
+    if (code != NWC24::WC24_OK)
+    {
+      LogError(ErrorType::ReceiveMail, code);
     }
   }
   else
@@ -270,16 +280,26 @@ void NetKDRequestDevice::SchedulerWorker(const SchedulerEvent event)
     u32 mail_flag{};
     u32 interval{};
 
-    NWC24::ErrorCode code = KDCheckMail(&mail_flag, &interval);
+    NWC24::ErrorCode code = KDSendMail();
+    if (code != NWC24::WC24_OK)
+    {
+      LogError(ErrorType::SendMail, code);
+    }
+
+    code = KDCheckMail(&mail_flag, &interval);
     if (code != NWC24::WC24_OK)
     {
       LogError(ErrorType::CheckMail, code);
     }
-
-    code = KDSendMail();
-    if (code != NWC24::WC24_OK)
+    else if (mail_flag == 1)
     {
-      LogError(ErrorType::SendMail, code);
+      code = KDReceiveMail();
+      if (code != NWC24::WC24_OK)
+        LogError(ErrorType::ReceiveMail, code);
+
+      code = KDSaveMail();
+      if (code != NWC24::WC24_OK)
+        LogError(ErrorType::ReceiveMail, code);
     }
   }
 }
@@ -636,8 +656,291 @@ NWC24::ErrorCode NetKDRequestDevice::KDSendMail()
   return NWC24::WC24_OK;
 }
 
+NWC24::ErrorCode NetKDRequestDevice::KDReceiveMail()
+{
+  m_scheduler_buffer[4] = Common::swap32(3);
+  std::string form_data = fmt::format("mlid=w{}&passwd={}&maxsize={}", m_config.Id(),
+                                      m_config.GetPassword(), MAX_MAIL_RECEIVE_SIZE);
+  const Common::HttpRequest::Response response = m_http.Post(m_config.GetReceiveURL(), form_data);
+
+  if (!response)
+  {
+    ERROR_LOG_FMT(IOS_WC24,
+                  "NET_KD_REQ: IOCTL_NWC24_RECEIVE_MAIL_NOW: Failed to request data at {}.",
+                  m_config.GetCheckURL());
+    return NWC24::WC24_ERR_SERVER;
+  }
+
+  const std::string response_str = {response->begin(), response->end()};
+  const std::string code = GetValueFromCGIResponse(response_str, "cd");
+  if (code != "100")
+  {
+    ERROR_LOG_FMT(
+        IOS_WC24,
+        "NET_KD_REQ: IOCTL_NWC24_RECEIVE_MAIL_NOW: Mail server returned non-success code: {}",
+        code);
+    return NWC24::WC24_ERR_SERVER;
+  }
+
+  const std::string str_mail_num = GetValueFromCGIResponse(response_str, "mailnum");
+  s32 mail_num{};
+  const bool did_parse = TryParse(str_mail_num, &mail_num);
+  if (!did_parse)
+  {
+    ERROR_LOG_FMT(
+        IOS_WC24,
+        "NET_KD_REQ: IOCTL_NWC24_RECEIVE_MAIL_NOW: Mail server returned invalid number of mails.");
+    return NWC24::WC24_ERR_SERVER;
+  }
+
+  // Receive only saves the mail to FS. The SaveMailNow IOCTL is called to save to mailbox.
+  constexpr FS::Modes public_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite};
+  const auto file = m_ios.GetFS()->CreateAndOpenFile(PID_KD, PID_KD, TEMP_MAIL_PATH, public_modes);
+  if (!file || !file->Write(response->data(), response->size()))
+  {
+    ERROR_LOG_FMT(IOS_WC24,
+                  "NET_KD_REQ: IOCTL_NWC24_RECEIVE_MAIL_NOW: Failed to write temporary mail file.");
+    return NWC24::WC24_ERR_FILE_WRITE;
+  }
+
+  // Now delete from the server.
+  form_data =
+      fmt::format("mlid=w{}&passwd={}&delnum={}", m_config.Id(), m_config.GetPassword(), mail_num);
+  m_http.Post(m_config.GetDeleteURL(), form_data);
+
+  m_scheduler_buffer[7] = Common::swap32(Common::swap32(m_scheduler_buffer[7]) + mail_num);
+  m_scheduler_buffer[12] = Common::swap32(Common::swap32(m_scheduler_buffer[12]) + 1);
+  m_scheduler_buffer[4] = 0;
+  return NWC24::WC24_OK;
+}
+
+NWC24::ErrorCode NetKDRequestDevice::KDSaveMail()
+{
+  m_scheduler_buffer[4] = Common::swap32(6);
+  SchedulerEvent event = SchedulerEvent::Mail;
+  Common::ScopeGuard mail_del_guard([&] {
+    if (event == SchedulerEvent::Mail)
+    {
+      m_ios.GetFS()->Delete(PID_KD, PID_KD, TEMP_MAIL_PATH);
+    }
+    else
+    {
+      m_ios.GetFS()->Delete(PID_KD, PID_KD, TEMP_DL_MAIL_PATH);
+    }
+  });
+
+  // There are two ways mail can be downloaded - Mail Scheduler or Mail content from DownloadNow.
+  // KD takes Mail scheduler as a higher priority.
+  std::lock_guard lg(m_save_mail_lock);
+  auto file = m_ios.GetFS()->OpenFile(PID_KD, PID_KD, TEMP_MAIL_PATH, FS::Mode::Read);
+  if (!file)
+  {
+    // Try for DownloadNow path.
+    file = m_ios.GetFS()->OpenFile(PID_KD, PID_KD, TEMP_DL_MAIL_PATH, FS::Mode::Read);
+    if (!file)
+    {
+      ERROR_LOG_FMT(
+          IOS_WC24,
+          "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Failed to open temporary mail file at {}.",
+          TEMP_DL_MAIL_PATH);
+      // Returning anything other than OK will cause the Message Board to display the Wii Menu
+      // is corrupted message.
+      return NWC24::WC24_OK;
+    }
+
+    event = SchedulerEvent::Download;
+  }
+
+  std::string mail_str(file->GetStatus()->size, '\0');
+  if (!file->Read(mail_str.data(), file->GetStatus()->size))
+  {
+    ERROR_LOG_FMT(IOS_WC24,
+                  "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Failed to read temporary mail file.");
+    return NWC24::WC24_ERR_FILE_READ;
+  }
+
+  // Extract the outer boundary.
+  const std::string boundary = mail_str.substr(0, mail_str.find('\r')).erase(0, 2);
+
+  // If the mail was from the mail scheduler, we have the mailnum field.
+  // If not, we have to determine via the outer boundary.
+  u32 mail_num{};
+  if (event == SchedulerEvent::Mail)
+  {
+    const std::string str_mail_num = GetValueFromCGIResponse(mail_str, "mailnum");
+    if (!TryParse(str_mail_num, &mail_num))
+    {
+      ERROR_LOG_FMT(
+          IOS_WC24,
+          "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Mail server returned invalid number of mails.");
+      return NWC24::WC24_ERR_SERVER;
+    }
+  }
+  else
+  {
+    // First multipart is always ignored regardless of event type.
+    auto num_of_occurrences = [&](std::string_view s, std::string_view sub) -> int {
+      if (sub.empty())
+      {
+        return 0;
+      }
+
+      int count = 0;
+      size_t pos = 0;
+
+      while ((pos = s.find(sub, pos)) != std::string::npos)
+      {
+        count++;
+        pos += sub.length();
+      }
+      return count;
+    };
+
+    mail_num = num_of_occurrences(mail_str, boundary) - 2;
+  }
+
+  NWC24::Mail::MailParser parser{boundary, mail_num, &m_receive_list};
+  NWC24::ErrorCode reply = parser.Parse(mail_str);
+  if (reply != NWC24::WC24_OK)
+    return reply;
+
+  for (u32 i = 1; i <= mail_num; i++)
+  {
+    const u32 entry_index = m_receive_list.GetNextEntryIndex();
+
+    Common::ScopeGuard mail_parse_guard(
+        [&, entry_index] { m_receive_list.ClearEntry(entry_index); });
+
+    const u32 msg_id = m_receive_list.GetNextEntryId();
+    const std::vector<u8> data = parser.GetMessageData(i);
+    const u32 header_len = parser.GetHeaderLength(i);
+
+    m_receive_list.InitFlag(entry_index);
+    m_receive_list.SetMessageId(entry_index, msg_id);
+    m_receive_list.SetMessageSize(entry_index, data.size());
+    m_receive_list.SetHeaderLength(entry_index, header_len);
+    m_receive_list.SetMessageOffset(entry_index, header_len);
+
+    reply = parser.ParseWiiAppId(i, entry_index);
+    if (reply != NWC24::WC24_OK)
+    {
+      ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Failed to parse Wii App ID.");
+      continue;
+    }
+
+    if (m_receive_list.GetAppID(entry_index) == 0 || m_receive_list.GetAppGroup(entry_index) == 0)
+    {
+      if (m_receive_list.GetAppID(entry_index) == 0)
+      {
+        m_receive_list.SetWiiCmd(entry_index, 0x44001);
+      }
+      else
+      {
+        m_receive_list.SetWiiCmd(entry_index, 0x80000);
+      }
+      m_receive_list.UpdateFlag(entry_index, 2, NWC24::Mail::FlagOP::Or);
+    }
+    else
+    {
+      m_receive_list.UpdateFlag(entry_index, 1, NWC24::Mail::FlagOP::Or);
+    }
+
+    reply = parser.ParseWiiCmd(i, entry_index);
+    if (reply != NWC24::WC24_OK)
+    {
+      ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Failed to parse command.");
+      continue;
+    }
+
+    reply = parser.ParseFrom(i, entry_index, m_friend_list);
+    if (reply != NWC24::WC24_OK)
+    {
+      ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Failed to parse From field.");
+      continue;
+    }
+
+    // Handle registration is needed.
+    if (!m_friend_list.IsFriendEstablished(Common::swap64(parser.GetSender())))
+    {
+      // We use the parsed Wii Command to determine if this is a registration message.
+      const u32 wii_cmd = m_receive_list.GetWiiCmd(entry_index);
+      if (wii_cmd == 0x80010001 || wii_cmd == 0x80010002)
+      {
+        // Set the Wii as a registered friend.
+        m_friend_list.SetFriendStatus(parser.GetSender(),
+                                      NWC24::Mail::WC24FriendList::FriendStatus::Confirmed);
+        NOTICE_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Registered friend {}",
+                       parser.GetSender());
+      }
+      else if (wii_cmd == 0x80010003)
+      {
+        // Wii declined the friend request
+        m_friend_list.SetFriendStatus(parser.GetSender(),
+                                      NWC24::Mail::WC24FriendList::FriendStatus::Declined);
+        WARN_LOG_FMT(IOS_WC24,
+                     "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Wii declined a friend request.");
+      }
+      continue;
+    }
+
+    reply = parser.ParseContentTransferEncoding(i, entry_index);
+    if (reply != NWC24::WC24_OK && reply != NWC24::WC24_ERR_NOT_FOUND)
+    {
+      ERROR_LOG_FMT(
+          IOS_WC24,
+          "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Failed to parse Content Transfer Encoding.");
+      continue;
+    }
+
+    reply = parser.ParseContentType(i, entry_index);
+    if (reply != NWC24::WC24_OK)
+    {
+      ERROR_LOG_FMT(IOS_WC24,
+                    "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Failed to parse Content Type.");
+      continue;
+    }
+
+    parser.ParseDate(i, entry_index);
+
+    // This can be empty.
+    parser.ParseSubject(i, entry_index);
+
+    reply = parser.ParseTo(i, entry_index);
+    if (reply != NWC24::WC24_OK)
+    {
+      ERROR_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Failed to parse To field.");
+      continue;
+    }
+
+    if (event == SchedulerEvent::Download)
+    {
+      // Flag to allow for special message content to be displayed.
+      m_receive_list.UpdateFlag(entry_index, 0x1000, NWC24::Mail::FlagOP::Or);
+    }
+
+    reply =
+        NWC24::WriteToVFF(NWC24::Mail::RECEIVE_BOX_PATH,
+                          NWC24::Mail::WC24ReceiveList::GetMailPath(msg_id), m_ios.GetFS(), data);
+    if (reply != NWC24::WC24_OK)
+    {
+      ERROR_LOG_FMT(IOS_WC24,
+                    "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW: Failed to write message to VFF.");
+      continue;
+    }
+
+    m_receive_list.FinalizeEntry(entry_index);
+    mail_parse_guard.Dismiss();
+  }
+
+  m_receive_list.WriteReceiveList();
+  m_friend_list.WriteFriendList();
+  m_scheduler_buffer[13] = Common::swap32(Common::swap32(m_scheduler_buffer[13]) + 1);
+  m_scheduler_buffer[4] = 0;
+  return NWC24::WC24_OK;
+}
+
 NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
-                                                const std::optional<u8> subtask_id)
+                                                const std::optional<u8> subtask_id, bool* is_mail)
 {
   bool success = false;
   Common::ScopeGuard state_guard([&] {
@@ -665,14 +968,6 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
   const std::string content_name = m_dl_list.GetVFFContentName(entry_index, subtask_id);
   std::string url = m_dl_list.GetDownloadURL(entry_index, subtask_id);
 
-  if (content_name.empty())
-  {
-    // If a content has an empty name it is meant to be saved to the mailbox. We do not support
-    // saving mail to the mailbox yet and as a result must skip these entries.
-    success = true;
-    return NWC24::WC24_OK;
-  }
-
   // Reroute to custom server if enabled.
   const std::vector<std::string> parts = SplitString(url, '/');
   if (parts.size() < 3)
@@ -690,7 +985,6 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
   }
 
   INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_DOWNLOAD_NOW_EX - NI - URL: {}", url);
-
   INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_DOWNLOAD_NOW_EX - NI - Name: {}", content_name);
 
   const Common::HttpRequest::Response response = m_http.Get(url);
@@ -758,8 +1052,26 @@ NWC24::ErrorCode NetKDRequestDevice::KDDownload(const u16 entry_index,
     }
   }
 
-  NWC24::ErrorCode reply = IOS::HLE::NWC24::WriteToVFF(m_dl_list.GetVFFPath(entry_index),
-                                                       content_name, m_ios.GetFS(), file_data);
+  if (m_dl_list.GetEntryType(entry_index) == NWC24::NWC24Dl::MAIL)
+  {
+    constexpr FS::Modes public_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite};
+    const auto file =
+        m_ios.GetFS()->CreateAndOpenFile(PID_KD, PID_KD, TEMP_DL_MAIL_PATH, public_modes);
+    if (!file || !file->Write(file_data.data(), file_data.size()))
+    {
+      ERROR_LOG_FMT(
+          IOS_WC24,
+          "NET_KD_REQ: IOCTL_NWC24_DOWNLOAD_NOW_EX: Failed to write temporary mail file.");
+      return NWC24::WC24_ERR_FILE_WRITE;
+    }
+
+    *is_mail = true;
+    success = true;
+    return NWC24::WC24_OK;
+  }
+
+  NWC24::ErrorCode reply =
+      NWC24::WriteToVFF(m_dl_list.GetVFFPath(entry_index), content_name, m_ios.GetFS(), file_data);
 
   if (reply != NWC24::WC24_OK)
   {
@@ -798,6 +1110,15 @@ IPCReply NetKDRequestDevice::HandleNWC24SendMailNow(const IOCtlRequest& request)
   auto& memory = GetSystem().GetMemory();
 
   const NWC24::ErrorCode reply = KDSendMail();
+  WriteReturnValue(memory, reply, request.buffer_out);
+  return IPCReply(IPC_SUCCESS);
+}
+
+IPCReply NetKDRequestDevice::HandleNWC24SaveMailNow(const IOCtlRequest& request)
+{
+  auto& memory = GetSystem().GetMemory();
+
+  const NWC24::ErrorCode reply = KDSaveMail();
   WriteReturnValue(memory, reply, request.buffer_out);
   return IPCReply(IPC_SUCCESS);
 }
@@ -848,13 +1169,14 @@ IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& reques
   NWC24::ErrorCode reply = NWC24::WC24_ERR_BROKEN;
 
   // Determine if we have subtasks to handle
+  bool is_mail{};
   if (Common::ExtractBit(flags, 2))
   {
     for (u8 subtask_id = 0; subtask_id < 32; subtask_id++)
     {
       if (Common::ExtractBit(subtask_bitmask, subtask_id))
       {
-        reply = KDDownload(entry_index, subtask_id);
+        reply = KDDownload(entry_index, subtask_id, &is_mail);
         if (reply != NWC24::WC24_OK)
         {
           // An error has occurred, break out and return error.
@@ -865,7 +1187,13 @@ IPCReply NetKDRequestDevice::HandleNWC24DownloadNowEx(const IOCtlRequest& reques
   }
   else
   {
-    reply = KDDownload(entry_index, std::nullopt);
+    reply = KDDownload(entry_index, std::nullopt, &is_mail);
+  }
+
+  if (reply == NWC24::WC24_OK && is_mail)
+  {
+    // Signals applications to run save mail IOCTL
+    memory.Write_U32(1, request.buffer_out + 8);
   }
 
   WriteReturnValue(memory, reply, request.buffer_out);
@@ -1142,8 +1470,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
   }
 
   case IOCTL_NWC24_SAVE_MAIL_NOW:
-    INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW - NI");
-    break;
+    return LaunchAsyncTask(&NetKDRequestDevice::HandleNWC24SaveMailNow, request);
 
   case IOCTL_NWC24_CHECK_MAIL_NOW:
     return LaunchAsyncTask(&NetKDRequestDevice::HandleNWC24CheckMailNow, request);
