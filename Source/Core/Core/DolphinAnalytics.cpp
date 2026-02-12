@@ -211,7 +211,7 @@ static_assert(GAME_QUIRKS_NAMES.size() == static_cast<u32>(GameQuirk::Count),
 
 void DolphinAnalytics::ReportGameQuirk(GameQuirk quirk)
 {
-  u32 quirk_idx = static_cast<u32>(quirk);
+  const u32 quirk_idx = static_cast<u32>(quirk);
 
   // Only report once per run.
   if (m_reported_quirks[quirk_idx])
