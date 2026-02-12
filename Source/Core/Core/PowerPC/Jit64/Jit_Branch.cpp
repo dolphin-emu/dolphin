@@ -193,7 +193,7 @@ void Jit64::bcx(UGeckoInstruction inst)
   FixupBranch pCTRDontBranch;
   if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
   {
-    SUB(32, PPCSTATE_CTR, Imm8(1));
+    DEC(32, PPCSTATE_CTR);
     if (inst.BO & BO_BRANCH_IF_CTR_0)
       pCTRDontBranch = J_CC(CC_NZ, Jump::Near);
     else
@@ -362,7 +362,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
   FixupBranch pCTRDontBranch;
   if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
   {
-    SUB(32, PPCSTATE_CTR, Imm8(1));
+    DEC(32, PPCSTATE_CTR);
     if (inst.BO & BO_BRANCH_IF_CTR_0)
       pCTRDontBranch = J_CC(CC_NZ, Jump::Near);
     else
