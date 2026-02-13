@@ -15,18 +15,18 @@ struct DualShockUDPServer
 
 namespace DualShockUDPSettings
 {
-  constexpr char FIELD_SEPARATOR = ':';
-  constexpr char SERVER_SEPARATOR = ';';
+constexpr char FIELD_SEPARATOR = ':';
+constexpr char SERVER_SEPARATOR = ';';
 
-  const std::vector<DualShockUDPServer> GetServers();
+const std::vector<DualShockUDPServer> GetServers();
 
-  void AddServer(DualShockUDPServer server);
+void AddServer(DualShockUDPServer server);
 
-  void ReplaceServer(size_t index, DualShockUDPServer server);
+void ReplaceServer(size_t index, DualShockUDPServer server);
 
-  void RemoveServer(size_t index);
+void RemoveServer(size_t index);
 
-  bool IsEnabled();
+bool IsEnabled();
 
-  void SetEnabled(bool enabled);
-}
+void SetEnabled(bool enabled);
+}  // namespace DualShockUDPSettings

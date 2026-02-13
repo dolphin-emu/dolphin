@@ -15,12 +15,13 @@
 #include <QString>
 #include <QWidget>
 
+#include "DolphinQt/Config/ControllerInterface/DualShockUDPSettings.h"
 #include "DolphinQt/Config/ControllerInterface/ServerStringValidator.h"
 #include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPClient.h"
-#include "DolphinQt/Config/ControllerInterface/DualShockUDPSettings.h"
 
-DualShockUDPClientEditServerDialog::DualShockUDPClientEditServerDialog(QWidget* parent, std::optional<size_t> existing_index)
-    : QDialog(parent), m_existing_index(existing_index)
+DualShockUDPClientEditServerDialog::DualShockUDPClientEditServerDialog(
+    QWidget* parent, std::optional<size_t> existing_index)
+    : QDialog(parent), m_existing_index(std::move(existing_index))
 {
   CreateWidgets();
   setLayout(m_main_layout);
@@ -46,7 +47,7 @@ void DualShockUDPClientEditServerDialog::CreateWidgets()
 
   if (m_existing_index.has_value())
   {
-    const auto server = DualShockUDPSettings::GetServers()[m_existing_index.value()];
+    const auto server = DualShockUDPSettings::GetServers()[*m_existing_index];
     m_description->setText(QString::fromStdString(server.description));
     m_server_address->setText(QString::fromStdString(server.server_address));
     m_server_port->setValue(server.server_port);
@@ -74,12 +75,12 @@ void DualShockUDPClientEditServerDialog::CreateWidgets()
 
 void DualShockUDPClientEditServerDialog::OnServerFinished()
 {
-  const auto server = DualShockUDPServer(m_description->text().toStdString(),
-                                          m_server_address->text().toStdString(),
-                                          m_server_port->value());
+  const auto server =
+      DualShockUDPServer(m_description->text().toStdString(),
+                         m_server_address->text().toStdString(), m_server_port->value());
   if (m_existing_index.has_value())
   {
-    DualShockUDPSettings::ReplaceServer(m_existing_index.value(), server);
+    DualShockUDPSettings::ReplaceServer(*m_existing_index, server);
   }
   else
   {

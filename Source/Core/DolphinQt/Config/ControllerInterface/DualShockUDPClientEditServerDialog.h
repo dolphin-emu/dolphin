@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include <QDialog>
 
 class QDialogButtonBox;
@@ -14,7 +16,8 @@ class DualShockUDPClientEditServerDialog final : public QDialog
 {
   Q_OBJECT
 public:
-  explicit DualShockUDPClientEditServerDialog(QWidget* parent, std::optional<size_t> existing_index);
+  explicit DualShockUDPClientEditServerDialog(QWidget* parent,
+                                              std::optional<size_t> existing_index);
 
 private:
   void CreateWidgets();
