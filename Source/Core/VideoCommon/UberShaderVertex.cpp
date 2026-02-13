@@ -10,6 +10,7 @@
 #include "VideoCommon/UberShaderCommon.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
 namespace UberShader
@@ -42,6 +43,12 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   const u32 num_texgen = uid_data->num_texgens;
   ShaderCode out;
 
+  // Enable gl_Layer output from vertex shader when using VS layer output for stereo
+  if (host_config.GeneratesStereoFromVS())
+  {
+    out.Write("#extension GL_ARB_shader_viewport_layer_array : require\n");
+  }
+
   out.Write("// {}\n\n", *uid_data);
   out.Write("{}", s_lighting_struct);
 
@@ -50,7 +57,11 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   out.Write("{}", s_shader_uniforms);
   out.Write("}};\n");
 
-  if (vertex_loader)
+  // Include GSBlock when:
+  // 1. Vertex loader is enabled (line/point expansion), or
+  // 2. Stereo is enabled but geometry shaders are not available (VS layer output stereo)
+  const bool needs_gs_block = vertex_loader || host_config.GeneratesStereoFromVS();
+  if (needs_gs_block)
   {
     out.Write("UBO_BINDING(std140, 4) uniform GSBlock {{\n");
     out.Write("{}", s_geometry_shader_uniforms);
@@ -191,6 +202,12 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
                 GetInterpolationQualifier(msaa, ssaa));
       out.Write("VARYING_LOCATION({}) {} out float3 WorldPos;\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa));
+    }
+    // VS layer output stereo: pass layer to pixel shader via varying
+    // Only when geometry shaders are not available (otherwise GS handles layer)
+    if (host_config.GeneratesStereoFromVS())
+    {
+      out.Write("VARYING_LOCATION({}) flat out int layer;\n", counter++);
     }
   }
 
@@ -512,6 +529,17 @@ float3 load_input_float3_rawtex(uint vtx_offset, uint attr_offset) {{
   {
     out.Write("gl_ClipDistance[0] = clipDist0;\n"
               "gl_ClipDistance[1] = clipDist1;\n");
+  }
+
+  // VS layer output stereo: use instancing to select layer, apply stereo offset
+  // This renders to 2 separate layers like the geometry shader path
+  if (host_config.GeneratesStereoFromVS())
+  {
+    out.Write("// VS layer output stereo via instancing\n");
+    out.Write("gl_Layer = gl_InstanceID;\n");
+    out.Write("layer = gl_InstanceID;\n");  // Pass layer to pixel shader via varying
+    out.Write("float stereo_offset = " I_STEREOPARAMS "[gl_InstanceID];\n");
+    out.Write("o.pos.x += stereo_offset * (o.pos.w - " I_STEREOPARAMS ".z);\n");
   }
 
   // Vulkan NDC space has Y pointing down (right-handed NDC space).

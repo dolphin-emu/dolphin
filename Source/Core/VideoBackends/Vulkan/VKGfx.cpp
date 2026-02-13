@@ -590,12 +590,23 @@ void VKGfx::SetViewport(float x, float y, float width, float height, float near_
   StateTracker::GetInstance()->SetViewport(viewport);
 }
 
+bool VKGfx::HasStereoFromVertexShader() const
+{
+  return !g_backend_info.bSupportsGeometryShaders && g_backend_info.bSupportsVSLayerOutput &&
+         (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
+          g_ActiveConfig.stereo_mode == StereoMode::TAB) &&
+         m_current_framebuffer && m_current_framebuffer->GetLayers() > 1;
+}
+
 void VKGfx::Draw(u32 base_vertex, u32 num_vertices)
 {
   if (!StateTracker::GetInstance()->Bind())
     return;
 
-  vkCmdDraw(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_vertices, 1, base_vertex, 0);
+  const u32 instance_count = HasStereoFromVertexShader() ? 2 : 1;
+
+  vkCmdDraw(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_vertices, instance_count,
+            base_vertex, 0);
 }
 
 void VKGfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
@@ -603,8 +614,10 @@ void VKGfx::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
   if (!StateTracker::GetInstance()->Bind())
     return;
 
-  vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_indices, 1, base_index,
-                   base_vertex, 0);
+  const u32 instance_count = HasStereoFromVertexShader() ? 2 : 1;
+
+  vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_indices, instance_count,
+                   base_index, base_vertex, 0);
 }
 
 void VKGfx::DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x, u32 groupsize_y,

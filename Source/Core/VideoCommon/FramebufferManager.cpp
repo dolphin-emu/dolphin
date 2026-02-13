@@ -147,7 +147,15 @@ AbstractTextureFormat FramebufferManager::GetEFBDepthCopyFormat()
 
 static u32 CalculateEFBLayers()
 {
-  return (g_ActiveConfig.stereo_mode != StereoMode::Off) ? 2 : 1;
+  if (g_ActiveConfig.stereo_mode == StereoMode::Off)
+    return 1;
+
+  // Use 2 layers for stereo if we have geometry shaders or VS layer output
+  if (g_backend_info.bSupportsGeometryShaders || g_backend_info.bSupportsVSLayerOutput)
+    return 2;
+
+  // Stereo not supported without geometry shaders or VS layer output
+  return 1;
 }
 
 TextureConfig FramebufferManager::GetEFBColorTextureConfig(u32 width, u32 height)
