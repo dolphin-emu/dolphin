@@ -28,7 +28,7 @@ DualShockUDPClientEditServerDialog::DualShockUDPClientEditServerDialog(QWidget* 
 
 void DualShockUDPClientEditServerDialog::CreateWidgets()
 {
-  setWindowTitle(tr(m_existing_index ? "Edit DSU Server" : "Add New DSU Server"));
+  setWindowTitle(tr(m_existing_index.has_value() ? "Edit DSU Server" : "Add New DSU Server"));
 
   m_main_layout = new QGridLayout;
 
@@ -44,7 +44,7 @@ void DualShockUDPClientEditServerDialog::CreateWidgets()
   m_server_port->setMaximum(65535);
   m_server_port->setValue(ciface::DualShockUDPClient::DEFAULT_SERVER_PORT);
 
-  if (m_existing_index)
+  if (m_existing_index.has_value())
   {
     const auto server = DualShockUDPSettings::GetServers()[m_existing_index.value()];
     m_description->setText(QString::fromStdString(server.description));
@@ -77,7 +77,7 @@ void DualShockUDPClientEditServerDialog::OnServerFinished()
   const auto server = DualShockUDPServer(m_description->text().toStdString(),
                                           m_server_address->text().toStdString(),
                                           m_server_port->value());
-  if (m_existing_index)
+  if (m_existing_index.has_value())
   {
     DualShockUDPSettings::ReplaceServer(m_existing_index.value(), server);
   }
