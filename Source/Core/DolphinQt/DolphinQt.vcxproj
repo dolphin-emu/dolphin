@@ -302,7 +302,7 @@
     <QtMoc Include="Config\ConfigControls\ConfigText.h" />
     <QtMoc Include="Config\ConfigControls\ConfigUserPath.h" />
     <QtMoc Include="Config\ControllerInterface\ControllerInterfaceWindow.h" />
-    <QtMoc Include="Config\ControllerInterface\DualShockUDPClientEdit.h" />
+    <QtMoc Include="Config\ControllerInterface\Config\ControllerInterface\DualShockUDPClientEditServerDialog.h" />
     <QtMoc Include="Config\ControllerInterface\DualShockUDPClientWidget.h" />
     <QtMoc Include="Config\ControllerInterface\DualShockUDPSettings.h" />
     <QtMoc Include="Config\ControllerInterface\ServerStringValidator.h" />
