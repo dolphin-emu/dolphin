@@ -11,10 +11,9 @@
 #include <QListWidget>
 #include <QPushButton>
 
-#include "Common/Config/Config.h"
-#include "DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.h"
+#include "DolphinQt/Config/ControllerInterface/DualShockUDPClientEditServerDialog.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPClient.h"
+#include "DolphinQt/Config/ControllerInterface/DualShockUDPSettings.h"
 
 DualShockUDPClientWidget::DualShockUDPClientWidget()
 {
@@ -27,7 +26,7 @@ void DualShockUDPClientWidget::CreateWidgets()
   auto* main_layout = new QVBoxLayout;
 
   m_servers_enabled = new QCheckBox(tr("Enable"));
-  m_servers_enabled->setChecked(Config::Get(ciface::DualShockUDPClient::Settings::SERVERS_ENABLED));
+  m_servers_enabled->setChecked(DualShockUDPSettings::IsEnabled());
   main_layout->addWidget(m_servers_enabled, 0, {});
 
   m_server_list = new QListWidget();
@@ -36,12 +35,16 @@ void DualShockUDPClientWidget::CreateWidgets()
   m_add_server = new NonDefaultQPushButton(tr("Add..."));
   m_add_server->setEnabled(m_servers_enabled->isChecked());
 
+  m_edit_server = new NonDefaultQPushButton(tr("Edit"));
+  m_edit_server->setEnabled(m_servers_enabled->isChecked());
+
   m_remove_server = new NonDefaultQPushButton(tr("Remove"));
   m_remove_server->setEnabled(m_servers_enabled->isChecked());
 
   QHBoxLayout* hlayout = new QHBoxLayout;
   hlayout->addStretch();
   hlayout->addWidget(m_add_server);
+  hlayout->addWidget(m_edit_server);
   hlayout->addWidget(m_remove_server);
 
   main_layout->addItem(hlayout);
@@ -68,6 +71,7 @@ void DualShockUDPClientWidget::ConnectWidgets()
   connect(m_servers_enabled, &QCheckBox::clicked, this,
           &DualShockUDPClientWidget::OnServersToggled);
   connect(m_add_server, &QPushButton::clicked, this, &DualShockUDPClientWidget::OnServerAdded);
+  connect(m_edit_server, &QPushButton::clicked, this, &DualShockUDPClientWidget::OnServerEdited);
   connect(m_remove_server, &QPushButton::clicked, this, &DualShockUDPClientWidget::OnServerRemoved);
 }
 
@@ -75,32 +79,10 @@ void DualShockUDPClientWidget::RefreshServerList()
 {
   m_server_list->clear();
 
-  const auto server_address_setting =
-      Config::Get(ciface::DualShockUDPClient::Settings::SERVER_ADDRESS);
-  const auto server_port_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVER_PORT);
-
-  // Update our servers setting if the user is using old configuration
-  if (!server_address_setting.empty() && server_port_setting != 0)
+  for (const auto server: DualShockUDPSettings::GetServers())
   {
-    const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
-    Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS,
-                             servers_setting + fmt::format("{}:{}:{};", "DS4",
-                                                           server_address_setting,
-                                                           server_port_setting));
-    Config::SetBase(ciface::DualShockUDPClient::Settings::SERVER_ADDRESS, "");
-    Config::SetBase(ciface::DualShockUDPClient::Settings::SERVER_PORT, 0);
-  }
-
-  const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
-  const auto server_details = SplitString(servers_setting, ';');
-  for (const std::string& server_detail : server_details)
-  {
-    const auto server_info = SplitString(server_detail, ':');
-    if (server_info.size() < 3)
-      continue;
-
     QListWidgetItem* list_item = new QListWidgetItem(QString::fromStdString(
-        fmt::format("{}:{} - {}", server_info[1], server_info[2], server_info[0])));
+        fmt::format("{}:{} - {}", server.description, server.server_address, server.server_port)));
     m_server_list->addItem(list_item);
   }
   emit ConfigChanged();
@@ -108,31 +90,25 @@ void DualShockUDPClientWidget::RefreshServerList()
 
 void DualShockUDPClientWidget::OnServerAdded()
 {
-  DualShockUDPClientAddServerDialog add_server_dialog(this);
-  connect(&add_server_dialog, &DualShockUDPClientAddServerDialog::accepted, this,
+  DualShockUDPClientEditServerDialog add_server_dialog(this, std::nullopt);
+  connect(&add_server_dialog, &DualShockUDPClientEditServerDialog::accepted, this,
           &DualShockUDPClientWidget::RefreshServerList);
   add_server_dialog.exec();
+}
+
+void DualShockUDPClientWidget::OnServerEdited()
+{
+  DualShockUDPClientEditServerDialog edit_server_dialog(this, m_server_list->currentRow());
+  connect(&edit_server_dialog, &DualShockUDPClientEditServerDialog::accepted, this,
+          &DualShockUDPClientWidget::RefreshServerList);
+  edit_server_dialog.exec();
 }
 
 void DualShockUDPClientWidget::OnServerRemoved()
 {
   const int row_to_remove = m_server_list->currentRow();
 
-  const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
-  const auto server_details = SplitString(servers_setting, ';');
-
-  std::string new_server_setting;
-  for (int i = 0; i < m_server_list->count(); i++)
-  {
-    if (i == row_to_remove)
-    {
-      continue;
-    }
-
-    new_server_setting += server_details[i] + ';';
-  }
-
-  Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS, new_server_setting);
+  DualShockUDPSettings::RemoveServer(row_to_remove);
 
   RefreshServerList();
 }
@@ -140,7 +116,7 @@ void DualShockUDPClientWidget::OnServerRemoved()
 void DualShockUDPClientWidget::OnServersToggled()
 {
   bool checked = m_servers_enabled->isChecked();
-  Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS_ENABLED, checked);
+  DualShockUDPSettings::SetEnabled(checked);
   m_add_server->setEnabled(checked);
   m_remove_server->setEnabled(checked);
 }

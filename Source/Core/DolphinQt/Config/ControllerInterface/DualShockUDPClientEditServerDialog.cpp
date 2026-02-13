@@ -1,7 +1,7 @@
 // Copyright 2020 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.h"
+#include "DolphinQt/Config/ControllerInterface/DualShockUDPClientEditServerDialog.h"
 
 #include <fmt/format.h>
 
@@ -15,20 +15,20 @@
 #include <QString>
 #include <QWidget>
 
-#include "Common/Config/Config.h"
 #include "DolphinQt/Config/ControllerInterface/ServerStringValidator.h"
 #include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPClient.h"
+#include "DolphinQt/Config/ControllerInterface/DualShockUDPSettings.h"
 
-DualShockUDPClientAddServerDialog::DualShockUDPClientAddServerDialog(QWidget* parent)
-    : QDialog(parent)
+DualShockUDPClientEditServerDialog::DualShockUDPClientEditServerDialog(QWidget* parent, std::optional<size_t> existing_index)
+    : QDialog(parent), m_existing_index(existing_index)
 {
   CreateWidgets();
   setLayout(m_main_layout);
 }
 
-void DualShockUDPClientAddServerDialog::CreateWidgets()
+void DualShockUDPClientEditServerDialog::CreateWidgets()
 {
-  setWindowTitle(tr("Add New DSU Server"));
+  setWindowTitle(tr(m_existing_index ? "Edit DSU Server" : "Add New DSU Server"));
 
   m_main_layout = new QGridLayout;
 
@@ -44,6 +44,14 @@ void DualShockUDPClientAddServerDialog::CreateWidgets()
   m_server_port->setMaximum(65535);
   m_server_port->setValue(ciface::DualShockUDPClient::DEFAULT_SERVER_PORT);
 
+  if (m_existing_index)
+  {
+    const auto server = DualShockUDPSettings::GetServers()[m_existing_index.value()];
+    m_description->setText(QString::fromStdString(server.description));
+    m_server_address->setText(QString::fromStdString(server.server_address));
+    m_server_port->setValue(server.server_port);
+  }
+
   m_main_layout->addWidget(new QLabel(tr("Description")), 1, 0);
   m_main_layout->addWidget(m_description, 1, 1);
   m_main_layout->addWidget(new QLabel(tr("Server IP Address")), 2, 0);
@@ -52,25 +60,30 @@ void DualShockUDPClientAddServerDialog::CreateWidgets()
   m_main_layout->addWidget(m_server_port, 3, 1);
 
   m_buttonbox = new QDialogButtonBox();
-  auto* add_button = new QPushButton(tr("Add"));
+  auto* finish_button = new QPushButton(tr(m_existing_index ? "Apply" : "Add"));
   auto* cancel_button = new QPushButton(tr("Cancel"));
-  m_buttonbox->addButton(add_button, QDialogButtonBox::AcceptRole);
+  m_buttonbox->addButton(finish_button, QDialogButtonBox::AcceptRole);
   m_buttonbox->addButton(cancel_button, QDialogButtonBox::RejectRole);
-  connect(add_button, &QPushButton::clicked, this,
-          &DualShockUDPClientAddServerDialog::OnServerAdded);
-  connect(cancel_button, &QPushButton::clicked, this, &DualShockUDPClientAddServerDialog::reject);
-  add_button->setDefault(true);
+  connect(finish_button, &QPushButton::clicked, this,
+          &DualShockUDPClientEditServerDialog::OnServerFinished);
+  connect(cancel_button, &QPushButton::clicked, this, &DualShockUDPClientEditServerDialog::reject);
+  finish_button->setDefault(true);
 
   m_main_layout->addWidget(m_buttonbox, 4, 0, 1, 2);
 }
 
-void DualShockUDPClientAddServerDialog::OnServerAdded()
+void DualShockUDPClientEditServerDialog::OnServerFinished()
 {
-  const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
-  Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS,
-                           servers_setting + fmt::format("{}:{}:{};",
-                                                         m_description->text().toStdString(),
-                                                         m_server_address->text().toStdString(),
-                                                         m_server_port->value()));
+  const auto server = DualShockUDPServer(m_description->text().toStdString(),
+                                          m_server_address->text().toStdString(),
+                                          m_server_port->value());
+  if (m_existing_index)
+  {
+    DualShockUDPSettings::ReplaceServer(m_existing_index.value(), server);
+  }
+  else
+  {
+    DualShockUDPSettings::AddServer(server);
+  }
   accept();
 }
