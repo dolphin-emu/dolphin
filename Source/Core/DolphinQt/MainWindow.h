@@ -36,6 +36,7 @@ class GBATASInputWindow;
 class GCTASInputWindow;
 class HotkeyScheduler;
 class InfinityBaseWindow;
+class KeyboardWindow;
 class JITWidget;
 class LogConfigWidget;
 class LogWidget;
@@ -179,6 +180,7 @@ private:
   void ShowInfinityBase();
   void ShowWiiSpeakWindow();
   void ShowLogitechMicWindow();
+  void ShowKeyboard();
   void ShowMemcardManager();
   void ShowResourcePackManager();
   void ShowCheatsManager();
@@ -257,6 +259,7 @@ private:
   InfinityBaseWindow* m_infinity_window = nullptr;
   WiiSpeakWindow* m_wii_speak_window = nullptr;
   LogitechMicWindow* m_logitech_mic_window = nullptr;
+  KeyboardWindow* m_keyboard_window = nullptr;
   MappingWindow* m_hotkey_window = nullptr;
   FreeLookWindow* m_freelook_window = nullptr;
 

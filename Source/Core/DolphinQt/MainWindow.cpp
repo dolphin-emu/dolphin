@@ -91,6 +91,7 @@
 #include "DolphinQt/Debugger/ThreadWidget.h"
 #include "DolphinQt/Debugger/WatchWidget.h"
 #include "DolphinQt/DiscordHandler.h"
+#include "DolphinQt/EmulatedUSB/Keyboard.h"
 #include "DolphinQt/EmulatedUSB/LogitechMicWindow.h"
 #include "DolphinQt/EmulatedUSB/WiiSpeakWindow.h"
 #include "DolphinQt/FIFO/FIFOPlayerWindow.h"
@@ -568,6 +569,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ShowInfinityBase, this, &MainWindow::ShowInfinityBase);
   connect(m_menu_bar, &MenuBar::ShowWiiSpeakWindow, this, &MainWindow::ShowWiiSpeakWindow);
   connect(m_menu_bar, &MenuBar::ShowLogitechMicWindow, this, &MainWindow::ShowLogitechMicWindow);
+  connect(m_menu_bar, &MenuBar::ShowKeyboard, this, &MainWindow::ShowKeyboard);
   connect(m_menu_bar, &MenuBar::ConnectWiiRemote, this, &MainWindow::OnConnectWiiRemote);
 
 #ifdef USE_RETRO_ACHIEVEMENTS
@@ -1447,6 +1449,18 @@ void MainWindow::ShowLogitechMicWindow()
   m_logitech_mic_window->show();
   m_logitech_mic_window->raise();
   m_logitech_mic_window->activateWindow();
+}
+
+void MainWindow::ShowKeyboard()
+{
+  if (!m_keyboard_window)
+  {
+    m_keyboard_window = new KeyboardWindow();
+  }
+
+  m_keyboard_window->show();
+  m_keyboard_window->raise();
+  m_keyboard_window->activateWindow();
 }
 
 void MainWindow::StateLoad()
