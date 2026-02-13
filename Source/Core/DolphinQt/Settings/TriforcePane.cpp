@@ -1,12 +1,11 @@
 // Copyright 2026 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "DolphinQt/Settings/TriforceBaseboardSettingsDialog.h"
+#include "DolphinQt/Settings/TriforcePane.h"
 
 #include <QDialogButtonBox>
 #include <QGroupBox>
 #include <QHeaderView>
-#include <QLineEdit>
 #include <QPushButton>
 #include <QTableWidget>
 #include <QVBoxLayout>
@@ -19,25 +18,84 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/DVD/AMMediaboard.h"
 
+#include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/QtUtils.h"
 
-static constexpr int COLUMN_EMULATED = 0;
-static constexpr int COLUMN_REAL = 1;
-static constexpr int COLUMN_DESCRIPTION = 2;
-
-TriforceBaseboardSettingsDialog::TriforceBaseboardSettingsDialog(QWidget* parent) : QDialog{parent}
+namespace
 {
-  setWindowTitle(tr("Triforce Baseboard"));
 
-  auto* const dialog_layout = new QVBoxLayout{this};
+constexpr int COLUMN_EMULATED = 0;
+constexpr int COLUMN_REAL = 1;
+constexpr int COLUMN_DESCRIPTION = 2;
+
+class IPAddressOverridesDialog final : public QDialog
+{
+public:
+  explicit IPAddressOverridesDialog(QWidget* parent);
+
+private:
+  void LoadConfig();
+  void SaveConfig() const;
+
+  void LoadDefault();
+  void OnClear();
+
+  QTableWidget* m_ip_overrides_table;
+};
+
+}  // namespace
+
+TriforcePane::TriforcePane()
+{
+  auto* const main_layout = new QVBoxLayout{this};
+
+  auto* const controllers_group = new QGroupBox{tr("Controllers")};
+  main_layout->addWidget(controllers_group);
+
+  auto* const controllers_layout = new QVBoxLayout{controllers_group};
+
+  auto* const configure_controllers_button = new NonDefaultQPushButton{tr("Configure")};
+  controllers_layout->addWidget(configure_controllers_button);
+
+  connect(configure_controllers_button, &QPushButton::clicked, this, [this] {
+    auto* const window = new MappingWindow(this, MappingWindow::Type::MAPPING_AM_BASEBOARD, 0);
+    window->setAttribute(Qt::WA_DeleteOnClose, true);
+    window->setWindowModality(Qt::WindowModality::WindowModal);
+    window->show();
+  });
 
   auto* const ip_override_group = new QGroupBox{tr("IP Address Overrides")};
-  dialog_layout->addWidget(ip_override_group);
+  main_layout->addWidget(ip_override_group);
 
   auto* const ip_override_layout = new QVBoxLayout{ip_override_group};
 
+  auto* const configure_ip_overrides_button = new NonDefaultQPushButton{tr("Configure")};
+  ip_override_layout->addWidget(configure_ip_overrides_button);
+
+  connect(configure_ip_overrides_button, &QPushButton::clicked, this, [this] {
+    auto* const ip_overrides = new IPAddressOverridesDialog{this};
+    ip_overrides->setAttribute(Qt::WA_DeleteOnClose);
+    ip_overrides->open();
+  });
+
+  main_layout->addStretch(1);
+}
+
+IPAddressOverridesDialog::IPAddressOverridesDialog(QWidget* parent) : QDialog{parent}
+{
+  setWindowTitle(tr("IP Address Overrides"));
+
+  auto* const main_layout = new QVBoxLayout{this};
+
+  auto* const load_default_button = new QPushButton(tr("Default"));
+  connect(load_default_button, &QPushButton::clicked, this, &IPAddressOverridesDialog::LoadDefault);
+
+  auto* const clear_button = new QPushButton(tr("Clear"));
+  connect(clear_button, &QPushButton::clicked, this, &IPAddressOverridesDialog::OnClear);
+
   m_ip_overrides_table = new QTableWidget;
-  ip_override_layout->addWidget(m_ip_overrides_table);
+  main_layout->addWidget(m_ip_overrides_table);
 
   m_ip_overrides_table->setColumnCount(3);
   m_ip_overrides_table->setHorizontalHeaderLabels({tr("Emulated"), tr("Real"), tr("Description")});
@@ -48,23 +106,15 @@ TriforceBaseboardSettingsDialog::TriforceBaseboardSettingsDialog(QWidget* parent
                                         QAbstractItemView::EditKeyPressed);
 
   auto* const button_box = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-  dialog_layout->addWidget(button_box);
-
-  auto* const load_default_button = new QPushButton(tr("Default"));
-  connect(load_default_button, &QPushButton::clicked, this,
-          &TriforceBaseboardSettingsDialog::LoadDefault);
-
-  auto* const clear_button = new QPushButton(tr("Clear"));
-  connect(clear_button, &QPushButton::clicked, this, &TriforceBaseboardSettingsDialog::OnClear);
+  main_layout->addWidget(button_box);
 
   button_box->addButton(load_default_button, QDialogButtonBox::ActionRole);
   button_box->addButton(clear_button, QDialogButtonBox::ActionRole);
 
-  connect(button_box, &QDialogButtonBox::accepted, this, &TriforceBaseboardSettingsDialog::accept);
-  connect(button_box, &QDialogButtonBox::rejected, this, &TriforceBaseboardSettingsDialog::reject);
+  connect(button_box, &QDialogButtonBox::accepted, this, &IPAddressOverridesDialog::accept);
+  connect(button_box, &QDialogButtonBox::rejected, this, &IPAddressOverridesDialog::reject);
 
-  connect(this, &TriforceBaseboardSettingsDialog::accepted, this,
-          &TriforceBaseboardSettingsDialog::SaveConfig);
+  connect(this, &IPAddressOverridesDialog::accepted, this, &IPAddressOverridesDialog::SaveConfig);
 
   connect(m_ip_overrides_table, &QTableWidget::itemChanged, this, [this](QTableWidgetItem* item) {
     const int row_count = m_ip_overrides_table->rowCount();
@@ -87,7 +137,7 @@ TriforceBaseboardSettingsDialog::TriforceBaseboardSettingsDialog(QWidget* parent
   QtUtils::AdjustSizeWithinScreen(this);
 }
 
-void TriforceBaseboardSettingsDialog::LoadConfig()
+void IPAddressOverridesDialog::LoadConfig()
 {
   m_ip_overrides_table->setRowCount(0);
 
@@ -120,7 +170,7 @@ void TriforceBaseboardSettingsDialog::LoadConfig()
   }
 }
 
-void TriforceBaseboardSettingsDialog::SaveConfig()
+void IPAddressOverridesDialog::SaveConfig() const
 {
   // Ignore our empty row.
   const int row_count = m_ip_overrides_table->rowCount() - 1;
@@ -152,7 +202,7 @@ void TriforceBaseboardSettingsDialog::SaveConfig()
                            fmt::format("{}", fmt::join(replacements, ",")));
 }
 
-void TriforceBaseboardSettingsDialog::LoadDefault()
+void IPAddressOverridesDialog::LoadDefault()
 {
   // This alters the config before "OK" is pressed. Bad UX..
 
@@ -161,8 +211,9 @@ void TriforceBaseboardSettingsDialog::LoadDefault()
   LoadConfig();
 }
 
-void TriforceBaseboardSettingsDialog::OnClear()
+void IPAddressOverridesDialog::OnClear()
 {
-  Config::SetBaseOrCurrent(Config::MAIN_TRIFORCE_IP_OVERRIDES, "");
-  LoadConfig();
+  m_ip_overrides_table->setRowCount(0);
+  // Add the final empty row.
+  m_ip_overrides_table->insertRow(0);
 }

@@ -460,18 +460,9 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
   case Type::MAPPING_GC_STEERINGWHEEL:
   case Type::MAPPING_GC_DANCEMAT:
   case Type::MAPPING_GCPAD:
-    widget = new GCPadEmu(this);
-    if (Config::Get(Config::GetInfoForSIDevice(GetPort())) ==
-        SerialInterface::SIDevices::SIDEVICE_AM_BASEBOARD)
-    {
-      setWindowTitle(tr("Triforce Baseboard at Port %1").arg(GetPort() + 1));
-      AddWidget(tr("Triforce Baseboard"), widget);
-    }
-    else
-    {
-      setWindowTitle(tr("GameCube Controller at Port %1").arg(GetPort() + 1));
-      AddWidget(tr("GameCube Controller"), widget);
-    }
+    widget = CreateStandardControllerMappingWidget(this);
+    setWindowTitle(tr("GameCube Controller at Port %1").arg(GetPort() + 1));
+    AddWidget(tr("GameCube Controller"), widget);
     break;
   case Type::MAPPING_GC_MICROPHONE:
     widget = new GCMicrophone(this);
@@ -528,6 +519,11 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     setWindowTitle(tr("Free Look Controller %1").arg(GetPort() + 1));
   }
   break;
+  case Type::MAPPING_AM_BASEBOARD:
+    widget = CreateAMBaseboardMappingWidget(this);
+    setWindowTitle(tr("Triforce Baseboard at Port %1").arg(GetPort() + 1));
+    AddWidget(tr("Triforce Baseboard"), widget);
+    break;
   default:
     return;
   }
