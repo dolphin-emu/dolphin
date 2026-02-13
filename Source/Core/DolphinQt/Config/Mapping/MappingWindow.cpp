@@ -211,6 +211,7 @@ void MappingWindow::ConnectWidgets()
 {
   connect(&Settings::Instance(), &Settings::DevicesChanged, this, &MappingWindow::ConfigChanged);
   connect(this, &MappingWindow::ConfigChanged, this, &MappingWindow::UpdateDeviceList);
+  connect(this, &MappingWindow::ConfigChanged, this, &MappingWindow::OnMappingChange);
   connect(m_devices_combo, &QComboBox::currentIndexChanged, this, &MappingWindow::OnSelectDevice);
 
   connect(m_reset_clear, &QPushButton::clicked, this, &MappingWindow::OnClearFieldsPressed);
@@ -221,7 +222,7 @@ void MappingWindow::ConnectWidgets()
   connect(m_profiles_open_folder, &QAction::triggered, this, &MappingWindow::OnOpenProfileFolder);
 
   connect(m_profiles_combo, &QComboBox::currentIndexChanged, this, &MappingWindow::OnSelectProfile);
-  connect(m_profiles_combo, &QComboBox::editTextChanged, this,
+  connect(m_profiles_combo, &QComboBox::currentTextChanged, this,
           &MappingWindow::OnProfileTextChanged);
 
   // We currently use the "Close" button as an "Accept" button so we must save on reject.
@@ -245,19 +246,66 @@ void MappingWindow::UpdateProfileIndex()
 
 void MappingWindow::UpdateProfileButtonState()
 {
-  // Make sure save/delete buttons are disabled for built-in profiles
+  // currentData() is not up to date on a currentTextChanged() event, so find profile path from
+  // currentText() (which is up to date)
+  const int index = m_profiles_combo->findText(m_profiles_combo->currentText());
+  QString profile_path;
+  if (index != -1)
+    profile_path = m_profiles_combo->itemData(index).toString();
 
-  bool builtin = false;
-  if (m_profiles_combo->findText(m_profiles_combo->currentText()) != -1)
+  // Init new buttons state (enabled by default)
+  bool load_enabled = true;
+  bool save_enabled = true;
+  bool delete_enabled = true;
+  QString load_tooltip;
+  QString save_tooltip;
+  QString delete_tooltip;
+
+  // Check if mapping is modified
+  // Load memory mapping
+  Common::IniFile memoryIni;
+  m_controller->SaveConfig(memoryIni.GetOrCreateSection("Profile"));
+
+  // Load disk mapping
+  Common::IniFile diskIni;
+  diskIni.Load(profile_path.toStdString());
+  // Pass the disk mapping through the controller to normalize it
+  m_controller->LoadConfig(diskIni.GetOrCreateSection("Profile"));
+  m_controller->SaveConfig(diskIni.GetOrCreateSection("Profile"));
+  // Restore controller mapping from memory
+  m_controller->LoadConfig(memoryIni.GetOrCreateSection("Profile"));
+
+  // Compare mappings
+  bool mapping_is_the_same = diskIni.CompareValues(memoryIni);
+  if (mapping_is_the_same)
   {
-    const QString profile_path = m_profiles_combo->currentData().toString();
-    std::string sys_dir = File::GetSysDirectory();
-    sys_dir = ReplaceAll(sys_dir, "\\", DIR_SEP);
-    builtin = profile_path.startsWith(QString::fromStdString(sys_dir));
+    load_enabled = false;
+    load_tooltip =
+        tr("Cannot do this action. Reason: No changes between profile file and current mappings");
+    save_enabled = false;
+    save_tooltip =
+        tr("Cannot do this action. Reason: No changes between profile file and current mappings");
   }
 
-  m_profiles_save->setEnabled(!builtin);
-  m_profiles_delete->setEnabled(!builtin);
+  // Make sure save/delete buttons are disabled for built-in profiles
+  std::string sys_dir = File::GetSysDirectory();
+  sys_dir = ReplaceAll(sys_dir, "\\", DIR_SEP);
+  bool builtin = profile_path.startsWith(QString::fromStdString(sys_dir));
+  if (builtin)
+  {
+    save_enabled = false;
+    delete_enabled = false;
+    save_tooltip = tr("Cannot do this action. Reason: Built-in profile");
+    delete_tooltip = tr("Cannot do this action. Reason: Built-in profile");
+  }
+
+  // Update buttons state
+  m_profiles_load->setEnabled(load_enabled);
+  m_profiles_load->setToolTip(load_tooltip);
+  m_profiles_save->setEnabled(save_enabled);
+  m_profiles_save->setToolTip(save_tooltip);
+  m_profiles_delete->setEnabled(delete_enabled);
+  m_profiles_delete->setToolTip(delete_tooltip);
 }
 
 void MappingWindow::OnSelectProfile(int)
@@ -335,6 +383,8 @@ void MappingWindow::OnLoadProfilePressed()
   m_controller->UpdateReferences(g_controller_interface);
   m_controller->GetConfig()->GenerateControllerTextures();
 
+  UpdateProfileButtonState();
+
   const auto lock = GetController()->GetStateLock();
   emit ConfigChanged();
 }
@@ -355,6 +405,8 @@ void MappingWindow::OnSaveProfilePressed()
 
   m_controller->SaveConfig(ini.GetOrCreateSection("Profile"));
   ini.Save(profile_path);
+
+  UpdateProfileButtonState();
 
   if (m_profiles_combo->findText(profile_name) == -1)
   {
@@ -622,4 +674,9 @@ void MappingWindow::ShowExtensionMotionTabs(bool show)
 void MappingWindow::ActivateExtensionTab()
 {
   m_tab_widget->setCurrentIndex(3);
+}
+
+void MappingWindow::OnMappingChange()
+{
+  UpdateProfileButtonState();
 }
