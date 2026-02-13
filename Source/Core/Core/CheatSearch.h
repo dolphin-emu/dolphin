@@ -168,6 +168,9 @@ public:
 
   virtual bool WriteValue(const Core::CPUThreadGuard& guard, std::span<u32> addresses) const = 0;
 
+  // User can delete a search result.
+  virtual void RemoveResult(size_t index) = 0;
+
   // Create a complete copy of this search session.
   virtual std::unique_ptr<CheatSearchSessionBase> Clone() const = 0;
 
@@ -195,6 +198,7 @@ public:
   bool SetValueFromString(const std::string& value_as_string, bool force_parse_as_hex) override;
 
   void ResetResults() override;
+  void RemoveResult(size_t index) override;
   SearchErrorCode RunSearch(const Core::CPUThreadGuard& guard) override;
 
   size_t GetMemoryRangeCount() const override;
