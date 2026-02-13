@@ -110,7 +110,7 @@ class SettingsFragmentPresenter(
             MenuTag.CONFIG_PATHS -> addPathsSettings(sl)
             MenuTag.CONFIG_GAME_CUBE -> addGameCubeSettings(sl)
             MenuTag.CONFIG_WII -> addWiiSettings(sl)
-            MenuTag.CONFIG_ACHIEVEMENTS -> addAchievementSettings(sl);
+            MenuTag.CONFIG_ACHIEVEMENTS -> addAchievementSettings(sl)
             MenuTag.CONFIG_ADVANCED -> addAdvancedSettings(sl)
             MenuTag.GRAPHICS -> addGraphicsSettings(sl)
             MenuTag.CONFIG_SERIALPORT1 -> addSerialPortSubSettings(sl, serialPort1Type)
@@ -970,8 +970,8 @@ class SettingsFragmentPresenter(
                         0,
                         false
                     ) {
-                      fragmentView.showDialogFragment(LoginDialog(this))
-                      loadSettingsList()
+                        fragmentView.showDialogFragment(LoginDialog(this))
+                        loadSettingsList()
                     })
             } else {
                 sl.add(
@@ -983,8 +983,8 @@ class SettingsFragmentPresenter(
                         0,
                         false
                     ) {
-                      logout()
-                      loadSettingsList()
+                        logout()
+                        loadSettingsList()
                     })
             }
             sl.add(
@@ -1576,16 +1576,52 @@ class SettingsFragmentPresenter(
         val shaderListEntries = arrayOf(context.getString(R.string.off), *shaderList)
         val shaderListValues = arrayOf("", *shaderList)
 
+        val postProcessingShaderSetting: AbstractStringSetting = object : AbstractStringSetting {
+            override val isOverridden: Boolean
+                get() = StringSetting.GFX_ENHANCE_POST_SHADER.isOverridden
+            override val isRuntimeEditable: Boolean
+                get() = StringSetting.GFX_ENHANCE_POST_SHADER.isRuntimeEditable
+
+            override fun delete(settings: Settings): Boolean {
+                val result = StringSetting.GFX_ENHANCE_POST_SHADER.delete(settings)
+                // Reload settings to show/hide the configure button
+                loadSettingsList()
+                return result
+            }
+
+            override val string: String
+                get() = StringSetting.GFX_ENHANCE_POST_SHADER.string
+
+            override fun setString(settings: Settings, newValue: String) {
+                StringSetting.GFX_ENHANCE_POST_SHADER.setString(settings, newValue)
+                // Reload settings to show/hide the configure button
+                loadSettingsList()
+            }
+        }
+
         sl.add(
             StringSingleChoiceSetting(
                 context,
-                StringSetting.GFX_ENHANCE_POST_SHADER,
+                postProcessingShaderSetting,
                 R.string.post_processing_shader,
                 0,
                 shaderListEntries,
                 shaderListValues
             )
         )
+
+        // Add a configure button if the selected shader has options
+        val selectedShader = postProcessingShaderSetting.string
+        if (selectedShader.isNotEmpty()) {
+            val options = PostProcessing.getShaderOptions(selectedShader)
+            if (options != null && options.options.isNotEmpty()) {
+                sl.add(
+                    RunRunnable(context, R.string.configure, 0, 0, 0, false) {
+                        fragmentView.showShaderOptionsFragment(selectedShader)
+                    }
+                )
+            }
+        }
 
         sl.add(
             SwitchSetting(
@@ -2197,7 +2233,7 @@ class SettingsFragmentPresenter(
                 BooleanSetting.MAIN_DEBUG_JIT_ENABLE_PROFILING,
                 R.string.debug_jit_enable_block_profiling,
                 0
-           )
+            )
         )
         sl.add(
             RunRunnable(
@@ -2363,6 +2399,7 @@ class SettingsFragmentPresenter(
                     addControllerMappingSettings(sl, gcPad, null)
                 }
             }
+
             7 -> {
                 // Emulated keyboard controller
                 val gcKeyboard = EmulatedController.getGcKeyboard(gcPadNumber)
@@ -2375,6 +2412,7 @@ class SettingsFragmentPresenter(
                     addControllerMappingSettings(sl, gcKeyboard, null)
                 }
             }
+
             12 -> {
                 // Adapter
                 sl.add(
@@ -2593,11 +2631,11 @@ class SettingsFragmentPresenter(
      * @param groupTypeFilter If this is non-null, only groups whose types match this are considered.
      */
     private fun addControllerMappingSettings(
-      sl: ArrayList<SettingsItem>,
-      controller: EmulatedController,
-      groupTypeFilter: Set<Int>?
+        sl: ArrayList<SettingsItem>,
+        controller: EmulatedController,
+        groupTypeFilter: Set<Int>?
     ) {
-      addContainerMappingSettings(sl, controller, controller, groupTypeFilter)
+        addContainerMappingSettings(sl, controller, controller, groupTypeFilter)
     }
 
     /**
