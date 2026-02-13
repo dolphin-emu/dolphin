@@ -1,36 +1,27 @@
 {
-	"meta":
-	{
-		"title": "Bloom and DOF Texture Definitions",
-		"author": "linckandrea"
-	},
-	"groups":
-	[
-		{
-			"name": "Bloom",
-			"targets": [
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n09_20x15_1"
-				},
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n21_20x15_1"
-				}
-			]
-		},
-		{
-			"name": "DOF",
-			"targets": [
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n10_320x240_4"
-				},
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n11_320x240_1"
-				}
-			]
-		}
-	]
+  "actions": [],
+  "assets": [],
+  "default_hash_policy": {
+    "attributes": ""
+  },
+  "meta": {
+    "author": "iwubcode",
+    "description": "",
+    "mod_version": "",
+    "schema_version": 1,
+    "title": "Pandoras Tower Definitions"
+  },
+  "tag_to_actions": {},
+  "tags": [],
+  "target_to_actions": {},
+  "targets": [
+    {
+      "id": "10512703869395082884",
+      "name": "",
+      "tags": [
+        "Bloom"
+      ],
+      "type": "int"
+    }
+  ]
 }

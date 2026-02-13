@@ -141,11 +141,15 @@ static bool ParseShaderValue(const CustomAssetLibrary::AssetID& asset_id,
   return false;
 }
 
-static bool ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
-                                  const picojson::array& properties_data,
-                                  std::vector<ShaderProperty>* shader_properties)
+static bool
+ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
+                      const picojson::array& properties_data,
+                      decltype(RasterSurfaceShaderData::uniform_properties)* shader_properties,
+                      decltype(RasterSurfaceShaderData::name_to_property)* name_to_property)
 {
   if (!shader_properties) [[unlikely]]
+    return false;
+  if (!name_to_property) [[unlikely]]
     return false;
 
   for (const auto& property_data : properties_data)
@@ -227,6 +231,7 @@ static bool ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID
     }
 
     shader_properties->push_back(std::move(property));
+    name_to_property->try_emplace(property.name, &shader_properties->back());
   }
 
   return true;
@@ -235,8 +240,10 @@ static bool ParseShaderProperties(const VideoCommon::CustomAssetLibrary::AssetID
 bool RasterSurfaceShaderData::FromJson(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
                                        const picojson::object& json, RasterSurfaceShaderData* data)
 {
-  const auto parse_properties = [&](const char* name, std::string_view source,
-                                    std::vector<ShaderProperty>* shader_properties) -> bool {
+  const auto parse_properties =
+      [&](const char* name, std::string_view source,
+          decltype(RasterSurfaceShaderData::uniform_properties)* shader_properties,
+          decltype(RasterSurfaceShaderData::name_to_property)* name_to_property) -> bool {
     const auto properties_iter = json.find(name);
     if (properties_iter == json.end())
     {
@@ -251,7 +258,7 @@ bool RasterSurfaceShaderData::FromJson(const VideoCommon::CustomAssetLibrary::As
     }
     const auto& properties_array = properties_iter->second.get<picojson::array>();
 
-    return ParseShaderProperties(asset_id, properties_array, shader_properties);
+    return ParseShaderProperties(asset_id, properties_array, shader_properties, name_to_property);
   };
 
   const auto parse_samplers =
@@ -315,8 +322,11 @@ bool RasterSurfaceShaderData::FromJson(const VideoCommon::CustomAssetLibrary::As
     return true;
   };
 
-  if (!parse_properties("properties", data->pixel_source, &data->uniform_properties))
+  if (!parse_properties("properties", data->pixel_source, &data->uniform_properties,
+                        &data->name_to_property))
+  {
     return false;
+  }
 
   if (!parse_samplers("samplers", &data->samplers))
     return false;

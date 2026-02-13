@@ -15,6 +15,7 @@
 #include "Common/Matrix.h"
 
 #include "VideoCommon/Assets/CustomAsset.h"
+#include "VideoCommon/GraphicsModSystem/Types.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/RenderState.h"
 
@@ -25,6 +26,20 @@ class IOFile;
 
 namespace VideoCommon
 {
+using VertexGroup = std::vector<int>;
+struct CPUSkinningData
+{
+  std::vector<VertexGroup> native_mesh_vertex_groups;
+
+  struct DataPerGroup
+  {
+    Common::Vec3 centroid;
+    std::vector<Common::Vec3> delta_positions_from_centroid;
+  };
+  std::vector<DataPerGroup> native_mesh_group_data;
+};
+using CPUSkinningDataPerDrawCall = std::map<GraphicsModSystem::DrawCallID, CPUSkinningData>;
+
 struct MeshDataChunk
 {
   std::unique_ptr<u8[]> vertex_data;
@@ -53,9 +68,14 @@ struct MeshData
 
   static bool FromGLTF(std::string_view gltf_file, MeshData* data);
 
+  void Report();
+
   std::vector<MeshDataChunk> m_mesh_chunks;
   std::map<std::string, CustomAssetLibrary::AssetID, std::less<>>
       m_mesh_material_to_material_asset_id;
+
+  std::map<GraphicsModSystem::DrawCallID, std::vector<MeshDataChunk>> m_skinning_chunks;
+  CPUSkinningDataPerDrawCall m_cpu_skinning_data;
 };
 
 class MeshAsset final : public CustomLoadableAsset<MeshData>

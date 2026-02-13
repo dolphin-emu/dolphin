@@ -63,6 +63,7 @@ struct RasterSurfaceShaderData
   // expected to be in the shader code and the property
   // describes various details about the input
   std::vector<ShaderProperty> uniform_properties;
+  std::map<std::string_view, ShaderProperty*, std::less<>> name_to_property;
   std::string vertex_source;
   std::string pixel_source;
 

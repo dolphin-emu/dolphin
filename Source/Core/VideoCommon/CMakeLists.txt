@@ -22,8 +22,12 @@ add_library(videocommon
   Assets/DirectFilesystemAssetLibrary.h
   Assets/MaterialAsset.cpp
   Assets/MaterialAsset.h
+  Assets/MaterialAssetUtils.cpp
+  Assets/MaterialAssetUtils.h
   Assets/MeshAsset.cpp
   Assets/MeshAsset.h
+  Assets/RenderTargetAsset.cpp
+  Assets/RenderTargetAsset.h
   Assets/ShaderAsset.cpp
   Assets/ShaderAsset.h
   Assets/TextureAsset.cpp
@@ -74,41 +78,118 @@ add_library(videocommon
   GeometryShaderGen.h
   GeometryShaderManager.cpp
   GeometryShaderManager.h
+  GraphicsModEditor/Controls/AssetDisplay.cpp
+  GraphicsModEditor/Controls/AssetDisplay.h
+  GraphicsModEditor/Controls/CameraChoiceControl.cpp
+  GraphicsModEditor/Controls/CameraChoiceControl.h
+  GraphicsModEditor/Controls/MaterialControl.cpp
+  GraphicsModEditor/Controls/MaterialControl.h
+  GraphicsModEditor/Controls/MaterialGenerateWindow.cpp
+  GraphicsModEditor/Controls/MaterialGenerateWindow.h
+  GraphicsModEditor/Controls/MeshControl.cpp
+  GraphicsModEditor/Controls/MeshControl.h
+  GraphicsModEditor/Controls/MeshExtractWindow.cpp
+  GraphicsModEditor/Controls/MeshExtractWindow.h
+  GraphicsModEditor/Controls/MeshImportWindow.cpp
+  GraphicsModEditor/Controls/MeshImportWindow.h
+  GraphicsModEditor/Controls/MiscControls.cpp
+  GraphicsModEditor/Controls/MiscControls.h
+  GraphicsModEditor/Controls/RenderTargetControl.cpp
+  GraphicsModEditor/Controls/RenderTargetControl.h
+  GraphicsModEditor/Controls/ShaderControl.cpp
+  GraphicsModEditor/Controls/ShaderControl.h
+  GraphicsModEditor/Controls/TagSelectionWindow.cpp
+  GraphicsModEditor/Controls/TagSelectionWindow.h
+  GraphicsModEditor/Controls/TextureControl.cpp
+  GraphicsModEditor/Controls/TextureControl.h
+  GraphicsModEditor/Controls/VertexGroupExtractWindow.cpp
+  GraphicsModEditor/Controls/VertexGroupExtractWindow.h
+  GraphicsModEditor/EditorAssetSource.cpp
+  GraphicsModEditor/EditorAssetSource.h
+  GraphicsModEditor/EditorBackend.cpp
+  GraphicsModEditor/EditorBackend.h
+  GraphicsModEditor/EditorEvents.cpp
+  GraphicsModEditor/EditorEvents.h
+  GraphicsModEditor/EditorFilter.cpp
+  GraphicsModEditor/EditorFilter.h
+  GraphicsModEditor/EditorMain.cpp
+  GraphicsModEditor/EditorMain.h
+  GraphicsModEditor/EditorState.cpp
+  GraphicsModEditor/EditorState.h
+  GraphicsModEditor/EditorTypes.h
+  GraphicsModEditor/GpuSkinningDataDumper.cpp
+  GraphicsModEditor/GpuSkinningDataDumper.h
+  GraphicsModEditor/GpuSkinningDataUtils.cpp
+  GraphicsModEditor/GpuSkinningDataUtils.h
+  GraphicsModEditor/MaterialGeneration.cpp
+  GraphicsModEditor/MaterialGeneration.h
+  GraphicsModEditor/Panels/ActiveTargetsPanel.cpp
+  GraphicsModEditor/Panels/ActiveTargetsPanel.h
+  GraphicsModEditor/Panels/AssetBrowserPanel.cpp
+  GraphicsModEditor/Panels/AssetBrowserPanel.h
+  GraphicsModEditor/Panels/PropertiesPanel.cpp
+  GraphicsModEditor/Panels/PropertiesPanel.h
+  GraphicsModEditor/RenderTargetGeneration.cpp
+  GraphicsModEditor/RenderTargetGeneration.h
+  GraphicsModEditor/SceneDumper.cpp
+  GraphicsModEditor/SceneDumper.h
+  GraphicsModEditor/SceneUtils.cpp
+  GraphicsModEditor/SceneUtils.h
+  GraphicsModEditor/ShaderGeneration.cpp
+  GraphicsModEditor/ShaderGeneration.h
+  GraphicsModEditor/VertexGroupDumper.cpp
+  GraphicsModEditor/VertexGroupDumper.h
   GraphicsModSystem/Config/GraphicsMod.cpp
   GraphicsModSystem/Config/GraphicsMod.h
+  GraphicsModSystem/Config/GraphicsModAction.cpp
+  GraphicsModSystem/Config/GraphicsModAction.h
   GraphicsModSystem/Config/GraphicsModAsset.cpp
   GraphicsModSystem/Config/GraphicsModAsset.h
-  GraphicsModSystem/Config/GraphicsModFeature.cpp
-  GraphicsModSystem/Config/GraphicsModFeature.h
   GraphicsModSystem/Config/GraphicsModGroup.cpp
   GraphicsModSystem/Config/GraphicsModGroup.h
+  GraphicsModSystem/Config/GraphicsModHashPolicy.cpp
+  GraphicsModSystem/Config/GraphicsModHashPolicy.h
+  GraphicsModSystem/Config/GraphicsModTag.cpp
+  GraphicsModSystem/Config/GraphicsModTag.h
   GraphicsModSystem/Config/GraphicsTarget.cpp
   GraphicsModSystem/Config/GraphicsTarget.h
-  GraphicsModSystem/Config/GraphicsTargetGroup.cpp
-  GraphicsModSystem/Config/GraphicsTargetGroup.h
   GraphicsModSystem/Constants.h
+  GraphicsModSystem/Runtime/Actions/CustomMeshAction.cpp
+  GraphicsModSystem/Runtime/Actions/CustomMeshAction.h
   GraphicsModSystem/Runtime/Actions/CustomPipelineAction.cpp
   GraphicsModSystem/Runtime/Actions/CustomPipelineAction.h
+  GraphicsModSystem/Runtime/Actions/ModifyLight.cpp
+  GraphicsModSystem/Runtime/Actions/ModifyLight.h
   GraphicsModSystem/Runtime/Actions/MoveAction.cpp
   GraphicsModSystem/Runtime/Actions/MoveAction.h
   GraphicsModSystem/Runtime/Actions/PrintAction.cpp
   GraphicsModSystem/Runtime/Actions/PrintAction.h
+  GraphicsModSystem/Runtime/Actions/RelativeCameraAction.cpp
+  GraphicsModSystem/Runtime/Actions/RelativeCameraAction.h
   GraphicsModSystem/Runtime/Actions/ScaleAction.cpp
   GraphicsModSystem/Runtime/Actions/ScaleAction.h
   GraphicsModSystem/Runtime/Actions/SkipAction.cpp
   GraphicsModSystem/Runtime/Actions/SkipAction.h
-  GraphicsModSystem/Runtime/CustomPipeline.cpp
-  GraphicsModSystem/Runtime/CustomPipeline.h
-  GraphicsModSystem/Runtime/CustomShaderCache.cpp
-  GraphicsModSystem/Runtime/CustomShaderCache.h
+  GraphicsModSystem/Runtime/Actions/TransformAction.cpp
+  GraphicsModSystem/Runtime/Actions/TransformAction.h
+  GraphicsModSystem/Runtime/CameraManager.cpp
+  GraphicsModSystem/Runtime/CameraManager.h
   GraphicsModSystem/Runtime/FBInfo.cpp
   GraphicsModSystem/Runtime/FBInfo.h
   GraphicsModSystem/Runtime/GraphicsModAction.h
   GraphicsModSystem/Runtime/GraphicsModActionData.h
   GraphicsModSystem/Runtime/GraphicsModActionFactory.cpp
   GraphicsModSystem/Runtime/GraphicsModActionFactory.h
+  GraphicsModSystem/Runtime/GraphicsModBackend.cpp
+  GraphicsModSystem/Runtime/GraphicsModBackend.h
+  GraphicsModSystem/Runtime/GraphicsModHash.cpp
+  GraphicsModSystem/Runtime/GraphicsModHash.h
   GraphicsModSystem/Runtime/GraphicsModManager.cpp
   GraphicsModSystem/Runtime/GraphicsModManager.h
+  GraphicsModSystem/Runtime/GraphicsModRuntimeBackend.cpp
+  GraphicsModSystem/Runtime/GraphicsModRuntimeBackend.h
+  GraphicsModSystem/Runtime/GraphicsModTags.cpp
+  GraphicsModSystem/Runtime/GraphicsModTags.h
   HiresTextures.cpp
   HiresTextures.h
   IndexGenerator.cpp
@@ -154,6 +235,10 @@ add_library(videocommon
   Resources/InvalidTextures.h
   Resources/MaterialResource.cpp
   Resources/MaterialResource.h
+  Resources/MeshResource.cpp
+  Resources/MeshResource.h
+  Resources/RenderTargetResource.cpp
+  Resources/RenderTargetResource.h
   Resources/Resource.cpp
   Resources/Resource.h
   Resources/ShaderResource.cpp
@@ -245,9 +330,12 @@ PRIVATE
   spng::spng
   xxhash::xxhash
   imgui
+  ImGuizmo
   implot
   glslang::SPIRV
   tinygltf
+  eigen
+  libigl
 )
 
 if(_M_X86_64)

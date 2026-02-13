@@ -55,7 +55,7 @@ public:
   bool dirty = false;
 
   // Constants for custom shaders
-  std::span<u8> custom_constants;
+  std::span<const u8> custom_constants;
   bool custom_constants_dirty = false;
 
 private:

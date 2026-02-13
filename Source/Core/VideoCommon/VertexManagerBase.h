@@ -3,26 +3,42 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/Matrix.h"
 #include "VideoCommon/CPUCull.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/Resources/MaterialResource.h"
+#include "VideoCommon/Resources/MeshResource.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/VideoEvents.h"
 
 struct CustomPixelShaderContents;
-class CustomShaderCache;
 class DataReader;
 class GeometryShaderManager;
 class NativeVertexFormat;
 class PixelShaderManager;
 class PointerWrap;
 struct PortableVertexDeclaration;
+
+namespace GraphicsModSystem
+{
+enum class DrawCallID : unsigned long long;
+
+struct DrawDataView;
+}  // namespace GraphicsModSystem
+
+namespace VideoCommon
+{
+class CameraManager;
+}  // namespace VideoCommon
 
 struct Slope
 {
@@ -134,7 +150,6 @@ public:
     m_current_pipeline_object = nullptr;
     m_pipeline_config_changed = true;
   }
-  void NotifyCustomShaderCacheOfHostChange(const ShaderHostConfig& host_config);
 
   // Utility pipeline drawing (e.g. EFB copies, post-processing, UI).
   virtual void UploadUtilityUniforms(const void* uniforms, u32 uniforms_size);
@@ -171,7 +186,44 @@ public:
   // Call at the end of a frame.
   void OnEndFrame();
 
+  // Passes on a clear from the game to any additional cameras
+  void ClearAdditionalCameras(const MathUtil::Rectangle<int>& rc, bool color_enable,
+                              bool alpha_enable, bool z_enable, u32 color, u32 z);
+
+  // Draws the normal mesh sourced from emulation
+  void DrawEmulatedMesh(VideoCommon::CameraManager& camera_manager,
+                        const Common::Matrix44& custom_transform = Common::Matrix44::Identity());
+
+  // Draws the normal mesh sourced from emulation, with a custom shader and/or transform
+  void DrawEmulatedMesh(const VideoCommon::MaterialResource::Data& material_data,
+                        const GraphicsModSystem::DrawDataView& draw_data,
+                        const Common::Matrix44& custom_transform,
+                        VideoCommon::CameraManager& camera_manager);
+
+  // Draw a custom mesh sourced from a mod, with a custom shader and custom vertex information
+  void DrawCustomMesh(GraphicsModSystem::DrawCallID draw_call,
+                      const VideoCommon::MeshResource::Data& mesh_data,
+                      const GraphicsModSystem::DrawDataView& draw_data,
+                      const Common::Matrix44& custom_transform, bool ignore_mesh_transform,
+                      VideoCommon::CameraManager& camera_manager);
+
 protected:
+  // Draws the current mesh data with a material, taking into account any
+  // additional views, as well as drawing the next material in the chain
+  void DrawViewsWithMaterial(u32 base_vertex, u32 base_index, u32 index_size,
+                             PrimitiveType primitive_type,
+                             const GraphicsModSystem::DrawDataView& draw_data,
+                             const VideoCommon::MaterialResource::Data& material_data,
+                             VideoCommon::CameraManager& camera_manager);
+
+  // Draws the current mesh data with a material
+  void DrawWithMaterial(u32 base_vertex, u32 base_index, u32 index_size,
+                        PrimitiveType primitive_type,
+                        const GraphicsModSystem::DrawDataView& draw_data,
+                        const VideoCommon::MaterialResource::Data& material_data,
+                        VideoCommon::CameraManager& camera_manager);
+  ;
+
   // When utility uniforms are used, the GX uniforms need to be re-written afterwards.
   static void InvalidateConstants();
 
@@ -199,6 +251,7 @@ protected:
   u8* m_cur_buffer_pointer = nullptr;
   u8* m_base_buffer_pointer = nullptr;
   u8* m_end_buffer_pointer = nullptr;
+  u8* m_last_reset_pointer = nullptr;
 
   // Alternative buffers in CPU memory for primitives we are going to discard.
   std::vector<u8> m_cpu_vertex_buffer;
@@ -223,19 +276,10 @@ private:
   // Minimum number of draws per command buffer when attempting to preempt a readback operation.
   static constexpr u32 MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK = 10;
 
-  void RenderDrawCall(PixelShaderManager& pixel_shader_manager,
-                      GeometryShaderManager& geometry_shader_manager,
-                      const CustomPixelShaderContents& custom_pixel_shader_contents,
-                      std::span<u8> custom_pixel_shader_uniforms, PrimitiveType primitive_type,
-                      const AbstractPipeline* current_pipeline);
   void UpdatePipelineConfig();
   void UpdatePipelineObject();
 
-  const AbstractPipeline*
-  GetCustomPipeline(const CustomPixelShaderContents& custom_pixel_shader_contents,
-                    const VideoCommon::GXPipelineUid& current_pipeline_config,
-                    const VideoCommon::GXUberPipelineUid& current_uber_pipeline_confi,
-                    const AbstractPipeline* current_pipeline) const;
+  std::optional<u64> m_last_camera_id;
 
   bool m_is_flushed = true;
   FlushStatistics m_flush_statistics = {};
@@ -248,7 +292,6 @@ private:
   std::vector<u32> m_scheduled_command_buffer_kicks;
   bool m_allow_background_execution = true;
 
-  std::unique_ptr<CustomShaderCache> m_custom_shader_cache;
   u64 m_ticks_elapsed = 0;
 
   Common::EventHook m_frame_end_event;

@@ -41,8 +41,7 @@
 #include "VideoCommon/Assets/TextureAssetUtils.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
-#include "VideoCommon/GraphicsModSystem/Runtime/FBInfo.h"
-#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModBackend.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -136,6 +135,31 @@ void TextureCacheBase::Invalidate()
 {
   FlushEFBCopies();
   TMEM::InvalidateAll();
+
+  if (g_ActiveConfig.bGraphicMods)
+  {
+    auto& system = Core::System::GetInstance();
+    auto& mod_manager = system.GetGraphicsModManager();
+    for (auto& tex : m_textures_by_address)
+    {
+      const auto& entry = tex.second;
+      if (entry->is_efb_copy)
+      {
+        mod_manager.GetBackend().OnTextureUnload(GraphicsModSystem::TextureType::EFB,
+                                                 entry->texture_info_name);
+      }
+      else if (entry->is_xfb_copy)
+      {
+        mod_manager.GetBackend().OnTextureUnload(GraphicsModSystem::TextureType::XFB,
+                                                 entry->texture_info_name);
+      }
+      else
+      {
+        mod_manager.GetBackend().OnTextureUnload(GraphicsModSystem::TextureType::Normal,
+                                                 entry->texture_info_name);
+      }
+    }
+  }
 
   for (auto& bind : m_bound_textures)
     bind.reset();
@@ -1282,16 +1306,21 @@ TCacheEntry* TextureCacheBase::LoadImpl(u32 stage, bool force_reload)
     return nullptr;
 
   entry->frameCount = FRAMECOUNT_INVALID;
-  if (entry->texture_info_name.empty() && g_ActiveConfig.bGraphicMods)
+  if (g_ActiveConfig.bGraphicMods)
   {
-    entry->texture_info_name = texture_info.CalculateTextureName().GetFullName();
-
-    GraphicsModActionData::TextureLoad texture_load{entry->texture_info_name};
-    for (const auto& action :
-         g_graphics_mod_manager->GetTextureLoadActions(entry->texture_info_name))
+    if (entry->texture_info_name.empty())
     {
-      action->OnTextureLoad(&texture_load);
+      entry->texture_info_name = texture_info.CalculateTextureName().GetFullName();
     }
+
+    GraphicsModSystem::TextureView texture;
+    texture.hash_name = entry->texture_info_name;
+    texture.texture_data = entry->texture.get();
+    texture.texture_type = GraphicsModSystem::TextureType::Normal;
+    texture.unit = texture_info.GetStage();
+    auto& system = Core::System::GetInstance();
+    auto& mod_manager = system.GetGraphicsModManager();
+    mod_manager.GetBackend().OnTextureLoad(texture);
   }
   m_bound_textures[texture_info.GetStage()] = entry;
 
@@ -1583,28 +1612,25 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     }
   }
 
-  std::string texture_name = "";
-
-  if (g_ActiveConfig.bGraphicMods)
-  {
-    u32 height = texture_info.GetRawHeight();
-    u32 width = texture_info.GetRawWidth();
-    texture_name = texture_info.CalculateTextureName().GetFullName();
-    GraphicsModActionData::TextureCreate texture_create{texture_name, width, height, nullptr,
-                                                        nullptr};
-    for (const auto& action : g_graphics_mod_manager->GetTextureCreateActions(texture_name))
-    {
-      action->OnTextureCreate(&texture_create);
-    }
-  }
-
   auto entry =
       CreateTextureEntry(TextureCreationInfo{base_hash, full_hash, bytes_per_block, palette_size},
                          texture_info, textureCacheSafetyColorSampleSize, custom_texture_data.get(),
                          has_arbitrary_mipmaps, skip_texture_dump);
   entry->hires_texture = std::move(hires_texture);
   entry->last_load_time = load_time;
-  entry->texture_info_name = std::move(texture_name);
+  if (g_ActiveConfig.bGraphicMods)
+  {
+    entry->texture_info_name = texture_info.CalculateTextureName().GetFullName();
+
+    GraphicsModSystem::TextureView texture;
+    texture.hash_name = entry->texture_info_name;
+    texture.texture_data = entry->texture.get();
+    texture.texture_type = GraphicsModSystem::TextureType::Normal;
+    texture.unit = texture_info.GetStage();
+    auto& system = Core::System::GetInstance();
+    auto& mod_manager = system.GetGraphicsModManager();
+    mod_manager.GetBackend().OnTextureCreate(texture);
+  }
   return entry;
 }
 
@@ -2246,36 +2272,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     return;
   }
 
-  if (g_ActiveConfig.bGraphicMods)
-  {
-    FBInfo info;
-    info.m_width = tex_w;
-    info.m_height = tex_h;
-    info.m_texture_format = baseFormat;
-    if (is_xfb_copy)
-    {
-      for (const auto& action : g_graphics_mod_manager->GetXFBActions(info))
-      {
-        action->OnXFB();
-      }
-    }
-    else
-    {
-      bool skip = false;
-      GraphicsModActionData::EFB efb{tex_w, tex_h, &skip, &scaled_tex_w, &scaled_tex_h};
-      for (const auto& action : g_graphics_mod_manager->GetEFBActions(info))
-      {
-        action->OnEFB(&efb);
-      }
-      if (skip == true)
-      {
-        if (copy_to_ram)
-          UninitializeEFBMemory(dst, dstStride, bytes_per_row, num_blocks_y);
-        return;
-      }
-    }
-  }
-
   if (dstStride < bytes_per_row)
   {
     // This kind of efb copy results in a scrambled image.
@@ -2329,7 +2325,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
 
       if (is_xfb_copy && (g_ActiveConfig.bDumpXFBTarget || g_ActiveConfig.bGraphicMods))
       {
-        const std::string id = fmt::format("{}x{}", tex_w, tex_h);
+        const std::string id = fmt::format("n{:06}_{}x{}", xfb_count++, tex_w, tex_h);
         if (g_ActiveConfig.bGraphicMods)
         {
           entry->texture_info_name = fmt::format("{}_{}", XFB_DUMP_PREFIX, id);
@@ -2337,9 +2333,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(
 
         if (g_ActiveConfig.bDumpXFBTarget)
         {
-          entry->texture->Save(fmt::format("{}{}_n{:06}_{}.png",
-                                           File::GetUserPath(D_DUMPTEXTURES_IDX), XFB_DUMP_PREFIX,
-                                           xfb_count++, id),
+          entry->texture->Save(fmt::format("{}{}_{}.png", File::GetUserPath(D_DUMPTEXTURES_IDX),
+                                           XFB_DUMP_PREFIX, id),
                                0);
         }
       }
@@ -2359,6 +2354,23 @@ void TextureCacheBase::CopyRenderTargetToTexture(
                                            efb_count++, id),
                                0);
         }
+      }
+
+      if (g_ActiveConfig.bGraphicMods)
+      {
+        GraphicsModSystem::TextureView texture;
+        texture.hash_name = entry->texture_info_name;
+        texture.texture_data = entry->texture.get();
+        if (is_xfb_copy)
+        {
+          texture.texture_type = GraphicsModSystem::TextureType::XFB;
+        }
+        else
+        {
+          texture.texture_type = GraphicsModSystem::TextureType::EFB;
+        }
+        auto& mod_manager = system.GetGraphicsModManager();
+        mod_manager.GetBackend().OnTextureCreate(texture);
       }
     }
   }
@@ -2405,6 +2417,37 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       UninitializeEFBMemory(dst, dstStride, bytes_per_row, num_blocks_y);
     }
   }
+
+  InvalideOverlappingTextures(dstStride, dstAddr, bytes_per_row, num_blocks_y, copy_to_vram,
+                              copy_to_ram);
+
+  if (OpcodeDecoder::g_record_fifo_data)
+  {
+    // Mark the memory behind this efb copy as dynamicly generated for the Fifo log
+    u32 address = dstAddr;
+    for (u32 i = 0; i < num_blocks_y; i++)
+    {
+      Core::System::GetInstance().GetFifoRecorder().UseMemory(address, bytes_per_row,
+                                                              MemoryUpdate::Type::TextureMap, true);
+      address += dstStride;
+    }
+  }
+
+  // Even if the copy is deferred, still compute the hash. This way if the copy is used as a texture
+  // in a subsequent draw before it is flushed, it will have the same hash.
+  if (entry)
+  {
+    const u64 hash = entry->CalculateHash();
+    entry->SetHashes(hash, hash);
+    m_textures_by_address.emplace(dstAddr, std::move(entry));
+  }
+}
+
+void TextureCacheBase::InvalideOverlappingTextures(u32 dstStride, u32 dstAddr, u32 bytes_per_row,
+                                                   u32 num_blocks_y, bool copy_to_vram,
+                                                   bool copy_to_ram)
+{
+  const u32 covered_range = num_blocks_y * dstStride;
 
   // Invalidate all textures, if they are either fully overwritten by our efb copy, or if they
   // have a different stride than our efb copy. Partly overwritten textures with the same stride
@@ -2467,27 +2510,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       }
     }
     ++iter.first;
-  }
-
-  if (OpcodeDecoder::g_record_fifo_data)
-  {
-    // Mark the memory behind this efb copy as dynamically generated for the Fifo log
-    u32 address = dstAddr;
-    for (u32 i = 0; i < num_blocks_y; i++)
-    {
-      Core::System::GetInstance().GetFifoRecorder().UseMemory(address, bytes_per_row,
-                                                              MemoryUpdate::Type::TextureMap, true);
-      address += dstStride;
-    }
-  }
-
-  // Even if the copy is deferred, still compute the hash. This way if the copy is used as a texture
-  // in a subsequent draw before it is flushed, it will have the same hash.
-  if (entry)
-  {
-    const u64 hash = entry->CalculateHash();
-    entry->SetHashes(hash, hash);
-    m_textures_by_address.emplace(dstAddr, std::move(entry));
   }
 }
 
@@ -2738,6 +2760,30 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter, bool discard_pe
     return m_textures_by_address.end();
 
   RcTcacheEntry& entry = iter->second;
+
+  if (g_ActiveConfig.bGraphicMods)
+  {
+    auto& system = Core::System::GetInstance();
+    auto& mod_manager = system.GetGraphicsModManager();
+    if (entry->is_efb_copy)
+    {
+      if (entry->pending_efb_copy && discard_pending_efb_copy)
+      {
+        mod_manager.GetBackend().OnTextureUnload(GraphicsModSystem::TextureType::EFB,
+                                                 entry->texture_info_name);
+      }
+    }
+    else if (entry->is_xfb_copy)
+    {
+      mod_manager.GetBackend().OnTextureUnload(GraphicsModSystem::TextureType::XFB,
+                                               entry->texture_info_name);
+    }
+    else
+    {
+      mod_manager.GetBackend().OnTextureUnload(GraphicsModSystem::TextureType::Normal,
+                                               entry->texture_info_name);
+    }
+  }
 
   if (entry->textures_by_hash_iter != m_textures_by_hash.end())
   {

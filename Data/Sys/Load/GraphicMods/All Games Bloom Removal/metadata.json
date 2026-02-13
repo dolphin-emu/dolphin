@@ -1,15 +1,22 @@
 {
-	"meta":
-	{
-		"title": "Bloom Removal",
-		"author": "Dolphin Team",
-		"description": "Skips drawing bloom effects.  May be preferable when using a bloom solution from Dolphin's post processing shaders or a third party tool."
-	},
-	"features":
-	[
-		{
-			"group": "Bloom",
-			"action": "skip"
-		}
-	]
+  "actions": [
+    {
+      "data": {},
+      "factory_name": "skip"
+    }
+  ],
+  "assets": [
+  ],
+  "meta": {
+    "author": "Dolphin Team",
+    "description": "Skips drawing bloom effects.  May be preferable when using a bloom solution from Dolphin's post processing shaders or a third party tool.",
+    "mod_version": "1.0.0",
+    "schema_version": 1,
+    "title": "Bloom Removal"
+  },
+  "tag_to_actions": {
+    "Bloom": [
+      0
+    ]
+  }
 }

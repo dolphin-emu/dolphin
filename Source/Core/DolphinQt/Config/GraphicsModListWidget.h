@@ -39,7 +39,7 @@ public:
 
   void SaveToDisk();
 
-  const GraphicsModGroupConfig& GetGraphicsModConfig() const;
+  const GraphicsModSystem::Config::GraphicsModGroup& GetGraphicsModConfig() const;
 
 signals:
   void OpenGraphicsSettings();
@@ -52,7 +52,7 @@ private:
   void ModSelectionChanged();
   void ModItemChanged(QListWidgetItem* item);
 
-  void OnModChanged(const std::optional<std::string>& absolute_path);
+  void OnModChanged(u64 id);
 
   void SaveModList();
 
@@ -72,5 +72,5 @@ private:
   GraphicsModWarningWidget* m_warning;
 
   std::string m_game_id;
-  GraphicsModGroupConfig m_mod_group;
+  GraphicsModSystem::Config::GraphicsModGroup m_mod_group;
 };

@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+    <Import Project="..\..\Source\VSProps\Base.Macros.props" />
+    <Import Project="$(VSPropsDir)Base.Targets.props" />
+    <PropertyGroup Label="Globals">
+        <ProjectGuid>{85BDFE2A-4742-4338-9F06-F25537EBA21E}</ProjectGuid>
+    </PropertyGroup>
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+    <Import Project="$(VSPropsDir)Configuration.StaticLibrary.props" />
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+    <ImportGroup Label="ExtensionSettings" />
+    <ImportGroup Label="PropertySheets">
+        <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+        <Import Project="$(VSPropsDir)Base.props" />
+        <Import Project="$(VSPropsDir)ClDisableAllWarnings.props" />
+    </ImportGroup>
+    <PropertyGroup Label="UserMacros" />
+    <ItemDefinitionGroup>
+        <ClCompile>
+            <!--IM_ASSERT is defined as Dolphin's ASSERT() :( (DolphinLib circular dependency)-->
+            <AdditionalIncludeDirectories>$(CoreDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+        </ClCompile>
+    </ItemDefinitionGroup>
+    <ItemGroup>
+        <ClCompile Include="ImGuizmo/GraphEditor.cpp" />
+        <ClCompile Include="ImGuizmo/ImCurveEdit.cpp" />
+        <ClCompile Include="ImGuizmo/ImGradient.cpp" />
+        <ClCompile Include="ImGuizmo/ImGuizmo.cpp" />
+        <ClCompile Include="ImGuizmo/ImSequencer.cpp" />
+    </ItemGroup>
+    <ItemGroup>
+        <ClInclude Include="ImGuizmo/GraphEditor.h" />
+        <ClInclude Include="ImGuizmo/ImCurveEdit.h" />
+        <ClInclude Include="ImGuizmo/ImGradient.h" />
+        <ClInclude Include="ImGuizmo/ImGuizmo.h" />
+        <ClInclude Include="ImGuizmo/ImSequencer.h" />
+        <ClInclude Include="ImGuizmo/ImZoomSlider.h" />
+    </ItemGroup>
+    <Import Project="$(ExternalsDir)imgui\exports.props" />
+    <Import Project="$(ExternalsDir)fmt\exports.props" />
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+    <ImportGroup Label="ExtensionTargets">
+    </ImportGroup>
+</Project>
