@@ -1169,7 +1169,7 @@ class SettingsFragmentPresenter(
                 R.string.overclock_title,
                 R.string.overclock_title_description,
                 0f,
-                400f,
+                500f,
                 "%",
                 1f,
                 false
