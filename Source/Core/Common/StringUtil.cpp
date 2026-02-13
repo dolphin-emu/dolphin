@@ -194,7 +194,7 @@ std::string ArrayToString(const u8* data, u32 size, int line_len, bool spaces)
 template <typename T>
 static std::string_view StripEnclosingChars(std::string_view str, T chars)
 {
-  const size_t s = str.find_first_not_of(chars);
+  const std::size_t s = str.find_first_not_of(chars);
 
   if (str.npos != s)
     return str.substr(s, str.find_last_not_of(chars) - s + 1);
@@ -202,10 +202,39 @@ static std::string_view StripEnclosingChars(std::string_view str, T chars)
   return "";
 }
 
+template <typename T>
+static std::string_view StripLeadingChars(std::string_view str, T chars)
+{
+  const std::size_t s = str.find_first_not_of(chars);
+
+  if (str.npos != s)
+    return str.substr(s);
+  else
+    return "";
+}
+
+template <typename T>
+static std::string_view StripTrailingChars(std::string_view str, T chars)
+{
+  return str.substr(0, str.find_last_not_of(chars) + 1);
+}
+
 // Turns "\n\r\t hello " into "hello" (trims at the start and end but not inside).
 std::string_view StripWhitespace(std::string_view str)
 {
   return StripEnclosingChars(str, " \t\r\n");
+}
+
+// Turns "\n\r\t hello " into "hello " (trims at the start).
+std::string_view StripLeadingWhitespace(std::string_view str)
+{
+  return StripLeadingChars(str, " \t\r\n");
+}
+
+// Turns "\n\r\t hello " into "\n\r\t hello" (trims at the end).
+std::string_view StripTrailingWhitespace(std::string_view str)
+{
+  return StripTrailingChars(str, " \t\r\n");
 }
 
 std::string_view StripSpaces(std::string_view str)

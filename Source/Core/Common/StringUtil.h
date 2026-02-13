@@ -48,6 +48,8 @@ inline void CharArrayFromFormat(char (&out)[Count], const char* format, ...)
 std::string ArrayToString(const u8* data, u32 size, int line_len = 20, bool spaces = true);
 
 std::string_view StripWhitespace(std::string_view s);
+std::string_view StripLeadingWhitespace(std::string_view s);
+std::string_view StripTrailingWhitespace(std::string_view s);
 std::string_view StripSpaces(std::string_view s);
 std::string_view StripQuotes(std::string_view s);
 
