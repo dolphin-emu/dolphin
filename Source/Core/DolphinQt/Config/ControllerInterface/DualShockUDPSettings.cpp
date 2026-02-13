@@ -44,7 +44,7 @@ namespace DualShockUDPSettings
     const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
     const auto server_details = SplitString(servers_setting, SERVER_SEPARATOR);
 
-    std::vector<DualShockUDPServer> result(server_details.size());
+    std::vector<DualShockUDPServer> result;
     for (const std::string& server_detail : server_details)
     {
       const auto server_info = SplitString(server_detail, FIELD_SEPARATOR);

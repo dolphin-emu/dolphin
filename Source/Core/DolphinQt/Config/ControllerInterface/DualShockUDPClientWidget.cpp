@@ -79,12 +79,16 @@ void DualShockUDPClientWidget::RefreshServerList()
 {
   m_server_list->clear();
 
-  for (const auto server: DualShockUDPSettings::GetServers())
+  for (const auto& server: DualShockUDPSettings::GetServers())
   {
     QListWidgetItem* list_item = new QListWidgetItem(QString::fromStdString(
         fmt::format("{}:{} - {}", server.description, server.server_address, server.server_port)));
     m_server_list->addItem(list_item);
   }
+
+  m_edit_server->setEnabled(m_servers_enabled->isChecked() && m_server_list->count() > 0);
+  m_remove_server->setEnabled(m_servers_enabled->isChecked() && m_server_list->count() > 0);
+
   emit ConfigChanged();
 }
 
