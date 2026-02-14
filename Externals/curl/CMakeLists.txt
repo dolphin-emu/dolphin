@@ -13,7 +13,9 @@ set(HTTP_ONLY ON)
 set(CURL_USE_LIBPSL OFF)
 set(CURL_USE_LIBSSH2 OFF)
 set(CURL_ZLIB OFF CACHE BOOL "" FORCE)
-set(CURL_ZSTD OFF)
+set(CURL_ZSTD OFF CACHE BOOL "" FORCE)
+set(ZLIB_FOUND FALSE) # TODO: Remove once we update to cURL >=8.17.1 https://github.com/curl/curl/pull/20147
+set(ZSTD_FOUND FALSE) # TODO: Same as above
 set(USE_LIBIDN2 OFF)
 set(USE_NGHTTP2 OFF)
 
