@@ -719,8 +719,7 @@ static bool Unpack(const std::function<bool()>& cancelled, const std::string pat
 
     // Check for path traversal attacks.
     const bool is_path_traversal_attack =
-        (childname.find("\\") != std::string_view::npos) ||
-        (childname.find('/') != std::string_view::npos) ||
+        (childname.contains('\\')) || (childname.contains('/')) ||
         std::ranges::all_of(childname, [](char c) { return c == '.'; });
     if (is_path_traversal_attack)
     {
