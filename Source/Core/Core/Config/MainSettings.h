@@ -338,6 +338,13 @@ extern const Info<bool> MAIN_MOVIE_SHOW_OSD;
 
 extern const Info<bool> MAIN_INPUT_BACKGROUND_INPUT;
 
+extern const Config::Info<std::string> MAIN_SDL_HINT_JOYSTICK_ENHANCED_REPORTS;
+extern const Config::Info<std::string> MAIN_SDL_HINT_JOYSTICK_WGI;
+extern const Config::Info<std::string> MAIN_SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED;
+extern const Config::Info<std::string> MAIN_SDL_HINT_JOYSTICK_DIRECTINPUT;
+extern const Config::Info<std::string> MAIN_SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS;
+extern const Config::Info<std::string> MAIN_SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS;
+
 // Main.Debug
 
 extern const Info<bool> MAIN_DEBUG_JIT_OFF;
