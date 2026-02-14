@@ -173,6 +173,11 @@ Options:
   -b, --batch           Run Dolphin without the user interface (Requires
                         --exec or --nand-title)
   -c, --confirm         Set Confirm on Stop
+  --netplay_host=<port>
+                        Host a netplay session on the specified port (Requires --exec)
+  --netplay_join=<ip:port> OR <host code>
+                        Join a netplay session at the specified IP address and
+                        port or using a host code
   -v VIDEO_BACKEND, --video_backend=VIDEO_BACKEND
                         Specify a video backend
   -a AUDIO_EMULATION, --audio_emulation=AUDIO_EMULATION
