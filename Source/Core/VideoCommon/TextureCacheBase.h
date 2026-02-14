@@ -41,6 +41,7 @@ namespace VideoCommon
 {
 class CustomTextureData;
 class GameTextureAsset;
+class TextureUpscaling;
 }  // namespace VideoCommon
 
 constexpr std::string_view EFB_DUMP_PREFIX = "efb1";
@@ -422,6 +423,8 @@ private:
   TexPool m_texture_pool;
   u64 m_last_entry_id = 0;
 
+  std::unique_ptr<VideoCommon::TextureUpscaling> m_texture_upscaling;
+
   // Backup configuration values
   struct BackupConfig
   {
@@ -438,6 +441,7 @@ private:
     bool arbitrary_mipmap_detection;
     bool graphics_mods;
     u32 graphics_mod_change_count;
+    std::string texture_upscaling_shader;
   };
   BackupConfig m_backup_config = {};
 
