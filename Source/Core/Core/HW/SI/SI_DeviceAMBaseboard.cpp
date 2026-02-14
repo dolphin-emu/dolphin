@@ -42,6 +42,8 @@
 
 namespace SerialInterface
 {
+using namespace AMMediaboard;
+
 void JVSIOMessage::Start(int node)
 {
   m_last_start = m_pointer;

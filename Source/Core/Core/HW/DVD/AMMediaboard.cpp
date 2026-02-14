@@ -75,13 +75,13 @@ static int WSAGetLastError()
 
 #endif
 
+namespace AMMediaboard
+{
+
 MediaBoardRange::MediaBoardRange(u32 start_, u32 size_, std::span<u8> buffer_)
     : start{start_}, end{start_ + size_}, buffer{buffer_.data()}, buffer_size{buffer_.size()}
 {
 }
-
-namespace AMMediaboard
-{
 
 using Common::SEND_FLAGS;
 

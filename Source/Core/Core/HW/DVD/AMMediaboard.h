@@ -14,6 +14,15 @@
 
 #include "DiscIO/Volume.h"
 
+namespace Core
+{
+class CPUThreadGuard;
+class System;
+}  // namespace Core
+
+namespace AMMediaboard
+{
+
 enum GameType
 {
   FZeroAX = 1,
@@ -59,12 +68,6 @@ enum InquiryType
   Version2 = 0x29484100,
 };
 
-namespace Core
-{
-class CPUThreadGuard;
-class System;
-}  // namespace Core
-
 struct MediaBoardRange
 {
   u32 start;
@@ -74,9 +77,6 @@ struct MediaBoardRange
 
   MediaBoardRange(u32 start_, u32 size_, std::span<u8> buffer_);
 };
-
-namespace AMMediaboard
-{
 
 enum class AMMBDICommand : u16
 {

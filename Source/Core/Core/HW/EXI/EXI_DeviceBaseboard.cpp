@@ -77,8 +77,8 @@ CEXIBaseboard::CEXIBaseboard(Core::System& system) : IEXIDevice(system)
 
   // Virtua Striker 4 and Gekitou Pro Yakyuu need a higher FIRM version
   // Which is read from the backup data?!
-  if (AMMediaboard::GetGameType() == VirtuaStriker4 ||
-      AMMediaboard::GetGameType() == GekitouProYakyuu)
+  if (AMMediaboard::GetGameType() == AMMediaboard::VirtuaStriker4 ||
+      AMMediaboard::GetGameType() == AMMediaboard::GekitouProYakyuu)
   {
     const u64 backup_size = m_backup.GetSize();
     if (backup_size >= 0x20C + 0x1F4)
