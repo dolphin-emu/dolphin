@@ -12,7 +12,7 @@ namespace Common
 std::optional<std::tm> LocalTime(std::time_t time)
 {
   std::tm local_time;
-#ifdef _MSC_VER
+#ifdef _WIN32
   if (localtime_s(&local_time, &time) != 0)
 #else
   if (localtime_r(&time, &local_time) == NULL)
