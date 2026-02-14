@@ -67,7 +67,7 @@ function AttemptToExecuteCommand(cmd)
 		var exec = wshShell.Exec(cmd)
 
 		// wait until the command has finished
-		while (exec.Status == 0) {}
+		while (exec.Status === 0) {}
 
 		return exec.ExitCode;
 	}
@@ -101,15 +101,15 @@ var commits_ahead = GetFirstStdOutLine(gitexe + cmd_commits_ahead);
 
 // Get environment information.
 var distributor = wshShell.ExpandEnvironmentStrings("%DOLPHIN_DISTRIBUTOR%");
-if (distributor == "%DOLPHIN_DISTRIBUTOR%") distributor = "None";
+if (distributor === "%DOLPHIN_DISTRIBUTOR%") distributor = "None";
 var default_update_track = wshShell.ExpandEnvironmentStrings("%DOLPHIN_DEFAULT_UPDATE_TRACK%");
-if (default_update_track == "%DOLPHIN_DEFAULT_UPDATE_TRACK%") default_update_track = "";
+if (default_update_track === "%DOLPHIN_DEFAULT_UPDATE_TRACK%") default_update_track = "";
 
 // remove hash (and trailing "-0" if needed) from description
 describe = describe.replace(/(-0)?-[^-]+(-dirty)?$/, '$2');
 
 // set commits ahead to zero if on a tag
-if (AttemptToExecuteCommand(gitexe + cmd_get_tag) == 0)
+if (AttemptToExecuteCommand(gitexe + cmd_get_tag) === 0)
 {
 	commits_ahead = "0";
 }
@@ -123,7 +123,7 @@ var out_contents =
     "#define SCM_UPDATE_TRACK_STR \"" + default_update_track + "\"\n";
 
 // check if file needs updating
-if (out_contents == GetFileContents(outfile))
+if (out_contents === GetFileContents(outfile))
 {
 	WScript.Echo(outfile + " current at " + describe);
 }
