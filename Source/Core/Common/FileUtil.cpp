@@ -841,6 +841,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_CONFIG_IDX] = s_user_paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
     s_user_paths[D_GAMESETTINGS_IDX] = s_user_paths[D_USER_IDX] + GAMESETTINGS_DIR DIR_SEP;
     s_user_paths[D_MAPS_IDX] = s_user_paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
+    s_user_paths[D_APPLICATIONSTATE_IDX] = s_user_paths[D_USER_IDX];
     s_user_paths[D_CACHE_IDX] = s_user_paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
     s_user_paths[D_COVERCACHE_IDX] = s_user_paths[D_CACHE_IDX] + COVERCACHE_DIR DIR_SEP;
     s_user_paths[D_REDUMPCACHE_IDX] = s_user_paths[D_CACHE_IDX] + REDUMPCACHE_DIR DIR_SEP;
@@ -884,6 +885,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[F_GCKEYBOARDCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GCKEYBOARD_CONFIG;
     s_user_paths[F_GFXCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GFX_CONFIG;
     s_user_paths[F_LOGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
+    s_user_paths[F_QSETTINGSCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + QSETTINGS_CONFIG;
     s_user_paths[F_DUALSHOCKUDPCLIENTCONFIG_IDX] =
         s_user_paths[D_CONFIG_IDX] + DUALSHOCKUDPCLIENT_CONFIG;
     s_user_paths[F_FREELOOKCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + FREELOOK_CONFIG;
@@ -927,6 +929,17 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[F_FREELOOKCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + FREELOOK_CONFIG;
     s_user_paths[F_RETROACHIEVEMENTSCONFIG_IDX] =
         s_user_paths[D_CONFIG_IDX] + RETROACHIEVEMENTS_CONFIG;
+    break;
+
+  case D_APPLICATIONSTATE_IDX:
+    // Use legacy locations if they already exist.
+    if (!Exists(s_user_paths[F_QSETTINGSCONFIG_IDX]))
+      s_user_paths[F_QSETTINGSCONFIG_IDX] = s_user_paths[D_APPLICATIONSTATE_IDX] + QSETTINGS_CONFIG;
+    if (!Exists(s_user_paths[D_LOGS_IDX]))
+    {
+      s_user_paths[D_LOGS_IDX] = s_user_paths[D_APPLICATIONSTATE_IDX] + LOGS_DIR DIR_SEP;
+      s_user_paths[F_MAINLOG_IDX] = s_user_paths[D_LOGS_IDX] + MAIN_LOG;
+    }
     break;
 
   case D_CACHE_IDX:
