@@ -362,7 +362,7 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
 
   Interpreter::Instruction instr = Interpreter::GetInterpreterOp(inst);
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionPC(instr, &m_system.GetInterpreter(), inst.hex);
+  ABI_CallFunction(instr, &m_system.GetInterpreter(), inst.hex);
   ABI_PopRegistersAndAdjustStack({}, 0);
 
   // If the instruction wrote to any registers which were marked as discarded,
@@ -419,7 +419,7 @@ void Jit64::HLEFunction(u32 hook_index)
   gpr.Flush();
   fpr.Flush();
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionCCP(HLE::ExecuteFromJIT, js.compilerPC, hook_index, &m_system);
+  ABI_CallFunction(HLE::ExecuteFromJIT, js.compilerPC, hook_index, &m_system);
   ABI_PopRegistersAndAdjustStack({}, 0);
 }
 
@@ -462,7 +462,7 @@ bool Jit64::Cleanup()
     CMP(64, R(RSCRATCH), Imm32(GPFifo::GATHER_PIPE_SIZE));
     FixupBranch exit = J_CC(CC_L);
     ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunctionP(GPFifo::UpdateGatherPipe, &m_system.GetGPFifo());
+    ABI_CallFunction(GPFifo::UpdateGatherPipe, &m_system.GetGPFifo());
     ABI_PopRegistersAndAdjustStack({}, 0);
     SetJumpTarget(exit);
     did_something = true;
@@ -471,8 +471,8 @@ bool Jit64::Cleanup()
   if (m_ppc_state.feature_flags & FEATURE_FLAG_PERFMON)
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunctionCCCP(PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
-                         js.numFloatingPointInst, &m_ppc_state);
+    ABI_CallFunction(PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
+                     js.numFloatingPointInst, &m_ppc_state);
     ABI_PopRegistersAndAdjustStack({}, 0);
     did_something = true;
   }
@@ -480,8 +480,8 @@ bool Jit64::Cleanup()
   if (IsProfilingEnabled())
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunctionPC(&JitBlock::ProfileData::EndProfiling, js.curBlock->profile_data.get(),
-                       js.downcountAmount);
+    ABI_CallFunction(&JitBlock::ProfileData::EndProfiling, js.curBlock->profile_data.get(),
+                     js.downcountAmount);
     ABI_PopRegistersAndAdjustStack({}, 0);
     did_something = true;
   }
@@ -564,7 +564,7 @@ void Jit64::MSRUpdated(const OpArg& msr, X64Reg scratch_reg)
     }
     CMP(8, PPCSTATE(pagetable_update_pending), Imm8(0));
     FixupBranch update_not_pending = J_CC(CC_E);
-    ABI_CallFunctionP(&PowerPC::MMU::PageTableUpdatedFromJit, &m_system.GetMMU());
+    ABI_CallFunction(&PowerPC::MMU::PageTableUpdatedFromJit, &m_system.GetMMU());
     SetJumpTarget(update_not_pending);
     if (!msr.IsImm())
       SetJumpTarget(dr_unset);
@@ -687,7 +687,7 @@ void Jit64::WriteRfiExitDestInRSCRATCH()
   MOV(32, PPCSTATE(npc), R(RSCRATCH));
   Cleanup();
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionP(PowerPC::CheckExceptionsFromJIT, &m_system.GetPowerPC());
+  ABI_CallFunction(PowerPC::CheckExceptionsFromJIT, &m_system.GetPowerPC());
   ABI_PopRegistersAndAdjustStack({}, 0);
   EmitUpdateMembase();
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
@@ -709,7 +709,7 @@ void Jit64::WriteExceptionExit()
   MOV(32, R(RSCRATCH), PPCSTATE(pc));
   MOV(32, PPCSTATE(npc), R(RSCRATCH));
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionP(PowerPC::CheckExceptionsFromJIT, &m_system.GetPowerPC());
+  ABI_CallFunction(PowerPC::CheckExceptionsFromJIT, &m_system.GetPowerPC());
   ABI_PopRegistersAndAdjustStack({}, 0);
   EmitUpdateMembase();
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
@@ -722,7 +722,7 @@ void Jit64::WriteExternalExceptionExit()
   MOV(32, R(RSCRATCH), PPCSTATE(pc));
   MOV(32, PPCSTATE(npc), R(RSCRATCH));
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionP(PowerPC::CheckExternalExceptionsFromJIT, &m_system.GetPowerPC());
+  ABI_CallFunction(PowerPC::CheckExternalExceptionsFromJIT, &m_system.GetPowerPC());
   ABI_PopRegistersAndAdjustStack({}, 0);
   EmitUpdateMembase();
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
@@ -928,13 +928,13 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   if (m_im_here_debug)
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunctionP(ImHere, this);
+    ABI_CallFunction(ImHere, this);
     ABI_PopRegistersAndAdjustStack({}, 0);
   }
 
   // Conditionally add profiling code.
   if (IsProfilingEnabled())
-    ABI_CallFunctionP(&JitBlock::ProfileData::BeginProfiling, b->profile_data.get());
+    ABI_CallFunction(&JitBlock::ProfileData::BeginProfiling, b->profile_data.get());
 
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(NAN_CHECK)
   // should help logged stack-traces become more accurate
@@ -966,8 +966,8 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       const u8* target = GetCodePtr();
       MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
       ABI_PushRegistersAndAdjustStack({}, 0);
-      ABI_CallFunctionPC(JitInterface::CompileExceptionCheckFromJIT, &m_system.GetJitInterface(),
-                         static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
+      ABI_CallFunction(JitInterface::CompileExceptionCheckFromJIT, &m_system.GetJitInterface(),
+                       static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
       ABI_PopRegistersAndAdjustStack({}, 0);
       JMP(asm_routines.dispatcher_no_check);
       SwitchToNearCode();
@@ -1023,7 +1023,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         js.mustCheckFifo = false;
         BitSet32 registersInUse = CallerSavedRegistersInUse();
         ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-        ABI_CallFunctionP(GPFifo::FastCheckGatherPipe, &m_system.GetGPFifo());
+        ABI_CallFunction(GPFifo::FastCheckGatherPipe, &m_system.GetGPFifo());
         ABI_PopRegistersAndAdjustStack(registersInUse, 0);
         gatherPipeIntCheck = true;
       }
@@ -1088,7 +1088,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
         MOV(32, PPCSTATE(pc), Imm32(op.address));
         ABI_PushRegistersAndAdjustStack({}, 0);
-        ABI_CallFunctionP(PowerPC::CheckAndHandleBreakPointsFromJIT, &power_pc);
+        ABI_CallFunction(PowerPC::CheckAndHandleBreakPointsFromJIT, &power_pc);
         ABI_PopRegistersAndAdjustStack({}, 0);
         MOV(64, R(RSCRATCH), ImmPtr(cpu.GetStatePtr()));
         CMP(32, MatR(RSCRATCH), Imm32(std::to_underlying(CPU::State::Running)));
@@ -1348,8 +1348,8 @@ void Jit64::IntializeSpeculativeConstants()
         target = GetCodePtr();
         MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
         ABI_PushRegistersAndAdjustStack({}, 0);
-        ABI_CallFunctionPC(JitInterface::CompileExceptionCheckFromJIT, &m_system.GetJitInterface(),
-                           static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
+        ABI_CallFunction(JitInterface::CompileExceptionCheckFromJIT, &m_system.GetJitInterface(),
+                         static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
         ABI_PopRegistersAndAdjustStack({}, 0);
         JMP(asm_routines.dispatcher_no_check);
         SwitchToNearCode();
