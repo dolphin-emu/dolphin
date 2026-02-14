@@ -386,6 +386,8 @@ extern const std::array<Info<std::string>, EMULATED_LOGITECH_MIC_COUNT>
 extern const std::array<Info<bool>, EMULATED_LOGITECH_MIC_COUNT> MAIN_LOGITECH_MIC_MUTED;
 extern const std::array<Info<s16>, EMULATED_LOGITECH_MIC_COUNT> MAIN_LOGITECH_MIC_VOLUME_MODIFIER;
 
+extern const Info<std::string> MAIN_TRIFORCE_IP_REDIRECTIONS;
+
 // GameCube path utility functions
 
 // Replaces NTSC-K with some other region, and doesn't replace non-NTSC-K regions

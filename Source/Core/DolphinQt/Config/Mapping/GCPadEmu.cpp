@@ -11,19 +11,25 @@
 
 #include "InputCommon/InputConfig.h"
 
-GCPadEmu::GCPadEmu(MappingWindow* window) : MappingWidget(window)
+GCPadEmu::GCPadEmu(MappingWindow* window, SubType sub_type) : MappingWidget(window)
 {
-  CreateMainLayout();
+  CreateMainLayout(sub_type);
 }
 
-void GCPadEmu::CreateMainLayout()
+void GCPadEmu::CreateMainLayout(SubType sub_type)
 {
   auto* layout = new QGridLayout;
 
   layout->addWidget(CreateGroupBox(tr("Buttons"), Pad::GetGroup(GetPort(), PadGroup::Buttons)), 0,
                     0);
-  layout->addWidget(CreateGroupBox(tr("D-Pad"), Pad::GetGroup(GetPort(), PadGroup::DPad)), 1, 0, -1,
-                    1);
+  layout->addWidget(CreateGroupBox(tr("D-Pad"), Pad::GetGroup(GetPort(), PadGroup::DPad)), 1, 0);
+
+  if (sub_type == SubType::AMBaseboard)
+  {
+    layout->addWidget(CreateGroupBox(tr("Triforce"), Pad::GetGroup(GetPort(), PadGroup::Triforce)),
+                      2, 0);
+  }
+
   layout->addWidget(
       CreateGroupBox(tr("Control Stick"), Pad::GetGroup(GetPort(), PadGroup::MainStick)), 0, 1, -1,
       1);

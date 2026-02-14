@@ -28,6 +28,13 @@ enum PadButton
   PAD_BUTTON_START = 0x1000,
 };
 
+enum SwitchButton
+{
+  SWITCH_TEST = 0x0001,
+  SWITCH_SERVICE = 0x0002,
+  SWITCH_COIN = 0x0004,
+};
+
 struct GCPadStatus
 {
   u16 button = 0;       // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
@@ -39,6 +46,8 @@ struct GCPadStatus
   u8 triggerRight = 0;  // 0 <= triggerRight <= 255
   u8 analogA = 0;       // 0 <= analogA      <= 255
   u8 analogB = 0;       // 0 <= analogB      <= 255
+  // Triforce
+  u8 switches = 0;
   bool isConnected = true;
 
   static const u8 MAIN_STICK_CENTER_X = 0x80;

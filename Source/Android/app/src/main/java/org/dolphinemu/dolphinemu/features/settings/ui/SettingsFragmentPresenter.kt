@@ -1276,7 +1276,17 @@ class SettingsFragmentPresenter(
     }
 
     private fun addSerialPortSubSettings(sl: ArrayList<SettingsItem>, serialPort1Type: Int) {
-        if (serialPort1Type == 10) {
+        if (serialPort1Type == 6) {
+            // Triforce Baseboard
+            sl.add(
+                InputStringSetting(
+                    context,
+                    StringSetting.MAIN_TRIFORCE_IP_REDIRECTIONS,
+                    R.string.triforce_ip_redirections,
+                    0
+                )
+            )
+        } else if (serialPort1Type == 10) {
             // Broadband Adapter (XLink Kai)
             sl.add(HyperLinkHeaderSetting(context, R.string.xlink_kai_guide_header, 0))
             sl.add(
@@ -2352,7 +2362,7 @@ class SettingsFragmentPresenter(
 
     private fun addGcPadSubSettings(sl: ArrayList<SettingsItem>, gcPadNumber: Int, gcPadType: Int) {
         when (gcPadType) {
-            6, 8, 9, 10 -> {
+            6, 8, 9, 10, 11 -> {
                 // Emulated
                 val gcPad = EmulatedController.getGcPad(gcPadNumber)
 

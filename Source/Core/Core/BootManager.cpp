@@ -25,6 +25,7 @@
 
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
@@ -118,7 +119,7 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
         case DiscIO::Region::NTSC_K:
           Config::SetCurrent(Config::SYSCONF_COUNTRY, 0x88);  // South Korea
           break;
-        case DiscIO::Region::Unknown:
+        default:
           break;
         }
       }
@@ -133,6 +134,28 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
   // Disable loading time emulation for Riivolution-patched games until we have proper emulation.
   if (!boot->riivolution_patches.empty())
     Config::SetCurrent(Config::MAIN_FAST_DISC_SPEED, true);
+
+  if (system.IsTriforce())
+  {
+    // Attach Triforce Baseboard hardware if not overridden in any layer.
+    // Users may set these in their GameConfig if they want them not automatically attached.
+    if (GetActiveLayerForConfig(Config::MAIN_SERIAL_PORT_1) == Config::LayerType::Base)
+    {
+      Config::SetCurrent(Config::MAIN_SERIAL_PORT_1, ExpansionInterface::EXIDeviceType::Baseboard);
+    }
+    if (GetActiveLayerForConfig(Config::GetInfoForSIDevice(0)) == Config::LayerType::Base)
+    {
+      Config::SetCurrent(Config::GetInfoForSIDevice(0),
+                         SerialInterface::SIDevices::SIDEVICE_AM_BASEBOARD);
+    }
+
+    // Mario Kart Arcade GP has widescreen heuristic issues.
+    // All Triforce games are 4:3 so we'll just disable the heuristic for now.
+    if (GetActiveLayerForConfig(Config::GFX_SUGGESTED_ASPECT_RATIO) == Config::LayerType::Base)
+    {
+      Config::SetCurrent(Config::GFX_SUGGESTED_ASPECT_RATIO, AspectMode::ForceStandard);
+    }
+  }
 
   system.Initialize();
 

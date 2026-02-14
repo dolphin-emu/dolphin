@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/Assert.h"
@@ -20,13 +21,16 @@
 #include "Common/Version.h"
 #include "Core/AchievementManager.h"
 #include "Core/Config/DefaultLocale.h"
+#include "Core/Core.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/HSP/HSP_Device.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SI/SI_Device.h"
+#include "Core/IOS/Network/Socket.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "Core/USBUtils.h"
 #include "DiscIO/Enums.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -639,6 +643,40 @@ const std::array<Info<s16>, EMULATED_LOGITECH_MIC_COUNT> MAIN_LOGITECH_MIC_VOLUM
     Info<s16>{{System::Main, "EmulatedUSBDevices", "LogitechMic3VolumeModifier"}, 0},
     Info<s16>{{System::Main, "EmulatedUSBDevices", "LogitechMic4VolumeModifier"}, 0}};
 
+static std::string GetDefaultTriforceIPRedirections()
+{
+  constexpr std::string_view entries[] = {
+      // Mario Kart Arcade GP 1 + 2
+      // This config allows for 4x Multicabinet on the same PC.
+      "192.168.29.150:5000-5008=127.0.0.1:5000-5008 MarioKart Seat #1 Static",
+      "192.168.29.151:5000-5008=127.0.0.1:5010-5018 MarioKart Seat #2 Static",
+      "192.168.29.152:5000-5008=127.0.0.1:5020-5028 MarioKart Seat #3 Static",
+      "192.168.29.153:5000-5008=127.0.0.1:5030-5038 MarioKart Seat #4 Static",
+      // Ephemeral ports are constrained to differentiate incoming connections.
+      "192.168.29.150=127.0.0.1:50000-50999 MarioKart Seat #1 Ephemeral",
+      "192.168.29.151=127.0.0.1:51000-51999 MarioKart Seat #2 Ephemeral",
+      "192.168.29.152=127.0.0.1:52000-52999 MarioKart Seat #3 Ephemeral",
+      "192.168.29.153=127.0.0.1:53000-53999 MarioKart Seat #4 Ephemeral",
+      // The cameras.
+      "192.168.29.104-107=127.0.0.1 MarioKart namcam2",
+
+      // CyCraft Connect IP
+      "192.168.11.0/24=127.0.0.1 CyCraft",
+
+      // The Key of Avalon
+      // This config isn't usable as-is. It's just here for reference.
+      "192.168.13.0/24=127.0.0.1 The Key of Avalon",
+
+      // Sega ALL.Net
+      "192.168.150.0/24=127.0.0.1 ALL.Net",
+  };
+
+  return fmt::format("{}", fmt::join(entries, ","));
+}
+
+const Info<std::string> MAIN_TRIFORCE_IP_REDIRECTIONS{
+    {System::Main, "Core", "TriforceIPRedirections"}, GetDefaultTriforceIPRedirections()};
+
 // The reason we need this function is because some memory card code
 // expects to get a non-NTSC-K region even if we're emulating an NTSC-K Wii.
 DiscIO::Region ToGameCubeRegion(DiscIO::Region region)
@@ -671,6 +709,9 @@ const char* GetDirectoryForRegion(DiscIO::Region region, RegionDirectoryStyle st
     // See ToGameCubeRegion
     ASSERT_MSG(BOOT, false, "NTSC-K is not a valid GameCube region");
     return style == RegionDirectoryStyle::Legacy ? JAP_DIR : JPN_DIR;
+
+  case DiscIO::Region::DEV:
+    return DEV_DIR;
 
   default:
     ASSERT_MSG(BOOT, false, "Default case should not be reached");
@@ -725,6 +766,7 @@ std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::
   constexpr std::string_view us_region = "." USA_DIR;
   constexpr std::string_view jp_region = "." JAP_DIR;
   constexpr std::string_view eu_region = "." EUR_DIR;
+  constexpr std::string_view dv_region = "." DEV_DIR;
   std::optional<DiscIO::Region> path_region = std::nullopt;
   if (name.ends_with(us_region))
   {
@@ -740,6 +782,11 @@ std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::
   {
     name = name.substr(0, name.size() - eu_region.size());
     path_region = DiscIO::Region::PAL;
+  }
+  else if (name.ends_with(dv_region))
+  {
+    name = name.substr(0, name.size() - dv_region.size());
+    path_region = DiscIO::Region::DEV;
   }
 
   const DiscIO::Region used_region =
@@ -784,6 +831,7 @@ std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::
   constexpr std::string_view us_region = "/" USA_DIR;
   constexpr std::string_view jp_region = "/" JPN_DIR;
   constexpr std::string_view eu_region = "/" EUR_DIR;
+  constexpr std::string_view dv_region = "/" DEV_DIR;
   std::string_view base_path = configured_folder;
   std::optional<DiscIO::Region> path_region = std::nullopt;
   if (base_path.ends_with(us_region))
@@ -800,6 +848,11 @@ std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::
   {
     base_path = base_path.substr(0, base_path.size() - eu_region.size());
     path_region = DiscIO::Region::PAL;
+  }
+  else if (base_path.ends_with(dv_region))
+  {
+    base_path = base_path.substr(0, base_path.size() - dv_region.size());
+    path_region = DiscIO::Region::DEV;
   }
 
   const DiscIO::Region used_region =
