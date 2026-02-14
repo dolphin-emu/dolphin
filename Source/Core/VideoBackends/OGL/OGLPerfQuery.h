@@ -14,17 +14,12 @@ namespace OGL
 {
 std::unique_ptr<PerfQueryBase> GetPerfQuery(bool is_gles);
 
-class PerfQuery : public PerfQueryBase
+class PerfQuery : public HardwarePerfQueryBase
 {
 public:
   PerfQuery();
   ~PerfQuery() override {}
-  void EnableQuery(PerfQueryGroup group) override;
-  void DisableQuery(PerfQueryGroup group) override;
   void ResetQuery() override;
-  u32 GetQueryResult(PerfQueryType type) override;
-  void FlushResults() override;
-  bool IsFlushed() const override;
 
 protected:
   struct ActiveQuery
@@ -39,10 +34,6 @@ protected:
   // This contains gl query objects with unretrieved results.
   std::array<ActiveQuery, PERF_QUERY_BUFFER_SIZE> m_query_buffer;
   u32 m_query_read_pos;
-
-private:
-  // Implementation
-  std::unique_ptr<PerfQuery> m_query;
 };
 
 // Implementations
