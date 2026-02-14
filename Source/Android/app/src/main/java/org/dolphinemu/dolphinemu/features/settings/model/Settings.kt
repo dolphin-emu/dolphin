@@ -106,6 +106,7 @@ class Settings : Closeable {
         const val FILE_WIIMOTE = "WiimoteNew"
         const val FILE_ACHIEVEMENTS = "RetroAchievements"
         const val FILE_GAME_SETTINGS_ONLY = "GameSettingsOnly"
+        const val FILE_DUALSHOCKUDPCLIENT = "DualShockUDPClient"
         const val SECTION_INI_ANDROID = "Android"
         const val SECTION_INI_ANDROID_OVERLAY_BUTTONS = "AndroidOverlayButtons"
         const val SECTION_INI_GENERAL = "General"
@@ -124,5 +125,6 @@ class Settings : Closeable {
         const val SECTION_STEREOSCOPY = "Stereoscopy"
         const val SECTION_ANALYTICS = "Analytics"
         const val SECTION_ACHIEVEMENTS = "Achievements"
+        const val SECTION_INI_SERVER = "Server"
     }
 }

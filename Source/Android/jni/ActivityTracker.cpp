@@ -8,6 +8,8 @@
 #include "UICommon/UICommon.h"
 #include "jni/Host.h"
 
+#include "jni/Input/DSUInput.h"
+
 extern "C" {
 
 JNIEXPORT void JNICALL
@@ -19,6 +21,7 @@ Java_org_dolphinemu_dolphinemu_utils_ActivityTracker_setBackgroundExecutionAllow
 
   INFO_LOG_FMT(CORE, "SetBackgroundExecutionAllowed {}", allowed);
   AchievementManager::GetInstance().SetBackgroundExecutionAllowed(allowed);
+  SetBackgroundInputExecutionAllowed(static_cast<bool>(allowed));
 }
 
 JNIEXPORT void JNICALL
