@@ -769,7 +769,9 @@ if (USE_RETRO_ACHIEVEMENTS)
   add_subdirectory(Externals/rcheevos)
 endif()
 
-add_subdirectory(Externals/watcher)
+dolphin_find_optional_system_library_pkgconfig(
+  WATCHER watcher watcher Externals/watcher
+)
 
 # Any other platform or BSD is currently unsupported by cpp-ipc
 if(WIN32 OR LINUX OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "QNX")
