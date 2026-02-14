@@ -213,7 +213,7 @@ bool ObjectCache::CreateDescriptorSetLayouts()
   if (!g_backend_info.bSupportsDynamicVertexLoader)
     create_infos[DESCRIPTOR_SET_LAYOUT_STANDARD_SHADER_STORAGE_BUFFERS].bindingCount--;
 
-  for (size_t i = 0; i < create_infos.size(); i++)
+  for (size_t i = 0; i < create_infos.size(); ++i)
   {
     VkResult res = vkCreateDescriptorSetLayout(g_vulkan_context->GetDevice(), &create_infos[i],
                                                nullptr, &m_descriptor_set_layouts[i]);
@@ -288,7 +288,7 @@ bool ObjectCache::CreatePipelineLayouts()
   if (!ssbos_in_standard && !g_backend_info.bSupportsDynamicVertexLoader)
     pipeline_layout_info[PIPELINE_LAYOUT_UBER].setLayoutCount--;
 
-  for (size_t i = 0; i < pipeline_layout_info.size(); i++)
+  for (size_t i = 0; i < pipeline_layout_info.size(); ++i)
   {
     VkResult res;
     if ((res = vkCreatePipelineLayout(g_vulkan_context->GetDevice(), &pipeline_layout_info[i],
@@ -447,7 +447,7 @@ VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_fo
                            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL});
   }
 
-  for (u8 i = 0; i < additional_attachment_count; i++)
+  for (u8 i = 0; i < additional_attachment_count; ++i)
   {
     VkAttachmentReference color_reference;
     color_reference.attachment = static_cast<uint32_t>(attachments.size());

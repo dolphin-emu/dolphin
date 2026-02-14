@@ -179,7 +179,7 @@ void* LazyMemoryRegion::Create(size_t size)
   if (size == 0)
     return nullptr;
 
-  void* memory = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  void* memory = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
   if (memory == MAP_FAILED)
   {
     NOTICE_LOG_FMT(MEMMAP, "Memory allocation of {} bytes failed.", size);

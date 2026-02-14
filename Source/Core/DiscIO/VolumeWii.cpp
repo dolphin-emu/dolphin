@@ -58,7 +58,7 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
     if (!partition_table_offset)
       continue;
 
-    for (u32 i = 0; i < number_of_partitions; i++)
+    for (u32 i = 0; i < number_of_partitions; ++i)
     {
       const std::optional<u64> partition_offset =
           ReadSwappedAndShifted(*partition_table_offset + (i * 8), PARTITION_NONE);

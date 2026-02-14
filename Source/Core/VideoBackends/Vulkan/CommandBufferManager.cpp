@@ -96,7 +96,7 @@ bool CommandBufferManager::CreateCommandBuffers(size_t swapchain_image_count)
   }
 
   m_present_semaphores.reserve(swapchain_image_count);
-  for (uint32_t i = 0; i < swapchain_image_count; i++)
+  for (uint32_t i = 0; i < swapchain_image_count; ++i)
   {
     VkSemaphore present_semaphore;
     res = vkCreateSemaphore(device, &semaphore_create_info, nullptr, &present_semaphore);

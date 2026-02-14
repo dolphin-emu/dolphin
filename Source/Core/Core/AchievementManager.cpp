@@ -87,7 +87,7 @@ void AchievementManager::Init(void* hwnd)
     // In non-x64 build, will only look for RA_Integration.dll.
     rc_client_begin_load_raintegration(
         m_client, UTF8ToWString(File::GetExeDirectory()).c_str(), reinterpret_cast<HWND>(hwnd),
-        "Dolphin", Common::GetScmDescStr().c_str(), LoadIntegrationCallback, NULL);
+        "Dolphin", Common::GetScmDescStr().c_str(), LoadIntegrationCallback, nullptr);
 #else   // RC_CLIENT_SUPPORTS_RAINTEGRATION
     if (HasAPIToken())
       Login("");
@@ -167,11 +167,11 @@ void AchievementManager::LoadGame(const DiscIO::Volume* volume)
     WARN_LOG_FMT(ACHIEVEMENTS, "Software format unsupported by AchievementManager.");
     if (rc_client_get_game_info(m_client))
     {
-      rc_client_begin_change_media_from_hash(m_client, "", ChangeMediaCallback, NULL);
+      rc_client_begin_change_media_from_hash(m_client, "", ChangeMediaCallback, nullptr);
     }
     else
     {
-      rc_client_begin_load_game(m_client, "", LoadGameCallback, NULL);
+      rc_client_begin_load_game(m_client, "", LoadGameCallback, nullptr);
     }
     return;
   }
@@ -205,13 +205,14 @@ void AchievementManager::LoadGame(const DiscIO::Volume* volume)
   rc_hash_init_custom_filereader(&volume_reader);
   if (rc_client_get_game_info(m_client))
   {
-    rc_client_begin_identify_and_change_media(m_client, "", NULL, 0, ChangeMediaCallback, NULL);
+    rc_client_begin_identify_and_change_media(m_client, "", nullptr, 0, ChangeMediaCallback,
+                                              nullptr);
   }
   else
   {
     u32 console_id = FindConsoleID(volume->GetVolumeType());
-    rc_client_begin_identify_and_load_game(m_client, console_id, "", NULL, 0, LoadGameCallback,
-                                           NULL);
+    rc_client_begin_identify_and_load_game(m_client, console_id, "", nullptr, 0, LoadGameCallback,
+                                           nullptr);
   }
 }
 
@@ -284,10 +285,10 @@ void AchievementManager::FetchGameBadges()
         m_client, RC_CLIENT_ACHIEVEMENT_CATEGORY_CORE_AND_UNOFFICIAL,
         RC_CLIENT_ACHIEVEMENT_LIST_GROUPING_PROGRESS);
   }
-  for (u32 bx = 0; bx < achievement_list->num_buckets; bx++)
+  for (u32 bx = 0; bx < achievement_list->num_buckets; ++bx)
   {
     auto& bucket = achievement_list->buckets[bx];
-    for (u32 achievement = 0; achievement < bucket.num_achievements; achievement++)
+    for (u32 achievement = 0; achievement < bucket.num_achievements; ++achievement)
     {
       u32 achievement_id = bucket.achievements[achievement]->id;
 
@@ -665,7 +666,7 @@ std::vector<std::string> AchievementManager::GetActiveLeaderboards() const
     return {};
 
   std::vector<std::string> display_values;
-  for (u32 ix = 0; ix < MAX_DISPLAYED_LBOARDS && ix < m_active_leaderboards.size(); ix++)
+  for (u32 ix = 0; ix < MAX_DISPLAYED_LBOARDS && ix < m_active_leaderboards.size(); ++ix)
   {
     display_values.push_back(std::string(m_active_leaderboards[ix].display));
   }
@@ -968,7 +969,7 @@ void AchievementManager::LeaderboardEntriesCallback(int result, const char* erro
   }
 
   auto& leaderboard = instance.m_leaderboard_map[*leaderboard_id];
-  for (size_t ix = 0; ix < list->num_entries; ix++)
+  for (size_t ix = 0; ix < list->num_entries; ++ix)
   {
     std::lock_guard lg{instance.GetLock()};
     const auto& response_entry = list->entries[ix];
@@ -1043,10 +1044,10 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
   std::lock_guard lg{instance.GetLock()};
   auto* leaderboard_list =
       rc_client_create_leaderboard_list(client, RC_CLIENT_LEADERBOARD_LIST_GROUPING_NONE);
-  for (u32 bucket = 0; bucket < leaderboard_list->num_buckets; bucket++)
+  for (u32 bucket = 0; bucket < leaderboard_list->num_buckets; ++bucket)
   {
     const auto& leaderboard_bucket = leaderboard_list->buckets[bucket];
-    for (u32 board = 0; board < leaderboard_bucket.num_leaderboards; board++)
+    for (u32 board = 0; board < leaderboard_bucket.num_leaderboards; ++board)
     {
       const auto& leaderboard = leaderboard_bucket.leaderboards[board];
       instance.m_leaderboard_map.insert(
@@ -1315,7 +1316,7 @@ u32 AchievementManager::MemoryPeeker(u32 address, u8* buffer, u32 num_bytes, rc_
     return 0u;
   auto& system = Core::System::GetInstance();
   Core::CPUThreadGuard thread_guard(system);
-  for (u32 num_read = 0; num_read < num_bytes; num_read++)
+  for (u32 num_read = 0; num_read < num_bytes; ++num_read)
   {
     auto value = system.GetMMU().HostTryRead<u8>(thread_guard, address + num_read,
                                                  PowerPC::RequestedAddressSpace::Physical);

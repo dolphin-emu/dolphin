@@ -41,7 +41,7 @@ bool DescriptorHeapManager::Create(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_T
 bool DescriptorHeapManager::Allocate(DescriptorHandle* handle)
 {
   // Start past the temporary slots, no point in searching those.
-  for (u32 group = 0; group < m_free_slots.size(); group++)
+  for (u32 group = 0; group < m_free_slots.size(); ++group)
   {
     BitSetType& bs = m_free_slots[group];
     if (bs.none())

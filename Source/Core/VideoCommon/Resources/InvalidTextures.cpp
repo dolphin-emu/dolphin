@@ -38,7 +38,7 @@ std::unique_ptr<AbstractTexture> CreateInvalidCubemapTexture()
       1, 1, 1, 6, 1, AbstractTextureFormat::RGBA8, 0, AbstractTextureType::Texture_CubeMap};
   auto texture = g_gfx->CreateTexture(tex_config, "Invalid Cubemap Texture");
   const std::array<u8, 4> pixel{255, 0, 255, 255};
-  for (u32 i = 0; i < tex_config.layers; i++)
+  for (u32 i = 0; i < tex_config.layers; ++i)
   {
     texture->Load(0, tex_config.width, tex_config.height, 1, pixel.data(), pixel.size(), i);
   }

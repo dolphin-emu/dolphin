@@ -145,15 +145,15 @@ constexpr std::array reg_names = {
 
 void print_reg_block(int x, int y, int sel, const u16* regs, const u16* compare_regs)
 {
-  for (int j = 0; j < 4; j++)
+  for (int j = 0; j < 4; ++j)
   {
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 8; ++i)
     {
       const int reg = j * 8 + i;
       u8 color1 = regs[reg] == compare_regs[reg] ? CON_BRIGHT_WHITE : CON_BRIGHT_RED;
       CON_SetColor(sel == reg ? CON_BRIGHT_YELLOW : CON_GREEN);
       CON_Printf(x + j * 9, i + y, "%s ", reg_names[reg]);
-      for (int k = 0; k < 4; k++)
+      for (int k = 0; k < 4; ++k)
       {
         if (sel == reg && k == small_cursor_x && ui_mode == UIM_EDIT_REG)
           CON_SetColor(CON_BRIGHT_CYAN);
@@ -204,7 +204,7 @@ void print_regs(int _step, int _dsp_steps)
     CON_Clear();
   count = 0;
   CON_SetColor(CON_WHITE);
-  for (int i = 0x0; i < 0xf70; i++)
+  for (int i = 0x0; i < 0xf70; ++i)
   {
     if (dspbufC[i] != mem_dump[i])
     {
@@ -335,7 +335,7 @@ void handle_dsp_mail(void)
     {
       // DSP ready for task. Let's send one.
       // First, prepare data.
-      for (int n = 0; n < 32; n++)
+      for (int n = 0; n < 32; ++n)
         dspbufC[0x00 + n] = dspreg_in[n];
       DCFlushRange(dspbufC, 0x2000);
       // Then send the code.
@@ -381,7 +381,7 @@ void handle_dsp_mail(void)
     {
       // We got a stepful of registers.
       DCInvalidateRange(dspbufC, 0x2000);
-      for (int i = 0; i < 32; i++)
+      for (int i = 0; i < 32; ++i)
         dspreg_out[dsp_steps][i] = dspbufC[0xf80 + i];
 
       dsp_steps++;
@@ -458,7 +458,7 @@ void dump_all_ucodes(bool fastmode)
   FILE* f2 = fopen(filename, "wb");
   fclose(f2);
 
-  for (int UCodeToDump = 0; UCodeToDump < NUM_UCODES; UCodeToDump++)
+  for (int UCodeToDump = 0; UCodeToDump < NUM_UCODES; ++UCodeToDump)
   {
     // First, change the microcode
     dsp_steps = 0;
@@ -472,7 +472,7 @@ void dump_all_ucodes(bool fastmode)
 
     // Loop over handling mail until we've stopped stepping
     // dsp_steps-3 compensates for mails to setup the ucode
-    for (int steps_cache = dsp_steps - 3; steps_cache <= dsp_steps; steps_cache++)
+    for (int steps_cache = dsp_steps - 3; steps_cache <= dsp_steps; ++steps_cache)
     {
       VIDEO_WaitVSync();
       handle_dsp_mail();
@@ -482,7 +482,7 @@ void dump_all_ucodes(bool fastmode)
     sprintf(filename, "sd:/dsp_dump_all.bin");
     FILE* f2 = fopen(filename, "ab");
 
-    if (fastmode == false)
+    if (!fastmode)
     {
       // Then write microcode dump to file
       sprintf(filename, "sd:/dsp_dump%d.bin", UCodeToDump);
@@ -611,7 +611,7 @@ int main()
   dspbufU = (u32*)(MEM_K0_TO_K1(dspbuffer));           // uncached
 
   DCInvalidateRange(dspbuffer, 0x2000);
-  for (int j = 0; j < 0x800; j++)
+  for (int j = 0; j < 0x800; ++j)
     dspbufU[j] = 0xffffffff;
 
   // Initialize DSP.
@@ -722,7 +722,7 @@ int main()
       dsp_steps = 0;
 
       DCInvalidateRange(dspbufC, 0x2000);
-      for (int n = 0; n < 0x2000; n++)
+      for (int n = 0; n < 0x2000; ++n)
       {
         //	dspbufU[n/2] = 0; dspbufC[n] = 0;
       }

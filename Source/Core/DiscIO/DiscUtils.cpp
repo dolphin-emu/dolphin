@@ -82,7 +82,7 @@ std::optional<u32> GetBootDOLSize(const Volume& volume, const Partition& partiti
   u32 dol_size = 0;
 
   // Iterate through the 7 code segments
-  for (size_t i = 0; i < 7; i++)
+  for (size_t i = 0; i < 7; ++i)
   {
     const std::optional<u32> offset = volume.ReadSwapped<u32>(dol_offset + 0x00 + i * 4, partition);
     const std::optional<u32> size = volume.ReadSwapped<u32>(dol_offset + 0x90 + i * 4, partition);
@@ -92,7 +92,7 @@ std::optional<u32> GetBootDOLSize(const Volume& volume, const Partition& partiti
   }
 
   // Iterate through the 11 data segments
-  for (size_t i = 0; i < 11; i++)
+  for (size_t i = 0; i < 11; ++i)
   {
     const std::optional<u32> offset = volume.ReadSwapped<u32>(dol_offset + 0x1c + i * 4, partition);
     const std::optional<u32> size = volume.ReadSwapped<u32>(dol_offset + 0xac + i * 4, partition);

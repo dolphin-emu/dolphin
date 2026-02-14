@@ -111,7 +111,7 @@ void AssembleInstructionDialog::OnEditChanged()
     m_code = 0;
 
     const std::vector<u8>& block_bytes = GetT(asm_result)[0].instructions;
-    for (size_t i = 0; i < 4 && i < block_bytes.size(); i++)
+    for (size_t i = 0; i < 4 && i < block_bytes.size(); ++i)
     {
       m_code = (m_code << 8) | block_bytes[i];
     }

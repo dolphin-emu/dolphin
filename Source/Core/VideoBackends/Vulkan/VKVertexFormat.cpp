@@ -83,7 +83,7 @@ void VertexFormat::MapAttributes()
         VarToVkFormat(m_decl.position.type, m_decl.position.components, m_decl.position.integer),
         m_decl.position.offset);
 
-  for (uint32_t i = 0; i < 3; i++)
+  for (uint32_t i = 0; i < 3; ++i)
   {
     if (m_decl.normals[i].enable)
       AddAttribute(ShaderAttrib::Normal + i, 0,
@@ -92,7 +92,7 @@ void VertexFormat::MapAttributes()
                    m_decl.normals[i].offset);
   }
 
-  for (uint32_t i = 0; i < 2; i++)
+  for (uint32_t i = 0; i < 2; ++i)
   {
     if (m_decl.colors[i].enable)
       AddAttribute(ShaderAttrib::Color0 + i, 0,
@@ -101,7 +101,7 @@ void VertexFormat::MapAttributes()
                    m_decl.colors[i].offset);
   }
 
-  for (uint32_t i = 0; i < 8; i++)
+  for (uint32_t i = 0; i < 8; ++i)
   {
     if (m_decl.texcoords[i].enable)
       AddAttribute(ShaderAttrib::TexCoord0 + i, 0,

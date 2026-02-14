@@ -24,7 +24,7 @@ void CustomAssetLoader::Shutdown()
 
 bool CustomAssetLoader::StartWorkerThreads(u32 num_worker_threads)
 {
-  for (u32 i = 0; i < num_worker_threads; i++)
+  for (u32 i = 0; i < num_worker_threads; ++i)
   {
     m_worker_threads.emplace_back(&CustomAssetLoader::WorkerThreadRun, this, i);
   }

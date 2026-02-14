@@ -87,7 +87,7 @@ void GraphicsTargetGroupConfig::DeserializeFromProfile(const picojson::object& o
       if (serialized_targets.size() != m_targets.size())
         return;
 
-      for (std::size_t i = 0; i < serialized_targets.size(); i++)
+      for (std::size_t i = 0; i < serialized_targets.size(); ++i)
       {
         const auto& serialized_target_val = serialized_targets[i];
         if (serialized_target_val.is<picojson::object>())

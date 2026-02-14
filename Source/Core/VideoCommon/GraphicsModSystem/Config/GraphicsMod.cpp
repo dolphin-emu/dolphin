@@ -281,7 +281,7 @@ void GraphicsModConfig::DeserializeFromProfile(const picojson::object& obj)
       if (serialized_groups.size() != m_groups.size())
         return;
 
-      for (std::size_t i = 0; i < serialized_groups.size(); i++)
+      for (std::size_t i = 0; i < serialized_groups.size(); ++i)
       {
         const auto& serialized_group_val = serialized_groups[i];
         if (serialized_group_val.is<picojson::object>())
@@ -301,7 +301,7 @@ void GraphicsModConfig::DeserializeFromProfile(const picojson::object& obj)
       if (serialized_features.size() != m_features.size())
         return;
 
-      for (std::size_t i = 0; i < serialized_features.size(); i++)
+      for (std::size_t i = 0; i < serialized_features.size(); ++i)
       {
         const auto& serialized_feature_val = serialized_features[i];
         if (serialized_feature_val.is<picojson::object>())

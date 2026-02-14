@@ -187,9 +187,9 @@ static u32 CalculateMipCount(u32 width, u32 height)
 static void ConvertTexture_X8B8G8R8(VideoCommon::CustomTextureData::ArraySlice::Level* level)
 {
   u8* data_ptr = level->data.data();
-  for (u32 row = 0; row < level->height; row++)
+  for (u32 row = 0; row < level->height; ++row)
   {
-    for (u32 x = 0; x < level->row_length; x++)
+    for (u32 x = 0; x < level->row_length; ++x)
     {
       // Set alpha channel to full intensity.
       data_ptr[3] = 0xFF;
@@ -201,9 +201,9 @@ static void ConvertTexture_X8B8G8R8(VideoCommon::CustomTextureData::ArraySlice::
 static void ConvertTexture_A8R8G8B8(VideoCommon::CustomTextureData::ArraySlice::Level* level)
 {
   u8* data_ptr = level->data.data();
-  for (u32 row = 0; row < level->height; row++)
+  for (u32 row = 0; row < level->height; ++row)
   {
-    for (u32 x = 0; x < level->row_length; x++)
+    for (u32 x = 0; x < level->row_length; ++x)
     {
       // Byte swap ABGR -> RGBA
       u32 val;
@@ -218,9 +218,9 @@ static void ConvertTexture_A8R8G8B8(VideoCommon::CustomTextureData::ArraySlice::
 static void ConvertTexture_X8R8G8B8(VideoCommon::CustomTextureData::ArraySlice::Level* level)
 {
   u8* data_ptr = level->data.data();
-  for (u32 row = 0; row < level->height; row++)
+  for (u32 row = 0; row < level->height; ++row)
   {
-    for (u32 x = 0; x < level->row_length; x++)
+    for (u32 x = 0; x < level->row_length; ++x)
     {
       // Byte swap XBGR -> RGBX, and set alpha to full intensity.
       u32 val;
@@ -239,9 +239,9 @@ static void ConvertTexture_R8G8B8(VideoCommon::CustomTextureData::ArraySlice::Le
   const u8* rgb_data_ptr = level->data.data();
   u8* data_ptr = new_data.data();
 
-  for (u32 row = 0; row < level->height; row++)
+  for (u32 row = 0; row < level->height; ++row)
   {
-    for (u32 x = 0; x < level->row_length; x++)
+    for (u32 x = 0; x < level->row_length; ++x)
     {
       // This is BGR in memory.
       u32 val;
@@ -507,7 +507,7 @@ bool LoadDDSTexture(CustomTextureData* texture, const std::string& filename)
   if (!file.Seek(info.first_mip_offset, File::SeekOrigin::Begin))
     return false;
 
-  for (u32 arr_i = 0; arr_i < info.array_size; arr_i++)
+  for (u32 arr_i = 0; arr_i < info.array_size; ++arr_i)
   {
     auto& slice = texture->m_slices.emplace_back();
     // Read first mip level, as it may have a custom pitch.
@@ -524,7 +524,7 @@ bool LoadDDSTexture(CustomTextureData* texture, const std::string& filename)
     // If the .dds file does not contain a full mip chain, we'll fall back to the old path.
     u32 mip_width = info.width;
     u32 mip_height = info.height;
-    for (u32 i = 1; i < info.mip_count; i++)
+    for (u32 i = 1; i < info.mip_count; ++i)
     {
       mip_width = std::max(mip_width / 2, 1u);
       mip_height = std::max(mip_height / 2, 1u);

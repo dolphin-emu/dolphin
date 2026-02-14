@@ -128,7 +128,7 @@ void InputBackend::PopulateDevices()
 
   all_masters = XIQueryDevice(dpy, XIAllMasterDevices, &num_masters);
 
-  for (int i = 0; i < num_masters; i++)
+  for (int i = 0; i < num_masters; ++i)
   {
     current_master = &all_masters[i];
 
@@ -136,7 +136,7 @@ void InputBackend::PopulateDevices()
     {
       // We need to query the master for the scroll wheel's increment, since the increment used
       // varies depending on what input driver is being used. For example, xf86-libinput uses 120.0.
-      for (int j = 0; j < current_master->num_classes; j++)
+      for (int j = 0; j < current_master->num_classes; ++j)
       {
         if (current_master->classes[j]->type == XIScrollClass)
         {
@@ -236,7 +236,7 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
   AddCombinedInput("Ctrl", {"Control_L", "Control_R"});
 
   // Mouse Buttons
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < 32; ++i)
     AddInput(new Button(i, &m_state.buttons));
 
   // Mouse Cursor, X-/+ and Y-/+

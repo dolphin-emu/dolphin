@@ -72,7 +72,7 @@ bool ParseNumeric(const CustomAssetLibrary::AssetID& asset_id, const picojson::v
     }
 
     std::array<ElementType, ElementCount> data;
-    for (std::size_t i = 0; i < ElementCount; i++)
+    for (std::size_t i = 0; i < ElementCount; ++i)
     {
       data[i] = static_cast<ElementType>(json_data[i].get<double>());
     }

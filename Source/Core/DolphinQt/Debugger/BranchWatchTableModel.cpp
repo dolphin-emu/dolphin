@@ -316,7 +316,7 @@ static QString GetInstructionMnemonic(u32 hex)
 static QString GetConditionString(const Core::BranchWatch::Selection::value_type& value,
                                   const Core::BranchWatch::Collection::value_type* kv)
 {
-  if (value.condition == false)
+  if (!value.condition)
     return BranchWatchTableModel::tr("false");
   if (BranchIsConditional(kv->first.original_inst))
     return BranchWatchTableModel::tr("true");
@@ -457,7 +457,7 @@ QVariant BranchWatchTableModel::ClickRoleData(const QModelIndex& index) const
 static int GetConditionInteger(const Core::BranchWatch::Selection::value_type& value,
                                const Core::BranchWatch::Collection::value_type* kv)
 {
-  if (value.condition == false)
+  if (!value.condition)
     return 0;
   if (BranchIsConditional(kv->first.original_inst))
     return 1;

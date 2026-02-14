@@ -314,7 +314,7 @@ static void BlendColor(u8* srcClr, u8* dstClr)
   u32 srcFactor = GetSourceFactor(srcClr, dstClr, bpmem.blendmode.src_factor);
   u32 dstFactor = GetDestinationFactor(srcClr, dstClr, bpmem.blendmode.dst_factor);
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; ++i)
   {
     // add MSB of factors to make their range 0 -> 256
     u32 sf = (srcFactor & 0xff);
@@ -388,7 +388,7 @@ static void LogicBlend(u32 srcClr, u32* dstClr, LogicOp op)
 
 static void SubtractBlend(u8* srcClr, u8* dstClr)
 {
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; ++i)
   {
     int c = (int)dstClr[i] - (int)srcClr[i];
     dstClr[i] = (c < 0) ? 0 : c;
@@ -405,7 +405,7 @@ static void Dither(u16 x, u16 y, u8* color)
   static const u8 dither[2][2] = {{0, 2}, {3, 1}};
 
   // Only the color channels are dithered?
-  for (int i = BLU_C; i <= RED_C; i++)
+  for (int i = BLU_C; i <= RED_C; ++i)
     color[i] = ((color[i] - (color[i] >> 6)) + dither[y & 1][x & 1]) & 0xfc;
 }
 
@@ -489,7 +489,7 @@ static u32 VerticalFilter(const std::array<u32, 3>& colors,
 
   // All Coefficients should sum to 64, otherwise the total brightness will change, which many games
   // do on purpose to implement a brightness filter across the whole copy.
-  for (int i = BLU_C; i <= RED_C; i++)
+  for (int i = BLU_C; i <= RED_C; ++i)
   {
     // TODO: implement support for multisampling.
     // In non-multisampling mode:
@@ -531,7 +531,7 @@ static u32 GammaCorrection(u32 color, const float gamma_rcp)
   std::memcpy(&in_colors, &color, sizeof(in_colors));
 
   u8 out_color[4];
-  for (int i = BLU_C; i <= RED_C; i++)
+  for (int i = BLU_C; i <= RED_C; ++i)
   {
     out_color[i] = static_cast<u8>(
         std::clamp(std::pow(in_colors[i] / 255.0f, gamma_rcp) * 255.0f, 0.0f, 255.0f));
@@ -605,7 +605,7 @@ void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const MathUtil::Rectangle<int>
   source.resize(EFB_WIDTH * EFB_HEIGHT);
   yuv422_packed* src_ptr = &source[0];
 
-  for (int y = source_rect.top; y < source_rect.bottom; y++)
+  for (int y = source_rect.top; y < source_rect.bottom; ++y)
   {
     // Clamping behavior
     //   NOTE: when the clamp bits aren't set, the hardware will happily read beyond the EFB,

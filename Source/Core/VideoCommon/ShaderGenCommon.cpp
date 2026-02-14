@@ -306,7 +306,7 @@ void GenerateVSLineExpansion(ShaderCode& object, std::string_view indent, u32 te
   {
     object.Write("{}if ((" I_TEXOFFSET "[2] != 0) && is_right) {{\n", indent);
     object.Write("{}  float texOffset = 1.0 / float(" I_TEXOFFSET "[2]);\n", indent);
-    for (u32 i = 0; i < texgens; i++)
+    for (u32 i = 0; i < texgens; ++i)
     {
       object.Write("{}  if (((" I_TEXOFFSET "[0] >> {}) & 0x1) != 0)\n", indent, i);
       object.Write("{}    o.tex{}.x += texOffset;\n", indent, i);
@@ -329,7 +329,7 @@ void GenerateVSPointExpansion(ShaderCode& object, std::string_view indent, u32 t
                  "{0}  float2 texOffset = float2(is_right ? texOffsetMagnitude : 0.0f, "
                  "is_bottom ? texOffsetMagnitude : 0.0f);",
                  indent);
-    for (u32 i = 0; i < texgens; i++)
+    for (u32 i = 0; i < texgens; ++i)
     {
       object.Write("{}  if (((" I_TEXOFFSET "[1] >> {}) & 0x1) != 0)\n", indent, i);
       object.Write("{}    o.tex{}.xy += texOffset;\n", indent, i);

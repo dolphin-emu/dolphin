@@ -1057,7 +1057,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
   // Forward scan, for flags that need the other direction for calculation.
   BitSet32 fprIsSingle, fprIsDuplicated, fprIsStoreSafe;
   BitSet8 gqrUsed, gqrModified;
-  for (u32 i = 0; i < block->m_num_instructions; i++)
+  for (u32 i = 0; i < block->m_num_instructions; ++i)
   {
     CodeOp& op = code[i];
 

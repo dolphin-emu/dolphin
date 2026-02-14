@@ -37,7 +37,7 @@ class MotionAlertDialog(
         running = true
         inputDetector.start(setting.controller.getDefaultDevice(), allDevices)
         periodicUpdate()
-        if (running == false) {
+        if (!running) {
             MaterialAlertDialogBuilder(activity)
                 .setMessage(R.string.input_binding_disconnected_device)
                 .setPositiveButton(R.string.ok, null)

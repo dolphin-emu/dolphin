@@ -127,7 +127,7 @@ ResourcePack* Add(const std::string& path, int offset)
 
   order->Set(pack.GetManifest()->GetID(), offset);
 
-  for (int i = offset; i < static_cast<int>(packs.size()); i++)
+  for (int i = offset; i < static_cast<int>(packs.size()); ++i)
     order->Set(packs[i].GetManifest()->GetID(), i + 1);
 
   file.Save(packs_path);
@@ -156,7 +156,7 @@ bool Remove(ResourcePack& pack)
 
   int offset = pack_iterator - packs.begin();
 
-  for (int i = offset + 1; i < static_cast<int>(packs.size()); i++)
+  for (int i = offset + 1; i < static_cast<int>(packs.size()); ++i)
     order->Set(packs[i].GetManifest()->GetID(), i - 1);
 
   file.Save(packs_path);

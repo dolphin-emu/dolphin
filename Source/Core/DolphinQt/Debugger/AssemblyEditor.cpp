@@ -85,7 +85,7 @@ bool AsmEditor::LoadFromPath()
 
   const std::string base_addr_line = file.readLine().toStdString();
   std::string base_address = "";
-  for (size_t i = 0; i < base_addr_line.length(); i++)
+  for (size_t i = 0; i < base_addr_line.length(); ++i)
   {
     if (std::isspace(base_addr_line[i]))
     {

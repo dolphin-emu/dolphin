@@ -40,7 +40,7 @@ void EmitSamplerDeclarations(ShaderCode& code, u32 start = 0, u32 end = 1,
   {
     const char* array_type = multisampled ? "sampler2DMSArray" : "sampler2DArray";
 
-    for (u32 i = start; i < end; i++)
+    for (u32 i = start; i < end; ++i)
     {
       code.Write("SAMPLER_BINDING({}) uniform {} samp{};\n", i, array_type, i);
     }
@@ -96,12 +96,12 @@ void EmitVertexMainDeclaration(ShaderCode& code, u32 num_tex_inputs, u32 num_col
   case APIType::OpenGL:
   case APIType::Vulkan:
   {
-    for (u32 i = 0; i < num_tex_inputs; i++)
+    for (u32 i = 0; i < num_tex_inputs; ++i)
     {
       const auto attribute = ShaderAttrib::TexCoord0 + i;
       code.Write("ATTRIBUTE_LOCATION({:s}) in float3 rawtex{};\n", attribute, i);
     }
-    for (u32 i = 0; i < num_color_inputs; i++)
+    for (u32 i = 0; i < num_color_inputs; ++i)
     {
       const auto attribute = ShaderAttrib::Color0 + i;
       code.Write("ATTRIBUTE_LOCATION({:s}) in float4 rawcolor{};\n", attribute, i);
@@ -112,17 +112,17 @@ void EmitVertexMainDeclaration(ShaderCode& code, u32 num_tex_inputs, u32 num_col
     if (g_backend_info.bSupportsGeometryShaders)
     {
       code.Write("VARYING_LOCATION(0) out VertexData {{\n");
-      for (u32 i = 0; i < num_tex_outputs; i++)
+      for (u32 i = 0; i < num_tex_outputs; ++i)
         code.Write("  float3 v_tex{};\n", i);
-      for (u32 i = 0; i < num_color_outputs; i++)
+      for (u32 i = 0; i < num_color_outputs; ++i)
         code.Write("  float4 v_col{};\n", i);
       code.Write("}};\n");
     }
     else
     {
-      for (u32 i = 0; i < num_tex_outputs; i++)
+      for (u32 i = 0; i < num_tex_outputs; ++i)
         code.Write("VARYING_LOCATION({}) out float3 v_tex{};\n", i, i);
-      for (u32 i = 0; i < num_color_outputs; i++)
+      for (u32 i = 0; i < num_color_outputs; ++i)
         code.Write("VARYING_LOCATION({}) out float4 v_col{};\n", num_tex_inputs + i, i);
     }
     code.Write("#define opos gl_Position\n");
@@ -149,17 +149,17 @@ void EmitPixelMainDeclaration(ShaderCode& code, u32 num_tex_inputs, u32 num_colo
     if (g_backend_info.bSupportsGeometryShaders)
     {
       code.Write("VARYING_LOCATION(0) in VertexData {{\n");
-      for (u32 i = 0; i < num_tex_inputs; i++)
+      for (u32 i = 0; i < num_tex_inputs; ++i)
         code.Write("  float3 v_tex{};\n", i);
-      for (u32 i = 0; i < num_color_inputs; i++)
+      for (u32 i = 0; i < num_color_inputs; ++i)
         code.Write("  float4 v_col{};\n", i);
       code.Write("}};\n");
     }
     else
     {
-      for (u32 i = 0; i < num_tex_inputs; i++)
+      for (u32 i = 0; i < num_tex_inputs; ++i)
         code.Write("VARYING_LOCATION({}) in float3 v_tex{};\n", i, i);
-      for (u32 i = 0; i < num_color_inputs; i++)
+      for (u32 i = 0; i < num_color_inputs; ++i)
         code.Write("VARYING_LOCATION({}) in float4 v_col{};\n", num_tex_inputs + i, i);
     }
 
@@ -204,18 +204,18 @@ std::string GeneratePassthroughGeometryShader(u32 num_tex, u32 num_colors)
   {
     code.Write("struct VS_OUTPUT\n"
                "{{\n");
-    for (u32 i = 0; i < num_tex; i++)
+    for (u32 i = 0; i < num_tex; ++i)
       code.Write("  float3 tex{} : TEXCOORD{};\n", i, i);
-    for (u32 i = 0; i < num_colors; i++)
+    for (u32 i = 0; i < num_colors; ++i)
       code.Write("  float4 color{} : TEXCOORD{};\n", i, i + num_tex);
     code.Write("  float4 position : SV_Position;\n"
                "}};\n");
 
     code.Write("struct GS_OUTPUT\n"
                "{{");
-    for (u32 i = 0; i < num_tex; i++)
+    for (u32 i = 0; i < num_tex; ++i)
       code.Write("  float3 tex{} : TEXCOORD{};\n", i, i);
-    for (u32 i = 0; i < num_colors; i++)
+    for (u32 i = 0; i < num_colors; ++i)
       code.Write("  float4 color{} : TEXCOORD{};\n", i, i + num_tex);
     code.Write("  float4 position : SV_Position;\n"
                "  uint slice : SV_RenderTargetArrayIndex;\n"
@@ -226,13 +226,13 @@ std::string GeneratePassthroughGeometryShader(u32 num_tex, u32 num_colors)
                "{{\n"
                "  for (uint slice = 0; slice < 2u; slice++)\n"
                "  {{\n"
-               "    for (int i = 0; i < 3; i++)\n"
+               "    for (int i = 0; i < 3; ++i)\n"
                "    {{\n"
                "      GS_OUTPUT gso;\n"
                "      gso.position = vso[i].position;\n");
-    for (u32 i = 0; i < num_tex; i++)
+    for (u32 i = 0; i < num_tex; ++i)
       code.Write("      gso.tex{} = float3(vso[i].tex{}.xy, float(slice));\n", i, i);
-    for (u32 i = 0; i < num_colors; i++)
+    for (u32 i = 0; i < num_colors; ++i)
       code.Write("      gso.color{} = vso[i].color{};\n", i, i);
     code.Write("      gso.slice = slice;\n"
                "      output.Append(gso);\n"
@@ -249,16 +249,16 @@ std::string GeneratePassthroughGeometryShader(u32 num_tex, u32 num_colors)
     if (num_tex > 0 || num_colors > 0)
     {
       code.Write("VARYING_LOCATION(0) in VertexData {{\n");
-      for (u32 i = 0; i < num_tex; i++)
+      for (u32 i = 0; i < num_tex; ++i)
         code.Write("  float3 v_tex{};\n", i);
-      for (u32 i = 0; i < num_colors; i++)
+      for (u32 i = 0; i < num_colors; ++i)
         code.Write("  float4 v_col{};\n", i);
       code.Write("}} v_in[];\n");
 
       code.Write("VARYING_LOCATION(0) out VertexData {{\n");
-      for (u32 i = 0; i < num_tex; i++)
+      for (u32 i = 0; i < num_tex; ++i)
         code.Write("  float3 v_tex{};\n", i);
-      for (u32 i = 0; i < num_colors; i++)
+      for (u32 i = 0; i < num_colors; ++i)
         code.Write("  float4 v_col{};\n", i);
       code.Write("}} v_out;\n");
     }
@@ -270,14 +270,14 @@ std::string GeneratePassthroughGeometryShader(u32 num_tex, u32 num_colors)
                "    gl_Layer = j;\n");
 
     // We have to explicitly unroll this loop otherwise the GL compiler gets cranky.
-    for (u32 v = 0; v < 3; v++)
+    for (u32 v = 0; v < 3; ++v)
     {
       code.Write("    gl_Position = gl_in[{}].gl_Position;\n", v);
-      for (u32 i = 0; i < num_tex; i++)
+      for (u32 i = 0; i < num_tex; ++i)
       {
         code.Write("    v_out.v_tex{} = float3(v_in[{}].v_tex{}.xy, float(j));\n", i, v, i);
       }
-      for (u32 i = 0; i < num_colors; i++)
+      for (u32 i = 0; i < num_colors; ++i)
         code.Write("    v_out.v_col{} = v_in[{}].v_col{};\n", i, v, i);
       code.Write("    EmitVertex();\n\n");
     }
@@ -347,7 +347,7 @@ std::string GenerateResolveColorPixelShader(u32 samples)
              "  int layer = int(v_tex0.z);\n"
              "  int3 coords = int3(int2(gl_FragCoord.xy), layer);\n"
              "  ocol0 = float4(0.0f);\n");
-  code.Write("  for (int i = 0; i < {}; i++)\n", samples);
+  code.Write("  for (int i = 0; i < {}; ++i)\n", samples);
   code.Write("    ocol0 += texelFetch(samp0, coords, i);\n");
   code.Write("  ocol0 /= {}.0f;\n", samples);
   code.Write("}}\n");
@@ -365,7 +365,7 @@ std::string GenerateResolveDepthPixelShader(u32 samples)
 
   // Take the minimum of all depth samples.
   code.Write("  ocol0 = texelFetch(samp0, coords, 0).r;\n");
-  code.Write("  for (int i = 1; i < {}; i++)\n", samples);
+  code.Write("  for (int i = 1; i < {}; ++i)\n", samples);
   code.Write("    ocol0 = min(ocol0, texelFetch(samp0, coords, i).r);\n");
 
   code.Write("}}\n");
@@ -442,7 +442,7 @@ std::string GenerateFormatConversionShader(EFBReinterpretType convtype, u32 samp
   {
     // MSAA without sample shading, average out all samples.
     code.Write("  float4 val = float4(0.0f, 0.0f, 0.0f, 0.0f);\n");
-    code.Write("  for (int i = 0; i < {}; i++)\n", samples);
+    code.Write("  for (int i = 0; i < {}; ++i)\n", samples);
     code.Write("    val += texelFetch(samp0, coords, i);\n");
     code.Write("  val /= float({});\n", samples);
   }

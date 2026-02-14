@@ -529,7 +529,7 @@ static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& hos
 {
   // The HLSL compiler complains that the output texture coordinates are uninitialized when trying
   // to dynamically index them.
-  for (u32 i = 0; i < num_texgen; i++)
+  for (u32 i = 0; i < num_texgen; ++i)
     out.Write("o.tex{} = float3(0.0, 0.0, 0.0);\n", i);
 
   out.Write("// Texture coordinate generation\n");
@@ -573,7 +573,7 @@ static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& hos
   out.Write("      coord.xyz = rawbinormal.xyz;\n"
             "    }}\n"
             "    break;\n\n");
-  for (u32 i = 0; i < 8; i++)
+  for (u32 i = 0; i < 8; ++i)
   {
     out.Write("  case {:s}:\n", static_cast<SourceRow>(std::to_underlying(SourceRow::Tex0) + i));
     out.Write("    if ((components & {}u) != 0u) // VB_HAS_UV{}\n"
@@ -614,7 +614,7 @@ static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& hos
   out.Write("      uint source = {};\n",
             BitfieldExtract<&TexMtxInfo::embosssourceshift>("texMtxInfo"));
   out.Write("      switch (source) {{\n");
-  for (u32 i = 0; i < num_texgen; i++)
+  for (u32 i = 0; i < num_texgen; ++i)
     out.Write("      case {}u: output_tex.xyz = o.tex{}; break;\n", i, i);
   out.Write("      default: output_tex.xyz = float3(0.0, 0.0, 0.0); break;\n"
             "      }}\n"
@@ -646,7 +646,7 @@ static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& hos
         "        // Hopefully the compiler will unroll this whole loop anyway and the switch.\n"
         "        int tmp = 0;\n"
         "        switch (texgen) {{\n");
-    for (u32 i = 0; i < num_texgen; i++)
+    for (u32 i = 0; i < num_texgen; ++i)
       out.Write("        case {}u: tmp = int(rawtex{}.z); break;\n", i, i);
     out.Write("        }}\n"
               "\n");
@@ -704,7 +704,7 @@ static void GenVertexShaderTexGens(APIType api_type, const ShaderHostConfig& hos
 
   out.Write("  // Hopefully GPUs that can support dynamic indexing will optimize this.\n");
   out.Write("  switch (texgen) {{\n");
-  for (u32 i = 0; i < num_texgen; i++)
+  for (u32 i = 0; i < num_texgen; ++i)
     out.Write("  case {}u: o.tex{} = output_tex; break;\n", i, i);
   out.Write("  }}\n"
             "}}\n");
@@ -727,7 +727,7 @@ void EnumerateVertexShaderUids(const std::function<void(const VertexShaderUid&)>
 {
   VertexShaderUid uid;
 
-  for (u32 texgens = 0; texgens <= 8; texgens++)
+  for (u32 texgens = 0; texgens <= 8; ++texgens)
   {
     vertex_ubershader_uid_data* const vuid = uid.GetUidData();
     vuid->num_texgens = texgens;

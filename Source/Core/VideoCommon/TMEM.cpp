@@ -254,7 +254,7 @@ void FinalizeBinds(BitSet32 used_textures)
     {  // Self-overlap
       s_unit[i].state = TextureUnitState::State::VALID;
     }
-    for (size_t j = 0; j < s_unit.size(); j++)
+    for (size_t j = 0; j < s_unit.size(); ++j)
     {
       if (j != i && s_unit[i].Overlaps(s_unit[j]))
       {

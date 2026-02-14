@@ -632,7 +632,7 @@ void HotkeyScheduler::Run()
     }
 
     // Savestates
-    for (u32 i = 0; i < State::NUM_STATES; i++)
+    for (u32 i = 0; i < State::NUM_STATES; ++i)
     {
       if (IsHotkey(HK_LOAD_STATE_SLOT_1 + i))
         emit StateLoadSlot(i + 1);

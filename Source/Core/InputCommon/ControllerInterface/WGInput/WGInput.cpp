@@ -150,7 +150,7 @@ public:
         m_switches.resize(m_raw_controller.SwitchCount());
         // Accumulate switch kinds first, to ensure no inputs are added if there is any error.
         std::vector<WGI::GameControllerSwitchKind> switch_kinds;
-        for (u32 i = 0; i < m_switches.size(); i++)
+        for (u32 i = 0; i < m_switches.size(); ++i)
           switch_kinds.push_back(m_raw_controller.GetSwitchKind(i));
 
         u32 i = 0;

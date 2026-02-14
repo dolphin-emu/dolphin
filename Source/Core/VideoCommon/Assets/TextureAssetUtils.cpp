@@ -187,7 +187,7 @@ bool ValidateTextureData(const CustomAssetLibrary::AssetID& asset_id, const Cust
 bool PurgeInvalidMipsFromTextureData(const CustomAssetLibrary::AssetID& asset_id,
                                      CustomTextureData* data)
 {
-  for (std::size_t slice_index = 0; slice_index < data->m_slices.size(); slice_index++)
+  for (std::size_t slice_index = 0; slice_index < data->m_slices.size(); ++slice_index)
   {
     auto& slice = data->m_slices[slice_index];
     const auto& first_mip = slice.m_levels[0];
@@ -195,7 +195,7 @@ bool PurgeInvalidMipsFromTextureData(const CustomAssetLibrary::AssetID& asset_id
     // Verify that each mip level is the correct size (divide by 2 each time).
     u32 current_mip_width = first_mip.width;
     u32 current_mip_height = first_mip.height;
-    for (u32 mip_level = 1; mip_level < static_cast<u32>(slice.m_levels.size()); mip_level++)
+    for (u32 mip_level = 1; mip_level < static_cast<u32>(slice.m_levels.size()); ++mip_level)
     {
       if (current_mip_width != 1 || current_mip_height != 1)
       {

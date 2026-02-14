@@ -165,7 +165,7 @@ TEST_P(VertexLoaderParamTest, PositionAll)
   if (IsIndexed(addr))
   {
     input_size = addr == VertexComponentFormat::Index8 ? 1 : 2;
-    for (int i = 0; i < count; i++)
+    for (int i = 0; i < count; ++i)
     {
       if (addr == VertexComponentFormat::Index8)
         Input<u8>(i);
@@ -355,7 +355,7 @@ TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
 
   CreateAndCheckSizes(33, 156);
 
-  for (int i = 0; i < NUM_VERTEX_COMPONENT_ARRAYS; i++)
+  for (int i = 0; i < NUM_VERTEX_COMPONENT_ARRAYS; ++i)
   {
     VertexLoaderManager::cached_arraybases[static_cast<CPArray>(i)] = m_src.GetPointer();
     g_main_cp_state.array_strides[static_cast<CPArray>(i)] = 129;
@@ -678,13 +678,13 @@ TEST_P(VertexLoaderNormalTest, NormalAll)
   }
 
   // Create an array for indexed representations
-  for (int i = 0; i < NUM_VERTEX_COMPONENT_ARRAYS; i++)
+  for (int i = 0; i < NUM_VERTEX_COMPONENT_ARRAYS; ++i)
   {
     VertexLoaderManager::cached_arraybases[static_cast<CPArray>(i)] = m_src.GetPointer();
     g_main_cp_state.array_strides[static_cast<CPArray>(i)] = GetElementSize(format);
   }
 
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < 32; ++i)
     input_with_expected_type(i / 32.f);
 
   // Pre-fill these values to detect if they're modified
@@ -898,7 +898,7 @@ TEST_P(VertexLoaderSkippedTexCoordsTest, SkippedTextures)
 {
   std::array<bool, NUM_COMPONENTS_TO_TEST> enable_tex, enable_matrix, use_st;
   const u32 param = GetParam();
-  for (u32 component = 0; component < NUM_COMPONENTS_TO_TEST; component++)
+  for (u32 component = 0; component < NUM_COMPONENTS_TO_TEST; ++component)
   {
     const u32 bits = param >> (component * NUM_PARAMETERS_PER_COMPONENT);
     enable_tex[component] = (bits & 1);
@@ -916,7 +916,7 @@ TEST_P(VertexLoaderSkippedTexCoordsTest, SkippedTextures)
   m_vtx_attr.g0.PosElements = CoordComponentCount::XYZ;
   m_vtx_attr.g0.PosFormat = ComponentFormat::Float;
 
-  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
+  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; ++i)
   {
     if (enable_matrix[i] || enable_tex[i])
     {
@@ -957,25 +957,25 @@ TEST_P(VertexLoaderSkippedTexCoordsTest, SkippedTextures)
   CreateAndCheckSizes(input_size, output_size);
 
   // Vertex 0
-  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
+  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; ++i)
   {
     if (enable_matrix[i])
       Input<u8>(u8(20 + i));
   }
   Input<u8>(1);  // Position
-  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
+  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; ++i)
   {
     if (enable_tex[i])
       Input<u8>(1);
   }
   // Vertex 1
-  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
+  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; ++i)
   {
     if (enable_matrix[i])
       Input<u8>(u8(10 + i));
   }
   Input<u8>(0);  // Position
-  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
+  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; ++i)
   {
     if (enable_tex[i])
       Input<u8>(0);
@@ -989,7 +989,7 @@ TEST_P(VertexLoaderSkippedTexCoordsTest, SkippedTextures)
   Input(3.f);
   Input(4.f);
   // Texture coord arrays
-  for (u8 i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
+  for (u8 i = 0; i < NUM_COMPONENTS_TO_TEST; ++i)
   {
     VertexLoaderManager::cached_arraybases[CPArray::TexCoord0 + i] = m_src.GetPointer();
     g_main_cp_state.array_strides[CPArray::TexCoord0 + i] = 2 * sizeof(float);
@@ -999,7 +999,7 @@ TEST_P(VertexLoaderSkippedTexCoordsTest, SkippedTextures)
     Input<float>(i * 100 + 22);
   }
 
-  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
+  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; ++i)
   {
     ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[i].enable, component_enabled[i]);
     if (component_enabled[i])
@@ -1014,7 +1014,7 @@ TEST_P(VertexLoaderSkippedTexCoordsTest, SkippedTextures)
   ExpectOut(2);
   ExpectOut(3);
   ExpectOut(4);
-  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
+  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; ++i)
   {
     size_t num_read = 0;
     if (enable_tex[i])
@@ -1039,7 +1039,7 @@ TEST_P(VertexLoaderSkippedTexCoordsTest, SkippedTextures)
   ExpectOut(1);
   ExpectOut(2);
   ExpectOut(3);
-  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; i++)
+  for (size_t i = 0; i < NUM_COMPONENTS_TO_TEST; ++i)
   {
     size_t num_read = 0;
     if (enable_tex[i])

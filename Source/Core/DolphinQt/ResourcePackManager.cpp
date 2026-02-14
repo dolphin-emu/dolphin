@@ -91,7 +91,7 @@ void ResourcePackManager::RepopulateTable()
 
   auto* header = m_table_widget->horizontalHeader();
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; ++i)
     header->setSectionResizeMode(i, QHeaderView::ResizeToContents);
 
   header->setStretchLastSection(true);
@@ -105,7 +105,7 @@ void ResourcePackManager::RepopulateTable()
   m_table_widget->setRowCount(size);
   m_table_widget->setIconSize(QSize(32, 32));
 
-  for (int i = 0; i < size; i++)
+  for (int i = 0; i < size; ++i)
   {
     const auto& pack = ResourcePack::GetPacks()[size - 1 - i];
     const auto* manifest = pack.GetManifest();

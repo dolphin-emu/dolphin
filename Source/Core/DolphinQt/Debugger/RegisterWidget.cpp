@@ -87,7 +87,7 @@ void RegisterWidget::CreateWidgets()
 
   QStringList empty_list;
 
-  for (auto i = 0; i < 9; i++)
+  for (auto i = 0; i < 9; ++i)
     empty_list << QString{};
 
   m_table->setHorizontalHeaderLabels(empty_list);
@@ -269,7 +269,7 @@ void RegisterWidget::ShowContextMenu()
     {
       connect(action, &QAction::triggered, [this, action] {
         auto col = m_table->currentItem()->column();
-        for (int i = 0; i < 32; i++)
+        for (int i = 0; i < 32; ++i)
         {
           auto* update_item = static_cast<RegisterColumn*>(m_table->item(i, col));
           update_item->SetDisplay(static_cast<RegisterDisplay>(action->data().toInt()));
@@ -317,7 +317,7 @@ void RegisterWidget::AutoStep(const std::string& reg) const
 
 void RegisterWidget::PopulateTable()
 {
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < 32; ++i)
   {
     // General purpose registers (int)
     AddRegister(
@@ -339,7 +339,7 @@ void RegisterWidget::PopulateTable()
   // The IBAT and DBAT registers have a large gap between
   // registers 3 and 4 so we can't just use SPR_IBAT0U or
   // SPR_DBAT0U as low-index the entire way
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; ++i)
   {
     // IBAT registers
     AddRegister(
@@ -378,7 +378,7 @@ void RegisterWidget::PopulateTable()
         nullptr);
   }
 
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 8; ++i)
   {
     // Graphics quantization registers
     AddRegister(
@@ -400,7 +400,7 @@ void RegisterWidget::PopulateTable()
       27, 7, RegisterType::hid, "HID4", [this] { return m_system.GetPPCState().spr[SPR_HID4]; },
       [this](u64 value) { m_system.GetPPCState().spr[SPR_HID4] = static_cast<u32>(value); });
 
-  for (int i = 0; i < 16; i++)
+  for (int i = 0; i < 16; ++i)
   {
     // SR registers
     AddRegister(

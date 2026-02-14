@@ -20,8 +20,6 @@
 
 namespace ciface::WiimoteController
 {
-using namespace WiimoteCommon;
-
 void AddDevice(std::unique_ptr<WiimoteReal::Wiimote>);
 void ReleaseDevices(std::optional<u32> count = std::nullopt);
 
@@ -126,7 +124,7 @@ private:
   {
     static u32 GetDesiredIRSensitivity();
 
-    void ProcessData(const DataReportManipulator& manipulator);
+    void ProcessData(const WiimoteCommon::DataReportManipulator& manipulator);
     bool IsFullyConfigured() const;
 
     u32 current_sensitivity = u32(-1);
@@ -167,9 +165,10 @@ private:
     std::vector<std::function<HandlerResult(const WiimoteReal::Report& report)>> m_callbacks;
   };
 
-  using AckReportHandler = std::function<ReportHandler::HandlerResult(const InputReportAck& reply)>;
+  using AckReportHandler =
+      std::function<ReportHandler::HandlerResult(const WiimoteCommon::InputReportAck& reply)>;
 
-  static AckReportHandler MakeAckHandler(OutputReportID report_id,
+  static AckReportHandler MakeAckHandler(WiimoteCommon::OutputReportID report_id,
                                          std::function<void(WiimoteCommon::ErrorCode)> callback);
 
   // TODO: Make parameter const. (need to modify DataReportManipulator)
@@ -178,29 +177,29 @@ private:
   void ProcessNormalExtensionData(const u8* data, u32 size);
   void ProcessExtensionEvent(bool connected);
   void ProcessExtensionID(u8 id_0, u8 id_4, u8 id_5);
-  void ProcessStatusReport(const InputReportStatus&);
+  void ProcessStatusReport(const WiimoteCommon::InputReportStatus&);
 
   void RunTasks();
 
   bool IsPerformingTask() const;
 
   template <typename T>
-  void QueueReport(T&& report, std::function<void(ErrorCode)> ack_callback = {});
+  void QueueReport(T&& report, std::function<void(WiimoteCommon::ErrorCode)> ack_callback = {});
 
   template <typename... T>
   void AddReportHandler(T&&... callbacks);
 
   using ReadResponse = std::optional<std::vector<u8>>;
 
-  void ReadData(AddressSpace space, u8 slave, u16 address, u16 size,
+  void ReadData(WiimoteCommon::AddressSpace space, u8 slave, u16 address, u16 size,
                 std::function<void(ReadResponse)> callback);
 
-  void AddReadDataReplyHandler(AddressSpace space, u8 slave, u16 address, u16 size,
+  void AddReadDataReplyHandler(WiimoteCommon::AddressSpace space, u8 slave, u16 address, u16 size,
                                std::vector<u8> starting_data,
                                std::function<void(ReadResponse)> callback);
 
   template <typename T = std::initializer_list<u8>, typename C>
-  void WriteData(AddressSpace space, u8 slave, u16 address, T&& data, C&& callback);
+  void WriteData(WiimoteCommon::AddressSpace space, u8 slave, u16 address, T&& data, C&& callback);
 
   void ReadActiveExtensionID();
   void SetIRSensitivity(u32 level);
@@ -227,11 +226,11 @@ private:
   std::unique_ptr<WiimoteReal::Wiimote> m_wiimote;
 
   // Buttons.
-  DataReportManipulator::CoreData m_core_data = {};
+  WiimoteCommon::DataReportManipulator::CoreData m_core_data = {};
 
   // Accelerometer.
   Common::Vec3 m_accel_data = {};
-  std::optional<AccelCalibrationData::Calibration> m_accel_calibration;
+  std::optional<WiimoteCommon::AccelCalibrationData::Calibration> m_accel_calibration;
 
   // Pitch, Roll, Yaw inputs.
   Common::Vec3 m_rotation_inputs = {};
@@ -269,7 +268,7 @@ private:
   Clock::time_point m_last_rumble_change = Clock::now();
 
   // Assume mode is disabled so one gets set.
-  InputReportID m_reporting_mode = InputReportID::ReportDisabled;
+  WiimoteCommon::InputReportID m_reporting_mode = WiimoteCommon::InputReportID::ReportDisabled;
 
   // Used only to provide a value for a specialty "input". (for attached extension passthrough)
   WiimoteEmu::ExtensionNumber m_extension_number_input = WiimoteEmu::ExtensionNumber::NONE;

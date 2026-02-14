@@ -66,7 +66,7 @@ void LogConfigWidget::CreateWidgets()
   m_types_list = new QListWidget;
 
   const auto* const log_manager = Common::Log::LogManager::GetInstance();
-  for (int i = 0; i < static_cast<int>(Common::Log::LogType::NUMBER_OF_LOGS); i++)
+  for (int i = 0; i < static_cast<int>(Common::Log::LogType::NUMBER_OF_LOGS); ++i)
   {
     const auto log_type = static_cast<Common::Log::LogType>(i);
     const QString full_name = QString::fromUtf8(log_manager->GetFullName(log_type));
@@ -152,7 +152,7 @@ void LogConfigWidget::ConnectWidgets()
     // Don't save every time we change an item
     m_block_save = true;
 
-    for (int i = 0; i < m_types_list->count(); i++)
+    for (int i = 0; i < m_types_list->count(); ++i)
       m_types_list->item(i)->setCheckState(m_all_enabled ? Qt::Checked : Qt::Unchecked);
 
     m_block_save = false;

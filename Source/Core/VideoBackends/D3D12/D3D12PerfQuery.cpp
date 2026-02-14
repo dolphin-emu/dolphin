@@ -163,7 +163,7 @@ void PerfQuery::ResolveQueries(u32 query_count)
       m_query_readback_buffer.Get(), m_query_resolve_pos * sizeof(PerfQueryDataType));
 
   // Flag all queries as available, but with a fence that has to be completed first
-  for (u32 i = 0; i < query_count; i++)
+  for (u32 i = 0; i < query_count; ++i)
   {
     ActiveQuery& entry = m_query_buffer[m_query_resolve_pos + i];
     DEBUG_ASSERT(entry.has_value && !entry.resolved);
@@ -181,7 +181,7 @@ void PerfQuery::ReadbackQueries(bool blocking)
   // Need to save these since ProcessResults will modify them.
   const u32 outstanding_queries = m_query_count.load(std::memory_order_relaxed);
   u32 readback_count = 0;
-  for (u32 i = 0; i < outstanding_queries; i++)
+  for (u32 i = 0; i < outstanding_queries; ++i)
   {
     u32 index = (m_query_readback_pos + readback_count) % PERF_QUERY_BUFFER_SIZE;
     const ActiveQuery& entry = m_query_buffer[index];
@@ -229,7 +229,7 @@ void PerfQuery::AccumulateQueriesFromBuffer(u32 query_count)
     return;
 
   // Remove pending queries.
-  for (u32 i = 0; i < query_count; i++)
+  for (u32 i = 0; i < query_count; ++i)
   {
     u32 index = (m_query_readback_pos + i) % PERF_QUERY_BUFFER_SIZE;
     ActiveQuery& entry = m_query_buffer[index];

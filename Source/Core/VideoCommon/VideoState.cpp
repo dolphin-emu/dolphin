@@ -32,7 +32,7 @@ void VideoCommon_DoState(PointerWrap& p)
   bool software = false;
   p.Do(software);
 
-  if (p.IsReadMode() && software == true)
+  if (p.IsReadMode() && software)
   {
     // change mode to abort load of incompatible save state.
     p.SetVerifyMode();

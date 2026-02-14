@@ -40,7 +40,7 @@ WbfsFileReader::WbfsFileReader(File::DirectIOFile file, const std::string& path)
   m_files[0].file.Seek(m_hd_sector_size + WII_DISC_HEADER_SIZE /*+ i * m_disc_info_size*/,
                        File::SeekOrigin::Begin);
   m_files[0].file.Read(Common::AsWritableU8Span(m_wlba_table));
-  for (size_t i = 0; i < m_blocks_per_disc; i++)
+  for (size_t i = 0; i < m_blocks_per_disc; ++i)
     m_wlba_table[i] = Common::swap16(m_wlba_table[i]);
 }
 
@@ -49,7 +49,7 @@ WbfsFileReader::~WbfsFileReader() = default;
 std::unique_ptr<BlobReader> WbfsFileReader::CopyReader() const
 {
   auto retval = std::unique_ptr<WbfsFileReader>(new WbfsFileReader(m_files[0].file));
-  for (size_t ix = 1; ix < m_files.size(); ix++)
+  for (size_t ix = 1; ix < m_files.size(); ++ix)
     retval->AddFileToList(m_files[ix].file);
   return retval;
 }

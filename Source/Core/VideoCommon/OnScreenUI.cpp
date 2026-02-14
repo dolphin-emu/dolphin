@@ -232,7 +232,7 @@ void OnScreenUI::DrawImGui()
   g_gfx->SetSamplerState(0, RenderState::GetPointSamplerState());
   g_vertex_manager->UploadUtilityUniforms(&ubo, sizeof(ubo));
 
-  for (int i = 0; i < draw_data->CmdListsCount; i++)
+  for (int i = 0; i < draw_data->CmdListsCount; ++i)
   {
     const ImDrawList* cmdlist = draw_data->CmdLists[i];
     if (cmdlist->VtxBuffer.empty() || cmdlist->IdxBuffer.empty())
@@ -491,7 +491,7 @@ void OnScreenUI::UpdateImguiTexture(ImTextureData* tex)
       const int src_pitch = width * tex->BytesPerPixel;
 
       // Write to staging texture.
-      for (int y = 0; y < height; y++)
+      for (int y = 0; y < height; ++y)
       {
         const MathUtil::Rectangle<int> rect_line = {0, y, width, y + 1};
         stage->WriteTexels(rect_line, tex->GetPixelsAt(x_offset, y_offset + y), src_pitch);
@@ -558,7 +558,7 @@ void OnScreenUI::SetKeyMap(const DolphinKeyMap& key_map)
     return;
 
   m_dolphin_to_imgui_map.clear();
-  for (int dolphin_key = 0; dolphin_key <= static_cast<int>(DolphinKey::Z); dolphin_key++)
+  for (int dolphin_key = 0; dolphin_key <= static_cast<int>(DolphinKey::Z); ++dolphin_key)
   {
     const int imgui_key = dolphin_to_imgui_map[DolphinKey(dolphin_key)];
     if (imgui_key >= 0)
@@ -590,7 +590,7 @@ void OnScreenUI::SetMousePress(u32 button_mask)
 {
   auto lock = GetImGuiLock();
 
-  for (size_t i = 0; i < std::size(ImGui::GetIO().MouseDown); i++)
+  for (size_t i = 0; i < std::size(ImGui::GetIO().MouseDown); ++i)
   {
     ImGui::GetIO().AddMouseButtonEvent(static_cast<int>(i), (button_mask & (1u << i)) != 0);
   }

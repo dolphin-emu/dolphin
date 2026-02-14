@@ -421,7 +421,7 @@ public:
       [color0 setPixelFormat:Util::FromAbstract(fs.color_texture_format)];
       if (u32 cnt = fs.additional_color_attachment_count)
       {
-        for (u32 i = 0; i < cnt; i++)
+        for (u32 i = 0; i < cnt; ++i)
           [[desc colorAttachments] setObject:color0 atIndexedSubscript:i + 1];
       }
       [desc setDepthAttachmentPixelFormat:Util::FromAbstract(fs.depth_texture_format)];

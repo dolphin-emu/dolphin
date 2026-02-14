@@ -79,7 +79,7 @@ void Tev::SetRasColor(RasColorChan colorChan, u32 swaptable)
 
 void Tev::DrawColorRegular(const TevStageCombiner::ColorCombiner& cc, const InputRegType inputs[4])
 {
-  for (int i = BLU_C; i <= RED_C; i++)
+  for (int i = BLU_C; i <= RED_C; ++i)
   {
     const InputRegType& InputReg = inputs[i];
 
@@ -100,7 +100,7 @@ void Tev::DrawColorRegular(const TevStageCombiner::ColorCombiner& cc, const Inpu
 
 void Tev::DrawColorCompare(const TevStageCombiner::ColorCombiner& cc, const InputRegType inputs[4])
 {
-  for (int i = BLU_C; i <= RED_C; i++)
+  for (int i = BLU_C; i <= RED_C; ++i)
   {
     u32 a, b;
     switch (cc.compare_mode)
@@ -395,7 +395,7 @@ void Tev::Draw()
   auto& pixel_shader_manager = system.GetPixelShaderManager();
 
   // initial color values
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; ++i)
   {
     Reg[static_cast<TevOutput>(i)].r = pixel_shader_manager.constants.colors[i][0];
     Reg[static_cast<TevOutput>(i)].g = pixel_shader_manager.constants.colors[i][1];
@@ -403,7 +403,7 @@ void Tev::Draw()
     Reg[static_cast<TevOutput>(i)].a = pixel_shader_manager.constants.colors[i][3];
   }
 
-  for (unsigned int stageNum = 0; stageNum < bpmem.genMode.numindstages; stageNum++)
+  for (unsigned int stageNum = 0; stageNum < bpmem.genMode.numindstages; ++stageNum)
   {
     const int stageNum2 = stageNum >> 1;
     const int stageOdd = stageNum & 1;
@@ -427,7 +427,7 @@ void Tev::Draw()
                            IndirectTex[stageNum]);
   }
 
-  for (unsigned int stageNum = 0; stageNum <= bpmem.genMode.numtevstages; stageNum++)
+  for (unsigned int stageNum = 0; stageNum <= bpmem.genMode.numtevstages; ++stageNum)
   {
     const int stageNum2 = stageNum >> 1;
     const int stageOdd = stageNum & 1;
@@ -687,7 +687,7 @@ void Tev::SetKonstColors()
   auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; ++i)
   {
     KonstantColors[i].r = pixel_shader_manager.constants.kcolors[i][0];
     KonstantColors[i].g = pixel_shader_manager.constants.kcolors[i][1];

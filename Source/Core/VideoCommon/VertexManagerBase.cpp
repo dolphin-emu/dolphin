@@ -615,7 +615,7 @@ void VertexManagerBase::Flush()
     std::vector<std::string> custom_pixel_texture_names;
     std::span<u8> custom_pixel_shader_uniforms;
     bool skip = false;
-    for (size_t i = 0; i < texture_names.size(); i++)
+    for (size_t i = 0; i < texture_names.size(); ++i)
     {
       GraphicsModActionData::DrawStarted draw_started{texture_units, &skip, &custom_pixel_shader,
                                                       &custom_pixel_shader_uniforms};

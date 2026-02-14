@@ -153,7 +153,7 @@ void SHADER::SetProgramBindings(bool is_compute)
     glBindAttribLocation(glprogid, static_cast<GLuint>(ShaderAttrib::Binormal), "rawbinormal");
   }
 
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 8; ++i)
   {
     // Per documentation: OpenGL copies the name string when glBindAttribLocation is called, so an
     // application may free its copy of the name string immediately after the function returns.
@@ -287,7 +287,7 @@ void ProgramShaderCache::UploadConstants(const void* data, u32 data_size)
   s_buffer->Unmap(alloc_size);
 
   // bind the same sub-buffer to all stages
-  for (u32 index = 1; index <= 4; index++)
+  for (u32 index = 1; index <= 4; ++index)
     glBindBufferRange(GL_UNIFORM_BUFFER, index, s_buffer->m_buffer, buffer.second, data_size);
 
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, data_size);

@@ -80,7 +80,7 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
 // materials name is I_MATERIALS in vs and I_PMATERIALS in ps
 void GenerateLightingShaderHeader(ShaderCode& object, const LightingUidData& uid_data)
 {
-  for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
+  for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; ++j)
   {
     object.Write("vec4 dolphin_calculate_lighting_chn{}(vec4 base_color, vec3 pos, vec3 _normal)\n",
                  j);
@@ -154,7 +154,7 @@ void GenerateLightingShaderHeader(ShaderCode& object, const LightingUidData& uid
 
 void GetLightingShaderUid(LightingUidData& uid_data)
 {
-  for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
+  for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; ++j)
   {
     uid_data.matsource |= static_cast<u32>(xfmem.color[j].matsource.Value()) << j;
     uid_data.matsource |= static_cast<u32>(xfmem.alpha[j].matsource.Value()) << (j + 2);
@@ -215,9 +215,9 @@ static void GenerateCustomLightingImpl(ShaderCode* out, const LightingUidData& u
 
 void GenerateCustomLighting(ShaderCode* out, const LightingUidData& uid_data)
 {
-  for (u32 i = 0; i < 8; i++)
+  for (u32 i = 0; i < 8; ++i)
   {
-    for (u32 channel_index = 0; channel_index < NUM_XF_COLOR_CHANNELS; channel_index++)
+    for (u32 channel_index = 0; channel_index < NUM_XF_COLOR_CHANNELS; ++channel_index)
     {
       out->Write("\tfrag_input.lights_chan{}_color[{}].direction = float3(0, 0, 0);\n",
                  channel_index, i);
@@ -245,7 +245,7 @@ void GenerateCustomLighting(ShaderCode* out, const LightingUidData& uid_data)
     }
   }
 
-  for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
+  for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; ++j)
   {
     const bool colormatsource = !!(uid_data.matsource & (1 << j));
     if (colormatsource)  // from vertex

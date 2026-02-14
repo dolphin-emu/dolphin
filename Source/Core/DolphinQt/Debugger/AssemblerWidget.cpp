@@ -78,7 +78,7 @@ QString HtmlFormatMessage(const AssemblerError& err)
 void DeserializeBlock(const CodeBlock& blk, std::ostringstream& out_str, bool pad4)
 {
   size_t i = 0;
-  for (; i < blk.instructions.size(); i++)
+  for (; i < blk.instructions.size(); ++i)
   {
     out_str << fmt::format("{:02x}", blk.instructions[i]);
     if (i % 8 == 7)
@@ -93,7 +93,7 @@ void DeserializeBlock(const CodeBlock& blk, std::ostringstream& out_str, bool pa
   if (pad4)
   {
     bool did_pad = false;
-    for (; i % 4 != 0; i++)
+    for (; i % 4 != 0; ++i)
     {
       out_str << "00";
       did_pad = true;
@@ -143,7 +143,7 @@ void DeserializeToAr(const std::vector<CodeBlock>& blocks, std::ostringstream& o
                              blk.instructions[i + 3]);
     }
 
-    for (; i < blk.instructions.size(); i++)
+    for (; i < blk.instructions.size(); ++i)
     {
       // type=NormalCode, subtype=SUB_RAM_WRITE, size=8bit
       const u32 ar_addr = ((blk.block_address + i) & 0x1ffffff);
@@ -295,7 +295,7 @@ void AssemblerWidget::closeEvent(QCloseEvent*)
 bool AssemblerWidget::ApplicationCloseRequest()
 {
   int num_unsaved = 0;
-  for (int i = 0; i < m_asm_tabs->count(); i++)
+  for (int i = 0; i < m_asm_tabs->count(); ++i)
   {
     if (GetEditor(i)->IsDirty())
     {
@@ -314,7 +314,7 @@ bool AssemblerWidget::ApplicationCloseRequest()
     switch (result)
     {
     case QMessageBox::YesToAll:
-      for (int i = 0; i < m_asm_tabs->count(); i++)
+      for (int i = 0; i < m_asm_tabs->count(); ++i)
       {
         AsmEditor* editor = GetEditor(i);
         if (editor->IsDirty())
@@ -593,7 +593,7 @@ void AssemblerWidget::OnOpen()
   for (auto path : paths)
   {
     show_index = std::nullopt;
-    for (int i = 0; i < m_asm_tabs->count(); i++)
+    for (int i = 0; i < m_asm_tabs->count(); ++i)
     {
       AsmEditor* editor = GetEditor(i);
       if (editor->PathsMatch(path))
@@ -882,7 +882,7 @@ void AssemblerWidget::UpdateTabText(AsmEditor* editor)
 
 void AssemblerWidget::DisambiguateTabTitles(AsmEditor* new_tab)
 {
-  for (int i = 0; i < m_asm_tabs->count(); i++)
+  for (int i = 0; i < m_asm_tabs->count(); ++i)
   {
     AsmEditor* check = GetEditor(i);
     if (check->IsAmbiguous())
@@ -890,7 +890,7 @@ void AssemblerWidget::DisambiguateTabTitles(AsmEditor* new_tab)
       // Could group all editors with matching titles in a linked list
       // but tracking that nicely without dangling pointers feels messy
       bool still_ambiguous = false;
-      for (int j = 0; j < m_asm_tabs->count(); j++)
+      for (int j = 0; j < m_asm_tabs->count(); ++j)
       {
         AsmEditor* against = GetEditor(j);
         if (j != i && check->FileName() == against->FileName())
@@ -915,7 +915,7 @@ void AssemblerWidget::DisambiguateTabTitles(AsmEditor* new_tab)
   if (new_tab != nullptr)
   {
     bool is_ambiguous = false;
-    for (int i = 0; i < m_asm_tabs->count(); i++)
+    for (int i = 0; i < m_asm_tabs->count(); ++i)
     {
       AsmEditor* against = GetEditor(i);
       if (new_tab != against && against->FileName() == new_tab->FileName())
@@ -949,7 +949,7 @@ void AssemblerWidget::ZoomAllEditors(int amount)
   if (amount != 0)
   {
     m_net_zoom_delta += amount;
-    for (int i = 0; i < m_asm_tabs->count(); i++)
+    for (int i = 0; i < m_asm_tabs->count(); ++i)
     {
       GetEditor(i)->Zoom(amount);
     }

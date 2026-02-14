@@ -281,7 +281,7 @@ bool JitBase::CanMergeNextInstructions(int count) const
   if (m_system.GetCPU().IsStepping() || js.instructionsLeft < count)
     return false;
   // Be careful: a breakpoint kills flags in between instructions
-  for (int i = 1; i <= count; i++)
+  for (int i = 1; i <= count; ++i)
   {
     if (IsDebuggingEnabled() &&
         m_system.GetPowerPC().GetBreakPoints().IsAddressBreakPoint(js.op[i].address))

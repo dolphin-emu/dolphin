@@ -32,9 +32,9 @@ void CopyImageRegion(const ImagePixelData& src, ImagePixelData& dst, const Rect&
     return;
   }
 
-  for (u32 x = 0; x < dst_region.GetWidth(); x++)
+  for (u32 x = 0; x < dst_region.GetWidth(); ++x)
   {
-    for (u32 y = 0; y < dst_region.GetHeight(); y++)
+    for (u32 y = 0; y < dst_region.GetHeight(); ++y)
     {
       dst.pixels[(y + dst_region.top) * dst.width + x + dst_region.left] =
           src.pixels[(y + src_region.top) * src.width + x + src_region.left];
@@ -58,9 +58,9 @@ std::optional<ImagePixelData> LoadImage(const std::string& path)
     return std::nullopt;
 
   image.pixels.resize(image.width * image.height);
-  for (u32 x = 0; x < image.width; x++)
+  for (u32 x = 0; x < image.width; ++x)
   {
-    for (u32 y = 0; y < image.height; y++)
+    for (u32 y = 0; y < image.height; ++y)
     {
       const u32 index = y * image.width + x;
       const auto pixel =
@@ -99,10 +99,10 @@ ImagePixelData Resize(ResizeMode mode, const ImagePixelData& src, u32 new_width,
 {
   ImagePixelData result(new_width, new_height);
 
-  for (u32 x = 0; x < new_width; x++)
+  for (u32 x = 0; x < new_width; ++x)
   {
     const double u = x / static_cast<double>(new_width - 1);
-    for (u32 y = 0; y < new_height; y++)
+    for (u32 y = 0; y < new_height; ++y)
     {
       const double v = y / static_cast<double>(new_height - 1);
 
