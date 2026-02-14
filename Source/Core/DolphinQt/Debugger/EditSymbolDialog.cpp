@@ -109,7 +109,7 @@ void EditSymbolDialog::UpdateAddressData(u32 size)
 
 void EditSymbolDialog::ConnectWidgets()
 {
-  connect(m_size_lines_spin, QOverload<int>::of(&QSpinBox::valueChanged), this,
+  connect(m_size_lines_spin, &QSpinBox::valueChanged, this,
           [this](int value) { UpdateAddressData(value * 4); });
 
   connect(m_size_hex_edit, &QLineEdit::editingFinished, this, [this] {
