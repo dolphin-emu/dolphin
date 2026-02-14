@@ -836,7 +836,7 @@ void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> funct
   // Pause the CPU (set it to stepping mode).
   const bool was_running = PauseAndLock(system);
 
-  if (!IsRunning(system))
+  if (IsUninitialized(system))
   {
     // If the core hasn't been started, there is no active CPU thread we can race against.
     function();
