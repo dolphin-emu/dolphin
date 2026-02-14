@@ -26,6 +26,11 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
+namespace Core
+{
+class System;
+}
+
 namespace DX11
 {
 std::string VideoBackend::GetConfigName() const
@@ -139,7 +144,7 @@ void VideoBackend::FillBackendInfo()
   }
 }
 
-bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
+bool VideoBackend::Initialize(Core::System& system, const WindowSystemInfo& wsi)
 {
   if (!D3D::Create(g_Config.iAdapter, g_Config.bEnableValidationLayer))
     return false;
@@ -151,23 +156,23 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   if (wsi.render_surface && !(swap_chain = SwapChain::Create(wsi)))
   {
     PanicAlertFmtT("Failed to create D3D swap chain");
-    ShutdownShared();
+    ShutdownShared(system);
     D3D::Destroy();
     return false;
   }
 
   auto gfx = std::make_unique<DX11::Gfx>(std::move(swap_chain), wsi.render_surface_scale);
-  auto vertex_manager = std::make_unique<VertexManager>();
+  auto vertex_manager = std::make_unique<VertexManager>(system);
   auto perf_query = std::make_unique<PerfQuery>();
   auto bounding_box = std::make_unique<D3DBoundingBox>();
 
-  return InitializeShared(std::move(gfx), std::move(vertex_manager), std::move(perf_query),
+  return InitializeShared(system, std::move(gfx), std::move(vertex_manager), std::move(perf_query),
                           std::move(bounding_box));
 }
 
-void VideoBackend::Shutdown()
+void VideoBackend::Shutdown(Core::System& system)
 {
-  ShutdownShared();
+  ShutdownShared(system);
   D3D::Destroy();
 }
 }  // namespace DX11

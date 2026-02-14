@@ -12,6 +12,11 @@
 #include "Common/WindowSystemInfo.h"
 #include "VideoCommon/PerfQueryBase.h"
 
+namespace Core
+{
+class System;
+}
+
 namespace MMIO
 {
 class Mapping;
@@ -34,8 +39,8 @@ class VideoBackendBase
 {
 public:
   virtual ~VideoBackendBase() {}
-  virtual bool Initialize(const WindowSystemInfo& wsi) = 0;
-  virtual void Shutdown() = 0;
+  virtual bool Initialize(Core::System& system, const WindowSystemInfo& wsi) = 0;
+  virtual void Shutdown(Core::System& system) = 0;
 
   virtual std::string GetConfigName() const = 0;
   virtual std::string GetDisplayName() const { return GetConfigName(); }
@@ -48,10 +53,11 @@ public:
 
   static std::string BadShaderFilename(const char* shader_stage, int counter);
 
-  void Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
+  void Video_OutputXFB(Core::System& system, u32 xfb_addr, u32 fb_width, u32 fb_stride,
+                       u32 fb_height, u64 ticks);
 
-  u32 Video_GetQueryResult(PerfQueryType type);
-  u16 Video_GetBoundingBox(int index);
+  u32 Video_GetQueryResult(Core::System& system, PerfQueryType type);
+  u16 Video_GetBoundingBox(Core::System& system, int index);
 
   static std::string GetDefaultBackendConfigName();
   static std::string GetDefaultBackendDisplayName();
@@ -62,23 +68,23 @@ public:
   static void PopulateBackendInfo(const WindowSystemInfo& wsi);
 
   // Wrapper function which pushes the event to the GPU thread.
-  void DoState(PointerWrap& p);
+  void DoState(Core::System& system, PointerWrap& p);
 
 protected:
   // For hardware backends
-  bool InitializeShared(std::unique_ptr<AbstractGfx> gfx,
+  bool InitializeShared(Core::System& system, std::unique_ptr<AbstractGfx> gfx,
                         std::unique_ptr<VertexManagerBase> vertex_manager,
                         std::unique_ptr<PerfQueryBase> perf_query,
                         std::unique_ptr<BoundingBox> bounding_box);
 
   // For software and null backends. Allows overriding the default EFBInterface and TextureCache
-  bool InitializeShared(std::unique_ptr<AbstractGfx> gfx,
+  bool InitializeShared(Core::System& system, std::unique_ptr<AbstractGfx> gfx,
                         std::unique_ptr<VertexManagerBase> vertex_manager,
                         std::unique_ptr<PerfQueryBase> perf_query,
                         std::unique_ptr<BoundingBox> bounding_box,
                         std::unique_ptr<EFBInterfaceBase> efb_interface,
                         std::unique_ptr<TextureCacheBase> texture_cache);
-  void ShutdownShared();
+  void ShutdownShared(Core::System& system);
 
   bool m_initialized = false;
 };

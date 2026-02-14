@@ -12,7 +12,7 @@
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexShaderManager.h"
 
-Metal::VertexManager::VertexManager()
+Metal::VertexManager::VertexManager(Core::System& system) : m_system(system)
 {
 }
 
@@ -91,10 +91,9 @@ void Metal::VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32
 
 void Metal::VertexManager::UploadUniforms()
 {
-  auto& system = Core::System::GetInstance();
-  auto& vertex_shader_manager = system.GetVertexShaderManager();
-  auto& geometry_shader_manager = system.GetGeometryShaderManager();
-  auto& pixel_shader_manager = system.GetPixelShaderManager();
+  auto& vertex_shader_manager = m_system.GetVertexShaderManager();
+  auto& geometry_shader_manager = m_system.GetGeometryShaderManager();
+  auto& pixel_shader_manager = m_system.GetPixelShaderManager();
   g_state_tracker->InvalidateUniforms(vertex_shader_manager.dirty, geometry_shader_manager.dirty,
                                       pixel_shader_manager.dirty);
   vertex_shader_manager.dirty = false;

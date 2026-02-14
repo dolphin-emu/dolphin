@@ -3,6 +3,11 @@
 
 #pragma once
 
+namespace Core
+{
+class System;
+}
+
 class PointerWrap;
 
-void VideoCommon_DoState(PointerWrap& p);
+void VideoCommon_DoState(Core::System& system, PointerWrap& p);

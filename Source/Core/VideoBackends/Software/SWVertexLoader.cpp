@@ -27,7 +27,9 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-SWVertexLoader::SWVertexLoader() = default;
+SWVertexLoader::SWVertexLoader(Core::System& system) : m_system(system)
+{
+}
 
 SWVertexLoader::~SWVertexLoader() = default;
 
@@ -205,24 +207,21 @@ void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, int inde
   }
   if (!vdec.normals[0].enable)
   {
-    auto& system = Core::System::GetInstance();
-    auto& vertex_shader_manager = system.GetVertexShaderManager();
+    auto& vertex_shader_manager = m_system.GetVertexShaderManager();
     m_vertex.normal[0].x = vertex_shader_manager.constants.cached_normal[0];
     m_vertex.normal[0].y = vertex_shader_manager.constants.cached_normal[1];
     m_vertex.normal[0].z = vertex_shader_manager.constants.cached_normal[2];
   }
   if (!vdec.normals[1].enable)
   {
-    auto& system = Core::System::GetInstance();
-    auto& vertex_shader_manager = system.GetVertexShaderManager();
+    auto& vertex_shader_manager = m_system.GetVertexShaderManager();
     m_vertex.normal[1].x = vertex_shader_manager.constants.cached_tangent[0];
     m_vertex.normal[1].y = vertex_shader_manager.constants.cached_tangent[1];
     m_vertex.normal[1].z = vertex_shader_manager.constants.cached_tangent[2];
   }
   if (!vdec.normals[2].enable)
   {
-    auto& system = Core::System::GetInstance();
-    auto& vertex_shader_manager = system.GetVertexShaderManager();
+    auto& vertex_shader_manager = m_system.GetVertexShaderManager();
     m_vertex.normal[2].x = vertex_shader_manager.constants.cached_binormal[0];
     m_vertex.normal[2].y = vertex_shader_manager.constants.cached_binormal[1];
     m_vertex.normal[2].z = vertex_shader_manager.constants.cached_binormal[2];

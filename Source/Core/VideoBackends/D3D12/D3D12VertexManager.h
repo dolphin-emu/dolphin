@@ -9,12 +9,17 @@
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 
+namespace Core
+{
+class System;
+}
+
 namespace DX12
 {
 class VertexManager final : public VertexManagerBase
 {
 public:
-  VertexManager();
+  VertexManager(Core::System& system);
   ~VertexManager() override;
 
   bool Initialize() override;
@@ -49,6 +54,7 @@ protected:
   StreamBuffer m_texel_stream_buffer;
   std::array<DescriptorHandle, NUM_TEXEL_BUFFER_FORMATS> m_texel_buffer_views = {};
   DescriptorHandle m_vertex_srv = {};
+  Core::System& m_system;
 };
 
 }  // namespace DX12
