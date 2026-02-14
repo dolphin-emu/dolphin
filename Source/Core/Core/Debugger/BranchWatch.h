@@ -12,7 +12,10 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/Core.h"
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/System.h"
 
 namespace Core
 {
@@ -110,7 +113,7 @@ enum class BranchWatchPhase : bool
   Reduction,
 };
 
-class BranchWatch final  // Class is final to enforce the safety of GetOffsetOfRecordingActive().
+class BranchWatch final
 {
 public:
   using Collection = BranchWatchCollection;
@@ -119,7 +122,12 @@ public:
   using SelectionInspection = BranchWatchSelectionInspection;
 
   bool GetRecordingActive() const { return m_recording_active; }
-  void SetRecordingActive(const CPUThreadGuard& guard, bool active) { m_recording_active = active; }
+  void SetRecordingActive(const CPUThreadGuard& guard, bool active)
+  {
+    m_recording_active = active;
+    auto& system = guard.GetSystem();
+    system.GetJitInterface().ClearCache(guard);
+  }
   void Clear(const CPUThreadGuard& guard);
 
   void Save(const CPUThreadGuard& guard, std::FILE* file) const;
@@ -226,19 +234,6 @@ public:
       HitPhysicalFalse(this, origin, destination, inst.hex);
   }
 
-  // The JIT needs this value, but doesn't need to be a full-on friend.
-  static constexpr int GetOffsetOfRecordingActive()
-  {
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Winvalid-offsetof"
-#endif
-    return offsetof(BranchWatch, m_recording_active);
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-  }
-
 private:
   Collection& GetCollectionV(bool condition)
   {
@@ -273,8 +268,4 @@ private:
   Collection m_collection_pf;  // physical address space | false path
   Selection m_selection;
 };
-
-#if _M_X86_64
-static_assert(BranchWatch::GetOffsetOfRecordingActive() < 0x80);  // Makes JIT code smaller.
-#endif
 }  // namespace Core

@@ -23,6 +23,7 @@
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PowerPC.h"
 
 namespace Core
 {
@@ -200,6 +201,11 @@ public:
 
   bool IsProfilingEnabled() const { return m_enable_profiling && m_enable_debugging; }
   bool IsDebuggingEnabled() const { return m_enable_debugging; }
+  bool IsBranchWatchEnabled() const
+  {
+    auto& branch_watch = m_system.GetPowerPC().GetBranchWatch();
+    return branch_watch.GetRecordingActive();
+  }
 
   static const u8* Dispatch(JitBase& jit);
   virtual JitBaseBlockCache* GetBlockCache() = 0;
