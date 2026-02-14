@@ -1,4 +1,4 @@
-option(INSTALL_MBEDTLS_HEADERS "Install mbed TLS headers." ON)
+option(INSTALL_MBEDTLS_HEADERS "Install Mbed TLS headers." ON)
 
 if(INSTALL_MBEDTLS_HEADERS)
 

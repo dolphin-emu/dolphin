@@ -186,7 +186,15 @@ else
 all: shared static
 endif
 
+ifdef TEST_TIMING_ALT_IMPL
+OBJS_CRYPTO += external_timing_for_test.o
+external_timing_for_test.o: ../tests/src/external_timing/external_timing_for_test.c
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
+endif
+
 static: libmbedcrypto.a libmbedx509.a libmbedtls.a
+	cd ../tests && echo "This is a seedfile that contains 64 bytes (65 on Windows)......" > seedfile
 
 shared: libmbedcrypto.$(DLEXT) libmbedx509.$(DLEXT) libmbedtls.$(DLEXT)
 
