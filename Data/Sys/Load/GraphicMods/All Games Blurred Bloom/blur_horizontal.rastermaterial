@@ -1,0 +1,19 @@
+{
+	"next_material_asset":"dolphin_bloom_blur_vertical",
+	"properties":[
+		{
+			"type": "bool",
+			"value": true
+		},
+		{
+			"type": "float",
+			"value": 1.0
+		},
+		{
+			"type": "float",
+			"value": 1.0
+		}
+	],
+	"textures":[],
+	"shader_asset": "dolphin_bloom_blur"
+}

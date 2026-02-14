@@ -1,0 +1,41 @@
+{
+	"meta":
+	{
+		"title": "DOF Blurred",
+		"author": "Dolphin Team",
+		"description": "Modifies depth of field effects to blur them to their native resolution.  Results in depth of field looking much more natural at higher resolutions but the blur may be too intense in some games."
+	},
+	"features":
+	[
+		{
+			"group": "DOF",
+			"action": "custom_pipeline",
+			"action_data":
+			{
+				"material_asset": "dolphin_dof_blur_horizontal"
+			}
+		}
+	],
+	"assets": [
+	{
+		"data": {
+			"metadata": "blur.rastershader",
+			"pixel_shader": "blur.ps.glsl",
+			"vertex_shader": "blur.vs.glsl"
+		},
+		"name": "dolphin_dof_blur"
+	},
+	{
+		"data": {
+			"metadata": "blur_horizontal.rastermaterial"
+		},
+		"name": "dolphin_dof_blur_horizontal"
+	},
+	{
+		"data": {
+			"metadata": "blur_vertical.rastermaterial"
+		},
+		"name": "dolphin_dof_blur_vertical"
+	}
+  ]
+}

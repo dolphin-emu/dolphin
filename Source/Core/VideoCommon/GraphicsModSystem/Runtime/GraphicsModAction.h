@@ -16,8 +16,9 @@ public:
   GraphicsModAction& operator=(GraphicsModAction&&) = default;
 
   virtual void OnDrawStarted(GraphicsModActionData::DrawStarted*) {}
-  virtual void OnEFB(GraphicsModActionData::EFB*) {}
-  virtual void OnXFB() {}
+  virtual void BeforeEFB(GraphicsModActionData::PreEFB*) {}
+  virtual void AfterEFB(GraphicsModActionData::PostEFB*) {}
+  virtual void BeforeXFB() {}
   virtual void OnProjection(GraphicsModActionData::Projection*) {}
   virtual void OnProjectionAndTexture(GraphicsModActionData::Projection*) {}
   virtual void OnTextureLoad(GraphicsModActionData::TextureLoad*) {}

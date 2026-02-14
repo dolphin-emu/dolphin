@@ -12,6 +12,7 @@
 #include "Common/Matrix.h"
 #include "Common/SmallVector.h"
 #include "VideoCommon/Assets/TextureAsset.h"
+#include "VideoCommon/Resources/MaterialResource.h"
 #include "VideoCommon/ShaderGenCommon.h"
 
 namespace GraphicsModActionData
@@ -24,13 +25,18 @@ struct DrawStarted
   std::span<u8>* material_uniform_buffer;
 };
 
-struct EFB
+struct PreEFB
 {
   u32 texture_width;
   u32 texture_height;
   bool* skip;
   u32* scaled_width;
   u32* scaled_height;
+};
+
+struct PostEFB
+{
+  VideoCommon::MaterialResource* material = nullptr;
 };
 
 struct Projection
