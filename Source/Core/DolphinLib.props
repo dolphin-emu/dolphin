@@ -63,7 +63,6 @@
     <ClInclude Include="Common\FileUtil.h" />
     <ClInclude Include="Common\FixedSizeQueue.h" />
     <ClInclude Include="Common\Flag.h" />
-    <ClInclude Include="Common\FloatUtils.h" />
     <ClInclude Include="Common\FormatUtil.h" />
     <ClInclude Include="Common\FPURoundMode.h" />
     <ClInclude Include="Common\Functional.h" />
@@ -249,6 +248,7 @@
     <ClInclude Include="Core\FifoPlayer\FifoDataFile.h" />
     <ClInclude Include="Core\FifoPlayer\FifoPlayer.h" />
     <ClInclude Include="Core\FifoPlayer\FifoRecorder.h" />
+    <ClInclude Include="Core\FloatUtils.h" />
     <ClInclude Include="Core\FreeLookManager.h" />
     <ClInclude Include="Core\GeckoCode.h" />
     <ClInclude Include="Core\GeckoCodeConfig.h" />
@@ -839,7 +839,6 @@
     <ClCompile Include="Common\FileSearch.cpp" />
     <ClCompile Include="Common\FilesystemWatcher.cpp" />
     <ClCompile Include="Common\FileUtil.cpp" />
-    <ClCompile Include="Common\FloatUtils.cpp" />
     <ClCompile Include="Common\GekkoDisassembler.cpp" />
     <ClCompile Include="Common\GL\GLContext.cpp" />
     <ClCompile Include="Common\GL\GLExtensions\GLExtensions.cpp" />
@@ -944,6 +943,7 @@
     <ClCompile Include="Core\FifoPlayer\FifoDataFile.cpp" />
     <ClCompile Include="Core\FifoPlayer\FifoPlayer.cpp" />
     <ClCompile Include="Core\FifoPlayer\FifoRecorder.cpp" />
+    <ClCompile Include="Core\FloatUtils.cpp" />
     <ClCompile Include="Core\FreeLookManager.cpp" />
     <ClCompile Include="Core\GeckoCode.cpp" />
     <ClCompile Include="Core\GeckoCodeConfig.cpp" />

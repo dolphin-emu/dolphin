@@ -4,7 +4,6 @@
 #include <bit>
 
 #include "Common/CommonTypes.h"
-#include "Common/FloatUtils.h"
 #include "Common/ScopeGuard.h"
 #include "Common/x64ABI.h"
 #include "Core/Core.h"
@@ -61,19 +60,27 @@ TEST(Jit64, Fres)
 
   TestFres test(Core::System::GetInstance());
 
-  // FPSCR with NI set
-  const UReg_FPSCR fpscr = UReg_FPSCR(0x00000004);
+  constexpr std::array<u32, 2> test_fpscrs{
+      0x00000000,  // FPSCR with NI unset
+      0x00000004,  // FPSCR with NI set
+  };
 
-  for (const u64 ivalue : double_test_values)
+  for (const u32 fpscr_hex : test_fpscrs)
   {
-    const double dvalue = std::bit_cast<double>(ivalue);
+    const UReg_FPSCR fpscr = UReg_FPSCR(fpscr_hex);
 
-    const u64 expected = std::bit_cast<u64>(Common::ApproximateReciprocal(dvalue));
-    const u64 actual = test.wrapped_fres(ivalue, fpscr);
+    for (const u64 ivalue : double_test_values)
+    {
+      const double dvalue = std::bit_cast<double>(ivalue);
 
-    if (expected != actual)
-      fmt::print("{:016x} -> {:016x} == {:016x}\n", ivalue, actual, expected);
+      const u64 expected = std::bit_cast<u64>(Core::ApproximateReciprocal(fpscr, dvalue));
+      const u64 actual = test.wrapped_fres(ivalue, fpscr);
 
-    EXPECT_EQ(expected, actual);
+      if (expected != actual)
+        fmt::print("{:016x} -> {:016x} == {:016x} (FPSCR {:08x})\n", ivalue, actual, expected,
+                   fpscr_hex);
+
+      EXPECT_EQ(expected, actual);
+    }
   }
 }

@@ -71,8 +71,6 @@ add_library(common
   FileUtil.h
   FixedSizeQueue.h
   Flag.h
-  FloatUtils.cpp
-  FloatUtils.h
   Functional.h
   FormatUtil.h
   FPURoundMode.h
