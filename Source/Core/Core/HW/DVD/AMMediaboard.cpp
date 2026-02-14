@@ -6,32 +6,24 @@
 #include <algorithm>
 #include <bit>
 #include <random>
-#include <ranges>
 #include <string>
 #include <unordered_map>
 
 #include <fmt/format.h>
 
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 
-#include "Core/Boot/Boot.h"
-#include "Core/BootManager.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HLE/HLE.h"
-#include "Core/HW/DVD/DVDInterface.h"
-#include "Core/HW/DVD/DVDThread.h"
-#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_DeviceBaseboard.h"
-#include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
-#include "Core/HW/SI/SI.h"
-#include "Core/HW/SI/SI_Device.h"
 #include "Core/IOS/Network/Socket.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
@@ -216,7 +208,7 @@ static const std::unordered_map<u16, GameType> s_game_map = {
 // Sockets FDs are required to go from 0 to 63.
 // Games use the FD as indexes so we have to workaround it.
 
-static SOCKET s_sockets[SOCKET_FD_MAX];
+static std::array<SOCKET, SOCKET_FD_MAX> s_sockets;
 
 // TODO: Verify this.
 static constexpr u32 FIRST_VALID_FD = 1;
@@ -436,13 +428,13 @@ static File::IOFile OpenOrCreateFile(const std::string& filename)
 
 void Init()
 {
-  std::ranges::fill(s_media_buffer_32, 0);
-  std::ranges::fill(s_network_buffer, 0);
-  std::ranges::fill(s_network_command_buffer, 0);
-  std::ranges::fill(s_firmware, -1);
-  std::ranges::fill(s_sockets, SOCKET_ERROR);
-  std::ranges::fill(s_allnet_buffer, 0);
-  std::ranges::fill(s_allnet_settings, 0);
+  s_media_buffer_32.fill(0);
+  s_network_buffer.fill(0);
+  s_network_command_buffer.fill(0);
+  s_firmware.fill(-1);
+  s_sockets.fill(SOCKET_ERROR);
+  s_allnet_buffer.fill(0);
+  s_allnet_settings.fill(0);
 
   s_game_modified_ip_address = {};
 
@@ -961,7 +953,7 @@ static void AMMBCommandRecv(u32 parameter_offset, u32 network_buffer_base)
     len = 0;
   }
 
-  int ret = recv(fd, reinterpret_cast<char*>(s_network_buffer.data() + off), len, 0);
+  const int ret = recv(fd, reinterpret_cast<char*>(s_network_buffer.data() + off), len, 0);
   const int err = WSAGetLastError();
 
   DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv( {}, 0x{:08x}, {} ):{} {}", fd, off, len, ret, err);
@@ -1984,9 +1976,9 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       // This sends a UDP packet to previously defined Target IP/Port
       case AMMBCommand::SearchDevices:
       {
-        u16 unknown = s_media_buffer[0x25] | s_media_buffer[0x24] << 8;
-        u16 off = s_media_buffer[0x26] | s_media_buffer[0x27] << 8;
-        u32 addr = s_media_buffer_32[10];
+        const u16 unknown = s_media_buffer[0x25] | s_media_buffer[0x24] << 8;
+        const u16 off = s_media_buffer[0x26] | s_media_buffer[0x27] << 8;
+        const u32 addr = s_media_buffer_32[10];
 
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: SearchDevices: ({})", unknown);
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM:        Offset: ({:04x})", off);
@@ -1997,7 +1989,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
           break;
         }
 
-        const u8* data = s_network_buffer.data() + (off + addr - NetworkBufferAddress2);
+        const u8* const data = s_network_buffer.data() + (off + addr - NetworkBufferAddress2);
 
         for (u32 i = 0; i < 0x20; i += 0x10)
         {
@@ -2012,8 +2004,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       case AMMBCommand::Unknown_608:
       {
         const u32 ip = s_media_buffer_32[10];
-        u16 port = Common::swap16(s_media_buffer[6] | s_media_buffer[7] << 8);
-        u16 flag = s_media_buffer[10] | s_media_buffer[11] << 8;
+        const u16 port = Common::swap16(s_media_buffer[6] | s_media_buffer[7] << 8);
+        const u16 flag = s_media_buffer[10] | s_media_buffer[11] << 8;
 
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: 0x608( {} {} {} )", ip, port, flag);
       }
