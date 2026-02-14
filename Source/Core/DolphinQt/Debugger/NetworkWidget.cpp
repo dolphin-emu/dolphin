@@ -100,7 +100,7 @@ QTableWidgetItem* GetSocketState(s32 host_fd)
   return new QTableWidgetItem(QTableWidget::tr("Unbound"));
 }
 
-static QTableWidgetItem* GetSocketBlocking(const IOS::HLE::WiiSockMan& socket_manager, s32 wii_fd)
+QTableWidgetItem* GetSocketBlocking(const IOS::HLE::WiiSockMan& socket_manager, s32 wii_fd)
 {
   if (socket_manager.GetHostSocket(wii_fd) < 0)
     return new QTableWidgetItem();
@@ -108,7 +108,7 @@ static QTableWidgetItem* GetSocketBlocking(const IOS::HLE::WiiSockMan& socket_ma
   return new QTableWidgetItem(is_blocking ? QTableWidget::tr("Yes") : QTableWidget::tr("No"));
 }
 
-static QString GetAddressAndPort(const sockaddr_in& addr)
+QString GetAddressAndPort(const sockaddr_in& addr)
 {
   char buffer[16];
   const char* addr_str = inet_ntop(AF_INET, &addr.sin_addr, buffer, sizeof(buffer));
@@ -231,7 +231,7 @@ void NetworkWidget::closeEvent(QCloseEvent*)
   Settings::Instance().SetNetworkVisible(false);
 }
 
-void NetworkWidget::showEvent(QShowEvent* event)
+void NetworkWidget::showEvent(QShowEvent*)
 {
   Update();
 }
@@ -255,45 +255,34 @@ void NetworkWidget::ConnectWidgets()
 {
   connect(m_dump_format_combo, &QComboBox::currentIndexChanged, this,
           &NetworkWidget::OnDumpFormatComboChanged);
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  connect(m_dump_ssl_read_checkbox, &QCheckBox::checkStateChanged, [](Qt::CheckState state) {
-    Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_READ, state == Qt::Checked);
-  });
-  connect(m_dump_ssl_write_checkbox, &QCheckBox::checkStateChanged, [](Qt::CheckState state) {
-    Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_WRITE, state == Qt::Checked);
-  });
-  connect(m_dump_root_ca_checkbox, &QCheckBox::checkStateChanged, [](Qt::CheckState state) {
-    Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA, state == Qt::Checked);
-  });
-  connect(m_dump_peer_cert_checkbox, &QCheckBox::checkStateChanged, [](Qt::CheckState state) {
-    Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_PEER_CERT, state == Qt::Checked);
-  });
-  connect(m_verify_certificates_checkbox, &QCheckBox::checkStateChanged, [](Qt::CheckState state) {
-    Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES, state == Qt::Checked);
-  });
-  connect(m_dump_bba_checkbox, &QCheckBox::checkStateChanged, [](Qt::CheckState state) {
-    Config::SetBaseOrCurrent(Config::MAIN_NETWORK_DUMP_BBA, state == Qt::Checked);
-  });
+  using CheckState = Qt::CheckState;
+  static constexpr auto checkStateChanged = &QCheckBox::checkStateChanged;
 #else
-  connect(m_dump_ssl_read_checkbox, &QCheckBox::stateChanged, [](int state) {
+  using CheckState = int;
+  static constexpr auto checkStateChanged = &QCheckBox::stateChanged;
+#endif
+
+  connect(m_dump_ssl_read_checkbox, checkStateChanged, [](CheckState state) {
     Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_READ, state == Qt::Checked);
   });
-  connect(m_dump_ssl_write_checkbox, &QCheckBox::stateChanged, [](int state) {
+  connect(m_dump_ssl_write_checkbox, checkStateChanged, [](CheckState state) {
     Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_WRITE, state == Qt::Checked);
   });
-  connect(m_dump_root_ca_checkbox, &QCheckBox::stateChanged, [](int state) {
+  connect(m_dump_root_ca_checkbox, checkStateChanged, [](CheckState state) {
     Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA, state == Qt::Checked);
   });
-  connect(m_dump_peer_cert_checkbox, &QCheckBox::stateChanged, [](int state) {
+  connect(m_dump_peer_cert_checkbox, checkStateChanged, [](CheckState state) {
     Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_PEER_CERT, state == Qt::Checked);
   });
-  connect(m_verify_certificates_checkbox, &QCheckBox::stateChanged, [](int state) {
+  connect(m_verify_certificates_checkbox, checkStateChanged, [](CheckState state) {
     Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES, state == Qt::Checked);
   });
-  connect(m_dump_bba_checkbox, &QCheckBox::stateChanged, [](int state) {
+  connect(m_dump_bba_checkbox, checkStateChanged, [](CheckState state) {
     Config::SetBaseOrCurrent(Config::MAIN_NETWORK_DUMP_BBA, state == Qt::Checked);
   });
-#endif
+
   connect(m_open_dump_folder, &QPushButton::clicked, [] {
     const std::string location = File::GetUserPath(D_DUMPSSL_IDX);
     const QUrl url = QUrl::fromLocalFile(QString::fromStdString(location));
@@ -353,7 +342,7 @@ void NetworkWidget::UpdateTriforceSocketTable()
   // Show active IP overrides
   m_socket_table->showColumn(6);
   const auto ip_overrides = AMMediaboard::GetIPOverrides();
-  for (s32 triforce_fd = 0; triforce_fd < AMMediaboard::SOCKET_FD_MAX; triforce_fd++)
+  for (s32 triforce_fd = 0; triforce_fd != AMMediaboard::SOCKET_FD_MAX; ++triforce_fd)
   {
     m_socket_table->insertRow(triforce_fd);
     const s32 host_fd = AMMediaboard::DebuggerGetSocket(triforce_fd);
@@ -412,22 +401,25 @@ void NetworkWidget::Update()
   const int combo_index = int([is_pcap, is_ssl_read, is_ssl_write]() -> FormatComboId {
     if (is_pcap)
       return FormatComboId::PCAP;
-    else if (is_ssl_read && is_ssl_write)
+
+    if (is_ssl_read && is_ssl_write)
       return FormatComboId::BinarySSL;
-    else if (is_ssl_read)
+
+    if (is_ssl_read)
       return FormatComboId::BinarySSLRead;
-    else if (is_ssl_write)
+
+    if (is_ssl_write)
       return FormatComboId::BinarySSLWrite;
-    else
-      return FormatComboId::None;
+
+    return FormatComboId::None;
   }());
   m_dump_format_combo->setCurrentIndex(combo_index);
 }
 
 QGroupBox* NetworkWidget::CreateSocketTableGroup()
 {
-  QGroupBox* socket_table_group = new QGroupBox(tr("Socket table"));
-  QGridLayout* socket_table_layout = new QGridLayout;
+  auto* const socket_table_group = new QGroupBox(tr("Socket table"));
+  auto* const socket_table_layout = new QGridLayout;
   socket_table_group->setLayout(socket_table_layout);
 
   m_socket_table = new QTableWidget();
@@ -450,8 +442,8 @@ QGroupBox* NetworkWidget::CreateSocketTableGroup()
 
 QGroupBox* NetworkWidget::CreateSSLContextGroup()
 {
-  QGroupBox* ssl_context_group = new QGroupBox(tr("SSL context"));
-  QGridLayout* ssl_context_layout = new QGridLayout;
+  auto* const ssl_context_group = new QGroupBox(tr("SSL context"));
+  auto* const ssl_context_layout = new QGridLayout;
   ssl_context_group->setLayout(ssl_context_layout);
 
   m_ssl_table = new QTableWidget();
@@ -472,8 +464,8 @@ QGroupBox* NetworkWidget::CreateSSLContextGroup()
 
 QGroupBox* NetworkWidget::CreateDumpOptionsGroup()
 {
-  auto* dump_options_group = new QGroupBox(tr("Dump options"));
-  auto* dump_options_layout = new QVBoxLayout;
+  auto* const dump_options_group = new QGroupBox(tr("Dump options"));
+  auto* const dump_options_layout = new QVBoxLayout;
   dump_options_group->setLayout(dump_options_layout);
 
   m_dump_format_combo = CreateDumpFormatCombo();
@@ -487,9 +479,9 @@ QGroupBox* NetworkWidget::CreateDumpOptionsGroup()
   m_open_dump_folder = new QPushButton(tr("Open dump folder"));
   m_open_dump_folder->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
-  auto* combo_label = new QLabel(tr("Network dump format:"));
+  auto* const combo_label = new QLabel(tr("Network dump format:"));
   combo_label->setBuddy(m_dump_format_combo);
-  auto* combo_layout = new QHBoxLayout;
+  auto* const combo_layout = new QHBoxLayout;
   combo_layout->addWidget(combo_label);
   const int combo_label_space =
       combo_label->fontMetrics().boundingRect(QStringLiteral("__")).width();
@@ -511,8 +503,8 @@ QGroupBox* NetworkWidget::CreateDumpOptionsGroup()
 
 QGroupBox* NetworkWidget::CreateSecurityOptionsGroup()
 {
-  auto* security_options_group = new QGroupBox(tr("Security options"));
-  auto* security_options_layout = new QVBoxLayout;
+  auto* const security_options_group = new QGroupBox(tr("Security options"));
+  auto* const security_options_layout = new QVBoxLayout;
   security_options_group->setLayout(security_options_layout);
 
   m_verify_certificates_checkbox = new QCheckBox(tr("Verify certificates"));
