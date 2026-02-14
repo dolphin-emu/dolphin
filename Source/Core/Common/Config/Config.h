@@ -62,6 +62,14 @@ T Get(LayerType layer, const Info<T>& info)
 }
 
 template <typename T>
+T Get(const Layer* game_layer, const Info<T>& setting)
+{
+  if (game_layer != nullptr)
+    return game_layer->Get(setting);
+  return Get(setting);
+}
+
+template <typename T>
 T Get(const Info<T>& info)
 {
   CachedValue<T> cached = info.GetCachedValue();
