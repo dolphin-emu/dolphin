@@ -261,8 +261,6 @@ MainWindow::MainWindow(Core::System& system, std::unique_ptr<BootParameters> boo
 
 #ifdef USE_RETRO_ACHIEVEMENTS
   AchievementManager::GetInstance().Init(reinterpret_cast<void*>(winId()));
-  if (AchievementManager::GetInstance().IsHardcoreModeActive())
-    Settings::Instance().SetDebugModeEnabled(false);
   // This needs to trigger on both RA_HARDCORE_ENABLED and RA_ENABLED
   m_config_changed_callback_id = Config::AddConfigChangedCallback(
       [this] { QueueOnObject(this, [this] { this->OnHardcoreChanged(); }); });
@@ -2035,8 +2033,6 @@ void MainWindow::ShowAchievementSettings()
 void MainWindow::OnHardcoreChanged()
 {
   bool hardcore_active = AchievementManager::GetInstance().IsHardcoreModeActive();
-  if (hardcore_active)
-    Settings::Instance().SetDebugModeEnabled(false);
   // EmulationStateChanged causes several dialogs to redraw, including anything affected by hardcore
   // mode. Every dialog that depends on hardcore mode is redrawn by EmulationStateChanged.
   if (hardcore_active != m_former_hardcore_setting)
