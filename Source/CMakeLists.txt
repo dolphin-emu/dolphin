@@ -27,46 +27,40 @@ if (MSVC)
   # Compile PCH
   add_subdirectory(PCH)
 else()
-  check_and_add_flag(HAVE_WALL -Wall)
+  include(CheckAndAddWarning)
+  include(CheckAndRemoveWarning)
+
+  check_and_add_warning(HAVE_WALL all)
   # TODO: would like these but they produce overwhelming amounts of warnings
-  #check_and_add_flag(EXTRA -Wextra)
-  #check_and_add_flag(MISSING_FIELD_INITIALIZERS -Wmissing-field-initializers)
-  #check_and_add_flag(SWITCH_DEFAULT -Wswitch-default)
-  #check_and_add_flag(FLOAT_EQUAL -Wfloat-equal)
-  #check_and_add_flag(CONVERSION -Wconversion)
-  #check_and_add_flag(ZERO_AS_NULL_POINTER_CONSTANT -Wzero-as-null-pointer-constant)
-  check_and_add_flag(TYPE_LIMITS -Wtype-limits)
-  check_and_add_flag(SIGN_COMPARE -Wsign-compare)
-  check_and_add_flag(IGNORED_QUALIFIERS -Wignored-qualifiers)
-  check_and_add_flag(UNINITIALIZED -Wuninitialized)
-  check_and_add_flag(LOGICAL_OP -Wlogical-op)
-  check_and_add_flag(SHADOW -Wshadow)
-  check_and_add_flag(SHADOW_FIELD_IN_CONSTRUCTOR -Wshadow-field-in-constructor)
-  check_and_add_flag(INIT_SELF -Winit-self)
-  check_and_add_flag(MISSING_DECLARATIONS -Wmissing-declarations)
-  check_and_add_flag(MISSING_VARIABLE_DECLARATIONS -Wmissing-variable-declarations)
+  #check_and_add_warning(EXTRA extra)
+  #check_and_add_warning(MISSING_FIELD_INITIALIZERS missing-field-initializers)
+  #check_and_add_warning(SWITCH_DEFAULT switch-default)
+  #check_and_add_warning(FLOAT_EQUAL float-equal)
+  #check_and_add_warning(CONVERSION conversion)
+  #check_and_add_warning(ZERO_AS_NULL_POINTER_CONSTANT zero-as-null-pointer-constant)
+  check_and_add_warning(TYPE_LIMITS type-limits ERROR)
+  check_and_add_warning(SIGN_COMPARE sign-compare ERROR)
+  check_and_add_warning(IGNORED_QUALIFIERS ignored-qualifiers ERROR)
+  check_and_add_warning(UNINITIALIZED uninitialized ERROR)
+  check_and_add_warning(REORDER reorder ERROR)
+  check_and_add_warning(LOGICAL_OP logical-op ERROR)
+  check_and_add_warning(SHADOW shadow ERROR)
+  check_and_add_warning(SHADOW_FIELD_IN_CONSTRUCTOR shadow-field-in-constructor ERROR)
+  check_and_add_warning(INIT_SELF init-self ERROR)
+  check_and_add_warning(MISMATCHED_NEW_DELETE mismatched-new-delete ERROR)
+  check_and_add_warning(MISSING_DECLARATIONS missing-declarations ERROR)
+  check_and_add_warning(MISSING_VARIABLE_DECLARATIONS missing-variable-declarations ERROR)
+  check_and_add_warning(FORMAT format ERROR)
 
   # Disable -Wstringop-truncation warnings as they result in many false positives.
   # In most (all?) cases where std::strncpy is used, we want to fill the entire buffer
   # or match emulated code that also ignores the null terminator, so the warnings are not useful.
   # Given that Dolphin itself mostly uses std::string, they do not really help catch any bugs.
-  check_cxx_compiler_flag(-Wstringop-truncation HAS_STRINGOP_TRUNCATION_WARNING)
-  if (HAS_STRINGOP_TRUNCATION_WARNING)
-    check_and_add_flag(NO_STRINGOP_TRUNCATION -Wno-stringop-truncation)
-  endif()
-
-  # Format string issues that the compiler can detect should be compile time errors.
-  check_cxx_compiler_flag(-Wformat HAS_FORMAT_WARNING)
-  if (HAS_FORMAT_WARNING)
-    check_and_add_flag(FORMAT_WARNING_TO_ERROR -Werror=format)
-  endif()
+  check_and_remove_warning(NO_STRINGOP_TRUNCATION stringop-truncation)
 
   # Trigraphs support is generally disabled by default, but some compilers (GCC) may still warn when
   # one hypothetical trigraph is encountered. The warning is generally not interesting.
-  check_cxx_compiler_flag(-Wtrigraphs HAS_TRIGRAPHS_WARNING)
-  if (HAS_TRIGRAPHS_WARNING)
-    check_and_add_flag(NO_TRIGRAPHS_WARNING -Wno-trigraphs)
-  endif()
+  check_and_remove_warning(NO_TRIGRAPHS trigraphs)
 endif()
 
 # These aren't actually needed for C11/C++11
