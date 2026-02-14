@@ -62,6 +62,7 @@ private:
   void OnResetClicked();
   void OnAddressTableItemChanged(QTableWidgetItem* item);
   void OnAddressTableContextMenu();
+  void AddBreakpoints(std::string_view type);
   void OnValueSourceChanged();
   void OnDisplayHexCheckboxStateChanged();
 
