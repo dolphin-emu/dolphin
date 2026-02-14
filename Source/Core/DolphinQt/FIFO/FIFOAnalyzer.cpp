@@ -23,6 +23,7 @@
 #include "Common/Assert.h"
 #include "Common/Swap.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
+#include "Core/System.h"
 
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
@@ -44,7 +45,7 @@ FIFOAnalyzer::FIFOAnalyzer(FifoPlayer& fifo_player) : m_fifo_player(fifo_player)
   CreateWidgets();
   ConnectWidgets();
 
-  UpdateTree();
+  UpdateObjectTree();
 
   const auto& settings = Settings::GetQSettings();
 
@@ -70,12 +71,24 @@ void FIFOAnalyzer::CreateWidgets()
 {
   m_tree_widget = new QTreeWidget;
   m_detail_list = new QListWidget;
+  m_state_widget = new QTreeWidget;
   m_entry_detail_browser = new QTextBrowser;
+
+  m_cp = new QTreeWidgetItem({QLatin1String("CP")});
+  m_xf = new QTreeWidgetItem({QLatin1String("XF")});
+  m_bp = new QTreeWidgetItem({QLatin1String("BP")});
+  m_state_widget->addTopLevelItem(m_cp);
+  m_state_widget->addTopLevelItem(m_xf);
+  m_state_widget->addTopLevelItem(m_bp);
+  m_state_widget->setHeaderLabels(
+      {tr("Block"), tr("FIFO"), tr("Reg"), tr("Value"), tr("Description")});
+  m_state_widget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
   m_object_splitter = new QSplitter(Qt::Horizontal);
 
   m_object_splitter->addWidget(m_tree_widget);
   m_object_splitter->addWidget(m_detail_list);
+  m_object_splitter->addWidget(m_state_widget);
 
   m_tree_widget->header()->hide();
 
@@ -115,7 +128,8 @@ void FIFOAnalyzer::CreateWidgets()
 
 void FIFOAnalyzer::ConnectWidgets()
 {
-  connect(m_tree_widget, &QTreeWidget::itemSelectionChanged, this, &FIFOAnalyzer::UpdateDetails);
+  connect(m_tree_widget, &QTreeWidget::itemSelectionChanged, this,
+          &FIFOAnalyzer::UpdateCommandList);
   connect(m_detail_list, &QListWidget::currentRowChanged, this, &FIFOAnalyzer::UpdateDescription);
 
   connect(m_search_edit, &QLineEdit::returnPressed, this, &FIFOAnalyzer::BeginSearch);
@@ -126,12 +140,12 @@ void FIFOAnalyzer::ConnectWidgets()
 
 void FIFOAnalyzer::Update()
 {
-  UpdateTree();
-  UpdateDetails();
+  UpdateObjectTree();
+  UpdateCommandList();
   UpdateDescription();
 }
 
-void FIFOAnalyzer::UpdateTree()
+void FIFOAnalyzer::UpdateObjectTree()
 {
   m_tree_widget->clear();
 
@@ -247,7 +261,7 @@ public:
   OPCODE_CALLBACK(void OnIndexedLoad(const CPArray array, const u32 index, const u16 address,
                                      const u8 size))
   {
-    const auto [desc, written] = GetXFIndexedLoadInfo(array, index, address, size);
+    const auto [desc, written] = GetXFIndexedLoadInfo(GetCPState(), array, index, address, size);
     text = QStringLiteral("LOAD INDX %1   %2")
                .arg(QString::fromStdString(fmt::to_string(array)))
                .arg(QString::fromStdString(desc));
@@ -319,7 +333,7 @@ public:
 };
 }  // namespace
 
-void FIFOAnalyzer::UpdateDetails()
+void FIFOAnalyzer::UpdateCommandList()
 {
   // Clearing the detail list can update the selection, which causes UpdateDescription to be called
   // immediately.  However, the object data offsets have not been recalculated yet, which can cause
@@ -572,7 +586,7 @@ public:
   OPCODE_CALLBACK(void OnIndexedLoad(const CPArray array, const u32 index, const u16 address,
                                      const u8 size))
   {
-    const auto [desc, written] = GetXFIndexedLoadInfo(array, index, address, size);
+    const auto [desc, written] = GetXFIndexedLoadInfo(GetCPState(), array, index, address, size);
 
     text = QString::fromStdString(desc);
     text += QLatin1Char{'\n'};
@@ -768,6 +782,227 @@ void FIFOAnalyzer::UpdateDescription()
   OpcodeDecoder::RunCommand(&fifo_frame.fifoData[object_start + entry_start],
                             object_size - entry_start, callback);
   m_entry_detail_browser->setText(callback.text);
+
+  UpdateStateTree();
+}
+
+class StateCallback final : public OpcodeDecoder::Callback
+{
+public:
+  explicit StateCallback(FifoDataFile* file, const std::vector<u8>& mem1,
+                         const std::vector<u8>& mem2)
+      : m_cpstate(file->GetCPMem()), m_mem1(mem1), m_mem2(mem2)
+  {
+    for (u32 i = 0; i < FifoDataFile::CP_MEM_SIZE; ++i)
+      m_gpstate.m_cpmem[i] = file->GetCPMem()[i];
+    for (u32 i = 0; i < FifoDataFile::XF_MEM_SIZE; ++i)
+      m_gpstate.m_xfmem[i] = file->GetXFMem()[i];
+    for (u32 i = 0; i < FifoDataFile::XF_REGS_SIZE; ++i)
+      m_gpstate.m_xfmem[XFMEM_REGISTERS_START + i] = file->GetXFRegs()[i];
+    for (u32 i = 0; i < FifoDataFile::BP_MEM_SIZE; ++i)
+      m_gpstate.m_bpmem[i] = file->GetBPMem()[i];
+  }
+  StateCallback& operator=(StateCallback&& other)
+  {
+    m_gpstate = std::move(other.m_gpstate);
+    m_fifo_pos = std::move(other.m_fifo_pos);
+    return *this;
+  }
+
+  OPCODE_CALLBACK(void OnBP(const u8 command, const u32 value))
+  {
+    u32& mask = m_gpstate.m_bpmem[BPMEM_BP_MASK];
+    u32 oldval = m_gpstate.m_bpmem[command];
+    u32 newval = (oldval & ~mask) | (value & mask);
+    mask = 0xFFFFFF;
+    m_gpstate.m_bpmem[command] = newval;
+    m_fifo_pos.m_bpmem[command] = m_cmd_pos;
+  }
+
+  OPCODE_CALLBACK(void OnCP(const u8 command, const u32 value))
+  {
+    m_cpstate.LoadCPReg(command, value);
+    // LoadCPReg() uses masking in multiple places,
+    // so this is not the same as cpmem[command] = value.
+    m_cpstate.FillCPMemoryArray(m_gpstate.m_cpmem.data());
+    m_fifo_pos.m_cpmem[command] = m_cmd_pos;
+  }
+
+  OPCODE_CALLBACK(void OnXF(const u16 address, const u8 count, const u8* data))
+  {
+    for (u32 i = 0; i < count; ++i)
+    {
+      m_gpstate.m_xfmem[address + i] = Common::swap32(data + sizeof(u32) * i);
+      m_fifo_pos.m_xfmem[address + i] = m_cmd_pos;
+    }
+  }
+
+  OPCODE_CALLBACK(void OnIndexedLoad(const CPArray array, const u32 index, const u16 address,
+                                     const u8 size))
+  {
+    u32 base = m_cpstate.array_bases[array];
+    u32 stride = m_cpstate.array_strides[array];
+    for (u32 i = 0; i < size; ++i)
+    {
+      u32 mem_addr = base + stride * index + sizeof(u32) * i;
+      const auto& mem = mem_addr & 0x1000'0000 ? m_mem2 : m_mem1;
+      m_gpstate.m_xfmem[address + i] = Common::swap32(&mem[mem_addr & ~0x1000'0000]);
+      m_fifo_pos.m_xfmem[address + i] = m_cmd_pos;
+    }
+  }
+
+  OPCODE_CALLBACK(void OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat,
+                                          const u32 vertex_size, const u16 num_vertices,
+                                          const u8* vertex_data))
+  {
+  }
+
+  OPCODE_CALLBACK(void OnDisplayList(u32 address, u32 size)) {}
+  OPCODE_CALLBACK(void OnNop(u32 count)) {}
+  OPCODE_CALLBACK(void OnUnknown(u8 opcode, const u8* data)) {}
+  OPCODE_CALLBACK(void OnCommand(const u8* data, u32 size)) {}
+  OPCODE_CALLBACK(CPState& GetCPState()) { return m_cpstate; }
+
+  CPState m_cpstate;
+  GPState m_gpstate;
+
+  // HACK: this stores fifo offsets from the current frame
+  GPState m_fifo_pos{};
+  u32 m_cmd_pos = 0;
+  const std::vector<u8>& m_mem1;
+  const std::vector<u8>& m_mem2;
+};
+
+void FIFOAnalyzer::UpdateStateTree()
+{
+  // FIXME: we sometimes get uninitialized data
+  std::vector<u8> mem1(m_fifo_player.GetFile()->GetRamSizeReal(), 0x00);
+  std::vector<u8> mem2(m_fifo_player.GetFile()->GetExRamSizeReal(), 0x00);
+  StateCallback state_callback{m_fifo_player.GetFile(), mem1, mem2};
+
+  const auto items = m_tree_widget->selectedItems();
+  const u32 end_frame_nr = items[0]->data(0, FRAME_ROLE).toUInt();
+  const u32 start_part_nr = items[0]->data(0, PART_START_ROLE).toUInt();
+  const u32 end_entry_nr = m_detail_list->currentRow();
+
+  for (u32 frame_nr = 0; frame_nr <= end_frame_nr; ++frame_nr)
+  {
+    u32 mem_update_idx = 0;
+    const AnalyzedFrameInfo& frame_info = m_fifo_player.GetAnalyzedFrameInfo(frame_nr);
+    const FifoFrameInfo& fifo_frame = m_fifo_player.GetFile()->GetFrame(frame_nr);
+
+    const u32 fifo_size = (u32)fifo_frame.fifoData.size();
+    u32 last_cmd = fifo_size - 1;
+    if (frame_nr == end_frame_nr)
+      last_cmd = frame_info.parts[start_part_nr].m_start + m_object_data_offsets[end_entry_nr];
+
+    for (u32 cmd = 0; cmd <= last_cmd;)
+    {
+      while (mem_update_idx < fifo_frame.memoryUpdates.size() &&
+             fifo_frame.memoryUpdates[mem_update_idx].fifoPosition == cmd)
+      {
+        auto& mem_update = fifo_frame.memoryUpdates[mem_update_idx];
+        auto& mem = mem_update.address & 0x1000'0000 ? mem2 : mem1;
+        std::ranges::copy(mem_update.data, &mem.at(mem_update.address & ~0x1000'0000));
+        ++mem_update_idx;
+      }
+
+      state_callback.m_cmd_pos = cmd;
+      u32 consumed =
+          OpcodeDecoder::RunCommand(&fifo_frame.fifoData[cmd], fifo_size - cmd, state_callback);
+      ASSERT(consumed > 0);
+      cmd += consumed;
+    }
+  }
+
+  const GPState& state = state_callback.m_gpstate;
+  const GPState& fifo_pos = state_callback.m_fifo_pos;
+
+  m_cp->takeChildren();
+  m_xf->takeChildren();
+  m_bp->takeChildren();
+
+  QBrush changed_brush = QPalette().brush(QPalette::Text);
+  changed_brush.setColor(Qt::red);
+
+  // CP
+  const auto add_cp_reg = [&](u32 cp_addr) {
+    auto row = new QTreeWidgetItem({
+        QStringLiteral("CP"),
+        QStringLiteral("%1").arg(fifo_pos.m_cpmem[cp_addr], 8, 16, QLatin1Char('0')),
+        QStringLiteral("%1").arg(cp_addr, 2, 16, QLatin1Char('0')),
+        QStringLiteral("%1").arg(state.m_cpmem[cp_addr], 8, 16, QLatin1Char('0')),
+        QStringLiteral("%1").arg(
+            QString::fromStdString(GetCPRegInfo(cp_addr, state.m_cpmem[cp_addr]).first)),
+    });
+    if (fifo_pos.m_cpmem[cp_addr] != m_prev_fifo_pos.m_cpmem[cp_addr])
+      row->setForeground(1, changed_brush);
+    if (state.m_cpmem[cp_addr] != m_prev_state.m_cpmem[cp_addr])
+      row->setForeground(3, changed_brush);
+    m_cp->addChild(row);
+  };
+
+  for (u32 i = UNKNOWN_00; i <= VCD_HI; i += 0x10)
+    add_cp_reg(i);
+  for (u32 i = CP_VAT_REG_A; i < CP_VAT_REG_A + CP_NUM_VAT_REG; ++i)
+    add_cp_reg(i);
+  for (u32 i = CP_VAT_REG_B; i < CP_VAT_REG_B + CP_NUM_VAT_REG; ++i)
+    add_cp_reg(i);
+  for (u32 i = CP_VAT_REG_C; i < CP_VAT_REG_C + CP_NUM_VAT_REG; ++i)
+    add_cp_reg(i);
+  for (u32 i = ARRAY_BASE; i < ARRAY_BASE + CP_NUM_ARRAYS; ++i)
+    add_cp_reg(i);
+  for (u32 i = ARRAY_STRIDE; i < ARRAY_STRIDE + CP_NUM_ARRAYS; ++i)
+    add_cp_reg(i);
+
+  // XF
+  const auto add_xf_reg = [&](u32 xf_addr) {
+    auto row = new QTreeWidgetItem({
+        QStringLiteral("XF"),
+        QStringLiteral("%1").arg(fifo_pos.m_xfmem[xf_addr], 8, 16, QLatin1Char('0')),
+        QStringLiteral("%1").arg(xf_addr, 4, 16, QLatin1Char('0')),
+        QStringLiteral("%1").arg(state.m_xfmem[xf_addr], 8, 16, QLatin1Char('0')),
+        QStringLiteral("%1").arg(QString::fromStdString(
+            xf_addr < XFMEM_REGISTERS_START ? GetXFMemName(xf_addr) :
+                                              GetXFRegInfo(xf_addr, state.m_xfmem[xf_addr]).first)),
+    });
+    if (fifo_pos.m_xfmem[xf_addr] != m_prev_fifo_pos.m_xfmem[xf_addr])
+      row->setForeground(1, changed_brush);
+    if (state.m_xfmem[xf_addr] != m_prev_state.m_xfmem[xf_addr])
+      row->setForeground(3, changed_brush);
+    m_xf->addChild(row);
+  };
+
+  for (u32 i = XFMEM_POSMATRICES; i < XFMEM_POSMATRICES_END; ++i)
+    add_xf_reg(i);
+  for (u32 i = XFMEM_NORMALMATRICES; i < XFMEM_NORMALMATRICES_END; ++i)
+    add_xf_reg(i);
+  for (u32 i = XFMEM_POSTMATRICES; i < XFMEM_POSTMATRICES_END; ++i)
+    add_xf_reg(i);
+  for (u32 i = XFMEM_LIGHTS; i < XFMEM_LIGHTS_END; ++i)
+    add_xf_reg(i);
+  for (u32 i = XFMEM_REGISTERS_START; i < XFMEM_REGISTERS_END; ++i)
+    add_xf_reg(i);
+
+  // BP
+  for (u32 i = 0; i < state.m_bpmem.size(); ++i)
+  {
+    auto row = new QTreeWidgetItem({
+        QStringLiteral("BP"),
+        QStringLiteral("%1").arg(fifo_pos.m_bpmem[i], 8, 16, QLatin1Char('0')),
+        QStringLiteral("%1").arg(i, 2, 16, QLatin1Char('0')),
+        QStringLiteral("%1").arg(state.m_bpmem[i], 6, 16, QLatin1Char('0')),
+        QStringLiteral("%1").arg(QString::fromStdString(GetBPRegInfo(i, state.m_bpmem[i]).first)),
+    });
+    if (fifo_pos.m_bpmem[i] != m_prev_fifo_pos.m_bpmem[i])
+      row->setForeground(1, changed_brush);
+    if (state.m_bpmem[i] != m_prev_state.m_bpmem[i])
+      row->setForeground(3, changed_brush);
+    m_bp->addChild(row);
+  }
+
+  m_prev_state = state;
+  m_prev_fifo_pos = fifo_pos;
 }
 
 void FIFOAnalyzer::OnDebugFontChanged(const QFont& font)
