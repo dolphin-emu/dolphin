@@ -15,6 +15,7 @@
 #include <string_view>
 
 #include "Common/CommonTypes.h"
+#include "Common/CoroutineUtil.h"
 #include "Common/Functional.h"
 #include "Common/HookableEvent.h"
 
@@ -159,6 +160,15 @@ void OnFrameEnd(Core::System& system);
 
 // Run a function on the CPU thread, asynchronously.
 void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> function);
+
+// Returns a coroutine awaiter that suspends then resumes execution on the CPU thread.
+// Example:
+//  co_await ScheduleOnCPUThread(system);
+// You are now magically running asynchronously on the CPU thread.
+[[nodiscard]] constexpr auto ScheduleOnCPUThread(Core::System& system)
+{
+  return Common::ResumeVia(std::bind_front(RunOnCPUThread, std::ref(system)));
+}
 
 // for calling back into UI code without introducing a dependency on it in core
 using StateChangedCallbackFunc = std::function<void(Core::State)>;

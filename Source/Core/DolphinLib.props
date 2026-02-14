@@ -39,6 +39,7 @@
     <ClInclude Include="Common\CommonTypes.h" />
     <ClInclude Include="Common\Config\Config.h" />
     <ClInclude Include="Common\Config\ConfigInfo.h" />
+    <ClInclude Include="Common\CoroutineUtil.h" />
     <ClInclude Include="Common\Config\Enums.h" />
     <ClInclude Include="Common\Config\Layer.h" />
     <ClInclude Include="Common\Contains.h" />
