@@ -23,6 +23,7 @@ struct TBreakPoint
   bool is_enabled = false;
   bool log_on_hit = false;
   bool break_on_hit = false;
+  bool log_call_stack = false;
   std::optional<Expression> condition;
 };
 
@@ -39,6 +40,8 @@ struct TMemCheck
 
   bool log_on_hit = false;
   bool break_on_hit = false;
+
+  bool log_call_stack = false;
 
   u32 num_hits = 0;
 
@@ -74,7 +77,8 @@ public:
   const TBreakPoint* GetRegularBreakpoint(u32 address) const;
 
   // Add BreakPoint. If one already exists on the same address, replace it.
-  void Add(u32 address, bool break_on_hit, bool log_on_hit, std::optional<Expression> condition);
+  void Add(u32 address, bool break_on_hit, bool log_on_hit, bool log_call_stack,
+           std::optional<Expression> condition);
   void Add(u32 address);
   void Add(TBreakPoint bp);
   // Add temporary breakpoint (e.g., Step Over, Run to Here)

@@ -19,6 +19,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Host.h"
@@ -651,6 +652,15 @@ bool PowerPCManager::CheckBreakPoints()
                    m_ppc_state.gpr[4], m_ppc_state.gpr[5], m_ppc_state.gpr[6], m_ppc_state.gpr[7],
                    m_ppc_state.gpr[8], m_ppc_state.gpr[9], m_ppc_state.gpr[10], m_ppc_state.gpr[11],
                    m_ppc_state.gpr[12], LR(m_ppc_state));
+
+    if (bp->log_call_stack)
+    {
+      auto& system = Core::System::GetInstance();
+      ASSERT(Core::IsCPUThread());
+      Core::CPUThreadGuard guard(system);
+      Dolphin_Debugger::PrintCallstack(guard, Common::Log::LogType::MEMMAP,
+                                       Common::Log::LogLevel::LNOTICE);
+    }
   }
   if (bp->break_on_hit)
     return true;

@@ -46,6 +46,8 @@ BreakpointDialog::BreakpointDialog(BreakpointWidget* parent, const TBreakPoint* 
   m_do_log->setChecked(!breakpoint->break_on_hit && breakpoint->log_on_hit);
   m_do_log_and_break->setChecked(breakpoint->break_on_hit && breakpoint->log_on_hit);
 
+  m_call_stack_checkbox->setChecked(breakpoint->log_call_stack);
+
   OnBPTypeChanged();
   OnAddressTypeChanged();
 }
@@ -79,6 +81,8 @@ BreakpointDialog::BreakpointDialog(BreakpointWidget* parent, const TMemCheck* me
   m_do_break->setChecked(memcheck->break_on_hit && !memcheck->log_on_hit);
   m_do_log->setChecked(!memcheck->break_on_hit && memcheck->log_on_hit);
   m_do_log_and_break->setChecked(memcheck->break_on_hit && memcheck->log_on_hit);
+
+  m_call_stack_checkbox->setChecked(memcheck->log_call_stack);
 
   OnBPTypeChanged();
   OnAddressTypeChanged();
@@ -174,6 +178,11 @@ void BreakpointDialog::CreateWidgets()
   conditional_layout->addWidget(new QLabel(tr("Condition:")));
   conditional_layout->addWidget(m_conditional);
 
+  // add a checkbox to support printing call stacks on membps
+  QHBoxLayout* call_stack_layout = new QHBoxLayout;
+  m_call_stack_checkbox = new QCheckBox(tr("Log Call Stack"));
+  call_stack_layout->addWidget(m_call_stack_checkbox);
+
   auto* action_layout = new QHBoxLayout;
   action_layout->addWidget(m_do_log);
   action_layout->addWidget(m_do_break);
@@ -182,6 +191,7 @@ void BreakpointDialog::CreateWidgets()
   auto* action_vlayout = new QVBoxLayout;
   action_vlayout->addLayout(conditional_layout);
   action_vlayout->addLayout(action_layout);
+  action_vlayout->addLayout(call_stack_layout);
 
   action_box->setLayout(action_vlayout);
 
@@ -262,6 +272,7 @@ void BreakpointDialog::accept()
   // Actions
   bool do_log = m_do_log->isChecked() || m_do_log_and_break->isChecked();
   bool do_break = m_do_break->isChecked() || m_do_log_and_break->isChecked();
+  bool log_call_stack = m_call_stack_checkbox->isChecked();
 
   bool good;
 
@@ -285,7 +296,7 @@ void BreakpointDialog::accept()
       return;
     }
 
-    m_parent->AddBP(address, do_break, do_log, condition);
+    m_parent->AddBP(address, do_break, do_log, log_call_stack, condition);
   }
   else
   {
@@ -306,11 +317,12 @@ void BreakpointDialog::accept()
         return;
       }
 
-      m_parent->AddRangedMBP(from, to, on_read, on_write, do_log, do_break, condition);
+      m_parent->AddRangedMBP(from, to, on_read, on_write, do_log, do_break, log_call_stack,
+                             condition);
     }
     else
     {
-      m_parent->AddAddressMBP(from, on_read, on_write, do_log, do_break, condition);
+      m_parent->AddAddressMBP(from, on_read, on_write, do_log, do_break, log_call_stack, condition);
     }
   }
 

@@ -66,6 +66,8 @@ private:
   QRadioButton* m_do_break;
   QRadioButton* m_do_log_and_break;
 
+  QCheckBox* m_call_stack_checkbox;
+
   QLineEdit* m_conditional;
   QPushButton* m_cond_help_btn;
 
