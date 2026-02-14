@@ -11,7 +11,7 @@
 #include "Core/Config/MainSettings.h"
 
 #ifdef _WIN32
-#include <Objbase.h>
+#include <objbase.h>
 #endif
 
 // ~10 ms - needs to be at least 240 for surround

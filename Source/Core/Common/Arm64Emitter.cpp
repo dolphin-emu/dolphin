@@ -21,7 +21,7 @@
 #include "Common/SmallVector.h"
 
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #endif
 #ifdef __APPLE__
 #include <libkern/OSCacheControl.h>

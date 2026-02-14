@@ -11,7 +11,7 @@
 #include <vector>
 
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 #include "Common/Assert.h"

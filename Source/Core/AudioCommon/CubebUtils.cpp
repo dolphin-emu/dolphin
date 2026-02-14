@@ -14,7 +14,7 @@
 #include <cubeb/cubeb.h>
 
 #ifdef _WIN32
-#include <Objbase.h>
+#include <objbase.h>
 #endif
 
 static void LogCallback(const char* format, ...)

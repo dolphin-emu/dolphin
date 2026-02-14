@@ -7,11 +7,11 @@
 #include <string>
 #include <thread>
 
-#include <Windows.h>
-#include <CommCtrl.h>
-#include <ShObjIdl.h>
-#include <ShlObj.h>
+#include <windows.h>
+#include <commctrl.h>
 #include <shellapi.h>
+#include <shlobj.h>
+#include <shobjidl.h>
 #include <wrl/client.h>
 
 #include "Common/Event.h"
