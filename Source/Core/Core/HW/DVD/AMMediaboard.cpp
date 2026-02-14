@@ -507,7 +507,7 @@ static int PlatformPoll(std::span<WSAPOLLFD> pfds, std::chrono::milliseconds tim
 #endif
 }
 
-std::optional<ParsedIPOverride> ParseIPOverride(std::string_view str)
+std::optional<ParsedIPRedirection> ParseIPRedirection(std::string_view str)
 {
   // Everything after a space is the description.
   const auto ip_pair_str = std::string_view{str.begin(), std::ranges::find(str, ' ')};
@@ -518,7 +518,7 @@ std::optional<ParsedIPOverride> ParseIPOverride(std::string_view str)
 
   const bool have_description = ip_pair_str.size() != str.size();
 
-  return ParsedIPOverride{
+  return ParsedIPRedirection{
       .original = (*parts)[0],
       .replacement = (*parts)[1],
       .description = have_description ? str.substr(ip_pair_str.size() + 1) : std::string_view{},
@@ -526,7 +526,7 @@ std::optional<ParsedIPOverride> ParseIPOverride(std::string_view str)
 }
 
 // Caller should check if it matches first!
-Common::IPv4Port IPAddressOverride::ApplyOverride(Common::IPv4Port subject) const
+Common::IPv4Port IPRedirection::Apply(Common::IPv4Port subject) const
 {
   // This logic could probably be better.
   // Ranges of different sizes will be weird in general.
@@ -555,26 +555,26 @@ Common::IPv4Port IPAddressOverride::ApplyOverride(Common::IPv4Port subject) cons
   return subject;
 }
 
-Common::IPv4Port IPAddressOverride::ReverseOverride(Common::IPv4Port subject) const
+Common::IPv4Port IPRedirection::Reverse(Common::IPv4Port subject) const
 {
   // Low effort implementation..
-  return IPAddressOverride{.original = replacement, .replacement = original}.ApplyOverride(subject);
+  return IPRedirection{.original = replacement, .replacement = original}.Apply(subject);
 }
 
-std::string IPAddressOverride::ToString() const
+std::string IPRedirection::ToString() const
 {
   return fmt::format("{}={}", original.ToString(), replacement.ToString());
 }
 
-IPOverrides GetIPOverrides()
+IPRedirections GetIPRedirections()
 {
-  IPOverrides result;
+  IPRedirections result;
 
-  const auto ip_overrides_str = Config::Get(Config::MAIN_TRIFORCE_IP_OVERRIDES);
-  for (auto&& ip_pair : ip_overrides_str | std::views::split(','))
+  const auto ip_redirections_str = Config::Get(Config::MAIN_TRIFORCE_IP_REDIRECTIONS);
+  for (auto&& ip_pair : ip_redirections_str | std::views::split(','))
   {
     const auto ip_pair_str = std::string_view{ip_pair};
-    const auto parts = ParseIPOverride(ip_pair_str);
+    const auto parts = ParseIPRedirection(ip_pair_str);
     if (parts.has_value())
     {
       const auto original = Common::StringToIPv4PortRange(parts->original);
@@ -586,7 +586,7 @@ IPOverrides GetIPOverrides()
         continue;
       }
 
-      ERROR_LOG_FMT(AMMEDIABOARD, "Bad IP pair string: {}", ip_pair_str);
+      ERROR_LOG_FMT(AMMEDIABOARD, "Bad IP redirection string: {}", ip_pair_str);
     }
   }
 
@@ -596,10 +596,10 @@ IPOverrides GetIPOverrides()
 static std::optional<Common::IPv4Port> AdjustIPv4PortFromConfig(Common::IPv4Port subject)
 {
   // TODO: We should parse this elsewhere to avoid repeated string manipulations.
-  for (auto&& override : GetIPOverrides())
+  for (auto&& redirection : GetIPRedirections())
   {
-    if (override.original.IsMatch(subject))
-      return override.ApplyOverride(subject);
+    if (redirection.original.IsMatch(subject))
+      return redirection.Apply(subject);
   }
 
   return std::nullopt;
@@ -608,10 +608,10 @@ static std::optional<Common::IPv4Port> AdjustIPv4PortFromConfig(Common::IPv4Port
 static std::optional<Common::IPv4Port> ReverseAdjustIPv4PortFromConfig(Common::IPv4Port subject)
 {
   // TODO: We should parse this elsewhere to avoid repeated string manipulations.
-  for (auto&& override : GetIPOverrides())
+  for (auto&& redirection : GetIPRedirections())
   {
-    if (override.replacement.IsMatch(subject))
-      return override.ReverseOverride(subject);
+    if (redirection.replacement.IsMatch(subject))
+      return redirection.Reverse(subject);
   }
 
   return std::nullopt;
@@ -665,7 +665,7 @@ static s32 NetDIMMConnect(GuestSocket guest_socket, const GuestSocketAddress& gu
     addr.sin_addr = std::bit_cast<in_addr>(adjusted_ipv4port->ip_address);
     addr.sin_port = adjusted_ipv4port->port;
 
-    INFO_LOG_FMT(AMMEDIABOARD, "NetDIMMConnect: Overriding to: {}:{}",
+    INFO_LOG_FMT(AMMEDIABOARD, "NetDIMMConnect: Redirecting to: {}:{}",
                  Common::IPAddressToString(adjusted_ipv4port->ip_address),
                  ntohs(adjusted_ipv4port->port));
   }
@@ -677,7 +677,7 @@ static s32 NetDIMMConnect(GuestSocket guest_socket, const GuestSocketAddress& gu
 
   const auto host_socket = GetHostSocket(guest_socket);
 
-  // See if we have an override for the game modified IP.
+  // See if we have a redirection for the game modified IP.
   // If so, adjust the source IP by binding the socket.
   const auto adjusted_source_ipv4port = AdjustIPv4PortFromConfig({s_game_modified_ip_address, 0});
   if (adjusted_source_ipv4port.has_value())
@@ -880,8 +880,8 @@ static Common::IPv4Port GetAdjustedBindIPv4Port(Common::IPv4Port socket_addr)
   if (std::bit_cast<u32>(considered_ipv4.ip_address) == INADDR_ANY)
   {
     // Because the game is binding to "0.0.0.0",
-    //  use the "game modified" IP for override purposes.
-    // If no override applies, then we still bind "0.0.0.0".
+    //  use the "game modified" IP for redirection purposes.
+    // If no redirection applies, then we still bind "0.0.0.0".
     considered_ipv4.ip_address = s_game_modified_ip_address;
     INFO_LOG_FMT(AMMEDIABOARD, "GetAdjustedBindIPv4Port: Considering game modified IP: {}",
                  Common::IPAddressToString(s_game_modified_ip_address));
@@ -890,7 +890,7 @@ static Common::IPv4Port GetAdjustedBindIPv4Port(Common::IPv4Port socket_addr)
   if (const auto adjusted_ipv4 = AdjustIPv4PortFromConfig(considered_ipv4))
   {
     socket_addr = *adjusted_ipv4;
-    INFO_LOG_FMT(AMMEDIABOARD, "GetAdjustedBindIPv4Port: Overriding to: {}:{}",
+    INFO_LOG_FMT(AMMEDIABOARD, "GetAdjustedBindIPv4Port: Redirecting to: {}:{}",
                  Common::IPAddressToString(socket_addr.ip_address), ntohs(socket_addr.port));
   }
 

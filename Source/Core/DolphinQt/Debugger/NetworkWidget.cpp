@@ -144,9 +144,10 @@ QTableWidgetItem* GetSocketName(s32 host_fd)
   return new QTableWidgetItem(QStringLiteral("%1->%2").arg(sock_name).arg(peer_name));
 }
 
-QTableWidgetItem* GetSocketRedirections(s32 host_fd, const AMMediaboard::IPOverrides& ip_overrides)
+QTableWidgetItem* GetSocketRedirections(s32 host_fd,
+                                        const AMMediaboard::IPRedirections& ip_redirections)
 {
-  if (host_fd < 0 || ip_overrides.empty())
+  if (host_fd < 0 || ip_redirections.empty())
     return new QTableWidgetItem();
 
   sockaddr_in sock_addr;
@@ -167,7 +168,7 @@ QTableWidgetItem* GetSocketRedirections(s32 host_fd, const AMMediaboard::IPOverr
 
   QStringList sock_rules;
   QStringList peer_rules;
-  for (const auto& rule : ip_overrides)
+  for (const auto& rule : ip_redirections)
   {
     if (rule.replacement.IsMatch(sock_ip_port))
       sock_rules << QString::fromStdString(rule.ToString());
@@ -294,7 +295,7 @@ void NetworkWidget::UpdateWiiSocketTable(Core::System& system)
 {
   // Show Wii socket blocking state
   m_socket_table->showColumn(4);
-  // Hide Triforce IP overrides
+  // Hide Triforce IP redirections
   m_socket_table->hideColumn(6);
 
   auto* ios = system.GetIOS();
@@ -339,9 +340,9 @@ void NetworkWidget::UpdateTriforceSocketTable()
 {
   // No easy way to get socket blocking state on Windows
   m_socket_table->hideColumn(4);
-  // Show active IP overrides
+  // Show active IP redirections
   m_socket_table->showColumn(6);
-  const auto ip_overrides = AMMediaboard::GetIPOverrides();
+  const auto ip_redirections = AMMediaboard::GetIPRedirections();
   for (s32 triforce_fd = 0; triforce_fd != AMMediaboard::SOCKET_FD_MAX; ++triforce_fd)
   {
     m_socket_table->insertRow(triforce_fd);
@@ -352,7 +353,7 @@ void NetworkWidget::UpdateTriforceSocketTable()
     m_socket_table->setItem(triforce_fd, 3, GetSocketState(host_fd));
     m_socket_table->setItem(triforce_fd, 4, new QTableWidgetItem(QTableWidget::tr("Unknown")));
     m_socket_table->setItem(triforce_fd, 5, GetSocketName(host_fd));
-    m_socket_table->setItem(triforce_fd, 6, GetSocketRedirections(host_fd, ip_overrides));
+    m_socket_table->setItem(triforce_fd, 6, GetSocketRedirections(host_fd, ip_redirections));
   }
 }
 

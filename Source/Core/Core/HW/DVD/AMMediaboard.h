@@ -245,29 +245,29 @@ bool GetTestMenu();
 void Shutdown();
 void DoState(PointerWrap& p);
 
-struct ParsedIPOverride
+struct ParsedIPRedirection
 {
   std::string_view original;
   std::string_view replacement;
   std::string_view description;
 };
 
-std::optional<ParsedIPOverride> ParseIPOverride(std::string_view str);
+std::optional<ParsedIPRedirection> ParseIPRedirection(std::string_view str);
 
-struct IPAddressOverride
+struct IPRedirection
 {
   Common::IPv4PortRange original;
   Common::IPv4PortRange replacement;
 
   // Caller should check if it matches first!
-  Common::IPv4Port ApplyOverride(Common::IPv4Port subject) const;
-  Common::IPv4Port ReverseOverride(Common::IPv4Port subject) const;
+  Common::IPv4Port Apply(Common::IPv4Port subject) const;
+  Common::IPv4Port Reverse(Common::IPv4Port subject) const;
   std::string ToString() const;
 };
 
-using IPOverrides = std::vector<IPAddressOverride>;
+using IPRedirections = std::vector<IPRedirection>;
 
-IPOverrides GetIPOverrides();
+IPRedirections GetIPRedirections();
 
 s32 DebuggerGetSocket(u32 triforce_fd);
 
