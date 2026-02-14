@@ -127,6 +127,8 @@ private:
   std::deque<OutstandingCommand> m_unacknowledged_commands;
 
   bool IsControllerReadyForCommand() const;
+
+  // Note that this only waits for the "complete" or "status" events.
   bool AreCommandsPendingResponse() const;
 
   // Give the transfer to the worker and track the command appropriately.
@@ -134,7 +136,7 @@ private:
   void PushHCICommand(TimedTransfer);
 
   template <typename EventType>
-  void AcknowledgeCommand(std::span<const u8> buffer);
+  void AcknowledgeCommand(const EventType& ev);
 
   libusb_transfer* AllocateTransfer(std::size_t buffer_size);
   void FreeTransfer(libusb_transfer*);
