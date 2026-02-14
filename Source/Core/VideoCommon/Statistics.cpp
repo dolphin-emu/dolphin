@@ -303,7 +303,7 @@ void Statistics::DisplayScissor()
       draw_rect(info.viewport_left, info.viewport_top, info.viewport_right, info.viewport_bottom,
                 col);
     }
-    for (size_t i = 0; i < info.rectangles.size(); i++)
+    for (size_t i = 0; i < info.rectangles.size(); ++i)
     {
       // The last entry in the sorted list of results is the one that is used by hardware backends
       const u8 new_alpha = (i == info.rectangles.size() - 1) ? 0x40 : 0x80;
@@ -357,7 +357,7 @@ void Statistics::DisplayScissor()
     ImVec2 p2 = ImGui::GetCursorScreenPos();
     // Use a height of 1 since we want this to span two table rows (if possible)
     ImGui::Dummy(ImVec2(EFB_WIDTH * scale_height, 1));
-    for (size_t i = 0; i < info.rectangles.size(); i++)
+    for (size_t i = 0; i < info.rectangles.size(); ++i)
     {
       // The last entry in the sorted list of results is the one that is used by hardware backends
       const u8 new_alpha = (i == info.rectangles.size() - 1) ? 0x80 : 0x40;
@@ -433,7 +433,7 @@ void Statistics::DisplayScissor()
   };
   if (current_scissor == 0)
   {
-    for (size_t i = 0; i < scissors.size(); i++)
+    for (size_t i = 0; i < scissors.size(); ++i)
       draw_scissor(i);
     if (show_text)
     {
@@ -442,9 +442,9 @@ void Statistics::DisplayScissor()
         if (ImGui::BeginTable("Scissors", NUM_SCISSOR_COLUMNS))
         {
           draw_scissor_table_header();
-          for (size_t i = 0; i < scissors.size(); i++)
+          for (size_t i = 0; i < scissors.size(); ++i)
             draw_scissor_table_row(i);
-          for (size_t i = scissors.size(); i < static_cast<size_t>(scissor_expected_count); i++)
+          for (size_t i = scissors.size(); i < static_cast<size_t>(scissor_expected_count); ++i)
             scissor_table_skip_row(i);
           ImGui::EndTable();
         }
@@ -454,9 +454,9 @@ void Statistics::DisplayScissor()
         if (ImGui::BeginTable("Viewports", NUM_VIEWPORT_COLUMNS))
         {
           draw_viewport_table_header();
-          for (size_t i = 0; i < scissors.size(); i++)
+          for (size_t i = 0; i < scissors.size(); ++i)
             draw_viewport_table_row(i);
-          for (size_t i = scissors.size(); i < static_cast<size_t>(scissor_expected_count); i++)
+          for (size_t i = scissors.size(); i < static_cast<size_t>(scissor_expected_count); ++i)
             viewport_table_skip_row(i);
           ImGui::EndTable();
         }

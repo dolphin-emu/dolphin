@@ -816,7 +816,7 @@ void ShaderCache::LoadPipelineUIDCache()
       uid_file_valid = file_size == expected_size;
       if (uid_file_valid)
       {
-        for (size_t i = 0; i < uid_count; i++)
+        for (size_t i = 0; i < uid_count; ++i)
         {
           SerializedGXPipelineUid serialized_uid;
           if (m_gx_pipeline_uid_cache_file.ReadBytes(&serialized_uid, sizeof(serialized_uid)))
@@ -1380,7 +1380,7 @@ bool ShaderCache::CompileSharedPipelines()
     config.vertex_shader = m_screen_quad_vertex_shader.get();
     config.geometry_shader = nullptr;
 
-    for (size_t i = 0; i < NUM_PALETTE_CONVERSION_SHADERS; i++)
+    for (size_t i = 0; i < NUM_PALETTE_CONVERSION_SHADERS; ++i)
     {
       TLUTFormat format = static_cast<TLUTFormat>(i);
       auto shader = g_gfx->CreateShaderFromSource(

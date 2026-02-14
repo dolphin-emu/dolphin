@@ -680,13 +680,13 @@ static void AddGCAdapter(libusb_device* device)
     WARN_LOG_FMT(CONTROLLERINTERFACE, "libusb_get_config_descriptor failed: {}",
                  LibusbUtils::ErrorWrap(error));
   }
-  for (u8 ic = 0; ic < config->bNumInterfaces; ic++)
+  for (u8 ic = 0; ic < config->bNumInterfaces; ++ic)
   {
     const libusb_interface* interfaceContainer = &config->interface[ic];
-    for (int i = 0; i < interfaceContainer->num_altsetting; i++)
+    for (int i = 0; i < interfaceContainer->num_altsetting; ++i)
     {
       const libusb_interface_descriptor* interface = &interfaceContainer->altsetting[i];
-      for (u8 e = 0; e < interface->bNumEndpoints; e++)
+      for (u8 e = 0; e < interface->bNumEndpoints; ++e)
       {
         const libusb_endpoint_descriptor* endpoint = &interface->endpoint[e];
         if (endpoint->bEndpointAddress & LIBUSB_ENDPOINT_IN)

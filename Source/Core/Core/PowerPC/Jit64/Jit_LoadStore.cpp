@@ -669,7 +669,7 @@ void Jit64::lmw(UGeckoInstruction inst)
     RegCache::Realize(Ra);
     MOV_sum(32, RSCRATCH2, Ra, Imm32((u32)(s32)inst.SIMM_16));
   }
-  for (int i = d; i < 32; i++)
+  for (int i = d; i < 32; ++i)
   {
     SafeLoadToReg(RSCRATCH, R(RSCRATCH2), 32, (i - d) * 4,
                   CallerSavedRegistersInUse() | BitSet32{RSCRATCH2}, false);
@@ -689,7 +689,7 @@ void Jit64::stmw(UGeckoInstruction inst)
   FlushRegistersBeforeSlowAccess();
 
   // TODO: This doesn't handle rollback on DSI correctly
-  for (int i = d; i < 32; i++)
+  for (int i = d; i < 32; ++i)
   {
     RCOpArg Ra = a ? gpr.Use(a, RCMode::Read) : RCOpArg::Imm32(0);
     RCOpArg Ri = gpr.Use(i, RCMode::Read);

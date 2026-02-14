@@ -342,7 +342,7 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(u64 disc_offset) const
   if (m_offset_file_info_cache.empty())
   {
     u32 fst_entries = m_root.GetSize();
-    for (u32 i = 0; i < fst_entries; i++)
+    for (u32 i = 0; i < fst_entries; ++i)
     {
       FileInfoGCWii file_info(m_root, i);
       if (!file_info.IsDirectory())

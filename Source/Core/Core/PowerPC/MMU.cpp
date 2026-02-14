@@ -1796,7 +1796,7 @@ MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress add
   pte1.API = api;
   pte1.V = 1;
 
-  for (int hash_func = 0; hash_func < 2; hash_func++)
+  for (int hash_func = 0; hash_func < 2; ++hash_func)
   {
     // hash function no 2 "not" .360
     if (hash_func == 1)

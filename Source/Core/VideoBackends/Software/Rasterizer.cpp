@@ -172,9 +172,9 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
   tev.Position[2] = z;
 
   //  colors
-  for (unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
+  for (unsigned int i = 0; i < bpmem.genMode.numcolchans; ++i)
   {
-    for (int comp = 0; comp < 4; comp++)
+    for (int comp = 0; comp < 4; ++comp)
     {
       const float color = ColorSlopes[i][comp].GetValue(x, y);
       tev.Color[i][comp] = (u8)std::clamp<float>(color, 0.0f, 255.0f);
@@ -182,20 +182,20 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
   }
 
   // tex coords
-  for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
+  for (unsigned int i = 0; i < bpmem.genMode.numtexgens; ++i)
   {
     // multiply by 128 because TEV stores UVs as s17.7
     tev.Uv[i].s = (s32)(pixel.Uv[i][0] * 128);
     tev.Uv[i].t = (s32)(pixel.Uv[i][1] * 128);
   }
 
-  for (unsigned int i = 0; i < bpmem.genMode.numindstages; i++)
+  for (unsigned int i = 0; i < bpmem.genMode.numindstages; ++i)
   {
     tev.IndirectLod[i] = rasterBlock.IndirectLod[i];
     tev.IndirectLinear[i] = rasterBlock.IndirectLinear[i];
   }
 
-  for (unsigned int i = 0; i <= bpmem.genMode.numtevstages; i++)
+  for (unsigned int i = 0; i <= bpmem.genMode.numtevstages; ++i)
   {
     tev.TextureLod[i] = rasterBlock.TextureLod[i];
     tev.TextureLinear[i] = rasterBlock.TextureLinear[i];
@@ -257,9 +257,9 @@ static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoor
 
 static void BuildBlock(s32 blockX, s32 blockY)
 {
-  for (s32 yi = 0; yi < BLOCK_SIZE; yi++)
+  for (s32 yi = 0; yi < BLOCK_SIZE; ++yi)
   {
-    for (s32 xi = 0; xi < BLOCK_SIZE; xi++)
+    for (s32 xi = 0; xi < BLOCK_SIZE; ++xi)
     {
       RasterBlockPixel& pixel = rasterBlock.Pixel[xi][yi];
 
@@ -270,7 +270,7 @@ static void BuildBlock(s32 blockX, s32 blockY)
       pixel.InvW = invW;
 
       // tex coords
-      for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
+      for (unsigned int i = 0; i < bpmem.genMode.numtexgens; ++i)
       {
         float projection = invW;
         float q = TexSlopes[i][2].GetValue(x, y) * invW;
@@ -283,7 +283,7 @@ static void BuildBlock(s32 blockX, s32 blockY)
     }
   }
 
-  for (unsigned int i = 0; i < bpmem.genMode.numindstages; i++)
+  for (unsigned int i = 0; i < bpmem.genMode.numindstages; ++i)
   {
     u32 texmap = bpmem.tevindref.getTexMap(i);
     u32 texcoord = bpmem.tevindref.getTexCoord(i);
@@ -291,7 +291,7 @@ static void BuildBlock(s32 blockX, s32 blockY)
     CalculateLOD(&rasterBlock.IndirectLod[i], &rasterBlock.IndirectLinear[i], texmap, texcoord);
   }
 
-  for (unsigned int i = 0; i <= bpmem.genMode.numtevstages; i++)
+  for (unsigned int i = 0; i <= bpmem.genMode.numtevstages; ++i)
   {
     int stageOdd = i & 1;
     const TwoTevStageOrders& order = bpmem.tevorders[i >> 1];
@@ -383,13 +383,13 @@ static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertex
                 1.0f / v2->projectedPosition.w};
   WSlope = Slope(w[0], w[1], w[2], ctx);
 
-  for (unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
+  for (unsigned int i = 0; i < bpmem.genMode.numcolchans; ++i)
   {
-    for (int comp = 0; comp < 4; comp++)
+    for (int comp = 0; comp < 4; ++comp)
       ColorSlopes[i][comp] = Slope(v0->color[i][comp], v1->color[i][comp], v2->color[i][comp], ctx);
   }
 
-  for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
+  for (unsigned int i = 0; i < bpmem.genMode.numtexgens; ++i)
   {
     TexSlopes[i][0] =
         Slope(v0->texCoords[i].x * w[0], v1->texCoords[i].x * w[1], v2->texCoords[i].x * w[2], ctx);
@@ -459,9 +459,9 @@ static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertex
       // We still need to check min/max x/y because of the scissor
       if (a == 0xF && b == 0xF && c == 0xF && x >= minx && x1_ < maxx && y >= miny && y1_ < maxy)
       {
-        for (s32 iy = 0; iy < BLOCK_SIZE; iy++)
+        for (s32 iy = 0; iy < BLOCK_SIZE; ++iy)
         {
-          for (s32 ix = 0; ix < BLOCK_SIZE; ix++)
+          for (s32 ix = 0; ix < BLOCK_SIZE; ++ix)
           {
             Draw(x + ix, y + iy, ix, iy);
           }
@@ -473,13 +473,13 @@ static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertex
         s32 CY2 = C2 + DX23 * y0 - DY23 * x0;
         s32 CY3 = C3 + DX31 * y0 - DY31 * x0;
 
-        for (s32 iy = 0; iy < BLOCK_SIZE; iy++)
+        for (s32 iy = 0; iy < BLOCK_SIZE; ++iy)
         {
           s32 CX1 = CY1;
           s32 CX2 = CY2;
           s32 CX3 = CY3;
 
-          for (s32 ix = 0; ix < BLOCK_SIZE; ix++)
+          for (s32 ix = 0; ix < BLOCK_SIZE; ++ix)
           {
             if (CX1 > 0 && CX2 > 0 && CX3 > 0)
             {

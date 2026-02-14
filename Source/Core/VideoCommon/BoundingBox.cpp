@@ -63,7 +63,7 @@ void BoundingBox::Readback()
   auto read_values = Read(0, NUM_BBOX_VALUES);
 
   // Preserve dirty values, that way we don't need to sync.
-  for (u32 i = 0; i < NUM_BBOX_VALUES; i++)
+  for (u32 i = 0; i < NUM_BBOX_VALUES; ++i)
   {
     if (!m_dirty[i])
       m_values[i] = read_values[i];

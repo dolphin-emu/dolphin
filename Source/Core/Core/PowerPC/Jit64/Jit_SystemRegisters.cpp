@@ -517,7 +517,7 @@ void Jit64::mtcrf(UGeckoInstruction inst)
   {
     if (gpr.IsImm(inst.RS))
     {
-      for (int i = 0; i < 8; i++)
+      for (int i = 0; i < 8; ++i)
       {
         if ((crm & (0x80 >> i)) != 0)
         {
@@ -540,7 +540,7 @@ void Jit64::mtcrf(UGeckoInstruction inst)
       MOV(64, R(RSCRATCH2), ImmPtr(PowerPC::ConditionRegister::s_crTable.data()));
       RCX64Reg Rs = gpr.Bind(inst.RS, RCMode::Read);
       RegCache::Realize(Rs);
-      for (int i = 0; i < 8; i++)
+      for (int i = 0; i < 8; ++i)
       {
         if ((crm & (0x80 >> i)) != 0)
         {
@@ -861,7 +861,7 @@ void Jit64::mtfsfx(UGeckoInstruction inst)
   FALLBACK_IF(jo.fp_exceptions);
 
   u32 mask = 0;
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 8; ++i)
   {
     if (inst.FM & (1 << i))
       mask |= 0xF << (4 * i);

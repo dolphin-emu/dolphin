@@ -352,7 +352,7 @@ void BreakpointWidget::Update()
     // Color rows that are effectively disabled.
     if (!bp.is_enabled || (!bp.log_on_hit && !bp.break_on_hit))
     {
-      for (int col = 0; col < m_table->columnCount(); col++)
+      for (int col = 0; col < m_table->columnCount(); ++col)
         m_table->item(i, col)->setBackground(disabled_color);
     }
 
@@ -411,7 +411,7 @@ void BreakpointWidget::Update()
     if (!mbp.is_enabled || (!mbp.is_break_on_write && !mbp.is_break_on_read) ||
         (!mbp.break_on_hit && !mbp.log_on_hit))
     {
-      for (int col = 0; col < m_table->columnCount(); col++)
+      for (int col = 0; col < m_table->columnCount(); ++col)
         m_table->item(i, col)->setBackground(disabled_color);
     }
 

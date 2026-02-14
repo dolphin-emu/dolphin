@@ -647,7 +647,7 @@ std::string PostProcessing::GetUniformBufferHeader(bool user_post_process) const
       if (it.second.m_type == PostProcessingConfiguration::ConfigurationOption::OptionType::Bool)
       {
         ss << fmt::format("  int {};\n", it.first);
-        for (u32 i = 0; i < 3; i++)
+        for (u32 i = 0; i < 3; ++i)
           ss << "  int ubo_align_" << unused_counter++ << "_;\n";
       }
       else if (it.second.m_type ==
@@ -659,7 +659,7 @@ std::string PostProcessing::GetUniformBufferHeader(bool user_post_process) const
         else
           ss << fmt::format("  int{} {};\n", count, it.first);
 
-        for (u32 i = count; i < 4; i++)
+        for (u32 i = count; i < 4; ++i)
           ss << "  int ubo_align_" << unused_counter++ << "_;\n";
       }
       else if (it.second.m_type ==
@@ -671,7 +671,7 @@ std::string PostProcessing::GetUniformBufferHeader(bool user_post_process) const
         else
           ss << fmt::format("  float{} {};\n", count, it.first);
 
-        for (u32 i = count; i < 4; i++)
+        for (u32 i = count; i < 4; ++i)
           ss << "  float ubo_align_" << unused_counter++ << "_;\n";
       }
     }

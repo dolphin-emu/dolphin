@@ -233,7 +233,7 @@ void LoadXFReg(u16 base_address, u8 transfer_size, const u8* data)
     }
 
     XFMemWritten(xf_state_manager, xf_mem_transfer_size, xf_mem_base);
-    for (u32 i = 0; i < xf_mem_transfer_size; i++)
+    for (u32 i = 0; i < xf_mem_transfer_size; ++i)
     {
       ((u32*)&xfmem)[xf_mem_base + i] = Common::swap32(data);
       data += 4;
@@ -243,7 +243,7 @@ void LoadXFReg(u16 base_address, u8 transfer_size, const u8* data)
   // write to XF regs
   if (base_address >= XFMEM_REGISTERS_START)
   {
-    for (u32 address = base_address; address < end_address; address++)
+    for (u32 address = base_address; address < end_address; ++address)
     {
       const u32 value = Common::swap32(data);
 
@@ -612,7 +612,7 @@ std::pair<std::string, std::string> GetXFTransferInfo(u16 base_address, u8 trans
     fmt::format_to(std::back_inserter(name), "Write {} XF mem words at {:04x}",
                    xf_mem_transfer_size, xf_mem_base);
 
-    for (u32 i = 0; i < xf_mem_transfer_size; i++)
+    for (u32 i = 0; i < xf_mem_transfer_size; ++i)
     {
       const auto mem_desc = GetXFMemDescription(xf_mem_base + i, Common::swap32(data));
       fmt::format_to(std::back_inserter(desc), "{}{}", i != 0 ? "\n" : "", mem_desc);
@@ -629,7 +629,7 @@ std::pair<std::string, std::string> GetXFTransferInfo(u16 base_address, u8 trans
     fmt::format_to(std::back_inserter(name), "Write {} XF regs at {:04x}",
                    end_address - base_address, base_address);
 
-    for (u32 address = base_address; address < end_address; address++)
+    for (u32 address = base_address; address < end_address; ++address)
     {
       const u32 value = Common::swap32(data);
 
@@ -649,7 +649,7 @@ std::pair<std::string, std::string> GetXFIndexedLoadInfo(CPArray array, u32 inde
   const auto desc = fmt::format("Load {} words to XF address {:03x} from CP array {} row {}", size,
                                 address, array, index);
   fmt::memory_buffer written;
-  for (u32 i = 0; i < size; i++)
+  for (u32 i = 0; i < size; ++i)
   {
     fmt::format_to(std::back_inserter(written), "{}\n", GetXFMemName(address + i));
   }

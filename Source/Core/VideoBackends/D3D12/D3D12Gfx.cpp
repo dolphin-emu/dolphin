@@ -32,7 +32,7 @@ Gfx::Gfx(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
 {
   m_state.root_signature = g_dx_context->GetGXRootSignature();
 
-  for (u32 i = 0; i < VideoCommon::MAX_PIXEL_SHADER_SAMPLERS; i++)
+  for (u32 i = 0; i < VideoCommon::MAX_PIXEL_SHADER_SAMPLERS; ++i)
   {
     m_state.textures[i].ptr = g_dx_context->GetNullSRVDescriptor().cpu_handle.ptr;
     m_state.samplers.states[i] = RenderState::GetPointSamplerState();
@@ -280,7 +280,7 @@ void Gfx::UnbindTexture(const AbstractTexture* texture)
 {
   const auto srv_shadow_descriptor =
       static_cast<const DXTexture*>(texture)->GetSRVDescriptor().cpu_handle;
-  for (u32 i = 0; i < VideoCommon::MAX_PIXEL_SHADER_SAMPLERS; i++)
+  for (u32 i = 0; i < VideoCommon::MAX_PIXEL_SHADER_SAMPLERS; ++i)
   {
     if (m_state.textures[i].ptr == srv_shadow_descriptor.ptr)
     {

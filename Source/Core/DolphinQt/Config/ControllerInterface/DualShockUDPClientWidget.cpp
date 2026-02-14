@@ -122,7 +122,7 @@ void DualShockUDPClientWidget::OnServerRemoved()
   const auto server_details = SplitString(servers_setting, ';');
 
   std::string new_server_setting;
-  for (int i = 0; i < m_server_list->count(); i++)
+  for (int i = 0; i < m_server_list->count(); ++i)
   {
     if (i == row_to_remove)
     {

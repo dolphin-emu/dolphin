@@ -58,7 +58,7 @@ ShaderIncluder::IncludeResult* ShaderIncluder::ProcessInclude(const std::string&
   }
 
   // Search through directories back to front
-  for (auto iter = m_dirs.rbegin(); iter != m_dirs.rend(); iter++)
+  for (auto iter = m_dirs.rbegin(); iter != m_dirs.rend(); ++iter)
   {
     const std::string full_path = WithUnifiedPathSeparators(*iter + '/' + header_name);
 

@@ -77,14 +77,14 @@ bool StateTracker::Initialize()
                                               VK_IMAGE_LAYOUT_GENERAL);
 
   // Initialize all samplers to point by default
-  for (size_t i = 0; i < VideoCommon::MAX_PIXEL_SHADER_SAMPLERS; i++)
+  for (size_t i = 0; i < VideoCommon::MAX_PIXEL_SHADER_SAMPLERS; ++i)
   {
     m_bindings.samplers[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     m_bindings.samplers[i].imageView = m_dummy_texture->GetView();
     m_bindings.samplers[i].sampler = g_object_cache->GetPointSampler();
   }
 
-  for (size_t i = 0; i < VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS; i++)
+  for (size_t i = 0; i < VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS; ++i)
   {
     m_bindings.image_textures[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
     m_bindings.image_textures[i].imageView = m_dummy_compute_texture->GetView();
@@ -490,7 +490,7 @@ void StateTracker::UpdateGXDescriptorSet()
     m_gx_descriptor_sets[0] = g_command_buffer_mgr->AllocateDescriptorSet(
         g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_STANDARD_UNIFORM_BUFFERS));
 
-    for (size_t i = 0; i < NUM_UBO_DESCRIPTOR_SET_BINDINGS; i++)
+    for (size_t i = 0; i < NUM_UBO_DESCRIPTOR_SET_BINDINGS; ++i)
     {
       if (i == UBO_DESCRIPTOR_SET_BINDING_GS && !needs_gs_ubo)
       {

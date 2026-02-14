@@ -757,14 +757,14 @@ void Jit64::Trace()
   std::string fregs;
 
 #ifdef JIT_LOG_GPR
-  for (size_t i = 0; i < std::size(m_ppc_state.gpr); i++)
+  for (size_t i = 0; i < std::size(m_ppc_state.gpr); ++i)
   {
     regs += fmt::format("r{:02d}: {:08x} ", i, m_ppc_state.gpr[i]);
   }
 #endif
 
 #ifdef JIT_LOG_FPR
-  for (size_t i = 0; i < std::size(m_ppc_state.ps); i++)
+  for (size_t i = 0; i < std::size(m_ppc_state.ps); ++i)
   {
     fregs += fmt::format("f{:02d}: {:016x} ", i, m_ppc_state.ps[i].PS0AsU64());
   }
@@ -991,7 +991,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   }
 
   // Translate instructions
-  for (u32 i = 0; i < code_block.m_num_instructions; i++)
+  for (u32 i = 0; i < code_block.m_num_instructions; ++i)
   {
     PPCAnalyst::CodeOp& op = m_code_buffer[i];
 

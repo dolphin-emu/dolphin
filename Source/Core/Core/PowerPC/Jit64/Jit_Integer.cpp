@@ -1224,7 +1224,7 @@ void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
     // We could handle factors of 2^N*3, 2^N*5, and 2^N*9 using lea+shl, but testing shows
     // it seems to be slower overall.
     static constexpr std::array<u8, 3> lea_scales{{3, 5, 9}};
-    for (size_t i = 0; i < lea_scales.size(); i++)
+    for (size_t i = 0; i < lea_scales.size(); ++i)
     {
       if (imm == lea_scales[i] && Ra.IsSimpleReg())
       {
@@ -2543,7 +2543,7 @@ void Jit64::twX(UGeckoInstruction inst)
   constexpr std::array<CCFlags, 5> conditions{{CC_A, CC_B, CC_E, CC_G, CC_L}};
   Common::SmallVector<FixupBranch, conditions.size()> fixups;
 
-  for (size_t i = 0; i < conditions.size(); i++)
+  for (size_t i = 0; i < conditions.size(); ++i)
   {
     if (inst.TO & (1 << i))
     {

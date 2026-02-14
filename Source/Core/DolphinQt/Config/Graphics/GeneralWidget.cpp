@@ -128,7 +128,7 @@ void GeneralWidget::CreateWidgets()
       QT_TR_NOOP("Hybrid Ubershaders"),
       QT_TR_NOOP("Skip Drawing"),
   }};
-  for (size_t i = 0; i < modes.size(); i++)
+  for (size_t i = 0; i < modes.size(); ++i)
   {
     m_shader_compilation_mode[i] = new ConfigRadioInt(
         tr(modes[i]), Config::GFX_SHADER_COMPILATION_MODE, static_cast<int>(i), m_game_layer);

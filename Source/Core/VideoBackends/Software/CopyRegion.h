@@ -24,9 +24,9 @@ void CopyRegion(const T* const source, const MathUtil::Rectangle<int>& srcrect, 
   double x_ratio = srcrect.GetWidth() / static_cast<double>(dstrect.GetWidth());
   double y_ratio = srcrect.GetHeight() / static_cast<double>(dstrect.GetHeight());
 
-  for (int y_off = 0; y_off < copy_height; y_off++)
+  for (int y_off = 0; y_off < copy_height; ++y_off)
   {
-    for (int x_off = 0; x_off < copy_width; x_off++)
+    for (int x_off = 0; x_off < copy_width; ++x_off)
     {
       int dst_x = dstrect.left + x_off;
       int dst_y = dstrect.top + y_off;

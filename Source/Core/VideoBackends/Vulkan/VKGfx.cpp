@@ -174,7 +174,7 @@ void VKGfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool color_en
     }
     if (has_color)
     {
-      for (std::size_t i = 0; i < vk_frame_buffer->GetNumberOfAdditonalAttachments(); i++)
+      for (std::size_t i = 0; i < vk_frame_buffer->GetNumberOfAdditonalAttachments(); ++i)
       {
         VkClearAttachment clear_attachment;
         clear_attachment.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -553,7 +553,7 @@ void VKGfx::UnbindTexture(const AbstractTexture* texture)
 void VKGfx::ResetSamplerStates()
 {
   // Invalidate all sampler states, next draw will re-initialize them.
-  for (u32 i = 0; i < m_sampler_states.size(); i++)
+  for (u32 i = 0; i < m_sampler_states.size(); ++i)
   {
     m_sampler_states[i] = RenderState::GetPointSamplerState();
     StateTracker::GetInstance()->SetSampler(i, g_object_cache->GetPointSampler());

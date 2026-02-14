@@ -384,7 +384,7 @@ void EnumerateGeometryShaderUids(const std::function<void(const GeometryShaderUi
     geometry_shader_uid_data* const guid = uid.GetUidData();
     guid->primitive_type = static_cast<u32>(primitive);
 
-    for (u32 texgens = 0; texgens <= 8; texgens++)
+    for (u32 texgens = 0; texgens <= 8; ++texgens)
     {
       guid->numTexGens = texgens;
       callback(uid);

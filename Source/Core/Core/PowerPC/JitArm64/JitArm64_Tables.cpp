@@ -352,7 +352,7 @@ constexpr std::array<JitArm64::Instruction, 1024> s_dyna_op_table4 = []() conste
   std::array<JitArm64::Instruction, 1024> table{};
   table.fill(&JitArm64::FallBackToInterpreter);
 
-  for (u32 i = 0; i < 32; i++)
+  for (u32 i = 0; i < 32; ++i)
   {
     const u32 fill = i << 5;
     for (const auto& tpl : s_table4_2)
@@ -363,7 +363,7 @@ constexpr std::array<JitArm64::Instruction, 1024> s_dyna_op_table4 = []() conste
     }
   }
 
-  for (u32 i = 0; i < 16; i++)
+  for (u32 i = 0; i < 16; ++i)
   {
     const u32 fill = i << 6;
     for (const auto& tpl : s_table4_3)
@@ -433,7 +433,7 @@ constexpr std::array<JitArm64::Instruction, 1024> s_dyna_op_table63 = []() const
     table[tpl.opcode] = tpl.fn;
   }
 
-  for (u32 i = 0; i < 32; i++)
+  for (u32 i = 0; i < 32; ++i)
   {
     const u32 fill = i << 5;
     for (const auto& tpl : s_table63_2)

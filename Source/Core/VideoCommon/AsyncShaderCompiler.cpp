@@ -91,7 +91,7 @@ bool AsyncShaderCompiler::WaitUntilCompletion(
   // This way, if the operation completes quickly, we don't annoy the user.
   constexpr u32 CHECK_INTERVAL_MS = 1000 / 30;
   constexpr auto CHECK_INTERVAL = std::chrono::milliseconds(CHECK_INTERVAL_MS);
-  for (u32 i = 0; i < (1000 / CHECK_INTERVAL_MS); i++)
+  for (u32 i = 0; i < (1000 / CHECK_INTERVAL_MS); ++i)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(CHECK_INTERVAL));
     if (!HasPendingWork())
@@ -129,7 +129,7 @@ bool AsyncShaderCompiler::StartWorkerThreads(u32 num_worker_threads)
   if (num_worker_threads == 0)
     return true;
 
-  for (u32 i = 0; i < num_worker_threads; i++)
+  for (u32 i = 0; i < num_worker_threads; ++i)
   {
     void* thread_param = nullptr;
     if (!WorkerThreadInitMainThread(&thread_param))

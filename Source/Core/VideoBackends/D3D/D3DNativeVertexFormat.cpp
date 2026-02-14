@@ -129,13 +129,13 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
   AddAttribute(vtx_decl.position, ShaderAttrib::Position);
 
-  for (u32 i = 0; i < 3; i++)
+  for (u32 i = 0; i < 3; ++i)
     AddAttribute(vtx_decl.normals[i], ShaderAttrib::Normal + i);
 
-  for (u32 i = 0; i < 2; i++)
+  for (u32 i = 0; i < 2; ++i)
     AddAttribute(vtx_decl.colors[i], ShaderAttrib::Color0 + i);
 
-  for (u32 i = 0; i < 8; i++)
+  for (u32 i = 0; i < 8; ++i)
     AddAttribute(vtx_decl.texcoords[i], ShaderAttrib::TexCoord0 + i);
 
   AddAttribute(vtx_decl.posmtx, ShaderAttrib::PositionMatrix);

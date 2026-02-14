@@ -82,13 +82,13 @@ void Interpreter::Shutdown()
 void Interpreter::Trace(const UGeckoInstruction& inst)
 {
   std::string regs;
-  for (size_t i = 0; i < std::size(m_ppc_state.gpr); i++)
+  for (size_t i = 0; i < std::size(m_ppc_state.gpr); ++i)
   {
     regs += fmt::format("r{:02d}: {:08x} ", i, m_ppc_state.gpr[i]);
   }
 
   std::string fregs;
-  for (size_t i = 0; i < std::size(m_ppc_state.ps); i++)
+  for (size_t i = 0; i < std::size(m_ppc_state.ps); ++i)
   {
     const auto& ps = m_ppc_state.ps[i];
     fregs += fmt::format("f{:02d}: {:08x} {:08x} ", i, ps.PS0AsU64(), ps.PS1AsU64());

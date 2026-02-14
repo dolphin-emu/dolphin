@@ -175,7 +175,7 @@ void StateManager::Apply()
 
 void StateManager::ApplyTextures()
 {
-  for (u32 i = 0; i < VideoCommon::MAX_PIXEL_SHADER_SAMPLERS; i++)
+  for (u32 i = 0; i < VideoCommon::MAX_PIXEL_SHADER_SAMPLERS; ++i)
   {
     const u32 flag = i;
     if (m_dirtyFlags.test(flag))
@@ -189,7 +189,7 @@ void StateManager::ApplyTextures()
     }
   }
 
-  for (u32 i = 0; i < VideoCommon::MAX_PIXEL_SHADER_SAMPLERS; i++)
+  for (u32 i = 0; i < VideoCommon::MAX_PIXEL_SHADER_SAMPLERS; ++i)
   {
     const u32 flag = i + VideoCommon::MAX_PIXEL_SHADER_SAMPLERS;
     if (m_dirtyFlags.test(flag))

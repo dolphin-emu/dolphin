@@ -44,12 +44,12 @@ void AchievementLeaderboardWidget::UpdateData(bool clean_all)
         rc_client_create_leaderboard_list(client, RC_CLIENT_LEADERBOARD_LIST_GROUPING_TRACKING);
 
     u32 row = 0;
-    for (u32 bucket = 0; bucket < leaderboard_list->num_buckets; bucket++)
+    for (u32 bucket = 0; bucket < leaderboard_list->num_buckets; ++bucket)
     {
       const auto& leaderboard_bucket = leaderboard_list->buckets[bucket];
       m_common_layout->addWidget(new QLabel(tr(leaderboard_bucket.label)), row, 0);
       row += 2;
-      for (u32 board = 0; board < leaderboard_bucket.num_leaderboards; board++)
+      for (u32 board = 0; board < leaderboard_bucket.num_leaderboards; ++board)
       {
         const auto* leaderboard = leaderboard_bucket.leaderboards[board];
         m_leaderboard_order[leaderboard->id] = row;
@@ -66,10 +66,10 @@ void AchievementLeaderboardWidget::UpdateData(bool clean_all)
         a_divider->setFrameShape(QFrame::HLine);
         m_common_layout->addWidget(a_divider, row - 1, 0);
         m_common_layout->addLayout(a_col_left, row, 0);
-        for (size_t ix = 0; ix < 4; ix++)
+        for (size_t ix = 0; ix < 4; ++ix)
         {
           QVBoxLayout* a_col = new QVBoxLayout();
-          for (size_t jx = 0; jx < 3; jx++)
+          for (size_t jx = 0; jx < 3; ++jx)
             a_col->addWidget(new QLabel(QStringLiteral("---")));
           QFrame* a_divider_2 = new QFrame();
           a_divider_2->setFrameShape(QFrame::HLine);

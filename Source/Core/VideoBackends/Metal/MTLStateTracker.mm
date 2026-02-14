@@ -305,7 +305,7 @@ void Metal::StateTracker::BeginClearRenderPass(MTLClearColor color, float depth)
   desc.colorAttachments[0].clearColor = color;
   if (framebuffer->GetDepthFormat() != AbstractTextureFormat::Undefined)
     desc.depthAttachment.clearDepth = depth;
-  for (size_t i = 0; i < framebuffer->NumAdditionalColorTextures(); i++)
+  for (size_t i = 0; i < framebuffer->NumAdditionalColorTextures(); ++i)
     desc.colorAttachments[i + 1].clearColor = color;
   BeginRenderPass(desc);
 }
