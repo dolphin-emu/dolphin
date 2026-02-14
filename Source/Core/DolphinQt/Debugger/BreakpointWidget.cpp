@@ -173,6 +173,7 @@ void BreakpointWidget::CreateWidgets()
   layout->setContentsMargins(2, 2, 2, 2);
   layout->setSpacing(0);
 
+  m_enabled = m_toolbar->addAction(tr("Disable"), this, &BreakpointWidget::OnToggleBreaking);
   m_new = m_toolbar->addAction(tr("New"), this, &BreakpointWidget::OnNewBreakpoint);
   m_clear = m_toolbar->addAction(tr("Clear"), this, &BreakpointWidget::OnClear);
 
@@ -190,6 +191,10 @@ void BreakpointWidget::CreateWidgets()
 
 void BreakpointWidget::UpdateIcons()
 {
+  if (m_system.GetPowerPC().GetBreakPoints().IsBreakingEnabled())
+    m_enabled->setIcon(Resources::GetThemeIcon("pause"));
+  else
+    m_enabled->setIcon(Resources::GetThemeIcon("play"));
   m_new->setIcon(Resources::GetThemeIcon("debugger_add_breakpoint"));
   m_clear->setIcon(Resources::GetThemeIcon("debugger_clear"));
   m_load->setIcon(Resources::GetThemeIcon("debugger_load"));
@@ -464,6 +469,28 @@ void BreakpointWidget::OnEditBreakpoint(u32 address, bool is_instruction_bp)
   }
 
   emit Host::GetInstance()->PPCBreakpointsChanged();
+}
+
+void BreakpointWidget::OnToggleBreaking()
+{
+  auto& breakpoints = m_system.GetPowerPC().GetBreakPoints();
+  auto& memchecks = m_system.GetPowerPC().GetMemChecks();
+
+  // Currently toggles all code and memory breakpoints. Could be split if needed.
+  if (breakpoints.IsBreakingEnabled())
+  {
+    breakpoints.EnableBreaking(false);
+    memchecks.EnableBreaking(false);
+    m_enabled->setText(tr("Enable"));
+    m_enabled->setIcon(Resources::GetThemeIcon("play"));
+  }
+  else
+  {
+    breakpoints.EnableBreaking(true);
+    memchecks.EnableBreaking(true);
+    m_enabled->setText(tr("Disable"));
+    m_enabled->setIcon(Resources::GetThemeIcon("pause"));
+  }
 }
 
 void BreakpointWidget::OnLoad()
