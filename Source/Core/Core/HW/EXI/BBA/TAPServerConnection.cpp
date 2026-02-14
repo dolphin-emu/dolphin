@@ -257,7 +257,17 @@ void TAPServerConnection::ReadThreadHandler()
   {
     fd_set rfds;
     FD_ZERO(&rfds);
-    FD_SET(m_fd, &rfds);
+
+    // TODO: Don't use select().
+    // See WARNING at https://www.man7.org/linux/man-pages/man2/select.2.html
+    if (m_fd >= FD_SETSIZE)
+    {
+      ERROR_LOG_FMT(SP1, "fd >= FD_SETSIZE");
+    }
+    else
+    {
+      FD_SET(m_fd, &rfds);
+    }
 
     timeval timeout;
     timeout.tv_sec = 0;

@@ -260,7 +260,17 @@ static bool IsDataAvailable()
   fd_set _fds, *fds = &_fds;
 
   FD_ZERO(fds);
-  FD_SET(s_sock, fds);
+
+  // TODO: Don't use select().
+  // See WARNING at https://www.man7.org/linux/man-pages/man2/select.2.html
+  if (s_sock >= FD_SETSIZE)
+  {
+    ERROR_LOG_FMT(GDB_STUB, "fd >= FD_SETSIZE");
+  }
+  else
+  {
+    FD_SET(s_sock, fds);
+  }
 
   t.tv_sec = 0;
   t.tv_usec = 20;
