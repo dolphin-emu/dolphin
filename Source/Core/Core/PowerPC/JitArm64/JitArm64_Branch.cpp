@@ -21,8 +21,8 @@ void JitArm64::sc(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
 
-  gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-  fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+  gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
+  fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
 
   {
     auto WA = gpr.GetScopedReg();
@@ -39,8 +39,8 @@ void JitArm64::rfi(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
 
-  gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-  fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+  gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
+  fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
 
   // See Interpreter rfi for details
   const u32 mask = 0x87C0FFFF;
@@ -173,8 +173,8 @@ void JitArm64::bx(UGeckoInstruction inst)
     return;
   }
 
-  gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-  fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+  gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
+  fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
 
   if (js.op->branchIsIdleLoop)
   {
@@ -288,8 +288,8 @@ void JitArm64::bcx(UGeckoInstruction inst)
 
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
   {
-    gpr.Flush(FlushMode::All, WA);
-    fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+    gpr.Flush(FlushMode::Full, WA);
+    fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
     if (IsDebuggingEnabled())
     {
       WriteBranchWatch<false>(js.compilerPC, js.compilerPC + 4, inst, WA, WB, {}, {});
@@ -322,8 +322,8 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
   // BO_2 == 1z1zz -> b always
 
   // NPC = CTR & 0xfffffffc;
-  gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
-  fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+  gpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
+  fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
 
   Arm64GPRCache::ScopedARM64Reg WB = ARM64Reg::INVALID_REG;
   if (inst.LK_3)
@@ -401,8 +401,8 @@ void JitArm64::bclrx(UGeckoInstruction inst)
       STR(IndexType::Unsigned, WB, PPC_REG, PPCSTATE_OFF_SPR(SPR_LR));
     }
 
-    gpr.Flush(conditional ? FlushMode::MaintainState : FlushMode::All, WB);
-    fpr.Flush(conditional ? FlushMode::MaintainState : FlushMode::All, ARM64Reg::INVALID_REG);
+    gpr.Flush(conditional ? FlushMode::MaintainState : FlushMode::Full, WB);
+    fpr.Flush(conditional ? FlushMode::MaintainState : FlushMode::Full, ARM64Reg::INVALID_REG);
 
     if (IsDebuggingEnabled())
     {
@@ -447,8 +447,8 @@ void JitArm64::bclrx(UGeckoInstruction inst)
 
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
   {
-    gpr.Flush(FlushMode::All, WA);
-    fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
+    gpr.Flush(FlushMode::Full, WA);
+    fpr.Flush(FlushMode::Full, ARM64Reg::INVALID_REG);
     if (IsDebuggingEnabled())
     {
       WriteBranchWatch<false>(js.compilerPC, js.compilerPC + 4, inst, WA, WB, {}, {});

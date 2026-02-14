@@ -322,8 +322,8 @@ void JitArm64::FlushPPCStateBeforeSlowAccess(ARM64Reg temp_gpr, ARM64Reg temp_fp
   MemChecks& mem_checks = m_system.GetPowerPC().GetMemChecks();
   if (mem_checks.HasAny())
   {
-    gpr.StoreRegisters(mem_checks.GetGPRsUsedInConditions(), temp_gpr, FlushMode::MaintainState);
-    fpr.StoreRegisters(mem_checks.GetFPRsUsedInConditions(), temp_fpr, FlushMode::MaintainState);
+    gpr.FlushRegisters(mem_checks.GetGPRsUsedInConditions(), FlushMode::MaintainState, temp_gpr);
+    fpr.FlushRegisters(mem_checks.GetFPRsUsedInConditions(), FlushMode::MaintainState, temp_fpr);
   }
 }
 
