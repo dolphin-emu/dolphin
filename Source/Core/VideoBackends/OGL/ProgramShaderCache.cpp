@@ -221,9 +221,8 @@ u32 ProgramShaderCache::GetUniformBufferAlignment()
   return s_ubo_align;
 }
 
-void ProgramShaderCache::UploadConstants()
+void ProgramShaderCache::UploadConstants(Core::System& system)
 {
-  auto& system = Core::System::GetInstance();
   auto& pixel_shader_manager = system.GetPixelShaderManager();
   auto& vertex_shader_manager = system.GetVertexShaderManager();
   auto& geometry_shader_manager = system.GetGeometryShaderManager();

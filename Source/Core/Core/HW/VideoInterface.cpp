@@ -864,7 +864,7 @@ void VideoInterfaceManager::OutputField(FieldType field, u64 ticks)
   // can change the register values during scanout. To correctly emulate the scanout process, we
   // would need to collate all changes to the VI registers during scanout.
   if (xfbAddr)
-    g_video_backend->Video_OutputXFB(xfbAddr, fbWidth, fbStride, fbHeight, ticks);
+    g_video_backend->Video_OutputXFB(m_system, xfbAddr, fbWidth, fbStride, fbHeight, ticks);
 }
 
 void VideoInterfaceManager::BeginField(FieldType field, u64 ticks)

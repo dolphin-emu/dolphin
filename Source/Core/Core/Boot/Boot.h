@@ -32,6 +32,12 @@ namespace File
 class IOFile;
 }
 
+namespace IOS::HLE
+{
+class EmulationKernel;
+class ESCore;
+}  // namespace IOS::HLE
+
 namespace IOS::HLE::FS
 {
 class FileSystem;
@@ -222,13 +228,14 @@ struct StateFlags
 
 // Reads the state file from the NAND, then calls the passed update function to update the struct,
 // and finally writes the updated state file to the NAND.
-void UpdateStateFlags(std::function<void(StateFlags*)> update_function);
+void UpdateStateFlags(IOS::HLE::EmulationKernel* ios,
+                      std::function<void(StateFlags*)> update_function);
 
 /// Create title directories for the system menu (if needed).
 ///
 /// Normally, this is automatically done by ES when the System Menu is installed,
 /// but we cannot rely on this because we don't require any system titles to be installed.
-void CreateSystemMenuTitleDirs();
+void CreateSystemMenuTitleDirs(const IOS::HLE::ESCore& es_core);
 
 void AddRiivolutionPatches(BootParameters* boot_params,
                            std::vector<DiscIO::Riivolution::Patch> riivolution_patches);

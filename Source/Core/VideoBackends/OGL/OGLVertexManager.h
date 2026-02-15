@@ -11,6 +11,11 @@
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexManagerBase.h"
 
+namespace Core
+{
+class System;
+}
+
 namespace OGL
 {
 class StreamBuffer;
@@ -28,7 +33,7 @@ public:
 class VertexManager final : public VertexManagerBase
 {
 public:
-  VertexManager();
+  VertexManager(Core::System& system);
   ~VertexManager() override;
 
   bool Initialize() override;
@@ -54,5 +59,6 @@ private:
   std::unique_ptr<StreamBuffer> m_index_buffer;
   std::unique_ptr<StreamBuffer> m_texel_buffer;
   std::array<GLuint, NUM_TEXEL_BUFFER_FORMATS> m_texel_buffer_views{};
+  Core::System& m_system;
 };
 }  // namespace OGL
