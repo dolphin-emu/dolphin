@@ -3,6 +3,7 @@
 #pragma once
 
 #include <bit>
+#include <concepts>
 #include <cstddef>
 #include <initializer_list>
 #include <type_traits>
@@ -29,7 +30,7 @@ namespace Common
 //   operation.)
 // - Counting set bits using .Count() - see comment on that method.
 
-template <typename IntTy>
+template <std::unsigned_integral IntTy>
 class BitSet
 {
   static_assert(!std::is_signed<IntTy>::value, "BitSet should not be used with signed types");
@@ -39,18 +40,18 @@ public:
   class Ref
   {
   public:
-    constexpr Ref(Ref&& other) : m_bs(other.m_bs), m_mask(other.m_mask) {}
-    constexpr Ref(BitSet* bs, IntTy mask) : m_bs(bs), m_mask(mask) {}
-    constexpr operator bool() const { return (m_bs->m_val & m_mask) != 0; }
-    bool operator=(bool set)
+    constexpr Ref(Ref&& other) : m_bs(other.m_bs), m_shift(other.m_shift) {}
+    constexpr Ref(BitSet* bs, size_t mask) : m_bs(bs), m_shift(mask) {}
+    constexpr operator bool() const { return (m_bs->m_val >> m_shift) & 1; }
+    constexpr Ref& operator=(bool set)
     {
-      m_bs->m_val = (m_bs->m_val & ~m_mask) | (set ? m_mask : 0);
-      return set;
+      m_bs->m_val = (m_bs->m_val & ~(!set << m_shift)) | (set << m_shift);
+      return *this;
     }
 
   private:
     BitSet* m_bs;
-    IntTy m_mask;
+    size_t m_shift;
   };
 
   // A STL-like iterator is required to be able to use range-based for loops.
@@ -58,6 +59,9 @@ public:
   {
   public:
     constexpr Iterator(const Iterator& other) : m_val(other.m_val), m_bit(other.m_bit) {}
+    using value_type = int;
+    using difference_type = int;
+    constexpr Iterator() : m_val(0), m_bit(-1) {}
     constexpr Iterator(IntTy val, int bit) : m_val(val), m_bit(bit) {}
     Iterator& operator=(Iterator other)
     {
@@ -101,12 +105,14 @@ public:
       m_val |= IntTy{1} << bit;
   }
 
+  constexpr static BitSet AllTrue() { return BitSet(~IntTy{0}); }
+
   constexpr static BitSet AllTrue(size_t count)
   {
     return BitSet(count == sizeof(IntTy) * 8 ? ~IntTy{0} : ((IntTy{1} << count) - 1));
   }
 
-  Ref operator[](size_t bit) { return Ref(this, IntTy{1} << bit); }
+  constexpr Ref operator[](size_t bit) { return Ref(this, bit); }
   constexpr const Ref operator[](size_t bit) const { return (*const_cast<BitSet*>(this))[bit]; }
   constexpr bool operator==(BitSet other) const { return m_val == other.m_val; }
   constexpr bool operator!=(BitSet other) const { return m_val != other.m_val; }
@@ -131,6 +137,14 @@ public:
   constexpr unsigned int Count() const { return std::popcount(m_val); }
   constexpr Iterator begin() const { return ++Iterator(m_val, 0); }
   constexpr Iterator end() const { return Iterator(m_val, -1); }
+
+  template <typename IntTyTo>
+  requires std::unsigned_integral<IntTyTo> && std::convertible_to<IntTy, IntTyTo>
+  constexpr BitSet<IntTyTo> Cast()
+  {
+    return BitSet<IntTyTo>((IntTyTo)m_val);
+  }
+
   IntTy m_val{};
 };
 }  // namespace Common
