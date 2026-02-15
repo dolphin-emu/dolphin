@@ -149,7 +149,7 @@ void FIFOAnalyzer::UpdateTree()
 
   const u32 frame_count = file->GetFrameCount();
 
-  for (u32 frame = 0; frame < frame_count; frame++)
+  for (u32 frame = 0; frame < frame_count; ++frame)
   {
     auto* frame_item = new QTreeWidgetItem({tr("Frame %1").arg(frame)});
 
@@ -161,7 +161,7 @@ void FIFOAnalyzer::UpdateTree()
     Common::EnumMap<u32, FramePartType::EFBCopy> part_counts;
     u32 part_start = 0;
 
-    for (u32 part_nr = 0; part_nr < frame_info.parts.size(); part_nr++)
+    for (u32 part_nr = 0; part_nr < frame_info.parts.size(); ++part_nr)
     {
       const auto& part = frame_info.parts[part_nr];
 
@@ -224,7 +224,7 @@ public:
 
     text = QStringLiteral("XF  %1  ").arg(command, 8, 16, QLatin1Char('0'));
 
-    for (u8 i = 0; i < count; i++)
+    for (u8 i = 0; i < count; ++i)
     {
       const u32 value = Common::swap32(&data[i * 4]);
 
@@ -277,7 +277,7 @@ public:
 // #define INCLUDE_HEX_IN_PRIMITIVES
 #ifdef INCLUDE_HEX_IN_PRIMITIVES
     text += QStringLiteral("   ");
-    for (u32 i = 0; i < object_prim_size; i++)
+    for (u32 i = 0; i < object_prim_size; ++i)
     {
       text += QStringLiteral("%1").arg(vertex_data[i], 2, 16, QLatin1Char('0'));
     }
@@ -405,7 +405,7 @@ void FIFOAnalyzer::BeginSearch()
 
   std::vector<u8> search_val;
 
-  for (size_t i = 0; i < length; i++)
+  for (size_t i = 0; i < length; ++i)
   {
     const QString byte_str = search_str.mid(static_cast<int>(i * 2), 2);
 
@@ -437,7 +437,7 @@ void FIFOAnalyzer::BeginSearch()
   const u8* const object = &fifo_frame.fifoData[object_start];
 
   // TODO: Support searching for bit patterns
-  for (u32 cmd_nr = 0; cmd_nr < m_object_data_offsets.size(); cmd_nr++)
+  for (u32 cmd_nr = 0; cmd_nr < m_object_data_offsets.size(); ++cmd_nr)
   {
     const u32 cmd_start = m_object_data_offsets[cmd_nr];
     const u32 cmd_end = (cmd_nr + 1 == m_object_data_offsets.size()) ?
@@ -447,7 +447,7 @@ void FIFOAnalyzer::BeginSearch()
     const u8* const cmd_start_ptr = &object[cmd_start];
     const u8* const cmd_end_ptr = &object[cmd_end];
 
-    for (const u8* ptr = cmd_start_ptr; ptr < cmd_end_ptr - length + 1; ptr++)
+    for (const u8* ptr = cmd_start_ptr; ptr < cmd_end_ptr - length + 1; ++ptr)
     {
       if (std::equal(search_val.begin(), search_val.end(), ptr))
       {
@@ -637,9 +637,9 @@ public:
       }
 
       const u32 component_size = GetElementSize(format);
-      for (u32 j = 0; j < count; j++)
+      for (u32 j = 0; j < count; ++j)
       {
-        for (u32 component_off = 0; component_off < component_size; component_off++)
+        for (u32 component_off = 0; component_off < component_size; ++component_off)
         {
           text += QStringLiteral("%1").arg(vertex_data[i + component_off], 2, 16, QLatin1Char('0'));
         }
@@ -654,7 +654,7 @@ public:
       text += QLatin1Char{' '};
     };
     const auto process_simple_component = [&](const u32 size) {
-      for (u32 component_off = 0; component_off < size; component_off++)
+      for (u32 component_off = 0; component_off < size; ++component_off)
       {
         text += QStringLiteral("%1").arg(vertex_data[i + component_off], 2, 16, QLatin1Char('0'));
       }
@@ -663,7 +663,7 @@ public:
       text += QLatin1Char{' '};
     };
 
-    for (u32 vertex_num = 0; vertex_num < num_vertices; vertex_num++)
+    for (u32 vertex_num = 0; vertex_num < num_vertices; ++vertex_num)
     {
       ASSERT(i == vertex_num * vertex_size);
 
@@ -683,7 +683,7 @@ public:
       process_component(vtx_desc.low.Normal, vtx_attr.g0.NormalFormat,
                         normal_component_count * normal_elements,
                         vtx_attr.g0.NormalIndex3 ? normal_elements : 1);
-      for (u32 c = 0; c < vtx_desc.low.Color.Size(); c++)
+      for (u32 c = 0; c < vtx_desc.low.Color.Size(); ++c)
       {
         static constexpr Common::EnumMap<u32, ColorFormat::RGBA8888> component_sizes = {
             2,  // RGB565
@@ -708,7 +708,7 @@ public:
           break;
         }
       }
-      for (u32 t = 0; t < vtx_desc.high.TexCoord.Size(); t++)
+      for (u32 t = 0; t < vtx_desc.high.TexCoord.Size(); ++t)
       {
         process_component(vtx_desc.high.TexCoord[t], vtx_attr.GetTexFormat(t),
                           vtx_attr.GetTexElements(t) == TexComponentCount::ST ? 2 : 1);

@@ -119,7 +119,7 @@ bool VertexManager::Initialize()
   UploadAllConstants();
   StateTracker::GetInstance()->SetUtilityUniformBuffer(m_uniform_stream_buffer->GetBuffer(), 0,
                                                        sizeof(VertexShaderConstants));
-  for (u32 i = 0; i < NUM_COMPUTE_TEXEL_BUFFERS; i++)
+  for (u32 i = 0; i < NUM_COMPUTE_TEXEL_BUFFERS; ++i)
   {
     StateTracker::GetInstance()->SetTexelBuffer(i,
                                                 m_texel_buffer_views[TEXEL_BUFFER_FORMAT_R8_UINT]);

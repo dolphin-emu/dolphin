@@ -450,7 +450,7 @@ TEST(Assembler, AllInstructions)
   ASSERT_EQ(code_blocks.size(), 1);
   ASSERT_EQ(code_blocks[0].instructions.size(), sizeof(expected_instructions));
 
-  for (size_t i = 0; i < code_blocks[0].instructions.size(); i++)
+  for (size_t i = 0; i < code_blocks[0].instructions.size(); ++i)
   {
     EXPECT_EQ(code_blocks[0].instructions[i], expected_instructions[i]) << " -> i=" << i;
   }
@@ -1542,7 +1542,7 @@ TEST(Assembler, AllExtendedInstructions)
   ASSERT_EQ(code_blocks.size(), 1);
   ASSERT_EQ(code_blocks[0].instructions.size(), sizeof(extended_expect));
 
-  for (size_t i = 0; i < code_blocks[0].instructions.size(); i++)
+  for (size_t i = 0; i < code_blocks[0].instructions.size(); ++i)
   {
     EXPECT_EQ(code_blocks[0].instructions[i], extended_expect[i]) << "->i=" << i;
   }
@@ -1591,7 +1591,7 @@ TEST(Assembler, ByteDirectivesSimple)
   ASSERT_EQ(code_blocks.size(), 1);
   ASSERT_EQ(code_blocks[0].instructions.size(), sizeof(expect));
 
-  for (size_t i = 0; i < code_blocks[0].instructions.size(); i++)
+  for (size_t i = 0; i < code_blocks[0].instructions.size(); ++i)
   {
     EXPECT_EQ(code_blocks[0].instructions[i], expect[i]) << " -> i=" << i;
   }
@@ -1613,7 +1613,7 @@ TEST(Assembler, MultiOperandDirectives)
   ASSERT_EQ(code_blocks.size(), 1);
   ASSERT_EQ(code_blocks[0].instructions.size(), sizeof(expect));
 
-  for (size_t i = 0; i < code_blocks[0].instructions.size(); i++)
+  for (size_t i = 0; i < code_blocks[0].instructions.size(); ++i)
   {
     EXPECT_EQ(code_blocks[0].instructions[i], expect[i]) << " -> i=" << i;
   }
@@ -1635,7 +1635,7 @@ TEST(Assembler, OperandExpressionDirectives)
   ASSERT_EQ(code_blocks.size(), 1);
   ASSERT_EQ(code_blocks[0].instructions.size(), sizeof(expect));
 
-  for (size_t i = 0; i < code_blocks[0].instructions.size(); i++)
+  for (size_t i = 0; i < code_blocks[0].instructions.size(); ++i)
   {
     EXPECT_EQ(code_blocks[0].instructions[i], expect[i]) << " -> i=" << i;
   }
@@ -1663,7 +1663,7 @@ TEST(Assembler, FloatDirectives)
   ASSERT_EQ(code_blocks.size(), 1);
   ASSERT_EQ(code_blocks[0].instructions.size(), sizeof(expect));
 
-  for (size_t i = 0; i < code_blocks[0].instructions.size(); i++)
+  for (size_t i = 0; i < code_blocks[0].instructions.size(); ++i)
   {
     EXPECT_EQ(code_blocks[0].instructions[i], expect[i]) << " -> i=" << i;
   }
@@ -1681,7 +1681,7 @@ TEST(Assembler, ZeroDirectives)
   ASSERT_EQ(code_blocks.size(), 1);
   ASSERT_EQ(code_blocks[0].instructions.size(), sizeof(expect));
 
-  for (size_t i = 0; i < code_blocks[0].instructions.size(); i++)
+  for (size_t i = 0; i < code_blocks[0].instructions.size(); ++i)
   {
     EXPECT_EQ(code_blocks[0].instructions[i], expect[i]) << " -> i=" << i;
   }
@@ -1707,7 +1707,7 @@ TEST(Assembler, StringDirectives)
   ASSERT_EQ(code_blocks.size(), 1);
   ASSERT_EQ(code_blocks[0].instructions.size(), sizeof(expect));
 
-  for (size_t i = 0; i < code_blocks[0].instructions.size(); i++)
+  for (size_t i = 0; i < code_blocks[0].instructions.size(); ++i)
   {
     EXPECT_EQ(code_blocks[0].instructions[i], expect[i]) << " -> i=" << i;
   }
@@ -1731,7 +1731,7 @@ TEST(Assembler, RelocateDirective)
   ASSERT_TRUE(!IsFailure(res));
   auto&& code_blocks = GetT(res);
   ASSERT_EQ(code_blocks.size(), std::size(expect_size));
-  for (size_t i = 0; i < code_blocks.size(); i++)
+  for (size_t i = 0; i < code_blocks.size(); ++i)
   {
     EXPECT_EQ(code_blocks[i].instructions.size(), expect_size[i]) << " -> i=" << i;
     EXPECT_EQ(code_blocks[i].block_address, expect_addr[i]) << " -> i=" << i;
@@ -1770,30 +1770,30 @@ TEST(Assembler, AlignmentDirectives)
   ASSERT_TRUE(!IsFailure(res));
   auto&& code_blocks = GetT(res);
   ASSERT_EQ(code_blocks.size(), std::size(expect_addr));
-  for (size_t i = 0; i < code_blocks.size(); i++)
+  for (size_t i = 0; i < code_blocks.size(); ++i)
   {
     EXPECT_EQ(code_blocks[i].block_address, expect_addr[i]) << " -> i=" << i;
   }
 
   auto&& last_block = code_blocks.back().instructions;
   ASSERT_EQ(last_block.size(), 1024);
-  for (size_t i = 0; i < 3; i++)
+  for (size_t i = 0; i < 3; ++i)
   {
     EXPECT_EQ(last_block[i], 1) << " -> i=" << i;
   }
   EXPECT_EQ(last_block[3], 0) << " -> i=4";
   EXPECT_EQ(last_block[4], 1) << " -> i=4";
-  for (size_t i = 5; i < 16; i++)
+  for (size_t i = 5; i < 16; ++i)
   {
     EXPECT_EQ(last_block[i], 0) << " -> i=" << i;
   }
   EXPECT_EQ(last_block[16], 1) << " -> i=16";
-  for (size_t i = 17; i < 32; i++)
+  for (size_t i = 17; i < 32; ++i)
   {
     EXPECT_EQ(last_block[i], 0) << " -> i=" << i;
   }
   EXPECT_EQ(last_block[32], 1) << " -> i=32";
-  for (size_t i = 33; i < last_block.size(); i++)
+  for (size_t i = 33; i < last_block.size(); ++i)
   {
     EXPECT_EQ(last_block[i], 0) << " -> i=" << i;
   }
@@ -1848,7 +1848,7 @@ TEST(Assembler, DefvarDirective)
   ASSERT_TRUE(!IsFailure(res));
   auto&& code_blocks = GetT(res);
   ASSERT_EQ(code_blocks.size(), 1);
-  for (size_t i = 0; i < code_blocks[0].instructions.size(); i++)
+  for (size_t i = 0; i < code_blocks[0].instructions.size(); ++i)
   {
     EXPECT_EQ(code_blocks[0].instructions[i], expect[i]) << " -> i=" << i;
   }
@@ -1887,13 +1887,13 @@ TEST(Assembler, VariousOperandExpressions)
   ASSERT_EQ(code_blocks.size(), 2);
 
   ASSERT_EQ(code_blocks[0].instructions.size(), sizeof(expect_0));
-  for (size_t i = 0; i < code_blocks[0].instructions.size(); i++)
+  for (size_t i = 0; i < code_blocks[0].instructions.size(); ++i)
   {
     EXPECT_EQ(code_blocks[0].instructions[i], expect_0[i]) << " -> i=" << i;
   }
 
   ASSERT_EQ(code_blocks[1].instructions.size(), sizeof(expect_1));
-  for (size_t i = 0; i < code_blocks[1].instructions.size(); i++)
+  for (size_t i = 0; i < code_blocks[1].instructions.size(); ++i)
   {
     EXPECT_EQ(code_blocks[1].instructions[i], expect_1[i]) << " -> i=" << i;
   }
@@ -1921,7 +1921,7 @@ TEST(Assembler, AbsRel)
   ASSERT_EQ(code_blocks.size(), 1);
 
   ASSERT_EQ(code_blocks[0].instructions.size(), sizeof(expect));
-  for (size_t i = 0; i < code_blocks[0].instructions.size(); i++)
+  for (size_t i = 0; i < code_blocks[0].instructions.size(); ++i)
   {
     EXPECT_EQ(code_blocks[0].instructions[i], expect[i]) << " -> i=" << i;
   }
@@ -2218,7 +2218,7 @@ TEST(Assembler, RealAssembly)
   ASSERT_EQ(code_blocks[0].instructions.size(), sizeof(real_expect));
 
   EXPECT_EQ(code_blocks[0].block_address, 0x8046a690);
-  for (size_t i = 0; i < code_blocks[0].instructions.size(); i++)
+  for (size_t i = 0; i < code_blocks[0].instructions.size(); ++i)
   {
     EXPECT_EQ(code_blocks[0].instructions[i], real_expect[i]) << " -> i=" << i;
   }
@@ -2236,7 +2236,7 @@ TEST(Assembler, NumericLabels)
   ASSERT_EQ(code_blocks.size(), 1);
 
   ASSERT_EQ(code_blocks[0].instructions.size(), sizeof(expect));
-  for (size_t i = 0; i < code_blocks[0].instructions.size(); i++)
+  for (size_t i = 0; i < code_blocks[0].instructions.size(); ++i)
   {
     EXPECT_EQ(code_blocks[0].instructions[i], expect[i]) << " -> i=" << i;
   }

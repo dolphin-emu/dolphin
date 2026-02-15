@@ -232,7 +232,7 @@ void NetPlayBrowser::UpdateList()
 
   m_table_widget->setRowCount(session_count);
 
-  for (int i = 0; i < session_count; i++)
+  for (int i = 0; i < session_count; ++i)
   {
     const auto& entry = m_sessions[i];
 

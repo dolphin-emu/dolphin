@@ -574,7 +574,7 @@ Metal::Util::TranslateShaderToMSL(ShaderStage stage, std::string_view source,
     compiler.add_msl_resource_binding(binding);
   if (stage == ShaderStage::Pixel)
   {
-    for (u32 i = 0; i < VideoCommon::MAX_PIXEL_SHADER_SAMPLERS; i++)  // ps/samp0-N
+    for (u32 i = 0; i < VideoCommon::MAX_PIXEL_SHADER_SAMPLERS; ++i)  // ps/samp0-N
     {
       compiler.add_msl_resource_binding(
           MakeResourceBinding(spv::ExecutionModelFragment, 1, i, 0, i, i));
@@ -584,12 +584,12 @@ Metal::Util::TranslateShaderToMSL(ShaderStage stage, std::string_view source,
   {
     u32 img = 0;
     u32 smp = 0;
-    for (u32 i = 0; i < VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS; i++)  // cs/samp0-N
+    for (u32 i = 0; i < VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS; ++i)  // cs/samp0-N
     {
       compiler.add_msl_resource_binding(
           MakeResourceBinding(spv::ExecutionModelGLCompute, 1, i, 0, img++, smp++));
     }
-    for (u32 i = 0; i < VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS; i++)  // cs/img0-N
+    for (u32 i = 0; i < VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS; ++i)  // cs/img0-N
     {
       compiler.add_msl_resource_binding(
           MakeResourceBinding(spv::ExecutionModelGLCompute, 3, i, 0, img++, 0));

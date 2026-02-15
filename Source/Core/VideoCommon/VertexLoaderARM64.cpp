@@ -337,7 +337,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
 
   bool has_tc = false;
   bool has_tc_scale = false;
-  for (size_t i = 0; i < m_VtxDesc.high.TexCoord.Size(); i++)
+  for (size_t i = 0; i < m_VtxDesc.high.TexCoord.Size(); ++i)
   {
     has_tc |= m_VtxDesc.high.TexCoord[i] != VertexComponentFormat::NotPresent;
     has_tc_scale |= (m_VtxAttr.GetTexFrac(i) != 0);
@@ -383,7 +383,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
   }
 
   std::array<u32, 8> texmatidx_ofs;
-  for (size_t i = 0; i < m_VtxDesc.low.TexMatIdx.Size(); i++)
+  for (size_t i = 0; i < m_VtxDesc.low.TexMatIdx.Size(); ++i)
   {
     if (m_VtxDesc.low.TexMatIdx[i])
       texmatidx_ofs[i] = m_src_ofs++;
@@ -433,7 +433,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
     }
   }
 
-  for (u8 i = 0; i < m_VtxDesc.low.Color.Size(); i++)
+  for (u8 i = 0; i < m_VtxDesc.low.Color.Size(); ++i)
   {
     m_native_vtx_decl.colors[i].components = 4;
     m_native_vtx_decl.colors[i].type = ComponentFormat::UByte;
@@ -452,7 +452,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
     }
   }
 
-  for (u8 i = 0; i < m_VtxDesc.high.TexCoord.Size(); i++)
+  for (u8 i = 0; i < m_VtxDesc.high.TexCoord.Size(); ++i)
   {
     m_native_vtx_decl.texcoords[i].offset = m_dst_ofs;
     m_native_vtx_decl.texcoords[i].type = ComponentFormat::Float;

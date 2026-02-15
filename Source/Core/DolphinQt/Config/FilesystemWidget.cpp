@@ -104,7 +104,7 @@ void FilesystemWidget::PopulateView()
 
   const auto& partitions = m_volume->GetPartitions();
 
-  for (size_t i = 0; i < partitions.size(); i++)
+  for (size_t i = 0; i < partitions.size(); ++i)
   {
     auto* item = new QStandardItem;
     item->setEditable(false);
@@ -167,7 +167,7 @@ void FilesystemWidget::PopulateDirectory(int partition_id, QStandardItem* root,
   if (title_id)
   {
     text += QStringLiteral(" - %1 (").arg(title_id.value(), 16, 16, QLatin1Char('0'));
-    for (u32 i = 0; i < 4; i++)
+    for (u32 i = 0; i < 4; ++i)
     {
       char c = static_cast<char>(title_id.value() >> 8 * (3 - i));
       if (Common::IsPrintableCharacter(c))

@@ -44,7 +44,7 @@ std::unique_ptr<AbstractShader> CompilePixelShader(const PixelShaderUid& uid,
   // available, for now just hardcode to start at 8 (the first non game
   // sampler index available)
   const std::size_t custom_sampler_index_offset = 8;
-  for (std::size_t i = 0; i < shader_data->samplers.size(); i++)
+  for (std::size_t i = 0; i < shader_data->samplers.size(); ++i)
   {
     const auto& sampler = shader_data->samplers[i];
     std::string_view sampler_type;
@@ -112,7 +112,7 @@ std::unique_ptr<AbstractShader> CompileVertexShader(const VertexShaderUid& uid,
   // available, for now just hardcode to start at 8 (the first non game
   // sampler index available)
   const std::size_t custom_sampler_index_offset = 8;
-  for (std::size_t i = 0; i < shader_data.samplers.size(); i++)
+  for (std::size_t i = 0; i < shader_data.samplers.size(); ++i)
   {
     const auto& sampler = shader_data.samplers[i];
     std::string_view sampler_type = "";

@@ -89,7 +89,7 @@ BitSet32 FPURegCache::CountRegsIn(preg_t preg, u32 lookahead) const
 {
   BitSet32 regs_used;
 
-  for (u32 i = 1; i < lookahead; i++)
+  for (u32 i = 1; i < lookahead; ++i)
   {
     BitSet32 regs_in = m_jit.js.op[i].fregsIn;
     regs_used |= regs_in;

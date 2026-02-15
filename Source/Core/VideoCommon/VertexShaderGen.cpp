@@ -244,7 +244,7 @@ static void WriteVertexStructs(APIType api_type, const ShaderHostConfig& host_co
   out.Write("\tvec3 normal;\n");
   out.Write("\tvec3 binormal;\n");
   out.Write("\tvec3 tangent;\n");
-  for (u32 i = 0; i < 8; i++)
+  for (u32 i = 0; i < 8; ++i)
   {
     out.Write("\tvec4 texture_coord_{};\n", i);
   }
@@ -256,7 +256,7 @@ static void WriteVertexStructs(APIType api_type, const ShaderHostConfig& host_co
   out.Write("\tvec4 color_1;\n");
   out.Write("\tvec4 position;\n");
   out.Write("\tvec3 normal;\n");
-  for (u32 i = 0; i < 8; i++)
+  for (u32 i = 0; i < 8; ++i)
   {
     out.Write("\tvec3 texture_coord_{};\n", i);
   }
@@ -311,7 +311,7 @@ static void WriteVertexDefines(APIType, const ShaderHostConfig&,
     out.Write("#define HAS_TANGENT 0\n");
   }
 
-  for (u32 i = 0; i < uid_data->numTexGens; i++)
+  for (u32 i = 0; i < uid_data->numTexGens; ++i)
   {
     if ((uid_data->components & (VB_HAS_UV0 << i)) != 0)
     {
@@ -323,7 +323,7 @@ static void WriteVertexDefines(APIType, const ShaderHostConfig&,
     }
   }
 
-  for (u32 i = uid_data->numTexGens; i < 8; i++)
+  for (u32 i = uid_data->numTexGens; i < 8; ++i)
   {
     out.Write("#define HAS_TEXTURE_COORD_{} 0\n", i);
   }
@@ -450,7 +450,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       input_extract.Write("float4 rawpos = float4(i.pos0, i.pos1, 0.0f, 1.0f);\n");
     }
     std::array<std::string_view, 3> names = {"normal", "binormal", "tangent"};
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 3; ++i)
     {
       if (uid_data->components & (VB_HAS_NORMAL << i))
       {
@@ -461,7 +461,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
         input_extract.Write("float3 raw{0} = float3(i.{0}0, i.{0}1, i.{0}2);\n", names[i]);
       }
     }
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 2; ++i)
     {
       if (uid_data->components & (VB_HAS_COL0 << i))
       {
@@ -470,7 +470,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
                             i);
       }
     }
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 8; ++i)
     {
       if (uid_data->components & (VB_HAS_UV0 << i))
       {
@@ -581,7 +581,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   // If color 1 is present but not color 0, it is used for lighting channel 0.
   const bool use_color_1 =
       (uid_data->components & (VB_HAS_COL0 | VB_HAS_COL1)) == (VB_HAS_COL0 | VB_HAS_COL1);
-  for (u32 color = 0; color < NUM_XF_COLOR_CHANNELS; color++)
+  for (u32 color = 0; color < NUM_XF_COLOR_CHANNELS; ++color)
   {
     if ((color == 0 || use_color_1) && (uid_data->components & (VB_HAS_COL0 << color)) != 0)
     {
@@ -689,7 +689,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   }
 
   // Initialize other texture coordinates that are unused
-  for (u32 i = uid_data->numTexGens; i < 8; i++)
+  for (u32 i = uid_data->numTexGens; i < 8; ++i)
   {
     out.Write("\tvertex_input.texture_coord_{0} = vec4(0, 0, 0, 0);\n", i);
   }
@@ -889,7 +889,7 @@ void WriteVertexBody(APIType api_type, const ShaderHostConfig& host_config,
 
   out.Write("\tvertex_output.normal = normalize(vertex_input.normal * dolphin_normal_matrix());\n");
 
-  for (u32 chan = 0; chan < NUM_XF_COLOR_CHANNELS; chan++)
+  for (u32 chan = 0; chan < NUM_XF_COLOR_CHANNELS; ++chan)
   {
     out.Write(
         "\tvec4 vertex_lighting_{0} = dolphin_calculate_lighting_chn{0}(vertex_input.color_{0}, "
@@ -955,7 +955,7 @@ void WriteVertexBody(APIType api_type, const ShaderHostConfig& host_config,
   }
 
   // Fill out output that is unused
-  for (u32 i = uid_data->numTexGens; i < 8; i++)
+  for (u32 i = uid_data->numTexGens; i < 8; ++i)
   {
     out.Write("\tvertex_output.texture_coord_{0} = vec3(0, 0, 0);\n", i);
   }

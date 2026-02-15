@@ -36,7 +36,7 @@ static QString RefToDisplayString(ControlReference* ref)
   // Do try to simplify controls if the parsing had failed, as it might create false positives.
   if (expression_valid)
   {
-    for (int i = 0; i < controls.size(); i++)
+    for (int i = 0; i < controls.size(); ++i)
     {
       // We have two ` for control so make sure to only consider the odd ones.
       if (i % 2)

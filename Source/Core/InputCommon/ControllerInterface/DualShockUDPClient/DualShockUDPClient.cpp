@@ -340,7 +340,7 @@ void InputBackend::HotplugThreadFunc()
       if (timed_out_servers[i] && SteadyClock::now() >= server.m_disconnect_time)
       {
         bool any_connected = false;
-        for (size_t port_index = 0; port_index < server.m_port_info.size(); port_index++)
+        for (size_t port_index = 0; port_index < server.m_port_info.size(); ++port_index)
         {
           any_connected = any_connected ||
                           server.m_port_info[port_index].pad_state == Proto::DsState::Connected;
@@ -393,7 +393,7 @@ void InputBackend::Restart()
 
   for (auto& server : m_servers)
   {
-    for (size_t port_index = 0; port_index < server.m_port_info.size(); port_index++)
+    for (size_t port_index = 0; port_index < server.m_port_info.size(); ++port_index)
     {
       server.m_port_info[port_index] = {};
       server.m_port_info[port_index].pad_id = static_cast<u8>(port_index);
@@ -495,7 +495,7 @@ void InputBackend::PopulateDevices()
   // but they won't conflict.
   for (const auto& server : m_servers)
   {
-    for (size_t port_index = 0; port_index < server.m_port_info.size(); port_index++)
+    for (size_t port_index = 0; port_index < server.m_port_info.size(); ++port_index)
     {
       const Proto::MessageType::PortInfo& port_info = server.m_port_info[port_index];
       if (port_info.pad_state != Proto::DsState::Connected)

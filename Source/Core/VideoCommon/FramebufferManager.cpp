@@ -329,7 +329,7 @@ AbstractTexture* FramebufferManager::ResolveEFBColorTexture(const MathUtil::Rect
   // Resolve to our already-created texture.
   if (g_backend_info.bSupportsPartialMultisampleResolve)
   {
-    for (u32 layer = 0; layer < GetEFBLayers(); layer++)
+    for (u32 layer = 0; layer < GetEFBLayers(); ++layer)
     {
       m_efb_resolve_color_texture->ResolveFromTexture(m_efb_color_texture.get(), clamped_region,
                                                       layer, 0);
@@ -407,7 +407,7 @@ bool FramebufferManager::ReinterpretPixelData(EFBReinterpretType convtype)
 
 bool FramebufferManager::CompileConversionPipelines()
 {
-  for (u32 i = 0; i < NUM_EFB_REINTERPRET_TYPES; i++)
+  for (u32 i = 0; i < NUM_EFB_REINTERPRET_TYPES; ++i)
   {
     EFBReinterpretType convtype = static_cast<EFBReinterpretType>(i);
     std::unique_ptr<AbstractShader> pixel_shader = g_gfx->CreateShaderFromSource(
@@ -542,7 +542,7 @@ void FramebufferManager::RefreshPeekCache()
   }
 
   bool flush_command_buffer = false;
-  for (u32 i = 0; i < m_efb_color_cache.tiles.size(); i++)
+  for (u32 i = 0; i < m_efb_color_cache.tiles.size(); ++i)
   {
     if (m_efb_color_cache.tiles[i].frame_access_mask != 0 && !m_efb_color_cache.tiles[i].present)
     {
@@ -571,7 +571,7 @@ void FramebufferManager::InvalidatePeekCache(bool forced)
   {
     if (m_efb_color_cache.has_active_tiles)
     {
-      for (u32 i = 0; i < m_efb_color_cache.tiles.size(); i++)
+      for (u32 i = 0; i < m_efb_color_cache.tiles.size(); ++i)
       {
         m_efb_color_cache.tiles[i].present = false;
       }
@@ -586,7 +586,7 @@ void FramebufferManager::InvalidatePeekCache(bool forced)
   {
     if (m_efb_depth_cache.has_active_tiles)
     {
-      for (u32 i = 0; i < m_efb_depth_cache.tiles.size(); i++)
+      for (u32 i = 0; i < m_efb_depth_cache.tiles.size(); ++i)
       {
         m_efb_depth_cache.tiles[i].present = false;
       }
@@ -612,7 +612,7 @@ void FramebufferManager::FlagPeekCacheAsOutOfDate()
 
 void FramebufferManager::EndOfFrame()
 {
-  for (u32 i = 0; i < m_efb_color_cache.tiles.size(); i++)
+  for (u32 i = 0; i < m_efb_color_cache.tiles.size(); ++i)
   {
     m_efb_color_cache.tiles[i].frame_access_mask <<= 1;
     m_efb_depth_cache.tiles[i].frame_access_mask <<= 1;
@@ -901,13 +901,13 @@ bool FramebufferManager::CompileClearPipelines()
   config.framebuffer_state = GetEFBFramebufferState();
   config.usage = AbstractPipelineUsage::Utility;
 
-  for (u32 color_enable = 0; color_enable < 2; color_enable++)
+  for (u32 color_enable = 0; color_enable < 2; ++color_enable)
   {
     config.blending_state.color_update = color_enable != 0;
-    for (u32 alpha_enable = 0; alpha_enable < 2; alpha_enable++)
+    for (u32 alpha_enable = 0; alpha_enable < 2; ++alpha_enable)
     {
       config.blending_state.alpha_update = alpha_enable != 0;
-      for (u32 depth_enable = 0; depth_enable < 2; depth_enable++)
+      for (u32 depth_enable = 0; depth_enable < 2; ++depth_enable)
       {
         config.depth_state.test_enable = depth_enable != 0;
         config.depth_state.update_enable = depth_enable != 0;
@@ -924,11 +924,11 @@ bool FramebufferManager::CompileClearPipelines()
 
 void FramebufferManager::DestroyClearPipelines()
 {
-  for (u32 color_enable = 0; color_enable < 2; color_enable++)
+  for (u32 color_enable = 0; color_enable < 2; ++color_enable)
   {
-    for (u32 alpha_enable = 0; alpha_enable < 2; alpha_enable++)
+    for (u32 alpha_enable = 0; alpha_enable < 2; ++alpha_enable)
     {
-      for (u32 depth_enable = 0; depth_enable < 2; depth_enable++)
+      for (u32 depth_enable = 0; depth_enable < 2; ++depth_enable)
       {
         m_clear_pipelines[color_enable][alpha_enable][depth_enable].reset();
       }

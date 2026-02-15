@@ -534,7 +534,7 @@ constexpr Tables s_tables = []() consteval {
   for (const auto& tpl : s_table4_2)
   {
     u32 info = make_info(tpl);
-    for (u32 i = 0; i < 32; i++)
+    for (u32 i = 0; i < 32; ++i)
     {
       const u32 fill = i << 5;
       const u32 op = fill + tpl.opcode;
@@ -546,7 +546,7 @@ constexpr Tables s_tables = []() consteval {
   for (const auto& tpl : s_table4_3)
   {
     u32 info = make_info(tpl);
-    for (u32 i = 0; i < 16; i++)
+    for (u32 i = 0; i < 16; ++i)
     {
       const u32 fill = i << 6;
       const u32 op = fill + tpl.opcode;
@@ -593,7 +593,7 @@ constexpr Tables s_tables = []() consteval {
   for (const auto& tpl : s_table63_2)
   {
     u32 info = make_info(tpl);
-    for (u32 i = 0; i < 32; i++)
+    for (u32 i = 0; i < 32; ++i)
     {
       const u32 fill = i << 5;
       const u32 op = fill + tpl.opcode;
@@ -684,7 +684,7 @@ void PrintInstructionRunCounts()
 {
   typedef std::pair<const char*, u64> OpInfo;
   std::array<OpInfo, TOTAL_INSTRUCTION_COUNT> temp;
-  for (size_t i = 0; i < TOTAL_INSTRUCTION_COUNT; i++)
+  for (size_t i = 0; i < TOTAL_INSTRUCTION_COUNT; ++i)
   {
     const GekkoOPInfo& info = s_tables.all_instructions[i];
     temp[i] = std::make_pair(info.opname, info.stats->run_count);
@@ -705,7 +705,7 @@ void LogCompiledInstructions()
   static unsigned int time = 0;
 
   File::IOFile f(fmt::format("{}inst_log{}.txt", File::GetUserPath(D_LOGS_IDX), time), "w");
-  for (size_t i = 0; i < TOTAL_INSTRUCTION_COUNT; i++)
+  for (size_t i = 0; i < TOTAL_INSTRUCTION_COUNT; ++i)
   {
     const GekkoOPInfo& info = s_tables.all_instructions[i];
     if (info.stats->compile_count > 0)
@@ -716,7 +716,7 @@ void LogCompiledInstructions()
   }
 
   f.Open(fmt::format("{}inst_not{}.txt", File::GetUserPath(D_LOGS_IDX), time), "w");
-  for (size_t i = 0; i < TOTAL_INSTRUCTION_COUNT; i++)
+  for (size_t i = 0; i < TOTAL_INSTRUCTION_COUNT; ++i)
   {
     const GekkoOPInfo& info = s_tables.all_instructions[i];
     if (info.stats->compile_count == 0)

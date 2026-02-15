@@ -203,7 +203,7 @@ OGLTexture::OGLTexture(const TextureConfig& tex_config, std::string_view name)
     ASSERT(!IsCompressedFormat(m_config.format));
     if (!g_ogl_config.bSupportsTextureStorage && !tex_config.IsMultisampled())
     {
-      for (u32 level = 0; level < m_config.levels; level++)
+      for (u32 level = 0; level < m_config.levels; ++level)
       {
         glTexImage3D(target, level, gl_internal_format, std::max(m_config.width >> level, 1u),
                      std::max(m_config.height >> level, 1u), m_config.layers, 0,
@@ -726,7 +726,7 @@ OGLFramebuffer::Create(OGLTexture* color_attachment, OGLTexture* depth_attachmen
     }
   }
 
-  for (std::size_t i = 0; i < additional_color_attachments.size(); i++)
+  for (std::size_t i = 0; i < additional_color_attachments.size(); ++i)
   {
     const auto attachment_enum = static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + i + 1);
     OGLTexture* attachment = static_cast<OGLTexture*>(additional_color_attachments[i]);

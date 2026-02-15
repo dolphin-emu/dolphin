@@ -28,7 +28,7 @@ void PadMappingDialog::CreateWidgets()
   m_main_layout = new QGridLayout;
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
 
-  for (unsigned int i = 0; i < m_wii_boxes.size(); i++)
+  for (unsigned int i = 0; i < m_wii_boxes.size(); ++i)
   {
     m_gc_boxes[i] = new QComboBox;
     m_gba_boxes[i] = new QCheckBox(tr("GBA Port %1").arg(i + 1));
@@ -91,7 +91,7 @@ int PadMappingDialog::exec()
   for (auto& combo_group : {m_gc_boxes, m_wii_boxes})
   {
     const bool gc = combo_group == m_gc_boxes;
-    for (size_t i = 0; i < combo_group.size(); i++)
+    for (size_t i = 0; i < combo_group.size(); ++i)
     {
       auto& combo = combo_group[i];
       const QSignalBlocker blocker(combo);
@@ -105,7 +105,7 @@ int PadMappingDialog::exec()
     }
   }
 
-  for (size_t i = 0; i < m_gba_boxes.size(); i++)
+  for (size_t i = 0; i < m_gba_boxes.size(); ++i)
   {
     const QSignalBlocker blocker(m_gba_boxes[i]);
 
@@ -132,7 +132,7 @@ NetPlay::PadMappingArray PadMappingDialog::GetWiimoteArray()
 
 void PadMappingDialog::OnMappingChanged()
 {
-  for (unsigned int i = 0; i < m_wii_boxes.size(); i++)
+  for (unsigned int i = 0; i < m_wii_boxes.size(); ++i)
   {
     const int gc_id = m_gc_boxes[i]->currentIndex();
     const int wii_id = m_wii_boxes[i]->currentIndex();

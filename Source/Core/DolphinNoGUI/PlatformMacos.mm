@@ -372,7 +372,7 @@ void PlatformMacOS::SetupMenu()
     [undoSaveItem setKeyEquivalentModifierMask:NSEventModifierFlagFunction];
 
     // Load and Save States
-    for (unichar i = NSF1FunctionKey; i <= NSF8FunctionKey; i++)
+    for (unichar i = NSF1FunctionKey; i <= NSF8FunctionKey; ++i)
     {
       NSInteger stateNum = i - NSF1FunctionKey + 1;
       NSString* lstateTitle = [NSString stringWithFormat:@"Load State %ld", (long)stateNum];

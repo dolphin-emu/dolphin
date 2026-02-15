@@ -27,7 +27,7 @@ constexpr std::array<u32, 8> s_plru_value{
 
 constexpr std::array<u32, 255> s_way_from_valid = [] {
   std::array<u32, 255> data{};
-  for (size_t m = 0; m < data.size(); m++)
+  for (size_t m = 0; m < data.size(); ++m)
   {
     u32 w = 0;
     while ((m & (size_t{1} << w)) != 0)
@@ -40,10 +40,10 @@ constexpr std::array<u32, 255> s_way_from_valid = [] {
 constexpr std::array<u32, 128> s_way_from_plru = [] {
   std::array<u32, 128> data{};
 
-  for (size_t m = 0; m < data.size(); m++)
+  for (size_t m = 0; m < data.size(); ++m)
   {
     std::array<u32, 7> b{};
-    for (size_t i = 0; i < b.size(); i++)
+    for (size_t i = 0; i < b.size(); ++i)
       b[i] = u32(m & (size_t{1} << i));
 
     u32 w = 0;
@@ -143,9 +143,9 @@ void Cache::Store(Memory::MemoryManager& memory, u32 addr)
 
 void Cache::FlushAll(Memory::MemoryManager& memory)
 {
-  for (size_t set = 0; set < CACHE_SETS; set++)
+  for (size_t set = 0; set < CACHE_SETS; ++set)
   {
-    for (size_t way = 0; way < CACHE_WAYS; way++)
+    for (size_t way = 0; way < CACHE_WAYS; ++way)
     {
       if (valid[set] & (1U << way) && modified[set] & (1U << way))
         memory.CopyToEmu(addrs[set][way], data[set][way].data(), 32);
@@ -330,9 +330,9 @@ void Cache::DoState(Memory::MemoryManager& memory, PointerWrap& p)
   {
     // Clear valid parts of the lookup tables (this is done instead of using fill(0xff) to avoid
     // loading the entire 4MB of tables into cache)
-    for (u32 set = 0; set < CACHE_SETS; set++)
+    for (u32 set = 0; set < CACHE_SETS; ++set)
     {
-      for (u32 way = 0; way < CACHE_WAYS; way++)
+      for (u32 way = 0; way < CACHE_WAYS; ++way)
       {
         if ((valid[set] & (1 << way)) != 0)
         {
@@ -356,9 +356,9 @@ void Cache::DoState(Memory::MemoryManager& memory, PointerWrap& p)
   if (p.IsReadMode())
   {
     // Recompute lookup tables
-    for (u32 set = 0; set < CACHE_SETS; set++)
+    for (u32 set = 0; set < CACHE_SETS; ++set)
     {
-      for (u32 way = 0; way < CACHE_WAYS; way++)
+      for (u32 way = 0; way < CACHE_WAYS; ++way)
       {
         if ((valid[set] & (1 << way)) != 0)
         {
@@ -395,7 +395,7 @@ void InstructionCache::Invalidate(Memory::MemoryManager& memory, JitInterface& j
   // to the given address.
   // (However, the icbi instruction's info on page 432 does not include this information)
   const u32 set = (addr >> 5) & 0x7f;
-  for (size_t way = 0; way < 8; way++)
+  for (size_t way = 0; way < 8; ++way)
   {
     if (valid[set] & (1U << way))
     {

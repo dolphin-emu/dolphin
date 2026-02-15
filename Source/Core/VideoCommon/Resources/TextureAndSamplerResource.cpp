@@ -73,7 +73,7 @@ Resource::TaskComplete TextureAndSamplerResource::ProcessData()
   m_load_data->m_texture = std::move(texture);
 
   auto& texture_data = m_load_data->m_texture_and_sampler_data->texture_data;
-  for (std::size_t slice_index = 0; slice_index < texture_data.m_slices.size(); slice_index++)
+  for (std::size_t slice_index = 0; slice_index < texture_data.m_slices.size(); ++slice_index)
   {
     auto& slice = texture_data.m_slices[slice_index];
     for (u32 level_index = 0; level_index < static_cast<u32>(slice.m_levels.size()); ++level_index)

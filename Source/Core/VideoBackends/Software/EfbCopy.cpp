@@ -23,9 +23,9 @@ void ClearEfb()
   int right = std::min(left + bpmem.copyTexSrcWH.x, EFB_WIDTH - 1);
   int bottom = std::min(top + bpmem.copyTexSrcWH.y, EFB_HEIGHT - 1);
 
-  for (u16 y = top; y <= bottom; y++)
+  for (u16 y = top; y <= bottom; ++y)
   {
-    for (u16 x = left; x <= right; x++)
+    for (u16 x = left; x <= right; ++x)
     {
       EfbInterface::SetColor(x, y, (u8*)(&clearColor));
       EfbInterface::SetDepth(x, y, bpmem.clearZValue);

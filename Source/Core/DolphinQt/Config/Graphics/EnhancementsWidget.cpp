@@ -84,7 +84,7 @@ void EnhancementsWidget::CreateWidgets()
   // when the settings are saved we don't lose the user-modified value from the ini.
   const int max_efb_scale =
       std::max(ReadSetting(Config::GFX_EFB_SCALE), ReadSetting(Config::GFX_MAX_EFB_SCALE));
-  for (int scale = static_cast<int>(resolution_options.size()); scale <= max_efb_scale; scale++)
+  for (int scale = static_cast<int>(resolution_options.size()); scale <= max_efb_scale; ++scale)
   {
     const QString scale_text = QString::number(scale);
     const QString width_text = QString::number(static_cast<int>(EFB_WIDTH) * scale);

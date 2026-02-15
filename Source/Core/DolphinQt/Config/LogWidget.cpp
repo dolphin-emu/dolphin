@@ -72,7 +72,7 @@ void LogWidget::UpdateLog()
 
     elements_to_push.reserve(std::min(MAX_LOG_LINES_TO_UPDATE, m_log_ring_buffer.size()));
 
-    for (size_t i = 0; !m_log_ring_buffer.empty() && i < MAX_LOG_LINES_TO_UPDATE; i++)
+    for (size_t i = 0; !m_log_ring_buffer.empty() && i < MAX_LOG_LINES_TO_UPDATE; ++i)
       elements_to_push.push_back(m_log_ring_buffer.pop_front());
   }
 

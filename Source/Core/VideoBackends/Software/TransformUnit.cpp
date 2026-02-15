@@ -315,7 +315,7 @@ static void LightAlpha(const Vec3& pos, const Vec3& normal, u8 lightNum, const L
 
 void TransformColor(const InputVertexData* src, OutputVertexData* dst)
 {
-  for (u32 chan = 0; chan < NUM_XF_COLOR_CHANNELS; chan++)
+  for (u32 chan = 0; chan < NUM_XF_COLOR_CHANNELS; ++chan)
   {
     // abgr
     std::array<u8, 4> matcolor;
@@ -402,7 +402,7 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
 
 void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst)
 {
-  for (u32 coordNum = 0; coordNum < xfmem.numTexGen.numTexGens; coordNum++)
+  for (u32 coordNum = 0; coordNum < xfmem.numTexGen.numTexGens; ++coordNum)
   {
     const TexMtxInfo& texinfo = xfmem.texMtxInfo[coordNum];
 
@@ -442,7 +442,7 @@ void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst)
     }
   }
 
-  for (u32 coordNum = 0; coordNum < xfmem.numTexGen.numTexGens; coordNum++)
+  for (u32 coordNum = 0; coordNum < xfmem.numTexGen.numTexGens; ++coordNum)
   {
     dst->texCoords[coordNum].x *= bpmem.texcoords[coordNum].s.scale_minus_1 + 1;
     dst->texCoords[coordNum].y *= bpmem.texcoords[coordNum].t.scale_minus_1 + 1;

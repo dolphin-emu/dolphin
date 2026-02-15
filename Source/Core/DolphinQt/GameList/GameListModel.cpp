@@ -403,7 +403,7 @@ std::shared_ptr<const UICommon::GameFile> GameListModel::FindGame(const std::str
 
 int GameListModel::FindGameIndex(const std::string& path) const
 {
-  for (int i = 0; i < m_games.size(); i++)
+  for (int i = 0; i < m_games.size(); ++i)
   {
     if (m_games[i]->GetFilePath() == path)
       return i;

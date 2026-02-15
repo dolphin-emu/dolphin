@@ -277,16 +277,16 @@ static void TexDecoder_DrawOverlay(u8* dst, int width, int height, TextureFormat
 
     const unsigned char* ptr = sfont_raw[nchar];  // each char is up to 9x10
 
-    for (int x = 0; x < 9; x++)
+    for (int x = 0; x < 9; ++x)
     {
       if (ptr[x] == 0x78)
         break;
       xcnt++;
     }
 
-    for (int y = 0; y < 10; y++)
+    for (int y = 0; y < 10; ++y)
     {
-      for (int x = 0; x < xcnt; x++)
+      for (int x = 0; x < xcnt; ++x)
       {
         int* dtp = (int*)dst;
         dtp[(y + yoff) * width + x + xoff] = ptr[x] ? 0xFFFFFFFF : 0xFF000000;
@@ -704,7 +704,7 @@ void TexDecoder_DecodeXFB(u8* dst, const u8* src, u32 width, u32 height, u32 str
   const u8* src_ptr = src;
   u8* dst_ptr = dst;
 
-  for (u32 y = 0; y < height; y++)
+  for (u32 y = 0; y < height; ++y)
   {
     const u8* row_ptr = src_ptr;
     for (u32 x = 0; x < width; x += 2)

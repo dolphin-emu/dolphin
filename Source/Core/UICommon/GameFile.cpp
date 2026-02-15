@@ -441,7 +441,7 @@ bool GameFile::ReadPNGBanner(const std::string& path)
 
   // Make an ARGB copy of the RGBA data
   banner.buffer.resize(data_out.size() / sizeof(u32));
-  for (size_t i = 0; i < banner.buffer.size(); i++)
+  for (size_t i = 0; i < banner.buffer.size(); ++i)
   {
     const size_t j = i * sizeof(u32);
     banner.buffer[i] = (Common::swap32(data_out.data() + j) >> 8) + (data_out[j] << 24);

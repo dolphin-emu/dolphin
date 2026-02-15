@@ -541,7 +541,7 @@ ATTR_TARGET static void TransformVertices(void* output, const void* vertices, u3
   Vector pos0, pos1, pos2, pos3;
   LoadTransposed(vsmanager.constants.projection.data(), proj0, proj1, proj2, proj3);
   LoadTransposedPos(&xfmem.posMatrices[idx * 4], pos0, pos1, pos2, pos3);
-  for (int i = 0; i < count; i++)
+  for (int i = 0; i < count; ++i)
   {
     *voutput = LoadTransformVertex<PositionHas3Elems, PerVertexPosMtx>(
         cvertices, pos0, pos1, pos2, pos3, proj0, proj1, proj2, proj3);

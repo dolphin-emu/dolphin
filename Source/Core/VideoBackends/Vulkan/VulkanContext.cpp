@@ -706,7 +706,7 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   // Find graphics and present queues.
   m_graphics_queue_family_index = queue_family_count;
   m_present_queue_family_index = queue_family_count;
-  for (uint32_t i = 0; i < queue_family_count; i++)
+  for (uint32_t i = 0; i < queue_family_count; ++i)
   {
     VkBool32 graphics_supported = queue_family_properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT;
     if (graphics_supported)

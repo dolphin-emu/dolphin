@@ -73,14 +73,14 @@ CPState::CPState(const u32* memory) : CPState()
   vtx_desc.low.Hex = memory[VCD_LO];
   vtx_desc.high.Hex = memory[VCD_HI];
 
-  for (u32 i = 0; i < CP_NUM_VAT_REG; i++)
+  for (u32 i = 0; i < CP_NUM_VAT_REG; ++i)
   {
     vtx_attr[i].g0.Hex = memory[CP_VAT_REG_A + i];
     vtx_attr[i].g1.Hex = memory[CP_VAT_REG_B + i];
     vtx_attr[i].g2.Hex = memory[CP_VAT_REG_C + i];
   }
 
-  for (u32 i = 0; i < CP_NUM_ARRAYS; i++)
+  for (u32 i = 0; i < CP_NUM_ARRAYS; ++i)
   {
     array_bases[static_cast<CPArray>(i)] = memory[ARRAY_BASE + i];
     array_strides[static_cast<CPArray>(i)] = memory[ARRAY_STRIDE + i];

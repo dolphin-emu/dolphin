@@ -69,13 +69,13 @@ GameConfigWidget::GameConfigWidget(const UICommon::GameFile& game) : m_game(game
               false);
 
   bool game_id_tab = false;
-  for (int i = 0; i < m_local_tab->count(); i++)
+  for (int i = 0; i < m_local_tab->count(); ++i)
   {
     if (m_local_tab->tabText(i).toStdString() == m_game_id + ".ini")
       game_id_tab = true;
   }
 
-  if (game_id_tab == false)
+  if (!game_id_tab)
   {
     // Create new local game ini tab if none exists.
     auto* edit = new GameConfigEdit(
@@ -219,7 +219,7 @@ void GameConfigWidget::CreateWidgets()
 
       // There can be multiple ini loaded for a game, only replace the one related to the game
       // ini being edited.
-      for (int i = 0; i < m_local_tab->count(); i++)
+      for (int i = 0; i < m_local_tab->count(); ++i)
       {
         if (m_local_tab->tabText(i).toStdString() == m_game_id + ".ini")
         {

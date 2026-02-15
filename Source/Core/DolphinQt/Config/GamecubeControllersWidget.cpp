@@ -78,7 +78,7 @@ void GamecubeControllersWidget::CreateLayout()
   m_gc_layout->setVerticalSpacing(7);
   m_gc_layout->setColumnStretch(1, 1);
 
-  for (size_t i = 0; i < m_gc_groups.size(); i++)
+  for (size_t i = 0; i < m_gc_groups.size(); ++i)
   {
     auto* gc_label = new QLabel(tr("Port %1").arg(i + 1));
     auto* gc_box = m_gc_controller_boxes[i] = new QComboBox();
@@ -169,7 +169,7 @@ void GamecubeControllersWidget::OnGCPadConfigure(size_t index)
 void GamecubeControllersWidget::LoadSettings(Core::State state)
 {
   const bool running = state != Core::State::Uninitialized;
-  for (size_t i = 0; i < m_gc_groups.size(); i++)
+  for (size_t i = 0; i < m_gc_groups.size(); ++i)
   {
     const SerialInterface::SIDevices si_device =
         Config::Get(Config::GetInfoForSIDevice(static_cast<int>(i)));

@@ -153,7 +153,7 @@ TEST(Skylanders, Checksums)
 
   u16 area_offset = 0x80;
 
-  for (u8 i = 0; i < 2; i++)
+  for (u8 i = 0; i < 2; ++i)
   {
     ComputeChecksumType3(decrypted_figure.data() + area_offset + 0x50, actual.data());
     EXPECT_EQ(Common::BitCastPtr<u16>(decrypted_figure.data() + area_offset + 0xA),

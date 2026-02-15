@@ -42,7 +42,7 @@ NewPatchDialog::NewPatchDialog(QWidget* parent, PatchEngine::Patch& patch)
   CreateWidgets();
   ConnectWidgets();
 
-  for (size_t i = 0; i < m_patch.entries.size(); i++)
+  for (size_t i = 0; i < m_patch.entries.size(); ++i)
   {
     m_entry_layout->addWidget(CreateEntry(m_patch.entries[i]));
   }

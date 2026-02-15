@@ -306,7 +306,7 @@ void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
     const u8* src_ptr = buffer;
     const u32 copy_size = std::min(source_stride, upload_stride);
     u8* dst_ptr = static_cast<u8*>(upload_buffer_ptr);
-    for (u32 i = 0; i < num_rows; i++)
+    for (u32 i = 0; i < num_rows; ++i)
     {
       std::memcpy(dst_ptr, src_ptr, copy_size);
       src_ptr += source_stride;

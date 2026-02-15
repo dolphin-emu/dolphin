@@ -116,7 +116,7 @@ static void GetD3DBlendDesc(D3D12_BLEND_DESC* desc, const BlendingState& state,
   desc->AlphaToCoverageEnable = FALSE;
   desc->IndependentBlendEnable = FALSE;
 
-  for (u8 i = 0; i < render_target_count; i++)
+  for (u8 i = 0; i < render_target_count; ++i)
   {
     D3D12_RENDER_TARGET_BLEND_DESC* rtblend = &desc->RenderTarget[i];
     if (state.color_update)

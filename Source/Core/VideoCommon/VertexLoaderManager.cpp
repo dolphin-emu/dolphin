@@ -104,7 +104,7 @@ void UpdateVertexArrayPointers()
         memory.GetSpanForAddress(g_main_cp_state.array_bases[CPArray::Normal]).data();
   }
 
-  for (u8 i = 0; i < g_main_cp_state.vtx_desc.low.Color.Size(); i++)
+  for (u8 i = 0; i < g_main_cp_state.vtx_desc.low.Color.Size(); ++i)
   {
     if (IsIndexed(g_main_cp_state.vtx_desc.low.Color[i]))
     {
@@ -113,7 +113,7 @@ void UpdateVertexArrayPointers()
     }
   }
 
-  for (u8 i = 0; i < g_main_cp_state.vtx_desc.high.TexCoord.Size(); i++)
+  for (u8 i = 0; i < g_main_cp_state.vtx_desc.high.TexCoord.Size(); ++i)
   {
     if (IsIndexed(g_main_cp_state.vtx_desc.high.TexCoord[i]))
     {
@@ -175,21 +175,21 @@ NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl)
     CopyAttribute(new_decl.position, decl.position);
   else
     MakeDummyAttribute(new_decl.position, ComponentFormat::Float, 1, false);
-  for (size_t i = 0; i < std::size(new_decl.normals); i++)
+  for (size_t i = 0; i < std::size(new_decl.normals); ++i)
   {
     if (decl.normals[i].enable)
       CopyAttribute(new_decl.normals[i], decl.normals[i]);
     else
       MakeDummyAttribute(new_decl.normals[i], ComponentFormat::Float, 1, false);
   }
-  for (size_t i = 0; i < std::size(new_decl.colors); i++)
+  for (size_t i = 0; i < std::size(new_decl.colors); ++i)
   {
     if (decl.colors[i].enable)
       CopyAttribute(new_decl.colors[i], decl.colors[i]);
     else
       MakeDummyAttribute(new_decl.colors[i], ComponentFormat::UByte, 4, false);
   }
-  for (size_t i = 0; i < std::size(new_decl.texcoords); i++)
+  for (size_t i = 0; i < std::size(new_decl.texcoords); ++i)
   {
     if (decl.texcoords[i].enable)
       CopyAttribute(new_decl.texcoords[i], decl.texcoords[i]);
@@ -344,7 +344,7 @@ static void CheckCPConfiguration(int vtx_attr_group)
                  g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::InvalidNormalComponentFormat);
   }
-  for (size_t i = 0; i < 8; i++)
+  for (size_t i = 0; i < 8; ++i)
   {
     if (g_main_cp_state.vtx_attr[vtx_attr_group].GetTexFormat(i) >= ComponentFormat::InvalidFloat5)
     {
@@ -358,7 +358,7 @@ static void CheckCPConfiguration(int vtx_attr_group)
           GameQuirk::InvalidTextureCoordinateComponentFormat);
     }
   }
-  for (size_t i = 0; i < 2; i++)
+  for (size_t i = 0; i < 2; ++i)
   {
     if (g_main_cp_state.vtx_attr[vtx_attr_group].GetColorFormat(i) > ColorFormat::RGBA8888)
     {

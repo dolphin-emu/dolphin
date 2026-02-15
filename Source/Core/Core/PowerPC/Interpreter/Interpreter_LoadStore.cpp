@@ -732,7 +732,7 @@ void Interpreter::lswx(Interpreter& interpreter, UGeckoInstruction inst)
   }
 
   // Confirmed by hardware test that the zero case doesn't zero gpr[r]
-  for (u32 n = 0; n < static_cast<u8>(ppc_state.xer_stringctrl); n++)
+  for (u32 n = 0; n < static_cast<u8>(ppc_state.xer_stringctrl); ++n)
   {
     const u32 reg = (inst.RD + (n >> 2)) & 0x1f;
     const u32 offset = (n & 3) << 3;

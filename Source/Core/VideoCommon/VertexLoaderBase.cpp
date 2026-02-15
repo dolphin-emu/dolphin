@@ -122,7 +122,7 @@ public:
     // For XY, the last 2 are garbage.
     const bool positions_match = [&] {
       const size_t max_component = m_VtxAttr.g0.PosElements == CoordComponentCount::XYZ ? 3 : 2;
-      for (size_t vertex = 0; vertex < 3; vertex++)
+      for (size_t vertex = 0; vertex < 3; ++vertex)
       {
         if (!std::equal(a_position_cache[vertex].begin(),
                         a_position_cache[vertex].begin() + max_component,
@@ -186,13 +186,13 @@ u32 VertexLoaderBase::GetVertexSize(const TVtxDesc& vtx_desc, const VAT& vtx_att
       VertexLoader_Normal::GetSize(vtx_desc.low.Normal, vtx_attr.g0.NormalFormat,
                                    vtx_attr.g0.NormalElements, vtx_attr.g0.NormalIndex3);
   size += norm_size;
-  for (u32 i = 0; i < vtx_desc.low.Color.Size(); i++)
+  for (u32 i = 0; i < vtx_desc.low.Color.Size(); ++i)
   {
     const u32 color_size =
         VertexLoader_Color::GetSize(vtx_desc.low.Color[i], vtx_attr.GetColorFormat(i));
     size += color_size;
   }
-  for (u32 i = 0; i < vtx_desc.high.TexCoord.Size(); i++)
+  for (u32 i = 0; i < vtx_desc.high.TexCoord.Size(); ++i)
   {
     const u32 tc_size = VertexLoader_TextCoord::GetSize(
         vtx_desc.high.TexCoord[i], vtx_attr.GetTexFormat(i), vtx_attr.GetTexElements(i));
@@ -207,7 +207,7 @@ u32 VertexLoaderBase::GetVertexComponents(const TVtxDesc& vtx_desc, const VAT& v
   u32 components = 0;
   if (vtx_desc.low.PosMatIdx)
     components |= VB_HAS_POSMTXIDX;
-  for (u32 i = 0; i < vtx_desc.low.TexMatIdx.Size(); i++)
+  for (u32 i = 0; i < vtx_desc.low.TexMatIdx.Size(); ++i)
   {
     if (vtx_desc.low.TexMatIdx[i])
       components |= VB_HAS_TEXMTXIDX0 << i;
@@ -219,12 +219,12 @@ u32 VertexLoaderBase::GetVertexComponents(const TVtxDesc& vtx_desc, const VAT& v
     if (vtx_attr.g0.NormalElements == NormalComponentCount::NTB)
       components |= VB_HAS_TANGENT | VB_HAS_BINORMAL;
   }
-  for (u32 i = 0; i < vtx_desc.low.Color.Size(); i++)
+  for (u32 i = 0; i < vtx_desc.low.Color.Size(); ++i)
   {
     if (vtx_desc.low.Color[i] != VertexComponentFormat::NotPresent)
       components |= VB_HAS_COL0 << i;
   }
-  for (u32 i = 0; i < vtx_desc.high.TexCoord.Size(); i++)
+  for (u32 i = 0; i < vtx_desc.high.TexCoord.Size(); ++i)
   {
     if (vtx_desc.high.TexCoord[i] != VertexComponentFormat::NotPresent)
       components |= VB_HAS_UV0 << i;

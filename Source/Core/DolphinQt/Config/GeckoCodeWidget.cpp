@@ -342,7 +342,7 @@ void GeckoCodeWidget::OnListReordered()
   std::vector<Gecko::GeckoCode> codes;
   codes.reserve(m_gecko_codes.size());
 
-  for (int i = 0; i < m_code_list->count(); i++)
+  for (int i = 0; i < m_code_list->count(); ++i)
   {
     const int index = m_code_list->item(i)->data(Qt::UserRole).toInt();
 
@@ -359,7 +359,7 @@ void GeckoCodeWidget::UpdateList()
 {
   m_code_list->clear();
 
-  for (size_t i = 0; i < m_gecko_codes.size(); i++)
+  for (size_t i = 0; i < m_gecko_codes.size(); ++i)
   {
     const auto& code = m_gecko_codes[i];
 

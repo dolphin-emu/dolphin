@@ -163,7 +163,7 @@ QVBoxLayout* SkylanderPortalWindow::CreateSlotLayout()
   auto* vbox_group = new QVBoxLayout();
   auto* scroll_area = new QScrollArea();
 
-  for (auto i = 0; i < MAX_SKYLANDERS; i++)
+  for (auto i = 0; i < MAX_SKYLANDERS; ++i)
   {
     if (i != 0)
     {
@@ -294,7 +294,7 @@ QVBoxLayout* SkylanderPortalWindow::CreateFinderLayout()
 
   auto* radio_layout_left = new QVBoxLayout();
   auto* radio_layout_right = new QVBoxLayout();
-  for (int i = 0; i < NUM_SKYLANDER_ELEMENTS_RADIO; i++)
+  for (int i = 0; i < NUM_SKYLANDER_ELEMENTS_RADIO; ++i)
   {
     QRadioButton* radio = new QRadioButton(this);
     radio->setProperty("id", i);
@@ -374,7 +374,7 @@ QVBoxLayout* SkylanderPortalWindow::CreateFinderLayout()
 
   auto* radio_type_layout_left = new QVBoxLayout();
   auto* radio_type_layout_right = new QVBoxLayout();
-  for (int i = 0; i < NUM_SKYLANDER_TYPES; i++)
+  for (int i = 0; i < NUM_SKYLANDER_TYPES; ++i)
   {
     QRadioButton* radio = new QRadioButton(this);
     radio->setProperty("id", i);
@@ -838,7 +838,7 @@ void SkylanderPortalWindow::LoadSkyfilePath(u8 slot, const QString& path)
 
 void SkylanderPortalWindow::UpdateSlotNames()
 {
-  for (auto i = 0; i < MAX_SKYLANDERS; i++)
+  for (auto i = 0; i < MAX_SKYLANDERS; ++i)
   {
     QString display_string;
     if (auto sd = m_sky_slots[i])
@@ -881,7 +881,7 @@ bool SkylanderPortalWindow::PassesFilter(const QString& name, u16 id, u16 var) c
   bool pass = false;
 
   // Check against active game filters
-  for (size_t i = 0; i < NUM_SKYLANDER_GAMES; i++)
+  for (size_t i = 0; i < NUM_SKYLANDER_GAMES; ++i)
   {
     if (m_game_filters[i]->isChecked() && character.game == (Game)i)
     {

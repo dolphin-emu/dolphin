@@ -21,7 +21,7 @@ Common::Matrix44 BuildMatrixFromNode(const tinygltf::Node& node)
   if (!node.matrix.empty())
   {
     Common::Matrix44 matrix;
-    for (std::size_t i = 0; i < node.matrix.size(); i++)
+    for (std::size_t i = 0; i < node.matrix.size(); ++i)
     {
       matrix.data[i] = static_cast<float>(node.matrix[i]);
     }
@@ -162,7 +162,7 @@ bool CopyBufferDataFromPrimitive(const tinygltf::Model& model, u32 accessor_inde
   {
     // Data is tightly packed
     const auto data = &buffer.data[accessor.byteOffset + buffer_view.byteOffset];
-    for (std::size_t i = 0; i < accessor.count; i++)
+    for (std::size_t i = 0; i < accessor.count; ++i)
     {
       const std::size_t vertex_data_offset = i * chunk->vertex_stride + *outbound_offset;
       memcpy(&chunk->vertex_data[vertex_data_offset], &data[i * component_size * component_count],
@@ -173,7 +173,7 @@ bool CopyBufferDataFromPrimitive(const tinygltf::Model& model, u32 accessor_inde
   {
     // Data is interleaved
     const auto data = &buffer.data[accessor.byteOffset + buffer_view.byteOffset];
-    for (std::size_t i = 0; i < accessor.count; i++)
+    for (std::size_t i = 0; i < accessor.count; ++i)
     {
       const std::size_t vertex_data_offset = i * chunk->vertex_stride + *outbound_offset;
       const std::size_t gltf_data_offset = i * buffer_view.byteStride;
@@ -214,7 +214,7 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
     // TODO C++23: use make_unique_overwrite
     chunk.indices = std::unique_ptr<u16[]>(new u16[index_accessor.count]);
     auto index_src = &index_buffer.data[index_accessor.byteOffset + index_buffer_view.byteOffset];
-    for (std::size_t i = 0; i < index_accessor.count; i++)
+    for (std::size_t i = 0; i < index_accessor.count; ++i)
     {
       if (index_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
       {
@@ -266,7 +266,7 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
         "POSITION",   "NORMAL",     "COLOR_0",    "COLOR_1",    "TEXCOORD_0", "TEXCOORD_1",
         "TEXCOORD_2", "TEXCOORD_3", "TEXCOORD_4", "TEXCOORD_5", "TEXCOORD_6", "TEXCOORD_7",
     };
-    for (std::size_t i = 0; i < all_names.size(); i++)
+    for (std::size_t i = 0; i < all_names.size(); ++i)
     {
       const auto it = primitive.attributes.find(std::string{all_names[i]});
       if (it != primitive.attributes.end())
@@ -328,7 +328,7 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
         "COLOR_0",
         "COLOR_1",
     };
-    for (std::size_t i = 0; i < color_names.size(); i++)
+    for (std::size_t i = 0; i < color_names.size(); ++i)
     {
       const auto color_it = primitive.attributes.find(std::string{color_names[i]});
       if (color_it != primitive.attributes.end())
@@ -381,7 +381,7 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
         "TEXCOORD_0", "TEXCOORD_1", "TEXCOORD_2", "TEXCOORD_3",
         "TEXCOORD_4", "TEXCOORD_5", "TEXCOORD_6", "TEXCOORD_7",
     };
-    for (std::size_t i = 0; i < texcoord_names.size(); i++)
+    for (std::size_t i = 0; i < texcoord_names.size(); ++i)
     {
       const auto texture_it = primitive.attributes.find(std::string{texcoord_names[i]});
       if (texture_it != primitive.attributes.end())
@@ -426,7 +426,7 @@ bool ReadGLTFNodes(std::string_view mesh_file, const tinygltf::Model& model,
       return false;
   }
 
-  for (std::size_t i = 0; i < node.children.size(); i++)
+  for (std::size_t i = 0; i < node.children.size(); ++i)
   {
     const tinygltf::Node& child = model.nodes[node.children[i]];
     const auto child_mat = mat * BuildMatrixFromNode(child);
@@ -439,7 +439,7 @@ bool ReadGLTFNodes(std::string_view mesh_file, const tinygltf::Model& model,
 
 bool ReadGLTFMaterials(std::string_view mesh_file, const tinygltf::Model& model, MeshData* data)
 {
-  for (std::size_t i = 0; i < model.materials.size(); i++)
+  for (std::size_t i = 0; i < model.materials.size(); ++i)
   {
     const tinygltf::Material& material = model.materials[i];
 
@@ -458,7 +458,7 @@ bool ReadGLTF(std::string_view mesh_file, const tinygltf::Model& model, MeshData
 
   const auto& scene = model.scenes[scene_index];
   const auto scene_node_indices = scene.nodes;
-  for (std::size_t i = 0; i < scene_node_indices.size(); i++)
+  for (std::size_t i = 0; i < scene_node_indices.size(); ++i)
   {
     const tinygltf::Node& node = model.nodes[scene_node_indices[i]];
     const auto mat = BuildMatrixFromNode(node);
@@ -519,7 +519,7 @@ bool MeshData::FromDolphinMesh(std::span<const u8> raw_data, MeshData* data)
   offset += sizeof(std::size_t);
 
   data->m_mesh_chunks.reserve(chunk_size);
-  for (std::size_t i = 0; i < chunk_size; i++)
+  for (std::size_t i = 0; i < chunk_size; ++i)
   {
     MeshDataChunk chunk;
 

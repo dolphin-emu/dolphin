@@ -351,7 +351,7 @@ constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table4 = [
   std::array<Interpreter::Instruction, 1024> table{};
   table.fill(Interpreter::unknown_instruction);
 
-  for (u32 i = 0; i < 32; i++)
+  for (u32 i = 0; i < 32; ++i)
   {
     const u32 fill = i << 5;
     for (const auto& tpl : s_table4_2)
@@ -362,7 +362,7 @@ constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table4 = [
     }
   }
 
-  for (u32 i = 0; i < 16; i++)
+  for (u32 i = 0; i < 16; ++i)
   {
     const u32 fill = i << 6;
     for (const auto& tpl : s_table4_3)
@@ -421,7 +421,7 @@ constexpr std::array<Interpreter::Instruction, 1024> s_interpreter_op_table63 = 
     table[tpl.opcode] = tpl.fn;
   };
 
-  for (u32 i = 0; i < 32; i++)
+  for (u32 i = 0; i < 32; ++i)
   {
     const u32 fill = i << 5;
     for (const auto& tpl : s_table63_2)

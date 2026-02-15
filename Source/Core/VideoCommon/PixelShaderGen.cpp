@@ -232,7 +232,7 @@ PixelShaderUid GetPixelShaderUid()
       uid_data->SetTevindrefValues(i, bpmem.tevindref.getTexCoord(i), bpmem.tevindref.getTexMap(i));
   }
 
-  for (unsigned int n = 0; n < numStages; n++)
+  for (unsigned int n = 0; n < numStages; ++n)
   {
     uid_data->stagehash[n].tevorders_texcoord = bpmem.tevorders[n / 2].getTexCoord(n & 1);
     uid_data->stagehash[n].tevind = bpmem.tevind[n].hex;
@@ -977,13 +977,13 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     out.Write("\tfrag_input.normal = vec3(0, 0, 0);\n");
     out.Write("\tfrag_input.position = vec3(0, 0, 0);\n");
   }
-  for (u32 i = 0; i < uid_data->genMode_numtexgens; i++)
+  for (u32 i = 0; i < uid_data->genMode_numtexgens; ++i)
   {
     out.Write("\tfrag_input.tex{0} = tex{0};\n", i);
   }
 
   // Initialize other texture coordinates that are unused
-  for (u32 i = uid_data->genMode_numtexgens; i < 8; i++)
+  for (u32 i = uid_data->genMode_numtexgens; i < 8; ++i)
   {
     out.Write("\tfrag_input.tex{0} = vec3(0, 0, 0);\n", i);
   }
@@ -1995,7 +1995,7 @@ void WriteFragmentBody(APIType api_type, const ShaderHostConfig& host_config,
     }
   }
 
-  for (u32 i = 0; i < numStages; i++)
+  for (u32 i = 0; i < numStages; ++i)
   {
     // Build the equation for this stage
     WriteStage(out, uid_data, i, api_type, stereo);
@@ -2042,7 +2042,7 @@ static void WriteFragmentDefinitions(APIType api_type, const ShaderHostConfig& h
   out.Write("\tint layer;\n");
   out.Write("\tvec3 normal;\n");
   out.Write("\tvec3 position;\n");
-  for (u32 i = 0; i < 8; i++)
+  for (u32 i = 0; i < 8; ++i)
   {
     out.Write("\tvec3 tex{};\n", i);
   }

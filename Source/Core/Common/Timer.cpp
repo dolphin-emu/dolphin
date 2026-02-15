@@ -131,15 +131,16 @@ PrecisionTimer::PrecisionTimer()
 #if defined(_WIN32)
   // "TIMER_HIGH_RESOLUTION" requires Windows 10, version 1803, and later.
   m_timer_handle =
-      CreateWaitableTimerExW(NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
+      CreateWaitableTimerExW(nullptr, nullptr, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION,
+                             TIMER_ALL_ACCESS);
 
-  if (m_timer_handle == NULL)
+  if (m_timer_handle == nullptr)
   {
     ERROR_LOG_FMT(COMMON, "CREATE_WAITABLE_TIMER_HIGH_RESOLUTION: Error:{}", GetLastError());
 
     // Create a normal timer if "HIGH_RESOLUTION" isn't available.
-    m_timer_handle = CreateWaitableTimerExW(NULL, NULL, 0, TIMER_ALL_ACCESS);
-    if (m_timer_handle == NULL)
+    m_timer_handle = CreateWaitableTimerExW(nullptr, nullptr, 0, TIMER_ALL_ACCESS);
+    if (m_timer_handle == nullptr)
       ERROR_LOG_FMT(COMMON, "CreateWaitableTimerExW: Error:{}", GetLastError());
   }
 #endif
@@ -174,7 +175,7 @@ void PrecisionTimer::SleepUntil(Clock::time_point target)
       break;
 
     const LARGE_INTEGER due_time{.QuadPart = -ticks};
-    SetWaitableTimerEx(m_timer_handle, &due_time, 0, NULL, NULL, NULL, 0);
+    SetWaitableTimerEx(m_timer_handle, &due_time, 0, nullptr, nullptr, nullptr, 0);
     WaitForSingleObject(m_timer_handle, INFINITE);
   }
 #else

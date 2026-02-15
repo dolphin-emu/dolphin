@@ -417,12 +417,12 @@ void MemoryViewWidget::CreateTable()
   item.setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
   item.setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
 
-  for (int i = 0; i < rows; i++)
+  for (int i = 0; i < rows; ++i)
   {
     m_table->setItem(i, 0, bp_item.clone());
     m_table->setItem(i, 1, row_item.clone());
 
-    for (int c = 0; c < m_data_columns; c++)
+    for (int c = 0; c < m_data_columns; ++c)
     {
       if (left_type && c < data_span)
       {
@@ -461,7 +461,7 @@ void MemoryViewWidget::CreateTable()
   {
     const int width_left = m_font_width * GetCharacterCount(left_type.value());
 
-    for (int i = 0; i < data_span - 1; i++)
+    for (int i = 0; i < data_span - 1; ++i)
       m_table->setColumnWidth(i + start_fill, width_left);
 
     // Extra spacing between dual views.
@@ -472,7 +472,7 @@ void MemoryViewWidget::CreateTable()
 
   // If dual-view, updates the right-side columns only.
   const int width = m_font_width * GetCharacterCount(m_type);
-  for (int i = start_fill; i < total_columns; i++)
+  for (int i = start_fill; i < total_columns; ++i)
     m_table->setColumnWidth(i, width);
 }
 
@@ -497,7 +497,7 @@ void MemoryViewWidget::Update()
     row_item->setText(QStringLiteral("%1").arg(row_address, 8, 16, QLatin1Char('0')));
     row_item->setData(USER_ROLE_CELL_ADDRESS, row_address);
 
-    for (int c = 0; c < m_data_columns; c++)
+    for (int c = 0; c < m_data_columns; ++c)
     {
       auto* item = m_table->item(i, c + MISC_COLUMNS);
 
@@ -523,9 +523,9 @@ void MemoryViewWidget::Update()
 
 void MemoryViewWidget::UpdateColumns()
 {
-  for (int i = 0; i < m_table->rowCount(); i++)
+  for (int i = 0; i < m_table->rowCount(); ++i)
   {
-    for (int c = 0; c < m_data_columns; c++)
+    for (int c = 0; c < m_data_columns; ++c)
     {
       auto* cell_item = m_table->item(i, c + MISC_COLUMNS);
       if (!cell_item)
@@ -598,7 +598,7 @@ void MemoryViewWidget::UpdateSymbols()
     return;
 
   // Update symbols
-  for (int i = 0; i < m_table->rowCount(); i++)
+  for (int i = 0; i < m_table->rowCount(); ++i)
   {
     auto* item = m_table->item(i, m_table->columnCount() - 1);
     if (!item)
@@ -743,11 +743,11 @@ std::optional<QString> MemoryViewWidget::ValueToString(const Core::CPUThreadGuar
 
 void MemoryViewWidget::UpdateBreakpointTags()
 {
-  for (int i = 0; i < m_table->rowCount(); i++)
+  for (int i = 0; i < m_table->rowCount(); ++i)
   {
     bool row_breakpoint = false;
 
-    for (int c = 0; c < m_data_columns; c++)
+    for (int c = 0; c < m_data_columns; ++c)
     {
       // Pull address from cell itself, helpful for dual column view.
       auto cell = m_table->item(i, c + MISC_COLUMNS);
@@ -985,9 +985,9 @@ void MemoryViewWidget::ToggleHighlights(bool enabled)
     m_highlight_color.setAlpha(0);
 
     // Immediately remove highlights when paused.
-    for (int i = 0; i < m_table->rowCount(); i++)
+    for (int i = 0; i < m_table->rowCount(); ++i)
     {
-      for (int c = 0; c < m_data_columns; c++)
+      for (int c = 0; c < m_data_columns; ++c)
         m_table->item(i, c + MISC_COLUMNS)->setBackground(m_highlight_color);
     }
   }
@@ -1007,9 +1007,9 @@ void MemoryViewWidget::SetHighlightColor()
     return;
 
   // Immediately update colors. Only useful for playing with colors while paused.
-  for (int i = 0; i < m_table->rowCount(); i++)
+  for (int i = 0; i < m_table->rowCount(); ++i)
   {
-    for (int c = 0; c < m_data_columns; c++)
+    for (int c = 0; c < m_data_columns; ++c)
     {
       auto* item = m_table->item(i, c + MISC_COLUMNS);
       // Get current cell alpha state.
@@ -1060,7 +1060,7 @@ void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
     const Core::CPUThreadGuard guard(m_system);
     DelayedMemCheckUpdate delayed_update(&memchecks);
 
-    for (int i = 0; i < breaks; i++)
+    for (int i = 0; i < breaks; ++i)
     {
       u32 address = addr + length * i;
       TMemCheck* check_ptr = memchecks.GetMemCheck(address, length);

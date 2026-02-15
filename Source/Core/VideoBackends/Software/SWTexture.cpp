@@ -37,7 +37,7 @@ void CopyTextureData(const TextureConfig& src_config, const u8* src_ptr, u32 src
 
   src_ptr += src_offset;
   dst_ptr += dst_offset;
-  for (u32 i = 0; i < height; i++)
+  for (u32 i = 0; i < height; ++i)
   {
     std::memcpy(dst_ptr, src_ptr, copy_len);
     src_ptr += src_stride;
@@ -63,10 +63,10 @@ void SWGfx::ScaleTexture(AbstractFramebuffer* dst_framebuffer,
 SWTexture::SWTexture(const TextureConfig& tex_config) : AbstractTexture(tex_config)
 {
   m_data.resize(tex_config.layers);
-  for (u32 layer = 0; layer < tex_config.layers; layer++)
+  for (u32 layer = 0; layer < tex_config.layers; ++layer)
   {
     m_data[layer].resize(tex_config.levels);
-    for (u32 level = 0; level < tex_config.levels; level++)
+    for (u32 level = 0; level < tex_config.levels; ++level)
     {
       m_data[layer][level].resize(std::max(tex_config.width >> level, 1u) *
                                   std::max(tex_config.height >> level, 1u) * sizeof(Pixel));
@@ -93,7 +93,7 @@ void SWTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
                      size_t buffer_size, u32 layer)
 {
   u8* data = GetData(layer, level);
-  for (u32 y = 0; y < height; y++)
+  for (u32 y = 0; y < height; ++y)
   {
     memcpy(&data[width * y * sizeof(Pixel)], &buffer[y * row_length * sizeof(Pixel)],
            width * sizeof(Pixel));

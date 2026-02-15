@@ -363,7 +363,7 @@ void NetPlaySetupDialog::PopulateGameList()
   QSignalBlocker blocker(m_host_games);
 
   m_host_games->clear();
-  for (int i = 0; i < m_game_list_model.rowCount(QModelIndex()); i++)
+  for (int i = 0; i < m_game_list_model.rowCount(QModelIndex()); ++i)
   {
     std::shared_ptr<const UICommon::GameFile> game = m_game_list_model.GetGameFile(i);
 

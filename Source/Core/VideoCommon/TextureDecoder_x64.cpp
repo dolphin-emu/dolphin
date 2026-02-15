@@ -61,7 +61,7 @@ static inline u32 DecodePixel_RGB5A3(u16 val)
 static inline void DecodeBytes_C4_IA8(u32* dst, const u8* src, const u8* tlut_)
 {
   const u16* tlut = (u16*)tlut_;
-  for (int x = 0; x < 4; x++)
+  for (int x = 0; x < 4; ++x)
   {
     u8 val = src[x];
     *dst++ = DecodePixel_IA8(tlut[val >> 4]);
@@ -72,7 +72,7 @@ static inline void DecodeBytes_C4_IA8(u32* dst, const u8* src, const u8* tlut_)
 static inline void DecodeBytes_C4_RGB565(u32* dst, const u8* src, const u8* tlut_)
 {
   const u16* tlut = (u16*)tlut_;
-  for (int x = 0; x < 4; x++)
+  for (int x = 0; x < 4; ++x)
   {
     u8 val = src[x];
     *dst++ = DecodePixel_RGB565(Common::swap16(tlut[val >> 4]));
@@ -83,7 +83,7 @@ static inline void DecodeBytes_C4_RGB565(u32* dst, const u8* src, const u8* tlut
 static inline void DecodeBytes_C4_RGB5A3(u32* dst, const u8* src, const u8* tlut_)
 {
   const u16* tlut = (u16*)tlut_;
-  for (int x = 0; x < 4; x++)
+  for (int x = 0; x < 4; ++x)
   {
     u8 val = src[x];
     *dst++ = DecodePixel_RGB5A3(Common::swap16(tlut[val >> 4]));
@@ -94,7 +94,7 @@ static inline void DecodeBytes_C4_RGB5A3(u32* dst, const u8* src, const u8* tlut
 static inline void DecodeBytes_C8_IA8(u32* dst, const u8* src, const u8* tlut_)
 {
   const u16* tlut = (u16*)tlut_;
-  for (int x = 0; x < 8; x++)
+  for (int x = 0; x < 8; ++x)
   {
     *dst++ = DecodePixel_IA8(tlut[src[x]]);
   }
@@ -103,7 +103,7 @@ static inline void DecodeBytes_C8_IA8(u32* dst, const u8* src, const u8* tlut_)
 static inline void DecodeBytes_C8_RGB565(u32* dst, const u8* src, const u8* tlut_)
 {
   const u16* tlut = (u16*)tlut_;
-  for (int x = 0; x < 8; x++)
+  for (int x = 0; x < 8; ++x)
   {
     u8 val = src[x];
     *dst++ = DecodePixel_RGB565(Common::swap16(tlut[val]));
@@ -113,7 +113,7 @@ static inline void DecodeBytes_C8_RGB565(u32* dst, const u8* src, const u8* tlut
 static inline void DecodeBytes_C8_RGB5A3(u32* dst, const u8* src, const u8* tlut_)
 {
   const u16* tlut = (u16*)tlut_;
-  for (int x = 0; x < 8; x++)
+  for (int x = 0; x < 8; ++x)
   {
     u8 val = src[x];
     *dst++ = DecodePixel_RGB5A3(Common::swap16(tlut[val]));
@@ -123,7 +123,7 @@ static inline void DecodeBytes_C8_RGB5A3(u32* dst, const u8* src, const u8* tlut
 static inline void DecodeBytes_C14X2_IA8(u32* dst, const u16* src, const u8* tlut_)
 {
   const u16* tlut = (u16*)tlut_;
-  for (int x = 0; x < 4; x++)
+  for (int x = 0; x < 4; ++x)
   {
     u16 val = Common::swap16(src[x]);
     *dst++ = DecodePixel_IA8(tlut[(val & 0x3FFF)]);
@@ -133,7 +133,7 @@ static inline void DecodeBytes_C14X2_IA8(u32* dst, const u16* src, const u8* tlu
 static inline void DecodeBytes_C14X2_RGB565(u32* dst, const u16* src, const u8* tlut_)
 {
   const u16* tlut = (u16*)tlut_;
-  for (int x = 0; x < 4; x++)
+  for (int x = 0; x < 4; ++x)
   {
     u16 val = Common::swap16(src[x]);
     *dst++ = DecodePixel_RGB565(Common::swap16(tlut[(val & 0x3FFF)]));
@@ -143,7 +143,7 @@ static inline void DecodeBytes_C14X2_RGB565(u32* dst, const u16* src, const u8* 
 static inline void DecodeBytes_C14X2_RGB5A3(u32* dst, const u16* src, const u8* tlut_)
 {
   const u16* tlut = (u16*)tlut_;
-  for (int x = 0; x < 4; x++)
+  for (int x = 0; x < 4; ++x)
   {
     u16 val = Common::swap16(src[x]);
     *dst++ = DecodePixel_RGB5A3(Common::swap16(tlut[(val & 0x3FFF)]));
@@ -152,7 +152,7 @@ static inline void DecodeBytes_C14X2_RGB5A3(u32* dst, const u16* src, const u8* 
 
 static inline void DecodeBytes_IA4(u32* dst, const u8* src)
 {
-  for (int x = 0; x < 8; x++)
+  for (int x = 0; x < 8; ++x)
   {
     const u8 val = src[x];
     u8 a = Convert4To8(val >> 4);
@@ -192,10 +192,10 @@ static void DecodeDXTBlock(u32* dst, const DXTBlock* src, int pitch)
     colors[3] = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 0);
   }
 
-  for (int y = 0; y < 4; y++)
+  for (int y = 0; y < 4; ++y)
   {
     int val = src->lines[y];
-    for (int x = 0; x < 4; x++)
+    for (int x = 0; x < 4; ++x)
     {
       dst[x] = colors[(val >> 6) & 3];
       val <<= 2;
@@ -221,8 +221,8 @@ static void TexDecoder_DecodeImpl_C4(u32* dst, const u8* src, int width, int hei
   case TLUTFormat::RGB5A3:
   {
     for (int y = 0; y < height; y += 8)
-      for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
-        for (int iy = 0, xStep = 8 * yStep; iy < 8; iy++, xStep++)
+      for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, ++yStep)
+        for (int iy = 0, xStep = 8 * yStep; iy < 8; ++iy, ++xStep)
           DecodeBytes_C4_RGB5A3(dst + (y + iy) * width + x, src + 4 * xStep, tlut);
   }
   break;
@@ -230,8 +230,8 @@ static void TexDecoder_DecodeImpl_C4(u32* dst, const u8* src, int width, int hei
   case TLUTFormat::IA8:
   {
     for (int y = 0; y < height; y += 8)
-      for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
-        for (int iy = 0, xStep = 8 * yStep; iy < 8; iy++, xStep++)
+      for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, ++yStep)
+        for (int iy = 0, xStep = 8 * yStep; iy < 8; ++iy, ++xStep)
           DecodeBytes_C4_IA8(dst + (y + iy) * width + x, src + 4 * xStep, tlut);
   }
   break;
@@ -239,8 +239,8 @@ static void TexDecoder_DecodeImpl_C4(u32* dst, const u8* src, int width, int hei
   case TLUTFormat::RGB565:
   {
     for (int y = 0; y < height; y += 8)
-      for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
-        for (int iy = 0, xStep = 8 * yStep; iy < 8; iy++, xStep++)
+      for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, ++yStep)
+        for (int iy = 0, xStep = 8 * yStep; iy < 8; ++iy, ++xStep)
           DecodeBytes_C4_RGB565(dst + (y + iy) * width + x, src + 4 * xStep, tlut);
   }
   break;
@@ -266,7 +266,7 @@ static void TexDecoder_DecodeImpl_I4_SSSE3(u32* dst, const u8* src, int width, i
   const __m128i maskF7E6 = _mm_set_epi8(15, 15, 15, 15, 7, 7, 7, 7, 14, 14, 14, 14, 6, 6, 6, 6);
   for (int y = 0; y < height; y += 8)
   {
-    for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
+    for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, ++yStep)
     {
       for (int iy = 0, xStep = 4 * yStep; iy < 8; iy += 2, xStep++)
       {
@@ -310,7 +310,7 @@ static void TexDecoder_DecodeImpl_I4(u32* dst, const u8* src, int width, int hei
   // Produces a ~76% speed improvement over reference C implementation.
   for (int y = 0; y < height; y += 8)
   {
-    for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
+    for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, ++yStep)
     {
       for (int iy = 0, xStep = 4 * yStep; iy < 8; iy += 2, xStep++)
       {
@@ -399,7 +399,7 @@ static void TexDecoder_DecodeImpl_I8_SSSE3(u32* dst, const u8* src, int width, i
   // Produces a ~10% speed improvement over SSE2 implementation
   for (int y = 0; y < height; y += 4)
   {
-    for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+    for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, ++yStep)
     {
       for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, xStep++)
       {
@@ -429,7 +429,7 @@ static void TexDecoder_DecodeImpl_I8(u32* dst, const u8* src, int width, int hei
   // Produces an ~86% speed improvement over reference C implementation.
   for (int y = 0; y < height; y += 4)
   {
-    for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+    for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, ++yStep)
     {
       // Each loop iteration processes 4 rows from 4 64-bit reads.
       const u8* src2 = src + 32 * yStep;
@@ -530,8 +530,8 @@ static void TexDecoder_DecodeImpl_C8(u32* dst, const u8* src, int width, int hei
   case TLUTFormat::RGB5A3:
   {
     for (int y = 0; y < height; y += 4)
-      for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-        for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+      for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, ++yStep)
+        for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
           DecodeBytes_C8_RGB5A3((u32*)dst + (y + iy) * width + x, src + 8 * xStep, tlut);
   }
   break;
@@ -539,8 +539,8 @@ static void TexDecoder_DecodeImpl_C8(u32* dst, const u8* src, int width, int hei
   case TLUTFormat::IA8:
   {
     for (int y = 0; y < height; y += 4)
-      for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-        for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+      for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, ++yStep)
+        for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
           DecodeBytes_C8_IA8(dst + (y + iy) * width + x, src + 8 * xStep, tlut);
   }
   break;
@@ -548,8 +548,8 @@ static void TexDecoder_DecodeImpl_C8(u32* dst, const u8* src, int width, int hei
   case TLUTFormat::RGB565:
   {
     for (int y = 0; y < height; y += 4)
-      for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-        for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+      for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, ++yStep)
+        for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
           DecodeBytes_C8_RGB565(dst + (y + iy) * width + x, src + 8 * xStep, tlut);
   }
   break;
@@ -565,9 +565,9 @@ static void TexDecoder_DecodeImpl_IA4(u32* dst, const u8* src, int width, int he
 {
   for (int y = 0; y < height; y += 4)
   {
-    for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+    for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, ++yStep)
     {
-      for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+      for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
       {
         DecodeBytes_IA4(dst + (y + iy) * width + x, src + 8 * xStep);
       }
@@ -586,7 +586,7 @@ static void TexDecoder_DecodeImpl_IA8_SSSE3(u32* dst, const u8* src, int width, 
   {
     for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
     {
-      for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+      for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
       {
         const __m128i mask = _mm_set_epi8(6, 7, 7, 7, 4, 5, 5, 5, 2, 3, 3, 3, 0, 1, 1, 1);
         // Load 4x 16-bit IA8 samples from `src` into an __m128i with upper 64 bits zeroed:
@@ -614,7 +614,7 @@ static void TexDecoder_DecodeImpl_IA8(u32* dst, const u8* src, int width, int he
   {
     for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
     {
-      for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+      for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
       {
         // Expands a 16-bit "IA" to a 32-bit "AIII". Each char is an 8-bit value.
 
@@ -671,7 +671,7 @@ static void TexDecoder_DecodeImpl_C14X2(u32* dst, const u8* src, int width, int 
   {
     for (int y = 0; y < height; y += 4)
       for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-        for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+        for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
           DecodeBytes_C14X2_RGB5A3(dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlut);
   }
   break;
@@ -680,7 +680,7 @@ static void TexDecoder_DecodeImpl_C14X2(u32* dst, const u8* src, int width, int 
   {
     for (int y = 0; y < height; y += 4)
       for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-        for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+        for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
           DecodeBytes_C14X2_IA8(dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlut);
   }
   break;
@@ -689,7 +689,7 @@ static void TexDecoder_DecodeImpl_C14X2(u32* dst, const u8* src, int width, int 
   {
     for (int y = 0; y < height; y += 4)
       for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-        for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+        for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
           DecodeBytes_C14X2_RGB565(dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlut);
   }
   break;
@@ -714,7 +714,7 @@ static void TexDecoder_DecodeImpl_RGB565(u32* dst, const u8* src, int width, int
   {
     for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
     {
-      for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+      for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
       {
         __m128i* dxtsrc = (__m128i*)(src + 8 * xStep);
         // Load 4x 16-bit colors: (0000 0000 hgfe dcba)
@@ -788,7 +788,7 @@ static void TexDecoder_DecodeImpl_RGB5A3_SSSE3(u32* dst, const u8* src, int widt
   {
     for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
     {
-      for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+      for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
       {
         u32* newdst = dst + (y + iy) * width + x;
         const __m128i mask =
@@ -894,7 +894,7 @@ static void TexDecoder_DecodeImpl_RGB5A3(u32* dst, const u8* src, int width, int
   {
     for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
     {
-      for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+      for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
       {
         u32* newdst = dst + (y + iy) * width + x;
         const u16* newsrc = (const u16*)(src + 8 * xStep);
@@ -1164,7 +1164,7 @@ static void TexDecoder_DecodeImpl_CMPR(u32* dst, const u8* src, int width, int h
   // C code, but the SSE2 is faster than both.
   for (int y = 0; y < height; y += 8)
   {
-    for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
+    for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, ++yStep)
     {
       // We handle two DXT blocks simultaneously to take full advantage of SSE2's 128-bit registers.
       // This is ideal because a single DXT block contains 2 RGBA colors when decoded from their

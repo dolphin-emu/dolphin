@@ -1206,7 +1206,7 @@ void VKFramebuffer::SetAndClear(const VkRect2D& rect, const VkClearValue& color_
   {
     clear_values.push_back(depth_value);
   }
-  for (std::size_t i = 0; i < m_additional_color_attachments.size(); i++)
+  for (std::size_t i = 0; i < m_additional_color_attachments.size(); ++i)
   {
     clear_values.push_back(color_value);
   }

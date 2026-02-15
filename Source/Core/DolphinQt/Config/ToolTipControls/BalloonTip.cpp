@@ -328,7 +328,7 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& target_arrow_tip_position,
 
     // Draw the arrow border and interior lines from the outside inward. Each loop iteration draws
     // one pair of border lines and one pair of interior lines.
-    for (int i = 1; i <= arrow_half_width; i++)
+    for (int i = 1; i <= arrow_half_width; ++i)
     {
       const float x_offset_from_arrow_base_edge = i - 0.5;
       const float border_y_start = arrow_base_y + (arrow_at_bottom ? i : -i);

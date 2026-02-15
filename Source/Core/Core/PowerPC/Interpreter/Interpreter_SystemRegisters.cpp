@@ -83,7 +83,7 @@ void Interpreter::mtfsfx(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 fm = inst.FM;
   u32 m = 0;
-  for (u32 i = 0; i < 8; i++)
+  for (u32 i = 0; i < 8; ++i)
   {
     if ((fm & (1U << i)) != 0)
       m |= (0xFU << (i * 4));
@@ -123,7 +123,7 @@ void Interpreter::mtcrf(Interpreter& interpreter, UGeckoInstruction inst)
   {
     // TODO: use lookup table? probably not worth it
     u32 mask = 0;
-    for (u32 i = 0; i < 8; i++)
+    for (u32 i = 0; i < 8; ++i)
     {
       if ((crm & (1U << i)) != 0)
         mask |= 0xFU << (i * 4);

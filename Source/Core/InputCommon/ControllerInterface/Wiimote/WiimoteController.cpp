@@ -14,6 +14,8 @@
 
 namespace ciface::WiimoteController
 {
+using namespace WiimoteCommon;
+
 static constexpr char SOURCE_NAME[] = "Bluetooth";
 
 static constexpr size_t IR_SENSITIVITY_LEVEL_COUNT = 5;

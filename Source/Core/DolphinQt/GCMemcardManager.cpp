@@ -264,7 +264,7 @@ void GCMemcardManager::UpdateSlotTable(Slot slot)
   const u8 free_files = Memcard::DIRLEN - num_files;
   const u16 free_blocks = memcard->GetFreeBlocks();
   table->setRowCount(num_files);
-  for (int i = 0; i < num_files; i++)
+  for (int i = 0; i < num_files; ++i)
   {
     const u8 file_index = memcard->GetFileIndex(i);
 

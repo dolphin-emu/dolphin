@@ -71,7 +71,7 @@ VertexLoader::VertexLoader(const TVtxDesc& vtx_desc, const VAT& vtx_attr)
 
   // generate frac factors
   m_posScale = 1.0f / (1U << m_VtxAttr.g0.PosFrac);
-  for (u32 i = 0; i < 8; i++)
+  for (u32 i = 0; i < 8; ++i)
     m_tcScale[i] = 1.0f / (1U << m_VtxAttr.GetTexFrac(i));
 }
 
@@ -125,7 +125,7 @@ void VertexLoader::CompileVertexTranslator()
     }
     WriteCall(pFunc);
 
-    for (int i = 0; i < (m_VtxAttr.g0.NormalElements == NormalComponentCount::NTB ? 3 : 1); i++)
+    for (int i = 0; i < (m_VtxAttr.g0.NormalElements == NormalComponentCount::NTB ? 3 : 1); ++i)
     {
       m_native_vtx_decl.normals[i].components = 3;
       m_native_vtx_decl.normals[i].enable = true;
@@ -136,7 +136,7 @@ void VertexLoader::CompileVertexTranslator()
     }
   }
 
-  for (size_t i = 0; i < m_VtxDesc.low.Color.Size(); i++)
+  for (size_t i = 0; i < m_VtxDesc.low.Color.Size(); ++i)
   {
     m_native_vtx_decl.colors[i].components = 4;
     m_native_vtx_decl.colors[i].type = ComponentFormat::UByte;
@@ -166,7 +166,7 @@ void VertexLoader::CompileVertexTranslator()
   }
 
   // Texture matrix indices (remove if corresponding texture coordinate isn't enabled)
-  for (size_t i = 0; i < m_VtxDesc.high.TexCoord.Size(); i++)
+  for (size_t i = 0; i < m_VtxDesc.high.TexCoord.Size(); ++i)
   {
     m_native_vtx_decl.texcoords[i].offset = nat_offset;
     m_native_vtx_decl.texcoords[i].type = ComponentFormat::Float;

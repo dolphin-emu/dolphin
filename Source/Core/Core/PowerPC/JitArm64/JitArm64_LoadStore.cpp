@@ -582,7 +582,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
 
   // TODO: This doesn't handle rollback on DSI correctly
   constexpr u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_SIZE_32;
-  for (u32 i = d; i < 32; i++)
+  for (u32 i = d; i < 32; ++i)
   {
     gpr.BindToRegister(i, false, false);
     ARM64Reg dest_reg = gpr.R(i);
@@ -701,7 +701,7 @@ void JitArm64::stmw(UGeckoInstruction inst)
 
   // TODO: This doesn't handle rollback on DSI correctly
   constexpr u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_SIZE_32;
-  for (u32 i = s; i < 32; i++)
+  for (u32 i = s; i < 32; ++i)
   {
     ARM64Reg src_reg = gpr.R(i);
 

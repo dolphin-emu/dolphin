@@ -19,7 +19,7 @@
 
 namespace Dolphin_Debugger
 {
-// Returns true if the address is not a valid RAM address or NULL.
+// Returns true if the address is not a valid RAM address or nullptr.
 static bool IsStackBottom(const Core::CPUThreadGuard& guard, u32 addr)
 {
   return !addr || !PowerPC::MMU::HostIsRAMAddress(guard, addr);
@@ -128,7 +128,7 @@ void PrintDataBuffer(const Core::System& system, Common::Log::LogType type, u32 
   for (u32 j = 0; j < size;)
   {
     std::string hex_line;
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < 16; ++i)
     {
       hex_line += fmt::format("{:02x} ", data[j++]);
 

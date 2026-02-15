@@ -436,7 +436,7 @@ bool SwapChain::SetupSwapChainImages()
   }
 
   m_swap_chain_images.reserve(image_count);
-  for (uint32_t i = 0; i < image_count; i++)
+  for (uint32_t i = 0; i < image_count; ++i)
   {
     SwapChainImage image;
     image.image = images[i];

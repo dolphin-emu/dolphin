@@ -170,14 +170,14 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   if (numTexgen > 0)
   {
     out.Write("int2 selectTexCoord(uint index");
-    for (u32 i = 0; i < numTexgen; i++)
+    for (u32 i = 0; i < numTexgen; ++i)
       out.Write(", int2 fixpoint_uv{}", i);
     out.Write(") {{\n");
 
     if (api_type == APIType::D3D)
     {
       out.Write("  switch (index) {{\n");
-      for (u32 i = 0; i < numTexgen; i++)
+      for (u32 i = 0; i < numTexgen; ++i)
       {
         out.Write("  case {}u:\n"
                   "    return fixpoint_uv{};\n",
@@ -239,7 +239,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     if (api_type == APIType::D3D)
     {
       out.Write("  switch (texmap) {{\n");
-      for (u32 i = 0; i < numTexgen; i++)
+      for (u32 i = 0; i < numTexgen; ++i)
       {
         out.Write("  case {}u:\n"
                   "    return {}u;\n",
@@ -316,7 +316,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "  // With any luck the shader compiler will optimise this if the hardware supports "
               "dynamic indexing.\n"
               "  switch(sampler_num) {{\n");
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 8; ++i)
     {
       out.Write("  case {0}u: return sampleTexture({0}u, samp[{0}u], uv, layer);\n", i);
     }
@@ -559,7 +559,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   if (numTexgen > 0)
   {
     out.Write("#define getTexCoord(index) selectTexCoord((index)");
-    for (u32 i = 0; i < numTexgen; i++)
+    for (u32 i = 0; i < numTexgen; ++i)
       out.Write(", fixpoint_uv{}", i);
     out.Write(")\n\n");
   }
@@ -609,7 +609,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "  s.RawTexColor = int4(0, 0, 0, 0);\n"
             "  s.AlphaBump = 0;\n"
             "\n");
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; ++i)
     out.Write("  s.Reg[{}] = " I_COLORS "[{}];\n", i, i);
 
   const char* color_input_prefix = "";
@@ -649,7 +649,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   // Disable texturing when there are no texgens (for now)
   if (numTexgen != 0)
   {
-    for (u32 i = 0; i < numTexgen; i++)
+    for (u32 i = 0; i < numTexgen; ++i)
     {
       out.Write("    int2 fixpoint_uv{} = int2(", i);
       out.Write("(tex{}.z == 0.0 ? tex{}.xy : tex{}.xy / tex{}.z)", i, i, i, i);
@@ -1146,7 +1146,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "  if (logic_op_enable) {{\n"
               "    int4 fb_value = iround(initial_ocol0 * 255.0);"
               "    switch (logic_op_mode) {{\n");
-    for (size_t i = 0; i < logic_op_mode.size(); i++)
+    for (size_t i = 0; i < logic_op_mode.size(); ++i)
     {
       out.Write("      case {}u: TevResult = {}; break;\n", i, logic_op_mode[i]);
     }
@@ -1339,25 +1339,25 @@ void EnumeratePixelShaderUids(const std::function<void(const PixelShaderUid&)>& 
 {
   PixelShaderUid uid;
 
-  for (u32 texgens = 0; texgens <= 8; texgens++)
+  for (u32 texgens = 0; texgens <= 8; ++texgens)
   {
     pixel_ubershader_uid_data* const puid = uid.GetUidData();
     puid->num_texgens = texgens;
 
-    for (u32 early_depth = 0; early_depth < 2; early_depth++)
+    for (u32 early_depth = 0; early_depth < 2; ++early_depth)
     {
       puid->early_depth = early_depth != 0;
-      for (u32 per_pixel_depth = 0; per_pixel_depth < 2; per_pixel_depth++)
+      for (u32 per_pixel_depth = 0; per_pixel_depth < 2; ++per_pixel_depth)
       {
         // Don't generate shaders where we have early depth tests enabled, and write gl_FragDepth.
         if (early_depth && per_pixel_depth)
           continue;
 
         puid->per_pixel_depth = per_pixel_depth != 0;
-        for (u32 uint_output = 0; uint_output < 2; uint_output++)
+        for (u32 uint_output = 0; uint_output < 2; ++uint_output)
         {
           puid->uint_output = uint_output;
-          for (u32 no_dual_src = 0; no_dual_src < 2; no_dual_src++)
+          for (u32 no_dual_src = 0; no_dual_src < 2; ++no_dual_src)
           {
             puid->no_dual_src = no_dual_src;
             callback(uid);

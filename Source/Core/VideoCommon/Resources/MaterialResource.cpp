@@ -119,7 +119,7 @@ Resource::TaskComplete MaterialResource::CollectDependencyData()
     loaded &= data_processed == TaskComplete::Yes;
   }
 
-  for (std::size_t i = 0; i < m_load_data->m_material_data->textures.size(); i++)
+  for (std::size_t i = 0; i < m_load_data->m_material_data->textures.size(); ++i)
   {
     const auto& texture_and_sampler = m_load_data->m_material_data->textures[i];
     if (texture_and_sampler.asset == "")
@@ -160,7 +160,7 @@ Resource::TaskComplete MaterialResource::ProcessData()
   if (!shader_data) [[unlikely]]
     return Resource::TaskComplete::Error;
 
-  for (std::size_t i = 0; i < m_load_data->m_texture_like_data.size(); i++)
+  for (std::size_t i = 0; i < m_load_data->m_texture_like_data.size(); ++i)
   {
     auto& texture_like_reference = m_load_data->m_texture_like_references[i];
     const auto& texture_and_sampler = m_load_data->m_material_data->textures[i];
@@ -319,7 +319,7 @@ void MaterialResource::CreateTextureData(Data* data)
   data->m_texture_like_resources.clear();
   data->m_texture_like_references.clear();
   const u32 custom_sampler_index_offset = 8;
-  for (u32 i = 0; i < static_cast<u32>(material_data.textures.size()); i++)
+  for (u32 i = 0; i < static_cast<u32>(material_data.textures.size()); ++i)
   {
     const auto& texture_and_sampler = material_data.textures[i];
     data->m_texture_like_references.push_back(TextureLikeReference{});

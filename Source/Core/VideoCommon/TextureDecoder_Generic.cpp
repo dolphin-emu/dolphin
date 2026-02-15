@@ -74,7 +74,7 @@ static inline u32 DecodePixel_Paletted(u16 pixel, TLUTFormat tlutfmt)
 static inline void DecodeBytes_C4(u32* dst, const u8* src, const u8* tlut_, TLUTFormat tlutfmt)
 {
   const u16* tlut = (u16*)tlut_;
-  for (int x = 0; x < 4; x++)
+  for (int x = 0; x < 4; ++x)
   {
     u8 val = src[x];
     *dst++ = DecodePixel_Paletted(tlut[val >> 4], tlutfmt);
@@ -85,7 +85,7 @@ static inline void DecodeBytes_C4(u32* dst, const u8* src, const u8* tlut_, TLUT
 static inline void DecodeBytes_C8(u32* dst, const u8* src, const u8* tlut_, TLUTFormat tlutfmt)
 {
   const u16* tlut = (u16*)tlut_;
-  for (int x = 0; x < 8; x++)
+  for (int x = 0; x < 8; ++x)
   {
     u8 val = src[x];
     *dst++ = DecodePixel_Paletted(tlut[val], tlutfmt);
@@ -95,7 +95,7 @@ static inline void DecodeBytes_C8(u32* dst, const u8* src, const u8* tlut_, TLUT
 static inline void DecodeBytes_C14X2(u32* dst, const u16* src, const u8* tlut_, TLUTFormat tlutfmt)
 {
   const u16* tlut = (u16*)tlut_;
-  for (int x = 0; x < 4; x++)
+  for (int x = 0; x < 4; ++x)
   {
     u16 val = Common::swap16(src[x]);
     *dst++ = DecodePixel_Paletted(tlut[(val & 0x3FFF)], tlutfmt);
@@ -104,7 +104,7 @@ static inline void DecodeBytes_C14X2(u32* dst, const u16* src, const u8* tlut_, 
 
 static inline void DecodeBytes_IA4(u32* dst, const u8* src)
 {
-  for (int x = 0; x < 8; x++)
+  for (int x = 0; x < 8; ++x)
   {
     const u8 val = src[x];
     u8 a = Convert4To8(val >> 4);
@@ -115,13 +115,13 @@ static inline void DecodeBytes_IA4(u32* dst, const u8* src)
 
 static inline void DecodeBytes_RGB5A3(u32* dst, const u16* src)
 {
-  for (int x = 0; x < 4; x++)
+  for (int x = 0; x < 4; ++x)
     dst[x] = DecodePixel_RGB5A3(Common::swap16(src[x]));
 }
 
 static inline void DecodeBytes_RGBA8(u32* dst, const u16* src, const u16* src2)
 {
-  for (int x = 0; x < 4; x++)
+  for (int x = 0; x < 4; ++x)
     dst[x] = ((src[x] & 0xFF) << 24) | ((src[x] & 0xFF00) >> 8) | (src2[x] << 8);
 }
 
@@ -155,10 +155,10 @@ static void DecodeDXTBlock(u32* dst, const DXTBlock* src, int pitch)
     colors[3] = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 0);
   }
 
-  for (int y = 0; y < 4; y++)
+  for (int y = 0; y < 4; ++y)
   {
     int val = src->lines[y];
-    for (int x = 0; x < 4; x++)
+    for (int x = 0; x < 4; ++x)
     {
       dst[x] = colors[(val >> 6) & 3];
       val <<= 2;
@@ -198,7 +198,7 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, Text
     for (int y = 0; y < height; y += 8)
       for (int x = 0; x < width; x += 8)
         for (int iy = 0; iy < 8; iy++, src += 4)
-          for (int ix = 0; ix < 4; ix++)
+          for (int ix = 0; ix < 4; ++ix)
           {
             int val = src[ix];
             u8 i1 = Convert4To8(val >> 4);
@@ -283,7 +283,7 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, Text
         {
           u32* ptr = dst + (y + iy) * width + x;
           u16* s = (u16*)src;
-          for (int j = 0; j < 4; j++)
+          for (int j = 0; j < 4; ++j)
             *ptr++ = DecodePixel_RGB565(Common::swap16(*s++));
         }
   }
@@ -303,7 +303,7 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, Text
     for (int y = 0; y < height; y += 4)
       for (int x = 0; x < width; x += 4)
       {
-        for (int iy = 0; iy < 4; iy++)
+        for (int iy = 0; iy < 4; ++iy)
           DecodeBytes_RGBA8(dst + (y + iy) * width + x, (u16*)src + 4 * iy,
                             (u16*)src + 4 * iy + 16);
         src += 64;

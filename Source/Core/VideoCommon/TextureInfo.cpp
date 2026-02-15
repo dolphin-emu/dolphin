@@ -129,7 +129,7 @@ TextureInfo::NameDetails TextureInfo::CalculateTextureName() const
   case 0:
     break;
   case 16 * 2:
-    for (size_t i = 0; i < m_texture_size; i++)
+    for (size_t i = 0; i < m_texture_size; ++i)
     {
       const u32 low_nibble = m_data[i] & 0xf;
       const u32 high_nibble = m_data[i] >> 4;
@@ -139,7 +139,7 @@ TextureInfo::NameDetails TextureInfo::CalculateTextureName() const
     }
     break;
   case 256 * 2:
-    for (size_t i = 0; i < m_texture_size; i++)
+    for (size_t i = 0; i < m_texture_size; ++i)
     {
       const u32 texture_byte = m_data[i];
 

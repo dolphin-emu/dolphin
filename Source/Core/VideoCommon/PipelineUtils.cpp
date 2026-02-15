@@ -126,7 +126,7 @@ GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
     const PortableVertexDeclaration& decl = out.vertex_format->GetVertexDeclaration();
     vs->position_has_3_elems = decl.position.components >= 3;
     vs->texcoord_elem_count = 0;
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 8; ++i)
     {
       if (decl.texcoords[i].enable)
       {

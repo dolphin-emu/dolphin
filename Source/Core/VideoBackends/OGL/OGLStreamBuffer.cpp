@@ -63,18 +63,18 @@ StreamBuffer::~StreamBuffer()
 
 void StreamBuffer::CreateFences()
 {
-  for (int i = 0; i < SYNC_POINTS; i++)
+  for (int i = 0; i < SYNC_POINTS; ++i)
   {
     m_fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
   }
 }
 void StreamBuffer::DeleteFences()
 {
-  for (int i = Slot(m_free_iterator) + 1; i < SYNC_POINTS; i++)
+  for (int i = Slot(m_free_iterator) + 1; i < SYNC_POINTS; ++i)
   {
     glDeleteSync(m_fences[i]);
   }
-  for (int i = 0; i < Slot(m_iterator); i++)
+  for (int i = 0; i < Slot(m_iterator); ++i)
   {
     glDeleteSync(m_fences[i]);
   }
@@ -82,14 +82,14 @@ void StreamBuffer::DeleteFences()
 void StreamBuffer::AllocMemory(u32 size)
 {
   // insert waiting slots for used memory
-  for (int i = Slot(m_used_iterator); i < Slot(m_iterator); i++)
+  for (int i = Slot(m_used_iterator); i < Slot(m_iterator); ++i)
   {
     m_fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
   }
   m_used_iterator = m_iterator;
 
   // wait for new slots to end of buffer
-  for (int i = Slot(m_free_iterator) + 1; i <= Slot(m_iterator + size) && i < SYNC_POINTS; i++)
+  for (int i = Slot(m_free_iterator) + 1; i <= Slot(m_iterator + size) && i < SYNC_POINTS; ++i)
   {
     glClientWaitSync(m_fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
     glDeleteSync(m_fences[i]);
@@ -106,7 +106,7 @@ void StreamBuffer::AllocMemory(u32 size)
   if (m_iterator + size >= m_size)
   {
     // insert waiting slots in unused space at the end of the buffer
-    for (int i = Slot(m_used_iterator); i < SYNC_POINTS; i++)
+    for (int i = Slot(m_used_iterator); i < SYNC_POINTS; ++i)
     {
       m_fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
     }
@@ -115,7 +115,7 @@ void StreamBuffer::AllocMemory(u32 size)
     m_used_iterator = m_iterator = 0;  // offset 0 is always aligned
 
     // wait for space at the start
-    for (int i = 0; i <= Slot(m_iterator + size); i++)
+    for (int i = 0; i <= Slot(m_iterator + size); ++i)
     {
       glClientWaitSync(m_fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
       glDeleteSync(m_fences[i]);

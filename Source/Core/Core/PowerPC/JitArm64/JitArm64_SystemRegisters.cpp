@@ -330,7 +330,7 @@ void JitArm64::twx(UGeckoInstruction inst)
   constexpr std::array<CCFlags, 5> conditions{{CC_LT, CC_GT, CC_EQ, CC_VC, CC_VS}};
   Common::SmallVector<FixupBranch, conditions.size()> fixups;
 
-  for (size_t i = 0; i < conditions.size(); i++)
+  for (size_t i = 0; i < conditions.size(); ++i)
   {
     if (inst.TO & (1U << i))
     {
@@ -684,7 +684,7 @@ void JitArm64::mfcr(UGeckoInstruction inst)
   ARM64Reg XB = EncodeRegTo64(WB);
   ARM64Reg XC = EncodeRegTo64(WC);
 
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 8; ++i)
   {
     ARM64Reg CR = gpr.CR(i);
     ARM64Reg WCR = EncodeRegTo32(CR);
@@ -926,7 +926,7 @@ void JitArm64::mtfsfx(UGeckoInstruction inst)
   FALLBACK_IF(jo.fp_exceptions);
 
   u32 mask = 0;
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 8; ++i)
   {
     if (inst.FM & (1 << i))
       mask |= 0xFU << (4 * i);

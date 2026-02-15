@@ -50,9 +50,9 @@ static inline void BoxfilterRGBA_to_RGBA8(const u8* src, u8* r, u8* g, u8* b, u8
 {
   u16 r16 = 0, g16 = 0, b16 = 0, a16 = 0;
 
-  for (int y = 0; y < 2; y++)
+  for (int y = 0; y < 2; ++y)
   {
-    for (int x = 0; x < 2; x++)
+    for (int x = 0; x < 2; ++x)
     {
       u32 srcColor = *(u32*)src;
 
@@ -76,9 +76,9 @@ static inline void BoxfilterRGBA_to_RGB8(const u8* src, u8* r, u8* g, u8* b)
 {
   u16 r16 = 0, g16 = 0, b16 = 0;
 
-  for (int y = 0; y < 2; y++)
+  for (int y = 0; y < 2; ++y)
   {
-    for (int x = 0; x < 2; x++)
+    for (int x = 0; x < 2; ++x)
     {
       u32 srcColor = *(u32*)src;
 
@@ -100,9 +100,9 @@ static inline void BoxfilterRGBA_to_x8(const u8* src, u8* x8, int shift)
 {
   u16 x16 = 0;
 
-  for (int y = 0; y < 2; y++)
+  for (int y = 0; y < 2; ++y)
   {
-    for (int x = 0; x < 2; x++)
+    for (int x = 0; x < 2; ++x)
     {
       u32 srcColor = *(u32*)src;
 
@@ -121,9 +121,9 @@ static inline void BoxfilterRGBA_to_xx8(const u8* src, u8* x1, u8* x2, int shift
   u16 x16_1 = 0;
   u16 x16_2 = 0;
 
-  for (int y = 0; y < 2; y++)
+  for (int y = 0; y < 2; ++y)
   {
-    for (int x = 0; x < 2; x++)
+    for (int x = 0; x < 2; ++x)
     {
       u32 srcColor = *(u32*)src;
 
@@ -143,9 +143,9 @@ static inline void BoxfilterRGB_to_RGB8(const u8* src, u8* r, u8* g, u8* b)
 {
   u16 r16 = 0, g16 = 0, b16 = 0;
 
-  for (int y = 0; y < 2; y++)
+  for (int y = 0; y < 2; ++y)
   {
-    for (int x = 0; x < 2; x++)
+    for (int x = 0; x < 2; ++x)
     {
       b16 += src[0];
       g16 += src[1];
@@ -165,9 +165,9 @@ static inline void BoxfilterRGB_to_x8(const u8* src, u8* x8, int comp)
 {
   u16 x16 = 0;
 
-  for (int y = 0; y < 2; y++)
+  for (int y = 0; y < 2; ++y)
   {
-    for (int x = 0; x < 2; x++)
+    for (int x = 0; x < 2; ++x)
     {
       x16 += src[comp];
 
@@ -184,9 +184,9 @@ static inline void BoxfilterRGB_to_xx8(const u8* src, u8* x1, u8* x2, int comp1,
   u16 x16_1 = 0;
   u16 x16_2 = 0;
 
-  for (int y = 0; y < 2; y++)
+  for (int y = 0; y < 2; ++y)
   {
-    for (int x = 0; x < 2; x++)
+    for (int x = 0; x < 2; ++x)
     {
       x16_1 += src[comp1];
       x16_2 += src[comp2];
@@ -234,14 +234,14 @@ static void SetSpans(int sBlkSize, int tBlkSize, s32* tSpan, s32* sBlkSpan, s32*
 }
 
 #define ENCODE_LOOP_BLOCKS                                                                         \
-  for (int tBlk = 0; tBlk < tBlkCount; tBlk++)                                                     \
+  for (int tBlk = 0; tBlk < tBlkCount; ++tBlk)                                                     \
   {                                                                                                \
     dst = dstBlockStart;                                                                           \
-    for (int sBlk = 0; sBlk < sBlkCount; sBlk++)                                                   \
+    for (int sBlk = 0; sBlk < sBlkCount; ++sBlk)                                                   \
     {                                                                                              \
-      for (int t = 0; t < tBlkSize; t++)                                                           \
+      for (int t = 0; t < tBlkSize; ++t)                                                           \
       {                                                                                            \
-        for (int s = 0; s < sBlkSize; s++)                                                         \
+        for (int s = 0; s < sBlkSize; ++s)                                                         \
         {
 #define ENCODE_LOOP_SPANS                                                                          \
   }                                                                                                \

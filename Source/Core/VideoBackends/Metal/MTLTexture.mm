@@ -221,7 +221,7 @@ Metal::Framebuffer::Framebuffer(AbstractTexture* color, AbstractTexture* depth,
     if (Util::HasStencil(depth->GetFormat()))
       InitStencilDesc(desc.stencilAttachment, depth);
   }
-  for (size_t i = 0; i < m_additional_color_textures.size(); i++)
+  for (size_t i = 0; i < m_additional_color_textures.size(); ++i)
     InitDesc(desc.colorAttachments[i + 1], m_additional_color_textures[i]);
 }
 
@@ -239,6 +239,6 @@ void Metal::Framebuffer::ActualSetLoadAction(MTLLoadAction action)
     if (Util::HasStencil(depth_fmt))
       desc.stencilAttachment.loadAction = action;
   }
-  for (size_t i = 0; i < NumAdditionalColorTextures(); i++)
+  for (size_t i = 0; i < NumAdditionalColorTextures(); ++i)
     desc.colorAttachments[i + 1].loadAction = action;
 }

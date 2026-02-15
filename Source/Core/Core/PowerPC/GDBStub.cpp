@@ -363,14 +363,14 @@ static void HandleIsThreadAlive()
 static void wbe32hex(u8* p, u32 v)
 {
   u32 i;
-  for (i = 0; i < 8; i++)
+  for (i = 0; i < 8; ++i)
     p[i] = Nibble2hex(v >> (28 - 4 * i));
 }
 
 static void wbe64hex(u8* p, u64 v)
 {
   u32 i;
-  for (i = 0; i < 16; i++)
+  for (i = 0; i < 16; ++i)
     p[i] = Nibble2hex(v >> (60 - 4 * i));
 }
 
@@ -379,7 +379,7 @@ static u32 re32hex(u8* p)
   u32 i;
   u32 res = 0;
 
-  for (i = 0; i < 8; i++)
+  for (i = 0; i < 8; ++i)
     res = (res << 4) | Hex2char(p[i]);
 
   return res;
@@ -390,7 +390,7 @@ static u64 re64hex(u8* p)
   u32 i;
   u64 res = 0;
 
-  for (i = 0; i < 16; i++)
+  for (i = 0; i < 16; ++i)
     res = (res << 4) | Hex2char(p[i]);
 
   return res;
@@ -590,7 +590,7 @@ static void ReadRegisters()
 
   memset(bfr, 0, sizeof bfr);
 
-  for (i = 0; i < 32; i++)
+  for (i = 0; i < 32; ++i)
   {
     wbe32hex(bufptr + i * 8, ppc_state.gpr[i]);
   }
@@ -607,7 +607,7 @@ static void WriteRegisters()
   u32 i;
   u8* bufptr = s_cmd_bfr;
 
-  for (i = 0; i < 32; i++)
+  for (i = 0; i < 32; ++i)
   {
     ppc_state.gpr[i] = re32hex(bufptr + i * 8);
   }

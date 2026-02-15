@@ -327,7 +327,7 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
       SetUpCompressThreadState, compress, output);
 
   std::vector<u8> in_buf(block_size);
-  for (u32 i = 0; i < header.num_blocks; i++)
+  for (u32 i = 0; i < header.num_blocks; ++i)
   {
     if (compressor.GetStatus() != ConversionResultCode::Success)
       break;

@@ -676,7 +676,7 @@ TWO_OP_ARITH_TEST(MOV)
 
 TEST_F(x64EmitterTest, MOV64)
 {
-  for (size_t i = 0; i < reg64names.size(); i++)
+  for (size_t i = 0; i < reg64names.size(); ++i)
   {
     emitter->MOV(64, R(reg64names[i].reg), Imm64(0xDEADBEEFDEADBEEF));
     EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 10);

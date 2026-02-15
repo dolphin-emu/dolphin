@@ -15,7 +15,7 @@ std::optional<std::tm> LocalTime(std::time_t time)
 #ifdef _MSC_VER
   if (localtime_s(&local_time, &time) != 0)
 #else
-  if (localtime_r(&time, &local_time) == NULL)
+  if (localtime_r(&time, &local_time) == nullptr)
 #endif
   {
     ERROR_LOG_FMT(COMMON, "Failed to convert time to local time: {}", std::strerror(errno));

@@ -163,7 +163,7 @@ void ARCodeWidget::OnListReordered()
   std::vector<ActionReplay::ARCode> codes;
   codes.reserve(m_ar_codes.size());
 
-  for (int i = 0; i < m_code_list->count(); i++)
+  for (int i = 0; i < m_code_list->count(); ++i)
   {
     const int index = m_code_list->item(i)->data(Qt::UserRole).toInt();
 
@@ -198,7 +198,7 @@ void ARCodeWidget::UpdateList()
 {
   m_code_list->clear();
 
-  for (size_t i = 0; i < m_ar_codes.size(); i++)
+  for (size_t i = 0; i < m_ar_codes.size(); ++i)
   {
     const auto& ar = m_ar_codes[i];
     auto* item = new QListWidgetItem(QString::fromStdString(ar.name)

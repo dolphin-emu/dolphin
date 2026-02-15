@@ -117,7 +117,7 @@ void XRRConfiguration::Update()
   }
   bool want_interlaced = ('i' == auxFlag);
 
-  for (int i = 0; i < screenResources->noutput; i++)
+  for (int i = 0; i < screenResources->noutput; ++i)
   {
     XRROutputInfo* output_info =
         XRRGetOutputInfo(dpy, screenResources, screenResources->outputs[i]);
@@ -138,9 +138,9 @@ void XRRConfiguration::Update()
           }
           outputInfo = output_info;
           crtcInfo = crtc_info;
-          for (int j = 0; j < output_info->nmode && fullMode == 0; j++)
+          for (int j = 0; j < output_info->nmode && fullMode == 0; ++j)
           {
-            for (int k = 0; k < screenResources->nmode && fullMode == 0; k++)
+            for (int k = 0; k < screenResources->nmode && fullMode == 0; ++k)
             {
               if (output_info->modes[j] == screenResources->modes[k].id)
               {
@@ -221,16 +221,16 @@ void XRRConfiguration::AddResolutions(std::vector<std::string>& resos)
     return;
 
   // Get all full screen resolutions for the config dialog
-  for (int i = 0; i < screenResources->noutput; i++)
+  for (int i = 0; i < screenResources->noutput; ++i)
   {
     XRROutputInfo* output_info =
         XRRGetOutputInfo(dpy, screenResources, screenResources->outputs[i]);
 
     if (output_info && output_info->crtc && output_info->connection == RR_Connected)
     {
-      for (int j = 0; j < output_info->nmode; j++)
+      for (int j = 0; j < output_info->nmode; ++j)
       {
-        for (int k = 0; k < screenResources->nmode; k++)
+        for (int k = 0; k < screenResources->nmode; ++k)
         {
           if (output_info->modes[j] == screenResources->modes[k].id)
           {
