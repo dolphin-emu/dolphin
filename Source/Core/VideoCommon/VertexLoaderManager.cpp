@@ -135,8 +135,8 @@ void UpdateVertexArrayPointers()
 void MarkAllDirty()
 {
   g_bases_dirty = true;
-  g_main_vat_dirty = BitSet8::AllTrue(8);
-  g_preprocess_vat_dirty = BitSet8::AllTrue(8);
+  g_main_vat_dirty = BitSet8::AllTrue();
+  g_preprocess_vat_dirty = BitSet8::AllTrue();
   g_needs_cp_xf_consistency_check = true;
 }
 

@@ -396,9 +396,9 @@ void RegCache::PreloadRegisters(BitSet32 to_preload)
   }
 }
 
-BitSet32 RegCache::RegistersInUse() const
+BitSet16 RegCache::RegistersInUse() const
 {
-  BitSet32 result;
+  BitSet16 result;
   for (size_t i = 0; i < m_xregs.size(); i++)
   {
     if (!m_xregs[i].IsFree())
