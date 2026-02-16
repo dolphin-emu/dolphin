@@ -185,7 +185,7 @@ void Jit64::ComputeRC(preg_t preg, bool needs_test, bool needs_sext)
     // If the output operand to the cmp/rc op we're merging with the branch isn't used anymore, it'd
     // be better to flush it here so that we don't have to flush it on both sides of the branch.
     // The flush is before the TEST so that it can macro-op fusion with the conditional branch.
-    gpr.Flush(~js.op->gprWillBeWritten & js.op->regsOut, RegCache::FlushMode::Undirty);
+    gpr.Flush(~js.op->gprWillBeWritten, RegCache::FlushMode::Undirty);
     if (needs_test)
       TEST(32, arg, arg);
 
@@ -1913,7 +1913,7 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
   bool needs_sext = true;
   int mask_size = inst.ME - inst.MB + 1;
 
-  if (simple_mask && !(inst.SH & (mask_size - 1)) && !gpr.IsBound(s) && !gpr.IsImm(s))
+  if (simple_mask && !(inst.SH & (mask_size - 1)) && !gpr.GetHostRegister(s) && !gpr.IsImm(s))
   {
     // optimized case: byte/word extract from m_ppc_state
 

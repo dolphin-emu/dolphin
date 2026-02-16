@@ -5,12 +5,13 @@
 
 #include <array>
 #include <cstddef>
+#include <optional>
 #include <span>
 #include <type_traits>
 #include <variant>
 
 #include "Common/x64Emitter.h"
-#include "Core/PowerPC/Jit64/RegCache/CachedReg.h"
+#include "Core/PowerPC/Jit64/RegCache/RCMode.h"
 
 class Jit64;
 enum class RCMode;
@@ -19,8 +20,11 @@ class RCOpArg;
 class RCX64Reg;
 class RegCache;
 
-using preg_t = size_t;
-static constexpr size_t NUM_XREGS = 16;
+using preg_t = u8;
+static constexpr size_t NUM_HOST_REGS = 16;
+using BitSetHost = BitSet16;
+static constexpr size_t NUM_GUEST_REGS = 32;
+using BitSetGuest = BitSet32;
 
 class RCOpArg
 {
@@ -94,6 +98,30 @@ private:
   std::variant<std::monostate, Gen::X64Reg, preg_t> contents;
 };
 
+struct RegsState
+{
+  // If m_hosts_has_guest_register[xr], then xr is bound to m_hosts_guest_register[xr]
+  std::array<preg_t, NUM_HOST_REGS> m_hosts_guest_register{};
+  BitSetHost m_hosts_has_guest_register;
+  // TODO: If all the unlocks for a register always happened at the same time, then the array
+  // wouldn't be necessary. However, that's fragile, so it's better to take the safe option.
+  BitSetHost m_hosts_is_locked;
+  std::array<u8, NUM_GUEST_REGS> m_hosts_n_locked{};
+
+  // If m_guests_in_host_register[preg], then preg is bound to m_guests_host_register[preg]
+  std::array<u8, NUM_GUEST_REGS> m_guests_host_register{};
+  BitSetGuest m_guests_in_host_register;
+  // Is the value in PPCState correct right now?
+  BitSetGuest m_guests_in_ppc_state = BitSetGuest::AllTrue();
+  // If certain memory load operations fail, the destination register must be reverted.
+  // This is achieved by not flushing it, and using the old value from PPCState.
+  BitSetGuest m_guests_revertable;
+  // TODO: If all the unlocks for a register always happened at the same time, then the array
+  // wouldn't be necessary. However, that's fragile, so it's better to take the safe option.
+  BitSetGuest m_guests_is_locked;
+  std::array<u8, NUM_GUEST_REGS> m_guests_n_locked{};
+};
+
 class RCForkGuard
 {
 public:
@@ -112,8 +140,141 @@ private:
   explicit RCForkGuard(RegCache& rc_);
 
   RegCache* rc;
-  std::array<PPCCachedReg, 32> m_regs;
-  std::array<X64CachedReg, NUM_XREGS> m_xregs;
+  RegsState m_state;
+};
+
+class RCConstraint
+{
+public:
+  bool IsRealized() const { return realized != RealizedLoc::Invalid; }
+  bool IsActive() const
+  {
+    return IsRealized() || write || read || kill_imm || kill_mem || revertable;
+  }
+
+  bool ShouldLoad() const { return read; }
+  bool ShouldDirty() const { return write; }
+  bool ShouldBeRevertable() const { return revertable; }
+  bool ShouldKillImmediate() const { return kill_imm; }
+  bool ShouldKillMemory() const { return kill_mem; }
+
+  enum class RealizedLoc
+  {
+    Invalid,
+    Bound,
+    Imm,
+    Mem,
+  };
+
+  void Realized(RealizedLoc loc)
+  {
+    realized = loc;
+    ASSERT(IsRealized());
+  }
+
+  enum class ConstraintLoc
+  {
+    Bound,
+    BoundOrImm,
+    BoundOrMem,
+    Any,
+  };
+
+  void AddUse(RCMode mode) { AddConstraint(mode, ConstraintLoc::Any, false); }
+  void AddUseNoImm(RCMode mode) { AddConstraint(mode, ConstraintLoc::BoundOrMem, false); }
+  void AddBindOrImm(RCMode mode) { AddConstraint(mode, ConstraintLoc::BoundOrImm, false); }
+  void AddBind(RCMode mode) { AddConstraint(mode, ConstraintLoc::Bound, false); }
+  void AddRevertableBind(RCMode mode) { AddConstraint(mode, ConstraintLoc::Bound, true); }
+
+private:
+  void AddConstraint(RCMode mode, ConstraintLoc loc, bool should_revertable)
+  {
+    if (IsRealized())
+    {
+      ASSERT(IsCompatible(mode, loc, should_revertable));
+      return;
+    }
+
+    if (should_revertable)
+      revertable = true;
+
+    switch (loc)
+    {
+    case ConstraintLoc::Bound:
+      kill_imm = true;
+      kill_mem = true;
+      break;
+    case ConstraintLoc::BoundOrImm:
+      kill_mem = true;
+      break;
+    case ConstraintLoc::BoundOrMem:
+      kill_imm = true;
+      break;
+    case ConstraintLoc::Any:
+      break;
+    }
+
+    switch (mode)
+    {
+    case RCMode::Read:
+      read = true;
+      break;
+    case RCMode::Write:
+      write = true;
+      break;
+    case RCMode::ReadWrite:
+      read = true;
+      write = true;
+      break;
+    }
+  }
+
+  bool IsCompatible(RCMode mode, ConstraintLoc loc, bool should_revertable) const
+  {
+    if (should_revertable && !revertable)
+    {
+      return false;
+    }
+
+    const bool is_loc_compatible = [&] {
+      switch (loc)
+      {
+      case ConstraintLoc::Bound:
+        return realized == RealizedLoc::Bound;
+      case ConstraintLoc::BoundOrImm:
+        return realized == RealizedLoc::Bound || realized == RealizedLoc::Imm;
+      case ConstraintLoc::BoundOrMem:
+        return realized == RealizedLoc::Bound || realized == RealizedLoc::Mem;
+      case ConstraintLoc::Any:
+        return true;
+      }
+      ASSERT(false);
+      return false;
+    }();
+
+    const bool is_mode_compatible = [&] {
+      switch (mode)
+      {
+      case RCMode::Read:
+        return read;
+      case RCMode::Write:
+        return write;
+      case RCMode::ReadWrite:
+        return read && write;
+      }
+      ASSERT(false);
+      return false;
+    }();
+
+    return is_loc_compatible && is_mode_compatible;
+  }
+
+  RealizedLoc realized = RealizedLoc::Invalid;
+  bool write = false;
+  bool read = false;
+  bool kill_imm = false;
+  bool kill_mem = false;
+  bool revertable = false;
 };
 
 class RegCache
@@ -165,7 +326,14 @@ public:
   virtual u32 Imm32(preg_t preg) const = 0;
   virtual s32 SImm32(preg_t preg) const = 0;
 
-  bool IsBound(preg_t preg) const { return m_regs[preg].IsInHostRegister(); }
+  std::optional<Gen::X64Reg> GetHostRegister(preg_t preg) const
+  {
+    if (!m_state.m_guests_in_host_register[preg])
+    {
+      return std::nullopt;
+    }
+    return static_cast<Gen::X64Reg>(m_state.m_guests_host_register[preg]);
+  }
 
   RCOpArg Use(preg_t preg, RCMode mode);
   RCOpArg UseNoImm(preg_t preg, RCMode mode);
@@ -176,17 +344,17 @@ public:
   RCX64Reg Scratch(Gen::X64Reg xr);
 
   RCForkGuard Fork();
-  void Discard(BitSet32 pregs);
-  void Flush(BitSet32 pregs = BitSet32::AllTrue(), FlushMode mode = FlushMode::Full,
+  void Discard(BitSetGuest pregs);
+  void Flush(BitSetGuest pregs = BitSetGuest::AllTrue(), FlushMode mode = FlushMode::Full,
              IgnoreDiscardedRegisters ignore_discarded_registers = IgnoreDiscardedRegisters::No);
-  void Reset(BitSet32 pregs);
-  BitSet32 RegistersRevertable() const;
+  void Reset(BitSetGuest pregs);
+  BitSetGuest RegistersRevertable() const;
   void Commit();
 
   bool IsAllUnlocked() const;
 
-  void PreloadRegisters(BitSet32 pregs);
-  BitSet16 RegistersInUse() const;
+  void PreloadRegisters(BitSetGuest to_preload);
+  BitSetHost HostRegistersInUse() const;
 
 protected:
   friend class RCOpArg;
@@ -200,9 +368,9 @@ protected:
   virtual void DiscardImm(preg_t preg) = 0;
 
   virtual std::span<const Gen::X64Reg> GetAllocationOrder() const = 0;
-
-  virtual BitSet32 GetRegUtilization() const = 0;
-  virtual BitSet32 CountRegsIn(preg_t preg, u32 lookahead) const = 0;
+  virtual BitSetHost GetAllocatableRegisters() const = 0;
+  virtual BitSetGuest GetRegUtilization() const = 0;
+  virtual BitSetGuest CountRegsIn(preg_t preg, u32 lookahead) const = 0;
 
   void FlushX(Gen::X64Reg reg);
   void DiscardRegister(preg_t preg);
@@ -213,7 +381,7 @@ protected:
 
   Gen::X64Reg GetFreeXReg();
 
-  int NumFreeRegisters() const;
+  BitSetHost GetFreeRegisters() const;
   float ScoreRegister(Gen::X64Reg xreg) const;
 
   virtual Gen::OpArg R(preg_t preg) const = 0;
@@ -231,7 +399,6 @@ protected:
   Jit64& m_jit;
   Gen::XEmitter& m_emitter;
 
-  std::array<PPCCachedReg, 32> m_regs;
-  std::array<X64CachedReg, NUM_XREGS> m_xregs;
-  std::array<RCConstraint, 32> m_constraints;
+  RegsState m_state{};
+  std::array<RCConstraint, NUM_GUEST_REGS> m_guests_constraints;
 };
