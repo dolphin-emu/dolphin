@@ -633,7 +633,6 @@ if(_M_X86_64)
     PowerPC/Jit64/Jit_SystemRegisters.cpp
     PowerPC/Jit64/JitAsm.cpp
     PowerPC/Jit64/JitAsm.h
-    PowerPC/Jit64/RegCache/CachedReg.h
     PowerPC/Jit64/RegCache/FPURegCache.cpp
     PowerPC/Jit64/RegCache/FPURegCache.h
     PowerPC/Jit64/RegCache/GPRRegCache.cpp
