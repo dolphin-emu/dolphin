@@ -424,30 +424,56 @@ void DSPManager::UpdateDSPSlice(int cycles)
 void DSPManager::UpdateAudioDMA()
 {
   static short zero_samples[8 * 2] = {0};
+  bool dma_samples_transmitted = false;
+
+  // Proper modelling of the hardware reality would mark the DMA as disabled  when the DMA
+  // finishes (enabled and disabled really mean started and stopped, given the Nintendo SDK
+  // "enables" the DMA every 5ms), and then we would handle "a new DMA starting while none
+  // is in progress" accordingly in the MMIO handler.
+  //
+  // However, currently the MMIO handler only runs for the very first DMA start, and
+  // schedules an interrupt immediately in the future (200 cycles ~ 0.4ms). In steady state
+  // that would be wrong, it must be 5ms after previous interrupt (for Nintendo SDK games).
+  // But because it seems to be carefully chosen as per comment above, we just leave it be
+  // to not break compatibilities, and handle the "DMA finishes" logic in the "update the
+  // DMA" routine.
+  //
+  // Note that (for GC games using the Nintendo SDK at least), the AID interrupt is the one
+  // that triggers a new DMA. So, we defer reading the address/block number, the logic is:
+  // 'we just finished an ongoing DMA' -> trigger an AID INT = another DMA
+  // 'there was no ongoing DMA (blocks count already 0), meaning we triggered an AID INT
+  // just before and should now have a new DMA)' -> loads the new source address now
+  //
+  // This is not a race condition, the UpdateAudioDMA function is triggered by CPU ticks
+  // and the next call is thus guaranteed to happen after the AID interrupt handler
+
   if (m_audio_dma.AudioDMAControl.Enable)
   {
-    // Read audio at g_audioDMA.current_source_address in RAM and push onto an
-    // external audio fifo in the emulator, to be mixed with the disc
-    // streaming output.
-    auto& memory = m_system.GetMemory();
-    void* address = memory.GetPointerForRange(m_audio_dma.current_source_address, 32);
-    AudioCommon::SendAIBuffer(m_system, static_cast<short*>(address), 8);
-
-    if (m_audio_dma.remaining_blocks_count != 0)
-    {
-      m_audio_dma.remaining_blocks_count--;
-      m_audio_dma.current_source_address += 32;
-    }
-
     if (m_audio_dma.remaining_blocks_count == 0)
     {
       m_audio_dma.current_source_address = m_audio_dma.SourceAddress;
       m_audio_dma.remaining_blocks_count = m_audio_dma.AudioDMAControl.NumBlocks;
+    }
 
-      GenerateDSPInterrupt(DSP::INT_AID, 0);
+    if (m_audio_dma.remaining_blocks_count != 0)
+    {
+      // Read audio at g_audioDMA.current_source_address in RAM and push onto an
+      // external audio fifo in the emulator, to be mixed with the disc
+      // streaming output.
+      auto& memory = m_system.GetMemory();
+      void* address = memory.GetPointerForRange(m_audio_dma.current_source_address, 32);
+      AudioCommon::SendAIBuffer(m_system, static_cast<short*>(address), 8);
+      dma_samples_transmitted = true;
+
+      m_audio_dma.remaining_blocks_count--;
+      m_audio_dma.current_source_address += 32;
+
+      if (m_audio_dma.remaining_blocks_count == 0)
+        GenerateDSPInterrupt(DSP::INT_AID, 0);
     }
   }
-  else
+
+  if (!dma_samples_transmitted)
   {
     AudioCommon::SendAIBuffer(m_system, &zero_samples[0], 8);
   }
