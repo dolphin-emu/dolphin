@@ -130,8 +130,8 @@ static constexpr u8 s_cdr_card_data[] = {
 
 const constexpr u8 s_region_flags[] = "\x00\x00\x30\x00"
                                       //   "\x01\xfe\x00\x00"  // JAPAN
-                                      "\x02\xfd\x00\x00"  // USA
-                                      //"\x03\xfc\x00\x00"  // export
+                                      //"\x02\xfd\x00\x00"  // USA
+                                      "\x03\xfc\x00\x00"  // export
                                       "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff";
 // AM-Baseboard device on SI
 CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(Core::System& system, SIDevices device,
