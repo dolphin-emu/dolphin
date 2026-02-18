@@ -727,9 +727,11 @@ static s32 NetDIMMConnect(GuestSocket guest_socket, const GuestSocketAddress& gu
 
   WSAPOLLFD pfds[1]{{.fd = host_socket, .events = POLLOUT}};
 
+  // TODO: Possible race between this socket's SetTimeOuts and others'
   const auto timeout =
       duration_cast<std::chrono::milliseconds>(std::chrono::microseconds{s_timeouts[0]});
 
+  // TODO: Might block if timeout is too big
   const int poll_result = PlatformPoll(pfds, timeout);
 
   if (poll_result < 0) [[unlikely]]
@@ -741,7 +743,7 @@ static s32 NetDIMMConnect(GuestSocket guest_socket, const GuestSocketAddress& gu
     return SOCKET_ERROR;
   }
 
-  if ((pfds[0].revents & POLLOUT) == 0)
+  if ((pfds[0].revents & (POLLOUT | POLLERR)) == 0)
   {
     // Timeout.
     s_last_error = SSC_EWOULDBLOCK;
@@ -760,10 +762,14 @@ static s32 NetDIMMConnect(GuestSocket guest_socket, const GuestSocketAddress& gu
   }
   else if (so_error == 0)
   {
+    INFO_LOG_FMT(AMMEDIABOARD_NET, "NetDIMMConnect: connect( {}({}) ) succeeded", host_socket,
+                 u32(guest_socket));
     s_last_error = SSC_SUCCESS;
     return 0;
   }
 
+  ERROR_LOG_FMT(AMMEDIABOARD_NET, "NetDIMMConnect: connect( {}({}) ) failed with error {}: {}",
+                host_socket, u32(guest_socket), so_error, Common::DecodeNetworkError(so_error));
   s_last_error = SOCKET_ERROR;
   return SOCKET_ERROR;
 }
