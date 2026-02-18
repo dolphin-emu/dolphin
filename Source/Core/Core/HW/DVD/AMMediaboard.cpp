@@ -1257,9 +1257,13 @@ static void AMMBCommandSelect(u32 parameter_offset, u32 network_buffer_base)
     WriteGuestFdSetFromPollFds(guest_readfds_ptr, pollfds, POLLIN);
     WriteGuestFdSetFromPollFds(guest_writefds_ptr, pollfds, POLLOUT);
     WriteGuestFdSetFromPollFds(guest_exceptfds_ptr, pollfds, POLLPRI);
+    DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: select result: {}", ret);
   }
-
-  DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: select result: {}", ret);
+  else
+  {
+    ERROR_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: select failed: {} ({})", ret,
+                  Common::StrNetworkError());
+  }
 
   s_media_buffer[1] = 0;
   s_media_buffer_32[1] = ret;
@@ -1663,8 +1667,17 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         const auto guest_socket = GuestSocket(s_media_buffer_32[2]);
         const auto host_socket = GetHostSocket(guest_socket);
 
-        DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: GetLastError( {}({}) ):{}", host_socket,
-                      int(guest_socket), int(s_last_error));
+        if (s_last_error == SSC_EWOULDBLOCK)
+        {
+          // Prevent spamming
+          DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: GetLastError( {}({}) ):EWOULDBLOCK", host_socket,
+                        int(guest_socket));
+        }
+        else
+        {
+          NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: GetLastError( {}({}) ):{}", host_socket,
+                         int(guest_socket), int(s_last_error));
+        }
 
         // Good enough, assuming it's called for the same socket right after an error.
         // TODO: Implement something similar per socket.
