@@ -970,10 +970,28 @@ static void AMMBCommandRecv(u32 parameter_offset, u32 network_buffer_base)
     len = 0;
   }
 
+  // TODO: Might be blocking depending on the timeout (see SetTimeouts command).
   const int ret = recv(fd, reinterpret_cast<char*>(s_network_buffer.data() + off), len, 0);
   const int err = WSAGetLastError();
 
-  DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv( {}, 0x{:08x}, {} ):{} {}", fd, off, len, ret, err);
+  if (ret < 0)
+  {
+    ERROR_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv( {}, 0x{:08x}, {} ) failed with error {}: {}", fd,
+                  off, len, err, Common::DecodeNetworkError(err));
+  }
+  else if (ret == 0)
+  {
+    INFO_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv( {}, 0x{:08x}, {} ):0 shutdown received", fd, off,
+                 len);
+  }
+  else
+  {
+    DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv( {}, 0x{:08x}, {} ):{} {}", fd, off, len, ret,
+                  err);
+  }
+
+  // TODO: Not hardware tested.
+  s_last_error = ret >= 0 ? SSC_SUCCESS : SOCKET_ERROR;
 
   s_media_buffer[1] = s_media_buffer[8];
   s_media_buffer_32[1] = ret;
@@ -999,11 +1017,23 @@ static void AMMBCommandSend(u32 parameter_offset, u32 network_buffer_base)
     len = 0;
   }
 
+  // TODO: Might be blocking depending on the timeout (see SetTimeouts command).
   const int ret = send(fd, reinterpret_cast<char*>(s_network_buffer.data() + off), len, SEND_FLAGS);
   const int err = WSAGetLastError();
 
-  DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: send( {}({}), 0x{:08x}, {} ): {} {}", fd,
-                u32(guest_socket), off, len, ret, err);
+  if (ret < 0)
+  {
+    ERROR_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: send( {}({}), 0x{:08x}, {} ) failed with error {}: {}",
+                  fd, u32(guest_socket), off, len, err, Common::DecodeNetworkError(err));
+  }
+  else
+  {
+    DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: send( {}({}), 0x{:08x}, {} ): {} {}", fd,
+                  u32(guest_socket), off, len, ret, err);
+  }
+
+  // TODO: Not hardware tested.
+  s_last_error = ret >= 0 ? SSC_SUCCESS : SOCKET_ERROR;
 
   s_media_buffer[1] = s_media_buffer[8];
   s_media_buffer_32[1] = ret;
