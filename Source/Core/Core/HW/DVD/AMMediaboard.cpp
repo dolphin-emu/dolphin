@@ -1054,7 +1054,7 @@ static void AMMBCommandClosesocket(u32 parameter_offset)
     s_sockets[u32(guest_socket)] = SOCKET_ERROR;
 
   s_media_buffer_32[1] = ret;
-  s_last_error = SSC_SUCCESS;
+  s_last_error = ret == 0 ? SSC_SUCCESS : SSC_EBADF;
 }
 
 static void AMMBCommandConnect(u32 parameter_offset, u32 network_buffer_base)
