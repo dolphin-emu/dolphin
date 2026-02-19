@@ -376,22 +376,6 @@ static GuestSocket socket_(int af, int type, int protocol)
   return guest_socket;
 }
 
-static GuestSocket accept_(int fd, sockaddr* addr, socklen_t* len)
-{
-  const auto guest_socket = GetAvailableGuestSocket();
-  if (guest_socket == INVALID_GUEST_SOCKET)
-    return INVALID_GUEST_SOCKET;
-
-  const s32 host_fd = accept(fd, addr, len);
-  if (host_fd < 0)
-    return INVALID_GUEST_SOCKET;
-
-  Common::SetPlatformSocketOptions(host_fd);
-
-  s_sockets[u32(guest_socket)] = host_fd;
-  return guest_socket;
-}
-
 static inline void PrintMBBuffer(u32 address, u32 length)
 {
   const auto& system = Core::System::GetInstance();
@@ -805,25 +789,52 @@ static GuestSocket NetDIMMAccept(GuestSocket guest_socket, u8* guest_addr_ptr,
   }
 
   const auto host_socket = GetHostSocket(guest_socket);
-  WSAPOLLFD pfds[1]{{.fd = host_socket, .events = POLLIN}};
-
-  // FYI: Currently using a 0ms timeout to make accept calls always non-blocking.
-  constexpr auto timeout = std::chrono::milliseconds{0};
-
-  DEBUG_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: {}({})", host_socket, int(guest_socket));
-
-  const int poll_result = PlatformPoll(pfds, timeout);
-
-  if (poll_result < 0) [[unlikely]]
+  if (host_socket == SOCKET_ERROR)
   {
-    // Poll failure.
-    ERROR_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: PlatformPoll: {}", Common::StrNetworkError());
+    ERROR_LOG_FMT(AMMEDIABOARD_NET, "NetDIMMAccept: fd is not open: {}({})", host_socket,
+                  int(guest_socket));
 
-    s_last_error = SOCKET_ERROR;
+    // TODO: Not hardware tested.
+    s_last_error = SSC_EBADF;
     return INVALID_GUEST_SOCKET;
   }
 
-  if ((pfds[0].revents & POLLIN) == 0)
+  const auto client_sock = GetAvailableGuestSocket();
+  if (client_sock == INVALID_GUEST_SOCKET)
+  {
+    ERROR_LOG_FMT(AMMEDIABOARD_NET,
+                  "NetDIMMAccept: accept( {}({}) ) failed, descriptor table is full", host_socket,
+                  int(guest_socket));
+    // TODO: Not hardware tested.
+    s_last_error = SSC_AEMFILE;
+    return INVALID_GUEST_SOCKET;
+  }
+
+  // There is no easy way to check if the accept's socket is valid:
+  //  - getsockopt's SO_ACCEPTCONN isn't available on all systems
+  //  - poll/select result might be empty even if accept is called beforehand
+  //
+  // Might impact performance when accept is called too often.
+  // TODO: Find a better way.
+  {
+    // Set socket to non-blocking
+    u_long val = 1;
+    ioctlsocket(host_socket, FIONBIO, &val);
+  }
+  Common::ScopeGuard guard{[&] {
+    // Restore blocking mode
+    u_long val = 0;
+    ioctlsocket(host_socket, FIONBIO, &val);
+  }};
+
+  sockaddr_in addr{};
+  socklen_t addrlen = sizeof(addr);
+  const s32 res = accept(host_socket, reinterpret_cast<sockaddr*>(&addr), &addrlen);
+  const int err = WSAGetLastError();
+
+  DEBUG_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: {}({})", host_socket, int(guest_socket));
+
+  if (res < 0 && err == WSAEWOULDBLOCK)
   {
     // Timeout.
     DEBUG_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: Timeout.");
@@ -832,21 +843,20 @@ static GuestSocket NetDIMMAccept(GuestSocket guest_socket, u8* guest_addr_ptr,
     return INVALID_GUEST_SOCKET;
   }
 
-  sockaddr_in addr;
-  socklen_t addrlen = sizeof(addr);
-  const auto client_sock = accept_(host_socket, reinterpret_cast<sockaddr*>(&addr), &addrlen);
-
-  if (client_sock == INVALID_GUEST_SOCKET)
+  if (res < 0)
   {
-    ERROR_LOG_FMT(AMMEDIABOARD, "AMMBCommandAccept: accept( {}({}) ) failed: {}", host_socket,
-                  int(guest_socket), Common::StrNetworkError());
+    ERROR_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: accept( {}({}) ) failed with error {}: {}",
+                  host_socket, int(guest_socket), err, Common::DecodeNetworkError(err));
+
     s_last_error = SOCKET_ERROR;
     return INVALID_GUEST_SOCKET;
   }
 
+  Common::SetPlatformSocketOptions(res);
+  s_sockets[u32(client_sock)] = res;
   s_last_error = SSC_SUCCESS;
 
-  NOTICE_LOG_FMT(AMMEDIABOARD, "AMMBCommandAccept: {}:{}",
+  NOTICE_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: {}:{}",
                  Common::IPAddressToString(std::bit_cast<Common::IPAddress>(addr.sin_addr)),
                  ntohs(addr.sin_port));
 
@@ -865,7 +875,7 @@ static GuestSocket NetDIMMAccept(GuestSocket guest_socket, u8* guest_addr_ptr,
     guest_addr.ip_address = adjusted_ipv4port->ip_address;
     guest_addr.port = adjusted_ipv4port->port;
 
-    NOTICE_LOG_FMT(AMMEDIABOARD, "AMMBCommandAccept: Translating result to: {}:{}",
+    NOTICE_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: Translating result to: {}:{}",
                    Common::IPAddressToString(guest_addr.ip_address), ntohs(guest_addr.port));
   }
 
