@@ -1076,7 +1076,8 @@ static void AMMBCommandClosesocket(u32 parameter_offset)
   if (u32(guest_socket) < std::size(s_sockets))
     s_sockets[u32(guest_socket)] = SOCKET_ERROR;
 
-  s_media_buffer_32[1] = ret;
+  // TODO: Verify this
+  s_media_buffer_32[1] = 0;  // Always return success instead of the return value
   s_last_error = SSC_SUCCESS;
 }
 
