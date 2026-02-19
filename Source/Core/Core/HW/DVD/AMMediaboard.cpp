@@ -228,14 +228,25 @@ static std::array<SOCKET, SOCKET_FD_MAX> s_sockets;
 
 // TODO: Verify this.
 static constexpr u32 FIRST_VALID_FD = 1;
+static u32 s_next_valid_fd = FIRST_VALID_FD;
 
 // Flag: next 128-byte DMA Read from the media buffer should return network config
 static bool s_netconfig_read_pending = false;
 
 static GuestSocket GetAvailableGuestSocket()
 {
-  for (u32 i = FIRST_VALID_FD; i < std::size(s_sockets); ++i)
+  // TODO: This is a workaround to avoid a race.
+  //
+  // For some unknown reasons, the fd was:
+  //  - shared between a client (connect) and a server (accept) socket.
+  //  - closed but still used by the other in an invalid state.
+  u32 count = std::size(s_sockets);
+  while (count--)
   {
+    const u32 i = s_next_valid_fd;
+    s_next_valid_fd = ++s_next_valid_fd % std::size(s_sockets);
+    if (i < FIRST_VALID_FD)
+      continue;
     if (s_sockets[i] == SOCKET_ERROR)
       return GuestSocket(i);
   }
@@ -487,6 +498,7 @@ void Init()
   s_test_menu = false;
 
   s_last_error = SSC_SUCCESS;
+  s_next_valid_fd = FIRST_VALID_FD;
 
   s_gcam_key_a = 0;
   s_gcam_key_b = 0;
@@ -2359,6 +2371,7 @@ void DoState(PointerWrap& p)
   p.Do(s_network_buffer);
   p.Do(s_allnet_buffer);
   p.Do(s_allnet_settings);
+  p.Do(s_next_valid_fd);
 
   p.Do(s_game_modified_ip_address);
   p.Do(s_netconfig_read_pending);
