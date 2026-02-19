@@ -849,7 +849,7 @@ static GuestSocket NetDIMMAccept(GuestSocket guest_socket, u8* guest_addr_ptr,
 
   DEBUG_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: {}({})", host_socket, int(guest_socket));
 
-  if (err == WSAEWOULDBLOCK)
+  if (res < 0 && err == WSAEWOULDBLOCK)
   {
     // Timeout.
     DEBUG_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: Timeout.");
