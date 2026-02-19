@@ -986,8 +986,7 @@ static void AMMBCommandRecv(u32 parameter_offset, u32 network_buffer_base)
   }
   else
   {
-    DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv( {}, 0x{:08x}, {} ):{} {}", fd, off, len, ret,
-                  err);
+    INFO_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv( {}, 0x{:08x}, {} ):{} {}", fd, off, len, ret, err);
   }
 
   // TODO: Not hardware tested.
@@ -1028,8 +1027,8 @@ static void AMMBCommandSend(u32 parameter_offset, u32 network_buffer_base)
   }
   else
   {
-    DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: send( {}({}), 0x{:08x}, {} ): {} {}", fd,
-                  u32(guest_socket), off, len, ret, err);
+    INFO_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: send( {}({}), 0x{:08x}, {} ): {} {}", fd,
+                 u32(guest_socket), off, len, ret, err);
   }
 
   // TODO: Not hardware tested.
@@ -1231,9 +1230,9 @@ static void AMMBCommandSelect(u32 parameter_offset, u32 network_buffer_base)
     WARN_LOG_FMT(AMMEDIABOARD, "AMMBCommandSelect: Infinite timout!");
   }
 
-  DEBUG_LOG_FMT(AMMEDIABOARD_NET,
-                "GC-AM: select( {}, 0x{:08x} 0x{:08x} 0x{:08x} 0x{:08x} ) timeout={}", nfds,
-                readfds_offset, writefds_offset, exceptfds_offset, timeout_offset, timeout.count());
+  INFO_LOG_FMT(AMMEDIABOARD_NET,
+               "GC-AM: select( {}, 0x{:08x} 0x{:08x} 0x{:08x} 0x{:08x} ) timeout={}", nfds,
+               readfds_offset, writefds_offset, exceptfds_offset, timeout_offset, timeout.count());
 
   // Fill with the host sockets for each guest socket less-than `nfds` in each GuestFdSet.
   std::vector<WSAPOLLFD> pollfds(nfds, WSAPOLLFD{.fd = INVALID_SOCKET});
@@ -1248,7 +1247,7 @@ static void AMMBCommandSelect(u32 parameter_offset, u32 network_buffer_base)
   // TODO: There may be some edge cases where
   // poll's (POLLIN,POLLOUT,POLLPRI) don't map 1:1 with select's (readfds,writefds,exceptfds).
 
-  DEBUG_LOG_FMT(AMMEDIABOARD, "AMMBCommandSelect: Polling with socket count: {}", pollfds.size());
+  INFO_LOG_FMT(AMMEDIABOARD, "AMMBCommandSelect: Polling with socket count: {}", pollfds.size());
 
   const int ret = PlatformPoll(pollfds, timeout);
 
@@ -1257,7 +1256,7 @@ static void AMMBCommandSelect(u32 parameter_offset, u32 network_buffer_base)
     WriteGuestFdSetFromPollFds(guest_readfds_ptr, pollfds, POLLIN);
     WriteGuestFdSetFromPollFds(guest_writefds_ptr, pollfds, POLLOUT);
     WriteGuestFdSetFromPollFds(guest_exceptfds_ptr, pollfds, POLLPRI);
-    DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: select result: {}", ret);
+    INFO_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: select result: {}", ret);
   }
   else
   {
@@ -1670,8 +1669,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         if (s_last_error == SSC_EWOULDBLOCK)
         {
           // Prevent spamming
-          DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: GetLastError( {}({}) ):EWOULDBLOCK", host_socket,
-                        int(guest_socket));
+          INFO_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: GetLastError( {}({}) ):EWOULDBLOCK", host_socket,
+                       int(guest_socket));
         }
         else
         {
