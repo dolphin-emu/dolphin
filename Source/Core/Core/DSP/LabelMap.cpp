@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include <fmt/base.h>
+#include <fmt/format.h>
 
 #include "Core/DSP/DSPTables.h"
 
