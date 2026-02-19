@@ -74,6 +74,11 @@ namespace AMMediaboard
 MediaBoardRange::MediaBoardRange(u32 start_, u32 size_, std::span<u8> buffer_)
     : start{start_}, end{start_ + size_}, buffer{buffer_.data()}, buffer_size{buffer_.size()}
 {
+  if (size_ <= buffer_.size())
+    return;
+  WARN_LOG_FMT(AMMEDIABOARD,
+               "Invalid MediaBoardRange: start=0x{:08x}, size=0x{:06x}, buffer_size=0x{:06x}",
+               start, size_, buffer_.size());
 }
 
 using Common::SEND_FLAGS;
@@ -170,11 +175,11 @@ static const MediaBoardRange s_mediaboard_ranges[] = {
     {DIMMCommandVersion2, 0x60, Common::AsWritableU8Span(s_media_buffer_32)},
     {DIMMCommandVersion2_2, 0x220, Common::AsWritableU8Span(s_media_buffer_32)},
     {NetworkCommandAddress1, 0x1040, s_network_command_buffer},
-    {NetworkCommandAddress2, 0x20000, s_network_command_buffer},
+    {NetworkCommandAddress2, 0x40000, s_network_command_buffer},  // TODO: Guesswork, verify this.
     {NetworkBufferAddress1, 0x10000, s_network_buffer},
     {NetworkBufferAddress2, 0x10000, s_network_buffer},
     {NetworkBufferAddress3, 0x50000, s_network_buffer},
-    {NetworkBufferAddress4, 0xc0000, s_network_buffer},
+    {NetworkBufferAddress4, 0xc0000, s_network_buffer},  // TODO: size bigger than buffer's?
     {NetworkBufferAddress5, 0x10000, s_network_buffer},
     {AllNetSettings, 0x8000, s_allnet_settings},
     {AllNetBuffer, 0x1000, s_allnet_buffer},
@@ -1435,6 +1440,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         break;
       default:
         PrintMBBuffer(address, length);
+        ERROR_LOG_FMT(AMMEDIABOARD, "Unhandled Media Board Read: offset={0:08x} length={0:08x}",
+                      offset, length);
         PanicAlertFmtT("Unhandled Media Board Read: offset={0:08x} length={0:08x}", offset, length);
         break;
       }
@@ -1691,6 +1698,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
     // Max GC disc offset
     if (offset >= 0x57058000)
     {
+      ERROR_LOG_FMT(AMMEDIABOARD, "Unhandled Media Board Read: offset={0:08x} length={0:08x}",
+                    offset, length);
       PanicAlertFmtT("Unhandled Media Board Read: offset={0:08x} length={0:08x}", offset, length);
       return 0;
     }
@@ -1849,6 +1858,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
           s_media_buffer[4] = 1;
           break;
         default:
+          ERROR_LOG_FMT(AMMEDIABOARD, "Unhandled Media Board Command:{0:04x}",
+                        static_cast<u16>(ammb_command));
           PanicAlertFmtT("Unhandled Media Board Command:{0:04x}", static_cast<u16>(ammb_command));
           break;
         }
@@ -1877,6 +1888,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
     if (offset >= 0x57058000)
     {
       PrintMBBuffer(address, length);
+      ERROR_LOG_FMT(AMMEDIABOARD, "Unhandled Media Board Write: offset={0:08x} length={0:08x}",
+                    offset, length);
       PanicAlertFmtT("Unhandled Media Board Write: offset={0:08x} length={0:08x}", offset, length);
     }
     break;
@@ -2066,10 +2079,13 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       return 0;
     }
 
+    ERROR_LOG_FMT(AMMEDIABOARD, "Unhandled Media Board Execute:{0:04x}",
+                  static_cast<u16>(ammb_command));
     PanicAlertFmtT("Unhandled Media Board Execute:{0:04x}", static_cast<u16>(ammb_command));
     break;
   }
   default:
+    ERROR_LOG_FMT(AMMEDIABOARD, "Unhandled Media Board Command:{0:02x}", command);
     PanicAlertFmtT("Unhandled Media Board Command:{0:02x}", command);
     break;
   }
