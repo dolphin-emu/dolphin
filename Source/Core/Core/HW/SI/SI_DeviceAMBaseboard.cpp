@@ -228,9 +228,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
     {
     case EBufferCommands::CMD_STATUS:  // Returns ID and dip switches
     {
-      const u32 id = Common::swap32(SI_AM_BASEBOARD | 0x100);
-      std::memcpy(buffer, &id, sizeof(id));
-      return sizeof(id);
+      return CreateStatusResponse(SI_AM_BASEBOARD | 0x100, buffer);
     }
     break;
     case EBufferCommands::CMD_AM_BASEBOARD:
