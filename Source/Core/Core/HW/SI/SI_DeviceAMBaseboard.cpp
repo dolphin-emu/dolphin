@@ -26,10 +26,8 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
-#include "Core/HW/SI/SI_DeviceGCController.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Movie.h"
-#include "Core/NetPlayProto.h"
 #include "Core/System.h"
 
 #include "InputCommon/GCPadStatus.h"
@@ -2087,217 +2085,18 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
   return buffer_position;
 }
 
-u32 CSIDevice_AMBaseboard::MapPadStatus(const GCPadStatus& pad_status)
+DataResponse CSIDevice_AMBaseboard::GetData(u32&, u32&)
 {
-  // Thankfully changing mode does not change the high bits ;)
-  u32 hi = 0;
-  hi = pad_status.stickY;
-  hi |= pad_status.stickX << 8;
-  hi |= (pad_status.button | PAD_USE_ORIGIN) << 16;
-  return hi;
-}
-
-CSIDevice_AMBaseboard::EButtonCombo
-CSIDevice_AMBaseboard::HandleButtonCombos(const GCPadStatus& pad_status)
-{
-  // Keep track of the special button combos (embedded in controller hardware... :( )
-  EButtonCombo temp_combo = COMBO_NONE;
-  if ((pad_status.button & 0xff00) == (PAD_BUTTON_Y | PAD_BUTTON_X | PAD_BUTTON_START))
-    temp_combo = COMBO_ORIGIN;
-  else if ((pad_status.button & 0xff00) == (PAD_BUTTON_B | PAD_BUTTON_X | PAD_BUTTON_START))
-    temp_combo = COMBO_RESET;
-
-  if (temp_combo != m_last_button_combo)
-  {
-    m_last_button_combo = temp_combo;
-    if (m_last_button_combo != COMBO_NONE)
-      m_timer_button_combo_start = m_system.GetCoreTiming().GetTicks();
-  }
-
-  if (m_last_button_combo != COMBO_NONE)
-  {
-    const u64 current_time = m_system.GetCoreTiming().GetTicks();
-    const u32 ticks_per_second = m_system.GetSystemTimers().GetTicksPerSecond();
-    if (u32(current_time - m_timer_button_combo_start) > ticks_per_second * 3)
-    {
-      if (m_last_button_combo == COMBO_RESET)
-      {
-        INFO_LOG_FMT(SERIALINTERFACE, "PAD - COMBO_RESET");
-        m_system.GetProcessorInterface().ResetButton_Tap();
-      }
-      else if (m_last_button_combo == COMBO_ORIGIN)
-      {
-        INFO_LOG_FMT(SERIALINTERFACE, "PAD - COMBO_ORIGIN");
-        SetOrigin(pad_status);
-      }
-
-      m_last_button_combo = COMBO_NONE;
-      return temp_combo;
-    }
-  }
-
-  return COMBO_NONE;
-}
-
-// GetData
-
-// Return true on new data (max 7 Bytes and 6 bits ;)
-// [00?SYXBA] [1LRZUDRL] [x] [y] [cx] [cy] [l] [r]
-//  |\_ ERR_LATCH (error latched - check SISR)
-//  |_ ERR_STATUS (error on last GetData or SendCmd?)
-DataResponse CSIDevice_AMBaseboard::GetData(u32& hi, u32& low)
-{
-  GCPadStatus pad_status = GetPadStatus();
-
-  if (!pad_status.isConnected)
-    return DataResponse::ErrorNoResponse;
-
-  if (HandleButtonCombos(pad_status) == COMBO_ORIGIN)
-    pad_status.button |= PAD_GET_ORIGIN;
-
-  hi = MapPadStatus(pad_status);
-
-  // Low bits are packed differently per mode
-  if (m_mode == 0 || m_mode == 5 || m_mode == 6 || m_mode == 7)
-  {
-    low = (pad_status.analogB >> 4);               // Top 4 bits
-    low |= ((pad_status.analogA >> 4) << 4);       // Top 4 bits
-    low |= ((pad_status.triggerRight >> 4) << 8);  // Top 4 bits
-    low |= ((pad_status.triggerLeft >> 4) << 12);  // Top 4 bits
-    low |= ((pad_status.substickY) << 16);         // All 8 bits
-    low |= ((pad_status.substickX) << 24);         // All 8 bits
-  }
-  else if (m_mode == 1)
-  {
-    low = (pad_status.analogB >> 4);             // Top 4 bits
-    low |= ((pad_status.analogA >> 4) << 4);     // Top 4 bits
-    low |= (pad_status.triggerRight << 8);       // All 8 bits
-    low |= (pad_status.triggerLeft << 16);       // All 8 bits
-    low |= ((pad_status.substickY >> 4) << 24);  // Top 4 bits
-    low |= ((pad_status.substickX >> 4) << 28);  // Top 4 bits
-  }
-  else if (m_mode == 2)
-  {
-    low = pad_status.analogB;                       // All 8 bits
-    low |= pad_status.analogA << 8;                 // All 8 bits
-    low |= ((pad_status.triggerRight >> 4) << 16);  // Top 4 bits
-    low |= ((pad_status.triggerLeft >> 4) << 20);   // Top 4 bits
-    low |= ((pad_status.substickY >> 4) << 24);     // Top 4 bits
-    low |= ((pad_status.substickX >> 4) << 28);     // Top 4 bits
-  }
-  else if (m_mode == 3)
-  {
-    // Analog A/B are always 0
-    low = pad_status.triggerRight;         // All 8 bits
-    low |= (pad_status.triggerLeft << 8);  // All 8 bits
-    low |= (pad_status.substickY << 16);   // All 8 bits
-    low |= (pad_status.substickX << 24);   // All 8 bits
-  }
-  else if (m_mode == 4)
-  {
-    low = pad_status.analogB;        // All 8 bits
-    low |= pad_status.analogA << 8;  // All 8 bits
-    // triggerLeft/Right are always 0
-    low |= pad_status.substickY << 16;  // All 8 bits
-    low |= pad_status.substickX << 24;  // All 8 bits
-  }
-
-  return DataResponse::Success;
+  return DataResponse::NoData;
 }
 
 void CSIDevice_AMBaseboard::SendCommand(u32 command, u8 poll)
 {
-  UCommand controller_command(command);
-
-  if (static_cast<EDirectCommands>(controller_command.command) == EDirectCommands::CMD_WRITE)
-  {
-    const u32 type = controller_command.parameter1;  // 0 = stop, 1 = rumble, 2 = stop hard
-
-    // get the correct pad number that should rumble locally when using netplay
-    const int pad_num = NetPlay_InGamePadToLocalPad(m_device_number);
-
-    if (pad_num < 4)
-    {
-      const SIDevices device = m_system.GetSerialInterface().GetDeviceType(pad_num);
-      if (type == 1)
-        CSIDevice_GCController::Rumble(pad_num, 1.0, device);
-      else
-        CSIDevice_GCController::Rumble(pad_num, 0.0, device);
-    }
-
-    if (poll == 0)
-    {
-      m_mode = controller_command.parameter2;
-      INFO_LOG_FMT(SERIALINTERFACE, "PAD {} set to mode {}", m_device_number, m_mode);
-    }
-  }
-  else if (controller_command.command != 0x00)
-  {
-    // Costis sent 0x00 in some demos :)
-    ERROR_LOG_FMT(SERIALINTERFACE, "Unknown direct command     ({:#x})", command);
-    PanicAlertFmt("SI: Unknown direct command");
-  }
-}
-
-void CSIDevice_AMBaseboard::SetOrigin(const GCPadStatus& pad_status)
-{
-  m_origin.origin_stick_x = pad_status.stickX;
-  m_origin.origin_stick_y = pad_status.stickY;
-  m_origin.substick_x = pad_status.substickX;
-  m_origin.substick_y = pad_status.substickY;
-  m_origin.trigger_left = pad_status.triggerLeft;
-  m_origin.trigger_right = pad_status.triggerRight;
-}
-
-void CSIDevice_AMBaseboard::HandleMoviePadStatus(Movie::MovieManager& movie, int device_number,
-                                                 GCPadStatus* pad_status)
-{
-  movie.SetPolledDevice();
-  if (NetPlay_GetInput(device_number, pad_status))
-  {
-  }
-  else if (movie.IsPlayingInput())
-  {
-    movie.PlayController(pad_status, device_number);
-    movie.InputUpdate();
-  }
-  else if (movie.IsRecordingInput())
-  {
-    movie.RecordInput(pad_status, device_number);
-    movie.InputUpdate();
-  }
-  else
-  {
-    movie.CheckPadStatus(pad_status, device_number);
-  }
-}
-
-GCPadStatus CSIDevice_AMBaseboard::GetPadStatus()
-{
-  GCPadStatus pad_status = {};
-
-  // For netplay, the local controllers are polled in GetNetPads(), and
-  // the remote controllers receive their status there as well
-  if (!NetPlay::IsNetPlayRunning())
-  {
-    pad_status = Pad::GetStatus(m_device_number);
-  }
-
-  // Our GCAdapter code sets PAD_GET_ORIGIN when a new device has been connected.
-  // Watch for this to calibrate real controllers on connection.
-  if (pad_status.button & PAD_GET_ORIGIN)
-    SetOrigin(pad_status);
-
-  return pad_status;
+  WARN_LOG_FMT(SERIALINTERFACE_AMBB, "Unhandled SendCommand(0x{:08x}, 0x{:02x})", command, poll);
 }
 
 void CSIDevice_AMBaseboard::DoState(PointerWrap& p)
 {
-  p.Do(m_origin);
-  p.Do(m_mode);
-  p.Do(m_timer_button_combo_start);
-  p.Do(m_last_button_combo);
-
   p.Do(m_last);
   p.Do(m_lastptr);
 
