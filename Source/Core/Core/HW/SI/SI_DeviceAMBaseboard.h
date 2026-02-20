@@ -47,12 +47,6 @@ public:
   void DoState(PointerWrap&) override;
 
 private:
-  enum BaseBoardCommand
-  {
-    GCAM_Reset = 0x00,
-    GCAM_Command = 0x70,
-  };
-
   enum GCAMCommand
   {
     StatusSwitches = 0x10,

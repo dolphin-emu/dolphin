@@ -221,19 +221,19 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
   u32 buffer_position = 0;
   while (buffer_position < buffer_length)
   {
-    const auto bb_command = static_cast<BaseBoardCommand>(buffer[buffer_position]);
+    const auto bb_command = EBufferCommands(buffer[buffer_position]);
     buffer_position++;
 
     switch (bb_command)
     {
-    case BaseBoardCommand::GCAM_Reset:  // Returns ID and dip switches
+    case EBufferCommands::CMD_STATUS:  // Returns ID and dip switches
     {
       const u32 id = Common::swap32(SI_AM_BASEBOARD | 0x100);
       std::memcpy(buffer, &id, sizeof(id));
       return sizeof(id);
     }
     break;
-    case BaseBoardCommand::GCAM_Command:
+    case EBufferCommands::CMD_AM_BASEBOARD:
     {
       u32 checksum = 0;
       for (u32 i = 0; i < buffer_length; ++i)
