@@ -27,11 +27,13 @@ private:
   void RefreshServerList();
 
   void OnServerAdded();
+  void OnServerEdited();
   void OnServerRemoved();
   void OnServersToggled();
 
   QCheckBox* m_servers_enabled;
   QListWidget* m_server_list;
   QPushButton* m_add_server;
+  QPushButton* m_edit_server;
   QPushButton* m_remove_server;
 };
