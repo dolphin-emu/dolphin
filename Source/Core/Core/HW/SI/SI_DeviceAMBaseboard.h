@@ -4,6 +4,7 @@
 #pragma once
 
 #include "Core/HW/MagCard/MagneticCardReader.h"
+#include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
 
 namespace SerialInterface
@@ -175,7 +176,9 @@ private:
     u32 extlen;
   };
 
-  u8 m_last[2][0x80] = {};
+  static constexpr u32 RESPONSE_SIZE = SerialInterfaceManager::BUFFER_SIZE;
+
+  u8 m_last[2][RESPONSE_SIZE] = {};
   u32 m_lastptr[2] = {};
 
   std::array<u16, 2> m_coin{};

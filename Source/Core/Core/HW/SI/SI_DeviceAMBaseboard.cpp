@@ -176,14 +176,6 @@ CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(Core::System& system, SIDevices dev
   }
 }
 
-constexpr u32 SI_XFER_LENGTH_MASK = 0x7f;
-
-// Translate [0,1,2,...,126,127] to [128,1,2,...,126,127]
-constexpr s32 ConvertSILengthField(u32 field)
-{
-  return ((field - 1) & SI_XFER_LENGTH_MASK) + 1;
-}
-
 void CSIDevice_AMBaseboard::ICCardSendReply(ICCommand* iccommand, u8* buffer, u32* length)
 {
   iccommand->status = Common::swap16(iccommand->status);
@@ -201,9 +193,9 @@ void CSIDevice_AMBaseboard::ICCardSendReply(ICCommand* iccommand, u8* buffer, u3
 
 void CSIDevice_AMBaseboard::SwapBuffers(u8* buffer, u32* buffer_length)
 {
-  memcpy(m_last[1], buffer, 0x80);     // Save current buffer
-  memcpy(buffer, m_last[0], 0x80);     // Load previous buffer
-  memcpy(m_last[0], m_last[1], 0x80);  // Update history
+  memcpy(m_last[1], buffer, RESPONSE_SIZE);     // Save current buffer
+  memcpy(buffer, m_last[0], RESPONSE_SIZE);     // Load previous buffer
+  memcpy(m_last[0], m_last[1], RESPONSE_SIZE);  // Update history
 
   m_lastptr[1] = *buffer_length;  // Swap lengths
   *buffer_length = m_lastptr[0];
@@ -212,11 +204,12 @@ void CSIDevice_AMBaseboard::SwapBuffers(u8* buffer, u32* buffer_length)
 
 int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 {
-  const auto& serial_interface = m_system.GetSerialInterface();
-  u32 buffer_length = ConvertSILengthField(serial_interface.GetInLength());
-
   // Debug logging
-  ISIDevice::RunBuffer(buffer, buffer_length);
+  ISIDevice::RunBuffer(buffer, request_length);
+
+  const auto& serial_interface = m_system.GetSerialInterface();
+
+  u32 buffer_length = RESPONSE_SIZE;
 
   u32 buffer_position = 0;
   while (buffer_position < buffer_length)
