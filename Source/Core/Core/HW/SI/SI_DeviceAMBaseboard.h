@@ -38,9 +38,6 @@ public:
   // run the SI Buffer
   int RunBuffer(u8* buffer, int request_length) override;
 
-  // Reply has to be delayed due a bug in the parser
-  void SwapBuffers(u8* buffer, u32* buffer_length);
-
   DataResponse GetData(u32& hi, u32& low) override;
 
   void SendCommand(u32 command, u8 poll) override;
@@ -178,8 +175,9 @@ private:
 
   static constexpr u32 RESPONSE_SIZE = SerialInterfaceManager::BUFFER_SIZE;
 
-  u8 m_last[2][RESPONSE_SIZE] = {};
-  u32 m_lastptr[2] = {};
+  // Reply has to be delayed due a bug in the parser
+  std::array<std::array<u8, RESPONSE_SIZE>, 2> m_response_buffers{};
+  u8 m_current_response_buffer_index = 0;
 
   std::array<u16, 2> m_coin{};
   std::array<u32, 2> m_coin_pressed{};
