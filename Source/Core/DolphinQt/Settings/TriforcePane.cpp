@@ -10,6 +10,7 @@
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
+#include <QLatin1Char>
 #include <QPushButton>
 #include <QString>
 #include <QTableWidget>
@@ -22,10 +23,14 @@
 #include <fmt/ranges.h>
 #include <stb_image.h>
 
+#include "CameraCommon/CameraOrchestrator.h"
+#include "CameraCommon/CameraQualifier.h"
+
 #include "Common/Config/Config.h"
 #include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
+#include "Common/StbImage.h"
 
 #include "Common/ScopeGuard.h"
 #include "Core/Config/MainSettings.h"
@@ -331,8 +336,7 @@ void TriforcePane::OnCameraDeviceChanged(int index)
   }
   else
   {
-    ERROR_LOG_FMT(COMMON, "Invalid camera device selected in TriforcePane");
-    return;
+    camera = m_camera_combo->itemText(index).toStdString();
   }
   if (camera.has_value())
     Config::SetBaseOrCurrent(Config::MAIN_TRIFORCE_INTEGRATED_CAMERA_DEVICE, *camera);
@@ -343,9 +347,36 @@ void TriforcePane::RefreshCameras()
   m_camera_combo->clear();
   m_camera_combo->addItem(tr("Automatic"));
 
+  const std::string configured_camera = Config::Get(Config::MAIN_TRIFORCE_INTEGRATED_CAMERA_DEVICE);
+  bool current_camera_found = false;
+
+  const auto& cameras = CameraOrchestrator::GetInstance().EnumerateCameras();
+  for (const auto& camera : cameras)
+  {
+    const std::string camera_qualifier = CameraQualifier(camera.get()).ToString();
+    m_camera_combo->addItem(QString::fromStdString(camera_qualifier));
+    if (!current_camera_found && camera_qualifier == configured_camera)
+    {
+      m_camera_combo->setCurrentIndex(m_camera_combo->count() - 1);
+      current_camera_found = true;
+    }
+  }
+
   m_camera_combo->addItem(tr("Static image"));
-  if (Config::Get(Config::MAIN_TRIFORCE_INTEGRATED_CAMERA_DEVICE) == "static")
+  if (current_camera_found)
+    return;
+
+  if (configured_camera == "static")
+  {
     m_camera_combo->setCurrentIndex(m_camera_combo->count() - 1);
+    current_camera_found = true;
+  }
+  else if (!configured_camera.empty())
+  {
+    m_camera_combo->addItem(QString::fromStdString(configured_camera) + QLatin1Char{' '} +
+                            tr("[Disconnected]"));
+    m_camera_combo->setCurrentIndex(m_camera_combo->count() - 1);
+  }
 }
 
 void TriforcePane::OnIntegratedCameraChanged()
@@ -392,20 +423,15 @@ void TriforcePane::UpdateCameraFrame()
     return;
   }
 
-  int width = 0;
-  int height = 0;
-  int channels = 0;
-  u8* pixels = stbi_load_from_memory(reinterpret_cast<const unsigned char*>(response->data()),
-                                     static_cast<int>(response->size()), &width, &height, &channels,
-                                     STBI_rgb);
-  if (!pixels)
+  auto image = Common::StbImage::LoadFromMemory(*response, STBI_rgb);
+
+  if (!image)
   {
     m_camera_feed->setFrame(QImage());
     return;
   }
 
-  QImage frame(
-      pixels, width, height, width * 3, QImage::Format_RGB888,
-      [](void* frame_data) { stbi_image_free(frame_data); }, pixels);
-  m_camera_feed->setFrame(frame);
+  QImage frame(image->GetData().data(), image->GetWidth(), image->GetHeight(),
+               image->GetWidth() * image->GetChannels(), QImage::Format_RGB888);
+  m_camera_feed->setFrame(frame.copy());
 }

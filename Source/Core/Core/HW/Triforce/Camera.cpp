@@ -7,15 +7,15 @@
 
 #include <fmt/format.h>
 #include <fmt/ranges.h>
-#include <stb_image.h>
-#include <stb_image_resize2.h>
-#include <stb_image_write.h>
 
+#include "CameraCommon/CameraInterface/CameraInterface.h"
+#include "CameraCommon/CameraOrchestrator.h"
+#include "CameraCommon/CameraQualifier.h"
 #include "Common/Config/Config.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
-#include "Common/ScopeGuard.h"
+#include "Common/StbImage.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/DVD/AMMediaboard.h"
 
@@ -37,65 +37,24 @@ static std::vector<std::string> RedirectionsWithoutIntegratedCamera()
   return result;
 }
 
-static std::optional<std::vector<u8>> MakeJPEGCompliant(const std::vector<u8>& input)
-{
-  int width = 0;
-  int height = 0;
-  int channels = 0;
-  u8* image = stbi_load_from_memory(input.data(), static_cast<int>(input.size()), &width, &height,
-                                    &channels, 3);
-  if (!image)
-    return std::nullopt;
-  Common::ScopeGuard guard([image] { stbi_image_free(image); });
-
-  constexpr int target_width = 320;
-  constexpr int target_height = 240;
-  std::vector<u8> image_resized;
-  u8* pixels;
-  if (width != target_width || height != target_height)
-  {
-    image_resized.resize(target_width * target_height * 3);
-    if (!stbir_resize_uint8_srgb(image, width, height, 0, image_resized.data(), target_width,
-                                 target_height, 0, STBIR_RGB))
-    {
-      return std::nullopt;
-    }
-    pixels = image_resized.data();
-  }
-  else
-  {
-    pixels = image;
-  }
-
-  std::vector<u8> output;
-  stbi_write_func* write_func = [](void* context, void* data, int size) {
-    auto* vec = reinterpret_cast<std::vector<u8>*>(context);
-    vec->insert(vec->end(), reinterpret_cast<u8*>(data), reinterpret_cast<u8*>(data) + size);
-  };
-
-  if (!stbi_write_jpg_to_func(write_func, &output, target_width, target_height, 3, pixels, 100))
-  {
-    return std::nullopt;
-  }
-
-  return output;
-}
-
 namespace Triforce
 {
-
 void Camera::Init()
 {
   if (IsInitialized())
     return;
+  m_camera_initialized.store(false);
+  if (m_open_camera)
+    CameraOrchestrator::GetInstance().CloseCamera(m_open_camera);
+  m_open_camera.reset();
 
   if (!Config::Get(Config::MAIN_TRIFORCE_INTEGRATED_CAMERA))
   {
     Config::SetBaseOrCurrent(
         Config::MAIN_TRIFORCE_IP_REDIRECTIONS,
         fmt::format("{}", fmt::join(RedirectionsWithoutIntegratedCamera(), ",")));
-    // TODO: We currently grab the first match in the 104-107 range. It would be better to only
-    // look at the address of the IP we use.
+    // TODO: We currently grab the first match in the 104-107 range. It would be better if we could
+    // grab only the IP of the current cabinet.
     Common::IPv4Port local_camera_address = {.ip_address = {192, 168, 29, 0}, .port = 0};
     for (u8 last_octet = 104; last_octet <= 107; ++last_octet)
     {
@@ -122,21 +81,82 @@ void Camera::Init()
     return;
   }
 
+  const std::string configured_camera = Config::Get(Config::MAIN_TRIFORCE_INTEGRATED_CAMERA_DEVICE);
+  static constexpr int target_width = 320;
+  static constexpr int target_height = 240;
+
+  std::optional<CameraQualifier> qualifier;
+  if (configured_camera != "static")
+  {
+    if (configured_camera.empty())
+    {
+      auto& orchestrator = CameraOrchestrator::GetInstance();
+      if (const auto cameras = orchestrator.EnumerateCameras(); !cameras.empty())
+      {
+        const auto auto_qualifier = CameraQualifier(cameras.front().get());
+        if (auto_qualifier.source != "NULL")
+          qualifier = auto_qualifier;
+      }
+    }
+    else
+    {
+      qualifier = CameraQualifier::FromString(configured_camera);
+      if (!qualifier)
+      {
+        ERROR_LOG_FMT(CORE,
+                      "Configured camera '{}' is not a valid camera qualifier. Falling back to a "
+                      "static image.",
+                      configured_camera);
+      }
+    }
+  }
+
   m_http_server.emplace(*address);
 
-  m_http_server->ServePath("/img.jpg", []() {
-    std::vector<u8> response;
-
-    if (File::IOFile file(Config::Get(Config::MAIN_TRIFORCE_INTEGRATED_CAMERA_STATIC_IMAGE), "rb",
-                          File::SharedAccess::Read);
-        file)
+  m_http_server->ServePath("/img.jpg", [this, configured_camera, qualifier]() mutable {
+    bool expected = false;
+    if (m_camera_initialized.compare_exchange_strong(expected, true) && qualifier)
     {
-      std::vector<u8> contents(static_cast<std::size_t>(file.GetSize()));
-      if (file.ReadBytes(contents.data(), contents.size()))
+      auto& orchestrator = CameraOrchestrator::GetInstance();
+      if (const auto camera = orchestrator.GetCameraByQualifier(*qualifier); !camera)
       {
-        const auto compliant = MakeJPEGCompliant(std::move(contents));
-        if (compliant)
-          response = std::move(*compliant);
+        ERROR_LOG_FMT(CORE,
+                      "Configured camera '{}' could not be found. Falling back to a static image.",
+                      configured_camera);
+      }
+      else if (const auto opened = orchestrator.OpenCamera(camera); !opened)
+      {
+        ERROR_LOG_FMT(CORE,
+                      "Configured camera '{}' could not be opened. Falling back to a static image.",
+                      configured_camera);
+      }
+      else
+      {
+        m_open_camera = *opened;
+      }
+    }
+
+    std::vector<u8> response;
+    if (m_open_camera && m_open_camera->IsOpen())
+    {
+      auto frame = m_open_camera->CaptureFrame();
+
+      frame.Resize(target_width, target_height);
+
+      if (auto jpeg = frame.EncodeToBaselineJPEG(75))
+        response.swap(*jpeg);
+    }
+    else
+    {
+      File::IOFile file(Config::Get(Config::MAIN_TRIFORCE_INTEGRATED_CAMERA_STATIC_IMAGE), "rb",
+                        File::SharedAccess::Read);
+
+      auto image = Common::StbImage::LoadFromFile(std::move(file), 3);
+      if (image)
+      {
+        image->Resize(target_width, target_height);
+        if (auto jpeg = image->EncodeToBaselineJPEG(75))
+          response.swap(*jpeg);
       }
     }
 
@@ -163,6 +183,8 @@ void Camera::Shutdown()
 {
   m_redirection_address.reset();
   m_http_server.reset();
+  if (m_open_camera)
+    CameraOrchestrator::GetInstance().CloseCamera(m_open_camera);
 }
 
 void Camera::Recreate()

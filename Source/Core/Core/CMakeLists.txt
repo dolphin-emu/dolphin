@@ -686,6 +686,7 @@ endif()
 target_link_libraries(core
 PUBLIC
   audiocommon
+  cameracommon
   common
   discio
   enet::enet

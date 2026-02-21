@@ -145,6 +145,8 @@ add_library(common
   SocketContext.h
   SpanUtils.h
   SPSCQueue.h
+  StbImage.cpp
+  StbImage.h
   StringUtil.cpp
   StringUtil.h
   SymbolDB.cpp
@@ -192,6 +194,7 @@ PRIVATE
   CURL::libcurl
   FatFs
   spng::spng
+  stb
   watcher
   ${VTUNE_LIBRARIES}
 )

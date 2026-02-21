@@ -16,6 +16,7 @@ enum class LogType : int
   AUDIO,
   AUDIO_INTERFACE,
   BOOT,
+  CAMERA,
   COMMANDPROCESSOR,
   COMMON,
   CONSOLE,

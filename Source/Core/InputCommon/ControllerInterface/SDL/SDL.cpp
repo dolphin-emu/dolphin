@@ -193,12 +193,12 @@ InputBackend::InputBackend(ControllerInterface* controller_interface)
 
     Common::ScopeGuard quit_guard([] {
       // TODO: there seems to be some sort of memory leak with SDL, quit isn't freeing everything up
-      SDL_Quit();
+      SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMEPAD);
     });
     {
       Common::ScopeGuard init_guard([this] { m_init_event.Set(); });
 
-      if (!SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMEPAD))
+      if (!SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMEPAD))
       {
         ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL failed to initialize");
         return;

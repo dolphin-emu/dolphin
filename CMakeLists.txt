@@ -143,9 +143,9 @@ endif()
 
 # Enable SDL by default on operating systems that aren't Android.
 if(NOT ANDROID)
-  option(ENABLE_SDL "Enables SDL as a generic controller backend" ON)
+  option(ENABLE_SDL "Enables SDL as a generic controller and camera backend" ON)
 else()
-  option(ENABLE_SDL "Enables SDL as a generic controller backend" OFF)
+  option(ENABLE_SDL "Enables SDL as a generic controller and camera backend" OFF)
 endif()
 
 if(APPLE)

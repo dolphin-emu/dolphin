@@ -15,6 +15,9 @@
 #endif
 
 #include <fmt/format.h>
+#ifdef HAVE_SDL3
+#include <SDL3/SDL_init.h>
+#endif
 
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
@@ -128,6 +131,17 @@ void Init()
 {
   Core::RestoreWiiSettings(Core::RestoreReason::CrashRecovery);
 
+#ifdef HAVE_SDL3
+  // We aren't supposed to use events from a different thread than the main thread, it raises an
+  // assertion in SDL. However, we do this anyways for hotplug support, so we need to disable
+  // assertions.
+#ifdef _WIN32
+  _putenv_s("SDL_ASSERT", "always_ignore");
+#else
+  setenv("SDL_ASSERT", "always_ignore", 1);
+#endif
+#endif
+
   Config::Init();
   const auto config_changed_callback = [] {
     InitCustomPaths();
@@ -159,6 +173,9 @@ void Shutdown()
   g_Config.Shutdown();
   SConfig::Shutdown();
   Config::Shutdown();
+#ifdef HAVE_SDL3
+  SDL_Quit();
+#endif
 }
 
 [[nodiscard]] Common::EventHook AddFlushUnsavedDataCallback(std::function<void()> callback)

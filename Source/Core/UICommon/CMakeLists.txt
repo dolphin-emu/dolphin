@@ -34,6 +34,10 @@ PRIVATE
   $<$<BOOL:APPLE>:${IOK_LIBRARY}>
 )
 
+if(ENABLE_SDL)
+  target_link_libraries(uicommon PRIVATE SDL3::SDL3)
+endif()
+
 if ((DEFINED CMAKE_ANDROID_ARCH_ABI AND CMAKE_ANDROID_ARCH_ABI MATCHES "x86|x86_64") OR
     (NOT DEFINED CMAKE_ANDROID_ARCH_ABI AND _M_X86_64))
   target_link_libraries(uicommon PRIVATE bdisasm)

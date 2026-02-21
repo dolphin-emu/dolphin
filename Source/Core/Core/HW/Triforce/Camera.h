@@ -5,6 +5,7 @@
 
 #include <optional>
 
+#include "CameraCommon/CameraInterface/CameraInterface.h"
 #include "Common/HttpServer.h"
 
 namespace Triforce
@@ -37,6 +38,8 @@ public:
 private:
   std::optional<Common::HttpServer> m_http_server;
   std::optional<Common::IPv4Port> m_redirection_address;
+  std::shared_ptr<CameraInterface> m_open_camera;
+  std::atomic<bool> m_camera_initialized{false};
 };
 
 }  // namespace Triforce
