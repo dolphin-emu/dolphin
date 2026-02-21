@@ -56,6 +56,9 @@ static int WSAGetLastError()
 {
   switch (errno)
   {
+#if EAGAIN != EWOULDBLOCK
+  case EAGAIN:
+#endif
   case EINPROGRESS:
   case EWOULDBLOCK:
     return WSAEWOULDBLOCK;
