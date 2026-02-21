@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/Network.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
@@ -257,6 +258,155 @@ TEST(StringUtil, CaseInsensitiveContains_OverlappingMatches)
 {
   EXPECT_TRUE(Common::CaseInsensitiveContains("aaaaaa", "aa"));
   EXPECT_TRUE(Common::CaseInsensitiveContains("ababababa", "bABa"));
+}
+
+TEST(StringUtil, SplitStringIntoArray)
+{
+  constexpr auto subject0 = "";
+  EXPECT_FALSE(SplitStringIntoArray<2>(subject0, '.').has_value());
+
+  constexpr auto subject1 = "hello";
+  EXPECT_FALSE(SplitStringIntoArray<2>(subject1, '.').has_value());
+
+  constexpr auto subject2 = "hello.world";
+  const auto split2 = SplitStringIntoArray<2>(subject2, '.');
+  EXPECT_TRUE(split2.has_value() && split2->at(1) == "world");
+  EXPECT_FALSE(SplitStringIntoArray<3>(subject2, '.').has_value());
+
+  constexpr auto subject3 = "hello.universe.";
+  EXPECT_FALSE(SplitStringIntoArray<2>(subject3, '.').has_value());
+  const auto split3 = SplitStringIntoArray<3>(subject3, '.');
+  EXPECT_TRUE(split3.has_value() && split3->at(2) == "");
+  EXPECT_FALSE(SplitStringIntoArray<4>(subject3, '.').has_value());
+
+  constexpr auto subject4 = "=";
+  EXPECT_TRUE(SplitStringIntoArray<2>(subject4, '=').has_value());
+}
+
+TEST(StringUtil, StringToIPv4PortRange)
+{
+  constexpr auto parse = Common::StringToIPv4PortRange;
+
+  constexpr Common::IPAddress ip_network = {192, 168, 0, 0};
+  constexpr Common::IPAddress test_ip = {192, 168, 0, 13};
+  constexpr Common::IPAddress last_ip = {192, 168, 0, 255};
+
+  EXPECT_FALSE(parse("").has_value());
+  EXPECT_FALSE(parse("1.2.3").has_value());
+  EXPECT_FALSE(parse("1.2.3.4-").has_value());
+  EXPECT_FALSE(parse("1.2.3.4.5").has_value());
+  EXPECT_FALSE(parse("1.2.3.256").has_value());
+  EXPECT_FALSE(parse("1.2.3.4/33").has_value());
+  EXPECT_FALSE(parse("1.2.3.4:65536").has_value());
+  EXPECT_FALSE(parse("1.2.3.4-1.2.3.4.5").has_value());
+  EXPECT_FALSE(parse("1.1.1.1:81-80").has_value());
+  EXPECT_FALSE(parse("1.1.1.2-1.1.1.1").has_value());
+
+  EXPECT_TRUE(parse("1.2.3.4").has_value());
+  EXPECT_TRUE(parse("1.2.3.4:80").has_value());
+  EXPECT_TRUE(parse("1.2.3.4:80-81").has_value());
+  EXPECT_TRUE(parse("1.2.3.4/16").has_value());
+  EXPECT_TRUE(parse("1.2.3.4/16:80").has_value());
+  EXPECT_TRUE(parse("1.2.3.4/16:80-81").has_value());
+  EXPECT_TRUE(parse("1.2.3.4-10").has_value());
+  EXPECT_TRUE(parse("1.2.3.4-10:80").has_value());
+  EXPECT_TRUE(parse("1.2.3.4-10:80-81").has_value());
+
+  {
+    const auto simple_result = parse("192.168.0.13").value();
+    EXPECT_EQ(simple_result.first.ip_address, test_ip);
+    EXPECT_EQ(simple_result.last.ip_address, test_ip);
+    EXPECT_EQ(simple_result.first.GetPortValue(), 0);
+    EXPECT_EQ(simple_result.last.GetPortValue(), u16(-1));
+  }
+
+  {
+    const auto port_result = parse("192.168.0.13:77").value();
+    EXPECT_EQ(port_result.first.ip_address, test_ip);
+    EXPECT_EQ(port_result.last.ip_address, test_ip);
+    EXPECT_EQ(port_result.first.GetPortValue(), 77);
+    EXPECT_EQ(port_result.last.GetPortValue(), 77);
+  }
+
+  {
+    const auto ip_range_result = parse("192.168.0.13-192.168.0.255:123").value();
+    EXPECT_EQ(ip_range_result.first.ip_address, test_ip);
+    EXPECT_EQ(ip_range_result.last.ip_address, last_ip);
+    EXPECT_EQ(ip_range_result.first.GetPortValue(), 123);
+    EXPECT_EQ(ip_range_result.last.GetPortValue(), 123);
+  }
+
+  {
+    const auto port_range_result = parse("192.168.29.151:5000-5010").value();
+    EXPECT_EQ(port_range_result.first.GetPortValue(), 5000);
+    EXPECT_EQ(port_range_result.last.GetPortValue(), 5010);
+    EXPECT_TRUE(port_range_result.IsMatch(parse("192.168.29.151:5008")->first));
+    EXPECT_FALSE(port_range_result.IsMatch(parse("127.0.0.1:5000")->first));
+  }
+
+  {
+    const auto ip_range_result = parse("192.168.0.13-255:123-999").value();
+    EXPECT_EQ(ip_range_result.first.ip_address, test_ip);
+    EXPECT_EQ(ip_range_result.last.ip_address, last_ip);
+    EXPECT_EQ(ip_range_result.first.GetPortValue(), 123);
+    EXPECT_EQ(ip_range_result.last.GetPortValue(), 999);
+  }
+
+  {
+    const auto ip_network_result = parse("192.168.0.13/24:123-999").value();
+    EXPECT_EQ(ip_network_result.first.ip_address, ip_network);
+    EXPECT_EQ(ip_network_result.last.ip_address, last_ip);
+    EXPECT_EQ(ip_network_result.first.GetPortValue(), 123);
+    EXPECT_EQ(ip_network_result.last.GetPortValue(), 999);
+  }
+
+  EXPECT_TRUE(parse("192.168.0.13/24")->IsMatch(parse("192.168.0.99")->first));
+  EXPECT_FALSE(parse("192.168.0.13/24")->IsMatch(parse("192.168.1.99")->first));
+
+  EXPECT_FALSE(parse("192.168.0.13/32")->IsMatch(parse("192.168.0.99")->first));
+  EXPECT_TRUE(parse("192.168.0.13/0")->IsMatch(parse("10.0.0.1")->first));
+
+  EXPECT_TRUE(parse("192.168.0.13")->IsMatch(parse("192.168.0.13:81")->first));
+  EXPECT_FALSE(parse("192.168.0.13:80")->IsMatch(parse("192.168.0.13:81")->first));
+  EXPECT_TRUE(parse("192.168.0.13:80")->IsMatch(parse("192.168.0.13:80")->first));
+  EXPECT_FALSE(parse("192.168.0.13:80-81")->IsMatch(parse("192.168.0.14:81")->first));
+  EXPECT_TRUE(parse("192.168.0.13-14:80-81")->IsMatch(parse("192.168.0.14:81")->first));
+}
+
+TEST(StringUtil, IPv4PortRangeToString)
+{
+  Common::IPv4PortRange subject{
+      .first = {{10, 3, 0, 127}, 0},
+      .last = {{10, 3, 0, 127}, 0},
+  };
+
+  EXPECT_EQ(subject.ToString(), "10.3.0.127");
+
+  subject.last.port = Common::swap16(80);  // First port is still zero.
+  EXPECT_EQ(subject.ToString(), "10.3.0.127");
+
+  subject.first.port = Common::swap16(80);
+  EXPECT_EQ(subject.ToString(), "10.3.0.127:80");
+
+  subject.last.port = Common::swap16(88);
+  EXPECT_EQ(subject.ToString(), "10.3.0.127:80-88");
+
+  subject.last.ip_address = {10, 3, 0, 128};
+  EXPECT_EQ(subject.ToString(), "10.3.0.127-128:80-88");
+
+  subject.last.ip_address = {10, 3, 7, 35};
+  EXPECT_EQ(subject.ToString(), "10.3.0.127-10.3.7.35:80-88");
+
+  subject.first.ip_address = {192, 168, 0, 0};
+  subject.last.ip_address = {192, 168, 0, 255};
+  EXPECT_EQ(subject.ToString(), "192.168.0.0/24:80-88");
+
+  subject.last.ip_address = {192, 168, 3, 255};
+  EXPECT_EQ(subject.ToString(), "192.168.0.0/22:80-88");
+
+  subject.first.ip_address = {};
+  subject.last.ip_address = {255, 255, 255, 255};
+  EXPECT_EQ(subject.ToString(), "0.0.0.0/0:80-88");
 }
 
 TEST(StringUtil, CharacterEncodingConversion)

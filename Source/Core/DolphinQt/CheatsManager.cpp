@@ -34,6 +34,8 @@ CheatsManager::CheatsManager(Core::System& system, QWidget* parent)
   CreateWidgets();
   ConnectWidgets();
 
+  OnStateChanged(Core::GetState(system));
+
   QtUtils::AdjustSizeWithinScreen(this);
 
   auto& settings = Settings::GetQSettings();

@@ -284,6 +284,15 @@ void Cheats::CheatSearchSession<T>::ResetResults()
 }
 
 template <typename T>
+void Cheats::CheatSearchSession<T>::RemoveResult(size_t index)
+{
+  if (index < m_search_results.size())
+  {
+    m_search_results.erase(m_search_results.begin() + index);
+  }
+}
+
+template <typename T>
 static std::function<bool(const T& new_value)>
 MakeCompareFunctionForSpecificValue(Cheats::CompareType op, const T& old_value)
 {

@@ -893,11 +893,7 @@ s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
     sock.SetWiiFd(wii_fd);
     m_ios.GetSystem().GetPowerPC().GetDebugInterface().NetworkLogger()->OnNewSocket(fd);
 
-#ifdef __APPLE__
-    int opt_no_sigpipe = 1;
-    if (setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &opt_no_sigpipe, sizeof(opt_no_sigpipe)) < 0)
-      ERROR_LOG_FMT(IOS_NET, "Failed to set SO_NOSIGPIPE on socket");
-#endif
+    Common::SetPlatformSocketOptions(fd);
 
     // Wii UDP sockets can use broadcast address by default
     if (!is_rw)

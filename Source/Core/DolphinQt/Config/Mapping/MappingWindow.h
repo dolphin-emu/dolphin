@@ -45,6 +45,8 @@ public:
     MAPPING_HOTKEYS,
     // Freelook
     MAPPING_FREELOOK,
+    // Triforce
+    MAPPING_AM_BASEBOARD,
   };
 
   explicit MappingWindow(QWidget* parent, Type type, int port_num);

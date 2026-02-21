@@ -69,6 +69,12 @@ enum class StringSetting(
         ""
     ),
     MAIN_WFS_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL, "WFSPath", ""),
+    MAIN_TRIFORCE_IP_REDIRECTIONS(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_CORE,
+        "TriforceIPRedirections",
+        "0.0.0.0/0=127.0.0.1"
+    ),
     GFX_ENHANCE_POST_SHADER(
         Settings.FILE_GFX,
         Settings.SECTION_GFX_ENHANCEMENTS,

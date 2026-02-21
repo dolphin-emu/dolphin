@@ -1296,16 +1296,13 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
     if (op.skip)
     {
-      if (IsDebuggingEnabled())
+      if (IsBranchWatchEnabled())
       {
         // The only thing that currently sets op.skip is the BLR following optimization.
         // If any non-branch instruction starts setting that too, this will need to be changed.
         ASSERT(op.inst.hex == 0x4e800020);
-        const auto bw_reg_a = gpr.GetScopedReg(), bw_reg_b = gpr.GetScopedReg();
-        const BitSet32 gpr_caller_save =
-            gpr.GetCallerSavedUsed() & ~BitSet32{DecodeReg(bw_reg_a), DecodeReg(bw_reg_b)};
-        WriteBranchWatch<true>(op.address, op.branchTo, op.inst, bw_reg_a, bw_reg_b,
-                               gpr_caller_save, fpr.GetCallerSavedUsed());
+        WriteBranchWatch<true>(op.address, op.branchTo, op.inst, gpr.GetCallerSavedUsed(),
+                               fpr.GetCallerSavedUsed());
       }
     }
     else

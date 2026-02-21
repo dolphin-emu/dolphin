@@ -95,11 +95,6 @@ object ControllerInterface {
         deviceQualifier: String, axisNames: Array<String>, suspended: Boolean
     )
 
-    /**
-     * Rescans for input devices.
-     */
-    external fun refreshDevices()
-
     external fun getAllDeviceStrings(): Array<String>
 
     external fun getDevice(deviceString: String): CoreDevice?
@@ -193,13 +188,10 @@ object ControllerInterface {
     }
 
     private class InputDeviceListener : InputManager.InputDeviceListener {
-        // Simple implementation for now. We could do something fancier if we wanted to.
-        override fun onInputDeviceAdded(deviceId: Int) = refreshDevices()
+        override external fun onInputDeviceAdded(deviceId: Int)
 
-        // Simple implementation for now. We could do something fancier if we wanted to.
-        override fun onInputDeviceRemoved(deviceId: Int) = refreshDevices()
+        override external fun onInputDeviceRemoved(deviceId: Int)
 
-        // Simple implementation for now. We could do something fancier if we wanted to.
-        override fun onInputDeviceChanged(deviceId: Int) = refreshDevices()
+        override external fun onInputDeviceChanged(deviceId: Int)
     }
 }

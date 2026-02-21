@@ -11,6 +11,7 @@
 
 #include "Common/EnumMap.h"
 #include "Core/HW/EXI/EXI.h"
+#include "DolphinQt/MainWindow.h"
 
 class ConfigBool;
 class ConfigChoice;
@@ -28,9 +29,12 @@ class GameCubePane : public QWidget
 {
   Q_OBJECT
 public:
-  explicit GameCubePane();
+  explicit GameCubePane(MainWindow* main_window);
 
   static std::string GetOpenGBARom(std::string_view title);
+
+signals:
+  void ShowTriforceWindow();
 
 private:
   void CreateWidgets();

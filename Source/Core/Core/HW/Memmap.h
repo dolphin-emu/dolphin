@@ -123,7 +123,6 @@ public:
   // If the specified range is within a single valid memory region, returns a pointer to the start
   // of the corresponding range in host memory. Otherwise, returns nullptr.
   u8* GetPointerForRange(u32 address, size_t size) const;
-
   void CopyFromEmu(void* data, u32 address, size_t size) const;
   void CopyToEmu(u32 address, const void* data, size_t size);
   void Memset(u32 address, u8 value, size_t size);

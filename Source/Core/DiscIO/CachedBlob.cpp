@@ -219,6 +219,8 @@ public:
     return m_cache_filler->Read(offset, size, out_ptr) || m_reader->Read(offset, size, out_ptr);
   }
 
+  bool IsCached() const override { return true; }
+
 private:
   // A shared object does the cache filling for sensible CopyReader behavior.
   const std::shared_ptr<CacheFiller> m_cache_filler;
@@ -228,11 +230,17 @@ private:
 
 std::unique_ptr<BlobReader> CreateCachedBlobReader(std::unique_ptr<BlobReader> reader)
 {
+  if (reader->IsCached())  // This is already CachedBlobReader.
+    return reader;
+
   return std::make_unique<CachedBlobReader>(std::move(reader), false);
 }
 
 std::unique_ptr<BlobReader> CreateScrubbingCachedBlobReader(std::unique_ptr<BlobReader> reader)
 {
+  if (reader->IsCached())  // This reader is already a CachedBlobReader.
+    return reader;
+
   return std::make_unique<CachedBlobReader>(std::move(reader), true);
 }
 

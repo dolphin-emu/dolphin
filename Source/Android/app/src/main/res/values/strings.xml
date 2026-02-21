@@ -142,6 +142,7 @@
     <string name="modem_tapserver_destination_description">Enter the socket path or netloc (address:port) of the tapserver instance</string>
     <string name="bba_builtin_dns">DNS Server</string>
     <string name="bba_builtin_dns_description">Use 8.8.8.8 for normal DNS, else enter your custom one</string>
+    <string name="triforce_ip_redirections">IP Redirections</string>
 
     <!-- Interface Preference Fragment -->
     <string name="interface_submenu">Interface</string>
@@ -707,6 +708,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="broadband_adapter_hle">Broadband Adapter (HLE)</string>
     <string name="broadband_adapter_tapserver">Broadband Adapter (tapserver)</string>
     <string name="modem_adapter_tapserver">Modem Adapter (tapserver)</string>
+    <string name="sp1_am_baseboard">Triforce Baseboard</string>
 
     <!-- Sound Mode -->
     <string name="sound_mode_mono">Mono</string>
@@ -811,6 +813,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="gcpad_steering_wheel">Steering Wheel</string>
     <string name="gcpad_dance_mat">Dance Mat</string>
     <string name="gcpad_taru_konga">DK Bongos</string>
+    <string name="gcpad_am_baseboard">Triforce Baseboard</string>
     <string name="gcpad_gc_adapter">GameCube Adapter</string>
 
     <!-- Wiimote Types -->

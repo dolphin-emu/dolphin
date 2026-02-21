@@ -11,6 +11,7 @@
 #include "Core/Config/MainSettings.h"
 
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
+#include "DolphinQt/Config/SDLHints/SDLHintsWindow.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
@@ -33,9 +34,11 @@ void CommonControllersWidget::CreateLayout()
   m_common_bg_input = new QCheckBox(tr("Background Input"));
   m_common_configure_controller_interface =
       new NonDefaultQPushButton(tr("Alternate Input Sources"));
+  m_common_configure_sdl_hints = new NonDefaultQPushButton(tr("SDL Controller Settings"));
 
   m_common_layout->addWidget(m_common_bg_input);
   m_common_layout->addWidget(m_common_configure_controller_interface);
+  m_common_layout->addWidget(m_common_configure_sdl_hints);
 
   m_common_box->setLayout(m_common_layout);
 
@@ -51,11 +54,21 @@ void CommonControllersWidget::ConnectWidgets()
   connect(m_common_bg_input, &QCheckBox::toggled, this, &CommonControllersWidget::SaveSettings);
   connect(m_common_configure_controller_interface, &QPushButton::clicked, this,
           &CommonControllersWidget::OnControllerInterfaceConfigure);
+  connect(m_common_configure_sdl_hints, &QPushButton::clicked, this,
+          &CommonControllersWidget::OnSDLHintConfigure);
 }
 
 void CommonControllersWidget::OnControllerInterfaceConfigure()
 {
   ControllerInterfaceWindow* window = new ControllerInterfaceWindow(this);
+  window->setAttribute(Qt::WA_DeleteOnClose, true);
+  window->setWindowModality(Qt::WindowModality::WindowModal);
+  window->show();
+}
+
+void CommonControllersWidget::OnSDLHintConfigure()
+{
+  SDLHintsWindow* window = new SDLHintsWindow(this);
   window->setAttribute(Qt::WA_DeleteOnClose, true);
   window->setWindowModality(Qt::WindowModality::WindowModal);
   window->show();

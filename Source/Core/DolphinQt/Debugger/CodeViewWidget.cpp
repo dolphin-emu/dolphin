@@ -319,6 +319,7 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
       guard ? std::make_optional(power_pc.GetPPCState().pc) : std::nullopt;
 
   const bool dark_theme = Settings::Instance().IsThemeDark();
+  const bool breaking_enabled = power_pc.GetBreakPoints().IsBreakingEnabled();
 
   m_branches.clear();
 
@@ -400,7 +401,7 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
     if (bp != nullptr)
     {
       auto icon = Resources::GetThemeIcon("debugger_breakpoint").pixmap(QSize(rowh - 2, rowh - 2));
-      if (!bp->is_enabled)
+      if (!breaking_enabled || !bp->is_enabled)
       {
         QPixmap disabled_icon(icon.size());
         disabled_icon.fill(Qt::transparent);

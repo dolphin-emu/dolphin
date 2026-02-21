@@ -75,6 +75,7 @@ private:
   int GetVisibleRowsBeginIndex() const;
   int GetVisibleRowsEndIndex() const;
   size_t GetTableRowCount() const;
+  const std::vector<const QTableWidgetItem*> GetSelectedAddressTableItems() const;
 
   Core::System& m_system;
 
