@@ -1302,7 +1302,27 @@ static void AMMBCommandSetSockOpt(u32 parameter_offset, u32 network_buffer_base)
   const char* optval = reinterpret_cast<char*>(s_network_command_buffer.data() + optval_offset);
 
   // TODO: Ensure parameters are compatible with host's setsockopt
-  const int ret = setsockopt(fd, level, optname, optval, optlen);
+  const s32 host_level = [level] {
+    switch (level)
+    {
+    case 0xFFFF:
+      return SOL_SOCKET;
+    default:
+      WARN_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: Unknown setsockopt level {}", level);
+      return level;
+    }
+  }();
+  const s32 host_optname = [optname] {
+    switch (optname)
+    {
+    case 4:
+      return SO_REUSEADDR;
+    default:
+      WARN_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: Unknown setsockopt optname {}", optname);
+      return optname;
+    }
+  }();
+  const int ret = setsockopt(fd, host_level, host_optname, optval, optlen);
   const int err = WSAGetLastError();
 
   NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: setsockopt( {:d}, {:04x}, {}, {:p}, {} ):{:d} ({})", fd,
