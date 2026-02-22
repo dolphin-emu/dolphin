@@ -63,6 +63,35 @@ if [ $FORCE -eq 0 ]; then
   fi
 fi
 
+SCRIPT_DIR=$(dirname "$0")
+
+# Generated from "ls *.h -1 > windows-headers.txt" inside mingw-w64/mingw-w64-headers/include.
+# Get the source here: https://www.mingw-w64.org/source/
+WINDOWS_HEADERS_FILE="${SCRIPT_DIR}/windows-headers.txt"
+if [[ ! -f "$WINDOWS_HEADERS_FILE" ]]; then
+  echo >&2 "error: missing windows-headers.txt"
+  exit 1
+fi
+
+declare -A WINDOWS_HEADERS_MAP
+mapfile -t headers < "$WINDOWS_HEADERS_FILE"
+for header in "${headers[@]}"; do
+  [[ -z "$header" || "$header" =~ ^# ]] && continue
+  WINDOWS_HEADERS_MAP["${header,,}"]=1
+done
+
+function windows_include_check() {
+  local file="$1"
+  while read -r header; do
+    local lower="${header,,}"
+    if [[ -n "${WINDOWS_HEADERS_MAP[${lower}]:-}" ]] && [[ "$header" != "${lower}" ]]; then
+      echo "!!! ${file} not compliant to coding style:"
+      echo "Windows system includes must be lowercase: ${header}"
+      fail=1
+    fi
+  done < <(awk -F'[<>]' '/#include </ {print $2}' "$file")
+}
+
 did_java_setup=0
 JAVA_CODESTYLE_FILE="./$($GIT rev-parse --show-cdup)/Source/Android/code-style-java.xml"
 java_temp_dir=""
@@ -124,6 +153,9 @@ for f in ${modified_files}; do
     echo "${d}"
     fail=1
   fi
+
+  # Check windows includes are lowercase
+  windows_include_check "${f}"
 
   # Check for newline at EOF.
   last_line="$(tail -c 1 ${f})"
