@@ -23,6 +23,7 @@
 
 #include "Core/HW/DSP.h"
 
+#include <algorithm>
 #include <memory>
 
 #include "AudioCommon/AudioCommon.h"
@@ -33,10 +34,12 @@
 
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
+#include "Core/HW/AudioInterface.h"
 #include "Core/HW/HSP/HSP.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
@@ -320,30 +323,110 @@ void DSPManager::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                        (system.IsWii() ? WMASK_AUDIO_HI_RESTRICT_WII : WMASK_AUDIO_HI_RESTRICT_GCN);
                  }));
 
-  // Audio DMA MMIO controlling the DMA start.
   mmio->Register(
       base | AUDIO_DMA_CONTROL_LEN, MMIO::DirectRead<u16>(&m_audio_dma.AudioDMAControl.Hex),
       MMIO::ComplexWrite<u16>([](Core::System& system, u32, u16 val) {
         auto& dsp = system.GetDSP();
-        bool already_enabled = dsp.m_audio_dma.AudioDMAControl.Enable;
+
+        // Update DMA control register
         dsp.m_audio_dma.AudioDMAControl.Hex = val;
 
-        // Only load new values if we're not already doing a DMA transfer,
-        // otherwise just let the new values be autoloaded in when the
-        // current transfer ends.
-        if (!already_enabled && dsp.m_audio_dma.AudioDMAControl.Enable)
+        if (dsp.m_audio_dma.AudioDMAControl.Enable)
         {
+          // If it's the very first write, scary legacy logic, forward it all immediately and
+          // schedule an AID interrupt 0.4ms in the future (??)
+          if (!dsp.m_audio_dma.past_first_dma_start)
+          {
+            dsp.m_audio_dma.current_source_address = dsp.m_audio_dma.SourceAddress;
+            dsp.m_audio_dma.remaining_blocks_count = dsp.m_audio_dma.AudioDMAControl.NumBlocks;
+
+            INFO_LOG_FMT(AUDIO_INTERFACE, "Audio DMA configured: {} blocks from {:#010x}",
+                         dsp.m_audio_dma.AudioDMAControl.NumBlocks, dsp.m_audio_dma.SourceAddress);
+            dsp.m_audio_dma.past_first_dma_start = true;
+
+            // TODO: need hardware tests for the timing of this interrupt.
+            // Sky Crawlers crashes at boot if this is scheduled less than 87 cycles in the future.
+            // Other Namco games crash too, see issue 9509. For now we will just push it to 200
+            // cycles
+            system.GetCoreTiming().ScheduleEvent(200, dsp.m_event_type_generate_dsp_interrupt,
+                                                 INT_AID);
+            return;
+          }
+
+          // Guard against buggy code that writes to the START bit several times e.g. Datel Maxplay
+          // Ignore the write if same address, same blocks, and less than 20% into the transfer
+          u64 ticks = system.GetCoreTiming().GetTicks();
+          auto cycles_for_one_block =
+              static_cast<u64>(system.GetSystemTimers().GetTicksPerSecond()) *
+              system.GetAudioInterface().GetAIDSampleRateDivisor() /
+              (Mixer::FIXED_SAMPLE_RATE_DIVIDEND * 4 / 32);
+          if (dsp.m_audio_dma.past_first_dma_start &&
+              dsp.m_audio_dma.previous_source_address == dsp.m_audio_dma.SourceAddress &&
+              dsp.m_audio_dma.previous_blocks_count == ((UAudioDMAControl)val).NumBlocks &&
+              ticks < dsp.m_audio_dma.ticks_DMA_started_at +
+                          0.2 * (cycles_for_one_block * dsp.m_audio_dma.previous_blocks_count))
+          {
+            INFO_LOG_FMT(AUDIO_INTERFACE, "Rejected double DMA START bit write");
+            return;
+          }
+
+          if (dsp.m_audio_dma.remaining_blocks_count > 0)
+          {
+            INFO_LOG_FMT(AUDIO_INTERFACE, "Overwriting ongoing audio transfer!");
+          }
+
+          // Update the values UpdateAudioDMA will use
           dsp.m_audio_dma.current_source_address = dsp.m_audio_dma.SourceAddress;
           dsp.m_audio_dma.remaining_blocks_count = dsp.m_audio_dma.AudioDMAControl.NumBlocks;
 
-          INFO_LOG_FMT(AUDIO_INTERFACE, "Audio DMA configured: {} blocks from {:#010x}",
-                       dsp.m_audio_dma.AudioDMAControl.NumBlocks, dsp.m_audio_dma.SourceAddress);
+          dsp.m_audio_dma.largest_dma_transfer_seen_in_blocks =
+              dsp.m_audio_dma.AudioDMAControl.NumBlocks;
+          dsp.m_audio_dma.previous_source_address = dsp.m_audio_dma.SourceAddress;
+          dsp.m_audio_dma.previous_blocks_count = ((UAudioDMAControl)val).NumBlocks;
+          dsp.m_audio_dma.ticks_DMA_started_at = ticks;
 
-          // TODO: need hardware tests for the timing of this interrupt.
-          // Sky Crawlers crashes at boot if this is scheduled less than 87 cycles in the future.
-          // Other Namco games crash too, see issue 9509. For now we will just push it to 200 cycles
-          system.GetCoreTiming().ScheduleEvent(200, dsp.m_event_type_generate_dsp_interrupt,
-                                               INT_AID);
+          // Catch-up logic: if the CPU polls the DMA transfer completion bit rather than enabling
+          // an interrupt for it, as Datel Maxplay does (but no Nintendo SDK games do), we won't
+          // have new data on the UpdateAudioDMA call after the one triggering the interrupt.
+
+          // The pre-2026 logic would update the DMA data just before enabling the interrupt,
+          // which mimicks the console behavior, coming from, I presume, shadow registers.
+          // But this is bad for latency, one full DMA transfer bad (Nintendo SDK games -> 5ms,
+          // Maxplay in-game -> ~25ms, Maxplay menu -> 180ms!)
+
+          // Here, using the catch-up logic described above, we try only using fresh data for the
+          // DMA anyway. We solve the conflict between this approach & Datel's
+          // once-per-frame, 59.94Hz polling of the DMA completion bit behavior, with a 'grace
+          // period' where we don't play the samples we don't have yet, and jump ahead when we
+          // finally get them
+
+          if (dsp.m_audio_dma.empty_grace_blocks > 0 && dsp.m_audio_dma.remaining_blocks_count > 0)
+          {
+            u16 catch_up = std::min<u16>(dsp.m_audio_dma.empty_grace_blocks,
+                                         dsp.m_audio_dma.remaining_blocks_count);
+            auto& memory = system.GetMemory();
+            void* address =
+                memory.GetPointerForRange(dsp.m_audio_dma.current_source_address, catch_up * 32);
+
+            if (address)
+              AudioCommon::SendAIBuffer(system, static_cast<short*>(address), catch_up * 8);
+
+            dsp.m_audio_dma.current_source_address += catch_up * 32;
+            dsp.m_audio_dma.remaining_blocks_count -= catch_up;
+
+            INFO_LOG_FMT(AUDIO_INTERFACE,
+                         "Caught up {} missed blocks to compensate for CPU polling delay",
+                         catch_up);
+            dsp.m_audio_dma.empty_grace_blocks = 0;
+          }
+
+          INFO_LOG_FMT(AUDIO_INTERFACE, "Audio DMA updated: {} blocks from {:#010x}",
+                       dsp.m_audio_dma.remaining_blocks_count,
+                       dsp.m_audio_dma.current_source_address);
+        }
+        else
+        {
+          dsp.m_audio_dma.remaining_blocks_count = 0;
         }
       }));
 
@@ -424,58 +507,47 @@ void DSPManager::UpdateDSPSlice(int cycles)
 void DSPManager::UpdateAudioDMA()
 {
   static short zero_samples[8 * 2] = {0};
-  bool dma_samples_transmitted = false;
 
-  // Proper modelling of the hardware reality would mark the DMA as disabled  when the DMA
-  // finishes (enabled and disabled really mean started and stopped, given the Nintendo SDK
-  // "enables" the DMA every 5ms), and then we would handle "a new DMA starting while none
-  // is in progress" accordingly in the MMIO handler.
-  //
-  // However, currently the MMIO handler only runs for the very first DMA start, and
-  // schedules an interrupt immediately in the future (200 cycles ~ 0.4ms). In steady state
-  // that would be wrong, it must be 5ms after previous interrupt (for Nintendo SDK games).
-  // But because it seems to be carefully chosen as per comment above, we just leave it be
-  // to not break compatibilities, and handle the "DMA finishes" logic in the "update the
-  // DMA" routine.
-  //
-  // Note that (for GC games using the Nintendo SDK at least), the AID interrupt is the one
-  // that triggers a new DMA. So, we defer reading the address/block number, the logic is:
-  // 'we just finished an ongoing DMA' -> trigger an AID INT = another DMA
-  // 'there was no ongoing DMA (blocks count already 0), meaning we triggered an AID INT
-  // just before and should now have a new DMA)' -> loads the new source address now
-  //
-  // This is not a race condition, the UpdateAudioDMA function is triggered by CPU ticks
-  // and the next call is thus guaranteed to happen after the AID interrupt handler
-
-  if (m_audio_dma.AudioDMAControl.Enable)
+  if (m_audio_dma.AudioDMAControl.Enable && m_audio_dma.remaining_blocks_count > 0)
   {
+    m_audio_dma.empty_grace_blocks = 0;
+
+    auto& memory = m_system.GetMemory();
+    void* address = memory.GetPointerForRange(m_audio_dma.current_source_address, 32);
+
+    if (address)
+      AudioCommon::SendAIBuffer(m_system, static_cast<short*>(address), 8);
+    else
+      AudioCommon::SendAIBuffer(m_system, &zero_samples[0], 8);
+
+    m_audio_dma.remaining_blocks_count--;
+    m_audio_dma.current_source_address += 32;
+
     if (m_audio_dma.remaining_blocks_count == 0)
     {
-      m_audio_dma.current_source_address = m_audio_dma.SourceAddress;
-      m_audio_dma.remaining_blocks_count = m_audio_dma.AudioDMAControl.NumBlocks;
-    }
-
-    if (m_audio_dma.remaining_blocks_count != 0)
-    {
-      // Read audio at g_audioDMA.current_source_address in RAM and push onto an
-      // external audio fifo in the emulator, to be mixed with the disc
-      // streaming output.
-      auto& memory = m_system.GetMemory();
-      void* address = memory.GetPointerForRange(m_audio_dma.current_source_address, 32);
-      AudioCommon::SendAIBuffer(m_system, static_cast<short*>(address), 8);
-      dma_samples_transmitted = true;
-
-      m_audio_dma.remaining_blocks_count--;
-      m_audio_dma.current_source_address += 32;
-
-      if (m_audio_dma.remaining_blocks_count == 0)
-        GenerateDSPInterrupt(DSP::INT_AID, 0);
+      INFO_LOG_FMT(AUDIO_INTERFACE, "Completed audio DMA transfer");
+      GenerateDSPInterrupt(DSP::INT_AID, 0);
     }
   }
-
-  if (!dma_samples_transmitted)
+  else
   {
-    AudioCommon::SendAIBuffer(m_system, &zero_samples[0], 8);
+    // Datel Maxplay appears to be polling the DMA completion bit rather than getting interrupted
+    // and scheduling another DMA. This makes it so approaches that try to read the buffer shortly
+    // after generating the AID interrupt will fail: unlike with Nintendo SDK games, the transfer
+    // may not have started! Here, we use a grace period for this routine being called without new
+    // data being available In the MMIO handler, when new data appears, we will fast forward to the
+    // point as if that data had been available to begin with
+    // Max 20ms; Maxplay polling is once per video grame
+    if (m_audio_dma.empty_grace_blocks <
+        std::min((u16)80, m_audio_dma.largest_dma_transfer_seen_in_blocks))
+    {
+      m_audio_dma.empty_grace_blocks++;
+    }
+    else
+    {
+      // The DMA has been dead for >2.5ms. The game is intentionally outputting silence.
+      AudioCommon::SendAIBuffer(m_system, &zero_samples[0], 8);
+    }
   }
 }
 
