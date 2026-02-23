@@ -25,6 +25,7 @@ enum class ShaderAttrib : u32
   Binormal = 4,
   Color0 = 5,
   Color1 = 6,
+  SkinningWeights = 7,
 
   TexCoord0 = 8,
   TexCoord1 = 9,
