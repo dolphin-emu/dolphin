@@ -21,6 +21,7 @@ void GraphicsModBackend::OnTextureCreate(const TextureView& texture)
     auto& custom_resource_manager = system.GetCustomResourceManager();
     custom_resource_manager.XFBTriggered();
     m_camera_manager.XFBTriggered();
+    m_skeleton_manager.XFBTriggered();
   }
 }
 
@@ -46,7 +47,8 @@ void GraphicsModBackend::ClearAdditionalCameras(const MathUtil::Rectangle<int>& 
 
 void GraphicsModBackend::CustomDraw(const DrawDataView& draw_data,
                                     VertexManagerBase* vertex_manager,
-                                    std::span<GraphicsModAction*> actions, DrawCallID draw_call)
+                                    std::span<GraphicsModAction*> actions, DrawCallID draw_call,
+                                    std::string_view group_name)
 {
   bool skip = false;
   std::optional<Common::Matrix44> custom_transform;
@@ -77,9 +79,9 @@ void GraphicsModBackend::CustomDraw(const DrawDataView& draw_data,
       const auto mesh_data = mesh_resource->GetData();
       if (mesh_data)
       {
-        vertex_manager->DrawCustomMesh(draw_call, *mesh_data, draw_data,
+        vertex_manager->DrawCustomMesh(draw_call, group_name, *mesh_data, draw_data,
                                        custom_transform.value_or(identity), ignore_mesh_transform,
-                                       m_camera_manager);
+                                       m_camera_manager, m_skeleton_manager);
         return;
       }
     }

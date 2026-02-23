@@ -8,6 +8,7 @@
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/CameraManager.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/SkeletonManager.h"
 #include "VideoCommon/GraphicsModSystem/Types.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/ShaderGenCommon.h"
@@ -39,7 +40,8 @@ public:
 
 protected:
   void CustomDraw(const DrawDataView& draw_data, VertexManagerBase* vertex_manager,
-                  std::span<GraphicsModAction*> actions, DrawCallID draw_call);
+                  std::span<GraphicsModAction*> actions, DrawCallID draw_call,
+                  std::string_view group_name);
 
   // This will ensure gpu skinned draw calls are joined together
   DrawCallID GetSkinnedDrawCallID(DrawCallID draw_call_id, MaterialID material_id,
@@ -50,6 +52,7 @@ protected:
   ShaderHostConfig m_shader_host_config;
 
   VideoCommon::CameraManager m_camera_manager;
+  VideoCommon::SkeletonManager m_skeleton_manager;
 
 private:
   bool m_last_draw_gpu_skinned = false;
