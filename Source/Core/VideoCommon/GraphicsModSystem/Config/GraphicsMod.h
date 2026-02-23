@@ -35,10 +35,11 @@ struct GraphicsMod
 
   std::vector<GraphicsModAsset> m_assets;
   std::vector<GraphicsModTag> m_tags;
+  std::vector<std::string> m_groups;
   std::vector<AnyTarget> m_targets;
   std::vector<GraphicsModAction> m_actions;
   std::map<u64, std::vector<u64>> m_target_index_to_action_indexes;
-  std::map<std::string, std::vector<u64>> m_tag_name_to_action_indexes;
+  std::map<std::string, std::vector<u64>> m_named_group_to_action_indexes;
 
   HashPolicy m_default_hash_policy;
 

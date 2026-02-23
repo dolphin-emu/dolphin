@@ -92,17 +92,17 @@ void GraphicsMod::Serialize(picojson::object& json_obj) const
   }
   json_obj.emplace("target_to_actions", serialized_target_to_actions);
 
-  picojson::object serialized_tag_to_actions;
-  for (const auto& [tag_name, action_indexes] : m_tag_name_to_action_indexes)
+  picojson::object serialized_group_to_actions;
+  for (const auto& [group_name, action_indexes] : m_named_group_to_action_indexes)
   {
     picojson::array serialized_action_indexes;
     for (const auto& action_index : action_indexes)
     {
       serialized_action_indexes.emplace_back(static_cast<double>(action_index));
     }
-    serialized_tag_to_actions.emplace(tag_name, std::move(serialized_action_indexes));
+    serialized_group_to_actions.emplace(group_name, std::move(serialized_action_indexes));
   }
-  json_obj.emplace("tag_to_actions", serialized_tag_to_actions);
+  json_obj.emplace("group_to_actions", serialized_group_to_actions);
 
   picojson::object serialized_hash_policy;
   serialized_hash_policy.emplace("attributes",
@@ -174,6 +174,8 @@ bool GraphicsMod::Deserialize(const picojson::value& value)
       m_tags.push_back(std::move(tag));
     }
   }
+
+  // TODO: groups?
 
   const auto& targets = value.get("targets");
   if (targets.is<picojson::array>())
@@ -253,18 +255,18 @@ bool GraphicsMod::Deserialize(const picojson::value& value)
     }
   }
 
-  const auto& tag_to_actions = value.get("tag_to_actions");
-  if (tag_to_actions.is<picojson::object>())
+  const auto& group_to_actions = value.get("group_to_actions");
+  if (group_to_actions.is<picojson::object>())
   {
-    for (const auto& [tag, action_indexes_val] : tag_to_actions.get<picojson::object>())
+    for (const auto& [group_name, action_indexes_val] : group_to_actions.get<picojson::object>())
     {
-      auto& action_indexes = m_tag_name_to_action_indexes[tag];
+      auto& action_indexes = m_named_group_to_action_indexes[group_name];
       if (!action_indexes_val.is<picojson::array>())
       {
         ERROR_LOG_FMT(VIDEO,
-                      "Failed to load mod configuration file, specified tag '{}' has "
+                      "Failed to load mod configuration file, specified group/tag '{}' has "
                       "a non-array action index value",
-                      tag);
+                      group_name);
       }
 
       for (const auto& action_index_val : action_indexes_val.get<picojson::array>())
@@ -272,9 +274,9 @@ bool GraphicsMod::Deserialize(const picojson::value& value)
         if (!action_index_val.is<double>())
         {
           ERROR_LOG_FMT(VIDEO,
-                        "Failed to load mod configuration file, specified tag '{}' has "
+                        "Failed to load mod configuration file, specified group/tag '{}' has "
                         "a non numeric action index",
-                        tag);
+                        group_name);
           return false;
         }
         action_indexes.push_back(static_cast<u64>(action_index_val.get<double>()));
