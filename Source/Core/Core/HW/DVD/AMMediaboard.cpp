@@ -406,6 +406,30 @@ static inline void PrintMBBuffer(u32 address, u32 length)
   }
 }
 
+static std::optional<int> CheckSocketError(s32 host_socket, GuestSocket guest_socket,
+                                           std::string_view context)
+{
+  int err = 0;
+  socklen_t optlen = sizeof(err);
+
+  if (const int res =
+          getsockopt(host_socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&err), &optlen);
+      res != 0) [[unlikely]]
+  {
+    ERROR_LOG_FMT(AMMEDIABOARD, "{}: getsockopt(SO_ERROR) failed: {}", context,
+                  Common::StrNetworkError());
+    return std::nullopt;
+  }
+
+  if (err != 0)
+  {
+    ERROR_LOG_FMT(AMMEDIABOARD, "{}: socket {}({}) failed with error {}: {}", context, host_socket,
+                  int(guest_socket), err, Common::DecodeNetworkError(err));
+  }
+
+  return err;
+}
+
 void FirmwareMap(bool on)
 {
   s_firmware_map = on;
@@ -769,28 +793,17 @@ static s32 NetDIMMConnect(GuestSocket guest_socket, const GuestSocketAddress& gu
     return SOCKET_ERROR;
   }
 
-  int so_error = 0;
-  socklen_t optlen = sizeof(so_error);
-  const int getsockopt_result =
-      getsockopt(host_socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&so_error), &optlen);
-
-  if (getsockopt_result != 0) [[unlikely]]
+  if (const auto so_error = CheckSocketError(host_socket, guest_socket, "NetDIMMConnect");
+      !so_error.has_value() || *so_error != 0)
   {
-    // getsockopt failure.
-    ERROR_LOG_FMT(AMMEDIABOARD, "NetDIMMConnect: getsockopt: {}", Common::StrNetworkError());
-  }
-  else if (so_error == 0)
-  {
-    INFO_LOG_FMT(AMMEDIABOARD_NET, "NetDIMMConnect: connect( {}({}) ) succeeded", host_socket,
-                 u32(guest_socket));
-    s_last_error = SSC_SUCCESS;
-    return 0;
+    s_last_error = SOCKET_ERROR;
+    return SOCKET_ERROR;
   }
 
-  ERROR_LOG_FMT(AMMEDIABOARD_NET, "NetDIMMConnect: connect( {}({}) ) failed with error {}: {}",
-                host_socket, u32(guest_socket), so_error, Common::DecodeNetworkError(so_error));
-  s_last_error = SOCKET_ERROR;
-  return SOCKET_ERROR;
+  INFO_LOG_FMT(AMMEDIABOARD_NET, "NetDIMMConnect: connect( {}({}) ) succeeded", host_socket,
+               u32(guest_socket));
+  s_last_error = SSC_SUCCESS;
+  return 0;
 }
 
 static GuestSocket NetDIMMAccept(GuestSocket guest_socket, u8* guest_addr_ptr,
@@ -847,10 +860,53 @@ static GuestSocket NetDIMMAccept(GuestSocket guest_socket, u8* guest_addr_ptr,
 
   sockaddr_in addr{};
   socklen_t addrlen = sizeof(addr);
-  const s32 res = accept(host_socket, reinterpret_cast<sockaddr*>(&addr), &addrlen);
-  const int err = WSAGetLastError();
+  s32 res = accept(host_socket, reinterpret_cast<sockaddr*>(&addr), &addrlen);
+  int err = WSAGetLastError();
 
   INFO_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: {}({})", host_socket, int(guest_socket));
+
+  if (res < 0 && err != WSAEWOULDBLOCK)
+  {
+    ERROR_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: accept( {}({}) ) failed with error {}: {}",
+                  host_socket, int(guest_socket), err, Common::DecodeNetworkError(err));
+
+    s_last_error = SOCKET_ERROR;
+    return INVALID_GUEST_SOCKET;
+  }
+
+  if (res < 0)
+  {
+    WSAPOLLFD pfds[1]{{.fd = host_socket, .events = POLLIN}};
+
+    // SO_RCVTIMEO affects accept() on Linux but not on Windows.
+    // We don't know for Triforce.
+    const auto timeout = std::chrono::milliseconds{10};
+
+    if (const int poll_result = PlatformPoll(pfds, timeout); poll_result < 0)
+    {
+      ERROR_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: PlatformPoll failed: {}",
+                    Common::StrNetworkError());
+      s_last_error = SOCKET_ERROR;
+      return INVALID_GUEST_SOCKET;
+    }
+
+    if (pfds[0].revents & POLLERR)
+    {
+      CheckSocketError(host_socket, guest_socket, "NetDIMMAccept");
+      s_last_error = SOCKET_ERROR;
+      return INVALID_GUEST_SOCKET;
+    }
+
+    if ((pfds[0].revents & POLLIN) == 0)
+    {
+      // Timeout.
+      s_last_error = SSC_EWOULDBLOCK;
+      return INVALID_GUEST_SOCKET;
+    }
+
+    res = accept(host_socket, reinterpret_cast<sockaddr*>(&addr), &addrlen);
+    err = WSAGetLastError();
+  }
 
   if (res < 0 && err == WSAEWOULDBLOCK)
   {
