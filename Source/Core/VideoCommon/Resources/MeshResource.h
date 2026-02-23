@@ -70,7 +70,9 @@ public:
   {
   public:
     std::span<const MeshChunk> GetMeshChunks(GraphicsModSystem::DrawCallID draw_call) const;
-    const CPUSkinningData* GetCPUSkinningData(GraphicsModSystem::DrawCallID draw_call) const;
+    const std::optional<SkinningRig>& GetCPUSkinningRig() const;
+    const std::vector<Eigen::Vector3f>&
+    GetSkinningOriginalPositions(GraphicsModSystem::DrawCallID draw_call) const;
 
   private:
     friend class MeshResource;
@@ -79,7 +81,7 @@ public:
     std::map<std::string, CustomAssetLibrary::AssetID, std::less<>> m_name_to_material_id;
     std::shared_ptr<MeshData> m_mesh_data = nullptr;
     std::map<GraphicsModSystem::DrawCallID, std::vector<MeshChunk>> m_skinned_mesh_chunks;
-    std::map<GraphicsModSystem::DrawCallID, CPUSkinningData> m_cpu_skinning_data;
+    std::optional<SkinningRig> m_cpu_skinning_rig;
     std::vector<MeshChunk> m_mesh_chunks;
     std::atomic_bool m_processing_finished;
   };
