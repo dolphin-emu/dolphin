@@ -101,7 +101,7 @@ void GraphicsModGroup::Load()
     // The way the action only mods interact with the target only mods is through tags
     // If there are no tags, then no reason to care about this mod
     if (action_only_mod_with_dir.m_mod.m_actions.empty() ||
-        action_only_mod_with_dir.m_mod.m_tag_name_to_action_indexes.empty())
+        action_only_mod_with_dir.m_mod.m_named_group_to_action_indexes.empty())
     {
       continue;
     }
@@ -127,7 +127,7 @@ void GraphicsModGroup::Load()
           return std::any_of(
               underlying_target.m_tag_names.begin(), underlying_target.m_tag_names.end(),
               [&](const auto& tag_name) {
-                return action_only_mod_with_dir.m_mod.m_tag_name_to_action_indexes.contains(
+                return action_only_mod_with_dir.m_mod.m_named_group_to_action_indexes.contains(
                     tag_name);
               });
         };
