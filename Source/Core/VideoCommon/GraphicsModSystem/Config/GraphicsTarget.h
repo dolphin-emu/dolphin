@@ -17,6 +17,7 @@ struct GenericTarget
 {
   std::string m_name;
   std::vector<std::string> m_tag_names;
+  std::string m_group;
 };
 
 struct StringTarget final : public GenericTarget

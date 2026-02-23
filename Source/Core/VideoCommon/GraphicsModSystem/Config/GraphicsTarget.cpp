@@ -18,12 +18,14 @@ void SerializeTarget(picojson::object& json_obj, const AnyTarget& target)
                    json_obj.emplace("id", std::to_string(the_target.m_target_id));
                    json_obj.emplace("name", the_target.m_name);
                    json_obj.emplace("tags", ToJsonArray(the_target.m_tag_names));
+                   json_obj.emplace("group", the_target.m_group);
                  },
                  [&](const StringTarget& the_target) {
                    json_obj.emplace("type", "string");
                    json_obj.emplace("id", the_target.m_target_id);
                    json_obj.emplace("name", the_target.m_name);
                    json_obj.emplace("tags", ToJsonArray(the_target.m_tag_names));
+                   json_obj.emplace("group", the_target.m_group);
                  },
              },
              target);
@@ -82,6 +84,7 @@ bool DeserializeTarget(const picojson::object& json_obj, AnyTarget& target)
         i_target.m_tag_names.push_back(tag_json.to_str());
       }
     }
+    i_target.m_group = ReadStringFromJson(json_obj, "group").value_or("");
     target = i_target;
   }
   else if (*type == "string")
@@ -121,6 +124,7 @@ bool DeserializeTarget(const picojson::object& json_obj, AnyTarget& target)
         s_target.m_tag_names.push_back(tag_json.to_str());
       }
     }
+    s_target.m_group = ReadStringFromJson(json_obj, "group").value_or("");
     target = s_target;
   }
   else
