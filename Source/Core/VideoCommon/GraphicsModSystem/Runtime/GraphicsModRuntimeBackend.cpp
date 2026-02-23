@@ -57,12 +57,13 @@ GraphicsModRuntimeBackend::GraphicsModRuntimeBackend(const Config::GraphicsModGr
           config_action.m_factory_name, config_action.m_data, filesystem_library));
     }
 
-    std::map<std::string, std::vector<GraphicsModAction*>> tag_to_actions;
-    for (const auto& [tag_name, action_indexes] : config_mod.m_mod.m_tag_name_to_action_indexes)
+    std::map<std::string, std::vector<GraphicsModAction*>> named_group_to_actions;
+    for (const auto& [named_group, action_indexes] :
+         config_mod.m_mod.m_named_group_to_action_indexes)
     {
       for (const auto& index : action_indexes)
       {
-        tag_to_actions[tag_name].push_back(runtime_mod.m_actions[index].get());
+        named_group_to_actions[named_group].push_back(runtime_mod.m_actions[index].get());
       }
     }
 
@@ -93,49 +94,51 @@ GraphicsModRuntimeBackend::GraphicsModRuntimeBackend(const Config::GraphicsModGr
     for (std::size_t i = 0; i < targets.size(); i++)
     {
       const auto& target = targets[i];
-      std::visit(
-          overloaded{
-              [&](DrawCallID draw_id) {
-                auto& actions = runtime_mod.m_draw_id_to_actions[draw_id];
+      std::visit(overloaded{[&](DrawCallID draw_id) {
+                              auto& actions = runtime_mod.m_draw_id_to_actions[draw_id];
 
-                // First add all specific actions
-                if (const auto iter = config_mod.m_mod.m_target_index_to_action_indexes.find(i);
-                    iter != config_mod.m_mod.m_target_index_to_action_indexes.end())
-                {
-                  for (const auto& action_index : iter->second)
-                  {
-                    actions.push_back(runtime_mod.m_actions[action_index].get());
-                  }
-                }
+                              // First add all specific actions
+                              if (const auto iter =
+                                      config_mod.m_mod.m_target_index_to_action_indexes.find(i);
+                                  iter != config_mod.m_mod.m_target_index_to_action_indexes.end())
+                              {
+                                for (const auto& action_index : iter->second)
+                                {
+                                  actions.push_back(runtime_mod.m_actions[action_index].get());
+                                }
+                              }
 
-                // Then add all tag actions
-                for (const auto& tag_name : *target.m_tag_names)
-                {
-                  auto& tag_actions = tag_to_actions[tag_name];
-                  actions.insert(actions.end(), tag_actions.begin(), tag_actions.end());
-                }
-              },
-              [&](const std::string& str_id) {
-                auto& actions = runtime_mod.m_str_id_to_actions[str_id];
+                              // Then add all tag actions
+                              for (const auto& tag_name : *target.m_tag_names)
+                              {
+                                auto& named_group_actions = named_group_to_actions[tag_name];
+                                actions.insert(actions.end(), named_group_actions.begin(),
+                                               named_group_actions.end());
+                              }
+                            },
+                            [&](const std::string& str_id) {
+                              auto& actions = runtime_mod.m_str_id_to_actions[str_id];
 
-                // First add all specific actions
-                if (const auto iter = config_mod.m_mod.m_target_index_to_action_indexes.find(i);
-                    iter != config_mod.m_mod.m_target_index_to_action_indexes.end())
-                {
-                  for (const auto& action_index : iter->second)
-                  {
-                    actions.push_back(runtime_mod.m_actions[action_index].get());
-                  }
-                }
+                              // First add all specific actions
+                              if (const auto iter =
+                                      config_mod.m_mod.m_target_index_to_action_indexes.find(i);
+                                  iter != config_mod.m_mod.m_target_index_to_action_indexes.end())
+                              {
+                                for (const auto& action_index : iter->second)
+                                {
+                                  actions.push_back(runtime_mod.m_actions[action_index].get());
+                                }
+                              }
 
-                // Then add all tag actions
-                for (const auto& tag_name : *target.m_tag_names)
-                {
-                  auto& tag_actions = tag_to_actions[tag_name];
-                  actions.insert(actions.end(), tag_actions.begin(), tag_actions.end());
-                }
-              }},
-          target.m_id);
+                              // Then add all tag actions
+                              for (const auto& tag_name : *target.m_tag_names)
+                              {
+                                auto& named_group_actions = named_group_to_actions[tag_name];
+                                actions.insert(actions.end(), named_group_actions.begin(),
+                                               named_group_actions.end());
+                              }
+                            }},
+                 target.m_id);
     }
 
     m_mods.push_back(std::move(runtime_mod));
@@ -158,10 +161,13 @@ void GraphicsModRuntimeBackend::OnDraw(const DrawDataView& draw_data,
     const DrawCallID draw_call_id =
         GetSkinnedDrawCallID(hash_output.draw_call_id, hash_output.material_id, draw_data);
 
+    // TODO: handle groups!!!
+    std::string group = "";
+
     if (const auto iter = mod.m_draw_id_to_actions.find(draw_call_id);
         iter != mod.m_draw_id_to_actions.end())
     {
-      CustomDraw(draw_data, vertex_manager, iter->second, draw_call_id);
+      CustomDraw(draw_data, vertex_manager, iter->second, draw_call_id, group);
       return;
     }
   }
