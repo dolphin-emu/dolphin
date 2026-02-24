@@ -279,7 +279,7 @@ void ARCodeWidget::AddCode(ActionReplay::ARCode code)
 void ARCodeWidget::OnCodeAddClicked()
 {
   ActionReplay::ARCode ar;
-  ar.enabled = true;
+  ar.enabled = false;
 
   m_cheat_code_editor->SetARCode(&ar);
   if (m_cheat_code_editor->exec() == QDialog::Rejected)
