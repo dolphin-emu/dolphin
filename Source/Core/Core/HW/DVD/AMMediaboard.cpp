@@ -1616,9 +1616,9 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
 
         // Schedule phase 2 result after a short delay.
         {
-          auto& core_timing = Core::System::GetInstance().GetCoreTiming();
+          auto& core_timing = system.GetCoreTiming();
           core_timing.RemoveEvent(s_et_test_hw_phase2);
-          constexpr s64 phase2_delay = 50000;                               // ~1ms at 486MHz
+          const s64 phase2_delay = system.GetSystemTimers().GetTicksPerSecond() / 10000;  // ~100us
           core_timing.ScheduleEvent(phase2_delay, s_et_test_hw_phase2, 1);  // 1 = Execute2
         }
 
@@ -1978,9 +1978,10 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
 
           // Schedule phase 2 via CoreTiming.
           {
-            auto& core_timing = Core::System::GetInstance().GetCoreTiming();
+            auto& core_timing = system.GetCoreTiming();
             core_timing.RemoveEvent(s_et_test_hw_phase2);
-            constexpr s64 phase2_delay = 50000;                               // ~1ms at 486MHz
+            const s64 phase2_delay =
+                system.GetSystemTimers().GetTicksPerSecond() / 10000;         // ~100us
             core_timing.ScheduleEvent(phase2_delay, s_et_test_hw_phase2, 0);  // 0 = Execute1
           }
           break;
