@@ -408,7 +408,8 @@ static void ScanThreadFunc()
 #if LIBUSB_API_HAS_HOTPLUG
 #ifndef __FreeBSD__
   s_libusb_hotplug_enabled = libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG) != 0;
-  // As of 28/12/2025 libusb has hotplug event capability on Linux & MacOS, but not on Windows
+  // As of v1.0.23-rc1 (2026/02) libusb has hotplug event capability on Linux & MacOS, but not on
+  // Windows
 #endif
   if (s_libusb_hotplug_enabled)
   {
