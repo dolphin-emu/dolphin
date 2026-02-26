@@ -1,0 +1,2 @@
+add_library(MultipartParser INTERFACE IMPORTED GLOBAL)
+set_target_properties(MultipartParser PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR})
