@@ -20,8 +20,10 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
+    - name: Open Floder
+      run: cd ./Source/Android/
     - name: Grant execute permission for gradlew
-      run: cd ./Source/Android/ && chmod +x ./gradlew
+      run: chmod +x ./gradlew
     - name: Build with Gradle
       run: ./gradlew assembleDebug          
     - name: Upload APK as Artifact
