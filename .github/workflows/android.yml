@@ -21,9 +21,9 @@ jobs:
         cache: gradle
 
     - name: Grant execute permission for gradlew
-      run: chmod +x ./Source/Android/gradlew
+      run: cd ./Source/Android/ && chmod +x ./gradlew
     - name: Build with Gradle
-      run: ./Source/Android/gradlew assembleDebug          
+      run: ./gradlew assembleDebug          
     - name: Upload APK as Artifact
       uses: actions/upload-artifact@v4
       with:
