@@ -190,11 +190,10 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_downloadCodes(JN
 {
   const std::string gametdb_id = GetJString(env, jGameTdbId);
 
-  bool success = true;
-  const std::vector<Gecko::GeckoCode> codes = Gecko::DownloadCodes(gametdb_id, &success);
-
-  if (!success)
+  const auto codes_result = Gecko::DownloadCodes(gametdb_id);
+  if (!codes_result)
     return nullptr;
+  const std::vector<Gecko::GeckoCode>& codes = *codes_result;
 
   const jobjectArray array =
       env->NewObjectArray(static_cast<jsize>(codes.size()), IDCache::GetGeckoCheatClass(), nullptr);

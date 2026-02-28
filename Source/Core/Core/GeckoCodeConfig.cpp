@@ -15,7 +15,7 @@
 
 namespace Gecko
 {
-std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded)
+std::expected<std::vector<GeckoCode>, int> DownloadCodes(std::string gametdb_id)
 {
   // codes.rc24.xyz is a mirror of the now defunct geckocodes.org.
   std::string endpoint{"https://codes.rc24.xyz/txt.php?txt=" + gametdb_id};
@@ -25,9 +25,8 @@ std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded)
   http.FollowRedirects(1);
 
   const Common::HttpRequest::Response response = http.Get(endpoint);
-  *succeeded = response.has_value();
   if (!response)
-    return {};
+    return std::unexpected{http.GetLastResponseCode()};
 
   // temp vector containing parsed codes
   std::vector<GeckoCode> gcodes;
