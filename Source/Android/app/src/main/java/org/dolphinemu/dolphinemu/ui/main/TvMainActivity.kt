@@ -4,7 +4,9 @@ package org.dolphinemu.dolphinemu.ui.main
 
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
@@ -24,6 +26,7 @@ import org.dolphinemu.dolphinemu.activities.EmulationActivity
 import org.dolphinemu.dolphinemu.adapters.GameRowPresenter
 import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter
 import org.dolphinemu.dolphinemu.databinding.ActivityTvMainBinding
+import org.dolphinemu.dolphinemu.dialogs.StorageLocationDialog
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity
 import org.dolphinemu.dolphinemu.fragments.GridOptionDialogFragment
@@ -35,10 +38,12 @@ import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler
 import org.dolphinemu.dolphinemu.utils.StartupHandler
+import org.dolphinemu.dolphinemu.utils.StorageLocationHelper
 import org.dolphinemu.dolphinemu.utils.TvUtil
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder
 
-class TvMainActivity : FragmentActivity(), MainView, OnRefreshListener {
+class TvMainActivity : FragmentActivity(), MainView, OnRefreshListener,
+    StorageLocationDialog.Listener {
     private val presenter = MainPresenter(this, this)
 
     private var swipeRefresh: SwipeRefreshLayout? = null
@@ -49,8 +54,25 @@ class TvMainActivity : FragmentActivity(), MainView, OnRefreshListener {
 
     private lateinit var binding: ActivityTvMainBinding
 
+    private val storageDirectoryPicker = registerForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+            val realPath = convertTreeUriToPath(uri)
+            StorageLocationHelper.setStorageConfigured(this, realPath)
+            DirectoryInitialization.start(this)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen().setKeepOnScreenCondition { !DirectoryInitialization.areDolphinDirectoriesReady() }
+        installSplashScreen().setKeepOnScreenCondition {
+            !DirectoryInitialization.areDolphinDirectoriesReady() &&
+                !DirectoryInitialization.isWaitingForStorageConfig(this)
+        }
 
         super.onCreate(savedInstanceState)
         binding = ActivityTvMainBinding.inflate(layoutInflater)
@@ -62,6 +84,9 @@ class TvMainActivity : FragmentActivity(), MainView, OnRefreshListener {
 
         // Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
         if (savedInstanceState == null) {
+            if (DirectoryInitialization.isWaitingForStorageConfig(this)) {
+                StorageLocationDialog().show(supportFragmentManager, StorageLocationDialog.TAG)
+            }
             StartupHandler.HandleInit(this)
         }
     }
@@ -303,5 +328,23 @@ class TvMainActivity : FragmentActivity(), MainView, OnRefreshListener {
         // Create a header for this row.
         val header = HeaderItem(R.string.settings.toLong(), getString(R.string.settings))
         return ListRow(header, rowItems)
+    }
+
+    override fun launchStorageDirectoryPicker() {
+        storageDirectoryPicker.launch(null)
+    }
+
+    private fun convertTreeUriToPath(uri: Uri): String {
+        val docId = uri.lastPathSegment ?: return uri.toString()
+        if (docId.contains(":")) {
+            val split = docId.split(":")
+            val type = split[0]
+            val relativePath = if (split.size > 1) split[1] else ""
+            if ("primary".equals(type, ignoreCase = true)) {
+                return "/storage/emulated/0/$relativePath"
+            }
+            return "/storage/$type/$relativePath"
+        }
+        return uri.toString()
     }
 }

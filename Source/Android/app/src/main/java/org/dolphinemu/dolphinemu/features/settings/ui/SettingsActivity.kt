@@ -5,6 +5,7 @@ package org.dolphinemu.dolphinemu.features.settings.ui
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.Menu
@@ -12,6 +13,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -23,6 +25,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ActivitySettingsBinding
+import org.dolphinemu.dolphinemu.dialogs.StorageLocationChangeDialog
 import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsFragment.Companion.newInstance
@@ -30,11 +33,13 @@ import org.dolphinemu.dolphinemu.ui.main.MainPresenter
 import org.dolphinemu.dolphinemu.ui.main.ThemeProvider
 import org.dolphinemu.dolphinemu.utils.InsetsHelper
 import org.dolphinemu.dolphinemu.utils.SerializableHelper.serializable
+import org.dolphinemu.dolphinemu.utils.StorageLocationHelper
 import org.dolphinemu.dolphinemu.utils.ThemeHelper.enableScrollTint
 import org.dolphinemu.dolphinemu.utils.ThemeHelper.setCorrectTheme
 import org.dolphinemu.dolphinemu.utils.ThemeHelper.setTheme
 
-class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvider {
+class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvider,
+    StorageLocationChangeDialog.Listener {
     private var presenter: SettingsActivityPresenter? = null
     private var dialog: AlertDialog? = null
     private var toolbarLayout: CollapsingToolbarLayout? = null
@@ -42,6 +47,21 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvide
 
     override var themeId: Int = 0
     override var isMappingAllDevices = false
+
+    private val storageLocationPicker = registerForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+            val realPath = convertTreeUriToPath(uri)
+            val dialog = supportFragmentManager
+                .findFragmentByTag(StorageLocationChangeDialog.TAG) as? StorageLocationChangeDialog
+            dialog?.confirmAndMigrate(realPath)
+        }
+    }
 
     override val settings: Settings
         get() = ViewModelProvider(this)[SettingsViewModel::class.java].settings
@@ -264,6 +284,28 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView, ThemeProvide
 
             windowInsets
         }
+    }
+
+    fun showStorageLocationChangeDialog() {
+        StorageLocationChangeDialog().show(supportFragmentManager, StorageLocationChangeDialog.TAG)
+    }
+
+    override fun launchStorageLocationDirectoryPicker() {
+        storageLocationPicker.launch(null)
+    }
+
+    private fun convertTreeUriToPath(uri: Uri): String {
+        val docId = uri.lastPathSegment ?: return uri.toString()
+        if (docId.contains(":")) {
+            val split = docId.split(":")
+            val type = split[0]
+            val relativePath = if (split.size > 1) split[1] else ""
+            if ("primary".equals(type, ignoreCase = true)) {
+                return "/storage/emulated/0/$relativePath"
+            }
+            return "/storage/$type/$relativePath"
+        }
+        return uri.toString()
     }
 
     companion object {

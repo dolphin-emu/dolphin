@@ -579,6 +579,20 @@ class SettingsFragmentPresenter(
     }
 
     private fun addPathsSettings(sl: ArrayList<SettingsItem>) {
+        sl.add(HeaderSetting(context, R.string.storage_location_header, 0))
+        sl.add(
+            RunRunnable(
+                context,
+                R.string.storage_location_title,
+                0,
+                0,
+                0,
+                false
+            ) {
+                val activity = fragmentView.fragmentActivity as? SettingsActivity
+                activity?.showStorageLocationChangeDialog()
+            }
+        )
         sl.add(
             SwitchSetting(
                 context,

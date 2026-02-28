@@ -2,13 +2,16 @@
 
 package org.dolphinemu.dolphinemu.ui.main
 
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
@@ -19,6 +22,7 @@ import com.google.android.material.tabs.TabLayout
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter
 import org.dolphinemu.dolphinemu.databinding.ActivityMainBinding
+import org.dolphinemu.dolphinemu.dialogs.StorageLocationDialog
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
 import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag
@@ -32,10 +36,12 @@ import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 import org.dolphinemu.dolphinemu.utils.InsetsHelper
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler
 import org.dolphinemu.dolphinemu.utils.StartupHandler
+import org.dolphinemu.dolphinemu.utils.StorageLocationHelper
 import org.dolphinemu.dolphinemu.utils.ThemeHelper
 import org.dolphinemu.dolphinemu.utils.WiiUtils
 
-class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProvider {
+class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProvider,
+    StorageLocationDialog.Listener {
     override var themeId = 0
 
     private val presenter = MainPresenter(this, this)
@@ -44,8 +50,28 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
 
     private lateinit var menu: Menu
 
+    private val storageDirectoryPicker = registerForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+            val path = uri.path
+            if (path != null) {
+                val realPath = convertTreeUriToPath(uri)
+                StorageLocationHelper.setStorageConfigured(this, realPath)
+                DirectoryInitialization.start(this)
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen().setKeepOnScreenCondition { !DirectoryInitialization.areDolphinDirectoriesReady() }
+        installSplashScreen().setKeepOnScreenCondition {
+            !DirectoryInitialization.areDolphinDirectoriesReady() &&
+                !DirectoryInitialization.isWaitingForStorageConfig(this)
+        }
 
         ThemeHelper.setTheme(this)
         enableEdgeToEdge()
@@ -79,6 +105,9 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
 
         // Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
         if (savedInstanceState == null) {
+            if (DirectoryInitialization.isWaitingForStorageConfig(this)) {
+                StorageLocationDialog().show(supportFragmentManager, StorageLocationDialog.TAG)
+            }
             StartupHandler.HandleInit(this)
             AfterDirectoryInitializationRunner().runWithLifecycle(this) {
                 ThemeHelper.setCorrectTheme(this)
@@ -268,4 +297,24 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
 
             windowInsets
         }
+
+    override fun launchStorageDirectoryPicker() {
+        storageDirectoryPicker.launch(null)
+    }
+
+    private fun convertTreeUriToPath(uri: Uri): String {
+        // Try to extract a filesystem path from the tree URI
+        val docId = uri.lastPathSegment ?: return uri.toString()
+        if (docId.contains(":")) {
+            val split = docId.split(":")
+            val type = split[0]
+            val relativePath = if (split.size > 1) split[1] else ""
+            if ("primary".equals(type, ignoreCase = true)) {
+                return "/storage/emulated/0/$relativePath"
+            }
+            // External SD card or other volume
+            return "/storage/$type/$relativePath"
+        }
+        return uri.toString()
+    }
 }

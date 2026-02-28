@@ -975,4 +975,17 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="achievements_logout">Log Out</string>
     <string name="achievements_login_in_progress">Logging In</string>
     <string name="achievements_login_failed">Login Failed</string>
+
+    <!-- Storage Location -->
+    <string name="storage_location_header">Storage Location</string>
+    <string name="storage_location_title">Data Storage Location</string>
+    <string name="storage_location_description">Choose where Dolphin stores its data (game saves, settings, etc.). Internal storage is app-private and will be deleted if you uninstall Dolphin. A custom folder lets you keep data even after uninstalling.</string>
+    <string name="storage_internal">Internal Storage (App-Private)</string>
+    <string name="storage_custom_folder">Choose Custom Folder</string>
+    <string name="storage_location_current">Current: %s</string>
+    <string name="storage_location_change_warning_title">Change Storage Location?</string>
+    <string name="storage_location_change_warning">Your data will be moved to the new location and the app will restart. This may take a moment depending on the amount of data.</string>
+    <string name="storage_migration_in_progress">Moving data…</string>
+    <string name="storage_migration_success">Data moved successfully</string>
+    <string name="storage_migration_failure">Failed to move data</string>
 </resources>

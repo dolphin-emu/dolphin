@@ -106,6 +106,17 @@ public final class DirectoryInitialization
     if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()))
       return null;
 
+    // Check if user has chosen a custom storage location
+    String customPath = StorageLocationHelper.INSTANCE.getCustomUserDirectoryPath(context);
+    if (customPath != null)
+    {
+      File customDir = new File(customPath);
+      if (!customDir.exists())
+        customDir.mkdirs();
+      isUsingLegacyUserDirectory = false;
+      return customDir;
+    }
+
     isUsingLegacyUserDirectory =
             preferLegacyUserDirectory(context) && PermissionsHandler.hasWriteAccess(context);
 
@@ -199,7 +210,24 @@ public final class DirectoryInitialization
   {
     return getDolphinDirectoriesState().getValue() ==
             DirectoryInitializationState.NOT_YET_INITIALIZED &&
-            !isWaitingForWriteAccess(context);
+            !isWaitingForWriteAccess(context) &&
+            StorageLocationHelper.INSTANCE.isStorageConfigured(context);
+  }
+
+  public static boolean isWaitingForStorageConfig(Context context)
+  {
+    return getDolphinDirectoriesState().getValue() ==
+            DirectoryInitializationState.NOT_YET_INITIALIZED &&
+            !StorageLocationHelper.INSTANCE.isStorageConfigured(context);
+  }
+
+  public static void resetDirectoryState()
+  {
+    areDirectoriesAvailable = false;
+    userPath = null;
+    sysPath = null;
+    driverPath = null;
+    directoryState.postValue(DirectoryInitializationState.NOT_YET_INITIALIZED);
   }
 
   public static boolean areDolphinDirectoriesReady()
