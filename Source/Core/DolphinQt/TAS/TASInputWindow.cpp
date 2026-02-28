@@ -115,7 +115,6 @@ QGroupBox* TASInputWindow::CreateStickInputs(const QString& text, std::string_vi
   auto* y_layout = new QVBoxLayout;
   TASSpinBox* y_value =
       CreateSliderValuePair(y_layout, y_default, max_y, y_shortcut_key_sequence, Qt::Vertical, box);
-  y_value->setMaximumWidth(60);
 
   auto* visual = new StickWidget(this, max_x, max_y);
   visual->SetX(x_default);
@@ -128,13 +127,13 @@ QGroupBox* TASInputWindow::CreateStickInputs(const QString& text, std::string_vi
 
   auto* visual_ar = new AspectRatioWidget(visual, max_x, max_y);
 
-  auto* visual_layout = new QHBoxLayout;
+  auto* visual_layout = new QVBoxLayout;
+  visual_layout->addLayout(x_layout);
   visual_layout->addWidget(visual_ar);
-  visual_layout->addLayout(y_layout);
 
-  auto* layout = new QVBoxLayout;
-  layout->addLayout(x_layout);
+  auto* layout = new QHBoxLayout;
   layout->addLayout(visual_layout);
+  layout->addLayout(y_layout);
   box->setLayout(layout);
 
   overrider->AddFunction(group_name, ControllerEmu::ReshapableInput::X_INPUT_OVERRIDE,
@@ -207,6 +206,7 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int defaul
   auto* value = new TASSpinBox();
   value->setRange(0, 99999);
   value->setValue(default_);
+  value->setMaximumWidth(50);
   connect(value, &QSpinBox::valueChanged, [value, max](int i) {
     if (i > max)
       value->setValue(max);
@@ -228,7 +228,7 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int defaul
   layout->addWidget(slider);
   layout->addWidget(value);
   if (orientation == Qt::Vertical)
-    layout->setAlignment(slider, Qt::AlignRight);
+    layout->setAlignment(slider, Qt::AlignHCenter);
 
   return value;
 }

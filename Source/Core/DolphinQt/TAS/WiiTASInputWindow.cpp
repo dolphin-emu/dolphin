@@ -76,13 +76,13 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
 
   auto* visual_ar = new AspectRatioWidget(visual, IRWidget::IR_MAX_X, IRWidget::IR_MAX_Y);
 
-  auto* visual_layout = new QHBoxLayout;
+  auto* visual_layout = new QVBoxLayout;
+  visual_layout->addLayout(x_layout);
   visual_layout->addWidget(visual_ar);
-  visual_layout->addLayout(y_layout);
 
-  auto* ir_layout = new QVBoxLayout;
-  ir_layout->addLayout(x_layout);
+  auto* ir_layout = new QHBoxLayout;
   ir_layout->addLayout(visual_layout);
+  ir_layout->addLayout(y_layout);
   m_ir_box->setLayout(ir_layout);
 
   m_nunchuk_stick_box =
