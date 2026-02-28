@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "DolphinQt/QtUtils/AspectRatioWidget.h"
 #include "DolphinQt/TAS/TASInputWindow.h"
 
 #include "Core/HW/WiimoteEmu/ExtensionPort.h"
@@ -89,12 +90,12 @@ private:
   QGroupBox* m_remote_accelerometer_box;
   QGroupBox* m_remote_gyroscope_box;
   QGroupBox* m_nunchuk_accelerometer_box;
-  QGroupBox* m_ir_box;
-  QGroupBox* m_nunchuk_stick_box;
-  QGroupBox* m_classic_left_stick_box;
-  QGroupBox* m_classic_right_stick_box;
   QGroupBox* m_remote_buttons_box;
   QGroupBox* m_nunchuk_buttons_box;
   QGroupBox* m_classic_buttons_box;
   QGroupBox* m_triggers_box;
+  AspectRatioWidget* m_ir_box;
+  AspectRatioWidget* m_nunchuk_stick_box;
+  AspectRatioWidget* m_classic_left_stick_box;
+  AspectRatioWidget* m_classic_right_stick_box;
 };
