@@ -91,25 +91,30 @@ void UpdateVertexArrayPointers()
   // Note: Only array bases 0 through 11 are used by the Vertex loaders.
   //       12 through 15 are used for loading data into xfmem.
   // We also only update the array base if the vertex description states we are going to use it.
-  // TODO: For memory safety, we need to check the sizes returned by GetSpanForAddress
   if (IsIndexed(g_main_cp_state.vtx_desc.low.Position))
   {
-    cached_arraybases[CPArray::Position] =
-        memory.GetSpanForAddress(g_main_cp_state.array_bases[CPArray::Position]).data();
+    u8* const base_pointer =
+        memory.GetPointerForRange(g_main_cp_state.array_bases[CPArray::Position], sizeof(u32));
+    if (base_pointer != nullptr)
+      cached_arraybases[CPArray::Position] = base_pointer;
   }
 
   if (IsIndexed(g_main_cp_state.vtx_desc.low.Normal))
   {
-    cached_arraybases[CPArray::Normal] =
-        memory.GetSpanForAddress(g_main_cp_state.array_bases[CPArray::Normal]).data();
+    u8* const base_pointer =
+        memory.GetPointerForRange(g_main_cp_state.array_bases[CPArray::Normal], sizeof(u32));
+    if (base_pointer != nullptr)
+      cached_arraybases[CPArray::Normal] = base_pointer;
   }
 
   for (u8 i = 0; i < g_main_cp_state.vtx_desc.low.Color.Size(); i++)
   {
     if (IsIndexed(g_main_cp_state.vtx_desc.low.Color[i]))
     {
-      cached_arraybases[CPArray::Color0 + i] =
-          memory.GetSpanForAddress(g_main_cp_state.array_bases[CPArray::Color0 + i]).data();
+      u8* const base_pointer =
+          memory.GetPointerForRange(g_main_cp_state.array_bases[CPArray::Color0 + i], sizeof(u32));
+      if (base_pointer != nullptr)
+        cached_arraybases[CPArray::Color0 + i] = base_pointer;
     }
   }
 
@@ -117,8 +122,10 @@ void UpdateVertexArrayPointers()
   {
     if (IsIndexed(g_main_cp_state.vtx_desc.high.TexCoord[i]))
     {
-      cached_arraybases[CPArray::TexCoord0 + i] =
-          memory.GetSpanForAddress(g_main_cp_state.array_bases[CPArray::TexCoord0 + i]).data();
+      u8* const base_pointer = memory.GetPointerForRange(
+          g_main_cp_state.array_bases[CPArray::TexCoord0 + i], sizeof(u32));
+      if (base_pointer != nullptr)
+        cached_arraybases[CPArray::TexCoord0 + i] = base_pointer;
     }
   }
 
