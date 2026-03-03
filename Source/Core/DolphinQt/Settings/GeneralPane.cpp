@@ -22,6 +22,7 @@
 #include "Core/System.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
+#include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipPushButton.h"
@@ -41,11 +42,6 @@ constexpr int AUTO_UPDATE_DEV_INDEX = 2;
 constexpr const char* AUTO_UPDATE_DISABLE_STRING = "";
 constexpr const char* AUTO_UPDATE_BETA_STRING = "beta";
 constexpr const char* AUTO_UPDATE_DEV_STRING = "dev";
-
-constexpr int FALLBACK_REGION_NTSCJ_INDEX = 0;
-constexpr int FALLBACK_REGION_NTSCU_INDEX = 1;
-constexpr int FALLBACK_REGION_PAL_INDEX = 2;
-constexpr int FALLBACK_REGION_NTSCK_INDEX = 3;
 
 GeneralPane::GeneralPane(QWidget* parent) : QWidget(parent)
 {
@@ -102,7 +98,7 @@ void GeneralPane::ConnectLayout()
   connect(m_checkbox_cheats, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::EnableCheatsChanged);
 #ifdef USE_DISCORD_PRESENCE
-  connect(m_checkbox_discord_presence, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
+  connect(m_checkbox_discord_presence, &QCheckBox::toggled, this, &Discord::SetDiscordPresence);
 #endif
 
   if (AutoUpdateChecker::SystemSupportsAutoUpdates())
@@ -113,16 +109,8 @@ void GeneralPane::ConnectLayout()
             &GeneralPane::LoadConfig);
   }
 
-  // Advanced
-  connect(m_combobox_speedlimit, &QComboBox::currentIndexChanged, [this] {
-    Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED,
-                             m_combobox_speedlimit->currentIndex() * 0.1f);
-    Config::Save();
-  });
-
   connect(m_combobox_fallback_region, &QComboBox::currentIndexChanged, this,
           &GeneralPane::OnSaveConfig);
-  connect(&Settings::Instance(), &Settings::FallbackRegionChanged, this, &GeneralPane::LoadConfig);
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   connect(&Settings::Instance(), &Settings::AnalyticsToggled, this, &GeneralPane::LoadConfig);
@@ -163,7 +151,8 @@ void GeneralPane::CreateBasic()
   basic_group_layout->addWidget(m_checkbox_auto_disc_change);
 
 #ifdef USE_DISCORD_PRESENCE
-  m_checkbox_discord_presence = new ToolTipCheckBox(tr("Show Current Game on Discord"));
+  m_checkbox_discord_presence =
+      new ConfigBool(tr("Show Current Game on Discord"), Config::MAIN_USE_DISCORD_PRESENCE);
   basic_group_layout->addWidget(m_checkbox_discord_presence);
 #endif
 
@@ -172,9 +161,8 @@ void GeneralPane::CreateBasic()
   speed_limit_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
   basic_group_layout->addLayout(speed_limit_layout);
 
-  m_combobox_speedlimit = new ToolTipComboBox();
-
-  m_combobox_speedlimit->addItem(tr("Unlimited"));
+  std::vector<std::pair<QString, float>> speedlimit_choices{};
+  speedlimit_choices.emplace_back(tr("Unlimited"), 0.0f);
   for (int i = 10; i <= 200; i += 10)  // from 10% to 200%
   {
     QString str;
@@ -183,8 +171,12 @@ void GeneralPane::CreateBasic()
     else
       str = tr("%1% (Normal Speed)").arg(i);
 
-    m_combobox_speedlimit->addItem(str);
+    const float value = static_cast<float>(i) / 100.0f;
+    speedlimit_choices.emplace_back(str, value);
   }
+
+  m_combobox_speedlimit =
+      new ConfigChoiceMap<float>(speedlimit_choices, Config::MAIN_EMULATION_SPEED);
 
   speed_limit_layout->addRow(tr("&Speed Limit:"), m_combobox_speedlimit);
 }
@@ -224,11 +216,14 @@ void GeneralPane::CreateFallbackRegion()
   fallback_region_dropdown_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
   fallback_region_group_layout->addLayout(fallback_region_dropdown_layout);
 
-  m_combobox_fallback_region = new ToolTipComboBox();
+  std::vector<std::pair<QString, DiscIO::Region>> fallback_choices{
+      {tr("NTSC-J"), DiscIO::Region::NTSC_J},
+      {tr("NTSC-U"), DiscIO::Region::NTSC_U},
+      {tr("PAL"), DiscIO::Region::PAL},
+      {tr("NTSC-K"), DiscIO::Region::NTSC_K},
+  };
+  m_combobox_fallback_region = new ConfigChoiceMap(fallback_choices, Config::MAIN_FALLBACK_REGION);
   fallback_region_dropdown_layout->addRow(tr("Fallback Region:"), m_combobox_fallback_region);
-
-  for (const QString& option : {tr("NTSC-J"), tr("NTSC-U"), tr("PAL"), tr("NTSC-K")})
-    m_combobox_fallback_region->addItem(option);
 }
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
@@ -268,26 +263,6 @@ void GeneralPane::LoadConfig()
   SignalBlocking(m_checkbox_enable_analytics)
       ->setChecked(Settings::Instance().IsAnalyticsEnabled());
 #endif
-
-#ifdef USE_DISCORD_PRESENCE
-  SignalBlocking(m_checkbox_discord_presence)
-      ->setChecked(Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
-#endif
-  int selection = qRound(Config::Get(Config::MAIN_EMULATION_SPEED) * 10);
-  if (selection < m_combobox_speedlimit->count())
-    SignalBlocking(m_combobox_speedlimit)->setCurrentIndex(selection);
-
-  const auto fallback = Settings::Instance().GetFallbackRegion();
-  if (fallback == DiscIO::Region::NTSC_J)
-    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_NTSCJ_INDEX);
-  else if (fallback == DiscIO::Region::NTSC_U)
-    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_NTSCU_INDEX);
-  else if (fallback == DiscIO::Region::PAL)
-    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_PAL_INDEX);
-  else if (fallback == DiscIO::Region::NTSC_K)
-    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_NTSCK_INDEX);
-  else
-    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_NTSCJ_INDEX);
 }
 
 static QString UpdateTrackFromIndex(int index)
@@ -310,31 +285,6 @@ static QString UpdateTrackFromIndex(int index)
   return value;
 }
 
-static DiscIO::Region UpdateFallbackRegionFromIndex(int index)
-{
-  DiscIO::Region value = DiscIO::Region::Unknown;
-
-  switch (index)
-  {
-  case FALLBACK_REGION_NTSCJ_INDEX:
-    value = DiscIO::Region::NTSC_J;
-    break;
-  case FALLBACK_REGION_NTSCU_INDEX:
-    value = DiscIO::Region::NTSC_U;
-    break;
-  case FALLBACK_REGION_PAL_INDEX:
-    value = DiscIO::Region::PAL;
-    break;
-  case FALLBACK_REGION_NTSCK_INDEX:
-    value = DiscIO::Region::NTSC_K;
-    break;
-  default:
-    value = DiscIO::Region::NTSC_J;
-  }
-
-  return value;
-}
-
 void GeneralPane::OnSaveConfig()
 {
   Config::ConfigChangeCallbackGuard config_guard;
@@ -346,16 +296,10 @@ void GeneralPane::OnSaveConfig()
         UpdateTrackFromIndex(m_combobox_update_track->currentIndex()));
   }
 
-#ifdef USE_DISCORD_PRESENCE
-  Discord::SetDiscordPresenceEnabled(m_checkbox_discord_presence->isChecked());
-#endif
-
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   Settings::Instance().SetAnalyticsEnabled(m_checkbox_enable_analytics->isChecked());
   DolphinAnalytics::Instance().ReloadConfig();
 #endif
-  Settings::Instance().SetFallbackRegion(
-      UpdateFallbackRegionFromIndex(m_combobox_fallback_region->currentIndex()));
 
   settings.SaveSettings();
 }

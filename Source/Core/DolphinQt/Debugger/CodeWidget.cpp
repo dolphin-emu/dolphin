@@ -46,7 +46,7 @@ CodeWidget::CodeWidget(QWidget* parent)
   setWindowTitle(tr("Code"));
   setObjectName(QStringLiteral("code"));
 
-  setHidden(!Settings::Instance().IsCodeVisible() || !Settings::Instance().IsDebugModeEnabled());
+  setHidden(!Settings::Instance().IsCodeVisible() || !Config::IsDebuggingEnabled());
 
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
