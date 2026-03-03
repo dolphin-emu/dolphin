@@ -265,7 +265,6 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
     DolphinAnalytics::Instance().ReportGameStart();
 }
 
-
 void SConfig::SetElfDolID(const std::string& game_id)
 {
   std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
