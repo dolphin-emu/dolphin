@@ -130,6 +130,12 @@ const std::string SConfig::GetGameTDBID() const
   return m_gametdb_id;
 }
 
+const std::string SConfig::GetGameIDElfDol() const
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  return m_game_id_elf_dol;
+}
+
 const std::string SConfig::GetTitleName() const
 {
   std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
@@ -258,6 +264,13 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
     DolphinAnalytics::Instance().ReportGameStart();
 }
 
+
+void SConfig::SetElfDolID(const std::string& game_id)
+{
+  std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
+  m_game_id_elf_dol = game_id;
+}
+
 void SConfig::OnESTitleChanged()
 {
   auto& system = Core::System::GetInstance();
@@ -357,7 +370,9 @@ struct SetGameMetadata
     constexpr char BACKSLASH = '\\';
     constexpr char FORWARDSLASH = '/';
     std::ranges::replace(executable_path, BACKSLASH, FORWARDSLASH);
-    config->SetRunningGameMetadata(SConfig::MakeGameID(PathToFileName(executable_path)));
+    std::string made_game_id = SConfig::MakeGameID(PathToFileName(executable_path));
+    config->SetRunningGameMetadata(made_game_id);
+    config->SetElfDolID(made_game_id);
 
     Host_TitleChanged();
 
