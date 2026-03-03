@@ -164,6 +164,7 @@ void SConfig::ResetRunningGameMetadata()
 {
   std::lock_guard<std::recursive_mutex> lock(m_metadata_lock);
   SetRunningGameMetadata("00000000", "", 0, 0, DiscIO::Region::Unknown);
+  SetElfDolID("");
 }
 
 void SConfig::SetRunningGameMetadata(const DiscIO::Volume& volume,

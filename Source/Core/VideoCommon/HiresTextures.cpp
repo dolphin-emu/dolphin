@@ -88,8 +88,12 @@ void HiresTexture::Update()
   const std::string& game_id_elf_dol = SConfig::GetInstance().GetGameIDElfDol();
   OSD::AddMessage(fmt::format("Game ID '{}' used to load textures", game_id), 10000);
   OSD::AddMessage(fmt::format("ELF/DOL Game ID '{}'", game_id_elf_dol), 10000);
+
+
+  // If there is an elf/dol id, use that. Otherwise, fallback to the game id.
   const std::set<std::string> texture_directories =
-      GetTextureDirectoriesWithGameId(File::GetUserPath(D_HIRESTEXTURES_IDX), game_id);
+      GetTextureDirectoriesWithGameId(File::GetUserPath(D_HIRESTEXTURES_IDX), game_id_elf_dol.length() > 0 ? game_id_elf_dol : game_id);
+
   constexpr auto extensions = std::to_array<std::string_view>({".png", ".dds"});
 
   for (const auto& texture_directory : texture_directories)
