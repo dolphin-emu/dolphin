@@ -148,7 +148,7 @@ void HiresTexture::Update()
   const auto message =
       fmt::format("{} '{}' custom textures for {} '{}'",
                   g_ActiveConfig.bCacheHiresTextures ? "Preloading" : "Found",
-                  s_hires_texture_cache.size(), game_id_elf_dol.empty() ? "Game" : "ELF/DOL",
+                  s_hires_texture_cache.size(), game_id_elf_dol.empty() ? "game" : "elf/dol",
                   game_id_elf_dol.empty() ? game_id : game_id_elf_dol);
   OSD::AddMessage(message, 10000);
 }
