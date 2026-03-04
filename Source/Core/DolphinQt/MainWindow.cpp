@@ -95,6 +95,7 @@
 #include "DolphinQt/EmulatedUSB/WiiSpeakWindow.h"
 #include "DolphinQt/FIFO/FIFOPlayerWindow.h"
 #include "DolphinQt/GCMemcardManager.h"
+#include "DolphinQt/GameCount.h"
 #include "DolphinQt/GameList/GameList.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/HotkeyScheduler.h"
@@ -449,6 +450,7 @@ void MainWindow::CreateComponents()
   m_menu_bar = new MenuBar(this);
   m_tool_bar = new ToolBar(this);
   m_search_bar = new SearchBar(this);
+  m_game_count = new GameCount(this);
   m_game_list = new GameList(this);
   m_render_widget = new RenderWidget;
   m_stack = new QStackedWidget(this);
@@ -738,9 +740,30 @@ void MainWindow::ConnectStack()
 
   layout->addWidget(m_game_list);
   layout->addWidget(m_search_bar);
+  layout->addWidget(m_game_count);
+  layout->setSpacing(0);
   layout->setContentsMargins(0, 0, 0, 0);
 
   connect(m_search_bar, &SearchBar::Search, m_game_list, &GameList::SetSearchTerm);
+  connect(m_game_list, &GameList::GameCountUpdated, m_game_count, &GameCount::OnGameCountUpdated);
+
+  m_game_list->UpdateGameCount();
+
+  const auto update_spacing = [this](const bool game_count_is_visible) {
+    // The bottom margin of the search bar and the top margin of the game count are both suitable
+    // when the other widget is hidden, but when both are visible the gap created by the combination
+    // is too large. To fix this we set the bottom margin of the search bar to 0 when the game count
+    // is visible and set it to the top margin when the game count is hidden.
+    m_game_count->setVisible(game_count_is_visible);
+    auto* const search_layout = m_search_bar->layout();
+    QMargins search_margins = search_layout->contentsMargins();
+    const int new_bottom_margin = game_count_is_visible ? 0 : search_margins.top();
+    search_margins.setBottom(new_bottom_margin);
+    search_layout->setContentsMargins(search_margins);
+  };
+  update_spacing(Settings::Instance().IsGameCountVisible());
+
+  connect(&Settings::Instance(), &Settings::GameCountVisibilityChanged, update_spacing);
 
   m_stack->addWidget(widget);
 
