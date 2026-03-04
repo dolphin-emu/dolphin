@@ -625,7 +625,7 @@ endif()
 add_subdirectory(Externals/cpp-optparse)
 
 dolphin_find_optional_system_library_pkgconfig(FMT
-  fmt>=10.1 fmt::fmt Externals/fmt
+  fmt>=11.0 fmt::fmt Externals/fmt
 )
 
 add_subdirectory(Externals/imgui)
