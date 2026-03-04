@@ -86,13 +86,10 @@ void HiresTexture::Update()
 
   const std::string& game_id = SConfig::GetInstance().GetGameID();
   const std::string& game_id_elf_dol = SConfig::GetInstance().GetGameIDElfDol();
-  OSD::AddMessage(fmt::format("Game ID '{}' used to load textures", game_id), 10000);
-  OSD::AddMessage(fmt::format("ELF/DOL Game ID '{}'", game_id_elf_dol), 10000);
 
   // If there is an elf/dol id, use that. Otherwise, fallback to the game id.
-  const std::set<std::string> texture_directories =
-      GetTextureDirectoriesWithGameId(File::GetUserPath(D_HIRESTEXTURES_IDX),
-                                      game_id_elf_dol.length() > 0 ? game_id_elf_dol : game_id);
+  const std::set<std::string> texture_directories = GetTextureDirectoriesWithGameId(
+      File::GetUserPath(D_HIRESTEXTURES_IDX), game_id_elf_dol.empty() ? game_id : game_id_elf_dol);
 
   constexpr auto extensions = std::to_array<std::string_view>({".png", ".dds"});
 
@@ -148,16 +145,12 @@ void HiresTexture::Update()
     }
   }
 
-  if (g_ActiveConfig.bCacheHiresTextures)
-  {
-    OSD::AddMessage(fmt::format("Loading '{}' custom textures", s_hires_texture_cache.size()),
-                    10000);
-  }
-  else
-  {
-    OSD::AddMessage(
-        fmt::format("Found '{}' custom textures", s_hires_texture_id_to_arbmipmap.size()), 10000);
-  }
+  const auto message =
+      fmt::format("{} '{}' custom textures for {} '{}'",
+                  g_ActiveConfig.bCacheHiresTextures ? "Preloading" : "Found",
+                  s_hires_texture_cache.size(), game_id_elf_dol.empty() ? "Game" : "ELF/DOL",
+                  game_id_elf_dol.empty() ? game_id : game_id_elf_dol);
+  OSD::AddMessage(message, 10000);
 }
 
 void HiresTexture::Clear()
