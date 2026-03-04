@@ -210,3 +210,8 @@ void SettingsWindow::SelectPane(SettingsWindowPaneIndex index)
 {
   ActivatePane(std::to_underlying(index));
 }
+
+void SettingsWindow::closeEvent(QCloseEvent*)
+{
+  Config::Save();
+}
