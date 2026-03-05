@@ -8,10 +8,11 @@
 // (mis)-features:
 // + Super fast
 // + Very simple
-// + Same code is used for serialization and deserializaition (in most cases)
+// + Same code is used for serialization and deserialization (in most cases)
 // - Zero backwards/forwards compatibility
 // - Serialization code for anything complex has to be manually written.
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstring>
@@ -20,6 +21,7 @@
 #include <map>
 #include <optional>
 #include <set>
+#include <span>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -29,9 +31,26 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-#include "Common/EnumMap.h"
 #include "Common/Flag.h"
 #include "Common/Inline.h"
+
+namespace detail
+{
+
+template <typename T>
+static constexpr bool IsSafeToMemcpy = std::is_trivially_copyable_v<T> && !std::is_const_v<T> &&
+                                       !std::is_pointer_v<T> && !std::is_same_v<T, bool>;
+
+// FYI: GCC <= 13 seems to require these specializations be in namespace rather than class scope.
+
+// std::optional<T> may be trivially copyable but the layout isn't necessarily portable.
+template <typename T>
+static constexpr bool IsSafeToMemcpy<std::optional<T>> = false;
+
+template <typename T1, typename T2>
+static constexpr bool IsSafeToMemcpy<std::pair<T1, T2>> = IsSafeToMemcpy<T1> && IsSafeToMemcpy<T2>;
+
+}  // namespace detail
 
 // Wrapper class
 class PointerWrap
@@ -46,18 +65,21 @@ public:
   };
 
 private:
-  u8** m_ptr_current;
-  u8* m_ptr_end;
+  u8* m_ptr_current;
+  u8* const m_ptr_begin;
+  const u8* const m_ptr_end;
   Mode m_mode;
 
 public:
-  PointerWrap(u8** ptr, size_t size, Mode mode)
-      : m_ptr_current(ptr), m_ptr_end(*ptr + size), m_mode(mode)
+  PointerWrap(std::span<u8> data, Mode mode)
+      : m_ptr_current{data.data()}, m_ptr_begin{m_ptr_current},
+        m_ptr_end{m_ptr_current + data.size()}, m_mode{mode}
   {
   }
 
   void SetMeasureMode() { m_mode = Mode::Measure; }
   void SetVerifyMode() { m_mode = Mode::Verify; }
+
   bool IsReadMode() const { return m_mode == Mode::Read; }
   bool IsWriteMode() const { return m_mode == Mode::Write; }
   bool IsMeasureMode() const { return m_mode == Mode::Measure; }
@@ -66,58 +88,47 @@ public:
   template <typename K, class V>
   void Do(std::map<K, V>& x)
   {
-    u32 count = (u32)x.size();
+    auto count = u32(x.size());
     Do(count);
 
-    switch (m_mode)
+    if (m_mode == Mode::Read)
     {
-    case Mode::Read:
+      std::pair<K, V> value{};
       for (x.clear(); count != 0; --count)
       {
-        std::pair<K, V> pair;
-        Do(pair.first);
-        Do(pair.second);
-        x.insert(pair);
+        Do(value);
+        x.insert(x.end(), std::move(value));
       }
-      break;
-
-    case Mode::Write:
-    case Mode::Measure:
-    case Mode::Verify:
-      for (auto& elem : x)
+    }
+    else
+    {
+      for (auto& value : x)
       {
-        Do(elem.first);
-        Do(elem.second);
+        Do(const_cast<K&>(value.first));
+        Do(value.second);
       }
-      break;
     }
   }
 
   template <typename V>
   void Do(std::set<V>& x)
   {
-    u32 count = (u32)x.size();
+    auto count = u32(x.size());
     Do(count);
 
-    switch (m_mode)
+    if (m_mode == Mode::Read)
     {
-    case Mode::Read:
+      V value{};
       for (x.clear(); count != 0; --count)
       {
-        V value = {};
         Do(value);
-        x.insert(value);
+        x.insert(x.end(), std::move(value));
       }
-      break;
-
-    case Mode::Write:
-    case Mode::Measure:
-    case Mode::Verify:
-      for (const V& val : x)
-      {
-        Do(val);
-      }
-      break;
+    }
+    else
+    {
+      for (auto& value : x)
+        Do(const_cast<V&>(value));
     }
   }
 
@@ -163,8 +174,7 @@ public:
     case Mode::Read:
       if (present)
       {
-        x = std::make_optional<T>();
-        Do(x.value());
+        Do(x.emplace());
       }
       else
       {
@@ -188,21 +198,15 @@ public:
     DoArray(x.data(), static_cast<u32>(x.size()));
   }
 
-  template <typename V, auto last_member, typename = decltype(last_member)>
-  void DoArray(Common::EnumMap<V, last_member>& x)
-  {
-    DoArray(x.data(), static_cast<u32>(x.size()));
-  }
-
   template <typename T>
-  requires(std::is_trivially_copyable_v<T>)
+  requires(detail::IsSafeToMemcpy<T>)
   void DoArray(T* x, u32 count)
   {
     DoVoid(x, count * sizeof(T));
   }
 
   template <typename T>
-  requires(!std::is_trivially_copyable_v<T>)
+  requires(!detail::IsSafeToMemcpy<T>)
   void DoArray(T* x, u32 count)
   {
     for (u32 i = 0; i < count; ++i)
@@ -220,9 +224,9 @@ public:
   [[nodiscard]] u8* DoExternal(u32& count)
   {
     Do(count);
-    u8* current = *m_ptr_current;
-    *m_ptr_current += count;
-    if (!IsMeasureMode() && *m_ptr_current > m_ptr_end)
+    u8* current = m_ptr_current;
+    m_ptr_current += count;
+    if (!IsMeasureMode() && m_ptr_current > m_ptr_end)
     {
       // trying to read/write past the end of the buffer, prevent this
       SetMeasureMode();
@@ -236,15 +240,17 @@ public:
   [[nodiscard]] u8* ReserveU32()
   {
     u32 temp = 0;
-    u8* previous_pointer = *m_ptr_current;
+    u8* const previous_pointer = m_ptr_current;
     Do(temp);
     return previous_pointer;
   }
 
-  u32 GetOffsetFromPreviousPosition(u8* previous_pointer)
+  u32 GetOffsetFromPreviousPosition(u8* previous_pointer) const
   {
-    return static_cast<u32>((*m_ptr_current) - previous_pointer);
+    return static_cast<u32>((m_ptr_current)-previous_pointer);
   }
+
+  u32 GetCurrentOffset() const { return GetOffsetFromPreviousPosition(m_ptr_begin); }
 
   void Do(Common::Flag& flag)
   {
@@ -264,27 +270,22 @@ public:
   }
 
   template <typename T>
-  requires(std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>)
+  requires(detail::IsSafeToMemcpy<T>)
   void Do(T& x)
   {
-    // Note:
-    // Usually we can just use x = **ptr, etc.  However, this doesn't work
-    // for unions containing BitFields (long story, stupid language rules)
-    // or arrays.  This will get optimized anyway.
-    DoVoid((void*)&x, sizeof(x));
+    DoVoid(&x, sizeof(x));
   }
 
   void Do(bool& x)
   {
-    // bool's size can vary depending on platform, which can
-    // cause breakages. This treats all bools as if they were
-    // 8 bits in size.
-    u8 stable = static_cast<u8>(x);
+    // bool's size is platform dependant and not portable.
+    // This treats all bools as if they were 8 bits in size.
+    u8 value = static_cast<u8>(x);
 
-    Do(stable);
+    Do(value);
 
     if (IsReadMode())
-      x = stable != 0;
+      x = value != 0;
   }
 
   template <typename T>
@@ -300,17 +301,17 @@ public:
     }
   }
 
-  void DoMarker(const std::string& prevName, u32 arbitraryNumber = 0x42)
+  void DoMarker(const std::string& previous_name, u32 arbitrary_number = 0x42)
   {
-    u32 cookie = arbitraryNumber;
+    u32 cookie = arbitrary_number;
     Do(cookie);
 
-    if (IsReadMode() && cookie != arbitraryNumber)
+    if (IsReadMode() && cookie != arbitrary_number)
     {
       PanicAlertFmtT(
           "Error: After \"{0}\", found {1} ({2:#x}) instead of save marker {3} ({4:#x}). Aborting "
           "savestate load...",
-          prevName, cookie, cookie, arbitraryNumber, arbitraryNumber);
+          previous_name, cookie, cookie, arbitrary_number, arbitrary_number);
       SetMeasureMode();
     }
   }
@@ -332,10 +333,9 @@ private:
   {
     u32 size = static_cast<u32>(container.size());
     Do(size);
-    container.resize(size);
 
-    if (size > 0)
-      DoArray(&container[0], size);
+    container.resize(size);
+    DoArray(container.data(), size);
   }
 
   template <typename T>
@@ -346,7 +346,7 @@ private:
 
   DOLPHIN_FORCE_INLINE void DoVoid(void* data, u32 size)
   {
-    if (!IsMeasureMode() && (*m_ptr_current + size) > m_ptr_end)
+    if (!IsMeasureMode() && (m_ptr_current + size) > m_ptr_end)
     {
       // trying to read/write past the end of the buffer, prevent this
       SetMeasureMode();
@@ -355,23 +355,23 @@ private:
     switch (m_mode)
     {
     case Mode::Read:
-      memcpy(data, *m_ptr_current, size);
+      std::memcpy(data, m_ptr_current, size);
       break;
 
     case Mode::Write:
-      memcpy(*m_ptr_current, data, size);
+      std::memcpy(m_ptr_current, data, size);
       break;
 
     case Mode::Measure:
       break;
 
     case Mode::Verify:
-      DEBUG_ASSERT_MSG(COMMON, !memcmp(data, *m_ptr_current, size),
+      DEBUG_ASSERT_MSG(COMMON, !std::memcmp(data, m_ptr_current, size),
                        "Savestate verification failure: buf {} != {} (size {}).\n", fmt::ptr(data),
-                       fmt::ptr(*m_ptr_current), size);
+                       fmt::ptr(m_ptr_current), size);
       break;
     }
 
-    *m_ptr_current += size;
+    m_ptr_current += size;
   }
 };
