@@ -60,4 +60,6 @@ public:
   explicit SettingsWindow(MainWindow* parent);
 
   void SelectPane(SettingsWindowPaneIndex);
+
+  void closeEvent(QCloseEvent* event) override;
 };
