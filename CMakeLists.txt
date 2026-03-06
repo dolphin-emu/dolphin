@@ -150,6 +150,9 @@ if(UNIX)
   # Builds a relocatable binary on Linux.
   # The Sys folder will need to be copied to the Binaries folder.
   option(LINUX_LOCAL_DEV "Enable relocatable binary" OFF)
+  # Builds for AppImage on Linux.
+  # Dolphin will find all resources using relative paths to the binary.
+  option(APPIMAGE "Builds for AppImage" OFF)
 endif()
 
 list(APPEND CMAKE_MODULE_PATH
@@ -388,8 +391,14 @@ if(ENABLE_LTO)
 endif()
 
 if(UNIX)
+  if(LINUX_LOCAL_DEV AND APPIMAGE)
+    message(FATAL_ERROR "Can only specify one of LINUX_LOCAL_DEV and APPIMAGE")
+  endif()
+
   if(LINUX_LOCAL_DEV)
     add_definitions(-DLINUX_LOCAL_DEV)
+  elseif(APPIMAGE)
+    add_definitions(-DAPPIMAGE)
   endif()
 endif()
 
