@@ -438,7 +438,9 @@ void MemoryManager::RemovePageTableMappings(const std::set<u32>& mappings)
   switch (m_host_page_type)
   {
   case HostPageType::SmallPages:
-    return RemoveHostPageTableMappings(mappings);
+    for (u32 logical_address : mappings)
+      RemoveHostPageTableMapping(logical_address);
+    return;
   case HostPageType::LargePages:
     for (u32 logical_address : mappings)
       RemoveLargePageTableMapping(logical_address);
@@ -453,15 +455,7 @@ void MemoryManager::RemoveLargePageTableMapping(u32 logical_address)
   RemoveLargePageTableMapping(logical_address, m_large_readable_pages);
   RemoveLargePageTableMapping(logical_address, m_large_writeable_pages);
 
-  const u32 aligned_logical_address = logical_address & ~(m_page_size - 1);
-  const auto it = m_page_table_mapped_entries.find(aligned_logical_address);
-  if (it != m_page_table_mapped_entries.end())
-  {
-    const LogicalMemoryView& entry = it->second;
-    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
-
-    m_page_table_mapped_entries.erase(it);
-  }
+  RemoveHostPageTableMapping(logical_address & ~(m_page_size - 1));
 }
 
 void MemoryManager::RemoveLargePageTableMapping(u32 logical_address,
@@ -472,18 +466,16 @@ void MemoryManager::RemoveLargePageTableMapping(u32 logical_address,
     it->second[(logical_address & (m_page_size - 1)) / PowerPC::HW_PAGE_SIZE] = INVALID_MAPPING;
 }
 
-void MemoryManager::RemoveHostPageTableMappings(const std::set<u32>& mappings)
+void MemoryManager::RemoveHostPageTableMapping(u32 logical_address)
 {
-  if (mappings.empty())
-    return;
+  const auto it = m_page_table_mapped_entries.find(logical_address);
+  if (it != m_page_table_mapped_entries.end())
+  {
+    const LogicalMemoryView& entry = it->second;
+    m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
 
-  std::erase_if(m_page_table_mapped_entries, [this, &mappings](const auto& pair) {
-    const auto& [logical_address, entry] = pair;
-    const bool remove = mappings.contains(logical_address);
-    if (remove)
-      m_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
-    return remove;
-  });
+    m_page_table_mapped_entries.erase(it);
+  }
 }
 
 void MemoryManager::RemoveAllPageTableMappings()
