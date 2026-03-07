@@ -3,7 +3,7 @@
   <Import Project="..\..\Source\VSProps\Base.Macros.props" />
   <Import Project="$(VSPropsDir)Base.Targets.props" />
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{8bda3693-4999-4d11-9e52-8d08c30b643a}</ProjectGuid>
+    <ProjectGuid>{8bda3693-4999-4d11-9e52-8d08c30b643b}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <Import Project="$(VSPropsDir)Configuration.StaticLibrary.props" />
@@ -17,16 +17,16 @@
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>tinygltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>TINYGLTF_NO_STB_IMAGE;TINYGLTF_NO_STB_IMAGE_WRITE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="tinygltf/tiny_gltf.cc" />
+    <ClCompile Include="stb_impl.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="tinygltf/json.hpp" />
-    <ClInclude Include="tinygltf/tiny_gltf.h" />
+    <ClInclude Include="stb/stb_image.h" />
+    <ClInclude Include="stb/stb_image_resize2.h" />
+    <ClInclude Include="stb/stb_image_write.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

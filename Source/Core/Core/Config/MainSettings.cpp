@@ -698,6 +698,17 @@ static std::string GetDefaultTriforceIPRedirections()
 
 const Info<std::string> MAIN_TRIFORCE_IP_REDIRECTIONS{
     {System::Main, "Core", "TriforceIPRedirections"}, GetDefaultTriforceIPRedirections()};
+const Info<bool> MAIN_TRIFORCE_INTEGRATED_CAMERA{{System::Main, "Core", "TriforceIntegratedCamera"},
+                                                 true};
+const Info<std::string> MAIN_TRIFORCE_INTEGRATED_CAMERA_DEVICE{
+    {System::Main, "Core", "TriforceIntegratedCameraDevice"}, ""};
+const Info<std::string> MAIN_TRIFORCE_INTEGRATED_CAMERA_STATIC_IMAGE{
+    {System::Main, "Core", "TriforceIntegratedCameraStaticImage"},
+    File::GetSysDirectory() + "Resources/default_camera_feed.jpg"};
+const Info<std::string> MAIN_TRIFORCE_INTEGRATED_CAMERA_SERVER_IP{
+    {System::Main, "Core", "TriforceIntegratedCameraServerIp"}, "127.0.0.1"};
+const Info<int> MAIN_TRIFORCE_INTEGRATED_CAMERA_SERVER_PORT{
+    {System::Main, "Core", "TriforceIntegratedCameraServerPort"}, 0};
 
 // The reason we need this function is because some memory card code
 // expects to get a non-NTSC-K region even if we're emulating an NTSC-K Wii.

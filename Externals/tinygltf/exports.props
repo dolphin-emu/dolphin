@@ -3,7 +3,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalIncludeDirectories>$(ExternalsDir)tinygltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>TINYGLTF_NOEXCEPTION;TINYGLTF_NO_EXTERNAL_IMAGE;TINYGLTF_USE_CPP14;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>TINYGLTF_NOEXCEPTION;TINYGLTF_NO_EXTERNAL_IMAGE;TINYGLTF_USE_CPP14;TINYGLTF_NO_STB_IMAGE;TINYGLTF_NO_STB_IMAGE_WRITE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>

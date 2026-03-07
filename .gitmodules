@@ -134,3 +134,7 @@
 	path = Externals/wil
 	url = https://github.com/microsoft/wil.git
 	shallow = true
+[submodule "Externals/stb/stb"]
+	path = Externals/stb/stb
+	url = https://github.com/nothings/stb.git
+	shallow = true

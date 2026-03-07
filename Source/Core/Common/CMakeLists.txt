@@ -85,6 +85,8 @@ add_library(common
   HostDisassembler.h
   HttpRequest.cpp
   HttpRequest.h
+  HttpServer.cpp
+  HttpServer.h
   Image.cpp
   Image.h
   IniFile.cpp

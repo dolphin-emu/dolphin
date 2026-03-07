@@ -294,6 +294,8 @@ add_library(core
   HW/StreamADPCM.h
   HW/SystemTimers.cpp
   HW/SystemTimers.h
+  HW/TriforceCamera.cpp
+  HW/TriforceCamera.h
   HW/VideoInterface.cpp
   HW/VideoInterface.h
   HW/WII_IPC.cpp
@@ -661,6 +663,7 @@ PUBLIC
   MbedTLS::mbedtls
   pugixml
   sfml-network
+  stb
   videonull
   videoogl
   videosoftware
