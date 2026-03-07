@@ -125,8 +125,8 @@ QGroupBox* TASInputWindow::CreateStickInputs(const QString& text, std::string_vi
 
   auto* visual_ar = new AspectRatioWidget(visual, max_x, max_y);
 
-  box_layout->addItem(new QSpacerItem(0, 0), 3,
-                      0);  // This is done to prevent the stick widget from stretching
+  // This is done to prevent the stick widget from stretching
+  box_layout->addItem(new QSpacerItem(0, 0), 3, 0);
   box_layout->addWidget(visual_ar, 2, 0, 1, 1);
   box->setLayout(box_layout);
 
