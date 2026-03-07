@@ -15,10 +15,10 @@
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 
-class QBoxLayout;
 class QCheckBox;
 class QDialog;
 class QEvent;
+class QGridLayout;
 class QGroupBox;
 class QSpinBox;
 class QString;
@@ -54,18 +54,18 @@ protected:
   QGroupBox* CreateStickInputs(const QString& text, std::string_view group_name,
                                InputOverrider* overrider, int min_x, int min_y, int max_x,
                                int max_y, Qt::Key x_shortcut_key, Qt::Key y_shortcut_key);
-  QBoxLayout* CreateSliderValuePairLayout(const QString& text, std::string_view group_name,
-                                          std::string_view control_name, InputOverrider* overrider,
-                                          int zero, int default_, int min, int max,
-                                          Qt::Key shortcut_key, QWidget* shortcut_widget,
-                                          std::optional<ControlState> scale = {});
+  QGridLayout* CreateSliderValuePairLayout(const QString& text, std::string_view group_name,
+                                           std::string_view control_name, InputOverrider* overrider,
+                                           int zero, int default_, int min, int max,
+                                           Qt::Key shortcut_key, QWidget* shortcut_widget,
+                                           std::optional<ControlState> scale = {});
   TASSpinBox* CreateSliderValuePair(std::string_view group_name, std::string_view control_name,
-                                    InputOverrider* overrider, QBoxLayout* layout, int zero,
+                                    InputOverrider* overrider, QGridLayout* layout, int zero,
                                     int default_, int min, int max,
                                     QKeySequence shortcut_key_sequence, Qt::Orientation orientation,
                                     QWidget* shortcut_widget,
                                     std::optional<ControlState> scale = {});
-  TASSpinBox* CreateSliderValuePair(QBoxLayout* layout, int default_, int max,
+  TASSpinBox* CreateSliderValuePair(QGridLayout* layout, int default_, int max,
                                     QKeySequence shortcut_key_sequence, Qt::Orientation orientation,
                                     QWidget* shortcut_widget);
 

@@ -52,16 +52,15 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   const int ir_x_center = static_cast<int>(std::round(IRWidget::IR_MAX_X / 2.));
   const int ir_y_center = static_cast<int>(std::round(IRWidget::IR_MAX_Y / 2.));
 
-  auto* x_layout = new QHBoxLayout;
+  auto* box_layout = new QGridLayout;
   m_ir_x_value = CreateSliderValuePair(
       WiimoteEmu::Wiimote::IR_GROUP, ControllerEmu::ReshapableInput::X_INPUT_OVERRIDE,
-      &m_wiimote_overrider, x_layout, ir_x_center, ir_x_center, IRWidget::IR_MIN_X,
+      &m_wiimote_overrider, box_layout, ir_x_center, ir_x_center, IRWidget::IR_MIN_X,
       IRWidget::IR_MAX_X, ir_x_shortcut_key_sequence, Qt::Horizontal, m_ir_box);
 
-  auto* y_layout = new QVBoxLayout;
   m_ir_y_value = CreateSliderValuePair(
       WiimoteEmu::Wiimote::IR_GROUP, ControllerEmu::ReshapableInput::Y_INPUT_OVERRIDE,
-      &m_wiimote_overrider, y_layout, ir_y_center, ir_y_center, IRWidget::IR_MIN_Y,
+      &m_wiimote_overrider, box_layout, ir_y_center, ir_y_center, IRWidget::IR_MIN_Y,
       IRWidget::IR_MAX_Y, ir_y_shortcut_key_sequence, Qt::Vertical, m_ir_box);
   m_ir_y_value->setMaximumWidth(60);
 
@@ -76,14 +75,10 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
 
   auto* visual_ar = new AspectRatioWidget(visual, IRWidget::IR_MAX_X, IRWidget::IR_MAX_Y);
 
-  auto* visual_layout = new QVBoxLayout;
-  visual_layout->addLayout(x_layout);
-  visual_layout->addWidget(visual_ar);
-
-  auto* ir_layout = new QHBoxLayout;
-  ir_layout->addLayout(visual_layout);
-  ir_layout->addLayout(y_layout);
-  m_ir_box->setLayout(ir_layout);
+  box_layout->addItem(new QSpacerItem(0, 0), 3,
+                      0);  // This is done to prevent the stick widget from stretching
+  box_layout->addWidget(visual_ar, 2, 0, 1, 1);
+  m_ir_box->setLayout(box_layout);
 
   m_nunchuk_stick_box =
       CreateStickInputs(tr("Nunchuk Stick"), WiimoteEmu::Nunchuk::STICK_GROUP, &m_nunchuk_overrider,

@@ -9,13 +9,12 @@
 #include <QApplication>
 #include <QCheckBox>
 #include <QEvent>
+#include <QGridLayout>
 #include <QGroupBox>
-#include <QHBoxLayout>
 #include <QLabel>
 #include <QShortcut>
 #include <QSlider>
 #include <QSpinBox>
-#include <QVBoxLayout>
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
@@ -108,13 +107,12 @@ QGroupBox* TASInputWindow::CreateStickInputs(const QString& text, std::string_vi
   const int x_default = static_cast<int>(std::round(max_x / 2.));
   const int y_default = static_cast<int>(std::round(max_y / 2.));
 
-  auto* x_layout = new QHBoxLayout;
-  TASSpinBox* x_value = CreateSliderValuePair(x_layout, x_default, max_x, x_shortcut_key_sequence,
+  auto* box_layout = new QGridLayout;
+  TASSpinBox* x_value = CreateSliderValuePair(box_layout, x_default, max_x, x_shortcut_key_sequence,
                                               Qt::Horizontal, box);
 
-  auto* y_layout = new QVBoxLayout;
-  TASSpinBox* y_value =
-      CreateSliderValuePair(y_layout, y_default, max_y, y_shortcut_key_sequence, Qt::Vertical, box);
+  TASSpinBox* y_value = CreateSliderValuePair(box_layout, y_default, max_y, y_shortcut_key_sequence,
+                                              Qt::Vertical, box);
 
   auto* visual = new StickWidget(this, max_x, max_y);
   visual->SetX(x_default);
@@ -127,14 +125,10 @@ QGroupBox* TASInputWindow::CreateStickInputs(const QString& text, std::string_vi
 
   auto* visual_ar = new AspectRatioWidget(visual, max_x, max_y);
 
-  auto* visual_layout = new QVBoxLayout;
-  visual_layout->addLayout(x_layout);
-  visual_layout->addWidget(visual_ar);
-
-  auto* layout = new QHBoxLayout;
-  layout->addLayout(visual_layout);
-  layout->addLayout(y_layout);
-  box->setLayout(layout);
+  box_layout->addItem(new QSpacerItem(0, 0), 3,
+                      0);  // This is done to prevent the stick widget from stretching
+  box_layout->addWidget(visual_ar, 2, 0, 1, 1);
+  box->setLayout(box_layout);
 
   overrider->AddFunction(group_name, ControllerEmu::ReshapableInput::X_INPUT_OVERRIDE,
                          [this, x_value, x_default, min_x, max_x](ControlState controller_state) {
@@ -149,7 +143,7 @@ QGroupBox* TASInputWindow::CreateStickInputs(const QString& text, std::string_vi
   return box;
 }
 
-QBoxLayout* TASInputWindow::CreateSliderValuePairLayout(
+QGridLayout* TASInputWindow::CreateSliderValuePairLayout(
     const QString& text, std::string_view group_name, std::string_view control_name,
     InputOverrider* overrider, int zero, int default_, int min, int max, Qt::Key shortcut_key,
     QWidget* shortcut_widget, std::optional<ControlState> scale)
@@ -159,8 +153,8 @@ QBoxLayout* TASInputWindow::CreateSliderValuePairLayout(
   auto* label = new QLabel(QStringLiteral("%1 (%2)").arg(
       text, shortcut_key_sequence.toString(QKeySequence::NativeText)));
 
-  QBoxLayout* layout = new QHBoxLayout;
-  layout->addWidget(label);
+  QGridLayout* layout = new QGridLayout;
+  layout->addWidget(label, 0, 0, 1, 2);
 
   CreateSliderValuePair(group_name, control_name, overrider, layout, zero, default_, min, max,
                         shortcut_key_sequence, Qt::Horizontal, shortcut_widget, scale);
@@ -170,7 +164,7 @@ QBoxLayout* TASInputWindow::CreateSliderValuePairLayout(
 
 TASSpinBox* TASInputWindow::CreateSliderValuePair(
     std::string_view group_name, std::string_view control_name, InputOverrider* overrider,
-    QBoxLayout* layout, int zero, int default_, int min, int max,
+    QGridLayout* layout, int zero, int default_, int min, int max,
     QKeySequence shortcut_key_sequence, Qt::Orientation orientation, QWidget* shortcut_widget,
     std::optional<ControlState> scale)
 {
@@ -198,7 +192,7 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(
 
 // The shortcut_widget argument needs to specify the container widget that will be hidden/shown.
 // This is done to avoid ambiguous shortcuts
-TASSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int default_, int max,
+TASSpinBox* TASInputWindow::CreateSliderValuePair(QGridLayout* layout, int default_, int max,
                                                   QKeySequence shortcut_key_sequence,
                                                   Qt::Orientation orientation,
                                                   QWidget* shortcut_widget)
@@ -206,7 +200,6 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int defaul
   auto* value = new TASSpinBox();
   value->setRange(0, 99999);
   value->setValue(default_);
-  value->setMaximumWidth(50);
   connect(value, &QSpinBox::valueChanged, [value, max](int i) {
     if (i > max)
       value->setValue(max);
@@ -215,6 +208,8 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int defaul
   slider->setRange(0, max);
   slider->setValue(default_);
   slider->setFocusPolicy(Qt::ClickFocus);
+
+  value->setFixedWidth(value->fontMetrics().horizontalAdvance(QString::number(max)) + 25);
 
   connect(slider, &QSlider::valueChanged, value, &QSpinBox::setValue);
   connect(value, &QSpinBox::valueChanged, slider, &QSlider::setValue);
@@ -225,10 +220,18 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int defaul
     value->selectAll();
   });
 
-  layout->addWidget(slider);
-  layout->addWidget(value);
   if (orientation == Qt::Vertical)
+  {
+    layout->addWidget(slider, 2, 1);
+    layout->addWidget(value, 3, 1);
+
     layout->setAlignment(slider, Qt::AlignHCenter);
+  }
+  else
+  {
+    layout->addWidget(slider, 1, 0);
+    layout->addWidget(value, 1, 1);
+  }
 
   return value;
 }
