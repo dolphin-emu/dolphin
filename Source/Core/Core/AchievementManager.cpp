@@ -167,11 +167,13 @@ void AchievementManager::LoadGame(const DiscIO::Volume* volume)
     WARN_LOG_FMT(ACHIEVEMENTS, "Software format unsupported by AchievementManager.");
     if (rc_client_get_game_info(m_client))
     {
-      CloseGame();
+      // If I pass an empty string as a hash, this method kicks out early. With an obviously
+      // wrong hash it processes as an "unidentified" game.
+      rc_client_begin_change_media(m_client, "0", ChangeMediaCallback, NULL);
     }
     else
     {
-      rc_client_begin_load_game(m_client, "", LoadGameCallback, NULL);
+      rc_client_begin_load_game(m_client, "0", LoadGameCallback, NULL);
     }
     return;
   }

@@ -605,11 +605,11 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
 
     bool operator()(const DiscIO::VolumeWAD& wad) const
     {
+      AchievementManager::GetInstance().LoadGame(&wad);
+
       SetDefaultDisc(system.GetDVDInterface());
       if (!Boot_WiiWAD(system, wad))
         return false;
-
-      AchievementManager::GetInstance().LoadGame(&wad);
 
       SConfig::OnTitleDirectlyBooted(guard);
       return true;
@@ -617,11 +617,11 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
 
     bool operator()(const BootParameters::NANDTitle& nand_title) const
     {
+      AchievementManager::GetInstance().LoadGame(nullptr);
+
       SetDefaultDisc(system.GetDVDInterface());
       if (!BootNANDTitle(system, nand_title.id))
         return false;
-
-      AchievementManager::GetInstance().LoadGame(nullptr);
 
       SConfig::OnTitleDirectlyBooted(guard);
       return true;
