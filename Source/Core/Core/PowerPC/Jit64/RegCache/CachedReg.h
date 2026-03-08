@@ -4,11 +4,9 @@
 #pragma once
 
 #include <cstddef>
-#include <optional>
 
 #include "Common/Assert.h"
-#include "Common/CommonTypes.h"
-#include "Common/x64Emitter.h"
+#include "Common/x64Reg.h"
 #include "Core/PowerPC/Jit64/RegCache/RCMode.h"
 
 using preg_t = size_t;
@@ -17,10 +15,6 @@ class PPCCachedReg
 {
 public:
   PPCCachedReg() = default;
-
-  explicit PPCCachedReg(Gen::OpArg default_location) : m_default_location(default_location) {}
-
-  Gen::OpArg GetDefaultLocation() const { return m_default_location; }
 
   Gen::X64Reg GetHostRegister() const
   {
@@ -77,7 +71,6 @@ public:
   }
 
 private:
-  Gen::OpArg m_default_location{};
   Gen::X64Reg m_host_register{};
   bool m_in_default_location = true;
   bool m_in_host_register = false;
@@ -88,6 +81,8 @@ private:
 class X64CachedReg
 {
 public:
+  X64CachedReg() = default;
+
   preg_t Contents() const { return ppcReg; }
 
   void SetBoundTo(preg_t ppcReg_)

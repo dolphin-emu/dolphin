@@ -39,7 +39,7 @@ OpArg FPURegCache::R(preg_t preg) const
   else
   {
     ASSERT_MSG(DYNA_REC, m_regs[preg].IsInDefaultLocation(), "FPR {} missing!", preg);
-    return m_regs[preg].GetDefaultLocation();
+    return GetDefaultLocation(preg);
   }
 }
 
@@ -60,7 +60,7 @@ void FPURegCache::StoreRegister(preg_t preg, const OpArg& new_loc,
 void FPURegCache::LoadRegister(preg_t preg, X64Reg new_loc)
 {
   ASSERT_MSG(DYNA_REC, m_regs[preg].IsInDefaultLocation(), "FPR {} not in default location", preg);
-  m_emitter->MOVAPD(new_loc, m_regs[preg].GetDefaultLocation());
+  m_emitter->MOVAPD(new_loc, GetDefaultLocation(preg));
 }
 
 void FPURegCache::DiscardImm(preg_t preg)

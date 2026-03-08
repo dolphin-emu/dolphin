@@ -43,7 +43,7 @@ OpArg GPRRegCache::R(preg_t preg) const
   else
   {
     ASSERT_MSG(DYNA_REC, m_regs[preg].IsInDefaultLocation(), "GPR {} missing!", preg);
-    return m_regs[preg].GetDefaultLocation();
+    return GetDefaultLocation(preg);
   }
 }
 
@@ -76,7 +76,7 @@ void GPRRegCache::LoadRegister(preg_t preg, X64Reg new_loc)
   {
     ASSERT_MSG(DYNA_REC, m_regs[preg].IsInDefaultLocation(), "GPR {} not in default location",
                preg);
-    m_emitter->MOV(32, ::Gen::R(new_loc), m_regs[preg].GetDefaultLocation());
+    m_emitter->MOV(32, ::Gen::R(new_loc), GetDefaultLocation(preg));
   }
 }
 
