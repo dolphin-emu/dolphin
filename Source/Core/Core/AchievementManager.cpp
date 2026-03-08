@@ -165,7 +165,7 @@ void AchievementManager::LoadGame(const DiscIO::Volume* volume)
   if (volume == nullptr)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Software format unsupported by AchievementManager.");
-    if (rc_client_get_game_info(m_client))
+    if (m_session_active)
     {
       // If I pass an empty string as a hash, this method kicks out early. With an obviously
       // wrong hash it processes as an "unidentified" game.
@@ -173,6 +173,7 @@ void AchievementManager::LoadGame(const DiscIO::Volume* volume)
     }
     else
     {
+      m_session_active = true;
       rc_client_begin_load_game(m_client, "0", LoadGameCallback, NULL);
     }
     return;
@@ -205,12 +206,13 @@ void AchievementManager::LoadGame(const DiscIO::Volume* volume)
       .close = &AchievementManager::FilereaderClose,
   };
   rc_hash_init_custom_filereader(&volume_reader);
-  if (rc_client_get_game_info(m_client))
+  if (m_session_active)
   {
     rc_client_begin_identify_and_change_media(m_client, "", NULL, 0, ChangeMediaCallback, NULL);
   }
   else
   {
+    m_session_active = true;
     u32 console_id = FindConsoleID(volume->GetVolumeType());
     rc_client_begin_identify_and_load_game(m_client, console_id, "", NULL, 0, LoadGameCallback,
                                            NULL);
@@ -750,6 +752,7 @@ void AchievementManager::CloseGame()
       Discord::UpdateDiscordPresence();
     if (rc_client_get_game_info(m_client))
       rc_client_unload_game(m_client);
+    m_session_active = false;
     INFO_LOG_FMT(ACHIEVEMENTS, "Game closed.");
   }
 
