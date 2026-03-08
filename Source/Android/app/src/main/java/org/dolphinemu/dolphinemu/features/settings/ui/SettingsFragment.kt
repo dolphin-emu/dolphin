@@ -1,5 +1,3 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-
 // GPU driver implementation partially based on:
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
@@ -218,6 +216,13 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
 
     override fun getFragmentLifecycle(): Lifecycle {
         return lifecycle
+    }
+
+    override fun showShaderOptionsFragment(shaderName: String) {
+        parentFragmentManager.beginTransaction()
+            .replace(id, ShaderOptionsFragment.newInstance(shaderName))
+            .addToBackStack(null)
+            .commit()
     }
 
     private fun askForDriverFile() {
