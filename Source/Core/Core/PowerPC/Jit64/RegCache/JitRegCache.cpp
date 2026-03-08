@@ -238,10 +238,8 @@ RegCache::RegCache(Jit64& jit) : m_jit{jit}
 void RegCache::Start()
 {
   m_xregs.fill({});
-  for (size_t i = 0; i < m_regs.size(); i++)
-  {
-    m_regs[i] = PPCCachedReg{GetDefaultLocation(i)};
-  }
+  m_regs.fill({});
+  m_constraints.fill({});
 }
 
 void RegCache::SetEmitter(XEmitter* emitter)
