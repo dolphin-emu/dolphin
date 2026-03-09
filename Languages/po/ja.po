@@ -16,15 +16,15 @@
 # Nishikori Shinki, 2024
 # DanbSky <danbsky@live.jp>, 2013-2015
 # 233f03ae5896f3662a94938720ac9b35_972cc11 <4e02bbd915e44646bb5d52c39c365d90_706526>, 2019
-# raid273, 2020
+# raid273, 2020,2026
 # 難波 鷹史, 2023-2024
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-24 20:52+0100\n"
+"POT-Creation-Date: 2026-03-09 22:57+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
-"Last-Translator: Nekokabu <nekokabu@gmail.com>, 2024-2025\n"
+"Last-Translator: raid273, 2020,2026\n"
 "Language-Team: Japanese (http://app.transifex.com/dolphinemu/dolphin-emu/"
 "language/ja/)\n"
 "Language: ja\n"
@@ -3011,22 +3011,22 @@ msgid "Korean"
 msgstr "韓国語"
 
 #: Source/Core/DiscIO/Enums.cpp:120 Source/Core/DolphinQt/MenuBar.cpp:315
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:230
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:228
 msgid "NTSC-J"
 msgstr "NTSC-J"
 
 #: Source/Core/DiscIO/Enums.cpp:123 Source/Core/DolphinQt/MenuBar.cpp:317
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:230
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:228
 msgid "NTSC-U"
 msgstr "NTSC-U"
 
 #: Source/Core/DiscIO/Enums.cpp:126 Source/Core/DolphinQt/MenuBar.cpp:320
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:230
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:228
 msgid "PAL"
 msgstr "PAL"
 
 #: Source/Core/DiscIO/Enums.cpp:129
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:230
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:228
 msgid "NTSC-K"
 msgstr "NTSC-K"
 
@@ -6407,8 +6407,8 @@ msgid ""
 msgstr ""
 "Uber (統合) シェーダーを常に使用します。強力なGPUをお持ちであれば、カクつきと"
 "は無縁のゲームプレイが実現されます。<br><br><dolphin_emphasis>強力なGPUを搭載"
-"したPCで、Hybrid Ubershaders では問題がある場合にしかオススメできません。</"
-"dolphin_emphasis>"
+"したPCで、「一部使用する」設定でカクつきが発生している場合にのみこれを使用し"
+"てください。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:275
 msgid ""
@@ -7936,7 +7936,7 @@ msgstr "要求された操作を完了することができませんでした。
 #, c-format
 msgctxt ""
 msgid "Successfully converted %n image(s)."
-msgstr "%n 画像 は正常に変換されました。"
+msgstr "%n 個のイメージが正常に変換されました。"
 
 #: Source/Core/DolphinQt/Debugger/AssembleInstructionDialog.cpp:20
 #: Source/Core/DolphinQt/Debugger/AssemblerWidget.cpp:51
@@ -9042,74 +9042,74 @@ msgid "Size: 0x"
 msgstr ""
 
 #. i18n: PPC Feature Flags
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:386
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:389
 msgid "PPC Feat. Flags"
 msgstr ""
 
 #. i18n: Effective Address
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:388
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:391
 msgid "Eff. Address"
 msgstr ""
 
 #. i18n: Code Buffer Size
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:390
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:393
 msgid "Code Buff. Size"
 msgstr ""
 
 #. i18n: Repeat Instructions
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:392
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:395
 msgid "Repeat Instr."
 msgstr ""
 
 #. i18n: Host Near Code Size
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:394
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:397
 msgid "Host N. Size"
 msgstr ""
 
 #. i18n: Host Far Code Size
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:396
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:399
 msgid "Host F. Size"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:397
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:400
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:642
 msgid "Run Count"
 msgstr ""
 
 #. i18n: "Cycles" means instruction cycles.
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:398
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:401
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:644
 msgid "Cycles Spent"
 msgstr ""
 
 #. i18n: Cycles Average
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:400
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:403
 msgid "Cycles Avg."
 msgstr ""
 
 #. i18n: Cycles Percent
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:402
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:405
 msgid "Cycles %"
 msgstr ""
 
 #. i18n: "ns" is an abbreviation of nanoseconds.
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:403
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:406
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:650
 msgid "Time Spent (ns)"
 msgstr ""
 
 #. i18n: Time Average (ns)
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:405
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:408
 msgid "Time Avg. (ns)"
 msgstr ""
 
 #. i18n: Time Percent
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:407
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:410
 msgid "Time %"
 msgstr ""
 
 #. i18n: "Symbol" means debugging symbol (its name in particular).
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:408
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:411
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:655
 msgid "Symbol"
 msgstr "Symbol"
@@ -13457,7 +13457,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:185
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:369
 msgid "Preserve Audio Pitch"
-msgstr ""
+msgstr "音声のピッチを保持する"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:187
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:363
@@ -13480,12 +13480,24 @@ msgid ""
 "Slowest, for debugging purposes only. Not recommended."
 "<br><br><dolphin_emphasis>If unsure, select HLE.</dolphin_emphasis>"
 msgstr ""
+"デジタル信号プロセッサ（DSP）のエミュレーション方式を選択します。オーディオ処"
+"理方法と利用可能なシステム機能を決定します。<br><br><b>HLE</b> - DSPの高レベ"
+"ルエミュレーション。高速ですが、常に正確とは限りません。Dolby Pro Logic II の"
+"デコードに対応していません。<br><br><b>LLE リコンパイラ</b> - リコンパイラに"
+"よるDSPの低レベルエミュレーション。低速ですが、より正確なエミュレーションを行"
+"います。特定のオーディオバックエンドで Dolby Pro Logic II を利用可能です。"
+"<br><br><b>LLE インタプリタ</b> - インタプリタによるDSPの低レベルエミュレー"
+"ション。最も低速で、デバッグ目的でのみ使用します。非推奨。"
+"<br><br><dolphin_emphasis>よく分からなければ、HLEを選択してください。</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:307
 msgid ""
 "Selects which audio API to use internally.<br><br><dolphin_emphasis>If "
 "unsure, select %1.</dolphin_emphasis>"
 msgstr ""
+"内部で使用するオーディオAPIを選択します。<br><br><dolphin_emphasis>よく分から"
+"なければ、%1 を選択してください。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:310
 msgid ""
@@ -13493,6 +13505,10 @@ msgid ""
 "crackling. Certain backends only.<br><br><dolphin_emphasis>If unsure, leave "
 "this at 20 ms.</dolphin_emphasis>"
 msgstr ""
+"オーディオの出力レイテンシ（ミリ秒）を設定します。高くすると、オーディオのク"
+"ラックリング（雑音）が軽減される場合があります。特定のバックエンドでのみ使用"
+"されます。<br><br><dolphin_emphasis>よく分からなければ、20 ms のままにしてく"
+"ださい。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:313
 msgid ""
@@ -13531,6 +13547,9 @@ msgid ""
 "audio pitch changes proportionally with speed.<br><br><dolphin_emphasis>If "
 "unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"常に音声のピッチを通常通りに保ちます。この設定がオフの場合、音声のピッチはエ"
+"ミュレーションの動作速度に応じて変化します。<br><br><dolphin_emphasis>よく分"
+"からなければ、チェックを入れないでください。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:329
 msgid ""
@@ -13556,10 +13575,12 @@ msgid ""
 "Selects an output device to use.<br><br><dolphin_emphasis>If unsure, select "
 "Default Device.</dolphin_emphasis>"
 msgstr ""
+"オーディオの出力デバイスを選択します。<br><br><dolphin_emphasis>よく分からな"
+"ければ、「既定のデバイス」を選択してください。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:350
 msgid "Output Device"
-msgstr ""
+msgstr "出力デバイス"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:359
 msgid "Latency"
@@ -13811,106 +13832,111 @@ msgstr ""
 "ゲームボーイアドバンス ROMファイル (*.gba *.gbc *.gb *.7z *.zip *.agb *.mb "
 "*.rom *.bin);;すべてのファイル (*)"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:137
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:135
 msgid "Basic Settings"
 msgstr "基本設定"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:142
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:140
 msgid "Enable Dual Core (speedhack)"
 msgstr "デュアルコアを有効にする (speedhack)"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:145
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:143
 msgid "Enable Cheats"
 msgstr "チートコードを有効にする"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:149
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:147
 msgid "Load Whole Game Into Memory"
-msgstr ""
+msgstr "ゲーム全体をメモリに読み込む"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:152
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:150
 msgid ""
 "Loads the running game into memory in the background.<br><br>This may "
 "improve performance with slow or high-latency storage.<br>System memory "
 "requirements will be much higher with this setting enabled."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"実行中のゲームをバックグラウンドでメモリ上にロードします。<br><br>低速（また"
+"は高レイテンシ）なストレージを使用している場合にパフォーマンスが上昇する可能"
+"性があります。<br>有効にすると、システムメモリ要件が大幅に増加します。"
+"<br><br><dolphin_emphasis>よく分からなければ、チェックを入れないでください。"
+"</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:158
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:156
 msgid "Allow Mismatched Region Settings"
 msgstr "コンソール上の言語設定の不一致を許可する"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:162
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:160
 msgid "Change Discs Automatically"
 msgstr "ディスクの入れ替えを自動で行う"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:166
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:164
 msgid "Show Current Game on Discord"
 msgstr "Discordにプレイ中のゲームを表示"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:177
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:175
 msgid "Unlimited"
 msgstr "制限なし"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:184
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:182
 msgid "%1% (Normal Speed)"
 msgstr "%1% (標準)"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:189
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:187
 msgid "&Speed Limit:"
 msgstr "速度制限(&S):"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:194
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:192
 msgid "Auto Update Settings"
 msgstr "自動更新設定"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:204
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:202
 msgid "&Auto Update:"
 msgstr "自動更新(&A):"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:207
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:205
 msgid "Don't Update"
 msgstr "更新しない"
 
 #. i18n: Releases is a noun.
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:209
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:207
 msgid "Releases (every few months)"
 msgstr "リリース（数ヶ月ごとに更新）"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:209
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:207
 msgid "Dev (multiple times a day)"
 msgstr "開発者向け (1 日に複数回更新)"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:217
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:463
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:215
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:458
 msgid "Fallback Region"
 msgstr "既定の地域"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:228
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:226
 msgid "Fallback Region:"
 msgstr "既定の地域:"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:237
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:235
 msgid "Usage Statistics Reporting Settings"
 msgstr "統計レポートの設定"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:242
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:240
 msgid "Enable Usage Statistics Reporting"
 msgstr "統計レポートの収集に協力する"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:243
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:469
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:241
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:464
 msgid "Generate a New Statistics Identity"
 msgstr "新しい統計IDを作成する"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:370
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:365
 msgid "Identity Generation"
 msgstr "IDの作成"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:371
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:366
 msgid "New identity generated."
 msgstr "新しいIDが作成されました。"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:379
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:374
 msgid ""
 "Separates CPU and GPU emulation work to separate threads. Reduces single-"
 "thread burden by spreading Dolphin's heaviest load across two cores, which "
@@ -13918,8 +13944,14 @@ msgid ""
 "<br><br>This setting cannot be changed while emulation is active."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"CPUとGPUのエミュレーション処理を別々のスレッドに分離します。Dolphinの最も負荷"
+"の高い処理を2つのコアに分散することでシングルスレッドの負担を軽減し、通常はパ"
+"フォーマンスが向上します。ただし、不具合やクラッシュが発生する可能性がありま"
+"す。<br><br>この設定はエミュレーション実行中は変更できません。"
+"<br><br><dolphin_emphasis>よく分からなければ、チェックを入れないでください。"
+"</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:385
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:380
 msgid ""
 "Enables the use of AR and Gecko cheat codes which can be used to modify "
 "games' behavior. These codes can be configured with the Cheats Manager in "
@@ -13933,7 +13965,7 @@ msgstr ""
 "ません。<br><br><dolphin_emphasis>よく分からなければ、チェックを入れないでく"
 "ださい。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:390
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:385
 msgid ""
 "Lets you use languages and other region-related settings that the game may "
 "not be designed for. May cause various crashes and bugs.<br><br>This setting "
@@ -13945,7 +13977,7 @@ msgstr ""
 "ミュレーションが有効な間は変更できません。<br><br><dolphin_emphasis>よく分か"
 "らなければ、チェックを入れないでください。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:395
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:390
 msgid ""
 "Automatically changes the game disc when requested by games with two discs. "
 "This feature requires the game to be launched in one of the following ways:"
@@ -13955,16 +13987,16 @@ msgid ""
 "command line interface.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
-"2枚組ディスクのゲームでリクエストされたときに自動的にゲームディスクを入れ替え"
-"ます。この機能を使うには、ゲームを以下に示すどれかの方法で起動する必要があり"
-"ます: <br> - 両方のディスクがゲームリストに存在する状態で、ゲームリストか"
-"ら。 <br> - 両方のディスクへのパスが提供された状態で、ファイル > 開く、もしく"
-"はコマンドラインインターフェースから。 <br> - M3Uファイルをファイル > 開く、"
-"もしくはコマンドラインインターフェースから起動する。 <br> <br> "
-"<dolphin_emphasis> よく分からなければ、チェックを入れないでください。 </"
-"dolphin_emphasis>"
+"2枚組ディスクのゲームをプレイ中、ゲーム側から要求があった際に自動的にディスク"
+"を入れ替えます。この機能を使うには、以下のいずれかの方法でゲームを起動する必"
+"要があります: <br> - 両方のディスクがゲームリストに存在する状態で、ゲームリス"
+"トから起動する。 <br> - [ファイル] > [開く]、もしくはコマンドラインインター"
+"フェースから、両方のディスクのパスを指定して起動する。 <br> - [ファイル] > "
+"[開く]、もしくはコマンドラインインターフェースから、M3Uファイルを指定して起動"
+"する。 <br> <br> <dolphin_emphasis> よく分からなければ、チェックを入れないで"
+"ください。 </dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:404
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:399
 msgid ""
 "Shows which game is active and the duration of your current play session in "
 "your Discord status.<br><br>This setting cannot be changed while emulation "
@@ -13976,7 +14008,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>よく分からなければ、チェックを外さないでください。"
 "</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:410
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:405
 msgid ""
 "Selects which update track Dolphin uses when checking for updates at "
 "startup. If a new update is available, Dolphin will show a list of changes "
@@ -14013,7 +14045,7 @@ msgstr ""
 "プデートを自動的にチェックしなくなります。<br><br><dolphin_emphasis>よく分か"
 "らなければ、リリースを選択してください。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:429
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:424
 msgid ""
 "Sets the region used for titles whose region cannot be determined "
 "automatically.<br><br>This setting cannot be changed while emulation is "
@@ -14022,7 +14054,7 @@ msgstr ""
 "地域を自動的に判別できないタイトルに使用する地域をを設定します。エミュレー"
 "ションが実行中はこの設定を変更できません。"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:433
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:428
 msgid ""
 "If selected, Dolphin can collect data on its performance, feature usage, "
 "emulated games, and configuration, as well as data on your system's hardware "
@@ -14039,7 +14071,7 @@ msgstr ""
 "パフォーマンス、安定性の問題を引き起こしているまれな構成を特定するのにも役立"
 "ちます。"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:439
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:434
 msgid ""
 "Generate a new anonymous ID for your usage statistics. This will cause any "
 "future statistics to be unassociated with your previous statistics."
@@ -14047,15 +14079,15 @@ msgstr ""
 "使用状況統計用の新しい匿名 ID を生成します。これにより、以降の統計は以前の統"
 "計と関連付けられなくなります。"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:455
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:450
 msgid "Speed Limit"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:459
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:454
 msgid "Auto Update"
 msgstr "自動更新"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:479
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:474
 msgid ""
 "Controls how fast emulation runs relative to the original hardware."
 "<br><br>Values higher than 100% will emulate faster than the original "
@@ -14071,13 +14103,13 @@ msgstr ""
 "<br><br><dolphin_emphasis>よく分からなければ、100%を選択してください。</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:485
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:480
 msgid ""
 "<dolphin_emphasis>When Hardcore Mode is enabled, Speed Limit values less "
 "than 100% will be treated as 100%.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:491
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:486
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:284
 msgid "%1<br><br>%2"
 msgstr "%1<br><br>%2"
@@ -15007,15 +15039,15 @@ msgstr "USB ホワイトリストエラー"
 msgid "This USB device is already whitelisted."
 msgstr "このデバイスは既に登録済みです。"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:408
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:407
 msgid "Select SD Card Image"
 msgstr "SDカードイメージの選択"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:410
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:409
 msgid "SD Card Image (*.raw);;All Files (*)"
 msgstr "SDカードファイル (*.raw);; すべてのファイル (*)"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:419
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:418
 msgid "Select a Folder to Sync with the SD Card Image"
 msgstr "SDカードイメージと同期するフォルダを選択"
 

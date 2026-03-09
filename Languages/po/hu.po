@@ -6,7 +6,7 @@
 # Delirious <delirious@freemail.hu>, 2011,2013
 # Delirious <delirious@freemail.hu>, 2013,2023
 # Evin, 2016,2023,2025
-# Péter Patkós, 2023-2025
+# Péter Patkós, 2023-2026
 # Péter Patkós, 2025
 # Péter Patkós, 2025
 # vargaviktor <viktor.varga@gmail.com>, 2025
@@ -14,9 +14,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-24 20:52+0100\n"
+"POT-Creation-Date: 2026-03-09 22:57+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
-"Last-Translator: Péter Patkós, 2023-2025\n"
+"Last-Translator: Péter Patkós, 2023-2026\n"
 "Language-Team: Hungarian (http://app.transifex.com/dolphinemu/dolphin-emu/"
 "language/hu/)\n"
 "Language: hu\n"
@@ -2999,22 +2999,22 @@ msgid "Korean"
 msgstr "Koreai"
 
 #: Source/Core/DiscIO/Enums.cpp:120 Source/Core/DolphinQt/MenuBar.cpp:315
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:230
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:228
 msgid "NTSC-J"
 msgstr "NTSC-J"
 
 #: Source/Core/DiscIO/Enums.cpp:123 Source/Core/DolphinQt/MenuBar.cpp:317
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:230
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:228
 msgid "NTSC-U"
 msgstr "NTSC-U"
 
 #: Source/Core/DiscIO/Enums.cpp:126 Source/Core/DolphinQt/MenuBar.cpp:320
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:230
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:228
 msgid "PAL"
 msgstr "PAL"
 
 #: Source/Core/DiscIO/Enums.cpp:129
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:230
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:228
 msgid "NTSC-K"
 msgstr "NTSC-K"
 
@@ -4064,7 +4064,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:509
 msgid "Delete Address"
-msgstr ""
+msgstr "Cím törlése"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:577
 msgid "Multiple errors occurred while generating AR codes."
@@ -4375,7 +4375,7 @@ msgstr "Alternatív bemeneti források"
 #: Source/Core/DolphinQt/Config/CommonControllersWidget.cpp:37
 #: Source/Core/DolphinQt/Config/SDLHints/SDLHintsWindow.cpp:29
 msgid "SDL Controller Settings"
-msgstr ""
+msgstr "SDL-vezérlő beállítások"
 
 #: Source/Core/DolphinQt/Config/ConfigControls/ConfigUserPath.cpp:45
 msgid "Empty Value"
@@ -6633,7 +6633,7 @@ msgstr "Nem található adapter"
 
 #: Source/Core/DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.cpp:81
 msgid "Poll Rate: %1 Hz"
-msgstr ""
+msgstr "Frissítési gyakoriság: %1 Hz"
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyControllerProfile.cpp:21
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyControllerProfile.cpp:26
@@ -7174,7 +7174,7 @@ msgstr "Érték"
 
 #: Source/Core/DolphinQt/Config/SDLHints/SDLHintsWindow.cpp:85
 msgid "Enable DirectInput Detection"
-msgstr ""
+msgstr "DirectInput észlelés engedélyezése"
 
 #: Source/Core/DolphinQt/Config/SDLHints/SDLHintsWindow.cpp:87
 msgid ""
@@ -7186,7 +7186,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/SDLHints/SDLHintsWindow.cpp:95
 msgid "Use Joy-Con Pairs as a Single Controller"
-msgstr ""
+msgstr "Joy-Con pár használata egyetlen vezérlőként"
 
 #: Source/Core/DolphinQt/Config/SDLHints/SDLHintsWindow.cpp:97
 msgid ""
@@ -7194,10 +7194,13 @@ msgid ""
 "or as two separate controllers.<br><br><dolphin_emphasis>If unsure, leave "
 "this checked.</dolphin_emphasis>"
 msgstr ""
+"Meghatározza, hogy az SDL egy Joy-Con párt egyetlen vezérlőként vagy két "
+"különállóként kezeljen. <br><br><dolphin_emphasis>Ha bizonytalan vagy, hagyd "
+"kipipálva.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/SDLHints/SDLHintsWindow.cpp:104
 msgid "Sideways Joy-Con"
-msgstr ""
+msgstr "Oldalirányú Joy-Con"
 
 #: Source/Core/DolphinQt/Config/SDLHints/SDLHintsWindow.cpp:106
 msgid ""
@@ -7208,7 +7211,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/SDLHints/SDLHintsWindow.cpp:114
 msgid "Enable DualSense Player LEDs"
-msgstr ""
+msgstr "DualSense Player LEDek bekapcsolása"
 
 #: Source/Core/DolphinQt/Config/SDLHints/SDLHintsWindow.cpp:116
 msgid ""
@@ -7219,11 +7222,11 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/SDLHints/SDLHintsWindow.cpp:138
 msgid "Main"
-msgstr ""
+msgstr "Fő"
 
 #: Source/Core/DolphinQt/Config/SDLHints/SDLHintsWindow.cpp:147
 msgid "Dolphin must be restarted for these changes to take effect."
-msgstr ""
+msgstr "A változások érvénybe lépéséhez a Dolphin újraindítása szükséges."
 
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:196
 #: Source/Core/DolphinQt/Settings/TriforcePane.cpp:53
@@ -8363,7 +8366,7 @@ msgstr "Töréspontok"
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:176
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:512
 msgid "Disable"
-msgstr ""
+msgstr "Letiltás"
 
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:245
 msgid "Edit Conditional"
@@ -8452,7 +8455,7 @@ msgstr "Cél megjelenítése a &Memóriában"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:603
 msgid "Copy Tar&get Address"
-msgstr ""
+msgstr "&Célcím másolása"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:607
 msgid "&Add function symbol"
@@ -8689,74 +8692,74 @@ msgid "Size: 0x"
 msgstr "Méret: 0x"
 
 #. i18n: PPC Feature Flags
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:386
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:389
 msgid "PPC Feat. Flags"
 msgstr ""
 
 #. i18n: Effective Address
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:388
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:391
 msgid "Eff. Address"
 msgstr ""
 
 #. i18n: Code Buffer Size
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:390
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:393
 msgid "Code Buff. Size"
 msgstr ""
 
 #. i18n: Repeat Instructions
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:392
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:395
 msgid "Repeat Instr."
 msgstr "Utasítások ismétlése"
 
 #. i18n: Host Near Code Size
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:394
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:397
 msgid "Host N. Size"
 msgstr ""
 
 #. i18n: Host Far Code Size
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:396
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:399
 msgid "Host F. Size"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:397
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:400
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:642
 msgid "Run Count"
 msgstr ""
 
 #. i18n: "Cycles" means instruction cycles.
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:398
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:401
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:644
 msgid "Cycles Spent"
 msgstr ""
 
 #. i18n: Cycles Average
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:400
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:403
 msgid "Cycles Avg."
 msgstr ""
 
 #. i18n: Cycles Percent
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:402
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:405
 msgid "Cycles %"
 msgstr ""
 
 #. i18n: "ns" is an abbreviation of nanoseconds.
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:403
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:406
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:650
 msgid "Time Spent (ns)"
 msgstr "Eltöltött idő (ns)"
 
 #. i18n: Time Average (ns)
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:405
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:408
 msgid "Time Avg. (ns)"
 msgstr "Átl. idő (ns)"
 
 #. i18n: Time Percent
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:407
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:410
 msgid "Time %"
 msgstr "Idő %"
 
 #. i18n: "Symbol" means debugging symbol (its name in particular).
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:408
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:411
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:655
 msgid "Symbol"
 msgstr "Szimbólum"
@@ -9266,7 +9269,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:429
 msgid "Redirections"
-msgstr ""
+msgstr "Átirányítások"
 
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:446
 msgid "SSL context"
@@ -10946,11 +10949,11 @@ msgstr "&Felhasználói mappa megnyitása"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:262
 msgid "Open &Config Folder"
-msgstr ""
+msgstr "&Config mappa megnyitása"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:267
 msgid "Open C&ache Folder"
-msgstr ""
+msgstr "Gy&orsítótár mappa megnyitása"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:272
 msgid "E&xit"
@@ -13053,7 +13056,7 @@ msgstr "Audio hézagok kitöltése"
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:185
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:369
 msgid "Preserve Audio Pitch"
-msgstr ""
+msgstr "Hangmagasság megőrzése"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:187
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:363
@@ -13137,6 +13140,10 @@ msgid ""
 "audio pitch changes proportionally with speed.<br><br><dolphin_emphasis>If "
 "unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Az emulációs sebesség megváltoztatásakor a hang magasságát normál szinten "
+"tartja. Enélkül a hangmagasság a sebességgel arányosan változik. "
+"<br><br><dolphin_emphasis>Ha bizonytalan vagy, hagyd üresen.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:329
 msgid ""
@@ -13417,23 +13424,23 @@ msgstr ""
 "Game Boy Advance ROMok (*.gba *.gbc *.gb *.7z *.zip *.agb *.mb *.rom "
 "*.bin);;Minden fájl (*)"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:137
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:135
 msgid "Basic Settings"
 msgstr "Alapok beállítása"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:142
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:140
 msgid "Enable Dual Core (speedhack)"
 msgstr "Kétmagos mód használata (speedhack)"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:145
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:143
 msgid "Enable Cheats"
 msgstr "Csalások használata"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:149
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:147
 msgid "Load Whole Game Into Memory"
-msgstr ""
+msgstr "Teljes játék memóriába olvasása"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:152
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:150
 msgid ""
 "Loads the running game into memory in the background.<br><br>This may "
 "improve performance with slow or high-latency storage.<br>System memory "
@@ -13441,82 +13448,82 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:158
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:156
 msgid "Allow Mismatched Region Settings"
 msgstr "Eltérő régióbeállítások engedélyezése"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:162
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:160
 msgid "Change Discs Automatically"
 msgstr "Automatikus lemezváltás"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:166
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:164
 msgid "Show Current Game on Discord"
 msgstr "Jelenlegi játék megjelenítése Discordon"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:177
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:175
 msgid "Unlimited"
 msgstr "Végtelen"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:184
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:182
 msgid "%1% (Normal Speed)"
 msgstr "%1% (Normál sebesség)"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:189
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:187
 msgid "&Speed Limit:"
 msgstr "&Sebességkorlát:"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:194
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:192
 msgid "Auto Update Settings"
 msgstr "Automatikus frissítés beállításai"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:204
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:202
 msgid "&Auto Update:"
 msgstr "&Automatikus frissítés:"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:207
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:205
 msgid "Don't Update"
 msgstr "Ne frissítsen"
 
 #. i18n: Releases is a noun.
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:209
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:207
 msgid "Releases (every few months)"
 msgstr "Releasek (néhány havonta)"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:209
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:207
 msgid "Dev (multiple times a day)"
 msgstr "Fejlesztői (naponta többször)"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:217
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:463
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:215
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:458
 msgid "Fallback Region"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:228
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:226
 msgid "Fallback Region:"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:237
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:235
 msgid "Usage Statistics Reporting Settings"
 msgstr "Használati statisztika-jelentés beállítások"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:242
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:240
 msgid "Enable Usage Statistics Reporting"
 msgstr "Használati statisztika jelentése"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:243
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:469
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:241
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:464
 msgid "Generate a New Statistics Identity"
 msgstr "Új statisztikai azonosító generálása"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:370
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:365
 msgid "Identity Generation"
 msgstr "Azonosító generálása"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:371
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:366
 msgid "New identity generated."
 msgstr "Új azonosító generálva."
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:379
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:374
 msgid ""
 "Separates CPU and GPU emulation work to separate threads. Reduces single-"
 "thread burden by spreading Dolphin's heaviest load across two cores, which "
@@ -13531,7 +13538,7 @@ msgstr ""
 "módosítható, amíg az emuláció fut.<br><br><dolphin_emphasis> Ha bizonytalan "
 "vagy, hagyd üresen.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:385
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:380
 msgid ""
 "Enables the use of AR and Gecko cheat codes which can be used to modify "
 "games' behavior. These codes can be configured with the Cheats Manager in "
@@ -13540,7 +13547,7 @@ msgid ""
 "dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:390
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:385
 msgid ""
 "Lets you use languages and other region-related settings that the game may "
 "not be designed for. May cause various crashes and bugs.<br><br>This setting "
@@ -13548,7 +13555,7 @@ msgid ""
 "unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:395
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:390
 msgid ""
 "Automatically changes the game disc when requested by games with two discs. "
 "This feature requires the game to be launched in one of the following ways:"
@@ -13559,7 +13566,7 @@ msgid ""
 "unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:404
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:399
 msgid ""
 "Shows which game is active and the duration of your current play session in "
 "your Discord status.<br><br>This setting cannot be changed while emulation "
@@ -13571,7 +13578,7 @@ msgstr ""
 "közben.<br><br><dolphin_emphasis>Ha bizonytalan vagy, hagyd kipipálva.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:410
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:405
 msgid ""
 "Selects which update track Dolphin uses when checking for updates at "
 "startup. If a new update is available, Dolphin will show a list of changes "
@@ -13592,7 +13599,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, select Releases.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:429
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:424
 msgid ""
 "Sets the region used for titles whose region cannot be determined "
 "automatically.<br><br>This setting cannot be changed while emulation is "
@@ -13601,7 +13608,7 @@ msgstr ""
 "Beállítja a régiót azoknál a játékoknál, amelyek régiója nem határozható meg "
 "automatikusan.<br><br>Ez a beállítás nem módosítható, amíg az emuláció aktív."
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:433
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:428
 msgid ""
 "If selected, Dolphin can collect data on its performance, feature usage, "
 "emulated games, and configuration, as well as data on your system's hardware "
@@ -13611,21 +13618,21 @@ msgid ""
 "bugs, performance and stability issues."
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:439
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:434
 msgid ""
 "Generate a new anonymous ID for your usage statistics. This will cause any "
 "future statistics to be unassociated with your previous statistics."
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:455
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:450
 msgid "Speed Limit"
 msgstr "Sebességkorlát"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:459
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:454
 msgid "Auto Update"
 msgstr "Automatikus frissítés"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:479
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:474
 msgid ""
 "Controls how fast emulation runs relative to the original hardware."
 "<br><br>Values higher than 100% will emulate faster than the original "
@@ -13635,7 +13642,7 @@ msgid ""
 "dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:485
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:480
 msgid ""
 "<dolphin_emphasis>When Hardcore Mode is enabled, Speed Limit values less "
 "than 100% will be treated as 100%.</dolphin_emphasis>"
@@ -13643,7 +13650,7 @@ msgstr ""
 "<dolphin_emphasis>Hardcore mód használatakor a 100% alatti sebesség limit "
 "100%-ként lesz kezelve.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:491
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:486
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:284
 msgid "%1<br><br>%2"
 msgstr "%1<br><br>%2"
@@ -13682,15 +13689,15 @@ msgstr "(Sötét)"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:157
 msgid "(Fusion Light)"
-msgstr "(Fusion világos)"
+msgstr "(Világos Fusion)"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:159
 msgid "(Fusion Dark Gray)"
-msgstr "(Fusion sötétszürke)"
+msgstr "(Sötétszürke Fusion)"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:161
 msgid "(Fusion Dark)"
-msgstr "(Fusion sötét)"
+msgstr "(Sötét Fusion)"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:171
 msgid "Use Built-In Database of Game Names"
@@ -13953,7 +13960,7 @@ msgstr "Betűméret:"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:37
 msgid "Font Size"
-msgstr ""
+msgstr "Betűméret"
 
 #: Source/Core/DolphinQt/Settings/OnScreenDisplayPane.cpp:41
 msgid "Performance Statistics"
@@ -14261,11 +14268,11 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/TriforcePane.cpp:102
 msgid "Emulated"
-msgstr ""
+msgstr "Emulált"
 
 #: Source/Core/DolphinQt/Settings/TriforcePane.cpp:102
 msgid "Real"
-msgstr ""
+msgstr "Valódi"
 
 #: Source/Core/DolphinQt/Settings/USBDevicePicker.cpp:51
 msgid "Select"
@@ -14510,15 +14517,15 @@ msgstr "USB engedélyezési hiba"
 msgid "This USB device is already whitelisted."
 msgstr "Ez az USB-eszköz már engedélyezve van."
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:408
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:407
 msgid "Select SD Card Image"
 msgstr "SD kártya képfájl kiválasztása"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:410
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:409
 msgid "SD Card Image (*.raw);;All Files (*)"
 msgstr "SD kártya képfájl (*.raw);;Minden fájl (*)"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:419
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:418
 msgid "Select a Folder to Sync with the SD Card Image"
 msgstr "Az SD kártya képfájllal szinkronizálandó mappa kiválasztása"
 

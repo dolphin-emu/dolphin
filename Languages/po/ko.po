@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-24 20:52+0100\n"
+"POT-Creation-Date: 2026-03-09 22:57+0100\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Siegfried, 2013-2025\n"
 "Language-Team: Korean (http://app.transifex.com/dolphinemu/dolphin-emu/"
@@ -2984,22 +2984,22 @@ msgid "Korean"
 msgstr "한국어"
 
 #: Source/Core/DiscIO/Enums.cpp:120 Source/Core/DolphinQt/MenuBar.cpp:315
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:230
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:228
 msgid "NTSC-J"
 msgstr "NTSC-J"
 
 #: Source/Core/DiscIO/Enums.cpp:123 Source/Core/DolphinQt/MenuBar.cpp:317
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:230
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:228
 msgid "NTSC-U"
 msgstr "NTSC-U"
 
 #: Source/Core/DiscIO/Enums.cpp:126 Source/Core/DolphinQt/MenuBar.cpp:320
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:230
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:228
 msgid "PAL"
 msgstr "PAL"
 
 #: Source/Core/DiscIO/Enums.cpp:129
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:230
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:228
 msgid "NTSC-K"
 msgstr "NTSC-K"
 
@@ -9158,74 +9158,74 @@ msgid "Size: 0x"
 msgstr "크기: 0x"
 
 #. i18n: PPC Feature Flags
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:386
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:389
 msgid "PPC Feat. Flags"
 msgstr "PPC 기능 플래그들"
 
 #. i18n: Effective Address
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:388
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:391
 msgid "Eff. Address"
 msgstr "시행 주소"
 
 #. i18n: Code Buffer Size
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:390
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:393
 msgid "Code Buff. Size"
 msgstr "코드 버퍼 크기"
 
 #. i18n: Repeat Instructions
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:392
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:395
 msgid "Repeat Instr."
 msgstr "명령 반복"
 
 #. i18n: Host Near Code Size
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:394
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:397
 msgid "Host N. Size"
 msgstr "호스트 가까운 크기"
 
 #. i18n: Host Far Code Size
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:396
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:399
 msgid "Host F. Size"
 msgstr "호스트 먼 코드 크기"
 
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:397
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:400
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:642
 msgid "Run Count"
 msgstr "카운트 구동"
 
 #. i18n: "Cycles" means instruction cycles.
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:398
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:401
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:644
 msgid "Cycles Spent"
 msgstr "소비된 싸이클"
 
 #. i18n: Cycles Average
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:400
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:403
 msgid "Cycles Avg."
 msgstr "싸이클 평균."
 
 #. i18n: Cycles Percent
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:402
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:405
 msgid "Cycles %"
 msgstr "싸이클 %"
 
 #. i18n: "ns" is an abbreviation of nanoseconds.
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:403
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:406
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:650
 msgid "Time Spent (ns)"
 msgstr "소비된 시간 (ns)"
 
 #. i18n: Time Average (ns)
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:405
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:408
 msgid "Time Avg. (ns)"
 msgstr "시간 평균 (ns)"
 
 #. i18n: Time Percent
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:407
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:410
 msgid "Time %"
 msgstr "시간 %"
 
 #. i18n: "Symbol" means debugging symbol (its name in particular).
-#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:408
+#: Source/Core/DolphinQt/Debugger/JitBlockTableModel.cpp:411
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:655
 msgid "Symbol"
 msgstr "기호"
@@ -14011,23 +14011,23 @@ msgstr ""
 "게임 보이 어드밴스 롬(*.gba *.gbc *.gb *.7z *.zip *.agb *.mb *.rom *.bin);;모"
 "든 파일 (*)"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:137
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:135
 msgid "Basic Settings"
 msgstr "기본 설정"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:142
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:140
 msgid "Enable Dual Core (speedhack)"
 msgstr "듀얼 코어 (스피드핵) 활성화"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:145
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:143
 msgid "Enable Cheats"
 msgstr "치트 활성화"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:149
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:147
 msgid "Load Whole Game Into Memory"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:152
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:150
 msgid ""
 "Loads the running game into memory in the background.<br><br>This may "
 "improve performance with slow or high-latency storage.<br>System memory "
@@ -14035,82 +14035,82 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:158
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:156
 msgid "Allow Mismatched Region Settings"
 msgstr "맞지 않는 지역 설정 허락"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:162
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:160
 msgid "Change Discs Automatically"
 msgstr "디스크 자동 교환"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:166
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:164
 msgid "Show Current Game on Discord"
 msgstr "디스코드에 현재 게임을 보여주기"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:177
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:175
 msgid "Unlimited"
 msgstr "무제한"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:184
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:182
 msgid "%1% (Normal Speed)"
 msgstr "%1% (보통 속도)"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:189
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:187
 msgid "&Speed Limit:"
 msgstr "속도 제한(&S):"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:194
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:192
 msgid "Auto Update Settings"
 msgstr "설정 자동 업데이트"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:204
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:202
 msgid "&Auto Update:"
 msgstr "자동 업데이트(&A):"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:207
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:205
 msgid "Don't Update"
 msgstr "업데이트 안함"
 
 #. i18n: Releases is a noun.
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:209
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:207
 msgid "Releases (every few months)"
 msgstr "출시 (몇 달마다)"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:209
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:207
 msgid "Dev (multiple times a day)"
 msgstr "개발 (하루에 여러 번)"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:217
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:463
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:215
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:458
 msgid "Fallback Region"
 msgstr "대비책 지역"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:228
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:226
 msgid "Fallback Region:"
 msgstr "대비책 지역:"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:237
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:235
 msgid "Usage Statistics Reporting Settings"
 msgstr "사용 통계 보고 설정"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:242
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:240
 msgid "Enable Usage Statistics Reporting"
 msgstr "사용 통계 보고 활성화"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:243
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:469
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:241
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:464
 msgid "Generate a New Statistics Identity"
 msgstr "새로운 통계 식별자 생성"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:370
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:365
 msgid "Identity Generation"
 msgstr "식별자 생성"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:371
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:366
 msgid "New identity generated."
 msgstr "새로운 식별자가 생성되었습니다."
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:379
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:374
 msgid ""
 "Separates CPU and GPU emulation work to separate threads. Reduces single-"
 "thread burden by spreading Dolphin's heaviest load across two cores, which "
@@ -14125,7 +14125,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:385
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:380
 msgid ""
 "Enables the use of AR and Gecko cheat codes which can be used to modify "
 "games' behavior. These codes can be configured with the Cheats Manager in "
@@ -14139,7 +14139,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:390
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:385
 msgid ""
 "Lets you use languages and other region-related settings that the game may "
 "not be designed for. May cause various crashes and bugs.<br><br>This setting "
@@ -14151,7 +14151,7 @@ msgstr ""
 "일 때 변경될 수 없습니다.<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제"
 "해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:395
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:390
 msgid ""
 "Automatically changes the game disc when requested by games with two discs. "
 "This feature requires the game to be launched in one of the following ways:"
@@ -14168,7 +14168,7 @@ msgstr ""
 "나 명령행 인터페이스로.<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제해 "
 "두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:404
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:399
 msgid ""
 "Shows which game is active and the duration of your current play session in "
 "your Discord status.<br><br>This setting cannot be changed while emulation "
@@ -14179,7 +14179,7 @@ msgstr ""
 "<br><br>이 설정은 에뮬레이션이 액티브인 동안은 변경될 수 없습니다."
 "<br><br><dolphin_emphasis>잘 모르겠으면, 체크해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:410
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:405
 msgid ""
 "Selects which update track Dolphin uses when checking for updates at "
 "startup. If a new update is available, Dolphin will show a list of changes "
@@ -14216,7 +14216,7 @@ msgstr ""
 "니다.<br><br><dolphin_emphasis>모르겠으면, 출시를 선택하세요.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:429
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:424
 msgid ""
 "Sets the region used for titles whose region cannot be determined "
 "automatically.<br><br>This setting cannot be changed while emulation is "
@@ -14225,7 +14225,7 @@ msgstr ""
 "자동으로 결정될 수 없는 지역 제목에 사용될 지역을 설정합니다.<br><br>이 설정"
 "은 에뮬레이션이 활동할 때 변경될 수 없습니다."
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:433
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:428
 msgid ""
 "If selected, Dolphin can collect data on its performance, feature usage, "
 "emulated games, and configuration, as well as data on your system's hardware "
@@ -14241,7 +14241,7 @@ msgstr ""
 "니다. 이것은 또한 버그, 성능과 안정성 이슈들을 유발하는 드문 환경설정을 우리"
 "가 식별하게 도와줍니다."
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:439
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:434
 msgid ""
 "Generate a new anonymous ID for your usage statistics. This will cause any "
 "future statistics to be unassociated with your previous statistics."
@@ -14249,15 +14249,15 @@ msgstr ""
 "사용 통계를 위한 새로운 익명 ID 를 생성합니다. 이것은 미래 통계가 이전 통계"
 "와 연관이 안되게 할 것입니다."
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:455
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:450
 msgid "Speed Limit"
 msgstr "속도  제한"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:459
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:454
 msgid "Auto Update"
 msgstr "자동 업데이트"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:479
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:474
 msgid ""
 "Controls how fast emulation runs relative to the original hardware."
 "<br><br>Values higher than 100% will emulate faster than the original "
@@ -14273,7 +14273,7 @@ msgstr ""
 "게 에뮬할 것입니다.<br><br><dolphin_emphasis>모르겠으면, 100% 를 선택하세요."
 "</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:485
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:480
 msgid ""
 "<dolphin_emphasis>When Hardcore Mode is enabled, Speed Limit values less "
 "than 100% will be treated as 100%.</dolphin_emphasis>"
@@ -14281,7 +14281,7 @@ msgstr ""
 "<dolphin_emphasis>하드코어 모드가 활성화되면, 100% 미만 속도 제한 값들은 100%"
 "로 취급될 것입니다.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:491
+#: Source/Core/DolphinQt/Settings/GeneralPane.cpp:486
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:284
 msgid "%1<br><br>%2"
 msgstr "%1<br><br>%2"
@@ -15208,15 +15208,15 @@ msgstr "USB 와이트리스트 에러"
 msgid "This USB device is already whitelisted."
 msgstr "이 USB 장치는 이미 와이트리스트되어 있습니다."
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:408
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:407
 msgid "Select SD Card Image"
 msgstr "SD 카드 이미지 선택"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:410
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:409
 msgid "SD Card Image (*.raw);;All Files (*)"
 msgstr "SD 카드 이미지 (*.raw);;모든 파일 (*)"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:419
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:418
 msgid "Select a Folder to Sync with the SD Card Image"
 msgstr "SD 카드 이미지와 동기화할 폴더를 선택하세요"
 
