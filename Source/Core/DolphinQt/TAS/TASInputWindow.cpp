@@ -126,8 +126,8 @@ QGroupBox* TASInputWindow::CreateStickInputs(const QString& text, std::string_vi
   auto* visual_ar = new AspectRatioWidget(visual, max_x, max_y);
 
   // This is done to prevent the stick widget from stretching
-  box_layout->addItem(new QSpacerItem(0, 0), 3, 0);
-  box_layout->addWidget(visual_ar, 2, 0, 1, 1);
+  box_layout->addItem(new QSpacerItem(0, 0), 2, 1);
+  box_layout->addWidget(visual_ar, 1, 1);
   box->setLayout(box_layout);
 
   overrider->AddFunction(group_name, ControllerEmu::ReshapableInput::X_INPUT_OVERRIDE,
@@ -154,7 +154,7 @@ QGridLayout* TASInputWindow::CreateSliderValuePairLayout(
       text, shortcut_key_sequence.toString(QKeySequence::NativeText)));
 
   QGridLayout* layout = new QGridLayout;
-  layout->addWidget(label, 0, 0, 1, 2);
+  layout->addWidget(label, 0, 0, 3, 1);
 
   CreateSliderValuePair(group_name, control_name, overrider, layout, zero, default_, min, max,
                         shortcut_key_sequence, Qt::Horizontal, shortcut_widget, scale);
@@ -209,7 +209,8 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(QGridLayout* layout, int defau
   slider->setValue(default_);
   slider->setFocusPolicy(Qt::ClickFocus);
 
-  value->setFixedWidth(value->fontMetrics().horizontalAdvance(QString::number(max)) + 25);
+  QFontMetrics fm(value->font());
+  value->setFixedWidth(fm.horizontalAdvance(QString::number(max)) + 30);
 
   connect(slider, &QSlider::valueChanged, value, &QSpinBox::setValue);
   connect(value, &QSpinBox::valueChanged, slider, &QSlider::setValue);
@@ -222,15 +223,15 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(QGridLayout* layout, int defau
 
   if (orientation == Qt::Vertical)
   {
-    layout->addWidget(slider, 2, 1);
-    layout->addWidget(value, 3, 1);
+    layout->addWidget(slider, 1, 2);
+    layout->addWidget(value, 2, 2);
 
     layout->setAlignment(slider, Qt::AlignHCenter);
   }
   else
   {
-    layout->addWidget(slider, 1, 0);
-    layout->addWidget(value, 1, 1);
+    layout->addWidget(slider, 0, 1);
+    layout->addWidget(value, 0, 2);
   }
 
   return value;
