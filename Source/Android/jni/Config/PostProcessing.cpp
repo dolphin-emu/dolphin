@@ -129,8 +129,8 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_PostProcessing_getShaderO
 
 static void EnsureShaderLoaded(const std::string& shader)
 {
-if (s_post_processing_configuration.GetShader() != shader)
-  s_post_processing_configuration.LoadShader(shader);
+  if (s_post_processing_configuration.GetShader() != shader)
+    s_post_processing_configuration.LoadShader(shader);
 }
 
 JNIEXPORT void JNICALL
