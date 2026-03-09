@@ -7,6 +7,11 @@
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
 
+namespace Triforce
+{
+class SerialDevice;
+}
+
 namespace SerialInterface
 {
 
@@ -175,6 +180,11 @@ private:
 
   static constexpr u32 RESPONSE_SIZE = SerialInterfaceManager::BUFFER_SIZE;
 
+  // This value prevents F-Zero AX mag card breakage.
+  // It's now used for serial port reads in general.
+  // TODO: Verify how the hardware actually works.
+  static constexpr u32 SERIAL_PORT_MAX_READ_SIZE = 0x1f;
+
   // Reply has to be delayed due a bug in the parser
   std::array<std::array<u8, RESPONSE_SIZE>, 2> m_response_buffers{};
   u8 m_current_response_buffer_index = 0;
@@ -196,12 +206,9 @@ private:
   // Magnetic Card Reader
   MagCard::MagneticCardReader::Settings m_mag_card_settings;
 
-  std::vector<u8> m_mag_card_in_buffer;
-  std::vector<u8> m_mag_card_out_buffer;
+  // Serial B
+  std::unique_ptr<Triforce::SerialDevice> m_serial_device_b;
 
-  std::unique_ptr<MagCard::MagneticCardReader> m_mag_card_reader;
-
-  // Serial
   u32 m_wheel_init = 0;
 
   u32 m_motor_init = 0;
