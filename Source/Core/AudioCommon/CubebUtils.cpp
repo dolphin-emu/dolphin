@@ -177,6 +177,76 @@ cubeb_devid GetInputDeviceById(std::string_view id)
   return device_id;
 }
 
+std::vector<std::pair<std::string, std::string>> ListOutputDevices()
+{
+  std::vector<std::pair<std::string, std::string>> devices;
+
+  cubeb_device_collection collection;
+  auto cubeb_ctx = GetContext();
+  if (!cubeb_ctx)
+    return devices;
+
+  const int r = cubeb_enumerate_devices(cubeb_ctx.get(), CUBEB_DEVICE_TYPE_OUTPUT, &collection);
+  if (r != CUBEB_OK)
+  {
+    ERROR_LOG_FMT(AUDIO, "Error listing cubeb output devices");
+    return devices;
+  }
+
+  for (uint32_t i = 0; i < collection.count; i++)
+  {
+    const auto& info = collection.device[i];
+    if (info.device_id == nullptr)
+      continue;
+
+    if (info.state == CUBEB_DEVICE_STATE_ENABLED)
+    {
+      const char* name = (info.friendly_name != nullptr) ? info.friendly_name : info.device_id;
+      devices.emplace_back(info.device_id, name);
+    }
+  }
+
+  cubeb_device_collection_destroy(cubeb_ctx.get(), &collection);
+  return devices;
+}
+
+const void* GetOutputDeviceById(std::string_view id)
+{
+  if (id.empty())
+    return nullptr;
+
+  cubeb_device_collection collection;
+  auto cubeb_ctx = GetContext();
+  if (!cubeb_ctx)
+    return nullptr;
+
+  const int r = cubeb_enumerate_devices(cubeb_ctx.get(), CUBEB_DEVICE_TYPE_OUTPUT, &collection);
+  if (r != CUBEB_OK)
+  {
+    ERROR_LOG_FMT(AUDIO, "Error enumerating cubeb output devices");
+    return nullptr;
+  }
+
+  cubeb_devid device_id = nullptr;
+  for (uint32_t i = 0; i < collection.count; i++)
+  {
+    const auto& info = collection.device[i];
+    if (info.device_id && id.compare(info.device_id) == 0)
+    {
+      device_id = info.devid;
+      break;
+    }
+  }
+
+  if (device_id == nullptr)
+  {
+    WARN_LOG_FMT(AUDIO, "Failed to find selected output device, defaulting to system preferences");
+  }
+
+  cubeb_device_collection_destroy(cubeb_ctx.get(), &collection);
+  return device_id;
+}
+
 CoInitSyncWorker::CoInitSyncWorker([[maybe_unused]] std::string worker_name)
 #ifdef _WIN32
     : m_work_queue{std::move(worker_name)}
