@@ -29,8 +29,8 @@ public:
   // Called from main thread
   void PushSamples(const s16* samples, std::size_t num_samples);
   void PushStreamingSamples(const s16* samples, std::size_t num_samples);
-  void PushWiimoteSpeakerSamples(const s16* samples, std::size_t num_samples,
-                                 u32 sample_rate_divisor);
+  void PushWiimoteSpeakerSamples(std::size_t wiimote_index, const s16* samples,
+                                 std::size_t num_samples, u32 sample_rate_divisor);
   void PushSkylanderPortalSamples(const u8* samples, std::size_t num_samples);
   void PushGBASamples(std::size_t device_number, const s16* samples, std::size_t num_samples);
 
@@ -45,7 +45,8 @@ public:
   void SetGBAInputSampleRateDivisors(std::size_t device_number, u32 rate_divisor);
 
   void SetStreamingVolume(u32 lvolume, u32 rvolume);
-  void SetWiimoteSpeakerVolume(u32 lvolume, u32 rvolume);
+  void SetWiimoteSpeakerVolume(std::size_t wiimote_index, u32 lvolume, u32 rvolume);
+  std::size_t MixWiimoteSpeaker(std::size_t wiimote_index, s16* samples, std::size_t num_samples);
   void SetGBAVolume(std::size_t device_number, u32 lvolume, u32 rvolume);
 
   void StartLogDTKAudio(const std::string& filename);
@@ -146,7 +147,11 @@ private:
 
   MixerFifo m_dma_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 32000, false};
   MixerFifo m_streaming_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, false};
-  MixerFifo m_wiimote_speaker_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 3000, true};
+  std::array<MixerFifo, 4> m_wiimote_speaker_mixers{
+      MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 3000, true},
+      MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 3000, true},
+      MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 3000, true},
+      MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 3000, true}};
   MixerFifo m_skylander_portal_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 8000, true};
   std::array<MixerFifo, 4> m_gba_mixers{MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true},
                                         MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true},
@@ -166,6 +171,8 @@ private:
   bool m_config_audio_preserve_pitch;
   bool m_config_fill_audio_gaps;
   int m_config_audio_buffer_ms;
+  bool m_config_wiimote_routing_enabled = false;
+  std::array<bool, 4> m_config_wiimote_output_enabled{};
 
   Config::ConfigChangedCallbackID m_config_changed_callback_id;
 };

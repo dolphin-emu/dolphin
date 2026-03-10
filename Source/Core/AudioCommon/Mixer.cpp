@@ -52,7 +52,8 @@ void Mixer::DoState(PointerWrap& p)
 {
   m_dma_mixer.DoState(p);
   m_streaming_mixer.DoState(p);
-  m_wiimote_speaker_mixer.DoState(p);
+  for (auto& mixer : m_wiimote_speaker_mixers)
+    mixer.DoState(p);
   m_skylander_portal_mixer.DoState(p);
   for (auto& mixer : m_gba_mixers)
     mixer.DoState(p);
@@ -169,7 +170,11 @@ std::size_t Mixer::Mix(s16* samples, std::size_t num_samples)
 
   m_dma_mixer.Mix(samples, num_samples);
   m_streaming_mixer.Mix(samples, num_samples);
-  m_wiimote_speaker_mixer.Mix(samples, num_samples);
+  for (std::size_t i = 0; i < m_wiimote_speaker_mixers.size(); ++i)
+  {
+    if (!m_config_wiimote_routing_enabled || !m_config_wiimote_output_enabled[i])
+      m_wiimote_speaker_mixers[i].Mix(samples, num_samples);
+  }
   m_skylander_portal_mixer.Mix(samples, num_samples);
   for (auto& mixer : m_gba_mixers)
     mixer.Mix(samples, num_samples);
@@ -258,10 +263,10 @@ void Mixer::PushStreamingSamples(const s16* samples, std::size_t num_samples)
   }
 }
 
-void Mixer::PushWiimoteSpeakerSamples(const s16* samples, std::size_t num_samples,
-                                      u32 sample_rate_divisor)
+void Mixer::PushWiimoteSpeakerSamples(std::size_t wiimote_index, const s16* samples,
+                                      std::size_t num_samples, u32 sample_rate_divisor)
 {
-  if (!IsOutputSampleRateValid())
+  if (!IsOutputSampleRateValid() || wiimote_index >= m_wiimote_speaker_mixers.size())
     return;
 
   // Max 20 bytes/speaker report, may be 4-bit ADPCM so multiply by 2
@@ -273,7 +278,7 @@ void Mixer::PushWiimoteSpeakerSamples(const s16* samples, std::size_t num_sample
              MAX_SPEAKER_SAMPLES);
   if (num_samples <= MAX_SPEAKER_SAMPLES)
   {
-    m_wiimote_speaker_mixer.SetInputSampleRateDivisor(sample_rate_divisor);
+    m_wiimote_speaker_mixers[wiimote_index].SetInputSampleRateDivisor(sample_rate_divisor);
 
     for (std::size_t i = 0; i < num_samples; ++i)
     {
@@ -281,8 +286,19 @@ void Mixer::PushWiimoteSpeakerSamples(const s16* samples, std::size_t num_sample
       samples_stereo[i * 2 + 1] = samples[i];
     }
 
-    m_wiimote_speaker_mixer.PushSamples(samples_stereo.data(), num_samples);
+    m_wiimote_speaker_mixers[wiimote_index].PushSamples(samples_stereo.data(), num_samples);
   }
+}
+
+std::size_t Mixer::MixWiimoteSpeaker(std::size_t wiimote_index, s16* samples,
+                                     std::size_t num_samples)
+{
+  if (!samples || wiimote_index >= m_wiimote_speaker_mixers.size())
+    return 0;
+
+  memset(samples, 0, num_samples * 2 * sizeof(s16));
+  m_wiimote_speaker_mixers[wiimote_index].Mix(samples, num_samples);
+  return num_samples;
 }
 
 void Mixer::PushSkylanderPortalSamples(const u8* samples, std::size_t num_samples)
@@ -342,9 +358,10 @@ void Mixer::SetStreamingVolume(u32 lvolume, u32 rvolume)
                               std::clamp<u32>(rvolume, 0x00, 0xff));
 }
 
-void Mixer::SetWiimoteSpeakerVolume(u32 lvolume, u32 rvolume)
+void Mixer::SetWiimoteSpeakerVolume(std::size_t wiimote_index, u32 lvolume, u32 rvolume)
 {
-  m_wiimote_speaker_mixer.SetVolume(lvolume, rvolume);
+  if (wiimote_index < m_wiimote_speaker_mixers.size())
+    m_wiimote_speaker_mixers[wiimote_index].SetVolume(lvolume, rvolume);
 }
 
 void Mixer::SetGBAVolume(std::size_t device_number, u32 lvolume, u32 rvolume)
@@ -433,6 +450,9 @@ void Mixer::RefreshConfig()
   m_config_audio_preserve_pitch = Config::Get(Config::MAIN_AUDIO_PRESERVE_PITCH);
   m_config_fill_audio_gaps = Config::Get(Config::MAIN_AUDIO_FILL_GAPS);
   m_config_audio_buffer_ms = Config::Get(Config::MAIN_AUDIO_BUFFER_SIZE);
+  m_config_wiimote_routing_enabled = Config::Get(Config::MAIN_WIIMOTE_AUDIO_ROUTING_ENABLED);
+  for (std::size_t i = 0; i < m_config_wiimote_output_enabled.size(); ++i)
+    m_config_wiimote_output_enabled[i] = Config::Get(Config::MAIN_WIIMOTE_AUDIO_OUTPUT_ENABLED[i]);
 }
 
 void Mixer::MixerFifo::DoState(PointerWrap& p)

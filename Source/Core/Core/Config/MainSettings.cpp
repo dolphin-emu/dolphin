@@ -699,6 +699,21 @@ static std::string GetDefaultTriforceIPRedirections()
 const Info<std::string> MAIN_TRIFORCE_IP_REDIRECTIONS{
     {System::Main, "Core", "TriforceIPRedirections"}, GetDefaultTriforceIPRedirections()};
 
+// Main.WiimoteAudioRouting
+
+const Info<bool> MAIN_WIIMOTE_AUDIO_ROUTING_ENABLED{
+    {System::Main, "Core", "WiimoteAudioRoutingEnabled"}, false};
+const std::array<Info<bool>, WIIMOTE_SPEAKER_COUNT> MAIN_WIIMOTE_AUDIO_OUTPUT_ENABLED{
+    Info<bool>{{System::Main, "Core", "Wiimote1AudioOutputEnabled"}, false},
+    Info<bool>{{System::Main, "Core", "Wiimote2AudioOutputEnabled"}, false},
+    Info<bool>{{System::Main, "Core", "Wiimote3AudioOutputEnabled"}, false},
+    Info<bool>{{System::Main, "Core", "Wiimote4AudioOutputEnabled"}, false}};
+const std::array<Info<std::string>, WIIMOTE_SPEAKER_COUNT> MAIN_WIIMOTE_AUDIO_OUTPUT_DEVICE{
+    Info<std::string>{{System::Main, "Core", "Wiimote1AudioOutputDevice"}, ""},
+    Info<std::string>{{System::Main, "Core", "Wiimote2AudioOutputDevice"}, ""},
+    Info<std::string>{{System::Main, "Core", "Wiimote3AudioOutputDevice"}, ""},
+    Info<std::string>{{System::Main, "Core", "Wiimote4AudioOutputDevice"}, ""}};
+
 // The reason we need this function is because some memory card code
 // expects to get a non-NTSC-K region even if we're emulating an NTSC-K Wii.
 DiscIO::Region ToGameCubeRegion(DiscIO::Region region)
