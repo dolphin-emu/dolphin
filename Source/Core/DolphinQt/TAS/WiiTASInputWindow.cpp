@@ -80,22 +80,22 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   box_layout->addWidget(visual_ar, 1, 1);
   ir_box->setLayout(box_layout);
 
-  m_ir_box = new AspectRatioWidget(ir_box, 1, 1.02);
+  m_ir_box = new AspectRatioWidget(ir_box, 1, 1.02f);
 
   m_nunchuk_stick_box = new AspectRatioWidget(
       CreateStickInputs(tr("Nunchuk Stick"), WiimoteEmu::Nunchuk::STICK_GROUP, &m_nunchuk_overrider,
                         0, 0, 255, 255, Qt::Key_F, Qt::Key_G),
-      1, 1.02);
+      1, 1.02f);
 
   m_classic_left_stick_box = new AspectRatioWidget(
       CreateStickInputs(tr("Left Stick"), WiimoteEmu::Classic::LEFT_STICK_GROUP,
                         &m_classic_overrider, 0, 0, 63, 63, Qt::Key_F, Qt::Key_G),
-      1, 1.02);
+      1, 1.02f);
 
   m_classic_right_stick_box = new AspectRatioWidget(
       CreateStickInputs(tr("Right Stick"), WiimoteEmu::Classic::RIGHT_STICK_GROUP,
                         &m_classic_overrider, 0, 0, 31, 31, Qt::Key_Q, Qt::Key_W),
-      1, 1.02);
+      1, 1.02f);
 
   auto* top_layout = new QHBoxLayout;
   top_layout->addWidget(m_ir_box);

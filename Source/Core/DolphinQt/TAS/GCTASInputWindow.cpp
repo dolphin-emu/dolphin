@@ -32,8 +32,8 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int controller_id)
                                     255, Qt::Key_H, Qt::Key_J);
 
   auto* top_layout = new QHBoxLayout;
-  top_layout->addWidget(new AspectRatioWidget(m_main_stick_box, 1, 1.02));
-  top_layout->addWidget(new AspectRatioWidget(m_c_stick_box, 1, 1.02));
+  top_layout->addWidget(new AspectRatioWidget(m_main_stick_box, 1, 1.02f));
+  top_layout->addWidget(new AspectRatioWidget(m_c_stick_box, 1, 1.02f));
 
   m_triggers_box = new QGroupBox(tr("Triggers"));
 
