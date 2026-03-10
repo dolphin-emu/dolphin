@@ -44,10 +44,10 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   const QKeySequence ir_x_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_X);
   const QKeySequence ir_y_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_C);
 
-  auto* ir_box = new QGroupBox(QStringLiteral("%1 (%2/%3)")
-                               .arg(tr("IR"),
-                                    ir_x_shortcut_key_sequence.toString(QKeySequence::NativeText),
-                                    ir_y_shortcut_key_sequence.toString(QKeySequence::NativeText)));
+  auto* ir_box = new QGroupBox(
+      QStringLiteral("%1 (%2/%3)")
+          .arg(tr("IR"), ir_x_shortcut_key_sequence.toString(QKeySequence::NativeText),
+               ir_y_shortcut_key_sequence.toString(QKeySequence::NativeText)));
 
   const int ir_x_center = static_cast<int>(std::round(IRWidget::IR_MAX_X / 2.));
   const int ir_y_center = static_cast<int>(std::round(IRWidget::IR_MAX_Y / 2.));
@@ -84,15 +84,18 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
 
   m_nunchuk_stick_box = new AspectRatioWidget(
       CreateStickInputs(tr("Nunchuk Stick"), WiimoteEmu::Nunchuk::STICK_GROUP, &m_nunchuk_overrider,
-                        0, 0, 255, 255, Qt::Key_F, Qt::Key_G), 1, 1.02);
+                        0, 0, 255, 255, Qt::Key_F, Qt::Key_G),
+      1, 1.02);
 
   m_classic_left_stick_box = new AspectRatioWidget(
       CreateStickInputs(tr("Left Stick"), WiimoteEmu::Classic::LEFT_STICK_GROUP,
-                        &m_classic_overrider, 0, 0, 63, 63, Qt::Key_F, Qt::Key_G), 1, 1.02);
+                        &m_classic_overrider, 0, 0, 63, 63, Qt::Key_F, Qt::Key_G),
+      1, 1.02);
 
   m_classic_right_stick_box = new AspectRatioWidget(
       CreateStickInputs(tr("Right Stick"), WiimoteEmu::Classic::RIGHT_STICK_GROUP,
-                        &m_classic_overrider, 0, 0, 31, 31, Qt::Key_Q, Qt::Key_W), 1, 1.02);
+                        &m_classic_overrider, 0, 0, 31, 31, Qt::Key_Q, Qt::Key_W),
+      1, 1.02);
 
   auto* top_layout = new QHBoxLayout;
   top_layout->addWidget(m_ir_box);

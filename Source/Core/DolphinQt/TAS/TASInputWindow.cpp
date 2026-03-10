@@ -229,7 +229,7 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(QGridLayout* layout, int defau
   {
     layout->addWidget(slider, 0, 1);
     layout->addWidget(value, 0, 2);
-    
+
     slider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   }
 
