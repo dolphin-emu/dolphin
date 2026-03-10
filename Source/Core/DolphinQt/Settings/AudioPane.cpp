@@ -17,9 +17,14 @@
 #include <QSpacerItem>
 #include <QString>
 #include <QVBoxLayout>
+#include <QWidget>
 
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/WASAPIStream.h"
+
+#ifdef HAVE_CUBEB
+#include "AudioCommon/CubebUtils.h"
+#endif
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
@@ -200,11 +205,50 @@ void AudioPane::CreateWidgets()
   playback_layout->setRowStretch(4, 1);
   playback_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
+  // Wiimote Audio Routing
+#ifdef HAVE_CUBEB
+  m_wiimote_routing_box = new QGroupBox(tr("Wiimote Audio Routing"));
+  auto* wiimote_routing_layout = new QVBoxLayout;
+  m_wiimote_routing_box->setLayout(wiimote_routing_layout);
+
+  m_wiimote_routing_enable =
+      new ConfigBool(tr("Enable Wiimote Audio Routing"), Config::MAIN_WIIMOTE_AUDIO_ROUTING_ENABLED);
+  wiimote_routing_layout->addWidget(m_wiimote_routing_enable);
+
+  // Build device list once for all wiimote dropdowns
+  std::vector<std::pair<QString, QString>> output_devices;
+  output_devices.emplace_back(tr("Default Device"), QStringLiteral(""));
+  for (const auto& [id, name] : CubebUtils::ListOutputDevices())
+    output_devices.emplace_back(QString::fromStdString(name), QString::fromStdString(id));
+
+  static const char* const WIIMOTE_LABELS[4] = {"Wiimote 1", "Wiimote 2", "Wiimote 3",
+                                                 "Wiimote 4"};
+  for (std::size_t i = 0; i < 4; ++i)
+  {
+    auto* row_widget = new QWidget;
+    auto* row_layout = new QHBoxLayout(row_widget);
+    row_layout->setContentsMargins(0, 0, 0, 0);
+
+    m_wiimote_output_enable[i] =
+        new ConfigBool(tr(WIIMOTE_LABELS[i]), Config::MAIN_WIIMOTE_AUDIO_OUTPUT_ENABLED[i]);
+    m_wiimote_output_device[i] =
+        new ConfigStringChoice(output_devices, Config::MAIN_WIIMOTE_AUDIO_OUTPUT_DEVICE[i]);
+
+    row_layout->addWidget(m_wiimote_output_enable[i]);
+    row_layout->addWidget(m_wiimote_output_device[i], 1);
+
+    wiimote_routing_layout->addWidget(row_widget);
+  }
+#endif
+
   auto* const main_vbox_layout = new QVBoxLayout;
 
   main_vbox_layout->addWidget(dsp_box);
   main_vbox_layout->addWidget(backend_box);
   main_vbox_layout->addWidget(playback_box);
+#ifdef HAVE_CUBEB
+  main_vbox_layout->addWidget(m_wiimote_routing_box);
+#endif
 
   m_main_layout = new QHBoxLayout;
   m_main_layout->addLayout(main_vbox_layout);
@@ -227,6 +271,25 @@ void AudioPane::ConnectWidgets()
     connect(m_latency_slider, &QSlider::valueChanged, this,
             [this](int value) { m_latency_label->setText(tr("Latency: %1 ms").arg(value)); });
   }
+
+#ifdef HAVE_CUBEB
+  auto update_wiimote_routing_enabled = [this] {
+    const bool routing_on = m_wiimote_routing_enable->isChecked();
+    for (std::size_t i = 0; i < 4; ++i)
+    {
+      m_wiimote_output_enable[i]->setEnabled(routing_on);
+      m_wiimote_output_device[i]->setEnabled(routing_on && m_wiimote_output_enable[i]->isChecked());
+    }
+  };
+  connect(m_wiimote_routing_enable, &ConfigBool::toggled, this,
+          [update_wiimote_routing_enabled](bool) { update_wiimote_routing_enabled(); });
+  for (std::size_t i = 0; i < 4; ++i)
+  {
+    connect(m_wiimote_output_enable[i], &ConfigBool::toggled, this,
+            [this, update_wiimote_routing_enabled](bool) { update_wiimote_routing_enabled(); });
+  }
+  update_wiimote_routing_enabled();
+#endif
 }
 
 void AudioPane::OnDspChanged()
@@ -282,6 +345,20 @@ void AudioPane::OnEmulationStateChanged(bool running)
 
 #ifdef _WIN32
   m_wasapi_device_combo->setEnabled(!running);
+#endif
+
+#ifdef HAVE_CUBEB
+  if (m_wiimote_routing_box)
+  {
+    m_wiimote_routing_enable->setEnabled(!running);
+    const bool routing_on = !running && m_wiimote_routing_enable->isChecked();
+    for (std::size_t i = 0; i < 4; ++i)
+    {
+      m_wiimote_output_enable[i]->setEnabled(routing_on);
+      m_wiimote_output_device[i]->setEnabled(routing_on &&
+                                             m_wiimote_output_enable[i]->isChecked());
+    }
+  }
 #endif
 }
 
@@ -368,4 +445,28 @@ void AudioPane::AddDescriptions()
 
   m_audio_preserve_pitch->SetTitle(tr("Preserve Audio Pitch"));
   m_audio_preserve_pitch->SetDescription(tr(TR_PRESERVE_AUDIO_PITCH_DESCRIPTION));
+
+#ifdef HAVE_CUBEB
+  static const char TR_WIIMOTE_ROUTING_DESCRIPTION[] =
+      QT_TR_NOOP("Routes each Wiimote's speaker audio to a separate audio output device. "
+                 "The main audio output continues to work normally; only the Wiimote speaker "
+                 "audio is redirected. Requires a restart of emulation to take effect."
+                 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_WIIMOTE_OUTPUT_ENABLE_DESCRIPTION[] =
+      QT_TR_NOOP("Enables routing this Wiimote's speaker audio to a separate output device.");
+  static const char TR_WIIMOTE_OUTPUT_DEVICE_DESCRIPTION[] =
+      QT_TR_NOOP("Selects the audio output device for this Wiimote's speaker audio.");
+
+  if (m_wiimote_routing_box)
+  {
+    m_wiimote_routing_enable->SetTitle(tr("Enable Wiimote Audio Routing"));
+    m_wiimote_routing_enable->SetDescription(tr(TR_WIIMOTE_ROUTING_DESCRIPTION));
+    for (std::size_t i = 0; i < 4; ++i)
+    {
+      m_wiimote_output_enable[i]->SetDescription(tr(TR_WIIMOTE_OUTPUT_ENABLE_DESCRIPTION));
+      m_wiimote_output_device[i]->SetTitle(tr("Output Device"));
+      m_wiimote_output_device[i]->SetDescription(tr(TR_WIIMOTE_OUTPUT_DEVICE_DESCRIPTION));
+    }
+  }
+#endif
 }

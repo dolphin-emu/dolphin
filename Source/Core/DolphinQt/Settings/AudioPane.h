@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <array>
+
 #include <QWidget>
 
 namespace AudioCommon
@@ -16,6 +18,7 @@ class ConfigComplexChoice;
 class ConfigRadioBool;
 class ConfigSlider;
 class ConfigStringChoice;
+class QGroupBox;
 class QHBoxLayout;
 class QLabel;
 class QRadioButton;
@@ -68,4 +71,10 @@ private:
   ConfigBool* m_audio_fill_gaps;
   ConfigBool* m_audio_preserve_pitch;
   ConfigBool* m_speed_up_mute_enable;
+
+  // Wiimote Audio Routing
+  QGroupBox* m_wiimote_routing_box = nullptr;
+  ConfigBool* m_wiimote_routing_enable = nullptr;
+  std::array<ConfigBool*, 4> m_wiimote_output_enable{};
+  std::array<ConfigStringChoice*, 4> m_wiimote_output_device{};
 };
