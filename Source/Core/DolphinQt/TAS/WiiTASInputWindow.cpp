@@ -44,7 +44,7 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   const QKeySequence ir_x_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_X);
   const QKeySequence ir_y_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_C);
 
-  m_ir_box = new QGroupBox(QStringLiteral("%1 (%2/%3)")
+  auto* ir_box = new QGroupBox(QStringLiteral("%1 (%2/%3)")
                                .arg(tr("IR"),
                                     ir_x_shortcut_key_sequence.toString(QKeySequence::NativeText),
                                     ir_y_shortcut_key_sequence.toString(QKeySequence::NativeText)));
@@ -56,12 +56,12 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   m_ir_x_value = CreateSliderValuePair(
       WiimoteEmu::Wiimote::IR_GROUP, ControllerEmu::ReshapableInput::X_INPUT_OVERRIDE,
       &m_wiimote_overrider, box_layout, ir_x_center, ir_x_center, IRWidget::IR_MIN_X,
-      IRWidget::IR_MAX_X, ir_x_shortcut_key_sequence, Qt::Horizontal, m_ir_box);
+      IRWidget::IR_MAX_X, ir_x_shortcut_key_sequence, Qt::Horizontal, ir_box);
 
   m_ir_y_value = CreateSliderValuePair(
       WiimoteEmu::Wiimote::IR_GROUP, ControllerEmu::ReshapableInput::Y_INPUT_OVERRIDE,
       &m_wiimote_overrider, box_layout, ir_y_center, ir_y_center, IRWidget::IR_MIN_Y,
-      IRWidget::IR_MAX_Y, ir_y_shortcut_key_sequence, Qt::Vertical, m_ir_box);
+      IRWidget::IR_MAX_Y, ir_y_shortcut_key_sequence, Qt::Vertical, ir_box);
   m_ir_y_value->setMaximumWidth(60);
 
   auto* visual = new IRWidget(this);
@@ -78,24 +78,21 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   // This is done to prevent the stick widget from stretching
   box_layout->addItem(new QSpacerItem(0, 0), 2, 1);
   box_layout->addWidget(visual_ar, 1, 1);
-  m_ir_box->setLayout(box_layout);
+  ir_box->setLayout(box_layout);
 
-  m_nunchuk_stick_box =
+  m_ir_box = new AspectRatioWidget(ir_box, 1, 1.02);
+
+  m_nunchuk_stick_box = new AspectRatioWidget(
       CreateStickInputs(tr("Nunchuk Stick"), WiimoteEmu::Nunchuk::STICK_GROUP, &m_nunchuk_overrider,
-                        0, 0, 255, 255, Qt::Key_F, Qt::Key_G);
+                        0, 0, 255, 255, Qt::Key_F, Qt::Key_G), 1, 1.02);
 
-  m_classic_left_stick_box =
+  m_classic_left_stick_box = new AspectRatioWidget(
       CreateStickInputs(tr("Left Stick"), WiimoteEmu::Classic::LEFT_STICK_GROUP,
-                        &m_classic_overrider, 0, 0, 63, 63, Qt::Key_F, Qt::Key_G);
+                        &m_classic_overrider, 0, 0, 63, 63, Qt::Key_F, Qt::Key_G), 1, 1.02);
 
-  m_classic_right_stick_box =
+  m_classic_right_stick_box = new AspectRatioWidget(
       CreateStickInputs(tr("Right Stick"), WiimoteEmu::Classic::RIGHT_STICK_GROUP,
-                        &m_classic_overrider, 0, 0, 31, 31, Qt::Key_Q, Qt::Key_W);
-
-  // Need to enforce the same minimum width because otherwise the different lengths in the labels
-  // used on the QGroupBox will cause the StickWidgets to have different sizes.
-  m_ir_box->setMinimumWidth(20);
-  m_nunchuk_stick_box->setMinimumWidth(20);
+                        &m_classic_overrider, 0, 0, 31, 31, Qt::Key_Q, Qt::Key_W), 1, 1.02);
 
   auto* top_layout = new QHBoxLayout;
   top_layout->addWidget(m_ir_box);

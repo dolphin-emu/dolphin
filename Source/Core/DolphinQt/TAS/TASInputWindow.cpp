@@ -198,19 +198,15 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(QGridLayout* layout, int defau
                                                   QWidget* shortcut_widget)
 {
   auto* value = new TASSpinBox();
-  value->setRange(0, 99999);
+  value->setRange(0, max);
   value->setValue(default_);
-  connect(value, &QSpinBox::valueChanged, [value, max](int i) {
-    if (i > max)
-      value->setValue(max);
-  });
+
   auto* slider = new TASSlider(default_, orientation);
   slider->setRange(0, max);
   slider->setValue(default_);
   slider->setFocusPolicy(Qt::ClickFocus);
 
-  QFontMetrics fm(value->font());
-  value->setFixedWidth(fm.horizontalAdvance(QString::number(max)) + 30);
+  value->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
   connect(slider, &QSlider::valueChanged, value, &QSpinBox::setValue);
   connect(value, &QSpinBox::valueChanged, slider, &QSlider::setValue);
@@ -227,11 +223,14 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(QGridLayout* layout, int defau
     layout->addWidget(value, 2, 2);
 
     layout->setAlignment(slider, Qt::AlignHCenter);
+    slider->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
   }
   else
   {
     layout->addWidget(slider, 0, 1);
     layout->addWidget(value, 0, 2);
+    
+    slider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   }
 
   return value;

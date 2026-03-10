@@ -19,6 +19,8 @@
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/InputConfig.h"
 
+#include "DolphinQt/QtUtils/AspectRatioWidget.h"
+
 GCTASInputWindow::GCTASInputWindow(QWidget* parent, int controller_id)
     : TASInputWindow(parent), m_controller_id(controller_id)
 {
@@ -30,8 +32,8 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int controller_id)
                                     255, Qt::Key_H, Qt::Key_J);
 
   auto* top_layout = new QHBoxLayout;
-  top_layout->addWidget(m_main_stick_box);
-  top_layout->addWidget(m_c_stick_box);
+  top_layout->addWidget(new AspectRatioWidget(m_main_stick_box, 1, 1.02));
+  top_layout->addWidget(new AspectRatioWidget(m_c_stick_box, 1, 1.02));
 
   m_triggers_box = new QGroupBox(tr("Triggers"));
 
