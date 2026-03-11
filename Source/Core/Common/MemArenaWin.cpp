@@ -120,7 +120,9 @@ static DWORD GetLowDWORD(u64 value)
 
 void MemArena::GrabSHMSegment(size_t size, std::string_view base_name)
 {
-  const std::string name = fmt::format("{}.{}", base_name, GetCurrentProcessId());
+  // Each DLL copy is mapped at a different base address, making &s_dll_id unique per instance.
+  static const uintptr_t s_dll_id = reinterpret_cast<uintptr_t>(&s_dll_id);
+  const std::string name = fmt::format("{}.{}.{:x}", base_name, GetCurrentProcessId(), s_dll_id);
   m_memory_handle =
       CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, GetHighDWORD(size),
                         GetLowDWORD(size), UTF8ToTStr(name).c_str());
