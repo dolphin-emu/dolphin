@@ -56,6 +56,7 @@ static int WSAGetLastError()
 {
   switch (errno)
   {
+  case EALREADY:
   case EINPROGRESS:
   case EWOULDBLOCK:
     return WSAEWOULDBLOCK;
@@ -74,6 +75,11 @@ namespace AMMediaboard
 MediaBoardRange::MediaBoardRange(u32 start_, u32 size_, std::span<u8> buffer_)
     : start{start_}, end{start_ + size_}, buffer{buffer_.data()}, buffer_size{buffer_.size()}
 {
+  if (size_ <= buffer_.size())
+    return;
+  WARN_LOG_FMT(AMMEDIABOARD,
+               "Invalid MediaBoardRange: start=0x{:08x}, size=0x{:06x}, buffer_size=0x{:06x}",
+               start, size_, buffer_.size());
 }
 
 using Common::SEND_FLAGS;
@@ -170,11 +176,11 @@ static const MediaBoardRange s_mediaboard_ranges[] = {
     {DIMMCommandVersion2, 0x60, Common::AsWritableU8Span(s_media_buffer_32)},
     {DIMMCommandVersion2_2, 0x220, Common::AsWritableU8Span(s_media_buffer_32)},
     {NetworkCommandAddress1, 0x1040, s_network_command_buffer},
-    {NetworkCommandAddress2, 0x20000, s_network_command_buffer},
+    {NetworkCommandAddress2, 0x40000, s_network_command_buffer},  // TODO: Guesswork, verify this.
     {NetworkBufferAddress1, 0x10000, s_network_buffer},
     {NetworkBufferAddress2, 0x10000, s_network_buffer},
     {NetworkBufferAddress3, 0x50000, s_network_buffer},
-    {NetworkBufferAddress4, 0xc0000, s_network_buffer},
+    {NetworkBufferAddress4, 0xc0000, s_network_buffer},  // TODO: size bigger than buffer's?
     {NetworkBufferAddress5, 0x10000, s_network_buffer},
     {AllNetSettings, 0x8000, s_allnet_settings},
     {AllNetBuffer, 0x1000, s_allnet_buffer},
@@ -213,11 +219,22 @@ static std::array<SOCKET, SOCKET_FD_MAX> s_sockets;
 
 // TODO: Verify this.
 static constexpr u32 FIRST_VALID_FD = 1;
+static u32 s_next_valid_fd = FIRST_VALID_FD;
 
 static GuestSocket GetAvailableGuestSocket()
 {
-  for (u32 i = FIRST_VALID_FD; i < std::size(s_sockets); ++i)
+  // TODO: This is a workaround to avoid a race.
+  //
+  // For some unknown reasons, the fd was:
+  //  - shared between a client (connect) and a server (accept) socket.
+  //  - closed but still used by the other in an invalid state.
+  u32 count = std::size(s_sockets);
+  while (count--)
   {
+    const u32 i = s_next_valid_fd;
+    s_next_valid_fd = ++s_next_valid_fd % std::size(s_sockets);
+    if (i < FIRST_VALID_FD)
+      continue;
     if (s_sockets[i] == SOCKET_ERROR)
       return GuestSocket(i);
   }
@@ -376,22 +393,6 @@ static GuestSocket socket_(int af, int type, int protocol)
   return guest_socket;
 }
 
-static GuestSocket accept_(int fd, sockaddr* addr, socklen_t* len)
-{
-  const auto guest_socket = GetAvailableGuestSocket();
-  if (guest_socket == INVALID_GUEST_SOCKET)
-    return INVALID_GUEST_SOCKET;
-
-  const s32 host_fd = accept(fd, addr, len);
-  if (host_fd < 0)
-    return INVALID_GUEST_SOCKET;
-
-  Common::SetPlatformSocketOptions(host_fd);
-
-  s_sockets[u32(guest_socket)] = host_fd;
-  return guest_socket;
-}
-
 static inline void PrintMBBuffer(u32 address, u32 length)
 {
   const auto& system = Core::System::GetInstance();
@@ -403,6 +404,30 @@ static inline void PrintMBBuffer(u32 address, u32 length)
                   memory.Read_U32(address + i + 4), memory.Read_U32(address + i + 8),
                   memory.Read_U32(address + i + 12));
   }
+}
+
+static std::optional<int> CheckSocketError(s32 host_socket, GuestSocket guest_socket,
+                                           std::string_view context)
+{
+  int err = 0;
+  socklen_t optlen = sizeof(err);
+
+  if (const int res =
+          getsockopt(host_socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&err), &optlen);
+      res != 0) [[unlikely]]
+  {
+    ERROR_LOG_FMT(AMMEDIABOARD, "{}: getsockopt(SO_ERROR) failed: {}", context,
+                  Common::StrNetworkError());
+    return std::nullopt;
+  }
+
+  if (err != 0)
+  {
+    ERROR_LOG_FMT(AMMEDIABOARD, "{}: socket {}({}) failed with error {}: {}", context, host_socket,
+                  int(guest_socket), err, Common::DecodeNetworkError(err));
+  }
+
+  return err;
 }
 
 void FirmwareMap(bool on)
@@ -446,6 +471,7 @@ void Init()
   s_test_menu = false;
 
   s_last_error = SSC_SUCCESS;
+  s_next_valid_fd = FIRST_VALID_FD;
 
   s_gcam_key_a = 0;
   s_gcam_key_b = 0;
@@ -767,28 +793,17 @@ static s32 NetDIMMConnect(GuestSocket guest_socket, const GuestSocketAddress& gu
     return SOCKET_ERROR;
   }
 
-  int so_error = 0;
-  socklen_t optlen = sizeof(so_error);
-  const int getsockopt_result =
-      getsockopt(host_socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&so_error), &optlen);
-
-  if (getsockopt_result != 0) [[unlikely]]
+  if (const auto so_error = CheckSocketError(host_socket, guest_socket, "NetDIMMConnect");
+      !so_error.has_value() || *so_error != 0)
   {
-    // getsockopt failure.
-    ERROR_LOG_FMT(AMMEDIABOARD, "NetDIMMConnect: getsockopt: {}", Common::StrNetworkError());
-  }
-  else if (so_error == 0)
-  {
-    INFO_LOG_FMT(AMMEDIABOARD_NET, "NetDIMMConnect: connect( {}({}) ) succeeded", host_socket,
-                 u32(guest_socket));
-    s_last_error = SSC_SUCCESS;
-    return 0;
+    s_last_error = SOCKET_ERROR;
+    return SOCKET_ERROR;
   }
 
-  ERROR_LOG_FMT(AMMEDIABOARD_NET, "NetDIMMConnect: connect( {}({}) ) failed with error {}: {}",
-                host_socket, u32(guest_socket), so_error, Common::DecodeNetworkError(so_error));
-  s_last_error = SOCKET_ERROR;
-  return SOCKET_ERROR;
+  INFO_LOG_FMT(AMMEDIABOARD_NET, "NetDIMMConnect: connect( {}({}) ) succeeded", host_socket,
+               u32(guest_socket));
+  s_last_error = SSC_SUCCESS;
+  return 0;
 }
 
 static GuestSocket NetDIMMAccept(GuestSocket guest_socket, u8* guest_addr_ptr,
@@ -805,48 +820,117 @@ static GuestSocket NetDIMMAccept(GuestSocket guest_socket, u8* guest_addr_ptr,
   }
 
   const auto host_socket = GetHostSocket(guest_socket);
-  WSAPOLLFD pfds[1]{{.fd = host_socket, .events = POLLIN}};
-
-  // FYI: Currently using a 0ms timeout to make accept calls always non-blocking.
-  constexpr auto timeout = std::chrono::milliseconds{0};
-
-  DEBUG_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: {}({})", host_socket, int(guest_socket));
-
-  const int poll_result = PlatformPoll(pfds, timeout);
-
-  if (poll_result < 0) [[unlikely]]
+  if (host_socket == SOCKET_ERROR)
   {
-    // Poll failure.
-    ERROR_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: PlatformPoll: {}", Common::StrNetworkError());
+    ERROR_LOG_FMT(AMMEDIABOARD_NET, "NetDIMMAccept: fd is not open: {}({})", host_socket,
+                  int(guest_socket));
+
+    // TODO: Not hardware tested.
+    s_last_error = SSC_EBADF;
+    return INVALID_GUEST_SOCKET;
+  }
+
+  const auto client_sock = GetAvailableGuestSocket();
+  if (client_sock == INVALID_GUEST_SOCKET)
+  {
+    ERROR_LOG_FMT(AMMEDIABOARD_NET,
+                  "NetDIMMAccept: accept( {}({}) ) failed, descriptor table is full", host_socket,
+                  int(guest_socket));
+    // TODO: Not hardware tested.
+    s_last_error = SSC_AEMFILE;
+    return INVALID_GUEST_SOCKET;
+  }
+
+  // There is no easy way to check if the accept's socket is valid:
+  //  - getsockopt's SO_ACCEPTCONN isn't available on all systems
+  //  - poll/select result might be empty even if accept is called beforehand
+  //
+  // Might impact performance when accept is called too often.
+  // TODO: Find a better way.
+  {
+    // Set socket to non-blocking
+    u_long val = 1;
+    ioctlsocket(host_socket, FIONBIO, &val);
+  }
+  Common::ScopeGuard guard{[&] {
+    // Restore blocking mode
+    u_long val = 0;
+    ioctlsocket(host_socket, FIONBIO, &val);
+  }};
+
+  sockaddr_in addr{};
+  socklen_t addrlen = sizeof(addr);
+  s32 res = accept(host_socket, reinterpret_cast<sockaddr*>(&addr), &addrlen);
+  int err = WSAGetLastError();
+
+  INFO_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: {}({})", host_socket, int(guest_socket));
+
+  if (res < 0 && err != WSAEWOULDBLOCK)
+  {
+    ERROR_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: accept( {}({}) ) failed with error {}: {}",
+                  host_socket, int(guest_socket), err, Common::DecodeNetworkError(err));
 
     s_last_error = SOCKET_ERROR;
     return INVALID_GUEST_SOCKET;
   }
 
-  if ((pfds[0].revents & POLLIN) == 0)
+  if (res < 0)
+  {
+    WSAPOLLFD pfds[1]{{.fd = host_socket, .events = POLLIN}};
+
+    // SO_RCVTIMEO affects accept() on Linux but not on Windows.
+    // We don't know for Triforce.
+    const auto timeout = std::chrono::milliseconds{10};
+
+    if (const int poll_result = PlatformPoll(pfds, timeout); poll_result < 0)
+    {
+      ERROR_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: PlatformPoll failed: {}",
+                    Common::StrNetworkError());
+      s_last_error = SOCKET_ERROR;
+      return INVALID_GUEST_SOCKET;
+    }
+
+    if (pfds[0].revents & POLLERR)
+    {
+      CheckSocketError(host_socket, guest_socket, "NetDIMMAccept");
+      s_last_error = SOCKET_ERROR;
+      return INVALID_GUEST_SOCKET;
+    }
+
+    if ((pfds[0].revents & POLLIN) == 0)
+    {
+      // Timeout.
+      s_last_error = SSC_EWOULDBLOCK;
+      return INVALID_GUEST_SOCKET;
+    }
+
+    res = accept(host_socket, reinterpret_cast<sockaddr*>(&addr), &addrlen);
+    err = WSAGetLastError();
+  }
+
+  if (res < 0 && err == WSAEWOULDBLOCK)
   {
     // Timeout.
-    DEBUG_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: Timeout.");
+    INFO_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: Timeout.");
 
     s_last_error = SSC_EWOULDBLOCK;
     return INVALID_GUEST_SOCKET;
   }
 
-  sockaddr_in addr;
-  socklen_t addrlen = sizeof(addr);
-  const auto client_sock = accept_(host_socket, reinterpret_cast<sockaddr*>(&addr), &addrlen);
-
-  if (client_sock == INVALID_GUEST_SOCKET)
+  if (res < 0)
   {
-    ERROR_LOG_FMT(AMMEDIABOARD, "AMMBCommandAccept: accept( {}({}) ) failed: {}", host_socket,
-                  int(guest_socket), Common::StrNetworkError());
+    ERROR_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: accept( {}({}) ) failed with error {}: {}",
+                  host_socket, int(guest_socket), err, Common::DecodeNetworkError(err));
+
     s_last_error = SOCKET_ERROR;
     return INVALID_GUEST_SOCKET;
   }
 
+  Common::SetPlatformSocketOptions(res);
+  s_sockets[u32(client_sock)] = res;
   s_last_error = SSC_SUCCESS;
 
-  NOTICE_LOG_FMT(AMMEDIABOARD, "AMMBCommandAccept: {}:{}",
+  NOTICE_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: {}:{}",
                  Common::IPAddressToString(std::bit_cast<Common::IPAddress>(addr.sin_addr)),
                  ntohs(addr.sin_port));
 
@@ -865,7 +949,7 @@ static GuestSocket NetDIMMAccept(GuestSocket guest_socket, u8* guest_addr_ptr,
     guest_addr.ip_address = adjusted_ipv4port->ip_address;
     guest_addr.port = adjusted_ipv4port->port;
 
-    NOTICE_LOG_FMT(AMMEDIABOARD, "AMMBCommandAccept: Translating result to: {}:{}",
+    NOTICE_LOG_FMT(AMMEDIABOARD, "NetDIMMAccept: Translating result to: {}:{}",
                    Common::IPAddressToString(guest_addr.ip_address), ntohs(guest_addr.port));
   }
 
@@ -961,10 +1045,27 @@ static void AMMBCommandRecv(u32 parameter_offset, u32 network_buffer_base)
     len = 0;
   }
 
+  // TODO: Might be blocking depending on the timeout (see SetTimeouts command).
   const int ret = recv(fd, reinterpret_cast<char*>(s_network_buffer.data() + off), len, 0);
   const int err = WSAGetLastError();
 
-  DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv( {}, 0x{:08x}, {} ):{} {}", fd, off, len, ret, err);
+  if (ret < 0 && err != WSAEWOULDBLOCK)
+  {
+    ERROR_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv( {}, 0x{:08x}, {} ) failed with error {}: {}", fd,
+                  off, len, err, Common::DecodeNetworkError(err));
+  }
+  else if (ret == 0)
+  {
+    INFO_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv( {}, 0x{:08x}, {} ):0 shutdown received", fd, off,
+                 len);
+  }
+  else
+  {
+    INFO_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: recv( {}, 0x{:08x}, {} ):{} {}", fd, off, len, ret, err);
+  }
+
+  // TODO: Not hardware tested.
+  s_last_error = ret >= 0 ? SSC_SUCCESS : SOCKET_ERROR;
 
   s_media_buffer[1] = s_media_buffer[8];
   s_media_buffer_32[1] = ret;
@@ -990,11 +1091,23 @@ static void AMMBCommandSend(u32 parameter_offset, u32 network_buffer_base)
     len = 0;
   }
 
+  // TODO: Might be blocking depending on the timeout (see SetTimeouts command).
   const int ret = send(fd, reinterpret_cast<char*>(s_network_buffer.data() + off), len, SEND_FLAGS);
   const int err = WSAGetLastError();
 
-  DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: send( {}({}), 0x{:08x}, {} ): {} {}", fd,
-                u32(guest_socket), off, len, ret, err);
+  if (ret < 0 && err != WSAEWOULDBLOCK)
+  {
+    ERROR_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: send( {}({}), 0x{:08x}, {} ) failed with error {}: {}",
+                  fd, u32(guest_socket), off, len, err, Common::DecodeNetworkError(err));
+  }
+  else
+  {
+    INFO_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: send( {}({}), 0x{:08x}, {} ): {} {}", fd,
+                 u32(guest_socket), off, len, ret, err);
+  }
+
+  // TODO: Not hardware tested.
+  s_last_error = ret >= 0 ? SSC_SUCCESS : SOCKET_ERROR;
 
   s_media_buffer[1] = s_media_buffer[8];
   s_media_buffer_32[1] = ret;
@@ -1027,7 +1140,7 @@ static void AMMBCommandClosesocket(u32 parameter_offset)
     s_sockets[u32(guest_socket)] = SOCKET_ERROR;
 
   s_media_buffer_32[1] = ret;
-  s_last_error = SSC_SUCCESS;
+  s_last_error = ret == 0 ? SSC_SUCCESS : SSC_EBADF;
 }
 
 static void AMMBCommandConnect(u32 parameter_offset, u32 network_buffer_base)
@@ -1192,9 +1305,9 @@ static void AMMBCommandSelect(u32 parameter_offset, u32 network_buffer_base)
     WARN_LOG_FMT(AMMEDIABOARD, "AMMBCommandSelect: Infinite timout!");
   }
 
-  DEBUG_LOG_FMT(AMMEDIABOARD_NET,
-                "GC-AM: select( {}, 0x{:08x} 0x{:08x} 0x{:08x} 0x{:08x} ) timeout={}", nfds,
-                readfds_offset, writefds_offset, exceptfds_offset, timeout_offset, timeout.count());
+  INFO_LOG_FMT(AMMEDIABOARD_NET,
+               "GC-AM: select( {}, 0x{:08x} 0x{:08x} 0x{:08x} 0x{:08x} ) timeout={}", nfds,
+               readfds_offset, writefds_offset, exceptfds_offset, timeout_offset, timeout.count());
 
   // Fill with the host sockets for each guest socket less-than `nfds` in each GuestFdSet.
   std::vector<WSAPOLLFD> pollfds(nfds, WSAPOLLFD{.fd = INVALID_SOCKET});
@@ -1209,7 +1322,7 @@ static void AMMBCommandSelect(u32 parameter_offset, u32 network_buffer_base)
   // TODO: There may be some edge cases where
   // poll's (POLLIN,POLLOUT,POLLPRI) don't map 1:1 with select's (readfds,writefds,exceptfds).
 
-  DEBUG_LOG_FMT(AMMEDIABOARD, "AMMBCommandSelect: Polling with socket count: {}", pollfds.size());
+  INFO_LOG_FMT(AMMEDIABOARD, "AMMBCommandSelect: Polling with socket count: {}", pollfds.size());
 
   const int ret = PlatformPoll(pollfds, timeout);
 
@@ -1218,7 +1331,7 @@ static void AMMBCommandSelect(u32 parameter_offset, u32 network_buffer_base)
     WriteGuestFdSetFromPollFds(guest_readfds_ptr, pollfds, POLLIN);
     WriteGuestFdSetFromPollFds(guest_writefds_ptr, pollfds, POLLOUT);
     WriteGuestFdSetFromPollFds(guest_exceptfds_ptr, pollfds, POLLPRI);
-    DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: select result: {}", ret);
+    INFO_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: select result: {}", ret);
   }
   else
   {
@@ -1246,7 +1359,27 @@ static void AMMBCommandSetSockOpt(u32 parameter_offset, u32 network_buffer_base)
   const char* optval = reinterpret_cast<char*>(s_network_command_buffer.data() + optval_offset);
 
   // TODO: Ensure parameters are compatible with host's setsockopt
-  const int ret = setsockopt(fd, level, optname, optval, optlen);
+  const s32 host_level = [level] {
+    switch (level)
+    {
+    case 0xFFFF:
+      return SOL_SOCKET;
+    default:
+      WARN_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: Unknown setsockopt level {}", level);
+      return level;
+    }
+  }();
+  const s32 host_optname = [optname] {
+    switch (optname)
+    {
+    case 4:
+      return SO_REUSEADDR;
+    default:
+      WARN_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: Unknown setsockopt optname {}", optname);
+      return optname;
+    }
+  }();
+  const int ret = setsockopt(fd, host_level, host_optname, optval, optlen);
   const int err = WSAGetLastError();
 
   NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: setsockopt( {:d}, {:04x}, {}, {:p}, {} ):{:d} ({})", fd,
@@ -1413,6 +1546,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         break;
       default:
         PrintMBBuffer(address, length);
+        ERROR_LOG_FMT(AMMEDIABOARD, "Unhandled Media Board Read: offset={0:08x} length={0:08x}",
+                      offset, length);
         PanicAlertFmtT("Unhandled Media Board Read: offset={0:08x} length={0:08x}", offset, length);
         break;
       }
@@ -1574,16 +1709,22 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         const u32 timeout_b = s_media_buffer_32[4];
         const u32 timeout_c = s_media_buffer_32[5];
 
-        s_timeouts[0] = timeout_a;
-        s_timeouts[1] = timeout_b;
-        s_timeouts[2] = timeout_c;
+        s_timeouts[0] = timeout_a;  // connect timeout?
+        s_timeouts[1] = timeout_b;  // send timeout?
+        s_timeouts[2] = timeout_c;  // recv timeout?
 
         int ret = SOCKET_ERROR;
+
+        // Workaround for Windows timeval structure
+        static constexpr u32 SEC{1000000};
+        const timeval timeval_a{.tv_sec = s32(timeout_a / SEC), .tv_usec = s32(timeout_a % SEC)};
+        const timeval timeval_b{.tv_sec = s32(timeout_b / SEC), .tv_usec = s32(timeout_b % SEC)};
+        const timeval timeval_c{.tv_sec = s32(timeout_c / SEC), .tv_usec = s32(timeout_c % SEC)};
 
         if (host_socket != INVALID_SOCKET)
         {
           ret = setsockopt(host_socket, SOL_SOCKET, SO_SNDTIMEO,
-                           reinterpret_cast<const char*>(&timeout_b), sizeof(int));
+                           reinterpret_cast<const char*>(&timeval_b), sizeof(timeval_b));
           if (ret < 0)
           {
             ret = WSAGetLastError();
@@ -1591,13 +1732,23 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
           else
           {
             ret = setsockopt(host_socket, SOL_SOCKET, SO_RCVTIMEO,
-                             reinterpret_cast<const char*>(&timeout_c), sizeof(int));
+                             reinterpret_cast<const char*>(&timeval_c), sizeof(timeval_c));
             if (ret < 0)
               ret = WSAGetLastError();
           }
 
-          INFO_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: SetTimeOuts( {}({}), {}, {}, {} ):{}", host_socket,
-                       int(guest_socket), timeout_a, timeout_b, timeout_c, ret);
+          if (ret < 0)
+          {
+            ERROR_LOG_FMT(AMMEDIABOARD_NET,
+                          "GC-AM: SetTimeOuts( {}({}), {}, {}, {} ) failed with error {}: {}",
+                          host_socket, int(guest_socket), timeout_a, timeout_b, timeout_c, ret,
+                          Common::DecodeNetworkError(ret));
+          }
+          else
+          {
+            INFO_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: SetTimeOuts( {}({}), {}, {}, {} ):{}",
+                         host_socket, int(guest_socket), timeout_a, timeout_b, timeout_c, ret);
+          }
         }
         else
         {
@@ -1631,8 +1782,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         if (s_last_error == SSC_EWOULDBLOCK)
         {
           // Prevent spamming
-          DEBUG_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: GetLastError( {}({}) ):EWOULDBLOCK", host_socket,
-                        int(guest_socket));
+          INFO_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: GetLastError( {}({}) ):EWOULDBLOCK", host_socket,
+                       int(guest_socket));
         }
         else
         {
@@ -1669,6 +1820,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
     // Max GC disc offset
     if (offset >= 0x57058000)
     {
+      ERROR_LOG_FMT(AMMEDIABOARD, "Unhandled Media Board Read: offset={0:08x} length={0:08x}",
+                    offset, length);
       PanicAlertFmtT("Unhandled Media Board Read: offset={0:08x} length={0:08x}", offset, length);
       return 0;
     }
@@ -1827,6 +1980,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
           s_media_buffer[4] = 1;
           break;
         default:
+          ERROR_LOG_FMT(AMMEDIABOARD, "Unhandled Media Board Command:{0:04x}",
+                        static_cast<u16>(ammb_command));
           PanicAlertFmtT("Unhandled Media Board Command:{0:04x}", static_cast<u16>(ammb_command));
           break;
         }
@@ -1855,6 +2010,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
     if (offset >= 0x57058000)
     {
       PrintMBBuffer(address, length);
+      ERROR_LOG_FMT(AMMEDIABOARD, "Unhandled Media Board Write: offset={0:08x} length={0:08x}",
+                    offset, length);
       PanicAlertFmtT("Unhandled Media Board Write: offset={0:08x} length={0:08x}", offset, length);
     }
     break;
@@ -2044,10 +2201,13 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       return 0;
     }
 
+    ERROR_LOG_FMT(AMMEDIABOARD, "Unhandled Media Board Execute:{0:04x}",
+                  static_cast<u16>(ammb_command));
     PanicAlertFmtT("Unhandled Media Board Execute:{0:04x}", static_cast<u16>(ammb_command));
     break;
   }
   default:
+    ERROR_LOG_FMT(AMMEDIABOARD, "Unhandled Media Board Command:{0:02x}", command);
     PanicAlertFmtT("Unhandled Media Board Command:{0:02x}", command);
     break;
   }
