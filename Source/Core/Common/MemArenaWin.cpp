@@ -120,7 +120,14 @@ static DWORD GetLowDWORD(u64 value)
 
 void MemArena::GrabSHMSegment(size_t size, std::string_view base_name)
 {
-  const std::string name = fmt::format("{}.{}", base_name, GetCurrentProcessId());
+  // Include the address of a static local as a per-DLL-instance unique ID.
+  // When multiple copies of this DLL are loaded in the same process they share
+  // the same PID, so we need an additional discriminator. Each copy is mapped
+  // at a different base address, so s_dll_id's address (and thus its value) is
+  // unique per loaded instance.
+  static const uintptr_t s_dll_id = reinterpret_cast<uintptr_t>(&s_dll_id);
+  const std::string name =
+      fmt::format("{}.{}.{:x}", base_name, GetCurrentProcessId(), s_dll_id);
   m_memory_handle =
       CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, GetHighDWORD(size),
                         GetLowDWORD(size), UTF8ToTStr(name).c_str());
