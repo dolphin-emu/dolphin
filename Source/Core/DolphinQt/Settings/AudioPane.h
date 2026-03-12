@@ -40,6 +40,8 @@ private:
   void OnBackendChanged();
   void OnDspChanged();
 
+  void UpdateWiimoteRoutingEnabled();
+
   void CheckNeedForLatencyControl();
   bool m_latency_control_supported;
 

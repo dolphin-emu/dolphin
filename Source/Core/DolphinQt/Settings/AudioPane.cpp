@@ -27,7 +27,9 @@
 #endif
 
 #include "Core/Config/MainSettings.h"
+#include "Core/Config/WiimoteSettings.h"
 #include "Core/Core.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/System.h"
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
@@ -211,8 +213,7 @@ void AudioPane::CreateWidgets()
   auto* wiimote_routing_layout = new QVBoxLayout;
   m_wiimote_routing_box->setLayout(wiimote_routing_layout);
 
-  m_wiimote_routing_enable =
-      new ConfigBool(tr("Enable Wii Remote Audio Routing"), Config::MAIN_WIIMOTE_AUDIO_ROUTING_ENABLED);
+  m_wiimote_routing_enable = new ConfigBool(tr("Enable Wii Remote Audio Routing"), Config::MAIN_WIIMOTE_AUDIO_ROUTING_ENABLED);
   wiimote_routing_layout->addWidget(m_wiimote_routing_enable);
 
   // Build device list once for all wiimote dropdowns
@@ -227,10 +228,8 @@ void AudioPane::CreateWidgets()
     auto* row_layout = new QHBoxLayout(row_widget);
     row_layout->setContentsMargins(0, 0, 0, 0);
 
-    m_wiimote_output_enable[i] = new ConfigBool(tr("Wii Remote %1").arg(i + 1),
-                                                Config::MAIN_WIIMOTE_AUDIO_OUTPUT_ENABLED[i]);
-    m_wiimote_output_device[i] =
-        new ConfigStringChoice(output_devices, Config::MAIN_WIIMOTE_AUDIO_OUTPUT_DEVICE[i]);
+    m_wiimote_output_enable[i] = new ConfigBool(tr("Wii Remote %1").arg(i + 1), Config::MAIN_WIIMOTE_AUDIO_OUTPUT_ENABLED[i]);
+    m_wiimote_output_device[i] = new ConfigStringChoice(output_devices, Config::MAIN_WIIMOTE_AUDIO_OUTPUT_DEVICE[i]);
 
     row_layout->addWidget(m_wiimote_output_enable[i]);
     row_layout->addWidget(m_wiimote_output_device[i], 1);
@@ -261,8 +260,7 @@ void AudioPane::ConnectWidgets()
   connect(m_backend_combo, &QComboBox::currentIndexChanged, this, &AudioPane::OnBackendChanged);
   connect(m_dolby_pro_logic, &ConfigBool::toggled, this, &AudioPane::OnDspChanged);
   connect(m_dsp_combo, &ConfigComplexChoice::currentIndexChanged, this, &AudioPane::OnDspChanged);
-  connect(m_volume_slider, &QSlider::valueChanged, this,
-          [] { AudioCommon::UpdateSoundStream(Core::System::GetInstance()); });
+  connect(m_volume_slider, &QSlider::valueChanged, this, [] { AudioCommon::UpdateSoundStream(Core::System::GetInstance()); });
 
   if (m_latency_control_supported)
   {
@@ -271,22 +269,17 @@ void AudioPane::ConnectWidgets()
   }
 
 #ifdef HAVE_CUBEB
-  auto update_wiimote_routing_enabled = [this] {
-    const bool routing_on = m_wiimote_routing_enable->isChecked();
-    for (std::size_t i = 0; i < 4; ++i)
-    {
-      m_wiimote_output_enable[i]->setEnabled(routing_on);
-      m_wiimote_output_device[i]->setEnabled(routing_on && m_wiimote_output_enable[i]->isChecked());
-    }
-  };
   connect(m_wiimote_routing_enable, &ConfigBool::toggled, this,
-          [update_wiimote_routing_enabled](bool) { update_wiimote_routing_enabled(); });
+          [this](bool) { UpdateWiimoteRoutingEnabled(); });
   for (std::size_t i = 0; i < 4; ++i)
   {
     connect(m_wiimote_output_enable[i], &ConfigBool::toggled, this,
-            [update_wiimote_routing_enabled](bool) { update_wiimote_routing_enabled(); });
+            [this](bool) { UpdateWiimoteRoutingEnabled(); });
   }
-  update_wiimote_routing_enabled();
+  // Also react to external config changes: wiimote source type, speaker data, BT passthrough.
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this,
+          &AudioPane::UpdateWiimoteRoutingEnabled);
+  UpdateWiimoteRoutingEnabled();
 #endif
 }
 
@@ -320,6 +313,10 @@ void AudioPane::OnBackendChanged()
 
   m_volume_slider->setEnabled(AudioCommon::SupportsVolumeChanges(backend));
   m_volume_indicator->setEnabled(AudioCommon::SupportsVolumeChanges(backend));
+
+#ifdef HAVE_CUBEB
+  UpdateWiimoteRoutingEnabled();
+#endif
 }
 
 void AudioPane::OnEmulationStateChanged(bool running)
@@ -346,16 +343,37 @@ void AudioPane::OnEmulationStateChanged(bool running)
 #endif
 
 #ifdef HAVE_CUBEB
-  if (m_wiimote_routing_box)
+  UpdateWiimoteRoutingEnabled();
+#endif
+}
+
+void AudioPane::UpdateWiimoteRoutingEnabled()
+{
+#ifdef HAVE_CUBEB
+  if (!m_wiimote_routing_box)
+    return;
+
+  const bool running = Core::GetState(Core::System::GetInstance()) != Core::State::Uninitialized;
+  const bool is_cubeb = Config::Get(Config::MAIN_AUDIO_BACKEND) == BACKEND_CUBEB;
+  const bool speaker_enabled = Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER);
+  const bool bt_passthrough = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED);
+
+  // The entire group requires Cubeb backend, speaker data enabled, no BT passthrough, and
+  // emulation not running.
+  const bool group_usable = !running && is_cubeb && speaker_enabled && !bt_passthrough;
+
+  m_wiimote_routing_enable->setEnabled(group_usable);
+
+  const bool routing_on = group_usable && m_wiimote_routing_enable->isChecked();
+
+  for (std::size_t i = 0; i < 4; ++i)
   {
-    m_wiimote_routing_enable->setEnabled(!running);
-    const bool routing_on = !running && m_wiimote_routing_enable->isChecked();
-    for (std::size_t i = 0; i < 4; ++i)
-    {
-      m_wiimote_output_enable[i]->setEnabled(routing_on);
-      m_wiimote_output_device[i]->setEnabled(routing_on &&
-                                             m_wiimote_output_enable[i]->isChecked());
-    }
+    const WiimoteSource source =
+        Config::Get(Config::GetInfoForWiimoteSource(static_cast<int>(i)));
+    const bool is_emulated = source == WiimoteSource::Emulated;
+
+    m_wiimote_output_enable[i]->setEnabled(routing_on && is_emulated);
+    m_wiimote_output_device[i]->setEnabled(routing_on && is_emulated && m_wiimote_output_enable[i]->isChecked());
   }
 #endif
 }
@@ -449,11 +467,15 @@ void AudioPane::AddDescriptions()
       QT_TR_NOOP("Routes each Wii Remote's speaker audio to a separate audio output device. "
                  "The main audio output continues to work normally; only the Wii Remote speaker "
                  "audio is redirected. Requires a restart of emulation to take effect."
+                 "<br><br>This setting is disabled when Enable Speaker Data is disabled, a "
+                 "Passthrough a Bluetooth adapter is selected, or an audio backend other than Cubeb is selected."
                  "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_WIIMOTE_OUTPUT_ENABLE_DESCRIPTION[] =
       QT_TR_NOOP("Enables routing this Wii Remote's speaker audio to a separate output device.");
   static const char TR_WIIMOTE_OUTPUT_DEVICE_DESCRIPTION[] =
-      QT_TR_NOOP("Selects the audio output device for this Wii Remote's speaker audio.");
+      QT_TR_NOOP("Selects the audio output device for this Wii Remote's speaker audio."
+                 "<br><br>This setting is disabled when this Wii Remote is not set to Emulated "
+                 "Wii Remote.");
 
   if (m_wiimote_routing_box)
   {
@@ -462,7 +484,7 @@ void AudioPane::AddDescriptions()
     for (std::size_t i = 0; i < 4; ++i)
     {
       m_wiimote_output_enable[i]->SetDescription(tr(TR_WIIMOTE_OUTPUT_ENABLE_DESCRIPTION));
-      m_wiimote_output_device[i]->SetTitle(tr("Output Device"));
+      m_wiimote_output_device[i]->SetTitle(tr("Wii Remote %1").arg(i + 1));
       m_wiimote_output_device[i]->SetDescription(tr(TR_WIIMOTE_OUTPUT_DEVICE_DESCRIPTION));
     }
   }
