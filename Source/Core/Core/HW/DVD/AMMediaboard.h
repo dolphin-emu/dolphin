@@ -95,7 +95,7 @@ enum class AMMBCommand : u16
   GetSegaBootVersion = 0x101,
   GetSystemFlags = 0x102,
   GetMediaBoardSerial = 0x103,
-  Unknown_104 = 0x104,
+  GetNetworkConfig = 0x104,
 
   NetworkReInit = 0x204,
 
