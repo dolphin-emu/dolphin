@@ -395,6 +395,14 @@ extern const std::array<Info<s16>, EMULATED_LOGITECH_MIC_COUNT> MAIN_LOGITECH_MI
 
 extern const Info<std::string> MAIN_TRIFORCE_IP_REDIRECTIONS;
 
+// Main.WiimoteAudioRouting
+
+static constexpr std::size_t WIIMOTE_SPEAKER_COUNT = 4;
+
+extern const Info<bool> MAIN_WIIMOTE_AUDIO_ROUTING_ENABLED;
+extern const std::array<Info<bool>, WIIMOTE_SPEAKER_COUNT> MAIN_WIIMOTE_AUDIO_OUTPUT_ENABLED;
+extern const std::array<Info<std::string>, WIIMOTE_SPEAKER_COUNT> MAIN_WIIMOTE_AUDIO_OUTPUT_DEVICE;
+
 // GameCube path utility functions
 
 // Replaces NTSC-K with some other region, and doesn't replace non-NTSC-K regions
