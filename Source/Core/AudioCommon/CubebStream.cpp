@@ -9,6 +9,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/System.h"
 
 #ifdef _WIN32
 #include <Objbase.h>
@@ -101,8 +102,9 @@ bool CubebStream::Init()
                             nullptr, &params, std::max(BUFFER_SAMPLES, minimum_latency),
                             DataCallback, StateCallback, this) == CUBEB_OK;
 
-      // Create per-wiimote streams for audio routing if enabled
-      if (return_value && Config::Get(Config::MAIN_WIIMOTE_AUDIO_ROUTING_ENABLED))
+      // Create per-wiimote streams for audio routing (Wii games only, when enabled)
+      if (return_value && Core::System::GetInstance().IsWii() &&
+          Config::Get(Config::MAIN_WIIMOTE_AUDIO_ROUTING_ENABLED))
       {
         static const char* const WIIMOTE_STREAM_NAMES[4] = {
             "Dolphin Wiimote 1 Audio", "Dolphin Wiimote 2 Audio", "Dolphin Wiimote 3 Audio",
