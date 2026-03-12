@@ -57,6 +57,7 @@ static int WSAGetLastError()
 {
   switch (errno)
   {
+  case EALREADY:
   case EINPROGRESS:
   case EWOULDBLOCK:
     return WSAEWOULDBLOCK;
