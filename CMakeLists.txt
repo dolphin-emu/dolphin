@@ -628,6 +628,8 @@ dolphin_find_optional_system_library_pkgconfig(FMT
   fmt>=10.1 fmt::fmt Externals/fmt
 )
 
+add_subdirectory(Externals/stb)
+
 add_subdirectory(Externals/imgui)
 add_subdirectory(Externals/implot)
 

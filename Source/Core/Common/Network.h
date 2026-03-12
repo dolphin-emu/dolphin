@@ -276,6 +276,8 @@ struct IPv4Port
   // These convert to host byte order.
   u32 GetIPAddressValue() const;
   u16 GetPortValue() const;
+
+  std::string ToString() const;
 };
 
 struct IPv4PortRange
@@ -289,6 +291,7 @@ struct IPv4PortRange
 
 std::string IPAddressToString(IPAddress ip_address);
 
+std::optional<IPv4Port> StringToIPv4Port(std::string_view subject);
 // Syntax is: first_ip[-last_ip|/network_prefix_length][:first_port[-last_port]]
 std::optional<IPv4PortRange> StringToIPv4PortRange(std::string_view subject);
 

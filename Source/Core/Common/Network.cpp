@@ -55,6 +55,11 @@ bool IPv4PortRange::IsMatch(IPv4Port subject) const
          port_u16 >= first.GetPortValue() && port_u16 <= last.GetPortValue();
 }
 
+std::string IPv4Port::ToString() const
+{
+  return fmt::format("{}:{}", Common::IPAddressToString(ip_address), GetPortValue());
+}
+
 std::string IPv4PortRange::ToString() const
 {
   const u32 first_ip_value = first.GetIPAddressValue();
@@ -95,6 +100,41 @@ std::string IPv4PortRange::ToString() const
 std::string IPAddressToString(IPAddress ip_address)
 {
   return fmt::format("{}", fmt::join(ip_address, "."));
+}
+
+std::optional<IPv4Port> StringToIPv4Port(std::string_view subject)
+{
+  IPv4Port result{};
+
+  const std::size_t colon_pos = subject.find(':');
+  std::string_view ip_part = subject.substr(0, colon_pos);
+  std::string_view port_part =
+      (colon_pos != std::string_view::npos) ? subject.substr(colon_pos + 1) : std::string_view{};
+
+  auto octets = SplitStringIntoArray<4>(ip_part, '.');
+  if (!octets)
+    return std::nullopt;  // Wrong number of octets.
+
+  for (u32 i = 0; i < 4; ++i)
+  {
+    if (!TryParse(std::string((*octets)[i]), &result.ip_address[i]))
+      return std::nullopt;  // Bad octet
+  }
+
+  if (!port_part.empty())
+  {
+    u16 port{};
+    const auto [parse_end, ec] = FromChars(port_part, port);
+    if (ec != std::errc{})
+      return std::nullopt;  // Bad port.
+    result.port = std::bit_cast<u16>(Common::BigEndianValue(port));
+  }
+  else
+  {
+    result.port = 0;
+  }
+
+  return result;
 }
 
 std::optional<IPv4PortRange> StringToIPv4PortRange(std::string_view subject)

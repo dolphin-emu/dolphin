@@ -126,6 +126,7 @@
     <ClInclude Include="Common\HostDisassembler.h" />
     <ClInclude Include="Common\HRWrap.h" />
     <ClInclude Include="Common\HttpRequest.h" />
+    <ClInclude Include="Common\HttpServer.h" />
     <ClInclude Include="Common\Image.h" />
     <ClInclude Include="Common\IniFile.h" />
     <ClInclude Include="Common\Inline.h" />
@@ -341,6 +342,7 @@
     <ClInclude Include="Core\HW\Sram.h" />
     <ClInclude Include="Core\HW\StreamADPCM.h" />
     <ClInclude Include="Core\HW\SystemTimers.h" />
+    <ClInclude Include="Core\HW\TriforceCamera.h" />
     <ClInclude Include="Core\HW\VideoInterface.h" />
     <ClInclude Include="Core\HW\WII_IPC.h" />
     <ClInclude Include="Core\HW\Wiimote.h" />
@@ -856,6 +858,7 @@
     <ClCompile Include="Common\HostDisassembler.cpp" />
     <ClCompile Include="Common\HRWrap.cpp" />
     <ClCompile Include="Common\HttpRequest.cpp" />
+    <ClCompile Include="Common\HttpServer.cpp" />
     <ClCompile Include="Common\Image.cpp" />
     <ClCompile Include="Common\IniFile.cpp" />
     <ClCompile Include="Common\IOFile.cpp" />
@@ -1041,6 +1044,7 @@
     <ClCompile Include="Core\HW\Sram.cpp" />
     <ClCompile Include="Core\HW\StreamADPCM.cpp" />
     <ClCompile Include="Core\HW\SystemTimers.cpp" />
+    <ClCompile Include="Core\HW\TriforceCamera.cpp" />
     <ClCompile Include="Core\HW\VideoInterface.cpp" />
     <ClCompile Include="Core\HW\WII_IPC.cpp" />
     <ClCompile Include="Core\HW\Wiimote.cpp" />

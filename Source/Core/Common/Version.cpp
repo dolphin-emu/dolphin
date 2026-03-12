@@ -59,6 +59,12 @@ const std::string& GetUserAgentStr()
   return user_agent_str;
 }
 
+const std::string& GetHttpServerStr()
+{
+  static const std::string server_version_str = EMULATOR_NAME "/" SCM_DESC_STR;
+  return server_version_str;
+}
+
 const std::string& GetScmDistributorStr()
 {
   static const std::string scm_distributor_str = SCM_DISTRIBUTOR_STR;
