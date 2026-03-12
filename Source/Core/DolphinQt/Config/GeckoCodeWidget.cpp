@@ -395,16 +395,22 @@ void GeckoCodeWidget::UpdateList()
 
 void GeckoCodeWidget::DownloadCodes()
 {
-  bool success;
+  const auto codes_result = Gecko::DownloadCodes(m_gametdb_id);
 
-  std::vector<Gecko::GeckoCode> codes = Gecko::DownloadCodes(m_gametdb_id, &success);
-
-  if (!success)
+  if (!codes_result)
   {
-    ModalMessageBox::critical(this, tr("Error"), tr("Failed to download codes."));
+    QString message = tr("Failed to download Gecko codes. The code server may be temporarily "
+                         "unavailable. Please try again later.");
+
+    const int http_response_code = codes_result.error();
+    if (http_response_code > 0)
+      message += tr("\n\nServer response: HTTP %1.").arg(http_response_code);
+
+    ModalMessageBox::critical(this, tr("Download Failed"), message);
     return;
   }
 
+  const std::vector<Gecko::GeckoCode>& codes = *codes_result;
   if (codes.empty())
   {
     ModalMessageBox::critical(this, tr("Error"), tr("File contained no codes."));

@@ -294,6 +294,6 @@ private:
                                u32 logical_size);
   void RemoveLargePageTableMapping(u32 logical_address);
   void RemoveLargePageTableMapping(u32 logical_address, std::map<u32, std::vector<u32>>& map);
-  void RemoveHostPageTableMappings(const std::set<u32>& mappings);
+  void RemoveHostPageTableMapping(u32 logical_address);
 };
 }  // namespace Memory

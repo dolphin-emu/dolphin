@@ -59,6 +59,7 @@ enum class EBufferCommands : u8
   CMD_ORIGIN = 0x41,
   CMD_RECALIBRATE = 0x42,
   CMD_DIRECT_KB = 0x54,
+  CMD_AM_BASEBOARD = 0x70,
   CMD_RESET = 0xFF
 };
 

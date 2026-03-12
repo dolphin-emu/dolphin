@@ -33,10 +33,13 @@
 #include "Core/CheatSearch.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/PowerPC/BreakPoints.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
 #include "DolphinQt/Config/CheatCodeEditor.h"
 #include "DolphinQt/Config/CheatWarningWidget.h"
+#include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Settings.h"
 
@@ -48,6 +51,32 @@ constexpr int ADDRESS_TABLE_COLUMN_INDEX_DESCRIPTION = 0;
 constexpr int ADDRESS_TABLE_COLUMN_INDEX_ADDRESS = 1;
 constexpr int ADDRESS_TABLE_COLUMN_INDEX_LAST_VALUE = 2;
 constexpr int ADDRESS_TABLE_COLUMN_INDEX_CURRENT_VALUE = 3;
+
+namespace
+{
+int GetDataTypeByteSize(Cheats::DataType data_type)
+{
+  switch (data_type)
+  {
+  case Cheats::DataType::U8:
+  case Cheats::DataType::S8:
+    return 1;
+  case Cheats::DataType::U16:
+  case Cheats::DataType::S16:
+    return 2;
+  case Cheats::DataType::U32:
+  case Cheats::DataType::S32:
+  case Cheats::DataType::F32:
+    return 4;
+  case Cheats::DataType::U64:
+  case Cheats::DataType::S64:
+  case Cheats::DataType::F64:
+    return 8;
+  default:
+    return 1;
+  }
+}
+}  // namespace
 
 CheatSearchWidget::CheatSearchWidget(Core::System& system,
                                      std::unique_ptr<Cheats::CheatSearchSessionBase> session,
@@ -516,7 +545,36 @@ void CheatSearchWidget::OnAddressTableContextMenu()
     RecreateGUITable();
   });
 
+  if (m_last_value_session->GetAddressSpace() == PowerPC::RequestedAddressSpace::Virtual)
+  {
+    menu->addAction(tr("Add Read/Write Breakpoint(s)"), this,
+                    [this]() { AddMemoryBreakpoints("rw"); });
+    menu->addAction(tr("Add Write Breakpoint(s)"), this, [this]() { AddMemoryBreakpoints("w"); });
+    menu->addAction(tr("Add Read Breakpoint(s)"), this, [this]() { AddMemoryBreakpoints("r"); });
+  }
+
   menu->exec(QCursor::pos());
+}
+
+void CheatSearchWidget::AddMemoryBreakpoints(std::string_view type)
+{
+  if (m_last_value_session->GetAddressSpace() != PowerPC::RequestedAddressSpace::Virtual)
+    return;
+
+  const int last_byte_offset = GetDataTypeByteSize(m_last_value_session->GetDataType()) - 1;
+
+  MemChecks::TMemChecksStr bps;
+
+  for (auto& item : GetSelectedAddressTableItems())
+  {
+    const u32 addr = item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
+    std::string bp = fmt::format("{:08x} {:08x} nbl{}", addr, addr + last_byte_offset, type);
+    bps.push_back(bp);
+  }
+
+  auto& memchecks = m_system.GetPowerPC().GetMemChecks();
+  memchecks.AddFromStrings(bps);
+  emit Host::GetInstance()->PPCBreakpointsChanged();
 }
 
 void CheatSearchWidget::OnValueSourceChanged()

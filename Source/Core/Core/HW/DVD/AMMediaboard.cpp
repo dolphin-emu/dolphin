@@ -21,6 +21,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/EXI/EXI_DeviceBaseboard.h"
 #include "Core/HW/Memmap.h"
@@ -70,6 +71,10 @@ static int WSAGetLastError()
 
 namespace AMMediaboard
 {
+
+// Written via Write_U32_Swap (LE) because PPC display code reads with lwz + manual bswap32.
+static constexpr u32 TEST_OK_WORD0 = 0x54455354;  // "TEST"
+static constexpr u32 TEST_OK_WORD1 = 0x204F4B00;  // " OK\0"
 
 MediaBoardRange::MediaBoardRange(u32 start_, u32 size_, std::span<u8> buffer_)
     : start{start_}, end{start_ + size_}, buffer{buffer_.data()}, buffer_size{buffer_.size()}
@@ -146,6 +151,13 @@ static std::unique_ptr<DiscIO::BlobReader> s_dimm_disc;
 static std::array<u8, 0x200000> s_firmware;
 static std::array<u32, 0xc0> s_media_buffer_32;
 static u8* const s_media_buffer = reinterpret_cast<u8*>(s_media_buffer_32.data());
+
+// Both Execute paths write responses to s_media_buffer, so one overwrites the other.
+// Keep separate copies so each path's DMA Read returns its own response.
+static std::array<u32, 8> s_exec1_last_response{};
+static std::array<u32, 8> s_exec2_last_response{};
+
+static CoreTiming::EventType* s_et_test_hw_phase2 = nullptr;
 static std::array<u8, 0x4ffe00> s_network_command_buffer;
 static std::array<u8, 0x80000> s_network_buffer;
 static std::array<u8, 0x1000> s_allnet_buffer;
@@ -213,6 +225,9 @@ static std::array<SOCKET, SOCKET_FD_MAX> s_sockets;
 
 // TODO: Verify this.
 static constexpr u32 FIRST_VALID_FD = 1;
+
+// Flag: next 128-byte DMA Read from the media buffer should return network config
+static bool s_netconfig_read_pending = false;
 
 static GuestSocket GetAvailableGuestSocket()
 {
@@ -427,9 +442,28 @@ static File::IOFile OpenOrCreateFile(const std::string& filename)
   return File::IOFile(filename, "wb+");
 }
 
+static void TestHwPhase2Callback(Core::System& system, u64 userdata, s64 cycles_late)
+{
+  const bool is_exec2 = (userdata != 0);
+  auto& response = is_exec2 ? s_exec2_last_response : s_exec1_last_response;
+
+  response.fill(0);
+  response[0] = 0x03020000;  // sub_cmd=0x02, cmd_class=0x03
+  response[1] = 2;           // testStatus = GOOD
+  response[2] = 100;         // checkProgress
+
+  DEBUG_LOG_FMT(AMMEDIABOARD,
+                "GC-AM: TestHardware phase 2 ({}): sending result response "
+                "(testStatus=2, checkProgress=100)",
+                is_exec2 ? "Execute2" : "Execute1");
+  ExpansionInterface::GenerateInterrupt(is_exec2 ? 0x10 : 0x04);
+}
+
 void Init()
 {
   s_media_buffer_32.fill(0);
+  s_exec1_last_response.fill(0);
+  s_exec2_last_response.fill(0);
   s_network_buffer.fill(0);
   s_network_command_buffer.fill(0);
   s_firmware.fill(-1);
@@ -438,6 +472,10 @@ void Init()
   s_allnet_settings.fill(0);
 
   s_game_modified_ip_address = {};
+  s_netconfig_read_pending = false;
+
+  auto& core_timing = Core::System::GetInstance().GetCoreTiming();
+  s_et_test_hw_phase2 = core_timing.RegisterEvent("AMMediaboardTestHwPhase2", TestHwPhase2Callback);
 
   s_board_status = LoadingGameProgram;
   s_load_progress = 80;
@@ -1462,6 +1500,52 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       return 0;
     }
 
+    // Intercept 128-byte read after GetNetworkConfig: serve network config from trinetcfg.bin
+    if (s_netconfig_read_pending && length == 0x80)
+    {
+      for (const auto& range : s_mediaboard_ranges)
+      {
+        if (offset >= range.start && offset < range.end)
+        {
+          s_netconfig_read_pending = false;
+
+          u8 config[0x80] = {};
+          if (s_netcfg.IsOpen())
+          {
+            s_netcfg.Seek(0, File::SeekOrigin::Begin);
+            s_netcfg.ReadBytes(config, sizeof(config));
+          }
+
+          // config[0] is used as a menu table index. Entry 0 is NULL,
+          // which causes a NULL dereference. Default to 2 (valid entry).
+          if (config[0] == 0)
+            config[0] = 2;
+
+          DEBUG_LOG_FMT(AMMEDIABOARD,
+                        "GC-AM: NetConfig Read (intercepted) offset={:08x} config[0]={}", offset,
+                        config[0]);
+          memory.CopyToEmu(address, config, sizeof(config));
+          return 0;
+        }
+      }
+    }
+
+    // Return saved response for each Execute path (they share s_media_buffer).
+    if (offset == DIMMCommandVersion2 && length == 0x20)
+    {
+      DEBUG_LOG_FMT(AMMEDIABOARD, "GC-AM: Read Execute1 response (saved)");
+      memory.CopyToEmu(address, reinterpret_cast<const u8*>(s_exec1_last_response.data()),
+                       sizeof(s_exec1_last_response));
+      return 0;
+    }
+    if (offset == DIMMCommandVersion2_2 && length == 0x20)
+    {
+      DEBUG_LOG_FMT(AMMEDIABOARD, "GC-AM: Read Execute2 response (saved)");
+      memory.CopyToEmu(address, reinterpret_cast<const u8*>(s_exec2_last_response.data()),
+                       sizeof(s_exec2_last_response));
+      return 0;
+    }
+
     for (const auto& range : s_mediaboard_ranges)
     {
       if (offset >= range.start && offset < range.end)
@@ -1503,9 +1587,43 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       // Empty reply
       case AMMBCommand::Unknown_103:
         break;
-      case AMMBCommand::Unknown_104:
+      case AMMBCommand::GetNetworkConfig:
         s_media_buffer[4] = 1;
+        // The game will do a 128-byte DMA Read for the network config.
+        // We intercept that read and provide data from trinetcfg.bin.
+        s_netconfig_read_pending = true;
         break;
+      case AMMBCommand::NetworkReInit:
+        break;
+      case AMMBCommand::TestHardware:
+      {
+        // Execute2 layout: buf[1] = test type, buf[2] = string pointer
+        // (differs from Execute1 where they're at indices 11 and 12)
+        const u32 test_type = s_media_buffer_32[1];
+        const u32 string_ptr = s_media_buffer_32[2];
+
+        DEBUG_LOG_FMT(AMMEDIABOARD, "GC-AM: TestHardware (Execute2): type={:08x} str_ptr={:08x}",
+                      test_type, string_ptr);
+
+        if (string_ptr != 0)
+        {
+          memory.Write_U32_Swap(TEST_OK_WORD0, string_ptr);
+          memory.Write_U32_Swap(TEST_OK_WORD1, string_ptr + 4);
+        }
+
+        // Phase 1: Echo test_type back. The 0x80 flag is set below in the generic path.
+        s_media_buffer_32[1] = test_type;
+
+        // Schedule phase 2 result after a short delay.
+        {
+          auto& core_timing = system.GetCoreTiming();
+          core_timing.RemoveEvent(s_et_test_hw_phase2);
+          const s64 phase2_delay = system.GetSystemTimers().GetTicksPerSecond() / 10000;  // ~100us
+          core_timing.ScheduleEvent(phase2_delay, s_et_test_hw_phase2, 1);  // 1 = Execute2
+        }
+
+        break;
+      }
       case AMMBCommand::Accept:
         AMMBCommandAccept(2, NetworkCommandAddress2);
         break;
@@ -1653,12 +1771,24 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         NOTICE_LOG_FMT(AMMEDIABOARD_NET, "GC-AM: AllNetInit");
         break;
       default:
-        ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Command:{0:04x}", static_cast<u16>(ammb_command));
-        ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Command Unhandled!");
+        // Commands with 0x80 in the high byte are cleanup acknowledgments.
+        if (static_cast<u16>(ammb_command) & 0x8000)
+        {
+          DEBUG_LOG_FMT(AMMEDIABOARD, "GC-AM: Cleanup command {:04x} (Execute2)",
+                        static_cast<u16>(ammb_command));
+        }
+        else
+        {
+          ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Command:{0:04x}", static_cast<u16>(ammb_command));
+          ERROR_LOG_FMT(AMMEDIABOARD, "GC-AM: Command Unhandled!");
+        }
         break;
       }
 
       s_media_buffer[3] |= 0x80;  // Command complete flag
+
+      // Save Execute2 response before it gets clobbered by subsequent operations
+      memcpy(s_exec2_last_response.data(), s_media_buffer_32.data(), sizeof(s_exec2_last_response));
 
       memory.Memset(address, 0, length);
 
@@ -1823,15 +1953,58 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         case AMMBCommand::GetMediaBoardSerial:
           memcpy(s_media_buffer + 4, "A89E-27A50364511", 16);
           break;
-        case AMMBCommand::Unknown_104:
+        case AMMBCommand::GetNetworkConfig:
           s_media_buffer[4] = 1;
           break;
+        case AMMBCommand::TestHardware:
+        {
+          // Execute1 command buffer layout (result slot at +0x20):
+          //   [8] = command word, [9] = test_type, [10] = string_ptr
+          const u32 test_type = s_media_buffer_32[9];
+          const u32 string_ptr = s_media_buffer_32[10];
+
+          DEBUG_LOG_FMT(AMMEDIABOARD,
+                        "GC-AM: TestHardware (Execute1 inner): type={:08x} str_ptr={:08x}",
+                        test_type, string_ptr);
+
+          if (string_ptr != 0)
+          {
+            memory.Write_U32_Swap(TEST_OK_WORD0, string_ptr);
+            memory.Write_U32_Swap(TEST_OK_WORD1, string_ptr + 4);
+          }
+
+          // Phase 1: Echo test_type back. The 0x80 flag is set below.
+          s_media_buffer_32[1] = test_type;
+
+          // Schedule phase 2 via CoreTiming.
+          {
+            auto& core_timing = system.GetCoreTiming();
+            core_timing.RemoveEvent(s_et_test_hw_phase2);
+            const s64 phase2_delay =
+                system.GetSystemTimers().GetTicksPerSecond() / 10000;         // ~100us
+            core_timing.ScheduleEvent(phase2_delay, s_et_test_hw_phase2, 0);  // 0 = Execute1
+          }
+          break;
+        }
         default:
-          PanicAlertFmtT("Unhandled Media Board Command:{0:04x}", static_cast<u16>(ammb_command));
+          // Commands with 0x80 in the high byte are cleanup acknowledgments.
+          if (static_cast<u16>(ammb_command) & 0x8000)
+          {
+            DEBUG_LOG_FMT(AMMEDIABOARD, "GC-AM: Cleanup command {:04x} (Execute1)",
+                          static_cast<u16>(ammb_command));
+          }
+          else
+          {
+            PanicAlertFmtT("Unhandled Media Board Command:{0:04x}", static_cast<u16>(ammb_command));
+          }
           break;
         }
 
         memset(s_media_buffer + 0x20, 0, 0x20);
+
+        // Save Execute1 response before it gets clobbered by Execute2 operations
+        memcpy(s_exec1_last_response.data(), s_media_buffer_32.data(),
+               sizeof(s_exec1_last_response));
 
         ExpansionInterface::GenerateInterrupt(0x04);
         return 0;
@@ -1842,6 +2015,16 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
     {
       if (offset >= range.start && offset < range.end)
       {
+        // Persist network config to trinetcfg.bin for SET IP ADDRESS.
+        // The DMA Write (0x80 bytes) arrives before the corresponding command (0x0204),
+        // so we detect it here by size and non-zero status byte.
+        if (length == 0x80 && memory.Read_U8(address) != 0 && s_netcfg.IsOpen())
+        {
+          DEBUG_LOG_FMT(AMMEDIABOARD, "GC-AM: NetConfig persist to trinetcfg.bin (status={})",
+                        memory.Read_U8(address));
+          FileWriteData(memory, &s_netcfg, 0, address, length);
+        }
+
         DEBUG_LOG_FMT(AMMEDIABOARD, "GC-AM: Write MediaBoard ({:08x},{:08x},{:08x})", offset,
                       range.start, length);
         SafeCopyFromEmu(memory, range.buffer, address, range.buffer_size, offset - range.start,
@@ -1914,7 +2097,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       case AMMBCommand::GetMediaBoardSerial:
         memcpy(s_media_buffer + 4, "A89E-27A50364511", 16);
         break;
-      case AMMBCommand::Unknown_104:
+      case AMMBCommand::GetNetworkConfig:
         s_media_buffer[4] = 1;
         break;
       case AMMBCommand::NetworkReInit:
@@ -1930,9 +2113,8 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
         DEBUG_LOG_FMT(AMMEDIABOARD, "GC-AM:               ({:08x})", s_media_buffer_32[12]);
 
         // On real systems it shows the status about the DIMM/GD-ROM here
-        // We just show "TEST OK"
-        memory.Write_U32(0x54534554, s_media_buffer_32[12]);
-        memory.Write_U32(0x004B4F20, s_media_buffer_32[12] + 4);
+        memory.Write_U32_Swap(TEST_OK_WORD0, s_media_buffer_32[12]);
+        memory.Write_U32_Swap(TEST_OK_WORD1, s_media_buffer_32[12] + 4);
 
         s_media_buffer_32[1] = s_media_buffer_32[9];
         break;
@@ -2041,6 +2223,9 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       }
 
       memset(s_media_buffer + 0x20, 0, 0x20);
+
+      // Save Execute1 response for DI Execute path
+      memcpy(s_exec1_last_response.data(), s_media_buffer_32.data(), sizeof(s_exec1_last_response));
       return 0;
     }
 
@@ -2141,12 +2326,15 @@ void DoState(PointerWrap& p)
   p.Do(s_gcam_key_c);
   p.Do(s_firmware);
   p.Do(s_media_buffer_32);
+  p.Do(s_exec1_last_response);
+  p.Do(s_exec2_last_response);
   p.Do(s_network_command_buffer);
   p.Do(s_network_buffer);
   p.Do(s_allnet_buffer);
   p.Do(s_allnet_settings);
 
   p.Do(s_game_modified_ip_address);
+  p.Do(s_netconfig_read_pending);
 
   p.Do(s_board_status);
   p.Do(s_load_progress);
