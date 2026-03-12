@@ -6,11 +6,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.ViewModelProvider
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.features.settings.model.PostProcessing
+import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
+
 
 class ShaderOptionsFragment : Fragment() {
 
@@ -37,11 +40,17 @@ class ShaderOptionsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+// Makes sure to save and load the selected shader so its restored correctly on next boot.
+        val settings = ViewModelProvider(requireActivity())[SettingsViewModel::class.java].settings
+        StringSetting.GFX_ENHANCE_POST_SHADER.setString(settings, shaderName)
+        settings.saveSettings()
+
         val options = PostProcessing.getShaderOptions(shaderName)
         if (options != null) {
             adapter = ShaderOptionsAdapter(shaderName, options.options)
             recyclerView.adapter = adapter
-            // Save all settings after change instantly.
+            // Save all settings after change instantly to prevent stale values.
             adapter?.saveAll()
         }
     }
