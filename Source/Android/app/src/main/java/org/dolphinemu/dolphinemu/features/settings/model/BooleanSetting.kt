@@ -671,6 +671,12 @@ enum class BooleanSetting(
         "ButtonLatchingNunchukZ",
         false
     ),
+    DSUCLIENT_SERVERS_ENABLED(
+        Settings.FILE_DSUCLIENT,
+        Settings.SECTION_DSUCLIENT_SERVER,
+        "Enabled",
+        false
+    ),
     SYSCONF_SCREENSAVER(Settings.FILE_SYSCONF, "IPL", "SSV", false),
     SYSCONF_WIDESCREEN(Settings.FILE_SYSCONF, "IPL", "AR", true),
     SYSCONF_PROGRESSIVE_SCAN(Settings.FILE_SYSCONF, "IPL", "PGS", true),

@@ -41,6 +41,11 @@
     <string name="input_profile_load">Load</string>
     <string name="input_profile_save">Save</string>
     <string name="input_profile_delete">Delete</string>
+    <string name="input_dsu_apply_profile">Apply DSU Preset</string>
+    <string name="input_dsu_apply_profile_description">Loads the built-in DSU controller profile and selects the first connected DSUClient device.</string>
+    <string name="input_dsu_apply_profile_no_device">No DSUClient device is currently available. Connect a DSU source first.</string>
+    <string name="input_dsu_apply_profile_missing">Could not load the built-in DSU controller profile.</string>
+    <string name="input_dsu_apply_profile_success">DSU controller preset applied.</string>
     <string name="input_profile_confirm_load">Do you want to discard your current controller settings and load the profile \"%1$s\"?</string>
     <string name="input_profile_confirm_save">Do you want to overwrite the profile \"%1$s\"?</string>
     <string name="input_profile_confirm_delete">Do you want to delete the profile \"%1$s\"?</string>
@@ -439,6 +444,25 @@
     <string name="debug_jitbranchoff">Jit Branch Disabled</string>
     <string name="debug_jitregistercacheoff">Jit Register Cache Disabled</string>
 
+    <!-- DSU Client Settings -->
+    <string name="dsu_client_submenu">Alternate Input Sources</string>
+    <string name="dsu_client_enable">Enable DSU Client</string>
+    <string name="dsu_client_enable_description">Enable connecting to DSU (CemuHook) compatible input sources for motion and button data.</string>
+    <string name="dsu_client_description">The DSU protocol enables the use of input and motion data from compatible sources, like phones running DS4Windows, DroidJoy, or other CemuHook-compatible apps.\n\nAdd a server below with its IP address and port to use it as an input source in controller configuration.</string>
+    <string name="dsu_client_add_server">Add Server…</string>
+    <string name="dsu_client_edit_server">Edit</string>
+    <string name="dsu_client_remove_server">Remove</string>
+    <string name="dsu_client_server_description">Description</string>
+    <string name="dsu_client_server_address">Server Address (IP/host)</string>
+    <string name="dsu_client_server_port">Server Port</string>
+    <string name="dsu_client_no_servers">No DSU servers configured.</string>
+    <string name="dsu_client_servers_header">Configured Servers</string>
+    <string name="dsu_client_add_server_title">Add DSU Server</string>
+    <string name="dsu_client_edit_server_title">Edit DSU Server</string>
+    <string name="dsu_client_invalid_description">Description cannot contain colon or semicolon.</string>
+    <string name="dsu_client_invalid_address">Enter a valid IPv4 address or hostname.</string>
+    <string name="dsu_client_invalid_port">Enter a port from 1 to 65535.</string>
+
     <!-- User Data -->
     <string name="user_data_submenu">User Data</string>
     <string name="user_data_old_location">Your user data (settings, saves, etc.) is stored in a location which will <b>not</b> be deleted when you uninstall the app:</string>
@@ -665,8 +689,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <!-- Misc -->
     <string name="enabled">Enabled</string>
     <string name="default_values">Default Values</string>
-    <string name="slider_setting_value">%.0f%2$s</string>
-    <string name="slider_setting_float_value">%.2f%2$s</string>
+    <string name="slider_setting_value">%1$.0f%2$s</string>
+    <string name="slider_setting_float_value">%1$.2f%2$s</string>
     <string name="disc_number">Disc %1$d</string>
     <string name="replug_gc_adapter">GameCube Adapter couldn\'t be opened. Please re-plug the device.</string>
     <string name="disabled_gc_overlay_notice">The selected GameCube controller is set to \"None\"</string>
