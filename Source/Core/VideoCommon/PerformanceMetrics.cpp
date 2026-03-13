@@ -8,10 +8,21 @@
 #include <imgui.h>
 #include <implot.h>
 
+#include "Common/HookableEvent.h"
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/Core.h"
 #include "VideoCommon/VideoConfig.h"
 
 PerformanceMetrics g_perf_metrics;
+
+PerformanceMetrics::PerformanceMetrics()
+{
+  const auto invalidate_counters_last_time = [this](Core::State) {
+    m_fps_counter.InvalidateLastTime();
+    m_vps_counter.InvalidateLastTime();
+  };
+  m_state_change_hook = Core::AddOnStateChangedCallback(invalidate_counters_last_time);
+}
 
 void PerformanceMetrics::Reset()
 {
@@ -35,12 +46,6 @@ void PerformanceMetrics::CountFrame()
 void PerformanceMetrics::CountVBlank()
 {
   m_vps_counter.Count();
-}
-
-void PerformanceMetrics::OnEmulationStateChanged([[maybe_unused]] Core::State state)
-{
-  m_fps_counter.InvalidateLastTime();
-  m_vps_counter.InvalidateLastTime();
 }
 
 void PerformanceMetrics::CountThrottleSleep(DT sleep)

@@ -7,7 +7,7 @@
 #include <deque>
 
 #include "Common/CommonTypes.h"
-#include "Core/Core.h"
+#include "Common/HookableEvent.h"
 #include "VideoCommon/PerformanceTracker.h"
 
 namespace Core
@@ -18,7 +18,7 @@ class System;
 class PerformanceMetrics
 {
 public:
-  PerformanceMetrics() = default;
+  PerformanceMetrics();
   ~PerformanceMetrics() = default;
 
   PerformanceMetrics(const PerformanceMetrics&) = delete;
@@ -30,7 +30,6 @@ public:
 
   void CountFrame();
   void CountVBlank();
-  void OnEmulationStateChanged(Core::State state);
 
   // Call from CPU thread.
   void CountThrottleSleep(DT sleep);
@@ -69,6 +68,8 @@ private:
 
   std::deque<PerfSample> m_samples;
   DT m_time_sleeping{};
+
+  Common::EventHook m_state_change_hook;
 };
 
 extern PerformanceMetrics g_perf_metrics;

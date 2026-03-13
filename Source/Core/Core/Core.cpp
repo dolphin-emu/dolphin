@@ -929,10 +929,9 @@ Common::EventHook AddOnStateChangedCallback(StateChangedCallbackFunc callback)
   return s_state_changed_event.Register(std::move(callback));
 }
 
-void NotifyStateChanged(Core::State state)
+void NotifyStateChanged(const Core::State state)
 {
   s_state_changed_event.Trigger(state);
-  g_perf_metrics.OnEmulationStateChanged(state);
 }
 
 void UpdateWantDeterminism(Core::System& system, bool initial)
