@@ -5,9 +5,7 @@ package org.dolphinemu.dolphinemu.utils
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.LinkAddress
-import android.os.Build
 import androidx.annotation.Keep
-import androidx.annotation.RequiresApi
 import org.dolphinemu.dolphinemu.DolphinApplication
 import java.net.Inet4Address
 import java.net.InetAddress
@@ -24,7 +22,6 @@ object NetworkHelper {
         return manager
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
     private fun getIPv4Link(): LinkAddress? {
         val manager = getConnectivityManager() ?: return null
         val activeNetwork = manager.activeNetwork
@@ -52,21 +49,18 @@ object NetworkHelper {
     @Keep
     @JvmStatic
     fun getNetworkIpAddress(): Int {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return 0
         return getIPv4Link()?.address?.inetAddressToInt() ?: 0
     }
 
     @Keep
     @JvmStatic
     fun getNetworkPrefixLength(): Int {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return 0
         return getIPv4Link()?.prefixLength ?: 0
     }
 
     @Keep
     @JvmStatic
     fun getNetworkGateway(): Int {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return 0
         val manager = getConnectivityManager() ?: return 0
         val activeNetwork = manager.activeNetwork ?: return 0
         val properties = manager.getLinkProperties(activeNetwork) ?: return 0
