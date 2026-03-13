@@ -18,7 +18,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalIncludeDirectories>SDL\src;SDL\include;SDL\include\build_config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>SDL_AUDIO_DISABLED;SDL_VIDEO_DISABLED;SDL_GPU_DISABLED;SDL_RENDER_DISABLED;SDL_CAMERA_DISABLED;SDL_DIALOG_DISABLED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SDL_AUDIO_DISABLED;SDL_GPU_DISABLED;SDL_RENDER_DISABLED;SDL_CAMERA_DISABLED;SDL_DIALOG_DISABLED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>

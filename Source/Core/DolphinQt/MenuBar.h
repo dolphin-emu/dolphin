@@ -101,6 +101,7 @@ signals:
   void ShowInfinityBase();
   void ShowWiiSpeakWindow();
   void ShowLogitechMicWindow();
+  void ShowKeyboard();
   void ConnectWiiRemote(int id);
 
 #ifdef USE_RETRO_ACHIEVEMENTS
