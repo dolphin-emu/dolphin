@@ -9,11 +9,11 @@
 #include <optional>
 #include <vector>
 
-#include <Windows.h>
-#include <BluetoothAPIs.h>
-#include <Cfgmgr32.h>
-#include <Hidclass.h>
-#include <Hidsdi.h>
+#include <windows.h>
+#include <bluetoothapis.h>
+#include <cfgmgr32.h>
+#include <hidclass.h>
+#include <hidsdi.h>
 #include <initguid.h>
 #include <wtypes.h>
 // initguid.h must be included before devpkey.h
