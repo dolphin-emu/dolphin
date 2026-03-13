@@ -823,7 +823,7 @@ bool GameList::AddShortcutToDesktop()
 
   const auto game = GetSelectedGame();
   const auto& file_path = game->GetFilePath();
-  std::wstring args = UTF8ToTStr("-e \"" + file_path + "\"");
+  std::wstring args = UTF8ToWString("-e \"" + file_path + "\"");
   if (FAILED(shell_link->SetArguments(args.c_str())))
     return false;
 
@@ -838,7 +838,8 @@ bool GameList::AddShortcutToDesktop()
     return Common::Contains(illegal_characters, ch);
   });
 
-  std::wstring desktop_path = std::wstring(desktop.get()) + UTF8ToTStr("\\" + game_name + ".lnk");
+  std::wstring desktop_path =
+      std::wstring(desktop.get()) + UTF8ToWString("\\" + game_name + ".lnk");
   auto persist_file = shell_link.try_query<IPersistFile>();
   if (!persist_file)
     return false;
