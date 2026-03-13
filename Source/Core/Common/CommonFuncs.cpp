@@ -16,6 +16,10 @@
 #include "Common/StringUtil.h"
 #endif
 
+#ifdef __APPLE__
+#include <objc/message.h>
+#endif
+
 namespace Common
 {
 constexpr size_t BUFFER_SIZE = 256;
@@ -95,6 +99,32 @@ std::optional<std::wstring> GetModuleName(void* hInstance)
   }
   name.resize(size);
   return name;
+}
+#endif
+
+#ifdef __APPLE__
+std::optional<MacOSVersion> GetMacOSVersion()
+{
+  // id processInfo = [NSProcessInfo processInfo]
+  id processInfo = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(
+      objc_getClass("NSProcessInfo"), sel_getUid("processInfo"));
+
+  if (!processInfo)
+  {
+    return std::nullopt;
+  }
+
+  // Under arm64, we need to call objc_msgSend to receive a struct.
+  // On x86_64, we need to explicitly call objc_msgSend_stret for a struct.
+#ifdef _M_ARM_64
+#define msgSend objc_msgSend
+#else
+#define msgSend objc_msgSend_stret
+#endif
+  // NSOperatingSystemVersion version = [processInfo operatingSystemVersion]
+  return reinterpret_cast<MacOSVersion (*)(id, SEL)>(msgSend)(processInfo,
+                                                              sel_getUid("operatingSystemVersion"));
+#undef msgSend
 }
 #endif
 }  // namespace Common
