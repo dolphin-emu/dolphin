@@ -43,7 +43,7 @@ android {
 
     defaultConfig {
         applicationId = "org.dolphinemu.dolphinemu"
-        minSdk = 21
+        minSdk = 24
         targetSdk = 36
 
         versionCode = getBuildVersionCode()

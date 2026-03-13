@@ -26,18 +26,12 @@ public class PermissionsHandler
 
   public static void requestWritePermission(final FragmentActivity activity)
   {
-    if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
-      return;
-
     activity.requestPermissions(new String[]{WRITE_EXTERNAL_STORAGE},
             REQUEST_CODE_WRITE_PERMISSION);
   }
 
   public static boolean hasWriteAccess(Context context)
   {
-    if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
-      return true;
-
     if (!isExternalStorageLegacy())
       return false;
 
@@ -70,9 +64,6 @@ public class PermissionsHandler
 
   public static void requestRecordAudioPermission(Activity activity)
   {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
-      return;
-
     if (activity == null)
     {
       // Calling from C++ code
