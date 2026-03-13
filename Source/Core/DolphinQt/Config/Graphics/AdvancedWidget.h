@@ -25,8 +25,7 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
   void AddDescriptions();
-  void OnBackendChanged();
-  void OnEmulationStateChanged(bool running);
+  void OnBackendChanged(const QString& backend_name);
 
   // Debugging
   ConfigBool* m_enable_wireframe;
@@ -35,12 +34,10 @@ private:
   ConfigBool* m_log_render_time;
 
   // Utility
-  ConfigBool* m_prefetch_custom_textures;
+  ConfigBool* m_save_texture_cache_state;
+  ConfigBool* m_disable_vram_copies;
   ConfigBool* m_dump_efb_target;
   ConfigBool* m_dump_xfb_target;
-  ConfigBool* m_disable_vram_copies;
-  ConfigBool* m_load_custom_textures;
-  ConfigBool* m_enable_graphics_mods;
 
   // Texture dumping
   ConfigBool* m_dump_textures;
@@ -54,16 +51,10 @@ private:
   ConfigInteger* m_png_compression_level;
 
   // Misc
-  ConfigBool* m_enable_cropping;
-  ConfigBool* m_enable_prog_scan;
   ConfigBool* m_backend_multithreading;
   ConfigBool* m_prefer_vs_for_point_line_expansion;
   ConfigBool* m_cpu_cull;
-  ConfigBool* m_borderless_fullscreen;
-
-  // Experimental
-  ConfigBool* m_defer_efb_access_invalidation;
-  ConfigBool* m_manual_texture_sampling;
+  ConfigBool* m_gpu_texture_decoding;
 
   Config::Layer* m_game_layer = nullptr;
 };

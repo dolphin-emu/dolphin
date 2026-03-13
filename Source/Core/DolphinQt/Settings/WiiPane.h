@@ -50,6 +50,7 @@ private:
   // Misc Settings
   ConfigBool* m_screensaver_checkbox;
   ConfigBool* m_pal60_mode_checkbox;
+  ConfigBool* m_prog_scan_checkbox;
   ConfigBool* m_connect_keyboard_checkbox;
   ConfigBool* m_wiilink_checkbox;
   ConfigChoiceU32* m_system_language_choice;

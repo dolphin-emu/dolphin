@@ -19,6 +19,8 @@
 #include "Common/Config/Config.h"
 #include "Common/Config/Enums.h"
 #include "Common/FileUtil.h"
+#include "Core/AchievementManager.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -50,10 +52,13 @@ static const std::map<PowerPC::CPUCore, const char*> CPU_CORE_NAMES = {
 AdvancedPane::AdvancedPane(QWidget* parent) : QWidget(parent)
 {
   CreateLayout();
+  UpdateShowDebuggingCheckbox();
   Update();
 
   ConnectLayout();
 
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          &AdvancedPane::UpdateShowDebuggingCheckbox);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &AdvancedPane::Update);
 }
 
@@ -99,6 +104,14 @@ void AdvancedPane::CreateLayout()
          "impact on performance.<br>This should be left disabled unless absolutely "
          "needed.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
   cpu_options_group_layout->addWidget(m_accurate_cpu_cache_checkbox);
+
+  m_checkbox_show_debugging_ui = new ToolTipCheckBox(tr("Enable Debugging UI"));
+  m_accurate_cpu_cache_checkbox->SetDescription(
+      tr("Enabling will disable some optimizations in order for the debugging features to "
+         "work.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
+  cpu_options_group_layout->addWidget(m_checkbox_show_debugging_ui);
+  connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, &Settings::Instance(),
+          &Settings::SetDebugModeEnabled);
 
   auto* const timing_group = new QGroupBox(tr("Timing"));
   main_layout->addWidget(timing_group);
@@ -191,6 +204,21 @@ void AdvancedPane::CreateLayout()
   auto* vi_rate_override_layout = new QVBoxLayout();
   vi_rate_override->setLayout(vi_rate_override_layout);
   main_layout->addWidget(vi_rate_override);
+
+  m_vi_skip = new ConfigBool(tr("VBI Skip"), Config::GFX_HACK_VI_SKIP);
+  vi_rate_override_layout->addWidget(m_vi_skip);
+
+  m_vi_skip->SetDescription(
+      tr("Skips Vertical Blank Interrupts when lag is detected, allowing for "
+         "smooth audio playback when emulation speed is not 100%. <br><br>"
+         "Enabling this also forces the effect of the"
+         " Skip Presenting Duplicate Frames setting.<br><br>"
+         "<dolphin_emphasis>WARNING: Can cause freezes and compatibility "
+         "issues.</dolphin_emphasis> <br><br>"
+         "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
+  // TODO
+  // connect(m_vi_skip, &QCheckBox::toggled,
+  //         [gfx_pane] { emit gfx_pane->UpdateSkipPresentingDuplicateFramesEnabled(); });
 
   m_vi_rate_override_checkbox =
       new ConfigBool(tr("Enable VBI Frequency Override"), Config::MAIN_VI_OVERCLOCK_ENABLE);
@@ -341,6 +369,32 @@ void AdvancedPane::ConnectLayout()
                              static_cast<u32>(date_time.toSecsSinceEpoch()));
     Update();
   });
+}
+
+void AdvancedPane::UpdateShowDebuggingCheckbox()
+{
+  SignalBlocking(m_checkbox_show_debugging_ui)
+      ->setChecked(Settings::Instance().IsDebugModeEnabled());
+
+  static constexpr char TR_SHOW_DEBUGGING_UI_DESCRIPTION[] = QT_TR_NOOP(
+      "Shows Dolphin's debugging user interface. This lets you view and modify a game's code and "
+      "memory contents, set debugging breakpoints, examine network requests, and more."
+      "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static constexpr char TR_DISABLED_IN_HARDCORE_DESCRIPTION[] =
+      QT_TR_NOOP("<dolphin_emphasis>Disabled in Hardcore Mode.</dolphin_emphasis>");
+
+  bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
+  SignalBlocking(m_checkbox_show_debugging_ui)->setEnabled(!hardcore);
+  if (hardcore)
+  {
+    m_checkbox_show_debugging_ui->SetDescription(tr("%1<br><br>%2")
+                                                     .arg(tr(TR_SHOW_DEBUGGING_UI_DESCRIPTION))
+                                                     .arg(tr(TR_DISABLED_IN_HARDCORE_DESCRIPTION)));
+  }
+  else
+  {
+    m_checkbox_show_debugging_ui->SetDescription(tr(TR_SHOW_DEBUGGING_UI_DESCRIPTION));
+  }
 }
 
 void AdvancedPane::Update()
