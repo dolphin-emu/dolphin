@@ -27,6 +27,7 @@
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/HW/Triforce/Touchscreen.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
 
@@ -163,12 +164,16 @@ CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(Core::System& system, SIDevices dev
   switch (AMMediaboard::GetGameType())
   {
   case FZeroAX:
-    m_mag_card_reader = std::make_unique<MagCard::C1231BR>(&m_mag_card_settings);
+    m_serial_device_b = std::make_unique<MagCard::C1231BR>(&m_mag_card_settings);
     break;
 
   case MarioKartGP:
   case MarioKartGP2:
-    m_mag_card_reader = std::make_unique<MagCard::C1231LR>(&m_mag_card_settings);
+    m_serial_device_b = std::make_unique<MagCard::C1231LR>(&m_mag_card_settings);
+    break;
+
+  case KeyOfAvalon:
+    m_serial_device_b = std::make_unique<Triforce::Touchscreen>();
     break;
 
   default:
@@ -1121,43 +1126,20 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
       }
       case GCAMCommand::SerialB:
       {
-        DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 32 (CARD-Interface)");
-
         if (!validate_data_in_out(1, 0, "SerialB"))
           break;
         const u32 in_length = *data_in++;
 
-        static constexpr u32 max_packet_size = 0x2f;
-
-        // Also accounting for the 2-byte header.
-        if (!validate_data_in_out(in_length, max_packet_size + 2, "SerialB"))
+        if (!validate_data_in_out(in_length, 0, "SerialB"))
           break;
 
-        if (m_mag_card_reader)
+        if (m_serial_device_b != nullptr)
         {
-          // Append the data to our buffer.
-          const auto prev_size = m_mag_card_in_buffer.size();
-          m_mag_card_in_buffer.resize(prev_size + in_length);
-          std::ranges::copy(std::span{data_in, in_length}, m_mag_card_in_buffer.data() + prev_size);
-
-          // Send and receive data with the magnetic card reader.
-          m_mag_card_reader->Process(&m_mag_card_in_buffer, &m_mag_card_out_buffer);
+          m_serial_device_b->WriteRxBytes({data_in, in_length});
         }
 
         data_in += in_length;
-        const auto out_length = std::min(u32(m_mag_card_out_buffer.size()), max_packet_size);
 
-        // Write the 2-byte header.
-        data_out[data_offset++] = gcam_command;
-        data_out[data_offset++] = u8(out_length);
-
-        // Write the data.
-        std::copy_n(m_mag_card_out_buffer.data(), out_length, data_out.data() + data_offset);
-        data_offset += out_length;
-
-        // Remove the data from our buffer.
-        m_mag_card_out_buffer.erase(m_mag_card_out_buffer.begin(),
-                                    m_mag_card_out_buffer.begin() + s32(out_length));
         break;
       }
       case GCAMCommand::JVSIOA:
@@ -2004,6 +1986,33 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
       }
     }
 
+    // Update attached serial devices and read data into our response buffer.
+    // This is done regardless of the game having just sent a SerialA/B write.
+    if (m_serial_device_b != nullptr)
+    {
+      m_serial_device_b->Update();
+
+      const auto out_length =
+          std::min(u32(m_serial_device_b->GetTxByteCount()), SERIAL_PORT_MAX_READ_SIZE);
+
+      if (out_length != 0)
+      {
+        // Also accounting for the 2-byte header.
+        if (!validate_data_in_out(0, out_length + 2, "SerialB"))
+          break;
+
+        // Write the 2-byte header.
+        data_out[data_offset++] = GCAMCommand::SerialB;
+        data_out[data_offset++] = u8(out_length);
+
+        const auto out_span = std::span{data_out}.subspan(data_offset, out_length);
+
+        m_serial_device_b->TakeTxBytes(out_span);
+
+        data_offset += out_length;
+      }
+    }
+
     data_out[0] = 0x01;                                // Status code ?
     data_out[1] = data_offset - response_header_size;  // Length
 
@@ -2071,14 +2080,9 @@ void CSIDevice_AMBaseboard::DoState(PointerWrap& p)
   p.Do(m_ic_write_offset);
   p.Do(m_ic_write_size);
 
-  // Magnetic Card Reader
-  if (m_mag_card_reader)
-  {
-    m_mag_card_reader->DoState(p);
-
-    p.Do(m_mag_card_in_buffer);
-    p.Do(m_mag_card_out_buffer);
-  }
+  // Serial B
+  if (m_serial_device_b != nullptr)
+    m_serial_device_b->DoState(p);
 
   // Serial
   p.Do(m_wheel_init);

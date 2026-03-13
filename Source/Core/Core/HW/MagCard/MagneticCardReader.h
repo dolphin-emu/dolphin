@@ -16,10 +16,12 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 
+#include "Core/HW/Triforce/SerialDevice.h"
+
 namespace MagCard
 {
 
-class MagneticCardReader
+class MagneticCardReader : public Triforce::SerialDevice
 {
 public:
   static constexpr std::size_t TRACK_SIZE = 69;  // A nice amount of data.
@@ -36,20 +38,16 @@ public:
   };
 
   explicit MagneticCardReader(Settings* settings);
-  virtual ~MagneticCardReader();
+  ~MagneticCardReader() override;
 
   MagneticCardReader(const MagneticCardReader&) = delete;
   MagneticCardReader& operator=(const MagneticCardReader&) = delete;
   MagneticCardReader(MagneticCardReader&&) = delete;
   MagneticCardReader& operator=(MagneticCardReader&&) = delete;
 
-  // TODO: This std:vector buffer interface is a bit funky..
+  void Update() override;
 
-  //  read = MagCard <-- Baseboard.
-  // write = Magcard --> Baseboard.
-  void Process(std::vector<u8>* read, std::vector<u8>* write);
-
-  virtual void DoState(PointerWrap& p);
+  void DoState(PointerWrap& p) override;
 
 protected:
   // Status bytes:
@@ -114,7 +112,7 @@ protected:
   };
 
   bool ReceivePacket(std::span<const u8> packet);
-  void BuildPacket(std::vector<u8>& write_buffer);
+  void BuildPacket();
 
   void StepStateMachine(DT elapsed_time);
   void StepStatePerson(DT elapsed_time);
