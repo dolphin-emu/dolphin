@@ -291,6 +291,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
         int ret = bind(fd, (sockaddr*)&local_name, sizeof(local_name));
         ReturnValue = m_socket_manager.GetNetErrorCode(ret, "SO_BIND", false);
+        if (ret == 0)
+          is_bound = true;
 
         INFO_LOG_FMT(IOS_NET, "IOCTL_SO_BIND ({:08X}, {}:{}) = {}", wii_fd,
                      inet_ntoa(local_name.sin_addr), Common::swap16(local_name.sin_port), ret);
@@ -302,6 +304,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
         memory.CopyFromEmu(&addr, ioctl.buffer_in + 8, sizeof(WiiSockAddrIn));
         sockaddr_in local_name = WiiSockMan::ToNativeAddrIn(addr);
 
+        BindToNetworkInterface(&local_name);
         const int ret = connect(fd, (sockaddr*)&local_name, sizeof(local_name));
         ReturnValue = m_socket_manager.GetNetErrorCode(ret, "SO_CONNECT", false);
         UpdateConnectingState(ReturnValue);
@@ -616,6 +619,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
             local_name = WiiSockMan::ToNativeAddrIn(addr);
           }
 
+          BindToNetworkInterface(&local_name);
           auto* to = has_destaddr ? reinterpret_cast<sockaddr*>(&local_name) : nullptr;
           socklen_t tolen = has_destaddr ? sizeof(sockaddr) : 0;
           const int ret = sendto(fd, data, BufferInSize, flags, to, tolen);
@@ -862,6 +866,56 @@ void WiiSocket::DoSock(Request request, SSL_IOCTL type)
   sockop so = {request, true};
   so.ssl_type = type;
   pending_sockops.push_back(so);
+}
+
+void WiiSocket::BindToNetworkInterface(sockaddr_in* dest)
+{
+  if (is_bound)
+    return;
+
+  const u32 ip = [dest]() -> u32 {
+    if (dest->sin_addr.s_addr == htonl(INADDR_LOOPBACK))
+    {
+      // Not hardware accurate but convenient
+      WARN_LOG_FMT(IOS_NET, "Using loopback interface");
+      return htonl(INADDR_LOOPBACK);
+    }
+
+    auto network_interface = GetSystemDefaultInterface();
+    if (!network_interface)
+    {
+      ERROR_LOG_FMT(IOS_NET, "Failed to get the default network interface");
+      return 0;
+    }
+    return network_interface->inet.s_addr;
+  }();
+
+  if (ip == 0)
+    return;
+
+  // TODO: Handle IPv6
+  sockaddr_in name;
+  name.sin_family = AF_INET;
+  name.sin_port = htons(0);
+  name.sin_addr.s_addr = ip;
+  const s32 ret = bind(fd, reinterpret_cast<sockaddr*>(&name), sizeof(name));
+  if (ret != 0)
+  {
+#ifdef _WIN32
+    const s32 error_code = WSAGetLastError();
+#else
+    const s32 error_code = errno;
+#endif
+    ERROR_LOG_FMT(IOS_NET,
+                  "Failed to bind to the default network interface:\n"
+                  " - Wii socket: {} / Host socket: {}\n"
+                  " - Interface IP: {}.{}.{}.{}\n"
+                  " - Error {}: {}",
+                  wii_fd, fd, ip & 0xFF, (ip >> 8) & 0xFF, (ip >> 16) & 0xFF, (ip >> 24) & 0xFF,
+                  error_code, Common::DecodeNetworkError(error_code));
+    return;
+  }
+  is_bound = true;
 }
 
 s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
