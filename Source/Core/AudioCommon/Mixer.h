@@ -166,6 +166,7 @@ private:
   bool m_config_audio_preserve_pitch;
   bool m_config_fill_audio_gaps;
   int m_config_audio_buffer_ms;
+  bool m_config_wiimote_enable_speaker;
 
   Config::ConfigChangedCallbackID m_config_changed_callback_id;
 };
