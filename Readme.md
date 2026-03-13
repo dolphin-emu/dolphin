@@ -202,21 +202,21 @@ Usage: convert [options]... [FILE]...
 Options:
   -h, --help            show this help message and exit
   -u USER, --user=USER  User folder path, required for temporary processing
-                        files.Will be automatically created if this option is
+                        files. Will be automatically created if this option is
                         not set.
   -i FILE, --input=FILE
                         Path to disc image FILE.
   -o FILE, --output=FILE
                         Path to the destination FILE.
-  -f FORMAT, --format=FORMAT
-                        Container format to use. Default is RVZ. [iso|gcz|wia|rvz]
+  -f rvz|iso|gcz|wia, --format=rvz|iso|gcz|wia
+                        Container format to use. Default is RVZ.
   -s, --scrub           Scrub junk data as part of conversion.
   -b BLOCK_SIZE, --block_size=BLOCK_SIZE
                         Block size for GCZ/WIA/RVZ formats, as an integer.
                         Suggested value for RVZ: 131072 (128 KiB)
-  -c COMPRESSION, --compression=COMPRESSION
+  -c none|zstd|bzip2|lzma|lzma2, --compression=none|zstd|bzip2|lzma|lzma2
                         Compression method to use when converting to WIA/RVZ.
-                        Suggested value for RVZ: zstd [none|zstd|bzip|lzma|lzma2]
+                        Suggested value for RVZ: zstd
   -l COMPRESSION_LEVEL, --compression_level=COMPRESSION_LEVEL
                         Level of compression for the selected method. Ignored
                         if 'none'. Suggested value for zstd: 5
@@ -228,13 +228,13 @@ Usage: verify [options]...
 Options:
   -h, --help            show this help message and exit
   -u USER, --user=USER  User folder path, required for temporary processing
-                        files.Will be automatically created if this option is
+                        files. Will be automatically created if this option is
                         not set.
   -i FILE, --input=FILE
-                        Path to disc image FILE.
-  -a ALGORITHM, --algorithm=ALGORITHM
+                        Path to input file.
+  -a crc32|md5|sha1|rchash, --algorithm=crc32|md5|sha1|rchash
                         Optional. Compute and print the digest using the
-                        selected algorithm, then exit. [crc32|md5|sha1|rchash]
+                        selected algorithm, then exit.
 ```
 
 ```
