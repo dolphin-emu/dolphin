@@ -27,7 +27,7 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 ### Android
 
 * OS
-    * Android (5.0 Lollipop or higher).
+    * Android (7.0 Nougat or higher).
 * Processor
     * A processor with support for 64-bit applications (either ARMv8 or x86-64).
 * Graphics
