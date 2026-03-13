@@ -9,7 +9,9 @@
 #include <string>
 #include <thread>
 
+#include "Common/CoroutineUtil.h"
 #include "Common/Event.h"
+#include "Common/Functional.h"
 #include "Common/SPSCQueue.h"
 #include "Common/Thread.h"
 
@@ -187,7 +189,7 @@ template <template <typename> typename WorkThread>
 class AsyncWorkThreadBase
 {
 public:
-  using FuncType = std::function<void()>;
+  using FuncType = Common::MoveOnlyFunction<void()>;
 
   AsyncWorkThreadBase() = default;
   explicit AsyncWorkThreadBase(std::string thread_name) { Reset(std::move(thread_name)); }
@@ -209,6 +211,12 @@ public:
   void Cancel() { m_worker.Cancel(); }
   void Shutdown() { m_worker.Shutdown(); }
   void WaitForCompletion() { m_worker.WaitForCompletion(); }
+
+  // Returns a coroutine awaiter that suspends then queues resumption on the worker.
+  [[nodiscard]] auto ScheduleHere()
+  {
+    return Common::ResumeVia(std::bind_front(&AsyncWorkThreadBase::Push, this));
+  }
 
 private:
   WorkThread<FuncType> m_worker;
