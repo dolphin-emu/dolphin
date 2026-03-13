@@ -110,6 +110,8 @@ public:
   void ReloadTitleDB();
   bool IsAutoRefreshEnabled() const;
   void SetAutoRefreshEnabled(bool enabled);
+  bool IsGameCountVisible() const;
+  void SetGameCountVisible(bool visible);
 
   // Emulation
   int GetStateSlot() const;
@@ -228,6 +230,7 @@ signals:
   void DevicesChanged();
   void WiiSpeakMuteChanged(bool muted);
   void EnableGfxModsChanged(bool enabled);
+  void GameCountVisibilityChanged(bool visible);
 
 private:
   Settings();
