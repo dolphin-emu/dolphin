@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <cstring>
+#include <vector>
 
 #include "Common/Assert.h"
 #include "Common/Contains.h"
@@ -534,6 +535,24 @@ void VulkanContext::PopulateBackendInfoFeatures(BackendInfo* backend_info, VkPhy
   // Dynamic sampler indexing locks up Intel GPUs on MoltenVK/Metal
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING))
     backend_info->bSupportsDynamicSamplerIndexing = false;
+
+  // Check for VK_EXT_shader_viewport_index_layer extension support
+  // This allows gl_Layer output from vertex shaders for stereo rendering without geometry shaders
+  u32 extension_count = 0;
+  vkEnumerateDeviceExtensionProperties(gpu, nullptr, &extension_count, nullptr);
+  if (extension_count > 0)
+  {
+    std::vector<VkExtensionProperties> extensions(extension_count);
+    vkEnumerateDeviceExtensionProperties(gpu, nullptr, &extension_count, extensions.data());
+    for (const auto& ext : extensions)
+    {
+      if (std::strcmp(ext.extensionName, VK_EXT_SHADER_VIEWPORT_INDEX_LAYER_EXTENSION_NAME) == 0)
+      {
+        backend_info->bSupportsVSLayerOutput = true;
+        break;
+      }
+    }
+  }
 }
 
 void VulkanContext::PopulateBackendInfoMultisampleModes(BackendInfo* backend_info,
@@ -663,6 +682,14 @@ bool VulkanContext::SelectDeviceExtensions(bool enable_surface)
 
   AddExtension(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, false);
   AddExtension(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME, false);
+
+  // VK_EXT_shader_viewport_index_layer allows gl_Layer output from vertex shaders
+  // This enables 2-layer stereo rendering without geometry shaders
+  if (AddExtension(VK_EXT_SHADER_VIEWPORT_INDEX_LAYER_EXTENSION_NAME, false))
+  {
+    g_backend_info.bSupportsVSLayerOutput = true;
+    INFO_LOG_FMT(VIDEO, "Using VK_EXT_shader_viewport_index_layer for vertex shader layer output.");
+  }
 
   if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DEPTH_CLAMP_CONTROL))
   {
