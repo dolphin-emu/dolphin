@@ -4,10 +4,10 @@
 #include <bit>
 
 #include "Common/CommonTypes.h"
-#include "Common/FloatUtils.h"
 #include "Common/ScopeGuard.h"
 #include "Common/x64ABI.h"
 #include "Core/Core.h"
+#include "Core/FloatUtils.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
@@ -67,7 +67,7 @@ TEST(Jit64, Frsqrte)
   {
     const double dvalue = std::bit_cast<double>(ivalue);
 
-    u64 expected = std::bit_cast<u64>(Common::ApproximateReciprocalSquareRoot(dvalue));
+    u64 expected = std::bit_cast<u64>(Core::ApproximateReciprocalSquareRoot(dvalue));
 
     u64 actual = routines.wrapped_frsqrte(ivalue, fpscr);
 

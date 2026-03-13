@@ -11,12 +11,12 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
-#include "Common/FloatUtils.h"
 #include "Common/JitRegister.h"
 #include "Common/MathUtil.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
+#include "Core/FloatUtils.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Gekko.h"
@@ -289,31 +289,45 @@ void JitArm64::GenerateFres()
 
   UBFX(ARM64Reg::X2, ARM64Reg::X1, 52, 11);  // Grab the exponent
   m_float_emit.FMOV(ARM64Reg::X0, ARM64Reg::D0);
-  AND(ARM64Reg::X3, ARM64Reg::X1, LogicalImm(Common::DOUBLE_SIGN, GPRSize::B64));
-  CMP(ARM64Reg::X2, 895);
-  FixupBranch small_exponent = B(CCFlags::CC_LO);
-
-  CMP(ARM64Reg::X2, 1148);
-  FixupBranch large_exponent = B(CCFlags::CC_HI);
+  AND(ARM64Reg::X3, ARM64Reg::X1, LogicalImm(Core::DOUBLE_SIGN, GPRSize::B64));
+  SUB(ARM64Reg::X2, ARM64Reg::X2, 895);
+  CMP(ARM64Reg::X2, 1148 - 895);
+  // Take the complex path for very large/small exponents.
+  // This also will apply to 0
+  FixupBranch complex = B(CCFlags::CC_HI);  // if (exp < 895 || exp >= 1149)
 
   UBFX(ARM64Reg::X2, ARM64Reg::X1, 47, 5);  // Grab upper part of mantissa
-  MOVP2R(ARM64Reg::X3, &Common::fres_expected);
+  MOVP2R(ARM64Reg::X3, &Core::fres_expected);
   ADD(ARM64Reg::X2, ARM64Reg::X3, ARM64Reg::X2, ArithOption(ARM64Reg::X2, ShiftType::LSL, 3));
   UBFX(ARM64Reg::X1, ARM64Reg::X1, 37, 10);  // Grab lower part of mantissa
   LDP(IndexType::Signed, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::X2, 0);
-  MOVI2R(ARM64Reg::W4, 1);
-  MADD(ARM64Reg::W1, ARM64Reg::W3, ARM64Reg::W1, ARM64Reg::W4);
-  SUB(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W1, ArithOption(ARM64Reg::W1, ShiftType::LSR, 1));
-  AND(ARM64Reg::X0, ARM64Reg::X0,
-      LogicalImm(Common::DOUBLE_SIGN | Common::DOUBLE_EXP, GPRSize::B64));
+  MADD(ARM64Reg::W1, ARM64Reg::W3, ARM64Reg::W1, ARM64Reg::W2);
+  AND(ARM64Reg::X0, ARM64Reg::X0, LogicalImm(Core::DOUBLE_SIGN | Core::DOUBLE_EXP, GPRSize::B64));
+  LSR(ARM64Reg::W1, ARM64Reg::W1, 1);
   ORR(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X1, ArithOption(ARM64Reg::X1, ShiftType::LSL, 29));
   RET();
 
-  SetJumpTarget(small_exponent);
-  TST(ARM64Reg::X1, LogicalImm(Common::DOUBLE_EXP | Common::DOUBLE_FRAC, GPRSize::B64));
+  SetJumpTarget(complex);
+  // Check for 0 and -0
+  TST(ARM64Reg::X1, LogicalImm(Core::DOUBLE_EXP | Core::DOUBLE_FRAC, GPRSize::B64));
   FixupBranch zero = B(CCFlags::CC_EQ);
-  MOVI2R(ARM64Reg::X4, std::bit_cast<u64>(static_cast<double>(std::numeric_limits<float>::max())));
-  ORR(ARM64Reg::X0, ARM64Reg::X3, ARM64Reg::X4);
+  // Check for infinities and NaNs
+  // Much smaller exponents could fall back earlier, but precisely when would need to be tested
+  CMP(ARM64Reg::X2, 0x7ff - 895);
+  FixupBranch nonfinite = B(CCFlags::CC_EQ);
+
+  // Fall back for more complex cases!
+  ADD(ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(fpscr));
+
+  // X0 - X4 are acknowledged to be clobbered by this function,
+  // though they would not normally be pushed to the stack anyways
+  BitSet32 gprs_to_push = CALLER_SAVED_GPRS & ~BitSet32{0, 1, 2, 3, 4};
+
+  ABI_PushRegisters(gprs_to_push);
+  m_float_emit.ABI_PushRegisters(CALLER_SAVED_FPRS, ARM64Reg::X30);
+  ABI_CallFunction(&Core::ApproximateReciprocalBits, ARM64Reg::X0, ARM64Reg::X1);
+  m_float_emit.ABI_PopRegisters(CALLER_SAVED_FPRS, ARM64Reg::X30);
+  ABI_PopRegisters(gprs_to_push);
   RET();
 
   SetJumpTarget(zero);
@@ -322,11 +336,11 @@ void JitArm64::GenerateFres()
   ORRI2R(ARM64Reg::W4, ARM64Reg::W4, FPSCR_FX | FPSCR_ZX, ARM64Reg::W2);
   STR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
   SetJumpTarget(skip_set_zx);
+  // X0 will already be the proper infinity
   RET();
 
-  SetJumpTarget(large_exponent);
-  CMP(ARM64Reg::X2, 0x7FF);
-  CSEL(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X3, CCFlags::CC_EQ);
+  SetJumpTarget(nonfinite);
+  // X0 will already contain whatever correct value, NaN or 0
   RET();
 }
 
@@ -342,18 +356,17 @@ void JitArm64::GenerateFrsqrte()
   LSL(ARM64Reg::X2, ARM64Reg::X1, 1);
   m_float_emit.FMOV(ARM64Reg::X0, ARM64Reg::D0);
   CLS(ARM64Reg::X3, ARM64Reg::X2);
-  TST(ARM64Reg::X1, LogicalImm(Common::DOUBLE_SIGN, GPRSize::B64));
-  CCMP(ARM64Reg::X3, Common::DOUBLE_EXP_WIDTH - 1, 0b0010, CCFlags::CC_EQ);
+  TST(ARM64Reg::X1, LogicalImm(Core::DOUBLE_SIGN, GPRSize::B64));
+  CCMP(ARM64Reg::X3, Core::DOUBLE_EXP_WIDTH - 1, 0b0010, CCFlags::CC_EQ);
   FixupBranch not_positive_normal = B(CCFlags::CC_HS);
 
   const u8* positive_normal = GetCodePtr();
   UBFX(ARM64Reg::X2, ARM64Reg::X1, 48, 5);
-  MOVP2R(ARM64Reg::X3, &Common::frsqrte_expected);
+  MOVP2R(ARM64Reg::X3, &Core::frsqrte_expected);
   ADD(ARM64Reg::X2, ARM64Reg::X3, ARM64Reg::X2, ArithOption(ARM64Reg::X2, ShiftType::LSL, 3));
   LDP(IndexType::Signed, ARM64Reg::W3, ARM64Reg::W2, ARM64Reg::X2, 0);
   UBFX(ARM64Reg::X1, ARM64Reg::X1, 37, 11);
-  AND(ARM64Reg::X0, ARM64Reg::X0,
-      LogicalImm(Common::DOUBLE_SIGN | Common::DOUBLE_EXP, GPRSize::B64));
+  AND(ARM64Reg::X0, ARM64Reg::X0, LogicalImm(Core::DOUBLE_SIGN | Core::DOUBLE_EXP, GPRSize::B64));
   MADD(ARM64Reg::W1, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3);
   ORR(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X1, ArithOption(ARM64Reg::X1, ShiftType::LSL, 26));
   RET();
@@ -472,8 +485,8 @@ void JitArm64::GenerateFPRF(bool single)
   constexpr ARM64Reg fpscr_reg = ARM64Reg::W4;
 
   const int input_size = single ? 32 : 64;
-  const int input_exp_size = single ? Common::FLOAT_EXP_WIDTH : Common::DOUBLE_EXP_WIDTH;
-  const u64 input_frac_mask = single ? Common::FLOAT_FRAC : Common::DOUBLE_FRAC;
+  const int input_exp_size = single ? Core::FLOAT_EXP_WIDTH : Core::DOUBLE_EXP_WIDTH;
+  const u64 input_frac_mask = single ? Core::FLOAT_FRAC : Core::DOUBLE_FRAC;
   constexpr u32 output_sign_mask = 0xC;
 
   // First of all, start the load of the old FPSCR value, in case it takes a while
@@ -484,8 +497,8 @@ void JitArm64::GenerateFPRF(bool single)
   FixupBranch not_zero = CBNZ(cls_reg);
 
   // exp == 0 && frac == 0
-  MOVI2R(ARM64Reg::W3, Common::PPC_FPCLASS_PZ);
-  MOVI2R(ARM64Reg::W1, Common::PPC_FPCLASS_NZ);
+  MOVI2R(ARM64Reg::W3, Core::PPC_FPCLASS_PZ);
+  MOVI2R(ARM64Reg::W1, Core::PPC_FPCLASS_NZ);
   CSEL(fprf_reg, ARM64Reg::W1, ARM64Reg::W3, CCFlags::CC_LT);
 
   const u8* write_fprf_and_ret = GetCodePtr();
@@ -499,8 +512,8 @@ void JitArm64::GenerateFPRF(bool single)
 
   // All branches except the zero branch handle the sign in the same way.
   // Perform that handling before branching further
-  MOVI2R(ARM64Reg::W3, Common::PPC_FPCLASS_PN);
-  MOVI2R(ARM64Reg::W1, Common::PPC_FPCLASS_NN);
+  MOVI2R(ARM64Reg::W3, Core::PPC_FPCLASS_PN);
+  MOVI2R(ARM64Reg::W1, Core::PPC_FPCLASS_NN);
   CSEL(fprf_reg, ARM64Reg::W1, ARM64Reg::W3, CCFlags::CC_LT);
 
   CMP(cls_reg, input_exp_size - 1);
@@ -510,14 +523,13 @@ void JitArm64::GenerateFPRF(bool single)
   FixupBranch nan_or_inf = TBNZ(input_reg, input_size - 2);
 
   // exp == 0 && frac != 0
-  ORR(fprf_reg, fprf_reg, LogicalImm(Common::PPC_FPCLASS_PD & ~output_sign_mask, GPRSize::B32));
+  ORR(fprf_reg, fprf_reg, LogicalImm(Core::PPC_FPCLASS_PD & ~output_sign_mask, GPRSize::B32));
   B(write_fprf_and_ret);
 
   // exp == EXP_MASK
   SetJumpTarget(nan_or_inf);
-  MOVI2R(ARM64Reg::W2, Common::PPC_FPCLASS_QNAN);
-  ORR(ARM64Reg::W1, fprf_reg,
-      LogicalImm(Common::PPC_FPCLASS_PINF & ~output_sign_mask, GPRSize::B32));
+  MOVI2R(ARM64Reg::W2, Core::PPC_FPCLASS_QNAN);
+  ORR(ARM64Reg::W1, fprf_reg, LogicalImm(Core::PPC_FPCLASS_PINF & ~output_sign_mask, GPRSize::B32));
   TST(input_reg, LogicalImm(input_frac_mask, single ? GPRSize::B32 : GPRSize::B64));
   CSEL(fprf_reg, ARM64Reg::W1, ARM64Reg::W2, CCFlags::CC_EQ);
   B(write_fprf_and_ret);
