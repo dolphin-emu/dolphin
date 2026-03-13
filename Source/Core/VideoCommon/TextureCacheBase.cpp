@@ -2256,16 +2256,16 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     {
       for (const auto& action : g_graphics_mod_manager->GetXFBActions(info))
       {
-        action->OnXFB();
+        action->BeforeXFB();
       }
     }
     else
     {
       bool skip = false;
-      GraphicsModActionData::EFB efb{tex_w, tex_h, &skip, &scaled_tex_w, &scaled_tex_h};
+      GraphicsModActionData::PreEFB efb{tex_w, tex_h, &skip, &scaled_tex_w, &scaled_tex_h};
       for (const auto& action : g_graphics_mod_manager->GetEFBActions(info))
       {
-        action->OnEFB(&efb);
+        action->BeforeEFB(&efb);
       }
       if (skip == true)
       {
@@ -2326,6 +2326,26 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, linear_filter, dstFormat,
                           isIntensity, gamma, clamp_top, clamp_bottom,
                           GetVRAMCopyFilterCoefficients(filter_coefficients));
+
+      if (g_ActiveConfig.bGraphicMods)
+      {
+        FBInfo info;
+        info.m_width = tex_w;
+        info.m_height = tex_h;
+        info.m_texture_format = baseFormat;
+        if (!is_xfb_copy)
+        {
+          GraphicsModActionData::PostEFB efb;
+          for (const auto& action : g_graphics_mod_manager->GetEFBActions(info))
+          {
+            action->AfterEFB(&efb);
+            if (efb.material)
+            {
+              ApplyMaterialToCacheEntry(*efb.material, entry.get());
+            }
+          }
+        }
+      }
 
       if (is_xfb_copy && (g_ActiveConfig.bDumpXFBTarget || g_ActiveConfig.bGraphicMods))
       {
@@ -3031,6 +3051,110 @@ bool TextureCacheBase::DecodeTextureOnGPU(RcTcacheEntry& entry, u32 dst_level, c
                                            dst_level);
   entry->texture->FinishedRendering();
   return true;
+}
+
+void TextureCacheBase::ApplyMaterialToCacheEntry(const VideoCommon::MaterialResource& material,
+                                                 TCacheEntry* entry)
+{
+  const auto material_data = material.GetData();
+  if (!material_data) [[unlikely]]
+    return;
+
+  // Make a copy, we can't write to our texture and use its framebuffer
+  // at the same time
+  auto new_entry = AllocateCacheEntry(entry->texture->GetConfig());
+  new_entry->SetGeneralParameters(entry->addr, entry->size_in_bytes, entry->format,
+                                  entry->should_force_safe_hashing);
+  new_entry->SetDimensions(entry->native_width, entry->native_height, 1);
+  new_entry->SetEfbCopy(entry->memory_stride);
+  new_entry->may_have_overlapping_textures = false;
+  new_entry->frameCount = FRAMECOUNT_INVALID;
+
+  g_gfx->BeginUtilityDrawing();
+  entry->texture->FinishedRendering();
+
+  const auto custom_uniforms = material_data->GetUniforms();
+
+  // Set up uniforms.
+  // TODO: this struct should be shared with post processing
+  struct Uniforms
+  {
+    std::array<float, 4> source_resolution;
+    std::array<float, 4> target_resolution;
+    std::array<float, 4> window_resolution;
+    std::array<float, 4> source_rectangle;
+    s32 source_layer;
+    s32 source_layer_pad[3];
+    u32 time;
+    u32 time_pad[3];
+    s32 graphics_api;
+    s32 graphics_api_pad[3];
+    u32 efb_scale;
+    u32 efb_scale_pad[3];
+  } uniforms;
+
+  const float rcp_src_width = 1.0f / entry->texture->GetWidth();
+  const float rcp_src_height = 1.0f / entry->texture->GetHeight();
+
+  uniforms.source_resolution = {static_cast<float>(entry->texture->GetWidth()),
+                                static_cast<float>(entry->texture->GetHeight()), rcp_src_width,
+                                rcp_src_height};
+
+  // The target resolution is the same here, since we're
+  // injecting into the texture
+  uniforms.target_resolution = uniforms.source_resolution;
+
+  const auto present_rect = g_presenter->GetTargetRectangle();
+  uniforms.window_resolution = {static_cast<float>(present_rect.GetWidth()),
+                                static_cast<float>(present_rect.GetHeight()),
+                                1.0f / static_cast<float>(present_rect.GetWidth()),
+                                1.0f / static_cast<float>(present_rect.GetHeight())};
+
+  uniforms.source_rectangle = {0, 0, 1, 1};
+  uniforms.source_layer = 0;
+  uniforms.time = 0;
+  uniforms.graphics_api = static_cast<s32>(g_backend_info.api_type);
+  uniforms.efb_scale = g_framebuffer_manager->GetEFBScale();
+
+  Common::UniqueBuffer<u8> uniform_buffer(custom_uniforms.size() + sizeof(uniforms));
+  std::memcpy(uniform_buffer.data(), &uniforms, sizeof(uniforms));
+  std::memcpy(uniform_buffer.data() + sizeof(uniforms), custom_uniforms.data(),
+              custom_uniforms.size());
+  g_vertex_manager->UploadUtilityUniforms(uniform_buffer.data(),
+                                          static_cast<u32>(uniform_buffer.size()));
+
+  // Set framebuffer and viewport based on new entry
+  g_gfx->SetAndDiscardFramebuffer(new_entry->framebuffer.get());
+  g_gfx->SetViewportAndScissor(new_entry->framebuffer->GetRect());
+  g_gfx->SetPipeline(material_data->GetPipeline());
+
+  g_gfx->SetTexture(0, entry->texture.get());
+  g_gfx->SetSamplerState(0, RenderState::GetPointSamplerState());
+
+  for (const auto texture : material_data->GetTextures())
+  {
+    g_gfx->SetTexture(texture.sampler_index, texture.texture);
+    g_gfx->SetSamplerState(texture.sampler_index, texture.sampler);
+  }
+
+  g_gfx->Draw(0, 3);
+  g_gfx->EndUtilityDrawing();
+
+  // Finish rendering new entry
+  new_entry->texture->FinishedRendering();
+
+  // Swap new entry and existing entry
+  std::swap(entry->texture, new_entry->texture);
+  std::swap(entry->framebuffer, new_entry->framebuffer);
+
+  // Return old entry to pool for use in another pass
+  // or future functionality
+  ReleaseToPool(new_entry.get());
+
+  if (auto* const next_material = material_data->GetNextMaterial(); next_material)
+  {
+    ApplyMaterialToCacheEntry(*next_material, entry);
+  }
 }
 
 u32 TCacheEntry::BytesPerRow() const

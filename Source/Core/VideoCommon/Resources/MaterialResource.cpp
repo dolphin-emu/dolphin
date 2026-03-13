@@ -54,6 +54,13 @@ SamplerState CalculateSamplerAnisotropy(const SamplerState& initial_sampler)
 
 namespace VideoCommon
 {
+MaterialResource::MaterialResource(Resource::ResourceContext resource_context)
+    : Resource(std::move(resource_context))
+{
+  m_material_asset = m_resource_context.asset_cache->CreateAsset<MaterialAsset>(
+      m_resource_context.primary_asset_id, m_resource_context.asset_library, this);
+}
+
 MaterialResource::MaterialResource(Resource::ResourceContext resource_context,
                                    const GXPipelineUid& pipeline_uid)
     : Resource(std::move(resource_context)), m_uid(pipeline_uid)
@@ -61,8 +68,8 @@ MaterialResource::MaterialResource(Resource::ResourceContext resource_context,
   m_material_asset = m_resource_context.asset_cache->CreateAsset<MaterialAsset>(
       m_resource_context.primary_asset_id, m_resource_context.asset_library, this);
   m_uid_vertex_format_copy =
-      g_gfx->CreateNativeVertexFormat(m_uid.vertex_format->GetVertexDeclaration());
-  m_uid.vertex_format = m_uid_vertex_format_copy.get();
+      g_gfx->CreateNativeVertexFormat(m_uid->vertex_format->GetVertexDeclaration());
+  m_uid->vertex_format = m_uid_vertex_format_copy.get();
 }
 
 void MaterialResource::ResetData()
@@ -98,7 +105,7 @@ Resource::TaskComplete MaterialResource::CollectPrimaryData()
   }
 
   CreateTextureData(m_load_data.get());
-  SetShaderKey(m_load_data.get(), &m_uid);
+  SetShaderKey(m_load_data.get(), m_uid ? &*m_uid : nullptr);
 
   return Resource::TaskComplete::Yes;
 }
@@ -140,8 +147,18 @@ Resource::TaskComplete MaterialResource::CollectDependencyData()
 
   if (m_load_data->m_material_data->next_material_asset != "")
   {
-    m_load_data->m_next_material = m_resource_context.resource_manager->GetMaterialFromAsset(
-        m_load_data->m_material_data->next_material_asset, m_uid, m_resource_context.asset_library);
+    if (m_uid)
+    {
+      m_load_data->m_next_material = m_resource_context.resource_manager->GetDrawMaterialFromAsset(
+          m_load_data->m_material_data->next_material_asset, *m_uid,
+          m_resource_context.asset_library);
+    }
+    else
+    {
+      m_load_data->m_next_material =
+          m_resource_context.resource_manager->GetPostProcessingMaterialFromAsset(
+              m_load_data->m_material_data->next_material_asset, m_resource_context.asset_library);
+    }
     m_load_data->m_next_material->AddReference(this);
     const auto data_processed = m_load_data->m_next_material->IsDataProcessed();
     if (data_processed == TaskComplete::Error)
@@ -222,33 +239,66 @@ Resource::TaskComplete MaterialResource::ProcessData()
       config.pixel_shader = m_shader_resource_data->GetPixelShader();
       config.geometry_shader = m_shader_resource_data->GetGeometryShader();
 
-      const auto actual_uid = ApplyDriverBugs(*m_uid);
-
-      if (m_material_resource_data->m_material_data->blending_state)
-        config.blending_state = *m_material_resource_data->m_material_data->blending_state;
-      else
-        config.blending_state = actual_uid.blending_state;
-
-      if (m_material_resource_data->m_material_data->depth_state)
-        config.depth_state = *m_material_resource_data->m_material_data->depth_state;
-      else
-        config.depth_state = actual_uid.depth_state;
-
-      config.framebuffer_state = std::move(m_frame_buffer_state);
-      config.framebuffer_state.additional_color_attachment_count = 0;
-
-      config.rasterization_state = actual_uid.rasterization_state;
-      if (m_material_resource_data->m_material_data->cull_mode)
+      if (m_uid)
       {
-        config.rasterization_state.cull_mode =
-            *m_material_resource_data->m_material_data->cull_mode;
+        // Draw based pipeline
+        const auto actual_uid = ApplyDriverBugs(*m_uid);
+
+        if (m_material_resource_data->m_material_data->blending_state)
+          config.blending_state = *m_material_resource_data->m_material_data->blending_state;
+        else
+          config.blending_state = actual_uid.blending_state;
+
+        if (m_material_resource_data->m_material_data->depth_state)
+          config.depth_state = *m_material_resource_data->m_material_data->depth_state;
+        else
+          config.depth_state = actual_uid.depth_state;
+
+        config.framebuffer_state = std::move(m_frame_buffer_state);
+        config.framebuffer_state.additional_color_attachment_count = 0;
+
+        config.rasterization_state = actual_uid.rasterization_state;
+        if (m_material_resource_data->m_material_data->cull_mode)
+        {
+          config.rasterization_state.cull_mode =
+              *m_material_resource_data->m_material_data->cull_mode;
+        }
+
+        config.vertex_format = actual_uid.vertex_format;
+        config.usage = AbstractPipelineUsage::GX;
+      }
+      else
+      {
+        // Post processing based pipeline
+
+        // Many of these properties don't make sense to replace but we expose them for draw
+        // based materials, might as well allow them to be used if the user wants
+
+        if (m_material_resource_data->m_material_data->blending_state)
+          config.blending_state = *m_material_resource_data->m_material_data->blending_state;
+        else
+          config.blending_state = RenderState::GetNoBlendingBlendState();
+
+        if (m_material_resource_data->m_material_data->depth_state)
+          config.depth_state = *m_material_resource_data->m_material_data->depth_state;
+        else
+          config.depth_state = RenderState::GetNoDepthTestingDepthState();
+
+        config.framebuffer_state = RenderState::GetRGBA8FramebufferState();
+
+        config.rasterization_state =
+            RenderState::GetNoCullRasterizationState(PrimitiveType::Triangles);
+        if (m_material_resource_data->m_material_data->cull_mode)
+        {
+          config.rasterization_state.cull_mode =
+              *m_material_resource_data->m_material_data->cull_mode;
+        }
+
+        config.vertex_format = nullptr;
+        config.usage = AbstractPipelineUsage::Utility;
       }
 
-      config.vertex_format = actual_uid.vertex_format;
-      config.usage = AbstractPipelineUsage::GX;
-
       m_material_resource_data->m_pipeline = g_gfx->CreatePipeline(config);
-
       if (m_material_resource_data->m_pipeline)
       {
         WriteUniforms(m_material_resource_data.get());
@@ -268,7 +318,7 @@ Resource::TaskComplete MaterialResource::ProcessData()
   if (!m_processing_load_data)
   {
     auto wi = m_resource_context.shader_compiler->CreateWorkItem<WorkItem>(
-        m_load_data, std::move(shader_data), &m_uid,
+        m_load_data, std::move(shader_data), m_uid ? &*m_uid : nullptr,
         g_framebuffer_manager->GetEFBFramebufferState());
 
     // We don't need priority, that is already handled by the resource system
@@ -360,7 +410,8 @@ void MaterialResource::SetShaderKey(Data* data, GXPipelineUid* uid)
   XXH3_INITSTATE(&shader_key_hash);
   XXH3_64bits_reset_withSeed(&shader_key_hash, static_cast<XXH64_hash_t>(1));
 
-  UpdateHashWithPipeline(*uid, &shader_key_hash);
+  if (uid)
+    UpdateHashWithPipeline(*uid, &shader_key_hash);
   XXH3_64bits_update(&shader_key_hash, data->m_preprocessor_settings.c_str(),
                      data->m_preprocessor_settings.size());
 

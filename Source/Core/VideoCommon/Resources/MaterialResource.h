@@ -5,6 +5,7 @@
 
 #include <atomic>
 #include <memory>
+#include <optional>
 #include <string_view>
 #include <variant>
 #include <vector>
@@ -27,6 +28,7 @@ namespace VideoCommon
 class MaterialResource final : public Resource
 {
 public:
+  explicit MaterialResource(Resource::ResourceContext resource_context);
   MaterialResource(Resource::ResourceContext resource_context, const GXPipelineUid& pipeline_uid);
 
   struct TextureLikeReference
@@ -93,7 +95,9 @@ private:
   // Note: asset cache owns the asset, we access as a reference
   MaterialAsset* m_material_asset = nullptr;
 
-  GXPipelineUid m_uid;
+  // If provided, denotes this material will be used as a custom draw material.
+  // If not provided, denotes this will be used as an efb post processing material.
+  std::optional<GXPipelineUid> m_uid;
   std::unique_ptr<NativeVertexFormat> m_uid_vertex_format_copy;
 };
 }  // namespace VideoCommon
