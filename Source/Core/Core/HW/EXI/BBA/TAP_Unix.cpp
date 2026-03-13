@@ -129,7 +129,17 @@ void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* s
   {
     fd_set rfds;
     FD_ZERO(&rfds);
-    FD_SET(self->fd, &rfds);
+
+    // TODO: Don't use select().
+    // See WARNING at https://www.man7.org/linux/man-pages/man2/select.2.html
+    if (self->fd >= FD_SETSIZE)
+    {
+      ERROR_LOG_FMT(SP1, "fd >= FD_SETSIZE");
+    }
+    else
+    {
+      FD_SET(self->fd, &rfds);
+    }
 
     struct timeval timeout;
     timeout.tv_sec = 0;

@@ -467,9 +467,22 @@ int main()
     tv.tv_usec = 300000;
     fd_set readSet;
     FD_ZERO(&readSet);
-    FD_SET(sock, &readSet);
-    FD_SET(sockAlt, &readSet);
-    rv = select(std::max(sock, sockAlt) + 1, &readSet, nullptr, nullptr, &tv);
+
+    const int nfds = std::max(sock, sockAlt) + 1;
+
+    // TODO: Don't use select().
+    // See WARNING at https://www.man7.org/linux/man-pages/man2/select.2.html
+    if (nfds > FD_SETSIZE)
+    {
+      perror("nfds > FD_SETSIZE");
+    }
+    else
+    {
+      FD_SET(sock, &readSet);
+      FD_SET(sockAlt, &readSet);
+    }
+
+    rv = select(nfds, &readSet, nullptr, nullptr, &tv);
     if (rv < 0)
     {
       if (errno != EINTR && errno != EAGAIN)
