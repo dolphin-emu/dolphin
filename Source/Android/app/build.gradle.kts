@@ -1,20 +1,18 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    kotlin("plugin.serialization") version "2.2.21"
+    kotlin("plugin.serialization") version "2.3.10"
     id("androidx.baselineprofile")
 }
 
 @Suppress("UnstableApiUsage")
 android {
-    compileSdkVersion = "android-36"
+    compileSdk = 36
     ndkVersion = "29.0.14206865"
 
     buildFeatures {
         viewBinding = true
         buildConfig = true
+        resValues = true
     }
 
     compileOptions {
@@ -23,12 +21,6 @@ android {
 
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlin {
-        compilerOptions {
-            jvmTarget = JvmTarget.fromTarget("17")
-        }
     }
 
     lint {
@@ -79,7 +71,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
-                getDefaultProguardFile("proguard-android.txt"),
+                getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
@@ -147,13 +139,13 @@ dependencies {
     // Android TV UI libraries.
     implementation("androidx.leanback:leanback:1.2.0")
     implementation("androidx.tvprovider:tvprovider:1.1.0")
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0")
 
     // For loading game covers from disk and GameTDB
     implementation("io.coil-kt:coil:2.7.0")
 
     // For loading custom GPU drivers
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 
