@@ -702,7 +702,6 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
   if (opinfo->flags & FL_IN_FLOAT_S)
     code->fregsIn[code->inst.FS] = true;
 
-  code->branchUsesCtr = false;
   code->branchTo = UINT32_MAX;
 
   // For branch with immediate addresses (bx/bcx), compute the destination.
@@ -719,19 +718,18 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
       code->branchTo = SignExt16(code->inst.BD << 2);
     else
       code->branchTo = code->address + SignExt16(code->inst.BD << 2);
-    if (!(code->inst.BO & BO_DONT_DECREMENT_FLAG))
-      code->branchUsesCtr = true;
   }
-  else if (code->inst.OPCD == 19 && code->inst.SUBOP10 == 16)  // bclrx
-  {
-    if (!(code->inst.BO & BO_DONT_DECREMENT_FLAG))
-      code->branchUsesCtr = true;
-  }
-  else if (code->inst.OPCD == 19 && code->inst.SUBOP10 == 528)  // bcctrx
-  {
-    if (!(code->inst.BO & BO_DONT_DECREMENT_FLAG))
-      code->branchUsesCtr = true;
-  }
+}
+
+static bool DoesBranchUseCtr(CodeOp* code)
+{
+  if (code->inst.OPCD == 16                                    // bcx
+      || (code->inst.OPCD == 19 && code->inst.SUBOP10 == 16)   // bclrx
+      || (code->inst.OPCD == 19 && code->inst.SUBOP10 == 528)  // bcctrx
+  )
+    return !(code->inst.BO & BO_DONT_DECREMENT_FLAG);
+  else
+    return false;
 }
 
 bool PPCAnalyzer::IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instructions) const
@@ -752,7 +750,7 @@ bool PPCAnalyzer::IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instruct
   {
     if (code[i].opinfo->type == OpType::Branch)
     {
-      if (code[i].branchUsesCtr)
+      if (DoesBranchUseCtr(&code[i]))
         return false;
       if (code[i].branchTo == block->m_address && i == instructions)
         return true;
@@ -940,12 +938,14 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
       }
     }
 
-    code[i].branchIsIdleLoop =
-        code[i].branchTo == block->m_address && IsBusyWaitLoop(block, code, i);
+    if (code[i].branchTo == block->m_address && IsBusyWaitLoop(block, code, i))
+      code[i].branchKind = BranchKind::IdleLoop;
 
-    if (follow && numFollows < BRANCH_FOLLOWING_THRESHOLD)
+    if (follow && code[i].branchKind != BranchKind::IdleLoop &&
+        numFollows < BRANCH_FOLLOWING_THRESHOLD)
     {
       // Follow the unconditional branch.
+      code[i].branchKind = BranchKind::Followed;
       numFollows++;
       address = code[i].branchTo;
     }

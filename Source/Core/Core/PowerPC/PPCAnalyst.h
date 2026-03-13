@@ -26,6 +26,18 @@ class CPUThreadGuard;
 
 namespace PPCAnalyst
 {
+enum class BranchKind
+{
+  Normal,
+  // The analyzer followed the branch, and thus the next instruction corresponds to its target. This
+  // can only be done if the branch is unconditional.
+  Followed,
+  // The branch represent a loop with idempotent properties: if the condition is true, then the
+  // emulation should skip directly to timing handling, as interrupts are the only thing that can
+  // change the loop's effects.
+  IdleLoop,
+};
+
 struct CodeOp  // 16B
 {
   UGeckoInstruction inst;
@@ -38,8 +50,7 @@ struct CodeOp  // 16B
   s8 fregOut = 0;
   BitSet8 crIn;
   BitSet8 crOut;
-  bool branchUsesCtr = false;
-  bool branchIsIdleLoop = false;
+  BranchKind branchKind = {};
   BitSet8 wantsCR;
   bool wantsFPRF = false;
   bool wantsCA = false;
