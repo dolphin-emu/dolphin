@@ -31,7 +31,7 @@
 #endif
 
 #ifndef _WIN32
-#include <qpa/qplatformnativeinterface.h>
+#include <QtGui/qpa/qplatformnativeinterface.h>
 #endif
 
 #include "Common/Config/Config.h"
