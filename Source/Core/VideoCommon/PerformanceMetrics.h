@@ -71,5 +71,3 @@ private:
 
   Common::EventHook m_state_change_hook;
 };
-
-extern PerformanceMetrics g_perf_metrics;

@@ -417,7 +417,8 @@ void OnScreenUI::Finalize()
 {
   auto lock = GetImGuiLock();
 
-  g_perf_metrics.DrawImGuiStats(m_backbuffer_scale);
+  auto& perf_metrics = Core::System::GetInstance().GetPerfMetrics();
+  perf_metrics.DrawImGuiStats(m_backbuffer_scale);
   DrawDebugText();
   OSD::DrawMessages();
   DrawChallengesAndLeaderboards();
