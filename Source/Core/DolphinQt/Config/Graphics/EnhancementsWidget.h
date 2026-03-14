@@ -45,6 +45,8 @@ private:
   void ConfigureColorCorrection();
   void ConfigurePostProcessingShader();
 
+  void LoadTextureUpscalingShaders();
+
   // Enhancements
   ConfigChoice* m_ir_combo;
   ConfigComplexChoice* m_antialiasing_combo;
@@ -61,6 +63,9 @@ private:
   ConfigBool* m_disable_copy_filter;
   ConfigBool* m_arbitrary_mipmap_detection;
   ConfigBool* m_hdr;
+
+  // Texture Upscaling
+  ConfigStringChoice* m_texture_upscaling_shader;
 
   // Stereoscopy
   ConfigChoice* m_3d_mode;

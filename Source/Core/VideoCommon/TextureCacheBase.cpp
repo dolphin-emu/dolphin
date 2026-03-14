@@ -54,6 +54,7 @@
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureConverterShaderGen.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/TextureUpscaling.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -129,6 +130,10 @@ bool TextureCacheBase::Initialize()
     return false;
   }
 
+  // Initialize texture upscaling
+  m_texture_upscaling = std::make_unique<VideoCommon::TextureUpscaling>();
+  m_texture_upscaling->Initialize();
+
   return true;
 }
 
@@ -165,13 +170,20 @@ void TextureCacheBase::OnConfigChanged(const VideoConfig& config)
       config.bDisableCopyToVRAM != m_backup_config.disable_vram_copies ||
       config.bArbitraryMipmapDetection != m_backup_config.arbitrary_mipmap_detection ||
       config.bGraphicMods != m_backup_config.graphics_mods ||
-      change_count != m_backup_config.graphics_mod_change_count)
+      change_count != m_backup_config.graphics_mod_change_count ||
+      config.sTextureUpscalingShader != m_backup_config.texture_upscaling_shader)
   {
     Invalidate();
     TexDecoder_SetTexFmtOverlayOptions(config.bTexFmtOverlayEnable, config.bTexFmtOverlayCenter);
   }
 
   SetBackupConfig(config);
+
+  // Recompile texture upscaling shader if the setting changed
+  if (m_texture_upscaling)
+  {
+    m_texture_upscaling->RecompileShader();
+  }
 }
 
 void TextureCacheBase::Cleanup(int _frameCount)
@@ -259,6 +271,7 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
   m_backup_config.graphics_mods = config.bGraphicMods;
   m_backup_config.graphics_mod_change_count =
       config.graphics_mod_config ? config.graphics_mod_config->GetChangeCount() : 0;
+  m_backup_config.texture_upscaling_shader = config.sTextureUpscalingShader;
 }
 
 bool TextureCacheBase::DidLinkedAssetsChange(const TCacheEntry& entry)
@@ -1770,6 +1783,45 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
         {
           m_texture_dumper.DumpTexture(*entry->texture, basename, level, entry->has_arbitrary_mips);
         }
+      }
+    }
+  }
+
+  // Apply texture upscaling for non-custom textures
+  if (!entry->is_custom_tex && m_texture_upscaling && m_texture_upscaling->IsActive())
+  {
+    const u32 scale = static_cast<u32>(m_texture_upscaling->GetScaleFactor());
+    const u32 native_width = entry->GetWidth();
+    const u32 native_height = entry->GetHeight();
+    const u32 new_width = native_width * scale;
+    const u32 new_height = native_height * scale;
+    const u32 max = g_backend_info.MaxTextureSize;
+
+    DEBUG_LOG_FMT(VIDEO,
+                 "Texture upscaling: scale={} native={}x{} new={}x{} max={} will_upscale={}",
+                 scale, native_width, native_height, new_width, new_height, max,
+                 (new_width <= max && new_height <= max && new_width > native_width));
+
+    if (new_width <= max && new_height <= max && new_width > native_width)
+    {
+      const TextureConfig newconfig(new_width, new_height, 1, entry->GetNumLayers(), 1,
+                                    AbstractTextureFormat::RGBA8,
+                                    AbstractTextureFlag_RenderTarget,
+                                    AbstractTextureType::Texture_2DArray);
+      std::optional<TexPoolEntry> new_texture = AllocateTexture(newconfig);
+      if (new_texture)
+      {
+        m_texture_upscaling->UpscaleTexture(
+            new_texture->framebuffer.get(), new_texture->texture->GetConfig().GetRect(),
+            entry->texture.get(), entry->texture->GetConfig().GetRect());
+        entry->texture.swap(new_texture->texture);
+        entry->framebuffer.swap(new_texture->framebuffer);
+
+        // Return the old (native-sized) texture to the pool
+        auto config = new_texture->texture->GetConfig();
+        m_texture_pool.emplace(
+            config,
+            TexPoolEntry(std::move(new_texture->texture), std::move(new_texture->framebuffer)));
       }
     }
   }

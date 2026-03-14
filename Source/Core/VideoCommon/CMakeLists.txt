@@ -144,6 +144,8 @@ add_library(videocommon
   PixelShaderManager.h
   PostProcessing.cpp
   PostProcessing.h
+  TextureUpscaling.cpp
+  TextureUpscaling.h
   Present.cpp
   Present.h
   RenderState.cpp

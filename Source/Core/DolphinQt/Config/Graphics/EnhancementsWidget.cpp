@@ -26,6 +26,7 @@
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 
 #include "VideoCommon/PostProcessing.h"
+#include "VideoCommon/TextureUpscaling.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -35,6 +36,7 @@ EnhancementsWidget::EnhancementsWidget(GraphicsPane* gfx_pane)
 {
   CreateWidgets();
   LoadPostProcessingShaders();
+  LoadTextureUpscalingShaders();
   ConnectWidgets();
   AddDescriptions();
 
@@ -165,6 +167,11 @@ void EnhancementsWidget::CreateWidgets()
   m_arbitrary_mipmap_detection->setEnabled(!ReadSetting(Config::GFX_ENABLE_GPU_TEXTURE_DECODING));
   m_hdr = new ConfigBool(tr("HDR Post-Processing"), Config::GFX_ENHANCE_HDR_OUTPUT, m_game_layer);
 
+  // Texture Upscaling
+  const std::vector<std::pair<QString, QString>> separate_upscaling_data_and_text;
+  m_texture_upscaling_shader = new ConfigStringChoice(
+      separate_upscaling_data_and_text, Config::GFX_ENHANCE_TEXTURE_UPSCALING_SHADER, m_game_layer);
+
   int row = 0;
   enhancements_layout->addWidget(new QLabel(tr("Internal Resolution:")), row, 0);
   enhancements_layout->addWidget(m_ir_combo, row, 1, 1, -1);
@@ -205,6 +212,10 @@ void EnhancementsWidget::CreateWidgets()
 
   enhancements_layout->addWidget(m_disable_copy_filter, row, 0);
   enhancements_layout->addWidget(m_hdr, row, 1, 1, -1);
+  ++row;
+
+  enhancements_layout->addWidget(new QLabel(tr("Texture Upscaling:")), row, 0);
+  enhancements_layout->addWidget(m_texture_upscaling_shader, row, 1, 1, -1);
   ++row;
 
   // Stereoscopy
@@ -416,6 +427,7 @@ void EnhancementsWidget::OnConfigChanged()
 
   // Needs to update after deleting a key for 3d settings.
   LoadPostProcessingShaders();
+  LoadTextureUpscalingShaders();
 }
 
 void EnhancementsWidget::UpdateAntialiasingOptions()
@@ -615,6 +627,16 @@ void EnhancementsWidget::AddDescriptions()
 
   m_hdr->SetDescription(tr(TR_HDR_DESCRIPTION));
 
+  static const char TR_TEXTURE_UPSCALING_DESCRIPTION[] =
+      QT_TR_NOOP("Applies a texture upscaling shader to all base game textures, "
+                 "enhancing their detail like a real-time HD texture pack."
+                 "<br><br>The upscale factor is determined by the shader itself."
+                 "<br><br>Custom hires texture packs are not affected."
+                 "<br><br><dolphin_emphasis>If unsure, select (off).</dolphin_emphasis>");
+
+  m_texture_upscaling_shader->SetTitle(tr("Texture Upscaling Shader"));
+  m_texture_upscaling_shader->SetDescription(tr(TR_TEXTURE_UPSCALING_DESCRIPTION));
+
   m_3d_mode->SetTitle(tr("Stereoscopic 3D Mode"));
   m_3d_mode->SetDescription(tr(TR_3D_MODE_DESCRIPTION));
 
@@ -640,4 +662,27 @@ void EnhancementsWidget::ConfigurePostProcessingShader()
   const std::string shader = ReadSetting(Config::GFX_ENHANCE_POST_SHADER);
   PostProcessingConfigWindow dialog(this, shader);
   dialog.exec();
+}
+
+void EnhancementsWidget::LoadTextureUpscalingShaders()
+{
+  const QSignalBlocker blocker(m_texture_upscaling_shader);
+  m_texture_upscaling_shader->clear();
+
+  m_texture_upscaling_shader->addItem(tr("(off)"), QStringLiteral(""));
+
+  std::vector<std::string> shaders = VideoCommon::TextureUpscaling::GetShaderList();
+  auto selected_shader = ReadSetting(Config::GFX_ENHANCE_TEXTURE_UPSCALING_SHADER);
+
+  for (const auto& shader : shaders)
+  {
+    const QString name = QString::fromStdString(shader);
+    m_texture_upscaling_shader->addItem(name, name);
+    if (selected_shader == shader)
+    {
+      m_texture_upscaling_shader->setCurrentIndex(m_texture_upscaling_shader->count() - 1);
+    }
+  }
+
+  m_texture_upscaling_shader->Load();
 }
