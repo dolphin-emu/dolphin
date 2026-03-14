@@ -21,6 +21,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 #include "Common/WorkQueueThread.h"
+#include "Core/AchievementApprovedHash.h"
 #include "Core/ActionReplay.h"
 #include "Core/Config/AchievementSettings.h"
 #include "Core/Config/FreeLookSettings.h"
@@ -100,23 +101,24 @@ picojson::value AchievementManager::LoadApprovedList()
 {
   picojson::value temp;
   std::string error;
-  if (!JsonFromFile(fmt::format("{}{}{}", File::GetSysDirectory(), DIR_SEP, APPROVED_LIST_FILENAME),
+  if (!JsonFromFile(fmt::format("{}{}{}", File::GetSysDirectory(), DIR_SEP,
+                                ACHIEVEMENT_APPROVED_LIST_FILENAME),
                     &temp, &error))
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to load approved game settings list {}",
-                 APPROVED_LIST_FILENAME);
+                 ACHIEVEMENT_APPROVED_LIST_FILENAME);
     WARN_LOG_FMT(ACHIEVEMENTS, "Error: {}", error);
     return {};
   }
   auto context = Common::SHA1::CreateContext();
   context->Update(temp.serialize());
   auto digest = context->Finish();
-  if (digest != APPROVED_LIST_HASH)
+  if (digest != ACHIEVEMENT_APPROVED_LIST_HASH)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Failed to verify approved game settings list {}",
-                 APPROVED_LIST_FILENAME);
+                 ACHIEVEMENT_APPROVED_LIST_FILENAME);
     WARN_LOG_FMT(ACHIEVEMENTS, "Expected hash {}, found hash {}",
-                 Common::SHA1::DigestToString(APPROVED_LIST_HASH),
+                 Common::SHA1::DigestToString(ACHIEVEMENT_APPROVED_LIST_HASH),
                  Common::SHA1::DigestToString(digest));
     return {};
   }
