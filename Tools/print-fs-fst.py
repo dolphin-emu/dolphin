@@ -1,6 +1,6 @@
 import argparse
 import struct
-
+import arg
 def read_entry(f) -> dict:
     name = struct.unpack_from("12s", f.read(12))[0]
     uid = struct.unpack_from(">I", f.read(4))[0]
