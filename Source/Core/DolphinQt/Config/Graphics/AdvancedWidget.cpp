@@ -33,7 +33,7 @@ AdvancedWidget::AdvancedWidget(GraphicsPane* gfx_pane) : m_game_layer{gfx_pane->
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
-  connect(m_manual_texture_sampling, &QCheckBox::toggled,
+  connect(m_manual_texture_sampling, &QCheckBox::toggled, gfx_pane,
           [gfx_pane] { emit gfx_pane->UseFastTextureSamplingChanged(); });
 
   OnBackendChanged();
