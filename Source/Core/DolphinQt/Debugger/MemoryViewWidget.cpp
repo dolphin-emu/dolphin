@@ -223,10 +223,13 @@ MemoryViewWidget::MemoryViewWidget(Core::System& system, QWidget* parent)
           [this] { UpdateDispatcher(UpdateType::Symbols); });
   connect(Host::GetInstance(), &Host::PPCBreakpointsChanged, this,
           &MemoryViewWidget::UpdateBreakpointTags);
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] (const Core::State state) {
     // UpdateDisasmDialog currently catches pauses, no need to signal it twice.
-    if (Core::GetState(m_system) != Core::State::Paused)
+    if (state != Core::State::Paused)
       UpdateDispatcher(UpdateType::Values);
+
+    if (state == Core::State::Uninitialized)
+      UpdateBreakpointTags();
   });
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
     // Disasm spam will break updates while running. Only need it for things like steps when paused
