@@ -37,23 +37,23 @@ enum SwitchButton
 
 struct GCPadStatus
 {
-  u16 button = 0;       // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
-  u8 stickX = 0;        // 0 <= stickX       <= 255
-  u8 stickY = 0;        // 0 <= stickY       <= 255
-  u8 substickX = 0;     // 0 <= substickX    <= 255
-  u8 substickY = 0;     // 0 <= substickY    <= 255
-  u8 triggerLeft = 0;   // 0 <= triggerLeft  <= 255
-  u8 triggerRight = 0;  // 0 <= triggerRight <= 255
-  u8 analogA = 0;       // 0 <= analogA      <= 255
-  u8 analogB = 0;       // 0 <= analogB      <= 255
-  // Triforce
-  u8 switches = 0;
-  bool isConnected = true;
-
   static const u8 MAIN_STICK_CENTER_X = 0x80;
   static const u8 MAIN_STICK_CENTER_Y = 0x80;
   static const u8 MAIN_STICK_RADIUS = 0x7f;
   static const u8 C_STICK_CENTER_X = 0x80;
   static const u8 C_STICK_CENTER_Y = 0x80;
   static const u8 C_STICK_RADIUS = 0x7f;
+
+  u16 button = 0;                   // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
+  u8 stickX = MAIN_STICK_CENTER_X;  // 0 <= stickX       <= 255
+  u8 stickY = MAIN_STICK_CENTER_Y;  // 0 <= stickY       <= 255
+  u8 substickX = C_STICK_CENTER_X;  // 0 <= substickX    <= 255
+  u8 substickY = C_STICK_CENTER_Y;  // 0 <= substickY    <= 255
+  u8 triggerLeft = 0;               // 0 <= triggerLeft  <= 255
+  u8 triggerRight = 0;              // 0 <= triggerRight <= 255
+  u8 analogA = 0;                   // 0 <= analogA      <= 255
+  u8 analogB = 0;                   // 0 <= analogB      <= 255
+  // Triforce
+  u8 switches = 0;
+  bool isConnected = true;
 };
