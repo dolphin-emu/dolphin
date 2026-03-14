@@ -7,11 +7,12 @@
 - [Android](#android)
 - [Help](#help)
 
-# <a name="legal"></a>Legal
+# <a name="legal"></a>Legal and policies
 
 Summary:
 
 - [Trade secrets](#trade-secrets)
+- [Generative AI](#genai)
 - [Code licensing](#code-licensing)
 
 ## <a name="trade-secrets"></a>Trade secrets
@@ -21,6 +22,12 @@ Following all relevant laws is of utmost importance for an emulation project lik
 If you know any confidential information related to the GameCube, Wii, or Triforce, either because you signed a non-disclosure agreement or because you looked at leaked materials, we ask that you don't contribute code to Dolphin **at all**. While accepting code from contributors who know confidential information is legal if the code is unrelated to the confidential information, we refuse to accept code from such contributors because it greatly increases our review burden and increases the legal risk we take.
 
 Also, this probably goes without saying, but piracy is strictly forbidden both on GitHub and in all other Dolphin channels.
+
+## <a name="genai"></a>Generative AI
+
+We accept contributions from humans, not from AI agents. We expect you to understand and take responsibility for code submitted in your name. If a non-trivial part of your contribution is generated using AI, you need to disclose which parts are generated.
+
+Because large language models are trained on massive amounts of data gathered from the internet, we have to assume that they contain leaked Nintendo information. Therefore, you're not allowed to use LLMs to make changes related to the behavior of the emulated console or to use LLMs to obtain information related to the console.
 
 ## <a name="code-licensing"></a>Code licensing
 
