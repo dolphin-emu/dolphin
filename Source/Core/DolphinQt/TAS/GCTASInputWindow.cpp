@@ -9,6 +9,7 @@
 #include <QHBoxLayout>
 #include <QSpacerItem>
 #include <QSpinBox>
+#include <QStyle>
 #include <QVBoxLayout>
 
 #include "Core/HW/GCPad.h"
@@ -18,6 +19,8 @@
 
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/InputConfig.h"
+
+#include "DolphinQt/QtUtils/AspectRatioWidget.h"
 
 GCTASInputWindow::GCTASInputWindow(QWidget* parent, int controller_id)
     : TASInputWindow(parent), m_controller_id(controller_id)
@@ -30,8 +33,8 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int controller_id)
                                     255, Qt::Key_H, Qt::Key_J);
 
   auto* top_layout = new QHBoxLayout;
-  top_layout->addWidget(m_main_stick_box);
-  top_layout->addWidget(m_c_stick_box);
+  top_layout->addWidget(new AspectRatioWidget(m_main_stick_box, 1, 1.02f));
+  top_layout->addWidget(new AspectRatioWidget(m_c_stick_box, 1, 1.02f));
 
   m_triggers_box = new QGroupBox(tr("Triggers"));
 
@@ -100,7 +103,10 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int controller_id)
   layout->addWidget(m_buttons_box);
   layout->addWidget(m_settings_box);
 
-  setLayout(layout);
+  SetupScrollArea(layout);
+  const QSize hint = m_scroll_widget->sizeHint();
+  const int scrollbar_buffer = style()->pixelMetric(QStyle::PM_ScrollBarExtent) + 10;
+  resize(hint.width() + scrollbar_buffer, hint.height() + scrollbar_buffer);
 }
 
 void GCTASInputWindow::hideEvent(QHideEvent* event)

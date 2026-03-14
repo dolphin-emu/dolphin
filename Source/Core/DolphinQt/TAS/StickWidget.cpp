@@ -21,7 +21,7 @@ StickWidget::StickWidget(QWidget* parent, u16 max_x, u16 max_y)
                 "Right click to re-center it."));
 
   // If the widget gets too small, it will get deformed.
-  setMinimumSize(QSize(64, 64));
+  setMinimumSize(QSize(128, 128));
 }
 
 void StickWidget::SetX(u16 x)
