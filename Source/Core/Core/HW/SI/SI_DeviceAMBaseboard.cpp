@@ -1279,50 +1279,46 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
               message.AddData("\x00\x00\x00\x00", 4);
               break;
             case VirtuaStriker3:
-              // 2 Player (13bit), 2 Coin slot, 4 Analog-in, 1 CARD, 8 Driver-out
+              // 2 Player (13bit), 2 Coin slot, 4 Analog-in, 8 Driver-out
               message.AddData("\x01\x02\x0D\x00", 4);
               message.AddData("\x02\x02\x00\x00", 4);
-              message.AddData("\x10\x01\x00\x00", 4);
               message.AddData("\x12\x08\x00\x00", 4);
               message.AddData("\x00\x00\x00\x00", 4);
               break;
             case GekitouProYakyuu:
-              // 2 Player (13bit), 2 Coin slot, 4 Analog-in, 1 CARD, 8 Driver-out
+              // 2 Player (13bit), 2 Coin slot, 4 Analog-in, 8 Driver-out
               message.AddData("\x01\x02\x0D\x00", 4);
               message.AddData("\x02\x02\x00\x00", 4);
               message.AddData("\x03\x04\x00\x00", 4);
-              message.AddData("\x10\x01\x00\x00", 4);
               message.AddData("\x12\x08\x00\x00", 4);
               message.AddData("\x00\x00\x00\x00", 4);
               break;
             case VirtuaStriker4:
             case VirtuaStriker4_2006:
-              // 2 Player (13bit), 1 Coin slot, 4 Analog-in, 1 CARD
+              // 2 Player (13bit), 1 Coin slot, 4 Analog-in, 22 Driver-out
               message.AddData("\x01\x02\x0D\x00", 4);
               message.AddData("\x02\x01\x00\x00", 4);
               message.AddData("\x03\x04\x00\x00", 4);
-              message.AddData("\x10\x01\x00\x00", 4);
+              message.AddData("\x12\x16\x00\x00", 4);
               message.AddData("\x00\x00\x00\x00", 4);
               break;
             case KeyOfAvalon:
-              // 1 Player (15bit), 1 Coin slot, 3 Analog-in, Touch, 1 CARD, 1 Driver-out
+              // 1 Player (15bit), 1 Coin slot, 3 Analog-in, Touch, 1 Driver-out
               // (Unconfirmed)
               message.AddData("\x01\x01\x0F\x00", 4);
               message.AddData("\x02\x01\x00\x00", 4);
               message.AddData("\x03\x03\x00\x00", 4);
               message.AddData("\x06\x10\x10\x01", 4);
-              message.AddData("\x10\x01\x00\x00", 4);
               message.AddData("\x12\x01\x00\x00", 4);
               message.AddData("\x00\x00\x00\x00", 4);
               break;
             case MarioKartGP:
             case MarioKartGP2:
             default:
-              // 1 Player (15bit), 1 Coin slot, 3 Analog-in, 1 CARD, 1 Driver-out
+              // 1 Player (15bit), 1 Coin slot, 3 Analog-in, 1 Driver-out
               message.AddData("\x01\x01\x0F\x00", 4);
               message.AddData("\x02\x01\x00\x00", 4);
               message.AddData("\x03\x03\x00\x00", 4);
-              message.AddData("\x10\x01\x00\x00", 4);
               message.AddData("\x12\x01\x00\x00", 4);
               message.AddData("\x00\x00\x00\x00", 4);
               break;
