@@ -422,7 +422,7 @@ void CoreTimingManager::SleepUntil(TimePoint time_point)
 
     // Count amount of time sleeping for analytics
     const TimePoint time_after_sleep = Clock::now();
-    g_perf_metrics.CountThrottleSleep(time_after_sleep - time);
+    m_system.GetPerfMetrics().CountThrottleSleep(time_after_sleep - time);
   }
   else
   {
@@ -452,8 +452,8 @@ void CoreTimingManager::Throttle(const s64 target_cycle)
 
   // Measure current performance after throttling.
   Common::ScopeGuard perf_marker{[&] {
-    g_perf_metrics.CountPerformanceMarker(target_cycle,
-                                          m_system.GetSystemTimers().GetTicksPerSecond());
+    m_system.GetPerfMetrics().CountPerformanceMarker(
+        target_cycle, m_system.GetSystemTimers().GetTicksPerSecond());
   }};
 
   if (IsSpeedUnlimited())
@@ -562,7 +562,7 @@ void CoreTimingManager::AdjustEventQueueTimes(u32 new_ppc_clock, u32 old_ppc_clo
 
   UpdateSpeedLimit(ticks, m_emulation_speed);
 
-  g_perf_metrics.AdjustClockSpeed(ticks, new_ppc_clock, old_ppc_clock);
+  m_system.GetPerfMetrics().AdjustClockSpeed(ticks, new_ppc_clock, old_ppc_clock);
 
   for (Event& ev : m_event_queue)
   {

@@ -214,7 +214,7 @@ s64 SystemTimersManager::GetLocalTimeRTCOffset() const
 
 double SystemTimersManager::GetEstimatedEmulationPerformance() const
 {
-  return g_perf_metrics.GetMaxSpeed();
+  return m_system.GetPerfMetrics().GetMaxSpeed();
 }
 
 // split from Init to break a circular dependency between VideoInterface::Init and

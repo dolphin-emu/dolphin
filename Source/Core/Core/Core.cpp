@@ -332,7 +332,7 @@ static void CpuThread(Core::System& system, const std::optional<std::string>& sa
   DolphinAnalytics::Instance().ReportGameStart();
 
   // Clear performance data collected from previous threads.
-  g_perf_metrics.Reset();
+  system.GetPerfMetrics().Reset();
 
   // The JIT need to be able to intercept faults, both for fastmem and for the BLR optimization.
   const bool exception_handler = EMM::IsExceptionHandlerSupported();
@@ -856,11 +856,12 @@ void RunOnCPUThread(Core::System& system, Common::MoveOnlyFunction<void()> funct
 // Called from Renderer::Swap (GPU thread) when a frame is presented to the host screen.
 void Callback_FramePresented(const PresentInfo& present_info)
 {
-  g_perf_metrics.CountFrame();
+  auto& perf_metrics = Core::System::GetInstance().GetPerfMetrics();
+  perf_metrics.CountFrame();
 
   const auto presentation_offset =
       present_info.actual_present_time - present_info.intended_present_time;
-  g_perf_metrics.SetLatestFramePresentationOffset(presentation_offset);
+  perf_metrics.SetLatestFramePresentationOffset(presentation_offset);
 
   if (present_info.reason == PresentInfo::PresentReason::VideoInterfaceDuplicate)
     return;

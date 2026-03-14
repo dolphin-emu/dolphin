@@ -13,8 +13,6 @@
 #include "Core/Core.h"
 #include "VideoCommon/VideoConfig.h"
 
-PerformanceMetrics g_perf_metrics;
-
 PerformanceMetrics::PerformanceMetrics()
 {
   const auto invalidate_counters_last_time = [this](Core::State) {
