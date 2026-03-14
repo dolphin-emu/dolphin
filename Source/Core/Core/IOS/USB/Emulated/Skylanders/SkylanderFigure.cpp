@@ -206,6 +206,10 @@ FigureData SkylanderFigure::GetData() const
         .money = Common::BitCastPtr<u16>(decrypted.data() + area_offset + 0x3),
         .hero_level = Common::BitCastPtr<u16>(decrypted.data() + area_offset + 0x5A),
         .playtime = Common::BitCastPtr<u32>(decrypted.data() + area_offset + 0x5),
+        .experience = Common::BitCastPtr<u16>(decrypted.data() + area_offset + 0x0),
+        .skills = Common::BitCastPtr<u16>(decrypted.data() + area_offset + 0x10),
+        .hat = Common::BitCastPtr<u8>(decrypted.data() + area_offset + 0x14),
+        .ssa_heroics = Common::BitCastPtr<u32>(decrypted.data() + area_offset + 0x56),
         .last_reset = {.minute = Common::BitCastPtr<u8>(decrypted.data() + area_offset + 0x60),
                        .hour = Common::BitCastPtr<u8>(decrypted.data() + area_offset + 0x61),
                        .day = Common::BitCastPtr<u8>(decrypted.data() + area_offset + 0x62),
@@ -265,6 +269,10 @@ void SkylanderFigure::SetData(FigureData* figure_data)
     memcpy(decrypted.data() + area_offset + 0x3, &figure_data->skylander_data.money, 2);
     memcpy(decrypted.data() + area_offset + 0x5A, &figure_data->skylander_data.hero_level, 2);
     memcpy(decrypted.data() + area_offset + 0x5, &figure_data->skylander_data.playtime, 4);
+    memcpy(decrypted.data() + area_offset + 0x0, &figure_data->skylander_data.experience, 2);
+    memcpy(decrypted.data() + area_offset + 0x10, &figure_data->skylander_data.skills, 2);
+    memcpy(decrypted.data() + area_offset + 0x14, &figure_data->skylander_data.hat, 1);
+    memcpy(decrypted.data() + area_offset + 0x56, &figure_data->skylander_data.ssa_heroics, 4);
 
     {
       memcpy(decrypted.data() + area_offset + 0x60, &figure_data->skylander_data.last_reset.minute,
