@@ -313,11 +313,10 @@ CreateFigureDialog::CreateFigureDialog(QWidget* parent, FigureUIPosition slot) :
 
   connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-  connect(co_compl, QOverload<const QString&>::of(&QCompleter::activated),
-          [=](const QString& text) {
-            combo_figlist->setCurrentText(text);
-            combo_figlist->setCurrentIndex(combo_figlist->findText(text));
-          });
+  connect(co_compl, qOverload<const QString&>(&QCompleter::activated), [=](const QString& text) {
+    combo_figlist->setCurrentText(text);
+    combo_figlist->setCurrentIndex(combo_figlist->findText(text));
+  });
 }
 
 QString CreateFigureDialog::GetFilePath() const
