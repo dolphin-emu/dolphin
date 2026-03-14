@@ -162,6 +162,13 @@ void AchievementManager::LoadGame(const DiscIO::Volume* volume)
                   "Attempted to load game achievements without achievement client initialized.");
     return;
   }
+  if (m_load_async_handle)
+  {
+    WARN_LOG_FMT(ACHIEVEMENTS, "Attempted to load while load is in progress; aborting all loads.");
+    rc_client_abort_async(m_client, m_load_async_handle);
+    CloseGame();
+    return;
+  }
   if (volume == nullptr)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Software format unsupported by AchievementManager.");
@@ -171,7 +178,7 @@ void AchievementManager::LoadGame(const DiscIO::Volume* volume)
     }
     else
     {
-      rc_client_begin_load_game(m_client, "", LoadGameCallback, NULL);
+      m_load_async_handle = rc_client_begin_load_game(m_client, "", LoadGameCallback, NULL);
     }
     return;
   }
@@ -205,13 +212,14 @@ void AchievementManager::LoadGame(const DiscIO::Volume* volume)
   rc_hash_init_custom_filereader(&volume_reader);
   if (rc_client_get_game_info(m_client))
   {
-    rc_client_begin_identify_and_change_media(m_client, "", NULL, 0, ChangeMediaCallback, NULL);
+    m_load_async_handle =
+        rc_client_begin_identify_and_change_media(m_client, "", NULL, 0, ChangeMediaCallback, NULL);
   }
   else
   {
     u32 console_id = FindConsoleID(volume->GetVolumeType());
-    rc_client_begin_identify_and_load_game(m_client, console_id, "", NULL, 0, LoadGameCallback,
-                                           NULL);
+    m_load_async_handle = rc_client_begin_identify_and_load_game(m_client, console_id, "", NULL, 0,
+                                                                 LoadGameCallback, NULL);
   }
 }
 
@@ -987,6 +995,7 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
 {
   auto& instance = AchievementManager::GetInstance();
   instance.m_loading_volume.reset(nullptr);
+  instance.m_load_async_handle = nullptr;
   if (result == RC_API_FAILURE)
   {
     WARN_LOG_FMT(ACHIEVEMENTS, "Load data request rejected for old Dolphin version.");
@@ -1060,7 +1069,9 @@ void AchievementManager::LoadGameCallback(int result, const char* error_message,
 void AchievementManager::ChangeMediaCallback(int result, const char* error_message,
                                              rc_client_t* client, void* userdata)
 {
-  AchievementManager::GetInstance().m_loading_volume.reset(nullptr);
+  auto& instance = AchievementManager::GetInstance();
+  instance.m_loading_volume.reset(nullptr);
+  instance.m_load_async_handle = nullptr;
   if (result == RC_OK)
   {
     return;
