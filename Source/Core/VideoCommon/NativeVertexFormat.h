@@ -42,6 +42,8 @@ enum : u32
   VB_HAS_UV7 = (1 << 22),
   VB_HAS_UVALL = (0xff << 15),
   VB_HAS_UVTEXMTXSHIFT = 13,
+
+  VB_HAS_WEIGHTS = (1 << 23),
 };
 
 struct AttributeFormat
@@ -62,6 +64,7 @@ struct PortableVertexDeclaration
   std::array<AttributeFormat, 2> colors;
   std::array<AttributeFormat, 8> texcoords;
   AttributeFormat posmtx;
+  AttributeFormat weights;  // only used in mesh replacement
 
   // Make sure we initialize padding to 0 since padding is included in the == memcmp
   PortableVertexDeclaration() { memset(this, 0, sizeof(*this)); }

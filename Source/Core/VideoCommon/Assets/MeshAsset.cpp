@@ -4,6 +4,7 @@
 #include "VideoCommon/Assets/MeshAsset.h"
 
 #include <array>
+#include <map>
 #include <utility>
 
 #include <tinygltf/tiny_gltf.h>
@@ -16,6 +17,8 @@ namespace VideoCommon
 {
 namespace
 {
+using NodeNameToMeshChunks = std::map<std::string, std::vector<MeshDataChunk>>;
+
 Common::Matrix44 BuildMatrixFromNode(const tinygltf::Node& node)
 {
   if (!node.matrix.empty())
@@ -31,12 +34,11 @@ Common::Matrix44 BuildMatrixFromNode(const tinygltf::Node& node)
   Common::Matrix44 matrix = Common::Matrix44::Identity();
 
   // Check individual components
-
-  if (!node.scale.empty())
+  if (!node.translation.empty())
   {
-    matrix *= Common::Matrix44::FromMatrix33(Common::Matrix33::Scale(
-        Common::Vec3{static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]),
-                     static_cast<float>(node.scale[2])}));
+    matrix *= Common::Matrix44::Translate(Common::Vec3{static_cast<float>(node.translation[0]),
+                                                       static_cast<float>(node.translation[1]),
+                                                       static_cast<float>(node.translation[2])});
   }
 
   if (!node.rotation.empty())
@@ -46,11 +48,11 @@ Common::Matrix44 BuildMatrixFromNode(const tinygltf::Node& node)
         static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
   }
 
-  if (!node.translation.empty())
+  if (!node.scale.empty())
   {
-    matrix *= Common::Matrix44::Translate(Common::Vec3{static_cast<float>(node.translation[0]),
-                                                       static_cast<float>(node.translation[1]),
-                                                       static_cast<float>(node.translation[2])});
+    matrix *= Common::Matrix44::FromMatrix33(Common::Matrix33::Scale(
+        Common::Vec3{static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]),
+                     static_cast<float>(node.scale[2])}));
   }
 
   return matrix;
@@ -189,7 +191,8 @@ bool CopyBufferDataFromPrimitive(const tinygltf::Model& model, u32 accessor_inde
 }
 
 bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
-                  const tinygltf::Mesh& mesh, const Common::Matrix44& mat, MeshData* data)
+                  const tinygltf::Mesh& mesh, const Common::Matrix44& mat,
+                  std::vector<MeshDataChunk>* mesh_chunks)
 {
   for (std::size_t primitive_index = 0; primitive_index < mesh.primitives.size(); ++primitive_index)
   {
@@ -289,12 +292,12 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
     chunk.num_vertices = static_cast<u32>(pos_accessor.count);
     // TODO C++23: use make_unique_overwrite
     chunk.vertex_data = std::unique_ptr<u8[]>(new u8[chunk.num_vertices * chunk.vertex_stride]);
+    chunk.vertex_declaration.position.offset = static_cast<int>(outbound_offset);
     if (!CopyBufferDataFromPrimitive(model, position_it->second, &outbound_offset, &chunk))
       return false;
     chunk.components_available = 0;
     chunk.vertex_declaration.position.enable = true;
     chunk.vertex_declaration.position.components = 3;
-    chunk.vertex_declaration.position.offset = 0;
     if (!GLTFComponentTypeToAttributeFormat(pos_accessor.componentType,
                                             &chunk.vertex_declaration.position))
     {
@@ -411,18 +414,21 @@ bool ReadGLTFMesh(std::string_view mesh_file, const tinygltf::Model& model,
     // this mesh needs it
     chunk.vertex_declaration.posmtx.enable = false;
 
-    data->m_mesh_chunks.push_back(std::move(chunk));
+    mesh_chunks->push_back(std::move(chunk));
   }
 
   return true;
 }
 
 bool ReadGLTFNodes(std::string_view mesh_file, const tinygltf::Model& model,
-                   const tinygltf::Node& node, const Common::Matrix44& mat, MeshData* data)
+                   const tinygltf::Node& node, const Common::Matrix44& mat,
+                   NodeNameToMeshChunks* node_to_mesh_chunks)
 {
   if (node.mesh != -1)
   {
-    if (!ReadGLTFMesh(mesh_file, model, model.meshes[node.mesh], mat, data))
+    auto& node_name_to_mesh_chunks = *node_to_mesh_chunks;
+    auto& mesh_chunks = node_name_to_mesh_chunks[node.name];
+    if (!ReadGLTFMesh(mesh_file, model, model.meshes[node.mesh], mat, &mesh_chunks))
       return false;
   }
 
@@ -430,7 +436,7 @@ bool ReadGLTFNodes(std::string_view mesh_file, const tinygltf::Model& model,
   {
     const tinygltf::Node& child = model.nodes[node.children[i]];
     const auto child_mat = mat * BuildMatrixFromNode(child);
-    if (!ReadGLTFNodes(mesh_file, model, child, child_mat, data))
+    if (!ReadGLTFNodes(mesh_file, model, child, child_mat, node_to_mesh_chunks))
       return false;
   }
 
@@ -452,23 +458,181 @@ bool ReadGLTFMaterials(std::string_view mesh_file, const tinygltf::Model& model,
 
 bool ReadGLTF(std::string_view mesh_file, const tinygltf::Model& model, MeshData* data)
 {
-  int scene_index = model.defaultScene;
-  if (scene_index == -1)
-    scene_index = 0;
-
-  const auto& scene = model.scenes[scene_index];
-  const auto scene_node_indices = scene.nodes;
-  for (std::size_t i = 0; i < scene_node_indices.size(); i++)
+  NodeNameToMeshChunks node_name_to_mesh_chunks;
+  const int scene_index = model.defaultScene;
+  if (scene_index != -1)
   {
-    const tinygltf::Node& node = model.nodes[scene_node_indices[i]];
-    const auto mat = BuildMatrixFromNode(node);
-    if (!ReadGLTFNodes(mesh_file, model, node, mat, data))
-      return false;
+    const auto& scene = model.scenes[scene_index];
+    const auto scene_node_indices = scene.nodes;
+    for (std::size_t i = 0; i < scene_node_indices.size(); i++)
+    {
+      const tinygltf::Node& node = model.nodes[scene_node_indices[i]];
+      const auto mat = BuildMatrixFromNode(node);
+      if (!ReadGLTFNodes(mesh_file, model, node, mat, &node_name_to_mesh_chunks))
+        return false;
+    }
+  }
+  else
+  {
+    for (const auto& node : model.nodes)
+    {
+      const auto mat = BuildMatrixFromNode(node);
+      if (!ReadGLTFNodes(mesh_file, model, node, mat, &node_name_to_mesh_chunks))
+        return false;
+    }
+  }
+
+  for (auto& [name, chunks] : node_name_to_mesh_chunks)
+  {
+    for (auto&& chunk : chunks)
+    {
+      data->m_mesh_chunks.push_back(std::move(chunk));
+    }
   }
 
   return ReadGLTFMaterials(mesh_file, model, data);
 }
 }  // namespace
+
+bool SkinningRig::FromBinary(const u8* raw_data, std::size_t* offset, SkinningRig* data)
+{
+  if (!raw_data || !data) [[unlikely]]
+    return false;
+
+  // 1. Welded Positions
+  u32 num_welded = 0;
+  std::memcpy(&num_welded, raw_data + *offset, sizeof(u32));
+  *offset += sizeof(u32);
+
+  data->welded_positions.resize(num_welded);
+  // Since Eigen::Vector3f is 3 floats, we can copy the block directly if it's packed
+  // or loop for safety if you prefer explicit float conversion
+  for (u32 i = 0; i < num_welded; ++i)
+  {
+    float p[3];
+    std::memcpy(p, raw_data + *offset, sizeof(float) * 3);
+    data->welded_positions[i] = Eigen::Vector3f(p[0], p[1], p[2]);
+    *offset += sizeof(float) * 3;
+  }
+
+  // 2. Bone Rest Centers
+  u32 num_bones = 0;
+  std::memcpy(&num_bones, raw_data + *offset, sizeof(u32));
+  *offset += sizeof(u32);
+
+  data->bone_rest_centers.resize(num_bones);
+  for (u32 i = 0; i < num_bones; ++i)
+  {
+    float c[3];
+    std::memcpy(c, raw_data + *offset, sizeof(float) * 3);
+    data->bone_rest_centers[i] = Eigen::Vector3f(c[0], c[1], c[2]);
+    *offset += sizeof(float) * 3;
+  }
+
+  // 3. Chunk Solve Data (SVD Groups)
+  u32 num_chunks = 0;
+  std::memcpy(&num_chunks, raw_data + *offset, sizeof(u32));
+  *offset += sizeof(u32);
+
+  for (u32 i = 0; i < num_chunks; ++i)
+  {
+    u64 id = 0;
+    std::memcpy(&id, raw_data + *offset, sizeof(u64));
+    *offset += sizeof(u64);
+    const GraphicsModSystem::DrawCallID draw_call = static_cast<GraphicsModSystem::DrawCallID>(id);
+
+    ChunkRigData& chunk = data->draw_call_rig_details[draw_call];
+    chunk.draw_call_id = draw_call;
+
+    u32 active_bones = 0;
+    std::memcpy(&active_bones, raw_data + *offset, sizeof(u32));
+    *offset += sizeof(u32);
+
+    for (u32 j = 0; j < active_bones; ++j)
+    {
+      int b_id = 0;
+      std::memcpy(&b_id, raw_data + *offset, sizeof(int));
+      *offset += sizeof(int);
+
+      u32 count = 0;
+      std::memcpy(&count, raw_data + *offset, sizeof(u32));
+      *offset += sizeof(u32);
+
+      LocalBoneGroup& group = chunk.bone_groups[b_id];
+      group.bone_id = b_id;
+
+      group.original_indices.resize(count);
+      std::memcpy(group.original_indices.data(), raw_data + *offset, count * sizeof(int));
+      *offset += count * sizeof(int);
+
+      group.welded_indices.resize(count);
+      std::memcpy(group.welded_indices.data(), raw_data + *offset, count * sizeof(int));
+      *offset += count * sizeof(int);
+
+      group.weights.resize(count);
+      std::memcpy(group.weights.data(), raw_data + *offset, count * sizeof(float));
+      *offset += count * sizeof(float);
+    }
+  }
+
+  std::memcpy(data->welded_rig_centroid.data(), raw_data + *offset, 3 * sizeof(float));
+  *offset += 3 * sizeof(float);
+
+  std::memcpy(&data->welded_rig_scale, raw_data + *offset, sizeof(float));
+  *offset += sizeof(float);
+
+  return true;
+}
+
+bool SkinningRig::ToBinary(File::IOFile* file_data, const SkinningRig& data)
+{
+  const u32 num_welded = static_cast<u32>(data.welded_positions.size());
+  const u32 num_bones = static_cast<u32>(data.bone_rest_centers.size());
+  const u32 num_draw_calls = static_cast<u32>(data.draw_call_rig_details.size());
+
+  file_data->WriteBytes(&num_welded, sizeof(u32));
+  for (const auto& v : data.welded_positions)
+  {
+    float p[3] = {v.x(), v.y(), v.z()};
+    file_data->WriteBytes(p, sizeof(float) * 3);
+  }
+
+  file_data->WriteBytes(&num_bones, sizeof(u32));
+  for (const auto& c : data.bone_rest_centers)
+  {
+    float p[3] = {c.x(), c.y(), c.z()};
+    file_data->WriteBytes(p, sizeof(float) * 3);
+  }
+
+  file_data->WriteBytes(&num_draw_calls, sizeof(u32));
+  for (auto const& [draw_call, chunk] : data.draw_call_rig_details)
+  {
+    u64 id = static_cast<u64>(draw_call);
+    file_data->WriteBytes(&id, sizeof(u64));
+
+    u32 active_bones = static_cast<u32>(chunk.bone_groups.size());
+    file_data->WriteBytes(&active_bones, sizeof(u32));
+
+    for (auto const& [b_id, group] : chunk.bone_groups)
+    {
+      file_data->WriteBytes(&b_id, sizeof(int));
+      u32 count = static_cast<u32>(group.original_indices.size());
+      file_data->WriteBytes(&count, sizeof(u32));
+
+      // Save the "Moving" indices
+      file_data->WriteBytes(group.original_indices.data(), count * sizeof(int));
+      // Save the "Rest" indices
+      file_data->WriteBytes(group.welded_indices.data(), count * sizeof(int));
+      // Save the weights
+      file_data->WriteBytes(group.weights.data(), count * sizeof(float));
+    }
+  }
+
+  file_data->WriteBytes(data.welded_rig_centroid.data(), 3 * sizeof(float));
+  file_data->WriteBytes(&data.welded_rig_scale, sizeof(float));
+  return true;
+}
+
 bool MeshData::FromJson(const VideoCommon::CustomAssetLibrary::AssetID& asset_id,
                         const picojson::object& json, MeshData* data)
 {
@@ -512,6 +676,57 @@ void MeshData::ToJson(picojson::object& obj, const MeshData& data)
 
 bool MeshData::FromDolphinMesh(std::span<const u8> raw_data, MeshData* data)
 {
+  const auto read_chunk = [](std::span<const u8> raw_data, MeshDataChunk* mesh_data_chunk,
+                             std::size_t* offset) {
+    auto& chunk = *mesh_data_chunk;
+    std::memcpy(&chunk.num_vertices, raw_data.data() + *offset, sizeof(u32));
+    *offset += sizeof(u32);
+
+    std::memcpy(&chunk.vertex_stride, raw_data.data() + *offset, sizeof(u32));
+    *offset += sizeof(u32);
+
+    // TODO C++23: use make_unique_overwrite
+    chunk.vertex_data = std::unique_ptr<u8[]>(new u8[chunk.num_vertices * chunk.vertex_stride]);
+    std::memcpy(chunk.vertex_data.get(), raw_data.data() + *offset,
+                chunk.num_vertices * chunk.vertex_stride);
+    *offset += chunk.num_vertices * chunk.vertex_stride;
+
+    std::memcpy(&chunk.num_indices, raw_data.data() + *offset, sizeof(u32));
+    *offset += sizeof(u32);
+
+    // TODO C++23: use make_unique_overwrite
+    chunk.indices = std::unique_ptr<u16[]>(new u16[chunk.num_indices]);
+    std::memcpy(chunk.indices.get(), raw_data.data() + *offset, chunk.num_indices * sizeof(u16));
+    *offset += chunk.num_indices * sizeof(u16);
+
+    std::memcpy(&chunk.vertex_declaration, raw_data.data() + *offset,
+                sizeof(PortableVertexDeclaration));
+    *offset += sizeof(PortableVertexDeclaration);
+
+    std::memcpy(&chunk.primitive_type, raw_data.data() + *offset, sizeof(PrimitiveType));
+    *offset += sizeof(PrimitiveType);
+
+    std::memcpy(&chunk.components_available, raw_data.data() + *offset, sizeof(u32));
+    *offset += sizeof(u32);
+
+    std::memcpy(&chunk.minimum_position, raw_data.data() + *offset, sizeof(Common::Vec3));
+    *offset += sizeof(Common::Vec3);
+
+    std::memcpy(&chunk.maximum_position, raw_data.data() + *offset, sizeof(Common::Vec3));
+    *offset += sizeof(Common::Vec3);
+
+    std::memcpy(&chunk.transform.data[0], raw_data.data() + *offset,
+                chunk.transform.data.size() * sizeof(float));
+    *offset += chunk.transform.data.size() * sizeof(float);
+
+    std::size_t material_name_size = 0;
+    std::memcpy(&material_name_size, raw_data.data() + *offset, sizeof(std::size_t));
+    *offset += sizeof(std::size_t);
+
+    chunk.material_name.assign(raw_data.data() + *offset,
+                               raw_data.data() + *offset + material_name_size);
+    *offset += material_name_size * sizeof(char);
+  };
   std::size_t offset = 0;
 
   std::size_t chunk_size = 0;
@@ -522,56 +737,64 @@ bool MeshData::FromDolphinMesh(std::span<const u8> raw_data, MeshData* data)
   for (std::size_t i = 0; i < chunk_size; i++)
   {
     MeshDataChunk chunk;
+    read_chunk(raw_data, &chunk, &offset);
+    data->m_mesh_chunks.push_back(std::move(chunk));
+  }
 
-    std::memcpy(&chunk.num_vertices, raw_data.data() + offset, sizeof(u32));
-    offset += sizeof(u32);
+  std::size_t skinning_size = 0;
+  std::memcpy(&skinning_size, raw_data.data() + offset, sizeof(std::size_t));
+  offset += sizeof(std::size_t);
+  for (std::size_t i = 0; i < skinning_size; i++)
+  {
+    GraphicsModSystem::DrawCallID draw_call_id;
+    std::memcpy(&draw_call_id, raw_data.data() + offset, sizeof(GraphicsModSystem::DrawCallID));
+    offset += sizeof(GraphicsModSystem::DrawCallID);
 
-    std::memcpy(&chunk.vertex_stride, raw_data.data() + offset, sizeof(u32));
-    offset += sizeof(u32);
-
-    // TODO C++23: use make_unique_overwrite
-    chunk.vertex_data = std::unique_ptr<u8[]>(new u8[chunk.num_vertices * chunk.vertex_stride]);
-    std::memcpy(chunk.vertex_data.get(), raw_data.data() + offset,
-                chunk.num_vertices * chunk.vertex_stride);
-    offset += chunk.num_vertices * chunk.vertex_stride;
-
-    std::memcpy(&chunk.num_indices, raw_data.data() + offset, sizeof(u32));
-    offset += sizeof(u32);
-
-    // TODO C++23: use make_unique_overwrite
-    chunk.indices = std::unique_ptr<u16[]>(new u16[chunk.num_indices]);
-    std::memcpy(chunk.indices.get(), raw_data.data() + offset, chunk.num_indices * sizeof(u16));
-    offset += chunk.num_indices * sizeof(u16);
-
-    std::memcpy(&chunk.vertex_declaration, raw_data.data() + offset,
-                sizeof(PortableVertexDeclaration));
-    offset += sizeof(PortableVertexDeclaration);
-
-    std::memcpy(&chunk.primitive_type, raw_data.data() + offset, sizeof(PrimitiveType));
-    offset += sizeof(PrimitiveType);
-
-    std::memcpy(&chunk.components_available, raw_data.data() + offset, sizeof(u32));
-    offset += sizeof(u32);
-
-    std::memcpy(&chunk.minimum_position, raw_data.data() + offset, sizeof(Common::Vec3));
-    offset += sizeof(Common::Vec3);
-
-    std::memcpy(&chunk.maximum_position, raw_data.data() + offset, sizeof(Common::Vec3));
-    offset += sizeof(Common::Vec3);
-
-    std::memcpy(&chunk.transform.data[0], raw_data.data() + offset,
-                chunk.transform.data.size() * sizeof(float));
-    offset += chunk.transform.data.size() * sizeof(float);
-
-    std::size_t material_name_size = 0;
-    std::memcpy(&material_name_size, raw_data.data() + offset, sizeof(std::size_t));
+    std::size_t gpu_skinning_chunk_size = 0;
+    std::memcpy(&gpu_skinning_chunk_size, raw_data.data() + offset, sizeof(std::size_t));
     offset += sizeof(std::size_t);
 
-    chunk.material_name.assign(raw_data.data() + offset,
-                               raw_data.data() + offset + material_name_size);
-    offset += material_name_size * sizeof(char);
+    std::vector<MeshDataChunk> skinning_chunks;
+    for (std::size_t chunk_index = 0; chunk_index < gpu_skinning_chunk_size; chunk_index++)
+    {
+      MeshDataChunk chunk;
+      read_chunk(raw_data, &chunk, &offset);
+      skinning_chunks.push_back(std::move(chunk));
+    }
 
-    data->m_mesh_chunks.push_back(std::move(chunk));
+    data->m_skinning_chunks.try_emplace(draw_call_id, std::move(skinning_chunks));
+  }
+
+  bool has_cpu_skinning = false;
+  std::memcpy(&has_cpu_skinning, raw_data.data() + offset, sizeof(bool));
+  offset += sizeof(bool);
+  if (has_cpu_skinning)
+  {
+    SkinningRig rig_result;
+    if (!SkinningRig::FromBinary(raw_data.data(), &offset, &rig_result))
+      return false;
+    data->m_cpu_skinning_rig = std::move(rig_result);
+  }
+
+  std::size_t original_positions_map_size = 0;
+  std::memcpy(&original_positions_map_size, raw_data.data() + offset, sizeof(std::size_t));
+  offset += sizeof(std::size_t);
+  for (std::size_t i = 0; i < original_positions_map_size; i++)
+  {
+    GraphicsModSystem::DrawCallID draw_call_id;
+    std::memcpy(&draw_call_id, raw_data.data() + offset, sizeof(GraphicsModSystem::DrawCallID));
+    offset += sizeof(GraphicsModSystem::DrawCallID);
+
+    std::size_t positions_size = 0;
+    std::memcpy(&positions_size, raw_data.data() + offset, sizeof(std::size_t));
+    offset += sizeof(std::size_t);
+
+    std::vector<Eigen::Vector3f> positions;
+    positions.resize(positions_size);
+    const auto positions_byte_size = sizeof(float) * 3 * positions_size;
+    std::memcpy(positions.data(), raw_data.data() + offset, positions_byte_size);
+    offset += positions_byte_size;
+    data->m_original_positions[draw_call_id] = std::move(positions);
   }
 
   return true;
@@ -579,10 +802,7 @@ bool MeshData::FromDolphinMesh(std::span<const u8> raw_data, MeshData* data)
 
 bool MeshData::ToDolphinMesh(File::IOFile* file_data, const MeshData& data)
 {
-  const std::size_t chunk_size = data.m_mesh_chunks.size();
-  file_data->WriteBytes(&chunk_size, sizeof(std::size_t));
-  for (const auto& chunk : data.m_mesh_chunks)
-  {
+  const auto write_chunk = [](File::IOFile* file_data, const VideoCommon::MeshDataChunk& chunk) {
     if (!file_data->WriteBytes(&chunk.num_vertices, sizeof(u32)))
       return false;
     if (!file_data->WriteBytes(&chunk.vertex_stride, sizeof(u32)))
@@ -614,7 +834,62 @@ bool MeshData::ToDolphinMesh(File::IOFile* file_data, const MeshData& data)
       return false;
     if (!file_data->WriteBytes(&chunk.material_name[0], chunk.material_name.size() * sizeof(char)))
       return false;
+
+    return true;
+  };
+
+  const std::size_t chunk_size = data.m_mesh_chunks.size();
+  file_data->WriteBytes(&chunk_size, sizeof(std::size_t));
+  for (const auto& chunk : data.m_mesh_chunks)
+  {
+    if (!write_chunk(file_data, chunk))
+      return false;
   }
+
+  const std::size_t skinning_map_size = data.m_skinning_chunks.size();
+  if (!file_data->WriteBytes(&skinning_map_size, sizeof(std::size_t)))
+    return false;
+  for (const auto& [draw_call, skinning_chunks] : data.m_skinning_chunks)
+  {
+    if (!file_data->WriteBytes(&draw_call, sizeof(GraphicsModSystem::DrawCallID)))
+      return false;
+
+    const std::size_t skinning_chunk_size = skinning_chunks.size();
+    if (!file_data->WriteBytes(&skinning_chunk_size, sizeof(std::size_t)))
+      return false;
+
+    for (const auto& skinning_chunk : skinning_chunks)
+    {
+      if (!write_chunk(file_data, skinning_chunk))
+        return false;
+    }
+  }
+
+  const bool has_cpu_skinning = data.m_cpu_skinning_rig.has_value();
+  if (!file_data->WriteBytes(&has_cpu_skinning, sizeof(bool)))
+    return false;
+  if (data.m_cpu_skinning_rig)
+  {
+    if (!SkinningRig::ToBinary(file_data, *data.m_cpu_skinning_rig))
+      return false;
+  }
+
+  const std::size_t original_positions_map_size = data.m_original_positions.size();
+  if (!file_data->WriteBytes(&original_positions_map_size, sizeof(std::size_t)))
+    return false;
+  for (const auto& [draw_call, positions] : data.m_original_positions)
+  {
+    if (!file_data->WriteBytes(&draw_call, sizeof(GraphicsModSystem::DrawCallID)))
+      return false;
+
+    const std::size_t positions_size = positions.size();
+    if (!file_data->WriteBytes(&positions_size, sizeof(std::size_t)))
+      return false;
+
+    if (!file_data->WriteBytes(positions.data(), positions.size() * 3 * sizeof(float)))
+      return false;
+  }
+
   return true;
 }
 
@@ -643,6 +918,29 @@ bool MeshData::FromGLTF(std::string_view gltf_file, MeshData* data)
 
   ERROR_LOG_FMT(VIDEO, "GLTF '{}' has invalid extension", gltf_file);
   return false;
+}
+
+void MeshData::Report()
+{
+  ERROR_LOG_FMT(VIDEO, "MeshChunks={}", m_mesh_chunks.size());
+  for (std::size_t i = 0; i < m_mesh_chunks.size(); i++)
+  {
+    const auto& chunk = m_mesh_chunks[i];
+    ERROR_LOG_FMT(VIDEO, "Chunk[{}]:  Vertices({}), Indices({})", i, chunk.num_vertices,
+                  chunk.num_indices);
+  }
+  ERROR_LOG_FMT(VIDEO, "DrawCalls={}", m_skinning_chunks.size());
+  for (const auto& [draw_call_id, skinning_chunks] : m_skinning_chunks)
+  {
+    ERROR_LOG_FMT(VIDEO, "DrawCall={}, SkinnedChunks={}",
+                  static_cast<unsigned long long>(draw_call_id), skinning_chunks.size());
+    for (std::size_t i = 0; i < skinning_chunks.size(); i++)
+    {
+      const auto& chunk = skinning_chunks[i];
+      ERROR_LOG_FMT(VIDEO, "Chunk[{}]:  Vertices({}), Indices({})", i, chunk.num_vertices,
+                    chunk.num_indices);
+    }
+  }
 }
 
 CustomAssetLibrary::LoadInfo MeshAsset::LoadImpl(const CustomAssetLibrary::AssetID& asset_id)

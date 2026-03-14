@@ -1,23 +1,27 @@
 {
-	"meta":
-	{
-		"title": "Bloom Texture Definitions",
-		"author": "iwubcode"
-	},
-	"groups":
-	[
-		{
-			"name": "Bloom",
-			"targets": [
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n55_80x57_6"
-				},
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n54_160x114_6"
-				}
-			]
-		}
-	]
+  "actions": [],
+  "assets": [],
+  "default_hash_policy": {
+    "attributes": ""
+  },
+  "meta": {
+    "author": "iwubcode",
+    "description": "",
+    "mod_version": "",
+    "schema_version": 1,
+    "title": "Twilight Princess Definitions"
+  },
+  "tag_to_actions": {},
+  "tags": [],
+  "target_to_actions": {},
+  "targets": [
+    {
+      "id": "10063434684210657575",
+      "name": "",
+      "tags": [
+        "Bloom"
+      ],
+      "type": "int"
+    }
+  ]
 }

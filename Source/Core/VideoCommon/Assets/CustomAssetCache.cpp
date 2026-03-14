@@ -9,6 +9,7 @@
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/Assets/CustomAsset.h"
+#include "VideoCommon/Assets/TextureAsset.h"
 
 namespace VideoCommon
 {

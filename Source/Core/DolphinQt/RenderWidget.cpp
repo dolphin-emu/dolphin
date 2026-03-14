@@ -574,12 +574,12 @@ void RenderWidget::PassEventToPresenter(const QEvent* event)
 void RenderWidget::SetPresenterKeyMap()
 {
   static constexpr DolphinKeyMap key_map = {
-      Qt::Key_Tab,    Qt::Key_Left,      Qt::Key_Right, Qt::Key_Up,     Qt::Key_Down,
-      Qt::Key_PageUp, Qt::Key_PageDown,  Qt::Key_Home,  Qt::Key_End,    Qt::Key_Insert,
-      Qt::Key_Delete, Qt::Key_Backspace, Qt::Key_Space, Qt::Key_Return, Qt::Key_Escape,
+      Qt::Key_Tab,     Qt::Key_Left,      Qt::Key_Right, Qt::Key_Up,     Qt::Key_Down,
+      Qt::Key_PageUp,  Qt::Key_PageDown,  Qt::Key_Home,  Qt::Key_End,    Qt::Key_Insert,
+      Qt::Key_Delete,  Qt::Key_Backspace, Qt::Key_Space, Qt::Key_Return, Qt::Key_Escape,
       Qt::Key_Enter,  // Keypad enter
-      Qt::Key_A,      Qt::Key_C,         Qt::Key_V,     Qt::Key_X,      Qt::Key_Y,
-      Qt::Key_Z,
+      Qt::Key_Control, Qt::Key_Shift,     Qt::Key_A,     Qt::Key_C,      Qt::Key_V,
+      Qt::Key_X,       Qt::Key_Y,         Qt::Key_Z,
   };
 
   g_presenter->SetKeyMap(key_map);

@@ -346,7 +346,8 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
 
   out.Write("UBO_BINDING(std140, 1) uniform PSBlock {{\n");
 
-  out.Write("\tint4 " I_COLORS "[4];\n"
+  out.Write("\tfloat4 " I_FREELOOK "[4];\n"
+            "\tint4 " I_COLORS "[4];\n"
             "\tint4 " I_KCOLORS "[4];\n"
             "\tint4 " I_ALPHA ";\n"
             "\tint4 " I_TEXDIMS "[8];\n"
@@ -725,6 +726,16 @@ uint WrapCoord(int coord, uint wrap, int size) {{
 }}
 )");
   }
+
+  out.Write("mat4x4 dolphin_freelook_matrix()\n");
+  out.Write("{{\n");
+  out.Write("\tmat4x4 result;\n");
+  out.Write("\tresult[0] = " I_FREELOOK "[0];\n"
+            "\tresult[1] = " I_FREELOOK "[1];\n"
+            "\tresult[2] = " I_FREELOOK "[2];\n"
+            "\tresult[3] = " I_FREELOOK "[3];\n");
+  out.Write("\treturn result;\n");
+  out.Write("}}\n\n");
 }
 
 static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,

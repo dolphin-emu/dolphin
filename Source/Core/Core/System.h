@@ -56,6 +56,14 @@ namespace GPFifo
 {
 class GPFifoManager;
 }
+namespace GraphicsModEditor
+{
+class EditorMain;
+}
+namespace GraphicsModSystem::Runtime
+{
+class GraphicsModManager;
+}
 namespace IOS::HLE
 {
 class EmulationKernel;
@@ -202,6 +210,8 @@ public:
   XFStateManager& GetXFStateManager() const;
   VideoInterface::VideoInterfaceManager& GetVideoInterface() const;
   VideoCommon::CustomResourceManager& GetCustomResourceManager() const;
+  GraphicsModEditor::EditorMain& GetGraphicsModEditor() const;
+  GraphicsModSystem::Runtime::GraphicsModManager& GetGraphicsModManager() const;
   VideoEvents& GetVideoEvents() const;
 
 private:

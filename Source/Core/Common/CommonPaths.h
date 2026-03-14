@@ -63,6 +63,7 @@
 #define RIIVOLUTION_DIR "Riivolution"
 #define DUMP_DIR "Dump"
 #define DUMP_TEXTURES_DIR "Textures"
+#define DUMP_MESHES_DIR "Meshes"
 #define DUMP_FRAMES_DIR "Frames"
 #define DUMP_OBJECTS_DIR "Objects"
 #define DUMP_AUDIO_DIR "Audio"
@@ -92,6 +93,7 @@
 #define WIISDSYNC_DIR "WiiSDSync"
 #define ASSEMBLY_DIR "SavedAssembly"
 #define WIIBANNERS_DIR "WiiBanners"
+#define GRAPHICSMODEDITOR_DIR "GraphicsModEditor"
 
 // This one is only used to remove it if it was present
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"
