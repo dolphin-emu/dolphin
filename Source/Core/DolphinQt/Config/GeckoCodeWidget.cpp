@@ -218,7 +218,7 @@ void GeckoCodeWidget::OnItemChanged(QListWidgetItem* item)
 void GeckoCodeWidget::AddCode()
 {
   Gecko::GeckoCode code;
-  code.enabled = true;
+  code.enabled = false;
 
   m_cheat_code_editor->SetGeckoCode(&code);
   if (m_cheat_code_editor->exec() == QDialog::Rejected)
