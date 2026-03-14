@@ -36,10 +36,12 @@
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
+#include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Resources/CustomResourceManager.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoEvents.h"
 #include "VideoCommon/XFStateManager.h"
 
 namespace Core

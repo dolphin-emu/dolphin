@@ -5,16 +5,15 @@
 
 #include <memory>
 
-#include "VideoCommon/PerformanceMetrics.h"
-#include "VideoCommon/VideoEvents.h"
-
 class GeometryShaderManager;
 class Interpreter;
 class JitInterface;
+class PerformanceMetrics;
 class PixelShaderManager;
 class SoundStream;
 struct Sram;
 class VertexShaderManager;
+struct VideoEvents;
 class XFStateManager;
 
 namespace AudioInterface
