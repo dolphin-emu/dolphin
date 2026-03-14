@@ -400,3 +400,7 @@ if(MSVC)
   # Add precompiled header
   target_link_libraries(common PRIVATE use_pch)
 endif()
+
+if(MINGW)
+  target_link_libraries(common PRIVATE qwave setupapi cfgmgr32)
+endif()
