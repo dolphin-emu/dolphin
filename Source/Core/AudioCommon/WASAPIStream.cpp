@@ -320,14 +320,24 @@ void WASAPIStream::SoundLoop()
   Common::SetCurrentThreadName("WASAPI Handler");
   BYTE* data;
 
-  m_audio_renderer->GetBuffer(m_frames_in_buffer, &data);
+  HRESULT getbuffer_result = m_audio_renderer->GetBuffer(m_frames_in_buffer, &data);
+  if (getbuffer_result != S_OK)
+  {
+    m_running.store(false, std::memory_order_relaxed);
+    return;
+  }
   m_audio_renderer->ReleaseBuffer(m_frames_in_buffer, AUDCLNT_BUFFERFLAGS_SILENT);
 
   while (m_running.load(std::memory_order_relaxed))
   {
     WaitForSingleObject(m_need_data_event.get(), 1000);
 
-    m_audio_renderer->GetBuffer(m_frames_in_buffer, &data);
+    getbuffer_result = m_audio_renderer->GetBuffer(m_frames_in_buffer, &data);
+    if (getbuffer_result != S_OK)
+    {
+      m_running.store(false, std::memory_order_relaxed);
+      return;
+    }
 
     s16* audio_data = reinterpret_cast<s16*>(data);
     GetMixer()->Mix(audio_data, m_frames_in_buffer);
