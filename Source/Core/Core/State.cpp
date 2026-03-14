@@ -95,7 +95,7 @@ struct CompressAndDumpStateArgs
 static Common::WorkQueueThreadSP<CompressAndDumpStateArgs> s_compress_and_dump_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 180;  // Last changed in PR 14452
+constexpr u32 STATE_VERSION = 181;  // Last changed in PR 14457
 
 // Increase this if the StateExtendedHeader definition changes
 constexpr u32 EXTENDED_HEADER_VERSION = 1;  // Last changed in PR 12217
@@ -221,8 +221,7 @@ static bool CheckIfStateLoadIsAllowed(Core::System& system)
 
 static bool LoadFromBuffer(Core::System& system, std::span<u8> buffer)
 {
-  u8* ptr = buffer.data();
-  PointerWrap p(&ptr, buffer.size(), PointerWrap::Mode::Read);
+  PointerWrap p(buffer, PointerWrap::Mode::Read);
   DoState(system, p);
   return p.IsReadMode();
 }
@@ -233,10 +232,9 @@ static std::size_t SaveToBuffer(Core::System& system, Common::UniqueBuffer<u8>& 
   // Attempt to save to our provided buffer as-is.
   // If buffer isn't large enough, PointerWrap transitions to MeasureMode,
   //  and then we have our measurement for a second attempt.
-  u8* ptr = buffer.data();
-  PointerWrap pointer_wrap(&ptr, buffer.size(), PointerWrap::Mode::Write);
+  PointerWrap pointer_wrap(buffer, PointerWrap::Mode::Write);
   DoState(system, pointer_wrap);
-  const auto measured_size = pointer_wrap.GetOffsetFromPreviousPosition(buffer.data());
+  const auto measured_size = pointer_wrap.GetCurrentOffset();
 
   if (pointer_wrap.IsWriteMode())
   {
