@@ -39,7 +39,6 @@ private:
   // Only ever one server thread
   static void GeckoConnectionWaiter();
 
-  static u16 server_port;
   static Common::Flag server_running;
   static std::thread connectionThread;
   static std::mutex connection_lock;
