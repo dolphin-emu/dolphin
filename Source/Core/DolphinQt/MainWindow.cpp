@@ -1081,7 +1081,7 @@ void MainWindow::FullScreen()
 
   if (was_fullscreen)
   {
-    ShowRenderWidget();
+    ShowRenderWidget(was_fullscreen);
   }
   else
   {
@@ -1191,7 +1191,8 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
   }
 
   // We need the render widget before booting.
-  ShowRenderWidget();
+  constexpr bool WAS_FULLSCREEN = false;
+  ShowRenderWidget(WAS_FULLSCREEN);
 
   // Boot up, show an error if it fails to load the game.
   if (!BootManager::BootCore(m_system, std::move(parameters),
@@ -1239,7 +1240,7 @@ void MainWindow::SetFullScreenResolution(bool fullscreen)
 #endif
 }
 
-void MainWindow::ShowRenderWidget()
+void MainWindow::ShowRenderWidget(const bool was_fullscreen)
 {
   SetFullScreenResolution(false);
   Host::GetInstance()->SetRenderFullscreen(false);
@@ -1254,7 +1255,10 @@ void MainWindow::ShowRenderWidget()
     m_stack->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     m_stack->repaint();
 
-    Host::GetInstance()->SetRenderFocus(isActiveWindow());
+    const bool focus = was_fullscreen || isActiveWindow();
+    Host::GetInstance()->SetRenderFocus(focus);
+    if (focus)
+      m_render_widget->activateWindow();
   }
   else
   {

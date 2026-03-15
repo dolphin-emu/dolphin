@@ -163,7 +163,7 @@ private:
   void StartGame(const std::vector<std::string>& paths,
                  std::unique_ptr<BootSessionData> boot_session_data = nullptr);
   void StartGame(std::unique_ptr<BootParameters>&& parameters);
-  void ShowRenderWidget();
+  void ShowRenderWidget(bool was_fullscreen);
   void HideRenderWidget(bool reinit = true, bool is_exit = false);
 
   void ShowSettingsWindow();
