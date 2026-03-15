@@ -63,7 +63,12 @@ void GeckoSockServer::GeckoConnectionWaiter()
   }
 
   if (!server_running.IsSet())
+  {
+    ERROR_LOG_FMT(EXPANSIONINTERFACE, "USBGecko: Failed to bind to any port in range {}-{}", 0xd6ec,
+                  0xd6ec + 10);
+    Core::DisplayMessage("USBGecko: Failed to listen on any port (55020-55030)", 5000);
     return;
+  }
 
   Core::DisplayMessage(fmt::format("USBGecko: Listening on TCP port {}", server_port), 5000);
 
