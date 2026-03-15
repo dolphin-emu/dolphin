@@ -67,7 +67,7 @@ Country VolumeDisc::GetCountry(const Partition& partition) const
   {
     const BootID* boot_id = static_cast<const VolumeGC*>(this)->GetTriforceBootID();
 
-    switch (boot_id->region_flags)
+    switch (boot_id->region_flags & 0x000000FF)
     {
     default:
     case 0x02:  // JAPAN
