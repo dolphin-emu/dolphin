@@ -173,8 +173,20 @@ void GeneralWidget::BackendWarning()
 {
   if (Config::GetActiveLayerForConfig(Config::MAIN_GFX_BACKEND) == Config::LayerType::Base)
   {
-    auto warningMessage = VideoBackendBase::GetAvailableBackends()[m_backend_combo->currentIndex()]
-                              ->GetWarningMessage();
+    const auto& backends = VideoBackendBase::GetAvailableBackends();
+    if (backends.empty())
+    {
+      return;
+    }
+
+    const int current_idx = m_backend_combo->currentIndex();
+    if (current_idx == -1)
+    {
+      // Don't attempt to get the current backend if it doesn't match any available backends.
+      return;
+    }
+
+    auto warningMessage = backends[current_idx]->GetWarningMessage();
     if (warningMessage)
     {
       ModalMessageBox confirm_sw(this);
