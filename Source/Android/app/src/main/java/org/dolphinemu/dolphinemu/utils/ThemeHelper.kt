@@ -45,12 +45,6 @@ object ThemeHelper {
             activity.setTheme(R.style.ThemeOverlay_Dolphin_Dark)
         }
 
-        // Since the top app bar matches the color of the status bar, devices below API 23 have to get a
-        // black status bar since their icons do not adapt based on background color
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            activity.window.statusBarColor =
-                ContextCompat.getColor(activity.applicationContext, android.R.color.black)
-        }
     }
 
     private fun setThemeMode(activity: AppCompatActivity) {
@@ -168,12 +162,7 @@ object ThemeHelper {
 
     @JvmStatic
     fun setStatusBarColor(activity: AppCompatActivity, @ColorInt color: Int) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            activity.window.statusBarColor =
-                ContextCompat.getColor(activity.applicationContext, android.R.color.black)
-        } else {
-            activity.window.statusBarColor = color
-        }
+        activity.window.statusBarColor = color
     }
 
     @JvmStatic
