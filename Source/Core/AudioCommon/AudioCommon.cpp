@@ -3,6 +3,8 @@
 
 #include "AudioCommon/AudioCommon.h"
 
+#include <algorithm>
+
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 
@@ -167,8 +169,15 @@ void UpdateSoundStream(Core::System& system)
 
   if (sound_stream)
   {
-    int const volume =
-        Config::Get(Config::MAIN_AUDIO_MUTED) ? 0 : Config::Get(Config::MAIN_AUDIO_VOLUME);
+    int volume = Config::Get(Config::MAIN_AUDIO_MUTED) ? 0 : Config::Get(Config::MAIN_AUDIO_VOLUME);
+
+    if (!Config::Get(Config::MAIN_AUDIO_MUTED))
+    {
+      const float multiplier =
+        std::clamp(Config::Get(Config::MAIN_AUDIO_VOLUME_MULTIPLIER), 0.0f, 1.0f);
+      volume = static_cast<int>(volume * multiplier);
+    }
+
     sound_stream->SetVolume(volume);
   }
 }

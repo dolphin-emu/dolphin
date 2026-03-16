@@ -178,6 +178,7 @@ extern const Info<bool> MAIN_DUMP_AUDIO_SILENT;
 extern const Info<bool> MAIN_DUMP_UCODE;
 extern const Info<std::string> MAIN_AUDIO_BACKEND;
 extern const Info<int> MAIN_AUDIO_VOLUME;
+extern const Info<float> MAIN_AUDIO_VOLUME_MULTIPLIER;
 extern const Info<bool> MAIN_AUDIO_MUTED;
 extern const Info<bool> MAIN_AUDIO_MUTE_ON_DISABLED_SPEED_LIMIT;
 #ifdef _WIN32
