@@ -12,3 +12,8 @@
 -dontwarn org.openjsse.javax.net.ssl.SSLParameters
 -dontwarn org.openjsse.javax.net.ssl.SSLSocket
 -dontwarn org.openjsse.net.ssl.OpenJSSE
+
+# This is referenced in JNI_OnLoad.
+-keep class androidx.core.util.Pair {
+    <init>(java.lang.Object, java.lang.Object);
+}
