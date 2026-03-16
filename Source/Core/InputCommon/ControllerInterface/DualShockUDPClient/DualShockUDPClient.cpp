@@ -487,8 +487,7 @@ void InputBackend::ConfigChanged()
       {
         if (!server_detail.empty())
         {
-          WARN_LOG_FMT(CONTROLLERINTERFACE,
-                       "Ignoring invalid DSU server entry in config: \"{}\"",
+          WARN_LOG_FMT(CONTROLLERINTERFACE, "Ignoring invalid DSU server entry in config: \"{}\"",
                        server_detail);
         }
         continue;
