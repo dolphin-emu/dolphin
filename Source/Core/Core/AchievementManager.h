@@ -121,6 +121,7 @@ public:
   void Login(const std::string& password);
   bool HasAPIToken() const;
   void LoadGame(const DiscIO::Volume* volume);
+  void ChangeDisc(const DiscIO::Volume* volume);
   bool IsGameLoaded() const;
   void SetBackgroundExecutionAllowed(bool allowed);
 
@@ -332,6 +333,8 @@ public:
   }
 
   constexpr void LoadGame(const DiscIO::Volume*) {}
+
+  constexpr void ChangeDisc(const DiscIO::Volume*) {}
 
   constexpr void SetBackgroundExecutionAllowed(bool allowed) {}
 
