@@ -26,6 +26,7 @@
 #include "Core/Config/FreeLookSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/GeckoCode.h"
 #include "Core/HW/Memmap.h"
@@ -52,6 +53,8 @@ static const Common::HttpRequest::Headers USER_AGENT_HEADER = {
 static const Common::HttpRequest::Headers USER_AGENT_HEADER = {
     {"User-Agent", Common::GetUserAgentStr()}};
 #endif  // ANDROID
+
+static const std::string WII_MENU_ID = "0000000100000002";
 
 AchievementManager& AchievementManager::GetInstance()
 {
@@ -218,7 +221,17 @@ void AchievementManager::LoadGame(const DiscIO::Volume* volume)
 bool AchievementManager::IsGameLoaded() const
 {
   auto* game_info = rc_client_get_game_info(m_client);
-  return game_info && game_info->id != 0;
+  if (game_info && game_info->id != 0)
+  {
+    std::string dolphin_game_id = SConfig::GetInstance().GetGameID();
+    if (dolphin_game_id == WII_MENU_ID)
+    {
+      AchievementManager::GetInstance().CloseGame();
+      return false;
+    }
+    return true;
+  }
+  return false;
 }
 
 void AchievementManager::SetBackgroundExecutionAllowed(bool allowed)
