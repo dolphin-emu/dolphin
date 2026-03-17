@@ -26,6 +26,7 @@
 #include "Core/Config/FreeLookSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/GeckoCode.h"
 #include "Core/HW/Memmap.h"
@@ -212,6 +213,25 @@ void AchievementManager::LoadGame(const DiscIO::Volume* volume)
     u32 console_id = FindConsoleID(volume->GetVolumeType());
     rc_client_begin_identify_and_load_game(m_client, console_id, "", NULL, 0, LoadGameCallback,
                                            NULL);
+  }
+}
+
+void AchievementManager::ChangeDisc(const DiscIO::Volume* volume)
+{
+  if (volume == nullptr)
+  {
+    INFO_LOG_FMT(ACHIEVEMENTS, "Ejecting disc.");
+    LoadGame(nullptr);
+  }
+  else if (volume->GetGameID() != SConfig::GetInstance().GetGameID())
+  {
+    INFO_LOG_FMT(ACHIEVEMENTS, "Inserting disc that doesn't belong to the running game.");
+    LoadGame(nullptr);
+  }
+  else
+  {
+    INFO_LOG_FMT(ACHIEVEMENTS, "Inserting disc.");
+    LoadGame(volume);
   }
 }
 
