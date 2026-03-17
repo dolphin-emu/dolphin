@@ -161,13 +161,14 @@ protected:
   bool m_accurate_nans = false;
   bool m_accurate_fmadds = false;
   bool m_fastmem_enabled = false;
+  bool m_page_table_fastmem_enabled = false;
   bool m_accurate_cpu_cache_enabled = false;
 
   bool m_enable_blr_optimization = false;
   bool m_cleanup_after_stackfault = false;
   u8* m_stack_guard = nullptr;
 
-  static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 24> JIT_SETTINGS;
+  static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 25> JIT_SETTINGS;
 
   bool DoesConfigNeedRefresh() const;
   void RefreshConfig();
