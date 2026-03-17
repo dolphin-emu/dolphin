@@ -80,7 +80,8 @@ static constexpr u32 TEST_OK_WORD0 = 0x54455354;  // "TEST"
 static constexpr u32 TEST_OK_WORD1 = 0x204F4B00;  // " OK\0"
 
 MediaBoardRange::MediaBoardRange(u32 start_, u32 size_, std::span<u8> buffer_)
-    : start{start_}, end{start_ + size_}, buffer{buffer_.data()}, buffer_size{buffer_.size()}
+    : start{start_}, end{start_ + std::min(size_, u32(buffer_.size()))}, buffer{buffer_.data()},
+      buffer_size{buffer_.size()}
 {
   if (size_ <= buffer_.size())
     return;
