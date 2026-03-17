@@ -524,6 +524,7 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       NOTICE_LOG_FMT(BOOT, "Booting from disc: {}", disc.path);
       const DiscIO::VolumeDisc* volume =
           SetDisc(system.GetDVDInterface(), std::move(disc.volume), disc.auto_disc_change_paths);
+      AchievementManager::GetInstance().LoadGame(volume);
 
       if (!volume)
         return false;
@@ -642,16 +643,16 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
       if (!Load_BS2(system, ipl.path))
         return false;
 
+      const DiscIO::VolumeDisc* volume = nullptr;
       if (ipl.disc)
       {
         NOTICE_LOG_FMT(BOOT, "Inserting disc: {}", ipl.disc->path);
-        SetDisc(system.GetDVDInterface(), DiscIO::CreateDiscForCore(ipl.disc->path),
-                ipl.disc->auto_disc_change_paths);
+
+        volume = SetDisc(system.GetDVDInterface(), DiscIO::CreateDiscForCore(ipl.disc->path),
+                         ipl.disc->auto_disc_change_paths);
       }
-      else
-      {
-        AchievementManager::GetInstance().LoadGame(nullptr);
-      }
+
+      AchievementManager::GetInstance().LoadGame(volume);
 
       SConfig::OnTitleDirectlyBooted(guard);
       return true;
