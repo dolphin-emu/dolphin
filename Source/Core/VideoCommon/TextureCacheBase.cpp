@@ -444,7 +444,7 @@ void TextureCacheBase::SerializeTexture(AbstractTexture* tex, const TextureConfi
 {
   // If we're in measure mode, skip the actual readback to save some time.
   const bool skip_readback = p.IsMeasureMode();
-  p.Do(config);
+  p.Do(const_cast<TextureConfig&>(config));
 
   if (skip_readback || CheckReadbackTexture(config.width, config.height, config.format))
   {
@@ -657,20 +657,10 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
     }
   }
 
-  auto doList = [&p](auto list) {
-    u32 list_size = static_cast<u32>(list.size());
-    p.Do(list_size);
-    for (const auto& it : list)
-    {
-      p.Do(it.first);
-      p.Do(it.second);
-    }
-  };
-
-  doList(reference_pairs);
-  doList(textures_by_address_list);
-  doList(textures_by_hash_list);
-  doList(bound_textures_list);
+  p.Do(reference_pairs);
+  p.Do(textures_by_address_list);
+  p.Do(textures_by_hash_list);
+  p.Do(bound_textures_list);
 
   // Free the readback texture to potentially save host-mapped GPU memory, depending on where
   // the driver mapped the staging buffer.
