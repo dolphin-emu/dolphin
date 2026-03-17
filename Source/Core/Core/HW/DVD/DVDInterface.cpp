@@ -420,8 +420,6 @@ void DVDInterface::SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
     m_auto_disc_change_index = 0;
   }
 
-  AchievementManager::GetInstance().LoadGame(disc.get());
-
   // Assume that inserting a disc requires having an empty disc before
   if (had_disc != has_disc)
     ExpansionInterface::g_rtc_flags[ExpansionInterface::RTCFlag::DiscChanged] = true;
@@ -444,6 +442,7 @@ void DVDInterface::AutoChangeDiscCallback(Core::System& system, u64 userdata, s6
 
 void DVDInterface::EjectDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
+  AchievementManager::GetInstance().LoadGame(nullptr);
   system.GetDVDInterface().SetDisc(nullptr, {});
 }
 
@@ -454,9 +453,14 @@ void DVDInterface::InsertDiscCallback(Core::System& system, u64 userdata, s64 cy
       DiscIO::CreateDiscForCore(di.m_disc_path_to_insert);
 
   if (new_disc)
+  {
+    AchievementManager::GetInstance().LoadGame(new_disc.get());
     di.SetDisc(std::move(new_disc), {});
+  }
   else
+  {
     PanicAlertFmtT("The disc that was about to be inserted couldn't be found.");
+  }
 
   di.m_disc_path_to_insert.clear();
 }
