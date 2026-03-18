@@ -2,12 +2,12 @@
 [configuration]
 
 [OptionRangeFloat]
-GUIName = Amplificiation
+GUIName = Brightness Multiplier
 OptionName = AMPLIFICATION
-MinValue = 1.0
-MaxValue = 6.0
-StepAmount = 0.25
-DefaultValue = 2.5
+MinValue = 0.5
+MaxValue = 4.0
+StepAmount = 0.05
+DefaultValue = 1.0
 
 [/configuration]
 */
@@ -119,8 +119,13 @@ void main()
     //
     // For more information, see this desmos demonstrating this scaling process:
     // https://www.desmos.com/calculator/syjyrjsj5c
+    // Use the display's actual peak luminance when available, otherwise fall back to the manual slider.
+    // When display data is available, the ratio peak/sdr_white gives the display's total HDR headroom
+    // above its SDR baseline — independent of the user's paper white target. The brightness multiplier
+    // scales on top (1.0 = calibrated to the display). Otherwise the multiplier is used as a raw value.
+    const float display_amplification = hdr_max_luminance_nits > 0.0 ? (hdr_max_luminance_nits / hdr_sdr_white_nits) * AMPLIFICATION : AMPLIFICATION;
     float exposure = length(ictcp_color.xyz);
-    ictcp_color *= pow(HLG_f(AMPLIFICATION), exposure);
+    ictcp_color *= pow(HLG_f(display_amplification), exposure);
 
     // Convert back to Linear RGB and output the color to the display.
     // We use hdr_paper_white to renormalize the color to the comfortable

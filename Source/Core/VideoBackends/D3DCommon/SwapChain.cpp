@@ -5,12 +5,15 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <winrt/Windows.Graphics.Display.h>
+#include <windows.graphics.display.interop.h>
 
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
 #include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/ScopeGuard.h"
 
 #include "VideoCommon/VideoConfig.h"
 
@@ -196,25 +199,44 @@ void SwapChain::QueryDisplayHDRCapabilities()
 {
   g_backend_info.hdr_max_luminance_nits = 0.0f;
   g_backend_info.hdr_min_luminance_nits = 0.0f;
+  g_backend_info.hdr_sdr_white_nits = 80.f;
 
   if (!m_hdr)
-  {
     return;
-  }
 
   Microsoft::WRL::ComPtr<IDXGIOutput> output;
   Microsoft::WRL::ComPtr<IDXGIOutput6> output6;
-  DXGI_OUTPUT_DESC1 desc;
+  DXGI_OUTPUT_DESC1 desc{};
 
   if (FAILED(m_swap_chain->GetContainingOutput(&output)) || FAILED(output.As(&output6)) ||
       FAILED(output6->GetDesc1(&desc)))
   {
     return;
-  }                                                                                                                                                                                                                                                                                                       
+  }
 
   g_backend_info.hdr_max_luminance_nits = desc.MaxLuminance;
   g_backend_info.hdr_min_luminance_nits = desc.MinLuminance;
+
+  try
+  {
+    winrt::init_apartment();
+    Common::ScopeGuard uninit_guard([] { winrt::uninit_apartment(); });
+
+    auto statics =
+        winrt::get_activation_factory<winrt::Windows::Graphics::Display::DisplayInformation,
+                                      IDisplayInformationStaticsInterop>();
+    winrt::Windows::Graphics::Display::DisplayInformation display_info{nullptr};
+    winrt::check_hresult(statics->GetForMonitor(
+        desc.Monitor, winrt::guid_of<winrt::Windows::Graphics::Display::IDisplayInformation>(),
+        winrt::put_abi(display_info)));
+    g_backend_info.hdr_sdr_white_nits = display_info.GetAdvancedColorInfo().SdrWhiteLevelInNits();
+  }
+  catch (...)
+  {
+    g_backend_info.hdr_sdr_white_nits = 80.f;
+  }
 }
+
 
 void SwapChain::DestroySwapChain()
 {

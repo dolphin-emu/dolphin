@@ -182,6 +182,7 @@ struct BackendInfo
   bool bSupportsHDROutput = false;
   float hdr_max_luminance_nits = 0.f;
   float hdr_min_luminance_nits = 0.f;
+  float hdr_sdr_white_nits = 80.f;
   bool bSupportsUnrestrictedDepthRange = false;
 };
 
