@@ -16,9 +16,7 @@ void SerialDevice::WriteRxBytes(std::span<const u8> bytes)
 #if defined(__cpp_lib_containers_ranges)
   m_rx_buffer.append_range(bytes);
 #else
-  const auto prev_size = m_rx_buffer.size();
-  m_rx_buffer.resize(prev_size + bytes.size());
-  std::ranges::copy(bytes, m_rx_buffer.begin() + prev_size);
+  m_rx_buffer.insert(m_rx_buffer.end(), bytes.begin(), bytes.end());
 #endif
 }
 
@@ -42,10 +40,32 @@ void SerialDevice::WriteTxBytes(std::span<const u8> bytes)
 #if defined(__cpp_lib_containers_ranges)
   m_tx_buffer.append_range(bytes);
 #else
-  const auto prev_size = m_tx_buffer.size();
-  m_tx_buffer.resize(prev_size + bytes.size());
-  std::ranges::copy(bytes, m_tx_buffer.begin() + prev_size);
+  m_tx_buffer.insert(m_tx_buffer.end(), bytes.begin(), bytes.end());
 #endif
+}
+
+void SerialDevice::PassThroughTxBytes(SerialDevice& other)
+{
+  // The destination buffer will often be empty or near-empty.
+  if (m_tx_buffer.size() < other.m_tx_buffer.size()) [[likely]]
+  {
+#if defined(__cpp_lib_containers_ranges)
+    other.m_tx_buffer.prepend_range(m_tx_buffer);
+#else
+    other.m_tx_buffer.insert(other.m_tx_buffer.begin(), m_tx_buffer.begin(), m_tx_buffer.end());
+#endif
+    m_tx_buffer.swap(other.m_tx_buffer);
+  }
+  else
+  {
+#if defined(__cpp_lib_containers_ranges)
+    m_tx_buffer.append_range(other.m_tx_buffer);
+#else
+    m_tx_buffer.insert(m_tx_buffer.end(), other.m_tx_buffer.begin(), other.m_tx_buffer.end());
+#endif
+  }
+
+  other.m_tx_buffer.clear();
 }
 
 void SerialDevice::DoState(PointerWrap& p)
