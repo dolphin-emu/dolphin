@@ -180,6 +180,8 @@ struct BackendInfo
   bool bSupportsVSLinePointExpand = false;
   bool bSupportsGLLayerInFS = true;
   bool bSupportsHDROutput = false;
+  float hdr_max_luminance_nits = 0.f;
+  float hdr_min_luminance_nits = 0.f;
   bool bSupportsUnrestrictedDepthRange = false;
 };
 

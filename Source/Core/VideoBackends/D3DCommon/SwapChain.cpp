@@ -188,7 +188,32 @@ bool SwapChain::CreateSwapChain(bool stereo, bool hdr)
     return false;
   }
 
+  QueryDisplayHDRCapabilities();
   return true;
+}
+
+void SwapChain::QueryDisplayHDRCapabilities()
+{
+  g_backend_info.hdr_max_luminance_nits = 0.0f;
+  g_backend_info.hdr_min_luminance_nits = 0.0f;
+
+  if (!m_hdr)
+  {
+    return;
+  }
+
+  Microsoft::WRL::ComPtr<IDXGIOutput> output;
+  Microsoft::WRL::ComPtr<IDXGIOutput6> output6;
+  DXGI_OUTPUT_DESC1 desc;
+
+  if (FAILED(m_swap_chain->GetContainingOutput(&output)) || FAILED(output.As(&output6)) ||
+      FAILED(output6->GetDesc1(&desc)))
+  {
+    return;
+  }                                                                                                                                                                                                                                                                                                       
+
+  g_backend_info.hdr_max_luminance_nits = desc.MaxLuminance;
+  g_backend_info.hdr_min_luminance_nits = desc.MinLuminance;
 }
 
 void SwapChain::DestroySwapChain()
@@ -225,7 +250,7 @@ bool SwapChain::ResizeSwapChain()
     m_width = desc.BufferDesc.Width;
     m_height = desc.BufferDesc.Height;
   }
-
+  QueryDisplayHDRCapabilities();
   return CreateSwapChainBuffers();
 }
 
