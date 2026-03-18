@@ -341,6 +341,9 @@
     <ClInclude Include="Core\HW\Sram.h" />
     <ClInclude Include="Core\HW\StreamADPCM.h" />
     <ClInclude Include="Core\HW\SystemTimers.h" />
+    <ClInclude Include="Core\HW\Triforce\DeckReader.h" />
+    <ClInclude Include="Core\HW\Triforce\ICCardReader.h" />
+    <ClInclude Include="Core\HW\Triforce\IOPorts.h" />
     <ClInclude Include="Core\HW\Triforce\SerialDevice.h" />
     <ClInclude Include="Core\HW\Triforce\Touchscreen.h" />
     <ClInclude Include="Core\HW\VideoInterface.h" />
@@ -1043,6 +1046,9 @@
     <ClCompile Include="Core\HW\Sram.cpp" />
     <ClCompile Include="Core\HW\StreamADPCM.cpp" />
     <ClCompile Include="Core\HW\SystemTimers.cpp" />
+    <ClCompile Include="Core\HW\Triforce\DeckReader.cpp" />
+    <ClCompile Include="Core\HW\Triforce\ICCardReader.cpp" />
+    <ClCompile Include="Core\HW\Triforce\IOPorts.cpp" />
     <ClCompile Include="Core\HW\Triforce\SerialDevice.cpp" />
     <ClCompile Include="Core\HW\Triforce\Touchscreen.cpp" />
     <ClCompile Include="Core\HW\VideoInterface.cpp" />
