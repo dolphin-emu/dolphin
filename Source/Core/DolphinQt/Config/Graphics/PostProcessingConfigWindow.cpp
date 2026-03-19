@@ -120,6 +120,12 @@ void PostProcessingConfigWindow::Create()
     m_tabs->insertTab(0, general, tr("General"));
   }
 
+  // Apply initial enabled state for options controlled by USE_DISPLAY_PEAK_LUMINANCE
+  const auto use_peak_it = m_config_map.find("USE_DISPLAY_PEAK_LUMINANCE");
+  const auto max_nits_it = m_config_map.find("HDR_DISPLAY_MAX_NITS");
+  if (use_peak_it != m_config_map.end() && max_nits_it != m_config_map.end())
+    max_nits_it->second->SetEnabled(!use_peak_it->second->GetCheckboxValue());
+
   m_buttons = new QDialogButtonBox(QDialogButtonBox::Ok);
 
   auto* layout = new QVBoxLayout(this);
@@ -150,8 +156,16 @@ PostProcessingConfigWindow::CreateDependentTab(const std::unique_ptr<ConfigGroup
 void PostProcessingConfigWindow::UpdateBool(ConfigGroup* const config_group, const bool state)
 {
   m_post_processor->SetOptionb(config_group->GetOptionName(), state);
+  m_post_processor->SaveOptionsConfiguration();
 
   config_group->EnableSuboptions(state);
+
+  if (config_group->GetOptionName() == "USE_DISPLAY_PEAK_LUMINANCE")
+  {
+    const auto it = m_config_map.find("HDR_DISPLAY_MAX_NITS");
+    if (it != m_config_map.end())
+      it->second->SetEnabled(!state);
+  }
 }
 
 void PostProcessingConfigWindow::UpdateInteger(ConfigGroup* const config_group, const int value)
@@ -344,6 +358,14 @@ u32 PostProcessingConfigWindow::ConfigGroup::AddFloat(PostProcessingConfigWindow
   }
 
   return row + 1;
+}
+
+void PostProcessingConfigWindow::ConfigGroup::SetEnabled(const bool state)
+{
+  for (auto& slider : m_sliders)
+    slider->setEnabled(state);
+  for (auto& value_box : m_value_boxes)
+    value_box->setEnabled(state);
 }
 
 void PostProcessingConfigWindow::ConfigGroup::EnableSuboptions(const bool state)

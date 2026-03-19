@@ -46,6 +46,7 @@ private:
     const std::vector<std::unique_ptr<ConfigGroup>>& GetSubGroups() const noexcept;
     u32 AddWidgets(PostProcessingConfigWindow* parent, QGridLayout* grid, u32 row);
     void EnableSuboptions(bool state);
+    void SetEnabled(bool state);
     int GetCheckboxValue() const;
     int GetSliderValue(size_t index) const;
     void SetSliderText(size_t index, const QString& text);

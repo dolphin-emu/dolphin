@@ -259,7 +259,6 @@ void PostProcessingConfiguration::LoadOptionsConfiguration()
   Common::IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
   std::string section = m_current_shader + "-options";
-  bool needs_save = false;
 
   // We already expect all the options to be marked as "dirty" when we reach here
   for (auto& it : m_options)
@@ -305,15 +304,23 @@ void PostProcessingConfiguration::LoadOptionsConfiguration()
         queried_value.imbue(std::locale("C"));
         queried_value << g_backend_info.hdr_max_luminance_nits;
         ini.GetOrCreateSection(section)->Set(it.second.m_option_name, queried_value.str());
-        needs_save = true;
+        ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
       }
     }
     break;
     }
   }
 
-  if (needs_save)
-    ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  // If USE_DISPLAY_PEAK_LUMINANCE is checked and we have queried data, sync the slider to the
+  // queried value so it reflects what the shader is actually using.
+  const auto use_display_peak = m_options.find("USE_DISPLAY_PEAK_LUMINANCE");
+  const auto max_nits_option = m_options.find("HDR_DISPLAY_MAX_NITS");
+  if (use_display_peak != m_options.end() && max_nits_option != m_options.end() &&
+      use_display_peak->second.m_bool_value && g_backend_info.hdr_max_luminance_nits > 0.f)
+  {
+    max_nits_option->second.m_float_values[0] = g_backend_info.hdr_max_luminance_nits;
+    max_nits_option->second.m_dirty = true;
+  }
 }
 
 void PostProcessingConfiguration::SaveOptionsConfiguration()
