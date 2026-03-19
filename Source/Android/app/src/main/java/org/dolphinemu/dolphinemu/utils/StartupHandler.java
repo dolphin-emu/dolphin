@@ -9,7 +9,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.LifecycleOwner;
@@ -38,9 +41,42 @@ public final class StartupHandler
     String[] gamesToLaunch = getGamesFromIntent(parent.getIntent());
     if (gamesToLaunch != null && gamesToLaunch.length > 0)
     {
-      // Start the emulation activity, send the ISO passed in and finish the main activity
-      EmulationActivity.launch(parent, gamesToLaunch, false, true);
+      // If a previous session is still running, stop it and wait for it to finish
+      // before launching the new game. StopEmulation is async, so launching immediately
+      // would race with the old emulation thread's cleanup.
+      if (!NativeLibrary.IsUninitialized())
+      {
+        NativeLibrary.StopEmulation();
+        waitForStopThenLaunch(parent, gamesToLaunch);
+      }
+      else
+      {
+        EmulationActivity.stopIgnoringLaunchRequests();
+        EmulationActivity.launch(parent, gamesToLaunch, false, true);
+      }
     }
+  }
+
+  private static void waitForStopThenLaunch(FragmentActivity parent, String[] gamesToLaunch)
+  {
+    Handler handler = new Handler(Looper.getMainLooper());
+    final long deadline = System.currentTimeMillis() + 5000;
+    handler.postDelayed(new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        if (NativeLibrary.IsUninitialized() || System.currentTimeMillis() >= deadline)
+        {
+          EmulationActivity.stopIgnoringLaunchRequests();
+          EmulationActivity.launch(parent, gamesToLaunch, false, true);
+        }
+        else
+        {
+          handler.postDelayed(this, 100);
+        }
+      }
+    }, 100);
   }
 
   private static String[] getGamesFromIntent(Intent intent)

@@ -66,6 +66,12 @@ class TvMainActivity : FragmentActivity(), MainView, OnRefreshListener {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        StartupHandler.HandleInit(this)
+    }
+
     override fun onResume() {
         super.onResume()
         if (DirectoryInitialization.shouldStart(this)) {
