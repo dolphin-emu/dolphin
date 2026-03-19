@@ -259,6 +259,7 @@ void PostProcessingConfiguration::LoadOptionsConfiguration()
   Common::IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
   std::string section = m_current_shader + "-options";
+  bool needs_save = false;
 
   // We already expect all the options to be marked as "dirty" when we reach here
   for (auto& it : m_options)
@@ -295,10 +296,24 @@ void PostProcessingConfiguration::LoadOptionsConfiguration()
           it.second.m_float_values = float_values;
         }
       }
+      else if (it.second.m_option_name == "HDR_DISPLAY_MAX_NITS" &&
+               g_backend_info.hdr_max_luminance_nits > 0.f)
+      {
+        it.second.m_float_values[0] = g_backend_info.hdr_max_luminance_nits;
+        it.second.m_dirty = true;
+        std::ostringstream queried_value;
+        queried_value.imbue(std::locale("C"));
+        queried_value << g_backend_info.hdr_max_luminance_nits;
+        ini.GetOrCreateSection(section)->Set(it.second.m_option_name, queried_value.str());
+        needs_save = true;
+      }
     }
     break;
     }
   }
+
+  if (needs_save)
+    ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 }
 
 void PostProcessingConfiguration::SaveOptionsConfiguration()
