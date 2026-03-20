@@ -172,12 +172,12 @@ PostProcessingConfigWindow::CreateDependentTab(const std::unique_ptr<ConfigGroup
 void PostProcessingConfigWindow::UpdateBool(ConfigGroup* const config_group, const bool state)
 {
   m_post_processor->SetOptionb(config_group->GetOptionName(), state);
-  m_post_processor->SaveOptionsConfiguration();
 
   config_group->EnableSuboptions(state);
 
   if (config_group->GetOptionName() == "USE_DISPLAY_PEAK_LUMINANCE")
   {
+    m_post_processor->SaveOptionsConfiguration();
     const auto it = m_config_map.find("HDR_DISPLAY_MAX_NITS");
     if (it != m_config_map.end())
       it->second->SetEnabled(!state);

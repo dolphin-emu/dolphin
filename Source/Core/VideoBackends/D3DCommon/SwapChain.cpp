@@ -237,7 +237,6 @@ void SwapChain::QueryDisplayHDRCapabilities()
   }
 }
 
-
 void SwapChain::DestroySwapChain()
 {
   DestroySwapChainBuffers();

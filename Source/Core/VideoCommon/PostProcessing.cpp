@@ -938,8 +938,6 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
   // Clamp paper white to at least the display's SDR white level when display data is available.
   // This prevents hdr_paper_white (= paper_white_nits / sdr_white_nits) from dropping below 1.0,
   // which would scale colors up before tone mapping and risk clipping highlights.
-  // Note: amplification headroom is computed from peak/sdr_white in the shader, not from paper_white,
-  // so this floor does not affect how much HDR range the shader uses.
   const float effective_paper_white =
       g_backend_info.hdr_max_luminance_nits > 0.f ?
           std::max(g_ActiveConfig.color_correction.fHDRPaperWhiteNits,
@@ -949,7 +947,7 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
   // Queried from the display on DX backends; falls back to 80 (scRGB spec value)
   builtin_uniforms.hdr_sdr_white_nits = g_backend_info.hdr_sdr_white_nits;
   builtin_uniforms.hdr_max_luminance_nits = g_backend_info.hdr_max_luminance_nits;
-  builtin_uniforms.hdr_min_luminance_nits = g_backend_info.hdr_min_luminance_nits; 
+  builtin_uniforms.hdr_min_luminance_nits = g_backend_info.hdr_min_luminance_nits;
 
   std::memcpy(buffer, &builtin_uniforms, sizeof(builtin_uniforms));
   buffer += sizeof(builtin_uniforms);
