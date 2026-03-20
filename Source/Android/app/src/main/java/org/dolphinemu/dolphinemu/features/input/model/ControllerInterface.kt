@@ -99,6 +99,8 @@ object ControllerInterface {
 
     external fun getDevice(deviceString: String): CoreDevice?
 
+    external fun getDescriptorForDevice(deviceString: String): String
+
     private fun onInputStateChanged() {
         // When a single SensorEvent is dispatched, this method is likely to get called many times.
         // For the sake of performance, let's batch input state updates so that observers only have

@@ -32,6 +32,8 @@ import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialogPresenter
 import org.dolphinemu.dolphinemu.features.settings.model.*
 import org.dolphinemu.dolphinemu.features.settings.model.view.*
 import org.dolphinemu.dolphinemu.features.settings.model.AchievementModel.logout
+import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
+import org.dolphinemu.dolphinemu.features.settings.model.view.InputStringSetting
 import org.dolphinemu.dolphinemu.model.GpuDriverMetadata
 import org.dolphinemu.dolphinemu.utils.*
 import kotlin.collections.ArrayList
@@ -502,16 +504,16 @@ class SettingsFragmentPresenter(
 
             override val isOverridden: Boolean
                 get() = BooleanSetting.MAIN_DSP_HLE.isOverridden ||
-                        BooleanSetting.MAIN_DSP_JIT.isOverridden
+                    BooleanSetting.MAIN_DSP_JIT.isOverridden
 
             override val isRuntimeEditable: Boolean
                 get() = BooleanSetting.MAIN_DSP_HLE.isRuntimeEditable &&
-                        BooleanSetting.MAIN_DSP_JIT.isRuntimeEditable
+                    BooleanSetting.MAIN_DSP_JIT.isRuntimeEditable
 
             override fun delete(settings: Settings): Boolean {
                 // Not short circuiting
                 return BooleanSetting.MAIN_DSP_HLE.delete(settings) and
-                        BooleanSetting.MAIN_DSP_JIT.delete(settings)
+                    BooleanSetting.MAIN_DSP_JIT.delete(settings)
             }
         }
 
@@ -970,8 +972,8 @@ class SettingsFragmentPresenter(
                         0,
                         false
                     ) {
-                      fragmentView.showDialogFragment(LoginDialog(this))
-                      loadSettingsList()
+                        fragmentView.showDialogFragment(LoginDialog(this))
+                        loadSettingsList()
                     })
             } else {
                 sl.add(
@@ -983,8 +985,8 @@ class SettingsFragmentPresenter(
                         0,
                         false
                     ) {
-                      logout()
-                      loadSettingsList()
+                        logout()
+                        loadSettingsList()
                     })
             }
             sl.add(
@@ -1081,16 +1083,16 @@ class SettingsFragmentPresenter(
 
             override val isOverridden: Boolean
                 get() = BooleanSetting.MAIN_SYNC_ON_SKIP_IDLE.isOverridden ||
-                        BooleanSetting.MAIN_SYNC_GPU.isOverridden
+                    BooleanSetting.MAIN_SYNC_GPU.isOverridden
 
             override val isRuntimeEditable: Boolean
                 get() = BooleanSetting.MAIN_SYNC_ON_SKIP_IDLE.isRuntimeEditable &&
-                        BooleanSetting.MAIN_SYNC_GPU.isRuntimeEditable
+                    BooleanSetting.MAIN_SYNC_GPU.isRuntimeEditable
 
             override fun delete(settings: Settings): Boolean {
                 // Not short circuiting
                 return BooleanSetting.MAIN_SYNC_ON_SKIP_IDLE.delete(settings) and
-                        BooleanSetting.MAIN_SYNC_GPU.delete(settings)
+                    BooleanSetting.MAIN_SYNC_GPU.delete(settings)
             }
         }
 
@@ -2207,7 +2209,7 @@ class SettingsFragmentPresenter(
                 BooleanSetting.MAIN_DEBUG_JIT_ENABLE_PROFILING,
                 R.string.debug_jit_enable_block_profiling,
                 0
-           )
+            )
         )
         sl.add(
             RunRunnable(
@@ -2545,6 +2547,49 @@ class SettingsFragmentPresenter(
                 controller
             )
         )
+        sl.add(
+            InputStringSetting(
+                context,
+                object : AbstractStringSetting {
+                    override val isOverridden: Boolean = false
+                    override val isRuntimeEditable: Boolean = true
+
+                    override fun delete(settings: Settings): Boolean {
+                        val descriptor = ControllerInterface.getDescriptorForDevice(
+                            controller.getDefaultDevice()
+                        )
+                        val key = if (descriptor.isNotEmpty()) descriptor else controller.getDefaultDevice()
+                        NativeConfig.deleteKey(NativeConfig.LAYER_BASE, "Dolphin", "ControllerLabels", key)
+                        NativeConfig.save(NativeConfig.LAYER_BASE)
+                        return true
+                    }
+
+                    override val string: String
+                        get() {
+                            val descriptor = ControllerInterface.getDescriptorForDevice(
+                                controller.getDefaultDevice()
+                            )
+                            val key = if (descriptor.isNotEmpty()) descriptor else controller.getDefaultDevice()
+                            return NativeConfig.getString(NativeConfig.LAYER_BASE, "Dolphin", "ControllerLabels", key, "")
+                        }
+
+                    override fun setString(settings: Settings, newValue: String) {
+                        val descriptor = ControllerInterface.getDescriptorForDevice(
+                            controller.getDefaultDevice()
+                        )
+                        val key = if (descriptor.isNotEmpty()) descriptor else controller.getDefaultDevice()
+                        if (newValue.isEmpty()) {
+                            NativeConfig.deleteKey(NativeConfig.LAYER_BASE, "Dolphin", "ControllerLabels", key)
+                        } else {
+                            NativeConfig.setString(NativeConfig.LAYER_BASE, "Dolphin", "ControllerLabels", key, newValue)
+                        }
+                        NativeConfig.save(NativeConfig.LAYER_BASE)
+                    }
+                },
+                R.string.input_controller_label,
+                R.string.input_controller_label_description
+            )
+        )
 
         sl.add(SwitchSetting(context, object : AbstractBooleanSetting {
             override val isOverridden: Boolean = false
@@ -2603,11 +2648,11 @@ class SettingsFragmentPresenter(
      * @param groupTypeFilter If this is non-null, only groups whose types match this are considered.
      */
     private fun addControllerMappingSettings(
-      sl: ArrayList<SettingsItem>,
-      controller: EmulatedController,
-      groupTypeFilter: Set<Int>?
+        sl: ArrayList<SettingsItem>,
+        controller: EmulatedController,
+        groupTypeFilter: Set<Int>?
     ) {
-      addContainerMappingSettings(sl, controller, controller, groupTypeFilter)
+        addContainerMappingSettings(sl, controller, controller, groupTypeFilter)
     }
 
     /**
@@ -2702,7 +2747,7 @@ class SettingsFragmentPresenter(
         val defaultDevice = controller.getDefaultDevice()
 
         hasOldControllerSettings = defaultDevice.startsWith("Android/") &&
-                defaultDevice.endsWith("/Touchscreen")
+            defaultDevice.endsWith("/Touchscreen")
 
         fragmentView.setOldControllerSettingsWarningVisibility(hasOldControllerSettings)
     }
