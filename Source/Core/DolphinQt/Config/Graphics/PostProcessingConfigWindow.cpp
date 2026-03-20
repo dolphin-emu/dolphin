@@ -22,6 +22,7 @@
 
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/Present.h"
+#include "VideoCommon/VideoConfig.h"
 
 using ConfigurationOption = VideoCommon::PostProcessingConfiguration::ConfigurationOption;
 using OptionType = ConfigurationOption::OptionType;
@@ -43,6 +44,21 @@ PostProcessingConfigWindow::PostProcessingConfigWindow(EnhancementsWidget* paren
   setWindowTitle(tr("Post-Processing Shader Configuration"));
 
   PopulateGroups();
+
+  // If the display was queried since the shader was last loaded (e.g. window was resized or
+  // moved to another monitor), sync the slider to the latest queried peak luminance before
+  // building the widgets so the displayed value is always current.
+  if (g_backend_info.hdr_max_luminance_nits > 0.f)
+  {
+    const auto use_peak_it = m_config_map.find("USE_DISPLAY_PEAK_LUMINANCE");
+    const auto max_nits_it = m_config_map.find("HDR_DISPLAY_MAX_NITS");
+    if (use_peak_it != m_config_map.end() && max_nits_it != m_config_map.end() &&
+        use_peak_it->second->GetConfigurationOption()->m_bool_value)
+    {
+      m_post_processor->SetOptionf("HDR_DISPLAY_MAX_NITS", 0, g_backend_info.hdr_max_luminance_nits);
+    }
+  }
+
   Create();
   ConnectWidgets();
 

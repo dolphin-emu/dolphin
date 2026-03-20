@@ -4,7 +4,7 @@
 [configuration]
 
 [OptionBool]
-GUIName = Use Display Peak Luminance
+GUIName = Use Display Peak Luminance (DX11+)
 OptionName = USE_DISPLAY_PEAK_LUMINANCE
 DefaultValue = 0
 
