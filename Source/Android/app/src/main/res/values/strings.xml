@@ -32,8 +32,8 @@
     <string name="wiimote_extensions">Extension</string>
 
     <string name="input_device">Device</string>
-    <string name="input_controller_label">Controller Label</string>
-    <string name="input_controller_label_description">Give this controller a unique name</string>
+	<string name="input_controller_label">Controller Label</string>
+	<string name="input_controller_label_description">Give this controller a unique name</string>
     <string name="input_device_all_devices">Create Mappings for Other Devices</string>
     <string name="input_device_all_devices_description">Detects inputs from all devices, not just the selected device.</string>
     <string name="input_profile">Profile</string>
