@@ -135,6 +135,12 @@ void DeleteKey(LayerType layer, const Info<T>& info)
     OnConfigChanged();
 }
 
+template <typename T>
+bool IsDefaultValue(const Info<T>& info)
+{
+  return Get(info) == info.GetDefaultValue();
+}
+
 // Used to defer OnConfigChanged until after the completion of many config changes.
 class ConfigChangeCallbackGuard
 {

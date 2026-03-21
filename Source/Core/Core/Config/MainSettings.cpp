@@ -319,7 +319,7 @@ const Info<bool> MAIN_AUDIO_MUTED{{System::Main, "DSP", "Muted"}, false};
 const Info<bool> MAIN_AUDIO_MUTE_ON_DISABLED_SPEED_LIMIT{
     {System::Main, "DSP", "MuteOnDisabledSpeedLimit"}, false};
 #ifdef _WIN32
-const Info<std::string> MAIN_WASAPI_DEVICE{{System::Main, "DSP", "WASAPIDevice"}, "Default"};
+const Info<std::string> MAIN_WASAPI_DEVICE{{System::Main, "DSP", "WASAPIDevice"}, "default"};
 #endif
 
 bool ShouldUseDPL2Decoder()

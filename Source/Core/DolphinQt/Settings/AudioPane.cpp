@@ -123,8 +123,9 @@ void AudioPane::CreateWidgets()
 
 #ifdef _WIN32
   std::vector<std::pair<QString, QString>> wasapi_options;
-  wasapi_options.push_back(
-      std::pair<QString, QString>{tr("Default Device"), QStringLiteral("default")});
+  const auto default_device_config_value =
+      QString::fromStdString(Config::MAIN_WASAPI_DEVICE.GetDefaultValue());
+  wasapi_options.emplace_back(tr("Default Device"), default_device_config_value);
 
   for (auto string : WASAPIStream::GetAvailableDevices())
   {
