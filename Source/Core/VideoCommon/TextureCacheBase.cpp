@@ -1722,6 +1722,8 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
 
     for (const auto& mip_level : texture_info.GetMipMapLevels())
     {
+      if (no_mips)
+        break;
       if (!mip_level.IsDataValid())
       {
         ERROR_LOG_FMT(VIDEO, "Trying to use an invalid mipmap address {:#010x}",
