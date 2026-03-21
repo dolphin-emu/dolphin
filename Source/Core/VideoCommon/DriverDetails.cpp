@@ -7,6 +7,10 @@
 
 #include "Core/DolphinAnalytics.h"
 
+#ifdef __APPLE__
+#include "Common/CommonFuncs.h"
+#endif
+
 namespace DriverDetails
 {
 struct BugInfo
@@ -197,6 +201,16 @@ void Init(API api, Vendor vendor, Driver driver, const double version, const Fam
       break;
     }
   }
+
+#ifdef __APPLE__
+  // The Metal graphics drivers are part of macOS, so we use the current macOS version as the
+  // driver version for Metal and Vulkan on Metal.
+  if (api == API_METAL || (api == API_VULKAN && driver == DRIVER_PORTABILITY))
+  {
+    Common::MacOSVersion mac_version = Common::GetMacOSVersion();
+    m_version = mac_version.major * 100 + mac_version.minor;
+  }
+#endif
 
   // Clear bug list, as the API may have changed
   m_bugs.clear();
