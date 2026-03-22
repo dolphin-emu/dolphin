@@ -1203,15 +1203,15 @@ void MMU::GenerateDSIException(u32 effective_address, bool write)
     if (write)
     {
       PanicAlertFmtT(
-          "Invalid write to {0:#010x}, PC = {1:#010x}; the game probably would have crashed on "
-          "real hardware.\n\nFor accurate emulation, enable MMU in advanced settings.",
+          "Invalid write to {0:#010x}, PC = {1:#010x}.\n\nThe game probably would have crashed on "
+          "real hardware. Enable MMU in advanced settings to accurately emulate game crashes.",
           effective_address, m_ppc_state.pc);
     }
     else
     {
       PanicAlertFmtT(
-          "Invalid read from {0:#010x}, PC = {1:#010x}; the game probably would have crashed on "
-          "real hardware.\n\nFor accurate emulation, enable MMU in advanced settings.",
+          "Invalid read from {0:#010x}, PC = {1:#010x}.\n\nThe game probably would have crashed on "
+          "real hardware. Enable MMU in advanced settings to accurately emulate game crashes.",
           effective_address, m_ppc_state.pc);
     }
     if (m_system.IsPauseOnPanicMode())
