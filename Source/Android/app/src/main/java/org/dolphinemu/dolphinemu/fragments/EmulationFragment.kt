@@ -119,7 +119,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     override fun onDetach() {
-        NativeLibrary.clearEmulationActivity()
+        // Don't clear the reference if a newer EmulationActivity already took over
+        if (NativeLibrary.getEmulationActivity() === emulationActivity) {
+            NativeLibrary.clearEmulationActivity()
+        }
         super.onDetach()
     }
 
@@ -154,7 +157,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         Log.debug("[EmulationFragment] Surface destroyed.")
-        NativeLibrary.SurfaceDestroyed()
+        // Don't tear down the surface if a newer EmulationActivity already took over
+        if (NativeLibrary.getEmulationActivity() === emulationActivity) {
+            NativeLibrary.SurfaceDestroyed()
+        }
         runWhenSurfaceIsValid = true
     }
 

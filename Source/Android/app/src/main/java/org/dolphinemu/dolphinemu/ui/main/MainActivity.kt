@@ -2,6 +2,7 @@
 
 package org.dolphinemu.dolphinemu.ui.main
 
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.Menu
@@ -88,6 +89,12 @@ class MainActivity : AppCompatActivity(), MainView, OnRefreshListener, ThemeProv
             AfterDirectoryInitializationRunner()
                 .runWithLifecycle(this) { setPlatformTabsAndStartGameFileCacheService() }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        StartupHandler.HandleInit(this)
     }
 
     override fun onResume() {
