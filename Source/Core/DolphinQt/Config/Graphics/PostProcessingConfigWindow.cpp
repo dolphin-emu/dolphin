@@ -55,7 +55,8 @@ PostProcessingConfigWindow::PostProcessingConfigWindow(EnhancementsWidget* paren
     if (use_peak_it != m_config_map.end() && max_nits_it != m_config_map.end() &&
         use_peak_it->second->GetConfigurationOption()->m_bool_value)
     {
-      m_post_processor->SetOptionf("HDR_DISPLAY_MAX_NITS", 0, g_backend_info.hdr_max_luminance_nits);
+      m_post_processor->SetOptionf("HDR_DISPLAY_MAX_NITS", 0,
+                                   g_backend_info.hdr_max_luminance_nits);
     }
   }
 

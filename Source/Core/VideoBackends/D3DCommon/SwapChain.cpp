@@ -5,8 +5,8 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <winrt/Windows.Graphics.Display.h>
 #include <windows.graphics.display.interop.h>
+#include <winrt/Windows.Graphics.Display.h>
 
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
