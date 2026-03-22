@@ -45,6 +45,9 @@ protected:
   void WriteTxByte(u8 byte) { m_tx_buffer.emplace_back(byte); }
   void WriteTxBytes(std::span<const u8> bytes);
 
+  // Transfer the entirety of other's tx buffer to this tx buffer.
+  void PassThroughTxBytes(SerialDevice& other);
+
 private:
   // The stream of bytes from the baseboard to the device.
   // FYI: Current device implementations tend to empty the entire buffer in one go,

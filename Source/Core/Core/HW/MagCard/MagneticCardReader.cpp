@@ -676,18 +676,9 @@ bool MagneticCardReader::ReceivePacket(std::span<const u8> packet)
     return false;
   }
 
-  // Checksum is XOR of the previous bytes.
-  // This includes the count byte that we already chopped off.
-  const u8 read_checksum = packet.back();
-
-  // TODO C++23:
-  // std::ranges::fold_left(packet.first(packet.size() - 1), u8(packet.size()), std::bit_xor{});
-  const auto range_to_checksum = packet.first(packet.size() - 1);
-  const auto proper_checksum = std::accumulate(range_to_checksum.begin(), range_to_checksum.end(),
-                                               u8(packet.size()), std::bit_xor{});
-
-  // Verify checksum. Skip packet if invalid.
-  if (read_checksum != proper_checksum)
+  // The final byte is an XOR checksum of all previous bytes,
+  //  including the count byte that we already chopped off.
+  if (std::accumulate(packet.begin(), packet.end(), u8(packet.size()), std::bit_xor{}) != 0)
   {
     WARN_LOG_FMT(SERIALINTERFACE_CARD, "ReceivePacket: Bad checksum!");
     return false;
