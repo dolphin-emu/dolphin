@@ -8,10 +8,14 @@
 #include <span>
 #include <vector>
 
-#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
+
+namespace Core
+{
+class System;
+}
 
 namespace Triforce
 {
@@ -21,47 +25,61 @@ class IOAdapter;
 
 // Triforce GPIO peripherals connect to JVS-IO and eachother in game specific ways.
 // This class hopes to handle those customizable connections.
-// TODO: Use this for other JVS-IO (Analog Input, Coin, etc.).
 class IOPorts
 {
 public:
   void Update();
 
-  std::span<u8> GetSwitchInputs(u32 player_index)
-  {
-    ASSERT(player_index < PLAYER_COUNT);
+  std::span<u8> GetStatusSwitches() { return m_status_switches; }
+  std::span<const u8> GetStatusSwitches() const { return m_status_switches; }
 
-    return std::span{m_switch_input_data}.subspan(SWITCH_INPUT_BYTES_PER_PLAYER * player_index,
-                                                  SWITCH_INPUT_BYTES_PER_PLAYER);
-  }
-  std::span<const u8> GetSwitchInputs(u32 player_index) const
-  {
-    ASSERT(player_index < PLAYER_COUNT);
+  u8* GetSystemInputs() { return &m_system_inputs; }
+  const u8* GetSystemInputs() const { return &m_system_inputs; }
 
-    return std::span{m_switch_input_data}.subspan(SWITCH_INPUT_BYTES_PER_PLAYER * player_index,
-                                                  SWITCH_INPUT_BYTES_PER_PLAYER);
-  }
+  std::span<u8> GetSwitchInputs(u32 player_index);
+  std::span<const u8> GetSwitchInputs(u32 player_index) const;
 
-  std::span<u8> GetGenericOutputs() { return m_generic_output_data; }
-  std::span<const u8> GetGenericOutputs() const { return m_generic_output_data; }
+  std::span<u16> GetAnalogInputs() { return m_analog_inputs; }
+  std::span<const u16> GetAnalogInputs() const { return m_analog_inputs; }
+
+  std::span<const u8> GetGenericOutputs() const { return m_generic_outputs; }
 
   void SetGenericOutputs(std::span<const u8> bytes);
+  void ResetGenericOutputs();
+
+  static constexpr std::size_t PLAYER_COUNT = 2;
+  static constexpr std::size_t COIN_SLOT_COUNT = 2;
+
+  std::span<bool, COIN_SLOT_COUNT> GetCoinInputs() { return m_coin_inputs; }
+  std::span<const bool, COIN_SLOT_COUNT> GetCoinInputs() const { return m_coin_inputs; }
 
   void AddIOAdapter(std::unique_ptr<IOAdapter> adapter);
 
   void DoState(PointerWrap& p);
 
+  static constexpr u16 NEUTRAL_ANALOG_VALUE = 0x8000;
+
 private:
   std::vector<std::unique_ptr<IOAdapter>> m_io_adapters;
 
-  static constexpr std::size_t PLAYER_COUNT = 2;
+  std::array<u8, 2> m_status_switches{0xff, 0xff};
+
+  // The first byte in JVSIO switch input data.
+  u8 m_system_inputs = 0x00;
+
   static constexpr std::size_t SWITCH_INPUT_BYTES_PER_PLAYER = 2;
 
-  std::array<u8, PLAYER_COUNT * SWITCH_INPUT_BYTES_PER_PLAYER> m_switch_input_data{};
+  std::array<u8, PLAYER_COUNT * SWITCH_INPUT_BYTES_PER_PLAYER> m_switch_inputs{};
+
+  static constexpr std::size_t ANALOG_INPUT_COUNT = 8;
+
+  std::array<u16, ANALOG_INPUT_COUNT> m_analog_inputs{};
 
   static constexpr std::size_t GENERIC_OUTPUT_BYTE_COUNT = 4;
 
-  std::array<u8, GENERIC_OUTPUT_BYTE_COUNT> m_generic_output_data{};
+  std::array<u8, GENERIC_OUTPUT_BYTE_COUNT> m_generic_outputs{};
+
+  std::array<bool, COIN_SLOT_COUNT> m_coin_inputs{};
 };
 
 class IOAdapter
@@ -79,6 +97,8 @@ public:
 
   virtual void Update();
 
+  virtual void DoState(PointerWrap& p);
+
 protected:
   IOPorts* GetIOPorts() { return m_io_ports; }
 
@@ -92,16 +112,21 @@ private:
   IOPorts* m_io_ports{};
 };
 
-// Used for both MarioKartGP and MarioKartGP2.
-class MarioKartGPCommon_IOAdapter final : public IOAdapter
+class Common_IOAdapter final : public IOAdapter
 {
-protected:
-  void HandleGenericOutputsChanged(std::span<const u8> bits_set,
-                                   std::span<const u8> bits_cleared) override;
+public:
+  explicit Common_IOAdapter(Core::System& system) : m_system{system} {}
+
+  void Update() override;
 
 private:
-  static constexpr u8 ITEM_LIGHT_BIT = 0x04;
-  static constexpr u8 CANCEL_LIGHT_BIT = 0x08;
+  Core::System& m_system;
+};
+
+class VirtuaStriker3_IOAdapter final : public IOAdapter
+{
+public:
+  void Update() override;
 };
 
 // Common functionality for both VirtuaStriker4 and VirtuaStriker4_2006.
@@ -109,7 +134,7 @@ class VirtuaStriker4Common_IOAdapter final : public IOAdapter
 {
 public:
   VirtuaStriker4Common_IOAdapter(ICCardReader* card_reader_a, ICCardReader* card_reader_b)
-      : m_card_reader_a{card_reader_a}, m_card_reader_b{card_reader_b}
+      : m_card_readers{card_reader_a, card_reader_b}
   {
   }
 
@@ -123,15 +148,14 @@ protected:
                                    std::span<const u8> bits_cleared) override;
 
 private:
-  ICCardReader* const m_card_reader_a;
-  ICCardReader* const m_card_reader_b;
+  std::array<ICCardReader*, IOPorts::PLAYER_COUNT> const m_card_readers;
 };
 
 class VirtuaStriker4_2006_IOAdapter final : public IOAdapter
 {
 public:
   VirtuaStriker4_2006_IOAdapter(ICCardReader* card_reader_a, ICCardReader* card_reader_b)
-      : m_card_reader_a{card_reader_a}, m_card_reader_b{card_reader_b}
+      : m_card_readers{card_reader_a, card_reader_b}
   {
   }
 
@@ -143,15 +167,14 @@ private:
   static constexpr u8 SLOT_A_EJECT_BIT = 0x80;
   static constexpr u8 SLOT_B_EJECT_BIT = 0x20;
 
-  ICCardReader* const m_card_reader_a;
-  ICCardReader* const m_card_reader_b;
+  std::array<ICCardReader*, IOPorts::PLAYER_COUNT> const m_card_readers;
 };
 
 class GekitouProYakyuu_IOAdapter final : public IOAdapter
 {
 public:
   GekitouProYakyuu_IOAdapter(ICCardReader* card_reader_a, ICCardReader* card_reader_b)
-      : m_card_reader_a{card_reader_a}, m_card_reader_b{card_reader_b}
+      : m_card_readers{card_reader_a, card_reader_b}
   {
   }
 
@@ -165,8 +188,7 @@ private:
   static constexpr u8 SLOT_A_LOCK_BIT = 0x40;
   static constexpr u8 SLOT_B_LOCK_BIT = 0x10;
 
-  ICCardReader* const m_card_reader_a;
-  ICCardReader* const m_card_reader_b;
+  std::array<ICCardReader*, IOPorts::PLAYER_COUNT> const m_card_readers;
 };
 
 class KeyOfAvalon_IOAdapter final : public IOAdapter
