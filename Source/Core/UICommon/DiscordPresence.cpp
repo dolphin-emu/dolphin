@@ -55,7 +55,7 @@ void HandleDiscordJoin(const char* join_secret)
   if (event_handler == nullptr)
     return;
 
-  if (Config::Get(Config::NETPLAY_NICKNAME) == Config::NETPLAY_NICKNAME.GetDefaultValue())
+  if (Config::IsDefaultValue(Config::NETPLAY_NICKNAME))
     Config::SetCurrent(Config::NETPLAY_NICKNAME, username);
 
   std::string secret(join_secret);

@@ -176,7 +176,7 @@ bool WASAPIStream::SetRunning(bool running)
 
     HRESULT result;
 
-    if (Config::Get(Config::MAIN_WASAPI_DEVICE) == "default")
+    if (Config::IsDefaultValue(Config::MAIN_WASAPI_DEVICE))
     {
       result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
     }
