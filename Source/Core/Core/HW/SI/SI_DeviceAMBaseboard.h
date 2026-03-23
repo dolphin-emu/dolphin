@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <deque>
+
 #include "Core/HW/MagCard/MagneticCardReader.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
@@ -35,9 +37,13 @@ public:
 private:
   static constexpr u32 RESPONSE_SIZE = SerialInterfaceManager::BUFFER_SIZE;
 
-  // Reply has to be delayed due a bug in the parser
-  std::array<std::array<u8, RESPONSE_SIZE>, 2> m_response_buffers{};
-  u8 m_current_response_buffer_index = 0;
+  void RunCommandBuffer(std::span<const u8> input, std::span<u8, RESPONSE_SIZE> output);
+
+  // We must delay JVSIO replies by one "frame".
+  // Games seem to not immediately install response handlers.
+  // Note: The first byte of each request here is the GCAMCommand ID.
+  // It needs to be saved for the response.
+  std::deque<std::vector<u8>> m_pending_requests{};
 
   Triforce::IOPorts m_io_ports;
 

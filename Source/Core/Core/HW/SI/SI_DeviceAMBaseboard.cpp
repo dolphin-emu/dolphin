@@ -8,11 +8,11 @@
 #include <string>
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -54,27 +54,31 @@ enum class GCAMCommand : u8
   SerialA = 0x31,
   SerialB = 0x32,
 
-  JVSIOA = 0x40,
-  JVSIOB = 0x41,
+  // Note: [0x40, 0x5f] are JVSIO requests.
 
   Unknown_60 = 0x60,
 };
 
+// Multiple JVSIO command IDs presumably to correlate responses with multiple concurrent requests.
+constexpr u8 GCAM_CMD_JVSIO = 0x40;
+constexpr u8 GCAM_CMD_JVSIO_MASK = 0xe0;
+
 // This value prevents F-Zero AX mag card breakage.
 // It's now used for serial port reads in general.
 // TODO: Verify how the hardware actually works.
-constexpr u32 SERIAL_PORT_MAX_READ_SIZE = 0x1f;
+constexpr std::size_t SERIAL_PORT_MAX_READ_SIZE = 0x1f;
+
+constexpr std::string_view REGION_FLAGS = "\x00\x00\x30\x00"
+                                          // "\x01\xfe\x00\x00"  // JAPAN
+                                          "\x02\xfd\x00\x00"  // USA
+                                          // "\x03\xfc\x00\x00"  // Export
+                                          "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff";
 
 }  // namespace
 
 namespace SerialInterface
 {
 
-const constexpr u8 s_region_flags[] = "\x00\x00\x30\x00"
-                                      //   "\x01\xfe\x00\x00"  // JAPAN
-                                      "\x02\xfd\x00\x00"  // USA
-                                      //"\x03\xfc\x00\x00"  // export
-                                      "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff";
 // AM-Baseboard device on SI
 CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(Core::System& system, SIDevices device,
                                              int device_number)
@@ -182,9 +186,6 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
   // Debug logging
   ISIDevice::RunBuffer(buffer, request_length);
 
-  // Update user input.
-  m_io_ports.Update();
-
   const auto bb_command = EBufferCommands(buffer[0]);
   switch (bb_command)
   {
@@ -192,380 +193,307 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
   {
     return CreateStatusResponse(SI_AM_BASEBOARD | 0x100, buffer);
   }
-  break;
   case EBufferCommands::CMD_AM_BASEBOARD:
   {
     // FYI: Supplied `buffer` always points to 128 bytes.
     // TODO: Change the `RunBuffer` interface to make that more obvious.
     const int command_length = buffer[1];
 
-    constexpr int command_header_size = 2;
-    if (command_header_size + command_length > request_length)
+    constexpr int header_size = 2;
+    if (header_size + command_length > request_length)
     {
       ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "Bad command_length: {} for request_length: {}",
                     command_length, request_length);
-      return -1;
+      break;
     }
 
-    auto& data_out = m_response_buffers[m_current_response_buffer_index];
+    std::array<u8, RESPONSE_SIZE> response_buffer;
 
-    // Need room for the checksum.
-    const auto usable_out_size = data_out.size() - 1;
-
-    constexpr int response_header_size = 2;
-    u32 data_offset = response_header_size;
-
-    u8* data_in = buffer + command_header_size;
-    u8* const data_in_end = data_in + command_length;
-
-    // Helper to check that iterating over data n times is safe,
-    // i.e. *data++ at most lead to data.end()
-    auto validate_data_in_out = [&](u32 n_in, u32 n_out, std::string_view command) -> bool {
-      if (data_in + n_in > data_in_end)
-        ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: data_in overflow in {}", command);
-      else if (u64{data_offset} + n_out > usable_out_size)
-        ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: data_out overflow in {}", command);
-      else
-        return true;
-      ERROR_LOG_FMT(SERIALINTERFACE_AMBB,
-                    "Overflow details:\n"
-                    " - data_in(begin={}, current={}, end={}, n_in={})\n"
-                    " - data_out(offset={}, size={}, n_out={})",
-                    fmt::ptr(buffer + 2), fmt::ptr(data_in), fmt::ptr(data_in_end), n_in,
-                    data_offset, data_out.size(), n_out);
-      data_in = data_in_end;
-      return false;
-    };
-
-    while (data_in < data_in_end)
-    {
-      const u32 gcam_command = *data_in++;
-      switch (GCAMCommand(gcam_command))
-      {
-      case GCAMCommand::StatusSwitches:
-      {
-        const auto status_switches = m_io_ports.GetStatusSwitches();
-        const auto out_length = u8(status_switches.size());
-
-        if (!validate_data_in_out(1, 2 + out_length, "StatusSwitches"))
-          break;
-
-        const u8 status = *data_in++;
-        DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x10, {:02x} (READ STATUS&SWITCHES)",
-                      status);
-
-        data_out[data_offset++] = gcam_command;
-        data_out[data_offset++] = out_length;
-
-        std::ranges::copy(status_switches, data_out.data() + data_offset);
-
-        data_offset += out_length;
-        break;
-      }
-      case GCAMCommand::SerialNumber:
-      {
-        if (!validate_data_in_out(1, 18, "SerialNumber"))
-          break;
-
-        NOTICE_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x11, {:02x} (READ SERIAL NR)",
-                       *data_in);
-        data_in++;
-
-        data_out[data_offset++] = gcam_command;
-        data_out[data_offset++] = 16;
-        memcpy(data_out.data() + data_offset, "AADE-01B98394904", 16);
-
-        data_offset += 16;
-        break;
-      }
-      case GCAMCommand::Unknown_12:
-        if (!validate_data_in_out(2, 2, "Unknown_12"))
-          break;
-
-        NOTICE_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x12, {:02x} {:02x}", data_in[0],
-                       data_in[1]);
-
-        data_out[data_offset++] = gcam_command;
-        data_out[data_offset++] = 0x00;
-
-        data_in += 2;
-        break;
-      case GCAMCommand::Unknown_14:
-        if (!validate_data_in_out(2, 2, "Unknown_14"))
-          break;
-
-        NOTICE_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x14, {:02x} {:02x}", data_in[0],
-                       data_in[1]);
-
-        data_out[data_offset++] = gcam_command;
-        data_out[data_offset++] = 0x00;
-
-        data_in += 2;
-        break;
-      case GCAMCommand::FirmVersion:
-        if (!validate_data_in_out(1, 4, "FirmVersion"))
-          break;
-
-        NOTICE_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x15, {:02x} (READ FIRM VERSION)",
-                       *data_in);
-        data_in++;
-
-        data_out[data_offset++] = gcam_command;
-        data_out[data_offset++] = 0x02;
-        // 00.26
-        data_out[data_offset++] = 0x00;
-        data_out[data_offset++] = 0x26;
-        break;
-      case GCAMCommand::FPGAVersion:
-        if (!validate_data_in_out(1, 4, "FPGAVersion"))
-          break;
-
-        NOTICE_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x16, {:02x} (READ FPGA VERSION)",
-                       *data_in);
-        data_in++;
-
-        data_out[data_offset++] = gcam_command;
-        data_out[data_offset++] = 0x02;
-        // 07.06
-        data_out[data_offset++] = 0x07;
-        data_out[data_offset++] = 0x06;
-        break;
-      case GCAMCommand::RegionSettings:
-      {
-        if (!validate_data_in_out(5, 0x16, "RegionSettings"))
-          break;
-
-        // Used by SegaBoot for region checks (dev mode skips this check)
-        // In some games this also controls the displayed language
-        NOTICE_LOG_FMT(SERIALINTERFACE_AMBB,
-                       "GC-AM: Command 0x1F, {:02x} {:02x} {:02x} {:02x} {:02x} (REGION)",
-                       data_in[0], data_in[1], data_in[2], data_in[3], data_in[4]);
-
-        data_out[data_offset++] = gcam_command;
-        data_out[data_offset++] = 0x14;
-
-        for (int i = 0; i < 0x14; ++i)
-          data_out[data_offset++] = s_region_flags[i];
-
-        data_in += 5;
-      }
-      break;
-      // No reply
-      // Note: Always sends three bytes even though size is set to two
-      case GCAMCommand::Unknown_21:
-      {
-        if (!validate_data_in_out(4, 0, "Unknown_21"))
-          break;
-
-        DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x21, {:02x}, {:02x}, {:02x}, {:02x}",
-                      data_in[0], data_in[1], data_in[2], data_in[3]);
-        data_in += 4;
-      }
-      break;
-      // No reply
-      // Note: Always sends six bytes
-      case GCAMCommand::Unknown_22:
-      {
-        if (!validate_data_in_out(7, 0, "Unknown_22"))
-          break;
-
-        DEBUG_LOG_FMT(SERIALINTERFACE_AMBB,
-                      "GC-AM: Command 0x22, {:02x}, {:02x}, {:02x}, {:02x}, {:02x}, {:02x}, {:02x}",
-                      data_in[0], data_in[1], data_in[2], data_in[3], data_in[4], data_in[5],
-                      data_in[6]);
-
-        const u32 in_size = data_in[0] + 1;
-        if (!validate_data_in_out(in_size, 0, "Unknown_22"))
-          break;
-        data_in += in_size;
-      }
-      break;
-      case GCAMCommand::Unknown_23:
-        if (!validate_data_in_out(2, 2, "Unknown_23"))
-          break;
-
-        DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x23, {:02x} {:02x}", data_in[0],
-                      data_in[1]);
-
-        data_out[data_offset++] = gcam_command;
-        data_out[data_offset++] = 0x00;
-
-        data_in += 2;
-        break;
-      case GCAMCommand::Unknown_24:
-        if (!validate_data_in_out(2, 2, "Unknown_24"))
-          break;
-
-        DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x24, {:02x} {:02x}", data_in[0],
-                      data_in[1]);
-
-        data_out[data_offset++] = gcam_command;
-        data_out[data_offset++] = 0x00;
-
-        data_in += 2;
-        break;
-      case GCAMCommand::SerialA:
-      {
-        if (!validate_data_in_out(1, 0, "SerialA"))
-          break;
-        const u32 in_length = *data_in++;
-
-        if (!validate_data_in_out(in_length, 0, "SerialA"))
-          break;
-
-        if (m_serial_device_a != nullptr)
-        {
-          m_serial_device_a->WriteRxBytes({data_in, in_length});
-        }
-
-        data_in += in_length;
-        break;
-      }
-      case GCAMCommand::SerialB:
-      {
-        if (!validate_data_in_out(1, 0, "SerialB"))
-          break;
-        const u32 in_length = *data_in++;
-
-        if (!validate_data_in_out(in_length, 0, "SerialB"))
-          break;
-
-        if (m_serial_device_b != nullptr)
-        {
-          m_serial_device_b->WriteRxBytes({data_in, in_length});
-        }
-
-        data_in += in_length;
-        break;
-      }
-      case GCAMCommand::JVSIOA:
-      case GCAMCommand::JVSIOB:
-      {
-        if (!validate_data_in_out(1, 0, "JVSIO"))
-          break;
-        const u32 in_length = *data_in++;
-
-        if (!validate_data_in_out(in_length, 0, "JVSIO"))
-          break;
-
-        m_jvs_io_board->WriteRxBytes({data_in, in_length});
-        data_in += in_length;
-
-        m_jvs_io_board->Update();
-
-        const auto out_length = u32(m_jvs_io_board->GetTxByteCount());
-
-        if (out_length == 0)
-          break;
-
-        // Also accounting for the 2-byte header.
-        if (!validate_data_in_out(0, out_length + 2, "SerialDevice"))
-          break;
-
-        // Write the 2-byte header.
-        data_out[data_offset++] = gcam_command;
-        data_out[data_offset++] = u8(out_length);
-
-        const auto out_span = std::span{data_out}.subspan(data_offset, out_length);
-
-        m_jvs_io_board->TakeTxBytes(out_span);
-
-        data_offset += out_length;
-        break;
-      }
-      case GCAMCommand::Unknown_60:
-      {
-        if (!validate_data_in_out(3, 0, "Unknown_60"))
-          break;
-
-        NOTICE_LOG_FMT(SERIALINTERFACE_AMBB, "GC-AM: Command 0x60, {:02x} {:02x} {:02x}",
-                       data_in[0], data_in[1], data_in[2]);
-
-        const u32 in_size = data_in[0] + 1;
-        if (!validate_data_in_out(in_size, 0, "Unknown_60"))
-          break;
-        data_in += in_size;
-      }
-      break;
-      default:
-        if (!validate_data_in_out(5, 0, fmt::format("Unknown_{}", gcam_command)))
-          break;
-        ERROR_LOG_FMT(SERIALINTERFACE_AMBB,
-                      "GC-AM: Command {:02x} (unknown) {:02x} {:02x} {:02x} {:02x} {:02x}",
-                      gcam_command, data_in[0], data_in[1], data_in[2], data_in[3], data_in[4]);
-        break;
-      }
-    }
-
-    // Update attached serial devices and read data into our response buffer.
-    // This is done regardless of the game having just sent a SerialA/B write.
-
-    const auto process_serial_device = [&](Triforce::SerialDevice* serial_device, GCAMCommand cmd) {
-      if (serial_device == nullptr)
-        return;
-
-      serial_device->Update();
-
-      const auto out_length =
-          std::min(u32(serial_device->GetTxByteCount()), SERIAL_PORT_MAX_READ_SIZE);
-
-      if (out_length == 0)
-        return;
-
-      // Also accounting for the 2-byte header.
-      if (!validate_data_in_out(0, out_length + 2, "SerialDevice"))
-        return;
-
-      // Write the 2-byte header.
-      data_out[data_offset++] = u8(cmd);
-      data_out[data_offset++] = u8(out_length);
-
-      const auto out_span = std::span{data_out}.subspan(data_offset, out_length);
-
-      serial_device->TakeTxBytes(out_span);
-
-      data_offset += out_length;
-    };
-
-    process_serial_device(m_serial_device_a.get(), GCAMCommand::SerialA);
-    process_serial_device(m_serial_device_b.get(), GCAMCommand::SerialB);
-
-    data_out[0] = 0x01;                                // Status code ?
-    data_out[1] = data_offset - response_header_size;  // Length
-
-    // Zero-fill the rest of the buffer.
-    std::fill(data_out.data() + data_offset, data_out.data() + usable_out_size, 0x00);
-
-    // Compute the checksum (bitwise-xor of additive sum).
-    const u8 checksum = ~std::accumulate(data_out.data(), data_out.data() + data_offset, u8{});
-    data_out.back() = checksum;
-
-    DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "Command response: {}",
-                  HexDump(data_out.data(), data_out.size()));
-
-    // Switch to next buffer and return it.
-    if (++m_current_response_buffer_index == m_response_buffers.size())
-      m_current_response_buffer_index = 0;
-
-    auto& response_buffer = m_response_buffers[m_current_response_buffer_index];
-
-    const bool buffer_has_data = response_buffer.front() != 0x00;
-    if (!buffer_has_data)
-      return 0;
+    RunCommandBuffer(std::span(buffer + header_size, command_length), response_buffer);
 
     std::ranges::copy(response_buffer, buffer);
-    return int(response_buffer.size());
+    return RESPONSE_SIZE;
   }
   default:
-  {
-    ERROR_LOG_FMT(SERIALINTERFACE, "Unknown SI command (0x{:08x})", (u32)bb_command);
-    PanicAlertFmt("SI: Unknown command");
+    ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "Unknown command: 0x{:08x}", u8(bb_command));
     break;
-  }
   }
 
   // No response.
   return -1;
+}
+
+void CSIDevice_AMBaseboard::RunCommandBuffer(std::span<const u8> input,
+                                             std::span<u8, RESPONSE_SIZE> output)
+{
+  // Throttle just before user input to lower input latency.
+  auto& core_timing = m_system.GetCoreTiming();
+  core_timing.Throttle(core_timing.GetTicks());
+
+  // Update user input.
+  m_io_ports.Update();
+
+  // Need room for the checksum.
+  constexpr auto usable_out_size = output.size() - 1;
+
+  constexpr u32 header_size = 2;
+  std::size_t out_pos = header_size;
+
+  std::size_t in_pos = 0;
+  u8 gcam_command{};
+
+  const auto validate_input = [&](std::size_t byte_count) {
+    if (byte_count + in_pos > input.size())
+    {
+      ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "Buffer underrun (Command: {:02x})", gcam_command);
+      in_pos = input.size();
+      return false;
+    }
+
+    return true;
+  };
+
+  const auto get_fixed_input = [&](std::size_t byte_count) -> std::optional<std::span<const u8>> {
+    if (!validate_input(byte_count))
+      return std::nullopt;
+
+    return input.subspan(std::exchange(in_pos, in_pos + byte_count), byte_count);
+  };
+
+  // Reads first byte for the payload length.
+  const auto get_variable_input = [&] -> std::optional<std::span<const u8>> {
+    if (!validate_input(1))
+      return std::nullopt;
+
+    const u8 in_length = input[in_pos++];
+    return get_fixed_input(in_length);
+  };
+
+  // Also writes a header for the current `gcam_command`.
+  const auto prepare_response = [&](std::size_t byte_count) -> std::optional<std::span<u8>> {
+    if (out_pos + 2 + byte_count > usable_out_size)
+    {
+      ERROR_LOG_FMT(SERIALINTERFACE_AMBB, "Buffer overrun (Command: {:02x})", gcam_command);
+      in_pos = input.size();
+      return std::nullopt;
+    }
+
+    // 2-byte response header.
+    output[out_pos++] = gcam_command;
+    output[out_pos++] = u8(byte_count);
+
+    return output.subspan(std::exchange(out_pos, out_pos + byte_count), byte_count);
+  };
+
+  // Process a JVSIO request from the previous frame.
+  if (!m_pending_requests.empty())
+  {
+    const auto& request = m_pending_requests.front();
+    m_jvs_io_board->WriteRxBytes(std::span(request).subspan(1));
+
+    m_jvs_io_board->Update();
+
+    const auto out_length = m_jvs_io_board->GetTxByteCount();
+
+    gcam_command = u8(request[0]);
+    const auto out_span = prepare_response(out_length);
+    if (out_span)
+      m_jvs_io_board->TakeTxBytes(*out_span);
+
+    m_pending_requests.pop_front();
+  }
+
+  while (in_pos != input.size())
+  {
+    gcam_command = input[in_pos++];
+    DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "Command {:02x}", gcam_command);
+    switch (GCAMCommand(gcam_command))
+    {
+    case GCAMCommand::StatusSwitches:
+    {
+      const auto payload = get_variable_input();
+      if (!payload)
+        break;
+
+      DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "StatusSwitches: {:02x}", fmt::join(*payload, " "));
+
+      const auto status_switches = m_io_ports.GetStatusSwitches();
+
+      const auto out_span = prepare_response(status_switches.size());
+      if (!out_span)
+        break;
+
+      std::ranges::copy(status_switches, out_span->data());
+      break;
+    }
+    case GCAMCommand::SerialNumber:
+    {
+      const auto payload = get_variable_input();
+      if (!payload)
+        break;
+
+      INFO_LOG_FMT(SERIALINTERFACE_AMBB, "SerialNumber: {:02x}", fmt::join(*payload, " "));
+
+      constexpr std::string_view serial_number = "AADE-01B98394904";
+
+      const auto out_span = prepare_response(serial_number.size());
+      if (!out_span)
+        break;
+
+      std::ranges::copy(serial_number, out_span->data());
+      break;
+    }
+    case GCAMCommand::FirmVersion:
+    {
+      const auto payload = get_variable_input();
+      if (!payload)
+        break;
+
+      INFO_LOG_FMT(SERIALINTERFACE_AMBB, "FirmVersion: {:02x}", fmt::join(*payload, " "));
+
+      const auto out_span = prepare_response(2);
+      if (!out_span)
+        break;
+
+      // 00.26
+      (*out_span)[0] = 0x00;
+      (*out_span)[1] = 0x26;
+      break;
+    }
+    case GCAMCommand::FPGAVersion:
+    {
+      const auto payload = get_variable_input();
+      if (!payload)
+        break;
+
+      INFO_LOG_FMT(SERIALINTERFACE_AMBB, "FPGAVersion: {:02x}", fmt::join(*payload, " "));
+
+      const auto out_span = prepare_response(2);
+      if (!out_span)
+        break;
+
+      // 07.06
+      (*out_span)[0] = 0x07;
+      (*out_span)[1] = 0x06;
+      break;
+    }
+    case GCAMCommand::RegionSettings:
+    {
+      // Note: Always 5 bytes.
+      const auto payload = get_fixed_input(5);
+      if (!payload)
+        break;
+
+      // Used by SegaBoot for region checks (dev mode skips this check)
+      // In some games this also controls the displayed language
+      INFO_LOG_FMT(SERIALINTERFACE_AMBB, "RegionSettings: {:02x}", fmt::join(*payload, " "));
+
+      const auto out_span = prepare_response(REGION_FLAGS.size());
+      if (!out_span)
+        break;
+
+      std::ranges::copy(REGION_FLAGS, out_span->data());
+      break;
+    }
+    case GCAMCommand::Unknown_21:
+    {
+      // Note: Always 4 bytes.
+      const auto payload = get_fixed_input(4);
+      if (!payload)
+        break;
+
+      WARN_LOG_FMT(SERIALINTERFACE_AMBB, "Unknown_21: {:02x}", fmt::join(*payload, " "));
+
+      // Note: No reply.
+      break;
+    }
+    case GCAMCommand::SerialA:
+    {
+      const auto payload = get_variable_input();
+      if (!payload)
+        break;
+
+      if (m_serial_device_a != nullptr)
+      {
+        m_serial_device_a->WriteRxBytes(*payload);
+      }
+
+      // Note: Reply handled later.
+      break;
+    }
+    case GCAMCommand::SerialB:
+    {
+      const auto payload = get_variable_input();
+      if (!payload)
+        break;
+
+      if (m_serial_device_b != nullptr)
+      {
+        m_serial_device_b->WriteRxBytes(*payload);
+      }
+
+      // Note: Reply handled later.
+      break;
+    }
+    default:
+    {
+      const auto payload = get_variable_input();
+      if (!payload)
+        break;
+
+      if ((gcam_command & GCAM_CMD_JVSIO_MASK) == GCAM_CMD_JVSIO)
+      {
+        // We save JVSIO requests for processing next frame.
+        // Processing now (and saving the response for later) would induce an input delay.
+        auto& request = m_pending_requests.emplace_back(payload->size() + 1);
+        request[0] = gcam_command;
+        std::ranges::copy(*payload, request.data() + 1);
+        break;
+      }
+
+      WARN_LOG_FMT(SERIALINTERFACE_AMBB, "Unknown_{:02x}: {:02x}", gcam_command,
+                   fmt::join(*payload, " "));
+      // Note: No reply.
+      break;
+    }
+    }
+  }
+
+  // Update attached serial devices and read data into our response buffer.
+  // This is done regardless of the game having just sent a SerialA/B write.
+
+  const auto process_serial_device = [&](Triforce::SerialDevice* serial_device, GCAMCommand cmd) {
+    if (serial_device == nullptr)
+      return;
+
+    serial_device->Update();
+
+    const auto out_length = std::min(serial_device->GetTxByteCount(), SERIAL_PORT_MAX_READ_SIZE);
+    if (out_length == 0)
+      return;
+
+    gcam_command = u8(cmd);
+    const auto out_span = prepare_response(out_length);
+    if (!out_span)
+      return;
+
+    serial_device->TakeTxBytes(*out_span);
+  };
+
+  process_serial_device(m_serial_device_a.get(), GCAMCommand::SerialA);
+  process_serial_device(m_serial_device_b.get(), GCAMCommand::SerialB);
+
+  output[0] = 0x01;
+  output[1] = u8(out_pos - header_size);  // Length
+
+  // Zero-fill the rest of the buffer.
+  std::fill(output.data() + out_pos, output.data() + usable_out_size, 0x00);
+
+  // Compute the checksum (bitwise-xor of additive sum).
+  const u8 checksum = ~std::accumulate(output.data(), output.data() + out_pos, u8{});
+  output.back() = checksum;
+
+  DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "RunCommandBuffer response:\n{}", HexDump(output));
 }
 
 DataResponse CSIDevice_AMBaseboard::GetData(u32&, u32&)
@@ -580,8 +508,7 @@ void CSIDevice_AMBaseboard::SendCommand(u32 command, u8 poll)
 
 void CSIDevice_AMBaseboard::DoState(PointerWrap& p)
 {
-  p.Do(m_response_buffers);
-  p.Do(m_current_response_buffer_index);
+  p.Do(m_pending_requests);
 
   m_io_ports.DoState(p);
 
