@@ -184,7 +184,7 @@ std::size_t Mixer::MixSurround(float* samples, std::size_t num_samples)
 
   memset(samples, 0, num_samples * SURROUND_CHANNELS * sizeof(float));
 
-  std::size_t const needed_frames =
+  const std::size_t needed_frames =
       m_surround_decoder.QueryFramesNeededForSurroundOutput(num_samples);
 
   constexpr std::size_t max_samples = 0x8000;
@@ -193,7 +193,7 @@ std::size_t Mixer::MixSurround(float* samples, std::size_t num_samples)
              needed_frames, max_samples);
 
   std::array<s16, max_samples> buffer;
-  std::size_t const available_frames = Mix(buffer.data(), static_cast<std::size_t>(needed_frames));
+  const std::size_t available_frames = Mix(buffer.data(), static_cast<std::size_t>(needed_frames));
   if (available_frames != needed_frames)
   {
     ERROR_LOG_FMT(AUDIO,
@@ -252,7 +252,7 @@ void Mixer::PushStreamingSamples(const s16* samples, std::size_t num_samples)
   if (m_log_dtk_audio)
   {
     const s32 sample_rate_divisor = m_streaming_mixer.GetInputSampleRateDivisor();
-    auto const volume = m_streaming_mixer.GetVolume();
+    const auto volume = m_streaming_mixer.GetVolume();
     m_wave_writer_dtk.AddStereoSamplesBE(samples, static_cast<u32>(num_samples),
                                          sample_rate_divisor, volume.first, volume.second);
   }
@@ -303,7 +303,7 @@ void Mixer::PushSkylanderPortalSamples(const u8* samples, std::size_t num_sample
   {
     for (std::size_t i = 0; i < num_samples; ++i)
     {
-      s16 const sample =
+      const s16 sample =
           static_cast<u16>(samples[i * 2 + 1]) << 8 | static_cast<u16>(samples[i * 2]);
       samples_stereo[i * 2] = sample;
       samples_stereo[i * 2 + 1] = sample;
@@ -356,7 +356,7 @@ void Mixer::StartLogDTKAudio(const std::string& filename)
 {
   if (!m_log_dtk_audio)
   {
-    bool const success =
+    const bool success =
         m_wave_writer_dtk.Start(filename, m_streaming_mixer.GetInputSampleRateDivisor());
     if (success)
     {
@@ -394,7 +394,7 @@ void Mixer::StartLogDSPAudio(const std::string& filename)
 {
   if (!m_log_dsp_audio)
   {
-    bool const success = m_wave_writer_dsp.Start(filename, m_dma_mixer.GetInputSampleRateDivisor());
+    const bool success = m_wave_writer_dsp.Start(filename, m_dma_mixer.GetInputSampleRateDivisor());
     if (success)
     {
       m_log_dsp_audio = true;
@@ -517,10 +517,10 @@ void Mixer::MixerFifo::Enqueue()
       0.0002984010f, 0.0002102045f, 0.0001443499f, 0.0000961509f, 0.0000616906f, 0.0000377350f,
       0.0000216492f, 0.0000113187f, 0.0000050749f, 0.0000016272f};
 
-  std::size_t const head = m_queue_head.load(std::memory_order_acquire);
+  const std::size_t head = m_queue_head.load(std::memory_order_acquire);
 
   // Check if we run out of space in the circular queue. (rare)
-  std::size_t const next_head = (head + 1) & GRANULE_QUEUE_MASK;
+  const std::size_t next_head = (head + 1) & GRANULE_QUEUE_MASK;
   if (next_head == m_queue_tail.load(std::memory_order_acquire))
   {
     WARN_LOG_FMT(AUDIO,
