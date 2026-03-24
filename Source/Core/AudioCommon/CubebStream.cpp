@@ -39,7 +39,7 @@ CubebStream::CubebStream()
     : m_work_queue("Cubeb Worker")
 {
   m_work_queue.PushBlocking([this] {
-    auto const result = CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
+    const auto result = CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
     m_coinit_success = result == S_OK;
     m_should_couninit = result == S_OK || result == S_FALSE;
   });
