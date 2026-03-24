@@ -6,6 +6,11 @@
 #include "Core/HW/Triforce/IOPorts.h"
 #include "Core/HW/Triforce/SerialDevice.h"
 
+namespace ciface::Core
+{
+class Device;
+}
+
 namespace Triforce
 {
 

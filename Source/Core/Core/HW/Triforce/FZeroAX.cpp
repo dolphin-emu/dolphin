@@ -14,7 +14,10 @@
 
 #include "Core/HW/GCPad.h"
 
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCPadStatus.h"
+#include "InputCommon/InputConfig.h"
 
 namespace Triforce
 {
@@ -237,7 +240,22 @@ void FZeroAXSteeringWheel::ProcessRequest(std::span<const u8> request)
     // This produces a value in the range around [-56, +56].
     m_servo_position = s8(0x80 - (u8(request[1] << 7u) | request[2]));
 
-    DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "SteeringWheel: servo_position: {}", m_servo_position);
+    INFO_LOG_FMT(SERIALINTERFACE_AMBB, "SteeringWheel: servo_position: {}", m_servo_position);
+
+    constexpr auto force_strength = 1.0;
+
+    // TODO: Is this a sensible calculation ?
+    const auto center_position = ControllerEmu::MapToFloat<double>(s8(m_servo_position * 2), {});
+
+    // TODO: Acquire this object in the constructor and update it on config change !
+    // TODO: Also turn off the force appropriately on shutdown  !
+    auto* const controller = Pad::GetConfig()->GetController(0);
+    const auto wheel_device = g_controller_interface.FindDevice(controller->GetDefaultDevice());
+
+    // TODO: Should we also set a friction force ?
+
+    wheel_device->SetCenteringForce(force_strength, center_position);
+
     break;
   }
 

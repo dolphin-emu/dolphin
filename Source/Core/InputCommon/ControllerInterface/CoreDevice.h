@@ -160,6 +160,8 @@ public:
   Input* FindInput(std::string_view name) const;
   Output* FindOutput(std::string_view name) const;
 
+  virtual void SetCenteringForce(double gain, double center_position);
+
 protected:
   void AddInput(Input* const i);
   void AddOutput(Output* const o);
