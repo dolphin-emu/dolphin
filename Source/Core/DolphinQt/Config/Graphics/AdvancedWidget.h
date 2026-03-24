@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <QGroupBox>
 #include <QWidget>
 
 class ConfigBool;
@@ -54,12 +55,20 @@ private:
   ConfigInteger* m_png_compression_level;
 
   // Misc
-  ConfigBool* m_enable_cropping;
   ConfigBool* m_enable_prog_scan;
   ConfigBool* m_backend_multithreading;
   ConfigBool* m_prefer_vs_for_point_line_expansion;
   ConfigBool* m_cpu_cull;
   ConfigBool* m_borderless_fullscreen;
+
+  // Misc (Cropping)
+  ConfigBool* m_crop_to_aspect_ratio;
+  ConfigBool* m_crop_custom;
+  QGroupBox* m_crop_custom_box;
+  ConfigInteger* m_crop_custom_left;
+  ConfigInteger* m_crop_custom_top;
+  ConfigInteger* m_crop_custom_right;
+  ConfigInteger* m_crop_custom_bottom;
 
   // Experimental
   ConfigBool* m_defer_efb_access_invalidation;

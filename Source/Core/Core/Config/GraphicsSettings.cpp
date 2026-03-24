@@ -34,7 +34,12 @@ const Info<float> GFX_WIDESCREEN_HEURISTIC_STANDARD_RATIO{
     {System::GFX, "Settings", "WidescreenHeuristicStandardRatio"}, 1.f};
 const Info<float> GFX_WIDESCREEN_HEURISTIC_WIDESCREEN_RATIO{
     {System::GFX, "Settings", "WidescreenHeuristicWidescreenRatio"}, (16 / 9.f) / (4 / 3.f)};
-const Info<bool> GFX_CROP{{System::GFX, "Settings", "Crop"}, false};
+const Info<bool> GFX_CROP_TO_ASPECT_RATIO{{System::GFX, "Settings", "Crop"}, false};
+const Info<bool> GFX_CROP_CUSTOM{{System::GFX, "Settings", "CropCustom"}, false};
+const Info<int> GFX_CROP_CUSTOM_LEFT{{System::GFX, "Settings", "CropCustomLeft"}, 0};
+const Info<int> GFX_CROP_CUSTOM_TOP{{System::GFX, "Settings", "CropCustomTop"}, 0};
+const Info<int> GFX_CROP_CUSTOM_RIGHT{{System::GFX, "Settings", "CropCustomRight"}, 0};
+const Info<int> GFX_CROP_CUSTOM_BOTTOM{{System::GFX, "Settings", "CropCustomBottom"}, 0};
 const Info<int> GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES{
     {System::GFX, "Settings", "SafeTextureCacheColorSamples"}, 128};
 const Info<bool> GFX_SHOW_FPS{{System::GFX, "Settings", "ShowFPS"}, false};

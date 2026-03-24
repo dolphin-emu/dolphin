@@ -133,6 +133,30 @@ enum class IntSetting(
         "PerfSampWindowMS",
         1000
     ),
+    GFX_CROP_CUSTOM_TOP(
+        Settings.FILE_GFX,
+        Settings.SECTION_GFX_SETTINGS,
+        "CropCustomTop",
+        0
+    ),
+    GFX_CROP_CUSTOM_BOTTOM(
+        Settings.FILE_GFX,
+        Settings.SECTION_GFX_SETTINGS,
+        "CropCustomBottom",
+        0
+    ),
+    GFX_CROP_CUSTOM_LEFT(
+        Settings.FILE_GFX,
+        Settings.SECTION_GFX_SETTINGS,
+        "CropCustomLeft",
+        0
+    ),
+    GFX_CROP_CUSTOM_RIGHT(
+        Settings.FILE_GFX,
+        Settings.SECTION_GFX_SETTINGS,
+        "CropCustomRight",
+        0
+    ),
     LOGGER_VERBOSITY(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_OPTIONS, "Verbosity", 1),
     WIIMOTE_1_SOURCE(Settings.FILE_WIIMOTE, "Wiimote1", "Source", 1),
     WIIMOTE_2_SOURCE(Settings.FILE_WIIMOTE, "Wiimote2", "Source", 0),
