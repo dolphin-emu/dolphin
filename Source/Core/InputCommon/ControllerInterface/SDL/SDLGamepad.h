@@ -342,6 +342,8 @@ public:
     return Core::DeviceRemoval::Keep;
   }
 
+  void SetCenteringForce(double gain, double center_position) override;
+
 private:
   void UpdateRumble()
   {
@@ -369,6 +371,8 @@ private:
   float m_touchpad_x = 0.f;
   float m_touchpad_y = 0.f;
   float m_touchpad_pressure = 0.f;
+
+  int m_centering_haptic_effect = -1;
 };
 
 struct SDLMotionAxis

@@ -12,7 +12,9 @@
 
 #include "Core/HW/GCPad.h"
 
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/GCPadStatus.h"
+#include "InputCommon/InputConfig.h"
 
 namespace Triforce
 {
@@ -101,12 +103,30 @@ void MarioKartGPSteeringWheel::ProcessRequest(std::span<const u8> request)
     return;
   }
 
+  // TODO: Handle friction !
+
   const u16 centering_force = Common::swap16(request.data() + 4);
   const u16 friction_force = Common::swap16(request.data() + 6);
   const u16 roll = Common::swap16(request.data() + 8);
 
-  DEBUG_LOG_FMT(SERIALINTERFACE_AMBB, "SteeringWheel: FFB: {:04x} {:04x} {:04x}", centering_force,
-                friction_force, roll);
+  INFO_LOG_FMT(SERIALINTERFACE_AMBB, "SteeringWheel: FFB: {:04x} {:04x} {:04x}", centering_force,
+               friction_force, roll);
+
+  // TODO: Is this sensible ?
+  const bool should_set_force = centering_force != 0;
+  if (should_set_force)
+  {
+    // TODO: Are these sensible calculations ?
+    const auto force_strength = ControllerEmu::MapToFloat<double>(s16(centering_force), {});
+    const auto center_position = ControllerEmu::MapToFloat<double>(s16(roll), {});
+
+    // TODO: Acquire this object in the constructor and update it on config change !
+    // TODO: Also turn off the force appropriately on shutdown  !
+    auto* const controller = Pad::GetConfig()->GetController(0);
+    const auto wheel_device = g_controller_interface.FindDevice(controller->GetDefaultDevice());
+
+    wheel_device->SetCenteringForce(force_strength, center_position);
+  }
 
   switch (m_init_state)
   {

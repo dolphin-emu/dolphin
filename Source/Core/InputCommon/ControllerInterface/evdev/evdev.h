@@ -3,9 +3,10 @@
 
 #pragma once
 
-#include <libevdev/libevdev.h>
 #include <string>
 #include <vector>
+
+#include <libevdev/libevdev.h>
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -87,6 +88,8 @@ public:
   std::string GetName() const override { return m_name; }
   std::string GetSource() const override { return "evdev"; }
 
+  void SetCenteringForce(double gain, double center_position) override;
+
 private:
   std::string m_name;
 
@@ -100,5 +103,8 @@ private:
   std::vector<Node> m_nodes;
 
   InputBackend& m_input_backend;
+
+  int m_ffb_wheel_fd = -1;
+  s16 m_centering_effect_id = -1;
 };
 }  // namespace ciface::evdev

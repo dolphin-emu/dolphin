@@ -9,6 +9,7 @@
 
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 namespace ciface::SDL
 {
@@ -220,6 +221,9 @@ Gamepad::Gamepad(SDL_Gamepad* const gamepad, SDL_Joystick* const joystick)
         AddOutput(new LeftRightEffect(m_haptic, LeftRightEffect::Motor::Strong));
         AddOutput(new LeftRightEffect(m_haptic, LeftRightEffect::Motor::Weak));
       }
+
+      // TODO: Remove test hacks
+      // SetCenteringForce(0.8, 0.7);
     }
   }
 
@@ -270,6 +274,67 @@ std::string Gamepad::GetSource() const
 SDL_JoystickID Gamepad::GetSDLInstanceID() const
 {
   return SDL_GetJoystickID(m_joystick);
+}
+
+void Gamepad::SetCenteringForce(double gain, double center_position)
+{
+  INFO_LOG_FMT(CONTROLLERINTERFACE, "SetCenteringForce: {:.2} {:.2}", gain, center_position);
+
+  if (m_haptic == nullptr)
+    return;
+
+  if (gain != 0.0)
+  {
+    SDL_HapticEffect effect{
+        .type = SDL_HAPTIC_SPRING,
+    };
+
+    auto& condition = effect.condition;
+
+    // TODO: Why does only SDL_HAPTIC_POLAR do the correct thing for my Sidewinder joystick?
+    // I would expect SDL_HAPTIC_STEERING_AXIS to be more reliable..
+    condition.direction.type = SDL_HAPTIC_POLAR;
+    // condition.direction.type = SDL_HAPTIC_STEERING_AXIS;
+    // condition.direction.dir[0] = 1;
+
+    // Is "infinity" always supported ?
+    condition.length = SDL_HAPTIC_INFINITY;
+
+    const auto unsigned_gain = ControllerEmu::MapFloat<u16>(gain, 0);
+    condition.right_sat[0] = unsigned_gain;
+    condition.left_sat[0] = unsigned_gain;
+
+    // TODO: Is this a sensible coeff value ?
+    constexpr auto coeff = std::numeric_limits<s16>::max();
+    condition.right_coeff[0] = coeff;
+    condition.left_coeff[0] = coeff;
+
+    condition.center[0] = ControllerEmu::MapFloat<s16>(center_position, 0);
+
+    if (m_centering_haptic_effect == -1)
+    {
+      // Create and start a new effect.
+      m_centering_haptic_effect = SDL_CreateHapticEffect(m_haptic, &effect);
+      if (m_centering_haptic_effect == -1)
+      {
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_CreateHapticEffect: {}", SDL_GetError());
+        return;
+      }
+
+      if (!SDL_RunHapticEffect(m_haptic, m_centering_haptic_effect, 1))
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_RunHapticEffect: {}", SDL_GetError());
+    }
+    else
+    {
+      // Update an already running effect.
+      if (!SDL_UpdateHapticEffect(m_haptic, m_centering_haptic_effect, &effect))
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL_UpdateHapticEffect: {}", SDL_GetError());
+    }
+  }
+  else if (m_centering_haptic_effect != -1)
+  {
+    SDL_DestroyHapticEffect(m_haptic, std::exchange(m_centering_haptic_effect, -1));
+  }
 }
 
 std::string Gamepad::Button::GetName() const

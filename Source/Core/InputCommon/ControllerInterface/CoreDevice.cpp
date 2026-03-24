@@ -119,6 +119,10 @@ Device::Output* Device::FindOutput(std::string_view name) const
   return nullptr;
 }
 
+void Device::SetCenteringForce(double gain, double center_position)
+{
+}
+
 bool Device::Control::IsMatchingName(std::string_view name) const
 {
   return GetName() == name;
