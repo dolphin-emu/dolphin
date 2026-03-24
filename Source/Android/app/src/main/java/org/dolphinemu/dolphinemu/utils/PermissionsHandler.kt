@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Environment
+import androidx.annotation.Keep
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import org.dolphinemu.dolphinemu.DolphinApplication
@@ -54,6 +55,7 @@ object PermissionsHandler {
     }
 
     @JvmStatic
+    @Keep
     fun hasRecordAudioPermission(context: Context?): Boolean {
         val nonNullContext = context ?: DolphinApplication.getAppContext()
         val hasRecordPermission =
@@ -62,6 +64,7 @@ object PermissionsHandler {
     }
 
     @JvmStatic
+    @Keep
     fun requestRecordAudioPermission(activity: Activity?) {
         val targetActivity = activity ?: DolphinApplication.getAppActivity()!!
         if (activity == null) {
