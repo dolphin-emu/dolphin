@@ -52,6 +52,8 @@
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/System.h"
+#include "Core/IOS/IOS.h"
+#include "Core/WiiForwarder.h"
 #include "Core/WiiUtils.h"
 
 #include "DiscIO/Enums.h"
@@ -462,6 +464,58 @@ void GameList::ShowContextMenu(const QPoint&)
                                                     Settings::Instance().NANDRefresh();
                                                   });
       perform_disc_update->setEnabled(Core::IsUninitialized(system) || !system.IsWii());
+
+      const bool is_on_wii_menu = WiiForwarder::IsForwarderInstalled(game->GetFilePath());
+
+      if (!is_on_wii_menu)
+      {
+        auto* add_to_wii_menu = menu->addAction(tr("Add to Wii Menu"), this, [this, file_path = game->GetFilePath()] {
+          if (WiiForwarder::InstallForwarder(file_path))
+          {
+            Settings::Instance().NANDRefresh();
+            ModalMessageBox::information(
+                this, tr("Success"),
+                tr("Successfully added this game to the Wii Menu.\n"
+                   "It will appear as a channel when you boot the Wii System Menu."));
+          }
+          else
+          {
+            ModalMessageBox::critical(this, tr("Failure"),
+                                      tr("Failed to add this game to the Wii Menu."));
+          }
+        });
+        add_to_wii_menu->setEnabled(Core::IsUninitialized(system));
+      }
+      else
+      {
+        auto* remove_from_wii_menu = menu->addAction(tr("Remove from Wii Menu"), this, [this, file_path = game->GetFilePath()] {
+          // Find the forwarder title ID for this disc image
+          const auto forwarders = WiiForwarder::GetInstalledForwarders();
+          u64 target_title_id = 0;
+          for (const auto& [tid, path] : forwarders)
+          {
+            if (path == file_path)
+            {
+              target_title_id = tid;
+              break;
+            }
+          }
+
+          if (target_title_id != 0 && WiiForwarder::UninstallForwarder(target_title_id))
+          {
+            Settings::Instance().NANDRefresh();
+            ModalMessageBox::information(
+                this, tr("Success"),
+                tr("Successfully removed this game from the Wii Menu."));
+          }
+          else
+          {
+            ModalMessageBox::critical(this, tr("Failure"),
+                                      tr("Failed to remove this game from the Wii Menu."));
+          }
+        });
+        remove_from_wii_menu->setEnabled(Core::IsUninitialized(system));
+      }
     }
 
     if (!is_mod_descriptor && platform == DiscIO::Platform::WiiWAD)

@@ -11,6 +11,9 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/TimePlayed.h"
+#include "Core/WiiForwarder.h"
+
+#include "Common/Logging/Log.h"
 
 #include "DiscIO/Enums.h"
 
@@ -368,6 +371,17 @@ void GameListModel::AddGame(const std::shared_ptr<const UICommon::GameFile>& gam
   beginInsertRows(QModelIndex(), m_games.size(), m_games.size());
   m_games.push_back(game);
   endInsertRows();
+
+  // Auto-install Wii disc games as forwarder channels on the Wii Menu
+  if (game->GetPlatform() == DiscIO::Platform::WiiDisc &&
+      !WiiForwarder::IsForwarderInstalled(game->GetFilePath()))
+  {
+    if (WiiForwarder::InstallForwarder(game->GetFilePath(), /*silent=*/true))
+    {
+      INFO_LOG_FMT(CORE, "Auto-installed Wii Menu forwarder for '{}'", game->GetFilePath());
+      Settings::Instance().NANDRefresh();
+    }
+  }
 }
 
 void GameListModel::UpdateGame(const std::shared_ptr<const UICommon::GameFile>& game)
@@ -389,6 +403,22 @@ void GameListModel::RemoveGame(const std::string& path)
   int entry = FindGameIndex(path);
   if (entry < 0)
     return;
+
+  // Auto-remove forwarder from Wii Menu when game is removed from the list
+  if (WiiForwarder::IsForwarderInstalled(path))
+  {
+    const auto forwarders = WiiForwarder::GetInstalledForwarders();
+    for (const auto& [tid, disc_path] : forwarders)
+    {
+      if (disc_path == path)
+      {
+        WiiForwarder::UninstallForwarder(tid);
+        INFO_LOG_FMT(CORE, "Auto-removed Wii Menu forwarder for '{}'", path);
+        Settings::Instance().NANDRefresh();
+        break;
+      }
+    }
+  }
 
   beginRemoveRows(QModelIndex(), entry, entry);
   m_games.removeAt(entry);

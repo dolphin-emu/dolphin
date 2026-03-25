@@ -66,6 +66,7 @@
 #include "Core/NetPlayServer.h"
 #include "Core/State.h"
 #include "Core/System.h"
+#include "Core/WiiForwarder.h"
 #include "Core/WiiUtils.h"
 
 #include "DiscIO/DirectoryBlob.h"
@@ -924,6 +925,14 @@ void MainWindow::OnStopComplete()
   {
     StartGame(std::move(m_pending_boot));
     m_pending_boot.reset();
+    return;
+  }
+
+  // Check if a forwarder channel requested booting a disc image
+  const std::string forwarder_boot_path = WiiForwarder::ConsumePendingForwarderBoot();
+  if (!forwarder_boot_path.empty())
+  {
+    StartGame(BootParameters::GenerateFromFile(forwarder_boot_path));
   }
 }
 
@@ -952,6 +961,12 @@ bool MainWindow::RequestStop()
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
   confirm_on_stop = confirm_on_stop || AchievementManager::GetInstance().CheckForModifications();
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION
+
+  // Skip confirmation when a forwarder channel is launching a disc image —
+  // the user already chose to play the game from the Wii Menu.
+  if (WiiForwarder::HasPendingForwarderBoot())
+    confirm_on_stop = false;
+
   if (confirm_on_stop)
   {
     if (std::exchange(m_stop_confirm_showing, true))
