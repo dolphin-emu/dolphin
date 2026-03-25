@@ -94,7 +94,7 @@ void GeneralWidget::CreateWidgets()
   video_layout->addWidget(m_custom_aspect_height, 3, 2);
 
   m_monitor_combo = new ToolTipComboBox;
-  m_monitor_combo->addItem(tr("Primary Monitor"));
+  m_monitor_combo->addItem(tr("Default Monitor"));
   const QList<QScreen*> screens = QGuiApplication::screens();
   for (int i = 0; i < screens.size(); i++)
     m_monitor_combo->addItem(tr("Monitor %1: %2").arg(i + 1).arg(screens[i]->name()));
@@ -170,9 +170,8 @@ void GeneralWidget::ConnectWidgets()
     Config::SetBaseOrCurrent(Config::GFX_ADAPTER, index);
     emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   });
-  connect(m_monitor_combo, &QComboBox::currentIndexChanged, this, [](int index) {
-    Config::SetBaseOrCurrent(Config::MAIN_DISPLAY_MONITOR, index);
-  });
+  connect(m_monitor_combo, &QComboBox::currentIndexChanged, this,
+          [](int index) { Config::SetBaseOrCurrent(Config::MAIN_DISPLAY_MONITOR, index); });
   connect(m_aspect_combo, &QComboBox::currentIndexChanged, this,
           &GeneralWidget::ToggleCustomAspectRatio);
 }
@@ -328,7 +327,7 @@ void GeneralWidget::AddDescriptions()
   m_monitor_combo->SetTitle(tr("Display Monitor"));
   m_monitor_combo->SetDescription(
       tr("Selects which display to use when rendering.<br><br>"
-         "<dolphin_emphasis>If unsure, select Primary Monitor.</dolphin_emphasis>"));
+         "<dolphin_emphasis>If unsure, select Default Monitor.</dolphin_emphasis>"));
 
   m_aspect_combo->SetTitle(tr("Aspect Ratio"));
   m_aspect_combo->SetDescription(tr(TR_ASPECT_RATIO_DESCRIPTION));
