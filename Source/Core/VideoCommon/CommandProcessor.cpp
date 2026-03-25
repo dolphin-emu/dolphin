@@ -700,8 +700,8 @@ void CommandProcessorManager::HandleUnknownOpcode(u8 cmd_byte, const u8* buffer,
     {
       advice = _trans(
           "This error is usually caused by the emulated GPU desyncing with the emulated CPU, "
-          "but your current settings make this unlikely to happen. If this error is stopping the "
-          "game from working, please report it to the developers.");
+          "but your current settings make this unlikely to happen. The error may also be caused by "
+          "a game bug.");
     }
 
     PanicAlertFmtT("GFX FIFO: Unknown Opcode ({0:#04x} @ {1}, preprocess={2}).\n"
