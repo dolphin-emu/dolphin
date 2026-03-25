@@ -294,7 +294,7 @@ const Info<std::string> MAIN_WII_NUS_SHOP_URL{{System::Main, "Core", "WiiNusShop
 const Info<std::string> MAIN_FULLSCREEN_DISPLAY_RES{
     {System::Main, "Display", "FullscreenDisplayRes"}, "Auto"};
 const Info<bool> MAIN_FULLSCREEN{{System::Main, "Display", "Fullscreen"}, false};
-const Info<int> MAIN_FULLSCREEN_MONITOR{{System::Main, "Display", "FullscreenMonitor"}, 0};
+const Info<int> MAIN_DISPLAY_MONITOR{{System::Main, "Display", "DisplayMonitor"}, 0};
 const Info<bool> MAIN_RENDER_TO_MAIN{{System::Main, "Display", "RenderToMain"}, false};
 const Info<int> MAIN_RENDER_WINDOW_XPOS{{System::Main, "Display", "RenderWindowXPos"}, -1};
 const Info<int> MAIN_RENDER_WINDOW_YPOS{{System::Main, "Display", "RenderWindowYPos"}, -1};

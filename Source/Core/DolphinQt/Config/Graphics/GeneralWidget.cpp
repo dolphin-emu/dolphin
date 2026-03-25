@@ -98,11 +98,11 @@ void GeneralWidget::CreateWidgets()
   const QList<QScreen*> screens = QGuiApplication::screens();
   for (int i = 0; i < screens.size(); i++)
     m_monitor_combo->addItem(tr("Monitor %1: %2").arg(i + 1).arg(screens[i]->name()));
-  const int monitor_index = Config::Get(Config::MAIN_FULLSCREEN_MONITOR);
+  const int monitor_index = Config::Get(Config::MAIN_DISPLAY_MONITOR);
   if (monitor_index < m_monitor_combo->count())
     m_monitor_combo->setCurrentIndex(monitor_index);
 
-  video_layout->addWidget(new QLabel(tr("Fullscreen Monitor:")), 4, 0);
+  video_layout->addWidget(new QLabel(tr("Display Monitor:")), 4, 0);
   video_layout->addWidget(m_monitor_combo, 4, 1, 1, -1);
 
   auto* const basic_grid = new QGridLayout;
@@ -171,7 +171,7 @@ void GeneralWidget::ConnectWidgets()
     emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   });
   connect(m_monitor_combo, &QComboBox::currentIndexChanged, this, [](int index) {
-    Config::SetBaseOrCurrent(Config::MAIN_FULLSCREEN_MONITOR, index);
+    Config::SetBaseOrCurrent(Config::MAIN_DISPLAY_MONITOR, index);
   });
   connect(m_aspect_combo, &QComboBox::currentIndexChanged, this,
           &GeneralWidget::ToggleCustomAspectRatio);
@@ -325,9 +325,10 @@ void GeneralWidget::AddDescriptions()
 
   m_adapter_combo->SetTitle(tr("Adapter"));
 
-  m_monitor_combo->SetTitle(tr("Fullscreen Monitor"));
+  m_monitor_combo->SetTitle(tr("Display Monitor"));
   m_monitor_combo->SetDescription(
-      tr("Selects which display to use for fullscreen.<br><br>"
+      tr("Selects which display to use when rendering.<br><br>"
+         "When rendering to the main window, the main window will be moved to this display.<br><br>"
          "<dolphin_emphasis>If unsure, select Primary Monitor.</dolphin_emphasis>"));
 
   m_aspect_combo->SetTitle(tr("Aspect Ratio"));
