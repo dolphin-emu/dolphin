@@ -7,9 +7,11 @@
 #include <QComboBox>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QRadioButton>
+#include <QScreen>
 #include <QSignalBlocker>
 #include <QVBoxLayout>
 
@@ -91,6 +93,18 @@ void GeneralWidget::CreateWidgets()
   video_layout->addWidget(m_custom_aspect_width, 3, 1);
   video_layout->addWidget(m_custom_aspect_height, 3, 2);
 
+  m_monitor_combo = new ToolTipComboBox;
+  m_monitor_combo->addItem(tr("Primary Monitor"));
+  const QList<QScreen*> screens = QGuiApplication::screens();
+  for (int i = 0; i < screens.size(); i++)
+    m_monitor_combo->addItem(tr("Monitor %1: %2").arg(i + 1).arg(screens[i]->name()));
+  const int monitor_index = Config::Get(Config::MAIN_FULLSCREEN_MONITOR);
+  if (monitor_index < m_monitor_combo->count())
+    m_monitor_combo->setCurrentIndex(monitor_index);
+
+  video_layout->addWidget(new QLabel(tr("Fullscreen Monitor:")), 4, 0);
+  video_layout->addWidget(m_monitor_combo, 4, 1, 1, -1);
+
   auto* const basic_grid = new QGridLayout;
   video_layout->addLayout(basic_grid, video_layout->rowCount(), 0, 1, -1);
   basic_grid->addWidget(m_enable_vsync, 0, 0);
@@ -155,6 +169,9 @@ void GeneralWidget::ConnectWidgets()
   connect(m_adapter_combo, &QComboBox::currentIndexChanged, this, [&](int index) {
     Config::SetBaseOrCurrent(Config::GFX_ADAPTER, index);
     emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
+  });
+  connect(m_monitor_combo, &QComboBox::currentIndexChanged, this, [](int index) {
+    Config::SetBaseOrCurrent(Config::MAIN_FULLSCREEN_MONITOR, index);
   });
   connect(m_aspect_combo, &QComboBox::currentIndexChanged, this,
           &GeneralWidget::ToggleCustomAspectRatio);
@@ -307,6 +324,11 @@ void GeneralWidget::AddDescriptions()
           .arg(QString::fromStdString(VideoBackendBase::GetDefaultBackendDisplayName())));
 
   m_adapter_combo->SetTitle(tr("Adapter"));
+
+  m_monitor_combo->SetTitle(tr("Fullscreen Monitor"));
+  m_monitor_combo->SetDescription(
+      tr("Selects which display to use for fullscreen.<br><br>"
+         "<dolphin_emphasis>If unsure, select Primary Monitor.</dolphin_emphasis>"));
 
   m_aspect_combo->SetTitle(tr("Aspect Ratio"));
   m_aspect_combo->SetDescription(tr(TR_ASPECT_RATIO_DESCRIPTION));
