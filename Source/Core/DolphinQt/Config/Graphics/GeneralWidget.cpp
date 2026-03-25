@@ -328,7 +328,6 @@ void GeneralWidget::AddDescriptions()
   m_monitor_combo->SetTitle(tr("Display Monitor"));
   m_monitor_combo->SetDescription(
       tr("Selects which display to use when rendering.<br><br>"
-         "When rendering to the main window, the main window will be moved to this display.<br><br>"
          "<dolphin_emphasis>If unsure, select Primary Monitor.</dolphin_emphasis>"));
 
   m_aspect_combo->SetTitle(tr("Aspect Ratio"));
