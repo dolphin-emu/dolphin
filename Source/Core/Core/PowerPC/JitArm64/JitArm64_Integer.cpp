@@ -1326,6 +1326,15 @@ void JitArm64::subfzex(UGeckoInstruction inst)
     gpr.SetImmediate(d, imm + carry);
     ComputeCarry(Interpreter::Helper_Carry(imm, carry));
   }
+  else if (gpr.IsImm(a, 0) && js.carryFlag == CarryFlag::InHostCarry)
+  {
+    gpr.BindToRegister(d, false);
+    // RD = ~0 + carry = -1 + carry = carry ? 0 : -1
+    // Note that CSETM sets the destination to -1 if the condition is true,
+    // and 0 otherwise. Hence, the condition must be carry clear.
+    CSETM(gpr.R(d), CC_CC);
+    // Carry remains unchanged.
+  }
   else
   {
     gpr.BindToRegister(d, d == a);
