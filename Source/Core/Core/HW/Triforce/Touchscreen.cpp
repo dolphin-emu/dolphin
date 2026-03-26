@@ -37,7 +37,8 @@ void Touchscreen::Update()
   if (const auto input = GetRxByteSpan(); !input.empty())
   {
     // The Key of Avalon doesn't write to the device, it only reads.
-    WARN_LOG_FMT(AMMEDIABOARD, "Unexpected write of {} bytes to touchscreen.", input.size());
+    WARN_LOG_FMT(SERIALINTERFACE_AMBB, "Unexpected write of {} bytes to touchscreen.",
+                 input.size());
     ConsumeRxBytes(input.size());
   }
 
