@@ -21,7 +21,6 @@ namespace ExpansionInterface
 {
 u16 GeckoSockServer::initial_port;
 u16 GeckoSockServer::server_port;
-int GeckoSockServer::port_retries;
 int GeckoSockServer::client_count;
 std::thread GeckoSockServer::connectionThread;
 Common::Flag GeckoSockServer::server_running;
@@ -57,7 +56,6 @@ void GeckoSockServer::GeckoConnectionWaiter()
 
   sf::TcpListener server;
   initial_port = 0xd6ec;  // "dolphin gecko"
-  port_retries = 10;
   server_port = initial_port;
   for (int bind_tries = 0; bind_tries <= port_retries && !server_running.IsSet(); bind_tries++)
   {
