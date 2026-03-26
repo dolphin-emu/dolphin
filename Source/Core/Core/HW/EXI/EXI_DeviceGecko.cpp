@@ -19,7 +19,9 @@
 
 namespace ExpansionInterface
 {
+u16 GeckoSockServer::initial_port;
 u16 GeckoSockServer::server_port;
+int GeckoSockServer::port_retries;
 int GeckoSockServer::client_count;
 std::thread GeckoSockServer::connectionThread;
 Common::Flag GeckoSockServer::server_running;
@@ -54,8 +56,10 @@ void GeckoSockServer::GeckoConnectionWaiter()
   Common::SetCurrentThreadName("Gecko Connection Waiter");
 
   sf::TcpListener server;
-  server_port = 0xd6ec;  // "dolphin gecko"
-  for (int bind_tries = 0; bind_tries <= 10 && !server_running.IsSet(); bind_tries++)
+  initial_port = 0xd6ec;  // "dolphin gecko"
+  port_retries = 10;
+  server_port = initial_port;
+  for (int bind_tries = 0; bind_tries <= port_retries && !server_running.IsSet(); bind_tries++)
   {
     server_running.Set(server.listen(server_port) == sf::Socket::Status::Done);
     if (!server_running.IsSet())
@@ -64,9 +68,11 @@ void GeckoSockServer::GeckoConnectionWaiter()
 
   if (!server_running.IsSet())
   {
-    ERROR_LOG_FMT(EXPANSIONINTERFACE, "USBGecko: Failed to bind to any port in range {}-{}", 0xd6ec,
-                  0xd6ec + 10);
-    Core::DisplayMessage("USBGecko: Failed to listen on any port (55020-55030)", 5000);
+    ERROR_LOG_FMT(EXPANSIONINTERFACE, "USBGecko: Failed to bind to any port in range {}-{}",
+                  initial_port, initial_port + port_retries);
+    Core::DisplayMessage(fmt::format("USBGecko: Failed to listen on any port ({}-{})", initial_port,
+                                     initial_port + port_retries),
+                         5000);
     return;
   }
 
