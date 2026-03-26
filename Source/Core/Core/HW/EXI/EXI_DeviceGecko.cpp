@@ -66,11 +66,10 @@ void GeckoSockServer::GeckoConnectionWaiter()
 
   if (!server_running.IsSet())
   {
-    ERROR_LOG_FMT(EXPANSIONINTERFACE, "USBGecko: Failed to bind to any port in range {}-{}",
-                  initial_port, initial_port + port_retries);
-    Core::DisplayMessage(fmt::format("USBGecko: Failed to listen on any port ({}-{})", initial_port,
-                                     initial_port + port_retries),
-                         5000);
+    const std::string message = fmt::format("USBGecko: Failed to bind to any port in range {}-{}",
+                                            initial_port, initial_port + port_retries);
+    ERROR_LOG_FMT(EXPANSIONINTERFACE, "{}", message);
+    Core::DisplayMessage(message, 5000);
     return;
   }
 
