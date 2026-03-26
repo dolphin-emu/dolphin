@@ -8,12 +8,13 @@
 #include <QPixmap>
 #include <QRegularExpression>
 
+#include "Common/Config/Config.h"
+#include "Common/Logging/Log.h"
+
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/TimePlayed.h"
 #include "Core/WiiForwarder.h"
-
-#include "Common/Logging/Log.h"
 
 #include "DiscIO/Enums.h"
 
@@ -44,6 +45,14 @@ GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
     m_tracker.AddDirectory(dir);
 
   m_tracker.Start();
+
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
+    const bool now_enabled = Config::Get(Config::MAIN_WII_FORWARDER_AUTO_SYNC);
+    if (now_enabled && !m_forwarder_auto_sync_enabled)
+      SyncForwarders();
+    m_forwarder_auto_sync_enabled = now_enabled;
+  });
+  m_forwarder_auto_sync_enabled = Config::Get(Config::MAIN_WII_FORWARDER_AUTO_SYNC);
 
   connect(&Settings::Instance(), &Settings::ThemeChanged, [this] {
     // Tell the view to repaint. The signal 'dataChanged' also seems like it would work here, but
@@ -373,7 +382,8 @@ void GameListModel::AddGame(const std::shared_ptr<const UICommon::GameFile>& gam
   endInsertRows();
 
   // Auto-install Wii disc games as forwarder channels on the Wii Menu
-  if (game->GetPlatform() == DiscIO::Platform::WiiDisc &&
+  if (Config::Get(Config::MAIN_WII_FORWARDER_AUTO_SYNC) &&
+      game->GetPlatform() == DiscIO::Platform::WiiDisc &&
       !WiiForwarder::IsForwarderInstalled(game->GetFilePath()))
   {
     if (WiiForwarder::InstallForwarder(game->GetFilePath(), /*silent=*/true))
@@ -405,7 +415,8 @@ void GameListModel::RemoveGame(const std::string& path)
     return;
 
   // Auto-remove forwarder from Wii Menu when game is removed from the list
-  if (WiiForwarder::IsForwarderInstalled(path))
+  if (Config::Get(Config::MAIN_WII_FORWARDER_AUTO_SYNC) &&
+      WiiForwarder::IsForwarderInstalled(path))
   {
     const auto forwarders = WiiForwarder::GetInstalledForwarders();
     for (const auto& [tid, disc_path] : forwarders)
@@ -558,4 +569,23 @@ void GameListModel::OnEmulationStateChanged(Core::State state)
   {
     m_timer.Reload();
   }
+}
+
+void GameListModel::SyncForwarders()
+{
+  bool any_installed = false;
+  for (const auto& game : m_games)
+  {
+    if (game->GetPlatform() == DiscIO::Platform::WiiDisc &&
+        !WiiForwarder::IsForwarderInstalled(game->GetFilePath()))
+    {
+      if (WiiForwarder::InstallForwarder(game->GetFilePath(), /*silent=*/true))
+      {
+        INFO_LOG_FMT(CORE, "Sync: installed Wii Menu forwarder for '{}'", game->GetFilePath());
+        any_installed = true;
+      }
+    }
+  }
+  if (any_installed)
+    Settings::Instance().NANDRefresh();
 }

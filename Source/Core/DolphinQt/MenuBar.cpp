@@ -1195,7 +1195,7 @@ void MenuBar::InstallWAD()
 
 void MenuBar::InstallDiscImageToWiiMenu()
 {
-  QString disc_file = DolphinFileDialog::getOpenFileName(
+  const QString disc_file = DolphinFileDialog::getOpenFileName(
       this, tr("Select Wii Disc Image to Add to Wii Menu"), QString(),
       tr("Wii Disc Images (*.rvz *.iso *.wbfs *.gcz *.ciso *.wia);;All Files (*)"));
 

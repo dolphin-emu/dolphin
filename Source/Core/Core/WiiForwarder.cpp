@@ -1,4 +1,4 @@
-// Copyright 2024 Dolphin Emulator Project
+// Copyright 2026 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/WiiForwarder.h"
@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstring>
 #include <mutex>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -129,8 +130,14 @@ std::map<u64, std::string> GetInstalledForwarders()
   for (const auto& [key, value] : section->GetValues())
   {
     u64 title_id = 0;
-    if (TryParse(std::string("0x") + key, &title_id))
+    try
+    {
+      title_id = std::stoull(key, nullptr, 16);
       result[title_id] = value;
+    }
+    catch (const std::exception&)
+    {
+    }
   }
   return result;
 }
@@ -139,10 +146,9 @@ std::map<u64, std::string> GetInstalledForwarders()
 
 // Build a fakesigned TMD blob for a forwarder channel.
 static std::vector<u8> BuildForwarderTMD(u64 forwarder_title_id, u64 ios_id,
-                                          const std::vector<u8>& content_data)
+                                          std::span<const u8> content_data)
 {
-  // TMD = TMDHeader + 1 Content entry
-  const size_t tmd_size = sizeof(IOS::ES::TMDHeader) + sizeof(IOS::ES::Content);
+  const std::size_t tmd_size = sizeof(IOS::ES::TMDHeader) + sizeof(IOS::ES::Content);
   std::vector<u8> tmd_bytes(tmd_size, 0);
 
   auto* header = reinterpret_cast<IOS::ES::TMDHeader*>(tmd_bytes.data());
@@ -247,10 +253,10 @@ static std::vector<u8> ExtractOpeningBnr(const DiscIO::Volume& volume,
 static std::vector<u8> BuildMinimalIMET(
     const std::map<DiscIO::Language, std::string>& long_names)
 {
-  constexpr size_t IMET_SIZE = 0x600;
-  constexpr size_t IMET_NAMES_OFFSET = 0x60;
-  constexpr size_t NAME_CHARS = 42;
-  constexpr size_t NUM_LANGUAGES = 10;
+  constexpr std::size_t IMET_SIZE = 0x600;
+  constexpr std::size_t IMET_NAMES_OFFSET = 0x60;
+  constexpr std::size_t NAME_CHARS = 42;
+  constexpr std::size_t NUM_LANGUAGES = 10;
 
   std::vector<u8> content(IMET_SIZE, 0);
 
@@ -282,7 +288,7 @@ static std::vector<u8> BuildMinimalIMET(
   else if (!long_names.empty())
     fallback_name = long_names.begin()->second;
 
-  for (size_t lang_idx = 0; lang_idx < NUM_LANGUAGES; lang_idx++)
+  for (std::size_t lang_idx = 0; lang_idx < NUM_LANGUAGES; lang_idx++)
   {
     std::string name = fallback_name;
     auto it = long_names.find(lang_order[lang_idx]);
@@ -290,10 +296,10 @@ static std::vector<u8> BuildMinimalIMET(
       name = it->second;
 
     const auto utf16 = UTF8ToUTF16(name);
-    const size_t chars_to_write = std::min(utf16.size(), NAME_CHARS - 1);
-    const size_t offset = IMET_NAMES_OFFSET + lang_idx * NAME_CHARS * 2;
+    const std::size_t chars_to_write = std::min(utf16.size(), NAME_CHARS - 1);
+    const std::size_t offset = IMET_NAMES_OFFSET + lang_idx * NAME_CHARS * 2;
 
-    for (size_t i = 0; i < chars_to_write; i++)
+    for (std::size_t i = 0; i < chars_to_write; i++)
     {
       const u16 ch = Common::swap16(static_cast<u16>(utf16[i]));
       std::memcpy(&content[offset + i * 2], &ch, 2);
@@ -326,9 +332,8 @@ static std::vector<u8> BuildForwarderContent(
                  content.size());
   }
 
-  // Append DFWD marker + disc image path after the banner content
-  const size_t banner_size = content.size();
-  const size_t path_section_size = 4 + disc_image_path.size() + 1;  // "DFWD" + path + null
+  const std::size_t banner_size = content.size();
+  const std::size_t path_section_size = 4 + disc_image_path.size() + 1;  // "DFWD" + path + null
   content.resize(banner_size + path_section_size, 0);
 
   content[banner_size + 0] = 'D';

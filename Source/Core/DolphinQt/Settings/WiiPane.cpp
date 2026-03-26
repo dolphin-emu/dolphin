@@ -117,6 +117,9 @@ void WiiPane::CreateMisc()
       new ConfigBool(tr("Enable WiiConnect24 via WiiLink"), Config::MAIN_WII_WIILINK_ENABLE);
   m_connect_keyboard_checkbox =
       new ConfigBool(tr("Connect USB Keyboard"), Config::MAIN_WII_KEYBOARD);
+  m_forwarder_auto_sync_checkbox =
+      new ConfigBool(tr("Auto-Sync Wii Menu Forwarder Channels"),
+                     Config::MAIN_WII_FORWARDER_AUTO_SYNC);
 
   m_aspect_ratio_choice_label = new QLabel(tr("Aspect Ratio:"));
   m_aspect_ratio_choice = new ConfigChoiceMap<bool>({{tr("4:3"), false}, {tr("16:9"), true}},
@@ -149,17 +152,21 @@ void WiiPane::CreateMisc()
   m_system_language_choice->SetDescription(tr("Sets the Wii system language."));
   m_connect_keyboard_checkbox->SetDescription(
       tr("May cause slow down in Wii Menu and some games."));
+  m_forwarder_auto_sync_checkbox->SetDescription(
+      tr("Automatically installs and removes Wii Menu forwarder channels\n"
+         "when disc games are added to or removed from the game list."));
 
   misc_settings_group_layout->addWidget(m_pal60_mode_checkbox, 0, 0, 1, 1);
   misc_settings_group_layout->addWidget(m_connect_keyboard_checkbox, 0, 1, 1, 1);
   misc_settings_group_layout->addWidget(m_screensaver_checkbox, 1, 0, 1, 1);
   misc_settings_group_layout->addWidget(m_wiilink_checkbox, 1, 1, 1, 1);
-  misc_settings_group_layout->addWidget(m_aspect_ratio_choice_label, 2, 0, 1, 1);
-  misc_settings_group_layout->addWidget(m_aspect_ratio_choice, 2, 1, 1, 1);
-  misc_settings_group_layout->addWidget(m_system_language_choice_label, 3, 0, 1, 1);
-  misc_settings_group_layout->addWidget(m_system_language_choice, 3, 1, 1, 1);
-  misc_settings_group_layout->addWidget(m_sound_mode_choice_label, 4, 0, 1, 1);
-  misc_settings_group_layout->addWidget(m_sound_mode_choice, 4, 1, 1, 1);
+  misc_settings_group_layout->addWidget(m_forwarder_auto_sync_checkbox, 2, 0, 1, 2);
+  misc_settings_group_layout->addWidget(m_aspect_ratio_choice_label, 3, 0, 1, 1);
+  misc_settings_group_layout->addWidget(m_aspect_ratio_choice, 3, 1, 1, 1);
+  misc_settings_group_layout->addWidget(m_system_language_choice_label, 4, 0, 1, 1);
+  misc_settings_group_layout->addWidget(m_system_language_choice, 4, 1, 1, 1);
+  misc_settings_group_layout->addWidget(m_sound_mode_choice_label, 5, 0, 1, 1);
+  misc_settings_group_layout->addWidget(m_sound_mode_choice, 5, 1, 1, 1);
 }
 
 void WiiPane::CreateSDCard()
