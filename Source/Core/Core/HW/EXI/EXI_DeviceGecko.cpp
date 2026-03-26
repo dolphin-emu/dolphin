@@ -55,7 +55,8 @@ void GeckoSockServer::GeckoConnectionWaiter()
   Common::SetCurrentThreadName("Gecko Connection Waiter");
 
   sf::TcpListener server;
-  initial_port = 0xd6ec;  // "dolphin gecko"
+  constexpr u16 initial_port = 0xd6ec;  // "dolphin gecko"
+  constexpr int port_retries = 10;
   server_port = initial_port;
   for (int bind_tries = 0; bind_tries <= port_retries && !server_running.IsSet(); bind_tries++)
   {
