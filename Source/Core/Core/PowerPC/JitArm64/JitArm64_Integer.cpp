@@ -1335,6 +1335,13 @@ void JitArm64::subfzex(UGeckoInstruction inst)
     CSETM(gpr.R(d), CC_CC);
     // Carry remains unchanged.
   }
+  else if (gpr.IsImm(a, 0xFFFFFFFF) && js.carryFlag == CarryFlag::InHostCarry)
+  {
+    gpr.BindToRegister(d, false);
+    // RD = ~(-1) + carry = 0 + carry = carry ? 1 : 0
+    CSET(gpr.R(d), CC_CS);
+    ComputeCarry(false);
+  }
   else
   {
     gpr.BindToRegister(d, d == a);
