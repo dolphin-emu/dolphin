@@ -43,6 +43,8 @@ public:
   void OnColumnVisibilityToggled(const QString& row, bool visible);
   void OnGameListVisibilityChanged();
 
+  void UpdateGameCount() const;
+
   void resizeEvent(QResizeEvent* event) override;
 
   void PurgeCache();
@@ -51,6 +53,7 @@ public:
 
 signals:
   void GameSelected();
+  void GameCountUpdated(int total_games, int visible_games) const;
   void OnStartWithRiivolution(const UICommon::GameFile& game);
   void NetPlayHost(const UICommon::GameFile& game);
   void SelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);

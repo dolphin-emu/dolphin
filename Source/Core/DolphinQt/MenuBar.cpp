@@ -596,6 +596,13 @@ void MenuBar::AddViewMenu()
   AddShowRegionsMenu(view_menu);
 
   view_menu->addSeparator();
+  QAction* const show_game_count = view_menu->addAction(tr("Show Game Count"));
+  show_game_count->setCheckable(true);
+  show_game_count->setChecked(Settings::Instance().IsGameCountVisible());
+  connect(show_game_count, &QAction::toggled, &Settings::Instance(),
+          &Settings::SetGameCountVisible);
+
+  view_menu->addSeparator();
   QAction* const purge_action =
       view_menu->addAction(tr("Purge Game List Cache"), this, &MenuBar::PurgeGameListCache);
   purge_action->setEnabled(false);
