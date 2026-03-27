@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <bit>
+#include <optional>
 #include <random>
 #include <string>
 #include <unordered_map>
@@ -240,6 +241,16 @@ static const std::unordered_map<u16, GameType> s_game_map = {
 
 // Sockets FDs are required to go from 0 to 63.
 // Games use the FD as indexes so we have to workaround it.
+// Media-board routing uses boot.id bytes 1-2, not the outer disc ID.
+static std::optional<u16> TryGetTriforceID()
+{
+  const std::string& game_id = SConfig::GetInstance().GetGameID();
+
+  if (game_id.length() == 6)
+    return static_cast<u16>((u8(game_id[1]) << 8) | u8(game_id[2]));
+
+  return std::nullopt;
+}
 
 static std::array<SOCKET, SOCKET_FD_MAX> s_sockets;
 
@@ -2294,28 +2305,23 @@ u32 GetMediaType()
   }
 }
 
-// This is checking for the real game IDs (See boot.id within the game)
 u32 GetGameType()
 {
-  u16 triforce_id = 0;
-  const std::string& game_id = SConfig::GetInstance().GetGameID();
-
-  if (game_id.length() == 6)
+  const auto triforce_id = TryGetTriforceID();
+  if (!triforce_id)
   {
-    triforce_id = game_id[1] << 8 | game_id[2];
-  }
-  else
-  {
-    triforce_id = 0x454A;  // Fallback (VirtuaStriker3)
+    PanicAlertFmtT("Invalid game ID:{0}, using default controls.",
+                   SConfig::GetInstance().GetGameID());
+    return VirtuaStriker3;  // Fallback
   }
 
-  auto it = s_game_map.find(triforce_id);
+  auto it = s_game_map.find(*triforce_id);
   if (it != s_game_map.end())
   {
     return it->second;
   }
 
-  PanicAlertFmtT("Unknown game ID:{0:08x}, using default controls.", triforce_id);
+  PanicAlertFmtT("Unknown game ID:{0:08x}, using default controls.", *triforce_id);
   return VirtuaStriker3;  // Fallback
 }
 
