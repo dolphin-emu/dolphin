@@ -64,6 +64,8 @@ struct SConfig
   const std::string GetTitleName() const;
   const std::string GetTitleDescription() const;
   u64 GetTitleID() const;
+  // Disc/TMD region before Triforce remaps m_region to DEV for boot paths.
+  DiscIO::Region GetTitleRegion() const;
   u16 GetRevision() const;
   void ResetRunningGameMetadata();
   void SetRunningGameMetadata(const DiscIO::Volume& volume, const DiscIO::Partition& partition);
@@ -129,5 +131,6 @@ private:
   std::string m_title_name;
   std::string m_title_description;
   u64 m_title_id;
+  DiscIO::Region m_title_region;
   u16 m_revision;
 };
