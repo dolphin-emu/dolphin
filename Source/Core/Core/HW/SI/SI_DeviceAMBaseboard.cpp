@@ -3,10 +3,9 @@
 
 #include "Core/HW/SI/SI_DeviceAMBaseboard.h"
 
+#include <array>
 #include <algorithm>
 #include <numeric>
-#include <string>
-
 #include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
@@ -33,6 +32,8 @@
 #include "Core/HW/Triforce/Touchscreen.h"
 #include "Core/Movie.h"
 #include "Core/System.h"
+
+#include "DiscIO/Enums.h"
 
 namespace
 {
@@ -70,11 +71,36 @@ constexpr u32 SERIAL_PORT_MAX_READ_SIZE = 0x1f;
 namespace SerialInterface
 {
 
-const constexpr u8 s_region_flags[] = "\x00\x00\x30\x00"
-                                      //   "\x01\xfe\x00\x00"  // JAPAN
-                                      "\x02\xfd\x00\x00"  // USA
-                                      //"\x03\xfc\x00\x00"  // export
-                                      "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff";
+// USA payload; Japan and Export only change bytes 4-5.
+static constexpr std::array<u8, 0x14> s_region_flags = {
+    0x00, 0x00, 0x30, 0x00, 0x02, 0xfd, 0x00, 0x00, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+
+static std::array<u8, 0x14> GetRegionFlagsForGame(DiscIO::Region region)
+{
+  auto region_flags = s_region_flags;
+
+  // GC-AM only distinguishes Japan, USA, and Export here.
+  // Triforce W titles are already normalized to NTSC_J by DiscIO.
+  switch (region)
+  {
+  case DiscIO::Region::NTSC_J:
+    region_flags[4] = 0x01;
+    region_flags[5] = 0xfe;
+    break;
+  case DiscIO::Region::NTSC_U:
+    break;
+  case DiscIO::Region::PAL:
+    region_flags[4] = 0x03;
+    region_flags[5] = 0xfc;
+    break;
+  default:
+    break;
+  }
+
+  return region_flags;
+}
+
 // AM-Baseboard device on SI
 CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(Core::System& system, SIDevices device,
                                              int device_number)
@@ -344,8 +370,10 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
         data_out[data_offset++] = gcam_command;
         data_out[data_offset++] = 0x14;
 
-        for (int i = 0; i < 0x14; ++i)
-          data_out[data_offset++] = s_region_flags[i];
+        // Use the parsed title region; Triforce remaps m_region to DEV for boot paths.
+        const auto region_flags = GetRegionFlagsForGame(SConfig::GetInstance().GetTitleRegion());
+        for (u8 flag : region_flags)
+          data_out[data_offset++] = flag;
 
         data_in += 5;
       }
