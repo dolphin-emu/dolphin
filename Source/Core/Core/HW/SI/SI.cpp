@@ -228,29 +228,21 @@ void SerialInterfaceManager::DoState(PointerWrap& p)
   p.Do(m_si_buffer);
 }
 
-template <int device_number>
-void SerialInterfaceManager::DeviceEventCallback(Core::System& system, u64 userdata, s64 cyclesLate)
-{
-  const auto& si = system.GetSerialInterface();
-  si.m_channel[device_number].device->OnEvent(userdata, cyclesLate);
-}
-
 void SerialInterfaceManager::RegisterEvents()
 {
   auto& core_timing = m_system.GetCoreTiming();
+
   m_event_type_change_device = core_timing.RegisterEvent("ChangeSIDevice", ChangeDeviceCallback);
   m_event_type_tranfer_pending = core_timing.RegisterEvent("SITransferPending", GlobalRunSIBuffer);
 
-  constexpr std::array<CoreTiming::TimedCallback, MAX_SI_CHANNELS> event_callbacks = {
-      DeviceEventCallback<0>,
-      DeviceEventCallback<1>,
-      DeviceEventCallback<2>,
-      DeviceEventCallback<3>,
-  };
-  for (int i = 0; i < MAX_SI_CHANNELS; ++i)
+  for (u32 i = 0; i != MAX_SI_CHANNELS; ++i)
   {
+    auto& channel = m_channel[i];
     m_event_types_device[i] =
-        core_timing.RegisterEvent(fmt::format("SIEventChannel{}", i), event_callbacks[i]);
+        core_timing.RegisterEvent(fmt::format("SIEventChannel{}", i),
+                                  [&channel](Core::System&, u64 user_data, s64 cycles_late) {
+                                    channel.device->OnEvent(user_data, cycles_late);
+                                  });
   }
 }
 
