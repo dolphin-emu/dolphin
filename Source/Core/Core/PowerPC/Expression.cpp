@@ -5,8 +5,14 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <cmath>
+#include <fmt/core.h>
+#include <iomanip>
+#include <iostream>
+#include <limits>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -27,6 +33,7 @@ using std::isnan;
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/PowerPC/MMU.h"
@@ -483,4 +490,229 @@ void Expression::ComputeRegistersUsed()
   }
 
   m_has_computed_registers_used = true;
+}
+
+MathExpression::MathExpression() : m_vars(new expr_var_list{})
+{
+}
+
+bool MathExpression::GetFunction(std::string& text, Type* type, std::string* function)
+{
+  auto map_type = [](std::string_view token) -> std::optional<Type> {
+    if (Common::CaseInsensitiveEquals(token, "u8"))
+      return Type::U8;
+    if (Common::CaseInsensitiveEquals(token, "u16"))
+      return Type::U16;
+    if (Common::CaseInsensitiveEquals(token, "u32"))
+      return Type::U32;
+    if (Common::CaseInsensitiveEquals(token, "s8"))
+      return Type::S8;
+    if (Common::CaseInsensitiveEquals(token, "s16"))
+      return Type::S16;
+    if (Common::CaseInsensitiveEquals(token, "s32"))
+      return Type::S32;
+    if (Common::CaseInsensitiveEquals(token, "f32"))
+      return Type::F32;
+    if (Common::CaseInsensitiveEquals(token, "float"))
+      return Type::F32;
+    return std::nullopt;
+  };
+
+  // Split type and remaining text.
+  std::istringstream ss(text);
+  std::string type_str;
+
+  // Get type
+  ss >> std::ws >> type_str;
+
+  // Dump the rest as the function
+  std::getline(ss, *function);
+
+  auto t = map_type(type_str);
+  if (!t.has_value())
+  {
+    NOTICE_LOG_FMT(ACTIONREPLAY, "Invalid return type: {}, in expression", type_str);
+    return false;
+  }
+
+  *type = t.value();
+  return true;
+}
+
+std::optional<std::string> MathExpression::ExpressionToHex(Type type, std::string_view expression)
+{
+  struct expr* e = expr_create(expression.data(), expression.size(), m_vars.get(), nullptr);
+  if (!e)
+    return std::nullopt;
+
+  double result = expr_eval(e);
+  expr_destroy(e, nullptr);
+
+  if (std::isinf(result))
+    return std::nullopt;
+
+  // Convert the result to type
+  std::string out;
+  switch (type)
+  {
+  case Type::U8:
+  {
+    result = std::round(result);
+    if (result > std::numeric_limits<u8>::max() || result < std::numeric_limits<u8>::min())
+      return std::nullopt;
+
+    const u8 value = static_cast<u8>(result);
+    out = fmt::format("{:02x}\n", value);
+    break;
+  }
+  case Type::U16:
+  {
+    result = std::round(result);
+    if (result > std::numeric_limits<u16>::max() || result < std::numeric_limits<u16>::min())
+      return std::nullopt;
+
+    const u16 value = static_cast<u16>(result);
+    out = fmt::format("{:04x}\n", value);
+    break;
+  }
+  case Type::U32:
+  {
+    result = std::round(result);
+    if (result > std::numeric_limits<u32>::max() || result < std::numeric_limits<u32>::min())
+      return std::nullopt;
+
+    const u32 value = static_cast<u32>(result);
+    out = fmt::format("{:08x}\n", value);
+    break;
+  }
+  case Type::S8:
+  {
+    result = std::round(result);
+    if (result > std::numeric_limits<s8>::max() || result < std::numeric_limits<s8>::min())
+      return std::nullopt;
+
+    const s8 value = static_cast<s8>(result);
+    out = fmt::format("{:02x}\n", value);
+    break;
+  }
+  case Type::S16:
+  {
+    result = std::round(result);
+    if (result > std::numeric_limits<s16>::max() || result < std::numeric_limits<s16>::min())
+      return std::nullopt;
+
+    const s16 value = static_cast<s16>(result);
+    out = fmt::format("{:04x}\n", value);
+    break;
+  }
+  case Type::S32:
+  {
+    result = std::round(result);
+    if (result > std::numeric_limits<s32>::max() || result < std::numeric_limits<s32>::min())
+      return std::nullopt;
+
+    const s32 value = static_cast<s32>(result);
+    out = fmt::format("{:08x}\n", value);
+    break;
+  }
+  case Type::F32:
+  {
+    if (result > std::numeric_limits<float>::max() || result < -std::numeric_limits<float>::max() ||
+        std::isinf(result) || std::isnan(result))
+      return std::nullopt;
+
+    const float f = static_cast<float>(result);
+    const u32 bits = std::bit_cast<u32>(f);
+    out = fmt::format("{:08x}\n", bits);
+    break;
+  }
+  default:
+    return std::nullopt;
+    break;
+  }
+
+  return out;
+}
+
+std::optional<std::string> MathExpression::ModifyBracedBlocks(std::string& text)
+{
+  // Takes optional variable declarations at the start of the string:
+  // { variable = 2, another = 3}
+  // Then replaces expressions with their value in hex for the rest.
+  // Using { type expression } syntax:
+  // 04123456 { float variable / 2 }
+  // Would become:
+  // 04123456 3f800000
+  // Accepts u8, s8, u16, s16, u32, s32, and f32/float types.
+
+  if (text.empty())
+    return std::nullopt;
+
+  std::istringstream ss(text);
+  std::ostringstream oss;
+
+  ss >> std::ws;
+
+  // If the top line is { variables } turn them into vars.
+  if (ss.peek() == '{')
+  {
+    // Skip the opening brace.
+    ss.ignore();
+
+    std::string varlist;
+    std::getline(ss, varlist, '}');
+
+    // No closing brace.
+    if (ss.eof())
+    {
+      NOTICE_LOG_FMT(ACTIONREPLAY, "Missing closing brace in expression.");
+      return std::nullopt;
+    }
+
+    struct expr* e = expr_create(varlist.c_str(), varlist.size(), m_vars.get(), nullptr);
+    if (e != nullptr)
+    {
+      // Evaluate var list expression so variables get their values.
+      (void)expr_eval(e);
+      // Destroy the expression but do not free vars (pass nullptr for vars arg).
+      expr_destroy(e, nullptr);
+    }
+  }
+
+  // Replace all other { code } with their expr -> hex result.
+  while (!ss.eof())
+  {
+    std::string raw_section;
+    std::getline(ss, raw_section, '{');
+    oss << raw_section;
+
+    // Break if no more braces.
+    if (ss.eof())
+      break;
+
+    // Process braced section
+    std::string code;
+    std::getline(ss, code, '}');
+    if (ss.eof())
+    {
+      NOTICE_LOG_FMT(ACTIONREPLAY, "Missing closing brace in expression.");
+      return std::nullopt;
+    }
+
+    Type type;
+    std::string expression;
+    if (!GetFunction(code, &type, &expression))
+      return std::nullopt;
+
+    auto result = ExpressionToHex(type, expression);
+    if (!result.has_value())
+    {
+      NOTICE_LOG_FMT(ACTIONREPLAY, "Error in expression: {}", expression);
+      return std::nullopt;
+    }
+
+    oss << result.value();
+  }
+
+  return oss.str();
 }
