@@ -272,17 +272,9 @@ static MediaBoardVersionOverrides GetMediaBoardVersionOverrides()
   switch (static_cast<GameType>(GetGameType()))
   {
   case VirtuaStriker4:
-    return {
-      .segaboot_ver_maj = 0x06,
-      .segaboot_ver_min = 0x28,
-      .network_ver = 0x1211
-    };
+    return {.segaboot_ver_maj = 0x06, .segaboot_ver_min = 0x28, .network_ver = 0x1211};
   case VirtuaStriker4_2006:
-    return {
-      .segaboot_ver_maj = 0x06,
-      .segaboot_ver_min = 0x21,
-      .network_ver = 0x1305
-    };
+    return {.segaboot_ver_maj = 0x06, .segaboot_ver_min = 0x21, .network_ver = 0x1305};
   default:
     return {};
   }
@@ -1657,7 +1649,7 @@ u32 ExecuteCommand(std::array<u32, 3>& dicmd_buf, u32* diimm_buf, u32 address, u
       {
         const u16 version = GetMediaBoardVersionOverrides().network_ver.value_or(STOCK_NETWORK_VER);
         s_media_buffer_32[1] = version;
-        s_media_buffer[6] = 1;          // Type: VxWorks
+        s_media_buffer[6] = 1;  // Type: VxWorks
         break;
       }
       case AMMBCommand::GetSystemFlags:

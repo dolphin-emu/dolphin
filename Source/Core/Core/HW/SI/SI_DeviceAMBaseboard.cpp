@@ -3,9 +3,10 @@
 
 #include "Core/HW/SI/SI_DeviceAMBaseboard.h"
 
-#include <array>
 #include <algorithm>
+#include <array>
 #include <numeric>
+
 #include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
@@ -72,9 +73,9 @@ namespace SerialInterface
 {
 
 // USA payload; Japan and Export only change bytes 4-5.
-static constexpr std::array<u8, 0x14> s_region_flags = {
-    0x00, 0x00, 0x30, 0x00, 0x02, 0xfd, 0x00, 0x00, 0xff, 0xff, 0xff,
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+static constexpr std::array<u8, 0x14> s_region_flags = {0x00, 0x00, 0x30, 0x00, 0x02, 0xfd, 0x00,
+                                                        0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                                                        0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
 static std::array<u8, 0x14> GetRegionFlagsForGame(DiscIO::Region region)
 {
