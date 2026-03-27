@@ -242,6 +242,9 @@ void GeckoCodeWidget::EditCode()
   if (m_cheat_code_editor->exec() == QDialog::Rejected)
     return;
 
+  // Refresh the code preview, before UpdateList recreates items.
+  OnSelectionChanged();
+
   SaveCodes();
   UpdateList();
 
@@ -357,6 +360,9 @@ void GeckoCodeWidget::OnListReordered()
 
 void GeckoCodeWidget::UpdateList()
 {
+  // Restore selected item.
+  const int item_selected = m_code_list->currentRow();
+
   m_code_list->clear();
 
   for (size_t i = 0; i < m_gecko_codes.size(); i++)
@@ -390,6 +396,7 @@ void GeckoCodeWidget::UpdateList()
     m_code_list->addItem(item);
   }
 
+  m_code_list->setCurrentRow(std::clamp(item_selected, 0, m_code_list->count() - 1));
   m_code_list->setDragDropMode(QAbstractItemView::InternalMove);
 }
 
