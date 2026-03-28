@@ -7,6 +7,7 @@
 
 #include <array>
 #include <memory>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -77,6 +78,15 @@ public:
   void SendJoybusCommand(u64 gc_ticks, int transfer_time, u8* buffer, u16 keys);
   int GetJoybusResponse(u8* data_out);
 
+  // Wait for requested GBA emulation to complete.
+  void Flush();
+
+  mAudioBuffer* GetAudioBuffer() { return m_core->getAudioBuffer(m_core); }
+  std::span<const u32> GetVideoBuffer() const { return m_video_buffer; }
+
+  mPlatform GetPlatform() const { return m_core->platform(m_core); }
+  u32 GetAudioSampleRate() const { return m_core->audioSampleRate(m_core); }
+
   void ImportState(std::string_view state_path);
   void ExportState(std::string_view state_path);
   void ImportSave(std::string_view save_path);
@@ -89,7 +99,6 @@ public:
 private:
   void RunUntil(u64 gc_ticks);
   void RunFor(u64 gc_ticks);
-  void Flush();
 
   enum class SyncEventType : u8
   {
