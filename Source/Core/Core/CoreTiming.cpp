@@ -70,7 +70,7 @@ EventType* CoreTimingManager::RegisterEvent(const std::string& name, TimedCallba
              "during Init to avoid breaking save states.",
              name);
 
-  auto info = m_event_types.emplace(name, EventType{callback, nullptr});
+  auto info = m_event_types.emplace(name, EventType{std::move(callback), nullptr});
   EventType* event_type = &info.first->second;
   event_type->name = &info.first->first;
   return event_type;
