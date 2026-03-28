@@ -238,11 +238,15 @@ bool Core::Start(u64 gc_ticks)
   m_gc_ticks_remainder = 0;
   m_keys = 0;
 
-  SetSIODriver();
+  if (m_device_number != Config::GBPLAYER_GBA_INDEX)
+  {
+    SetSIODriver();
+    SetAVStream();
+  }
+
   SetVideoBuffer();
   SetAudioBufferSize();
   AddCallbacks();
-  SetAVStream();
   SetupEvent();
 
   m_core->reset(m_core);
@@ -394,10 +398,28 @@ void Core::SetSIODriver()
 
 void Core::SetVideoBuffer()
 {
-  u32 width, height;
-  m_core->currentVideoSize(m_core, &width, &height);
-  m_video_buffer.resize(width * height);
-  m_core->setVideoBuffer(m_core, m_video_buffer.data(), width);
+  if (m_device_number == Config::GBPLAYER_GBA_INDEX)
+  {
+    // GBPlayer expects a GBA-sized video buffer even in GB mode.
+    // Clear it first to avoid stuck colors from the previous game on switch from GBA->GB.
+    m_video_buffer.clear();
+    m_video_buffer.resize(std::size_t{GBA_VIDEO_HORIZONTAL_PIXELS} * GBA_VIDEO_VERTICAL_PIXELS);
+
+    constexpr size_t GB_VIDEO_OFFSET = 1960;
+
+    m_core->setVideoBuffer(
+        m_core, m_video_buffer.data() + ((GetPlatform() == mPLATFORM_GBA) ? 0 : GB_VIDEO_OFFSET),
+        GBA_VIDEO_HORIZONTAL_PIXELS);
+  }
+  else
+  {
+    u32 width;
+    u32 height;
+    m_core->currentVideoSize(m_core, &width, &height);
+    m_video_buffer.resize(std::size_t{width} * height);
+    m_core->setVideoBuffer(m_core, m_video_buffer.data(), width);
+  }
+
   if (auto host = m_host.lock())
     host->GameChanged();
 }
