@@ -317,6 +317,7 @@
     <ClInclude Include="Core\HW\HSP\HSP.h" />
     <ClInclude Include="Core\HW\HSP\HSP_Device.h" />
     <ClInclude Include="Core\HW\HSP\HSP_DeviceARAMExpansion.h" />
+    <ClInclude Include="Core\HW\HSP\HSP_DeviceGBPlayer.h" />
     <ClInclude Include="Core\HW\HSP\HSP_DeviceNull.h" />
     <ClInclude Include="Core\HW\HW.h" />
     <ClInclude Include="Core\HW\MagCard\C1231BR.h" />
@@ -1026,6 +1027,7 @@
     <ClCompile Include="Core\HW\HSP\HSP.cpp" />
     <ClCompile Include="Core\HW\HSP\HSP_Device.cpp" />
     <ClCompile Include="Core\HW\HSP\HSP_DeviceARAMExpansion.cpp" />
+    <ClCompile Include="Core\HW\HSP\HSP_DeviceGBPlayer.cpp" />
     <ClCompile Include="Core\HW\HSP\HSP_DeviceNull.cpp" />
     <ClCompile Include="Core\HW\HW.cpp" />
     <ClCompile Include="Core\HW\MagCard\C1231BR.cpp" />
