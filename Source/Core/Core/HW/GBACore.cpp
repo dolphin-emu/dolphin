@@ -114,7 +114,7 @@ static VFile* OpenROM_Zip(const char* path)
       continue;
 
     vf = VFileMemChunk(buffer.data(), info->uncompressed_size);
-    if (mCoreIsCompatible(vf) == mPLATFORM_GBA)
+    if (mCoreIsCompatible(vf) != mPLATFORM_NONE)
     {
       vf->seek(vf, 0, SEEK_SET);
       break;
