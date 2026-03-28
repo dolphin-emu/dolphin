@@ -470,12 +470,20 @@ void Core::SetupEvent()
   m_event.priority = 0x80;
 }
 
+void Core::RunFrame(u16 keys)
+{
+  PushEvent({
+      .event_type = SyncEventType::RunFrame,
+      .keys = keys,
+  });
+}
+
 void Core::SyncJoybus(u64 gc_ticks, u16 keys)
 {
   PushEvent({
-      .run_until_ticks = gc_ticks,
+      .event_type = SyncEventType::TimeSync,
       .keys = keys,
-      .event_type = JoybusEventType::TimeSync,
+      .run_until_ticks = gc_ticks,
   });
 }
 
@@ -491,9 +499,9 @@ void Core::SendJoybusCommand(u64 gc_ticks, int transfer_time, u8* buffer, u16 ke
   m_command_pending.store(true, std::memory_order_relaxed);
 
   PushEvent({
-      .run_until_ticks = gc_ticks,
+      .event_type = SyncEventType::RunCommand,
       .keys = keys,
-      .event_type = JoybusEventType::RunCommand,
+      .run_until_ticks = gc_ticks,
   });
 }
 
@@ -510,7 +518,7 @@ void Core::Flush()
   m_event_thread.WaitForCompletion();
 }
 
-void Core::PushEvent(JoybusEvent event)
+void Core::PushEvent(SyncEvent event)
 {
   if (m_event_thread.IsRunning())
     m_event_thread.Push(event);
@@ -518,12 +526,22 @@ void Core::PushEvent(JoybusEvent event)
     HandleEvent(event);
 }
 
-void Core::HandleEvent(JoybusEvent event)
+void Core::HandleEvent(SyncEvent event)
 {
   m_keys = event.keys;
+
+  if (event.event_type == SyncEventType::RunFrame)
+  {
+    m_last_gc_ticks = m_system.GetCoreTiming().GetTicks();
+    m_gc_ticks_remainder = 0;
+
+    m_core->runFrame(m_core);
+    return;
+  }
+
   RunUntil(event.run_until_ticks);
 
-  if (event.event_type != JoybusEventType::RunCommand)
+  if (event.event_type != SyncEventType::RunCommand)
     return;
 
   if (m_link_enabled && !m_force_disconnect)
