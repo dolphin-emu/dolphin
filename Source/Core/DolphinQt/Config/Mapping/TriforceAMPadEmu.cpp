@@ -45,6 +45,8 @@ int GetGameFamilyStackIndex(TriforceAMPadEmu::GameFamily game_family)
     return 1;
   case TriforceAMPadEmu::GameFamily::MarioKartGP:
     return 2;
+  case TriforceAMPadEmu::GameFamily::FZeroAX:
+    return 3;
   default:
     return 0;
   }
@@ -62,6 +64,8 @@ QString GetGameFamilyLabel(TriforceAMPadEmu::GameFamily game_family)
     return TriforceAMPadEmu::tr("Virtua Striker");
   case TriforceAMPadEmu::GameFamily::MarioKartGP:
     return TriforceAMPadEmu::tr("Mario Kart GP");
+  case TriforceAMPadEmu::GameFamily::FZeroAX:
+    return TriforceAMPadEmu::tr("F-Zero AX");
   default:
     return {};
   }
@@ -144,8 +148,9 @@ TriforceAMPadEmu::TriforceAMPadEmu(MappingWindow* window) : MappingWidget(window
   m_family_box = new QGroupBox(tr("Game Mapping"));
   auto* const family_layout = new QHBoxLayout{m_family_box};
   m_family_combo = new QComboBox{m_family_box};
-  for (const GameFamily game_family : {GameFamily::Auto, GameFamily::GenericTriforce,
-                                       GameFamily::VirtuaStriker, GameFamily::MarioKartGP})
+  for (const GameFamily game_family :
+       {GameFamily::Auto, GameFamily::GenericTriforce, GameFamily::VirtuaStriker,
+        GameFamily::MarioKartGP, GameFamily::FZeroAX})
   {
     m_family_combo->addItem(GetGameFamilyDisplayName(game_family), static_cast<int>(game_family));
   }
@@ -292,6 +297,7 @@ void TriforceAMPadEmu::CreateMainLayout()
   m_family_stack->addWidget(CreateGenericTriforceWidget());
   m_family_stack->addWidget(CreateVirtuaStrikerWidget());
   m_family_stack->addWidget(CreateMarioKartGPWidget());
+  m_family_stack->addWidget(CreateFZeroAXWidget());
   main_layout->addWidget(m_family_stack);
 }
 
@@ -339,6 +345,35 @@ QWidget* TriforceAMPadEmu::CreateMarioKartGPWidget()
                     0);
   layout->addWidget(
       CreateGroupBox(tr("Control Stick"), Pad::GetGroup(GetPort(), PadGroup::MainStick)), 0, 1, 2,
+      1);
+  layout->addWidget(CreateAliasedTriggerBox(tr("Triggers"),
+                                            Pad::GetGroup(GetPort(), PadGroup::Triggers),
+                                            {{"Brake", 2}, {"Gas", 3}}),
+                    0, 2);
+  layout->addWidget(CreateGroupBox(tr("Options"), Pad::GetGroup(GetPort(), PadGroup::Options)), 1,
+                    2);
+
+  return widget;
+}
+
+QWidget* TriforceAMPadEmu::CreateFZeroAXWidget()
+{
+  auto* const widget = new QWidget(this);
+  auto* const layout = new QGridLayout(widget);
+
+  layout->addWidget(
+      CreateAliasedControlsBox(tr("Buttons"), Pad::GetGroup(GetPort(), PadGroup::Buttons),
+                               {{"Boost", 0}, {"Paddle Left", 2}, {"Paddle Right", 3}}),
+      0, 0);
+  layout->addWidget(
+      CreateAliasedControlsBox(
+          tr("D-Pad"), Pad::GetGroup(GetPort(), PadGroup::DPad),
+          {{"View Change 1", 3}, {"View Change 2", 2}, {"View Change 3", 0}, {"View Change 4", 1}}),
+      1, 0);
+  layout->addWidget(CreateGroupBox(tr("Triforce"), Pad::GetGroup(GetPort(), PadGroup::Triforce)), 2,
+                    0);
+  layout->addWidget(
+      CreateGroupBox(tr("Control Stick"), Pad::GetGroup(GetPort(), PadGroup::MainStick)), 0, 1, 3,
       1);
   layout->addWidget(CreateAliasedTriggerBox(tr("Triggers"),
                                             Pad::GetGroup(GetPort(), PadGroup::Triggers),

@@ -50,6 +50,7 @@ private:
   QWidget* CreateGenericTriforceWidget();
   QWidget* CreateVirtuaStrikerWidget();
   QWidget* CreateMarioKartGPWidget();
+  QWidget* CreateFZeroAXWidget();
   void PersistSettings(GameFamily game_family);
   void ApplySelectedGameFamily();
   void CaptureCurrentGameFamilyConfig();
