@@ -27,9 +27,9 @@
 #include "Common/Crypto/SHA1.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
+#include "Common/Logging/Log.h"
 #include "Common/MinizipUtil.h"
 #include "Common/ScopeGuard.h"
-#include "Common/Thread.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -209,10 +209,9 @@ bool Core::Start(u64 gc_ticks)
   mCoreConfigSetIntValue(&m_core->config, "useBios", 0);
   mCoreConfigSetIntValue(&m_core->config, "skipBios", 0);
 
-  if (m_core->platform(m_core) == mPLATFORM_GBA &&
-      !LoadBIOS(File::GetUserPath(F_GBABIOS_IDX).c_str()))
+  if (m_core->platform(m_core) == mPLATFORM_GBA)
   {
-    return false;
+    LoadBIOS(File::GetUserPath(F_GBABIOS_IDX).c_str());
   }
 
   if (rom)
@@ -338,13 +337,13 @@ bool Core::LoadBIOS(const char* bios_path)
   VFile* vf = VFileOpen(bios_path, O_RDONLY);
   if (!vf)
   {
-    PanicAlertFmtT("Error: GBA{0} failed to open the BIOS in {1}", m_device_number + 1, bios_path);
+    ERROR_LOG_FMT(CORE, "GBA{0} failed to open the BIOS in {1}", m_device_number + 1, bios_path);
     return false;
   }
 
   if (!m_core->loadBIOS(m_core, vf, 0))
   {
-    PanicAlertFmtT("Error: GBA{0} failed to load the BIOS in {1}", m_device_number + 1, bios_path);
+    ERROR_LOG_FMT(CORE, "GBA{0} failed to load the BIOS in {1}", m_device_number + 1, bios_path);
     vf->close(vf);
     return false;
   }
