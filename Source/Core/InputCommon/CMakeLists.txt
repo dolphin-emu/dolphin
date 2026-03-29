@@ -9,6 +9,7 @@ add_library(inputcommon
   InputConfig.h
   InputProfile.cpp
   InputProfile.h
+  TriforcePadProfile.h
   ControllerEmu/ControllerEmu.cpp
   ControllerEmu/ControllerEmu.h
   ControllerEmu/StickGate.cpp
