@@ -28,13 +28,14 @@ enum class GameFamily
   MarioKartGP,
   FZeroAX,
   GekitouProYakyuu,
+  KeyOfAvalon,
 };
 
 constexpr std::string_view PROFILE_SECTION = "Profile";
 constexpr std::string_view GAME_MAPPING_KEY = "GameMapping";
-constexpr std::array<GameFamily, 5> REAL_GAME_FAMILIES = {
-    GameFamily::GenericTriforce, GameFamily::VirtuaStriker, GameFamily::MarioKartGP,
-    GameFamily::FZeroAX, GameFamily::GekitouProYakyuu};
+constexpr std::array<GameFamily, 6> REAL_GAME_FAMILIES = {
+    GameFamily::GenericTriforce, GameFamily::VirtuaStriker,    GameFamily::MarioKartGP,
+    GameFamily::FZeroAX,         GameFamily::GekitouProYakyuu, GameFamily::KeyOfAvalon};
 
 inline std::string_view GetGameFamilyName(GameFamily game_family)
 {
@@ -52,6 +53,8 @@ inline std::string_view GetGameFamilyName(GameFamily game_family)
     return "FZeroAX";
   case GameFamily::GekitouProYakyuu:
     return "GekitouProYakyuu";
+  case GameFamily::KeyOfAvalon:
+    return "KeyOfAvalon";
   }
 
   return "Auto";
@@ -96,6 +99,8 @@ inline std::optional<GameFamily> DetectRunningGameFamily()
     return GameFamily::FZeroAX;
   case AMMediaboard::GameType::GekitouProYakyuu:
     return GameFamily::GekitouProYakyuu;
+  case AMMediaboard::GameType::KeyOfAvalon:
+    return GameFamily::KeyOfAvalon;
   default:
     break;
   }

@@ -3,6 +3,9 @@
 
 #include "DolphinQt/Config/Mapping/TriforceAMPadEmu.h"
 
+#include <algorithm>
+#include <cmath>
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
@@ -10,6 +13,7 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QMessageBox>
+#include <QPainter>
 #include <QPushButton>
 #include <QStackedWidget>
 #include <QVBoxLayout>
@@ -18,6 +22,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/MathUtil.h"
 
 #include "Core/HW/GCPad.h"
 #include "Core/HW/PadGroups.h"
@@ -25,6 +30,7 @@
 #include "DolphinQt/Config/Mapping/GCPadEmu.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "DolphinQt/Config/Mapping/MappingIndicator.h"
+#include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
 #include "InputCommon/InputConfig.h"
@@ -33,6 +39,48 @@ namespace
 {
 constexpr const char* TRIFORCE_PROFILE_DIRECTORY = "TriforcePad";
 constexpr std::string_view TRIFORCE_CONFIG_SECTION_SUFFIX = ".TriforcePad";
+
+Common::DVec2 ExpandCircleToSquare(Common::DVec2 point)
+{
+  const double max_axis = std::max(std::abs(point.x), std::abs(point.y));
+  if (max_axis == 0.0)
+    return point;
+
+  const double radius = std::hypot(point.x, point.y);
+  const double scale = radius / max_axis;
+  return {std::clamp(point.x * scale, -1.0, 1.0), std::clamp(point.y * scale, -1.0, 1.0)};
+}
+
+class TouchSurfaceIndicator final : public SquareIndicator
+{
+public:
+  explicit TouchSurfaceIndicator(ControllerEmu::AnalogStick& stick) : m_stick(stick) {}
+
+private:
+  void Draw() override
+  {
+    const Common::DVec2 touch_point = ExpandCircleToSquare(m_stick.GetReshapableState(false));
+
+    QPainter p(this);
+    DrawBoundingBox(p);
+    TransformPainter(p);
+    p.scale(1.0, -1.0);
+
+    QPen center_pen(GetCenterColor(), 4.0);
+    center_pen.setCosmetic(true);
+    center_pen.setCapStyle(Qt::RoundCap);
+    p.setPen(center_pen);
+    p.drawPoint(QPointF{});
+
+    QPen touch_pen(GetAdjustedInputColor(), 4.0);
+    touch_pen.setCosmetic(true);
+    touch_pen.setCapStyle(Qt::RoundCap);
+    p.setPen(touch_pen);
+    p.drawPoint(QPointF{touch_point.x, touch_point.y});
+  }
+
+  ControllerEmu::AnalogStick& m_stick;
+};
 
 int GetGameFamilyStackIndex(TriforceAMPadEmu::GameFamily game_family)
 {
@@ -49,6 +97,8 @@ int GetGameFamilyStackIndex(TriforceAMPadEmu::GameFamily game_family)
     return 3;
   case TriforceAMPadEmu::GameFamily::GekitouProYakyuu:
     return 4;
+  case TriforceAMPadEmu::GameFamily::KeyOfAvalon:
+    return 5;
   default:
     return 0;
   }
@@ -70,6 +120,8 @@ QString GetGameFamilyLabel(TriforceAMPadEmu::GameFamily game_family)
     return TriforceAMPadEmu::tr("F-Zero AX");
   case TriforceAMPadEmu::GameFamily::GekitouProYakyuu:
     return TriforceAMPadEmu::tr("Gekitou Pro Yakyuu");
+  case TriforceAMPadEmu::GameFamily::KeyOfAvalon:
+    return TriforceAMPadEmu::tr("Key of Avalon");
   default:
     return {};
   }
@@ -154,7 +206,8 @@ TriforceAMPadEmu::TriforceAMPadEmu(MappingWindow* window) : MappingWidget(window
   m_family_combo = new QComboBox{m_family_box};
   for (const GameFamily game_family :
        {GameFamily::Auto, GameFamily::GenericTriforce, GameFamily::VirtuaStriker,
-        GameFamily::MarioKartGP, GameFamily::FZeroAX, GameFamily::GekitouProYakyuu})
+        GameFamily::MarioKartGP, GameFamily::FZeroAX, GameFamily::GekitouProYakyuu,
+        GameFamily::KeyOfAvalon})
   {
     m_family_combo->addItem(GetGameFamilyDisplayName(game_family), static_cast<int>(game_family));
   }
@@ -303,6 +356,7 @@ void TriforceAMPadEmu::CreateMainLayout()
   m_family_stack->addWidget(CreateMarioKartGPWidget());
   m_family_stack->addWidget(CreateFZeroAXWidget());
   m_family_stack->addWidget(CreateGekitouProYakyuuWidget());
+  m_family_stack->addWidget(CreateKeyOfAvalonWidget());
   main_layout->addWidget(m_family_stack);
 }
 
@@ -406,6 +460,24 @@ QWidget* TriforceAMPadEmu::CreateGekitouProYakyuuWidget()
                     0);
   layout->addWidget(CreateGroupBox(tr("Options"), Pad::GetGroup(GetPort(), PadGroup::Options)), 2,
                     1);
+
+  return widget;
+}
+
+QWidget* TriforceAMPadEmu::CreateKeyOfAvalonWidget()
+{
+  auto* const widget = new QWidget(this);
+  auto* const layout = new QGridLayout(widget);
+
+  layout->addWidget(
+      CreateMixedControlsBox(tr("Touch"),
+                             {{"Touch Tap", Pad::GetGroup(GetPort(), PadGroup::Triggers), 3}}),
+      0, 0);
+  layout->addWidget(CreateGroupBox(tr("Triforce"), Pad::GetGroup(GetPort(), PadGroup::Triforce)), 1,
+                    0);
+  layout->addWidget(CreateKeyOfAvalonTouchBox(), 0, 1, 2, 1);
+  layout->addWidget(CreateGroupBox(tr("Options"), Pad::GetGroup(GetPort(), PadGroup::Options)), 1,
+                    2);
 
   return widget;
 }
@@ -584,6 +656,39 @@ TriforceAMPadEmu::CreateMixedControlsBox(const QString& name,
 
   for (const MixedControlAlias control : controls)
     CreateControl(tr(control.label), control.group->controls[control.index].get(), layout, true);
+
+  return group_box;
+}
+
+QGroupBox* TriforceAMPadEmu::CreateKeyOfAvalonTouchBox()
+{
+  auto* const group_box = new QGroupBox(tr("Touchscreen"));
+  auto* const layout = new QFormLayout(group_box);
+  auto* const indicator = new TouchSurfaceIndicator(
+      *static_cast<ControllerEmu::AnalogStick*>(Pad::GetGroup(GetPort(), PadGroup::CStick)));
+  auto* const indicator_layout = new QBoxLayout(QBoxLayout::Direction::Down);
+  indicator_layout->addWidget(indicator);
+  indicator_layout->setAlignment(Qt::AlignCenter);
+  layout->addRow(indicator_layout);
+
+  connect(this, &MappingWidget::Update, indicator, qOverload<>(&MappingIndicator::update));
+
+  ControllerEmu::ControlGroup* const group = Pad::GetGroup(GetPort(), PadGroup::CStick);
+  for (auto& control : group->controls)
+    CreateControl(control.get(), layout, false);
+
+  AddSettingWidgets(layout, group, ControllerEmu::SettingVisibility::Normal);
+
+  const auto advanced_setting_count =
+      std::ranges::count(group->numeric_settings, ControllerEmu::SettingVisibility::Advanced,
+                         &ControllerEmu::NumericSettingBase::GetVisibility);
+  if (advanced_setting_count != 0)
+  {
+    const auto advanced_button = new QPushButton(tr("Advanced"));
+    layout->addRow(advanced_button);
+    connect(advanced_button, &QPushButton::clicked,
+            [this, group] { ShowAdvancedControlGroupDialog(group); });
+  }
 
   return group_box;
 }

@@ -59,6 +59,7 @@ private:
   QWidget* CreateMarioKartGPWidget();
   QWidget* CreateFZeroAXWidget();
   QWidget* CreateGekitouProYakyuuWidget();
+  QWidget* CreateKeyOfAvalonWidget();
   void PersistSettings(GameFamily game_family);
   void ApplySelectedGameFamily();
   void CaptureCurrentGameFamilyConfig();
@@ -76,6 +77,7 @@ private:
                                      std::initializer_list<ControlAlias> controls);
   QGroupBox* CreateMixedControlsBox(const QString& name,
                                     std::initializer_list<MixedControlAlias> controls);
+  QGroupBox* CreateKeyOfAvalonTouchBox();
   bool ResolveGameFamilyMismatchOnClose(GameFamily* game_family);
 
   void OnGameFamilyChanged(int index);
