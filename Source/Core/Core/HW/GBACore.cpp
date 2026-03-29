@@ -650,11 +650,13 @@ void Core::ExportSave(std::string_view save_path)
 void Core::DoState(PointerWrap& p)
 {
   Flush();
-  if (!IsStarted())
+
+  bool is_started = IsStarted();
+  p.Do(is_started);
+
+  if (!is_started)
   {
-    ::Core::DisplayMessage(fmt::format("GBA{} core not started. Aborting.", m_device_number + 1),
-                           3000);
-    p.SetVerifyMode();
+    Stop();
     return;
   }
 
@@ -674,6 +676,8 @@ void Core::DoState(PointerWrap& p)
     p.SetVerifyMode();
     return;
   }
+
+  Start(0);
 
   p.Do(m_video_buffer);
   p.Do(m_last_gc_ticks);
