@@ -227,9 +227,7 @@ void MappingWindow::ConnectWidgets()
   connect(m_profiles_combo, &QComboBox::editTextChanged, this,
           &MappingWindow::OnProfileTextChanged);
 
-  // We currently use the "Close" button as an "Accept" button so we must save on reject.
-  connect(this, &QDialog::rejected, [this] { emit Save(); });
-  connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
+  connect(m_button_box, &QDialogButtonBox::rejected, this, &MappingWindow::reject);
 
   connect(m_tab_widget, &QTabWidget::currentChanged, this, &MappingWindow::CancelMapping);
 }
@@ -334,9 +332,11 @@ void MappingWindow::OnLoadProfilePressed()
   Common::IniFile ini;
   ini.Load(profile_path.toStdString());
 
-  m_controller->LoadConfig(ini.GetOrCreateSection("Profile"));
+  // TriforcePad profiles may resolve to a family-specific section, so profile
+  // loading has to go through the active mapping widget.
+  m_mapping_widget->LoadProfile(ini);
   m_controller->UpdateReferences(g_controller_interface);
-  m_controller->GetConfig()->GenerateControllerTextures();
+  m_controller->GetConfig()->GenerateControllerTextures(ini);
 
   const auto lock = GetController()->GetStateLock();
   emit ConfigChanged();
@@ -350,13 +350,15 @@ void MappingWindow::OnSaveProfilePressed()
     return;
 
   const std::string profile_path =
-      m_config->GetUserProfileDirectoryPath() + profile_name.toStdString() + ".ini";
+      m_mapping_widget->GetUserProfileDirectoryPath() + profile_name.toStdString() + ".ini";
 
   File::CreateFullPath(profile_path);
 
   Common::IniFile ini;
 
-  m_controller->SaveConfig(ini.GetOrCreateSection("Profile"));
+  // TriforcePad profiles may serialize one binding block per family instead of
+  // the old flat Profile section.
+  m_mapping_widget->SaveProfile(&ini);
   ini.Save(profile_path);
 
   if (m_profiles_combo->findText(profile_name) == -1)
@@ -368,7 +370,7 @@ void MappingWindow::OnSaveProfilePressed()
 
 void MappingWindow::OnOpenProfileFolder()
 {
-  std::string path = m_config->GetUserProfileDirectoryPath();
+  std::string path = m_mapping_widget->GetUserProfileDirectoryPath();
   File::CreateDirs(path);
   QUrl url = QUrl::fromLocalFile(QString::fromStdString(path));
   QDesktopServices::openUrl(url);
@@ -528,11 +530,14 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     return;
   }
 
+  m_mapping_widget = widget;
+
+  if (QWidget* const extra_widget = widget->GetExtraWidget())
+    m_config_layout->addWidget(extra_widget);
+
+  InputConfig* const config = widget->GetConfig();
+  m_controller = config->GetController(GetPort());
   widget->LoadSettings();
-
-  m_config = widget->GetConfig();
-
-  m_controller = m_config->GetController(GetPort());
 
   PopulateProfileSelection();
 }
@@ -541,7 +546,7 @@ void MappingWindow::PopulateProfileSelection()
 {
   m_profiles_combo->clear();
 
-  const std::string profiles_path = m_config->GetUserProfileDirectoryPath();
+  const std::string profiles_path = m_mapping_widget->GetUserProfileDirectoryPath();
   for (const auto& filename : Common::DoFileSearch(profiles_path, ".ini"))
   {
     std::string basename;
@@ -552,7 +557,8 @@ void MappingWindow::PopulateProfileSelection()
 
   m_profiles_combo->insertSeparator(m_profiles_combo->count());
 
-  for (const auto& filename : Common::DoFileSearch(m_config->GetSysProfileDirectoryPath(), ".ini"))
+  for (const auto& filename :
+       Common::DoFileSearch(m_mapping_widget->GetSysProfileDirectoryPath(), ".ini"))
   {
     std::string basename;
     SplitPath(filename, nullptr, &basename, nullptr);
@@ -572,6 +578,16 @@ QWidget* MappingWindow::AddWidget(const QString& name, QWidget* widget)
   auto* const wrapper = GetWrappedWidget(widget);
   m_tab_widget->addTab(wrapper, name);
   return wrapper;
+}
+
+void MappingWindow::reject()
+{
+  // Let the active mapping widget veto the close. Triforce uses this for the
+  // close-time mismatch dialog, while the other mappers just save and allow close.
+  if (m_mapping_widget != nullptr && !m_mapping_widget->OnDialogClosing())
+    return;
+
+  QDialog::reject();
 }
 
 int MappingWindow::GetPort() const

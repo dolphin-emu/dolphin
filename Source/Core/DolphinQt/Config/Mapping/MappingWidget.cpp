@@ -13,6 +13,8 @@
 #include <QLabel>
 #include <QPushButton>
 
+#include "Common/IniFile.h"
+
 #include "DolphinQt/Config/Mapping/IOWindow.h"
 #include "DolphinQt/Config/Mapping/MappingButton.h"
 #include "DolphinQt/Config/Mapping/MappingIndicator.h"
@@ -26,6 +28,7 @@
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/InputConfig.h"
 
 MappingWidget::MappingWidget(MappingWindow* parent) : m_parent(parent)
 {
@@ -37,6 +40,42 @@ MappingWidget::MappingWidget(MappingWindow* parent) : m_parent(parent)
 MappingWindow* MappingWidget::GetParent() const
 {
   return m_parent;
+}
+
+QWidget* MappingWidget::GetExtraWidget() const
+{
+  return nullptr;
+}
+
+std::string MappingWidget::GetUserProfileDirectoryPath()
+{
+  return GetConfig()->GetUserProfileDirectoryPath();
+}
+
+std::string MappingWidget::GetSysProfileDirectoryPath()
+{
+  return GetConfig()->GetSysProfileDirectoryPath();
+}
+
+void MappingWidget::LoadProfile(const Common::IniFile& ini)
+{
+  const Common::IniFile::Section* const section = ini.GetSection("Profile");
+  if (section != nullptr)
+  {
+    Common::IniFile::Section copy = *section;
+    GetController()->LoadConfig(&copy);
+  }
+}
+
+void MappingWidget::SaveProfile(Common::IniFile* ini)
+{
+  GetController()->SaveConfig(ini->GetOrCreateSection("Profile"));
+}
+
+bool MappingWidget::OnDialogClosing()
+{
+  SaveSettings();
+  return true;
 }
 
 int MappingWidget::GetPort() const

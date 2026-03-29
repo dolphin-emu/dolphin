@@ -11,7 +11,6 @@ namespace ControllerEmu
 class EmulatedController;
 }
 
-class InputConfig;
 class MappingButton;
 
 class QComboBox;
@@ -24,6 +23,7 @@ class QPushButton;
 class QTabWidget;
 class QToolButton;
 class QWidget;
+class MappingWidget;
 
 class MappingWindow final : public QDialog
 {
@@ -58,6 +58,7 @@ public:
   bool IsIterativeMappingEnabled() const;
   void ShowExtensionMotionTabs(bool show);
   void ActivateExtensionTab();
+  void reject() override;
 
 signals:
   // Emitted when config has changed so widgets can update to reflect the change.
@@ -98,6 +99,7 @@ private:
   void OnSelectDevice(int index);
 
   ControllerEmu::EmulatedController* m_controller = nullptr;
+  MappingWidget* m_mapping_widget = nullptr;
 
   // Main
   QVBoxLayout* m_main_layout;
@@ -134,7 +136,5 @@ private:
   const QString EXTENSION_MOTION_INPUT_TAB_NAME = tr("Extension Motion Input");
   const QString EXTENSION_MOTION_SIMULATION_TAB_NAME = tr("Extension Motion Simulation");
 
-  Type m_mapping_type;
   const int m_port;
-  InputConfig* m_config;
 };
