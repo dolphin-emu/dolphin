@@ -133,6 +133,8 @@ add_executable(dolphin-emu
   Config/Mapping/GCMicrophone.h
   Config/Mapping/GCPadEmu.cpp
   Config/Mapping/GCPadEmu.h
+  Config/Mapping/TriforceAMPadEmu.cpp
+  Config/Mapping/TriforceAMPadEmu.h
   Config/Mapping/GCPadWiiUConfigDialog.cpp
   Config/Mapping/GCPadWiiUConfigDialog.h
   Config/Mapping/Hotkey3D.cpp

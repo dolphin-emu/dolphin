@@ -47,6 +47,7 @@
 #include "DolphinQt/Config/Mapping/HotkeyUSBEmu.h"
 #include "DolphinQt/Config/Mapping/HotkeyWii.h"
 #include "DolphinQt/Config/Mapping/MappingCommon.h"
+#include "DolphinQt/Config/Mapping/TriforceAMPadEmu.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtension.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.h"
@@ -522,7 +523,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
   }
   break;
   case Type::MAPPING_AM_BASEBOARD:
-    widget = CreateAMBaseboardMappingWidget(this);
+    widget = new TriforceAMPadEmu(this);
     setWindowTitle(tr("Triforce Baseboard at Port %1").arg(GetPort() + 1));
     AddWidget(tr("Triforce Baseboard"), widget);
     break;

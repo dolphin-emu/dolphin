@@ -44,6 +44,7 @@ public:
   bool IsControllerControlledByGamepadDevice(int index) const;
 
   std::string GetGUIName() const { return m_gui_name; }
+  std::string GetIniName() const { return m_ini_name; }
   std::string GetProfileKey() const { return m_profile_key; }
   std::string GetProfileDirectoryName() const { return m_profile_directory_name; }
   std::string GetUserProfileDirectoryPath() const;
