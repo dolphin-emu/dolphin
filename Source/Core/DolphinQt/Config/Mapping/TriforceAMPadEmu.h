@@ -49,6 +49,7 @@ private:
   void CreateMainLayout();
   QWidget* CreateGenericTriforceWidget();
   QWidget* CreateVirtuaStrikerWidget();
+  QWidget* CreateMarioKartGPWidget();
   void PersistSettings(GameFamily game_family);
   void ApplySelectedGameFamily();
   void CaptureCurrentGameFamilyConfig();
@@ -62,6 +63,8 @@ private:
   const Common::IniFile::Section* GetGameFamilySection(GameFamily game_family) const;
   QGroupBox* CreateAliasedControlsBox(const QString& name, ControllerEmu::ControlGroup* group,
                                       std::initializer_list<ControlAlias> controls);
+  QGroupBox* CreateAliasedTriggerBox(const QString& name, ControllerEmu::ControlGroup* group,
+                                     std::initializer_list<ControlAlias> controls);
   bool ResolveGameFamilyMismatchOnClose(GameFamily* game_family);
 
   void OnGameFamilyChanged(int index);

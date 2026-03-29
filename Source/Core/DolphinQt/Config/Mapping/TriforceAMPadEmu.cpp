@@ -24,7 +24,9 @@
 
 #include "DolphinQt/Config/Mapping/GCPadEmu.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "DolphinQt/Config/Mapping/MappingIndicator.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
 #include "InputCommon/InputConfig.h"
 
 namespace
@@ -41,6 +43,8 @@ int GetGameFamilyStackIndex(TriforceAMPadEmu::GameFamily game_family)
     return 0;
   case TriforceAMPadEmu::GameFamily::VirtuaStriker:
     return 1;
+  case TriforceAMPadEmu::GameFamily::MarioKartGP:
+    return 2;
   default:
     return 0;
   }
@@ -56,6 +60,8 @@ QString GetGameFamilyLabel(TriforceAMPadEmu::GameFamily game_family)
     return TriforceAMPadEmu::tr("Generic Triforce");
   case TriforceAMPadEmu::GameFamily::VirtuaStriker:
     return TriforceAMPadEmu::tr("Virtua Striker");
+  case TriforceAMPadEmu::GameFamily::MarioKartGP:
+    return TriforceAMPadEmu::tr("Mario Kart GP");
   default:
     return {};
   }
@@ -138,8 +144,8 @@ TriforceAMPadEmu::TriforceAMPadEmu(MappingWindow* window) : MappingWidget(window
   m_family_box = new QGroupBox(tr("Game Mapping"));
   auto* const family_layout = new QHBoxLayout{m_family_box};
   m_family_combo = new QComboBox{m_family_box};
-  for (const GameFamily game_family :
-       {GameFamily::Auto, GameFamily::GenericTriforce, GameFamily::VirtuaStriker})
+  for (const GameFamily game_family : {GameFamily::Auto, GameFamily::GenericTriforce,
+                                       GameFamily::VirtuaStriker, GameFamily::MarioKartGP})
   {
     m_family_combo->addItem(GetGameFamilyDisplayName(game_family), static_cast<int>(game_family));
   }
@@ -285,6 +291,7 @@ void TriforceAMPadEmu::CreateMainLayout()
   m_family_stack = new QStackedWidget{this};
   m_family_stack->addWidget(CreateGenericTriforceWidget());
   m_family_stack->addWidget(CreateVirtuaStrikerWidget());
+  m_family_stack->addWidget(CreateMarioKartGPWidget());
   main_layout->addWidget(m_family_stack);
 }
 
@@ -314,6 +321,30 @@ QWidget* TriforceAMPadEmu::CreateVirtuaStrikerWidget()
       CreateGroupBox(tr("Control Stick"), Pad::GetGroup(GetPort(), PadGroup::MainStick)), 0, 1, 3,
       1);
   layout->addWidget(CreateGroupBox(tr("Options"), Pad::GetGroup(GetPort(), PadGroup::Options)), 2,
+                    2);
+
+  return widget;
+}
+
+QWidget* TriforceAMPadEmu::CreateMarioKartGPWidget()
+{
+  auto* const widget = new QWidget(this);
+  auto* const layout = new QGridLayout(widget);
+
+  layout->addWidget(CreateAliasedControlsBox(tr("Buttons"),
+                                             Pad::GetGroup(GetPort(), PadGroup::Buttons),
+                                             {{"Item", 0}, {"Cancel", 1}}),
+                    0, 0);
+  layout->addWidget(CreateGroupBox(tr("Triforce"), Pad::GetGroup(GetPort(), PadGroup::Triforce)), 1,
+                    0);
+  layout->addWidget(
+      CreateGroupBox(tr("Control Stick"), Pad::GetGroup(GetPort(), PadGroup::MainStick)), 0, 1, 2,
+      1);
+  layout->addWidget(CreateAliasedTriggerBox(tr("Triggers"),
+                                            Pad::GetGroup(GetPort(), PadGroup::Triggers),
+                                            {{"Brake", 2}, {"Gas", 3}}),
+                    0, 2);
+  layout->addWidget(CreateGroupBox(tr("Options"), Pad::GetGroup(GetPort(), PadGroup::Options)), 1,
                     2);
 
   return widget;
@@ -457,6 +488,29 @@ QGroupBox* TriforceAMPadEmu::CreateAliasedControlsBox(const QString& name,
 
   for (const ControlAlias control : controls)
     CreateControl(tr(control.label), group->controls[control.index].get(), layout, true);
+
+  return group_box;
+}
+
+QGroupBox* TriforceAMPadEmu::CreateAliasedTriggerBox(const QString& name,
+                                                     ControllerEmu::ControlGroup* group,
+                                                     std::initializer_list<ControlAlias> controls)
+{
+  auto* const group_box = new QGroupBox(name);
+  auto* const layout = new QFormLayout(group_box);
+  auto* const indicator =
+      new MixedTriggersIndicator(*static_cast<ControllerEmu::MixedTriggers*>(group));
+  auto* const indicator_layout = new QBoxLayout(QBoxLayout::Direction::Down);
+  indicator_layout->addWidget(indicator);
+  indicator_layout->setAlignment(Qt::AlignCenter);
+  layout->addRow(indicator_layout);
+
+  connect(this, &MappingWidget::Update, indicator, qOverload<>(&MappingIndicator::update));
+
+  for (const ControlAlias control : controls)
+    CreateControl(tr(control.label), group->controls[control.index].get(), layout, false);
+
+  AddSettingWidgets(layout, group, ControllerEmu::SettingVisibility::Normal);
 
   return group_box;
 }
