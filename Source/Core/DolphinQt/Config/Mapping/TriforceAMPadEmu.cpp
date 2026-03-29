@@ -47,6 +47,8 @@ int GetGameFamilyStackIndex(TriforceAMPadEmu::GameFamily game_family)
     return 2;
   case TriforceAMPadEmu::GameFamily::FZeroAX:
     return 3;
+  case TriforceAMPadEmu::GameFamily::GekitouProYakyuu:
+    return 4;
   default:
     return 0;
   }
@@ -66,6 +68,8 @@ QString GetGameFamilyLabel(TriforceAMPadEmu::GameFamily game_family)
     return TriforceAMPadEmu::tr("Mario Kart GP");
   case TriforceAMPadEmu::GameFamily::FZeroAX:
     return TriforceAMPadEmu::tr("F-Zero AX");
+  case TriforceAMPadEmu::GameFamily::GekitouProYakyuu:
+    return TriforceAMPadEmu::tr("Gekitou Pro Yakyuu");
   default:
     return {};
   }
@@ -150,7 +154,7 @@ TriforceAMPadEmu::TriforceAMPadEmu(MappingWindow* window) : MappingWidget(window
   m_family_combo = new QComboBox{m_family_box};
   for (const GameFamily game_family :
        {GameFamily::Auto, GameFamily::GenericTriforce, GameFamily::VirtuaStriker,
-        GameFamily::MarioKartGP, GameFamily::FZeroAX})
+        GameFamily::MarioKartGP, GameFamily::FZeroAX, GameFamily::GekitouProYakyuu})
   {
     m_family_combo->addItem(GetGameFamilyDisplayName(game_family), static_cast<int>(game_family));
   }
@@ -298,6 +302,7 @@ void TriforceAMPadEmu::CreateMainLayout()
   m_family_stack->addWidget(CreateVirtuaStrikerWidget());
   m_family_stack->addWidget(CreateMarioKartGPWidget());
   m_family_stack->addWidget(CreateFZeroAXWidget());
+  m_family_stack->addWidget(CreateGekitouProYakyuuWidget());
   main_layout->addWidget(m_family_stack);
 }
 
@@ -381,6 +386,26 @@ QWidget* TriforceAMPadEmu::CreateFZeroAXWidget()
                     0, 2);
   layout->addWidget(CreateGroupBox(tr("Options"), Pad::GetGroup(GetPort(), PadGroup::Options)), 1,
                     2);
+
+  return widget;
+}
+
+QWidget* TriforceAMPadEmu::CreateGekitouProYakyuuWidget()
+{
+  auto* const widget = new QWidget(this);
+  auto* const layout = new QGridLayout(widget);
+
+  layout->addWidget(
+      CreateMixedControlsBox(tr("Buttons"),
+                             {{"A", Pad::GetGroup(GetPort(), PadGroup::Buttons), 0},
+                              {"B", Pad::GetGroup(GetPort(), PadGroup::Buttons), 1},
+                              {"Gekitou", Pad::GetGroup(GetPort(), PadGroup::Triggers), 0}}),
+      0, 0);
+  layout->addWidget(CreateGroupBox(tr("D-Pad"), Pad::GetGroup(GetPort(), PadGroup::DPad)), 1, 0);
+  layout->addWidget(CreateGroupBox(tr("Triforce"), Pad::GetGroup(GetPort(), PadGroup::Triforce)), 2,
+                    0);
+  layout->addWidget(CreateGroupBox(tr("Options"), Pad::GetGroup(GetPort(), PadGroup::Options)), 2,
+                    1);
 
   return widget;
 }
@@ -546,6 +571,19 @@ QGroupBox* TriforceAMPadEmu::CreateAliasedTriggerBox(const QString& name,
     CreateControl(tr(control.label), group->controls[control.index].get(), layout, false);
 
   AddSettingWidgets(layout, group, ControllerEmu::SettingVisibility::Normal);
+
+  return group_box;
+}
+
+QGroupBox*
+TriforceAMPadEmu::CreateMixedControlsBox(const QString& name,
+                                         std::initializer_list<MixedControlAlias> controls)
+{
+  auto* const group_box = new QGroupBox(name);
+  auto* const layout = new QFormLayout(group_box);
+
+  for (const MixedControlAlias control : controls)
+    CreateControl(tr(control.label), control.group->controls[control.index].get(), layout, true);
 
   return group_box;
 }

@@ -27,13 +27,14 @@ enum class GameFamily
   VirtuaStriker,
   MarioKartGP,
   FZeroAX,
+  GekitouProYakyuu,
 };
 
 constexpr std::string_view PROFILE_SECTION = "Profile";
 constexpr std::string_view GAME_MAPPING_KEY = "GameMapping";
-constexpr std::array<GameFamily, 4> REAL_GAME_FAMILIES = {
+constexpr std::array<GameFamily, 5> REAL_GAME_FAMILIES = {
     GameFamily::GenericTriforce, GameFamily::VirtuaStriker, GameFamily::MarioKartGP,
-    GameFamily::FZeroAX};
+    GameFamily::FZeroAX, GameFamily::GekitouProYakyuu};
 
 inline std::string_view GetGameFamilyName(GameFamily game_family)
 {
@@ -49,6 +50,8 @@ inline std::string_view GetGameFamilyName(GameFamily game_family)
     return "MarioKartGP";
   case GameFamily::FZeroAX:
     return "FZeroAX";
+  case GameFamily::GekitouProYakyuu:
+    return "GekitouProYakyuu";
   }
 
   return "Auto";
@@ -91,6 +94,8 @@ inline std::optional<GameFamily> DetectRunningGameFamily()
   case AMMediaboard::GameType::FZeroAX:
   case AMMediaboard::GameType::FZeroAXMonster:
     return GameFamily::FZeroAX;
+  case AMMediaboard::GameType::GekitouProYakyuu:
+    return GameFamily::GekitouProYakyuu;
   default:
     break;
   }

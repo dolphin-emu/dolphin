@@ -43,6 +43,13 @@ private:
     size_t index;
   };
 
+  struct MixedControlAlias
+  {
+    const char* label;
+    ControllerEmu::ControlGroup* group;
+    size_t index;
+  };
+
   void LoadSettings() override;
   void SaveSettings() override;
 
@@ -51,6 +58,7 @@ private:
   QWidget* CreateVirtuaStrikerWidget();
   QWidget* CreateMarioKartGPWidget();
   QWidget* CreateFZeroAXWidget();
+  QWidget* CreateGekitouProYakyuuWidget();
   void PersistSettings(GameFamily game_family);
   void ApplySelectedGameFamily();
   void CaptureCurrentGameFamilyConfig();
@@ -66,6 +74,8 @@ private:
                                       std::initializer_list<ControlAlias> controls);
   QGroupBox* CreateAliasedTriggerBox(const QString& name, ControllerEmu::ControlGroup* group,
                                      std::initializer_list<ControlAlias> controls);
+  QGroupBox* CreateMixedControlsBox(const QString& name,
+                                    std::initializer_list<MixedControlAlias> controls);
   bool ResolveGameFamilyMismatchOnClose(GameFamily* game_family);
 
   void OnGameFamilyChanged(int index);
