@@ -9,6 +9,7 @@
 
 #include <fmt/format.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -129,6 +130,7 @@ CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(Core::System& system, SIDevices dev
   {
     auto slot_a = std::make_unique<Triforce::ICCardReader>(0);
     auto slot_b = std::make_unique<Triforce::ICCardReader>(1);
+    m_ic_card_readers = {slot_a.get(), slot_b.get()};
     m_io_ports.AddIOAdapter(
         std::make_unique<Triforce::VirtuaStriker4Common_IOAdapter>(slot_a.get(), slot_b.get()));
     m_serial_device_a = std::move(slot_a);
@@ -139,6 +141,7 @@ CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(Core::System& system, SIDevices dev
   {
     auto slot_a = std::make_unique<Triforce::ICCardReader>(0);
     auto slot_b = std::make_unique<Triforce::ICCardReader>(1);
+    m_ic_card_readers = {slot_a.get(), slot_b.get()};
     m_io_ports.AddIOAdapter(
         std::make_unique<Triforce::VirtuaStriker4Common_IOAdapter>(slot_a.get(), slot_b.get()));
     m_io_ports.AddIOAdapter(
@@ -151,6 +154,7 @@ CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(Core::System& system, SIDevices dev
   {
     auto slot_a = std::make_unique<Triforce::ICCardReader>(0);
     auto slot_b = std::make_unique<Triforce::ICCardReader>(1);
+    m_ic_card_readers = {slot_a.get(), slot_b.get()};
     m_io_ports.AddIOAdapter(
         std::make_unique<Triforce::GekitouProYakyuu_IOAdapter>(slot_a.get(), slot_b.get()));
     m_serial_device_a = std::move(slot_a);
@@ -160,6 +164,7 @@ CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(Core::System& system, SIDevices dev
   case KeyOfAvalon:
   {
     auto deck_reader = std::make_unique<Triforce::DeckReader>();
+    m_ic_card_readers = {deck_reader->GetICCardReader(), nullptr};
     m_io_ports.AddIOAdapter(
         std::make_unique<Triforce::KeyOfAvalon_IOAdapter>(deck_reader->GetICCardReader()));
     m_serial_device_a = std::move(deck_reader);
@@ -176,6 +181,60 @@ CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(Core::System& system, SIDevices dev
 }
 
 CSIDevice_AMBaseboard::~CSIDevice_AMBaseboard() = default;
+
+u32 CSIDevice_AMBaseboard::GetICCardSlotCount() const
+{
+  return static_cast<u32>(std::ranges::count_if(
+      m_ic_card_readers, [](const auto* reader) { return reader != nullptr; }));
+}
+
+CSIDevice_AMBaseboard::ICCardSlotStatus
+CSIDevice_AMBaseboard::GetICCardSlotStatus(u32 slot_index) const
+{
+  ICCardSlotStatus status;
+  if (slot_index >= m_ic_card_readers.size())
+    return status;
+
+  const auto* const reader = m_ic_card_readers[slot_index];
+  if (!reader)
+    return status;
+
+  if (!reader->GetConfiguredCardFiles().empty())
+    status.selected_card_path = reader->GetConfiguredCardFiles().front();
+  status.wants_inserted = reader->WantsCardInserted();
+  status.is_present = reader->IsCardPresent();
+  status.is_ejecting = reader->IsEjecting();
+  return status;
+}
+
+void CSIDevice_AMBaseboard::SetICCardSlotPath(u32 slot_index, std::string path)
+{
+  if (slot_index >= m_ic_card_readers.size())
+    return;
+
+  auto* const reader = m_ic_card_readers[slot_index];
+  if (!reader)
+    return;
+
+  std::vector<std::string> card_files;
+  if (!path.empty())
+    card_files.emplace_back(std::move(path));
+  reader->SetConfiguredCardFiles(std::move(card_files));
+}
+
+void CSIDevice_AMBaseboard::SetICCardSlotInserted(u32 slot_index, bool inserted)
+{
+  if (slot_index >= m_ic_card_readers.size())
+    return;
+
+  auto* const reader = m_ic_card_readers[slot_index];
+  if (!reader)
+    return;
+
+  reader->SetWantsCardInserted(inserted);
+  if (!inserted)
+    reader->EjectCard();
+}
 
 int CSIDevice_AMBaseboard::RunBuffer(u8* buffer, int request_length)
 {

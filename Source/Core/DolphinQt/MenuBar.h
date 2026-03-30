@@ -97,6 +97,7 @@ signals:
   void ShowAboutDialog();
   void ShowCheatsManager();
   void ShowResourcePackManager();
+  void ShowTriforceCardManager();
   void ShowSkylanderPortal();
   void ShowInfinityBase();
   void ShowWiiSpeakWindow();
@@ -221,6 +222,7 @@ private:
   QMenu* m_perform_online_update_menu;
   QAction* m_perform_online_update_for_current_region;
   QAction* m_achievements_action;
+  QAction* m_triforce_card_manager_action;
 #ifdef RC_CLIENT_SUPPORTS_RAINTEGRATION
   QMenu* m_achievements_dev_menu;
 #endif  // RC_CLIENT_SUPPORTS_RAINTEGRATION

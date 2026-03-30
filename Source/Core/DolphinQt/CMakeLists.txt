@@ -412,6 +412,8 @@ add_executable(dolphin-emu
   TAS/WiiTASInputWindow.h
   ToolBar.cpp
   ToolBar.h
+  Triforce/TriforceCardManagerWindow.cpp
+  Triforce/TriforceCardManagerWindow.h
   Translation.cpp
   Translation.h
   Updater.cpp

@@ -11,6 +11,7 @@
 
 #include "Common/CommonTypes.h"
 
+#include "Core/HW/DVD/AMMediaboard.h"
 #include "Core/HW/Triforce/SerialDevice.h"
 
 namespace Triforce
@@ -25,12 +26,23 @@ public:
 
   void Update() override;
 
+  static bool CreateBlankCardFile(const std::string& filename, AMMediaboard::GameType game_type);
+
   bool IsCardPresent() const;
   bool IsEjecting() const;
   bool IsReadyToInsertCard() const;
+  bool WantsCardInserted() const { return m_want_card_inserted; }
 
   void InsertCard();
   void EjectCard();
+
+  void SetConfiguredCardFiles(std::vector<std::string> card_filenames);
+  const std::vector<std::string>& GetConfiguredCardFiles() const
+  {
+    return m_configured_card_filenames;
+  }
+
+  void SetWantsCardInserted(bool want_card_inserted) { m_want_card_inserted = want_card_inserted; }
 
   u8 GetCardPresentInsertCheckCount() const { return m_card_present_insert_check_count; }
 
@@ -52,12 +64,13 @@ private:
   public:
     using UID = std::array<u8, PAGE_SIZE>;
 
-    ICCard(std::string filename, const UID& uid);
+    ICCard(std::string filename, const UID& uid, AMMediaboard::GameType game_type);
 
     // Load from file if it exists, else create fresh card data.
     void Initialize();
 
     const UID& GetUID() const { return m_uid; }
+    const std::string& GetFilename() const { return m_filename; }
     bool IsHalted() const { return m_current_state == State::Halted; }
 
     // Returns an empty span on error.
@@ -81,6 +94,7 @@ private:
     const std::string m_filename;
 
     const UID m_uid;
+    const AMMediaboard::GameType m_game_type;
 
     enum class State : u8
     {
@@ -96,7 +110,10 @@ private:
   // Avalon makes use of this for not yet fully understood reasons.
   std::vector<std::unique_ptr<ICCard>> m_ic_cards;
 
+  std::vector<std::string> m_configured_card_filenames;
+
   bool m_is_field_on = false;
+  bool m_want_card_inserted = true;
 
   const u8 m_slot_index;
 
