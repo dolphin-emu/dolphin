@@ -264,6 +264,9 @@ void Mixer::PushWiimoteSpeakerSamples(const s16* samples, std::size_t num_sample
   if (!IsOutputSampleRateValid())
     return;
 
+  if (!m_config_wiimote_enable_speaker)
+    return;
+
   // Max 20 bytes/speaker report, may be 4-bit ADPCM so multiply by 2
   static constexpr std::size_t MAX_SPEAKER_SAMPLES = 20 * 2;
   std::array<s16, MAX_SPEAKER_SAMPLES * 2> samples_stereo;
@@ -433,6 +436,7 @@ void Mixer::RefreshConfig()
   m_config_audio_preserve_pitch = Config::Get(Config::MAIN_AUDIO_PRESERVE_PITCH);
   m_config_fill_audio_gaps = Config::Get(Config::MAIN_AUDIO_FILL_GAPS);
   m_config_audio_buffer_ms = Config::Get(Config::MAIN_AUDIO_BUFFER_SIZE);
+  m_config_wiimote_enable_speaker = Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER);
 }
 
 void Mixer::MixerFifo::DoState(PointerWrap& p)
