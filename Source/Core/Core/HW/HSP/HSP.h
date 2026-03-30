@@ -32,9 +32,8 @@ public:
 
   void DoState(PointerWrap& p);
 
-  void RemoveDevice();
-  void AddDevice(std::unique_ptr<IHSPDevice> device);
-  void AddDevice(HSPDeviceType device);
+  void SetDevice(std::unique_ptr<IHSPDevice> device);
+  void SetDevice(HSPDeviceType device);
 
 private:
   std::unique_ptr<IHSPDevice> m_device;
