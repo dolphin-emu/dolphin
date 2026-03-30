@@ -6,11 +6,13 @@
 #include <string>
 
 #include "Common/Common.h"
+#include "Core/HW/PadGroups.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
+class InputConfig;
 struct GCPadStatus;
 
 namespace ControllerEmu
@@ -19,19 +21,6 @@ class AnalogStick;
 class Buttons;
 class MixedTriggers;
 }  // namespace ControllerEmu
-
-enum class PadGroup
-{
-  Buttons,
-  MainStick,
-  CStick,
-  DPad,
-  Triggers,
-  Rumble,
-  Mic,
-  Options,
-  Triforce,
-};
 
 class GCPad : public ControllerEmu::EmulatedController
 {
