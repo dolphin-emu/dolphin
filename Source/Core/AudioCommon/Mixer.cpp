@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <span>
 
 #include "AudioCommon/Enums.h"
 #include "Common/ChunkFile.h"
@@ -67,8 +68,7 @@ void Mixer::MixerFifo::Mix(s16* samples, std::size_t num_samples)
 
   // We need at least a double because the index jump has 24 bits of fractional precision.
   const double out_sample_rate = m_mixer->m_output_sample_rate;
-  double in_sample_rate =
-      static_cast<double>(FIXED_SAMPLE_RATE_DIVIDEND) / m_input_sample_rate_divisor;
+  double in_sample_rate = double(m_input_sample_rate_dividend) / m_input_sample_rate_divisor;
 
   const double emulation_speed = m_mixer->m_config_emulation_speed;
   if (!m_mixer->m_config_audio_preserve_pitch && 0 < emulation_speed && emulation_speed != 1.0)
@@ -208,29 +208,17 @@ std::size_t Mixer::MixSurround(float* samples, std::size_t num_samples)
   return num_samples;
 }
 
-void Mixer::MixerFifo::PushSamples(const s16* samples, std::size_t num_samples)
-{
-  while (num_samples-- > 0)
-  {
-    const s16 l = m_little_endian ? samples[1] : Common::swap16(samples[1]);
-    const s16 r = m_little_endian ? samples[0] : Common::swap16(samples[0]);
-    samples += 2;
-
-    m_next_buffer[m_next_buffer_index] = StereoPair(l, r);
-    m_next_buffer_index = (m_next_buffer_index + 1) & GRANULE_MASK;
-
-    // The granules overlap by 50%, so we need to enqueue the
-    // next buffer every time we fill half of the samples.
-    if (m_next_buffer_index == 0 || m_next_buffer_index == m_next_buffer.size() / 2)
-      Enqueue();
-  }
-}
-
 void Mixer::PushSamples(const s16* samples, std::size_t num_samples)
 {
   if (IsOutputSampleRateValid())
   {
-    m_dma_mixer.PushSamples(samples, num_samples);
+    // Big-endian RL-orderered stereo samples.
+
+    while (num_samples--)
+    {
+      m_dma_mixer.PushSample(Common::swap16(samples[1]), Common::swap16(samples[0]));
+      samples += 2;
+    }
   }
 
   if (m_log_dsp_audio)
@@ -246,7 +234,13 @@ void Mixer::PushStreamingSamples(const s16* samples, std::size_t num_samples)
 {
   if (IsOutputSampleRateValid())
   {
-    m_streaming_mixer.PushSamples(samples, num_samples);
+    // Big-endian RL-orderered stereo samples.
+
+    while (num_samples--)
+    {
+      m_streaming_mixer.PushSample(Common::swap16(samples[1]), Common::swap16(samples[0]));
+      samples += 2;
+    }
   }
 
   if (m_log_dtk_audio)
@@ -264,24 +258,13 @@ void Mixer::PushWiimoteSpeakerSamples(const s16* samples, std::size_t num_sample
   if (!IsOutputSampleRateValid())
     return;
 
-  // Max 20 bytes/speaker report, may be 4-bit ADPCM so multiply by 2
-  static constexpr std::size_t MAX_SPEAKER_SAMPLES = 20 * 2;
-  std::array<s16, MAX_SPEAKER_SAMPLES * 2> samples_stereo;
+  // WiimoteEmu produces host-endian mono samples.
 
-  ASSERT_MSG(AUDIO, num_samples <= MAX_SPEAKER_SAMPLES,
-             "num_samples would overflow samples_stereo: {} > {}", num_samples,
-             MAX_SPEAKER_SAMPLES);
-  if (num_samples <= MAX_SPEAKER_SAMPLES)
+  m_wiimote_speaker_mixer.SetInputSampleRateDivisor(sample_rate_divisor);
+
+  for (const s16 sample : std::span{samples, num_samples})
   {
-    m_wiimote_speaker_mixer.SetInputSampleRateDivisor(sample_rate_divisor);
-
-    for (std::size_t i = 0; i < num_samples; ++i)
-    {
-      samples_stereo[i * 2] = samples[i];
-      samples_stereo[i * 2 + 1] = samples[i];
-    }
-
-    m_wiimote_speaker_mixer.PushSamples(samples_stereo.data(), num_samples);
+    m_wiimote_speaker_mixer.PushSample(sample, sample);
   }
 }
 
@@ -292,24 +275,13 @@ void Mixer::PushSkylanderPortalSamples(const u8* samples, std::size_t num_sample
 
   // Skylander samples are always supplied as 64 bytes, 32 x 16 bit samples
   // The portal speaker is 1 channel, so duplicate and play as stereo audio
-  static constexpr std::size_t MAX_PORTAL_SPEAKER_SAMPLES = 32;
-  std::array<s16, MAX_PORTAL_SPEAKER_SAMPLES * 2> samples_stereo;
 
-  ASSERT_MSG(AUDIO, num_samples <= MAX_PORTAL_SPEAKER_SAMPLES,
-             "num_samples is not less or equal to 32: {} > {}", num_samples,
-             MAX_PORTAL_SPEAKER_SAMPLES);
-
-  if (num_samples <= MAX_PORTAL_SPEAKER_SAMPLES)
+  while (num_samples--)
   {
-    for (std::size_t i = 0; i < num_samples; ++i)
-    {
-      const s16 sample =
-          static_cast<u16>(samples[i * 2 + 1]) << 8 | static_cast<u16>(samples[i * 2]);
-      samples_stereo[i * 2] = sample;
-      samples_stereo[i * 2 + 1] = sample;
-    }
-
-    m_skylander_portal_mixer.PushSamples(samples_stereo.data(), num_samples);
+    // Little-endian data.
+    const s16 sample = u16(samples[0] | u16(samples[1] << 8u));
+    m_skylander_portal_mixer.PushSample(sample, sample);
+    samples += 2;
   }
 }
 
@@ -318,7 +290,13 @@ void Mixer::PushGBASamples(std::size_t device_number, const s16* samples, std::s
   if (!IsOutputSampleRateValid())
     return;
 
-  m_gba_mixers[device_number].PushSamples(samples, num_samples);
+  // Integrated GBA pushes host-endian LR-ordered stereo samples.
+
+  while (num_samples--)
+  {
+    m_gba_mixers[device_number].PushSample(samples[0], samples[1]);
+    samples += 2;
+  }
 }
 
 void Mixer::SetDMAInputSampleRateDivisor(u32 rate_divisor)
@@ -331,9 +309,9 @@ void Mixer::SetStreamInputSampleRateDivisor(u32 rate_divisor)
   m_streaming_mixer.SetInputSampleRateDivisor(rate_divisor);
 }
 
-void Mixer::SetGBAInputSampleRateDivisors(std::size_t device_number, u32 rate_divisor)
+void Mixer::SetGBAInputSampleRate(std::size_t device_number, u32 sample_rate)
 {
-  m_gba_mixers[device_number].SetInputSampleRateDivisor(rate_divisor);
+  m_gba_mixers[device_number].SetInputSampleRateDivisor(GBA_SAMPLE_RATE_DIVIDEND / sample_rate);
 }
 
 void Mixer::SetStreamingVolume(u32 lvolume, u32 rvolume)
@@ -440,6 +418,16 @@ void Mixer::MixerFifo::DoState(PointerWrap& p)
   p.Do(m_input_sample_rate_divisor);
   p.Do(m_LVolume);
   p.Do(m_RVolume);
+}
+
+void Mixer::MixerFifo::SetInputSampleRateDividend(u32 rate_dividend)
+{
+  m_input_sample_rate_dividend = rate_dividend;
+}
+
+u32 Mixer::MixerFifo::GetInputSampleRateDividend() const
+{
+  return m_input_sample_rate_dividend;
 }
 
 void Mixer::MixerFifo::SetInputSampleRateDivisor(u32 rate_divisor)
