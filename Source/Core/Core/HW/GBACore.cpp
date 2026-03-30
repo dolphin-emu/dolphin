@@ -39,6 +39,10 @@
 #include "Core/NetPlayProto.h"
 #include "Core/System.h"
 
+#ifdef ANDROID
+#include "jni/AndroidCommon/AndroidCommon.h"
+#endif
+
 namespace HW::GBA
 {
 namespace
@@ -126,6 +130,15 @@ static VFile* OpenROM_Zip(const char* path)
   return vf;
 }
 
+static VFile* OpenReadOnlyFile(const char* path)
+{
+#ifdef ANDROID
+  if (IsPathAndroidContent(path))
+    return VFileFromFD(OpenAndroidContent(path, OpenModeToAndroid("r")));
+#endif
+  return VFileOpen(path, O_RDONLY);
+}
+
 static VFile* OpenROM(const char* rom_path)
 {
   VFile* vf{};
@@ -134,7 +147,7 @@ static VFile* OpenROM(const char* rom_path)
   if (!vf)
     vf = OpenROM_Zip(rom_path);
   if (!vf)
-    vf = VFileOpen(rom_path, O_RDONLY);
+    vf = OpenReadOnlyFile(rom_path);
   if (!vf)
     return nullptr;
 
@@ -338,7 +351,7 @@ void Core::EReaderQueueCard(std::string_view card_path)
 
 bool Core::LoadBIOS(const char* bios_path)
 {
-  VFile* vf = VFileOpen(bios_path, O_RDONLY);
+  VFile* vf = OpenReadOnlyFile(bios_path);
   if (!vf)
   {
     ERROR_LOG_FMT(CORE, "GBA{0} failed to open the BIOS in {1}", m_device_number + 1, bios_path);
