@@ -3,6 +3,7 @@
 
 #include "UICommon/AutoUpdate.h"
 
+#include <atomic>
 #include <cstdlib>
 #include <string>
 
@@ -12,6 +13,7 @@
 #include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 
@@ -36,6 +38,7 @@
 
 namespace
 {
+std::atomic_bool s_check_in_progress = false;
 bool s_update_triggered = false;
 
 #ifdef __APPLE__
@@ -188,6 +191,20 @@ static u32 GetOwnProcessId()
 void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
                                        std::string_view hash_override, const CheckType check_type)
 {
+  bool expected_check_in_progress = false;
+  if (!s_check_in_progress.compare_exchange_strong(expected_check_in_progress, true))
+    return;
+
+  Common::ScopeGuard guard([]() { s_check_in_progress.store(false); });
+
+  if (s_update_triggered)
+  {
+    if (check_type == CheckType::Manual)
+      SuccessAlertFmtT("A Dolphin update is already scheduled for the next time it closes.");
+
+    return;
+  }
+
   // Don't bother checking if updates are not supported or not enabled.
   if (!SystemSupportsAutoUpdates() || update_track.empty())
     return;
