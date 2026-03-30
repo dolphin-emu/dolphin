@@ -300,6 +300,13 @@ public:
     }
   }
 
+  void DoPointer(void*& x, void* const base)
+  {
+    auto* ptr = static_cast<u8*>(x);
+    DoPointer(ptr, static_cast<u8*>(base));
+    x = ptr;
+  }
+
   void DoMarker(const std::string& prevName, u32 arbitraryNumber = 0x42)
   {
     u32 cookie = arbitraryNumber;
