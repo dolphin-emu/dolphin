@@ -7,6 +7,7 @@
 
 #include <array>
 #include <memory>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -72,9 +73,19 @@ public:
   void SetForceDisconnect(bool force_disconnect);
   void EReaderQueueCard(std::string_view card_path);
 
+  void RunFrame(u16 keys);
   void SyncJoybus(u64 gc_ticks, u16 keys);
   void SendJoybusCommand(u64 gc_ticks, int transfer_time, u8* buffer, u16 keys);
   int GetJoybusResponse(u8* data_out);
+
+  // Wait for requested GBA emulation to complete.
+  void Flush();
+
+  mAudioBuffer* GetAudioBuffer() { return m_core->getAudioBuffer(m_core); }
+  std::span<const u32> GetVideoBuffer() const { return m_video_buffer; }
+
+  mPlatform GetPlatform() const { return m_core->platform(m_core); }
+  u32 GetAudioSampleRate() const { return m_core->audioSampleRate(m_core); }
 
   void ImportState(std::string_view state_path);
   void ExportState(std::string_view state_path);
@@ -88,21 +99,21 @@ public:
 private:
   void RunUntil(u64 gc_ticks);
   void RunFor(u64 gc_ticks);
-  void Flush();
 
-  enum class JoybusEventType : u8
+  enum class SyncEventType : u8
   {
     TimeSync,
     RunCommand,
+    RunFrame,
   };
-  struct JoybusEvent
+  struct SyncEvent
   {
-    u64 run_until_ticks{};
+    SyncEventType event_type{};
     u16 keys{};
-    JoybusEventType event_type{};
+    u64 run_until_ticks{};  // Not used by SyncEventType::RunFrame.
   };
-  void PushEvent(JoybusEvent event);
-  void HandleEvent(JoybusEvent event);
+  void PushEvent(SyncEvent event);
+  void HandleEvent(SyncEvent event);
 
   bool LoadBIOS(const char* bios_path);
   bool LoadSave(const char* save_path);
@@ -137,7 +148,7 @@ private:
 
   std::weak_ptr<GBAHostInterface> m_host;
 
-  // Set by the GC thread before issuing a JoybusEventType::RunCommand.
+  // Set by the GC thread before issuing a SyncEventType::RunCommand.
   int m_joybus_command_transfer_time{};
   GBASIOJOYCommand m_joybus_command{};
 
@@ -149,7 +160,7 @@ private:
   std::atomic_bool m_command_pending{};
 
   // The entire threaded GBA runs within events pushed to this queue.
-  Common::WorkQueueThreadSP<JoybusEvent> m_event_thread;
+  Common::WorkQueueThreadSP<SyncEvent> m_event_thread;
 
   ::Core::System& m_system;
 };

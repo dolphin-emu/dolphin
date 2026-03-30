@@ -27,9 +27,9 @@
 #include "Common/Crypto/SHA1.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
+#include "Common/Logging/Log.h"
 #include "Common/MinizipUtil.h"
 #include "Common/ScopeGuard.h"
-#include "Common/Thread.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -114,7 +114,7 @@ static VFile* OpenROM_Zip(const char* path)
       continue;
 
     vf = VFileMemChunk(buffer.data(), info->uncompressed_size);
-    if (mCoreIsCompatible(vf) == mPLATFORM_GBA)
+    if (mCoreIsCompatible(vf) != mPLATFORM_NONE)
     {
       vf->seek(vf, 0, SEEK_SET);
       break;
@@ -209,10 +209,9 @@ bool Core::Start(u64 gc_ticks)
   mCoreConfigSetIntValue(&m_core->config, "useBios", 0);
   mCoreConfigSetIntValue(&m_core->config, "skipBios", 0);
 
-  if (m_core->platform(m_core) == mPLATFORM_GBA &&
-      !LoadBIOS(File::GetUserPath(F_GBABIOS_IDX).c_str()))
+  if (m_core->platform(m_core) == mPLATFORM_GBA)
   {
-    return false;
+    LoadBIOS(File::GetUserPath(F_GBABIOS_IDX).c_str());
   }
 
   if (rom)
@@ -338,13 +337,13 @@ bool Core::LoadBIOS(const char* bios_path)
   VFile* vf = VFileOpen(bios_path, O_RDONLY);
   if (!vf)
   {
-    PanicAlertFmtT("Error: GBA{0} failed to open the BIOS in {1}", m_device_number + 1, bios_path);
+    ERROR_LOG_FMT(CORE, "GBA{0} failed to open the BIOS in {1}", m_device_number + 1, bios_path);
     return false;
   }
 
   if (!m_core->loadBIOS(m_core, vf, 0))
   {
-    PanicAlertFmtT("Error: GBA{0} failed to load the BIOS in {1}", m_device_number + 1, bios_path);
+    ERROR_LOG_FMT(CORE, "GBA{0} failed to load the BIOS in {1}", m_device_number + 1, bios_path);
     vf->close(vf);
     return false;
   }
@@ -471,12 +470,20 @@ void Core::SetupEvent()
   m_event.priority = 0x80;
 }
 
+void Core::RunFrame(u16 keys)
+{
+  PushEvent({
+      .event_type = SyncEventType::RunFrame,
+      .keys = keys,
+  });
+}
+
 void Core::SyncJoybus(u64 gc_ticks, u16 keys)
 {
   PushEvent({
-      .run_until_ticks = gc_ticks,
+      .event_type = SyncEventType::TimeSync,
       .keys = keys,
-      .event_type = JoybusEventType::TimeSync,
+      .run_until_ticks = gc_ticks,
   });
 }
 
@@ -492,9 +499,9 @@ void Core::SendJoybusCommand(u64 gc_ticks, int transfer_time, u8* buffer, u16 ke
   m_command_pending.store(true, std::memory_order_relaxed);
 
   PushEvent({
-      .run_until_ticks = gc_ticks,
+      .event_type = SyncEventType::RunCommand,
       .keys = keys,
-      .event_type = JoybusEventType::RunCommand,
+      .run_until_ticks = gc_ticks,
   });
 }
 
@@ -511,7 +518,7 @@ void Core::Flush()
   m_event_thread.WaitForCompletion();
 }
 
-void Core::PushEvent(JoybusEvent event)
+void Core::PushEvent(SyncEvent event)
 {
   if (m_event_thread.IsRunning())
     m_event_thread.Push(event);
@@ -519,12 +526,22 @@ void Core::PushEvent(JoybusEvent event)
     HandleEvent(event);
 }
 
-void Core::HandleEvent(JoybusEvent event)
+void Core::HandleEvent(SyncEvent event)
 {
   m_keys = event.keys;
+
+  if (event.event_type == SyncEventType::RunFrame)
+  {
+    m_last_gc_ticks = m_system.GetCoreTiming().GetTicks();
+    m_gc_ticks_remainder = 0;
+
+    m_core->runFrame(m_core);
+    return;
+  }
+
   RunUntil(event.run_until_ticks);
 
-  if (event.event_type != JoybusEventType::RunCommand)
+  if (event.event_type != SyncEventType::RunCommand)
     return;
 
   if (m_link_enabled && !m_force_disconnect)
@@ -633,11 +650,13 @@ void Core::ExportSave(std::string_view save_path)
 void Core::DoState(PointerWrap& p)
 {
   Flush();
-  if (!IsStarted())
+
+  bool is_started = IsStarted();
+  p.Do(is_started);
+
+  if (!is_started)
   {
-    ::Core::DisplayMessage(fmt::format("GBA{} core not started. Aborting.", m_device_number + 1),
-                           3000);
-    p.SetVerifyMode();
+    Stop();
     return;
   }
 
@@ -657,6 +676,8 @@ void Core::DoState(PointerWrap& p)
     p.SetVerifyMode();
     return;
   }
+
+  Start(0);
 
   p.Do(m_video_buffer);
   p.Do(m_last_gc_ticks);
