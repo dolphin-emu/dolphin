@@ -7,11 +7,13 @@
 
 namespace HSP
 {
-class CHSPDevice_ARAMExpansion : public IHSPDevice
+class CHSPDevice_ARAMExpansion final : public IHSPDevice
 {
 public:
-  explicit CHSPDevice_ARAMExpansion(HSPDeviceType device);
+  explicit CHSPDevice_ARAMExpansion();
   ~CHSPDevice_ARAMExpansion() override;
+
+  HSPDeviceType GetDeviceType() const override { return HSPDeviceType::ARAMExpansion; }
 
   void Write(u32 address, u64 value) override;
   u64 Read(u32 address) override;

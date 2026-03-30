@@ -8,10 +8,10 @@
 
 namespace HSP
 {
-class CHSPDevice_Null : public IHSPDevice
+class CHSPDevice_Null final : public IHSPDevice
 {
 public:
-  explicit CHSPDevice_Null(HSPDeviceType device);
+  HSPDeviceType GetDeviceType() const override { return HSPDeviceType::None; }
 
   void Write(u32 address, u64 value) override;
   u64 Read(u32 address) override;

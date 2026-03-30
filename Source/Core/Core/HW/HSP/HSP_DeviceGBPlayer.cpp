@@ -53,7 +53,7 @@ constexpr u8 CONTROL_MASK_IRQ = 0x10;
 constexpr u32 COMMAND_ADDRESS_MASK = 0x1f;
 constexpr u32 AV_ADDRESS_MASK = 0xff8;
 
-class CGBPlayer_Dummy : public HSP::IGBPlayer
+class CGBPlayer_Dummy final : public HSP::IGBPlayer
 {
 public:
   using IGBPlayer::IGBPlayer;
@@ -89,7 +89,7 @@ enum class CHSPDevice_GBPlayer::IRQ : int
 
 #if defined(HAS_LIBMGBA)
 
-class CGBPlayer_mGBA : public IGBPlayer
+class CGBPlayer_mGBA final : public IGBPlayer
 {
 public:
   CGBPlayer_mGBA(Core::System&, CHSPDevice_GBPlayer*);
@@ -389,8 +389,7 @@ void CGBPlayer_mGBA::UpdateVideo(u32 scanline_index, s64 cycles_late)
 
 #endif
 
-CHSPDevice_GBPlayer::CHSPDevice_GBPlayer(Core::System& system, HSPDeviceType device)
-    : IHSPDevice(device), m_system{system}
+CHSPDevice_GBPlayer::CHSPDevice_GBPlayer(Core::System& system) : m_system{system}
 {
 #if defined(HAS_LIBMGBA)
   m_gbp = std::make_unique<CGBPlayer_mGBA>(m_system, this);

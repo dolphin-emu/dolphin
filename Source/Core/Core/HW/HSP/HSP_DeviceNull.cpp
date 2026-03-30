@@ -3,13 +3,8 @@
 
 #include "Core/HW/HSP/HSP_DeviceNull.h"
 
-#include "Core/HW/HSP/HSP.h"
-
 namespace HSP
 {
-CHSPDevice_Null::CHSPDevice_Null(HSPDeviceType device) : IHSPDevice(device)
-{
-}
 
 u64 CHSPDevice_Null::Read(u32 address)
 {

@@ -50,12 +50,14 @@ protected:
   CHSPDevice_GBPlayer* const m_player;
 };
 
-class CHSPDevice_GBPlayer : public IHSPDevice
+class CHSPDevice_GBPlayer final : public IHSPDevice
 {
 public:
   enum class IRQ : int;
 
-  CHSPDevice_GBPlayer(Core::System& system, HSPDeviceType device);
+  explicit CHSPDevice_GBPlayer(Core::System& system);
+
+  HSPDeviceType GetDeviceType() const override { return HSPDeviceType::GBPlayer; }
 
   void Write(u32 address, u64 value) override;
   u64 Read(u32 address) override;
