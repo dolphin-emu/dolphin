@@ -283,6 +283,7 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_TRIUSER_IDX));
   File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
   File::CreateFullPath(File::GetUserPath(D_GRAPHICSMOD_IDX));
+  File::CreateFullPath(File::GetUserPath(D_LOGS_IDX));
   File::CreateFullPath(File::GetUserPath(D_MAPS_IDX));
   File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
   File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
