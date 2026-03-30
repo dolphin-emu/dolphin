@@ -366,6 +366,15 @@ QGroupBox* MappingWidget::CreateControlsBox(const QString& name, ControllerEmu::
 void MappingWidget::CreateControl(const ControllerEmu::Control* control, QFormLayout* layout,
                                   bool indicator)
 {
+  const bool translate = control->translate == ControllerEmu::Translatability::Translate;
+  const QString translated_name =
+      translate ? tr(control->ui_name.c_str()) : QString::fromStdString(control->ui_name);
+  CreateControl(translated_name, control, layout, indicator);
+}
+
+void MappingWidget::CreateControl(const QString& name, const ControllerEmu::Control* control,
+                                  QFormLayout* layout, bool indicator)
+{
   // I know this check is terrible, but it's just UI code.
   const bool is_modifier = control->name == "Modifier";
 
@@ -390,10 +399,6 @@ void MappingWidget::CreateControl(const ControllerEmu::Control* control, QFormLa
   button->setMinimumWidth(100);
   button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-  const bool translate = control->translate == ControllerEmu::Translatability::Translate;
-  const QString translated_name =
-      translate ? tr(control->ui_name.c_str()) : QString::fromStdString(control->ui_name);
-
   if (indicator && control->control_ref->IsInput())
   {
     auto* const button_indicator = new ButtonIndicator{control->control_ref.get()};
@@ -403,11 +408,11 @@ void MappingWidget::CreateControl(const ControllerEmu::Control* control, QFormLa
     hbox->setSpacing(0);
     hbox->addWidget(button_indicator);
     hbox->addWidget(button);
-    layout->addRow(translated_name, hbox);
+    layout->addRow(name, hbox);
   }
   else
   {
-    layout->addRow(translated_name, button);
+    layout->addRow(name, button);
   }
 }
 

@@ -10,6 +10,7 @@
 
 #include "Common/IniFile.h"
 #include "Core/Core.h"
+#include "Core/HW/DVD/AMMediaboard.h"
 #include "Core/System.h"
 
 namespace TriforcePadProfile
@@ -23,11 +24,13 @@ enum class GameFamily
 {
   Auto,
   GenericTriforce,
+  VirtuaStriker,
 };
 
 constexpr std::string_view PROFILE_SECTION = "Profile";
 constexpr std::string_view GAME_MAPPING_KEY = "GameMapping";
-constexpr std::array<GameFamily, 1> REAL_GAME_FAMILIES = {GameFamily::GenericTriforce};
+constexpr std::array<GameFamily, 2> REAL_GAME_FAMILIES = {GameFamily::GenericTriforce,
+                                                          GameFamily::VirtuaStriker};
 
 inline std::string_view GetGameFamilyName(GameFamily game_family)
 {
@@ -37,6 +40,8 @@ inline std::string_view GetGameFamilyName(GameFamily game_family)
     return "Auto";
   case GameFamily::GenericTriforce:
     return "GenericTriforce";
+  case GameFamily::VirtuaStriker:
+    return "VirtuaStriker";
   }
 
   return "Auto";
@@ -66,6 +71,16 @@ inline std::optional<GameFamily> DetectRunningGameFamily()
   Core::System& system = Core::System::GetInstance();
   if (Core::GetState(system) == Core::State::Uninitialized || !system.IsTriforce())
     return std::nullopt;
+
+  switch (AMMediaboard::GetGameType())
+  {
+  case AMMediaboard::GameType::VirtuaStriker3:
+  case AMMediaboard::GameType::VirtuaStriker4:
+  case AMMediaboard::GameType::VirtuaStriker4_2006:
+    return GameFamily::VirtuaStriker;
+  default:
+    break;
+  }
 
   return GameFamily::GenericTriforce;
 }

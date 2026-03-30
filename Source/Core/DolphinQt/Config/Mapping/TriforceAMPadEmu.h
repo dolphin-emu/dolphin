@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <initializer_list>
 #include <string>
 
 #include "Common/IniFile.h"
@@ -13,6 +14,11 @@ class QComboBox;
 class QGroupBox;
 class QStackedWidget;
 class QWidget;
+
+namespace ControllerEmu
+{
+class ControlGroup;
+}
 
 class TriforceAMPadEmu final : public MappingWidget
 {
@@ -31,11 +37,18 @@ public:
   bool OnDialogClosing() override;
 
 private:
+  struct ControlAlias
+  {
+    const char* label;
+    size_t index;
+  };
+
   void LoadSettings() override;
   void SaveSettings() override;
 
   void CreateMainLayout();
   QWidget* CreateGenericTriforceWidget();
+  QWidget* CreateVirtuaStrikerWidget();
   void PersistSettings(GameFamily game_family);
   void ApplySelectedGameFamily();
   void CaptureCurrentGameFamilyConfig();
@@ -47,6 +60,9 @@ private:
   void SeedGameFamilySectionsFromCurrentConfig();
   Common::IniFile::Section* GetMutableGameFamilySection(GameFamily game_family);
   const Common::IniFile::Section* GetGameFamilySection(GameFamily game_family) const;
+  QGroupBox* CreateAliasedControlsBox(const QString& name, ControllerEmu::ControlGroup* group,
+                                      std::initializer_list<ControlAlias> controls);
+  bool ResolveGameFamilyMismatchOnClose(GameFamily* game_family);
 
   void OnGameFamilyChanged(int index);
   GameFamily GetSelectedGameFamily() const;

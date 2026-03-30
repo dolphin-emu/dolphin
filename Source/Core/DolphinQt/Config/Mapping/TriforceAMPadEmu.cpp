@@ -3,9 +3,14 @@
 
 #include "DolphinQt/Config/Mapping/TriforceAMPadEmu.h"
 
+#include <QCheckBox>
 #include <QComboBox>
+#include <QFormLayout>
+#include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QMessageBox>
+#include <QPushButton>
 #include <QStackedWidget>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -15,9 +20,11 @@
 #include "Common/IniFile.h"
 
 #include "Core/HW/GCPad.h"
+#include "Core/HW/PadGroups.h"
 
 #include "DolphinQt/Config/Mapping/GCPadEmu.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/InputConfig.h"
 
 namespace
@@ -31,9 +38,34 @@ int GetGameFamilyStackIndex(TriforceAMPadEmu::GameFamily game_family)
   {
   case TriforceAMPadEmu::GameFamily::Auto:
   case TriforceAMPadEmu::GameFamily::GenericTriforce:
+    return 0;
+  case TriforceAMPadEmu::GameFamily::VirtuaStriker:
+    return 1;
   default:
     return 0;
   }
+}
+
+QString GetGameFamilyLabel(TriforceAMPadEmu::GameFamily game_family)
+{
+  switch (game_family)
+  {
+  case TriforceAMPadEmu::GameFamily::Auto:
+    return TriforceAMPadEmu::tr("Auto");
+  case TriforceAMPadEmu::GameFamily::GenericTriforce:
+    return TriforceAMPadEmu::tr("Generic Triforce");
+  case TriforceAMPadEmu::GameFamily::VirtuaStriker:
+    return TriforceAMPadEmu::tr("Virtua Striker");
+  default:
+    return {};
+  }
+}
+
+QString GetFamilyMismatchText(TriforceAMPadEmu::GameFamily detected_game_family,
+                              TriforceAMPadEmu::GameFamily selected_game_family)
+{
+  return TriforceAMPadEmu::tr("The running game matches %1, but Game Mapping is set to %2.")
+      .arg(GetGameFamilyLabel(detected_game_family), GetGameFamilyLabel(selected_game_family));
 }
 
 Common::IniFile::Section CreateNamedSection(const std::string& name,
@@ -79,6 +111,26 @@ std::string GetConfigFamilySectionName(std::string_view controller_name,
   return section_name;
 }
 
+void SeedMissingGameFamilySections(Common::IniFile* family_sections)
+{
+  const Common::IniFile::Section* fallback = family_sections->GetSection(
+      TriforcePadProfile::GetProfileSectionName(TriforceAMPadEmu::GameFamily::GenericTriforce));
+  if (fallback == nullptr && !family_sections->GetSections().empty())
+    fallback = &family_sections->GetSections().front();
+
+  if (fallback == nullptr)
+    return;
+
+  for (const auto game_family : TriforcePadProfile::REAL_GAME_FAMILIES)
+  {
+    if (family_sections->Exists(TriforcePadProfile::GetProfileSectionName(game_family)))
+      continue;
+
+    *family_sections->GetOrCreateSection(TriforcePadProfile::GetProfileSectionName(game_family)) =
+        CreateNamedSection(TriforcePadProfile::GetProfileSectionName(game_family), *fallback);
+  }
+}
+
 }  // namespace
 
 TriforceAMPadEmu::TriforceAMPadEmu(MappingWindow* window) : MappingWidget(window)
@@ -86,7 +138,8 @@ TriforceAMPadEmu::TriforceAMPadEmu(MappingWindow* window) : MappingWidget(window
   m_family_box = new QGroupBox(tr("Game Mapping"));
   auto* const family_layout = new QHBoxLayout{m_family_box};
   m_family_combo = new QComboBox{m_family_box};
-  for (const GameFamily game_family : {GameFamily::Auto, GameFamily::GenericTriforce})
+  for (const GameFamily game_family :
+       {GameFamily::Auto, GameFamily::GenericTriforce, GameFamily::VirtuaStriker})
   {
     m_family_combo->addItem(GetGameFamilyDisplayName(game_family), static_cast<int>(game_family));
   }
@@ -165,7 +218,11 @@ void TriforceAMPadEmu::SaveSettings()
 bool TriforceAMPadEmu::OnDialogClosing()
 {
   CaptureCurrentGameFamilyConfig();
-  PersistSettings(GetSelectedGameFamily());
+  GameFamily game_family = GetSelectedGameFamily();
+  if (!ResolveGameFamilyMismatchOnClose(&game_family))
+    return false;
+
+  PersistSettings(game_family);
   return true;
 }
 
@@ -227,6 +284,7 @@ void TriforceAMPadEmu::CreateMainLayout()
   auto* const main_layout = new QVBoxLayout{this};
   m_family_stack = new QStackedWidget{this};
   m_family_stack->addWidget(CreateGenericTriforceWidget());
+  m_family_stack->addWidget(CreateVirtuaStrikerWidget());
   main_layout->addWidget(m_family_stack);
 }
 
@@ -234,6 +292,31 @@ QWidget* TriforceAMPadEmu::CreateGenericTriforceWidget()
 {
   // Keep the stock AM baseboard page intact for the generic fallback layout.
   return CreateAMBaseboardMappingWidget(GetParent());
+}
+
+QWidget* TriforceAMPadEmu::CreateVirtuaStrikerWidget()
+{
+  auto* const widget = new QWidget(this);
+  auto* const layout = new QGridLayout(widget);
+
+  layout->addWidget(
+      CreateAliasedControlsBox(
+          tr("Buttons"), Pad::GetGroup(GetPort(), PadGroup::Buttons),
+          {{"Short Pass", 0}, {"Shoot", 1}, {"Long Cross", 2}, {"Dash", 3}, {"Start", 5}}),
+      0, 0);
+  layout->addWidget(
+      CreateAliasedControlsBox(tr("Tactics"), Pad::GetGroup(GetPort(), PadGroup::DPad),
+                               {{"Tactics (U)", 2}, {"Tactics (M)", 0}, {"Tactics (D)", 3}}),
+      1, 0);
+  layout->addWidget(CreateGroupBox(tr("Triforce"), Pad::GetGroup(GetPort(), PadGroup::Triforce)), 2,
+                    0);
+  layout->addWidget(
+      CreateGroupBox(tr("Control Stick"), Pad::GetGroup(GetPort(), PadGroup::MainStick)), 0, 1, 3,
+      1);
+  layout->addWidget(CreateGroupBox(tr("Options"), Pad::GetGroup(GetPort(), PadGroup::Options)), 2,
+                    2);
+
+  return widget;
 }
 
 void TriforceAMPadEmu::ApplySelectedGameFamily()
@@ -335,7 +418,12 @@ void TriforceAMPadEmu::LoadGameFamilySections(const Common::IniFile& ini, bool u
   }
 
   if (m_family_sections.GetSections().empty())
+  {
     SeedGameFamilySectionsFromCurrentConfig();
+    return;
+  }
+
+  SeedMissingGameFamilySections(&m_family_sections);
 }
 
 void TriforceAMPadEmu::SeedGameFamilySectionsFromCurrentConfig()
@@ -360,6 +448,56 @@ const Common::IniFile::Section* TriforceAMPadEmu::GetGameFamilySection(GameFamil
   return m_family_sections.GetSection(TriforcePadProfile::GetProfileSectionName(game_family));
 }
 
+QGroupBox* TriforceAMPadEmu::CreateAliasedControlsBox(const QString& name,
+                                                      ControllerEmu::ControlGroup* group,
+                                                      std::initializer_list<ControlAlias> controls)
+{
+  auto* const group_box = new QGroupBox(name);
+  auto* const layout = new QFormLayout(group_box);
+
+  for (const ControlAlias control : controls)
+    CreateControl(tr(control.label), group->controls[control.index].get(), layout, true);
+
+  return group_box;
+}
+
+bool TriforceAMPadEmu::ResolveGameFamilyMismatchOnClose(GameFamily* game_family)
+{
+  if (*game_family == GameFamily::Auto)
+    return true;
+
+  const std::optional<GameFamily> detected_game_family =
+      TriforcePadProfile::DetectRunningGameFamily();
+  if (!detected_game_family.has_value() || detected_game_family == *game_family)
+    return true;
+
+  QMessageBox prompt(this);
+  prompt.setIcon(QMessageBox::Warning);
+  prompt.setWindowTitle(tr("Game Mapping Mismatch"));
+  prompt.setText(GetFamilyMismatchText(*detected_game_family, *game_family));
+
+  QCheckBox* const switch_to_auto = new QCheckBox(tr("Switch to Auto"), &prompt);
+  prompt.setCheckBox(switch_to_auto);
+
+  QPushButton* const use_detected = prompt.addButton(tr("Use Detected"), QMessageBox::AcceptRole);
+  QPushButton* const keep_manual =
+      prompt.addButton(tr("Keep Manual"), QMessageBox::DestructiveRole);
+  QPushButton* const keep_editing = prompt.addButton(tr("Keep Editing"), QMessageBox::RejectRole);
+  Q_UNUSED(keep_manual);
+
+  prompt.exec();
+
+  if (prompt.clickedButton() == keep_editing)
+    return false;
+
+  if (prompt.clickedButton() == use_detected)
+  {
+    *game_family = switch_to_auto->isChecked() ? GameFamily::Auto : *detected_game_family;
+  }
+
+  return true;
+}
+
 void TriforceAMPadEmu::OnGameFamilyChanged(int)
 {
   CaptureCurrentGameFamilyConfig();
@@ -379,15 +517,7 @@ TriforceAMPadEmu::GameFamily TriforceAMPadEmu::GetDefaultGameFamilySelection()
 
 QString TriforceAMPadEmu::GetGameFamilyDisplayName(GameFamily game_family)
 {
-  switch (game_family)
-  {
-  case GameFamily::Auto:
-    return tr("Auto");
-  case GameFamily::GenericTriforce:
-    return tr("Generic Triforce");
-  default:
-    return {};
-  }
+  return GetGameFamilyLabel(game_family);
 }
 
 std::string TriforceAMPadEmu::GetProfileDirectoryPath(bool user)
