@@ -11,6 +11,7 @@
 #include "AudioCommon/WaveFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
+#include "Common/Inline.h"
 
 class PointerWrap;
 
@@ -42,7 +43,7 @@ public:
 
   void SetDMAInputSampleRateDivisor(u32 rate_divisor);
   void SetStreamInputSampleRateDivisor(u32 rate_divisor);
-  void SetGBAInputSampleRateDivisors(std::size_t device_number, u32 rate_divisor);
+  void SetGBAInputSampleRate(std::size_t device_number, u32 sample_rate);
 
   void SetStreamingVolume(u32 lvolume, u32 rvolume);
   void SetWiimoteSpeakerVolume(u32 lvolume, u32 rvolume);
@@ -100,23 +101,42 @@ private:
     using Granule = std::array<StereoPair, GRANULE_SIZE>;
 
   public:
-    MixerFifo(Mixer* mixer, u32 sample_rate_divisor, bool little_endian)
-        : m_mixer(mixer), m_input_sample_rate_divisor(sample_rate_divisor),
-          m_little_endian(little_endian)
+    MixerFifo(Mixer* mixer, u32 sample_rate_divisor,
+              u32 sample_rate_dividend = FIXED_SAMPLE_RATE_DIVIDEND)
+        : m_mixer(mixer), m_input_sample_rate_dividend(sample_rate_dividend),
+          m_input_sample_rate_divisor(sample_rate_divisor)
     {
     }
     void DoState(PointerWrap& p);
-    void PushSamples(const s16* samples, std::size_t num_samples);
+
+    DOLPHIN_FORCE_INLINE void PushSample(s16 left, s16 right)
+    {
+      m_next_buffer[m_next_buffer_index] = {left, right};
+      m_next_buffer_index = (m_next_buffer_index + 1) & GRANULE_MASK;
+
+      // The granules overlap by 50%, so we need to enqueue the
+      // next buffer every time we fill half of the samples.
+      if (m_next_buffer_index == 0 || m_next_buffer_index == m_next_buffer.size() / 2)
+        Enqueue();
+    }
+
     void Mix(s16* samples, std::size_t num_samples);
+
+    void SetInputSampleRateDividend(u32 rate_dividend);
+    u32 GetInputSampleRateDividend() const;
+
     void SetInputSampleRateDivisor(u32 rate_divisor);
     u32 GetInputSampleRateDivisor() const;
+
     void SetVolume(u32 lvolume, u32 rvolume);
     std::pair<s32, s32> GetVolume() const;
 
   private:
     Mixer* m_mixer;
+
+    // All non-GBA MixerFifo instances use FIXED_SAMPLE_RATE_DIVIDEND.
+    u32 m_input_sample_rate_dividend;
     u32 m_input_sample_rate_divisor;
-    bool m_little_endian;
 
     Granule m_next_buffer{};
     std::size_t m_next_buffer_index = 0;
@@ -144,14 +164,21 @@ private:
 
   void RefreshConfig();
 
-  MixerFifo m_dma_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 32000, false};
-  MixerFifo m_streaming_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, false};
-  MixerFifo m_wiimote_speaker_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 3000, true};
-  MixerFifo m_skylander_portal_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 8000, true};
-  std::array<MixerFifo, 4> m_gba_mixers{MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true},
-                                        MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true},
-                                        MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true},
-                                        MixerFifo{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000, true}};
+  MixerFifo m_dma_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 32000};
+  MixerFifo m_streaming_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 48000};
+  MixerFifo m_wiimote_speaker_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 3000};
+  MixerFifo m_skylander_portal_mixer{this, FIXED_SAMPLE_RATE_DIVIDEND / 8000};
+
+  // GBAs generally use a 65536 sample rate which is not a factor of our FIXED_SAMPLE_RATE_DIVIDEND.
+  static constexpr u32 GBA_SAMPLE_RATE_DIVIDEND = 0x1000000;
+
+  std::array<MixerFifo, 4> m_gba_mixers{
+      MixerFifo{this, GBA_SAMPLE_RATE_DIVIDEND / 65536, GBA_SAMPLE_RATE_DIVIDEND},
+      MixerFifo{this, GBA_SAMPLE_RATE_DIVIDEND / 65536, GBA_SAMPLE_RATE_DIVIDEND},
+      MixerFifo{this, GBA_SAMPLE_RATE_DIVIDEND / 65536, GBA_SAMPLE_RATE_DIVIDEND},
+      MixerFifo{this, GBA_SAMPLE_RATE_DIVIDEND / 65536, GBA_SAMPLE_RATE_DIVIDEND},
+  };
+
   u32 m_output_sample_rate;
 
   AudioCommon::SurroundDecoder m_surround_decoder;

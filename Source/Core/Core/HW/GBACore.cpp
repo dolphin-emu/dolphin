@@ -434,8 +434,7 @@ void Core::SetAVStream()
   m_stream.audioRateChanged = [](mAVStream* stream, unsigned rate) {
     auto* core = static_cast<AVStream*>(stream)->core;
     auto* const sound_stream = core->m_system.GetSoundStream();
-    sound_stream->GetMixer()->SetGBAInputSampleRateDivisors(
-        core->m_device_number, Mixer::FIXED_SAMPLE_RATE_DIVIDEND / rate);
+    sound_stream->GetMixer()->SetGBAInputSampleRate(core->m_device_number, rate);
   };
   m_stream.postAudioBuffer = [](mAVStream* stream, mAudioBuffer* audio_buffer) {
     size_t sample_count = mAudioBufferAvailable(audio_buffer);
