@@ -261,7 +261,7 @@ static GuestSocket GetAvailableGuestSocket()
   while (count--)
   {
     const u32 i = s_next_valid_fd;
-    s_next_valid_fd = ++s_next_valid_fd % std::size(s_sockets);
+    s_next_valid_fd = (s_next_valid_fd + 1) % std::size(s_sockets);
     if (i < FIRST_VALID_FD)
       continue;
     if (s_sockets[i] == SOCKET_ERROR)
