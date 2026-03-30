@@ -145,6 +145,7 @@ enum class BooleanSetting(
         "EnablePlayTimeTracking",
         true
     ),
+    MAIN_GBA_THREADS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "Threads", true),
     MAIN_EXPAND_TO_CUTOUT_AREA(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_INTERFACE,

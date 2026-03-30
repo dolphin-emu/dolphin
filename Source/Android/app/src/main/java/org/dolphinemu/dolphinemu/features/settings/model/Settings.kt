@@ -112,6 +112,7 @@ class Settings : Closeable {
         const val SECTION_INI_CORE = "Core"
         const val SECTION_INI_INTERFACE = "Interface"
         const val SECTION_INI_DSP = "DSP"
+        const val SECTION_INI_GBA = "GBA"
         const val SECTION_LOGGER_LOGS = "Logs"
         const val SECTION_LOGGER_OPTIONS = "Options"
         const val SECTION_GFX_HARDWARE = "Hardware"

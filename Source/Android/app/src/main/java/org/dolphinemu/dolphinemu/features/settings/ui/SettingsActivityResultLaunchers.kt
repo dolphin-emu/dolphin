@@ -34,6 +34,26 @@ class SettingsActivityResultLaunchers(
         )
     }
 
+    val requestGbaRomFile = fragment.registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result: ActivityResult ->
+        onFileResult(
+            result,
+            FileBrowserHelper.GBA_ROM_EXTENSIONS,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
+        )
+    }
+
+    val requestBinFile = fragment.registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result: ActivityResult ->
+        onFileResult(
+            result,
+            FileBrowserHelper.BIN_EXTENSION,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
+        )
+    }
+
     val requestRawFile = fragment.registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result: ActivityResult ->
