@@ -17,6 +17,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
+#include "Common/Swap.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
@@ -50,8 +51,7 @@ constexpr u8 CONTROL_MASK_IRQ = 0x10;
 // constexpr u8 CONTROL_LINK_CABLE = 0x40;
 // constexpr u8 CONTROL_LINK_ENABLE = 0x80;
 
-constexpr u32 COMMAND_ADDRESS_MASK = 0x1f;
-constexpr u32 AV_ADDRESS_MASK = 0xff8;
+constexpr u32 AV_ADDRESS_MASK = 0xfe0;
 
 class CGBPlayer_Dummy final : public HSP::IGBPlayer
 {
@@ -232,13 +232,13 @@ void CGBPlayer_mGBA::ReadScanlines(std::span<u32, AV_REGION_SIZE> scanlines)
   {
     const u32 color =
         M_RGB8_TO_RGB5(video_buffer[(m_current_scanline_index * GBA_VIDEO_HORIZONTAL_PIXELS) + i]);
-    u32 c = color & 0xFF;
-    c |= (color & 0xFF00u) << 8;
+    u32 c = color >> 8u;
+    c |= (color & 0xffu) << 16u;
     scanlines[i] = c | (c << 8);  // Parity
   }
 
   if (m_current_scanline_index == 0)
-    scanlines[0] |= 0x80800000;
+    scanlines[0] |= 0x00008080;
 
   m_current_scanline_index += 4;
 
@@ -398,14 +398,13 @@ CHSPDevice_GBPlayer::CHSPDevice_GBPlayer(Core::System& system) : m_system{system
 #endif
 }
 
-u64 CHSPDevice_GBPlayer::Read(u32 address)
+void CHSPDevice_GBPlayer::Read(u32 address, std::span<u8, TRANSFER_SIZE> data)
 {
-  u64 value = 0;
   switch (GBPRegister(address >> 20))
   {
   case GBPRegister::Test:
   {
-    std::memcpy(&value, &m_test[address & COMMAND_ADDRESS_MASK], sizeof(value));
+    std::ranges::copy(m_test, data.data());
     break;
   }
   case GBPRegister::Control:
@@ -423,14 +422,19 @@ u64 CHSPDevice_GBPlayer::Read(u32 address)
       m_control &= ~(CONTROL_CART_DETECTED | CONTROL_CART_INSERTED);
     }
 
-    value = m_control * 0x0101010101010101ULL;
+    std::ranges::fill(data, m_control);
     break;
   }
   case GBPRegister::IRQ:
   {
-    value = m_irq * 0x0000000100000001ULL;
-    value |= (m_irq & 0xFF00) * 0x0001010000010100ULL;
-    value &= 0xFFFF7FFFFFFF7FFFULL;
+    u32 value = m_irq;
+    value |= (m_irq & 0xff00) * 0x0100'0001u;
+    value &= 0x7fff'ffffu;
+
+    for (std::size_t i = 0; i != data.size(); i += sizeof(value))
+    {
+      std::memcpy(data.data() + i, &value, sizeof(value));
+    }
     break;
   }
   case GBPRegister::Video:
@@ -441,8 +445,7 @@ u64 CHSPDevice_GBPlayer::Read(u32 address)
 
     const u32 scanlines_pos = offset / 4;
 
-    value = u64(m_scanlines[scanlines_pos]) << 32;
-    value |= m_scanlines[scanlines_pos + 1];
+    std::memcpy(data.data(), m_scanlines.data() + scanlines_pos, data.size());
     break;
   }
   case GBPRegister::Audio:
@@ -451,10 +454,13 @@ u64 CHSPDevice_GBPlayer::Read(u32 address)
     if (offset == 0)
       m_gbp->ReadAudio(m_audio);
 
-    const u32 audio_pos = offset / 4;
+    u32 audio_pos = offset / 4;
 
-    value = 0x0101010100000000ULL * m_audio[audio_pos];
-    value |= 0x01010101ULL * m_audio[audio_pos + 1];
+    for (std::size_t i = 0; i != data.size(); i += sizeof(u32))
+    {
+      std::memset(data.data() + i, m_audio[audio_pos], sizeof(u32));
+      ++audio_pos;
+    }
     break;
   }
   default:
@@ -463,27 +469,22 @@ u64 CHSPDevice_GBPlayer::Read(u32 address)
     break;
   }
   }
-  return value;
 }
 
-void CHSPDevice_GBPlayer::Write(u32 address, u64 value)
+void CHSPDevice_GBPlayer::Write(u32 address, std::span<const u8, TRANSFER_SIZE> data)
 {
-  // This seems to compensate for DSP.cpp turning 32byte writes into 4 x 8byte writes.
-  // TODO: Rectify that and adjust this.
-  constexpr u32 last_chunk = 0x18;
-
   switch (GBPRegister(address >> 20))
   {
   case GBPRegister::Test:
   {
-    value = ~value;
-    std::memcpy(&m_test[address & COMMAND_ADDRESS_MASK], &value, sizeof(value));
+    u8* dest = m_test.data();
+    for (u8 value : data)
+      *(dest++) = value ^ 0xffu;
     break;
   }
   case GBPRegister::Control:
   {
-    if ((address & COMMAND_ADDRESS_MASK) != last_chunk)
-      break;
+    const u8 value = data[0x1f];
 
     if (!(m_control & (CONTROL_3V | CONTROL_5V)) && (value & (CONTROL_3V | CONTROL_5V)))
     {
@@ -506,24 +507,20 @@ void CHSPDevice_GBPlayer::Write(u32 address, u64 value)
   }
   case GBPRegister::IRQ:
   {
-    if ((address & COMMAND_ADDRESS_MASK) != last_chunk)
-      break;
-
-    m_irq &= ~value;
+    const u16 value = Common::swap16(data.data() + 0x1e);
+    m_irq &= u16(~value);
     UpdateInterrupts();
     break;
   }
   case GBPRegister::Keypad:
   {
-    if ((address & COMMAND_ADDRESS_MASK) != last_chunk)
-      break;
-
+    const u16 value = Common::swap16(data.data() + 0x1e);
     m_gbp->SetKeys(value & 0x3FF);
     break;
   }
   default:
   {
-    WARN_LOG_FMT(HSP, "GBPlayer: Unknown write to 0x{:08x}: 0x{:016x}", address, value);
+    WARN_LOG_FMT(HSP, "GBPlayer: Unknown write to 0x{:08x}", address);
     break;
   }
   }

@@ -59,8 +59,8 @@ public:
 
   HSPDeviceType GetDeviceType() const override { return HSPDeviceType::GBPlayer; }
 
-  void Write(u32 address, u64 value) override;
-  u64 Read(u32 address) override;
+  void Read(u32 address, std::span<u8, TRANSFER_SIZE> data) override;
+  void Write(u32 address, std::span<const u8, TRANSFER_SIZE> data) override;
 
   void DoState(PointerWrap& p) override;
 

@@ -5,6 +5,8 @@
 
 #include <memory>
 
+#include <fmt/ranges.h>
+
 #include "Common/ChunkFile.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/HSP/HSP_Device.h"
@@ -24,18 +26,18 @@ void HSPManager::Shutdown()
   m_device.reset();
 }
 
-u64 HSPManager::Read(u32 address)
+void HSPManager::Read(u32 address, std::span<u8, TRANSFER_SIZE> data)
 {
   DEBUG_LOG_FMT(HSP, "HSP read from 0x{:08x}", address);
 
-  return m_device->Read(address);
+  m_device->Read(address, data);
 }
 
-void HSPManager::Write(u32 address, u64 value)
+void HSPManager::Write(u32 address, std::span<const u8, TRANSFER_SIZE> data)
 {
-  DEBUG_LOG_FMT(HSP, "HSP write to 0x{:08x}: 0x{:016x}", address, value);
+  DEBUG_LOG_FMT(HSP, "HSP write to 0x{:08x}: {:02x}", address, fmt::join(data, " "));
 
-  m_device->Write(address, value);
+  m_device->Write(address, data);
 }
 
 void HSPManager::DoState(PointerWrap& p)
