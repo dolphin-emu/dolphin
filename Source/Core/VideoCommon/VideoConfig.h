@@ -181,6 +181,7 @@ struct BackendInfo
   bool bSupportsGLLayerInFS = true;
   bool bSupportsHDROutput = false;
   bool bSupportsUnrestrictedDepthRange = false;
+  bool bSupportsVSLayerOutput = false;  // Can output gl_Layer from vertex shader (no GS needed)
 };
 
 extern BackendInfo g_backend_info;

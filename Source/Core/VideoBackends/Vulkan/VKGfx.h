@@ -92,6 +92,7 @@ private:
   void CheckForSurfaceResize();
 
   void ResetSamplerStates();
+  bool HasStereoFromVertexShader() const;
 
   void OnSwapChainResized();
   void BindFramebuffer(VKFramebuffer* fb);
