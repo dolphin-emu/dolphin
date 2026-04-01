@@ -121,7 +121,7 @@ static VFile* OpenReadOnlyFile(const char* path)
 {
 #ifdef ANDROID
   if (IsPathAndroidContent(path))
-    return VFileFromFD(OpenAndroidContent(path, OpenModeToAndroid("r")));
+    return VFileFromFD(OpenAndroidContent(path, "r"));
 #endif
   return VFileOpen(path, O_RDONLY);
 }
