@@ -56,20 +56,7 @@ constexpr size_t AUDIO_BUFFER_SIZE = 512;
 // libmGBA does not return the correct frequency for some GB models
 static u32 GetCoreFrequency(mCore* core)
 {
-  if (core->platform(core) != mPLATFORM_GB)
-    return static_cast<u32>(core->frequency(core));
-
-  switch (static_cast<::GB*>(core->board)->model)
-  {
-  case GB_MODEL_CGB:
-  case GB_MODEL_SCGB:
-  case GB_MODEL_AGB:
-    return CGB_SM83_FREQUENCY;
-  case GB_MODEL_SGB:
-    return SGB_SM83_FREQUENCY;
-  default:
-    return DMG_SM83_FREQUENCY;
-  }
+  return (core->platform(core) == mPLATFORM_GBA) ? GBA_ARM7TDMI_FREQUENCY : CGB_SM83_FREQUENCY;
 }
 
 static VFile* OpenROM_Archive(const char* path)
@@ -221,6 +208,15 @@ bool Core::Start(u64 gc_ticks)
   mCoreConfigSetValue(&m_core->config, "idleOptimization", "detect");
   mCoreConfigSetIntValue(&m_core->config, "useBios", 0);
   mCoreConfigSetIntValue(&m_core->config, "skipBios", 0);
+
+  // If we eventually load GBC BIOS, then these should potentially all be "CGB".
+  mCoreConfigSetValue(&m_core->config, "gb.model", "DMG");
+  mCoreConfigSetValue(&m_core->config, "sgb.model", "DMG");
+  mCoreConfigSetValue(&m_core->config, "cgb.model", "CGB");
+  mCoreConfigSetValue(&m_core->config, "cgb.hybridModel", "CGB");
+  mCoreConfigSetValue(&m_core->config, "cgb.sgbModel", "CGB");
+
+  mCoreConfigSetIntValue(&m_core->config, "gb.colors", GB_COLORS_CGB);
 
   if (m_core->platform(m_core) == mPLATFORM_GBA)
   {
