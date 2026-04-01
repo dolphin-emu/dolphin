@@ -39,6 +39,9 @@ public final class FileBrowserHelper
     GAME_LIKE_EXTENSIONS.add("dff");
   }
 
+  public static final HashSet<String> GBA_ROM_EXTENSIONS = new HashSet<>(Arrays.asList(
+          "gba", "gbc", "gb", "agb", "mb", "rom", "bin"));
+
   public static final HashSet<String> BIN_EXTENSION = new HashSet<>(Collections.singletonList(
           "bin"));
 

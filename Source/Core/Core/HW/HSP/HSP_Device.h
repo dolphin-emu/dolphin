@@ -15,6 +15,7 @@ enum class HSPDeviceType : int
 {
   None,
   ARAMExpansion,
+  GBPlayer,
 };
 
 class IHSPDevice

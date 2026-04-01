@@ -220,7 +220,10 @@ void GameCubePane::CreateWidgets()
   {
     m_gba_rom_edits[i] = new ConfigText(Config::MAIN_GBA_ROM_PATHS[i]);
     m_gba_browse_roms[i] = new NonDefaultQPushButton(QStringLiteral("..."));
-    gba_layout->addWidget(new QLabel(tr("Port %1 ROM:").arg(i + 1)), gba_row, 0);
+    auto* const label =
+        new QLabel((i == Config::GBPLAYER_GBA_INDEX) ? tr("Game Boy Player ROM:") :
+                                                       tr("Port %1 ROM:").arg(i + 1));
+    gba_layout->addWidget(label, gba_row, 0);
     gba_layout->addWidget(m_gba_rom_edits[i], gba_row, 1);
     gba_layout->addWidget(m_gba_browse_roms[i], gba_row, 2);
     gba_row++;

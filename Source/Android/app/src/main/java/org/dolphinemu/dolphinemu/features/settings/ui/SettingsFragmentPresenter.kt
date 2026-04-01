@@ -702,6 +702,46 @@ class SettingsFragmentPresenter(
                 MenuTag.CONFIG_SERIALPORT1
             )
         )
+
+        sl.add(HeaderSetting(context, R.string.gba_settings, 0))
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_GBA_THREADS,
+                R.string.gba_threads,
+                0,
+            )
+        )
+        sl.add(
+            FilePicker(
+                context,
+                StringSetting.MAIN_GBA_BIOS_PATH,
+                R.string.gba_bios_path,
+                0,
+                fragmentView.activityResultLaunchers.requestBinFile,
+                "/GBA/gba_bios.bin"
+            )
+        )
+        sl.add(
+            FilePicker(
+                context,
+                StringSetting.MAIN_GB_PLAYER_ROM,
+                R.string.gb_player_rom,
+                0,
+                fragmentView.activityResultLaunchers.requestGbaRomFile,
+                null
+            )
+        )
+        sl.add(
+            DirectoryPicker(
+                context,
+                StringSetting.MAIN_GBA_SAVES_PATH,
+                R.string.gba_saves_path,
+                0,
+                fragmentView.activityResultLaunchers.requestDirectory,
+                "/GBA/Saves/"
+            )
+        )
     }
 
     private fun addWiiSettings(sl: ArrayList<SettingsItem>) {
