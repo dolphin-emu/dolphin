@@ -18,11 +18,11 @@
 #include <mgba/core/core.h>
 #include <mgba/gba/interface.h>
 
-#include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
 #include "Common/WorkQueueThread.h"
 
 class GBAHostInterface;
+class Mixer;
 class PointerWrap;
 namespace Core
 {
@@ -39,7 +39,7 @@ struct SIODriver : GBASIODriver
 struct AVStream : mAVStream
 {
   Core* core;
-  Common::UniqueBuffer<s16> sample_buffer;
+  Mixer* mixer;
 };
 
 struct CoreInfo

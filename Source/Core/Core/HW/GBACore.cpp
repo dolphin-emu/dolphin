@@ -454,34 +454,43 @@ void Core::AddCallbacks()
   m_core->addCoreCallbacks(m_core, &callbacks);
 }
 
+static void ReadAudioBufferIntoMixer(mAudioBuffer* audio_buffer, Mixer* mixer,
+                                     std::size_t device_number)
+{
+  std::array<s16, AUDIO_BUFFER_SIZE> sample_buffer;
+  const auto read_size = sample_buffer.size() / audio_buffer->channels;
+  while (true)
+  {
+    const auto sample_count = mAudioBufferRead(audio_buffer, sample_buffer.data(), read_size);
+    if (sample_count == 0)
+      break;
+    mixer->PushGBASamples(device_number, sample_buffer.data(), sample_count);
+  }
+}
+
 void Core::SetAVStream()
 {
-  m_stream = {};
-  m_stream.core = this;
-  m_stream.videoDimensionsChanged = [](mAVStream* stream, unsigned width, unsigned height) {
-    auto core = static_cast<AVStream*>(stream)->core;
+  m_stream = {
+      .core = this,
+      .mixer = m_system.GetSoundStream()->GetMixer(),
+  };
+
+  m_stream.videoDimensionsChanged = [](mAVStream* stream, unsigned /*width*/, unsigned /*height*/) {
+    auto* core = static_cast<AVStream*>(stream)->core;
     core->SetVideoBuffer();
   };
   m_stream.audioRateChanged = [](mAVStream* stream, unsigned rate) {
-    auto* core = static_cast<AVStream*>(stream)->core;
-    auto* const sound_stream = core->m_system.GetSoundStream();
-    sound_stream->GetMixer()->SetGBAInputSampleRate(core->m_device_number, rate);
+    auto* const av_stream = static_cast<AVStream*>(stream);
+    auto* const core = av_stream->core;
+    auto* const audio_buffer = core->GetAudioBuffer();
+    ReadAudioBufferIntoMixer(audio_buffer, av_stream->mixer, av_stream->core->m_device_number);
+    av_stream->mixer->SetGBAInputSampleRate(core->m_device_number, rate);
   };
   m_stream.postAudioBuffer = [](mAVStream* stream, mAudioBuffer* audio_buffer) {
-    size_t sample_count = mAudioBufferAvailable(audio_buffer);
-    const size_t required_buffer_size = sample_count * audio_buffer->channels;
-
     auto* const av_stream = static_cast<AVStream*>(stream);
-    if (required_buffer_size > av_stream->sample_buffer.size())
-      av_stream->sample_buffer.reset(required_buffer_size);
-
-    sample_count = mAudioBufferRead(audio_buffer, av_stream->sample_buffer.data(), sample_count);
-
-    auto* const core = av_stream->core;
-    auto* const sound_stream = core->m_system.GetSoundStream();
-    sound_stream->GetMixer()->PushGBASamples(core->m_device_number, av_stream->sample_buffer.data(),
-                                             sample_count);
+    ReadAudioBufferIntoMixer(audio_buffer, av_stream->mixer, av_stream->core->m_device_number);
   };
+
   m_core->setAVStream(m_core, &m_stream);
 }
 
