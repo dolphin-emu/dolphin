@@ -3,20 +3,14 @@
 
 #include "Core/HW/HSP/HSP_DeviceNull.h"
 
-#include "Core/HW/HSP/HSP.h"
-
 namespace HSP
 {
-CHSPDevice_Null::CHSPDevice_Null(HSPDeviceType device) : IHSPDevice(device)
+
+void CHSPDevice_Null::Read(u32 address, std::span<u8, TRANSFER_SIZE> data)
 {
 }
 
-u64 CHSPDevice_Null::Read(u32 address)
-{
-  return 0;
-}
-
-void CHSPDevice_Null::Write(u32 address, u64 value)
+void CHSPDevice_Null::Write(u32 address, std::span<const u8, TRANSFER_SIZE> data)
 {
 }
 

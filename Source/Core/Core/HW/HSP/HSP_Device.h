@@ -4,6 +4,7 @@
 #pragma once
 
 #include <memory>
+#include <span>
 
 #include "Common/CommonTypes.h"
 
@@ -11,6 +12,9 @@ class PointerWrap;
 
 namespace HSP
 {
+
+static constexpr std::size_t TRANSFER_SIZE = 32;
+
 enum class HSPDeviceType : int
 {
   None,
@@ -21,19 +25,17 @@ enum class HSPDeviceType : int
 class IHSPDevice
 {
 public:
-  explicit IHSPDevice(HSPDeviceType device_type);
-  virtual ~IHSPDevice() = default;
+  virtual ~IHSPDevice();
 
-  HSPDeviceType GetDeviceType() const;
+  virtual HSPDeviceType GetDeviceType() const = 0;
 
-  virtual void Write(u32 address, u64 value) = 0;
-  virtual u64 Read(u32 address) = 0;
+  // Note: DSPManager::RegisterMMIO ensures addresses are 32 byte aligned.
+
+  virtual void Read(u32 address, std::span<u8, TRANSFER_SIZE> data) = 0;
+  virtual void Write(u32 address, std::span<const u8, TRANSFER_SIZE> data) = 0;
 
   // Savestate support
   virtual void DoState(PointerWrap& p);
-
-protected:
-  HSPDeviceType m_device_type;
 };
 
 std::unique_ptr<IHSPDevice> HSPDevice_Create(HSPDeviceType device);
