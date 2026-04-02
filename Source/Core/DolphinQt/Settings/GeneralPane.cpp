@@ -34,11 +34,14 @@
 #endif
 
 constexpr int AUTO_UPDATE_DISABLE_INDEX = 0;
-constexpr int AUTO_UPDATE_BETA_INDEX = 1;
+constexpr int AUTO_UPDATE_RELEASE_INDEX = 1;
 constexpr int AUTO_UPDATE_DEV_INDEX = 2;
 
 constexpr const char* AUTO_UPDATE_DISABLE_STRING = "";
-constexpr const char* AUTO_UPDATE_BETA_STRING = "beta";
+// Before the official switch to the rolling release cycle in 2407, de facto releases were called
+// beta builds. To maintain backward compatibility and let users update from those builds to current
+// releases the value of this string remains "beta".
+constexpr const char* AUTO_UPDATE_RELEASE_STRING = "beta";
 constexpr const char* AUTO_UPDATE_DEV_STRING = "dev";
 
 constexpr int FALLBACK_REGION_NTSCJ_INDEX = 0;
@@ -259,7 +262,7 @@ void GeneralPane::LoadConfig()
     else if (track == AUTO_UPDATE_DEV_STRING)
       SignalBlocking(m_combobox_update_track)->setCurrentIndex(AUTO_UPDATE_DEV_INDEX);
     else
-      SignalBlocking(m_combobox_update_track)->setCurrentIndex(AUTO_UPDATE_BETA_INDEX);
+      SignalBlocking(m_combobox_update_track)->setCurrentIndex(AUTO_UPDATE_RELEASE_INDEX);
   }
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
@@ -297,8 +300,8 @@ static QString UpdateTrackFromIndex(int index)
   case AUTO_UPDATE_DISABLE_INDEX:
     value = QString::fromStdString(AUTO_UPDATE_DISABLE_STRING);
     break;
-  case AUTO_UPDATE_BETA_INDEX:
-    value = QString::fromStdString(AUTO_UPDATE_BETA_STRING);
+  case AUTO_UPDATE_RELEASE_INDEX:
+    value = QString::fromStdString(AUTO_UPDATE_RELEASE_STRING);
     break;
   case AUTO_UPDATE_DEV_INDEX:
     value = QString::fromStdString(AUTO_UPDATE_DEV_STRING);
