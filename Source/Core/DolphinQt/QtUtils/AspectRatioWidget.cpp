@@ -13,6 +13,7 @@ AspectRatioWidget::AspectRatioWidget(QWidget* widget, float width, float height,
     : QWidget(parent), m_ar_width(width), m_ar_height(height)
 {
   m_layout = new QBoxLayout(QBoxLayout::LeftToRight, this);
+  m_layout->setContentsMargins(0, 0, 0, 0);
 
   // add spacer, then your widget, then spacer
   m_layout->addItem(new QSpacerItem(0, 0));
