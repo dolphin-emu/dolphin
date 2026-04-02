@@ -234,10 +234,9 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
 void Jit64::dcbx(UGeckoInstruction inst)
 {
-  FALLBACK_IF(m_accurate_cpu_cache_enabled);
-
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
+  FALLBACK_IF(m_accurate_cpu_cache_enabled);
 
   // Check if the next instructions match a known looping pattern:
   // - dcbx rX
@@ -448,7 +447,8 @@ void Jit64::dcbz(UGeckoInstruction inst)
     end_dcbz_hack = J_CC(CC_L);
   }
 
-  bool emit_fast_path = (m_ppc_state.feature_flags & FEATURE_FLAG_MSR_DR) && m_jit.jo.fastmem_arena;
+  bool emit_fast_path = (m_ppc_state.feature_flags & FEATURE_FLAG_MSR_DR) &&
+                        m_jit.jo.fastmem_arena && !m_accurate_cpu_cache_enabled;
 
   if (emit_fast_path)
   {
