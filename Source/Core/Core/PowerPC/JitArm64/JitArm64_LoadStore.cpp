@@ -757,10 +757,9 @@ void JitArm64::stmw(UGeckoInstruction inst)
 
 void JitArm64::dcbx(UGeckoInstruction inst)
 {
-  FALLBACK_IF(m_accurate_cpu_cache_enabled);
-
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
+  FALLBACK_IF(m_accurate_cpu_cache_enabled);
 
   u32 a = inst.RA, b = inst.RB;
 

@@ -234,10 +234,9 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
 void Jit64::dcbx(UGeckoInstruction inst)
 {
-  FALLBACK_IF(m_accurate_cpu_cache_enabled);
-
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
+  FALLBACK_IF(m_accurate_cpu_cache_enabled);
 
   // Check if the next instructions match a known looping pattern:
   // - dcbx rX
