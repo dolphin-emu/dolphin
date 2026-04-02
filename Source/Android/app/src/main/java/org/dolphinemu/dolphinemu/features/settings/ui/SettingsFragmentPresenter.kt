@@ -705,14 +705,6 @@ class SettingsFragmentPresenter(
 
         sl.add(HeaderSetting(context, R.string.gba_settings, 0))
         sl.add(
-            SwitchSetting(
-                context,
-                BooleanSetting.MAIN_GBA_THREADS,
-                R.string.gba_threads,
-                0,
-            )
-        )
-        sl.add(
             FilePicker(
                 context,
                 StringSetting.MAIN_GBA_BIOS_PATH,

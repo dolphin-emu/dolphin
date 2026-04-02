@@ -81,7 +81,6 @@ private:
   Common::EnumMap<QLabel*, ExpansionInterface::MAX_MEMCARD_SLOT> m_gci_override_labels;
   Common::EnumMap<QLineEdit*, ExpansionInterface::MAX_MEMCARD_SLOT> m_gci_paths;
 
-  ConfigBool* m_gba_threads;
   ConfigBool* m_gba_save_rom_path;
   QPushButton* m_gba_browse_bios;
   ConfigUserPath* m_gba_bios_edit;

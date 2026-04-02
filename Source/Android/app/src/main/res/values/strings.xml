@@ -86,7 +86,6 @@
     <string name="slot_b_device">GameCube Slot B Device</string>
     <string name="serial_port_1_device">GameCube Serial Port 1 Device</string>
     <string name="gba_settings">GBA Settings</string>
-    <string name="gba_threads">Run GBA Cores in Dedicated Threads</string>
     <string name="gba_bios_path">BIOS</string>
     <string name="gb_player_rom">Game Boy Player ROM</string>
     <string name="gba_saves_path">Saves</string>
