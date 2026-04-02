@@ -163,11 +163,23 @@ Core::Core(::Core::System& system, int device_number)
     : m_device_number(device_number), m_system(system)
 {
   mLogSetDefaultLogger(&s_stub_logger);
+
+  MutexInit(&m_core_sync.videoFrameMutex);
+  ConditionInit(&m_core_sync.videoFrameAvailableCond);
+  ConditionInit(&m_core_sync.videoFrameRequiredCond);
+  ConditionInit(&m_core_sync.audioRequiredCond);
+  MutexInit(&m_core_sync.audioBufferMutex);
 }
 
 Core::~Core()
 {
   Stop();
+
+  MutexDeinit(&m_core_sync.videoFrameMutex);
+  ConditionDeinit(&m_core_sync.videoFrameAvailableCond);
+  ConditionDeinit(&m_core_sync.videoFrameRequiredCond);
+  ConditionDeinit(&m_core_sync.audioRequiredCond);
+  MutexDeinit(&m_core_sync.audioBufferMutex);
 }
 
 bool Core::Start(u64 gc_ticks)
@@ -257,6 +269,8 @@ bool Core::Start(u64 gc_ticks)
   SetAudioBufferSize();
   AddCallbacks();
   SetupEvent();
+
+  m_core->setSync(m_core, &m_core_sync);
 
   m_core->reset(m_core);
   m_started = true;
@@ -498,12 +512,8 @@ void Core::SetupEvent()
 {
   m_event.context = this;
   m_event.name = "Dolphin Sync";
-  m_event.callback = [](mTiming* timing, void* context, u32 cycles_late) {
-    Core* core = static_cast<Core*>(context);
-    if (core->m_core->platform(core->m_core) == mPLATFORM_GBA)
-      static_cast<::GBA*>(core->m_core->board)->earlyExit = true;
-    else if (core->m_core->platform(core->m_core) == mPLATFORM_GB)
-      static_cast<::GB*>(core->m_core->board)->earlyExit = true;
+  m_event.callback = [](mTiming* /*timing*/, void* context, u32 /*cycles_late*/) {
+    auto* const core = static_cast<Core*>(context);
     core->m_waiting_for_event = false;
   };
   m_event.priority = 0x80;

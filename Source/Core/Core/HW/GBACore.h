@@ -16,6 +16,11 @@
 #include <mgba/core/interface.h>
 #undef PYCPARSE
 #include <mgba/core/core.h>
+#if !defined(_WIN32)
+#define USE_PTHREADS  // Required for Mutex/Condition in mCoreSync.
+#endif
+#include <mgba/core/sync.h>
+#undef USE_PTHREADS
 #include <mgba/gba/interface.h>
 
 #include "Common/CommonTypes.h"
@@ -134,6 +139,7 @@ private:
   std::string m_game_title;
 
   mCore* m_core{};
+  mCoreSync m_core_sync{};
   mTimingEvent m_event{};
   bool m_waiting_for_event = false;
   SIODriver m_sio_driver{};
