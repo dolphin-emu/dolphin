@@ -217,6 +217,7 @@ struct VideoConfig final
   OutputResamplingMode output_resampling_mode = OutputResamplingMode::Default;
   AnisotropicFilteringMode iMaxAnisotropy = AnisotropicFilteringMode::Default;
   std::string sPostProcessingShader;
+  std::string sTextureUpscalingShader;
   bool bForceTrueColor = false;
   bool bDisableCopyFilter = false;
   bool bArbitraryMipmapDetection = false;
