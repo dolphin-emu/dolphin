@@ -482,9 +482,44 @@ void VulkanContext::PopulateBackendInfoAdapters(BackendInfo* backend_info, const
   backend_info->Adapters.clear();
   for (VkPhysicalDevice physical_device : gpu_list)
   {
-    VkPhysicalDeviceProperties properties;
+    VkPhysicalDeviceVulkan12Properties properties_vk12 = {};
+    properties_vk12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES;
+    properties_vk12.pNext = nullptr;
+
+    VkPhysicalDeviceProperties2 properties2 = {};
+    properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+    properties2.pNext = &properties_vk12;
+
+    VkPhysicalDeviceProperties& properties = properties2.properties;
     vkGetPhysicalDeviceProperties(physical_device, &properties);
-    backend_info->Adapters.push_back(properties.deviceName);
+
+#if defined(VK_USE_PLATFORM_METAL_EXT)
+    if (vkGetPhysicalDeviceProperties2 && properties.apiVersion >= VK_API_VERSION_1_2)
+    {
+      vkGetPhysicalDeviceProperties2(physical_device, &properties2);
+
+      std::string driver;
+      if (properties_vk12.driverID == VK_DRIVER_ID_MOLTENVK)
+      {
+        driver = "MoltenVK";
+      }
+      else if (properties_vk12.driverID == VK_DRIVER_ID_MESA_KOSMICKRISP)
+      {
+        driver = "KosmicKrisp";
+      }
+      else
+      {
+        driver = fmt::format("driver ID {}", fmt::underlying(properties_vk12.driverID));
+      }
+
+      const std::string device_name = fmt::format("{} ({})", properties.deviceName, driver);
+      backend_info->Adapters.push_back(device_name);
+    }
+    else
+#endif
+    {
+      backend_info->Adapters.push_back(properties.deviceName);
+    }
   }
 }
 
