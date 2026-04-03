@@ -665,6 +665,11 @@ if(APPLE)
     set(vulkan_dylibs "${Vulkan_LIBRARY}" "${MOLTENVK_LIBRARY}")
     set(vulkan_icds "MoltenVK")
 
+    if(KOSMICKRISP_LIBRARY)
+      list(APPEND vulkan_dylibs "${KOSMICKRISP_LIBRARY}")
+      list(APPEND vulkan_icds "libkosmickrisp")
+    endif()
+
     foreach(dylib ${vulkan_dylibs})
       target_sources(dolphin-emu PRIVATE "${dylib}")
       set_source_files_properties("${dylib}" PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks)

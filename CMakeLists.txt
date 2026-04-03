@@ -134,6 +134,7 @@ if(APPLE)
   # Enable adhoc code signing by default (otherwise makefile builds on ARM will not work)
   option(MACOS_CODE_SIGNING "Enable codesigning" ON)
   set(MACOS_CODE_SIGNING_IDENTITY "-" CACHE STRING "The identity used for codesigning.")
+  option(ENABLE_KOSMICKRISP "Enables the KosmicKrisp Vulkan driver." ON)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -650,9 +651,14 @@ if(ENABLE_VULKAN)
   add_definitions(-DHAS_VULKAN)
 
   if(APPLE)
-    # Find Vulkan driver dylibs
     set(CMAKE_FIND_FRAMEWORK NEVER)
+
+    # Find Vulkan driver dylibs
     find_library(MOLTENVK_LIBRARY NAMES libMoltenVK.dylib HINTS "${VULKAN_ROOT_DIR}/lib" REQUIRED)
+    if(ENABLE_KOSMICKRISP)
+      find_library(KOSMICKRISP_LIBRARY NAMES libvulkan_kosmickrisp.dylib HINTS "${VULKAN_ROOT_DIR}/lib")
+    endif()
+
     unset(CMAKE_FIND_FRAMEWORK)
   endif()
 
