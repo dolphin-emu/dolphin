@@ -993,6 +993,7 @@ static bool DriverIsMesa(VkDriverId driver_id)
   case VK_DRIVER_ID_MESA_NVK:
   case VK_DRIVER_ID_IMAGINATION_OPEN_SOURCE_MESA:
   case VK_DRIVER_ID_MESA_HONEYKRISP:
+  case VK_DRIVER_ID_MESA_KOSMICKRISP:
     return true;
   default:
     return false;
