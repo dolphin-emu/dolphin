@@ -227,7 +227,6 @@ extern const Info<std::string> MAIN_GBA_BIOS_PATH;
 extern const std::array<Info<std::string>, 5> MAIN_GBA_ROM_PATHS;
 extern const Info<std::string> MAIN_GBA_SAVES_PATH;
 extern const Info<bool> MAIN_GBA_SAVES_IN_ROM_PATH;
-extern const Info<bool> MAIN_GBA_THREADS;
 
 static constexpr std::size_t GBPLAYER_GBA_INDEX = 4;
 #endif

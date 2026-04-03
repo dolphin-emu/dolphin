@@ -264,12 +264,8 @@ bool Core::Start(u64 gc_ticks)
   // Notify the host and handle a dimension change if that happened after reset()
   SetVideoBuffer();
 
-  if (Config::Get(Config::MAIN_GBA_THREADS))
-  {
-    m_event_thread.Reset(fmt::format("GBA{}", m_device_number + 1),
-                         std::bind_front(&Core::HandleEvent, this));
-  }
-
+  m_event_thread.Reset(fmt::format("GBA{}", m_device_number + 1),
+                       std::bind_front(&Core::HandleEvent, this));
   return true;
 }
 
@@ -550,10 +546,7 @@ void Core::Flush()
 
 void Core::PushEvent(SyncEvent event)
 {
-  if (m_event_thread.IsRunning())
-    m_event_thread.Push(event);
-  else
-    HandleEvent(event);
+  m_event_thread.Push(event);
 }
 
 void Core::HandleEvent(SyncEvent event)
