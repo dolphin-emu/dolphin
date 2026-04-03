@@ -253,9 +253,7 @@ void Metal::Util::PopulateBackendInfoFeatures(const VideoConfig& config, Backend
     vendor = DriverDetails::VENDOR_INTEL;
   else if (name.find("Apple") != std::string::npos)
     vendor = DriverDetails::VENDOR_APPLE;
-  const NSOperatingSystemVersion cocoa_ver = [[NSProcessInfo processInfo] operatingSystemVersion];
-  double version = cocoa_ver.majorVersion * 100 + cocoa_ver.minorVersion;
-  DriverDetails::Init(DriverDetails::API_METAL, vendor, DriverDetails::DRIVER_APPLE, version,
+  DriverDetails::Init(DriverDetails::API_METAL, vendor, DriverDetails::DRIVER_APPLE, 0.0,
                       DriverDetails::Family::UNKNOWN, std::move(name));
 
 #if TARGET_OS_OSX
