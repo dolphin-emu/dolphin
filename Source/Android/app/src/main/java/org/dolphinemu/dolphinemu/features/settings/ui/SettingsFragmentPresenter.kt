@@ -2218,6 +2218,14 @@ class SettingsFragmentPresenter(
         sl.add(
             InvertedSwitchSetting(
                 context,
+                BooleanSetting.MAIN_PAGE_TABLE_FASTMEM,
+                R.string.debug_page_table_fastmem,
+                0
+            )
+        )
+        sl.add(
+            InvertedSwitchSetting(
+                context,
                 BooleanSetting.MAIN_FASTMEM_ARENA,
                 R.string.debug_fastmem_arena,
                 0
