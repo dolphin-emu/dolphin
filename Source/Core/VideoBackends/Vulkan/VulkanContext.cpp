@@ -259,6 +259,13 @@ VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool ena
     instance_create_info.ppEnabledLayerNames = &VALIDATION_LAYER_NAME;
   }
 
+#if defined(VK_USE_PLATFORM_METAL_EXT)
+  if (wstype == WindowSystemType::MacOS || wstype == WindowSystemType::Headless)
+  {
+    instance_create_info.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+  }
+#endif
+
   VkInstance instance;
   VkResult res = vkCreateInstance(&instance_create_info, nullptr, &instance);
   if (res != VK_SUCCESS)
@@ -373,6 +380,14 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
   if (wstype == WindowSystemType::MacOS && !AddExtension(VK_EXT_METAL_SURFACE_EXTENSION_NAME, true))
   {
     return false;
+  }
+
+  if (wstype == WindowSystemType::MacOS || wstype == WindowSystemType::Headless)
+  {
+    if (!AddExtension(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME, true))
+    {
+      return false;
+    }
   }
 #endif
 
