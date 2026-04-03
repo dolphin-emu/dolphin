@@ -81,10 +81,6 @@ public:
   static constexpr std::string_view GRAY = "transparent";
   static constexpr std::string_view GOLD = "#FFD700";
   static constexpr std::string_view BLUE = "#0B71C1";
-  static constexpr std::string_view APPROVED_LIST_FILENAME = "ApprovedInis.json";
-  static const inline Common::SHA1::Digest APPROVED_LIST_HASH = {
-      0xEA, 0x2F, 0x74, 0xA1, 0x6C, 0xF3, 0xB5, 0xD4, 0x8A, 0xAF,
-      0x03, 0x30, 0x58, 0x2A, 0xE0, 0xF7, 0x0A, 0x88, 0x86, 0xB3};
 
   struct LeaderboardEntry
   {
