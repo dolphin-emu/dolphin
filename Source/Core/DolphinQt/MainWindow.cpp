@@ -1881,20 +1881,24 @@ void MainWindow::OnImportNANDBackup()
     return;
 
   ParallelProgressDialog dialog(this);
-  dialog.GetRaw()->setMinimum(0);
-  dialog.GetRaw()->setMaximum(0);
-  dialog.GetRaw()->setLabelText(tr("Importing NAND backup"));
-  dialog.GetRaw()->setCancelButton(nullptr);
-
-  auto beginning = QDateTime::currentDateTime().toMSecsSinceEpoch();
+  dialog.GetRaw()->setWindowTitle(tr("Importing NAND backup"));
 
   std::future<void> result = std::async(std::launch::async, [&] {
     DiscIO::NANDImporter().ImportNANDBin(
         file.toStdString(),
-        [&dialog, beginning] {
-          dialog.SetLabelText(
-              tr("Importing NAND backup\n Time elapsed: %1s")
-                  .arg((QDateTime::currentDateTime().toMSecsSinceEpoch() - beginning) / 1000));
+        [&dialog](DiscIO::NANDImporter::Step step, u32 cur, u32 max) {
+          switch (step)
+          {
+          case DiscIO::NANDImporter::Step::Loading:
+            dialog.SetLabelText(tr("Loading NAND..."));
+            break;
+          case DiscIO::NANDImporter::Step::Extracting:
+            dialog.SetLabelText(tr("Extracting NAND..."));
+            break;
+          }
+          dialog.SetValue(cur);
+          dialog.SetMaximum(max);
+          return dialog.WasCanceled();
         },
         [this] {
           std::optional<std::string> keys_file = RunOnObject(this, [this] {
