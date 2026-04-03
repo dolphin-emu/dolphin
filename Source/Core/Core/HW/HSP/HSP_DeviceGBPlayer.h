@@ -25,10 +25,6 @@ public:
   // Audio/Video data is read in chunks.
   static constexpr std::size_t AV_REGION_SIZE = 0x400;
 
-  static constexpr std::size_t AUDIO_SAMPLE_RATE = 0x8000;
-  static constexpr std::size_t AUDIO_READ_SIZE = 8;
-  static constexpr std::size_t AUDIO_CHANNEL_COUNT = 2;
-
   IGBPlayer(Core::System&, CHSPDevice_GBPlayer*);
   virtual ~IGBPlayer();
 
@@ -38,10 +34,13 @@ public:
   virtual bool IsLoaded() const = 0;
   virtual bool IsGBA() const = 0;
 
-  virtual void ReadScanlines(std::span<u32, AV_REGION_SIZE>) = 0;
-  virtual void ReadAudio(std::span<u8, AV_REGION_SIZE>) = 0;
-
   virtual void SetKeys(u16) = 0;
+
+  virtual u8 ReadSIOControl() = 0;
+  virtual void WriteSIOControl(u8) = 0;
+
+  virtual u32 ReadSIOData() = 0;
+  virtual void WriteSIOData(u32) = 0;
 
   virtual void DoState(PointerWrap& p) = 0;
 
@@ -66,16 +65,22 @@ public:
 
   void AssertIRQ(IRQ);
 
+  auto GetScanlineData() { return std::span{m_scanlines}; }
+  auto GetAudioData() { return std::span{m_audio}; }
+
 private:
   void UpdateInterrupts();
 
   Core::System& m_system;
 
   std::array<u8, 0x20> m_test{};
-  u8 m_control{0xCC};
-  u16 m_irq{0};
+  u8 m_control{};
+  u16 m_irq{};
 
-  std::array<u32, IGBPlayer::AV_REGION_SIZE> m_scanlines{};
+  // Holds four scanlines in RGB5 format.
+  std::array<u16, IGBPlayer::AV_REGION_SIZE> m_scanlines{};
+
+  // Holds PWM audio data. Entire buffer is filled and read at 4096 Hz.
   std::array<u8, IGBPlayer::AV_REGION_SIZE> m_audio{};
 
   std::unique_ptr<IGBPlayer> m_gbp;

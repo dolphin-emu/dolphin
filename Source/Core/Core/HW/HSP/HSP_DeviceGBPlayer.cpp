@@ -4,15 +4,11 @@
 #include "Core/HW/HSP/HSP_DeviceGBPlayer.h"
 
 #include <cstring>
-#include <ratio>
 
 #if defined(HAS_LIBMGBA)
-#include <mgba-util/audio-buffer.h>
-#include <mgba-util/audio-resampler.h>
-#include <mgba/internal/gba/gba.h>
-#include <mgba/internal/gba/video.h>
-
 #include "Core/HW/GBACore.h"
+
+#include <mgba/internal/gba/gba.h>
 #endif
 
 #include "Common/ChunkFile.h"
@@ -35,7 +31,7 @@ enum class GBPRegister : u8
   Control = 0x14,
   SIOControl = 0x15,
   Audio = 0x18,
-  SIO = 0x19,
+  SIOData = 0x19,
   Keypad = 0x1c,
   IRQ = 0x1d,
 };
@@ -64,10 +60,13 @@ public:
   bool IsLoaded() const override { return false; }
   bool IsGBA() const override { return false; }
 
-  void ReadScanlines(std::span<u32, AV_REGION_SIZE> scanlines) override {}
-  void ReadAudio(std::span<u8, AV_REGION_SIZE> audio) override {}
-
   void SetKeys(u16 keys) override {}
+
+  u8 ReadSIOControl() override { return 0; }
+  void WriteSIOControl(u8) override {}
+
+  u32 ReadSIOData() override { return 0; }
+  void WriteSIOData(u32) override {}
 
   void DoState(PointerWrap& p) override {}
 };
@@ -105,41 +104,62 @@ public:
   bool IsLoaded() const override;
   bool IsGBA() const override;
 
-  void ReadScanlines(std::span<u32, AV_REGION_SIZE> scanlines) override;
-  void ReadAudio(std::span<u8, AV_REGION_SIZE> audio) override;
-
   void SetKeys(u16 keys) override;
+
+  u8 ReadSIOControl() override;
+  void WriteSIOControl(u8) override;
+
+  u32 ReadSIOData() override;
+  void WriteSIOData(u32) override;
 
   void DoState(PointerWrap& p) override;
 
 private:
-  static constexpr std::size_t AUDIO_BUFFER_SIZE = 512;
-
-  void UpdateAudio(s64 cycles_late);
-  void UpdateVideo(u32 next_scanlines, s64 cycles_late);
+  static constexpr std::size_t AUDIO_CHANNEL_COUNT = 2;
 
   HW::GBA::Core m_gba_core;
 
-  mAudioBuffer m_audio_buffer;
-  mAudioResampler m_audio_resampler;
+  struct AVStream : mAVStream
+  {
+    CGBPlayer_mGBA* player;
+  } m_av_stream{};
 
-  CoreTiming::EventType* m_update_audio_event = nullptr;
-  CoreTiming::EventType* m_update_video_event = nullptr;
+  // A 4096 Hz event.
+  CoreTiming::EventType* m_update_event = nullptr;
 
-  // These are used to calculate timings that don't drift.
-  u32 m_video_irq_phase = 0;
+  void HandleUpdateEvent(s64 cycles_late);
+
+  void UpdateAudio();
+  void UpdateVideoAndScheduleNextUpdate(s64 cycles_late);
+
+  // Prepare data in the AV_REGION_SIZE-sized buffers of CHSPDevice_GBPlayer.
+  // IRQs trigger the game to read it.
+  void PrepareScanlineData();
+  void PrepareAudioData();
+
+  // Read mGBA's sample buffer into our below PWM audio buffer.
+  void ProcessAudioBuffer();
+
+  std::array<u8, AV_REGION_SIZE * 4> m_audio_buffer{};
+  u16 m_audio_buffer_read_pos = 0;
+  u16 m_audio_buffer_write_pos = 0;
+
+  // Used to calculate event times that don't drift.
   u16 m_audio_irq_phase = 0;
 
-  u16 m_current_scanline_index = 0;
+  // Set to 0 by mGBA thread upon new frame.
+  u16 m_current_scanline_index = GBA_VIDEO_VERTICAL_PIXELS;
+
+  s64 m_frame_start_ticks = 0;
+
+  // GBA button input.
   u16 m_keys = 0;
 
   u16 m_audio_l_remainder = 0;
   u16 m_audio_r_remainder = 0;
 
-  // Used to trigger a video IRQ during the next audio IRQ in UpdateAudio.
-  // Separately timed video IRQs cause the AV stream to enter a bad state.
-  // It's very fragile for some reason. This might be a CPU timing issue ?
-  bool m_generate_video_irq = false;
+  // Based on the sample rate from mGBA.
+  u8 m_bits_per_sample = 9;
 };
 
 CGBPlayer_mGBA::CGBPlayer_mGBA(Core::System& system, CHSPDevice_GBPlayer* player)
@@ -147,21 +167,26 @@ CGBPlayer_mGBA::CGBPlayer_mGBA(Core::System& system, CHSPDevice_GBPlayer* player
 {
   auto& core_timing = m_system.GetCoreTiming();
 
-  m_update_audio_event =
-      core_timing.RegisterEvent("GBPmGBAUpdateAudio", [this](Core::System&, u64, s64 cycles_late) {
-        UpdateAudio(cycles_late);
-      });
-  m_update_video_event = core_timing.RegisterEvent(
-      "GBPmGBAUpdateVideo", [this](Core::System&, u64 user_data, s64 cycles_late) {
-        UpdateVideo(u32(user_data), cycles_late);
+  m_update_event =
+      core_timing.RegisterEvent("GBPmGBAUpdate", [this](Core::System&, u64, s64 cycles_late) {
+        HandleUpdateEvent(cycles_late);
       });
 
-  mAudioBufferInit(&m_audio_buffer, AUDIO_BUFFER_SIZE, AUDIO_CHANNEL_COUNT);
-  mAudioResamplerInit(&m_audio_resampler, mINTERPOLATOR_SINC);
-  mAudioResamplerSetDestination(&m_audio_resampler, &m_audio_buffer, AUDIO_SAMPLE_RATE);
+  m_av_stream.player = this;
 
-  // TODO: Does the real hardware boot on power up or wait for the GBPRegister::Control command ?
-  Reset();
+  m_av_stream.audioRateChanged = [](mAVStream* ptr, unsigned rate) {
+    auto* const stream = static_cast<AVStream*>(ptr);
+    auto* const player = stream->player;
+    player->ProcessAudioBuffer();
+
+    INFO_LOG_FMT(HSP, "GBPlayer: Audio rate changed: {}", rate);
+
+    player->m_bits_per_sample = 24 - MathUtil::IntLog2(rate);
+  };
+  m_av_stream.postAudioBuffer = [](mAVStream* ptr, struct mAudioBuffer*) {
+    auto* const stream = static_cast<AVStream*>(ptr);
+    stream->player->ProcessAudioBuffer();
+  };
 }
 
 void CGBPlayer_mGBA::Reset()
@@ -174,12 +199,21 @@ void CGBPlayer_mGBA::Reset()
   if (!m_gba_core.IsStarted())
     return;
 
-  auto& core_timing = m_system.GetCoreTiming();
+  auto* const core = m_gba_core.GetCore();
+  core->setAVStream(core, &m_av_stream);
 
-  // Start audio/video updates after a delay. This timing isn't critical.
-  const auto ticks_per_second = m_system.GetSystemTimers().GetTicksPerSecond();
-  core_timing.ScheduleEvent(ticks_per_second / 50, m_update_audio_event);
-  core_timing.ScheduleEvent(ticks_per_second / 50, m_update_video_event, 0);
+  mCoreCallbacks callbacks{.context = this};
+
+  callbacks.videoFrameEnded = [](void* context) {
+    auto* const player = static_cast<CGBPlayer_mGBA*>(context);
+    // Signal new frame to the next `Update` invocation.
+    player->m_current_scanline_index = 0;
+  };
+
+  core->addCoreCallbacks(core, &callbacks);
+
+  // Start the periodic updates.
+  UpdateVideoAndScheduleNextUpdate(0);
 }
 
 void CGBPlayer_mGBA::Stop()
@@ -187,25 +221,26 @@ void CGBPlayer_mGBA::Stop()
   if (!m_gba_core.IsStarted())
     return;
 
+  m_gba_core.Stop();
+
   auto& core_timing = m_system.GetCoreTiming();
 
-  core_timing.RemoveEvent(m_update_audio_event);
-  core_timing.RemoveEvent(m_update_video_event);
+  core_timing.RemoveEvent(m_update_event);
 
-  m_video_irq_phase = 0;
+  m_audio_buffer_read_pos = 0;
+  m_audio_buffer_write_pos = 0;
+
   m_audio_irq_phase = 0;
 
-  m_current_scanline_index = 0;
+  m_current_scanline_index = GBA_VIDEO_VERTICAL_PIXELS;
+  m_frame_start_ticks = 0;
+
   m_keys = 0;
 
   m_audio_l_remainder = 0;
   m_audio_r_remainder = 0;
 
-  m_generate_video_irq = false;
-
-  m_gba_core.Stop();
-
-  mAudioBufferClear(&m_audio_buffer);
+  m_bits_per_sample = 9;
 }
 
 bool CGBPlayer_mGBA::IsLoaded() const
@@ -218,45 +253,48 @@ bool CGBPlayer_mGBA::IsGBA() const
   return m_gba_core.IsStarted() && m_gba_core.GetPlatform() == mPLATFORM_GBA;
 }
 
-void CGBPlayer_mGBA::ReadScanlines(std::span<u32, AV_REGION_SIZE> scanlines)
+void CGBPlayer_mGBA::PrepareScanlineData()
 {
-  DEBUG_LOG_FMT(HSP, "GBPlayer: ReadScanlines: {}", m_current_scanline_index);
-
-  if (m_current_scanline_index >= GBA_VIDEO_VERTICAL_PIXELS)
-    return;
-
-  if (!m_gba_core.IsStarted())
-    return;
-
-  // Since the GBA core is idle, this is a convenient time to read and resample some audio.
-  mAudioResamplerSetSource(&m_audio_resampler, m_gba_core.GetAudioBuffer(),
-                           m_gba_core.GetAudioSampleRate(), true);
-  mAudioResamplerProcess(&m_audio_resampler);
-
   const std::span video_buffer = m_gba_core.GetVideoBuffer();
+  const std::span scanline_data = m_player->GetScanlineData();
 
-  for (u32 i = 0; i != GBA_VIDEO_HORIZONTAL_PIXELS * 4; ++i)
+  constexpr u32 scanline_count = 4;
+
+  const u32* color_ptr =
+      video_buffer.data() + (m_current_scanline_index * GBA_VIDEO_HORIZONTAL_PIXELS);
+
+  for (u32 i = 0; i != GBA_VIDEO_HORIZONTAL_PIXELS * scanline_count; ++i)
   {
-    const u32 color =
-        M_RGB8_TO_RGB5(video_buffer[(m_current_scanline_index * GBA_VIDEO_HORIZONTAL_PIXELS) + i]);
-    u32 c = color >> 8u;
-    c |= (color & 0xffu) << 16u;
-    scanlines[i] = c | (c << 8);  // Parity
+    const u32 color = *(color_ptr++);
+    scanline_data[i] = M_RGB8_TO_RGB5(color);
   }
 
   if (m_current_scanline_index == 0)
-    scanlines[0] |= 0x00008080;
+    scanline_data[0] |= 0x8000u;
 
-  m_current_scanline_index += 4;
+  m_current_scanline_index += scanline_count;
+}
 
-  if (m_current_scanline_index < GBA_VIDEO_VERTICAL_PIXELS)
-    m_generate_video_irq = true;
+void CGBPlayer_mGBA::PrepareAudioData()
+{
+  const std::span audio_data = m_player->GetAudioData();
+
+  // Read from the circular buffer.
+  const auto count = std::min(m_audio_buffer.size() - m_audio_buffer_read_pos, audio_data.size());
+  std::copy_n(m_audio_buffer.data() + m_audio_buffer_read_pos, count, audio_data.data());
+  std::copy_n(m_audio_buffer.data(), audio_data.size() - count, audio_data.data() + count);
+
+  m_audio_buffer_read_pos += u16(audio_data.size());
+  m_audio_buffer_read_pos %= m_audio_buffer.size();
 }
 
 // Takes 5 bits from a 16-bit PCM sample and converts them into 32 bits of PWM.
 //
 // The 11 bits that don't get converted are fed into the remainder, which should be used as an
 // input to the next invocation of this function to average out quantization errors over time.
+//
+// Unlike GBI, the Game Boy Player disc is picky about the PWM data.
+// Every 32 bit sequence must have any 1 bits be contiguous and leading.
 static constexpr u32 SampleToPWM(u16 value, u16* remainder)
 {
   const u32 x = value + *remainder;
@@ -265,32 +303,40 @@ static constexpr u32 SampleToPWM(u16 value, u16* remainder)
   return u32(0xffff'ffff'0000'0000ull >> y);
 }
 
-void CGBPlayer_mGBA::ReadAudio(std::span<u8, AV_REGION_SIZE> audio)
+void CGBPlayer_mGBA::ProcessAudioBuffer()
 {
-  std::array<std::array<s16, AUDIO_CHANNEL_COUNT>, AUDIO_READ_SIZE> buffer;
-  const auto read_count = mAudioBufferRead(&m_audio_buffer, buffer.data()->data(), buffer.size());
+  auto* const audio_buffer = m_gba_core.GetAudioBuffer();
 
-  constexpr u32 out_bytes_per_sample = AV_REGION_SIZE / AUDIO_READ_SIZE / AUDIO_CHANNEL_COUNT;
-  static_assert(out_bytes_per_sample == 64);
+  const u32 pwm_words_per_sample = 1u << (m_bits_per_sample - 5u);
 
-  auto out_it = audio.begin();
-  for (auto [l, r] : std::span{buffer}.first(read_count))
+  while (true)
   {
-    const u16 l_unsigned = l + 0x8000;
-    const u16 r_unsigned = r + 0x8000;
+    std::array<std::array<s16, AUDIO_CHANNEL_COUNT>, 256> buffer;
+    const auto read_count = mAudioBufferRead(audio_buffer, buffer.data()->data(), buffer.size());
 
-    for (u32 i = 0; i != out_bytes_per_sample / 4; ++i)
+    if (read_count == 0)
+      break;
+
+    for (const auto [l, r] : std::span{buffer}.first(read_count))
     {
-      u32 l_pwm = SampleToPWM(l_unsigned, &m_audio_l_remainder);
-      u32 r_pwm = SampleToPWM(r_unsigned, &m_audio_r_remainder);
+      const u16 l_unsigned = l + 0x8000;
+      const u16 r_unsigned = r + 0x8000;
 
-      for (u32 j = 0; j != 4; ++j)
+      for (u32 i = 0; i != pwm_words_per_sample; ++i)
       {
-        *(out_it++) = l_pwm >> 24;
-        *(out_it++) = r_pwm >> 24;
-        l_pwm <<= 8;
-        r_pwm <<= 8;
+        u32 l_pwm = SampleToPWM(l_unsigned, &m_audio_l_remainder);
+        u32 r_pwm = SampleToPWM(r_unsigned, &m_audio_r_remainder);
+
+        for (u32 j = 0; j != sizeof(u32); ++j)
+        {
+          m_audio_buffer[m_audio_buffer_write_pos++] = l_pwm >> 24;
+          m_audio_buffer[m_audio_buffer_write_pos++] = r_pwm >> 24;
+          l_pwm <<= 8;
+          r_pwm <<= 8;
+        }
       }
+
+      m_audio_buffer_write_pos %= m_audio_buffer.size();
     }
   }
 }
@@ -304,39 +350,85 @@ void CGBPlayer_mGBA::DoState(PointerWrap& p)
 {
   m_gba_core.DoState(p);
 
-  p.Do(m_video_irq_phase);
   p.Do(m_audio_irq_phase);
 
   p.Do(m_current_scanline_index);
+  p.Do(m_frame_start_ticks);
+
   p.Do(m_keys);
 
   p.Do(m_audio_l_remainder);
   p.Do(m_audio_r_remainder);
 
-  p.Do(m_generate_video_irq);
+  p.Do(m_audio_buffer);
+  p.Do(m_audio_buffer_read_pos);
+  p.Do(m_audio_buffer_write_pos);
 
-  // Resampled audio buffer.
-  p.DoArray(static_cast<u8*>(m_audio_buffer.data.data), u32(m_audio_buffer.data.capacity));
-  p.Do(m_audio_buffer.data.size);
-  p.DoPointer(m_audio_buffer.data.readPtr, m_audio_buffer.data.data);
-  p.DoPointer(m_audio_buffer.data.writePtr, m_audio_buffer.data.data);
+  p.Do(m_bits_per_sample);
 }
 
-void CGBPlayer_mGBA::UpdateAudio(s64 cycles_late)
+void CGBPlayer_mGBA::HandleUpdateEvent(s64 cycles_late)
 {
-  m_player->AssertIRQ(CHSPDevice_GBPlayer::IRQ::Audio);
+  m_gba_core.Flush();
+  UpdateAudio();
+  UpdateVideoAndScheduleNextUpdate(cycles_late);
+}
 
-  if (m_generate_video_irq)
+void CGBPlayer_mGBA::UpdateAudio()
+{
+  ProcessAudioBuffer();
+
+  const auto audio_buffered =
+      (m_audio_buffer_write_pos - m_audio_buffer_read_pos + m_audio_buffer.size()) %
+      m_audio_buffer.size();
+
+  if (audio_buffered < AV_REGION_SIZE)
   {
-    m_player->AssertIRQ(CHSPDevice_GBPlayer::IRQ::Video);
-    m_generate_video_irq = false;
+    // Don't IRQ if the audio runs behind somehow.
+    // This shouldn't happen as long as mGBA runs for an appropriate number of cycles.
+    WARN_LOG_FMT(HSP, "GBPlayer: Audio buffer underrun: {} < {}", audio_buffered, AV_REGION_SIZE);
+    return;
   }
 
-  constexpr u32 audio_irq_freq = AUDIO_SAMPLE_RATE / AUDIO_READ_SIZE;
+  PrepareAudioData();
+  m_player->AssertIRQ(CHSPDevice_GBPlayer::IRQ::Audio);
+}
 
+void CGBPlayer_mGBA::UpdateVideoAndScheduleNextUpdate(s64 cycles_late)
+{
   const s64 ticks_per_second = m_system.GetSystemTimers().GetTicksPerSecond();
 
-  // Calculate a non-drifting time for the next IRQ.
+  auto& core_timing = m_system.GetCoreTiming();
+  const s64 ticks = core_timing.GetTicks();
+
+  // mGBA signaled that it has a new frame.
+  if (m_current_scanline_index == 0)
+  {
+    m_frame_start_ticks = ticks;
+  }
+
+  // Prepare data and set video IRQ every four scanlines.
+  if (m_current_scanline_index < GBA_VIDEO_VERTICAL_PIXELS)
+  {
+    const s64 current_frame_ticks = ticks - m_frame_start_ticks;
+    const u32 current_scanline_gba_ticks = VIDEO_HORIZONTAL_LENGTH * m_current_scanline_index;
+
+    if (current_frame_ticks * GBA_ARM7TDMI_FREQUENCY >=
+        current_scanline_gba_ticks * ticks_per_second)
+    {
+      PrepareScanlineData();
+      m_player->AssertIRQ(CHSPDevice_GBPlayer::IRQ::Video);
+    }
+  }
+
+  constexpr u32 audio_irq_freq =
+      GBA_ARM7TDMI_FREQUENCY * AUDIO_CHANNEL_COUNT / CHAR_BIT / AV_REGION_SIZE;
+
+  // Calculate a non-drifting time for the next update.
+  // Note: Our video IRQs use audio IRQ timing with some jitter.
+  // Sending separately timed video IRQs breaks the game.
+  // I think the IRQs can't being cleared fast enough.
+
   const s64 this_irq_ticks = ticks_per_second * m_audio_irq_phase / audio_irq_freq;
 
   ++m_audio_irq_phase;
@@ -344,66 +436,35 @@ void CGBPlayer_mGBA::UpdateAudio(s64 cycles_late)
 
   m_audio_irq_phase %= audio_irq_freq;
 
-  m_system.GetCoreTiming().ScheduleEvent(next_irq_ticks - this_irq_ticks - cycles_late,
-                                         m_update_audio_event);
+  const auto rel_ticks = next_irq_ticks - this_irq_ticks;
+
+  // Run mGBA and schedule the next followup.
+  m_gba_core.SyncJoybus(ticks + rel_ticks, m_keys);
+  core_timing.ScheduleEvent(rel_ticks - cycles_late, m_update_event);
 }
 
-void CGBPlayer_mGBA::UpdateVideo(u32 scanline_index, s64 cycles_late)
+u8 CGBPlayer_mGBA::ReadSIOControl()
 {
-  // The ~59.7 GBA framerate.
-  constexpr std::ratio<GBA_ARM7TDMI_FREQUENCY, VIDEO_TOTAL_LENGTH> gba_framerate;
+  DEBUG_LOG_FMT(HSP, "GBPlayer: SIOControl Read");
 
-  if (scanline_index == 0)
-  {
-    DEBUG_LOG_FMT(HSP, "GBPlayer: Frame start");
+  return 0;
+}
 
-    m_current_scanline_index = 0;
+void CGBPlayer_mGBA::WriteSIOControl(u8 value)
+{
+  DEBUG_LOG_FMT(HSP, "GBPlayer: SIOControl Write: 0x{:02x}", value);
+}
 
-    m_generate_video_irq = true;
+u32 CGBPlayer_mGBA::ReadSIOData()
+{
+  DEBUG_LOG_FMT(HSP, "GBPlayer: SIOData Read");
 
-    auto& core_timing = m_system.GetCoreTiming();
+  return 0;
+}
 
-    const s64 ticks_per_second = m_system.GetSystemTimers().GetTicksPerSecond();
-
-    // Schedule an event to execute the GBA on vblank.
-    const s64 visible_scanlines_ticks = ticks_per_second * GBA_VIDEO_VERTICAL_PIXELS *
-                                        VIDEO_HORIZONTAL_LENGTH / GBA_ARM7TDMI_FREQUENCY;
-    core_timing.ScheduleEvent(visible_scanlines_ticks - cycles_late, m_update_video_event,
-                              GBA_VIDEO_VERTICAL_PIXELS);
-
-    // Calculate a non-drifting time for the start of the next frame.
-    const s64 this_frame_ticks =
-        ticks_per_second * m_video_irq_phase * gba_framerate.den / gba_framerate.num;
-
-    ++m_video_irq_phase;
-    const s64 next_frame_ticks =
-        ticks_per_second * m_video_irq_phase * gba_framerate.den / gba_framerate.num;
-
-    m_video_irq_phase %= gba_framerate.num;
-
-    core_timing.ScheduleEvent(next_frame_ticks - this_frame_ticks - cycles_late,
-                              m_update_video_event, 0);
-
-    // Ensure the GBA frame emulation is complete.
-    m_gba_core.Flush();
-  }
-  else if (scanline_index == GBA_VIDEO_VERTICAL_PIXELS)
-  {
-    DEBUG_LOG_FMT(HSP, "GBPlayer: Frame end");
-
-    if (m_current_scanline_index != GBA_VIDEO_VERTICAL_PIXELS)
-    {
-      // This happens when the game doesn't read the entire frame in time.
-      // Lowering the CPU clock override will cause this to happen repeatedly.
-      WARN_LOG_FMT(HSP, "GBPlayer: Frame end while reading scanlines: {}",
-                   m_current_scanline_index);
-    }
-
-    // Emulate a single frame during vblank.
-    m_gba_core.RunFrame(m_keys);
-
-    m_current_scanline_index = scanline_index;
-  }
+void CGBPlayer_mGBA::WriteSIOData(u32 value)
+{
+  DEBUG_LOG_FMT(HSP, "GBPlayer: SIOData Write: 0x{:08x}", value);
 }
 
 #endif
@@ -447,9 +508,9 @@ void CHSPDevice_GBPlayer::Read(u32 address, std::span<u8, TRANSFER_SIZE> data)
   case GBPRegister::IRQ:
   {
     u32 value = m_irq;
-    value |= (m_irq & 0xff00) * 0x0100'0001u;
-    value &= 0x7fff'ffffu;
-
+    value |= (m_irq & 0xff00) * 0x00010100u;
+    value &= 0xffff7fffu;
+    value = Common::swap32(value);
     for (std::size_t i = 0; i != data.size(); i += sizeof(value))
     {
       std::memcpy(data.data() + i, &value, sizeof(value));
@@ -458,27 +519,36 @@ void CHSPDevice_GBPlayer::Read(u32 address, std::span<u8, TRANSFER_SIZE> data)
   }
   case GBPRegister::Video:
   {
-    const u32 offset = address & AV_ADDRESS_MASK;
-    if (offset == 0)
-      m_gbp->ReadScanlines(m_scanlines);
-
-    const u32 scanlines_pos = offset / 4;
-
-    std::memcpy(data.data(), m_scanlines.data() + scanlines_pos, data.size());
+    u32 scanlines_pos = (address & AV_ADDRESS_MASK) / sizeof(u32);
+    for (u32 i = 0; i != data.size(); i += sizeof(u32))
+    {
+      const u16 color = m_scanlines[scanlines_pos++];
+      data[i + 0] = data[i + 1] = u8(color >> 8);
+      data[i + 2] = data[i + 3] = u8(color);
+    }
     break;
   }
   case GBPRegister::Audio:
   {
-    const u32 offset = address & AV_ADDRESS_MASK;
-    if (offset == 0)
-      m_gbp->ReadAudio(m_audio);
-
-    u32 audio_pos = offset / 4;
-
-    for (std::size_t i = 0; i != data.size(); i += sizeof(u32))
+    u32 audio_pos = (address & AV_ADDRESS_MASK) / sizeof(u32);
+    for (u32 i = 0; i != data.size(); i += sizeof(u32))
     {
-      std::memset(data.data() + i, m_audio[audio_pos], sizeof(u32));
-      ++audio_pos;
+      std::memset(data.data() + i, m_audio[audio_pos++], sizeof(u32));
+    }
+    break;
+  }
+  case GBPRegister::SIOControl:
+  {
+    const u8 value = m_gbp->ReadSIOControl();
+    std::ranges::fill(data, value);
+    break;
+  }
+  case GBPRegister::SIOData:
+  {
+    const u32 value = m_gbp->ReadSIOData();
+    for (std::size_t i = 0; i != data.size(); i += sizeof(value))
+    {
+      std::memcpy(data.data() + i, &value, sizeof(value));
     }
     break;
   }
@@ -515,9 +585,6 @@ void CHSPDevice_GBPlayer::Write(u32 address, std::span<const u8, TRANSFER_SIZE> 
     {
       INFO_LOG_FMT(HSP, "GBPlayer: Stop");
       m_gbp->Stop();
-
-      m_scanlines.fill(0);
-      m_audio.fill(0);
     }
 
     m_control = value & 0xFC;
@@ -536,6 +603,18 @@ void CHSPDevice_GBPlayer::Write(u32 address, std::span<const u8, TRANSFER_SIZE> 
     const u8 value_hi = data[0x1e];  // L/R triggers (need to be flipped).
     const u8 value_lo = data[0x1f];  // All other buttons.
     m_gbp->SetKeys(u16(((value_hi & 0x01u) << 9) | ((value_hi & 0x02u) << 7) | value_lo));
+    break;
+  }
+  case GBPRegister::SIOControl:
+  {
+    const u8 value = data[0x1f];
+    m_gbp->WriteSIOControl(value);
+    break;
+  }
+  case GBPRegister::SIOData:
+  {
+    const u32 value = Common::swap32(data.data() + 0x1c);
+    m_gbp->WriteSIOData(value);
     break;
   }
   default:
