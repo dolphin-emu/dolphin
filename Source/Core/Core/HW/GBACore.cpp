@@ -5,9 +5,6 @@
 
 #include "Core/HW/GBACore.h"
 
-#define PYCPARSE  // Remove static functions from the header
-#include <mgba/core/interface.h>
-#undef PYCPARSE
 #include <mgba-util/vfs.h>
 #include <mgba/core/log.h>
 #include <mgba/core/timing.h>
@@ -30,6 +27,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MinizipUtil.h"
 #include "Common/ScopeGuard.h"
+#include "Common/Thread.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -256,7 +254,6 @@ bool Core::Start(u64 gc_ticks)
   SetVideoBuffer();
   SetAudioBufferSize();
   AddCallbacks();
-  SetupEvent();
 
   m_core->reset(m_core);
   m_started = true;
@@ -264,14 +261,18 @@ bool Core::Start(u64 gc_ticks)
   // Notify the host and handle a dimension change if that happened after reset()
   SetVideoBuffer();
 
-  m_event_thread.Reset(fmt::format("GBA{}", m_device_number + 1),
-                       std::bind_front(&Core::HandleEvent, this));
+  m_thread = std::thread(&Core::ThreadFunc, this);
+
   return true;
 }
 
 void Core::Stop()
 {
-  m_event_thread.Shutdown();
+  if (m_thread.joinable())
+  {
+    m_events.Push({.event_type = SyncEventType::Shutdown});
+    m_thread.join();
+  }
 
   if (m_core)
   {
@@ -481,24 +482,9 @@ void Core::SetAVStream()
   m_core->setAVStream(m_core, &m_stream);
 }
 
-void Core::SetupEvent()
-{
-  m_event.context = this;
-  m_event.name = "Dolphin Sync";
-  m_event.callback = [](mTiming* timing, void* context, u32 cycles_late) {
-    Core* core = static_cast<Core*>(context);
-    if (core->m_core->platform(core->m_core) == mPLATFORM_GBA)
-      static_cast<::GBA*>(core->m_core->board)->earlyExit = true;
-    else if (core->m_core->platform(core->m_core) == mPLATFORM_GB)
-      static_cast<::GB*>(core->m_core->board)->earlyExit = true;
-    core->m_waiting_for_event = false;
-  };
-  m_event.priority = 0x80;
-}
-
 void Core::RunFrame(u16 keys)
 {
-  PushEvent({
+  m_events.Push({
       .event_type = SyncEventType::RunFrame,
       .keys = keys,
   });
@@ -506,7 +492,7 @@ void Core::RunFrame(u16 keys)
 
 void Core::SyncJoybus(u64 gc_ticks, u16 keys)
 {
-  PushEvent({
+  m_events.Push({
       .event_type = SyncEventType::TimeSync,
       .keys = keys,
       .run_until_ticks = gc_ticks,
@@ -518,16 +504,20 @@ void Core::SendJoybusCommand(u64 gc_ticks, int transfer_time, u8* buffer, u16 ke
   if (!IsStarted())
     return;
 
-  m_joybus_command_transfer_time = transfer_time;
+  m_events.Push({
+      .event_type = SyncEventType::TimeSync,
+      .keys = keys,
+      .run_until_ticks = gc_ticks,
+  });
+
   m_joybus_command = GBASIOJOYCommand(buffer[0]);
   std::copy_n(buffer + 1, m_joybus_buffer.size(), m_joybus_buffer.data());
 
   m_command_pending.store(true, std::memory_order_relaxed);
 
-  PushEvent({
+  m_events.Push({
       .event_type = SyncEventType::RunCommand,
-      .keys = keys,
-      .run_until_ticks = gc_ticks,
+      .run_until_ticks = gc_ticks + transfer_time,
   });
 }
 
@@ -541,73 +531,105 @@ int Core::GetJoybusResponse(u8* data_out)
 
 void Core::Flush()
 {
-  m_event_thread.WaitForCompletion();
+  // Events are Pop'd upon completion.
+  m_events.WaitForEmpty();
 }
 
-void Core::PushEvent(SyncEvent event)
+void Core::ThreadFunc()
 {
-  m_event_thread.Push(event);
-}
+  Common::SetCurrentThreadName(fmt::format("GBA{}", m_device_number + 1).c_str());
 
-void Core::HandleEvent(SyncEvent event)
-{
-  m_keys = event.keys;
+  const u32 gba_frequency = GetCoreFrequency(m_core);
 
-  if (event.event_type == SyncEventType::RunFrame)
+  mTimingEvent time_sync_event{
+      .name = "Dolphin Sync",
+      .priority = 0x80,
+  };
+
+  bool is_waiting_for_time_sync_event = false;
+
+  const auto process_event = [&](SyncEvent& event, u32 cycles_late) {
+    if (event.event_type == SyncEventType::RunCommand)
+    {
+      if (m_link_enabled && !m_force_disconnect)
+      {
+        m_response_size =
+            u8(GBASIOJOYSendCommand(&m_sio_driver, m_joybus_command, m_joybus_buffer.data()));
+      }
+      else
+      {
+        m_response_size = 0;
+      }
+
+      m_command_pending.store(false, std::memory_order_release);
+      m_command_pending.notify_one();
+    }
+    else if (event.event_type == SyncEventType::TimeSync)
+    {
+      m_keys = event.keys;
+    }
+    else
+    {
+      // This is some other sort of event. Let mGBA run freely to step out to the main thread loop.
+      return;
+    }
+
+    const u32 gc_frequency = m_system.GetSystemTimers().GetTicksPerSecond();
+    const s64 gc_ticks = event.run_until_ticks;
+
+    const auto rel_time = std::max<s32>(
+        s32((gc_ticks - m_last_gc_ticks) * gba_frequency / gc_frequency) - s32(cycles_late), 0);
+
+    mTimingSchedule(m_core->timing, &time_sync_event, s32(rel_time));
+
+    const u64 d = (u64(cycles_late + rel_time) * gc_frequency) + m_gc_ticks_remainder;
+    m_last_gc_ticks += d / gba_frequency;
+    m_gc_ticks_remainder = d % gba_frequency;
+
+    is_waiting_for_time_sync_event = true;
+  };
+
+  auto sync_event_callback = [&](u32 cycles_late) {
+    // Signal completion.
+    m_events.Pop();
+
+    is_waiting_for_time_sync_event = false;
+
+    m_events.WaitForData();
+    process_event(m_events.Front(), cycles_late);
+  };
+
+  time_sync_event.context = &sync_event_callback;
+  time_sync_event.callback = [](mTiming* /*timing*/, void* context, u32 cycles_late) {
+    (*static_cast<decltype(sync_event_callback)*>(context))(cycles_late);
+  };
+
+  while (true)
   {
-    m_last_gc_ticks = m_system.GetCoreTiming().GetTicks();
-    m_gc_ticks_remainder = 0;
+    m_events.WaitForData();
+    auto& event = m_events.Front();
 
-    m_core->runFrame(m_core);
-    return;
+    if (event.event_type == SyncEventType::Shutdown)
+    {
+      m_events.Pop();
+      break;
+    }
+
+    if (event.event_type == SyncEventType::RunFrame)
+    {
+      m_keys = event.keys;
+      m_core->runFrame(m_core);
+      m_events.Pop();
+      continue;
+    }
+
+    process_event(event, 0);
+
+    while (is_waiting_for_time_sync_event)
+    {
+      m_core->runLoop(m_core);
+    }
   }
-
-  RunUntil(event.run_until_ticks);
-
-  if (event.event_type != SyncEventType::RunCommand)
-    return;
-
-  if (m_link_enabled && !m_force_disconnect)
-  {
-    m_response_size =
-        u8(GBASIOJOYSendCommand(&m_sio_driver, m_joybus_command, m_joybus_buffer.data()));
-  }
-  else
-  {
-    m_response_size = 0;
-  }
-
-  m_command_pending.store(false, std::memory_order_release);
-  m_command_pending.notify_one();
-
-  RunFor(m_joybus_command_transfer_time);
-}
-
-void Core::RunUntil(u64 gc_ticks)
-{
-  if (static_cast<s64>(gc_ticks - m_last_gc_ticks) <= 0)
-    return;
-
-  const u64 gc_frequency = m_system.GetSystemTimers().GetTicksPerSecond();
-  const u32 core_frequency = GetCoreFrequency(m_core);
-
-  mTimingSchedule(m_core->timing, &m_event,
-                  static_cast<s32>((gc_ticks - m_last_gc_ticks) * core_frequency / gc_frequency));
-  m_waiting_for_event = true;
-
-  s32 begin_time = mTimingCurrentTime(m_core->timing);
-  while (m_waiting_for_event)
-    m_core->runLoop(m_core);
-  s32 end_time = mTimingCurrentTime(m_core->timing);
-
-  u64 d = (static_cast<u64>(end_time - begin_time) * gc_frequency) + m_gc_ticks_remainder;
-  m_last_gc_ticks += d / core_frequency;
-  m_gc_ticks_remainder = d % core_frequency;
-}
-
-void Core::RunFor(u64 gc_ticks)
-{
-  RunUntil(m_last_gc_ticks + gc_ticks);
 }
 
 void Core::ImportState(std::string_view state_path)

@@ -10,17 +10,16 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <vector>
 
-#define PYCPARSE  // Remove static functions from the header
-#include <mgba/core/interface.h>
-#undef PYCPARSE
 #include <mgba/core/core.h>
+#include <mgba/core/interface.h>
 #include <mgba/gba/interface.h>
 
 #include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
-#include "Common/WorkQueueThread.h"
+#include "Common/SPSCQueue.h"
 
 class GBAHostInterface;
 class PointerWrap;
@@ -73,9 +72,21 @@ public:
   void SetForceDisconnect(bool force_disconnect);
   void EReaderQueueCard(std::string_view card_path);
 
+  // Asynchronously set GBA input and run for a single frame.
+  // TODO: This function is planned for removal after GBPlayer overhaul.
   void RunFrame(u16 keys);
+
+  // Asynchronously set GBA input and run until `gc_ticks` time.
   void SyncJoybus(u64 gc_ticks, u16 keys);
+
+  // Asynchronously sends a joybus command and prepares a response.
+  // 1. Set GBA input.
+  // 2. Run until `gc_ticks` time.
+  // 3. Send command buffer and prepare response buffer.
+  // 4. Run for an additional `transfer_time` ticks.
   void SendJoybusCommand(u64 gc_ticks, int transfer_time, u8* buffer, u16 keys);
+
+  // Block and read the response from the above command.
   int GetJoybusResponse(u8* data_out);
 
   // Wait for requested GBA emulation to complete.
@@ -97,14 +108,12 @@ public:
   static std::string GetSavePath(std::string_view rom_path, int device_number);
 
 private:
-  void RunUntil(u64 gc_ticks);
-  void RunFor(u64 gc_ticks);
-
   enum class SyncEventType : u8
   {
     TimeSync,
     RunCommand,
     RunFrame,
+    Shutdown,
   };
   struct SyncEvent
   {
@@ -112,8 +121,8 @@ private:
     u16 keys{};
     u64 run_until_ticks{};  // Not used by SyncEventType::RunFrame.
   };
-  void PushEvent(SyncEvent event);
-  void HandleEvent(SyncEvent event);
+
+  void ThreadFunc();
 
   bool LoadBIOS(const char* bios_path);
   bool LoadSave(const char* save_path);
@@ -123,7 +132,6 @@ private:
   void SetAudioBufferSize();
   void AddCallbacks();
   void SetAVStream();
-  void SetupEvent();
 
   const int m_device_number;
 
@@ -134,8 +142,7 @@ private:
   std::string m_game_title;
 
   mCore* m_core{};
-  mTimingEvent m_event{};
-  bool m_waiting_for_event = false;
+
   SIODriver m_sio_driver{};
   AVStream m_stream{};
   std::vector<u32> m_video_buffer;
@@ -149,7 +156,6 @@ private:
   std::weak_ptr<GBAHostInterface> m_host;
 
   // Set by the GC thread before issuing a SyncEventType::RunCommand.
-  int m_joybus_command_transfer_time{};
   GBASIOJOYCommand m_joybus_command{};
 
   // Commands are synchronous. This buffer is used for the command and the response.
@@ -159,8 +165,9 @@ private:
   u8 m_response_size{};  // State saved.
   std::atomic_bool m_command_pending{};
 
-  // The entire threaded GBA runs within events pushed to this queue.
-  Common::WorkQueueThreadSP<SyncEvent> m_event_thread;
+  Common::WaitableSPSCQueue<SyncEvent> m_events;
+
+  std::thread m_thread;
 
   ::Core::System& m_system;
 };
