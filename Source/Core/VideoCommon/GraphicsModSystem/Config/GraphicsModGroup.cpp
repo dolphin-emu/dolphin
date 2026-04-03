@@ -10,6 +10,7 @@
 #include <picojson.h>
 
 #include "Common/CommonPaths.h"
+#include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/JsonUtil.h"
 #include "Common/Logging/Log.h"
@@ -84,13 +85,22 @@ void GraphicsModGroupConfig::Load()
 
   const auto try_add_mod = [&known_paths, this](const std::string& dir,
                                                 GraphicsModConfig::Source source) {
-    auto file = dir + DIR_SEP + "metadata.json";
-    UnifyPathSeparators(file);
-    if (known_paths.contains(file))
-      return;
+    const auto files = Common::DoFileSearch(dir, ".json", true);
+    for (const auto& file : files)
+    {
+      std::string basename;
+      SplitPath(file, nullptr, &basename, nullptr);
+      if (basename == "metadata")
+      {
+        auto file_copy = file;
+        UnifyPathSeparators(file_copy);
+        if (known_paths.contains(file_copy))
+          return;
 
-    if (auto mod = GraphicsModConfig::Create(file, source))
-      m_graphics_mods.push_back(std::move(*mod));
+        if (auto mod = GraphicsModConfig::Create(file_copy, source))
+          m_graphics_mods.push_back(std::move(*mod));
+      }
+    }
   };
 
   const std::set<std::string> graphics_mod_user_directories =

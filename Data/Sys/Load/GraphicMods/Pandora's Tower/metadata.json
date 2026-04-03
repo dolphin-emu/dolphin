@@ -2,7 +2,7 @@
 	"meta":
 	{
 		"title": "Bloom and DOF Texture Definitions",
-		"author": "linckandrea"
+		"author": "linckandrea, iwubcode"
 	},
 	"groups":
 	[
@@ -15,7 +15,7 @@
 				},
 				{
 					"type": "efb",
-					"texture_filename": "efb1_n21_20x15_1"
+					"texture_filename": "efb1_n21_40x30_1"
 				}
 			]
 		},
@@ -25,10 +25,6 @@
 				{
 					"type": "efb",
 					"texture_filename": "efb1_n10_320x240_4"
-				},
-				{
-					"type": "efb",
-					"texture_filename": "efb1_n11_320x240_1"
 				}
 			]
 		}
