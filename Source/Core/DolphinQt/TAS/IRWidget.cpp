@@ -20,7 +20,12 @@ IRWidget::IRWidget(QWidget* parent) : QWidget(parent)
                 "Right click to re-center it."));
 
   // If the widget gets too small, it will get deformed.
-  setMinimumSize(QSize(128, 96));
+  setMinimumSize(QSize(64, 48));
+}
+
+QSize IRWidget::sizeHint() const
+{
+  return QSize(128, 96);
 }
 
 void IRWidget::SetX(u16 x)
