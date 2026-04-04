@@ -88,6 +88,8 @@ public:
   // Wait for requested GBA emulation to complete.
   void Flush();
 
+  mCore* GetCore() { return m_core; }
+
   mAudioBuffer* GetAudioBuffer() { return m_core->getAudioBuffer(m_core); }
   std::span<const u32> GetVideoBuffer() const { return m_video_buffer; }
 
