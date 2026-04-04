@@ -42,7 +42,7 @@ enum class GBPRegister : u8
 
 constexpr u16 IRQ_ASSERTED = 0x8000;
 
-constexpr u8 CONTROL_CART_DETECTED = 0x01;
+constexpr u8 CONTROL_CART_IS_GB = 0x01;
 constexpr u8 CONTROL_CART_INSERTED = 0x02;
 constexpr u8 CONTROL_3V = 0x04;
 constexpr u8 CONTROL_5V = 0x08;
@@ -412,14 +412,14 @@ void CHSPDevice_GBPlayer::Read(u32 address, std::span<u8, TRANSFER_SIZE> data)
     if (m_gbp->IsLoaded())
     {
       m_control |= CONTROL_CART_INSERTED;
-      if ((m_control & CONTROL_3V) && (m_gbp->IsGBA() || (m_control & CONTROL_5V)))
-        m_control |= CONTROL_CART_DETECTED;
+      if (m_gbp->IsGBA())
+        m_control &= ~CONTROL_CART_IS_GB;
       else
-        m_control &= ~CONTROL_CART_DETECTED;
+        m_control |= CONTROL_CART_IS_GB;
     }
     else
     {
-      m_control &= ~(CONTROL_CART_DETECTED | CONTROL_CART_INSERTED);
+      m_control &= ~(CONTROL_CART_IS_GB | CONTROL_CART_INSERTED);
     }
 
     std::ranges::fill(data, m_control);
