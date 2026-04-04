@@ -119,6 +119,8 @@ BreakpointWidget::BreakpointWidget(QWidget* parent)
   });
 
   connect(m_table, &QTableWidget::itemChanged, this, &BreakpointWidget::OnItemChanged);
+  connect(&Settings::Instance(), &Settings::DebugFontChanged, this,
+          &BreakpointWidget::OnDebugFontChanged);
 
   connect(&Settings::Instance(), &Settings::BreakpointsVisibilityChanged, this,
           [this](bool visible) { setHidden(!visible); });
@@ -159,6 +161,8 @@ void BreakpointWidget::CreateWidgets()
   m_table->setColumnCount(10);
   m_table->setSelectionMode(QAbstractItemView::NoSelection);
   m_table->verticalHeader()->hide();
+
+  OnDebugFontChanged(Settings::Instance().GetDebugFont());
 
   connect(m_table, &QTableWidget::itemClicked, this, &BreakpointWidget::OnClicked);
   connect(m_table, &QTableWidget::customContextMenuRequested, this,
@@ -644,6 +648,13 @@ void BreakpointWidget::OnItemChanged(QTableWidgetItem* item)
       Update();
     }
   }
+}
+
+void BreakpointWidget::OnDebugFontChanged(const QFont& font)
+{
+  m_table->setFont(font);
+  m_table->verticalHeader()->setDefaultSectionSize(m_table->fontMetrics().height());
+  Update();
 }
 
 void BreakpointWidget::AddBP(u32 addr)
