@@ -1175,26 +1175,35 @@ void AchievementManager::HandleAchievementTriggeredEvent(const rc_client_event_t
 
 void AchievementManager::HandleLeaderboardStartedEvent(const rc_client_event_t* client_event)
 {
-  OSD::AddMessage(fmt::format("Attempting leaderboard: {} - {}", client_event->leaderboard->title,
-                              client_event->leaderboard->description),
-                  OSD::Duration::VERY_LONG, OSD::Color::GREEN);
+  if (Config::Get(Config::RA_LEADERBOARD_TRACKER_ENABLED))
+  {
+    OSD::AddMessage(fmt::format("Attempting leaderboard: {} - {}", client_event->leaderboard->title,
+                                client_event->leaderboard->description),
+                    OSD::Duration::VERY_LONG, OSD::Color::GREEN);
+  }
   AchievementManager::GetInstance().FetchBoardInfo(client_event->leaderboard->id);
 }
 
 void AchievementManager::HandleLeaderboardFailedEvent(const rc_client_event_t* client_event)
 {
-  OSD::AddMessage(fmt::format("Failed leaderboard: {}", client_event->leaderboard->title),
-                  OSD::Duration::VERY_LONG, OSD::Color::RED);
+  if (Config::Get(Config::RA_LEADERBOARD_TRACKER_ENABLED))
+  {
+    OSD::AddMessage(fmt::format("Failed leaderboard: {}", client_event->leaderboard->title),
+                    OSD::Duration::VERY_LONG, OSD::Color::RED);
+  }
   AchievementManager::GetInstance().FetchBoardInfo(client_event->leaderboard->id);
 }
 
 void AchievementManager::HandleLeaderboardSubmittedEvent(const rc_client_event_t* client_event)
 {
   auto& instance = AchievementManager::GetInstance();
-  OSD::AddMessage(fmt::format("Scored {} on leaderboard: {}",
-                              client_event->leaderboard->tracker_value,
-                              client_event->leaderboard->title),
-                  OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
+  if (Config::Get(Config::RA_LEADERBOARD_TRACKER_ENABLED))
+  {
+    OSD::AddMessage(fmt::format("Scored {} on leaderboard: {}",
+                                client_event->leaderboard->tracker_value,
+                                client_event->leaderboard->title),
+                    OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
+  }
   instance.FetchBoardInfo(client_event->leaderboard->id);
   instance.update_event.Trigger(UpdatedItems{.leaderboards = {client_event->leaderboard->id}});
 }
