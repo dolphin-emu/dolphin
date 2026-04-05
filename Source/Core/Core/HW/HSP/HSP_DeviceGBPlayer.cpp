@@ -533,8 +533,9 @@ void CHSPDevice_GBPlayer::Write(u32 address, std::span<const u8, TRANSFER_SIZE> 
   }
   case GBPRegister::Keypad:
   {
-    const u16 value = Common::swap16(data.data() + 0x1e);
-    m_gbp->SetKeys(value & 0x3FF);
+    const u8 value_hi = data[0x1e];  // L/R triggers (need to be flipped).
+    const u8 value_lo = data[0x1f];  // All other buttons.
+    m_gbp->SetKeys(u16(((value_hi & 0x01u) << 9) | ((value_hi & 0x02u) << 7) | value_lo));
     break;
   }
   default:
