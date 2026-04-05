@@ -12,18 +12,22 @@
 #include <string_view>
 #include <vector>
 
-#define PYCPARSE  // Remove static functions from the header
-#include <mgba/core/interface.h>
-#undef PYCPARSE
 #include <mgba/core/core.h>
+#include <mgba/core/interface.h>
+#if !defined(_WIN32)
+#define USE_PTHREADS  // Required for Mutex/Condition in mCoreSync.
+#endif
+#include <mgba/core/sync.h>
+#undef USE_PTHREADS
 #include <mgba/gba/interface.h>
 
-#include "Common/Buffer.h"
 #include "Common/CommonTypes.h"
 #include "Common/WorkQueueThread.h"
 
 class GBAHostInterface;
+class Mixer;
 class PointerWrap;
+
 namespace Core
 {
 class System;
@@ -31,15 +35,18 @@ class System;
 
 namespace HW::GBA
 {
+
 class Core;
+
 struct SIODriver : GBASIODriver
 {
   Core* core;
 };
+
 struct AVStream : mAVStream
 {
   Core* core;
-  Common::UniqueBuffer<s16> sample_buffer;
+  Mixer* mixer;
 };
 
 struct CoreInfo
@@ -134,6 +141,7 @@ private:
   std::string m_game_title;
 
   mCore* m_core{};
+  mCoreSync m_core_sync{};
   mTimingEvent m_event{};
   bool m_waiting_for_event = false;
   SIODriver m_sio_driver{};
@@ -164,5 +172,7 @@ private:
 
   ::Core::System& m_system;
 };
+
 }  // namespace HW::GBA
+
 #endif  // HAS_LIBMGBA

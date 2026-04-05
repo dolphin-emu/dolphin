@@ -5,9 +5,6 @@
 
 #include "Core/HW/GBACore.h"
 
-#define PYCPARSE  // Remove static functions from the header
-#include <mgba/core/interface.h>
-#undef PYCPARSE
 #include <mgba-util/vfs.h>
 #include <mgba/core/log.h>
 #include <mgba/core/timing.h>
@@ -163,11 +160,23 @@ Core::Core(::Core::System& system, int device_number)
     : m_device_number(device_number), m_system(system)
 {
   mLogSetDefaultLogger(&s_stub_logger);
+
+  MutexInit(&m_core_sync.videoFrameMutex);
+  ConditionInit(&m_core_sync.videoFrameAvailableCond);
+  ConditionInit(&m_core_sync.videoFrameRequiredCond);
+  ConditionInit(&m_core_sync.audioRequiredCond);
+  MutexInit(&m_core_sync.audioBufferMutex);
 }
 
 Core::~Core()
 {
   Stop();
+
+  MutexDeinit(&m_core_sync.videoFrameMutex);
+  ConditionDeinit(&m_core_sync.videoFrameAvailableCond);
+  ConditionDeinit(&m_core_sync.videoFrameRequiredCond);
+  ConditionDeinit(&m_core_sync.audioRequiredCond);
+  MutexDeinit(&m_core_sync.audioBufferMutex);
 }
 
 bool Core::Start(u64 gc_ticks)
@@ -257,6 +266,8 @@ bool Core::Start(u64 gc_ticks)
   SetAudioBufferSize();
   AddCallbacks();
   SetupEvent();
+
+  m_core->setSync(m_core, &m_core_sync);
 
   m_core->reset(m_core);
   m_started = true;
@@ -450,34 +461,43 @@ void Core::AddCallbacks()
   m_core->addCoreCallbacks(m_core, &callbacks);
 }
 
+static void ReadAudioBufferIntoMixer(mAudioBuffer* audio_buffer, Mixer* mixer,
+                                     std::size_t device_number)
+{
+  std::array<s16, AUDIO_BUFFER_SIZE> sample_buffer;
+  const auto read_size = sample_buffer.size() / audio_buffer->channels;
+  while (true)
+  {
+    const auto sample_count = mAudioBufferRead(audio_buffer, sample_buffer.data(), read_size);
+    if (sample_count == 0)
+      break;
+    mixer->PushGBASamples(device_number, sample_buffer.data(), sample_count);
+  }
+}
+
 void Core::SetAVStream()
 {
-  m_stream = {};
-  m_stream.core = this;
-  m_stream.videoDimensionsChanged = [](mAVStream* stream, unsigned width, unsigned height) {
-    auto core = static_cast<AVStream*>(stream)->core;
+  m_stream = {
+      .core = this,
+      .mixer = m_system.GetSoundStream()->GetMixer(),
+  };
+
+  m_stream.videoDimensionsChanged = [](mAVStream* stream, unsigned /*width*/, unsigned /*height*/) {
+    auto* core = static_cast<AVStream*>(stream)->core;
     core->SetVideoBuffer();
   };
   m_stream.audioRateChanged = [](mAVStream* stream, unsigned rate) {
-    auto* core = static_cast<AVStream*>(stream)->core;
-    auto* const sound_stream = core->m_system.GetSoundStream();
-    sound_stream->GetMixer()->SetGBAInputSampleRate(core->m_device_number, rate);
+    auto* const av_stream = static_cast<AVStream*>(stream);
+    auto* const core = av_stream->core;
+    auto* const audio_buffer = core->GetAudioBuffer();
+    ReadAudioBufferIntoMixer(audio_buffer, av_stream->mixer, av_stream->core->m_device_number);
+    av_stream->mixer->SetGBAInputSampleRate(core->m_device_number, rate);
   };
   m_stream.postAudioBuffer = [](mAVStream* stream, mAudioBuffer* audio_buffer) {
-    size_t sample_count = mAudioBufferAvailable(audio_buffer);
-    const size_t required_buffer_size = sample_count * audio_buffer->channels;
-
     auto* const av_stream = static_cast<AVStream*>(stream);
-    if (required_buffer_size > av_stream->sample_buffer.size())
-      av_stream->sample_buffer.reset(required_buffer_size);
-
-    sample_count = mAudioBufferRead(audio_buffer, av_stream->sample_buffer.data(), sample_count);
-
-    auto* const core = av_stream->core;
-    auto* const sound_stream = core->m_system.GetSoundStream();
-    sound_stream->GetMixer()->PushGBASamples(core->m_device_number, av_stream->sample_buffer.data(),
-                                             sample_count);
+    ReadAudioBufferIntoMixer(audio_buffer, av_stream->mixer, av_stream->core->m_device_number);
   };
+
   m_core->setAVStream(m_core, &m_stream);
 }
 
@@ -485,12 +505,8 @@ void Core::SetupEvent()
 {
   m_event.context = this;
   m_event.name = "Dolphin Sync";
-  m_event.callback = [](mTiming* timing, void* context, u32 cycles_late) {
-    Core* core = static_cast<Core*>(context);
-    if (core->m_core->platform(core->m_core) == mPLATFORM_GBA)
-      static_cast<::GBA*>(core->m_core->board)->earlyExit = true;
-    else if (core->m_core->platform(core->m_core) == mPLATFORM_GB)
-      static_cast<::GB*>(core->m_core->board)->earlyExit = true;
+  m_event.callback = [](mTiming* /*timing*/, void* context, u32 /*cycles_late*/) {
+    auto* const core = static_cast<Core*>(context);
     core->m_waiting_for_event = false;
   };
   m_event.priority = 0x80;
