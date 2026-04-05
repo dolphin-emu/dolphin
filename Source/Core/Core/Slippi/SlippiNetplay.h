@@ -41,6 +41,7 @@ struct SlippiRemotePadOutput
   s32 checksum_frame{};
   u32 checksum{};
   u8 player_idx{};
+  bool is_disconnected = false;
   std::vector<u8> data{};
 };
 
@@ -187,6 +188,9 @@ public:
   std::unique_ptr<SlippiRemotePadOutput> GetFakePadOutput(int frame);
   std::unique_ptr<SlippiRemotePadOutput> GetSlippiRemotePad(int index, int max_frame_count);
   void DropOldRemoteInputs(int32_t finalized_frame);
+  std::unordered_map<u8, bool> GetActivePlayerIndices();
+	bool AreAllConnectionsDisconnected();
+	bool AreAllPeersDisconnectedForKey(const std::string &key);
   SlippiMatchInfo* GetMatchInfo();
   int32_t GetSlippiLatestRemoteFrame(int max_frame_count);
   SlippiPlayerSelections GetSlippiRemoteChatMessage(bool is_chat_enabled);
@@ -246,7 +250,13 @@ protected:
   bool has_game_started = false;
   u8 m_player_idx = 0;
 
-  std::unordered_map<std::string, std::map<ENetPeer*, bool>> m_active_connections;
+  struct ActiveConnectionInfo
+	{
+		u8 player_idx;
+		bool is_disconnected = false;
+	};
+
+	std::unordered_map<std::string, std::map<ENetPeer *, ActiveConnectionInfo>> m_active_connections;
 
   std::deque<std::unique_ptr<SlippiPad>> m_local_pad_queue;  // most recent inputs at start of deque
   std::deque<std::unique_ptr<SlippiPad>>
