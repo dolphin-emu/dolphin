@@ -133,6 +133,9 @@ private:
   u16 m_current_scanline_index = 0;
   u16 m_keys = 0;
 
+  u16 m_audio_l_remainder = 0;
+  u16 m_audio_r_remainder = 0;
+
   // Used to trigger a video IRQ during the next audio IRQ in UpdateAudio.
   // Separately timed video IRQs cause the AV stream to enter a bad state.
   // It's very fragile for some reason. This might be a CPU timing issue ?
@@ -194,6 +197,10 @@ void CGBPlayer_mGBA::Stop()
 
   m_current_scanline_index = 0;
   m_keys = 0;
+
+  m_audio_l_remainder = 0;
+  m_audio_r_remainder = 0;
+
   m_generate_video_irq = false;
 
   m_gba_core.Stop();
@@ -246,12 +253,16 @@ void CGBPlayer_mGBA::ReadScanlines(std::span<u32, AV_REGION_SIZE> scanlines)
     m_generate_video_irq = true;
 }
 
-// TODO: Explain the meaning of this audio sample processing.
-static constexpr u8 SampleToBits(u16* value)
+// Takes 5 bits from a 16-bit PCM sample and converts them into 32 bits of PWM.
+//
+// The 11 bits that don't get converted are fed into the remainder, which should be used as an
+// input to the next invocation of this function to average out quantization errors over time.
+static constexpr u32 SampleToPWM(u16 value, u16* remainder)
 {
-  const auto x = std::min<u32>(*value, 8);
-  *value -= x;
-  return u8(0xff00u >> x);
+  const u16 x = value + *remainder;
+  const u16 y = x >> 11;
+  *remainder = x - (y << 11);
+  return u32(0xffff'ffff'0000'0000ull >> y);
 }
 
 void CGBPlayer_mGBA::ReadAudio(std::span<u8, AV_REGION_SIZE> audio)
@@ -259,23 +270,27 @@ void CGBPlayer_mGBA::ReadAudio(std::span<u8, AV_REGION_SIZE> audio)
   std::array<std::array<s16, AUDIO_CHANNEL_COUNT>, AUDIO_READ_SIZE> buffer;
   const auto read_count = mAudioBufferRead(&m_audio_buffer, buffer.data()->data(), buffer.size());
 
-  // Each s16 sample is converted to a u9 which is then converted to 64 u8 values.
-  // This must have something to do with interpretation by the DSP ?
-  // TODO: Explain things better.
-
   constexpr u32 out_bytes_per_sample = AV_REGION_SIZE / AUDIO_READ_SIZE / AUDIO_CHANNEL_COUNT;
   static_assert(out_bytes_per_sample == 64);
 
   auto out_it = audio.begin();
   for (auto [l, r] : std::span{buffer}.first(read_count))
   {
-    auto l_9bit = u16(u32(l + 0x8000) >> 7u);
-    auto r_9bit = u16(u32(r + 0x8000) >> 7u);
+    const u16 l_unsigned = l + 0x8000;
+    const u16 r_unsigned = r + 0x8000;
 
-    for (u32 i = 0; i != out_bytes_per_sample; ++i)
+    for (u32 i = 0; i != out_bytes_per_sample / 4; ++i)
     {
-      *(out_it++) = SampleToBits(&l_9bit);
-      *(out_it++) = SampleToBits(&r_9bit);
+      u32 l_pwm = SampleToPWM(l_unsigned, &m_audio_l_remainder);
+      u32 r_pwm = SampleToPWM(r_unsigned, &m_audio_r_remainder);
+
+      for (u32 j = 0; j != 4; ++j)
+      {
+        *(out_it++) = l_pwm >> 24;
+        *(out_it++) = r_pwm >> 24;
+        l_pwm <<= 8;
+        r_pwm <<= 8;
+      }
     }
   }
 }
@@ -294,6 +309,10 @@ void CGBPlayer_mGBA::DoState(PointerWrap& p)
 
   p.Do(m_current_scanline_index);
   p.Do(m_keys);
+
+  p.Do(m_audio_l_remainder);
+  p.Do(m_audio_r_remainder);
+
   p.Do(m_generate_video_irq);
 
   // Resampled audio buffer.
