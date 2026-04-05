@@ -16,6 +16,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.dolphinemu.dolphinemu.BuildConfig
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.activities.EmulationActivity
+import org.dolphinemu.dolphinemu.features.nandimport.ui.NandImportProgressBarDialogFragment
+import org.dolphinemu.dolphinemu.features.nandimport.ui.NandImportViewModel
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag
 import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemMenuNotInstalledDialogFragment
@@ -302,13 +304,12 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
             .setNegativeButton(R.string.no) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
             .setPositiveButton(R.string.yes) { dialog: DialogInterface, _: Int ->
                 dialog.dismiss()
-                ThreadUtil.runOnThreadAndShowResult(
-                    activity, R.string.import_in_progress, R.string.do_not_close_app, {
-                        // ImportNANDBin unfortunately doesn't provide any result value...
-                        // It does however show a panic alert if something goes wrong.
-                        WiiUtils.importNANDBin(path!!)
-                        null
-                    })
+                val viewModel = ViewModelProvider(activity)[NandImportViewModel::class.java]
+                viewModel.path = path!!
+                val progressBarFragment = NandImportProgressBarDialogFragment()
+                progressBarFragment.show(
+                    activity.supportFragmentManager, NandImportProgressBarDialogFragment.TAG
+                )
             }.show()
     }
 
