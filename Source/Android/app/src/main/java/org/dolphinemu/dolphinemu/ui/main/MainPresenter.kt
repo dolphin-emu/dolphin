@@ -321,7 +321,7 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
     private fun launchOnlineUpdate() {
         if (WiiUtils.isSystemMenuInstalled()) {
             val viewModel = ViewModelProvider(activity)[SystemUpdateViewModel::class.java]
-            viewModel.region = -1
+            viewModel.prepareOnlineUpdate(-1)
             launchUpdateProgressBarFragment(activity)
         } else {
             SystemMenuNotInstalledDialogFragment().show(
@@ -357,7 +357,7 @@ class MainPresenter(private val mainView: MainView, private val activity: Fragme
         @JvmStatic
         fun launchDiscUpdate(path: String, activity: FragmentActivity) {
             val viewModel = ViewModelProvider(activity)[SystemUpdateViewModel::class.java]
-            viewModel.discPath = path
+            viewModel.prepareDiscUpdate(path)
             launchUpdateProgressBarFragment(activity)
         }
 
