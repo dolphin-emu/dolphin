@@ -259,9 +259,9 @@ void CGBPlayer_mGBA::ReadScanlines(std::span<u32, AV_REGION_SIZE> scanlines)
 // input to the next invocation of this function to average out quantization errors over time.
 static constexpr u32 SampleToPWM(u16 value, u16* remainder)
 {
-  const u16 x = value + *remainder;
-  const u16 y = x >> 11;
-  *remainder = x - (y << 11);
+  const u32 x = value + *remainder;
+  const u32 y = x >> 11;
+  *remainder = static_cast<u16>(x - (y << 11));
   return u32(0xffff'ffff'0000'0000ull >> y);
 }
 
