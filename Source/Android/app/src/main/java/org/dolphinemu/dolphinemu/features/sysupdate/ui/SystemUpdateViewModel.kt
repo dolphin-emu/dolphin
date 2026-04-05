@@ -13,8 +13,18 @@ class SystemUpdateViewModel : ProgressViewModel() {
     val titleIdData = MutableLiveData<Long>()
     val resultData = MutableLiveData<Int>()
 
-    var region = -1
-    var discPath: String = ""
+    private var region = -1
+    private var discPath: String = ""
+
+    fun prepareOnlineUpdate(region: Int) {
+        this.region = region
+        this.discPath = ""
+    }
+
+    fun prepareDiscUpdate(discPath: String) {
+        this.region = -1
+        this.discPath = discPath
+    }
 
     override suspend fun run() {
         resultData.value = -1
