@@ -211,7 +211,7 @@ bool CoInitSyncWorker::Execute(FunctionType f)
   if (!m_coinit_success)
     return false;
 
-  m_work_queue.PushBlocking(f);
+  m_work_queue.PushBlocking(std::move(f));
 #else
   f();
 #endif

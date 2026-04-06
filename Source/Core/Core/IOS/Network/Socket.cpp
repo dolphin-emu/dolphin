@@ -850,14 +850,14 @@ void WiiSocket::ResetTimeout()
   timeout.reset();
 }
 
-void WiiSocket::DoSock(Request request, NET_IOCTL type)
+void WiiSocket::DoSock(const Request& request, NET_IOCTL type)
 {
   sockop so = {request, false};
   so.net_type = type;
   pending_sockops.push_back(so);
 }
 
-void WiiSocket::DoSock(Request request, SSL_IOCTL type)
+void WiiSocket::DoSock(const Request& request, SSL_IOCTL type)
 {
   sockop so = {request, true};
   so.ssl_type = type;

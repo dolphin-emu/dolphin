@@ -335,7 +335,7 @@ std::string SystemUpdater::GetDeviceId()
 class OnlineSystemUpdater final : public SystemUpdater
 {
 public:
-  OnlineSystemUpdater(UpdateCallback update_callback, const std::string& region);
+  OnlineSystemUpdater(UpdateCallback update_callback, std::string region);
   UpdateResult DoOnlineUpdate();
 
 private:
@@ -365,8 +365,8 @@ private:
   Common::HttpRequest m_http{std::chrono::minutes{3}};
 };
 
-OnlineSystemUpdater::OnlineSystemUpdater(UpdateCallback update_callback, const std::string& region)
-    : m_update_callback(std::move(update_callback)), m_requested_region(region)
+OnlineSystemUpdater::OnlineSystemUpdater(UpdateCallback update_callback, std::string region)
+    : m_update_callback(std::move(update_callback)), m_requested_region(std::move(region))
 {
 }
 

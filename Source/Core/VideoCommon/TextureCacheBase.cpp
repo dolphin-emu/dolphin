@@ -657,7 +657,7 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
     }
   }
 
-  auto doList = [&p](auto list) {
+  auto doList = [&p](const auto& list) {
     u32 list_size = static_cast<u32>(list.size());
     p.Do(list_size);
     for (const auto& it : list)

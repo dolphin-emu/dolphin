@@ -336,11 +336,12 @@ void AdvancedPane::ConnectLayout()
     Update();
   });
 
-  connect(m_custom_rtc_datetime, &QDateTimeEdit::dateTimeChanged, [this](QDateTime date_time) {
-    Config::SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_VALUE,
-                             static_cast<u32>(date_time.toSecsSinceEpoch()));
-    Update();
-  });
+  connect(m_custom_rtc_datetime, &QDateTimeEdit::dateTimeChanged,
+          [this](const QDateTime& date_time) {
+            Config::SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_VALUE,
+                                     static_cast<u32>(date_time.toSecsSinceEpoch()));
+            Update();
+          });
 }
 
 void AdvancedPane::Update()

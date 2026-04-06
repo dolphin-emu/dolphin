@@ -215,7 +215,7 @@ RCForkGuard::RCForkGuard(RegCache& rc_) : rc(&rc_), m_regs(rc_.m_regs), m_xregs(
 }
 
 RCForkGuard::RCForkGuard(RCForkGuard&& other) noexcept
-    : rc(other.rc), m_regs(std::move(other.m_regs)), m_xregs(std::move(other.m_xregs))
+    : rc(other.rc), m_regs(other.m_regs), m_xregs(other.m_xregs)
 {
   other.rc = nullptr;
 }

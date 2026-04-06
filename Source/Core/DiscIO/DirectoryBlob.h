@@ -176,7 +176,7 @@ class DirectoryBlobPartition
 {
 public:
   DirectoryBlobPartition() = default;
-  DirectoryBlobPartition(const std::string& root_directory, std::optional<bool> is_wii);
+  DirectoryBlobPartition(std::string root_directory, std::optional<bool> is_wii);
   DirectoryBlobPartition(
       VolumeDisc* volume, const Partition& partition, std::optional<bool> is_wii,
       const std::function<void(std::vector<FSTBuilderNode>* fst_nodes)>& sys_callback,

@@ -22,7 +22,7 @@ namespace IOS::HLE::FS
 class HostFileSystem final : public FileSystem
 {
 public:
-  HostFileSystem(const std::string& root_path, std::vector<NandRedirect> nand_redirects = {});
+  HostFileSystem(std::string root_path, std::vector<NandRedirect> nand_redirects = {});
   ~HostFileSystem() override;
 
   void DoState(PointerWrap& p) override;
@@ -60,8 +60,8 @@ public:
   void SetNandRedirects(std::vector<NandRedirect> nand_redirects) override;
 
 private:
-  void DoStateWriteOrMeasure(PointerWrap& p, std::string start_directory_path);
-  void DoStateRead(PointerWrap& p, std::string start_directory_path);
+  void DoStateWriteOrMeasure(PointerWrap& p, const std::string& start_directory_path);
+  void DoStateRead(PointerWrap& p, const std::string& start_directory_path);
 
   struct FstEntry
   {

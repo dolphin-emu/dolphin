@@ -327,7 +327,7 @@ void GCMemcardManager::UpdateActions()
   m_fix_checksums_button->setEnabled(have_memcard);
 }
 
-void GCMemcardManager::SetSlotFile(Slot slot, QString path)
+void GCMemcardManager::SetSlotFile(Slot slot, const QString& path)
 {
   auto [error_code, memcard] = Memcard::GCMemcard::Open(path.toStdString());
 

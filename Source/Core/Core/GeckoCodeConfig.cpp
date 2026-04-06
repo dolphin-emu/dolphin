@@ -15,10 +15,10 @@
 
 namespace Gecko
 {
-std::expected<std::vector<GeckoCode>, int> DownloadCodes(std::string gametdb_id)
+std::expected<std::vector<GeckoCode>, int> DownloadCodes(std::string_view gametdb_id)
 {
   // codes.rc24.xyz is a mirror of the now defunct geckocodes.org.
-  std::string endpoint{"https://codes.rc24.xyz/txt.php?txt=" + gametdb_id};
+  std::string endpoint{"https://codes.rc24.xyz/txt.php?txt=" + std::string(gametdb_id)};
   Common::HttpRequest http;
 
   // The server always redirects once to the same location.

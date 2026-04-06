@@ -31,13 +31,13 @@
 namespace IOS::HLE::USB
 {
 #ifdef HAVE_CUBEB
-Microphone::Microphone(const MicrophoneState& sampler, const std::string& worker_name)
-    : m_sampler(sampler), m_worker(worker_name)
+Microphone::Microphone(const MicrophoneState& sampler, std::string worker_name)
+    : m_sampler(sampler), m_worker(std::move(worker_name))
 {
 }
 #else
-Microphone::Microphone(const MicrophoneState& sampler, const std::string& worker_name)
-    : m_sampler(sampler)
+Microphone::Microphone(MicrophoneState sampler, std::string worker_name)
+    : m_sampler(std::move(sampler))
 {
 }
 #endif

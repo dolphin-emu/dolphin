@@ -476,8 +476,8 @@ void LibusbDevice::TransferEndpoint::AddTransfer(std::unique_ptr<TransferCommand
   m_transfers.emplace(transfer, std::move(command));
 }
 
-void LibusbDevice::TransferEndpoint::HandleTransfer(libusb_transfer* transfer,
-                                                    std::function<s32(const TransferCommand&)> fn)
+void LibusbDevice::TransferEndpoint::HandleTransfer(
+    libusb_transfer* transfer, const std::function<s32(const TransferCommand&)>& fn)
 {
   std::lock_guard lk{m_transfers_mutex};
   const auto iterator = m_transfers.find(transfer);

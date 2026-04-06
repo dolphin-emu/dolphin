@@ -65,7 +65,7 @@ public:
   bool GetBlock(u64 block_num, u8* out_ptr) override;
 
 private:
-  CompressedBlobReader(File::DirectIOFile file, const std::string& filename);
+  CompressedBlobReader(File::DirectIOFile file, std::string filename);
 
   CompressedBlobHeader m_header;
   std::vector<u64> m_block_pointers;

@@ -54,7 +54,7 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
   connect(&Settings::Instance(), &Settings::MetadataRefreshRequested, this,
           [this] { m_load_thread.EmplaceItem(Command{CommandType::UpdateMetadata, {}}); });
 
-  m_load_thread.Reset("GameList Tracker", [this](Command command) {
+  m_load_thread.Reset("GameList Tracker", [this](const Command& command) {
     switch (command.type)
     {
     case CommandType::LoadCache:
@@ -356,7 +356,7 @@ void GameTracker::LoadGame(const QString& path)
     bool cache_changed = false;
     auto game = m_cache.AddOrGet(converted_path, &cache_changed);
     if (game)
-      emit GameLoaded(std::move(game));
+      emit GameLoaded(game);
     if (cache_changed && !m_refresh_in_progress)
       m_cache.Save();
   }

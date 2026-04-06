@@ -101,7 +101,8 @@ void VerifyWidget::CreateWidgets()
   m_verify_button = new QPushButton(tr("Verify Integrity"), this);
 }
 
-std::pair<QCheckBox*, QLineEdit*> VerifyWidget::AddHashLine(QFormLayout* layout, QString text)
+std::pair<QCheckBox*, QLineEdit*> VerifyWidget::AddHashLine(QFormLayout* layout,
+                                                            const QString& text)
 {
   QLineEdit* line_edit = new QLineEdit(this);
   line_edit->setReadOnly(true);
@@ -225,7 +226,7 @@ void VerifyWidget::Verify()
     m_redump_line_edit->setText(QString::fromStdString(result->redump.message));
 }
 
-void VerifyWidget::SetProblemCellText(int row, int column, QString text)
+void VerifyWidget::SetProblemCellText(int row, int column, const QString& text)
 {
   QLabel* label = new QLabel(text);
   label->setTextInteractionFlags(Qt::TextSelectableByMouse);

@@ -505,7 +505,7 @@ void Device::RunTasks()
   {
     static constexpr u16 MPLUS_POLL_ADDR = WiimoteEmu::MotionPlus::PASSTHROUGH_MODE_OFFSET;
     ReadData(AddressSpace::I2CBus, WiimoteEmu::MotionPlus::INACTIVE_DEVICE_ADDR, MPLUS_POLL_ADDR, 1,
-             [this](ReadResponse response) {
+             [this](const ReadResponse& response) {
                if (!response)
                {
                  DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: M+ poll failed.");

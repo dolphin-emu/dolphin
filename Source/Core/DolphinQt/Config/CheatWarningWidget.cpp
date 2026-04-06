@@ -3,6 +3,8 @@
 
 #include "DolphinQt/Config/CheatWarningWidget.h"
 
+#include <utility>
+
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPixmap>
@@ -16,9 +18,8 @@
 #include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/Settings.h"
 
-CheatWarningWidget::CheatWarningWidget(const std::string& game_id, bool restart_required,
-                                       QWidget* parent)
-    : QWidget(parent), m_game_id(game_id), m_restart_required(restart_required)
+CheatWarningWidget::CheatWarningWidget(std::string game_id, bool restart_required, QWidget* parent)
+    : QWidget(parent), m_game_id(std::move(game_id)), m_restart_required(restart_required)
 {
   CreateWidgets();
   ConnectWidgets();

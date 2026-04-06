@@ -425,7 +425,7 @@ static FSTEntry ScanDirectoryTreeAndroidContent(std::string directory, bool recu
 #endif
 
 // Recursive or non-recursive list of files and directories under directory.
-FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
+FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
 {
   DEBUG_LOG_FMT(COMMON, "{}: directory {}", __func__, directory);
 

@@ -247,23 +247,22 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
     }
   }
 
+  const auto create_action =
+      [filesystem_library = std::move(filesystem_library)](
+          const std::string_view& action_name, const picojson::value& json_data,
+          GraphicsModConfig mod_config) -> std::unique_ptr<GraphicsModAction> {
+    auto action = GraphicsModActionFactory::Create(action_name, json_data, filesystem_library);
+    if (action == nullptr)
+    {
+      return nullptr;
+    }
+    return std::make_unique<DecoratedAction>(std::move(action), std::move(mod_config));
+  };
+
   for (const auto& mod : mods)
   {
     for (const GraphicsModFeatureConfig& feature : mod.m_features)
     {
-      const auto create_action =
-          [filesystem_library](const std::string_view& action_name,
-                               const picojson::value& json_data,
-                               GraphicsModConfig mod_config) -> std::unique_ptr<GraphicsModAction> {
-        auto action =
-            GraphicsModActionFactory::Create(action_name, json_data, std::move(filesystem_library));
-        if (action == nullptr)
-        {
-          return nullptr;
-        }
-        return std::make_unique<DecoratedAction>(std::move(action), std::move(mod_config));
-      };
-
       const auto internal_group = fmt::format("{}.{}", mod.m_title, feature.m_group);
 
       const auto add_target = [&](const GraphicsTargetConfig& target) {

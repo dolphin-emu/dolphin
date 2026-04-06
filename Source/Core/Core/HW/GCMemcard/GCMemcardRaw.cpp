@@ -9,6 +9,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <utility>
 
 #include <fmt/format.h>
 
@@ -34,9 +35,8 @@
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
 
-MemoryCard::MemoryCard(const std::string& filename, ExpansionInterface::Slot card_slot,
-                       u16 size_mbits)
-    : MemoryCardBase(card_slot, size_mbits), m_filename(filename)
+MemoryCard::MemoryCard(std::string filename, ExpansionInterface::Slot card_slot, u16 size_mbits)
+    : MemoryCardBase(card_slot, size_mbits), m_filename(std::move(filename))
 {
   File::IOFile file(m_filename, "rb");
   if (file)

@@ -20,8 +20,8 @@ public:
   using ClockType = std::chrono::steady_clock;
   using TimeType = ClockType::time_point;
 
-  CustomAsset(std::shared_ptr<CustomAssetLibrary> library,
-              const CustomAssetLibrary::AssetID& asset_id, u64 session_id);
+  CustomAsset(std::shared_ptr<CustomAssetLibrary> library, CustomAssetLibrary::AssetID asset_id,
+              u64 session_id);
   virtual ~CustomAsset() = default;
   CustomAsset(const CustomAsset&) = delete;
   CustomAsset(CustomAsset&&) = delete;

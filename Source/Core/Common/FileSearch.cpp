@@ -71,13 +71,13 @@ std::vector<std::string> DoFileSearch(std::span<const std::string_view> director
       std::error_code error;
       if (recursive)
       {
-        for (auto it = fs::recursive_directory_iterator(std::move(directory_path), error);
+        for (auto it = fs::recursive_directory_iterator(directory_path, error);
              it != fs::recursive_directory_iterator(); it.increment(error))
           add_filtered(*it);
       }
       else
       {
-        for (auto it = fs::directory_iterator(std::move(directory_path), error);
+        for (auto it = fs::directory_iterator(directory_path, error);
              it != fs::directory_iterator(); it.increment(error))
           add_filtered(*it);
       }

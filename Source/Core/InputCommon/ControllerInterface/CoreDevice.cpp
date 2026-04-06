@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <tuple>
+#include <utility>
 
 #include <fmt/format.h>
 
@@ -25,7 +26,8 @@ class CombinedInput final : public Device::Input
 public:
   using Inputs = std::pair<Device::Input*, Device::Input*>;
 
-  CombinedInput(std::string name, const Inputs& inputs) : m_name(std::move(name)), m_inputs(inputs)
+  CombinedInput(std::string name, Inputs inputs)
+      : m_name(std::move(name)), m_inputs(std::move(inputs))
   {
   }
   ControlState GetState() const override

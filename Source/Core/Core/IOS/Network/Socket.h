@@ -213,8 +213,8 @@ private:
   const Timeout& GetTimeout();
   void ResetTimeout();
 
-  void DoSock(Request request, NET_IOCTL type);
-  void DoSock(Request request, SSL_IOCTL type);
+  void DoSock(const Request& request, NET_IOCTL type);
+  void DoSock(const Request& request, SSL_IOCTL type);
   void Update(bool read, bool write, bool except);
   void UpdateConnectingState(s32 connect_rv);
   ConnectingState GetConnectingState() const;

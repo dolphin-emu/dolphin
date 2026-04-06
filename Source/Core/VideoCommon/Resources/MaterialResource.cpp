@@ -62,8 +62,8 @@ MaterialResource::MaterialResource(Resource::ResourceContext resource_context)
 }
 
 MaterialResource::MaterialResource(Resource::ResourceContext resource_context,
-                                   const GXPipelineUid& pipeline_uid)
-    : Resource(std::move(resource_context)), m_uid(pipeline_uid)
+                                   GXPipelineUid pipeline_uid)
+    : Resource(std::move(resource_context)), m_uid(std::move(pipeline_uid))
 {
   m_material_asset = m_resource_context.asset_cache->CreateAsset<MaterialAsset>(
       m_resource_context.primary_asset_id, m_resource_context.asset_library, this);
@@ -221,7 +221,7 @@ Resource::TaskComplete MaterialResource::ProcessData()
              VideoCommon::GXPipelineUid* uid, FramebufferState frame_buffer_state)
         : m_material_resource_data(std::move(material_resource_data)),
           m_shader_resource_data(std::move(shader_resource_data)), m_uid(uid),
-          m_frame_buffer_state(frame_buffer_state)
+          m_frame_buffer_state(std::move(frame_buffer_state))
     {
     }
 

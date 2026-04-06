@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <optional>
+#include <utility>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -33,10 +34,11 @@ using ws_ssize_t = ssize_t;
 
 using Common::SEND_FLAGS;
 
-TAPServerConnection::TAPServerConnection(const std::string& destination,
+TAPServerConnection::TAPServerConnection(std::string destination,
                                          std::function<void(std::string&&)> recv_cb,
                                          std::size_t max_frame_size)
-    : m_destination(destination), m_recv_cb(recv_cb), m_max_frame_size(max_frame_size)
+    : m_destination(std::move(destination)), m_recv_cb(std::move(recv_cb)),
+      m_max_frame_size(max_frame_size)
 {
 }
 

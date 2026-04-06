@@ -193,7 +193,7 @@ bool CopyRegularFile(std::string_view source_path, std::string_view destination_
 bool CreateEmptyFile(const std::string& filename);
 
 // Recursive or non-recursive list of files and directories under directory.
-FSTEntry ScanDirectoryTree(std::string directory, bool recursive);
+FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive);
 
 // deletes the given directory and anything under it. Returns true on success.
 bool DeleteDirRecursively(const std::string& directory);

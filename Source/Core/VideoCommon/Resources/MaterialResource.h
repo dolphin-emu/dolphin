@@ -29,7 +29,7 @@ class MaterialResource final : public Resource
 {
 public:
   explicit MaterialResource(Resource::ResourceContext resource_context);
-  MaterialResource(Resource::ResourceContext resource_context, const GXPipelineUid& pipeline_uid);
+  MaterialResource(Resource::ResourceContext resource_context, GXPipelineUid pipeline_uid);
 
   struct TextureLikeReference
   {

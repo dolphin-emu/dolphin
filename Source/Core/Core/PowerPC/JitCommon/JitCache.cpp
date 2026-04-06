@@ -113,7 +113,7 @@ JitBlock** JitBaseBlockCache::GetFastBlockMapFallback()
 }
 
 void JitBaseBlockCache::RunOnBlocks(const Core::CPUThreadGuard&,
-                                    std::function<void(const JitBlock&)> f) const
+                                    const std::function<void(const JitBlock&)>& f) const
 {
   for (const auto& e : block_map)
     f(e.second);

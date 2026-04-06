@@ -131,7 +131,7 @@ signals:
   void ExportRecording();
   void ShowTASInput();
 
-  void SelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
+  void SelectionChanged(const std::shared_ptr<const UICommon::GameFile>& game_file);
   void RecordingStatusChanged(bool recording);
   void ReadOnlyModeChanged(bool read_only);
 
@@ -195,7 +195,7 @@ private:
   void LogInstructions();
   void SearchInstruction();
 
-  void OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
+  void OnSelectionChanged(const std::shared_ptr<const UICommon::GameFile>& game_file);
   void OnRecordingStatusChanged(bool recording);
   void OnReadOnlyModeChanged(bool read_only);
   void OnDebugModeToggled(bool enabled);

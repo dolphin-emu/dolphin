@@ -54,9 +54,8 @@ public:
       std::optional<Config::System> system = Config::GetSystemFromName(system_str);
       if (system)
       {
-        m_values.emplace_back(
-            Config::Location{std::move(*system), std::move(section), std::move(key)},
-            std::move(value));
+        m_values.emplace_back(Config::Location{*system, std::move(section), std::move(key)},
+                              std::move(value));
       }
     }
   }

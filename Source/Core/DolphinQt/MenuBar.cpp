@@ -1419,7 +1419,7 @@ void MenuBar::NANDExtractCertificates()
   }
 }
 
-void MenuBar::OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file)
+void MenuBar::OnSelectionChanged(const std::shared_ptr<const UICommon::GameFile>& game_file)
 {
   m_game_selected = !!game_file;
 
