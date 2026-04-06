@@ -182,6 +182,8 @@ struct BackendInfo
   bool bSupportsHDROutput = false;
   float hdr_max_luminance_nits = 0.f;
   float hdr_min_luminance_nits = 0.f;
+  // 80 nits is the sRGB standard white point and the value Windows uses to map
+  // an SDR value of 1.0 to HDR brightness by default (scRGB).
   float hdr_sdr_white_nits = 80.f;
   bool bSupportsUnrestrictedDepthRange = false;
 };
