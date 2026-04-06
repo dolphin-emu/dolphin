@@ -32,6 +32,7 @@
     <ClInclude Include="Core\DSP\HermesText.h" />
     <ClInclude Include="Core\IOS\ES\TestBinaryData.h" />
     <ClInclude Include="Core\PowerPC\TestValues.h" />
+    <ClInclude Include="Core\StubJit.h" />
   </ItemGroup>
   <ItemGroup>
     <!--gtest is rather small, so just include it into the build here-->
@@ -53,11 +54,13 @@
     <ClCompile Include="Common\FlagTest.cpp" />
     <ClCompile Include="Common\FloatUtilsTest.cpp" />
     <ClCompile Include="Common\MathUtilTest.cpp" />
+    <ClCompile Include="Common\MutexTest.cpp" />
     <ClCompile Include="Common\NandPathsTest.cpp" />
     <ClCompile Include="Common\SettingsHandlerTest.cpp" />
     <ClCompile Include="Common\SPSCQueueTest.cpp" />
     <ClCompile Include="Common\StringUtilTest.cpp" />
     <ClCompile Include="Common\SwapTest.cpp" />
+    <ClCompile Include="Common\WorkQueueThreadTest.cpp" />
     <ClCompile Include="Core\CoreTimingTest.cpp" />
     <ClCompile Include="Core\DSP\DSPAcceleratorTest.cpp" />
     <ClCompile Include="Core\DSP\DSPAssemblyTest.cpp" />
@@ -72,6 +75,7 @@
     <ClCompile Include="Core\PageFaultTest.cpp" />
     <ClCompile Include="Core\PatchAllowlistTest.cpp" />
     <ClCompile Include="Core\PowerPC\DivUtilsTest.cpp" />
+    <ClCompile Include="Core\PowerPC\PageTableHostMappingTest.cpp" />
     <ClCompile Include="VideoCommon\VertexLoaderTest.cpp" />
     <ClCompile Include="StubHost.cpp" />
   </ItemGroup>
@@ -79,6 +83,7 @@
   <ItemGroup Condition="'$(Platform)'=='x64'">
     <ClCompile Include="Common\x64EmitterTest.cpp" />
     <ClCompile Include="Core\PowerPC\Jit64Common\ConvertDoubleToSingle.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64Common\Fres.cpp" />
     <ClCompile Include="Core\PowerPC\Jit64Common\Frsqrte.cpp" />
   </ItemGroup>
   <ItemGroup Condition="'$(Platform)'=='ARM64'">
@@ -102,7 +107,9 @@
   </ItemGroup>
   <Import Project="$(ExternalsDir)Bochs_disasm\exports.props" />
   <Import Project="$(ExternalsDir)fmt\exports.props" />
+  <Import Project="$(ExternalsDir)glslang\exports.props" />
   <Import Project="$(ExternalsDir)picojson\exports.props" />
+  <Import Project="$(ExternalsDir)rcheevos\exports.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

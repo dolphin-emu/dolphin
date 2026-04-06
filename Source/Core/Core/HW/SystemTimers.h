@@ -94,7 +94,6 @@ private:
   static void AudioDMACallback(Core::System& system, u64 userdata, s64 cycles_late);
   static void IPC_HLE_UpdateCallback(Core::System& system, u64 userdata, s64 cycles_late);
   static void GPUSleepCallback(Core::System& system, u64 userdata, s64 cycles_late);
-  static void PerfTrackerCallback(Core::System& system, u64 userdata, s64 cycles_late);
   static void VICallback(Core::System& system, u64 userdata, s64 cycles_late);
   static void DecrementerCallback(Core::System& system, u64 userdata, s64 cycles_late);
   static void PatchEngineCallback(Core::System& system, u64 userdata, s64 cycles_late);
@@ -116,7 +115,6 @@ private:
   CoreTiming::EventType* m_event_type_dsp = nullptr;
   CoreTiming::EventType* m_event_type_ipc_hle = nullptr;
   CoreTiming::EventType* m_event_type_gpu_sleeper = nullptr;
-  CoreTiming::EventType* m_event_type_perf_tracker = nullptr;
   // PatchEngine updates every 1/60th of a second by default
   CoreTiming::EventType* m_event_type_patch_engine = nullptr;
 };

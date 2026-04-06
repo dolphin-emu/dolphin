@@ -38,6 +38,8 @@ private:
 
   std::unordered_map<DiscIO::Language, Common::Lazy<std::unordered_map<std::string, std::string>>>
       m_title_maps;
+  std::unordered_map<DiscIO::Language, Common::Lazy<std::unordered_map<std::string, std::string>>>
+      m_triforce_title_maps;
   std::unordered_map<std::string, std::string> m_base_map;
   std::unordered_map<std::string, std::string> m_user_title_map;
 };

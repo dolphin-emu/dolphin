@@ -5,8 +5,6 @@
 
 #include <QDockWidget>
 
-#include "Common/CommonTypes.h"
-
 class QCheckBox;
 class QCloseEvent;
 class QComboBox;
@@ -16,12 +14,17 @@ class QShowEvent;
 class QTableWidget;
 class QTableWidgetItem;
 
+namespace Core
+{
+class System;
+}
+
 class NetworkWidget : public QDockWidget
 {
   Q_OBJECT
 public:
   explicit NetworkWidget(QWidget* parent = nullptr);
-  ~NetworkWidget();
+  ~NetworkWidget() override;
 
 protected:
   void closeEvent(QCloseEvent*) override;
@@ -31,6 +34,8 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
 
+  void UpdateWiiSocketTable(Core::System& system);
+  void UpdateTriforceSocketTable();
   void Update();
 
   QGroupBox* CreateSocketTableGroup();

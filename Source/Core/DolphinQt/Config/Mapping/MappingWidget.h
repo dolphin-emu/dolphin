@@ -3,13 +3,9 @@
 
 #pragma once
 
-#include <memory>
-#include <vector>
-
 #include <QString>
 #include <QWidget>
 
-class ControlGroupBox;
 class InputConfig;
 class MappingButton;
 class MappingNumeric;
@@ -54,10 +50,14 @@ protected:
                                int columns);
   void CreateControl(const ControllerEmu::Control* control, QFormLayout* layout, bool indicator);
   QPushButton* CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingBase& setting);
+
+  void AddSettingWidget(QFormLayout* layout, ControllerEmu::NumericSettingBase* setting);
   void AddSettingWidgets(QFormLayout* layout, ControllerEmu::ControlGroup* group,
                          ControllerEmu::SettingVisibility visibility);
+
   void ShowAdvancedControlGroupDialog(ControllerEmu::ControlGroup* group);
 
 private:
   MappingWindow* m_parent;
+  MappingButton* m_previous_mapping_button = nullptr;
 };

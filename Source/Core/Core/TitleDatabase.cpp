@@ -5,11 +5,9 @@
 
 #include <cstddef>
 #include <fstream>
-#include <functional>
 #include <string>
 #include <string_view>
 #include <unordered_map>
-#include <utility>
 
 #include <fmt/format.h>
 
@@ -17,7 +15,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Enums.h"
 
 namespace Core
@@ -55,6 +52,9 @@ void TitleDatabase::AddLazyMap(DiscIO::Language language, const std::string& lan
 {
   m_title_maps[language] = [language_code]() -> Map {
     return LoadMap(File::GetSysDirectory() + "wiitdb-" + language_code + ".txt");
+  };
+  m_triforce_title_maps[language] = [language_code]() -> Map {
+    return LoadMap(File::GetSysDirectory() + "triforcetdb-" + language_code + ".txt");
   };
 }
 

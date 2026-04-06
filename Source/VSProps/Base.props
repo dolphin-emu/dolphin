@@ -53,7 +53,7 @@
         pathmap replaces path prefixes of source files with a hardcoded value, assisting with keeping output
         files uniform even if actually built from different locations. The mapped path doesn't really need full
         drive prefix, but it keeps things human readable. Note the trailing "\" is actually to be escaped by a
-        preceeding "\" in the expanded variable.
+        preceding "\" in the expanded variable.
       -->
       <AdditionalOptions>/pathmap:"$(DolphinRootDir)\"=d:\ %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions>/pathmap:"$(WindowsSdkDir)\"=w:\ %(AdditionalOptions)</AdditionalOptions>

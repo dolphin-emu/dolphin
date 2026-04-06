@@ -22,7 +22,6 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Contains.h"
-#include "Common/EnumUtils.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
@@ -43,6 +42,7 @@
 #include "Core/SysConf.h"
 #include "Core/System.h"
 #include "DiscIO/DiscExtractor.h"
+#include "DiscIO/DiscUtils.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/VolumeDisc.h"
@@ -79,12 +79,12 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
     if (ret != IOS::HLE::IOSC_FAIL_CHECKVALUE)
     {
       PanicAlertFmtT("WAD installation failed: Could not initialise title import (error {0}).",
-                     Common::ToUnderlying(ret));
+                     std::to_underlying(ret));
     }
     return false;
   }
 
-  const bool contents_imported = [&]() {
+  const bool contents_imported = [&] {
     const u64 title_id = tmd.GetTitleId();
     for (const IOS::ES::Content& content : tmd.GetContents())
     {
@@ -467,12 +467,7 @@ OnlineSystemUpdater::Response OnlineSystemUpdater::GetSystemTitles()
     // but the backing data CDN is still active and accessible from other URLs. We take advantage
     // of this by hosting our own NetUpdateSOAP endpoint which serves the correct list of titles to
     // install along with URLs for the Wii U CDN.
-#ifdef ANDROID
-    // HTTPS is unsupported on Android (https://bugs.dolphin-emu.org/issues/11772).
-    base_url = "http://fakenus.dolphin-emu.org";
-#else
     base_url = "https://fakenus.dolphin-emu.org";
-#endif
   }
 
   const std::string url = fmt::format("{}/nus/services/NetUpdateSOAP", base_url);
@@ -550,7 +545,7 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   auto& es = m_ios.GetESCore();
   if ((ret = es.ImportTicket(ticket.first, ticket.second)) < 0)
   {
-    ERROR_LOG_FMT(CORE, "Failed to import ticket: error {}", Common::ToUnderlying(ret));
+    ERROR_LOG_FMT(CORE, "Failed to import ticket: error {}", std::to_underlying(ret));
     return UpdateResult::ImportFailed;
   }
 
@@ -582,13 +577,13 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   IOS::HLE::ESCore::Context context;
   if ((ret = es.ImportTitleInit(context, tmd.first.GetBytes(), tmd.second)) < 0)
   {
-    ERROR_LOG_FMT(CORE, "Failed to initialise title import: error {}", Common::ToUnderlying(ret));
+    ERROR_LOG_FMT(CORE, "Failed to initialise title import: error {}", std::to_underlying(ret));
     return UpdateResult::ImportFailed;
   }
 
   // Now download and install contents listed in the TMD.
   const std::vector<IOS::ES::Content> stored_contents = es.GetStoredContentsFromTMD(tmd.first);
-  const UpdateResult import_result = [&]() {
+  const UpdateResult import_result = [&] {
     for (const IOS::ES::Content& content : tmd.first.GetContents())
     {
       const bool is_already_installed =
@@ -601,7 +596,7 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
       if ((ret = es.ImportContentBegin(context, title.id, content.id)) < 0)
       {
         ERROR_LOG_FMT(CORE, "Failed to initialise import for content {:08x}: error {}", content.id,
-                      Common::ToUnderlying(ret));
+                      std::to_underlying(ret));
         return UpdateResult::ImportFailed;
       }
 
@@ -626,7 +621,7 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   if ((all_contents_imported && (ret = es.ImportTitleDone(context)) < 0) ||
       (!all_contents_imported && (ret = es.ImportTitleCancel(context)) < 0))
   {
-    ERROR_LOG_FMT(CORE, "Failed to finalise title import: error {}", Common::ToUnderlying(ret));
+    ERROR_LOG_FMT(CORE, "Failed to finalise title import: error {}", std::to_underlying(ret));
     return UpdateResult::ImportFailed;
   }
 
@@ -748,10 +743,9 @@ UpdateResult DiscSystemUpdater::DoDiscUpdate()
     return UpdateResult::RegionMismatch;
 
   const auto partitions = m_volume->GetPartitions();
-  const auto update_partition =
-      std::find_if(partitions.cbegin(), partitions.cend(), [&](const DiscIO::Partition& partition) {
-        return m_volume->GetPartitionType(partition) == 1u;
-      });
+  const auto update_partition = std::ranges::find(
+      partitions, DiscIO::PARTITION_UPDATE,
+      [&](const DiscIO::Partition& partition) { return m_volume->GetPartitionType(partition); });
 
   if (update_partition == partitions.cend())
   {

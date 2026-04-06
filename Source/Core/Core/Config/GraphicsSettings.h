@@ -12,10 +12,12 @@ enum class ShaderCompilationMode : int;
 enum class StereoMode : int;
 enum class StereoPerEyeResolution : int;
 enum class TextureFilteringMode : int;
+enum class AnisotropicFilteringMode : int;
 enum class OutputResamplingMode : int;
 enum class ColorCorrectionRegion : int;
 enum class TriState : int;
 enum class FrameDumpResolutionType : int;
+enum class VertexLoaderType : int;
 
 namespace Config
 {
@@ -46,6 +48,7 @@ extern const Info<bool> GFX_SHOW_VTIMES;
 extern const Info<bool> GFX_SHOW_GRAPHS;
 extern const Info<bool> GFX_SHOW_SPEED;
 extern const Info<bool> GFX_SHOW_SPEED_COLORS;
+extern const Info<bool> GFX_MOVABLE_PERFORMANCE_METRICS;
 extern const Info<int> GFX_PERF_SAMP_WINDOW;
 extern const Info<bool> GFX_SHOW_NETPLAY_PING;
 extern const Info<bool> GFX_SHOW_NETPLAY_MESSAGES;
@@ -62,7 +65,7 @@ extern const Info<bool> GFX_CACHE_HIRES_TEXTURES;
 extern const Info<bool> GFX_DUMP_EFB_TARGET;
 extern const Info<bool> GFX_DUMP_XFB_TARGET;
 extern const Info<bool> GFX_DUMP_FRAMES_AS_IMAGES;
-extern const Info<bool> GFX_USE_FFV1;
+extern const Info<bool> GFX_USE_LOSSLESS;
 extern const Info<std::string> GFX_DUMP_FORMAT;
 extern const Info<std::string> GFX_DUMP_CODEC;
 extern const Info<std::string> GFX_DUMP_PIXEL_FORMAT;
@@ -109,7 +112,8 @@ extern const Info<bool> GFX_MODS_ENABLE;
 // Graphics.Enhancements
 
 extern const Info<TextureFilteringMode> GFX_ENHANCE_FORCE_TEXTURE_FILTERING;
-extern const Info<int> GFX_ENHANCE_MAX_ANISOTROPY;  // NOTE - this is x in (1 << x)
+// NOTE - this is x in (1 << x)
+extern const Info<AnisotropicFilteringMode> GFX_ENHANCE_MAX_ANISOTROPY;
 extern const Info<OutputResamplingMode> GFX_ENHANCE_OUTPUT_RESAMPLING;
 extern const Info<std::string> GFX_ENHANCE_POST_SHADER;
 extern const Info<bool> GFX_ENHANCE_FORCE_TRUE_COLOR;
@@ -141,16 +145,16 @@ extern const Info<float> GFX_CC_HDR_PAPER_WHITE_NITS;
 
 extern const Info<StereoMode> GFX_STEREO_MODE;
 extern const Info<bool> GFX_STEREO_PER_EYE_RESOLUTION_FULL;
-extern const Info<int> GFX_STEREO_DEPTH;
-extern const Info<int> GFX_STEREO_CONVERGENCE_PERCENTAGE;
+extern const Info<float> GFX_STEREO_DEPTH;
+extern const Info<float> GFX_STEREO_CONVERGENCE_PERCENTAGE;
 extern const Info<bool> GFX_STEREO_SWAP_EYES;
-extern const Info<int> GFX_STEREO_CONVERGENCE;
+extern const Info<float> GFX_STEREO_CONVERGENCE;
 extern const Info<bool> GFX_STEREO_EFB_MONO_DEPTH;
-extern const Info<int> GFX_STEREO_DEPTH_PERCENTAGE;
+extern const Info<float> GFX_STEREO_DEPTH_PERCENTAGE;
 
 // Stereoscopy pseudo-limits for consistent behavior between enhancements tab and hotkeys.
-static constexpr int GFX_STEREO_DEPTH_MAXIMUM = 100;
-static constexpr int GFX_STEREO_CONVERGENCE_MAXIMUM = 200;
+static constexpr float GFX_STEREO_DEPTH_MAXIMUM = 100;
+static constexpr float GFX_STEREO_CONVERGENCE_MAXIMUM = 200;
 
 // Graphics.Hacks
 
@@ -164,6 +168,7 @@ extern const Info<bool> GFX_HACK_SKIP_XFB_COPY_TO_RAM;
 extern const Info<bool> GFX_HACK_DISABLE_COPY_TO_VRAM;
 extern const Info<bool> GFX_HACK_DEFER_EFB_COPIES;
 extern const Info<bool> GFX_HACK_IMMEDIATE_XFB;
+extern const Info<bool> GFX_HACK_CAP_IMMEDIATE_XFB;
 extern const Info<bool> GFX_HACK_SKIP_DUPLICATE_XFBS;
 extern const Info<bool> GFX_HACK_EARLY_XFB_OUTPUT;
 extern const Info<bool> GFX_HACK_COPY_EFB_SCALED;
@@ -183,5 +188,9 @@ extern const Info<bool> GFX_PERF_QUERIES_ENABLE;
 // Android custom GPU drivers
 
 extern const Info<std::string> GFX_DRIVER_LIB_NAME;
+
+// Vertex loader
+
+extern const Info<VertexLoaderType> GFX_VERTEX_LOADER_TYPE;
 
 }  // namespace Config

@@ -31,8 +31,7 @@ using namespace Gen;
 
 bool JitBlock::OverlapsPhysicalRange(u32 address, u32 length) const
 {
-  return physical_addresses.lower_bound(address) !=
-         physical_addresses.lower_bound(address + length);
+  return physical_addresses.overlaps(address, address + length);
 }
 
 void JitBlock::ProfileData::BeginProfiling(ProfileData* data)
@@ -60,7 +59,7 @@ void JitBaseBlockCache::Init()
   m_entry_points_ptr = nullptr;
 #ifdef _ARCH_64
   if (Config::Get(Config::MAIN_LARGE_ENTRY_POINTS_MAP))
-    m_entry_points_ptr = reinterpret_cast<u8**>(m_entry_points_arena.Create(FAST_BLOCK_MAP_SIZE));
+    m_entry_points_ptr = static_cast<u8**>(m_entry_points_arena.Create(FAST_BLOCK_MAP_SIZE));
 #endif
 
   Clear();
@@ -171,10 +170,13 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
                                  original_buffer_transform_view.end());
   }
 
-  for (u32 addr : block.physical_addresses)
+  for (auto [range_start, range_end] : block.physical_addresses)
   {
-    valid_block.Set(addr / 32);
-    block_range_map[addr & BLOCK_RANGE_MAP_MASK].insert(&block);
+    for (u32 i = range_start & ~31; i < range_end; i += 32)
+      valid_block.Set(i / 32);
+
+    for (u32 i = range_start & BLOCK_RANGE_MAP_MASK; i < range_end; i += BLOCK_RANGE_SIZE)
+      block_range_map[i].insert(&block);
   }
 
   if (block_link)
@@ -187,7 +189,7 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
     LinkBlock(block);
   }
 
-  Common::Symbol* symbol = nullptr;
+  const Common::Symbol* symbol = nullptr;
   if (Common::JitRegister::IsEnabled() &&
       (symbol = m_jit.m_ppc_symbol_db.GetSymbolFromAddr(block.effectiveAddress)) != nullptr)
   {
@@ -362,9 +364,15 @@ void JitBaseBlockCache::ErasePhysicalRange(u32 address, u32 length)
       {
         // If the block overlaps, also remove all other occupied slots in the other macro blocks.
         // This will leak empty macro blocks, but they may be reused or cleared later on.
-        for (u32 addr : block->physical_addresses)
-          if ((addr & BLOCK_RANGE_MAP_MASK) != start->first)
-            block_range_map[addr & BLOCK_RANGE_MAP_MASK].erase(block);
+        for (auto [range_start, range_end] : block->physical_addresses)
+        {
+          DEBUG_ASSERT(range_start != range_end);
+          for (u32 i = range_start & BLOCK_RANGE_MAP_MASK; i < range_end; i += BLOCK_RANGE_SIZE)
+          {
+            if (i != start->first)
+              block_range_map[i].erase(block);
+          }
+        }
 
         // And remove the block.
         DestroyBlock(*block);
@@ -404,8 +412,11 @@ void JitBaseBlockCache::EraseSingleBlock(const JitBlock& block)
 
   JitBlock& mutable_block = block_map_iter->second;
 
-  for (const u32 addr : mutable_block.physical_addresses)
-    block_range_map[addr & BLOCK_RANGE_MAP_MASK].erase(&mutable_block);
+  for (auto [range_start, range_end] : mutable_block.physical_addresses)
+  {
+    for (u32 i = range_start & BLOCK_RANGE_MAP_MASK; i < range_end; i += BLOCK_RANGE_SIZE)
+      block_range_map[i].erase(&mutable_block);
+  }
 
   DestroyBlock(mutable_block);
   block_map.erase(block_map_iter);  // The original JitBlock reference is now dangling.

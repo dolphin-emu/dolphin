@@ -3,9 +3,14 @@
 
 #pragma once
 
+#ifdef _WIN32
 #include <optional>
+#endif
 #include <string>
+
+#ifdef __APPLE__
 #include "Common/CommonTypes.h"
+#endif
 
 #ifndef _WIN32
 
@@ -44,8 +49,9 @@ namespace Common
 // strerror_r wrapper to handle XSI and GNU versions.
 const char* StrErrorWrapper(int error, char* buffer, std::size_t length);
 
-// Wrapper function to get last strerror(errno) string.
-// This function might change the error code.
+// Wrapper functions to get strerror(errno) string, which itself is not threadsafe.
+// These functions might change the error code.
+std::string StrerrorString(int error);
 std::string LastStrerrorString();
 
 #ifdef _WIN32
@@ -58,5 +64,18 @@ std::string GetWin32ErrorString(unsigned long error_code);
 
 // Obtains a full path to the specified module.
 std::optional<std::wstring> GetModuleName(void* hInstance);
+#endif
+
+#ifdef __APPLE__
+struct MacOSVersion  // NSOperatingSystemVersion
+{
+  s64 major;  // NSInteger majorVersion
+  s64 minor;  // NSInteger minorVersion
+  s64 patch;  // NSInteger patchVersion
+};
+
+// Helper function to get the current macOS version, which is easy to do with
+// from Objective-C code, but a little harder from C++.
+MacOSVersion GetMacOSVersion();
 #endif
 }  // namespace Common

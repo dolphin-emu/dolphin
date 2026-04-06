@@ -22,8 +22,6 @@
 #include <cmath>
 #include <utility>
 
-#include <fmt/format.h>
-
 #include <QDesktopServices>
 #include <QDir>
 #include <QErrorMessage>
@@ -42,8 +40,9 @@
 #include <QTableView>
 #include <QUrl>
 
-#include "Common/CommonPaths.h"
+#ifdef _WIN32
 #include "Common/Contains.h"
+#endif
 #include "Common/FileUtil.h"
 
 #include "Core/Config/MainSettings.h"
@@ -55,7 +54,6 @@
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
 
-#include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 
 #include "DolphinQt/Config/PropertiesDialog.h"
@@ -66,8 +64,7 @@
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/ParallelProgressDialog.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
+#include "DolphinQt/QtUtils/NonAutodismissibleMenu.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/WiiUpdate.h"
@@ -93,6 +90,25 @@ protected:
     else
       return QTableView::moveCursor(cursorAction, modifiers);
   }
+
+  virtual void mouseDoubleClickEvent(QMouseEvent* const event) override
+  {
+    if (event->button() == Qt::LeftButton)
+      QTableView::mouseDoubleClickEvent(event);
+  }
+};
+
+class GameListListView : public QListView
+{
+public:
+  explicit GameListListView(QWidget* parent = nullptr) : QListView(parent) {}
+
+protected:
+  virtual void mouseDoubleClickEvent(QMouseEvent* const event) override
+  {
+    if (event->button() == Qt::LeftButton)
+      QListView::mouseDoubleClickEvent(event);
+  }
 };
 }  // namespace
 
@@ -103,11 +119,18 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent), m_model(this)
   m_list_proxy->setSortRole(GameListModel::SORT_ROLE);
   m_list_proxy->setSourceModel(&m_model);
   m_grid_proxy = new GridProxyModel(this);
+  m_grid_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
+  m_grid_proxy->setSortRole(GameListModel::SORT_ROLE);
   m_grid_proxy->setSourceModel(&m_model);
 
   MakeListView();
   MakeGridView();
   MakeEmptyView();
+
+  // Use List View's sorting for Grid View too.
+  m_grid_proxy->sort(m_list_proxy->sortColumn(), m_list_proxy->sortOrder());
+  connect(m_list->horizontalHeader(), &QHeaderView::sortIndicatorChanged, m_grid_proxy,
+          &GridProxyModel::sort);
 
   if (Settings::GetQSettings().contains(QStringLiteral("gridview/scale")))
     m_model.SetScale(Settings::GetQSettings().value(QStringLiteral("gridview/scale")).toFloat());
@@ -116,6 +139,8 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent), m_model(this)
   connect(m_grid, &QListView::doubleClicked, this, &GameList::GameSelected);
   connect(&m_model, &QAbstractItemModel::rowsInserted, this, &GameList::ConsiderViewChange);
   connect(&m_model, &QAbstractItemModel::rowsRemoved, this, &GameList::ConsiderViewChange);
+  connect(&m_model, &QAbstractItemModel::rowsInserted, this, &GameList::UpdateGameCount);
+  connect(&m_model, &QAbstractItemModel::rowsRemoved, this, &GameList::UpdateGameCount);
 
   addWidget(m_list);
   addWidget(m_grid);
@@ -187,12 +212,11 @@ void GameList::MakeListView()
 
   if (!Settings::GetQSettings().contains(QStringLiteral("tableheader/state")))
     m_list->sortByColumn(static_cast<int>(GameListModel::Column::Title), Qt::AscendingOrder);
-
-  const auto SetResizeMode = [&hor_header](const GameListModel::Column column,
-                                           const QHeaderView::ResizeMode mode) {
-    hor_header->setSectionResizeMode(static_cast<int>(column), mode);
-  };
   {
+    const auto SetResizeMode = [&hor_header](const GameListModel::Column column,
+                                             const QHeaderView::ResizeMode mode) {
+      hor_header->setSectionResizeMode(static_cast<int>(column), mode);
+    };
     using Column = GameListModel::Column;
     using Mode = QHeaderView::ResizeMode;
     SetResizeMode(Column::Platform, Mode::Fixed);
@@ -208,6 +232,7 @@ void GameList::MakeListView()
     SetResizeMode(Column::FileFormat, Mode::Fixed);
     SetResizeMode(Column::BlockSize, Mode::Fixed);
     SetResizeMode(Column::Compression, Mode::Fixed);
+    SetResizeMode(Column::TimePlayed, Mode::Interactive);
     SetResizeMode(Column::Tags, Mode::Interactive);
 
     // Cells have 3 pixels of padding, so the width of these needs to be image width + 6. Banners
@@ -273,6 +298,7 @@ void GameList::UpdateColumnVisibility()
   SetVisiblity(Column::FileFormat, Config::Get(Config::MAIN_GAMELIST_COLUMN_FILE_FORMAT));
   SetVisiblity(Column::BlockSize, Config::Get(Config::MAIN_GAMELIST_COLUMN_BLOCK_SIZE));
   SetVisiblity(Column::Compression, Config::Get(Config::MAIN_GAMELIST_COLUMN_COMPRESSION));
+  SetVisiblity(Column::TimePlayed, Config::Get(Config::MAIN_GAMELIST_COLUMN_TIME_PLAYED));
   SetVisiblity(Column::Tags, Config::Get(Config::MAIN_GAMELIST_COLUMN_TAGS));
 }
 
@@ -317,7 +343,7 @@ void GameList::resizeEvent(QResizeEvent* event)
 
 void GameList::MakeGridView()
 {
-  m_grid = new QListView(this);
+  m_grid = new GameListListView(this);
   m_grid->setModel(m_grid_proxy);
   m_grid->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
@@ -500,7 +526,8 @@ void GameList::ShowContextMenu(const QPoint&)
 
     menu->addSeparator();
 
-    auto* tags_menu = menu->addMenu(tr("Tags"));
+    auto* const tags_menu{new QtUtils::NonAutodismissibleMenu(tr("Tags"), menu)};
+    menu->addMenu(tags_menu);
 
     auto path = game->GetFilePath();
     auto game_tags = m_model.GetGameTags(path);
@@ -546,20 +573,28 @@ void GameList::OpenProperties()
   if (!game)
     return;
 
+  auto property_windows = this->findChildren<PropertiesDialog*>();
+  auto it =
+      std::ranges::find(property_windows, game->GetFilePath(), &PropertiesDialog::GetFilePath);
+  if (it != property_windows.end())
+  {
+    (*it)->raise();
+    return;
+  }
+
   PropertiesDialog* properties = new PropertiesDialog(this, *game);
 
   connect(properties, &PropertiesDialog::OpenGeneralSettings, this, &GameList::OpenGeneralSettings);
   connect(properties, &PropertiesDialog::OpenGraphicsSettings, this,
           &GameList::OpenGraphicsSettings);
   connect(properties, &PropertiesDialog::finished, this,
-          [properties]() { properties->deleteLater(); });
+          [properties] { properties->deleteLater(); });
 
 #ifdef USE_RETRO_ACHIEVEMENTS
   connect(properties, &PropertiesDialog::OpenAchievementSettings, this,
           &GameList::OpenAchievementSettings);
 #endif  // USE_RETRO_ACHIEVEMENTS
 
-  SetQWidgetWindowDecorations(properties);
   properties->show();
 }
 
@@ -614,7 +649,6 @@ void GameList::ConvertFile()
     return;
 
   ConvertDialog dialog{std::move(games), this};
-  SetQWidgetWindowDecorations(&dialog);
   dialog.exec();
 }
 
@@ -632,7 +666,6 @@ void GameList::InstallWAD()
   result_dialog.setWindowTitle(success ? tr("Success") : tr("Failure"));
   result_dialog.setText(success ? tr("Successfully installed this title to the NAND.") :
                                   tr("Failed to install this title to the NAND."));
-  SetQWidgetWindowDecorations(&result_dialog);
   result_dialog.exec();
 }
 
@@ -650,7 +683,6 @@ void GameList::UninstallWAD()
                             "this title from the NAND without deleting its save data. Continue?"));
   warning_dialog.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
 
-  SetQWidgetWindowDecorations(&warning_dialog);
   if (warning_dialog.exec() == QMessageBox::No)
     return;
 
@@ -662,7 +694,6 @@ void GameList::UninstallWAD()
   result_dialog.setWindowTitle(success ? tr("Success") : tr("Failure"));
   result_dialog.setText(success ? tr("Successfully removed this title from the NAND.") :
                                   tr("Failed to remove this title from the NAND."));
-  SetQWidgetWindowDecorations(&result_dialog);
   result_dialog.exec();
 }
 
@@ -831,7 +862,6 @@ void GameList::DeleteFile()
   confirm_dialog.setInformativeText(tr("This cannot be undone!"));
   confirm_dialog.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
 
-  SetQWidgetWindowDecorations(&confirm_dialog);
   if (confirm_dialog.exec() == QMessageBox::Yes)
   {
     for (const auto& game : GetSelectedGames())
@@ -857,7 +887,6 @@ void GameList::DeleteFile()
                                              "delete the file or whether it's still in use."));
           error_dialog.setStandardButtons(QMessageBox::Retry | QMessageBox::Abort);
 
-          SetQWidgetWindowDecorations(&error_dialog);
           if (error_dialog.exec() == QMessageBox::Abort)
             break;
         }
@@ -1005,6 +1034,7 @@ void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
       {tr("File Format"), Column::FileFormat},
       {tr("Block Size"), Column::BlockSize},
       {tr("Compression"), Column::Compression},
+      {tr("Time Played"), Column::TimePlayed},
       {tr("Tags"), Column::Tags},
   };
 
@@ -1015,13 +1045,13 @@ void GameList::OnGameListVisibilityChanged()
 {
   m_list_proxy->invalidate();
   m_grid_proxy->invalidate();
+
+  UpdateGameCount();
 }
 
 void GameList::OnSectionResized(int index, int, int)
 {
   auto* hor_header = m_list->horizontalHeader();
-
-  std::vector<int> sections;
 
   const int vis_index = hor_header->visualIndex(index);
   const int col_count = hor_header->count() - hor_header->hiddenSectionCount();
@@ -1040,6 +1070,7 @@ void GameList::OnSectionResized(int index, int, int)
 
   if (!last)
   {
+    std::vector<int> sections;
     for (int i = 0; i < vis_index; i++)
     {
       const int logical_index = hor_header->logicalIndex(i);
@@ -1144,6 +1175,15 @@ void GameList::SetSearchTerm(const QString& term)
   m_grid_proxy->invalidate();
 
   UpdateColumnVisibility();
+  UpdateGameCount();
+}
+
+void GameList::UpdateGameCount() const
+{
+  const int total_games = m_model.rowCount(QModelIndex{});
+  const int visible_games = m_list_proxy->rowCount();
+
+  emit GameCountUpdated(total_games, visible_games);
 }
 
 void GameList::ZoomIn()

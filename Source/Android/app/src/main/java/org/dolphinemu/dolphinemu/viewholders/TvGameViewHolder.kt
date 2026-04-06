@@ -22,6 +22,6 @@ class TvGameViewHolder(itemView: View) : Presenter.ViewHolder(itemView) {
     init {
         itemView.tag = this
         cardParent = itemView as ImageCardView
-        imageScreenshot = cardParent.mainImageView
+        imageScreenshot = cardParent.mainImageView!!
     }
 }

@@ -17,7 +17,6 @@ FreeLookWindow::FreeLookWindow(QWidget* parent) : QDialog(parent)
   ConnectWidgets();
 
   setWindowTitle(tr("Free Look Settings"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 void FreeLookWindow::CreateMainLayout()

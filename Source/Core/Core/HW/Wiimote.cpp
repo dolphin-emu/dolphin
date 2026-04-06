@@ -18,7 +18,6 @@
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/Movie.h"
-#include "Core/NetPlayClient.h"
 #include "Core/System.h"
 #include "Core/WiiUtils.h"
 
@@ -209,6 +208,11 @@ void LoadConfig()
 {
   s_config.LoadConfig();
   s_last_connect_request_counter.fill(0);
+}
+
+void GenerateDynamicInputTextures()
+{
+  s_config.GenerateControllerTextures();
 }
 
 void Resume()

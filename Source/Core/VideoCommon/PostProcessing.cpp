@@ -24,9 +24,9 @@
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/AbstractTexture.h"
-#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/Present.h"
 #include "VideoCommon/ShaderCache.h"
+#include "VideoCommon/ShaderCompileUtils.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -97,6 +97,9 @@ void PostProcessingConfiguration::LoadShader(const std::string& shader)
   // might have set in the settings
   LoadOptionsConfiguration();
   m_current_shader_code = code;
+  m_shader_includer =
+      std::make_unique<ShaderIncluder>(File::GetUserPath(D_SHADERS_IDX) + sub_dir,
+                                       File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir);
 }
 
 void PostProcessingConfiguration::LoadDefaultShader()
@@ -137,43 +140,40 @@ void PostProcessingConfiguration::LoadOptions(const std::string& code)
 
   std::vector<GLSLStringOption> option_strings;
   GLSLStringOption* current_strings = nullptr;
-  while (!in.eof())
+  std::string line_str;
+  while (std::getline(in, line_str))
   {
-    std::string line_str;
-    if (std::getline(in, line_str))
-    {
-      std::string_view line = line_str;
+    std::string_view line = line_str;
 
 #ifndef _WIN32
-      // Check for CRLF eol and convert it to LF
-      if (!line.empty() && line.at(line.size() - 1) == '\r')
-        line.remove_suffix(1);
+    // Check for CRLF eol and convert it to LF
+    if (!line.empty() && line.at(line.size() - 1) == '\r')
+      line.remove_suffix(1);
 #endif
 
-      if (!line.empty())
+    if (!line.empty())
+    {
+      if (line[0] == '[')
       {
-        if (line[0] == '[')
-        {
-          size_t endpos = line.find("]");
+        size_t endpos = line.find("]");
 
-          if (endpos != std::string::npos)
-          {
-            // New section!
-            std::string_view sub = line.substr(1, endpos - 1);
-            option_strings.push_back({std::string(sub)});
-            current_strings = &option_strings.back();
-          }
+        if (endpos != std::string::npos)
+        {
+          // New section!
+          std::string_view sub = line.substr(1, endpos - 1);
+          option_strings.push_back({std::string(sub)});
+          current_strings = &option_strings.back();
         }
-        else
+      }
+      else
+      {
+        if (current_strings)
         {
-          if (current_strings)
-          {
-            std::string key, value;
-            Common::IniFile::ParseLine(line, &key, &value);
+          std::string key, value;
+          Common::IniFile::ParseLine(line, &key, &value);
 
-            if (!(key.empty() && value.empty()))
-              current_strings->m_options.emplace_back(key, value);
-          }
+          if (!(key.empty() && value.empty()))
+            current_strings->m_options.emplace_back(key, value);
         }
       }
     }
@@ -386,9 +386,9 @@ PostProcessing::~PostProcessing()
 static std::vector<std::string> GetShaders(const std::string& sub_dir = "")
 {
   std::vector<std::string> paths =
-      Common::DoFileSearch({File::GetUserPath(D_SHADERS_IDX) + sub_dir,
-                            File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir},
-                           {".glsl"});
+      Common::DoFileSearch({{File::GetUserPath(D_SHADERS_IDX) + sub_dir,
+                             File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir}},
+                           ".glsl");
   std::vector<std::string> result;
   for (std::string path : paths)
   {
@@ -688,7 +688,7 @@ std::string PostProcessing::GetHeader(bool user_post_process) const
   ss << "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n";
   ss << "SAMPLER_BINDING(1) uniform sampler2DArray samp1;\n";
 
-  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+  if (g_backend_info.bSupportsGeometryShaders)
   {
     ss << "VARYING_LOCATION(0) in VertexData {\n";
     ss << "  float3 v_tex0;\n";
@@ -773,7 +773,7 @@ std::string PostProcessing::GetFooter() const
 static std::string GetVertexShaderBody()
 {
   std::ostringstream ss;
-  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+  if (g_backend_info.bSupportsGeometryShaders)
   {
     ss << "VARYING_LOCATION(0) out VertexData {\n";
     ss << "  float3 v_tex0;\n";
@@ -792,12 +792,12 @@ static std::string GetVertexShaderBody()
   ss << "  v_tex0 = float3(src_rect.xy + (src_rect.zw * v_tex0.xy), float(src_layer));\n";
 
   // Vulkan Y needs to be inverted on every pass
-  if (g_ActiveConfig.backend_info.api_type == APIType::Vulkan)
+  if (g_backend_info.api_type == APIType::Vulkan)
   {
     ss << "  opos.y = -opos.y;\n";
   }
   // OpenGL Y needs to be inverted in all passes except the last one
-  else if (g_ActiveConfig.backend_info.api_type == APIType::OpenGL)
+  else if (g_backend_info.api_type == APIType::OpenGL)
   {
     ss << "  if (intermediary_buffer != 0)\n";
     ss << "    opos.y = -opos.y;\n";
@@ -812,14 +812,14 @@ bool PostProcessing::CompileVertexShader()
   std::ostringstream ss_default;
   ss_default << GetUniformBufferHeader(false);
   ss_default << GetVertexShaderBody();
-  m_default_vertex_shader = g_gfx->CreateShaderFromSource(ShaderStage::Vertex, ss_default.str(),
-                                                          "Default post-processing vertex shader");
+  m_default_vertex_shader = g_gfx->CreateShaderFromSource(
+      ShaderStage::Vertex, ss_default.str(), nullptr, "Default post-processing vertex shader");
 
   std::ostringstream ss;
   ss << GetUniformBufferHeader(true);
   ss << GetVertexShaderBody();
-  m_vertex_shader =
-      g_gfx->CreateShaderFromSource(ShaderStage::Vertex, ss.str(), "Post-processing vertex shader");
+  m_vertex_shader = g_gfx->CreateShaderFromSource(ShaderStage::Vertex, ss.str(), nullptr,
+                                                  "Post-processing vertex shader");
 
   if (!m_default_vertex_shader || !m_vertex_shader)
   {
@@ -890,7 +890,7 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
                                static_cast<float>(src.GetHeight()) * rcp_src_height};
   builtin_uniforms.src_layer = static_cast<s32>(src_layer);
   builtin_uniforms.time = static_cast<u32>(m_timer.ElapsedMs());
-  builtin_uniforms.graphics_api = static_cast<s32>(g_ActiveConfig.backend_info.api_type);
+  builtin_uniforms.graphics_api = static_cast<s32>(g_backend_info.api_type);
   builtin_uniforms.intermediary_buffer = static_cast<s32>(intermediary_buffer);
 
   builtin_uniforms.resampling_method = static_cast<s32>(g_ActiveConfig.output_resampling_mode);
@@ -907,7 +907,7 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
       g_ActiveConfig.color_correction.fSDRDisplayCustomGamma;
   // scRGB (RGBA16F) expects linear values as opposed to sRGB gamma
   builtin_uniforms.linear_space_output = m_framebuffer_format == AbstractTextureFormat::RGBA16F;
-  // Implies ouput values can be beyond the 0-1 range
+  // Implies output values can be beyond the 0-1 range
   builtin_uniforms.hdr_output = m_framebuffer_format == AbstractTextureFormat::RGBA16F;
   builtin_uniforms.hdr_paper_white_nits = g_ActiveConfig.color_correction.fHDRPaperWhiteNits;
   // A value of 1 1 1 usually matches 80 nits in HDR
@@ -969,7 +969,7 @@ bool PostProcessing::CompilePixelShader()
   if (LoadShaderFromFile(s_default_pixel_shader_name, "", default_pixel_shader_code))
   {
     m_default_pixel_shader = g_gfx->CreateShaderFromSource(
-        ShaderStage::Pixel, GetHeader(false) + default_pixel_shader_code + GetFooter(),
+        ShaderStage::Pixel, GetHeader(false) + default_pixel_shader_code + GetFooter(), nullptr,
         "Default post-processing pixel shader");
     // We continue even if all of this failed, it doesn't matter
     m_default_uniform_staging_buffer.resize(CalculateUniformsSize(false));
@@ -982,6 +982,7 @@ bool PostProcessing::CompilePixelShader()
   m_config.LoadShader(g_ActiveConfig.sPostProcessingShader);
   m_pixel_shader = g_gfx->CreateShaderFromSource(
       ShaderStage::Pixel, GetHeader(true) + m_config.GetShaderCode() + GetFooter(),
+      m_config.GetShaderIncluder(),
       fmt::format("User post-processing pixel shader: {}", m_config.GetShader()));
   if (!m_pixel_shader)
   {
@@ -990,7 +991,7 @@ bool PostProcessing::CompilePixelShader()
     // Use default shader.
     m_config.LoadDefaultShader();
     m_pixel_shader = g_gfx->CreateShaderFromSource(
-        ShaderStage::Pixel, GetHeader(true) + m_config.GetShaderCode() + GetFooter(),
+        ShaderStage::Pixel, GetHeader(true) + m_config.GetShaderCode() + GetFooter(), nullptr,
         "Default user post-processing pixel shader");
     if (!m_pixel_shader)
     {
@@ -1012,7 +1013,7 @@ static bool UseGeometryShaderForPostProcess(bool is_intermediary_buffer)
   switch (g_ActiveConfig.stereo_mode)
   {
   case StereoMode::QuadBuffer:
-    return !g_ActiveConfig.backend_info.bUsesExplictQuadBuffering;
+    return !g_backend_info.bUsesExplictQuadBuffering;
   case StereoMode::Anaglyph:
   case StereoMode::Passive:
     return is_intermediary_buffer;

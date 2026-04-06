@@ -16,7 +16,6 @@
 #include <sys/select.h>
 #endif
 
-#include "Common/BitUtils.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Network.h"
@@ -894,11 +893,7 @@ s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
     sock.SetWiiFd(wii_fd);
     m_ios.GetSystem().GetPowerPC().GetDebugInterface().NetworkLogger()->OnNewSocket(fd);
 
-#ifdef __APPLE__
-    int opt_no_sigpipe = 1;
-    if (setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &opt_no_sigpipe, sizeof(opt_no_sigpipe)) < 0)
-      ERROR_LOG_FMT(IOS_NET, "Failed to set SO_NOSIGPIPE on socket");
-#endif
+    Common::SetPlatformSocketOptions(fd);
 
     // Wii UDP sockets can use broadcast address by default
     if (!is_rw)
@@ -964,8 +959,9 @@ s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
 
 s32 WiiSockMan::GetHostSocket(s32 wii_fd) const
 {
-  if (WiiSockets.contains(wii_fd))
-    return WiiSockets.at(wii_fd).fd;
+  auto socket_entry = WiiSockets.find(wii_fd);
+  if (socket_entry != WiiSockets.end())
+    return socket_entry->second.fd;
   return -EBADF;
 }
 

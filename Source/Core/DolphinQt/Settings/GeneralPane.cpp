@@ -3,8 +3,6 @@
 
 #include "DolphinQt/Settings/GeneralPane.h"
 
-#include <map>
-
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
@@ -18,10 +16,8 @@
 #include "Core/AchievementManager.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/DolphinAnalytics.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
@@ -29,7 +25,6 @@
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipPushButton.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
@@ -39,11 +34,14 @@
 #endif
 
 constexpr int AUTO_UPDATE_DISABLE_INDEX = 0;
-constexpr int AUTO_UPDATE_BETA_INDEX = 1;
+constexpr int AUTO_UPDATE_RELEASE_INDEX = 1;
 constexpr int AUTO_UPDATE_DEV_INDEX = 2;
 
 constexpr const char* AUTO_UPDATE_DISABLE_STRING = "";
-constexpr const char* AUTO_UPDATE_BETA_STRING = "beta";
+// Before the official switch to the rolling release cycle in 2407, de facto releases were called
+// beta builds. To maintain backward compatibility and let users update from those builds to current
+// releases the value of this string remains "beta".
+constexpr const char* AUTO_UPDATE_RELEASE_STRING = "beta";
 constexpr const char* AUTO_UPDATE_DEV_STRING = "dev";
 
 constexpr int FALLBACK_REGION_NTSCJ_INDEX = 0;
@@ -91,11 +89,14 @@ void GeneralPane::OnEmulationStateChanged(Core::State state)
 
   m_checkbox_dualcore->setEnabled(!running);
   m_checkbox_cheats->setEnabled(!running);
+  m_checkbox_load_games_into_memory->setEnabled(!running);
   m_checkbox_override_region_settings->setEnabled(!running);
 #ifdef USE_DISCORD_PRESENCE
   m_checkbox_discord_presence->setEnabled(!running);
 #endif
   m_combobox_fallback_region->setEnabled(!running);
+
+  UpdateDescriptionsUsingHardcoreStatus();
 }
 
 void GeneralPane::ConnectLayout()
@@ -115,10 +116,9 @@ void GeneralPane::ConnectLayout()
   }
 
   // Advanced
-  connect(m_combobox_speedlimit, &QComboBox::currentIndexChanged, [this]() {
+  connect(m_combobox_speedlimit, &QComboBox::currentIndexChanged, [this] {
     Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED,
                              m_combobox_speedlimit->currentIndex() * 0.1f);
-    Config::Save();
   });
 
   connect(m_combobox_fallback_region, &QComboBox::currentIndexChanged, this,
@@ -145,6 +145,15 @@ void GeneralPane::CreateBasic()
 
   m_checkbox_cheats = new ConfigBool(tr("Enable Cheats"), Config::MAIN_ENABLE_CHEATS);
   basic_group_layout->addWidget(m_checkbox_cheats);
+
+  m_checkbox_load_games_into_memory =
+      new ConfigBool(tr("Load Whole Game Into Memory"), Config::MAIN_LOAD_GAME_INTO_MEMORY);
+  basic_group_layout->addWidget(m_checkbox_load_games_into_memory);
+  m_checkbox_load_games_into_memory->SetDescription(
+      tr("Loads the running game into memory in the background."
+         "<br><br>This may improve performance with slow or high-latency storage."
+         "<br>System memory requirements will be much higher with this setting enabled."
+         "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
 
   m_checkbox_override_region_settings =
       new ConfigBool(tr("Allow Mismatched Region Settings"), Config::MAIN_OVERRIDE_REGION_SETTINGS);
@@ -253,7 +262,7 @@ void GeneralPane::LoadConfig()
     else if (track == AUTO_UPDATE_DEV_STRING)
       SignalBlocking(m_combobox_update_track)->setCurrentIndex(AUTO_UPDATE_DEV_INDEX);
     else
-      SignalBlocking(m_combobox_update_track)->setCurrentIndex(AUTO_UPDATE_BETA_INDEX);
+      SignalBlocking(m_combobox_update_track)->setCurrentIndex(AUTO_UPDATE_RELEASE_INDEX);
   }
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
@@ -291,8 +300,8 @@ static QString UpdateTrackFromIndex(int index)
   case AUTO_UPDATE_DISABLE_INDEX:
     value = QString::fromStdString(AUTO_UPDATE_DISABLE_STRING);
     break;
-  case AUTO_UPDATE_BETA_INDEX:
-    value = QString::fromStdString(AUTO_UPDATE_BETA_STRING);
+  case AUTO_UPDATE_RELEASE_INDEX:
+    value = QString::fromStdString(AUTO_UPDATE_RELEASE_STRING);
     break;
   case AUTO_UPDATE_DEV_INDEX:
     value = QString::fromStdString(AUTO_UPDATE_DEV_STRING);
@@ -331,7 +340,6 @@ void GeneralPane::OnSaveConfig()
 {
   Config::ConfigChangeCallbackGuard config_guard;
 
-  auto& settings = SConfig::GetInstance();
   if (AutoUpdateChecker::SystemSupportsAutoUpdates())
   {
     Settings::Instance().SetAutoUpdateTrack(
@@ -348,8 +356,6 @@ void GeneralPane::OnSaveConfig()
 #endif
   Settings::Instance().SetFallbackRegion(
       UpdateFallbackRegionFromIndex(m_combobox_fallback_region->currentIndex()));
-
-  settings.SaveSettings();
 }
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
@@ -361,7 +367,6 @@ void GeneralPane::GenerateNewIdentity()
   message_box.setIcon(QMessageBox::Information);
   message_box.setWindowTitle(tr("Identity Generation"));
   message_box.setText(tr("New identity generated."));
-  SetQWidgetWindowDecorations(&message_box);
   message_box.exec();
 }
 #endif
@@ -373,7 +378,7 @@ void GeneralPane::AddDescriptions()
                  "burden by spreading Dolphin's heaviest load across two cores, which usually "
                  "improves performance. However, it can result in glitches and crashes."
                  "<br><br>This setting cannot be changed while emulation is active."
-                 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
+                 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static constexpr char TR_CHEATS_DESCRIPTION[] = QT_TR_NOOP(
       "Enables the use of AR and Gecko cheat codes which can be used to modify games' behavior. "
       "These codes can be configured with the Cheats Manager in the Tools menu."
@@ -399,12 +404,6 @@ void GeneralPane::AddDescriptions()
                  "<br><br>This setting cannot be changed while emulation is active."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
 #endif
-  static constexpr char TR_SPEEDLIMIT_DESCRIPTION[] =
-      QT_TR_NOOP("Controls how fast emulation runs relative to the original hardware."
-                 "<br><br>Values higher than 100% will emulate faster than the original hardware "
-                 "can run, if your hardware is able to keep up. Values lower than 100% will slow "
-                 "emulation instead. Unlimited will emulate as fast as your hardware is able to."
-                 "<br><br><dolphin_emphasis>If unsure, select 100%.</dolphin_emphasis>");
   static constexpr char TR_UPDATE_TRACK_DESCRIPTION[] = QT_TR_NOOP(
       "Selects which update track Dolphin uses when checking for updates at startup. If a new "
       "update is available, Dolphin will show a list of changes made since your current version "
@@ -452,7 +451,6 @@ void GeneralPane::AddDescriptions()
 #endif
 
   m_combobox_speedlimit->SetTitle(tr("Speed Limit"));
-  m_combobox_speedlimit->SetDescription(tr(TR_SPEEDLIMIT_DESCRIPTION));
 
   if (AutoUpdateChecker::SystemSupportsAutoUpdates())
   {
@@ -469,4 +467,31 @@ void GeneralPane::AddDescriptions()
   m_button_generate_new_identity->SetTitle(tr("Generate a New Statistics Identity"));
   m_button_generate_new_identity->SetDescription(tr(TR_GENERATE_NEW_IDENTITY_DESCRIPTION));
 #endif
+}
+
+void GeneralPane::UpdateDescriptionsUsingHardcoreStatus()
+{
+  const bool hardcore_enabled = AchievementManager::GetInstance().IsHardcoreModeActive();
+
+  static constexpr char TR_SPEEDLIMIT_DESCRIPTION[] =
+      QT_TR_NOOP("Controls how fast emulation runs relative to the original hardware."
+                 "<br><br>Values higher than 100% will emulate faster than the original hardware "
+                 "can run, if your hardware is able to keep up. Values lower than 100% will slow "
+                 "emulation instead. Unlimited will emulate as fast as your hardware is able to."
+                 "<br><br><dolphin_emphasis>If unsure, select 100%.</dolphin_emphasis>");
+  static constexpr char TR_SPEEDLIMIT_RESTRICTION_IN_HARDCORE_DESCRIPTION[] =
+      QT_TR_NOOP("<dolphin_emphasis>When Hardcore Mode is enabled, Speed Limit values less than "
+                 "100% will be treated as 100%.</dolphin_emphasis>");
+
+  if (hardcore_enabled)
+  {
+    m_combobox_speedlimit->SetDescription(
+        tr("%1<br><br>%2")
+            .arg(tr(TR_SPEEDLIMIT_DESCRIPTION))
+            .arg(tr(TR_SPEEDLIMIT_RESTRICTION_IN_HARDCORE_DESCRIPTION)));
+  }
+  else
+  {
+    m_combobox_speedlimit->SetDescription(tr(TR_SPEEDLIMIT_DESCRIPTION));
+  }
 }

@@ -3,8 +3,6 @@
 
 #include "VideoCommon/GeometryShaderGen.h"
 
-#include <cmath>
-
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
 #include "VideoCommon/DriverDetails.h"
@@ -378,8 +376,8 @@ void EnumerateGeometryShaderUids(const std::function<void(const GeometryShaderUi
   GeometryShaderUid uid;
 
   const std::array<PrimitiveType, 3> primitive_lut = {
-      {g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? PrimitiveType::TriangleStrip :
-                                                               PrimitiveType::Triangles,
+      {g_backend_info.bSupportsPrimitiveRestart ? PrimitiveType::TriangleStrip :
+                                                  PrimitiveType::Triangles,
        PrimitiveType::Lines, PrimitiveType::Points}};
   for (PrimitiveType primitive : primitive_lut)
   {

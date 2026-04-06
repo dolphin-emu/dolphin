@@ -36,7 +36,6 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
-#include "VideoCommon/TextureInfo.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -118,11 +117,12 @@ VertexManagerBase::~VertexManagerBase() = default;
 
 bool VertexManagerBase::Initialize()
 {
+  auto& video_events = GetVideoEvents();
+
   m_frame_end_event =
-      AfterFrameEvent::Register([this](Core::System&) { OnEndFrame(); }, "VertexManagerBase");
-  m_after_present_event = AfterPresentEvent::Register(
-      [this](const PresentInfo& pi) { m_ticks_elapsed = pi.emulated_timestamp; },
-      "VertexManagerBase");
+      video_events.after_frame_event.Register([this](Core::System&) { OnEndFrame(); });
+  m_after_present_event = video_events.after_present_event.Register(
+      [this](const PresentInfo& pi) { m_ticks_elapsed = pi.emulated_timestamp; });
   m_index_generator.Init();
   m_custom_shader_cache = std::make_unique<CustomShaderCache>();
   m_cpu_cull.Init();
@@ -156,7 +156,7 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
   u32 const needed_vertex_bytes = count * stride + 4;
 
   // We can't merge different kinds of primitives, so we have to flush here
-  PrimitiveType new_primitive_type = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
+  PrimitiveType new_primitive_type = g_backend_info.bSupportsPrimitiveRestart ?
                                          primitive_from_gx_pr[primitive] :
                                          primitive_from_gx[primitive];
   if (m_current_primitive_type != new_primitive_type) [[unlikely]]
@@ -243,7 +243,7 @@ u32 VertexManagerBase::GetRemainingIndices(OpcodeDecoder::Primitive primitive) c
   {
     if (g_Config.UseVSForLinePointExpand())
     {
-      if (g_Config.backend_info.bSupportsPrimitiveRestart)
+      if (g_backend_info.bSupportsPrimitiveRestart)
       {
         switch (primitive)
         {
@@ -287,7 +287,7 @@ u32 VertexManagerBase::GetRemainingIndices(OpcodeDecoder::Primitive primitive) c
       }
     }
   }
-  else if (g_Config.backend_info.bSupportsPrimitiveRestart)
+  else if (g_backend_info.bSupportsPrimitiveRestart)
   {
     switch (primitive)
     {
@@ -348,8 +348,7 @@ void VertexManagerBase::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 nu
 void VertexManagerBase::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   // If bounding box is enabled, we need to flush any changes first, then invalidate what we have.
-  if (g_bounding_box->IsEnabled() && g_ActiveConfig.bBBoxEnable &&
-      g_ActiveConfig.backend_info.bSupportsBBox)
+  if (g_bounding_box->IsEnabled() && g_ActiveConfig.bBBoxEnable && g_backend_info.bSupportsBBox)
   {
     g_bounding_box->Flush();
   }
@@ -443,7 +442,7 @@ void VertexManagerBase::Flush()
   if (m_draw_counter == 0)
   {
     // This is more or less the start of the Frame
-    BeforeFrameEvent::Trigger();
+    GetVideoEvents().before_frame_event.Trigger();
   }
 
   if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens ||
@@ -460,13 +459,11 @@ void VertexManagerBase::Flush()
     // eventually simulate the behavior we have test cases for it.
     if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens)
     {
-      DolphinAnalytics::Instance().ReportGameQuirk(
-          GameQuirk::MISMATCHED_GPU_TEXGENS_BETWEEN_XF_AND_BP);
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::MismatchedGPUTexGensBetweenXFAndBP);
     }
     if (xfmem.numChan.numColorChans != bpmem.genMode.numcolchans)
     {
-      DolphinAnalytics::Instance().ReportGameQuirk(
-          GameQuirk::MISMATCHED_GPU_COLORS_BETWEEN_XF_AND_BP);
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::MismatchedGPUColorsBetweenXFAndBP);
     }
 
     return;
@@ -475,8 +472,8 @@ void VertexManagerBase::Flush()
 #if defined(_DEBUG) || defined(DEBUGFAST)
   PRIM_LOG("frame{}:\n texgen={}, numchan={}, dualtex={}, ztex={}, cole={}, alpe={}, ze={}",
            g_ActiveConfig.iSaveTargetId, xfmem.numTexGen.numTexGens, xfmem.numChan.numColorChans,
-           xfmem.dualTexTrans.enabled, bpmem.ztex2.op.Value(), bpmem.blendmode.colorupdate.Value(),
-           bpmem.blendmode.alphaupdate.Value(), bpmem.zmode.updateenable.Value());
+           xfmem.dualTexTrans.enabled, bpmem.ztex2.op.Value(), bpmem.blendmode.color_update.Value(),
+           bpmem.blendmode.alpha_update.Value(), bpmem.zmode.update_enable.Value());
 
   for (u32 i = 0; i < xfmem.numChan.numColorChans; ++i)
   {
@@ -571,7 +568,7 @@ void VertexManagerBase::Flush()
     {
       for (const u32 i : used_textures)
       {
-        const auto cache_entry = g_texture_cache->Load(TextureInfo::FromStage(i));
+        const auto cache_entry = g_texture_cache->Load(i);
         if (!cache_entry)
           continue;
         const float custom_tex_scale = cache_entry->GetWidth() / float(cache_entry->native_width);
@@ -583,7 +580,7 @@ void VertexManagerBase::Flush()
     {
       for (const u32 i : used_textures)
       {
-        const auto cache_entry = g_texture_cache->Load(TextureInfo::FromStage(i));
+        const auto cache_entry = g_texture_cache->Load(i);
         if (cache_entry)
         {
           if (!Common::Contains(texture_names, cache_entry->texture_info_name))
@@ -645,9 +642,6 @@ void VertexManagerBase::Flush()
     // Same with GPU texture decoding, which uses compute shaders.
     g_texture_cache->BindTextures(used_textures, samplers);
 
-    if (PerfQueryBase::ShouldEmulate())
-      g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
-
     if (!skip)
     {
       UpdatePipelineConfig();
@@ -669,14 +663,8 @@ void VertexManagerBase::Flush()
       }
     }
 
-    // Track the total emulated state draws
-    INCSTAT(g_stats.this_frame.num_draw_calls);
-
     // Even if we skip the draw, emulated state should still be impacted
     OnDraw();
-
-    if (PerfQueryBase::ShouldEmulate())
-      g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 
     // The EFB cache is now potentially stale.
     g_framebuffer_manager->FlagPeekCacheAsOutOfDate();
@@ -976,7 +964,7 @@ void VertexManagerBase::OnDraw()
 
 void VertexManagerBase::OnCPUEFBAccess()
 {
-  // Check this isn't another access without any draws inbetween.
+  // Check this isn't another access without any draws in between.
   if (!m_cpu_accesses_this_frame.empty() && m_cpu_accesses_this_frame.back() == m_draw_counter)
     return;
 
@@ -1090,8 +1078,7 @@ void VertexManagerBase::RenderDrawCall(
                VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride(),
                m_index_generator.GetIndexLen(), &base_vertex, &base_index);
 
-  if (g_ActiveConfig.backend_info.api_type != APIType::D3D &&
-      g_ActiveConfig.UseVSForLinePointExpand() &&
+  if (g_backend_info.api_type != APIType::D3D && g_ActiveConfig.UseVSForLinePointExpand() &&
       (primitive_type == PrimitiveType::Points || primitive_type == PrimitiveType::Lines))
   {
     // VS point/line expansion puts the vertex id at gl_VertexID << 2
@@ -1100,7 +1087,16 @@ void VertexManagerBase::RenderDrawCall(
     base_vertex <<= 2;
   }
 
+  if (PerfQueryBase::ShouldEmulate())
+    g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+
   DrawCurrentBatch(base_index, m_index_generator.GetIndexLen(), base_vertex);
+
+  // Track the total emulated state draws
+  INCSTAT(g_stats.this_frame.num_draw_calls);
+
+  if (PerfQueryBase::ShouldEmulate())
+    g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 }
 
 const AbstractPipeline* VertexManagerBase::GetCustomPipeline(
@@ -1131,7 +1127,7 @@ const AbstractPipeline* VertexManagerBase::GetCustomPipeline(
       {
         // D3D has issues compiling large custom ubershaders
         // use specialized shaders instead
-        if (g_ActiveConfig.backend_info.api_type == APIType::D3D)
+        if (g_backend_info.api_type == APIType::D3D)
         {
           if (auto pipeline = m_custom_shader_cache->GetPipelineAsync(
                   current_pipeline_config, custom_shaders, current_pipeline->m_config))

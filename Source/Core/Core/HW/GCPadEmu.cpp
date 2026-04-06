@@ -10,8 +10,6 @@
 
 #include "Core/HW/GCPad.h"
 
-#include "InputCommon/ControllerEmu/Control/Input.h"
-#include "InputCommon/ControllerEmu/Control/Output.h"
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -36,6 +34,7 @@ static const u16 trigger_bitmasks[] = {
 
 static const u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT,
                                     PAD_BUTTON_RIGHT};
+static const u8 triforce_bitmask[] = {SWITCH_TEST, SWITCH_SERVICE, SWITCH_COIN};
 
 GCPad::GCPad(const unsigned int index) : m_index(index)
 {
@@ -68,6 +67,13 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
   for (const char* named_direction : named_directions)
   {
     m_dpad->AddInput(Translatability::Translate, named_direction);
+  }
+
+  // triforce
+  groups.emplace_back(m_triforce = new ControllerEmu::Buttons(TRIFORCE_GROUP));
+  for (const char* named_button : {TEST_BUTTON, SERVICE_BUTTON, COIN_BUTTON})
+  {
+    m_triforce->AddInput(Translatability::Translate, named_button);
   }
 
   // Microphone
@@ -121,6 +127,8 @@ ControllerEmu::ControlGroup* GCPad::GetGroup(PadGroup group)
     return m_mic;
   case PadGroup::Options:
     return m_options;
+  case PadGroup::Triforce:
+    return m_triforce;
   default:
     return nullptr;
   }
@@ -128,6 +136,8 @@ ControllerEmu::ControlGroup* GCPad::GetGroup(PadGroup group)
 
 GCPadStatus GCPad::GetInput() const
 {
+  using ControllerEmu::MapFloat;
+
   const auto lock = GetStateLock();
   GCPadStatus pad = {};
 
@@ -149,6 +159,9 @@ GCPadStatus GCPad::GetInput() const
 
   // dpad
   m_dpad->GetState(&pad.button, dpad_bitmasks, m_input_override_function);
+
+  // triforce
+  m_triforce->GetState(&pad.switches, triforce_bitmask, m_input_override_function);
 
   // sticks
   const auto main_stick_state = m_main_stick->GetState(m_input_override_function);
@@ -181,13 +194,16 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 #ifdef ANDROID
   // Rumble
   m_rumble->SetControlExpression(0, "`Android/0/Device Sensors:Motor 0`");
+
+  // Triforce Coin
+  m_triforce->SetControlExpression(2, "pulse(`Android/0/Device Sensors:Accel Down` > 15, 0.1)");
 #else
-  // Buttons
-  m_buttons->SetControlExpression(0, "`X`");       // A
-  m_buttons->SetControlExpression(1, "`Z`");       // B
-  m_buttons->SetControlExpression(2, "`C`");       // X
-  m_buttons->SetControlExpression(3, "`S`");       // Y
-  m_buttons->SetControlExpression(4, "`D`");       // Z
+  // Buttons: A, B, X, Y, Z
+  m_buttons->SetControlExpression(0, "`X`");
+  m_buttons->SetControlExpression(1, "`Z`");
+  m_buttons->SetControlExpression(2, "`C`");
+  m_buttons->SetControlExpression(3, "`S`");
+  m_buttons->SetControlExpression(4, "`D`");
 #ifdef _WIN32
   m_buttons->SetControlExpression(5, "`RETURN`");  // Start
 #else
@@ -201,6 +217,11 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   m_dpad->SetControlExpression(1, "`G`");  // Down
   m_dpad->SetControlExpression(2, "`F`");  // Left
   m_dpad->SetControlExpression(3, "`H`");  // Right
+
+  // Triforce
+  m_triforce->SetControlExpression(0, "`1`");  // Test
+  m_triforce->SetControlExpression(1, "`2`");  // Service
+  m_triforce->SetControlExpression(2, "`3`");  // Coin
 
   // C Stick
   m_c_stick->SetControlExpression(0, "`I`");  // Up

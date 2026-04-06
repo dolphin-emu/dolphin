@@ -167,12 +167,12 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
   BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
   if (!update || early_update)
-    regs_in_use[DecodeReg(ARM64Reg::W1)] = 0;
+    regs_in_use[DecodeReg(ARM64Reg::W1)] = false;
   if (jo.memcheck || !jo.fastmem)
-    regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
-  fprs_in_use[DecodeReg(ARM64Reg::Q0)] = 0;
+    regs_in_use[DecodeReg(ARM64Reg::W0)] = false;
+  fprs_in_use[DecodeReg(ARM64Reg::Q0)] = false;
   if (!jo.memcheck)
-    fprs_in_use[DecodeReg(VD)] = 0;
+    fprs_in_use[DecodeReg(VD)] = false;
 
   if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr, BackPatchInfo::GetFlagSize(flags)))
   {
@@ -369,12 +369,12 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 
   BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
   BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
-  regs_in_use[DecodeReg(ARM64Reg::W1)] = 0;
+  regs_in_use[DecodeReg(ARM64Reg::W1)] = false;
   if (!update || early_update)
-    regs_in_use[DecodeReg(ARM64Reg::W2)] = 0;
+    regs_in_use[DecodeReg(ARM64Reg::W2)] = false;
   if (!jo.fastmem)
-    regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
-  fprs_in_use[DecodeReg(ARM64Reg::Q0)] = 0;
+    regs_in_use[DecodeReg(ARM64Reg::W0)] = false;
+  fprs_in_use[DecodeReg(ARM64Reg::Q0)] = false;
 
   if (is_immediate)
   {

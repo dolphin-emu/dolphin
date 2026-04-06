@@ -14,18 +14,6 @@ namespace Core
 class System;
 }
 
-// Called when certain video config setting are changed
-using ConfigChangedEvent = Common::HookableEvent<"ConfigChanged", u32>;
-
-// An event called just before the first draw call of a frame
-using BeforeFrameEvent = Common::HookableEvent<"BeforeFrame">;
-
-// An event called after the frame XFB copy begins processing on the host GPU.
-// Useful for "once per frame" usecases.
-// Note: In a few rare cases, games do multiple XFB copies per frame and join them while presenting.
-//       If this matters to your usecase, you should use BeforePresent instead.
-using AfterFrameEvent = Common::HookableEvent<"AfterFrame", Core::System&>;
-
 struct PresentInfo
 {
   enum class PresentReason
@@ -46,14 +34,12 @@ struct PresentInfo
   PresentReason reason = PresentReason::Immediate;
 
   // The exact emulated time of the when real hardware would have presented this frame
-  // FIXME: Immediate should predict the timestamp of this present
   u64 emulated_timestamp = 0;
 
-  // TODO:
-  // u64 intended_present_time = 0;
+  TimePoint intended_present_time{};
 
   // AfterPresent only: The actual time the frame was presented
-  u64 actual_present_time = 0;
+  TimePoint actual_present_time{};
 
   enum class PresentTimeAccuracy
   {
@@ -78,19 +64,37 @@ struct PresentInfo
   std::vector<std::string_view> xfb_copy_hashes;
 };
 
-// An event called just as a frame is queued for presentation.
-// The exact timing of this event depends on the "Immediately Present XFB" option.
-//
-// If enabled, this event will trigger immediately after AfterFrame
-// If disabled, this event won't trigger until the emulated interface starts drawing out a new
-// frame.
-//
-// frame_count: The number of frames
-using BeforePresentEvent = Common::HookableEvent<"BeforePresent", PresentInfo&>;
+struct VideoEvents
+{
+  // Called when certain video config setting are changed
+  Common::HookableEvent<u32> config_changed_event;
 
-// An event that is triggered after a frame is presented.
-// The exact timing of this event depends on backend/driver support.
-using AfterPresentEvent = Common::HookableEvent<"AfterPresent", PresentInfo&>;
+  // An event called just before the first draw call of a frame
+  Common::HookableEvent<> before_frame_event;
 
-// An end of frame event that runs on the CPU thread
-using VIEndFieldEvent = Common::HookableEvent<"VIEndField">;
+  // An event called after the frame XFB copy begins processing on the host GPU.
+  // Useful for "once per frame" usecases.
+  // Note: In a few rare cases, games do multiple XFB copies per frame and join them while
+  // presenting.
+  //       If this matters to your usecase, you should use BeforePresent instead.
+  Common::HookableEvent<Core::System&> after_frame_event;
+
+  // An event called just as a frame is queued for presentation.
+  // The exact timing of this event depends on the "Immediately Present XFB" option.
+  //
+  // If enabled, this event will trigger immediately after AfterFrame
+  // If disabled, this event won't trigger until the emulated interface starts drawing out a new
+  // frame.
+  //
+  // frame_count: The number of frames
+  Common::HookableEvent<PresentInfo&> before_present_event;
+
+  // An event that is triggered after a frame is presented.
+  // The exact timing of this event depends on backend/driver support.
+  Common::HookableEvent<PresentInfo&> after_present_event;
+
+  // An end of frame event that runs on the CPU thread
+  Common::HookableEvent<> vi_end_field_event;
+};
+
+VideoEvents& GetVideoEvents();

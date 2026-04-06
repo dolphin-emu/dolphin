@@ -7,6 +7,7 @@
 #include <string_view>
 #include <variant>
 
+#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/VariantUtil.h"
@@ -17,9 +18,10 @@
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModAsset.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
+#include "VideoCommon/GraphicsModSystem/Constants.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionFactory.h"
-#include "VideoCommon/TextureInfo.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VideoEvents.h"
 
 std::unique_ptr<GraphicsModManager> g_graphics_mod_manager;
 
@@ -36,11 +38,17 @@ public:
       return;
     m_action_impl->OnDrawStarted(draw_started);
   }
-  void OnEFB(GraphicsModActionData::EFB* efb) override
+  void BeforeEFB(GraphicsModActionData::PreEFB* efb) override
   {
     if (!m_mod.m_enabled)
       return;
-    m_action_impl->OnEFB(efb);
+    m_action_impl->BeforeEFB(efb);
+  }
+  void AfterEFB(GraphicsModActionData::PostEFB* efb) override
+  {
+    if (!m_mod.m_enabled)
+      return;
+    m_action_impl->AfterEFB(efb);
   }
   void OnProjection(GraphicsModActionData::Projection* projection) override
   {
@@ -96,7 +104,7 @@ bool GraphicsModManager::Initialize()
     g_graphics_mod_manager->Load(*g_ActiveConfig.graphics_mod_config);
 
     m_end_of_frame_event =
-        AfterFrameEvent::Register([this](Core::System&) { EndOfFrame(); }, "ModManager");
+        GetVideoEvents().after_frame_event.Register([this](Core::System&) { EndOfFrame(); });
   }
 
   return true;
@@ -191,20 +199,21 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
   const auto& mods = config.GetMods();
 
   auto filesystem_library = std::make_shared<VideoCommon::DirectFilesystemAssetLibrary>();
+  filesystem_library->Watch(File::GetSysDirectory() + DOLPHIN_SYSTEM_GRAPHICS_MOD_DIR);
+  filesystem_library->Watch(File::GetUserPath(D_GRAPHICSMOD_IDX));
 
   std::map<std::string, std::vector<GraphicsTargetConfig>> group_to_targets;
   for (const auto& mod : mods)
   {
     for (const GraphicsTargetGroupConfig& group : mod.m_groups)
     {
-      if (m_groups.contains(group.m_name))
+      if (const bool inserted = m_groups.insert(group.m_name).second; !inserted)
       {
         WARN_LOG_FMT(
             VIDEO,
             "Specified graphics mod group '{}' for mod '{}' is already specified by another mod.",
             group.m_name, mod.m_title);
       }
-      m_groups.insert(group.m_name);
 
       const auto internal_group = fmt::format("{}.{}", mod.m_title, group.m_name);
       for (const GraphicsTargetConfig& target : group.m_targets)

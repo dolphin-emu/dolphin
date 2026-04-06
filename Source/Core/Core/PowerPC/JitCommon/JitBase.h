@@ -23,6 +23,7 @@
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PowerPC.h"
 
 namespace Core
 {
@@ -36,9 +37,9 @@ struct PowerPCState;
 }  // namespace PowerPC
 class PPCSymbolDB;
 
-//#define JIT_LOG_GENERATED_CODE  // Enables logging of generated code
-//#define JIT_LOG_GPR             // Enables logging of the PPC general purpose regs
-//#define JIT_LOG_FPR             // Enables logging of the PPC floating point regs
+// #define JIT_LOG_GENERATED_CODE  // Enables logging of generated code
+// #define JIT_LOG_GPR             // Enables logging of the PPC general purpose regs
+// #define JIT_LOG_FPR             // Enables logging of the PPC floating point regs
 
 // Use these to control the instruction selection
 // #define INSTRUCTION_START FallBackToInterpreter(inst); return;
@@ -158,16 +159,18 @@ protected:
   bool m_low_dcbz_hack = false;
   bool m_fprf = false;
   bool m_accurate_nans = false;
+  bool m_accurate_fmadds = false;
   bool m_fastmem_enabled = false;
+  bool m_page_table_fastmem_enabled = false;
   bool m_accurate_cpu_cache_enabled = false;
 
   bool m_enable_blr_optimization = false;
   bool m_cleanup_after_stackfault = false;
   u8* m_stack_guard = nullptr;
 
-  static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 23> JIT_SETTINGS;
+  static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 25> JIT_SETTINGS;
 
-  bool DoesConfigNeedRefresh();
+  bool DoesConfigNeedRefresh() const;
   void RefreshConfig();
 
   void InitFastmemArena();
@@ -178,8 +181,16 @@ protected:
   void CleanUpAfterStackFault();
 
   bool CanMergeNextInstructions(int count) const;
+  bool HasConstantCarry() const
+  {
+#ifdef _M_ARM_64
+    return js.carryFlag == CarryFlag::ConstantTrue || js.carryFlag == CarryFlag::ConstantFalse;
+#else
+    return false;
+#endif
+  }
 
-  bool ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op);
+  bool ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op) const;
 
 public:
   explicit JitBase(Core::System& system);
@@ -189,8 +200,13 @@ public:
   JitBase& operator=(JitBase&&) = delete;
   ~JitBase() override;
 
-  bool IsProfilingEnabled() const { return m_enable_profiling; }
+  bool IsProfilingEnabled() const { return m_enable_profiling && m_enable_debugging; }
   bool IsDebuggingEnabled() const { return m_enable_debugging; }
+  bool IsBranchWatchEnabled() const
+  {
+    auto& branch_watch = m_system.GetPowerPC().GetBranchWatch();
+    return branch_watch.GetRecordingActive();
+  }
 
   static const u8* Dispatch(JitBase& jit);
   virtual JitBaseBlockCache* GetBlockCache() = 0;
@@ -207,6 +223,8 @@ public:
   virtual std::size_t DisassembleFarCode(const JitBlock& block, std::ostream& stream) const = 0;
 
   virtual const CommonAsmRoutinesBase* GetAsmRoutines() = 0;
+
+  virtual bool WantsPageTableMappings() const;
 
   virtual bool HandleFault(uintptr_t access_address, SContext* ctx) = 0;
   bool HandleStackFault();

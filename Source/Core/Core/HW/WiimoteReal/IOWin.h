@@ -6,26 +6,27 @@
 #ifdef _WIN32
 #include <windows.h>
 
-#include "Common/StringUtil.h"
-#include "Core/HW/WiimoteCommon/WiimoteHid.h"
+#include <atomic>
+#include <vector>
+
+#include "Common/SocketContext.h"
+#include "Common/WindowsDevice.h"
+
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "Core/USBUtils.h"
 
 namespace WiimoteReal
 {
-// Different methods to send data Wiimote on Windows depending on OS and Bluetooth Stack
-enum WinWriteMethod
-{
-  WWM_WRITE_FILE_LARGEST_REPORT_SIZE,
-  WWM_WRITE_FILE_ACTUAL_REPORT_SIZE,
-  WWM_SET_OUTPUT_REPORT
-};
+class WiimoteScannerWindows;
 
 class WiimoteWindows final : public Wiimote
 {
+  friend WiimoteScannerWindows;
+
 public:
-  WiimoteWindows(const std::basic_string<TCHAR>& path, WinWriteMethod initial_write_method);
+  WiimoteWindows(std::wstring hid_iface);
   ~WiimoteWindows() override;
-  std::string GetId() const override { return WStringToUTF8(m_devicepath); }
+  std::string GetId() const override;
 
 protected:
   bool ConnectInternal() override;
@@ -36,21 +37,50 @@ protected:
   int IOWrite(u8 const* buf, size_t len) override;
 
 private:
-  std::basic_string<TCHAR> m_devicepath;  // Unique Wiimote reference
-  HANDLE m_dev_handle;                    // HID handle
-  OVERLAPPED m_hid_overlap_read;          // Overlap handles
-  OVERLAPPED m_hid_overlap_write;
-  WinWriteMethod m_write_method;  // Type of Write Method to use
+  // These return 0 on error. -1 on no data.
+  int OverlappedRead(u8* data, DWORD size);
+  int OverlappedWrite(const u8* data, DWORD size);
+
+  const std::wstring m_hid_iface;
+
+  HANDLE m_dev_handle{INVALID_HANDLE_VALUE};
+  HANDLE m_wakeup_event{INVALID_HANDLE_VALUE};
+
+  OVERLAPPED m_hid_overlap_read{};
+  OVERLAPPED m_hid_overlap_write{};
+
+  std::atomic_bool m_is_connected{};
 };
 
 class WiimoteScannerWindows final : public WiimoteScannerBackend
 {
 public:
+  struct EnumeratedWiimoteInterface
+  {
+    std::wstring hid_iface;
+    std::optional<bool> is_balance_board;
+  };
+
   WiimoteScannerWindows();
   bool IsReady() const override;
-  void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
+
+  FindResults FindNewWiimotes() override;
+  FindResults FindAttachedWiimotes() override;
+
   void Update() override;
   void RequestStopSearching() override {}
+
+  static void FindAndAuthenticateWiimotes();
+  static void RemoveRememberedWiimotes();
+
+private:
+  FindResults FindWiimoteHIDDevices();
+
+  // This vector is updated after we receive a device change notification.
+  std::vector<EnumeratedWiimoteInterface> m_wiimote_hid_interfaces;
+  std::atomic_bool m_devices_changed{true};
+
+  Common::DeviceChangeNotification m_device_change_notification;
 };
 }  // namespace WiimoteReal
 

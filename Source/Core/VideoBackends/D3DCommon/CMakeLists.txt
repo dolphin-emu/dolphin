@@ -14,15 +14,6 @@ PUBLIC
   spirv_cross
 )
 
-target_include_directories(videod3dcommon
-SYSTEM PUBLIC
-  ${CMAKE_SOURCE_DIR}/Externals/glslang/glslang/Public
-SYSTEM PRIVATE
-  ${CMAKE_SOURCE_DIR}/Externals/glslang/StandAlone
-  ${CMAKE_SOURCE_DIR}/Externals/glslang/SPIRV
-  ${CMAKE_SOURCE_DIR}/Externals/glslang
-)
-
 if(MSVC)
   # Add precompiled header
   target_link_libraries(videod3dcommon PRIVATE use_pch)

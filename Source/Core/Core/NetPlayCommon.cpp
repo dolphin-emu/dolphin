@@ -27,7 +27,7 @@ bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet)
     return false;
   }
 
-  const sf::Uint64 size = file.GetSize();
+  const u64 size = file.GetSize();
   packet << size;
 
   if (size == 0)
@@ -89,7 +89,7 @@ bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet)
 
 static bool CompressFolderIntoPacketInternal(const File::FSTEntry& folder, sf::Packet& packet)
 {
-  const sf::Uint64 size = folder.children.size();
+  const u64 size = folder.children.size();
   packet << size;
   for (const auto& child : folder.children)
   {
@@ -118,7 +118,7 @@ bool CompressFolderIntoPacket(const std::string& folder_path, sf::Packet& packet
 
 bool CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& packet)
 {
-  const sf::Uint64 size = in_buffer.size();
+  const u64 size = in_buffer.size();
   packet << size;
 
   if (size == 0)
@@ -224,7 +224,7 @@ static bool DecompressPacketIntoFolderInternal(sf::Packet& packet, const std::st
   if (!File::CreateFullPath(folder_path + "/"))
     return false;
 
-  sf::Uint64 size;
+  u64 size;
   packet >> size;
   for (size_t i = 0; i < size; ++i)
   {

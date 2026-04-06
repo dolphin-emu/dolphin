@@ -11,11 +11,13 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/Swap.h"
 #include "Core/HW/SI/SI_DeviceDanceMat.h"
 #include "Core/HW/SI/SI_DeviceGBA.h"
 #ifdef HAS_LIBMGBA
 #include "Core/HW/SI/SI_DeviceGBAEmu.h"
 #endif
+#include "Core/HW/SI/SI_DeviceAMBaseboard.h"
 #include "Core/HW/SI/SI_DeviceGCAdapter.h"
 #include "Core/HW/SI/SI_DeviceGCController.h"
 #include "Core/HW/SI/SI_DeviceGCSteeringWheel.h"
@@ -87,12 +89,21 @@ void ISIDevice::OnEvent(u64 userdata, s64 cycles_late)
 {
 }
 
+int ISIDevice::CreateStatusResponse(u32 si_device_id, u8* buffer)
+{
+  constexpr int RESPONSE_LENGTH = 3;
+
+  Common::BigEndianValue<u32> id(si_device_id);
+  std::memcpy(buffer, &id, RESPONSE_LENGTH);
+  return RESPONSE_LENGTH;
+}
+
 int SIDevice_GetGBATransferTime(const SystemTimers::SystemTimersManager& timers,
                                 EBufferCommands cmd)
 {
   u64 gc_bytes_transferred = 1;
   u64 gba_bytes_transferred = 1;
-  u64 stop_bits_ns = GC_STOP_BIT_NS + GBA_STOP_BIT_NS;
+  const u64 stop_bits_ns = GC_STOP_BIT_NS + GBA_STOP_BIT_NS;
 
   switch (cmd)
   {
@@ -139,6 +150,7 @@ bool SIDevice_IsGCController(SIDevices type)
   case SIDEVICE_GC_TARUKONGA:
   case SIDEVICE_DANCEMAT:
   case SIDEVICE_GC_STEERING:
+  case SIDEVICE_AM_BASEBOARD:
     return true;
   default:
     return false;
@@ -181,6 +193,8 @@ std::unique_ptr<ISIDevice> SIDevice_Create(Core::System& system, const SIDevices
     return std::make_unique<CSIDevice_Keyboard>(system, device, port_number);
 
   case SIDEVICE_AM_BASEBOARD:
+    return std::make_unique<CSIDevice_AMBaseboard>(system, device, port_number);
+
   case SIDEVICE_NONE:
   default:
     return std::make_unique<CSIDevice_Null>(system, device, port_number);

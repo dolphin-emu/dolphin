@@ -7,7 +7,6 @@
 
 #include "Core/HW/GBAPad.h"
 
-#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/GCPadStatus.h"
 
@@ -101,8 +100,11 @@ void GBAPad::LoadDefaults(const ControllerInterface& ciface)
 #ifdef _WIN32
   m_buttons->SetControlExpression(4, "`BACK`");    // Select
   m_buttons->SetControlExpression(5, "`RETURN`");  // Start
-#else
+#elif defined __APPLE__
   m_buttons->SetControlExpression(4, "`Backspace`");  // Select
+  m_buttons->SetControlExpression(5, "`Return`");     // Start
+#else
+  m_buttons->SetControlExpression(4, "`BackSpace`");  // Select
   m_buttons->SetControlExpression(5, "`Return`");     // Start
 #endif
 

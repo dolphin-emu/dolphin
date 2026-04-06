@@ -32,7 +32,7 @@ bool Init()
 {
   packs.clear();
   const std::vector<std::string> pack_list =
-      Common::DoFileSearch({File::GetUserPath(D_RESOURCEPACK_IDX)}, {".zip"});
+      Common::DoFileSearch(File::GetUserPath(D_RESOURCEPACK_IDX), ".zip");
 
   Common::IniFile file = GetPackConfig();
 
@@ -53,9 +53,7 @@ bool Init()
     pack_list_order.emplace_back(OrderHelper{i, std::move(manifest_id)});
   }
 
-  std::sort(
-      pack_list_order.begin(), pack_list_order.end(),
-      [](const OrderHelper& a, const OrderHelper& b) { return a.manifest_id < b.manifest_id; });
+  std::ranges::sort(pack_list_order, {}, &OrderHelper::manifest_id);
 
   bool error = false;
   for (size_t i = 0; i < pack_list_order.size(); ++i)

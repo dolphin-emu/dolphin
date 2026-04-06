@@ -14,10 +14,10 @@ include "dsp_base_noirq.inc"
 test_main:
 	; Use the accelerator to generate an IRQ by setting the start and end address to 0
 	; This will result in an interrupt on every read
-	SI @0xffda, #0 ; pred_scale
-	SI @0xffdb, #0 ; yn1
-	SI @0xffdc, #0 ; yn2
-	SI @0xffd1, #0 ; SampleFormat
+	SI @PRED_SCALE, #0
+	SI @YN1, #0
+	SI @YN2, #0
+	SI @FORMAT, #0
 	SI @ACSAH, #0
 	SI @ACCAH, #0
 	SI @ACSAL, #0
@@ -27,24 +27,24 @@ test_main:
 
 
 	LRI $AX1.H, #0x0000
-	LRS $AX0.L, @ARAM ; Trigger interrupt
+	LRS $AX0.L, @ACDSAMP ; Trigger interrupt
 	CALL send_back
 
 	LRI $AX1.H, #0x0001
-	LRS $AX0.L, @ARAM ; Trigger interrupt
+	LRS $AX0.L, @ACDSAMP ; Trigger interrupt
 	CALL send_back
 
 	LRI $AX1.H, #0x0000
-	LRS $AX0.L, @ARAM ; Trigger interrupt
+	LRS $AX0.L, @ACDSAMP ; Trigger interrupt
 	CALL send_back
 
 	jmp end_of_test
 
 accov_irq:
 	; Restore registers, otherwise no new interrupt will be generated
-	SI @0xffda, #0 ; pred_scale
-	SI @0xffdb, #0 ; yn1
-	SI @0xffdc, #0 ; yn2
+	SI @PRED_SCALE, #0
+	SI @YN1, #0
+	SI @YN2, #0
 
 	TSTAXH $AX1.H
 	LRI $AX1.L, #0x1111

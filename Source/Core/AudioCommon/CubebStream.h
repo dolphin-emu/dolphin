@@ -3,18 +3,21 @@
 
 #pragma once
 
-#include <cstddef>
-#include <functional>
 #include <memory>
 #include <vector>
 
 #include "AudioCommon/SoundStream.h"
+#ifdef _WIN32
 #include "Common/WorkQueueThread.h"
+#endif
 
+#ifdef HAVE_CUBEB
 #include <cubeb/cubeb.h>
+#endif
 
 class CubebStream final : public SoundStream
 {
+#ifdef HAVE_CUBEB
 public:
   CubebStream();
   CubebStream(const CubebStream& other) = delete;
@@ -25,6 +28,7 @@ public:
   bool Init() override;
   bool SetRunning(bool running) override;
   void SetVolume(int) override;
+  static bool IsValid() { return true; }
 
 private:
   bool m_stereo = false;
@@ -35,7 +39,7 @@ private:
   std::vector<float> m_floatstereo_buffer;
 
 #ifdef _WIN32
-  Common::WorkQueueThread<std::function<void()>> m_work_queue;
+  Common::AsyncWorkThread m_work_queue;
   bool m_coinit_success = false;
   bool m_should_couninit = false;
 #endif
@@ -43,4 +47,5 @@ private:
   static long DataCallback(cubeb_stream* stream, void* user_data, const void* /*input_buffer*/,
                            void* output_buffer, long num_frames);
   static void StateCallback(cubeb_stream* stream, void* user_data, cubeb_state state);
+#endif
 };

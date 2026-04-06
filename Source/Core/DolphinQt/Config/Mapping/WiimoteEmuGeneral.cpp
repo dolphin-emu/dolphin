@@ -59,7 +59,13 @@ void WiimoteEmuGeneral::CreateMainLayout()
 
   extension->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-  static_cast<QFormLayout*>(extension->layout())->insertRow(0, combo_hbox);
+  auto* const ext_layout = static_cast<QFormLayout*>(extension->layout());
+  ext_layout->insertRow(0, combo_hbox);
+
+  m_configure_ext_button = new QPushButton(tr("Configure Extension"));
+  m_configure_ext_button->setDisabled(true);
+  m_configure_ext_button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  ext_layout->insertRow(1, m_configure_ext_button);
 
   layout->addWidget(extension, 0, 3);
   layout->addWidget(CreateGroupBox(tr("Rumble"), Wiimote::GetWiimoteGroup(
@@ -81,6 +87,8 @@ void WiimoteEmuGeneral::Connect()
   connect(m_extension_combo, &QComboBox::activated, this, &WiimoteEmuGeneral::OnAttachmentSelected);
   connect(this, &MappingWidget::ConfigChanged, this, &WiimoteEmuGeneral::ConfigChanged);
   connect(this, &MappingWidget::Update, this, &WiimoteEmuGeneral::Update);
+  connect(m_configure_ext_button, &QPushButton::clicked, GetParent(),
+          &MappingWindow::ActivateExtensionTab);
 }
 
 void WiimoteEmuGeneral::OnAttachmentChanged(int extension)
@@ -88,6 +96,8 @@ void WiimoteEmuGeneral::OnAttachmentChanged(int extension)
   GetParent()->ShowExtensionMotionTabs(extension == WiimoteEmu::ExtensionNumber::NUNCHUK);
 
   m_extension_widget->ChangeExtensionType(extension);
+
+  m_configure_ext_button->setEnabled(extension != WiimoteEmu::ExtensionNumber::NONE);
 }
 
 void WiimoteEmuGeneral::OnAttachmentSelected(int extension)

@@ -45,12 +45,6 @@ object ThemeHelper {
             activity.setTheme(R.style.ThemeOverlay_Dolphin_Dark)
         }
 
-        // Since the top app bar matches the color of the status bar, devices below API 23 have to get a
-        // black status bar since their icons do not adapt based on background color
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            activity.window.statusBarColor =
-                ContextCompat.getColor(activity.applicationContext, android.R.color.black)
-        }
     }
 
     private fun setThemeMode(activity: AppCompatActivity) {
@@ -142,22 +136,33 @@ object ThemeHelper {
     }
 
     @JvmStatic
+    fun resetThemePreferences(activity: AppCompatActivity, applyImmediately: Boolean = false) {
+        PreferenceManager.getDefaultSharedPreferences(activity.applicationContext)
+            .edit()
+            .remove(CURRENT_THEME)
+            .remove(CURRENT_THEME_MODE)
+            .remove(USE_BLACK_BACKGROUNDS)
+            .apply()
+        activity.delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+        activity.delegate.applyDayNight()
+        if (applyImmediately) {
+            activity.recreate()
+        }
+    }
+
+    @JvmStatic
     fun setCorrectTheme(activity: AppCompatActivity) {
-        val currentTheme = (activity as ThemeProvider).themeId
+        val provider = activity as? ThemeProvider ?: return
+        val currentTheme = provider.themeId
         setTheme(activity)
-        if (currentTheme != (activity as ThemeProvider).themeId) {
+        if (currentTheme != provider.themeId) {
             activity.recreate()
         }
     }
 
     @JvmStatic
     fun setStatusBarColor(activity: AppCompatActivity, @ColorInt color: Int) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            activity.window.statusBarColor =
-                ContextCompat.getColor(activity.applicationContext, android.R.color.black)
-        } else {
-            activity.window.statusBarColor = color
-        }
+        activity.window.statusBarColor = color
     }
 
     @JvmStatic

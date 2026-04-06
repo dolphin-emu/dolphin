@@ -21,6 +21,7 @@ class SystemUpdateProgressBarDialogFragment : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         viewModel = ViewModelProvider(requireActivity())[SystemUpdateViewModel::class.java]
+        isCancelable = false
 
         // We need to set the message to something here, otherwise the text will not appear when we set it later.
         val progressDialogBuilder = MaterialAlertDialogBuilder(requireContext())
@@ -65,6 +66,7 @@ class SystemUpdateProgressBarDialogFragment : DialogFragment() {
         }
 
         val progressDialog = progressDialogBuilder.create()
+        progressDialog.setCanceledOnTouchOutside(false)
 
         viewModel.titleIdData.observe(this) { titleId: Long ->
             progressDialog.setMessage(getString(R.string.updating_message, titleId))

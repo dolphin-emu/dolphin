@@ -134,13 +134,18 @@ size_t JsonWriteRichPresenceObj(char* dest,
                 }
 
                 if ((presence->partyId && presence->partyId[0]) || presence->partySize ||
-                    presence->partyMax) {
+                    presence->partyMax || presence->partyPrivacy) {
                     WriteObject party(writer, "party");
                     WriteOptionalString(writer, "id", presence->partyId);
                     if (presence->partySize && presence->partyMax) {
                         WriteArray size(writer, "size");
                         writer.Int(presence->partySize);
                         writer.Int(presence->partyMax);
+                    }
+
+                    if (presence->partyPrivacy) {
+                        WriteKey(writer, "privacy");
+                        writer.Int(presence->partyPrivacy);
                     }
                 }
 

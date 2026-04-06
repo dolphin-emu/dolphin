@@ -13,6 +13,8 @@ class IRWidget : public QWidget
 public:
   explicit IRWidget(QWidget* parent);
 
+  QSize sizeHint() const override;
+
   static constexpr u16 IR_MIN_X = 0;
   static constexpr u16 IR_MIN_Y = 0;
   static constexpr u16 IR_MAX_X = 1023;

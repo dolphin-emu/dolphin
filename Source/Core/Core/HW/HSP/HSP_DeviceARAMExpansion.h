@@ -7,20 +7,22 @@
 
 namespace HSP
 {
-class CHSPDevice_ARAMExpansion : public IHSPDevice
+class CHSPDevice_ARAMExpansion final : public IHSPDevice
 {
 public:
-  explicit CHSPDevice_ARAMExpansion(HSPDeviceType device);
+  explicit CHSPDevice_ARAMExpansion();
   ~CHSPDevice_ARAMExpansion() override;
 
-  void Write(u32 address, u64 value) override;
-  u64 Read(u32 address) override;
+  HSPDeviceType GetDeviceType() const override { return HSPDeviceType::ARAMExpansion; }
+
+  void Read(u32 address, std::span<u8, TRANSFER_SIZE> data) override;
+  void Write(u32 address, std::span<const u8, TRANSFER_SIZE> data) override;
 
   void DoState(PointerWrap&) override;
 
 private:
-  u32 m_size;
-  u32 m_mask;
-  u8* m_ptr = nullptr;
+  const u32 m_size;
+  const u32 m_mask;
+  u8* const m_ptr = nullptr;
 };
 }  // namespace HSP

@@ -49,9 +49,6 @@ void DSP::Host::CodeLoaded(DSPCore& dsp, const u8* ptr, size_t size)
 void DSP::Host::InterruptRequest()
 {
 }
-void DSP::Host::UpdateDebugger()
-{
-}
 
 static std::string CodeToHeader(const std::vector<u16>& code, const std::string& filename)
 {

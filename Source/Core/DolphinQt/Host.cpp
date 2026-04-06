@@ -8,6 +8,7 @@
 #include <QAbstractEventDispatcher>
 #include <QApplication>
 #include <QLocale>
+#include <QThread>
 
 #include <imgui.h>
 
@@ -15,15 +16,12 @@
 #include <windows.h>
 #endif
 
-#include "Common/Common.h"
-
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/Host.h"
 #include "Core/NetPlayProto.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
 #include "Core/System.h"
 
@@ -106,9 +104,9 @@ static void RunWithGPUThreadInactive(std::function<void()> f)
     auto& system = Core::System::GetInstance();
     const bool was_running = Core::GetState(system) == Core::State::Running;
     auto& fifo = system.GetFifo();
-    fifo.PauseAndLock(true, was_running);
+    fifo.PauseAndLock();
     f();
-    fifo.PauseAndLock(false, was_running);
+    fifo.RestoreState(was_running);
   }
   else
   {
@@ -245,7 +243,8 @@ bool Host_TASInputHasFocus()
 
 void Host_YieldToUI()
 {
-  qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+  if (qApp->thread() == QThread::currentThread())
+    qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
 }
 
 void Host_UpdateDisasmDialog()
@@ -277,13 +276,6 @@ void Host_PPCBreakpointsChanged()
                 [] { emit Host::GetInstance()->PPCBreakpointsChanged(); });
 }
 
-// We ignore these, and their purpose should be questioned individually.
-// In particular, RequestRenderWindowSize, RequestFullscreen, and
-// UpdateMainFrame should almost certainly be removed.
-void Host_UpdateMainFrame()
-{
-}
-
 void Host_RequestRenderWindowSize(int w, int h)
 {
   emit Host::GetInstance()->RequestRenderSize(w, h);
@@ -291,11 +283,9 @@ void Host_RequestRenderWindowSize(int w, int h)
 
 bool Host_UIBlocksControllerState()
 {
-  return ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard;
-}
-
-void Host_RefreshDSPDebuggerWindow()
-{
+  // TODO: Remove the Paused check once async presentation is implemented.
+  return ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard &&
+         Core::GetState(Core::System::GetInstance()) != Core::State::Paused;
 }
 
 void Host_TitleChanged()

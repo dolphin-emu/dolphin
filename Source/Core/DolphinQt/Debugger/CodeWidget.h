@@ -17,6 +17,7 @@ class QSplitter;
 class QListWidget;
 class QPushButton;
 class QTableWidget;
+class QToolButton;
 
 namespace Common
 {
@@ -33,7 +34,7 @@ class CodeWidget : public QDockWidget
   Q_OBJECT
 public:
   explicit CodeWidget(QWidget* parent = nullptr);
-  ~CodeWidget();
+  ~CodeWidget() override;
 
   void Step();
   void StepOver();
@@ -50,6 +51,7 @@ public:
 
   void Update();
   void UpdateSymbols();
+  void ActivateSearchAddress();
 signals:
   void RequestPPCComparison(u32 address, bool translate_address);
   void ShowMemory(u32 address);
@@ -60,11 +62,13 @@ private:
   void UpdateCallstack();
   void UpdateFunctionCalls(const Common::Symbol* symbol);
   void UpdateFunctionCallers(const Common::Symbol* symbol);
+  void UpdateNotes();
 
   void OnPPCSymbolsChanged();
   void OnSearchAddress();
   void OnSearchSymbols();
   void OnSelectSymbol();
+  void OnSelectNote();
   void OnSelectCallstack();
   void OnSelectFunctionCallers();
   void OnSelectFunctionCalls();
@@ -77,12 +81,14 @@ private:
 
   BranchWatchDialog* m_branch_watch_dialog = nullptr;
   QLineEdit* m_search_address;
+  QToolButton* m_lock_btn;
   QPushButton* m_branch_watch;
 
   QLineEdit* m_search_callstack;
   QListWidget* m_callstack_list;
   QLineEdit* m_search_symbols;
   QListWidget* m_symbols_list;
+  QListWidget* m_note_list;
   QLineEdit* m_search_calls;
   QListWidget* m_function_calls_list;
   QLineEdit* m_search_callers;

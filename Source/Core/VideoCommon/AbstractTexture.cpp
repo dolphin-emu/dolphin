@@ -5,14 +5,24 @@
 
 #include <algorithm>
 
+#include <imgui.h>
+
 #include "Common/Assert.h"
 #include "Common/Image.h"
 #include "Common/MsgHandler.h"
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 
+static_assert(std::is_same_v<AbstractTexture::imgui_texture_id, ImTextureID>,
+              "The typedef should match ImTextureID in imgui");
+
 AbstractTexture::AbstractTexture(const TextureConfig& c) : m_config(c)
 {
+}
+
+AbstractTexture::operator ImTextureRef() const
+{
+  return ImTextureRef(reinterpret_cast<AbstractTexture::imgui_texture_id>(this));
 }
 
 void AbstractTexture::FinishedRendering()

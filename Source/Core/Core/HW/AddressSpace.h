@@ -32,7 +32,7 @@ struct Accessors
   virtual u8 ReadU8(const Core::CPUThreadGuard& guard, u32 address) const = 0;
   virtual void WriteU8(const Core::CPUThreadGuard& guard, u32 address, u8 value) = 0;
 
-  // overrideable naive implementations of below are defined
+  // overridable naive implementations of below are defined
   virtual u16 ReadU16(const Core::CPUThreadGuard& guard, u32 address) const;
   virtual void WriteU16(const Core::CPUThreadGuard& guard, u32 address, u16 value);
   virtual u32 ReadU32(const Core::CPUThreadGuard& guard, u32 address) const;

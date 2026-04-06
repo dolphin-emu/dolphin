@@ -12,7 +12,7 @@
 
 namespace Win32TAPHelper
 {
-bool IsTAPDevice(const TCHAR* guid)
+static bool IsTAPDevice(const TCHAR* guid)
 {
   HKEY netcard_key;
   LONG status;
@@ -24,7 +24,7 @@ bool IsTAPDevice(const TCHAR* guid)
   if (status != ERROR_SUCCESS)
     return false;
 
-  for (;;)
+  while (true)
   {
     TCHAR enum_name[256];
     TCHAR unit_string[256];
@@ -88,7 +88,7 @@ bool IsTAPDevice(const TCHAR* guid)
   return false;
 }
 
-bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
+static bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
 {
   LONG status;
   HKEY control_net_key;
@@ -155,7 +155,7 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
   return !guids.empty();
 }
 
-bool OpenTAP(HANDLE& adapter, const std::basic_string<TCHAR>& device_guid)
+static bool OpenTAP(HANDLE& adapter, const std::basic_string<TCHAR>& device_guid)
 {
   auto const device_path = USERMODEDEVICEDIR + device_guid + TAPSUFFIX;
 

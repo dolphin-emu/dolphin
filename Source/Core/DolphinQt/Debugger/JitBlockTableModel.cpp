@@ -5,9 +5,9 @@
 
 #include <array>
 #include <span>
+#include <utility>
 
 #include "Common/Assert.h"
-#include "Common/Unreachable.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
@@ -56,7 +56,7 @@ void JitBlockTableModel::PrefetchSymbols()
   {
     for (const JitBlock& block : m_jit_blocks)
     {
-      m_symbol_list.emplace_back([this, &block]() {
+      m_symbol_list.emplace_back([this, &block] {
         return GetSymbolNameQVariant(m_ppc_symbol_db.GetSymbolFromAddr(block.effectiveAddress));
       });
     }
@@ -236,7 +236,8 @@ QVariant JitBlockTableModel::DisplayRoleData(const QModelIndex& index) const
   case Column::CodeBufferSize:
     return QString::number(jit_block.originalSize * sizeof(UGeckoInstruction));
   case Column::RepeatInstructions:
-    return QString::number(jit_block.originalSize - jit_block.physical_addresses.size());
+    return QString::number(jit_block.originalSize - jit_block.physical_addresses.get_stats().first /
+                                                        sizeof(UGeckoInstruction));
   case Column::HostNearCodeSize:
     return QString::number(jit_block.near_end - jit_block.near_begin);
   case Column::HostFarCodeSize:
@@ -284,7 +285,7 @@ QVariant JitBlockTableModel::DisplayRoleData(const QModelIndex& index) const
   }
   }
   static_assert(Column::NumberOfColumns == 14);
-  Common::Unreachable();
+  std::unreachable();
 }
 
 QVariant JitBlockTableModel::TextAlignmentRoleData(const QModelIndex& index) const
@@ -310,7 +311,7 @@ QVariant JitBlockTableModel::TextAlignmentRoleData(const QModelIndex& index) con
     return QVariant::fromValue(Qt::AlignLeft | Qt::AlignVCenter);
   }
   static_assert(Column::NumberOfColumns == 14);
-  Common::Unreachable();
+  std::unreachable();
 }
 
 QVariant JitBlockTableModel::SortRoleData(const QModelIndex& index) const
@@ -329,7 +330,9 @@ QVariant JitBlockTableModel::SortRoleData(const QModelIndex& index) const
   case Column::CodeBufferSize:
     return static_cast<qulonglong>(jit_block.originalSize);
   case Column::RepeatInstructions:
-    return static_cast<qulonglong>(jit_block.originalSize - jit_block.physical_addresses.size());
+    return static_cast<qulonglong>(jit_block.originalSize -
+                                   jit_block.physical_addresses.get_stats().first /
+                                       sizeof(UGeckoInstruction));
   case Column::HostNearCodeSize:
     return static_cast<qulonglong>(jit_block.near_end - jit_block.near_begin);
   case Column::HostFarCodeSize:
@@ -358,7 +361,7 @@ QVariant JitBlockTableModel::SortRoleData(const QModelIndex& index) const
     return static_cast<double>(profile_data->time_spent.count()) / profile_data->run_count;
   }
   static_assert(Column::NumberOfColumns == 14);
-  Common::Unreachable();
+  std::unreachable();
 }
 
 QVariant JitBlockTableModel::data(const QModelIndex& index, int role) const

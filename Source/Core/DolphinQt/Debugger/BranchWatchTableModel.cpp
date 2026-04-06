@@ -3,15 +3,14 @@
 
 #include "DolphinQt/Debugger/BranchWatchTableModel.h"
 
-#include <algorithm>
 #include <array>
 #include <cstddef>
+#include <utility>
 
 #include <QBrush>
 
 #include "Common/Assert.h"
 #include "Common/GekkoDisassembler.h"
-#include "Common/Unreachable.h"
 #include "Core/Debugger/BranchWatch.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 
@@ -352,7 +351,7 @@ QVariant BranchWatchTableModel::DisplayRoleData(const QModelIndex& index) const
     return QString::number(kv->second.total_hits);
   }
   static_assert(Column::NumberOfColumns == 8);
-  Common::Unreachable();
+  std::unreachable();
 }
 
 QVariant BranchWatchTableModel::FontRoleData(const QModelIndex& index) const
@@ -402,7 +401,7 @@ QVariant BranchWatchTableModel::TextAlignmentRoleData(const QModelIndex& index) 
     return QVariant::fromValue(Qt::AlignLeft | Qt::AlignVCenter);
   }
   static_assert(Column::NumberOfColumns == 8);
-  Common::Unreachable();
+  std::unreachable();
 }
 
 QVariant BranchWatchTableModel::ForegroundRoleData(const QModelIndex& index) const
@@ -495,5 +494,5 @@ QVariant BranchWatchTableModel::SortRoleData(const QModelIndex& index) const
     return qulonglong{kv->second.total_hits};
   }
   static_assert(Column::NumberOfColumns == 8);
-  Common::Unreachable();
+  std::unreachable();
 }

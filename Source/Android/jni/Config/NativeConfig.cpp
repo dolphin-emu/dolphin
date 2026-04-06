@@ -11,7 +11,6 @@
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
-#include "jni/Host.h"
 
 constexpr jint LAYER_BASE_OR_CURRENT = 0;
 constexpr jint LAYER_BASE = 1;
@@ -47,6 +46,10 @@ static Config::Location GetLocation(JNIEnv* env, jstring file, jstring section, 
   else if (decoded_file == "GameSettingsOnly")
   {
     system = Config::System::GameSettingsOnly;
+  }
+  else if (decoded_file == "RetroAchievements")
+  {
+    system = Config::System::Achievements;
   }
   else
   {
@@ -139,10 +142,6 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_unloadGameIn
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_save(
     JNIEnv*, jclass, jint layer)
 {
-  // HostThreadLock is used to ensure we don't try to save to SYSCONF at the same time as
-  // emulation shutdown does
-  HostThreadLock guard;
-
   return GetLayer(layer, {})->Save();
 }
 

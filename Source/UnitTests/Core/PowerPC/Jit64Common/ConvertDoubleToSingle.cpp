@@ -1,23 +1,18 @@
 // Copyright 2019 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <cstring>
-#include <tuple>
-
 #include "Common/CommonTypes.h"
 #include "Common/ScopeGuard.h"
 #include "Common/x64ABI.h"
 #include "Core/Core.h"
-#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
-#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
+#include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 #include "Core/System.h"
 
 #include "../TestValues.h"
 
-#include <fmt/format.h>
 #include <gtest/gtest.h>
 
 namespace
@@ -57,14 +52,15 @@ TEST(Jit64, ConvertDoubleToSingle)
   Core::DeclareAsCPUThread();
   Common::ScopeGuard cpu_thread_guard([] { Core::UndeclareAsCPUThread(); });
 
-  TestCommonAsmRoutines routines(Core::System::GetInstance());
+  const TestCommonAsmRoutines routines(Core::System::GetInstance());
 
   for (const u64 input : double_test_values)
   {
     const u32 expected = ConvertToSingle(input);
     const u32 actual = routines.wrapped_cdts(input);
 
-    fmt::print("{:016x} -> {:08x} == {:08x}\n", input, actual, expected);
+    if (expected != actual)
+      fmt::print("{:016x} -> {:08x} == {:08x}\n", input, actual, expected);
 
     EXPECT_EQ(expected, actual);
   }

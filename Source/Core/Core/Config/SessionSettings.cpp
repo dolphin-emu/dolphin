@@ -4,8 +4,6 @@
 #include "Core/Config/SessionSettings.h"
 
 #include "Common/CPUDetect.h"
-#include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
 
 namespace Config
 {

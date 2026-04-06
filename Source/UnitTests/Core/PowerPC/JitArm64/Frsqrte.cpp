@@ -5,8 +5,8 @@
 #include <functional>
 
 #include "Common/Arm64Emitter.h"
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
+#include "Common/FloatUtils.h"
 #include "Common/ScopeGuard.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
@@ -57,7 +57,7 @@ TEST(JitArm64, Frsqrte)
   Core::DeclareAsCPUThread();
   Common::ScopeGuard cpu_thread_guard([] { Core::UndeclareAsCPUThread(); });
 
-  TestFrsqrte test(Core::System::GetInstance());
+  const TestFrsqrte test(Core::System::GetInstance());
 
   for (const u64 ivalue : double_test_values)
   {

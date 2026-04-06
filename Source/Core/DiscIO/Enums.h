@@ -15,10 +15,11 @@ namespace DiscIO
 enum class Platform
 {
   GameCubeDisc = 0,
+  Triforce,
   WiiDisc,
   WiiWAD,
   ELFOrDOL,
-  NumberOfPlatforms
+  NumberOfPlatforms,
 };
 
 enum class Country
@@ -37,7 +38,7 @@ enum class Country
   Taiwan,
   World,
   Unknown,
-  NumberOfCountries
+  NumberOfCountries,
 };
 
 // This numbering matches Nintendo's GameCube/Wii region numbering.
@@ -47,7 +48,8 @@ enum class Region
   NTSC_U = 1,   // Mainly North America
   PAL = 2,      // Mainly Europe and Oceania
   Unknown = 3,  // Nintendo uses this to mean region free, but we also use it for unknown regions
-  NTSC_K = 4    // South Korea (Wii only)
+  NTSC_K = 4,   // South Korea (Wii only)
+  DEV = 5,      // Triforce has no regions
 };
 
 // Languages 0 - 9 match Nintendo's Wii language numbering.
@@ -65,7 +67,7 @@ enum class Language
   SimplifiedChinese = 7,   // Not selectable on any unmodded retail Wii
   TraditionalChinese = 8,  // Not selectable on any unmodded retail Wii
   Korean = 9,
-  Unknown
+  Unknown,
 };
 
 std::string GetName(Country country, bool translate);

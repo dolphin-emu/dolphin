@@ -9,9 +9,8 @@
 #include <QHBoxLayout>
 #include <QSpacerItem>
 #include <QSpinBox>
+#include <QStyle>
 #include <QVBoxLayout>
-
-#include "Common/CommonTypes.h"
 
 #include "Core/HW/GBAPad.h"
 #include "Core/HW/GBAPadEmu.h"
@@ -71,7 +70,10 @@ GBATASInputWindow::GBATASInputWindow(QWidget* parent, int controller_id)
   layout->addWidget(buttons_box);
   layout->addWidget(m_settings_box);
 
-  setLayout(layout);
+  SetupScrollArea(layout);
+  const QSize hint = m_scroll_widget->sizeHint();
+  const int scrollbar_buffer = style()->pixelMetric(QStyle::PM_ScrollBarExtent) + 10;
+  resize(hint.width() + scrollbar_buffer, hint.height() + scrollbar_buffer);
 }
 
 void GBATASInputWindow::hideEvent(QHideEvent* event)

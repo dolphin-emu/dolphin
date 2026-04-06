@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <chrono>
 #include <cstring>
-#include <memory>
 #include <mutex>
 #include <string>
 #include <string_view>
@@ -26,7 +25,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
-#include "Common/Timer.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SessionSettings.h"
@@ -45,7 +43,7 @@ static std::string GenerateDefaultGCIFilename(const Memcard::DEntry& entry,
 {
   const auto string_decoder = card_encoding_is_shift_jis ? SHIFTJISToUTF8 : CP1252ToUTF8;
   const auto strip_null = [](const std::string_view& s) {
-    auto offset = s.find('\0');
+    const auto offset = s.find('\0');
     if (offset == std::string_view::npos)
       return s;
     return s.substr(0, offset);
@@ -115,7 +113,7 @@ bool GCMemcardDirectory::LoadGCI(Memcard::GCIFile gci)
   }
 
   // actually load save file into memory card
-  int idx = (int)m_saves.size();
+  const int idx = (int)m_saves.size();
   m_dir1.Replace(gci.m_gci_header, idx);
   m_saves.push_back(std::move(gci));
   SetUsedBlocks(idx);
@@ -134,7 +132,7 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
     game_code = Common::swap32(reinterpret_cast<const u8*>(game_id.c_str()));
 
   std::vector<Memcard::DEntry> loaded_saves;
-  for (const std::string& file_name : Common::DoFileSearch({directory}, {".gci"}))
+  for (const std::string& file_name : Common::DoFileSearch(directory, ".gci"))
   {
     File::IOFile gci_file(file_name, "rb");
     if (!gci_file)
@@ -190,7 +188,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, ExpansionIn
   }
 
   const bool current_game_only = Config::Get(Config::SESSION_GCI_FOLDER_CURRENT_GAME_ONLY);
-  std::vector<std::string> filenames = Common::DoFileSearch({m_save_directory}, {".gci"});
+  const std::vector<std::string> filenames = Common::DoFileSearch(m_save_directory, ".gci");
 
   // split up into files for current games we should definitely load,
   // and files for other games that we don't care too much about
@@ -298,8 +296,8 @@ GCMemcardDirectory::~GCMemcardDirectory()
 
 s32 GCMemcardDirectory::Read(u32 src_address, s32 length, u8* dest_address)
 {
-  s32 block = src_address / Memcard::BLOCK_SIZE;
-  u32 offset = src_address % Memcard::BLOCK_SIZE;
+  const s32 block = src_address / Memcard::BLOCK_SIZE;
+  const u32 offset = src_address % Memcard::BLOCK_SIZE;
   s32 extra = 0;  // used for read calls that are across multiple blocks
 
   if (offset + length > Memcard::BLOCK_SIZE)
@@ -358,8 +356,8 @@ s32 GCMemcardDirectory::Write(u32 dest_address, s32 length, const u8* src_addres
   std::unique_lock l(m_write_mutex);
   if (length != 0x80)
     INFO_LOG_FMT(EXPANSIONINTERFACE, "Writing to {:#x}. Length: {:#x}", dest_address, length);
-  s32 block = dest_address / Memcard::BLOCK_SIZE;
-  u32 offset = dest_address % Memcard::BLOCK_SIZE;
+  const s32 block = dest_address / Memcard::BLOCK_SIZE;
+  const u32 offset = dest_address % Memcard::BLOCK_SIZE;
   s32 extra = 0;  // used for write calls that are across multiple blocks
 
   if (offset + length > Memcard::BLOCK_SIZE)
@@ -386,7 +384,7 @@ s32 GCMemcardDirectory::Write(u32 dest_address, s32 length, const u8* src_addres
       s32 bytes_written = 0;
       while (length > 0)
       {
-        s32 to_write = std::min<s32>(Memcard::DENTRY_SIZE, length);
+        const s32 to_write = std::min<s32>(Memcard::DENTRY_SIZE, length);
         bytes_written +=
             DirectoryWrite(dest_address + bytes_written, to_write, src_address + bytes_written);
         length -= to_write;
@@ -536,7 +534,7 @@ inline s32 GCMemcardDirectory::SaveAreaRW(u32 block, bool writing)
         SetUsedBlocks(i);
       }
 
-      int idx = m_saves[i].UsesBlock(block);
+      const int idx = m_saves[i].UsesBlock(block);
       if (idx != -1)
       {
         if (!m_saves[i].LoadSaveBlocks())
@@ -565,17 +563,17 @@ inline s32 GCMemcardDirectory::SaveAreaRW(u32 block, bool writing)
 
 s32 GCMemcardDirectory::DirectoryWrite(u32 dest_address, u32 length, const u8* src_address)
 {
-  u32 block = dest_address / Memcard::BLOCK_SIZE;
-  u32 offset = dest_address % Memcard::BLOCK_SIZE;
+  const u32 block = dest_address / Memcard::BLOCK_SIZE;
+  const u32 offset = dest_address % Memcard::BLOCK_SIZE;
   Memcard::Directory* dest = (block == 1) ? &m_dir1 : &m_dir2;
-  u16 Dnum = offset / Memcard::DENTRY_SIZE;
+  const u16 Dnum = offset / Memcard::DENTRY_SIZE;
 
   if (Dnum == Memcard::DIRLEN)
   {
     // first 58 bytes should always be 0xff
     // needed to update the update ctr, checksums
     // could check for writes to the 6 important bytes but doubtful that it improves performance
-    // noticably
+    // noticeably
     memcpy((u8*)(dest) + offset, src_address, length);
     SyncSaves();
   }

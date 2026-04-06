@@ -16,12 +16,13 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
-#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
 #include "Core/AchievementManager.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
+#include "Core/Core.h"
+#include "Core/System.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
@@ -31,8 +32,6 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
-
-#include "UICommon/GameFile.h"
 
 static ConfigStringChoice* MakeLanguageComboBox()
 {
@@ -95,6 +94,10 @@ InterfacePane::InterfacePane(QWidget* parent) : QWidget(parent)
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           &InterfacePane::UpdateShowDebuggingCheckbox);
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          &InterfacePane::OnEmulationStateChanged);
+
+  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()));
 }
 
 void InterfacePane::CreateLayout()
@@ -125,9 +128,9 @@ void InterfacePane::CreateUI()
   m_combobox_language = MakeLanguageComboBox();
   combobox_layout->addRow(tr("&Language:"), m_combobox_language);
 
-  // List avalable themes
-  auto theme_paths =
-      Common::DoFileSearch({File::GetUserPath(D_THEMES_IDX), File::GetSysDirectory() + THEMES_DIR});
+  // List available themes
+  auto theme_paths = Common::DoFileSearch(
+      {{File::GetUserPath(D_THEMES_IDX), File::GetSysDirectory() + THEMES_DIR}});
   std::vector<std::string> theme_names;
   theme_names.reserve(theme_paths.size());
   std::ranges::transform(theme_paths, std::back_inserter(theme_names), PathToFileName);
@@ -141,7 +144,7 @@ void InterfacePane::CreateUI()
   m_label_userstyle = new QLabel(tr("Style:"));
   combobox_layout->addRow(m_label_userstyle, m_combobox_userstyle);
 
-  auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
+  auto userstyle_search_results = Common::DoFileSearch(File::GetUserPath(D_STYLES_IDX));
 
   m_combobox_userstyle->addItem(tr("(System)"), static_cast<int>(Settings::StyleType::System));
 
@@ -150,6 +153,13 @@ void InterfacePane::CreateUI()
   m_combobox_userstyle->addItem(tr("(Light)"), static_cast<int>(Settings::StyleType::Light));
   m_combobox_userstyle->addItem(tr("(Dark)"), static_cast<int>(Settings::StyleType::Dark));
 #endif
+
+  m_combobox_userstyle->addItem(tr("(Fusion Light)"),
+                                static_cast<int>(Settings::StyleType::FusionLight));
+  m_combobox_userstyle->addItem(tr("(Fusion Dark Gray)"),
+                                static_cast<int>(Settings::StyleType::FusionDarkGray));
+  m_combobox_userstyle->addItem(tr("(Fusion Dark)"),
+                                static_cast<int>(Settings::StyleType::FusionDark));
 
   for (const std::string& path : userstyle_search_results)
   {
@@ -168,12 +178,15 @@ void InterfacePane::CreateUI()
       new ConfigBool(tr("Hotkeys Require Window Focus"), Config::MAIN_FOCUSED_HOTKEYS);
   m_checkbox_disable_screensaver =
       new ConfigBool(tr("Inhibit Screensaver During Emulation"), Config::MAIN_DISABLE_SCREENSAVER);
+  m_checkbox_time_tracking =
+      new ConfigBool(tr("Enable Play Time Tracking"), Config::MAIN_TIME_TRACKING);
 
   groupbox_layout->addWidget(m_checkbox_use_builtin_title_database);
   groupbox_layout->addWidget(m_checkbox_use_covers);
   groupbox_layout->addWidget(m_checkbox_show_debugging_ui);
   groupbox_layout->addWidget(m_checkbox_focused_hotkeys);
   groupbox_layout->addWidget(m_checkbox_disable_screensaver);
+  groupbox_layout->addWidget(m_checkbox_time_tracking);
 }
 
 void InterfacePane::CreateInGame()
@@ -187,8 +200,6 @@ void InterfacePane::CreateInGame()
   m_checkbox_confirm_on_stop = new ConfigBool(tr("Confirm on Stop"), Config::MAIN_CONFIRM_ON_STOP);
   m_checkbox_use_panic_handlers =
       new ConfigBool(tr("Use Panic Handlers"), Config::MAIN_USE_PANIC_HANDLERS);
-  m_checkbox_enable_osd =
-      new ConfigBool(tr("Show On-Screen Display Messages"), Config::MAIN_OSD_MESSAGES);
   m_checkbox_show_active_title =
       new ConfigBool(tr("Show Active Title in Window Title"), Config::MAIN_SHOW_ACTIVE_TITLE);
   m_checkbox_pause_on_focus_lost =
@@ -218,7 +229,6 @@ void InterfacePane::CreateInGame()
   groupbox_layout->addWidget(m_checkbox_top_window);
   groupbox_layout->addWidget(m_checkbox_confirm_on_stop);
   groupbox_layout->addWidget(m_checkbox_use_panic_handlers);
-  groupbox_layout->addWidget(m_checkbox_enable_osd);
   groupbox_layout->addWidget(m_checkbox_show_active_title);
   groupbox_layout->addWidget(m_checkbox_pause_on_focus_lost);
   groupbox_layout->addWidget(mouse_groupbox);
@@ -313,6 +323,12 @@ void InterfacePane::OnLanguageChanged()
       tr("You must restart Dolphin in order for the change to take effect."));
 }
 
+void InterfacePane::OnEmulationStateChanged(Core::State state)
+{
+  const bool uninitialized = state == Core::State::Uninitialized;
+  m_checkbox_time_tracking->setEnabled(uninitialized);
+}
+
 void InterfacePane::AddDescriptions()
 {
   static constexpr char TR_TITLE_DATABASE_DESCRIPTION[] = QT_TR_NOOP(
@@ -341,6 +357,10 @@ void InterfacePane::AddDescriptions()
   static constexpr char TR_DISABLE_SCREENSAVER_DESCRIPTION[] =
       QT_TR_NOOP("Disables your screensaver while running a game."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
+  static constexpr char TR_TIME_TRACKING[] = QT_TR_NOOP(
+      "Tracks the time you spend playing games and shows it in the List View (as hours/minutes)."
+      "<br><br>This setting cannot be changed while emulation is active."
+      "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static constexpr char TR_CONFIRM_ON_STOP_DESCRIPTION[] =
       QT_TR_NOOP("Prompts you to confirm that you want to end emulation when you press Stop."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
@@ -348,10 +368,6 @@ void InterfacePane::AddDescriptions()
       QT_TR_NOOP("In the event of an error, Dolphin will halt to inform you of the error and "
                  "present choices on how to proceed. With this option disabled, Dolphin will "
                  "\"ignore\" all errors. Emulation will not be halted and you will not be notified."
-                 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
-  static constexpr char TR_ENABLE_OSD_DESCRIPTION[] =
-      QT_TR_NOOP("Shows on-screen display messages over the render window. These messages "
-                 "disappear after several seconds."
                  "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static constexpr char TR_SHOW_ACTIVE_TITLE_DESCRIPTION[] =
       QT_TR_NOOP("Shows the active game title in the render window's title bar."
@@ -394,11 +410,11 @@ void InterfacePane::AddDescriptions()
 
   m_checkbox_disable_screensaver->SetDescription(tr(TR_DISABLE_SCREENSAVER_DESCRIPTION));
 
+  m_checkbox_time_tracking->SetDescription(tr(TR_TIME_TRACKING));
+
   m_checkbox_confirm_on_stop->SetDescription(tr(TR_CONFIRM_ON_STOP_DESCRIPTION));
 
   m_checkbox_use_panic_handlers->SetDescription(tr(TR_USE_PANIC_HANDLERS_DESCRIPTION));
-
-  m_checkbox_enable_osd->SetDescription(tr(TR_ENABLE_OSD_DESCRIPTION));
 
   m_checkbox_show_active_title->SetDescription(tr(TR_SHOW_ACTIVE_TITLE_DESCRIPTION));
 

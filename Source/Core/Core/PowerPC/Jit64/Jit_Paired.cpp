@@ -5,8 +5,6 @@
 
 #include <optional>
 
-#include "Common/CPUDetect.h"
-#include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
@@ -100,12 +98,19 @@ void Jit64::ps_muls(UGeckoInstruction inst)
   default:
     PanicAlertFmt("ps_muls WTF!!!");
   }
+
   if (round_input)
     Force25BitPrecision(XMM1, R(Rc_duplicated), XMM0);
   else if (XMM1 != Rc_duplicated)
     MOVAPD(XMM1, Rc_duplicated);
   MULPD(XMM1, Ra);
-  HandleNaNs(inst, XMM1, XMM0, Ra, std::nullopt, Rc_duplicated);
+
+  if (m_accurate_nans)
+  {
+    const FixupBranch handled_nans = HandleNaNs(inst, XMM1, XMM0, Ra, std::nullopt, Rc_duplicated);
+    SetJumpTarget(handled_nans);
+  }
+
   FinalizeSingleResult(Rd, R(XMM1));
 }
 

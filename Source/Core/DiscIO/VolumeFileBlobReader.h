@@ -20,6 +20,7 @@ class VolumeFileBlobReader final : public BlobReader
 public:
   static std::unique_ptr<VolumeFileBlobReader>
   Create(const Volume& volume, const Partition& partition, std::string_view file_path);
+  ~VolumeFileBlobReader();
 
   BlobType GetBlobType() const override { return BlobType::PLAIN; }
   std::unique_ptr<BlobReader> CopyReader() const override;

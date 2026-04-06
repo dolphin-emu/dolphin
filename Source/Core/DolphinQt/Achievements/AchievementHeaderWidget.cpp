@@ -15,10 +15,8 @@
 
 #include "Core/AchievementManager.h"
 #include "Core/Config/AchievementSettings.h"
-#include "Core/Core.h"
 
 #include "DolphinQt/QtUtils/FromStdString.h"
-#include "DolphinQt/Settings.h"
 
 AchievementHeaderWidget::AchievementHeaderWidget(QWidget* parent) : QWidget(parent)
 {

@@ -1,0 +1,10 @@
+TITLES = (type: Triforce language: EN version: 20210908)
+S000 = Triforce Firmware Update For Compact Flash Box (4.01)
+SBEY = Virtua Striker 2002
+SBFX = The Key Of Avalon
+SBGG = F-Zero AX
+SBHZ = Virtua Striker 4 (Asia)
+SBJA = Virtua Striker 4 (Export)
+SBJN = The Key Of Avalon 2.5: War of the Key
+SBLK = Virtua Striker 4 Ver.2006 (Japan)
+SBLL = Virtua Striker 4 Ver.2006 (Export)

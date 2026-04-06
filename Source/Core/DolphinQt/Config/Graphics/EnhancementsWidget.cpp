@@ -3,7 +3,7 @@
 
 #include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
 
-#include <cmath>
+#include <utility>
 
 #include <QGridLayout>
 #include <QGroupBox>
@@ -14,63 +14,48 @@
 #include "Common/CommonTypes.h"
 
 #include "Core/Config/GraphicsSettings.h"
-#include "Core/ConfigManager.h"
 
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
-#include "DolphinQt/Config/ConfigControls/ConfigRadio.h"
-#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
+#include "DolphinQt/Config/ConfigControls/ConfigFloatSlider.h"
 #include "DolphinQt/Config/GameConfigWidget.h"
 #include "DolphinQt/Config/Graphics/ColorCorrectionConfigWindow.h"
-#include "DolphinQt/Config/Graphics/GraphicsWindow.h"
+#include "DolphinQt/Config/Graphics/GraphicsPane.h"
 #include "DolphinQt/Config/Graphics/PostProcessingConfigWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipPushButton.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
-#include "DolphinQt/QtUtils/SetWindowDecorations.h"
-#include "DolphinQt/Settings.h"
 
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
-EnhancementsWidget::EnhancementsWidget(GraphicsWindow* parent)
+EnhancementsWidget::EnhancementsWidget(GraphicsPane* gfx_pane)
+    : m_game_layer{gfx_pane->GetConfigLayer()}
 {
   CreateWidgets();
-  LoadPPShaders();
+  LoadPostProcessingShaders();
   ConnectWidgets();
   AddDescriptions();
 
   // BackendChanged is called by parent on window creation.
-  connect(parent, &GraphicsWindow::BackendChanged, this, &EnhancementsWidget::OnBackendChanged);
-  connect(parent, &GraphicsWindow::UseFastTextureSamplingChanged, this, [this]() {
+  connect(gfx_pane, &GraphicsPane::BackendChanged, this, &EnhancementsWidget::OnBackendChanged);
+  connect(gfx_pane, &GraphicsPane::UseFastTextureSamplingChanged, this, [this] {
     m_texture_filtering_combo->setEnabled(ReadSetting(Config::GFX_HACK_FAST_TEXTURE_SAMPLING));
   });
-  connect(parent, &GraphicsWindow::UseGPUTextureDecodingChanged, this, [this]() {
+  connect(gfx_pane, &GraphicsPane::UseGPUTextureDecodingChanged, this, [this] {
     m_arbitrary_mipmap_detection->setEnabled(!ReadSetting(Config::GFX_ENABLE_GPU_TEXTURE_DECODING));
   });
 }
 
-EnhancementsWidget::EnhancementsWidget(GameConfigWidget* parent, Config::Layer* layer)
-    : m_game_layer(layer)
-{
-  CreateWidgets();
-  LoadPPShaders();
-  ConnectWidgets();
-  AddDescriptions();
-
-  connect(&Settings::Instance(), &Settings::ConfigChanged, this,
-          &EnhancementsWidget::OnConfigChanged);
-}
-
-constexpr int ANISO_DEFAULT = 0;
-constexpr int ANISO_2X = 1;
-constexpr int ANISO_4X = 2;
-constexpr int ANISO_8X = 3;
-constexpr int ANISO_16X = 4;
-constexpr int FILTERING_DEFAULT = 0;
-constexpr int FILTERING_NEAREST = 1;
-constexpr int FILTERING_LINEAR = 2;
+constexpr int ANISO_1x = std::to_underlying(AnisotropicFilteringMode::Force1x);
+constexpr int ANISO_2X = std::to_underlying(AnisotropicFilteringMode::Force2x);
+constexpr int ANISO_4X = std::to_underlying(AnisotropicFilteringMode::Force4x);
+constexpr int ANISO_8X = std::to_underlying(AnisotropicFilteringMode::Force8x);
+constexpr int ANISO_16X = std::to_underlying(AnisotropicFilteringMode::Force16x);
+constexpr int FILTERING_DEFAULT = std::to_underlying(TextureFilteringMode::Default);
+constexpr int FILTERING_NEAREST = std::to_underlying(TextureFilteringMode::Nearest);
+constexpr int FILTERING_LINEAR = std::to_underlying(TextureFilteringMode::Linear);
 
 void EnhancementsWidget::CreateWidgets()
 {
@@ -122,20 +107,22 @@ void EnhancementsWidget::CreateWidgets()
   m_ir_combo = new ConfigChoice(resolution_options, Config::GFX_EFB_SCALE, m_game_layer);
   m_ir_combo->setMaxVisibleItems(visible_resolution_option_count);
 
-  m_aa_combo = new ConfigComplexChoice(Config::GFX_MSAA, Config::GFX_SSAA, m_game_layer);
-  m_aa_combo->Add(tr("None"), (u32)1, false);
+  m_antialiasing_combo = new ConfigComplexChoice(Config::GFX_MSAA, Config::GFX_SSAA, m_game_layer);
+  m_antialiasing_combo->Add(tr("None"), (u32)1, false);
 
   m_texture_filtering_combo =
       new ConfigComplexChoice(Config::GFX_ENHANCE_MAX_ANISOTROPY,
                               Config::GFX_ENHANCE_FORCE_TEXTURE_FILTERING, m_game_layer);
 
-  m_texture_filtering_combo->Add(tr("Default"), ANISO_DEFAULT, FILTERING_DEFAULT);
+  m_texture_filtering_combo->Add(tr("Default"), Config::DefaultState{}, FILTERING_DEFAULT);
+  m_texture_filtering_combo->Add(tr("1x Anisotropic"), ANISO_1x, FILTERING_DEFAULT);
   m_texture_filtering_combo->Add(tr("2x Anisotropic"), ANISO_2X, FILTERING_DEFAULT);
   m_texture_filtering_combo->Add(tr("4x Anisotropic"), ANISO_4X, FILTERING_DEFAULT);
   m_texture_filtering_combo->Add(tr("8x Anisotropic"), ANISO_8X, FILTERING_DEFAULT);
   m_texture_filtering_combo->Add(tr("16x Anisotropic"), ANISO_16X, FILTERING_DEFAULT);
-  m_texture_filtering_combo->Add(tr("Force Nearest"), ANISO_DEFAULT, FILTERING_NEAREST);
-  m_texture_filtering_combo->Add(tr("Force Linear"), ANISO_DEFAULT, FILTERING_LINEAR);
+  m_texture_filtering_combo->Add(tr("Force Nearest and 1x Anisotropic "), ANISO_1x,
+                                 FILTERING_NEAREST);
+  m_texture_filtering_combo->Add(tr("Force Linear and 1x Anisotropic"), ANISO_1x, FILTERING_LINEAR);
   m_texture_filtering_combo->Add(tr("Force Linear and 2x Anisotropic"), ANISO_2X, FILTERING_LINEAR);
   m_texture_filtering_combo->Add(tr("Force Linear and 4x Anisotropic"), ANISO_4X, FILTERING_LINEAR);
   m_texture_filtering_combo->Add(tr("Force Linear and 8x Anisotropic"), ANISO_8X, FILTERING_LINEAR);
@@ -151,10 +138,14 @@ void EnhancementsWidget::CreateWidgets()
 
   m_configure_color_correction = new ToolTipPushButton(tr("Configure"));
 
-  m_pp_effect = new ConfigStringChoice(VideoCommon::PostProcessing::GetShaderList(),
-                                       Config::GFX_ENHANCE_POST_SHADER, m_game_layer);
-  m_configure_pp_effect = new NonDefaultQPushButton(tr("Configure"));
-  m_configure_pp_effect->setDisabled(true);
+  // The post-processing effect "(off)" has the config value "", so we need to use the constructor
+  // that sets ConfigStringChoice's m_text_is_data to false. m_post_processing_effect is cleared in
+  // LoadPostProcessingShaders so it's pointless to fill it with real data here.
+  const std::vector<std::pair<QString, QString>> separate_data_and_text;
+  m_post_processing_effect =
+      new ConfigStringChoice(separate_data_and_text, Config::GFX_ENHANCE_POST_SHADER, m_game_layer);
+  m_configure_post_processing_effect = new NonDefaultQPushButton(tr("Configure"));
+  m_configure_post_processing_effect->setDisabled(true);
 
   m_scaled_efb_copy =
       new ConfigBool(tr("Scaled EFB Copy"), Config::GFX_HACK_COPY_EFB_SCALED, m_game_layer);
@@ -180,7 +171,7 @@ void EnhancementsWidget::CreateWidgets()
   ++row;
 
   enhancements_layout->addWidget(new QLabel(tr("Anti-Aliasing:")), row, 0);
-  enhancements_layout->addWidget(m_aa_combo, row, 1, 1, -1);
+  enhancements_layout->addWidget(m_antialiasing_combo, row, 1, 1, -1);
   ++row;
 
   enhancements_layout->addWidget(new QLabel(tr("Texture Filtering:")), row, 0);
@@ -196,8 +187,8 @@ void EnhancementsWidget::CreateWidgets()
   ++row;
 
   enhancements_layout->addWidget(new QLabel(tr("Post-Processing Effect:")), row, 0);
-  enhancements_layout->addWidget(m_pp_effect, row, 1);
-  enhancements_layout->addWidget(m_configure_pp_effect, row, 2);
+  enhancements_layout->addWidget(m_post_processing_effect, row, 1);
+  enhancements_layout->addWidget(m_configure_post_processing_effect, row, 2);
   ++row;
 
   enhancements_layout->addWidget(m_scaled_efb_copy, row, 0);
@@ -224,10 +215,12 @@ void EnhancementsWidget::CreateWidgets()
   m_3d_mode = new ConfigChoice({tr("Off"), tr("Side-by-Side"), tr("Top-and-Bottom"), tr("Anaglyph"),
                                 tr("HDMI 3D"), tr("Passive")},
                                Config::GFX_STEREO_MODE, m_game_layer);
-  m_3d_depth =
-      new ConfigSlider(0, Config::GFX_STEREO_DEPTH_MAXIMUM, Config::GFX_STEREO_DEPTH, m_game_layer);
-  m_3d_convergence = new ConfigSlider(0, Config::GFX_STEREO_CONVERGENCE_MAXIMUM,
-                                      Config::GFX_STEREO_CONVERGENCE, m_game_layer, 100);
+  m_3d_depth = new ConfigFloatSlider(0, Config::GFX_STEREO_DEPTH_MAXIMUM, Config::GFX_STEREO_DEPTH,
+                                     1.0f, m_game_layer);
+  m_3d_convergence = new ConfigFloatSlider(0, Config::GFX_STEREO_CONVERGENCE_MAXIMUM,
+                                           Config::GFX_STEREO_CONVERGENCE, 0.01f, m_game_layer);
+  m_3d_depth_value = new QLabel();
+  m_3d_convergence_value = new QLabel();
 
   m_3d_swap_eyes = new ConfigBool(tr("Swap Eyes"), Config::GFX_STEREO_SWAP_EYES, m_game_layer);
 
@@ -236,12 +229,17 @@ void EnhancementsWidget::CreateWidgets()
 
   stereoscopy_layout->addWidget(new QLabel(tr("Stereoscopic 3D Mode:")), 0, 0);
   stereoscopy_layout->addWidget(m_3d_mode, 0, 1);
-  stereoscopy_layout->addWidget(new ConfigSliderLabel(tr("Depth:"), m_3d_depth), 1, 0);
+  stereoscopy_layout->addWidget(new ConfigFloatLabel(tr("Depth:"), m_3d_depth), 1, 0);
   stereoscopy_layout->addWidget(m_3d_depth, 1, 1);
-  stereoscopy_layout->addWidget(new ConfigSliderLabel(tr("Convergence:"), m_3d_convergence), 2, 0);
+  stereoscopy_layout->addWidget(m_3d_depth_value, 1, 2);
+  stereoscopy_layout->addWidget(new ConfigFloatLabel(tr("Convergence:"), m_3d_convergence), 2, 0);
   stereoscopy_layout->addWidget(m_3d_convergence, 2, 1);
+  stereoscopy_layout->addWidget(m_3d_convergence_value, 2, 2);
   stereoscopy_layout->addWidget(m_3d_swap_eyes, 3, 0);
   stereoscopy_layout->addWidget(m_3d_per_eye_resolution, 4, 0);
+
+  m_3d_depth_value->setText(QString::asprintf("%.0f", m_3d_depth->GetValue()));
+  m_3d_convergence_value->setText(QString::asprintf("%.2f", m_3d_convergence->GetValue()));
 
   auto current_stereo_mode = ReadSetting(Config::GFX_STEREO_MODE);
   if (current_stereo_mode != StereoMode::SBS && current_stereo_mode != StereoMode::TAB)
@@ -258,7 +256,7 @@ void EnhancementsWidget::ConnectWidgets()
 {
   connect(m_3d_mode, &QComboBox::currentIndexChanged, [this] {
     auto current_stereo_mode = ReadSetting(Config::GFX_STEREO_MODE);
-    LoadPPShaders();
+    LoadPostProcessingShaders();
 
     if (current_stereo_mode == StereoMode::SBS || current_stereo_mode == StereoMode::TAB)
       m_3d_per_eye_resolution->show();
@@ -266,12 +264,19 @@ void EnhancementsWidget::ConnectWidgets()
       m_3d_per_eye_resolution->hide();
   });
 
-  connect(m_pp_effect, &QComboBox::currentIndexChanged, this, &EnhancementsWidget::ShaderChanged);
+  connect(m_post_processing_effect, &QComboBox::currentIndexChanged, this,
+          &EnhancementsWidget::ShaderChanged);
 
   connect(m_configure_color_correction, &QPushButton::clicked, this,
           &EnhancementsWidget::ConfigureColorCorrection);
-  connect(m_configure_pp_effect, &QPushButton::clicked, this,
+  connect(m_configure_post_processing_effect, &QPushButton::clicked, this,
           &EnhancementsWidget::ConfigurePostProcessingShader);
+
+  connect(m_3d_depth, &ConfigFloatSlider::valueChanged, this,
+          [this] { m_3d_depth_value->setText(QString::asprintf("%.0f", m_3d_depth->GetValue())); });
+  connect(m_3d_convergence, &ConfigFloatSlider::valueChanged, this, [this] {
+    m_3d_convergence_value->setText(QString::asprintf("%.2f", m_3d_convergence->GetValue()));
+  });
 }
 
 template <typename T>
@@ -283,12 +288,12 @@ T EnhancementsWidget::ReadSetting(const Config::Info<T>& setting) const
     return Config::Get(setting);
 }
 
-void EnhancementsWidget::LoadPPShaders()
+void EnhancementsWidget::LoadPostProcessingShaders()
 {
   auto stereo_mode = ReadSetting(Config::GFX_STEREO_MODE);
 
-  const QSignalBlocker blocker(m_pp_effect);
-  m_pp_effect->clear();
+  const QSignalBlocker blocker(m_post_processing_effect);
+  m_post_processing_effect->clear();
 
   // Get shader list
   std::vector<std::string> shaders = VideoCommon::PostProcessing::GetShaderList();
@@ -300,7 +305,7 @@ void EnhancementsWidget::LoadPPShaders()
 
   // Populate widget
   if (stereo_mode != StereoMode::Anaglyph && stereo_mode != StereoMode::Passive)
-    m_pp_effect->addItem(tr("(off)"));
+    m_post_processing_effect->addItem(tr("(off)"), QStringLiteral(""));
 
   auto selected_shader = ReadSetting(Config::GFX_ENHANCE_POST_SHADER);
 
@@ -308,10 +313,11 @@ void EnhancementsWidget::LoadPPShaders()
 
   for (const auto& shader : shaders)
   {
-    m_pp_effect->addItem(QString::fromStdString(shader));
+    const QString name = QString::fromStdString(shader);
+    m_post_processing_effect->addItem(name, name);
     if (selected_shader == shader)
     {
-      m_pp_effect->setCurrentIndex(m_pp_effect->count() - 1);
+      m_post_processing_effect->setCurrentIndex(m_post_processing_effect->count() - 1);
       found = true;
     }
   }
@@ -326,52 +332,50 @@ void EnhancementsWidget::LoadPPShaders()
     else
       selected_shader = "";
 
-    int index = m_pp_effect->findText(QString::fromStdString(selected_shader));
-    if (index >= 0)
-      m_pp_effect->setCurrentIndex(index);
-    else
-      m_pp_effect->setCurrentIndex(0);
+    const int index =
+        std::max(0, m_post_processing_effect->findData(QString::fromStdString(selected_shader)));
+    m_post_processing_effect->setCurrentIndex(index);
 
     // Save forced shader, but avoid forcing an option into a game ini layer.
     if (m_game_layer == nullptr && ReadSetting(Config::GFX_ENHANCE_POST_SHADER) != selected_shader)
       Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER, selected_shader);
   }
 
-  m_pp_effect->Load();
+  m_post_processing_effect->Load();
   ShaderChanged();
 }
 
 void EnhancementsWidget::OnBackendChanged()
 {
-  m_output_resampling_combo->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
-  m_configure_color_correction->setEnabled(g_Config.backend_info.bSupportsPostProcessing);
-  m_hdr->setEnabled(g_Config.backend_info.bSupportsHDROutput);
+  m_output_resampling_combo->setEnabled(g_backend_info.bSupportsPostProcessing);
+  m_configure_color_correction->setEnabled(g_backend_info.bSupportsPostProcessing);
+  m_hdr->setEnabled(g_backend_info.bSupportsHDROutput);
 
   // Stereoscopy
-  const bool supports_stereoscopy = g_Config.backend_info.bSupportsGeometryShaders;
+  const bool supports_stereoscopy = g_backend_info.bSupportsGeometryShaders;
   m_3d_mode->setEnabled(supports_stereoscopy);
   m_3d_convergence->setEnabled(supports_stereoscopy);
   m_3d_depth->setEnabled(supports_stereoscopy);
   m_3d_swap_eyes->setEnabled(supports_stereoscopy);
 
   // PostProcessing
-  const bool supports_postprocessing = g_Config.backend_info.bSupportsPostProcessing;
+  const bool supports_postprocessing = g_backend_info.bSupportsPostProcessing;
   if (!supports_postprocessing)
   {
-    m_configure_pp_effect->setEnabled(false);
-    m_pp_effect->setEnabled(false);
-    m_pp_effect->setToolTip(
+    m_configure_post_processing_effect->setEnabled(false);
+    m_post_processing_effect->setEnabled(false);
+    m_post_processing_effect->setToolTip(
         tr("%1 doesn't support this feature.").arg(tr(g_video_backend->GetDisplayName().c_str())));
   }
-  else if (!m_pp_effect->isEnabled() && supports_postprocessing)
+  else if (!m_post_processing_effect->isEnabled() && supports_postprocessing)
   {
-    m_configure_pp_effect->setEnabled(true);
-    m_pp_effect->setEnabled(true);
-    m_pp_effect->setToolTip(QString{});
-    LoadPPShaders();
+    m_configure_post_processing_effect->setEnabled(true);
+    m_post_processing_effect->setEnabled(true);
+    m_post_processing_effect->setToolTip(QString{});
+    LoadPostProcessingShaders();
   }
 
-  UpdateAAOptions();
+  UpdateAntialiasingOptions();
 }
 
 void EnhancementsWidget::ShaderChanged()
@@ -390,15 +394,15 @@ void EnhancementsWidget::ShaderChanged()
       Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER, shader);
   }
 
-  if (shader != "" && m_pp_effect->isEnabled())
+  if (shader != "" && m_post_processing_effect->isEnabled())
   {
     VideoCommon::PostProcessingConfiguration pp_shader;
     pp_shader.LoadShader(shader);
-    m_configure_pp_effect->setEnabled(pp_shader.HasOptions());
+    m_configure_post_processing_effect->setEnabled(pp_shader.HasOptions());
   }
   else
   {
-    m_configure_pp_effect->setEnabled(false);
+    m_configure_post_processing_effect->setEnabled(false);
   }
 }
 
@@ -408,36 +412,36 @@ void EnhancementsWidget::OnConfigChanged()
   // being global.
   m_texture_filtering_combo->setEnabled(ReadSetting(Config::GFX_HACK_FAST_TEXTURE_SAMPLING));
   m_arbitrary_mipmap_detection->setEnabled(!ReadSetting(Config::GFX_ENABLE_GPU_TEXTURE_DECODING));
-  UpdateAAOptions();
+  UpdateAntialiasingOptions();
 
   // Needs to update after deleting a key for 3d settings.
-  LoadPPShaders();
+  LoadPostProcessingShaders();
 }
 
-void EnhancementsWidget::UpdateAAOptions()
+void EnhancementsWidget::UpdateAntialiasingOptions()
 {
-  const QSignalBlocker blocker_aa(m_aa_combo);
+  const QSignalBlocker blocker(m_antialiasing_combo);
 
-  m_aa_combo->Reset();
-  m_aa_combo->Add(tr("None"), (u32)1, false);
+  m_antialiasing_combo->Reset();
+  m_antialiasing_combo->Add(tr("None"), (u32)1, false);
 
-  std::vector<u32> aa_modes = g_Config.backend_info.AAModes;
+  const std::vector<u32>& aa_modes = g_backend_info.AAModes;
   for (const u32 aa_mode : aa_modes)
   {
     if (aa_mode > 1)
-      m_aa_combo->Add(tr("%1x MSAA").arg(aa_mode), aa_mode, false);
+      m_antialiasing_combo->Add(tr("%1x MSAA").arg(aa_mode), aa_mode, false);
   }
 
-  if (g_Config.backend_info.bSupportsSSAA)
+  if (g_backend_info.bSupportsSSAA)
   {
     for (const u32 aa_mode : aa_modes)
     {
       if (aa_mode > 1)
-        m_aa_combo->Add(tr("%1x SSAA").arg(aa_mode), aa_mode, true);
+        m_antialiasing_combo->Add(tr("%1x SSAA").arg(aa_mode), aa_mode, true);
     }
   }
 
-  m_aa_combo->Refresh();
+  m_antialiasing_combo->Refresh();
 
   // Backend info can't be populated in the local game settings window. Only enable local game AA
   // edits when the backend info is correct - global and local have the same backend.
@@ -445,7 +449,7 @@ void EnhancementsWidget::UpdateAAOptions()
       m_game_layer == nullptr || !m_game_layer->Exists(Config::MAIN_GFX_BACKEND.GetLocation()) ||
       Config::Get(Config::MAIN_GFX_BACKEND) == m_game_layer->Get(Config::MAIN_GFX_BACKEND);
 
-  m_aa_combo->setEnabled(m_aa_combo->count() > 1 && good_info);
+  m_antialiasing_combo->setEnabled(m_antialiasing_combo->count() > 1 && good_info);
 }
 
 void EnhancementsWidget::AddDescriptions()
@@ -580,8 +584,8 @@ void EnhancementsWidget::AddDescriptions()
   m_ir_combo->SetTitle(tr("Internal Resolution"));
   m_ir_combo->SetDescription(tr(TR_INTERNAL_RESOLUTION_DESCRIPTION));
 
-  m_aa_combo->SetTitle(tr("Anti-Aliasing"));
-  m_aa_combo->SetDescription(tr(TR_ANTIALIAS_DESCRIPTION));
+  m_antialiasing_combo->SetTitle(tr("Anti-Aliasing"));
+  m_antialiasing_combo->SetDescription(tr(TR_ANTIALIAS_DESCRIPTION));
 
   m_texture_filtering_combo->SetTitle(tr("Texture Filtering"));
   m_texture_filtering_combo->SetDescription(tr(TR_FORCE_TEXTURE_FILTERING_DESCRIPTION));
@@ -592,8 +596,8 @@ void EnhancementsWidget::AddDescriptions()
   m_configure_color_correction->SetTitle(tr("Color Correction"));
   m_configure_color_correction->SetDescription(tr(TR_COLOR_CORRECTION_DESCRIPTION));
 
-  m_pp_effect->SetTitle(tr("Post-Processing Effect"));
-  m_pp_effect->SetDescription(tr(TR_POSTPROCESSING_DESCRIPTION));
+  m_post_processing_effect->SetTitle(tr("Post-Processing Effect"));
+  m_post_processing_effect->SetDescription(tr(TR_POSTPROCESSING_DESCRIPTION));
 
   m_scaled_efb_copy->SetDescription(tr(TR_SCALED_EFB_COPY_DESCRIPTION));
 
@@ -628,7 +632,6 @@ void EnhancementsWidget::AddDescriptions()
 void EnhancementsWidget::ConfigureColorCorrection()
 {
   ColorCorrectionConfigWindow dialog(this);
-  SetQWidgetWindowDecorations(&dialog);
   dialog.exec();
 }
 
@@ -636,6 +639,5 @@ void EnhancementsWidget::ConfigurePostProcessingShader()
 {
   const std::string shader = ReadSetting(Config::GFX_ENHANCE_POST_SHADER);
   PostProcessingConfigWindow dialog(this, shader);
-  SetQWidgetWindowDecorations(&dialog);
   dialog.exec();
 }

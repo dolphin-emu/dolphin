@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <array>
-#include <deque>
 #include <map>
 #include <memory>
 #include <string>
@@ -14,7 +13,6 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/EnumUtils.h"
 #include "Common/Logging/Log.h"
 #include "Common/Timer.h"
 
@@ -105,9 +103,8 @@ constexpr u32 PLACEHOLDER = 0xDEADBEEF;
 
 static bool SetupMemory(Memory::MemoryManager& memory, u64 ios_title_id, MemorySetupType setup_type)
 {
-  auto target_imv = std::find_if(
-      GetMemoryValues().begin(), GetMemoryValues().end(),
-      [&](const MemoryValues& imv) { return imv.ios_number == (ios_title_id & 0xffff); });
+  auto target_imv = std::ranges::find(GetMemoryValues(), static_cast<u16>(ios_title_id & 0xffff),
+                                      &MemoryValues::ios_number);
 
   if (target_imv == GetMemoryValues().end())
   {
@@ -663,8 +660,8 @@ std::shared_ptr<Device> EmulationKernel::GetDeviceByFileDescriptor(const u32 fd)
 std::optional<IPCReply> EmulationKernel::OpenDevice(OpenRequest& request)
 {
   const s32 new_fd = GetFreeDeviceID();
-  INFO_LOG_FMT(IOS, "Opening {} (mode {}, fd {})", request.path,
-               Common::ToUnderlying(request.flags), new_fd);
+  INFO_LOG_FMT(IOS, "Opening {} (mode {}, fd {})", request.path, std::to_underlying(request.flags),
+               new_fd);
   if (new_fd < 0 || new_fd >= IPC_MAX_FDS)
   {
     ERROR_LOG_FMT(IOS, "Couldn't get a free fd, too many open files");
@@ -750,7 +747,7 @@ std::optional<IPCReply> EmulationKernel::HandleIPCCommand(const Request& request
     ret = device->IOCtlV(IOCtlVRequest{GetSystem(), request.address});
     break;
   default:
-    ASSERT_MSG(IOS, false, "Unexpected command: {:#x}", Common::ToUnderlying(request.command));
+    ASSERT_MSG(IOS, false, "Unexpected command: {:#x}", std::to_underlying(request.command));
     ret = IPCReply{IPC_EINVAL, 978_tbticks};
     break;
   }
@@ -952,7 +949,7 @@ static void FinishPPCBootstrap(Core::System& system, u64 userdata, s64 cycles_la
 
   ASSERT(Core::IsCPUThread());
   Core::CPUThreadGuard guard(system);
-  SConfig::OnNewTitleLoad(guard);
+  SConfig::OnTitleDirectlyBooted(guard);
 
   INFO_LOG_FMT(IOS, "Bootstrapping done.");
 }

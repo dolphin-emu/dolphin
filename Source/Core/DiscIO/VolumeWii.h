@@ -31,7 +31,7 @@ enum class Language;
 enum class Region;
 enum class Platform;
 
-class VolumeWii : public VolumeDisc
+class VolumeWii final : public VolumeDisc
 {
 public:
   static constexpr size_t AES_KEY_SIZE = Common::AES::Context::KEY_SIZE;
@@ -58,7 +58,7 @@ public:
   static_assert(sizeof(HashBlock) == BLOCK_HEADER_SIZE);
 
   VolumeWii(std::unique_ptr<BlobReader> reader);
-  ~VolumeWii();
+  ~VolumeWii() override;
   bool Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const override;
   bool HasWiiHashes() const override;
   bool HasWiiEncryption() const override;

@@ -9,7 +9,7 @@
 #include <string_view>
 #include <unordered_map>
 
-#include "Common/GL/GLUtil.h"
+#include "Common/GL/GLExtensions/GLExtensions.h"
 #include "VideoCommon/AsyncShaderCompiler.h"
 
 namespace OGL

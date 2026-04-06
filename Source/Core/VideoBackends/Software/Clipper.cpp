@@ -76,7 +76,7 @@ enum
 static inline int CalcClipMask(const OutputVertexData* v)
 {
   int cmask = 0;
-  Vec4 pos = v->projectedPosition;
+  Common::Vec4 pos = v->projectedPosition;
 
   if (pos.w - pos.x < 0)
     cmask |= CLIP_POS_X_BIT;
@@ -301,7 +301,7 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
 
   if (!backface)
   {
-    if (bpmem.genMode.cullmode == CullMode::Back || bpmem.genMode.cullmode == CullMode::All)
+    if (bpmem.genMode.cull_mode == CullMode::Back || bpmem.genMode.cull_mode == CullMode::All)
     {
       // cull frontfacing - we still need to update the slope for zfreeze
       PerspectiveDivide(v0);
@@ -314,7 +314,7 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
   }
   else
   {
-    if (bpmem.genMode.cullmode == CullMode::Front || bpmem.genMode.cullmode == CullMode::All)
+    if (bpmem.genMode.cull_mode == CullMode::Front || bpmem.genMode.cull_mode == CullMode::All)
     {
       // cull backfacing - we still need to update the slope for zfreeze
       PerspectiveDivide(v0);
@@ -546,8 +546,8 @@ bool IsBackface(const OutputVertexData* v0, const OutputVertexData* v1, const Ou
 
 void PerspectiveDivide(OutputVertexData* vertex)
 {
-  Vec4& projected = vertex->projectedPosition;
-  Vec3& screen = vertex->screenPosition;
+  Common::Vec4& projected = vertex->projectedPosition;
+  Common::Vec3& screen = vertex->screenPosition;
 
   float wInverse = 1.0f / projected.w;
   screen.x = projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig;

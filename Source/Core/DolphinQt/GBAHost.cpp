@@ -1,6 +1,8 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#ifdef HAS_LIBMGBA
+
 #include "DolphinQt/GBAHost.h"
 
 #include <QApplication>
@@ -47,3 +49,4 @@ std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core
 {
   return std::make_unique<GBAHost>(core);
 }
+#endif  // HAS_LIBMGBA

@@ -23,8 +23,7 @@ namespace DX12
 static bool UsesDynamicVertexLoader(const AbstractPipeline* pipeline)
 {
   const AbstractPipelineUsage usage = static_cast<const DXPipeline*>(pipeline)->GetUsage();
-  return (g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader &&
-          usage == AbstractPipelineUsage::GXUber) ||
+  return (g_backend_info.bSupportsDynamicVertexLoader && usage == AbstractPipelineUsage::GXUber) ||
          (g_ActiveConfig.UseVSForLinePointExpand() && usage != AbstractPipelineUsage::Utility);
 }
 
@@ -69,9 +68,10 @@ Gfx::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth
 }
 
 std::unique_ptr<AbstractShader>
-Gfx::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
+Gfx::CreateShaderFromSource(ShaderStage stage, std::string_view source,
+                            VideoCommon::ShaderIncluder* shader_includer, std::string_view name)
 {
-  return DXShader::CreateFromSource(stage, source, name);
+  return DXShader::CreateFromSource(stage, source, shader_includer, name);
 }
 
 std::unique_ptr<AbstractShader> Gfx::CreateShaderFromBinary(ShaderStage stage, const void* data,
@@ -161,7 +161,7 @@ void Gfx::SetPipeline(const AbstractPipeline* pipeline)
       m_dirty_bits |= DirtyState_RootSignature | DirtyState_PS_CBV | DirtyState_VS_CBV |
                       DirtyState_GS_CBV | DirtyState_SRV_Descriptor |
                       DirtyState_Sampler_Descriptor | DirtyState_UAV_Descriptor |
-                      DirtyState_VS_SRV_Descriptor | DirtyState_PS_CUS_CBV;
+                      DirtyState_VS_SRV_Descriptor | DirtyState_CUS_CBV;
     }
     if (dx_pipeline->UseIntegerRTV() != m_state.using_integer_rtv)
     {
@@ -525,7 +525,7 @@ bool Gfx::ApplyState()
         DirtyState_ScissorRect | DirtyState_PS_UAV | DirtyState_PS_CBV | DirtyState_VS_CBV |
         DirtyState_GS_CBV | DirtyState_SRV_Descriptor | DirtyState_Sampler_Descriptor |
         DirtyState_UAV_Descriptor | DirtyState_VertexBuffer | DirtyState_IndexBuffer |
-        DirtyState_PrimitiveTopology | DirtyState_VS_SRV_Descriptor | DirtyState_PS_CUS_CBV);
+        DirtyState_PrimitiveTopology | DirtyState_VS_SRV_Descriptor | DirtyState_CUS_CBV);
 
   auto* const cmdlist = g_dx_context->GetCommandList();
   auto* const pipeline = static_cast<const DXPipeline*>(m_current_pipeline);
@@ -576,11 +576,12 @@ bool Gfx::ApplyState()
       }
     }
 
-    if (dirty_bits & DirtyState_PS_CUS_CBV)
+    if (dirty_bits & DirtyState_CUS_CBV)
     {
-      cmdlist->SetGraphicsRootConstantBufferView(
-          g_ActiveConfig.bBBoxEnable ? ROOT_PARAMETER_PS_CUS_CBV : ROOT_PARAMETER_PS_CBV2,
-          m_state.constant_buffers[2]);
+      cmdlist->SetGraphicsRootConstantBufferView(ROOT_PARAMETER_VS_CUS_CBV,
+                                                 m_state.constant_buffers[2]);
+      cmdlist->SetGraphicsRootConstantBufferView(ROOT_PARAMETER_PS_CUS_CBV,
+                                                 m_state.constant_buffers[2]);
     }
 
     if (dirty_bits & DirtyState_VS_SRV_Descriptor && UsesDynamicVertexLoader(pipeline))

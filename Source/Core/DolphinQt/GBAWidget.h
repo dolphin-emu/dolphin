@@ -3,6 +3,8 @@
 
 #pragma once
 
+#ifdef HAS_LIBMGBA
+
 #include <memory>
 #include <optional>
 #include <span>
@@ -112,3 +114,4 @@ public:
 private:
   GBAWidget* m_widget{};
 };
+#endif  // HAS_LIBMGBA

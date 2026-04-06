@@ -4,9 +4,9 @@
 #include "Core/NetPlayClient.h"
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstring>
-#include <fstream>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -30,12 +30,12 @@
 #include "Common/NandPaths.h"
 #include "Common/QoSSession.h"
 #include "Common/SFMLHelper.h"
-#include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
 
 #include "Core/ActionReplay.h"
 #include "Core/Boot/Boot.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SessionSettings.h"
@@ -52,30 +52,25 @@
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
+#include "Core/HW/SI/SI_DeviceAMBaseboard.h"
 #include "Core/HW/SI/SI_DeviceGCController.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/HW/WiiSaveStructs.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/FS/HostBackend/FS.h"
-#include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/Uids.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayCommon.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "Core/SyncIdentifier.h"
 #include "Core/System.h"
 #include "DiscIO/Blob.h"
 
-#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/GCAdapter.h"
-#include "InputCommon/InputConfig.h"
 #include "UICommon/GameFile.h"
 #include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/VideoConfig.h"
 
 namespace NetPlay
 {
@@ -158,7 +153,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
       return;
     }
 
-    // Update time in milliseconds of no acknoledgment of
+    // Update time in milliseconds of no acknowledgment of
     // sent packets before a connection is deemed disconnected
     enet_peer_timeout(m_server, 0, PEER_TIMEOUT.count(), PEER_TIMEOUT.count());
 
@@ -221,7 +216,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
         case ENET_EVENT_TYPE_CONNECT:
           m_server = netEvent.peer;
 
-          // Update time in milliseconds of no acknoledgment of
+          // Update time in milliseconds of no acknowledgment of
           // sent packets before a connection is deemed disconnected
           enet_peer_timeout(m_server, 0, PEER_TIMEOUT.count(), PEER_TIMEOUT.count());
 
@@ -325,7 +320,7 @@ bool NetPlayClient::Connect()
 static void ReceiveSyncIdentifier(sf::Packet& spac, SyncIdentifier& sync_identifier)
 {
   // We use a temporary variable here due to a potential long vs long long mismatch
-  sf::Uint64 dol_elf_size;
+  u64 dol_elf_size;
   spac >> dol_elf_size;
   sync_identifier.dol_elf_size = dol_elf_size;
 
@@ -607,7 +602,7 @@ void NetPlayClient::OnChunkedDataPayload(sf::Packet& packet)
   sf::Packet progress_packet;
   progress_packet << MessageID::ChunkedDataProgress;
   progress_packet << cid;
-  progress_packet << sf::Uint64{data_packet.getDataSize()};
+  progress_packet << u64{data_packet.getDataSize()};
   Send(progress_packet, CHUNKED_DATA_CHANNEL);
 }
 
@@ -860,6 +855,8 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     packet >> m_net_settings.allow_sd_writes;
     packet >> m_net_settings.oc_enable;
     packet >> m_net_settings.oc_factor;
+    packet >> m_net_settings.vi_oc_enable;
+    packet >> m_net_settings.vi_oc_factor;
 
     for (auto slot : ExpansionInterface::SLOTS)
       packet >> m_net_settings.exi_device[slot];
@@ -1303,7 +1300,7 @@ void NetPlayClient::OnSyncSaveDataGBA(sf::Packet& packet)
 
 void NetPlayClient::OnSyncCodes(sf::Packet& packet)
 {
-  // Recieve Data Packet
+  // Receive Data Packet
   SyncCodeID sub_id;
   packet >> sub_id;
 
@@ -1529,7 +1526,7 @@ void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id)
 
 void NetPlayClient::DisplayPlayersPing()
 {
-  if (!g_ActiveConfig.bShowNetPlayPing)
+  if (!Config::Get(Config::GFX_SHOW_NETPLAY_PING))
     return;
 
   OSD::AddTypedMessage(OSD::MessageType::NetPlayPing, fmt::format("Ping: {}", GetPlayersMaxPing()),
@@ -1538,9 +1535,7 @@ void NetPlayClient::DisplayPlayersPing()
 
 u32 NetPlayClient::GetPlayersMaxPing() const
 {
-  return std::max_element(
-             m_players.begin(), m_players.end(),
-             [](const auto& a, const auto& b) { return a.second.ping < b.second.ping; })
+  return std::ranges::max_element(m_players, {}, [](const auto& kv) { return kv.second.ping; })
       ->second.ping;
 }
 
@@ -1889,6 +1884,8 @@ void NetPlayClient::UpdateDevices()
   auto& si = Core::System::GetInstance().GetSerialInterface();
   for (auto player_id : m_pad_map)
   {
+    const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(local_pad));
+
     if (m_gba_config[pad].enabled && player_id > 0)
     {
       si.ChangeDevice(SerialInterface::SIDEVICE_GC_GBA_EMULATED, pad);
@@ -1896,8 +1893,6 @@ void NetPlayClient::UpdateDevices()
     else if (player_id == m_local_player->pid)
     {
       // Use local controller types for local controllers if they are compatible
-      const SerialInterface::SIDevices si_device =
-          Config::Get(Config::GetInfoForSIDevice(local_pad));
       if (SerialInterface::SIDevice_IsGCController(si_device))
       {
         si.ChangeDevice(si_device, pad);
@@ -1915,7 +1910,8 @@ void NetPlayClient::UpdateDevices()
     }
     else if (player_id > 0)
     {
-      si.ChangeDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
+      if (si_device != SerialInterface::SIDEVICE_AM_BASEBOARD)
+        si.ChangeDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
     }
     else
     {
@@ -2390,8 +2386,8 @@ void NetPlayClient::RequestGolfControl()
 std::string NetPlayClient::GetCurrentGolfer()
 {
   std::lock_guard lkp(m_crit.players);
-  if (m_players.contains(m_current_golfer))
-    return m_players[m_current_golfer].name;
+  if (const auto it = m_players.find(m_current_golfer); it != m_players.end())
+    return it->second.name;
   return "";
 }
 
@@ -2407,22 +2403,14 @@ bool NetPlayClient::IsFirstInGamePad(int ingame_pad) const
                       [](auto mapping) { return mapping > 0; });
 }
 
-static int CountLocalPads(const PadMappingArray& pad_map, const PlayerId& local_player_pid)
-{
-  return static_cast<int>(
-      std::count_if(pad_map.begin(), pad_map.end(), [&local_player_pid](const auto& mapping) {
-        return mapping == local_player_pid;
-      }));
-}
-
 int NetPlayClient::NumLocalPads() const
 {
-  return CountLocalPads(m_pad_map, m_local_player->pid);
+  return std::ranges::count(m_pad_map, m_local_player->pid);
 }
 
 int NetPlayClient::NumLocalWiimotes() const
 {
-  return CountLocalPads(m_wiimote_map, m_local_player->pid);
+  return std::ranges::count(m_wiimote_map, m_local_player->pid);
 }
 
 static int InGameToLocal(int ingame_pad, const PadMappingArray& pad_map, PlayerId local_player_pid)
@@ -2526,7 +2514,7 @@ void NetPlayClient::SendTimeBase()
 
   if (netplay_client->m_timebase_frame % 60 == 0)
   {
-    const sf::Uint64 timebase = Core::System::GetInstance().GetSystemTimers().GetFakeTimeBase();
+    const u64 timebase = Core::System::GetInstance().GetSystemTimers().GetFakeTimeBase();
 
     sf::Packet packet;
     packet << MessageID::TimeBase;
@@ -2602,7 +2590,7 @@ void NetPlayClient::ComputeGameDigest(const SyncIdentifier& sync_identifier)
 
   if (m_game_digest_thread.joinable())
     m_game_digest_thread.join();
-  m_game_digest_thread = std::thread([this, file]() {
+  m_game_digest_thread = std::thread([this, file] {
     std::string sum = SHA1Sum(file, [&](int progress) {
       sf::Packet packet;
       packet << MessageID::GameDigestProgress;
@@ -2668,9 +2656,10 @@ std::string GetPlayerMappingString(PlayerId pid, const PadMappingArray& pad_map,
       wiimote_slots.push_back(i + 1);
   }
   std::vector<std::string> groups;
-  for (const auto& [group_name, slots] :
-       {std::make_pair("GC", &gc_slots), std::make_pair("GBA", &gba_slots),
-        std::make_pair("Wii", &wiimote_slots)})
+  std::array<std::pair<std::string, std::vector<size_t>*>, 3> slot_groups = {
+      {{"GC", &gc_slots}, {"GBA", &gba_slots}, {"Wii", &wiimote_slots}}};
+
+  for (const auto& [group_name, slots] : slot_groups)
   {
     if (!slots->empty())
       groups.emplace_back(fmt::format("{}{}", group_name, fmt::join(*slots, ",")));
@@ -2848,12 +2837,12 @@ u64 ExpansionInterface::CEXIIPL::NetPlay_GetEmulatedTime()
 
 // called from ---CPU--- thread
 // return the local pad num that should rumble given a ingame pad num
-int SerialInterface::CSIDevice_GCController::NetPlay_InGamePadToLocalPad(int numPAD)
+int SerialInterface::CSIDevice_GCController::NetPlay_InGamePadToLocalPad(int pad_num)
 {
   std::lock_guard lk(NetPlay::crit_netplay_client);
 
   if (NetPlay::netplay_client)
-    return NetPlay::netplay_client->InGamePadToLocalPad(numPAD);
+    return NetPlay::netplay_client->InGamePadToLocalPad(pad_num);
 
-  return numPAD;
+  return pad_num;
 }

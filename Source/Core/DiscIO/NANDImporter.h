@@ -23,11 +23,19 @@ public:
   NANDImporter();
   ~NANDImporter();
 
+  enum class Step
+  {
+    Loading,
+    Extracting,
+  };
+  // Return true to cancel.
+  using UpdateCallback = std::function<bool(Step step, int cur, int max)>;
+
   // Extract a NAND image to the configured NAND root.
   // If the associated OTP/SEEPROM dump (keys.bin) is not included in the image,
   // get_otp_dump_path will be called to get a path to it.
-  void ImportNANDBin(const std::string& path_to_bin, std::function<void()> update_callback,
-                     std::function<std::string()> get_otp_dump_path);
+  void ImportNANDBin(const std::string& path_to_bin, UpdateCallback update_callback,
+                     const std::function<std::string()>& get_otp_dump_path);
   bool ExtractCertificates();
 
   enum class Type
@@ -64,12 +72,14 @@ public:
 #pragma pack(pop)
 
 private:
-  bool ReadNANDBin(const std::string& path_to_bin, std::function<std::string()> get_otp_dump_path);
+  bool ReadNANDBin(const std::string& path_to_bin,
+                   const std::function<std::string()>& get_otp_dump_path);
   bool FindSuperblock();
+  bool ExtractFiles();
   std::string GetPath(const NANDFSTEntry& entry, const std::string& parent_path);
   std::string FormatDebugString(const NANDFSTEntry& entry);
-  void ProcessEntry(u16 entry_number, const std::string& parent_path);
-  std::vector<u8> GetEntryData(const NANDFSTEntry& entry);
+  bool ProcessEntry(u16 entry_number, const std::string& parent_path);
+  std::vector<u8> GetEntryData(const NANDFSTEntry& entry) const;
   void ExportKeys();
 
   std::string m_nand_root;
@@ -77,7 +87,9 @@ private:
   std::vector<u8> m_nand_keys;
   std::unique_ptr<Common::AES::Context> m_aes_ctx;
   std::unique_ptr<NANDSuperblock> m_superblock;
-  std::function<void()> m_update_callback;
+  UpdateCallback m_update_callback;
+  u16 m_progress_cur = 0;
+  u16 m_progress_max = 0;
 };
 }  // namespace DiscIO
 

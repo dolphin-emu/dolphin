@@ -18,7 +18,6 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
 
 #include "Core/Config/MainSettings.h"
 

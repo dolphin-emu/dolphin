@@ -25,7 +25,6 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
-#include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderBase.h"
@@ -92,25 +91,30 @@ void UpdateVertexArrayPointers()
   // Note: Only array bases 0 through 11 are used by the Vertex loaders.
   //       12 through 15 are used for loading data into xfmem.
   // We also only update the array base if the vertex description states we are going to use it.
-  // TODO: For memory safety, we need to check the sizes returned by GetSpanForAddress
   if (IsIndexed(g_main_cp_state.vtx_desc.low.Position))
   {
-    cached_arraybases[CPArray::Position] =
-        memory.GetSpanForAddress(g_main_cp_state.array_bases[CPArray::Position]).data();
+    u8* const base_pointer =
+        memory.GetPointerForRange(g_main_cp_state.array_bases[CPArray::Position], sizeof(u32));
+    if (base_pointer != nullptr)
+      cached_arraybases[CPArray::Position] = base_pointer;
   }
 
   if (IsIndexed(g_main_cp_state.vtx_desc.low.Normal))
   {
-    cached_arraybases[CPArray::Normal] =
-        memory.GetSpanForAddress(g_main_cp_state.array_bases[CPArray::Normal]).data();
+    u8* const base_pointer =
+        memory.GetPointerForRange(g_main_cp_state.array_bases[CPArray::Normal], sizeof(u32));
+    if (base_pointer != nullptr)
+      cached_arraybases[CPArray::Normal] = base_pointer;
   }
 
   for (u8 i = 0; i < g_main_cp_state.vtx_desc.low.Color.Size(); i++)
   {
     if (IsIndexed(g_main_cp_state.vtx_desc.low.Color[i]))
     {
-      cached_arraybases[CPArray::Color0 + i] =
-          memory.GetSpanForAddress(g_main_cp_state.array_bases[CPArray::Color0 + i]).data();
+      u8* const base_pointer =
+          memory.GetPointerForRange(g_main_cp_state.array_bases[CPArray::Color0 + i], sizeof(u32));
+      if (base_pointer != nullptr)
+        cached_arraybases[CPArray::Color0 + i] = base_pointer;
     }
   }
 
@@ -118,8 +122,10 @@ void UpdateVertexArrayPointers()
   {
     if (IsIndexed(g_main_cp_state.vtx_desc.high.TexCoord[i]))
     {
-      cached_arraybases[CPArray::TexCoord0 + i] =
-          memory.GetSpanForAddress(g_main_cp_state.array_bases[CPArray::TexCoord0 + i]).data();
+      u8* const base_pointer = memory.GetPointerForRange(
+          g_main_cp_state.array_bases[CPArray::TexCoord0 + i], sizeof(u32));
+      if (base_pointer != nullptr)
+        cached_arraybases[CPArray::TexCoord0 + i] = base_pointer;
     }
   }
 
@@ -300,18 +306,15 @@ static void CheckCPConfiguration(int vtx_attr_group)
     // eventually simulate the behavior we have test cases for it.
     if (num_cp_colors != xfmem.invtxspec.numcolors) [[unlikely]]
     {
-      DolphinAnalytics::Instance().ReportGameQuirk(
-          GameQuirk::MISMATCHED_GPU_COLORS_BETWEEN_CP_AND_XF);
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::MismatchedGPUColorsBetweenCPAndXF);
     }
     if (num_cp_normals != num_xf_normals) [[unlikely]]
     {
-      DolphinAnalytics::Instance().ReportGameQuirk(
-          GameQuirk::MISMATCHED_GPU_NORMALS_BETWEEN_CP_AND_XF);
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::MismatchedGPUNormalsBetweenCPAndXF);
     }
     if (num_cp_tex_coords != xfmem.invtxspec.numtextures) [[unlikely]]
     {
-      DolphinAnalytics::Instance().ReportGameQuirk(
-          GameQuirk::MISMATCHED_GPU_TEX_COORDS_BETWEEN_CP_AND_XF);
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::MismatchedGPUTexCoordsBetweenCPAndXF);
     }
 
     // Don't bail out, though; we can still render something successfully
@@ -327,7 +330,7 @@ static void CheckCPConfiguration(int vtx_attr_group)
                  g_main_cp_state.matrix_index_a.Hex, xfmem.MatrixIndexA.Hex,
                  g_main_cp_state.matrix_index_b.Hex, xfmem.MatrixIndexB.Hex);
     DolphinAnalytics::Instance().ReportGameQuirk(
-        GameQuirk::MISMATCHED_GPU_MATRIX_INDICES_BETWEEN_CP_AND_XF);
+        GameQuirk::MismatchedGPUMatrixIndicesBetweenCPAndXF);
   }
 
   if (g_main_cp_state.vtx_attr[vtx_attr_group].g0.PosFormat >= ComponentFormat::InvalidFloat5)
@@ -337,7 +340,7 @@ static void CheckCPConfiguration(int vtx_attr_group)
                  g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
                  g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
                  g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::INVALID_POSITION_COMPONENT_FORMAT);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::InvalidPositionComponentFormat);
   }
   if (g_main_cp_state.vtx_attr[vtx_attr_group].g0.NormalFormat >= ComponentFormat::InvalidFloat5)
   {
@@ -346,7 +349,7 @@ static void CheckCPConfiguration(int vtx_attr_group)
                  g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
                  g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
                  g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::INVALID_NORMAL_COMPONENT_FORMAT);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::InvalidNormalComponentFormat);
   }
   for (size_t i = 0; i < 8; i++)
   {
@@ -359,7 +362,7 @@ static void CheckCPConfiguration(int vtx_attr_group)
                    g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
                    g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
       DolphinAnalytics::Instance().ReportGameQuirk(
-          GameQuirk::INVALID_TEXTURE_COORDINATE_COMPONENT_FORMAT);
+          GameQuirk::InvalidTextureCoordinateComponentFormat);
     }
   }
   for (size_t i = 0; i < 2; i++)
@@ -371,7 +374,7 @@ static void CheckCPConfiguration(int vtx_attr_group)
                    g_main_cp_state.vtx_attr[vtx_attr_group].g0.Hex,
                    g_main_cp_state.vtx_attr[vtx_attr_group].g1.Hex,
                    g_main_cp_state.vtx_attr[vtx_attr_group].g2.Hex);
-      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::INVALID_COLOR_COMPONENT_FORMAT);
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::InvalidColorComponentFormat);
     }
   }
 }
@@ -437,7 +440,7 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
     // if cull mode is CULL_ALL, tell VertexManager to skip triangles and quads.
     // They still need to go through vertex loading, because we need to calculate a zfreeze
     // reference slope.
-    const bool cullall = (bpmem.genMode.cullmode == CullMode::All &&
+    const bool cullall = (bpmem.genMode.cull_mode == CullMode::All &&
                           primitive < OpcodeDecoder::Primitive::GX_DRAW_LINES);
 
     const int stride = loader->m_native_vtx_decl.stride;

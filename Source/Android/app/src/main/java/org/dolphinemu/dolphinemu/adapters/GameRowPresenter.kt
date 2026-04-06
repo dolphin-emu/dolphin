@@ -41,7 +41,7 @@ class GameRowPresenter : Presenter() {
         return TvGameViewHolder(gameCard)
     }
 
-    override fun onBindViewHolder(viewHolder: ViewHolder, item: Any) {
+    override fun onBindViewHolder(viewHolder: ViewHolder, item: Any?) {
         val holder = viewHolder as TvGameViewHolder
         val context = holder.cardParent.context
         val gameFile = item as GameFile

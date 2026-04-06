@@ -3,21 +3,16 @@
 
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 
-#include <algorithm>
 #include <array>
-#include <cstring>
 
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "Common/MathUtil.h"
 
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
-#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -64,33 +59,15 @@ Nunchuk::Nunchuk() : Extension1stParty(_trans("Nunchuk"))
 
 void Nunchuk::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
+  using ControllerEmu::MapFloat;
+
   DataFormat nc_data = {};
 
   // stick
-  bool override_occurred = false;
   const ControllerEmu::AnalogStick::StateData stick_state =
-      m_stick->GetState(m_input_override_function, &override_occurred);
+      m_stick->GetState(m_input_override_function);
   nc_data.jx = MapFloat<u8>(stick_state.x, STICK_CENTER, 0, STICK_RANGE);
   nc_data.jy = MapFloat<u8>(stick_state.y, STICK_CENTER, 0, STICK_RANGE);
-
-  if (!override_occurred)
-  {
-    // Some terribly coded games check whether to move with a check like
-    //
-    //     if (x != 0 && y != 0)
-    //         do_movement(x, y);
-    //
-    // With keyboard controls, these games break if you simply hit one
-    // of the axes. Adjust this if you're hitting one of the axes so that
-    // we slightly tweak the other axis.
-    if (nc_data.jx != STICK_CENTER || nc_data.jy != STICK_CENTER)
-    {
-      if (nc_data.jx == STICK_CENTER)
-        ++nc_data.jx;
-      if (nc_data.jy == STICK_CENTER)
-        ++nc_data.jy;
-    }
-  }
 
   // buttons
   u8 buttons = 0;
@@ -197,7 +174,7 @@ void Nunchuk::DoState(PointerWrap& p)
   p.Do(m_shake_state);
 }
 
-void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
+void Nunchuk::LoadDefaults()
 {
 #ifndef ANDROID
   // Stick

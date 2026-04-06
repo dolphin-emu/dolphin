@@ -7,12 +7,10 @@
 #include <array>
 #include <cstdio>
 #include <cstring>
-#include <iterator>
 #include <map>
 #include <memory>
 #include <string>
 #include <string_view>
-#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -29,7 +27,6 @@
 #include "Common/HttpRequest.h"
 #include "Common/IOFile.h"
 #include "Common/Image.h"
-#include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
@@ -436,7 +433,7 @@ bool GameFile::ReadPNGBanner(const std::string& path)
     return false;
 
   GameBanner& banner = m_pending.custom_banner;
-  std::vector<u8> data_out;
+  Common::UniqueBuffer<u8> data_out;
   if (!Common::LoadPNG(png_data, &data_out, &banner.width, &banner.height))
     return false;
 
@@ -837,7 +834,7 @@ std::string GameFile::GetFileFormatName() const
   {
     std::string name = DiscIO::GetName(m_blob_type, true);
     if (m_is_nkit)
-      name = Common::FmtFormatT("{0} (NKit)", name);
+      return Common::FmtFormatT("{0} (NKit)", name);
     return name;
   }
   }

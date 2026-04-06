@@ -9,8 +9,6 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
-#include "Common/Logging/Log.h"
-#include "Common/NandPaths.h"
 #include "Common/SettingsHandler.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
@@ -68,9 +66,7 @@ IPCReply GetCPUSpeed(Core::System& system, const IOCtlVRequest& request)
     return IPCReply(IPC_EINVAL);
   }
 
-  const bool overclock_enabled = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
-  const float oc = overclock_enabled ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f;
-
+  const bool oc = system.GetCoreTiming().GetOverclock();
   const u32 core_clock = u32(float(system.GetSystemTimers().GetTicksPerSecond()) * oc);
 
   auto& memory = system.GetMemory();

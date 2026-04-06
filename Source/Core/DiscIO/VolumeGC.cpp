@@ -3,7 +3,6 @@
 
 #include "DiscIO/VolumeGC.h"
 
-#include <cstddef>
 #include <map>
 #include <memory>
 #include <optional>
@@ -16,8 +15,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscExtractor.h"
@@ -29,7 +26,8 @@
 
 namespace DiscIO
 {
-VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader) : m_reader(std::move(reader))
+VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader)
+    : m_reader(std::move(reader)), m_is_triforce(false)
 {
   ASSERT(m_reader);
 
@@ -39,11 +37,24 @@ VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader) : m_reader(std::move(read
   };
 
   m_converted_banner = [this] { return LoadBannerFile(); };
+
+  constexpr u32 BTID_MAGIC = 0x44495442;
+  auto tmp_fs = GetFileSystem(PARTITION_NONE);
+  if (tmp_fs)
+  {
+    std::unique_ptr<FileInfo> file_info = tmp_fs->FindFileInfo("boot.id");
+    if (!file_info)
+      return;
+    const u64 file_size = ReadFile(*this, PARTITION_NONE, file_info.get(),
+                                   reinterpret_cast<u8*>(&m_triforce_header), sizeof(BootID));
+    if (file_size >= 4 && m_triforce_header.magic == BTID_MAGIC)
+    {
+      m_is_triforce = true;
+    }
+  }
 }
 
-VolumeGC::~VolumeGC()
-{
-}
+VolumeGC::~VolumeGC() = default;
 
 bool VolumeGC::Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const
 {
@@ -79,6 +90,21 @@ std::string VolumeGC::GetGameTDBID(const Partition& partition) const
 
 Region VolumeGC::GetRegion() const
 {
+  if (m_is_triforce)
+  {
+    switch (m_triforce_header.region_flags & 0x000000FF)
+    {
+    default:
+    case 0x02:  // JAPAN
+    case 0x08:  // ASIA
+      return Region::NTSC_J;
+    case 0x0E:  // USA
+      return Region::NTSC_U;
+    case 0x0C:  // EXPORT
+      return Region::PAL;
+    }
+  }
+
   return RegionCodeToRegion(m_reader->ReadSwapped<u32>(0x458));
 }
 
@@ -141,7 +167,10 @@ const BlobReader& VolumeGC::GetBlobReader() const
 
 Platform VolumeGC::GetVolumeType() const
 {
-  return Platform::GameCubeDisc;
+  if (m_is_triforce)
+    return Platform::Triforce;
+  else
+    return Platform::GameCubeDisc;
 }
 
 bool VolumeGC::IsDatelDisc() const
@@ -160,6 +189,12 @@ std::array<u8, 20> VolumeGC::GetSyncHash() const
 
 VolumeGC::ConvertedGCBanner VolumeGC::LoadBannerFile() const
 {
+  // There is at least one Triforce game that has an opening.bnr file but from a different game.
+  if (m_is_triforce)
+  {
+    return {};
+  }
+
   GCBanner banner_file;
   const u64 file_size = ReadFile(*this, PARTITION_NONE, "opening.bnr",
                                  reinterpret_cast<u8*>(&banner_file), sizeof(GCBanner));

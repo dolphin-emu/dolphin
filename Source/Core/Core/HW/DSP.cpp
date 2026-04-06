@@ -431,7 +431,7 @@ void DSPManager::UpdateAudioDMA()
     // streaming output.
     auto& memory = m_system.GetMemory();
     void* address = memory.GetPointerForRange(m_audio_dma.current_source_address, 32);
-    AudioCommon::SendAIBuffer(m_system, reinterpret_cast<short*>(address), 8);
+    AudioCommon::SendAIBuffer(m_system, static_cast<short*>(address), 8);
 
     if (m_audio_dma.remaining_blocks_count != 0)
     {
@@ -505,12 +505,20 @@ void DSPManager::Do_ARAM_DMA()
     }
     else if (!m_aram.wii_mode)
     {
-      while (m_aram_dma.Cnt.count)
+      auto* mm_ptr = memory.GetPointerForRange(m_aram_dma.MMAddr, m_aram_dma.Cnt.count);
+      if (mm_ptr != nullptr)
       {
-        memory.Write_U64(m_system.GetHSP().Read(m_aram_dma.ARAddr), m_aram_dma.MMAddr);
-        m_aram_dma.MMAddr += 8;
-        m_aram_dma.ARAddr += 8;
-        m_aram_dma.Cnt.count -= 8;
+        auto& hsp = m_system.GetHSP();
+        while (m_aram_dma.Cnt.count)
+        {
+          hsp.Read(m_aram_dma.ARAddr,
+                   std::span<u8, HSP::TRANSFER_SIZE>(mm_ptr, HSP::TRANSFER_SIZE));
+
+          m_aram_dma.MMAddr += HSP::TRANSFER_SIZE;
+          m_aram_dma.ARAddr += HSP::TRANSFER_SIZE;
+          m_aram_dma.Cnt.count -= HSP::TRANSFER_SIZE;
+          mm_ptr += HSP::TRANSFER_SIZE;
+        }
       }
     }
   }
@@ -557,13 +565,20 @@ void DSPManager::Do_ARAM_DMA()
     }
     else if (!m_aram.wii_mode)
     {
-      while (m_aram_dma.Cnt.count)
+      auto* mm_ptr = memory.GetPointerForRange(m_aram_dma.MMAddr, m_aram_dma.Cnt.count);
+      if (mm_ptr != nullptr)
       {
-        m_system.GetHSP().Write(m_aram_dma.ARAddr, memory.Read_U64(m_aram_dma.MMAddr));
+        auto& hsp = m_system.GetHSP();
+        while (m_aram_dma.Cnt.count)
+        {
+          hsp.Write(m_aram_dma.ARAddr,
+                    std::span<const u8, HSP::TRANSFER_SIZE>(mm_ptr, HSP::TRANSFER_SIZE));
 
-        m_aram_dma.MMAddr += 8;
-        m_aram_dma.ARAddr += 8;
-        m_aram_dma.Cnt.count -= 8;
+          m_aram_dma.MMAddr += HSP::TRANSFER_SIZE;
+          m_aram_dma.ARAddr += HSP::TRANSFER_SIZE;
+          m_aram_dma.Cnt.count -= HSP::TRANSFER_SIZE;
+          mm_ptr += HSP::TRANSFER_SIZE;
+        }
       }
     }
   }
@@ -601,6 +616,11 @@ void DSPManager::WriteARAM(u8 value, u32 address)
 u8* DSPManager::GetARAMPtr() const
 {
   return m_aram.ptr;
+}
+
+u32 DSPManager::GetARAMSize() const
+{
+  return m_aram.size;
 }
 
 }  // end of namespace DSP

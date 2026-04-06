@@ -55,9 +55,10 @@ public:
   void UnregisterHotplugCallback();
 
   void GenerateControllerTextures(const Common::IniFile& file);
+  void GenerateControllerTextures();
 
 private:
-  ControllerInterface::HotplugCallbackHandle m_hotplug_callback_handle;
+  Common::EventHook m_hotplug_event_hook;
   std::vector<std::unique_ptr<ControllerEmu::EmulatedController>> m_controllers;
   const std::string m_ini_name;
   const std::string m_gui_name;

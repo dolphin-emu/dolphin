@@ -103,7 +103,7 @@ private:
     u32 flags;
     // internal addr counter
     u32 start_addr;
-    // end voice physical pointer (bytes without alignament, but remember it reads in blocks of 32
+    // end voice physical pointer (bytes without alignment, but remember it reads in blocks of 32
     // bytes (use padding to the end))
     u32 end_addr;
     // freq operation
@@ -116,7 +116,7 @@ private:
     u16 volume_l, volume_r;
     // initial voice2 physical pointer (bytes aligned 32 bytes) (to do a ring)
     u32 start_addr2;
-    // end voice2 physical pointer (bytes without alignament, but remember it reads in blocks of 32
+    // end voice2 physical pointer (bytes without alignment, but remember it reads in blocks of 32
     // bytes (use padding to the end))
     u32 end_addr2;
     // volume (from 0 to 256) for voice 2

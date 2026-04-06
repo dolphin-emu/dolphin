@@ -5,7 +5,6 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 
 #include <spng.h>
 
@@ -28,7 +27,7 @@ static auto make_spng_ctx(int flags)
   return std::unique_ptr<spng_ctx, decltype(&spng_free)>(spng_ctx_new(flags), spng_free);
 }
 
-bool LoadPNG(const std::vector<u8>& input, std::vector<u8>* data_out, u32* width_out,
+bool LoadPNG(std::span<const u8> input, Common::UniqueBuffer<u8>* data_out, u32* width_out,
              u32* height_out)
 {
   auto ctx = make_spng_ctx(0);
@@ -47,7 +46,7 @@ bool LoadPNG(const std::vector<u8>& input, std::vector<u8>* data_out, u32* width
   if (spng_decoded_image_size(ctx.get(), format, &decoded_len))
     return false;
 
-  data_out->resize(decoded_len);
+  data_out->reset(decoded_len);
   if (spng_decode_image(ctx.get(), data_out->data(), decoded_len, format, SPNG_DECODE_TRNS))
     return false;
 
@@ -120,19 +119,20 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u
   return true;
 }
 
-static std::vector<u8> RGBAToRGB(const u8* input, u32 width, u32 height, u32 row_stride)
+static Common::UniqueBuffer<u8> RGBAToRGB(const u8* input, u32 width, u32 height, u32 row_stride)
 {
-  std::vector<u8> buffer;
-  buffer.reserve(width * height * 3);
+  Common::UniqueBuffer<u8> buffer;
+  buffer.reset(width * height * 3);
 
+  std::size_t buffer_index = 0;
   for (u32 y = 0; y < height; ++y)
   {
     const u8* pos = input + y * row_stride;
     for (u32 x = 0; x < width; ++x)
     {
-      buffer.push_back(pos[x * 4]);
-      buffer.push_back(pos[x * 4 + 1]);
-      buffer.push_back(pos[x * 4 + 2]);
+      buffer[buffer_index++] = pos[x * 4];
+      buffer[buffer_index++] = pos[x * 4 + 1];
+      buffer[buffer_index++] = pos[x * 4 + 2];
     }
   }
   return buffer;
@@ -141,7 +141,7 @@ static std::vector<u8> RGBAToRGB(const u8* input, u32 width, u32 height, u32 row
 bool ConvertRGBAToRGBAndSavePNG(const std::string& path, const u8* input, u32 width, u32 height,
                                 u32 stride, int level)
 {
-  const std::vector<u8> data = RGBAToRGB(input, width, height, stride);
+  const auto data = RGBAToRGB(input, width, height, stride);
   return SavePNG(path, data.data(), ImageByteFormat::RGB, width, height, width * 3, level);
 }
 }  // namespace Common

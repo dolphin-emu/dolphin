@@ -19,9 +19,6 @@ void Host_PPCSymbolsChanged()
 void Host_PPCBreakpointsChanged()
 {
 }
-void Host_RefreshDSPDebuggerWindow()
-{
-}
 void Host_Message(HostMessageID)
 {
 }
@@ -48,9 +45,6 @@ void Host_JitCacheInvalidation()
 {
 }
 void Host_JitProfileDataWiped()
-{
-}
-void Host_UpdateMainFrame()
 {
 }
 void Host_RequestRenderWindowSize(int, int)

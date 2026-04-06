@@ -11,7 +11,6 @@
 #include "VideoBackends/Vulkan/VKPipeline.h"
 #include "VideoBackends/Vulkan/VKShader.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
-#include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/Constants.h"
 
@@ -288,6 +287,7 @@ void StateTracker::BeginRenderPass()
 
   m_current_render_pass = m_framebuffer->GetLoadRenderPass();
   m_framebuffer_render_area = m_framebuffer->GetRect();
+  m_framebuffer->PrepareForRenderPass();
 
   VkRenderPassBeginInfo begin_info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
                                       nullptr,
@@ -337,6 +337,7 @@ void StateTracker::BeginClearRenderPass(const VkRect2D& area, const VkClearValue
 
   m_current_render_pass = m_framebuffer->GetClearRenderPass();
   m_framebuffer_render_area = area;
+  m_framebuffer->PrepareForRenderPass();
 
   VkRenderPassBeginInfo begin_info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
                                       nullptr,
@@ -387,7 +388,7 @@ bool StateTracker::Bind()
 
   // Re-bind parts of the pipeline
   const VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
-  const bool needs_vertex_buffer = !g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader ||
+  const bool needs_vertex_buffer = !g_backend_info.bSupportsDynamicVertexLoader ||
                                    m_pipeline->GetUsage() != AbstractPipelineUsage::GXUber;
   if (needs_vertex_buffer && (m_dirty_flags & DIRTY_FLAG_VERTEX_BUFFER))
   {
@@ -481,8 +482,8 @@ void StateTracker::UpdateGXDescriptorSet()
   std::array<VkWriteDescriptorSet, MAX_DESCRIPTOR_WRITES> writes;
   u32 num_writes = 0;
 
-  const bool needs_gs_ubo = g_ActiveConfig.backend_info.bSupportsGeometryShaders ||
-                            g_ActiveConfig.UseVSForLinePointExpand();
+  const bool needs_gs_ubo =
+      g_backend_info.bSupportsGeometryShaders || g_ActiveConfig.UseVSForLinePointExpand();
 
   if (m_dirty_flags & DIRTY_FLAG_GX_UBOS || m_gx_descriptor_sets[0] == VK_NULL_HANDLE)
   {
@@ -496,8 +497,8 @@ void StateTracker::UpdateGXDescriptorSet()
         continue;
       }
 
-      // If custom pixel shaders haven't been used, their buffer range is 0
-      if (i == UBO_DESCRIPTOR_SET_BINDING_PS_CUST && m_bindings.gx_ubo_bindings[i].range == 0)
+      // If custom shaders haven't been used, their buffer range is 0
+      if (i == UBO_DESCRIPTOR_SET_BINDING_CUST && m_bindings.gx_ubo_bindings[i].range == 0)
       {
         continue;
       }
@@ -535,8 +536,8 @@ void StateTracker::UpdateGXDescriptorSet()
     m_dirty_flags = (m_dirty_flags & ~DIRTY_FLAG_GX_SAMPLERS) | DIRTY_FLAG_DESCRIPTOR_SETS;
   }
 
-  const bool needs_bbox_ssbo = g_ActiveConfig.backend_info.bSupportsBBox;
-  const bool needs_vertex_ssbo = (g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader &&
+  const bool needs_bbox_ssbo = g_backend_info.bSupportsBBox;
+  const bool needs_vertex_ssbo = (g_backend_info.bSupportsDynamicVertexLoader &&
                                   m_pipeline->GetUsage() == AbstractPipelineUsage::GXUber) ||
                                  g_ActiveConfig.UseVSForLinePointExpand();
   const bool needs_ssbo = needs_bbox_ssbo || needs_vertex_ssbo;
@@ -552,8 +553,7 @@ void StateTracker::UpdateGXDescriptorSet()
         VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, m_gx_descriptor_sets[2], 0,      0, 1,
         VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,      nullptr, &m_bindings.ssbo,        nullptr};
 
-    if (g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader ||
-        g_ActiveConfig.UseVSForLinePointExpand())
+    if (g_backend_info.bSupportsDynamicVertexLoader || g_ActiveConfig.UseVSForLinePointExpand())
     {
       writes[num_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                               nullptr,

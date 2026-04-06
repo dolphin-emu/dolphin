@@ -15,7 +15,6 @@
 AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("About Dolphin"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   QString branch_str = QString::fromStdString(Common::GetScmBranchStr());
   const int commits_ahead = Common::GetScmCommitsAheadMaster();
@@ -100,6 +99,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
   QHBoxLayout* h_layout = new QHBoxLayout;
 
   setLayout(main_layout);
+  main_layout->setSizeConstraint(QLayout::SetFixedSize);
   main_layout->addLayout(h_layout);
   main_layout->addWidget(copyright);
   copyright->setAlignment(Qt::AlignCenter);

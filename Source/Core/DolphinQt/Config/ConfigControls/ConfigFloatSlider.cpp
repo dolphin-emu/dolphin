@@ -1,6 +1,8 @@
 // Copyright 2023 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <QPointer>
+
 #include "DolphinQt/Config/ConfigControls/ConfigFloatSlider.h"
 
 ConfigFloatSlider::ConfigFloatSlider(float minimum, float maximum,
@@ -37,4 +39,13 @@ float ConfigFloatSlider::GetValue() const
 void ConfigFloatSlider::OnConfigChanged()
 {
   setValue(std::round((ReadValue(m_setting) - m_minimum) / m_step));
+}
+
+ConfigFloatLabel::ConfigFloatLabel(const QString& text, ConfigFloatSlider* widget) : QLabel(text)
+{
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this, widget = QPointer{widget}] {
+    // Label shares font changes with ConfigFloatSlider to mark game ini settings.
+    if (widget)
+      setFont(widget->font());
+  });
 }

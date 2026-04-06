@@ -5,23 +5,23 @@
 
 #include <vector>
 
-#include <QRegularExpression>
-#include <QSyntaxHighlighter>
-#include <QTextCharFormat>
+#include <QObject>
 
 struct HighlightingRule;
 
-class GameConfigHighlighter : public QSyntaxHighlighter
+class QTextBlock;
+class QTextDocument;
+
+class GameConfigHighlighter : public QObject
 {
   Q_OBJECT
 
 public:
-  explicit GameConfigHighlighter(QTextDocument* parent = nullptr);
-  ~GameConfigHighlighter();
-
-protected:
-  void highlightBlock(const QString& text) override;
+  explicit GameConfigHighlighter(QTextDocument* parent);
+  ~GameConfigHighlighter() override;
 
 private:
+  void HighlightBlock(const QTextBlock& block);
+
   std::vector<HighlightingRule> m_rules;
 };

@@ -66,55 +66,62 @@ TEST(MathUtil, SaturatingCast)
   // 16777217 = 2^24 + 1 is the first integer that cannot be represented correctly with a f32.
   EXPECT_EQ(16777216, MathUtil::SaturatingCast<s32>(float(16777216)));
   EXPECT_EQ(16777216, MathUtil::SaturatingCast<s32>(float(16777217)));
+
+  // Note that values in the range [2147483584, 2147483776] have an equivalent float representation.
+  EXPECT_EQ(std::numeric_limits<s32>::max(), MathUtil::SaturatingCast<s32>(2147483648.f));
+  EXPECT_EQ(std::numeric_limits<s32>::min(), MathUtil::SaturatingCast<s32>(-2147483649.f));
+
+  // Cast from a signed integer type to a smaller signed integer type
+  EXPECT_EQ(-128, (MathUtil::SaturatingCast<s8, int>(-129)));
 }
 
 TEST(MathUtil, RectangleEquality)
 {
-  MathUtil::Rectangle<int> rect_a(1, 1, 4, 7);
-  MathUtil::Rectangle<int> rect_b(1, 1, 4, 7);
+  MathUtil::Rectangle rect_a(1, 1, 4, 7);
+  MathUtil::Rectangle rect_b(1, 1, 4, 7);
   EXPECT_EQ(rect_a, rect_b);
 
   // Left not equal
-  MathUtil::Rectangle<int> rect_c(0, 1, 4, 7);
+  MathUtil::Rectangle rect_c(0, 1, 4, 7);
   EXPECT_NE(rect_a, rect_c);
 
   // Top not equal
-  MathUtil::Rectangle<int> rect_d(1, 3, 4, 7);
+  MathUtil::Rectangle rect_d(1, 3, 4, 7);
   EXPECT_NE(rect_a, rect_d);
 
   // Right not equal
-  MathUtil::Rectangle<int> rect_e(1, 1, 2, 7);
+  MathUtil::Rectangle rect_e(1, 1, 2, 7);
   EXPECT_NE(rect_a, rect_e);
 
   // Bottom not equal
-  MathUtil::Rectangle<int> rect_f(1, 1, 4, 9);
+  MathUtil::Rectangle rect_f(1, 1, 4, 9);
   EXPECT_NE(rect_a, rect_f);
 
   // No coordinates equal
-  MathUtil::Rectangle<int> rect_g(0, 3, 2, 9);
+  MathUtil::Rectangle rect_g(0, 3, 2, 9);
   EXPECT_NE(rect_a, rect_g);
 }
 
 TEST(MathUtil, RectangleGetWidthSigned)
 {
   // left < right
-  MathUtil::Rectangle<int> rect_a(2, 1, 3, 2);
+  MathUtil::Rectangle rect_a(2, 1, 3, 2);
   EXPECT_EQ(rect_a.GetWidth(), 1);
 
   // left > right
-  MathUtil::Rectangle<int> rect_b(3, 1, 1, 2);
+  MathUtil::Rectangle rect_b(3, 1, 1, 2);
   EXPECT_EQ(rect_b.GetWidth(), 2);
 
   // left == right
-  MathUtil::Rectangle<int> rect_c(3, 1, 3, 2);
+  MathUtil::Rectangle rect_c(3, 1, 3, 2);
   EXPECT_EQ(rect_c.GetWidth(), 0);
 
   // Most significant bit differs, left < right
-  MathUtil::Rectangle<int> rect_d(-9, 1, 1, 2);
+  MathUtil::Rectangle rect_d(-9, 1, 1, 2);
   EXPECT_EQ(rect_d.GetWidth(), 10);
 
   // Most significant bit differs, left > right
-  MathUtil::Rectangle<int> rect_e(1, 1, -6, 2);
+  MathUtil::Rectangle rect_e(1, 1, -6, 2);
   EXPECT_EQ(rect_e.GetWidth(), 7);
 }
 
@@ -144,23 +151,23 @@ TEST(MathUtil, RectangleGetWidthUnsigned)
 TEST(MathUtil, RectangleGetHeightSigned)
 {
   // top < bottom
-  MathUtil::Rectangle<int> rect_a(1, 1, 2, 3);
+  MathUtil::Rectangle rect_a(1, 1, 2, 3);
   EXPECT_EQ(rect_a.GetHeight(), 2);
 
   // top > bottom
-  MathUtil::Rectangle<int> rect_b(1, 4, 2, 0);
+  MathUtil::Rectangle rect_b(1, 4, 2, 0);
   EXPECT_EQ(rect_b.GetHeight(), 4);
 
   // top == bottom
-  MathUtil::Rectangle<int> rect_c(1, 3, 2, 3);
+  MathUtil::Rectangle rect_c(1, 3, 2, 3);
   EXPECT_EQ(rect_c.GetHeight(), 0);
 
   // Most significant bit differs, top < bottom
-  MathUtil::Rectangle<int> rect_d(1, -2, 2, 1);
+  MathUtil::Rectangle rect_d(1, -2, 2, 1);
   EXPECT_EQ(rect_d.GetHeight(), 3);
 
   // Most significant bit differs, top > bottom
-  MathUtil::Rectangle<int> rect_e(1, 0, 2, -1);
+  MathUtil::Rectangle rect_e(1, 0, 2, -1);
   EXPECT_EQ(rect_e.GetHeight(), 1);
 }
 

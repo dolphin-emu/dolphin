@@ -12,6 +12,8 @@
 #include <QStringList>
 #include <QVariant>
 
+#include "Core/Core.h"
+#include "Core/TimePlayed.h"
 #include "Core/TitleDatabase.h"
 
 #include "DolphinQt/GameList/GameTracker.h"
@@ -58,6 +60,7 @@ public:
     FileFormat,
     BlockSize,
     Compression,
+    TimePlayed,
     Tags,
     Count,
   };
@@ -87,12 +90,15 @@ private:
   // Index in m_games, or -1 if it isn't found
   int FindGameIndex(const std::string& path) const;
 
+  void OnEmulationStateChanged(Core::State state);
+
   QStringList m_tag_list;
   QMap<QString, QVariant> m_game_tags;
 
   GameTracker m_tracker;
   QList<std::shared_ptr<const UICommon::GameFile>> m_games;
   Core::TitleDatabase m_title_database;
+  TimePlayed m_timer;
   QString m_term;
   float m_scale = 1.0;
 };

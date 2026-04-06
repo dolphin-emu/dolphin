@@ -4,10 +4,10 @@
 #pragma once
 
 #include <array>
+#include <cctype>
+#include <cstdint>
 #include <optional>
-#include <string>
 #include <string_view>
-#include <type_traits>
 #include <utility>
 #include <vector>
 

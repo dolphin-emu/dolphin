@@ -4,7 +4,6 @@
 #include "DolphinQt/QtUtils/SignalDaemon.h"
 
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 #include <QSocketNotifier>

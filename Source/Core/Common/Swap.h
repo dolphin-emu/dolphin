@@ -127,6 +127,22 @@ inline u64 swap64(const u8* data)
   return swap64(value);
 }
 
+inline void WriteSwap16(u8* data, u16 value)
+{
+  value = swap16(value);
+  std::memcpy(data, &value, sizeof(u16));
+}
+inline void WriteSwap32(u8* data, u32 value)
+{
+  value = swap32(value);
+  std::memcpy(data, &value, sizeof(u32));
+}
+inline void WriteSwap64(u8* data, u64 value)
+{
+  value = swap64(value);
+  std::memcpy(data, &value, sizeof(u64));
+}
+
 template <int count>
 void swap(u8*);
 

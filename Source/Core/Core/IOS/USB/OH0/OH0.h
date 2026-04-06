@@ -9,7 +9,6 @@
 #include <set>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
@@ -64,8 +63,6 @@ private:
   template <typename T>
   void TriggerHook(std::map<T, u32>& hooks, T value, ReturnCode return_value);
 
-  ScanThread& GetScanThread() override { return m_scan_thread; }
-
   struct DeviceEntry
   {
     u32 unknown;
@@ -79,7 +76,5 @@ private:
   std::map<u64, u32> m_removal_hooks;
   std::set<u64> m_opened_devices;
   std::mutex m_hooks_mutex;
-
-  ScanThread m_scan_thread{this};
 };
 }  // namespace IOS::HLE

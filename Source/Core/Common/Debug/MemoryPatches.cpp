@@ -4,7 +4,6 @@
 #include "Common/Debug/MemoryPatches.h"
 
 #include <algorithm>
-#include <sstream>
 #include <utility>
 
 namespace Common::Debug
@@ -63,8 +62,7 @@ const std::vector<MemoryPatch>& MemoryPatches::GetPatches() const
 
 void MemoryPatches::UnsetPatch(const Core::CPUThreadGuard& guard, u32 address)
 {
-  const auto it = std::find_if(m_patches.begin(), m_patches.end(),
-                               [address](const auto& patch) { return patch.address == address; });
+  const auto it = std::ranges::find(m_patches, address, &MemoryPatch::address);
 
   if (it == m_patches.end())
     return;

@@ -31,7 +31,7 @@ enum class RegisterType
   int_mask,    // ???
   int_cause,   // ???
   dsisr,       // Defines the cause of data / alignment exceptions
-  dar,         // Data adress register
+  dar,         // Data address register
   pt_hashmask  // ???
 };
 

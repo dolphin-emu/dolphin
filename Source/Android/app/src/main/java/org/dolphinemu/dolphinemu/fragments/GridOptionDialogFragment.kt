@@ -10,7 +10,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import android.widget.CompoundButton
 import androidx.appcompat.app.AppCompatActivity
-import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.FragmentGridOptionsBinding
 import org.dolphinemu.dolphinemu.databinding.FragmentGridOptionsTvBinding
 import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
@@ -44,11 +43,9 @@ class GridOptionDialogFragment : BottomSheetDialogFragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        // Pins fragment to the top of the dialog ensures the dialog is expanded in landscape by default
-        if (!resources.getBoolean(R.bool.hasTouch)) {
-            BottomSheetBehavior.from<View>(view.parent as View).state =
-                BottomSheetBehavior.STATE_EXPANDED
-        }
+        // Ensure the dialog is expanded in landscape by default
+        BottomSheetBehavior.from<View>(view.parent as View).state =
+            BottomSheetBehavior.STATE_EXPANDED
 
         if (activity is AppCompatActivity) {
             setUpCoverButtons()

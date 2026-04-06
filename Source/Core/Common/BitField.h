@@ -114,24 +114,23 @@
  */
 #pragma pack(1)
 template <std::size_t position, std::size_t bits, typename T,
-          // StorageType is T for non-enum types and the underlying type of T if
-          // T is an enumeration. Note that T is wrapped within an enable_if in the
-          // former case to workaround compile errors which arise when using
-          // std::underlying_type<T>::type directly.
-          typename StorageType = typename std::conditional_t<
-              std::is_enum<T>::value, std::underlying_type<T>, std::enable_if<true, T>>::type>
+          // StorageType is T for non-enum or the underlying-type for an enum.
+          typename StorageType = std::conditional_t<std::is_enum_v<T>, std::underlying_type<T>,
+                                                    std::type_identity<T>>::type>
 struct BitField
 {
-private:
+public:
   // This constructor might be considered ambiguous:
   // Would it initialize the storage or just the bitfield?
   // Hence, delete it. Use the assignment operator to set bitfield values!
   BitField(T val) = delete;
 
-public:
   // Force default constructor to be created
   // so that we can use this within unions
   constexpr BitField() = default;
+
+  // Allow copy construction.
+  constexpr BitField(const BitField&) = default;
 
   // We explicitly delete the copy assignment operator here, because the
   // default copy assignment would copy the full storage value, rather than
@@ -212,26 +211,22 @@ class BitFieldArrayIterator;
 
 #pragma pack(1)
 template <std::size_t position, std::size_t bits, std::size_t size, typename T,
-          // StorageType is T for non-enum types and the underlying type of T if
-          // T is an enumeration. Note that T is wrapped within an enable_if in the
-          // former case to workaround compile errors which arise when using
-          // std::underlying_type<T>::type directly.
-          typename StorageType = typename std::conditional_t<
-              std::is_enum<T>::value, std::underlying_type<T>, std::enable_if<true, T>>::type>
+          // StorageType is T for non-enum or the underlying-type for an enum.
+          typename StorageType = std::conditional_t<std::is_enum_v<T>, std::underlying_type<T>,
+                                                    std::type_identity<T>>::type>
 struct BitFieldArray
 {
+public:
   using Ref = BitFieldArrayRef<position, bits, size, T, StorageType>;
   using ConstRef = BitFieldArrayConstRef<position, bits, size, T, StorageType>;
   using Iterator = BitFieldArrayIterator<position, bits, size, T, StorageType>;
   using ConstIterator = BitFieldArrayConstIterator<position, bits, size, T, StorageType>;
 
-private:
   // This constructor might be considered ambiguous:
   // Would it initialize the storage or just the bitfield?
   // Hence, delete it. Use the assignment operator to set bitfield values!
   BitFieldArray(T val) = delete;
 
-public:
   // Force default constructor to be created
   // so that we can use this within unions
   constexpr BitFieldArray() = default;
@@ -244,7 +239,6 @@ public:
   // code expects that this class is trivially copyable.
   BitFieldArray& operator=(const BitFieldArray&) = delete;
 
-public:
   constexpr bool IsSigned() const { return std::is_signed<T>(); }
   constexpr std::size_t StartBit() const { return position; }
   constexpr std::size_t NumBits() const { return bits; }
@@ -391,7 +385,6 @@ public:
   constexpr BitFieldArrayIterator(BitFieldArrayIterator&& other) = default;
   BitFieldArrayIterator& operator=(BitFieldArrayIterator&& other) = default;
 
-public:
   BitFieldArrayIterator& operator++()
   {
     m_index++;

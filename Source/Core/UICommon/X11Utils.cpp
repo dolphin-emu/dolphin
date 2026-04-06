@@ -3,22 +3,16 @@
 
 #include "UICommon/X11Utils.h"
 
-#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <spawn.h>
 #include <string>
-#include <sys/wait.h>
-#include <unistd.h>
 
 #include <fmt/format.h>
 
 #include "Common/Contains.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/Core.h"
 
 extern char** environ;
 
@@ -107,7 +101,7 @@ void XRRConfiguration::Update()
   }
   fullMode = 0;
 
-  // Get the resolution setings for fullscreen mode
+  // Get the resolution settings for fullscreen mode
   unsigned int fullWidth, fullHeight;
   char* output_name = nullptr;
   char auxFlag = '\0';

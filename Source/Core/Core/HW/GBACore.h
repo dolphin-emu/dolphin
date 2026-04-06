@@ -3,26 +3,31 @@
 
 #pragma once
 
+#ifdef HAS_LIBMGBA
+
 #include <array>
-#include <condition_variable>
 #include <memory>
-#include <mutex>
-#include <queue>
+#include <span>
 #include <string>
 #include <string_view>
-#include <thread>
 #include <vector>
 
-#define PYCPARSE  // Remove static functions from the header
-#include <mgba/core/interface.h>
-#undef PYCPARSE
 #include <mgba/core/core.h>
+#include <mgba/core/interface.h>
+#if !defined(_WIN32)
+#define USE_PTHREADS  // Required for Mutex/Condition in mCoreSync.
+#endif
+#include <mgba/core/sync.h>
+#undef USE_PTHREADS
 #include <mgba/gba/interface.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/WorkQueueThread.h"
 
 class GBAHostInterface;
+class Mixer;
 class PointerWrap;
+
 namespace Core
 {
 class System;
@@ -30,14 +35,18 @@ class System;
 
 namespace HW::GBA
 {
+
 class Core;
+
 struct SIODriver : GBASIODriver
 {
   Core* core;
 };
+
 struct AVStream : mAVStream
 {
   Core* core;
+  Mixer* mixer;
 };
 
 struct CoreInfo
@@ -71,8 +80,19 @@ public:
   void SetForceDisconnect(bool force_disconnect);
   void EReaderQueueCard(std::string_view card_path);
 
+  void RunFrame(u16 keys);
+  void SyncJoybus(u64 gc_ticks, u16 keys);
   void SendJoybusCommand(u64 gc_ticks, int transfer_time, u8* buffer, u16 keys);
-  std::vector<u8> GetJoybusResponse();
+  int GetJoybusResponse(u8* data_out);
+
+  // Wait for requested GBA emulation to complete.
+  void Flush();
+
+  mAudioBuffer* GetAudioBuffer() { return m_core->getAudioBuffer(m_core); }
+  std::span<const u32> GetVideoBuffer() const { return m_video_buffer; }
+
+  mPlatform GetPlatform() const { return m_core->platform(m_core); }
+  u32 GetAudioSampleRate() const { return m_core->audioSampleRate(m_core); }
 
   void ImportState(std::string_view state_path);
   void ExportState(std::string_view state_path);
@@ -84,27 +104,30 @@ public:
   static std::string GetSavePath(std::string_view rom_path, int device_number);
 
 private:
-  void ThreadLoop();
   void RunUntil(u64 gc_ticks);
   void RunFor(u64 gc_ticks);
-  void Flush();
 
-  struct Command
+  enum class SyncEventType : u8
   {
-    u64 ticks;
-    int transfer_time;
-    bool sync_only;
-    std::array<u8, 6> buffer;
-    u16 keys;
+    TimeSync,
+    RunCommand,
+    RunFrame,
   };
-  void RunCommand(Command& command);
+  struct SyncEvent
+  {
+    SyncEventType event_type{};
+    u16 keys{};
+    u64 run_until_ticks{};  // Not used by SyncEventType::RunFrame.
+  };
+  void PushEvent(SyncEvent event);
+  void HandleEvent(SyncEvent event);
 
   bool LoadBIOS(const char* bios_path);
   bool LoadSave(const char* save_path);
 
   void SetSIODriver();
   void SetVideoBuffer();
-  void SetSampleRates();
+  void SetAudioBufferSize();
   void AddCallbacks();
   void SetAVStream();
   void SetupEvent();
@@ -118,6 +141,7 @@ private:
   std::string m_game_title;
 
   mCore* m_core{};
+  mCoreSync m_core_sync{};
   mTimingEvent m_event{};
   bool m_waiting_for_event = false;
   SIODriver m_sio_driver{};
@@ -132,18 +156,23 @@ private:
 
   std::weak_ptr<GBAHostInterface> m_host;
 
-  std::unique_ptr<std::thread> m_thread;
-  bool m_exit_loop = false;
-  bool m_idle = false;
-  std::mutex m_queue_mutex;
-  std::condition_variable m_command_cv;
-  std::queue<Command> m_command_queue;
+  // Set by the GC thread before issuing a SyncEventType::RunCommand.
+  int m_joybus_command_transfer_time{};
+  GBASIOJOYCommand m_joybus_command{};
 
-  std::mutex m_response_mutex;
-  std::condition_variable m_response_cv;
-  bool m_response_ready = false;
-  std::vector<u8> m_response;
+  // Commands are synchronous. This buffer is used for the command and the response.
+  std::array<u8, 5> m_joybus_buffer{};  // State saved.
+
+  // Set by the GBA thread after filling in the above buffer.
+  u8 m_response_size{};  // State saved.
+  std::atomic_bool m_command_pending{};
+
+  // The entire threaded GBA runs within events pushed to this queue.
+  Common::WorkQueueThreadSP<SyncEvent> m_event_thread;
 
   ::Core::System& m_system;
 };
+
 }  // namespace HW::GBA
+
+#endif  // HAS_LIBMGBA

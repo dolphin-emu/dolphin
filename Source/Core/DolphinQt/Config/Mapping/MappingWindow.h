@@ -5,9 +5,6 @@
 
 #include <QDialog>
 #include <QString>
-#include <memory>
-
-#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 namespace ControllerEmu
 {
@@ -15,6 +12,8 @@ class EmulatedController;
 }
 
 class InputConfig;
+class MappingButton;
+
 class QComboBox;
 class QDialogButtonBox;
 class QEvent;
@@ -46,21 +45,30 @@ public:
     MAPPING_HOTKEYS,
     // Freelook
     MAPPING_FREELOOK,
+    // Triforce
+    MAPPING_AM_BASEBOARD,
   };
 
   explicit MappingWindow(QWidget* parent, Type type, int port_num);
 
   int GetPort() const;
   ControllerEmu::EmulatedController* GetController() const;
-  bool IsMappingAllDevices() const;
+  bool IsCreateOtherDeviceMappingsEnabled() const;
+  bool IsWaitForAlternateMappingsEnabled() const;
+  bool IsIterativeMappingEnabled() const;
   void ShowExtensionMotionTabs(bool show);
+  void ActivateExtensionTab();
 
 signals:
   // Emitted when config has changed so widgets can update to reflect the change.
   void ConfigChanged();
-  // Emitted at 30hz for real-time indicators to be updated.
+  // Emitted at INDICATOR_UPDATE_FREQ Hz for real-time indicators to be updated.
   void Update();
   void Save();
+
+  void UnQueueInputDetection(MappingButton*);
+  void QueueInputDetection(MappingButton*);
+  void CancelMapping();
 
 private:
   void SetMappingType(Type type);
@@ -79,14 +87,15 @@ private:
   void OnDeleteProfilePressed();
   void OnLoadProfilePressed();
   void OnSaveProfilePressed();
+  void OnOpenProfileFolder();
   void UpdateProfileIndex();
   void UpdateProfileButtonState();
   void PopulateProfileSelection();
+  void UpdateDeviceList();
 
   void OnDefaultFieldsPressed();
   void OnClearFieldsPressed();
   void OnSelectDevice(int index);
-  void OnGlobalDevicesChanged();
 
   ControllerEmu::EmulatedController* m_controller = nullptr;
 
@@ -99,7 +108,9 @@ private:
   QGroupBox* m_devices_box;
   QHBoxLayout* m_devices_layout;
   QComboBox* m_devices_combo;
-  QAction* m_all_devices_action;
+  QAction* m_other_device_mappings;
+  QAction* m_wait_for_alternate_mappings;
+  QAction* m_iterative_mapping;
 
   // Profiles
   QGroupBox* m_profiles_box;
@@ -107,7 +118,9 @@ private:
   QComboBox* m_profiles_combo;
   QPushButton* m_profiles_load;
   QPushButton* m_profiles_save;
-  QPushButton* m_profiles_delete;
+  QToolButton* m_profile_other_actions;
+  QAction* m_profiles_delete;
+  QAction* m_profiles_open_folder;
 
   // Reset
   QGroupBox* m_reset_box;

@@ -1,6 +1,8 @@
 // Copyright 2018 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
+#include <iterator>
 #include <memory>
 #include <vector>
 
@@ -35,14 +37,16 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_finali
 JNIEXPORT jobjectArray JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_getAllGamePaths(
     JNIEnv* env, jclass, jobjectArray folder_paths, jboolean recursive_scan)
 {
-  return VectorToJStringArray(
-      env, UICommon::FindAllGamePaths(JStringArrayToVector(env, folder_paths), recursive_scan));
+  const std::vector<std::string> paths = JStringArrayToVector(env, folder_paths);
+  std::vector<std::string_view> path_views;
+  std::ranges::copy(paths, std::back_inserter(path_views));
+  return SpanToJStringArray(env, UICommon::FindAllGamePaths(path_views, recursive_scan));
 }
 
 JNIEXPORT jobjectArray JNICALL
 Java_org_dolphinemu_dolphinemu_model_GameFileCache_getIsoPaths(JNIEnv* env, jclass)
 {
-  return VectorToJStringArray(env, Config::GetIsoPaths());
+  return SpanToJStringArray(env, Config::GetIsoPaths());
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_setIsoPaths(

@@ -1167,7 +1167,7 @@ union GenMode
   // This value is 1 less than the actual number (0-15 map to 1-16).
   // In other words there is always at least 1 tev stage
   BitField<10, 4, u32> numtevstages;
-  BitField<14, 2, CullMode> cullmode;
+  BitField<14, 2, CullMode> cull_mode;
   BitField<16, 3, u32> numindstages;
   BitField<19, 1, bool, u32> zfreeze;
 
@@ -1192,7 +1192,7 @@ struct fmt::formatter<GenMode>
                           "ZFreeze: {}",
                           mode.numtexgens, mode.numcolchans, mode.unused,
                           mode.flat_shading ? "Yes" : "No", mode.multisampling ? "Yes" : "No",
-                          mode.numtevstages + 1, mode.cullmode, mode.numindstages,
+                          mode.numtevstages + 1, mode.cull_mode, mode.numindstages,
                           mode.zfreeze ? "Yes" : "No");
   }
 };
@@ -1379,15 +1379,15 @@ struct fmt::formatter<LogicOp> : EnumFormatter<LogicOp::Set>
 
 union BlendMode
 {
-  BitField<0, 1, bool, u32> blendenable;
-  BitField<1, 1, bool, u32> logicopenable;
+  BitField<0, 1, bool, u32> blend_enable;
+  BitField<1, 1, bool, u32> logic_op_enable;
   BitField<2, 1, bool, u32> dither;
-  BitField<3, 1, bool, u32> colorupdate;
-  BitField<4, 1, bool, u32> alphaupdate;
-  BitField<5, 3, DstBlendFactor> dstfactor;
-  BitField<8, 3, SrcBlendFactor> srcfactor;
+  BitField<3, 1, bool, u32> color_update;
+  BitField<4, 1, bool, u32> alpha_update;
+  BitField<5, 3, DstBlendFactor> dst_factor;
+  BitField<8, 3, SrcBlendFactor> src_factor;
   BitField<11, 1, bool, u32> subtract;
-  BitField<12, 4, LogicOp> logicmode;
+  BitField<12, 4, LogicOp> logic_mode;
 
   u32 hex;
 
@@ -1411,9 +1411,9 @@ struct fmt::formatter<BlendMode>
                           "Source factor: {}\n"
                           "Subtract: {}\n"
                           "Logic mode: {}",
-                          no_yes[mode.blendenable], no_yes[mode.logicopenable], no_yes[mode.dither],
-                          no_yes[mode.colorupdate], no_yes[mode.alphaupdate], mode.dstfactor,
-                          mode.srcfactor, no_yes[mode.subtract], mode.logicmode);
+                          no_yes[mode.blend_enable], no_yes[mode.logic_op_enable],
+                          no_yes[mode.dither], no_yes[mode.color_update], no_yes[mode.alpha_update],
+                          mode.dst_factor, mode.src_factor, no_yes[mode.subtract], mode.logic_mode);
   }
 };
 
@@ -1599,9 +1599,9 @@ struct fmt::formatter<CompareMode> : EnumFormatter<CompareMode::Always>
 
 union ZMode
 {
-  BitField<0, 1, bool, u32> testenable;
+  BitField<0, 1, bool, u32> test_enable;
   BitField<1, 3, CompareMode> func;
-  BitField<4, 1, bool, u32> updateenable;
+  BitField<4, 1, bool, u32> update_enable;
 
   u32 hex;
 };
@@ -1616,8 +1616,8 @@ struct fmt::formatter<ZMode>
                           "Enable test: {}\n"
                           "Compare function: {}\n"
                           "Enable updates: {}",
-                          mode.testenable ? "Yes" : "No", mode.func,
-                          mode.updateenable ? "Yes" : "No");
+                          mode.test_enable ? "Yes" : "No", mode.func,
+                          mode.update_enable ? "Yes" : "No");
   }
 };
 
@@ -2519,7 +2519,7 @@ struct BPMemory
 
   EmulatedZ GetEmulatedZ() const
   {
-    if (!zmode.testenable)
+    if (!zmode.test_enable)
       return EmulatedZ::Disabled;
     if (zcontrol.early_ztest)
       return EmulatedZ::Early;

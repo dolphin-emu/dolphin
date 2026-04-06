@@ -3,23 +3,20 @@
 
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
-#include <cmath>
-#include <fstream>
 #include <iterator>
+#include <utility>
 
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/EnumUtils.h"
-#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
+
 #include "Core/Core.h"
-#include "Core/DolphinAnalytics.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
-#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 
 namespace WiimoteEmu
 {
@@ -211,7 +208,7 @@ void Wiimote::HandleExtensionSwap(ExtensionNumber desired_extension_number,
     else
     {
       INFO_LOG_FMT(WIIMOTE, "Switching to Extension {} (Wiimote {} in slot {})",
-                   Common::ToUnderlying(desired_extension_number), m_index, m_bt_device_index);
+                   std::to_underlying(desired_extension_number), m_index, m_bt_device_index);
 
       m_active_extension = desired_extension_number;
     }
@@ -308,7 +305,7 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
     auto const bytes_written = m_i2c_bus.BusWrite(wd.slave_address, (u8)address, wd.size, wd.data);
     if (bytes_written != wd.size)
     {
-      // A real wiimote gives error 7 for failed write to i2c bus (mainly a non-existant slave)
+      // A real wiimote gives error 7 for failed write to i2c bus (mainly a non-existent slave)
       error_code = ErrorCode::Nack;
     }
   }
@@ -393,7 +390,7 @@ void Wiimote::HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData& rp
     {
       // Speaker data reports result in a write to the speaker hardware at offset 0x00.
       m_i2c_bus.BusWrite(SpeakerLogic::I2C_ADDR, SpeakerLogic::SPEAKER_DATA_OFFSET, rpt.length,
-                         rpt.data);
+                         std::data(rpt.data));
     }
   }
 
@@ -466,7 +463,7 @@ bool Wiimote::ProcessReadDataRequest()
       // error code 8
 
       // The real Wiimote generate an error for the first
-      // request to 0x1770 if we dont't replicate that the game will never
+      // request to 0x1770 if we don't replicate that the game will never
       // read the calibration data at the beginning of Eeprom.
       error_code = ErrorCode::InvalidAddress;
     }
@@ -489,19 +486,6 @@ bool Wiimote::ProcessReadDataRequest()
       error_code = ErrorCode::InvalidAddress;
       break;
     }
-
-    // It is possible to bypass data reporting and directly read extension input.
-    // While I am not aware of any games that actually do this,
-    // our NetPlay and TAS methods are completely unprepared for it.
-    const bool is_reading_ext = EncryptedExtension::I2C_ADDR == m_read_request.slave_address &&
-                                m_read_request.address < EncryptedExtension::CONTROLLER_DATA_BYTES;
-    const bool is_reading_ir =
-        CameraLogic::I2C_ADDR == m_read_request.slave_address &&
-        m_read_request.address < CameraLogic::REPORT_DATA_OFFSET + CameraLogic::CAMERA_DATA_BYTES &&
-        m_read_request.address + m_read_request.size > CameraLogic::REPORT_DATA_OFFSET;
-
-    if (is_reading_ext || is_reading_ir)
-      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::DIRECTLY_READS_WIIMOTE_INPUT);
 
     // Top byte of address is ignored on the bus, but it IS maintained in the read-reply.
     auto const bytes_read = m_i2c_bus.BusRead(
@@ -602,9 +586,9 @@ ExtensionNumber Wiimote::GetActiveExtensionNumber() const
   return m_active_extension;
 }
 
-bool Wiimote::IsMotionPlusAttached() const
+ControllerEmu::SubscribableSettingValue<bool>& Wiimote::GetMotionPlusSetting()
 {
-  return m_is_motion_plus_attached;
+  return m_motion_plus_setting;
 }
 
 }  // namespace WiimoteEmu

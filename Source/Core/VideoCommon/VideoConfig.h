@@ -4,7 +4,7 @@
 // IMPORTANT: UI etc should modify g_Config. Graphics code should read g_ActiveConfig.
 // The reason for this is to get rid of race conditions etc when the configuration
 // changes in the middle of a frame. This is done by copying g_Config to g_ActiveConfig
-// at the start of every frame. Noone should ever change members of g_ActiveConfig
+// at the start of every frame. No one should ever change members of g_ActiveConfig
 // directly.
 
 #pragma once
@@ -55,6 +55,16 @@ enum class TextureFilteringMode : int
   Linear,
 };
 
+enum class AnisotropicFilteringMode : int
+{
+  Default = -1,
+  Force1x = 0,
+  Force2x = 1,
+  Force4x = 2,
+  Force8x = 3,
+  Force16x = 4,
+};
+
 enum class OutputResamplingMode : int
 {
   Default,
@@ -90,6 +100,13 @@ enum class FrameDumpResolutionType : int
   XFBRawResolution,
 };
 
+enum class VertexLoaderType : int
+{
+  Native,
+  Software,
+  Compare
+};
+
 // Bitmask containing information about which configuration has changed for the backend.
 enum ConfigChangeBits : u32
 {
@@ -106,12 +123,76 @@ enum ConfigChangeBits : u32
   CONFIG_CHANGE_BIT_HDR = (1 << 10),
 };
 
+// Static config per API
+struct BackendInfo
+{
+  APIType api_type = APIType::Nothing;
+  std::string DisplayName;
+
+  std::vector<std::string> Adapters;  // for D3D
+  std::vector<u32> AAModes;
+
+  // TODO: merge AdapterName and Adapters array
+  std::string AdapterName;  // for OpenGL
+
+  u32 MaxTextureSize = 16384;
+  bool bUsesLowerLeftOrigin = false;
+  bool bUsesExplictQuadBuffering = false;
+  bool bSupportsExclusiveFullscreen = false;  // Note: Vulkan can change this at runtime.
+  bool bSupportsDualSourceBlend = false;
+  bool bSupportsPrimitiveRestart = false;
+  bool bSupportsGeometryShaders = false;
+  bool bSupportsComputeShaders = false;
+  bool bSupports3DVision = false;
+  bool bSupportsEarlyZ = false;         // needed by PixelShaderGen, so must stay in VideoCommon
+  bool bSupportsBindingLayout = false;  // Needed by ShaderGen, so must stay in VideoCommon
+  bool bSupportsBBox = false;
+  bool bSupportsGSInstancing = false;  // Needed by GeometryShaderGen, so must stay in VideoCommon
+  bool bSupportsPostProcessing = false;
+  bool bSupportsPaletteConversion = false;
+  bool bSupportsClipControl = false;  // Needed by VertexShaderGen, so must stay in VideoCommon
+  bool bSupportsSSAA = false;
+  bool bSupportsFragmentStoresAndAtomics = false;  // a.k.a. OpenGL SSBOs a.k.a. Direct3D UAVs
+  bool bSupportsDepthClamp = false;  // Needed by VertexShaderGen, so must stay in VideoCommon
+  bool bSupportsReversedDepthRange = false;
+  bool bSupportsLogicOp = false;
+  bool bSupportsMultithreading = false;
+  bool bSupportsGPUTextureDecoding = false;
+  bool bSupportsST3CTextures = false;
+  bool bSupportsCopyToVram = false;
+  bool bSupportsBitfield = false;  // Needed by UberShaders, so must stay in VideoCommon
+  // Needed by UberShaders, so must stay in VideoCommon
+  bool bSupportsDynamicSamplerIndexing = false;
+  bool bSupportsBPTCTextures = false;
+  bool bSupportsFramebufferFetch = false;  // Used as an alternative to dual-source blend on GLES
+  bool bSupportsBackgroundCompiling = false;
+  bool bSupportsLargePoints = false;
+  bool bSupportsPartialDepthCopies = false;
+  bool bSupportsDepthReadback = false;
+  bool bSupportsShaderBinaries = false;
+  bool bSupportsPipelineCacheData = false;
+  bool bSupportsCoarseDerivatives = false;
+  bool bSupportsTextureQueryLevels = false;
+  bool bSupportsLodBiasInSampler = false;
+  bool bSupportsSettingObjectNames = false;
+  bool bSupportsPartialMultisampleResolve = false;
+  bool bSupportsDynamicVertexLoader = false;
+  bool bSupportsVSLinePointExpand = false;
+  bool bSupportsGLLayerInFS = true;
+  bool bSupportsHDROutput = false;
+  bool bSupportsUnrestrictedDepthRange = false;
+};
+
+extern BackendInfo g_backend_info;
+
 // NEVER inherit from this class.
 struct VideoConfig final
 {
   VideoConfig() = default;
   void Refresh();
   void VerifyValidity();
+  static void Init();
+  static void Shutdown();
 
   // General
   bool bVSync = false;
@@ -134,7 +215,7 @@ struct VideoConfig final
   int iEFBScale = 0;
   TextureFilteringMode texture_filtering_mode = TextureFilteringMode::Default;
   OutputResamplingMode output_resampling_mode = OutputResamplingMode::Default;
-  int iMaxAnisotropy = 0;
+  AnisotropicFilteringMode iMaxAnisotropy = AnisotropicFilteringMode::Default;
   std::string sPostProcessingShader;
   bool bForceTrueColor = false;
   bool bDisableCopyFilter = false;
@@ -171,8 +252,6 @@ struct VideoConfig final
   bool bShowSpeed = false;
   bool bShowSpeedColors = false;
   int iPerfSampleUSec = 0;
-  bool bShowNetPlayPing = false;
-  bool bShowNetPlayMessages = false;
   bool bOverlayStats = false;
   bool bOverlayProjStats = false;
   bool bOverlayScissorStats = false;
@@ -192,19 +271,9 @@ struct VideoConfig final
   bool bCacheHiresTextures = false;
   bool bDumpEFBTarget = false;
   bool bDumpXFBTarget = false;
-  bool bDumpFramesAsImages = false;
-  bool bUseFFV1 = false;
-  std::string sDumpCodec;
-  std::string sDumpPixelFormat;
-  std::string sDumpEncoder;
-  std::string sDumpFormat;
-  std::string sDumpPath;
-  FrameDumpResolutionType frame_dumps_resolution_type =
-      FrameDumpResolutionType::XFBAspectRatioCorrectedResolution;
   bool bBorderlessFullscreen = false;
   bool bEnableGPUTextureDecoding = false;
   bool bPreferVSForLinePointExpansion = false;
-  int iBitrateKbps = 0;
   bool bGraphicMods = false;
   std::optional<GraphicsModGroupConfig> graphics_mod_config;
 
@@ -213,7 +282,6 @@ struct VideoConfig final
   bool bEFBAccessDeferInvalidation = false;
   bool bPerfQueriesEnable = false;
   bool bBBoxEnable = false;
-  bool bForceProgressive = false;
   bool bCPUCull = false;
 
   bool bEFBEmulateFormatChanges = false;
@@ -242,12 +310,10 @@ struct VideoConfig final
   // Stereoscopy
   StereoMode stereo_mode{};
   bool stereo_per_eye_resolution_full = false;
-  int iStereoDepth = 0;
-  int iStereoConvergence = 0;
-  int iStereoConvergencePercentage = 0;
+  float stereo_depth = 0;
+  float stereo_convergence = 0;
   bool bStereoSwapEyes = false;
   bool bStereoEFBMonoDepth = false;
-  int iStereoDepthPercentage = 0;
 
   // D3D only config, mostly to be merged into the above
   int iAdapter = 0;
@@ -279,84 +345,26 @@ struct VideoConfig final
   // Loading custom drivers on Android
   std::string customDriverLibraryName;
 
-  // Static config per API
-  // TODO: Move this out of VideoConfig
-  struct
-  {
-    APIType api_type = APIType::Nothing;
-    std::string DisplayName;
-
-    std::vector<std::string> Adapters;  // for D3D
-    std::vector<u32> AAModes;
-
-    // TODO: merge AdapterName and Adapters array
-    std::string AdapterName;  // for OpenGL
-
-    u32 MaxTextureSize = 16384;
-    bool bUsesLowerLeftOrigin = false;
-    bool bUsesExplictQuadBuffering = false;
-
-    bool bSupportsExclusiveFullscreen = false;
-    bool bSupportsDualSourceBlend = false;
-    bool bSupportsPrimitiveRestart = false;
-    bool bSupportsGeometryShaders = false;
-    bool bSupportsComputeShaders = false;
-    bool bSupports3DVision = false;
-    bool bSupportsEarlyZ = false;         // needed by PixelShaderGen, so must stay in VideoCommon
-    bool bSupportsBindingLayout = false;  // Needed by ShaderGen, so must stay in VideoCommon
-    bool bSupportsBBox = false;
-    bool bSupportsGSInstancing = false;  // Needed by GeometryShaderGen, so must stay in VideoCommon
-    bool bSupportsPostProcessing = false;
-    bool bSupportsPaletteConversion = false;
-    bool bSupportsClipControl = false;  // Needed by VertexShaderGen, so must stay in VideoCommon
-    bool bSupportsSSAA = false;
-    bool bSupportsFragmentStoresAndAtomics = false;  // a.k.a. OpenGL SSBOs a.k.a. Direct3D UAVs
-    bool bSupportsDepthClamp = false;  // Needed by VertexShaderGen, so must stay in VideoCommon
-    bool bSupportsReversedDepthRange = false;
-    bool bSupportsLogicOp = false;
-    bool bSupportsMultithreading = false;
-    bool bSupportsGPUTextureDecoding = false;
-    bool bSupportsST3CTextures = false;
-    bool bSupportsCopyToVram = false;
-    bool bSupportsBitfield = false;  // Needed by UberShaders, so must stay in VideoCommon
-    // Needed by UberShaders, so must stay in VideoCommon
-    bool bSupportsDynamicSamplerIndexing = false;
-    bool bSupportsBPTCTextures = false;
-    bool bSupportsFramebufferFetch = false;  // Used as an alternative to dual-source blend on GLES
-    bool bSupportsBackgroundCompiling = false;
-    bool bSupportsLargePoints = false;
-    bool bSupportsPartialDepthCopies = false;
-    bool bSupportsDepthReadback = false;
-    bool bSupportsShaderBinaries = false;
-    bool bSupportsPipelineCacheData = false;
-    bool bSupportsCoarseDerivatives = false;
-    bool bSupportsTextureQueryLevels = false;
-    bool bSupportsLodBiasInSampler = false;
-    bool bSupportsSettingObjectNames = false;
-    bool bSupportsPartialMultisampleResolve = false;
-    bool bSupportsDynamicVertexLoader = false;
-    bool bSupportsVSLinePointExpand = false;
-    bool bSupportsGLLayerInFS = true;
-    bool bSupportsHDROutput = false;
-  } backend_info;
+  // Vertex loader
+  VertexLoaderType vertex_loader_type;
 
   // Utility
   bool UseVSForLinePointExpand() const
   {
-    if (!backend_info.bSupportsVSLinePointExpand)
+    if (!g_backend_info.bSupportsVSLinePointExpand)
       return false;
-    if (!backend_info.bSupportsGeometryShaders)
+    if (!g_backend_info.bSupportsGeometryShaders)
       return true;
     return bPreferVSForLinePointExpansion;
   }
   bool MultisamplingEnabled() const { return iMultisamples > 1; }
   bool ExclusiveFullscreenEnabled() const
   {
-    return backend_info.bSupportsExclusiveFullscreen && !bBorderlessFullscreen;
+    return g_backend_info.bSupportsExclusiveFullscreen && !bBorderlessFullscreen;
   }
   bool UseGPUTextureDecoding() const
   {
-    return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
+    return g_backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
   bool UseVertexRounding() const { return bVertexRounding && iEFBScale != 1; }
   bool ManualTextureSamplingWithCustomTextureSizes() const

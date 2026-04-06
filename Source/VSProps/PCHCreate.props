@@ -18,7 +18,7 @@
     <Lib>
       <!--
         Clear the output path so projects referencing this one don't try to drag
-        in a nonexistant .lib file.
+        in a nonexistent .lib file.
         -->
       <OutputFile />
     </Lib>

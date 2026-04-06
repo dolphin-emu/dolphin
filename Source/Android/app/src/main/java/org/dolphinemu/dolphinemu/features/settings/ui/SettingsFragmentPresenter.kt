@@ -22,6 +22,7 @@ import org.dolphinemu.dolphinemu.features.input.model.InputMappingBooleanSetting
 import org.dolphinemu.dolphinemu.features.input.model.InputMappingDoubleSetting
 import org.dolphinemu.dolphinemu.features.input.model.InputMappingIntSetting
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.ControlGroup
+import org.dolphinemu.dolphinemu.features.input.model.controlleremu.ControlGroupContainer
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedController
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.NumericSetting
 import org.dolphinemu.dolphinemu.features.input.model.view.InputDeviceSetting
@@ -30,10 +31,9 @@ import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialog
 import org.dolphinemu.dolphinemu.features.input.ui.ProfileDialogPresenter
 import org.dolphinemu.dolphinemu.features.settings.model.*
 import org.dolphinemu.dolphinemu.features.settings.model.view.*
+import org.dolphinemu.dolphinemu.features.settings.model.AchievementModel.logout
 import org.dolphinemu.dolphinemu.model.GpuDriverMetadata
-import org.dolphinemu.dolphinemu.ui.main.MainPresenter
 import org.dolphinemu.dolphinemu.utils.*
-import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -99,11 +99,7 @@ class SettingsFragmentPresenter(
             }
         }
 
-    fun loadDefaultSettings() {
-        loadSettingsList()
-    }
-
-    private fun loadSettingsList() {
+    fun loadSettingsList() {
         val sl = ArrayList<SettingsItem>()
         when (menuTag) {
             MenuTag.SETTINGS -> addTopLevelSettings(sl)
@@ -114,6 +110,7 @@ class SettingsFragmentPresenter(
             MenuTag.CONFIG_PATHS -> addPathsSettings(sl)
             MenuTag.CONFIG_GAME_CUBE -> addGameCubeSettings(sl)
             MenuTag.CONFIG_WII -> addWiiSettings(sl)
+            MenuTag.CONFIG_ACHIEVEMENTS -> addAchievementSettings(sl);
             MenuTag.CONFIG_ADVANCED -> addAdvancedSettings(sl)
             MenuTag.GRAPHICS -> addGraphicsSettings(sl)
             MenuTag.CONFIG_SERIALPORT1 -> addSerialPortSubSettings(sl, serialPort1Type)
@@ -203,6 +200,7 @@ class SettingsFragmentPresenter(
         sl.add(SubmenuSetting(context, R.string.paths_submenu, MenuTag.CONFIG_PATHS))
         sl.add(SubmenuSetting(context, R.string.gamecube_submenu, MenuTag.CONFIG_GAME_CUBE))
         sl.add(SubmenuSetting(context, R.string.wii_submenu, MenuTag.CONFIG_WII))
+        sl.add(SubmenuSetting(context, R.string.achievements_submenu, MenuTag.CONFIG_ACHIEVEMENTS))
         sl.add(SubmenuSetting(context, R.string.advanced_submenu, MenuTag.CONFIG_ADVANCED))
         sl.add(SubmenuSetting(context, R.string.log_submenu, MenuTag.CONFIG_LOG))
         sl.add(SubmenuSetting(context, R.string.debug_submenu, MenuTag.DEBUG))
@@ -251,7 +249,7 @@ class SettingsFragmentPresenter(
                 FloatSetting.MAIN_EMULATION_SPEED,
                 R.string.speed_limit,
                 0,
-                0f,
+                if (AchievementModel.isHardcoreModeActive()) 100f else 0f,
                 200f,
                 "%",
                 1f,
@@ -341,6 +339,14 @@ class SettingsFragmentPresenter(
                 BooleanSetting.MAIN_OSD_MESSAGES,
                 R.string.osd_messages,
                 R.string.osd_messages_description
+            )
+        )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_TIME_TRACKING,
+                R.string.time_tracking,
+                R.string.time_tracking_description
             )
         )
 
@@ -531,11 +537,31 @@ class SettingsFragmentPresenter(
             )
         )
         sl.add(
+            IntSliderSetting(
+                context,
+                IntSetting.MAIN_AUDIO_BUFFER_SIZE,
+                R.string.audio_buffer_size,
+                R.string.audio_buffer_size_description,
+                16,
+                512,
+                "ms",
+                8
+            )
+        )
+        sl.add(
             SwitchSetting(
                 context,
-                BooleanSetting.MAIN_AUDIO_STRETCH,
-                R.string.audio_stretch,
-                R.string.audio_stretch_description
+                BooleanSetting.MAIN_AUDIO_FILL_GAPS,
+                R.string.audio_fill_gaps,
+                R.string.audio_fill_gaps_description
+            )
+        )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_AUDIO_PRESERVE_PITCH,
+                R.string.audio_preserve_pitch,
+                R.string.audio_preserve_pitch_description
             )
         )
         sl.add(
@@ -567,57 +593,57 @@ class SettingsFragmentPresenter(
                 StringSetting.MAIN_DEFAULT_ISO,
                 R.string.default_ISO,
                 0,
-                MainPresenter.REQUEST_GAME_FILE,
+                fragmentView.activityResultLaunchers.requestGameFile,
                 null
             )
         )
         sl.add(
-            FilePicker(
+            DirectoryPicker(
                 context,
                 StringSetting.MAIN_FS_PATH,
                 R.string.wii_NAND_root,
                 0,
-                MainPresenter.REQUEST_DIRECTORY,
+                fragmentView.activityResultLaunchers.requestDirectory,
                 "/Wii"
             )
         )
         sl.add(
-            FilePicker(
+            DirectoryPicker(
                 context,
                 StringSetting.MAIN_DUMP_PATH,
                 R.string.dump_path,
                 0,
-                MainPresenter.REQUEST_DIRECTORY,
+                fragmentView.activityResultLaunchers.requestDirectory,
                 "/Dump"
             )
         )
         sl.add(
-            FilePicker(
+            DirectoryPicker(
                 context,
                 StringSetting.MAIN_LOAD_PATH,
                 R.string.load_path,
                 0,
-                MainPresenter.REQUEST_DIRECTORY,
+                fragmentView.activityResultLaunchers.requestDirectory,
                 "/Load"
             )
         )
         sl.add(
-            FilePicker(
+            DirectoryPicker(
                 context,
                 StringSetting.MAIN_RESOURCEPACK_PATH,
                 R.string.resource_pack_path,
                 0,
-                MainPresenter.REQUEST_DIRECTORY,
+                fragmentView.activityResultLaunchers.requestDirectory,
                 "/ResourcePacks"
             )
         )
         sl.add(
-            FilePicker(
+            DirectoryPicker(
                 context,
                 StringSetting.MAIN_WFS_PATH,
                 R.string.wfs_path,
                 0,
-                MainPresenter.REQUEST_DIRECTORY,
+                fragmentView.activityResultLaunchers.requestDirectory,
                 "/WFS"
             )
         )
@@ -674,6 +700,38 @@ class SettingsFragmentPresenter(
                 R.array.serialPort1DeviceEntries,
                 R.array.serialPort1DeviceValues,
                 MenuTag.CONFIG_SERIALPORT1
+            )
+        )
+
+        sl.add(HeaderSetting(context, R.string.gba_settings, 0))
+        sl.add(
+            FilePicker(
+                context,
+                StringSetting.MAIN_GBA_BIOS_PATH,
+                R.string.gba_bios_path,
+                0,
+                fragmentView.activityResultLaunchers.requestBinFile,
+                "/GBA/gba_bios.bin"
+            )
+        )
+        sl.add(
+            FilePicker(
+                context,
+                StringSetting.MAIN_GB_PLAYER_ROM,
+                R.string.gb_player_rom,
+                0,
+                fragmentView.activityResultLaunchers.requestGbaRomFile,
+                null
+            )
+        )
+        sl.add(
+            DirectoryPicker(
+                context,
+                StringSetting.MAIN_GBA_SAVES_PATH,
+                R.string.gba_saves_path,
+                0,
+                fragmentView.activityResultLaunchers.requestDirectory,
+                "/GBA/Saves/"
             )
         )
     }
@@ -767,17 +825,17 @@ class SettingsFragmentPresenter(
                 StringSetting.MAIN_WII_SD_CARD_IMAGE_PATH,
                 R.string.wii_sd_card_path,
                 0,
-                MainPresenter.REQUEST_SD_FILE,
+                fragmentView.activityResultLaunchers.requestRawFile,
                 "/Load/WiiSD.raw"
             )
         )
         sl.add(
-            FilePicker(
+            DirectoryPicker(
                 context,
                 StringSetting.MAIN_WII_SD_CARD_SYNC_FOLDER_PATH,
                 R.string.wii_sd_sync_folder,
                 0,
-                MainPresenter.REQUEST_DIRECTORY,
+                fragmentView.activityResultLaunchers.requestDirectory,
                 "/Load/WiiSDSync/"
             )
         )
@@ -879,6 +937,145 @@ class SettingsFragmentPresenter(
                 0
             )
         )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_EMULATE_WII_SPEAK,
+                R.string.emulate_wii_speak,
+                0
+            )
+        )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_WII_SPEAK_MUTED,
+                R.string.mute_wii_speak,
+                0
+            )
+        )
+    }
+
+    private fun addAchievementSettings(sl: ArrayList<SettingsItem>) {
+        val achievementsEnabledSetting: AbstractBooleanSetting = object : AbstractBooleanSetting {
+            override val boolean: Boolean
+                get() = BooleanSetting.ACHIEVEMENTS_ENABLED.boolean
+
+            override fun setBoolean(settings: Settings, newValue: Boolean) {
+                BooleanSetting.ACHIEVEMENTS_ENABLED.setBoolean(settings, newValue)
+                if (newValue)
+                    AchievementModel.init()
+                else
+                    AchievementModel.shutdown()
+                loadSettingsList()
+            }
+
+            override val isOverridden: Boolean
+                get() = BooleanSetting.ACHIEVEMENTS_ENABLED.isOverridden
+
+            override val isRuntimeEditable: Boolean
+                get() = BooleanSetting.ACHIEVEMENTS_ENABLED.isRuntimeEditable
+
+            override fun delete(settings: Settings): Boolean {
+                val result = BooleanSetting.ACHIEVEMENTS_ENABLED.delete(settings)
+                AchievementModel.shutdown()
+                loadSettingsList()
+                return result
+            }
+        }
+
+        sl.add(
+            SwitchSetting(
+                context,
+                achievementsEnabledSetting,
+                R.string.achievements_enabled,
+                0
+            )
+        )
+        if (BooleanSetting.ACHIEVEMENTS_ENABLED.boolean) {
+            if (StringSetting.ACHIEVEMENTS_API_TOKEN.string == "") {
+                sl.add(
+                    RunRunnable(
+                        context,
+                        R.string.achievements_login,
+                        0,
+                        0,
+                        0,
+                        false
+                    ) {
+                      fragmentView.showDialogFragment(LoginDialog(this))
+                      loadSettingsList()
+                    })
+            } else {
+                sl.add(
+                    RunRunnable(
+                        context,
+                        R.string.achievements_logout,
+                        0,
+                        0,
+                        0,
+                        false
+                    ) {
+                      logout()
+                      loadSettingsList()
+                    })
+            }
+            sl.add(
+                SwitchSetting(
+                    context,
+                    BooleanSetting.ACHIEVEMENTS_HARDCORE_ENABLED,
+                    R.string.achievements_hardcore_enabled,
+                    0
+                )
+            )
+            sl.add(
+                SwitchSetting(
+                    context,
+                    BooleanSetting.ACHIEVEMENTS_UNOFFICIAL_ENABLED,
+                    R.string.achievements_unofficial_enabled,
+                    0
+                )
+            )
+            sl.add(
+                SwitchSetting(
+                    context,
+                    BooleanSetting.ACHIEVEMENTS_ENCORE_ENABLED,
+                    R.string.achievements_encore_enabled,
+                    0
+                )
+            )
+            sl.add(
+                SwitchSetting(
+                    context,
+                    BooleanSetting.ACHIEVEMENTS_SPECTATOR_ENABLED,
+                    R.string.achievements_spectator_enabled,
+                    0
+                )
+            )
+            sl.add(
+                SwitchSetting(
+                    context,
+                    BooleanSetting.ACHIEVEMENTS_LEADERBOARD_TRACKER_ENABLED,
+                    R.string.achievements_leaderboard_tracker_enabled,
+                    0
+                )
+            )
+            sl.add(
+                SwitchSetting(
+                    context,
+                    BooleanSetting.ACHIEVEMENTS_CHALLENGE_INDICATORS_ENABLED,
+                    R.string.achievements_challenge_indicators_enabled,
+                    0
+                )
+            )
+            sl.add(
+                SwitchSetting(
+                    context,
+                    BooleanSetting.ACHIEVEMENTS_PROGRESS_ENABLED,
+                    R.string.achievements_progress_enabled,
+                    0
+                )
+            )
+        }
     }
 
     private fun addAdvancedSettings(sl: ArrayList<SettingsItem>) {
@@ -1004,7 +1201,28 @@ class SettingsFragmentPresenter(
                 R.string.overclock_title,
                 R.string.overclock_title_description,
                 0f,
-                400f,
+                500f,
+                "%",
+                1f,
+                false
+            )
+        )
+        sl.add(
+            SwitchSetting(
+                context,
+                BooleanSetting.MAIN_VI_OVERCLOCK_ENABLE,
+                R.string.vi_overclock_enable,
+                R.string.vi_overclock_enable_description
+            )
+        )
+        sl.add(
+            PercentSliderSetting(
+                context,
+                FloatSetting.MAIN_VI_OVERCLOCK,
+                R.string.vi_overclock_title,
+                R.string.vi_overclock_title_description,
+                0f,
+                500f,
                 "%",
                 1f,
                 false
@@ -1090,7 +1308,17 @@ class SettingsFragmentPresenter(
     }
 
     private fun addSerialPortSubSettings(sl: ArrayList<SettingsItem>, serialPort1Type: Int) {
-        if (serialPort1Type == 10) {
+        if (serialPort1Type == 6) {
+            // Triforce Baseboard
+            sl.add(
+                InputStringSetting(
+                    context,
+                    StringSetting.MAIN_TRIFORCE_IP_REDIRECTIONS,
+                    R.string.triforce_ip_redirections,
+                    0
+                )
+            )
+        } else if (serialPort1Type == 10) {
             // Broadband Adapter (XLink Kai)
             sl.add(HyperLinkHeaderSetting(context, R.string.xlink_kai_guide_header, 0))
             sl.add(
@@ -1940,7 +2168,7 @@ class SettingsFragmentPresenter(
                 IntSetting.LOGGER_VERBOSITY,
                 R.string.log_verbosity,
                 0,
-                logVerbosityEntries, logVerbosityValues
+                getLogVerbosityEntries(), getLogVerbosityValues()
             )
         )
         sl.add(
@@ -1972,8 +2200,8 @@ class SettingsFragmentPresenter(
             ) { SettingsAdapter.clearLog() })
 
         sl.add(HeaderSetting(context, R.string.log_types, 0))
-        for ((key, value) in LOG_TYPE_NAMES) {
-            sl.add(LogSwitchSetting(key, value, ""))
+        for (logType in NativeLibrary.GetLogTypeNames()) {
+            sl.add(LogSwitchSetting(logType.first, logType.second, ""))
         }
     }
 
@@ -2129,27 +2357,29 @@ class SettingsFragmentPresenter(
             )
         )
         sl.add(
-            IntSliderSetting(
+            FloatSliderSetting(
                 context,
-                IntSetting.GFX_STEREO_DEPTH,
+                FloatSetting.GFX_STEREO_DEPTH,
                 R.string.stereoscopy_depth,
                 R.string.stereoscopy_depth_description,
-                0,
-                100,
-                "%",
-                1
+                0f,
+                100f,
+                "",
+                1f,
+                false
             )
         )
         sl.add(
-            IntSliderSetting(
+            FloatSliderSetting(
                 context,
-                IntSetting.GFX_STEREO_CONVERGENCE_PERCENTAGE,
+                FloatSetting.GFX_STEREO_CONVERGENCE,
                 R.string.stereoscopy_convergence,
                 R.string.stereoscopy_convergence_description,
-                0,
-                200,
-                "%",
-                1
+                0f,
+                200f,
+                "",
+                0.01f,
+                true
             )
         )
         sl.add(
@@ -2164,7 +2394,7 @@ class SettingsFragmentPresenter(
 
     private fun addGcPadSubSettings(sl: ArrayList<SettingsItem>, gcPadNumber: Int, gcPadType: Int) {
         when (gcPadType) {
-            6, 8, 9, 10 -> {
+            6, 8, 9, 10, 11 -> {
                 // Emulated
                 val gcPad = EmulatedController.getGcPad(gcPadNumber)
 
@@ -2255,8 +2485,9 @@ class SettingsFragmentPresenter(
         wiimoteNumber: Int,
         extensionType: Int
     ) {
-        addControllerMappingSettings(
+        addContainerMappingSettings(
             sl,
+            EmulatedController.getWiimote(wiimoteNumber),
             EmulatedController.getWiimoteAttachment(wiimoteNumber, extensionType),
             null
         )
@@ -2404,15 +2635,32 @@ class SettingsFragmentPresenter(
      * @param groupTypeFilter If this is non-null, only groups whose types match this are considered.
      */
     private fun addControllerMappingSettings(
+      sl: ArrayList<SettingsItem>,
+      controller: EmulatedController,
+      groupTypeFilter: Set<Int>?
+    ) {
+      addContainerMappingSettings(sl, controller, controller, groupTypeFilter)
+    }
+
+    /**
+     * Adds mapping settings and other control-specific settings.
+     *
+     * @param sl              The list to place controller settings into.
+     * @param controller      The encompassing controller.
+     * @param container       The container of control groups to add settings for.
+     * @param groupTypeFilter If this is non-null, only groups whose types match this are considered.
+     */
+    private fun addContainerMappingSettings(
         sl: ArrayList<SettingsItem>,
         controller: EmulatedController,
+        container: ControlGroupContainer,
         groupTypeFilter: Set<Int>?
     ) {
         updateOldControllerSettingsWarningVisibility(controller)
 
-        val groupCount = controller.getGroupCount()
+        val groupCount = container.getGroupCount()
         for (i in 0 until groupCount) {
-            val group = controller.getGroup(i)
+            val group = container.getGroup(i)
             val groupType = group.getGroupType()
             if (groupTypeFilter != null && !groupTypeFilter.contains(groupType)) continue
 
@@ -2504,11 +2752,11 @@ class SettingsFragmentPresenter(
     fun setAllLogTypes(value: Boolean) {
         val settings = fragmentView.settings
 
-        for ((key) in LOG_TYPE_NAMES) {
+        for (logType in NativeLibrary.GetLogTypeNames()) {
             AdHocBooleanSetting(
                 Settings.FILE_LOGGER,
                 Settings.SECTION_LOGGER_LOGS,
-                key,
+                logType.first,
                 false
             ).setBoolean(settings!!, value)
         }
@@ -2565,26 +2813,29 @@ class SettingsFragmentPresenter(
     }
 
     companion object {
-        private val LOG_TYPE_NAMES = NativeLibrary.GetLogTypeNames()
         const val ARG_CONTROLLER_TYPE = "controller_type"
         const val ARG_SERIALPORT1_TYPE = "serialport1_type"
 
         // Value obtained from LogLevel in Common/Logging/Log.h
-        private val logVerbosityEntries: Int
-            get() =
-                if (NativeLibrary.GetMaxLogLevel() == 5) {
-                    R.array.logVerbosityEntriesMaxLevelDebug
-                } else {
-                    R.array.logVerbosityEntriesMaxLevelInfo
-                }
+        private fun getLogVerbosityEntries(): Int {
+            // GetMaxLogLevel is effectively a constant, but we can't call it before loading
+            // the native library
+            return if (NativeLibrary.GetMaxLogLevel() == 5) {
+                R.array.logVerbosityEntriesMaxLevelDebug
+            } else {
+                R.array.logVerbosityEntriesMaxLevelInfo
+            }
+        }
 
         // Value obtained from LogLevel in Common/Logging/Log.h
-        private val logVerbosityValues: Int
-            get() =
-                if (NativeLibrary.GetMaxLogLevel() == 5) {
-                    R.array.logVerbosityValuesMaxLevelDebug
-                } else {
-                    R.array.logVerbosityValuesMaxLevelInfo
-                }
+        private fun getLogVerbosityValues(): Int {
+            // GetMaxLogLevel is effectively a constant, but we can't call it before loading
+            // the native library
+            return if (NativeLibrary.GetMaxLogLevel() == 5) {
+                R.array.logVerbosityValuesMaxLevelDebug
+            } else {
+                R.array.logVerbosityValuesMaxLevelInfo
+            }
+        }
     }
 }

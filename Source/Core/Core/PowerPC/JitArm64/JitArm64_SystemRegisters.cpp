@@ -50,7 +50,8 @@ void JitArm64::GetCRFieldBit(int field, int bit, ARM64Reg out)
   }
 }
 
-void JitArm64::SetCRFieldBit(int field, int bit, ARM64Reg in, bool negate)
+void JitArm64::SetCRFieldBit(int field, int bit, ARM64Reg in, bool negate,
+                             bool bits_1_to_31_are_set)
 {
   gpr.BindCRToRegister(field, true);
   ARM64Reg CR = gpr.CR(field);
@@ -70,7 +71,9 @@ void JitArm64::SetCRFieldBit(int field, int bit, ARM64Reg in, bool negate)
     AND(CR, CR, LogicalImm(0xFFFF'FFFF'0000'0000, GPRSize::B64));
     ORR(CR, CR, in);
     if (!negate)
-      EOR(CR, CR, LogicalImm(1ULL << 0, GPRSize::B64));
+      EOR(CR, CR, LogicalImm(bits_1_to_31_are_set ? 0xFFFF'FFFFULL : 1ULL, GPRSize::B64));
+    else if (bits_1_to_31_are_set)
+      AND(CR, CR, LogicalImm(0xFFFF'FFFF'0000'0001ULL, GPRSize::B64));
     break;
 
   case PowerPC::CR_GT_BIT:  // set bit 63 to !input
@@ -153,7 +156,7 @@ void JitArm64::FixGTBeforeSettingCRFieldBit(ARM64Reg reg)
   // doesn't accidentally become considered set. Gross but necessary; this can break actual games.
   auto WA = gpr.GetScopedReg();
   ARM64Reg XA = EncodeRegTo64(WA);
-  ORR(XA, reg, LogicalImm(1ULL << 63, GPRSize::B64));
+  MOVI2R(XA, 1ULL << 63);
   CMP(reg, ARM64Reg::ZR);
   CSEL(reg, reg, XA, CC_NEQ);
 }
@@ -170,7 +173,7 @@ FixupBranch JitArm64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
   case PowerPC::CR_EQ_BIT:  // check bits 31-0 == 0
     return jump_if_set ? CBZ(WA) : CBNZ(WA);
   case PowerPC::CR_GT_BIT:  // check val > 0
-    CMP(XA, ARM64Reg::SP);
+    CMP(XA, 0);
     return B(jump_if_set ? CC_GT : CC_LE);
   case PowerPC::CR_LT_BIT:  // check bit 62 set
     return jump_if_set ? TBNZ(XA, PowerPC::CR_EMU_LT_BIT) : TBZ(XA, PowerPC::CR_EMU_LT_BIT);
@@ -288,14 +291,6 @@ void JitArm64::mfsr(UGeckoInstruction inst)
   LDR(IndexType::Unsigned, gpr.R(inst.RD), PPC_REG, PPCSTATE_OFF_SR(inst.SR));
 }
 
-void JitArm64::mtsr(UGeckoInstruction inst)
-{
-  INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
-
-  STR(IndexType::Unsigned, gpr.R(inst.RS), PPC_REG, PPCSTATE_OFF_SR(inst.SR));
-}
-
 void JitArm64::mfsrin(UGeckoInstruction inst)
 {
   INSTRUCTION_START
@@ -312,24 +307,6 @@ void JitArm64::mfsrin(UGeckoInstruction inst)
   UBFM(index, RB, 28, 31);
   ADDI2R(addr, PPC_REG, PPCSTATE_OFF_SR(0), addr);
   LDR(RD, addr, ArithOption(EncodeRegTo64(index), true));
-}
-
-void JitArm64::mtsrin(UGeckoInstruction inst)
-{
-  INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
-
-  u32 b = inst.RB, d = inst.RD;
-  gpr.BindToRegister(d, d == b);
-
-  ARM64Reg RB = gpr.R(b);
-  ARM64Reg RD = gpr.R(d);
-  auto index = gpr.GetScopedReg();
-  auto addr = gpr.GetScopedReg();
-
-  UBFM(index, RB, 28, 31);
-  ADDI2R(EncodeRegTo64(addr), PPC_REG, PPCSTATE_OFF_SR(0), EncodeRegTo64(addr));
-  STR(RD, EncodeRegTo64(addr), ArithOption(EncodeRegTo64(index), true));
 }
 
 void JitArm64::twx(UGeckoInstruction inst)
@@ -632,8 +609,12 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     }
   }
 
-  // crnor or crnand
-  const bool negate_result = inst.SUBOP10 == 33 || inst.SUBOP10 == 225;
+  const u32 crbd_bit = 3 - (inst.CRBD & 3);
+  // crnor, crnand and sometimes creqv
+  const bool negate_result =
+      inst.SUBOP10 == 33 || inst.SUBOP10 == 225 ||
+      (inst.SUBOP10 == 289 && (crbd_bit == PowerPC::CR_EQ_BIT || crbd_bit == PowerPC::CR_GT_BIT));
+  bool bits_1_to_31_are_set = false;
 
   auto WA = gpr.GetScopedReg();
   ARM64Reg XA = EncodeRegTo64(WA);
@@ -661,7 +642,17 @@ void JitArm64::crXXX(UGeckoInstruction inst)
       break;
 
     case 289:  // creqv: ~(A ^ B) = A ^ ~B
-      EON(XA, XA, XB);
+      // Both of these two implementations are equally correct, but which one is more efficient
+      // depends on which bit we're going to set in CRBD
+      if (negate_result)
+      {
+        EOR(XA, XA, XB);
+      }
+      else
+      {
+        EON(WA, WA, WB);
+        bits_1_to_31_are_set = true;
+      }
       break;
 
     case 33:   // crnor: ~(A || B)
@@ -670,13 +661,14 @@ void JitArm64::crXXX(UGeckoInstruction inst)
       break;
 
     case 417:  // crorc: A || ~B
-      ORN(XA, XA, XB);
+      ORN(WA, WA, WB);
+      bits_1_to_31_are_set = true;
       break;
     }
   }
 
   // Store result bit in CRBD
-  SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3), XA, negate_result);
+  SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3), XA, negate_result, bits_1_to_31_are_set);
 }
 
 void JitArm64::mfcr(UGeckoInstruction inst)

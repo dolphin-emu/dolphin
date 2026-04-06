@@ -1,88 +1,44 @@
-project(minizip C)
+set(MZ_COMPAT OFF)
+set(MZ_BUILD_TESTS OFF)
+set(MZ_BUILD_UNIT_TESTS OFF)
+set(MZ_BUILD_FUZZ_TESTS OFF)
+set(MZ_CODE_COVERAGE OFF)
+set(MZ_FETCH_LIBS OFF)
+set(MZ_BZIP2 OFF)
+set(MZ_PKCRYPT OFF)
+set(MZ_WZAES OFF)
+set(MZ_OPENSSL OFF)
+set(MZ_LIBBSD OFF)
+set(SKIP_INSTALL_ALL ON)
 
-add_library(minizip STATIC
-  minizip-ng/mz.h
-  minizip-ng/mz_compat.c
-  minizip-ng/mz_compat.h
-  minizip-ng/mz_crypt.c
-  minizip-ng/mz_crypt.h
-  minizip-ng/mz_os.c
-  minizip-ng/mz_os.h
-  minizip-ng/mz_strm.c
-  minizip-ng/mz_strm.h
-  minizip-ng/mz_strm_buf.c
-  minizip-ng/mz_strm_buf.h
-# minizip-ng/mz_strm_bzip.c
-# minizip-ng/mz_strm_bzip.h
-# minizip-ng/mz_strm_libcomp.c
-# minizip-ng/mz_strm_libcomp.h
-# minizip-ng/mz_strm_lzma.c
-# minizip-ng/mz_strm_lzma.h
-  minizip-ng/mz_strm_mem.c
-  minizip-ng/mz_strm_mem.h
-  minizip-ng/mz_strm_os.h
-# minizip-ng/mz_strm_pkcrypt.c
-# minizip-ng/mz_strm_pkcrypt.h
-  minizip-ng/mz_strm_split.c
-  minizip-ng/mz_strm_split.h
-# minizip-ng/mz_strm_wzaes.c
-# minizip-ng/mz_strm_wzaes.h
-  minizip-ng/mz_strm_zlib.c
-  minizip-ng/mz_strm_zlib.h
-# minizip-ng/mz_strm_zstd.c
-# minizip-ng/mz_strm_zstd.h
-  minizip-ng/mz_zip.c
-  minizip-ng/mz_zip.h
-  minizip-ng/mz_zip_rw.c
-  minizip-ng/mz_zip_rw.h
-)
-dolphin_disable_warnings(minizip)
-
-if (UNIX)
-  target_sources(minizip PRIVATE
-    minizip-ng/mz_os_posix.c
-    minizip-ng/mz_strm_os_posix.c
-  )
+if(Iconv_TYPE STREQUAL Bundled)
+  set(CMAKE_DISABLE_FIND_PACKAGE_Iconv TRUE)
+  set(Iconv_FOUND TRUE)
+  set(Iconv_LIBRARIES Iconv::Iconv)
+  get_target_property(Iconv_INCLUDE_DIRS ${Iconv_LIBRARIES} INTERFACE_INCLUDE_DIRECTORIES)
+endif()
+if(LibLZMA_TYPE STREQUAL Bundled)
+  set(CMAKE_DISABLE_FIND_PACKAGE_LibLZMA TRUE)
+  set(LIBLZMA_FOUND TRUE)
+  set(LIBLZMA_LIBRARIES LibLZMA::LibLZMA)
+  get_target_property(LIBLZMA_INCLUDE_DIRS ${LIBLZMA_LIBRARIES} INTERFACE_INCLUDE_DIRECTORIES)
+endif()
+if(ZLIB_TYPE STREQUAL Bundled)
+  set(CMAKE_DISABLE_FIND_PACKAGE_ZLIB TRUE)
+  set(ZLIB_FOUND TRUE)
+  set(ZLIB_LIBRARIES ZLIB::ZLIB)
+  get_target_property(ZLIB_INCLUDE_DIRS ${ZLIB_LIBRARIES} INTERFACE_INCLUDE_DIRECTORIES)
+endif()
+if(ZSTD_TYPE STREQUAL Bundled)
+  set(CMAKE_DISABLE_FIND_PACKAGE_ZSTD TRUE)
+  set(ZSTD_FOUND TRUE)
+  set(ZSTD_LIBRARIES zstd::zstd)
+  get_target_property(ZSTD_INCLUDE_DIRS ${ZSTD_LIBRARIES} INTERFACE_INCLUDE_DIRECTORIES)
 endif()
 
-if (WIN32)
-  target_sources(minizip PRIVATE
-    minizip-ng/mz_os_win32.c
-    minizip-ng/mz_strm_os_win32.c
-  )
-endif()
+# minizip-ng otherwise uses system libraries when we provide them above
+set(CMAKE_DISABLE_FIND_PACKAGE_PkgConfig TRUE)
+set(PKGCONFIG_FOUND FALSE)
 
-# Unused files
-#  minizip-ng/minigzip.c
-#  minizip-ng/minizip.c
-#  minizip-ng/mz_crypt_apple.c
-#  minizip-ng/mz_crypt_openssl.c
-#  minizip-ng/mz_crypt_winvista.c
-#  minizip-ng/mz_crypt_winxp.c
-
-target_include_directories(minizip PUBLIC minizip-ng)
-
-target_compile_definitions(minizip PRIVATE HAVE_ZLIB ZLIB_COMPAT MZ_ZIP_NO_CRYPTO MZ_ZIP_NO_ENCRYPTION)
-if (UNIX)
-  target_compile_definitions(minizip PRIVATE _POSIX_C_SOURCE=200112L)
-  target_compile_definitions(minizip PRIVATE __USE_LARGEFILE64 _LARGEFILE64_SOURCE)
-endif()
-
-check_include_file(stdint.h HAVE_STDINT_H)
-if (HAVE_STDINT_H)
-  target_compile_definitions(minizip PRIVATE HAVE_STDINT_H)
-endif()
-
-check_include_file(inttypes.h HAVE_INTTYPES_H)
-if (HAVE_INTTYPES_H)
-  target_compile_definitions(minizip PRIVATE HAVE_INTTYPES_H)
-endif()
-
-check_function_exists(fseeko HAVE_FSEEKO)
-if (NOT HAVE_FSEEKO)
-  target_compile_definitions(minizip PRIVATE NO_FSEEKO)
-endif()
-
-target_link_libraries(minizip PUBLIC ZLIB::ZLIB)
-
-add_library(minizip::minizip ALIAS minizip)
+add_subdirectory(minizip-ng)
+dolphin_disable_warnings(minizip-ng)

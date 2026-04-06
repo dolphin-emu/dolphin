@@ -40,7 +40,7 @@ void main()
 
 	/*****inline square root routines*****/
 	// bit of a performance bottleneck.
-	// neccessary to make the darkened area rounded
+	// necessary to make the darkened area rounded
 	// instead of rhombus-shaped.
 	float sqrt = x / 10.0;
 

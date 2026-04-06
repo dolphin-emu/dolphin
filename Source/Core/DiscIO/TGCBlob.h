@@ -4,11 +4,10 @@
 #pragma once
 
 #include <memory>
-#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/IOFile.h"
+#include "Common/DirectIOFile.h"
 #include "DiscIO/Blob.h"
 
 namespace DiscIO
@@ -39,7 +38,7 @@ struct TGCHeader
 class TGCFileReader final : public BlobReader
 {
 public:
-  static std::unique_ptr<TGCFileReader> Create(File::IOFile file);
+  static std::unique_ptr<TGCFileReader> Create(File::DirectIOFile file);
 
   BlobType GetBlobType() const override { return BlobType::TGC; }
   std::unique_ptr<BlobReader> CopyReader() const override;
@@ -56,9 +55,9 @@ public:
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 
 private:
-  TGCFileReader(File::IOFile file);
+  TGCFileReader(File::DirectIOFile file);
 
-  File::IOFile m_file;
+  File::DirectIOFile m_file;
   u64 m_size;
 
   std::vector<u8> m_fst;

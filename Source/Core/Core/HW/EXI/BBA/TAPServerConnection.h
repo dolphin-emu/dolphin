@@ -7,6 +7,7 @@
 #include <string>
 #include <thread>
 
+#include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "Common/SocketContext.h"
 

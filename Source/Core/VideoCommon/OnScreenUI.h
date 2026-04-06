@@ -15,6 +15,7 @@
 class NativeVertexFormat;
 class AbstractTexture;
 class AbstractPipeline;
+struct ImTextureData;
 
 namespace VideoCommon
 {
@@ -62,6 +63,7 @@ public:
 private:
   void DrawDebugText();
   void DrawChallengesAndLeaderboards();
+  void UpdateImguiTexture(ImTextureData* tex);
 
   // ImGui resources.
   std::unique_ptr<NativeVertexFormat> m_imgui_vertex_format;

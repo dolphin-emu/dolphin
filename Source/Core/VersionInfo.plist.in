@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- This plist file is merged with the application's Info.plist to set its version info. -->
+    <key>CFBundleShortVersionString</key>
+    <string>${DOLPHIN_WC_DESCRIBE}</string>
+    <key>CFBundleLongVersionString</key>
+    <string>${DOLPHIN_WC_REVISION}</string>
+    <key>CFBundleVersion</key>
+    <string>${DOLPHIN_VERSION_MAJOR}.${DOLPHIN_VERSION_MINOR}</string>
+</dict>
+</plist>

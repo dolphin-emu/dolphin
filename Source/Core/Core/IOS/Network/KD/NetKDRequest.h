@@ -8,7 +8,6 @@
 #include <queue>
 #include <string>
 
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/HttpRequest.h"
@@ -110,8 +109,8 @@ private:
   NWC24::NWC24Dl m_dl_list;
   NWC24::Mail::WC24SendList m_send_list;
   NWC24::Mail::WC24FriendList m_friend_list;
-  Common::WorkQueueThread<AsyncTask> m_work_queue;
-  Common::WorkQueueThread<std::function<void()>> m_scheduler_work_queue;
+  Common::WorkQueueThreadSP<AsyncTask> m_work_queue;
+  Common::AsyncWorkThreadSP m_scheduler_work_queue;
   std::mutex m_async_reply_lock;
   std::mutex m_scheduler_buffer_lock;
   std::queue<AsyncReply> m_async_replies;

@@ -109,8 +109,8 @@ static float DrawMessage(int index, Message& msg, const ImVec2& position, int ti
 
       if (msg.texture)
       {
-        ImGui::Image(msg.texture.get(), ImVec2(static_cast<float>(msg.icon->width),
-                                               static_cast<float>(msg.icon->height)));
+        ImGui::Image(*msg.texture.get(), ImVec2(static_cast<float>(msg.icon->width),
+                                                static_cast<float>(msg.icon->height)));
         ImGui::SameLine();
       }
     }

@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <array>
 #include <optional>
 #include <span>
 #include <string_view>
@@ -13,7 +12,8 @@
 #include "Common/Matrix.h"
 #include "Common/SmallVector.h"
 #include "VideoCommon/Assets/TextureAsset.h"
-#include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/Resources/MaterialResource.h"
+#include "VideoCommon/ShaderGenCommon.h"
 
 namespace GraphicsModActionData
 {
@@ -25,13 +25,18 @@ struct DrawStarted
   std::span<u8>* material_uniform_buffer;
 };
 
-struct EFB
+struct PreEFB
 {
   u32 texture_width;
   u32 texture_height;
   bool* skip;
   u32* scaled_width;
   u32* scaled_height;
+};
+
+struct PostEFB
+{
+  VideoCommon::MaterialResource* material = nullptr;
 };
 
 struct Projection
@@ -47,7 +52,7 @@ struct TextureCreate
   std::string_view texture_name;
   u32 texture_width;
   u32 texture_height;
-  std::vector<VideoCommon::CachedAsset<VideoCommon::GameTextureAsset>>* custom_textures;
+  std::vector<VideoCommon::CachedAsset<VideoCommon::TextureAsset>>* custom_textures;
 
   // Dependencies needed to reload the texture and trigger this create again
   std::vector<VideoCommon::CachedAsset<VideoCommon::CustomAsset>>* additional_dependencies;

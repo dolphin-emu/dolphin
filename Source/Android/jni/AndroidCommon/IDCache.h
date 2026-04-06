@@ -19,7 +19,6 @@ jmethodID GetOnTitleChanged();
 jmethodID GetFinishEmulationActivity();
 
 jclass GetAnalyticsClass();
-jmethodID GetSendAnalyticsReport();
 jmethodID GetAnalyticsValue();
 
 jclass GetGameFileClass();
@@ -29,9 +28,8 @@ jmethodID GetGameFileConstructor();
 jclass GetGameFileCacheClass();
 jfieldID GetGameFileCachePointer();
 
-jclass GetLinkedHashMapClass();
-jmethodID GetLinkedHashMapInit();
-jmethodID GetLinkedHashMapPut();
+jclass GetPairClass();
+jmethodID GetPairConstructor();
 
 jclass GetHashMapClass();
 jmethodID GetHashMapInit();
@@ -93,6 +91,10 @@ jclass GetControlReferenceClass();
 jfieldID GetControlReferencePointer();
 jmethodID GetControlReferenceConstructor();
 
+jclass GetControlGroupContainerClass();
+jfieldID GetControlGroupContainerPointer();
+jmethodID GetControlGroupContainerConstructor();
+
 jclass GetEmulatedControllerClass();
 jfieldID GetEmulatedControllerPointer();
 jmethodID GetEmulatedControllerConstructor();
@@ -109,6 +111,17 @@ jclass GetCoreDeviceControlClass();
 jfieldID GetCoreDeviceControlPointer();
 jmethodID GetCoreDeviceControlConstructor();
 
+jclass GetInputDetectorClass();
+jfieldID GetInputDetectorPointer();
+
+jclass GetPermissionHandlerClass();
+jmethodID GetPermissionHandlerHasRecordAudioPermission();
+jmethodID GetPermissionHandlerRequestRecordAudioPermission();
+
 jmethodID GetRunnableRun();
+
+jclass GetAudioUtilsClass();
+jmethodID GetAudioUtilsGetSampleRate();
+jmethodID GetAudioUtilsGetFramesPerBuffer();
 
 }  // namespace IDCache

@@ -3,12 +3,9 @@
 
 #include "Core/HW/GCPad.h"
 
-#include <cstring>
-
 #include "Common/Common.h"
 #include "Core/HW/GCPadEmu.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
 
@@ -44,6 +41,11 @@ void Initialize()
 void LoadConfig()
 {
   s_config.LoadConfig();
+}
+
+void GenerateDynamicInputTextures()
+{
+  s_config.GenerateControllerTextures();
 }
 
 bool IsInitialized()

@@ -25,6 +25,26 @@ void ConfigChoice::OnConfigChanged()
   setCurrentIndex(ReadValue(m_setting));
 }
 
+ConfigChoiceU32::ConfigChoiceU32(const QStringList& options, const Config::Info<u32>& setting,
+                                 Config::Layer* layer)
+    : ConfigControl(setting.GetLocation(), layer), m_setting(setting)
+{
+  addItems(options);
+  setCurrentIndex(ReadValue(setting));
+
+  connect(this, &QComboBox::currentIndexChanged, this, &ConfigChoiceU32::Update);
+}
+
+void ConfigChoiceU32::Update(int choice)
+{
+  SaveValue(m_setting, (u32)choice);
+}
+
+void ConfigChoiceU32::OnConfigChanged()
+{
+  setCurrentIndex(ReadValue(m_setting));
+}
+
 ConfigStringChoice::ConfigStringChoice(const std::vector<std::string>& options,
                                        const Config::Info<std::string>& setting,
                                        Config::Layer* layer)
@@ -45,8 +65,8 @@ ConfigStringChoice::ConfigStringChoice(const std::vector<std::pair<QString, QStr
   for (const auto& [option_text, option_data] : options)
     addItem(option_text, option_data);
 
-  connect(this, &QComboBox::currentIndexChanged, this, &ConfigStringChoice::Update);
   Load();
+  connect(this, &QComboBox::currentIndexChanged, this, &ConfigStringChoice::Update);
 }
 
 void ConfigStringChoice::Update(int index)
@@ -63,7 +83,6 @@ void ConfigStringChoice::Load()
   const int index = m_text_is_data ? findText(setting_value) : findData(setting_value);
 
   // This can be called publicly.
-  const QSignalBlocker block(this);
   setCurrentIndex(index);
 }
 
@@ -74,7 +93,7 @@ void ConfigStringChoice::OnConfigChanged()
 
 ConfigComplexChoice::ConfigComplexChoice(const InfoVariant setting1, const InfoVariant setting2,
                                          Config::Layer* layer)
-    : m_setting1(setting1), m_setting2(setting2), m_layer(layer)
+    : m_layer(layer), m_setting1(setting1), m_setting2(setting2)
 {
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, &ConfigComplexChoice::Refresh);
   connect(this, &QComboBox::currentIndexChanged, this, &ConfigComplexChoice::SaveValue);
@@ -115,7 +134,7 @@ void ConfigComplexChoice::Reset()
 
 void ConfigComplexChoice::SaveValue(int choice)
 {
-  auto Set = [this, choice](auto& setting, auto& value) {
+  auto Set = [this](auto& setting, auto& value) {
     if (m_layer != nullptr)
     {
       m_layer->Set(setting.GetLocation(), value);
@@ -132,21 +151,43 @@ void ConfigComplexChoice::SaveValue(int choice)
 
 void ConfigComplexChoice::UpdateComboIndex()
 {
-  auto Get = [this](auto& setting) {
+  auto get_layer_value = [this](auto& setting) {
     if (m_layer != nullptr)
       return static_cast<OptionVariant>(m_layer->Get(setting));
 
     return static_cast<OptionVariant>(Config::Get(setting));
   };
 
-  std::pair<OptionVariant, OptionVariant> values =
-      std::make_pair(std::visit(Get, m_setting1), std::visit(Get, m_setting2));
+  auto get_default_value = [](auto& setting) { return OptionVariant(setting.GetDefaultValue()); };
 
-  auto it = std::find(m_options.begin(), m_options.end(), values);
-  int index = static_cast<int>(std::distance(m_options.begin(), it));
+  auto is_current_value = [&](const InfoVariant& info, const OptionVariant& option) {
+    return std::visit(get_layer_value, info) ==
+           (std::holds_alternative<Config::DefaultState>(option) ?
+                std::visit(get_default_value, info) :
+                option);
+  };
 
+  auto is_correct_option = [&](const std::pair<OptionVariant, OptionVariant>& option) {
+    return is_current_value(m_setting1, option.first) &&
+           is_current_value(m_setting2, option.second);
+  };
+
+  auto it = std::find_if(m_options.begin(), m_options.end(), is_correct_option);
+  int index;
+
+  if (it == m_options.end())
+    index = m_default_index;
+  else
+    index = static_cast<int>(std::distance(m_options.begin(), it));
+
+  // Will crash if not blocked
   const QSignalBlocker blocker(this);
   setCurrentIndex(index);
+}
+
+void ConfigComplexChoice::SetDefault(int index)
+{
+  m_default_index = index;
 }
 
 const std::pair<Config::Location, Config::Location> ConfigComplexChoice::GetLocation() const
@@ -169,4 +210,4 @@ void ConfigComplexChoice::mousePressEvent(QMouseEvent* event)
   {
     QComboBox::mousePressEvent(event);
   }
-};
+}

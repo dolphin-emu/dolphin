@@ -3,20 +3,14 @@
 
 #include "Core/HW/EXI/EXI_DeviceModem.h"
 
-#include <inttypes.h>
-
 #include <algorithm>
 #include <cstring>
 #include <memory>
-#include <optional>
 #include <string>
 
-#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/Network.h"
-#include "Common/StringUtil.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI/EXI.h"
@@ -252,13 +246,13 @@ void CEXIModem::HandleWriteModemTransfer(const void* data, u32 size)
 
   if ((m_transfer_descriptor & 0x0F000000) == 0x03000000)
   {  // AT command buffer
-    m_at_command_data.append(reinterpret_cast<const char*>(data), size);
+    m_at_command_data.append(static_cast<const char*>(data), size);
     RunAllPendingATCommands();
     m_regs[Register::AT_COMMAND_SIZE] = static_cast<u8>(m_at_command_data.size());
   }
   else if ((m_transfer_descriptor & 0x0F000000) == 0x08000000)
   {  // Packet send buffer
-    m_send_buffer.append(reinterpret_cast<const char*>(data), size);
+    m_send_buffer.append(static_cast<const char*>(data), size);
     // A more accurate implementation would only set this interrupt if the send
     // FIFO has enough space; however, we can clear the send FIFO "instantly"
     // from the emulated program's perspective, so we always tell it the send

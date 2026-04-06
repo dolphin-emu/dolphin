@@ -4,16 +4,10 @@
 #include "DiscIO/SplitFileBlob.h"
 
 #include <memory>
-#include <string>
 #include <string_view>
 #include <vector>
 
 #include <fmt/format.h>
-
-#include "Common/Assert.h"
-#include "Common/FileUtil.h"
-#include "Common/IOFile.h"
-#include "Common/MsgHandler.h"
 
 namespace DiscIO
 {
@@ -38,7 +32,7 @@ std::unique_ptr<SplitPlainFileReader> SplitPlainFileReader::Create(std::string_v
   u64 offset = 0;
   while (true)
   {
-    File::IOFile f(fmt::format("{}.part{}.iso", base_path, index), "rb");
+    File::DirectIOFile f(fmt::format("{}.part{}.iso", base_path, index), File::AccessMode::Read);
     if (!f.IsOpen())
       break;
     const u64 size = f.GetSize();
@@ -58,13 +52,7 @@ std::unique_ptr<SplitPlainFileReader> SplitPlainFileReader::Create(std::string_v
 
 std::unique_ptr<BlobReader> SplitPlainFileReader::CopyReader() const
 {
-  std::vector<SingleFile> new_files{};
-  for (const SingleFile& file : m_files)
-  {
-    new_files.push_back(
-        {.file = file.file.Duplicate("rb"), .offset = file.offset, .size = file.size});
-  }
-  return std::unique_ptr<SplitPlainFileReader>(new SplitPlainFileReader(std::move(new_files)));
+  return std::unique_ptr<SplitPlainFileReader>{new SplitPlainFileReader(m_files)};
 }
 
 bool SplitPlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
@@ -80,13 +68,10 @@ bool SplitPlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
     if (current_offset >= file.offset && current_offset < file.offset + file.size)
     {
       auto& f = file.file;
-      const u64 seek_offset = current_offset - file.offset;
-      const u64 current_read = std::min(file.size - seek_offset, rest);
-      if (!f.Seek(seek_offset, File::SeekOrigin::Begin) || !f.ReadBytes(out, current_read))
-      {
-        f.ClearError();
+      const u64 offset_in_file = current_offset - file.offset;
+      const u64 current_read = std::min(file.size - offset_in_file, rest);
+      if (!f.OffsetRead(offset_in_file, out, current_read))
         return false;
-      }
 
       rest -= current_read;
       if (rest == 0)

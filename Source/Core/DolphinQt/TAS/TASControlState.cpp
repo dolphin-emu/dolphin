@@ -5,8 +5,6 @@
 
 #include <atomic>
 
-#include "Common/CommonTypes.h"
-
 int TASControlState::GetValue() const
 {
   const State ui_thread_state = m_ui_thread_state.load(std::memory_order_relaxed);

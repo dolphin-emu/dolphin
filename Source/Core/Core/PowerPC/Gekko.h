@@ -87,7 +87,7 @@ union UGeckoInstruction
   struct
   {
     u32 LK_3 : 1;
-    u32 : 10;
+    u32 XO : 10;
     u32 : 5;
     u32 BI_2 : 5;
     u32 BO_2 : 5;

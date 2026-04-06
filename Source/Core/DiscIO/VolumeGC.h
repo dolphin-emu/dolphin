@@ -25,11 +25,11 @@ enum class Language;
 enum class Region;
 enum class Platform;
 
-class VolumeGC : public VolumeDisc
+class VolumeGC final : public VolumeDisc
 {
 public:
   VolumeGC(std::unique_ptr<BlobReader> reader);
-  ~VolumeGC();
+  ~VolumeGC() override;
   bool Read(u64 offset, u64 length, u8* buffer,
             const Partition& partition = PARTITION_NONE) const override;
   const FileSystem* GetFileSystem(const Partition& partition = PARTITION_NONE) const override;
@@ -49,12 +49,13 @@ public:
   DataSizeType GetDataSizeType() const override;
   u64 GetRawSize() const override;
   const BlobReader& GetBlobReader() const override;
-
   std::array<u8, 20> GetSyncHash() const override;
 
+  const BootID* GetTriforceBootID() const { return &m_triforce_header; }
+
 private:
-  static const u32 GC_BANNER_WIDTH = 96;
-  static const u32 GC_BANNER_HEIGHT = 32;
+  static constexpr u32 GC_BANNER_WIDTH = 96;
+  static constexpr u32 GC_BANNER_HEIGHT = 32;
 
   struct GCBannerInformation
   {
@@ -95,14 +96,18 @@ private:
   ConvertedGCBanner LoadBannerFile() const;
   ConvertedGCBanner ExtractBannerInformation(const GCBanner& banner_file, bool is_bnr1) const;
 
-  static const size_t BNR1_SIZE = sizeof(GCBanner) - sizeof(GCBannerInformation) * 5;
-  static const size_t BNR2_SIZE = sizeof(GCBanner);
+  static constexpr size_t BNR1_SIZE = sizeof(GCBanner) - sizeof(GCBannerInformation) * 5;
+  static constexpr size_t BNR2_SIZE = sizeof(GCBanner);
 
   Common::Lazy<ConvertedGCBanner> m_converted_banner;
 
   Common::Lazy<std::unique_ptr<FileSystem>> m_file_system;
 
   std::unique_ptr<BlobReader> m_reader;
+
+  BootID m_triforce_header;
+
+  bool m_is_triforce;
 };
 
 }  // namespace DiscIO

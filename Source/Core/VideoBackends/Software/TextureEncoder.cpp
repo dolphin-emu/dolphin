@@ -5,12 +5,11 @@
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 
-#include "VideoBackends/Software/EfbInterface.h"
+#include "VideoBackends/Software/SWEfbInterface.h"
 #include "VideoBackends/Software/SWTexture.h"
 
 #include "VideoCommon/BPMemory.h"
@@ -907,7 +906,10 @@ static void EncodeRGB8(u8* dst, const u8* src, EFBCopyFormat format, bool yuv)
   case EFBCopyFormat::A8:
     SetBlockDimensions(3, 2, &sBlkCount, &tBlkCount, &sBlkSize, &tBlkSize);
     SetSpans(sBlkSize, tBlkSize, &tSpan, &sBlkSpan, &tBlkSpan, &writeStride);
-    ENCODE_LOOP_BLOCKS { *dst++ = 0xff; }
+    ENCODE_LOOP_BLOCKS
+    {
+      *dst++ = 0xff;
+    }
     ENCODE_LOOP_SPANS
     break;
 
@@ -1136,7 +1138,10 @@ static void EncodeRGB8halfscale(u8* dst, const u8* src, EFBCopyFormat format, bo
   case EFBCopyFormat::A8:
     SetBlockDimensions(3, 2, &sBlkCount, &tBlkCount, &sBlkSize, &tBlkSize);
     SetSpans(sBlkSize, tBlkSize, &tSpan, &sBlkSpan, &tBlkSpan, &writeStride);
-    ENCODE_LOOP_BLOCKS { *dst++ = 0xff; }
+    ENCODE_LOOP_BLOCKS
+    {
+      *dst++ = 0xff;
+    }
     ENCODE_LOOP_SPANS
     break;
 

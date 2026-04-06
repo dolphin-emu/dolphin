@@ -30,7 +30,7 @@ import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.HomeScreenChannel;
 import org.dolphinemu.dolphinemu.services.SyncChannelJobService;
 import org.dolphinemu.dolphinemu.services.SyncProgramsJobService;
-import org.dolphinemu.dolphinemu.ui.platform.Platform;
+import org.dolphinemu.dolphinemu.ui.platform.PlatformTab;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -279,12 +279,12 @@ public class TvUtil
   private static List<HomeScreenChannel> createPlatformSubscriptions(Context context)
   {
     List<HomeScreenChannel> subs = new ArrayList<>();
-    for (Platform platform : Platform.values())
+    for (PlatformTab platformTab : PlatformTab.values())
     {
       subs.add(new HomeScreenChannel(
-              context.getString(platform.getHeaderName()),
-              context.getString(platform.getHeaderName()),
-              AppLinkHelper.buildBrowseUri(platform)));
+              context.getString(platformTab.getHeaderName()),
+              context.getString(platformTab.getHeaderName()),
+              AppLinkHelper.buildBrowseUri(platformTab)));
     }
     return subs;
   }

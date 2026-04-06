@@ -16,7 +16,6 @@
 #include <thread>
 #include <upnpcommands.h>
 #include <upnperrors.h>
-#include <vector>
 
 static UPNPUrls s_urls;
 static IGDdatas s_data;

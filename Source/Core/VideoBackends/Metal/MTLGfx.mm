@@ -120,11 +120,12 @@ Metal::Gfx::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture
 
 // MARK: Pipeline Creation
 
-std::unique_ptr<AbstractShader> Metal::Gfx::CreateShaderFromSource(ShaderStage stage,
-                                                                   std::string_view source,
-                                                                   std::string_view name)
+std::unique_ptr<AbstractShader>
+Metal::Gfx::CreateShaderFromSource(ShaderStage stage, std::string_view source,
+                                   VideoCommon::ShaderIncluder* shader_includer,
+                                   std::string_view name)
 {
-  std::optional<std::string> msl = Util::TranslateShaderToMSL(stage, source);
+  std::optional<std::string> msl = Util::TranslateShaderToMSL(stage, source, shader_includer);
   if (!msl.has_value())
   {
     PanicAlertFmt("Failed to convert shader {} to MSL", name);
@@ -334,7 +335,7 @@ void Metal::Gfx::ClearRegion(const MathUtil::Rectangle<int>& target_rc, bool col
             static_cast<double>((color >> 24) & 0xFF) / 255.0);
         // clang-format on
         float z_normalized = static_cast<float>(z & 0xFFFFFF) / 16777216.0f;
-        if (!g_Config.backend_info.bSupportsReversedDepthRange)
+        if (!g_backend_info.bSupportsReversedDepthRange)
           z_normalized = 1.f - z_normalized;
         g_state_tracker->BeginClearRenderPass(clear_color, z_normalized);
         return;

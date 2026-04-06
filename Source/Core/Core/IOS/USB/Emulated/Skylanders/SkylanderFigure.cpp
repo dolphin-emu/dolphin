@@ -3,7 +3,6 @@
 
 #include "Core/IOS/USB/Emulated/Skylanders/SkylanderFigure.h"
 
-#include <algorithm>
 #include <array>
 #include <cstring>
 #include <span>
@@ -186,9 +185,10 @@ FigureData SkylanderFigure::GetData() const
 
   auto filter = std::make_pair(figure_data.figure_id, figure_data.variant_id);
   Type type = Type::Item;
-  if (IOS::HLE::USB::list_skylanders.contains(filter))
+  if (const auto it = IOS::HLE::USB::list_skylanders.find(filter);
+      it != IOS::HLE::USB::list_skylanders.end())
   {
-    auto found = IOS::HLE::USB::list_skylanders.at(filter);
+    auto found = it->second;
     type = found.type;
   }
 

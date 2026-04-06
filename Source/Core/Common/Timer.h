@@ -32,4 +32,37 @@ private:
   bool m_running{false};
 };
 
+class PrecisionTimer
+{
+public:
+  PrecisionTimer();
+  ~PrecisionTimer();
+
+  PrecisionTimer(const PrecisionTimer&) = delete;
+  PrecisionTimer& operator=(const PrecisionTimer&) = delete;
+
+  void SleepUntil(Clock::time_point);
+
+private:
+#ifdef _WIN32
+  // Using void* to avoid including Windows.h in this header just for HANDLE.
+  void* m_timer_handle;
+#endif
+};
+
+// Similar to std::chrono::steady_clock except this clock
+// specifically does *not* count time while the system is suspended.
+class SteadyAwakeClock
+{
+public:
+  using rep = s64;
+  using period = std::nano;
+  using duration = std::chrono::duration<rep, period>;
+  using time_point = std::chrono::time_point<SteadyAwakeClock>;
+
+  static constexpr bool is_steady = true;
+
+  static time_point now();
+};
+
 }  // Namespace Common

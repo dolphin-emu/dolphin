@@ -51,9 +51,8 @@ public:
             SharedAccess sh = SharedAccess::Default);
   bool Close();
 
-  IOFile Duplicate(const char openmode[]) const;
-
   template <typename T>
+  requires(std::is_trivially_copyable_v<T>)
   bool ReadArray(T* elements, size_t count, size_t* num_read = nullptr)
   {
     size_t read_count = 0;
@@ -67,6 +66,7 @@ public:
   }
 
   template <typename T>
+  requires(std::is_trivially_copyable_v<T>)
   bool WriteArray(const T* elements, size_t count)
   {
     if (!IsOpen() || count != std::fwrite(elements, sizeof(T), count, m_file))
@@ -87,14 +87,11 @@ public:
     return WriteArray(elements.data(), elements.size());
   }
 
-  bool ReadBytes(void* data, size_t length)
-  {
-    return ReadArray(reinterpret_cast<char*>(data), length);
-  }
+  bool ReadBytes(void* data, size_t length) { return ReadArray(static_cast<char*>(data), length); }
 
   bool WriteBytes(const void* data, size_t length)
   {
-    return WriteArray(reinterpret_cast<const char*>(data), length);
+    return WriteArray(static_cast<const char*>(data), length);
   }
 
   bool WriteString(std::string_view str) { return WriteBytes(str.data(), str.size()); }

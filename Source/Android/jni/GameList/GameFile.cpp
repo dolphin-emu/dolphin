@@ -3,12 +3,14 @@
 
 #include "jni/GameList/GameFile.h"
 
+#include <chrono>
 #include <memory>
 #include <utility>
 #include <vector>
 
 #include <jni.h>
 
+#include "Core/TimePlayed.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "UICommon/GameFile.h"
@@ -188,6 +190,13 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBannerHe
                                                                                      jobject obj)
 {
   return static_cast<jint>(GetRef(env, obj)->GetBannerImage().height);
+}
+
+JNIEXPORT jlong JNICALL
+Java_org_dolphinemu_dolphinemu_model_GameFile_getTimePlayedMsInternal(JNIEnv* env, jobject obj)
+{
+  const std::chrono::milliseconds time = TimePlayed().GetTimePlayed(GetRef(env, obj)->GetGameID());
+  return time.count();
 }
 
 JNIEXPORT jobject JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_parse(JNIEnv* env, jclass,

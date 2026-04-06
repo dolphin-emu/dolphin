@@ -3,9 +3,11 @@
 
 #include "SHA1.h"
 
+#include <algorithm>
 #include <array>
 #include <memory>
 
+#include <fmt/ranges.h>
 #include <mbedtls/sha1.h>
 
 #include "Common/Assert.h"
@@ -40,18 +42,18 @@ public:
     mbedtls_sha1_init(&ctx);
     ASSERT(!mbedtls_sha1_starts_ret(&ctx));
   }
-  ~ContextMbed() { mbedtls_sha1_free(&ctx); }
-  virtual void Update(const u8* msg, size_t len) override
+  ~ContextMbed() override { mbedtls_sha1_free(&ctx); }
+  void Update(const u8* msg, size_t len) override
   {
     ASSERT(!mbedtls_sha1_update_ret(&ctx, msg, len));
   }
-  virtual Digest Finish() override
+  Digest Finish() override
   {
     Digest digest;
     ASSERT(!mbedtls_sha1_finish_ret(&ctx, digest.data()));
     return digest;
   }
-  virtual bool HwAccelerated() const override { return false; }
+  bool HwAccelerated() const override { return false; }
 
 private:
   mbedtls_sha1_context ctx{};
@@ -67,75 +69,76 @@ protected:
   virtual void ProcessBlock(const u8* msg) = 0;
   virtual Digest GetDigest() = 0;
 
-  virtual void Update(const u8* msg, size_t len) override
+  void Update(const u8* msg, size_t len) override
   {
-    if (len == 0)
-      return;
-    msg_len += len;
+    m_msg_length += len;
 
-    if (block_used)
+    // Block has some partial data. Copy msg into it.
+    if (m_block_position != 0)
     {
-      if (block_used + len >= block.size())
+      const size_t count_to_fill_block = m_block.size() - m_block_position;
+
+      // Not enough to fill block.
+      if (len < count_to_fill_block)
       {
-        size_t rem = block.size() - block_used;
-        std::memcpy(&block[block_used], msg, rem);
-        ProcessBlock(&block[0]);
-        block_used = 0;
-        msg += rem;
-        len -= rem;
-      }
-      else
-      {
-        std::memcpy(&block[block_used], msg, len);
-        block_used += len;
+        std::copy_n(msg, len, m_block.data() + m_block_position);
+
+        m_block_position += len;
         return;
       }
+
+      std::copy_n(msg, count_to_fill_block, m_block.data() + m_block_position);
+      ProcessBlock(m_block.data());
+
+      msg += count_to_fill_block;
+      len -= count_to_fill_block;
+      m_block_position = 0;
     }
-    while (len >= BLOCK_LEN)
+
+    // Our block is empty. We can process msg blocks directly, avoiding unnecessary copies.
+    while (len >= m_block.size())
     {
       ProcessBlock(msg);
-      msg += BLOCK_LEN;
-      len -= BLOCK_LEN;
+
+      msg += m_block.size();
+      len -= m_block.size();
     }
-    if (len)
-    {
-      std::memcpy(&block[0], msg, len);
-      block_used = len;
-    }
+
+    // Copy any remaining partial data into block.
+    std::copy_n(msg, len, m_block.data() + m_block_position);
+    m_block_position += len;
   }
 
-  virtual Digest Finish() override
+  Digest Finish() override
   {
-    // block_used is guaranteed < BLOCK_LEN
-    block[block_used++] = 0x80;
+    // m_block_position is guaranteed < BLOCK_LEN
+    m_block[m_block_position++] = 0x80;
 
     constexpr size_t MSG_LEN_POS = BLOCK_LEN - sizeof(u64);
-    if (block_used > MSG_LEN_POS)
+
+    if (m_block_position > MSG_LEN_POS)
     {
       // Pad current block and process it
-      std::memset(&block[block_used], 0, BLOCK_LEN - block_used);
-      ProcessBlock(&block[0]);
-
-      // Pad a new block
-      std::memset(&block[0], 0, MSG_LEN_POS);
-    }
-    else
-    {
-      // Pad current block
-      std::memset(&block[block_used], 0, MSG_LEN_POS - block_used);
+      std::fill(m_block.begin() + m_block_position, m_block.end(), 0x00);
+      ProcessBlock(m_block.data());
+      m_block_position = 0;
     }
 
-    Common::BigEndianValue<u64> msg_bitlen(msg_len * 8);
-    std::memcpy(&block[MSG_LEN_POS], &msg_bitlen, sizeof(msg_bitlen));
+    // Pad block.
+    std::fill(m_block.data() + m_block_position, m_block.data() + MSG_LEN_POS, 0x00);
+    m_block_position = MSG_LEN_POS;
 
-    ProcessBlock(&block[0]);
+    // Write the message length.
+    const Common::BigEndianValue<u64> msg_bit_length{m_msg_length * CHAR_BIT};
+    Update(reinterpret_cast<const u8*>(&msg_bit_length), sizeof(msg_bit_length));
 
     return GetDigest();
   }
 
-  alignas(64) std::array<u8, BLOCK_LEN> block{};
-  size_t block_used{};
-  size_t msg_len{};
+private:
+  alignas(64) std::array<u8, BLOCK_LEN> m_block{};
+  size_t m_block_position{};
+  size_t m_msg_length{};
 };
 
 template <typename ValueType, size_t Size>
@@ -202,7 +205,7 @@ private:
   }
 
   ATTRIBUTE_TARGET("sha")
-  virtual void ProcessBlock(const u8* msg) override
+  void ProcessBlock(const u8* msg) override
   {
     // There are 80 rounds with 4 bytes per round, giving 0x140 byte work space, but we can keep
     // active state in just 0x40 bytes.
@@ -246,7 +249,7 @@ private:
     // clang-format on
   }
 
-  virtual Digest GetDigest() override
+  Digest GetDigest() override
   {
     Digest digest;
     _mm_storeu_si128((__m128i*)&digest[0], byterev_16B(state[0]));
@@ -255,7 +258,7 @@ private:
     return digest;
   }
 
-  virtual bool HwAccelerated() const override { return true; }
+  bool HwAccelerated() const override { return true; }
 
   std::array<XmmReg, 2> state{};
 };
@@ -388,17 +391,11 @@ Digest CalculateDigest(const u8* msg, size_t len)
 
 std::string DigestToString(const Digest& digest)
 {
-  static constexpr std::array<char, 16> lookup = {'0', '1', '2', '3', '4', '5', '6', '7',
-                                                  '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-  std::string hash;
-  hash.reserve(digest.size() * 2);
-  for (size_t i = 0; i < digest.size(); ++i)
-  {
-    const u8 upper = static_cast<u8>((digest[i] >> 4) & 0xf);
-    const u8 lower = static_cast<u8>(digest[i] & 0xf);
-    hash.push_back(lookup[upper]);
-    hash.push_back(lookup[lower]);
-  }
-  return hash;
+  return fmt::format("{:02X}", fmt::join(digest, ""));
+}
+
+std::string DigestToSource(const Digest& digest)
+{
+  return fmt::format("{{0x{:02X}}}", fmt::join(digest, ", 0x"));
 }
 }  // namespace Common::SHA1

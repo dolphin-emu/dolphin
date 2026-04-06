@@ -1,6 +1,8 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#ifdef HAS_LIBMGBA
+
 #include "Core/HW/SI/SI_DeviceGBAEmu.h"
 
 #include <vector>
@@ -8,7 +10,6 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/Swap.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/GBACore.h"
@@ -78,7 +79,8 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
 
   case NextAction::WaitTransferTime:
   {
-    int elapsed_time = static_cast<int>(m_system.GetCoreTiming().GetTicks() - m_timestamp_sent);
+    const int elapsed_time =
+        static_cast<int>(m_system.GetCoreTiming().GetTicks() - m_timestamp_sent);
     // Tell SI to ask again after TransferInterval() cycles
     if (TransferInterval() > elapsed_time)
       return 0;
@@ -89,11 +91,9 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
   case NextAction::ReceiveResponse:
   {
     m_next_action = NextAction::SendCommand;
-
-    std::vector<u8> response = m_core->GetJoybusResponse();
-    if (response.empty())
+    const auto response_length = m_core->GetJoybusResponse(buffer);
+    if (response_length == 0)
       return -1;
-    std::ranges::copy(response, buffer);
 
 #ifdef _DEBUG
     const Common::Log::LogLevel log_level =
@@ -103,10 +103,10 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
     GENERIC_LOG_FMT(Common::Log::LogType::SERIALINTERFACE, log_level,
                     "{}                              [< {:02x}{:02x}{:02x}{:02x}{:02x}] ({})",
                     m_device_number, buffer[0], buffer[1], buffer[2], buffer[3], buffer[4],
-                    response.size());
+                    response_length);
 #endif
 
-    return static_cast<int>(response.size());
+    return response_length;
   }
   }
 
@@ -120,7 +120,7 @@ int CSIDevice_GBAEmu::TransferInterval()
   return SIDevice_GetGBATransferTime(m_system.GetSystemTimers(), m_last_cmd);
 }
 
-bool CSIDevice_GBAEmu::GetData(u32& hi, u32& low)
+DataResponse CSIDevice_GBAEmu::GetData(u32& hi, u32& low)
 {
   GCPadStatus pad_status{};
   if (!NetPlay::IsNetPlayRunning())
@@ -149,7 +149,7 @@ bool CSIDevice_GBAEmu::GetData(u32& hi, u32& low)
   if (pad_status.button & PadButton::PAD_BUTTON_X)
     m_core->Reset();
 
-  return false;
+  return DataResponse::NoData;
 }
 
 void CSIDevice_GBAEmu::SendCommand(u32 command, u8 poll)
@@ -167,9 +167,10 @@ void CSIDevice_GBAEmu::DoState(PointerWrap& p)
 
 void CSIDevice_GBAEmu::OnEvent(u64 userdata, s64 cycles_late)
 {
-  m_core->SendJoybusCommand(m_system.GetCoreTiming().GetTicks() + userdata, 0, nullptr, m_keys);
+  m_core->SyncJoybus(m_system.GetCoreTiming().GetTicks() + userdata, m_keys);
 
   const auto num_cycles = userdata + GetSyncInterval(m_system.GetSystemTimers());
   m_system.GetSerialInterface().ScheduleEvent(m_device_number, num_cycles);
 }
 }  // namespace SerialInterface
+#endif  // HAS_LIBMGBA

@@ -436,11 +436,14 @@ void Jit64::mtmsr(UGeckoInstruction inst)
   FALLBACK_IF(jo.fp_exceptions);
 
   {
-    RCOpArg Rs = gpr.BindOrImm(inst.RS, RCMode::Read);
-    RegCache::Realize(Rs);
-    MOV(32, PPCSTATE(msr), Rs);
-
-    MSRUpdated(Rs, RSCRATCH2);
+    OpArg Rs_op_arg;
+    {
+      RCOpArg Rs = gpr.BindOrImm(inst.RS, RCMode::Read);
+      RegCache::Realize(Rs);
+      MOV(32, PPCSTATE(msr), Rs);
+      Rs_op_arg = Rs;
+    }
+    MSRUpdated(Rs_op_arg, RSCRATCH2);
   }
 
   gpr.Flush();
@@ -595,7 +598,7 @@ void Jit64::crXXX(UGeckoInstruction inst)
   JITDISABLE(bJITSystemRegistersOff);
   DEBUG_ASSERT_MSG(DYNA_REC, inst.OPCD == 19, "Invalid crXXX");
 
-  // TODO(merry): Futher optimizations can be performed here. For example,
+  // TODO(merry): Further optimizations can be performed here. For example,
   // instead of extracting each CR field bit then setting it, the operation
   // could be performed on the internal format directly instead and the
   // relevant bit result can be masked out.

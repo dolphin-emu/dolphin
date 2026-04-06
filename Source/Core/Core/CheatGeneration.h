@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "Common/Result.h"
+#include <expected>
 
 #include "Core/ActionReplay.h"
 
@@ -18,6 +18,6 @@ enum class GenerateActionReplayCodeErrorCode
   InvalidAddress,
 };
 
-Common::Result<GenerateActionReplayCodeErrorCode, ActionReplay::ARCode>
+std::expected<ActionReplay::ARCode, GenerateActionReplayCodeErrorCode>
 GenerateActionReplayCode(const Cheats::CheatSearchSessionBase& session, size_t index);
 }  // namespace Cheats

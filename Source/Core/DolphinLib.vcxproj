@@ -30,6 +30,7 @@
   </ItemGroup>
   <Import Project="$(ExternalsDir)Bochs_disasm\exports.props" />
   <Import Project="$(ExternalsDir)bzip2\exports.props" />
+  <Import Project="$(ExternalsDir)cpp-ipc\exports.props" />
   <Import Project="$(ExternalsDir)cpp-optparse\exports.props" />
   <Import Project="$(ExternalsDir)cubeb\exports.props" />
   <Import Project="$(ExternalsDir)curl\exports.props" />
@@ -56,7 +57,6 @@
   <Import Project="$(ExternalsDir)rcheevos\exports.props" />
   <Import Project="$(ExternalsDir)SDL\exports.props" />
   <Import Project="$(ExternalsDir)SFML\exports.props" />
-  <Import Project="$(ExternalsDir)soundtouch\exports.props" />
   <Import Project="$(ExternalsDir)spirv_cross\exports.props" />
   <Import Project="$(ExternalsDir)tinygltf\exports.props" />
   <Import Project="$(ExternalsDir)xxhash\exports.props" />

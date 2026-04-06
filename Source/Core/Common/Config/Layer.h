@@ -8,7 +8,6 @@
 #include <optional>
 #include <string>
 #include <type_traits>
-#include <vector>
 
 #include "Common/Config/ConfigInfo.h"
 #include "Common/Config/Enums.h"
@@ -16,9 +15,16 @@
 
 namespace Config
 {
+// Setting a key to an object of this type will delete the key.
+struct DefaultState
+{
+  friend constexpr bool operator==(DefaultState, DefaultState) { return true; }
+};
+
 namespace detail
 {
-template <typename T, std::enable_if_t<!std::is_enum<T>::value>* = nullptr>
+template <typename T>
+requires(!Common::Enum<T>)
 std::optional<T> TryParse(const std::string& str_value)
 {
   T value;
@@ -27,7 +33,7 @@ std::optional<T> TryParse(const std::string& str_value)
   return value;
 }
 
-template <typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
+template <Common::Enum T>
 std::optional<T> TryParse(const std::string& str_value)
 {
   const auto result = TryParse<std::underlying_type_t<T>>(str_value);
@@ -117,10 +123,18 @@ public:
   }
 
   template <typename T>
+  bool Set(const Info<T>& config_info, DefaultState)
+  {
+    return DeleteKey(config_info.GetLocation());
+  }
+
+  template <typename T>
   bool Set(const Info<T>& config_info, const std::common_type_t<T>& value)
   {
     return Set(config_info.GetLocation(), value);
   }
+
+  bool Set(const Location& location, DefaultState) { return DeleteKey(location); }
 
   template <typename T>
   bool Set(const Location& location, const T& value)

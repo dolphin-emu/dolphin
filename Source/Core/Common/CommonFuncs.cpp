@@ -6,10 +6,10 @@
 #include <cstddef>
 #include <cstring>
 #include <errno.h>
-#include <type_traits>
 
 #ifdef _WIN32
 #include <windows.h>
+#include <SetupAPI.h>
 
 #define strerror_r(err, buf, len) strerror_s(buf, len, err)
 
@@ -42,13 +42,18 @@ const char* StrErrorWrapper(int error, char* buffer, std::size_t length)
 #endif
 }
 
+std::string StrerrorString(int error)
+{
+  char error_message[BUFFER_SIZE];
+
+  return StrErrorWrapper(error, error_message, BUFFER_SIZE);
+}
+
 // Wrapper function to get last strerror(errno) string.
 // This function might change the error code.
 std::string LastStrerrorString()
 {
-  char error_message[BUFFER_SIZE];
-
-  return StrErrorWrapper(errno, error_message, BUFFER_SIZE);
+  return StrerrorString(errno);
 }
 
 #ifdef _WIN32

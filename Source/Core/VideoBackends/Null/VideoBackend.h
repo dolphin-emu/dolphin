@@ -13,10 +13,10 @@ public:
   bool Initialize(const WindowSystemInfo& wsi) override;
   void Shutdown() override;
 
-  std::string GetName() const override { return NAME; }
+  std::string GetConfigName() const override { return CONFIG_NAME; }
   std::string GetDisplayName() const override;
   void InitBackendInfo(const WindowSystemInfo& wsi) override;
 
-  static constexpr const char* NAME = "Null";
+  static constexpr const char* CONFIG_NAME = "Null";
 };
 }  // namespace Null

@@ -141,6 +141,7 @@ void VertexManager::UploadUniforms()
   UpdateVertexShaderConstants();
   UpdateGeometryShaderConstants();
   UpdatePixelShaderConstants();
+  UpdateCustomShaderConstants();
 }
 
 void VertexManager::UpdateVertexShaderConstants()
@@ -192,6 +193,15 @@ void VertexManager::UpdatePixelShaderConstants()
     ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, sizeof(PixelShaderConstants));
     pixel_shader_manager.dirty = false;
   }
+}
+
+void VertexManager::UpdateCustomShaderConstants()
+{
+  auto& system = Core::System::GetInstance();
+  auto& pixel_shader_manager = system.GetPixelShaderManager();
+
+  if (!ReserveConstantStorage())
+    return;
 
   if (pixel_shader_manager.custom_constants_dirty)
   {

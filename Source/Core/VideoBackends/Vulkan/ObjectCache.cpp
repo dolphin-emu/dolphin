@@ -7,19 +7,12 @@
 #include <array>
 #include <type_traits>
 
-#include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
 #include "Common/FileUtil.h"
 #include "Common/LinearDiskCache.h"
 #include "Common/MsgHandler.h"
 
-#include "Core/ConfigManager.h"
-
-#include "VideoBackends/Vulkan/CommandBufferManager.h"
-#include "VideoBackends/Vulkan/ShaderCompiler.h"
 #include "VideoBackends/Vulkan/VKStreamBuffer.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
-#include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/Constants.h"
 #include "VideoCommon/VideoCommon.h"
@@ -115,8 +108,8 @@ bool ObjectCache::CreateDescriptorSetLayouts()
        VK_SHADER_STAGE_FRAGMENT_BIT},
       {UBO_DESCRIPTOR_SET_BINDING_VS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT},
-      {UBO_DESCRIPTOR_SET_BINDING_PS_CUST, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
-       VK_SHADER_STAGE_FRAGMENT_BIT},
+      {UBO_DESCRIPTOR_SET_BINDING_CUST, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
+       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT},
       {UBO_DESCRIPTOR_SET_BINDING_GS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
        VK_SHADER_STAGE_GEOMETRY_BIT},
   }};
@@ -206,18 +199,18 @@ bool ObjectCache::CreateDescriptorSetLayouts()
   // Don't set the GS bit if geometry shaders aren't available.
   if (g_ActiveConfig.UseVSForLinePointExpand())
   {
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    if (g_backend_info.bSupportsGeometryShaders)
       ubo_bindings[UBO_DESCRIPTOR_SET_BINDING_GS].stageFlags |= VK_SHADER_STAGE_VERTEX_BIT;
     else
       ubo_bindings[UBO_DESCRIPTOR_SET_BINDING_GS].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
   }
-  else if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+  else if (!g_backend_info.bSupportsGeometryShaders)
   {
     create_infos[DESCRIPTOR_SET_LAYOUT_STANDARD_UNIFORM_BUFFERS].bindingCount--;
   }
 
   // Remove the dynamic vertex loader's buffer if it'll never be needed
-  if (!g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
+  if (!g_backend_info.bSupportsDynamicVertexLoader)
     create_infos[DESCRIPTOR_SET_LAYOUT_STANDARD_SHADER_STORAGE_BUFFERS].bindingCount--;
 
   for (size_t i = 0; i < create_infos.size(); i++)
@@ -286,13 +279,13 @@ bool ObjectCache::CreatePipelineLayouts()
   }};
 
   const bool ssbos_in_standard =
-      g_ActiveConfig.backend_info.bSupportsBBox || g_ActiveConfig.UseVSForLinePointExpand();
+      g_backend_info.bSupportsBBox || g_ActiveConfig.UseVSForLinePointExpand();
 
   // If bounding box is unsupported, don't bother with the SSBO descriptor set.
   if (!ssbos_in_standard)
     pipeline_layout_info[PIPELINE_LAYOUT_STANDARD].setLayoutCount--;
   // If neither SSBO-using feature is supported, skip in ubershaders too
-  if (!ssbos_in_standard && !g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
+  if (!ssbos_in_standard && !g_backend_info.bSupportsDynamicVertexLoader)
     pipeline_layout_info[PIPELINE_LAYOUT_UBER].setLayoutCount--;
 
   for (size_t i = 0; i < pipeline_layout_info.size(); i++)
@@ -398,11 +391,11 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
   };
 
   // Can we use anisotropic filtering with this sampler?
-  if (info.tm0.anisotropic_filtering && g_vulkan_context->SupportsAnisotropicFiltering())
+  if (info.tm0.anisotropic_filtering != 0 && g_vulkan_context->SupportsAnisotropicFiltering())
   {
     // Cap anisotropy to device limits.
     create_info.anisotropyEnable = VK_TRUE;
-    create_info.maxAnisotropy = std::min(static_cast<float>(1 << g_ActiveConfig.iMaxAnisotropy),
+    create_info.maxAnisotropy = std::min(static_cast<float>(1 << info.tm0.anisotropic_filtering),
                                          g_vulkan_context->GetMaxSamplerAnisotropy());
   }
 

@@ -10,6 +10,10 @@
 #include <type_traits>
 #include <vector>
 
+#if defined(__linux__) || defined(__HAIKU__)
+#include <sys/socket.h>
+#endif
+
 #include "Common/CommonTypes.h"
 
 struct sockaddr_in;
@@ -36,6 +40,12 @@ enum DHCPConst
 };
 
 using MACAddress = std::array<u8, MAC_ADDRESS_SIZE>;
+
+// Note: Bluetooth address display order is reverse of the storage order.
+struct BluetoothAddress : std::array<u8, MAC_ADDRESS_SIZE>
+{
+};
+
 constexpr std::size_t IPV4_ADDR_LEN = 4;
 using IPAddress = std::array<u8, IPV4_ADDR_LEN>;
 constexpr IPAddress IP_ADDR_ANY = {0, 0, 0, 0};
@@ -258,9 +268,38 @@ struct NetworkErrorState
 #endif
 };
 
+struct IPv4Port
+{
+  IPAddress ip_address;
+  u16 port;  // Network byte order.
+
+  // These convert to host byte order.
+  u32 GetIPAddressValue() const;
+  u16 GetPortValue() const;
+};
+
+struct IPv4PortRange
+{
+  IPv4Port first;
+  IPv4Port last;
+
+  bool IsMatch(IPv4Port subject) const;
+  std::string ToString() const;
+};
+
+std::string IPAddressToString(IPAddress ip_address);
+
+// Syntax is: first_ip[-last_ip|/network_prefix_length][:first_port[-last_port]]
+std::optional<IPv4PortRange> StringToIPv4PortRange(std::string_view subject);
+
 MACAddress GenerateMacAddress(MACConsumer type);
+
 std::string MacAddressToString(const MACAddress& mac);
 std::optional<MACAddress> StringToMacAddress(std::string_view mac_string);
+
+std::string BluetoothAddressToString(BluetoothAddress bdaddr);
+std::optional<BluetoothAddress> StringToBluetoothAddress(std::string_view str);
+
 u16 ComputeNetworkChecksum(const void* data, u16 length, u32 initial_value = 0);
 u16 ComputeTCPNetworkChecksum(const IPAddress& from, const IPAddress& to, const void* data,
                               u16 length, u8 protocol);
@@ -268,4 +307,15 @@ NetworkErrorState SaveNetworkErrorState();
 void RestoreNetworkErrorState(const NetworkErrorState& state);
 const char* DecodeNetworkError(s32 error_code);
 const char* StrNetworkError();
+
+// Sets SO_NOSIGPIPE when available.
+bool SetPlatformSocketOptions(int fd);
+
+// Pass this to all `send` calls to avoid SIGPIPE.
+#if defined(__linux__) || defined(__HAIKU__)
+static constexpr int SEND_FLAGS = MSG_NOSIGNAL;
+#else
+static constexpr int SEND_FLAGS = 0;
+#endif
+
 }  // namespace Common

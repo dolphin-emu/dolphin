@@ -26,33 +26,26 @@ typedef pollfd pollfd_t;
 #else
 #include <sys/fcntl.h>
 #endif
-#include <errno.h>
 #include <net/if.h>
 #include <netinet/in.h>
 #include <poll.h>
-#include <string.h>
 
 typedef struct pollfd pollfd_t;
 #else
-#include <errno.h>
 #include <netinet/in.h>
 #include <sys/fcntl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #endif
 
-#include <algorithm>
 #include <chrono>
-#include <cstdio>
 #include <list>
 #include <optional>
-#include <string>
 #include <string_view>
 #include <unordered_map>
 #include <utility>
 
 #include "Common/CommonTypes.h"
-#include "Common/EnumUtils.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/IOS.h"
@@ -291,7 +284,7 @@ public:
     if (socket_entry == WiiSockets.end())
     {
       ERROR_LOG_FMT(IOS_NET, "DoSock: Error, fd not found ({:08x}, {:08X}, {:08X})", sock,
-                    request.address, Common::ToUnderlying(type));
+                    request.address, std::to_underlying(type));
       EnqueueIPCReply(request, -SO_EBADF);
     }
     else

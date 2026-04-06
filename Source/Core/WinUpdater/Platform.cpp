@@ -246,12 +246,11 @@ static VersionCheckResult OSVersionCheck(const BuildInfo& build_info)
   return result;
 }
 
-std::optional<BuildInfos> InitBuildInfos(const std::vector<TodoList::UpdateOp>& to_update,
-                                         const std::string& install_base_path,
-                                         const std::string& temp_dir)
+static std::optional<BuildInfos> InitBuildInfos(const std::vector<TodoList::UpdateOp>& to_update,
+                                                const std::string& install_base_path,
+                                                const std::string& temp_dir)
 {
-  const auto op_it = std::find_if(to_update.cbegin(), to_update.cend(),
-                                  [&](const auto& op) { return op.filename == "build_info.txt"; });
+  const auto op_it = std::ranges::find(to_update, "build_info.txt", &TodoList::UpdateOp::filename);
   if (op_it == to_update.cend())
     return {};
 
@@ -279,7 +278,7 @@ std::optional<BuildInfos> InitBuildInfos(const std::vector<TodoList::UpdateOp>& 
   return build_infos;
 }
 
-bool CheckBuildInfo(const BuildInfos& build_infos)
+static bool CheckBuildInfo(const BuildInfos& build_infos)
 {
   // The existing BuildInfo may have been modified. Be careful not to overly trust its contents!
 

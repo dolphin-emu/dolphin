@@ -16,7 +16,6 @@
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/Present.h"
-#include "VideoCommon/VideoConfig.h"
 
 // The video encoder needs the image to be a multiple of x samples.
 static constexpr int VIDEO_ENCODER_LCM = 4;
@@ -31,7 +30,7 @@ static bool DumpFrameToPNG(const FrameData& frame, const std::string& file_name)
 FrameDumper::FrameDumper()
 {
   m_frame_end_handle =
-      AfterFrameEvent::Register([this](Core::System&) { FlushFrameDump(); }, "FrameDumper");
+      GetVideoEvents().after_frame_event.Register([this](Core::System&) { FlushFrameDump(); });
 }
 
 FrameDumper::~FrameDumper()
@@ -201,7 +200,7 @@ void FrameDumper::FrameDumpThreadFunc()
 {
   Common::SetCurrentThreadName("FrameDumping");
 
-  bool dump_to_ffmpeg = !g_ActiveConfig.bDumpFramesAsImages;
+  bool dump_to_ffmpeg = !Config::Get(Config::GFX_DUMP_FRAMES_AS_IMAGES);
   bool frame_dump_started = false;
 
 // If Dolphin was compiled without ffmpeg, we only support dumping to images.

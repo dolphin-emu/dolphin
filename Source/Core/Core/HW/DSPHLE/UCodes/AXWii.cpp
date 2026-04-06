@@ -5,7 +5,6 @@
 
 #include "Core/HW/DSPHLE/UCodes/AXWii.h"
 
-#include <algorithm>
 #include <array>
 
 #include "Common/ChunkFile.h"
@@ -17,6 +16,7 @@
 #include "Core/HW/DSPHLE/UCodes/AXStructs.h"
 #include "Core/HW/DSPHLE/UCodes/AXVoice.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
+#include "Core/HW/Memmap.h"
 
 namespace DSP::HLE
 {
@@ -274,7 +274,7 @@ void AXWiiUCode::SetupProcessing(u32 init_addr)
 void AXWiiUCode::AddToLR(u32 val_addr, bool neg)
 {
   auto& memory = m_dsphle->GetSystem().GetMemory();
-  int* ptr = (int*)HLEMemory_Get_Pointer(memory, val_addr);
+  int* ptr = reinterpret_cast<int*>(memory.GetPointerForRange(val_addr, 32 * 3 * sizeof(int)));
   for (int i = 0; i < 32 * 3; ++i)
   {
     int val = (int)Common::swap32(*ptr++);
@@ -289,7 +289,7 @@ void AXWiiUCode::AddToLR(u32 val_addr, bool neg)
 void AXWiiUCode::AddSubToLR(u32 val_addr)
 {
   auto& memory = m_dsphle->GetSystem().GetMemory();
-  int* ptr = (int*)HLEMemory_Get_Pointer(memory, val_addr);
+  int* ptr = reinterpret_cast<int*>(memory.GetPointerForRange(val_addr, 2 * 32 * 3 * sizeof(int)));
   for (int i = 0; i < 32 * 3; ++i)
   {
     int val = (int)Common::swap32(*ptr++);
@@ -526,16 +526,16 @@ void AXWiiUCode::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 vo
   auto& memory = m_dsphle->GetSystem().GetMemory();
   if (write_addr)
   {
-    int* ptr = (int*)HLEMemory_Get_Pointer(memory, write_addr);
     for (const auto& buffer : buffers)
     {
-      for (u32 j = 0; j < 3 * 32; ++j)
-        *ptr++ = Common::swap32(buffer[j]);
+      memory.CopyToEmuSwapped(write_addr, buffer, 3 * 32 * sizeof(int));
+      write_addr += 3 * 32 * sizeof(int);
     }
   }
 
   // Then read the buffers from the CPU and add to our main buffers.
-  const int* ptr = (int*)HLEMemory_Get_Pointer(memory, read_addr);
+  const int* ptr = reinterpret_cast<int*>(
+      memory.GetPointerForRange(read_addr, main_buffers.size() * 3 * 32 * sizeof(int)));
   for (auto& main_buffer : main_buffers)
   {
     for (u32 j = 0; j < 3 * 32; ++j)
@@ -555,17 +555,11 @@ void AXWiiUCode::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
   int* auxc_buffer = aux_id ? m_samples_auxC_surround : m_samples_auxC_right;
 
   auto& memory = m_dsphle->GetSystem().GetMemory();
-  int* upload_ptr = (int*)HLEMemory_Get_Pointer(memory, addresses[0]);
-  for (u32 i = 0; i < 96; ++i)
-    *upload_ptr++ = Common::swap32(aux_left[i]);
-  for (u32 i = 0; i < 96; ++i)
-    *upload_ptr++ = Common::swap32(aux_right[i]);
-  for (u32 i = 0; i < 96; ++i)
-    *upload_ptr++ = Common::swap32(aux_surround[i]);
+  memory.CopyToEmuSwapped(addresses[0], aux_left, 96 * sizeof(int));
+  memory.CopyToEmuSwapped(addresses[0] + 96 * sizeof(int), aux_right, 96 * sizeof(int));
+  memory.CopyToEmuSwapped(addresses[0] + 2 * 96 * sizeof(int), aux_surround, 96 * sizeof(int));
 
-  upload_ptr = (int*)HLEMemory_Get_Pointer(memory, addresses[1]);
-  for (u32 i = 0; i < 96; ++i)
-    *upload_ptr++ = Common::swap32(auxc_buffer[i]);
+  memory.CopyToEmuSwapped(addresses[1], auxc_buffer, 96 * sizeof(int));
 
   u16 volume_ramp[96];
   GenerateVolumeRamp(volume_ramp, m_last_aux_volumes[aux_id], volume, 96);
@@ -575,9 +569,7 @@ void AXWiiUCode::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
                       m_samples_auxC_left};
   for (u32 mix_i = 0; mix_i < 4; ++mix_i)
   {
-    int* dl_ptr = (int*)HLEMemory_Get_Pointer(memory, addresses[2 + mix_i]);
-    for (u32 i = 0; i < 96; ++i)
-      aux_left[i] = Common::swap32(dl_ptr[i]);
+    memory.CopyFromEmuSwapped(aux_left, addresses[2 + mix_i], 96 * sizeof(int));
 
     for (u32 i = 0; i < 96; ++i)
     {
@@ -594,20 +586,13 @@ void AXWiiUCode::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume, bool 
   GenerateVolumeRamp(volume_ramp.data(), m_last_main_volume, volume, volume_ramp.size());
   m_last_main_volume = volume;
 
-  std::array<int, 3 * 32> upload_buffer{};
-
-  for (size_t i = 0; i < upload_buffer.size(); ++i)
-    upload_buffer[i] = Common::swap32(m_samples_main_surround[i]);
   auto& memory = m_dsphle->GetSystem().GetMemory();
-  memcpy(HLEMemory_Get_Pointer(memory, surround_addr), upload_buffer.data(), sizeof(upload_buffer));
+  memory.CopyToEmuSwapped(surround_addr, m_samples_main_surround, 3 * 32 * sizeof(int));
 
   if (upload_auxc)
   {
-    surround_addr += sizeof(upload_buffer);
-    for (size_t i = 0; i < upload_buffer.size(); ++i)
-      upload_buffer[i] = Common::swap32(m_samples_auxC_left[i]);
-    memcpy(HLEMemory_Get_Pointer(memory, surround_addr), upload_buffer.data(),
-           sizeof(upload_buffer));
+    memory.CopyToEmuSwapped(surround_addr + 3 * 32 * sizeof(int), m_samples_auxC_left,
+                            3 * 32 * sizeof(int));
   }
 
   // Clamp internal buffers to 16 bits.
@@ -632,7 +617,7 @@ void AXWiiUCode::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume, bool 
     buffer[2 * i + 1] = Common::swap16(m_samples_main_left[i]);
   }
 
-  memcpy(HLEMemory_Get_Pointer(memory, lr_addr), buffer.data(), sizeof(buffer));
+  memory.CopyToEmu(lr_addr, buffer.data(), sizeof(buffer));
   m_mail_handler.PushMail(DSP_SYNC, true);
 }
 
@@ -644,7 +629,7 @@ void AXWiiUCode::OutputWMSamples(u32* addresses)
   for (u32 i = 0; i < 4; ++i)
   {
     int* in = buffers[i];
-    u16* out = (u16*)HLEMemory_Get_Pointer(memory, addresses[i]);
+    u16* out = reinterpret_cast<u16*>(memory.GetPointerForRange(addresses[i], 3 * 6 * sizeof(s16)));
     for (u32 j = 0; j < 3 * 6; ++j)
     {
       s16 sample = ClampS16(in[j]);

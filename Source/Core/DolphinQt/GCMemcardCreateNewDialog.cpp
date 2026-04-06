@@ -11,7 +11,6 @@
 #include <QRadioButton>
 
 #include "Common/FileUtil.h"
-#include "Common/MsgHandler.h"
 #include "Common/Timer.h"
 
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
@@ -60,7 +59,6 @@ GCMemcardCreateNewDialog::GCMemcardCreateNewDialog(QWidget* parent) : QDialog(pa
   });
 
   setWindowTitle(tr("Create New Memory Card"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 GCMemcardCreateNewDialog::~GCMemcardCreateNewDialog() = default;

@@ -18,41 +18,26 @@
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/ConfigControls/ConfigInteger.h"
 #include "DolphinQt/Config/GameConfigWidget.h"
-#include "DolphinQt/Config/Graphics/GraphicsWindow.h"
-#include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
-#include "DolphinQt/QtUtils/SignalBlocking.h"
+#include "DolphinQt/Config/Graphics/GraphicsPane.h"
 #include "DolphinQt/Settings.h"
 
 #include "VideoCommon/VideoConfig.h"
 
-AdvancedWidget::AdvancedWidget(GraphicsWindow* parent)
+AdvancedWidget::AdvancedWidget(GraphicsPane* gfx_pane) : m_game_layer{gfx_pane->GetConfigLayer()}
 {
   CreateWidgets();
   ConnectWidgets();
   AddDescriptions();
 
-  connect(parent, &GraphicsWindow::BackendChanged, this, &AdvancedWidget::OnBackendChanged);
+  connect(gfx_pane, &GraphicsPane::BackendChanged, this, &AdvancedWidget::OnBackendChanged);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
   connect(m_manual_texture_sampling, &QCheckBox::toggled,
-          [this, parent] { emit parent->UseFastTextureSamplingChanged(); });
+          [gfx_pane] { emit gfx_pane->UseFastTextureSamplingChanged(); });
 
   OnBackendChanged();
   OnEmulationStateChanged(!Core::IsUninitialized(Core::System::GetInstance()));
-}
-
-AdvancedWidget::AdvancedWidget(GameConfigWidget* parent, Config::Layer* layer) : m_game_layer(layer)
-{
-  CreateWidgets();
-  ConnectWidgets();
-  AddDescriptions();
-
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
-    OnEmulationStateChanged(state != Core::State::Uninitialized);
-  });
-  OnEmulationStateChanged(Core::GetState(Core::System::GetInstance()) !=
-                          Core::State::Uninitialized);
 }
 
 void AdvancedWidget::CreateWidgets()
@@ -61,57 +46,25 @@ void AdvancedWidget::CreateWidgets()
 
   auto* main_layout = new QVBoxLayout;
 
-  // Performance
-  auto* performance_box = new QGroupBox(tr("Performance Statistics"));
-  auto* performance_layout = new QGridLayout();
-  performance_box->setLayout(performance_layout);
-
-  m_show_fps = new ConfigBool(tr("Show FPS"), Config::GFX_SHOW_FPS, m_game_layer);
-  m_show_ftimes = new ConfigBool(tr("Show Frame Times"), Config::GFX_SHOW_FTIMES, m_game_layer);
-  m_show_vps = new ConfigBool(tr("Show VPS"), Config::GFX_SHOW_VPS, m_game_layer);
-  m_show_vtimes = new ConfigBool(tr("Show VBlank Times"), Config::GFX_SHOW_VTIMES, m_game_layer);
-  m_show_graphs =
-      new ConfigBool(tr("Show Performance Graphs"), Config::GFX_SHOW_GRAPHS, m_game_layer);
-  m_show_speed = new ConfigBool(tr("Show % Speed"), Config::GFX_SHOW_SPEED, m_game_layer);
-  m_show_speed_colors =
-      new ConfigBool(tr("Show Speed Colors"), Config::GFX_SHOW_SPEED_COLORS, m_game_layer);
-  m_perf_samp_window = new ConfigInteger(0, 10000, Config::GFX_PERF_SAMP_WINDOW, m_game_layer, 100);
-  m_perf_samp_window->SetTitle(tr("Performance Sample Window (ms)"));
-  m_log_render_time = new ConfigBool(tr("Log Render Time to File"),
-                                     Config::GFX_LOG_RENDER_TIME_TO_FILE, m_game_layer);
-
-  performance_layout->addWidget(m_show_fps, 0, 0);
-  performance_layout->addWidget(m_show_ftimes, 0, 1);
-  performance_layout->addWidget(m_show_vps, 1, 0);
-  performance_layout->addWidget(m_show_vtimes, 1, 1);
-  performance_layout->addWidget(m_show_speed, 2, 0);
-  performance_layout->addWidget(m_show_graphs, 2, 1);
-  performance_layout->addWidget(new QLabel(tr("Performance Sample Window (ms):")), 3, 0);
-  performance_layout->addWidget(m_perf_samp_window, 3, 1);
-  performance_layout->addWidget(m_log_render_time, 4, 0);
-  performance_layout->addWidget(m_show_speed_colors, 4, 1);
-
   // Debugging
   auto* debugging_box = new QGroupBox(tr("Debugging"));
   auto* debugging_layout = new QGridLayout();
   debugging_box->setLayout(debugging_layout);
 
+  m_log_render_time = new ConfigBool(tr("Log Render Time to File"),
+                                     Config::GFX_LOG_RENDER_TIME_TO_FILE, m_game_layer);
+
   m_enable_wireframe =
       new ConfigBool(tr("Enable Wireframe"), Config::GFX_ENABLE_WIREFRAME, m_game_layer);
-  m_show_statistics =
-      new ConfigBool(tr("Show Statistics"), Config::GFX_OVERLAY_STATS, m_game_layer);
-  m_show_proj_statistics = new ConfigBool(tr("Show Projection Statistics"),
-                                          Config::GFX_OVERLAY_PROJ_STATS, m_game_layer);
   m_enable_format_overlay =
       new ConfigBool(tr("Texture Format Overlay"), Config::GFX_TEXFMT_OVERLAY_ENABLE, m_game_layer);
   m_enable_api_validation = new ConfigBool(tr("Enable API Validation Layers"),
                                            Config::GFX_ENABLE_VALIDATION_LAYER, m_game_layer);
 
   debugging_layout->addWidget(m_enable_wireframe, 0, 0);
-  debugging_layout->addWidget(m_show_statistics, 0, 1);
-  debugging_layout->addWidget(m_enable_format_overlay, 1, 0);
-  debugging_layout->addWidget(m_show_proj_statistics, 1, 1);
-  debugging_layout->addWidget(m_enable_api_validation, 2, 0);
+  debugging_layout->addWidget(m_enable_format_overlay, 0, 1);
+  debugging_layout->addWidget(m_enable_api_validation, 1, 0);
+  debugging_layout->addWidget(m_log_render_time, 1, 1);
 
   // Utility
   auto* utility_box = new QGroupBox(tr("Utility"));
@@ -185,11 +138,13 @@ void AdvancedWidget::CreateWidgets()
   dump_layout->addWidget(m_frame_dumps_resolution_type, 0, 1);
 
 #if defined(HAVE_FFMPEG)
-  m_dump_use_ffv1 =
-      new ConfigBool(tr("Use Lossless Codec (FFV1)"), Config::GFX_USE_FFV1, m_game_layer);
+  m_dump_use_lossless =
+      new ConfigBool(tr("Use Lossless Codec (Ut Video)"), Config::GFX_USE_LOSSLESS, m_game_layer);
+
   m_dump_bitrate = new ConfigInteger(0, 1000000, Config::GFX_BITRATE_KBPS, m_game_layer, 1000);
-  m_dump_bitrate->setEnabled(!m_dump_use_ffv1->isChecked());
-  dump_layout->addWidget(m_dump_use_ffv1, 1, 0);
+  m_dump_bitrate->setEnabled(!m_dump_use_lossless->isChecked());
+
+  dump_layout->addWidget(m_dump_use_lossless, 1, 0);
   dump_layout->addWidget(new QLabel(tr("Bitrate (kbps):")), 2, 0);
   dump_layout->addWidget(m_dump_bitrate, 2, 1);
 #endif
@@ -239,7 +194,6 @@ void AdvancedWidget::CreateWidgets()
   experimental_layout->addWidget(m_defer_efb_access_invalidation, 0, 0);
   experimental_layout->addWidget(m_manual_texture_sampling, 0, 1);
 
-  main_layout->addWidget(performance_box);
   main_layout->addWidget(debugging_box);
   main_layout->addWidget(utility_box);
   main_layout->addWidget(texture_dump_box);
@@ -260,20 +214,18 @@ void AdvancedWidget::ConnectWidgets()
     m_dump_base_textures->setEnabled(checked);
   });
   connect(m_enable_graphics_mods, &QCheckBox::toggled, this,
-          [this](bool checked) { emit Settings::Instance().EnableGfxModsChanged(checked); });
-
+          [](bool checked) { emit Settings::Instance().EnableGfxModsChanged(checked); });
 #if defined(HAVE_FFMPEG)
-  connect(m_dump_use_ffv1, &QCheckBox::toggled, this,
+  connect(m_dump_use_lossless, &QCheckBox::toggled, this,
           [this](bool checked) { m_dump_bitrate->setEnabled(!checked); });
 #endif
 }
 
 void AdvancedWidget::OnBackendChanged()
 {
-  m_backend_multithreading->setEnabled(g_Config.backend_info.bSupportsMultithreading);
-  m_prefer_vs_for_point_line_expansion->setEnabled(
-      g_Config.backend_info.bSupportsGeometryShaders &&
-      g_Config.backend_info.bSupportsVSLinePointExpand);
+  m_backend_multithreading->setEnabled(g_backend_info.bSupportsMultithreading);
+  m_prefer_vs_for_point_line_expansion->setEnabled(g_backend_info.bSupportsGeometryShaders &&
+                                                   g_backend_info.bSupportsVSLinePointExpand);
   AddDescriptions();
 }
 
@@ -284,53 +236,9 @@ void AdvancedWidget::OnEmulationStateChanged(bool running)
 
 void AdvancedWidget::AddDescriptions()
 {
-  static const char TR_SHOW_FPS_DESCRIPTION[] =
-      QT_TR_NOOP("Shows the number of distinct frames rendered per second as a measure of "
-                 "visual smoothness.<br><br><dolphin_emphasis>If unsure, leave this "
-                 "unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_FTIMES_DESCRIPTION[] =
-      QT_TR_NOOP("Shows the average time in ms between each distinct rendered frame alongside "
-                 "the standard deviation.<br><br><dolphin_emphasis>If unsure, leave this "
-                 "unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_VPS_DESCRIPTION[] =
-      QT_TR_NOOP("Shows the number of frames rendered per second as a measure of "
-                 "emulation speed.<br><br><dolphin_emphasis>If unsure, leave this "
-                 "unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_VTIMES_DESCRIPTION[] =
-      QT_TR_NOOP("Shows the average time in ms between each rendered frame alongside "
-                 "the standard deviation.<br><br><dolphin_emphasis>If unsure, leave this "
-                 "unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_GRAPHS_DESCRIPTION[] =
-      QT_TR_NOOP("Shows frametime graph along with statistics as a representation of "
-                 "emulation performance.<br><br><dolphin_emphasis>If unsure, leave this "
-                 "unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_SPEED_DESCRIPTION[] =
-      QT_TR_NOOP("Shows the % speed of emulation compared to full speed."
-                 "<br><br><dolphin_emphasis>If unsure, leave this "
-                 "unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_SPEED_COLORS_DESCRIPTION[] =
-      QT_TR_NOOP("Changes the color of the FPS counter depending on emulation speed."
-                 "<br><br><dolphin_emphasis>If unsure, leave this "
-                 "checked.</dolphin_emphasis>");
-  static const char TR_PERF_SAMP_WINDOW_DESCRIPTION[] =
-      QT_TR_NOOP("The amount of time the FPS and VPS counters will sample over."
-                 "<br><br>The higher the value, the more stable the FPS/VPS counter will be, "
-                 "but the slower it will be to update."
-                 "<br><br><dolphin_emphasis>If unsure, leave this "
-                 "at 1000ms.</dolphin_emphasis>");
-  static const char TR_LOG_RENDERTIME_DESCRIPTION[] = QT_TR_NOOP(
-      "Logs the render time of every frame to User/Logs/render_time.txt.<br><br>Use this "
-      "feature to measure Dolphin's performance.<br><br><dolphin_emphasis>If "
-      "unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_WIREFRAME_DESCRIPTION[] =
       QT_TR_NOOP("Renders the scene as a wireframe.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_STATS_DESCRIPTION[] =
-      QT_TR_NOOP("Shows various rendering statistics.<br><br><dolphin_emphasis>If unsure, "
-                 "leave this unchecked.</dolphin_emphasis>");
-  static const char TR_SHOW_PROJ_STATS_DESCRIPTION[] =
-      QT_TR_NOOP("Shows various projection statistics.<br><br><dolphin_emphasis>If unsure, "
-                 "leave this unchecked.</dolphin_emphasis>");
   static const char TR_TEXTURE_FORMAT_DESCRIPTION[] =
       QT_TR_NOOP("Modifies textures to show the format they're encoded in.<br><br>May require "
                  "an emulation reset to apply.<br><br><dolphin_emphasis>If unsure, leave this "
@@ -340,6 +248,10 @@ void AdvancedWidget::AddDescriptions()
                  "debugging graphical issues. On the Vulkan and D3D backends, this also enables "
                  "debug symbols for the compiled shaders.<br><br><dolphin_emphasis>If unsure, "
                  "leave this unchecked.</dolphin_emphasis>");
+  static const char TR_LOG_RENDERTIME_DESCRIPTION[] = QT_TR_NOOP(
+      "Logs the render time of every frame to User/Logs/render_time.txt.<br><br>Use this "
+      "feature to measure Dolphin's performance.<br><br><dolphin_emphasis>If "
+      "unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_DUMP_TEXTURE_DESCRIPTION[] =
       QT_TR_NOOP("Dumps decoded game textures based on the other flags to "
                  "User/Dump/Textures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If unsure, leave "
@@ -391,8 +303,9 @@ void AdvancedWidget::AddDescriptions()
       "possible input for external editing software.<br><br><dolphin_emphasis>If unsure, leave "
       "this at \"Aspect Ratio Corrected Internal Resolution\".</dolphin_emphasis>");
 #if defined(HAVE_FFMPEG)
-  static const char TR_USE_FFV1_DESCRIPTION[] =
-      QT_TR_NOOP("Encodes frame dumps using the FFV1 codec.<br><br><dolphin_emphasis>If "
+  static const char TR_USE_LOSSLESS_DESCRIPTION[] =
+      QT_TR_NOOP("Encodes frame dumps using the Ut Video codec. If this option is unchecked, a "
+                 "lossy Xvid codec will be used.<br><br><dolphin_emphasis>If "
                  "unsure, leave this unchecked.</dolphin_emphasis>");
 #endif
   static const char TR_PNG_COMPRESSION_LEVEL_DESCRIPTION[] =
@@ -457,21 +370,10 @@ void AdvancedWidget::AddDescriptions()
   static const char IF_UNSURE_UNCHECKED[] =
       QT_TR_NOOP("<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
-  m_show_fps->SetDescription(tr(TR_SHOW_FPS_DESCRIPTION));
-  m_show_ftimes->SetDescription(tr(TR_SHOW_FTIMES_DESCRIPTION));
-  m_show_vps->SetDescription(tr(TR_SHOW_VPS_DESCRIPTION));
-  m_show_vtimes->SetDescription(tr(TR_SHOW_VTIMES_DESCRIPTION));
-  m_show_graphs->SetDescription(tr(TR_SHOW_GRAPHS_DESCRIPTION));
-  m_show_speed->SetDescription(tr(TR_SHOW_SPEED_DESCRIPTION));
-  m_log_render_time->SetDescription(tr(TR_LOG_RENDERTIME_DESCRIPTION));
-  m_show_speed_colors->SetDescription(tr(TR_SHOW_SPEED_COLORS_DESCRIPTION));
-
   m_enable_wireframe->SetDescription(tr(TR_WIREFRAME_DESCRIPTION));
-  m_show_statistics->SetDescription(tr(TR_SHOW_STATS_DESCRIPTION));
-  m_show_proj_statistics->SetDescription(tr(TR_SHOW_PROJ_STATS_DESCRIPTION));
   m_enable_format_overlay->SetDescription(tr(TR_TEXTURE_FORMAT_DESCRIPTION));
   m_enable_api_validation->SetDescription(tr(TR_VALIDATION_LAYER_DESCRIPTION));
-  m_perf_samp_window->SetDescription(tr(TR_PERF_SAMP_WINDOW_DESCRIPTION));
+  m_log_render_time->SetDescription(tr(TR_LOG_RENDERTIME_DESCRIPTION));
   m_dump_textures->SetDescription(tr(TR_DUMP_TEXTURE_DESCRIPTION));
   m_dump_mip_textures->SetDescription(tr(TR_DUMP_MIP_TEXTURE_DESCRIPTION));
   m_dump_base_textures->SetDescription(tr(TR_DUMP_BASE_TEXTURE_DESCRIPTION));
@@ -483,19 +385,19 @@ void AdvancedWidget::AddDescriptions()
   m_enable_graphics_mods->SetDescription(tr(TR_LOAD_GRAPHICS_MODS_DESCRIPTION));
   m_frame_dumps_resolution_type->SetDescription(tr(TR_FRAME_DUMPS_RESOLUTION_TYPE_DESCRIPTION));
 #ifdef HAVE_FFMPEG
-  m_dump_use_ffv1->SetDescription(tr(TR_USE_FFV1_DESCRIPTION));
+  m_dump_use_lossless->SetDescription(tr(TR_USE_LOSSLESS_DESCRIPTION));
 #endif
   m_png_compression_level->SetDescription(tr(TR_PNG_COMPRESSION_LEVEL_DESCRIPTION));
   m_enable_cropping->SetDescription(tr(TR_CROPPING_DESCRIPTION));
   m_enable_prog_scan->SetDescription(tr(TR_PROGRESSIVE_SCAN_DESCRIPTION));
   m_backend_multithreading->SetDescription(tr(TR_BACKEND_MULTITHREADING_DESCRIPTION));
   QString vsexpand_extra;
-  if (!g_Config.backend_info.bSupportsGeometryShaders)
+  if (!g_backend_info.bSupportsGeometryShaders)
     vsexpand_extra = tr("Forced on because %1 doesn't support geometry shaders.")
-                         .arg(tr(g_Config.backend_info.DisplayName.c_str()));
-  else if (!g_Config.backend_info.bSupportsVSLinePointExpand)
+                         .arg(tr(g_backend_info.DisplayName.c_str()));
+  else if (!g_backend_info.bSupportsVSLinePointExpand)
     vsexpand_extra = tr("Forced off because %1 doesn't support VS expansion.")
-                         .arg(tr(g_Config.backend_info.DisplayName.c_str()));
+                         .arg(tr(g_backend_info.DisplayName.c_str()));
   else
     vsexpand_extra = tr(IF_UNSURE_UNCHECKED);
   m_prefer_vs_for_point_line_expansion->SetDescription(

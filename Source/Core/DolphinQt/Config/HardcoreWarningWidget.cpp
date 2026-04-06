@@ -6,14 +6,12 @@
 
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QPixmap>
 #include <QPushButton>
 #include <QStyle>
 
 #include "Core/AchievementManager.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
 
+#include "DolphinQt/QtUtils/QtUtils.h"
 #include "DolphinQt/Settings.h"
 
 HardcoreWarningWidget::HardcoreWarningWidget(QWidget* parent) : QWidget(parent)
@@ -28,25 +26,17 @@ HardcoreWarningWidget::HardcoreWarningWidget(QWidget* parent) : QWidget(parent)
 
 void HardcoreWarningWidget::CreateWidgets()
 {
-  const auto size = 1.5 * QFontMetrics(font()).height();
+  auto* const text = new QLabel(tr("Only approved codes will be applied in hardcore mode."));
+  auto* const icon_warning = QtUtils::CreateIconWarning(this, QStyle::SP_MessageBoxWarning, text);
 
-  QPixmap warning_icon = style()->standardIcon(QStyle::SP_MessageBoxWarning).pixmap(size, size);
-
-  auto* icon = new QLabel;
-  icon->setPixmap(warning_icon);
-
-  m_text = new QLabel(tr("Only approved codes will be applied in hardcore mode."));
   m_settings_button = new QPushButton(tr("Achievement Settings"));
 
-  auto* layout = new QHBoxLayout;
+  auto* const layout = new QHBoxLayout{this};
 
-  layout->addWidget(icon);
-  layout->addWidget(m_text, 1);
+  layout->addWidget(icon_warning, 1);
   layout->addWidget(m_settings_button);
 
   layout->setContentsMargins(0, 0, 0, 0);
-
-  setLayout(layout);
 }
 
 void HardcoreWarningWidget::ConnectWidgets()

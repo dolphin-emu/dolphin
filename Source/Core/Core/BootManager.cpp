@@ -17,22 +17,16 @@
 
 #include "Core/BootManager.h"
 
-#include <algorithm>
-#include <array>
-#include <string>
-
 #include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
-#include "Common/Logging/Log.h"
 
 #include "Core/AchievementManager.h"
 #include "Core/Boot/Boot.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
 #include "Core/ConfigLoaders/NetPlayConfigLoader.h"
 #include "Core/ConfigManager.h"
@@ -41,16 +35,12 @@
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/Sram.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "Core/WiiRoot.h"
 
 #include "DiscIO/Enums.h"
-
-#include "VideoCommon/VideoBackendBase.h"
 
 namespace BootManager
 {
@@ -128,7 +118,7 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
         case DiscIO::Region::NTSC_K:
           Config::SetCurrent(Config::SYSCONF_COUNTRY, 0x88);  // South Korea
           break;
-        case DiscIO::Region::Unknown:
+        default:
           break;
         }
       }
@@ -144,9 +134,33 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
   if (!boot->riivolution_patches.empty())
     Config::SetCurrent(Config::MAIN_FAST_DISC_SPEED, true);
 
+  if (system.IsTriforce())
+  {
+    // Attach Triforce Baseboard hardware if not overridden in any layer.
+    // Users may set these in their GameConfig if they want them not automatically attached.
+    if (GetActiveLayerForConfig(Config::MAIN_SERIAL_PORT_1) == Config::LayerType::Base)
+    {
+      Config::SetCurrent(Config::MAIN_SERIAL_PORT_1, ExpansionInterface::EXIDeviceType::Baseboard);
+    }
+    if (GetActiveLayerForConfig(Config::GetInfoForSIDevice(0)) == Config::LayerType::Base)
+    {
+      Config::SetCurrent(Config::GetInfoForSIDevice(0),
+                         SerialInterface::SIDevices::SIDEVICE_AM_BASEBOARD);
+    }
+
+    // Mario Kart Arcade GP has widescreen heuristic issues.
+    // All Triforce games are 4:3 so we'll just disable the heuristic for now.
+    if (GetActiveLayerForConfig(Config::GFX_SUGGESTED_ASPECT_RATIO) == Config::LayerType::Base)
+    {
+      Config::SetCurrent(Config::GFX_SUGGESTED_ASPECT_RATIO, AspectMode::ForceStandard);
+    }
+  }
+
   system.Initialize();
 
   Core::UpdateWantDeterminism(system, /*initial*/ true);
+
+  ConfigLoaders::TransferSYSCONFControlToGuest();
 
   if (system.IsWii())
   {
@@ -156,13 +170,16 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
     if (!Core::WantsDeterminism())
     {
       Core::BackupWiiSettings();
-      ConfigLoaders::SaveToSYSCONF(Config::LayerType::Meta);
+      ConfigLoaders::SaveToSYSCONF(Config::LayerType::Meta,
+                                   ConfigLoaders::SkipIfControlledByGuest::No);
     }
     else
     {
-      ConfigLoaders::SaveToSYSCONF(Config::LayerType::Meta, [](const Config::Location& location) {
-        return Config::GetActiveLayerForConfig(location) >= Config::LayerType::Movie;
-      });
+      ConfigLoaders::SaveToSYSCONF(
+          Config::LayerType::Meta, ConfigLoaders::SkipIfControlledByGuest::No,
+          [](const Config::Location& location) {
+            return Config::GetActiveLayerForConfig(location) >= Config::LayerType::Movie;
+          });
     }
   }
 
@@ -183,43 +200,18 @@ bool BootCore(Core::System& system, std::unique_ptr<BootParameters> boot,
   return Core::Init(system, std::move(boot), wsi);
 }
 
-// SYSCONF can be modified during emulation by the user and internally, which makes it
-// a bad idea to just always overwrite it with the settings from the base layer.
-//
-// Conversely, we also shouldn't just accept any changes to SYSCONF, as it may cause
-// temporary settings (from Movie, Netplay, game INIs, etc.) to stick around.
-//
-// To avoid inconveniences in most cases, we accept changes that aren't being overriden by a
-// non-base layer, and restore only the overriden settings.
-static void RestoreSYSCONF()
-{
-  // This layer contains the new SYSCONF settings (including any temporary settings).
-  Config::Layer temp_layer(Config::LayerType::Base);
-  // Use a separate loader so the temp layer doesn't automatically save
-  ConfigLoaders::GenerateBaseConfigLoader()->Load(&temp_layer);
-
-  for (const auto& setting : Config::SYSCONF_SETTINGS)
-  {
-    std::visit(
-        [&](auto* info) {
-          // If this setting was overridden, then we copy the base layer value back to the SYSCONF.
-          // Otherwise we leave the new value in the SYSCONF.
-          if (Config::GetActiveLayerForConfig(*info) == Config::LayerType::Base)
-            Config::SetBase(*info, temp_layer.Get(*info));
-        },
-        setting.config_info);
-  }
-  ConfigLoaders::SaveToSYSCONF(Config::LayerType::Base);
-}
-
 void RestoreConfig()
 {
   Core::ShutdownWiiRoot();
 
-  if (!Core::WiiRootIsTemporary())
+  if (Core::WiiRootIsTemporary())
+  {
+    ConfigLoaders::TransferSYSCONFControlFromGuest(ConfigLoaders::WriteBackChangedValues::No);
+  }
+  else
   {
     Core::RestoreWiiSettings(Core::RestoreReason::EmulationEnd);
-    RestoreSYSCONF();
+    ConfigLoaders::TransferSYSCONFControlFromGuest(ConfigLoaders::WriteBackChangedValues::Yes);
   }
 
   Config::ClearCurrentRunLayer();

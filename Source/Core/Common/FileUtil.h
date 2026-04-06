@@ -3,9 +3,7 @@
 
 #pragma once
 
-#include <cstddef>
 #include <filesystem>
-#include <fstream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -28,7 +26,8 @@ enum
 {
   D_USER_IDX,
   D_GCUSER_IDX,
-  D_WIIROOT_IDX,          // always points to User/Wii or global user-configured directory
+  D_WIIROOT_IDX,  // always points to User/Wii or global user-configured directory
+  D_TRIUSER_IDX,
   D_SESSION_WIIROOT_IDX,  // may point to minimal temporary directory for determinism
   D_CONFIG_IDX,           // global settings
   D_GAMESETTINGS_IDX,     // user-specified settings which override both the global and the default
@@ -58,7 +57,6 @@ enum
   D_DUMPDEBUG_JITBLOCKS_IDX,
   D_LOAD_IDX,
   D_LOGS_IDX,
-  D_MAILLOGS_IDX,
   D_THEMES_IDX,
   D_STYLES_IDX,
   D_PIPES_IDX,
@@ -68,14 +66,17 @@ enum
   D_RESOURCEPACK_IDX,
   D_DYNAMICINPUT_IDX,
   D_GRAPHICSMOD_IDX,
+  D_FIRMWARE_IDX,
   D_GBAUSER_IDX,
   D_GBASAVES_IDX,
   D_WIISDCARDSYNCFOLDER_IDX,
+  D_WIISYSCONF_IDX,
   D_GPU_DRIVERS_EXTRACTED,
   D_GPU_DRIVERS_TMP,
   D_GPU_DRIVERS_HOOKS,
   D_GPU_DRIVERS_FILE_REDIRECT,
   D_ASM_ROOT_IDX,
+  D_BANNERS_WIIROOT_IDX,
   FIRST_FILE_USER_PATH_IDX,
   F_DOLPHINCONFIG_IDX = FIRST_FILE_USER_PATH_IDX,
   F_GCPADCONFIG_IDX,
@@ -92,6 +93,7 @@ enum
   F_MEMORYWATCHERLOCATIONS_IDX,
   F_MEMORYWATCHERSOCKET_IDX,
   F_WIISDCARDIMAGE_IDX,
+  F_WIISYSCONF_IDX,
   F_DUALSHOCKUDPCLIENTCONFIG_IDX,
   F_FREELOOKCONFIG_IDX,
   F_GBABIOS_IDX,

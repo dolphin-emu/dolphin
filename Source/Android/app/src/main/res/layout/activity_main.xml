@@ -19,7 +19,6 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorSurface"
-            app:layout_scrollFlags="scroll|enterAlways|snap"
             app:subtitleTextColor="?attr/colorOnSurface"
             app:titleTextColor="?attr/colorOnSurface" />
 

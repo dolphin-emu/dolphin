@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cmath>
 #include <memory>
 #include <optional>
 #include <string>
@@ -27,6 +26,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/AudioInterface.h"
+#include "Core/HW/DVD/AMMediaboard.h"
 #include "Core/HW/DVD/DVDMath.h"
 #include "Core/HW/DVD/DVDThread.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
@@ -124,6 +124,12 @@ void DVDInterface::DoState(PointerWrap& p)
   m_system.GetDVDThread().DoState(p);
 
   m_adpcm_decoder.DoState(p);
+
+  if (m_system.IsTriforce())
+  {
+    AMMediaboard::DoState(p);
+    p.DoMarker("AMMediaboard");
+  }
 }
 
 size_t DVDInterface::ProcessDTKSamples(s16* target_samples, size_t target_block_count,
@@ -282,6 +288,17 @@ void DVDInterface::Init()
 
   u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::TCINT);
   core_timing.ScheduleEvent(0, m_finish_executing_command, userdata);
+
+  if (m_system.IsTriforce())
+  {
+    AMMediaboard::Init();
+
+    // The Triforce IPL expects the cover to be closed
+    m_DICVR.Hex = 0;
+    // The Triforce IPL checks this bit to set the physical memory to
+    // either 50MB(unset) or 24MB(set)
+    m_DICFG.Hex |= 8;
+  }
 }
 
 // Resets state on the MN102 chip in the drive itself, but not the DI registers exposed on the
@@ -311,7 +328,7 @@ void DVDInterface::ResetDrive(bool spinup)
   else if (!spinup)
   {
     // Wii hardware tests indicate that this is used when ejecting and inserting a new disc, or
-    // performing a reset without spinup.
+    // performing a reset without spin-up.
     SetDriveState(DriveState::DiscChangeDetected);
   }
   else
@@ -331,6 +348,11 @@ void DVDInterface::ResetDrive(bool spinup)
 void DVDInterface::Shutdown()
 {
   m_system.GetDVDThread().Stop();
+
+  if (m_system.IsTriforce())
+  {
+    AMMediaboard::Shutdown();
+  }
 }
 
 static u64 GetDiscEndOffset(const DiscIO::VolumeDisc& disc)
@@ -398,8 +420,6 @@ void DVDInterface::SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
     m_auto_disc_change_index = 0;
   }
 
-  AchievementManager::GetInstance().LoadGame("", disc.get());
-
   // Assume that inserting a disc requires having an empty disc before
   if (had_disc != has_disc)
     ExpansionInterface::g_rtc_flags[ExpansionInterface::RTCFlag::DiscChanged] = true;
@@ -422,18 +442,25 @@ void DVDInterface::AutoChangeDiscCallback(Core::System& system, u64 userdata, s6
 
 void DVDInterface::EjectDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
+  AchievementManager::GetInstance().ChangeDisc(nullptr);
   system.GetDVDInterface().SetDisc(nullptr, {});
 }
 
 void DVDInterface::InsertDiscCallback(Core::System& system, u64 userdata, s64 cyclesLate)
 {
   auto& di = system.GetDVDInterface();
-  std::unique_ptr<DiscIO::VolumeDisc> new_disc = DiscIO::CreateDisc(di.m_disc_path_to_insert);
+  std::unique_ptr<DiscIO::VolumeDisc> new_disc =
+      DiscIO::CreateDiscForCore(di.m_disc_path_to_insert);
 
   if (new_disc)
+  {
+    AchievementManager::GetInstance().ChangeDisc(new_disc.get());
     di.SetDisc(std::move(new_disc), {});
+  }
   else
+  {
     PanicAlertFmtT("The disc that was about to be inserted couldn't be found.");
+  }
 
   di.m_disc_path_to_insert.clear();
 }
@@ -697,11 +724,16 @@ bool DVDInterface::CheckReadPreconditions()
     SetDriveError(DriveError::MotorStopped);
     return false;
   }
-  if (m_drive_state == DriveState::DiscIdNotRead)
+
+  // SegaBoot doesn't read the Disc ID
+  if (!m_system.IsTriforce())
   {
-    ERROR_LOG_FMT(DVDINTERFACE, "Disc id not read.");
-    SetDriveError(DriveError::NoDiscID);
-    return false;
+    if (m_drive_state == DriveState::DiscIdNotRead)
+    {
+      ERROR_LOG_FMT(DVDINTERFACE, "Disc id not read.");
+      SetDriveError(DriveError::NoDiscID);
+      return false;
+    }
   }
   return true;
 }
@@ -752,6 +784,22 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
 {
   DIInterruptType interrupt_type = DIInterruptType::TCINT;
   bool command_handled_by_thread = false;
+
+  if (m_system.IsTriforce())
+  {
+    if (!AMMediaboard::ExecuteCommand(m_DICMDBUF, &m_DIIMMBUF, m_DIMAR, m_DILENGTH))
+    {
+      // Transfer is done
+      m_DICR.TSTART = 0;
+      m_DIMAR += m_DILENGTH;
+      m_DILENGTH = 0;
+      GenerateDIInterrupt(DIInterruptType::TCINT);
+      m_error_code = DriveError::None;
+      return;
+    }
+    // Normal read command pass on to normal handling
+    m_DICMDBUF[0] <<= 24;
+  }
 
   // DVDLowRequestError needs access to the error code set by the previous command
   if (static_cast<DICommand>(m_DICMDBUF[0] >> 24) != DICommand::RequestError)
@@ -876,14 +924,14 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
   // Wii-exclusive
   case DICommand::StopLaser:
     ERROR_LOG_FMT(DVDINTERFACE, "DVDLowStopLaser");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_STOP_LASER);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDVDLowStopLaser);
     SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
   case DICommand::Offset:
     ERROR_LOG_FMT(DVDINTERFACE, "DVDLowOffset");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_OFFSET);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDVDLowOffset);
     SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
@@ -891,7 +939,7 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
   case DICommand::ReadBCA:
   {
     WARN_LOG_FMT(DVDINTERFACE, "DVDLowReadDiskBca - supplying dummy data to appease NSMBW");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_READ_DISK_BCA);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDVDLowReadDiskBCA);
     // NSMBW checks that the first 0x33 bytes of the BCA are 0, then it expects a 1.
     // Most (all?) other games have 0x34 0's at the start of the BCA, but don't actually
     // read it.  NSMBW doesn't care about the other 12 bytes (which contain manufacturing data?)
@@ -906,14 +954,14 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
   // Wii-exclusive
   case DICommand::RequestDiscStatus:
     ERROR_LOG_FMT(DVDINTERFACE, "DVDLowRequestDiscStatus");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_REQUEST_DISC_STATUS);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDVDLowRequestDiscStatus);
     SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
   case DICommand::RequestRetryNumber:
     ERROR_LOG_FMT(DVDINTERFACE, "DVDLowRequestRetryNumber");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_REQUEST_RETRY_NUMBER);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDVDLowRequestRetryNumber);
     SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
@@ -926,7 +974,7 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
   // Wii-exclusive
   case DICommand::SerMeasControl:
     ERROR_LOG_FMT(DVDINTERFACE, "DVDLowSerMeasControl");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_SER_MEAS_CONTROL);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDVDLowSerMeasControl);
     SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;

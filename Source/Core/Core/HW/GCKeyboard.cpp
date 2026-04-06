@@ -3,15 +3,11 @@
 
 #include "Core/HW/GCKeyboard.h"
 
-#include <cstring>
-
 #include "Common/Common.h"
-#include "Common/CommonTypes.h"
 
 #include "Core/HW/GCKeyboardEmu.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
 #include "InputCommon/KeyboardStatus.h"
 
@@ -47,6 +43,11 @@ void Initialize()
 void LoadConfig()
 {
   s_config.LoadConfig();
+}
+
+void GenerateDynamicInputTextures()
+{
+  s_config.GenerateControllerTextures();
 }
 
 ControllerEmu::ControlGroup* GetGroup(int port, KeyboardGroup group)

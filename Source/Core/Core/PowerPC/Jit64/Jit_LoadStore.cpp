@@ -2,12 +2,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 // TODO(ector): Tons of pshufb optimization of the loads/stores, for SSSE3+, possibly SSE4, only.
-// Should give a very noticable speed boost to paired single heavy code.
+// Should give a very noticeable speed boost to paired single heavy code.
 
 #include "Core/PowerPC/Jit64/Jit.h"
 
 #include "Common/Assert.h"
 #include "Common/BitSet.h"
+#include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/x64ABI.h"
@@ -109,6 +110,8 @@ void Jit64::lXXx(UGeckoInstruction inst)
   default:
     PanicAlertFmt("Invalid instruction");
   }
+
+  FlushRegistersBeforeSlowAccess();
 
   // PowerPC has no 8-bit sign extended load, but x86 does, so merge extsb with the load if we find
   // it.
@@ -231,10 +234,9 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
 void Jit64::dcbx(UGeckoInstruction inst)
 {
-  FALLBACK_IF(m_accurate_cpu_cache_enabled);
-
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
+  FALLBACK_IF(m_accurate_cpu_cache_enabled);
 
   // Check if the next instructions match a known looping pattern:
   // - dcbx rX
@@ -302,25 +304,16 @@ void Jit64::dcbx(UGeckoInstruction inst)
     // Load the loop_counter register with the amount of invalidations to execute.
     LEA(32, loop_counter, MDisp(RSCRATCH2, 1));
 
-    if (IsDebuggingEnabled())
+    if (IsBranchWatchEnabled())
     {
-      const X64Reg bw_reg_a = reg_cycle_count, bw_reg_b = reg_downcount;
       const BitSet32 bw_caller_save = (CallerSavedRegistersInUse() | BitSet32{RSCRATCH2}) &
-                                      ~BitSet32{int(bw_reg_a), int(bw_reg_b)};
-
-      MOV(64, R(bw_reg_a), ImmPtr(&m_branch_watch));
-      MOVZX(32, 8, bw_reg_b, MDisp(bw_reg_a, Core::BranchWatch::GetOffsetOfRecordingActive()));
-      TEST(32, R(bw_reg_b), R(bw_reg_b));
-
-      FixupBranch branch_in = J_CC(CC_NZ, Jump::Near);
-      SwitchToFarCode();
-      SetJumpTarget(branch_in);
+                                      ~BitSet32{int(reg_cycle_count), int(reg_downcount)};
 
       // Assert RSCRATCH2 won't be clobbered before it is moved from.
       static_assert(RSCRATCH2 != ABI_PARAM1);
 
       ABI_PushRegistersAndAdjustStack(bw_caller_save, 0);
-      MOV(64, R(ABI_PARAM1), R(bw_reg_a));
+      MOV(64, R(ABI_PARAM1), ImmPtr(&m_branch_watch));
       // RSCRATCH2 holds the amount of faked branch watch hits. Move RSCRATCH2 first, because
       // ABI_PARAM2 clobbers RSCRATCH2 on Windows and ABI_PARAM3 clobbers RSCRATCH2 on Linux!
       MOV(32, R(ABI_PARAM4), R(RSCRATCH2));
@@ -330,10 +323,6 @@ void Jit64::dcbx(UGeckoInstruction inst)
       ABI_CallFunction(m_ppc_state.msr.IR ? &Core::BranchWatch::HitVirtualTrue_fk_n :
                                             &Core::BranchWatch::HitPhysicalTrue_fk_n);
       ABI_PopRegistersAndAdjustStack(bw_caller_save, 0);
-
-      FixupBranch branch_out = J(Jump::Near);
-      SwitchToNearCode();
-      SetJumpTarget(branch_out);
     }
   }
 
@@ -439,6 +428,8 @@ void Jit64::dcbz(UGeckoInstruction inst)
   int a = inst.RA;
   int b = inst.RB;
 
+  FlushRegistersBeforeSlowAccess();
+
   {
     RCOpArg Ra = a ? gpr.Use(a, RCMode::Read) : RCOpArg::Imm32(0);
     RCOpArg Rb = gpr.Use(b, RCMode::Read);
@@ -456,7 +447,8 @@ void Jit64::dcbz(UGeckoInstruction inst)
     end_dcbz_hack = J_CC(CC_L);
   }
 
-  bool emit_fast_path = (m_ppc_state.feature_flags & FEATURE_FLAG_MSR_DR) && m_jit.jo.fastmem_arena;
+  bool emit_fast_path = (m_ppc_state.feature_flags & FEATURE_FLAG_MSR_DR) &&
+                        m_jit.jo.fastmem_arena && !m_accurate_cpu_cache_enabled;
 
   if (emit_fast_path)
   {
@@ -469,15 +461,24 @@ void Jit64::dcbz(UGeckoInstruction inst)
     FixupBranch slow = J_CC(CC_Z, Jump::Near);
 
     // Fast path: compute full address, then zero out 32 bytes of memory.
-    XORPS(XMM0, R(XMM0));
-    MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 0), XMM0);
-    MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 16), XMM0);
+    if (cpu_info.bAVX)
+    {
+      VXORPS(XMM0, XMM0, R(XMM0));
+      VMOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 0), YMM0);
+      VZEROUPPER();
+    }
+    else
+    {
+      XORPS(XMM0, R(XMM0));
+      MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 0), XMM0);
+      MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 16), XMM0);
+    }
 
     // Slow path: call the general-case code.
     SwitchToFarCode();
     SetJumpTarget(slow);
   }
-  MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
+  FlushPCBeforeSlowAccess();
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
   ABI_CallFunctionPR(PowerPC::ClearDCacheLineFromJit, &m_mmu, RSCRATCH);
@@ -524,6 +525,8 @@ void Jit64::stX(UGeckoInstruction inst)
     return;
   }
 
+  FlushRegistersBeforeSlowAccess();
+
   // If we already know the address of the write
   if (!a || gpr.IsImm(a))
   {
@@ -552,12 +555,19 @@ void Jit64::stX(UGeckoInstruction inst)
   {
     RCX64Reg Ra = gpr.Bind(a, update ? RCMode::ReadWrite : RCMode::Read);
     RCOpArg reg_value;
-    if (!gpr.IsImm(s) && WriteClobbersRegValue(accessSize, /* swap */ true))
+    if (WriteClobbersRegValue(accessSize, /* swap */ true))
     {
-      RCOpArg Rs = gpr.Use(s, RCMode::Read);
-      RegCache::Realize(Rs);
-      reg_value = RCOpArg::R(RSCRATCH2);
-      MOV(32, reg_value, Rs);
+      if (gpr.IsImm(s))
+      {
+        reg_value = RCOpArg::Imm32(gpr.Imm32(s));
+      }
+      else
+      {
+        RCOpArg Rs = gpr.Use(s, RCMode::Read);
+        RegCache::Realize(Rs);
+        reg_value = RCOpArg::R(RSCRATCH2);
+        MOV(32, reg_value, Rs);
+      }
     }
     else
     {
@@ -602,11 +612,15 @@ void Jit64::stXx(UGeckoInstruction inst)
     break;
   }
 
+  FlushRegistersBeforeSlowAccess();
+
   const bool does_clobber = WriteClobbersRegValue(accessSize, /* swap */ !byte_reverse);
 
   RCOpArg Ra = update ? gpr.Bind(a, RCMode::ReadWrite) : gpr.Use(a, RCMode::Read);
   RCOpArg Rb = gpr.Use(b, RCMode::Read);
-  RCOpArg Rs = does_clobber ? gpr.Use(s, RCMode::Read) : gpr.BindOrImm(s, RCMode::Read);
+  RCOpArg Rs = does_clobber ?
+                   (gpr.IsImm(s) ? RCOpArg::Imm32(gpr.Imm32(s)) : gpr.Use(s, RCMode::Read)) :
+                   gpr.BindOrImm(s, RCMode::Read);
   RegCache::Realize(Ra, Rb, Rs);
 
   MOV_sum(32, RSCRATCH2, Ra, Rb);
@@ -634,6 +648,8 @@ void Jit64::lmw(UGeckoInstruction inst)
 
   int a = inst.RA, d = inst.RD;
 
+  FlushRegistersBeforeSlowAccess();
+
   // TODO: This doesn't handle rollback on DSI correctly
   {
     RCOpArg Ra = a ? gpr.Use(a, RCMode::Read) : RCOpArg::Imm32(0);
@@ -656,6 +672,8 @@ void Jit64::stmw(UGeckoInstruction inst)
   JITDISABLE(bJITLoadStoreOff);
 
   int a = inst.RA, d = inst.RD;
+
+  FlushRegistersBeforeSlowAccess();
 
   // TODO: This doesn't handle rollback on DSI correctly
   for (int i = d; i < 32; i++)

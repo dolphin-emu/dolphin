@@ -107,7 +107,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:barrierDirection="start"
-                app:constraint_referenced_ids="button_open_system_file_manager,button_import_user_data,button_export_user_data" />
+                app:constraint_referenced_ids="button_open_system_file_manager,button_import_user_data,button_export_user_data,button_reset_settings" />
 
             <Button
                 android:id="@+id/button_open_system_file_manager"
@@ -141,6 +141,17 @@
                 app:layout_constraintStart_toEndOf="@id/barrier_text"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/button_import_user_data"
+                app:layout_constraintBottom_toTopOf="@id/button_reset_settings" />
+
+            <Button
+                android:id="@+id/button_reset_settings"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/spacing_small"
+                android:text="@string/reset_all_settings"
+                app:layout_constraintStart_toEndOf="@id/barrier_text"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/button_export_user_data"
                 app:layout_constraintBottom_toBottomOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

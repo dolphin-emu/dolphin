@@ -10,15 +10,15 @@
 # module as a post-build step.
 
 if(CMAKE_GENERATOR)
-	# Being called as include(DolphinPostprocessBundle), so define a helper function.
-	set(_DOLPHIN_POSTPROCESS_BUNDLE_MODULE_LOCATION "${CMAKE_CURRENT_LIST_FILE}")
-	function(dolphin_postprocess_bundle target)
-		add_custom_command(TARGET ${target} POST_BUILD
-			COMMAND ${CMAKE_COMMAND} "-D" "DOLPHIN_BUNDLE_PATH=$<TARGET_BUNDLE_DIR:${target}>"
-				-P "${_DOLPHIN_POSTPROCESS_BUNDLE_MODULE_LOCATION}"
-		)
-	endfunction()
-	return()
+  # Being called as include(DolphinPostprocessBundle), so define a helper function.
+  set(_DOLPHIN_POSTPROCESS_BUNDLE_MODULE_LOCATION "${CMAKE_CURRENT_LIST_FILE}")
+  function(dolphin_postprocess_bundle target)
+    add_custom_command(TARGET ${target} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} "-D" "DOLPHIN_BUNDLE_PATH=$<TARGET_BUNDLE_DIR:${target}>"
+        -P "${_DOLPHIN_POSTPROCESS_BUNDLE_MODULE_LOCATION}"
+    )
+  endfunction()
+  return()
 endif()
 
 message(STATUS "Fixing up application bundle: ${DOLPHIN_BUNDLE_PATH}")
@@ -35,9 +35,9 @@ set(extra_dirs "/usr/local/lib" "/lib" "/usr/lib")
 
 # BundleUtilities is overly verbose, so disable most of its messages
 function(message)
-	if(NOT ARGV MATCHES "^STATUS;")
-		_message(${ARGV})
-	endif()
+  if(NOT ARGV MATCHES "^STATUS;")
+    _message(${ARGV})
+  endif()
 endfunction()
 
 include(BundleUtilities)

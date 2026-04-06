@@ -105,6 +105,7 @@
         <item>@string/broadband_adapter_hle</item>
         <item>@string/broadband_adapter_tapserver</item>
         <item>@string/modem_adapter_tapserver</item>
+        <item>@string/sp1_am_baseboard</item>
     </string-array>
     <integer-array name="serialPort1DeviceValues">
         <item>255</item>
@@ -113,6 +114,7 @@
         <item>12</item>
         <item>11</item>
         <item>13</item>
+        <item>6</item>
     </integer-array>
 
     <!-- Wii System Languages -->
@@ -375,6 +377,7 @@
         <item>@string/gcpad_steering_wheel</item>
         <item>@string/gcpad_dance_mat</item>
         <item>@string/gcpad_taru_konga</item>
+        <item>@string/gcpad_am_baseboard</item>
         <item>@string/gcpad_gc_adapter</item>
     </string-array>
     <integer-array name="gcpadTypeValues">
@@ -384,6 +387,7 @@
         <item>8</item>
         <item>9</item>
         <item>10</item>
+        <item>11</item>
         <item>12</item>
     </integer-array>
 

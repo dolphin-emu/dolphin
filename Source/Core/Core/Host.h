@@ -43,8 +43,6 @@ enum class HostMessageID
 {
   // Begin at 10 in case there is already messages with wParam = 0, 1, 2 and so on
   WMUserStop = 10,
-  WMUserCreate,
-  WMUserSetCursor,
   WMUserJobDispatch,
 };
 
@@ -58,12 +56,10 @@ bool Host_TASInputHasFocus();
 void Host_Message(HostMessageID id);
 void Host_PPCSymbolsChanged();
 void Host_PPCBreakpointsChanged();
-void Host_RefreshDSPDebuggerWindow();
 void Host_RequestRenderWindowSize(int width, int height);
 void Host_UpdateDisasmDialog();
 void Host_JitCacheInvalidation();
 void Host_JitProfileDataWiped();
-void Host_UpdateMainFrame();
 void Host_UpdateTitle(const std::string& title);
 void Host_YieldToUI();
 void Host_TitleChanged();

@@ -4,7 +4,7 @@
 #pragma once
 
 #include <functional>
-#include <map>
+#include <limits>
 #include <memory>
 #include <optional>
 #include <string>
@@ -17,7 +17,7 @@ namespace Config
 {
 struct ConfigChangedCallbackID
 {
-  size_t id = -1;
+  size_t id = std::numeric_limits<size_t>::max();
 
   bool operator==(const ConfigChangedCallbackID&) const = default;
 };
@@ -29,9 +29,9 @@ void AddLayer(std::unique_ptr<ConfigLayerLoader> loader);
 std::shared_ptr<Layer> GetLayer(LayerType layer);
 void RemoveLayer(LayerType layer);
 
-// Returns an ID that can be passed to RemoveConfigChangedCallback().
-// The callback may be called from any thread.
-ConfigChangedCallbackID AddConfigChangedCallback(ConfigChangedCallback func);
+// Returns an ID that should be passed to RemoveConfigChangedCallback() when the callback is no
+// longer needed. The callback may be called from any thread.
+[[nodiscard]] ConfigChangedCallbackID AddConfigChangedCallback(ConfigChangedCallback func);
 void RemoveConfigChangedCallback(ConfigChangedCallbackID callback_id);
 void OnConfigChanged();
 
@@ -72,10 +72,10 @@ T Get(const Info<T>& info)
     cached.value = GetUncached(info);
     cached.config_version = config_version;
 
-    info.SetCachedValue(cached);
+    info.TryToSetCachedValue(cached);
   }
 
-  return cached.value;
+  return std::move(cached.value);
 }
 
 template <typename T>
@@ -100,32 +100,32 @@ LayerType GetActiveLayerForConfig(const Info<T>& info)
   return GetActiveLayerForConfig(info.GetLocation());
 }
 
-template <typename T>
-void Set(LayerType layer, const Info<T>& info, const std::common_type_t<T>& value)
+template <typename InfoT, typename ValueT>
+void Set(LayerType layer, const InfoT& info, const ValueT& value)
 {
   if (GetLayer(layer)->Set(info, value))
     OnConfigChanged();
 }
 
-template <typename T>
-void SetBase(const Info<T>& info, const std::common_type_t<T>& value)
+template <typename InfoT, typename ValueT>
+void SetBase(const Info<InfoT>& info, const ValueT& value)
 {
-  Set<T>(LayerType::Base, info, value);
+  Set(LayerType::Base, info, value);
 }
 
-template <typename T>
-void SetCurrent(const Info<T>& info, const std::common_type_t<T>& value)
+template <typename InfoT, typename ValueT>
+void SetCurrent(const Info<InfoT>& info, const ValueT& value)
 {
-  Set<T>(LayerType::CurrentRun, info, value);
+  Set(LayerType::CurrentRun, info, value);
 }
 
-template <typename T>
-void SetBaseOrCurrent(const Info<T>& info, const std::common_type_t<T>& value)
+template <typename InfoT, typename ValueT>
+void SetBaseOrCurrent(const Info<InfoT>& info, const ValueT& value)
 {
   if (GetActiveLayerForConfig(info) == LayerType::Base)
-    Set<T>(LayerType::Base, info, value);
+    Set(LayerType::Base, info, value);
   else
-    Set<T>(LayerType::CurrentRun, info, value);
+    Set(LayerType::CurrentRun, info, value);
 }
 
 template <typename T>
@@ -133,6 +133,12 @@ void DeleteKey(LayerType layer, const Info<T>& info)
 {
   if (GetLayer(layer)->DeleteKey(info.GetLocation()))
     OnConfigChanged();
+}
+
+template <typename T>
+bool IsDefaultValue(const Info<T>& info)
+{
+  return Get(info) == info.GetDefaultValue();
 }
 
 // Used to defer OnConfigChanged until after the completion of many config changes.

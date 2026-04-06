@@ -217,12 +217,12 @@ public:
   bool IsvWii() const;
 
   // Constructs a 6-character game ID in the format typically used by Dolphin.
-  // If the 6-character game ID would contain unprintable characters,
+  // If the 6-character game ID would contain non-alphanumeric characters,
   // the title ID converted to 16 hexadecimal digits is returned instead.
   std::string GetGameID() const;
 
   // Constructs a 4-character game ID in the format typically used by GameTDB.
-  // If the 4-character game ID would contain unprintable characters,
+  // If the 4-character game ID would contain non-alphanumeric characters,
   // the title ID converted to 16 hexadecimal digits is returned instead
   // (a format which GameTDB does not actually use).
   std::string GetGameTDBID() const;

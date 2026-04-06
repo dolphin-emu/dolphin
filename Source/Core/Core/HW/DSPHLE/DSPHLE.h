@@ -28,13 +28,14 @@ public:
   DSPHLE(DSPHLE&& other) = delete;
   DSPHLE& operator=(const DSPHLE& other) = delete;
   DSPHLE& operator=(DSPHLE&& other) = delete;
-  ~DSPHLE();
+  ~DSPHLE() override;
 
   bool Initialize(bool wii, bool dsp_thread) override;
   void Shutdown() override;
   bool IsLLE() const override { return false; }
   void DoState(PointerWrap& p) override;
-  void PauseAndLock(bool do_lock) override;
+  void PauseAndLock() override;
+  void UnpauseAndUnlock() override;
 
   void DSP_WriteMailBoxHigh(bool cpu_mailbox, u16 value) override;
   void DSP_WriteMailBoxLow(bool cpu_mailbox, u16 value) override;

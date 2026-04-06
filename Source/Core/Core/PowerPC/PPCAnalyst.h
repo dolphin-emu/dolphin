@@ -5,11 +5,11 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <set>
 #include <vector>
 
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
+#include "Common/RangeSet.h"
 #include "Core/PowerPC/PPCTables.h"
 
 class PPCSymbolDB;
@@ -129,7 +129,7 @@ struct CodeBlock
   BitSet32 m_gpr_inputs;
 
   // Which memory locations are occupied by this block.
-  std::set<u32> m_physical_addresses;
+  Common::RangeSet<u32> m_physical_addresses;
 };
 
 class PPCAnalyzer

@@ -57,7 +57,7 @@ public:
   explicit DSPAssembler(const AssemblerSettings& settings);
   ~DSPAssembler();
 
-  // line_numbers is optional (and not yet implemented). It'll receieve a list of ints,
+  // line_numbers is optional (and not yet implemented). It'll receive a list of ints,
   // one for each word of code, indicating the source assembler code line number it came from.
 
   // If returns false, call GetErrorString to get some text to present to the user.

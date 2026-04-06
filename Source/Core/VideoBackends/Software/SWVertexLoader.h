@@ -17,7 +17,7 @@ class SWVertexLoader final : public VertexManagerBase
 {
 public:
   SWVertexLoader();
-  ~SWVertexLoader();
+  ~SWVertexLoader() override;
 
   DataReader PrepareForAdditionalData(OpcodeDecoder::Primitive primitive, u32 count, u32 stride,
                                       bool cullall) override;

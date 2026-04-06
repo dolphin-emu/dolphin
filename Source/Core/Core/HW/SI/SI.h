@@ -56,6 +56,7 @@ public:
   void RemoveEvent(int device_number);
 
   void UpdateDevices();
+  u32 GetInLength() const { return m_com_csr.INLNGTH; }
 
   void RemoveDevice(int device_number);
   void AddDevice(SIDevices device, int device_number);
@@ -66,6 +67,8 @@ public:
   SIDevices GetDeviceType(int channel) const;
 
   u32 GetPollXLines();
+
+  static constexpr u32 BUFFER_SIZE = 128;
 
 private:
   // SI Interrupt Types
@@ -85,8 +88,6 @@ private:
   void RunSIBuffer(u64 user_data, s64 cycles_late);
   static void GlobalRunSIBuffer(Core::System& system, u64 user_data, s64 cycles_late);
   static void ChangeDeviceCallback(Core::System& system, u64 user_data, s64 cycles_late);
-  template <int device_number>
-  static void DeviceEventCallback(Core::System& system, u64 userdata, s64 cyclesLate);
 
   // SI Channel Output
   union USIChannelOut
@@ -131,7 +132,7 @@ private:
     USIChannelIn_Lo in_lo{};
     std::unique_ptr<ISIDevice> device;
 
-    bool has_recent_device_change = false;
+    bool has_recent_device_unplug = false;
   };
 
   // SI Poll: Controls how often a device is polled
@@ -240,7 +241,7 @@ private:
   USIComCSR m_com_csr;
   USIStatusReg m_status_reg;
   USIEXIClockCount m_exi_clock_count;
-  std::array<u8, 128> m_si_buffer{};
+  std::array<u8, BUFFER_SIZE> m_si_buffer{};
 
   Core::System& m_system;
 };

@@ -4,9 +4,7 @@
 #include "Core/NetworkCaptureLogger.h"
 
 #include <array>
-#include <cerrno>
 #include <cstring>
-#include <iterator>
 
 #include <fmt/chrono.h>
 #include <fmt/format.h>
@@ -16,6 +14,7 @@
 #include "Common/Network.h"
 #include "Common/PcapFile.h"
 #include "Common/ScopeGuard.h"
+#include "Common/TimeUtil.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 
@@ -82,7 +81,7 @@ PCAPSSLCaptureLogger::PCAPSSLCaptureLogger()
 {
   const std::string filepath =
       fmt::format("{}{} {:%Y-%m-%d %Hh%Mm%Ss}.pcap", File::GetUserPath(D_DUMPSSL_IDX),
-                  SConfig::GetInstance().GetGameID(), fmt::localtime(std::time(nullptr)));
+                  SConfig::GetInstance().GetGameID(), *Common::LocalTime(std::time(nullptr)));
   m_file = std::make_unique<Common::PCAP>(
       new File::IOFile(filepath, "wb", File::SharedAccess::Read), Common::PCAP::LinkType::Ethernet);
 }
@@ -158,8 +157,7 @@ void PCAPSSLCaptureLogger::Log(LogType log_type, const void* data, std::size_t l
     to = other ? reinterpret_cast<sockaddr_in*>(other) : &peer;
   }
 
-  LogIPv4(log_type, reinterpret_cast<const u8*>(data), static_cast<u16>(length), socket, *from,
-          *to);
+  LogIPv4(log_type, static_cast<const u8*>(data), static_cast<u16>(length), socket, *from, *to);
 }
 
 void PCAPSSLCaptureLogger::LogIPv4(LogType log_type, const u8* data, u16 length, s32 socket,

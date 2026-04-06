@@ -11,8 +11,6 @@
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/NandPaths.h"
-#include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
@@ -22,6 +20,7 @@
 #include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
+#include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/SysConf.h"
@@ -79,18 +78,6 @@ BluetoothEmuDevice::BluetoothEmuDevice(EmulationKernel& ios, const std::string& 
 }
 
 BluetoothEmuDevice::~BluetoothEmuDevice() = default;
-
-template <typename T>
-static void DoStateForMessage(EmulationKernel& ios, PointerWrap& p, std::unique_ptr<T>& message)
-{
-  u32 request_address = (message != nullptr) ? message->ios_request.address : 0;
-  p.Do(request_address);
-  if (request_address != 0)
-  {
-    IOCtlVRequest request{ios.GetSystem(), request_address};
-    message = std::make_unique<T>(ios, request);
-  }
-}
 
 void BluetoothEmuDevice::DoState(PointerWrap& p)
 {
@@ -348,10 +335,13 @@ void BluetoothEmuDevice::Update()
     wiimote->Update();
 
   const u64 interval = GetSystem().GetSystemTimers().GetTicksPerSecond() / Wiimote::UPDATE_FREQ;
-  const u64 now = GetSystem().GetCoreTiming().GetTicks();
+  auto& core_timing = GetSystem().GetCoreTiming();
+  const u64 now = core_timing.GetTicks();
 
   if (now - m_last_ticks > interval)
   {
+    // Throttle before Wii Remote update so input is taken just before needed. (lower input latency)
+    core_timing.Throttle(now);
     g_controller_interface.SetCurrentInputChannel(ciface::InputChannel::Bluetooth);
     g_controller_interface.UpdateInput();
 
@@ -388,6 +378,16 @@ void BluetoothEmuDevice::Update()
             PanicAlertFmtT("Received invalid Wii Remote data from Netplay.");
         }
       }
+    }
+
+    auto& movie = Core::System::GetInstance().GetMovie();
+    for (int i = 0; i != MAX_WIIMOTES; ++i)
+    {
+      if (next_call[i] == WiimoteDevice::NextUpdateInputCall::None)
+        continue;
+
+      movie.PlayWiimote(i, &wiimote_states[i]);
+      movie.CheckWiimoteStatus(i, wiimote_states[i]);
     }
 
     for (size_t i = 0; i < m_wiimotes.size(); ++i)

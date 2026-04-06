@@ -4,9 +4,7 @@
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 
 #include <cstring>
-#include <memory>
 #include <utility>
-#include <vector>
 
 #include <fmt/format.h>
 
@@ -15,7 +13,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/Core.h"
 #include "Core/HW/WII_IPC.h"
@@ -292,9 +289,8 @@ void WiimoteDevice::SetSource(WiimoteCommon::HIDWiimote* hid_source)
 
   if (m_hid_source)
   {
-    m_hid_source->SetInterruptCallback(std::bind(&WiimoteDevice::InterruptDataInputCallback, this,
-                                                 std::placeholders::_1, std::placeholders::_2,
-                                                 std::placeholders::_3));
+    m_hid_source->SetInterruptCallback(
+        std::bind_front(&WiimoteDevice::InterruptDataInputCallback, this));
     Activate(true);
   }
 }

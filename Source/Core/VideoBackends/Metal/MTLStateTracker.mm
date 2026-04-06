@@ -32,7 +32,7 @@ struct Metal::StateTracker::Backref
 {
   std::mutex mtx;
   StateTracker* state_tracker;
-  explicit Backref(StateTracker* state_tracker) : state_tracker(state_tracker) {}
+  explicit Backref(StateTracker* tracker) : state_tracker(tracker) {}
 };
 
 struct Metal::StateTracker::PerfQueryTracker
@@ -383,11 +383,14 @@ void Metal::StateTracker::EndRenderPass()
 
 void Metal::StateTracker::FlushEncoders()
 {
-  if (!m_current_render_cmdbuf)
-    return;
-  EndRenderPass();
-  for (int i = 0; i <= static_cast<int>(UploadBuffer::Last); ++i)
-    Sync(m_upload_buffers[i]);
+  const bool needs_submit = m_current_render_cmdbuf;
+  if (needs_submit)
+  {
+    EndRenderPass();
+    for (int i = 0; i <= static_cast<int>(UploadBuffer::Last); ++i)
+      Sync(m_upload_buffers[i]);
+  }
+
   if (!m_manual_buffer_upload)
   {
     ASSERT(!m_upload_cmdbuf && "Should never be used!");
@@ -407,6 +410,10 @@ void Metal::StateTracker::FlushEncoders()
     m_texture_upload_encoder = nullptr;
     m_texture_upload_cmdbuf = nullptr;
   }
+
+  if (!needs_submit)
+    return;
+
   [m_current_render_cmdbuf
       addCompletedHandler:[backref = m_backref, draw = m_current_draw,
                            q = std::move(m_current_perf_query)](id<MTLCommandBuffer> buf) {
@@ -737,9 +744,8 @@ void Metal::StateTracker::PrepareRender()
       m_current.depth_stencil = pipe->DepthStencil();
       [enc setDepthStencilState:g_object_cache->GetDepthStencil(m_current.depth_stencil)];
     }
-    MTLDepthClipMode clip = is_gx && g_ActiveConfig.backend_info.bSupportsDepthClamp ?
-                                MTLDepthClipModeClamp :
-                                MTLDepthClipModeClip;
+    MTLDepthClipMode clip =
+        is_gx && g_backend_info.bSupportsDepthClamp ? MTLDepthClipModeClamp : MTLDepthClipModeClip;
     if (clip != m_current.depth_clip_mode)
     {
       m_current.depth_clip_mode = clip;
@@ -892,7 +898,7 @@ void Metal::StateTracker::PrepareCompute()
   {
     m_dirty_textures &= ~pipe->GetTextures();
     // Since there's two sets of textures, it's likely there'll be a few in each
-    // Check each set separately to avoid doing too many unneccessary bindings
+    // Check each set separately to avoid doing too many unnecessary bindings
     constexpr u32 lo_mask = (1 << VideoCommon::MAX_COMPUTE_SHADER_SAMPLERS) - 1;
     if (u32 lo = dirty & lo_mask)
     {

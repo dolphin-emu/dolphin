@@ -14,10 +14,8 @@
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
-#include "Common/MsgHandler.h"
 
 #include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteEmu/Dynamics.h"
 #include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 
 namespace
@@ -530,37 +528,26 @@ void MotionPlus::Update(const DesiredExtensionState& target_state)
 
 MotionPlus::DataFormat::Data MotionPlus::GetGyroscopeData(const Common::Vec3& angular_velocity)
 {
-  // Slow (high precision) scaling can be used if it fits in the sensor range.
-  const float yaw = angular_velocity.z;
-  const bool yaw_slow = (std::abs(yaw) < SLOW_MAX_RAD_PER_SEC);
-  const s32 yaw_value = yaw * (yaw_slow ? SLOW_SCALE : FAST_SCALE);
+  DataFormat::Data result;
+  for (size_t i = 0; i != angular_velocity.data.size(); ++i)
+  {
+    const float rad_per_sec = angular_velocity.data[i];
 
-  const float roll = angular_velocity.y;
-  const bool roll_slow = (std::abs(roll) < SLOW_MAX_RAD_PER_SEC);
-  const s32 roll_value = roll * (roll_slow ? SLOW_SCALE : FAST_SCALE);
+    // Slow (high precision) scaling can be used if it fits in the sensor range.
+    const bool is_slow = std::abs(rad_per_sec) < SLOW_MAX_RAD_PER_SEC;
+    result.is_slow.data[i] = is_slow;
 
-  const float pitch = angular_velocity.x;
-  const bool pitch_slow = (std::abs(pitch) < SLOW_MAX_RAD_PER_SEC);
-  const s32 pitch_value = pitch * (pitch_slow ? SLOW_SCALE : FAST_SCALE);
-
-  const u16 clamped_yaw_value = u16(std::llround(std::clamp(yaw_value + ZERO_VALUE, 0, MAX_VALUE)));
-  const u16 clamped_roll_value =
-      u16(std::llround(std::clamp(roll_value + ZERO_VALUE, 0, MAX_VALUE)));
-  const u16 clamped_pitch_value =
-      u16(std::llround(std::clamp(pitch_value + ZERO_VALUE, 0, MAX_VALUE)));
-
-  return MotionPlus::DataFormat::Data{
-      MotionPlus::DataFormat::GyroRawValue{MotionPlus::DataFormat::GyroType(
-          clamped_pitch_value, clamped_roll_value, clamped_yaw_value)},
-      MotionPlus::DataFormat::SlowType(pitch_slow, roll_slow, yaw_slow)};
+    const s32 value = std::lround(rad_per_sec * (is_slow ? SLOW_SCALE : FAST_SCALE));
+    result.gyro.value.data[i] = u16(std::clamp(value + ZERO_VALUE, 0, MAX_VALUE));
+  }
+  return result;
 }
 
 MotionPlus::DataFormat::Data MotionPlus::GetDefaultGyroscopeData()
 {
-  return MotionPlus::DataFormat::Data{
-      MotionPlus::DataFormat::GyroRawValue{
-          MotionPlus::DataFormat::GyroType(u16(ZERO_VALUE), u16(ZERO_VALUE), u16(ZERO_VALUE))},
-      MotionPlus::DataFormat::SlowType(true, true, true)};
+  return DataFormat::Data{DataFormat::GyroRawValue{DataFormat::GyroType{
+                              u16(ZERO_VALUE), u16(ZERO_VALUE), u16(ZERO_VALUE)}},
+                          DataFormat::SlowType{true, true, true}};
 }
 
 // This is something that is triggered by a read of 0x00 on real hardware.

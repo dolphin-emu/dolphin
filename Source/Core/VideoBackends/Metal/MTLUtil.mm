@@ -13,6 +13,7 @@
 
 #include "VideoCommon/Constants.h"
 #include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/ShaderCompileUtils.h"
 #include "VideoCommon/Spirv.h"
 
 Metal::DeviceFeatures Metal::g_features;
@@ -36,58 +37,58 @@ std::vector<MRCOwned<id<MTLDevice>>> Metal::Util::GetAdapterList()
   return list;
 }
 
-void Metal::Util::PopulateBackendInfo(VideoConfig* config)
+void Metal::Util::PopulateBackendInfo(BackendInfo* backend_info)
 {
-  config->backend_info.api_type = APIType::Metal;
-  config->backend_info.bUsesLowerLeftOrigin = false;
-  config->backend_info.bSupportsExclusiveFullscreen = false;
-  config->backend_info.bSupportsDualSourceBlend = true;
-  config->backend_info.bSupportsPrimitiveRestart = true;
-  config->backend_info.bSupportsGeometryShaders = false;
-  config->backend_info.bSupportsComputeShaders = true;
-  config->backend_info.bSupports3DVision = false;
-  config->backend_info.bSupportsEarlyZ = true;
-  config->backend_info.bSupportsBindingLayout = true;
-  config->backend_info.bSupportsBBox = true;
-  config->backend_info.bSupportsGSInstancing = false;
-  config->backend_info.bSupportsPostProcessing = true;
-  config->backend_info.bSupportsPaletteConversion = true;
-  config->backend_info.bSupportsClipControl = true;
-  config->backend_info.bSupportsSSAA = true;
-  config->backend_info.bSupportsFragmentStoresAndAtomics = true;
-  config->backend_info.bSupportsReversedDepthRange = false;
-  config->backend_info.bSupportsLogicOp = false;
-  config->backend_info.bSupportsMultithreading = false;
-  config->backend_info.bSupportsGPUTextureDecoding = true;
-  config->backend_info.bSupportsCopyToVram = true;
-  config->backend_info.bSupportsBitfield = true;
-  config->backend_info.bSupportsDynamicSamplerIndexing = true;
-  config->backend_info.bSupportsFramebufferFetch = false;
-  config->backend_info.bSupportsBackgroundCompiling = true;
-  config->backend_info.bSupportsLargePoints = true;
-  config->backend_info.bSupportsPartialDepthCopies = true;
-  config->backend_info.bSupportsDepthReadback = true;
-  config->backend_info.bSupportsShaderBinaries = false;
-  config->backend_info.bSupportsPipelineCacheData = false;
-  config->backend_info.bSupportsCoarseDerivatives = false;
-  config->backend_info.bSupportsTextureQueryLevels = true;
-  config->backend_info.bSupportsLodBiasInSampler = false;
-  config->backend_info.bSupportsSettingObjectNames = true;
+  backend_info->api_type = APIType::Metal;
+  backend_info->bUsesLowerLeftOrigin = false;
+  backend_info->bSupportsExclusiveFullscreen = false;
+  backend_info->bSupportsDualSourceBlend = true;
+  backend_info->bSupportsPrimitiveRestart = true;
+  backend_info->bSupportsGeometryShaders = false;
+  backend_info->bSupportsComputeShaders = true;
+  backend_info->bSupports3DVision = false;
+  backend_info->bSupportsEarlyZ = true;
+  backend_info->bSupportsBindingLayout = true;
+  backend_info->bSupportsBBox = true;
+  backend_info->bSupportsGSInstancing = false;
+  backend_info->bSupportsPostProcessing = true;
+  backend_info->bSupportsPaletteConversion = true;
+  backend_info->bSupportsClipControl = true;
+  backend_info->bSupportsSSAA = true;
+  backend_info->bSupportsFragmentStoresAndAtomics = true;
+  backend_info->bSupportsReversedDepthRange = false;
+  backend_info->bSupportsLogicOp = false;
+  backend_info->bSupportsMultithreading = false;
+  backend_info->bSupportsGPUTextureDecoding = true;
+  backend_info->bSupportsCopyToVram = true;
+  backend_info->bSupportsBitfield = true;
+  backend_info->bSupportsDynamicSamplerIndexing = true;
+  backend_info->bSupportsFramebufferFetch = false;
+  backend_info->bSupportsBackgroundCompiling = true;
+  backend_info->bSupportsLargePoints = true;
+  backend_info->bSupportsPartialDepthCopies = true;
+  backend_info->bSupportsDepthReadback = true;
+  backend_info->bSupportsShaderBinaries = false;
+  backend_info->bSupportsPipelineCacheData = false;
+  backend_info->bSupportsCoarseDerivatives = false;
+  backend_info->bSupportsTextureQueryLevels = true;
+  backend_info->bSupportsLodBiasInSampler = false;
+  backend_info->bSupportsSettingObjectNames = true;
   // Metal requires multisample resolve to be done on a render pass
-  config->backend_info.bSupportsPartialMultisampleResolve = false;
-  config->backend_info.bSupportsDynamicVertexLoader = true;
-  config->backend_info.bSupportsVSLinePointExpand = true;
-  config->backend_info.bSupportsHDROutput =
+  backend_info->bSupportsPartialMultisampleResolve = false;
+  backend_info->bSupportsDynamicVertexLoader = true;
+  backend_info->bSupportsVSLinePointExpand = true;
+  backend_info->bSupportsHDROutput =
       1.0 < [[NSScreen deepestScreen] maximumPotentialExtendedDynamicRangeColorComponentValue];
 }
 
-void Metal::Util::PopulateBackendInfoAdapters(VideoConfig* config,
+void Metal::Util::PopulateBackendInfoAdapters(BackendInfo* backend_info,
                                               const std::vector<MRCOwned<id<MTLDevice>>>& adapters)
 {
-  config->backend_info.Adapters.clear();
+  backend_info->Adapters.clear();
   for (id<MTLDevice> adapter : adapters)
   {
-    config->backend_info.Adapters.push_back([[adapter name] UTF8String]);
+    backend_info->Adapters.push_back([[adapter name] UTF8String]);
   }
 }
 
@@ -238,7 +239,8 @@ fragment float4 is_helper_test() {
   return DetectionResult::Unsure;
 }
 
-void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice> device)
+void Metal::Util::PopulateBackendInfoFeatures(const VideoConfig& config, BackendInfo* backend_info,
+                                              id<MTLDevice> device)
 {
   // Initialize DriverDetails first so we can use it later
   DriverDetails::Vendor vendor = DriverDetails::VENDOR_UNKNOWN;
@@ -251,39 +253,33 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
     vendor = DriverDetails::VENDOR_INTEL;
   else if (name.find("Apple") != std::string::npos)
     vendor = DriverDetails::VENDOR_APPLE;
-  const NSOperatingSystemVersion cocoa_ver = [[NSProcessInfo processInfo] operatingSystemVersion];
-  double version = cocoa_ver.majorVersion * 100 + cocoa_ver.minorVersion;
-  DriverDetails::Init(DriverDetails::API_METAL, vendor, DriverDetails::DRIVER_APPLE, version,
+  DriverDetails::Init(DriverDetails::API_METAL, vendor, DriverDetails::DRIVER_APPLE, 0.0,
                       DriverDetails::Family::UNKNOWN, std::move(name));
 
 #if TARGET_OS_OSX
-  config->backend_info.bSupportsDepthClamp = true;
-  config->backend_info.bSupportsST3CTextures = true;
-  config->backend_info.bSupportsBPTCTextures = true;
+  backend_info->bSupportsDepthClamp = true;
+  backend_info->bSupportsST3CTextures = true;
+  backend_info->bSupportsBPTCTextures = true;
 #else
-  bool supports_apple4 = false;
+  backend_info->bSupportsDepthClamp = [device supportsFamily:MTLGPUFamilyApple4];
+
   bool supports_bcn = false;
-  if (@available(iOS 13, *))
-    supports_apple4 = [device supportsFamily:MTLGPUFamilyApple4];
-  else
-    supports_apple4 = [device supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily4_v1];
   if (@available(iOS 16.4, *))
     supports_bcn = [device supportsBCTextureCompression];
-  config->backend_info.bSupportsDepthClamp = supports_apple4;
-  config->backend_info.bSupportsST3CTextures = supports_bcn;
-  config->backend_info.bSupportsBPTCTextures = supports_bcn;
+  backend_info->bSupportsST3CTextures = supports_bcn;
+  backend_info->bSupportsBPTCTextures = supports_bcn;
 
-  config->backend_info.bSupportsFramebufferFetch = true;
+  backend_info->bSupportsFramebufferFetch = true;
 #endif
 
-  config->backend_info.AAModes.clear();
+  backend_info->AAModes.clear();
   for (u32 i = 1; i <= 64; i <<= 1)
   {
     if ([device supportsTextureSampleCount:i])
-      config->backend_info.AAModes.push_back(i);
+      backend_info->AAModes.push_back(i);
   }
 
-  switch (config->iManuallyUploadBuffers)
+  switch (config.iManuallyUploadBuffers)
   {
   case TriState::Off:
     g_features.manual_buffer_upload = false;
@@ -294,9 +290,8 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
   case TriState::Auto:
 #if TARGET_OS_OSX
     g_features.manual_buffer_upload = false;
-    if (@available(macOS 10.15, *))
-      if (![device hasUnifiedMemory])
-        g_features.manual_buffer_upload = true;
+    if (![device hasUnifiedMemory])
+      g_features.manual_buffer_upload = true;
 #else
     // All iOS devices have unified memory
     g_features.manual_buffer_upload = false;
@@ -304,14 +299,8 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
     break;
   }
 
-  g_features.subgroup_ops = false;
-  if (@available(macOS 10.15, iOS 13, *))
-  {
-    // Requires SIMD-scoped reduction operations
-    g_features.subgroup_ops =
-        [device supportsFamily:MTLGPUFamilyMac2] || [device supportsFamily:MTLGPUFamilyApple7];
-    config->backend_info.bSupportsFramebufferFetch = [device supportsFamily:MTLGPUFamilyApple1];
-  }
+  g_features.subgroup_ops =
+      [device supportsFamily:MTLGPUFamilyMac2] || [device supportsFamily:MTLGPUFamilyApple7];
   if (g_features.subgroup_ops)
   {
     DetectionResult result = DetectInvertedIsHelper(device);
@@ -322,13 +311,15 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
         DriverDetails::OverrideBug(DriverDetails::BUG_INVERTED_IS_HELPER, is_helper_inverted);
     }
   }
+
+  backend_info->bSupportsFramebufferFetch = [device supportsFamily:MTLGPUFamilyApple1];
 #if TARGET_OS_OSX
-  if (@available(macOS 11, *))
-    if (vendor == DriverDetails::VENDOR_INTEL)
-      config->backend_info.bSupportsFramebufferFetch |= DetectIntelGPUFBFetch(device);
+  if (vendor == DriverDetails::VENDOR_INTEL)
+    backend_info->bSupportsFramebufferFetch |= DetectIntelGPUFBFetch(device);
 #endif
+
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING))
-    config->backend_info.bSupportsDynamicSamplerIndexing = false;
+    backend_info->bSupportsDynamicSamplerIndexing = false;
 }
 
 // clang-format off
@@ -498,8 +489,9 @@ MakeResourceBinding(spv::ExecutionModel stage, u32 set, u32 binding,  //
   return resource;
 }
 
-std::optional<std::string> Metal::Util::TranslateShaderToMSL(ShaderStage stage,
-                                                             std::string_view source)
+std::optional<std::string>
+Metal::Util::TranslateShaderToMSL(ShaderStage stage, std::string_view source,
+                                  VideoCommon::ShaderIncluder* shader_includer)
 {
   std::string full_source;
 
@@ -522,16 +514,19 @@ std::optional<std::string> Metal::Util::TranslateShaderToMSL(ShaderStage stage,
   switch (stage)
   {
   case ShaderStage::Vertex:
-    code = SPIRV::CompileVertexShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_5);
+    code = SPIRV::CompileVertexShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_5,
+                                      shader_includer);
     break;
   case ShaderStage::Geometry:
     PanicAlertFmt("Tried to compile geometry shader for Metal, but Metal doesn't support them!");
     break;
   case ShaderStage::Pixel:
-    code = SPIRV::CompileFragmentShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_5);
+    code = SPIRV::CompileFragmentShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_5,
+                                        shader_includer);
     break;
   case ShaderStage::Compute:
-    code = SPIRV::CompileComputeShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_5);
+    code = SPIRV::CompileComputeShader(full_source, APIType::Metal, glslang::EShTargetSpv_1_5,
+                                       shader_includer);
     break;
   }
   if (!code.has_value())
@@ -569,14 +564,7 @@ std::optional<std::string> Metal::Util::TranslateShaderToMSL(ShaderStage stage,
 
   spirv_cross::CompilerMSL compiler(std::move(*code));
 
-  if (@available(macOS 11, iOS 14, *))
-    options.set_msl_version(2, 3);
-  else if (@available(macOS 10.15, iOS 13, *))
-    options.set_msl_version(2, 2);
-  else if (@available(macOS 10.14, iOS 12, *))
-    options.set_msl_version(2, 1);
-  else
-    options.set_msl_version(2, 0);
+  options.set_msl_version(2, 3);
   options.use_framebuffer_fetch_subpasses = true;
   compiler.set_msl_options(options);
 

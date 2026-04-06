@@ -3,8 +3,6 @@
 
 #include "Core/Config/NetplaySettings.h"
 
-#include "Common/Config/Config.h"
-
 namespace Config
 {
 static constexpr u16 DEFAULT_LISTEN_PORT = 2626;

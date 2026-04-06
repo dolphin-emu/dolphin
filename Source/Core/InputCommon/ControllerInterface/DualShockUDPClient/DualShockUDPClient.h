@@ -3,7 +3,8 @@
 
 #pragma once
 
-#include "Common/Config/Config.h"
+#include "Common/CommonTypes.h"
+#include "Common/Config/ConfigInfo.h"
 #include "InputCommon/ControllerInterface/InputBackend.h"
 
 namespace ciface::DualShockUDPClient

@@ -4,7 +4,7 @@ mark_as_advanced(LIBMGBA_INCLUDE_DIR LIBMGBA_LIBRARY)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(LIBMGBA DEFAULT_MSG
-	LIBMGBA_INCLUDE_DIR LIBMGBA_LIBRARY)
+  LIBMGBA_INCLUDE_DIR LIBMGBA_LIBRARY)
 
 if(LIBMGBA_FOUND AND NOT mGBA::mgba)
   add_library(mGBA::mgba UNKNOWN IMPORTED)

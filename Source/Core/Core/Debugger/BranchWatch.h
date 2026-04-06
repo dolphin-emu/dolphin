@@ -8,11 +8,14 @@
 #include <cstdio>
 #include <functional>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/EnumUtils.h"
+#include "Core/Core.h"
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/System.h"
 
 namespace Core
 {
@@ -71,15 +74,15 @@ enum class BranchWatchSelectionInspection : u8
 constexpr BranchWatchSelectionInspection operator|(BranchWatchSelectionInspection lhs,
                                                    BranchWatchSelectionInspection rhs)
 {
-  return static_cast<BranchWatchSelectionInspection>(Common::ToUnderlying(lhs) |
-                                                     Common::ToUnderlying(rhs));
+  return static_cast<BranchWatchSelectionInspection>(std::to_underlying(lhs) |
+                                                     std::to_underlying(rhs));
 }
 
 constexpr BranchWatchSelectionInspection operator&(BranchWatchSelectionInspection lhs,
                                                    BranchWatchSelectionInspection rhs)
 {
-  return static_cast<BranchWatchSelectionInspection>(Common::ToUnderlying(lhs) &
-                                                     Common::ToUnderlying(rhs));
+  return static_cast<BranchWatchSelectionInspection>(std::to_underlying(lhs) &
+                                                     std::to_underlying(rhs));
 }
 
 constexpr BranchWatchSelectionInspection& operator|=(BranchWatchSelectionInspection& self,
@@ -98,7 +101,7 @@ struct BranchWatchSelectionValueType
   BranchWatchCollection::value_type* collection_ptr;
   bool is_virtual;
   bool condition;
-  // This is moreso a GUI thing, but it works best in the Core code for multiple reasons.
+  // This is more so a GUI thing, but it works best in the Core code for multiple reasons.
   Inspection inspection;
 };
 
@@ -110,7 +113,7 @@ enum class BranchWatchPhase : bool
   Reduction,
 };
 
-class BranchWatch final  // Class is final to enforce the safety of GetOffsetOfRecordingActive().
+class BranchWatch final
 {
 public:
   using Collection = BranchWatchCollection;
@@ -119,7 +122,12 @@ public:
   using SelectionInspection = BranchWatchSelectionInspection;
 
   bool GetRecordingActive() const { return m_recording_active; }
-  void SetRecordingActive(const CPUThreadGuard& guard, bool active) { m_recording_active = active; }
+  void SetRecordingActive(const CPUThreadGuard& guard, bool active)
+  {
+    m_recording_active = active;
+    auto& system = guard.GetSystem();
+    system.GetJitInterface().ClearCache(guard);
+  }
   void Clear(const CPUThreadGuard& guard);
 
   void Save(const CPUThreadGuard& guard, std::FILE* file) const;
@@ -226,19 +234,6 @@ public:
       HitPhysicalFalse(this, origin, destination, inst.hex);
   }
 
-  // The JIT needs this value, but doesn't need to be a full-on friend.
-  static constexpr int GetOffsetOfRecordingActive()
-  {
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Winvalid-offsetof"
-#endif
-    return offsetof(BranchWatch, m_recording_active);
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-  }
-
 private:
   Collection& GetCollectionV(bool condition)
   {
@@ -261,6 +256,9 @@ private:
     return GetCollectionP(condition);
   }
 
+  void IsolateOverwrittenShared(const CPUThreadGuard& guard,
+                                const std::function<bool(u32, u32)>& compare_func);
+
   std::size_t m_blacklist_size = 0;
   Phase m_recording_phase = Phase::Blacklist;
   bool m_recording_active = false;
@@ -270,8 +268,4 @@ private:
   Collection m_collection_pf;  // physical address space | false path
   Selection m_selection;
 };
-
-#if _M_X86_64
-static_assert(BranchWatch::GetOffsetOfRecordingActive() < 0x80);  // Makes JIT code smaller.
-#endif
 }  // namespace Core

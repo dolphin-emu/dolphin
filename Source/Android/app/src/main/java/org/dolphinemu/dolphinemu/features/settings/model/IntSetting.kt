@@ -32,6 +32,7 @@ enum class IntSetting(
     MAIN_SI_DEVICE_2(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SIDevice2", 0),
     MAIN_SI_DEVICE_3(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SIDevice3", 0),
     MAIN_AUDIO_VOLUME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_DSP, "Volume", 100),
+    MAIN_AUDIO_BUFFER_SIZE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_DSP, "AudioBufferSize", 80),
     MAIN_OVERLAY_GC_CONTROLLER(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_ANDROID,
@@ -126,13 +127,6 @@ enum class IntSetting(
         0
     ),
     GFX_STEREO_MODE(Settings.FILE_GFX, Settings.SECTION_STEREOSCOPY, "StereoMode", 0),
-    GFX_STEREO_DEPTH(Settings.FILE_GFX, Settings.SECTION_STEREOSCOPY, "StereoDepth", 20),
-    GFX_STEREO_CONVERGENCE_PERCENTAGE(
-        Settings.FILE_GFX,
-        Settings.SECTION_STEREOSCOPY,
-        "StereoConvergencePercentage",
-        100
-    ),
     GFX_PERF_SAMP_WINDOW(
         Settings.FILE_GFX,
         Settings.SECTION_GFX_SETTINGS,

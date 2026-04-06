@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+
 #include "Common/CommonTypes.h"
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
@@ -13,14 +14,13 @@
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
-#include "VideoCommon/RenderBase.h"
 
 namespace DX12
 {
 class DXTexture final : public AbstractTexture
 {
 public:
-  ~DXTexture();
+  ~DXTexture() override;
 
   static std::unique_ptr<DXTexture> Create(const TextureConfig& config, std::string_view name);
   static std::unique_ptr<DXTexture> CreateAdopted(ID3D12Resource* resource);
@@ -43,7 +43,7 @@ public:
 
   void TransitionToState(D3D12_RESOURCE_STATES state) const;
 
-  // Destoys the resource backing this texture. The resource must not be in use by the GPU.
+  // Destroys the resource backing this texture. The resource must not be in use by the GPU.
   void DestroyResource();
 
 private:
@@ -110,7 +110,7 @@ private:
 class DXStagingTexture final : public AbstractStagingTexture
 {
 public:
-  ~DXStagingTexture();
+  ~DXStagingTexture() override;
 
   void CopyFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& src_rect,
                        u32 src_layer, u32 src_level,

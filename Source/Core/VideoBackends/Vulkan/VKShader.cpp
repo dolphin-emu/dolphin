@@ -4,7 +4,6 @@
 #include "VideoBackends/Vulkan/VKShader.h"
 
 #include "Common/Align.h"
-#include "Common/Assert.h"
 
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
@@ -19,7 +18,7 @@ VKShader::VKShader(ShaderStage stage, std::vector<u32> spv, VkShaderModule mod,
     : AbstractShader(stage), m_spv(std::move(spv)), m_module(mod),
       m_compute_pipeline(VK_NULL_HANDLE), m_name(name)
 {
-  if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
+  if (!m_name.empty() && g_backend_info.bSupportsSettingObjectNames)
   {
     VkDebugUtilsObjectNameInfoEXT name_info = {};
     name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
@@ -34,7 +33,7 @@ VKShader::VKShader(std::vector<u32> spv, VkPipeline compute_pipeline, std::strin
     : AbstractShader(ShaderStage::Compute), m_spv(std::move(spv)), m_module(VK_NULL_HANDLE),
       m_compute_pipeline(compute_pipeline), m_name(name)
 {
-  if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
+  if (!m_name.empty() && g_backend_info.bSupportsSettingObjectNames)
   {
     VkDebugUtilsObjectNameInfoEXT name_info = {};
     name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
@@ -108,22 +107,23 @@ CreateShaderObject(ShaderStage stage, ShaderCompiler::SPIRVCodeVector spv, std::
 }
 
 std::unique_ptr<VKShader> VKShader::CreateFromSource(ShaderStage stage, std::string_view source,
+                                                     VideoCommon::ShaderIncluder* shader_includer,
                                                      std::string_view name)
 {
   std::optional<ShaderCompiler::SPIRVCodeVector> spv;
   switch (stage)
   {
   case ShaderStage::Vertex:
-    spv = ShaderCompiler::CompileVertexShader(source);
+    spv = ShaderCompiler::CompileVertexShader(source, shader_includer);
     break;
   case ShaderStage::Geometry:
-    spv = ShaderCompiler::CompileGeometryShader(source);
+    spv = ShaderCompiler::CompileGeometryShader(source, shader_includer);
     break;
   case ShaderStage::Pixel:
-    spv = ShaderCompiler::CompileFragmentShader(source);
+    spv = ShaderCompiler::CompileFragmentShader(source, shader_includer);
     break;
   case ShaderStage::Compute:
-    spv = ShaderCompiler::CompileComputeShader(source);
+    spv = ShaderCompiler::CompileComputeShader(source, shader_includer);
     break;
   default:
     break;

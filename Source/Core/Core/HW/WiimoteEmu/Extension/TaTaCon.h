@@ -29,6 +29,11 @@ public:
   };
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
 
+  struct DesiredState
+  {
+    u8 state;
+  };
+
   TaTaCon();
 
   void BuildDesiredExtensionState(DesiredExtensionState* target_state) override;

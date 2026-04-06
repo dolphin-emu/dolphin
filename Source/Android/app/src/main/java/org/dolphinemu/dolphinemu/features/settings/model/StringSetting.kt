@@ -69,6 +69,15 @@ enum class StringSetting(
         ""
     ),
     MAIN_WFS_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL, "WFSPath", ""),
+    MAIN_GBA_BIOS_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "BIOS", ""),
+    MAIN_GB_PLAYER_ROM(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "GBPlayerRom", ""),
+    MAIN_GBA_SAVES_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GBA, "SavesPath", ""),
+    MAIN_TRIFORCE_IP_REDIRECTIONS(
+        Settings.FILE_DOLPHIN,
+        Settings.SECTION_INI_CORE,
+        "TriforceIPRedirections",
+        "0.0.0.0/0=127.0.0.1"
+    ),
     GFX_ENHANCE_POST_SHADER(
         Settings.FILE_GFX,
         Settings.SECTION_GFX_ENHANCEMENTS,
@@ -79,6 +88,18 @@ enum class StringSetting(
         Settings.FILE_GFX,
         Settings.SECTION_GFX_SETTINGS,
         "DriverLibName",
+        ""
+    ),
+    ACHIEVEMENTS_USERNAME(
+        Settings.FILE_ACHIEVEMENTS,
+        Settings.SECTION_ACHIEVEMENTS,
+        "Username",
+        ""
+    ),
+    ACHIEVEMENTS_API_TOKEN(
+        Settings.FILE_ACHIEVEMENTS,
+        Settings.SECTION_ACHIEVEMENTS,
+        "ApiToken",
         ""
     );
 

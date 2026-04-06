@@ -23,7 +23,7 @@ class RegisterWidget : public QDockWidget
   Q_OBJECT
 public:
   explicit RegisterWidget(QWidget* parent = nullptr);
-  ~RegisterWidget();
+  ~RegisterWidget() override;
 
 signals:
   void RequestTableUpdate();
@@ -46,6 +46,7 @@ private:
 
   void ShowContextMenu();
   void OnItemChanged(QTableWidgetItem* item);
+  void OnDebugFontChanged(const QFont& font);
 
   void AddRegister(int row, int column, RegisterType type, std::string register_name,
                    std::function<u64()> get_reg, std::function<void(u64)> set_reg);

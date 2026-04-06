@@ -5,23 +5,15 @@
 
 #include "DolphinNoGUI/Platform.h"
 
-#include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/State.h"
 #include "Core/System.h"
 
-#include <climits>
 #include <cstdio>
 #include <thread>
 
 #include <fcntl.h>
-#include <linux/fb.h>
-#include <linux/kd.h>
-#include <linux/vt.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <termios.h>
 #include <unistd.h>
 
 namespace

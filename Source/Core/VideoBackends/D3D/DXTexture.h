@@ -3,11 +3,12 @@
 
 #pragma once
 
-#include <d3d11.h>
+#include <d3d11_4.h>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
+
 #include "Common/CommonTypes.h"
 
 #include "VideoBackends/D3D/D3DBase.h"
@@ -15,14 +16,13 @@
 #include "VideoCommon/AbstractGfx.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
-#include "VideoCommon/RenderBase.h"
 
 namespace DX11
 {
 class DXTexture final : public AbstractTexture
 {
 public:
-  ~DXTexture();
+  ~DXTexture() override;
 
   static std::unique_ptr<DXTexture> Create(const TextureConfig& config, std::string_view name);
   static std::unique_ptr<DXTexture> CreateAdopted(ComPtr<ID3D11Texture2D> texture);
@@ -56,7 +56,7 @@ class DXStagingTexture final : public AbstractStagingTexture
 {
 public:
   DXStagingTexture() = delete;
-  ~DXStagingTexture();
+  ~DXStagingTexture() override;
 
   void CopyFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& src_rect,
                        u32 src_layer, u32 src_level,

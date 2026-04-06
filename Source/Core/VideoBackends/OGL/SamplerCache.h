@@ -8,7 +8,7 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLUtil.h"
+#include "Common/GL/GLExtensions/GLExtensions.h"
 #include "VideoCommon/Constants.h"
 #include "VideoCommon/RenderState.h"
 

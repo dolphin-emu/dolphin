@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <d3d11.h>
+#include <d3d11_4.h>
 #include <string_view>
+
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoCommon/AbstractGfx.h"
 
@@ -30,8 +31,10 @@ public:
                                                  std::string_view name) override;
   std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
-  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage, std::string_view source,
-                                                         std::string_view name) override;
+  std::unique_ptr<AbstractShader>
+  CreateShaderFromSource(ShaderStage stage, std::string_view source,
+                         VideoCommon::ShaderIncluder* shader_includer,
+                         std::string_view name) override;
   std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage, const void* data,
                                                          size_t length,
                                                          std::string_view name) override;

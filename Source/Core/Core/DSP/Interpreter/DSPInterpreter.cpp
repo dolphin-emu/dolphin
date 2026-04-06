@@ -39,7 +39,7 @@ namespace DSP::Interpreter
 // used without changes. When PRECISE_BACKLOG is not defined, ZeroWriteBackLog does nothing and
 // ApplyWriteBackLog overwrites the register value with the value from the backlog (so writes from
 // extended opcodes "win" over the main opcode).
-//#define PRECISE_BACKLOG
+// #define PRECISE_BACKLOG
 
 Interpreter::Interpreter(DSPCore& dsp) : m_dsp_core{dsp}
 {

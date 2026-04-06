@@ -16,7 +16,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 endif()
 
 if (NOT MSVC)
-  set(CMAKE_CXX_STANDARD 20)
+  set(CMAKE_CXX_STANDARD 23)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
   set(CMAKE_CXX_EXTENSIONS OFF)
 endif()
@@ -42,7 +42,6 @@ else()
   check_and_add_flag(LOGICAL_OP -Wlogical-op)
   check_and_add_flag(SHADOW -Wshadow)
   check_and_add_flag(SHADOW_FIELD_IN_CONSTRUCTOR -Wshadow-field-in-constructor)
-  check_and_add_flag(SHADOW_UNCAPTURED_LOCAL -Wshadow-uncaptured-local)
   check_and_add_flag(INIT_SELF -Winit-self)
   check_and_add_flag(MISSING_DECLARATIONS -Wmissing-declarations)
   check_and_add_flag(MISSING_VARIABLE_DECLARATIONS -Wmissing-variable-declarations)
@@ -61,12 +60,24 @@ else()
   if (HAS_FORMAT_WARNING)
     check_and_add_flag(FORMAT_WARNING_TO_ERROR -Werror=format)
   endif()
+
+  # Trigraphs support is generally disabled by default, but some compilers (GCC) may still warn when
+  # one hypothetical trigraph is encountered. The warning is generally not interesting.
+  check_cxx_compiler_flag(-Wtrigraphs HAS_TRIGRAPHS_WARNING)
+  if (HAS_TRIGRAPHS_WARNING)
+    check_and_add_flag(NO_TRIGRAPHS_WARNING -Wno-trigraphs)
+  endif()
 endif()
 
 # These aren't actually needed for C11/C++11
 # but some dependencies require them (LLVM, libav).
 add_definitions(-D__STDC_LIMIT_MACROS)
 add_definitions(-D__STDC_CONSTANT_MACROS)
+
+check_symbol_exists(elf_aux_info sys/auxv.h HAVE_ELF_AUX_INFO)
+if(HAVE_ELF_AUX_INFO)
+  add_definitions(-DHAVE_ELF_AUX_INFO)
+endif()
 
 add_subdirectory(Core)
 if (ANDROID)

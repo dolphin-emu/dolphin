@@ -3,7 +3,6 @@
 
 #include "Core/GeckoCodeConfig.h"
 
-#include <algorithm>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -11,28 +10,23 @@
 
 #include "Common/HttpRequest.h"
 #include "Common/IniFile.h"
-#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/CheatCodes.h"
 
 namespace Gecko
 {
-std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded, bool use_https)
+std::expected<std::vector<GeckoCode>, int> DownloadCodes(std::string gametdb_id)
 {
-  // TODO: Fix https://bugs.dolphin-emu.org/issues/11772 so we don't need this workaround
-  const std::string protocol = use_https ? "https://" : "http://";
-
   // codes.rc24.xyz is a mirror of the now defunct geckocodes.org.
-  std::string endpoint{protocol + "codes.rc24.xyz/txt.php?txt=" + gametdb_id};
+  std::string endpoint{"https://codes.rc24.xyz/txt.php?txt=" + gametdb_id};
   Common::HttpRequest http;
 
   // The server always redirects once to the same location.
   http.FollowRedirects(1);
 
   const Common::HttpRequest::Response response = http.Get(endpoint);
-  *succeeded = response.has_value();
   if (!response)
-    return {};
+    return std::unexpected{http.GetLastResponseCode()};
 
   // temp vector containing parsed codes
   std::vector<GeckoCode> gcodes;

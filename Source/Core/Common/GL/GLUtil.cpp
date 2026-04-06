@@ -3,9 +3,6 @@
 
 #include "Common/GL/GLUtil.h"
 
-#include <memory>
-
-#include "Common/Assert.h"
 #include "Common/GL/GLContext.h"
 #include "Common/Logging/Log.h"
 

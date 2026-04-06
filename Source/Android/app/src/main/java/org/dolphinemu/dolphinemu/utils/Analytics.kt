@@ -5,8 +5,6 @@ package org.dolphinemu.dolphinemu.utils
 import android.os.Build
 import androidx.annotation.Keep
 import androidx.fragment.app.FragmentActivity
-import com.android.volley.Response
-import com.android.volley.toolbox.StringRequest
 import org.dolphinemu.dolphinemu.DolphinApplication
 import org.dolphinemu.dolphinemu.dialogs.AnalyticsDialog
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
@@ -33,24 +31,8 @@ object Analytics {
             BooleanSetting.MAIN_ANALYTICS_ENABLED.setBoolean(settings, enabled)
             BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.setBoolean(settings, true)
 
-            // Context is set to null to avoid toasts
-            settings.saveSettings(null)
+            settings.saveSettings()
         }
-    }
-
-    @Keep
-    @JvmStatic
-    fun sendReport(endpoint: String, data: ByteArray) {
-        val request: StringRequest = object : StringRequest(
-            Method.POST,
-            endpoint,
-            null,
-            Response.ErrorListener { Log.debug("Failed to send report") }) {
-            override fun getBody(): ByteArray {
-                return data
-            }
-        }
-        VolleyUtil.getQueue().add(request)
     }
 
     @Keep

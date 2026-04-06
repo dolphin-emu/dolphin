@@ -16,7 +16,7 @@ using namespace Common::GekkoAssembler::detail;
 class HighlightParsePlugin : public ParsePlugin
 {
 public:
-  virtual ~HighlightParsePlugin() = default;
+  ~HighlightParsePlugin() override = default;
 
   std::vector<std::pair<int, int>>&& MoveParens() { return std::move(m_matched_parens); }
   std::vector<std::tuple<int, int, HighlightFormat>>&& MoveFormatting()
@@ -35,6 +35,8 @@ public:
   {
     switch (type)
     {
+    case Terminal::NumLabFwd:
+    case Terminal::NumLabBwd:
     case Terminal::Id:
       HighlightCurToken(HighlightFormat::Symbol);
       break;
@@ -113,6 +115,13 @@ public:
   }
 
   void OnLabelDecl(std::string_view name) override
+  {
+    const int len = static_cast<int>(m_owner->lexer.LookaheadRef().token_val.length());
+    const int off = static_cast<int>(m_owner->lexer.ColNumber());
+    m_formatting.emplace_back(len, off, HighlightFormat::Symbol);
+  }
+
+  void OnNumericLabelDecl(std::string_view name, u32 parse_num) override
   {
     const int len = static_cast<int>(m_owner->lexer.LookaheadRef().token_val.length());
     const int off = static_cast<int>(m_owner->lexer.ColNumber());

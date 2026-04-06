@@ -4,20 +4,18 @@
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 
 #include <array>
+#include <utility>
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
-#include "Common/EnumUtils.h"
 #include "Common/FloatUtils.h"
 #include "Common/Intrinsics.h"
 #include "Common/JitRegister.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
-#include "Core/PowerPC/PowerPC.h"
 
 #define QUANTIZED_REGS_TO_SAVE                                                                     \
   (ABI_ALL_CALLER_SAVED & ~BitSet32{RSCRATCH, RSCRATCH2, RSCRATCH_EXTRA, XMM0 + 16, XMM1 + 16})
@@ -27,7 +25,6 @@
 using namespace Gen;
 
 alignas(16) static const __m128i double_fraction = _mm_set_epi64x(0, 0x000fffffffffffff);
-alignas(16) static const __m128i double_sign_bit = _mm_set_epi64x(0, 0x8000000000000000);
 alignas(16) static const __m128i double_explicit_top_bit = _mm_set_epi64x(0, 0x0010000000000000);
 alignas(16) static const __m128i double_top_two_bits = _mm_set_epi64x(0, 0xc000000000000000);
 alignas(16) static const __m128i double_bottom_bits = _mm_set_epi64x(0, 0x07ffffffe0000000);
@@ -82,7 +79,7 @@ void CommonAsmRoutines::GenConvertDoubleToSingle()
     PAND(XMM0, MConst(double_bottom_bits));
     PSRLQ(XMM0, 29);
 
-    // OR them togther
+    // OR them together
     POR(XMM0, R(XMM1));
     MOVD_xmm(R(RSCRATCH), XMM0);
   }
@@ -327,6 +324,98 @@ void CommonAsmRoutines::GenMfcr()
   Common::JitRegister::Register(start, GetCodePtr(), "JIT_Mfcr");
 }
 
+// Inputs:
+// XMM0: First error term
+// XMM1: Result with potentially incorrect rounding
+// XMM2: Second error term, negated
+//
+// Outputs result with corrected rounding in XMM1.
+// Clobbers RSCRATCH, RSCRATCH2, XMM0, XMM2, and flags.
+void CommonAsmRoutines::GenerateFmaddsEft()
+{
+  // Check if XMM1 is an even tie, i.e. check (input & 0x1fffffff) == 0x10000000
+  MOVQ_xmm(R(RSCRATCH), XMM1);
+  MOV(32, R(RSCRATCH2), Imm32(0x80000000));
+  LEA(32, RSCRATCH2, MComplex(RSCRATCH2, RSCRATCH, SCALE_8, 0));
+  TEST(32, R(RSCRATCH2), R(RSCRATCH2));
+  FixupBranch even_tie = J_CC(CCFlags::CC_Z);
+
+  const u8* ret = GetCodePtr();
+  RET();
+
+  // Check if the error is 0
+  SetJumpTarget(even_tie);
+  SUBSD(XMM0, R(XMM2));
+  XORPD(XMM2, R(XMM2));
+  UCOMISD(XMM0, R(XMM2));
+  J_CC(CCFlags::CC_E, ret);
+
+  // Round XMM1 up or down
+  MOVQ_xmm(R(RSCRATCH2), XMM0);
+  XOR(64, R(RSCRATCH2), R(RSCRATCH));
+  SAR(64, R(RSCRATCH2), Imm8(63));
+  OR(64, R(RSCRATCH2), Imm8(1));
+  ADD(64, R(RSCRATCH), R(RSCRATCH2));
+  MOVQ_xmm(XMM1, R(RSCRATCH));
+  RET();
+}
+
+alignas(16) static const __m128i double_msb = _mm_set_epi64x(0x8000000000000000,
+                                                             0x8000000000000000);
+alignas(16) static const __m128i double_lsb = _mm_set_epi64x(1, 1);
+
+// Inputs:
+// XMM0: First error terms
+// XMM1: Results with potentially incorrect rounding
+// XMM2: Second error terms, negated
+//
+// Outputs results with corrected rounding in XMM1. Clobbers RSCRATCH, XMM0-XMM3, and flags.
+void CommonAsmRoutines::GeneratePsMaddEft()
+{
+  // Check if XMM1 has an even tie, i.e. check (input & 0x1fffffff) == 0x10000000
+  avx_op(&XEmitter::VPSLLQ, &XEmitter::PSLLQ, XMM3, XMM1, 35);
+  if (cpu_info.bSSE4_1)
+  {
+    PCMPEQQ(XMM3, MConst(double_msb));
+  }
+  else
+  {
+    PCMPEQW(XMM3, MConst(double_msb));
+    PSHUFD(XMM3, R(XMM3), 0xF5);
+  }
+
+  // Just for performance, exit early if there is no even tie
+  if (cpu_info.bSSE4_1)
+  {
+    PTEST(XMM3, R(XMM3));
+  }
+  else
+  {
+    PMOVMSKB(RSCRATCH, R(XMM3));
+    TEST(32, R(RSCRATCH), R(RSCRATCH));
+  }
+  FixupBranch even_tie = J_CC(CCFlags::CC_NZ);
+  RET();
+  SetJumpTarget(even_tie);
+
+  // Check if the error is zero
+  SUBPD(XMM0, R(XMM2));
+  XORPD(XMM2, R(XMM2));
+  CMPPD(XMM2, R(XMM0), CMP_EQ);
+
+  // Store -1 or 1 in XMM0 depending on whether we're rounding down or up
+  PXOR(XMM0, R(XMM1));
+  PSRAD(XMM0, 31);
+  PSHUFD(XMM0, R(XMM0), 0xF5);
+  POR(XMM0, MConst(double_lsb));
+
+  // Round the elements that have both a non-zero error and an even tie
+  PANDN(XMM2, R(XMM3));
+  PAND(XMM0, R(XMM2));
+  PADDQ(XMM1, R(XMM0));
+  RET();
+}
+
 // Safe + Fast Quantizers, originally from JITIL by magumagu
 alignas(16) static const float m_65535[4] = {65535.0f, 65535.0f, 65535.0f, 65535.0f};
 alignas(16) static const float m_32767 = 32767.0f;
@@ -369,7 +458,7 @@ const u8* CommonAsmRoutines::GenQuantizedStoreRuntime(bool single, EQuantizeType
   GenQuantizedStore(single, type, -1);
   RET();
   Common::JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedStore_{}_{}",
-                                Common::ToUnderlying(type), single);
+                                std::to_underlying(type), single);
 
   return load;
 }
@@ -401,7 +490,7 @@ const u8* CommonAsmRoutines::GenQuantizedLoadRuntime(bool single, EQuantizeType 
   GenQuantizedLoad(single, type, -1);
   RET();
   Common::JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedLoad_{}_{}",
-                                Common::ToUnderlying(type), single);
+                                std::to_underlying(type), single);
 
   return load;
 }

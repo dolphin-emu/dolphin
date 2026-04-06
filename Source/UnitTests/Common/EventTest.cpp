@@ -12,9 +12,9 @@ TEST(Event, MultiThreaded)
 {
   Event has_sent, can_send;
   int shared_obj;
-  const int ITERATIONS_COUNT = 100000;
+  constexpr int ITERATIONS_COUNT = 100000;
 
-  auto sender = [&]() {
+  auto sender = [&] {
     for (int i = 0; i < ITERATIONS_COUNT; ++i)
     {
       can_send.Wait();
@@ -23,7 +23,7 @@ TEST(Event, MultiThreaded)
     }
   };
 
-  auto receiver = [&]() {
+  auto receiver = [&] {
     for (int i = 0; i < ITERATIONS_COUNT; ++i)
     {
       has_sent.Wait();

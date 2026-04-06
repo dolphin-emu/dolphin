@@ -8,7 +8,6 @@
 #include <map>
 
 #include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
@@ -17,7 +16,6 @@
 #include "Core/HLE/HLE_OS.h"
 #include "Core/HW/Memmap.h"
 #include "Core/Host.h"
-#include "Core/IOS/ES/ES.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
@@ -103,7 +101,7 @@ void PatchFixedFunctions(Core::System& system)
   // Not part of the binary itself, but either we or Gecko OS might insert
   // this, and it doesn't clear the icache properly.
   Patch(system, Gecko::ENTRY_POINT, "GeckoCodehandler");
-  // This has to always be installed even if cheats are not enabled because of the possiblity of
+  // This has to always be installed even if cheats are not enabled because of the possibility of
   // loading a savestate where PC is inside the code handler while cheats are disabled.
   Patch(system, Gecko::HLE_TRAMPOLINE_ADDRESS, "GeckoHandlerReturnTrampoline");
 }
@@ -240,8 +238,7 @@ bool IsEnabled(HookFlag flag, PowerPC::CoreMode mode)
 
 u32 UnPatch(Core::System& system, std::string_view patch_name)
 {
-  const auto patch = std::find_if(std::begin(os_patches), std::end(os_patches),
-                                  [&](const Hook& p) { return patch_name == p.name; });
+  const auto patch = std::ranges::find(os_patches, patch_name, &Hook::name);
   if (patch == std::end(os_patches))
     return 0;
 

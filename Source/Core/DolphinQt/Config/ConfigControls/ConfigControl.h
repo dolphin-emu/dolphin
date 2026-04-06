@@ -5,7 +5,6 @@
 
 #include <QFont>
 #include <QMouseEvent>
-#include <QSignalBlocker>
 
 #include "Common/Config/Enums.h"
 #include "Common/Config/Layer.h"
@@ -49,14 +48,21 @@ protected:
       bf.setBold(IsConfigLocal());
       Derived::setFont(bf);
 
-      const QSignalBlocker blocker(this);
+      // This isn't signal blocked because the UI may need to be updated.
+      m_updating = true;
       OnConfigChanged();
+      m_updating = false;
     });
   }
 
   template <typename T>
   void SaveValue(const Config::Info<T>& setting, const T& value)
   {
+    // Avoid OnConfigChanged -> option changed to current config's value -> unnecessary save ->
+    // ConfigChanged.
+    if (m_updating)
+      return;
+
     if (m_layer != nullptr)
     {
       m_layer->Set(m_location, value);
@@ -70,13 +76,21 @@ protected:
   template <typename T>
   const T ReadValue(const Config::Info<T>& setting) const
   {
+    // For loading game specific settings.  If the game setting doesn't exist, load the current
+    // global setting. There's no way to know what game is being edited, so GlobalGame settings
+    // can't be shown, but otherwise would be good to include.
     if (m_layer != nullptr)
-      return m_layer->Get(setting);
+    {
+      if (m_layer->Exists(m_location))
+        return m_layer->Get(setting);
+      else
+        return Config::GetBase(setting);
+    }
 
     return Config::Get(setting);
   }
 
-  virtual void OnConfigChanged(){};
+  virtual void OnConfigChanged() {}
 
 private:
   bool IsConfigLocal() const
@@ -100,6 +114,7 @@ private:
     }
   }
 
+  bool m_updating = false;
   const Config::Location m_location;
   Config::Layer* m_layer;
 };

@@ -30,7 +30,7 @@ public:
   Interpreter(Interpreter&&) = delete;
   Interpreter& operator=(const Interpreter&) = delete;
   Interpreter& operator=(Interpreter&&) = delete;
-  ~Interpreter();
+  ~Interpreter() override;
 
   void Init() override;
   void Shutdown() override;
@@ -308,6 +308,8 @@ private:
                                          double a, double b);
   static void Helper_FloatCompareUnordered(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst,
                                            double a, double b);
+
+  static void Helper_StoreString(Interpreter& interpreter, const u32 EA, u32 n, u32 r);
 
   void UpdatePC();
   bool IsInvalidPairedSingleExecution(UGeckoInstruction inst);

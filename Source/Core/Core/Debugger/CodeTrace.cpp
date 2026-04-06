@@ -8,7 +8,6 @@
 #include <regex>
 
 #include "Common/Contains.h"
-#include "Common/Event.h"
 #include "Core/Core.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/HW/CPU.h"
@@ -263,7 +262,7 @@ HitType CodeTrace::TraceLogic(const TraceOutput& current_instr, bool first_hit)
   if (!match_reg0 && !match_reg123 && !mem_hit)
     return HitType::SKIP;
 
-  // Checks if the intstruction is a type that needs special handling.
+  // Checks if the instruction is a type that needs special handling.
   const auto CompareInstruction = [](std::string_view instruction, const auto& type_compare) {
     return std::ranges::any_of(
         type_compare, [&instruction](std::string_view s) { return instruction.starts_with(s); });

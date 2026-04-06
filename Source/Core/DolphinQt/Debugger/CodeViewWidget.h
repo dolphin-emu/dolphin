@@ -41,6 +41,7 @@ public:
   ~CodeViewWidget() override;
 
   u32 GetAddress() const;
+  void OnLockAddress(bool lock);
   u32 GetContextAddress() const;
   void SetAddress(u32 address, SetAddressUpdate update);
 
@@ -58,6 +59,7 @@ signals:
   void RequestPPCComparison(u32 address, bool translate_address);
   void ShowMemory(u32 address);
   void UpdateCodeWidget();
+  void ActivateSearch();
 
 private:
   enum class ReplaceWith
@@ -86,13 +88,15 @@ private:
   void OnCopyFunction();
   void OnCopyCode();
   void OnCopyHex();
-  void OnRenameSymbol();
   void OnSelectionChanged();
-  void OnSetSymbolSize();
-  void OnSetSymbolEndAddress();
   void OnRunToHere();
   void OnAddFunction();
+  void OnEditSymbol();
+  void OnDeleteSymbol();
+  void OnAddNote();
   void OnPPCComparison();
+  void OnEditNote();
+  void OnDeleteNote();
   void OnInsertBLR();
   void OnInsertNOP();
   void OnReplaceInstruction();
@@ -108,6 +112,7 @@ private:
   bool m_updating = false;
 
   u32 m_address = 0;
+  bool m_lock_address = false;
   u32 m_context_address = 0;
 
   std::vector<CodeViewBranch> m_branches;

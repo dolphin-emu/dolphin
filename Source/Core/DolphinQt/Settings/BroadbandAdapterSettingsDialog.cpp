@@ -95,7 +95,6 @@ void BroadbandAdapterSettingsDialog::InitControls()
   }
 
   setWindowTitle(window_title);
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   m_address_input = new QLineEdit(current_address);
   m_address_input->setPlaceholderText(address_placeholder);

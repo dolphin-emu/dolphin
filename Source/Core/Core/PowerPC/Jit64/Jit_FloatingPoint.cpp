@@ -3,7 +3,6 @@
 
 #include "Core/PowerPC/Jit64/Jit.h"
 
-#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <optional>
@@ -15,12 +14,9 @@
 #include "Common/SmallVector.h"
 #include "Common/x64Emitter.h"
 #include "Core/Config/SessionSettings.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PPCAnalyst.h"
-#include "Core/PowerPC/PowerPC.h"
 
 using namespace Gen;
 
@@ -93,8 +89,9 @@ void Jit64::FinalizeDoubleResult(X64Reg output, const OpArg& input)
   SetFPRFIfNeeded(input, false);
 }
 
-void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::optional<OpArg> Ra,
-                       std::optional<OpArg> Rb, std::optional<OpArg> Rc)
+FixupBranch Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber,
+                              std::optional<OpArg> Ra, std::optional<OpArg> Rb,
+                              std::optional<OpArg> Rc)
 {
   //                      | PowerPC  | x86
   // ---------------------+----------+---------
@@ -103,9 +100,6 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
   //
   // Dragon Ball: Revenge of King Piccolo requires generated NaNs
   // to be positive, so we'll have to handle them manually.
-
-  if (!m_accurate_nans)
-    return;
 
   if (inst.OPCD != 4)
   {
@@ -140,7 +134,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
 
     FixupBranch done = J(Jump::Near);
     SwitchToNearCode();
-    SetJumpTarget(done);
+    return done;
   }
   else
   {
@@ -217,7 +211,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber, std::
 
     FixupBranch done = J(Jump::Near);
     SwitchToNearCode();
-    SetJumpTarget(done);
+    return done;
   }
 }
 
@@ -329,14 +323,21 @@ void Jit64::fp_arith(UGeckoInstruction inst)
     }
   }
 
-  switch (inst.SUBOP5)
+  if (m_accurate_nans)
   {
-  case 18:
-    HandleNaNs(inst, dest, XMM0, Ra, Rarg2, std::nullopt);
-    break;
-  case 25:
-    HandleNaNs(inst, dest, XMM0, Ra, std::nullopt, Rarg2);
-    break;
+    std::optional<FixupBranch> handled_nans;
+    switch (inst.SUBOP5)
+    {
+    case 18:
+      handled_nans = HandleNaNs(inst, dest, XMM0, Ra, Rarg2, std::nullopt);
+      break;
+    case 25:
+      handled_nans = HandleNaNs(inst, dest, XMM0, Ra, std::nullopt, Rarg2);
+      break;
+    }
+
+    if (handled_nans)
+      SetJumpTarget(*handled_nans);
   }
 
   if (single)
@@ -368,51 +369,87 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   const bool use_fma = Config::Get(Config::SESSION_USE_FMA);
   const bool software_fma = use_fma && !cpu_info.bFMA;
 
-  int a = inst.FA;
-  int b = inst.FB;
-  int c = inst.FC;
-  int d = inst.FD;
-  bool single = inst.OPCD == 4 || inst.OPCD == 59;
-  bool round_input = single && !js.op->fprIsSingle[c];
-  bool preserve_inputs = m_accurate_nans;
-  bool preserve_d = preserve_inputs && (a == d || b == d || c == d);
-  bool packed =
-      inst.OPCD == 4 || (!cpu_info.bAtom && !software_fma && single && js.op->fprIsDuplicated[a] &&
-                         js.op->fprIsDuplicated[b] && js.op->fprIsDuplicated[c]);
+  const int a = inst.FA;
+  const int b = inst.FB;
+  const int c = inst.FC;
+  const int d = inst.FD;
 
   const bool subtract = inst.SUBOP5 == 28 || inst.SUBOP5 == 30;  // msub, nmsub
   const bool negate = inst.SUBOP5 == 30 || inst.SUBOP5 == 31;    // nmsub, nmadd
   const bool madds0 = inst.SUBOP5 == 14;
   const bool madds1 = inst.SUBOP5 == 15;
-  const bool madds_accurate_nans = m_accurate_nans && (madds0 || madds1);
+  const bool single = inst.OPCD == 4 || inst.OPCD == 59;
+  const bool round_input = single && !js.op->fprIsSingle[c];
+
+  const bool error_free_transformation = single && m_accurate_fmadds;
+  const bool packed =
+      inst.OPCD == 4 ||
+      (!cpu_info.bAtom && !software_fma && !error_free_transformation && single &&
+       js.op->fprIsDuplicated[a] && js.op->fprIsDuplicated[b] && js.op->fprIsDuplicated[c]);
+
+  const bool want_rc_rounded =
+      (error_free_transformation || (software_fma && packed)) && round_input;
+  const bool error_free_transformation_wants_rc_duplicated =
+      (error_free_transformation && !want_rc_rounded) && (madds0 || madds1);
+  const bool accurate_nans_wants_rc_duplicated = m_accurate_nans && (madds0 || madds1);
+  const bool want_rc_duplicated =
+      error_free_transformation_wants_rc_duplicated || accurate_nans_wants_rc_duplicated;
+
+  const bool preserve_d_due_to_a_or_b =
+      (m_accurate_nans || error_free_transformation) && (a == d || b == d);
+  const bool preserve_d_due_to_c =
+      c == d && ((m_accurate_nans && (!want_rc_duplicated || software_fma)) ||
+                 (error_free_transformation && !want_rc_rounded));
+  const bool preserve_d = preserve_d_due_to_a_or_b || preserve_d_due_to_c;
 
   X64Reg scratch_xmm = XMM0;
   X64Reg result_xmm = XMM1;
   X64Reg Rc_duplicated = XMM2;
+  X64Reg Rc_rounded = XMM3;
+
+  BitSet32 scratch_registers{XMM0 + 16, XMM1 + 16};
+
+  RCX64Reg xmm2_guard;
+  RCX64Reg xmm3_guard;
+  if (error_free_transformation)
+  {
+    xmm2_guard = fpr.Scratch(XMM2);
+    xmm3_guard = fpr.Scratch(XMM3);
+    RegCache::Realize(xmm2_guard, xmm3_guard);
+    scratch_registers[XMM2 + 16] = true;
+    scratch_registers[XMM3 + 16] = true;
+  }
+  else if (software_fma)
+  {
+    xmm2_guard = fpr.Scratch(XMM2);
+    RegCache::Realize(xmm2_guard);
+    scratch_registers[XMM2 + 16] = true;
+  }
 
   RCOpArg Ra;
   RCOpArg Rb;
   RCOpArg Rc;
   RCX64Reg Rd;
-  RCX64Reg xmm2_guard;
   RCX64Reg result_xmm_guard;
   RCX64Reg Rc_duplicated_guard;
   if (software_fma)
   {
-    xmm2_guard = fpr.Scratch(XMM2);
-    Ra = packed ? fpr.Bind(a, RCMode::Read) : fpr.Use(a, RCMode::Read);
-    Rb = packed ? fpr.Bind(b, RCMode::Read) : fpr.Use(b, RCMode::Read);
-    Rc = packed ? fpr.Bind(c, RCMode::Read) : fpr.Use(c, RCMode::Read);
+    Ra = packed || error_free_transformation ? fpr.Bind(a, RCMode::Read) : fpr.Use(a, RCMode::Read);
+    Rb = packed || error_free_transformation ? fpr.Bind(b, RCMode::Read) : fpr.Use(b, RCMode::Read);
+    Rc = packed || (error_free_transformation && !want_rc_rounded && !want_rc_duplicated) ?
+             fpr.Bind(c, RCMode::Read) :
+             fpr.Use(c, RCMode::Read);
     Rd = fpr.Bind(d, single ? RCMode::Write : RCMode::ReadWrite);
     if (preserve_d && packed)
     {
       result_xmm_guard = fpr.Scratch();
-      RegCache::Realize(Ra, Rb, Rc, Rd, xmm2_guard, result_xmm_guard);
+      RegCache::Realize(Ra, Rb, Rc, Rd, result_xmm_guard);
       result_xmm = Gen::X64Reg(result_xmm_guard);
+      scratch_registers[result_xmm + 16] = true;
     }
     else
     {
-      RegCache::Realize(Ra, Rb, Rc, Rd, xmm2_guard);
+      RegCache::Realize(Ra, Rb, Rc, Rd);
       result_xmm = packed ? Gen::X64Reg(Rd) : XMM0;
     }
   }
@@ -421,48 +458,88 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     // For use_fma == true:
     //   Statistics suggests b is a lot less likely to be unbound in practice, so
     //   if we have to pick one of a or b to bind, let's make it b.
-    Ra = fpr.Use(a, RCMode::Read);
-    Rb = use_fma ? fpr.Bind(b, RCMode::Read) : fpr.Use(b, RCMode::Read);
-    Rc = fpr.Use(c, RCMode::Read);
+    Ra = error_free_transformation ? fpr.Bind(a, RCMode::Read) : fpr.Use(a, RCMode::Read);
+    Rb =
+        use_fma || error_free_transformation ? fpr.Bind(b, RCMode::Read) : fpr.Use(b, RCMode::Read);
+    Rc = error_free_transformation && !want_rc_rounded && !want_rc_duplicated ?
+             fpr.Bind(c, RCMode::Read) :
+             fpr.Use(c, RCMode::Read);
     Rd = fpr.Bind(d, single ? RCMode::Write : RCMode::ReadWrite);
     RegCache::Realize(Ra, Rb, Rc, Rd);
-
-    if (madds_accurate_nans)
-    {
-      Rc_duplicated_guard = fpr.Scratch();
-      RegCache::Realize(Rc_duplicated_guard);
-      Rc_duplicated = Rc_duplicated_guard;
-    }
   }
+
+  if (error_free_transformation_wants_rc_duplicated ||
+      (accurate_nans_wants_rc_duplicated &&
+       ((!software_fma && !error_free_transformation) || (error_free_transformation && packed))))
+  {
+    Rc_duplicated_guard = fpr.Scratch();
+    RegCache::Realize(Rc_duplicated_guard);
+    Rc_duplicated = Rc_duplicated_guard;
+    scratch_registers[Rc_duplicated + 16] = true;
+  }
+
+  const auto registers_to_save = [&](BitSet32 scratch_registers_to_save) {
+    const BitSet32 scratch_registers_not_to_save = scratch_registers & ~scratch_registers_to_save;
+    return CallerSavedRegistersInUse(scratch_registers_to_save) & ~scratch_registers_not_to_save;
+  };
 
   if (software_fma)
   {
+    if (want_rc_rounded)
+    {
+      if (error_free_transformation && madds0)
+      {
+        MOVDDUP(Rc_rounded, Rc);
+        Force25BitPrecision(Rc_rounded, R(Rc_rounded), XMM2);
+      }
+      else if (error_free_transformation && madds1)
+      {
+        avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rc_rounded, Rc, Rc, 3);
+        Force25BitPrecision(Rc_rounded, R(Rc_rounded), XMM2);
+      }
+      else
+      {
+        Force25BitPrecision(Rc_rounded, Rc, XMM2);
+      }
+    }
+
     for (size_t i = (packed ? 1 : 0); i != std::numeric_limits<size_t>::max(); --i)
     {
-      if ((i == 0 || madds0) && !madds1)
+      if (madds0 || (i == 0 && !madds1) || (want_rc_rounded && error_free_transformation && madds1))
       {
-        if (round_input)
+        if (want_rc_rounded)
+          MOVAPD(XMM1, R(Rc_rounded));
+        else if (round_input)
           Force25BitPrecision(XMM1, Rc, XMM2);
+        else if (Rc.IsSimpleReg())
+          MOVAPD(XMM1, Rc);
         else
           MOVSD(XMM1, Rc);
       }
       else
       {
-        MOVHLPS(XMM1, Rc.GetSimpleReg());
-        if (round_input)
+        MOVHLPS(XMM1, want_rc_rounded ? Rc_rounded : Rc.GetSimpleReg());
+        if (round_input && !want_rc_rounded)
           Force25BitPrecision(XMM1, R(XMM1), XMM2);
       }
 
       // Write the result from the previous loop iteration into result_xmm so we don't lose it.
       // It's important that this is done after reading Rc above, in case we have madds1 and
-      // result_xmm == Rd == Rc.
+      // !want_rc_rounded and result_xmm == Rd == Rc.
       if (packed && i == 0)
         MOVLHPS(result_xmm, XMM0);
 
       if (i == 0)
       {
-        MOVSD(XMM0, Ra);
-        MOVSD(XMM2, Rb);
+        if (Ra.IsSimpleReg())
+          MOVAPD(XMM0, Ra);
+        else
+          MOVSD(XMM0, Ra);
+
+        if (Rb.IsSimpleReg())
+          MOVAPD(XMM2, Rb);
+        else
+          MOVSD(XMM2, Rb);
       }
       else
       {
@@ -473,23 +550,36 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
       if (subtract)
         XORPS(XMM2, MConst(psSignBits));
 
-      BitSet32 registers_in_use = CallerSavedRegistersInUse();
+      BitSet32 scratch_registers_to_save{};
+      if (packed && i == 0)
+        scratch_registers_to_save[result_xmm + 16] = true;
+      if (want_rc_rounded && (error_free_transformation || i == 1))
+        scratch_registers_to_save[Rc_rounded + 16] = true;
+
+      const BitSet32 registers_in_use = registers_to_save(scratch_registers_to_save);
       ABI_PushRegistersAndAdjustStack(registers_in_use, 0);
       ABI_CallFunction(static_cast<double (*)(double, double, double)>(&std::fma));
       ABI_PopRegistersAndAdjustStack(registers_in_use, 0);
     }
 
     if (packed)
+    {
+      // result_xmm's upper lane has the result of the first loop iteration
       MOVSD(R(result_xmm), XMM0);
+    }
     else
+    {
       DEBUG_ASSERT(result_xmm == XMM0);
+    }
 
-    if (madds_accurate_nans)
+    if (want_rc_duplicated)
     {
       if (madds0)
         MOVDDUP(Rc_duplicated, Rc);
-      else
+      else if (madds1)
         avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rc_duplicated, Rc, Rc, 3);
+      else
+        DEBUG_ASSERT(false);
     }
   }
   else
@@ -497,7 +587,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     if (madds0)
     {
       MOVDDUP(result_xmm, Rc);
-      if (madds_accurate_nans)
+      if (want_rc_duplicated)
         MOVAPD(R(Rc_duplicated), result_xmm);
       if (round_input)
         Force25BitPrecision(result_xmm, R(result_xmm), scratch_xmm);
@@ -505,18 +595,21 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     else if (madds1)
     {
       avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, result_xmm, Rc, Rc, 3);
-      if (madds_accurate_nans)
+      if (want_rc_duplicated)
         MOVAPD(R(Rc_duplicated), result_xmm);
       if (round_input)
         Force25BitPrecision(result_xmm, R(result_xmm), scratch_xmm);
     }
     else
     {
+      DEBUG_ASSERT(!want_rc_duplicated);
       if (round_input)
         Force25BitPrecision(result_xmm, Rc, scratch_xmm);
       else
         MOVAPD(result_xmm, Rc);
     }
+    if (want_rc_rounded)
+      MOVAPD(R(Rc_rounded), result_xmm);
 
     if (use_fma)
     {
@@ -556,6 +649,160 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     }
   }
 
+  if (m_accurate_nans && result_xmm == XMM0)
+  {
+    // HandleNaNs needs to clobber XMM0
+    result_xmm = error_free_transformation ? XMM1 : Rd;
+    MOVAPD(result_xmm, R(XMM0));
+    DEBUG_ASSERT(!preserve_d);
+  }
+
+  std::optional<FixupBranch> handled_nans;
+  if (!packed && m_accurate_nans)
+  {
+    // The clobber register is unused when not packed.
+    handled_nans =
+        HandleNaNs(inst, result_xmm, XMM0, Ra, Rb, want_rc_duplicated ? R(Rc_duplicated) : Rc);
+  }
+
+  // Read the comment in the interpreter function NI_madd_msub to find out what's going on here.
+  if (error_free_transformation)
+  {
+    if (result_xmm != XMM1)
+    {
+      MOVAPD(XMM1, R(result_xmm));
+      result_xmm = XMM1;
+    }
+
+    X64Reg Rc_rounded_duplicated = Rc.GetSimpleReg();
+    BitSet32 scratch_registers_to_save = {XMM1 + 16, XMM2 + 16};
+    if (want_rc_rounded)
+    {
+      Rc_rounded_duplicated = Rc_rounded;
+      scratch_registers_to_save[Rc_rounded] = true;
+    }
+    else if (want_rc_duplicated)
+    {
+      Rc_rounded_duplicated = Rc_duplicated;
+      scratch_registers_to_save[want_rc_duplicated] = true;
+    }
+
+    // We've calculated s := a + b, with a = Ra * Rc_rounded_duplicated, b = subtract ? -Rb : Rb
+
+    if (packed)
+    {
+      // a' := s - b
+      if (subtract)
+        avx_op(&XEmitter::VADDPD, &XEmitter::ADDPD, XMM0, R(XMM1), Rb);
+      else
+        avx_op(&XEmitter::VSUBPD, &XEmitter::SUBPD, XMM0, R(XMM1), Rb);
+
+      // b' := s - a'
+      avx_op(&XEmitter::VSUBPD, &XEmitter::SUBPD, XMM2, R(XMM1), R(XMM0));
+
+      // da := a - a'
+      if (software_fma)
+      {
+        scratch_registers_to_save[XMM0 + 16] = true;
+        const BitSet32 registers_in_use_1 = registers_to_save(scratch_registers_to_save);
+        ABI_PushRegistersAndAdjustStack(registers_in_use_1, 0);
+
+        avx_op(&XEmitter::VXORPS, &XEmitter::XORPS, XMM2, R(XMM0), MConst(psSignBits));
+        MOVAPD(XMM0, R(Rc_rounded_duplicated));
+        MOVAPD(XMM1, Ra);
+
+        ABI_CallFunction(static_cast<double (*)(double, double, double)>(&std::fma));
+
+        // We will read from the upper lane of Rc_rounded_duplicated later,
+        // so we need to make sure that that lane isn't overwritten.
+        if (Rc_rounded_duplicated == XMM3)
+          MOVSD(XMM3, R(XMM0));
+        else
+          MOVAPD(XMM3, R(XMM0));
+
+        ABI_PopRegistersAndAdjustStack(registers_in_use_1, 0);
+
+        scratch_registers_to_save[XMM0 + 16] = false;
+        scratch_registers_to_save[XMM3 + 16] = true;
+        const BitSet32 registers_in_use_2 = registers_to_save(scratch_registers_to_save);
+        ABI_PushRegistersAndAdjustStack(registers_in_use_2, 0);
+
+        MOVHLPS(XMM2, XMM0);
+        XORPS(XMM2, MConst(psSignBits));
+        MOVHLPS(XMM0, Rc_rounded_duplicated);
+        MOVHLPS(XMM1, Ra.GetSimpleReg());
+
+        ABI_CallFunction(static_cast<double (*)(double, double, double)>(&std::fma));
+
+        ABI_PopRegistersAndAdjustStack(registers_in_use_2, 0);
+
+        UNPCKLPD(XMM0, R(XMM3));
+      }
+      else if (use_fma)
+      {
+        VFMSUB231PD(XMM0, Rc_rounded_duplicated, Ra);
+      }
+      else
+      {
+        avx_op(&XEmitter::VMULPD, &XEmitter::MULPD, XMM3, R(Rc_rounded_duplicated), Ra);
+        avx_op(&XEmitter::VSUBPD, &XEmitter::SUBPD, XMM0, R(XMM3), R(XMM0), true, false, XMM3);
+      }
+
+      // db := b - b'
+      // (Transformed into -db := b' - b)
+      if (subtract)
+        avx_op(&XEmitter::VADDPD, &XEmitter::ADDPD, XMM2, R(XMM2), Rb);
+      else
+        avx_op(&XEmitter::VSUBPD, &XEmitter::SUBPD, XMM2, R(XMM2), Rb);
+
+      CALL(GetAsmRoutines()->ps_madd_eft);
+    }
+    else
+    {
+      // a' := s - b
+      if (subtract)
+        avx_op(&XEmitter::VADDSD, &XEmitter::ADDSD, XMM0, R(XMM1), Rb, false);
+      else
+        avx_op(&XEmitter::VSUBSD, &XEmitter::SUBSD, XMM0, R(XMM1), Rb, false);
+
+      // b' := s - a'
+      avx_op(&XEmitter::VSUBSD, &XEmitter::SUBSD, XMM2, R(XMM1), R(XMM0), false);
+
+      // da := a - a'
+      if (software_fma)
+      {
+        const BitSet32 registers_in_use = registers_to_save(scratch_registers_to_save);
+        ABI_PushRegistersAndAdjustStack(registers_in_use, 0);
+
+        avx_op(&XEmitter::VXORPS, &XEmitter::XORPS, XMM2, R(XMM0), MConst(psSignBits));
+        MOVAPD(XMM0, R(Rc_rounded_duplicated));
+        MOVAPD(XMM1, Ra);
+
+        ABI_CallFunction(static_cast<double (*)(double, double, double)>(&std::fma));
+
+        ABI_PopRegistersAndAdjustStack(registers_in_use, 0);
+      }
+      else if (use_fma)
+      {
+        VFMSUB231SD(XMM0, Rc_rounded_duplicated, Ra);
+      }
+      else
+      {
+        avx_op(&XEmitter::VMULSD, &XEmitter::MULSD, XMM3, R(Rc_rounded_duplicated), Ra, false);
+        avx_op(&XEmitter::VSUBSD, &XEmitter::SUBSD, XMM0, R(XMM3), R(XMM0), false, false, XMM3);
+      }
+
+      // db := b - b'
+      // (Transformed into -db := b' - b)
+      if (subtract)
+        ADDSD(XMM2, Rb);
+      else
+        SUBSD(XMM2, Rb);
+
+      CALL(GetAsmRoutines()->fmadds_eft);
+    }
+  }
+
   // Using x64's nmadd/nmsub would require us to swap the sign of the addend
   // (i.e. PPC nmadd maps to x64 nmsub), which can cause problems with signed zeroes.
   // Also, PowerPC's nmadd/nmsub round before the final negation unlike x64's nmadd/nmsub.
@@ -563,16 +810,19 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   if (negate)
     XORPD(result_xmm, MConst(packed ? psSignBits2 : psSignBits));
 
-  if (m_accurate_nans && result_xmm == XMM0)
+  if (packed && m_accurate_nans)
   {
-    // HandleNaNs needs to clobber XMM0
-    MOVAPD(Rd, R(result_xmm));
-    result_xmm = Rd;
-    DEBUG_ASSERT(!preserve_d);
+    // If packed, the clobber register must be XMM0.
+    handled_nans =
+        HandleNaNs(inst, result_xmm, XMM0, Ra, Rb, want_rc_duplicated ? R(Rc_duplicated) : Rc);
   }
 
-  // If packed, the clobber register must be XMM0. If not packed, the clobber register is unused.
-  HandleNaNs(inst, result_xmm, XMM0, Ra, Rb, madds_accurate_nans ? R(Rc_duplicated) : Rc);
+  // If the handled_nans branch was taken in the non-packed case, that means the result is NaN,
+  // so we can skip the XORPD and the error-free transformation. If the handled_nans branch was
+  // taken in the packed case, we don't know if both of the results were NaN or only one, so we
+  // can't skip anything.
+  if (handled_nans)
+    SetJumpTarget(*handled_nans);
 
   if (single)
     FinalizeSingleResult(Rd, R(result_xmm), packed, true);

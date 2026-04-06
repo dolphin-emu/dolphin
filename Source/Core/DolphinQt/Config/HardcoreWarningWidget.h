@@ -24,7 +24,6 @@ private:
 
   void Update();
 
-  QLabel* m_text;
   QPushButton* m_settings_button;
 };
 #endif  // USE_RETRO_ACHIEVEMENTS

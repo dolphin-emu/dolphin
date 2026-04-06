@@ -3,8 +3,6 @@
 
 #include "Common/GL/GLX11Window.h"
 
-#include "Common/GL/GLContext.h"
-
 GLX11Window::GLX11Window(Display* display, Window parent_window, Colormap color_map, Window window,
                          int width, int height)
     : m_display(display), m_parent_window(parent_window), m_color_map(color_map), m_window(window),
