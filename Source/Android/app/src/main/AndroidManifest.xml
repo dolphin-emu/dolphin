@@ -134,6 +134,11 @@
             android:theme="@style/Theme.Dolphin.Main" />
 
         <activity
+            android:name=".features.netplay.ui.NetplaySetupActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Dolphin.Main" />
+
+        <activity
             android:name=".features.riivolution.ui.RiivolutionBootActivity"
             android:exported="false"
             android:theme="@style/Theme.Dolphin.Main" />
