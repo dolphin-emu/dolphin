@@ -562,7 +562,7 @@ std::optional<std::string> MathExpression::ExpressionToHex(Type type, std::strin
       return std::nullopt;
 
     const u8 value = static_cast<u8>(result);
-    out = fmt::format("{:02x}\n", value);
+    out = fmt::format("{:02x}", value);
     break;
   }
   case Type::U16:
@@ -572,7 +572,7 @@ std::optional<std::string> MathExpression::ExpressionToHex(Type type, std::strin
       return std::nullopt;
 
     const u16 value = static_cast<u16>(result);
-    out = fmt::format("{:04x}\n", value);
+    out = fmt::format("{:04x}", value);
     break;
   }
   case Type::U32:
@@ -582,7 +582,7 @@ std::optional<std::string> MathExpression::ExpressionToHex(Type type, std::strin
       return std::nullopt;
 
     const u32 value = static_cast<u32>(result);
-    out = fmt::format("{:08x}\n", value);
+    out = fmt::format("{:08x}", value);
     break;
   }
   case Type::S8:
@@ -592,7 +592,7 @@ std::optional<std::string> MathExpression::ExpressionToHex(Type type, std::strin
       return std::nullopt;
 
     const s8 value = static_cast<s8>(result);
-    out = fmt::format("{:02x}\n", value);
+    out = fmt::format("{:02x}", value);
     break;
   }
   case Type::S16:
@@ -602,7 +602,7 @@ std::optional<std::string> MathExpression::ExpressionToHex(Type type, std::strin
       return std::nullopt;
 
     const s16 value = static_cast<s16>(result);
-    out = fmt::format("{:04x}\n", value);
+    out = fmt::format("{:04x}", value);
     break;
   }
   case Type::S32:
@@ -612,7 +612,7 @@ std::optional<std::string> MathExpression::ExpressionToHex(Type type, std::strin
       return std::nullopt;
 
     const s32 value = static_cast<s32>(result);
-    out = fmt::format("{:08x}\n", value);
+    out = fmt::format("{:08x}", value);
     break;
   }
   case Type::F32:
@@ -623,7 +623,7 @@ std::optional<std::string> MathExpression::ExpressionToHex(Type type, std::strin
 
     const float f = static_cast<float>(result);
     const u32 bits = std::bit_cast<u32>(f);
-    out = fmt::format("{:08x}\n", bits);
+    out = fmt::format("{:08x}", bits);
     break;
   }
   default:
@@ -677,6 +677,9 @@ std::optional<std::string> MathExpression::ModifyBracedBlocks(std::string& text)
       // Destroy the expression but do not free vars (pass nullptr for vars arg).
       expr_destroy(e, nullptr);
     }
+
+    // Discard anything after the } and move to next line.
+    std::getline(ss, varlist);
   }
 
   // Replace all other { code } with their expr -> hex result.
