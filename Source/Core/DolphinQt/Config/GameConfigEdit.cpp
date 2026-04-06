@@ -7,9 +7,8 @@
 #include <QCompleter>
 #include <QDesktopServices>
 #include <QFile>
+#include <QHBoxLayout>
 #include <QKeyEvent>
-#include <QMenu>
-#include <QMenuBar>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QScrollBar>
@@ -72,7 +71,6 @@ GameConfigEdit::GameConfigEdit(QWidget* parent, QString path, bool read_only)
   m_completer->setCompletionMode(QCompleter::PopupCompletion);
   m_completer->setWidget(m_edit);
 
-  AddMenubarOptions();
   ConnectWidgets();
 }
 
@@ -82,17 +80,21 @@ void GameConfigEdit::CreateWidgets()
   m_edit->setReadOnly(m_read_only);
   m_edit->setAcceptRichText(false);
 
+  m_refresh_button = new QPushButton(tr("Refresh"));
+  m_external_editor_button = new QPushButton(tr("Open in External Editor"));
+
+  if (m_read_only)
+  {
+    m_refresh_button->hide();
+    m_external_editor_button->hide();
+  }
+
+  auto* button_layout = new QHBoxLayout;
+  button_layout->addWidget(m_refresh_button);
+  button_layout->addWidget(m_external_editor_button);
+
   auto* layout = new QVBoxLayout;
-
-  auto* menu_button = new QPushButton;
-
-  menu_button->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
-  menu_button->setText(tr("Presets"));
-
-  m_menu = new QMenu(menu_button);
-  menu_button->setMenu(m_menu);
-
-  layout->addWidget(menu_button);
+  layout->addLayout(button_layout);
   layout->addWidget(m_edit);
 
   setLayout(layout);
@@ -138,6 +140,10 @@ void GameConfigEdit::ConnectWidgets()
   connect(m_edit, &QTextEdit::selectionChanged, this, &GameConfigEdit::OnSelectionChanged);
   connect(m_completer, qOverload<const QString&>(&QCompleter::activated), this,
           &GameConfigEdit::OnAutoComplete);
+
+  connect(m_refresh_button, &QPushButton::clicked, this, &GameConfigEdit::LoadFile);
+  connect(m_external_editor_button, &QPushButton::clicked, this,
+          &GameConfigEdit::OpenExternalEditor);
 }
 
 void GameConfigEdit::OnSelectionChanged()
@@ -148,94 +154,11 @@ void GameConfigEdit::OnSelectionChanged()
     QWhatsThis::showText(QCursor::pos(), m_keyword_map[keyword], this);
 }
 
-void GameConfigEdit::AddBoolOption(QMenu* menu, const QString& name, const QString& section,
-                                   const QString& key)
-{
-  auto* option = menu->addMenu(name);
-
-  option->addAction(tr("On"), this,
-                    [this, section, key] { SetOption(section, key, QStringLiteral("True")); });
-  option->addAction(tr("Off"), this,
-                    [this, section, key] { SetOption(section, key, QStringLiteral("False")); });
-}
-
-void GameConfigEdit::SetOption(const QString& section, const QString& key, const QString& value)
-{
-  auto section_cursor =
-      m_edit->document()->find(QRegularExpression(QStringLiteral("^\\[%1\\]").arg(section)), 0);
-
-  // Check if the section this belongs in can be found
-  if (section_cursor.isNull())
-  {
-    m_edit->append(QStringLiteral("[%1]\n\n%2 = %3\n").arg(section).arg(key).arg(value));
-  }
-  else
-  {
-    auto value_cursor = m_edit->document()->find(
-        QRegularExpression(QStringLiteral("^%1 = .*").arg(key)), section_cursor);
-
-    const QString new_line = QStringLiteral("%1 = %2").arg(key).arg(value);
-
-    // Check if the value that has to be set already exists
-    if (value_cursor.isNull())
-    {
-      section_cursor.clearSelection();
-      section_cursor.insertText(QLatin1Char{'\n'} + new_line);
-    }
-    else
-    {
-      value_cursor.insertText(new_line);
-    }
-  }
-}
-
 QString GameConfigEdit::GetTextUnderCursor()
 {
   QTextCursor tc = m_edit->textCursor();
   tc.select(QTextCursor::WordUnderCursor);
   return tc.selectedText();
-}
-
-void GameConfigEdit::AddMenubarOptions()
-{
-  auto* editor = m_menu->addMenu(tr("Editor"));
-
-  editor->addAction(tr("Refresh"), this, &GameConfigEdit::LoadFile);
-  editor->addAction(tr("Open in External Editor"), this, &GameConfigEdit::OpenExternalEditor);
-
-  if (!m_read_only)
-  {
-    m_menu->addSeparator();
-    auto* core_menubar = m_menu->addMenu(tr("Core"));
-
-    AddBoolOption(core_menubar, tr("Dual Core"), QStringLiteral("Core"),
-                  QStringLiteral("CPUThread"));
-    AddBoolOption(core_menubar, tr("MMU"), QStringLiteral("Core"), QStringLiteral("MMU"));
-
-    auto* video_menubar = m_menu->addMenu(tr("Video"));
-
-    AddBoolOption(video_menubar, tr("Store EFB Copies to Texture Only"),
-                  QStringLiteral("Video_Hacks"), QStringLiteral("EFBToTextureEnable"));
-
-    AddBoolOption(video_menubar, tr("Store XFB Copies to Texture Only"),
-                  QStringLiteral("Video_Hacks"), QStringLiteral("XFBToTextureEnable"));
-
-    {
-      auto* texture_cache = video_menubar->addMenu(tr("Texture Cache"));
-      texture_cache->addAction(tr("Safe"), this, [this] {
-        SetOption(QStringLiteral("Video_Settings"), QStringLiteral("SafeTextureCacheColorSamples"),
-                  QStringLiteral("0"));
-      });
-      texture_cache->addAction(tr("Medium"), this, [this] {
-        SetOption(QStringLiteral("Video_Settings"), QStringLiteral("SafeTextureCacheColorSamples"),
-                  QStringLiteral("512"));
-      });
-      texture_cache->addAction(tr("Fast"), this, [this] {
-        SetOption(QStringLiteral("Video_Settings"), QStringLiteral("SafeTextureCacheColorSamples"),
-                  QStringLiteral("128"));
-      });
-    }
-  }
 }
 
 void GameConfigEdit::OnAutoComplete(const QString& completion)
