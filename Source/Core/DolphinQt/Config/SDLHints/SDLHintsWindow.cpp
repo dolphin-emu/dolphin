@@ -7,6 +7,7 @@
 
 #include "Core/Config/MainSettings.h"
 
+#include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/QtUtils.h"
@@ -120,22 +121,33 @@ void SDLHintsWindow::CreateMainLayout()
     Config::SetBase(Config::MAIN_SDL_HINT_JOYSTICK_HIDAPI_PS5_PLAYER_LED, checked ? "1" : "0");
   });
 
+  auto* const dualsense_tactile_triggers = new ConfigBool(
+      tr("Enable DualSense Tactile Triggers"), Config::MAIN_INPUT_DUALSENSE_TACTILE_TRIGGERS);
+  dualsense_tactile_triggers->SetDescription(
+      tr("Use DualSense tactile trigger effects to simulate GameCube controller trigger clicks."
+         "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"));
+
   auto* const default_layout = new QVBoxLayout();
   default_layout->setContentsMargins(10, 10, 10, 10);
   default_layout->addWidget(m_directinput_detection);
   default_layout->addWidget(m_combine_joy_cons);
   default_layout->addWidget(m_horizontal_joy_cons);
-  default_layout->addWidget(m_dualsense_player_led);
   default_layout->addStretch(1);
 
   auto* const default_frame = new QFrame();
   default_frame->setLayout(default_layout);
+
+  auto* const dualsense_frame = new QFrame;
+  auto* const dualsense_layout = new QVBoxLayout{dualsense_frame};
+  dualsense_layout->addWidget(m_dualsense_player_led);
+  dualsense_layout->addWidget(dualsense_tactile_triggers);
 
   PopulateChecklist();
 
   // Create the tab widget
   m_tab_widget = new QTabWidget();
   m_tab_widget->addTab(default_frame, tr("Main"));
+  m_tab_widget->addTab(dualsense_frame, tr("DualSense"));
   m_tab_widget->addTab(advanced_frame, tr("Advanced"));
 
   m_current_tab_index = 0;
@@ -144,7 +156,7 @@ void SDLHintsWindow::CreateMainLayout()
   connect(m_tab_widget, &QTabWidget::currentChanged, this, &SDLHintsWindow::TabChanged);
 
   auto* const warning_text =
-      new QLabel(tr("Dolphin must be restarted for these changes to take effect."));
+      new QLabel(tr("Dolphin may need to be restarted for these changes to take effect."));
   warning_text->setWordWrap(true);
 
   // Create main layout
@@ -259,7 +271,7 @@ void SDLHintsWindow::TabChanged(int new_index)
   // Check which tab we're coming from, cur_tab_idx has not been updated yet
   switch (m_current_tab_index)
   {
-  case 1:  // Coming from the advanced tab
+  case 2:  // Coming from the advanced tab
     SaveTable();
     break;
 
@@ -271,10 +283,11 @@ void SDLHintsWindow::TabChanged(int new_index)
   switch (new_index)
   {
   case 0:  // Going to the main tab
+  case 1:  // Going to the DualSense tab
     PopulateChecklist();
     break;
 
-  case 1:  // Going to the advanced tab
+  case 2:  // Going to the advanced tab
     PopulateTable();
     break;
 
