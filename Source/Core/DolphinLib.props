@@ -571,6 +571,7 @@
     <ClInclude Include="InputCommon\ControllerInterface\Win32\Win32.h" />
     <ClInclude Include="InputCommon\ControllerInterface\XInput\XInput.h" />
     <ClInclude Include="InputCommon\ControllerInterface\SDL\SDL.h" />
+    <ClInclude Include="InputCommon\ControllerInterface\SDL\SDLDualSenseGamepad.h" />
     <ClInclude Include="InputCommon\ControllerInterface\SDL\SDLGamepad.h" />
     <ClInclude Include="InputCommon\ControlReference\ControlReference.h" />
     <ClInclude Include="InputCommon\ControlReference\ExpressionParser.h" />
@@ -1275,6 +1276,7 @@
     <ClCompile Include="InputCommon\ControllerInterface\Win32\Win32.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\XInput\XInput.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\SDL\SDL.cpp" />
+    <ClCompile Include="InputCommon\ControllerInterface\SDL\SDLDualSenseGamepad.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\SDL\SDLGamepad.cpp" />
     <ClCompile Include="InputCommon\ControlReference\ControlReference.cpp" />
     <ClCompile Include="InputCommon\ControlReference\ExpressionParser.cpp" />

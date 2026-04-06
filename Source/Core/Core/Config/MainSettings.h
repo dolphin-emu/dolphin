@@ -339,6 +339,7 @@ extern const Info<bool> MAIN_MOVIE_SHOW_OSD;
 // Main.Input
 
 extern const Info<bool> MAIN_INPUT_BACKGROUND_INPUT;
+extern const Config::Info<bool> MAIN_INPUT_DUALSENSE_TACTILE_TRIGGERS;
 
 extern const Config::Info<std::string> MAIN_SDL_HINT_JOYSTICK_ENHANCED_REPORTS;
 extern const Config::Info<std::string> MAIN_SDL_HINT_JOYSTICK_WGI;
