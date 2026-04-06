@@ -50,6 +50,7 @@ private:
     int GetCheckboxValue() const;
     int GetSliderValue(size_t index) const;
     void SetSliderText(size_t index, const QString& text);
+    void SetSliderMax(size_t index, int max);
 
   private:
     u32 AddBool(PostProcessingConfigWindow* parent, QGridLayout* grid, u32 row);

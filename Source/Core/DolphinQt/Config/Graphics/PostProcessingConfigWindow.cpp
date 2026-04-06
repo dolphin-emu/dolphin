@@ -45,21 +45,6 @@ PostProcessingConfigWindow::PostProcessingConfigWindow(EnhancementsWidget* paren
 
   PopulateGroups();
 
-  // If the display was queried since the shader was last loaded (e.g. window was resized or
-  // moved to another monitor), sync the slider to the latest queried peak luminance before
-  // building the widgets so the displayed value is always current.
-  if (g_backend_info.hdr_max_luminance_nits > 0.f)
-  {
-    const auto use_peak_it = m_config_map.find("USE_DISPLAY_PEAK_LUMINANCE");
-    const auto max_nits_it = m_config_map.find("HDR_DISPLAY_MAX_NITS");
-    if (use_peak_it != m_config_map.end() && max_nits_it != m_config_map.end() &&
-        use_peak_it->second->GetConfigurationOption()->m_bool_value)
-    {
-      m_post_processor->SetOptionf("HDR_DISPLAY_MAX_NITS", 0,
-                                   g_backend_info.hdr_max_luminance_nits);
-    }
-  }
-
   Create();
   ConnectWidgets();
 
@@ -137,11 +122,14 @@ void PostProcessingConfigWindow::Create()
     m_tabs->insertTab(0, general, tr("General"));
   }
 
-  // Apply initial enabled state for options controlled by USE_DISPLAY_PEAK_LUMINANCE
+  // If USE_DISPLAY_PEAK_LUMINANCE is already checked on open, cap the slider to the display peak
   const auto use_peak_it = m_config_map.find("USE_DISPLAY_PEAK_LUMINANCE");
   const auto max_nits_it = m_config_map.find("HDR_DISPLAY_MAX_NITS");
-  if (use_peak_it != m_config_map.end() && max_nits_it != m_config_map.end())
-    max_nits_it->second->SetEnabled(!use_peak_it->second->GetCheckboxValue());
+  if (use_peak_it != m_config_map.end() && max_nits_it != m_config_map.end() &&
+      use_peak_it->second->GetCheckboxValue() && g_backend_info.hdr_max_luminance_nits > 0.f)
+  {
+    max_nits_it->second->SetSliderMax(0, static_cast<int>(g_backend_info.hdr_max_luminance_nits));
+  }
 
   m_buttons = new QDialogButtonBox(QDialogButtonBox::Ok);
 
@@ -180,8 +168,11 @@ void PostProcessingConfigWindow::UpdateBool(ConfigGroup* const config_group, con
   {
     m_post_processor->SaveOptionsConfiguration();
     const auto it = m_config_map.find("HDR_DISPLAY_MAX_NITS");
-    if (it != m_config_map.end())
-      it->second->SetEnabled(!state);
+    if (it != m_config_map.end() && g_backend_info.hdr_max_luminance_nits > 0.f)
+    {
+      const int max = state ? static_cast<int>(g_backend_info.hdr_max_luminance_nits) : 2000;
+      it->second->SetSliderMax(0, max);
+    }
   }
 }
 
@@ -417,4 +408,9 @@ int PostProcessingConfigWindow::ConfigGroup::GetSliderValue(size_t index) const
 void PostProcessingConfigWindow::ConfigGroup::SetSliderText(size_t index, const QString& text)
 {
   m_value_boxes[index]->setText(text);
+}
+
+void PostProcessingConfigWindow::ConfigGroup::SetSliderMax(size_t index, int max)
+{
+  m_sliders[index]->setMaximum(max);
 }

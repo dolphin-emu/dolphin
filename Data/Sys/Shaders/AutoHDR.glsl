@@ -4,7 +4,7 @@
 [configuration]
 
 [OptionBool]
-GUIName = Use Display Peak Luminance (DX11+)
+GUIName = Limit to Display Peak Luminance (DX11+)
 OptionName = USE_DISPLAY_PEAK_LUMINANCE
 DefaultValue = 0
 
@@ -59,11 +59,12 @@ void main()
 	// Find the color luminance (it works better than average)
 	float sdr_ratio = luminance(color.rgb);
 
-	// When "Use Display Peak Luminance" is enabled, use the peak luminance reported by the display
-	// (only available on DirectX 11/12). Falls back to the manual slider on other APIs or if
-	// no display data is available.
+	// When "Limit to Display Peak Luminance" is enabled, clamp the user's target brightness to
+	// the peak luminance reported by the display (only available on DirectX 11/12), preventing
+	// over-expansion on displays that can't reach the slider value. Falls back to the slider on
+	// other APIs or if no display data is available.
 	const float display_max_nits = (OptionEnabled(USE_DISPLAY_PEAK_LUMINANCE) && hdr_max_luminance_nits > 0.0)
-		? hdr_max_luminance_nits
+		? min(hdr_max_luminance_nits, HDR_DISPLAY_MAX_NITS)
 		: HDR_DISPLAY_MAX_NITS;
 	const float auto_hdr_max_white = max(display_max_nits / (hdr_paper_white_nits / hdr_sdr_white_nits), hdr_sdr_white_nits) / hdr_sdr_white_nits;
 	if (sdr_ratio > AUTO_HDR_SHOULDER_START_ALPHA && AUTO_HDR_SHOULDER_START_ALPHA < 1.0)
