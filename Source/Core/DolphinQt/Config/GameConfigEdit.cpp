@@ -83,6 +83,12 @@ void GameConfigEdit::CreateWidgets()
   m_refresh_button = new QPushButton(tr("Refresh"));
   m_external_editor_button = new QPushButton(tr("Open in External Editor"));
 
+  if (m_read_only)
+  {
+    m_refresh_button->hide();
+    m_external_editor_button->hide();
+  }
+
   auto* button_layout = new QHBoxLayout;
   button_layout->addWidget(m_refresh_button);
   button_layout->addWidget(m_external_editor_button);
