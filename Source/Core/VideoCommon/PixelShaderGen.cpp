@@ -1501,7 +1501,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     // out.Write(", int3(0,0,0), int3(255,255,255))");
     out.Write(", int3(0,0,0))");
   else
-    out.Write(", int3(-2550,-2550,2-550), int3(2550,2550,2550))");
+    out.Write(", int3(-2550,-2550,-2550), int3(2550,2550,2550))");
   out.Write(";\n");
 
   out.Write("\t// alpha combine\n");
