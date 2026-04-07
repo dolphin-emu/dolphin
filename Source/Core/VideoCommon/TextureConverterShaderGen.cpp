@@ -161,7 +161,7 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
     out.Write("  texcol_raw &= 0x1ffu;\n");
   // Note that overflow occurs when the sum of values is >= 128, but this max situation can be hit
   // on >= 64, so we always include it.
-  // out.Write("  texcol_raw = min(texcol_raw, uint4(255, 255, 255, 255));\n");
+  out.Write("  texcol_raw = min(texcol_raw, uint4(255, 255, 255, 255));\n");
 
   if (uid_data->apply_gamma)
   {

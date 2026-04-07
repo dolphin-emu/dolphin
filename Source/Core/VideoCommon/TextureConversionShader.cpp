@@ -136,6 +136,7 @@ static void WriteSampleFunction(ShaderCode& code, const EFBCopyParams& params, A
     code.Write("  return uint4(tex_sample * 255.0);\n"
                "}}\n");
   }
+
   // The copy filter applies to both color and depth copies. This has been verified on hardware.
   // The filter is only applied to the RGB channels, the alpha channel is left intact.
   code.Write("float4 SampleEFB(float2 uv, float2 pixel_size, int x_offset)\n"
@@ -162,7 +163,7 @@ static void WriteSampleFunction(ShaderCode& code, const EFBCopyParams& params, A
     code.Write("  texcol_raw &= 0x1ffu;\n");
   // Note that overflow occurs when the sum of values is >= 128, but this max situation can be hit
   // on >= 64, so we always include it.
-  // code.Write("  texcol_raw = min(texcol_raw, uint4(255, 255, 255, 255));\n");
+  code.Write("  texcol_raw = min(texcol_raw, uint4(255, 255, 255, 255));\n");
 
   if (params.apply_gamma)
   {
