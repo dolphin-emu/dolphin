@@ -823,7 +823,7 @@ void SlippiNetplayClient::ThreadFunc()
         ActiveConnectionInfo early_conn_info;
 				early_conn_info.player_idx = match_info.remote_player_selections[early_conn_remote_idx].player_idx;
 				m_active_connections[key_strm.str()][net_event.peer] = early_conn_info;
-				INFO_LOG_FMT(SLIPPI_ONLINE, "New connection (early): {}, {}", key_strm.str().c_str(), net_event.peer->address.host);
+				INFO_LOG_FMT(SLIPPI_ONLINE, "New connection (early): {}", key_strm.str().c_str());
 
         INFO_LOG_FMT(SLIPPI_ONLINE, "[Netplay] got connect event with peer addr {}:{}",
                      net_event.peer->address.host, net_event.peer->address.port);
@@ -1064,7 +1064,7 @@ void SlippiNetplayClient::ThreadFunc()
 				ActiveConnectionInfo lateConnInfo;
 				lateConnInfo.player_idx = match_info.remote_player_selections[late_conn_remote_idx].player_idx;
 				m_active_connections[key_strm.str()][net_event.peer] = lateConnInfo;
-				INFO_LOG_FMT(SLIPPI_ONLINE, "New connection (late): {}, {}", key_strm.str().c_str(), net_event.peer->address.host);
+				INFO_LOG_FMT(SLIPPI_ONLINE, "New connection (late): {}", key_strm.str().c_str());
         break;
       }
       default:
