@@ -401,7 +401,7 @@ void TextureCacheBase::ScaleTextureCacheEntryTo(RcTcacheEntry& entry, u32 new_wi
   }
 
   const TextureConfig newconfig(new_width, new_height, 1, entry->GetNumLayers(), 1,
-                                AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget,
+                                FramebufferManager::GetEFBColorFormat(), AbstractTextureFlag_RenderTarget,
                                 AbstractTextureType::Texture_2DArray);
   std::optional<TexPoolEntry> new_texture = AllocateTexture(newconfig);
   if (!new_texture)
@@ -1846,7 +1846,7 @@ RcTcacheEntry TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height
   }
 
   // Create a new VRAM texture, and fill it with the data from guest RAM.
-  entry = AllocateCacheEntry(TextureConfig(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8,
+  entry = AllocateCacheEntry(TextureConfig(width, height, 1, 1, 1, FramebufferManager::GetEFBColorFormat(),
                                            AbstractTextureFlag_RenderTarget,
                                            AbstractTextureType::Texture_2DArray));
 
@@ -2305,7 +2305,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   {
     // create the texture
     const TextureConfig config(scaled_tex_w, scaled_tex_h, 1, g_framebuffer_manager->GetEFBLayers(),
-                               1, AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget,
+                               1, FramebufferManager::GetEFBColorFormat(),
+                               AbstractTextureFlag_RenderTarget,
                                AbstractTextureType::Texture_2DArray);
     entry = AllocateCacheEntry(config);
     if (entry)

@@ -993,7 +993,8 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
   out.Write("\tDolphinFragmentOutput frag_output;\n");
   out.Write("\tprocess_fragment(frag_input, frag_output);\n");
-  out.Write("\tivec4 prev = frag_output.main & 255;\n");
+  // out.Write("\tivec4 prev = frag_output.main & 255;\n");
+  out.Write("\tivec4 prev = frag_output.main;\n");
 
   // NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled
   // (in this case we need to write a depth value if depth test passes regardless of the alpha
@@ -1454,8 +1455,11 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   }
   out.Write("\ttevin_d = int4({}, {});\n", tev_c_input_table[cc.d], tev_a_input_table[ac.d]);
 
-  out.Write("\t// color combine\n");
-  out.Write("\t{} = clamp(", tev_c_output_table[cc.dest]);
+  out.Write("\t// color combine (unclamp)?\n");
+  if (cc.clamp)
+    out.Write("\t{} = max(", tev_c_output_table[cc.dest]);
+  else
+    out.Write("\t{} = clamp(", tev_c_output_table[cc.dest]);
   if (cc.bias != TevBias::Compare)
   {
     WriteTevRegular(out, "rgb", cc.bias, cc.op, cc.clamp, cc.scale);
@@ -1482,7 +1486,8 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
       out.Write("   tevin_d.rgb + {}", tev_rgb_comparison_gt[cc.compare_mode]);
   }
   if (cc.clamp)
-    out.Write(", int3(0,0,0), int3(255,255,255))");
+    // out.Write(", int3(0,0,0), int3(255,255,255))");
+    out.Write(", int3(0,0,0))");
   else
     out.Write(", int3(-1024,-1024,-1024), int3(1023,1023,1023))");
   out.Write(";\n");
