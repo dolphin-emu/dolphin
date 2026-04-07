@@ -122,11 +122,11 @@ AbstractTextureFormat FramebufferManager::GetEFBColorFormat()
   // - 24-bit RGB (8-bit components) with 24-bit Z
   // - 24-bit RGBA (6-bit components) with 24-bit Z
   // - Multisampled 16-bit RGB (5-6-5 format) with 16-bit Z
-  // We only use one EFB format here: 32-bit ARGB with 32-bit Z.
+  // We only use one EFB format here: 64-bit RGBA (16F) with 32-bit Z.
   // Multisampling depends on user settings.
   // The distinction becomes important for certain operations, i.e. the
   // alpha channel should be ignored if the EFB does not have one.
-  return AbstractTextureFormat::RGBA8;
+  return AbstractTextureFormat::RGBA16F;
 }
 
 AbstractTextureFormat FramebufferManager::GetEFBDepthFormat()
@@ -628,7 +628,7 @@ bool FramebufferManager::CompileReadbackPipelines()
   config.rasterization_state = RenderState::GetNoCullRasterizationState(PrimitiveType::Triangles);
   config.depth_state = RenderState::GetNoDepthTestingDepthState();
   config.blending_state = RenderState::GetNoBlendingBlendState();
-  config.framebuffer_state = RenderState::GetColorFramebufferState(GetEFBColorFormat());
+  config.framebuffer_state = RenderState::GetColorFramebufferState(AbstractTextureFormat::RGBA8);
   config.usage = AbstractPipelineUsage::Utility;
   m_efb_color_cache.copy_pipeline = g_gfx->CreatePipeline(config);
   if (!m_efb_color_cache.copy_pipeline)
@@ -702,7 +702,7 @@ bool FramebufferManager::CreateReadbackFramebuffer()
   {
     const TextureConfig color_config(IsUsingTiledEFBCache() ? m_efb_cache_tile_size : EFB_WIDTH,
                                      IsUsingTiledEFBCache() ? m_efb_cache_tile_size : EFB_HEIGHT, 1,
-                                     1, 1, GetEFBColorFormat(), AbstractTextureFlag_RenderTarget,
+                                     1, 1, AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget,
                                      AbstractTextureType::Texture_2DArray);
     m_efb_color_cache.texture = g_gfx->CreateTexture(color_config, "EFB color cache");
     if (!m_efb_color_cache.texture)
@@ -740,7 +740,7 @@ bool FramebufferManager::CreateReadbackFramebuffer()
   // Staging texture use the full EFB dimensions, as this is the buffer for the whole cache.
   m_efb_color_cache.readback_texture =
       g_gfx->CreateStagingTexture(StagingTextureType::Mutable,
-                                  TextureConfig(EFB_WIDTH, EFB_HEIGHT, 1, 1, 1, GetEFBColorFormat(),
+                                  TextureConfig(EFB_WIDTH, EFB_HEIGHT, 1, 1, 1, AbstractTextureFormat::RGBA8,
                                                 0, AbstractTextureType::Texture_2DArray));
   m_efb_depth_cache.readback_texture = g_gfx->CreateStagingTexture(
       StagingTextureType::Mutable,

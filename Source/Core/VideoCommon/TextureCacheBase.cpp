@@ -41,8 +41,7 @@
 #include "VideoCommon/Assets/TextureAssetUtils.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
-#include "VideoCommon/GraphicsModSystem/Runtime/FBInfo.h"
-#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModBackend.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -136,6 +135,31 @@ void TextureCacheBase::Invalidate()
 {
   FlushEFBCopies();
   TMEM::InvalidateAll();
+
+  if (g_ActiveConfig.bGraphicMods)
+  {
+    auto& system = Core::System::GetInstance();
+    auto& mod_manager = system.GetGraphicsModManager();
+    for (auto& tex : m_textures_by_address)
+    {
+      const auto& entry = tex.second;
+      if (entry->is_efb_copy)
+      {
+        mod_manager.GetBackend().OnTextureUnload(GraphicsModSystem::TextureType::EFB,
+                                                 entry->texture_info_name);
+      }
+      else if (entry->is_xfb_copy)
+      {
+        mod_manager.GetBackend().OnTextureUnload(GraphicsModSystem::TextureType::XFB,
+                                                 entry->texture_info_name);
+      }
+      else
+      {
+        mod_manager.GetBackend().OnTextureUnload(GraphicsModSystem::TextureType::Normal,
+                                                 entry->texture_info_name);
+      }
+    }
+  }
 
   for (auto& bind : m_bound_textures)
     bind.reset();
@@ -401,7 +425,7 @@ void TextureCacheBase::ScaleTextureCacheEntryTo(RcTcacheEntry& entry, u32 new_wi
   }
 
   const TextureConfig newconfig(new_width, new_height, 1, entry->GetNumLayers(), 1,
-                                AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget,
+                                FramebufferManager::GetEFBColorFormat(), AbstractTextureFlag_RenderTarget,
                                 AbstractTextureType::Texture_2DArray);
   std::optional<TexPoolEntry> new_texture = AllocateTexture(newconfig);
   if (!new_texture)
@@ -1282,16 +1306,21 @@ TCacheEntry* TextureCacheBase::LoadImpl(u32 stage, bool force_reload)
     return nullptr;
 
   entry->frameCount = FRAMECOUNT_INVALID;
-  if (entry->texture_info_name.empty() && g_ActiveConfig.bGraphicMods)
+  if (g_ActiveConfig.bGraphicMods)
   {
-    entry->texture_info_name = texture_info.CalculateTextureName().GetFullName();
-
-    GraphicsModActionData::TextureLoad texture_load{entry->texture_info_name};
-    for (const auto& action :
-         g_graphics_mod_manager->GetTextureLoadActions(entry->texture_info_name))
+    if (entry->texture_info_name.empty())
     {
-      action->OnTextureLoad(&texture_load);
+      entry->texture_info_name = texture_info.CalculateTextureName().GetFullName();
     }
+
+    GraphicsModSystem::TextureView texture;
+    texture.hash_name = entry->texture_info_name;
+    texture.texture_data = entry->texture.get();
+    texture.texture_type = GraphicsModSystem::TextureType::Normal;
+    texture.unit = texture_info.GetStage();
+    auto& system = Core::System::GetInstance();
+    auto& mod_manager = system.GetGraphicsModManager();
+    mod_manager.GetBackend().OnTextureLoad(texture);
   }
   m_bound_textures[texture_info.GetStage()] = entry;
 
@@ -1583,28 +1612,25 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
     }
   }
 
-  std::string texture_name = "";
-
-  if (g_ActiveConfig.bGraphicMods)
-  {
-    u32 height = texture_info.GetRawHeight();
-    u32 width = texture_info.GetRawWidth();
-    texture_name = texture_info.CalculateTextureName().GetFullName();
-    GraphicsModActionData::TextureCreate texture_create{texture_name, width, height, nullptr,
-                                                        nullptr};
-    for (const auto& action : g_graphics_mod_manager->GetTextureCreateActions(texture_name))
-    {
-      action->OnTextureCreate(&texture_create);
-    }
-  }
-
   auto entry =
       CreateTextureEntry(TextureCreationInfo{base_hash, full_hash, bytes_per_block, palette_size},
                          texture_info, textureCacheSafetyColorSampleSize, custom_texture_data.get(),
                          has_arbitrary_mipmaps, skip_texture_dump);
   entry->hires_texture = std::move(hires_texture);
   entry->last_load_time = load_time;
-  entry->texture_info_name = std::move(texture_name);
+  if (g_ActiveConfig.bGraphicMods)
+  {
+    entry->texture_info_name = texture_info.CalculateTextureName().GetFullName();
+
+    GraphicsModSystem::TextureView texture;
+    texture.hash_name = entry->texture_info_name;
+    texture.texture_data = entry->texture.get();
+    texture.texture_type = GraphicsModSystem::TextureType::Normal;
+    texture.unit = texture_info.GetStage();
+    auto& system = Core::System::GetInstance();
+    auto& mod_manager = system.GetGraphicsModManager();
+    mod_manager.GetBackend().OnTextureCreate(texture);
+  }
   return entry;
 }
 
@@ -1722,8 +1748,6 @@ RcTcacheEntry TextureCacheBase::CreateTextureEntry(
 
     for (const auto& mip_level : texture_info.GetMipMapLevels())
     {
-      if (no_mips)
-        break;
       if (!mip_level.IsDataValid())
       {
         ERROR_LOG_FMT(VIDEO, "Trying to use an invalid mipmap address {:#010x}",
@@ -1846,9 +1870,10 @@ RcTcacheEntry TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height
   }
 
   // Create a new VRAM texture, and fill it with the data from guest RAM.
-  entry = AllocateCacheEntry(TextureConfig(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8,
-                                           AbstractTextureFlag_RenderTarget,
-                                           AbstractTextureType::Texture_2DArray));
+  entry = AllocateCacheEntry(TextureConfig(width, height, 1, 1, 1,
+                                            FramebufferManager::GetEFBColorFormat(),
+                                            AbstractTextureFlag_RenderTarget,
+                                            AbstractTextureType::Texture_2DArray));
 
   entry->SetGeneralParameters(address, total_size,
                               TextureAndTLUTFormat(TextureFormat::XFB, TLUTFormat::IA8), true);
@@ -2248,36 +2273,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     return;
   }
 
-  if (g_ActiveConfig.bGraphicMods)
-  {
-    FBInfo info;
-    info.m_width = tex_w;
-    info.m_height = tex_h;
-    info.m_texture_format = baseFormat;
-    if (is_xfb_copy)
-    {
-      for (const auto& action : g_graphics_mod_manager->GetXFBActions(info))
-      {
-        action->BeforeXFB();
-      }
-    }
-    else
-    {
-      bool skip = false;
-      GraphicsModActionData::PreEFB efb{tex_w, tex_h, &skip, &scaled_tex_w, &scaled_tex_h};
-      for (const auto& action : g_graphics_mod_manager->GetEFBActions(info))
-      {
-        action->BeforeEFB(&efb);
-      }
-      if (skip == true)
-      {
-        if (copy_to_ram)
-          UninitializeEFBMemory(dst, dstStride, bytes_per_row, num_blocks_y);
-        return;
-      }
-    }
-  }
-
   if (dstStride < bytes_per_row)
   {
     // This kind of efb copy results in a scrambled image.
@@ -2305,8 +2300,9 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   {
     // create the texture
     const TextureConfig config(scaled_tex_w, scaled_tex_h, 1, g_framebuffer_manager->GetEFBLayers(),
-                               1, AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget,
-                               AbstractTextureType::Texture_2DArray);
+                                1, FramebufferManager::GetEFBColorFormat(),
+                                AbstractTextureFlag_RenderTarget,
+                                AbstractTextureType::Texture_2DArray);
     entry = AllocateCacheEntry(config);
     if (entry)
     {
@@ -2329,29 +2325,9 @@ void TextureCacheBase::CopyRenderTargetToTexture(
                           isIntensity, gamma, clamp_top, clamp_bottom,
                           GetVRAMCopyFilterCoefficients(filter_coefficients));
 
-      if (g_ActiveConfig.bGraphicMods)
-      {
-        FBInfo info;
-        info.m_width = tex_w;
-        info.m_height = tex_h;
-        info.m_texture_format = baseFormat;
-        if (!is_xfb_copy)
-        {
-          GraphicsModActionData::PostEFB efb;
-          for (const auto& action : g_graphics_mod_manager->GetEFBActions(info))
-          {
-            action->AfterEFB(&efb);
-            if (efb.material)
-            {
-              ApplyMaterialToCacheEntry(*efb.material, entry.get());
-            }
-          }
-        }
-      }
-
       if (is_xfb_copy && (g_ActiveConfig.bDumpXFBTarget || g_ActiveConfig.bGraphicMods))
       {
-        const std::string id = fmt::format("{}x{}", tex_w, tex_h);
+        const std::string id = fmt::format("n{:06}_{}x{}", xfb_count++, tex_w, tex_h);
         if (g_ActiveConfig.bGraphicMods)
         {
           entry->texture_info_name = fmt::format("{}_{}", XFB_DUMP_PREFIX, id);
@@ -2359,9 +2335,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(
 
         if (g_ActiveConfig.bDumpXFBTarget)
         {
-          entry->texture->Save(fmt::format("{}{}_n{:06}_{}.png",
-                                           File::GetUserPath(D_DUMPTEXTURES_IDX), XFB_DUMP_PREFIX,
-                                           xfb_count++, id),
+          entry->texture->Save(fmt::format("{}{}_{}.png", File::GetUserPath(D_DUMPTEXTURES_IDX),
+                                           XFB_DUMP_PREFIX, id),
                                0);
         }
       }
@@ -2381,6 +2356,23 @@ void TextureCacheBase::CopyRenderTargetToTexture(
                                            efb_count++, id),
                                0);
         }
+      }
+
+      if (g_ActiveConfig.bGraphicMods)
+      {
+        GraphicsModSystem::TextureView texture;
+        texture.hash_name = entry->texture_info_name;
+        texture.texture_data = entry->texture.get();
+        if (is_xfb_copy)
+        {
+          texture.texture_type = GraphicsModSystem::TextureType::XFB;
+        }
+        else
+        {
+          texture.texture_type = GraphicsModSystem::TextureType::EFB;
+        }
+        auto& mod_manager = system.GetGraphicsModManager();
+        mod_manager.GetBackend().OnTextureCreate(texture);
       }
     }
   }
@@ -2427,6 +2419,37 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       UninitializeEFBMemory(dst, dstStride, bytes_per_row, num_blocks_y);
     }
   }
+
+  InvalideOverlappingTextures(dstStride, dstAddr, bytes_per_row, num_blocks_y, copy_to_vram,
+                              copy_to_ram);
+
+  if (OpcodeDecoder::g_record_fifo_data)
+  {
+    // Mark the memory behind this efb copy as dynamicly generated for the Fifo log
+    u32 address = dstAddr;
+    for (u32 i = 0; i < num_blocks_y; i++)
+    {
+      Core::System::GetInstance().GetFifoRecorder().UseMemory(address, bytes_per_row,
+                                                              MemoryUpdate::Type::TextureMap, true);
+      address += dstStride;
+    }
+  }
+
+  // Even if the copy is deferred, still compute the hash. This way if the copy is used as a texture
+  // in a subsequent draw before it is flushed, it will have the same hash.
+  if (entry)
+  {
+    const u64 hash = entry->CalculateHash();
+    entry->SetHashes(hash, hash);
+    m_textures_by_address.emplace(dstAddr, std::move(entry));
+  }
+}
+
+void TextureCacheBase::InvalideOverlappingTextures(u32 dstStride, u32 dstAddr, u32 bytes_per_row,
+                                                   u32 num_blocks_y, bool copy_to_vram,
+                                                   bool copy_to_ram)
+{
+  const u32 covered_range = num_blocks_y * dstStride;
 
   // Invalidate all textures, if they are either fully overwritten by our efb copy, or if they
   // have a different stride than our efb copy. Partly overwritten textures with the same stride
@@ -2489,27 +2512,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       }
     }
     ++iter.first;
-  }
-
-  if (OpcodeDecoder::g_record_fifo_data)
-  {
-    // Mark the memory behind this efb copy as dynamically generated for the Fifo log
-    u32 address = dstAddr;
-    for (u32 i = 0; i < num_blocks_y; i++)
-    {
-      Core::System::GetInstance().GetFifoRecorder().UseMemory(address, bytes_per_row,
-                                                              MemoryUpdate::Type::TextureMap, true);
-      address += dstStride;
-    }
-  }
-
-  // Even if the copy is deferred, still compute the hash. This way if the copy is used as a texture
-  // in a subsequent draw before it is flushed, it will have the same hash.
-  if (entry)
-  {
-    const u64 hash = entry->CalculateHash();
-    entry->SetHashes(hash, hash);
-    m_textures_by_address.emplace(dstAddr, std::move(entry));
   }
 }
 
@@ -2760,6 +2762,30 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter, bool discard_pe
     return m_textures_by_address.end();
 
   RcTcacheEntry& entry = iter->second;
+
+  if (g_ActiveConfig.bGraphicMods)
+  {
+    auto& system = Core::System::GetInstance();
+    auto& mod_manager = system.GetGraphicsModManager();
+    if (entry->is_efb_copy)
+    {
+      if (entry->pending_efb_copy && discard_pending_efb_copy)
+      {
+        mod_manager.GetBackend().OnTextureUnload(GraphicsModSystem::TextureType::EFB,
+                                                 entry->texture_info_name);
+      }
+    }
+    else if (entry->is_xfb_copy)
+    {
+      mod_manager.GetBackend().OnTextureUnload(GraphicsModSystem::TextureType::XFB,
+                                               entry->texture_info_name);
+    }
+    else
+    {
+      mod_manager.GetBackend().OnTextureUnload(GraphicsModSystem::TextureType::Normal,
+                                               entry->texture_info_name);
+    }
+  }
 
   if (entry->textures_by_hash_iter != m_textures_by_hash.end())
   {
@@ -3053,110 +3079,6 @@ bool TextureCacheBase::DecodeTextureOnGPU(RcTcacheEntry& entry, u32 dst_level, c
                                            dst_level);
   entry->texture->FinishedRendering();
   return true;
-}
-
-void TextureCacheBase::ApplyMaterialToCacheEntry(const VideoCommon::MaterialResource& material,
-                                                 TCacheEntry* entry)
-{
-  const auto material_data = material.GetData();
-  if (!material_data) [[unlikely]]
-    return;
-
-  // Make a copy, we can't write to our texture and use its framebuffer
-  // at the same time
-  auto new_entry = AllocateCacheEntry(entry->texture->GetConfig());
-  new_entry->SetGeneralParameters(entry->addr, entry->size_in_bytes, entry->format,
-                                  entry->should_force_safe_hashing);
-  new_entry->SetDimensions(entry->native_width, entry->native_height, 1);
-  new_entry->SetEfbCopy(entry->memory_stride);
-  new_entry->may_have_overlapping_textures = false;
-  new_entry->frameCount = FRAMECOUNT_INVALID;
-
-  g_gfx->BeginUtilityDrawing();
-  entry->texture->FinishedRendering();
-
-  const auto custom_uniforms = material_data->GetUniforms();
-
-  // Set up uniforms.
-  // TODO: this struct should be shared with post processing
-  struct Uniforms
-  {
-    std::array<float, 4> source_resolution;
-    std::array<float, 4> target_resolution;
-    std::array<float, 4> window_resolution;
-    std::array<float, 4> source_rectangle;
-    s32 source_layer;
-    s32 source_layer_pad[3];
-    u32 time;
-    u32 time_pad[3];
-    s32 graphics_api;
-    s32 graphics_api_pad[3];
-    u32 efb_scale;
-    u32 efb_scale_pad[3];
-  } uniforms;
-
-  const float rcp_src_width = 1.0f / entry->texture->GetWidth();
-  const float rcp_src_height = 1.0f / entry->texture->GetHeight();
-
-  uniforms.source_resolution = {static_cast<float>(entry->texture->GetWidth()),
-                                static_cast<float>(entry->texture->GetHeight()), rcp_src_width,
-                                rcp_src_height};
-
-  // The target resolution is the same here, since we're
-  // injecting into the texture
-  uniforms.target_resolution = uniforms.source_resolution;
-
-  const auto present_rect = g_presenter->GetTargetRectangle();
-  uniforms.window_resolution = {static_cast<float>(present_rect.GetWidth()),
-                                static_cast<float>(present_rect.GetHeight()),
-                                1.0f / static_cast<float>(present_rect.GetWidth()),
-                                1.0f / static_cast<float>(present_rect.GetHeight())};
-
-  uniforms.source_rectangle = {0, 0, 1, 1};
-  uniforms.source_layer = 0;
-  uniforms.time = 0;
-  uniforms.graphics_api = static_cast<s32>(g_backend_info.api_type);
-  uniforms.efb_scale = g_framebuffer_manager->GetEFBScale();
-
-  Common::UniqueBuffer<u8> uniform_buffer(custom_uniforms.size() + sizeof(uniforms));
-  std::memcpy(uniform_buffer.data(), &uniforms, sizeof(uniforms));
-  std::memcpy(uniform_buffer.data() + sizeof(uniforms), custom_uniforms.data(),
-              custom_uniforms.size());
-  g_vertex_manager->UploadUtilityUniforms(uniform_buffer.data(),
-                                          static_cast<u32>(uniform_buffer.size()));
-
-  // Set framebuffer and viewport based on new entry
-  g_gfx->SetAndDiscardFramebuffer(new_entry->framebuffer.get());
-  g_gfx->SetViewportAndScissor(new_entry->framebuffer->GetRect());
-  g_gfx->SetPipeline(material_data->GetPipeline());
-
-  g_gfx->SetTexture(0, entry->texture.get());
-  g_gfx->SetSamplerState(0, RenderState::GetPointSamplerState());
-
-  for (const auto texture : material_data->GetTextures())
-  {
-    g_gfx->SetTexture(texture.sampler_index, texture.texture);
-    g_gfx->SetSamplerState(texture.sampler_index, texture.sampler);
-  }
-
-  g_gfx->Draw(0, 3);
-  g_gfx->EndUtilityDrawing();
-
-  // Finish rendering new entry
-  new_entry->texture->FinishedRendering();
-
-  // Swap new entry and existing entry
-  std::swap(entry->texture, new_entry->texture);
-  std::swap(entry->framebuffer, new_entry->framebuffer);
-
-  // Return old entry to pool for use in another pass
-  // or future functionality
-  ReleaseToPool(new_entry.get());
-
-  if (auto* const next_material = material_data->GetNextMaterial(); next_material)
-  {
-    ApplyMaterialToCacheEntry(*next_material, entry);
-  }
 }
 
 u32 TCacheEntry::BytesPerRow() const
