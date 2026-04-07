@@ -1448,10 +1448,22 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   {
     out.Write("\ttevin_a = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.a],
               tev_a_input_table[ac.a]);
-    out.Write("\ttevin_b = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.b],
-              tev_a_input_table[ac.b]);
-    out.Write("\ttevin_c = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.c],
-              tev_a_input_table[ac.c]);
+    if (cc.b == TevColorArg::PrevColor)
+      out.Write(
+          "\ttevin_b = int4(min(prev.rgb, int3(255,255,255)), {})&int4(255, 255, 255, 255);\n",
+          tev_a_input_table[ac.b]);
+    else
+      out.Write("\ttevin_b = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.b],
+                tev_a_input_table[ac.b]);
+
+    if (cc.c == TevColorArg::PrevColor)
+      out.Write(
+          "\ttevin_c = int4(min(prev.rgb, int3(255,255,255)), {})&int4(255, 255, 255, 255);\n",
+          tev_a_input_table[ac.c]);
+
+    else
+      out.Write("\ttevin_c = int4({}, {})&int4(255, 255, 255, 255);\n", tev_c_input_table[cc.c],
+                tev_a_input_table[ac.c]);
   }
   out.Write("\ttevin_d = int4({}, {});\n", tev_c_input_table[cc.d], tev_a_input_table[ac.d]);
 
@@ -1489,7 +1501,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     // out.Write(", int3(0,0,0), int3(255,255,255))");
     out.Write(", int3(0,0,0))");
   else
-    out.Write(", int3(-1024,-1024,-1024), int3(1023,1023,1023))");
+    out.Write(", int3(-2550,-2550,2-550), int3(2550,2550,2550))");
   out.Write(";\n");
 
   out.Write("\t// alpha combine\n");
