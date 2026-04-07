@@ -259,6 +259,7 @@ private:
   rc_client_t* m_client{};
   std::atomic<Core::System*> m_system{};
   std::unique_ptr<DiscIO::Volume> m_loading_volume;
+  std::atomic_bool m_session_active;
   Config::ConfigChangedCallbackID m_config_changed_callback_id;
   Badge m_default_player_badge;
   Badge m_default_game_badge;
