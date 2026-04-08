@@ -30,7 +30,6 @@ private:
   void CreateInGame();
   void AddDescriptions();
   void ConnectLayout();
-  void UpdateShowDebuggingCheckbox();
   void LoadUserStyle();
   void OnUserStyleChanged();
   void OnLanguageChanged();
@@ -45,7 +44,6 @@ private:
   QLabel* m_label_userstyle;
   ConfigBool* m_checkbox_top_window;
   ConfigBool* m_checkbox_use_builtin_title_database;
-  ToolTipCheckBox* m_checkbox_show_debugging_ui;
   ConfigBool* m_checkbox_focused_hotkeys;
   ConfigBool* m_checkbox_use_covers;
   ConfigBool* m_checkbox_disable_screensaver;
