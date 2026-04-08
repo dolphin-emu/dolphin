@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.activities.EmulationActivity
 import org.dolphinemu.dolphinemu.databinding.FragmentEmulationBinding
+import org.dolphinemu.dolphinemu.features.netplay.Netplay
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.Settings
 import org.dolphinemu.dolphinemu.overlay.InputOverlay
@@ -214,6 +215,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 if (launchSystemMenu) {
                     Log.debug("[EmulationFragment] Starting emulation thread for the Wii Menu.")
                     NativeLibrary.RunSystemMenu()
+                } else if (Netplay.isLaunching) {
+                    Log.debug("[EmulationFragment] Starting emulation thread for Netplay.")
+                    val paths = requireNotNull(gamePaths) {
+                        "Cannot start emulation without any game paths"
+                    }
+                    NativeLibrary.RunNetPlay(paths, riivolution)
                 } else {
                     Log.debug("[EmulationFragment] Starting emulation thread.")
                     val paths = requireNotNull(gamePaths) {

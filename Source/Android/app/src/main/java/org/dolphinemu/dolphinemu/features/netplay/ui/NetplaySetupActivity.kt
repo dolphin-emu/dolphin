@@ -46,7 +46,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import org.dolphinemu.dolphinemu.R
+import org.dolphinemu.dolphinemu.activities.EmulationActivity
+import org.dolphinemu.dolphinemu.features.netplay.Netplay
 import org.dolphinemu.dolphinemu.features.netplay.model.ConnectionRole
 import org.dolphinemu.dolphinemu.features.netplay.model.ConnectionType
 import org.dolphinemu.dolphinemu.features.netplay.model.NetplaySetupViewModel
@@ -63,6 +68,10 @@ class NetplaySetupActivity : AppCompatActivity(), ThemeProvider {
         ThemeHelper.setTheme(this)
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        Netplay.launchGame
+            .onEach { EmulationActivity.launch(this, it, false) }
+            .launchIn(lifecycleScope)
 
         viewModel = ViewModelProvider(this)[NetplaySetupViewModel::class.java]
 

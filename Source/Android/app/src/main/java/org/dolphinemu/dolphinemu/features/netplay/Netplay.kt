@@ -4,11 +4,22 @@
 package org.dolphinemu.dolphinemu.features.netplay
 
 import androidx.annotation.Keep
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import org.dolphinemu.dolphinemu.features.netplay.model.ConnectionType
 
 object Netplay {
     @Keep
     private var netPlayClientPointer: Long = 0
+
+    @Keep
+    private var bootSessionDataPointer: Long = 0
+
+    val isLaunching: Boolean
+        get() = bootSessionDataPointer != 0L
+
+    private val _launchGame = Channel<String>(Channel.CONFLATED)
+    val launchGame = _launchGame.receiveAsFlow()
 
     @JvmStatic
     external fun getNickname(): String
@@ -103,4 +114,10 @@ object Netplay {
 
     @JvmStatic
     private external fun Join(): Long
+
+    @JvmStatic
+    fun onBootGame(gameFilePath: String, bootSessionDataPointer: Long) {
+        this.bootSessionDataPointer = bootSessionDataPointer
+        _launchGame.trySend(gameFilePath)
+    }
 }

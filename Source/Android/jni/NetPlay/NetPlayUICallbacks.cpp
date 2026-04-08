@@ -1,8 +1,10 @@
 // Copyright 2003 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "jni/NetPlay/NetPlayUICallbacks.h"
-
+#include "UICommon/GameFile.h"
+#include "NetPlayUICallbacks.h"
+#include "Core/Boot/Boot.h"
+#include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 
 namespace NetPlay {
@@ -14,7 +16,12 @@ NetPlayUICallbacks::NetPlayUICallbacks(std::vector<std::shared_ptr<const UICommo
 
 NetPlayUICallbacks::~NetPlayUICallbacks() = default;
 
-void NetPlayUICallbacks::BootGame(const std::string&, std::unique_ptr<BootSessionData>) {}
+void NetPlayUICallbacks::BootGame(const std::string& filename, std::unique_ptr<BootSessionData> boot_session_data) {
+    JNIEnv* env = IDCache::GetEnvForThread();
+    env->CallStaticVoidMethod(IDCache::GetNetplayClass(), IDCache::GetNetplayOnBootGame(),
+                              ToJString(env, filename), reinterpret_cast<jlong>(boot_session_data.release()));
+}
+
 void NetPlayUICallbacks::StopGame() {}
 bool NetPlayUICallbacks::IsHosting() const { return false; }
 void NetPlayUICallbacks::Update() {}

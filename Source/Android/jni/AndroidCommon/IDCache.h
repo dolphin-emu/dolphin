@@ -33,6 +33,8 @@ jfieldID GetGameFileCacheManagerInstance();
 
 jclass GetNetplayClass();
 jfieldID GetNetPlayClientPointer();
+jfieldID GetNetplayBootSessionDataPointer();
+jmethodID GetNetplayOnBootGame();
 
 jclass GetPairClass();
 jmethodID GetPairConstructor();

@@ -30,7 +30,8 @@ static jfieldID s_game_file_cache_manager_instance;
 
 static jclass s_netplay_class;
 static jfieldID s_net_play_client_pointer;
-static jmethodID s_netplay_on_msg_start_game;
+static jfieldID s_netplay_boot_session_data_pointer;
+static jmethodID s_netplay_on_boot_game;
 
 static jclass s_analytics_class;
 static jmethodID s_get_analytics_value;
@@ -245,6 +246,16 @@ jclass GetNetplayClass()
 jfieldID GetNetPlayClientPointer()
 {
   return s_net_play_client_pointer;
+}
+
+jfieldID GetNetplayBootSessionDataPointer()
+{
+  return s_netplay_boot_session_data_pointer;
+}
+
+jmethodID GetNetplayOnBootGame()
+{
+  return s_netplay_on_boot_game;
 }
 
 jclass GetPairClass()
@@ -655,6 +666,8 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
       env->FindClass("org/dolphinemu/dolphinemu/features/netplay/Netplay");
   s_netplay_class = reinterpret_cast<jclass>(env->NewGlobalRef(netplay_class));
   s_net_play_client_pointer = env->GetStaticFieldID(netplay_class, "netPlayClientPointer", "J");
+  s_netplay_boot_session_data_pointer = env->GetStaticFieldID(netplay_class, "bootSessionDataPointer", "J");
+  s_netplay_on_boot_game = env->GetStaticMethodID(netplay_class, "onBootGame", "(Ljava/lang/String;J)V");
   env->DeleteLocalRef(netplay_class);
 
   const jclass analytics_class = env->FindClass("org/dolphinemu/dolphinemu/utils/Analytics");
