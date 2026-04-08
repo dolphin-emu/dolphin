@@ -5,24 +5,25 @@ package org.dolphinemu.dolphinemu.features.netplay.model
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.dolphinemu.dolphinemu.features.netplay.Netplay
 
 class NetplaySetupViewModel : ViewModel() {
     private val _connectionRole = MutableStateFlow<ConnectionRole>(ConnectionRole.Connect)
     val connectionRole = _connectionRole.asStateFlow()
 
-    private val _nickname = MutableStateFlow("")
+    private val _nickname = MutableStateFlow(Netplay.getNickname())
     val nickname = _nickname.asStateFlow()
 
-    private val _connectionType = MutableStateFlow<ConnectionType>(ConnectionType.DirectConnection)
+    private val _connectionType = MutableStateFlow(Netplay.getConnectionType())
     val connectionType = _connectionType.asStateFlow()
 
-    private val _ipAddress = MutableStateFlow("")
+    private val _ipAddress = MutableStateFlow(Netplay.getAddress())
     val ipAddress = _ipAddress.asStateFlow()
 
-    private val _hostCode = MutableStateFlow("")
+    private val _hostCode = MutableStateFlow(Netplay.getHostCode())
     val hostCode = _hostCode.asStateFlow()
 
-    private val _connectPort = MutableStateFlow(0.toString())
+    private val _connectPort = MutableStateFlow(Netplay.getConnectPort().toString())
     val connectPort = _connectPort.asStateFlow()
 
     fun setConnectionRole(connectionRole: ConnectionRole) {
@@ -54,5 +55,12 @@ class NetplaySetupViewModel : ViewModel() {
     }
 
     fun connect() {
+        Netplay.saveSetup(
+            nickname = nickname.value,
+            connectionType = connectionType.value,
+            address = ipAddress.value,
+            hostCode = hostCode.value,
+            connectPort = connectPort.value.toInt(),
+        )
     }
 }
