@@ -27,8 +27,59 @@ object Netplay {
     private val _connectionErrors = Channel<String>(Channel.BUFFERED)
     val connectionErrors = _connectionErrors.receiveAsFlow()
 
+    suspend fun join(): Boolean = withContext(Dispatchers.IO) {
+        netPlayClientPointer = Join()
+        val isConnected = netPlayClientPointer != 0L && isClientConnected()
+
+        if (!isActive) {
+            releaseNetplayClient()
+            return@withContext false
+        }
+
+        if (isConnected) {
+            return@withContext true
+        }
+
+        releaseNetplayClient()
+        false
+    }
+
+    suspend fun quit() = withContext(Dispatchers.IO) {
+        releaseNetplayClient()
+    }
+
+    private fun releaseNetplayClient() {
+        if (netPlayClientPointer != 0L) {
+            ReleaseNetplayClient()
+            netPlayClientPointer = 0
+        }
+        _launchGame.flush()
+        _connectionErrors.flush()
+    }
+
+    @JvmStatic
+    private external fun Join(): Long
+
     @JvmStatic
     external fun isClientConnected(): Boolean
+
+    @JvmStatic
+    private external fun ReleaseNetplayClient()
+
+    // NetPlayUI callbacks
+
+    @JvmStatic
+    fun onBootGame(gameFilePath: String, bootSessionDataPointer: Long) {
+        this.bootSessionDataPointer = bootSessionDataPointer
+        _launchGame.trySend(gameFilePath)
+    }
+
+    @JvmStatic
+    fun onConnectionError(message: String) {
+        _connectionErrors.trySend(message)
+    }
+
+    // Settings
 
     @JvmStatic
     external fun getNickname(): String
@@ -116,53 +167,6 @@ object Netplay {
         indexName: String,
         indexPassword: String,
     )
-
-    suspend fun join(): Boolean = withContext(Dispatchers.IO) {
-        netPlayClientPointer = Join()
-        val isConnected = netPlayClientPointer != 0L && isClientConnected()
-
-        if (!isActive) {
-            releaseNetplayClient()
-            return@withContext false
-        }
-
-        if (isConnected) {
-            return@withContext true
-        }
-
-        releaseNetplayClient()
-        false
-    }
-
-    suspend fun quit() = withContext(Dispatchers.IO) {
-        releaseNetplayClient()
-    }
-
-    private fun releaseNetplayClient() {
-        if (netPlayClientPointer != 0L) {
-            ReleaseNetplayClient()
-            netPlayClientPointer = 0
-        }
-        _launchGame.flush()
-        _connectionErrors.flush()
-    }
-
-    @JvmStatic
-    private external fun Join(): Long
-
-    @JvmStatic
-    private external fun ReleaseNetplayClient()
-
-    @JvmStatic
-    fun onBootGame(gameFilePath: String, bootSessionDataPointer: Long) {
-        this.bootSessionDataPointer = bootSessionDataPointer
-        _launchGame.trySend(gameFilePath)
-    }
-
-    @JvmStatic
-    fun onConnectionError(message: String) {
-        _connectionErrors.trySend(message)
-    }
 }
 
 private fun Channel<String>.flush() {
