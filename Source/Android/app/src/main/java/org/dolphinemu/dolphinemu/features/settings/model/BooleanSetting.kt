@@ -675,13 +675,13 @@ enum class BooleanSetting(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_ANDROID,
         "OverlayHapticsOnPress",
-        false
+        true
     ),
     MAIN_OVERLAY_HAPTICS_ON_RELEASE(
         Settings.FILE_DOLPHIN,
         Settings.SECTION_INI_ANDROID,
         "OverlayHapticsOnRelease",
-        false
+        true
     ),
     MAIN_OVERLAY_HAPTICS_JOYSTICK(
         Settings.FILE_DOLPHIN,
